@@ -1,4 +1,4 @@
-﻿#include "LuaTableToOption.hpp"
+﻿#include "LuaWrapper/LuaTableToOption.hpp"
 
 namespace LuaSTGPlus {
 	game_option read_game_option_from_index(lua_State* L, int index) {

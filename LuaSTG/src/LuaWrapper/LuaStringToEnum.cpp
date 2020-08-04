@@ -1,6 +1,6 @@
 ﻿#include <string>
 #include <unordered_map>
-#include "LuaStringToEnum.hpp"
+#include "LuaWrapper/LuaStringToEnum.hpp"
 
 using namespace Xrysnow;
 

@@ -1,8 +1,8 @@
 ﻿#include "GameObjectPool.h"
-#include "LuaStringToEnum.hpp"
 #include "AppFrame.h"
 #include "CollisionDetect.h"
-#include "LuaWrapper\LuaWrapper.hpp"
+#include "LuaWrapper/LuaWrapper.hpp"
+#include "LuaWrapper/LuaStringToEnum.hpp"
 
 #define METATABLE_OBJ "mt"
 

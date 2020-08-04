@@ -3,7 +3,7 @@
 #include "ResourceBase.hpp"
 #include "ResourceFont.hpp"
 #include "ResourceParticle.hpp"
-#include "LuaStringToEnum.hpp"
+#include "LuaWrapper/LuaStringToEnum.hpp"
 
 namespace LuaSTGPlus
 {

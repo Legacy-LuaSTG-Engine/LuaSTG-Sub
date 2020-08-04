@@ -1,5 +1,5 @@
 #include <string>
-#include "LuaCustomLoader.hpp"
+#include "LuaWrapper/LuaCustomLoader.hpp"
 #include "Global.h"
 #include "AppFrame.h"
 

@@ -4,13 +4,13 @@
 #include "AppFrame.h"
 #include "Utility.h"
 #include "SteamAPI.hpp"
+#include "E2DXInput.hpp"
+#include "ResourcePassword.hpp"
 #include "LuaWrapper/LuaWrapper.hpp"
 #include "LuaWrapper/LW_SteamAPI.h"
-#include "E2DXInput.hpp"
-#include "LuaCustomLoader.hpp"
-#include "LuaStringToEnum.hpp"
-#include "LuaInternalSource.hpp"
-#include "ResourcePassword.hpp"
+#include "LuaWrapper/LuaCustomLoader.hpp"
+#include "LuaWrapper/LuaStringToEnum.hpp"
+#include "LuaWrapper/LuaInternalSource.hpp"
 
 #include "D3D9.H"  // for SetFog
 #include "Network.h"
