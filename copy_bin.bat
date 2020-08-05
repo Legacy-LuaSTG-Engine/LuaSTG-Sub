@@ -36,4 +36,9 @@
 @del  %DIR%\bin\LuaSTG.exe
 @copy %DIR%\build\LuaSTG\%BUILDTYPE%\LuaSTG.exe               %DIR%\bin\LuaSTG.exe
 
+@del  %DIR%\bin\cjson.dll
+@del  %DIR%\bin\lfs.dll
+@copy %DIR%\prebuild\luaext\%BUILDTYPE%\cjson.dll             %DIR%\bin\cjson.dll
+@copy %DIR%\prebuild\luaext\%BUILDTYPE%\lfs.dll               %DIR%\bin\lfs.dll
+
 @endlocal
