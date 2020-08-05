@@ -73,5 +73,5 @@ target_link_libraries(LuaSTG
 )
 
 add_custom_command(TARGET LuaSTG POST_BUILD
-    COMMAND ${CMAKE_SOURCE_DIR}/copy_bin.bat
+    COMMAND ${CMAKE_SOURCE_DIR}/copy_bin.bat ${EXT_LIBRARY_TYPE}
 )

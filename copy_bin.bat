@@ -3,7 +3,8 @@
 @set DIR=%~dp0
 @mkdir %DIR%\bin
 
-@set BUILDTYPE=Debug
+@set BUILDTYPE=%1
+::@set BUILDTYPE=Debug
 ::@set BUILDTYPE=Release
 
 @del  %DIR%\bin\zlib.dll
