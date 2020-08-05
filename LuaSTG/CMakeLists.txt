@@ -43,7 +43,7 @@ target_sources(LuaSTG PRIVATE
     ${LUASTG_SRC_LW}
     ${LUASTG_RES}
     
-    ${LUASTG_RESDIR}/LuaSTG.rc
+    ${LUASTG_RESDIR}/resource.rc
     ${LUASTG_RESDIR}/app.ico
     ${LUASTG_RESDIR}/splash.png
 )

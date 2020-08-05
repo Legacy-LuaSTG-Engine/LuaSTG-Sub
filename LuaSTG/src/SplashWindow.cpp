@@ -23,7 +23,7 @@ Gdiplus::Image* SplashWindow::LoadImageFromMemory(fcData data, size_t len)
 
 Gdiplus::Image* SplashWindow::LoadImageFromResource(UINT nID, LPCTSTR sTR)
 {
-	HRSRC hRsrc = ::FindResource(GetModuleHandle(NULL), MAKEINTRESOURCE(nID), sTR);
+	HRSRC hRsrc = ::FindResourceW(GetModuleHandleW(NULL), MAKEINTRESOURCEW(nID), sTR);
 	if (!hRsrc)
 		return NULL;
 	DWORD len = SizeofResource(GetModuleHandle(NULL), hRsrc);
