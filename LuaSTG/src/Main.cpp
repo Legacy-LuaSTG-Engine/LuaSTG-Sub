@@ -13,7 +13,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 #endif
 
 	int ret = 0;
-	if (SteamAPI_Init()) {
+	if (SteamAPI::Init()) {
 		CoScope co;
 		if (co()) {
 			if (CheckRuntime()) {
@@ -49,7 +49,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 				MB_ICONERROR | MB_OK);
 			ret = -1;
 		}
-		SteamAPI_Shutdown();
+		SteamAPI::Shutdown();
 	}
 	else {
 		ret = 1;
