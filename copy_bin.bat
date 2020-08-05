@@ -1,38 +1,38 @@
-@cd /d %~dp0
 @setlocal
 
-@mkdir bin
+@set DIR=%~dp0
+@mkdir %DIR%\bin
 
 @set BUILDTYPE=Debug
 ::@set BUILDTYPE=Release
 
-@del bin\zlib.dll
-@copy prebuild\zlib\lib\%BUILDTYPE%\zlib.dll bin\zlib.dll
+@del  %DIR%\bin\zlib.dll
+@copy %DIR%\prebuild\zlib\lib\%BUILDTYPE%\zlib.dll            %DIR%\bin\zlib.dll
 
-@del bin\zip.dll
-@copy prebuild\libzip\lib\%BUILDTYPE%\zip.dll bin\zip.dll
+@del  %DIR%\bin\zip.dll
+@copy %DIR%\prebuild\libzip\lib\%BUILDTYPE%\zip.dll           %DIR%\bin\zip.dll
 
-@del bin\ogg.dll
-@copy prebuild\libogg\lib\%BUILDTYPE%\ogg.dll bin\ogg.dll
+@del  %DIR%\bin\ogg.dll
+@copy %DIR%\prebuild\libogg\lib\%BUILDTYPE%\ogg.dll           %DIR%\bin\ogg.dll
 
-@del bin\vorbis.dll
-@del bin\vorbisfile.dll
-@copy prebuild\libvorbis\lib\%BUILDTYPE%\vorbis.dll     bin\vorbis.dll
-@copy prebuild\libvorbis\lib\%BUILDTYPE%\vorbisfile.dll bin\vorbisfile.dll
+@del  %DIR%\bin\vorbis.dll
+@del  %DIR%\bin\vorbisfile.dll
+@copy %DIR%\prebuild\libvorbis\lib\%BUILDTYPE%\vorbis.dll     %DIR%\bin\vorbis.dll
+@copy %DIR%\prebuild\libvorbis\lib\%BUILDTYPE%\vorbisfile.dll %DIR%\bin\vorbisfile.dll
 
-@del bin\freetype.dll
-@copy prebuild\freetype\lib\%BUILDTYPE%\freetype.dll bin\freetype.dll
+@del  %DIR%\bin\freetype.dll
+@copy %DIR%\prebuild\freetype\lib\%BUILDTYPE%\freetype.dll    %DIR%\bin\freetype.dll
 
-@del bin\fancy2d.dll
-@copy build\fancy2d\%BUILDTYPE%\fancy2d.dll bin\fancy2d.dll
+@del  %DIR%\bin\fancy2d.dll
+@copy %DIR%\build\fancy2d\%BUILDTYPE%\fancy2d.dll             %DIR%\bin\fancy2d.dll
 
-@del bin\eyes2d.dll
-@copy build\eyes2d\%BUILDTYPE%\eyes2d.dll bin\eyes2d.dll
+@del  %DIR%\\eyes2d.dll
+@copy %DIR%\build\eyes2d\%BUILDTYPE%\eyes2d.dll               %DIR%\bin\eyes2d.dll
 
-@del bin\lua51.dll
-@copy prebuild\luajit\lib\%BUILDTYPE%\lua51.dll bin\lua51.dll
+@del  %DIR%\bin\lua51.dll
+@copy %DIR%\prebuild\luajit\lib\%BUILDTYPE%\lua51.dll         %DIR%\bin\lua51.dll
 
-@del bin\LuaSTG.exe
-@copy build\LuaSTG\%BUILDTYPE%\LuaSTG.exe bin\LuaSTG.exe
+@del  %DIR%\bin\LuaSTG.exe
+@copy %DIR%\build\LuaSTG\%BUILDTYPE%\LuaSTG.exe               %DIR%\bin\LuaSTG.exe
 
 @endlocal

@@ -1,4 +1,4 @@
-#include "Renderer/f2dFontRendererImpl.h"
+ï»¿#include "Renderer/f2dFontRendererImpl.h"
 
 #include "fcyException.h"
 
@@ -160,7 +160,7 @@ fcyRect f2dFontRendererImpl::MeasureString(fcStrW String, bool bStrictWidth)
 		if(String[i] == L'\n')
 		{
 			tStartPos.x = 0;
-			tStartPos.y += m_pProvider->GetLineHeight();
+			tStartPos.y -= m_pProvider->GetLineHeight(); // å¯¹äºyè½´å‘ä¸Šçš„åæ ‡ç³»ï¼Œè¿™é‡Œåº”è¯¥æ˜¯å‘ä¸‹æ¢è¡Œ
 		}
 		else
 		{
@@ -244,7 +244,7 @@ fResult f2dFontRendererImpl::DrawTextW(f2dGraphics2D* pGraph, fcStrW Text, fuInt
 	if(!m_pProvider || !pGraph || !pGraph->IsInRender())
 		return FCYERR_ILLEGAL;
 
-	// --- ×¼±¸¶¥µã ---
+	// --- å‡†å¤‡é¡¶ç‚¹ ---
 	f2dGraphics2DVertex tVerts[4] = 
 	{
 		{ 0.f, 0.f, m_ZValue, m_BlendColor[0].argb, 0.f, 0.f },
@@ -253,15 +253,15 @@ fResult f2dFontRendererImpl::DrawTextW(f2dGraphics2D* pGraph, fcStrW Text, fuInt
 		{ 0.f, 0.f, m_ZValue, m_BlendColor[3].argb, 0.f, 0.f }
 	};
 
-	// --- ¼ÆËãĞèÒª»æÖÆµÄÊıÁ¿ ---
-	fuInt tCount = wcslen(Text);                    // ×Ö·ûÊıÁ¿
+	// --- è®¡ç®—éœ€è¦ç»˜åˆ¶çš„æ•°é‡ ---
+	fuInt tCount = wcslen(Text);                    // å­—ç¬¦æ•°é‡
 	if(Count != -1)
 		tCount = tCount < Count ? tCount : Count;
 
-	fcyVec2 tPos = StartPos;  // ±Ê´¥Î»ÖÃ
-	float tHeight = m_pProvider->GetLineHeight() * m_Scale.y;  // ĞĞ¸ß
+	fcyVec2 tPos = StartPos;  // ç¬”è§¦ä½ç½®
+	float tHeight = m_pProvider->GetLineHeight() * m_Scale.y;  // è¡Œé«˜
 
-	// --- »æÖÆÃ¿Ò»¸ö×Ö·û ---
+	// --- ç»˜åˆ¶æ¯ä¸€ä¸ªå­—ç¬¦ ---
 	f2dTexture2D* pTex = m_pProvider->GetCacheTexture();
 	if(!pTex)
 		return FCYERR_INTERNALERR;
@@ -269,7 +269,7 @@ fResult f2dFontRendererImpl::DrawTextW(f2dGraphics2D* pGraph, fcStrW Text, fuInt
 	f2dGlyphInfo tInfo;
 	for(fuInt i = 0; i<tCount; ++i)
 	{
-		// »»ĞĞ´¦Àí
+		// æ¢è¡Œå¤„ç†
 		if(Text[i] == L'\n')
 		{
 			tPos.x = StartPos.x;
@@ -277,7 +277,7 @@ fResult f2dFontRendererImpl::DrawTextW(f2dGraphics2D* pGraph, fcStrW Text, fuInt
 			continue;
 		}
 
-		// È¡³öÎÄ×Ö
+		// å–å‡ºæ–‡å­—
 		if(FCYOK(m_pProvider->QueryGlyph(pGraph, Text[i], &tInfo)))
 		{
 			tInfo.Advance.x *= m_Scale.x;
@@ -295,10 +295,10 @@ fResult f2dFontRendererImpl::DrawTextW(f2dGraphics2D* pGraph, fcStrW Text, fuInt
 
 			if(tDraw)
 			{
-				// ¿½±´ÌùÍ¼uvĞÅÏ¢²¢½øĞĞ·­×ª´¦Àí
+				// æ‹·è´è´´å›¾uvä¿¡æ¯å¹¶è¿›è¡Œç¿»è½¬å¤„ç†
 				copyAndFlipUV(tInfo, tVerts);
 
-				// ¼ÆËãÎ»ÖÃ¾ØĞÎ
+				// è®¡ç®—ä½ç½®çŸ©å½¢
 				tVerts[0].x = tPos.x - tInfo.BrushPos.x;
 				tVerts[0].y = tPos.y - tInfo.BrushPos.y;
 				tVerts[1].x = tVerts[0].x + tInfo.GlyphSize.x;
@@ -311,16 +311,16 @@ fResult f2dFontRendererImpl::DrawTextW(f2dGraphics2D* pGraph, fcStrW Text, fuInt
 				if(m_pListener)
 					m_pListener->OnGlyphCalcuCoord(tVerts);
 
-				// »æÍ¼
+				// ç»˜å›¾
 				pGraph->DrawQuad(pTex, tVerts);
 			}
 
-			// ±Ê´¥Î»ÖÃºóÒÆ
+			// ç¬”è§¦ä½ç½®åç§»
 			tPos += tInfo.Advance;
 		}
 	}
 
-	// ·µ»ØĞÂµÄÎ»ÖÃ
+	// è¿”å›æ–°çš„ä½ç½®
 	if(PosOut)
 		*PosOut = tPos;
 
@@ -332,7 +332,7 @@ fResult f2dFontRendererImpl::DrawTextW(f2dGraphics2D* pGraph, fcStrW Text, fuInt
 	if (!m_pProvider || !pGraph || !pGraph->IsInRender())
 		return FCYERR_ILLEGAL;
 
-	// --- ×¼±¸¶¥µã ---
+	// --- å‡†å¤‡é¡¶ç‚¹ ---
 	f2dGraphics2DVertex tVerts[4] = 
 	{
 		{ 0.f, 0.f, m_ZValue, m_BlendColor[0].argb, 0.f, 0.f },
@@ -341,18 +341,18 @@ fResult f2dFontRendererImpl::DrawTextW(f2dGraphics2D* pGraph, fcStrW Text, fuInt
 		{ 0.f, 0.f, m_ZValue, m_BlendColor[3].argb, 0.f, 0.f }
 	};
 
-	// --- ¼ÆËãĞèÒª»æÖÆµÄÊıÁ¿ ---
-	fuInt tCount = wcslen(Text);                    // ×Ö·ûÊıÁ¿
+	// --- è®¡ç®—éœ€è¦ç»˜åˆ¶çš„æ•°é‡ ---
+	fuInt tCount = wcslen(Text);                    // å­—ç¬¦æ•°é‡
 	if(Count != -1)
 		tCount = tCount < Count ? tCount : Count;
 
-	fcyVec2 tPos = StartPos;  // ±Ê´¥Î»ÖÃ
-	float tHeight = m_pProvider->GetLineHeight() * m_Scale.y;  // ĞĞ¸ß
+	fcyVec2 tPos = StartPos;  // ç¬”è§¦ä½ç½®
+	float tHeight = m_pProvider->GetLineHeight() * m_Scale.y;  // è¡Œé«˜
 
-	// Bias¼ÆËã
+	// Biasè®¡ç®—
 	Bias = tan(Bias);
 
-	// --- »æÖÆÃ¿Ò»¸ö×Ö·û ---
+	// --- ç»˜åˆ¶æ¯ä¸€ä¸ªå­—ç¬¦ ---
 	f2dTexture2D* pTex = m_pProvider->GetCacheTexture();
 	if(!pTex)
 		return FCYERR_INTERNALERR;
@@ -360,7 +360,7 @@ fResult f2dFontRendererImpl::DrawTextW(f2dGraphics2D* pGraph, fcStrW Text, fuInt
 	f2dGlyphInfo tInfo;
 	for(fuInt i = 0; i<tCount; ++i)
 	{
-		// »»ĞĞ´¦Àí
+		// æ¢è¡Œå¤„ç†
 		if(Text[i] == L'\n')
 		{
 			tPos.x = StartPos.x;
@@ -368,7 +368,7 @@ fResult f2dFontRendererImpl::DrawTextW(f2dGraphics2D* pGraph, fcStrW Text, fuInt
 			continue;
 		}
 
-		// È¡³öÎÄ×Ö
+		// å–å‡ºæ–‡å­—
 		if(FCYOK(m_pProvider->QueryGlyph(pGraph, Text[i], &tInfo)))
 		{
 			tInfo.Advance.x *= m_Scale.x;
@@ -386,10 +386,10 @@ fResult f2dFontRendererImpl::DrawTextW(f2dGraphics2D* pGraph, fcStrW Text, fuInt
 
 			if(tDraw)
 			{
-				// ¿½±´ÌùÍ¼uvĞÅÏ¢²¢½øĞĞ·­×ª´¦Àí
+				// æ‹·è´è´´å›¾uvä¿¡æ¯å¹¶è¿›è¡Œç¿»è½¬å¤„ç†
 				copyAndFlipUV(tInfo, tVerts);
 
-				// ¼ÆËãÎ»ÖÃ¾ØĞÎ
+				// è®¡ç®—ä½ç½®çŸ©å½¢
 				float tBias = Bias * tInfo.GlyphSize.y;
 
 				tVerts[0].x = tPos.x - tInfo.BrushPos.x;
@@ -407,16 +407,16 @@ fResult f2dFontRendererImpl::DrawTextW(f2dGraphics2D* pGraph, fcStrW Text, fuInt
 				if(m_pListener)
 					m_pListener->OnGlyphCalcuCoord(tVerts);
 
-				// »æÍ¼
+				// ç»˜å›¾
 				pGraph->DrawQuad(pTex, tVerts);
 			}
 
-			// ±Ê´¥Î»ÖÃºóÒÆ
+			// ç¬”è§¦ä½ç½®åç§»
 			tPos += tInfo.Advance;
 		}
 	}
 
-	// ·µ»ØĞÂµÄÎ»ÖÃ
+	// è¿”å›æ–°çš„ä½ç½®
 	if(PosOut)
 		*PosOut = tPos;
 
@@ -433,7 +433,7 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 	if (!m_pProvider || !pGraph || !pGraph->IsInRender())
 		return FCYERR_ILLEGAL;
 
-	// --- ×¼±¸¶¥µã ---
+	// --- å‡†å¤‡é¡¶ç‚¹ ---
 	f2dGraphics2DVertex tVerts[4] =
 	{
 		{ 0.f, 0.f, m_ZValue, m_BlendColor[0].argb, 0.f, 0.f },
@@ -442,15 +442,15 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 		{ 0.f, 0.f, m_ZValue, m_BlendColor[3].argb, 0.f, 0.f }
 	};
 
-	// --- ¼ÆËãĞèÒª»æÖÆµÄÊıÁ¿ ---
-	fuInt tCount = wcslen(Text);                    // ×Ö·ûÊıÁ¿
+	// --- è®¡ç®—éœ€è¦ç»˜åˆ¶çš„æ•°é‡ ---
+	fuInt tCount = wcslen(Text);                    // å­—ç¬¦æ•°é‡
 	if (Count != -1)
 		tCount = tCount < Count ? tCount : Count;
 
-	fcyVec2 tPos = StartPos;  // ±Ê´¥Î»ÖÃ
-	float tHeight = m_pProvider->GetLineHeight() * m_Scale.y;  // ĞĞ¸ß
+	fcyVec2 tPos = StartPos;  // ç¬”è§¦ä½ç½®
+	float tHeight = m_pProvider->GetLineHeight() * m_Scale.y;  // è¡Œé«˜
 
-	// --- »æÖÆÃ¿Ò»¸ö×Ö·û ---
+	// --- ç»˜åˆ¶æ¯ä¸€ä¸ªå­—ç¬¦ ---
 	f2dTexture2D* pTex = m_pProvider->GetCacheTexture();
 	if (!pTex)
 		return FCYERR_INTERNALERR;
@@ -458,7 +458,7 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 	f2dGlyphInfo tInfo;
 	for (fuInt i = 0; i<tCount; ++i)
 	{
-		// »»ĞĞ´¦Àí
+		// æ¢è¡Œå¤„ç†
 		if (Text[i] == L'\n')
 		{
 			tPos.x = StartPos.x;
@@ -466,7 +466,7 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 			continue;
 		}
 
-		// È¡³öÎÄ×Ö
+		// å–å‡ºæ–‡å­—
 		if (FCYOK(m_pProvider->QueryGlyph(pGraph, Text[i], &tInfo)))
 		{
 			tInfo.Advance.x *= m_Scale.x;
@@ -484,10 +484,10 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 
 			if (tDraw)
 			{
-				// ¿½±´ÌùÍ¼uvĞÅÏ¢²¢½øĞĞ·­×ª´¦Àí
+				// æ‹·è´è´´å›¾uvä¿¡æ¯å¹¶è¿›è¡Œç¿»è½¬å¤„ç†
 				copyAndFlipUV(tInfo, tVerts);
 
-				// ¼ÆËãÎ»ÖÃ¾ØĞÎ
+				// è®¡ç®—ä½ç½®çŸ©å½¢
 				tVerts[0].x = tPos.x - tInfo.BrushPos.x;
 				tVerts[0].y = tPos.y - tInfo.BrushPos.y;
 				tVerts[1].x = tVerts[0].x + tInfo.GlyphSize.x;
@@ -500,16 +500,16 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 				if (m_pListener)
 					m_pListener->OnGlyphCalcuCoord(tVerts);
 
-				// »æÍ¼
+				// ç»˜å›¾
 				pGraph->DrawQuad(pTex, tVerts);
 			}
 
-			// ±Ê´¥Î»ÖÃºóÒÆ
+			// ç¬”è§¦ä½ç½®åç§»
 			tPos += tInfo.Advance;
 		}
 	}
 
-	// ·µ»ØĞÂµÄÎ»ÖÃ
+	// è¿”å›æ–°çš„ä½ç½®
 	if (PosOut)
 		*PosOut = tPos;
 
@@ -521,7 +521,7 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 	if (!m_pProvider || !pGraph || !pGraph->IsInRender())
 		return FCYERR_ILLEGAL;
 
-	// --- ×¼±¸¶¥µã ---
+	// --- å‡†å¤‡é¡¶ç‚¹ ---
 	f2dGraphics2DVertex tVerts[4] =
 	{
 		{ 0.f, 0.f, m_ZValue, m_BlendColor[0].argb, 0.f, 0.f },
@@ -530,18 +530,18 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 		{ 0.f, 0.f, m_ZValue, m_BlendColor[3].argb, 0.f, 0.f }
 	};
 
-	// --- ¼ÆËãĞèÒª»æÖÆµÄÊıÁ¿ ---
-	fuInt tCount = wcslen(Text);                    // ×Ö·ûÊıÁ¿
+	// --- è®¡ç®—éœ€è¦ç»˜åˆ¶çš„æ•°é‡ ---
+	fuInt tCount = wcslen(Text);                    // å­—ç¬¦æ•°é‡
 	if (Count != -1)
 		tCount = tCount < Count ? tCount : Count;
 
-	fcyVec2 tPos = StartPos;  // ±Ê´¥Î»ÖÃ
-	float tHeight = m_pProvider->GetLineHeight() * m_Scale.y;  // ĞĞ¸ß
+	fcyVec2 tPos = StartPos;  // ç¬”è§¦ä½ç½®
+	float tHeight = m_pProvider->GetLineHeight() * m_Scale.y;  // è¡Œé«˜
 
-	// Bias¼ÆËã
+	// Biasè®¡ç®—
 	Bias = tan(Bias);
 
-	// --- »æÖÆÃ¿Ò»¸ö×Ö·û ---
+	// --- ç»˜åˆ¶æ¯ä¸€ä¸ªå­—ç¬¦ ---
 	f2dTexture2D* pTex = m_pProvider->GetCacheTexture();
 	if (!pTex)
 		return FCYERR_INTERNALERR;
@@ -549,7 +549,7 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 	f2dGlyphInfo tInfo;
 	for (fuInt i = 0; i<tCount; ++i)
 	{
-		// »»ĞĞ´¦Àí
+		// æ¢è¡Œå¤„ç†
 		if (Text[i] == L'\n')
 		{
 			tPos.x = StartPos.x;
@@ -557,7 +557,7 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 			continue;
 		}
 
-		// È¡³öÎÄ×Ö
+		// å–å‡ºæ–‡å­—
 		if (FCYOK(m_pProvider->QueryGlyph(pGraph, Text[i], &tInfo)))
 		{
 			tInfo.Advance.x *= m_Scale.x;
@@ -575,10 +575,10 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 
 			if (tDraw)
 			{
-				// ¿½±´ÌùÍ¼uvĞÅÏ¢²¢½øĞĞ·­×ª´¦Àí
+				// æ‹·è´è´´å›¾uvä¿¡æ¯å¹¶è¿›è¡Œç¿»è½¬å¤„ç†
 				copyAndFlipUV(tInfo, tVerts);
 
-				// ¼ÆËãÎ»ÖÃ¾ØĞÎ
+				// è®¡ç®—ä½ç½®çŸ©å½¢
 				float tBias = Bias * tInfo.GlyphSize.y;
 
 				tVerts[0].x = tPos.x - tInfo.BrushPos.x;
@@ -596,16 +596,16 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 				if (m_pListener)
 					m_pListener->OnGlyphCalcuCoord(tVerts);
 
-				// »æÍ¼
+				// ç»˜å›¾
 				pGraph->DrawQuad(pTex, tVerts);
 			}
 
-			// ±Ê´¥Î»ÖÃºóÒÆ
+			// ç¬”è§¦ä½ç½®åç§»
 			tPos += tInfo.Advance;
 		}
 	}
 
-	// ·µ»ØĞÂµÄÎ»ÖÃ
+	// è¿”å›æ–°çš„ä½ç½®
 	if (PosOut)
 		*PosOut = tPos;
 

@@ -1,13 +1,13 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dFontRendererImpl.h
-/// @brief fancy2D ×ÖÌåäÖÈ¾Æ÷
+/// @brief fancy2D å­—ä½“æ¸²æŸ“å™¨
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyRefObj.h"
 #include "f2dRenderer.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ×ÖÌåäÖÈ¾Æ÷ÊµÏÖ
+/// @brief å­—ä½“æ¸²æŸ“å™¨å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 class f2dFontRendererImpl :
 	public fcyRefObjImpl<f2dFontRenderer>
@@ -22,9 +22,9 @@ protected:
 	fFloat m_ZValue;
 	fcyVec2 m_Scale;
 protected:
-	// ¸´ÖÆUV²¢·­×ª
+	// å¤åˆ¶UVå¹¶ç¿»è½¬
 	void copyAndFlipUV(const f2dGlyphInfo& Info, f2dGraphics2DVertex DestArr[]);
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	f2dFontRendererListener* GetListener();
 	void SetListener(f2dFontRendererListener* pListener);
 

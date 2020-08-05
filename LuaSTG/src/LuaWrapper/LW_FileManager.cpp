@@ -302,14 +302,17 @@ void FileManagerWrapper::Register(lua_State* L)LNOEXCEPT {
 		}
 		static int DrawText(lua_State* L) {
 			fcyColor color = *static_cast<fcyColor*>(luaL_checkudata(L, 6, LUASTG_LUA_TYPENAME_COLOR));
+			fcyVec2 pos = fcyVec2((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3));
 			const bool ret = LAPP.FontRenderer_DrawTextW2(
 				luaL_checkstring(L, 1),
-				fcyVec2((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3)),
+				pos,
 				(float)luaL_checknumber(L, 4),
 				TranslateBlendMode(L, 5),
 				color);
 			lua_pushboolean(L, ret);
-			return 1;
+			lua_pushnumber(L, (lua_Number)pos.x);
+			lua_pushnumber(L, (lua_Number)pos.y);
+			return 3;
 		}
 	};
 
