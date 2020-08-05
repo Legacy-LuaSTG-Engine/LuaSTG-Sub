@@ -149,7 +149,7 @@ fcyRect f2dFontRendererImpl::MeasureString(fcStrW String, bool bStrictWidth)
 		return fcyRect();
 
 	fcyVec2 tStartPos;
-	fcyRect tBoundBox(2048.f, 2048.f, 0.f, 0.f);
+	fcyRect tBoundBox(0.f, 0.f, 0.f, 0.f);
 	bool tMeasureable = false;
 
 	fuInt tCount = wcslen(String);
@@ -168,27 +168,28 @@ fcyRect f2dFontRendererImpl::MeasureString(fcStrW String, bool bStrictWidth)
 			{
 				tMeasureable = true;
 
-				float tTop = tStartPos.y - tInfo.BrushPos.y;
-				float tBottom = tStartPos.y + (tInfo.GlyphSize.y - tInfo.BrushPos.y);
-				float tLeft = tStartPos.x - tInfo.BrushPos.x;
-				float tWidth;
+				float tTop = tStartPos.y + tInfo.BrushPos.y;
+				float tBottom = tTop - tInfo.GlyphSize.y;
+				float tLeft = tStartPos.x + tInfo.BrushPos.x;
+				float tRight = tStartPos.x;
 				if (bStrictWidth)
 				{
-					tWidth = tInfo.GlyphSize.x - tInfo.BrushPos.x;
-					if (i + 1 < tCount && String[i + 1] != L'\n')
+					if (((i + 1) < tCount) && (String[i + 1] != L'\n'))
 					{
-						if (tWidth < tInfo.Advance.x)
-							tWidth = tInfo.Advance.x;
+						tRight = tStartPos.x + tInfo.Advance.x; // 前进大小
+					}
+					else {
+						tRight = tLeft + tInfo.GlyphSize.x; // 有换行，只能用字形本身的大小
 					}
 				}
-				else
-					tWidth = tInfo.Advance.x - tInfo.BrushPos.x;
-				float tRight = tStartPos.x + tWidth;
+				else {
+					tRight = tStartPos.x + tInfo.Advance.x; // 前进大小
+				}
 
 				tBoundBox.a.x = FCYMIN(tBoundBox.a.x, tLeft);
 				tBoundBox.b.x = FCYMAX(tBoundBox.b.x, tRight);
-				tBoundBox.a.y = FCYMIN(tBoundBox.a.y, tTop);
-				tBoundBox.b.y = FCYMAX(tBoundBox.b.y, tBottom);
+				tBoundBox.a.y = FCYMAX(tBoundBox.a.y, tTop);
+				tBoundBox.b.y = FCYMIN(tBoundBox.b.y, tBottom);
 
 				tStartPos += tInfo.Advance;
 			}
@@ -197,8 +198,10 @@ fcyRect f2dFontRendererImpl::MeasureString(fcStrW String, bool bStrictWidth)
 
 	if (tMeasureable)
 	{
-		tBoundBox.b.x = tBoundBox.a.x + tBoundBox.GetWidth() * m_Scale.x;
-		tBoundBox.b.y = tBoundBox.a.y + tBoundBox.GetHeight() * m_Scale.y;
+		tBoundBox.a.x *= m_Scale.x;
+		tBoundBox.a.y *= m_Scale.y;
+		tBoundBox.b.x *= m_Scale.x;
+		tBoundBox.b.y *= m_Scale.y;
 		return tBoundBox;
 	}
 	else
@@ -211,27 +214,32 @@ fFloat f2dFontRendererImpl::MeasureStringWidth(fcStrW String)
 		return 0.f;
 
 	fcyVec2 tStartPos;
+	fFloat tLen = 0.0f;
 	
 	fuInt tCount = wcslen(String);
 
 	f2dGlyphInfo tInfo;
 	for(fuInt i = 0; i < tCount; ++i)
 	{
-		if(String[i] == L'\n')
-			tStartPos.x = 0;
+		if(String[i] == L'\n') {
+			tStartPos.x = 0.0f;
+		}
 		else
 		{
 			if (FCYOK(m_pProvider->QueryGlyph(NULL, String[i], &tInfo)))
 			{
-				if (i + 1 < tCount && String[i + 1] != L'\n')
+				if (i + 1 < tCount && String[i + 1] != L'\n') {
 					tStartPos.x += tInfo.Advance.x;
-				else
+				}
+				else {
 					tStartPos.x += tInfo.GlyphSize.x;
+					tLen = FCYMAX(tLen, tStartPos.x * m_Scale.x);
+				}
 			}
 		}
 	}
 
-	return tStartPos.x * m_Scale.x;
+	return tLen;
 }
 
 fResult f2dFontRendererImpl::DrawTextW(f2dGraphics2D* pGraph, fcStrW Text, const fcyVec2& StartPos)
@@ -462,7 +470,7 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 		if (Text[i] == L'\n')
 		{
 			tPos.x = StartPos.x;
-			tPos.y -= tHeight;
+			tPos.y -= tHeight; // 向下换行
 			continue;
 		}
 
@@ -470,11 +478,11 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 		if (FCYOK(m_pProvider->QueryGlyph(pGraph, Text[i], &tInfo)))
 		{
 			tInfo.Advance.x *= m_Scale.x;
-			tInfo.Advance.y *= -m_Scale.y;
+			tInfo.Advance.y *= m_Scale.y;
 			tInfo.BrushPos.x *= m_Scale.x;
-			tInfo.BrushPos.y *= -m_Scale.y;
+			tInfo.BrushPos.y *= m_Scale.y;
 			tInfo.GlyphSize.x *= m_Scale.x;
-			tInfo.GlyphSize.y *= -m_Scale.y;
+			tInfo.GlyphSize.y *= m_Scale.y;
 
 			fBool tDraw;
 			if (m_pListener)
@@ -488,12 +496,12 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 				copyAndFlipUV(tInfo, tVerts);
 
 				// 计算位置矩形
-				tVerts[0].x = tPos.x - tInfo.BrushPos.x;
-				tVerts[0].y = tPos.y - tInfo.BrushPos.y;
+				tVerts[0].x = tPos.x + tInfo.BrushPos.x;
+				tVerts[0].y = tPos.y + tInfo.BrushPos.y;
 				tVerts[1].x = tVerts[0].x + tInfo.GlyphSize.x;
 				tVerts[1].y = tVerts[0].y;
 				tVerts[2].x = tVerts[0].x + tInfo.GlyphSize.x;
-				tVerts[2].y = tVerts[0].y + tInfo.GlyphSize.y;
+				tVerts[2].y = tVerts[0].y - tInfo.GlyphSize.y;
 				tVerts[3].x = tVerts[0].x;
 				tVerts[3].y = tVerts[2].y;
 
@@ -553,7 +561,7 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 		if (Text[i] == L'\n')
 		{
 			tPos.x = StartPos.x;
-			tPos.y -= tHeight;
+			tPos.y -= tHeight; // 向下换行
 			continue;
 		}
 
@@ -561,11 +569,11 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 		if (FCYOK(m_pProvider->QueryGlyph(pGraph, Text[i], &tInfo)))
 		{
 			tInfo.Advance.x *= m_Scale.x;
-			tInfo.Advance.y *= -m_Scale.y;
+			tInfo.Advance.y *= m_Scale.y;
 			tInfo.BrushPos.x *= m_Scale.x;
-			tInfo.BrushPos.y *= -m_Scale.y;
+			tInfo.BrushPos.y *= m_Scale.y;
 			tInfo.GlyphSize.x *= m_Scale.x;
-			tInfo.GlyphSize.y *= -m_Scale.y;
+			tInfo.GlyphSize.y *= m_Scale.y;
 
 			fBool tDraw;
 			if (m_pListener)
@@ -581,12 +589,12 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 				// 计算位置矩形
 				float tBias = Bias * tInfo.GlyphSize.y;
 
-				tVerts[0].x = tPos.x - tInfo.BrushPos.x;
-				tVerts[0].y = tPos.y - tInfo.BrushPos.y;
+				tVerts[0].x = tPos.x + tInfo.BrushPos.x;
+				tVerts[0].y = tPos.y + tInfo.BrushPos.y;
 				tVerts[1].x = tVerts[0].x + tInfo.GlyphSize.x;
 				tVerts[1].y = tVerts[0].y;
 				tVerts[2].x = tVerts[0].x + tInfo.GlyphSize.x;
-				tVerts[2].y = tVerts[0].y + tInfo.GlyphSize.y;
+				tVerts[2].y = tVerts[0].y - tInfo.GlyphSize.y;
 				tVerts[3].x = tVerts[0].x;
 				tVerts[3].y = tVerts[2].y;
 

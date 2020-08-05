@@ -42,7 +42,7 @@ namespace LuaSTGPlus {
 		return m_FontRenderer->MeasureStringWidth(g_wbuffer.c_str());
 	}
 
-	bool AppFrame::FontRenderer_DrawTextW2(const char* str, const fcyVec2& pos, const float z, const BlendMode blend, const fcyColor& color) {
+	bool AppFrame::FontRenderer_DrawTextW2(const char* str, fcyVec2& pos, const float z, const BlendMode blend, const fcyColor& color) {
 		if (m_GraphType != GraphicsType::Graph2D) {
 			LERROR("DrawText: 只有2D渲染器可以执行该方法");
 			return false;
@@ -61,7 +61,7 @@ namespace LuaSTGPlus {
 		updateGraph2DBlendMode(blend);
 		m_FontRenderer->SetColor(color);
 
-		const bool result = FCYERR_OK == m_FontRenderer->DrawTextW2(m_Graph2D, g_wbuffer.c_str(), pos);
+		const bool result = FCYERR_OK == m_FontRenderer->DrawTextW2(m_Graph2D, g_wbuffer.c_str(), g_wbuffer.length(), pos, &pos);
 
 		m_FontRenderer->SetZ(lastz);
 		return result;

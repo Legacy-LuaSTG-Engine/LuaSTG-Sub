@@ -233,7 +233,7 @@ f2dGlyphInfo f2dFontFileProvider::getGlyphInfo(fCharW Char) {
 	// 写入对应属性
 	f2dGlyphInfo info;
 	info.Advance = fcyVec2(m_Face->glyph->advance.x / 64.f, m_Face->glyph->advance.y / 64.f);
-	info.BrushPos = fcyVec2(-(float)m_Face->glyph->bitmap_left, (float)m_Face->glyph->bitmap_top);
+	info.BrushPos = fcyVec2((float)m_Face->glyph->bitmap_left, (float)m_Face->glyph->bitmap_top);
 	info.GlyphSize = fcyVec2((float)m_Face->glyph->bitmap.width, (float)m_Face->glyph->bitmap.rows);
 
 	return info;
@@ -377,7 +377,7 @@ bool f2dFontFileProvider::renderCache(FontCacheInfo* pCache, fCharW Char)
 	// 写入对应属性
 	pCache->Character = Char;
 	pCache->Advance = fcyVec2(m_Face->glyph->advance.x / 64.f, m_Face->glyph->advance.y / 64.f);
-	pCache->BrushPos = fcyVec2(-(float)m_Face->glyph->bitmap_left, (float)m_Face->glyph->bitmap_top);
+	pCache->BrushPos = fcyVec2((float)m_Face->glyph->bitmap_left, (float)m_Face->glyph->bitmap_top);
 	pCache->UV = fcyRect(
 		pCache->CacheSize.a + fcyVec2((float)s_Magin, (float)s_Magin),
 		pCache->CacheSize.a + fcyVec2((float)tBitmap->width, (float)tBitmap->rows) + fcyVec2((float)s_Magin, (float)s_Magin)

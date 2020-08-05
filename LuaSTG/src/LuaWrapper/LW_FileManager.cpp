@@ -291,8 +291,8 @@ void FileManagerWrapper::Register(lua_State* L)LNOEXCEPT {
 			const fcyRect v = LAPP.FontRenderer_MeasureString(luaL_checkstring(L, 1), lua_toboolean(L, 2));
 			lua_pushnumber(L, v.a.x);
 			lua_pushnumber(L, v.b.x);
-			lua_pushnumber(L, -v.b.y);
-			lua_pushnumber(L, -v.a.y);
+			lua_pushnumber(L, v.b.y);
+			lua_pushnumber(L, v.a.y);
 			return 4;
 		}
 		static int MeasureStringWidth(lua_State* L) {

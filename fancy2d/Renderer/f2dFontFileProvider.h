@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dFontFileProvider.h
-/// @brief fancy2D ×ÖÌåÌá¹©Õß
+/// @brief fancy2D å­—ä½“æä¾›è€…
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include <fcyRefObj.h>
@@ -13,7 +13,7 @@
 #include FT_FREETYPE_H
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ×ÖÌåÌá¹©ÕßÊµÏÖ
+/// @brief å­—ä½“æä¾›è€…å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 class f2dFontFileProvider :
 	public fcyRefObjImpl<f2dFontProvider>,
@@ -21,22 +21,22 @@ class f2dFontFileProvider :
 {
 	friend class f2dRendererImpl;
 protected:
-	static const int s_Magin;    // Áô±ß
+	static const int s_Magin;    // ç•™è¾¹
 
-	// ×ÖÌå»º³åÊôĞÔ
+	// å­—ä½“ç¼“å†²å±æ€§
 	struct FontCacheInfo
 	{
-		// Ô­Ê¼ÊôĞÔ
-		fcyRect CacheSize;  // »º³åÎ»ÖÃ
+		// åŸå§‹å±æ€§
+		fcyRect CacheSize;  // ç¼“å†²ä½ç½®
 
-		// ×ÖÌåÊôĞÔ
-		fCharW Character;   // µ±Ç°µÄ×Ö·û
-		fcyRect UV;         // ×Ö·ûUV
-		fcyVec2 GlyphSize;  // ×ÖĞÎ´óĞ¡
-		fcyVec2 BrushPos;   // ±Ê´¥Î»ÖÃ
-		fcyVec2 Advance;    // Ç°½øÁ¿
+		// å­—ä½“å±æ€§
+		fCharW Character;   // å½“å‰çš„å­—ç¬¦
+		fcyRect UV;         // å­—ç¬¦UV
+		fcyVec2 GlyphSize;  // å­—å½¢å¤§å°
+		fcyVec2 BrushPos;   // ç¬”è§¦ä½ç½®
+		fcyVec2 Advance;    // å‰è¿›é‡
 
-		// Á´±íÓò
+		// é“¾è¡¨åŸŸ
 		FontCacheInfo* pPrev;
 		FontCacheInfo* pNext;
 	};
@@ -44,29 +44,29 @@ protected:
 	f2dRenderDevice* m_pParent;
 
 	// --- Freetype ---
-	f2dStream* m_pStream;   // FontÎÄ¼şÁ÷
+	f2dStream* m_pStream;   // Fontæ–‡ä»¶æµ
 	FT_Open_Args m_Args;
 	FT_StreamRec m_Stream;
 	FT_Library m_FontLib;
 	FT_Face m_Face;
 
-	// --- ÎÆÀí»º³åÇøÊôĞÔ ---
-	fuInt m_TexSize;                // ÎÆÀí´óĞ¡ 1024»òÕß2048 £¨»¹ÊÇÓÃ¸ü´óµÄ³ß´çºÃÒ»Ğ©£©
-	fuInt m_CacheXCount;            // »º³åºáÏòÊıÁ¿
-	fuInt m_CacheYCount;            // »º³å×İÏòÊıÁ¿
-	fcyVec2 m_PerGlyphSize;         // µ¥¸ö×ÖĞÎ´óĞ¡
-	FontCacheInfo* m_Cache;         // »º³åÇø
-	f2dTexture2D* m_CacheTex;       // »º³åÇøÎÆÀí
+	// --- çº¹ç†ç¼“å†²åŒºå±æ€§ ---
+	fuInt m_TexSize;                // çº¹ç†å¤§å° 1024æˆ–è€…2048 ï¼ˆè¿˜æ˜¯ç”¨æ›´å¤§çš„å°ºå¯¸å¥½ä¸€äº›ï¼‰
+	fuInt m_CacheXCount;            // ç¼“å†²æ¨ªå‘æ•°é‡
+	fuInt m_CacheYCount;            // ç¼“å†²çºµå‘æ•°é‡
+	fcyVec2 m_PerGlyphSize;         // å•ä¸ªå­—å½¢å¤§å°
+	FontCacheInfo* m_Cache;         // ç¼“å†²åŒº
+	f2dTexture2D* m_CacheTex;       // ç¼“å†²åŒºçº¹ç†
 
-	// --- ×î½üÊ¹ÓÃ ---
-	FontCacheInfo* m_UsedNodeList;  // Ê¹ÓÃÖĞ½Úµã£¬±£Ö¤ÎªÑ­»·Á´±í
-	FontCacheInfo* m_FreeNodeList;  // ¿ÕÏĞ½Úµã£¬µ¥ÏòÁ´±í
-	std::wstring m_CharInUsing;     // ÓÃÓÚ»Ö¸´»º´æ
+	// --- æœ€è¿‘ä½¿ç”¨ ---
+	FontCacheInfo* m_UsedNodeList;  // ä½¿ç”¨ä¸­èŠ‚ç‚¹ï¼Œä¿è¯ä¸ºå¾ªç¯é“¾è¡¨
+	FontCacheInfo* m_FreeNodeList;  // ç©ºé—²èŠ‚ç‚¹ï¼Œå•å‘é“¾è¡¨
+	std::wstring m_CharInUsing;     // ç”¨äºæ¢å¤ç¼“å­˜
 
-	// ×Ö·û±í
+	// å­—ç¬¦è¡¨
 	std::unordered_map<fCharW, FontCacheInfo*> m_Dict;
-private: // freetype º¯Êı
-	// ÊµÏÖfreetype¶ÁÈ¡º¯Êı
+private: // freetype å‡½æ•°
+	// å®ç°freetypeè¯»å–å‡½æ•°
 	static unsigned long streamRead(FT_Stream stream, unsigned long offset, unsigned char* buffer, unsigned long count)
 	{
 		f2dStream* pStream = (f2dStream*)stream->descriptor.pointer;
@@ -81,36 +81,36 @@ private: // freetype º¯Êı
 
 		return (unsigned long)tRealReaded;
 	}
-	// ÊµÏÖfreetype¹Ø±ÕÁ÷²Ù×÷
+	// å®ç°freetypeå…³é—­æµæ“ä½œ
 	static void streamClose(FT_Stream stream)
 	{
-		// ½»¸øÀàÎö¹¹º¯Êı´¦Àí
+		// äº¤ç»™ç±»ææ„å‡½æ•°å¤„ç†
 	}
-protected: // ×ÖÌå»º³å²Ù×÷
-	// ¿í¶Èµ¥Î»µ½ÏñËØ
+protected: // å­—ä½“ç¼“å†²æ“ä½œ
+	// å®½åº¦å•ä½åˆ°åƒç´ 
 	float widthSizeToPixel(int Size)
 	{
 		float tXScale = m_Face->size->metrics.x_scale / 65536.f;
 		return (Size / 64.f) * tXScale;
 	}
-	// ¸ß¶Èµ¥Î»µ½ÏñËØ
+	// é«˜åº¦å•ä½åˆ°åƒç´ 
 	float heightSizeToPixel(int Size)
 	{
 		float tYScale = m_Face->size->metrics.y_scale / 65536.f;
 		return (Size / 64.f) * tYScale;
 	}
 
-	void addUsedNode(FontCacheInfo* p);      // ¼ÓÈë×î¶àÊ¹ÓÃ½Úµã
-	void removeFreeNode(FontCacheInfo* p);   // ÒÆ³ı¿ÕÏĞ½ÚµãpµÄÁ¬½Ó
-	void removeUsedNode(FontCacheInfo* p);   // ÒÆ³ıÊ¹ÓÃÖĞ½ÚµãpµÄÁ¬½Ó
-	f2dGlyphInfo getGlyphInfo(fCharW Char);  // ½ö»ñµÃ×ÖĞÎĞÅÏ¢£¨²»°üÀ¨UV×ø±ê£©
-	FontCacheInfo* getChar(fCharW Char);     // »ñµÃ×ÖÌå
-	bool makeCache(fuInt Size);                           // ´´½¨»º³åÇø£¬´æ·ÅXCount * YCount¸öÎÄ×Ö
-	bool renderCache(FontCacheInfo* pCache, fCharW Char); // ÔÚ»º³åÇøµÄpCacheÎ»ÖÃ»æÖÆ×ÖÌåChar
-public: // ÊÂ¼ş¼àÌı
+	void addUsedNode(FontCacheInfo* p);      // åŠ å…¥æœ€å¤šä½¿ç”¨èŠ‚ç‚¹
+	void removeFreeNode(FontCacheInfo* p);   // ç§»é™¤ç©ºé—²èŠ‚ç‚¹pçš„è¿æ¥
+	void removeUsedNode(FontCacheInfo* p);   // ç§»é™¤ä½¿ç”¨ä¸­èŠ‚ç‚¹pçš„è¿æ¥
+	f2dGlyphInfo getGlyphInfo(fCharW Char);  // ä»…è·å¾—å­—å½¢ä¿¡æ¯ï¼ˆä¸åŒ…æ‹¬UVåæ ‡ï¼‰
+	FontCacheInfo* getChar(fCharW Char);     // è·å¾—å­—ä½“
+	bool makeCache(fuInt Size);                           // åˆ›å»ºç¼“å†²åŒºï¼Œå­˜æ”¾XCount * YCountä¸ªæ–‡å­—
+	bool renderCache(FontCacheInfo* pCache, fCharW Char); // åœ¨ç¼“å†²åŒºçš„pCacheä½ç½®ç»˜åˆ¶å­—ä½“Char
+public: // äº‹ä»¶ç›‘å¬
 	void OnRenderDeviceLost();
 	void OnRenderDeviceReset();
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	fFloat GetLineHeight()
 	{
 		return heightSizeToPixel(m_Face->height);

@@ -622,7 +622,7 @@ namespace LuaSTGPlus
 		void FontRenderer_SetScale(const fcyVec2& s);
 		fcyRect FontRenderer_MeasureString(const char* str, bool strict = true);
 		float FontRenderer_MeasureStringWidth(const char* str);
-		bool FontRenderer_DrawTextW2(const char* str, const fcyVec2& pos, const float z, const BlendMode blend, const fcyColor& color);
+		bool FontRenderer_DrawTextW2(const char* str, fcyVec2& pos, const float z, const BlendMode blend, const fcyColor& color);
 	public:
 		ResourceMgr& GetResourceMgr()LNOEXCEPT { return m_ResourceMgr; }
 		Eyes2D::IO::FileManager& GetFileManager() noexcept { return m_FileManager; }
