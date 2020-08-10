@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.15)
 
 set(LUASTG_RESDIR res)
-set(LUASTG_EXTDIR extra)
+#set(LUASTG_RESDIR custom/THEIS)
+#set(LUASTG_RESDIR custom/THBEB)
 option(LUASTG_DEVINFO "write more debug info to log." on)
 
 add_executable(LuaSTG WIN32)
@@ -38,13 +39,11 @@ endif()
 aux_source_directory(src LUASTG_SRC)
 aux_source_directory(src/LuaWrapper LUASTG_SRC_LW)
 aux_source_directory(${LUASTG_RESDIR} LUASTG_RES)
-aux_source_directory(${LUASTG_EXTDIR} LUASTG_EXT)
 
 target_sources(LuaSTG PRIVATE
     ${LUASTG_SRC}
     ${LUASTG_SRC_LW}
     ${LUASTG_RES}
-    ${LUASTG_EXT}
     
     ${LUASTG_RESDIR}/resource.rc
     ${LUASTG_RESDIR}/app.ico

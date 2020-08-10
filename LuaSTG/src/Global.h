@@ -52,7 +52,7 @@
 #include "Config.h"
 
 // 一些全局范围的宏
-#define LVERSION L"luaSTG-0.1"
+#define LVERSION L"luaSTG-1.0"
 #define LVERSION_LUA LUAJIT_VERSION
 
 // 全局文件
@@ -81,12 +81,6 @@
 #define LGOBJ_CC_RENDER 4
 #define LGOBJ_CC_COLLI 5
 #define LGOBJ_CC_KILL 6
-
-//功能控制
-#define USER_SYSTEM_OPERATION //控制是否启用由lua层转来的额外功能，主要有重力加速度、速度限制
-#define GLOBAL_SCALE_COLLI_SHAPE //全局图像缩放是否影响碰撞盒大小
-#define USING_MULTI_GAME_WORLD //开启多world功能
-#define USING_ADVANCE_GAMEOBJECT_CLASS //开启高级游戏对象功能
 
 // 数学常量
 #define DBL_HALF_MAX (DBL_MAX / 2.0) //双精度浮点的半大值
