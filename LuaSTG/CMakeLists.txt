@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
 
-set(LUASTG_RESDIR res)
+#set(LUASTG_RESDIR res)
 #set(LUASTG_RESDIR custom/THEIS)
-#set(LUASTG_RESDIR custom/THBEB)
-option(LUASTG_DEVINFO "write more debug info to log." on)
+set(LUASTG_RESDIR custom/THBDB)
+#set(LUASTG_RESDIR custom/THTUO)
 
 add_executable(LuaSTG WIN32)
 
@@ -32,9 +32,7 @@ target_compile_definitions(LuaSTG PRIVATE
     LUA_BUILD_AS_DLL
 )
 
-if(LUASTG_DEVINFO)
-    target_compile_definitions(LuaSTG PRIVATE LDEVVERSION)
-endif()
+target_compile_definitions(LuaSTG PRIVATE LDEVVERSION)
 
 aux_source_directory(src LUASTG_SRC)
 aux_source_directory(src/LuaWrapper LUASTG_SRC_LW)
