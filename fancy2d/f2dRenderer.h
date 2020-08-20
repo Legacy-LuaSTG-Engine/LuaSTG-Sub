@@ -1,431 +1,431 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file   f2dRenderer.h
-/// @brief  fancy2DÒıÇæäÖÈ¾Æ÷½Ó¿Ú¶¨Òå
-/// @note   ¶¨ÒåÁËf2DµÄäÖÈ¾Æ÷½Ó¿Ú
+/// @brief  fancy2Då¼•æ“æ¸²æŸ“å™¨æ¥å£å®šä¹‰
+/// @note   å®šä¹‰äº†f2Dçš„æ¸²æŸ“å™¨æ¥å£
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "f2dInterface.h"
 
 #include "f2dRenderDevice.h"
 
-/// @addtogroup f2däÖÈ¾ÏµÍ³
-/// @brief fancy2dÒıÇæÖĞµÄäÖÈ¾ÏµÍ³£¬Ìá¹©¶Ô2DÍ¼ĞÎµÄäÖÈ¾Ö§³Ö¡£
+/// @addtogroup f2dæ¸²æŸ“ç³»ç»Ÿ
+/// @brief fancy2då¼•æ“ä¸­çš„æ¸²æŸ“ç³»ç»Ÿï¼Œæä¾›å¯¹2Då›¾å½¢çš„æ¸²æŸ“æ”¯æŒã€‚
 /// @{
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2D ¾«Áé·­×ªÑ¡Ïî
+/// @brief fancy2D ç²¾çµç¿»è½¬é€‰é¡¹
 ////////////////////////////////////////////////////////////////////////////////
 enum F2DSPRITEFLIP
 {
-	F2DSPRITEFLIP_NONE,  ///< @brief ÎŞ·­×ª
-	F2DSPRITEFLIP_H,     ///< @brief Ë®Æ½·­×ª
-	F2DSPRITEFLIP_V,     ///< @brief ´¹Ö±·­×ª
-	F2DSPRITEFLIP_HV     ///< @brief Ë®Æ½´¹Ö±·­×ª
+	F2DSPRITEFLIP_NONE,  ///< @brief æ— ç¿»è½¬
+	F2DSPRITEFLIP_H,     ///< @brief æ°´å¹³ç¿»è½¬
+	F2DSPRITEFLIP_V,     ///< @brief å‚ç›´ç¿»è½¬
+	F2DSPRITEFLIP_HV     ///< @brief æ°´å¹³å‚ç›´ç¿»è½¬
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2D ¾«Áé
+/// @brief fancy2D ç²¾çµ
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dSprite : 
 	public f2dInterface
 {
-	/// @brief »ñµÃ¾«Áé°ó¶¨µÄÎÆÀí
+	/// @brief è·å¾—ç²¾çµç»‘å®šçš„çº¹ç†
 	virtual f2dTexture2D* GetTexture()=0;
 
-	/// @brief     ÉèÖÃÒ»¸öĞÂµÄÎÆÀí
-	/// @param[in] pTex ÎÆÀí
+	/// @brief     è®¾ç½®ä¸€ä¸ªæ–°çš„çº¹ç†
+	/// @param[in] pTex çº¹ç†
 	virtual fResult SetTexture(f2dTexture2D* pTex)=0;
 
-	/// @brief ·µ»Ø¶ÔÓ¦ÎÆÀíµÄ¾ØĞÎ
+	/// @brief è¿”å›å¯¹åº”çº¹ç†çš„çŸ©å½¢
 	virtual const fcyRect& GetTexRect()const=0;
 
-	/// @brief ÉèÖÃ¶ÔÓ¦ÎÆÀíµÄ¾ØĞÎ
+	/// @brief è®¾ç½®å¯¹åº”çº¹ç†çš„çŸ©å½¢
 	virtual fResult SetTexRect(const fcyRect& Rect)=0;
 
-	/// @brief ·µ»ØÈÈµã
+	/// @brief è¿”å›çƒ­ç‚¹
 	virtual const fcyVec2& GetHotSpot()const=0;
 
-	/// @brief     ÉèÖÃÈÈµã
-	/// @param[in] Point ÈÈµã
+	/// @brief     è®¾ç½®çƒ­ç‚¹
+	/// @param[in] Point çƒ­ç‚¹
 	virtual fResult SetHotSpot(const fcyVec2& Point)=0;
 
-	/// @brief ·µ»Ø·­×ª·½Ê½
+	/// @brief è¿”å›ç¿»è½¬æ–¹å¼
 	virtual F2DSPRITEFLIP GetFlipType()const=0;
 	
-	/// @brief     ÉèÖÃ·­×ª·½Ê½
-	/// @param[in] Type ·­×ª·½Ê½
+	/// @brief     è®¾ç½®ç¿»è½¬æ–¹å¼
+	/// @param[in] Type ç¿»è½¬æ–¹å¼
 	virtual fResult SetFlipType(F2DSPRITEFLIP Type)=0;
 
-	/// @brief ·µ»ØZÖµ
+	/// @brief è¿”å›Zå€¼
 	virtual fFloat GetZ()const=0;
 
-	/// @brief     ÉèÖÃZÖµ
-	/// @param[in] Value ĞÂµÄZÖµ
+	/// @brief     è®¾ç½®Zå€¼
+	/// @param[in] Value æ–°çš„Zå€¼
 	virtual fResult SetZ(fFloat Value)=0;
 
-	/// @brief     ·µ»Ø¶¥µãµÄÑÕÉ«
-	/// @param[in] Index ¶¥µãË÷Òı[0~3]£¬°´ÕÕË³Ê±Õë·½Ïò¶¨Î»
+	/// @brief     è¿”å›é¡¶ç‚¹çš„é¢œè‰²
+	/// @param[in] Index é¡¶ç‚¹ç´¢å¼•[0~3]ï¼ŒæŒ‰ç…§é¡ºæ—¶é’ˆæ–¹å‘å®šä½
 	virtual fcyColor GetColor(fuInt Index)const=0;
 
-	/// @brief     ·µ»Ø¶¥µãµÄÑÕÉ«
-	/// @param[in] pOut ´óĞ¡Îª4µÄÊı×é
+	/// @brief     è¿”å›é¡¶ç‚¹çš„é¢œè‰²
+	/// @param[in] pOut å¤§å°ä¸º4çš„æ•°ç»„
 	virtual void GetColor(fcyColor* pOut)const=0;
 
-	/// @brief     ÉèÖÃËùÓĞ¶¥µãµÄÑÕÉ«
-	/// @param[in] Color »ìºÏÑÕÉ«
+	/// @brief     è®¾ç½®æ‰€æœ‰é¡¶ç‚¹çš„é¢œè‰²
+	/// @param[in] Color æ··åˆé¢œè‰²
 	virtual fResult SetColor(fcyColor Color)=0;
 
-	/// @brief ÉèÖÃ¶¥µãÑÕÉ«
-	/// @param[in] Index ¶¥µãË÷Òı[0~3]£¬°´ÕÕË³Ê±Õë·½Ïò¶¨Î»
-	/// @param[in] Color »ìºÏÑÕÉ«
+	/// @brief è®¾ç½®é¡¶ç‚¹é¢œè‰²
+	/// @param[in] Index é¡¶ç‚¹ç´¢å¼•[0~3]ï¼ŒæŒ‰ç…§é¡ºæ—¶é’ˆæ–¹å‘å®šä½
+	/// @param[in] Color æ··åˆé¢œè‰²
 	virtual fResult SetColor(fuInt Index, fcyColor Color)=0;
 
-	/// @brief     ÉèÖÃËùÓĞ¶¥µãµÄÑÕÉ«
-	/// @param[in] pArr ´óĞ¡Îª4µÄÊı×é
+	/// @brief     è®¾ç½®æ‰€æœ‰é¡¶ç‚¹çš„é¢œè‰²
+	/// @param[in] pArr å¤§å°ä¸º4çš„æ•°ç»„
 	virtual fResult SetColor(fcyColor* pArr)=0;
 
-	/// @brief »æÖÆ¾«Áé
-	/// @param[in] pGraph »æÍ¼¶ÔÏóÖ¸Õë
-	/// @param[in] Dest   Ä¿±ê¾ØĞÎ
+	/// @brief ç»˜åˆ¶ç²¾çµ
+	/// @param[in] pGraph ç»˜å›¾å¯¹è±¡æŒ‡é’ˆ
+	/// @param[in] Dest   ç›®æ ‡çŸ©å½¢
 	virtual fResult Draw(f2dGraphics2D* pGraph, const fcyRect& Dest, fBool bAutoFixCoord = true) = 0;
 
-	/// @brief »æÖÆ¾«Áé
-	/// @param[in] pGraph »æÍ¼¶ÔÏóÖ¸Õë
-	/// @param[in] Dest   Ä¿±ê¾ØĞÎ
-	/// @param[in] SubTex ×ÓÎÆÀíÇøÓò[0~1, 0~1]
+	/// @brief ç»˜åˆ¶ç²¾çµ
+	/// @param[in] pGraph ç»˜å›¾å¯¹è±¡æŒ‡é’ˆ
+	/// @param[in] Dest   ç›®æ ‡çŸ©å½¢
+	/// @param[in] SubTex å­çº¹ç†åŒºåŸŸ[0~1, 0~1]
 	virtual fResult Draw(f2dGraphics2D* pGraph, const fcyRect& Dest, const fcyRect& SubTex)=0;
 
-	/// @brief »æÖÆ¾«Áé
-	/// @param[in] pGraph »æÍ¼¶ÔÏóÖ¸Õë
-	/// @param[in] v1     ×ø±ê1
-	/// @param[in] v2     ×ø±ê2
-	/// @param[in] v3     ×ø±ê3
-	/// @param[in] v4     ×ø±ê4
+	/// @brief ç»˜åˆ¶ç²¾çµ
+	/// @param[in] pGraph ç»˜å›¾å¯¹è±¡æŒ‡é’ˆ
+	/// @param[in] v1     åæ ‡1
+	/// @param[in] v2     åæ ‡2
+	/// @param[in] v3     åæ ‡3
+	/// @param[in] v4     åæ ‡4
 	virtual fResult Draw(f2dGraphics2D* pGraph, fcyVec3 v1, fcyVec3 v2, fcyVec3 v3, fcyVec3 v4, fBool bAutoFixCoord = true) = 0;
 
-	/// @brief »æÖÆ¾«Áé
-	/// @param[in] pGraph »æÍ¼¶ÔÏóÖ¸Õë
-	/// @param[in] Center ¾«ÁéÏÔÊ¾ÖĞĞÄ
+	/// @brief ç»˜åˆ¶ç²¾çµ
+	/// @param[in] pGraph ç»˜å›¾å¯¹è±¡æŒ‡é’ˆ
+	/// @param[in] Center ç²¾çµæ˜¾ç¤ºä¸­å¿ƒ
 	virtual fResult Draw(f2dGraphics2D* pGraph, const fcyVec2& Center)=0;
 
-	/// @brief »æÖÆ¾«Áé
-	/// @param[in] pGraph »æÍ¼¶ÔÏóÖ¸Õë
-	/// @param[in] Center ¾«ÁéÏÔÊ¾ÖĞĞÄ
-	/// @param[in] Scale  Ëõ·Å
+	/// @brief ç»˜åˆ¶ç²¾çµ
+	/// @param[in] pGraph ç»˜å›¾å¯¹è±¡æŒ‡é’ˆ
+	/// @param[in] Center ç²¾çµæ˜¾ç¤ºä¸­å¿ƒ
+	/// @param[in] Scale  ç¼©æ”¾
 	virtual fResult Draw(f2dGraphics2D* pGraph, const fcyVec2& Center, const fcyVec2& Scale)=0;
 
-	/// @brief »æÖÆ¾«Áé
-	/// @param[in] pGraph »æÍ¼¶ÔÏóÖ¸Õë
-	/// @param[in] Center ¾«ÁéÏÔÊ¾ÖĞĞÄ
-	/// @param[in] Scale  Ëõ·Å
-	/// @param[in] SubTex ×ÓÎÆÀíÇøÓò[0~1, 0~1]
+	/// @brief ç»˜åˆ¶ç²¾çµ
+	/// @param[in] pGraph ç»˜å›¾å¯¹è±¡æŒ‡é’ˆ
+	/// @param[in] Center ç²¾çµæ˜¾ç¤ºä¸­å¿ƒ
+	/// @param[in] Scale  ç¼©æ”¾
+	/// @param[in] SubTex å­çº¹ç†åŒºåŸŸ[0~1, 0~1]
 	virtual fResult Draw(f2dGraphics2D* pGraph, const fcyVec2& Center, const fcyVec2& Scale, const fcyRect& SubTex)=0;
 
-	/// @brief »æÖÆ¾«Áé
-	/// @param[in] pGraph   »æÍ¼¶ÔÏóÖ¸Õë
-	/// @param[in] Center   ¾«ÁéÏÔÊ¾ÖĞĞÄ
-	/// @param[in] Scale    Ëõ·Å
-	/// @param[in] Rotation Ë³Ê±ÕëĞı×ª½Ç¶È£¬»¡¶ÈÖÆ¡£
+	/// @brief ç»˜åˆ¶ç²¾çµ
+	/// @param[in] pGraph   ç»˜å›¾å¯¹è±¡æŒ‡é’ˆ
+	/// @param[in] Center   ç²¾çµæ˜¾ç¤ºä¸­å¿ƒ
+	/// @param[in] Scale    ç¼©æ”¾
+	/// @param[in] Rotation é¡ºæ—¶é’ˆæ—‹è½¬è§’åº¦ï¼Œå¼§åº¦åˆ¶ã€‚
 	virtual fResult Draw(f2dGraphics2D* pGraph, const fcyVec2& Center, const fcyVec2& Scale, fFloat Rotation, fBool bAutoFixCoord = true) = 0;
 	
-	/// @brief »æÖÆ¾«Áé
-	/// @param[in] pGraph   »æÍ¼¶ÔÏóÖ¸Õë
-	/// @param[in] Center   ¾«ÁéÏÔÊ¾ÖĞĞÄ
-	/// @param[in] Scale    Ëõ·Å
-	/// @param[in] Rotation Ë³Ê±ÕëĞı×ª½Ç¶È£¬»¡¶ÈÖÆ¡£
-	/// @param[in] SubTex   ×ÓÎÆÀíÇøÓò[0~1, 0~1]
+	/// @brief ç»˜åˆ¶ç²¾çµ
+	/// @param[in] pGraph   ç»˜å›¾å¯¹è±¡æŒ‡é’ˆ
+	/// @param[in] Center   ç²¾çµæ˜¾ç¤ºä¸­å¿ƒ
+	/// @param[in] Scale    ç¼©æ”¾
+	/// @param[in] Rotation é¡ºæ—¶é’ˆæ—‹è½¬è§’åº¦ï¼Œå¼§åº¦åˆ¶ã€‚
+	/// @param[in] SubTex   å­çº¹ç†åŒºåŸŸ[0~1, 0~1]
 	virtual fResult Draw(f2dGraphics2D* pGraph, const fcyVec2& Center, const fcyVec2& Scale, fFloat Rotation, const fcyRect& SubTex)=0;
 
-	/// @brief »æÖÆ¾«Áé
-	/// @note  ¸Ã·½·¨ÊÊÓ¦yÖá·­×ªµÄÇé¿ö
-	/// @param[in] pGraph »æÍ¼¶ÔÏóÖ¸Õë
-	/// @param[in] Center ¾«ÁéÏÔÊ¾ÖĞĞÄ
+	/// @brief ç»˜åˆ¶ç²¾çµ
+	/// @note  è¯¥æ–¹æ³•é€‚åº”yè½´ç¿»è½¬çš„æƒ…å†µ
+	/// @param[in] pGraph ç»˜å›¾å¯¹è±¡æŒ‡é’ˆ
+	/// @param[in] Center ç²¾çµæ˜¾ç¤ºä¸­å¿ƒ
 	virtual fResult Draw2(f2dGraphics2D* pGraph, const fcyVec2& Center)=0;
 
-	/// @brief »æÖÆ¾«Áé
-	/// @note  ¸Ã·½·¨ÊÊÓ¦yÖá·­×ªµÄÇé¿ö
-	/// @param[in] pGraph »æÍ¼¶ÔÏóÖ¸Õë
-	/// @param[in] Center ¾«ÁéÏÔÊ¾ÖĞĞÄ
-	/// @param[in] Scale  Ëõ·Å
+	/// @brief ç»˜åˆ¶ç²¾çµ
+	/// @note  è¯¥æ–¹æ³•é€‚åº”yè½´ç¿»è½¬çš„æƒ…å†µ
+	/// @param[in] pGraph ç»˜å›¾å¯¹è±¡æŒ‡é’ˆ
+	/// @param[in] Center ç²¾çµæ˜¾ç¤ºä¸­å¿ƒ
+	/// @param[in] Scale  ç¼©æ”¾
 	virtual fResult Draw2(f2dGraphics2D* pGraph, const fcyVec2& Center, const fcyVec2& Scale)=0;
 
-	/// @brief »æÖÆ¾«Áé
-	/// @note  ¸Ã·½·¨ÊÊÓ¦yÖá·­×ªµÄÇé¿ö
-	/// @param[in] pGraph »æÍ¼¶ÔÏóÖ¸Õë
-	/// @param[in] Center ¾«ÁéÏÔÊ¾ÖĞĞÄ
-	/// @param[in] Scale  Ëõ·Å
-	/// @param[in] SubTex ×ÓÎÆÀíÇøÓò[0~1, 0~1]
+	/// @brief ç»˜åˆ¶ç²¾çµ
+	/// @note  è¯¥æ–¹æ³•é€‚åº”yè½´ç¿»è½¬çš„æƒ…å†µ
+	/// @param[in] pGraph ç»˜å›¾å¯¹è±¡æŒ‡é’ˆ
+	/// @param[in] Center ç²¾çµæ˜¾ç¤ºä¸­å¿ƒ
+	/// @param[in] Scale  ç¼©æ”¾
+	/// @param[in] SubTex å­çº¹ç†åŒºåŸŸ[0~1, 0~1]
 	virtual fResult Draw2(f2dGraphics2D* pGraph, const fcyVec2& Center, const fcyVec2& Scale, const fcyRect& SubTex)=0;
 
-	/// @brief »æÖÆ¾«Áé
-	/// @note  ¸Ã·½·¨ÊÊÓ¦yÖá·­×ªµÄÇé¿ö
-	/// @param[in] pGraph   »æÍ¼¶ÔÏóÖ¸Õë
-	/// @param[in] Center   ¾«ÁéÏÔÊ¾ÖĞĞÄ
-	/// @param[in] Scale    Ëõ·Å
-	/// @param[in] Rotation Ë³Ê±ÕëĞı×ª½Ç¶È£¬»¡¶ÈÖÆ¡£
+	/// @brief ç»˜åˆ¶ç²¾çµ
+	/// @note  è¯¥æ–¹æ³•é€‚åº”yè½´ç¿»è½¬çš„æƒ…å†µ
+	/// @param[in] pGraph   ç»˜å›¾å¯¹è±¡æŒ‡é’ˆ
+	/// @param[in] Center   ç²¾çµæ˜¾ç¤ºä¸­å¿ƒ
+	/// @param[in] Scale    ç¼©æ”¾
+	/// @param[in] Rotation é¡ºæ—¶é’ˆæ—‹è½¬è§’åº¦ï¼Œå¼§åº¦åˆ¶ã€‚
 	virtual fResult Draw2(f2dGraphics2D* pGraph, const fcyVec2& Center, const fcyVec2& Scale, fFloat Rotation, fBool bAutoFixCoord = true) = 0;
 
-	/// @brief »æÖÆ¾«Áé
-	/// @note  ¸Ã·½·¨ÊÊÓ¦yÖá·­×ªµÄÇé¿ö
-	/// @param[in] pGraph   »æÍ¼¶ÔÏóÖ¸Õë
-	/// @param[in] Center   ¾«ÁéÏÔÊ¾ÖĞĞÄ
-	/// @param[in] Scale    Ëõ·Å
-	/// @param[in] Rotation Ë³Ê±ÕëĞı×ª½Ç¶È£¬»¡¶ÈÖÆ¡£
-	/// @param[in] SubTex   ×ÓÎÆÀíÇøÓò[0~1, 0~1]
+	/// @brief ç»˜åˆ¶ç²¾çµ
+	/// @note  è¯¥æ–¹æ³•é€‚åº”yè½´ç¿»è½¬çš„æƒ…å†µ
+	/// @param[in] pGraph   ç»˜å›¾å¯¹è±¡æŒ‡é’ˆ
+	/// @param[in] Center   ç²¾çµæ˜¾ç¤ºä¸­å¿ƒ
+	/// @param[in] Scale    ç¼©æ”¾
+	/// @param[in] Rotation é¡ºæ—¶é’ˆæ—‹è½¬è§’åº¦ï¼Œå¼§åº¦åˆ¶ã€‚
+	/// @param[in] SubTex   å­çº¹ç†åŒºåŸŸ[0~1, 0~1]
 	virtual fResult Draw2(f2dGraphics2D* pGraph, const fcyVec2& Center, const fcyVec2& Scale, fFloat Rotation, const fcyRect& SubTex)=0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2D¼òµ¥¼¸ºÎÌåäÖÈ¾Æ÷
+/// @brief fancy2Dç®€å•å‡ ä½•ä½“æ¸²æŸ“å™¨
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dGeometryRenderer : 
 	public f2dInterface
 {
-	/// @brief »ñµÃZÖµ
+	/// @brief è·å¾—Zå€¼
 	virtual fFloat GetZ()=0;
 
-	/// @brief     ÉèÖÃZÖµ
-	/// @param[in] ZValue ZÖµ
+	/// @brief     è®¾ç½®Zå€¼
+	/// @param[in] ZValue Zå€¼
 	virtual void SetZ(fFloat ZValue)=0;
 
-	/// @brief     »ñµÃ»­±ÊµÄÑÕÉ«
-	/// @param[in] Index Ë÷Òı[0~2]£¬0=Íâ²àÑÕÉ«£¬1=ÖĞ¼äÑÕÉ«£¬2=ÄÚ²àÑÕÉ«
+	/// @brief     è·å¾—ç”»ç¬”çš„é¢œè‰²
+	/// @param[in] Index ç´¢å¼•[0~2]ï¼Œ0=å¤–ä¾§é¢œè‰²ï¼Œ1=ä¸­é—´é¢œè‰²ï¼Œ2=å†…ä¾§é¢œè‰²
 	virtual fcyColor GetPenColor(fuInt Index)=0;
 
-	/// @brief     ÉèÖÃ»­±ÊÑÕÉ«
-	/// @param[in] Index Ë÷Òı[0~2]£¬0=Íâ²àÑÕÉ«£¬1=ÖĞ¼äÑÕÉ«£¬2=ÄÚ²àÑÕÉ«
-	/// @param[in] Color ÑÕÉ«Öµ
+	/// @brief     è®¾ç½®ç”»ç¬”é¢œè‰²
+	/// @param[in] Index ç´¢å¼•[0~2]ï¼Œ0=å¤–ä¾§é¢œè‰²ï¼Œ1=ä¸­é—´é¢œè‰²ï¼Œ2=å†…ä¾§é¢œè‰²
+	/// @param[in] Color é¢œè‰²å€¼
 	virtual void SetPenColor(fuInt Index, const fcyColor& Color)=0;
 
-	/// @brief »ñµÃ»­±Ê´óĞ¡
+	/// @brief è·å¾—ç”»ç¬”å¤§å°
 	virtual fFloat GetPenSize()=0;
 
-	/// @brief     ÉèÖÃ»­±Ê´óĞ¡
-	/// @param[in] Size »­±Ê´óĞ¡
+	/// @brief     è®¾ç½®ç”»ç¬”å¤§å°
+	/// @param[in] Size ç”»ç¬”å¤§å°
 	virtual void SetPenSize(fFloat Size)=0;
 
-	/// @brief     »­Ïß
-	/// @param[in] pGraph »æÍ¼Ö¸Õë
-	/// @param[in] Begin  Æğµã
-	/// @param[in] End    ÖÕµã
+	/// @brief     ç”»çº¿
+	/// @param[in] pGraph ç»˜å›¾æŒ‡é’ˆ
+	/// @param[in] Begin  èµ·ç‚¹
+	/// @param[in] End    ç»ˆç‚¹
 	virtual fResult DrawLine(f2dGraphics2D* pGraph, const fcyVec2& Begin, const fcyVec2& End)=0;
 
-	/// @brief     »æÖÆ¾ØĞÎ
-	/// @param[in] pGraph »æÍ¼Ö¸Õë
-	/// @param[in] Rect   ¾ØĞÎ
+	/// @brief     ç»˜åˆ¶çŸ©å½¢
+	/// @param[in] pGraph ç»˜å›¾æŒ‡é’ˆ
+	/// @param[in] Rect   çŸ©å½¢
 	virtual fResult DrawRectangle(f2dGraphics2D* pGraph, const fcyRect& Rect)=0;
 
-	/// @brief     »æÖÆÔ²
-	/// @param[in] pGraph »æÍ¼Ö¸Õë
-	/// @param[in] Center ÖĞĞÄ
-	/// @param[in] R      °ë¾¶
-	/// @param[in] Divide Ï¸·Ö
+	/// @brief     ç»˜åˆ¶åœ†
+	/// @param[in] pGraph ç»˜å›¾æŒ‡é’ˆ
+	/// @param[in] Center ä¸­å¿ƒ
+	/// @param[in] R      åŠå¾„
+	/// @param[in] Divide ç»†åˆ†
 	virtual fResult DrawCircle(f2dGraphics2D* pGraph, const fcyVec2& Center, float R, fuInt Divide=50)=0;
 
-	/// @brief     Ìî³ä¾ØĞÎ
-	/// @param[in] pGraph    »æÍ¼Ö¸Õë
-	/// @param[in] Rect      Ìî³äÇøÓò
-	/// @param[in] pColorArr ÑÕÉ«Êı×é[0~3]£¬Ë³Ê±ÕëËÄ¸ö½ÇµÄÑÕÉ«
+	/// @brief     å¡«å……çŸ©å½¢
+	/// @param[in] pGraph    ç»˜å›¾æŒ‡é’ˆ
+	/// @param[in] Rect      å¡«å……åŒºåŸŸ
+	/// @param[in] pColorArr é¢œè‰²æ•°ç»„[0~3]ï¼Œé¡ºæ—¶é’ˆå››ä¸ªè§’çš„é¢œè‰²
 	virtual fResult FillRectangle(f2dGraphics2D* pGraph, const fcyRect& Rect, const fcyColor* pColorArr)=0;
 
-	/// @brief     Ìî³äÔ²
-	/// @param[in] pGraph      »æÍ¼Ö¸Õë
-	/// @param[in] Center      ÖĞĞÄ
-	/// @param[in] R           °ë¾¶
-	/// @param[in] CenterColor ÖĞĞÄÑÕÉ«
-	/// @param[in] BoundColor  ±ß½çÑÕÉ«
-	/// @param[in] Divide      Ï¸·Ö
+	/// @brief     å¡«å……åœ†
+	/// @param[in] pGraph      ç»˜å›¾æŒ‡é’ˆ
+	/// @param[in] Center      ä¸­å¿ƒ
+	/// @param[in] R           åŠå¾„
+	/// @param[in] CenterColor ä¸­å¿ƒé¢œè‰²
+	/// @param[in] BoundColor  è¾¹ç•Œé¢œè‰²
+	/// @param[in] Divide      ç»†åˆ†
 	virtual fResult FillCircle(f2dGraphics2D* pGraph, const fcyVec2& Center, float R, const fcyColor& CenterColor, const fcyColor& BoundColor, fuInt Divide=50)=0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2D ×ÖĞÎÊı¾İ
+/// @brief fancy2D å­—å½¢æ•°æ®
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dGlyphInfo
 {
-	fcyRect GlyphPos;    ///< @brief ×ÖĞÎÔÚÎÆÀíÉÏµÄuv×ø±ê
-	fcyVec2 GlyphSize;   ///< @brief ×ÖĞÎ´óĞ¡
-	fcyVec2 BrushPos;    ///< @brief ±Ê´¥¾àÀë×ÖĞÎ×óÉÏ½Ç×ø±ê
-	fcyVec2 Advance;     ///< @brief ±Ê´¥µÄÇ°½øÁ¿(ÏñËØ)
+	fcyRect GlyphPos;    ///< @brief å­—å½¢åœ¨çº¹ç†ä¸Šçš„uvåæ ‡
+	fcyVec2 GlyphSize;   ///< @brief å­—å½¢å¤§å°
+	fcyVec2 BrushPos;    ///< @brief ç¬”è§¦è·ç¦»å­—å½¢å·¦ä¸Šè§’åæ ‡
+	fcyVec2 Advance;     ///< @brief ç¬”è§¦çš„å‰è¿›é‡(åƒç´ )
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2D ×ÖÌåÌá¹©Æ÷
+/// @brief fancy2D å­—ä½“æä¾›å™¨
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dFontProvider :
 	public f2dInterface
 {
-	/// @brief »ñµÃÄ¬ÈÏĞĞ¸ß
+	/// @brief è·å¾—é»˜è®¤è¡Œé«˜
 	virtual fFloat GetLineHeight()=0;
 
-	/// @brief »ñµÃ»ùÏßµ½ÂÖÀªÏßµÄ¾àÀë
+	/// @brief è·å¾—åŸºçº¿åˆ°è½®å»“çº¿çš„è·ç¦»
 	virtual fFloat GetAscender()=0;
 
-	/// @brief ÓëAscenderÏà·´
+	/// @brief ä¸Ascenderç›¸å
 	virtual fFloat GetDescender()=0;
 
-	/// @brief ·µ»Ø»º³åÎÆÀí
+	/// @brief è¿”å›ç¼“å†²çº¹ç†
 	virtual f2dTexture2D* GetCacheTexture()=0;
 
-	/// @breif     »º´æ×Ö·û´®
-	/// @note      Õë¶Ô¶¯Ì¬²úÉúÎÄ×ÖµÄÌØ¶¨·½·¨
-	/// @param[in] String ×Ö·û´®
+	/// @breif     ç¼“å­˜å­—ç¬¦ä¸²
+	/// @note      é’ˆå¯¹åŠ¨æ€äº§ç”Ÿæ–‡å­—çš„ç‰¹å®šæ–¹æ³•
+	/// @param[in] String å­—ç¬¦ä¸²
 	virtual fResult CacheString(fcStrW String)=0;
 
-	/// @brief      ÇëÇóÒ»¸ö×ÖĞÎ
-	/// @param[in]  pGraph    ÕıÔÚÊ¹ÓÃµÄäÖÈ¾Æ÷£¬¿Õ±íÊ¾Ö»²éÑ¯×ÖĞÎÊı¾İ
-	/// @param[in]  Character ÇëÇóµÄ×Ö·û
-	/// @param[out] InfoOut   ·µ»ØµÄ×ÖĞÎÊı¾İ
+	/// @brief      è¯·æ±‚ä¸€ä¸ªå­—å½¢
+	/// @param[in]  pGraph    æ­£åœ¨ä½¿ç”¨çš„æ¸²æŸ“å™¨ï¼Œç©ºè¡¨ç¤ºåªæŸ¥è¯¢å­—å½¢æ•°æ®
+	/// @param[in]  Character è¯·æ±‚çš„å­—ç¬¦
+	/// @param[out] InfoOut   è¿”å›çš„å­—å½¢æ•°æ®
 	virtual fResult QueryGlyph(f2dGraphics* pGraph, fCharW Character, f2dGlyphInfo* InfoOut)=0;
 
-	/// @brief      »ñÈ¡¿ÉÓÃµÄ×ÖĞÎ»º´æÊıÁ¿
+	/// @brief      è·å–å¯ç”¨çš„å­—å½¢ç¼“å­˜æ•°é‡
 	virtual fInt GetCacheCount() = 0;
 
-	/// @brief      »ñÈ¡×ÖĞÎ»º´æÌùÍ¼´óĞ¡
+	/// @brief      è·å–å­—å½¢ç¼“å­˜è´´å›¾å¤§å°
 	virtual fInt GetCacheTexSize() = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2D ×ÖÌåÑ¡Ïî
+/// @brief fancy2D å­—ä½“é€‰é¡¹
 ////////////////////////////////////////////////////////////////////////////////
 enum F2DFONTFLAG
 {
-	F2DFONTFLAG_NONE,    ///< @brief ÎŞÑ¡Ïî
-	F2DFONTFLAG_OUTLINE  ///< @brief [ÉĞÎ´ÊµÏÖ] ·µ»ØÃè±ß
+	F2DFONTFLAG_NONE,    ///< @brief æ— é€‰é¡¹
+	F2DFONTFLAG_OUTLINE  ///< @brief [å°šæœªå®ç°] è¿”å›æè¾¹
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2D ×ÖÌå»æÖÆ¼àÌıÆ÷
+/// @brief fancy2D å­—ä½“ç»˜åˆ¶ç›‘å¬å™¨
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dFontRendererListener
 {
-	/// @brief          Õı×¼±¸»æÖÆ×ÖĞÎ
-	/// @param[in]      Index     ¸Ã×Ö·ûÔÚÎÄ±¾´®ÖĞµÄË÷Òı
-	/// @param[in]      Character ×Ö·û
-	/// @param[in][out] DrawPos   ÆğÊ¼»æÖÆÎ»ÖÃ
-	/// @param[in][out] Adv       Ç°½øÁ¿
-	/// @return         ×ÖĞÎÊÇ·ñ±»»æÖÆ£¬×¢ÒâÎŞÂÛÊÇ·ñ»æÖÆ£¬Ç°½øÁ¿ÈÔÆğ×÷ÓÃ¡£
+	/// @brief          æ­£å‡†å¤‡ç»˜åˆ¶å­—å½¢
+	/// @param[in]      Index     è¯¥å­—ç¬¦åœ¨æ–‡æœ¬ä¸²ä¸­çš„ç´¢å¼•
+	/// @param[in]      Character å­—ç¬¦
+	/// @param[in][out] DrawPos   èµ·å§‹ç»˜åˆ¶ä½ç½®
+	/// @param[in][out] Adv       å‰è¿›é‡
+	/// @return         å­—å½¢æ˜¯å¦è¢«ç»˜åˆ¶ï¼Œæ³¨æ„æ— è®ºæ˜¯å¦ç»˜åˆ¶ï¼Œå‰è¿›é‡ä»èµ·ä½œç”¨ã€‚
 	virtual fBool OnGlyphBeginDraw(fuInt Index, fCharW Character, fcyVec2& DrawPos, fcyVec2& Adv) { return true; }
 
-	/// @brief          »æÖÆ×ÖĞÎ
-	/// @param[in][out] pVerts ¶¥µãÊı×é£¬´óĞ¡Îª4
+	/// @brief          ç»˜åˆ¶å­—å½¢
+	/// @param[in][out] pVerts é¡¶ç‚¹æ•°ç»„ï¼Œå¤§å°ä¸º4
 	virtual void OnGlyphCalcuCoord(f2dGraphics2DVertex pVerts[]) { }
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2D ×ÖÌåäÖÈ¾Æ÷
+/// @brief fancy2D å­—ä½“æ¸²æŸ“å™¨
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dFontRenderer :
 	public f2dInterface
 {
-	/// @brief ·µ»Ø¼àÌıÆ÷
+	/// @brief è¿”å›ç›‘å¬å™¨
 	virtual f2dFontRendererListener* GetListener()=0;
 	
-	/// @brief ÉèÖÃ¼àÌıÆ÷
+	/// @brief è®¾ç½®ç›‘å¬å™¨
 	virtual void SetListener(f2dFontRendererListener* pListener)=0;
 
-	/// @brief ·µ»Ø×ÖĞÎÌá¹©Õß
+	/// @brief è¿”å›å­—å½¢æä¾›è€…
 	virtual f2dFontProvider* GetFontProvider()=0;
 
-	/// @brief     ÉèÖÃ×ÖĞÎÌá¹©Õß
-	/// @param[in] pProvider ×ÖĞÎÌá¹©Õß£¬·Ç¿Õ
+	/// @brief     è®¾ç½®å­—å½¢æä¾›è€…
+	/// @param[in] pProvider å­—å½¢æä¾›è€…ï¼Œéç©º
 	virtual fResult SetFontProvider(f2dFontProvider* pProvider)=0;
 
-	/// @brief »ñµÃZÖµ
+	/// @brief è·å¾—Zå€¼
 	virtual fFloat GetZ()=0;
 
-	/// @brief     ÉèÖÃZÖµ
-	/// @param[in] ZValue ZÖµ
+	/// @brief     è®¾ç½®Zå€¼
+	/// @param[in] ZValue Zå€¼
 	virtual void SetZ(fFloat ZValue)=0;
 
-	/// @brief     »ñµÃ¶¥µãÑÕÉ«
-	/// @param[in] Index Ë÷Òı[0~3]
+	/// @brief     è·å¾—é¡¶ç‚¹é¢œè‰²
+	/// @param[in] Index ç´¢å¼•[0~3]
 	virtual fcyColor GetColor(fuInt Index)=0;
 
-	/// @brief     ÉèÖÃ×ÖÌåÑÕÉ«
-	/// @param[in] Color ×ÖÌåÑÕÉ«
+	/// @brief     è®¾ç½®å­—ä½“é¢œè‰²
+	/// @param[in] Color å­—ä½“é¢œè‰²
 	virtual void SetColor(const fcyColor& Color)=0;
 
-	/// @brief     ÉèÖÃ¶¥µãÑÕÉ«
-	/// @param[in] Index Ë÷Òı[0~3]
-	/// @param[in] Color ÑÕÉ«
+	/// @brief     è®¾ç½®é¡¶ç‚¹é¢œè‰²
+	/// @param[in] Index ç´¢å¼•[0~3]
+	/// @param[in] Color é¢œè‰²
 	virtual void SetColor(fuInt Index, const fcyColor& Color)=0;
 
-	/// @brief »ñµÃ·­×ª·½Ê½
+	/// @brief è·å¾—ç¿»è½¬æ–¹å¼
 	virtual F2DSPRITEFLIP GetFlipType()=0;
 
-	/// @brief     ÉèÖÃ·­×ª·½Ê½
-	/// @param[in] Type ·­×ª·½Ê½
+	/// @brief     è®¾ç½®ç¿»è½¬æ–¹å¼
+	/// @param[in] Type ç¿»è½¬æ–¹å¼
 	virtual void SetFlipType(F2DSPRITEFLIP Type)=0;
 
-	/// @brief »ñÈ¡×ÖĞÎËõ·Å
+	/// @brief è·å–å­—å½¢ç¼©æ”¾
 	virtual fcyVec2 GetScale()=0;
 
-	/// @brief ÉèÖÃ×ÖĞÎËõ·Å
-	/// @note  ¸Ã·½·¨½«Ó°ÏìMeasureString·½·¨
+	/// @brief è®¾ç½®å­—å½¢ç¼©æ”¾
+	/// @note  è¯¥æ–¹æ³•å°†å½±å“MeasureStringæ–¹æ³•
 	virtual void SetScale(fcyVec2 Scale)=0;
 
-	/// @brief     ²âÁ¿Ò»¸ö×Ö·û´®×îÖÕ»æÖÆµÄ´óĞ¡
-	/// @param[in] String ×Ö·û´®
-	/// @param[in] bStrictWidth ÑÏ¸ñ¿í¶È
+	/// @brief     æµ‹é‡ä¸€ä¸ªå­—ç¬¦ä¸²æœ€ç»ˆç»˜åˆ¶çš„å¤§å°
+	/// @param[in] String å­—ç¬¦ä¸²
+	/// @param[in] bStrictWidth ä¸¥æ ¼å®½åº¦
 	virtual fcyRect MeasureString(fcStrW String, bool bStrictWidth=true)=0;
 
-	/// @brief     ²âÁ¿Ò»¸ö×Ö·û´®×îÖÕ»æÖÆµÄ¿í¶È
-	/// @param[in] String ×Ö·û´®
+	/// @brief     æµ‹é‡ä¸€ä¸ªå­—ç¬¦ä¸²æœ€ç»ˆç»˜åˆ¶çš„å®½åº¦
+	/// @param[in] String å­—ç¬¦ä¸²
 	virtual fFloat MeasureStringWidth(fcStrW String)=0;
 
-	/// @brief     »æÖÆÎÄ×Ö
-	/// @param[in] pGraph   äÖÈ¾Æ÷
-	/// @param[in] Text     ÎÄ×Ö
-	/// @param[in] StartPos »æÖÆÆğÊ¼»ù×¼
+	/// @brief     ç»˜åˆ¶æ–‡å­—
+	/// @param[in] pGraph   æ¸²æŸ“å™¨
+	/// @param[in] Text     æ–‡å­—
+	/// @param[in] StartPos ç»˜åˆ¶èµ·å§‹åŸºå‡†
 	virtual fResult DrawTextW(f2dGraphics2D* pGraph, fcStrW Text, const fcyVec2& StartPos)=0;
 
-	/// @brief     »æÖÆÎÄ×Ö
-	/// @param[in]  pGraph   äÖÈ¾Æ÷
-	/// @param[in]  Text     ÎÄ×Ö
-	/// @param[in]  Count    ×ÖÊı£¬ÉèÎª-1ÔòÎªÈ«²¿ÎÄ×Ö
-	/// @param[in]  StartPos »æÖÆÆğÊ¼»ù×¼
-	/// @param[out] PosOut   »æÖÆÖÕÖ¹Î»ÖÃ£¬¿É¿Õ
+	/// @brief     ç»˜åˆ¶æ–‡å­—
+	/// @param[in]  pGraph   æ¸²æŸ“å™¨
+	/// @param[in]  Text     æ–‡å­—
+	/// @param[in]  Count    å­—æ•°ï¼Œè®¾ä¸º-1åˆ™ä¸ºå…¨éƒ¨æ–‡å­—
+	/// @param[in]  StartPos ç»˜åˆ¶èµ·å§‹åŸºå‡†
+	/// @param[out] PosOut   ç»˜åˆ¶ç»ˆæ­¢ä½ç½®ï¼Œå¯ç©º
 	virtual fResult DrawTextW(f2dGraphics2D* pGraph, fcStrW Text, fuInt Count, const fcyVec2& StartPos, fcyVec2* PosOut)=0;
 
-	/// @brief      »æÖÆÎÄ×Ö
-	/// @param[in]  pGraph   äÖÈ¾Æ÷
-	/// @param[in]  Text     ÎÄ×Ö
-	/// @param[in]  Count    ×ÖÊı£¬ÉèÎª-1ÔòÎªÈ«²¿ÎÄ×Ö
-	/// @param[in]  Bias     ÇãĞ±½Ç£¬0Îª²»ÇãĞ±
-	/// @param[in]  StartPos »æÖÆÆğÊ¼»ù×¼
-	/// @param[out] PosOut   »æÖÆÖÕÖ¹Î»ÖÃ£¬¿É¿Õ
+	/// @brief      ç»˜åˆ¶æ–‡å­—
+	/// @param[in]  pGraph   æ¸²æŸ“å™¨
+	/// @param[in]  Text     æ–‡å­—
+	/// @param[in]  Count    å­—æ•°ï¼Œè®¾ä¸º-1åˆ™ä¸ºå…¨éƒ¨æ–‡å­—
+	/// @param[in]  Bias     å€¾æ–œè§’ï¼Œ0ä¸ºä¸å€¾æ–œ
+	/// @param[in]  StartPos ç»˜åˆ¶èµ·å§‹åŸºå‡†
+	/// @param[out] PosOut   ç»˜åˆ¶ç»ˆæ­¢ä½ç½®ï¼Œå¯ç©º
 	virtual fResult DrawTextW(f2dGraphics2D* pGraph, fcStrW Text, fuInt Count, fFloat Bias, const fcyVec2& StartPos, fcyVec2* PosOut) = 0;
 
-	/// @brief     »æÖÆÎÄ×Ö
-	/// @brief      ¸Ã·½·¨ÊÊÓ¦yÖáÏòÉÏµÄÇé¿ö
-	/// @param[in] pGraph   äÖÈ¾Æ÷
-	/// @param[in] Text     ÎÄ×Ö
-	/// @param[in] StartPos »æÖÆÆğÊ¼»ù×¼
+	/// @brief     ç»˜åˆ¶æ–‡å­—
+	/// @brief      è¯¥æ–¹æ³•é€‚åº”yè½´å‘ä¸Šçš„æƒ…å†µ
+	/// @param[in] pGraph   æ¸²æŸ“å™¨
+	/// @param[in] Text     æ–‡å­—
+	/// @param[in] StartPos ç»˜åˆ¶èµ·å§‹åŸºå‡†
 	virtual fResult DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, const fcyVec2& StartPos) = 0;
 
-	/// @brief     »æÖÆÎÄ×Ö
-	/// @brief      ¸Ã·½·¨ÊÊÓ¦yÖáÏòÉÏµÄÇé¿ö
-	/// @param[in]  pGraph   äÖÈ¾Æ÷
-	/// @param[in]  Text     ÎÄ×Ö
-	/// @param[in]  Count    ×ÖÊı£¬ÉèÎª-1ÔòÎªÈ«²¿ÎÄ×Ö
-	/// @param[in]  StartPos »æÖÆÆğÊ¼»ù×¼
-	/// @param[out] PosOut   »æÖÆÖÕÖ¹Î»ÖÃ£¬¿É¿Õ
+	/// @brief     ç»˜åˆ¶æ–‡å­—
+	/// @brief      è¯¥æ–¹æ³•é€‚åº”yè½´å‘ä¸Šçš„æƒ…å†µ
+	/// @param[in]  pGraph   æ¸²æŸ“å™¨
+	/// @param[in]  Text     æ–‡å­—
+	/// @param[in]  Count    å­—æ•°ï¼Œè®¾ä¸º-1åˆ™ä¸ºå…¨éƒ¨æ–‡å­—
+	/// @param[in]  StartPos ç»˜åˆ¶èµ·å§‹åŸºå‡†
+	/// @param[out] PosOut   ç»˜åˆ¶ç»ˆæ­¢ä½ç½®ï¼Œå¯ç©º
 	virtual fResult DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuInt Count, const fcyVec2& StartPos, fcyVec2* PosOut) = 0;
 
-	/// @brief      »æÖÆÎÄ×Ö
-	/// @brief      ¸Ã·½·¨ÊÊÓ¦yÖáÏòÉÏµÄÇé¿ö
-	/// @param[in]  pGraph   äÖÈ¾Æ÷
-	/// @param[in]  Text     ÎÄ×Ö
-	/// @param[in]  Count    ×ÖÊı£¬ÉèÎª-1ÔòÎªÈ«²¿ÎÄ×Ö
-	/// @param[in]  Bias     ÇãĞ±½Ç£¬0Îª²»ÇãĞ±
-	/// @param[in]  StartPos »æÖÆÆğÊ¼»ù×¼
-	/// @param[out] PosOut   »æÖÆÖÕÖ¹Î»ÖÃ£¬¿É¿Õ
+	/// @brief      ç»˜åˆ¶æ–‡å­—
+	/// @brief      è¯¥æ–¹æ³•é€‚åº”yè½´å‘ä¸Šçš„æƒ…å†µ
+	/// @param[in]  pGraph   æ¸²æŸ“å™¨
+	/// @param[in]  Text     æ–‡å­—
+	/// @param[in]  Count    å­—æ•°ï¼Œè®¾ä¸º-1åˆ™ä¸ºå…¨éƒ¨æ–‡å­—
+	/// @param[in]  Bias     å€¾æ–œè§’ï¼Œ0ä¸ºä¸å€¾æ–œ
+	/// @param[in]  StartPos ç»˜åˆ¶èµ·å§‹åŸºå‡†
+	/// @param[out] PosOut   ç»˜åˆ¶ç»ˆæ­¢ä½ç½®ï¼Œå¯ç©º
 	virtual fResult DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuInt Count, fFloat Bias, const fcyVec2& StartPos, fcyVec2* PosOut) = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2D¾«Áé¶¯»­ÊµÀı
+/// @brief fancy2Dç²¾çµåŠ¨ç”»å®ä¾‹
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dSpriteAnimationInstance
 {
@@ -436,145 +436,145 @@ struct f2dSpriteAnimationInstance
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2D¾«Áé¶¯»­
+/// @brief fancy2Dç²¾çµåŠ¨ç”»
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dSpriteAnimation : 
 	public f2dInterface
 {
-	/// @brief ·µ»ØÖ¡¶ÔÓ¦µÄ¾«Áé
+	/// @brief è¿”å›å¸§å¯¹åº”çš„ç²¾çµ
 	virtual f2dSprite* GetSprite(fuInt Index)=0;
-	/// @brief ·µ»ØÖ¡¶ÔÓ¦µÄÊ±¼ä
+	/// @brief è¿”å›å¸§å¯¹åº”çš„æ—¶é—´
 	virtual fInt GetKeyFrameTime(fuInt Index)const=0;
-	/// @brief ÉèÖÃÖ¡¶ÔÓ¦µÄ¾«Áé
+	/// @brief è®¾ç½®å¸§å¯¹åº”çš„ç²¾çµ
 	virtual fResult SetSprite(fuInt Index, f2dSprite* pSprite)=0;
-	/// @brief ÉèÖÃÖ¡¶ÔÓ¦µÄÊ±¼ä
+	/// @brief è®¾ç½®å¸§å¯¹åº”çš„æ—¶é—´
 	virtual fResult SetKeyFrameTime(fuInt Index, fuInt Time)=0;
 
-	/// @brief ¼ÆËã×ÜÖ¡Êı
+	/// @brief è®¡ç®—æ€»å¸§æ•°
 	virtual fuInt GetFrameCount()const=0;
-	/// @brief ·µ»Ø¹Ø¼üÖ¡¸öÊı
+	/// @brief è¿”å›å…³é”®å¸§ä¸ªæ•°
 	virtual fuInt GetKeyFrameCount()const=0;
 
-	/// @brief ×·¼Ó¹Ø¼üÖ¡
+	/// @brief è¿½åŠ å…³é”®å¸§
 	virtual fuInt Append(fuInt FrameTime, f2dTexture2D* FrameTex)=0;
-	/// @brief ×·¼Ó¹Ø¼üÖ¡
+	/// @brief è¿½åŠ å…³é”®å¸§
 	virtual fuInt Append(fuInt FrameTime, f2dTexture2D* FrameTex, const fcyRect& TexRect)=0;
-	/// @brief ×·¼Ó¹Ø¼üÖ¡
+	/// @brief è¿½åŠ å…³é”®å¸§
 	virtual fuInt Append(fuInt FrameTime, f2dTexture2D* FrameTex, const fcyRect& TexRect, const fcyVec2& HotPos)=0;
-	/// @brief ·Ö¸î²¢¼ÓÈë
+	/// @brief åˆ†å‰²å¹¶åŠ å…¥
 	virtual void SplitAndAppend(fuInt FrameTime, f2dTexture2D* FrameTex, const fcyRect& TexRect, fuInt SplitCount)=0;
-	/// @brief ·Ö¸î²¢¼ÓÈë
+	/// @brief åˆ†å‰²å¹¶åŠ å…¥
 	virtual void SplitAndAppend(fuInt* FrameTimeArr, f2dTexture2D* FrameTex, const fcyRect& TexRect, fuInt SplitCount)=0;
-	/// @brief ÄæĞò·Ö¸î²¢¼ÓÈë
+	/// @brief é€†åºåˆ†å‰²å¹¶åŠ å…¥
 	virtual void ReverseSplitAndAppend(fuInt FrameTime, f2dTexture2D* FrameTex, const fcyRect& TexRect, fuInt SplitCount)=0;
-	/// @brief ÄæĞò·Ö¸î²¢¼ÓÈë
+	/// @brief é€†åºåˆ†å‰²å¹¶åŠ å…¥
 	virtual void ReverseSplitAndAppend(fuInt* FrameTimeArr, f2dTexture2D* FrameTex, const fcyRect& TexRect, fuInt SplitCount)=0;
-	/// @brief Çå¿Õ
+	/// @brief æ¸…ç©º
 	virtual void Clear()=0;
 
-	/// @brief ·µ»ØÑ­»·Æğµã
+	/// @brief è¿”å›å¾ªç¯èµ·ç‚¹
 	virtual fInt GetLoopStart()const=0;
-	/// @brief ÉèÖÃÑ­»·Æğµã
+	/// @brief è®¾ç½®å¾ªç¯èµ·ç‚¹
 	virtual void SetLoopStart(fInt Index)=0;
-	/// @brief ·µ»ØÑ­»·ÖÕµã
+	/// @brief è¿”å›å¾ªç¯ç»ˆç‚¹
 	virtual fInt GetLoopEnd()const=0;
-	/// @brief ÉèÖÃÑ­»·ÖÕµã
+	/// @brief è®¾ç½®å¾ªç¯ç»ˆç‚¹
 	virtual void SetLoopEnd(fInt Index)=0;
-	/// @brief ÊÇ·ñÑ­»·
+	/// @brief æ˜¯å¦å¾ªç¯
 	virtual fBool IsLoop()const=0;
-	/// @brief ÉèÖÃÑ­»·
+	/// @brief è®¾ç½®å¾ªç¯
 	virtual void SetLoop(fBool bLoop)=0;
 
-	/// @brief     ³õÊ¼»¯ÊµÀı
-	/// @param[in] Instance ÊµÀı¶ÔÏó
+	/// @brief     åˆå§‹åŒ–å®ä¾‹
+	/// @param[in] Instance å®ä¾‹å¯¹è±¡
 	virtual void InitInstance(f2dSpriteAnimationInstance& Instance, bool bResetBlendColor = true, bool bResetFlipType = true)const=0;
-	/// @brief     ³õÊ¼»¯ÊµÀıµ½¶¯»­½áÎ²
-	/// @param[in] Instance ÊµÀı¶ÔÏó
+	/// @brief     åˆå§‹åŒ–å®ä¾‹åˆ°åŠ¨ç”»ç»“å°¾
+	/// @param[in] Instance å®ä¾‹å¯¹è±¡
 	virtual void InitInstanceToEnd(f2dSpriteAnimationInstance& Instance, bool bResetBlendColor = true, bool bResetFlipType = true)const=0;
-	/// @brief  µ¥²½ÊµÀı
-	/// @return Èô¶¯»­½áÊø·µ»Øfalse
+	/// @brief  å•æ­¥å®ä¾‹
+	/// @return è‹¥åŠ¨ç”»ç»“æŸè¿”å›false
 	virtual fBool StepInstance(f2dSpriteAnimationInstance& Instance)const=0;
-	/// @brief  ºóÍËÒ»²½
-	/// @return Èô¶¯»­½áÊø·µ»Øfalse
+	/// @brief  åé€€ä¸€æ­¥
+	/// @return è‹¥åŠ¨ç”»ç»“æŸè¿”å›false
 	virtual fBool StepbackInstance(f2dSpriteAnimationInstance& Instance)const=0;
-	/// @brief  Ìøµ½Ö¡
+	/// @brief  è·³åˆ°å¸§
 	virtual fResult JumpTo(f2dSpriteAnimationInstance& Instance, fuInt FrameIndex)const=0;
-	/// @brief  Ìøµ½¹Ø¼üÖ¡
+	/// @brief  è·³åˆ°å…³é”®å¸§
 	virtual fResult JumpToKeyFrame(f2dSpriteAnimationInstance& Instance, fuInt FrameIndex)const=0;
 
-	/// @brief »æÖÆ¾«Áé¶¯»­
-	/// @param[in] Instance ¶¯»­ÊµÀı
-	/// @param[in] pGraph   »æÍ¼¶ÔÏóÖ¸Õë
-	/// @param[in] Dest     Ä¿±ê¾ØĞÎ
+	/// @brief ç»˜åˆ¶ç²¾çµåŠ¨ç”»
+	/// @param[in] Instance åŠ¨ç”»å®ä¾‹
+	/// @param[in] pGraph   ç»˜å›¾å¯¹è±¡æŒ‡é’ˆ
+	/// @param[in] Dest     ç›®æ ‡çŸ©å½¢
 	virtual fResult DrawInstance(const f2dSpriteAnimationInstance& Instance, f2dGraphics2D* pGraph, const fcyRect& Dest)=0;
-	/// @brief     »æÖÆ¾«Áé¶¯»­
-	/// @param[in] Instance ¶¯»­ÊµÀı
-	/// @param[in] pGraph   »æÍ¼¶ÔÏóÖ¸Õë
-	/// @param[in] Dest     Ä¿±ê¾ØĞÎ
-	/// @param[in] SubTex   ×ÓÎÆÀíÇøÓò[0~1, 0~1]
+	/// @brief     ç»˜åˆ¶ç²¾çµåŠ¨ç”»
+	/// @param[in] Instance åŠ¨ç”»å®ä¾‹
+	/// @param[in] pGraph   ç»˜å›¾å¯¹è±¡æŒ‡é’ˆ
+	/// @param[in] Dest     ç›®æ ‡çŸ©å½¢
+	/// @param[in] SubTex   å­çº¹ç†åŒºåŸŸ[0~1, 0~1]
 	virtual fResult DrawInstance(const f2dSpriteAnimationInstance& Instance, f2dGraphics2D* pGraph, const fcyRect& Dest, const fcyRect& SubTex)=0;
-	/// @brief     »æÖÆ¾«Áé¶¯»­
-	/// @param[in] Instance ¶¯»­ÊµÀı
-	/// @param[in] pGraph   »æÍ¼¶ÔÏóÖ¸Õë
-	/// @param[in] Center   ¾«ÁéÏÔÊ¾ÖĞĞÄ
+	/// @brief     ç»˜åˆ¶ç²¾çµåŠ¨ç”»
+	/// @param[in] Instance åŠ¨ç”»å®ä¾‹
+	/// @param[in] pGraph   ç»˜å›¾å¯¹è±¡æŒ‡é’ˆ
+	/// @param[in] Center   ç²¾çµæ˜¾ç¤ºä¸­å¿ƒ
 	virtual fResult DrawInstance(const f2dSpriteAnimationInstance& Instance, f2dGraphics2D* pGraph, const fcyVec2& Center)=0;
-	/// @brief     »æÖÆ¾«Áé¶¯»­
-	/// @param[in] Instance ¶¯»­ÊµÀı
-	/// @param[in] pGraph   »æÍ¼¶ÔÏóÖ¸Õë
-	/// @param[in] Center   ¾«ÁéÏÔÊ¾ÖĞĞÄ
-	/// @param[in] Scale    Ëõ·Å
+	/// @brief     ç»˜åˆ¶ç²¾çµåŠ¨ç”»
+	/// @param[in] Instance åŠ¨ç”»å®ä¾‹
+	/// @param[in] pGraph   ç»˜å›¾å¯¹è±¡æŒ‡é’ˆ
+	/// @param[in] Center   ç²¾çµæ˜¾ç¤ºä¸­å¿ƒ
+	/// @param[in] Scale    ç¼©æ”¾
 	virtual fResult DrawInstance(const f2dSpriteAnimationInstance& Instance, f2dGraphics2D* pGraph, const fcyVec2& Center, const fcyVec2& Scale)=0;
-	/// @brief     »æÖÆ¾«Áé¶¯»­
-	/// @param[in] Instance ¶¯»­ÊµÀı
-	/// @param[in] pGraph   »æÍ¼¶ÔÏóÖ¸Õë
-	/// @param[in] Center   ¾«ÁéÏÔÊ¾ÖĞĞÄ
-	/// @param[in] Scale    Ëõ·Å
-	/// @param[in] SubTex   ×ÓÎÆÀíÇøÓò[0~1, 0~1]
+	/// @brief     ç»˜åˆ¶ç²¾çµåŠ¨ç”»
+	/// @param[in] Instance åŠ¨ç”»å®ä¾‹
+	/// @param[in] pGraph   ç»˜å›¾å¯¹è±¡æŒ‡é’ˆ
+	/// @param[in] Center   ç²¾çµæ˜¾ç¤ºä¸­å¿ƒ
+	/// @param[in] Scale    ç¼©æ”¾
+	/// @param[in] SubTex   å­çº¹ç†åŒºåŸŸ[0~1, 0~1]
 	virtual fResult DrawInstance(const f2dSpriteAnimationInstance& Instance, f2dGraphics2D* pGraph, const fcyVec2& Center, const fcyVec2& Scale, const fcyRect& SubTex)=0;
-	/// @brief     »æÖÆ¾«Áé
-	/// @param[in] Instance ¶¯»­ÊµÀı
-	/// @param[in] pGraph   »æÍ¼¶ÔÏóÖ¸Õë
-	/// @param[in] Center   ¾«ÁéÏÔÊ¾ÖĞĞÄ
-	/// @param[in] Scale    Ëõ·Å
-	/// @param[in] Rotation Ë³Ê±ÕëĞı×ª½Ç¶È£¬»¡¶ÈÖÆ¡£
+	/// @brief     ç»˜åˆ¶ç²¾çµ
+	/// @param[in] Instance åŠ¨ç”»å®ä¾‹
+	/// @param[in] pGraph   ç»˜å›¾å¯¹è±¡æŒ‡é’ˆ
+	/// @param[in] Center   ç²¾çµæ˜¾ç¤ºä¸­å¿ƒ
+	/// @param[in] Scale    ç¼©æ”¾
+	/// @param[in] Rotation é¡ºæ—¶é’ˆæ—‹è½¬è§’åº¦ï¼Œå¼§åº¦åˆ¶ã€‚
 	virtual fResult DrawInstance(const f2dSpriteAnimationInstance& Instance, f2dGraphics2D* pGraph, const fcyVec2& Center, const fcyVec2& Scale, fFloat Rotation)=0;
-	/// @brief     »æÖÆ¾«Áé
-	/// @param[in] Instance ¶¯»­ÊµÀı
-	/// @param[in] pGraph   »æÍ¼¶ÔÏóÖ¸Õë
-	/// @param[in] Center   ¾«ÁéÏÔÊ¾ÖĞĞÄ
-	/// @param[in] Scale    Ëõ·Å
-	/// @param[in] Rotation Ë³Ê±ÕëĞı×ª½Ç¶È£¬»¡¶ÈÖÆ¡£
-	/// @param[in] SubTex   ×ÓÎÆÀíÇøÓò[0~1, 0~1]
+	/// @brief     ç»˜åˆ¶ç²¾çµ
+	/// @param[in] Instance åŠ¨ç”»å®ä¾‹
+	/// @param[in] pGraph   ç»˜å›¾å¯¹è±¡æŒ‡é’ˆ
+	/// @param[in] Center   ç²¾çµæ˜¾ç¤ºä¸­å¿ƒ
+	/// @param[in] Scale    ç¼©æ”¾
+	/// @param[in] Rotation é¡ºæ—¶é’ˆæ—‹è½¬è§’åº¦ï¼Œå¼§åº¦åˆ¶ã€‚
+	/// @param[in] SubTex   å­çº¹ç†åŒºåŸŸ[0~1, 0~1]
 	virtual fResult DrawInstance(const f2dSpriteAnimationInstance& Instance, f2dGraphics2D* pGraph, const fcyVec2& Center, const fcyVec2& Scale, fFloat Rotation, const fcyRect& SubTex)=0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2D 2DÁ£×Ó³Ø Á£×Ó²ÎÊı
+/// @brief fancy2D 2Dç²’å­æ±  ç²’å­å‚æ•°
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dParticleCreationDesc
 {
-	fcyRect PosRange;      ///< @brief ´´½¨·¶Î§Æ«ÒÆ
-	fcyVec2 VRange;        ///< @brief ³õËÙ¶È·¶Î§
-	fcyVec2 VAngleRange;   ///< @brief ³õËÙ¶È·½Ïò·¶Î§
-	fcyVec2 ARRange;       ///< @brief ³õ·¨Ïò¼ÓËÙ¶È·¶Î§
-	fcyVec2 ATRange;       ///< @brief ³õÇĞÏò¼ÓËÙ¶È·¶Î§
-	fcyVec2 InitialAngle;  ///< @brief ³õÊ¼»¯Æ«×ª½Ç¶È·¶Î§
-	fcyVec2 SpinRange;     ///< @brief ×ÔĞıËÙ¶È·¶Î§
-	fcyVec2 LifeTimeRange; ///< @brief Éú´æÊ±¼ä·¶Î§
+	fcyRect PosRange;      ///< @brief åˆ›å»ºèŒƒå›´åç§»
+	fcyVec2 VRange;        ///< @brief åˆé€Ÿåº¦èŒƒå›´
+	fcyVec2 VAngleRange;   ///< @brief åˆé€Ÿåº¦æ–¹å‘èŒƒå›´
+	fcyVec2 ARRange;       ///< @brief åˆæ³•å‘åŠ é€Ÿåº¦èŒƒå›´
+	fcyVec2 ATRange;       ///< @brief åˆåˆ‡å‘åŠ é€Ÿåº¦èŒƒå›´
+	fcyVec2 InitialAngle;  ///< @brief åˆå§‹åŒ–åè½¬è§’åº¦èŒƒå›´
+	fcyVec2 SpinRange;     ///< @brief è‡ªæ—‹é€Ÿåº¦èŒƒå›´
+	fcyVec2 LifeTimeRange; ///< @brief ç”Ÿå­˜æ—¶é—´èŒƒå›´
 
-	fcyColor StartColor;      ///< @brief ³õÊ¼ÑÕÉ«
-	fcyVec2  StartColorRange; ///< @brief ³õÊ¼ÑÕÉ«¶¶¶¯·¶Î§
+	fcyColor StartColor;      ///< @brief åˆå§‹é¢œè‰²
+	fcyVec2  StartColorRange; ///< @brief åˆå§‹é¢œè‰²æŠ–åŠ¨èŒƒå›´
 	                          ///< @note  StartColor+=random(StartColorRange.x, StartColorRange.y)
-	fcyColor EndColor;        ///< @brief ÖÕÖ¹ÑÕÉ«
+	fcyColor EndColor;        ///< @brief ç»ˆæ­¢é¢œè‰²
 
-	fcyVec2 StartScale;       ///< @brief ³õÊ¼Ëõ·Å
-	fcyVec2 StartScaleRange;  ///< @brief ³õÊ¼Ëõ·Å¶¶¶¯·¶Î§
-	                          ///< note   ¼ÆËãÍ¬ÉÏ
-	fcyVec2 EndScale;         ///< @brief ÖÕÖ¹Ëõ·Å
+	fcyVec2 StartScale;       ///< @brief åˆå§‹ç¼©æ”¾
+	fcyVec2 StartScaleRange;  ///< @brief åˆå§‹ç¼©æ”¾æŠ–åŠ¨èŒƒå›´
+	                          ///< note   è®¡ç®—åŒä¸Š
+	fcyVec2 EndScale;         ///< @brief ç»ˆæ­¢ç¼©æ”¾
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2D 2DÁ£×Ó³Ø Á¦³¡
+/// @brief fancy2D 2Dç²’å­æ±  åŠ›åœº
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dParticleForce
 {
@@ -582,123 +582,123 @@ struct f2dParticleForce
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2D 2DÁ£×Ó³Ø
+/// @brief fancy2D 2Dç²’å­æ± 
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dParticlePool : 
 	public f2dInterface
 {
-	/// @brief ·µ»ØËæ»úÊıÖÖ×Ó
+	/// @brief è¿”å›éšæœºæ•°ç§å­
 	virtual fuInt GetRandomSeed()=0;
-	/// @brief     ÉèÖÃËæ»úÊıÖÖ×Ó
-	/// @param[in] Seed ÖÖ×Ó
+	/// @brief     è®¾ç½®éšæœºæ•°ç§å­
+	/// @param[in] Seed ç§å­
 	virtual void SetRandomSeed(fuInt Seed)=0;
-	/// @brief ÖÆÔìËæ»úÊı
+	/// @brief åˆ¶é€ éšæœºæ•°
 	virtual fFloat RandFloat(fFloat Min, fFloat Max)=0;
 
-	/// @brief ·µ»ØÁ£×ÓÊıÁ¿
+	/// @brief è¿”å›ç²’å­æ•°é‡
 	virtual fuInt GetCount()=0;
 
-	/// @brief ·µ»ØÁ£×ÓÈİÁ¿
+	/// @brief è¿”å›ç²’å­å®¹é‡
 	virtual fuInt GetCapacity()=0;
 
-	/// @brief Çå¿ÕÁ£×Ó
+	/// @brief æ¸…ç©ºç²’å­
 	virtual void Clear()=0;
 
-	/// @brief     ×·¼ÓÒ»¸öÁ¦
+	/// @brief     è¿½åŠ ä¸€ä¸ªåŠ›
 	virtual fResult AppendForce(f2dParticleForce* pForce)=0;
 	
-	/// @brief     ÒÆ³ıÒ»¸öÁ¦
-	/// @note      ÈôÓĞ¶à¸öÏàÍ¬µÄ¶ÔÏó½«ÒÆ³ıµÚÒ»¸ö¶ÔÏó
+	/// @brief     ç§»é™¤ä¸€ä¸ªåŠ›
+	/// @note      è‹¥æœ‰å¤šä¸ªç›¸åŒçš„å¯¹è±¡å°†ç§»é™¤ç¬¬ä¸€ä¸ªå¯¹è±¡
 	virtual bool RemoveForce(f2dParticleForce* pForce)=0;
 
-	/// @brief     Çå¿ÕÁ¦³¡
+	/// @brief     æ¸…ç©ºåŠ›åœº
 	virtual void ClearForce()=0;
 
-	/// @brief     ·¢ÉäÒ»×éÁ£×Ó
-	/// @param[in] pSprite           ·¢ÉäµÄ¾«Áé
-	/// @param[in] Center            ·¢ÉäÖĞĞÄ
-	/// @param[in] EmittedCountRange ·¢ÉäÊıÁ¿·¶Î§
-	/// @param[in] Desc              Á£×ÓÏêÏ¸ÃèÊö
+	/// @brief     å‘å°„ä¸€ç»„ç²’å­
+	/// @param[in] pSprite           å‘å°„çš„ç²¾çµ
+	/// @param[in] Center            å‘å°„ä¸­å¿ƒ
+	/// @param[in] EmittedCountRange å‘å°„æ•°é‡èŒƒå›´
+	/// @param[in] Desc              ç²’å­è¯¦ç»†æè¿°
 	virtual fResult Emitted(f2dSprite* pSprite, const fcyVec2& Center, const fcyVec2& EmittedCountRange, const f2dParticleCreationDesc& Desc)=0;
 
-	/// @brief     ¸üĞÂÁ£×Ó×´Ì¬
-	/// @param[in] ElapsedTime Á÷ÊÅÊ±¼ä
+	/// @brief     æ›´æ–°ç²’å­çŠ¶æ€
+	/// @param[in] ElapsedTime æµé€æ—¶é—´
 	virtual void Update(fFloat ElapsedTime)=0;
-	/// @brief     äÖÈ¾Á£×Ó
-	/// @param[in] pGraph »æÍ¼½Ó¿Ú
+	/// @brief     æ¸²æŸ“ç²’å­
+	/// @param[in] pGraph ç»˜å›¾æ¥å£
 	virtual void Render(f2dGraphics2D* pGraph)=0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2DäÖÈ¾Æ÷
+/// @brief fancy2Dæ¸²æŸ“å™¨
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dRenderer
 {
-	virtual f2dRenderDevice* GetDevice()=0;  ///< @brief »ñµÃäÖÈ¾Éè±¸Ö¸Õë
+	virtual f2dRenderDevice* GetDevice()=0;  ///< @brief è·å¾—æ¸²æŸ“è®¾å¤‡æŒ‡é’ˆ
 
-	// === ¶ÔÏó´´½¨ ===
-	/// @brief      ´´½¨Sprite2D
-	/// @param[in]  pTex °ó¶¨µÄÎÆÀí
-	/// @param[out] pOut ´´½¨µÄSprite
+	// === å¯¹è±¡åˆ›å»º ===
+	/// @brief      åˆ›å»ºSprite2D
+	/// @param[in]  pTex ç»‘å®šçš„çº¹ç†
+	/// @param[out] pOut åˆ›å»ºçš„Sprite
 	virtual fResult CreateSprite2D(f2dTexture2D* pTex, f2dSprite** pOut)=0;
 
-	/// @brief      ´´½¨Sprite2D
-	/// @param[in]  pTex °ó¶¨µÄÎÆÀí
-	/// @param[in]  Org  Ô­Ê¼ÎÆÀí¾ØĞÎ
-	/// @param[out] pOut ´´½¨µÄSprite
+	/// @brief      åˆ›å»ºSprite2D
+	/// @param[in]  pTex ç»‘å®šçš„çº¹ç†
+	/// @param[in]  Org  åŸå§‹çº¹ç†çŸ©å½¢
+	/// @param[out] pOut åˆ›å»ºçš„Sprite
 	virtual fResult CreateSprite2D(f2dTexture2D* pTex, const fcyRect& Org, f2dSprite** pOut)=0;
 
-	/// @brief      ´´½¨Sprite2D
-	/// @param[in]  pTex    °ó¶¨µÄÎÆÀí
-	/// @param[in]  Org     Ô­Ê¼ÎÆÀí¾ØĞÎ
-	/// @param[in]  HotSopt ÈÈµã
-	/// @param[out] pOut    ´´½¨µÄSprite
+	/// @brief      åˆ›å»ºSprite2D
+	/// @param[in]  pTex    ç»‘å®šçš„çº¹ç†
+	/// @param[in]  Org     åŸå§‹çº¹ç†çŸ©å½¢
+	/// @param[in]  HotSopt çƒ­ç‚¹
+	/// @param[out] pOut    åˆ›å»ºçš„Sprite
 	virtual fResult CreateSprite2D(f2dTexture2D* pTex, const fcyRect& Org, const fcyVec2& HotSopt, f2dSprite** pOut)=0;
 
-	/// @brief      ´´½¨¼¸ºÎÌåäÖÈ¾Æ÷
-	/// @param[out] pOut Êä³öµÄäÖÈ¾Æ÷¶ÔÏó
+	/// @brief      åˆ›å»ºå‡ ä½•ä½“æ¸²æŸ“å™¨
+	/// @param[out] pOut è¾“å‡ºçš„æ¸²æŸ“å™¨å¯¹è±¡
 	virtual fResult CreateGeometryRenderer(f2dGeometryRenderer** pOut)=0;
 
-	/// @brief      ´´½¨ÎÄ×ÖäÖÈ¾Æ÷
-	/// @param[in]  pProvider ×ÖÌåÔ´
-	/// @param[out] pOut      Êä³öµÄ×ÖÌå¶ÔÏó
+	/// @brief      åˆ›å»ºæ–‡å­—æ¸²æŸ“å™¨
+	/// @param[in]  pProvider å­—ä½“æº
+	/// @param[out] pOut      è¾“å‡ºçš„å­—ä½“å¯¹è±¡
 	virtual fResult CreateFontRenderer(f2dFontProvider* pProvider, f2dFontRenderer** pOut)=0;
 
-	/// @brief      ´Ó×ÖÌåÎÄ¼ş¼ÓÔØ×ÖÌå
-	/// @param[in]  pStream   ×ÖÌåÎÄ¼ş£¬¶ÁÈ¡Õû¸öÎÄ¼ş
-	/// @param[in]  FaceIndex ÈôÓĞ¶à¸öFace£¬¿ÉÒÔÖ¸¶¨Ë÷Òı¡£0×ÜÊÇÓĞĞ§Öµ¡£
-	/// @param[in]  FontSize  ×ÖÌå´óĞ¡
-	/// @param[in]  BBoxSize  ÊÖ¶¯Ö¸¶¨°üÎ§ºĞ´óĞ¡£¬×¨ÖÎSBË¼Ô´ÏµÁĞ×ÖÌå£¬Îª0Ê±ºöÂÔ¸Ã²ÎÊı
-	/// @param[in]  Flag      ¶îÍâÑ¡Ïî
-	/// @param[out] pOut      ·µ»ØµÄ×ÖÌå¶ÔÏó
+	/// @brief      ä»å­—ä½“æ–‡ä»¶åŠ è½½å­—ä½“
+	/// @param[in]  pStream   å­—ä½“æ–‡ä»¶ï¼Œè¯»å–æ•´ä¸ªæ–‡ä»¶
+	/// @param[in]  FaceIndex è‹¥æœ‰å¤šä¸ªFaceï¼Œå¯ä»¥æŒ‡å®šç´¢å¼•ã€‚0æ€»æ˜¯æœ‰æ•ˆå€¼ã€‚
+	/// @param[in]  FontSize  å­—ä½“å¤§å°
+	/// @param[in]  BBoxSize  æ‰‹åŠ¨æŒ‡å®šåŒ…å›´ç›’å¤§å°ï¼Œä¸“æ²»SBæ€æºç³»åˆ—å­—ä½“ï¼Œä¸º0æ—¶å¿½ç•¥è¯¥å‚æ•°
+	/// @param[in]  Flag      é¢å¤–é€‰é¡¹
+	/// @param[out] pOut      è¿”å›çš„å­—ä½“å¯¹è±¡
 	virtual fResult CreateFontFromFile(f2dStream* pStream, fuInt FaceIndex, const fcyVec2& FontSize, const fcyVec2& BBoxSize, F2DFONTFLAG Flag, f2dFontProvider** pOut)=0;
 
-	/// @brief      ´ÓÏµÍ³¼ÓÔØ×ÖÌå
-	/// @param[in]  FaceName  ×ÖÌåÔÚ×¢²á±íÖĞµÄÃû³Æ
-	/// @param[in]  FaceIndex ÈôÓĞ¶à¸öFace£¬¿ÉÒÔÖ¸¶¨Ë÷Òı¡£0×ÜÊÇÓĞĞ§Öµ¡£
-	/// @param[in]  FontSize  ×ÖÌå´óĞ¡
-	/// @param[in]  Flag      ¶îÍâÑ¡Ïî
-	/// @param[out] pOut      ·µ»ØµÄ×ÖÌå¶ÔÏó
+	/// @brief      ä»ç³»ç»ŸåŠ è½½å­—ä½“
+	/// @param[in]  FaceName  å­—ä½“åœ¨æ³¨å†Œè¡¨ä¸­çš„åç§°
+	/// @param[in]  FaceIndex è‹¥æœ‰å¤šä¸ªFaceï¼Œå¯ä»¥æŒ‡å®šç´¢å¼•ã€‚0æ€»æ˜¯æœ‰æ•ˆå€¼ã€‚
+	/// @param[in]  FontSize  å­—ä½“å¤§å°
+	/// @param[in]  Flag      é¢å¤–é€‰é¡¹
+	/// @param[out] pOut      è¿”å›çš„å­—ä½“å¯¹è±¡
 	virtual fResult CreateSystemFont(fcStrW FaceName, fuInt FaceIndex, const fcyVec2& FontSize, F2DFONTFLAG Flag, f2dFontProvider** pOut)=0;
 
-	/// @brief      ´ÓÎÆÀí¼ÓÔØ×ÖÌå
-	/// @param[in]  pDefineFile ×ÖÌå¶¨ÒåÎÄ¼ş
-	/// @param[in]  pTex        ÎÆÀí
-	/// @param[out] pOut        ·µ»ØµÄ×ÖÌå¶ÔÏó
+	/// @brief      ä»çº¹ç†åŠ è½½å­—ä½“
+	/// @param[in]  pDefineFile å­—ä½“å®šä¹‰æ–‡ä»¶
+	/// @param[in]  pTex        çº¹ç†
+	/// @param[out] pOut        è¿”å›çš„å­—ä½“å¯¹è±¡
 	virtual fResult CreateFontFromTex(f2dStream* pDefineFile, f2dTexture2D* pTex, f2dFontProvider** pOut)=0;
 	
-	/// @brief      ´ÓÎÆÀí¼ÓÔØ×ÖÌå
-	/// @param[in]  pDefineFile ×ÖÌå¶¨Òå
-	/// @param[in]  pTex        ÎÆÀí
-	/// @param[out] pOut        ·µ»ØµÄ×ÖÌå¶ÔÏó
+	/// @brief      ä»çº¹ç†åŠ è½½å­—ä½“
+	/// @param[in]  pDefineFile å­—ä½“å®šä¹‰
+	/// @param[in]  pTex        çº¹ç†
+	/// @param[out] pOut        è¿”å›çš„å­—ä½“å¯¹è±¡
 	virtual fResult CreateFontFromTex(fcStrW pDefineText, f2dTexture2D* pTex, f2dFontProvider** pOut)=0;
 
-	/// @brief      ´´½¨¾«Áé¶¯»­
-	/// @param[out] pOut        ·µ»ØµÄ¶ÔÏó
+	/// @brief      åˆ›å»ºç²¾çµåŠ¨ç”»
+	/// @param[out] pOut        è¿”å›çš„å¯¹è±¡
 	virtual fResult CreateSpriteAnimation(f2dSpriteAnimation** pOut)=0;
 
-	/// @brief      ´´½¨Á£×Ó³Ø
-	/// @param[out] pOut        ·µ»ØµÄ¶ÔÏó
+	/// @brief      åˆ›å»ºç²’å­æ± 
+	/// @param[out] pOut        è¿”å›çš„å¯¹è±¡
 	virtual fResult CreateParticlePool(f2dParticlePool** pOut)=0;
 };
 
