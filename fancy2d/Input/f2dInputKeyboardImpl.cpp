@@ -1,7 +1,5 @@
 ﻿#ifndef _M_ARM
 
-#pragma comment(lib, "dinput8.lib")//动态加载dll留下的大坑，还是得link一下
-
 #include "Input/f2dInputKeyboardImpl.h"
 
 #include "Engine/f2dEngineImpl.h"

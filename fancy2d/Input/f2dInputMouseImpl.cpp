@@ -1,4 +1,4 @@
-#ifndef _M_ARM
+ï»¿#ifndef _M_ARM
 
 #include "Input/f2dInputMouseImpl.h"
 
@@ -98,7 +98,7 @@ f2dInputMouseImpl::f2dInputMouseImpl(f2dInputSysImpl* pSys, HWND Win, const GUID
 	if(FAILED(tHR))
 		throw fcyWin32COMException("f2dInputMouseImpl::f2dInputMouseImpl", "CreateDevice Failed.", tHR);
 	
-	// ÉèÖÃÐ­×÷Ä£Ê½
+	// è®¾ç½®åä½œæ¨¡å¼
 	fuInt tFlag = DISCL_NONEXCLUSIVE;
 	if(bGlobalFocus)
 		tFlag |= DISCL_BACKGROUND;
@@ -110,16 +110,16 @@ f2dInputMouseImpl::f2dInputMouseImpl(f2dInputSysImpl* pSys, HWND Win, const GUID
 		FCYSAFEKILL(m_pDev);
 		throw fcyWin32COMException("f2dInputMouseImpl::f2dInputMouseImpl", "SetCooperativeLevel Failed.", tHR);
 	}
-
-    // ÉèÖÃÊý¾Ý¸ñÊ½
-    tHR = m_pDev->SetDataFormat(&DIDF_Mouse);
+	
+    // è®¾ç½®æ•°æ®æ ¼å¼
+    tHR = m_pDev->SetDataFormat(&c_dfDIMouse2);
 	if(FAILED(tHR))
 	{
 		FCYSAFEKILL(m_pDev);
 		throw fcyWin32COMException("f2dInputMouseImpl::f2dInputMouseImpl", "SetDataFormat Failed.", tHR);
 	}
-
-	// ÉèÖÃ»º³åÇø
+	
+	// è®¾ç½®ç¼“å†²åŒº
 	DIPROPDWORD tBufferProperty;
 
     tBufferProperty.diph.dwSize = sizeof(DIPROPDWORD);
@@ -135,10 +135,10 @@ f2dInputMouseImpl::f2dInputMouseImpl(f2dInputSysImpl* pSys, HWND Win, const GUID
 		throw fcyWin32COMException("f2dInputMouseImpl::f2dInputMouseImpl", "SetProperty Failed.", tHR);
 	}
 
-	// »ñµÃÉè±¸
+	// èŽ·å¾—è®¾å¤‡
 	tHR = m_pDev->Acquire();
 
-	// ×¢²á
+	// æ³¨å†Œ
 	m_pSys->RegisterDevice(this);
 }
 
@@ -147,7 +147,7 @@ f2dInputMouseImpl::~f2dInputMouseImpl()
 	if(m_pDev)
 		m_pDev->Unacquire();
 
-	// ÊÍ·Å
+	// é‡Šæ”¾
 	m_pSys->UnregisterDevice(this);
 
 	FCYSAFEKILL(m_pDev);
@@ -204,25 +204,25 @@ fResult f2dInputMouseImpl::UpdateState()
 		{
 		case DIMOFS_X:
 			m_TotalOffsetX += tRawData[i].dwData;
-			// ´¥·¢ÊÂ¼þ
+			// è§¦å‘äº‹ä»¶
 			if(m_pListener)
 				m_pListener->OnMouseMoveX(tRawData[i].dwData);
 			break;
 		case DIMOFS_Y:
 			m_TotalOffsetY += tRawData[i].dwData;
-			// ´¥·¢ÊÂ¼þ
+			// è§¦å‘äº‹ä»¶
 			if(m_pListener)
 				m_pListener->OnMouseMoveY(tRawData[i].dwData);
 			break;
 		case DIMOFS_Z:
 			m_TotalOffsetZ += tRawData[i].dwData;
-			// ´¥·¢ÊÂ¼þ
+			// è§¦å‘äº‹ä»¶
 			if(m_pListener)
 				m_pListener->OnMouseMoveZ(tRawData[i].dwData);
 			break;
 		case DIMOFS_BUTTON0:
 			m_BtnState[0] = (LOBYTE(tRawData[i].dwData) & 0x80) != 0;
-			// ´¥·¢ÊÂ¼þ
+			// è§¦å‘äº‹ä»¶
 			if(m_pListener)
 				if(m_BtnState[0])
 					m_pListener->OnMouseLBtnDown();
@@ -231,7 +231,7 @@ fResult f2dInputMouseImpl::UpdateState()
 			break;
 		case DIMOFS_BUTTON1:
 			m_BtnState[1] = (LOBYTE(tRawData[i].dwData) & 0x80) != 0;
-			// ´¥·¢ÊÂ¼þ
+			// è§¦å‘äº‹ä»¶
 			if(m_pListener)
 				if(m_BtnState[1])
 					m_pListener->OnMouseRBtnDown();
@@ -240,7 +240,7 @@ fResult f2dInputMouseImpl::UpdateState()
 			break;
 		case DIMOFS_BUTTON2:
 			m_BtnState[2] = (LOBYTE(tRawData[i].dwData) & 0x80) != 0;
-			// ´¥·¢ÊÂ¼þ
+			// è§¦å‘äº‹ä»¶
 			if(m_pListener)
 				if(m_BtnState[2])
 					m_pListener->OnMouseMBtnDown();
@@ -249,7 +249,7 @@ fResult f2dInputMouseImpl::UpdateState()
 			break;
 		case DIMOFS_BUTTON3:
 			m_BtnState[3] = (LOBYTE(tRawData[i].dwData) & 0x80) != 0;
-			// ´¥·¢ÊÂ¼þ
+			// è§¦å‘äº‹ä»¶
 			if(m_pListener)
 				if(m_BtnState[3])
 					m_pListener->OnMouseAdditionBtnDown(0);
@@ -258,7 +258,7 @@ fResult f2dInputMouseImpl::UpdateState()
 			break;
 		case DIMOFS_BUTTON4:
 			m_BtnState[4] = (LOBYTE(tRawData[i].dwData) & 0x80) != 0;
-			// ´¥·¢ÊÂ¼þ
+			// è§¦å‘äº‹ä»¶
 			if(m_pListener)
 				if(m_BtnState[4])
 					m_pListener->OnMouseAdditionBtnDown(1);
@@ -267,7 +267,7 @@ fResult f2dInputMouseImpl::UpdateState()
 			break;
 		case DIMOFS_BUTTON5:
 			m_BtnState[5] = (LOBYTE(tRawData[i].dwData) & 0x80) != 0;
-			// ´¥·¢ÊÂ¼þ
+			// è§¦å‘äº‹ä»¶
 			if(m_pListener)
 				if(m_BtnState[5])
 					m_pListener->OnMouseAdditionBtnDown(2);
@@ -276,7 +276,7 @@ fResult f2dInputMouseImpl::UpdateState()
 			break;
 		case DIMOFS_BUTTON6:
 			m_BtnState[6] = (LOBYTE(tRawData[i].dwData) & 0x80) != 0;
-			// ´¥·¢ÊÂ¼þ
+			// è§¦å‘äº‹ä»¶
 			if(m_pListener)
 				if(m_BtnState[6])
 					m_pListener->OnMouseAdditionBtnDown(3);
@@ -285,7 +285,7 @@ fResult f2dInputMouseImpl::UpdateState()
 			break;
 		case DIMOFS_BUTTON7:
 			m_BtnState[7] = (LOBYTE(tRawData[i].dwData) & 0x80) != 0;
-			// ´¥·¢ÊÂ¼þ
+			// è§¦å‘äº‹ä»¶
 			if(m_pListener)
 				if(m_BtnState[7])
 					m_pListener->OnMouseAdditionBtnDown(4);

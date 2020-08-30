@@ -6,6 +6,7 @@
 #include "fcyRefObj.h"
 #include "fcyIO\fcyStream.h"
 
+#pragma comment(lib, "dinput8.lib")//动态加载dll留下的大坑，还是得link一下
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 
