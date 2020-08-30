@@ -1576,6 +1576,8 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 		}
 		case F2DMSG_WINDOW_ONGETFOCUS:
 		{
+			resetKeyStatus(); // clear input status
+			m_pInputSys->Reset(); // clear input status
 			if (!SafeCallGlobalFunction(LFUNC_GAINFOCUS))
 				return false;
 			break;
@@ -1583,6 +1585,7 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 		case F2DMSG_WINDOW_ONLOSTFOCUS:
 		{
 			resetKeyStatus(); // clear input status
+			m_pInputSys->Reset(); // clear input status
 			if (!SafeCallGlobalFunction(LFUNC_LOSEFOCUS))
 				return false;
 			break;

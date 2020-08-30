@@ -425,6 +425,10 @@ fResult f2dInputKeyboardImpl::UpdateState()
 	return FCYERR_OK;
 }
 
+void f2dInputKeyboardImpl::ResetState() {
+	memset(&m_ButtonState, 0, sizeof(m_ButtonState));
+}
+
 f2dInputKeyboardEventListener* f2dInputKeyboardImpl::GetListener()
 {
 	return m_pListener;
@@ -591,6 +595,10 @@ fResult f2dInputKeyboardImpl2::UpdateState()
 	}
 
 	return FCYERR_OK;
+}
+
+void f2dInputKeyboardImpl2::ResetState() {
+	memset(&m_ButtonState, 0, sizeof(m_ButtonState));
 }
 
 f2dInputKeyboardEventListener* f2dInputKeyboardImpl2::GetListener()

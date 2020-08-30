@@ -78,7 +78,8 @@ public:
 	f2dInputKeyboard* ToKeyboard();
 	f2dInputJoystick* ToJoystick();
 
-	fResult UpdateState(); 
+	fResult UpdateState();
+	void ResetState();
 
 	f2dInputJoystickEventListener* GetListener();
 	fResult SetListener(f2dInputJoystickEventListener* pListener);

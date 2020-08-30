@@ -46,7 +46,8 @@ public:
 	f2dInputKeyboard* ToKeyboard();
 	f2dInputJoystick* ToJoystick();
 
-	fResult UpdateState(); 
+	fResult UpdateState();
+	void ResetState();
 
 	f2dInputKeyboardEventListener* GetListener();
 	fResult SetListener(f2dInputKeyboardEventListener* pListener);
@@ -86,12 +87,13 @@ public:
 	f2dInputMouse* ToMouse();
 	f2dInputKeyboard* ToKeyboard();
 	f2dInputJoystick* ToJoystick();
-
+	
 	fResult UpdateState();
-
+	void ResetState();
+	
 	f2dInputKeyboardEventListener* GetListener();
 	fResult SetListener(f2dInputKeyboardEventListener* pListener);
-
+	
 	fBool IsKeyDown(F2DINPUTKEYCODE KeyCode) { return false; }
 	fBool KeyPress(DWORD KeyCode);
 protected: // 禁止直接new/delete

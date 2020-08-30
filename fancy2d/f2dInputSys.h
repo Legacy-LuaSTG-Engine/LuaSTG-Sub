@@ -35,6 +35,7 @@ struct f2dInputDevice : public f2dInterface
 	/// @brief 更新设备状态
 	/// @note  该方法已由引擎自动调用。
 	virtual fResult UpdateState()=0;
+	virtual void ResetState() = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -411,6 +412,12 @@ struct f2dInputSys
 	/// @param[in]  bGlobalFocus 全局响应，当为true时程序在非激活状态时亦可捕捉消息
 	/// @param[out] pOut         创建的设备指针
 	virtual fResult CreateJoystick(fInt DevIndex, fBool bGlobalFocus, f2dInputJoystick** pOut)=0;
+	
+	// update all devices
+	virtual void Update() = 0;
+	
+	// reset all devices
+	virtual void Reset() = 0;
 };
 
 /// @}

@@ -64,16 +64,6 @@ public:  // 内部方法
 				++i;
 		}
 	}
-	void Update()  // 更新所有设备状态
-	{
-		std::vector<f2dInputDevice*>::iterator i = m_pObjList.begin();
-		while(i != m_pObjList.end())
-		{
-			(*i)->UpdateState();
-
-			++i;
-		}
-	}
 public:  // 接口实现
 	fuInt GetDeviceCount(F2DINPUTDEVTYPE Type);
 	fcStrW GetDeviceName(F2DINPUTDEVTYPE Type, fuInt Index);
@@ -83,6 +73,25 @@ public:  // 接口实现
 	fResult CreateKeyboard(fInt DevIndex, fBool bGlobalFocus, f2dInputKeyboard** pOut);
 	fResult CreateDefaultKeyboard(fInt DevIndex, fBool bGlobalFocus, f2dInputKeyboard** pOut);
 	fResult CreateJoystick(fInt DevIndex, fBool bGlobalFocus, f2dInputJoystick** pOut);
+	
+	void Update() {
+		std::vector<f2dInputDevice*>::iterator i = m_pObjList.begin();
+		while(i != m_pObjList.end())
+		{
+			(*i)->UpdateState();
+
+			++i;
+		}
+	}
+	void Reset() {
+		std::vector<f2dInputDevice*>::iterator i = m_pObjList.begin();
+		while(i != m_pObjList.end())
+		{
+			(*i)->ResetState();
+
+			++i;
+		}
+	}
 public:
 	f2dInputSysImpl(f2dEngineImpl* pEngine);
 protected:

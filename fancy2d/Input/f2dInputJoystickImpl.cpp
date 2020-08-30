@@ -389,6 +389,18 @@ fResult f2dInputJoystickImpl::UpdateState()
 	return FCYERR_OK;
 }
 
+void f2dInputJoystickImpl::ResetState() {
+	m_lX = 0.0f;
+	m_lY = 0.0f;
+	m_lZ = 0.0f;
+	m_lRx = 0.0f;
+	m_lRy = 0.0f;
+	m_lRz = 0.0f;
+	memset(&m_ButtonDown, 0, sizeof(m_ButtonDown));
+	memset(&m_Slider, 0, sizeof(m_Slider));
+	memset(&m_POV, 0, sizeof(m_POV));
+}
+
 f2dInputJoystickEventListener* f2dInputJoystickImpl::GetListener()
 {
 	return m_pListener;

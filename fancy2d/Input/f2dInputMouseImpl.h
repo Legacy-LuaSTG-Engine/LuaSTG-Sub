@@ -59,7 +59,8 @@ public: // 接口实现
 	f2dInputKeyboard* ToKeyboard();
 	f2dInputJoystick* ToJoystick();
 
-	fResult UpdateState(); 
+	fResult UpdateState();
+	void ResetState();
 
 	f2dInputMouseEventListener* GetListener();
 	fResult SetListener(f2dInputMouseEventListener* pListener);

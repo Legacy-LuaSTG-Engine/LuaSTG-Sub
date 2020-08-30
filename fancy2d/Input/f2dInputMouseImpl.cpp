@@ -298,6 +298,13 @@ fResult f2dInputMouseImpl::UpdateState()
 	return FCYERR_OK;
 }
 
+void f2dInputMouseImpl::ResetState() {
+	m_TotalOffsetX = 0;
+	m_TotalOffsetY = 0;
+	m_TotalOffsetZ = 0;
+	memset(&m_BtnState, 0, sizeof(m_BtnState));
+}
+
 f2dInputMouseEventListener* f2dInputMouseImpl::GetListener()
 {
 	return m_pListener;
