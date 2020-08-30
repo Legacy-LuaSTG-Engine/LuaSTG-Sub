@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.15)
 
-#set(LUASTG_RESDIR res)
+set(LUASTG_RESDIR res)
 #set(LUASTG_RESDIR custom/THEIS)
-set(LUASTG_RESDIR custom/THBDB)
+#set(LUASTG_RESDIR custom/THBDB)
 #set(LUASTG_RESDIR custom/THTUO)
 
 add_executable(LuaSTG WIN32)
