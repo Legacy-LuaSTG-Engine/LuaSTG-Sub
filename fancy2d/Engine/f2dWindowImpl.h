@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dWindowImpl.h
-/// @brief fancy2DäÖÈ¾´°¿Ú½Ó¿ÚÊµÏÖ
+/// @brief fancy2Dæ¸²æŸ“çª—å£æ¥å£å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyRefObj.h"
@@ -17,7 +17,7 @@ class f2dEngineImpl;
 class f2dWindowImpl;
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ´°¿ÚÀà
+/// @brief çª—å£ç±»
 ////////////////////////////////////////////////////////////////////////////////
 class f2dWindowClass
 {
@@ -29,15 +29,15 @@ private:
 	static std::unordered_map<HWND, f2dWindowImpl*> s_WindowCallBack;
 	static LRESULT CALLBACK WndProc(HWND Handle, UINT Msg, WPARAM wParam, LPARAM lParam);
 public:
-	fcStrW GetName()const; // »ñµÃ´°¿ÚÀàÃû³Æ
-	f2dWindowImpl* CreateRenderWindow(const fcyRect& Pos, fcStrW Title, fBool Visiable, F2DWINBORDERTYPE Border, bool DisableIME = true); // ´´½¨´°¿Ú
+	fcStrW GetName()const; // è·å¾—çª—å£ç±»åç§°
+	f2dWindowImpl* CreateRenderWindow(const fcyRect& Pos, fcStrW Title, fBool Visiable, F2DWINBORDERTYPE Border, bool DisableIME = true); // åˆ›å»ºçª—å£
 public:
 	f2dWindowClass(f2dEngineImpl* pEngine, fcStrW ClassName);
 	~f2dWindowClass();
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ´°¿ÚDC
+/// @brief çª—å£DC
 ////////////////////////////////////////////////////////////////////////////////
 class f2dWindowDC
 {
@@ -74,18 +74,18 @@ public:
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief IMEºòÑ¡´ÊÁĞ±í
+/// @brief IMEå€™é€‰è¯åˆ—è¡¨
 ////////////////////////////////////////////////////////////////////////////////
 class f2dIMECandidateListImpl :
 	public f2dIMECandidateList
 {
 protected:
-	fuInt m_IMETotalCandidate;          ///< @brief ºòÑ¡´Ê¸öÊı
-	fuInt m_IMESelectedCandidate;       ///< @brief Ñ¡ÖĞµÄºòÑ¡´ÊË÷Òı
-	fuInt m_IMEPageStartCandidate;      ///< @brief µ±Ç°Ò³ÂëÖĞµÚÒ»¸öºòÑ¡´ÊµÄË÷Òı
-	fuInt m_IMEPageCandidateCount;      ///< @brief Ò»Ò³µÄºòÑ¡´Ê¸öÊı
-	std::vector<std::wstring> m_IMECandidateList; ///< @brief ºòÑ¡´ÊÁĞ±í
-public: // ½Ó¿ÚÊµÏÖ
+	fuInt m_IMETotalCandidate;          ///< @brief å€™é€‰è¯ä¸ªæ•°
+	fuInt m_IMESelectedCandidate;       ///< @brief é€‰ä¸­çš„å€™é€‰è¯ç´¢å¼•
+	fuInt m_IMEPageStartCandidate;      ///< @brief å½“å‰é¡µç ä¸­ç¬¬ä¸€ä¸ªå€™é€‰è¯çš„ç´¢å¼•
+	fuInt m_IMEPageCandidateCount;      ///< @brief ä¸€é¡µçš„å€™é€‰è¯ä¸ªæ•°
+	std::vector<std::wstring> m_IMECandidateList; ///< @brief å€™é€‰è¯åˆ—è¡¨
+public: // æ¥å£å®ç°
 	fuInt GetCount();
 	fuInt GetCurIndex();
 	fuInt GetPageSize();
@@ -98,7 +98,7 @@ public:
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief äÖÈ¾´°¿Ú
+/// @brief æ¸²æŸ“çª—å£
 ////////////////////////////////////////////////////////////////////////////////
 class f2dWindowImpl :
 	public fcyRefObjImpl<f2dWindow>
@@ -145,39 +145,39 @@ private:
 			: m_pEngine(pEngine), m_pThis(pThis) {}
 	};
 private:
-	// ×´Ì¬
+	// çŠ¶æ€
 	HWND m_hWnd;
 	bool m_bShow;
 	std::wstring m_CaptionText;
 
-	// ¼àÌıÆ÷
+	// ç›‘å¬å™¨
 	DefaultListener m_DefaultListener;
 	f2dWindowEventListener* m_pListener;
 
-	// ÊäÈë·¨ÉÏÏÂÎÄ
+	// è¾“å…¥æ³•ä¸Šä¸‹æ–‡
 	HIMC m_hIMC;
 	bool m_bHideIME;
-	std::wstring m_CurIMEDesc;          ///< @brief ÊäÈë·¨ÃèÊö
-	std::wstring m_CurIMEComposition;   ///< @brief ÊäÈë·¨×é´ÊÎÄ±¾
-	fuInt m_IMETotalCandidate;          ///< @brief ºòÑ¡´Ê¸öÊı
-	fuInt m_IMESelectedCandidate;       ///< @brief Ñ¡ÖĞµÄºòÑ¡´ÊË÷Òı
-	fuInt m_IMEPageStartCandidate;      ///< @brief µ±Ç°Ò³ÂëÖĞµÚÒ»¸öºòÑ¡´ÊµÄË÷Òı
-	fuInt m_IMEPageCandidateCount;      ///< @brief Ò»Ò³µÄºòÑ¡´Ê¸öÊı
-	std::vector<std::wstring> m_IMECandidateList; ///< @brief ºòÑ¡´ÊÁĞ±í
+	std::wstring m_CurIMEDesc;          ///< @brief è¾“å…¥æ³•æè¿°
+	std::wstring m_CurIMEComposition;   ///< @brief è¾“å…¥æ³•ç»„è¯æ–‡æœ¬
+	fuInt m_IMETotalCandidate;          ///< @brief å€™é€‰è¯ä¸ªæ•°
+	fuInt m_IMESelectedCandidate;       ///< @brief é€‰ä¸­çš„å€™é€‰è¯ç´¢å¼•
+	fuInt m_IMEPageStartCandidate;      ///< @brief å½“å‰é¡µç ä¸­ç¬¬ä¸€ä¸ªå€™é€‰è¯çš„ç´¢å¼•
+	fuInt m_IMEPageCandidateCount;      ///< @brief ä¸€é¡µçš„å€™é€‰è¯ä¸ªæ•°
+	std::vector<std::wstring> m_IMECandidateList; ///< @brief å€™é€‰è¯åˆ—è¡¨
 
-protected: // ÄÚ²¿·½·¨
-	/// @brief ³õÊ¼»¯ÊäÈë·¨ÉÏÏÂÎÄ
+protected: // å†…éƒ¨æ–¹æ³•
+	/// @brief åˆå§‹åŒ–è¾“å…¥æ³•ä¸Šä¸‹æ–‡
 	void InitIMEContext();
-	/// @brief È¡ÏûÊäÈë·¨ÉÏÏÂÎÄ
+	/// @brief å–æ¶ˆè¾“å…¥æ³•ä¸Šä¸‹æ–‡
 	void UninitIMEContext();
 	
-	/// @brief ´¦ÀíIMEÓïÑÔ±ä»¯
+	/// @brief å¤„ç†IMEè¯­è¨€å˜åŒ–
 	void HandleIMELanguageChanged();
-	/// @brief ´¦Àí×é´Ê
+	/// @brief å¤„ç†ç»„è¯
 	void HandleIMEComposition();
-	/// @brief ´¦ÀíÑ¡´Ê
+	/// @brief å¤„ç†é€‰è¯
 	void HandleIMECandidate();
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	f2dWindowEventListener* GetListener();
 	fResult SetListener(f2dWindowEventListener* pListener);
 

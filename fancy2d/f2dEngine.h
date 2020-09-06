@@ -1,12 +1,12 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dEngine.h
-/// @brief fancy2DÒıÇæ½Ó¿Ú¶¨Òå
-/// @note  ¶¨ÒåÁËf2DµÄÒıÇæ½Ó¿Ú
+/// @brief fancy2Då¼•æ“æ¥å£å®šä¹‰
+/// @note  å®šä¹‰äº†f2Dçš„å¼•æ“æ¥å£
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "f2dInterface.h"
 
-// ËùÓĞ×é¼ş
+// æ‰€æœ‰ç»„ä»¶
 #include "f2dFileSys.h"
 #include "f2dWindow.h"
 #include "f2dInputSys.h"
@@ -14,285 +14,285 @@
 #include "f2dRenderer.h"
 #include "f2dVideoSys.h"
 
-/// @addtogroup f2dÒıÇæ
-/// @brief fancy2dÒıÇæ½Ó¿Ú
+/// @addtogroup f2då¼•æ“
+/// @brief fancy2då¼•æ“æ¥å£
 /// @{
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2D CPUĞÅÏ¢
+/// @brief fancy2D CPUä¿¡æ¯
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dCPUInfo
 {
-	fcStr CPUString;      ///< @brief ±êÊ¶
-	fcStr CPUBrandString; ///< @brief ÉÌÆ·Ãû
+	fcStr CPUString;      ///< @brief æ ‡è¯†
+	fcStr CPUBrandString; ///< @brief å•†å“å
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2D FPS¿ØÖÆÆ÷
-/// @note  ·ÇÏß³Ì°²È«
+/// @brief fancy2D FPSæ§åˆ¶å™¨
+/// @note  éçº¿ç¨‹å®‰å…¨
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dFPSController
 {
-	/// @brief ·µ»Ø×î´óFPS
-	/// @note  0±íÊ¾²»ÏŞÖÆ
+	/// @brief è¿”å›æœ€å¤§FPS
+	/// @note  0è¡¨ç¤ºä¸é™åˆ¶
 	virtual fuInt GetLimitedFPS()=0;
 	
-	/// @brief ÉèÖÃ×î´óFPS
-	/// @param iMaxFPS ×î´óFPS
+	/// @brief è®¾ç½®æœ€å¤§FPS
+	/// @param iMaxFPS æœ€å¤§FPS
 	virtual void SetLimitedFPS(fuInt iMaxFPS)=0;
 	
-	/// @brief ·µ»ØFPS
+	/// @brief è¿”å›FPS
 	virtual fDouble GetFPS()=0;
 
-	/// @brief ·µ»Ø×ÜÖ¡Êı
+	/// @brief è¿”å›æ€»å¸§æ•°
 	virtual fuInt GetTotalFrame()=0;
 	
-	/// @brief ·µ»ØÔËĞĞ×ÜÊ±¼ä
-	/// @note  ÒÔÃëÎªµ¥Î»
+	/// @brief è¿”å›è¿è¡Œæ€»æ—¶é—´
+	/// @note  ä»¥ç§’ä¸ºå•ä½
 	virtual fDouble GetTotalTime()=0;
 	
-	/// @brief ·µ»ØÆ½¾ùFPS
+	/// @brief è¿”å›å¹³å‡FPS
 	virtual fDouble GetAvgFPS()=0;
 	
-	/// @brief ·µ»Ø×î´óFPS
+	/// @brief è¿”å›æœ€å¤§FPS
 	virtual fDouble GetMaxFPS()=0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2D ÏûÏ¢ÀàĞÍ
+/// @brief fancy2D æ¶ˆæ¯ç±»å‹
 ////////////////////////////////////////////////////////////////////////////////
 enum F2DMSGTYPE
 {
-	F2DMSG_USER = 0,                      ///< @brief ÓÃ»§ÏûÏ¢
+	F2DMSG_USER = 0,                      ///< @brief ç”¨æˆ·æ¶ˆæ¯
 	
-	F2DMSG_APP_ONEXIT      = 1,           ///< @brief ³ÌĞòÍË³öÏûÏ¢
-	F2DMSG_APP_ONEXCEPTION = 2,           ///< @brief ³ÌĞòÒì³£ÏûÏ¢ (fuInt Time,fcStr Src,fcStr Desc)
+	F2DMSG_APP_ONEXIT      = 1,           ///< @brief ç¨‹åºé€€å‡ºæ¶ˆæ¯
+	F2DMSG_APP_ONEXCEPTION = 2,           ///< @brief ç¨‹åºå¼‚å¸¸æ¶ˆæ¯ (fuInt Time,fcStr Src,fcStr Desc)
 
-	F2DMSG_WINDOW_ONCLOSE        = 10,    ///< @brief ´°¿Ú¹Ø±ÕÏûÏ¢
-	F2DMSG_WINDOW_ONPAINT        = 11,    ///< @brief ´°¿ÚÖØ»æÏûÏ¢
-	F2DMSG_WINDOW_ONGETFOCUS     = 12,    ///< @brief »ñµÃ½¹µãÏûÏ¢
-	F2DMSG_WINDOW_ONLOSTFOCUS    = 13,    ///< @brief ¶ªÊ§½¹µãÏûÏ¢
-	F2DMSG_WINDOW_ONRESIZE       = 14,    ///< @brief ´°¿ÚËõ·ÅÏûÏ¢ (fuInt Width, fuInt Height)
-	F2DMSG_WINDOW_ONCHARINPUT    = 15,    ///< @brief ×Ö·ûÊäÈëÏûÏ¢ (fCharW Char)
-	F2DMSG_WINDOW_ONMOUSEMOVE    = 16,    ///< @brief Êó±êÒÆ¶¯     (fInt X, fInt Y)
-	F2DMSG_WINDOW_ONMOUSELUP     = 17,    ///< @brief Êó±ê×ó¼ü·Å¿ª (fInt X, fInt Y)
-	F2DMSG_WINDOW_ONMOUSELDOWN   = 18,    ///< @brief Êó±ê×ó¼ü°´ÏÂ (fInt X, fInt Y)
-	F2DMSG_WINDOW_ONMOUSELDOUBLE = 19,    ///< @brief Êó±ê×ó¼üË«»÷ (fInt X, fInt Y)
-	F2DMSG_WINDOW_ONMOUSERUP     = 20,    ///< @brief Êó±êÓÒ¼ü·Å¿ª (fInt X, fInt Y)
-	F2DMSG_WINDOW_ONMOUSERDOWN   = 21,    ///< @brief Êó±êÓÒ¼ü°´ÏÂ (fInt X, fInt Y)
-	F2DMSG_WINDOW_ONMOUSERDOUBLE = 22,    ///< @brief Êó±êÓÒ¼üË«»÷ (fInt X, fInt Y)
-	F2DMSG_WINDOW_ONMOUSEMUP     = 23,    ///< @brief Êó±êÖĞ¼ü·Å¿ª (fInt X, fInt Y)
-	F2DMSG_WINDOW_ONMOUSEMDOWN   = 24,    ///< @brief Êó±êÖĞ¼ü°´ÏÂ (fInt X, fInt Y)
-	F2DMSG_WINDOW_ONMOUSEMDOUBLE = 25,    ///< @brief Êó±êÖĞ¼üË«»÷ (fInt X, fInt Y)
-	F2DMSG_WINDOW_ONMOUSEWHEEL   = 26,    ///< @brief Êó±ê¹ö¶¯     (fInt X, fInt Y, fDouble Wheel)
-	F2DMSG_WINDOW_ONKEYUP        = 27,    ///< @brief °´¼ü·Å¿ª     (fuInt KeyCode)
-	F2DMSG_WINDOW_ONKEYDOWN      = 28,    ///< @brief °´¼ü°´ÏÂ     (fuInt KeyCode)
+	F2DMSG_WINDOW_ONCLOSE        = 10,    ///< @brief çª—å£å…³é—­æ¶ˆæ¯
+	F2DMSG_WINDOW_ONPAINT        = 11,    ///< @brief çª—å£é‡ç»˜æ¶ˆæ¯
+	F2DMSG_WINDOW_ONGETFOCUS     = 12,    ///< @brief è·å¾—ç„¦ç‚¹æ¶ˆæ¯
+	F2DMSG_WINDOW_ONLOSTFOCUS    = 13,    ///< @brief ä¸¢å¤±ç„¦ç‚¹æ¶ˆæ¯
+	F2DMSG_WINDOW_ONRESIZE       = 14,    ///< @brief çª—å£ç¼©æ”¾æ¶ˆæ¯ (fuInt Width, fuInt Height)
+	F2DMSG_WINDOW_ONCHARINPUT    = 15,    ///< @brief å­—ç¬¦è¾“å…¥æ¶ˆæ¯ (fCharW Char)
+	F2DMSG_WINDOW_ONMOUSEMOVE    = 16,    ///< @brief é¼ æ ‡ç§»åŠ¨     (fInt X, fInt Y)
+	F2DMSG_WINDOW_ONMOUSELUP     = 17,    ///< @brief é¼ æ ‡å·¦é”®æ”¾å¼€ (fInt X, fInt Y)
+	F2DMSG_WINDOW_ONMOUSELDOWN   = 18,    ///< @brief é¼ æ ‡å·¦é”®æŒ‰ä¸‹ (fInt X, fInt Y)
+	F2DMSG_WINDOW_ONMOUSELDOUBLE = 19,    ///< @brief é¼ æ ‡å·¦é”®åŒå‡» (fInt X, fInt Y)
+	F2DMSG_WINDOW_ONMOUSERUP     = 20,    ///< @brief é¼ æ ‡å³é”®æ”¾å¼€ (fInt X, fInt Y)
+	F2DMSG_WINDOW_ONMOUSERDOWN   = 21,    ///< @brief é¼ æ ‡å³é”®æŒ‰ä¸‹ (fInt X, fInt Y)
+	F2DMSG_WINDOW_ONMOUSERDOUBLE = 22,    ///< @brief é¼ æ ‡å³é”®åŒå‡» (fInt X, fInt Y)
+	F2DMSG_WINDOW_ONMOUSEMUP     = 23,    ///< @brief é¼ æ ‡ä¸­é”®æ”¾å¼€ (fInt X, fInt Y)
+	F2DMSG_WINDOW_ONMOUSEMDOWN   = 24,    ///< @brief é¼ æ ‡ä¸­é”®æŒ‰ä¸‹ (fInt X, fInt Y)
+	F2DMSG_WINDOW_ONMOUSEMDOUBLE = 25,    ///< @brief é¼ æ ‡ä¸­é”®åŒå‡» (fInt X, fInt Y)
+	F2DMSG_WINDOW_ONMOUSEWHEEL   = 26,    ///< @brief é¼ æ ‡æ»šåŠ¨     (fInt X, fInt Y, fDouble Wheel)
+	F2DMSG_WINDOW_ONKEYUP        = 27,    ///< @brief æŒ‰é”®æ”¾å¼€     (fuInt KeyCode)
+	F2DMSG_WINDOW_ONKEYDOWN      = 28,    ///< @brief æŒ‰é”®æŒ‰ä¸‹     (fuInt KeyCode)
 
-	F2DMSG_IME_ONCLOSE            = 30,   ///< @brief IME¹Ø±Õ
-	F2DMSG_IME_ONACTIVATE         = 31,   ///< @brief IME¼¤»î       (fcStrW Desc)
-	F2DMSG_IME_ONSTARTCOMPOSITION = 32,   ///< @brief IME¿ªÊ¼Æ´Ğ´
-	F2DMSG_IME_ONENDCOMPOSITION   = 33,   ///< @brief IME½áÊøÆ´Ğ´
-	F2DMSG_IME_ONCOMPOSITION      = 34,   ///< @brief IMEÕıÔÚÆ´Ğ´   (fcStrW CompStr, fCharW Char)
-	F2DMSG_IME_ONOPENCANDIDATE    = 35,   ///< @brief IME´ò¿ªºòÑ¡´Ê (f2dIMECandidateList* Ptr)
-	F2DMSG_IME_ONCLOSECANDIDATE   = 36,   ///< @brief IME¹Ø±ÕºòÑ¡´Ê (f2dIMECandidateList* Ptr)
-	F2DMSG_IME_ONCHANGECANDIDATE  = 37,   ///< @brief IME¸Ä±äºòÑ¡´Ê (f2dIMECandidateList* Ptr)
+	F2DMSG_IME_ONCLOSE            = 30,   ///< @brief IMEå…³é—­
+	F2DMSG_IME_ONACTIVATE         = 31,   ///< @brief IMEæ¿€æ´»       (fcStrW Desc)
+	F2DMSG_IME_ONSTARTCOMPOSITION = 32,   ///< @brief IMEå¼€å§‹æ‹¼å†™
+	F2DMSG_IME_ONENDCOMPOSITION   = 33,   ///< @brief IMEç»“æŸæ‹¼å†™
+	F2DMSG_IME_ONCOMPOSITION      = 34,   ///< @brief IMEæ­£åœ¨æ‹¼å†™   (fcStrW CompStr, fCharW Char)
+	F2DMSG_IME_ONOPENCANDIDATE    = 35,   ///< @brief IMEæ‰“å¼€å€™é€‰è¯ (f2dIMECandidateList* Ptr)
+	F2DMSG_IME_ONCLOSECANDIDATE   = 36,   ///< @brief IMEå…³é—­å€™é€‰è¯ (f2dIMECandidateList* Ptr)
+	F2DMSG_IME_ONCHANGECANDIDATE  = 37,   ///< @brief IMEæ”¹å˜å€™é€‰è¯ (f2dIMECandidateList* Ptr)
 
-	F2DMSG_RENDER_ONDEVLOST   = 50,       ///< @brief Éè±¸¶ªÊ§ÏûÏ¢
-	F2DMSG_RENDER_ONDEVRESET  = 51,       ///< @brief Éè±¸ÖØÖÃÏûÏ¢ 
+	F2DMSG_RENDER_ONDEVLOST   = 50,       ///< @brief è®¾å¤‡ä¸¢å¤±æ¶ˆæ¯
+	F2DMSG_RENDER_ONDEVRESET  = 51,       ///< @brief è®¾å¤‡é‡ç½®æ¶ˆæ¯ 
 	
-	F2DMSG_MOUSE_ONOFFSET     = 60,       ///< @brief Êó±êÎ»ÒÆÏûÏ¢ (fInt X, fInt Y, fInt Z)
-	F2DMSG_MOUSE_ONLBTNUP     = 61,       ///< @brief Êó±ê×ó¼ü·Å¿ª
-	F2DMSG_MOUSE_ONLBTNDOWN   = 62,       ///< @brief Êó±ê×ó¼ü°´ÏÂ
-	F2DMSG_MOUSE_ONRBTNUP     = 63,       ///< @brief Êó±êÓÒ¼ü·Å¿ª
-	F2DMSG_MOUSE_ONRBTNDOWN   = 64,       ///< @brief Êó±êÓÒ¼ü°´ÏÂ
-	F2DMSG_MOUSE_ONMBTNUP     = 65,       ///< @brief Êó±êÖĞ¼ü·Å¿ª
-	F2DMSG_MOUSE_ONMBTNDOWN   = 66,       ///< @brief Êó±êÖĞ¼ü°´ÏÂ
-	F2DMSG_MOUSE_ONADDBTNUP   = 67,       ///< @brief Êó±ê¶îÍâ°´¼ü·Å¿ª (fuInt Index)
-	F2DMSG_MOUSE_ONADDBTNDOWN = 68,       ///< @brief Êó±ê¶îÍâ°´¼ü°´ÏÂ (fuInt Index)
+	F2DMSG_MOUSE_ONOFFSET     = 60,       ///< @brief é¼ æ ‡ä½ç§»æ¶ˆæ¯ (fInt X, fInt Y, fInt Z)
+	F2DMSG_MOUSE_ONLBTNUP     = 61,       ///< @brief é¼ æ ‡å·¦é”®æ”¾å¼€
+	F2DMSG_MOUSE_ONLBTNDOWN   = 62,       ///< @brief é¼ æ ‡å·¦é”®æŒ‰ä¸‹
+	F2DMSG_MOUSE_ONRBTNUP     = 63,       ///< @brief é¼ æ ‡å³é”®æ”¾å¼€
+	F2DMSG_MOUSE_ONRBTNDOWN   = 64,       ///< @brief é¼ æ ‡å³é”®æŒ‰ä¸‹
+	F2DMSG_MOUSE_ONMBTNUP     = 65,       ///< @brief é¼ æ ‡ä¸­é”®æ”¾å¼€
+	F2DMSG_MOUSE_ONMBTNDOWN   = 66,       ///< @brief é¼ æ ‡ä¸­é”®æŒ‰ä¸‹
+	F2DMSG_MOUSE_ONADDBTNUP   = 67,       ///< @brief é¼ æ ‡é¢å¤–æŒ‰é”®æ”¾å¼€ (fuInt Index)
+	F2DMSG_MOUSE_ONADDBTNDOWN = 68,       ///< @brief é¼ æ ‡é¢å¤–æŒ‰é”®æŒ‰ä¸‹ (fuInt Index)
 	
-	F2DMSG_KEYBOARD_ONKEYUP   = 70,       ///< @brief °´¼ü·Å¿ª (F2DINPUTKEYCODE Key)
-	F2DMSG_KEYBOARD_ONKEYDOWN = 71,       ///< @brief °´¼ü°´ÏÂ (F2DINPUTKEYCODE Key)
+	F2DMSG_KEYBOARD_ONKEYUP   = 70,       ///< @brief æŒ‰é”®æ”¾å¼€ (F2DINPUTKEYCODE Key)
+	F2DMSG_KEYBOARD_ONKEYDOWN = 71,       ///< @brief æŒ‰é”®æŒ‰ä¸‹ (F2DINPUTKEYCODE Key)
 
-	F2DMSG_JOYSTICK_ONBUTTONUP   = 80,    ///< @brief ÊÖ±ú°´¼ü·Å¿ª (fuInt Index, f2dInputJoystick*)
-	F2DMSG_JOYSTICK_ONBUTTONDOWN = 81,    ///< @brief ÊÖ±ú°´¼ü°´ÏÂ (fuInt Index, f2dInputJoystick*)
-	F2DMSG_JOYSTICK_ONXPOSCHANGE = 82,    ///< @brief XÖáÎ»ÖÃ¸Ä±ä  (fDouble Value, f2dInputJoystick*)
-	F2DMSG_JOYSTICK_ONYPOSCHANGE = 83,    ///< @brief YÖáÎ»ÖÃ¸Ä±ä  (fDouble Value, f2dInputJoystick*)
-	F2DMSG_JOYSTICK_ONZPOSCHANGE = 84,    ///< @brief ZÖáÎ»ÖÃ¸Ä±ä  (fDouble Value, f2dInputJoystick*)
-	F2DMSG_JOYSTICK_ONXROTCHANGE = 85,    ///< @brief XÖáĞı×ª¸Ä±ä  (fDouble Value, f2dInputJoystick*)
-	F2DMSG_JOYSTICK_ONYROTCHANGE = 86,    ///< @brief YÖáĞı×ª¸Ä±ä  (fDouble Value, f2dInputJoystick*)
-	F2DMSG_JOYSTICK_ONZROTCHANGE = 87     ///< @brief ZÖáĞı×ª¸Ä±ä  (fDouble Value, f2dInputJoystick*)
+	F2DMSG_JOYSTICK_ONBUTTONUP   = 80,    ///< @brief æ‰‹æŸ„æŒ‰é”®æ”¾å¼€ (fuInt Index, f2dInputJoystick*)
+	F2DMSG_JOYSTICK_ONBUTTONDOWN = 81,    ///< @brief æ‰‹æŸ„æŒ‰é”®æŒ‰ä¸‹ (fuInt Index, f2dInputJoystick*)
+	F2DMSG_JOYSTICK_ONXPOSCHANGE = 82,    ///< @brief Xè½´ä½ç½®æ”¹å˜  (fDouble Value, f2dInputJoystick*)
+	F2DMSG_JOYSTICK_ONYPOSCHANGE = 83,    ///< @brief Yè½´ä½ç½®æ”¹å˜  (fDouble Value, f2dInputJoystick*)
+	F2DMSG_JOYSTICK_ONZPOSCHANGE = 84,    ///< @brief Zè½´ä½ç½®æ”¹å˜  (fDouble Value, f2dInputJoystick*)
+	F2DMSG_JOYSTICK_ONXROTCHANGE = 85,    ///< @brief Xè½´æ—‹è½¬æ”¹å˜  (fDouble Value, f2dInputJoystick*)
+	F2DMSG_JOYSTICK_ONYROTCHANGE = 86,    ///< @brief Yè½´æ—‹è½¬æ”¹å˜  (fDouble Value, f2dInputJoystick*)
+	F2DMSG_JOYSTICK_ONZROTCHANGE = 87     ///< @brief Zè½´æ—‹è½¬æ”¹å˜  (fDouble Value, f2dInputJoystick*)
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2D ÏûÏ¢
+/// @brief fancy2D æ¶ˆæ¯
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dMsg
 {
-	F2DMSGTYPE Type;  ///< @brief ÏûÏ¢ÀàĞÍ
-	fuLong Param1;    ///< @brief ²ÎÊı1
-	fuLong Param2;    ///< @brief ²ÎÊı2
-	fuLong Param3;    ///< @brief ²ÎÊı3
-	fuLong Param4;    ///< @brief ²ÎÊı4
+	F2DMSGTYPE Type;  ///< @brief æ¶ˆæ¯ç±»å‹
+	fuLong Param1;    ///< @brief å‚æ•°1
+	fuLong Param2;    ///< @brief å‚æ•°2
+	fuLong Param3;    ///< @brief å‚æ•°3
+	fuLong Param4;    ///< @brief å‚æ•°4
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief   fancy2D ÏûÏ¢±Ã
-/// @note    ÏûÏ¢±Ã»áÔÚUpdate½áÊøºóÇå¿ÕËùÓĞÏûÏ¢²¢»ØÊÕ¶îÍâÄÚ´æ
-/// @warning ·ÇÏß³Ì°²È«
+/// @brief   fancy2D æ¶ˆæ¯æ³µ
+/// @note    æ¶ˆæ¯æ³µä¼šåœ¨Updateç»“æŸåæ¸…ç©ºæ‰€æœ‰æ¶ˆæ¯å¹¶å›æ”¶é¢å¤–å†…å­˜
+/// @warning éçº¿ç¨‹å®‰å…¨
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dMsgPump
 {
-	/// @brief ÏûÏ¢±ÃÊÇ·ñ¿Õ
+	/// @brief æ¶ˆæ¯æ³µæ˜¯å¦ç©º
 	virtual fBool IsEmpty()=0;
-	/// @brief µ¯³öÒ»¸öÏûÏ¢
+	/// @brief å¼¹å‡ºä¸€ä¸ªæ¶ˆæ¯
 	virtual fResult GetMsg(f2dMsg* MsgOut)=0;
-	/// @brief ²éÑ¯Ò»¸öÏûÏ¢
+	/// @brief æŸ¥è¯¢ä¸€ä¸ªæ¶ˆæ¯
 	virtual fResult PeekMsg(f2dMsg* MsgOut)=0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief Ö÷Ïß³ÌÎ¯ÍĞ
-/// @note  ÔÊĞí½«·½·¨Î¯ÍĞ¸øÖ÷Ïß³ÌÔËĞĞ
+/// @brief ä¸»çº¿ç¨‹å§”æ‰˜
+/// @note  å…è®¸å°†æ–¹æ³•å§”æ‰˜ç»™ä¸»çº¿ç¨‹è¿è¡Œ
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dMainThreadDelegate : public f2dInterface
 {
-	/// @brief Ö´ĞĞº¯Êı
+	/// @brief æ‰§è¡Œå‡½æ•°
 	virtual void Excute()=0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2DÒıÇæÊÂ¼ş¼àÌıÆ÷
-/// @note  Í¨¹ı¸²Ğ´Õâ¸öÀàÀ´ÊµÏÖÏûÏ¢»Øµ÷
+/// @brief fancy2Då¼•æ“äº‹ä»¶ç›‘å¬å™¨
+/// @note  é€šè¿‡è¦†å†™è¿™ä¸ªç±»æ¥å®ç°æ¶ˆæ¯å›è°ƒ
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dEngineEventListener
 {
-	/// @brief     ¸üĞÂÒ»Ö¡
-	/// @note      Ó¦µ±ÔÚÕâÀïÍê³É¸üĞÂ²Ù×÷
-	/// @warning   ¸Ã·½·¨¿ÉÄÜ¿çÏß³Ì
-	/// @param[in] ElapsedTime ¾àÀëÉÏÒ»Ö¡µÄÁ÷ÊÅÊ±¼ä
-	/// @return    ·µ»ØfalseÍË³öÑ­»·
+	/// @brief     æ›´æ–°ä¸€å¸§
+	/// @note      åº”å½“åœ¨è¿™é‡Œå®Œæˆæ›´æ–°æ“ä½œ
+	/// @warning   è¯¥æ–¹æ³•å¯èƒ½è·¨çº¿ç¨‹
+	/// @param[in] ElapsedTime è·ç¦»ä¸Šä¸€å¸§çš„æµé€æ—¶é—´
+	/// @return    è¿”å›falseé€€å‡ºå¾ªç¯
 	virtual fBool OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, f2dMsgPump* pMsgPump) { return true; }
 	
-	/// @brief     äÖÈ¾Ò»Ö¡
-	/// @note      ½öÄÜÔÚÕâÀïÍê³ÉäÖÈ¾²Ù×÷
-	/// @warning   ¸Ã·½·¨¿ÉÄÜ¿çÏß³Ì
-	/// @param[in] ElapsedTime ¾àÀëÉÏÒ»Ö¡µÄÁ÷ÊÅÊ±¼ä
-	/// @return    ·µ»Øtrue¸üĞÂ»­Ãæ
+	/// @brief     æ¸²æŸ“ä¸€å¸§
+	/// @note      ä»…èƒ½åœ¨è¿™é‡Œå®Œæˆæ¸²æŸ“æ“ä½œ
+	/// @warning   è¯¥æ–¹æ³•å¯èƒ½è·¨çº¿ç¨‹
+	/// @param[in] ElapsedTime è·ç¦»ä¸Šä¸€å¸§çš„æµé€æ—¶é—´
+	/// @return    è¿”å›trueæ›´æ–°ç”»é¢
 	virtual fBool OnRender(fDouble ElapsedTime, f2dFPSController* pFPSController) { return true; }
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2DÒıÇæ¶àÏß³ÌÄ£Ê½
+/// @brief fancy2Då¼•æ“å¤šçº¿ç¨‹æ¨¡å¼
 ////////////////////////////////////////////////////////////////////////////////
 enum F2DENGTHREADMODE
 {
-	F2DENGTHREADMODE_SINGLETHREAD,    ///< @brief µ¥Ïß³ÌÄ£Ê½
-	F2DENGTHREADMODE_MULTITHREAD,     ///< @brief OnUpdateºÍOnRenderÔÚÍ¬Ò»Ïß³Ì£¬¹²ÓÃÒ»¸öFPS¿ØÖÆÆ÷
-	F2DENGTHREADMODE_FULLMULTITHREAD  ///< @brief OnUpdateºÍOnRender·Ö¿çÁ½¸öÏß³Ì£¬²»¹²ÓÃFPS¿ØÖÆÆ÷
+	F2DENGTHREADMODE_SINGLETHREAD,    ///< @brief å•çº¿ç¨‹æ¨¡å¼
+	F2DENGTHREADMODE_MULTITHREAD,     ///< @brief OnUpdateå’ŒOnRenderåœ¨åŒä¸€çº¿ç¨‹ï¼Œå…±ç”¨ä¸€ä¸ªFPSæ§åˆ¶å™¨
+	F2DENGTHREADMODE_FULLMULTITHREAD  ///< @brief OnUpdateå’ŒOnRenderåˆ†è·¨ä¸¤ä¸ªçº¿ç¨‹ï¼Œä¸å…±ç”¨FPSæ§åˆ¶å™¨
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2DÒıÇæ
+/// @brief fancy2Då¼•æ“
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dEngine : f2dInterface
 {
-	// --- ¼àÌıÆ÷ ---
-	/// @brief ·µ»Ø¼àÌıÆ÷
+	// --- ç›‘å¬å™¨ ---
+	/// @brief è¿”å›ç›‘å¬å™¨
 	virtual f2dEngineEventListener* GetListener()=0;
 
-	/// @brief ÉèÖÃ¼àÌıÆ÷
+	/// @brief è®¾ç½®ç›‘å¬å™¨
 	virtual fResult SetListener(f2dEngineEventListener* pListener)=0;
 
-	// --- ×é¼ş³õÊ¼»¯ ---
-	/// @brief     ³õÊ¼»¯äÖÈ¾´°¿Ú
-	/// @warning   ½ûÖ¹¿çÏß³Ì³õÊ¼»¯
-	/// @note      äÖÈ¾´°¿Ú±ØĞëÔÚËùÓĞ×é¼şÖ®Ç°³õÊ¼»¯
-	/// @param[in] Pos      ¿Í»§ÇøÎ»ÖÃ
-	/// @param[in] Title    ´°¿Ú±êÌâ
-	/// @param[in] Visiable ¿É¼û
-	/// @param[in] Border   ±ß¿ò
+	// --- ç»„ä»¶åˆå§‹åŒ– ---
+	/// @brief     åˆå§‹åŒ–æ¸²æŸ“çª—å£
+	/// @warning   ç¦æ­¢è·¨çº¿ç¨‹åˆå§‹åŒ–
+	/// @note      æ¸²æŸ“çª—å£å¿…é¡»åœ¨æ‰€æœ‰ç»„ä»¶ä¹‹å‰åˆå§‹åŒ–
+	/// @param[in] Pos      å®¢æˆ·åŒºä½ç½®
+	/// @param[in] Title    çª—å£æ ‡é¢˜
+	/// @param[in] Visiable å¯è§
+	/// @param[in] Border   è¾¹æ¡†
 	virtual fResult InitWindow(const fcyRect& Pos, fcStrW Title, fBool Visiable, F2DWINBORDERTYPE Border)=0;
 	
-	/// @brief ³õÊ¼»¯ÉùÒôÏµÍ³
-	/// @note  ĞèÒªÔ¤ÏÈ³õÊ¼»¯äÖÈ¾´°¿Ú
+	/// @brief åˆå§‹åŒ–å£°éŸ³ç³»ç»Ÿ
+	/// @note  éœ€è¦é¢„å…ˆåˆå§‹åŒ–æ¸²æŸ“çª—å£
 	virtual fResult InitSoundSys()=0;
 
-	/// @brief ³õÊ¼»¯ÊäÈëÏµÍ³
-	/// @note  ĞèÒªÔ¤ÏÈ³õÊ¼»¯äÖÈ¾´°¿Ú
+	/// @brief åˆå§‹åŒ–è¾“å…¥ç³»ç»Ÿ
+	/// @note  éœ€è¦é¢„å…ˆåˆå§‹åŒ–æ¸²æŸ“çª—å£
 	virtual fResult InitInputSys()=0;
 
-	/// @brief     ³õÊ¼»¯äÖÈ¾ÏµÍ³
-	/// @warning   ½ûÖ¹¿çÏß³Ì³õÊ¼»¯
-	/// @note      ĞèÒªÔ¤ÏÈ³õÊ¼»¯äÖÈ¾´°¿Ú
-	/// @param[in] BufferWidth  »º³åÇø¿í¶È
-	/// @param[in] BufferHeight »º³åÇø¸ß¶È
-	/// @param[in] Windowed     ´°¿Ú»¯
-	/// @param[in] VSync        ´¹Ö±Í¬²½
-	/// @param[in] AALevel      ¿¹¾â³İµÈ¼¶
+	/// @brief     åˆå§‹åŒ–æ¸²æŸ“ç³»ç»Ÿ
+	/// @warning   ç¦æ­¢è·¨çº¿ç¨‹åˆå§‹åŒ–
+	/// @note      éœ€è¦é¢„å…ˆåˆå§‹åŒ–æ¸²æŸ“çª—å£
+	/// @param[in] BufferWidth  ç¼“å†²åŒºå®½åº¦
+	/// @param[in] BufferHeight ç¼“å†²åŒºé«˜åº¦
+	/// @param[in] Windowed     çª—å£åŒ–
+	/// @param[in] VSync        å‚ç›´åŒæ­¥
+	/// @param[in] AALevel      æŠ—é”¯é½¿ç­‰çº§
 	virtual fResult InitRenderer(fuInt BufferWidth, fuInt BufferHeight, fBool Windowed, fBool VSync, F2DAALEVEL AALevel)=0;
 
-	/// @brief ³õÊ¼»¯ÊÓÆµÏµÍ³
-	/// @note  ĞèÒªäÖÈ¾ÏµÍ³Ö§³Ö
+	/// @brief åˆå§‹åŒ–è§†é¢‘ç³»ç»Ÿ
+	/// @note  éœ€è¦æ¸²æŸ“ç³»ç»Ÿæ”¯æŒ
 	virtual fResult InitVideoSys()=0;
 
-	// --- »ñµÃ×é¼ş ---
+	// --- è·å¾—ç»„ä»¶ ---
 	virtual fcyCriticalSection& GetCriticalSection() = 0;
-	virtual f2dWindow* GetMainWindow()=0;  ///< @brief »ñµÃÖ÷´°¿Ú
-	virtual f2dFileSys* GetFileSys()=0;    ///< @brief »ñµÃÎÄ¼şÏµÍ³
-	virtual f2dSoundSys* GetSoundSys()=0;  ///< @brief »ñµÃÉùÒôÏµÍ³
-	virtual f2dInputSys* GetInputSys()=0;  ///< @brief »ñµÃÊäÈëÏµÍ³
-	virtual f2dRenderer* GetRenderer()=0;  ///< @brief »ñµÃäÖÈ¾ÏµÍ³
-	virtual f2dVideoSys* GetVideoSys()=0;  ///< @brief »ñµÃÊÓÆµÏµÍ³
+	virtual f2dWindow* GetMainWindow()=0;  ///< @brief è·å¾—ä¸»çª—å£
+	virtual f2dFileSys* GetFileSys()=0;    ///< @brief è·å¾—æ–‡ä»¶ç³»ç»Ÿ
+	virtual f2dSoundSys* GetSoundSys()=0;  ///< @brief è·å¾—å£°éŸ³ç³»ç»Ÿ
+	virtual f2dInputSys* GetInputSys()=0;  ///< @brief è·å¾—è¾“å…¥ç³»ç»Ÿ
+	virtual f2dRenderer* GetRenderer()=0;  ///< @brief è·å¾—æ¸²æŸ“ç³»ç»Ÿ
+	virtual f2dVideoSys* GetVideoSys()=0;  ///< @brief è·å¾—è§†é¢‘ç³»ç»Ÿ
 
-	// --- ´íÎó ---
-	virtual void ClearLstErr()=0;      ///< @brief Çå¿ÕÉÏÒ»´Î´íÎó
-	virtual fuInt GetLastErrTime()=0;  ///< @brief ·µ»ØÉÏÒ»´Î´íÎóµÄÊ±¼ä
-	virtual fcStr GetLastErrSrc()=0;   ///< @brief ·µ»ØÉÏÒ»´Î´íÎóµÄÀ´Ô´
-	virtual fcStr GetLastErrDesc()=0;  ///< @brief ·µ»ØÉÏÒ»´Î´íÎóµÄÃèÊö
+	// --- é”™è¯¯ ---
+	virtual void ClearLstErr()=0;      ///< @brief æ¸…ç©ºä¸Šä¸€æ¬¡é”™è¯¯
+	virtual fuInt GetLastErrTime()=0;  ///< @brief è¿”å›ä¸Šä¸€æ¬¡é”™è¯¯çš„æ—¶é—´
+	virtual fcStr GetLastErrSrc()=0;   ///< @brief è¿”å›ä¸Šä¸€æ¬¡é”™è¯¯çš„æ¥æº
+	virtual fcStr GetLastErrDesc()=0;  ///< @brief è¿”å›ä¸Šä¸€æ¬¡é”™è¯¯çš„æè¿°
 
-	// --- ÒıÇæ¿ØÖÆ ---
-	/// @brief ÖÕÖ¹³ÌĞòÑ­»·
-	/// @note  Ïß³Ì°²È«
-	/// @note  ÎŞÂÛUpdate·µ»Ø½á¹ûÈçºÎ£¬ÔÚÒ»Ö¡½áÊøºóÖÕÖ¹Ñ­»·
+	// --- å¼•æ“æ§åˆ¶ ---
+	/// @brief ç»ˆæ­¢ç¨‹åºå¾ªç¯
+	/// @note  çº¿ç¨‹å®‰å…¨
+	/// @note  æ— è®ºUpdateè¿”å›ç»“æœå¦‚ä½•ï¼Œåœ¨ä¸€å¸§ç»“æŸåç»ˆæ­¢å¾ªç¯
 	virtual void Abort()=0;
 
-	/// @brief Ö´ĞĞ³ÌĞòÑ­»·
-	/// @param[in] ThreadMode   Ïß³ÌÄ£Ê½
-	/// @param[in] UpdateMaxFPS ¸üĞÂÏß³Ì×î´óFPS
-	/// @param[in] RenderMaxFPS äÖÈ¾Ïß³Ì×î´óFPS£¨½öÍêÈ«¶àÏß³ÌÄ£Ê½ÓĞĞ§£©
+	/// @brief æ‰§è¡Œç¨‹åºå¾ªç¯
+	/// @param[in] ThreadMode   çº¿ç¨‹æ¨¡å¼
+	/// @param[in] UpdateMaxFPS æ›´æ–°çº¿ç¨‹æœ€å¤§FPS
+	/// @param[in] RenderMaxFPS æ¸²æŸ“çº¿ç¨‹æœ€å¤§FPSï¼ˆä»…å®Œå…¨å¤šçº¿ç¨‹æ¨¡å¼æœ‰æ•ˆï¼‰
 	virtual void Run(F2DENGTHREADMODE ThreadMode, fuInt UpdateMaxFPS=0, fuInt RenderMaxFPS=0)=0;
 
-	/// @brief ·µ»ØÏß³ÌÄ£Ê½
+	/// @brief è¿”å›çº¿ç¨‹æ¨¡å¼
 	virtual F2DENGTHREADMODE GetCurrentThreadMode()=0;
 
-	// --- ÏûÏ¢¿ØÖÆ ---
-	/// @brief     ·¢ËÍÏûÏ¢
-	/// @note      Ïß³Ì°²È«
-	/// @param[in] Msg     ÏûÏ¢
-	/// @param[in] pMemObj ¿É¿Õ£¬ÏûÏ¢¸½¼ÓµÄÄÚ´æÊı¾İ
+	// --- æ¶ˆæ¯æ§åˆ¶ ---
+	/// @brief     å‘é€æ¶ˆæ¯
+	/// @note      çº¿ç¨‹å®‰å…¨
+	/// @param[in] Msg     æ¶ˆæ¯
+	/// @param[in] pMemObj å¯ç©ºï¼Œæ¶ˆæ¯é™„åŠ çš„å†…å­˜æ•°æ®
 	virtual fResult SendMsg(const f2dMsg& Msg, f2dInterface* pMemObj = NULL)=0;
 	
-	/// @brief     ·¢ËÍÏûÏ¢
-	/// @note      Ïß³Ì°²È«
-	/// @param[in] Type    ÏûÏ¢ÀàĞÍ
-	/// @param[in] Param1  ²ÎÊı1
-	/// @param[in] Param2  ²ÎÊı2
-	/// @param[in] Param3  ²ÎÊı3
-	/// @param[in] Param4  ²ÎÊı4
-	/// @param[in] pMemObj ¿É¿Õ£¬ÏûÏ¢¸½¼ÓµÄÄÚ´æÊı¾İ
+	/// @brief     å‘é€æ¶ˆæ¯
+	/// @note      çº¿ç¨‹å®‰å…¨
+	/// @param[in] Type    æ¶ˆæ¯ç±»å‹
+	/// @param[in] Param1  å‚æ•°1
+	/// @param[in] Param2  å‚æ•°2
+	/// @param[in] Param3  å‚æ•°3
+	/// @param[in] Param4  å‚æ•°4
+	/// @param[in] pMemObj å¯ç©ºï¼Œæ¶ˆæ¯é™„åŠ çš„å†…å­˜æ•°æ®
 	virtual fResult SendMsg(F2DMSGTYPE Type, fuLong Param1 = 0, fuLong Param2 = 0, fuLong Param3 = 0, fuLong Param4 = 0, f2dInterface* pMemObj = NULL)=0;
 
-	/// @brief     µ÷ÓÃÎ¯ÍĞ·½·¨
-	/// @param[in] pDelegate Î¯ÍĞÊÂ¼ş¶ÔÏó
+	/// @brief     è°ƒç”¨å§”æ‰˜æ–¹æ³•
+	/// @param[in] pDelegate å§”æ‰˜äº‹ä»¶å¯¹è±¡
 	virtual fResult InvokeDelegate(f2dMainThreadDelegate* pDelegate)=0;
 	
-	/// @brief     µ÷ÓÃÎ¯ÍĞ·½·¨²¢µÈ´ı
-	/// @param[in] pDelegate Î¯ÍĞÊÂ¼ş¶ÔÏó
+	/// @brief     è°ƒç”¨å§”æ‰˜æ–¹æ³•å¹¶ç­‰å¾…
+	/// @param[in] pDelegate å§”æ‰˜äº‹ä»¶å¯¹è±¡
 	virtual fResult InvokeDelegateAndWait(f2dMainThreadDelegate* pDelegate)=0;
 
-	// --- À©Õ¹¹¦ÄÜ ---
-	/// @brief     ·µ»ØCPUĞÅÏ¢
-	/// @param[in] Info Êä³öµÄCPUĞÅÏ¢
+	// --- æ‰©å±•åŠŸèƒ½ ---
+	/// @brief     è¿”å›CPUä¿¡æ¯
+	/// @param[in] Info è¾“å‡ºçš„CPUä¿¡æ¯
 	virtual void GetCPUInfo(f2dCPUInfo& Info)=0;
 };
 /// @}

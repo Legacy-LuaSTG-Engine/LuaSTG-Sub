@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dEngineImpl.h
-/// @brief fancy2DÒıÇæ½Ó¿ÚÊµÏÖ
+/// @brief fancy2Då¼•æ“æ¥å£å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include <fcyRefObj.h>
@@ -21,13 +21,13 @@ class f2dRenderDeviceImpl;
 class f2dVideoSysImpl;
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2DÒıÇæ½Ó¿ÚÊµÏÖ
+/// @brief fancy2Då¼•æ“æ¥å£å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 class f2dEngineImpl :
 	public fcyRefObjImpl<f2dEngine>
 {
 private:
-	// Âß¼­äÖÈ¾Ïß³Ì
+	// é€»è¾‘æ¸²æŸ“çº¿ç¨‹
 	class UpdateAndRenderThread :
 		public fcyBaseThread
 	{
@@ -42,7 +42,7 @@ private:
 			: m_MaxFPS(MaxFPS), m_MainThreadID(GetCurrentThreadId()), m_pEngine(pEngine) {}
 	};
 
-	// Âß¼­Ïß³Ì
+	// é€»è¾‘çº¿ç¨‹
 	class UpdateThread :
 		public fcyBaseThread
 	{
@@ -57,7 +57,7 @@ private:
 			: m_MaxFPS(MaxFPS), m_MainThreadID(GetCurrentThreadId()), m_pEngine(pEngine) {}
 	};
 
-	// äÖÈ¾Ïß³Ì
+	// æ¸²æŸ“çº¿ç¨‹
 	class RenderThread :
 		public fcyBaseThread
 	{
@@ -72,38 +72,38 @@ private:
 			: m_MaxFPS(MaxFPS), m_MainThreadID(GetCurrentThreadId()), m_pEngine(pEngine) {}
 	};
 private:
-	// ×´Ì¬
+	// çŠ¶æ€
 	bool m_bStop;
 
-	// ¼àÌıÆ÷
+	// ç›‘å¬å™¨
 	f2dEngineEventListener* m_pListener;
 
-	// Ëø
+	// é”
 	fcyCriticalSection m_Sec;
 	DWORD m_MainThreadID;
 	F2DENGTHREADMODE m_ThreadMode;
 
-	// CPUĞÅÏ¢
+	// CPUä¿¡æ¯
 	std::string m_CPUString;
 	std::string m_CPUBrandString;
 
-	// ÉÏÒ»´Î´íÎó
+	// ä¸Šä¸€æ¬¡é”™è¯¯
 	fuInt m_LastErrTime;
 	std::string m_LastErrSrc;
 	std::string m_LastErrDesc;
 
-	// ³¤Éú´æÆÚ×é¼ş
+	// é•¿ç”Ÿå­˜æœŸç»„ä»¶
 	f2dWindowClass m_WinClass;
 	f2dFileSysImpl m_FileSys;
 
-	// ×é¼ş
+	// ç»„ä»¶
 	f2dWindowImpl*   m_pWindow;
 	f2dSoundSysImpl* m_pSoundSys;
 	f2dInputSysImpl* m_pInputSys;
 	f2dRendererImpl* m_pRenderer;
 	f2dVideoSysImpl* m_pVideoSys;
 
-	// ÏûÏ¢±Ã
+	// æ¶ˆæ¯æ³µ
 	fuInt m_PumpIndex;
 	f2dMsgPumpImpl m_MsgPump[2];
 protected:
@@ -114,10 +114,10 @@ protected:
 	void DoUpdate(fDouble ElapsedTime, f2dFPSControllerImpl* pFPSController);
 	bool DoRender(fDouble ElapsedTime, f2dFPSControllerImpl* pFPSController, f2dRenderDeviceImpl* pDev);
 	void DoPresent(f2dRenderDeviceImpl* pDev);
-public: // ÄÚ²¿¹«¿ª·½·¨
-	// µ±Òì³£±»´¥·¢Ê±µ÷ÓÃ¸Ãº¯Êı
+public: // å†…éƒ¨å…¬å¼€æ–¹æ³•
+	// å½“å¼‚å¸¸è¢«è§¦å‘æ—¶è°ƒç”¨è¯¥å‡½æ•°
 	void ThrowException(const fcyException& e);
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	f2dEngineEventListener* GetListener()                  { return m_pListener; }
 	fResult SetListener(f2dEngineEventListener* pListener) { m_pListener = pListener; return FCYERR_OK; }
 

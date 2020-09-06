@@ -1,4 +1,4 @@
-#include "Engine/f2dWindowImpl.h"
+ï»¿#include "Engine/f2dWindowImpl.h"
 
 #include "Engine/f2dEngineImpl.h"
 
@@ -10,7 +10,7 @@
 using namespace std;
 
 ////////////////////////////////////////////////////////////////////////////
-// ³£Á¿
+// å¸¸é‡
 #define F2DWINDOWSTYLENONEBORDER     ( WS_POPUP   | WS_SYSMENU )
 #define F2DWINDOWSTYLEFIXEDBORDER    ( WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION )
 #define F2DWINDOWSTYLESIZEABLEBORDER ( WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_CAPTION | WS_THICKFRAME )
@@ -20,23 +20,23 @@ unordered_map<HWND, f2dWindowImpl*> f2dWindowClass::s_WindowCallBack;
 
 LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
-	// ÌáÈ¡Ö¸Õë
+	// æå–æŒ‡é’ˆ
 	f2dWindowImpl* pWindow = s_WindowCallBack[Handle];
 
-	// Èç¹ûÎŞÖ¸Õë£¬½»¸øÏµÍ³´¦Àí
+	// å¦‚æœæ— æŒ‡é’ˆï¼Œäº¤ç»™ç³»ç»Ÿå¤„ç†
 	if (pWindow == nullptr)
 	{
 		return DefWindowProc(Handle,Msg,wParam,lParam);
 	}
 
-	// ÌáÈ¡¼àÌıÆ÷Ö¸Õë
+	// æå–ç›‘å¬å™¨æŒ‡é’ˆ
 	f2dWindowEventListener* pListener = pWindow->GetListener();
 
-	// ´¦Àí²¢ÅÉËÍÏûÏ¢
+	// å¤„ç†å¹¶æ´¾é€æ¶ˆæ¯
 	switch(Msg)
 	{
 	case WM_USER:
-		// Ö÷Ïß³ÌÎ¯ÍĞ
+		// ä¸»çº¿ç¨‹å§”æ‰˜
 		if(lParam)
 		{
 			((f2dMainThreadDelegate*)lParam)->Excute();
@@ -45,16 +45,16 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 		break;
 
 	case WM_CREATE:
-		// ³õÊ¼»¯IMEÉÏÏÂÎÄ
+		// åˆå§‹åŒ–IMEä¸Šä¸‹æ–‡
 		pWindow->HandleIMELanguageChanged();
 		pWindow->InitIMEContext();
 		break;
 	case WM_DESTROY:
-		// Ïú»ÙIMEÉÏÏÂÎÄ
+		// é”€æ¯IMEä¸Šä¸‹æ–‡
 		pWindow->UninitIMEContext();
 		break;
 
-		// ÆÕÍ¨»Øµ÷
+		// æ™®é€šå›è°ƒ
 	case WM_CLOSE:
 		if(pListener) pListener->OnClose();
 		return 0;
@@ -119,7 +119,7 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 		if(pListener) pListener->OnLostFocus();
 		break;
 
-		// IMEÏûÏ¢²¿·Ö
+		// IMEæ¶ˆæ¯éƒ¨åˆ†
 	case WM_INPUTLANGCHANGE:
 		pWindow->HandleIMELanguageChanged();
 		break;
@@ -143,17 +143,17 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 		if(pListener) pListener->OnIMEComposition(pWindow->GetIMECompString(), (wchar_t)wParam);
 		break;
 	case WM_IME_SETCONTEXT:
-		// Òş²ØÊäÈë·¨µÄÎÄ±¾¿ò
+		// éšè—è¾“å…¥æ³•çš„æ–‡æœ¬æ¡†
 		if(pWindow->IsHideIME())
 		{
 			lParam = 0;
 			wParam = 0;
 		}
 		break;
-	case WM_IME_NOTIFY:  // ÊäÈë·¨ÊÂ¼ş
+	case WM_IME_NOTIFY:  // è¾“å…¥æ³•äº‹ä»¶
 		switch (wParam)
 		{
-		case IMN_OPENCANDIDATE: // ´ò¿ªÑ¡´Ê±í
+		case IMN_OPENCANDIDATE: // æ‰“å¼€é€‰è¯è¡¨
 #ifdef _IME_DEBUG
 			fcyDebug::Trace(L"[ @ f2dWindowClass::WndProc ] IME open candidate.\n");
 #endif
@@ -166,7 +166,7 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 				pListener->OnIMEOpenCandidate(&tList);
 			}
 			break;
-		case IMN_CLOSECANDIDATE: // ¹Ø±ÕÑ¡×Ö±í
+		case IMN_CLOSECANDIDATE: // å…³é—­é€‰å­—è¡¨
 #ifdef _IME_DEBUG
 			fcyDebug::Trace(L"[ @ f2dWindowClass::WndProc ] IME close candidate.\n");
 #endif
@@ -180,7 +180,7 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 			}
 			break;
 
-		case IMN_CHANGECANDIDATE:// Ñ¡×Ö±í·­Ò³
+		case IMN_CHANGECANDIDATE:// é€‰å­—è¡¨ç¿»é¡µ
 #ifdef _IME_DEBUG
 			fcyDebug::Trace(L"[ @ f2dWindowClass::WndProc ] IME candidate list changed.\n");
 #endif
@@ -198,7 +198,7 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 		break;
 	}
 
-	// ´¦ÀíÏûÏ¢·µ»ØÖµ
+	// å¤„ç†æ¶ˆæ¯è¿”å›å€¼
 	return DefWindowProc(Handle,Msg,wParam,lParam);
 }
 
@@ -283,7 +283,7 @@ void f2dWindowDC::Create(int nWidth, int nHeight)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// ºòÑ¡´Ê
+// å€™é€‰è¯
 f2dIMECandidateListImpl::f2dIMECandidateListImpl(f2dWindowImpl* pWindow)
 {
 	m_IMETotalCandidate = pWindow->m_IMETotalCandidate;
@@ -334,7 +334,7 @@ fcStrW f2dIMECandidateListImpl::GetCandidateStr(fuInt Index)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// ¼àÌıÆ÷
+// ç›‘å¬å™¨
 void f2dWindowImpl::DefaultListener::OnClose() 
 {
 	m_pEngine->SendMsg(F2DMSG_WINDOW_ONCLOSE);
@@ -369,7 +369,7 @@ void f2dWindowImpl::DefaultListener::OnIMEEndComposition()
 }
 void f2dWindowImpl::DefaultListener::OnIMEComposition(fcStrW String, fCharW CharCode)
 {
-	// ·â×°×Ö·û´®²¢·¢ËÍÏûÏ¢
+	// å°è£…å­—ç¬¦ä¸²å¹¶å‘é€æ¶ˆæ¯
 	f2dMsgMemHelper<std::wstring>* tObjMem = new f2dMsgMemHelper<std::wstring>(String);
 	m_pEngine->SendMsg(
 		F2DMSG_IME_ONCOMPOSITION,
@@ -383,7 +383,7 @@ void f2dWindowImpl::DefaultListener::OnIMEComposition(fcStrW String, fCharW Char
 }
 void f2dWindowImpl::DefaultListener::OnIMEActivated(fcStrW Desc)
 {
-	// ·â×°×Ö·û´®²¢·¢ËÍÏûÏ¢
+	// å°è£…å­—ç¬¦ä¸²å¹¶å‘é€æ¶ˆæ¯
 	f2dMsgMemHelper<std::wstring>* tObjMem = new f2dMsgMemHelper<std::wstring>(Desc);
 	m_pEngine->SendMsg(
 		F2DMSG_IME_ONACTIVATE,
@@ -401,7 +401,7 @@ void f2dWindowImpl::DefaultListener::OnIMEClosed()
 }
 void f2dWindowImpl::DefaultListener::OnIMEChangeCandidate(f2dIMECandidateList* pList)
 {
-	// ·â×°²¢·¢ËÍÏûÏ¢
+	// å°è£…å¹¶å‘é€æ¶ˆæ¯
 	f2dMsgMemHelper<f2dIMECandidateListImpl>* tObjMem = new f2dMsgMemHelper<f2dIMECandidateListImpl>(*(f2dIMECandidateListImpl*)pList);
 	m_pEngine->SendMsg(
 		F2DMSG_IME_ONCHANGECANDIDATE,
@@ -415,7 +415,7 @@ void f2dWindowImpl::DefaultListener::OnIMEChangeCandidate(f2dIMECandidateList* p
 }
 void f2dWindowImpl::DefaultListener::OnIMEOpenCandidate(f2dIMECandidateList* pList)
 {
-	// ·â×°²¢·¢ËÍÏûÏ¢
+	// å°è£…å¹¶å‘é€æ¶ˆæ¯
 	f2dMsgMemHelper<f2dIMECandidateListImpl>* tObjMem = new f2dMsgMemHelper<f2dIMECandidateListImpl>(*(f2dIMECandidateListImpl*)pList);
 	m_pEngine->SendMsg(
 		F2DMSG_IME_ONOPENCANDIDATE,
@@ -429,7 +429,7 @@ void f2dWindowImpl::DefaultListener::OnIMEOpenCandidate(f2dIMECandidateList* pLi
 }
 void f2dWindowImpl::DefaultListener::OnIMECloseCandidate(f2dIMECandidateList* pList)
 {
-	// ·â×°²¢·¢ËÍÏûÏ¢
+	// å°è£…å¹¶å‘é€æ¶ˆæ¯
 	f2dMsgMemHelper<f2dIMECandidateListImpl>* tObjMem = new f2dMsgMemHelper<f2dIMECandidateListImpl>(*(f2dIMECandidateListImpl*)pList);
 	m_pEngine->SendMsg(
 		F2DMSG_IME_ONCLOSECANDIDATE,
@@ -501,7 +501,7 @@ f2dWindowImpl::f2dWindowImpl(f2dEngineImpl* pEngine, f2dWindowClass* WinCls, con
 	: m_DefaultListener(pEngine, this), m_pListener(&m_DefaultListener), m_hWnd(NULL), m_bShow(false), m_CaptionText(Title),
 	m_bHideIME(true), m_hIMC(NULL), m_IMETotalCandidate(0), m_IMESelectedCandidate(0), m_IMEPageStartCandidate(0), m_IMEPageCandidateCount(0)
 {
-	// ¶¨Òå´°¿ÚÑùÊ½
+	// å®šä¹‰çª—å£æ ·å¼
 	fuInt tWinStyle;
 	switch(Border)
 	{
@@ -518,16 +518,16 @@ f2dWindowImpl::f2dWindowImpl(f2dEngineImpl* pEngine, f2dWindowClass* WinCls, con
 		throw fcyException("f2dWindowImpl::f2dWindowImpl", "Invalid F2DWINBORDERTYPE.");
 	}
 
-	// ¼ÆËã´°¿Ú´óĞ¡
+	// è®¡ç®—çª—å£å¤§å°
 	RECT tWinRect = { (int)Pos.a.x , (int)Pos.a.y , (int)Pos.b.x , (int)Pos.b.y};
 	AdjustWindowRect(&tWinRect, tWinStyle, FALSE);
 	fuInt tRealWidth = tWinRect.right  - tWinRect.left ;
 	fuInt tRealHeight = tWinRect.bottom  - tWinRect.top;
 
 
-	// ´´½¨´°¿Ú
+	// åˆ›å»ºçª—å£
 	if (DisableIME)
-		ImmDisableIME(0);//²»ĞèÒªµÄÊ±ºòÆÁ±ÎÊäÈë·¨
+		ImmDisableIME(0);//ä¸éœ€è¦çš„æ—¶å€™å±è”½è¾“å…¥æ³•
 	m_hWnd = CreateWindowEx(
 		WS_EX_APPWINDOW,
 		WinCls->GetName(),
@@ -546,10 +546,10 @@ f2dWindowImpl::f2dWindowImpl(f2dEngineImpl* pEngine, f2dWindowClass* WinCls, con
 	if(!m_hWnd)
 		throw fcyWin32Exception("f2dWindowImpl::f2dWindowImpl", "CreateWindowEx Failed.");
 
-	// ×¢²á´°¿Ú
+	// æ³¨å†Œçª—å£
 	f2dWindowClass::s_WindowCallBack[m_hWnd] = this;
 
-	// ÏÔÊ¾´°¿Ú
+	// æ˜¾ç¤ºçª—å£
 	if(m_bShow)
 	{
 		SetVisiable(true);
@@ -558,10 +558,10 @@ f2dWindowImpl::f2dWindowImpl(f2dEngineImpl* pEngine, f2dWindowClass* WinCls, con
 
 f2dWindowImpl::~f2dWindowImpl()
 {
-	// Ïú»Ù´°¿Ú
+	// é”€æ¯çª—å£
 	DestroyWindow(m_hWnd);
 
-	// È¡Ïû×¢²á
+	// å–æ¶ˆæ³¨å†Œ
 	unordered_map<HWND, f2dWindowImpl*>::iterator i = f2dWindowClass::s_WindowCallBack.find(m_hWnd);
 	if(i != f2dWindowClass::s_WindowCallBack.end())
 		f2dWindowClass::s_WindowCallBack.erase(i);
@@ -592,7 +592,7 @@ void f2dWindowImpl::HandleIMELanguageChanged()
 	int iSize = ::ImmGetDescription(hKL, NULL, 0);
 	if (iSize == 0)
 	{
-		// ÊäÈë·¨¹Ø±Õ
+		// è¾“å…¥æ³•å…³é—­
 		m_CurIMEDesc.clear();
 
 		if (m_pListener)
@@ -604,7 +604,7 @@ void f2dWindowImpl::HandleIMELanguageChanged()
 	}
 	else
 	{
-		// ÊäÈë·¨ÇĞ»»
+		// è¾“å…¥æ³•åˆ‡æ¢
 		m_CurIMEDesc.clear();
 		m_CurIMEDesc.resize(iSize);
 		ImmGetDescription(hKL, &m_CurIMEDesc[0], iSize);
@@ -647,10 +647,10 @@ void f2dWindowImpl::HandleIMEComposition()
 void f2dWindowImpl::HandleIMECandidate()
 {
 	if (!m_bHideIME) {
-		// »ñµÃÉÏÏÂÎÄ
+		// è·å¾—ä¸Šä¸‹æ–‡
 		HIMC hIMC = ImmGetContext(m_hWnd);
 
-		// »ñµÃºòÑ¡´ÊÁĞ±í´óĞ¡
+		// è·å¾—å€™é€‰è¯åˆ—è¡¨å¤§å°
 		LONG dwSize = ImmGetCandidateList(hIMC, 0, NULL, 0);
 
 		if (dwSize == 0)
@@ -661,21 +661,21 @@ void f2dWindowImpl::HandleIMECandidate()
 			return;
 		}
 
-		// ÉêÇëÈ«¾Ö¿Õ¼äÀ´´æ·ÅºòÑ¡´Ê
+		// ç”³è¯·å…¨å±€ç©ºé—´æ¥å­˜æ”¾å€™é€‰è¯
 		LPCANDIDATELIST pList = (LPCANDIDATELIST)GlobalAlloc(GPTR, dwSize);
 
-		// »ñµÃºòÑ¡´ÊÁĞ±í
+		// è·å¾—å€™é€‰è¯åˆ—è¡¨
 		if (pList)
 			ImmGetCandidateList(hIMC, 0, pList, dwSize);
 		else
-			return;  // ÄÚ´æ·ÖÅäÊ§°Ü
+			return;  // å†…å­˜åˆ†é…å¤±è´¥
 
 		m_IMEPageCandidateCount = pList->dwPageSize;
 		m_IMEPageStartCandidate = pList->dwPageStart;
 		m_IMETotalCandidate = pList->dwCount;
 		m_IMESelectedCandidate = pList->dwSelection;
 
-		// »ñµÃºòÑ¡´ÊÁĞ±í
+		// è·å¾—å€™é€‰è¯åˆ—è¡¨
 		m_IMECandidateList.clear();
 		m_IMECandidateList.reserve(pList->dwCount);
 		for (fuInt i = 0; i < pList->dwCount; ++i)
@@ -697,7 +697,7 @@ void f2dWindowImpl::HandleIMECandidate()
 			tDebugStr.c_str());
 #endif
 
-		// ²ÁÆ¨¹É
+		// æ“¦å±è‚¡
 		GlobalFree(pList);
 		ImmReleaseContext(m_hWnd, hIMC);
 	}
@@ -815,18 +815,18 @@ fResult f2dWindowImpl::SetClientRect(const fcyRect& Range)
 
 void f2dWindowImpl::MoveToCenter()
 {
-	// »ñµÃÆÁÄ»´óĞ¡
+	// è·å¾—å±å¹•å¤§å°
 	fInt tScreenHalfW = GetSystemMetrics(SM_CXSCREEN) / 2;
 	fInt tScreenHalfH = GetSystemMetrics(SM_CYSCREEN) / 2;
 
-	// »ñµÃÔ­Ê¼´óĞ¡
+	// è·å¾—åŸå§‹å¤§å°
 	fcyRect tRect = GetRect();
 	fInt tHalfW = static_cast<fInt>(tRect.GetWidth() / 2);
 	fInt tHalfH = static_cast<fInt>(tRect.GetHeight() / 2);
 	fFloat tLeft = static_cast<fFloat>(tScreenHalfW - tHalfW);
 	fFloat tTop = static_cast<fFloat>(tScreenHalfH - tHalfH);
 
-	// ÖØĞÂ¼ÆËã×ø±ê
+	// é‡æ–°è®¡ç®—åæ ‡
 	tRect = fcyRect(tLeft, tTop, tLeft + tRect.GetWidth(), tTop + tRect.GetHeight());
 
 	SetRect(tRect);

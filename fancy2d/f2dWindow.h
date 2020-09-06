@@ -1,16 +1,16 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dWindow.h
-/// @brief fancy2DäÖÈ¾´°¿Ú½Ó¿Ú¶¨Òå
+/// @brief fancy2Dæ¸²æŸ“çª—å£æ¥å£å®šä¹‰
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "f2dInterface.h"
 
-/// @addtogroup f2däÖÈ¾´°¿Ú
-/// @brief fancy2dÒıÇæäÖÈ¾´°¿Ú
+/// @addtogroup f2dæ¸²æŸ“çª—å£
+/// @brief fancy2då¼•æ“æ¸²æŸ“çª—å£
 /// @{
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2däÖÈ¾´°¿Ú±ß¿òÀàĞÍ
+/// @brief fancy2dæ¸²æŸ“çª—å£è¾¹æ¡†ç±»å‹
 ////////////////////////////////////////////////////////////////////////////////
 enum F2DWINBORDERTYPE
 {
@@ -20,246 +20,246 @@ enum F2DWINBORDERTYPE
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2däÖÈ¾´°¿ÚIMEĞÅÏ¢
+/// @brief fancy2dæ¸²æŸ“çª—å£IMEä¿¡æ¯
 ////////////////////////////////////////////////////////////////////////////////
 enum F2DIMEINFO
 {
 	F2DIMEINFO_NULL,
-	F2DIMEINFO_CANDIDATECOUNT,  ///< @brief ºòÑ¡´Ê¸öÊı
-	F2DIMEINFO_CANDIDATEINDEX,  ///< @brief µ±Ç°Ñ¡ÖĞµÄºòÑ¡´ÊË÷Òı
-	F2DIMEINFO_PAGESIZE,        ///< @brief Ò»Ò³µÄºòÑ¡´Ê¸öÊı
-	F2DIMEINFO_PAGESTART        ///< @brief µ±Ç°Ò³Ãæ¿ªÊ¼µÄºòÑ¡´ÊË÷Òı
+	F2DIMEINFO_CANDIDATECOUNT,  ///< @brief å€™é€‰è¯ä¸ªæ•°
+	F2DIMEINFO_CANDIDATEINDEX,  ///< @brief å½“å‰é€‰ä¸­çš„å€™é€‰è¯ç´¢å¼•
+	F2DIMEINFO_PAGESIZE,        ///< @brief ä¸€é¡µçš„å€™é€‰è¯ä¸ªæ•°
+	F2DIMEINFO_PAGESTART        ///< @brief å½“å‰é¡µé¢å¼€å§‹çš„å€™é€‰è¯ç´¢å¼•
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2dºòÑ¡´ÊÁĞ±í
+/// @brief fancy2då€™é€‰è¯åˆ—è¡¨
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dIMECandidateList
 {
-	virtual fuInt GetCount()=0;     ///< @brief ·µ»ØºòÑ¡´ÊÊıÁ¿
-	virtual fuInt GetCurIndex()=0;  ///< @brief ·µ»Øµ±Ç°ºòÑ¡´ÊË÷Òı
-	virtual fuInt GetPageSize()=0;  ///< @brief ·µ»Øµ¥¸öÒ³ÃæºòÑ¡´ÊÊıÁ¿
-	virtual fuInt GetPageStart()=0; ///< @brief ·µ»Øµ±Ç°Ò³ÃæÊ×¸öºòÑ¡´ÊµÄË÷Òı
+	virtual fuInt GetCount()=0;     ///< @brief è¿”å›å€™é€‰è¯æ•°é‡
+	virtual fuInt GetCurIndex()=0;  ///< @brief è¿”å›å½“å‰å€™é€‰è¯ç´¢å¼•
+	virtual fuInt GetPageSize()=0;  ///< @brief è¿”å›å•ä¸ªé¡µé¢å€™é€‰è¯æ•°é‡
+	virtual fuInt GetPageStart()=0; ///< @brief è¿”å›å½“å‰é¡µé¢é¦–ä¸ªå€™é€‰è¯çš„ç´¢å¼•
 	
-	/// @brief ²éÑ¯ºòÑ¡´Ê
+	/// @brief æŸ¥è¯¢å€™é€‰è¯
 	virtual fcStrW GetCandidateStr(fuInt Index)=0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2DäÖÈ¾´°¿ÚÊÂ¼ş¼àÌıÆ÷
-/// @note  Í¨¹ı¸²Ğ´Õâ¸öÀàÀ´ÊµÏÖÏûÏ¢»Øµ÷
+/// @brief fancy2Dæ¸²æŸ“çª—å£äº‹ä»¶ç›‘å¬å™¨
+/// @note  é€šè¿‡è¦†å†™è¿™ä¸ªç±»æ¥å®ç°æ¶ˆæ¯å›è°ƒ
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dWindowEventListener
 {
-	/// @brief ´°¿Ú¹Ø±ÕÊÂ¼ş
+	/// @brief çª—å£å…³é—­äº‹ä»¶
 	virtual void OnClose() {}
 
-	/// @brief ´°¿ÚÖØ»æÊÂ¼ş
+	/// @brief çª—å£é‡ç»˜äº‹ä»¶
 	virtual void OnPaint() {}
 
-	/// @brief     ´°¿Ú´óĞ¡¸Ä±äÊÂ¼ş
-	/// @param[in] ClientWidth  ĞÂµÄ¿Í»§Çø¿í¶È
-	/// @param[in] ClientHeight ĞÂµÄ¿Í»§Çø¸ß¶È
+	/// @brief     çª—å£å¤§å°æ”¹å˜äº‹ä»¶
+	/// @param[in] ClientWidth  æ–°çš„å®¢æˆ·åŒºå®½åº¦
+	/// @param[in] ClientHeight æ–°çš„å®¢æˆ·åŒºé«˜åº¦
 	virtual void OnSize(fuInt ClientWidth, fuInt ClientHeight) {}
 
-	/// @brief     ¼ü±»°´ÏÂ
-	/// @param[in] KeyCode °´¼ü´úÂë£¬Çë²éÔÄMSDN
-	/// @param[in] Flag    ¸½´øÊôĞÔ£¬Çë²éÔÄMSDN
+	/// @brief     é”®è¢«æŒ‰ä¸‹
+	/// @param[in] KeyCode æŒ‰é”®ä»£ç ï¼Œè¯·æŸ¥é˜…MSDN
+	/// @param[in] Flag    é™„å¸¦å±æ€§ï¼Œè¯·æŸ¥é˜…MSDN
 	virtual void OnKeyDown(fuInt KeyCode, fuInt Flag) {}
 
-	/// @brief     ¼ü±»·Å¿ª
-	/// @param[in] KeyCode °´¼ü´úÂë£¬Çë²éÔÄMSDN
-	/// @param[in] Flag    ¸½´øÊôĞÔ£¬Çë²éÔÄMSDN
+	/// @brief     é”®è¢«æ”¾å¼€
+	/// @param[in] KeyCode æŒ‰é”®ä»£ç ï¼Œè¯·æŸ¥é˜…MSDN
+	/// @param[in] Flag    é™„å¸¦å±æ€§ï¼Œè¯·æŸ¥é˜…MSDN
 	virtual void OnKeyUp(fuInt KeyCode, fuInt Flag) {}
 
-	/// @brief     ×Ö·ûÊäÈë
-	/// @param[in] CharCode ×Ö·û
-	/// @param[in] Flag     ¸½´øÊôĞÔ£¬Çë²éÔÄMSDN
+	/// @brief     å­—ç¬¦è¾“å…¥
+	/// @param[in] CharCode å­—ç¬¦
+	/// @param[in] Flag     é™„å¸¦å±æ€§ï¼Œè¯·æŸ¥é˜…MSDN
 	virtual void OnCharInput(fCharW CharCode, fuInt Flag) {}
 
-	/// @brief ÊäÈë·¨¿ªÊ¼Æ´Ğ´
+	/// @brief è¾“å…¥æ³•å¼€å§‹æ‹¼å†™
 	virtual void OnIMEStartComposition() {}
 
-	/// @brief ÊäÈë·¨½áÊøÆ´Ğ´
+	/// @brief è¾“å…¥æ³•ç»“æŸæ‹¼å†™
 	virtual void OnIMEEndComposition() {}
 
-	/// @brief     ÊäÈë·¨ÕıÔÚÆ´Ğ´
-	/// @param[in] String   Æ´Ğ´´®µÄÎÄ±¾Ö¸Õë£¬Òà¿ÉÓÉ´°¿Ú½Ó¿Ú»ñµÃ
-	/// @param[in] CharCode ÊäÈëµÄ×Ö·û
+	/// @brief     è¾“å…¥æ³•æ­£åœ¨æ‹¼å†™
+	/// @param[in] String   æ‹¼å†™ä¸²çš„æ–‡æœ¬æŒ‡é’ˆï¼Œäº¦å¯ç”±çª—å£æ¥å£è·å¾—
+	/// @param[in] CharCode è¾“å…¥çš„å­—ç¬¦
 	virtual void OnIMEComposition(fcStrW String, fCharW CharCode) {}
 
-	/// @brief     ÊäÈë·¨¼¤»î
-	/// @param[in] Desc ÊäÈë·¨ÃèÊö£¬Òà¿ÉÓÉ´°¿Ú½Ó¿Ú»ñµÃ
+	/// @brief     è¾“å…¥æ³•æ¿€æ´»
+	/// @param[in] Desc è¾“å…¥æ³•æè¿°ï¼Œäº¦å¯ç”±çª—å£æ¥å£è·å¾—
 	virtual void OnIMEActivated(fcStrW Desc) {}
 
-	/// @brief ÊäÈë·¨¹Ø±Õ
+	/// @brief è¾“å…¥æ³•å…³é—­
 	virtual void OnIMEClosed() {}
 
-	/// @brief     ÊäÈë·¨ºòÑ¡´Ê¸Ä±ä
-	/// @param[in] pList ºòÑ¡´ÊÁĞ±í£¬Òà¿ÉÓÉ´°¿Ú½Ó¿Ú»ñµÃ
+	/// @brief     è¾“å…¥æ³•å€™é€‰è¯æ”¹å˜
+	/// @param[in] pList å€™é€‰è¯åˆ—è¡¨ï¼Œäº¦å¯ç”±çª—å£æ¥å£è·å¾—
 	virtual void OnIMEChangeCandidate(f2dIMECandidateList* pList) {}
 
-	/// @brief ÊäÈë·¨ºòÑ¡´Ê´°¿Ú´ò¿ª
-	/// @param[in] pList ºòÑ¡´ÊÁĞ±í£¬Òà¿ÉÓÉ´°¿Ú½Ó¿Ú»ñµÃ
+	/// @brief è¾“å…¥æ³•å€™é€‰è¯çª—å£æ‰“å¼€
+	/// @param[in] pList å€™é€‰è¯åˆ—è¡¨ï¼Œäº¦å¯ç”±çª—å£æ¥å£è·å¾—
 	virtual void OnIMEOpenCandidate(f2dIMECandidateList* pList) {}
 
-	/// @brief ÊäÈë·¨ºòÑ¡´Ê´°¿Ú´ò¿ª
-	/// @param[in] pList ºòÑ¡´ÊÁĞ±í£¬Òà¿ÉÓÉ´°¿Ú½Ó¿Ú»ñµÃ
+	/// @brief è¾“å…¥æ³•å€™é€‰è¯çª—å£æ‰“å¼€
+	/// @param[in] pList å€™é€‰è¯åˆ—è¡¨ï¼Œäº¦å¯ç”±çª—å£æ¥å£è·å¾—
 	virtual void OnIMECloseCandidate(f2dIMECandidateList* pList) {}
 
-	/// @brief     Êó±êÒÆ¶¯
-	/// @param[in] X    Êó±êºáÏòÎ»ÖÃ
-	/// @param[in] Y    Êó±ê×İÏòÎ»ÖÃ
-	/// @param[in] Flag ¸½´øÊôĞÔ£¬Çë²éÔÄMSDN
+	/// @brief     é¼ æ ‡ç§»åŠ¨
+	/// @param[in] X    é¼ æ ‡æ¨ªå‘ä½ç½®
+	/// @param[in] Y    é¼ æ ‡çºµå‘ä½ç½®
+	/// @param[in] Flag é™„å¸¦å±æ€§ï¼Œè¯·æŸ¥é˜…MSDN
 	virtual void OnMouseMove(fShort X, fShort Y, fuInt Flag) {}
 
-	/// @brief     ¹öÂÖ¹ö¶¯
-	/// @param[in] X     Êó±êºáÏòÎ»ÖÃ
-	/// @param[in] Y     Êó±ê×İÏòÎ»ÖÃ
-	/// @param[in] Wheel ¹öÂÖ¹ö¶¯ÊıÁ¿
-	/// @param[in] Flag  ¸½´øÊôĞÔ£¬Çë²éÔÄMSDN
+	/// @brief     æ»šè½®æ»šåŠ¨
+	/// @param[in] X     é¼ æ ‡æ¨ªå‘ä½ç½®
+	/// @param[in] Y     é¼ æ ‡çºµå‘ä½ç½®
+	/// @param[in] Wheel æ»šè½®æ»šåŠ¨æ•°é‡
+	/// @param[in] Flag  é™„å¸¦å±æ€§ï¼Œè¯·æŸ¥é˜…MSDN
 	virtual void OnMouseWheel(fShort X, fShort Y, fFloat Wheel, fuInt Flag) {}
 
-	/// @brief     Êó±ê×ó¼ü°´ÏÂ
-	/// @param[in] X    Êó±êºáÏòÎ»ÖÃ
-	/// @param[in] Y    Êó±ê×İÏòÎ»ÖÃ
-	/// @param[in] Flag ¸½´øÊôĞÔ£¬Çë²éÔÄMSDN
+	/// @brief     é¼ æ ‡å·¦é”®æŒ‰ä¸‹
+	/// @param[in] X    é¼ æ ‡æ¨ªå‘ä½ç½®
+	/// @param[in] Y    é¼ æ ‡çºµå‘ä½ç½®
+	/// @param[in] Flag é™„å¸¦å±æ€§ï¼Œè¯·æŸ¥é˜…MSDN
 	virtual void OnMouseLBDown(fShort X, fShort Y, fuInt Flag) {}
 
-	/// @brief     Êó±ê×ó¼ü·Å¿ª
-	/// @param[in] X    Êó±êºáÏòÎ»ÖÃ
-	/// @param[in] Y    Êó±ê×İÏòÎ»ÖÃ
-	/// @param[in] Flag ¸½´øÊôĞÔ£¬Çë²éÔÄMSDN
+	/// @brief     é¼ æ ‡å·¦é”®æ”¾å¼€
+	/// @param[in] X    é¼ æ ‡æ¨ªå‘ä½ç½®
+	/// @param[in] Y    é¼ æ ‡çºµå‘ä½ç½®
+	/// @param[in] Flag é™„å¸¦å±æ€§ï¼Œè¯·æŸ¥é˜…MSDN
 	virtual void OnMouseLBUp(fShort X, fShort Y, fuInt Flag) {}
 
-	/// @brief     Êó±ê×ó¼üË«»÷
-	/// @param[in] X    Êó±êºáÏòÎ»ÖÃ
-	/// @param[in] Y    Êó±ê×İÏòÎ»ÖÃ
-	/// @param[in] Flag ¸½´øÊôĞÔ£¬Çë²éÔÄMSDN
+	/// @brief     é¼ æ ‡å·¦é”®åŒå‡»
+	/// @param[in] X    é¼ æ ‡æ¨ªå‘ä½ç½®
+	/// @param[in] Y    é¼ æ ‡çºµå‘ä½ç½®
+	/// @param[in] Flag é™„å¸¦å±æ€§ï¼Œè¯·æŸ¥é˜…MSDN
 	virtual void OnMouseLBDouble(fShort X, fShort Y, fuInt Flag) {}
 
-	/// @brief     Êó±êÖĞ¼ü°´ÏÂ
-	/// @param[in] X    Êó±êºáÏòÎ»ÖÃ
-	/// @param[in] Y    Êó±ê×İÏòÎ»ÖÃ
-	/// @param[in] Flag ¸½´øÊôĞÔ£¬Çë²éÔÄMSDN
+	/// @brief     é¼ æ ‡ä¸­é”®æŒ‰ä¸‹
+	/// @param[in] X    é¼ æ ‡æ¨ªå‘ä½ç½®
+	/// @param[in] Y    é¼ æ ‡çºµå‘ä½ç½®
+	/// @param[in] Flag é™„å¸¦å±æ€§ï¼Œè¯·æŸ¥é˜…MSDN
 	virtual void OnMouseMBDown(fShort X, fShort Y, fuInt Flag) {}
 
-	/// @brief     Êó±êÖĞ¼ü·Å¿ª
-	/// @param[in] X    Êó±êºáÏòÎ»ÖÃ
-	/// @param[in] Y    Êó±ê×İÏòÎ»ÖÃ
-	/// @param[in] Flag ¸½´øÊôĞÔ£¬Çë²éÔÄMSDN
+	/// @brief     é¼ æ ‡ä¸­é”®æ”¾å¼€
+	/// @param[in] X    é¼ æ ‡æ¨ªå‘ä½ç½®
+	/// @param[in] Y    é¼ æ ‡çºµå‘ä½ç½®
+	/// @param[in] Flag é™„å¸¦å±æ€§ï¼Œè¯·æŸ¥é˜…MSDN
 	virtual void OnMouseMBUp(fShort X, fShort Y, fuInt Flag) {}
 
-	/// @brief     Êó±êÖĞ¼üË«»÷
-	/// @param[in] X    Êó±êºáÏòÎ»ÖÃ
-	/// @param[in] Y    Êó±ê×İÏòÎ»ÖÃ
-	/// @param[in] Flag ¸½´øÊôĞÔ£¬Çë²éÔÄMSDN
+	/// @brief     é¼ æ ‡ä¸­é”®åŒå‡»
+	/// @param[in] X    é¼ æ ‡æ¨ªå‘ä½ç½®
+	/// @param[in] Y    é¼ æ ‡çºµå‘ä½ç½®
+	/// @param[in] Flag é™„å¸¦å±æ€§ï¼Œè¯·æŸ¥é˜…MSDN
 	virtual void OnMouseMBDouble(fShort X, fShort Y, fuInt Flag) {}
 
-	/// @brief     Êó±êÓÒ¼ü°´ÏÂ
-	/// @param[in] X    Êó±êºáÏòÎ»ÖÃ
-	/// @param[in] Y    Êó±ê×İÏòÎ»ÖÃ
-	/// @param[in] Flag ¸½´øÊôĞÔ£¬Çë²éÔÄMSDN
+	/// @brief     é¼ æ ‡å³é”®æŒ‰ä¸‹
+	/// @param[in] X    é¼ æ ‡æ¨ªå‘ä½ç½®
+	/// @param[in] Y    é¼ æ ‡çºµå‘ä½ç½®
+	/// @param[in] Flag é™„å¸¦å±æ€§ï¼Œè¯·æŸ¥é˜…MSDN
 	virtual void OnMouseRBDown(fShort X, fShort Y, fuInt Flag) {}
 
-	/// @brief     Êó±êÓÒ¼ü·Å¿ª
-	/// @param[in] X    Êó±êºáÏòÎ»ÖÃ
-	/// @param[in] Y    Êó±ê×İÏòÎ»ÖÃ
-	/// @param[in] Flag ¸½´øÊôĞÔ£¬Çë²éÔÄMSDN
+	/// @brief     é¼ æ ‡å³é”®æ”¾å¼€
+	/// @param[in] X    é¼ æ ‡æ¨ªå‘ä½ç½®
+	/// @param[in] Y    é¼ æ ‡çºµå‘ä½ç½®
+	/// @param[in] Flag é™„å¸¦å±æ€§ï¼Œè¯·æŸ¥é˜…MSDN
 	virtual void OnMouseRBUp(fShort X, fShort Y, fuInt Flag) {}
 
-	/// @brief     Êó±êÓÒ¼üË«»÷
-	/// @param[in] X    Êó±êºáÏòÎ»ÖÃ
-	/// @param[in] Y    Êó±ê×İÏòÎ»ÖÃ
-	/// @param[in] Flag ¸½´øÊôĞÔ£¬Çë²éÔÄMSDN
+	/// @brief     é¼ æ ‡å³é”®åŒå‡»
+	/// @param[in] X    é¼ æ ‡æ¨ªå‘ä½ç½®
+	/// @param[in] Y    é¼ æ ‡çºµå‘ä½ç½®
+	/// @param[in] Flag é™„å¸¦å±æ€§ï¼Œè¯·æŸ¥é˜…MSDN
 	virtual void OnMouseRBDouble(fShort X, fShort Y, fuInt Flag) {}
 
-	/// @brief »ñµÃ½¹µã
+	/// @brief è·å¾—ç„¦ç‚¹
 	virtual void OnGetFocus() {}
 
-	/// @brief ¶ªÊ§½¹µã
+	/// @brief ä¸¢å¤±ç„¦ç‚¹
 	virtual void OnLostFocus() {}
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2DäÖÈ¾´°¿Ú
+/// @brief fancy2Dæ¸²æŸ“çª—å£
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dWindow
 {
-	/// @brief ·µ»Ø¼àÌıÆ÷
+	/// @brief è¿”å›ç›‘å¬å™¨
 	virtual f2dWindowEventListener* GetListener()=0;
 
-	/// @brief ÉèÖÃ¼àÌıÆ÷
+	/// @brief è®¾ç½®ç›‘å¬å™¨
 	virtual fResult SetListener(f2dWindowEventListener* pListener)=0;
 
-	/// @brief   ·µ»ØWindows´°¿Ú¾ä±ú
-	/// @note    ĞèÒªÇ¿×ªµ½HWND
-	/// @warning ÈçÎŞÌØÊâÇé¿öÓ¦µ±±ÜÃâÊ¹ÓÃ±¾·½·¨
+	/// @brief   è¿”å›Windowsçª—å£å¥æŸ„
+	/// @note    éœ€è¦å¼ºè½¬åˆ°HWND
+	/// @warning å¦‚æ— ç‰¹æ®Šæƒ…å†µåº”å½“é¿å…ä½¿ç”¨æœ¬æ–¹æ³•
 	virtual fInt GetHandle()=0;
 
-	/// @brief ·µ»Ø±ß¿òÀàĞÍ
+	/// @brief è¿”å›è¾¹æ¡†ç±»å‹
 	virtual F2DWINBORDERTYPE GetBorderType()=0;
 
-	/// @brief ÉèÖÃ±ß¿òÀàĞÍ
+	/// @brief è®¾ç½®è¾¹æ¡†ç±»å‹
 	virtual fResult SetBorderType(F2DWINBORDERTYPE Type)=0;
 
-	/// @brief ·µ»Ø´°¿Ú±êÌâ
+	/// @brief è¿”å›çª—å£æ ‡é¢˜
 	virtual fcStrW GetCaption()=0;
 
-	/// @brief ÉèÖÃ´°¿Ú±êÌâ
-	/// @note  ²»³¬¹ı1024¸ö×Ö·û
+	/// @brief è®¾ç½®çª—å£æ ‡é¢˜
+	/// @note  ä¸è¶…è¿‡1024ä¸ªå­—ç¬¦
 	virtual fResult SetCaption(fcStrW Caption)=0;
 
-	/// @brief ·µ»ØÊÇ·ñ¿É¼û
+	/// @brief è¿”å›æ˜¯å¦å¯è§
 	virtual fBool GetVisiable()=0;
 
-	/// @brief ÉèÖÃÊÇ·ñ¿É¼û
+	/// @brief è®¾ç½®æ˜¯å¦å¯è§
 	virtual fResult SetVisiable(fBool Visiable)=0;
 
-	/// @brief ·µ»Ø´°¿ÚÎ»ÖÃ£¨º¬±ß¿ò£©
+	/// @brief è¿”å›çª—å£ä½ç½®ï¼ˆå«è¾¹æ¡†ï¼‰
 	virtual fcyRect GetRect()=0;
 
-	/// @brief ÉèÖÃ´°¿ÚÎ»ÖÃ£¨º¬±ß¿ò£©
+	/// @brief è®¾ç½®çª—å£ä½ç½®ï¼ˆå«è¾¹æ¡†ï¼‰
 	virtual fResult SetRect(const fcyRect& Range)=0;
 
-	/// @brief ·µ»Ø´°¿Ú¿Í»§ÇøÎ»ÖÃ
+	/// @brief è¿”å›çª—å£å®¢æˆ·åŒºä½ç½®
 	virtual fcyRect GetClientRect()=0;
 
-	/// @brief ÉèÖÃ´°¿Ú¿Í»§ÇøÎ»ÖÃ
+	/// @brief è®¾ç½®çª—å£å®¢æˆ·åŒºä½ç½®
 	virtual fResult SetClientRect(const fcyRect& Range)=0;
 
-	/// @brief ÒÆ¶¯µ½ÆÁÄ»ÖĞĞÄ
+	/// @brief ç§»åŠ¨åˆ°å±å¹•ä¸­å¿ƒ
 	virtual void MoveToCenter()=0;
 
-	/// @brief ÊÇ·ñÖÃ¶¥
+	/// @brief æ˜¯å¦ç½®é¡¶
 	virtual fBool IsTopMost()=0;
 
-	/// @brief ÉèÖÃÖÃ¶¥
+	/// @brief è®¾ç½®ç½®é¡¶
 	virtual fResult SetTopMost(fBool TopMost)=0;
 	
-	/// @brief     Òş²ØÊó±ê
-	/// @param[in] bHide ÊÇ·ñÒş²ØÊó±ê
+	/// @brief     éšè—é¼ æ ‡
+	/// @param[in] bHide æ˜¯å¦éšè—é¼ æ ‡
 	virtual void HideMouse(fBool bHide)=0;
 
-	/// @brief Òş²ØIME
+	/// @brief éšè—IME
 	virtual fBool IsHideIME()=0;
 	
-	/// @brief ÉèÖÃÊÇ·ñÒş²ØIME
+	/// @brief è®¾ç½®æ˜¯å¦éšè—IME
 	virtual void SetHideIME(fBool bHide)=0;
 
-	/// @brief ·µ»ØIMEÃèÊö
+	/// @brief è¿”å›IMEæè¿°
 	virtual fcStrW GetIMEDesc()=0;
 
-	/// @brief ·µ»ØIMEĞÅÏ¢
+	/// @brief è¿”å›IMEä¿¡æ¯
 	virtual fuInt GetIMEInfo(F2DIMEINFO InfoType)=0;
 
-	/// @brief ·µ»Øµ±Ç°µÄÆ´Ğ´´®
+	/// @brief è¿”å›å½“å‰çš„æ‹¼å†™ä¸²
 	virtual fcStrW GetIMECompString()=0;
 
-	/// @brief ·µ»ØºòÑ¡´Ê¸öÊı
+	/// @brief è¿”å›å€™é€‰è¯ä¸ªæ•°
 	virtual fuInt GetIMECandidateCount()=0;
 
-	/// @brief ·µ»ØºòÑ¡´Ê
+	/// @brief è¿”å›å€™é€‰è¯
 	virtual fcStrW GetIMECandidate(fuInt Index)=0;
 };
 

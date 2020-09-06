@@ -1,4 +1,4 @@
-#include "RenderDev/f2dRenderDeviceImpl.h"
+ï»¿#include "RenderDev/f2dRenderDeviceImpl.h"
 
 #include <fcyMisc/fcyStringHelper.h>
 #include <fcyMisc/fcyHash.h>
@@ -48,29 +48,29 @@ f2dRenderDeviceImpl::f2dRenderDeviceImpl(f2dEngineImpl* pEngine, fuInt BackBuffe
 
 	HRESULT tHR;
 
-	// --- ´´½¨D3D9 ---
+	// --- åˆ›å»ºD3D9 ---
 	m_pD3D9 = m_API.DLLEntry_Direct3DCreate9(D3D_SDK_VERSION);
 	if(!m_pD3D9)
 		throw fcyException("f2dRenderDeviceImpl::f2dRenderDeviceImpl", "Direct3DCreate9 Failed.");
 
-	// --- ´´½¨Éè±¸ ---
-	// Ìî³äÊôÐÔ
-	m_D3Dpp.BackBufferCount = 1;                      // ºóÌ¨»º³åÒ³Ãæ¸öÊý
-	m_D3Dpp.BackBufferWidth = BackBufferWidth;        // »º³åÒ³Ãæ¿í¶È
-	m_D3Dpp.BackBufferHeight = BackBufferHeight;      // »º³åÒ³Ãæ¸ß¶È
-	m_D3Dpp.BackBufferFormat = D3DFMT_A8R8G8B8;       // Ò³Ãæ¸ñÊ½
-	m_D3Dpp.AutoDepthStencilFormat = D3DFMT_D24S8;    // Ä£°åºÍZ»º³å¸ñÊ½
-	m_D3Dpp.EnableAutoDepthStencil = true;            // ¿ªÆô×Ô¶¯´´½¨Ä£°åºÍZ»º³å
-	m_D3Dpp.Windowed = Windowed;                      // ÊÇ·ñ´°¿Ú
-	m_D3Dpp.PresentationInterval = VSync? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE;	// Á¢¼´½»»»
+	// --- åˆ›å»ºè®¾å¤‡ ---
+	// å¡«å……å±žæ€§
+	m_D3Dpp.BackBufferCount = 1;                      // åŽå°ç¼“å†²é¡µé¢ä¸ªæ•°
+	m_D3Dpp.BackBufferWidth = BackBufferWidth;        // ç¼“å†²é¡µé¢å®½åº¦
+	m_D3Dpp.BackBufferHeight = BackBufferHeight;      // ç¼“å†²é¡µé¢é«˜åº¦
+	m_D3Dpp.BackBufferFormat = D3DFMT_A8R8G8B8;       // é¡µé¢æ ¼å¼
+	m_D3Dpp.AutoDepthStencilFormat = D3DFMT_D24S8;    // æ¨¡æ¿å’ŒZç¼“å†²æ ¼å¼
+	m_D3Dpp.EnableAutoDepthStencil = true;            // å¼€å¯è‡ªåŠ¨åˆ›å»ºæ¨¡æ¿å’ŒZç¼“å†²
+	m_D3Dpp.Windowed = Windowed;                      // æ˜¯å¦çª—å£
+	m_D3Dpp.PresentationInterval = VSync? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE;	// ç«‹å³äº¤æ¢
 	m_D3Dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
 	m_D3Dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
 	if(AALevel != F2DAALEVEL_NONE && CheckMultiSample(AALevel, Windowed))
 	{
-		// ¿ªÆô¿¹¾â³Ý
+		// å¼€å¯æŠ—é”¯é½¿
 		m_D3Dpp.MultiSampleQuality = 0;
 
-		// ¿ªÆô¿¹¾â³Ý
+		// å¼€å¯æŠ—é”¯é½¿
 		switch(AALevel)
 		{
 		case F2DAALEVEL_2:
@@ -95,7 +95,7 @@ f2dRenderDeviceImpl::f2dRenderDeviceImpl(f2dEngineImpl* pEngine, fuInt BackBuffe
 		D3DADAPTER_DEFAULT,
 		D3DDEVTYPE_HAL,
 		m_hWnd,
-		D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED, // Æô¶¯¶àÏß³Ì
+		D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED, // å¯åŠ¨å¤šçº¿ç¨‹
 		&m_D3Dpp,
 		&m_pDev
 		);
@@ -106,7 +106,7 @@ f2dRenderDeviceImpl::f2dRenderDeviceImpl(f2dEngineImpl* pEngine, fuInt BackBuffe
 			D3DADAPTER_DEFAULT,
 			D3DDEVTYPE_HAL,
 			m_hWnd,
-			D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED, // Æô¶¯¶àÏß³Ì
+			D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED, // å¯åŠ¨å¤šçº¿ç¨‹
 			&m_D3Dpp,
 			&m_pDev
 		);
@@ -120,12 +120,12 @@ f2dRenderDeviceImpl::f2dRenderDeviceImpl(f2dEngineImpl* pEngine, fuInt BackBuffe
 	else
 		m_pSyncTestObj = new DeviceSyncTest(m_pDev);
 
-	// --- »ñÈ¡Éè±¸²ÎÊý ---
+	// --- èŽ·å–è®¾å¤‡å‚æ•° ---
 	D3DADAPTER_IDENTIFIER9 tIdentify;
 	m_pD3D9->GetAdapterIdentifier(0, 0, &tIdentify);
 	m_DevName = tIdentify.Description;
 
-	// --- ³õÊ¼»¯äÖÈ¾×´Ì¬ ---
+	// --- åˆå§‹åŒ–æ¸²æŸ“çŠ¶æ€ ---
 	m_ViewPort.Width = GetBufferWidth();
 	m_ViewPort.Height = GetBufferHeight();
 	m_ViewPort.MaxZ = 1.0f;
@@ -156,13 +156,13 @@ f2dRenderDeviceImpl::f2dRenderDeviceImpl(f2dEngineImpl* pEngine, fuInt BackBuffe
 
 f2dRenderDeviceImpl::~f2dRenderDeviceImpl()
 {
-	// ÊÍ·Å¶ÔÏó
+	// é‡Šæ”¾å¯¹è±¡
 	FCYSAFEKILL(m_pCurBackBuffer);
 	FCYSAFEKILL(m_pCurBackDepthBuffer);
 	FCYSAFEKILL(m_pBackBuffer);
 	FCYSAFEKILL(m_pBackDepthBuffer);
 
-	// É¾³ýäÖÈ¾Æ÷¼àÌýÁ´
+	// åˆ é™¤æ¸²æŸ“å™¨ç›‘å¬é“¾
 	ListenerNode* pListener = m_ListenerList;
 	while(pListener)
 	{
@@ -171,7 +171,7 @@ f2dRenderDeviceImpl::~f2dRenderDeviceImpl()
 		pListener = pListener->pNext;
 
 		{
-			// ±¨¸æ¿ÉÄÜµÄ¶ÔÏóÐ¹Â©
+			// æŠ¥å‘Šå¯èƒ½çš„å¯¹è±¡æ³„æ¼
 			char tTextBuffer[256];
 			sprintf_s(tTextBuffer, "Unrelease listener object at %p", p);
 #ifdef _DEBUG
@@ -183,12 +183,12 @@ f2dRenderDeviceImpl::~f2dRenderDeviceImpl()
 		delete p;
 	}
 	
-	// ÊÍ·Å¶¥µãÉùÃ÷
+	// é‡Šæ”¾é¡¶ç‚¹å£°æ˜Ž
 	m_VDCache.clear();
 
 	FCYSAFEDEL(m_pSyncTestObj);
 
-	// ÊÍ·ÅDX×é¼þ
+	// é‡Šæ”¾DXç»„ä»¶
 	FCYSAFEKILL(m_pWinSurface);
 	FCYSAFEKILL(m_pDev);
 	FCYSAFEKILL(m_pD3D9);
@@ -242,21 +242,21 @@ HRESULT f2dRenderDeviceImpl::doTestCooperativeLevel()
 
 void f2dRenderDeviceImpl::initState()
 {
-	// --- ³õÊ¼»¯ÊÓ¿Ú ---
+	// --- åˆå§‹åŒ–è§†å£ ---
 	m_pDev->SetViewport(&m_ViewPort);
 
-	// --- ÉèÖÃÄ¬ÈÏäÖÈ¾×´Ì¬ ---
-	m_pDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);   // ÉèÖÃ·´ÃæÌÞ³ý
-	m_pDev->SetRenderState(D3DRS_LIGHTING, FALSE);    // ¹Ø±Õ¹âÕÕ
-	m_pDev->SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);  // ´ò¿ª¾ØÐÎ²Ã¼ô¹¦ÄÜ
+	// --- è®¾ç½®é»˜è®¤æ¸²æŸ“çŠ¶æ€ ---
+	m_pDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);   // è®¾ç½®åé¢å‰”é™¤
+	m_pDev->SetRenderState(D3DRS_LIGHTING, FALSE);    // å…³é—­å…‰ç…§
+	m_pDev->SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);  // æ‰“å¼€çŸ©å½¢è£å‰ªåŠŸèƒ½
 
-	// --- ÉèÖÃZBUFFER ---
+	// --- è®¾ç½®ZBUFFER ---
 	m_pDev->SetRenderState(D3DRS_ZENABLE, m_bZBufferEnabled);
 	m_pDev->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
 	m_pDev->SetRenderState(D3DRS_ZFUNC, D3DCMP_LESSEQUAL);
 
-	// --- ÉèÖÃÄ¬ÈÏ»ìºÏ×´Ì¬ ---
-	m_pDev->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);  // Æô¶¯Alpha»ìºÏ
+	// --- è®¾ç½®é»˜è®¤æ··åˆçŠ¶æ€ ---
+	m_pDev->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);  // å¯åŠ¨Alphaæ··åˆ
 	m_pDev->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, TRUE);
 
 	m_pDev->SetRenderState(D3DRS_BLENDOP, m_CurBlendState.BlendOp);
@@ -266,32 +266,32 @@ void f2dRenderDeviceImpl::initState()
 	m_pDev->SetRenderState(D3DRS_SRCBLENDALPHA, m_CurBlendState.AlphaSrcBlend);
 	m_pDev->SetRenderState(D3DRS_DESTBLENDALPHA, m_CurBlendState.AlphaDestBlend);
 
-	// --- ÎÆÀí»ìºÏ²ÎÊýÄ¬ÈÏÖµ ---
+	// --- çº¹ç†æ··åˆå‚æ•°é»˜è®¤å€¼ ---
 	m_pDev->SetTextureStageState(0, D3DTSS_COLOROP,  m_CurTexBlendOP_Color);    
 	//m_pDev->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_DIFFUSE);
 	//m_pDev->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_TEXTURE);
 	m_pDev->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
 	m_pDev->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-	// --- ÊÖ¶¯premulÐèÒª°Ñtexture·ÅÔÚµÚÒ»¸ö³ËÒÔtextureµÄalpha
+	// --- æ‰‹åŠ¨premuléœ€è¦æŠŠtextureæ”¾åœ¨ç¬¬ä¸€ä¸ªä¹˜ä»¥textureçš„alpha
 	m_pDev->SetTextureStageState(0, D3DTSS_ALPHAOP,  D3DTOP_MODULATE);
 	m_pDev->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_DIFFUSE);
 	m_pDev->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_TEXTURE);
 
-	// --- ÎÆÀíÑ°Ö· ---
+	// --- çº¹ç†å¯»å€ ---
 	m_pDev->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
 	m_pDev->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
 
-	// --- ÉèÖÃ²ÉÑùÆ÷ ---
-	// ÈýÏßÐÔ
+	// --- è®¾ç½®é‡‡æ ·å™¨ ---
+	// ä¸‰çº¿æ€§
 	m_pDev->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
 	m_pDev->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);
 	m_pDev->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
 
-	// --- ÆäËû¹¦ÄÜ ---
-	// ÉèÖÃ¾ØÐÎ²Ã¼ô
+	// --- å…¶ä»–åŠŸèƒ½ ---
+	// è®¾ç½®çŸ©å½¢è£å‰ª
 	m_pDev->SetScissorRect(&m_ScissorRect);
 
-	// ÉèÖÃÄ¬ÈÏ¾ØÕó
+	// è®¾ç½®é»˜è®¤çŸ©é˜µ
 	m_pDev->SetTransform(D3DTS_WORLD, (D3DMATRIX*)&m_CurWorldMat);
 	m_pDev->SetTransform(D3DTS_VIEW, (D3DMATRIX*)&m_CurLookatMat);
 	m_pDev->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)&m_CurProjMat);
@@ -307,13 +307,13 @@ int f2dRenderDeviceImpl::sendDevLostMsg()
 
 	m_pCurVertDecl = NULL;
 
-	// ÊÍ·Å¿ÉÄÜµÄ¶ÔÏó
+	// é‡Šæ”¾å¯èƒ½çš„å¯¹è±¡
 	FCYSAFEKILL(m_pCurBackBuffer);
 	FCYSAFEKILL(m_pCurBackDepthBuffer);
 	FCYSAFEKILL(m_pBackBuffer);
 	FCYSAFEKILL(m_pBackDepthBuffer);
 	
-	// ·¢ËÍ¶ªÊ§ÏûÏ¢
+	// å‘é€ä¸¢å¤±æ¶ˆæ¯
 	ListenerNode* pListener = m_ListenerList;
 	while(pListener)
 	{
@@ -330,7 +330,7 @@ int f2dRenderDeviceImpl::sendDevResetMsg()
 {
 	int tRet = 0;
 
-	// ·¢ËÍÖØÖÃÏûÏ¢
+	// å‘é€é‡ç½®æ¶ˆæ¯
 	ListenerNode* pListener = m_ListenerList;
 	while(pListener)
 	{
@@ -345,21 +345,21 @@ int f2dRenderDeviceImpl::sendDevResetMsg()
 
 fResult f2dRenderDeviceImpl::SyncDevice()
 {
-	HRESULT tHR = doTestCooperativeLevel();	// Éè±¸Ð­×÷²âÊÔ
+	HRESULT tHR = doTestCooperativeLevel();	// è®¾å¤‡åä½œæµ‹è¯•
 	
-	if(m_bDevLost) // Éè±¸ÒÑ¾­¶ªÊ§
+	if(m_bDevLost) // è®¾å¤‡å·²ç»ä¸¢å¤±
 	{	
-		if(tHR == D3DERR_DEVICENOTRESET) // ÉÐÎ´ÖØÖÃ
+		if(tHR == D3DERR_DEVICENOTRESET) // å°šæœªé‡ç½®
 		{
 			tHR = doReset(&m_D3Dpp);
 
-			if(SUCCEEDED(tHR)) // ÖØÖÃ³É¹¦
+			if(SUCCEEDED(tHR)) // é‡ç½®æˆåŠŸ
 			{
 				m_bDevLost = false;
 
-				initState(); // ÖØÐÂ³õÊ¼»¯×´Ì¬
+				initState(); // é‡æ–°åˆå§‹åŒ–çŠ¶æ€
 
-				int tObjCount = sendDevResetMsg(); // Í¨Öª·ÇÍÐ¹Ü×é¼þ»Ö¸´¹¤×÷
+				int tObjCount = sendDevResetMsg(); // é€šçŸ¥éžæ‰˜ç®¡ç»„ä»¶æ¢å¤å·¥ä½œ
 
 				fChar tBuffer[256];
 				sprintf_s(tBuffer, "Device reseted. ( %d Object(s) rested. )", tObjCount);
@@ -367,9 +367,9 @@ fResult f2dRenderDeviceImpl::SyncDevice()
 			}
 		}
 	}
-	else if(tHR == D3DERR_DEVICELOST || tHR == D3DERR_DEVICENOTRESET) 	// Éè±¸ÉÐÎ´¶ªÊ§£¬¼ì²éÊÇ·ñ¶ªÊ§
+	else if(tHR == D3DERR_DEVICELOST || tHR == D3DERR_DEVICENOTRESET) 	// è®¾å¤‡å°šæœªä¸¢å¤±ï¼Œæ£€æŸ¥æ˜¯å¦ä¸¢å¤±
 	{
-		m_bDevLost = true; // ±ê¼ÇÉè±¸¶ªÊ§
+		m_bDevLost = true; // æ ‡è®°è®¾å¤‡ä¸¢å¤±
 		
 		int tObjCount = sendDevLostMsg();
 
@@ -383,12 +383,12 @@ fResult f2dRenderDeviceImpl::SyncDevice()
 
 fResult f2dRenderDeviceImpl::Present()
 {
-	// »¹Ô­µ±Ç°µÄºóÌ¨»º³åÇø
+	// è¿˜åŽŸå½“å‰çš„åŽå°ç¼“å†²åŒº
 	if(m_pBackBuffer)
 	{
 		m_pDev->SetRenderTarget(0, m_pBackBuffer);
 
-		// ´ËÊ±vpÒÑ·¢Éú±ä»¯£¬¸ú×ÙÐÂµÄvp
+		// æ­¤æ—¶vpå·²å‘ç”Ÿå˜åŒ–ï¼Œè·Ÿè¸ªæ–°çš„vp
 		m_pDev->GetViewport(&m_ViewPort);
 
 		FCYSAFEKILL(m_pBackBuffer);
@@ -423,16 +423,16 @@ fResult f2dRenderDeviceImpl::SubmitCurGraphics(f2dGraphics* pGraph, bool bDirty)
 	if(!bDirty && pGraph == m_pCurGraphics)
 		return FCYERR_OK;
 
-	// ¸üÐÂ×´Ì¬
+	// æ›´æ–°çŠ¶æ€
 	if(!pGraph->IsGraphics3D())
 	{
 		SubmitWorldMat(pGraph->GetWorldTransform());
 		SubmitLookatMat(pGraph->GetViewTransform());
 		SubmitProjMat(pGraph->GetProjTransform());
-		m_pDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);   // ÐÂÐÐÎª£ºÈôÎª2DäÖÈ¾Æ÷£¬Ôò¹Ø±ÕÌÞ³ý
+		m_pDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);   // æ–°è¡Œä¸ºï¼šè‹¥ä¸º2Dæ¸²æŸ“å™¨ï¼Œåˆ™å…³é—­å‰”é™¤
 	}
 	else
-		m_pDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);   // ÐÂÐÐÎª£ºÈôÎª3DäÖÈ¾Æ÷£¬ÔòÆôÓÃÄæÊ±ÕëÌÞ³ý
+		m_pDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);   // æ–°è¡Œä¸ºï¼šè‹¥ä¸º3Dæ¸²æŸ“å™¨ï¼Œåˆ™å¯ç”¨é€†æ—¶é’ˆå‰”é™¤
 
 	SubmitBlendState(pGraph->GetBlendState());
 
@@ -473,7 +473,7 @@ fResult f2dRenderDeviceImpl::SubmitProjMat(const fcyMatrix4& Mat)
 
 fResult f2dRenderDeviceImpl::SubmitBlendState(const f2dBlendState& State)
 {
-	// ¶Ô±È×´Ì¬²¢ÉèÖÃ
+	// å¯¹æ¯”çŠ¶æ€å¹¶è®¾ç½®
 	if(m_CurBlendState.AlphaBlendOp != State.AlphaBlendOp)
 		m_pDev->SetRenderState(D3DRS_BLENDOPALPHA, State.AlphaBlendOp);
 	if(m_CurBlendState.AlphaDestBlend != State.AlphaDestBlend)
@@ -527,7 +527,7 @@ IDirect3DVertexDeclaration9* f2dRenderDeviceImpl::RegisterVertexDeclare(f2dVerte
 	if(ElementCount == 0)
 		return NULL;
 
-	// === Hash¼ì²é ===
+	// === Hashæ£€æŸ¥ ===
 	fuInt HashCode = fcyHash::SuperFastHash((fcData)pElement, sizeof(f2dVertexElement) * ElementCount);
 	
 	for(fuInt i = 0; i<m_VDCache.size(); ++i)
@@ -547,7 +547,7 @@ IDirect3DVertexDeclaration9* f2dRenderDeviceImpl::RegisterVertexDeclare(f2dVerte
 			}
 
 			/*
-				¸ÐÐ»ÆáºÚ¤ÎÈÐÌá³öissue
+				æ„Ÿè°¢æ¼†é»‘ã®åˆƒæå‡ºissue
 			*/
 			if (tHas)
 			{
@@ -557,11 +557,11 @@ IDirect3DVertexDeclaration9* f2dRenderDeviceImpl::RegisterVertexDeclare(f2dVerte
 		}
 	}
 
-	// === ´´½¨ÌõÄ¿ ===
+	// === åˆ›å»ºæ¡ç›® ===
 	D3DVERTEXELEMENT9* pElementArr = new D3DVERTEXELEMENT9[ ElementCount + 1 ];
 	ZeroMemory(pElementArr, sizeof(D3DVERTEXELEMENT9) * (ElementCount + 1));
 
-	// ½áÎ²
+	// ç»“å°¾
 	D3DVERTEXELEMENT9 tEnd = D3DDECL_END();
 	pElementArr[ ElementCount ] = tEnd;
 
@@ -696,25 +696,25 @@ fcyVec2 f2dRenderDeviceImpl::EnumSupportResolution(fuInt Index)
 
 fResult f2dRenderDeviceImpl::SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, F2DAALEVEL AALevel)
 {
-	// ×¼±¸²ÎÊý
+	// å‡†å¤‡å‚æ•°
 	D3DPRESENT_PARAMETERS tD3Dpp;
 	ZeroMemory(&tD3Dpp, sizeof(D3DPRESENT_PARAMETERS));
 
-	tD3Dpp.BackBufferCount = 1;                      // ºóÌ¨»º³åÒ³Ãæ¸öÊý
-	tD3Dpp.BackBufferWidth = Width;	                 // »º³åÒ³Ãæ¿í¶È
-	tD3Dpp.BackBufferHeight = Height;                // »º³åÒ³Ãæ¸ß¶È
-	tD3Dpp.BackBufferFormat = D3DFMT_A8R8G8B8;       // Ò³Ãæ¸ñÊ½
-	tD3Dpp.AutoDepthStencilFormat = D3DFMT_D24S8;    // Ä£°åºÍZ»º³å¸ñÊ½
-	tD3Dpp.EnableAutoDepthStencil = true;            // ¿ªÆô×Ô¶¯´´½¨Ä£°åºÍZ»º³å
-	tD3Dpp.Windowed = Windowed;                      // ÊÇ·ñ´°¿Ú
-	tD3Dpp.PresentationInterval = VSync? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE;	// Á¢¼´½»»»
+	tD3Dpp.BackBufferCount = 1;                      // åŽå°ç¼“å†²é¡µé¢ä¸ªæ•°
+	tD3Dpp.BackBufferWidth = Width;	                 // ç¼“å†²é¡µé¢å®½åº¦
+	tD3Dpp.BackBufferHeight = Height;                // ç¼“å†²é¡µé¢é«˜åº¦
+	tD3Dpp.BackBufferFormat = D3DFMT_A8R8G8B8;       // é¡µé¢æ ¼å¼
+	tD3Dpp.AutoDepthStencilFormat = D3DFMT_D24S8;    // æ¨¡æ¿å’ŒZç¼“å†²æ ¼å¼
+	tD3Dpp.EnableAutoDepthStencil = true;            // å¼€å¯è‡ªåŠ¨åˆ›å»ºæ¨¡æ¿å’ŒZç¼“å†²
+	tD3Dpp.Windowed = Windowed;                      // æ˜¯å¦çª—å£
+	tD3Dpp.PresentationInterval = VSync? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE;	// ç«‹å³äº¤æ¢
 	tD3Dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
 	tD3Dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
 	if(AALevel != F2DAALEVEL_NONE)
 	{
 		tD3Dpp.MultiSampleQuality = 0;
 
-		// ¿ªÆô¿¹¾â³Ý
+		// å¼€å¯æŠ—é”¯é½¿
 		switch(AALevel)
 		{
 		case F2DAALEVEL_2:
@@ -735,20 +735,20 @@ fResult f2dRenderDeviceImpl::SetBufferSize(fuInt Width, fuInt Height, fBool Wind
 		}
 	}
 
-	// Ïú»ÙËùÓÐÎ´ÍÐ¹Ü¶ÔÏó
+	// é”€æ¯æ‰€æœ‰æœªæ‰˜ç®¡å¯¹è±¡
 	m_bDevLost = true;
 	sendDevLostMsg();
 
-	// ÖØÉèäÖÈ¾ÏµÍ³
+	// é‡è®¾æ¸²æŸ“ç³»ç»Ÿ
 	HRESULT tHR = doReset(&tD3Dpp);
 	if(FAILED(tHR))
 	{
-		// ÉèÖÃÊ§°Ü£¬±£ÁôÎª¶ªÊ§×´Ì¬£¬µÈ´ýÑ­»·Ê±»Ö¸´ÉÏ´Î×´Ì¬¡£
+		// è®¾ç½®å¤±è´¥ï¼Œä¿ç•™ä¸ºä¸¢å¤±çŠ¶æ€ï¼Œç­‰å¾…å¾ªçŽ¯æ—¶æ¢å¤ä¸Šæ¬¡çŠ¶æ€ã€‚
 		return FCYERR_INVAILDPARAM;
 	}
 	else
 	{
-		// ³É¹¦£¬»Ö¸´ËùÓÐ×´Ì¬
+		// æˆåŠŸï¼Œæ¢å¤æ‰€æœ‰çŠ¶æ€
 		m_bDevLost = false;
 		m_D3Dpp = tD3Dpp;
 
@@ -784,7 +784,7 @@ fResult f2dRenderDeviceImpl::AttachListener(f2dRenderDeviceEventListener* Listen
 
 	m_ListenerList = pNew;
 
-	// ¶ÔÓÅÏÈ¼¶½øÐÐ²åÈëÅÅÐò
+	// å¯¹ä¼˜å…ˆçº§è¿›è¡Œæ’å…¥æŽ’åº
 	ListenerNode* p = m_ListenerList;
 	while(p->pNext && p->Priority > p->pNext->Priority)
 	{
@@ -1088,7 +1088,7 @@ fResult f2dRenderDeviceImpl::SetRenderTarget(f2dTexture2D* pTex)
 		FCYSAFEKILL(m_pCurBackBuffer);
 		m_pDev->SetRenderTarget(0, m_pBackBuffer);
 
-		// ´ËÊ±vpÒÑ·¢Éú±ä»¯£¬¸ú×ÙÐÂµÄvp
+		// æ­¤æ—¶vpå·²å‘ç”Ÿå˜åŒ–ï¼Œè·Ÿè¸ªæ–°çš„vp
 		m_pDev->GetViewport(&m_ViewPort);
 
 		FCYSAFEKILL(m_pBackBuffer);
@@ -1105,7 +1105,7 @@ fResult f2dRenderDeviceImpl::SetRenderTarget(f2dTexture2D* pTex)
 
 	m_pDev->SetRenderTarget(0, ((f2dTexture2DRenderTarget*)m_pCurBackBuffer)->GetSurface());
 
-	// ´ËÊ±vpÒÑ·¢Éú±ä»¯£¬¸ú×ÙÐÂµÄvp
+	// æ­¤æ—¶vpå·²å‘ç”Ÿå˜åŒ–ï¼Œè·Ÿè¸ªæ–°çš„vp
 	m_pDev->GetViewport(&m_ViewPort);
 
 	return FCYERR_OK;
@@ -1250,7 +1250,7 @@ fResult f2dRenderDeviceImpl::SaveScreen(f2dStream* pStream)
 		return FCYERR_INTERNALERR;
 	}
 
-	// ±£´æµ½Á÷
+	// ä¿å­˜åˆ°æµ
 	if(FCYFAILED(pStream->WriteBytes((fcData)pDataBuffer->GetBufferPointer(), pDataBuffer->GetBufferSize(), NULL)))
 	{
 		FCYSAFEKILL(pDataBuffer);
@@ -1293,7 +1293,7 @@ fResult f2dRenderDeviceImpl::SaveTexture(f2dStream* pStream, f2dTexture2D* pTex)
 		return FCYERR_INTERNALERR;
 	}
 
-	// ±£´æµ½Á÷
+	// ä¿å­˜åˆ°æµ
 	if(FCYFAILED(pStream->WriteBytes((fcData)pDataBuffer->GetBufferPointer(), pDataBuffer->GetBufferSize(), NULL)))
 	{
 		FCYSAFEKILL(pDataBuffer);
@@ -1310,33 +1310,33 @@ fResult f2dRenderDeviceImpl::UpdateScreenToWindow(fcyColor KeyColor, fByte Alpha
 	fuInt tBackWidth = GetBufferWidth();
 	fuInt tBackHeight = GetBufferHeight();
 
-	// === ¼ì²é´°¿Ú´óÐ¡ÊÇ·ñÆ¥Åä ===
+	// === æ£€æŸ¥çª—å£å¤§å°æ˜¯å¦åŒ¹é… ===
 	if(m_DC.GetSafeHdc() == NULL || m_pWinSurface == NULL || (fuInt)m_DC.GetWidth() != tBackWidth || (fuInt)m_DC.GetHeight() != tBackHeight)
 	{
 		m_DC.Delete();
 		m_DC.Create(tBackWidth, tBackHeight);
 
-		// ´´½¨ÀëÆÁÒ³Ãæ
+		// åˆ›å»ºç¦»å±é¡µé¢
 		FCYSAFEKILL(m_pWinSurface);
 		if(FAILED(m_pDev->CreateOffscreenPlainSurface(tBackWidth, tBackHeight, D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, &m_pWinSurface, NULL)))
 			return FCYERR_INTERNALERR;
 	}
 
-	// === ×¼±¸²ÎÊý ===
+	// === å‡†å¤‡å‚æ•° ===
 	RECT tWinRect;
 	::GetWindowRect(m_hWnd, &tWinRect);
 	HDC tWinDC = GetWindowDC(m_hWnd);
-	// ´°¿ÚÎ»ÖÃ
+	// çª—å£ä½ç½®
 	POINT ptWinPos = { tWinRect.left, tWinRect.top };
-	// DCÊý¾ÝÆðÊ¼Î»ÖÃ
+	// DCæ•°æ®èµ·å§‹ä½ç½®
 	POINT ptSrc = { 0, 0 };
-	// ´°¿Ú´óÐ¡
+	// çª—å£å¤§å°
 	SIZE szWin = { tWinRect.right - tWinRect.left, tWinRect.bottom - tWinRect.top };
-	// DC±íÃæ´óÐ¡
+	// DCè¡¨é¢å¤§å°
 	RECT tDCSurface = { 0, 0, (LONG)tBackWidth, (LONG)tBackHeight };
 	BLENDFUNCTION stBlend = { AC_SRC_OVER, 0, Alpha, AC_SRC_ALPHA };
 	
-	// === ¿½±´BackSurface ===
+	// === æ‹·è´BackSurface ===
 	D3DLOCKED_RECT tD3DLockRect;
 	IDirect3DSurface9* pOrgSurface = NULL;
 
@@ -1350,7 +1350,7 @@ fResult f2dRenderDeviceImpl::UpdateScreenToWindow(fcyColor KeyColor, fByte Alpha
 
 	FCYSAFEKILL(pOrgSurface);
 
-	// === ¿½±´µ½GDI ===
+	// === æ‹·è´åˆ°GDI ===
 	if(FAILED(m_pWinSurface->LockRect(&tD3DLockRect, &tDCSurface, D3DLOCK_READONLY)))
 		return FCYERR_INTERNALERR;
 	fuInt y = 0;

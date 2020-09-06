@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dRenderDeviceImpl.h
-/// @brief fancy2DäÖÈ¾Éè±¸½Ó¿ÚÊµÏÖ
+/// @brief fancy2Dæ¸²æŸ“è®¾å¤‡æ¥å£å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "RenderDev/f2dRenderDeviceAPI.h"
@@ -11,7 +11,7 @@
 class f2dEngineImpl;
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2DäÖÈ¾Éè±¸ÊµÏÖ
+/// @brief fancy2Dæ¸²æŸ“è®¾å¤‡å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 class f2dRenderDeviceImpl :
 	public fcyRefObjImpl<f2dRenderDevice>
@@ -20,12 +20,12 @@ private:
 	struct ListenerNode
 	{
 		f2dRenderDeviceEventListener* pListener;
-		fInt Priority;   // ÓÅÏÈ¼¶
+		fInt Priority;   // ä¼˜å…ˆçº§
 
 		ListenerNode* pNext;
 	};
 
-	// ½â¾ö´Ó·ÇÖ÷Ïß³Ìµ÷ÓÃTestCooperativeLevelµÄÎÊÌâ
+	// è§£å†³ä»éä¸»çº¿ç¨‹è°ƒç”¨TestCooperativeLevelçš„é—®é¢˜
 	class DeviceSyncTest
 		: public f2dMainThreadDelegate
 	{
@@ -60,74 +60,74 @@ private:
 	f2dEngineImpl* m_pEngine;
 	DWORD m_CreateThreadID;
 
-	// APIÈë¿Ú
+	// APIå…¥å£
 	f2dRenderDeviceAPI m_API;
 
-	// DirectX×é¼ş
+	// DirectXç»„ä»¶
 	IDirect3D9* m_pD3D9;
 	IDirect3DDevice9* m_pDev;
 	D3DPRESENT_PARAMETERS m_D3Dpp;
 	D3DVIEWPORT9 m_ViewPort;
 	std::string m_DevName;
 
-	// ¿çÏß³ÌÊÂ¼ş
+	// è·¨çº¿ç¨‹äº‹ä»¶
 	DeviceSyncTest* m_pSyncTestObj;
 	
-	// ¼àÌıÆ÷Á´±í
+	// ç›‘å¬å™¨é“¾è¡¨
 	ListenerNode* m_ListenerList;
 
-	// ¶¥µãÉùÃ÷
+	// é¡¶ç‚¹å£°æ˜
 	std::vector<VertexDeclareInfo> m_VDCache;
 
-	// Éè±¸×´Ì¬
-	bool m_bDevLost;                              // Éè±¸¶ªÊ§±êÖ¾
-	bool m_bZBufferEnabled;                       // ÊÇ·ñ¿ªÆôZ-»º³åÇø
-	IDirect3DSurface9* m_pBackBuffer;             // ºó±¸äÖÈ¾Ä¿±ê
-	IDirect3DSurface9* m_pBackDepthBuffer;        // ºó±¸Éî¶ÈÄ£°å»º³å
-	RECT m_ScissorRect;                           // ²Ã¼ô¾ØĞÎ
+	// è®¾å¤‡çŠ¶æ€
+	bool m_bDevLost;                              // è®¾å¤‡ä¸¢å¤±æ ‡å¿—
+	bool m_bZBufferEnabled;                       // æ˜¯å¦å¼€å¯Z-ç¼“å†²åŒº
+	IDirect3DSurface9* m_pBackBuffer;             // åå¤‡æ¸²æŸ“ç›®æ ‡
+	IDirect3DSurface9* m_pBackDepthBuffer;        // åå¤‡æ·±åº¦æ¨¡æ¿ç¼“å†²
+	RECT m_ScissorRect;                           // è£å‰ªçŸ©å½¢
 	
-	f2dTexture2D* m_pCurBackBuffer;               // ¼ÇÂ¼µ±Ç°µÄºó±¸»º³åÇø
-	f2dDepthStencilSurface* m_pCurBackDepthBuffer;// ¼ÇÂ¼µ±Ç°µÄºó±¸Éî¶È»º³åÇø
+	f2dTexture2D* m_pCurBackBuffer;               // è®°å½•å½“å‰çš„åå¤‡ç¼“å†²åŒº
+	f2dDepthStencilSurface* m_pCurBackDepthBuffer;// è®°å½•å½“å‰çš„åå¤‡æ·±åº¦ç¼“å†²åŒº
 
-	f2dGraphics* m_pCurGraphics;   // µ±Ç°µÄ»æÍ¼¶ÔÏó£¬Ö»¼ÇÂ¼Ö¸Õë
-	fcyMatrix4 m_CurWorldMat;      // µ±Ç°ÊÀ½ç¾ØÕó
-	fcyMatrix4 m_CurLookatMat;     // µ±Ç°¹Û²ì¾ØÕó
-	fcyMatrix4 m_CurProjMat;       // µ±Ç°Í¶Ó°¾ØÕó
-	f2dBlendState m_CurBlendState; // µ±Ç°»ìºÏ×´Ì¬
+	f2dGraphics* m_pCurGraphics;   // å½“å‰çš„ç»˜å›¾å¯¹è±¡ï¼Œåªè®°å½•æŒ‡é’ˆ
+	fcyMatrix4 m_CurWorldMat;      // å½“å‰ä¸–ç•ŒçŸ©é˜µ
+	fcyMatrix4 m_CurLookatMat;     // å½“å‰è§‚å¯ŸçŸ©é˜µ
+	fcyMatrix4 m_CurProjMat;       // å½“å‰æŠ•å½±çŸ©é˜µ
+	f2dBlendState m_CurBlendState; // å½“å‰æ··åˆçŠ¶æ€
 
-	IDirect3DVertexDeclaration9* m_pCurVertDecl; // µ±Ç°µÄ¶¥µãÉùÃ÷
-	D3DTEXTUREOP m_CurTexBlendOP_Color;          // µ±Ç°µÄÎÆÀí»ìºÏÔËËã·û
+	IDirect3DVertexDeclaration9* m_pCurVertDecl; // å½“å‰çš„é¡¶ç‚¹å£°æ˜
+	D3DTEXTUREOP m_CurTexBlendOP_Color;          // å½“å‰çš„çº¹ç†æ··åˆè¿ç®—ç¬¦
 
 	// Window
 	HWND m_hWnd;
 	f2dWindowDC m_DC;
 	IDirect3DSurface9* m_pWinSurface;
 private:
-	HRESULT doReset(D3DPRESENT_PARAMETERS* pD3DPP);  // ±£Ö¤ÔÚÖ÷Ïß³ÌÖ´ĞĞ
+	HRESULT doReset(D3DPRESENT_PARAMETERS* pD3DPP);  // ä¿è¯åœ¨ä¸»çº¿ç¨‹æ‰§è¡Œ
 	HRESULT doTestCooperativeLevel();
-	void initState();         // ³õÊ¼»¯×´Ì¬
-	int sendDevLostMsg();     // ·¢ËÍÉè±¸¶ªÊ§ÊÂ¼ş, ·µ»Ø¶ÔÏóÊıÄ¿
-	int sendDevResetMsg();    // ·¢ËÍÉè±¸ÖØÖÃÊÂ¼ş
-public: // ÄÚ²¿º¯Êı
-	f2dRenderDeviceAPI& GetAPI() { return m_API; }   // ·µ»ØAPI¶ÔÏó
-	f2dEngineImpl* GetEngine() { return m_pEngine; } // ·µ»ØÒıÇæ¶ÔÏó
-	fResult SyncDevice();                           // Ğ­×÷²âÊÔ£¬Íê³ÉÉè±¸¶ªÊ§´¦Àí
-	fResult Present();                              // ³ÊÏÖ
+	void initState();         // åˆå§‹åŒ–çŠ¶æ€
+	int sendDevLostMsg();     // å‘é€è®¾å¤‡ä¸¢å¤±äº‹ä»¶, è¿”å›å¯¹è±¡æ•°ç›®
+	int sendDevResetMsg();    // å‘é€è®¾å¤‡é‡ç½®äº‹ä»¶
+public: // å†…éƒ¨å‡½æ•°
+	f2dRenderDeviceAPI& GetAPI() { return m_API; }   // è¿”å›APIå¯¹è±¡
+	f2dEngineImpl* GetEngine() { return m_pEngine; } // è¿”å›å¼•æ“å¯¹è±¡
+	fResult SyncDevice();                           // åä½œæµ‹è¯•ï¼Œå®Œæˆè®¾å¤‡ä¸¢å¤±å¤„ç†
+	fResult Present();                              // å‘ˆç°
 
-	// Á¢¼´µİ½»×´Ì¬
+	// ç«‹å³é€’äº¤çŠ¶æ€
 	f2dGraphics* QueryCurGraphics() { return m_pCurGraphics; }
-	fResult SubmitCurGraphics(f2dGraphics* pGraph, bool bDirty);  // Í¬²½Graphics×´Ì¬µ½Éè±¸
-	fResult SubmitWorldMat(const fcyMatrix4& Mat);                // Á¢¼´Ìá½»ÊÀ½ç±ä»»¾ØÕó
-	fResult SubmitLookatMat(const fcyMatrix4& Mat);               // Á¢¼´Ìá½»¹Û²ì¾ØÕó
-	fResult SubmitProjMat(const fcyMatrix4& Mat);                 // Á¢¼´Ìá½»Í¶Ó°¾ØÕó
-	fResult SubmitBlendState(const f2dBlendState& State);         // Á¢¼´Ìá½»»ìºÏ×´Ì¬
+	fResult SubmitCurGraphics(f2dGraphics* pGraph, bool bDirty);  // åŒæ­¥GraphicsçŠ¶æ€åˆ°è®¾å¤‡
+	fResult SubmitWorldMat(const fcyMatrix4& Mat);                // ç«‹å³æäº¤ä¸–ç•Œå˜æ¢çŸ©é˜µ
+	fResult SubmitLookatMat(const fcyMatrix4& Mat);               // ç«‹å³æäº¤è§‚å¯ŸçŸ©é˜µ
+	fResult SubmitProjMat(const fcyMatrix4& Mat);                 // ç«‹å³æäº¤æŠ•å½±çŸ©é˜µ
+	fResult SubmitBlendState(const f2dBlendState& State);         // ç«‹å³æäº¤æ··åˆçŠ¶æ€
 
-	fResult SubmitVD(IDirect3DVertexDeclaration9* pVD);        // Á¢¼´µİ½»¶¥µãÉùÃ÷
-	fResult SubmitTextureBlendOP_Color(D3DTEXTUREOP ColorOP);  // Á¢¼´µİ½»ÎÆÀí»ìºÏÉùÃ÷
+	fResult SubmitVD(IDirect3DVertexDeclaration9* pVD);        // ç«‹å³é€’äº¤é¡¶ç‚¹å£°æ˜
+	fResult SubmitTextureBlendOP_Color(D3DTEXTUREOP ColorOP);  // ç«‹å³é€’äº¤çº¹ç†æ··åˆå£°æ˜
 
-	// ×¢²á¶¥µãÉùÃ÷
+	// æ³¨å†Œé¡¶ç‚¹å£°æ˜
 	IDirect3DVertexDeclaration9* RegisterVertexDeclare(f2dVertexElement* pElement, fuInt ElementCount, fuInt& ElementSize);
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	void* GetHandle() { return m_pDev; }
 	fcStr GetDeviceName() { return m_DevName.c_str(); }
 	fuInt GetBufferWidth() { return m_D3Dpp.BackBufferWidth; }
@@ -172,7 +172,7 @@ public: // ½Ó¿ÚÊµÏÖ
 	fResult SaveTexture(f2dStream* pStream, f2dTexture2D* pTex);
 	fResult UpdateScreenToWindow(fcyColor KeyColor, fByte Alpha);
 
-	//ÎÆÀí²ÉÑùÉèÖÃ
+	//çº¹ç†é‡‡æ ·è®¾ç½®
 	fResult SetTextureAddress(F2DTEXTUREADDRESS address, const fcyColor& borderColor);
 	fResult SetTextureFilter(F2DTEXFILTERTYPE filter);
 public:
