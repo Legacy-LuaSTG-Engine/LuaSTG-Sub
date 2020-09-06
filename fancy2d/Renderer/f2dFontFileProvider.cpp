@@ -1,17 +1,48 @@
 ﻿#include "Renderer/f2dFontFileProvider.h"
-
 #include <fcyException.h>
 
 using namespace std;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-const int f2dFontFileProvider::s_Magin = 1;
+uint32_t calTextureSize(uint32_t width, uint32_t height, uint32_t& xcnt, uint32_t& ycnt) {
+	// 傻逼吗，没事搞0大小的字形，屌你妈的
+	width = (width > 0) ? width : 1;
+	height = (height > 0) ? height : 1;
+	// 查找
+	const uint32_t tex_size[] = {
+		64,
+		128,
+		256,
+		512,
+		1024,
+	};
+	const uint32_t tex_size_array_size = sizeof(tex_size) / sizeof(tex_size[0]);
+	const float f_width = (float)(width + 1);
+	const float f_height = (float)(height + 1);
+	for (uint32_t i = 0; i < tex_size_array_size; i += 1)
+	{
+		float f_tex_wh = (float)(tex_size[i] - 1);
+		uint32_t x_cnt = (uint32_t)floor(f_tex_wh / f_width);
+		uint32_t y_cnt = (uint32_t)floor(f_tex_wh / f_height);
+		if ((x_cnt * y_cnt) >= 1024 || i >= (tex_size_array_size - 1)) {
+			xcnt = x_cnt;
+			ycnt = y_cnt;
+			return tex_size[i];
+		}
+	}
+	// 太大了
+	xcnt = 1;
+	ycnt = 1;
+	return 1024;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+// 引擎实现接口
 
 f2dFontFileProvider::f2dFontFileProvider(f2dRenderDevice* pParent, f2dStream* pStream, const fcyVec2& FontSize, const fcyVec2& BBoxSize, fuInt FaceIndex, F2DFONTFLAG Flag)
-	: m_pParent(pParent), m_pStream(pStream),
-	m_CacheXCount(0), m_CacheYCount(0), m_Cache(NULL), m_CacheTex(NULL),
-	m_UsedNodeList(NULL), m_FreeNodeList(NULL)
+	: m_pParent(pParent), m_pStream(pStream)
 {
 	// --- 初始化freetype ---
 	FT_Error tErr = FT_Init_FreeType( &m_FontLib );
@@ -35,110 +66,30 @@ f2dFontFileProvider::f2dFontFileProvider(f2dRenderDevice* pParent, f2dStream* pS
 	if(tErr)
 	{
 		FT_Done_FreeType(m_FontLib);
-
 		FCYSAFEKILL(m_pStream);
-
 		throw fcyException("f2dFontFileProvider::f2dFontFileProvider", "FT_New_Memory_Face failed.");
 	}
-
+	
 	// --- 设置字体大小 ---
 	FT_Set_Pixel_Sizes(m_Face, (FT_UInt)FontSize.x, (FT_UInt)FontSize.y);
-
-	// --- 构建缓冲区 ---
-	// 获得字体大小
-	if (BBoxSize.x >= 0.01f && BBoxSize.y >= 0.01f) {
-		m_PerGlyphSize.x = ceil(BBoxSize.x + s_Magin * 2.f);
-		m_PerGlyphSize.y = ceil(BBoxSize.y + s_Magin * 2.f);
+	
+	// 计算最大字形大小
+	if (BBoxSize.x >= 1.0f && BBoxSize.y >= 1.0f) {
+		// 这个参数平时没卵用，专门用来杀了思源系列字体的妈，没事搞超大字形包围盒，导致字形缓存TMD空间压根不够用
+		m_MaxGlyphWidth = (fuInt)ceil(BBoxSize.x);
+		m_MaxGlyphHeight = (fuInt)ceil(BBoxSize.y);
 	}
 	else {
-		m_PerGlyphSize.x = ceil(widthSizeToPixel(abs(m_Face->bbox.xMax - m_Face->bbox.xMin)) + s_Magin * 2.f);
-		m_PerGlyphSize.y = ceil(heightSizeToPixel(abs(m_Face->bbox.yMax - m_Face->bbox.yMin)) + s_Magin * 2.f);
+		m_MaxGlyphWidth = (fuInt)ceil(widthSizeToPixel(abs(m_Face->bbox.xMax - m_Face->bbox.xMin)));
+		m_MaxGlyphHeight = (fuInt)ceil(heightSizeToPixel(abs(m_Face->bbox.yMax - m_Face->bbox.yMin)));
 	}
-
-	/*
-	// 计算行列的文字数
-	if(1024.f / m_PerGlyphSize.x < 10.f || 1024.f / m_PerGlyphSize.y < 10.f)
-	{
-		// 不足10x10个字形
-		if(2048.f / m_PerGlyphSize.x < 1.f || 2048.f / m_PerGlyphSize.y < 1.f)
-		{
-			// 不足一个字形
-			FT_Done_Face(m_Face);
-			FT_Done_FreeType(m_FontLib);
-
-			FCYSAFEKILL(m_pStream);
-
-			throw fcyException("f2dFontFileProvider::f2dFontFileProvider", "Font size is too big.");
-		}
-		else
-		{
-			m_TexSize = 2048;
-			m_CacheXCount = (int)(2048.f / m_PerGlyphSize.x);
-			m_CacheYCount = (int)(2048.f / m_PerGlyphSize.y);
-		}
-	}
-	else
-	{
-		m_TexSize = 1024;
-		m_CacheXCount = (int)(1024.f / m_PerGlyphSize.x);
-		m_CacheYCount = (int)(1024.f / m_PerGlyphSize.y);
-	}
-	*/
-
-	// 计算行列的文字数
-	{
-		//贴图宽高
-		int SizeTypeCount = 3;
-		float TexSizeList[] = {
-			512.0f,
-			1024.0f,
-			//2048.0f,
-		};
-		//每行列数量
-		int LevelCount = 7;
-		float CountLevel[] = {
-			64.0f,
-			32.0f,
-			16.0f,
-			8.0f,
-			4.0f,
-			2.0f,
-			1.0f };
-		//开始查询
-		float s_size, n_level;
-		bool check = false;
-		for (int lv = 0; lv < LevelCount; lv++) {
-			n_level = CountLevel[lv];//每行列数量
-			for (int select = 0; select < SizeTypeCount; select++) {
-				s_size = TexSizeList[select];//贴图宽高
-				if (s_size / m_PerGlyphSize.x < n_level || s_size / m_PerGlyphSize.y < n_level) {
-					continue;
-				}
-				else {
-					m_TexSize = (int)s_size;
-					m_CacheXCount = (int)(s_size / m_PerGlyphSize.x);
-					m_CacheYCount = (int)(s_size / m_PerGlyphSize.y);
-					check = true;
-					break;
-				}
-			}
-			//已经匹配到适合的每行列数量以及贴图大小
-			if (check) {
-				break;
-			}
-		}
-		//没有匹配到，可能是字体过大？
-		if (!check) {
-			FT_Done_Face(m_Face);
-			FT_Done_FreeType(m_FontLib);
-
-			FCYSAFEKILL(m_pStream);
-
-			throw fcyException("f2dFontFileProvider::f2dFontFileProvider", "Font size is too big.");
-		}
-	}
-
-	// 产生字体缓冲纹理
+	// 计算所需的纹理大小
+	m_TexSize = calTextureSize(m_MaxGlyphWidth, m_MaxGlyphHeight, m_CacheXCount, m_CacheYCount);
+	// 处理一些异常情况（比如字形比纹理大）
+	m_MaxGlyphWidth = (m_MaxGlyphWidth > m_TexSize) ? m_TexSize : m_MaxGlyphWidth;
+	m_MaxGlyphHeight = (m_MaxGlyphHeight > m_TexSize) ? m_TexSize : m_MaxGlyphHeight;
+	
+	// 产生字体缓存
 	if(!makeCache(m_TexSize))
 	{
 		FT_Done_Face(m_Face);
@@ -148,26 +99,36 @@ f2dFontFileProvider::f2dFontFileProvider(f2dRenderDevice* pParent, f2dStream* pS
 
 		throw fcyException("f2dFontFileProvider::f2dFontFileProvider", "makeCache failed.");
 	}
-
+	
 	// --- 绑定监听器 ---
 	m_pParent->AttachListener(this);
 }
 
 f2dFontFileProvider::~f2dFontFileProvider()
 {
+	// 释放纹理
+	FCYSAFEKILL(m_CacheTex);
+	
+	// 关闭FreeType
 	FT_Done_Face(m_Face);
 	FT_Done_FreeType(m_FontLib);
-
-	// 释放字体缓冲
-	FCYSAFEDELARR(m_Cache);
-	FCYSAFEKILL(m_CacheTex);
-
-	// 释放流
 	FCYSAFEKILL(m_pStream);
 
 	// 撤销监听器
 	m_pParent->RemoveListener(this);
 }
+
+void f2dFontFileProvider::OnRenderDeviceLost()
+{
+	m_Dict.clear();
+}
+
+void f2dFontFileProvider::OnRenderDeviceReset()
+{
+	makeCache(m_TexSize);
+}
+
+// MRU 链表管理
 
 void f2dFontFileProvider::addUsedNode(FontCacheInfo* p)
 {
@@ -223,11 +184,11 @@ void f2dFontFileProvider::removeUsedNode(FontCacheInfo* p)
 	p->pPrev = p->pNext = NULL;
 }
 
+// 字形管理
+
 f2dGlyphInfo f2dFontFileProvider::getGlyphInfo(fCharW Char) {
 	// 加载文字到字形槽
 	FT_Load_Char(m_Face, Char, FT_LOAD_DEFAULT);
-
-	// 获得图像
 	FT_Bitmap* tBitmap = &m_Face->glyph->bitmap;
 
 	// 写入对应属性
@@ -303,162 +264,144 @@ f2dFontFileProvider::FontCacheInfo* f2dFontFileProvider::getChar(fCharW Char)
 
 bool f2dFontFileProvider::makeCache(fuInt Size)
 {
-	// 清除过往数据
-	m_Dict.clear();
-	FCYSAFEDELARR(m_Cache);
+	// 清除
+	m_PerGlyphCache.clear();
 	FCYSAFEKILL(m_CacheTex);
-	m_UsedNodeList = NULL;
-
-	// 建立字体缓冲区
+	m_Cache.clear();
+	m_FreeNodeList = nullptr;
+	m_UsedNodeList = nullptr;
+	m_Dict.clear();
+	
+	// 建立字形缓存纹理
 	if(FCYFAILED(m_pParent->CreateDynamicTexture(Size, Size, &m_CacheTex)))
-		return false;
-	// 清空缓冲区
 	{
+		return false;
+	}
+	else
+	{
+		// 生成空数据
+		std::vector<fcyColor> _data;
+		_data.resize(Size * Size);
+		auto _byte_size = sizeof(fcyColor) * Size * Size;
+		memset(_data.data(), 0, _byte_size);
+		// 复制
 		fuInt tPitch = 0;
 		fData tData = NULL;
 		if(FCYFAILED(m_CacheTex->Lock(NULL, true, &tPitch, &tData)))
 			return false;
-
-		for(fuInt i = 0;i<m_CacheTex->GetHeight(); ++i)
-		{
-			fcyColor* pColor = (fcyColor*)tData;
-			for(fuInt j = 0; j<m_CacheTex->GetWidth(); j++)
-			{
-				pColor[j].argb = 0x00000000;
-			}
-			tData += tPitch;
-		}
-
+		memcpy(tData, _data.data(), _byte_size);
 		m_CacheTex->Unlock();
 	}
+	// 建立单个字形上传缓冲区
+	m_PerGlyphCache.resize(m_MaxGlyphWidth * m_MaxGlyphHeight);
 	
+	// 创建缓冲链表
 	fuInt tCount = m_CacheXCount * m_CacheYCount;
-	m_Cache = new FontCacheInfo[ tCount ];
-
-	m_FreeNodeList = m_Cache;
-
-	// 初始化信息
-	int tCurIndex = 0;
-	for(fuInt j = 0; j<m_CacheYCount; j++)
-		for(fuInt i = 0; i<m_CacheXCount; ++i)
-		{
-			m_Cache[ tCurIndex ].CacheSize = fcyRect(
-					i * m_PerGlyphSize.x, j * m_PerGlyphSize.y, 
-					(i+1) * m_PerGlyphSize.x, (j+1) * m_PerGlyphSize.y
-					);
-			
-			m_Cache[ tCurIndex ].Character = L'\0';
-			
-			tCurIndex++;
-		}
-
-	// 连接缓冲区
-	m_Cache[0].pPrev = NULL;
-	m_Cache[0].pNext = &m_Cache[1];
-	m_Cache[tCount - 1].pNext = NULL;
-	m_Cache[tCount - 1].pPrev = &m_Cache[ tCount - 2 ];
-	for(fuInt i = 1; i<tCount - 1; ++i)
+	m_Cache.resize(tCount);
+	// 初始化缓冲链表内容
+	m_FreeNodeList = &m_Cache[0]; // 空闲头
+	fuInt tCurIndex = 0;
+	fuInt x = 1; // 纹理的U坐标（像素坐标）
+	fuInt y = 1; // 纹理的V坐标（像素坐标）
+	for(fuInt j = 0; j < m_CacheYCount; j += 1)
 	{
-		m_Cache[i].pPrev = &m_Cache[i - 1];
-		m_Cache[i].pNext = &m_Cache[i + 1];
+		x = 1; // 回到行首
+		for(fuInt i = 0; i < m_CacheXCount; i += 1)
+		{
+			auto& slot = m_Cache[tCurIndex];
+			slot.CacheSize = fcyRect(
+				x,
+				y,
+				x + m_MaxGlyphWidth,
+				y + m_MaxGlyphHeight
+			);
+			slot.UV = fcyRect(
+				fcyVec2(
+					(float)x / (float)m_TexSize,
+					(float)y / (float)m_TexSize
+				),
+				fcyVec2(
+					(float)(x + m_MaxGlyphWidth) / (float)m_TexSize,
+					(float)(y + m_MaxGlyphHeight) / (float)m_TexSize
+				)
+			);
+			slot.Character = L'\0';
+			
+			tCurIndex += 1; // 下一个
+			x += (m_MaxGlyphWidth + 1); // 下一列
+		}
+		y += (m_MaxGlyphHeight + 1); // 下一行
 	}
-
+	// 连接缓冲链表
+	if (tCount > 1) {
+		m_Cache[0].pPrev = nullptr;
+		m_Cache[0].pNext = &m_Cache[1];
+		m_Cache[tCount - 1].pNext = nullptr;
+		m_Cache[tCount - 1].pPrev = &m_Cache[tCount - 2];
+		for(fuInt i = 1; i < (tCount - 1); i += 1)
+		{
+			m_Cache[i].pPrev = &m_Cache[i - 1];
+			m_Cache[i].pNext = &m_Cache[i + 1];
+		}
+	}
+	else
+	{
+		m_Cache[0].pPrev = nullptr;
+		m_Cache[0].pNext = nullptr;
+	}
+	
 	return true;
 }
 
 bool f2dFontFileProvider::renderCache(FontCacheInfo* pCache, fCharW Char)
 {
 	// 加载文字到字形槽并渲染
-	FT_Load_Char( m_Face, Char, FT_LOAD_RENDER );
-
-	// 获得图像
-	FT_Bitmap* tBitmap = &m_Face->glyph->bitmap;
-
+	FT_Load_Char(m_Face, Char, FT_LOAD_RENDER);
+	FT_Bitmap& tBitmap = m_Face->glyph->bitmap;
+	
 	// 写入对应属性
 	pCache->Character = Char;
 	pCache->Advance = fcyVec2(m_Face->glyph->advance.x / 64.f, m_Face->glyph->advance.y / 64.f);
 	pCache->BrushPos = fcyVec2((float)m_Face->glyph->bitmap_left, (float)m_Face->glyph->bitmap_top);
-	pCache->UV = fcyRect(
-		pCache->CacheSize.a + fcyVec2((float)s_Magin, (float)s_Magin),
-		pCache->CacheSize.a + fcyVec2((float)tBitmap->width, (float)tBitmap->rows) + fcyVec2((float)s_Magin, (float)s_Magin)
-		);
 	pCache->GlyphSize = fcyVec2((float)m_Face->glyph->bitmap.width, (float)m_Face->glyph->bitmap.rows); 
+	pCache->UV.b = pCache->UV.a + fcyVec2(
+		(float)tBitmap.width / (float)m_TexSize,
+		(float)tBitmap.rows / (float)m_TexSize
+	);
 	
-	// 转到UV坐标
-	fcyVec2 tUVScale(1.f / (float)m_CacheTex->GetWidth(), 1.f / (float)m_CacheTex->GetHeight());
-	pCache->UV.a.x *= tUVScale.x;
-	pCache->UV.a.y *= tUVScale.y;
-	pCache->UV.b.x *= tUVScale.x;
-	pCache->UV.b.y *= tUVScale.y;
-
-	// 拷贝到对应位置
+	// 拷贝到上传缓冲区
 	{
 		fuInt tPitch = 0;
 		fData tData = NULL;
-		fData tSrcData = tBitmap->buffer;
 		if(FCYFAILED(m_CacheTex->Lock(&pCache->CacheSize, false, &tPitch, &tData)))
 			return false;
 		
-		int tHeight = (int)pCache->CacheSize.GetHeight();
-		int tWidth = (int)pCache->CacheSize.GetWidth();
-
-		for(int y = 0; y<tHeight; y++)
+		fcyColor* tPixel = m_PerGlyphCache.data();
+		fByte* tBuffer = tBitmap.buffer;
+		for(int y = 0; y < m_MaxGlyphHeight; y += 1)
 		{
-			for(int x = 0; x<tWidth; x++)
+			for(int x = 0; x < m_MaxGlyphWidth; x += 1)
 			{
-				fcyColor* pColor = (fcyColor*)tData;
-				
-				pColor[x].argb = 0x00000000;
-
+				tPixel[x].argb = 0x00000000;
 				// 在字体数据中
-				if (y >= s_Magin && y < s_Magin + tBitmap->rows)
+				if (x < tBitmap.width && y < tBitmap.rows)
 				{
-					if (x >= s_Magin && x < s_Magin + tBitmap->width)
-						pColor[x].a = tSrcData[x - s_Magin];
-				}	
+					tPixel[x].a = tBuffer[x];
+				}
 			}
-
-			if(y >= s_Magin && y < s_Magin + tBitmap->rows)
-				tSrcData += tBitmap->pitch;
-			tData += tPitch;
+			
+			// 上传到纹理
+			memcpy(tData, tPixel, m_MaxGlyphWidth * sizeof(fcyColor));
+			
+			tData += tPitch; // 下一行
+			tPixel += m_MaxGlyphWidth; // 下一行
+			tBuffer += tBitmap.pitch; // 下一行
 		}
-
+		
 		m_CacheTex->Unlock();
 	}
-
-	return true;
-}
-
-void f2dFontFileProvider::OnRenderDeviceLost()
-{
-	m_Dict.clear();
 	
-	// 保存所有已缓存的文字
-	m_CharInUsing.clear();
-	m_CharInUsing.reserve(m_CacheXCount * m_CacheYCount + 1);
-
-	FontCacheInfo* pCache = m_UsedNodeList;
-	do
-	{
-		if(pCache && pCache->Character != L'\0')
-		{
-			m_CharInUsing += pCache->Character;
-			pCache = pCache->pNext;
-		}
-		else
-			break;
-	}
-	while(pCache != m_UsedNodeList);
-}
-
-void f2dFontFileProvider::OnRenderDeviceReset()
-{
-	makeCache(m_TexSize);
-
-	// 重新缓存
-	CacheString(m_CharInUsing.c_str());
-	m_CharInUsing.clear();
-	m_CharInUsing.reserve(0);
+	return true;
 }
 
 fResult f2dFontFileProvider::CacheString(fcStrW String)

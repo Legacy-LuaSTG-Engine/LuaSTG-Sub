@@ -7,6 +7,7 @@
 #include <fcyIO/fcyStream.h>
 #include "f2dRenderer.h"
 
+#include <vector>
 #include <unordered_map>
 
 #include <ft2build.h> 
@@ -21,8 +22,6 @@ class f2dFontFileProvider :
 {
 	friend class f2dRendererImpl;
 protected:
-	static const int s_Magin;    // 留边
-
 	// 字体缓冲属性
 	struct FontCacheInfo
 	{
@@ -42,29 +41,30 @@ protected:
 	};
 protected:
 	f2dRenderDevice* m_pParent;
-
-	// --- Freetype ---
-	f2dStream* m_pStream;   // Font文件流
+	
+	// FreeType
+	f2dStream* m_pStream = nullptr;
 	FT_Open_Args m_Args;
 	FT_StreamRec m_Stream;
 	FT_Library m_FontLib;
 	FT_Face m_Face;
-
-	// --- 纹理缓冲区属性 ---
-	fuInt m_TexSize;                // 纹理大小 1024或者2048 （还是用更大的尺寸好一些）
-	fuInt m_CacheXCount;            // 缓冲横向数量
-	fuInt m_CacheYCount;            // 缓冲纵向数量
-	fcyVec2 m_PerGlyphSize;         // 单个字形大小
-	FontCacheInfo* m_Cache;         // 缓冲区
-	f2dTexture2D* m_CacheTex;       // 缓冲区纹理
-
-	// --- 最近使用 ---
-	FontCacheInfo* m_UsedNodeList;  // 使用中节点，保证为循环链表
-	FontCacheInfo* m_FreeNodeList;  // 空闲节点，单向链表
-	std::wstring m_CharInUsing;     // 用于恢复缓存
-
-	// 字符表
-	std::unordered_map<fCharW, FontCacheInfo*> m_Dict;
+	
+	// 字形缓存基本信息
+	fuInt m_TexSize			= 0; // 纹理大小
+	fuInt m_CacheXCount		= 0; // 缓冲横向数量
+	fuInt m_CacheYCount		= 0; // 缓冲纵向数量
+	fuInt m_MaxGlyphWidth	= 0; // 单个字形宽度
+	fuInt m_MaxGlyphHeight	= 0; // 单个字形高度
+	
+	// 字形缓存
+	std::vector<fcyColor> m_PerGlyphCache;	// 字形数据上传缓冲区
+	f2dTexture2D* m_CacheTex = nullptr;		// 缓冲区纹理
+	
+	// 字形缓存数据结构
+	std::vector<FontCacheInfo> m_Cache;					// 缓冲区
+	FontCacheInfo* m_UsedNodeList	= nullptr;			// 使用中节点，保证为循环链表
+	FontCacheInfo* m_FreeNodeList	= nullptr;			// 空闲节点，单向链表
+	std::unordered_map<fCharW, FontCacheInfo*> m_Dict;	// 字符表
 private: // freetype 函数
 	// 实现freetype读取函数
 	static unsigned long streamRead(FT_Stream stream, unsigned long offset, unsigned char* buffer, unsigned long count)
