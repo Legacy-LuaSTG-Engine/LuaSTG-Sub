@@ -963,7 +963,7 @@ bool ResourcePool::LoadTTFFont(const char* name, const std::wstring& path, float
 		{
 			if (!tFontProvider)
 			{
-				if (FCYFAILED(LAPP.GetRenderer()->CreateFontFromFile(tDataBuf, 0, fcyVec2(width, height), fcyVec2(bboxwidth, bboxheight), F2DFONTFLAG_NONE, &tFontProvider)))
+				if (FCYFAILED(LAPP.GetRenderer()->CreateFontFromMemory(tDataBuf, 0, fcyVec2(width, height), fcyVec2(bboxwidth, bboxheight), F2DFONTFLAG_NONE, &tFontProvider)))
 				{
 					LERROR("LoadTTFFont: 从文件'%s'创建TrueType字体失败", path.c_str());
 					return false;
@@ -1024,7 +1024,8 @@ bool ResourcePool::LoadTTFFont(const char* name, fcyStream* stream, float width,
 		{
 			if (!tFontProvider)
 			{
-				if (FCYFAILED(LAPP.GetRenderer()->CreateFontFromFile(stream, 0, fcyVec2(width, height), fcyVec2(bboxwidth, bboxheight), F2DFONTFLAG_NONE, &tFontProvider)))
+				if (FCYFAILED(LAPP.GetRenderer()->CreateFontFromMemory(
+					(fcyMemStream*)stream, 0, fcyVec2(width, height), fcyVec2(bboxwidth, bboxheight), F2DFONTFLAG_NONE, &tFontProvider)))
 				{
 					LERROR("LoadTTFFont: 从内存创建TrueType字体失败");
 					return false;

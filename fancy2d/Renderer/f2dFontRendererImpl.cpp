@@ -473,9 +473,10 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 			tPos.y -= tHeight; // 向下换行
 			continue;
 		}
-
+		
 		// 取出文字
-		if (FCYOK(m_pProvider->QueryGlyph(pGraph, Text[i], &tInfo)))
+		const fResult fret = m_pProvider->QueryGlyph(pGraph, Text[i], &tInfo);
+		if (fret == FCYERR_OK || fret == FCYERR_OUTOFRANGE)
 		{
 			tInfo.Advance.x *= m_Scale.x;
 			tInfo.Advance.y *= m_Scale.y;
@@ -507,9 +508,13 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 
 				if (m_pListener)
 					m_pListener->OnGlyphCalcuCoord(tVerts);
-
+				
 				// 绘图
 				pGraph->DrawQuad(pTex, tVerts);
+				// 如果需要，flush一下
+				if (fret == FCYERR_OUTOFRANGE) {
+					pGraph->Flush();
+				}
 			}
 
 			// 笔触位置后移
@@ -564,9 +569,10 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 			tPos.y -= tHeight; // 向下换行
 			continue;
 		}
-
+		
 		// 取出文字
-		if (FCYOK(m_pProvider->QueryGlyph(pGraph, Text[i], &tInfo)))
+		const fResult fret = m_pProvider->QueryGlyph(pGraph, Text[i], &tInfo);
+		if (fret == FCYERR_OK || fret == FCYERR_OUTOFRANGE)
 		{
 			tInfo.Advance.x *= m_Scale.x;
 			tInfo.Advance.y *= m_Scale.y;
@@ -606,8 +612,12 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 
 				// 绘图
 				pGraph->DrawQuad(pTex, tVerts);
+				// 如果需要，flush一下
+				if (fret == FCYERR_OUTOFRANGE) {
+					pGraph->Flush();
+				}
 			}
-
+			
 			// 笔触位置后移
 			tPos += tInfo.Advance;
 		}

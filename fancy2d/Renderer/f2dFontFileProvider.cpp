@@ -41,16 +41,21 @@ uint32_t calTextureSize(uint32_t width, uint32_t height, uint32_t& xcnt, uint32_
 
 // 引擎实现接口
 
-f2dFontFileProvider::f2dFontFileProvider(f2dRenderDevice* pParent, f2dStream* pStream, const fcyVec2& FontSize, const fcyVec2& BBoxSize, fuInt FaceIndex, F2DFONTFLAG Flag)
-	: m_pParent(pParent), m_pStream(pStream)
+f2dFontFileProvider::f2dFontFileProvider(f2dRenderDevice* pParent,
+	f2dStream* pStream, const fcyVec2& FontSize, const fcyVec2& BBoxSize, fuInt FaceIndex, F2DFONTFLAG Flag)
 {
+	m_pParent = pParent;
+	
 	// --- 初始化freetype ---
 	FT_Error tErr = FT_Init_FreeType( &m_FontLib );
 	if(tErr)
 		throw fcyException("f2dFontFileProvider::f2dFontFileProvider", "FT_Init_FreeType failed.");
-
+	
 	// --- 准备流 ---
-	pStream->SetPosition(FCYSEEKORIGIN_BEG, 0);
+	m_pStream = pStream;
+	m_pStream->SetPosition(FCYSEEKORIGIN_BEG, 0);
+	m_pStream->AddRef();
+	
 	memset(&m_Args, 0, sizeof(m_Args));
 	memset(&m_Stream, 0, sizeof(m_Stream));
 	m_Args.flags = FT_OPEN_STREAM;
@@ -59,8 +64,70 @@ f2dFontFileProvider::f2dFontFileProvider(f2dRenderDevice* pParent, f2dStream* pS
 	m_Stream.descriptor.pointer = m_pStream;
 	m_Stream.read = streamRead;
 	m_Stream.close = streamClose;
-	m_pStream->AddRef();
+	
+	// --- 加载字体 ---
+	tErr = FT_Open_Face(m_FontLib, &m_Args, FaceIndex, &m_Face);
+	if(tErr)
+	{
+		FT_Done_FreeType(m_FontLib);
+		FCYSAFEKILL(m_pStream);
+		throw fcyException("f2dFontFileProvider::f2dFontFileProvider", "FT_New_Memory_Face failed.");
+	}
+	
+	// --- 设置字体大小 ---
+	FT_Set_Pixel_Sizes(m_Face, (FT_UInt)FontSize.x, (FT_UInt)FontSize.y);
+	
+	// 计算最大字形大小
+	if (BBoxSize.x >= 1.0f && BBoxSize.y >= 1.0f) {
+		// 这个参数平时没卵用，专门用来杀了思源系列字体的妈，没事搞超大字形包围盒，导致字形缓存TMD空间压根不够用
+		m_MaxGlyphWidth = (fuInt)ceil(BBoxSize.x);
+		m_MaxGlyphHeight = (fuInt)ceil(BBoxSize.y);
+	}
+	else {
+		m_MaxGlyphWidth = (fuInt)ceil(widthSizeToPixel(abs(m_Face->bbox.xMax - m_Face->bbox.xMin)));
+		m_MaxGlyphHeight = (fuInt)ceil(heightSizeToPixel(abs(m_Face->bbox.yMax - m_Face->bbox.yMin)));
+	}
+	// 计算所需的纹理大小
+	m_TexSize = calTextureSize(m_MaxGlyphWidth, m_MaxGlyphHeight, m_CacheXCount, m_CacheYCount);
+	// 处理一些异常情况（比如字形比纹理大）
+	m_MaxGlyphWidth = (m_MaxGlyphWidth > m_TexSize) ? m_TexSize : m_MaxGlyphWidth;
+	m_MaxGlyphHeight = (m_MaxGlyphHeight > m_TexSize) ? m_TexSize : m_MaxGlyphHeight;
+	
+	// 产生字体缓存
+	if(!makeCache(m_TexSize))
+	{
+		FT_Done_Face(m_Face);
+		FT_Done_FreeType(m_FontLib);
 
+		FCYSAFEKILL(m_pStream);
+
+		throw fcyException("f2dFontFileProvider::f2dFontFileProvider", "makeCache failed.");
+	}
+	
+	// --- 绑定监听器 ---
+	m_pParent->AttachListener(this);
+}
+
+f2dFontFileProvider::f2dFontFileProvider(f2dRenderDevice* pParent,
+	fcyMemStream* pStream, const fcyVec2& FontSize, const fcyVec2& BBoxSize, fuInt FaceIndex, F2DFONTFLAG Flag)
+{
+	m_pParent = pParent;
+	
+	// --- 初始化freetype ---
+	FT_Error tErr = FT_Init_FreeType( &m_FontLib );
+	if(tErr)
+		throw fcyException("f2dFontFileProvider::f2dFontFileProvider", "FT_Init_FreeType failed.");
+	
+	// --- 准备流 ---
+	m_pStream = (f2dStream*)pStream;
+	m_pStream->SetPosition(FCYSEEKORIGIN_BEG, 0);
+	m_pStream->AddRef();
+	
+	memset(&m_Args, 0, sizeof(m_Args));
+	m_Args.flags = FT_OPEN_MEMORY;
+	m_Args.memory_base = pStream->GetInternalBuffer();
+	m_Args.memory_size = pStream->GetLength();
+	
 	// --- 加载字体 ---
 	tErr = FT_Open_Face(m_FontLib, &m_Args, FaceIndex, &m_Face);
 	if(tErr)
@@ -121,6 +188,8 @@ f2dFontFileProvider::~f2dFontFileProvider()
 void f2dFontFileProvider::OnRenderDeviceLost()
 {
 	m_Dict.clear();
+	m_UsedMark.fill(0);
+	m_UsedCount = 0;
 }
 
 void f2dFontFileProvider::OnRenderDeviceReset()
@@ -185,6 +254,20 @@ void f2dFontFileProvider::removeUsedNode(FontCacheInfo* p)
 }
 
 // 字形管理
+
+#include <chrono>
+using __hr_clock = std::chrono::high_resolution_clock;
+static auto __hr_clock_t1 = __hr_clock::now();
+static auto __hr_clock_t2 = __hr_clock::now();
+static auto __hr_clock_dt = __hr_clock_t2 - __hr_clock_t1;
+
+static double _FT_Load_Char = 0.0;
+static double _Upload_Texture = 0.0;
+static double _Lock_Unlock_Texture = 0.0;
+
+#define TIMER_BEGIN { __hr_clock_t1 = __hr_clock::now(); }
+#define TIMER_ENG { __hr_clock_t2 = __hr_clock::now(); }
+#define TIMER_TIME(x) { __hr_clock_dt = __hr_clock_t2 - __hr_clock_t1; (x) += (double)__hr_clock_dt.count() / 1000000.0; }
 
 f2dGlyphInfo f2dFontFileProvider::getGlyphInfo(fCharW Char) {
 	// 加载文字到字形槽
@@ -355,6 +438,8 @@ bool f2dFontFileProvider::makeCache(fuInt Size)
 
 bool f2dFontFileProvider::renderCache(FontCacheInfo* pCache, fCharW Char)
 {
+	TIMER_BEGIN
+	
 	// 加载文字到字形槽并渲染
 	FT_Load_Char(m_Face, Char, FT_LOAD_RENDER);
 	FT_Bitmap& tBitmap = m_Face->glyph->bitmap;
@@ -368,6 +453,10 @@ bool f2dFontFileProvider::renderCache(FontCacheInfo* pCache, fCharW Char)
 		(float)tBitmap.width / (float)m_TexSize,
 		(float)tBitmap.rows / (float)m_TexSize
 	);
+	
+	TIMER_ENG
+	TIMER_TIME(_FT_Load_Char)
+	TIMER_BEGIN
 	
 	// 拷贝到上传缓冲区
 	{
@@ -401,6 +490,9 @@ bool f2dFontFileProvider::renderCache(FontCacheInfo* pCache, fCharW Char)
 		m_CacheTex->Unlock();
 	}
 	
+	TIMER_ENG
+	TIMER_TIME(_Upload_Texture)
+	
 	return true;
 }
 
@@ -419,33 +511,48 @@ fResult f2dFontFileProvider::CacheString(fcStrW String)
 
 fResult f2dFontFileProvider::QueryGlyph(f2dGraphics* pGraph, fCharW Character, f2dGlyphInfo* InfoOut)
 {
-	if(Character != L'\t' && iswcntrl(Character))
-		return FCYERR_INVAILDPARAM;
 	if(!InfoOut)
 		return FCYERR_INVAILDPARAM;
-
-	if(Character == L'\t')
+	
+	//if(Character != L'\t' && iswcntrl(Character))
+	//	return FCYERR_INVAILDPARAM;
+	//if(Character == L'\t')
+	//{
+	//	fResult tRet = QueryGlyph(pGraph, L' ', InfoOut);
+	//	if(FCYOK(tRet))
+	//		InfoOut->Advance.x *= 2.f;
+	//	return tRet;
+	//}
+	
+	if(pGraph)
 	{
-		fResult tRet = QueryGlyph(pGraph, L' ', InfoOut);
-		if(FCYOK(tRet))
-			InfoOut->Advance.x *= 2.f;
-		return tRet;
-	}
-
-	if(pGraph) {
 		// 检查是否需要Flush
-		if(m_FreeNodeList == NULL && !m_Dict[Character])
-			pGraph->Flush();
-
+		//if(m_FreeNodeList == NULL && !m_Dict[Character])
+		//	pGraph->Flush();
+		
 		// 取出文字，绘制到纹理
 		FontCacheInfo* pCache = getChar(Character);
-
+		
 		InfoOut->Advance = pCache->Advance;
 		InfoOut->BrushPos = pCache->BrushPos;
 		InfoOut->GlyphPos = pCache->UV;
 		InfoOut->GlyphSize = pCache->GlyphSize;
+		
+		const size_t cidx = (size_t)Character;
+		if (m_UsedMark[cidx] == 0) {
+			m_UsedMark[cidx] = 1;
+			m_UsedCount += 1;
+		}
+		if (m_UsedCount >= m_Cache.size()) {
+			m_UsedMark.fill(0);
+			m_UsedCount = 0;
+			return FCYERR_OUTOFRANGE;
+		}
+		
+		return FCYERR_OK;
 	}
-	else {
+	else
+	{
 		// 只是查询信息，先在字典里面寻找（这部分代码复制自getChar）
 		FontCacheInfo* pCache = m_Dict[Character];
 
@@ -466,7 +573,7 @@ fResult f2dFontFileProvider::QueryGlyph(f2dGraphics* pGraph, fCharW Character, f
 			f2dGlyphInfo info = getGlyphInfo(Character);
 			*InfoOut = info;
 		}
+		
+		return FCYERR_OK;
 	}
-
-	return FCYERR_OK;
 }

@@ -8,6 +8,7 @@
 #include "f2dRenderer.h"
 
 #include <vector>
+#include <array>
 #include <unordered_map>
 
 #include <ft2build.h> 
@@ -65,6 +66,10 @@ protected:
 	FontCacheInfo* m_UsedNodeList	= nullptr;			// 使用中节点，保证为循环链表
 	FontCacheInfo* m_FreeNodeList	= nullptr;			// 空闲节点，单向链表
 	std::unordered_map<fCharW, FontCacheInfo*> m_Dict;	// 字符表
+	
+	// 用过的标记
+	std::array<uint8_t, 0x110000> m_UsedMark;
+	uint32_t m_UsedCount = 0;
 private: // freetype 函数
 	// 实现freetype读取函数
 	static unsigned long streamRead(FT_Stream stream, unsigned long offset, unsigned char* buffer, unsigned long count)
@@ -132,6 +137,9 @@ public: // 接口实现
 	fInt GetCacheCount() { return m_CacheXCount * m_CacheYCount; }
 	fInt GetCacheTexSize() { return m_TexSize; }
 protected:
-	f2dFontFileProvider(f2dRenderDevice* pParent, f2dStream* pStream, const fcyVec2& FontSize, const fcyVec2& BBoxSize, fuInt FaceIndex, F2DFONTFLAG Flag);
+	f2dFontFileProvider(f2dRenderDevice* pParent,
+		f2dStream* pStream, const fcyVec2& FontSize, const fcyVec2& BBoxSize, fuInt FaceIndex, F2DFONTFLAG Flag);
+	f2dFontFileProvider(f2dRenderDevice* pParent,
+		fcyMemStream* pStream, const fcyVec2& FontSize, const fcyVec2& BBoxSize, fuInt FaceIndex, F2DFONTFLAG Flag);
 	~f2dFontFileProvider();
 };

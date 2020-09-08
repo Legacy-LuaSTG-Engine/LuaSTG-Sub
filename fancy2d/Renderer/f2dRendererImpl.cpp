@@ -223,7 +223,32 @@ fResult f2dRendererImpl::CreateFontRenderer(f2dFontProvider* pProvider, f2dFontR
 	return FCYERR_OK;
 }
 
-fResult f2dRendererImpl::CreateFontFromFile(f2dStream* pStream, fuInt FaceIndex, const fcyVec2& FontSize, const fcyVec2& BBoxSize, F2DFONTFLAG Flag, f2dFontProvider** pOut)
+fResult f2dRendererImpl::CreateFontFromFile(
+	f2dStream* pStream, fuInt FaceIndex, const fcyVec2& FontSize, const fcyVec2& BBoxSize, F2DFONTFLAG Flag, f2dFontProvider** pOut)
+{
+	if(pOut)
+		*pOut = NULL;
+	else
+		return FCYERR_INVAILDPARAM;
+
+	if(!pStream)
+		return FCYERR_INVAILDPARAM;
+
+	try
+	{
+		*pOut = new f2dFontFileProvider(m_pDev, pStream, FontSize, BBoxSize, FaceIndex, Flag);
+	}
+	catch(const fcyException& e)
+	{
+		m_pEngine->ThrowException(e);
+		return FCYERR_INTERNALERR;
+	}
+
+	return FCYERR_OK;
+}
+
+fResult f2dRendererImpl::CreateFontFromMemory(
+	fcyMemStream* pStream, fuInt FaceIndex, const fcyVec2& FontSize, const fcyVec2& BBoxSize, F2DFONTFLAG Flag, f2dFontProvider** pOut)
 {
 	if(pOut)
 		*pOut = NULL;
