@@ -255,20 +255,6 @@ void f2dFontFileProvider::removeUsedNode(FontCacheInfo* p)
 
 // 字形管理
 
-#include <chrono>
-using __hr_clock = std::chrono::high_resolution_clock;
-static auto __hr_clock_t1 = __hr_clock::now();
-static auto __hr_clock_t2 = __hr_clock::now();
-static auto __hr_clock_dt = __hr_clock_t2 - __hr_clock_t1;
-
-static double _FT_Load_Char = 0.0;
-static double _Upload_Texture = 0.0;
-static double _Lock_Unlock_Texture = 0.0;
-
-#define TIMER_BEGIN { __hr_clock_t1 = __hr_clock::now(); }
-#define TIMER_ENG { __hr_clock_t2 = __hr_clock::now(); }
-#define TIMER_TIME(x) { __hr_clock_dt = __hr_clock_t2 - __hr_clock_t1; (x) += (double)__hr_clock_dt.count() / 1000000.0; }
-
 f2dGlyphInfo f2dFontFileProvider::getGlyphInfo(fCharW Char) {
 	// 加载文字到字形槽
 	FT_Load_Char(m_Face, Char, FT_LOAD_DEFAULT);
@@ -438,8 +424,6 @@ bool f2dFontFileProvider::makeCache(fuInt Size)
 
 bool f2dFontFileProvider::renderCache(FontCacheInfo* pCache, fCharW Char)
 {
-	TIMER_BEGIN
-	
 	// 加载文字到字形槽并渲染
 	FT_Load_Char(m_Face, Char, FT_LOAD_RENDER);
 	FT_Bitmap& tBitmap = m_Face->glyph->bitmap;
@@ -453,10 +437,6 @@ bool f2dFontFileProvider::renderCache(FontCacheInfo* pCache, fCharW Char)
 		(float)tBitmap.width / (float)m_TexSize,
 		(float)tBitmap.rows / (float)m_TexSize
 	);
-	
-	TIMER_ENG
-	TIMER_TIME(_FT_Load_Char)
-	TIMER_BEGIN
 	
 	// 拷贝到上传缓冲区
 	{
@@ -489,9 +469,6 @@ bool f2dFontFileProvider::renderCache(FontCacheInfo* pCache, fCharW Char)
 		
 		m_CacheTex->Unlock();
 	}
-	
-	TIMER_ENG
-	TIMER_TIME(_Upload_Texture)
 	
 	return true;
 }
