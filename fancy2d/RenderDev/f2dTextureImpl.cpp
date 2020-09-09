@@ -251,7 +251,7 @@ fResult f2dTexture2DDynamic::Lock(fcyRect* pLockRect, fBool Discard, fuInt* Pitc
 		tRectToLock.bottom = (int)pLockRect->b.y;
 	}
 	
-	if(FAILED(m_pCacheTex->LockRect(0, &tRectLocked, (pLockRect ? &tRectToLock : NULL), Discard ? D3DLOCK_DISCARD : 0)))
+	if(FAILED(m_pCacheTex->LockRect(0, &tRectLocked, (pLockRect ? &tRectToLock : NULL), Discard ? D3DLOCK_DISCARD : D3DLOCK_NO_DIRTY_UPDATE)))
 	{
 		return FCYERR_INTERNALERR;
 	}
