@@ -274,7 +274,25 @@ fResult f2dRendererImpl::CreateFontFromMemory(
 fResult f2dRendererImpl::CreateFontFromMemory(
 		f2dFontProviderParam param, f2dTrueTypeFontParam* fonts, fuInt count, f2dFontProvider** pOut)
 {
-	return FCYERR_INTERNALERR; // 记得改掉
+	if(pOut)
+		*pOut = NULL;
+	else
+		return FCYERR_INVAILDPARAM;
+
+	if(!fonts || count == 0)
+		return FCYERR_INVAILDPARAM;
+	
+	try
+	{
+		*pOut = new f2dFontFileProvider(m_pDev, param, fonts, count);
+	}
+	catch(const fcyException& e)
+	{
+		m_pEngine->ThrowException(e);
+		return FCYERR_INTERNALERR;
+	}
+
+	return FCYERR_OK;
 }
 
 fResult f2dRendererImpl::CreateSystemFont(fcStrW FaceName, fuInt FaceIndex, const fcyVec2& FontSize, F2DFONTFLAG Flag, f2dFontProvider** pOut)

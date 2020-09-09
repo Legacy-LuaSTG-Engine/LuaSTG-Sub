@@ -370,12 +370,12 @@ f2dGlyphInfo f2dFontFileProvider::getGlyphInfo(fCharW Char) {
 	if (findGlyph((FT_ULong)Char, face, index)) {
 		// 加载文字到字形槽
 		FT_Load_Glyph(face, index, FT_LOAD_DEFAULT);
-		FT_Bitmap* tBitmap = &face->glyph->bitmap;
+		FT_GlyphSlot& glyph = face->glyph;
 		
 		// 写入对应属性
-		info.Advance = fcyVec2(face->glyph->advance.x / 64.f, face->glyph->advance.y / 64.f);
-		info.BrushPos = fcyVec2((float)face->glyph->bitmap_left, (float)face->glyph->bitmap_top);
-		info.GlyphSize = fcyVec2((float)face->glyph->bitmap.width, (float)face->glyph->bitmap.rows);
+		info.Advance = fcyVec2(glyph->advance.x / 64.f, glyph->advance.y / 64.f);
+		info.BrushPos = fcyVec2((float)glyph->bitmap_left, (float)glyph->bitmap_top);
+		info.GlyphSize = fcyVec2((float)glyph->bitmap.width, (float)glyph->bitmap.rows);
 	}
 	return info;
 }
@@ -534,8 +534,8 @@ bool f2dFontFileProvider::makeCache(fuInt Size)
 					(float)y / (float)m_TexSize
 				),
 				fcyVec2(
-					(float)(x + m_MaxGlyphWidth) / (float)m_TexSize,
-					(float)(y + m_MaxGlyphHeight) / (float)m_TexSize
+					(float)x / (float)m_TexSize,
+					(float)y / (float)m_TexSize
 				)
 			);
 			slot.Character = L'\0';
@@ -573,37 +573,38 @@ bool f2dFontFileProvider::renderCache(FontCacheInfo* pCache, fCharW Char)
 	if (findGlyph((FT_ULong)Char, face, index)) {
 		// 加载文字到字形槽并渲染
 		FT_Load_Glyph(face, index, FT_LOAD_RENDER);
-		FT_Bitmap& tBitmap = face->glyph->bitmap;
+		FT_GlyphSlot& glyph = face->glyph;
+		FT_Bitmap& bitmap = glyph->bitmap;
 		
 		// 写入对应属性
 		pCache->Character = Char;
-		pCache->Advance = fcyVec2(face->glyph->advance.x / 64.f, face->glyph->advance.y / 64.f);
-		pCache->BrushPos = fcyVec2((float)face->glyph->bitmap_left, (float)face->glyph->bitmap_top);
-		pCache->GlyphSize = fcyVec2((float)face->glyph->bitmap.width, (float)face->glyph->bitmap.rows); 
+		pCache->Advance = fcyVec2(glyph->advance.x / 64.f, glyph->advance.y / 64.f);
+		pCache->BrushPos = fcyVec2((float)glyph->bitmap_left, (float)glyph->bitmap_top);
+		pCache->GlyphSize = fcyVec2((float)glyph->bitmap.width, (float)glyph->bitmap.rows); 
 		pCache->UV.b = pCache->UV.a + fcyVec2(
-			(float)tBitmap.width / (float)m_TexSize,
-			(float)tBitmap.rows / (float)m_TexSize
+			(float)bitmap.width / (float)m_TexSize,
+			(float)bitmap.rows / (float)m_TexSize
 		);
 		
 		// 拷贝到上传缓冲区
 		{
 			fuInt uOffset = (fuInt)pCache->CacheSize.a.y * m_TexSize + (fuInt)pCache->CacheSize.a.x;
 			fcyColor* tPixel = m_CacheTexData + uOffset;
+			fByte* tBuffer = bitmap.buffer;
 			
-			fByte* tBuffer = tBitmap.buffer;
 			for(int y = 0; y < m_MaxGlyphHeight; y += 1)
 			{
 				for(int x = 0; x < m_MaxGlyphWidth; x += 1)
 				{
 					tPixel[x].argb = 0x00000000;
 					// 在字体数据中
-					if (x < tBitmap.width && y < tBitmap.rows)
+					if (x < bitmap.width && y < bitmap.rows)
 					{
 						tPixel[x].a = tBuffer[x];
 					}
 				}
 				tPixel += m_TexSize; // 下一行
-				tBuffer += tBitmap.pitch; // 下一行
+				tBuffer += bitmap.pitch; // 下一行
 			}
 			
 			m_CacheTex->AddDirtyRect(&pCache->CacheSize);
