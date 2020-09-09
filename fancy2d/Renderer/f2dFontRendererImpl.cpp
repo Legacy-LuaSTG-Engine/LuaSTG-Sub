@@ -513,6 +513,7 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 				pGraph->DrawQuad(pTex, tVerts);
 				// 如果需要，flush一下
 				if (fret == FCYERR_OUTOFRANGE) {
+					m_pProvider->Flush();
 					pGraph->Flush();
 				}
 			}
@@ -525,7 +526,8 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 	// 返回新的位置
 	if (PosOut)
 		*PosOut = tPos;
-
+	
+	m_pProvider->Flush();// 记得提交字形纹理
 	return FCYERR_OK;
 }
 
@@ -614,6 +616,7 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 				pGraph->DrawQuad(pTex, tVerts);
 				// 如果需要，flush一下
 				if (fret == FCYERR_OUTOFRANGE) {
+					m_pProvider->Flush();
 					pGraph->Flush();
 				}
 			}
@@ -626,6 +629,7 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 	// 返回新的位置
 	if (PosOut)
 		*PosOut = tPos;
-
+	
+	m_pProvider->Flush();// 记得提交字形纹理
 	return FCYERR_OK;
 }

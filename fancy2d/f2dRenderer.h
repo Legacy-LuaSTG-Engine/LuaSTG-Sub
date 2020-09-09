@@ -283,6 +283,8 @@ struct f2dFontProvider :
 
 	/// @brief      获取字形缓存贴图大小
 	virtual fInt GetCacheTexSize() = 0;
+	
+	virtual fResult Flush() = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

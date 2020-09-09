@@ -1,4 +1,4 @@
-#include "RenderDev/f2dTextureImpl.h"
+ï»¿#include "RenderDev/f2dTextureImpl.h"
 
 #include "RenderDev/f2dRenderDeviceImpl.h"
 
@@ -12,7 +12,7 @@ f2dTexture2DStatic::f2dTexture2DStatic(f2dRenderDevice* pDev, f2dStream* pStream
 	if(!pStream)
 		throw fcyException("f2dTexture2DStatic::f2dTexture2DStatic", "Param 'pStream' is null.");
 	
-	// ¶ÁÈ¡Õû¸öÁ÷
+	// è¯»å–æ•´ä¸ªæµ
 	fByte* tData = new fByte[(size_t)pStream->GetLength()];
 	if(FCYFAILED(pStream->SetPosition(FCYSEEKORIGIN_BEG, 0)))
 	{
@@ -25,7 +25,7 @@ f2dTexture2DStatic::f2dTexture2DStatic(f2dRenderDevice* pDev, f2dStream* pStream
 		throw fcyException("f2dTexture2DStatic::f2dTexture2DStatic", "f2dStream::ReadBytes Failed.");
 	}
 
-	// ´´½¨Texture
+	// åˆ›å»ºTexture
 	D3DXIMAGE_INFO tInfo;
 
 	HRESULT tHR = ((f2dRenderDeviceImpl*)pDev)->GetAPI().DLLEntry_D3DXCreateTextureFromFileInMemoryEx(
@@ -63,7 +63,7 @@ f2dTexture2DStatic::f2dTexture2DStatic(f2dRenderDevice* pDev, fcData pMemory, fL
 	if (!pMemory)
 		throw fcyException("f2dTexture2DStatic::f2dTexture2DStatic", "Param 'pMemory' is null.");
 
-	// ´´½¨Texture
+	// åˆ›å»ºTexture
 	D3DXIMAGE_INFO tInfo;
 
 	HRESULT tHR = ((f2dRenderDeviceImpl*)pDev)->GetAPI().DLLEntry_D3DXCreateTextureFromFileInMemoryEx(
@@ -101,24 +101,31 @@ f2dTexture2DStatic::~f2dTexture2DStatic()
 ////////////////////////////////////////////////////////////////////////////////
 
 f2dTexture2DDynamic::f2dTexture2DDynamic(f2dRenderDevice* pDev, fuInt Width, fuInt Height)
-	: m_pParent(pDev), m_Width(Width), m_Height(Height), m_pTex(NULL)
+	: m_pParent(pDev), m_Width(Width), m_Height(Height)
 {
-	HRESULT tHR = ((IDirect3DDevice9*)m_pParent->GetHandle())->CreateTexture(m_Width, m_Height, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pTex, NULL);
+	HRESULT tHR = ((IDirect3DDevice9*)m_pParent->GetHandle())->CreateTexture(
+		m_Width, m_Height, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pTex, NULL);
 
 	if(FAILED(tHR))
 		throw fcyWin32COMException("f2dTexture2DDynamic::f2dTexture2DDynamic", "IDirect3DDevice9::CreateTexture Failed.", tHR);
-
-	// ×·¼Ó¼àÌýÆ÷
+	
+	tHR = ((IDirect3DDevice9*)m_pParent->GetHandle())->CreateTexture(
+		m_Width, m_Height, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, &m_pCacheTex, NULL);
+	
+	if(FAILED(tHR))
+		throw fcyWin32COMException("f2dTexture2DDynamic::f2dTexture2DDynamic", "IDirect3DDevice9::CreateTexture Failed.", tHR);
+	
+	// è¿½åŠ ç›‘å¬å™¨
 	m_pParent->AttachListener(this);
 }
 
 f2dTexture2DDynamic::f2dTexture2DDynamic(f2dRenderDevice* pDev, f2dStream* pStream, fuInt Width, fuInt Height)
-	: m_pParent(pDev), m_Width(Width), m_Height(Height), m_pTex(NULL)
+	: m_pParent(pDev), m_Width(Width), m_Height(Height)
 {
 	if(!pStream)
 		throw fcyException("f2dTexture2DDynamic::f2dTexture2DDynamic", "Param 'pStream' is null.");
 
-	// ¶ÁÈ¡Õû¸öÁ÷
+	// è¯»å–æ•´ä¸ªæµ
 	fByte* tData = new fByte[(size_t)pStream->GetLength()];
 	if(FCYFAILED(pStream->SetPosition(FCYSEEKORIGIN_BEG, 0)))
 	{
@@ -131,7 +138,7 @@ f2dTexture2DDynamic::f2dTexture2DDynamic(f2dRenderDevice* pDev, f2dStream* pStre
 		throw fcyException("f2dTexture2DDynamic::f2dTexture2DDynamic", "f2dStream::ReadBytes Failed.");
 	}
 
-	// ´´½¨Texture
+	// åˆ›å»ºTexture
 	D3DXIMAGE_INFO tInfo;
 	HRESULT tHR = ((f2dRenderDeviceImpl*)pDev)->GetAPI().DLLEntry_D3DXCreateTextureFromFileInMemoryEx(
 		(IDirect3DDevice9*)pDev->GetHandle(),
@@ -161,17 +168,17 @@ f2dTexture2DDynamic::f2dTexture2DDynamic(f2dRenderDevice* pDev, f2dStream* pStre
 	if(Height == 0)
 		m_Height = tInfo.Height;
 
-	// ×·¼Ó¼àÌýÆ÷
+	// è¿½åŠ ç›‘å¬å™¨
 	m_pParent->AttachListener(this);
 }
 
 f2dTexture2DDynamic::f2dTexture2DDynamic(f2dRenderDevice* pDev, fcData pMemory, fLen Size, fuInt Width, fuInt Height)
-	: m_pParent(pDev), m_Width(Width), m_Height(Height), m_pTex(NULL)
+	: m_pParent(pDev), m_Width(Width), m_Height(Height)
 {
 	if (!pMemory)
 		throw fcyException("f2dTexture2DDynamic::f2dTexture2DDynamic", "Param 'pMemory' is null.");
 
-	// ´´½¨Texture
+	// åˆ›å»ºTexture
 	D3DXIMAGE_INFO tInfo;
 	HRESULT tHR = ((f2dRenderDeviceImpl*)pDev)->GetAPI().DLLEntry_D3DXCreateTextureFromFileInMemoryEx(
 		(IDirect3DDevice9*)pDev->GetHandle(),
@@ -199,15 +206,16 @@ f2dTexture2DDynamic::f2dTexture2DDynamic(f2dRenderDevice* pDev, fcData pMemory, 
 	if (Height == 0)
 		m_Height = tInfo.Height;
 
-	// ×·¼Ó¼àÌýÆ÷
+	// è¿½åŠ ç›‘å¬å™¨
 	m_pParent->AttachListener(this);
 }
 
 f2dTexture2DDynamic::~f2dTexture2DDynamic()
 {
 	FCYSAFEKILL(m_pTex);
+	FCYSAFEKILL(m_pCacheTex);
 
-	// ÒÆ³ý¼àÌýÆ÷
+	// ç§»é™¤ç›‘å¬å™¨
 	m_pParent->RemoveListener(this);
 }
 
@@ -218,14 +226,15 @@ void f2dTexture2DDynamic::OnRenderDeviceLost()
 
 void f2dTexture2DDynamic::OnRenderDeviceReset()
 {
-	((IDirect3DDevice9*)m_pParent->GetHandle())->CreateTexture(m_Width, m_Height, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pTex, NULL);
+	((IDirect3DDevice9*)m_pParent->GetHandle())->CreateTexture(
+		m_Width, m_Height, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pTex, NULL);
 }
 
 fResult f2dTexture2DDynamic::Lock(fcyRect* pLockRect, fBool Discard, fuInt* Pitch, fData* pOut)
 {
 	if(pOut)
 		*pOut = NULL;
-	if(!m_pTex)
+	if(!m_pCacheTex)
 		return FCYERR_INTERNALERR;
 	if(Pitch)
 		*Pitch = 0;
@@ -241,8 +250,8 @@ fResult f2dTexture2DDynamic::Lock(fcyRect* pLockRect, fBool Discard, fuInt* Pitc
 		tRectToLock.right = (int)pLockRect->b.x;
 		tRectToLock.bottom = (int)pLockRect->b.y;
 	}
-
-	if(FAILED(m_pTex->LockRect(0, &tRectLocked, (pLockRect ? &tRectToLock : NULL), Discard ? D3DLOCK_DISCARD : 0)))
+	
+	if(FAILED(m_pCacheTex->LockRect(0, &tRectLocked, (pLockRect ? &tRectToLock : NULL), Discard ? D3DLOCK_DISCARD : 0)))
 	{
 		return FCYERR_INTERNALERR;
 	}
@@ -257,10 +266,40 @@ fResult f2dTexture2DDynamic::Lock(fcyRect* pLockRect, fBool Discard, fuInt* Pitc
 
 fResult f2dTexture2DDynamic::Unlock()
 {
-	if(!m_pTex)
+	if(!m_pCacheTex)
 		return FCYERR_INTERNALERR;
 
-	if(FAILED(m_pTex->UnlockRect(0)))
+	if(FAILED(m_pCacheTex->UnlockRect(0)))
+	{
+		return FCYERR_INTERNALERR;
+	}
+	else
+	{
+		return FCYERR_OK;
+	}
+}
+
+fResult f2dTexture2DDynamic::AddDirtyRect(fcyRect* pDirtyRect) {
+	if(!m_pCacheTex)
+		return FCYERR_INTERNALERR;
+	RECT tRectToLock;
+	if(pDirtyRect)
+	{
+		tRectToLock.left = (int)pDirtyRect->a.x;
+		tRectToLock.top = (int)pDirtyRect->a.y;
+		tRectToLock.right = (int)pDirtyRect->b.x;
+		tRectToLock.bottom = (int)pDirtyRect->b.y;
+	}
+	m_pCacheTex->AddDirtyRect(pDirtyRect ? &tRectToLock : NULL);
+	return FCYERR_OK;
+}
+
+fResult f2dTexture2DDynamic::Upload()
+{
+	if(!m_pCacheTex || !m_pTex)
+		return FCYERR_INTERNALERR;
+
+	if(FAILED(((IDirect3DDevice9*)m_pParent->GetHandle())->UpdateTexture(m_pCacheTex, m_pTex)))
 	{
 		return FCYERR_INTERNALERR;
 	}
@@ -295,7 +334,7 @@ f2dTexture2DRenderTarget::f2dTexture2DRenderTarget(f2dRenderDevice* pDev, fuInt 
 		throw fcyWin32COMException("f2dTexture2DRenderTarget::f2dTexture2DRenderTarget", "IDirect3DTexture9::GetSurfaceLevel Failed.", tHR);
 	}
 
-	// ×·¼Ó¼àÌýÆ÷
+	// è¿½åŠ ç›‘å¬å™¨
 	m_pParent->AttachListener(this);
 }
 
@@ -304,7 +343,7 @@ f2dTexture2DRenderTarget::~f2dTexture2DRenderTarget()
 	FCYSAFEKILL(m_pSurface);
 	FCYSAFEKILL(m_pTex);
 
-	// ÒÆ³ý¼àÌý
+	// ç§»é™¤ç›‘å¬
 	m_pParent->RemoveListener(this);
 }
 
@@ -327,7 +366,7 @@ void f2dTexture2DRenderTarget::OnRenderDeviceReset()
 		m_Height = m_pParent->GetBufferHeight();
 	}
 
-	// ÖØÖÃ¶ÔÏó
+	// é‡ç½®å¯¹è±¡
 	((IDirect3DDevice9*)m_pParent->GetHandle())->CreateTexture(m_Width, m_Height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pTex, NULL);
 	if(m_pTex)
 		m_pTex->GetSurfaceLevel(0, &m_pSurface);
@@ -351,7 +390,7 @@ f2dDepthStencilSurfaceImpl::f2dDepthStencilSurfaceImpl(f2dRenderDevice* pDev, fu
 	if(FAILED(tHR))
 		throw fcyWin32COMException("f2dDepthStencilSurfaceImpl::f2dDepthStencilSurfaceImpl", "IDirect3DDevice9::CreateDepthStencilSurface Failed.", tHR);
 
-	// ×·¼Ó¼àÌýÆ÷
+	// è¿½åŠ ç›‘å¬å™¨
 	m_pParent->AttachListener(this);
 }
 
@@ -359,7 +398,7 @@ f2dDepthStencilSurfaceImpl::~f2dDepthStencilSurfaceImpl()
 {
 	FCYSAFEKILL(m_pSurface);
 
-	// ÊÍ·Å¼àÌýÆ÷
+	// é‡Šæ”¾ç›‘å¬å™¨
 	m_pParent->RemoveListener(this);
 }
 

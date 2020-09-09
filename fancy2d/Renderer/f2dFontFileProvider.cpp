@@ -174,6 +174,9 @@ f2dFontFileProvider::f2dFontFileProvider(f2dRenderDevice* pParent,
 f2dFontFileProvider::~f2dFontFileProvider()
 {
 	// 释放纹理
+	if (m_CacheTex) {
+		m_CacheTex->Unlock();
+	}
 	FCYSAFEKILL(m_CacheTex);
 	
 	// 关闭FreeType
@@ -334,7 +337,6 @@ f2dFontFileProvider::FontCacheInfo* f2dFontFileProvider::getChar(fCharW Char)
 bool f2dFontFileProvider::makeCache(fuInt Size)
 {
 	// 清除
-	m_PerGlyphCache.clear();
 	FCYSAFEKILL(m_CacheTex);
 	m_Cache.clear();
 	m_FreeNodeList = nullptr;
@@ -356,13 +358,12 @@ bool f2dFontFileProvider::makeCache(fuInt Size)
 		// 复制
 		fuInt tPitch = 0;
 		fData tData = NULL;
-		if(FCYFAILED(m_CacheTex->Lock(NULL, true, &tPitch, &tData)))
+		if(FCYFAILED(m_CacheTex->Lock(NULL, false, &tPitch, &tData)))
 			return false;
 		memcpy(tData, _data.data(), _byte_size);
-		m_CacheTex->Unlock();
+		m_CacheTexData = (fcyColor*)tData;
+		//m_CacheTex->Unlock(); // 别问为什么注释掉，反正就是从头lock到尾，lock他妈的，提升性能
 	}
-	// 建立单个字形上传缓冲区
-	m_PerGlyphCache.resize(m_MaxGlyphWidth * m_MaxGlyphHeight);
 	
 	// 创建缓冲链表
 	fuInt tCount = m_CacheXCount * m_CacheYCount;
@@ -440,12 +441,9 @@ bool f2dFontFileProvider::renderCache(FontCacheInfo* pCache, fCharW Char)
 	
 	// 拷贝到上传缓冲区
 	{
-		fuInt tPitch = 0;
-		fData tData = NULL;
-		if(FCYFAILED(m_CacheTex->Lock(&pCache->CacheSize, false, &tPitch, &tData)))
-			return false;
+		fuInt uOffset = (fuInt)pCache->CacheSize.a.y * m_TexSize + (fuInt)pCache->CacheSize.a.x;
+		fcyColor* tPixel = m_CacheTexData + uOffset;
 		
-		fcyColor* tPixel = m_PerGlyphCache.data();
 		fByte* tBuffer = tBitmap.buffer;
 		for(int y = 0; y < m_MaxGlyphHeight; y += 1)
 		{
@@ -458,16 +456,11 @@ bool f2dFontFileProvider::renderCache(FontCacheInfo* pCache, fCharW Char)
 					tPixel[x].a = tBuffer[x];
 				}
 			}
-			
-			// 上传到纹理
-			memcpy(tData, tPixel, m_MaxGlyphWidth * sizeof(fcyColor));
-			
-			tData += tPitch; // 下一行
-			tPixel += m_MaxGlyphWidth; // 下一行
+			tPixel += m_TexSize; // 下一行
 			tBuffer += tBitmap.pitch; // 下一行
 		}
 		
-		m_CacheTex->Unlock();
+		m_CacheTex->AddDirtyRect(&pCache->CacheSize);
 	}
 	
 	return true;
@@ -521,8 +514,6 @@ fResult f2dFontFileProvider::QueryGlyph(f2dGraphics* pGraph, fCharW Character, f
 			m_UsedCount += 1;
 		}
 		if (m_UsedCount >= m_Cache.size()) {
-			m_UsedMark.fill(0);
-			m_UsedCount = 0;
 			return FCYERR_OUTOFRANGE;
 		}
 		
@@ -553,4 +544,17 @@ fResult f2dFontFileProvider::QueryGlyph(f2dGraphics* pGraph, fCharW Character, f
 		
 		return FCYERR_OK;
 	}
+}
+
+fResult f2dFontFileProvider::Flush() {
+	m_UsedMark.fill(0);
+	m_UsedCount = 0;
+	m_CacheTex->Unlock();
+	fResult r = m_CacheTex->Upload();
+	fuInt tPitch = 0;
+	fData tData = NULL;
+	if(FCYFAILED(m_CacheTex->Lock(NULL, false, &tPitch, &tData)))
+		return FCYERR_INTERNALERR;
+	m_CacheTexData = (fcyColor*)tData;
+	return r;
 }

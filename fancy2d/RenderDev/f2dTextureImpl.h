@@ -1,12 +1,12 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dTextureImpl.h
-/// @brief fancy2D ÎÆÀí°ü×°
+/// @brief fancy2D çº¹ç†åŒ…è£…
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "RenderDev/f2dRenderDeviceAPI.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2D¾²Ì¬¶şÎ¬ÎÆÀí
+/// @brief fancy2Dé™æ€äºŒç»´çº¹ç†
 ////////////////////////////////////////////////////////////////////////////////
 class f2dTexture2DStatic :
 	public fcyRefObjImpl<f2dTexture2D>
@@ -16,7 +16,7 @@ private:
 	IDirect3DTexture9* m_pTex;
 	fuInt m_Width;
 	fuInt m_Height;
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	void* GetHandle() { return m_pTex; }
 	fuInt GetDimension() { return 2; }
 	fBool IsDynamic() { return false; }
@@ -28,6 +28,8 @@ public: // ½Ó¿ÚÊµÏÖ
 	fResult Lock(fcyRect* pLockRect, fBool Discard, fuInt* Pitch, fData* pOut) { return FCYERR_NOTSUPPORT; }
 
 	fResult Unlock() { return FCYERR_NOTSUPPORT; }
+	fResult AddDirtyRect(fcyRect* pDirtyRect) { return FCYERR_NOTSUPPORT; }
+	fResult Upload() { return FCYERR_NOTSUPPORT; }
 protected:
 	f2dTexture2DStatic(f2dRenderDevice* pDev, f2dStream* pStream, fuInt Width, fuInt Height, fBool HasMipmap);
 	f2dTexture2DStatic(f2dRenderDevice* pDev, fcData pMemory, fLen Size, fuInt Width, fuInt Height, fBool HasMipmap);
@@ -35,7 +37,7 @@ protected:
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2D¶¯Ì¬¶şÎ¬ÎÆÀí
+/// @brief fancy2DåŠ¨æ€äºŒç»´çº¹ç†
 ////////////////////////////////////////////////////////////////////////////////
 class f2dTexture2DDynamic :
 	public fcyRefObjImpl<f2dTexture2D>,
@@ -43,15 +45,16 @@ class f2dTexture2DDynamic :
 {
 	friend class f2dRenderDeviceImpl;
 private:
-	f2dRenderDevice* m_pParent;
+	f2dRenderDevice* m_pParent = nullptr;
 
-	IDirect3DTexture9* m_pTex;
-	fuInt m_Width;
-	fuInt m_Height;
-public: // Éè±¸¶ªÊ§
+	IDirect3DTexture9* m_pTex = nullptr;
+	IDirect3DTexture9* m_pCacheTex = nullptr;
+	fuInt m_Width = 0;
+	fuInt m_Height = 0;
+public: // è®¾å¤‡ä¸¢å¤±
 	void OnRenderDeviceLost();
 	void OnRenderDeviceReset();
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	void* GetHandle() { return m_pTex; }
 	fuInt GetDimension() { return 2; }
 	fBool IsDynamic() { return true; }
@@ -61,8 +64,9 @@ public: // ½Ó¿ÚÊµÏÖ
 	fuInt GetHeight() { return m_Height; }
 
 	fResult Lock(fcyRect* pLockRect, fBool Discard, fuInt* Pitch, fData* pOut);
-
 	fResult Unlock();
+	fResult AddDirtyRect(fcyRect* pDirtyRect);
+	fResult Upload();
 protected:
 	f2dTexture2DDynamic(f2dRenderDevice* pDev, fuInt Width, fuInt Height);
 	f2dTexture2DDynamic(f2dRenderDevice* pDev, f2dStream* pStream, fuInt Width, fuInt Height);
@@ -71,7 +75,7 @@ protected:
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2D¶şÎ¬äÖÈ¾Ä¿±ê
+/// @brief fancy2DäºŒç»´æ¸²æŸ“ç›®æ ‡
 ////////////////////////////////////////////////////////////////////////////////
 class f2dTexture2DRenderTarget :
 	public fcyRefObjImpl<f2dTexture2D>,
@@ -88,12 +92,12 @@ private:
 	fBool m_bAutoResize;
 
 	IDirect3DSurface9* m_pSurface;
-public: // ÄÚ²¿¹«¿ª½Ó¿Ú
+public: // å†…éƒ¨å…¬å¼€æ¥å£
 	IDirect3DSurface9* GetSurface();
-public: // Éè±¸¶ªÊ§
+public: // è®¾å¤‡ä¸¢å¤±
 	void OnRenderDeviceLost();
 	void OnRenderDeviceReset();
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	void* GetHandle() { return m_pTex; }
 	fuInt GetDimension() { return 2; }
 	fBool IsDynamic() { return false; }
@@ -105,13 +109,15 @@ public: // ½Ó¿ÚÊµÏÖ
 	fResult Lock(fcyRect* pLockRect, fBool Discard, fuInt* Pitch, fData* pOut) { return FCYERR_NOTSUPPORT; }
 
 	fResult Unlock() { return FCYERR_NOTSUPPORT; }
+	fResult AddDirtyRect(fcyRect* pDirtyRect) { return FCYERR_NOTSUPPORT; }
+	fResult Upload() { return FCYERR_NOTSUPPORT; }
 protected:
 	f2dTexture2DRenderTarget(f2dRenderDevice* pDev, fuInt Width, fuInt Height, fBool AutoResize);
 	~f2dTexture2DRenderTarget();
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2DÉî¶ÈÄ£°å»º³å
+/// @brief fancy2Dæ·±åº¦æ¨¡æ¿ç¼“å†²
 ////////////////////////////////////////////////////////////////////////////////
 class f2dDepthStencilSurfaceImpl :
 	public fcyRefObjImpl<f2dDepthStencilSurface>,
@@ -127,10 +133,10 @@ private:
 
 	fBool m_bAutoResize;
 	fBool m_bDiscard;
-public: // Éè±¸¶ªÊ§
+public: // è®¾å¤‡ä¸¢å¤±
 	void OnRenderDeviceLost();
 	void OnRenderDeviceReset();
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	void* GetHandle();
 	fuInt GetWidth();
 	fuInt GetHeight();

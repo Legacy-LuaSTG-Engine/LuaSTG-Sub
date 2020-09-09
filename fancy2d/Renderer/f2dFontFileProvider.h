@@ -58,8 +58,8 @@ protected:
 	fuInt m_MaxGlyphHeight	= 0; // 单个字形高度
 	
 	// 字形缓存
-	std::vector<fcyColor> m_PerGlyphCache;	// 字形数据上传缓冲区
 	f2dTexture2D* m_CacheTex = nullptr;		// 缓冲区纹理
+	fcyColor* m_CacheTexData = nullptr;		// 缓冲区纹理指针
 	
 	// 字形缓存数据结构
 	std::vector<FontCacheInfo> m_Cache;					// 缓冲区
@@ -136,6 +136,7 @@ public: // 接口实现
 	fResult QueryGlyph(f2dGraphics* pGraph, fCharW Character, f2dGlyphInfo* InfoOut);
 	fInt GetCacheCount() { return m_CacheXCount * m_CacheYCount; }
 	fInt GetCacheTexSize() { return m_TexSize; }
+	fResult Flush();
 protected:
 	f2dFontFileProvider(f2dRenderDevice* pParent,
 		f2dStream* pStream, const fcyVec2& FontSize, const fcyVec2& BBoxSize, fuInt FaceIndex, F2DFONTFLAG Flag);

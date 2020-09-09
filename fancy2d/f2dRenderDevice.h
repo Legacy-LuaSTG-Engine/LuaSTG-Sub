@@ -59,6 +59,10 @@ struct f2dTexture2D :
 
 	/// @brief 解锁纹理
 	virtual fResult Unlock()=0;
+	
+	virtual fResult AddDirtyRect(fcyRect* pDirtyRect)=0;
+	
+	virtual fResult Upload()=0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
