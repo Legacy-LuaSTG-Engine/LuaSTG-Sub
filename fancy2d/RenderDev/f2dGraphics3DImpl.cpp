@@ -1,4 +1,4 @@
-#include "RenderDev/f2dGraphics3DImpl.h"
+ï»¿#include "RenderDev/f2dGraphics3DImpl.h"
 
 #include "RenderDev/f2dEffectImpl.h"
 
@@ -31,7 +31,7 @@ fResult f2dGraphics3DImpl::Begin()
 		return FCYERR_INTERNALERR;
 	}
 
-	// ×Ô¶¯ÉèÖÃäÖÈ¾×´Ì¬
+	// è‡ªåŠ¨è®¾ç½®æ¸²æŸ“çŠ¶æ€
 	m_pCurEffect->SyncState(this);
 	m_bEffectStateDirty = false;
 
@@ -83,10 +83,10 @@ fResult f2dGraphics3DImpl::BeginPass(fuInt PassIndex)
 	if(!IsInRender())
 		return FCYERR_ILLEGAL;
 
-	// ¼ì²é×´Ì¬
+	// æ£€æŸ¥çŠ¶æ€
 	if(m_bEffectStateDirty)
 	{
-		// ×Ô¶¯ÉèÖÃäÖÈ¾×´Ì¬
+		// è‡ªåŠ¨è®¾ç½®æ¸²æŸ“çŠ¶æ€
 		m_pCurEffect->SyncState(this);
 		m_bEffectStateDirty = false;
 	}
@@ -107,10 +107,10 @@ fResult f2dGraphics3DImpl::EndPass()
 
 fResult f2dGraphics3DImpl::CommitState()
 {
-	// ¼ì²é×´Ì¬
+	// æ£€æŸ¥çŠ¶æ€
 	if(m_bEffectStateDirty)
 	{
-		// ×Ô¶¯ÉèÖÃäÖÈ¾×´Ì¬
+		// è‡ªåŠ¨è®¾ç½®æ¸²æŸ“çŠ¶æ€
 		m_pCurEffect->SyncState(this);
 		m_bEffectStateDirty = false;
 	}
@@ -126,7 +126,7 @@ fResult f2dGraphics3DImpl::RenderPostEffect()
 	if(!IsInRender())
 		return FCYERR_ILLEGAL;
 
-	// ×¼±¸¶¥µã
+	// å‡†å¤‡é¡¶ç‚¹
 	float tWidth = (float)m_pParent->GetBufferWidth();
 	float tHeight = (float)m_pParent->GetBufferHeight();
 	float tVPWidthFixed = 0.5f / tWidth;
