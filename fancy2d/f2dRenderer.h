@@ -250,6 +250,23 @@ struct f2dGlyphInfo
 };
 
 ////////////////////////////////////////////////////////////////////////////////
+/// @brief fancy2D 字体加载参数（用于 TrueType 字体）
+////////////////////////////////////////////////////////////////////////////////
+struct f2dTrueTypeFontParam {
+	f2dStream* font_file;
+	fcyMemStream* font_source;
+	fInt font_face;
+	fcyVec2 font_size;
+};
+struct f2dFontProviderParam {
+	fcyVec2 font_bbox;
+	// 目标字形缓存槽数量
+	fuInt glyph_count;
+	// 目标纹理大小
+	fuInt texture_size;
+};
+
+////////////////////////////////////////////////////////////////////////////////
 /// @brief fancy2D 字体提供器
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dFontProvider :
@@ -678,6 +695,9 @@ struct f2dRenderer
 	
 	virtual fResult CreateFontFromMemory(
 		fcyMemStream* pStream, fuInt FaceIndex, const fcyVec2& FontSize, const fcyVec2& BBoxSize, F2DFONTFLAG Flag, f2dFontProvider** pOut)=0;
+	
+	virtual fResult CreateFontFromMemory(
+		f2dFontProviderParam param, f2dTrueTypeFontParam* fonts, fuInt count, f2dFontProvider** pOut)=0;
 	
 	/// @brief      从系统加载字体
 	/// @param[in]  FaceName  字体在注册表中的名称

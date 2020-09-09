@@ -1,4 +1,4 @@
-#include "Renderer/f2dRendererImpl.h"
+ï»¿#include "Renderer/f2dRendererImpl.h"
 
 #include "Renderer/f2dSpriteImpl.h"
 #include "Renderer/f2dGeometryRendererImpl.h"
@@ -43,12 +43,12 @@ f2dRendererImpl::~f2dRendererImpl()
 
 fcyFileStream* f2dRendererImpl::enumSystemFont(fcStrW FontName)
 {
-	// ´ò¿ª×¢²á±í HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts
-	// Ã¶¾Ù·ûºÏÒªÇóµÄ×ÖÌå
+	// æ‰“å¼€æ³¨å†Œè¡¨ HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts
+	// æšä¸¾ç¬¦åˆè¦æ±‚çš„å­—ä½“
 	HKEY tKey;
 	if(RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts", 0, KEY_READ, &tKey) == ERROR_SUCCESS)
 	{
-		// Ã¶¾Ù×Ó¼ü
+		// æšä¸¾å­é”®
 		int tIndex = 0;
 		fCharW tKeyName[MAX_PATH];
 		DWORD tKeyNameLen = MAX_PATH;
@@ -58,7 +58,7 @@ fcyFileStream* f2dRendererImpl::enumSystemFont(fcStrW FontName)
 
 		while (RegEnumValue(tKey, tIndex, tKeyName, &tKeyNameLen, NULL, &tKeyType, tKeyData, &tKeyDataLen) == ERROR_SUCCESS)
 		{
-			// ¼ì²éÊÇ·ñÎªÏàÓ¦×ÖÌå
+			// æ£€æŸ¥æ˜¯å¦ä¸ºç›¸åº”å­—ä½“
 			if(tKeyType == REG_SZ)
 			{
 				fCharW tFontName[MAX_PATH];
@@ -67,14 +67,14 @@ fcyFileStream* f2dRendererImpl::enumSystemFont(fcStrW FontName)
 				{
 					int tLen = wcslen(tFontName);
 
-					// È¥³ıscanfÆ¥ÅäµÄ¿Õ¸ñ
+					// å»é™¤scanfåŒ¹é…çš„ç©ºæ ¼
 					if(!tLen)
 						continue;
 					else 
 						if(tFontName[tLen-1] == L' ')
 							tFontName[tLen-1] = L'\0';
 
-					// ÊÇ·ñÎªĞèÒªµÄ×ÖÌå
+					// æ˜¯å¦ä¸ºéœ€è¦çš„å­—ä½“
 					if(wcscmp(tFontName, FontName) == 0)
 					{
 						RegCloseKey(tKey);
@@ -85,14 +85,14 @@ fcyFileStream* f2dRendererImpl::enumSystemFont(fcStrW FontName)
 						tPath += L'\\';
 						tPath += (wchar_t*)tKeyData;
 
-						// ´ò¿ªÁ÷
+						// æ‰“å¼€æµ
 						fcyFileStream* pStream = new fcyFileStream(tPath.c_str(), false);
 						return pStream;
 					}
 				}
 			}
 
-			// ¼ÌĞøÃ¶¾Ù
+			// ç»§ç»­æšä¸¾
 			tKeyNameLen = MAX_PATH;
 			tKeyType = 0;
 			tKeyDataLen = MAX_PATH;
@@ -269,6 +269,12 @@ fResult f2dRendererImpl::CreateFontFromMemory(
 	}
 
 	return FCYERR_OK;
+}
+
+fResult f2dRendererImpl::CreateFontFromMemory(
+		f2dFontProviderParam param, f2dTrueTypeFontParam* fonts, fuInt count, f2dFontProvider** pOut)
+{
+	return FCYERR_INTERNALERR; // è®°å¾—æ”¹æ‰
 }
 
 fResult f2dRendererImpl::CreateSystemFont(fcStrW FaceName, fuInt FaceIndex, const fcyVec2& FontSize, F2DFONTFLAG Flag, f2dFontProvider** pOut)

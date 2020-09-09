@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  fcyStream.h
-/// @brief ÃèÊö²¢ÊµÏÖÁËfancyÄÚ²¿µÄÁ÷Ê½½Ó¿Ú
+/// @brief æè¿°å¹¶å®ç°äº†fancyå†…éƒ¨çš„æµå¼æ¥å£
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyRefObj.h"
@@ -12,89 +12,89 @@
 
 #define FCYSTREAM
 
-/// @addtogroup fancy¿âIOÄ£¿é
-/// @brief      Ìá¹©¶ÔÎÄ¼ş¡¢ÄÚ´æµÄ¶ÁĞ´ÒÔ¼°¶îÍâ²Ù×÷Ö§³Ö
-/// @note       »ùÓÚfcyStreamµÄIOÏµÍ³£¬Í¨¹ıÊµÏÖfcyStream½Ó¿ÚÀ´ÊµÏÖÆäËûÀ´Ô´µÄÁ÷
+/// @addtogroup fancyåº“IOæ¨¡å—
+/// @brief      æä¾›å¯¹æ–‡ä»¶ã€å†…å­˜çš„è¯»å†™ä»¥åŠé¢å¤–æ“ä½œæ”¯æŒ
+/// @note       åŸºäºfcyStreamçš„IOç³»ç»Ÿï¼Œé€šè¿‡å®ç°fcyStreamæ¥å£æ¥å®ç°å…¶ä»–æ¥æºçš„æµ
 /// @{
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fcyÁ÷Ñ°Ö··½Ê½
+/// @brief fcyæµå¯»å€æ–¹å¼
 ////////////////////////////////////////////////////////////////////////////////
 enum FCYSEEKORIGIN
 {
-	FCYSEEKORIGIN_BEG = 0,  ///< @brief ´ÓÍ·¿ªÊ¼Ñ°Ö·
-	                        ///< @note  Ö¸ÕëÑ°Ö·Î»ÖÃ¿ªÊ¼ÓÚ0´¦
-	FCYSEEKORIGIN_CUR = 1,  ///< @brief ´Óµ±Ç°Î»ÖÃ¿ªÊ¼Ñ°Ö·
-	FCYSEEKORIGIN_END = 2   ///< @brief ´Ó½áÎ²´¦¿ªÊ¼Ñ°Ö·
-	                        ///< @note  Ö¸ÕëÑ°Ö·Î»ÖÃ¿ªÊ¼ÓÚEOF´¦
+	FCYSEEKORIGIN_BEG = 0,  ///< @brief ä»å¤´å¼€å§‹å¯»å€
+	                        ///< @note  æŒ‡é’ˆå¯»å€ä½ç½®å¼€å§‹äº0å¤„
+	FCYSEEKORIGIN_CUR = 1,  ///< @brief ä»å½“å‰ä½ç½®å¼€å§‹å¯»å€
+	FCYSEEKORIGIN_END = 2   ///< @brief ä»ç»“å°¾å¤„å¼€å§‹å¯»å€
+	                        ///< @note  æŒ‡é’ˆå¯»å€ä½ç½®å¼€å§‹äºEOFå¤„
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fcyÁ÷½Ó¿Ú
+/// @brief fcyæµæ¥å£
 ////////////////////////////////////////////////////////////////////////////////
 struct fcyStream : fcyRefObj
 {
-	//·µ»ØÁ÷ÊÇ·ñ¿ÉĞ´
+	//è¿”å›æµæ˜¯å¦å¯å†™
 	virtual fBool CanWrite()=0;
 
-	//·µ»ØÁ÷ÊÇ·ñ¿É±ä³¤
+	//è¿”å›æµæ˜¯å¦å¯å˜é•¿
 	virtual fBool CanResize()=0;
 
-	//·µ»ØÁ÷³¤¶È
+	//è¿”å›æµé•¿åº¦
 	virtual fLen GetLength()=0;
 
-	//ÉèÖÃĞÂ³¤¶È
-	//param[in] Length Á÷µÄĞÂ³¤¶È
+	//è®¾ç½®æ–°é•¿åº¦
+	//param[in] Length æµçš„æ–°é•¿åº¦
 	virtual fResult SetLength(fLen Length)=0;
 	
-	//»ñµÃ¶ÁĞ´Ö¸ÕëµÄÎ»ÖÃ
+	//è·å¾—è¯»å†™æŒ‡é’ˆçš„ä½ç½®
 	virtual fLen GetPosition()=0;
 
-	//ÉèÖÃ¶ÁĞ´Î»ÖÃ
-	//param[in] Origin Ñ°Ö·²Î¿¼Î»ÖÃ
-	//param[in] Offset Î»ÒÆ
+	//è®¾ç½®è¯»å†™ä½ç½®
+	//param[in] Origin å¯»å€å‚è€ƒä½ç½®
+	//param[in] Offset ä½ç§»
 	virtual fResult SetPosition(FCYSEEKORIGIN Origin, fLong Offset)=0;
 
-	//´ÓÁ÷ÖĞ¶ÁÈ¡×Ö½ÚÊı¾İ
-	//@param[in]  pData      Ä¿µÄ»º³åÇø
-	//@param[in]  Length     Êı¾İ³¤¶È
-	//@param[out] pBytesRead ÕæÊµ¶ÁĞ´³¤¶È£¬¿ÉÖÃÎªNULL
+	//ä»æµä¸­è¯»å–å­—èŠ‚æ•°æ®
+	//@param[in]  pData      ç›®çš„ç¼“å†²åŒº
+	//@param[in]  Length     æ•°æ®é•¿åº¦
+	//@param[out] pBytesRead çœŸå®è¯»å†™é•¿åº¦ï¼Œå¯ç½®ä¸ºNULL
 	virtual fResult ReadBytes(fData pData, fLen Length, fLen* pBytesRead=NULL)=0;
 
-	//ÏòÁ÷ÖĞĞ´Èë×Ö½ÚÊı¾İ
-	//param[in]  pSrc        Ô­Ê¼»º³åÇø
-	//param[in]  Length      Êı¾İ³¤¶È
-	//param[out] pBytesWrite ÕæÊµ¶ÁĞ´³¤¶È£¬¿ÉÖÃÎªNULL
+	//å‘æµä¸­å†™å…¥å­—èŠ‚æ•°æ®
+	//param[in]  pSrc        åŸå§‹ç¼“å†²åŒº
+	//param[in]  Length      æ•°æ®é•¿åº¦
+	//param[out] pBytesWrite çœŸå®è¯»å†™é•¿åº¦ï¼Œå¯ç½®ä¸ºNULL
 	virtual fResult WriteBytes(fcData pSrc, fLen Length, fLen* pBytesWrite=NULL)=0;
 
-	//Ëø¶¨Á÷
-	//note    ¸Ãº¯Êı¿ÉÄÜ»áÔì³É×èÈû
-	//warning Èç¹ûÒ»¸öÁ÷ÔÚ¶àÏß³Ì»·¾³ÏÂ±»Ê¹ÓÃÊ±±ØĞëÔÚ¶ÁĞ´Çø¿éÖĞÊÖ¶¯¼ÓËø
+	//é”å®šæµ
+	//note    è¯¥å‡½æ•°å¯èƒ½ä¼šé€ æˆé˜»å¡
+	//warning å¦‚æœä¸€ä¸ªæµåœ¨å¤šçº¿ç¨‹ç¯å¢ƒä¸‹è¢«ä½¿ç”¨æ—¶å¿…é¡»åœ¨è¯»å†™åŒºå—ä¸­æ‰‹åŠ¨åŠ é”
 	virtual void Lock()=0;
 	
-	//ÊÔÍ¼Ëø¶¨Á÷
-	//warning Èç¹ûÒ»¸öÁ÷ÔÚ¶àÏß³Ì»·¾³ÏÂ±»Ê¹ÓÃÊ±±ØĞëÔÚ¶ÁĞ´Çø¿éÖĞÊÖ¶¯¼ÓËø
-	//return  Ê¹ÓÃFCYOKºÍFCYFAILEDÅĞ¶ÏÊÇ·ñ³É¹¦¼ÓËø
+	//è¯•å›¾é”å®šæµ
+	//warning å¦‚æœä¸€ä¸ªæµåœ¨å¤šçº¿ç¨‹ç¯å¢ƒä¸‹è¢«ä½¿ç”¨æ—¶å¿…é¡»åœ¨è¯»å†™åŒºå—ä¸­æ‰‹åŠ¨åŠ é”
+	//return  ä½¿ç”¨FCYOKå’ŒFCYFAILEDåˆ¤æ–­æ˜¯å¦æˆåŠŸåŠ é”
 	virtual fResult TryLock()=0;
 
-	//½âËøÁ÷
-	//note    ¸Ãº¯Êı±ØĞëÔÚLockºÍTryLock³É¹¦µÄÌõ¼şÏÂ½øĞĞµ÷ÓÃ
-	//warning Èç¹ûÒ»¸öÁ÷ÔÚ¶àÏß³Ì»·¾³ÏÂ±»Ê¹ÓÃÊ±±ØĞëÔÚ¶ÁĞ´Çø¿éÖĞÊÖ¶¯¼ÓËø
+	//è§£é”æµ
+	//note    è¯¥å‡½æ•°å¿…é¡»åœ¨Lockå’ŒTryLockæˆåŠŸçš„æ¡ä»¶ä¸‹è¿›è¡Œè°ƒç”¨
+	//warning å¦‚æœä¸€ä¸ªæµåœ¨å¤šçº¿ç¨‹ç¯å¢ƒä¸‹è¢«ä½¿ç”¨æ—¶å¿…é¡»åœ¨è¯»å†™åŒºå—ä¸­æ‰‹åŠ¨åŠ é”
 	virtual void Unlock()=0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fcyÎÄ¼şÁ÷ÊµÏÖ
+/// @brief fcyæ–‡ä»¶æµå®ç°
 ////////////////////////////////////////////////////////////////////////////////
 class fcyFileStream :
 	public fcyRefObjImpl<fcyStream>
 {
 private:
-	HANDLE m_hFile;       ///< @brief ÄÚ²¿ÎÄ¼ş¾ä±ú
-	fBool m_bWritable;    ///< @brief ÊÇ·ñ¿ÉĞ´
-	std::wstring m_sPath; ///< @brief ÎÄ¼şÂ·¾¶
-	fcyCriticalSection m_CriticalSec; ///< @brief ÁÙ½çÇø
-public: // ½Ó¿ÚÊµÏÖ
+	HANDLE m_hFile;       ///< @brief å†…éƒ¨æ–‡ä»¶å¥æŸ„
+	fBool m_bWritable;    ///< @brief æ˜¯å¦å¯å†™
+	std::wstring m_sPath; ///< @brief æ–‡ä»¶è·¯å¾„
+	fcyCriticalSection m_CriticalSec; ///< @brief ä¸´ç•ŒåŒº
+public: // æ¥å£å®ç°
 	fBool CanWrite();
 	fBool CanResize();
 	fLen GetLength();
@@ -107,27 +107,27 @@ public: // ½Ó¿ÚÊµÏÖ
 	fResult TryLock();
 	void Unlock();
 public:
-	/// @brief     ¹¹Ôìº¯Êı
-	/// @param[in] Path     ÎÄ¼şÂ·¾¶
-	/// @param[in] Writable ¿ÉĞ´
+	/// @brief     æ„é€ å‡½æ•°
+	/// @param[in] Path     æ–‡ä»¶è·¯å¾„
+	/// @param[in] Writable å¯å†™
 	fcyFileStream(fcStrW Path, fBool Writable);
 protected:
 	~fcyFileStream();
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fcyÄÚ´æÁ÷
+/// @brief fcyå†…å­˜æµ
 ////////////////////////////////////////////////////////////////////////////////
 class fcyMemStream :
 	public fcyRefObjImpl<fcyStream>
 {
 private:
-	std::vector<fByte> m_Data;        ///< @brief ÄÚ²¿Êı×é
-	fBool m_bResizable;               ///< @brief ¿É±ä³¤
-	fBool m_bWritable;                ///< @brief ¿ÉĞ´
-	fLen m_cPointer;                  ///< @brief ¶ÁĞ´Î»ÖÃ
-	fcyCriticalSection m_CriticalSec; ///< @brief ÁÙ½çÇø
-public: // ½Ó¿ÚÊµÏÖ
+	std::vector<fByte> m_Data;        ///< @brief å†…éƒ¨æ•°ç»„
+	fBool m_bResizable;               ///< @brief å¯å˜é•¿
+	fBool m_bWritable;                ///< @brief å¯å†™
+	fLen m_cPointer;                  ///< @brief è¯»å†™ä½ç½®
+	fcyCriticalSection m_CriticalSec; ///< @brief ä¸´ç•ŒåŒº
+public: // æ¥å£å®ç°
 	fBool CanWrite();
 	fBool CanResize();
 	fLen GetLength();
@@ -139,32 +139,32 @@ public: // ½Ó¿ÚÊµÏÖ
 	void Lock();
 	fResult TryLock();
 	void Unlock();
-public: // À©Õ¹½Ó¿Ú
+public: // æ‰©å±•æ¥å£
 	fData GetInternalBuffer();
 public:
-	/// @brief     ¹¹Ôìº¯Êı
-	/// @param[in] Src       Êı¾İÔ´£¬ÖÃÎªNULLÔò²»´ÓÊı¾İÔ´¿½±´
-	/// @param[in] Length    Êı¾İ³¤¶È
-	/// @param[in] Writable  ¿ÉĞ´
-	/// @param[in] Resizable ¿É±ä³¤
+	/// @brief     æ„é€ å‡½æ•°
+	/// @param[in] Src       æ•°æ®æºï¼Œç½®ä¸ºNULLåˆ™ä¸ä»æ•°æ®æºæ‹·è´
+	/// @param[in] Length    æ•°æ®é•¿åº¦
+	/// @param[in] Writable  å¯å†™
+	/// @param[in] Resizable å¯å˜é•¿
 	fcyMemStream(fcData Src, fLen Length, fBool Writable, fBool Resizable);
 protected:
 	~fcyMemStream();
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fcy²¿·ÖÁ÷
-/// @note  ÓÃÀ´¶ÔÒ»¸öÁ÷µÄÒ»²¿·Ö½øĞĞ·ÃÎÊ
+/// @brief fcyéƒ¨åˆ†æµ
+/// @note  ç”¨æ¥å¯¹ä¸€ä¸ªæµçš„ä¸€éƒ¨åˆ†è¿›è¡Œè®¿é—®
 ////////////////////////////////////////////////////////////////////////////////
 class fcyPartialStream :
 	public fcyRefObjImpl<fcyStream>
 {
 private:
-	fcyStream* m_pOrgStream; ///< @brief Ô­Ê¼Á÷
-	fLen m_Offset;           ///< @brief ÔÚÔ­Ê¼Á÷ÖĞµÄÆ«ÒÆÁ¿
-	fLen m_pPos;             ///< @brief µ±Ç°¶ÁĞ´Î»ÖÃ
-	fLen m_Len;              ///< @brief Ô­Ê¼Á÷³¤¶È
-public: // ½Ó¿ÚÊµÏÖ
+	fcyStream* m_pOrgStream; ///< @brief åŸå§‹æµ
+	fLen m_Offset;           ///< @brief åœ¨åŸå§‹æµä¸­çš„åç§»é‡
+	fLen m_pPos;             ///< @brief å½“å‰è¯»å†™ä½ç½®
+	fLen m_Len;              ///< @brief åŸå§‹æµé•¿åº¦
+public: // æ¥å£å®ç°
 	fBool CanWrite();
 	fBool CanResize();
 	fLen GetLength();
@@ -177,26 +177,26 @@ public: // ½Ó¿ÚÊµÏÖ
 	fResult TryLock();
 	void Unlock();
 public:
-	/// @brief     ¹¹Ôìº¯Êı
-	/// @param[in] OrgStream Ô­Ê¼Á÷Ö¸Õë
-	/// @param[in] Offset    ²¿·ÖÁ÷ÔÚÔ­Ê¼Á÷ÖĞµÄÎ»ÒÆ
-	/// @param[in] Size      ²¿·ÖÁ÷´óĞ¡
+	/// @brief     æ„é€ å‡½æ•°
+	/// @param[in] OrgStream åŸå§‹æµæŒ‡é’ˆ
+	/// @param[in] Offset    éƒ¨åˆ†æµåœ¨åŸå§‹æµä¸­çš„ä½ç§»
+	/// @param[in] Size      éƒ¨åˆ†æµå¤§å°
 	fcyPartialStream(fcyStream* OrgStream, fLen Offset, fLen Size);
 protected:
 	~fcyPartialStream();
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fcyÁ÷¸¨Öú
+/// @brief fcyæµè¾…åŠ©
 ////////////////////////////////////////////////////////////////////////////////
 namespace fcyStreamHelper
 {
-	/// @brief     Ìî³äÁ÷
-	/// @note      ÔÚSrcµÄµ±Ç°Î»ÖÃ¶ÁÈ¡DataLength¸ö³¤¶Èµ½DestÁ÷ÖĞ
-	/// @param[in] Src Ô­Ê¼Á÷
-	/// @param[in] Dest Ä¿µÄÁ÷
-	/// @param[in] DataLength Êı¾İ³¤¶È
-	/// @return    FCYERR_OK£º²Ù×÷³É¹¦Íê³É£¬FCYERR_INTERNALERR£º¶ÁÈ¡Ê±´íÎó
+	/// @brief     å¡«å……æµ
+	/// @note      åœ¨Srcçš„å½“å‰ä½ç½®è¯»å–DataLengthä¸ªé•¿åº¦åˆ°Destæµä¸­
+	/// @param[in] Src åŸå§‹æµ
+	/// @param[in] Dest ç›®çš„æµ
+	/// @param[in] DataLength æ•°æ®é•¿åº¦
+	/// @return    FCYERR_OKï¼šæ“ä½œæˆåŠŸå®Œæˆï¼ŒFCYERR_INTERNALERRï¼šè¯»å–æ—¶é”™è¯¯
 	fResult FillStream(fcyStream* Src, fcyStream* Dest, fLen DataLength);
 };
 /// @}
