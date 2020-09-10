@@ -4,6 +4,7 @@
 #include "AppFrame.h"
 #include "Network.h"
 #include "ESC.h"
+#include <filesystem>
 
 #ifdef min
 #undef min
@@ -880,27 +881,28 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 				param.glyph_count = 1024;
 				param.texture_size = 2048;
 			}
+			if (lua_istable(L, 2))
 			{
 				lua_getfield(L, 2, "glyph_bbox_x");
-				if (lua_type(L, -1) != LUA_TNIL) {
+				if (lua_type(L, -1) == LUA_TNUMBER) {
 					param.font_bbox.x = (fFloat)luaL_checknumber(L, -1);
 				}
 				lua_pop(L, 1);
 				
 				lua_getfield(L, 2, "glyph_bbox_y");
-				if (lua_type(L, -1) != LUA_TNIL) {
+				if (lua_type(L, -1) == LUA_TNUMBER) {
 					param.font_bbox.y = (fFloat)luaL_checknumber(L, -1);
 				}
 				lua_pop(L, 1);
 				
 				lua_getfield(L, 2, "glyph_count");
-				if (lua_type(L, -1) != LUA_TNIL) {
+				if (lua_type(L, -1) == LUA_TNUMBER) {
 					param.glyph_count = (fuInt)std::max(0, luaL_checkinteger(L, -1));
 				}
 				lua_pop(L, 1);
 				
 				lua_getfield(L, 2, "texture_size");
-				if (lua_type(L, -1) != LUA_TNIL) {
+				if (lua_type(L, -1) == LUA_TNUMBER) {
 					param.texture_size = (fuInt)std::max(0, luaL_checkinteger(L, -1));
 				}
 				lua_pop(L, 1);
@@ -908,8 +910,9 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			
 			// 第三个参数，字体
 			std::vector<f2dTrueTypeFontParam> fonts;
+			std::vector<fcyRefPointer<fcyStream>> streams;
+			if (lua_istable(L, 3))
 			{
-				
 				using sw = LuaSTGPlus::LuaWrapper::IO::StreamWrapper::Wrapper;
 				int cnt = (int)lua_objlen(L, 3);
 												// name param fonts
@@ -926,31 +929,68 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 					lua_gettable(L, 3);			// name param fonts font
 					
 					lua_getfield(L, -1, "face_index"); // name param fonts font ?
-					if (lua_type(L, -1) != LUA_TNIL) // name param fonts font v
+					if (lua_type(L, -1) == LUA_TNUMBER) // name param fonts font v
 					{
 						font.font_face = (fInt)luaL_checkinteger(L, -1);
 					}
 					lua_pop(L, 1);				// name param fonts font
 					
 					lua_getfield(L, -1, "width"); // name param fonts font ?
-					if (lua_type(L, -1) != LUA_TNIL) // name param fonts font v
+					if (lua_type(L, -1) == LUA_TNUMBER) // name param fonts font v
 					{
 						font.font_size.x = (fFloat)luaL_checknumber(L, -1);
 					}
 					lua_pop(L, 1);				// name param fonts font
 					
 					lua_getfield(L, -1, "height"); // name param fonts font ?
-					if (lua_type(L, -1) != LUA_TNIL) // name param fonts font v
+					if (lua_type(L, -1) == LUA_TNUMBER) // name param fonts font v
 					{
 						font.font_size.y = (fFloat)luaL_checknumber(L, -1);
 					}
 					lua_pop(L, 1);				// name param fonts font
 					
 					lua_getfield(L, -1, "source"); // name param fonts font ?
-					if (lua_type(L, -1) != LUA_TNIL) // name param fonts font v
+					if (lua_type(L, -1) == LUA_TUSERDATA) // name param fonts font v
 					{
 						sw* data = (sw*)luaL_checkudata(L, -1, LUASTG_LUA_TYPENAME_IO_STREAM);
 						font.font_source = (fcyMemStream*)data->handle;
+					}
+					lua_pop(L, 1);				// name param fonts font
+					
+					lua_getfield(L, -1, "file"); // name param fonts font ?
+					if (lua_type(L, -1) == LUA_TSTRING) // name param fonts font v
+					{
+						const char* filename = luaL_checkstring(L, -1);
+						bool loaded = false;
+						// 先从文件加载试试看
+						try {
+							std::wstring wfilename = fcyStringHelper::MultiByteToWideChar(filename, CP_UTF8);
+							if (std::filesystem::is_regular_file(wfilename)) {
+								try {
+									fcyFileStream* stream = new fcyFileStream(wfilename.c_str(), false);
+									
+									streams.push_back(fcyRefPointer<fcyStream>());
+									streams.back().DirectSet(stream);
+									loaded = true;
+									
+									font.font_source = nullptr; // 这个不要
+									font.font_file = (f2dStream*)stream;
+								}
+								catch (...) {}
+							}
+						}
+						catch (...) {}
+						// 没有……那只能从FMGR加载了
+						if (!loaded) {
+							fcyMemStream* stream = (fcyMemStream*)LFMGR.LoadFile(filename);
+							if (stream != nullptr) {
+								streams.push_back(fcyRefPointer<fcyStream>());
+								streams.back().DirectSet(stream);
+								loaded = true;
+								
+								font.font_source = stream;
+							}
+						}
 					}
 					lua_pop(L, 1);				// name param fonts font
 					

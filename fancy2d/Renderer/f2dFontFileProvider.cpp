@@ -259,9 +259,11 @@ bool f2dFontFileProvider::openFonts(f2dFontProviderParam param, f2dTrueTypeFontP
 		m_Param[i] = fonts[i];
 	}
 	// 逐个打开字体
-	for (auto& ftf : m_Param) {
+	m_Fonts.resize(count);
+	for (fuInt i = 0; i < count; i++) {
 		// 准备数据
-		FontData data;
+		auto& ftf = fonts[i];
+		FontData& data = m_Fonts[i];
 		memset(&data, 0, sizeof(data));
 		// 准备流
 		if (ftf.font_file != nullptr) {
@@ -269,12 +271,12 @@ bool f2dFontFileProvider::openFonts(f2dFontProviderParam param, f2dTrueTypeFontP
 			ftf.font_file->SetPosition(FCYSEEKORIGIN_BEG, 0);
 			data.stream = ftf.font_file;
 			// 准备 FT2 字体流
-			data.ftargs.flags = FT_OPEN_STREAM;
-			data.ftargs.stream = &data.ftstream;
-			data.ftstream.size = (unsigned long)ftf.font_file->GetLength();
-			data.ftstream.descriptor.pointer = ftf.font_file;
+			data.ftstream.size = (unsigned long)data.stream->GetLength();
+			data.ftstream.descriptor.pointer = data.stream;
 			data.ftstream.read = streamRead;
 			data.ftstream.close = streamClose;
+			data.ftargs.flags = FT_OPEN_STREAM;
+			data.ftargs.stream = &data.ftstream;
 		}
 		else if (ftf.font_source != nullptr) {
 			// 如果是内存流
@@ -300,8 +302,6 @@ bool f2dFontFileProvider::openFonts(f2dFontProviderParam param, f2dTrueTypeFontP
 			data.ftLineHeight = heightSizeToPixel(data.ftFace, data.ftFace->height);
 			data.ftAscender = heightSizeToPixel(data.ftFace, data.ftFace->ascender);
 			data.ftDescender = heightSizeToPixel(data.ftFace, data.ftFace->descender);
-			// 现在可以把数据保存下来了
-			m_Fonts.emplace_back(std::move(data));
 		}
 		else {
 			// 没成功打开
