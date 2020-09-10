@@ -308,19 +308,24 @@ bool f2dFontFileProvider::openFonts(f2dFontProviderParam param, f2dTrueTypeFontP
 			data.stream->Release();
 		}
 	}
-	// 至少找到一个fallback字体
+	// 检查结果
 	if (m_Fonts.size() > 0) {
+		// 至少找到一个fallback字体
 		m_Fonts.back().fallback = true;
+		// 计算公共参数
+		for (auto& f : m_Fonts) {
+			m_FontsInfo.ftBBox.x = max(m_FontsInfo.ftBBox.x, f.ftBBox.x);
+			m_FontsInfo.ftBBox.y = max(m_FontsInfo.ftBBox.y, f.ftBBox.y);
+			m_FontsInfo.ftLineHeight = max(m_FontsInfo.ftLineHeight, f.ftLineHeight);
+			m_FontsInfo.ftAscender = max(m_FontsInfo.ftAscender, f.ftAscender);
+			m_FontsInfo.ftDescender = min(m_FontsInfo.ftDescender, f.ftDescender);
+		}
+		return true;
 	}
-	// 计算公共参数
-	for (auto& f : m_Fonts) {
-		m_FontsInfo.ftBBox.x = max(m_FontsInfo.ftBBox.x, f.ftBBox.x);
-		m_FontsInfo.ftBBox.y = max(m_FontsInfo.ftBBox.y, f.ftBBox.y);
-		m_FontsInfo.ftLineHeight = max(m_FontsInfo.ftLineHeight, f.ftLineHeight);
-		m_FontsInfo.ftAscender = max(m_FontsInfo.ftAscender, f.ftAscender);
-		m_FontsInfo.ftDescender = min(m_FontsInfo.ftDescender, f.ftDescender);
+	else {
+		closeFonts();
+		return false;
 	}
-	return m_Fonts.size() > 0; // 如果一个都没有，啧啧啧……
 }
 
 void f2dFontFileProvider::closeFonts() {

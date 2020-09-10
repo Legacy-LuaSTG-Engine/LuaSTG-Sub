@@ -1019,9 +1019,9 @@ bool ResourcePool::LoadTTFFont(const char* name, fcyStream* stream, float width,
 		}
 		
 		// 创建定义
+		fcyRefPointer<f2dFontProvider> tFontProvider;
 		try
 		{
-			fcyRefPointer<f2dFontProvider> tFontProvider;
 			if (FCYFAILED(LAPP.GetRenderer()->CreateFontFromMemory(
 					(fcyMemStream*)stream, 0, fcyVec2(width, height), fcyVec2(bboxwidth, bboxheight), F2DFONTFLAG_NONE, &tFontProvider)))
 			{
@@ -1064,9 +1064,9 @@ bool ResourcePool::LoadTrueTypeFont(const char* name, f2dFontProviderParam param
 		}
 		
 		// 创建定义
+		fcyRefPointer<f2dFontProvider> tFontProvider;
 		try
 		{
-			fcyRefPointer<f2dFontProvider> tFontProvider;
 			if (FCYFAILED(LAPP.GetRenderer()->CreateFontFromMemory(
 					param, fonts, count, &tFontProvider)))
 			{
