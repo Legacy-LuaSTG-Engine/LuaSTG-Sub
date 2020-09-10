@@ -1017,38 +1017,79 @@ bool ResourcePool::LoadTTFFont(const char* name, fcyStream* stream, float width,
 			LWARNING("LoadTTFFont: 字体'%m'已存在，加载操作已被取消", name);
 			return true;
 		}
-
-		fcyRefPointer<f2dFontProvider> tFontProvider;
+		
 		// 创建定义
 		try
 		{
-			if (!tFontProvider)
-			{
-				if (FCYFAILED(LAPP.GetRenderer()->CreateFontFromMemory(
+			fcyRefPointer<f2dFontProvider> tFontProvider;
+			if (FCYFAILED(LAPP.GetRenderer()->CreateFontFromMemory(
 					(fcyMemStream*)stream, 0, fcyVec2(width, height), fcyVec2(bboxwidth, bboxheight), F2DFONTFLAG_NONE, &tFontProvider)))
-				{
-					LERROR("LoadTTFFont: 从内存创建TrueType字体失败");
-					return false;
-				}
+			{
+				LERROR("LoadTTFFont: 从内存创建TrueType字体失败");
+				return false;
 			}
-#ifdef LSHOWRESLOADINFO
-			LINFO("字形缓存数量：%d，字形缓存贴图大小：%dx%d", tFontProvider->GetCacheCount(), tFontProvider->GetCacheTexSize(), tFontProvider->GetCacheTexSize());
-#endif
 			fcyRefPointer<ResFont> tRes;
 			tRes.DirectSet(new ResFont(name, tFontProvider));
 			tRes->SetBlendMode(BlendMode::AddAlpha);
 			m_TTFFontPool.emplace(name, tRes);
+#ifdef LSHOWRESLOADINFO
+			LINFO("LoadTTFFont: truetype字体'%m'已装载 (%s)", name, getResourcePoolTypeName());
+			LINFO("字形缓存数量：%d，字形缓存贴图大小：%dx%d",
+				tFontProvider->GetCacheCount(), tFontProvider->GetCacheTexSize(), tFontProvider->GetCacheTexSize());
+#endif
 		}
 		catch (const bad_alloc&)
 		{
 			LERROR("LoadTTFFont: 内存不足");
 			return false;
 		}
-#ifdef LSHOWRESLOADINFO
-		LINFO("LoadTTFFont: truetype字体'%m'已装载 (%s)", name, getResourcePoolTypeName());
-#endif
 	}
+	
+	LDEBUG_RESOURCEHINT(ResourceType::TrueTypeFont, L"Memory");
+	return true;
+}
 
+bool ResourcePool::LoadTrueTypeFont(const char* name, f2dFontProviderParam param, f2dTrueTypeFontParam* fonts, fuInt count)LNOEXCEPT {
+	LDEBUG_RESOURCETIMER;
+	
+	{
+		LDEBUG_RESOURCESCOPE;
+		
+		LASSERT(LAPP.GetRenderer());
+		
+		if (m_TTFFontPool.find(name) != m_TTFFontPool.end())
+		{
+			LWARNING("LoadTrueTypeFont: 字体组'%m'已存在，加载操作已被取消", name);
+			return true;
+		}
+		
+		// 创建定义
+		try
+		{
+			fcyRefPointer<f2dFontProvider> tFontProvider;
+			if (FCYFAILED(LAPP.GetRenderer()->CreateFontFromMemory(
+					param, fonts, count, &tFontProvider)))
+			{
+				LERROR("LoadTrueTypeFont: 从内存创建TrueType字体组失败");
+				return false;
+			}
+			fcyRefPointer<ResFont> tRes;
+			tRes.DirectSet(new ResFont(name, tFontProvider));
+			tRes->SetBlendMode(BlendMode::AddAlpha);
+			m_TTFFontPool.emplace(name, tRes);
+#ifdef LSHOWRESLOADINFO
+			LINFO("LoadTrueTypeFont: TrueType字体组'%m'已装载 (%s)", name, getResourcePoolTypeName());
+			LINFO("字形缓存数量：%d，字形缓存贴图大小：%dx%d",
+				tFontProvider->GetCacheCount(), tFontProvider->GetCacheTexSize(), tFontProvider->GetCacheTexSize());
+#endif
+		}
+		catch (const bad_alloc&)
+		{
+			LERROR("LoadTrueTypeFont: 内存不足");
+			return false;
+		}
+	}
+	
 	LDEBUG_RESOURCEHINT(ResourceType::TrueTypeFont, L"Memory");
 	return true;
 }

@@ -862,6 +862,108 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			}
 			return 1;
 		}
+		static int LoadTrueTypeFont(lua_State* L)LNOEXCEPT
+		{
+			// 先检查有没有资源池
+			ResourcePool* pActivedPool = LRES.GetActivedPool();
+			if (!pActivedPool) {
+				return luaL_error(L, "can't load resource at this time.");
+			}
+			
+			// 第一个参数，资源名
+			const char* name = luaL_checkstring(L, 1);
+			
+			// 第二个参数，字体加载配置
+			f2dFontProviderParam param;
+			{
+				param.font_bbox = fcyVec2(0.0f, 0.0f);
+				param.glyph_count = 1024;
+				param.texture_size = 2048;
+			}
+			{
+				lua_getfield(L, 2, "glyph_bbox_x");
+				if (lua_type(L, -1) != LUA_TNIL) {
+					param.font_bbox.x = (fFloat)luaL_checknumber(L, -1);
+				}
+				lua_pop(L, 1);
+				
+				lua_getfield(L, 2, "glyph_bbox_y");
+				if (lua_type(L, -1) != LUA_TNIL) {
+					param.font_bbox.y = (fFloat)luaL_checknumber(L, -1);
+				}
+				lua_pop(L, 1);
+				
+				lua_getfield(L, 2, "glyph_count");
+				if (lua_type(L, -1) != LUA_TNIL) {
+					param.glyph_count = (fuInt)std::max(0, luaL_checkinteger(L, -1));
+				}
+				lua_pop(L, 1);
+				
+				lua_getfield(L, 2, "texture_size");
+				if (lua_type(L, -1) != LUA_TNIL) {
+					param.texture_size = (fuInt)std::max(0, luaL_checkinteger(L, -1));
+				}
+				lua_pop(L, 1);
+			}
+			
+			// 第三个参数，字体
+			std::vector<f2dTrueTypeFontParam> fonts;
+			{
+				
+				using sw = LuaSTGPlus::LuaWrapper::IO::StreamWrapper::Wrapper;
+				int cnt = (int)lua_objlen(L, 3);
+												// name param fonts
+				for (int i = 1; i <= cnt; i += 1) {
+					f2dTrueTypeFontParam font;
+					{
+						font.font_file = nullptr; // 不会用上
+						font.font_source = nullptr;
+						font.font_face = 0;
+						font.font_size = fcyVec2(0.0f, 0.0f);
+					}
+					
+					lua_pushinteger(L, i);		// name param fonts i
+					lua_gettable(L, 3);			// name param fonts font
+					
+					lua_getfield(L, -1, "face_index"); // name param fonts font ?
+					if (lua_type(L, -1) != LUA_TNIL) // name param fonts font v
+					{
+						font.font_face = (fInt)luaL_checkinteger(L, -1);
+					}
+					lua_pop(L, 1);				// name param fonts font
+					
+					lua_getfield(L, -1, "width"); // name param fonts font ?
+					if (lua_type(L, -1) != LUA_TNIL) // name param fonts font v
+					{
+						font.font_size.x = (fFloat)luaL_checknumber(L, -1);
+					}
+					lua_pop(L, 1);				// name param fonts font
+					
+					lua_getfield(L, -1, "height"); // name param fonts font ?
+					if (lua_type(L, -1) != LUA_TNIL) // name param fonts font v
+					{
+						font.font_size.y = (fFloat)luaL_checknumber(L, -1);
+					}
+					lua_pop(L, 1);				// name param fonts font
+					
+					lua_getfield(L, -1, "source"); // name param fonts font ?
+					if (lua_type(L, -1) != LUA_TNIL) // name param fonts font v
+					{
+						sw* data = (sw*)luaL_checkudata(L, -1, LUASTG_LUA_TYPENAME_IO_STREAM);
+						font.font_source = (fcyMemStream*)data->handle;
+					}
+					lua_pop(L, 1);				// name param fonts font
+					
+					lua_pop(L, 1);				// name param fonts
+					fonts.emplace_back(std::move(font));
+				}
+			}
+			
+			bool result = pActivedPool->LoadTrueTypeFont(name, param, fonts.data(), fonts.size());
+			lua_pushboolean(L, result);
+			
+			return 1;
+		}
 		static int LoadFX(lua_State* L)LNOEXCEPT
 		{
 			const char* name = luaL_checkstring(L, 1);
@@ -1095,7 +1197,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			return 0;
 		}
 		#pragma endregion
-
+		
 		#pragma region 绘图函数
 		// 绘图函数
 		static int BeginScene(lua_State* L)LNOEXCEPT
@@ -2142,6 +2244,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		{ "LoadMusic", &WrapperImplement::LoadMusic },
 		{ "LoadFont", &WrapperImplement::LoadFont },
 		{ "LoadTTF", &WrapperImplement::LoadTTF },
+		{ "LoadTrueTypeFont", &WrapperImplement::LoadTrueTypeFont },
 		{ "RegTTF", &WrapperImplement::RegTTF },
 		{ "LoadFX", &WrapperImplement::LoadFX },
 		{ "CreateRenderTarget", &WrapperImplement::CreateRenderTarget },

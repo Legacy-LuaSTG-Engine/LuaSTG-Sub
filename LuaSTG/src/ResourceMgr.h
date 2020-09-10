@@ -166,7 +166,10 @@ namespace LuaSTGPlus
 		LNOINLINE bool LoadTTFFont(const char* name, const char* path, float width, float height, float bboxwidth, float bboxheight)LNOEXCEPT;
 
 		bool LoadTTFFont(const char* name, fcyStream* stream, float width, float height, float bboxwidth, float bboxheight)LNOEXCEPT;
-
+		
+		// 加载 TrueType 字体
+		bool LoadTrueTypeFont(const char* name, f2dFontProviderParam param, f2dTrueTypeFontParam* fonts, fuInt count)LNOEXCEPT;
+		
 		/// @brief 装载FX
 		bool LoadFX(const char* name, const std::wstring& path)LNOEXCEPT;
 
