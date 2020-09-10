@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 project(LuaSTGSub)
 
-set(EXT_LIBRARY_TYPE Release)
+set(EXT_LIBRARY_TYPE Debug)
 
 add_subdirectory(fancylib)
 
