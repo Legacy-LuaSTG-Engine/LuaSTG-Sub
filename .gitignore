@@ -1,5 +1,6 @@
 bin
 build
 ver
+imgui
 LuaSTG/custom
 tool/RC/.vs
