@@ -126,9 +126,9 @@ target_link_libraries(fancy2d
     
     strmiids.lib #???
     strmbasd
-    dxguid.lib
     winmm.lib
     imm32.lib
+    dxguid.lib
     d3dx9.lib
     
     zlib.lib
