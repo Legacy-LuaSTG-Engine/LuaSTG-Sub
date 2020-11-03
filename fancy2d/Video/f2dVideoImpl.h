@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dVideoImpl.h
-/// @brief fancy2DVideo½Ó¿ÚÊµÏÖ
+/// @brief fancy2DVideoæ¥å£å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "Video/f2dVideoStream.h"
@@ -9,41 +9,41 @@
 class f2dVideoSysImpl;
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2DÊÓÆµ²ÉÑùÆ÷ĞÅÏ¢
+/// @brief fancy2Dè§†é¢‘é‡‡æ ·å™¨ä¿¡æ¯
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dVideoFilterInfo
 {
-	HINSTANCE hDLLInstance; ///< @brief DLLÊµÀı
-	GUID FilterGUID;        ///< @brief ¹ıÂËÆ÷GUID
+	HINSTANCE hDLLInstance; ///< @brief DLLå®ä¾‹
+	GUID FilterGUID;        ///< @brief è¿‡æ»¤å™¨GUID
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2DÊÓÆµ¶ÔÏóÊµÏÖ
+/// @brief fancy2Dè§†é¢‘å¯¹è±¡å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 class f2dVideoImpl :
 	public fcyRefObjImpl<f2dVideo>
 {
 private:
-	// --- ÊÓÆµÁ÷¶ÔÏó ---
+	// --- è§†é¢‘æµå¯¹è±¡ ---
 	f2dVideoStream* m_pStream;
 	f2dVideoStreamReader* m_pReader;
 
-	// --- DEBUGÓÃ ---
+	// --- DEBUGç”¨ ---
 	DWORD m_ObjectTableEntry;
 
-	// --- DShow×é¼ş ---
-	IGraphBuilder* m_pFilterGraph;  ///< @brief ¹ıÂËÆ÷¹ÜÀíÆ÷
-	IMediaControl* m_pMediaControl; ///< @brief Ã½Ìå¿ØÖÆÆ÷
-	IMediaEventEx* m_pMediaEvent;   ///< @brief Ã½ÌåÊÂ¼ş
-	IMediaSeeking* m_pMediaSeek;    ///< @brief Ã½ÌåÑ°Ö·
-	IVideoFrameStep* m_pVideoStep;  ///< @brief ÊÓÆµµ¥²½äÖÈ¾¿ØÖÆ
-	IBasicAudio* m_pAudioControl;   ///< @brief ÉùÒô¿ØÖÆ
+	// --- DShowç»„ä»¶ ---
+	IGraphBuilder* m_pFilterGraph;  ///< @brief è¿‡æ»¤å™¨ç®¡ç†å™¨
+	IMediaControl* m_pMediaControl; ///< @brief åª’ä½“æ§åˆ¶å™¨
+	IMediaEventEx* m_pMediaEvent;   ///< @brief åª’ä½“äº‹ä»¶
+	IMediaSeeking* m_pMediaSeek;    ///< @brief åª’ä½“å¯»å€
+	IVideoFrameStep* m_pVideoStep;  ///< @brief è§†é¢‘å•æ­¥æ¸²æŸ“æ§åˆ¶
+	IBasicAudio* m_pAudioControl;   ///< @brief å£°éŸ³æ§åˆ¶
 
-	// --- ÎÆÀí×é¼ş ---
+	// --- çº¹ç†ç»„ä»¶ ---
 	f2dVideoRenderer* m_pRenderer;
 	f2dTexture2D* m_pTex;
 
-	// --- ×´Ì¬ ---
+	// --- çŠ¶æ€ ---
 	fBool m_bLoop;
 private:
 	void clearUp();
@@ -52,7 +52,7 @@ private:
 private:
 	fBool addFilter(const f2dVideoFilterInfo& Filter);
 	void clearUselessFilter();
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	f2dVideoRendererListener* GetRendererListener();
 	void SetRendererListener(f2dVideoRendererListener* pListener);
 

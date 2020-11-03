@@ -1,4 +1,4 @@
-#ifndef _M_ARM
+ï»¿#ifndef _M_ARM
 
 #include "Video/f2dVideoImpl.h"
 
@@ -20,7 +20,7 @@ f2dVideoImpl::f2dVideoImpl(f2dVideoSysImpl* pParent, f2dStream* pStream, fuInt F
 {
 	HRESULT tHR = S_OK;
 
-	// --- ¹¹½¨Á÷ ---
+	// --- æ„å»ºæµ ---
 	m_pStream = new f2dVideoStream(pStream);
 	m_pReader = new f2dVideoStreamReader(m_pStream, &tHR);
 	if(FAILED(tHR))
@@ -33,7 +33,7 @@ f2dVideoImpl::f2dVideoImpl(f2dVideoSysImpl* pParent, f2dStream* pStream, fuInt F
 
 	m_pReader->AddRef();
 
-	// --- ´´½¨¹ıÂËÆ÷¹ÜÀíÆ÷ ---
+	// --- åˆ›å»ºè¿‡æ»¤å™¨ç®¡ç†å™¨ ---
 	if(FAILED(tHR = 
 		CoCreateInstance(
 			CLSID_FilterGraph, 
@@ -47,25 +47,25 @@ f2dVideoImpl::f2dVideoImpl(f2dVideoSysImpl* pParent, f2dStream* pStream, fuInt F
 		throw fcyWin32COMException("f2dVideoImpl::f2dVideoImpl", "CoCreateInstance(CLSID_FilterGraph) Failed.", tHR);
 	}
 	
-	// ²éÑ¯½Ó¿Ú£¬»ñµÃÃ½Ìå¿ØÖÆºÍÃ½ÌåÊÂ¼ş½Ó¿Ú
+	// æŸ¥è¯¢æ¥å£ï¼Œè·å¾—åª’ä½“æ§åˆ¶å’Œåª’ä½“äº‹ä»¶æ¥å£
 	m_pFilterGraph->QueryInterface(IID_IMediaControl,  (void**)&m_pMediaControl);
 	m_pFilterGraph->QueryInterface(IID_IMediaEventEx,  (void**)&m_pMediaEvent);
 	m_pFilterGraph->QueryInterface(IID_IMediaSeeking, (void**)&m_pMediaSeek);
 	m_pFilterGraph->QueryInterface(IID_IVideoFrameStep,(void**)&m_pVideoStep);
 	m_pFilterGraph->QueryInterface(IID_IBasicAudio,    (void**)&m_pAudioControl);
 
-	// --- ÉèÖÃÊ±¼äµ¥Î» ---
+	// --- è®¾ç½®æ—¶é—´å•ä½ ---
 	m_pMediaSeek->SetTimeFormat(&TIME_FORMAT_MEDIA_TIME);
 
-	// --- ¹Ò½Óµ÷ÊÔÆ÷ ---
+	// --- æŒ‚æ¥è°ƒè¯•å™¨ ---
 	if(Flag & F2DVIDEOFLAG_DEBUG)
 		registerDebug();
 
-	// --- ¼ÓÔØFilter ---
+	// --- åŠ è½½Filter ---
 	for(fuInt i = 0; i<pParent->m_FliterGUIDList.size(); ++i)
 		addFilter(pParent->m_FliterGUIDList[i]);
 
-	// --- ¹Ò½ÓÊÓÆµäÖÈ¾Æ÷ ---
+	// --- æŒ‚æ¥è§†é¢‘æ¸²æŸ“å™¨ ---
 	tHR = S_OK;
 	m_pRenderer = new f2dVideoRenderer(&tHR);
 	if(FAILED(tHR))
@@ -83,24 +83,24 @@ f2dVideoImpl::f2dVideoImpl(f2dVideoSysImpl* pParent, f2dStream* pStream, fuInt F
 		throw fcyWin32COMException("f2dVideoImpl::f2dVideoImpl", "IGraphBuilder::AddFilter Failed.", tHR);
 	}
 
-	// --- ¹Ò½ÓÁ÷ ---
+	// --- æŒ‚æ¥æµ ---
 	m_pFilterGraph->AddFilter(m_pReader, L"f2dVideoStream");
 
-	// --- äÖÈ¾Á÷ ---
+	// --- æ¸²æŸ“æµ ---
 	if(FAILED(tHR = m_pFilterGraph->Render(m_pReader->GetPin(0))))
 	{
 		clearUp();
 		throw fcyWin32COMException("f2dVideoImpl::f2dVideoImpl", "IGraphBuilder::Render Failed.", tHR);
 	}
 	
-	// --- ¼ì²éÊÓÆµÁ÷ÊÇ·ñÒÑ±»Ñ¡ÓÃ£¬ÈôÃ»ÓĞ£¬·µ»ØÊ§°Ü ---
+	// --- æ£€æŸ¥è§†é¢‘æµæ˜¯å¦å·²è¢«é€‰ç”¨ï¼Œè‹¥æ²¡æœ‰ï¼Œè¿”å›å¤±è´¥ ---
 	if(m_pRenderer->GetInternalPtr(0) == NULL)
 	{
 		clearUp();
 		throw fcyException("f2dVideoImpl::f2dVideoImpl", "Video Render Connect Failed.");
 	}
 
-	// --- ´´½¨ÄÚ²¿ÎÆÀí ---
+	// --- åˆ›å»ºå†…éƒ¨çº¹ç† ---
 	if(! (Flag & F2DVIDEOFLAG_NOMANAGEDTEX))
 	{
 		if(FCYFAILED(pParent->GetRenderDevice()->CreateDynamicTexture(
@@ -114,7 +114,7 @@ f2dVideoImpl::f2dVideoImpl(f2dVideoSysImpl* pParent, f2dStream* pStream, fuInt F
 		}
 	}
 
-	// --- Çå³ıÃ»ÓÃµÄFilter ---
+	// --- æ¸…é™¤æ²¡ç”¨çš„Filter ---
 	clearUselessFilter();
 }
 
@@ -125,15 +125,15 @@ f2dVideoImpl::~f2dVideoImpl()
 
 void f2dVideoImpl::clearUp()
 {
-	// Èç¹ûÒÑÔÚ²¥·ÅÔòÏÈÖÕÖ¹
+	// å¦‚æœå·²åœ¨æ’­æ”¾åˆ™å…ˆç»ˆæ­¢
 	if(m_pMediaControl)
 		m_pMediaControl->Stop();
 
-	// Ğ¶ÔØµ÷ÊÔÆ÷
+	// å¸è½½è°ƒè¯•å™¨
 	if(m_ObjectTableEntry)
 		unregisterDebug();
 
-	// Ğ¶ÔØDShow×é¼ş
+	// å¸è½½DShowç»„ä»¶
 	FCYSAFEKILL(m_pAudioControl);
 	FCYSAFEKILL(m_pVideoStep);
 	FCYSAFEKILL(m_pMediaSeek);
@@ -141,13 +141,13 @@ void f2dVideoImpl::clearUp()
 	FCYSAFEKILL(m_pMediaControl);
 	FCYSAFEKILL(m_pFilterGraph);
 
-	// Ğ¶ÔØÎÆÀí
+	// å¸è½½çº¹ç†
 	FCYSAFEKILL(m_pTex);
 
-	// Ğ¶ÔØÊÓÆµ¶ÔÏó
+	// å¸è½½è§†é¢‘å¯¹è±¡
 	FCYSAFEKILL(m_pRenderer);
 
-	// Ğ¶ÔØÁ÷
+	// å¸è½½æµ
 	FCYSAFEDEL(m_pStream);
 	FCYSAFEKILL(m_pReader);
 }
@@ -281,7 +281,7 @@ fResult f2dVideoImpl::Update()
 	if(m_pTex)
 		m_pRenderer->CopyDataToTexture(m_pTex);
 
-	// ¸üĞÂ×´Ì¬
+	// æ›´æ–°çŠ¶æ€
 	long tEvtCode = 0;
 	LONG_PTR tEvtParam1 = NULL;
 	LONG_PTR tEvtParam2 = NULL;

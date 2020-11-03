@@ -1,4 +1,4 @@
-#ifndef _M_ARM
+﻿#ifndef _M_ARM
 
 #include "Video/f2dVideoSysImpl.h"
 

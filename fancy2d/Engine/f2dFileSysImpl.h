@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+Ôªø////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dFileSysImpl.h
-/// @brief fancy2DŒƒº˛œµÕ≥Ω”ø⁄ µœ÷
+/// @brief fancy2DÊñá‰ª∂Á≥ªÁªüÊé•Âè£ÂÆûÁé∞
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyRefObj.h"
@@ -15,18 +15,18 @@
 #include <unordered_map>
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ’Ê µŒƒº˛º–Ω⁄µ„
+/// @brief ÁúüÂÆûÊñá‰ª∂Â§πËäÇÁÇπ
 ////////////////////////////////////////////////////////////////////////////////
 class f2dFileFolderNodeForReal : 
 	public fcyRefObjImpl<f2dFileFolderNode>
 {
 	friend class f2dFileSysImpl;
 private:
-	std::wstring m_Name;                                        ///< @brief Ω⁄µ„√˚
-	std::wstring m_DirPath;                                     ///< @brief Œƒº˛º–¬∑æ∂
-	std::vector<f2dFileNode*> m_SubNodes;                       ///< @brief ª∫¥ÊÀ˘”–◊”Ω⁄µ„
-	std::unordered_map<std::wstring, f2dFileNode*> m_NodeList;  ///< @brief º”ÀŸ≤È’“π˝≥Ã
-public: // Ω”ø⁄ µœ÷
+	std::wstring m_Name;                                        ///< @brief ËäÇÁÇπÂêç
+	std::wstring m_DirPath;                                     ///< @brief Êñá‰ª∂Â§πË∑ØÂæÑ
+	std::vector<f2dFileNode*> m_SubNodes;                       ///< @brief ÁºìÂ≠òÊâÄÊúâÂ≠êËäÇÁÇπ
+	std::unordered_map<std::wstring, f2dFileNode*> m_NodeList;  ///< @brief Âä†ÈÄüÊü•ÊâæËøáÁ®ã
+public: // Êé•Âè£ÂÆûÁé∞
 	f2dFileFolderNode* ToFolder();
 	f2dFileStreamNode* ToStream();
 
@@ -45,18 +45,18 @@ protected:
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ’Ê µŒƒº˛Ω⁄µ„
+/// @brief ÁúüÂÆûÊñá‰ª∂ËäÇÁÇπ
 ////////////////////////////////////////////////////////////////////////////////
 class f2dFileStreamNodeForReal :
 	public fcyRefObjImpl<f2dFileStreamNode>
 {
 	friend class f2dFileFolderNodeForReal;
 private:
-	std::wstring m_Name;          ///< @brief Ω⁄µ„√˚
-	std::wstring m_FileName;      ///< @brief Œƒº˛√˚
-	std::wstring m_AdditionData;  ///< @brief ∂ÓÕ‚ ˝æ›
-	fcyStream* m_pStream;         ///< @brief  ˝æ›¡˜
-public: // Ω”ø⁄ µœ÷
+	std::wstring m_Name;          ///< @brief ËäÇÁÇπÂêç
+	std::wstring m_FileName;      ///< @brief Êñá‰ª∂Âêç
+	std::wstring m_AdditionData;  ///< @brief È¢ùÂ§ñÊï∞ÊçÆ
+	fcyStream* m_pStream;         ///< @brief Êï∞ÊçÆÊµÅ
+public: // Êé•Âè£ÂÆûÁé∞
 	f2dFileFolderNode* ToFolder();
 	f2dFileStreamNode* ToStream();
 
@@ -72,20 +72,20 @@ protected:
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy◊ ‘¥∞¸Œƒº˛º–Ω⁄µ„
+/// @brief fancyËµÑÊ∫êÂåÖÊñá‰ª∂Â§πËäÇÁÇπ
 ////////////////////////////////////////////////////////////////////////////////
 class f2dFileFolderNodeForPackage : 
 	public fcyRefObjImpl<f2dFileFolderNode>
 {
 	friend class f2dFileSysImpl;
 private:
-	std::wstring m_FloderName;         ///< @brief ±£¥ÊŒƒº˛º–Ω⁄µ„√˚◊÷
+	std::wstring m_FloderName;         ///< @brief ‰øùÂ≠òÊñá‰ª∂Â§πËäÇÁÇπÂêçÂ≠ó
 
-	fcyResPackage* m_pPackage;         ///< @brief ±£≥÷Package
-	fcyResPackageFloderNode* m_pNode;  ///< @brief ±æŒƒº˛º–µƒΩ⁄µ„
+	fcyResPackage* m_pPackage;         ///< @brief ‰øùÊåÅPackage
+	fcyResPackageFloderNode* m_pNode;  ///< @brief Êú¨Êñá‰ª∂Â§πÁöÑËäÇÁÇπ
 
-	std::unordered_map<std::wstring, f2dFileNode*> m_NodesCache;  ///< @brief ª∫¥Ê
-public: // Ω”ø⁄ µœ÷
+	std::unordered_map<std::wstring, f2dFileNode*> m_NodesCache;  ///< @brief ÁºìÂ≠ò
+public: // Êé•Âè£ÂÆûÁé∞
 	f2dFileFolderNode* ToFolder();
 	f2dFileStreamNode* ToStream();
 	
@@ -105,18 +105,18 @@ protected:
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy◊ ‘¥∞¸Œƒº˛Ω⁄µ„
+/// @brief fancyËµÑÊ∫êÂåÖÊñá‰ª∂ËäÇÁÇπ
 ////////////////////////////////////////////////////////////////////////////////
 class f2dFileStreamNodeForPackage :
 	public fcyRefObjImpl<f2dFileStreamNode>
 {
 	friend class f2dFileFolderNodeForPackage;
 private:
-	fcyResPackage* m_pPackage;       ///< @brief ◊ ‘¥∞¸÷∏’Î
-	fcyResPackageDataNode* m_pNode;  ///< @brief ±æΩ⁄µ„÷∏’Î
+	fcyResPackage* m_pPackage;       ///< @brief ËµÑÊ∫êÂåÖÊåáÈíà
+	fcyResPackageDataNode* m_pNode;  ///< @brief Êú¨ËäÇÁÇπÊåáÈíà
 
-	fcyStream* m_pStream;            ///< @brief  ˝æ›¡˜
-public: // Ω”ø⁄ µœ÷
+	fcyStream* m_pStream;            ///< @brief Êï∞ÊçÆÊµÅ
+public: // Êé•Âè£ÂÆûÁé∞
 	f2dFileFolderNode* ToFolder();
 	f2dFileStreamNode* ToStream();
 
@@ -132,17 +132,17 @@ protected:
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy–Èƒ‚Œƒº˛º–Ω⁄µ„
+/// @brief fancyËôöÊãüÊñá‰ª∂Â§πËäÇÁÇπ
 ////////////////////////////////////////////////////////////////////////////////
 class f2dFileFolderNodeImpl : 
 	public fcyRefObjImpl<f2dFileFolderNode>
 {
 	friend class f2dFileSysImpl;
 private:
-	std::wstring m_Name;                                       ///< @brief Ω⁄µ„√˚
-	std::unordered_map<std::wstring, f2dFileNode*> m_NodeList; ///< @brief ¥Ê∑≈À˘”–Ω⁄µ„
-	std::vector<f2dFileNode*> m_pList;                         ///< @brief À˜“˝ª∫¥Ê
-public: // Ω”ø⁄ µœ÷
+	std::wstring m_Name;                                       ///< @brief ËäÇÁÇπÂêç
+	std::unordered_map<std::wstring, f2dFileNode*> m_NodeList; ///< @brief Â≠òÊîæÊâÄÊúâËäÇÁÇπ
+	std::vector<f2dFileNode*> m_pList;                         ///< @brief Á¥¢ÂºïÁºìÂ≠ò
+public: // Êé•Âè£ÂÆûÁé∞
 	f2dFileFolderNode* ToFolder();
 	f2dFileStreamNode* ToStream();
 	
@@ -161,17 +161,17 @@ protected:
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy–Èƒ‚Œƒº˛Ω⁄µ„
+/// @brief fancyËôöÊãüÊñá‰ª∂ËäÇÁÇπ
 ////////////////////////////////////////////////////////////////////////////////
 class f2dFileStreamNodeImpl :
 	public fcyRefObjImpl<f2dFileStreamNode>
 {
 	friend class f2dFileSysImpl;
 private:
-	std::wstring m_Name;         ///< @brief Ω⁄µ„√˚
-	fcyStream* m_pStream;        ///< @brief ¡˜÷∏’Î
-	std::wstring m_AdditionStr;  ///< @brief ∂ÓÕ‚ ˝æ›”Ú
-public: // Ω”ø⁄ µœ÷
+	std::wstring m_Name;         ///< @brief ËäÇÁÇπÂêç
+	fcyStream* m_pStream;        ///< @brief ÊµÅÊåáÈíà
+	std::wstring m_AdditionStr;  ///< @brief È¢ùÂ§ñÊï∞ÊçÆÂüü
+public: // Êé•Âè£ÂÆûÁé∞
 	f2dFileFolderNode* ToFolder();
 	f2dFileStreamNode* ToStream();
 
@@ -187,7 +187,7 @@ protected:
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2DŒƒº˛œµÕ≥
+/// @brief fancy2DÊñá‰ª∂Á≥ªÁªü
 ////////////////////////////////////////////////////////////////////////////////
 class f2dFileSysImpl :
 	public f2dFileSys
@@ -195,12 +195,12 @@ class f2dFileSysImpl :
 private:
 	f2dFileFolderNode* m_pRootNode;
 private:
-	// ±È¿˙≤¢∑µªÿ∏∏Ω⁄µ„
+	// ÈÅçÂéÜÂπ∂ËøîÂõûÁà∂ËäÇÁÇπ
 	f2dFileNode* traverseNode(fcStrW NodePath, f2dFileFolderNode** pParent);
 	f2dFileNode* traverseNode(fcStrW NodePath, std::wstring& NodeName, f2dFileFolderNode** pParent);
-	// ±È¿˙µΩµπ ˝µ⁄∂˛≤„£¨≤¢—ÿÕæ¥¥Ω®Folder
+	// ÈÅçÂéÜÂà∞ÂÄíÊï∞Á¨¨‰∫åÂ±ÇÔºåÂπ∂Ê≤øÈÄîÂàõÂª∫Folder
 	fResult makeNode(fcStrW NodePath, fBool MakeDir, std::wstring& NodeName, f2dFileFolderNode** pParent);
-public: // Ω”ø⁄ µœ÷
+public: // Êé•Âè£ÂÆûÁé∞
 	f2dFileFolderNode* GetRootNode();
 	f2dFileNode* GetNode(fcStrW Path);
 	fResult RemoveNode(fcStrW Path);

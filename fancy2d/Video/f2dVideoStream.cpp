@@ -1,4 +1,4 @@
-#ifndef _M_ARM
+ï»¿#ifndef _M_ARM
 
 #include "Video/f2dVideoStream.h"
 
@@ -108,14 +108,14 @@ void f2dVideoStream::Unlock()
 f2dVideoStreamReader::f2dVideoStreamReader(f2dVideoStream *pStream, HRESULT *phr)
 	: CAsyncReader(L"f2dStream Reader", NULL, pStream, phr)
 {
-	// ÓÉÓÚAVI¸ñÊ½Ö»Ö§³ÖMEDIASUBTYPE_AviÊäÈë£¬ÐèÒªÊÖ¶¯½øÐÐ¼ì²é
+	// ç”±äºŽAVIæ ¼å¼åªæ”¯æŒMEDIASUBTYPE_Aviè¾“å…¥ï¼Œéœ€è¦æ‰‹åŠ¨è¿›è¡Œæ£€æŸ¥
 	m_mt.majortype = MEDIATYPE_Stream;
 	m_mt.subtype = checkIsAVIFormat(pStream->GetStream())? MEDIASUBTYPE_Avi : MEDIASUBTYPE_NULL;
 }
 
 fBool f2dVideoStreamReader::checkIsAVIFormat(fcyStream* pStream)
 {
-	// ¶ÁÈ¡ÓÃÓÚ¼ì²éµÄ11Î»Í·
+	// è¯»å–ç”¨äºŽæ£€æŸ¥çš„11ä½å¤´
 	pStream->Lock();
 	fLen tOrgPos = pStream->GetPosition();
 	fByte tCheckData[11];

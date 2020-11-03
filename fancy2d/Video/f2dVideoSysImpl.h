@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+Ôªø////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dVideoImpl.h
-/// @brief fancy2D ”∆µ∂‘œÛ µœ÷
+/// @brief fancy2DËßÜÈ¢ëÂØπË±°ÂÆûÁé∞
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "Video/f2dVideoImpl.h"
@@ -8,7 +8,7 @@
 class f2dEngineImpl;
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2D ”∆µœµÕ≥ µœ÷
+/// @brief fancy2DËßÜÈ¢ëÁ≥ªÁªüÂÆûÁé∞
 ////////////////////////////////////////////////////////////////////////////////
 class f2dVideoSysImpl :
 	public fcyRefObjImpl<f2dVideoSys>
@@ -24,7 +24,7 @@ private:
 	static BOOL createInstanceFromDll(HINSTANCE hDll, REFCLSID rclsid, REFIID riid, LPVOID * ppv);
 public:
 	f2dRenderDevice* GetRenderDevice();
-public: // Ω”ø⁄ µœ÷
+public: // Êé•Âè£ÂÆûÁé∞
 	fResult LoadFilter(fcStrW pGUIDStr);
 	fResult LoadFilterFromAX(fcStrW AXFilePath, fcStrW pGUIDStr);
 	fResult CreateVideo(f2dStream* pStream, fuInt Flag, f2dVideo** pOut);

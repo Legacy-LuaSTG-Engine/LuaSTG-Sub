@@ -1,4 +1,4 @@
-#ifndef _M_ARM
+ï»¿#ifndef _M_ARM
 
 #include "Video/f2dVideoRenderer.h"
 
@@ -25,15 +25,15 @@ f2dVideoRenderer::~f2dVideoRenderer()
 
 void f2dVideoRenderer::renderRGBSample(fcData pVideo, fcyColor* pTex)
 {
-	// ÓÉÓÚÊÓÆµÊı¾İ´Óµ×²¿ÏòÉÏ±£´æ£¬ÏÈÆ«ÒÆµ½×îºóÒ»ĞĞ
+	// ç”±äºè§†é¢‘æ•°æ®ä»åº•éƒ¨å‘ä¸Šä¿å­˜ï¼Œå…ˆåç§»åˆ°æœ€åä¸€è¡Œ
 	pTex += (m_lVideoWidth * (m_lVideoHeight-1));
 
-	// ¿½±´ÊÓÆµÊı¾İ
+	// æ‹·è´è§†é¢‘æ•°æ®
 	for(fuInt y=0; y<m_lVideoHeight; y++)
 	{
 		fuInt SrcPos = 0;
 		
-		// ¸´ÖÆĞĞ
+		// å¤åˆ¶è¡Œ
 		for(fuInt x=0; x<m_lVideoWidth; x++) 
 		{
 			switch(m_RawDataType)
@@ -65,7 +65,7 @@ void f2dVideoRenderer::renderRGBSample(fcData pVideo, fcyColor* pTex)
 			pTex++;
 		}
 
-		// ÒÆ¶¯µ½ÏÂÒ»ĞĞ
+		// ç§»åŠ¨åˆ°ä¸‹ä¸€è¡Œ
 		pVideo += m_lVideoPitch;
 		pTex -= m_lVideoWidth << 1;
 	}
@@ -75,7 +75,7 @@ void f2dVideoRenderer::renderYUY2Sample(fcData pVideo, fcyColor* pTex)
 {
 	fLen tDataCount = m_lVideoWidth * m_lVideoHeight / 2;
 
-	// ¿½±´²¢×ª»»YUY2Êı¾İ
+	// æ‹·è´å¹¶è½¬æ¢YUY2æ•°æ®
 	// B = 1.164(Y - 16) + 2.018(U - 128)
 	// G = 1.164(Y - 16) - 0.813(V - 128) - 0.391(U - 128)
 	// R = 1.164(Y - 16) + 1.596(V - 128)
@@ -85,7 +85,7 @@ void f2dVideoRenderer::renderYUY2Sample(fcData pVideo, fcyColor* pTex)
 
 		for(fLen i = 0; i<tDataCount; ++i)
 		{
-			// Y0 U0 Y1 V0 Êı¾İ
+			// Y0 U0 Y1 V0 æ•°æ®
 			fByte Y0 = *(pVideo++);
 			fByte U = *(pVideo++);
 			fByte Y1 = *(pVideo++);
@@ -130,7 +130,7 @@ void f2dVideoRenderer::renderYUY2Sample(fcData pVideo, fcyColor* pTex)
 	{	
 		for(fLen i = 0; i<tDataCount; ++i)
 		{
-			// Y0 U0 Y1 V0 Êı¾İ
+			// Y0 U0 Y1 V0 æ•°æ®
 			fByte Y0 = *(pVideo++);
 			fByte U = *(pVideo++);
 			fByte Y1 = *(pVideo++);
@@ -215,12 +215,12 @@ fResult f2dVideoRenderer::CopyDataToTexture(f2dTexture2D* pTex)
 	fInt tIndex = 0;
 
 	{
-		// Ëø¶¨ÒÔ»ñµÃË«»º³åÇøÊôĞÔ
+		// é”å®šä»¥è·å¾—åŒç¼“å†²åŒºå±æ€§
 		m_Lock.Lock();
 
 		tIndex = !m_BufferFlag;
 
-		// Ëø¶¨»º³åÇø
+		// é”å®šç¼“å†²åŒº
 		m_BufferLock[tIndex].Lock();
 
 		m_Lock.Unlock();
@@ -249,7 +249,7 @@ fResult f2dVideoRenderer::CopyDataToTexture(f2dTexture2D* pTex)
 
 	pTex->Unlock();
 
-	// ½âËø»º³åÇø
+	// è§£é”ç¼“å†²åŒº
 	m_BufferLock[tIndex].Unlock();
 
 	return FCYERR_OK;
@@ -280,27 +280,27 @@ HRESULT f2dVideoRenderer::CheckMediaType(const CMediaType *pMediaType)
 	if(IsEqualGUID(*pMediaType->Type(), MEDIATYPE_Video))
 		if(IsEqualGUID(*pMediaType->FormatType(), FORMAT_VideoInfo))
 		{
-			// RGBÑÕÉ«
+			// RGBé¢œè‰²
 			if(IsEqualGUID(*pMediaType->Subtype(), MEDIASUBTYPE_RGB24))
 				return S_OK;
 			else if(IsEqualGUID(*pMediaType->Subtype(), MEDIASUBTYPE_RGB32))
 				return S_OK;
 			else if(IsEqualGUID(*pMediaType->Subtype(), MEDIASUBTYPE_ARGB32))
 				return S_OK;
-			// YUVÑÕÉ«
+			// YUVé¢œè‰²
 			else if(IsEqualGUID(*pMediaType->Subtype(), MEDIASUBTYPE_YUY2))
 				return S_OK;
 		}
 		else if(IsEqualGUID(*pMediaType->FormatType(), FORMAT_VideoInfo2))
 		{
-			// RGBÑÕÉ«
+			// RGBé¢œè‰²
 			if(IsEqualGUID(*pMediaType->Subtype(), MEDIASUBTYPE_RGB24))
 				return S_OK;
 			else if(IsEqualGUID(*pMediaType->Subtype(), MEDIASUBTYPE_RGB32))
 				return S_OK;
 			else if(IsEqualGUID(*pMediaType->Subtype(), MEDIASUBTYPE_ARGB32))
 				return S_OK;
-			// YUVÑÕÉ«
+			// YUVé¢œè‰²
 			else if(IsEqualGUID(*pMediaType->Subtype(), MEDIASUBTYPE_YUY2))
 				return S_OK;
 		}
@@ -322,20 +322,20 @@ HRESULT f2dVideoRenderer::SetMediaType(const CMediaType *pMediaType)
 		{
 			pVideoInfo = (VIDEOINFOHEADER*)pMediaType->Format();
 
-			// RGBÑÕÉ«
+			// RGBé¢œè‰²
 			if(IsEqualGUID(*pMediaType->Subtype(), MEDIASUBTYPE_RGB24))
 				m_RawDataType = SUPPORTMEDIATYPE_RGB24;
 			else if(IsEqualGUID(*pMediaType->Subtype(), MEDIASUBTYPE_RGB32))
 				m_RawDataType = SUPPORTMEDIATYPE_RGB32;
 			else if(IsEqualGUID(*pMediaType->Subtype(), MEDIASUBTYPE_ARGB32))
 				m_RawDataType = SUPPORTMEDIATYPE_ARGB32;
-			// YUVÑÕÉ«
+			// YUVé¢œè‰²
 			else if(IsEqualGUID(*pMediaType->Subtype(), MEDIASUBTYPE_YUY2))
 				m_RawDataType = SUPPORTMEDIATYPE_YUY2;
 			else
 				return E_FAIL;
 
-			// ¼ÆËãMediaTypeÊı¾İ
+			// è®¡ç®—MediaTypeæ•°æ®
 			m_lVideoWidth = pVideoInfo->bmiHeader.biWidth;
 			m_lVideoHeight = abs(pVideoInfo->bmiHeader.biHeight);
 			if(m_RawDataType == SUPPORTMEDIATYPE_RGB24)
@@ -349,20 +349,20 @@ HRESULT f2dVideoRenderer::SetMediaType(const CMediaType *pMediaType)
 		{
 			pVideoInfo2 = (VIDEOINFOHEADER2*)pMediaType->Format();
 
-			// RGBÑÕÉ«
+			// RGBé¢œè‰²
 			if(IsEqualGUID(*pMediaType->Subtype(), MEDIASUBTYPE_RGB24))
 				m_RawDataType = SUPPORTMEDIATYPE_RGB24;
 			else if(IsEqualGUID(*pMediaType->Subtype(), MEDIASUBTYPE_RGB32))
 				m_RawDataType = SUPPORTMEDIATYPE_RGB24;
 			else if(IsEqualGUID(*pMediaType->Subtype(), MEDIASUBTYPE_ARGB32))
 				m_RawDataType = SUPPORTMEDIATYPE_RGB24;
-			// YUVÑÕÉ«
+			// YUVé¢œè‰²
 			else if(IsEqualGUID(*pMediaType->Subtype(), MEDIASUBTYPE_YUY2))
 				m_RawDataType = SUPPORTMEDIATYPE_YUY2;
 			else
 				return E_FAIL;
 
-			// ¼ÆËãMediaTypeÊı¾İ
+			// è®¡ç®—MediaTypeæ•°æ®
 			m_lVideoWidth = pVideoInfo2->bmiHeader.biWidth;
 			m_lVideoHeight = abs(pVideoInfo2->bmiHeader.biHeight);
 			if(m_RawDataType == SUPPORTMEDIATYPE_RGB24)
@@ -378,7 +378,7 @@ HRESULT f2dVideoRenderer::SetMediaType(const CMediaType *pMediaType)
 	else
 		return E_FAIL;
 
-	// ´´½¨ÎÆÀí
+	// åˆ›å»ºçº¹ç†
 	if(!m_TexBuffer[0] || (m_lVideoWidth != m_TexWidth || m_lVideoHeight != m_TexHeight))
 	{
 		FCYSAFEDELARR(m_TexBuffer[0]);
@@ -398,29 +398,29 @@ HRESULT f2dVideoRenderer::DoRenderSample(IMediaSample *pMediaSample)
 	if(!pMediaSample || !m_TexBuffer[0])
 		return E_POINTER;
 
-	// »ñµÃÊÓÆµ²ÉÑùÇøÖ¸Õë
+	// è·å¾—è§†é¢‘é‡‡æ ·åŒºæŒ‡é’ˆ
 	fByte *pSamplePtr;
 	pMediaSample->GetPointer(&pSamplePtr);
 
 	if(m_pListener)
 		m_pListener->OnVideoStartRender();
 
-	// ¿½±´RGBÊı¾İ
+	// æ‹·è´RGBæ•°æ®
 	if(m_RawDataType <= SUPPORTMEDIATYPE_ARGB32)
 		renderRGBSample(pSamplePtr, m_TexBuffer[m_BufferFlag]);
-	// ¿½±´YUY2Êı¾İ
+	// æ‹·è´YUY2æ•°æ®
 	else if(m_RawDataType == SUPPORTMEDIATYPE_YUY2)
 		renderYUY2Sample(pSamplePtr, m_TexBuffer[m_BufferFlag]);
 
 	if(m_pListener)
 		m_pListener->OnVideoEndRender();
 
-	// ¸üĞÂ»º³åÇø±êÊ¶
+	// æ›´æ–°ç¼“å†²åŒºæ ‡è¯†
 	m_Lock.Lock();
 
 	m_BufferFlag = !m_BufferFlag;
 
-	// Èç´ËÊ±ÔÚ¿½±´Êı¾İÔòµÈ´ı
+	// å¦‚æ­¤æ—¶åœ¨æ‹·è´æ•°æ®åˆ™ç­‰å¾…
 	m_BufferLock[m_BufferFlag].Lock();
 	m_BufferLock[m_BufferFlag].Unlock();
 

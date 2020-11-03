@@ -1,4 +1,4 @@
-#include "Engine/f2dFileSysImpl.h"
+ï»¿#include "Engine/f2dFileSysImpl.h"
 
 #include "fcyOS/fcyDebug.h"
 #include "fcyMisc/fcyStringHelper.h"
@@ -9,7 +9,7 @@ using namespace std;
 f2dFileFolderNodeForReal::f2dFileFolderNodeForReal(fcStrW NodeName, fcStrW DirPath)
 	: m_Name(NodeName), m_DirPath(DirPath)
 {
-	// ±éÀúËùÓĞÎÄ¼şÎÄ¼ş¼Ğ
+	// éå†æ‰€æœ‰æ–‡ä»¶æ–‡ä»¶å¤¹
 	WIN32_FIND_DATA tFindData;
 	HANDLE hFind = FindFirstFile((m_DirPath + L"\\*.*").c_str(), &tFindData);
 	if(hFind == INVALID_HANDLE_VALUE)
@@ -27,7 +27,7 @@ f2dFileFolderNodeForReal::f2dFileFolderNodeForReal(fcStrW NodeName, fcStrW DirPa
 
 		if(tFindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 		{
-			// ÎÄ¼ş¼Ğ½Úµã
+			// æ–‡ä»¶å¤¹èŠ‚ç‚¹
 			f2dFileFolderNodeForReal* tRealNode = new f2dFileFolderNodeForReal(
 				tFindData.cFileName, 
 				(m_DirPath + L"\\" + tFindData.cFileName).c_str());
@@ -36,7 +36,7 @@ f2dFileFolderNodeForReal::f2dFileFolderNodeForReal(fcStrW NodeName, fcStrW DirPa
 		}
 		else
 		{
-			// ÎÄ¼ş½Úµã
+			// æ–‡ä»¶èŠ‚ç‚¹
 			f2dFileStreamNodeForReal* tRealNode = new f2dFileStreamNodeForReal(
 				tFindData.cFileName,
 				(m_DirPath + L"\\" + tFindData.cFileName).c_str());
@@ -259,7 +259,7 @@ f2dFileNode* f2dFileFolderNodeForPackage::GetSubNode(fcStrW NodeName)
 	if(m_NodesCache.find(NodeName) != m_NodesCache.end())
 		return m_NodesCache[NodeName];
 
-	// ÊÇ·ñ´æÔÚ
+	// æ˜¯å¦å­˜åœ¨
 	if(m_pNode->Contains(NodeName))
 	{
 		fcyResPackageNode* tNode = m_pNode->GetNode(NodeName);
@@ -382,7 +382,7 @@ fcStrW f2dFileFolderNodeImpl::GetName()
 
 fResult f2dFileFolderNodeImpl::Clear()
 {
-	// Çå³ıËùÓĞ½Úµã
+	// æ¸…é™¤æ‰€æœ‰èŠ‚ç‚¹
 	unordered_map<wstring, f2dFileNode*>::iterator i = 
 		m_NodeList.begin();
 
@@ -540,7 +540,7 @@ f2dFileSysImpl::~f2dFileSysImpl()
 
 f2dFileNode* f2dFileSysImpl::traverseNode(fcStrW NodePath, f2dFileFolderNode** pParent)
 {
-	// ·Ö¸îÂ·¾¶
+	// åˆ†å‰²è·¯å¾„
 	vector<wstring> tPathList;
 	fcyStringHelper::StringSplit(NodePath, L"\\", true, tPathList);
 
@@ -553,7 +553,7 @@ f2dFileNode* f2dFileSysImpl::traverseNode(fcStrW NodePath, f2dFileFolderNode** p
 			break;
 
 		pNode = pParentNode->GetSubNode(tPathList[i].c_str());
-		if(!pNode) // ²»´æÔÚ¸Ã½Úµã
+		if(!pNode) // ä¸å­˜åœ¨è¯¥èŠ‚ç‚¹
 		{
 			pParentNode = NULL;
 			break;
@@ -563,7 +563,7 @@ f2dFileNode* f2dFileSysImpl::traverseNode(fcStrW NodePath, f2dFileFolderNode** p
 	if(pParent)
 		*pParent = pParentNode;
 
-	// ÊÇ·ñÕÒµ½¸¸½Úµã
+	// æ˜¯å¦æ‰¾åˆ°çˆ¶èŠ‚ç‚¹
 	if(!pParentNode)
 		return NULL;
 	else
@@ -572,7 +572,7 @@ f2dFileNode* f2dFileSysImpl::traverseNode(fcStrW NodePath, f2dFileFolderNode** p
 
 f2dFileNode* f2dFileSysImpl::traverseNode(fcStrW NodePath, wstring& NodeName, f2dFileFolderNode** pParent)
 {
-	// ·Ö¸îÂ·¾¶
+	// åˆ†å‰²è·¯å¾„
 	vector<wstring> tPathList;
 	fcyStringHelper::StringSplit(NodePath, L"\\", true, tPathList);
 
@@ -592,7 +592,7 @@ f2dFileNode* f2dFileSysImpl::traverseNode(fcStrW NodePath, wstring& NodeName, f2
 			break;
 
 		pNode = pParentNode->GetSubNode(tPathList[i].c_str());
-		if(!pNode) // ²»´æÔÚ¸Ã½Úµã
+		if(!pNode) // ä¸å­˜åœ¨è¯¥èŠ‚ç‚¹
 		{
 			pParentNode = NULL;
 			break;
@@ -602,7 +602,7 @@ f2dFileNode* f2dFileSysImpl::traverseNode(fcStrW NodePath, wstring& NodeName, f2
 	if(pParent)
 		*pParent = pParentNode;
 
-	// ÊÇ·ñÕÒµ½¸¸½Úµã
+	// æ˜¯å¦æ‰¾åˆ°çˆ¶èŠ‚ç‚¹
 	if(!pParentNode)
 		return NULL;
 	else
@@ -611,7 +611,7 @@ f2dFileNode* f2dFileSysImpl::traverseNode(fcStrW NodePath, wstring& NodeName, f2
 
 fResult f2dFileSysImpl::makeNode(fcStrW NodePath, fBool MakeDir, std::wstring& NodeName, f2dFileFolderNode** pParent)
 {
-	// ·Ö¸îÂ·¾¶
+	// åˆ†å‰²è·¯å¾„
 	vector<wstring> tPathList;
 	fcyStringHelper::StringSplit(NodePath, L"\\", true, tPathList);
 
@@ -627,16 +627,16 @@ fResult f2dFileSysImpl::makeNode(fcStrW NodePath, fBool MakeDir, std::wstring& N
 
 	f2dFileNode* pNode = GetRootNode();
 	f2dFileFolderNode* pParentNode = GetRootNode();
-	for(fuInt i = 0; i<tPathList.size()-1; ++i) // ±éÀúµ½µ¹ÊıµÚ¶ş²ã
+	for(fuInt i = 0; i<tPathList.size()-1; ++i) // éå†åˆ°å€’æ•°ç¬¬äºŒå±‚
 	{
 		pParentNode = pNode->ToFolder();
 		if(!pParentNode)
-			return FCYERR_INVAILDPARAM;  // ÖĞ¼äÎŞĞ§µã
+			return FCYERR_INVAILDPARAM;  // ä¸­é—´æ— æ•ˆç‚¹
 
 		pNode = pParentNode->GetSubNode(tPathList[i].c_str());
-		if(!pNode) // ²»´æÔÚ¸Ã½Úµã
+		if(!pNode) // ä¸å­˜åœ¨è¯¥èŠ‚ç‚¹
 		{
-			if(MakeDir) // ´´½¨½Úµã
+			if(MakeDir) // åˆ›å»ºèŠ‚ç‚¹
 			{
 				f2dFileFolderNode* pTempNode = new f2dFileFolderNodeImpl(tPathList[i].c_str());
 				if(FCYFAILED(pParentNode->Add(pTempNode)))
@@ -654,9 +654,9 @@ fResult f2dFileSysImpl::makeNode(fcStrW NodePath, fBool MakeDir, std::wstring& N
 		}
 	}
 
-	// ¼ì²épNode
+	// æ£€æŸ¥pNode
 	if(!pNode->ToFolder())
-		return FCYERR_INVAILDPARAM;  // ÖĞ¼äÎŞĞ§µã
+		return FCYERR_INVAILDPARAM;  // ä¸­é—´æ— æ•ˆç‚¹
 
 	if(pParent)
 		*pParent = pNode->ToFolder();
@@ -745,7 +745,7 @@ fResult f2dFileSysImpl::AddMemStreamNodeFromFile(fcStrW Path, fcStrW FilePath, f
 {
 	fcyFileStream* pStream = NULL;
 	
-	// ´ò¿ªÎÄ¼ş
+	// æ‰“å¼€æ–‡ä»¶
 	try
 	{
 		pStream = new fcyFileStream(FilePath, false);
@@ -756,7 +756,7 @@ fResult f2dFileSysImpl::AddMemStreamNodeFromFile(fcStrW Path, fcStrW FilePath, f
 		return FCYERR_INTERNALERR;
 	}
 
-	// ·ÖÅäÄÚ´æ
+	// åˆ†é…å†…å­˜
 	fData pMem = NULL;
 	fLen tLen = pStream->GetLength();
 	try
@@ -770,7 +770,7 @@ fResult f2dFileSysImpl::AddMemStreamNodeFromFile(fcStrW Path, fcStrW FilePath, f
 		return FCYERR_OUTOFMEM;
 	}
 
-	// ¶ÁÈ¡Êı¾İµ½ÄÚ´æ
+	// è¯»å–æ•°æ®åˆ°å†…å­˜
 	if(FAILED(pStream->SetPosition(FCYSEEKORIGIN_BEG, 0)))
 	{
 		FCYSAFEDELARR(pMem);
@@ -784,13 +784,13 @@ fResult f2dFileSysImpl::AddMemStreamNodeFromFile(fcStrW Path, fcStrW FilePath, f
 		return FCYERR_INTERNALERR;
 	}
 
-	// Ïú»ÙÎÄ¼şÁ÷
+	// é”€æ¯æ–‡ä»¶æµ
 	FCYSAFEKILL(pStream);
 
-	// ´´½¨ÄÚ´æÁ÷
+	// åˆ›å»ºå†…å­˜æµ
 	fResult tVR = AddMemStreamNode(Path, pMem, tLen, Writable, Resizable);
 
-	// Ïú»ÙÄÚ´æ
+	// é”€æ¯å†…å­˜
 	FCYSAFEDELARR(pMem);
 
 	return tVR;
@@ -842,7 +842,7 @@ f2dStream* f2dFileSysImpl::GetStream(fcStrW Path)
 
 fResult f2dFileSysImpl::LoadResPackage(fcStrW Path, fcyStream* PakStream)
 {
-	// ´´½¨Package
+	// åˆ›å»ºPackage
 	fcyResPackage* tPackage = NULL;
 	try
 	{
@@ -911,7 +911,7 @@ fResult f2dFileSysImpl::LoadRealPath(fcStrW Path, fcStrW DirPath)
 	}
 	else
 	{
-		// ´´½¨ÕæÊµÄ¿Â¼
+		// åˆ›å»ºçœŸå®ç›®å½•
 		f2dFileFolderNodeForReal* tDir = NULL;
 		try
 		{

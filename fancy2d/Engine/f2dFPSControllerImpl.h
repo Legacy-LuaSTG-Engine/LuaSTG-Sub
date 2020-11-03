@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dFPSControllerImpl.h
-/// @brief fancy2D FPS¿ØÖÆÆ÷
+/// @brief fancy2D FPSæ§åˆ¶å™¨
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include <fcyRefObj.h>
@@ -12,41 +12,41 @@
 #include <Windows.h>
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief FPS¿ØÖÆÆ÷ÊµÏÖ
+/// @brief FPSæ§åˆ¶å™¨å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 class f2dFPSControllerImpl : 
 	public f2dFPSController
 {
 protected:
-	// ¼ÆÊıÆ÷
-	fuInt m_TotalFrame;      ///< @brief ×ÜÖ¡Êı
-	fDouble m_TotalTime;     ///< @brief ×ÜÔËĞĞÊ±¼ä
-	fDouble m_MaxFPS;        ///< @brief ×î´óFPS
-	fDouble m_CurFPS;        ///< @brief µ±Ç°FPS
+	// è®¡æ•°å™¨
+	fuInt m_TotalFrame;      ///< @brief æ€»å¸§æ•°
+	fDouble m_TotalTime;     ///< @brief æ€»è¿è¡Œæ—¶é—´
+	fDouble m_MaxFPS;        ///< @brief æœ€å¤§FPS
+	fDouble m_CurFPS;        ///< @brief å½“å‰FPS
 
-	// µ¥Ö¡¼ÆÊıÆ÷
-	fDouble m_FrameTimeSecond; ///< @brief ¼ÆÊı1Ãë
-	fuInt m_FrameCountSecond;  ///< @brief 1ÃëÄÚÖ¡Êı
+	// å•å¸§è®¡æ•°å™¨
+	fDouble m_FrameTimeSecond; ///< @brief è®¡æ•°1ç§’
+	fuInt m_FrameCountSecond;  ///< @brief 1ç§’å†…å¸§æ•°
 
-	fuInt m_FPSMax;       ///< @brief ×î´óFPS
-	fDouble m_FrameDelay; ///< @brief Ö¡Ê±¼ä¼ä¸ô
-public: // ¹«¿ª
-	/// @brief ¸üĞÂFPS¿ØÖÆÆ÷
-	/// @note  »ñµÃÁ½¸öÊ±¼äµãÖ®¼äµÄÁ÷ÊÅÊ±¼ä²¢¸üĞÂFPS¼ÆÊıÆ÷
+	fuInt m_FPSMax;       ///< @brief æœ€å¤§FPS
+	fDouble m_FrameDelay; ///< @brief å¸§æ—¶é—´é—´éš”
+public: // å…¬å¼€
+	/// @brief æ›´æ–°FPSæ§åˆ¶å™¨
+	/// @note  è·å¾—ä¸¤ä¸ªæ—¶é—´ç‚¹ä¹‹é—´çš„æµé€æ—¶é—´å¹¶æ›´æ–°FPSè®¡æ•°å™¨
 	fDouble Update(fcyStopWatch& Watch)
 	{
 		fDouble tElapsedTime = Watch.GetElapsed();
 
-		// FPSÏŞÖÆ
+		// FPSé™åˆ¶
 		if(m_FPSMax && tElapsedTime < m_FrameDelay)
 		{
 			fuInt tTimeToSleep = (fuInt)((m_FrameDelay - tElapsedTime) * 1000.);
 
-			// SleepÏŞËÙ
+			// Sleepé™é€Ÿ
 			if(tTimeToSleep > 2)
 				Sleep(tTimeToSleep - 2);
 
-			// ×ÔĞı¾«È·ÏŞËÙ
+			// è‡ªæ—‹ç²¾ç¡®é™é€Ÿ
 			while((tElapsedTime = Watch.GetElapsed()) < m_FrameDelay) {}
 		}
 
@@ -59,7 +59,7 @@ public: // ¹«¿ª
 		m_FrameTimeSecond += tElapsedTime;
 		m_FrameCountSecond++;
 
-		// FPS¼ÆÊı
+		// FPSè®¡æ•°
 		if(m_FrameTimeSecond >= 1.)
 		{
 			m_CurFPS = m_FrameCountSecond / m_FrameTimeSecond;
@@ -72,7 +72,7 @@ public: // ¹«¿ª
 
 		return tElapsedTime;
 	}
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	fuInt GetLimitedFPS()
 	{
 		return m_FPSMax;

@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dVideoRenderer.h
-/// @brief fancy2DÊÓÆµäÖÈ¾¹ıÂËÆ÷
+/// @brief fancy2Dè§†é¢‘æ¸²æŸ“è¿‡æ»¤å™¨
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "Video/f2dVideoStream.h"
@@ -9,7 +9,7 @@
 #include "f2dRenderer.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2DÊÓÆµäÖÈ¾µ½ÎÆÀí
+/// @brief fancy2Dè§†é¢‘æ¸²æŸ“åˆ°çº¹ç†
 ////////////////////////////////////////////////////////////////////////////////
 class f2dVideoRenderer : 
 	public CBaseVideoRenderer
@@ -25,24 +25,24 @@ private:
 		SUPPORTMEDIATYPE_YUY2
 	};
 private:
-	fInt m_TexWidth;                 // ÎÆÀí¿í¶È
-	fInt m_TexHeight;                // ÎÆÀí¸ß¶È
+	fInt m_TexWidth;                 // çº¹ç†å®½åº¦
+	fInt m_TexHeight;                // çº¹ç†é«˜åº¦
 
-	SUPPORTMEDIATYPE m_RawDataType;  // Ô­Ê¼¸ñÊ½
-	fuInt m_lVideoWidth;             // ÊÓÆµ¿í¶È
-	fuInt m_lVideoHeight;            // ÊÓÆµ¸ß¶È
-	fuInt m_lVideoPitch;             // ÊÓÆµÊı¾İ²¹ÆëÖµ
+	SUPPORTMEDIATYPE m_RawDataType;  // åŸå§‹æ ¼å¼
+	fuInt m_lVideoWidth;             // è§†é¢‘å®½åº¦
+	fuInt m_lVideoHeight;            // è§†é¢‘é«˜åº¦
+	fuInt m_lVideoPitch;             // è§†é¢‘æ•°æ®è¡¥é½å€¼
 
-	CCritSec m_Lock;                 // Ëø
+	CCritSec m_Lock;                 // é”
 
-	// »º³åÇø
-	fInt m_BufferFlag;           // »º³åÇø±êÊ¶£¬±ê¼ÇÕıÔÚÊ¹ÓÃµÄ»º³åÇø
-	fcyColor* m_TexBuffer[2];    // ÎÆÀíÊı¾İÊı×é
-	CCritSec m_BufferLock[2];    // »º³åÇøËø
+	// ç¼“å†²åŒº
+	fInt m_BufferFlag;           // ç¼“å†²åŒºæ ‡è¯†ï¼Œæ ‡è®°æ­£åœ¨ä½¿ç”¨çš„ç¼“å†²åŒº
+	fcyColor* m_TexBuffer[2];    // çº¹ç†æ•°æ®æ•°ç»„
+	CCritSec m_BufferLock[2];    // ç¼“å†²åŒºé”
 
-	f2dVideoRendererListener* m_pListener; // ¼àÌıÆ÷
+	f2dVideoRendererListener* m_pListener; // ç›‘å¬å™¨
 
-	// ÍÌÍÂÁ¿¼ÆËã
+	// ååé‡è®¡ç®—
 	fcyStopWatch m_Watch;
 	fFloat m_TimeTotal;
 	fLen m_DataTotal;
@@ -70,7 +70,7 @@ public:
 	fResult CopyDataToTexture(f2dTexture2D* pTex);
 	fFloat GetDataPerSecond();
 	fFloat GetVideoRenderFPS();
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	HRESULT CheckMediaType(const CMediaType *pMediaType);
 	HRESULT SetMediaType(const CMediaType *pMediaType);
 	HRESULT DoRenderSample(IMediaSample *pMediaSample);
