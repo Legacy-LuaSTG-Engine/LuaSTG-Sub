@@ -1,74 +1,74 @@
-#pragma once
+ï»¿#pragma once
 #include "ResourceBase.hpp"
 
 namespace LuaSTGPlus {
-	// Á£×ÓÏµÍ³
-	// HGEÁ£×ÓÏµÍ³µÄf2dÊµÏÖ
+	// ç²’å­ç³»ç»Ÿ
+	// HGEç²’å­ç³»ç»Ÿçš„f2då®ç°
 	class ResParticle :
 		public Resource
 	{
 	public:
-		/// @brief Á£×ÓĞÅÏ¢
+		/// @brief ç²’å­ä¿¡æ¯
 		struct ParticleInfo
 		{
 			fuInt iBlendInfo;
 
-			int nEmission;  // Ã¿Ãë·¢Éä¸öÊı
-			float fLifetime;  // ÉúÃüÆÚ
-			float fParticleLifeMin;  // Á£×Ó×îĞ¡ÉúÃüÆÚ
-			float fParticleLifeMax;  // Á£×Ó×î´óÉúÃüÆÚ
-			float fDirection;  // ·¢Éä·½Ïò
-			float fSpread;  // Æ«ÒÆ½Ç¶È
-			bool bRelative;  // Ê¹ÓÃÏà¶ÔÖµ»¹ÊÇ¾ø¶ÔÖµ
+			int nEmission;  // æ¯ç§’å‘å°„ä¸ªæ•°
+			float fLifetime;  // ç”Ÿå‘½æœŸ
+			float fParticleLifeMin;  // ç²’å­æœ€å°ç”Ÿå‘½æœŸ
+			float fParticleLifeMax;  // ç²’å­æœ€å¤§ç”Ÿå‘½æœŸ
+			float fDirection;  // å‘å°„æ–¹å‘
+			float fSpread;  // åç§»è§’åº¦
+			bool bRelative;  // ä½¿ç”¨ç›¸å¯¹å€¼è¿˜æ˜¯ç»å¯¹å€¼
 
-			float fSpeedMin;  // ËÙ¶È×îĞ¡Öµ
-			float fSpeedMax;  // ËÙ¶È×î´óÖµ
+			float fSpeedMin;  // é€Ÿåº¦æœ€å°å€¼
+			float fSpeedMax;  // é€Ÿåº¦æœ€å¤§å€¼
 
-			float fGravityMin;  // ÖØÁ¦×îĞ¡Öµ
-			float fGravityMax;  // ÖØÁ¦×î´óÖµ
+			float fGravityMin;  // é‡åŠ›æœ€å°å€¼
+			float fGravityMax;  // é‡åŠ›æœ€å¤§å€¼
 
-			float fRadialAccelMin;  // ×îµÍÏß¼ÓËÙ¶È
-			float fRadialAccelMax;  // ×î¸ßÏß¼ÓËÙ¶È
+			float fRadialAccelMin;  // æœ€ä½çº¿åŠ é€Ÿåº¦
+			float fRadialAccelMax;  // æœ€é«˜çº¿åŠ é€Ÿåº¦
 
-			float fTangentialAccelMin;  // ×îµÍ½Ç¼ÓËÙ¶È
-			float fTangentialAccelMax;  // ×î¸ß½Ç¼ÓËÙ¶È
+			float fTangentialAccelMin;  // æœ€ä½è§’åŠ é€Ÿåº¦
+			float fTangentialAccelMax;  // æœ€é«˜è§’åŠ é€Ÿåº¦
 
-			float fSizeStart;  // ÆğÊ¼´óĞ¡
-			float fSizeEnd;  // ×îÖÕ´óĞ¡
-			float fSizeVar;  // ´óĞ¡¶¶¶¯Öµ
+			float fSizeStart;  // èµ·å§‹å¤§å°
+			float fSizeEnd;  // æœ€ç»ˆå¤§å°
+			float fSizeVar;  // å¤§å°æŠ–åŠ¨å€¼
 
-			float fSpinStart;  // ÆğÊ¼×ÔĞı
-			float fSpinEnd;  // ×îÖÕ×ÔĞı
-			float fSpinVar;  // ×ÔĞı¶¶¶¯Öµ
+			float fSpinStart;  // èµ·å§‹è‡ªæ—‹
+			float fSpinEnd;  // æœ€ç»ˆè‡ªæ—‹
+			float fSpinVar;  // è‡ªæ—‹æŠ–åŠ¨å€¼
 
-			float colColorStart[4];  // ÆğÊ¼ÑÕÉ«(rgba)
-			float colColorEnd[4];  // ×îÖÕÑÕÉ«
-			float fColorVar;  // ÑÕÉ«¶¶¶¯Öµ
-			float fAlphaVar;  // alpha¶¶¶¯Öµ
+			float colColorStart[4];  // èµ·å§‹é¢œè‰²(rgba)
+			float colColorEnd[4];  // æœ€ç»ˆé¢œè‰²
+			float fColorVar;  // é¢œè‰²æŠ–åŠ¨å€¼
+			float fAlphaVar;  // alphaæŠ–åŠ¨å€¼
 		};
-		/// @brief Á£×ÓÊµÀı
+		/// @brief ç²’å­å®ä¾‹
 		struct ParticleInstance
 		{
-			fcyVec2 vecLocation;  // Î»ÖÃ
-			fcyVec2 vecVelocity;  // ËÙ¶È
+			fcyVec2 vecLocation;  // ä½ç½®
+			fcyVec2 vecVelocity;  // é€Ÿåº¦
 
-			float fGravity;  // ÖØÁ¦
-			float fRadialAccel;  // Ïß¼ÓËÙ¶È
-			float fTangentialAccel;  // ½Ç¼ÓËÙ¶È
+			float fGravity;  // é‡åŠ›
+			float fRadialAccel;  // çº¿åŠ é€Ÿåº¦
+			float fTangentialAccel;  // è§’åŠ é€Ÿåº¦
 
-			float fSpin;  // ×ÔĞı
-			float fSpinDelta;  // ×ÔĞıÔöÁ¿
+			float fSpin;  // è‡ªæ—‹
+			float fSpinDelta;  // è‡ªæ—‹å¢é‡
 
-			float fSize;  // ´óĞ¡
-			float fSizeDelta;  // ´óĞ¡ÔöÁ¿
+			float fSize;  // å¤§å°
+			float fSizeDelta;  // å¤§å°å¢é‡
 
-			float colColor[4];  // ÑÕÉ«
-			float colColorDelta[4];  // ÑÕÉ«ÔöÁ¿
+			float colColor[4];  // é¢œè‰²
+			float colColorDelta[4];  // é¢œè‰²å¢é‡
 
-			float fAge;  // µ±Ç°´æ»îÊ±¼ä
-			float fTerminalAge;  // ÖÕÖ¹Ê±¼ä
+			float fAge;  // å½“å‰å­˜æ´»æ—¶é—´
+			float fTerminalAge;  // ç»ˆæ­¢æ—¶é—´
 		};
-		/// @brief Á£×Ó³Ø
+		/// @brief ç²’å­æ± 
 		class ParticlePool
 		{
 			friend class ResParticle;
@@ -79,18 +79,18 @@ namespace LuaSTGPlus {
 				Sleep
 			};
 		private:
-			fcyRefPointer<ResParticle> m_pInstance;  // ĞÅÏ¢
+			fcyRefPointer<ResParticle> m_pInstance;  // ä¿¡æ¯
 
 			BlendMode m_BlendMode = BlendMode::MulAlpha;
-			fcyColor m_MixColor;//äÖÈ¾Ê±ÕûÌåÑÕÉ«
-			Status m_iStatus = Status::Alive;  // ×´Ì¬
-			fcyVec2 m_vCenter;  // ÖĞĞÄ
-			fcyVec2 m_vPrevCenter;  // ÉÏÒ»¸öÖĞĞÄ
-			float m_fRotation = 0.f;  // ·½Ïò
-			size_t m_iAlive = 0;  // ´æ»îÊı
-			float m_fAge = 0.f;  // ÒÑ´æ»îÊ±¼ä
-			float m_fEmission = 0.f;  // Ã¿Ãë·¢ÉäÊı
-			float m_fEmissionResidue = 0.f;  // ²»×ãµÄÁ£×ÓÊı
+			fcyColor m_MixColor;//æ¸²æŸ“æ—¶æ•´ä½“é¢œè‰²
+			Status m_iStatus = Status::Alive;  // çŠ¶æ€
+			fcyVec2 m_vCenter;  // ä¸­å¿ƒ
+			fcyVec2 m_vPrevCenter;  // ä¸Šä¸€ä¸ªä¸­å¿ƒ
+			float m_fRotation = 0.f;  // æ–¹å‘
+			size_t m_iAlive = 0;  // å­˜æ´»æ•°
+			float m_fAge = 0.f;  // å·²å­˜æ´»æ—¶é—´
+			float m_fEmission = 0.f;  // æ¯ç§’å‘å°„æ•°
+			float m_fEmissionResidue = 0.f;  // ä¸è¶³çš„ç²’å­æ•°
 			std::array<ParticleInstance, LPARTICLE_MAXCNT> m_ParticlePool;
 		public:
 			size_t GetAliveCount()const LNOEXCEPT { return m_iAlive; }

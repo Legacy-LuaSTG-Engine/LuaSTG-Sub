@@ -1,4 +1,4 @@
-#include "SystemDirectory.hpp"
+﻿#include "SystemDirectory.hpp"
 #include <Windows.h>
 #include <Shobjidl.h>
 #include <Knownfolders.h>

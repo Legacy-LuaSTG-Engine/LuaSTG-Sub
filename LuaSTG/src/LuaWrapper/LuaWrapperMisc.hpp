@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "Global.h"
 #include "ResourceBase.hpp"
 #include "ResourceFont.hpp"
@@ -7,68 +7,68 @@
 
 namespace LuaSTGPlus
 {
-	//×¢²á·½·¨ºÍÔª·½·¨µ½Ãû×ÖÎªnameµÄ¿âºÍÔª±íÖĞ£¬²¢±£»¤Ôª±í²»±»ĞŞ¸Ä
+	//æ³¨å†Œæ–¹æ³•å’Œå…ƒæ–¹æ³•åˆ°åå­—ä¸ºnameçš„åº“å’Œå…ƒè¡¨ä¸­ï¼Œå¹¶ä¿æŠ¤å…ƒè¡¨ä¸è¢«ä¿®æ”¹
 	inline void RegisterMethodD(lua_State* L, const char* name, luaL_Reg* method, luaL_Reg* metamethod) {
-		luaL_register(L, name, method);     // t        //½«·½·¨×¢²áµ½È«¾Ö±í(library)£¬×÷Îª¾²Ì¬·½·¨
-		luaL_newmetatable(L, name);         // t mt     //ÔÚ×¢²á±íÖĞ´´½¨Ôª±í
-		luaL_register(L, NULL, metamethod); // t mt     //½«Ôª·½·¨ÍÆÈëÔª±íÄÚ
-		lua_pushstring(L, "__index");       // t mt s   //__indexÔª·½·¨
-		lua_pushvalue(L, -3);               // t mt s t //¶ÔÓ¦µÄtable
-		lua_rawset(L, -3);                  // t mt     //ÉèÖÃ__indexÔª·½·¨
-		lua_pushstring(L, "__metatable");   // t mt s   //__metatableÔª·½·¨
-		lua_pushvalue(L, -3);               // t mt s t //¶ÔÓ¦µÄtable
-		lua_rawset(L, -3);                  // t mt     //ÉèÖÃ__metatableÔª·½·¨£¬±£»¤Ôª±í²»±»ĞŞ¸Ä
-		lua_pop(L, 2);                      //          //ÇåÀí
+		luaL_register(L, name, method);     // t        //å°†æ–¹æ³•æ³¨å†Œåˆ°å…¨å±€è¡¨(library)ï¼Œä½œä¸ºé™æ€æ–¹æ³•
+		luaL_newmetatable(L, name);         // t mt     //åœ¨æ³¨å†Œè¡¨ä¸­åˆ›å»ºå…ƒè¡¨
+		luaL_register(L, NULL, metamethod); // t mt     //å°†å…ƒæ–¹æ³•æ¨å…¥å…ƒè¡¨å†…
+		lua_pushstring(L, "__index");       // t mt s   //__indexå…ƒæ–¹æ³•
+		lua_pushvalue(L, -3);               // t mt s t //å¯¹åº”çš„table
+		lua_rawset(L, -3);                  // t mt     //è®¾ç½®__indexå…ƒæ–¹æ³•
+		lua_pushstring(L, "__metatable");   // t mt s   //__metatableå…ƒæ–¹æ³•
+		lua_pushvalue(L, -3);               // t mt s t //å¯¹åº”çš„table
+		lua_rawset(L, -3);                  // t mt     //è®¾ç½®__metatableå…ƒæ–¹æ³•ï¼Œä¿æŠ¤å…ƒè¡¨ä¸è¢«ä¿®æ”¹
+		lua_pop(L, 2);                      //          //æ¸…ç†
 	}
 
-	//×¢²á·½·¨ºÍÔª·½·¨µ½Ãû×ÖÎªnameµÄ¿âºÍÔª±íÖĞ£¬²¢±£»¤Ôª±í²»±»ĞŞ¸Ä£¬²»×Ô¶¯×¢²á__indexÔª·½·¨
+	//æ³¨å†Œæ–¹æ³•å’Œå…ƒæ–¹æ³•åˆ°åå­—ä¸ºnameçš„åº“å’Œå…ƒè¡¨ä¸­ï¼Œå¹¶ä¿æŠ¤å…ƒè¡¨ä¸è¢«ä¿®æ”¹ï¼Œä¸è‡ªåŠ¨æ³¨å†Œ__indexå…ƒæ–¹æ³•
 	inline void RegisterMethodS(lua_State* L, const char* name, luaL_Reg* method, luaL_Reg* metamethod) {
-		luaL_register(L, name, method);     // t        //½«·½·¨×¢²áµ½È«¾Ö±í(library)£¬×÷Îª¾²Ì¬·½·¨
-		luaL_newmetatable(L, name);         // t mt     //ÔÚ×¢²á±íÖĞ´´½¨Ôª±í
-		luaL_register(L, NULL, metamethod); // t mt     //½«Ôª·½·¨ÍÆÈëÔª±íÄÚ
-		lua_pushstring(L, "__metatable");   // t mt s   //__metatableÔª·½·¨
-		lua_pushvalue(L, -3);               // t mt s t //¶ÔÓ¦µÄtable
-		lua_rawset(L, -3);                  // t mt     //ÉèÖÃ__metatableÔª·½·¨£¬±£»¤Ôª±í²»±»ĞŞ¸Ä
-		lua_pop(L, 2);                      //          //ÇåÀí
+		luaL_register(L, name, method);     // t        //å°†æ–¹æ³•æ³¨å†Œåˆ°å…¨å±€è¡¨(library)ï¼Œä½œä¸ºé™æ€æ–¹æ³•
+		luaL_newmetatable(L, name);         // t mt     //åœ¨æ³¨å†Œè¡¨ä¸­åˆ›å»ºå…ƒè¡¨
+		luaL_register(L, NULL, metamethod); // t mt     //å°†å…ƒæ–¹æ³•æ¨å…¥å…ƒè¡¨å†…
+		lua_pushstring(L, "__metatable");   // t mt s   //__metatableå…ƒæ–¹æ³•
+		lua_pushvalue(L, -3);               // t mt s t //å¯¹åº”çš„table
+		lua_rawset(L, -3);                  // t mt     //è®¾ç½®__metatableå…ƒæ–¹æ³•ï¼Œä¿æŠ¤å…ƒè¡¨ä¸è¢«ä¿®æ”¹
+		lua_pop(L, 2);                      //          //æ¸…ç†
 	}
 	
-	//ÔÚÕ»¶¥µÄtable´´½¨Ò»¸öÃûÎªnameµÄĞÂ±í£¬È»ºó×¢²á¾²Ì¬·½·¨µ½¸Ã±íÖĞ
-	//×¢²áÔª·½·¨µ½×¢²á±íÖĞÃûÎªmetanameµÄÔª±íÖĞ£¬²¢±£»¤Ôª±í²»±»ĞŞ¸Ä
+	//åœ¨æ ˆé¡¶çš„tableåˆ›å»ºä¸€ä¸ªåä¸ºnameçš„æ–°è¡¨ï¼Œç„¶åæ³¨å†Œé™æ€æ–¹æ³•åˆ°è¯¥è¡¨ä¸­
+	//æ³¨å†Œå…ƒæ–¹æ³•åˆ°æ³¨å†Œè¡¨ä¸­åä¸ºmetanameçš„å…ƒè¡¨ä¸­ï¼Œå¹¶ä¿æŠ¤å…ƒè¡¨ä¸è¢«ä¿®æ”¹
 	inline void RegisterClassIntoTable(lua_State* L, const char* name, luaL_Reg* method, const char* metaname, luaL_Reg* metamethod) {
 		// ... t
 		lua_pushstring(L, name);			// ... t s			//key
-		lua_newtable(L);					// ... t s t		//´¢´æ¾²Ì¬·½·¨µÄtable
-		luaL_register(L, NULL, method);		// ... t s t		//½«·½·¨×¢²áµ½Ö¸¶¨µÄtableÄÚ£¬×÷Îª¾²Ì¬·½·¨
-		luaL_newmetatable(L, metaname);		// ... t s t mt		//ÔÚ×¢²á±íÖĞ´´½¨Ôª±í
-		luaL_register(L, NULL, metamethod);	// ... t s t mt		//½«Ôª·½·¨ÍÆÈëÔª±íÄÚ
-		lua_pushstring(L, "__index");		// ... t s t mt s	//__indexÔª·½·¨
-		lua_pushvalue(L, -3);				// ... t s t mt s t	//¾²Ì¬·½·¨
-		lua_rawset(L, -3);					// ... t s t mt		//ÉèÖÃ__indexÔª·½·¨
-		lua_pushstring(L, "__metatable");	// ... t s t mt s	//__metatableÔª·½·¨
-		lua_pushvalue(L, -3);				// ... t s t mt s t	//¾²Ì¬·½·¨
-		lua_rawset(L, -3);					// ... t s t mt		//ÉèÖÃ__metatableÔª·½·¨£¬±£»¤Ôª±í²»±»ĞŞ¸Ä
-		lua_pop(L, 1);						// ... t s t		//ÇåÀí
-		lua_settable(L, -3);				// ... t			//°Ñ¾²Ì¬·½·¨Èû½øÕ»¶¥
+		lua_newtable(L);					// ... t s t		//å‚¨å­˜é™æ€æ–¹æ³•çš„table
+		luaL_register(L, NULL, method);		// ... t s t		//å°†æ–¹æ³•æ³¨å†Œåˆ°æŒ‡å®šçš„tableå†…ï¼Œä½œä¸ºé™æ€æ–¹æ³•
+		luaL_newmetatable(L, metaname);		// ... t s t mt		//åœ¨æ³¨å†Œè¡¨ä¸­åˆ›å»ºå…ƒè¡¨
+		luaL_register(L, NULL, metamethod);	// ... t s t mt		//å°†å…ƒæ–¹æ³•æ¨å…¥å…ƒè¡¨å†…
+		lua_pushstring(L, "__index");		// ... t s t mt s	//__indexå…ƒæ–¹æ³•
+		lua_pushvalue(L, -3);				// ... t s t mt s t	//é™æ€æ–¹æ³•
+		lua_rawset(L, -3);					// ... t s t mt		//è®¾ç½®__indexå…ƒæ–¹æ³•
+		lua_pushstring(L, "__metatable");	// ... t s t mt s	//__metatableå…ƒæ–¹æ³•
+		lua_pushvalue(L, -3);				// ... t s t mt s t	//é™æ€æ–¹æ³•
+		lua_rawset(L, -3);					// ... t s t mt		//è®¾ç½®__metatableå…ƒæ–¹æ³•ï¼Œä¿æŠ¤å…ƒè¡¨ä¸è¢«ä¿®æ”¹
+		lua_pop(L, 1);						// ... t s t		//æ¸…ç†
+		lua_settable(L, -3);				// ... t			//æŠŠé™æ€æ–¹æ³•å¡è¿›æ ˆé¡¶
 	}
 
-	//ÔÚÕ»¶¥µÄtable´´½¨Ò»¸öÃûÎªnameµÄĞÂ±í£¬È»ºó×¢²á¾²Ì¬·½·¨µ½¸Ã±íÖĞ
-	//×¢²áÔª·½·¨µ½×¢²á±íÖĞÃûÎªmetanameµÄÔª±íÖĞ£¬²¢±£»¤Ôª±í²»±»ĞŞ¸Ä
-	//²»×¢²áindexÔª·½·¨
+	//åœ¨æ ˆé¡¶çš„tableåˆ›å»ºä¸€ä¸ªåä¸ºnameçš„æ–°è¡¨ï¼Œç„¶åæ³¨å†Œé™æ€æ–¹æ³•åˆ°è¯¥è¡¨ä¸­
+	//æ³¨å†Œå…ƒæ–¹æ³•åˆ°æ³¨å†Œè¡¨ä¸­åä¸ºmetanameçš„å…ƒè¡¨ä¸­ï¼Œå¹¶ä¿æŠ¤å…ƒè¡¨ä¸è¢«ä¿®æ”¹
+	//ä¸æ³¨å†Œindexå…ƒæ–¹æ³•
 	inline void RegisterClassIntoTable2(lua_State* L, const char* name, luaL_Reg* method, const char* metaname, luaL_Reg* metamethod) {
 		// ... t
 		lua_pushstring(L, name);			// ... t s			//key
-		lua_newtable(L);					// ... t s t		//´¢´æ¾²Ì¬·½·¨µÄtable
-		luaL_register(L, NULL, method);		// ... t s t		//½«·½·¨×¢²áµ½Ö¸¶¨µÄtableÄÚ£¬×÷Îª¾²Ì¬·½·¨
-		luaL_newmetatable(L, metaname);		// ... t s t mt		//ÔÚ×¢²á±íÖĞ´´½¨Ôª±í
-		luaL_register(L, NULL, metamethod);	// ... t s t mt		//½«Ôª·½·¨ÍÆÈëÔª±íÄÚ
-		lua_pushstring(L, "__metatable");	// ... t s t mt s	//__metatableÔª·½·¨
-		lua_pushvalue(L, -3);				// ... t s t mt s t	//¾²Ì¬·½·¨
-		lua_rawset(L, -3);					// ... t s t mt		//ÉèÖÃ__metatableÔª·½·¨£¬±£»¤Ôª±í²»±»ĞŞ¸Ä
-		lua_pop(L, 1);						// ... t s t		//ÇåÀí
-		lua_settable(L, -3);				// ... t			//°Ñ¾²Ì¬·½·¨Èû½øÕ»¶¥
+		lua_newtable(L);					// ... t s t		//å‚¨å­˜é™æ€æ–¹æ³•çš„table
+		luaL_register(L, NULL, method);		// ... t s t		//å°†æ–¹æ³•æ³¨å†Œåˆ°æŒ‡å®šçš„tableå†…ï¼Œä½œä¸ºé™æ€æ–¹æ³•
+		luaL_newmetatable(L, metaname);		// ... t s t mt		//åœ¨æ³¨å†Œè¡¨ä¸­åˆ›å»ºå…ƒè¡¨
+		luaL_register(L, NULL, metamethod);	// ... t s t mt		//å°†å…ƒæ–¹æ³•æ¨å…¥å…ƒè¡¨å†…
+		lua_pushstring(L, "__metatable");	// ... t s t mt s	//__metatableå…ƒæ–¹æ³•
+		lua_pushvalue(L, -3);				// ... t s t mt s t	//é™æ€æ–¹æ³•
+		lua_rawset(L, -3);					// ... t s t mt		//è®¾ç½®__metatableå…ƒæ–¹æ³•ï¼Œä¿æŠ¤å…ƒè¡¨ä¸è¢«ä¿®æ”¹
+		lua_pop(L, 1);						// ... t s t		//æ¸…ç†
+		lua_settable(L, -3);				// ... t			//æŠŠé™æ€æ–¹æ³•å¡è¿›æ ˆé¡¶
 	}
 
-	//·­Òë×Ö·û´®µ½»ìºÏÄ£Ê½
+	//ç¿»è¯‘å­—ç¬¦ä¸²åˆ°æ··åˆæ¨¡å¼
 	static inline BlendMode TranslateBlendMode(lua_State* L, int argnum)
 	{
 		const char* key = luaL_checkstring(L, argnum);
@@ -82,7 +82,7 @@ namespace LuaSTGPlus
 		return mode;
 	}
 
-	//·­Òë»ìºÏÄ£Ê½»Øµ½lua string
+	//ç¿»è¯‘æ··åˆæ¨¡å¼å›åˆ°lua string
 	static inline int TranslateBlendModeToString(lua_State* L, BlendMode blendmode) {
 		static const char* sc_sblendmodes[] = {
 			"",

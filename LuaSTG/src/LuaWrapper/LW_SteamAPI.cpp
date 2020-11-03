@@ -1,4 +1,4 @@
-#include "Config.h"
+﻿#include "Config.h"
 #include "LuaWrapper/LW_SteamAPI.h"
 #include "lua.hpp"
 

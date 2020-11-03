@@ -1,4 +1,4 @@
-#include "SteamAPI.hpp"
+﻿#include "SteamAPI.hpp"
 #include "Config.h"
 
 #ifdef USING_STEAM_API

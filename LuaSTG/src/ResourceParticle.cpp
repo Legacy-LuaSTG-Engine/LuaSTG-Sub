@@ -1,4 +1,4 @@
-#include "AppFrame.h"
+ï»¿#include "AppFrame.h"
 #include "Utility.h"
 #include "ResourceParticle.hpp"
 
@@ -12,7 +12,7 @@
 using namespace std;
 
 namespace LuaSTGPlus {
-	fcyMemPool<sizeof(LuaSTGPlus::ResParticle::ParticlePool)> LuaSTGPlus::ResParticle::s_MemoryPool(512);  // Ô¤·ÖÅä512¸ö¶ÔÏó
+	fcyMemPool<sizeof(LuaSTGPlus::ResParticle::ParticlePool)> LuaSTGPlus::ResParticle::s_MemoryPool(512);  // é¢„åˆ†é…512ä¸ªå¯¹è±¡
 
 	ResParticle::ResParticle(const char* name, const ParticleInfo& pinfo, fcyRefPointer<f2dSprite> sprite, BlendMode bld, double a, double b, bool rect)
 		: Resource(ResourceType::Particle, name), m_ParticleInfo(pinfo), m_BindedSprite(sprite), m_BlendMode(bld), m_HalfSizeX(a), m_HalfSizeY(b), m_bRectangle(rect)
@@ -21,7 +21,7 @@ namespace LuaSTGPlus {
 
 	ResParticle::ParticlePool* ResParticle::AllocInstance()LNOEXCEPT
 	{
-		// £¡ ¾¯¸æ£ºÇ±ÔÚbad_allocµ¼ÖÂ´íÎó£¬ÔİÊ±²»Óè´¦Àí
+		// ï¼ è­¦å‘Šï¼šæ½œåœ¨bad_allocå¯¼è‡´é”™è¯¯ï¼Œæš‚æ—¶ä¸äºˆå¤„ç†
 		ParticlePool* pRet = new(s_MemoryPool.Alloc()) ParticlePool(this);
 		pRet->SetBlendMode(m_BlendMode);
 		return pRet;
@@ -52,7 +52,7 @@ namespace LuaSTGPlus {
 				m_iStatus = Status::Sleep;
 		}
 
-		// ¸üĞÂËùÓĞÁ£×Ó
+		// æ›´æ–°æ‰€æœ‰ç²’å­
 		size_t i = 0;
 		while (i < m_iAlive)
 		{
@@ -66,7 +66,7 @@ namespace LuaSTGPlus {
 				continue;
 			}
 
-			// ¼ÆËãÏß¼ÓËÙ¶ÈºÍÇĞÏò¼ÓËÙ¶È
+			// è®¡ç®—çº¿åŠ é€Ÿåº¦å’Œåˆ‡å‘åŠ é€Ÿåº¦
 			fcyVec2 vecAccel = (tInst.vecLocation - m_vCenter).GetNormalize();
 			fcyVec2 vecAccel2 = vecAccel;
 			vecAccel *= tInst.fRadialAccel;
@@ -75,14 +75,14 @@ namespace LuaSTGPlus {
 			vecAccel2.x = -vecAccel2.x;
 			vecAccel2 *= tInst.fTangentialAccel;
 
-			// ¼ÆËãËÙ¶È
+			// è®¡ç®—é€Ÿåº¦
 			tInst.vecVelocity += (vecAccel + vecAccel2) * delta;
 			tInst.vecVelocity.y += tInst.fGravity * delta;
 
-			// ¼ÆËãÎ»ÖÃ
+			// è®¡ç®—ä½ç½®
 			tInst.vecLocation += tInst.vecVelocity * delta;
 
-			// ¼ÆËã×ÔĞıºÍ´óĞ¡
+			// è®¡ç®—è‡ªæ—‹å’Œå¤§å°
 			tInst.fSpin += tInst.fSpinDelta * delta;
 			tInst.fSize += tInst.fSizeDelta * delta;
 			tInst.colColor[0] += tInst.colColorDelta[0] * delta;
@@ -93,7 +93,7 @@ namespace LuaSTGPlus {
 			++i;
 		}
 
-		// ²úÉúĞÂµÄÁ£×Ó
+		// äº§ç”Ÿæ–°çš„ç²’å­
 		if (m_iStatus == Status::Alive)
 		{
 			float fParticlesNeeded = m_fEmission * delta + m_fEmissionResidue;
@@ -150,11 +150,11 @@ namespace LuaSTGPlus {
 	{
 		f2dSprite* p = m_pInstance->GetBindedSprite();
 		const ParticleInfo& pInfo = m_pInstance->GetParticleInfo();
-		fcyColor tOrgColor = p->GetColor(0U);//»ñÈ¡¾«ÁéµÚÒ»¸ö¶¥µãµÄÑÕÉ«£¨×Ü¹²4¸ö¶¥µã£©
+		fcyColor tOrgColor = p->GetColor(0U);//è·å–ç²¾çµç¬¬ä¸€ä¸ªé¡¶ç‚¹çš„é¢œè‰²ï¼ˆæ€»å…±4ä¸ªé¡¶ç‚¹ï¼‰
 
 		for (size_t i = 0; i < m_iAlive; ++i)
 		{
-			ParticleInstance& pInst = m_ParticlePool[i];//ÊµÀı»¯µÄÁ£×Ó
+			ParticleInstance& pInst = m_ParticlePool[i];//å®ä¾‹åŒ–çš„ç²’å­
 
 			if (pInfo.colColorStart[0] < 0)  // r < 0
 			{
@@ -186,6 +186,6 @@ namespace LuaSTGPlus {
 			p->Draw2(graph, fcyVec2(pInst.vecLocation.x, pInst.vecLocation.y), fcyVec2(scaleX * pInst.fSize, scaleY * pInst.fSize), pInst.fSpin, false);
 		}
 
-		p->SetColor(tOrgColor);//»Ö¸´¾«Áé¶¥µãÑÕÉ«
+		p->SetColor(tOrgColor);//æ¢å¤ç²¾çµé¡¶ç‚¹é¢œè‰²
 	}
 }

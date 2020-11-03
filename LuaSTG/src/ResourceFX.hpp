@@ -1,21 +1,21 @@
-#pragma once
+ï»¿#pragma once
 #include "ResourceBase.hpp"
 #include "Dictionary.hpp"
 
 namespace LuaSTGPlus {
-	// shader°ü×°
+	// shaderåŒ…è£…
 	class ResFX :
 		public Resource
 	{
 	private:
 		fcyRefPointer<f2dEffect> m_pShader;
 
-		// ÌØÊâ¶ÔÏó°ó¶¨
+		// ç‰¹æ®Šå¯¹è±¡ç»‘å®š
 		std::vector<f2dEffectParamValue*> m_pBindingPostEffectTexture;  // POSTEFFECTTEXTURE
 		std::vector<f2dEffectParamValue*> m_pBindingViewport;  // VIEWPORT
 		std::vector<f2dEffectParamValue*> m_pBindingScreenSize;  // SCREENSIZE
 
-		// ±äÁ¿°ó¶¨
+		// å˜é‡ç»‘å®š
 		Dictionary<std::vector<f2dEffectParamValue*>> m_pBindingVar;
 	public:
 		f2dEffect* GetEffect()LNOEXCEPT { return m_pShader; }
@@ -25,7 +25,7 @@ namespace LuaSTGPlus {
 		void SetScreenSize(fcyVec2 size)LNOEXCEPT;
 
 		void SetValue(const char* key, float val)LNOEXCEPT;
-		void SetValue(const char* key, fcyColor val)LNOEXCEPT;  // ÒÔfloat4½øĞĞ°ó¶¨
+		void SetValue(const char* key, fcyColor val)LNOEXCEPT;  // ä»¥float4è¿›è¡Œç»‘å®š
 		void SetValue(const char* key, f2dTexture2D* val)LNOEXCEPT;
 	public:
 		ResFX(const char* name, fcyRefPointer<f2dEffect> shader);

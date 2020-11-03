@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Global.h"
 
 #define LOBJ_CLASS_ISCLASS         "is_class"

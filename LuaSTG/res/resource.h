@@ -1,7 +1,4 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ 生成的包含文件。
-// 供 resource.rc 使用
-//
 #define IDB_SPLASH                      102
 #define IDI_APPICON                     103
 

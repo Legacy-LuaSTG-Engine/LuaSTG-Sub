@@ -1,4 +1,4 @@
-#include "ResourceFont.hpp"
+ï»¿#include "ResourceFont.hpp"
 #include "AppFrame.h"
 #include "Utility.h"
 
@@ -24,7 +24,7 @@ namespace LuaSTGPlus {
 			i = fcyStringHelper::Trim(i);
 		}
 
-		// µÚÒ»ĞĞ±ØĞëÊÇHGEFONT
+		// ç¬¬ä¸€è¡Œå¿…é¡»æ˜¯HGEFONT
 		if (tLines.size() <= 1 || tLines[0] != L"[HGEFONT]")
 			throw fcyException("ResFont::HGEFont::readDefine", "Bad file format.");
 
@@ -53,7 +53,7 @@ namespace LuaSTGPlus {
 					c = static_cast<wchar_t>(c_hex);
 				}
 
-				// ¼ÆËãµ½f2d×ÖÌåÆ«ÒÆÁ¿
+				// è®¡ç®—åˆ°f2då­—ä½“åç§»é‡
 				f2dGlyphInfo tInfo = {
 					fcyRect(x, y, x + w, y + h),
 					fcyVec2(w, h),
@@ -75,12 +75,12 @@ namespace LuaSTGPlus {
 	ResFont::HGEFont::HGEFont(std::unordered_map<wchar_t, f2dGlyphInfo>&& org, fcyRefPointer<f2dTexture2D> pTex)
 		: m_Charset(std::move(org)), m_pTex(pTex)
 	{
-		// ¼ÆËã×î¸ßĞĞ×÷ÎªLineHeight
+		// è®¡ç®—æœ€é«˜è¡Œä½œä¸ºLineHeight
 		m_fLineHeight = 0;
 		for (auto i = m_Charset.begin(); i != m_Charset.end(); ++i)
 			m_fLineHeight = ::max(m_fLineHeight, i->second.GlyphSize.y);
 
-		// ĞŞÕıÎÆÀí×ø±ê
+		// ä¿®æ­£çº¹ç†åæ ‡
 		for (auto& i : m_Charset)
 		{
 			i.second.GlyphPos.a.x /= pTex->GetWidth();
@@ -112,7 +112,7 @@ namespace LuaSTGPlus {
 
 	fResult ResFont::HGEFont::CacheString(fcStrW String)
 	{
-		return FCYERR_OK;  // ÎÆÀí×ÖÌå²»ĞèÒªÊµÏÖCacheString
+		return FCYERR_OK;  // çº¹ç†å­—ä½“ä¸éœ€è¦å®ç°CacheString
 	}
 
 	fResult ResFont::HGEFont::QueryGlyph(f2dGraphics* pGraph, fCharW Character, f2dGlyphInfo* InfoOut)

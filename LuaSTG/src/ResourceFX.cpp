@@ -1,4 +1,4 @@
-#include "ResourceFX.hpp"
+ï»¿#include "ResourceFX.hpp"
 #include "AppFrame.h"
 #include "Utility.h"
 
@@ -15,7 +15,7 @@ namespace LuaSTGPlus {
 	ResFX::ResFX(const char* name, fcyRefPointer<f2dEffect> shader)
 		: Resource(ResourceType::FX, name), m_pShader(shader)
 	{
-		// É¨ÃèËùÓĞµÄ±äÁ¿×¢ÊÍ
+		// æ‰«ææ‰€æœ‰çš„å˜é‡æ³¨é‡Š
 		for (fuInt i = 0; i < m_pShader->GetParamCount(); ++i)
 		{
 			f2dEffectParam* pParam = m_pShader->GetParam(i);
@@ -24,19 +24,19 @@ namespace LuaSTGPlus {
 			{
 				f2dEffectParamValue* pValue = (f2dEffectParamValue*)pParam;
 
-				// ×¢ÊÍ°ó¶¨
+				// æ³¨é‡Šç»‘å®š
 				f2dEffectParam* pAnnotation = pValue->GetAnnotation("binding");
 				if (pAnnotation && pAnnotation->GetType() == F2DEPTYPE_VALUE)
 				{
 					f2dEffectParamValue* pAnnotationVal = (f2dEffectParamValue*)pAnnotation;
 					if (pAnnotationVal->GetValueType() == F2DEPVTYPE_STRING && pAnnotationVal->GetString())
 					{
-						fcStr tBindingVar = pAnnotationVal->GetString();  // ±»°ó¶¨µÄ½Å±¾±äÁ¿
+						fcStr tBindingVar = pAnnotationVal->GetString();  // è¢«ç»‘å®šçš„è„šæœ¬å˜é‡
 						m_pBindingVar[tBindingVar].push_back(pValue);
 					}
 				}
 
-				// ÓïÒå°ó¶¨
+				// è¯­ä¹‰ç»‘å®š
 				fcStr pSemantic = pValue->GetSemantic();
 				if (pSemantic)
 				{
