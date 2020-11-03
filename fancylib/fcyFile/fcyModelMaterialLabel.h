@@ -1,40 +1,40 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  fcyModelMaterialLabel.h
-/// @brief fcyÄ£ĞÍ²ÄÖÊÊı¾İ±êÇ©¶¨Òå
+/// @brief fcyæ¨¡å‹æè´¨æ•°æ®æ ‡ç­¾å®šä¹‰
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyModelLabel.h"
 
-/// @addtogroup fancy¿âÎÄ¼şÖ§³Ö
-/// @brief Ìá¹©²¿·Ö¸ñÊ½ÎÄ¼şµÄ¶ÁĞ´Ö§³Ö
+/// @addtogroup fancyåº“æ–‡ä»¶æ”¯æŒ
+/// @brief æä¾›éƒ¨åˆ†æ ¼å¼æ–‡ä»¶çš„è¯»å†™æ”¯æŒ
 /// @{
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fcyÄ£ĞÍ²ÄÖÊÊı¾İ±êÇ©
+/// @brief fcyæ¨¡å‹æè´¨æ•°æ®æ ‡ç­¾
 ////////////////////////////////////////////////////////////////////////////////
 class fcyModelMaterialLabel :
 	public fcyModelLabel
 {
 public:
-	/// @brief ±êÇ©Ãû
+	/// @brief æ ‡ç­¾å
 	static const fChar LABELNAME[8];
 protected:
-	// ²ÄÖÊÊı¾İ
-	std::wstring m_MatName;    ///< @brief ²ÄÖÊÃû³Æ
-	std::wstring m_MatXMLData; ///< @brief ²ÄÖÊÊı¾İ
+	// æè´¨æ•°æ®
+	std::wstring m_MatName;    ///< @brief æè´¨åç§°
+	std::wstring m_MatXMLData; ///< @brief æè´¨æ•°æ®
 public:
-	/// @brief ·µ»Ø²ÄÖÊÃû³Æ
+	/// @brief è¿”å›æè´¨åç§°
 	fcStrW GetMaterialName()const { return m_MatName.c_str(); }
 	
-	/// @brief ·µ»Ø²ÄÖÊXMLÊı¾İ
+	/// @brief è¿”å›æè´¨XMLæ•°æ®
 	fcStrW GetMaterialXMLData()const { return m_MatXMLData.c_str(); }
 
-	/// @brief ÉèÖÃ²ÄÖÊÃû³Æ
+	/// @brief è®¾ç½®æè´¨åç§°
 	void SetMaterialName(const std::wstring& Name) { m_MatName = Name; }
 
-	/// @brief ÉèÖÃXMLÊı¾İ
+	/// @brief è®¾ç½®XMLæ•°æ®
 	void SetMaterialXMLData(const std::wstring XMLData) { m_MatXMLData = XMLData; }
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	void ReadData(fcyStream* pStream);
 	void WriteData(fcyStream* pStream);
 public:

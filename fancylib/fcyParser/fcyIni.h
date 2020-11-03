@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  fcyIni.h
-/// @brief fcyIni½âÎöÆ÷
+/// @brief fcyIniè§£æå™¨
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyParser/fcyLexicalParser.h"
@@ -8,10 +8,10 @@
 #include <unordered_map>
 #include <vector>
 
-/// @addtogroup fancy¿â½âÎö¸¨Öú
+/// @addtogroup fancyåº“è§£æè¾…åŠ©
 /// @{
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief Ini½Ú
+/// @brief InièŠ‚
 ////////////////////////////////////////////////////////////////////////////////
 class fcyIniSection
 {
@@ -23,43 +23,43 @@ private:
 private:
 	void writeToStr(std::wstring& Out);
 public:
-	/// @brief »ñµÃ½ÚÃû³Æ
+	/// @brief è·å¾—èŠ‚åç§°
 	fcStrW GetName();
 	
-	/// @brief »ñµÃKey/Value¶ÔÊı
+	/// @brief è·å¾—Key/Valueå¯¹æ•°
 	fuInt GetCount();
 
-	/// @brief Í¨¹ıÏÂ±ê»ñµÃ¼üÃû
-	/// @note  ²»´æÔÚ£¬·µ»ØNULL
+	/// @brief é€šè¿‡ä¸‹æ ‡è·å¾—é”®å
+	/// @note  ä¸å­˜åœ¨ï¼Œè¿”å›NULL
 	fcStrW GetKey(fuInt Index);
 
-	/// @brief Í¨¹ıÏÂ±ê»ñµÃ¼üÖµ
-	/// @note  ²»´æÔÚ£¬·µ»ØNULL
+	/// @brief é€šè¿‡ä¸‹æ ‡è·å¾—é”®å€¼
+	/// @note  ä¸å­˜åœ¨ï¼Œè¿”å›NULL
 	fcStrW GetValue(fuInt Index);
 	
-	/// @brief     »ñµÃÖµ
-	/// @note      Í¨¹ıÏîÃû·µ»ØÖµ£¬Èô²»´æÔÚ·µ»ØÄ¬ÈÏÖµ
-	/// @param[in] Key     Ïî
-	/// @param[in] Default Ä¬ÈÏÖµ
+	/// @brief     è·å¾—å€¼
+	/// @note      é€šè¿‡é¡¹åè¿”å›å€¼ï¼Œè‹¥ä¸å­˜åœ¨è¿”å›é»˜è®¤å€¼
+	/// @param[in] Key     é¡¹
+	/// @param[in] Default é»˜è®¤å€¼
 	fcStrW GetValue(fcStrW Key, fcStrW Default);
 
-	/// @brief     ÉèÖÃÖµ
-	/// @note      Èô²»´æÔÚÏî£¬×·¼ÓĞÂÖµ
-	/// @param[in] Key   ÏîÃû
-	/// @param[in] Value Öµ
+	/// @brief     è®¾ç½®å€¼
+	/// @note      è‹¥ä¸å­˜åœ¨é¡¹ï¼Œè¿½åŠ æ–°å€¼
+	/// @param[in] Key   é¡¹å
+	/// @param[in] Value å€¼
 	fBool SetValue(fcStrW Key, fcStrW Value);
 
-	/// @brief     ÒÆ³ı¼ü
-	/// @param[in] Key ¼üÃû
+	/// @brief     ç§»é™¤é”®
+	/// @param[in] Key é”®å
 	fBool Remove(fcStrW Key);
 public:
-	/// @brief ¹¹Ôìº¯Êı
+	/// @brief æ„é€ å‡½æ•°
 	fcyIniSection(const std::wstring& Name);
 	~fcyIniSection(void);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief IniÎÄ¼ş
+/// @brief Iniæ–‡ä»¶
 ////////////////////////////////////////////////////////////////////////////////
 class fcyIni
 {
@@ -70,42 +70,42 @@ private:
 	fBool ignoreComment(fcyLexicalReader& tReader);
 	fcyIniSection* parseIniSection(fcyLexicalReader& tReader);
 public:
-	/// @brief     ×·¼ÓÒ»¸ö½Ú
-	/// @note      fcyIni½«»á¸ºÔğÉ¾³ı½Ú
-	/// @param[in] pSec ½Ú
+	/// @brief     è¿½åŠ ä¸€ä¸ªèŠ‚
+	/// @note      fcyIniå°†ä¼šè´Ÿè´£åˆ é™¤èŠ‚
+	/// @param[in] pSec èŠ‚
 	fBool AppendSection(fcyIniSection* pSec);
-	/// @brief     ÊÇ·ñ´æÔÚ½Ú
-	/// @param[in] SecName ½ÚÃû³Æ
+	/// @brief     æ˜¯å¦å­˜åœ¨èŠ‚
+	/// @param[in] SecName èŠ‚åç§°
 	fBool IsContain(fcStrW SecName);
-	/// @brief     ÒÆ³ı½Ú
-	/// @param[in] SecName ½ÚÃû³Æ
+	/// @brief     ç§»é™¤èŠ‚
+	/// @param[in] SecName èŠ‚åç§°
 	fBool Remove(fcStrW SecName);
-	/// @brief     »ñµÃ½Ú
-	/// @note      ²»´æÔÚ·µ»ØNULL
-	/// @param[in] SecName ½ÚÃû³Æ
+	/// @brief     è·å¾—èŠ‚
+	/// @note      ä¸å­˜åœ¨è¿”å›NULL
+	/// @param[in] SecName èŠ‚åç§°
 	fcyIniSection* GetSection(fcStrW SecName);
-	/// @brief     »ñµÃÖµ
-	/// @param[in] Sec     ½ÚÃû³Æ
-	/// @param[in] Key     ¼üÃû
-	/// @param[in] Default Ä¬ÈÏÖµ
+	/// @brief     è·å¾—å€¼
+	/// @param[in] Sec     èŠ‚åç§°
+	/// @param[in] Key     é”®å
+	/// @param[in] Default é»˜è®¤å€¼
 	fcStrW GetValue(fcStrW Sec, fcStrW Key, fcStrW Default);
-	/// @brief     ÉèÖÃÖµ
-	/// @param[in] Sec     ½ÚÃû³Æ
-	/// @param[in] Key     ¼üÃû
-	/// @param[in] Value   ¼üÖµ
+	/// @brief     è®¾ç½®å€¼
+	/// @param[in] Sec     èŠ‚åç§°
+	/// @param[in] Key     é”®å
+	/// @param[in] Value   é”®å€¼
 	void SetValue(fcStrW Sec, fcStrW Key, fcStrW Value);
-	/// @brief     Ğ´µ½×Ö·û´®
-	/// @param[in] Out Ä¿µÄ×Ö·û´®
+	/// @brief     å†™åˆ°å­—ç¬¦ä¸²
+	/// @param[in] Out ç›®çš„å­—ç¬¦ä¸²
 	void WriteToStr(std::wstring& Out);
-	/// @brief Ğ´µ½Á÷
-	/// @param[in] pStream Ä¿µÄÁ÷
+	/// @brief å†™åˆ°æµ
+	/// @param[in] pStream ç›®çš„æµ
 	fBool WriteToStream(fcyStream* pStream);
 public:
-	/// @brief ¹¹ÔìÒ»¸öĞÂµÄINIÎÄ¼ş
+	/// @brief æ„é€ ä¸€ä¸ªæ–°çš„INIæ–‡ä»¶
 	fcyIni(void);
-	/// @brief ´ÓÎÄ±¾¹¹ÔìINIÎÄ¼ş
+	/// @brief ä»æ–‡æœ¬æ„é€ INIæ–‡ä»¶
 	fcyIni(const std::wstring& Src);
-	/// @brief ´ÓÁ÷¹¹ÔìINIÎÄ¼ş
+	/// @brief ä»æµæ„é€ INIæ–‡ä»¶
 	fcyIni(fcyStream* pStream);
 	~fcyIni(void);
 };

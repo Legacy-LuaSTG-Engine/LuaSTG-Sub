@@ -1,4 +1,4 @@
-#include "fcyMisc/fcyStopWatch.h"
+Ôªø#include "fcyMisc/fcyStopWatch.h"
 
 #include <Windows.h>
 
@@ -6,7 +6,7 @@
 
 fcyStopWatch::fcyStopWatch(void)
 {
-	QueryPerformanceFrequency((LARGE_INTEGER*)&m_cFreq); // ≥ı ºªØ
+	QueryPerformanceFrequency((LARGE_INTEGER*)&m_cFreq); // ÂàùÂßãÂåñ
 	Reset();
 }
 

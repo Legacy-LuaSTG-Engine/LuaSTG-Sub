@@ -1,4 +1,4 @@
-#include "fcyModelIndexLabel.h"
+ï»¿#include "fcyModelIndexLabel.h"
 
 using namespace std;
 
@@ -23,19 +23,19 @@ void fcyModelIndexLabel::ReadData(fcyStream* pStream)
 {
 	fcyBinaryReader tReader(pStream);
 
-	// Çå¿ÕÊı¾İ
+	// æ¸…ç©ºæ•°æ®
 	m_IndexData.clear();
 
-	// ¶ÁÈ¡Í·²¿
+	// è¯»å–å¤´éƒ¨
 	fuInt tIndexCount = tReader.ReadUInt32();
 	fByte tUseInt32Index = tReader.ReadByte();
 	fByte tStreamFlag = tReader.ReadByte();
 
-	// Ä¿Ç°Ö»Ö§³ÖÄ¬ÈÏµÄÁ÷Êı¾İ
+	// ç›®å‰åªæ”¯æŒé»˜è®¤çš„æµæ•°æ®
 	if(tStreamFlag != 0)
 		throw fcyException("fcyModelIndexLabel::ReadData", "Unsupport Stream Type.");
 	
-	// ¶ÁÈ¡Ë÷ÒıÊı¾İ
+	// è¯»å–ç´¢å¼•æ•°æ®
 	m_IndexData.resize(tIndexCount);
 	for(fuInt i = 0; i<tIndexCount; ++i)
 	{
@@ -50,15 +50,15 @@ void fcyModelIndexLabel::WriteData(fcyStream* pStream)
 {
 	fcyBinaryWriter tWritter(pStream);
 
-	// È·¶¨Ë÷Òı¸ñÊ½
+	// ç¡®å®šç´¢å¼•æ ¼å¼
 	fBool tIndex32 = IsIndex32();
 
-	// Ğ´³öÍ·²¿
+	// å†™å‡ºå¤´éƒ¨
 	tWritter.Write((fuInt)m_IndexData.size());
 	tWritter.Write((fByte)tIndex32);
-	tWritter.Write((fByte)0);                  // Á÷±ê¼Ç
+	tWritter.Write((fByte)0);                  // æµæ ‡è®°
 
-	// Ğ´³öË÷Òı
+	// å†™å‡ºç´¢å¼•
 	for(fuInt i = 0; i<m_IndexData.size(); ++i)
 	{
 		if(tIndex32)

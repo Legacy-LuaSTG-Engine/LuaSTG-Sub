@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  fcyMemPool.h
-/// @brief fancyÄÚ´æ³Ø
+/// @brief fancyå†…å­˜æ± 
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "../fcyType.h"
@@ -11,39 +11,39 @@
 
 #include <vector>
 
-/// @addtogroup fancy¿âµ×²ãÖ§³Ö
+/// @addtogroup fancyåº“åº•å±‚æ”¯æŒ
 /// @{
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief     ¶¨³¤ÄÚ´æ³ØÊµÏÖ
-/// @param[in] BlockSize ÄÚ´æ¿é´óĞ¡
+/// @brief     å®šé•¿å†…å­˜æ± å®ç°
+/// @param[in] BlockSize å†…å­˜å—å¤§å°
 ////////////////////////////////////////////////////////////////////////////////
 template <fLen BlockSize>
 class fcyMemPool
 {
 private:
-	fLen m_PerPoolLen;                ///< @brief ÏÂ´Î·ÖÅäµÄ¿éÊıÁ¿
-	fLen m_CurAlloctedSize;           ///< @brief µ±Ç°·ÖÅäµÄ´óĞ¡
-	std::vector<void*> m_AllocMemPtr; ///< @brief ÒÑ·ÖÅäÄÚ´æÖ¸Õë
-	std::vector<void*> m_FreeMemPool; ///< @brief ¿ÕÏĞÄÚ´æÖ¸Õë
+	fLen m_PerPoolLen;                ///< @brief ä¸‹æ¬¡åˆ†é…çš„å—æ•°é‡
+	fLen m_CurAlloctedSize;           ///< @brief å½“å‰åˆ†é…çš„å¤§å°
+	std::vector<void*> m_AllocMemPtr; ///< @brief å·²åˆ†é…å†…å­˜æŒ‡é’ˆ
+	std::vector<void*> m_FreeMemPool; ///< @brief ç©ºé—²å†…å­˜æŒ‡é’ˆ
 private:
-	/// @brief ×·¼Ó¿ÕÏĞÄÚ´æ
-	/// @param[in] BlockCount ¿éÊıÁ¿
+	/// @brief è¿½åŠ ç©ºé—²å†…å­˜
+	/// @param[in] BlockCount å—æ•°é‡
 	void appendMem(fuInt BlockCount)
 	{
-		// ¼ÆËãĞèÒª·ÖÅäµÄ´óĞ¡
+		// è®¡ç®—éœ€è¦åˆ†é…çš„å¤§å°
 		fuLong tAllocSize = BlockCount * BlockSize;
 		m_CurAlloctedSize += tAllocSize;
-		// ¼ÆËãµ±Ç°µÄ¿ÕÏĞÖ¸Õë³ØÓ¦¸ÃÓĞµÄ¿Õ¼ä
+		// è®¡ç®—å½“å‰çš„ç©ºé—²æŒ‡é’ˆæ± åº”è¯¥æœ‰çš„ç©ºé—´
 		fuLong tPoolSize = m_FreeMemPool.size() + BlockCount;
-		// Èç¹û²»¹»½øĞĞÔ¤Áô
+		// å¦‚æœä¸å¤Ÿè¿›è¡Œé¢„ç•™
 		if(m_FreeMemPool.capacity() < tPoolSize)
 			m_FreeMemPool.reserve( (size_t)tPoolSize );
-		// ·ÖÅä¿Õ¼ä
+		// åˆ†é…ç©ºé—´
 		fByte* tPtr = (fByte*)malloc( (size_t)tAllocSize );
-		// ¼ÇÂ¼·ÖÅäµÄ¿Õ¼ä
+		// è®°å½•åˆ†é…çš„ç©ºé—´
 		m_AllocMemPtr.push_back(tPtr);
-		// ¼ÇÂ¼ËùÓĞÄÚ´æ¿é
+		// è®°å½•æ‰€æœ‰å†…å­˜å—
 		for(fuInt i = 0; i<BlockCount; ++i)
 		{
 			m_FreeMemPool.push_back(tPtr);
@@ -51,17 +51,17 @@ private:
 		}
 	}
 
-	/// @brief ·ÖÅäÄÚ´æ³Ø
+	/// @brief åˆ†é…å†…å­˜æ± 
 	void allocPool()
 	{
 		appendMem((fuInt)m_PerPoolLen);
 
-		// À©´óÏÂ´Î·ÖÅäÖµ
+		// æ‰©å¤§ä¸‹æ¬¡åˆ†é…å€¼
 		m_PerPoolLen = m_PerPoolLen * 2;
 	}
 public:
-	/// @brief  ·ÖÅäÄÚ´æ
-	/// @return ÄÚ´æ¿éÖ¸Õë
+	/// @brief  åˆ†é…å†…å­˜
+	/// @return å†…å­˜å—æŒ‡é’ˆ
 	void* Alloc()
 	{
 		if(m_FreeMemPool.empty())
@@ -71,33 +71,33 @@ public:
 		return pRet;
 	}
 
-	/// @brief     ÊÍ·ÅÄÚ´æ
-	/// @param[in] Ptr ÄÚ´æ¿éÖ¸Õë
+	/// @brief     é‡Šæ”¾å†…å­˜
+	/// @param[in] Ptr å†…å­˜å—æŒ‡é’ˆ
 	void Free(void* Ptr)
 	{
 		m_FreeMemPool.push_back(Ptr);
 	}
 
-	/// @brief  »ñµÃ×Ü·ÖÅä´óĞ¡
-	/// @return ×Ü·ÖÅäµÄÄÚ´æ
+	/// @brief  è·å¾—æ€»åˆ†é…å¤§å°
+	/// @return æ€»åˆ†é…çš„å†…å­˜
 	fLen GetTotalSize()
 	{
 		return m_CurAlloctedSize;
 	}
 
-	/// @brief  »ñµÃ¿ÕÏĞÄÚ´æ×Ü´óĞ¡
-	/// @return ¿ÕÏĞÄÚ´æ¿é´óĞ¡
+	/// @brief  è·å¾—ç©ºé—²å†…å­˜æ€»å¤§å°
+	/// @return ç©ºé—²å†…å­˜å—å¤§å°
 	fLen GetFreeSize()
 	{
 		return m_FreeMemPool.size() * BlockSize;
 	}
 public:
-	/// @brief     ¹¹Ôìº¯Êı
-	/// @param[in] InitMemSize ³õÊ¼ÄÚ´æ´óĞ¡
+	/// @brief     æ„é€ å‡½æ•°
+	/// @param[in] InitMemSize åˆå§‹å†…å­˜å¤§å°
 	fcyMemPool(fuInt InitMemSize = 16)
 	{
-		m_CurAlloctedSize = 0;  // ÒÑ·ÖÅä´óĞ¡Îª0
-		m_PerPoolLen = 4;       // Ä¬ÈÏÏÂ´Î×·¼Ó¿éÊıÁ¿Îª4
+		m_CurAlloctedSize = 0;  // å·²åˆ†é…å¤§å°ä¸º0
+		m_PerPoolLen = 4;       // é»˜è®¤ä¸‹æ¬¡è¿½åŠ å—æ•°é‡ä¸º4
 
 		m_AllocMemPtr.reserve(4);
 		m_FreeMemPool.reserve(128);

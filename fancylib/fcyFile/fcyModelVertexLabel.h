@@ -1,93 +1,93 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  fcyModelVertexLabel.h
-/// @brief fcyÄ£ĞÍ¶¥µãÊı¾İ±êÇ©¶¨Òå
+/// @brief fcyæ¨¡å‹é¡¶ç‚¹æ•°æ®æ ‡ç­¾å®šä¹‰
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyModelLabel.h"
 
-/// @addtogroup fancy¿âÎÄ¼şÖ§³Ö
-/// @brief Ìá¹©²¿·Ö¸ñÊ½ÎÄ¼şµÄ¶ÁĞ´Ö§³Ö
+/// @addtogroup fancyåº“æ–‡ä»¶æ”¯æŒ
+/// @brief æä¾›éƒ¨åˆ†æ ¼å¼æ–‡ä»¶çš„è¯»å†™æ”¯æŒ
 /// @{
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fcyÄ£ĞÍ¶¥µãÊı¾İ±êÇ©
+/// @brief fcyæ¨¡å‹é¡¶ç‚¹æ•°æ®æ ‡ç­¾
 ////////////////////////////////////////////////////////////////////////////////
 class fcyModelVertexLabel :
 	public fcyModelLabel
 {
 public:
-	/// @brief ±êÇ©Ãû
+	/// @brief æ ‡ç­¾å
 	static const fChar LABELNAME[8];
 
-	/// @brief FMM¶¥µãÔªËØÀàĞÍ
+	/// @brief FMMé¡¶ç‚¹å…ƒç´ ç±»å‹
 	enum ELEMENTTYPE 
 	{
-		ELEMENTTYPE_FLOAT,   ///< @brief 4×Ö½Ú¸¡µã
-		ELEMENTTYPE_FLOAT2,  ///< @brief 2*4×Ö½Ú¸¡µã
-		ELEMENTTYPE_FLOAT3,  ///< @brief 3*4×Ö½Ú¸¡µã
-		ELEMENTTYPE_FLOAT4,  ///< @brief 4*4×Ö½Ú¸¡µã
-		ELEMENTTYPE_COLOR,   ///< @brief 4*1×Ö½ÚBGRAÑÕÉ«·ÖÁ¿
-		ELEMENTTYPE_UBYTE4,  ///< @brief 4*1×Ö½Ú
-		ELEMENTTYPE_SHORT2,  ///< @brief 2*2ÓĞ·ûºÅ¶ÌÕûÊı
-		ELEMENTTYPE_SHORT4   ///< @brief 4*2ÓĞ·ûºÅ¶ÌÕûÊı
+		ELEMENTTYPE_FLOAT,   ///< @brief 4å­—èŠ‚æµ®ç‚¹
+		ELEMENTTYPE_FLOAT2,  ///< @brief 2*4å­—èŠ‚æµ®ç‚¹
+		ELEMENTTYPE_FLOAT3,  ///< @brief 3*4å­—èŠ‚æµ®ç‚¹
+		ELEMENTTYPE_FLOAT4,  ///< @brief 4*4å­—èŠ‚æµ®ç‚¹
+		ELEMENTTYPE_COLOR,   ///< @brief 4*1å­—èŠ‚BGRAé¢œè‰²åˆ†é‡
+		ELEMENTTYPE_UBYTE4,  ///< @brief 4*1å­—èŠ‚
+		ELEMENTTYPE_SHORT2,  ///< @brief 2*2æœ‰ç¬¦å·çŸ­æ•´æ•°
+		ELEMENTTYPE_SHORT4   ///< @brief 4*2æœ‰ç¬¦å·çŸ­æ•´æ•°
 	};
 
-	/// @brief FMM¶¥µãÔªËØ
+	/// @brief FMMé¡¶ç‚¹å…ƒç´ 
 	struct VertexElement
 	{
-		ELEMENTTYPE Type;  ///< @brief ÃèÊöÔªËØµÄÊı¾İ¸ñÊ½£¬¶¨ÒåÈçÏÂ
-		fuLong Usage;      ///< @brief ÃèÊöÔªËØµÄÓÃÍ¾
-		fByte UsageIndex;  ///< @brief ÃèÊöÔªËØµÄÓÃÍ¾Ë÷Òı
+		ELEMENTTYPE Type;  ///< @brief æè¿°å…ƒç´ çš„æ•°æ®æ ¼å¼ï¼Œå®šä¹‰å¦‚ä¸‹
+		fuLong Usage;      ///< @brief æè¿°å…ƒç´ çš„ç”¨é€”
+		fByte UsageIndex;  ///< @brief æè¿°å…ƒç´ çš„ç”¨é€”ç´¢å¼•
 	};
 protected:
-	// ¶¥µãÉùÃ÷Êı¾İ
+	// é¡¶ç‚¹å£°æ˜æ•°æ®
 	std::vector<VertexElement> m_VertElementList;
 	
-	// ¶¥µãÊı¾İ
+	// é¡¶ç‚¹æ•°æ®
 	std::vector<fByte> m_VertexData;
 public:
-	/// @brief     ÒÀ¾İ¶¥µãÉùÃ÷¼ÆËã¶¥µã´óĞ¡
+	/// @brief     ä¾æ®é¡¶ç‚¹å£°æ˜è®¡ç®—é¡¶ç‚¹å¤§å°
 	fuInt CalcuVertexSize()const;
 
-	/// @brief     ×·¼ÓÒ»¸ö¶¥µã
-	/// @param[in] pData      ¶¥µãÊı¾İ
-	/// @param[in] VertexSize ¶¥µã´óĞ¡
+	/// @brief     è¿½åŠ ä¸€ä¸ªé¡¶ç‚¹
+	/// @param[in] pData      é¡¶ç‚¹æ•°æ®
+	/// @param[in] VertexSize é¡¶ç‚¹å¤§å°
 	void PushVertex(void* pData, fuInt VertexSize);
 
-	/// @brief     ×·¼ÓÒ»¸ö¶¥µã(Ä£°å)
+	/// @brief     è¿½åŠ ä¸€ä¸ªé¡¶ç‚¹(æ¨¡æ¿)
 	template<typename T>
 	void PushVertex(T* Vertex)
 	{
 		PushVertex(Vertex, sizeof(T));
 	}
 
-	/// @brief     ·µ»ØVertexÊı¾İÖ¸Õë
-	/// @warning   ÔÚÖØĞÂ·ÖÅä´óĞ¡ºóÓ¦¸ÃÖØĞÂ»ñµÃÖ¸Õë
+	/// @brief     è¿”å›Vertexæ•°æ®æŒ‡é’ˆ
+	/// @warning   åœ¨é‡æ–°åˆ†é…å¤§å°ååº”è¯¥é‡æ–°è·å¾—æŒ‡é’ˆ
 	void* GetVertexDataPointer() { return (m_VertexData.size() == 0) ? NULL : m_VertexData.data(); }
 
-	/// @brief     ·µ»Ø¶¥µã»º³å´óĞ¡
+	/// @brief     è¿”å›é¡¶ç‚¹ç¼“å†²å¤§å°
 	fuInt GetVertexDataSize()const { return m_VertexData.size(); }
 
-	/// @brief     ÖØĞÂ·ÖÅä¶¥µãÊı¾İ´óĞ¡
-	/// @note      ±£ÁôÔ­Ê¼Êı¾İ
-	/// @param[in] NewSize ×Ö½Ú£¬ĞÂµÄ¶¥µã»º³å´óĞ¡
+	/// @brief     é‡æ–°åˆ†é…é¡¶ç‚¹æ•°æ®å¤§å°
+	/// @note      ä¿ç•™åŸå§‹æ•°æ®
+	/// @param[in] NewSize å­—èŠ‚ï¼Œæ–°çš„é¡¶ç‚¹ç¼“å†²å¤§å°
 	void ResizeVertex(fuInt NewSize) { m_VertexData.resize(NewSize); }
 	
-	/// @brief     ×·¼ÓÒ»¸ö¶¥µãÉùÃ÷
-	/// @param[in] Element ¶¥µãÔªËØ
+	/// @brief     è¿½åŠ ä¸€ä¸ªé¡¶ç‚¹å£°æ˜
+	/// @param[in] Element é¡¶ç‚¹å…ƒç´ 
 	void PushVertexElement(const VertexElement& Element) { m_VertElementList.push_back(Element); }
 
-	/// @brief     ·µ»ØÔªËØ
-	/// @param[in] Index ÔªËØË÷Òı
+	/// @brief     è¿”å›å…ƒç´ 
+	/// @param[in] Index å…ƒç´ ç´¢å¼•
 	VertexElement& GetVertexElement(fuInt Index) { return m_VertElementList[Index]; }
 
-	/// @brief     ·µ»Ø¶¥µãÉùÃ÷ÔªËØÊıÁ¿
+	/// @brief     è¿”å›é¡¶ç‚¹å£°æ˜å…ƒç´ æ•°é‡
 	fuInt GetVertexElementSize()const { return m_VertElementList.size(); }
 
-	/// @brief     ÖØĞÂ·ÖÅäÊı¾İ´óĞ¡
-	/// @param[in] ÔªËØÊıÁ¿
+	/// @brief     é‡æ–°åˆ†é…æ•°æ®å¤§å°
+	/// @param[in] å…ƒç´ æ•°é‡
 	void ResizeElement(fuInt Count) { m_VertElementList.resize(Count); }
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	void ReadData(fcyStream* pStream);
 	void WriteData(fcyStream* pStream);
 public:

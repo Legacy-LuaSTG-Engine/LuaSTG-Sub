@@ -1,30 +1,30 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  fcyHash.h
-/// @brief fancy¹şÏ£
+/// @brief fancyå“ˆå¸Œ
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyType.h"
 #include <functional>
 
-/// @addtogroup fancyÔÓÏî
+/// @addtogroup fancyæ‚é¡¹
 /// @{
 
-/// @brief fcyHashÖ§³Ö
+/// @brief fcyHashæ”¯æŒ
 namespace fcyHash
 {
-	/// @brief     SuperFastHashËã·¨
-	/// @param[in] pData   Ô­Ê¼Êı¾İ
-	/// @param[in] DataLen Ô­Ê¼Êı¾İ³¤¶È
+	/// @brief     SuperFastHashç®—æ³•
+	/// @param[in] pData   åŸå§‹æ•°æ®
+	/// @param[in] DataLen åŸå§‹æ•°æ®é•¿åº¦
 	fuInt SuperFastHash(fcData pData, fuInt DataLen);
 
-	/// @brief SuperFastHashËã·¨Ä£°å
+	/// @brief SuperFastHashç®—æ³•æ¨¡æ¿
 	template<typename T>
 	fuInt SuperFastHash(const T& Data)
 	{
 		return SuperFastHash((fcData)&Data, sizeof(T));
 	}
 
-	/// @brief HASHÖµ×éºÏÄ£°å
+	/// @brief HASHå€¼ç»„åˆæ¨¡æ¿
 	template <typename T>
 	inline void HashCombine(fuInt& seed, const T & v)
 	{

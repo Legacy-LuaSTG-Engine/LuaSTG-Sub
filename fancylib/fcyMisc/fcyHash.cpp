@@ -1,4 +1,4 @@
-#include "fcyMisc/fcyHash.h"
+﻿#include "fcyMisc/fcyHash.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -14,7 +14,7 @@ fuInt fcyHash::SuperFastHash(fcData pData, fuInt DataLen)
 	tRem = DataLen & 3;
 	DataLen >>= 2;
 
-	// Hash�㷨��ѭ��
+	// Hash算法主循环
 	for ( ;DataLen > 0; DataLen--) 
 	{
 		tRet  += Get16Bits(pData);
@@ -24,7 +24,7 @@ fuInt fcyHash::SuperFastHash(fcData pData, fuInt DataLen)
 		tRet  += tRet >> 11;
 	}
 
-	// ������β
+	// 处理结尾
 	switch (tRem)
 	{
 	case 3:

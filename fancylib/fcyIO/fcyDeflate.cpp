@@ -1,4 +1,4 @@
-#include "fcyIO/fcyDeflate.h"
+ï»¿#include "fcyIO/fcyDeflate.h"
 
 extern "C"
 {
@@ -21,45 +21,45 @@ fResult fcyDeflate::CompressStreamToMem(fcyStream* pIn, fcyStream** pOut, fInt L
 	if(!pOut || !pIn || Level<-1 || Level>9)
 		return FCYERR_INVAILDPARAM;
 	
-	// ×¼±¸»º³åÇø
+	// å‡†å¤‡ç¼“å†²åŒº
 	memset(&tStream, 0, sizeof(z_stream));
-	tStream.next_in = tInBuffer;   // Ô­Ê¼Êı¾İÁ÷
-	tStream.next_out = tOutBuffer; // Êä³öµÄÑ¹ËõÊı¾İÁ÷
+	tStream.next_in = tInBuffer;   // åŸå§‹æ•°æ®æµ
+	tStream.next_out = tOutBuffer; // è¾“å‡ºçš„å‹ç¼©æ•°æ®æµ
 	
 	tStream.avail_out = DEFLATE_BUFFERSIZE;
 	
-	// ³õÊ¼»¯½âÑ¹Á÷
+	// åˆå§‹åŒ–è§£å‹æµ
     tErr = deflateInit(&tStream, Level);
 	if (tErr != Z_OK) 
 		return FCYERR_INTERNALERR;
 
-	// ´´½¨Êä³öÁ÷
+	// åˆ›å»ºè¾“å‡ºæµ
 	fcyMemStream* pOutStream = new fcyMemStream(NULL, 0, true, true);
 
-	// Ñ¹ËõÑ­»·
+	// å‹ç¼©å¾ªç¯
 	tErr = Z_OK;
 	while(tErr != Z_STREAM_END)
 	{
 		fBool tbEOF = false;
 		if(tStream.avail_in == 0)
 		{
-			// ¶ÁÈ¡Ò»¸ö»º³åÇøÊı¾İ
+			// è¯»å–ä¸€ä¸ªç¼“å†²åŒºæ•°æ®
 			fLen tInLen = 0;
 			pIn->ReadBytes(tInBuffer, DEFLATE_BUFFERSIZE, &tInLen);
 
 			if(tInLen < DEFLATE_BUFFERSIZE)
 				tbEOF = true;
 
-			// ¸üĞÂnext_inºÍavail_in
+			// æ›´æ–°next_inå’Œavail_in
 			tStream.next_in = tInBuffer;
 			tStream.avail_in = (fuInt)tInLen;
 		}
 		
 		tErr = deflate(&tStream, tbEOF ? Z_FINISH : Z_NO_FLUSH);
-		if(tErr != Z_OK && tErr != Z_STREAM_END) // ·¢Éú´íÎó
+		if(tErr != Z_OK && tErr != Z_STREAM_END) // å‘ç”Ÿé”™è¯¯
 		{
-			inflateEnd(&tStream);     // ¹Ø±ÕÁ÷
-			FCYSAFEKILL(pOutStream);  // Ïú»Ù½âÑ¹Á÷
+			inflateEnd(&tStream);     // å…³é—­æµ
+			FCYSAFEKILL(pOutStream);  // é”€æ¯è§£å‹æµ
 			if(tErr == Z_DATA_ERROR)
 				return FCYERR_INVAILDDATA;
 			else
@@ -92,46 +92,46 @@ fResult fcyDeflate::DecompressStreamToMem(fcyStream* pIn, fcyStream** pOut)
 	if(!pOut || !pIn)
 		return FCYERR_INVAILDPARAM;
 
-	// ×¼±¸»º³åÇø
+	// å‡†å¤‡ç¼“å†²åŒº
 	memset(&tStream, 0, sizeof(z_stream));
-	tStream.next_in = tInBuffer;   // Ñ¹ËõÊı¾İÁ÷
-	tStream.next_out = tOutBuffer; // Êä³öÁ÷
+	tStream.next_in = tInBuffer;   // å‹ç¼©æ•°æ®æµ
+	tStream.next_out = tOutBuffer; // è¾“å‡ºæµ
 	
 	tStream.avail_out = DEFLATE_BUFFERSIZE;
 	
-	// ³õÊ¼»¯½âÑ¹Á÷
+	// åˆå§‹åŒ–è§£å‹æµ
     tErr = inflateInit(&tStream);
 	if (tErr != Z_OK) 
 		return FCYERR_INTERNALERR;
 
-	// ´´½¨Êä³öÁ÷
+	// åˆ›å»ºè¾“å‡ºæµ
 	fcyMemStream* pOutStream = new fcyMemStream(NULL, 0, true, true);
 
-	// ½âÑ¹ËõÑ­»·
+	// è§£å‹ç¼©å¾ªç¯
 	tErr = Z_OK;
 	while(tErr != Z_STREAM_END)
 	{
 		if(tStream.avail_in == 0)
 		{
-			// ¶ÁÈ¡Ò»¸ö»º³åÇøÊı¾İ
+			// è¯»å–ä¸€ä¸ªç¼“å†²åŒºæ•°æ®
 			fLen tInLen = 0;
 			pIn->ReadBytes(tInBuffer, DEFLATE_BUFFERSIZE, &tInLen);
 
-			// ¶ÁÍêÊı¾İÁË£¬Ìø³ö
+			// è¯»å®Œæ•°æ®äº†ï¼Œè·³å‡º
 			if(tInLen == 0)
 				break;
 
-			// ¸üĞÂnext_inºÍavail_in
+			// æ›´æ–°next_inå’Œavail_in
 			tStream.next_in = tInBuffer;
 			tStream.avail_in = (fuInt)tInLen;
 		}
 		
 		tErr = inflate(&tStream, Z_SYNC_FLUSH);
-		if(tErr != Z_OK && tErr != Z_STREAM_END) // ·¢Éú´íÎó
+		if(tErr != Z_OK && tErr != Z_STREAM_END) // å‘ç”Ÿé”™è¯¯
 		{
 			if(tErr == Z_DATA_ERROR)
 			{
-				// ³¢ÊÔ²åÈëÒ»¸ö¼ÙÍ·
+				// å°è¯•æ’å…¥ä¸€ä¸ªå‡å¤´
 
 				static char tFalseHeader[2] =
 				{
@@ -151,8 +151,8 @@ fResult fcyDeflate::DecompressStreamToMem(fcyStream* pIn, fcyStream** pOut)
 			}
 			else
 			{
-				inflateEnd(&tStream);     // ¹Ø±ÕÁ÷
-				FCYSAFEKILL(pOutStream);  // Ïú»Ù½âÑ¹Á÷
+				inflateEnd(&tStream);     // å…³é—­æµ
+				FCYSAFEKILL(pOutStream);  // é”€æ¯è§£å‹æµ
 				if(tErr == Z_DATA_ERROR)
 					return FCYERR_INVAILDDATA;
 				else
@@ -186,45 +186,45 @@ fResult fcyDeflate::DecompressStreamToMemEx(fcyStream* pIn, fInt Flag, fcyStream
 	if(!pOut || !pIn)
 		return FCYERR_INVAILDPARAM;
 
-	// ×¼±¸»º³åÇø
+	// å‡†å¤‡ç¼“å†²åŒº
 	memset(&tStream, 0, sizeof(z_stream));
-	tStream.next_in = tInBuffer;   // Ñ¹ËõÊı¾İÁ÷
-	tStream.next_out = tOutBuffer; // Êä³öÁ÷
+	tStream.next_in = tInBuffer;   // å‹ç¼©æ•°æ®æµ
+	tStream.next_out = tOutBuffer; // è¾“å‡ºæµ
 	
 	tStream.avail_out = DEFLATE_BUFFERSIZE;
 	
-	// ³õÊ¼»¯½âÑ¹Á÷
+	// åˆå§‹åŒ–è§£å‹æµ
     tErr = inflateInit2(&tStream, Flag);
 	if (tErr != Z_OK) 
 		return FCYERR_INTERNALERR;
 
-	// ´´½¨Êä³öÁ÷
+	// åˆ›å»ºè¾“å‡ºæµ
 	fcyMemStream* pOutStream = new fcyMemStream(NULL, 0, true, true);
 
-	// ½âÑ¹ËõÑ­»·
+	// è§£å‹ç¼©å¾ªç¯
 	tErr = Z_OK;
 	while(tErr != Z_STREAM_END)
 	{
 		if(tStream.avail_in == 0)
 		{
-			// ¶ÁÈ¡Ò»¸ö»º³åÇøÊı¾İ
+			// è¯»å–ä¸€ä¸ªç¼“å†²åŒºæ•°æ®
 			fLen tInLen = 0;
 			pIn->ReadBytes(tInBuffer, DEFLATE_BUFFERSIZE, &tInLen);
 
-			// ¶ÁÍêÊı¾İÁË£¬Ìø³ö
+			// è¯»å®Œæ•°æ®äº†ï¼Œè·³å‡º
 			if(tInLen == 0)
 				break;
 
-			// ¸üĞÂnext_inºÍavail_in
+			// æ›´æ–°next_inå’Œavail_in
 			tStream.next_in = tInBuffer;
 			tStream.avail_in = (fuInt)tInLen;
 		}
 		
 		tErr = inflate(&tStream, Z_SYNC_FLUSH);
-		if(tErr != Z_OK && tErr != Z_STREAM_END) // ·¢Éú´íÎó
+		if(tErr != Z_OK && tErr != Z_STREAM_END) // å‘ç”Ÿé”™è¯¯
 		{
-			inflateEnd(&tStream);     // ¹Ø±ÕÁ÷
-			FCYSAFEKILL(pOutStream);  // Ïú»Ù½âÑ¹Á÷
+			inflateEnd(&tStream);     // å…³é—­æµ
+			FCYSAFEKILL(pOutStream);  // é”€æ¯è§£å‹æµ
 			if(tErr == Z_DATA_ERROR)
 				return FCYERR_INVAILDDATA;
 			else

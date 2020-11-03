@@ -1,7 +1,7 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  fcyResPackage.h
-/// @brief fcy×ÊÔ´°ü
-/// @note  ±¾Ä£¿éÄ¿Ç°½öÖ§³Ö×ÊÔ´°üµÄ¶ÁÈ¡
+/// @brief fcyèµ„æºåŒ…
+/// @note  æœ¬æ¨¡å—ç›®å‰ä»…æ”¯æŒèµ„æºåŒ…çš„è¯»å–
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyRefObj.h"
@@ -13,140 +13,140 @@
 #include <unordered_map>
 #include <vector>
 
-/// @addtogroup fancy¿âÎÄ¼şÖ§³Ö
-/// @brief Ìá¹©²¿·Ö¸ñÊ½ÎÄ¼şµÄ¶ÁĞ´Ö§³Ö
+/// @addtogroup fancyåº“æ–‡ä»¶æ”¯æŒ
+/// @brief æä¾›éƒ¨åˆ†æ ¼å¼æ–‡ä»¶çš„è¯»å†™æ”¯æŒ
 /// @{
 
 class fcyResPackageDataNode;
 class fcyResPackageFloderNode;
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ×ÊÔ´°ü½Úµã
+/// @brief èµ„æºåŒ…èŠ‚ç‚¹
 ////////////////////////////////////////////////////////////////////////////////
 class fcyResPackageNode
 {
 	friend class fcyResPackageFloderNode;
 private:
-	fcyResPackageFloderNode* m_pParent;  ///< @brief ¸¸½Úµã
-	std::wstring m_Name;                 ///< @brief ÎÄ¼şÃû
+	fcyResPackageFloderNode* m_pParent;  ///< @brief çˆ¶èŠ‚ç‚¹
+	std::wstring m_Name;                 ///< @brief æ–‡ä»¶å
 protected:
-	/// @brief     ´ÓÁ÷¶ÁÈ¡ºÍXmlÊı¾İÖĞ¶ÁÈ¡Á÷
-	/// @param[in] pStream  Á÷
-	/// @param[in] pXmlNode Xml½Úµã
+	/// @brief     ä»æµè¯»å–å’ŒXmlæ•°æ®ä¸­è¯»å–æµ
+	/// @param[in] pStream  æµ
+	/// @param[in] pXmlNode XmlèŠ‚ç‚¹
 	virtual fResult Read(fcyStream* pStream, fcyXmlElement* pXmlNode)=0;
-public: // ½Ó¿Ú×ª»»
-	virtual fcyResPackageDataNode* ToDataNode()=0;    ///< @brief ×ªµ½Êı¾İ½Úµã
-	virtual fcyResPackageFloderNode* ToFloderNode()=0;///< @brief ×ªµ½ÎÄ¼ş¼Ğ½Úµã
+public: // æ¥å£è½¬æ¢
+	virtual fcyResPackageDataNode* ToDataNode()=0;    ///< @brief è½¬åˆ°æ•°æ®èŠ‚ç‚¹
+	virtual fcyResPackageFloderNode* ToFloderNode()=0;///< @brief è½¬åˆ°æ–‡ä»¶å¤¹èŠ‚ç‚¹
 public:
-	fcyResPackageFloderNode* GetParent();  ///< @brief »ñµÃ¸¸½Úµã
-	fcStrW GetName();                      ///< @brief ·µ»Ø¼üÃû
-protected: // ÏŞÖÆ¸Ä²Ù×÷
-	fResult SetName(fcStrW Name);          ///< @brief ÉèÖÃ¼üÃû
+	fcyResPackageFloderNode* GetParent();  ///< @brief è·å¾—çˆ¶èŠ‚ç‚¹
+	fcStrW GetName();                      ///< @brief è¿”å›é”®å
+protected: // é™åˆ¶æ”¹æ“ä½œ
+	fResult SetName(fcStrW Name);          ///< @brief è®¾ç½®é”®å
 protected:
-	/// @brief     ¹¹Ôìº¯Êı
-	/// @param[in] pParent ¸¸½Úµã
-	/// @param[in] Name    ¼üÃû
+	/// @brief     æ„é€ å‡½æ•°
+	/// @param[in] pParent çˆ¶èŠ‚ç‚¹
+	/// @param[in] Name    é”®å
 	fcyResPackageNode(fcyResPackageFloderNode* pParent, const std::wstring& Name);
 	virtual ~fcyResPackageNode();
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ×ÊÔ´°üÊı¾İ½Úµã
+/// @brief èµ„æºåŒ…æ•°æ®èŠ‚ç‚¹
 ////////////////////////////////////////////////////////////////////////////////
 class fcyResPackageDataNode : 
 	public fcyResPackageNode
 {
 	friend class fcyResPackageFloderNode;
 private:
-	fcyStream* m_pStream;       ///< @brief ±£´æÔ­Ê¼Á÷
+	fcyStream* m_pStream;       ///< @brief ä¿å­˜åŸå§‹æµ
 
-	// ÊôĞÔ
-	fuInt m_DataOffset;         ///< @brief Ïà¶ÔÖ÷»º³åÇøµÄÆ«ÒÆ
-	fuInt m_DataRealSize;       ///< @brief Êı¾İÕæÊµ´óĞ¡
-	fuInt m_DataCompressedSize; ///< @brief Êı¾İÑ¹Ëõºó´óĞ¡
-	fBool m_bDataCompressed;    ///< @brief ÊÇ·ñ±»Ñ¹Ëõ
+	// å±æ€§
+	fuInt m_DataOffset;         ///< @brief ç›¸å¯¹ä¸»ç¼“å†²åŒºçš„åç§»
+	fuInt m_DataRealSize;       ///< @brief æ•°æ®çœŸå®å¤§å°
+	fuInt m_DataCompressedSize; ///< @brief æ•°æ®å‹ç¼©åå¤§å°
+	fBool m_bDataCompressed;    ///< @brief æ˜¯å¦è¢«å‹ç¼©
 
-	// ¸½¼ÓÊı¾İ
-	std::wstring m_AdditionStr; ///< @brief ¶îÍâÊı¾İ
+	// é™„åŠ æ•°æ®
+	std::wstring m_AdditionStr; ///< @brief é¢å¤–æ•°æ®
 public:
-	fuInt GetDataOffset();           ///< @brief ·µ»ØÏà¶ÔÖ÷»º³åÇøµÄÆ«ÒÆ
-	fuInt GetDataRealSize();         ///< @brief ·µ»ØÊı¾İÕæÊµ´óĞ¡
-	fuInt GetDataCompressedSize();   ///< @brief ·µ»ØÊı¾İÑ¹Ëõºó´óĞ¡
-	fBool IsDataCompressed();        ///< @brief ·µ»ØÊı¾İÊÇ·ñ±»Ñ¹Ëõ
+	fuInt GetDataOffset();           ///< @brief è¿”å›ç›¸å¯¹ä¸»ç¼“å†²åŒºçš„åç§»
+	fuInt GetDataRealSize();         ///< @brief è¿”å›æ•°æ®çœŸå®å¤§å°
+	fuInt GetDataCompressedSize();   ///< @brief è¿”å›æ•°æ®å‹ç¼©åå¤§å°
+	fBool IsDataCompressed();        ///< @brief è¿”å›æ•°æ®æ˜¯å¦è¢«å‹ç¼©
 
-	/// @brief      µ¼³öÁ÷
-	/// @param[out] pOut ´æ·Åµ¼³öÁ÷µÄÖ¸Õë
-	/// @return     ·µ»Ø²Ù×÷ÊÇ·ñ³É¹¦
+	/// @brief      å¯¼å‡ºæµ
+	/// @param[out] pOut å­˜æ”¾å¯¼å‡ºæµçš„æŒ‡é’ˆ
+	/// @return     è¿”å›æ“ä½œæ˜¯å¦æˆåŠŸ
 	fResult DumpStream(fcyStream** pOut);
 
-	fcStrW GetAdditonStr();          ///< @brief ·µ»Ø¶îÍâ×Ö¶Î
-	void SetAdditionStr(fcStrW Src); ///< @brief ÉèÖÃ¶îÍâ×Ö¶Î
+	fcStrW GetAdditonStr();          ///< @brief è¿”å›é¢å¤–å­—æ®µ
+	void SetAdditionStr(fcStrW Src); ///< @brief è®¾ç½®é¢å¤–å­—æ®µ
 protected:
 	fResult Read(fcyStream* pStream, fcyXmlElement* pXmlNode);
 public:
 	fcyResPackageDataNode* ToDataNode();
 	fcyResPackageFloderNode* ToFloderNode();
 protected:
-	/// @brief     ¹¹Ôìº¯Êı
-	/// @param[in] pParent ¸¸½Úµã
-	/// @param[in] Name ¼üÃû
+	/// @brief     æ„é€ å‡½æ•°
+	/// @param[in] pParent çˆ¶èŠ‚ç‚¹
+	/// @param[in] Name é”®å
 	fcyResPackageDataNode(fcyResPackageFloderNode* pParent, const std::wstring& Name);
 	~fcyResPackageDataNode();
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ×ÊÔ´°üÎÄ¼ş¼Ğ½Úµã
+/// @brief èµ„æºåŒ…æ–‡ä»¶å¤¹èŠ‚ç‚¹
 ////////////////////////////////////////////////////////////////////////////////
 class fcyResPackageFloderNode : public fcyResPackageNode
 {
 	friend class fcyResPackage;
 private:
-	std::vector<fcyResPackageNode*> m_NodeList; ///< @brief ½ÚµãÁĞ±í
+	std::vector<fcyResPackageNode*> m_NodeList; ///< @brief èŠ‚ç‚¹åˆ—è¡¨
 public:
-	fuInt GetNodeCount();                       ///< @brief »ñµÃ½ÚµãÊıÄ¿
-	fcyResPackageNode* GetNode(fuInt Index);    ///< @brief Í¨¹ıË÷Òı»ñµÃ½Úµã
-	fcyResPackageNode* GetNode(fcStrW Name);    ///< @brief »ñµÃ½Úµã
-	fBool Contains(fcStrW Name);                ///< @brief ½ÚµãÊÇ·ñ´æÔÚ
-protected: // ÏŞÖÆ¸Ä²Ù×÷
-	fBool Append(fcyResPackageNode* pNode);     ///< @brief ×·¼Ó½Úµã
-	fBool Remove(fcStrW Name);                  ///< @brief ÒÆ³ı½Úµã
-	void Clear();                               ///< @brief Çå¿Õ²¢ÊÍ·ÅÄÚ´æ
+	fuInt GetNodeCount();                       ///< @brief è·å¾—èŠ‚ç‚¹æ•°ç›®
+	fcyResPackageNode* GetNode(fuInt Index);    ///< @brief é€šè¿‡ç´¢å¼•è·å¾—èŠ‚ç‚¹
+	fcyResPackageNode* GetNode(fcStrW Name);    ///< @brief è·å¾—èŠ‚ç‚¹
+	fBool Contains(fcStrW Name);                ///< @brief èŠ‚ç‚¹æ˜¯å¦å­˜åœ¨
+protected: // é™åˆ¶æ”¹æ“ä½œ
+	fBool Append(fcyResPackageNode* pNode);     ///< @brief è¿½åŠ èŠ‚ç‚¹
+	fBool Remove(fcStrW Name);                  ///< @brief ç§»é™¤èŠ‚ç‚¹
+	void Clear();                               ///< @brief æ¸…ç©ºå¹¶é‡Šæ”¾å†…å­˜
 protected:
 	fResult Read(fcyStream* pStream, fcyXmlElement* pXmlNode);
 public:
 	fcyResPackageDataNode* ToDataNode();
 	fcyResPackageFloderNode* ToFloderNode();
 protected:
-	/// @brief     ¹¹Ôìº¯Êı
-	/// @param[in] pParent ¸¸½Úµã
-	/// @param[in] Name    ¼üÃû
+	/// @brief     æ„é€ å‡½æ•°
+	/// @param[in] pParent çˆ¶èŠ‚ç‚¹
+	/// @param[in] Name    é”®å
 	fcyResPackageFloderNode(fcyResPackageFloderNode* pParent, const std::wstring& Name);
 	~fcyResPackageFloderNode();
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ×ÊÔ´°üÎÄ¼ş
+/// @brief èµ„æºåŒ…æ–‡ä»¶
 ////////////////////////////////////////////////////////////////////////////////
 class fcyResPackage :
 	public fcyRefObjImpl<fcyRefObj>
 {
 private:
-	fcyResPackageFloderNode m_Root;  ///< @brief ¸ù½Úµã
+	fcyResPackageFloderNode m_Root;  ///< @brief æ ¹èŠ‚ç‚¹
 
-	// Êı¾İÍ·
-	fuInt m_Flag;        ///< @brief ÎÄ¼ş±êÊ¶·û
-    fuInt m_Version;     ///< @brief ÎÄ¼ş°æ±¾ºÅ
-    fuInt m_IndexOffset; ///< @brief ÎÄ¼şË÷ÒıÇøÎ»ÒÆ
+	// æ•°æ®å¤´
+	fuInt m_Flag;        ///< @brief æ–‡ä»¶æ ‡è¯†ç¬¦
+    fuInt m_Version;     ///< @brief æ–‡ä»¶ç‰ˆæœ¬å·
+    fuInt m_IndexOffset; ///< @brief æ–‡ä»¶ç´¢å¼•åŒºä½ç§»
 private:
-	/// @brief     ´ÓÁ÷ÖĞ¼ÓÔØÎÄ¼ş
-	/// @param[in] Á÷
-	/// @return    ·µ»Ø²Ù×÷½á¹û
+	/// @brief     ä»æµä¸­åŠ è½½æ–‡ä»¶
+	/// @param[in] æµ
+	/// @return    è¿”å›æ“ä½œç»“æœ
 	fResult loadFromStream(fcyStream* pStream);
 public:
-	fcyResPackageFloderNode* GetRoot(); ///< @brief »ñµÃ¸ù½Úµã
+	fcyResPackageFloderNode* GetRoot(); ///< @brief è·å¾—æ ¹èŠ‚ç‚¹
 public:
-	/// @brief     ¹¹Ôìº¯Êı
-	/// @param[in] pStream Á÷
+	/// @brief     æ„é€ å‡½æ•°
+	/// @param[in] pStream æµ
 	fcyResPackage(fcyStream* pStream);
 protected:
 	~fcyResPackage(void);

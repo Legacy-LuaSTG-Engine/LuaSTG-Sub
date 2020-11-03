@@ -1,4 +1,4 @@
-#include "fcyFile/fcyResPackage.h"
+ï»¿#include "fcyFile/fcyResPackage.h"
 
 #include "fcyIO/fcyBinaryHelper.h"
 #include "fcyIO/fcyDeflate.h"
@@ -305,7 +305,7 @@ fResult fcyResPackage::loadFromStream(fcyStream* pStream)
 {
 	fcyBinaryReader tReader(pStream);
 
-	// ¶ÁÈ¡Êý¾ÝÍ·
+	// è¯»å–æ•°æ®å¤´
 	m_Flag = tReader.ReadUInt32();
 	m_Version = tReader.ReadUInt32();
 	m_IndexOffset = tReader.ReadUInt32();
@@ -313,25 +313,25 @@ fResult fcyResPackage::loadFromStream(fcyStream* pStream)
 	if(m_Flag != 0x00707266 && m_Version != 1)
 		return FCYERR_NOTSUPPORT;
 
-	// Ìøµ½Ö÷Ë÷ÒýÇø
+	// è·³åˆ°ä¸»ç´¢å¼•åŒº
 	pStream->SetPosition(FCYSEEKORIGIN_BEG, m_IndexOffset);
 
-	// ¶ÁÈ¡XmlÊý¾Ý´óÐ¡
+	// è¯»å–Xmlæ•°æ®å¤§å°
 	fuInt tXmlDataSize = tReader.ReadUInt32();
 
-	// ½âÑ¹Xml
+	// è§£åŽ‹Xml
 	fcyStream* pMemStream = NULL; 
 	if(FCYFAILED(fcyDeflate::DecompressStreamToMem(pStream, &pMemStream)))
 		return FCYERR_INVAILDDATA;
 
-	// ¼ì²éÊý¾Ý
+	// æ£€æŸ¥æ•°æ®
 	if(pMemStream->GetLength() != tXmlDataSize)
 	{
 		FCYSAFEKILL(pMemStream);
 		return FCYERR_INVAILDDATA;
 	}
 
-	// ¶ÁÈ¡Xml
+	// è¯»å–Xml
 	wstring tXmlStr;
 	tXmlStr.resize((wstring::size_type)pMemStream->GetLength());
 	pMemStream->SetPosition(FCYSEEKORIGIN_BEG, 0);

@@ -1,4 +1,4 @@
-#include "fcyHTTP.h"
+ï»¿#include "fcyHTTP.h"
 
 #include "../fcyIO/fcyDeflate.h"
 
@@ -20,10 +20,10 @@ HttpHeader::HttpHeader(Client* pClient)
 		string tKey;
 		string tValue;
 
-		// ¶ÁÈ¡Key
+		// è¯»å–Key
 		while(1)
 		{
-			// ¶ÁÈ¡Ò»¸ö×Ö·ûÖ±µ½ : 
+			// è¯»å–ä¸€ä¸ªå­—ç¬¦ç›´åˆ° : 
 			tChar = pClient->RecvChar();
 			if(tChar == ':')
 				break;
@@ -57,10 +57,10 @@ HttpHeader::HttpHeader(Client* pClient)
 			break;
 		}
 
-		// ¶ÁÈ¡Value
+		// è¯»å–Value
 		do
 		{
-			// ¶ÁÈ¡Ò»¸ö×Ö·ûÖ±µ½ \r\n
+			// è¯»å–ä¸€ä¸ªå­—ç¬¦ç›´åˆ° \r\n
 			tChar = pClient->RecvChar();
 
 			if(tValue.empty() && tChar == ' ')
@@ -82,7 +82,7 @@ HttpHeader::HttpHeader(Client* pClient)
 		}
 		while(tChar != '\n');
 		
-		// ¼ÓÈë¼üÖµ
+		// åŠ å…¥é”®å€¼
 		m_Header.insert(make_pair(tKey, tValue));
 	}
 }
@@ -282,15 +282,15 @@ void fcyNet::RecvData(Client* pClient, fuInt Length, fcyStream** pOut)
 
 void fcyNet::SendGetRequest(Client* pClient, const string& Host, const string& Path)
 {
-	// ´´½¨GETÇëÇó
+	// åˆ›å»ºGETè¯·æ±‚
 	string tRequestGet = "GET ";
 	tRequestGet += Path;
 	tRequestGet += " HTTP/1.1\r\n";
 	
-	// ·¢ËÍGETÇëÇó
+	// å‘é€GETè¯·æ±‚
 	pClient->Send((fcData)&tRequestGet[0], tRequestGet.length());
 
-	// ´´½¨Í·
+	// åˆ›å»ºå¤´
 	HttpHeader tHeader;
 	tHeader["Host"] = Host;
 	tHeader["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
@@ -304,7 +304,7 @@ void fcyNet::SendGetRequest(Client* pClient, const string& Host, const string& P
 	tHeader["Cache-Control"] = "no-cache";
 	tHeader["Pragma"] = "no-cache";
 
-	// ·¢ËÍÍ·
+	// å‘é€å¤´
 	tHeader.Send(pClient);
 }
 
@@ -319,35 +319,35 @@ void fcyNet::HTTPReadFile(fcStr URL, fcyStream** pDataOut)
 	fuShort tPort;
 	string tPath;
 
-	// ·Ö½â URL
+	// åˆ†è§£ URL
 	SplitURL(URL, tHost, tPort, tPath);
 
-	// ´´½¨Á¬½Ó
+	// åˆ›å»ºè¿æ¥
 	Client tClient(HostToIp(tHost.c_str()).c_str(), tPort);
 
-	// ·¢ËÍGetÇëÇó
+	// å‘é€Getè¯·æ±‚
 	SendGetRequest(&tClient, tHost, tPath);
 
-	// === ¶ÁÈ¡Êı¾İ ===
+	// === è¯»å–æ•°æ® ===
 	string tRespondHeader;
 	string tHTTPVersion;
 	fuInt tCode = 0;
 	string tDesc;
 	
-	// ¶ÁÈ¡ÏìÓ¦Í·
+	// è¯»å–å“åº”å¤´
 	RecvUntilCRLF(&tClient, tRespondHeader);
 
-	// ½âÎöÏìÓ¦Í·
+	// è§£æå“åº”å¤´
 	ParseRespondHeader(tRespondHeader.c_str(), tHTTPVersion, tCode, tDesc);
 
-	// ¼ì²é°æ±¾
+	// æ£€æŸ¥ç‰ˆæœ¬
 	if(!(tHTTPVersion == "HTTP/1.1" || tHTTPVersion == "HTTP/1.0"))
 		throw fcyException("fcyNet::HTTPReadFile", "Unknown http protocol version.");
 	
-	// ½âÎöÍ·²¿
+	// è§£æå¤´éƒ¨
 	HttpHeader tHTTPHeader(&tClient);
 
-	// »ñµÃ½âÑ¹·½Ê½
+	// è·å¾—è§£å‹æ–¹å¼
 	fBool tDeflate = false;
 	fBool tGzip = false;
 	if(tHTTPHeader["Content-Encoding"] != "")
@@ -360,11 +360,11 @@ void fcyNet::HTTPReadFile(fcStr URL, fcyStream** pDataOut)
 			throw fcyException("fcyNet::HTTPReadFile", "Unknown compress method.");
 	}
 
-	// »ñµÃÊı¾İ³¤¶È
+	// è·å¾—æ•°æ®é•¿åº¦
 	fuInt tDataLen = 0;
 	tDataLen = atoi(tHTTPHeader["Content-Length"].c_str());
 
-	// »ñµÃ´«Êä±àÂë·½Ê½
+	// è·å¾—ä¼ è¾“ç¼–ç æ–¹å¼
 	fBool tChunked = false;
 	if(tHTTPHeader["Transfer-Encoding"] == "chunked")
 		tChunked = true;
@@ -381,27 +381,27 @@ void fcyNet::HTTPReadFile(fcStr URL, fcyStream** pDataOut)
 
 			do
 			{
-				// ¶ÁÈ¡¿é´óĞ¡
+				// è¯»å–å—å¤§å°
 				RecvUntilCRLF(&tClient, tChunkData);
 
-				// ×ª»»µ½10½øÖÆ
+				// è½¬æ¢åˆ°10è¿›åˆ¶
 				sscanf(&tChunkData[0], "%x", &tChunkSize);
 
-				// ¶ÁÈ¡Êı¾İ
+				// è¯»å–æ•°æ®
 				if(tChunkSize)
 				{
 					RecvData(&tClient, tChunkSize, &tStream);
 
-					// ¿½±´
+					// æ‹·è´
 					fcyStreamHelper::FillStream(tStream, pOut, tStream->GetLength());
 
 					FCYSAFEKILL(tStream);
 
-					// ¶ÁÈ¡½áÎ²
+					// è¯»å–ç»“å°¾
 					RecvUntilCRLF(&tClient, tChunkData);
 				}
 				else
-					// ¶ÁÈ¡½áÎ²
+					// è¯»å–ç»“å°¾
 					RecvUntilCRLF(&tClient, tChunkData);
 			}
 			while(tChunkSize);
@@ -413,7 +413,7 @@ void fcyNet::HTTPReadFile(fcStr URL, fcyStream** pDataOut)
 			throw;
 		}
 
-		// ½âÑ¹
+		// è§£å‹
 		if(tDeflate || tGzip)
 		{
 			fResult tVR;
@@ -439,7 +439,7 @@ void fcyNet::HTTPReadFile(fcStr URL, fcyStream** pDataOut)
 		{
 			pStream = new fcyMemStream(NULL, 0, true, true);
 
-			// Ö»¶ÁÈ¡µÚÒ»¸ö°ü
+			// åªè¯»å–ç¬¬ä¸€ä¸ªåŒ…
 			try
 			{
 				fChar tBuffer[128];
@@ -458,7 +458,7 @@ void fcyNet::HTTPReadFile(fcStr URL, fcyStream** pDataOut)
 		else
 			RecvData(&tClient, tDataLen, &pStream);
 
-		// ½âÑ¹
+		// è§£å‹
 		if(tDeflate || tGzip)
 		{
 			fResult tVR;

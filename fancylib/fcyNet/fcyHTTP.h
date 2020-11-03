@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  fcyHTTP.h
-/// @brief fancy HTTPÖ§³Ö
+/// @brief fancy HTTPæ”¯æŒ
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "../fcyType.h"
@@ -11,94 +11,94 @@
 #include <unordered_map>
 #include <string>
 
-/// @addtogroup fancy¿âÍøÂçÖ§³Ö
+/// @addtogroup fancyåº“ç½‘ç»œæ”¯æŒ
 /// @{
 
-/// @brief ÍøÂç¿â
+/// @brief ç½‘ç»œåº“
 namespace fcyNet
 {
-	/// @brief HTTPÏìÓ¦ÀàĞÍ
+	/// @brief HTTPå“åº”ç±»å‹
 	enum HTTPRESPONSE
 	{
-		HTTPRESPONSE_UNKNWON, // Î´Öª
-		HTTPRESPONSE_GET,     // ÇëÇó»ñÈ¡Request-URIËù±êÊ¶µÄ×ÊÔ´
-		HTTPRESPONSE_POST,    // ÔÚRequest-URIËù±êÊ¶µÄ×ÊÔ´ºó¸½¼ÓĞÂµÄÊı¾İ
-		HTTPRESPONSE_HEAD,    // ÇëÇó»ñÈ¡ÓÉRequest-URIËù±êÊ¶µÄ×ÊÔ´µÄÏìÓ¦ÏûÏ¢±¨Í·
-		HTTPRESPONSE_PUT,     // ÇëÇó·şÎñÆ÷´æ´¢Ò»¸ö×ÊÔ´£¬²¢ÓÃRequest-URI×÷ÎªÆä±êÊ¶
-		HTTPRESPONSE_DELETE,  // ÇëÇó·şÎñÆ÷É¾³ıRequest-URIËù±êÊ¶µÄ×ÊÔ´
-		HTTPRESPONSE_TRACE,   // ÇëÇó·şÎñÆ÷»ØËÍÊÕµ½µÄÇëÇóĞÅÏ¢£¬Ö÷ÒªÓÃÓÚ²âÊÔ»òÕï¶Ï
-		HTTPRESPONSE_CONNECT, // ±£Áô½«À´Ê¹ÓÃ
-		HTTPRESPONSE_OPTIONS  // ÇëÇó²éÑ¯·şÎñÆ÷µÄĞÔÄÜ£¬»òÕß²éÑ¯Óë×ÊÔ´Ïà¹ØµÄÑ¡ÏîºÍĞèÇó
+		HTTPRESPONSE_UNKNWON, // æœªçŸ¥
+		HTTPRESPONSE_GET,     // è¯·æ±‚è·å–Request-URIæ‰€æ ‡è¯†çš„èµ„æº
+		HTTPRESPONSE_POST,    // åœ¨Request-URIæ‰€æ ‡è¯†çš„èµ„æºåé™„åŠ æ–°çš„æ•°æ®
+		HTTPRESPONSE_HEAD,    // è¯·æ±‚è·å–ç”±Request-URIæ‰€æ ‡è¯†çš„èµ„æºçš„å“åº”æ¶ˆæ¯æŠ¥å¤´
+		HTTPRESPONSE_PUT,     // è¯·æ±‚æœåŠ¡å™¨å­˜å‚¨ä¸€ä¸ªèµ„æºï¼Œå¹¶ç”¨Request-URIä½œä¸ºå…¶æ ‡è¯†
+		HTTPRESPONSE_DELETE,  // è¯·æ±‚æœåŠ¡å™¨åˆ é™¤Request-URIæ‰€æ ‡è¯†çš„èµ„æº
+		HTTPRESPONSE_TRACE,   // è¯·æ±‚æœåŠ¡å™¨å›é€æ”¶åˆ°çš„è¯·æ±‚ä¿¡æ¯ï¼Œä¸»è¦ç”¨äºæµ‹è¯•æˆ–è¯Šæ–­
+		HTTPRESPONSE_CONNECT, // ä¿ç•™å°†æ¥ä½¿ç”¨
+		HTTPRESPONSE_OPTIONS  // è¯·æ±‚æŸ¥è¯¢æœåŠ¡å™¨çš„æ€§èƒ½ï¼Œæˆ–è€…æŸ¥è¯¢ä¸èµ„æºç›¸å…³çš„é€‰é¡¹å’Œéœ€æ±‚
 	};
 
-	/// @brief HTTPÏûÏ¢Í·
+	/// @brief HTTPæ¶ˆæ¯å¤´
 	class HttpHeader
 	{
 	protected:
 		std::unordered_map<std::string, std::string> m_Header;
 	public:
-		/// @brief ¸´ÖÆ
+		/// @brief å¤åˆ¶
 		HttpHeader& operator=(const HttpHeader& right);
-		/// @brief     »ñµÃÖµ
-		/// @param[in] Key ¼ü
+		/// @brief     è·å¾—å€¼
+		/// @param[in] Key é”®
 		std::string& operator[](const std::string& Key);
-		/// @brief     »ñµÃÖµ
-		/// @param[in] Key ¼ü
+		/// @brief     è·å¾—å€¼
+		/// @param[in] Key é”®
 		const std::string& GetValue(const std::string& Key);
-		/// @brief     ÉèÖÃÖµ
-		/// @param[in] Key   ¼ü
-		/// @param[in] Value Öµ
+		/// @brief     è®¾ç½®å€¼
+		/// @param[in] Key   é”®
+		/// @param[in] Value å€¼
 		void SetValue(const std::string& Key, const std::string& Value);
-		/// @brief     ÒÆ³ı¼ü
-		/// @param[in] Key ¼ü
+		/// @brief     ç§»é™¤é”®
+		/// @param[in] Key é”®
 		fBool RemoveKey(const std::string& Key);
-		/// @brief µ¼³öText
+		/// @brief å¯¼å‡ºText
 		void ToString(std::string& Data);
-		/// @brief ·¢ËÍÊı¾İ
+		/// @brief å‘é€æ•°æ®
 		void Send(fcySocket::Client* pClient);
 	public:
-		/// @brief ½¨Á¢Ò»¸ö¿ÕµÄHeader
+		/// @brief å»ºç«‹ä¸€ä¸ªç©ºçš„Header
 		HttpHeader();
-		/// @brief ´ÓClient¶ÁÈ¡Header
+		/// @brief ä»Clientè¯»å–Header
 		HttpHeader(fcySocket::Client* pClient);
 		~HttpHeader();
 	};
 
-	/// @brief      ·Ö¸îURL
-	/// @param[in]  URL  µØÖ·
-	/// @param[out] Host ÓòÃû
-	/// @param[out] Port ¶Ë¿Ú£¬Ä¬ÈÏ·µ»Ø80
-	/// @param[out] Path Ïà¶ÔÂ·¾¶
+	/// @brief      åˆ†å‰²URL
+	/// @param[in]  URL  åœ°å€
+	/// @param[out] Host åŸŸå
+	/// @param[out] Port ç«¯å£ï¼Œé»˜è®¤è¿”å›80
+	/// @param[out] Path ç›¸å¯¹è·¯å¾„
 	void SplitURL(fcStr URL, std::string& Host, fuShort& Port, std::string& Path);
 
-	/// @brief      ½âÎö»ØÓ¦Í·
-	/// @param[in]  Data        Ô­Ê¼Êı¾İ
-	/// @param[out] HTTPVersion HTTP°æ±¾ºÅ
-	/// @param[out] Code        ´úÂë
-	/// @param[out] Desc        ÃèÊö
+	/// @brief      è§£æå›åº”å¤´
+	/// @param[in]  Data        åŸå§‹æ•°æ®
+	/// @param[out] HTTPVersion HTTPç‰ˆæœ¬å·
+	/// @param[out] Code        ä»£ç 
+	/// @param[out] Desc        æè¿°
 	void ParseRespondHeader(fcStr Data, std::string& HTTPVersion, fuInt& Code, std::string& Desc);
 
-	/// @brief      Ò»Ö±¶ÁÈ¡Ö±µ½/r/n
-	/// @param[in]  pClient Socket¶ÔÏó
-	/// @param[out] Out     Êä³ö×Ö·û´®
+	/// @brief      ä¸€ç›´è¯»å–ç›´åˆ°/r/n
+	/// @param[in]  pClient Socketå¯¹è±¡
+	/// @param[out] Out     è¾“å‡ºå­—ç¬¦ä¸²
 	void RecvUntilCRLF(fcySocket::Client* pClient, std::string& Out);
 
-	/// @brief      ¶ÁÈ¡Length³¤¶ÈÊı¾İ
-	/// @param[in]  pClient Socket¶ÔÏó
-	/// @param[in]  Length  ³¤¶È
-	/// @param[out] pOut Êä³öÄÚ´æµÄ¶ÔÏó
+	/// @brief      è¯»å–Lengthé•¿åº¦æ•°æ®
+	/// @param[in]  pClient Socketå¯¹è±¡
+	/// @param[in]  Length  é•¿åº¦
+	/// @param[out] pOut è¾“å‡ºå†…å­˜çš„å¯¹è±¡
 	void RecvData(fcySocket::Client* pClient, fuInt Length, fcyStream** pOut);
 
-	/// @brief      ·¢ËÍÒ»¸öGetÇëÇó
-	/// @param[in]  pClient Socket¶ÔÏó
-	/// @param[in]  Host    ÍøÕ¾
-	/// @param[in]  Path    ×ÊÔ´Â·¾¶
+	/// @brief      å‘é€ä¸€ä¸ªGetè¯·æ±‚
+	/// @param[in]  pClient Socketå¯¹è±¡
+	/// @param[in]  Host    ç½‘ç«™
+	/// @param[in]  Path    èµ„æºè·¯å¾„
 	void SendGetRequest(fcySocket::Client* pClient, const std::string& Host, const std::string& Path);
 
-	/// @brief      HTTP¶ÁÎÄ¼ş
-	/// @note       Ê¹ÓÃChromeµÄUAÀ´·ÃÎÊHTTPÎÄ¼ş
-	/// @param[in]  URL      Á¬½Ó
-	/// @param[out] pDataOut ·µ»ØÊı¾İ
+	/// @brief      HTTPè¯»æ–‡ä»¶
+	/// @note       ä½¿ç”¨Chromeçš„UAæ¥è®¿é—®HTTPæ–‡ä»¶
+	/// @param[in]  URL      è¿æ¥
+	/// @param[out] pDataOut è¿”å›æ•°æ®
 	void HTTPReadFile(fcStr URL, fcyStream** pDataOut);
 };
 

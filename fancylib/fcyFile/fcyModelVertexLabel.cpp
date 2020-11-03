@@ -1,4 +1,4 @@
-#include "fcyModelVertexLabel.h"
+ï»¿#include "fcyModelVertexLabel.h"
 
 using namespace std;
 
@@ -46,10 +46,10 @@ fuInt fcyModelVertexLabel::CalcuVertexSize()const
 
 void fcyModelVertexLabel::PushVertex(void* pData, fuInt VertexSize)
 {
-	// ·ÖÅä¿Õ¼ä
+	// åˆ†é…ç©ºé—´
 	m_VertexData.resize(m_VertexData.size() + VertexSize);
 
-	// ¸´ÖÆÄÚ´æ
+	// å¤åˆ¶å†…å­˜
 	memcpy(&m_VertexData[m_VertexData.size() - VertexSize], pData, VertexSize);
 }
 
@@ -57,20 +57,20 @@ void fcyModelVertexLabel::ReadData(fcyStream* pStream)
 {
 	fcyBinaryReader tReader(pStream);
 
-	// Çå¿ÕÊı¾İ
+	// æ¸…ç©ºæ•°æ®
 	m_VertElementList.clear();
 	m_VertexData.clear();
 
-	// ¶ÁÈ¡Í·²¿
+	// è¯»å–å¤´éƒ¨
 	fuInt tVertexCount = tReader.ReadUInt32();
 	fuInt tVertexElementCount = tReader.ReadUInt32();
 	fByte tStreamFlag = tReader.ReadByte();
 
-	// Ä¿Ç°Ö»Ö§³ÖÄ¬ÈÏµÄÁ÷±êÖ¾
+	// ç›®å‰åªæ”¯æŒé»˜è®¤çš„æµæ ‡å¿—
 	if(tStreamFlag != 0)
 		throw fcyException("fcyModelVertexLabel::ReadData", "Unsupport Stream Type.");
 	
-	// ¼ÓÔØ¶¥µãÉùÃ÷
+	// åŠ è½½é¡¶ç‚¹å£°æ˜
 	m_VertElementList.resize(tVertexElementCount);
 	for(fuInt i = 0; i<tVertexElementCount; ++i)
 	{
@@ -79,13 +79,13 @@ void fcyModelVertexLabel::ReadData(fcyStream* pStream)
 		m_VertElementList[i].UsageIndex = tReader.ReadByte();
 	}
 
-	// ¼ÆËã¶¥µã´óĞ¡
+	// è®¡ç®—é¡¶ç‚¹å¤§å°
 	fuInt tVertSize = CalcuVertexSize();
 
-	// ¼ÓÔØ¶¥µãÊı¾İ
+	// åŠ è½½é¡¶ç‚¹æ•°æ®
 	m_VertexData.resize(tVertSize * tVertexCount);
 
-	// Ö±½Ó¶ÁÈ¡sizeÊı¾İ²¢Ìî³ä
+	// ç›´æ¥è¯»å–sizeæ•°æ®å¹¶å¡«å……
 	tReader.ReadBytes((fByte*)GetVertexDataPointer(), GetVertexDataSize());
 }
 
@@ -93,17 +93,17 @@ void fcyModelVertexLabel::WriteData(fcyStream* pStream)
 {
 	fcyBinaryWriter tWritter(pStream);
 
-	// ¶¥µãÊı¾İ¼ì²é
+	// é¡¶ç‚¹æ•°æ®æ£€æŸ¥
 	fuInt tVertSize = CalcuVertexSize();
 	if(tVertSize == 0 || m_VertexData.size() % tVertSize != 0)
 		throw fcyException("fcyModelVertexLabel::WriteData", "Size of vertex is not correctly.");
 
-	// Ğ´³öÊı¾İÍ·
+	// å†™å‡ºæ•°æ®å¤´
 	tWritter.Write((fuInt)m_VertexData.size() / tVertSize);
 	tWritter.Write((fuInt)m_VertElementList.size());
-	tWritter.Write((fByte)0);  // Á÷±ê¼Ç
+	tWritter.Write((fByte)0);  // æµæ ‡è®°
 
-	// Ğ´³ö¶¥µãÉùÃ÷
+	// å†™å‡ºé¡¶ç‚¹å£°æ˜
 	for(fuInt i = 0; i<m_VertElementList.size(); ++i)
 	{
 		tWritter.Write((fuInt)m_VertElementList[i].Type);
@@ -111,6 +111,6 @@ void fcyModelVertexLabel::WriteData(fcyStream* pStream)
 		tWritter.Write((fByte)m_VertElementList[i].UsageIndex);
 	}
 
-	// Ğ´³ö¶¥µãÊı¾İ
+	// å†™å‡ºé¡¶ç‚¹æ•°æ®
 	tWritter.Write((fcData)GetVertexDataPointer(), GetVertexDataSize());
 }

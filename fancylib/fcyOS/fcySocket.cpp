@@ -1,10 +1,10 @@
-#include "fcySocket.h"
+ï»¿#include "fcySocket.h"
 
 #include "../fcyException.h"
 
 /*
-	Õâ¸öÎÄ¼ş²¢Ã»ÓĞÊ²Ã´ÂÑÓÃ
-	ÎªÁË±àÒëÍ¨¹ı»¹ÊÇÏÈ¸ÄÒ»ÏÂ
+	è¿™ä¸ªæ–‡ä»¶å¹¶æ²¡æœ‰ä»€ä¹ˆåµç”¨
+	ä¸ºäº†ç¼–è¯‘é€šè¿‡è¿˜æ˜¯å…ˆæ”¹ä¸€ä¸‹
 */
 #ifndef _WINSOCK_DEPRECATED_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
@@ -26,7 +26,7 @@ fResult fcySocket::InitSocket()
 		return FCYERR_OK;
 	}
 
-	WORD wVersionRequested = MAKEWORD( 1, 1 ); // ĞèÇó°æ±¾ºÅ
+	WORD wVersionRequested = MAKEWORD( 1, 1 ); // éœ€æ±‚ç‰ˆæœ¬å·
 	WSADATA wsaData;
 	
 	int tErr = WSAStartup( wVersionRequested, &wsaData );
@@ -62,16 +62,16 @@ void fcySocket::HaltSocket()
 
 string fcySocket::HostToIp(fcStr Host)
 {
-	HOSTENT* pHostEnt = gethostbyname(Host); // gethostbyname : ¸Ãº¯Êı·µ»ØÖµ·ÖÅäÔÚ¾²Ì¬ÇøÓò
+	HOSTENT* pHostEnt = gethostbyname(Host); // gethostbyname : è¯¥å‡½æ•°è¿”å›å€¼åˆ†é…åœ¨é™æ€åŒºåŸŸ
 	sockaddr_in tAddr;
 
-	// »ñµÃµÚÒ»¸öIP¼ÇÂ¼
+	// è·å¾—ç¬¬ä¸€ä¸ªIPè®°å½•
 	if(pHostEnt && pHostEnt->h_addr_list[0])
 	{
-		// ¿½±´IPµØÖ·Êı¾İ
+		// æ‹·è´IPåœ°å€æ•°æ®
 		memcpy(&tAddr.sin_addr.s_addr, pHostEnt->h_addr_list[0], pHostEnt->h_length);
-		// ¶Á³öIPµØÖ·
-		return inet_ntoa(tAddr.sin_addr);  // inet_ntoa : ¸Ãº¯Êı·µ»ØÖµ·ÖÅäÔÚ¾²Ì¬ÇøÓò
+		// è¯»å‡ºIPåœ°å€
+		return inet_ntoa(tAddr.sin_addr);  // inet_ntoa : è¯¥å‡½æ•°è¿”å›å€¼åˆ†é…åœ¨é™æ€åŒºåŸŸ
 	}
 	else
 		return "";
@@ -81,16 +81,16 @@ vector<string> fcySocket::HostToAllIp(fcStr Host)
 {
 	vector<string> tRet;
 
-	HOSTENT* pHostEnt = gethostbyname(Host); // gethostbyname : ¸Ãº¯Êı·µ»ØÖµ·ÖÅäÔÚ¾²Ì¬ÇøÓò
+	HOSTENT* pHostEnt = gethostbyname(Host); // gethostbyname : è¯¥å‡½æ•°è¿”å›å€¼åˆ†é…åœ¨é™æ€åŒºåŸŸ
 	sockaddr_in tAddr;
 	int nAdapter = 0;
 
 	while(pHostEnt && pHostEnt->h_addr_list[nAdapter])
 	{
-		// ¿½±´IPµØÖ·Êı¾İ
+		// æ‹·è´IPåœ°å€æ•°æ®
 		memcpy(&tAddr.sin_addr.s_addr, pHostEnt->h_addr_list[0], pHostEnt->h_length);
-		// ¶Á³öIPµØÖ·
-		tRet.push_back(inet_ntoa(tAddr.sin_addr));  // inet_ntoa : ¸Ãº¯Êı·µ»ØÖµ·ÖÅäÔÚ¾²Ì¬ÇøÓò
+		// è¯»å‡ºIPåœ°å€
+		tRet.push_back(inet_ntoa(tAddr.sin_addr));  // inet_ntoa : è¯¥å‡½æ•°è¿”å›å€¼åˆ†é…åœ¨é™æ€åŒºåŸŸ
 
 		nAdapter++;
 	}
@@ -123,7 +123,7 @@ fcySocket::Client::Client(fcStr IP, fuShort Port)
 	m_Socket = (void*)socket(AF_INET,SOCK_STREAM, 0);
 
 	/*
-	int nRecvBuf = 32*1024;  //ÉèÖÃÎª32K
+	int nRecvBuf = 32*1024;  //è®¾ç½®ä¸º32K
 	setsockopt((SOCKET)m_Socket, SOL_SOCKET, SO_RCVBUF, (const char*)&nRecvBuf, sizeof(nRecvBuf));
 	*/
 
@@ -151,7 +151,7 @@ void fcySocket::Client::connectTo(fcStr IP, fuShort Port)
 	tAddrSrv.sin_family = AF_INET;
 	tAddrSrv.sin_port = htons( Port );
 
-	// Á¬½Ó
+	// è¿æ¥
 	if(0 != connect((SOCKET)m_Socket,(SOCKADDR *)&tAddrSrv,sizeof(SOCKADDR)))
 	{
 		throw Exception("fcySocket::Client::Connect", "connect failed.");

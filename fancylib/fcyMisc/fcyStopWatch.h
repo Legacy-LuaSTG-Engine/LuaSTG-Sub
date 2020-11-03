@@ -1,29 +1,29 @@
-////////////////////////////////////////////////////////////////////////////////
+Ôªø////////////////////////////////////////////////////////////////////////////////
 /// @file  fcyStopWatch.h
-/// @brief fancyº∆ ±∆˜
+/// @brief fancyËÆ°Êó∂Âô®
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyType.h"
 
-/// @addtogroup fancy‘”œÓ
+/// @addtogroup fancyÊùÇÈ°π
 /// @{
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ∏ﬂæ´∂»Õ£±Ì¿‡
+/// @brief È´òÁ≤æÂ∫¶ÂÅúË°®Á±ª
 ////////////////////////////////////////////////////////////////////////////////
 class fcyStopWatch
 {
 private:
-	fuLong m_cFreq;      ///< @brief CPU∆µ¬ 
-	fuLong m_cLast;      ///< @brief …œ“ª¥Œ ±º‰
-	fuLong m_cFixStart;  ///< @brief ‘›Õ£ ±µƒ ±º‰–ﬁ∏¥≤Œ ˝
-	fuLong m_cFixAll;    ///< @brief ‘›Õ£ ±µƒ ±º‰–ﬁ∏¥≤Œ ˝
+	fuLong m_cFreq;      ///< @brief CPUÈ¢ëÁéá
+	fuLong m_cLast;      ///< @brief ‰∏ä‰∏ÄÊ¨°Êó∂Èó¥
+	fuLong m_cFixStart;  ///< @brief ÊöÇÂÅúÊó∂ÁöÑÊó∂Èó¥‰øÆÂ§çÂèÇÊï∞
+	fuLong m_cFixAll;    ///< @brief ÊöÇÂÅúÊó∂ÁöÑÊó∂Èó¥‰øÆÂ§çÂèÇÊï∞
 public:
-	void Pause();        ///< @brief ‘›Õ£
-	void Resume();       ///< @brief ºÃ–¯
-	void Reset();        ///< @brief πÈ¡„
-	fDouble GetElapsed(); ///< @brief ªÒµ√¡˜ ≈ ±º‰
-	                      ///< @note  “‘√ÎŒ™µ•Œª
+	void Pause();        ///< @brief ÊöÇÂÅú
+	void Resume();       ///< @brief ÁªßÁª≠
+	void Reset();        ///< @brief ÂΩíÈõ∂
+	fDouble GetElapsed(); ///< @brief Ëé∑ÂæóÊµÅÈÄùÊó∂Èó¥
+	                      ///< @note  ‰ª•Áßí‰∏∫Âçï‰Ωç
 public:
 	fcyStopWatch();
 	~fcyStopWatch();

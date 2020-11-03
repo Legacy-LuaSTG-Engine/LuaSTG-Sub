@@ -1,37 +1,37 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  fcyModelBoundingBoxLabel.h
-/// @brief fcyÄ£ĞÍ°üÎ§ºĞÊı¾İ±êÇ©¶¨Òå
+/// @brief fcyæ¨¡å‹åŒ…å›´ç›’æ•°æ®æ ‡ç­¾å®šä¹‰
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyModelLabel.h"
 
-/// @addtogroup fancy¿âÎÄ¼şÖ§³Ö
-/// @brief Ìá¹©²¿·Ö¸ñÊ½ÎÄ¼şµÄ¶ÁĞ´Ö§³Ö
+/// @addtogroup fancyåº“æ–‡ä»¶æ”¯æŒ
+/// @brief æä¾›éƒ¨åˆ†æ ¼å¼æ–‡ä»¶çš„è¯»å†™æ”¯æŒ
 /// @{
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fcyÄ£ĞÍ°üÎ§ºĞÊı¾İ±êÇ©
+/// @brief fcyæ¨¡å‹åŒ…å›´ç›’æ•°æ®æ ‡ç­¾
 ////////////////////////////////////////////////////////////////////////////////
 class fcyModelBoundingBoxLabel :
 	public fcyModelLabel
 {
 public:
-	/// @brief ±êÇ©Ãû
+	/// @brief æ ‡ç­¾å
 	static const fChar LABELNAME[8];
 protected:
-	// °üÎ§ºĞĞÅÏ¢
-	fcyVec3 m_Min;   ///< @brief ×îĞ¡×ø±ê
-	fcyVec3 m_Max;   ///< @brief ×î´ó×ø±ê
+	// åŒ…å›´ç›’ä¿¡æ¯
+	fcyVec3 m_Min;   ///< @brief æœ€å°åæ ‡
+	fcyVec3 m_Max;   ///< @brief æœ€å¤§åæ ‡
 public:
-	/// @brief ·µ»Ø×îĞ¡×ø±ê
+	/// @brief è¿”å›æœ€å°åæ ‡
 	const fcyVec3& GetMin()const { return m_Min; }
-	/// @brief ·µ»Ø×î´ó×ø±ê
+	/// @brief è¿”å›æœ€å¤§åæ ‡
 	const fcyVec3& GetMax()const { return m_Max; }
-	/// @brief ÉèÖÃ×îĞ¡×ø±ê
+	/// @brief è®¾ç½®æœ€å°åæ ‡
 	void SetMin(const fcyVec3& Value) { m_Min = Value; }
-	/// @brief ÉèÖÃ×î´ó×ø±ê
+	/// @brief è®¾ç½®æœ€å¤§åæ ‡
 	void SetMax(const fcyVec3& Value) { m_Max = Value; }
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	void ReadData(fcyStream* pStream);
 	void WriteData(fcyStream* pStream);
 public:

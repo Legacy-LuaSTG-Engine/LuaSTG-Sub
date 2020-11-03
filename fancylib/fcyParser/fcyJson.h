@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  fcyJson.h
-/// @brief fcyJson½âÎöÆ÷
+/// @brief fcyJsonè§£æå™¨
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyParser/fcyLexicalParser.h"
@@ -9,20 +9,20 @@
 #include <vector>
 #include <unordered_map>
 
-/// @addtogroup fancy¿â½âÎö¸¨Öú
+/// @addtogroup fancyåº“è§£æè¾…åŠ©
 /// @{
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief JSONÔªËØÀàĞÍ
+/// @brief JSONå…ƒç´ ç±»å‹
 ////////////////////////////////////////////////////////////////////////////////
 enum FCYJSONVALUETYPE
 {
-	FCYJSONVALUETYPE_NULL,   ///< @brief ¿ÕÀàĞÍ
-	FCYJSONVALUETYPE_BOOL,   ///< @brief Âß¼­ÀàĞÍ
-	FCYJSONVALUETYPE_NUMBER, ///< @brief Êı×ÖÀàĞÍ
-	FCYJSONVALUETYPE_STRING, ///< @brief ×Ö·û´®ÀàĞÍ
-	FCYJSONVALUETYPE_LIST,   ///< @brief ±íÀàĞÍ
-	FCYJSONVALUETYPE_DICT,   ///< @brief ×ÖµäÀàĞÍ
+	FCYJSONVALUETYPE_NULL,   ///< @brief ç©ºç±»å‹
+	FCYJSONVALUETYPE_BOOL,   ///< @brief é€»è¾‘ç±»å‹
+	FCYJSONVALUETYPE_NUMBER, ///< @brief æ•°å­—ç±»å‹
+	FCYJSONVALUETYPE_STRING, ///< @brief å­—ç¬¦ä¸²ç±»å‹
+	FCYJSONVALUETYPE_LIST,   ///< @brief è¡¨ç±»å‹
+	FCYJSONVALUETYPE_DICT,   ///< @brief å­—å…¸ç±»å‹
 };
 
 class fcyJsonString;
@@ -30,7 +30,7 @@ class fcyJsonList;
 class fcyJsonDict;
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief JSONÖµ
+/// @brief JSONå€¼
 ////////////////////////////////////////////////////////////////////////////////
 class fcyJsonValue
 {
@@ -38,188 +38,188 @@ class fcyJsonValue
 	friend class fcyJsonDict;
 	friend class fcyJson;
 protected:
-	FCYJSONVALUETYPE m_Type;  ///< @brief JSON¶ÔÏóÀàĞÍ
+	FCYJSONVALUETYPE m_Type;  ///< @brief JSONå¯¹è±¡ç±»å‹
 
-	/// @brief Êı¾İÓò
+	/// @brief æ•°æ®åŸŸ
 	union
 	{
-		fBool m_ValueBool;     ///< @brief Âß¼­ĞÍ
-		fDouble m_ValueNumber; ///< @brief Êı×ÖĞÍ
+		fBool m_ValueBool;     ///< @brief é€»è¾‘å‹
+		fDouble m_ValueNumber; ///< @brief æ•°å­—å‹
 	};
 protected:
-	/// @brief      Ğ´µ½×Ö·û´®
-	/// @param[out] OutStr Êä³öµÄÄ¿µÄ×Ö·û´®
+	/// @brief      å†™åˆ°å­—ç¬¦ä¸²
+	/// @param[out] OutStr è¾“å‡ºçš„ç›®çš„å­—ç¬¦ä¸²
 	virtual void writeToStr(std::wstring& OutStr);
-public:  // ÀàĞÍ×ª»»
-	FCYJSONVALUETYPE GetType(); ///< @brief ·µ»ØÀàĞÍ
+public:  // ç±»å‹è½¬æ¢
+	FCYJSONVALUETYPE GetType(); ///< @brief è¿”å›ç±»å‹
 	
-	fBool ToNull();             ///< @brief µ½NULL
-	                            ///< @note  true±íÊ¾NULL, false±íÊ¾·ÇNULL
-	fBool ToBool();             ///< @brief µ½Bool
-	                            ///< @note  true±íÊ¾true, false±íÊ¾false»ò·ÇBoolĞÍ
-	fDouble ToNumber();         ///< @brief µ½Êı×Ö
-	                            ///< @note  ·ÇNumberĞÍÓÃ0±íÊ¾
-public:  // ÓÃÓÚ½Ó¿Ú×ª»»
-	virtual fcyJsonString* ToString(); ///< @brief ×ª»»µ½×Ö·û´®
-	virtual fcyJsonList* ToList();     ///< @brief ×ª»»µ½Êı×é
-	virtual fcyJsonDict* ToDict();     ///< @brief ×ª»»µ½×Öµä
-public: // ÖµÀàĞÍ²Ù×÷, ·ÇÖµÀàĞÍ·µ»Øfalse
-	fBool SetValue();                  ///< @brief  ÉèÖÃÎªnull
-	                                   ///< @return Èç¹û¶ÔÏó²»ÊÇÖµÀàĞÍ£¬Ôò·µ»Ø¼Ù
-	fBool SetValue(fBool Value);       ///< @brief  ÉèÖÃÎªbool
-	                                   ///< @return Èç¹û¶ÔÏó²»ÊÇÖµÀàĞÍ£¬Ôò·µ»Ø¼Ù
-	fBool SetValue(fDouble Value);     ///< @brief  ÉèÖÃÎªÊı×Ö
-	                                   ///< @return Èç¹û¶ÔÏó²»ÊÇÖµÀàĞÍ£¬Ôò·µ»Ø¼Ù
-public: // ÓÃÓÚÊÖ¶¯´´½¨
-	fcyJsonValue();                      ///< @brief ´´½¨ÎªnullÖµÀàĞÍ
-	fcyJsonValue(fBool Value);           ///< @brief ´´½¨ÎªboolÖµÀàĞÍ
-	fcyJsonValue(fDouble Value);         ///< @brief ´´½¨ÎªÊıÖµÀàĞÍ
-	fcyJsonValue(FCYJSONVALUETYPE Type); ///< @brief ´´½¨ÎªString/List/Dict
+	fBool ToNull();             ///< @brief åˆ°NULL
+	                            ///< @note  trueè¡¨ç¤ºNULL, falseè¡¨ç¤ºéNULL
+	fBool ToBool();             ///< @brief åˆ°Bool
+	                            ///< @note  trueè¡¨ç¤ºtrue, falseè¡¨ç¤ºfalseæˆ–éBoolå‹
+	fDouble ToNumber();         ///< @brief åˆ°æ•°å­—
+	                            ///< @note  éNumberå‹ç”¨0è¡¨ç¤º
+public:  // ç”¨äºæ¥å£è½¬æ¢
+	virtual fcyJsonString* ToString(); ///< @brief è½¬æ¢åˆ°å­—ç¬¦ä¸²
+	virtual fcyJsonList* ToList();     ///< @brief è½¬æ¢åˆ°æ•°ç»„
+	virtual fcyJsonDict* ToDict();     ///< @brief è½¬æ¢åˆ°å­—å…¸
+public: // å€¼ç±»å‹æ“ä½œ, éå€¼ç±»å‹è¿”å›false
+	fBool SetValue();                  ///< @brief  è®¾ç½®ä¸ºnull
+	                                   ///< @return å¦‚æœå¯¹è±¡ä¸æ˜¯å€¼ç±»å‹ï¼Œåˆ™è¿”å›å‡
+	fBool SetValue(fBool Value);       ///< @brief  è®¾ç½®ä¸ºbool
+	                                   ///< @return å¦‚æœå¯¹è±¡ä¸æ˜¯å€¼ç±»å‹ï¼Œåˆ™è¿”å›å‡
+	fBool SetValue(fDouble Value);     ///< @brief  è®¾ç½®ä¸ºæ•°å­—
+	                                   ///< @return å¦‚æœå¯¹è±¡ä¸æ˜¯å€¼ç±»å‹ï¼Œåˆ™è¿”å›å‡
+public: // ç”¨äºæ‰‹åŠ¨åˆ›å»º
+	fcyJsonValue();                      ///< @brief åˆ›å»ºä¸ºnullå€¼ç±»å‹
+	fcyJsonValue(fBool Value);           ///< @brief åˆ›å»ºä¸ºboolå€¼ç±»å‹
+	fcyJsonValue(fDouble Value);         ///< @brief åˆ›å»ºä¸ºæ•°å€¼ç±»å‹
+	fcyJsonValue(FCYJSONVALUETYPE Type); ///< @brief åˆ›å»ºä¸ºString/List/Dict
 	virtual ~fcyJsonValue();
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief JSON×Ö·û´®
+/// @brief JSONå­—ç¬¦ä¸²
 ////////////////////////////////////////////////////////////////////////////////
 class fcyJsonString :
 	public fcyJsonValue
 {
 protected:
-	std::wstring m_Str;   ///< @brief ×Ö·û´®×ÖÃæÖµ
+	std::wstring m_Str;   ///< @brief å­—ç¬¦ä¸²å­—é¢å€¼
 protected:
 	void writeToStr(std::wstring& OutStr);
 public:
 	fcyJsonString* ToString();
 public:
-	fcStrW GetStr();           ///< @brief »ñµÃ×Ö·û´®Ö¸Õë
-	void SetStr(fcStrW Value); ///< @brief ÉèÖÃ×Ö·û´®
+	fcStrW GetStr();           ///< @brief è·å¾—å­—ç¬¦ä¸²æŒ‡é’ˆ
+	void SetStr(fcStrW Value); ///< @brief è®¾ç½®å­—ç¬¦ä¸²
 public:
-	/// @brief     ¹¹Ôìº¯Êı
-	/// @param[in] Value ×Ö·û´®Öµ
+	/// @brief     æ„é€ å‡½æ•°
+	/// @param[in] Value å­—ç¬¦ä¸²å€¼
 	fcyJsonString(fcStrW Value);
 	~fcyJsonString();
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief JSONÊı×é
-/// @note  JsonList½«»á¸ºÔğÏú»Ù×Ó¶ÔÏó
+/// @brief JSONæ•°ç»„
+/// @note  JsonListå°†ä¼šè´Ÿè´£é”€æ¯å­å¯¹è±¡
 ////////////////////////////////////////////////////////////////////////////////
 class fcyJsonList : 
 	public fcyJsonValue
 {
 protected:
-	std::vector<fcyJsonValue*> m_ObjList;   ///< @brief ÄÚ²¿Êı×é
+	std::vector<fcyJsonValue*> m_ObjList;   ///< @brief å†…éƒ¨æ•°ç»„
 protected:
 	void writeToStr(std::wstring& OutStr);
 public:
 	fcyJsonList* ToList();
 public:
-	/// @brief     »ñµÃ¶ÔÏó
-	/// @param[in] Index Ë÷Òı
-	/// @return    Èç¹ûË÷Òı²»´æÔÚ·µ»ØNULL£¬·ñÔò·µ»Ø¶ÔÏóÖ¸Õë
+	/// @brief     è·å¾—å¯¹è±¡
+	/// @param[in] Index ç´¢å¼•
+	/// @return    å¦‚æœç´¢å¼•ä¸å­˜åœ¨è¿”å›NULLï¼Œå¦åˆ™è¿”å›å¯¹è±¡æŒ‡é’ˆ
 	fcyJsonValue* GetValue(fuInt Index);
 
-	/// @brief     ÉèÖÃ¶ÔÏó
-	/// @param[in] Index Ë÷Òı
-	/// @param[in] pNew  ¶ÔÏóÖ¸Õë
-	/// @return    ·µ»Ø²Ù×÷ÊÇ·ñ³É¹¦
+	/// @brief     è®¾ç½®å¯¹è±¡
+	/// @param[in] Index ç´¢å¼•
+	/// @param[in] pNew  å¯¹è±¡æŒ‡é’ˆ
+	/// @return    è¿”å›æ“ä½œæ˜¯å¦æˆåŠŸ
 	fResult SetValue(fuInt Index, fcyJsonValue* pNew);
 
-	/// @brief     ÍùÊı×éÄ©¶Ë×·¼Ó¶ÔÏó
-	/// @param[in] pNew ¶ÔÏóÖ¸Õë
+	/// @brief     å¾€æ•°ç»„æœ«ç«¯è¿½åŠ å¯¹è±¡
+	/// @param[in] pNew å¯¹è±¡æŒ‡é’ˆ
 	void Append(fcyJsonValue* pNew);
 
-	/// @brief     É¾³ıIndex´¦¶ÔÏó
-	/// @param[in] Index ¶ÔÏóË÷Òı
+	/// @brief     åˆ é™¤Indexå¤„å¯¹è±¡
+	/// @param[in] Index å¯¹è±¡ç´¢å¼•
 	fResult Remove(fuInt Index);
 
-	/// @brief Çå¿Õ
+	/// @brief æ¸…ç©º
 	void Clear();
 
-	/// @brief ·µ»Ø¶ÔÏóÊıÁ¿
+	/// @brief è¿”å›å¯¹è±¡æ•°é‡
 	fuInt GetCount();
 public:
-	/// @brief ¹¹Ôìº¯Êı
+	/// @brief æ„é€ å‡½æ•°
 	fcyJsonList();
 	~fcyJsonList();
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief JSON×Öµä
+/// @brief JSONå­—å…¸
 ////////////////////////////////////////////////////////////////////////////////
 class fcyJsonDict :
 	public fcyJsonValue
 {
 protected:
-	std::vector<std::wstring> m_ObjList;                      ///< @brief ¶ÔÏóÊı×é
-	std::unordered_map<std::wstring, fcyJsonValue*> m_Cache;  ///< @brief ¶ÔÏó×Öµä»º´æ
+	std::vector<std::wstring> m_ObjList;                      ///< @brief å¯¹è±¡æ•°ç»„
+	std::unordered_map<std::wstring, fcyJsonValue*> m_Cache;  ///< @brief å¯¹è±¡å­—å…¸ç¼“å­˜
 protected:
 	void writeToStr(std::wstring& OutStr);
 public:
 	fcyJsonDict* ToDict();
 public:
-	/// @brief      ·µ»Ø¶ÔÏó
-	/// @param[in]  Index ¶ÔÏóË÷Òı
-	/// @param[out] pKeyOut ¼ü
-	/// @return     ·µ»Ø¶ÔÏóÖ¸Õë£¬ÈôË÷ÒıÔ½½ç·µ»ØNULL
+	/// @brief      è¿”å›å¯¹è±¡
+	/// @param[in]  Index å¯¹è±¡ç´¢å¼•
+	/// @param[out] pKeyOut é”®
+	/// @return     è¿”å›å¯¹è±¡æŒ‡é’ˆï¼Œè‹¥ç´¢å¼•è¶Šç•Œè¿”å›NULL
 	fcyJsonValue* GetValue(fuInt Index, fcStrW* pKeyOut = NULL);
 
-	/// @brief     ·µ»Ø¶ÔÏó
-	/// @param[in] Name ¶ÔÏó¼üÃû
-	/// @return    ·µ»Ø¶ÔÏóÖ¸Õë£¬Èô²»´æÔÚ¶ÔÏó·µ»ØNULL
+	/// @brief     è¿”å›å¯¹è±¡
+	/// @param[in] Name å¯¹è±¡é”®å
+	/// @return    è¿”å›å¯¹è±¡æŒ‡é’ˆï¼Œè‹¥ä¸å­˜åœ¨å¯¹è±¡è¿”å›NULL
 	fcyJsonValue* GetValue(fcStrW Name);
 
-	/// @brief     ÉèÖÃ¶ÔÏó
-	/// @note      Èç¹û¶ÔÏóÒÑ¾­´æÔÚÔò»áÊÍ·ÅÔ­ÓĞ¶ÔÏó
-	/// @param[in] Name ¶ÔÏó¼üÃû
-	/// @param[in] pNew ¶ÔÏóÖ¸Õë
+	/// @brief     è®¾ç½®å¯¹è±¡
+	/// @note      å¦‚æœå¯¹è±¡å·²ç»å­˜åœ¨åˆ™ä¼šé‡Šæ”¾åŸæœ‰å¯¹è±¡
+	/// @param[in] Name å¯¹è±¡é”®å
+	/// @param[in] pNew å¯¹è±¡æŒ‡é’ˆ
 	void SetValue(fcStrW Name, fcyJsonValue* pNew);
 
-	/// @brief     ÊÇ·ñ°üº¬¶ÔÏó
-	/// @param[in] Name ¶ÔÏóµÄ¼üÃû
-	/// @return    true=°üº¬¶ÔÏó£¬false=Ã»°üº¬¶ÔÏó
+	/// @brief     æ˜¯å¦åŒ…å«å¯¹è±¡
+	/// @param[in] Name å¯¹è±¡çš„é”®å
+	/// @return    true=åŒ…å«å¯¹è±¡ï¼Œfalse=æ²¡åŒ…å«å¯¹è±¡
 	fBool Contain(fcStrW Name);
 
-	/// @brief     ÒÆ³ı¶ÔÏó
-	/// @param[in] Index ¶ÔÏó¼üÃû
-	/// @return    true=³É¹¦£¬false=Ê§°Ü
+	/// @brief     ç§»é™¤å¯¹è±¡
+	/// @param[in] Index å¯¹è±¡é”®å
+	/// @return    true=æˆåŠŸï¼Œfalse=å¤±è´¥
 	fBool Remove(fcStrW Index);
 
-	/// @brief Çå¿Õ
+	/// @brief æ¸…ç©º
 	void Clear();
 
-	/// @brief ·µ»ØÔªËØ¸öÊı
+	/// @brief è¿”å›å…ƒç´ ä¸ªæ•°
 	fuInt GetCount();
 public:
-	/// @brief ¹¹Ôìº¯Êı
+	/// @brief æ„é€ å‡½æ•°
 	fcyJsonDict();
 	~fcyJsonDict();
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief JSON½âÎöÆ÷
-/// @note  ×¢Òâ¸Ã½âÎöÆ÷Ö»»á½âÎöµÚÒ»¸öÔªËØ¡£
+/// @brief JSONè§£æå™¨
+/// @note  æ³¨æ„è¯¥è§£æå™¨åªä¼šè§£æç¬¬ä¸€ä¸ªå…ƒç´ ã€‚
 ////////////////////////////////////////////////////////////////////////////////
 class fcyJson
 {
 private:
-	fcyJsonValue* m_Root;  ///< @brief ¸ù½Úµã
-private: // ½âÎöº¯Êı
-	fcyJsonValue* parseValue(fcyLexicalReader& Context);   ///< @brief ½âÎöÒ»¸öÖµ
-	fcyJsonValue* parseNumber(fcyLexicalReader& Context);  ///< @brief ½âÎöÒ»¸öÊıÖµ
-	fcyJsonString* parseString(fcyLexicalReader& Context); ///< @brief ½âÎöÒ»¸ö×Ö·û´®
-	fcyJsonList* parseList(fcyLexicalReader& Context);     ///< @brief ½âÎöÒ»¸ö±í
-	fcyJsonDict* parseDict(fcyLexicalReader& Context);     ///< @brief ½âÎöÒ»¸ö×Öµä
+	fcyJsonValue* m_Root;  ///< @brief æ ¹èŠ‚ç‚¹
+private: // è§£æå‡½æ•°
+	fcyJsonValue* parseValue(fcyLexicalReader& Context);   ///< @brief è§£æä¸€ä¸ªå€¼
+	fcyJsonValue* parseNumber(fcyLexicalReader& Context);  ///< @brief è§£æä¸€ä¸ªæ•°å€¼
+	fcyJsonString* parseString(fcyLexicalReader& Context); ///< @brief è§£æä¸€ä¸ªå­—ç¬¦ä¸²
+	fcyJsonList* parseList(fcyLexicalReader& Context);     ///< @brief è§£æä¸€ä¸ªè¡¨
+	fcyJsonDict* parseDict(fcyLexicalReader& Context);     ///< @brief è§£æä¸€ä¸ªå­—å…¸
 public:
-	fcyJsonValue* GetRoot();             ///< @brief ½âÎöÒ»¸ö¸ù½Úµã
-	void SetRoot(fcyJsonValue* pValue);  ///< @brief ÉèÖÃ¸ù½Úµã
+	fcyJsonValue* GetRoot();             ///< @brief è§£æä¸€ä¸ªæ ¹èŠ‚ç‚¹
+	void SetRoot(fcyJsonValue* pValue);  ///< @brief è®¾ç½®æ ¹èŠ‚ç‚¹
 
-	void WriteToStr(std::wstring& pOut); ///< @brief Ğ´µ½×Ö·û´®
-	void WriteToStream(fcyStream* pOut); ///< @brief Ğ´µ½Á÷
+	void WriteToStr(std::wstring& pOut); ///< @brief å†™åˆ°å­—ç¬¦ä¸²
+	void WriteToStream(fcyStream* pOut); ///< @brief å†™åˆ°æµ
 public:
-	fcyJson();                           ///< @brief ¹¹Ôìº¯Êı
-	fcyJson(const std::wstring& Str);    ///< @brief ´ÓÎÄ±¾¹¹ÔìJSON
-	fcyJson(fcyStream* pStream);         ///< @brief ´ÓÁ÷¹¹ÔìJSON
+	fcyJson();                           ///< @brief æ„é€ å‡½æ•°
+	fcyJson(const std::wstring& Str);    ///< @brief ä»æ–‡æœ¬æ„é€ JSON
+	fcyJson(fcyStream* pStream);         ///< @brief ä»æµæ„é€ JSON
 	~fcyJson();
 };
 /// @}

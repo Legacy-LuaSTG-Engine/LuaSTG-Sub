@@ -1,4 +1,4 @@
-#include "fcyModelMeshFile.h"
+ï»¿#include "fcyModelMeshFile.h"
 
 using namespace std;
 
@@ -19,12 +19,12 @@ void fcyModelMeshFile::Load(fcyStream* pStream, fBool IgnoreUnsupportLabel)
 {
 	fcyBinaryReader tReader(pStream);
 	
-	// Çå¿ÕÊı¾İ
+	// æ¸…ç©ºæ•°æ®
 	m_Author.clear();
 	m_Description.clear();
 	m_Labels.clear();
 
-	// ¶ÁÈ¡ÎÄ¼şÍ·²¢ÑéÖ¤
+	// è¯»å–æ–‡ä»¶å¤´å¹¶éªŒè¯
 	if(FMM_MAKE_LABELNAME4("FMM\0") != tReader.ReadUInt32())
 		throw fcyException("fcyModelMeshFile::Load", "File format error.");
 	if(Version != tReader.ReadUInt32())
@@ -33,22 +33,22 @@ void fcyModelMeshFile::Load(fcyStream* pStream, fBool IgnoreUnsupportLabel)
 	m_Author = fcyModelLabel::ReadString(pStream);
 	m_Description = fcyModelLabel::ReadString(pStream);
 
-	// ¶ÁÈ¡¿é
+	// è¯»å–å—
 	for(fuInt i = 0; i<tBlockCount; ++i)
 	{
-		fuLong tLable = tReader.ReadUInt64(); // ¿é±êÇ©Í·
-		fuInt tLen = tReader.ReadUInt32();    // ¿é´óĞ¡
+		fuLong tLable = tReader.ReadUInt64(); // å—æ ‡ç­¾å¤´
+		fuInt tLen = tReader.ReadUInt32();    // å—å¤§å°
 
-		// ¼ÇÂ¼µ±Ç°µÄ¶ÁÈ¡Î»ÖÃ
+		// è®°å½•å½“å‰çš„è¯»å–ä½ç½®
 		fLen tPos = pStream->GetPosition();
 
-		// ¶ÁÈ¡±êÇ©
+		// è¯»å–æ ‡ç­¾
 		fcyModelLabelFactory::CreatorFunction* tFunc = fcyModelLabel::GetFactory().GetCreator(tLable);
 		if(!tFunc)
 		{
 			if(IgnoreUnsupportLabel)
 			{
-				// Ìø¹ı²»Ê¶±ğµÄ¿é
+				// è·³è¿‡ä¸è¯†åˆ«çš„å—
 				pStream->SetPosition(FCYSEEKORIGIN_CUR, tLen);
 			}
 			else
@@ -56,13 +56,13 @@ void fcyModelMeshFile::Load(fcyStream* pStream, fBool IgnoreUnsupportLabel)
 		}
 		else
 		{
-			// ¶ÁÈ¡¿é
+			// è¯»å–å—
 			fcyRefPointer<fcyModelLabel> pLabel = tFunc->CreateInstance();
 			pLabel->ReadData(pStream);
 
 			m_Labels.push_back(pLabel);
 
-			// »ñµÃµ±Ç°Î»ÖÃ
+			// è·å¾—å½“å‰ä½ç½®
 			fuInt tBlockLen = (fuInt)(pStream->GetPosition() - tPos);
 			if(tBlockLen != tLen)
 				throw fcyException("fcyModelMeshFile::Load", "Error detected when read block.");
@@ -75,37 +75,37 @@ void fcyModelMeshFile::Save(fcyStream* pStream)
 {
 	fcyBinaryWriter tWritter(pStream);
 
-	// Ğ´ÈëÎÄ¼şÍ·
+	// å†™å…¥æ–‡ä»¶å¤´
 	tWritter.Write((fuInt)FMM_MAKE_LABELNAME4("FMM\0"));
 	tWritter.Write((fuInt)Version);
 	tWritter.Write((fuInt)m_Labels.size());
 	fcyModelLabel::WriteString(pStream, m_Author);
 	fcyModelLabel::WriteString(pStream, m_Description);
 
-	// Ğ´Èë¿é
+	// å†™å…¥å—
 	for(fuInt i = 0; i<m_Labels.size(); ++i)
 	{
-		// Ğ´Èë±êÇ©Í·
+		// å†™å…¥æ ‡ç­¾å¤´
 		tWritter.Write((fuLong)m_Labels[i]->GetLabelName());
 		
-		// ¿é´óĞ¡
+		// å—å¤§å°
 		tWritter.Write((fuInt)0);
 
-		// »ñµÃµ±Ç°Î»ÖÃ
+		// è·å¾—å½“å‰ä½ç½®
 		fLen tStartOfBlockPos = pStream->GetPosition();
 
-		// Ğ´ÈëÊı¾İ
+		// å†™å…¥æ•°æ®
 		m_Labels[i]->WriteData(pStream);
 
-		// ¶ÁÈ¡µ±Ç°Î»ÖÃ
+		// è¯»å–å½“å‰ä½ç½®
 		fLen tEndOfBlockPos = pStream->GetPosition();
 		fLen tLen = tEndOfBlockPos - tStartOfBlockPos;
 
-		// Ìø×ª²¢Ğ´ÈëÊı¾İ
+		// è·³è½¬å¹¶å†™å…¥æ•°æ®
 		pStream->SetPosition(FCYSEEKORIGIN_BEG, tStartOfBlockPos - 4);
 		tWritter.Write((fuInt)tLen);
 
-		// ·µ»Øµ½ÏÂÒ»¸ö±êÇ©´¦
+		// è¿”å›åˆ°ä¸‹ä¸€ä¸ªæ ‡ç­¾å¤„
 		pStream->SetPosition(FCYSEEKORIGIN_BEG, tEndOfBlockPos);
 	}
 }

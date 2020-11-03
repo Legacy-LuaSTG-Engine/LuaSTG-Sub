@@ -1,4 +1,4 @@
-#include "fcyModelMeshExporter.h"
+ï»¿#include "fcyModelMeshExporter.h"
 
 #include "../../fancy2D/f2d.h"
 
@@ -12,15 +12,15 @@ fcyModelMeshExporter::ModelMeshInfo fcyModelMeshExporter::ExportMesh(fcyModelMes
 		throw fcyException("fcyModelMeshExporter::ExportMesh", "Invalid Pointer.");
 	*pOut = NULL;
 
-	// »ñµÃ¹Ø¼ü±êÇ©
+	// è·å¾—å…³é”®æ ‡ç­¾
 	fcyRefPointer<fcyModelLabel> tVertexLabel = Mesh.FindLabel(FMM_MAKE_LABELNAME8(fcyModelVertexLabel::LABELNAME));
 	fcyRefPointer<fcyModelLabel> tIndexLabel = Mesh.FindLabel(FMM_MAKE_LABELNAME8(fcyModelIndexLabel::LABELNAME));
 	
-	// ¼ì²é¹Ø¼ü±êÇ©ÊÇ·ñ´æÔÚ
+	// æ£€æŸ¥å…³é”®æ ‡ç­¾æ˜¯å¦å­˜åœ¨
 	if(!tVertexLabel || !tIndexLabel)
 		throw fcyException("fcyModelMeshExporter::ExportMesh", "Data is not correct.");
 
-	// ´´½¨¶¥µãÉùÃ÷
+	// åˆ›å»ºé¡¶ç‚¹å£°æ˜
 	vector<f2dVertexElement> tVertexElementList;
 	tVertexElementList.resize(((fcyModelVertexLabel*)*tVertexLabel)->GetVertexElementSize());
 	for(fuInt i = 0; i<tVertexElementList.size(); ++i)
@@ -66,7 +66,7 @@ fcyModelMeshExporter::ModelMeshInfo fcyModelMeshExporter::ExportMesh(fcyModelMes
 		}
 	}
 
-	// ¼ì²é¸ñÊ½²¢´´½¨Ä£ĞÍ
+	// æ£€æŸ¥æ ¼å¼å¹¶åˆ›å»ºæ¨¡å‹
 	fBool tInt32Index = ((fcyModelIndexLabel*)*tIndexLabel)->IsIndex32();
 	fuInt tPerVertSize = ((fcyModelVertexLabel*)*tVertexLabel)->CalcuVertexSize();
 	fResult tFR = pDev->CreateMeshData(
@@ -81,7 +81,7 @@ fcyModelMeshExporter::ModelMeshInfo fcyModelMeshExporter::ExportMesh(fcyModelMes
 		throw fcyException("fcyModelMeshExporter::ExportMesh", "CreateMeshData Failed.");
 	}
 
-	// Ìî³äÊı¾İ
+	// å¡«å……æ•°æ®
 	fByte* pVert = NULL;
 	(*pOut)->LockVertexData(0, ((fcyModelVertexLabel*)*tVertexLabel)->GetVertexDataSize() / tPerVertSize, (void**)&pVert);
 	memcpy(pVert, ((fcyModelVertexLabel*)*tVertexLabel)->GetVertexDataPointer(), ((fcyModelVertexLabel*)*tVertexLabel)->GetVertexDataSize());
@@ -104,7 +104,7 @@ fcyModelMeshExporter::ModelMeshInfo fcyModelMeshExporter::ExportMesh(fcyModelMes
 	}
 	(*pOut)->UnlockIndexData();
 
-	// ±éÀú²¢¿½±´×Ó¼¯
+	// éå†å¹¶æ‹·è´å­é›†
 	fuInt tID = 0;
 	ModelMeshInfo tInfo;
 	for(fuInt i = 0; i<Mesh.GetLabelList().size(); ++i)
@@ -128,7 +128,7 @@ fcyModelMeshExporter::ModelMeshInfo fcyModelMeshExporter::ExportMesh(fcyModelMes
 		}
 	}
 
-	// ±éÀú¿½±´²ÄÖÊ
+	// éå†æ‹·è´æè´¨
 	for(fuInt i = 0; i<Mesh.GetLabelList().size(); ++i)
 	{
 		fcyRefPointer<fcyModelLabel> tMaterialLabel = Mesh.GetLabelList()[i];

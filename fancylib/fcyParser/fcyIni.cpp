@@ -1,4 +1,4 @@
-#include "fcyParser/fcyIni.h"
+ï»¿#include "fcyParser/fcyIni.h"
 
 using namespace std;
 
@@ -143,7 +143,7 @@ fBool fcyIni::ignoreComment(fcyLexicalReader& tReader)
 	{
 		fCharW tChar;
 
-		// ¶Áµ½ÐÐÄ©»òÕßEOF
+		// è¯»åˆ°è¡Œæœ«æˆ–è€…EOF
 		while(!(tReader.IsEOF() || (tChar=tReader.ReadChar())==L'\n')) {}
 
 		return true;
@@ -153,10 +153,10 @@ fBool fcyIni::ignoreComment(fcyLexicalReader& tReader)
 
 fcyIniSection* fcyIni::parseIniSection(fcyLexicalReader& tReader)
 {
-	// ºöÂÔ×¢ÊÍ
+	// å¿½ç•¥æ³¨é‡Š
 	while(ignoreComment(tReader));
 
-	// Æ¥ÅäÒ»¸ö[
+	// åŒ¹é…ä¸€ä¸ª[
 	if(tReader.TryMatch(L'[', true, true))
 	{
 		wstring tSecName;
@@ -165,27 +165,27 @@ fcyIniSection* fcyIni::parseIniSection(fcyLexicalReader& tReader)
 		while(1)
 		{
 			tChar = tReader.ReadChar();
-			if(tChar == L'\n') // Óöµ½ÐÐÄ©
+			if(tChar == L'\n') // é‡åˆ°è¡Œæœ«
 				throw fcyLexicalException("fcyIni::parseIniSection", "expect ']' but found '\\n'", tReader.GetLine(), tReader.GetRow());
-			else if(tChar == L']') // ½Ú¶ÁÈ¡½áÊø
+			else if(tChar == L']') // èŠ‚è¯»å–ç»“æŸ
 				break;
 			else
 				tSecName += tChar;
 		}
 
-		// ´´½¨INI½Ú
+		// åˆ›å»ºINIèŠ‚
 		fcyIniSection* tSec = new fcyIniSection(tSecName);
 
-		// ¶ÁÈ¡Key-Value
+		// è¯»å–Key-Value
 		while(1)
 		{
-			// ºöÂÔComment
+			// å¿½ç•¥Comment
 			while(ignoreComment(tReader));
 
-			// ºöÂÔ¿Õ¸ñ
+			// å¿½ç•¥ç©ºæ ¼
 			tReader.IgnoreSpace();
 
-			// ÊÇ·ñ½áÊø
+			// æ˜¯å¦ç»“æŸ
 			if(tReader.IsEOF())
 				break;
 
@@ -198,7 +198,7 @@ fcyIniSection* fcyIni::parseIniSection(fcyLexicalReader& tReader)
 			wstring Key;
 			wstring Value;
 			
-			// ¶ÁÈ¡key
+			// è¯»å–key
 			while((tChar = tReader.ReadChar())!=L'=')
 			{
 				if(tChar == L'\n')
@@ -210,15 +210,15 @@ fcyIniSection* fcyIni::parseIniSection(fcyLexicalReader& tReader)
 					Key += tChar;
 			}
 
-			// ¶ÁÈ¡Value
-			// ¼ì²ékey
+			// è¯»å–Value
+			// æ£€æŸ¥key
 			if(Key.empty())
 			{
 				FCYSAFEDEL(tSec);
 				throw fcyLexicalException("fcyIni::parseIniSection", "key is empty but found value", tReader.GetLine(), tReader.GetRow());
 			}
 
-			// ¶ÁÈ¡ValueÖ±µ½ÐÐÄ©
+			// è¯»å–Valueç›´åˆ°è¡Œæœ«
 			while(!( tReader.IsEOF() || (tChar = tReader.ReadChar())==L'\n'))
 			{
 				if(tChar == L'\0')
@@ -227,11 +227,11 @@ fcyIniSection* fcyIni::parseIniSection(fcyLexicalReader& tReader)
 					Value += tChar;
 			}
 
-			// ¼ÓÈëÖµ
+			// åŠ å…¥å€¼
 			tSec->SetValue(Key.c_str(), Value.c_str());
 		}
 
-		// ·µ»Ø½Ú
+		// è¿”å›žèŠ‚
 		return tSec;
 	}
 	else

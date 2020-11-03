@@ -1,7 +1,7 @@
-//////////////////////////////////////////////////////////////////////////
+ï»¿//////////////////////////////////////////////////////////////////////////
 /// @file  fcyXml.h
-/// @brief fcyXml½âÎöÆ÷
-/// @note  ½öÄÜÖ§³ÖÒ»°ã¸ñÊ½µÄXml
+/// @brief fcyXmlè§£æå™¨
+/// @note  ä»…èƒ½æ”¯æŒä¸€èˆ¬æ ¼å¼çš„Xml
 //////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyParser/fcyLexicalParser.h"
@@ -11,13 +11,13 @@
 #include <string>
 #include <vector>
 
-/// @addtogroup fancy¿â½âÎö¸¨Öú
+/// @addtogroup fancyåº“è§£æè¾…åŠ©
 /// @{
 
 class fcyXmlDocument;
 class fcyXmlElement;
 
-/// @brief XMLÒì³£
+/// @brief XMLå¼‚å¸¸
 class fcyXmlException :
 	public fcyException
 {
@@ -31,7 +31,7 @@ public:
 		: fcyException(e), m_pOwner(e.m_pOwner) {}
 };
 
-/// @brief XMLÒì³£ - ÊôĞÔÎ´ÕÒµ½
+/// @brief XMLå¼‚å¸¸ - å±æ€§æœªæ‰¾åˆ°
 class fcyXmlAttributeNotFount :
 	public fcyXmlException
 {
@@ -39,7 +39,7 @@ public:
 	fcyXmlAttributeNotFount(fcStr Src, fcyXmlDocument* pOwner, fcStrW Name);
 };
 
-/// @brief XMLÒì³£ - ½ÚµãÎ´ÕÒµ½
+/// @brief XMLå¼‚å¸¸ - èŠ‚ç‚¹æœªæ‰¾åˆ°
 class fcyXmlNodeNotFount :
 	public fcyXmlException
 {
@@ -47,7 +47,7 @@ public:
 	fcyXmlNodeNotFount(fcStr Src, fcyXmlDocument* pOwner, fcStrW Name);
 };
 
-/// @brief XMLÒì³£ - Ë÷Òı³¬³ö·¶Î§
+/// @brief XMLå¼‚å¸¸ - ç´¢å¼•è¶…å‡ºèŒƒå›´
 class fcyXmlIndexOutOfRange :
 	public fcyXmlException
 {
@@ -55,7 +55,7 @@ public:
 	fcyXmlIndexOutOfRange(fcStr Src, fcyXmlDocument* pOwner, fuInt Index);
 };
 
-/// @brief XMLÒì³£ - ½ÚµãÖ®¼äÓĞ²»Í¬µÄËùÊôÎÄµµ
+/// @brief XMLå¼‚å¸¸ - èŠ‚ç‚¹ä¹‹é—´æœ‰ä¸åŒçš„æ‰€å±æ–‡æ¡£
 class fcyXmlNodeHasDifferentOwner :
 	public fcyXmlException
 {
@@ -63,7 +63,7 @@ public:
 	fcyXmlNodeHasDifferentOwner(fcStr Src, fcyXmlDocument* pOwner, fcStrW NodeA, fcStrW NodeB);
 };
 
-/// @brief XMLÒì³£ - ½ÚµãÒÑÓĞ¸¸½Úµã
+/// @brief XMLå¼‚å¸¸ - èŠ‚ç‚¹å·²æœ‰çˆ¶èŠ‚ç‚¹
 class fcyXmlNodeHasParent :
 	public fcyXmlException
 {
@@ -71,7 +71,7 @@ public:
 	fcyXmlNodeHasParent(fcStr Src, fcyXmlDocument* pOwner, fcStrW Name);
 };
 
-/// @brief XMLÒì³£ - ½ÚµãÕıÔÚÊ¹ÓÃ
+/// @brief XMLå¼‚å¸¸ - èŠ‚ç‚¹æ­£åœ¨ä½¿ç”¨
 class fcyXmlNodeIsInUse :
 	public fcyXmlException
 {
@@ -79,7 +79,7 @@ public:
 	fcyXmlNodeIsInUse(fcStr Src, fcyXmlDocument* pOwner, fcStrW Name);
 };
 
-// ÊôĞÔµü´úÆ÷
+// å±æ€§è¿­ä»£å™¨
 class fcyXmlAttributeIterator
 {
 	friend class fcyXmlElement;
@@ -107,7 +107,7 @@ public:
 		: i(Org.i) {}
 };
 
-// Ö»¶ÁÊôĞÔµü´úÆ÷
+// åªè¯»å±æ€§è¿­ä»£å™¨
 class fcyXmlAttributeConstIterator
 {
 	friend class fcyXmlElement;
@@ -134,7 +134,7 @@ public:
 		: i(Org.i) {}
 };
 
-// ÔªËØÁĞ±í
+// å…ƒç´ åˆ—è¡¨
 class fcyXmlElementList
 {
 private:
@@ -153,23 +153,23 @@ public:
 	fcyXmlElementList(fcyXmlElementList&& Org);
 };
 
-// XMLÔªËØ
+// XMLå…ƒç´ 
 class fcyXmlElement
 {
 	friend class fcyXmlDocument;
 private:
-	// ±£´æ¸¸¶ÔÏóÖ¸Õë
+	// ä¿å­˜çˆ¶å¯¹è±¡æŒ‡é’ˆ
 	fcyXmlDocument* m_pParent;
-	// ±£´æ¸¸½Úµã
+	// ä¿å­˜çˆ¶èŠ‚ç‚¹
 	fcyXmlElement* m_pParentNode;
 
-	// ±£´æ½ÚµãÃû³Æ
+	// ä¿å­˜èŠ‚ç‚¹åç§°
 	std::wstring m_Name;
-	// ±£´æ½ÚµãÄÚÈİ
+	// ä¿å­˜èŠ‚ç‚¹å†…å®¹
 	std::wstring m_Content;
-	// ±£´æ½ÚµãÊôĞÔÖµ
+	// ä¿å­˜èŠ‚ç‚¹å±æ€§å€¼
 	std::map<std::wstring, std::wstring> m_Attribute;
-	// ±£´æ×Ó½Úµã
+	// ä¿å­˜å­èŠ‚ç‚¹
 	std::vector<fcyXmlElement*> m_Subnodes;
 
 	typedef std::vector<fcyXmlElement*>::iterator SubnodeIter;
@@ -187,7 +187,7 @@ public:
 
 	fuInt GetNodeCount()const { return m_Subnodes.size(); }
 	fcyXmlElement* GetNode(fuInt Index)const;
-	fcyXmlElement* GetFirstNode(const std::wstring& Name)const;  // ÈôÎ´ÕÒµ½·µ»ØNULL
+	fcyXmlElement* GetFirstNode(const std::wstring& Name)const;  // è‹¥æœªæ‰¾åˆ°è¿”å›NULL
 	fcyXmlElementList GetNodeByName(const std::wstring& Name)const;
 	void AppendNode(fcyXmlElement* pNode);
 	void RemoveNode(fcyXmlElement* pNode);
@@ -216,7 +216,7 @@ protected:
 	~fcyXmlElement();
 };
 
-// XMLÎÄµµ
+// XMLæ–‡æ¡£
 class fcyXmlDocument
 {
 private:
@@ -224,20 +224,20 @@ private:
 	std::vector<fcyXmlElement*> m_ElementPool;
 
 	fcyXmlElement* m_pRootElement;
-private: // Ô¤´¦Àí
+private: // é¢„å¤„ç†
 	fBool checkUTF8(fcyStream* pStream);
 	fBool checkUTF16LE(fcyStream* pStream);
-	std::wstring preprocessXml(fcyStream* pStream);                      ///< @brief Ô¤´¦Àí²¢Êä³ö¿í×Ö·ûÊı¾İ
-private: // ½âÎö
-	fBool ignoreComment(fcyLexicalReader& tReader);                      ///< @brief ºöÂÔ×¢ÊÍ
-	fBool ignorePreprocess(fcyLexicalReader& tReader);                   ///< @brief ºöÂÔÔ¤´¦ÀíÖ¸Áî
-	fBool tryReadCDATA(fcyLexicalReader& tReader, std::wstring& tOut);   ///< @brief ÊÔÍ¼¶ÁÈ¡CDATA
-	fCharW praseEscape(fcyLexicalReader& tReader);                       ///< @brief ½âÎö×ªÒå·û
-	std::wstring readName(fcyLexicalReader& tReader);                    ///< @brief ¶ÁÈ¡¼üÃû
-	std::wstring readString(fcyLexicalReader& tReader);                  ///< @brief ¶ÁÈ¡×Ö·û´®
-	void readAttribute(fcyLexicalReader& tReader, fcyXmlElement* pNode); ///< @brief ¶ÁÈ¡ÊôĞÔ
-	void readNodes(fcyLexicalReader& tReader, fcyXmlElement* pNode);     ///< @brief ¶ÁÈ¡½Úµã
-	fcyXmlElement* parserNode(fcyLexicalReader& tReader);                ///< @brief ½âÎö½Úµã
+	std::wstring preprocessXml(fcyStream* pStream);                      ///< @brief é¢„å¤„ç†å¹¶è¾“å‡ºå®½å­—ç¬¦æ•°æ®
+private: // è§£æ
+	fBool ignoreComment(fcyLexicalReader& tReader);                      ///< @brief å¿½ç•¥æ³¨é‡Š
+	fBool ignorePreprocess(fcyLexicalReader& tReader);                   ///< @brief å¿½ç•¥é¢„å¤„ç†æŒ‡ä»¤
+	fBool tryReadCDATA(fcyLexicalReader& tReader, std::wstring& tOut);   ///< @brief è¯•å›¾è¯»å–CDATA
+	fCharW praseEscape(fcyLexicalReader& tReader);                       ///< @brief è§£æè½¬ä¹‰ç¬¦
+	std::wstring readName(fcyLexicalReader& tReader);                    ///< @brief è¯»å–é”®å
+	std::wstring readString(fcyLexicalReader& tReader);                  ///< @brief è¯»å–å­—ç¬¦ä¸²
+	void readAttribute(fcyLexicalReader& tReader, fcyXmlElement* pNode); ///< @brief è¯»å–å±æ€§
+	void readNodes(fcyLexicalReader& tReader, fcyXmlElement* pNode);     ///< @brief è¯»å–èŠ‚ç‚¹
+	fcyXmlElement* parserNode(fcyLexicalReader& tReader);                ///< @brief è§£æèŠ‚ç‚¹
 public:
 	fcyXmlElement* GetRootElement()const { return m_pRootElement; }
 	void SetRootElement(fcyXmlElement* pRoot);
@@ -246,14 +246,14 @@ public:
 	void DeleteElement(fcyXmlElement* pObj);
 
 	void Save(std::wstring& Out)const;
-	void Save(fcyStream* pOut)const;     // ´ÓÁ÷Ö¸Õë´¦¿ªÊ¼Ğ´Èë
+	void Save(fcyStream* pOut)const;     // ä»æµæŒ‡é’ˆå¤„å¼€å§‹å†™å…¥
 protected:
 	fcyXmlDocument& operator=(const fcyXmlDocument& Org);
 	fcyXmlDocument(const fcyXmlDocument& Org);
 public:
 	fcyXmlDocument();
 	fcyXmlDocument(const std::wstring& Str);
-	fcyXmlDocument(fcyStream* pStream);      // ´ÓÁ÷Ö¸Õë´¦¿ªÊ¼¶ÁÈ¡
+	fcyXmlDocument(fcyStream* pStream);      // ä»æµæŒ‡é’ˆå¤„å¼€å§‹è¯»å–
 	fcyXmlDocument(fcyXmlDocument&& Org);
 	~fcyXmlDocument();
 };

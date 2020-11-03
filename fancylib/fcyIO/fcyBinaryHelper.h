@@ -1,135 +1,135 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  fcyBinaryHelper.h
-/// @brief fancy¶ş½øÖÆ¶ÁĞ´¸¨Öú
+/// @brief fancyäºŒè¿›åˆ¶è¯»å†™è¾…åŠ©
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyIO/fcyStream.h"
 
-/// @addtogroup fancy¿âIOÄ£¿é
+/// @addtogroup fancyåº“IOæ¨¡å—
 /// @{
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fcy¶ş½øÖÆ¶ÁÈ¡¸¨Öú
+/// @brief fcyäºŒè¿›åˆ¶è¯»å–è¾…åŠ©
 ////////////////////////////////////////////////////////////////////////////////
 class fcyBinaryReader
 {
 private:
-	fcyStream* m_pStream;         ///< @Ô­Ê¼Á÷
+	fcyStream* m_pStream;         ///< @åŸå§‹æµ
 public:
-	/// @brief   ·µ»Ø»ù´¡Á÷
-	/// @warning ±¾º¯Êı²»»áÔö¼ÓÔ­Ê¼Á÷µÄÒıÓÃ¼ÆÊı£¬Èç¹ûĞèÒª¹ÜÀíÕâ¸öÖ¸ÕëÇëÊÖ¶¯µ÷ÓÃAddRef
+	/// @brief   è¿”å›åŸºç¡€æµ
+	/// @warning æœ¬å‡½æ•°ä¸ä¼šå¢åŠ åŸå§‹æµçš„å¼•ç”¨è®¡æ•°ï¼Œå¦‚æœéœ€è¦ç®¡ç†è¿™ä¸ªæŒ‡é’ˆè¯·æ‰‹åŠ¨è°ƒç”¨AddRef
 	fcyStream* GetBaseStream();
 
-	/// @brief ¶ÁÈ¡Ò»¸ö×Ö·û
+	/// @brief è¯»å–ä¸€ä¸ªå­—ç¬¦
 	fChar ReadChar();
 	
-	/// @brief      ¶ÁÈ¡¶à¸ö×Ö·û
-	/// @param[out] OutBuffer Êä³ö»º³åÇø
-	/// @param[in]  Length    Òª¶ÁÈ¡µÄ×Ö·û¸öÊı
+	/// @brief      è¯»å–å¤šä¸ªå­—ç¬¦
+	/// @param[out] OutBuffer è¾“å‡ºç¼“å†²åŒº
+	/// @param[in]  Length    è¦è¯»å–çš„å­—ç¬¦ä¸ªæ•°
 	void ReadChars(fStr OutBuffer, fLen Length);
 	
-	/// @brief ¶ÁÈ¡Ò»¸ö¿í×Ö·û
+	/// @brief è¯»å–ä¸€ä¸ªå®½å­—ç¬¦
 	fCharW ReadCharW();
 	
-	/// @brief      ¶ÁÈ¡¶à¸ö¿í×Ö·û
-	/// @param[out] OutBuffer Êä³ö»º³åÇø
-	/// @param[in]  Length    Òª¶ÁÈ¡µÄ×Ö·û¸öÊı
+	/// @brief      è¯»å–å¤šä¸ªå®½å­—ç¬¦
+	/// @param[out] OutBuffer è¾“å‡ºç¼“å†²åŒº
+	/// @param[in]  Length    è¦è¯»å–çš„å­—ç¬¦ä¸ªæ•°
 	void ReadCharsW(fStrW OutBuffer, fLen Length);
 	
-	/// @brief ¶ÁÈ¡Ò»¸ö×Ö½Ú
+	/// @brief è¯»å–ä¸€ä¸ªå­—èŠ‚
 	fByte ReadByte();
 
-	/// @brief ¶ÁÈ¡¶à¸ö×Ö½ÚÊı¾İ
-	/// @param[out] OutBuffer Êä³ö»º³åÇø
-	/// @param[in]  Length    Òª¶ÁÈ¡µÄ×Ö½ÚÊıÄ¿
+	/// @brief è¯»å–å¤šä¸ªå­—èŠ‚æ•°æ®
+	/// @param[out] OutBuffer è¾“å‡ºç¼“å†²åŒº
+	/// @param[in]  Length    è¦è¯»å–çš„å­—èŠ‚æ•°ç›®
 	void ReadBytes(fData OutBuffer, fLen Length);
 	
-	/// @brief ¶ÁÈ¡Ò»¸ö¶ÌÕûÊı
+	/// @brief è¯»å–ä¸€ä¸ªçŸ­æ•´æ•°
 	fShort ReadInt16();
 	
-	/// @brief ¶ÁÈ¡Ò»¸öÎŞ·ûºÅ¶ÌÕûÊı
+	/// @brief è¯»å–ä¸€ä¸ªæ— ç¬¦å·çŸ­æ•´æ•°
 	fuShort ReadUInt16();
 
-	/// @brief ¶ÁÈ¡Ò»¸öÕûÊı
+	/// @brief è¯»å–ä¸€ä¸ªæ•´æ•°
 	fInt ReadInt32();
 
-	/// @brief ¶ÁÈ¡Ò»¸öÎŞ·ûºÅÕûÊı
+	/// @brief è¯»å–ä¸€ä¸ªæ— ç¬¦å·æ•´æ•°
 	fuInt ReadUInt32();
 
-	/// @brief ¶ÁÈ¡Ò»¸ö³¤ÕûÊı
+	/// @brief è¯»å–ä¸€ä¸ªé•¿æ•´æ•°
 	fLong ReadInt64();
 
-	/// @brief ¶ÁÈ¡Ò»¸öÎŞ·ûºÅ³¤ÕûÊı
+	/// @brief è¯»å–ä¸€ä¸ªæ— ç¬¦å·é•¿æ•´æ•°
 	fuLong ReadUInt64();
 
-	/// @brief ¶ÁÈ¡Ò»¸ö¸¡µãÊı
+	/// @brief è¯»å–ä¸€ä¸ªæµ®ç‚¹æ•°
 	fFloat ReadFloat();
 
-	/// @brief ¶ÁÈ¡Ò»¸öË«¾«¶È¸¡µãÊı
+	/// @brief è¯»å–ä¸€ä¸ªåŒç²¾åº¦æµ®ç‚¹æ•°
 	fDouble ReadDouble();
 public:
-	/// @brief     ¹¹Ôìº¯Êı
-	/// @param[in] pStream Ô­Ê¼Á÷
+	/// @brief     æ„é€ å‡½æ•°
+	/// @param[in] pStream åŸå§‹æµ
 	fcyBinaryReader(fcyStream* pStream);
 	~fcyBinaryReader();
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fcy¶ş½øÖÆĞ´Èë¸¨Öú
+/// @brief fcyäºŒè¿›åˆ¶å†™å…¥è¾…åŠ©
 ////////////////////////////////////////////////////////////////////////////////
 class fcyBinaryWriter
 {
 private:
-	fcyStream* m_pStream;         ///< @Ô­Ê¼Á÷
+	fcyStream* m_pStream;         ///< @åŸå§‹æµ
 public:
-	/// @brief   ·µ»Ø»ù´¡Á÷
-	/// @warning ±¾º¯Êı²»»áÔö¼ÓÔ­Ê¼Á÷µÄÒıÓÃ¼ÆÊı£¬Èç¹ûĞèÒª¹ÜÀíÕâ¸öÖ¸ÕëÇëÊÖ¶¯µ÷ÓÃAddRef
+	/// @brief   è¿”å›åŸºç¡€æµ
+	/// @warning æœ¬å‡½æ•°ä¸ä¼šå¢åŠ åŸå§‹æµçš„å¼•ç”¨è®¡æ•°ï¼Œå¦‚æœéœ€è¦ç®¡ç†è¿™ä¸ªæŒ‡é’ˆè¯·æ‰‹åŠ¨è°ƒç”¨AddRef
 	fcyStream* GetBaseStream();
 	
-	/// @brief Ğ´³öÒ»¸ö×Ö·û
+	/// @brief å†™å‡ºä¸€ä¸ªå­—ç¬¦
 	void Write(fChar Value);
 	
-	/// @brief Ğ´³öÒ»¸ö×Ö·û´®
+	/// @brief å†™å‡ºä¸€ä¸ªå­—ç¬¦ä¸²
 	void Write(fcStr Buffer, fLen Length);
 	
-	/// @brief Ğ´³öÒ»¸ö¿í×Ö·û
+	/// @brief å†™å‡ºä¸€ä¸ªå®½å­—ç¬¦
 	void Write(fCharW Value);
 	
-	/// @brief Ğ´³öÒ»¸ö¿í×Ö·û´®
+	/// @brief å†™å‡ºä¸€ä¸ªå®½å­—ç¬¦ä¸²
 	void Write(fcStrW Buffer, fLen Length);
 	
-	/// @brief Ğ´³öÒ»¸ö×Ö½Ú
+	/// @brief å†™å‡ºä¸€ä¸ªå­—èŠ‚
 	void Write(fByte Value);
 	
-	/// @brief Ğ´³öÒ»¸öÄÚ´æ»º³å
+	/// @brief å†™å‡ºä¸€ä¸ªå†…å­˜ç¼“å†²
 	void Write(fcData Buffer, fLen Length);
 	
-	/// @brief Ğ´³öÒ»¸ö¶ÌÕûÊı
+	/// @brief å†™å‡ºä¸€ä¸ªçŸ­æ•´æ•°
 	void Write(fShort Value);
 	
-	/// @brief Ğ´³öÒ»¸öÎŞ·ûºÅ¶ÌÕûÊı
+	/// @brief å†™å‡ºä¸€ä¸ªæ— ç¬¦å·çŸ­æ•´æ•°
 	void Write(fuShort Value);
 	
-	/// @brief Ğ´³öÒ»¸öÕûÊı
+	/// @brief å†™å‡ºä¸€ä¸ªæ•´æ•°
 	void Write(fInt Value);
 	
-	/// @brief Ğ´³öÒ»¸öÎŞ·ûºÅÕûÊı
+	/// @brief å†™å‡ºä¸€ä¸ªæ— ç¬¦å·æ•´æ•°
 	void Write(fuInt Value);
 	
-	/// @brief Ğ´³öÒ»¸ö³¤ÕûÊı
+	/// @brief å†™å‡ºä¸€ä¸ªé•¿æ•´æ•°
 	void Write(fLong Value);
 	
-	/// @brief Ğ´³öÒ»¸öÎŞ·ûºÅ³¤ÕûÊı
+	/// @brief å†™å‡ºä¸€ä¸ªæ— ç¬¦å·é•¿æ•´æ•°
 	void Write(fuLong Value);
 	
-	/// @brief Ğ´³öÒ»¸ö¸¡µãÊı
+	/// @brief å†™å‡ºä¸€ä¸ªæµ®ç‚¹æ•°
 	void Write(fFloat Value);
 	
-	/// @brief Ğ´³öÒ»¸öË«¾«¶È¸¡µãÊı
+	/// @brief å†™å‡ºä¸€ä¸ªåŒç²¾åº¦æµ®ç‚¹æ•°
 	void Write(fDouble Value);
 public:
-	/// @brief     ¹¹Ôìº¯Êı
-	/// @param[in] pStream Ô­Ê¼Á÷
+	/// @brief     æ„é€ å‡½æ•°
+	/// @param[in] pStream åŸå§‹æµ
 	fcyBinaryWriter(fcyStream* pStream);
 	~fcyBinaryWriter();
 };

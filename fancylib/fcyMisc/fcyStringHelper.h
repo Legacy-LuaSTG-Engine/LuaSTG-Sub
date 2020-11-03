@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  fcyStringHelper.h
-/// @brief fancy×Ö·û´®¸¨Öú¿â
+/// @brief fancyå­—ç¬¦ä¸²è¾…åŠ©åº“
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyType.h"
@@ -8,107 +8,107 @@
 #include <vector>
 #include <string>
 
-/// @addtogroup fancyÔÓÏî
-/// @brief Î´·ÖÀà¶ÔÏó
+/// @addtogroup fancyæ‚é¡¹
+/// @brief æœªåˆ†ç±»å¯¹è±¡
 /// @{
 
-/// @brief fcy×Ö·û´®¸¨Öú
+/// @brief fcyå­—ç¬¦ä¸²è¾…åŠ©
 namespace fcyStringHelper
 {
-	/// @brief      ×Ö·û´®·Ö¸î
-	/// @param[in]  Source   Ô´×Ö·û´®
-	/// @param[in]  SplitStr ÓÃÓÚ·Ö¸îµÄ×Ö·û´®
-	/// @param[in]  AutoTrim ×Ô¶¯ÌŞ³ı¿Õ°×µÄ·Ö¸îÏî
-	/// @param[out] Out      Êä³öµÄÁĞ±í
-	/// @return     ±»·Ö¸îµÄÊıÁ¿
+	/// @brief      å­—ç¬¦ä¸²åˆ†å‰²
+	/// @param[in]  Source   æºå­—ç¬¦ä¸²
+	/// @param[in]  SplitStr ç”¨äºåˆ†å‰²çš„å­—ç¬¦ä¸²
+	/// @param[in]  AutoTrim è‡ªåŠ¨å‰”é™¤ç©ºç™½çš„åˆ†å‰²é¡¹
+	/// @param[out] Out      è¾“å‡ºçš„åˆ—è¡¨
+	/// @return     è¢«åˆ†å‰²çš„æ•°é‡
 	fuInt StringSplit(const std::string& Source, const std::string& SplitStr, fBool AutoTrim, std::vector<std::string>& Out);
 	
-	/// @brief      ×Ö·û´®·Ö¸î£¬¿í×Ö·û°æ±¾
-	/// @param[in]  Source   Ô´×Ö·û´®
-	/// @param[in]  SplitStr ÓÃÓÚ·Ö¸îµÄ×Ö·û´®
-	/// @param[in]  AutoTrim ×Ô¶¯ÌŞ³ı¿Õ°×µÄ·Ö¸îÏî
-	/// @param[out] Out      Êä³öµÄÁĞ±í
-	/// @return     ±»·Ö¸îµÄÊıÁ¿
+	/// @brief      å­—ç¬¦ä¸²åˆ†å‰²ï¼Œå®½å­—ç¬¦ç‰ˆæœ¬
+	/// @param[in]  Source   æºå­—ç¬¦ä¸²
+	/// @param[in]  SplitStr ç”¨äºåˆ†å‰²çš„å­—ç¬¦ä¸²
+	/// @param[in]  AutoTrim è‡ªåŠ¨å‰”é™¤ç©ºç™½çš„åˆ†å‰²é¡¹
+	/// @param[out] Out      è¾“å‡ºçš„åˆ—è¡¨
+	/// @return     è¢«åˆ†å‰²çš„æ•°é‡
 	fuInt StringSplit(const std::wstring& Source, const std::wstring& SplitStr, fBool AutoTrim, std::vector<std::wstring>& Out);
 	
-	/// @brief     ×Ö·û´®µ½Ğ¡Ğ´
-	/// @param[in] Source   Ô´×Ö·û´®
-	/// @return    ±»×ª»»µÄ×Ö·û´®
+	/// @brief     å­—ç¬¦ä¸²åˆ°å°å†™
+	/// @param[in] Source   æºå­—ç¬¦ä¸²
+	/// @return    è¢«è½¬æ¢çš„å­—ç¬¦ä¸²
 	std::string ToLower(const std::string& Source);
 
-	/// @brief     ×Ö·û´®µ½Ğ¡Ğ´£¬¿í×Ö·û°æ±¾
-	/// @param[in] Source   Ô´×Ö·û´®
-	/// @return    ±»×ª»»µÄ×Ö·û´®
+	/// @brief     å­—ç¬¦ä¸²åˆ°å°å†™ï¼Œå®½å­—ç¬¦ç‰ˆæœ¬
+	/// @param[in] Source   æºå­—ç¬¦ä¸²
+	/// @return    è¢«è½¬æ¢çš„å­—ç¬¦ä¸²
 	std::wstring ToLower(const std::wstring& Source);
 
-	/// @brief     Êı×Öµ½×Ö·û´®
-	/// @param[in] Number Êı×Ö
-	/// @param[in] Scale  ½øÖÆ
-	/// @return    Êä³öµÄ×Ö·û´®
+	/// @brief     æ•°å­—åˆ°å­—ç¬¦ä¸²
+	/// @param[in] Number æ•°å­—
+	/// @param[in] Scale  è¿›åˆ¶
+	/// @return    è¾“å‡ºçš„å­—ç¬¦ä¸²
 	std::string ToStr(fInt Number, fInt Scale=10);
 
-	/// @brief     Êı×Öµ½×Ö·û´®
-	/// @param[in] Number Êı×Ö
-	/// @return    Êä³öµÄ×Ö·û´®
+	/// @brief     æ•°å­—åˆ°å­—ç¬¦ä¸²
+	/// @param[in] Number æ•°å­—
+	/// @return    è¾“å‡ºçš„å­—ç¬¦ä¸²
 	std::string ToStr(fDouble Number);
 
-	/// @brief     Êı×Öµ½×Ö·û´®£¬¿í×Ö·û°æ±¾
-	/// @param[in] Number Êı×Ö
-	/// @param[in] Scale  ½øÖÆ
-	/// @return    Êä³öµÄ×Ö·û´®
+	/// @brief     æ•°å­—åˆ°å­—ç¬¦ä¸²ï¼Œå®½å­—ç¬¦ç‰ˆæœ¬
+	/// @param[in] Number æ•°å­—
+	/// @param[in] Scale  è¿›åˆ¶
+	/// @return    è¾“å‡ºçš„å­—ç¬¦ä¸²
 	std::wstring ToWideStr(fInt Number, fInt Scale=10);
 	
-	/// @brief     Êı×Öµ½×Ö·û´®£¬¿í×Ö·û°æ±¾
-	/// @param[in] Number Êı×Ö
-	/// @return    Êä³öµÄ×Ö·û´®
+	/// @brief     æ•°å­—åˆ°å­—ç¬¦ä¸²ï¼Œå®½å­—ç¬¦ç‰ˆæœ¬
+	/// @param[in] Number æ•°å­—
+	/// @return    è¾“å‡ºçš„å­—ç¬¦ä¸²
 	std::wstring ToWideStr(fDouble Number);
 
-	/// @brief     Ê±¼äµ½×Ö·û´®
-	/// @note      ½«ºÁÃëÊı×ª»»µ½h:m:s.ms¸ñÊ½
-	/// @param[in] Seconds ºÁÃëÊı
-	/// @return    Êä³öµÄ×Ö·û´®
+	/// @brief     æ—¶é—´åˆ°å­—ç¬¦ä¸²
+	/// @note      å°†æ¯«ç§’æ•°è½¬æ¢åˆ°h:m:s.msæ ¼å¼
+	/// @param[in] Seconds æ¯«ç§’æ•°
+	/// @return    è¾“å‡ºçš„å­—ç¬¦ä¸²
 	std::string TimeToStr(fDouble Seconds);
 
-	/// @brief     Ê±¼äµ½×Ö·û´®£¬¿í×Ö·û°æ±¾
-	/// @note      ½«ºÁÃëÊı×ª»»µ½h:m:s.ms¸ñÊ½
-	/// @param[in] Seconds ºÁÃëÊı
-	/// @return    Êä³öµÄ×Ö·û´®
+	/// @brief     æ—¶é—´åˆ°å­—ç¬¦ä¸²ï¼Œå®½å­—ç¬¦ç‰ˆæœ¬
+	/// @note      å°†æ¯«ç§’æ•°è½¬æ¢åˆ°h:m:s.msæ ¼å¼
+	/// @param[in] Seconds æ¯«ç§’æ•°
+	/// @return    è¾“å‡ºçš„å­—ç¬¦ä¸²
 	std::wstring TimeToWideStr(fDouble Seconds);
 
-	/// @brief     ÌŞ³ı×ó²à¿Õ°××Ö·û
-	/// @param[in] Org Ô­Ê¼×Ö·û´®
+	/// @brief     å‰”é™¤å·¦ä¾§ç©ºç™½å­—ç¬¦
+	/// @param[in] Org åŸå§‹å­—ç¬¦ä¸²
 	std::wstring TrimLeft(const std::wstring &Org);
 	
-	/// @brief     ÌŞ³ıÓÒ²à¿Õ°××Ö·û
-	/// @param[in] Org Ô­Ê¼×Ö·û´®
+	/// @brief     å‰”é™¤å³ä¾§ç©ºç™½å­—ç¬¦
+	/// @param[in] Org åŸå§‹å­—ç¬¦ä¸²
 	std::wstring TrimRight(const std::wstring &Org);
 	
-	/// @brief     ÌŞ³ı¿Õ°××Ö·û
-	/// @param[in] Org Ô­Ê¼×Ö·û´®
+	/// @brief     å‰”é™¤ç©ºç™½å­—ç¬¦
+	/// @param[in] Org åŸå§‹å­—ç¬¦ä¸²
 	std::wstring Trim(const std::wstring &Org);
 
-	/// @brief     ÌŞ³ı×ó²à¿Õ°××Ö·û
-	/// @param[in] Org Ô­Ê¼×Ö·û´®
+	/// @brief     å‰”é™¤å·¦ä¾§ç©ºç™½å­—ç¬¦
+	/// @param[in] Org åŸå§‹å­—ç¬¦ä¸²
 	std::string TrimLeft(const std::string &Org);
 	
-	/// @brief     ÌŞ³ıÓÒ²à¿Õ°××Ö·û
-	/// @param[in] Org Ô­Ê¼×Ö·û´®
+	/// @brief     å‰”é™¤å³ä¾§ç©ºç™½å­—ç¬¦
+	/// @param[in] Org åŸå§‹å­—ç¬¦ä¸²
 	std::string TrimRight(const std::string &Org);
 	
-	/// @brief     ÌŞ³ı¿Õ°××Ö·û
-	/// @param[in] Org Ô­Ê¼×Ö·û´®
+	/// @brief     å‰”é™¤ç©ºç™½å­—ç¬¦
+	/// @param[in] Org åŸå§‹å­—ç¬¦ä¸²
 	std::string Trim(const std::string &Org);
 
-	/// @brief     stringµ½wstring
-	/// @param[in] Org Ô­Ê¼×Ö·û´®
-	/// @param[in] CodePage ´úÂëÒ³£¬¾ßÌå²éÔÄMSDN
-	/// @return    ·µ»Ø±»×ª»»µÄ×Ö·û´®
+	/// @brief     stringåˆ°wstring
+	/// @param[in] Org åŸå§‹å­—ç¬¦ä¸²
+	/// @param[in] CodePage ä»£ç é¡µï¼Œå…·ä½“æŸ¥é˜…MSDN
+	/// @return    è¿”å›è¢«è½¬æ¢çš„å­—ç¬¦ä¸²
 	std::wstring MultiByteToWideChar(const std::string& Org, fuInt CodePage=1);
 
-	/// @brief     wstringµ½string
-	/// @param[in] Org Ô­Ê¼×Ö·û´®
-	/// @param[in] CodePage ´úÂëÒ³£¬¾ßÌå²éÔÄMSDN
-	/// @return    ·µ»Ø±»×ª»»µÄ×Ö·û´®
+	/// @brief     wstringåˆ°string
+	/// @param[in] Org åŸå§‹å­—ç¬¦ä¸²
+	/// @param[in] CodePage ä»£ç é¡µï¼Œå…·ä½“æŸ¥é˜…MSDN
+	/// @return    è¿”å›è¢«è½¬æ¢çš„å­—ç¬¦ä¸²
 	std::string WideCharToMultiByte(const std::wstring& Org, fuInt CodePage=1);
 }
 /// @}

@@ -1,7 +1,7 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  fcyModelMeshFile.h
-/// @brief fcyÄ£ĞÍÍø¸ñ
-/// @note  Ö§³ÖÁËfancyÄ£ĞÍÍø¸ñÎÄ¼şµÄ¶ÁĞ´
+/// @brief fcyæ¨¡å‹ç½‘æ ¼
+/// @note  æ”¯æŒäº†fancyæ¨¡å‹ç½‘æ ¼æ–‡ä»¶çš„è¯»å†™
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "../fcyIO/fcyStream.h"
@@ -16,49 +16,49 @@
 #include "fcyModelSubsetLabel.h"
 #include "fcyModelBoundingBoxLabel.h"
 
-/// @addtogroup fancy¿âÎÄ¼şÖ§³Ö
-/// @brief Ìá¹©²¿·Ö¸ñÊ½ÎÄ¼şµÄ¶ÁĞ´Ö§³Ö
+/// @addtogroup fancyåº“æ–‡ä»¶æ”¯æŒ
+/// @brief æä¾›éƒ¨åˆ†æ ¼å¼æ–‡ä»¶çš„è¯»å†™æ”¯æŒ
 /// @{
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancyÍø¸ñÄ£ĞÍÎÄ¼ş
+/// @brief fancyç½‘æ ¼æ¨¡å‹æ–‡ä»¶
 ////////////////////////////////////////////////////////////////////////////////
 class fcyModelMeshFile
 {
 public:
-	static const fuInt Version = 100;  ///< @brief °æ±¾ºÅ1.00
+	static const fuInt Version = 100;  ///< @brief ç‰ˆæœ¬å·1.00
 protected:
-	std::wstring m_Author;             ///< @brief ×÷Õß
-	std::wstring m_Description;        ///< @brief Ä£ĞÍÃèÊö
+	std::wstring m_Author;             ///< @brief ä½œè€…
+	std::wstring m_Description;        ///< @brief æ¨¡å‹æè¿°
 
-	std::vector< fcyRefPointer<fcyModelLabel> > m_Labels;   ///< @brief ±êÇ©Êı¾İÓò
+	std::vector< fcyRefPointer<fcyModelLabel> > m_Labels;   ///< @brief æ ‡ç­¾æ•°æ®åŸŸ
 public:
-	/// @brief ·µ»Ø×÷Õß
+	/// @brief è¿”å›ä½œè€…
 	fcStrW GetAuthor()const { return m_Author.c_str(); }
-	/// @brief ·µ»ØÃèÊö
+	/// @brief è¿”å›æè¿°
 	fcStrW GetDescription()const { return m_Description.c_str(); }
-	/// @brief ÉèÖÃ×÷Õß
+	/// @brief è®¾ç½®ä½œè€…
 	void SetAuthor(const std::wstring& Str) { m_Author = Str; }
-	/// @brief ÉèÖÃÃèÊö
+	/// @brief è®¾ç½®æè¿°
 	void SetDescription(const std::wstring& Str) { m_Description = Str; }
 	
-	/// @brief ·µ»Ø±êÇ©ÁĞ±í
+	/// @brief è¿”å›æ ‡ç­¾åˆ—è¡¨
 	std::vector< fcyRefPointer<fcyModelLabel> >& GetLabelList() { return m_Labels; }
 	
-	/// @brief ·µ»ØµÚÒ»¸ö±êÇ©
+	/// @brief è¿”å›ç¬¬ä¸€ä¸ªæ ‡ç­¾
 	fcyRefPointer<fcyModelLabel> FindLabel(fuLong LabelName);
 
-	/// @brief ¼ÓÔØÊı¾İ
+	/// @brief åŠ è½½æ•°æ®
 	void Load(fcyStream* pStream, fBool IgnoreUnsupportLabel = true);
 
-	/// @brief ±£´æÊı¾İ
+	/// @brief ä¿å­˜æ•°æ®
 	void Save(fcyStream* pStream);
 
-	/// @brief µ¼³öµ½fancy2DÄ£ĞÍ
+	/// @brief å¯¼å‡ºåˆ°fancy2Dæ¨¡å‹
 	// void Export();
 public:
 	fcyModelMeshFile() {}
-	/// @brief Ç³¿½±´
+	/// @brief æµ…æ‹·è´
 	fcyModelMeshFile(const fcyModelMeshFile& Right)
 		: m_Author(Right.m_Author), m_Description(Right.m_Description),
 		m_Labels(Right.m_Labels) {}

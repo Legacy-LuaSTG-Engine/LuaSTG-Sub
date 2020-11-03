@@ -1,23 +1,23 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  fcyModelMeshExporter.h
-/// @brief fcyÄ£ĞÍÍø¸ñµ¼³ö
-/// @note  ÊµÏÖ´Ófmmµ¼³öµ½f2dÄ£ĞÍÊı¾İ
+/// @brief fcyæ¨¡å‹ç½‘æ ¼å¯¼å‡º
+/// @note  å®ç°ä»fmmå¯¼å‡ºåˆ°f2dæ¨¡å‹æ•°æ®
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyModelMeshFile.h"
 
-/// @addtogroup fancy¿âÎÄ¼şÖ§³Ö
-/// @brief Ìá¹©²¿·Ö¸ñÊ½ÎÄ¼şµÄ¶ÁĞ´Ö§³Ö
+/// @addtogroup fancyåº“æ–‡ä»¶æ”¯æŒ
+/// @brief æä¾›éƒ¨åˆ†æ ¼å¼æ–‡ä»¶çš„è¯»å†™æ”¯æŒ
 /// @{
 
 struct f2dRenderDevice;
 struct f2dMeshData;
 
-/// @brief Íø¸ñµ¼³ö
+/// @brief ç½‘æ ¼å¯¼å‡º
 namespace fcyModelMeshExporter
 {
 	////////////////////////////////////////////////////////////////////////////////
-	/// @brief fancyÍø¸ñµ¼³öĞÅÏ¢
+	/// @brief fancyç½‘æ ¼å¯¼å‡ºä¿¡æ¯
 	////////////////////////////////////////////////////////////////////////////////
 	class ModelMeshInfo
 	{
@@ -28,18 +28,18 @@ namespace fcyModelMeshExporter
 		std::vector<fcyRefPointer<fcyModelSubsetLabel>> m_SubsetList;
 		std::unordered_map<std::wstring, fcyRefPointer<fcyModelMaterialLabel>> m_MaterialList;
 	public:
-		/// @brief ·µ»Ø×Ó¼¯ÊıÁ¿
+		/// @brief è¿”å›å­é›†æ•°é‡
 		fuInt GetSubsetCount()const { return m_SubsetList.size(); }
 
-		/// @brief ·µ»Ø×Ó¼¯
-		/// @note  ·µ»ØÈõÒıÓÃ
+		/// @brief è¿”å›å­é›†
+		/// @note  è¿”å›å¼±å¼•ç”¨
 		fcyModelSubsetLabel* GetSubset(fuInt Index) { return m_SubsetList[Index]; }
 		
-		/// @brief ¿ìËÙ²éÑ¯²ÄÖÊ
-		/// @note  ·µ»ØÈõÒıÓÃ
+		/// @brief å¿«é€ŸæŸ¥è¯¢æè´¨
+		/// @note  è¿”å›å¼±å¼•ç”¨
 		fcyModelMaterialLabel* GetMaterial(const std::wstring& Str) { return m_MaterialList[Str]; }
 
-		/// @brief ²éÑ¯×Ó¼¯ID
+		/// @brief æŸ¥è¯¢å­é›†ID
 		fuInt GetSubsetID(const std::wstring& Str)const
 		{
 			std::unordered_map<std::wstring, fuInt>::const_iterator i = m_SubsetNameToId.find(Str);
@@ -49,7 +49,7 @@ namespace fcyModelMeshExporter
 				return i->second;
 		}
 
-		/// @brief IDµ¹²é×Ó¼¯Index
+		/// @brief IDå€’æŸ¥å­é›†Index
 		fuInt GetIndex(fuInt ID)const
 		{
 			std::unordered_map<fuInt, fuInt>::const_iterator i = m_IdToSubsetIndex.find(ID);
@@ -67,7 +67,7 @@ namespace fcyModelMeshExporter
 
 
 	////////////////////////////////////////////////////////////////////////////////
-	/// @brief µ¼³öÄ£ĞÍµ½f2d
+	/// @brief å¯¼å‡ºæ¨¡å‹åˆ°f2d
 	////////////////////////////////////////////////////////////////////////////////
 	ModelMeshInfo ExportMesh(fcyModelMeshFile& Mesh, f2dRenderDevice* pDev, f2dMeshData** pOut);
 };

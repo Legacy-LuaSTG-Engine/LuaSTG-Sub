@@ -1,4 +1,4 @@
-#include "fcyParser/fcyXml.h"
+ï»¿#include "fcyParser/fcyXml.h"
 
 #include "fcyMisc/fcyStringHelper.h"
 #include "fcyIO/fcyBinaryHelper.h"
@@ -260,16 +260,16 @@ fcyXmlAttributeIterator fcyXmlElement::RemoveAttribute(const fcyXmlAttributeIter
 
 void fcyXmlElement::Save(std::wstring& pOut, fuInt Indentation)const
 {
-	// Ëõ½ø
+	// ç¼©è¿›
 	for(fuInt i = 0; i<Indentation; ++i)
 	{
 		pOut += L"\t";
 	}
 
-	// Ğ´³ö±êÇ©Í·
+	// å†™å‡ºæ ‡ç­¾å¤´
 	pOut += L"<" + m_Name;
 	
-	// Ğ´ÊôĞÔ
+	// å†™å±æ€§
 	if(m_Attribute.size())
 	{
 		pOut += L' ';
@@ -279,7 +279,7 @@ void fcyXmlElement::Save(std::wstring& pOut, fuInt Indentation)const
 		{
 			pOut += i->first + L"=\"";
 			
-			// Ğ´³öÊôĞÔÖµ²¢×ªÒå
+			// å†™å‡ºå±æ€§å€¼å¹¶è½¬ä¹‰
 			for(fuInt k = 0; k<i->second.size(); k++)
 			{
 				switch(i->second[k])
@@ -310,7 +310,7 @@ void fcyXmlElement::Save(std::wstring& pOut, fuInt Indentation)const
 		}
 	}
 
-	// ½áÎ²£¿
+	// ç»“å°¾ï¼Ÿ
 	if(m_Content.empty() && m_Subnodes.size()==0)
 	{
 		pOut += L"/>\n";
@@ -321,10 +321,10 @@ void fcyXmlElement::Save(std::wstring& pOut, fuInt Indentation)const
 		pOut += L">";
 	}
 
-	// Ğ´³ö×Ó½Úµã
+	// å†™å‡ºå­èŠ‚ç‚¹
 	if(m_Subnodes.size())
 	{
-		// »»ĞĞ
+		// æ¢è¡Œ
 		pOut += L"\n";
 
 		vector<fcyXmlElement*>::const_iterator i = m_Subnodes.begin();
@@ -336,18 +336,18 @@ void fcyXmlElement::Save(std::wstring& pOut, fuInt Indentation)const
 			++i;
 		}
 
-		// Ëõ½ø
+		// ç¼©è¿›
 		for(fuInt i = 0; i<Indentation; ++i)
 		{
 			pOut += L"\t";
 		}
 
-		// ±ÕºÏ±êÇ©
+		// é—­åˆæ ‡ç­¾
 		pOut += L"</" + m_Name + L">\n";
 	}
 	else if(m_Content.size())
 	{
-		// Ğ´³öContent
+		// å†™å‡ºContent
 		for(fuInt i = 0; i<m_Content.size(); ++i)
 		{
 			switch(m_Content[i])
@@ -373,7 +373,7 @@ void fcyXmlElement::Save(std::wstring& pOut, fuInt Indentation)const
 			}
 		}
 
-		// ±ÕºÏ±êÇ©
+		// é—­åˆæ ‡ç­¾
 		pOut += L"</" + m_Name + L">\n";
 	}
 }
@@ -384,7 +384,7 @@ fcyXmlElement* fcyXmlElement::Clone(fcyXmlDocument* pDoc)const
 	pThis->SetContent(GetContent());
 	pThis->m_Attribute = m_Attribute;
 
-	// ¿ËÂ¡×Ó½Úµã
+	// å…‹éš†å­èŠ‚ç‚¹
 	for(SubnodeConstIter i = m_Subnodes.begin(); i != m_Subnodes.end(); ++i)
 	{
 		fcyXmlElement* tSub = (*i)->Clone(pDoc);
@@ -401,7 +401,7 @@ fBool fcyXmlDocument::checkUTF8(fcyStream* pStream)
 {
 	fLen tPos = pStream->GetPosition();
 
-	// ³¢ÊÔ¶ÁÈ¡BOMÍ·
+	// å°è¯•è¯»å–BOMå¤´
 	fByte tBomCache[3];
 	if(FCYOK(pStream->ReadBytes(tBomCache, 3, NULL)))
 	{
@@ -421,7 +421,7 @@ fBool fcyXmlDocument::checkUTF16LE(fcyStream* pStream)
 {
 	fLen tPos = pStream->GetPosition();
 
-	// ³¢ÊÔ¶ÁÈ¡BOMÍ·
+	// å°è¯•è¯»å–BOMå¤´
 	fByte tBomCache[2];
 	if(FCYOK(pStream->ReadBytes(tBomCache, 2, NULL)))
 	{
@@ -439,7 +439,7 @@ fBool fcyXmlDocument::checkUTF16LE(fcyStream* pStream)
 
 wstring fcyXmlDocument::preprocessXml(fcyStream* pStream)
 {
-	// ÔÚÓĞBOMÍ·µÄÊ±ºòºöÂÔÔ¤´¦ÀíÖ¸Áî
+	// åœ¨æœ‰BOMå¤´çš„æ—¶å€™å¿½ç•¥é¢„å¤„ç†æŒ‡ä»¤
 	if(checkUTF16LE(pStream))
 	{
 		wstring tRet;
@@ -458,7 +458,7 @@ wstring fcyXmlDocument::preprocessXml(fcyStream* pStream)
 	}
 	else
 	{
-		// ÒÀ´Î¶ÁÈ¡Ç°ÃæµÄ×Ö·û£¬½âÎöÔ¤´¦ÀíÖ¸Áî
+		// ä¾æ¬¡è¯»å–å‰é¢çš„å­—ç¬¦ï¼Œè§£æé¢„å¤„ç†æŒ‡ä»¤
 		fInt tCodePage = CP_UTF8;
 		fLen tPos = pStream->GetPosition();
 
@@ -468,7 +468,7 @@ wstring fcyXmlDocument::preprocessXml(fcyStream* pStream)
 		{
 			fChar tFlag[6] = { 0 };
 			tReader.ReadChars(tFlag, 5);
-			if(strcmp(tFlag, "<?xml")==0) // Æ¥Åä<?xml
+			if(strcmp(tFlag, "<?xml")==0) // åŒ¹é…<?xml
 			{
 				map<string, string> tAttrib;
 				string tKey;
@@ -493,7 +493,7 @@ wstring fcyXmlDocument::preprocessXml(fcyStream* pStream)
 						if(tKey.empty())
 							throw fcyException("fcyXmlDocument::preprocessXml", "expect name but found =");
 						
-						// ¶ÁÈ¡value
+						// è¯»å–value
 						fBool tMatch = false;
 						while(1)
 						{
@@ -522,7 +522,7 @@ wstring fcyXmlDocument::preprocessXml(fcyStream* pStream)
 					}
 				}
 
-				// »ñÈ¡ĞÅÏ¢
+				// è·å–ä¿¡æ¯
 				if(tAttrib.find("version")!=tAttrib.end() && atof(tAttrib["version"].c_str()) != 1.0)
 					throw fcyException("fcyXml::preprocessXml", "xml version not support");
 				if(tAttrib.find("encoding")!=tAttrib.end())
@@ -543,7 +543,7 @@ wstring fcyXmlDocument::preprocessXml(fcyStream* pStream)
 			pStream->SetPosition(FCYSEEKORIGIN_BEG, tPos);
 		}
 
-		// ¶ÁÈ¡²¢×ª»»
+		// è¯»å–å¹¶è½¬æ¢
 		string tTemp;
 		fLen tSize = pStream->GetLength() - pStream->GetPosition();
 		tTemp.resize((size_t)tSize);
@@ -597,7 +597,7 @@ fBool fcyXmlDocument::ignorePreprocess(fcyLexicalReader& tReader)
 				if(tKey.empty())
 					throw fcyException("fcyXmlDocument::ignorePreprocess", "expect name but found =");
 
-				// ¶ÁÈ¡value
+				// è¯»å–value
 				fBool tMatch = false;
 				while(1)
 				{
@@ -675,13 +675,13 @@ std::wstring fcyXmlDocument::readName(fcyLexicalReader& tReader)
 	wstring tRet;
 	       
 	fCharW tChar = tReader.PeekChar();
-	if(tChar == L'/')  // ²»ÄÜÒÔ'/'¿ªÍ·
+	if(tChar == L'/')  // ä¸èƒ½ä»¥'/'å¼€å¤´
 		throw fcyLexicalException("fcyXmlDocument::readName", "Name can't begin with '/'.", tReader.GetLine(), tReader.GetRow());
-	if(tChar == L'_')  // ²»ÄÜÒÔÏÂ»®Ïß¿ªÍ·
+	if(tChar == L'_')  // ä¸èƒ½ä»¥ä¸‹åˆ’çº¿å¼€å¤´
 		throw fcyLexicalException("fcyXmlDocument::readName", "Name can't begin with '_'.", tReader.GetLine(), tReader.GetRow());
-	if(iswspace(tChar)) // ²»ÄÜÒÔ¿Õ°×·û¿ªÍ·
+	if(iswspace(tChar)) // ä¸èƒ½ä»¥ç©ºç™½ç¬¦å¼€å¤´
 		throw fcyLexicalException("fcyXmlDocument::readName", "Name can't begin with space.", tReader.GetLine(), tReader.GetRow());
-	if(iswdigit(tChar)) // ²»ÄÜÒÔÊı×Ö¿ªÍ·
+	if(iswdigit(tChar)) // ä¸èƒ½ä»¥æ•°å­—å¼€å¤´
 		throw fcyLexicalException("fcyXmlDocument::readName", "Name can't begin with digit.", tReader.GetLine(), tReader.GetRow());
 	
 	while(!(iswspace(tChar) || tChar==L'/' || tChar==L'<' || tChar==L'>' || tChar==L'"' || tChar==L'=' || tChar==L'&'))
@@ -698,7 +698,7 @@ std::wstring fcyXmlDocument::readString(fcyLexicalReader& tReader)
 {
 	wstring tRet;
 
-	// ¶ÁÈ¡'"'
+	// è¯»å–'"'
 	tReader.Match(L'"', true);
 
 	while(1)
@@ -710,7 +710,7 @@ std::wstring fcyXmlDocument::readString(fcyLexicalReader& tReader)
 			tReader.ReadChar();
 			break;
 		}
-		else if(tChar == L'&') // ´¦Àíescape
+		else if(tChar == L'&') // å¤„ç†escape
 		{
 			tRet += praseEscape(tReader);
 			continue;
@@ -727,18 +727,18 @@ void fcyXmlDocument::readAttribute(fcyLexicalReader& tReader, fcyXmlElement* pNo
 {
 	while(!(tReader.TryMatch(L'>', true, false) || tReader.TryMatch(L"/>", true, false)))
 	{
-		// ¶ÁÈ¡ÊôĞÔÃû
+		// è¯»å–å±æ€§å
 		wstring tName = readName(tReader);
 
-		// ¶ÁÈ¡'='
+		// è¯»å–'='
 		tReader.Match(L'=', true);
 
-		// ¶ÁÈ¡×Ö·û´®
+		// è¯»å–å­—ç¬¦ä¸²
 		wstring tStr = readString(tReader);
 
 		tReader.IgnoreSpace();
 
-		// ¼ÓÈëÊôĞÔ
+		// åŠ å…¥å±æ€§
 		pNode->SetAttribute(std::move(tName), std::move(tStr));
 	}
 }
@@ -747,31 +747,31 @@ void fcyXmlDocument::readNodes(fcyLexicalReader& tReader, fcyXmlElement* pNode)
 {
 	wstring tContent;
 
-	// È¥×¢ÊÍ
+	// å»æ³¨é‡Š
 	while(ignoreComment(tReader));
 
-	// ¼ì²é·ÖÖ§
+	// æ£€æŸ¥åˆ†æ”¯
 	if(tReader.TryMatch(L'<', true, false) && !tReader.TryMatch(L"<![CDATA[", true, false))
 	{
-		// ×÷Îª×Ó½Úµã
+		// ä½œä¸ºå­èŠ‚ç‚¹
 		while(!tReader.TryMatch(L"</", true, false))
 		{
-			// ½âÎö²¢¼ÓÈë±êÇ©
+			// è§£æå¹¶åŠ å…¥æ ‡ç­¾
 			pNode->AppendNode(parserNode(tReader));
 
-			// È¥×¢ÊÍ
+			// å»æ³¨é‡Š
 			while(ignoreComment(tReader));
 		}
 	}
 	else
 	{
-		// ×÷ÎªÎÄ±¾½Úµã
+		// ä½œä¸ºæ–‡æœ¬èŠ‚ç‚¹
 		fCharW tChar = tReader.PeekChar();
 		while(true)
 		{
 			fBool tEnd = false;
 
-			// ´¦ÀíCDATAºÍ×¢ÊÍ
+			// å¤„ç†CDATAå’Œæ³¨é‡Š
 			while(tChar == L'<')
 			{
 				ignoreComment(tReader);
@@ -798,7 +798,7 @@ void fcyXmlDocument::readNodes(fcyLexicalReader& tReader, fcyXmlElement* pNode)
 			if(tEnd)
 				break;
 
-			// ´¦Àíescape
+			// å¤„ç†escape
 			if(tChar == L'&')
 			{
 				tContent += praseEscape(tReader);
@@ -817,39 +817,39 @@ void fcyXmlDocument::readNodes(fcyLexicalReader& tReader, fcyXmlElement* pNode)
 
 fcyXmlElement* fcyXmlDocument::parserNode(fcyLexicalReader& tReader)
 {
-	// ¶ÁÈ¡'<'
+	// è¯»å–'<'
 	tReader.Match(L'<', true);
 
-	// ¶ÁÈ¡Ãû³Æ
+	// è¯»å–åç§°
 	std::wstring tNodeName = readName(tReader);
 
-	// ´´½¨½Úµã
+	// åˆ›å»ºèŠ‚ç‚¹
 	fcyXmlElement* pElement = CreateElement(tNodeName);
 
 	tReader.IgnoreSpace();
 
-	// ¶ÁÈ¡ÊôĞÔ
+	// è¯»å–å±æ€§
 	readAttribute(tReader, pElement);
 
 	fCharW tChar = tReader.ReadChar();
 	if(tChar == L'/')
 	{
-		// ·ÖÖ§ <1> Óöµ½'/',Íê³É½Úµã½âÎö
+		// åˆ†æ”¯ <1> é‡åˆ°'/',å®ŒæˆèŠ‚ç‚¹è§£æ
 
-		// ¶ÁÈ¡'>'
+		// è¯»å–'>'
 		tReader.Match(L'>', false);
 	}
 	else if(tChar == L'>')
 	{
-		// ·ÖÖ§ <2> ½âÎö×Ó½Úµã
+		// åˆ†æ”¯ <2> è§£æå­èŠ‚ç‚¹
 
-		// ¶ÁÈ¡×Ó½Úµã»òÎÄ±¾
+		// è¯»å–å­èŠ‚ç‚¹æˆ–æ–‡æœ¬
 		readNodes(tReader, pElement);
 
-		// ¶ÁÈ¡'</'
+		// è¯»å–'</'
 		tReader.Match(L"</", true);
 
-		// ¶ÁÈ¡Ãû³Æ
+		// è¯»å–åç§°
 		wstring tName = readName(tReader);
 
 		if(tName != tNodeName)
@@ -861,7 +861,7 @@ fcyXmlElement* fcyXmlDocument::parserNode(fcyLexicalReader& tReader)
 				tReader.GetLine(), tReader.GetRow());
 		}
 
-		// ¶ÁÈ¡'>'
+		// è¯»å–'>'
 		tReader.Match(L'>', true);
 	}
 	else
@@ -885,9 +885,9 @@ fcyXmlDocument::fcyXmlDocument(const std::wstring& Str)
 {
 	fcyLexicalReader tReader(Str);
 	
-	// È¥Ô¤´¦Àí
+	// å»é¢„å¤„ç†
 	while(ignorePreprocess(tReader));
-	// È¥×¢ÊÍ
+	// å»æ³¨é‡Š
 	while(ignoreComment(tReader));
 
 	SetRootElement(parserNode(tReader));
@@ -901,9 +901,9 @@ fcyXmlDocument::fcyXmlDocument(fcyStream* pStream)
 
 	fcyLexicalReader tReader(preprocessXml(pStream));
 
-	// È¥Ô¤´¦Àí
+	// å»é¢„å¤„ç†
 	while(ignorePreprocess(tReader));
-	// È¥×¢ÊÍ
+	// å»æ³¨é‡Š
 	while(ignoreComment(tReader));
 
 	SetRootElement(parserNode(tReader));

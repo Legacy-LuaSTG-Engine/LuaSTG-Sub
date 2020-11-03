@@ -1,4 +1,4 @@
-#include "fcyParser/fcyJson.h"
+ï»¿#include "fcyParser/fcyJson.h"
 
 #include "fcyMisc/fcyStringHelper.h"
 
@@ -614,7 +614,7 @@ fcyJsonDict* fcyJson::parseDict(fcyLexicalReader& Context)
 			break;
 		}
 
-		// ½âÎö¼üÃû
+		// è§£æžé”®å
 		fcyJsonString* tKey = NULL;
 		
 		try
@@ -630,7 +630,7 @@ fcyJsonDict* fcyJson::parseDict(fcyLexicalReader& Context)
 		// match ":"
 		Context.Match(L':', true);
 
-		// ½âÎö¼üÖµ
+		// è§£æžé”®å€¼
 		fcyJsonValue* tValue = NULL;
 		
 		try
@@ -644,7 +644,7 @@ fcyJsonDict* fcyJson::parseDict(fcyLexicalReader& Context)
 			throw;
 		}
 
-		// ×·¼Ó
+		// è¿½åŠ 
 		tRet->SetValue(tKey->GetStr(), tValue);
 		FCYSAFEDEL(tKey);
 

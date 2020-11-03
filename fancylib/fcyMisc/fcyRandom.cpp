@@ -1,4 +1,4 @@
-#include "fcyMisc/fcyRandom.h"
+ï»¿#include "fcyMisc/fcyRandom.h"
 
 #include <Windows.h>
 
@@ -28,7 +28,7 @@ void fcyRandomWELL512::SetSeed(fuInt Seed)
 
 	m_Index = 0;
 
-	// ÏßĞÔÍ¬Óà²úÉúÖÖ×Ó
+	// çº¿æ€§åŒä½™äº§ç”Ÿç§å­
 	const unsigned int mask = ~0u;
 	m_State[0] = Seed & mask;
 	for (unsigned int i = 1; i < 16; ++i)

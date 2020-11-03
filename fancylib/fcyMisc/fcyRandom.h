@@ -1,45 +1,45 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  fcyRandom.h
-/// @brief fancyËæ»úÊı
+/// @brief fancyéšæœºæ•°
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyType.h"
 
-/// @addtogroup fancyÔÓÏî
+/// @addtogroup fancyæ‚é¡¹
 /// @{
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief WELL512Ëæ»úÊıËã·¨
-/// @note  Õª×Ô¡¶ÓÎÏ·±à³Ì¾«´â 7¡·
+/// @brief WELL512éšæœºæ•°ç®—æ³•
+/// @note  æ‘˜è‡ªã€Šæ¸¸æˆç¼–ç¨‹ç²¾ç²¹ 7ã€‹
 ////////////////////////////////////////////////////////////////////////////////
 class fcyRandomWELL512
 {
 private:
-	fuInt m_State[16];   ///< @brief ÄÚ²¿×´Ì¬»ú
-	fuInt m_Index;       ///< @brief ÏÂ±ê
-	fuInt m_RSeed;       ///< @brief Ëæ»úÊıÖÖ×Ó
+	fuInt m_State[16];   ///< @brief å†…éƒ¨çŠ¶æ€æœº
+	fuInt m_Index;       ///< @brief ä¸‹æ ‡
+	fuInt m_RSeed;       ///< @brief éšæœºæ•°ç§å­
 public:
-	/// @brief »ñµÃËæ»úÊıÖÖ×Ó
+	/// @brief è·å¾—éšæœºæ•°ç§å­
 	fuInt GetRandSeed();
-	/// @brief     ÉèÖÃËæ»úÊıÖÖ×Ó
-	/// @param[in] Seed Ëæ»úÊıÖÖ×Ó
+	/// @brief     è®¾ç½®éšæœºæ•°ç§å­
+	/// @param[in] Seed éšæœºæ•°ç§å­
 	void SetSeed(fuInt Seed);
-	/// @brief ²úÉúÎŞ·ûºÅÕûÊı
+	/// @brief äº§ç”Ÿæ— ç¬¦å·æ•´æ•°
 	fuInt GetRandUInt();
-	/// @brief     ²úÉú[0, Max]Ö®¼äµÄÎŞ·ûºÅÕûÊı
-	/// @param[in] Max ×î´óÊı
+	/// @brief     äº§ç”Ÿ[0, Max]ä¹‹é—´çš„æ— ç¬¦å·æ•´æ•°
+	/// @param[in] Max æœ€å¤§æ•°
 	fuInt GetRandUInt(fuInt Max);
-	/// @brief ²úÉú[0, 1]Ö®¼äµÄËæ»úĞ¡Êı
+	/// @brief äº§ç”Ÿ[0, 1]ä¹‹é—´çš„éšæœºå°æ•°
 	fFloat GetRandFloat();
-	/// @brief ²úÉú[MinBound, MaxBound]Ö®¼äµÄËæ»úĞ¡Êı
-	/// @param[in] MinBound ÏÂ½ç
-	/// @param[in] MaxBound ÉÏ½ç
+	/// @brief äº§ç”Ÿ[MinBound, MaxBound]ä¹‹é—´çš„éšæœºå°æ•°
+	/// @param[in] MinBound ä¸‹ç•Œ
+	/// @param[in] MaxBound ä¸Šç•Œ
 	fFloat GetRandFloat(fFloat MinBound, fFloat MaxBound);
 public:
-	/// @brief Ä¬ÈÏ¹¹Ôìº¯Êı
-	/// @note  µ÷ÓÃGetTickCount()½øĞĞ³õÊ¼»¯
+	/// @brief é»˜è®¤æ„é€ å‡½æ•°
+	/// @note  è°ƒç”¨GetTickCount()è¿›è¡Œåˆå§‹åŒ–
 	fcyRandomWELL512();
-	/// @brief Ö¸¶¨ÖÖ×Ó³õÊ¼»¯Ëæ»úÊı·¢ÉúÆ÷
+	/// @brief æŒ‡å®šç§å­åˆå§‹åŒ–éšæœºæ•°å‘ç”Ÿå™¨
 	fcyRandomWELL512(fuInt Seed);
 	~fcyRandomWELL512();
 };

@@ -1,4 +1,4 @@
-#include "fcyParser/fcyLexicalParser.h"
+ï»¿#include "fcyParser/fcyLexicalParser.h"
 
 #include "fcyMisc/fcyStringHelper.h"
 
@@ -60,7 +60,7 @@ fBool fcyLexicalReader::checkUTF8(fcyStream* pStream)
 {
 	fLen tPos = pStream->GetPosition();
 
-	// ³¢ÊÔ¶ÁÈ¡BOMÍ·
+	// å°è¯•è¯»å–BOMå¤´
 	fByte tBomCache[3];
 	if(FCYOK(pStream->ReadBytes(tBomCache, 3, NULL)))
 	{
@@ -80,7 +80,7 @@ fBool fcyLexicalReader::checkUTF16LE(fcyStream* pStream)
 {
 	fLen tPos = pStream->GetPosition();
 
-	// ³¢ÊÔ¶ÁÈ¡BOMÍ·
+	// å°è¯•è¯»å–BOMå¤´
 	fByte tBomCache[2];
 	if(FCYOK(pStream->ReadBytes(tBomCache, 2, NULL)))
 	{
@@ -243,13 +243,13 @@ fBool fcyLexicalReader::TryMatch(fCharW Char, fBool bIgnoreSpace, fBool bMatch)
 	fCharW tChar = ReadChar();
 	if(tChar != Char)
 	{
-		// ²»Æ¥Åä£¬·µ»Ø¼Ù
+		// ä¸åŒ¹é…ï¼Œè¿”å›å‡
 		m_Pos = tPos;
 		return false;
 	}
 	else
 	{
-		// Æ¥Åä
+		// åŒ¹é…
 		if(!bMatch)
 		{
 			m_Pos = tPos;
@@ -269,7 +269,7 @@ fBool fcyLexicalReader::TryMatch(fcStrW Str, fBool bIgnoreSpace, fBool bMatch)
 
 	if(m_Str.size() - m_Pos < tLen)
 	{
-		// ³¤¶È²»×ã£¬²»ÄÜÆ¥Åä
+		// é•¿åº¦ä¸è¶³ï¼Œä¸èƒ½åŒ¹é…
 		m_Pos = tPos;
 		return false;
 	}
@@ -278,7 +278,7 @@ fBool fcyLexicalReader::TryMatch(fcStrW Str, fBool bIgnoreSpace, fBool bMatch)
 	{
 		if(m_Str[m_Pos+i] != Str[i])
 		{
-			// ²»ÄÜÆ¥Åä
+			// ä¸èƒ½åŒ¹é…
 			m_Pos = tPos;
 			return false;
 		}

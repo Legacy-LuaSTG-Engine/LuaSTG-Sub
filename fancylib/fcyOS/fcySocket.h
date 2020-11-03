@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  fcySocket.h
-/// @brief fancy Socket·â×°
+/// @brief fancy Socketå°è£…
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "../fcyType.h"
@@ -9,70 +9,70 @@
 #include <vector>
 #include <string>
 
-/// @addtogroup fancy¿âµ×²ãÖ§³Ö
+/// @addtogroup fancyåº“åº•å±‚æ”¯æŒ
 /// @{
 
-/// @brief Socket·â×°Ä£¿é
+/// @brief Socketå°è£…æ¨¡å—
 namespace fcySocket
 {
-	/// @brief ³õÊ¼»¯µ×²ãSocket¿â
+	/// @brief åˆå§‹åŒ–åº•å±‚Socketåº“
 	fResult InitSocket();
 
-	/// @brief ¹Ø±ÕSocket¿â
+	/// @brief å…³é—­Socketåº“
 	void HaltSocket();
 
-	/// @brief ÓòÃû×ªIP
+	/// @brief åŸŸåè½¬IP
 	std::string HostToIp(fcStr Host);
 
-	/// @brief ÓòÃû×ªIP
+	/// @brief åŸŸåè½¬IP
 	std::vector<std::string> HostToAllIp(fcStr Host);
 
-	/// @brief Òì³£
+	/// @brief å¼‚å¸¸
 	class Exception :
 		public fcyException
 	{
 	private:
-		fuInt m_WSALastError;          ///< @brief ×îºóÒ»´Î´íÎó´úÂë
+		fuInt m_WSALastError;          ///< @brief æœ€åä¸€æ¬¡é”™è¯¯ä»£ç 
 	public:
-		fuInt GetWSAErrorCode()const;  ///< @brief »ñµÃ×îºóÒ»´Î´íÎó
+		fuInt GetWSAErrorCode()const;  ///< @brief è·å¾—æœ€åä¸€æ¬¡é”™è¯¯
 	public:
 		Exception(fcStr Src, fcStr Desc);
 		~Exception();
 	};
 
-	/// @brief ¿Í»§¶Ë
+	/// @brief å®¢æˆ·ç«¯
 	class Client
 	{
 	protected:
 		void* m_Socket;
 	protected:
-		/// @brief     ÄÚ²¿º¯Êı£¬Á¬½Óµ½IP
+		/// @brief     å†…éƒ¨å‡½æ•°ï¼Œè¿æ¥åˆ°IP
 		/// @exception fcySocket::Exception
 		void connectTo(fcStr IP, fuShort Port);
 	public:
-		/// @brief     ½ÓÊÕÊı¾İµ½»º³åÇø
-		/// @note      ×èÈûÖ±µ½ÌîÂú»º³åÇø
+		/// @brief     æ¥æ”¶æ•°æ®åˆ°ç¼“å†²åŒº
+		/// @note      é˜»å¡ç›´åˆ°å¡«æ»¡ç¼“å†²åŒº
 		/// @exception fcySocket::Exception
-		/// @param[in] pBuffer Êı¾İ»º³åÇø
-		/// @param[in] Length  Êı¾İ³¤¶È
+		/// @param[in] pBuffer æ•°æ®ç¼“å†²åŒº
+		/// @param[in] Length  æ•°æ®é•¿åº¦
 		fuInt Recv(fData pBuffer, fLen Length);
-		/// @brief     ·¢ËÍÊı¾İ
+		/// @brief     å‘é€æ•°æ®
 		/// @exception fcySocket::Exception
-		/// @param[in] pBuffer Êı¾İ»º³åÇø
-		/// @param[in] Length  Êı¾İ³¤¶È
+		/// @param[in] pBuffer æ•°æ®ç¼“å†²åŒº
+		/// @param[in] Length  æ•°æ®é•¿åº¦
 		void Send(fcData pBuffer, fLen Length);
-		/// @brief     ½ÓÊÕÒ»¸ö×Ö½ÚÊı¾İ
+		/// @brief     æ¥æ”¶ä¸€ä¸ªå­—èŠ‚æ•°æ®
 		/// @exception fcySocket::Exception
 		fChar RecvChar();
-		/// @brief     ½ÓÊÕÒ»¸ö×Ö½ÚÊı¾İ
+		/// @brief     æ¥æ”¶ä¸€ä¸ªå­—èŠ‚æ•°æ®
 		/// @exception fcySocket::Exception
-		/// @param[in] Data Êı¾İ
+		/// @param[in] Data æ•°æ®
 		void SendChar(fChar Data);
 	public:
-		/// @brief     ¹¹Ôìº¯Êı
+		/// @brief     æ„é€ å‡½æ•°
 		/// @exception fcySocket::Exception
-		/// @param[in] IP   IPµØÖ·
-		/// @param[in] Port ¶Ë¿Ú
+		/// @param[in] IP   IPåœ°å€
+		/// @param[in] Port ç«¯å£
 		Client(fcStr IP, fuShort Port);
 		~Client();
 	};

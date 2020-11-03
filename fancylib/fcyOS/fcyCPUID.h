@@ -1,20 +1,20 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  fcyCPUID.h
-/// @brief fancy CPUĞÅÏ¢¶ÁÈ¡
+/// @brief fancy CPUä¿¡æ¯è¯»å–
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "../fcyType.h"
 
 #include <string>
 
-/// @addtogroup fancy¿âµ×²ãÖ§³Ö
+/// @addtogroup fancyåº“åº•å±‚æ”¯æŒ
 /// @{
 
 namespace fcyCPUID
 {
-	/// @brief »ñµÃCPU³§¼Ò
+	/// @brief è·å¾—CPUå‚å®¶
 	std::string GetCPUString();
-	/// @breif »ñµÃCPUÆ·ÅÆ
+	/// @breif è·å¾—CPUå“ç‰Œ
 	std::string GetCPUBrand();
 };
 

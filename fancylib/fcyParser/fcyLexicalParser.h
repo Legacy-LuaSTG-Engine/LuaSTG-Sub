@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  fcyLexicalParser.h
-/// @brief fcy´Ê·¨½âÎö¸¨ÖúÀà
+/// @brief fcyè¯æ³•è§£æè¾…åŠ©ç±»
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyException.h"
@@ -8,94 +8,94 @@
 
 #include <string>
 
-/// @addtogroup fancy¿âÒì³£
+/// @addtogroup fancyåº“å¼‚å¸¸
 /// @{
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ´Ê·¨½âÎöÒì³£
-/// @note  ÅÉÉú×ÔfcyException£¬ÓÃÀ´ÃèÊö´Ê·¨´íÎó
+/// @brief è¯æ³•è§£æå¼‚å¸¸
+/// @note  æ´¾ç”Ÿè‡ªfcyExceptionï¼Œç”¨æ¥æè¿°è¯æ³•é”™è¯¯
 ////////////////////////////////////////////////////////////////////////////////
 class fcyLexicalException :
 	public fcyException
 {
 private:
-	fuInt m_Line; ///< @brief ´¢´æÒì³£²úÉúµÄĞĞ
-	fuInt m_Row;  ///< @brief ´¢´æÒì³£²úÉúµÄÁĞ
+	fuInt m_Line; ///< @brief å‚¨å­˜å¼‚å¸¸äº§ç”Ÿçš„è¡Œ
+	fuInt m_Row;  ///< @brief å‚¨å­˜å¼‚å¸¸äº§ç”Ÿçš„åˆ—
 public:
-	fuInt GetLine();  ///< @brief »ñµÃÒì³£²úÉúµÄĞĞ
-	fuInt GetRow();   ///< @brief »ñµÃÒì³£²úÉúµÄÁĞ
+	fuInt GetLine();  ///< @brief è·å¾—å¼‚å¸¸äº§ç”Ÿçš„è¡Œ
+	fuInt GetRow();   ///< @brief è·å¾—å¼‚å¸¸äº§ç”Ÿçš„åˆ—
 public:
-	/// @brief          ¹¹Ôìº¯Êı
-	/// @note           ¹¹Ôìº¯Êı»á×Ô¶¯°ÑĞĞºÅºÍÁĞºÅÌí¼Óµ½Desc×Ö¶Î
-	/// @param[in] Src  Òì³£Ô´
-	/// @param[in] Desc Òì³£ÃèÊö
-	/// @param[in] Line Òì³£²úÉúµÄĞĞºÅ
-	/// @param[in] Row  Òì³£²úÉúµÄÁĞºÅ
+	/// @brief          æ„é€ å‡½æ•°
+	/// @note           æ„é€ å‡½æ•°ä¼šè‡ªåŠ¨æŠŠè¡Œå·å’Œåˆ—å·æ·»åŠ åˆ°Descå­—æ®µ
+	/// @param[in] Src  å¼‚å¸¸æº
+	/// @param[in] Desc å¼‚å¸¸æè¿°
+	/// @param[in] Line å¼‚å¸¸äº§ç”Ÿçš„è¡Œå·
+	/// @param[in] Row  å¼‚å¸¸äº§ç”Ÿçš„åˆ—å·
 	fcyLexicalException(fcStr Src, fcStr Desc, fuInt Line, fuInt Row);
 	~fcyLexicalException();
 };
 /// @}
 
-/// @addtogroup fancy¿â½âÎö¸¨Öú
-/// @brief ÊµÏÖ¶ÔÂ·¾¶¡¢XML¡¢JSONµÈ¸ñÊ½µÄ½âÎö
+/// @addtogroup fancyåº“è§£æè¾…åŠ©
+/// @brief å®ç°å¯¹è·¯å¾„ã€XMLã€JSONç­‰æ ¼å¼çš„è§£æ
 /// @{
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ½âÎö¸¨Öú
+/// @brief è§£æè¾…åŠ©
 ////////////////////////////////////////////////////////////////////////////////
 class fcyLexicalReader
 {
 private:
-	std::wstring m_Str;  ///< @brief »ñµÃÒì³£²úÉúµÄĞĞ
-	fuInt m_Pos;         ///< @brief »ñµÃÒì³£²úÉúµÄĞĞ
-	fuInt m_Len;         ///< @brief »ñµÃÒì³£²úÉúµÄĞĞ
-private: // BOMÍ·´¦Àí
+	std::wstring m_Str;  ///< @brief è·å¾—å¼‚å¸¸äº§ç”Ÿçš„è¡Œ
+	fuInt m_Pos;         ///< @brief è·å¾—å¼‚å¸¸äº§ç”Ÿçš„è¡Œ
+	fuInt m_Len;         ///< @brief è·å¾—å¼‚å¸¸äº§ç”Ÿçš„è¡Œ
+private: // BOMå¤´å¤„ç†
 	fBool checkUTF8(fcyStream* pStream);
 	fBool checkUTF16LE(fcyStream* pStream);
 	std::wstring preprocess(fcyStream* pStream);
 public:
-	fuInt GetLine();     ///< @brief ·µ»ØĞĞºÅ
-	fuInt GetRow();      ///< @brief ·µ»ØÁĞºÅ
-	fBool IsEOF();       ///< @brief ÊÇ·ñ½áÊø
+	fuInt GetLine();     ///< @brief è¿”å›è¡Œå·
+	fuInt GetRow();      ///< @brief è¿”å›åˆ—å·
+	fBool IsEOF();       ///< @brief æ˜¯å¦ç»“æŸ
 
-	fCharW ReadChar();   ///< @brief ¶ÁÈ¡Ò»¸ö×Ö·û
-	fCharW PeekChar();   ///< @brief Ô¤¶ÁÈ¡Ò»¸ö×Ö·û
+	fCharW ReadChar();   ///< @brief è¯»å–ä¸€ä¸ªå­—ç¬¦
+	fCharW PeekChar();   ///< @brief é¢„è¯»å–ä¸€ä¸ªå­—ç¬¦
 
-	void IgnoreSpace();  ///< @brief Ìø¹ı¿Õ°××Ö·û
+	void IgnoreSpace();  ///< @brief è·³è¿‡ç©ºç™½å­—ç¬¦
 
-	/// @brief     Æ¥ÅäÒ»¸ö×Ö·û
-	/// @note      Æ¥ÅäÒ»¸ö×Ö·û£¬Ê§°ÜÅ×³öÒì³£
-	/// @param[in] Char         ÒªÆ¥ÅäµÄ×Ö·û
-	/// @param[in] bIgnoreSpace ºöÂÔ¿Õ¸ñ
+	/// @brief     åŒ¹é…ä¸€ä¸ªå­—ç¬¦
+	/// @note      åŒ¹é…ä¸€ä¸ªå­—ç¬¦ï¼Œå¤±è´¥æŠ›å‡ºå¼‚å¸¸
+	/// @param[in] Char         è¦åŒ¹é…çš„å­—ç¬¦
+	/// @param[in] bIgnoreSpace å¿½ç•¥ç©ºæ ¼
 	void Match(fCharW Char, fBool bIgnoreSpace);
 
-	/// @brief     Æ¥ÅäÒ»¸ö×Ö·û´®
-	/// @note      Æ¥ÅäÒ»¸ö×Ö·û´®£¬Ê§°ÜÅ×³öÒì³£
-	/// @param[in] Str          ÒªÆ¥ÅäµÄ×Ö·û´®
-	/// @param[in] bIgnoreSpace ºöÂÔ¿Õ¸ñ
+	/// @brief     åŒ¹é…ä¸€ä¸ªå­—ç¬¦ä¸²
+	/// @note      åŒ¹é…ä¸€ä¸ªå­—ç¬¦ä¸²ï¼Œå¤±è´¥æŠ›å‡ºå¼‚å¸¸
+	/// @param[in] Str          è¦åŒ¹é…çš„å­—ç¬¦ä¸²
+	/// @param[in] bIgnoreSpace å¿½ç•¥ç©ºæ ¼
 	void Match(fcStrW Str, fBool bIgnoreSpace);
 	
-	/// @brief     ³¢ÊÔÆ¥ÅäÒ»¸ö×Ö·û
-	/// @note      ³¢ÊÔÆ¥ÅäÒ»¸ö×Ö·û£¬Ê§°Ü·µ»Øfalse
-	/// @param[in] Char         ÒªÆ¥ÅäµÄ×Ö·û
-	/// @param[in] bIgnoreSpace ºöÂÔ¿Õ¸ñ
-	/// @param[in] bMatch       Èç¹ûÄÜÆ¥Åä³É¹¦£¬ÊÇ·ñÆ¥ÅäÕâ¸ö×Ö·û
-	/// @return    true=¿ÉÒÔÆ¥Åä£¬false=Æ¥ÅäÊ§°Ü
+	/// @brief     å°è¯•åŒ¹é…ä¸€ä¸ªå­—ç¬¦
+	/// @note      å°è¯•åŒ¹é…ä¸€ä¸ªå­—ç¬¦ï¼Œå¤±è´¥è¿”å›false
+	/// @param[in] Char         è¦åŒ¹é…çš„å­—ç¬¦
+	/// @param[in] bIgnoreSpace å¿½ç•¥ç©ºæ ¼
+	/// @param[in] bMatch       å¦‚æœèƒ½åŒ¹é…æˆåŠŸï¼Œæ˜¯å¦åŒ¹é…è¿™ä¸ªå­—ç¬¦
+	/// @return    true=å¯ä»¥åŒ¹é…ï¼Œfalse=åŒ¹é…å¤±è´¥
 	fBool TryMatch(fCharW Char, fBool bIgnoreSpace, fBool bMatch);
 
-	/// @brief     ³¢ÊÔÆ¥ÅäÒ»¸ö×Ö·û´®
-	/// @note      ³¢ÊÔÆ¥ÅäÒ»¸ö×Ö·û´®£¬Ê§°Ü·µ»Øfalse
-	/// @param[in] Str          ÒªÆ¥ÅäµÄ×Ö·û´®
-	/// @param[in] bIgnoreSpace ºöÂÔ¿Õ¸ñ
-	/// @param[in] bMatch       Èç¹ûÄÜÆ¥Åä³É¹¦£¬ÊÇ·ñÆ¥ÅäÕâ¸ö×Ö·û
-	/// @return    true=¿ÉÒÔÆ¥Åä£¬false=Æ¥ÅäÊ§°Ü
+	/// @brief     å°è¯•åŒ¹é…ä¸€ä¸ªå­—ç¬¦ä¸²
+	/// @note      å°è¯•åŒ¹é…ä¸€ä¸ªå­—ç¬¦ä¸²ï¼Œå¤±è´¥è¿”å›false
+	/// @param[in] Str          è¦åŒ¹é…çš„å­—ç¬¦ä¸²
+	/// @param[in] bIgnoreSpace å¿½ç•¥ç©ºæ ¼
+	/// @param[in] bMatch       å¦‚æœèƒ½åŒ¹é…æˆåŠŸï¼Œæ˜¯å¦åŒ¹é…è¿™ä¸ªå­—ç¬¦
+	/// @return    true=å¯ä»¥åŒ¹é…ï¼Œfalse=åŒ¹é…å¤±è´¥
 	fBool TryMatch(fcStrW Str, fBool bIgnoreSpace, fBool bMatch);
 public:
-	/// @brief     ´ÓÎÄ±¾¹¹Ôì
-	/// @param[in] SrcText Òª½øĞĞÆ¥ÅäµÄÔ­Ê¼×Ö·û´®
+	/// @brief     ä»æ–‡æœ¬æ„é€ 
+	/// @param[in] SrcText è¦è¿›è¡ŒåŒ¹é…çš„åŸå§‹å­—ç¬¦ä¸²
 	fcyLexicalReader(const std::wstring& SrcText);
-	/// @brief     ´ÓÁ÷¹¹Ôì
-	/// @param[in] SrcText Òª½øĞĞÆ¥ÅäµÄÔ­Ê¼Êı¾İÁ÷
+	/// @brief     ä»æµæ„é€ 
+	/// @param[in] SrcText è¦è¿›è¡ŒåŒ¹é…çš„åŸå§‹æ•°æ®æµ
 	fcyLexicalReader(fcyStream* pStream);
 	~fcyLexicalReader(void);
 };

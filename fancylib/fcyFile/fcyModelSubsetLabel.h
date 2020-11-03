@@ -1,42 +1,42 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  fcyModelSubsetLabel.h
-/// @brief fcyÄ£ĞÍ×Ó¼¯Êı¾İ±êÇ©¶¨Òå
+/// @brief fcyæ¨¡å‹å­é›†æ•°æ®æ ‡ç­¾å®šä¹‰
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyModelLabel.h"
 
-/// @addtogroup fancy¿âÎÄ¼şÖ§³Ö
-/// @brief Ìá¹©²¿·Ö¸ñÊ½ÎÄ¼şµÄ¶ÁĞ´Ö§³Ö
+/// @addtogroup fancyåº“æ–‡ä»¶æ”¯æŒ
+/// @brief æä¾›éƒ¨åˆ†æ ¼å¼æ–‡ä»¶çš„è¯»å†™æ”¯æŒ
 /// @{
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fcyÄ£ĞÍ×Ó¼¯Êı¾İ±êÇ©
+/// @brief fcyæ¨¡å‹å­é›†æ•°æ®æ ‡ç­¾
 ////////////////////////////////////////////////////////////////////////////////
 class fcyModelSubsetLabel :
 	public fcyModelLabel
 {
 public:
-	/// @brief ±êÇ©Ãû
+	/// @brief æ ‡ç­¾å
 	static const fChar LABELNAME[8];
 
-	/// @brief Í¼ÔªÀàĞÍ
+	/// @brief å›¾å…ƒç±»å‹
 	enum PRIMTYPE
 	{
-		PRIMTYPE_NULL          = 0,  ///< @brief ÎŞĞ§Öµ
-		PRIMTYPE_POINTLIST     = 1,  ///< @brief µã¼¯
-		PRIMTYPE_LINELIST      = 2,  ///< @brief Ïß¼¯
-		PRIMTYPE_LINESTRIP     = 3,  ///< @brief Ïß´ø¼¯
-		PRIMTYPE_TRIANGLELIST  = 4,  ///< @brief Èı½ÇĞÎ¼¯
-		PRIMTYPE_TRIANGLESTRIP = 5,  ///< @brief Èı½ÇĞÎ´ø
-		PRIMTYPE_TRIANGLEFAN   = 6   ///< @brief Èı½ÇĞÎÉÈ
+		PRIMTYPE_NULL          = 0,  ///< @brief æ— æ•ˆå€¼
+		PRIMTYPE_POINTLIST     = 1,  ///< @brief ç‚¹é›†
+		PRIMTYPE_LINELIST      = 2,  ///< @brief çº¿é›†
+		PRIMTYPE_LINESTRIP     = 3,  ///< @brief çº¿å¸¦é›†
+		PRIMTYPE_TRIANGLELIST  = 4,  ///< @brief ä¸‰è§’å½¢é›†
+		PRIMTYPE_TRIANGLESTRIP = 5,  ///< @brief ä¸‰è§’å½¢å¸¦
+		PRIMTYPE_TRIANGLEFAN   = 6   ///< @brief ä¸‰è§’å½¢æ‰‡
 	};
 protected:
-	// ×Ó¼¯Êı¾İ
-	std::wstring m_SubsetName;      ///< @brief ×Ó¼¯Ãû³Æ£¬ÔÚÄ£ĞÍÊı¾İÖĞ²»¿ÉÖØ¸´
-	std::wstring m_MaterialName;    ///< @brief ²ÄÖÊÃû³Æ
-	PRIMTYPE m_PrimitiveType;       ///< @brief Í¼ÔªÀàĞÍ
-	fuInt m_StartIndex;             ///< @brief Ë÷Òı¿ªÊ¼ÏÂ±ê
-	fuInt m_PrimitiveCount;         ///< @brief Í¼ÔªÊıÁ¿
+	// å­é›†æ•°æ®
+	std::wstring m_SubsetName;      ///< @brief å­é›†åç§°ï¼Œåœ¨æ¨¡å‹æ•°æ®ä¸­ä¸å¯é‡å¤
+	std::wstring m_MaterialName;    ///< @brief æè´¨åç§°
+	PRIMTYPE m_PrimitiveType;       ///< @brief å›¾å…ƒç±»å‹
+	fuInt m_StartIndex;             ///< @brief ç´¢å¼•å¼€å§‹ä¸‹æ ‡
+	fuInt m_PrimitiveCount;         ///< @brief å›¾å…ƒæ•°é‡
 public:
 	fcStrW GetSubsetName()const { return m_SubsetName.c_str(); }
 	fcStrW GetMaterialName()const { return m_MaterialName.c_str(); }
@@ -49,7 +49,7 @@ public:
 	void SetPrimitiveType(PRIMTYPE Type) { m_PrimitiveType = Type; }
 	void SetStartIndex(fuInt Value) { m_StartIndex = Value; }
 	void SetPrimitiveCount(fuInt Count) { m_PrimitiveCount = Count; }
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	void ReadData(fcyStream* pStream);
 	void WriteData(fcyStream* pStream);
 public:

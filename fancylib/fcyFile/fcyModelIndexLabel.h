@@ -1,48 +1,48 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  fcyModelIndexLabel.h
-/// @brief fcyÄ£ĞÍË÷ÒıÊı¾İ±êÇ©¶¨Òå
+/// @brief fcyæ¨¡å‹ç´¢å¼•æ•°æ®æ ‡ç­¾å®šä¹‰
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyModelLabel.h"
 
-/// @addtogroup fancy¿âÎÄ¼şÖ§³Ö
-/// @brief Ìá¹©²¿·Ö¸ñÊ½ÎÄ¼şµÄ¶ÁĞ´Ö§³Ö
+/// @addtogroup fancyåº“æ–‡ä»¶æ”¯æŒ
+/// @brief æä¾›éƒ¨åˆ†æ ¼å¼æ–‡ä»¶çš„è¯»å†™æ”¯æŒ
 /// @{
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fcyÄ£ĞÍË÷ÒıÊı¾İ±êÇ©
+/// @brief fcyæ¨¡å‹ç´¢å¼•æ•°æ®æ ‡ç­¾
 ////////////////////////////////////////////////////////////////////////////////
 class fcyModelIndexLabel :
 	public fcyModelLabel
 {
 public:
-	/// @brief ±êÇ©Ãû
+	/// @brief æ ‡ç­¾å
 	static const fChar LABELNAME[8];
 protected:
-	// Ë÷ÒıÊı¾İ
+	// ç´¢å¼•æ•°æ®
 	std::vector<fuInt> m_IndexData;
 public:
-	/// @brief ¼ì²éË÷Òı¸ñÊ½
+	/// @brief æ£€æŸ¥ç´¢å¼•æ ¼å¼
 	fBool IsIndex32();
 
-	/// @brief     ×·¼ÓÒ»¸öË÷Òı
-	/// @param[in] Index Ë÷Òı
+	/// @brief     è¿½åŠ ä¸€ä¸ªç´¢å¼•
+	/// @param[in] Index ç´¢å¼•
 	void Push(fuInt Index) { m_IndexData.push_back(Index); }
 
-	/// @brief »ñµÃË÷ÒıÊı¾İ
+	/// @brief è·å¾—ç´¢å¼•æ•°æ®
 	fuInt* GetDataPointer() { return m_IndexData.data(); }
 
-	/// @brief     ·µ»ØÔªËØ
-	/// @param[in] Index ÔªËØË÷Òı
+	/// @brief     è¿”å›å…ƒç´ 
+	/// @param[in] Index å…ƒç´ ç´¢å¼•
 	fuInt& GetElement(fuInt Index) { return m_IndexData[Index]; }
 
-	/// @brief     ·µ»Ø¶¥µãÉùÃ÷ÔªËØÊıÁ¿
+	/// @brief     è¿”å›é¡¶ç‚¹å£°æ˜å…ƒç´ æ•°é‡
 	fuInt GetSize()const { return m_IndexData.size(); }
 
-	/// @brief     ÖØĞÂ·ÖÅäÊı¾İ´óĞ¡
-	/// @param[in] ÔªËØÊıÁ¿
+	/// @brief     é‡æ–°åˆ†é…æ•°æ®å¤§å°
+	/// @param[in] å…ƒç´ æ•°é‡
 	void Resize(fuInt Count) { m_IndexData.resize(Count); }
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	void ReadData(fcyStream* pStream);
 	void WriteData(fcyStream* pStream);
 public:

@@ -1,4 +1,4 @@
-#include "fcyMisc/fcyStringHelper.h"
+ï»¿#include "fcyMisc/fcyStringHelper.h"
 
 #include <algorithm>
 #include <Windows.h>
@@ -96,11 +96,11 @@ wstring fcyStringHelper::ToWideStr(fDouble Number)
 std::string fcyStringHelper::TimeToStr(fDouble Seconds)
 {
 	fuInt tIntPart = (fInt)Seconds;
-	fuInt ms = (fuInt)((Seconds - tIntPart) * 1000); // Ìá³öºÁÃë²¿·Ö
-	fuInt s = tIntPart % 60;    // Ìá³öÃë
-	tIntPart /= 60;            // È¥µôÃë
-	fuInt m = tIntPart % 60;    // Ìá³ö·Ö
-	tIntPart /= 60;            // È¥µô·Ö
+	fuInt ms = (fuInt)((Seconds - tIntPart) * 1000); // æå‡ºæ¯«ç§’éƒ¨åˆ†
+	fuInt s = tIntPart % 60;    // æå‡ºç§’
+	tIntPart /= 60;            // å»æ‰ç§’
+	fuInt m = tIntPart % 60;    // æå‡ºåˆ†
+	tIntPart /= 60;            // å»æ‰åˆ†
 
 	char tTime[16];
 	sprintf_s(tTime, 16, "%02d:%02d:%02d.%03d", (fInt)tIntPart, m, s, ms);
@@ -111,11 +111,11 @@ std::string fcyStringHelper::TimeToStr(fDouble Seconds)
 std::wstring fcyStringHelper::TimeToWideStr(fDouble Seconds)
 {
 	fuInt tIntPart = (fInt)Seconds;
-	fuInt ms = (fuInt)((Seconds - tIntPart) * 1000); // Ìá³öºÁÃë²¿·Ö
-	fuInt s = tIntPart % 60;    // Ìá³öÃë
-	tIntPart /= 60;            // È¥µôÃë
-	fuInt m = tIntPart % 60;    // Ìá³ö·Ö
-	tIntPart /= 60;            // È¥µô·Ö
+	fuInt ms = (fuInt)((Seconds - tIntPart) * 1000); // æå‡ºæ¯«ç§’éƒ¨åˆ†
+	fuInt s = tIntPart % 60;    // æå‡ºç§’
+	tIntPart /= 60;            // å»æ‰ç§’
+	fuInt m = tIntPart % 60;    // æå‡ºåˆ†
+	tIntPart /= 60;            // å»æ‰åˆ†
 
 	wchar_t tTime[16];
 	swprintf_s(tTime, 16, L"%02d:%02d:%02d.%03d", (fInt)tIntPart, m, s, ms);
@@ -167,9 +167,9 @@ std::string fcyStringHelper::Trim(const std::string &Org)
 
 wstring fcyStringHelper::MultiByteToWideChar(const std::string& Org, fuInt CodePage)
 {
-	fuInt dwNum = ::MultiByteToWideChar(CodePage, 0, Org.c_str(), -1, NULL, 0); // »ñµÃ³¤¶È
+	fuInt dwNum = ::MultiByteToWideChar(CodePage, 0, Org.c_str(), -1, NULL, 0); // è·å¾—é•¿åº¦
 	wchar_t *pwText = new wchar_t[dwNum];
-	::MultiByteToWideChar (CodePage, 0, Org.c_str(), -1, pwText, dwNum);		   // »ñµÃÊı¾İ
+	::MultiByteToWideChar (CodePage, 0, Org.c_str(), -1, pwText, dwNum);		   // è·å¾—æ•°æ®
 	wstring retStr(pwText);
 	delete[] pwText;
 	return retStr;

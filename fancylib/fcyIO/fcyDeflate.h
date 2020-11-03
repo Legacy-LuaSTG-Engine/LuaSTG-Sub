@@ -1,37 +1,37 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  fcyDeflate.h
-/// @brief ¶Ôzlib½øĞĞ·â×°£¬ÒÔÊµÏÖ¶ÔÁ÷µÄÑ¹ËõºÍ½âÑ¹²Ù×÷
+/// @brief å¯¹zlibè¿›è¡Œå°è£…ï¼Œä»¥å®ç°å¯¹æµçš„å‹ç¼©å’Œè§£å‹æ“ä½œ
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyIO/fcyStream.h"
 
-/// @addtogroup fancy¿âIOÄ£¿é
+/// @addtogroup fancyåº“IOæ¨¡å—
 /// @{
 
-/// @brief DeflateËã·¨Ö§³Ö
+/// @brief Deflateç®—æ³•æ”¯æŒ
 namespace fcyDeflate
 {
-	/// @brief      Ñ¹ËõÁ÷
-	/// @param[in]  pIn   Óû±»Ñ¹ËõµÄÁ÷
-	/// @param[out] pOut  Êä³öµÄÑ¹ËõÁ÷
-	/// @param[in]  Level Ñ¹ËõµÈ¼¶(-1~9£¬-1£ºÄ¬ÈÏ£»0£ºÎŞÑ¹Ëõ£»9£º×î¸ßÑ¹Ëõ±È£©
-	/// @note       Êä³öµÄÁ÷¶ÁÈ¡Ö¸Õë»á×ÔĞĞ»Øµ½Begin´¦
-	/// @return     ·µ»Ø²Ù×÷ÊÇ·ñ³É¹¦
+	/// @brief      å‹ç¼©æµ
+	/// @param[in]  pIn   æ¬²è¢«å‹ç¼©çš„æµ
+	/// @param[out] pOut  è¾“å‡ºçš„å‹ç¼©æµ
+	/// @param[in]  Level å‹ç¼©ç­‰çº§(-1~9ï¼Œ-1ï¼šé»˜è®¤ï¼›0ï¼šæ— å‹ç¼©ï¼›9ï¼šæœ€é«˜å‹ç¼©æ¯”ï¼‰
+	/// @note       è¾“å‡ºçš„æµè¯»å–æŒ‡é’ˆä¼šè‡ªè¡Œå›åˆ°Beginå¤„
+	/// @return     è¿”å›æ“ä½œæ˜¯å¦æˆåŠŸ
 	fResult CompressStreamToMem(fcyStream* pIn, fcyStream** pOut, fInt Level=-1);
 	
-	/// @brief      ½âÑ¹Á÷
-	/// @param[in]  pIn  Óû±»½âÑ¹µÄÁ÷
-	/// @param[out] pOut Êä³öµÄÔ­Ê¼Êı¾İÁ÷
-	/// @note       Êä³öµÄÁ÷¶ÁÈ¡Ö¸Õë»á×ÔĞĞ»Øµ½Begin´¦
-	/// @return     FCYERR_INVAILDDATA£ºÎŞĞ§Êı¾İ£»FCYERR_INTERNALERR£ºzlibÄÚ²¿´íÎó£»FCYERR_INVAILDPARAM£ºÎŞĞ§²ÎÊı
+	/// @brief      è§£å‹æµ
+	/// @param[in]  pIn  æ¬²è¢«è§£å‹çš„æµ
+	/// @param[out] pOut è¾“å‡ºçš„åŸå§‹æ•°æ®æµ
+	/// @note       è¾“å‡ºçš„æµè¯»å–æŒ‡é’ˆä¼šè‡ªè¡Œå›åˆ°Beginå¤„
+	/// @return     FCYERR_INVAILDDATAï¼šæ— æ•ˆæ•°æ®ï¼›FCYERR_INTERNALERRï¼šzlibå†…éƒ¨é”™è¯¯ï¼›FCYERR_INVAILDPARAMï¼šæ— æ•ˆå‚æ•°
 	fResult DecompressStreamToMem(fcyStream* pIn, fcyStream** pOut);
 
-	/// @brief      ½âÑ¹Á÷
-	/// @param[in]  pIn  Óû±»½âÑ¹µÄÁ÷
-	/// @param[in]  Flag ²ÎÊı
-	/// @param[out] pOut Êä³öµÄÔ­Ê¼Êı¾İÁ÷
-	/// @note       Êä³öµÄÁ÷¶ÁÈ¡Ö¸Õë»á×ÔĞĞ»Øµ½Begin´¦
-	/// @return     FCYERR_INVAILDDATA£ºÎŞĞ§Êı¾İ£»FCYERR_INTERNALERR£ºzlibÄÚ²¿´íÎó£»FCYERR_INVAILDPARAM£ºÎŞĞ§²ÎÊı
+	/// @brief      è§£å‹æµ
+	/// @param[in]  pIn  æ¬²è¢«è§£å‹çš„æµ
+	/// @param[in]  Flag å‚æ•°
+	/// @param[out] pOut è¾“å‡ºçš„åŸå§‹æ•°æ®æµ
+	/// @note       è¾“å‡ºçš„æµè¯»å–æŒ‡é’ˆä¼šè‡ªè¡Œå›åˆ°Beginå¤„
+	/// @return     FCYERR_INVAILDDATAï¼šæ— æ•ˆæ•°æ®ï¼›FCYERR_INTERNALERRï¼šzlibå†…éƒ¨é”™è¯¯ï¼›FCYERR_INVAILDPARAMï¼šæ— æ•ˆå‚æ•°
 	fResult DecompressStreamToMemEx(fcyStream* pIn, fInt Flag, fcyStream** pOut);
 };
 /// @}

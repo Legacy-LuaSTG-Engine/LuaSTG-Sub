@@ -1,66 +1,66 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  fcyPathParser.h
-/// @brief fcyÂ·¾¶½âÎöÆ÷
+/// @brief fcyè·¯å¾„è§£æå™¨
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyType.h"
 
 #include <string>
 
-/// @addtogroup fancy¿â½âÎö¸¨Öú
+/// @addtogroup fancyåº“è§£æè¾…åŠ©
 /// @{
 
-/// @brief FcyÂ·¾¶½âÎöº¯Êı
+/// @brief Fcyè·¯å¾„è§£æå‡½æ•°
 namespace fcyPathParser
 {
-	/// @brief     »ñµÃºó×º
-	/// @param[in] Path Â·¾¶
-	/// @return    ·µ»Øºó×º
+	/// @brief     è·å¾—åç¼€
+	/// @param[in] Path è·¯å¾„
+	/// @return    è¿”å›åç¼€
 	std::string GetExtension(const std::string& Path);
 	
-	/// @brief     »ñµÃĞ¡Ğ´ºó×º
-	/// @param[in] Path Â·¾¶
-	/// @return    ·µ»ØĞ¡Ğ´ºó×º
+	/// @brief     è·å¾—å°å†™åç¼€
+	/// @param[in] Path è·¯å¾„
+	/// @return    è¿”å›å°å†™åç¼€
 	std::string GetExtensionLower(const std::string& Path);
 
-	/// @brief     »ñµÃÎÄ¼şÃû
-	/// @param[in] Path Â·¾¶
-	/// @return    ·µ»ØÎÄ¼şÃû
+	/// @brief     è·å¾—æ–‡ä»¶å
+	/// @param[in] Path è·¯å¾„
+	/// @return    è¿”å›æ–‡ä»¶å
 	std::string GetFileName(const std::string& Path);
 
-	/// @brief     »ñµÃÈ¥ºó×ºÎÄ¼şÃû
-	/// @param[in] Path Â·¾¶
-	/// @return    ·µ»ØÈ¥ºó×ºÎÄ¼şÃû
+	/// @brief     è·å¾—å»åç¼€æ–‡ä»¶å
+	/// @param[in] Path è·¯å¾„
+	/// @return    è¿”å›å»åç¼€æ–‡ä»¶å
 	std::string GetFileNameWithoutExt(const std::string& Path);
 
-	/// @brief     »ñµÃÄ¿Â¼
-	/// @param[in] Path Â·¾¶
-	/// @return    ·µ»ØÄ¿Â¼
+	/// @brief     è·å¾—ç›®å½•
+	/// @param[in] Path è·¯å¾„
+	/// @return    è¿”å›ç›®å½•
 	std::string GetPath(const std::string& Path);
 
-	/// @brief     »ñµÃºó×º£¬¿í×Ö·û°æ
-	/// @param[in] Path Â·¾¶
-	/// @return    ·µ»Øºó×º
+	/// @brief     è·å¾—åç¼€ï¼Œå®½å­—ç¬¦ç‰ˆ
+	/// @param[in] Path è·¯å¾„
+	/// @return    è¿”å›åç¼€
 	std::wstring GetExtension(const std::wstring& Path);
 	
-	/// @brief     »ñµÃĞ¡Ğ´ºó×º£¬¿í×Ö·û°æ
-	/// @param[in] Path Â·¾¶
-	/// @return    ·µ»ØĞ¡Ğ´ºó×º
+	/// @brief     è·å¾—å°å†™åç¼€ï¼Œå®½å­—ç¬¦ç‰ˆ
+	/// @param[in] Path è·¯å¾„
+	/// @return    è¿”å›å°å†™åç¼€
 	std::wstring GetExtensionLower(const std::wstring& Path);
 
-	/// @brief     »ñµÃÎÄ¼şÃû£¬¿í×Ö·û°æ
-	/// @param[in] Path Â·¾¶
-	/// @return    ·µ»ØÎÄ¼şÃû
+	/// @brief     è·å¾—æ–‡ä»¶åï¼Œå®½å­—ç¬¦ç‰ˆ
+	/// @param[in] Path è·¯å¾„
+	/// @return    è¿”å›æ–‡ä»¶å
 	std::wstring GetFileName(const std::wstring& Path);
 
-	/// @brief     »ñµÃÈ¥ºó×ºÎÄ¼şÃû£¬¿í×Ö·û°æ
-	/// @param[in] Path Â·¾¶
-	/// @return    ·µ»ØÈ¥ºó×ºÎÄ¼şÃû
+	/// @brief     è·å¾—å»åç¼€æ–‡ä»¶åï¼Œå®½å­—ç¬¦ç‰ˆ
+	/// @param[in] Path è·¯å¾„
+	/// @return    è¿”å›å»åç¼€æ–‡ä»¶å
 	std::wstring GetFileNameWithoutExt(const std::wstring& Path);
 
-	/// @brief     »ñµÃÄ¿Â¼£¬¿í×Ö·û°æ
-	/// @param[in] Path Â·¾¶
-	/// @return    ·µ»ØÄ¿Â¼
+	/// @brief     è·å¾—ç›®å½•ï¼Œå®½å­—ç¬¦ç‰ˆ
+	/// @param[in] Path è·¯å¾„
+	/// @return    è¿”å›ç›®å½•
 	std::wstring GetPath(const std::wstring& Path);
 };
 /// @}

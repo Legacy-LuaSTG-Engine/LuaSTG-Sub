@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  fcyModelLabel.h
-/// @brief fcyÄ£ĞÍÎÄ¼ş±êÇ©¶¨Òå
+/// @brief fcyæ¨¡å‹æ–‡ä»¶æ ‡ç­¾å®šä¹‰
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "../fcyRefObj.h"
@@ -12,29 +12,29 @@
 #include <unordered_map>
 #include <string>
 
-/// @addtogroup fancy¿âÎÄ¼şÖ§³Ö
-/// @brief Ìá¹©²¿·Ö¸ñÊ½ÎÄ¼şµÄ¶ÁĞ´Ö§³Ö
+/// @addtogroup fancyåº“æ–‡ä»¶æ”¯æŒ
+/// @brief æä¾›éƒ¨åˆ†æ ¼å¼æ–‡ä»¶çš„è¯»å†™æ”¯æŒ
 /// @{
 
-/// @brief ±êÇ©Ãû³Æ
+/// @brief æ ‡ç­¾åç§°
 #define FMM_LABELNAME fuLong
 
-/// @brief ´´½¨±êÇ©
+/// @brief åˆ›å»ºæ ‡ç­¾
 #define FMM_MAKE_LABELNAME8(Str) (*((fuLong*)Str))
 
-/// @brief ´´½¨±êÇ©_4×Ö½Ú
+/// @brief åˆ›å»ºæ ‡ç­¾_4å­—èŠ‚
 #define FMM_MAKE_LABELNAME4(Str) (*((fuInt*)Str))
 
-/// @brief Ä£ĞÍÊı¾İ±êÇ©
+/// @brief æ¨¡å‹æ•°æ®æ ‡ç­¾
 class fcyModelLabel;
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief Ä£ĞÍ±êÇ©¹¤³§
+/// @brief æ¨¡å‹æ ‡ç­¾å·¥å‚
 ////////////////////////////////////////////////////////////////////////////////
 class fcyModelLabelFactory
 {
 public:
-	/// @brief ×Ô¶¯×¢²á
+	/// @brief è‡ªåŠ¨æ³¨å†Œ
 	template<typename T, typename U = fcyModelLabel>  // FIXME!
 	class AutoRegister
 	{
@@ -45,14 +45,14 @@ public:
 		}
 	};
 public:
-	/// @brief ±êÇ©´´½¨º¯Êı
+	/// @brief æ ‡ç­¾åˆ›å»ºå‡½æ•°
 	struct CreatorFunction :
 		public fcyRefObj
 	{
 		virtual fcyRefPointer<fcyModelLabel> CreateInstance()=0;
 	};
 protected:
-	/// @brief ±êÇ©´´½¨º¯ÊıÄ£°åÊµÏÖ
+	/// @brief æ ‡ç­¾åˆ›å»ºå‡½æ•°æ¨¡æ¿å®ç°
 	template<typename T>
 	class CreatorFunctionImpl :
   		public fcyRefObjImpl<CreatorFunction>
@@ -68,12 +68,12 @@ protected:
 protected:
 	std::unordered_map< FMM_LABELNAME, fcyRefPointer<CreatorFunction> > m_ConstructFunc;
 public:
-	/// @brief »ñµÃ±êÇ©¶ÔÏó
+	/// @brief è·å¾—æ ‡ç­¾å¯¹è±¡
 	CreatorFunction* GetCreator(FMM_LABELNAME Name)
 	{
 		return m_ConstructFunc[Name];
 	}
-	/// @brief ×¢²á±êÇ©¶ÔÏó
+	/// @brief æ³¨å†Œæ ‡ç­¾å¯¹è±¡
 	template<typename T>
 	void RegisterLabel(FMM_LABELNAME Name)
 	{
@@ -81,7 +81,7 @@ public:
 			FCYSAFEKILL(m_ConstructFunc[Name]);
 		(*&m_ConstructFunc[Name]) = new CreatorFunctionImpl<T>();
 	}
-	/// @brief È¡Ïû±êÇ©¶ÔÏó×¢²á
+	/// @brief å–æ¶ˆæ ‡ç­¾å¯¹è±¡æ³¨å†Œ
 	void UnregisterLabel(FMM_LABELNAME Name)
 	{
 		if(m_ConstructFunc[Name])
@@ -92,20 +92,20 @@ public:
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief Ä£ĞÍÊı¾İ±êÇ©
+/// @brief æ¨¡å‹æ•°æ®æ ‡ç­¾
 ////////////////////////////////////////////////////////////////////////////////
 class fcyModelLabel :
 	public fcyRefObjImpl<fcyRefObj>
 {
 public:
-	/// @brief ·µ»Ø¹¤³§¶ÔÏó
+	/// @brief è¿”å›å·¥å‚å¯¹è±¡
 	static fcyModelLabelFactory& GetFactory()
 	{
 		static fcyModelLabelFactory s_Factory;
 		return s_Factory;
 	}
 
-	/// @brief ×Ö·û´®Êı¾İ¶ÁÈ¡¸¨Öúº¯Êı
+	/// @brief å­—ç¬¦ä¸²æ•°æ®è¯»å–è¾…åŠ©å‡½æ•°
 	static std::wstring ReadString(fcyStream* pStream)
 	{
 		fcyBinaryReader tReader(pStream);
@@ -118,7 +118,7 @@ public:
 		
 		return fcyStringHelper::MultiByteToWideChar(pBuffer, CP_UTF8);
 	}
-	/// @brief ×Ö·û´®Êı¾İĞ´Èë¸¨Öúº¯Êı
+	/// @brief å­—ç¬¦ä¸²æ•°æ®å†™å…¥è¾…åŠ©å‡½æ•°
 	static void WriteString(fcyStream* pStream, const std::wstring& Str)
 	{
 		fcyBinaryWriter tWritter(pStream);
@@ -130,14 +130,14 @@ public:
 protected:
 	FMM_LABELNAME m_LabelName;
 public:
-	/// @brief »ñµÃ±êÇ©Ãû
+	/// @brief è·å¾—æ ‡ç­¾å
 	FMM_LABELNAME GetLabelName() { return m_LabelName; }
 
-	/// @brief ´ÓÁ÷¶ÁÈ¡Êı¾İ
-	/// @note  ²»º¬±êÇ©Í·
+	/// @brief ä»æµè¯»å–æ•°æ®
+	/// @note  ä¸å«æ ‡ç­¾å¤´
 	virtual void ReadData(fcyStream* pStream)=0;
-	/// @brief Ğ´ÈëÊı¾İ
-	/// @note  ²»º¬±êÇ©Í·
+	/// @brief å†™å…¥æ•°æ®
+	/// @note  ä¸å«æ ‡ç­¾å¤´
 	virtual void WriteData(fcyStream* pStream)=0;
 protected:
 	fcyModelLabel(const fcyModelLabel& Org);

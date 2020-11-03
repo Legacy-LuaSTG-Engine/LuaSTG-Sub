@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  fcyMultiThread.h
-/// @brief fancy¶àÏß³ÌÖ§³Ö
+/// @brief fancyå¤šçº¿ç¨‹æ”¯æŒ
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "../fcyType.h"
@@ -8,80 +8,80 @@
 
 #include <Windows.h>
 
-/// @addtogroup fancy¿âµ×²ãÖ§³Ö
-/// @brief ÊµÏÖÒ»ÏµÁĞÉæ¼°ÏµÍ³ÄÚºË²Ù×÷µÄº¯Êı
+/// @addtogroup fancyåº“åº•å±‚æ”¯æŒ
+/// @brief å®ç°ä¸€ç³»åˆ—æ¶‰åŠç³»ç»Ÿå†…æ ¸æ“ä½œçš„å‡½æ•°
 /// @{
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fcyÏß³Ì»ùÀà
-/// @note  Í¨¹ı¼Ì³Ğ¸ÃÀà²¢¸²Ğ´ThreadJobÀ´ÊµÏÖ¶àÏß³Ì
+/// @brief fcyçº¿ç¨‹åŸºç±»
+/// @note  é€šè¿‡ç»§æ‰¿è¯¥ç±»å¹¶è¦†å†™ThreadJobæ¥å®ç°å¤šçº¿ç¨‹
 ////////////////////////////////////////////////////////////////////////////////
 class fcyBaseThread
 {
 private:
-	HANDLE m_hThread;  ///< @brief ÄÚ²¿µÄÏß³Ì¾ä±ú
-	DWORD m_hThreadID; ///< @brief Ïß³ÌID
+	HANDLE m_hThread;  ///< @brief å†…éƒ¨çš„çº¿ç¨‹å¥æŸ„
+	DWORD m_hThreadID; ///< @brief çº¿ç¨‹ID
 private:
-	/// @brief     [Ë½ÓĞ] Ö´ĞĞÏß³ÌµÄ°ü×°º¯Êı
-	/// @param[in] p ¼´Ïß³ÌÀàÖ¸Õë
-	/// @return    ·µ»ØÏß³ÌÖ´ĞĞ×´Ì¬£¬²Î¼ûMSDN
+	/// @brief     [ç§æœ‰] æ‰§è¡Œçº¿ç¨‹çš„åŒ…è£…å‡½æ•°
+	/// @param[in] p å³çº¿ç¨‹ç±»æŒ‡é’ˆ
+	/// @return    è¿”å›çº¿ç¨‹æ‰§è¡ŒçŠ¶æ€ï¼Œå‚è§MSDN
 	static DWORD WINAPI execute(void* p);
 protected:
-	/// @brief  [±£»¤] Ïß³Ì¹¤×÷º¯Êı
-	/// @note   Ê¹ÓÃ¶àÏß³ÌÊ±±ØĞë¸²Ğ´¸Äº¯Êı
-	/// @return ·µ»ØÏß³ÌÖ´ĞĞ×´Ì¬£¬²Î¼ûMSDN
+	/// @brief  [ä¿æŠ¤] çº¿ç¨‹å·¥ä½œå‡½æ•°
+	/// @note   ä½¿ç”¨å¤šçº¿ç¨‹æ—¶å¿…é¡»è¦†å†™æ”¹å‡½æ•°
+	/// @return è¿”å›çº¿ç¨‹æ‰§è¡ŒçŠ¶æ€ï¼Œå‚è§MSDN
 	virtual fuInt ThreadJob()=0;
 public:
-	/// @brief   ·µ»ØÄÚ²¿Ïß³Ì¾ä±ú
-	/// @warning Çë²»ÒªÊÖ¶¯¹Ø±Õ·µ»ØµÄÄÚºË¶ÔÏó
-	/// @return  Ïß³Ì¾ä±ú
+	/// @brief   è¿”å›å†…éƒ¨çº¿ç¨‹å¥æŸ„
+	/// @warning è¯·ä¸è¦æ‰‹åŠ¨å…³é—­è¿”å›çš„å†…æ ¸å¯¹è±¡
+	/// @return  çº¿ç¨‹å¥æŸ„
 	HANDLE GetHandle();
 
-	/// @brief  »Ö¸´Ïß³ÌÖ´ĞĞ
-	/// @return true=³É¹¦£¬false=Ê§°Ü
+	/// @brief  æ¢å¤çº¿ç¨‹æ‰§è¡Œ
+	/// @return true=æˆåŠŸï¼Œfalse=å¤±è´¥
 	fBool Resume();
 	
-	/// @brief  ÔİÍ£Ïß³ÌÖ´ĞĞ
-	/// @return true=³É¹¦£¬false=Ê§°Ü
+	/// @brief  æš‚åœçº¿ç¨‹æ‰§è¡Œ
+	/// @return true=æˆåŠŸï¼Œfalse=å¤±è´¥
 	fBool Suspend();
 
-	/// @brief     µÈ´ıÏß³ÌÖ´ĞĞÍê±Ï
-	/// @param[in] TimeLimited µÈ´ıÊ±¼ä£¬ÖÃÎª-1±íÊ¾ÎŞÏŞµÈ´ı
-	/// @return    true=³É¹¦£¬false=³¬Ê±»òÆäËûWin32´íÎó
+	/// @brief     ç­‰å¾…çº¿ç¨‹æ‰§è¡Œå®Œæ¯•
+	/// @param[in] TimeLimited ç­‰å¾…æ—¶é—´ï¼Œç½®ä¸º-1è¡¨ç¤ºæ— é™ç­‰å¾…
+	/// @return    true=æˆåŠŸï¼Œfalse=è¶…æ—¶æˆ–å…¶ä»–Win32é”™è¯¯
 	fBool Wait(fInt TimeLimited=-1);
 
-	/// @brief     ÖÕÖ¹Ïß³Ì
-	/// @param[in] ExitCode Ïß³Ì·µ»ØÖµ£¬Ä¬ÈÏÎª-1
-	/// @return    true=³É¹¦£¬false=Win32´íÎó
+	/// @brief     ç»ˆæ­¢çº¿ç¨‹
+	/// @param[in] ExitCode çº¿ç¨‹è¿”å›å€¼ï¼Œé»˜è®¤ä¸º-1
+	/// @return    true=æˆåŠŸï¼Œfalse=Win32é”™è¯¯
 	fBool Terminate(fInt ExitCode=-1);
 
-	/// @brief »ñµÃÏß³Ì·µ»ØÖµ
+	/// @brief è·å¾—çº¿ç¨‹è¿”å›å€¼
 	fuInt GetExitCode();
 protected:
-	/// @brief     ¹¹Ôìº¯Êı
-	/// @param[in] PauseThread ÉèÖÃÎªtrue±íÊ¾´´½¨ºóÔİÍ£Ïß³ÌÖ´ĞĞ£¬·ñÔòÁ¢¼´Ö´ĞĞÏß³Ì
+	/// @brief     æ„é€ å‡½æ•°
+	/// @param[in] PauseThread è®¾ç½®ä¸ºtrueè¡¨ç¤ºåˆ›å»ºåæš‚åœçº¿ç¨‹æ‰§è¡Œï¼Œå¦åˆ™ç«‹å³æ‰§è¡Œçº¿ç¨‹
 	fcyBaseThread(fBool PauseThread = true);
 	~fcyBaseThread();
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fcyÁÙ½çÇø
-/// @note  ÁÙ½çÇø£¬ÓÃÀ´¿ìËÙ¶ÔÒ»¶Î´úÂë½øĞĞ¼ÓËø
+/// @brief fcyä¸´ç•ŒåŒº
+/// @note  ä¸´ç•ŒåŒºï¼Œç”¨æ¥å¿«é€Ÿå¯¹ä¸€æ®µä»£ç è¿›è¡ŒåŠ é”
 ////////////////////////////////////////////////////////////////////////////////
 class fcyCriticalSection
 {
 private:
-	CRITICAL_SECTION m_Section; ///< @brief ÄÚÖÃÁÙ½çÇø
+	CRITICAL_SECTION m_Section; ///< @brief å†…ç½®ä¸´ç•ŒåŒº
 public:
-	/// @brief Ëø¶¨ÁÙ½çÇø
+	/// @brief é”å®šä¸´ç•ŒåŒº
 	void Lock();
 
-	/// @brief  ÊÔÍ¼Ëø¶¨ÁÙ½çÇø
-	/// @return true=³É¹¦£¬false=Ê§°Ü
+	/// @brief  è¯•å›¾é”å®šä¸´ç•ŒåŒº
+	/// @return true=æˆåŠŸï¼Œfalse=å¤±è´¥
 	fBool TryLock();
 
-	/// @brief ½âËøÁÙ½çÇø
-	/// @note  LockÒÔ¼°TryLock³É¹¦ºó±ØĞëÊ¹ÓÃ¸Ãº¯Êı±ê×¢½âËø
+	/// @brief è§£é”ä¸´ç•ŒåŒº
+	/// @note  Lockä»¥åŠTryLockæˆåŠŸåå¿…é¡»ä½¿ç”¨è¯¥å‡½æ•°æ ‡æ³¨è§£é”
 	void UnLock();
 public:
 	fcyCriticalSection();
@@ -89,37 +89,37 @@ public:
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fcyÊÂ¼ş
-/// @note  Í¨¹ıÊÂ¼ş¶Ô¶àÏß³Ì²Ù×÷½øĞĞÍ¬²½
+/// @brief fcyäº‹ä»¶
+/// @note  é€šè¿‡äº‹ä»¶å¯¹å¤šçº¿ç¨‹æ“ä½œè¿›è¡ŒåŒæ­¥
 ////////////////////////////////////////////////////////////////////////////////
 class fcyEvent
 {
 private:
-	HANDLE m_hEvent; ///< @brief ÄÚÖÃÊÂ¼ş¾ä±ú
+	HANDLE m_hEvent; ///< @brief å†…ç½®äº‹ä»¶å¥æŸ„
 public:
-	/// @brief   ·µ»ØÄÚ²¿ÊÂ¼ş¾ä±ú
-	/// @warning Çë²»ÒªÊÖ¶¯¹Ø±Õ·µ»ØµÄÄÚºË¶ÔÏó
-	/// @return  ÊÂ¼ş¾ä±ú
+	/// @brief   è¿”å›å†…éƒ¨äº‹ä»¶å¥æŸ„
+	/// @warning è¯·ä¸è¦æ‰‹åŠ¨å…³é—­è¿”å›çš„å†…æ ¸å¯¹è±¡
+	/// @return  äº‹ä»¶å¥æŸ„
 	HANDLE GetHandle();
 
-	/// @brief  ±ê¼ÇÊÂ¼ş
-	/// @return true=³É¹¦£¬false=Win32´íÎó
+	/// @brief  æ ‡è®°äº‹ä»¶
+	/// @return true=æˆåŠŸï¼Œfalse=Win32é”™è¯¯
 	fBool Set();
 
-	/// @brief  È¡ÏûÊÂ¼ş±ê¼Ç
-	/// @return true=³É¹¦£¬false=Win32´íÎó
+	/// @brief  å–æ¶ˆäº‹ä»¶æ ‡è®°
+	/// @return true=æˆåŠŸï¼Œfalse=Win32é”™è¯¯
 	fBool Reset();
 
-	/// @brief  ÊÂ¼şÂö³å
-	/// @return true=³É¹¦£¬flase=Win32´íÎó
+	/// @brief  äº‹ä»¶è„‰å†²
+	/// @return true=æˆåŠŸï¼Œflase=Win32é”™è¯¯
 	fBool Pulse();
 
-	/// @brief     µÈ´ıÊÂ¼ş
-	/// @param[in] TimeLimited µÈ´ıÊÂ¼ş£¬-1±íÊ¾ÎŞÏŞµÈ´ı
-	/// @return    true=³É¹¦£¬flase=³¬Ê±»òWin32´íÎó
+	/// @brief     ç­‰å¾…äº‹ä»¶
+	/// @param[in] TimeLimited ç­‰å¾…äº‹ä»¶ï¼Œ-1è¡¨ç¤ºæ— é™ç­‰å¾…
+	/// @return    true=æˆåŠŸï¼Œflase=è¶…æ—¶æˆ–Win32é”™è¯¯
 	fBool Wait(fInt TimeLimited=-1);
 public:
-	/// @brief ¹¹Ôìº¯Êı
+	/// @brief æ„é€ å‡½æ•°
 	fcyEvent(fBool AutoReset=false, fBool InitalState=false);
 	~fcyEvent();
 };

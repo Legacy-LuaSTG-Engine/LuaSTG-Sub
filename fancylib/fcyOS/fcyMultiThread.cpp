@@ -1,4 +1,4 @@
-#include "fcyMultiThread.h"
+ï»¿#include "fcyMultiThread.h"
 
 using namespace std;
 
@@ -28,25 +28,25 @@ HANDLE fcyBaseThread::GetHandle()
 
 fBool fcyBaseThread::Resume()
 {
-	// Ê§°Ü·µ»Ø-1
+	// å¤±è´¥è¿”å›ž-1
 	return ResumeThread(m_hThread) != (DWORD)-1;
 }
 
 fBool fcyBaseThread::Suspend()
 {
-	// Ê§°Ü·µ»Ø-1
+	// å¤±è´¥è¿”å›ž-1
 	return SuspendThread(m_hThread) != (DWORD)-1;
 }
 
 fBool fcyBaseThread::Wait(fInt TimeLimited)
 {
-	// Ê§°Ü·µ»Ø-1
+	// å¤±è´¥è¿”å›ž-1
 	return WaitForSingleObject(m_hThread, TimeLimited) != (DWORD)-1;
 }
 
 fBool fcyBaseThread::Terminate(fInt ExitCode)
 {
-	// Ê§°Ü·µ»Ø0
+	// å¤±è´¥è¿”å›ž0
 	return TerminateThread(m_hThread, ExitCode) != FALSE;
 }
 
