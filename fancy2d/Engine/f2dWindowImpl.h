@@ -146,14 +146,15 @@ private:
 	};
 private:
 	// 状态
-	HWND m_hWnd;
+	HWND m_hWnd = NULL;
+	WNDPROC m_fProc = NULL;
 	bool m_bShow;
 	std::wstring m_CaptionText;
-
+	
 	// 监听器
 	DefaultListener m_DefaultListener;
 	f2dWindowEventListener* m_pListener;
-
+	
 	// 输入法上下文
 	HIMC m_hIMC;
 	bool m_bHideIME;
@@ -164,7 +165,7 @@ private:
 	fuInt m_IMEPageStartCandidate;      ///< @brief 当前页码中第一个候选词的索引
 	fuInt m_IMEPageCandidateCount;      ///< @brief 一页的候选词个数
 	std::vector<std::wstring> m_IMECandidateList; ///< @brief 候选词列表
-
+	
 protected: // 内部方法
 	/// @brief 初始化输入法上下文
 	void InitIMEContext();
@@ -180,9 +181,11 @@ protected: // 内部方法
 public: // 接口实现
 	f2dWindowEventListener* GetListener();
 	fResult SetListener(f2dWindowEventListener* pListener);
-
+	
+	void SetNativeMessageProcess(void* pWndProc);
+	void* GetNativeMessageProcess();
 	fInt GetHandle();
-
+	
 	F2DWINBORDERTYPE GetBorderType();
 	fResult SetBorderType(F2DWINBORDERTYPE Type);
 	fcStrW GetCaption();

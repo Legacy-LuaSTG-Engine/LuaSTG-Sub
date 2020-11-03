@@ -11,9 +11,9 @@ using namespace std;
 
 ////////////////////////////////////////////////////////////////////////////
 // 常量
-#define F2DWINDOWSTYLENONEBORDER     ( WS_POPUP   | WS_SYSMENU )
-#define F2DWINDOWSTYLEFIXEDBORDER    ( WS_SYSMENU | WS_MINIMIZEBOX | WS_CAPTION )
-#define F2DWINDOWSTYLESIZEABLEBORDER ( WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_CAPTION | WS_THICKFRAME )
+#define F2DWINDOWSTYLENONEBORDER     ( WS_POPUP )
+#define F2DWINDOWSTYLEFIXEDBORDER    ( WS_OVERLAPPEDWINDOW ^ WS_MAXIMIZEBOX ^ WS_THICKFRAME )
+#define F2DWINDOWSTYLESIZEABLEBORDER ( WS_OVERLAPPEDWINDOW )
 
 ////////////////////////////////////////////////////////////////////////////////
 unordered_map<HWND, f2dWindowImpl*> f2dWindowClass::s_WindowCallBack;
@@ -197,7 +197,13 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 	default:
 		break;
 	}
-
+	
+	// 提取Win32消息回调
+	WNDPROC pCallback = (WNDPROC)pWindow->GetNativeMessageProcess();
+	if (pCallback != NULL)
+		if (pCallback(Handle, Msg, wParam, lParam))
+			return TRUE;
+	
 	// 处理消息返回值
 	return DefWindowProc(Handle,Msg,wParam,lParam);
 }
@@ -303,7 +309,8 @@ f2dIMECandidateListImpl::f2dIMECandidateListImpl(const f2dIMECandidateListImpl& 
 }
 
 f2dIMECandidateListImpl::~f2dIMECandidateListImpl()
-{}
+{
+}
 
 fuInt f2dIMECandidateListImpl::GetCount()
 {
@@ -716,6 +723,16 @@ fResult f2dWindowImpl::SetListener(f2dWindowEventListener* pListener)
 {
 	m_pListener = pListener;
 	return FCYERR_OK;
+}
+
+void f2dWindowImpl::SetNativeMessageProcess(void* pWndProc)
+{
+	m_fProc = (WNDPROC)pWndProc;
+}
+
+void* f2dWindowImpl::GetNativeMessageProcess()
+{
+	return (void*)m_fProc;
 }
 
 fInt f2dWindowImpl::GetHandle()
