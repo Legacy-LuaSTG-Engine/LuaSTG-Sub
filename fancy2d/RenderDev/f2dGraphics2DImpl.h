@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dGraphics2DImpl.h
-/// @brief fancy2D ¶şÎ¬Í¼ÔªäÖÈ¾Æ÷ÊµÏÖ
+/// @brief fancy2D äºŒç»´å›¾å…ƒæ¸²æŸ“å™¨å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "RenderDev/f2dRenderDeviceAPI.h"
@@ -8,7 +8,7 @@
 #include "RenderDev/f2dGraphicsImpl.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2D ¶şÎ¬äÖÈ¾Æ÷ÊµÏÖ
+/// @brief fancy2D äºŒç»´æ¸²æŸ“å™¨å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 class f2dGraphics2DImpl :
 	public f2dGraphicsImpl<f2dGraphics2D>,
@@ -16,35 +16,35 @@ class f2dGraphics2DImpl :
 {
 	friend class f2dRenderDeviceImpl;
 protected:
-	static const fuInt FVF = D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1;  // ¶¥µã±êÊ¶
+	static const fuInt FVF = D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1;  // é¡¶ç‚¹æ ‡è¯†
 	struct RenderCommand
 	{
-		f2dTexture2D* pTex;  // äÖÈ¾ÓÃµÄÎÆÀí£¬¿É¿Õ
-		fuInt VertCount;     // »æÖÆºÄ·ÑµÄ¶¥µãÊı
-		fuInt IndexCount;    // »æÖÆºÄ·ÑµÄË÷ÒıÊı
+		f2dTexture2D* pTex;  // æ¸²æŸ“ç”¨çš„çº¹ç†ï¼Œå¯ç©º
+		fuInt VertCount;     // ç»˜åˆ¶è€—è´¹çš„é¡¶ç‚¹æ•°
+		fuInt IndexCount;    // ç»˜åˆ¶è€—è´¹çš„ç´¢å¼•æ•°
 	};
 protected:
 	IDirect3DVertexBuffer9* m_pVB;
 	IDirect3DIndexBuffer9* m_pIB;
 	
-	fuInt m_VBMaxCount;   // ¶¥µã»º³å×î´óÈİÁ¿
-	fuInt m_IBMaxCount;   // Ë÷Òı»º³å×î´óÈİÁ¿
-	fuInt m_VBUsedCount;  // ¶¥µã»º³åÇøÒÑÓÃ¿Õ¼ä
-	fuInt m_IBUsedCount;  // Ë÷Òı»º³åÇøÒÑÓÃ¿Õ¼ä
-	fuInt m_VBAlloced;    // ´ıflush
-	fuInt m_IBAlloced;    // ´ıflush
+	fuInt m_VBMaxCount;   // é¡¶ç‚¹ç¼“å†²æœ€å¤§å®¹é‡
+	fuInt m_IBMaxCount;   // ç´¢å¼•ç¼“å†²æœ€å¤§å®¹é‡
+	fuInt m_VBUsedCount;  // é¡¶ç‚¹ç¼“å†²åŒºå·²ç”¨ç©ºé—´
+	fuInt m_IBUsedCount;  // ç´¢å¼•ç¼“å†²åŒºå·²ç”¨ç©ºé—´
+	fuInt m_VBAlloced;    // å¾…flush
+	fuInt m_IBAlloced;    // å¾…flush
 
 	f2dGraphics2DVertex* m_pVBData;
 	fuShort* m_pIBData;
 
-	// Ö¸ÁîÁĞ±í
+	// æŒ‡ä»¤åˆ—è¡¨
 	std::vector<RenderCommand> m_Commands;
 
-	// µ±Ç°»ìºÏÄ£Ê½
+	// å½“å‰æ··åˆæ¨¡å¼
 	F2DGRAPH2DBLENDTYPE m_ColorBlendType;
 private:
-	// ¿ìËÙĞ¡Êı×ªÕûÊı
-	// ÒÑ·ÏÆú
+	// å¿«é€Ÿå°æ•°è½¬æ•´æ•°
+	// å·²åºŸå¼ƒ
 	static inline long ftol_ieee_M(float x) 
 	{ 
 		static const float magic_f = (3<<21);
@@ -52,24 +52,24 @@ private:
 		float ftmp=x+magic_f;
 		return  (*((long*)&ftmp)-magic_i) >> 1; 
 	}
-	// ×ø±êĞŞ¸´
+	// åæ ‡ä¿®å¤
 	void inline coordFix(float& x)
 	{
 		x = x - 0.5f;
 	}
-	// Ö´ĞĞËùÓĞ»æÍ¼Ö¸Áî
+	// æ‰§è¡Œæ‰€æœ‰ç»˜å›¾æŒ‡ä»¤
 	void flush(bool Discard=false);
-	// ·ÖÅäÄÚ´æ
+	// åˆ†é…å†…å­˜
 	bool alloc(fuInt VertCountToAlloc, fuInt IndexCountToAlloc, f2dGraphics2DVertex** pVertexOut, fuShort** pIndexOut);
-	// ×·¼ÓÃüÁî²¢½øĞĞºÏ²¢
+	// è¿½åŠ å‘½ä»¤å¹¶è¿›è¡Œåˆå¹¶
 	void pushCommand(f2dTexture2D* pTex, fuInt VertCount, fuInt IndexCount);
 	
-	// ·­Òë²¢ÉèÖÃ»ìºÏÄ£Ê½
+	// ç¿»è¯‘å¹¶è®¾ç½®æ··åˆæ¨¡å¼
 	fResult setColorBlendType(F2DGRAPH2DBLENDTYPE Type);
-protected: // Éè±¸¶ªÊ§´¦Àí
+protected: // è®¾å¤‡ä¸¢å¤±å¤„ç†
 	void OnRenderDeviceLost();
 	void OnRenderDeviceReset();
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	fBool IsGraphics3D() { return false; }
 
 	fResult Begin();

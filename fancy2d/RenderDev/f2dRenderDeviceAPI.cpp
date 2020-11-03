@@ -1,4 +1,4 @@
-#include "f2dRenderDeviceAPI.h"
+ï»¿#include "f2dRenderDeviceAPI.h"
 
 #ifdef _M_ARM
 #include "../extern/FreeImage/freeimage.h"
@@ -12,21 +12,21 @@ f2dRenderDeviceAPI::f2dRenderDeviceAPI()
 	m_Entry_pDirect3DCreate9(NULL),
 	m_Entry_pD3DXSaveSurfaceToFileInMemory(NULL), /*m_Entry_pD3DXCreateFontW(NULL),*/ m_Entry_pD3DXCreateTextureFromFileInMemoryEx(NULL)
 {
-	// ¼ÓÔØÄ£¿é D3D9
+	// åŠ è½½æ¨¡å— D3D9
 	m_hModuleD3D9 = LoadLibrary(L"D3D9.dll");
 	if(!m_hModuleD3D9)
 		throw fcyWin32Exception("f2dRenderDeviceAPI::f2dRenderDeviceAPI", "LoadLibrary(D3D9.dll) Failed.");
-	// »ñµÃÈë¿Ú D3D9
+	// è·å¾—å…¥å£ D3D9
 	m_Entry_pDirect3DCreate9 = (pDLLEntry_Direct3DCreate9)GetProcAddress(m_hModuleD3D9, "Direct3DCreate9");
 	if(!m_Entry_pDirect3DCreate9)
 		throw fcyWin32Exception("f2dRenderDeviceAPI::f2dRenderDeviceAPI", "GetProcAddress(Direct3DCreate9) Failed.");
 
 #ifndef _M_ARM
-	// ¼ÓÔØÄ£¿é D3DX9
+	// åŠ è½½æ¨¡å— D3DX9
 	m_hModuleD3DX9 = LoadLibrary(L"D3DX9_43.dll");
 	if(!m_hModuleD3DX9)
 		throw fcyWin32Exception("f2dRenderDeviceAPI::f2dRenderDeviceAPI", "LoadLibrary(D3DX9_43.dll) Failed.");
-	// »ñµÃÈë¿Ú D3DX9
+	// è·å¾—å…¥å£ D3DX9
 	m_Entry_pD3DXSaveSurfaceToFileInMemory = (pDLLEntry_D3DXSaveSurfaceToFileInMemory)GetProcAddress(m_hModuleD3DX9, "D3DXSaveSurfaceToFileInMemory");
 	if(!m_Entry_pD3DXSaveSurfaceToFileInMemory)
 		throw fcyWin32Exception("f2dRenderDeviceAPI::f2dRenderDeviceAPI", "GetProcAddress(D3DXSaveSurfaceToFileInMemory) Failed.");
@@ -121,7 +121,7 @@ HRESULT f2dRenderDeviceAPI::DLLEntry_D3DXCreateTextureFromFileInMemoryEx(
 	if((int)Height < 0)
 		Height = 0;
 
-	// FreeImage¼ÓÔØÍ¼Æ¬
+	// FreeImageåŠ è½½å›¾ç‰‡
 	FIMEMORY* tFMem = FreeImage_OpenMemory((BYTE*)pSrcData, SrcDataSize);
 	if(tFMem == NULL)
 		return E_FAIL;
@@ -129,13 +129,13 @@ HRESULT f2dRenderDeviceAPI::DLLEntry_D3DXCreateTextureFromFileInMemoryEx(
 	FREE_IMAGE_FORMAT tFType = FreeImage_GetFileTypeFromMemory(tFMem);
 	FIBITMAP * tFBitmap = FreeImage_LoadFromMemory(tFType, tFMem);
 	
-	// ×ª»»¸ñÊ½
+	// è½¬æ¢æ ¼å¼
 	FIBITMAP * tFBitmap_New = FreeImage_ConvertTo32Bits(tFBitmap);
 	FreeImage_Unload(tFBitmap);
 	tFBitmap = tFBitmap_New;
 	tFBitmap_New = NULL;
 
-	// ×ª»»´óĞ¡
+	// è½¬æ¢å¤§å°
 	if(Width > 0 && Height > 0 && ((int)Width != FreeImage_GetWidth(tFBitmap) || (int)Height != FreeImage_GetHeight(tFBitmap)))
 	{
 		tFBitmap_New = FreeImage_Rescale(tFBitmap, Width, Height, FILTER_LANCZOS3);
@@ -149,7 +149,7 @@ HRESULT f2dRenderDeviceAPI::DLLEntry_D3DXCreateTextureFromFileInMemoryEx(
 		Height = FreeImage_GetHeight(tFBitmap);
 	}
 
-	// ´´½¨ÎÆÀí
+	// åˆ›å»ºçº¹ç†
 	IDirect3DTexture9* pRet = NULL;
 	HRESULT tHR;
 	if(FAILED(tHR = pDevice->CreateTexture(
@@ -172,11 +172,11 @@ HRESULT f2dRenderDeviceAPI::DLLEntry_D3DXCreateTextureFromFileInMemoryEx(
 		return tHR;
 	}
 
-	// »ñµÃÎÆÀíÊı¾İµÄÖ¸Õë
+	// è·å¾—çº¹ç†æ•°æ®çš„æŒ‡é’ˆ
 	fuInt tSrcPitch = FreeImage_GetPitch(tFBitmap);
 	fcyColor* pSrcPixels = (fcyColor*)(FreeImage_GetBits(tFBitmap) + tSrcPitch * (FreeImage_GetHeight(tFBitmap) - 1));
 
-	// Ëø¶¨²¢¸´ÖÆÊı¾İ
+	// é”å®šå¹¶å¤åˆ¶æ•°æ®
 	D3DLOCKED_RECT pLockedRect;
 	if(FAILED(pRet->LockRect(0, &pLockedRect, NULL, D3DLOCK_DISCARD)))
 	{
@@ -199,10 +199,10 @@ HRESULT f2dRenderDeviceAPI::DLLEntry_D3DXCreateTextureFromFileInMemoryEx(
 
 	pRet->UnlockRect(0);
 
-	// ²úÉúmipmap
+	// äº§ç”Ÿmipmap
 	pRet->GenerateMipSubLevels();
 
-	// Êä³öÊı¾İ
+	// è¾“å‡ºæ•°æ®
 	if(pSrcInfo)
 	{
 		pSrcInfo->Depth = 32;
@@ -214,11 +214,11 @@ HRESULT f2dRenderDeviceAPI::DLLEntry_D3DXCreateTextureFromFileInMemoryEx(
 		pSrcInfo->Height = Height;
 	}
 
-	// Ïú»Ù
+	// é”€æ¯
 	FreeImage_Unload(tFBitmap);
 	FreeImage_CloseMemory(tFMem);
 
-	// ·µ»Ø
+	// è¿”å›
 	*ppTexture = pRet;
 	return S_OK;
 #endif

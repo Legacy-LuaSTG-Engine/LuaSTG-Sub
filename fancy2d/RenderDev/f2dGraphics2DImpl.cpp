@@ -1,4 +1,4 @@
-#include "RenderDev/f2dGraphics2DImpl.h"
+ï»¿#include "RenderDev/f2dGraphics2DImpl.h"
 
 #include "Engine/f2dEngineImpl.h"
 
@@ -14,7 +14,7 @@ f2dGraphics2DImpl::f2dGraphics2DImpl(f2dRenderDeviceImpl* pParent, fuInt VertexB
 	m_pVBData(NULL), m_pIBData(NULL),
 	m_ColorBlendType(F2DGRAPH2DBLENDTYPE_ADD)
 {
-	// ÉèÖÃÄ¬ÈÏµÄÍ¶Ó°¾ØÕó
+	// è®¾ç½®é»˜è®¤çš„æŠ•å½±çŸ©é˜µ
 	SetProjTransform(fcyMatrix4::GetOrthoOffCenterLH(
 		0.f, 
 		(float)pParent->GetBufferWidth(), 
@@ -22,7 +22,7 @@ f2dGraphics2DImpl::f2dGraphics2DImpl(f2dRenderDeviceImpl* pParent, fuInt VertexB
 		0.f, 0.f, 100.f
 		));
 
-	// ´´½¨»º´æ
+	// åˆ›å»ºç¼“å­˜
 	HRESULT tHR;
 	IDirect3DDevice9* pDev = (IDirect3DDevice9*)m_pParent->GetHandle();
 
@@ -48,13 +48,13 @@ f2dGraphics2DImpl::f2dGraphics2DImpl(f2dRenderDeviceImpl* pParent, fuInt VertexB
 		throw fcyWin32COMException("f2dGraphics2DImpl::f2dGraphics2DImpl", "IDirect3DDevice9::CreateIndexBuffer Failed.", tHR);
 	}
 
-	// ×¢²á¼àÌýÆ÷
+	// æ³¨å†Œç›‘å¬å™¨
 	m_pParent->AttachListener(this);
 }
 
 f2dGraphics2DImpl::~f2dGraphics2DImpl()
 {
-	// °²È«´ëÊ©
+	// å®‰å…¨æŽªæ–½
 	if(IsInRender())
 	{
 		m_pParent->GetEngine()->ThrowException(fcyException("f2dGraphics2DImpl::~f2dGraphics2DImpl", "f2dGraphics2DImpl::End is not invoked before destroy."));
@@ -65,7 +65,7 @@ f2dGraphics2DImpl::~f2dGraphics2DImpl()
 	FCYSAFEKILL(m_pVB);
 	FCYSAFEKILL(m_pIB);
 
-	// ÒÆ³ý¼àÌýÆ÷
+	// ç§»é™¤ç›‘å¬å™¨
 	m_pParent->RemoveListener(this);
 }
 
@@ -75,7 +75,7 @@ void f2dGraphics2DImpl::flush(bool Discard)
 	{
 		if(Discard)
 		{
-			// ½âËø»º³åÇø
+			// è§£é”ç¼“å†²åŒº
 			m_pVB->Unlock();
 			m_pIB->Unlock();
 
@@ -90,11 +90,11 @@ void f2dGraphics2DImpl::flush(bool Discard)
 			return;
 	}
 
-	// ½âËø»º³åÇø
+	// è§£é”ç¼“å†²åŒº
 	m_pVB->Unlock();
 	m_pIB->Unlock();
 
-	// »æÖÆ²¢Í³¼ÆÓÐÐ§¶¥µã¸öÊý
+	// ç»˜åˆ¶å¹¶ç»Ÿè®¡æœ‰æ•ˆé¡¶ç‚¹ä¸ªæ•°
 	IDirect3DDevice9* pDev = (IDirect3DDevice9*)m_pParent->GetHandle();
 	vector<RenderCommand>::iterator i = m_Commands.begin();
 	f2dTexture2D *last_tex=i->pTex;
@@ -148,7 +148,7 @@ void f2dGraphics2DImpl::flush(bool Discard)
 
 	m_Commands.clear();
 
-	// ÖØÐÂËø¶¨»º³åÇø
+	// é‡æ–°é”å®šç¼“å†²åŒº
 	if(m_VBUsedCount == m_VBMaxCount || m_IBUsedCount == m_IBMaxCount)
 		Discard = true;
 
@@ -196,7 +196,7 @@ void f2dGraphics2DImpl::pushCommand(f2dTexture2D* pTex, fuInt VertCount, fuInt I
 
 		if(pCmd->pTex == pTex)
 		{
-			// µ÷ÕûË÷Òý
+			// è°ƒæ•´ç´¢å¼•
 			fuShort* pIndex = (m_pIBData + m_IBAlloced - IndexCount);
 			for(fuInt i = 0; i<IndexCount; ++i)
 				pIndex[i] += pCmd->VertCount;
@@ -315,7 +315,7 @@ fResult f2dGraphics2DImpl::Begin()
 	}
 	else
 	{
-		// ×¼±¸»º³åÇø
+		// å‡†å¤‡ç¼“å†²åŒº
 		m_pVB->Lock(0, m_VBMaxCount*sizeof(f2dGraphics2DVertex), (void**)&m_pVBData, D3DLOCK_DISCARD);
 		m_pIB->Lock(0, m_IBMaxCount*sizeof(fuShort), (void**)&m_pIBData, D3DLOCK_DISCARD);
 

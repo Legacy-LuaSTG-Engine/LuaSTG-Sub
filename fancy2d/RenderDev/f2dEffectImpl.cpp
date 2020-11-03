@@ -1,4 +1,4 @@
-#include "RenderDev/f2dEffectImpl.h"
+ï»¿#include "RenderDev/f2dEffectImpl.h"
 
 #include "RenderDev/f2dRenderDeviceImpl.h"
 
@@ -106,7 +106,7 @@ f2dEffectImpl::f2dEffectImpl(f2dRenderDeviceImpl* pDev, f2dStream* pStream, fBoo
 	if(!pStream)
 		throw fcyException("f2dEffectImpl::f2dEffectImpl", "Param 'pStream' is null.");
 
-	// ¶ÁÈ¡ËùÓĞ´úÂë
+	// è¯»å–æ‰€æœ‰ä»£ç 
 	fByte *tCodes = new fByte[ (size_t)pStream->GetLength() + 1 ];
 	pStream->SetPosition(FCYSEEKORIGIN_BEG, 0);
 	if(FCYFAILED(pStream->ReadBytes(tCodes, pStream->GetLength(), NULL)))
@@ -116,13 +116,13 @@ f2dEffectImpl::f2dEffectImpl(f2dRenderDeviceImpl* pDev, f2dStream* pStream, fBoo
 	}
 	tCodes[ pStream->GetLength() ] = '\0';
 
-	// ´´½¨Ğ§¹û
+	// åˆ›å»ºæ•ˆæœ
 	ID3DXEffect* pEffect = NULL;
 	ID3DXBuffer* pErr = NULL;
 	HRESULT tHR = pDev->GetAPI().DLLEntry_D3DXCreateEffectEx((IDirect3DDevice9*)pDev->GetHandle(), tCodes, (UINT)pStream->GetLength(), NULL, NULL, NULL, 0, NULL, &pEffect, &pErr);
 	FCYSAFEDELARR(tCodes);
 
-	// Ê§°Ü´¦Àí
+	// å¤±è´¥å¤„ç†
 	if (FAILED(tHR) || !pEffect)
 	{
 		if(pErr)
@@ -139,7 +139,7 @@ f2dEffectImpl::f2dEffectImpl(f2dRenderDeviceImpl* pDev, f2dStream* pStream, fBoo
 
 			MessageBoxA(NULL, tErrBuffer.data(), "Fancy2D Error", MB_OK | MB_ICONERROR);
 
-			// Ç¿ÖÆ½Ø¶ÏÒÔÂú×ãfcyException´óĞ¡
+			// å¼ºåˆ¶æˆªæ–­ä»¥æ»¡è¶³fcyExceptionå¤§å°
 			if(tErrBuffer.size() > 453)
 			{
 				tErrBuffer[450] = '.';
@@ -161,10 +161,10 @@ f2dEffectImpl::f2dEffectImpl(f2dRenderDeviceImpl* pDev, f2dStream* pStream, fBoo
 	m_pEffect = pEffect;
 	m_pEffect->GetDesc(&m_Desc);
 
-	// === ×¢²á¼àÌı ===
+	// === æ³¨å†Œç›‘å¬ ===
 	m_pParent->AttachListener(this, 16);
 
-	// === É¨ÃèËùÓĞ±äÁ¿²¢¼ÇÂ¼´øÓïÒå±äÁ¿ ===
+	// === æ‰«ææ‰€æœ‰å˜é‡å¹¶è®°å½•å¸¦è¯­ä¹‰å˜é‡ ===
 	for(fuInt i = 0; i<GetParamCount(); ++i)
 	{
 		f2dEffectParam* pParam = GetParam(i);
@@ -194,7 +194,7 @@ f2dEffectImpl::~f2dEffectImpl()
 {
 	FCYSAFEKILL(m_pEffect);
 
-	// === ÊÍ·ÅËùÓĞ»º´æµÄ¶ÔÏó ===
+	// === é‡Šæ”¾æ‰€æœ‰ç¼“å­˜çš„å¯¹è±¡ ===
 	std::unordered_map<D3DXHANDLE, f2dEffectParamImpl<f2dEffectParam>*>::iterator i = m_ParamCache.begin();
 	while(i != m_ParamCache.end())
 	{
@@ -216,14 +216,14 @@ f2dEffectImpl::~f2dEffectImpl()
 		k++;
 	}
 
-	// === ÊÍ·ÅËùÓĞ»º´æµÄÎÆÀí ===
+	// === é‡Šæ”¾æ‰€æœ‰ç¼“å­˜çš„çº¹ç† ===
 	for(unordered_map<D3DXHANDLE, f2dTexture*>::iterator i = m_CachedTex.begin();
 		i != m_CachedTex.end(); ++i)
 	{
 		FCYSAFEKILL(i->second);
 	}
 
-	// === ÊÍ·Å¼àÌı ===
+	// === é‡Šæ”¾ç›‘å¬ ===
 	m_pParent->RemoveListener(this);
 }
 

@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dEffectImpl.h
-/// @brief fancy2D D3DXEffect°ü×°
+/// @brief fancy2D D3DXEffectåŒ…è£…
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "RenderDev/f2dRenderDeviceAPI.h"
@@ -8,7 +8,7 @@
 #include <unordered_map>
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief Effect²ÎÊı¶ÔÏóÄ£°å
+/// @brief Effectå‚æ•°å¯¹è±¡æ¨¡æ¿
 ////////////////////////////////////////////////////////////////////////////////
 template<class T>
 class f2dEffectParamImpl :
@@ -20,7 +20,7 @@ protected:
 	D3DXHANDLE m_pHandle;
 	D3DXPARAMETER_DESC m_Desc;
 
-	// ×Ó¶ÔÏó»º´æ
+	// å­å¯¹è±¡ç¼“å­˜
 	std::unordered_map<D3DXHANDLE, f2dEffectParamImpl<f2dEffectParam>*> m_ObjCache;
 protected:
 	f2dEffectParamImpl<f2dEffectParam>* GetCacheObj(D3DXHANDLE pHandle)
@@ -34,7 +34,7 @@ protected:
 
 		return (f2dEffectParamImpl<f2dEffectParam>*)m_ObjCache[pHandle];
 	}
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	fcStr GetName()
 	{
 		return m_Desc.Name;
@@ -94,13 +94,13 @@ public:
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief Effect²ÎÊıÖµ¶ÔÏóÊµÏÖ
+/// @brief Effectå‚æ•°å€¼å¯¹è±¡å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 class f2dEffectParamValueImpl :
 	public f2dEffectParamImpl<f2dEffectParamValue>
 {
 	friend class f2dEffectImpl;
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	F2DEPVTYPE GetValueType()
 	{
 		switch(m_Desc.Class)
@@ -248,13 +248,13 @@ protected:
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief Effect²ÎÊıÊı×é¶ÔÏóÊµÏÖ
+/// @brief Effectå‚æ•°æ•°ç»„å¯¹è±¡å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 class f2dEffectParamArrImpl :
 	public f2dEffectParamImpl<f2dEffectParamArr>
 {
 	friend class f2dEffectImpl;
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	fuInt GetElementCount()
 	{
 		return m_Desc.Elements;
@@ -270,13 +270,13 @@ protected:
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief Effect²ÎÊı½á¹¹Ìå¶ÔÏóÊµÏÖ
+/// @brief Effectå‚æ•°ç»“æ„ä½“å¯¹è±¡å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 class f2dEffectParamStructImpl :
 	public f2dEffectParamImpl<f2dEffectParamStruct>
 {
 	friend class f2dEffectImpl;
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	fuInt GetElementCount()
 	{
 		return m_Desc.StructMembers;
@@ -295,7 +295,7 @@ protected:
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief Effect²ÎÊıº¯Êı¶ÔÏóÊµÏÖ
+/// @brief Effectå‚æ•°å‡½æ•°å¯¹è±¡å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 class f2dEffectFunctionImpl :
 	public f2dEffectFunction
@@ -307,11 +307,11 @@ protected:
 	D3DXHANDLE m_pHandle;
 	D3DXFUNCTION_DESC m_FuncDesc;
 
-	// ×Ó¶ÔÏó»º´æ
+	// å­å¯¹è±¡ç¼“å­˜
 	std::unordered_map<D3DXHANDLE, f2dEffectParamImpl<f2dEffectParam>*> m_ObjCache;
 protected:
 	f2dEffectParamImpl<f2dEffectParam>* GetCacheObj(D3DXHANDLE pHandle);
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	fcStr GetName()
 	{
 		return m_FuncDesc.Name;
@@ -350,7 +350,7 @@ protected:
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief Effect²ÎÊıPass¶ÔÏóÊµÏÖ
+/// @brief Effectå‚æ•°Passå¯¹è±¡å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 class f2dEffectPassImpl :
 	public f2dEffectPass
@@ -363,11 +363,11 @@ protected:
 	D3DXHANDLE m_pHandle;
 	D3DXPASS_DESC m_PassDesc;
 
-	// ×Ó¶ÔÏó»º´æ
+	// å­å¯¹è±¡ç¼“å­˜
 	std::unordered_map<D3DXHANDLE, f2dEffectParamImpl<f2dEffectParam>*> m_ObjCache;
 protected:
 	f2dEffectParamImpl<f2dEffectParam>* GetCacheObj(D3DXHANDLE pHandle);
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	fuInt GetIndex()
 	{
 		return m_Index;
@@ -422,7 +422,7 @@ protected:
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief Effect²ÎÊıTechnique¶ÔÏóÊµÏÖ
+/// @brief Effectå‚æ•°Techniqueå¯¹è±¡å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 class f2dEffectTechniqueImpl :
 	public f2dEffectTechnique
@@ -434,10 +434,10 @@ protected:
 	D3DXHANDLE m_pHandle;
 	D3DXTECHNIQUE_DESC m_TechDesc;
 
-	// ×Ó¶ÔÏó»º´æ
+	// å­å¯¹è±¡ç¼“å­˜
 	std::unordered_map<D3DXHANDLE, f2dEffectParamImpl<f2dEffectParam>*> m_ObjCache;
 
-	// Pass»º´æ
+	// Passç¼“å­˜
 	std::unordered_map<D3DXHANDLE, f2dEffectPassImpl*> m_PassCache;
 protected:
 	f2dEffectParamImpl<f2dEffectParam>* GetCacheObj(D3DXHANDLE pHandle);
@@ -452,7 +452,7 @@ protected:
 
 		return m_PassCache[pHandle];
 	}
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	fcStr GetName()
 	{
 		return m_TechDesc.Name;
@@ -515,7 +515,7 @@ protected:
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief EffectĞ§¹û¶ÔÏóÊµÏÖ
+/// @brief Effectæ•ˆæœå¯¹è±¡å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 class f2dEffectImpl :
 	public fcyRefObjImpl<f2dEffect>,
@@ -532,24 +532,24 @@ private:
 
 	f2dEffectTechnique* m_pCurTechnique;
 
-	// ×Ó¶ÔÏó»º´æ
+	// å­å¯¹è±¡ç¼“å­˜
 	std::unordered_map<D3DXHANDLE, f2dEffectParamImpl<f2dEffectParam>*> m_ParamCache;
 	std::unordered_map<D3DXHANDLE, f2dEffectFunctionImpl*> m_FuncCache;
 	std::unordered_map<D3DXHANDLE, f2dEffectTechniqueImpl*> m_TechCache;
 
-	// »º´æÎÆÀí±í
+	// ç¼“å­˜çº¹ç†è¡¨
 	std::unordered_map<D3DXHANDLE, f2dTexture*> m_CachedTex;
 
-	// ×Ô¶¯×´Ì¬
+	// è‡ªåŠ¨çŠ¶æ€
 	fBool m_bAutoState;
 
-	// ±£´æµÄ×Ô¶¯×´Ì¬
+	// ä¿å­˜çš„è‡ªåŠ¨çŠ¶æ€
 	f2dEffectParamValue* m_pWorldVar;
 	f2dEffectParamValue* m_pViewVar;
 	f2dEffectParamValue* m_pProjVar;
 
 protected:
-	// ·µ»Ø»º´æµÄ²ÎÊı¶ÔÏó
+	// è¿”å›ç¼“å­˜çš„å‚æ•°å¯¹è±¡
 	f2dEffectParamImpl<f2dEffectParam>* GetCacheParam(D3DXHANDLE pHandle)
 	{
 		if(pHandle == NULL)
@@ -561,7 +561,7 @@ protected:
 
 		return m_ParamCache[pHandle];
 	}
-	// ·µ»Ø»º´æµÄº¯Êı¶ÔÏó
+	// è¿”å›ç¼“å­˜çš„å‡½æ•°å¯¹è±¡
 	f2dEffectFunctionImpl* GetCacheFunction(D3DXHANDLE pHandle)
 	{
 		if(pHandle == NULL)
@@ -573,7 +573,7 @@ protected:
 
 		return m_FuncCache[pHandle];
 	}
-	// ·µ»Ø»º´æµÄ¼¼Êõ¶ÔÏó
+	// è¿”å›ç¼“å­˜çš„æŠ€æœ¯å¯¹è±¡
 	f2dEffectTechniqueImpl* GetCacheTechnique(D3DXHANDLE pHandle)
 	{
 		if(pHandle == NULL)
@@ -585,7 +585,7 @@ protected:
 
 		return m_TechCache[pHandle];
 	}
-protected: // Éè±¸¶ªÊ§
+protected: // è®¾å¤‡ä¸¢å¤±
 	void OnRenderDeviceLost()
 	{
 		m_pEffect->OnLostDevice();
@@ -594,7 +594,7 @@ protected: // Éè±¸¶ªÊ§
 	{
 		m_pEffect->OnResetDevice();
 
-		// Ë¢ĞÂËùÓĞ»º´æµÄÎÆÀí
+		// åˆ·æ–°æ‰€æœ‰ç¼“å­˜çš„çº¹ç†
 		for(std::unordered_map<D3DXHANDLE, f2dTexture*>::iterator i = m_CachedTex.begin();
 			i != m_CachedTex.end(); ++i)
 		{
@@ -607,13 +607,13 @@ protected: // Éè±¸¶ªÊ§
 		if(m_pCurTechnique)
 			m_pEffect->SetTechnique(((f2dEffectTechniqueImpl*)m_pCurTechnique)->m_pHandle);
 	}
-public: // ÄÚ²¿¹«¿ª
-	// ·µ»Ø»º´æµÄÎÆÀí¶ÔÏó
+public: // å†…éƒ¨å…¬å¼€
+	// è¿”å›ç¼“å­˜çš„çº¹ç†å¯¹è±¡
 	f2dTexture* GetCachedTex(D3DXHANDLE pHandle)
 	{
 		return m_CachedTex[pHandle];
 	}
-	// ÉèÖÃ»º´æµÄÎÆÀí¶ÔÏó
+	// è®¾ç½®ç¼“å­˜çš„çº¹ç†å¯¹è±¡
 	void SetCachedTex(D3DXHANDLE pHandle, f2dTexture* pTex)
 	{
 		FCYSAFEKILL(m_CachedTex[pHandle]);
@@ -631,7 +631,7 @@ public: // ÄÚ²¿¹«¿ª
 
 	// for Graphics3D
 	void SyncState(f2dGraphics3D* pGraph);
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	void* GetHandle()
 	{
 		return m_pEffect;

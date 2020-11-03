@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dMeshDataImpl.h
-/// @brief fancy2D Ä£ĞÍÊı¾İÊµÏÖ
+/// @brief fancy2D æ¨¡å‹æ•°æ®å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "f2dRenderDeviceAPI.h"
@@ -8,7 +8,7 @@
 #include <unordered_map>
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief Ä£ĞÍ¶ÔÏóÊµÏÖ
+/// @brief æ¨¡å‹å¯¹è±¡å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 class f2dMeshDataImpl :
 	public fcyRefObjImpl<f2dMeshData>
@@ -28,7 +28,7 @@ protected:
 
 	std::unordered_map<int, f2dMeshSubsetInfo> m_SubmeshCache;
 
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	fResult LockVertexData(fuInt StartVert, fuInt VertCount, void** pOut)
 	{
 		if(FAILED(m_pVB->Lock(StartVert * m_CurVertSize, (VertCount == 0 ? (m_VertCount - StartVert) : VertCount) * m_CurVertSize, pOut, 0)))
