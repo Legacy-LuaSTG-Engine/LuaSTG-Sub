@@ -1,9 +1,9 @@
-#pragma once
+ï»¿#pragma once
 #include <string>
 
 namespace Eyes2D {
 	namespace Platform {
-		//½«ÎÄ¼şÂ·¾¶¸ñÊ½×ª»»ÎªWindowsÑùÊ½
+		//å°†æ–‡ä»¶è·¯å¾„æ ¼å¼è½¬æ¢ä¸ºWindowsæ ·å¼
 		inline void PathFormatWin32(char* str, int strlen) {
 			for (int index = 0; index < strlen; index++) {
 				char& ref = str[index];
@@ -38,7 +38,7 @@ namespace Eyes2D {
 			}
 		}
 
-		//½«ÎÄ¼şÂ·¾¶¸ñÊ½×ª»»ÎªWindowsÑùÊ½£¬²¢±£³ÖĞ¡Ğ´£¬WindowsÏµÍ³ÓĞ¶¾
+		//å°†æ–‡ä»¶è·¯å¾„æ ¼å¼è½¬æ¢ä¸ºWindowsæ ·å¼ï¼Œå¹¶ä¿æŒå°å†™ï¼ŒWindowsç³»ç»Ÿæœ‰æ¯’
 		inline void PathFormatWin32LowCase(char* str, int strlen) {
 			for (int index = 0; index < strlen; index++) {
 				char& ref = str[index];
@@ -85,7 +85,7 @@ namespace Eyes2D {
 			}
 		}
 
-		//½«ÎÄ¼şÂ·¾¶¸ñÊ½×ª»»ÎªLinuxÑùÊ½£¬LinuxÏµÍ³µÄÎÄ¼şÏµÍ³¶ÔÂ·¾¶´óĞ¡Ğ´Ãô¸Ğ
+		//å°†æ–‡ä»¶è·¯å¾„æ ¼å¼è½¬æ¢ä¸ºLinuxæ ·å¼ï¼ŒLinuxç³»ç»Ÿçš„æ–‡ä»¶ç³»ç»Ÿå¯¹è·¯å¾„å¤§å°å†™æ•æ„Ÿ
 		inline void PathFormatLinux(char* str, int strlen) {
 			for (int index = 0; index < strlen; index++) {
 				char& ref = str[index];
