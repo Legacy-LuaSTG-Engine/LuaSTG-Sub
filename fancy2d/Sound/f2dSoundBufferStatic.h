@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dSoundSysAPI.h
-/// @brief fancy2DÒôÆµÏµÍ³ ¾²Ì¬»º³åÇø
+/// @brief fancy2DéŸ³é¢‘ç³»ç»Ÿ é™æ€ç¼“å†²åŒº
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyRefObj.h"
@@ -11,19 +11,19 @@
 #include <dsound.h>
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ¾²Ì¬ÉùÒô»º³å
+/// @brief é™æ€å£°éŸ³ç¼“å†²
 ////////////////////////////////////////////////////////////////////////////////
 class f2dSoundBufferStatic :
 	public fcyRefObjImpl<f2dSoundBuffer>
 {
 	friend class f2dSoundSysImpl;
 protected:
-	IDirectSoundBuffer* m_pBuffer; ///< @brief ÉùÒô»º³å
+	IDirectSoundBuffer* m_pBuffer; ///< @brief å£°éŸ³ç¼“å†²
 	
-	fBool m_bLoop;      ///< @brief ÊÇ·ñÑ­»·
-	fuInt m_BufferSize; ///< @brief »º³åÇø´óĞ¡
-	fuInt m_psSize;     ///< @brief Ò»ÃëÖÓËùÕ¼×Ö½ÚÊı
-public: // ½Ó¿ÚÊµÏÖ
+	fBool m_bLoop;      ///< @brief æ˜¯å¦å¾ªç¯
+	fuInt m_BufferSize; ///< @brief ç¼“å†²åŒºå¤§å°
+	fuInt m_psSize;     ///< @brief ä¸€ç§’é’Ÿæ‰€å å­—èŠ‚æ•°
+public: // æ¥å£å®ç°
 	fBool IsDynamic();
 
 	void Play();
@@ -42,7 +42,7 @@ public: // ½Ó¿ÚÊµÏÖ
 	fResult SetPan(fFloat Value);
 	fuInt GetFrequency();
 	fResult SetFrequency(fuInt Value);
-protected: // ½ûÖ¹Ö±½Ónew/delete
+protected: // ç¦æ­¢ç›´æ¥new/delete
 	f2dSoundBufferStatic(IDirectSound8* pSound, f2dSoundDecoder* pDecoder, fBool bGlobalFocus);
 	f2dSoundBufferStatic(IDirectSoundBuffer* pBuffer);
 	~f2dSoundBufferStatic();

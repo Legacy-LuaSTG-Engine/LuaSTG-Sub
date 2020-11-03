@@ -1,57 +1,57 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2d.h
-/// @brief fancy2DÍ·ÎÄ¼ş
-/// @note  ¶¨ÒåÁËµ¼³öº¯Êı£¬°üº¬ÁËËùÓĞ±ØĞèµÄÍ·ÎÄ¼ş
+/// @brief fancy2Då¤´æ–‡ä»¶
+/// @note  å®šä¹‰äº†å¯¼å‡ºå‡½æ•°ï¼ŒåŒ…å«äº†æ‰€æœ‰å¿…éœ€çš„å¤´æ–‡ä»¶
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-// µ¼³öº¯Êı¶¨Òå
+// å¯¼å‡ºå‡½æ•°å®šä¹‰
 #ifdef F2DEXPORT
 #define F2DDLLFUNC __declspec(dllexport)
 #else
-/// @brief F2DDLLµ¼Èëº¯Êı
+/// @brief F2DDLLå¯¼å…¥å‡½æ•°
 #define F2DDLLFUNC __declspec(dllimport)
 #endif
 
 #include "f2dEngine.h"
 
-/// @addtogroup f2dÒıÇæ
+/// @addtogroup f2då¼•æ“
 /// @{
 
-/// @brief F2D°æ±¾ 0.6
+/// @brief F2Dç‰ˆæœ¬ 0.6
 #define F2DVERSION ((fuInt)(0<<16 | 6))
 
-/// @brief ³õÊ¼»¯´íÎó½ÓÊÜÆ÷
+/// @brief åˆå§‹åŒ–é”™è¯¯æ¥å—å™¨
 struct f2dInitialErrListener
 {
-	/// @brief     ´íÎóÏûÏ¢
-	/// @param[in] TimeTick Ê±¼ä´Á
-	/// @param[in] Src      ´íÎóÔ´
-	/// @param[in] Desc     ´íÎóÃèÊö
+	/// @brief     é”™è¯¯æ¶ˆæ¯
+	/// @param[in] TimeTick æ—¶é—´æˆ³
+	/// @param[in] Src      é”™è¯¯æº
+	/// @param[in] Desc     é”™è¯¯æè¿°
 	virtual void OnErr(fuInt TimeTick, fcStr Src, fcStr Desc)=0;
 };
 
-/// @brief      ´´½¨fancy2DÒıÇæ
-/// @param[in]  Version              ±ØĞëÎªF2DVERSION£¬ÓÃÓÚ¼ì²éDLL°æ±¾
-/// @param[in]  pListener            ¿É¿Õ£¬ÓÃÀ´ÉèÖÃÒıÇæ¼àÌıÆ÷¡£
-/// @param[out] pOut                 Êä³öµÄÒıÇæÖ¸Õë
-/// @param[in]  pErrListener         ¿É¿Õ£¬³õÊ¼»¯´íÎó»Øµ÷¡£
+/// @brief      åˆ›å»ºfancy2Då¼•æ“
+/// @param[in]  Version              å¿…é¡»ä¸ºF2DVERSIONï¼Œç”¨äºæ£€æŸ¥DLLç‰ˆæœ¬
+/// @param[in]  pListener            å¯ç©ºï¼Œç”¨æ¥è®¾ç½®å¼•æ“ç›‘å¬å™¨ã€‚
+/// @param[out] pOut                 è¾“å‡ºçš„å¼•æ“æŒ‡é’ˆ
+/// @param[in]  pErrListener         å¯ç©ºï¼Œåˆå§‹åŒ–é”™è¯¯å›è°ƒã€‚
 extern "C" fResult F2DDLLFUNC CreateF2DEngine(
 	fuInt Version,
 	f2dEngineEventListener* pListener,
 	f2dEngine** pOut,
 	f2dInitialErrListener* pErrListener = NULL);
 
-/// @brief      ´´½¨fancy2DÒıÇæ²¢³õÊ¼»¯ËùÓĞ×é¼ş
-/// @param[in]  Version              ±ØĞëÎªF2DVERSION£¬ÓÃÓÚ¼ì²éDLL°æ±¾
-/// @param[in]  WinPos               ´°¿ÚÓÃ»§ÇøÎ»ÖÃ
-/// @param[in]  Title                ´°¿Ú±êÌâ
-/// @param[in]  Windowed             ÊÇ·ñ´°¿Ú»¯
-/// @param[in]  VSync                ÊÇ·ñ´¹Ö±Í¬²½
-/// @param[in]  AA                   Ö¸¶¨¿¹¾â³İµÈ¼¶
-/// @param[in]  pListener            ¿É¿Õ£¬ÓÃÀ´ÉèÖÃÒıÇæ¼àÌıÆ÷¡£
-/// @param[out] pOut                 Êä³öµÄÒıÇæÖ¸Õë
-/// @param[in]  pErrListener         ¿É¿Õ£¬³õÊ¼»¯´íÎó»Øµ÷¡£
+/// @brief      åˆ›å»ºfancy2Då¼•æ“å¹¶åˆå§‹åŒ–æ‰€æœ‰ç»„ä»¶
+/// @param[in]  Version              å¿…é¡»ä¸ºF2DVERSIONï¼Œç”¨äºæ£€æŸ¥DLLç‰ˆæœ¬
+/// @param[in]  WinPos               çª—å£ç”¨æˆ·åŒºä½ç½®
+/// @param[in]  Title                çª—å£æ ‡é¢˜
+/// @param[in]  Windowed             æ˜¯å¦çª—å£åŒ–
+/// @param[in]  VSync                æ˜¯å¦å‚ç›´åŒæ­¥
+/// @param[in]  AA                   æŒ‡å®šæŠ—é”¯é½¿ç­‰çº§
+/// @param[in]  pListener            å¯ç©ºï¼Œç”¨æ¥è®¾ç½®å¼•æ“ç›‘å¬å™¨ã€‚
+/// @param[out] pOut                 è¾“å‡ºçš„å¼•æ“æŒ‡é’ˆ
+/// @param[in]  pErrListener         å¯ç©ºï¼Œåˆå§‹åŒ–é”™è¯¯å›è°ƒã€‚
 extern "C" fResult F2DDLLFUNC CreateF2DEngineAndInit(
 	fuInt Version, 
 	const fcyRect& WinPos, 

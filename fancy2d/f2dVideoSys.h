@@ -1,162 +1,162 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dVideoSys.h
-/// @brief fancy2DÊÓÆµ²¥·ÅÖ§³Ö
+/// @brief fancy2Dè§†é¢‘æ’­æ”¾æ”¯æŒ
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "f2dInterface.h"
 
 #include "f2dRenderer.h"
 
-/// @addtogroup f2dÊÓÆµÖ§³Ö
-/// @brief fancy2dÊÓÆµ²¥·ÅÖ§³Ö
+/// @addtogroup f2dè§†é¢‘æ”¯æŒ
+/// @brief fancy2dè§†é¢‘æ’­æ”¾æ”¯æŒ
 /// @{
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2DÊÓÆµ¶ÔÏó×´Ì¬
+/// @brief fancy2Dè§†é¢‘å¯¹è±¡çŠ¶æ€
 ////////////////////////////////////////////////////////////////////////////////
 enum F2DVIDEOSTATE
 {
-	F2DVIDEOSTATE_STOPPED,  ///< @brief Í£Ö¹
-	F2DVIDEOSTATE_PAUSED,   ///< @brief ÔİÍ£
-	F2DVIDEOSTATE_PLAYING   ///< @brief ÕıÔÚ²¥·Å
+	F2DVIDEOSTATE_STOPPED,  ///< @brief åœæ­¢
+	F2DVIDEOSTATE_PAUSED,   ///< @brief æš‚åœ
+	F2DVIDEOSTATE_PLAYING   ///< @brief æ­£åœ¨æ’­æ”¾
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2DÊÓÆµ¶ÔÏó³õÊ¼»¯±êÊ¶
-/// @note  ¿ÉÒÔÎªÒ»ÏÂ±êÊ¶×éºÏ
+/// @brief fancy2Dè§†é¢‘å¯¹è±¡åˆå§‹åŒ–æ ‡è¯†
+/// @note  å¯ä»¥ä¸ºä¸€ä¸‹æ ‡è¯†ç»„åˆ
 ////////////////////////////////////////////////////////////////////////////////
 enum F2DVIDEOFLAG
 {
-	F2DVIDEOFLAG_DEBUG        = 1, ///< @brief ÊÇ·ñÔÊĞí¹Ò½ÓGraphEdit½øĞĞµ÷ÊÔ£¨WinVistaÒÔÉÏĞèÒª×¢²á¶îÍâµÄDLL£©
-	F2DVIDEOFLAG_NOMANAGEDTEX = 2  ///< @brief ²»´´½¨ÄÚ²¿ÎÆÀí
+	F2DVIDEOFLAG_DEBUG        = 1, ///< @brief æ˜¯å¦å…è®¸æŒ‚æ¥GraphEditè¿›è¡Œè°ƒè¯•ï¼ˆWinVistaä»¥ä¸Šéœ€è¦æ³¨å†Œé¢å¤–çš„DLLï¼‰
+	F2DVIDEOFLAG_NOMANAGEDTEX = 2  ///< @brief ä¸åˆ›å»ºå†…éƒ¨çº¹ç†
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief   fancy2DÊÓÆµÏñËØ´¦Àí¼àÌıÆ÷
-/// @note    ¸Ã½Ó¿ÚÔÊĞíÔÚCPUÉÏ¶ÔÊÓÆµÏñËØ½øĞĞ´¦Àí
-/// @warning ¸Ã½Ó¿Ú×÷ÓÃÔÚ¶àÏß³ÌÉÏ
+/// @brief   fancy2Dè§†é¢‘åƒç´ å¤„ç†ç›‘å¬å™¨
+/// @note    è¯¥æ¥å£å…è®¸åœ¨CPUä¸Šå¯¹è§†é¢‘åƒç´ è¿›è¡Œå¤„ç†
+/// @warning è¯¥æ¥å£ä½œç”¨åœ¨å¤šçº¿ç¨‹ä¸Š
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dVideoRendererListener
 {
-	/// @brief äÖÈ¾Ò»Ö¡
+	/// @brief æ¸²æŸ“ä¸€å¸§
 	virtual void OnVideoStartRender() {}
-	/// @brief »æÖÆÒ»¸öÏñËØ
+	/// @brief ç»˜åˆ¶ä¸€ä¸ªåƒç´ 
 	virtual void OnVideoDrawPixel(fuInt X, fuInt Y, fcyColor* pColor) {}
-	/// @brief ½áÊøÒ»Ö¡äÖÈ¾
+	/// @brief ç»“æŸä¸€å¸§æ¸²æŸ“
 	virtual void OnVideoEndRender() {}
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2DÊÓÆµ¶ÔÏó
+/// @brief fancy2Dè§†é¢‘å¯¹è±¡
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dVideo : public f2dInterface
 {
-	/// @brief »ñµÃÊÓÆµäÖÈ¾Æ÷¼àÌıÆ÷
+	/// @brief è·å¾—è§†é¢‘æ¸²æŸ“å™¨ç›‘å¬å™¨
 	virtual f2dVideoRendererListener* GetRendererListener()=0;
 
-	/// @brief     ÉèÖÃÊÓÆµäÖÈ¾Æ÷¼àÌıÆ÷
-	/// @param[in] pListener ¼àÌıÆ÷
+	/// @brief     è®¾ç½®è§†é¢‘æ¸²æŸ“å™¨ç›‘å¬å™¨
+	/// @param[in] pListener ç›‘å¬å™¨
 	virtual void SetRendererListener(f2dVideoRendererListener* pListener)=0;
 
-	/// @brief ¸üĞÂ
-	/// @note  µ÷ÓÃº¯ÊıÓÃÀ´¸üĞÂÄÚ²¿×´Ì¬£¬äÖÈ¾ÎÆÀí
+	/// @brief æ›´æ–°
+	/// @note  è°ƒç”¨å‡½æ•°ç”¨æ¥æ›´æ–°å†…éƒ¨çŠ¶æ€ï¼Œæ¸²æŸ“çº¹ç†
 	virtual fResult Update()=0;
 
-	/// @brief »ñµÃÄÚ²¿ÍĞ¹ÜÎÆÀí
-	/// @note  ²»Ôö¼ÓÒıÓÃ¼ÆÊı
+	/// @brief è·å¾—å†…éƒ¨æ‰˜ç®¡çº¹ç†
+	/// @note  ä¸å¢åŠ å¼•ç”¨è®¡æ•°
 	virtual f2dTexture* GetVideoTex()=0;
 
-	/// @brief »ñµÃÊÓÆµ¿í¶È
+	/// @brief è·å¾—è§†é¢‘å®½åº¦
 	virtual fuInt GetVideoWidth()=0;
 	
-	/// @brief »ñµÃÊÓÆµ¸ß¶È
+	/// @brief è·å¾—è§†é¢‘é«˜åº¦
 	virtual fuInt GetVideoHeight()=0;
 
-	/// @brief »ñµÃÊÓÆµäÖÈ¾Æ÷Êı¾İÍÌÍÂÁ¿
-	/// @note  ÒÔ×Ö½ÚÎªµ¥Î»
+	/// @brief è·å¾—è§†é¢‘æ¸²æŸ“å™¨æ•°æ®ååé‡
+	/// @note  ä»¥å­—èŠ‚ä¸ºå•ä½
 	virtual fFloat GetVideoDataRate()=0;
 
-	/// @brief »ñµÃÊÓÆµäÖÈ¾FPS
+	/// @brief è·å¾—è§†é¢‘æ¸²æŸ“FPS
 	virtual fFloat GetVideoRenderFPS()=0;
 
-	/// @brief     ¸´ÖÆÊÓÆµÊı¾İµ½¶¯Ì¬ÎÆÀí
-	/// @param[in] pTex ¶¯Ì¬ÎÆÀíÖ¸Õë
+	/// @brief     å¤åˆ¶è§†é¢‘æ•°æ®åˆ°åŠ¨æ€çº¹ç†
+	/// @param[in] pTex åŠ¨æ€çº¹ç†æŒ‡é’ˆ
 	virtual fResult CopyDataToTexture(f2dTexture2D* pTex)=0;
 
-	/// @brief »ñµÃ×´Ì¬
+	/// @brief è·å¾—çŠ¶æ€
 	virtual F2DVIDEOSTATE GetState()=0;
 
-	/// @brief ÊÇ·ñÑ­»·
+	/// @brief æ˜¯å¦å¾ªç¯
 	virtual fBool IsLoop()=0;
 
-	/// @brief ÉèÖÃÑ­»·
+	/// @brief è®¾ç½®å¾ªç¯
 	virtual void SetLoop(fBool bLoop)=0;
 
-	/// @brief ²¥·Å
+	/// @brief æ’­æ”¾
 	virtual fResult Play()=0;
 
-	/// @brief ÔİÍ£
+	/// @brief æš‚åœ
 	virtual fResult Pause()=0;
 
-	/// @brief Í£Ö¹
+	/// @brief åœæ­¢
 	virtual fResult Stop()=0;
 
-	/// @brief »ñµÃ²¥·ÅÊ±¼ä
+	/// @brief è·å¾—æ’­æ”¾æ—¶é—´
 	virtual fDouble GetTotalTime()=0;
 
-	/// @brief »ñµÃµ±Ç°Ê±¼ä
+	/// @brief è·å¾—å½“å‰æ—¶é—´
 	virtual fDouble GetCurTime()=0;
 
-	/// @brief »ñµÃµ±Ç°Ê±¼ä
+	/// @brief è·å¾—å½“å‰æ—¶é—´
 	virtual fResult SetCurTime(fDouble Time)=0;
 
-	/// @breif °´ÕÕ¹Ø¼üÖ¡ËÑÑ°Ê±¼ä
+	/// @breif æŒ‰ç…§å…³é”®å¸§æœå¯»æ—¶é—´
 	virtual fResult Seek(fuInt KeyFrame)=0;
 
-	/// @brief »ñµÃ²¥·ÅËÙÂÊ
-	/// @note  1.0ÎªÕı³£ËÙ¶È
+	/// @brief è·å¾—æ’­æ”¾é€Ÿç‡
+	/// @note  1.0ä¸ºæ­£å¸¸é€Ÿåº¦
 	virtual fDouble GetRate()=0;
 
-	/// @brief     ÉèÖÃ²¥·ÅËÙÂÊ
-	/// @note      1.0ÎªÕı³£ËÙ¶È
-	/// @warning   ²»ÊÇËùÓĞµÄ½âÂëÆ÷¶¼Ö§³Ö¸Ã²Ù×÷
-	/// @param[in] Rate ²¥·ÅËÙÂÊ
+	/// @brief     è®¾ç½®æ’­æ”¾é€Ÿç‡
+	/// @note      1.0ä¸ºæ­£å¸¸é€Ÿåº¦
+	/// @warning   ä¸æ˜¯æ‰€æœ‰çš„è§£ç å™¨éƒ½æ”¯æŒè¯¥æ“ä½œ
+	/// @param[in] Rate æ’­æ”¾é€Ÿç‡
 	virtual fResult SetRate(fDouble Rate)=0;
 
-	/// @brief ·µ»ØÒôÁ¿
+	/// @brief è¿”å›éŸ³é‡
 	virtual fFloat  GetVolume()=0;
 
-	/// @brief     ÉèÖÃÒôÁ¿
-	/// @param[in] Volume ÒôÁ¿´óĞ¡[0~1]
+	/// @brief     è®¾ç½®éŸ³é‡
+	/// @param[in] Volume éŸ³é‡å¤§å°[0~1]
 	virtual fResult SetVolume(fFloat Volume)=0;
 
-	/// @brief ·µ»ØÆ½ºâ
+	/// @brief è¿”å›å¹³è¡¡
 	virtual fFloat GetPan()=0;
 
-	/// @brief     ÉèÖÃÆ½ºâ
-	/// @param[in] Pan Æ½ºâÖµ[-1~1]
+	/// @brief     è®¾ç½®å¹³è¡¡
+	/// @param[in] Pan å¹³è¡¡å€¼[-1~1]
 	virtual fResult SetPan(fFloat Pan)=0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2DÊÓÆµÏµÍ³
+/// @brief fancy2Dè§†é¢‘ç³»ç»Ÿ
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dVideoSys
 {
-	/// @brief      ¼ÓÔØ¹ıÂËÆ÷µ½»º³åÇø
-	/// @note       ¼ÓÔØÒ»¸öDirectShowµÄ¹ıÂËÆ÷µ½»º³åÇøÖĞÓÃÒÔ½âÎö»òÕß½âÂëÊÓÆµ
-	/// @param[in]  pGUIDStr Ö¸¶¨DirectShow¹ıÂËÆ÷¶ÔÏóµÄGUID×Ö·û´®£¬Èç"1B544C20-FD0B-11CE-8C63-00AA0044B51E"
+	/// @brief      åŠ è½½è¿‡æ»¤å™¨åˆ°ç¼“å†²åŒº
+	/// @note       åŠ è½½ä¸€ä¸ªDirectShowçš„è¿‡æ»¤å™¨åˆ°ç¼“å†²åŒºä¸­ç”¨ä»¥è§£ææˆ–è€…è§£ç è§†é¢‘
+	/// @param[in]  pGUIDStr æŒ‡å®šDirectShowè¿‡æ»¤å™¨å¯¹è±¡çš„GUIDå­—ç¬¦ä¸²ï¼Œå¦‚"1B544C20-FD0B-11CE-8C63-00AA0044B51E"
 	virtual fResult LoadFilter(fcStrW pGUIDStr)=0;
 
-	/// @brief      ´ÓAXÎÄ¼ş¼ÓÔØ¹ıÂËÆ÷
-	/// @param[in]  AXFilePath ax¹ıÂËÆ÷ÎÄ¼şÂ·¾¶
-	/// @param[in]  pGUIDStr   Ö¸¶¨DirectShow¹ıÂËÆ÷¶ÔÏóµÄGUID×Ö·û´®£¬Èç"1B544C20-FD0B-11CE-8C63-00AA0044B51E"
+	/// @brief      ä»AXæ–‡ä»¶åŠ è½½è¿‡æ»¤å™¨
+	/// @param[in]  AXFilePath axè¿‡æ»¤å™¨æ–‡ä»¶è·¯å¾„
+	/// @param[in]  pGUIDStr   æŒ‡å®šDirectShowè¿‡æ»¤å™¨å¯¹è±¡çš„GUIDå­—ç¬¦ä¸²ï¼Œå¦‚"1B544C20-FD0B-11CE-8C63-00AA0044B51E"
 	virtual fResult LoadFilterFromAX(fcStrW AXFilePath, fcStrW pGUIDStr)=0;
 
-	/// @brief      ´´½¨ÊÓÆµ¶ÔÏó
-	/// @param[in]  pStream ÊÓÆµÁ÷
-	/// @param[in]  Flag    F2DVIDEOFLAGÃ¶¾ÙµÄÒ»¸ö»òÕß¶à¸ö×éºÏ
-	/// @param[out] pOut    Êä³ö´´½¨µÄÊÓÆµ¶ÔÏóÖ¸Õë
+	/// @brief      åˆ›å»ºè§†é¢‘å¯¹è±¡
+	/// @param[in]  pStream è§†é¢‘æµ
+	/// @param[in]  Flag    F2DVIDEOFLAGæšä¸¾çš„ä¸€ä¸ªæˆ–è€…å¤šä¸ªç»„åˆ
+	/// @param[out] pOut    è¾“å‡ºåˆ›å»ºçš„è§†é¢‘å¯¹è±¡æŒ‡é’ˆ
 	virtual fResult CreateVideo(f2dStream* pStream, fuInt Flag, f2dVideo** pOut)=0;
 };
 

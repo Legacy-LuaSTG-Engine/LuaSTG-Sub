@@ -1,4 +1,4 @@
-#include "Sound/f2dSoundSysImpl.h"
+ï»¿#include "Sound/f2dSoundSysImpl.h"
 
 #include "Sound/f2dSoundBufferStatic.h"
 #include "Sound/f2dSoundBufferDynamic.h"
@@ -17,13 +17,13 @@
 f2dSoundSysImpl::f2dSoundSysImpl(f2dEngineImpl* pEngine)
 	: m_pEngine(pEngine)
 {
-	// Ê¹ÓÃÄ¬ÈÏ»Ø·ÅÉè±¸´´½¨DSound
+	// ä½¿ç”¨é»˜è®¤å›žæ”¾è®¾å¤‡åˆ›å»ºDSound
 	HRESULT tHR;
 	tHR = m_API.DLLEntry_DirectSoundCreate8(NULL, &m_pDSound8, NULL);
 	if(FAILED(tHR))
 		throw fcyWin32COMException("f2dSoundSysImpl::f2dSoundSysImpl", "DirectSoundCreate8 Failed", tHR);
 
-	// ÉèÖÃÉè±¸Ð­×÷ÐÔ
+	// è®¾ç½®è®¾å¤‡åä½œæ€§
 	tHR = m_pDSound8->SetCooperativeLevel((HWND)pEngine->GetMainWindow()->GetHandle(), DSSCL_PRIORITY);
 	if(FAILED(tHR))
 		throw fcyWin32COMException("f2dSoundSysImpl::f2dSoundSysImpl", "SetCooperativeLevel Failed.", tHR);

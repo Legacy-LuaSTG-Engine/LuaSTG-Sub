@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dVorbisDecoder.h
-/// @brief fancy2D OGG½âÂëÆ÷ÊµÏÖ
+/// @brief fancy2D OGGè§£ç å™¨å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyRefObj.h"
@@ -12,7 +12,7 @@
 #include <vorbis/vorbisfile.h>
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief OggVorbis½âÂëÆ÷
+/// @brief OggVorbisè§£ç å™¨
 ////////////////////////////////////////////////////////////////////////////////
 class f2dVorbisDecoder:
 	public fcyRefObjImpl<f2dSoundDecoder>
@@ -27,7 +27,7 @@ private:
 	static int streamSeekFunc(void *datasource, ogg_int64_t offset, int whence);
 	static int streamCloseFunc(void *datasource);
 	static long streamTellFunc(void *datasource);
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	fuInt GetBufferSize();
 	fuInt GetAvgBytesPerSec();
 	fuShort GetBlockAlign();

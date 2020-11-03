@@ -1,148 +1,148 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dSoundSys.h
-/// @brief fancy2DÉùÒôÏµÍ³½Ó¿Ú¶¨Òå
+/// @brief fancy2Då£°éŸ³ç³»ç»Ÿæ¥å£å®šä¹‰
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "f2dInterface.h"
 
-/// @addtogroup f2dÉùÒôÏµÍ³
-/// @brief fancy2dÒıÇæÉùÒôÏµÍ³
+/// @addtogroup f2då£°éŸ³ç³»ç»Ÿ
+/// @brief fancy2då¼•æ“å£°éŸ³ç³»ç»Ÿ
 /// @{
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief   ÒôÆµ½âÂëÆ÷½Ó¿Ú
-/// @warning Ò»¸ö½âÂëÆ÷Ö»ÄÜÓÃÓÚÒ»¸öÒôÆµ£¬µ«ÊÇÒ»¸öÁ÷¿ÉÒÔ±»ÓÃÀ´´´½¨¶à¸ö½âÂëÆ÷
+/// @brief   éŸ³é¢‘è§£ç å™¨æ¥å£
+/// @warning ä¸€ä¸ªè§£ç å™¨åªèƒ½ç”¨äºä¸€ä¸ªéŸ³é¢‘ï¼Œä½†æ˜¯ä¸€ä¸ªæµå¯ä»¥è¢«ç”¨æ¥åˆ›å»ºå¤šä¸ªè§£ç å™¨
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dSoundDecoder : public f2dInterface
 {
-	// --- ·µ»ØPCMÊı¾İ¸ñÊ½ ---
-	virtual fuInt GetBufferSize()=0;        ///< @brief  ·µ»Ø½âÂëºóPCM×ÜÊı¾İ´óĞ¡
-	virtual fuInt GetAvgBytesPerSec()=0;    ///< @brief  »ñµÃÃ¿ÃëÕ¼ÓÃµÄ×Ö½ÚÊı
-	virtual fuShort GetBlockAlign()=0;      ///< @brief  »ñµÃµ¥¸ö²ÉÑù´óĞ¡
-	virtual fuShort GetChannelCount()=0;    ///< @brief  »ñµÃÉùµÀÊı
-	                                        ///< @return ·µ»Ø1£¨µ¥ÉùµÀ£©»ò2£¨Á¢ÌåÉù£©
-	virtual fuInt GetSamplesPerSec()=0;     ///< @brief  »ñµÃ²ÉÑùÂÊ
-	                                        ///< @return ·µ»ØÈç44100
-	virtual fuShort GetFormatTag()=0;       ///< @brief  »ñµÃ¸ñÊ½ÀàĞÍ
-	                                        ///< @return Í¨³£·µ»Ø1
-	virtual fuShort GetBitsPerSample()=0;   ///< @brief  »ñµÃ±ÈÌØÂÊ
-	                                        ///< @return ·µ»ØÈç16£¨bits£©
+	// --- è¿”å›PCMæ•°æ®æ ¼å¼ ---
+	virtual fuInt GetBufferSize()=0;        ///< @brief  è¿”å›è§£ç åPCMæ€»æ•°æ®å¤§å°
+	virtual fuInt GetAvgBytesPerSec()=0;    ///< @brief  è·å¾—æ¯ç§’å ç”¨çš„å­—èŠ‚æ•°
+	virtual fuShort GetBlockAlign()=0;      ///< @brief  è·å¾—å•ä¸ªé‡‡æ ·å¤§å°
+	virtual fuShort GetChannelCount()=0;    ///< @brief  è·å¾—å£°é“æ•°
+	                                        ///< @return è¿”å›1ï¼ˆå•å£°é“ï¼‰æˆ–2ï¼ˆç«‹ä½“å£°ï¼‰
+	virtual fuInt GetSamplesPerSec()=0;     ///< @brief  è·å¾—é‡‡æ ·ç‡
+	                                        ///< @return è¿”å›å¦‚44100
+	virtual fuShort GetFormatTag()=0;       ///< @brief  è·å¾—æ ¼å¼ç±»å‹
+	                                        ///< @return é€šå¸¸è¿”å›1
+	virtual fuShort GetBitsPerSample()=0;   ///< @brief  è·å¾—æ¯”ç‰¹ç‡
+	                                        ///< @return è¿”å›å¦‚16ï¼ˆbitsï¼‰
 
-	// --- ½âÂë²Ù×÷ ---
-	/// @brief ·µ»ØÏà¶ÔPCMÊı¾İµÄµ±Ç°½âÂëÎ»ÖÃ
+	// --- è§£ç æ“ä½œ ---
+	/// @brief è¿”å›ç›¸å¯¹PCMæ•°æ®çš„å½“å‰è§£ç ä½ç½®
 	virtual fLen GetPosition()=0;
 
-	/// @brief     Ïà¶ÔPCMÊı¾İ½øĞĞÑ°Ö·
-	/// @param[in] Origin Ñ°Ö·Ô­µã
-	/// @param[in] Offset Æ«ÒÆÁ¿
+	/// @brief     ç›¸å¯¹PCMæ•°æ®è¿›è¡Œå¯»å€
+	/// @param[in] Origin å¯»å€åŸç‚¹
+	/// @param[in] Offset åç§»é‡
 	virtual fResult SetPosition(F2DSEEKORIGIN Origin, fInt Offset)=0;
 
-	/// @brief      ½âÂëPCMÊı¾İ
-	/// @param[out] pBuffer    Ä¿µÄ»º³åÇø
-	/// @param[in]  SizeToRead Òª¶ÁÈ¡µÄPCMÊı¾İ´óĞ¡
-	/// @param[out] pSizeRead  Êµ¼Ê¶ÁÈ¡µÄPCMÊı¾İ´óĞ¡£¬¿ÉÎªNULL
+	/// @brief      è§£ç PCMæ•°æ®
+	/// @param[out] pBuffer    ç›®çš„ç¼“å†²åŒº
+	/// @param[in]  SizeToRead è¦è¯»å–çš„PCMæ•°æ®å¤§å°
+	/// @param[out] pSizeRead  å®é™…è¯»å–çš„PCMæ•°æ®å¤§å°ï¼Œå¯ä¸ºNULL
 	virtual fResult Read(fData pBuffer, fuInt SizeToRead, fuInt* pSizeRead)=0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ÉùÒô»º³åÇø
+/// @brief å£°éŸ³ç¼“å†²åŒº
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dSoundBuffer : public f2dInterface
 {
-	virtual fBool IsDynamic()=0;          ///< @brief ÊÇ·ñÎª¶¯Ì¬»º³åÇø
+	virtual fBool IsDynamic()=0;          ///< @brief æ˜¯å¦ä¸ºåŠ¨æ€ç¼“å†²åŒº
 
-	// --- ²¥·Å²Ù×÷ ---
-	virtual void Play()=0;                ///< @brief ²¥·Å
-	virtual void Stop()=0;                ///< @brief Í£Ö¹
-	virtual void Pause()=0;               ///< @brief ÔİÍ£
+	// --- æ’­æ”¾æ“ä½œ ---
+	virtual void Play()=0;                ///< @brief æ’­æ”¾
+	virtual void Stop()=0;                ///< @brief åœæ­¢
+	virtual void Pause()=0;               ///< @brief æš‚åœ
 
-	// --- ÊôĞÔ¿ØÖÆ ---
-	virtual fBool IsLoop()=0;                    ///< @brief ·µ»ØÊÇ·ñÑ­»·
-	virtual void SetLoop(fBool bValue)=0;        ///< @brief ÉèÎªÑ­»·
-	virtual fBool IsPlaying()=0;                 ///< @brief ·µ»ØÊÇ·ñÕıÔÚ²¥·Å
-	virtual fDouble GetTotalTime()=0;            ///< @brief ÒÔÃëÎªµ¥Î»·µ»Ø×Ü²¥·ÅÊ±¼ä
-	virtual fDouble GetTime()=0;                 ///< @brief ÒÔÃëÎªµ¥Î»·µ»Ø²¥·ÅÎ»ÖÃ
-	virtual fResult SetTime(fDouble Time)=0;     ///< @brief     ÒÔÃëÎªµ¥Î»ÉèÖÃ²¥·ÅÎ»ÖÃ
-		                                         ///< @param[in] Time ²¥·ÅÎ»ÖÃ
-	virtual fFloat GetVolume()=0;                ///< @brief  »ñµÃÒôÁ¿
-	                                             ///< @return ·µ»Ø[0~1]£¬0±íÊ¾ÎŞÉù£¬1±íÊ¾Õı³£ÒôÁ¿
-	virtual fResult SetVolume(fFloat Value)=0;   ///< @brief     ÉèÖÃÒôÁ¿[0~1]
-	                                             ///< @param[in] Value ÒôÁ¿[0~1]£¬0±íÊ¾ÎŞÉù£¬1±íÊ¾Õı³£ÒôÁ¿
-	virtual fFloat GetPan()=0;                   ///< @brief  »ñµÃÉùµÀÆ½ºâ
-	                                             ///< @return ·µ»Ø[-1~1]£¬-1×óÉùµÀ£¬0Õı³££¬1ÓÒÉùµÀ
-	virtual fResult SetPan(fFloat Value)=0;      ///< @brief     ÉèÖÃÉùµÀÆ½ºâ
-	                                             ///< @param[in] Value Æ½ºâ²ÎÊı[-1~1]£¬-1×óÉùµÀ£¬0Õı³££¬1ÓÒÉùµÀ
-	virtual fuInt GetFrequency()=0;              ///< @brief  »ñµÃ²¥·ÅÆµÂÊ
-	                                             ///< @return ·µ»ØÃ¿ÃëÖÓ²ÉÑù´ÎÊı
-	virtual fResult SetFrequency(fuInt Value)=0; ///< @brief     ÉèÖÃ²¥·ÅÆµÂÊ
-	                                             ///< @param[in] Value È¡Öµ·¶Î§[100~100,000]
+	// --- å±æ€§æ§åˆ¶ ---
+	virtual fBool IsLoop()=0;                    ///< @brief è¿”å›æ˜¯å¦å¾ªç¯
+	virtual void SetLoop(fBool bValue)=0;        ///< @brief è®¾ä¸ºå¾ªç¯
+	virtual fBool IsPlaying()=0;                 ///< @brief è¿”å›æ˜¯å¦æ­£åœ¨æ’­æ”¾
+	virtual fDouble GetTotalTime()=0;            ///< @brief ä»¥ç§’ä¸ºå•ä½è¿”å›æ€»æ’­æ”¾æ—¶é—´
+	virtual fDouble GetTime()=0;                 ///< @brief ä»¥ç§’ä¸ºå•ä½è¿”å›æ’­æ”¾ä½ç½®
+	virtual fResult SetTime(fDouble Time)=0;     ///< @brief     ä»¥ç§’ä¸ºå•ä½è®¾ç½®æ’­æ”¾ä½ç½®
+		                                         ///< @param[in] Time æ’­æ”¾ä½ç½®
+	virtual fFloat GetVolume()=0;                ///< @brief  è·å¾—éŸ³é‡
+	                                             ///< @return è¿”å›[0~1]ï¼Œ0è¡¨ç¤ºæ— å£°ï¼Œ1è¡¨ç¤ºæ­£å¸¸éŸ³é‡
+	virtual fResult SetVolume(fFloat Value)=0;   ///< @brief     è®¾ç½®éŸ³é‡[0~1]
+	                                             ///< @param[in] Value éŸ³é‡[0~1]ï¼Œ0è¡¨ç¤ºæ— å£°ï¼Œ1è¡¨ç¤ºæ­£å¸¸éŸ³é‡
+	virtual fFloat GetPan()=0;                   ///< @brief  è·å¾—å£°é“å¹³è¡¡
+	                                             ///< @return è¿”å›[-1~1]ï¼Œ-1å·¦å£°é“ï¼Œ0æ­£å¸¸ï¼Œ1å³å£°é“
+	virtual fResult SetPan(fFloat Value)=0;      ///< @brief     è®¾ç½®å£°é“å¹³è¡¡
+	                                             ///< @param[in] Value å¹³è¡¡å‚æ•°[-1~1]ï¼Œ-1å·¦å£°é“ï¼Œ0æ­£å¸¸ï¼Œ1å³å£°é“
+	virtual fuInt GetFrequency()=0;              ///< @brief  è·å¾—æ’­æ”¾é¢‘ç‡
+	                                             ///< @return è¿”å›æ¯ç§’é’Ÿé‡‡æ ·æ¬¡æ•°
+	virtual fResult SetFrequency(fuInt Value)=0; ///< @brief     è®¾ç½®æ’­æ”¾é¢‘ç‡
+	                                             ///< @param[in] Value å–å€¼èŒƒå›´[100~100,000]
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ¾«ÁéÒôÆµ
-/// @note  ÓÃÓÚ²¥·Å¶à¸öÏàÍ¬ÒôĞ§
+/// @brief ç²¾çµéŸ³é¢‘
+/// @note  ç”¨äºæ’­æ”¾å¤šä¸ªç›¸åŒéŸ³æ•ˆ
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dSoundSprite : public f2dInterface
 {
-	virtual void Play()=0;                ///< @brief ²¥·ÅËùÓĞÉùÒô
-	virtual void Stop()=0;                ///< @brief Í£Ö¹ËùÓĞÉùÒô£¬Ïàµ±ÓÚÇå¿Õ
-	virtual void Pause()=0;               ///< @brief ÔİÍ£ËùÓĞÉùÒô
-	virtual fDouble GetTotalTime()=0;     ///< @brief »ñµÃÔ­Ê¼ÉùÒô³¤¶È
+	virtual void Play()=0;                ///< @brief æ’­æ”¾æ‰€æœ‰å£°éŸ³
+	virtual void Stop()=0;                ///< @brief åœæ­¢æ‰€æœ‰å£°éŸ³ï¼Œç›¸å½“äºæ¸…ç©º
+	virtual void Pause()=0;               ///< @brief æš‚åœæ‰€æœ‰å£°éŸ³
+	virtual fDouble GetTotalTime()=0;     ///< @brief è·å¾—åŸå§‹å£°éŸ³é•¿åº¦
 
-	virtual fResult PlayNewSound(fFloat Volume = 1.f, fFloat Pan = 0.f)=0; ///< @brief ²¥·ÅÒ»¸öÉùÒô
+	virtual fResult PlayNewSound(fFloat Volume = 1.f, fFloat Pan = 0.f)=0; ///< @brief æ’­æ”¾ä¸€ä¸ªå£°éŸ³
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ÒôÆµÏµÍ³
+/// @brief éŸ³é¢‘ç³»ç»Ÿ
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dSoundSys
 {
-	/// @brief      ´´½¨¾²Ì¬ÒôÆµ
-	/// @note       ¾²Ì¬ÒôÆµ½«±»ÍêÕû¼ÓÔØµ½ÄÚ´æÖĞ£¬ÊÊºÏÓÃÓÚÒôĞ§
-	/// @param[in]  pDecoder     ÒôÆµ½âÂëÆ÷£¬¾²Ì¬»º³åÇø²»»á±£´æ½âÂëÆ÷Ö¸Õë£¬½öÔÚ³õÊ¼»¯Ê±½âÂëËùÓĞPCMÊı¾İ
-	/// @param[in]  bGlobalFocus È«¾ÖÏìÓ¦£¬ÉèÎªtrueÔòµ±Ó¦ÓÃ³ÌĞò²»±»¼¤»îÊ±ÈÔÈ»¿ÉÒÔ·¢³öÉùÒô
-	/// @param[out] pOut         Êä³öµÄÒôÆµ»º³åÇøÖ¸Õë
+	/// @brief      åˆ›å»ºé™æ€éŸ³é¢‘
+	/// @note       é™æ€éŸ³é¢‘å°†è¢«å®Œæ•´åŠ è½½åˆ°å†…å­˜ä¸­ï¼Œé€‚åˆç”¨äºéŸ³æ•ˆ
+	/// @param[in]  pDecoder     éŸ³é¢‘è§£ç å™¨ï¼Œé™æ€ç¼“å†²åŒºä¸ä¼šä¿å­˜è§£ç å™¨æŒ‡é’ˆï¼Œä»…åœ¨åˆå§‹åŒ–æ—¶è§£ç æ‰€æœ‰PCMæ•°æ®
+	/// @param[in]  bGlobalFocus å…¨å±€å“åº”ï¼Œè®¾ä¸ºtrueåˆ™å½“åº”ç”¨ç¨‹åºä¸è¢«æ¿€æ´»æ—¶ä»ç„¶å¯ä»¥å‘å‡ºå£°éŸ³
+	/// @param[out] pOut         è¾“å‡ºçš„éŸ³é¢‘ç¼“å†²åŒºæŒ‡é’ˆ
 	virtual fResult CreateStaticBuffer(f2dSoundDecoder* pDecoder, fBool bGlobalFocus, f2dSoundBuffer** pOut)=0;
 
-	/// @brief      ´´½¨¹²ÏíÄÚ´æµÄ¾²Ì¬»º³åÇøÒôÆµ
-	/// @note       ¹²ÏíÄÚ´æ»º³åÇø£¬ÊÊºÏÖØ¸´²¥·ÅµÄÒôĞ§
-	/// @param[in]  pOrg Ô­Ê¼µÄ¾²Ì¬»º³åÇø
-	/// @param[out] pOut ²úÉúµÄ¹²ÏíÄÚ´æÇø¶ÎµÄ¾²Ì¬»º³åÇø
+	/// @brief      åˆ›å»ºå…±äº«å†…å­˜çš„é™æ€ç¼“å†²åŒºéŸ³é¢‘
+	/// @note       å…±äº«å†…å­˜ç¼“å†²åŒºï¼Œé€‚åˆé‡å¤æ’­æ”¾çš„éŸ³æ•ˆ
+	/// @param[in]  pOrg åŸå§‹çš„é™æ€ç¼“å†²åŒº
+	/// @param[out] pOut äº§ç”Ÿçš„å…±äº«å†…å­˜åŒºæ®µçš„é™æ€ç¼“å†²åŒº
 	virtual fResult CreateSharedStaticBuffer(f2dSoundBuffer* pOrg, f2dSoundBuffer** pOut)=0;
 
-	/// @brief      ´´½¨¶¯Ì¬ÒôÆµ
-	/// @note       ¶¯Ì¬ÒôÆµÖ»»á»º´æ¼«ÉÙÁ¿µÄPCMÊı¾İ£¬°´Ğè½âÂë£¬ÊÊºÏ±³¾°ÒôÀÖ¡£
-	/// @param[in]  pDecoder     ÒôÆµ½âÂëÆ÷£¬¶¯Ì¬»º³åÇø»á±£´æ½âÂëÆ÷Ö¸Õë£¬Çë²»Òª½«Ò»¸ö½âÂëÆ÷ÓÃÓÚ¶à¸ö»º³åÇø
-	/// @param[in]  bGlobalFocus È«¾ÖÏìÓ¦£¬ÉèÎªtrueÔòµ±Ó¦ÓÃ³ÌĞò²»±»¼¤»îÊ±ÈÔÈ»¿ÉÒÔ·¢³öÉùÒô
-	/// @param[out] pOut         Êä³öµÄÒôÆµ»º³åÇøÖ¸Õë
+	/// @brief      åˆ›å»ºåŠ¨æ€éŸ³é¢‘
+	/// @note       åŠ¨æ€éŸ³é¢‘åªä¼šç¼“å­˜æå°‘é‡çš„PCMæ•°æ®ï¼ŒæŒ‰éœ€è§£ç ï¼Œé€‚åˆèƒŒæ™¯éŸ³ä¹ã€‚
+	/// @param[in]  pDecoder     éŸ³é¢‘è§£ç å™¨ï¼ŒåŠ¨æ€ç¼“å†²åŒºä¼šä¿å­˜è§£ç å™¨æŒ‡é’ˆï¼Œè¯·ä¸è¦å°†ä¸€ä¸ªè§£ç å™¨ç”¨äºå¤šä¸ªç¼“å†²åŒº
+	/// @param[in]  bGlobalFocus å…¨å±€å“åº”ï¼Œè®¾ä¸ºtrueåˆ™å½“åº”ç”¨ç¨‹åºä¸è¢«æ¿€æ´»æ—¶ä»ç„¶å¯ä»¥å‘å‡ºå£°éŸ³
+	/// @param[out] pOut         è¾“å‡ºçš„éŸ³é¢‘ç¼“å†²åŒºæŒ‡é’ˆ
 	virtual fResult CreateDynamicBuffer(f2dSoundDecoder* pDecoder, fBool bGlobalFocus, f2dSoundBuffer** pOut) = 0;
 
-	/// @brief      ´´½¨ÍÆÁ÷Æ÷
-	/// @note       ÍÆÁ÷Æ÷ÓÃÓÚ»ìÒôÊä³ö£¬Ö»ÓĞPlayºÍPauseÓĞĞ§£¬ÆäÓàº¯Êı¾ù²»Æğ×÷ÓÃ
-	/// @param[in]  pDecoder            °ó¶¨µÄ½âÂëÆ÷
-	/// @param[in]  iBufferSampleCount  »º³åÇø´æ´¢µÄ²ÉÑùÊı
-	/// @param[in]  bGlobalFocus        È«¾ÖÏìÓ¦£¬ÉèÎªtrueÔòµ±Ó¦ÓÃ³ÌĞò²»±»¼¤»îÊ±ÈÔÈ»¿ÉÒÔ·¢³öÉùÒô
-	/// @param[out] pOut                Êä³öµÄÒôÆµ»º³åÇøÖ¸Õë
+	/// @brief      åˆ›å»ºæ¨æµå™¨
+	/// @note       æ¨æµå™¨ç”¨äºæ··éŸ³è¾“å‡ºï¼Œåªæœ‰Playå’ŒPauseæœ‰æ•ˆï¼Œå…¶ä½™å‡½æ•°å‡ä¸èµ·ä½œç”¨
+	/// @param[in]  pDecoder            ç»‘å®šçš„è§£ç å™¨
+	/// @param[in]  iBufferSampleCount  ç¼“å†²åŒºå­˜å‚¨çš„é‡‡æ ·æ•°
+	/// @param[in]  bGlobalFocus        å…¨å±€å“åº”ï¼Œè®¾ä¸ºtrueåˆ™å½“åº”ç”¨ç¨‹åºä¸è¢«æ¿€æ´»æ—¶ä»ç„¶å¯ä»¥å‘å‡ºå£°éŸ³
+	/// @param[out] pOut                è¾“å‡ºçš„éŸ³é¢‘ç¼“å†²åŒºæŒ‡é’ˆ
 	virtual fResult CreatePullBuffer(f2dSoundDecoder* pDecoder, fuInt iBufferSampleCount, fBool bGlobalFocus, f2dSoundBuffer** pOut) = 0;
 
-	/// @brief      ´´½¨¾«ÁéÒôĞ§
-	/// @note       Ìá¹©ÒôĞ§²¥·Å¹¦ÄÜ£¬»á°ÑPCMÊı¾İ¶ÁÈ¡µ½ÄÚ´æÖĞ
-	/// @param[in]  pDecoder     ÒôÆµ½âÂëÆ÷£¬¾²Ì¬»º³åÇø²»»á±£´æ½âÂëÆ÷Ö¸Õë£¬½öÔÚ³õÊ¼»¯Ê±½âÂëËùÓĞPCMÊı¾İ
-	/// @param[in]  bGlobalFocus È«¾ÖÏìÓ¦£¬ÉèÎªtrueÔòµ±Ó¦ÓÃ³ÌĞò²»±»¼¤»îÊ±ÈÔÈ»¿ÉÒÔ·¢³öÉùÒô
-	/// @param[in]  iMaxCount    Ö¸¶¨Í¬Ê±²¥·ÅµÄ×î´óÒôĞ§ÊıÁ¿, Ä¬ÈÏ¿ÉÈ¡10
-	/// @param[out] pOut         Êä³öµÄÒôÆµ»º³åÇøÖ¸Õë
+	/// @brief      åˆ›å»ºç²¾çµéŸ³æ•ˆ
+	/// @note       æä¾›éŸ³æ•ˆæ’­æ”¾åŠŸèƒ½ï¼Œä¼šæŠŠPCMæ•°æ®è¯»å–åˆ°å†…å­˜ä¸­
+	/// @param[in]  pDecoder     éŸ³é¢‘è§£ç å™¨ï¼Œé™æ€ç¼“å†²åŒºä¸ä¼šä¿å­˜è§£ç å™¨æŒ‡é’ˆï¼Œä»…åœ¨åˆå§‹åŒ–æ—¶è§£ç æ‰€æœ‰PCMæ•°æ®
+	/// @param[in]  bGlobalFocus å…¨å±€å“åº”ï¼Œè®¾ä¸ºtrueåˆ™å½“åº”ç”¨ç¨‹åºä¸è¢«æ¿€æ´»æ—¶ä»ç„¶å¯ä»¥å‘å‡ºå£°éŸ³
+	/// @param[in]  iMaxCount    æŒ‡å®šåŒæ—¶æ’­æ”¾çš„æœ€å¤§éŸ³æ•ˆæ•°é‡, é»˜è®¤å¯å–10
+	/// @param[out] pOut         è¾“å‡ºçš„éŸ³é¢‘ç¼“å†²åŒºæŒ‡é’ˆ
 	virtual fResult CreateSoundSprite(f2dSoundDecoder* pDecoder, fBool bGlobalFocus, fuInt iMaxCount, f2dSoundSprite** pOut)=0;
 
-	/// @brief      ´´½¨Wave½âÂëÆ÷
-	/// @note       ½âÂëÆ÷»á¶ÔÁ÷µÄ´æÈ¡ĞĞÎª¼ÓËø£¬ÒÔ±£Ö¤Á÷ÔÚ¶àÏß³Ì»·¾³ÏÂ±»¸´ÓÃÊ±²»²úÉú´íÎó¡£
-	/// @param[in]  pStream Êı¾İÁ÷
-	/// @param[out] pOut    Êä³öµÄ½âÂëÆ÷Ö¸Õë
+	/// @brief      åˆ›å»ºWaveè§£ç å™¨
+	/// @note       è§£ç å™¨ä¼šå¯¹æµçš„å­˜å–è¡Œä¸ºåŠ é”ï¼Œä»¥ä¿è¯æµåœ¨å¤šçº¿ç¨‹ç¯å¢ƒä¸‹è¢«å¤ç”¨æ—¶ä¸äº§ç”Ÿé”™è¯¯ã€‚
+	/// @param[in]  pStream æ•°æ®æµ
+	/// @param[out] pOut    è¾“å‡ºçš„è§£ç å™¨æŒ‡é’ˆ
 	virtual fResult CreateWaveDecoder(f2dStream* pStream, f2dSoundDecoder** pOut)=0;
 
-	/// @brief      ´´½¨Vorbis½âÂëÆ÷£¬ÓÃÓÚ½âÎöOggÒôÆµ
-	/// @note       ½âÂëÆ÷»á¶ÔÁ÷µÄ´æÈ¡ĞĞÎª¼ÓËø£¬ÒÔ±£Ö¤Á÷ÔÚ¶àÏß³Ì»·¾³ÏÂ±»¸´ÓÃÊ±²»²úÉú´íÎó¡£
-	/// @param[in]  pStream Êı¾İÁ÷
-	/// @param[out] pOut    Êä³öµÄ½âÂëÆ÷Ö¸Õë
+	/// @brief      åˆ›å»ºVorbisè§£ç å™¨ï¼Œç”¨äºè§£æOggéŸ³é¢‘
+	/// @note       è§£ç å™¨ä¼šå¯¹æµçš„å­˜å–è¡Œä¸ºåŠ é”ï¼Œä»¥ä¿è¯æµåœ¨å¤šçº¿ç¨‹ç¯å¢ƒä¸‹è¢«å¤ç”¨æ—¶ä¸äº§ç”Ÿé”™è¯¯ã€‚
+	/// @param[in]  pStream æ•°æ®æµ
+	/// @param[out] pOut    è¾“å‡ºçš„è§£ç å™¨æŒ‡é’ˆ
 	virtual fResult CreateOGGVorbisDecoder(f2dStream* pStream, f2dSoundDecoder** pOut)=0;
 };
 

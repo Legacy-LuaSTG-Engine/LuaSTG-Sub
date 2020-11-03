@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+Ôªø////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dSoundSpriteImpl.h
-/// @brief fancy2D“Ù∆µœµÕ≥ “Ù–ßæ´¡È
+/// @brief fancy2DÈü≥È¢ëÁ≥ªÁªü Èü≥ÊïàÁ≤æÁÅµ
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyRefObj.h"
@@ -13,7 +13,7 @@
 #include <deque>
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief “Ù–ßæ´¡È
+/// @brief Èü≥ÊïàÁ≤æÁÅµ
 ////////////////////////////////////////////////////////////////////////////////
 class f2dSoundSpriteImpl : 
 	public fcyRefObjImpl<f2dSoundSprite>
@@ -21,20 +21,20 @@ class f2dSoundSpriteImpl :
 	friend class f2dSoundSysImpl;
 private:
 	IDirectSound8* m_pParent;
-	IDirectSoundBuffer* m_pBuffer;                 ///< @brief ‘≠ ºª∫≥Â
-	std::deque<IDirectSoundBuffer*> m_BufferList;  ///< @brief  π”√÷–ª∫≥Â
+	IDirectSoundBuffer* m_pBuffer;                 ///< @brief ÂéüÂßãÁºìÂÜ≤
+	std::deque<IDirectSoundBuffer*> m_BufferList;  ///< @brief ‰ΩøÁî®‰∏≠ÁºìÂÜ≤
 	fuInt m_BufferSize;
 	fuInt m_psSize;
 
 	fuInt m_MaxCount;
-public: // Ω”ø⁄ µœ÷
+public: // Êé•Âè£ÂÆûÁé∞
 	void Play();
 	void Stop();
 	void Pause();
 	fDouble GetTotalTime();
 
 	fResult PlayNewSound(fFloat Volume, fFloat Pan);
-protected: // Ω˚÷π÷±Ω”new/delete
+protected: // Á¶ÅÊ≠¢Áõ¥Êé•new/delete
 	f2dSoundSpriteImpl(IDirectSound8* pSound, f2dSoundDecoder* pDecoder, fBool bGlobalFocus, fuInt MaxCount = 10);
 	~f2dSoundSpriteImpl();
 };

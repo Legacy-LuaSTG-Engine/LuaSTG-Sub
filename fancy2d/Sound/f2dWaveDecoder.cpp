@@ -1,4 +1,4 @@
-#include "Sound/f2dWaveDecoder.h"
+ï»¿#include "Sound/f2dWaveDecoder.h"
 
 #include "fcyException.h"
 
@@ -52,7 +52,7 @@ f2dWaveDecoder::CDataChunk::CDataChunk(fChar* ID, fuInt Size, fcyBinaryReader* p
 	: IChunk(ID, Size)
 {
 	m_BasePointer = pReader->GetBaseStream()->GetPosition();
-	// Ìø¹ýSize
+	// è·³è¿‡Size
 	pReader->GetBaseStream()->SetPosition(FCYSEEKORIGIN_CUR, Size);
 }
 
@@ -66,11 +66,11 @@ f2dWaveDecoder::f2dWaveDecoder(f2dStream* pStream)
 		throw fcyException("f2dWaveDecoder::f2dWaveDecoder", "Invalid Pointer.");
 	m_pStream->AddRef();
 
-	// Ëø¶¨
+	// é”å®š
 	m_pStream->Lock();
 	m_pStream->SetPosition(FCYSEEKORIGIN_BEG, 0);
 
-	// ¶ÁÈ¡ËùÓÐRIFF¿é
+	// è¯»å–æ‰€æœ‰RIFFå—
 	try
 	{
 		fcyBinaryReader tReader(pStream);
@@ -92,7 +92,7 @@ f2dWaveDecoder::f2dWaveDecoder(f2dStream* pStream)
 				pChunk = new CDataChunk(tID, tSize, &tReader);
 			else
 			{
-				// Ìø¹ý²»Ö§³ÖµÄchunk
+				// è·³è¿‡ä¸æ”¯æŒçš„chunk
 				pStream->SetPosition(FCYSEEKORIGIN_CUR, tSize);
 			}
 
@@ -103,20 +103,20 @@ f2dWaveDecoder::f2dWaveDecoder(f2dStream* pStream)
 			}
 		}
 	}
-	catch(const fcyException& e) // ´¦Àí¶ÁÈ¡Òì³£
+	catch(const fcyException& e) // å¤„ç†è¯»å–å¼‚å¸¸
 	{
 		FCYDEBUGEXCPT(e);
 
 		m_pStream->Unlock();
-		clear();                // Çå³ýÎÞÓÃÊý¾Ý
-		FCYSAFEKILL(m_pStream); // ÊÍ·ÅÒýÓÃ
+		clear();                // æ¸…é™¤æ— ç”¨æ•°æ®
+		FCYSAFEKILL(m_pStream); // é‡Šæ”¾å¼•ç”¨
 		throw;
 	}
 
-	// ½âËø
+	// è§£é”
 	m_pStream->Unlock();
 
-	// ¼ì²éÇø¿éÍêÕûÐÔ
+	// æ£€æŸ¥åŒºå—å®Œæ•´æ€§
 	if(m_Chunk.find(tagRIFF) == m_Chunk.end() || m_Chunk.find(tagFMT) == m_Chunk.end() || m_Chunk.find(tagDATA) == m_Chunk.end())
 	{
 		clear();
@@ -219,19 +219,19 @@ fResult f2dWaveDecoder::SetPosition(F2DSEEKORIGIN Origin, fInt Offset)
 
 fResult f2dWaveDecoder::Read(fData pBuffer, fuInt SizeToRead, fuInt* pSizeRead)
 {
-	// Ëø¶¨Á÷
+	// é”å®šæµ
 	m_pStream->Lock();
 
-	// Ñ°Ö·
+	// å¯»å€
 	CDataChunk* tChunk = (CDataChunk*)(m_Chunk[tagDATA]);
 	m_pStream->SetPosition(FCYSEEKORIGIN_BEG, tChunk->m_BasePointer + m_cPointer);
 
-	// ¼ÆËã¶ÁÈ¡´óÐ¡
+	// è®¡ç®—è¯»å–å¤§å°
 	fuInt tRest = tChunk->m_Size - m_cPointer;
 	if(SizeToRead > tRest)
 		SizeToRead = tRest;
 
-	// ´ÓÁ÷ÖÐ¶ÁÈ¡Êý¾Ý
+	// ä»Žæµä¸­è¯»å–æ•°æ®
 	fLen tStreamRead = 0;
 	m_pStream->ReadBytes(pBuffer, SizeToRead, &tStreamRead);
 	if(SizeToRead != tStreamRead)
@@ -239,10 +239,10 @@ fResult f2dWaveDecoder::Read(fData pBuffer, fuInt SizeToRead, fuInt* pSizeRead)
 	if(pSizeRead)
 		*pSizeRead = SizeToRead;
 
-	// Ö¸ÕëºóÒÆ
+	// æŒ‡é’ˆåŽç§»
 	m_cPointer += SizeToRead;
 	
-	// ½âËøÁ÷
+	// è§£é”æµ
 	m_pStream->Unlock();
 
 	return FCYERR_OK;

@@ -1,4 +1,4 @@
-#include "Sound/f2dSoundBufferStatic.h"
+ï»¿#include "Sound/f2dSoundBufferStatic.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -8,7 +8,7 @@ f2dSoundBufferStatic::f2dSoundBufferStatic(IDirectSound8* pSound, f2dSoundDecode
 	if(!pDecoder)
 		throw fcyException("f2dSoundBufferStatic::f2dSoundBufferStatic", "Invalid Pointer.");
 
-	// ¼ÆËã³£Á¿
+	// è®¡ç®—å¸¸é‡
 	m_BufferSize = pDecoder->GetBufferSize();
 	m_psSize = pDecoder->GetSamplesPerSec() * pDecoder->GetBlockAlign();
 
@@ -28,14 +28,14 @@ f2dSoundBufferStatic::f2dSoundBufferStatic(IDirectSound8* pSound, f2dSoundDecode
 	tDesc.dwFlags = DSBCAPS_CTRLPAN | DSBCAPS_CTRLVOLUME | DSBCAPS_CTRLFREQUENCY;
 	if(bGlobalFocus)
 		tDesc.dwFlags |= DSBCAPS_GLOBALFOCUS;
-	tDesc.dwBufferBytes = m_BufferSize;  // ¾²Ì¬»º³å
+	tDesc.dwBufferBytes = m_BufferSize;  // é™æ€ç¼“å†²
 	tDesc.lpwfxFormat = &tFmtDesc;
 	
 	HRESULT tHR = pSound->CreateSoundBuffer(&tDesc, &m_pBuffer, NULL);
 	if(FAILED(tHR))
 		throw fcyException("f2dSoundBufferStatic::f2dSoundBufferStatic", "CreateSoundBuffer Failed.");
 
-	// ¿½±´Êý¾Ý
+	// æ‹·è´æ•°æ®
 	void* pBufferData = NULL;
 	DWORD pBufferSize = 0;
 	tHR = m_pBuffer->Lock(0, pDecoder->GetBufferSize(), &pBufferData, &pBufferSize, NULL, NULL, DSBLOCK_ENTIREBUFFER);

@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dWaveDecoder.h
-/// @brief fancy2D Wave½âÂëÆ÷ÊµÏÖ
+/// @brief fancy2D Waveè§£ç å™¨å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyRefObj.h"
@@ -13,7 +13,7 @@
 #include <unordered_map>
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief Wave½âÂëÆ÷
+/// @brief Waveè§£ç å™¨
 ////////////////////////////////////////////////////////////////////////////////
 class f2dWaveDecoder :
 	public fcyRefObjImpl<f2dSoundDecoder>
@@ -51,13 +51,13 @@ private:
 		public IChunk
 	{
 	public:
-		fuShort m_FormatTag;     ///< @brief ±àÂë·½Ê½£¬Ò»°ãÎª0x0001
-        fuShort m_Channels;      ///< @brief ÉùµÀÊıÄ¿ 1£¨µ¥ÉùµÀ£©/2£¨Ë«ÉùµÀ£©
-		fuInt m_SamplesPerSec;   ///< @brief ²ÉÑùÆµÂÊ
-		fuInt m_AvgBytesPerSec;  ///< @brief Ã¿ÃëËùĞè×Ö½ÚÊı
-		fuShort m_BlockAlign;    ///< @brief Êı¾İ¿é¶ÔÆëµ¥Î»£¨Ã¿¸ö²ÉÑùĞèÒªµÄ×Ö½ÚÊı)
-		fuShort m_BitsPerSample; ///< @brief Ã¿¸ö²ÉÑùĞèÒªµÄbitÊı
-		fuShort m_Reserved;      ///< @brief ±£Áô
+		fuShort m_FormatTag;     ///< @brief ç¼–ç æ–¹å¼ï¼Œä¸€èˆ¬ä¸º0x0001
+        fuShort m_Channels;      ///< @brief å£°é“æ•°ç›® 1ï¼ˆå•å£°é“ï¼‰/2ï¼ˆåŒå£°é“ï¼‰
+		fuInt m_SamplesPerSec;   ///< @brief é‡‡æ ·é¢‘ç‡
+		fuInt m_AvgBytesPerSec;  ///< @brief æ¯ç§’æ‰€éœ€å­—èŠ‚æ•°
+		fuShort m_BlockAlign;    ///< @brief æ•°æ®å—å¯¹é½å•ä½ï¼ˆæ¯ä¸ªé‡‡æ ·éœ€è¦çš„å­—èŠ‚æ•°)
+		fuShort m_BitsPerSample; ///< @brief æ¯ä¸ªé‡‡æ ·éœ€è¦çš„bitæ•°
+		fuShort m_Reserved;      ///< @brief ä¿ç•™
 	public:
 		CFormatChunk(fChar* ID, fuInt Size, fcyBinaryReader* pReader);
 		~CFormatChunk();
@@ -66,7 +66,7 @@ private:
 		public IChunk
 	{
 	public:
-		fuInt m_Data;  // Êı¾İ
+		fuInt m_Data;  // æ•°æ®
 	public:
 		CFactChunk(fChar* ID, fuInt Size, fcyBinaryReader* pReader);
 		~CFactChunk();
@@ -87,7 +87,7 @@ private:
 	f2dStream* m_pStream;
 private:
 	void clear();
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	fuInt GetBufferSize();
 	fuInt GetAvgBytesPerSec();
 	fuShort GetBlockAlign();

@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dSoundBufferPull.h
-/// @brief fancy2DÒôÆµÏµÍ³ ¶¯Ì¬»º³åÇøÍÆÁ÷Æ÷
+/// @brief fancy2DéŸ³é¢‘ç³»ç»Ÿ åŠ¨æ€ç¼“å†²åŒºæ¨æµå™¨
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyRefObj.h"
@@ -12,14 +12,14 @@
 #include <dsound.h>
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief »ùÓÚ¶¯Ì¬ÉùÒô»º³åµÄÍÆÁ÷Æ÷
+/// @brief åŸºäºåŠ¨æ€å£°éŸ³ç¼“å†²çš„æ¨æµå™¨
 ////////////////////////////////////////////////////////////////////////////////
 class f2dSoundBufferPull :
 	public fcyRefObjImpl<f2dSoundBuffer>
 {
 	friend class f2dSoundSysImpl;
 private:
-	/// @brief Á÷Í¬²½Ïß³Ì
+	/// @brief æµåŒæ­¥çº¿ç¨‹
 	class SoundBufferFiller :
 		public fcyBaseThread
 	{
@@ -32,28 +32,28 @@ private:
 		~SoundBufferFiller();
 	};
 protected:
-	// ½Ó¿Ú
+	// æ¥å£
 	IDirectSoundBuffer* m_pBuffer;
 	IDirectSoundNotify* m_pNotify;
 	f2dSoundDecoder* m_pDecoder;
-	// ¶àÏß³Ì
-	SoundBufferFiller* m_pFiller;  ///< @brief Ìî³äÓÃÏß³Ì
-	fcyCriticalSection m_Sec;      ///< @brief ÁÙ½çÇø
-	fcyEvent m_EvtBegin;           ///< @brief ¿ªÍ·Ìî³ä±êÖ¾µã
-	fcyEvent m_EvtHalf;            ///< @brief ÖĞÍ¾Ìî³ä±êÖ¾µã
-	fcyEvent m_EvtStop;            ///< @brief ÖÕÖ¹Î»ÖÃ
-	fBool m_bHalt;                 ///< @brief Ïß³ÌÖÕÖ¹ÏûÏ¢
-	// ²¥·ÅÊı¾İ
-	fuInt m_iBufferSize;     ///< @brief »º³åÇø´óĞ¡
+	// å¤šçº¿ç¨‹
+	SoundBufferFiller* m_pFiller;  ///< @brief å¡«å……ç”¨çº¿ç¨‹
+	fcyCriticalSection m_Sec;      ///< @brief ä¸´ç•ŒåŒº
+	fcyEvent m_EvtBegin;           ///< @brief å¼€å¤´å¡«å……æ ‡å¿—ç‚¹
+	fcyEvent m_EvtHalf;            ///< @brief ä¸­é€”å¡«å……æ ‡å¿—ç‚¹
+	fcyEvent m_EvtStop;            ///< @brief ç»ˆæ­¢ä½ç½®
+	fBool m_bHalt;                 ///< @brief çº¿ç¨‹ç»ˆæ­¢æ¶ˆæ¯
+	// æ’­æ”¾æ•°æ®
+	fuInt m_iBufferSize;     ///< @brief ç¼“å†²åŒºå¤§å°
 private:
-	void preInit(fuInt StartPos);  ///< @brief ¡¾Ïß³Ì°²È«¡¿³õÊ¼»¯²¢Ìî³ä»º³åÇø
-	void updateTime();             ///< @brief ¡¾·ÇÏß³Ì°²È«¡¿¸üĞÂÊ±¼ä
-	void fillBuffer(fuInt Index);  ///< @brief ¡¾·ÇÏß³Ì°²È«¡¿´ÓÄÚ²¿»º³åÇøÌî³äÒôÆµ»º³åÇø
-	void regNotify();              ///< @brief ¡¾·ÇÏß³Ì°²È«¡¿×¢²á¼àÌı
-	void regStopNotify(fuInt Pos); ///< @brief ¡¾·ÇÏß³Ì°²È«¡¿×¢²áÍ£Ö¹
-	fBool isThreadHalt();          ///< @brief ¡¾Ïß³Ì°²È«¡¿ÅĞ¶ÏÏß³ÌÍË³öÊÂ¼ş
-	void haltThread();             ///< @brief ¡¾Ïß³Ì°²È«¡¿°²È«ÖÕÖ¹Ïß³Ì
-public: // ½Ó¿ÚÊµÏÖ
+	void preInit(fuInt StartPos);  ///< @brief ã€çº¿ç¨‹å®‰å…¨ã€‘åˆå§‹åŒ–å¹¶å¡«å……ç¼“å†²åŒº
+	void updateTime();             ///< @brief ã€éçº¿ç¨‹å®‰å…¨ã€‘æ›´æ–°æ—¶é—´
+	void fillBuffer(fuInt Index);  ///< @brief ã€éçº¿ç¨‹å®‰å…¨ã€‘ä»å†…éƒ¨ç¼“å†²åŒºå¡«å……éŸ³é¢‘ç¼“å†²åŒº
+	void regNotify();              ///< @brief ã€éçº¿ç¨‹å®‰å…¨ã€‘æ³¨å†Œç›‘å¬
+	void regStopNotify(fuInt Pos); ///< @brief ã€éçº¿ç¨‹å®‰å…¨ã€‘æ³¨å†Œåœæ­¢
+	fBool isThreadHalt();          ///< @brief ã€çº¿ç¨‹å®‰å…¨ã€‘åˆ¤æ–­çº¿ç¨‹é€€å‡ºäº‹ä»¶
+	void haltThread();             ///< @brief ã€çº¿ç¨‹å®‰å…¨ã€‘å®‰å…¨ç»ˆæ­¢çº¿ç¨‹
+public: // æ¥å£å®ç°
 	fBool IsDynamic();
 
 	void Play();
@@ -72,7 +72,7 @@ public: // ½Ó¿ÚÊµÏÖ
 	fResult SetPan(fFloat Value);
 	fuInt GetFrequency();
 	fResult SetFrequency(fuInt Value);
-protected: // ½ûÖ¹Ö±½Ónew/delete
+protected: // ç¦æ­¢ç›´æ¥new/delete
 	f2dSoundBufferPull(IDirectSound8* pSound, f2dSoundDecoder* pDecoder, fuInt iBufferSampleCount, fBool bGlobalFocus);
 	~f2dSoundBufferPull();
 };

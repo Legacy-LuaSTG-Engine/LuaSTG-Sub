@@ -1,159 +1,159 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dFileSys.h
-/// @brief fancy2DÎÄ¼şÏµÍ³½Ó¿Ú¶¨Òå
+/// @brief fancy2Dæ–‡ä»¶ç³»ç»Ÿæ¥å£å®šä¹‰
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "f2dInterface.h"
 
-/// @addtogroup f2dÎÄ¼şÏµÍ³
-/// @brief fancy2dÒıÇæÖĞµÄÎÄ¼şÏµÍ³
+/// @addtogroup f2dæ–‡ä»¶ç³»ç»Ÿ
+/// @brief fancy2då¼•æ“ä¸­çš„æ–‡ä»¶ç³»ç»Ÿ
 /// @{
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2DĞéÄâÎÄ¼şÏµÍ³
+/// @brief fancy2Dè™šæ‹Ÿæ–‡ä»¶ç³»ç»Ÿ
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dFileFolderNode;
 struct f2dFileStreamNode;
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2DÎÄ¼şÏµÍ³½Úµã
+/// @brief fancy2Dæ–‡ä»¶ç³»ç»ŸèŠ‚ç‚¹
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dFileNode : public f2dInterface
 {
-	virtual f2dFileFolderNode* ToFolder()=0; ///< @brief ×ª»»µ½ÎÄ¼ş¼Ğ½Úµã£¨²»Ôö¼ÓÒıÓÃ¼ÆÊı£©
-	virtual f2dFileStreamNode* ToStream()=0; ///< @brief ×ª»»µ½Á÷½Úµã£¨²»Ôö¼ÓÒıÓÃ¼ÆÊı£©
+	virtual f2dFileFolderNode* ToFolder()=0; ///< @brief è½¬æ¢åˆ°æ–‡ä»¶å¤¹èŠ‚ç‚¹ï¼ˆä¸å¢åŠ å¼•ç”¨è®¡æ•°ï¼‰
+	virtual f2dFileStreamNode* ToStream()=0; ///< @brief è½¬æ¢åˆ°æµèŠ‚ç‚¹ï¼ˆä¸å¢åŠ å¼•ç”¨è®¡æ•°ï¼‰
 
-	virtual fcStrW GetName()=0;              ///< @brief »ñµÃ½ÚµãÃû³Æ
+	virtual fcStrW GetName()=0;              ///< @brief è·å¾—èŠ‚ç‚¹åç§°
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2DÎÄ¼ş¼Ğ½Úµã
+/// @brief fancy2Dæ–‡ä»¶å¤¹èŠ‚ç‚¹
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dFileFolderNode : public f2dFileNode
 {
-	/// @brief Çå¿ÕËùÓĞ×Ó½Úµã
-	/// @note  Çå¿ÕËùÓĞ×Ó½Úµã²¢¼õÉÙÒıÓÃ¼ÆÊı
+	/// @brief æ¸…ç©ºæ‰€æœ‰å­èŠ‚ç‚¹
+	/// @note  æ¸…ç©ºæ‰€æœ‰å­èŠ‚ç‚¹å¹¶å‡å°‘å¼•ç”¨è®¡æ•°
 	virtual fResult Clear()=0;
 
-	/// @brief     Ôö¼Ó×Ó½Úµã
-	/// @note      ½«Ò»¸ö½ÚµãÔö¼Óµ½ÎÄ¼ş¼ĞÖĞ£¬²¢Ôö¼ÓÆäÒıÓÃ¼ÆÊı
-	/// @param[in] pNode    ½ÚµãÖ¸Õë
+	/// @brief     å¢åŠ å­èŠ‚ç‚¹
+	/// @note      å°†ä¸€ä¸ªèŠ‚ç‚¹å¢åŠ åˆ°æ–‡ä»¶å¤¹ä¸­ï¼Œå¹¶å¢åŠ å…¶å¼•ç”¨è®¡æ•°
+	/// @param[in] pNode    èŠ‚ç‚¹æŒ‡é’ˆ
 	virtual fResult Add(f2dFileNode* pNode)=0;
 	
-	/// @brief     ÊÇ·ñ°üº¬×Ó½Úµã
-	/// @param[in] NodeName ½ÚµãÃû³Æ
-	/// @return    FCYERR_OBJEXSITED£º¶ÔÏóÒÑ´æÔÚ£»FCYERR_OBJNOTEXSIT£º¶ÔÏó²»´æÔÚ
+	/// @brief     æ˜¯å¦åŒ…å«å­èŠ‚ç‚¹
+	/// @param[in] NodeName èŠ‚ç‚¹åç§°
+	/// @return    FCYERR_OBJEXSITEDï¼šå¯¹è±¡å·²å­˜åœ¨ï¼›FCYERR_OBJNOTEXSITï¼šå¯¹è±¡ä¸å­˜åœ¨
 	virtual fResult Contain(fcStrW NodeName)=0;
 	
-	/// @brief     ÒÆ³ı×Ó½Úµã
-	/// @note      ¼õÉÙ½ÚµãµÄÒıÓÃ¼ÆÊı
-	/// @param[in] NodeName ½ÚµãÃû³Æ
+	/// @brief     ç§»é™¤å­èŠ‚ç‚¹
+	/// @note      å‡å°‘èŠ‚ç‚¹çš„å¼•ç”¨è®¡æ•°
+	/// @param[in] NodeName èŠ‚ç‚¹åç§°
 	virtual fResult Remove(fcStrW NodeName)=0;
 	
-	/// @brief     »ñµÃ×Ó½Úµã
-	/// @note      ·µ»Ø½ÚµãÖ¸Õë£¬²»Ôö¼ÓÒıÓÃ¼ÆÊı¡£
-	/// @param[in] NodeName ½ÚµãÃû³Æ
-	/// @return    Èç¹û²»´æÔÚ·µ»ØNULL
+	/// @brief     è·å¾—å­èŠ‚ç‚¹
+	/// @note      è¿”å›èŠ‚ç‚¹æŒ‡é’ˆï¼Œä¸å¢åŠ å¼•ç”¨è®¡æ•°ã€‚
+	/// @param[in] NodeName èŠ‚ç‚¹åç§°
+	/// @return    å¦‚æœä¸å­˜åœ¨è¿”å›NULL
 	virtual f2dFileNode* GetSubNode(fcStrW NodeName)=0;
 	
-	/// @brief     »ñµÃ×Ó½Úµã
-	/// @note      ·µ»Ø½ÚµãÖ¸Õë£¬²»Ôö¼ÓÒıÓÃ¼ÆÊı¡£
-	/// @param[in] Index ½ÚµãË÷Òı
-	/// @return    Èç¹û²»´æÔÚ·µ»ØNULL
+	/// @brief     è·å¾—å­èŠ‚ç‚¹
+	/// @note      è¿”å›èŠ‚ç‚¹æŒ‡é’ˆï¼Œä¸å¢åŠ å¼•ç”¨è®¡æ•°ã€‚
+	/// @param[in] Index èŠ‚ç‚¹ç´¢å¼•
+	/// @return    å¦‚æœä¸å­˜åœ¨è¿”å›NULL
 	virtual f2dFileNode* GetSubNode(fuInt Index)=0;
 	
-	/// @brief »ñµÃ½ÚµãÊı
+	/// @brief è·å¾—èŠ‚ç‚¹æ•°
 	virtual fuInt GetNodeCount()=0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2DÁ÷½Úµã
+/// @brief fancy2DæµèŠ‚ç‚¹
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dFileStreamNode : public f2dFileNode
 {
-	/// @brief ·µ»ØÁ÷½Ó¿Ú
-	/// @note  ²»Ôö¼ÓÒıÓÃ¼ÆÊı
+	/// @brief è¿”å›æµæ¥å£
+	/// @note  ä¸å¢åŠ å¼•ç”¨è®¡æ•°
 	virtual f2dStream* GetStream()=0;
 	
-	/// @brief ¹Ø±ÕÁ÷
-	/// @note  ½ö¶ÔÄ³Ğ©½ÚµãÓĞĞ§¡£¶ÔÓÚ¹Ø±ÕµÄÁ÷ÔÚµ÷ÓÃGetStreamÊ±Ó¦¸Ã¿ÉÒÔ±»ÖØĞÂ¼ÓÔØ¡£
+	/// @brief å…³é—­æµ
+	/// @note  ä»…å¯¹æŸäº›èŠ‚ç‚¹æœ‰æ•ˆã€‚å¯¹äºå…³é—­çš„æµåœ¨è°ƒç”¨GetStreamæ—¶åº”è¯¥å¯ä»¥è¢«é‡æ–°åŠ è½½ã€‚
 	virtual fResult CloseStream()=0;
     
-	/// @brief ·µ»Ø¶îÍâÊı¾İ
-	/// @note  ¸½¼Ó×Ö¶Î¿ÉÒÔ±»ÓÃÀ´´¢´æ¶îÍâµÄÊôĞÔ
+	/// @brief è¿”å›é¢å¤–æ•°æ®
+	/// @note  é™„åŠ å­—æ®µå¯ä»¥è¢«ç”¨æ¥å‚¨å­˜é¢å¤–çš„å±æ€§
 	virtual fcStrW GetAdditionData()=0;
 	
-	/// @brief ÉèÖÃ¶îÍâÊı¾İ
+	/// @brief è®¾ç½®é¢å¤–æ•°æ®
 	virtual fResult SetAdditionData(fcStrW Str)=0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2DÎÄ¼şÏµÍ³
+/// @brief fancy2Dæ–‡ä»¶ç³»ç»Ÿ
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dFileSys
 {
-	// --- ½Úµã¹ÜÀí ---
-	/// @brief »ñµÃ¸ù½Úµã
+	// --- èŠ‚ç‚¹ç®¡ç† ---
+	/// @brief è·å¾—æ ¹èŠ‚ç‚¹
 	virtual f2dFileFolderNode* GetRootNode()=0;
 
-	/// @brief     »ñµÃ½Úµã
-	/// @param[in] Path ½ÚµãµÄÂ·¾¶
+	/// @brief     è·å¾—èŠ‚ç‚¹
+	/// @param[in] Path èŠ‚ç‚¹çš„è·¯å¾„
 	virtual f2dFileNode* GetNode(fcStrW Path)=0;
 
-	/// @brief     É¾³ı½Úµã
-	/// @param[in] Path ½ÚµãµÄÂ·¾¶
+	/// @brief     åˆ é™¤èŠ‚ç‚¹
+	/// @param[in] Path èŠ‚ç‚¹çš„è·¯å¾„
 	virtual fResult RemoveNode(fcStrW Path)=0;
 
-	/// @brief     ´´½¨ÎÄ¼ş¼Ğ½Úµã
-	/// @param[in] Path ½ÚµãµÄÂ·¾¶
+	/// @brief     åˆ›å»ºæ–‡ä»¶å¤¹èŠ‚ç‚¹
+	/// @param[in] Path èŠ‚ç‚¹çš„è·¯å¾„
 	virtual fResult AddFolderNode(fcStrW Path)=0;
 
-	/// @brief     ´´½¨ÄÚ´æÁ÷½Úµã
-	/// @param[in] Path      ½ÚµãµÄÂ·¾¶
-	/// @param[in] Src       Êı¾İÔ´£¬¿ÉÎªNULL
-	/// @param[in] Length    ³õÊ¼´óĞ¡
-	/// @param[in] Writable  ¿ÉĞ´
-	/// @param[in] Resizable ¿É±ä³¤
+	/// @brief     åˆ›å»ºå†…å­˜æµèŠ‚ç‚¹
+	/// @param[in] Path      èŠ‚ç‚¹çš„è·¯å¾„
+	/// @param[in] Src       æ•°æ®æºï¼Œå¯ä¸ºNULL
+	/// @param[in] Length    åˆå§‹å¤§å°
+	/// @param[in] Writable  å¯å†™
+	/// @param[in] Resizable å¯å˜é•¿
 	virtual fResult AddMemStreamNode(fcStrW Path, fcData Src, fLen Length, fBool Writable, fBool Resizable)=0;
 	
-	/// @brief     ´ÓÎÄ¼ş´´½¨ÄÚ´æÁ÷½Úµã
-	/// @note      ½«ÎÄ¼ş¼ÓÔØµ½ÄÚ´æ²¢´´½¨Á÷½Úµã
-	/// @param[in] Path      ½ÚµãµÄÂ·¾¶
-	/// @param[in] FilePath  ÎÄ¼şÂ·¾¶
-	/// @param[in] Writable  ¿ÉĞ´
-	/// @param[in] Resizable ¿É±ä³¤
+	/// @brief     ä»æ–‡ä»¶åˆ›å»ºå†…å­˜æµèŠ‚ç‚¹
+	/// @note      å°†æ–‡ä»¶åŠ è½½åˆ°å†…å­˜å¹¶åˆ›å»ºæµèŠ‚ç‚¹
+	/// @param[in] Path      èŠ‚ç‚¹çš„è·¯å¾„
+	/// @param[in] FilePath  æ–‡ä»¶è·¯å¾„
+	/// @param[in] Writable  å¯å†™
+	/// @param[in] Resizable å¯å˜é•¿
 	virtual fResult AddMemStreamNodeFromFile(fcStrW Path, fcStrW FilePath, fBool Writable, fBool Resizable)=0;
 
-	/// @brief     ´´½¨ÎÄ¼şÁ÷½Úµã
-	/// @note      ¹Ò½ÓÒ»¸öÀ´×ÔÓ²ÅÌÉÏµÄÎÄ¼ş
-	/// @param[in] Path      ½ÚµãµÄÂ·¾¶
-	/// @param[in] FilePath  ÎÄ¼şÂ·¾¶
-	/// @param[in] Writable  ¿ÉĞ´
+	/// @brief     åˆ›å»ºæ–‡ä»¶æµèŠ‚ç‚¹
+	/// @note      æŒ‚æ¥ä¸€ä¸ªæ¥è‡ªç¡¬ç›˜ä¸Šçš„æ–‡ä»¶
+	/// @param[in] Path      èŠ‚ç‚¹çš„è·¯å¾„
+	/// @param[in] FilePath  æ–‡ä»¶è·¯å¾„
+	/// @param[in] Writable  å¯å†™
 	virtual fResult AddFileStreamNode(fcStrW Path, fcStrW FilePath, fBool Writable)=0;
 
-	// --- ¸¨Öú²Ù×÷ ---
-	/// @brief  Í¨¹ıÂ·¾¶È¡µÃÁ÷
-	/// @note   ¸Ã²Ù×÷²»Ôö¼ÓÒıÓÃ¼ÆÊı
-	/// @return ³É¹¦·µ»ØÁ÷£¬·ñÔò·µ»ØNULL
+	// --- è¾…åŠ©æ“ä½œ ---
+	/// @brief  é€šè¿‡è·¯å¾„å–å¾—æµ
+	/// @note   è¯¥æ“ä½œä¸å¢åŠ å¼•ç”¨è®¡æ•°
+	/// @return æˆåŠŸè¿”å›æµï¼Œå¦åˆ™è¿”å›NULL
 	virtual f2dStream* GetStream(fcStrW Path)=0;
 
-	// --- °ü²Ù×÷ ---
-	/// @brief     ½«Ò»¸ö×ÊÔ´°ü¼ÓÔØµ½½ÚµãÖĞ
-	/// @param[in] Path      Â·¾¶
-	/// @param[in] PakStream Êı¾İÁ÷
+	// --- åŒ…æ“ä½œ ---
+	/// @brief     å°†ä¸€ä¸ªèµ„æºåŒ…åŠ è½½åˆ°èŠ‚ç‚¹ä¸­
+	/// @param[in] Path      è·¯å¾„
+	/// @param[in] PakStream æ•°æ®æµ
 	virtual fResult LoadResPackage(fcStrW Path, f2dStream* PakStream)=0;
 
-	/// @brief     ½«Ò»¸ö×ÊÔ´°ü¼ÓÔØµ½½ÚµãÖĞ
-	/// @param[in] Path        Â·¾¶
-	/// @param[in] PakFilePath ÎÄ¼şÂ·¾¶
+	/// @brief     å°†ä¸€ä¸ªèµ„æºåŒ…åŠ è½½åˆ°èŠ‚ç‚¹ä¸­
+	/// @param[in] Path        è·¯å¾„
+	/// @param[in] PakFilePath æ–‡ä»¶è·¯å¾„
 	virtual fResult LoadResPackage(fcStrW Path, fcStrW PakFilePath)=0;
 
-	// --- ÕæÊµÄ¿Â¼Ó³Éä ---
-	/// @brief     Ó³ÉäÒ»¸öÕæÊµµÄÎÄ¼ş¼Ğµ½½ÚµãÖĞ
-	/// @note      Ó³ÉäÊ±»á¼ÇÂ¼ËùÓĞÎÄ¼ş¼Ğ£¬¶ÔÄ¿Â¼µÄÈÎºÎ²Ù×÷½«²»»áÔÚÓ³Éäºó·´Ó³¡£
-	/// @warning   ÕæÊµÄ¿Â¼½Úµã²»Çø·Ö´óĞ¡Ğ´
-	/// @param[in] Path    Â·¾¶
-	/// @param[in] DirPath ÎÄ¼ş¼ĞÂ·¾¶
+	// --- çœŸå®ç›®å½•æ˜ å°„ ---
+	/// @brief     æ˜ å°„ä¸€ä¸ªçœŸå®çš„æ–‡ä»¶å¤¹åˆ°èŠ‚ç‚¹ä¸­
+	/// @note      æ˜ å°„æ—¶ä¼šè®°å½•æ‰€æœ‰æ–‡ä»¶å¤¹ï¼Œå¯¹ç›®å½•çš„ä»»ä½•æ“ä½œå°†ä¸ä¼šåœ¨æ˜ å°„ååæ˜ ã€‚
+	/// @warning   çœŸå®ç›®å½•èŠ‚ç‚¹ä¸åŒºåˆ†å¤§å°å†™
+	/// @param[in] Path    è·¯å¾„
+	/// @param[in] DirPath æ–‡ä»¶å¤¹è·¯å¾„
 	virtual fResult LoadRealPath(fcStrW Path, fcStrW DirPath)=0;
 };
 /// @}

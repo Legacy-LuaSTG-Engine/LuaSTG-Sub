@@ -1,4 +1,4 @@
-#include "Sound/f2dVorbisDecoder.h"
+ï»¿#include "Sound/f2dVorbisDecoder.h"
 
 #include "fcyException.h"
 
@@ -138,7 +138,7 @@ fLen f2dVorbisDecoder::GetPosition()
 
 fResult f2dVorbisDecoder::SetPosition(F2DSEEKORIGIN Origin, fInt Offset)
 {
-	// ¼ÆËãÄ¿±êÎ»ÖÃ
+	// è®¡ç®—ç›®æ ‡ä½ç½®
 	fuInt tPCMPointer = (fuInt)GetPosition();
 
 	switch(Origin)
@@ -166,10 +166,10 @@ fResult f2dVorbisDecoder::SetPosition(F2DSEEKORIGIN Origin, fInt Offset)
 	}
 	tPCMPointer+=Offset;
 
-	// ½øÐÐSeek²Ù×÷
+	// è¿›è¡ŒSeekæ“ä½œ
 	m_CurrentSec = 0;
 	
-	m_pStream->Lock();  // Ëø¶¨Á÷
+	m_pStream->Lock();  // é”å®šæµ
 	m_pStream->SetPosition(FCYSEEKORIGIN_BEG, m_CurrentPos);
 
 	int tRet = ov_time_seek(&m_OggFile, tPCMPointer / (double)(GetSamplesPerSec() * GetBlockAlign()));
@@ -185,7 +185,7 @@ fResult f2dVorbisDecoder::Read(fData pBuffer, fuInt SizeToRead, fuInt* pSizeRead
 	if(pSizeRead)
 		*pSizeRead = 0;
 
-	m_pStream->Lock(); // Ëø¶¨Á÷
+	m_pStream->Lock(); // é”å®šæµ
 	m_pStream->SetPosition(FCYSEEKORIGIN_BEG, m_CurrentPos);
 
 	fuInt tSizeRead = 0;
@@ -193,13 +193,13 @@ fResult f2dVorbisDecoder::Read(fData pBuffer, fuInt SizeToRead, fuInt* pSizeRead
 	while(tSizeRead < SizeToRead)
 	{
 		long tRet = ov_read(&m_OggFile, tBuffer, SizeToRead - tSizeRead, 0, 2, 1, &m_CurrentSec);
-		if(tRet<0)     // ´íÎó
+		if(tRet<0)     // é”™è¯¯
 		{
 			m_CurrentPos = m_pStream->GetPosition();
 			m_pStream->Unlock();
 			return FCYERR_INTERNALERR;
 		}
-		if(tRet == 0)  // µ½Î²²¿
+		if(tRet == 0)  // åˆ°å°¾éƒ¨
 			break;
 		tSizeRead += tRet;
 		tBuffer += tRet;

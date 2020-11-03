@@ -1,4 +1,4 @@
-#include "Sound/f2dSoundBufferDynamic.h"
+ï»¿#include "Sound/f2dSoundBufferDynamic.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -32,7 +32,7 @@ fuInt f2dSoundBufferDynamic::SoundBufferFiller::ThreadJob()
 			break;
 		default:
 			{
-				// ¼ì²éÏß³ÌÍË³ö
+				// æ£€æŸ¥çº¿ç¨‹é€€å‡º
 				if(m_pParent->isThreadHalt())
 					return 0;
 
@@ -98,7 +98,7 @@ f2dSoundBufferDynamic::f2dSoundBufferDynamic(IDirectSound8* pSound, f2dSoundDeco
 	tDesc.dwFlags = DSBCAPS_CTRLPAN | DSBCAPS_CTRLVOLUME | DSBCAPS_CTRLFREQUENCY | DSBCAPS_CTRLPOSITIONNOTIFY;
 	if(bGlobalFocus)
 		tDesc.dwFlags |= DSBCAPS_GLOBALFOCUS;
-	tDesc.dwBufferBytes = BufferSize;  // ¶¯Ì¬»º³å
+	tDesc.dwBufferBytes = BufferSize;  // åŠ¨æ€ç¼“å†²
 	tDesc.lpwfxFormat = &tFmtDesc;
 	
 	HRESULT tHR = pSound->CreateSoundBuffer(&tDesc, &m_pBuffer, NULL);
@@ -118,14 +118,14 @@ f2dSoundBufferDynamic::f2dSoundBufferDynamic(IDirectSound8* pSound, f2dSoundDeco
 
 	preInit(0);
 
-	// Æô¶¯¼àÌýÏß³Ì
+	// å¯åŠ¨ç›‘å¬çº¿ç¨‹
 	m_pFiller = new SoundBufferFiller(this);
 	m_pFiller->Resume();
 }
 
 f2dSoundBufferDynamic::~f2dSoundBufferDynamic()
 {
-	// ÖÕÖ¹Ïß³Ì
+	// ç»ˆæ­¢çº¿ç¨‹
 	haltThread();
 
 	FCYSAFEDEL(m_pFiller);
@@ -141,8 +141,8 @@ void f2dSoundBufferDynamic::preInit(fuInt StartPos)
 	m_pBuffer->SetCurrentPosition(0);
 	m_StartPos = StartPos;
 	m_pDecoder->SetPosition(FCYSEEKORIGIN_BEG, StartPos);
-	regNotify();   // ×¢²á¼àÌýÆ÷
-	fillBuffer(0); // Ìî³äµÚÒ»¿é
+	regNotify();   // æ³¨å†Œç›‘å¬å™¨
+	fillBuffer(0); // å¡«å……ç¬¬ä¸€å—
 
 	m_PlayTime = 0 - BufferSize;
 
@@ -156,10 +156,10 @@ void f2dSoundBufferDynamic::updateTime()
 
 void f2dSoundBufferDynamic::fillBuffer(fuInt Index)
 {
-	// ¼ÆËãÌî³äÎ»ÖÃ
+	// è®¡ç®—å¡«å……ä½ç½®
 	fuInt tPosToFill = Index * (BufferSize / 2);
 	
-	// »ñµÃÖ¸Õë
+	// èŽ·å¾—æŒ‡é’ˆ
 	fByte *tFillPtr = NULL;
 	fuInt tFillSize = 0, tRealSize = 0;
 	m_pBuffer->Lock(tPosToFill, BufferSize / 2, (void**)&tFillPtr, (DWORD*)&tFillSize, NULL, NULL, 0);
@@ -168,7 +168,7 @@ void f2dSoundBufferDynamic::fillBuffer(fuInt Index)
 	m_pDecoder->Read(tFillPtr, tFillSize, &tRealSize);
 	if(tRealSize<tFillSize)
 	{
-		// ²åÈëÒ»¸öÖÕÖ¹ÐÅºÅ
+		// æ’å…¥ä¸€ä¸ªç»ˆæ­¢ä¿¡å·
 		fuInt tStopPos = tPosToFill + tRealSize;
 
 		regStopNotify(tStopPos);
@@ -219,7 +219,7 @@ void f2dSoundBufferDynamic::haltThread()
 	m_bHalt = true;
 	m_Sec.UnLock();
 
-	// ¼¤»îËùÓÐÊÂ¼þÒÔÊ¹Ïß³ÌÍË³ö
+	// æ¿€æ´»æ‰€æœ‰äº‹ä»¶ä»¥ä½¿çº¿ç¨‹é€€å‡º
 	m_EvtBegin.Set();
 	m_EvtHalf.Set();
 	m_EvtStop.Set();

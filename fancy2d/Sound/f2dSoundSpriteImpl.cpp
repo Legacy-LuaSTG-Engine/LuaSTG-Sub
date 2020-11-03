@@ -1,4 +1,4 @@
-#include "Sound/f2dSoundSpriteImpl.h"
+ï»¿#include "Sound/f2dSoundSpriteImpl.h"
 
 using namespace std;
 
@@ -12,7 +12,7 @@ f2dSoundSpriteImpl::f2dSoundSpriteImpl(IDirectSound8* pSound, f2dSoundDecoder* p
 	if(!pDecoder)
 		throw fcyException("f2dSoundSpriteImpl::f2dSoundSpriteImpl", "Invalid Pointer.");
 
-	// ¼ÆËã³£Á¿
+	// è®¡ç®—å¸¸é‡
 	m_BufferSize = pDecoder->GetBufferSize();
 	m_psSize = pDecoder->GetSamplesPerSec() * pDecoder->GetBlockAlign();
 
@@ -32,14 +32,14 @@ f2dSoundSpriteImpl::f2dSoundSpriteImpl(IDirectSound8* pSound, f2dSoundDecoder* p
 	tDesc.dwFlags = DSBCAPS_CTRLPAN | DSBCAPS_CTRLVOLUME | DSBCAPS_CTRLFREQUENCY;
 	if(bGlobalFocus)
 		tDesc.dwFlags |= DSBCAPS_GLOBALFOCUS;
-	tDesc.dwBufferBytes = m_BufferSize;  // ¾²Ì¬»º³å
+	tDesc.dwBufferBytes = m_BufferSize;  // é™æ€ç¼“å†²
 	tDesc.lpwfxFormat = &tFmtDesc;
 	
 	HRESULT tHR = pSound->CreateSoundBuffer(&tDesc, &m_pBuffer, NULL);
 	if(FAILED(tHR))
 		throw fcyException("f2dSoundSpriteImpl::f2dSoundSpriteImpl", "CreateSoundBuffer Failed.");
 
-	// ¿½±´Êý¾Ý
+	// æ‹·è´æ•°æ®
 	void* pBufferData = NULL;
 	DWORD pBufferSize = 0;
 	tHR = m_pBuffer->Lock(0, pDecoder->GetBufferSize(), &pBufferData, &pBufferSize, NULL, NULL, DSBLOCK_ENTIREBUFFER);
@@ -124,14 +124,14 @@ fResult f2dSoundSpriteImpl::PlayNewSound(fFloat Volume, fFloat Pan)
 		tBuffer->GetStatus(&tFlag);
 		tBuffer->GetCurrentPosition(&tPos, NULL);
 
-		// ¼ÇÂ¼Ò»¸ö²¥·Å×î¾ÃµÄ»º³åÇø×÷Îª±¸Ñ¡
+		// è®°å½•ä¸€ä¸ªæ’­æ”¾æœ€ä¹…çš„ç¼“å†²åŒºä½œä¸ºå¤‡é€‰
 		if(tPos > tMaxPos || !tMaxPos)
 		{
 			tMaxPos = tPos;
 			pTimeMax = tBuffer;
 		}
 
-		// ¼ÇÂ¼Ò»¸ö²¥·ÅÍ£Ö¹µÄ»º³åÇø×÷Îª×î¼ÑÑ¡Ôñ
+		// è®°å½•ä¸€ä¸ªæ’­æ”¾åœæ­¢çš„ç¼“å†²åŒºä½œä¸ºæœ€ä½³é€‰æ‹©
 		if(!(tFlag & DSBSTATUS_PLAYING) && tPos==0)
 		{
 			pBuffer = tBuffer;
@@ -142,13 +142,13 @@ fResult f2dSoundSpriteImpl::PlayNewSound(fFloat Volume, fFloat Pan)
 
 	if(!pBuffer)
 	{
-		// ¿¼²ìÊÇ·ñ³¬³ö»º³åÉÏÏÞ
+		// è€ƒå¯Ÿæ˜¯å¦è¶…å‡ºç¼“å†²ä¸Šé™
 		if(m_BufferList.size() > m_MaxCount)
 		{
 			if(!pTimeMax)
 				return FCYERR_INTERNALERR;
 
-			// Ñ°ÕÒÒ»¸ö²¥·ÅÊ±¼ä×î³¤µÄ
+			// å¯»æ‰¾ä¸€ä¸ªæ’­æ”¾æ—¶é—´æœ€é•¿çš„
 			pBuffer = pTimeMax;
 		}
 		else
@@ -161,7 +161,7 @@ fResult f2dSoundSpriteImpl::PlayNewSound(fFloat Volume, fFloat Pan)
 		}
 	}
 
-	// ÐÞÊÎÖµ
+	// ä¿®é¥°å€¼
 	if(Volume<0.f)
 		Volume = 0.f;
 	else if(Volume>1.f)
