@@ -1,4 +1,4 @@
-#ifndef _M_ARM
+ï»¿#ifndef _M_ARM
 
 #include "Input/f2dInputSysAPI.h"
 
@@ -8,12 +8,12 @@ f2dInputSysAPI::f2dInputSysAPI()
 	: m_hModule(NULL),
 	m_Entry_pDirectInput8Create(NULL)
 {
-	// ¼ÓÔØÄ£¿é
+	// åŠ è½½æ¨¡å—
 	m_hModule = LoadLibrary(L"DInput8.dll");
 	if(!m_hModule)
 		throw fcyWin32Exception("f2dInputSysAPI::f2dInputSysAPI", "LoadLibrary Failed.");
 
-	// »ñµÃÈë¿Ú
+	// è·å¾—å…¥å£
 	m_Entry_pDirectInput8Create = (pDLLEntry_DirectInput8Create)GetProcAddress(m_hModule, "DirectInput8Create");
 	if(!m_Entry_pDirectInput8Create)
 		throw fcyWin32Exception("f2dInputSysAPI::f2dInputSysAPI", "GetProcAddress Failed.");

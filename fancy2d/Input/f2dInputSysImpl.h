@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dInputSysImpl.h
-/// @brief fancy2DÊäÈëÏµÍ³ÊµÏÖ
+/// @brief fancy2Dè¾“å…¥ç³»ç»Ÿå®ç°
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "Input/f2dInputSysAPI.h"
@@ -12,7 +12,7 @@
 class f2dEngineImpl;
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ÊäÈëÏµÍ³ÊµÏÖ
+/// @brief è¾“å…¥ç³»ç»Ÿå®ç°
 ////////////////////////////////////////////////////////////////////////////////
 class f2dInputSysImpl :
 	public fcyRefObjImpl<f2dInputSys>
@@ -24,18 +24,18 @@ private:
 
 	IDirectInput8* m_pDInput;
 	HWND m_hWinHandle;
-	std::vector<DIDEVICEINSTANCEW> m_MouseList;    // Êó±êÁĞ±í
-	std::vector<DIDEVICEINSTANCEW> m_KeyboardList; // ¼üÅÌÁĞ±í
-	std::vector<DIDEVICEINSTANCEW> m_GameCtrlList; // ¿ØÖÆÆ÷ÁĞ±í
+	std::vector<DIDEVICEINSTANCEW> m_MouseList;    // é¼ æ ‡åˆ—è¡¨
+	std::vector<DIDEVICEINSTANCEW> m_KeyboardList; // é”®ç›˜åˆ—è¡¨
+	std::vector<DIDEVICEINSTANCEW> m_GameCtrlList; // æ§åˆ¶å™¨åˆ—è¡¨
 
-	std::vector<f2dInputDevice*> m_pObjList;       // Éè±¸ÁĞ±í
+	std::vector<f2dInputDevice*> m_pObjList;       // è®¾å¤‡åˆ—è¡¨
 private:
-	static BOOL PASCAL enumMouse(LPCDIDEVICEINSTANCE pInfo, void* pThis);    // Ã¶¾ÙÊó±ê
-	static BOOL PASCAL enumKeyboard(LPCDIDEVICEINSTANCE pInfo, void* pThis); // Ã¶¾Ù¼üÅÌ
-	static BOOL PASCAL enumGameCtrl(LPCDIDEVICEINSTANCE pInfo, void* pThis); // Ã¶¾ÙÓÎÏ·ÊÖ±ú
+	static BOOL PASCAL enumMouse(LPCDIDEVICEINSTANCE pInfo, void* pThis);    // æšä¸¾é¼ æ ‡
+	static BOOL PASCAL enumKeyboard(LPCDIDEVICEINSTANCE pInfo, void* pThis); // æšä¸¾é”®ç›˜
+	static BOOL PASCAL enumGameCtrl(LPCDIDEVICEINSTANCE pInfo, void* pThis); // æšä¸¾æ¸¸æˆæ‰‹æŸ„
 private:
-	void enumDevice();  // Ã¶¾ÙËùÓĞÉè±¸
-public:  // ÄÚ²¿·½·¨
+	void enumDevice();  // æšä¸¾æ‰€æœ‰è®¾å¤‡
+public:  // å†…éƒ¨æ–¹æ³•
 	f2dEngineImpl* GetEngine()
 	{
 		return m_pEngine;
@@ -64,7 +64,7 @@ public:  // ÄÚ²¿·½·¨
 				++i;
 		}
 	}
-public:  // ½Ó¿ÚÊµÏÖ
+public:  // æ¥å£å®ç°
 	fuInt GetDeviceCount(F2DINPUTDEVTYPE Type);
 	fcStrW GetDeviceName(F2DINPUTDEVTYPE Type, fuInt Index);
 	fcStrW GetDeviceProductName(F2DINPUTDEVTYPE Type, fuInt Index);

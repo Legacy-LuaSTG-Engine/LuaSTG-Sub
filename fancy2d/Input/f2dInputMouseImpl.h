@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dInputMouseImpl.h
-/// @brief fancy2DÊäÈëÏµÍ³ Êó±êÊµÏÖ
+/// @brief fancy2Dè¾“å…¥ç³»ç»Ÿ é¼ æ ‡å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyRefObj.h"
@@ -13,7 +13,7 @@
 class f2dEngineImpl;
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief Êó±êÉè±¸ÊµÏÖ
+/// @brief é¼ æ ‡è®¾å¤‡å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 class f2dInputMouseImpl :
 	public fcyRefObjImpl<f2dInputMouse>
@@ -54,7 +54,7 @@ private:
 	int m_TotalOffsetY;
 	int m_TotalOffsetZ;
 	bool m_BtnState[8];
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	f2dInputMouse* ToMouse();
 	f2dInputKeyboard* ToKeyboard();
 	f2dInputJoystick* ToJoystick();
@@ -72,7 +72,7 @@ public: // ½Ó¿ÚÊµÏÖ
 	fInt GetOffsetX();
 	fInt GetOffsetY();
 	fInt GetOffsetZ();
-protected: // ½ûÖ¹Ö±½Ónew/delete
+protected: // ç¦æ­¢ç›´æ¥new/delete
 	f2dInputMouseImpl(f2dInputSysImpl* pSys, HWND Win, const GUID& pGUID, fBool bGlobalFocus);
 	~f2dInputMouseImpl();
 };

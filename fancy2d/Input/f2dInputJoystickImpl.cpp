@@ -1,4 +1,4 @@
-#ifndef _M_ARM
+ï»¿#ifndef _M_ARM
 
 #include "Input/f2dInputJoystickImpl.h"
 
@@ -130,7 +130,7 @@ f2dInputJoystickImpl::f2dInputJoystickImpl(f2dInputSysImpl* pSys, HWND Win, cons
 	if(FAILED(tHR))
 		throw fcyWin32COMException("f2dInputJoystickImpl::f2dInputJoystickImpl", "CreateDevice Failed.", tHR);
 	
-	// ÉèÖÃÐ­×÷Ä£Ê½
+	// è®¾ç½®åä½œæ¨¡å¼
 	fuInt tFlag = DISCL_NONEXCLUSIVE;
 	if(bGlobalFocus)
 		tFlag |= DISCL_BACKGROUND;
@@ -143,7 +143,7 @@ f2dInputJoystickImpl::f2dInputJoystickImpl(f2dInputSysImpl* pSys, HWND Win, cons
 		throw fcyWin32COMException("f2dInputJoystickImpl::f2dInputJoystickImpl", "SetCooperativeLevel Failed.", tHR);
 	}
 
-    // ÉèÖÃÊý¾Ý¸ñÊ½
+    // è®¾ç½®æ•°æ®æ ¼å¼
 	tHR = m_pDev->SetDataFormat(&DIDF_Joystick);
 	if(FAILED(tHR))
 	{
@@ -151,7 +151,7 @@ f2dInputJoystickImpl::f2dInputJoystickImpl(f2dInputSysImpl* pSys, HWND Win, cons
 		throw fcyWin32COMException("f2dInputJoystickImpl::f2dInputJoystickImpl", "SetDataFormat Failed.", tHR);
 	}
 	
-	// ÉèÖÃ»º³åÇø
+	// è®¾ç½®ç¼“å†²åŒº
 	DIPROPDWORD tBufferProperty;
 
     tBufferProperty.diph.dwSize = sizeof(DIPROPDWORD);
@@ -169,10 +169,10 @@ f2dInputJoystickImpl::f2dInputJoystickImpl(f2dInputSysImpl* pSys, HWND Win, cons
 
 	initStates();
 
-	// »ñµÃÉè±¸
+	// èŽ·å¾—è®¾å¤‡
 	tHR = m_pDev->Acquire();
 
-	// ×¢²á
+	// æ³¨å†Œ
 	m_pSys->RegisterDevice(this);
 }
 
@@ -181,7 +181,7 @@ f2dInputJoystickImpl::~f2dInputJoystickImpl()
 	if(m_pDev)
 		m_pDev->Unacquire();
 
-	// È¡Ïû×¢²á
+	// å–æ¶ˆæ³¨å†Œ
 	m_pSys->UnregisterDevice(this);
 
 	FCYSAFEKILL(m_pDev);
@@ -197,28 +197,28 @@ void f2dInputJoystickImpl::initStates()
 	tAxisRangeDesc.lMin = -40000;
 	tAxisRangeDesc.lMax = 40000;
 
-	// --- ÉèÖÃÖá²Î¿¼·¶Î§ ---
-	// XÖá
+	// --- è®¾ç½®è½´å‚è€ƒèŒƒå›´ ---
+	// Xè½´
 	tAxisRangeDesc.diph.dwObj = DIJOFS_X;
     tHR = m_pDev->SetProperty(DIPROP_RANGE, &tAxisRangeDesc.diph);
-	// YÖá
+	// Yè½´
 	tAxisRangeDesc.diph.dwObj = DIJOFS_Y;
     tHR = m_pDev->SetProperty(DIPROP_RANGE, &tAxisRangeDesc.diph);
-	// ZÖá
+	// Zè½´
 	tAxisRangeDesc.diph.dwObj = DIJOFS_Z;
 	tHR = m_pDev->SetProperty(DIPROP_RANGE, &tAxisRangeDesc.diph);
-	// XÖáÐý×ª
+	// Xè½´æ—‹è½¬
 	tAxisRangeDesc.diph.dwObj = DIJOFS_RX;
 	tHR = m_pDev->SetProperty(DIPROP_RANGE, &tAxisRangeDesc.diph);
-	// YÖáÐý×ª
+	// Yè½´æ—‹è½¬
 	tAxisRangeDesc.diph.dwObj = DIJOFS_RY;
 	tHR = m_pDev->SetProperty(DIPROP_RANGE, &tAxisRangeDesc.diph);
-	// ZÖáÐý×ª
+	// Zè½´æ—‹è½¬
 	tAxisRangeDesc.diph.dwObj = DIJOFS_RZ;
 	tHR = m_pDev->SetProperty(DIPROP_RANGE, &tAxisRangeDesc.diph);
 
-	// --- »ñµÃÖá²Î¿¼·¶Î§ ---
-	// XÖá
+	// --- èŽ·å¾—è½´å‚è€ƒèŒƒå›´ ---
+	// Xè½´
 	tAxisRangeDesc.diph.dwObj = DIJOFS_X;
     tHR = m_pDev->GetProperty(DIPROP_RANGE, &tAxisRangeDesc.diph);
 	if(SUCCEEDED(tHR))
@@ -226,7 +226,7 @@ void f2dInputJoystickImpl::initStates()
 		m_lXHalf = (tAxisRangeDesc.lMin + tAxisRangeDesc.lMax)/2;
 		m_lXHalfLen = (tAxisRangeDesc.lMax - tAxisRangeDesc.lMin)/2;
 	}
-	// YÖá
+	// Yè½´
 	tAxisRangeDesc.diph.dwObj = DIJOFS_Y;
     tHR = m_pDev->GetProperty(DIPROP_RANGE, &tAxisRangeDesc.diph);
 	if(SUCCEEDED(tHR))
@@ -234,7 +234,7 @@ void f2dInputJoystickImpl::initStates()
 		m_lYHalf = (tAxisRangeDesc.lMin + tAxisRangeDesc.lMax)/2;
 		m_lYHalfLen = (tAxisRangeDesc.lMax - tAxisRangeDesc.lMin)/2;
 	}
-	// ZÖá
+	// Zè½´
 	tAxisRangeDesc.diph.dwObj = DIJOFS_Z;
     tHR = m_pDev->GetProperty(DIPROP_RANGE, &tAxisRangeDesc.diph);
 	if(SUCCEEDED(tHR))
@@ -242,7 +242,7 @@ void f2dInputJoystickImpl::initStates()
 		m_lZHalf = (tAxisRangeDesc.lMin + tAxisRangeDesc.lMax)/2;
 		m_lZHalfLen = (tAxisRangeDesc.lMax - tAxisRangeDesc.lMin)/2;
 	}
-	// XÖáÐý×ª
+	// Xè½´æ—‹è½¬
 	tAxisRangeDesc.diph.dwObj = DIJOFS_RX;
     tHR = m_pDev->GetProperty(DIPROP_RANGE, &tAxisRangeDesc.diph);
 	if(SUCCEEDED(tHR))
@@ -250,7 +250,7 @@ void f2dInputJoystickImpl::initStates()
 		m_lRxHalf = (tAxisRangeDesc.lMin + tAxisRangeDesc.lMax)/2;
 		m_lRxHalfLen = (tAxisRangeDesc.lMax - tAxisRangeDesc.lMin)/2;
 	}
-	// YÖáÐý×ª
+	// Yè½´æ—‹è½¬
 	tAxisRangeDesc.diph.dwObj = DIJOFS_RY;
     tHR = m_pDev->GetProperty(DIPROP_RANGE, &tAxisRangeDesc.diph);
 	if(SUCCEEDED(tHR))
@@ -258,7 +258,7 @@ void f2dInputJoystickImpl::initStates()
 		m_lRyHalf = (tAxisRangeDesc.lMin + tAxisRangeDesc.lMax)/2;
 		m_lRyHalfLen = (tAxisRangeDesc.lMax - tAxisRangeDesc.lMin)/2;
 	}
-	// ZÖáÐý×ª
+	// Zè½´æ—‹è½¬
 	tAxisRangeDesc.diph.dwObj = DIJOFS_RZ;
     tHR = m_pDev->GetProperty(DIPROP_RANGE, &tAxisRangeDesc.diph);
 	if(SUCCEEDED(tHR))

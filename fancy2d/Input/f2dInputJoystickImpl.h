@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dInputJoystickImpl.h
-/// @brief fancy2DÊäÈëÏµÍ³ ÊÖ±úÊµÏÖ
+/// @brief fancy2Dè¾“å…¥ç³»ç»Ÿ æ‰‹æŸ„å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyRefObj.h"
@@ -13,7 +13,7 @@
 class f2dEngineImpl;
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ÓÎÏ·ÊÖ±úÊµÏÖ
+/// @brief æ¸¸æˆæ‰‹æŸ„å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 class f2dInputJoystickImpl :
 	public fcyRefObjImpl<f2dInputJoystick>
@@ -47,7 +47,7 @@ private:
 	DefaultListener m_DefaultListener;
 	f2dInputJoystickEventListener* m_pListener;
 
-	// ·¶Î§Öµ
+	// èŒƒå›´å€¼
 	int m_lXHalf;
 	int m_lXHalfLen;
 	int m_lYHalf;
@@ -61,14 +61,14 @@ private:
 	int m_lRzHalf;
 	int m_lRzHalfLen;
 
-	// ×´Ì¬
-	float m_lX;               // XÖáÎ»ÖÃ
-    float m_lY;               // YÖáÎ»ÖÃ
-    float m_lZ;               // ZÖáÎ»ÖÃ
-    float m_lRx;              // XÖáĞı×ª
-    float m_lRy;              // YÖáĞı×ª
-    float m_lRz;              // ZÖáĞı×ª
-	bool m_ButtonDown[32];    // °´Å¥×´Ì¬
+	// çŠ¶æ€
+	float m_lX;               // Xè½´ä½ç½®
+    float m_lY;               // Yè½´ä½ç½®
+    float m_lZ;               // Zè½´ä½ç½®
+    float m_lRx;              // Xè½´æ—‹è½¬
+    float m_lRy;              // Yè½´æ—‹è½¬
+    float m_lRz;              // Zè½´æ—‹è½¬
+	bool m_ButtonDown[32];    // æŒ‰é’®çŠ¶æ€
 	int m_Slider[2];          // Slider
 	fuInt m_POV[4];            // POV
 private:
@@ -84,7 +84,7 @@ public:
 	f2dInputJoystickEventListener* GetListener();
 	fResult SetListener(f2dInputJoystickEventListener* pListener);
 
-	// ×´Ì¬²éÑ¯
+	// çŠ¶æ€æŸ¥è¯¢
 	fFloat GetXPosition();
 	fFloat GetYPosition();
 	fFloat GetZPosition();
@@ -99,7 +99,7 @@ public:
 	fResult SetDeadZone(fFloat Percent);
 	fFloat GetSaturation();
 	fResult SetSaturation(fFloat Percent);
-protected: // ½ûÖ¹Ö±½Ónew/delete
+protected: // ç¦æ­¢ç›´æ¥new/delete
 	f2dInputJoystickImpl(f2dInputSysImpl* pSys, HWND Win, const GUID& pGUID, fBool bGlobalFocus);
 	~f2dInputJoystickImpl();
 };
