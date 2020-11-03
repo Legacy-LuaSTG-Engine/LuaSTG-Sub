@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dFontTexProvider.h
-/// @brief fancy2D ÎÆÀí×ÖÌåÌá¹©Õß
+/// @brief fancy2D çº¹ç†å­—ä½“æä¾›è€…
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyRefObj.h"
@@ -11,22 +11,22 @@
 #include <unordered_map>
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ÎÆÀí×ÖÌåÌá¹©ÕßÊµÏÖ
+/// @brief çº¹ç†å­—ä½“æä¾›è€…å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 class f2dFontTexProvider :
 	public fcyRefObjImpl<f2dFontProvider>
 {
 	friend class f2dRendererImpl;
 protected:
-	// Ô­Ê¼ÎÆÀí
+	// åŸå§‹çº¹ç†
 	f2dTexture2D* m_OrgTex;
 	
-	// ×ÖÌå¶ÈÁ¿Öµ
+	// å­—ä½“åº¦é‡å€¼
 	fFloat m_LineHeight;
 	fFloat m_Ascender;
 	fFloat m_Descender;
 
-	// ×Ö·û±í
+	// å­—ç¬¦è¡¨
 	std::unordered_map<fCharW, f2dGlyphInfo*> m_Cache;
 protected:
 	fcyVec2 readVec2Str(const std::wstring& Str);

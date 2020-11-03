@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+ï»¿////////////////////////////////////////////////////////////////////////////////
 /// @file  f2dParticle.h
-/// @brief fancy2D 2DÁ£×Ó
+/// @brief fancy2D 2Dç²’å­
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyRefObj.h"
@@ -11,7 +11,7 @@
 #include "fcyMisc\fcyRandom.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fancy2D 2DÁ£×Ó³ØÊµÏÖ
+/// @brief fancy2D 2Dç²’å­æ± å®ç°
 ////////////////////////////////////////////////////////////////////////////////
 class f2dParticlePoolImpl : 
 	public fcyRefObjImpl<f2dParticlePool>
@@ -22,26 +22,26 @@ public:
 		f2dSprite* pSprite;
 		fBool bInUse;
 
-		float CurTime;    // µ±Ç°ÉúÃüÖµ
-		float Angle;      // µ±Ç°½Ç¶È
+		float CurTime;    // å½“å‰ç”Ÿå‘½å€¼
+		float Angle;      // å½“å‰è§’åº¦
 
 		fcyVec2 Pos;
 		fcyVec2 CreatePos;
-		fcyVec2 V;        // ËÙ¶È
-		float RA;         // ·¨Ïò¼ÓËÙ¶È
-		float TA;         // ÇĞÏò¼ÓËÙ¶È
-		float Spin;       // ×ÔĞıËÙ¶È
-		float LifeTime;   // ÉúÃüÖµ
+		fcyVec2 V;        // é€Ÿåº¦
+		float RA;         // æ³•å‘åŠ é€Ÿåº¦
+		float TA;         // åˆ‡å‘åŠ é€Ÿåº¦
+		float Spin;       // è‡ªæ—‹é€Ÿåº¦
+		float LifeTime;   // ç”Ÿå‘½å€¼
 
-		float RandomSeed; // Ëæ»úÊı
+		float RandomSeed; // éšæœºæ•°
 
-		fcyColor CurColor;   // µ±Ç°ÑÕÉ«
-		fcyColor StartColor; // ¿ªÊ¼ÑÕÉ«
-		fcyColor EndColor;   // ÖÕÖ¹ÑÕÉ«
+		fcyColor CurColor;   // å½“å‰é¢œè‰²
+		fcyColor StartColor; // å¼€å§‹é¢œè‰²
+		fcyColor EndColor;   // ç»ˆæ­¢é¢œè‰²
 		
-		fcyVec2 CurScale;    // µ±Ç°Ëõ·Å
-		fcyVec2 StartScale;  // ¿ªÊ¼Ëõ·Å
-		fcyVec2 EndScale;    // ÖÕÖ¹Ëõ·Å
+		fcyVec2 CurScale;    // å½“å‰ç¼©æ”¾
+		fcyVec2 StartScale;  // å¼€å§‹ç¼©æ”¾
+		fcyVec2 EndScale;    // ç»ˆæ­¢ç¼©æ”¾
 	};
 protected:
 	fcyRandomWELL512 m_Randomizer;
@@ -51,7 +51,7 @@ protected:
 	std::vector<f2dParticleForce*> m_ForcePool;
 
 	fuInt m_ParticleCount;
-public: // ½Ó¿ÚÊµÏÖ
+public: // æ¥å£å®ç°
 	fuInt GetRandomSeed()
 	{
 		return m_Randomizer.GetRandSeed();
@@ -77,7 +77,7 @@ public: // ½Ó¿ÚÊµÏÖ
 
 	void Clear()
 	{
-		// ´¦ÀíËùÓĞÁ£×Ó
+		// å¤„ç†æ‰€æœ‰ç²’å­
 		std::vector<Particle>::iterator i = m_ParticlePool.begin();
 
 		while(i != m_ParticlePool.end())

@@ -1,4 +1,4 @@
-#include "Renderer/f2dFontTexProvider.h"
+ï»¿#include "Renderer/f2dFontTexProvider.h"
 
 #include "fcyMisc/fcyStringHelper.h"
 
@@ -32,7 +32,7 @@ f2dFontTexProvider::f2dFontTexProvider(fcStrW pDefineFile, f2dTexture2D* pTex)
 
 f2dFontTexProvider::~f2dFontTexProvider()
 {
-	// É¾³ý×ÖÌå¶¨Òå
+	// åˆ é™¤å­—ä½“å®šä¹‰
 	unordered_map<fCharW, f2dGlyphInfo*>::iterator i = m_Cache.begin();
 	while(i != m_Cache.end())
 	{
@@ -69,12 +69,12 @@ void f2dFontTexProvider::loadDefine(fcyXmlDocument& Xml)
 
 	fcyXmlElement* pCharList = pRoot->GetFirstNode(L"CharList");
 
-	// ¶ÁÈ¡¶ÈÁ¿Öµ
+	// è¯»å–åº¦é‡å€¼
 	m_LineHeight = (float)_wtof(pMeasureNode->GetAttribute(L"LineHeight").c_str());
 	m_Ascender = (float)_wtof(pMeasureNode->GetAttribute(L"Ascender").c_str());
 	m_Descender = (float)_wtof(pMeasureNode->GetAttribute(L"Descender").c_str());
 
-	// ¶ÁÈ¡×Ö·û±í
+	// è¯»å–å­—ç¬¦è¡¨
 	fcyXmlElementList tNodeList = pCharList->GetNodeByName(L"Item");
 	fuInt tSubNodeCount = tNodeList.GetCount();
 	for(fuInt i = 0; i<tSubNodeCount; ++i)

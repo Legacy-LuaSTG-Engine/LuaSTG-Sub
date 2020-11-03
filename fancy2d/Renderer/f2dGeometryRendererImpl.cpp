@@ -1,4 +1,4 @@
-#include "Renderer/f2dGeometryRendererImpl.h"
+ï»¿#include "Renderer/f2dGeometryRendererImpl.h"
 
 using namespace std;
 
@@ -50,13 +50,13 @@ fResult f2dGeometryRendererImpl::DrawLine(f2dGraphics2D* pGraph, const fcyVec2& 
 	if(!pGraph || (Begin.x == End.x && Begin.y == End.y))
 		return FCYERR_INVAILDPARAM;
 
-	// ¼ÆËã·½ÏòÏòÁ¿
+	// è®¡ç®—æ–¹å‘å‘é‡
 	fcyVec2 tDirect = End - Begin;
 	tDirect.Normalize();
 	tDirect.Rotation(-3.1415926535f/2.f);
 	tDirect *= m_PenSize / 2;
 
-	// ×¼±¸¶¥µã
+	// å‡†å¤‡é¡¶ç‚¹
 	f2dGraphics2DVertex tVerts[6] = 
 	{
 		{ Begin.x + tDirect.x, Begin.y + tDirect.y, m_ZValue, m_PenColor[0].argb, 0.f, 0.f },
@@ -67,7 +67,7 @@ fResult f2dGeometryRendererImpl::DrawLine(f2dGraphics2D* pGraph, const fcyVec2& 
 		{ End.x - tDirect.x  , End.y - tDirect.y  , m_ZValue, m_PenColor[2].argb, 0.f, 0.f }
 	};
 
-	// ×¼±¸Ë÷Òý
+	// å‡†å¤‡ç´¢å¼•
 	static const fuShort tIndex[12] = 
 	{
 		0,3,1,
@@ -76,7 +76,7 @@ fResult f2dGeometryRendererImpl::DrawLine(f2dGraphics2D* pGraph, const fcyVec2& 
 		1,5,2
 	};
 
-	// »æÖÆ
+	// ç»˜åˆ¶
 	return pGraph->DrawRaw(NULL, 6, 12, tVerts, tIndex, false);
 }
 
@@ -85,13 +85,13 @@ fResult f2dGeometryRendererImpl::DrawRectangle(f2dGraphics2D* pGraph, const fcyR
 	if(!pGraph)
 		return FCYERR_INVAILDPARAM;
 
-	// ¼ÆËãÀ©ÔöÏòÁ¿
+	// è®¡ç®—æ‰©å¢žå‘é‡
 	fcyVec2 tDirect1(-0.7071067811f, -0.7071067811f);
 	fcyVec2 tDirect2(0.7071067811f, -0.7071067811f);
 	tDirect1 *= m_PenSize / 2;
 	tDirect2 *= m_PenSize / 2;
 
-	// ×¼±¸¶¥µã
+	// å‡†å¤‡é¡¶ç‚¹
 	f2dGraphics2DVertex tVerts[12] = 
 	{
 		{ Rect.a.x + tDirect1.x, Rect.a.y + tDirect1.y, m_ZValue, m_PenColor[0].argb, 0.f, 0.f },
@@ -110,7 +110,7 @@ fResult f2dGeometryRendererImpl::DrawRectangle(f2dGraphics2D* pGraph, const fcyR
 		{ Rect.a.x - tDirect1.x, Rect.b.y + tDirect1.y, m_ZValue, m_PenColor[2].argb, 0.f, 0.f },
 	};
 
-	// ×¼±¸Ë÷Òý
+	// å‡†å¤‡ç´¢å¼•
 	static const fuShort tIndex[48] = 
 	{
 		0,1,4,
@@ -132,7 +132,7 @@ fResult f2dGeometryRendererImpl::DrawRectangle(f2dGraphics2D* pGraph, const fcyR
 		4,11,7
 	};
 
-	// »æÖÆ
+	// ç»˜åˆ¶
 	return pGraph->DrawRaw(NULL, 12, 48, tVerts, tIndex);
 }
 
@@ -149,18 +149,18 @@ fResult f2dGeometryRendererImpl::DrawCircle(f2dGraphics2D* pGraph, const fcyVec2
 	float tAng = 3.14f*2.f / (float)Divide;
 	for(fuInt i = 0; i<Divide; ++i)
 	{
-		// ¼ÆËãµ¥Î»ÏòÁ¿
+		// è®¡ç®—å•ä½å‘é‡
 		fcyVec2 tDirect(cos(tAng * i), sin(tAng * i));
 
-		// À©ÔöÁ¿
+		// æ‰©å¢žé‡
 		fcyVec2 tExpand = tDirect * (m_PenSize / 2.f);
 
-		// ÕÒµ½ÖÐÐÄµã
+		// æ‰¾åˆ°ä¸­å¿ƒç‚¹
 		fcyVec2 tCenter = tDirect * R;
 
 		f2dGraphics2DVertex* pVerts = &m_CacheVerts[i * 3];
-		// ÉèÖÃ¶¥µã
-		// ÍâÈ¦
+		// è®¾ç½®é¡¶ç‚¹
+		// å¤–åœˆ
 		pVerts->color = m_PenColor[0].argb;
 		pVerts->z = m_ZValue;
 		pVerts->u = pVerts->v = 0.f;
@@ -168,7 +168,7 @@ fResult f2dGeometryRendererImpl::DrawCircle(f2dGraphics2D* pGraph, const fcyVec2
 		pVerts->y = Center.y + tCenter.y + tExpand.y;
 		pVerts++;
 
-		// ÖÐ¼äÈ¦
+		// ä¸­é—´åœˆ
 		pVerts->color = m_PenColor[1].argb;
 		pVerts->z = m_ZValue;
 		pVerts->u = pVerts->v = 0.f;
@@ -176,14 +176,14 @@ fResult f2dGeometryRendererImpl::DrawCircle(f2dGraphics2D* pGraph, const fcyVec2
 		pVerts->y = Center.y + tCenter.y;
 		pVerts++;
 
-		// ÄÚÈ¦
+		// å†…åœˆ
 		pVerts->color = m_PenColor[2].argb;
 		pVerts->z = m_ZValue;
 		pVerts->u = pVerts->v = 0.f;
 		pVerts->x = Center.x + tCenter.x - tExpand.x;
 		pVerts->y = Center.y + tCenter.y - tExpand.y;
 
-		// ¼ÆËãIndex
+		// è®¡ç®—Index
 		fuShort* pIndex = &m_CacheIndex[i*12+0];
 		if(i == Divide-1)
 		{
@@ -223,7 +223,7 @@ fResult f2dGeometryRendererImpl::DrawCircle(f2dGraphics2D* pGraph, const fcyVec2
 		}
 	}
 
-	// »æÖÆ
+	// ç»˜åˆ¶
 	fResult tFR = pGraph->DrawRaw(NULL, Divide * 3, Divide * 12, &m_CacheVerts[0], &m_CacheIndex[0], false);
 
 	return tFR;
@@ -263,7 +263,7 @@ fResult f2dGeometryRendererImpl::FillCircle(f2dGraphics2D* pGraph, const fcyVec2
 	m_CacheVerts[0].z = m_ZValue;
 	for(fuInt i = 1; i<=Divide; ++i)
 	{
-		// ¼ÆËãµ¥Î»ÏòÁ¿
+		// è®¡ç®—å•ä½å‘é‡
 		fcyVec2 tDirect(cos(tAng * i), sin(tAng * i));
 		tDirect *= R;
 
@@ -286,7 +286,7 @@ fResult f2dGeometryRendererImpl::FillCircle(f2dGraphics2D* pGraph, const fcyVec2
 			*pIndex = i+2;
 	}
 
-	// »æÖÆ
+	// ç»˜åˆ¶
 	fResult tFR = pGraph->DrawRaw(NULL, Divide + 1, Divide * 3, &m_CacheVerts[0], &m_CacheIndex[0], false);
 
 	return tFR;

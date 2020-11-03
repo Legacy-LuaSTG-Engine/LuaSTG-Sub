@@ -1,4 +1,4 @@
-#include "Renderer/f2dParticle.h"
+ï»¿#include "Renderer/f2dParticle.h"
 
 #include "Renderer/f2dSpriteImpl.h"
 
@@ -46,14 +46,14 @@ fResult f2dParticlePoolImpl::Emitted(f2dSprite* pSprite, const fcyVec2& Center, 
 	if(!pSprite)
 		return FCYERR_INVAILDPARAM;
 
-	// ¼ÆËãÁ£×Ó´´½¨ÊıÁ¿
+	// è®¡ç®—ç²’å­åˆ›å»ºæ•°é‡
 	fInt tCreateCount = (fInt)m_Randomizer.GetRandFloat(EmittedCountRange.x, EmittedCountRange.y);
 
-	// ´´½¨Á£×Ó
+	// åˆ›å»ºç²’å­
 	fuInt tPos = 0;
 	for(int i = 0; i<tCreateCount; ++i)
 	{
-		// ¼ÆËã´´½¨Î»ÖÃ
+		// è®¡ç®—åˆ›å»ºä½ç½®
 		Particle tParticle;
 
 		tParticle.CurTime = 0;
@@ -98,7 +98,7 @@ fResult f2dParticlePoolImpl::Emitted(f2dSprite* pSprite, const fcyVec2& Center, 
 
 		tParticle.bInUse = true;
 		
-		// ¼ÓÈëÁ£×Ó
+		// åŠ å…¥ç²’å­
 		while(tPos < m_ParticlePool.size())
 		{
 			if(m_ParticlePool[tPos].bInUse)
@@ -121,18 +121,18 @@ void f2dParticlePoolImpl::Update(fFloat ElapsedTime)
 {
 	m_ParticleCount = 0;
 
-	// ´¦ÀíËùÓĞÁ£×Ó
+	// å¤„ç†æ‰€æœ‰ç²’å­
 	vector<Particle>::iterator i = m_ParticlePool.begin();
 
 	while(i != m_ParticlePool.end())
 	{
 		++m_ParticleCount;
 
-		// ´¦ÀíÉú´æÊ±¼ä
+		// å¤„ç†ç”Ÿå­˜æ—¶é—´
 		i->CurTime += ElapsedTime;
 		if(i->LifeTime < i->CurTime)
 		{
-			// ÒÆ³ıÁ£×Ó
+			// ç§»é™¤ç²’å­
 			FCYSAFEKILL(i->pSprite);
 
 			i->bInUse = false;
@@ -142,35 +142,35 @@ void f2dParticlePoolImpl::Update(fFloat ElapsedTime)
 		{
 			float k = i->CurTime / i->LifeTime;
 
-			// ´¦ÀíÎ»ÖÃ
-			fcyVec2 tRA, tTA;  // ·¨Ïò¼ÓËÙ¶È£¬ÇĞÏò¼ÓËÙ¶È
+			// å¤„ç†ä½ç½®
+			fcyVec2 tRA, tTA;  // æ³•å‘åŠ é€Ÿåº¦ï¼Œåˆ‡å‘åŠ é€Ÿåº¦
 
-			// ¼ÆËã·¨Ïß
+			// è®¡ç®—æ³•çº¿
 			fcyVec2 tNormal = i->V;
 			if(tNormal.Length2() != 0.f)
 			{
 				tNormal.Normalize();
 				tRA = tNormal * i->RA;
 
-				// Ğı×ª90¶È
+				// æ—‹è½¬90åº¦
 				float t = tNormal.x;
 				tNormal.x = -tNormal.y;
 				tNormal.y = t;
 
-				// ÇĞÏò¼ÓËÙ¶È
+				// åˆ‡å‘åŠ é€Ÿåº¦
 				tTA = tNormal * i->TA;
 			}
 
-			// ËÙ¶ÈÔöÁ¿
+			// é€Ÿåº¦å¢é‡
 			i->V += (tRA + tTA) * ElapsedTime;
 
-			// ×ÔĞıÔöÁ¿
+			// è‡ªæ—‹å¢é‡
 			i->Angle += i->Spin * ElapsedTime;
 
-			// Î»ÖÃÔöÁ¿
+			// ä½ç½®å¢é‡
 			i->Pos += i->V * ElapsedTime;
 			
-			// ´¦ÀíÑÕÉ«
+			// å¤„ç†é¢œè‰²
 			i->CurColor = fcyColor
 				(
 					(fInt)((i->EndColor.a - i->StartColor.a) * k + i->StartColor.a),
@@ -178,14 +178,14 @@ void f2dParticlePoolImpl::Update(fFloat ElapsedTime)
 					(fInt)((i->EndColor.g - i->StartColor.g) * k + i->StartColor.g),
 					(fInt)((i->EndColor.b - i->StartColor.b) * k + i->StartColor.b)
 				);
-			// ´¦ÀíËõ·Å
+			// å¤„ç†ç¼©æ”¾
 			i->CurScale = fcyVec2
 				(
 					(i->EndScale.x - i->StartScale.x) * k + i->StartScale.x,
 					(i->EndScale.y - i->StartScale.y) * k + i->StartScale.y
 				);
 
-			// Íâ²¿Ó°Ïì
+			// å¤–éƒ¨å½±å“
 			for(vector<f2dParticleForce*>::iterator j = m_ForcePool.begin();
 				j != m_ForcePool.end() ; ++j)
 			{
@@ -199,7 +199,7 @@ void f2dParticlePoolImpl::Update(fFloat ElapsedTime)
 	
 void f2dParticlePoolImpl::Render(f2dGraphics2D* pGraph)
 {
-	// äÖÈ¾ËùÓĞÁ£×Ó
+	// æ¸²æŸ“æ‰€æœ‰ç²’å­
 	vector<Particle>::iterator i = m_ParticlePool.begin();
 
 	while(i != m_ParticlePool.end())

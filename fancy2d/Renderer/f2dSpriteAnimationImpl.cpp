@@ -1,4 +1,4 @@
-#include "Renderer/f2dSpriteAnimationImpl.h"
+ï»¿#include "Renderer/f2dSpriteAnimationImpl.h"
 
 #include "Renderer/f2dSpriteImpl.h"
 
@@ -143,8 +143,8 @@ fBool f2dSpriteAnimationImpl::StepInstance(f2dSpriteAnimationInstance& Instance)
 	const Frame& tFrame = m_AnimationList[Instance.KeyFrameIndex];
 	if(Instance.KeyFrameElapsedTime >= tFrame.FrameTime)
 	{
-		// ¼ÌĞøÏÂÒ»Ö¡
-		// ¼ì²éÊÇ·ñÑ­»·²¢µ½Ñ­»·Î²
+		// ç»§ç»­ä¸‹ä¸€å¸§
+		// æ£€æŸ¥æ˜¯å¦å¾ªç¯å¹¶åˆ°å¾ªç¯å°¾
 		if(m_bLoop)
 		{
 			fuInt tAbsoluteLoopStart = m_LoopStart;
@@ -154,7 +154,7 @@ fBool f2dSpriteAnimationImpl::StepInstance(f2dSpriteAnimationInstance& Instance)
 
 			if(Instance.KeyFrameIndex == tAbsoluteLoopEnd)
 			{
-				// Ìøµ½Ñ­»·Í·
+				// è·³åˆ°å¾ªç¯å¤´
 				Instance.KeyFrameIndex = tAbsoluteLoopStart;
 				Instance.KeyFrameElapsedTime = 0;
 
@@ -162,7 +162,7 @@ fBool f2dSpriteAnimationImpl::StepInstance(f2dSpriteAnimationInstance& Instance)
 			}
 		}
 
-		// ·ñÔò¼ÌĞøÏÂÒ»Ö¡
+		// å¦åˆ™ç»§ç»­ä¸‹ä¸€å¸§
 		if(Instance.KeyFrameIndex + 1 < m_AnimationList.size())
 		{
 			Instance.KeyFrameIndex++;
@@ -185,8 +185,8 @@ fBool f2dSpriteAnimationImpl::StepbackInstance(f2dSpriteAnimationInstance& Insta
 	const Frame& tFrame = m_AnimationList[Instance.KeyFrameIndex];
 	if(Instance.KeyFrameElapsedTime == 0)
 	{
-		// ºóÍËÒ»Ö¡
-		// ¼ì²éÊÇ·ñÑ­»·²¢µ½Ñ­»·Î²
+		// åé€€ä¸€å¸§
+		// æ£€æŸ¥æ˜¯å¦å¾ªç¯å¹¶åˆ°å¾ªç¯å°¾
 		if(m_bLoop)
 		{
 			fuInt tAbsoluteLoopStart = m_LoopStart;
@@ -196,7 +196,7 @@ fBool f2dSpriteAnimationImpl::StepbackInstance(f2dSpriteAnimationInstance& Insta
 
 			if(Instance.KeyFrameIndex == 0)
 			{
-				// Ìøµ½Ñ­»·Î²
+				// è·³åˆ°å¾ªç¯å°¾
 				Instance.KeyFrameIndex = tAbsoluteLoopEnd;
 				Instance.KeyFrameElapsedTime = tFrame.FrameTime;
 
@@ -204,7 +204,7 @@ fBool f2dSpriteAnimationImpl::StepbackInstance(f2dSpriteAnimationInstance& Insta
 			}
 		}
 
-		// ·ñÔò¼ÌĞøÉÏÒ»Ö¡
+		// å¦åˆ™ç»§ç»­ä¸Šä¸€å¸§
 		if(Instance.KeyFrameIndex > 0)
 		{
 			Instance.KeyFrameIndex--;
