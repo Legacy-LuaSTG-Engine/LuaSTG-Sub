@@ -16,6 +16,8 @@
 class f2dEngineImpl;
 class f2dWindowImpl;
 
+typedef LRESULT (*NATIVE_WNDPROC)(HWND, UINT, WPARAM, LPARAM);
+
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief 窗口类
 ////////////////////////////////////////////////////////////////////////////////
@@ -147,7 +149,7 @@ private:
 private:
 	// 状态
 	HWND m_hWnd = NULL;
-	WNDPROC m_fProc = NULL;
+	NATIVE_WNDPROC m_fProc = NULL;
 	bool m_bShow;
 	std::wstring m_CaptionText;
 	

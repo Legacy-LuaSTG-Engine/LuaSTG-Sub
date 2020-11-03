@@ -199,7 +199,7 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 	}
 	
 	// 提取Win32消息回调
-	WNDPROC pCallback = (WNDPROC)pWindow->GetNativeMessageProcess();
+	NATIVE_WNDPROC pCallback = (NATIVE_WNDPROC)pWindow->GetNativeMessageProcess();
 	if (pCallback != NULL)
 		if (pCallback(Handle, Msg, wParam, lParam))
 			return TRUE;
@@ -727,7 +727,7 @@ fResult f2dWindowImpl::SetListener(f2dWindowEventListener* pListener)
 
 void f2dWindowImpl::SetNativeMessageProcess(void* pWndProc)
 {
-	m_fProc = (WNDPROC)pWndProc;
+	m_fProc = (NATIVE_WNDPROC)pWndProc;
 }
 
 void* f2dWindowImpl::GetNativeMessageProcess()
