@@ -14,7 +14,8 @@ namespace LuaSTGPlus {
 		std::wstring path; // APPDATA
 		if (app::makeApplicationRoamingAppDataDirectory(APP_COMPANY, APP_PRODUCT, path))
 		{
-			out = path;
+			out.append(path);
+			out.push_back(L'\\');
 			return true;
 		}
 		else

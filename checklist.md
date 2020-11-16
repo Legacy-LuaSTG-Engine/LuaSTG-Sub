@@ -24,3 +24,10 @@
     * 更多的资源加载log
     * 强制从加密的入口点文件加载
     * 碰撞体缩放
+
+# 编译配置检查单
+
+* 编译的时候是Release还是Debug配置（CMake）
+* 第三方库是Release还是Debug配置（CMakeLists.txt）
+* res文件夹的位置（LuaSTG/CMakeLists.txt）
+* LDEVVERSION宏是否是开启的（LuaSTG/CMakeLists.txt）
