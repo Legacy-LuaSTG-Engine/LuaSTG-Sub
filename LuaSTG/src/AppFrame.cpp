@@ -1,6 +1,8 @@
-﻿#include "string"
+﻿#include <string>
+#include <fstream>
 #include "resource.h"
 
+#include "SystemDirectory.hpp"
 #include "AppFrame.h"
 #include "Utility.h"
 #include "SteamAPI.hpp"
@@ -27,6 +29,72 @@ public:
 	}
 };
 static ImGuiRenderDeviceEventListener g_ImGuiRenderDeviceEventListener;
+void lstgImGuiLoadConfig()
+{
+	ImGuiIO& io = ImGui::GetIO();
+	
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableSetMousePos;
+	
+	ImGui::StyleColorsDark();
+	auto& style = ImGui::GetStyle();
+	style.WindowRounding = 0.0f;
+	style.ChildRounding = 0.0f;
+	style.PopupRounding = 0.0f;
+	style.FrameRounding = 0.0f;
+	style.ScrollbarRounding = 0.0f;
+	style.GrabRounding = 0.0f;
+	style.TabRounding = 0.0f;
+	style.WindowBorderSize = 1.0f;
+	style.ChildBorderSize = 1.0f;
+	style.PopupBorderSize = 1.0f;
+	style.FrameBorderSize = 1.0f;
+	style.TabBorderSize = 1.0f;
+	
+	// handle imgui config data
+	io.IniFilename = NULL;
+	std::wstring path;
+	#ifdef USING_SYSTEM_DIRECTORY
+		if (app::makeApplicationRoamingAppDataDirectory(APP_COMPANY, APP_PRODUCT, path))
+		{
+			path.push_back(L'\\');
+		}
+	#endif
+	path.append(L"imgui.ini");
+	std::ifstream file(path, std::ios::in | std::ios::binary);
+	if (file.is_open())
+	{
+		file.seekg(0, std::ios::end);
+		auto p2 = file.tellg();
+		file.seekg(0, std::ios::beg);
+		auto p1 = file.tellg();
+		auto dp = p2 - p1;
+		std::string buffer;
+		buffer.resize((size_t)dp);
+		file.read((char*)buffer.data(), dp);
+		file.close();
+		ImGui::LoadIniSettingsFromMemory(buffer.data(), (size_t)dp);
+	}
+}
+void lstgImGuiSaveConfig()
+{
+	std::wstring path;
+	#ifdef USING_SYSTEM_DIRECTORY
+		if (app::makeApplicationRoamingAppDataDirectory(APP_COMPANY, APP_PRODUCT, path))
+		{
+			path.push_back(L'\\');
+		}
+	#endif
+	path.append(L"imgui.ini");
+	std::ofstream file(path, std::ios::out | std::ios::binary | std::ios::trunc);
+	if (file.is_open())
+	{
+		size_t length = 0;
+		const char* buffer = ImGui::SaveIniSettingsToMemory(&length);
+		file.write(buffer, (std::streamsize)length);
+		file.close();
+	}
+}
 
 #include "D3D9.H"  // for SetFog
 #include "Network.h"
@@ -1297,10 +1365,7 @@ bool AppFrame::Init()LNOEXCEPT
 		// 初始化ImGui
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
-		ImGuiIO& io = ImGui::GetIO(); (void)io;
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableSetMousePos;
-		ImGui::StyleColorsDark();
+		lstgImGuiLoadConfig();
 		ImGui_ImplWin32WorkingThread_Init((void*)m_pMainWindow->GetHandle());
 		m_pMainWindow->SetNativeMessageProcess((void*)&ImGui_ImplWin32WorkingThread_WndProcHandler);
 		ImGui_ImplDX9_Init((IDirect3DDevice9*)m_pRenderDev->GetHandle());
@@ -1432,6 +1497,7 @@ void AppFrame::Shutdown()LNOEXCEPT
 	ImGui_ImplDX9_Shutdown();
 	m_pMainWindow->SetNativeMessageProcess(NULL);
 	ImGui_ImplWin32WorkingThread_Shutdown();
+	lstgImGuiSaveConfig();
 	ImGui::DestroyContext();
 	
 	m_Mouse = nullptr;

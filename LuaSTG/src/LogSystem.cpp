@@ -11,27 +11,18 @@
 
 namespace LuaSTGPlus {
 	bool checkDirectory(std::wstring& out) {
-		bool ok = false;
 		std::wstring path; // APPDATA
-		if (app::getRoamingAppDataDirectory(path)) {
-			BOOL ret;
-			path.push_back(L'\\'); // APPDATA/
-			path += LOGSYS_COMPANY; // APPDATA/COMPANY
-			ret = CreateDirectoryW(path.c_str(), NULL);
-			if (ret == TRUE || (ret == FALSE && GetLastError() == ERROR_ALREADY_EXISTS)) {
-				path.push_back(L'\\'); // APPDATA/COMPANY/
-				path += LOGSYS_PRODUCT; // APPDATA/COMPANY/PRODUCT
-				ret = CreateDirectoryW(path.c_str(), NULL);
-				if (ret == TRUE || (ret == FALSE && GetLastError() == ERROR_ALREADY_EXISTS)) {
-					path.push_back(L'\\'); // APPDATA/COMPANY/PRODUCT/
-					out = path;
-					ok = true;
-				}
-			}
+		if (app::makeApplicationRoamingAppDataDirectory(APP_COMPANY, APP_PRODUCT, path))
+		{
+			out = path;
+			return true;
 		}
-		return ok;
+		else
+		{
+			return false;
+		}
 	}
-
+	
 	bool checkFile(std::wstring& out) {
 		bool ok = false;
 		std::wstring filename;
@@ -51,12 +42,12 @@ namespace LuaSTGPlus {
 		}
 		return ok;
 	}
-
+	
 	__declspec(noinline) LogSystem& LogSystem::GetInstance() {
 		static LogSystem s_Instance;
 		return s_Instance;
 	}
-
+	
 	LogSystem::LogSystem() {
 		std::wstring path = L"";
 		std::wstring file = LOGSYS_LOGFILE;
@@ -70,14 +61,14 @@ namespace LuaSTGPlus {
 			Log(LogType::Error, L"无法创建日志文件");
 		}
 	}
-
+	
 	LogSystem::~LogSystem() {
 		if (m_LogFile.is_open()) {
 			m_LogFile.flush();
 			m_LogFile.close();
 		}
 	}
-
+	
 	__declspec(noinline) void LogSystem::Log(LogType type, const wchar_t* info, ...) noexcept {
 		std::wstring tRet;
 

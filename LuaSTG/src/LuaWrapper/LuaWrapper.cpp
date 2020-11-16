@@ -1,5 +1,6 @@
 ﻿#include "LuaWrapper/LuaWrapper.hpp"
 #include "Utility.h"
+#include "SystemDirectory.hpp"
 
 namespace LuaSTGPlus
 {
@@ -11,8 +12,16 @@ namespace LuaSTGPlus
 				static int GetLocalAppDataPath(lua_State* L)LNOEXCEPT
 				{
 					try {
-						std::string path = fcyStringHelper::WideCharToMultiByte(LuaSTGPlus::GetLocalAppDataPath(), CP_UTF8);
-						lua_pushstring(L, path.c_str());
+						std::wstring wpath;
+						if (app::getLocalAppDataDirectory(wpath))
+						{
+							std::string path = fcyStringHelper::WideCharToMultiByte(wpath, CP_UTF8);
+							lua_pushstring(L, path.c_str());
+						}
+						else
+						{
+							lua_pushstring(L, "");
+						}
 					}
 					catch (const std::bad_alloc&) {
 						lua_pushstring(L, "");
@@ -22,15 +31,23 @@ namespace LuaSTGPlus
 				static int GetRoamingAppDataPath(lua_State* L)LNOEXCEPT
 				{
 					try {
-						std::string path = fcyStringHelper::WideCharToMultiByte(LuaSTGPlus::GetRoamingAppDataPath(), CP_UTF8);
-						lua_pushstring(L, path.c_str());
+						std::wstring wpath;
+						if (app::getRoamingAppDataDirectory(wpath))
+						{
+							std::string path = fcyStringHelper::WideCharToMultiByte(wpath, CP_UTF8);
+							lua_pushstring(L, path.c_str());
+						}
+						else
+						{
+							lua_pushstring(L, "");
+						}
 					}
 					catch (const std::bad_alloc&) {
 						lua_pushstring(L, "");
 					}
 					return 1;
 				}
-
+				
 				static int ANSIToUTF8(lua_State* L)LNOEXCEPT {
 					try {
 						std::string fromstring = luaL_checkstring(L, 1);

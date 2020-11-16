@@ -102,10 +102,4 @@ namespace LuaSTGPlus
 			}
 		}
 	};
-
-	//获取系统本地应用数据文件夹
-	std::wstring GetLocalAppDataPath()noexcept;
-
-	//获取系统漫游应用数据文件夹
-	std::wstring GetRoamingAppDataPath()noexcept;
 }
