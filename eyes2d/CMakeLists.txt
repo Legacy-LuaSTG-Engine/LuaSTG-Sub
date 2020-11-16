@@ -2,16 +2,18 @@ cmake_minimum_required(VERSION 3.15)
 
 add_library(eyes2d SHARED)
 
+target_compile_options(eyes2d PRIVATE
+    "/std:c++17"
+    "/MP4"
+    "/utf-8"
+)
+
 target_include_directories(eyes2d PRIVATE
     .
     ../fancylib
     ../prebuild/dxsdk/include
     ../prebuild/zlib/include
     ../prebuild/libzip/include
-)
-
-target_compile_options(eyes2d PRIVATE
-    "/std:c++17"
 )
 
 target_compile_definitions(eyes2d PRIVATE

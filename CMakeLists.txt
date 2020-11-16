@@ -8,6 +8,7 @@ add_subdirectory(fancylib)
 add_subdirectory(DirectShowClass)
 add_subdirectory(fancy2d)
 
+add_subdirectory(imgui)
 add_subdirectory(eyes2d)
 
 add_subdirectory(LuaSTG)

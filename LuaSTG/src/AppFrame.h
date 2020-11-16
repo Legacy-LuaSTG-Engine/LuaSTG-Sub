@@ -96,12 +96,12 @@ namespace LuaSTGPlus
 		bool m_bSplashWindowEnabled = false;
 		bool m_OptionWindowed = true;
 		fuInt m_OptionFPSLimit = 60;
-		bool m_OptionVsync = true;
+		bool m_OptionVsync = false;
 		fcyVec2 m_OptionResolution = fcyVec2(640.f, 480.f);
-		bool m_OptionSplash = false;
+		bool m_OptionSplash = true;
 		std::wstring m_OptionTitle = L"LuaSTG";
 		fDouble m_fFPS = 0.;
-
+		
 		// 引擎
 		fcyRefPointer<f2dEngine> m_pEngine;
 		f2dWindow* m_pMainWindow = nullptr;
@@ -616,6 +616,9 @@ namespace LuaSTGPlus
 		// 渲染环，通过纹理+uv范围渲染
 		bool RenderAnnulus(const char* name, fcyRect uv, bool tran, BlendMode blend, fcyColor color1, fcyColor color2,
 			fcyVec2 pos, float rot, float r1, float r2, int div, int rep);
+		
+		bool UpdateDebugGUI();
+		bool DrawDebugGUI();
 	public: // 文字渲染器包装
 		bool FontRenderer_SetFontProvider(const char* name);
 		void FontRenderer_SetFlipType(const F2DSPRITEFLIP t);

@@ -2,6 +2,19 @@ cmake_minimum_required(VERSION 3.15)
 
 add_library(fancy2d SHARED)
 
+target_compile_options(fancy2d PUBLIC
+    "/utf-8"
+    "/MP4"
+    "/std:c++17"
+)
+
+target_compile_definitions(fancy2d PRIVATE
+    UNICODE
+    _UNICODE
+    ZLIB_DLL
+    DLL_IMPORT # freetype
+)
+
 target_include_directories(fancy2d PRIVATE
     .
     ../fancylib
@@ -11,13 +24,6 @@ target_include_directories(fancy2d PRIVATE
     ../prebuild/libogg/include
     ../prebuild/libvorbis/include
     ../prebuild/freetype/include
-)
-
-target_compile_definitions(fancy2d PRIVATE
-    UNICODE
-    _UNICODE
-    ZLIB_DLL
-    DLL_IMPORT # freetype
 )
 
 target_sources(fancy2d PRIVATE

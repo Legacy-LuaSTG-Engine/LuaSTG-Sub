@@ -2,15 +2,21 @@ cmake_minimum_required(VERSION 3.15)
 
 add_library(fancylib)
 
-target_include_directories(fancylib PRIVATE
-    .
-    ../prebuild/zlib/include
+target_compile_options(fancylib PUBLIC
+    "/utf-8"
+    "/MP4"
+    "/std:c++17"
 )
 
 target_compile_definitions(fancylib PRIVATE
     UNICODE
     _UNICODE
     ZLIB_DLL
+)
+
+target_include_directories(fancylib PRIVATE
+    .
+    ../prebuild/zlib/include
 )
 
 target_sources(fancylib PRIVATE

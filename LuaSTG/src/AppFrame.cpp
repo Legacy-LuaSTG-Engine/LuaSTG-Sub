@@ -12,6 +12,22 @@
 #include "LuaWrapper/LuaStringToEnum.hpp"
 #include "LuaWrapper/LuaInternalSource.hpp"
 
+#include "ImGuiExt.h"
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32WorkingThread_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+class ImGuiRenderDeviceEventListener : public f2dRenderDeviceEventListener
+{
+public:
+	void OnRenderDeviceLost()
+	{
+		ImGui_ImplDX9_InvalidateDeviceObjects();
+	}
+	void OnRenderDeviceReset()
+	{
+		ImGui_ImplDX9_CreateDeviceObjects();
+	}
+};
+static ImGuiRenderDeviceEventListener g_ImGuiRenderDeviceEventListener;
+
 #include "D3D9.H"  // for SetFog
 #include "Network.h"
 
@@ -1078,6 +1094,7 @@ bool AppFrame::Init()LNOEXCEPT
 		luaL_openlibs(L);  // 内建库 (lua build in lib)
 		lua_register_custom_loader(L); // 加强版 package 库 (require)
 		luaopen_steam(L); // Steam API
+		luaopen_imgui(L); // dear-imgui
 
 		//luaopen_lfs(L);  // 文件系统库 (file system)
 		//luaopen_cjson(L);  // CJSON库 (json)
@@ -1272,10 +1289,22 @@ bool AppFrame::Init()LNOEXCEPT
 			if (FCYFAILED(m_pInputSys->CreateJoystick(i, false, &m_Joystick[i])))
 				LWARNING("无法装载手柄，忽略。");
 		}
-
+		
 		// luastg不使用ZBuffer，将其关闭。
 		m_pRenderDev->SetZBufferEnable(false);
 		m_pRenderDev->ClearZBuffer();
+		
+		// 初始化ImGui
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGuiIO& io = ImGui::GetIO(); (void)io;
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableSetMousePos;
+		ImGui::StyleColorsDark();
+		ImGui_ImplWin32WorkingThread_Init((void*)m_pMainWindow->GetHandle());
+		m_pMainWindow->SetNativeMessageProcess((void*)&ImGui_ImplWin32WorkingThread_WndProcHandler);
+		ImGui_ImplDX9_Init((IDirect3DDevice9*)m_pRenderDev->GetHandle());
+		m_pRenderDev->AttachListener(&g_ImGuiRenderDeviceEventListener);
 	}
 	
 	// 设置窗口图标
@@ -1397,7 +1426,14 @@ void AppFrame::Shutdown()LNOEXCEPT
 
 	m_ResourceMgr.ClearAllResource();
 	LINFO("已清空所有资源");
-
+	
+	// 卸载ImGui
+	m_pRenderDev->RemoveListener(&g_ImGuiRenderDeviceEventListener);
+	ImGui_ImplDX9_Shutdown();
+	m_pMainWindow->SetNativeMessageProcess(NULL);
+	ImGui_ImplWin32WorkingThread_Shutdown();
+	ImGui::DestroyContext();
+	
 	m_Mouse = nullptr;
 	m_Joystick[0] = m_Joystick[1] = nullptr;
 	m_Keyboard = m_Keyboard2 = nullptr;
@@ -1876,10 +1912,11 @@ fBool AppFrame::OnRender(fDouble ElapsedTime, f2dFPSController* pFPSController)
 #endif
 
 	m_pRenderDev->Clear();
-
+	
 	// 执行渲染函数
 	m_bRenderStarted = true;
 	m_bPostEffectCaptureStarted = false;
+	
 	if (!SafeCallGlobalFunction(LFUNC_RENDER, 0))
 		m_pEngine->Abort();
 	if (!m_stRenderTargetStack.empty())
@@ -1889,6 +1926,57 @@ fBool AppFrame::OnRender(fDouble ElapsedTime, f2dFPSController* pFPSController)
 			PopRenderTarget();
 	}
 	m_bRenderStarted = false;
+	
+	return true;
+}
+
+bool AppFrame::UpdateDebugGUI()
+{
+	ImGui_ImplDX9_NewFrame();
+	ImGui_ImplWin32WorkingThread_NewFrame();
+	return true;
+}
+
+bool AppFrame::DrawDebugGUI()
+{
+	IDirect3DDevice9* pDev = (IDirect3DDevice9*)m_pRenderDev->GetHandle();
+	
+	// 终止渲染过程
+	bool bRestartRenderPeriod = false;
+	switch (m_GraphType)
+	{
+	case GraphicsType::Graph2D:
+		if (m_Graph2D->IsInRender())
+		{
+			bRestartRenderPeriod = true;
+			m_Graph2D->End();
+		}
+		break;
+	case GraphicsType::Graph3D:
+		if (m_Graph3D->IsInRender())
+		{
+			bRestartRenderPeriod = true;
+			m_Graph3D->End();
+		}
+		break;
+	}
+	
+	// 绘制GUI数据
+	ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+	
+	// 重启渲染过程
+	if (bRestartRenderPeriod)
+	{
+		switch (m_GraphType)
+		{
+		case GraphicsType::Graph2D:
+			m_Graph2D->Begin();
+			break;
+		case GraphicsType::Graph3D:
+			m_Graph3D->Begin();
+			break;
+		}
+	}
 	
 	return true;
 }
