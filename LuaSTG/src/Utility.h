@@ -38,17 +38,17 @@ namespace LuaSTGPlus
 			m_Out = static_cast<float>(m_StopWatch.GetElapsed());
 		}
 	};
-
+	
 	// com组件库域，自动初始化com组件库和离开作用域时自动卸载com组件库，以函数调用时获取com组件库初始化成功与否
-	class CoScope {
+	class CoInitializeScope {
 	private:
 		bool m_Status = false;
 	public:
 		bool operator ()()const { return m_Status; }
-		CoScope() { m_Status = SUCCEEDED(CoInitializeEx(NULL, COINIT_MULTITHREADED)); }
-		~CoScope() { if (m_Status) CoUninitialize(); }
+		CoInitializeScope() { m_Status = SUCCEEDED(CoInitializeEx(NULL, COINIT_MULTITHREADED)); }
+		~CoInitializeScope() { if (m_Status) CoUninitialize(); }
 	};
-
+	
 	//字符串格式化
 	//param[in] Format 字符串格式，不支持精度
 	std::string StringFormat(const char* Format, ...)noexcept;

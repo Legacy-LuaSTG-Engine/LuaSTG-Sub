@@ -14,7 +14,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 	int ret = 0;
 	if (SteamAPI::Init()) {
-		CoScope co;
+		CoInitializeScope co;
 		if (co()) {
 			if (CheckRuntime()) {
 				if (LAPP.Init()) {
@@ -54,6 +54,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	else {
 		ret = 1;
 	}
-
+	
 	return ret;
 }
