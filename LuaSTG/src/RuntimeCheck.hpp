@@ -6,18 +6,21 @@ namespace LuaSTGPlus {
 		const wchar_t* dlls[] = {
 			L"D3D9.dll",
 			L"D3DX9_43.dll",
-			L"XINPUT1_3.dll",
 			L"XINPUT9_1_0.dll",
 			L"DInput8.dll",
 			L"DSound.dll",
 		};
-		for (int idx = 0; idx < 6; idx++) {
+		bool flag = true;
+		for (int idx = 0; idx < (sizeof(dlls) / sizeof(dlls[0])); idx++) {
 			HMODULE dll = LoadLibraryW(dlls[idx]);
-			if (dll == NULL) {
-				return false;
+			if (dll != NULL) {
+				FreeLibrary(dll);
 			}
-			FreeLibrary(dll);
+			else
+			{
+				flag = false;
+			}
 		}
-		return true;
+		return flag;
 	}
 }

@@ -21,11 +21,12 @@ class ImGuiRenderDeviceEventListener : public f2dRenderDeviceEventListener
 public:
 	void OnRenderDeviceLost()
 	{
-		ImGui_ImplDX9_InvalidateDeviceObjects();
+		ImGui_ImplDX9_Shutdown();
 	}
 	void OnRenderDeviceReset()
 	{
-		ImGui_ImplDX9_CreateDeviceObjects();
+		IDirect3DDevice9* device = (IDirect3DDevice9*)LAPP.GetRenderDev()->GetHandle();
+		ImGui_ImplDX9_Init(device);
 	}
 };
 static ImGuiRenderDeviceEventListener g_ImGuiRenderDeviceEventListener;
@@ -33,7 +34,7 @@ void lstgImGuiLoadConfig()
 {
 	ImGuiIO& io = ImGui::GetIO();
 	
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableSetMousePos;
 	
 	ImGui::StyleColorsDark();

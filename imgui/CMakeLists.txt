@@ -16,7 +16,6 @@ target_compile_definitions(imgui PUBLIC
 )
 target_include_directories(imgui PUBLIC
     ../prebuild/freetype/include
-    ../prebuild/dxsdk/include
     imgui
     imgui/backends
     imgui/misc/cpp
@@ -43,7 +42,6 @@ target_sources(imgui PRIVATE
     imgui/backends/imgui_impl_win32_workingthread.h
 )
 target_link_directories(imgui PUBLIC
-    ../prebuild/dxsdk/lib
     ../prebuild/freetype/lib/${EXT_LIBRARY_TYPE}
 )
 target_link_libraries(imgui
