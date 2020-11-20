@@ -42,7 +42,6 @@ target_sources(eyes2d PRIVATE
 )
 
 target_link_directories(eyes2d PRIVATE
-    ../prebuild/dxsdk/lib
     ../prebuild/zlib/lib/${EXT_LIBRARY_TYPE}
     ../prebuild/libzip/lib/${EXT_LIBRARY_TYPE}
 )

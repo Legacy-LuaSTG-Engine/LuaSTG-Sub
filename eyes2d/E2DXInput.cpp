@@ -1,4 +1,6 @@
-﻿#include "E2DXInput.hpp"
+﻿#pragma comment(lib, "Xinput9_1_0.lib")
+
+#include "E2DXInput.hpp"
 
 namespace Eyes2D {
 	namespace Input {

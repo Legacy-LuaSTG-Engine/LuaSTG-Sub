@@ -2,9 +2,11 @@
 #include "E2DGlobal.hpp"
 #include <string>
 
-#pragma comment(lib, "Xinput.lib")
-
-#include "XInput.h"
+#define XINPUT_USE_9_1_0
+#include <Xinput.h>
+#ifndef XUSER_MAX_COUNT
+#define XUSER_MAX_COUNT 4
+#endif
 
 namespace Eyes2D {
 	namespace Input {
