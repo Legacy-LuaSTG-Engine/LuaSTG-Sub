@@ -4,11 +4,8 @@
 namespace LuaSTGPlus {
 	inline bool CheckRuntime() {
 		const wchar_t* dlls[] = {
-			L"D3D9.dll",
-			L"D3DX9_43.dll",
-			L"XINPUT9_1_0.dll",
-			L"DInput8.dll",
-			L"DSound.dll",
+			L"d3dx9_43.dll",
+			L"D3DCompiler_43.dll",
 		};
 		bool flag = true;
 		for (int idx = 0; idx < (sizeof(dlls) / sizeof(dlls[0])); idx++) {
