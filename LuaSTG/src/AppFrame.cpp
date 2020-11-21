@@ -13,89 +13,7 @@
 #include "LuaWrapper/LuaCustomLoader.hpp"
 #include "LuaWrapper/LuaStringToEnum.hpp"
 #include "LuaWrapper/LuaInternalSource.hpp"
-
-#include "ImGuiExt.h"
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32WorkingThread_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-class ImGuiRenderDeviceEventListener : public f2dRenderDeviceEventListener
-{
-public:
-	void OnRenderDeviceLost()
-	{
-		ImGui_ImplDX9_Shutdown();
-	}
-	void OnRenderDeviceReset()
-	{
-		IDirect3DDevice9* device = (IDirect3DDevice9*)LAPP.GetRenderDev()->GetHandle();
-		ImGui_ImplDX9_Init(device);
-	}
-};
-static ImGuiRenderDeviceEventListener g_ImGuiRenderDeviceEventListener;
-void lstgImGuiLoadConfig()
-{
-	ImGuiIO& io = ImGui::GetIO();
-	
-	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableSetMousePos;
-	
-	ImGui::StyleColorsDark();
-	auto& style = ImGui::GetStyle();
-	style.WindowRounding = 0.0f;
-	style.ChildRounding = 0.0f;
-	style.PopupRounding = 0.0f;
-	style.FrameRounding = 0.0f;
-	style.ScrollbarRounding = 0.0f;
-	style.GrabRounding = 0.0f;
-	style.TabRounding = 0.0f;
-	style.WindowBorderSize = 1.0f;
-	style.ChildBorderSize = 1.0f;
-	style.PopupBorderSize = 1.0f;
-	style.FrameBorderSize = 1.0f;
-	style.TabBorderSize = 1.0f;
-	
-	// handle imgui config data
-	io.IniFilename = NULL;
-	std::wstring path;
-	#ifdef USING_SYSTEM_DIRECTORY
-		if (app::makeApplicationRoamingAppDataDirectory(APP_COMPANY, APP_PRODUCT, path))
-		{
-			path.push_back(L'\\');
-		}
-	#endif
-	path.append(L"imgui.ini");
-	std::ifstream file(path, std::ios::in | std::ios::binary);
-	if (file.is_open())
-	{
-		file.seekg(0, std::ios::end);
-		auto p2 = file.tellg();
-		file.seekg(0, std::ios::beg);
-		auto p1 = file.tellg();
-		auto dp = p2 - p1;
-		std::string buffer;
-		buffer.resize((size_t)dp);
-		file.read((char*)buffer.data(), dp);
-		file.close();
-		ImGui::LoadIniSettingsFromMemory(buffer.data(), (size_t)dp);
-	}
-}
-void lstgImGuiSaveConfig()
-{
-	std::wstring path;
-	#ifdef USING_SYSTEM_DIRECTORY
-		if (app::makeApplicationRoamingAppDataDirectory(APP_COMPANY, APP_PRODUCT, path))
-		{
-			path.push_back(L'\\');
-		}
-	#endif
-	path.append(L"imgui.ini");
-	std::ofstream file(path, std::ios::out | std::ios::binary | std::ios::trunc);
-	if (file.is_open())
-	{
-		size_t length = 0;
-		const char* buffer = ImGui::SaveIniSettingsToMemory(&length);
-		file.write(buffer, (std::streamsize)length);
-		file.close();
-	}
-}
+#include "ImGuiExtension.h"
 
 #include "D3D9.H"  // for SetFog
 #include "Network.h"
@@ -1163,22 +1081,21 @@ bool AppFrame::Init()LNOEXCEPT
 		luaL_openlibs(L);  // 内建库 (lua build in lib)
 		lua_register_custom_loader(L); // 加强版 package 库 (require)
 		luaopen_steam(L); // Steam API
-		luaopen_imgui(L); // dear-imgui
-
+		
 		//luaopen_lfs(L);  // 文件系统库 (file system)
 		//luaopen_cjson(L);  // CJSON库 (json)
 		lua_settop(L, 0);// 不知道为什么弄了6个table在栈顶……
-
+		
 		if (!SafeCallScript(LuaInternalSource_1().c_str(), LuaInternalSource_1().length(), "internal")) {
 			LERROR("内置资源出错");
 		}
-
+		
 		RegistBuiltInClassWrapper(L);  // 注册内建类 (luastg lib)
 		Xrysnow::InitStringToEnumHash(L); // 准备属性hash
-
+		
 		lua_gc(L, LUA_GCRESTART, -1);  // 重启GC
 	}
-
+	
 	// 为对象池分配空间
 	LINFO("初始化对象池 上限=%u", LGOBJ_MAXCNT);
 	try
@@ -1228,7 +1145,7 @@ bool AppFrame::Init()LNOEXCEPT
 	}
 	lua_setfield(L, -2, "args");  // t
 	lua_pop(L, 1);
-
+	
 	//////////////////////////////////////// 装载初始化脚本
 	fcyRefPointer<fcyMemStream> tMemStream;
 #ifdef USING_LAUNCH_FILE
@@ -1364,13 +1281,7 @@ bool AppFrame::Init()LNOEXCEPT
 		m_pRenderDev->ClearZBuffer();
 		
 		// 初始化ImGui
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		lstgImGuiLoadConfig();
-		ImGui_ImplWin32WorkingThread_Init((void*)m_pMainWindow->GetHandle());
-		m_pMainWindow->SetNativeMessageProcess((void*)&ImGui_ImplWin32WorkingThread_WndProcHandler);
-		ImGui_ImplDX9_Init((IDirect3DDevice9*)m_pRenderDev->GetHandle());
-		m_pRenderDev->AttachListener(&g_ImGuiRenderDeviceEventListener);
+		imgui::bindEngine();
 	}
 	
 	// 设置窗口图标
@@ -1494,12 +1405,7 @@ void AppFrame::Shutdown()LNOEXCEPT
 	LINFO("已清空所有资源");
 	
 	// 卸载ImGui
-	m_pRenderDev->RemoveListener(&g_ImGuiRenderDeviceEventListener);
-	ImGui_ImplDX9_Shutdown();
-	m_pMainWindow->SetNativeMessageProcess(NULL);
-	ImGui_ImplWin32WorkingThread_Shutdown();
-	lstgImGuiSaveConfig();
-	ImGui::DestroyContext();
+	imgui::unbindEngine();
 	
 	m_Mouse = nullptr;
 	m_Joystick[0] = m_Joystick[1] = nullptr;
@@ -1993,57 +1899,6 @@ fBool AppFrame::OnRender(fDouble ElapsedTime, f2dFPSController* pFPSController)
 			PopRenderTarget();
 	}
 	m_bRenderStarted = false;
-	
-	return true;
-}
-
-bool AppFrame::UpdateDebugGUI()
-{
-	ImGui_ImplDX9_NewFrame();
-	ImGui_ImplWin32WorkingThread_NewFrame();
-	return true;
-}
-
-bool AppFrame::DrawDebugGUI()
-{
-	IDirect3DDevice9* pDev = (IDirect3DDevice9*)m_pRenderDev->GetHandle();
-	
-	// 终止渲染过程
-	bool bRestartRenderPeriod = false;
-	switch (m_GraphType)
-	{
-	case GraphicsType::Graph2D:
-		if (m_Graph2D->IsInRender())
-		{
-			bRestartRenderPeriod = true;
-			m_Graph2D->End();
-		}
-		break;
-	case GraphicsType::Graph3D:
-		if (m_Graph3D->IsInRender())
-		{
-			bRestartRenderPeriod = true;
-			m_Graph3D->End();
-		}
-		break;
-	}
-	
-	// 绘制GUI数据
-	ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
-	
-	// 重启渲染过程
-	if (bRestartRenderPeriod)
-	{
-		switch (m_GraphType)
-		{
-		case GraphicsType::Graph2D:
-			m_Graph2D->Begin();
-			break;
-		case GraphicsType::Graph3D:
-			m_Graph3D->Begin();
-			break;
-		}
-	}
 	
 	return true;
 }

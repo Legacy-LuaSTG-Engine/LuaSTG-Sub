@@ -1,16 +1,15 @@
 #include "imgui/lua_imgui_common.hpp"
 #include "imgui/lua_imgui_backend.hpp"
-#include "Global.h"
-#include "AppFrame.h"
+#include "ImGuiExtension.h"
 
 static int lib_NewFrame(lua_State* L)
 {
-    LAPP.UpdateDebugGUI();
+    imgui::updateEngine();
     return 0;
 }
 static int lib_RenderDrawData(lua_State* L)
 {
-    LAPP.DrawDebugGUI();
+    imgui::drawEngine();
     return 0;
 }
 

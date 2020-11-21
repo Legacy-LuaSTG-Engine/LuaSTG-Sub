@@ -617,8 +617,6 @@ namespace LuaSTGPlus
 		bool RenderAnnulus(const char* name, fcyRect uv, bool tran, BlendMode blend, fcyColor color1, fcyColor color2,
 			fcyVec2 pos, float rot, float r1, float r2, int div, int rep);
 		
-		bool UpdateDebugGUI();
-		bool DrawDebugGUI();
 	public: // 文字渲染器包装
 		bool FontRenderer_SetFontProvider(const char* name);
 		void FontRenderer_SetFlipType(const F2DSPRITEFLIP t);
@@ -635,9 +633,12 @@ namespace LuaSTGPlus
 		f2dRenderDevice* GetRenderDev()LNOEXCEPT { return m_pRenderDev; }
 		f2dSoundSys* GetSoundSys()LNOEXCEPT { return m_pSoundSys; }
 		fcyRefPointer<f2dGeometryRenderer> GetGeometryRenderer()LNOEXCEPT { return m_GRenderer; }
+		GraphicsType GetGraphicsType() { return m_GraphType; }
+		fcyRefPointer<f2dGraphics3D> GetGraphics3D()LNOEXCEPT { return m_Graph3D; }
 		fcyRefPointer<f2dGraphics2D> GetGraphics2D()LNOEXCEPT { return m_Graph2D; }
+		lua_State* GetLuaEngine() { return L; }
 		Eyes2D::Input::XInput& GetXInput() noexcept { return m_XInput; }
-
+		
 		/// @brief 初始化框架
 		/// @note 该函数必须在一开始被调用，且仅能调用一次
 		/// @return 失败返回false
