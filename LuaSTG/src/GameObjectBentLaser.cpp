@@ -164,18 +164,23 @@ bool GameObjectBentLaser::Update(size_t id, int length, float width, bool active
 		LERROR("lstg.BentLaser: 无效的参数length");
 		return false;
 	}
-
+	
 	// ！循环队列的头部是最早创建的，尾部才是最新放入的！
-
-	// 检查是否有必要更新节点
+	
+	// 准备插入的新节点
 	LaserNode tNode;
+	tNode.pos.Set((float)p->x, (float)p->y);
+	tNode.half_width = width / 2.f;
+	tNode.active = active;
+	
+	// 检查是否有必要更新节点
+	bool lvalid = false;
 	fcyVec2 dpos;
-	fFloat len;
-	bool lactive;
+	fFloat len = 0.0f;
+	bool lactive = false;
+	if (m_Queue.Size() > 0)
 	{
-		tNode.pos.Set((float)p->x, (float)p->y);
-		tNode.half_width = width / 2.f;
-		tNode.active = active;
+		lvalid = true;
 		LaserNode& tNodeLast = m_Queue.Back();
 		dpos = tNode.pos - tNodeLast.pos;
 		len = dpos.Length();
@@ -194,9 +199,9 @@ bool GameObjectBentLaser::Update(size_t id, int length, float width, bool active
 	while (m_Queue.IsFull() || m_Queue.Size() >= (size_t)length) {
 		_PopHead();
 	}
-
+	
 	// 计算
-	if (m_Queue.Size() > 0) {
+	if (lvalid && m_Queue.Size() > 0) {
 		tNode.dis = len;//距离
 		tNode.rot = dpos.CalcuAngle();//计算朝向
 		if (active && lactive) {
