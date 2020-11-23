@@ -5,7 +5,8 @@
 #include <fcyException.h>
 #include <fcyOS/fcyDebug.h>
 
-// #define _IME_DEBUG
+//#define _IME_DEBUG
+//#define _FANCY2D_IME_ENABLE // 妈的，这IME支持还不如不写，一堆bug
 
 using namespace std;
 
@@ -22,16 +23,16 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 {
 	// 提取指针
 	f2dWindowImpl* pWindow = s_WindowCallBack[Handle];
-
+	
 	// 如果无指针，交给系统处理
 	if (pWindow == nullptr)
 	{
 		return DefWindowProc(Handle,Msg,wParam,lParam);
 	}
-
+	
 	// 提取监听器指针
 	f2dWindowEventListener* pListener = pWindow->GetListener();
-
+	
 	// 处理并派送消息
 	switch(Msg)
 	{
@@ -43,7 +44,8 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 			((f2dMainThreadDelegate*)lParam)->Release();
 		}
 		break;
-
+	
+	#ifdef _FANCY2D_IME_ENABLE
 	case WM_CREATE:
 		// 初始化IME上下文
 		pWindow->HandleIMELanguageChanged();
@@ -53,7 +55,8 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 		// 销毁IME上下文
 		pWindow->UninitIMEContext();
 		break;
-
+	#endif
+	
 		// 普通回调
 	case WM_CLOSE:
 		if(pListener) pListener->OnClose();
@@ -111,15 +114,17 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 		if(pListener) pListener->OnMouseMBDouble(LOWORD(lParam),HIWORD(lParam),wParam);
 		break;
 	case WM_SETFOCUS:
+		#ifdef _FANCY2D_IME_ENABLE
 		pWindow->HandleIMELanguageChanged();
-
+		#endif
 		if(pListener) pListener->OnGetFocus();
 		break;
 	case WM_KILLFOCUS:
 		if(pListener) pListener->OnLostFocus();
 		break;
-
-		// IME消息部分
+	
+	#ifdef _FANCY2D_IME_ENABLE
+	// IME消息部分
 	case WM_INPUTLANGCHANGE:
 		pWindow->HandleIMELanguageChanged();
 		break;
@@ -194,15 +199,15 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 			break;
 		}
 		break;
+	#endif
+	
 	default:
 		break;
 	}
 	
 	// 提取Win32消息回调
-	NATIVE_WNDPROC pCallback = (NATIVE_WNDPROC)pWindow->GetNativeMessageProcess();
-	if (pCallback != NULL)
-		if (pCallback(Handle, Msg, wParam, lParam))
-			return TRUE;
+	if (pWindow->HandleNativeMessageCallback(Handle, Msg, wParam, lParam))
+		return TRUE;
 	
 	// 处理消息返回值
 	return DefWindowProc(Handle,Msg,wParam,lParam);
@@ -530,11 +535,13 @@ f2dWindowImpl::f2dWindowImpl(f2dEngineImpl* pEngine, f2dWindowClass* WinCls, con
 	AdjustWindowRect(&tWinRect, tWinStyle, FALSE);
 	fuInt tRealWidth = tWinRect.right  - tWinRect.left ;
 	fuInt tRealHeight = tWinRect.bottom  - tWinRect.top;
-
-
-	// 创建窗口
+	
 	if (DisableIME)
+	{
 		ImmDisableIME(0);//不需要的时候屏蔽输入法
+	}
+	
+	// 创建窗口
 	m_hWnd = CreateWindowEx(
 		WS_EX_APPWINDOW,
 		WinCls->GetName(),
@@ -725,14 +732,39 @@ fResult f2dWindowImpl::SetListener(f2dWindowEventListener* pListener)
 	return FCYERR_OK;
 }
 
-void f2dWindowImpl::SetNativeMessageProcess(void* pWndProc)
+void f2dWindowImpl::AddNativeMessageCallback(ptrdiff_t pWndProc)
 {
-	m_fProc = (NATIVE_WNDPROC)pWndProc;
+	RemoveNativeMessageCallback(pWndProc);
+	m_fProc.push_back(pWndProc);
 }
 
-void* f2dWindowImpl::GetNativeMessageProcess()
+void f2dWindowImpl::RemoveNativeMessageCallback(ptrdiff_t pWndProc)
 {
-	return (void*)m_fProc;
+	for (auto it = m_fProc.begin(); it != m_fProc.end();)
+	{
+		if (*it == pWndProc)
+		{
+			it = m_fProc.erase(it);
+		}
+		else
+		{
+			it++;
+		}
+	}
+}
+
+typedef LRESULT (*NATIVE_WNDPROC)(HWND, UINT, WPARAM, LPARAM);
+bool f2dWindowImpl::HandleNativeMessageCallback(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	bool should_skip = false;
+	for (auto f : m_fProc)
+	{
+		if (0 != ((NATIVE_WNDPROC)(f))(hWnd, msg, wParam, lParam))
+		{
+			should_skip = true;
+		}
+	}
+	return should_skip;
 }
 
 fInt f2dWindowImpl::GetHandle()

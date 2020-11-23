@@ -16,8 +16,6 @@
 class f2dEngineImpl;
 class f2dWindowImpl;
 
-typedef LRESULT (*NATIVE_WNDPROC)(HWND, UINT, WPARAM, LPARAM);
-
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief 窗口类
 ////////////////////////////////////////////////////////////////////////////////
@@ -149,7 +147,7 @@ private:
 private:
 	// 状态
 	HWND m_hWnd = NULL;
-	NATIVE_WNDPROC m_fProc = NULL;
+	std::vector<ptrdiff_t> m_fProc;
 	bool m_bShow;
 	std::wstring m_CaptionText;
 	
@@ -184,8 +182,9 @@ public: // 接口实现
 	f2dWindowEventListener* GetListener();
 	fResult SetListener(f2dWindowEventListener* pListener);
 	
-	void SetNativeMessageProcess(void* pWndProc);
-	void* GetNativeMessageProcess();
+	void AddNativeMessageCallback(ptrdiff_t pWndProc);
+	void RemoveNativeMessageCallback(ptrdiff_t pWndProc);
+	bool HandleNativeMessageCallback(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 	fInt GetHandle();
 	
 	F2DWINBORDERTYPE GetBorderType();
@@ -202,10 +201,9 @@ public: // 接口实现
 	fBool IsTopMost();
 	fResult SetTopMost(fBool TopMost);
 	void HideMouse(fBool bShow);
-
+	
 	fBool IsHideIME() { return m_bHideIME; }
 	void SetHideIME(fBool v) { m_bHideIME = v; }
-
 	fcStrW GetIMEDesc()
 	{
 		return m_CurIMEDesc.c_str();

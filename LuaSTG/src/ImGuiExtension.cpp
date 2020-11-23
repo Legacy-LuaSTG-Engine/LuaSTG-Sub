@@ -111,6 +111,16 @@ namespace imgui
         style.PopupBorderSize = 1.0f;
         style.FrameBorderSize = 1.0f;
         style.TabBorderSize = 1.0f;
+        
+        if (false)
+        {
+            ImFontConfig cfg;
+            cfg.OversampleH = 1;
+            io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\msyh.ttc", 16.0f, &cfg, io.Fonts->GetGlyphRangesChineseFull());
+            io.Fonts->AddFontDefault();
+            
+            ImGuiFreeType::BuildFontAtlas(io.Fonts);
+        }
     }
     
     void bindEngine()
@@ -126,7 +136,7 @@ namespace imgui
         loadConfig();
         
         ImGui_ImplWin32WorkingThread_Init((void*)window->GetHandle());
-        window->SetNativeMessageProcess((void*)&ImGui_ImplWin32WorkingThread_WndProcHandler);
+        window->AddNativeMessageCallback((ptrdiff_t)&ImGui_ImplWin32WorkingThread_WndProcHandler);
         
         ImGui_ImplDX9_Init((IDirect3DDevice9*)device->GetHandle());
         device->AttachListener(&g_ImGuiRenderDeviceEventListener);
@@ -147,7 +157,7 @@ namespace imgui
         device->RemoveListener(&g_ImGuiRenderDeviceEventListener);
         ImGui_ImplDX9_Shutdown();
         
-        window->SetNativeMessageProcess(NULL);
+        window->RemoveNativeMessageCallback((ptrdiff_t)&ImGui_ImplWin32WorkingThread_WndProcHandler);
         ImGui_ImplWin32WorkingThread_Shutdown();
         
         saveConfig();
