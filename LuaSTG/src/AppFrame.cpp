@@ -6,7 +6,6 @@
 #include "AppFrame.h"
 #include "Utility.h"
 #include "SteamAPI.hpp"
-#include "E2DXInput.hpp"
 #include "ResourcePassword.hpp"
 #include "LuaWrapper/LuaAppFrame.hpp"
 #include "LuaWrapper/LuaWrapper.hpp"
@@ -1891,8 +1890,6 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 			break;
 		}
 	}
-	// Steam消息
-	//SteamAPI_RunCallbacks();
 	
 	//EX+ Network Input
 	if (!m_Input){
@@ -1904,9 +1901,6 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 		}
 	}
 	
-	//更新输入
-	m_XInput.Update();
-
 	// 执行帧函数
 	if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineUpdate, 1))
 		return false;

@@ -32,13 +32,6 @@ namespace LuaSTGPlus
 		static void Register(lua_State* L)LNOEXCEPT;
 	};
 	
-	//XInput的lua包装
-	class XInputManagerWrapper {
-	public:
-		//向lua注册包装类
-		static void Register(lua_State* L)LNOEXCEPT;
-	};
-
 	//压缩包
 	class ArchiveWrapper {
 	private:

@@ -98,7 +98,6 @@
 #define LPOOL (LAPP.GetGameObjectPool())
 #define LRES (LAPP.GetResourceMgr())
 #define LFMGR (LAPP.GetFileManager())
-#define LXINPUT (LAPP.GetXInput())
 
 #define LWIDE_(x) L ## x
 #define LWIDE(x) LWIDE_(x)

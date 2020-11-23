@@ -36,9 +36,6 @@ target_sources(eyes2d PRIVATE
     
     E2DFileManager.hpp
     E2DFileManager.cpp
-    
-    E2DXInput.hpp
-    E2DXInput.cpp
 )
 
 target_link_directories(eyes2d PRIVATE

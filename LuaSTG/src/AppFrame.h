@@ -14,7 +14,6 @@
 #endif
 
 #include "E2DFileManager.hpp"
-#include "E2DXInput.hpp"
 
 namespace LuaSTGPlus
 {
@@ -59,7 +58,7 @@ namespace LuaSTGPlus
 		};
 	private:
 		AppStatus m_iStatus = AppStatus::NotInitialized;
-
+		
 #if (defined LDEVVERSION) || (defined LDEBUG)
 		// 远端调试器
 		std::unique_ptr<RemoteDebuggerClient> m_DebuggerClient;
@@ -79,17 +78,17 @@ namespace LuaSTGPlus
 		// 载入窗口
 		GdiPlusScope m_GdiScope;
 		SplashWindow m_SplashWindow;
-
+		
 		// 资源管理器
 		Eyes2D::IO::FileManager m_FileManager;
 		ResourceMgr m_ResourceMgr;
-
+		
 		// 对象池
 		std::unique_ptr<GameObjectPool> m_GameObjectPool;
-
+		
 		// Lua虚拟机
 		lua_State* L = nullptr;
-
+		
 		// 选项与值
 		bool m_bSplashWindowEnabled = false;
 		bool m_OptionWindowed = true;
@@ -117,7 +116,7 @@ namespace LuaSTGPlus
 		F2DGRAPH2DBLENDTYPE m_Graph2DColorBlendState;//2D
 		BlendMode m_Graph3DLastBlendMode;//3D
 		f2dBlendState m_Graph3DBlendState;//3D
-
+		
 		//渲染器
 		fcyRefPointer<f2dGeometryRenderer> m_GRenderer;//2D
 		fcyRefPointer<f2dFontRenderer> m_FontRenderer;//2D
@@ -128,9 +127,8 @@ namespace LuaSTGPlus
 		bool m_bPostEffectCaptureStarted = false;
 		fcyRefPointer<f2dTexture2D> m_PostEffectBuffer;//全局临时RenderTarget
 		std::vector<fcyRefPointer<f2dTexture2D>> m_stRenderTargetStack;// RenderTarget控制
-
+		
 		//输入设备
-		Eyes2D::Input::XInput m_XInput;
 		fcyRefPointer<f2dInputMouse> m_Mouse;
 		fcyRefPointer<f2dInputKeyboard> m_Keyboard;
 		fcyRefPointer<f2dInputKeyboard> m_Keyboard2;
@@ -607,7 +605,6 @@ namespace LuaSTGPlus
 		fcyRefPointer<f2dGraphics3D> GetGraphics3D()LNOEXCEPT { return m_Graph3D; }
 		fcyRefPointer<f2dGraphics2D> GetGraphics2D()LNOEXCEPT { return m_Graph2D; }
 		lua_State* GetLuaEngine() { return L; }
-		Eyes2D::Input::XInput& GetXInput() noexcept { return m_XInput; }
 		
 		/// @brief 初始化框架
 		/// @note 该函数必须在一开始被调用，且仅能调用一次
