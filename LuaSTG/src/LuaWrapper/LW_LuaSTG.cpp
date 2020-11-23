@@ -1359,14 +1359,14 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 				if (strcmp(s, "address") == 0) {
 					// "address" string
 					fcyColor color(0,0,0,0);
-					ret = LAPP.SetTextureSamplerAddress(TranslateTextureSamplerAddress(L, 2), color);
+					ret = (FCYERR_OK == LAPP.GetRenderDev()->SetTextureAddress(TranslateTextureSamplerAddress(L, 2), color));
 					if (!ret) {
 						return luaL_error(L, "Failed to set texture sampler address mode.");
 					}
 				}
 				else if (strcmp(s, "filter") == 0) {
 					// "filter" string
-					ret = LAPP.SetTextureSamplerFilter(TranslateTextureSamplerFilter(L, 2));
+					ret = (FCYERR_OK == LAPP.GetRenderDev()->SetTextureFilter(TranslateTextureSamplerFilter(L, 2)));
 					if (!ret) {
 						return luaL_error(L, "Failed to set texture sampler filter type.");
 					}
@@ -1378,7 +1378,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			else if (lua_gettop(L) == 3) {
 				// "address" string color
 				fcyColor* p = static_cast<fcyColor*>(luaL_checkudata(L, 3, LUASTG_LUA_TYPENAME_COLOR));
-				ret = LAPP.SetTextureSamplerAddress(TranslateTextureSamplerAddress(L, 2), *p);
+				ret = (FCYERR_OK == LAPP.GetRenderDev()->SetTextureAddress(TranslateTextureSamplerAddress(L, 2), *p));
 				if (!ret) {
 					return luaL_error(L, "Failed to set texture sampler address mode.");
 				}
@@ -1528,11 +1528,6 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			{
 				return luaL_error(L, "can't render font '%s'.", luaL_checkstring(L, 1));
 			}	
-			return 0;
-		}
-		static int RegTTF(lua_State* L)LNOEXCEPT
-		{
-			// 否决的方法
 			return 0;
 		}
 		static int SetFog(lua_State* L)LNOEXCEPT
@@ -1699,7 +1694,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		}
 		static int DrawCollider(lua_State* L)LNOEXCEPT // t(list) [n] <length> <rate>
 		{
-			LAPP.DrawCollider();
+			LPOOL.DrawCollider();
 			return 1;
 		}
 		//ETC
@@ -2324,7 +2319,6 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		{ "LoadFont", &WrapperImplement::LoadFont },
 		{ "LoadTTF", &WrapperImplement::LoadTTF },
 		{ "LoadTrueTypeFont", &WrapperImplement::LoadTrueTypeFont },
-		{ "RegTTF", &WrapperImplement::RegTTF },
 		{ "LoadFX", &WrapperImplement::LoadFX },
 		{ "CreateRenderTarget", &WrapperImplement::CreateRenderTarget },
 		{ "IsRenderTarget", &WrapperImplement::IsRenderTarget },

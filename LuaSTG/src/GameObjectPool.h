@@ -49,7 +49,7 @@ namespace LuaSTGPlus
 		// 申请一个对象，重置对象并将对象插入到各个链表，不处理lua部分，返回申请的对象
 		GameObject* _AllocObject();
 
-		// 释放一个对象，将对象从各个链表中移除，并回收，不处理lua部分和对象资源，返回下一个可用的对象
+		// 释放一个对象，将对象从各个链表中移除，并回收，不处理lua部分和对象资源，返回下一个可用的对象（可能为nullptr）
 		GameObject* _ReleaseObject(GameObject* object);
 
 		// 更改指定对象的图层，该操作会刷新对象在渲染链表中的位置
@@ -70,7 +70,7 @@ namespace LuaSTGPlus
 			return true;
 		}
 
-		// 释放一个对象，完全释放
+		// 释放一个对象，完全释放，返回下一个可用的对象（可能为nullptr）
 		GameObject* freeObject(GameObject* p)LNOEXCEPT;
 	public:
 		int PushCurrentObject(lua_State* L)LNOEXCEPT;
@@ -261,6 +261,7 @@ namespace LuaSTGPlus
 			return m_superpause;
 		}
 	public:  // 内部使用
+		void DrawCollider();
 		void DrawGroupCollider(f2dGraphics2D* graph, f2dGeometryRenderer* grender, int groupId, fcyColor fillColor);
 		void DrawGroupCollider2(int groupId, fcyColor fillColor);
 	private:

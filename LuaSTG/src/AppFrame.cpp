@@ -450,13 +450,6 @@ LNOINLINE void AppFrame::SetTitle(const char* v)LNOEXCEPT
 	}
 }
 
-void AppFrame::SetColliderDisplay(int count, ColliderDisplayConfig* cfgs)LNOEXCEPT {
-	m_collidercfg.clear();
-	for (int i = 0; i < count; i++) {
-		m_collidercfg.push_back(cfgs[i]);
-	}
-}
-
 LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, bool vsync)LNOEXCEPT
 {
 	if (m_iStatus == AppStatus::Initialized)
@@ -1299,14 +1292,7 @@ bool AppFrame::Init()LNOEXCEPT
 		m_pMainWindow->SetVisiable(true);
 	}
 	resetKeyStatus(); // clear key status first
-
-	//////////////////////////////////////// 碰撞组显示设置
-	m_collidercfg.clear();
-	m_collidercfg.emplace_back(ColliderDisplayConfig(1, fcyColor(150, 163, 73, 164)));// GROUP_ENEMY_BULLET
-	m_collidercfg.emplace_back(ColliderDisplayConfig(2, fcyColor(150, 163, 73, 164)));// GROUP_ENEMY
-	m_collidercfg.emplace_back(ColliderDisplayConfig(5, fcyColor(150, 163, 73, 20)));// GROUP_INDES
-	m_collidercfg.emplace_back(ColliderDisplayConfig(4, fcyColor(100, 175, 15, 20)));// GROUP_PLAYER
-
+	
 	//////////////////////////////////////// 装载核心脚本
 	{
 		const wchar_t* entry_file_array_w[] = {
@@ -1710,12 +1696,6 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 				m_LastKey = (fInt)tMsg.Param1;
 				m_KeyStateMap[tMsg.Param1] = true;
 			}
-
-#if (defined LDEVVERSION) || (defined LDEBUG)
-			if (tMsg.Param1 == VK_F8)
-				m_bShowCollider = !m_bShowCollider;
-#endif
-			break;
 		}
 		case F2DMSG_WINDOW_ONKEYUP:
 		{
@@ -1994,28 +1974,5 @@ fBool AppFrame::OnRender(fDouble ElapsedTime, f2dFPSController* pFPSController)
 	m_bRenderStarted = false;
 	
 	return true;
-}
-
-void AppFrame::DrawCollider()LNOEXCEPT{
-	#if (defined LDEVVERSION) || (defined LDEBUG)
-	if (m_bShowCollider)
-	{
-		m_pRenderDev->ClearZBuffer();
-
-		//m_Graph2D->Begin();
-		f2dBlendState stState = m_Graph2D->GetBlendState();
-		f2dBlendState stStateClone = stState;
-		stStateClone.DestBlend = F2DBLENDFACTOR_INVSRCALPHA;
-		stStateClone.BlendOp = F2DBLENDOPERATOR_ADD;
-		m_Graph2D->SetBlendState(stStateClone);
-		
-		for (ColliderDisplayConfig cfg : m_collidercfg) {
-			m_GameObjectPool->DrawGroupCollider(m_Graph2D, m_GRenderer, cfg.group, fcyColor(cfg.color.argb));
-		}
-
-		m_Graph2D->SetBlendState(stState);
-		//m_Graph2D->End();
-	}
-	#endif
 }
 #pragma endregion

@@ -96,8 +96,11 @@ GameObject* GameObjectPool::_AllocObject() {
 GameObject* GameObjectPool::_ReleaseObject(GameObject* object) {
 	GameObject* ret = nullptr;
 	{
-		auto it = m_UpdateList.find(object);
-		ret = *std::next(it);
+		auto it = std::next(m_UpdateList.find(object));
+		if (it != m_UpdateList.end())
+		{
+			ret = *it;
+		}
 	}
 	m_UpdateList.erase(object);
 	m_RenderList.erase(object);
@@ -1450,6 +1453,59 @@ int GameObjectPool::ParticleSetEmission(lua_State* L)LNOEXCEPT
 	}
 	p->ps->SetEmission((float)::max(0., luaL_checknumber(L, 2)));
 	return 0;
+}
+
+void GameObjectPool::DrawCollider()
+{
+#if (defined LDEVVERSION) || (defined LDEBUG)
+	struct ColliderDisplayConfig {
+		int group;
+		fcyColor color;
+		ColliderDisplayConfig() {
+			group = 0;
+			color.argb = 0x00000000;
+		}
+		ColliderDisplayConfig(int g, fcyColor c) {
+			group = g;
+			color.argb = c.argb;
+		}
+	};
+	static std::vector<ColliderDisplayConfig> m_collidercfg = {
+		ColliderDisplayConfig(1, fcyColor(150, 163, 73, 164)), // GROUP_ENEMY_
+		ColliderDisplayConfig(2, fcyColor(150, 163, 73, 164)), // GROUP_ENEMY
+		ColliderDisplayConfig(5, fcyColor(150, 163, 73,  20)), // GROUP_INDES
+		ColliderDisplayConfig(4, fcyColor(100, 175, 15,  20)), // GROUP_PLAYER
+	};
+	static bool f8 = false;
+	static bool kf8 = false;
+	
+	if (!kf8 && LAPP.GetKeyState(VK_F8)) { kf8 = true; f8 = !f8; }
+	else if (kf8 && !LAPP.GetKeyState(VK_F8)) { kf8 = false; }
+	
+	if (f8)
+	{
+		LAPP.GetRenderDev()->ClearZBuffer();
+		
+		fcyRefPointer<f2dGeometryRenderer> grender = LAPP.GetGeometryRenderer();
+		fcyRefPointer<f2dGraphics2D> graph = LAPP.GetGraphics2D();
+		
+		f2dBlendState stState = graph->GetBlendState();
+		f2dBlendState stStateClone = stState;
+		stStateClone.SrcBlend = F2DBLENDFACTOR_SRCALPHA;
+		stStateClone.DestBlend = F2DBLENDFACTOR_INVSRCALPHA;
+		stStateClone.BlendOp = F2DBLENDOPERATOR_ADD;
+		graph->SetBlendState(stStateClone);
+		F2DGRAPH2DBLENDTYPE txState = graph->GetColorBlendType();
+		graph->SetColorBlendType(F2DGRAPH2DBLENDTYPE_ADD);//修复反色混合模式的时候会出现颜色异常的问题
+		
+		for (ColliderDisplayConfig cfg : m_collidercfg) {
+			DrawGroupCollider(*graph, *grender, cfg.group, fcyColor(cfg.color.argb));
+		}
+		
+		graph->SetBlendState(stState);
+		graph->SetColorBlendType(txState);
+	}
+#endif
 }
 
 void GameObjectPool::DrawGroupCollider(f2dGraphics2D* graph, f2dGeometryRenderer* grender, int groupId, fcyColor fillColor)

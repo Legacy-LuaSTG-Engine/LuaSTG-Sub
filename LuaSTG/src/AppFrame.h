@@ -74,10 +74,8 @@ namespace LuaSTGPlus
 		float m_ObjectTotal = 0.f;  // 记录在采样时间内累计的对象数
 		float m_UpdateTimerTotal = 0.f;  // 记录在采样时间内累计的更新时间
 		float m_RenderTimerTotal = 0.f;  // 记录在采样时间内累计的渲染时间
-
-		bool m_bShowCollider = false;
 #endif
-
+		
 		// 载入窗口
 		GdiPlusScope m_GdiScope;
 		SplashWindow m_SplashWindow;
@@ -175,24 +173,7 @@ namespace LuaSTGPlus
 		void SetResolution(fuInt width, fuInt height)LNOEXCEPT;
 		void SetSplash(bool v)LNOEXCEPT;
 		LNOINLINE void SetTitle(const char* v)LNOEXCEPT;  // UTF8编码
-
-		struct ColliderDisplayConfig {
-			int group;
-			fcyColor color;
-			ColliderDisplayConfig() {
-				group = 0;
-				color.argb = 0x00000000;
-			}
-			ColliderDisplayConfig(int g, fcyColor c) {
-				group = g;
-				color.argb = c.argb;
-			}
-		};
-	private:
-		std::vector<ColliderDisplayConfig> m_collidercfg;//碰撞盒渲染配置，在构造函数中初始化
 	public:
-		void SetColliderDisplay(int count, ColliderDisplayConfig* cfgs)LNOEXCEPT;
-
 		/// @brief 使用新的视频参数更新显示模式
 		/// @note 若切换失败则进行回滚
 		LNOINLINE bool ChangeVideoMode(int width, int height, bool windowed, bool vsync)LNOEXCEPT;
@@ -594,25 +575,13 @@ namespace LuaSTGPlus
 		LNOINLINE bool PostEffect(ResTexture* rt, ResFX* shader, BlendMode blend)LNOEXCEPT;
 
 		LNOINLINE bool PostEffectCapture()LNOEXCEPT;
-
+		
 		LNOINLINE bool PostEffectApply(ResFX* shader, BlendMode blend)LNOEXCEPT;
-
-		// 设置贴图采样地址
-		bool SetTextureSamplerAddress(F2DTEXTUREADDRESS addr, const fcyColor &c)LNOEXCEPT
-		{
-			return (m_pRenderDev->SetTextureAddress(addr, c) == FCYERR_OK) ? true : false;
-		}
-
-		// 设置贴图采样器
-		bool SetTextureSamplerFilter(F2DTEXFILTERTYPE filter)LNOEXCEPT
-		{
-			return (m_pRenderDev->SetTextureFilter(filter) == FCYERR_OK) ? true : false;
-		}
 	public: // 拓展方法
 		// 渲染扇形，通过纹理+uv范围渲染
 		bool RenderSector(const char* name, fcyRect uv, bool tran, BlendMode blend, fcyColor color1, fcyColor color2,
 			fcyVec2 pos, float rot, float exp, float r1, float r2, int div);
-
+		
 		// 渲染环，通过纹理+uv范围渲染
 		bool RenderAnnulus(const char* name, fcyRect uv, bool tran, BlendMode blend, fcyColor color1, fcyColor color2,
 			fcyVec2 pos, float rot, float r1, float r2, int div, int rep);
@@ -656,10 +625,12 @@ namespace LuaSTGPlus
 		bool SafeCallScript(const char* source, size_t len, const char* desc)LNOEXCEPT;
 
 		/// @brief 保护模式调用全局函数
-		/// @note 该函数仅限框架调用，为主逻辑最外层调用。若脚本运行时发生错误，该函数负责截获错误发出错误消息。
+		/// @note 该函数仅限框架调用，为主逻辑最外层调用。若脚本运行时发生错误，该函数负责截获错误发出错误消息。调用者负责维持栈平衡。
 		bool SafeCallGlobalFunction(const char* name, int retc = 0)LNOEXCEPT;
+		
+		/// @brief 保护模式调用全局函数
+		/// @note 该函数仅限框架调用，为主逻辑最外层调用。若脚本运行时发生错误，该函数负责截获错误发出错误消息。调用者负责维持栈平衡。
 		bool SafeCallGlobalFunctionB(const char* name, int argc = 0, int retc = 0)LNOEXCEPT;
-		void DrawCollider()LNOEXCEPT;
 	protected:  // fancy2d逻辑循环回调
 		fBool OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, f2dMsgPump* pMsgPump);
 		fBool OnRender(fDouble ElapsedTime, f2dFPSController* pFPSController);
