@@ -629,6 +629,7 @@ namespace LuaSTGPlus
 		Eyes2D::IO::FileManager& GetFileManager() noexcept { return m_FileManager; }
 		GameObjectPool& GetGameObjectPool()LNOEXCEPT{ return *m_GameObjectPool.get(); }
 		f2dEngine* GetEngine()LNOEXCEPT { return m_pEngine; }
+		f2dWindow* GetWindow()LNOEXCEPT { return m_pMainWindow; }
 		f2dRenderer* GetRenderer()LNOEXCEPT { return m_pRenderer; }
 		f2dRenderDevice* GetRenderDev()LNOEXCEPT { return m_pRenderDev; }
 		f2dSoundSys* GetSoundSys()LNOEXCEPT { return m_pSoundSys; }
@@ -657,6 +658,7 @@ namespace LuaSTGPlus
 		/// @brief 保护模式调用全局函数
 		/// @note 该函数仅限框架调用，为主逻辑最外层调用。若脚本运行时发生错误，该函数负责截获错误发出错误消息。
 		bool SafeCallGlobalFunction(const char* name, int retc = 0)LNOEXCEPT;
+		bool SafeCallGlobalFunctionB(const char* name, int argc = 0, int retc = 0)LNOEXCEPT;
 		void DrawCollider()LNOEXCEPT;
 	protected:  // fancy2d逻辑循环回调
 		fBool OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, f2dMsgPump* pMsgPump);

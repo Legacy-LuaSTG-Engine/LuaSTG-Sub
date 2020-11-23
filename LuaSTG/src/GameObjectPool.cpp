@@ -423,7 +423,7 @@ int GameObjectPool::New(lua_State* L)LNOEXCEPT
 	lua_insert(L, 4);							// t(object) t(class) f(init) t(object) ...
 	lua_call(L, lua_gettop(L) - 3, 0);			// t(object) t(class)  执行构造函数
 	lua_pop(L, 1);								// t(object)
-
+	
 	p->lastx = p->x;
 	p->lasty = p->y;
 	return 1;

@@ -100,8 +100,8 @@ void f2dGraphics2DImpl::flush(bool Discard)
 	f2dTexture2D *last_tex=i->pTex;
 	int last_vb = m_VBUsedCount;
 	int last_id = m_IBUsedCount;
-
-
+	
+	HRESULT hr = D3D_OK;
 	while(i != m_Commands.end())
 	{
 		
@@ -112,11 +112,17 @@ void f2dGraphics2DImpl::flush(bool Discard)
 				last_tex->Release();
 			}
 			else
+			{
 				pDev->SetTexture(0, NULL);
-			pDev->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, last_vb, 0, m_VBUsedCount - last_vb, last_id, (m_IBUsedCount - last_id) / 3);
+			}
+			hr = pDev->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, last_vb, 0, m_VBUsedCount - last_vb, last_id, (m_IBUsedCount - last_id) / 3);
 			last_vb = m_VBUsedCount;
 			last_id = m_IBUsedCount;
 			last_tex = i->pTex;
+			if (hr != D3D_OK)
+			{
+				break;
+			}
 		}
 		
 		/*
@@ -135,23 +141,27 @@ void f2dGraphics2DImpl::flush(bool Discard)
 
 		++i;
 	}
-	if (last_vb != m_VBUsedCount){
+	if ((hr == D3D_OK) && (last_vb != m_VBUsedCount)){
 		if (last_tex)
 		{
 			pDev->SetTexture(0, (IDirect3DBaseTexture9*)last_tex->GetHandle());
 			last_tex->Release();
 		}
 		else
+		{
 			pDev->SetTexture(0, NULL);
-		pDev->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, last_vb, 0, m_VBUsedCount - last_vb, last_id, (m_IBUsedCount - last_id) / 3);
+		}
+		hr = pDev->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, last_vb, 0, m_VBUsedCount - last_vb, last_id, (m_IBUsedCount - last_id) / 3);
 	}
-
+	
 	m_Commands.clear();
-
+	
 	// 重新锁定缓冲区
 	if(m_VBUsedCount == m_VBMaxCount || m_IBUsedCount == m_IBMaxCount)
+	{
 		Discard = true;
-
+	}
+	
 	if(Discard)
 	{
 		m_pVB->Lock(0, m_VBMaxCount * sizeof(f2dGraphics2DVertex), (void**)&m_pVBData, D3DLOCK_DISCARD);
@@ -165,7 +175,7 @@ void f2dGraphics2DImpl::flush(bool Discard)
 	{
 		m_pVB->Lock(m_VBUsedCount * sizeof(f2dGraphics2DVertex), (m_VBMaxCount - m_VBUsedCount) * sizeof(f2dGraphics2DVertex), (void**)&m_pVBData, D3DLOCK_NOOVERWRITE);
 		m_pIB->Lock(m_IBUsedCount * sizeof(fuShort), (m_IBMaxCount - m_IBUsedCount) * sizeof(fuShort), (void**)&m_pIBData, D3DLOCK_NOOVERWRITE);
-
+		
 		m_VBAlloced = 0;
 		m_IBAlloced = 0;
 	}

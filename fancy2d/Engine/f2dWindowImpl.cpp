@@ -221,10 +221,10 @@ f2dWindowClass::f2dWindowClass(f2dEngineImpl* pEngine, fcStrW ClassName)
 	tWndClass.lpfnWndProc = WndProc;
 	tWndClass.cbClsExtra = 0;
 	tWndClass.cbWndExtra = 0;
-	tWndClass.hInstance = GetModuleHandle(NULL);
-	tWndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-	tWndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-	tWndClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+	tWndClass.hInstance = GetModuleHandleW(NULL);
+	tWndClass.hIcon = LoadIconW(NULL, IDI_APPLICATION);
+	tWndClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
+	tWndClass.hbrBackground = NULL;
 	tWndClass.lpszMenuName = NULL;
 	tWndClass.lpszClassName = m_ClsName.c_str();
 	
@@ -532,7 +532,7 @@ f2dWindowImpl::f2dWindowImpl(f2dEngineImpl* pEngine, f2dWindowClass* WinCls, con
 
 	// 计算窗口大小
 	RECT tWinRect = { (int)Pos.a.x , (int)Pos.a.y , (int)Pos.b.x , (int)Pos.b.y};
-	AdjustWindowRect(&tWinRect, tWinStyle, FALSE);
+	AdjustWindowRectEx(&tWinRect, tWinStyle, FALSE, 0);
 	fuInt tRealWidth = tWinRect.right  - tWinRect.left ;
 	fuInt tRealHeight = tWinRect.bottom  - tWinRect.top;
 	
@@ -542,8 +542,8 @@ f2dWindowImpl::f2dWindowImpl(f2dEngineImpl* pEngine, f2dWindowClass* WinCls, con
 	}
 	
 	// 创建窗口
-	m_hWnd = CreateWindowEx(
-		WS_EX_APPWINDOW,
+	m_hWnd = CreateWindowExW(
+		0,
 		WinCls->GetName(),
 		m_CaptionText.c_str(),
 		tWinStyle,
@@ -553,10 +553,10 @@ f2dWindowImpl::f2dWindowImpl(f2dEngineImpl* pEngine, f2dWindowClass* WinCls, con
 		tRealHeight,
 		NULL,
 		NULL,
-		GetModuleHandle(NULL),
+		GetModuleHandleW(NULL),
 		NULL
 		);
-
+	
 	if(!m_hWnd)
 		throw fcyWin32Exception("f2dWindowImpl::f2dWindowImpl", "CreateWindowEx Failed.");
 
@@ -858,7 +858,7 @@ fcyRect f2dWindowImpl::GetClientRect()
 fResult f2dWindowImpl::SetClientRect(const fcyRect& Range)
 {
 	RECT tWinRect = { (int)Range.a.x , (int)Range.a.y , (int)Range.b.x , (int)Range.b.y};
-	AdjustWindowRect(&tWinRect, GetWindowLong(m_hWnd, GWL_STYLE), FALSE);
+	AdjustWindowRectEx(&tWinRect, GetWindowLong(m_hWnd, GWL_STYLE), FALSE, 0);
 	return SetWindowPos(m_hWnd, 0, tWinRect.left, tWinRect.top, tWinRect.right - tWinRect.left, tWinRect.bottom - tWinRect.top, SWP_NOZORDER)==TRUE?FCYERR_OK : FCYERR_INTERNALERR;
 }
 

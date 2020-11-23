@@ -38,6 +38,18 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			LAPP.SetWindowed(lua_toboolean(L, 1) == 0 ? false : true);
 			return 0;
 		}
+		static int SetVsync(lua_State* L)LNOEXCEPT
+		{
+			LAPP.SetVsync(lua_toboolean(L, 1) == 0 ? false : true);
+			return 0;
+		}
+		static int SetResolution(lua_State* L)LNOEXCEPT
+		{
+			LAPP.SetResolution(static_cast<fuInt>(::max((int)luaL_checkinteger(L, 1), 0)),
+			static_cast<fuInt>(::max((int)luaL_checkinteger(L, 2), 0)));
+			return 0;
+		}
+		
 		static int SetFPS(lua_State* L)LNOEXCEPT
 		{
 			int v = luaL_checkinteger(L, 1);
@@ -51,17 +63,6 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			lua_pushnumber(L, LAPP.GetFPS());
 			return 1;
 		}
-		static int SetVsync(lua_State* L)LNOEXCEPT
-		{
-			LAPP.SetVsync(lua_toboolean(L, 1) == 0 ? false : true);
-			return 0;
-		}
-		static int SetResolution(lua_State* L)LNOEXCEPT
-		{
-			LAPP.SetResolution(static_cast<fuInt>(::max((int)luaL_checkinteger(L, 1), 0)),
-			static_cast<fuInt>(::max((int)luaL_checkinteger(L, 2), 0)));
-			return 0;
-		}
 		static int ChangeVideoMode(lua_State* L)LNOEXCEPT
 		{
 			lua_pushboolean(L, LAPP.ChangeVideoMode(
@@ -70,6 +71,40 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 				lua_toboolean(L, 3) == 0 ? false : true,
 				lua_toboolean(L, 4) == 0 ? false : true
 			));
+			return 1;
+		}
+		static int SetWindowStyle(lua_State* L)LNOEXCEPT
+		{
+			LAPP.GetWindow()->SetBorderType(
+				(F2DWINBORDERTYPE)luaL_checkinteger(L, 1));
+			LAPP.GetWindow()->MoveToCenter();
+			return 0;
+		}
+		static int SetWindowSize(lua_State* L)LNOEXCEPT
+		{
+			fResult result = LAPP.GetWindow()->SetClientRect(
+				fcyRect(
+					0.0f, 0.0f,
+					(float)luaL_checkinteger(L, 1),
+					(float)luaL_checkinteger(L, 2)));
+			lua_pushboolean(L, result == FCYERR_OK);
+			LAPP.GetWindow()->MoveToCenter();
+			return 1;
+		}
+		static int SetWindowTopMost(lua_State* L)LNOEXCEPT
+		{
+			LAPP.GetWindow()->SetTopMost(lua_toboolean(L, 1));
+			return 0;
+		}
+		static int SetSwapChainSize(lua_State* L)LNOEXCEPT
+		{
+			fResult result = LAPP.GetRenderDev()->SetBufferSize(
+				(fuInt)luaL_checkinteger(L, 1),
+				(fuInt)luaL_checkinteger(L, 2),
+				(fBool)lua_toboolean(L, 3),
+				(fBool)lua_toboolean(L, 4),
+				F2DAALEVEL_NONE);
+			lua_pushboolean(L, result == FCYERR_OK);
 			return 1;
 		}
 		static int SetSplash(lua_State* L)LNOEXCEPT
@@ -221,7 +256,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			}
 		}
 		#pragma endregion
-
+		
 		#pragma region 对象控制函数
 		// 对象控制函数（这些方法将被转发到对象池）
 		static int GetnObj(lua_State* L)LNOEXCEPT
@@ -626,7 +661,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			return 1;
 		}
 		#pragma endregion
-
+		
 		#pragma region 资源控制函数
 		// 资源控制函数
 		static int SetResourceStatus(lua_State* L)LNOEXCEPT
@@ -2205,6 +2240,10 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		{ "SetVsync", &WrapperImplement::SetVsync },
 		{ "SetResolution", &WrapperImplement::SetResolution },
 		{ "ChangeVideoMode", &WrapperImplement::ChangeVideoMode },
+		{ "SetWindowStyle", &WrapperImplement::SetWindowStyle },
+		{ "SetWindowSize", &WrapperImplement::SetWindowSize },
+		{ "SetWindowTopMost", &WrapperImplement::SetWindowTopMost },
+		{ "SetSwapChainSize", &WrapperImplement::SetSwapChainSize },
 		{ "SetSplash", &WrapperImplement::SetSplash },
 		{ "SetTitle", &WrapperImplement::SetTitle },
 		{ "Log", &WrapperImplement::Log },

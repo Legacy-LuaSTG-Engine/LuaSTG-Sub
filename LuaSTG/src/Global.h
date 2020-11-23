@@ -60,15 +60,6 @@
 #define LLAUNCH_SCRIPT L"launch"
 #define LCORE_SCRIPT L"core.lua"
 
-// 全局回调函数名称
-#define LFUNC_TRACEBACK "Traceback"
-#define LFUNC_GAMEINIT "GameInit"
-#define LFUNC_FRAME "FrameFunc"
-#define LFUNC_RENDER "RenderFunc"
-#define LFUNC_GAMEEXIT "GameExit"
-#define LFUNC_LOSEFOCUS "FocusLoseFunc"
-#define LFUNC_GAINFOCUS "FocusGainFunc"
-
 // 对象池信息
 #define LGOBJ_MAXCNT 32768  // 最大对象数 //32768(full) //16384(half)
 #define LGOBJ_DEFAULTGROUP 0  // 默认组

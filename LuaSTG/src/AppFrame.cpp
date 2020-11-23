@@ -8,6 +8,7 @@
 #include "SteamAPI.hpp"
 #include "E2DXInput.hpp"
 #include "ResourcePassword.hpp"
+#include "LuaWrapper/LuaAppFrame.hpp"
 #include "LuaWrapper/LuaWrapper.hpp"
 #include "LuaWrapper/LW_SteamAPI.h"
 #include "LuaWrapper/LuaCustomLoader.hpp"
@@ -1361,16 +1362,16 @@ bool AppFrame::Init()LNOEXCEPT
 #endif // USING_ENCRYPTION
 		}
 	}
-
+	
 	//////////////////////////////////////// 初始化完成
 	m_iStatus = AppStatus::Initialized;
 	LINFO("初始化成功完成");
-
+	
 	//////////////////////////////////////// 调用GameInit
-	if (!SafeCallGlobalFunction(LFUNC_GAMEINIT)) {
+	if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineInit)) {
 		return false;
 	}
-
+	
 	//////////////////////////////////////// 窗口前移、显示、隐藏鼠标指针
 	//附加当前线程到窗口线程将窗口设置成前台窗口
 	HWND hWnd = (HWND)m_pMainWindow->GetHandle();
@@ -1396,7 +1397,7 @@ bool AppFrame::Init()LNOEXCEPT
 
 void AppFrame::Shutdown()LNOEXCEPT
 {
-	SafeCallGlobalFunction(LFUNC_GAMEEXIT);
+	SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineStop);
 	
 	m_GameObjectPool = nullptr;
 	LINFO("已清空对象池");
@@ -1558,6 +1559,80 @@ bool AppFrame::SafeCallGlobalFunction(const char* name, int retc)LNOEXCEPT
 	lua_remove(L, tStacktraceIndex);
 	return true;
 }
+
+bool AppFrame::SafeCallGlobalFunctionB(const char* name, int argc, int retc)LNOEXCEPT
+{
+	const int base_stack = lua_gettop(L) - argc;
+	//																// ? ...
+	lua_pushcfunction(L, StackTraceback);							// ? ... trace
+	lua_getglobal(L, name);											// ? ... trace func
+	if (lua_type(L, lua_gettop(L)) != LUA_TFUNCTION)
+	{
+		//															// ? ... trace nil
+		try
+		{
+			wstring tErrorInfo = StringFormat(
+					L"执行函数'%m'时产生未处理的运行时错误:\n\t函数'%m'不存在",
+					name, name);
+			LERROR("脚本错误：%s", tErrorInfo.c_str());
+			/*
+			MessageBox(
+				m_pMainWindow ? (HWND)m_pMainWindow->GetHandle() : NULL,
+				tErrorInfo.c_str(),
+				L"LuaSTGPlus脚本错误",
+				MB_ICONERROR | MB_OK);
+			//*/
+		}
+		catch (const bad_alloc&)
+		{
+			LERROR("尝试写出脚本错误时发生内存不足错误");
+		}
+		lua_pop(L, argc + 2); 										// ?
+		return false;
+	}
+	if (argc > 0)
+	{
+		lua_insert(L, base_stack + 1);								// ? func ... trace
+		lua_insert(L, base_stack + 1);								// ? trace func ...
+	}
+	if (0 != lua_pcall(L, argc, retc, base_stack + 1))
+	{
+		//															// ? trace errmsg
+		try
+		{
+			wstring tErrorInfo = StringFormat(
+				L"执行函数'%m'时产生未处理的运行时错误:\n\t%m",
+				name,
+				lua_tostring(L, lua_gettop(L)));
+			LERROR("脚本错误：%s", tErrorInfo.c_str());
+			MessageBox(
+				m_pMainWindow ? (HWND)m_pMainWindow->GetHandle() : 0,
+				tErrorInfo.c_str(),
+				L"LuaSTGPlus脚本错误",
+				MB_ICONERROR | MB_OK);
+		}
+		catch (const bad_alloc&)
+		{
+			LERROR("尝试写出脚本错误时发生内存不足错误");
+		}
+		lua_pop(L, 2);												// ?
+		return false;
+	}
+	else
+	{
+		if (retc > 0)
+		{
+			//														// ? trace ...
+			lua_remove(L, base_stack + 1);							// ? ...
+		}
+		else
+		{
+			//														// ? trace
+			lua_pop(L, 1);											// ?
+		}
+		return true;
+	}
+}
 #pragma endregion
 
 #pragma region 游戏循环
@@ -1587,7 +1662,12 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 		{
 			resetKeyStatus(); // clear input status
 			m_pInputSys->Reset(); // clear input status
-			if (!SafeCallGlobalFunction(LFUNC_GAINFOCUS))
+			
+			lua_pushinteger(L, (lua_Integer)LuaSTG::LuaEngine::EngineEvent::WindowActive);
+			lua_pushboolean(L, true);
+			SafeCallGlobalFunctionB(LuaSTG::LuaEngine::G_CALLBACK_EngineEvent, 2, 0);
+			
+			if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_FocusGainFunc))
 				return false;
 			break;
 		}
@@ -1595,8 +1675,21 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 		{
 			resetKeyStatus(); // clear input status
 			m_pInputSys->Reset(); // clear input status
-			if (!SafeCallGlobalFunction(LFUNC_LOSEFOCUS))
+			
+			lua_pushinteger(L, (lua_Integer)LuaSTG::LuaEngine::EngineEvent::WindowActive);
+			lua_pushboolean(L, false);
+			SafeCallGlobalFunctionB(LuaSTG::LuaEngine::G_CALLBACK_EngineEvent, 2, 0);
+			
+			if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_FocusLoseFunc))
 				return false;
+			break;
+		}
+		case F2DMSG_WINDOW_ONRESIZE:
+		{
+			lua_pushinteger(L, (lua_Integer)LuaSTG::LuaEngine::EngineEvent::WindowResize);
+			lua_pushinteger(L, (lua_Integer)tMsg.Param1);
+			lua_pushinteger(L, (lua_Integer)tMsg.Param2);
+			SafeCallGlobalFunctionB(LuaSTG::LuaEngine::G_CALLBACK_EngineEvent, 3, 0);
 			break;
 		}
 		case F2DMSG_WINDOW_ONCHARINPUT:
@@ -1820,7 +1913,7 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 	}
 	// Steam消息
 	//SteamAPI_RunCallbacks();
-
+	
 	//EX+ Network Input
 	if (!m_Input){
 		m_Input = CreateInputEx();
@@ -1835,7 +1928,7 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 	m_XInput.Update();
 
 	// 执行帧函数
-	if (!SafeCallGlobalFunction(LFUNC_FRAME, 1))
+	if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineUpdate, 1))
 		return false;
 	bool tAbort = lua_toboolean(L, -1) == 0 ? false : true;
 	lua_pop(L, 1);
@@ -1890,7 +1983,7 @@ fBool AppFrame::OnRender(fDouble ElapsedTime, f2dFPSController* pFPSController)
 	m_bRenderStarted = true;
 	m_bPostEffectCaptureStarted = false;
 	
-	if (!SafeCallGlobalFunction(LFUNC_RENDER, 0))
+	if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineDraw))
 		m_pEngine->Abort();
 	if (!m_stRenderTargetStack.empty())
 	{
