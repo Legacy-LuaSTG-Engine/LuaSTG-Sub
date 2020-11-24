@@ -64,7 +64,6 @@ target_sources(LuaSTG PRIVATE
     
     ${LUASTG_RESDIR}/resource.rc
     ${LUASTG_RESDIR}/app.ico
-    ${LUASTG_RESDIR}/splash.png
 )
 
 target_link_directories(LuaSTG PRIVATE
@@ -85,7 +84,6 @@ target_link_libraries(LuaSTG
     fancy2d
     eyes2d
     
-    Gdiplus.lib
     d3d9.lib
     
     freetype.lib
