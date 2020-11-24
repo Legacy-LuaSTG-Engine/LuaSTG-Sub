@@ -1,5 +1,6 @@
 ﻿#include <string>
 #include <fstream>
+#include "d3d9.h"  // for SetFog
 #include "resource.h"
 
 #include "SystemDirectory.hpp"
@@ -14,8 +15,6 @@
 #include "LuaWrapper/LuaStringToEnum.hpp"
 #include "LuaWrapper/LuaInternalSource.hpp"
 #include "ImGuiExtension.h"
-
-#include "D3D9.H"  // for SetFog
 
 #ifdef max
 #undef max
@@ -72,6 +71,7 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 /// VKCode F2DKeyCode 转换表
 ////////////////////////////////////////////////////////////////////////////////
+
 static const F2DINPUTKEYCODE VKCodeToF2DKeyCodeTable[256] =
 {
 	F2DINPUTKEYCODE_UNKNOWN,
@@ -340,6 +340,7 @@ static inline F2DINPUTKEYCODE VKKeyToF2DKey(fuInt VKCode)
 ////////////////////////////////////////////////////////////////////////////////
 /// AppFrame
 ////////////////////////////////////////////////////////////////////////////////
+
 LNOINLINE AppFrame& AppFrame::GetInstance()
 {
 	static AppFrame s_Instance;
@@ -360,40 +361,6 @@ AppFrame::~AppFrame() LNOEXCEPT
 }
 
 #pragma region 脚本接口
-LNOINLINE void AppFrame::ShowSplashWindow(const char* imgPath)LNOEXCEPT
-{
-	if (m_iStatus == AppStatus::Initializing)
-	{
-		try
-		{
-			Gdiplus::Image* pImg = nullptr;
-
-			// 若有图片，则加载
-			if (imgPath)
-			{
-				fcyRefPointer<fcyMemStream> tDataBuf;
-				if (m_ResourceMgr.LoadFile(imgPath, tDataBuf))
-					pImg = SplashWindow::LoadImageFromMemory((fcData)tDataBuf->GetInternalBuffer(), (size_t)tDataBuf->GetLength());
-				
-				if (!pImg)
-					LERROR("ShowSplashWindow: 无法加载图片'%m'", imgPath);
-			}
-
-			// 显示窗口
-			m_SplashWindow.ShowSplashWindow(pImg);
-
-			FCYSAFEDEL(pImg);
-		}
-		catch (const bad_alloc&)
-		{
-			LERROR("ShowSplashWindow: 内存不足");
-			return;
-		}
-		m_bSplashWindowEnabled = true;
-	}
-	else
-		LWARNING("ShowSplashWindow: 无法在此时装载窗口");
-}
 
 void AppFrame::SetWindowed(bool v)LNOEXCEPT
 {
@@ -476,9 +443,8 @@ LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, b
 		}
 		else
 		{
-			// ! 当显示加载窗口而启动游戏后改为全屏失败时则将窗口模式设为true
-			if (m_bSplashWindowEnabled)
-				m_OptionWindowed = true;
+			// 改变交换链大小失败后将窗口模式设为true
+			m_OptionWindowed = true;
 
 			// 切换窗口大小
 			m_pMainWindow->SetBorderType(m_OptionWindowed ? F2DWINBORDERTYPE_FIXED : F2DWINBORDERTYPE_NONE);
@@ -521,10 +487,9 @@ LNOINLINE bool AppFrame::UpdateVideoMode()LNOEXCEPT
 		}
 		else
 		{
-			// ! 当显示加载窗口而启动游戏后改为全屏失败时则将窗口模式设为true
-			if (m_bSplashWindowEnabled)
-				m_OptionWindowed = true;
-
+			// 改变交换链大小失败后将窗口模式设为true
+			m_OptionWindowed = true;
+			
 			// 切换窗口大小
 			m_pMainWindow->SetBorderType(m_OptionWindowed ? F2DWINBORDERTYPE_FIXED : F2DWINBORDERTYPE_NONE);
 			m_pMainWindow->SetClientRect(
@@ -1012,6 +977,7 @@ LNOINLINE bool AppFrame::PostEffectApply(ResFX* shader, BlendMode blend)LNOEXCEP
 #pragma endregion
 
 #pragma region 框架函数
+
 static int StackTraceback(lua_State *L)
 {
 	// errmsg
@@ -1049,11 +1015,7 @@ bool AppFrame::Init()LNOEXCEPT
 	LASSERT(m_iStatus == AppStatus::NotInitialized);
 	LINFO("开始初始化 版本: %s", LVERSION);
 	m_iStatus = AppStatus::Initializing;
-
-	Scope tSplashWindowExit([this]() {
-		m_SplashWindow.HideSplashWindow();
-	});
-
+	
 	//////////////////////////////////////// Lua初始化部分
 	{
 		LINFO("开始初始化Lua虚拟机 版本: %m", LVERSION_LUA);
@@ -1150,12 +1112,12 @@ bool AppFrame::Init()LNOEXCEPT
 				LERROR("初始化fancy2d失败 (异常信息'%m' 源'%m')", Desc, Src);
 			}
 		} tErrListener;
-
+		
 		if (FCYFAILED(CreateF2DEngineAndInit(
 			F2DVERSION,
 			fcyRect(0.f, 0.f, m_OptionResolution.x, m_OptionResolution.y),
 			m_OptionTitle.c_str(),
-			m_bSplashWindowEnabled ? true : m_OptionWindowed,
+			m_OptionWindowed,
 			m_OptionVsync,
 			F2DAALEVEL_NONE,
 			this,
@@ -1165,19 +1127,19 @@ bool AppFrame::Init()LNOEXCEPT
 		{
 			return false;
 		}
-
+		
 		// 获取组件
 		m_pMainWindow = m_pEngine->GetMainWindow();
 		m_pRenderer = m_pEngine->GetRenderer();
 		m_pRenderDev = m_pRenderer->GetDevice();
 		m_pSoundSys = m_pEngine->GetSoundSys();
 		m_pInputSys = m_pEngine->GetInputSys();
-
+		
 		// 打印设备信息
 		f2dCPUInfo stCPUInfo = { 0 };
 		m_pEngine->GetCPUInfo(stCPUInfo);
 		LINFO("CPU %m %m / GPU %m", stCPUInfo.CPUBrandString, stCPUInfo.CPUString, m_pRenderDev->GetDeviceName());
-
+		
 		// 创建渲染器
 		//原来的大小只有20000，20000
 		if (FCYFAILED(m_pRenderDev->CreateGraphics2D(16384, 24576, &m_Graph2D)))
@@ -1189,7 +1151,7 @@ bool AppFrame::Init()LNOEXCEPT
 		m_Graph2DBlendState = m_Graph2D->GetBlendState();
 		m_Graph2DColorBlendState = m_Graph2D->GetColorBlendType();
 		m_bRenderStarted = false;
-
+		
 		// 创建文字渲染器
 		if (FCYFAILED(m_pRenderer->CreateFontRenderer(nullptr, &m_FontRenderer)))
 		{
@@ -1197,14 +1159,14 @@ bool AppFrame::Init()LNOEXCEPT
 			return false;
 		}
 		m_FontRenderer->SetZ(0.5f);
-
+		
 		// 创建图元渲染器
 		if (FCYFAILED(m_pRenderer->CreateGeometryRenderer(&m_GRenderer)))
 		{
 			LERROR("无法创建图元渲染器 (fcyRenderer::CreateGeometryRenderer failed)");
 			return false;
 		}
-
+		
 		// 创建3D渲染器
 		if (FCYFAILED(m_pRenderDev->CreateGraphics3D(nullptr, &m_Graph3D)))
 		{
@@ -1213,7 +1175,7 @@ bool AppFrame::Init()LNOEXCEPT
 		}
 		m_Graph3DLastBlendMode = BlendMode::AddAlpha;
 		m_Graph3DBlendState = m_Graph3D->GetBlendState();
-	
+		
 		// 创建PostEffect缓冲
 		if (FCYFAILED(m_pRenderDev->CreateRenderTarget(
 			m_pRenderDev->GetBufferWidth(),
@@ -1224,7 +1186,7 @@ bool AppFrame::Init()LNOEXCEPT
 			LERROR("无法创建POSTEFFECT缓冲区 (fcyRenderDevice::CreateRenderTarget failed)");
 			return false;
 		}
-
+		
 		//创建鼠标输入
 		m_pInputSys->CreateMouse(-1, false, &m_Mouse);
 		if (!m_Mouse)
@@ -1259,14 +1221,11 @@ bool AppFrame::Init()LNOEXCEPT
 	SendMessage((HWND)m_pMainWindow->GetHandle(), WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hIcon);
 	SendMessage((HWND)m_pMainWindow->GetHandle(), WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)hIcon);
 	DestroyIcon(hIcon);
-
-	// 若没有载入窗口，则显示游戏窗口
-	if (!m_bSplashWindowEnabled)
-	{
-		// 显示窗口
-		m_pMainWindow->MoveToCenter();
-		m_pMainWindow->SetVisiable(true);
-	}
+	
+	// 显示窗口
+	m_pMainWindow->MoveToCenter();
+	m_pMainWindow->SetVisiable(true);
+	m_pMainWindow->HideMouse(!m_OptionSplash);
 	resetKeyStatus(); // clear key status first
 	
 	//////////////////////////////////////// 装载核心脚本
@@ -1334,26 +1293,6 @@ bool AppFrame::Init()LNOEXCEPT
 		return false;
 	}
 	
-	//////////////////////////////////////// 窗口前移、显示、隐藏鼠标指针
-	//附加当前线程到窗口线程将窗口设置成前台窗口
-	HWND hWnd = (HWND)m_pMainWindow->GetHandle();
-	HWND hForeWnd = ::GetForegroundWindow();
-	DWORD dwForeID = ::GetWindowThreadProcessId(hForeWnd, NULL);
-	DWORD dwCurID = ::GetCurrentThreadId();
-	::AttachThreadInput(dwCurID, dwForeID, TRUE);
-	// 显示过载入窗口
-	if (m_bSplashWindowEnabled) {
-		// 显示窗口
-		m_pMainWindow->MoveToCenter();
-		m_pMainWindow->SetVisiable(true);
-		// 改变显示模式到全屏
-		if (!m_OptionWindowed)
-			ChangeVideoMode((int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionWindowed, m_OptionVsync);
-	}
-	m_bSplashWindowEnabled = false;
-	m_pMainWindow->HideMouse(!m_OptionSplash);
-	::AttachThreadInput(dwCurID, dwForeID, FALSE);
-
 	return true;
 }
 
@@ -1595,9 +1534,11 @@ bool AppFrame::SafeCallGlobalFunctionB(const char* name, int argc, int retc)LNOE
 		return true;
 	}
 }
+
 #pragma endregion
 
 #pragma region 游戏循环
+
 fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, f2dMsgPump* pMsgPump)
 {
 #if (defined LDEVVERSION) || (defined LDEBUG)
@@ -1873,7 +1814,7 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 		return false;
 	bool tAbort = lua_toboolean(L, -1) == 0 ? false : true;
 	lua_pop(L, 1);
-
+	
 #if (defined LDEVVERSION) || (defined LDEBUG)
 	// 刷新性能计数器
 	m_PerformanceUpdateTimer += static_cast<float>(ElapsedTime);
@@ -1895,13 +1836,8 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 		m_UpdateTimerTotal = 0.f;
 		m_RenderTimerTotal = 0.f;
 	}
-	//char rd[100];
-	//sprintf_s(rd, 100, "%f", m_PerformanceUpdateCounter<0.5f ? m_RenderTimer:m_UpdateTimerTotal / m_PerformanceUpdateCounter);
-	//SetTitle(rd);
-
-
 #endif
-
+	
 	return !tAbort;
 }
 
@@ -1929,4 +1865,5 @@ fBool AppFrame::OnRender(fDouble ElapsedTime, f2dFPSController* pFPSController)
 	
 	return true;
 }
+
 #pragma endregion

@@ -224,14 +224,6 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			LRES.FindFiles(L, luaL_checkstring(L, 1), luaL_optstring(L, 2, ""), luaL_optstring(L, 3, ""));
 			return 1;
 		}
-		static int ShowSplashWindow(lua_State* L)LNOEXCEPT
-		{
-			if (lua_gettop(L) == 0)
-				LAPP.ShowSplashWindow();
-			else
-				LAPP.ShowSplashWindow(luaL_checkstring(L, 1));
-			return 0;
-		}
 		static int EnumResolutions(lua_State* L) {
 			//返回一个lua表，该表中又包含多个表，分别储存着所支持的屏幕分辨率宽和屏幕分辨率的高，均为整数
 			//例如{ {1920,1080}, {1600,900}, ...  }
@@ -2125,7 +2117,6 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 #endif // !USING_ENCRYPTION
 		{ "DoFile", &WrapperImplement::DoFile },
 		{ "LoadTextFile", &WrapperImplement::LoadTextFile },
-		{ "ShowSplashWindow", &WrapperImplement::ShowSplashWindow },
 		{ "EnumResolutions", &WrapperImplement::EnumResolutions },
 		{ "FindFiles", &WrapperImplement::FindFiles },
 		#pragma endregion

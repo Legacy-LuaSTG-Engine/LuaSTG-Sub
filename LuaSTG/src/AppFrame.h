@@ -2,7 +2,6 @@
 /// @brief 定义应用程序框架
 #pragma once
 #include "Global.h"
-#include "SplashWindow.h"
 #include "ResourceMgr.h"
 #include "GameObjectPool.h"
 #include "UnicodeStringEncoding.h"
@@ -31,24 +30,6 @@ namespace LuaSTGPlus
 	/// @brief 应用程序框架
 	class AppFrame : public f2dEngineEventListener
 	{
-	public:
-		static LNOINLINE AppFrame& GetInstance();
-	private:
-		class GdiPlusScope
-		{
-		private:
-			ULONG_PTR m_gdiplusToken;
-		public:
-			GdiPlusScope()
-			{
-				Gdiplus::GdiplusStartupInput StartupInput;
-				GdiplusStartup(&m_gdiplusToken, &StartupInput, NULL);
-			}
-			~GdiPlusScope()
-			{
-				Gdiplus::GdiplusShutdown(m_gdiplusToken);
-			}
-		};
 	private:
 		AppStatus m_iStatus = AppStatus::NotInitialized;
 		
@@ -65,10 +46,6 @@ namespace LuaSTGPlus
 		float m_RenderTimerTotal = 0.f;  // 记录在采样时间内累计的渲染时间
 #endif
 		
-		// 载入窗口
-		GdiPlusScope m_GdiScope;
-		SplashWindow m_SplashWindow;
-		
 		// 资源管理器
 		Eyes2D::IO::FileManager m_FileManager;
 		ResourceMgr m_ResourceMgr;
@@ -80,7 +57,6 @@ namespace LuaSTGPlus
 		lua_State* L = nullptr;
 		
 		// 选项与值
-		bool m_bSplashWindowEnabled = false;
 		bool m_OptionWindowed = true;
 		fuInt m_OptionFPSLimit = 60;
 		bool m_OptionVsync = false;
@@ -136,9 +112,7 @@ namespace LuaSTGPlus
 		void updateGraph2DBlendMode(BlendMode m);
 		void updateGraph3DBlendMode(BlendMode m);
 	public: // 脚本调用接口，含义参见API文档
-		LNOINLINE void ShowSplashWindow(const char* imgPath = nullptr)LNOEXCEPT;  // UTF8编码
 		void SetWindowed(bool v)LNOEXCEPT;
-		void SetFPS(fuInt v)LNOEXCEPT;
 		void SetVsync(bool v)LNOEXCEPT;
 		void SetResolution(fuInt width, fuInt height)LNOEXCEPT;
 		void SetSplash(bool v)LNOEXCEPT;
@@ -147,41 +121,44 @@ namespace LuaSTGPlus
 		/// @brief 使用新的视频参数更新显示模式
 		/// @note 若切换失败则进行回滚
 		LNOINLINE bool ChangeVideoMode(int width, int height, bool windowed, bool vsync)LNOEXCEPT;
-
+		
 		LNOINLINE bool UpdateVideoMode()LNOEXCEPT;
+		
+		void SetFPS(fuInt v)LNOEXCEPT;
+		
 		/// @brief 获取当前的FPS
 		double GetFPS()LNOEXCEPT { return m_fFPS; }
-
+		
 		/// @brief 执行资源包中的文件
 		/// @note 该函数为脚本系统使用
 		LNOINLINE void LoadScript(const char* path,const char *packname)LNOEXCEPT;
-
+		
 		//读取资源包中的文本文件
 		//也能读取其他类型的文件，但是会得到无意义的结果
 		LNOINLINE int LoadTextFile(lua_State* L, const char* path, const char *packname)LNOEXCEPT;
-
+		
 		//检查按键是否按下
 		fBool GetKeyState(int VKCode)LNOEXCEPT;
-
+		
 		//检查键盘按键是否按下，Dinput KeyCode
 		fBool GetKeyboardState(DWORD VKCode)LNOEXCEPT;
-
+		
 		//检查键盘按键是否按下，使用的是GetAsyncKeyState
 		//和GetKeyboardState不同，这个检测的不是按下过的，而是现在被按住的键
 		bool GetAsyncKeyState(int VKCode)LNOEXCEPT;
-
+		
 		/// @brief 获得最后一次字符输入（UTF-8）
 		LNOINLINE int GetLastChar(lua_State* L)LNOEXCEPT;
-
+		
 		/// @brief 获得最后一次按键输入
 		int GetLastKey()LNOEXCEPT { return m_LastKey; }
-
+		
 		/// @brief 获取鼠标位置（以窗口左下角为原点）
 		fcyVec2 GetMousePosition()LNOEXCEPT { return m_MousePosition; }
-
+		
 		/// @brief 获取鼠标滚轮增量
 		fInt GetMouseWheelDelta()LNOEXCEPT { return m_Mouse->GetOffsetZ(); }
-
+		
 		/// @brief 检查鼠标是否按下
 		fBool GetMouseState(int button)LNOEXCEPT
 		{
@@ -547,7 +524,7 @@ namespace LuaSTGPlus
 		LNOINLINE bool PostEffectCapture()LNOEXCEPT;
 		
 		LNOINLINE bool PostEffectApply(ResFX* shader, BlendMode blend)LNOEXCEPT;
-	public: // 拓展方法
+		
 		// 渲染扇形，通过纹理+uv范围渲染
 		bool RenderSector(const char* name, fcyRect uv, bool tran, BlendMode blend, fcyColor color1, fcyColor color2,
 			fcyVec2 pos, float rot, float exp, float r1, float r2, int div);
@@ -555,8 +532,8 @@ namespace LuaSTGPlus
 		// 渲染环，通过纹理+uv范围渲染
 		bool RenderAnnulus(const char* name, fcyRect uv, bool tran, BlendMode blend, fcyColor color1, fcyColor color2,
 			fcyVec2 pos, float rot, float r1, float r2, int div, int rep);
-		
-	public: // 文字渲染器包装
+	public:
+		// 文字渲染器包装
 		bool FontRenderer_SetFontProvider(const char* name);
 		void FontRenderer_SetFlipType(const F2DSPRITEFLIP t);
 		void FontRenderer_SetScale(const fcyVec2& s);
@@ -564,20 +541,21 @@ namespace LuaSTGPlus
 		float FontRenderer_MeasureStringWidth(const char* str);
 		bool FontRenderer_DrawTextW2(const char* str, fcyVec2& pos, const float z, const BlendMode blend, const fcyColor& color);
 	public:
-		ResourceMgr& GetResourceMgr()LNOEXCEPT { return m_ResourceMgr; }
-		Eyes2D::IO::FileManager& GetFileManager() noexcept { return m_FileManager; }
-		GameObjectPool& GetGameObjectPool()LNOEXCEPT{ return *m_GameObjectPool.get(); }
-		f2dEngine* GetEngine()LNOEXCEPT { return m_pEngine; }
-		f2dWindow* GetWindow()LNOEXCEPT { return m_pMainWindow; }
-		f2dRenderer* GetRenderer()LNOEXCEPT { return m_pRenderer; }
-		f2dRenderDevice* GetRenderDev()LNOEXCEPT { return m_pRenderDev; }
-		f2dSoundSys* GetSoundSys()LNOEXCEPT { return m_pSoundSys; }
-		fcyRefPointer<f2dGeometryRenderer> GetGeometryRenderer()LNOEXCEPT { return m_GRenderer; }
-		GraphicsType GetGraphicsType() { return m_GraphType; }
-		fcyRefPointer<f2dGraphics3D> GetGraphics3D()LNOEXCEPT { return m_Graph3D; }
-		fcyRefPointer<f2dGraphics2D> GetGraphics2D()LNOEXCEPT { return m_Graph2D; }
-		lua_State* GetLuaEngine() { return L; }
-		
+		// 获取框架对象
+		ResourceMgr& GetResourceMgr() LNOEXCEPT { return m_ResourceMgr; }
+		Eyes2D::IO::FileManager& GetFileManager() LNOEXCEPT { return m_FileManager; }
+		GameObjectPool& GetGameObjectPool() LNOEXCEPT{ return *m_GameObjectPool.get(); }
+		f2dEngine* GetEngine() LNOEXCEPT { return m_pEngine; }
+		f2dWindow* GetWindow() LNOEXCEPT { return m_pMainWindow; }
+		f2dRenderer* GetRenderer() LNOEXCEPT { return m_pRenderer; }
+		f2dRenderDevice* GetRenderDev() LNOEXCEPT { return m_pRenderDev; }
+		f2dSoundSys* GetSoundSys() LNOEXCEPT { return m_pSoundSys; }
+		fcyRefPointer<f2dGeometryRenderer> GetGeometryRenderer() LNOEXCEPT { return m_GRenderer; }
+		GraphicsType GetGraphicsType() LNOEXCEPT { return m_GraphType; }
+		fcyRefPointer<f2dGraphics3D> GetGraphics3D() LNOEXCEPT { return m_Graph3D; }
+		fcyRefPointer<f2dGraphics2D> GetGraphics2D() LNOEXCEPT { return m_Graph2D; }
+		lua_State* GetLuaEngine() LNOEXCEPT { return L; }
+	public:
 		/// @brief 初始化框架
 		/// @note 该函数必须在一开始被调用，且仅能调用一次
 		/// @return 失败返回false
@@ -606,5 +584,7 @@ namespace LuaSTGPlus
 	public:
 		AppFrame()LNOEXCEPT;
 		~AppFrame()LNOEXCEPT;
+	public:
+		static LNOINLINE AppFrame& GetInstance();
 	};
 }
