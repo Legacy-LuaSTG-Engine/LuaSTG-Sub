@@ -47,7 +47,6 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			static_cast<fuInt>(::max((int)luaL_checkinteger(L, 2), 0)));
 			return 0;
 		}
-		
 		static int SetFPS(lua_State* L)LNOEXCEPT
 		{
 			int v = luaL_checkinteger(L, 1);
