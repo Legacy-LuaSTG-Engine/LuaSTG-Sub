@@ -3,4 +3,5 @@ build
 ver
 imgui/imgui
 LuaSTG/custom
-tool/RC/.vs
+tool/RC
+tool/RC/*
