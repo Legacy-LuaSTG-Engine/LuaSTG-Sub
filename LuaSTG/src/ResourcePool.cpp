@@ -2,9 +2,6 @@
 #include "AppFrame.h"
 #include "Utility.h"
 
-#include <io.h>
-#include "ESC.h"
-
 #ifdef max
 #undef max
 #endif
@@ -18,8 +15,7 @@ using namespace LuaSTGPlus;
 #if (defined LDEVVERSION) || (defined LDEBUG)
 #define LDEBUG_RESOURCETIMER float tResourceLoadingTime
 #define LDEBUG_RESOURCESCOPE TimerScope tLoadingTimer(tResourceLoadingTime)
-#define LDEBUG_RESOURCEHINT(t, path) \
-    LAPP.SendResourceLoadedHint(t, m_iType, name, path, tResourceLoadingTime)
+#define LDEBUG_RESOURCEHINT(t, path)
 #else
 #define LDEBUG_RESOURCETIMER
 #define LDEBUG_RESOURCESCOPE
@@ -37,10 +33,6 @@ void ResourcePool::Clear()LNOEXCEPT
 	m_SpriteFontPool.clear();
 	m_TTFFontPool.clear();
 	m_FXPool.clear();
-
-#if (defined LDEVVERSION) || (defined LDEBUG)
-	LAPP.SendResourceClearedHint(m_iType);
-#endif
 }
 
 void ResourcePool::RemoveResource(ResourceType t, const char* name)LNOEXCEPT
@@ -77,10 +69,6 @@ void ResourcePool::RemoveResource(ResourceType t, const char* name)LNOEXCEPT
 	default:
 		return;
 	}
-
-#if (defined LDEVVERSION) || (defined LDEBUG)
-	LAPP.SendResourceRemovedHint(t, m_iType, name);
-#endif
 }
 
 void ResourcePool::ExportResourceList(lua_State* L, ResourceType t)const LNOEXCEPT

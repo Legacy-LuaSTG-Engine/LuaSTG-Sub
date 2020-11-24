@@ -16,7 +16,6 @@
 #include "ImGuiExtension.h"
 
 #include "D3D9.H"  // for SetFog
-#include "Network.h"
 
 #ifdef max
 #undef max
@@ -349,9 +348,6 @@ LNOINLINE AppFrame& AppFrame::GetInstance()
 
 AppFrame::AppFrame() LNOEXCEPT
 {
-	m_Input = CreateInputEx();
-	WSADATA wsa;
-	::WSAStartup(MAKEWORD(1, 1), &wsa);
 }
 
 AppFrame::~AppFrame() LNOEXCEPT
@@ -1110,25 +1106,6 @@ bool AppFrame::Init()LNOEXCEPT
 		cmatch tMatch;
 		if (regex_match(__argv[i], tMatch, tDebuggerPattern))
 		{
-#if (defined LDEVVERSION) || (defined LDEBUG)
-			// 创建调试器
-			if (!m_DebuggerClient)
-			{
-				fuShort tPort = atoi(tMatch[1].first);
-				
-				try
-				{
-					m_DebuggerClient = make_unique<RemoteDebuggerClient>(tPort);
-					LINFO("调试器已创建，于端口：%d", (fuInt)tPort);
-				}
-				catch (const fcyException& e)
-				{
-					LERROR("创建调试器失败 (详细信息: %m)", e.GetDesc());
-				}
-			}
-			else
-				LWARNING("命令行参数中带有多个/debugger项，忽略。");
-#endif
 			// 不将debugger项传入用户命令行参数中
 			continue;
 		}
@@ -1891,16 +1868,6 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 		}
 	}
 	
-	//EX+ Network Input
-	if (!m_Input){
-		m_Input = CreateInputEx();
-	}
-	if (m_Input){
-		while (!m_Input->ProceedInput(m_KeyStateMap)){
-			Sleep(0);
-		}
-	}
-	
 	// 执行帧函数
 	if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineUpdate, 1))
 		return false;
@@ -1917,17 +1884,10 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 	m_RenderTimerTotal += m_RenderTimer;
 	if (m_PerformanceUpdateTimer > LPERFORMANCEUPDATETIMER)
 	{
-		// 发送性能统计信息
-		if (m_DebuggerClient)
-		{
-			m_DebuggerClient->SendPerformanceCounter(
-				m_FPSTotal / m_PerformanceUpdateCounter,
-				m_ObjectTotal / m_PerformanceUpdateCounter,
-				m_UpdateTimerTotal / m_PerformanceUpdateCounter,
-				m_RenderTimerTotal / m_PerformanceUpdateCounter
-				);
-		}
-			
+		//m_FPSTotal / m_PerformanceUpdateCounter,
+		//m_ObjectTotal / m_PerformanceUpdateCounter,
+		//m_UpdateTimerTotal / m_PerformanceUpdateCounter,
+		//m_RenderTimerTotal / m_PerformanceUpdateCounter
 		m_PerformanceUpdateTimer = 0.f;
 		m_PerformanceUpdateCounter = 0.f;
 		m_FPSTotal = 0.f;

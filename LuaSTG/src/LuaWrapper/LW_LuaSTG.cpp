@@ -2,8 +2,6 @@
 #include "ResourcePassword.hpp"
 #include "LuaWrapper\LuaWrapper.hpp"
 #include "AppFrame.h"
-#include "Network.h"
-#include "ESC.h"
 #include <filesystem>
 
 #ifdef min
@@ -1970,77 +1968,6 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			lua_pushboolean(L, LAPP.GetMouseState(luaL_checkinteger(L, 1)));
 			return 1;
 		}
-		//EX + Advance input
-		static int CreateInput(lua_State* L)LNOEXCEPT
-		{
-			//在lua层实现
-			return 1;
-		}
-		static int GetVKeyStateEx(lua_State* L)LNOEXCEPT// slot vkey
-		{
-			bool r = LAPP.m_Input->GetVKeyState(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2));
-			lua_pushboolean(L, r);
-			return 1;
-		}
-		static int CreateInputDevice(lua_State* L)LNOEXCEPT //is_remote
-		{
-			IExLocalInput *p = CreateLocalInput();
-			bool r = lua_toboolean(L, 1);
-			lua_pushlightuserdata(L, p);
-			p->SetRemote(r);
-			return 1;
-		}
-		static int ReleaseInputDevice(lua_State* L)LNOEXCEPT
-		{
-
-			IExLocalInput *p = (IExLocalInput *)lua_touserdata(L, 1);
-			if (p) {
-				p->Release();
-			}
-			return 0;
-		}
-		static int ClearInputAlias(lua_State* L)LNOEXCEPT// input alias syskey
-		{
-			IExLocalInput *p = (IExLocalInput *)lua_touserdata(L, 1);
-			p->ResetAllAlias();
-			return 0;
-		}
-		static int AddInputAlias(lua_State* L)LNOEXCEPT// input vkey key
-		{
-			IExLocalInput *p = (IExLocalInput *)lua_touserdata(L, 1);
-			p->AddKeyAlias(luaL_checkinteger(L, 2), luaL_checkinteger(L, 3));
-			return 0;
-		}
-		static int BindInput(lua_State* L)LNOEXCEPT //input dslot mask delay
-		{
-			IExLocalInput *p = (IExLocalInput *)lua_touserdata(L, 1);
-			int dslot = luaL_checkinteger(L, 2);
-			int mask = luaL_checkinteger(L, 3);
-			int delay = luaL_checkinteger(L, 4);
-			if (!p) {
-				LAPP.m_Input->AssignInput(dslot, NULL);
-				return 0;
-			}
-			p->SetDelay(delay);
-			p->ToCommonInput()->SetMask(mask);
-			p->ToCommonInput()->SetRead(false);
-			LAPP.m_Input->AssignInput(dslot, p->ToCommonInput());
-			EXTCPIPSERVERCLIENTINFO *net = LAPP.m_Input->GetNetwork();
-
-			if (!net || net->status == EXCI_CONNECTED) {
-				p->SetNetwork(net);
-			}
-			else {
-				p->SetNetwork(NULL);
-			}
-			return 0;
-		}
-		static int ResetInput(lua_State* L)LNOEXCEPT //input dslot mask delay
-		{
-
-			LAPP.m_Input->Reset();
-			return 0;
-		}
 		//ETC Raw Input
 		static int GetKeyboardState(lua_State* L)LNOEXCEPT
 		{
@@ -2056,47 +1983,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			return 1;
 		}
 		#pragma endregion
-
-		#pragma region EX+ 网络
-		static int ConnectTo(lua_State* L)LNOEXCEPT
-		{
-			bool rt = LAPP.m_Input->ConnectTo(luaL_checkstring(L, 1), luaL_checkinteger(L, 2));
-			lua_pushboolean(L, rt);
-			return 1;
-		}
-		static int ReceiveData(lua_State* L)LNOEXCEPT
-		{
-			if (LAPP.m_Input) {
-				EXSTRINGBUFFER *buffer = LAPP.m_Input->GetNetworkBuffer();
-				if (buffer) {
-					char str[1000];
-					int i = buffer->Get(str, 999);
-					if (i > 0) {
-						lua_pushstring(L, str);
-						return 1;
-					}
-				}
-			}
-			return 0;
-		}
-		static int SendData(lua_State *L)LNOEXCEPT
-		{
-			if (LAPP.m_Input) {
-				EXTCPIPSERVERCLIENTINFO *net = LAPP.m_Input->GetNetwork();
-				if (net) {
-					char str[1000];
-					str[0] = 'U';
-					strcpy(str + 1, luaL_checkstring(L, 1));
-					bool rt = net->Send(str, strlen(str));
-					lua_pushboolean(L, rt);
-					return 1;
-				}
-			}
-			lua_pushboolean(L, false);
-			return 1;
-		}
-		#pragma endregion
-
+		
 		#pragma region 杂项
 		static int Snapshot(lua_State* L)LNOEXCEPT
 		{
@@ -2172,7 +2059,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			return 1;
 		}
 		#pragma endregion
-
+		
 		#pragma region 内置数学库
 		static int Sin(lua_State* L)LNOEXCEPT
 		{
@@ -2207,20 +2094,6 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		static int ATan2(lua_State* L)LNOEXCEPT
 		{
 			lua_pushnumber(L, atan2(luaL_checknumber(L, 1), luaL_checknumber(L, 2)) * LRAD2DEGREE);
-			return 1;
-		}
-		#pragma endregion
-
-		#pragma region 对象构造函数
-		static int SampleBezier(lua_State* L)LNOEXCEPT // t(list) [n] <length> <rate>
-		{
-			//int ExSampleBezierA1(lua_State * L, int count, int sampleBy, float length, float rate)LNOEXCEPT;
-
-			int i = luaL_checkinteger(L, 2);
-			float l = static_cast<float>(luaL_checknumber(L, 3));
-			float r = static_cast<float>(luaL_optnumber(L, 4, 0.40));
-			lua_settop(L, 1);
-			ExSampleBezierA1(L, i, 0, l, r);
 			return 1;
 		}
 		#pragma endregion
@@ -2399,23 +2272,9 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		{ "GetMousePosition", &WrapperImplement::GetMousePosition },
 		{ "GetMouseWheelDelta", &WrapperImplement::GetMouseWheelDelta },
 		{ "GetMouseState", &WrapperImplement::GetMouseState },
-		//multi player
-		{ "CreateInputDevice", &WrapperImplement::CreateInputDevice },
-		{ "ReleaseInputDevice", &WrapperImplement::ReleaseInputDevice },
-		{ "AddInputAlias", &WrapperImplement::AddInputAlias },
-		{ "ClearInputAlias", &WrapperImplement::ClearInputAlias },
-		{ "ResetInput", &WrapperImplement::ResetInput },
-		{ "BindInput", &WrapperImplement::BindInput },
-		{ "GetVKeyStateEx", &WrapperImplement::GetVKeyStateEx },
 		//Raw Input
 		{ "GetKeyboardState", &WrapperImplement::GetKeyboardState },
 		{ "GetAsyncKeyState", &WrapperImplement::GetAsyncKeyState },
-		#pragma endregion
-		
-		#pragma region Network
-		{ "ConnectTo", &WrapperImplement::ConnectTo },
-		{ "ReceiveData", &WrapperImplement::ReceiveData },
-		{ "SendData", &WrapperImplement::SendData },
 		#pragma endregion
 		
 		#pragma region 内置数学函数
@@ -2432,10 +2291,6 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		{ "Snapshot", &WrapperImplement::Snapshot },
 		{ "SaveTexture", &WrapperImplement::SaveTexture },
 		{ "Execute", &WrapperImplement::Execute },
-		#pragma endregion
-		
-		#pragma region 对象构造函数
-		{ "SampleBezier", &WrapperImplement::SampleBezier },
 		#pragma endregion
 		
 		{ NULL, NULL }

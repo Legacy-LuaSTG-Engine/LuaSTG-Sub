@@ -6,13 +6,6 @@
 #include "ResourceMgr.h"
 #include "GameObjectPool.h"
 #include "UnicodeStringEncoding.h"
-
-#include "ESC.h"
-
-#if (defined LDEVVERSION) || (defined LDEBUG)
-#include "RemoteDebuggerClient.h"
-#endif
-
 #include "E2DFileManager.hpp"
 
 namespace LuaSTGPlus
@@ -60,9 +53,6 @@ namespace LuaSTGPlus
 		AppStatus m_iStatus = AppStatus::NotInitialized;
 		
 #if (defined LDEVVERSION) || (defined LDEBUG)
-		// 远端调试器
-		std::unique_ptr<RemoteDebuggerClient> m_DebuggerClient;
-
 		// 性能计数器
 		float m_UpdateTimer = 0.f;
 		float m_RenderTimer = 0.f;
@@ -145,24 +135,6 @@ namespace LuaSTGPlus
 	private:
 		void updateGraph2DBlendMode(BlendMode m);
 		void updateGraph3DBlendMode(BlendMode m);
-#if (defined LDEVVERSION) || (defined LDEBUG)
-	public: // 调试用接口
-		void SendResourceLoadedHint(ResourceType Type, ResourcePoolType PoolType, const char* Name, const wchar_t* Path, float LoadingTime)
-		{
-			if (m_DebuggerClient)
-				m_DebuggerClient->SendResourceLoadedHint(Type, PoolType, Name, Path, LoadingTime);
-		}
-		void SendResourceRemovedHint(ResourceType Type, ResourcePoolType PoolType, const char* Name)
-		{
-			if (m_DebuggerClient)
-				m_DebuggerClient->SendResourceRemovedHint(Type, PoolType, Name);
-		}
-		void SendResourceClearedHint(ResourcePoolType PoolType)
-		{
-			if (m_DebuggerClient)
-				m_DebuggerClient->SendResourceClearedHint(PoolType);
-		}
-#endif
 	public: // 脚本调用接口，含义参见API文档
 		LNOINLINE void ShowSplashWindow(const char* imgPath = nullptr)LNOEXCEPT;  // UTF8编码
 		void SetWindowed(bool v)LNOEXCEPT;
@@ -634,7 +606,5 @@ namespace LuaSTGPlus
 	public:
 		AppFrame()LNOEXCEPT;
 		~AppFrame()LNOEXCEPT;
-	public:
-		IExInputControl *m_Input;
 	};
 }
