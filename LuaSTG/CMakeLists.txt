@@ -16,6 +16,8 @@ target_compile_options(LuaSTG PUBLIC
 )
 
 target_include_directories(LuaSTG PRIVATE
+    ..
+    
     src
     ${LUASTG_RESDIR}
     src/LuaWrapper
@@ -51,12 +53,15 @@ target_compile_definitions(LuaSTG PRIVATE
 
 target_compile_definitions(LuaSTG PRIVATE LDEVVERSION)
 
+aux_source_directory(../Common COMMON_SRC)
 aux_source_directory(src LUASTG_SRC)
 aux_source_directory(src/LuaWrapper LUASTG_SRC_LW)
 aux_source_directory(src/LuaWrapper/imgui LUASTG_SRC_LW_IMGUI)
 aux_source_directory(${LUASTG_RESDIR} LUASTG_RES)
 
 target_sources(LuaSTG PRIVATE
+    ${COMMON_SRC}
+    
     ${LUASTG_SRC}
     ${LUASTG_SRC_LW}
     ${LUASTG_SRC_LW_IMGUI}
