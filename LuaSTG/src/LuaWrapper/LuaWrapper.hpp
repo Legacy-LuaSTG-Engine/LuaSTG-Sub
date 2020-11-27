@@ -1,9 +1,9 @@
 ﻿/// @file LuaWrapper.h
 /// @brief lua包装层 用于导出C++函数和类
 #pragma once
-#include "Global.h"
 #include "LuaWrapper/LuaWrapperMisc.hpp"
 #include "LuaWrapper/LuaStringToEnum.hpp"
+#include "Global.h"
 #include "ResourceMgr.h"
 #include "GameObjectPool.h"
 
@@ -84,7 +84,13 @@ namespace LuaSTGPlus
 			static void Register(lua_State* L)LNOEXCEPT;
 			static void CreateAndPush(lua_State* L);
 		};
-
+		
+		class DInputWrapper
+		{
+		public:
+			static void Register(lua_State* L)LNOEXCEPT;
+		};
+		
 		namespace IO {
 			class StreamWrapper
 			{

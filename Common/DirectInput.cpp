@@ -9,6 +9,11 @@
 #include <dinput.h>
 
 #include "Common/DebugLog.hpp"
+#ifndef NDEBUG
+#define _LOGDEBUG(fmt, ...) DebugLog(fmt, __VA_ARGS__)
+#else
+#define _LOGDEBUG(fmt, ...)
+#endif
 
 // MAGIC CODE
 BOOL IsXInputDevice(const GUID* pGuidProductFromDirectInput);
@@ -90,18 +95,20 @@ namespace native
         HWND window = NULL;
         HMODULE dll = NULL;
         Microsoft::WRL::ComPtr<IDirectInput8W> dinput;
+        std::vector<DIDEVICEINSTANCEW> gamepad_device_all;
         std::vector<DIDEVICEINSTANCEW> gamepad_device;
         std::vector<Microsoft::WRL::ComPtr<IDirectInputDevice8W>> gamepad;
         std::vector<AxisRange> gamepad_prop;
         std::vector<DIJOYSTATE> gamepad_state;
     };
     
+    static bool _excludeXInput = true;
     static BOOL CALLBACK _listGamepads(LPCDIDEVICEINSTANCEW device, LPVOID data)
     {
-        DebugLog(L"InstanceName:%s ProductName:%s UsagePage:%u Usage:%u\n",
+        _LOGDEBUG(L"InstanceName:%s ProductName:%s UsagePage:%u Usage:%u\n",
             device->tszInstanceName, device->tszProductName,
             device->wUsagePage, device->wUsage);
-        #define case_print(x) case x: { DebugLog(L"    " L#x L"\n"); break; }
+        #define case_print(x) case x: { _LOGDEBUG(L"    " L#x L"\n"); break; }
         switch (device->dwDevType & 0xFF)
         {
             case_print(DI8DEVTYPE_KEYBOARD);
@@ -116,16 +123,22 @@ namespace native
             case_print(DI8DEVTYPE_DEVICECTRL);
             case_print(DI8DEVTYPE_DEVICE);
             case_print(DI8DEVTYPE_REMOTE);
-            default: { DebugLog(L"    DI8DEVTYPE_UNKNOWN\n"); break; }
+            default: { _LOGDEBUG(L"    DI8DEVTYPE_UNKNOWN\n"); break; }
         };
         #undef case_print
-        if (IsXInputDevice(&device->guidProduct))
+        const bool isXInput = IsXInputDevice(&device->guidProduct);
+        if (_excludeXInput && isXInput)
         {
-            DebugLog(L"    XInput support\n");
+            _LOGDEBUG(L"    XInput support\n");
         }
         else
         {
-            ((std::vector<DIDEVICEINSTANCEW>*)data)->push_back(*device);
+            auto* vec = (std::vector<DIDEVICEINSTANCEW>*)data;
+            vec->push_back(*device);
+            if (!_excludeXInput)
+            {
+                vec->back().dwSize = isXInput ? 1 : 0;
+            }
         }
         return DIENUM_CONTINUE; // DIENUM_STOP
     };
@@ -150,12 +163,12 @@ namespace native
         hr = device->SetCooperativeLevel(window, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
         if (hr != DI_OK)
         {
-            DebugLog(L"game controller SetCooperativeLevel failed\n");
+            _LOGDEBUG(L"game controller SetCooperativeLevel failed\n");
         }
         hr = device->SetDataFormat(&g_dfDIJoystick);
         if (hr != DI_OK)
         {
-            DebugLog(L"game controller SetDataFormat failed\n");
+            _LOGDEBUG(L"game controller SetDataFormat failed\n");
         }
         DIPROPDWORD bufferProperty;
         bufferProperty.diph.dwSize = sizeof(DIPROPDWORD);
@@ -166,7 +179,7 @@ namespace native
         hr = device->SetProperty(DIPROP_BUFFERSIZE, &bufferProperty.diph);
         if (hr != DI_OK)
         {
-            DebugLog(L"game controller SetProperty failed\n");
+            _LOGDEBUG(L"game controller SetProperty failed\n");
         }
         
         DIPROPRANGE axisRange;
@@ -258,7 +271,7 @@ namespace native
         hr = device->Acquire();
         if (!(hr == DI_OK || hr == S_FALSE))
         {
-            DebugLog(L"game controller first Acquire failed\n");
+            _LOGDEBUG(L"game controller first Acquire failed\n");
         }
         
         return true;
@@ -277,7 +290,7 @@ namespace native
             {
                 if (data_n > 0)
                 {
-                    DebugLog("Gamepad[%u] recive %u data\n", idx, data_n);
+                    _LOGDEBUG("Gamepad[%u] recive %u data\n", idx, data_n);
                     // process data
                     for (size_t i = 0; i < data_n; i += 1)
                     {
@@ -334,12 +347,12 @@ namespace native
             }
             else
             {
-                DebugLog(L"Gamepad[%u] GetDeviceData failed\n", idx);
+                _LOGDEBUG(L"Gamepad[%u] GetDeviceData failed\n", idx);
             }
         }
         else
         {
-            DebugLog(L"Gamepad[%u] Acquire failed\n", idx);
+            _LOGDEBUG(L"Gamepad[%u] Acquire failed\n", idx);
         }
     }
     
@@ -366,10 +379,11 @@ namespace native
             // *
             // DIEDFL_ALLDEVICES
             // DIEDFL_ATTACHEDONLY
+            _excludeXInput = true;
             hr = self.dinput->EnumDevices(DI8DEVCLASS_GAMECTRL, &_listGamepads, &self.gamepad_device, DI8DEVCLASS_ALL);
             if (hr != DI_OK)
             {
-                DebugLog(L"EnumDevices failed\n");
+                _LOGDEBUG(L"EnumDevices failed\n");
             }
             // create Gamepad devices
             for (auto& v : self.gamepad_device)
@@ -385,7 +399,7 @@ namespace native
                 }
                 else
                 {
-                    DebugLog(L"CreateDevice game controller failed\n");
+                    _LOGDEBUG(L"CreateDevice game controller failed\n");
                 }
             }
             // resize state buffer
@@ -394,7 +408,7 @@ namespace native
         }
         else
         {
-            DebugLog(L"dinput8 NULL exception\n");
+            _LOGDEBUG(L"dinput8 NULL exception\n");
         }
         return (uint32_t)self.gamepad.size();
     }
@@ -519,13 +533,61 @@ namespace native
         }
         return false;
     }
+    
+    uint32_t DirectInput::getDeviceCount(bool refresh)
+    {
+        getself();
+        if (refresh)
+        {
+            self.gamepad_device_all.clear();
+            if (self.dinput)
+            {
+                HRESULT hr = 0;
+                
+                _excludeXInput = false;
+                hr = self.dinput->EnumDevices(DI8DEVCLASS_GAMECTRL, &_listGamepads, &self.gamepad_device_all, DI8DEVCLASS_ALL);
+                if (hr != DI_OK)
+                {
+                    _LOGDEBUG(L"EnumDevices failed\n");
+                }
+            }
+        }
+        return (uint32_t)self.gamepad_device_all.size();
+    }
+    const wchar_t* DirectInput::getDeviceName(uint32_t index)
+    {
+        getself();
+        if (index < self.gamepad_device_all.size())
+        {
+            return self.gamepad_device_all[index].tszInstanceName;
+        }
+        return nullptr;
+    }
+    const wchar_t* DirectInput::getProductName(uint32_t index)
+    {
+        getself();
+        if (index < self.gamepad_device_all.size())
+        {
+            return self.gamepad_device_all[index].tszProductName;
+        }
+        return nullptr;
+    }
+    bool DirectInput::isXInputDevice(uint32_t index)
+    {
+        getself();
+        if (index < self.gamepad_device_all.size())
+        {
+            return self.gamepad_device_all[index].dwSize != 0;
+        }
+        return false;
+    }
     bool DirectInput::updateTargetWindow(ptrdiff_t window)
     {
         getself();
         self.window = (HWND)window;
         if (self.window == NULL)
         {
-            DebugLog(L"NULL window exception\n");
+            _LOGDEBUG(L"NULL window exception\n");
             return false;
         }
         refresh();
@@ -544,26 +606,26 @@ namespace native
         self.window = (HWND)window;
         if (self.window == NULL)
         {
-            DebugLog(L"window is NULL\n");
+            _LOGDEBUG(L"window is NULL\n");
         }
         self.dll = LoadLibraryW(L"Dinput8.dll");
         if (self.dll == NULL)
         {
-            DebugLog(L"load Dinput8.dll failed\n");
+            _LOGDEBUG(L"load Dinput8.dll failed\n");
             return;
         }
         typedef HRESULT (CALLBACK *f_DirectInput8Create)(HINSTANCE, DWORD, const IID&, LPVOID*, LPUNKNOWN);
         f_DirectInput8Create f = (f_DirectInput8Create)GetProcAddress(self.dll, "DirectInput8Create");
         if (f == NULL)
         {
-            DebugLog(L"GetProcAddress failed, can not find DirectInput8Create\n");
+            _LOGDEBUG(L"GetProcAddress failed, can not find DirectInput8Create\n");
             return;
         }
         HRESULT hr = 0;
         hr = f(GetModuleHandleW(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8W, (LPVOID*)(self.dinput.GetAddressOf()), NULL);
         if (hr != DI_OK)
         {
-            DebugLog(L"DirectInput8Create failed\n");
+            _LOGDEBUG(L"DirectInput8Create failed\n");
             return;
         }
     }

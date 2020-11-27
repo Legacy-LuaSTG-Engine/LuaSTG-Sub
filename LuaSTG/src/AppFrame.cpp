@@ -1161,6 +1161,28 @@ bool AppFrame::Init()LNOEXCEPT
 		if (!m_Keyboard2)
 			LWARNING("无法创建键盘设备，将使用窗口消息作为输入源 (f2dInputSys::CreateDefaultKeyboard failed.)");
 		
+		//创建手柄输入
+		try
+		{
+			m_DirectInput = std::make_unique<native::DirectInput>((ptrdiff_t)m_pMainWindow->GetHandle());
+			{
+				uint32_t cnt = m_DirectInput->getDeviceCount(true);
+				for (uint32_t i = 0; i < cnt; i += 1)
+				{
+					LINFO("侦测到%s手柄 设备名：%s 产品名：%s",
+						m_DirectInput->isXInputDevice(i) ? L"XInput" : L"DirectInput",
+						m_DirectInput->getDeviceName(i),
+						m_DirectInput->getProductName(i));
+				}
+				m_DirectInput->refresh(); // 这里因为窗口还没显示，所以应该会出现一个Aquire设备失败的错误信息，忽略即可
+				LINFO("成功创建了%d个DirectInput手柄", (int)m_DirectInput->count());
+			}
+		}
+		catch (const bad_alloc&)
+		{
+			LERROR("无法创建DirectInput");
+		}
+		
 		// 初始化ImGui
 		imgui::bindEngine();
 	}
@@ -1258,6 +1280,7 @@ void AppFrame::Shutdown()LNOEXCEPT
 	// 卸载ImGui
 	imgui::unbindEngine();
 	
+	m_DirectInput = nullptr;
 	m_Mouse = nullptr;
 	m_Keyboard = m_Keyboard2 = nullptr;
 	m_PostEffectBuffer = nullptr;
@@ -1513,6 +1536,10 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 		{
 			resetKeyStatus(); // clear input status
 			m_pInputSys->Reset(); // clear input status
+			if (m_DirectInput.get())
+			{
+				m_DirectInput->reset();
+			}
 			
 			lua_pushinteger(L, (lua_Integer)LuaSTG::LuaEngine::EngineEvent::WindowActive);
 			lua_pushboolean(L, true);
@@ -1526,6 +1553,10 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 		{
 			resetKeyStatus(); // clear input status
 			m_pInputSys->Reset(); // clear input status
+			if (m_DirectInput.get())
+			{
+				m_DirectInput->reset();
+			}
 			
 			lua_pushinteger(L, (lua_Integer)LuaSTG::LuaEngine::EngineEvent::WindowActive);
 			lua_pushboolean(L, false);
