@@ -98,7 +98,6 @@ namespace LuaSTGPlus
 		fcyRefPointer<f2dInputMouse> m_Mouse;
 		fcyRefPointer<f2dInputKeyboard> m_Keyboard;
 		fcyRefPointer<f2dInputKeyboard> m_Keyboard2;
-		fcyRefPointer<f2dInputJoystick> m_Joystick[2];
 		fCharW m_LastChar;
 		fInt m_LastKey;
 		fBool m_KeyStateMap[256];
