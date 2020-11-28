@@ -8,10 +8,12 @@ namespace native
     public:
         struct AxisRange
         {
-            int32_t XMin = 0, YMin = 0, ZMin = 0;
-            int32_t XMax = 0, YMax = 0, ZMax = 0;
-            int32_t RxMin = 0, RyMin = 0, RzMin = 0;
-            int32_t RxMax = 0, RyMax = 0, RzMax = 0;
+            int32_t  XMin,  YMin,  ZMin;
+            int32_t  XMax,  YMax,  ZMax;
+            int32_t RxMin, RyMin, RzMin;
+            int32_t RxMax, RyMax, RzMax;
+            int32_t Slider0Min, Slider1Min;
+            int32_t Slider0Max, Slider1Max;
         };
         struct RawState {
             int32_t  lX;

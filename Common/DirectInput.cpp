@@ -7,6 +7,9 @@
 #include <Xinput.h>
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
+#ifndef DIDFT_OPTIONAL
+#define DIDFT_OPTIONAL          0x80000000
+#endif
 
 #include "Common/DebugLog.hpp"
 #ifndef NDEBUG
@@ -21,6 +24,9 @@ BOOL IsXInputDevice(const GUID* pGuidProductFromDirectInput);
 // DirectInput Data & Format
 namespace native
 {
+    // interface
+    static const GUID g_IID_IDirectInput8W = {0xBF798031, 0x483A, 0x4DA2, {0xAA, 0x99, 0x5D, 0x64, 0xED, 0x36, 0x97, 0x00}};
+    
     // device object
     static const GUID g_GUID_XAxis   = {0xA36D02E0, 0xC9F3, 0x11CF, {0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}};
     static const GUID g_GUID_YAxis   = {0xA36D02E1, 0xC9F3, 0x11CF, {0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}};
@@ -572,22 +578,22 @@ namespace native
             range.RzMax = axisRange.lMax;
         }
         
-        /*
         // Slider0
         axisRange.diph.dwObj = DIJOFS_SLIDER(0);
         hr = device->GetProperty(DIPROP_RANGE, &axisRange.diph);
         if (hr == DI_OK || hr == S_FALSE)
         {
-            
+            range.Slider0Min = axisRange.lMin;
+            range.Slider0Max = axisRange.lMax;
         }
         // Slider1
         axisRange.diph.dwObj = DIJOFS_SLIDER(1);
         hr = device->GetProperty(DIPROP_RANGE, &axisRange.diph);
         if (hr == DI_OK || hr == S_FALSE)
         {
-            
+            range.Slider1Min = axisRange.lMin;
+            range.Slider1Max = axisRange.lMax;
         }
-        //*/
         
         hr = device->Acquire();
         if (!(hr == DI_OK || hr == S_FALSE))
@@ -715,6 +721,7 @@ namespace native
                 if (hr == DI_OK)
                 {
                     AxisRange range;
+                    ZeroMemory(&range, sizeof(range));
                     _initGamepad(self.window, device.Get(), range);
                     self.gamepad_device.push_back(v);
                     self.gamepad.push_back(device);
@@ -934,7 +941,7 @@ namespace native
             return;
         }
         HRESULT hr = 0;
-        hr = f(GetModuleHandleW(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8W, (LPVOID*)(self.dinput.GetAddressOf()), NULL);
+        hr = f(GetModuleHandleW(NULL), DIRECTINPUT_VERSION, g_IID_IDirectInput8W, (LPVOID*)(self.dinput.GetAddressOf()), NULL);
         if (hr != DI_OK)
         {
             _LOGDEBUG(L"DirectInput8Create failed\n");
