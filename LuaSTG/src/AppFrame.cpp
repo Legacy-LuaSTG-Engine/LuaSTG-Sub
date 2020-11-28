@@ -1166,7 +1166,8 @@ bool AppFrame::Init()LNOEXCEPT
 		{
 			m_DirectInput = std::make_unique<native::DirectInput>((ptrdiff_t)m_pMainWindow->GetHandle());
 			{
-				uint32_t cnt = m_DirectInput->getDeviceCount(true);
+				m_DirectInput->refresh(); // 这里因为窗口还没显示，所以应该会出现一个Aquire设备失败的错误信息，忽略即可
+				uint32_t cnt = m_DirectInput->count();
 				for (uint32_t i = 0; i < cnt; i += 1)
 				{
 					LINFO("侦测到%s手柄 设备名：%s 产品名：%s",
@@ -1174,8 +1175,7 @@ bool AppFrame::Init()LNOEXCEPT
 						m_DirectInput->getDeviceName(i),
 						m_DirectInput->getProductName(i));
 				}
-				m_DirectInput->refresh(); // 这里因为窗口还没显示，所以应该会出现一个Aquire设备失败的错误信息，忽略即可
-				LINFO("成功创建了%d个DirectInput手柄", (int)m_DirectInput->count());
+				LINFO("成功创建了%d个DirectInput手柄", (int)cnt);
 			}
 		}
 		catch (const bad_alloc&)

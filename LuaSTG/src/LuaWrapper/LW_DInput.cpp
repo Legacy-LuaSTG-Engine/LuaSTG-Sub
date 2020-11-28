@@ -56,6 +56,29 @@ namespace LuaSTGPlus
                     }
                     return 0;
                 };
+                static int getAxisRange(lua_State* L)
+                {
+                    LDI();
+                    if (self)
+                    {
+                        uint32_t index = (uint32_t)(luaL_checkinteger(L, 1) - 1);
+                        native::DirectInput::AxisRange range;
+                        if (self->getAxisRange(index, &range))
+                        {
+                            lua_createtable(L, 0, 12);
+                            
+                            #define setint(_K) lua_pushstring(L, #_K); lua_pushinteger(L, (lua_Integer)range._K); lua_settable(L, -3);
+                            setint(XMin); setint(YMin); setint(ZMin);
+                            setint(XMax); setint(YMax); setint(ZMax);
+                            setint(RxMin); setint(RyMin); setint(RzMin);
+                            setint(RxMax); setint(RyMax); setint(RzMax);
+                            #undef setint
+                            
+                            return 1;
+                        }
+                    }
+                    return 0;
+                };
                 static int getRawState(lua_State* L)
                 {
                     LDI();
@@ -136,6 +159,58 @@ namespace LuaSTGPlus
                     }
                     return 0;
                 };
+                static int getDeviceName(lua_State* L)
+                {
+                    LDI();
+                    if (self)
+                    {
+                        uint32_t index = (uint32_t)(luaL_checkinteger(L, 1) - 1);
+                        const wchar_t* name = self->getDeviceName(index);
+                        if (name)
+                        {
+                            try
+                            {
+                                std::string utf8name = fcyStringHelper::WideCharToMultiByte(name, CP_UTF8);
+                                lua_pushstring(L, utf8name.c_str());
+                                return 1;
+                            }
+                            catch (...) {}
+                        }
+                    }
+                    return 0;
+                };
+                static int getProductName(lua_State* L)
+                {
+                    LDI();
+                    if (self)
+                    {
+                        uint32_t index = (uint32_t)(luaL_checkinteger(L, 1) - 1);
+                        const wchar_t* name = self->getProductName(index);
+                        if (name)
+                        {
+                            try
+                            {
+                                std::string utf8name = fcyStringHelper::WideCharToMultiByte(name, CP_UTF8);
+                                lua_pushstring(L, utf8name.c_str());
+                                return 1;
+                            }
+                            catch (...) {}
+                        }
+                    }
+                    return 0;
+                };
+                static int isXInputDevice(lua_State* L)
+                {
+                    LDI();
+                    if (self)
+                    {
+                        uint32_t index = (uint32_t)(luaL_checkinteger(L, 1) - 1);
+                        lua_pushboolean(L, self->isXInputDevice(index));
+                        return 1;
+                    }
+                    lua_pushboolean(L, false);
+                    return 1;
+                };
             };
             
             const luaL_Reg lib[] = {
@@ -143,8 +218,12 @@ namespace LuaSTGPlus
                 {"refresh", &Wrapper::refresh},
                 {"update", &Wrapper::update},
                 {"reset", &Wrapper::reset},
+                {"getAxisRange", &Wrapper::getAxisRange},
                 {"getRawState", &Wrapper::getRawState},
                 {"getState", &Wrapper::getState},
+                {"getDeviceName", &Wrapper::getDeviceName},
+                {"getProductName", &Wrapper::getProductName},
+                {"isXInputDevice", &Wrapper::isXInputDevice},
                 {NULL, NULL},
             };
             

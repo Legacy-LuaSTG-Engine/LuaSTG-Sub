@@ -18,68 +18,367 @@
 // MAGIC CODE
 BOOL IsXInputDevice(const GUID* pGuidProductFromDirectInput);
 
+// DirectInput Data & Format
 namespace native
 {
-    #define G_DEFINE_GUID(name,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) static const GUID name = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
-    G_DEFINE_GUID(g_GUID_XAxis,   0xA36D02E0,0xC9F3,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
-    G_DEFINE_GUID(g_GUID_YAxis,   0xA36D02E1,0xC9F3,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
-    G_DEFINE_GUID(g_GUID_ZAxis,   0xA36D02E2,0xC9F3,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
-    G_DEFINE_GUID(g_GUID_RxAxis,  0xA36D02F4,0xC9F3,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
-    G_DEFINE_GUID(g_GUID_RyAxis,  0xA36D02F5,0xC9F3,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
-    G_DEFINE_GUID(g_GUID_RzAxis,  0xA36D02E3,0xC9F3,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
-    G_DEFINE_GUID(g_GUID_Slider,  0xA36D02E4,0xC9F3,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
-    G_DEFINE_GUID(g_GUID_Button,  0xA36D02F0,0xC9F3,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
-    G_DEFINE_GUID(g_GUID_Key,     0x55728220,0xD33C,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
-    G_DEFINE_GUID(g_GUID_POV,     0xA36D02F2,0xC9F3,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
-    G_DEFINE_GUID(g_GUID_Unknown, 0xA36D02F3,0xC9F3,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
-    #undef G_DEFINE_GUID
+    // device object
+    static const GUID g_GUID_XAxis   = {0xA36D02E0, 0xC9F3, 0x11CF, {0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}};
+    static const GUID g_GUID_YAxis   = {0xA36D02E1, 0xC9F3, 0x11CF, {0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}};
+    static const GUID g_GUID_ZAxis   = {0xA36D02E2, 0xC9F3, 0x11CF, {0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}};
+    static const GUID g_GUID_RxAxis  = {0xA36D02F4, 0xC9F3, 0x11CF, {0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}};
+    static const GUID g_GUID_RyAxis  = {0xA36D02F5, 0xC9F3, 0x11CF, {0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}};
+    static const GUID g_GUID_RzAxis  = {0xA36D02E3, 0xC9F3, 0x11CF, {0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}};
+    static const GUID g_GUID_Slider  = {0xA36D02E4, 0xC9F3, 0x11CF, {0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}};
+    static const GUID g_GUID_Button  = {0xA36D02F0, 0xC9F3, 0x11CF, {0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}};
+    static const GUID g_GUID_Key     = {0x55728220, 0xD33C, 0x11CF, {0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}};
+    static const GUID g_GUID_POV     = {0xA36D02F2, 0xC9F3, 0x11CF, {0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}};
+    static const GUID g_GUID_Unknown = {0xA36D02F3, 0xC9F3, 0x11CF, {0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}};
     
-    constexpr DWORD g_dwControllerBufferSize = 64;
+    // common Keyboard data format
+    static DIOBJECTDATAFORMAT g_dfDIKeyboardObject[256] = {
+        { &g_GUID_Key, 0x00, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x00) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x01, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x01) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x02, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x02) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x03, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x03) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x04, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x04) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x05, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x05) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x06, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x06) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x07, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x07) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x08, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x08) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x09, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x09) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x0A, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x0A) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x0B, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x0B) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x0C, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x0C) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x0D, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x0D) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x0E, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x0E) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x0F, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x0F) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x10, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x10) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x11, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x11) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x12, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x12) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x13, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x13) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x14, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x14) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x15, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x15) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x16, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x16) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x17, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x17) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x18, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x18) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x19, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x19) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x1A, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x1A) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x1B, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x1B) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x1C, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x1C) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x1D, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x1D) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x1E, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x1E) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x1F, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x1F) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x20, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x20) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x21, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x21) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x22, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x22) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x23, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x23) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x24, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x24) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x25, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x25) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x26, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x26) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x27, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x27) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x28, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x28) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x29, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x29) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x2A, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x2A) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x2B, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x2B) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x2C, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x2C) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x2D, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x2D) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x2E, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x2E) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x2F, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x2F) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x30, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x30) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x31, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x31) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x32, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x32) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x33, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x33) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x34, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x34) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x35, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x35) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x36, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x36) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x37, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x37) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x38, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x38) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x39, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x39) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x3A, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x3A) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x3B, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x3B) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x3C, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x3C) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x3D, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x3D) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x3E, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x3E) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x3F, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x3F) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x40, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x40) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x41, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x41) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x42, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x42) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x43, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x43) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x44, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x44) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x45, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x45) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x46, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x46) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x47, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x47) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x48, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x48) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x49, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x49) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x4A, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x4A) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x4B, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x4B) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x4C, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x4C) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x4D, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x4D) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x4E, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x4E) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x4F, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x4F) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x50, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x50) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x51, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x51) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x52, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x52) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x53, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x53) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x54, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x54) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x55, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x55) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x56, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x56) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x57, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x57) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x58, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x58) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x59, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x59) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x5A, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x5A) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x5B, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x5B) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x5C, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x5C) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x5D, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x5D) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x5E, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x5E) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x5F, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x5F) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x60, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x60) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x61, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x61) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x62, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x62) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x63, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x63) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x64, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x64) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x65, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x65) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x66, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x66) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x67, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x67) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x68, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x68) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x69, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x69) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x6A, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x6A) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x6B, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x6B) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x6C, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x6C) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x6D, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x6D) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x6E, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x6E) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x6F, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x6F) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x70, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x70) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x71, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x71) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x72, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x72) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x73, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x73) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x74, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x74) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x75, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x75) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x76, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x76) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x77, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x77) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x78, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x78) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x79, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x79) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x7A, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x7A) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x7B, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x7B) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x7C, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x7C) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x7D, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x7D) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x7E, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x7E) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x7F, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x7F) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x80, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x80) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x81, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x81) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x82, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x82) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x83, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x83) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x84, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x84) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x85, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x85) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x86, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x86) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x87, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x87) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x88, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x88) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x89, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x89) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x8A, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x8A) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x8B, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x8B) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x8C, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x8C) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x8D, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x8D) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x8E, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x8E) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x8F, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x8F) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x90, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x90) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x91, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x91) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x92, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x92) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x93, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x93) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x94, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x94) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x95, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x95) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x96, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x96) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x97, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x97) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x98, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x98) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x99, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x99) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x9A, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x9A) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x9B, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x9B) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x9C, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x9C) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x9D, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x9D) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x9E, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x9E) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0x9F, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0x9F) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xA0, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xA0) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xA1, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xA1) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xA2, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xA2) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xA3, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xA3) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xA4, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xA4) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xA5, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xA5) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xA6, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xA6) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xA7, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xA7) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xA8, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xA8) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xA9, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xA9) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xAA, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xAA) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xAB, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xAB) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xAC, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xAC) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xAD, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xAD) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xAE, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xAE) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xAF, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xAF) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xB0, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xB0) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xB1, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xB1) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xB2, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xB2) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xB3, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xB3) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xB4, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xB4) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xB5, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xB5) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xB6, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xB6) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xB7, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xB7) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xB8, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xB8) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xB9, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xB9) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xBA, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xBA) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xBB, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xBB) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xBC, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xBC) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xBD, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xBD) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xBE, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xBE) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xBF, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xBF) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xC0, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xC0) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xC1, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xC1) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xC2, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xC2) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xC3, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xC3) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xC4, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xC4) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xC5, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xC5) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xC6, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xC6) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xC7, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xC7) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xC8, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xC8) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xC9, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xC9) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xCA, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xCA) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xCB, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xCB) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xCC, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xCC) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xCD, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xCD) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xCE, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xCE) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xCF, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xCF) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xD0, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xD0) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xD1, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xD1) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xD2, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xD2) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xD3, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xD3) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xD4, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xD4) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xD5, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xD5) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xD6, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xD6) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xD7, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xD7) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xD8, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xD8) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xD9, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xD9) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xDA, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xDA) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xDB, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xDB) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xDC, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xDC) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xDD, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xDD) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xDE, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xDE) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xDF, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xDF) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xE0, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xE0) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xE1, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xE1) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xE2, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xE2) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xE3, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xE3) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xE4, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xE4) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xE5, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xE5) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xE6, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xE6) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xE7, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xE7) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xE8, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xE8) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xE9, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xE9) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xEA, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xEA) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xEB, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xEB) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xEC, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xEC) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xED, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xED) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xEE, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xEE) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xEF, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xEF) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xF0, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xF0) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xF1, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xF1) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xF2, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xF2) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xF3, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xF3) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xF4, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xF4) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xF5, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xF5) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xF6, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xF6) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xF7, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xF7) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xF8, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xF8) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xF9, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xF9) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xFA, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xFA) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xFB, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xFB) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xFC, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xFC) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xFD, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xFD) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xFE, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xFE) | DIDFT_BUTTON, 0 },
+        { &g_GUID_Key, 0xFF, DIDFT_OPTIONAL | DIDFT_MAKEINSTANCE(0xFF) | DIDFT_BUTTON, 0 },
+    };
+    static DIDATAFORMAT g_dfDIKeyboard = {
+        sizeof(DIDATAFORMAT),
+        sizeof(DIOBJECTDATAFORMAT),
+        DIDF_RELAXIS,
+        256,
+        256,
+        g_dfDIKeyboardObject,
+    };
+    
+    // common Mouse data format
+    static DIOBJECTDATAFORMAT g_dfDIMouseObject[11] = {
+        { &g_GUID_XAxis,  0, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_AXIS  , 0 },
+        { &g_GUID_YAxis,  4, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_AXIS  , 0 },
+        { &g_GUID_ZAxis,  8, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_AXIS  , 0 },
+        { NULL         , 12, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON, 0 },
+        { NULL         , 13, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON, 0 },
+        { NULL         , 14, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON, 0 },
+        { NULL         , 15, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON, 0 },
+        { NULL         , 16, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON, 0 },
+        { NULL         , 17, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON, 0 },
+        { NULL         , 18, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON, 0 },
+        { NULL         , 19, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON, 0 },
+    };
+    static DIDATAFORMAT g_dfDIMouse = {
+        sizeof(DIDATAFORMAT),
+        sizeof(DIOBJECTDATAFORMAT),
+        DIDF_RELAXIS,
+        sizeof(DIMOUSESTATE),
+        7,
+        g_dfDIMouseObject,
+    };
+    static DIDATAFORMAT g_dfDIMouse2 = {
+        sizeof(DIDATAFORMAT),
+        sizeof(DIOBJECTDATAFORMAT),
+        DIDF_RELAXIS,
+        sizeof(DIMOUSESTATE2),
+        11,
+        g_dfDIMouseObject,
+    };
+    
+    // common Controller data format
     static DIOBJECTDATAFORMAT g_dfDIJoystickObject[44] = {
-        { &g_GUID_XAxis ,  0, 0x80FFFF03, DIDOI_ASPECTPOSITION },
-        { &g_GUID_YAxis ,  4, 0x80FFFF03, DIDOI_ASPECTPOSITION },
-        { &g_GUID_ZAxis ,  8, 0x80FFFF03, DIDOI_ASPECTPOSITION },
-        { &g_GUID_RxAxis, 12, 0x80FFFF03, DIDOI_ASPECTPOSITION },
-        { &g_GUID_RyAxis, 16, 0x80FFFF03, DIDOI_ASPECTPOSITION },
-        { &g_GUID_RzAxis, 20, 0x80FFFF03, DIDOI_ASPECTPOSITION },
-        { &g_GUID_Slider, 24, 0x80FFFF03, DIDOI_ASPECTPOSITION },
-        { &g_GUID_Slider, 28, 0x80FFFF03, DIDOI_ASPECTPOSITION },
-        { &g_GUID_POV   , 32, 0x80FFFF10,                    0 },
-        { &g_GUID_POV   , 36, 0x80FFFF10,                    0 },
-        { &g_GUID_POV   , 40, 0x80FFFF10,                    0 },
-        { &g_GUID_POV   , 44, 0x80FFFF10,                    0 },
-        { NULL          , 48, 0x80FFFF0C,                    0 },
-        { NULL          , 49, 0x80FFFF0C,                    0 },
-        { NULL          , 50, 0x80FFFF0C,                    0 },
-        { NULL          , 51, 0x80FFFF0C,                    0 },
-        { NULL          , 52, 0x80FFFF0C,                    0 },
-        { NULL          , 53, 0x80FFFF0C,                    0 },
-        { NULL          , 54, 0x80FFFF0C,                    0 },
-        { NULL          , 55, 0x80FFFF0C,                    0 },
-        { NULL          , 56, 0x80FFFF0C,                    0 },
-        { NULL          , 57, 0x80FFFF0C,                    0 },
-        { NULL          , 58, 0x80FFFF0C,                    0 },
-        { NULL          , 59, 0x80FFFF0C,                    0 },
-        { NULL          , 60, 0x80FFFF0C,                    0 },
-        { NULL          , 61, 0x80FFFF0C,                    0 },
-        { NULL          , 62, 0x80FFFF0C,                    0 },
-        { NULL          , 63, 0x80FFFF0C,                    0 },
-        { NULL          , 64, 0x80FFFF0C,                    0 },
-        { NULL          , 65, 0x80FFFF0C,                    0 },
-        { NULL          , 66, 0x80FFFF0C,                    0 },
-        { NULL          , 67, 0x80FFFF0C,                    0 },
-        { NULL          , 68, 0x80FFFF0C,                    0 },
-        { NULL          , 69, 0x80FFFF0C,                    0 },
-        { NULL          , 70, 0x80FFFF0C,                    0 },
-        { NULL          , 71, 0x80FFFF0C,                    0 },
-        { NULL          , 72, 0x80FFFF0C,                    0 },
-        { NULL          , 73, 0x80FFFF0C,                    0 },
-        { NULL          , 74, 0x80FFFF0C,                    0 },
-        { NULL          , 75, 0x80FFFF0C,                    0 },
-        { NULL          , 76, 0x80FFFF0C,                    0 },
-        { NULL          , 77, 0x80FFFF0C,                    0 },
-        { NULL          , 78, 0x80FFFF0C,                    0 },
-        { NULL          , 79, 0x80FFFF0C,                    0 },
+        { &g_GUID_XAxis ,  0, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_AXIS  , DIDOI_ASPECTPOSITION },
+        { &g_GUID_YAxis ,  4, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_AXIS  , DIDOI_ASPECTPOSITION },
+        { &g_GUID_ZAxis ,  8, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_AXIS  , DIDOI_ASPECTPOSITION },
+        { &g_GUID_RxAxis, 12, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_AXIS  , DIDOI_ASPECTPOSITION },
+        { &g_GUID_RyAxis, 16, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_AXIS  , DIDOI_ASPECTPOSITION },
+        { &g_GUID_RzAxis, 20, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_AXIS  , DIDOI_ASPECTPOSITION },
+        { &g_GUID_Slider, 24, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_AXIS  , DIDOI_ASPECTPOSITION },
+        { &g_GUID_Slider, 28, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_AXIS  , DIDOI_ASPECTPOSITION },
+        { &g_GUID_POV   , 32, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_POV   ,                    0 },
+        { &g_GUID_POV   , 36, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_POV   ,                    0 },
+        { &g_GUID_POV   , 40, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_POV   ,                    0 },
+        { &g_GUID_POV   , 44, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_POV   ,                    0 },
+        { NULL          , 48, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 49, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 50, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 51, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 52, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 53, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 54, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 55, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 56, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 57, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 58, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 59, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 60, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 61, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 62, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 63, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 64, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 65, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 66, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 67, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 68, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 69, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 70, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 71, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 72, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 73, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 74, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 75, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 76, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 77, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 78, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
+        { NULL          , 79, DIDFT_OPTIONAL | DIDFT_ANYINSTANCE | DIDFT_BUTTON,                    0 },
     };
     static DIDATAFORMAT g_dfDIJoystick = {
         sizeof(DIDATAFORMAT),
@@ -89,13 +388,18 @@ namespace native
         44,
         g_dfDIJoystickObject,
     };
+};
+
+// DirectInput
+namespace native
+{
+    constexpr DWORD g_dwControllerBufferSize = 64;
     
     struct DirectInput::_Data
     {
         HWND window = NULL;
         HMODULE dll = NULL;
         Microsoft::WRL::ComPtr<IDirectInput8W> dinput;
-        std::vector<DIDEVICEINSTANCEW> gamepad_device_all;
         std::vector<DIDEVICEINSTANCEW> gamepad_device;
         std::vector<Microsoft::WRL::ComPtr<IDirectInputDevice8W>> gamepad;
         std::vector<AxisRange> gamepad_prop;
@@ -268,6 +572,23 @@ namespace native
             range.RzMax = axisRange.lMax;
         }
         
+        /*
+        // Slider0
+        axisRange.diph.dwObj = DIJOFS_SLIDER(0);
+        hr = device->GetProperty(DIPROP_RANGE, &axisRange.diph);
+        if (hr == DI_OK || hr == S_FALSE)
+        {
+            
+        }
+        // Slider1
+        axisRange.diph.dwObj = DIJOFS_SLIDER(1);
+        hr = device->GetProperty(DIPROP_RANGE, &axisRange.diph);
+        if (hr == DI_OK || hr == S_FALSE)
+        {
+            
+        }
+        //*/
+        
         hr = device->Acquire();
         if (!(hr == DI_OK || hr == S_FALSE))
         {
@@ -370,6 +691,7 @@ namespace native
         if (self.dinput)
         {
             HRESULT hr = 0;
+            std::vector<DIDEVICEINSTANCEW> raw_device;
             // list all Gamepads
             // *
             // DI8DEVCLASS_ALL
@@ -379,14 +701,14 @@ namespace native
             // *
             // DIEDFL_ALLDEVICES
             // DIEDFL_ATTACHEDONLY
-            _excludeXInput = true;
-            hr = self.dinput->EnumDevices(DI8DEVCLASS_GAMECTRL, &_listGamepads, &self.gamepad_device, DI8DEVCLASS_ALL);
+            _excludeXInput = false;
+            hr = self.dinput->EnumDevices(DI8DEVCLASS_GAMECTRL, &_listGamepads, &raw_device, DI8DEVCLASS_ALL);
             if (hr != DI_OK)
             {
                 _LOGDEBUG(L"EnumDevices failed\n");
             }
             // create Gamepad devices
-            for (auto& v : self.gamepad_device)
+            for (auto& v : raw_device)
             {
                 Microsoft::WRL::ComPtr<IDirectInputDevice8W> device;
                 hr = self.dinput->CreateDevice(v.guidInstance, device.GetAddressOf(), NULL);
@@ -394,22 +716,22 @@ namespace native
                 {
                     AxisRange range;
                     _initGamepad(self.window, device.Get(), range);
+                    self.gamepad_device.push_back(v);
                     self.gamepad.push_back(device);
                     self.gamepad_prop.push_back(range);
+                    self.gamepad_state.push_back({});
                 }
                 else
                 {
                     _LOGDEBUG(L"CreateDevice game controller failed\n");
                 }
             }
-            // resize state buffer
-            self.gamepad_state.resize(self.gamepad.size());
-            reset();
         }
         else
         {
             _LOGDEBUG(L"dinput8 NULL exception\n");
         }
+        reset();
         return (uint32_t)self.gamepad.size();
     }
     void DirectInput::update()
@@ -454,6 +776,16 @@ namespace native
         self.gamepad.clear();
         self.gamepad_prop.clear();
         self.gamepad_state.clear();
+    }
+    bool DirectInput::getAxisRange(uint32_t index, DirectInput::AxisRange* range)
+    {
+        getself();
+        if (index < self.gamepad_prop.size())
+        {
+            CopyMemory(range, &self.gamepad_prop[index], sizeof(DirectInput::AxisRange));
+            return true;
+        }
+        return false;
     }
     bool DirectInput::getRawState(uint32_t index, DirectInput::RawState* state)
     {
@@ -533,54 +865,34 @@ namespace native
         }
         return false;
     }
-    
-    uint32_t DirectInput::getDeviceCount(bool refresh)
-    {
-        getself();
-        if (refresh)
-        {
-            self.gamepad_device_all.clear();
-            if (self.dinput)
-            {
-                HRESULT hr = 0;
-                
-                _excludeXInput = false;
-                hr = self.dinput->EnumDevices(DI8DEVCLASS_GAMECTRL, &_listGamepads, &self.gamepad_device_all, DI8DEVCLASS_ALL);
-                if (hr != DI_OK)
-                {
-                    _LOGDEBUG(L"EnumDevices failed\n");
-                }
-            }
-        }
-        return (uint32_t)self.gamepad_device_all.size();
-    }
     const wchar_t* DirectInput::getDeviceName(uint32_t index)
     {
         getself();
-        if (index < self.gamepad_device_all.size())
+        if (index < self.gamepad_device.size())
         {
-            return self.gamepad_device_all[index].tszInstanceName;
+            return self.gamepad_device[index].tszInstanceName;
         }
         return nullptr;
     }
     const wchar_t* DirectInput::getProductName(uint32_t index)
     {
         getself();
-        if (index < self.gamepad_device_all.size())
+        if (index < self.gamepad_device.size())
         {
-            return self.gamepad_device_all[index].tszProductName;
+            return self.gamepad_device[index].tszProductName;
         }
         return nullptr;
     }
     bool DirectInput::isXInputDevice(uint32_t index)
     {
         getself();
-        if (index < self.gamepad_device_all.size())
+        if (index < self.gamepad_device.size())
         {
-            return self.gamepad_device_all[index].dwSize != 0;
+            return self.gamepad_device[index].dwSize != 0;
         }
         return false;
     }
+    
     bool DirectInput::updateTargetWindow(ptrdiff_t window)
     {
         getself();

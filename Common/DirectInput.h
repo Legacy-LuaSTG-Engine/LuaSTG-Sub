@@ -43,13 +43,13 @@ namespace native
         void update();
         void reset();
         void clear();
+        bool getAxisRange(uint32_t index, AxisRange* range);
         bool getRawState(uint32_t index, RawState* state);
         bool getState(uint32_t index, State* state);
-    public:
-        uint32_t getDeviceCount(bool refresh);
         const wchar_t* getDeviceName(uint32_t index);
         const wchar_t* getProductName(uint32_t index);
         bool isXInputDevice(uint32_t index);
+    public:
         bool updateTargetWindow(ptrdiff_t window);
     public:
         DirectInput(ptrdiff_t window);
