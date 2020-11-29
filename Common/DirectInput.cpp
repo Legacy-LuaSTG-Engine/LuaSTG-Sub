@@ -449,6 +449,10 @@ namespace native
             {
                 vec->back().dwSize = isXInput ? 1 : 0;
             }
+            else
+            {
+                vec->back().dwSize = 0;
+            }
         }
         return DIENUM_CONTINUE; // DIENUM_STOP
     };
@@ -809,28 +813,64 @@ namespace native
         getself();
         if (index < self.gamepad_state.size())
         {
+            auto& device = self.gamepad_device[index];
             auto& raw = self.gamepad_state[index];
             auto& range = self.gamepad_prop[index];
             auto& _state = *state;
             
             _state.wButtons = 0;
             
-            if (raw.rgbButtons[0]) { _state.wButtons |= XINPUT_GAMEPAD_X; }
-            if (raw.rgbButtons[1]) { _state.wButtons |= XINPUT_GAMEPAD_A; }
-            if (raw.rgbButtons[2]) { _state.wButtons |= XINPUT_GAMEPAD_B; }
-            if (raw.rgbButtons[3]) { _state.wButtons |= XINPUT_GAMEPAD_Y; }
-            
-            if (raw.rgbButtons[4]) { _state.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER; }
-            if (raw.rgbButtons[5]) { _state.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER; }
-            
-            if (raw.rgbButtons[6]) { _state.bLeftTrigger  = 255; } else { _state.bLeftTrigger  = 0; }
-            if (raw.rgbButtons[7]) { _state.bRightTrigger = 255; } else { _state.bRightTrigger = 0; }
-            
-            if (raw.rgbButtons[8]) { _state.wButtons |= XINPUT_GAMEPAD_BACK; }
-            if (raw.rgbButtons[9]) { _state.wButtons |= XINPUT_GAMEPAD_START; }
-            
-            if (raw.rgbButtons[10]) { _state.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB; }
-            if (raw.rgbButtons[11]) { _state.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB; }
+            if (device.dwSize == 0)
+            {
+                if (raw.rgbButtons[0]) { _state.wButtons |= XINPUT_GAMEPAD_X; }
+                if (raw.rgbButtons[1]) { _state.wButtons |= XINPUT_GAMEPAD_A; }
+                if (raw.rgbButtons[2]) { _state.wButtons |= XINPUT_GAMEPAD_B; }
+                if (raw.rgbButtons[3]) { _state.wButtons |= XINPUT_GAMEPAD_Y; }
+                
+                if (raw.rgbButtons[4]) { _state.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER; }
+                if (raw.rgbButtons[5]) { _state.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER; }
+                
+                if (raw.rgbButtons[6]) { _state.bLeftTrigger  = 255; } else { _state.bLeftTrigger  = 0; }
+                if (raw.rgbButtons[7]) { _state.bRightTrigger = 255; } else { _state.bRightTrigger = 0; }
+                
+                if (raw.rgbButtons[8]) { _state.wButtons |= XINPUT_GAMEPAD_BACK; }
+                if (raw.rgbButtons[9]) { _state.wButtons |= XINPUT_GAMEPAD_START; }
+                
+                if (raw.rgbButtons[10]) { _state.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB; }
+                if (raw.rgbButtons[11]) { _state.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB; }
+            }
+            else
+            {
+                if (raw.rgbButtons[0]) { _state.wButtons |= XINPUT_GAMEPAD_A; }
+                if (raw.rgbButtons[1]) { _state.wButtons |= XINPUT_GAMEPAD_B; }
+                if (raw.rgbButtons[2]) { _state.wButtons |= XINPUT_GAMEPAD_X; }
+                if (raw.rgbButtons[3]) { _state.wButtons |= XINPUT_GAMEPAD_Y; }
+                
+                if (raw.rgbButtons[4]) { _state.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER; }
+                if (raw.rgbButtons[5]) { _state.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER; }
+                
+                if (raw.rgbButtons[6]) { _state.wButtons |= XINPUT_GAMEPAD_BACK; }
+                if (raw.rgbButtons[7]) { _state.wButtons |= XINPUT_GAMEPAD_START; }
+                
+                if (raw.rgbButtons[8]) { _state.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB; }
+                if (raw.rgbButtons[9]) { _state.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB; }
+                
+                if (raw.lZ > 32767)
+                {
+                    _state.bLeftTrigger = (BYTE)clamp(255.0f * ((float)(raw.lZ - 32767) / 32768.0f), 0.0f, 255.0f);
+                    _state.bRightTrigger = 0;
+                }
+                else if (raw.lZ < 32767)
+                {
+                    _state.bLeftTrigger = 0;
+                    _state.bRightTrigger = (BYTE)clamp(255.0f * ((float)raw.lZ / 32767.0f), 0.0f, 255.0f);
+                }
+                else
+                {
+                    _state.bLeftTrigger = 0;
+                    _state.bRightTrigger = 0;
+                }
+            }
             
             const DWORD pov0 = raw.rgdwPOV[0];
             if ( ((pov0 >= 0) && (pov0 < 4500)) || ((pov0 > 31500) && (pov0 < 36000)) ) { _state.wButtons |= XINPUT_GAMEPAD_DPAD_UP; }
@@ -855,17 +895,35 @@ namespace native
                 _state.sThumbLY = (SHORT)clamp(numv * -32768.0f, -32768.0f, 32767.0f);
             }
             
+            if (device.dwSize == 0)
             {
-                const float cent = (float)(range.ZMin + range.ZMax) * 0.5f;
-                const float half = (float)(range.ZMax - range.ZMin) * 0.5f;
-                const float numv = ((float)raw.lZ - cent) / half;
-                _state.sThumbRX = (SHORT)clamp(numv * 32768.0f, -32768.0f, 32767.0f);
+                {
+                    const float cent = (float)(range.ZMin + range.ZMax) * 0.5f;
+                    const float half = (float)(range.ZMax - range.ZMin) * 0.5f;
+                    const float numv = ((float)raw.lZ - cent) / half;
+                    _state.sThumbRX = (SHORT)clamp(numv * 32768.0f, -32768.0f, 32767.0f);
+                }
+                {
+                    const float cent = (float)(range.RzMin + range.RzMax) * 0.5f;
+                    const float half = (float)(range.RzMax - range.RzMin) * 0.5f;
+                    const float numv = ((float)raw.lRz - cent) / half;
+                    _state.sThumbRY = (SHORT)clamp(numv * -32768.0f, -32768.0f, 32767.0f);
+                }
             }
+            else
             {
-                const float cent = (float)(range.RzMin + range.RzMax) * 0.5f;
-                const float half = (float)(range.RzMax - range.RzMin) * 0.5f;
-                const float numv = ((float)raw.lRz - cent) / half;
-                _state.sThumbRY = (SHORT)clamp(numv * -32768.0f, -32768.0f, 32767.0f);
+                {
+                    const float cent = (float)(range.RxMin + range.RxMax) * 0.5f;
+                    const float half = (float)(range.RxMax - range.RxMin) * 0.5f;
+                    const float numv = ((float)raw.lRx - cent) / half;
+                    _state.sThumbRX = (SHORT)clamp(numv * 32768.0f, -32768.0f, 32767.0f);
+                }
+                {
+                    const float cent = (float)(range.RyMin + range.RyMax) * 0.5f;
+                    const float half = (float)(range.RyMax - range.RyMin) * 0.5f;
+                    const float numv = ((float)raw.lRy - cent) / half;
+                    _state.sThumbRY = (SHORT)clamp(numv * -32768.0f, -32768.0f, 32767.0f);
+                }
             }
             
             return true;
