@@ -13,11 +13,28 @@ static int lib_RenderDrawData(lua_State* L)
     return 0;
 }
 
+static int lib_ShowTestInputWindow(lua_State* L)
+{
+    if(lua_gettop(L) >= 1)
+    {
+        bool v = lua_toboolean(L, 1);
+        imgui::showTestInputWindow(&v);
+        lua_pushboolean(L, v);
+        return 1;
+    }
+    else
+    {
+        imgui::showTestInputWindow();
+        return 0;
+    }
+}
+
 void imgui_binding_lua_register_backend(lua_State* L)
 {
     const luaL_Reg lib_fun[] = {
         {"NewFrame", &lib_NewFrame},
         {"RenderDrawData", &lib_RenderDrawData},
+        {"ShowTestInputWindow", &lib_ShowTestInputWindow},
         {NULL, NULL},
     };
     const auto lib_func = (sizeof(lib_fun) / sizeof(luaL_Reg)) - 1;
