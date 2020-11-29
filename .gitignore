@@ -5,4 +5,6 @@ imgui/imgui
 LuaSTG/custom
 tool/RC
 tool/RC/*
+
+*.vscode
 *.code-workspace
