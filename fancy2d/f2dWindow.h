@@ -180,6 +180,9 @@ struct f2dWindowEventListener
 
 	/// @brief 丢失焦点
 	virtual void OnLostFocus() {}
+	
+	// 系统设备变化
+	virtual void OnDeviceChange() {}
 };
 
 ////////////////////////////////////////////////////////////////////////////////

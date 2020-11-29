@@ -4,6 +4,7 @@
 
 #include <fcyException.h>
 #include <fcyOS/fcyDebug.h>
+#include <Dbt.h> // DBT_DEVNODES_CHANGED
 
 //#define _IME_DEBUG
 //#define _FANCY2D_IME_ENABLE // 妈的，这IME支持还不如不写，一堆bug
@@ -58,6 +59,16 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 	#endif
 	
 		// 普通回调
+	case WM_ACTIVATEAPP:
+		if (wParam == TRUE)
+		{
+			if(pListener) pListener->OnGetFocus();
+		}
+		else if (wParam == FALSE)
+		{
+			if(pListener) pListener->OnLostFocus();
+		}
+		break;
 	case WM_CLOSE:
 		if(pListener) pListener->OnClose();
 		return 0;
@@ -117,10 +128,16 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 		#ifdef _FANCY2D_IME_ENABLE
 		pWindow->HandleIMELanguageChanged();
 		#endif
-		if(pListener) pListener->OnGetFocus();
+		//if(pListener) pListener->OnGetFocus();
 		break;
 	case WM_KILLFOCUS:
-		if(pListener) pListener->OnLostFocus();
+		//if(pListener) pListener->OnLostFocus();
+		break;
+	case WM_DEVICECHANGE:
+		if (wParam == DBT_DEVNODES_CHANGED)
+		{
+			if(pListener) pListener->OnDeviceChange();
+		}
 		break;
 	
 	#ifdef _FANCY2D_IME_ENABLE
@@ -505,6 +522,10 @@ void f2dWindowImpl::DefaultListener::OnGetFocus()
 void f2dWindowImpl::DefaultListener::OnLostFocus()
 {
 	m_pEngine->SendMsg(F2DMSG_WINDOW_ONLOSTFOCUS);
+}
+void f2dWindowImpl::DefaultListener::OnDeviceChange()
+{
+	m_pEngine->SendMsg(F2DMSG_SYSTEM_ON_DEVICE_CHANGE);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

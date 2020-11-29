@@ -140,6 +140,7 @@ private:
 		void OnMouseRBDouble(fShort X, fShort Y, fuInt Flag);
 		void OnGetFocus();
 		void OnLostFocus();
+		void OnDeviceChange();
 	public:
 		DefaultListener(f2dEngineImpl* pEngine, f2dWindowImpl* pThis)
 			: m_pEngine(pEngine), m_pThis(pThis) {}

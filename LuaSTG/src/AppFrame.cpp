@@ -1518,12 +1518,13 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 	
 	m_fFPS = (float)pFPSController->GetFPS();
 	pFPSController->SetLimitedFPS(m_OptionFPSLimit);
-
+	
 	m_LastChar = 0;
 	m_LastKey = 0;
-
+	
 	// 处理消息
 	f2dMsg tMsg;
+	bool bUpdateDevice = false;
 	while (FCYOK(pMsgPump->GetMsg(&tMsg)))
 	{
 		switch (tMsg.Type)
@@ -1611,8 +1612,20 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 			m_MousePosition.y = m_OptionResolution.y - (float)static_cast<fInt>(tMsg.Param2);  // ! 潜在大小不匹配问题
 			break;
 		}
+		case F2DMSG_SYSTEM_ON_DEVICE_CHANGE:
+		{
+			bUpdateDevice = true;
+			break;
+		}
 		default:
 			break;
+		}
+	}
+	if (bUpdateDevice)
+	{
+		if (m_DirectInput.get())
+		{
+			m_DirectInput->refresh();
 		}
 	}
 	

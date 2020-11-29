@@ -87,6 +87,7 @@ enum F2DMSGTYPE
 	F2DMSG_WINDOW_ONMOUSEWHEEL   = 26,    ///< @brief 鼠标滚动     (fInt X, fInt Y, fDouble Wheel)
 	F2DMSG_WINDOW_ONKEYUP        = 27,    ///< @brief 按键放开     (fuInt KeyCode)
 	F2DMSG_WINDOW_ONKEYDOWN      = 28,    ///< @brief 按键按下     (fuInt KeyCode)
+	F2DMSG_SYSTEM_ON_DEVICE_CHANGE = 29,  // 系统设备变化
 
 	F2DMSG_IME_ONCLOSE            = 30,   ///< @brief IME关闭
 	F2DMSG_IME_ONACTIVATE         = 31,   ///< @brief IME激活       (fcStrW Desc)
