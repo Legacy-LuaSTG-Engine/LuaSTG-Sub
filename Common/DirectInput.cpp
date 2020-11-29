@@ -863,7 +863,7 @@ namespace native
                 else if (raw.lZ < 32767)
                 {
                     _state.bLeftTrigger = 0;
-                    _state.bRightTrigger = (BYTE)clamp(255.0f * ((float)raw.lZ / 32767.0f), 0.0f, 255.0f);
+                    _state.bRightTrigger = (BYTE)clamp(255.0f * (1.0f - ((float)raw.lZ / 32767.0f)), 0.0f, 255.0f);
                 }
                 else
                 {
