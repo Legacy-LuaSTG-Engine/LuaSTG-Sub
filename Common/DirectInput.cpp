@@ -27,6 +27,10 @@ namespace native
     // interface
     static const GUID g_IID_IDirectInput8W = {0xBF798031, 0x483A, 0x4DA2, {0xAA, 0x99, 0x5D, 0x64, 0xED, 0x36, 0x97, 0x00}};
     
+    // device
+    static const GUID g_GUID_SysMouse    = {0x6F1D2B60, 0xD5A0, 0x11CF, {0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}};
+    static const GUID g_GUID_SysKeyboard = {0x6F1D2B61, 0xD5A0, 0x11CF, {0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}};
+    
     // device object
     static const GUID g_GUID_XAxis   = {0xA36D02E0, 0xC9F3, 0x11CF, {0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}};
     static const GUID g_GUID_YAxis   = {0xA36D02E1, 0xC9F3, 0x11CF, {0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}};
@@ -399,6 +403,8 @@ namespace native
 // DirectInput
 namespace native
 {
+    constexpr DWORD g_dwKeyboardBufferSize = 32;
+    constexpr DWORD g_dwMouseBufferSize = 64;
     constexpr DWORD g_dwControllerBufferSize = 64;
     
     struct DirectInput::_Data
@@ -410,6 +416,11 @@ namespace native
         std::vector<Microsoft::WRL::ComPtr<IDirectInputDevice8W>> gamepad;
         std::vector<AxisRange> gamepad_prop;
         std::vector<DIJOYSTATE> gamepad_state;
+        
+        BYTE keyboard_state[256];
+        DIMOUSESTATE2 mouse_state;
+        Microsoft::WRL::ComPtr<IDirectInputDevice8W> keyboard;
+        Microsoft::WRL::ComPtr<IDirectInputDevice8W> mouse;
     };
     
     static bool _excludeXInput = true;
@@ -686,14 +697,191 @@ namespace native
             _LOGDEBUG(L"Gamepad[%u] Acquire failed\n", idx);
         }
     }
+    inline bool _initKeyboard(HWND window, IDirectInputDevice8W* device)
+    {
+        HRESULT hr = 0;
+        
+        hr = device->SetCooperativeLevel(window, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
+        if (hr != DI_OK)
+        {
+            _LOGDEBUG(L"keyboard SetCooperativeLevel failed\n");
+        }
+        
+        hr = device->SetDataFormat(&g_dfDIKeyboard);
+        if (hr != DI_OK)
+        {
+            _LOGDEBUG(L"keyboard SetDataFormat failed\n");
+        }
+        
+        DIPROPDWORD bufferProperty;
+        bufferProperty.diph.dwSize = sizeof(DIPROPDWORD);
+        bufferProperty.diph.dwHeaderSize = sizeof(DIPROPHEADER);
+        bufferProperty.diph.dwObj = 0;
+        bufferProperty.diph.dwHow = DIPH_DEVICE;
+        bufferProperty.dwData = g_dwKeyboardBufferSize;
+        hr = device->SetProperty(DIPROP_BUFFERSIZE, &bufferProperty.diph);
+        if (hr != DI_OK)
+        {
+            _LOGDEBUG(L"keyboard SetProperty failed\n");
+        }
+        
+        hr = device->Acquire();
+        if (!(hr == DI_OK || hr == S_FALSE))
+        {
+            _LOGDEBUG(L"keyboard first Acquire failed\n");
+        }
+        
+        return true;
+    }
+    inline bool _initMouse(HWND window, IDirectInputDevice8W* device)
+    {
+        HRESULT hr = 0;
+        
+        hr = device->SetCooperativeLevel(window, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
+        if (hr != DI_OK)
+        {
+            _LOGDEBUG(L"mouse SetCooperativeLevel failed\n");
+        }
+        
+        hr = device->SetDataFormat(&g_dfDIMouse2);
+        if (hr != DI_OK)
+        {
+            _LOGDEBUG(L"mouse SetDataFormat failed, will try c_dfDIMouse\n");
+            hr = device->SetDataFormat(&g_dfDIMouse);
+            if (hr != DI_OK)
+            {
+                _LOGDEBUG(L"mouse SetDataFormat failed\n");
+            }
+        }
+        
+        DIPROPDWORD bufferProperty;
+        bufferProperty.diph.dwSize = sizeof(DIPROPDWORD);
+        bufferProperty.diph.dwHeaderSize = sizeof(DIPROPHEADER);
+        bufferProperty.diph.dwObj = 0;
+        bufferProperty.diph.dwHow = DIPH_DEVICE;
+        bufferProperty.dwData = g_dwMouseBufferSize;
+        hr = device->SetProperty(DIPROP_BUFFERSIZE, &bufferProperty.diph);
+        if (hr != DI_OK)
+        {
+            _LOGDEBUG(L"mouse SetProperty failed\n");
+        }
+        
+        hr = device->Acquire();
+        if (!(hr == DI_OK || hr == S_FALSE))
+        {
+            _LOGDEBUG(L"mouse first Acquire failed\n");
+        }
+        
+        return true;
+    }
+    inline void _updateKeyboard(IDirectInputDevice8W* device, BYTE* state)
+    {
+        DIDEVICEOBJECTDATA data[g_dwKeyboardBufferSize];
+        DWORD data_n = g_dwKeyboardBufferSize;
+        
+        HRESULT hr = 0;
+        hr = device->Acquire(); // get device access
+        if (hr == DI_OK || hr == S_FALSE)
+        {
+            hr = device->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), data, &data_n, 0);
+            if (hr == DI_OK || hr == DI_BUFFEROVERFLOW)
+            {
+                if (data_n > 0)
+                {
+                    _LOGDEBUG("Keyboard recive %u data\n", data_n);
+                    // process data
+                    for (size_t i = 0; i < data_n; i += 1)
+                    {
+                        if (data[i].dwOfs < 256)
+                        {
+                            state[data[i].dwOfs] = (BYTE)((LOBYTE(data[i].dwData) & 0x80) != 0);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                _LOGDEBUG(L"Keyboard GetDeviceData failed\n");
+            }
+        }
+        else
+        {
+            _LOGDEBUG(L"Keyboard Acquire failed\n");
+        }
+    }
+    inline void _updateMouse(IDirectInputDevice8W* device, DIMOUSESTATE2& state)
+    {
+        DIDEVICEOBJECTDATA data[g_dwMouseBufferSize];
+        DWORD data_n = g_dwMouseBufferSize;
+        
+        HRESULT hr = 0;
+        hr = device->Acquire(); // get device access
+        if (hr == DI_OK || hr == S_FALSE)
+        {
+            hr = device->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), data, &data_n, 0);
+            if (hr == DI_OK || hr == DI_BUFFEROVERFLOW)
+            {
+                if (data_n > 0)
+                {
+                    _LOGDEBUG("Mouse recive %u data\n", data_n);
+                    // process data
+                    for (size_t i = 0; i < data_n; i += 1)
+                    {
+                        // I know, I know...
+                        #pragma warning(disable : 4644)
+                        switch (data[i].dwOfs)
+                        {
+                        case DIMOFS_X:
+                            state.lX += (LONG)data[i].dwData;
+                            break;
+                        case DIMOFS_Y:
+                            state.lY += (LONG)data[i].dwData;
+                            break;
+                        case DIMOFS_Z:
+                            state.lZ += (LONG)data[i].dwData;
+                            break;
+                        case DIMOFS_BUTTON0:
+                            state.rgbButtons[0] = (BYTE)((LOBYTE(data[i].dwData) & 0x80) != 0);
+                            break;
+                        case DIMOFS_BUTTON1:
+                            state.rgbButtons[1] = (BYTE)((LOBYTE(data[i].dwData) & 0x80) != 0);
+                            break;
+                        case DIMOFS_BUTTON2:
+                            state.rgbButtons[2] = (BYTE)((LOBYTE(data[i].dwData) & 0x80) != 0);
+                            break;
+                        case DIMOFS_BUTTON3:
+                            state.rgbButtons[3] = (BYTE)((LOBYTE(data[i].dwData) & 0x80) != 0);
+                            break;
+                        case DIMOFS_BUTTON4:
+                            state.rgbButtons[4] = (BYTE)((LOBYTE(data[i].dwData) & 0x80) != 0);
+                            break;
+                        case DIMOFS_BUTTON5:
+                            state.rgbButtons[5] = (BYTE)((LOBYTE(data[i].dwData) & 0x80) != 0);
+                            break;
+                        case DIMOFS_BUTTON6:
+                            state.rgbButtons[6] = (BYTE)((LOBYTE(data[i].dwData) & 0x80) != 0);
+                            break;
+                        case DIMOFS_BUTTON7:
+                            state.rgbButtons[7] = (BYTE)((LOBYTE(data[i].dwData) & 0x80) != 0);
+                            break;
+                        }
+                        #pragma warning(default : 4644)
+                    }
+                }
+            }
+            else
+            {
+                _LOGDEBUG(L"Mouse GetDeviceData failed\n");
+            }
+        }
+        else
+        {
+            _LOGDEBUG(L"Mouse Acquire failed\n");
+        }
+    }
     
     #define getself() _Data& self = *_data;
     
-    uint32_t DirectInput::count()
-    {
-        getself();
-        return (uint32_t)self.gamepad.size();
-    }
     uint32_t DirectInput::refresh()
     {
         getself();
@@ -737,6 +925,26 @@ namespace native
                     _LOGDEBUG(L"CreateDevice game controller failed\n");
                 }
             }
+            // create Keyboard device
+            hr = self.dinput->CreateDevice(g_GUID_SysKeyboard, self.keyboard.GetAddressOf(), NULL);
+            if (hr == DI_OK)
+            {
+                _initKeyboard(self.window, self.keyboard.Get());
+            }
+            else
+            {
+                _LOGDEBUG(L"CreateDevice Keyboard failed\n");
+            }
+            // create Mouse device
+            hr = self.dinput->CreateDevice(g_GUID_SysMouse, self.mouse.GetAddressOf(), NULL);
+            if (hr == DI_OK)
+            {
+                _initMouse(self.window, self.mouse.Get());
+            }
+            else
+            {
+                _LOGDEBUG(L"CreateDevice Mouse failed\n");
+            }
         }
         else
         {
@@ -751,6 +959,17 @@ namespace native
         for (size_t idx = 0; idx < self.gamepad.size(); idx += 1)
         {
             _updateGamepad(self.gamepad[idx].Get(), self.gamepad_state[idx], idx);
+        }
+        if (self.keyboard)
+        {
+            _updateKeyboard(self.keyboard.Get(), self.keyboard_state);
+        }
+        if (self.mouse)
+        {
+            self.mouse_state.lX = 0;
+            self.mouse_state.lY = 0;
+            self.mouse_state.lZ = 0;
+            _updateMouse(self.mouse.Get(), self.mouse_state);
         }
     }
     void DirectInput::reset()
@@ -779,6 +998,8 @@ namespace native
             
             ZeroMemory(&state.rgbButtons, sizeof(state.rgbButtons));
         }
+        ZeroMemory(&self.keyboard_state, sizeof(self.keyboard_state));
+        ZeroMemory(&self.mouse_state, sizeof(self.mouse_state));
     }
     void DirectInput::clear()
     {
@@ -787,6 +1008,48 @@ namespace native
         self.gamepad.clear();
         self.gamepad_prop.clear();
         self.gamepad_state.clear();
+        self.keyboard.Reset();
+        self.mouse.Reset();
+    }
+    
+    bool DirectInput::getKeyboardKeyState(int32_t code)
+    {
+        getself();
+        if (code >= 0 && code < 256)
+        {
+            return (self.keyboard_state[code] != 0);
+        }
+        return false;
+    }
+    bool DirectInput::getMouseKeyState(int32_t code)
+    {
+        getself();
+        if (code >= 0 && code < 8)
+        {
+            return (self.mouse_state.rgbButtons[code] != 0);
+        }
+        return false;
+    }
+    int32_t DirectInput::getMouseMoveDeltaX()
+    {
+        getself();
+        return (int32_t)self.mouse_state.lX;
+    }
+    int32_t DirectInput::getMouseMoveDeltaY()
+    {
+        getself();
+        return (int32_t)self.mouse_state.lY;
+    }
+    int32_t DirectInput::getMouseWheelDelta()
+    {
+        getself();
+        return (int32_t)self.mouse_state.lZ;
+    }
+    
+    uint32_t DirectInput::count()
+    {
+        getself();
+        return (uint32_t)self.gamepad.size();
     }
     bool DirectInput::getAxisRange(uint32_t index, DirectInput::AxisRange* range)
     {

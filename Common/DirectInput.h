@@ -40,11 +40,18 @@ namespace native
         struct _Data;
         _Data* _data;
     public:
-        uint32_t count();
         uint32_t refresh();
         void update();
         void reset();
         void clear();
+    public: // Keyboard & Mouse
+        bool getKeyboardKeyState(int32_t code);
+        bool getMouseKeyState(int32_t code);
+        int32_t getMouseMoveDeltaX();
+        int32_t getMouseMoveDeltaY();
+        int32_t getMouseWheelDelta();
+    public: // Game Controller
+        uint32_t count();
         bool getAxisRange(uint32_t index, AxisRange* range);
         bool getRawState(uint32_t index, RawState* state);
         bool getState(uint32_t index, State* state);

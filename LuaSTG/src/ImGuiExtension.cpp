@@ -231,7 +231,7 @@ namespace imgui
             ImGui::SetNextWindowContentSize(ImVec2(640.0f, 480.0f));
             _first_set_size = true;
         }
-        bool show = ImGui::Begin("手柄、摇杆输入测试##80FF", p_open);
+        bool show = ImGui::Begin("输入测试##80FF", p_open);
         if (show)
         {
             static char buffer[1024] = { 0 };
@@ -506,6 +506,65 @@ namespace imgui
                             SHOWKEY(0, Y键, XINPUT_GAMEPAD_Y             );
                             
                             #undef SHOWKEY
+                        }
+                    }
+                    ImGui::EndTabItem();
+                }
+                if (ImGui::BeginTabItem(u8"键盘##8014"))
+                {
+                    for (int i = 0; i < 256; i += 1)
+                    {
+                        if (dinput.getKeyboardKeyState(i))
+                        {
+                            ImGui::Text(u8"[%d]", i);
+                        }
+                    }
+                    ImGui::EndTabItem();
+                }
+                if (ImGui::BeginTabItem(u8"鼠标##8014"))
+                {
+                    const auto x = dinput.getMouseMoveDeltaX();
+                    const auto y = dinput.getMouseMoveDeltaY();
+                    int xy[2] = { x, y };
+                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
+                    ImGui::DragInt2(u8"移动增量", xy);
+                    
+                    static int g_x = 0;
+                    static int g_y = 0;
+                    g_x += x;
+                    g_y += y;
+                    int g_xy[2] = { g_x, g_y };
+                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
+                    ImGui::DragInt2(u8"总移动量", g_xy);
+                    ImGui::SameLine();
+                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.2f);
+                    if (ImGui::Button(u8"归零##1"))
+                    {
+                        g_x = 0;
+                        g_y = 0;
+                    }
+                    
+                    int z = dinput.getMouseWheelDelta();
+                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
+                    ImGui::DragInt(u8"滚轮增量", &z);
+                    
+                    static int g_z = 0;
+                    g_z += z;
+                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
+                    int _g_z = g_z;
+                    ImGui::DragInt(u8"总滚动量", &_g_z);
+                    ImGui::SameLine();
+                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.2f);
+                    if (ImGui::Button(u8"归零##2"))
+                    {
+                        g_z = 0;
+                    }
+                    
+                    for (int i = 0; i < 8; i += 1)
+                    {
+                        if (dinput.getMouseKeyState(i))
+                        {
+                            ImGui::Text(u8"[%d]", i);
                         }
                     }
                     ImGui::EndTabItem();
