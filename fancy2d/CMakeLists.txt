@@ -4,7 +4,7 @@ add_library(fancy2d SHARED)
 
 target_compile_options(fancy2d PUBLIC
     "/utf-8"
-    "/MP4"
+    "/MP"
     "/std:c++17"
 )
 

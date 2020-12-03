@@ -4,7 +4,7 @@ add_library(eyes2d SHARED)
 
 target_compile_options(eyes2d PRIVATE
     "/std:c++17"
-    "/MP4"
+    "/MP"
     "/utf-8"
 )
 

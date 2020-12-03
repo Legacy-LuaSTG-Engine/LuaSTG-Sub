@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.15)
 add_library(imgui)
 target_compile_options(imgui PUBLIC
     "/utf-8"
-    "/MP4"
+    "/MP"
     "/std:c++17"
 )
 target_compile_definitions(imgui PUBLIC

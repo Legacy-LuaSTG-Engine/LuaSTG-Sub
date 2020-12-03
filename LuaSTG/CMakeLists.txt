@@ -11,7 +11,7 @@ add_executable(LuaSTG WIN32)
 
 target_compile_options(LuaSTG PUBLIC
     "/utf-8"
-    "/MP4"
+    "/MP"
     "/std:c++17"
 )
 

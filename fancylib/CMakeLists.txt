@@ -4,7 +4,7 @@ add_library(fancylib)
 
 target_compile_options(fancylib PUBLIC
     "/utf-8"
-    "/MP4"
+    "/MP"
     "/std:c++17"
 )
 
