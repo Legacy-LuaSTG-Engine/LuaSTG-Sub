@@ -10,5 +10,6 @@ add_subdirectory(fancy2d)
 
 add_subdirectory(imgui)
 add_subdirectory(eyes2d)
+add_subdirectory(slow)
 
 add_subdirectory(LuaSTG)
