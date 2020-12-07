@@ -75,7 +75,6 @@ namespace slow {
         
         // manage default password
         virtual bool setDefaultPassword(const char* password) = 0;
-        virtual const char* getDefaultPassword() = 0;
         
         static bool create(FileArchive** output);
         static FileArchive* create();

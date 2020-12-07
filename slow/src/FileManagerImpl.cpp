@@ -70,7 +70,6 @@ namespace slow {
         zip_t* _zip;
         zip_source_t* _source;
         bool _is_file;
-        std::string _password;
         std::string _path;
         std::wstring _wpath;
         std::string _path2;
@@ -179,7 +178,6 @@ namespace slow {
             }
             _mode = FileArchiveMode::Root;
             _is_file = false;
-            _password.clear();
             _path.clear();
             _wpath.clear();
             _path2.clear();
@@ -223,20 +221,12 @@ namespace slow {
         
         bool setDefaultPassword(const char* password) {
             if (_zip != nullptr) {
-                _password.clear();
                 int ret = zip_set_default_password(_zip, password);
                 if (ret == 0) {
-                    // yes, I can pass a nullptr param to cancel default password, so I dont't need to storage it
-                    if (password != nullptr) {
-                        _password = password;
-                    }
                     return true;
                 }
             }
             return false;
-        }
-        const char* getDefaultPassword() {
-            return _password.c_str();
         }
         
         bool listFile(const char* path, FileList** output) {
