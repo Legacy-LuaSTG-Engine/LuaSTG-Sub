@@ -26,6 +26,7 @@ target_sources(imgui PRIVATE
     imgui/imgui_demo.cpp
     imgui/imgui_draw.cpp
     imgui/imgui_internal.h
+    imgui/imgui_tables.cpp
     imgui/imgui_widgets.cpp
     imgui/imgui.cpp
     imgui/imgui.h
@@ -38,8 +39,8 @@ target_sources(imgui PRIVATE
     
     imgui/backends/imgui_impl_dx9.cpp
     imgui/backends/imgui_impl_dx9.h
-    imgui/backends/imgui_impl_win32_workingthread.cpp
-    imgui/backends/imgui_impl_win32_workingthread.h
+    imgui/backends/imgui_impl_win32ex.cpp
+    imgui/backends/imgui_impl_win32ex.h
 )
 target_link_directories(imgui PUBLIC
     ../prebuild/freetype/lib/${EXT_LIBRARY_TYPE}

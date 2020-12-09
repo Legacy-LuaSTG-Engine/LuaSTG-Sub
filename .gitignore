@@ -2,6 +2,7 @@ bin
 build
 ver
 imgui/imgui
+imgui/test
 LuaSTG/custom
 tool/RC
 tool/RC/*

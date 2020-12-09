@@ -4,7 +4,7 @@
 #include "imgui.h"
 #include "imgui_stdlib.h"
 #include "imgui_freetype.h"
-#include "imgui_impl_win32_workingthread.h"
+#include "imgui_impl_win32ex.h"
 #include "imgui_impl_dx9.h"
 #include "LuaWrapper/imgui/lua_imgui.hpp"
 #include "LuaWrapper/imgui/lua_imgui_type.hpp"
@@ -13,13 +13,16 @@
 #include "SystemDirectory.hpp"
 #include "AppFrame.h"
 
+#define XINPUT_USE_9_1_0
 #include <Xinput.h>
 
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32WorkingThread_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32Ex_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace imgui
 {
     static bool g_ImGuiBindEngine = false;
+    static HMODULE g_hXinput = NULL;
+    static DWORD (__stdcall *g_fXInputGetState)(DWORD, XINPUT_STATE*) = NULL;
     
     class ImGuiRenderDeviceEventListener : public f2dRenderDeviceEventListener
     {
@@ -137,8 +140,8 @@ namespace imgui
         setConfig();
         loadConfig();
         
-        ImGui_ImplWin32WorkingThread_Init((void*)window->GetHandle());
-        window->AddNativeMessageCallback((ptrdiff_t)&ImGui_ImplWin32WorkingThread_WndProcHandler);
+        ImGui_ImplWin32Ex_Init((void*)window->GetHandle());
+        window->AddNativeMessageCallback((ptrdiff_t)&ImGui_ImplWin32Ex_WndProcHandler);
         
         ImGui_ImplDX9_Init((IDirect3DDevice9*)device->GetHandle());
         device->AttachListener(&g_ImGuiRenderDeviceEventListener);
@@ -146,11 +149,19 @@ namespace imgui
         luaopen_imgui(L);
         lua_pop(L, 1);
         
+        typedef DWORD (__stdcall *f_XInputGetState)(DWORD, XINPUT_STATE*);
+        
+        g_hXinput = LoadLibraryW(L"xinput9_1_0.dll");
+        if (g_hXinput) g_fXInputGetState = (f_XInputGetState)GetProcAddress(g_hXinput, "XInputGetState");
+        
         g_ImGuiBindEngine = true;
     }
     void unbindEngine()
     {
         g_ImGuiBindEngine = false;
+        
+        g_fXInputGetState = NULL;
+        if (g_hXinput) { FreeLibrary(g_hXinput); g_hXinput = NULL; }
         
         auto* window = LuaSTGPlus::AppFrame::GetInstance().GetEngine()->GetMainWindow();
         auto* device = LuaSTGPlus::AppFrame::GetInstance().GetRenderDev();
@@ -159,8 +170,8 @@ namespace imgui
         device->RemoveListener(&g_ImGuiRenderDeviceEventListener);
         ImGui_ImplDX9_Shutdown();
         
-        window->RemoveNativeMessageCallback((ptrdiff_t)&ImGui_ImplWin32WorkingThread_WndProcHandler);
-        ImGui_ImplWin32WorkingThread_Shutdown();
+        window->RemoveNativeMessageCallback((ptrdiff_t)&ImGui_ImplWin32Ex_WndProcHandler);
+        ImGui_ImplWin32Ex_Shutdown();
         
         saveConfig();
         ImGui::DestroyContext();
@@ -171,7 +182,7 @@ namespace imgui
         if (g_ImGuiBindEngine)
         {
             ImGui_ImplDX9_NewFrame();
-            ImGui_ImplWin32WorkingThread_NewFrame();
+            ImGui_ImplWin32Ex_NewFrame();
         }
     }
     void drawEngine()
@@ -247,7 +258,7 @@ namespace imgui
             DWORD xdevice = 0;
             for (size_t i = 0; i < 4; i += 1)
             {
-                auto hr = XInputGetState(i, xstate);
+                auto hr = g_fXInputGetState(i, xstate);
                 if (hr == ERROR_SUCCESS)
                 {
                     bxstate[i] = true;
