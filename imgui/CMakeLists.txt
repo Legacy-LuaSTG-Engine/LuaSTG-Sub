@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 
 add_library(imgui)
-target_compile_options(imgui PUBLIC
+target_compile_options(imgui PRIVATE
     "/utf-8"
     "/MP"
     "/std:c++17"
@@ -10,7 +10,7 @@ target_compile_definitions(imgui PUBLIC
     _UNICODE
     UNICODE
     #IMGUI_USE_BGRA_PACKED_COLOR
-    IMGUI_USE_WCHAR32
+    #IMGUI_USE_WCHAR32
     IMGUI_DISABLE_OBSOLETE_FUNCTIONS
     DLL_IMPORT # freetype
 )
@@ -45,7 +45,7 @@ target_sources(imgui PRIVATE
 target_link_directories(imgui PUBLIC
     ../prebuild/freetype/lib/${EXT_LIBRARY_TYPE}
 )
-target_link_libraries(imgui
+target_link_libraries(imgui PUBLIC
     d3d9.lib
     freetype.lib
 )

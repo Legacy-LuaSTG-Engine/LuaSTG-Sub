@@ -32,11 +32,6 @@ target_include_directories(LuaSTG PRIVATE
     ../prebuild/freetype/include
     ../prebuild/dxsdk/include
     
-    ../imgui/imgui
-    ../imgui/imgui/backends
-    ../imgui/imgui/misc/cpp
-    ../imgui/imgui/misc/freetype
-    
     ../SteamAPI/public/steam
 )
 
@@ -46,9 +41,9 @@ target_compile_definitions(LuaSTG PRIVATE
     LUA_BUILD_AS_DLL
     
     #IMGUI_USE_BGRA_PACKED_COLOR
-    IMGUI_USE_WCHAR32
-    IMGUI_DISABLE_OBSOLETE_FUNCTIONS
-    DLL_IMPORT # freetype
+    #IMGUI_USE_WCHAR32
+    #IMGUI_DISABLE_OBSOLETE_FUNCTIONS
+    #DLL_IMPORT # freetype
 )
 
 target_compile_definitions(LuaSTG PRIVATE LDEVVERSION)
