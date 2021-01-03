@@ -233,26 +233,27 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 f2dWindowClass::f2dWindowClass(f2dEngineImpl* pEngine, fcStrW ClassName)
 	: m_pEngine(pEngine), m_ClsName(ClassName)
 {
-	WNDCLASS tWndClass;
-	tWndClass.style = CS_HREDRAW | CS_VREDRAW;
-	tWndClass.lpfnWndProc = WndProc;
-	tWndClass.cbClsExtra = 0;
-	tWndClass.cbWndExtra = 0;
-	tWndClass.hInstance = GetModuleHandleW(NULL);
-	tWndClass.hIcon = LoadIconW(NULL, IDI_APPLICATION);
-	tWndClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
-	tWndClass.hbrBackground = NULL;
-	tWndClass.lpszMenuName = NULL;
-	tWndClass.lpszClassName = m_ClsName.c_str();
+	m_WndClass.cbSize = sizeof(WNDCLASSEXW);
+	m_WndClass.style = CS_HREDRAW | CS_VREDRAW;
+	m_WndClass.lpfnWndProc = WndProc;
+	m_WndClass.cbClsExtra = 0;
+	m_WndClass.cbWndExtra = 0;
+	m_WndClass.hInstance = GetModuleHandleW(NULL);
+	m_WndClass.hIcon = LoadIconW(NULL, IDI_APPLICATION);
+	m_WndClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
+	m_WndClass.hbrBackground = NULL;
+	m_WndClass.lpszMenuName = NULL;
+	m_WndClass.lpszClassName = m_ClsName.c_str();
 	
-	ATOM tRet = RegisterClass(&tWndClass);
-	if(!tRet)
+	m_Atom = RegisterClassExW(&m_WndClass);
+	if(m_Atom == 0)
 		throw fcyWin32Exception("f2dWindowClass::f2dWindowClass", "RegisterClass Failed.");
 }
 
 f2dWindowClass::~f2dWindowClass()
 {
-	UnregisterClass(m_ClsName.c_str(), GetModuleHandle(NULL));
+	if (m_Atom != 0)
+		UnregisterClassW(m_WndClass.lpszClassName, m_WndClass.hInstance);
 }
 
 fcStrW f2dWindowClass::GetName()const
@@ -879,8 +880,13 @@ fcyRect f2dWindowImpl::GetClientRect()
 fResult f2dWindowImpl::SetClientRect(const fcyRect& Range)
 {
 	RECT tWinRect = { (int)Range.a.x , (int)Range.a.y , (int)Range.b.x , (int)Range.b.y};
-	AdjustWindowRectEx(&tWinRect, GetWindowLong(m_hWnd, GWL_STYLE), FALSE, 0);
-	return SetWindowPos(m_hWnd, 0, tWinRect.left, tWinRect.top, tWinRect.right - tWinRect.left, tWinRect.bottom - tWinRect.top, SWP_NOZORDER)==TRUE?FCYERR_OK : FCYERR_INTERNALERR;
+	AdjustWindowRectEx(&tWinRect, GetWindowLongPtr(m_hWnd, GWL_STYLE), FALSE, GetWindowLongPtr(m_hWnd, GWL_EXSTYLE));
+	return SetWindowPos(m_hWnd, 0,
+		tWinRect.left,
+		tWinRect.top,
+		tWinRect.right - tWinRect.left,
+		tWinRect.bottom - tWinRect.top,
+		SWP_NOZORDER) == TRUE ? FCYERR_OK : FCYERR_INTERNALERR;
 }
 
 void f2dWindowImpl::MoveToCenter()

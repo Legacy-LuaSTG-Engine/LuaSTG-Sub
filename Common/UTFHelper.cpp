@@ -136,11 +136,14 @@ namespace utf
         *code = 0;
         // byte[0]
         char8_t a = *i;
+        // len 1
         if ((a & 0x80) == 0x00)
         {
             *code = (char32_t)a;
             *r = 1;
+            return;
         }
+        // len 2
         else if ((a & 0xE0) == 0xC0)
         {
             *code |= ((a & 0x1F) << 6);
@@ -150,13 +153,10 @@ namespace utf
             {
                 *code |= (a & 0x3F);
                 *r = 2;
-            }
-            else
-            {
-                *code = U'?';
-                *r = 1;
+                return;
             }
         }
+        // len 3
         else if ((a & 0xF0) == 0xE0)
         {
             *code |= ((a & 0x0F) << 12);
@@ -171,19 +171,11 @@ namespace utf
                 {
                     *code |= (a & 0x3F);
                     *r = 3;
+                    return;
                 }
-                else
-                {
-                    *code = U'?';
-                    *r = 2;
-                }
-            }
-            else
-            {
-                *code = U'?';
-                *r = 1;
             }
         }
+        // len 4
         else if ((a & 0xF8) == 0xF0)
         {
             *code |= ((a & 0x07) << 18);
@@ -203,30 +195,14 @@ namespace utf
                     {
                         *code |= (a & 0x3F);
                         *r = 4;
-                    }
-                    else
-                    {
-                        *code = U'?';
-                        *r = 3;
+                        return;
                     }
                 }
-                else
-                {
-                    *code = U'?';
-                    *r = 2;
-                }
-            }
-            else
-            {
-                *code = U'?';
-                *r = 1;
             }
         }
-        else
-        {
-            *code = U'?';
-            *r = 1;
-        }
+        // default
+        *code = U'?';
+        *r = 1;
     }
     void char16to32(char16_t* i, size_t* r, char32_t* code)
     {

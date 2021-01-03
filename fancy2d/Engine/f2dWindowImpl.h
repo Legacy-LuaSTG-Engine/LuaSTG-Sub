@@ -25,6 +25,8 @@ class f2dWindowClass
 private:
 	f2dEngineImpl* m_pEngine;
 	std::wstring m_ClsName;
+	WNDCLASSEXW m_WndClass;
+	ATOM m_Atom;
 private:
 	static std::unordered_map<HWND, f2dWindowImpl*> s_WindowCallBack;
 	static LRESULT CALLBACK WndProc(HWND Handle, UINT Msg, WPARAM wParam, LPARAM lParam);
