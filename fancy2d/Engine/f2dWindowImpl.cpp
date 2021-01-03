@@ -238,14 +238,15 @@ f2dWindowClass::f2dWindowClass(f2dEngineImpl* pEngine, fcStrW ClassName)
 	m_WndClass.lpfnWndProc = WndProc;
 	m_WndClass.cbClsExtra = 0;
 	m_WndClass.cbWndExtra = 0;
-	m_WndClass.hInstance = GetModuleHandleW(NULL);
-	m_WndClass.hIcon = LoadIconW(NULL, IDI_APPLICATION);
-	m_WndClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
+	m_WndClass.hInstance = ::GetModuleHandleW(NULL);
+	m_WndClass.hIcon = NULL;
+	m_WndClass.hCursor = ::LoadCursorW(NULL, IDC_ARROW);
 	m_WndClass.hbrBackground = NULL;
 	m_WndClass.lpszMenuName = NULL;
 	m_WndClass.lpszClassName = m_ClsName.c_str();
+	m_WndClass.hIconSm = NULL;
 	
-	m_Atom = RegisterClassExW(&m_WndClass);
+	m_Atom = ::RegisterClassExW(&m_WndClass);
 	if(m_Atom == 0)
 		throw fcyWin32Exception("f2dWindowClass::f2dWindowClass", "RegisterClass Failed.");
 }
@@ -796,7 +797,7 @@ fInt f2dWindowImpl::GetHandle()
 
 F2DWINBORDERTYPE f2dWindowImpl::GetBorderType()
 {
-	fuInt tStyle = GetWindowLong(m_hWnd, GWL_STYLE);
+	fuInt tStyle = GetWindowLongPtr(m_hWnd, GWL_STYLE);
 	switch(tStyle)
 	{
 	case F2DWINDOWSTYLENONEBORDER:
@@ -815,26 +816,29 @@ fResult f2dWindowImpl::SetBorderType(F2DWINBORDERTYPE Type)
 	switch(Type)
 	{
 	case F2DWINBORDERTYPE_NONE:
-		SetWindowLong(m_hWnd, GWL_STYLE, F2DWINDOWSTYLENONEBORDER);
+		SetWindowLongPtr(m_hWnd, GWL_STYLE, F2DWINDOWSTYLENONEBORDER);
 		break;
 	case F2DWINBORDERTYPE_FIXED:
-		SetWindowLong(m_hWnd, GWL_STYLE, F2DWINDOWSTYLEFIXEDBORDER);
+		SetWindowLongPtr(m_hWnd, GWL_STYLE, F2DWINDOWSTYLEFIXEDBORDER);
 		break;
 	case F2DWINBORDERTYPE_SIZEABLE:
-		SetWindowLong(m_hWnd, GWL_STYLE, F2DWINDOWSTYLESIZEABLEBORDER);
+		SetWindowLongPtr(m_hWnd, GWL_STYLE, F2DWINDOWSTYLESIZEABLEBORDER);
 		break;
 	default:
 		return FCYERR_ILLEGAL;
 	}
 
-	SetWindowPos(m_hWnd, NULL, 0, 0, 0, 0, m_bShow ? SWP_SHOWWINDOW | SWP_NOZORDER | SWP_FRAMECHANGED | SWP_NOSIZE | SWP_NOMOVE : SWP_NOZORDER | SWP_FRAMECHANGED | SWP_NOSIZE | SWP_NOMOVE);
+	SetWindowPos(m_hWnd, NULL, 0, 0, 0, 0,
+		m_bShow
+			? SWP_SHOWWINDOW | SWP_NOZORDER | SWP_FRAMECHANGED | SWP_NOSIZE | SWP_NOMOVE
+			: SWP_NOZORDER | SWP_FRAMECHANGED | SWP_NOSIZE | SWP_NOMOVE);
 	return FCYERR_OK;
 }
 
 fcStrW f2dWindowImpl::GetCaption()
 {
 	wchar_t tTemp[1024];
-	GetWindowText(m_hWnd, tTemp, 1024);
+	::GetWindowTextW(m_hWnd, tTemp, 1024);
 	m_CaptionText = tTemp;
 	return m_CaptionText.c_str();
 }
@@ -842,7 +846,7 @@ fcStrW f2dWindowImpl::GetCaption()
 fResult f2dWindowImpl::SetCaption(fcStrW Caption)
 {
 	m_CaptionText = Caption;
-	return SetWindowText(m_hWnd, Caption)==TRUE?FCYERR_OK : FCYERR_INTERNALERR;
+	return ::SetWindowTextW(m_hWnd, Caption)==TRUE?FCYERR_OK : FCYERR_INTERNALERR;
 }
 
 fBool f2dWindowImpl::GetVisiable()
@@ -859,14 +863,17 @@ fResult f2dWindowImpl::SetVisiable(fBool Visiable)
 fcyRect f2dWindowImpl::GetRect()
 {
 	RECT tRect;
-	GetWindowRect(m_hWnd, &tRect);
+	::GetWindowRect(m_hWnd, &tRect);
 	fcyRect tRet((float)tRect.left, (float)tRect.top, (float)tRect.right, (float)tRect.bottom);
 	return tRet;
 }
 
 fResult f2dWindowImpl::SetRect(const fcyRect& Range)
 {
-	return SetWindowPos(m_hWnd, 0, (int)Range.a.x, (int)Range.a.y, (int)Range.GetWidth(), (int)Range.GetHeight(), SWP_NOZORDER)==TRUE?FCYERR_OK : FCYERR_INTERNALERR;
+	return ::SetWindowPos(m_hWnd, 0,
+		(int)Range.a.x, (int)Range.a.y,
+		(int)Range.GetWidth(), (int)Range.GetHeight(),
+		SWP_NOZORDER) != FALSE ? FCYERR_OK : FCYERR_INTERNALERR;
 }
 
 fcyRect f2dWindowImpl::GetClientRect()
@@ -891,26 +898,36 @@ fResult f2dWindowImpl::SetClientRect(const fcyRect& Range)
 
 void f2dWindowImpl::MoveToCenter()
 {
-	// 获得屏幕大小
-	fInt tScreenHalfW = GetSystemMetrics(SM_CXSCREEN) / 2;
-	fInt tScreenHalfH = GetSystemMetrics(SM_CYSCREEN) / 2;
-
-	// 获得原始大小
-	fcyRect tRect = GetRect();
-	fInt tHalfW = static_cast<fInt>(tRect.GetWidth() / 2);
-	fInt tHalfH = static_cast<fInt>(tRect.GetHeight() / 2);
-	fFloat tLeft = static_cast<fFloat>(tScreenHalfW - tHalfW);
-	fFloat tTop = static_cast<fFloat>(tScreenHalfH - tHalfH);
-
-	// 重新计算坐标
-	tRect = fcyRect(tLeft, tTop, tLeft + tRect.GetWidth(), tTop + tRect.GetHeight());
-
-	SetRect(tRect);
+	// 获得关联的显示器
+	HMONITOR monitor = ::MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
+	if (monitor)
+	{
+		// 获得显示器信息
+		MONITORINFO moninfo = { sizeof(MONITORINFO), {}, {}, 0 };
+		if (FALSE != ::GetMonitorInfoA(monitor, &moninfo))
+		{
+			// 获得窗口位置
+			RECT rect = {};
+			if (FALSE != ::GetWindowRect(m_hWnd, &rect))
+			{
+				// 计算值
+				const auto& area = moninfo.rcMonitor;
+				const auto sx = area.left;
+				const auto sy = area.top;
+				const auto sw = area.right - area.left;
+				const auto sh = area.bottom - area.top;
+				const auto ww = rect.right - rect.left;
+				const auto wh = rect.bottom - rect.top;
+				// 修改窗口位置
+				::SetWindowPos(m_hWnd, NULL, sx + (sw / 2) - (ww / 2), sy + (sh / 2) - (wh / 2), ww, wh, SWP_NOZORDER | SWP_SHOWWINDOW);
+			}
+		}
+	}
 }
 
 fBool f2dWindowImpl::IsTopMost()
 {
-	if(WS_EX_TOPMOST & GetWindowLong(m_hWnd, GWL_EXSTYLE))
+	if(WS_EX_TOPMOST & GetWindowLongPtr(m_hWnd, GWL_EXSTYLE))
 		return true;
 	else
 		return false;
@@ -918,16 +935,10 @@ fBool f2dWindowImpl::IsTopMost()
 
 fResult f2dWindowImpl::SetTopMost(fBool TopMost)
 {
-	if(TopMost)
-		if(SetWindowPos(m_hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE) == FALSE)
-			return FCYERR_INTERNALERR;
-		else
-			return FCYERR_OK;
+	if(SetWindowPos(m_hWnd, TopMost ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW) != FALSE)
+		return FCYERR_OK;
 	else
-		if(SetWindowPos(m_hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE) == FALSE)
-			return FCYERR_INTERNALERR;
-		else
-			return FCYERR_OK;
+		return FCYERR_INTERNALERR;
 }
 
 void f2dWindowImpl::HideMouse(fBool bHide)

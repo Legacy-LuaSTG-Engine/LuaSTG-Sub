@@ -13,7 +13,7 @@
 #endif
 
 #include "Common/DebugLog.hpp"
-#ifndef NDEBUG
+#if 0
 #define _LOGDEBUG(fmt, ...) DebugLog(fmt, __VA_ARGS__)
 #else
 #define _LOGDEBUG(fmt, ...)
