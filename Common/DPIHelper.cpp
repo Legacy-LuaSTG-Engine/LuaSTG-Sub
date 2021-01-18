@@ -180,9 +180,9 @@ namespace native
                 }
                 return false;
             }
-            float getDpiScalingForMonitor(HMONITOR monitor)
+            unsigned int getDpiForMonitor(HMONITOR monitor)
             {
-                if (estate != TRUE) return 1.0f;
+                if (estate != TRUE) return USER_DEFAULT_SCREEN_DPI;
                 load();
                 // Windows 8.1 or later
                 if (GetDpiForMonitor)
@@ -191,7 +191,7 @@ namespace native
                     // will dpi_x < 0 happen? I don't known
                     if (S_OK == GetDpiForMonitor(monitor, MDT_DEFAULT, &dpi_x, &dpi_y) && dpi_x > 0)
                     {
-                        return (float)dpi_x / (float)USER_DEFAULT_SCREEN_DPI; // will dpi_x != dpi_y happen? I don't known
+                        return dpi_x; // will dpi_x != dpi_y happen? I don't known
                     }
                 }
                 // Windows 2000, XP, Vista, 7
@@ -202,15 +202,15 @@ namespace native
                     {
                         int dpi_x = ::GetDeviceCaps(dc, LOGPIXELSX);
                         // int dpi_y = ::GetDeviceCaps(dc, LOGPIXELSY);
-                        return (float)dpi_x / (float)USER_DEFAULT_SCREEN_DPI; // will dpi_x != dpi_y happen? I don't known
+                        return (unsigned int)dpi_x; // will dpi_x != dpi_y happen? I don't known
                     }
                 }
                 // WTF???
-                return 1.0f;
+                return USER_DEFAULT_SCREEN_DPI;
             };
-            float getDpiScalingForWindow(HWND window)
+            unsigned int getDpiForWindow(HWND window)
             {
-                if (estate != TRUE) return 1.0f;
+                if (estate != TRUE) return USER_DEFAULT_SCREEN_DPI;
                 load();
                 // Windows 10 1607 or later
                 if (GetDpiForWindow)
@@ -218,18 +218,27 @@ namespace native
                     UINT dpi = GetDpiForWindow(window);
                     if (dpi > 0)
                     {
-                        return (float)dpi / (float)USER_DEFAULT_SCREEN_DPI;
+                        return dpi;
                     }
                 }
                 // Try another
                 HMONITOR monitor = ::MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
                 if (monitor)
                 {
-                    return getDpiScalingForMonitor(monitor);
+                    return getDpiForMonitor(monitor);
                 }
                 // WTF???
-                USER_DEFAULT_SCREEN_DPI;
-                return 1.0f;
+                return USER_DEFAULT_SCREEN_DPI;
+            }
+            float getDpiScalingForMonitor(HMONITOR monitor)
+            {
+                if (estate != TRUE) return 1.0f;
+                return (float)getDpiForMonitor(monitor) / (float)USER_DEFAULT_SCREEN_DPI;
+            };
+            float getDpiScalingForWindow(HWND window)
+            {
+                if (estate != TRUE) return 1.0f;
+                return (float)getDpiForWindow(window) / (float)USER_DEFAULT_SCREEN_DPI;
             }
             
             DpiHelper()
@@ -271,17 +280,6 @@ namespace native
         };
         
         static DpiHelper global_DPIAwarenessHelper;
-        
-        BOOL AdjustWindowRectExForDpi(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi = 0)
-        {
-            global_DPIAwarenessHelper.load();
-            if (dpi == 0)
-                dpi = USER_DEFAULT_SCREEN_DPI;
-            if (global_DPIAwarenessHelper.AdjustWindowRectExForDpi)
-                return global_DPIAwarenessHelper.AdjustWindowRectExForDpi(lpRect, dwStyle, bMenu, dwExStyle, dpi);
-            else
-                return ::AdjustWindowRectEx(lpRect, dwStyle, bMenu, dwExStyle);
-        };
     };
     
     // call it at the begin of "main" or "WinMain/wWinMain" function
@@ -297,6 +295,18 @@ namespace native
     };
     
     // HMONITOR monitor
+    unsigned int getDpiForMonitor(void* monitor)
+    {
+        return Windows::global_DPIAwarenessHelper.getDpiForMonitor((HMONITOR)monitor);
+    };
+    
+    // HWND window
+    unsigned int getDpiForWindow(void* window)
+    {
+        return Windows::global_DPIAwarenessHelper.getDpiForWindow((HWND)window);
+    };
+    
+    // HMONITOR monitor
     float getDpiScalingForMonitor(void* monitor)
     {
         return Windows::global_DPIAwarenessHelper.getDpiScalingForMonitor((HMONITOR)monitor);
@@ -306,6 +316,20 @@ namespace native
     float getDpiScalingForWindow(void* window)
     {
         return Windows::global_DPIAwarenessHelper.getDpiScalingForWindow((HWND)window);
+    };
+    
+    namespace Windows
+    {
+        int AdjustWindowRectExForDpi(void* lpRect, unsigned long dwStyle, int bMenu, unsigned long dwExStyle, unsigned int dpi = 0)
+        {
+            global_DPIAwarenessHelper.load();
+            if (dpi == 0)
+                dpi = USER_DEFAULT_SCREEN_DPI;
+            if (global_DPIAwarenessHelper.AdjustWindowRectExForDpi)
+                return global_DPIAwarenessHelper.AdjustWindowRectExForDpi((::RECT*)lpRect, dwStyle, bMenu, dwExStyle, dpi);
+            else
+                return ::AdjustWindowRectEx((::RECT*)lpRect, dwStyle, bMenu, dwExStyle);
+        }
     };
     
     #ifndef WM_DPICHANGED
