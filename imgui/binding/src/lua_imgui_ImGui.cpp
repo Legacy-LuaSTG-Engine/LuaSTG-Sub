@@ -1977,31 +1977,32 @@ static int lib_MenuItem(lua_State* L)
         lua_pushboolean(L, ret);
         return 1;
     }
-    else if (argc == 2)
-    {
-        const char* shortcut = luaL_checkstring(L, 2);
-        const bool ret = ImGui::MenuItem(label, shortcut);
-        lua_pushboolean(L, ret);
-        return 1;
-    }
-    else if (argc == 3)
-    {
-        const char* shortcut = luaL_checkstring(L, 2);
-        bool p_selected = lua_toboolean(L, 3);
-        const bool ret = ImGui::MenuItem(label, shortcut, &p_selected);
-        lua_pushboolean(L, ret);
-        lua_pushboolean(L, p_selected);
-        return 2;
-    }
     else
     {
-        const char* shortcut = luaL_checkstring(L, 2);
-        bool p_selected = lua_toboolean(L, 3);
-        const bool enabled = lua_toboolean(L, 4);
-        const bool ret = ImGui::MenuItem(label, shortcut, &p_selected, enabled);
-        lua_pushboolean(L, ret);
-        lua_pushboolean(L, p_selected);
-        return 2;
+        const char* shortcut = lua_isnoneornil(L, 2) ? NULL : luaL_checkstring(L, 2);
+        if (argc == 2)
+        {
+            const bool ret = ImGui::MenuItem(label, shortcut);
+            lua_pushboolean(L, ret);
+            return 1;
+        }
+        else if (argc == 3)
+        {
+            bool p_selected = lua_toboolean(L, 3);
+            const bool ret = ImGui::MenuItem(label, shortcut, &p_selected);
+            lua_pushboolean(L, ret);
+            lua_pushboolean(L, p_selected);
+            return 2;
+        }
+        else
+        {
+            bool p_selected = lua_toboolean(L, 3);
+            const bool enabled = lua_toboolean(L, 4);
+            const bool ret = ImGui::MenuItem(label, shortcut, &p_selected, enabled);
+            lua_pushboolean(L, ret);
+            lua_pushboolean(L, p_selected);
+            return 2;
+        }
     }
 }
 
