@@ -1,6 +1,8 @@
 #include "Common/DPIHelper.hpp"
 #include <Windows.h>
 
+#define HAVE_MANIFEST 1
+
 namespace native
 {
     namespace Windows
@@ -16,12 +18,12 @@ namespace native
         // GetDC
         
         // gdi32.dll
-        typedef int (*function_GetDeviceCaps)(HDC hdc, int index);
+        typedef int (WINAPI *function_GetDeviceCaps)(HDC hdc, int index);
         
         // -- Windows Vista -- //
         
         // user32.dll
-        typedef BOOL (*function_SetProcessDPIAware)();
+        typedef BOOL (WINAPI *function_SetProcessDPIAware)();
         
         // -- Windows 8.1
         
@@ -39,10 +41,10 @@ namespace native
         };
         
         // SHCore.dll
-        typedef HRESULT (*function_SetProcessDpiAwareness)(PROCESS_DPI_AWARENESS value);
+        typedef HRESULT (WINAPI *function_SetProcessDpiAwareness)(PROCESS_DPI_AWARENESS value);
         
         // SHCore.dll
-        typedef HRESULT (*function_GetDpiForMonitor)(HMONITOR hmonitor, MONITOR_DPI_TYPE dpiType, UINT* dpiX, UINT* dpiY);
+        typedef HRESULT (WINAPI *function_GetDpiForMonitor)(HMONITOR hmonitor, MONITOR_DPI_TYPE dpiType, UINT* dpiX, UINT* dpiY);
         
         // -- Windows 10 -- //
         
@@ -55,19 +57,19 @@ namespace native
         const DPI_AWARENESS_CONTEXT handle_DPI_AWARENESS_CONTEXT_UNAWARE_GDISCALED    = ((DPI_AWARENESS_CONTEXT)-5);
         
         // Windows 10 1607 user32.dll
-        typedef DPI_AWARENESS_CONTEXT (*function_SetThreadDpiAwarenessContext)(DPI_AWARENESS_CONTEXT dpiContext);
+        typedef DPI_AWARENESS_CONTEXT (WINAPI *function_SetThreadDpiAwarenessContext)(DPI_AWARENESS_CONTEXT dpiContext);
         
         // Windows 10 1703 user32.dll
-        typedef BOOL (*function_SetProcessDpiAwarenessContext)(DPI_AWARENESS_CONTEXT value);
+        typedef BOOL (WINAPI *function_SetProcessDpiAwarenessContext)(DPI_AWARENESS_CONTEXT value);
         
         // Windows 10 1607 user32.dll
-        typedef BOOL (*function_EnableNonClientDpiScaling)(HWND hwnd);
+        typedef BOOL (WINAPI *function_EnableNonClientDpiScaling)(HWND hwnd);
         
         // Windows 10 1607 user32.dll
-        typedef UINT (*function_GetDpiForWindow)(HWND hwnd);
+        typedef UINT (WINAPI *function_GetDpiForWindow)(HWND hwnd);
         
         // Windows 10 1607 user32.dll
-        typedef BOOL (*function_AdjustWindowRectExForDpi)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
+        typedef BOOL (WINAPI *function_AdjustWindowRectExForDpi)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
         
         // -- host -- //
         
@@ -138,12 +140,18 @@ namespace native
             
             bool enableDpiAwareness()
             {
-                if (estate == TRUE) return true;
                 load();
+                if (estate == TRUE) return true;
                 if (SetProcessDpiAwarenessContext)
                 {
                     if (FALSE != SetProcessDpiAwarenessContext(handle_DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2))
                     {
+                        estate = TRUE;
+                        return true;
+                    }
+                    if (ERROR_ACCESS_DENIED == ::GetLastError())
+                    {
+                        // is dpi awareness
                         estate = TRUE;
                         return true;
                     }
@@ -169,7 +177,6 @@ namespace native
             };
             bool enableNonClientDpiScaling(HWND window)
             {
-                if (estate != TRUE) return false;
                 load();
                 if (EnableNonClientDpiScaling)
                 {
@@ -182,7 +189,9 @@ namespace native
             }
             unsigned int getDpiForMonitor(HMONITOR monitor)
             {
+                #ifndef HAVE_MANIFEST
                 if (estate != TRUE) return USER_DEFAULT_SCREEN_DPI;
+                #endif
                 load();
                 // Windows 8.1 or later
                 if (GetDpiForMonitor)
@@ -210,7 +219,9 @@ namespace native
             };
             unsigned int getDpiForWindow(HWND window)
             {
+                #ifndef HAVE_MANIFEST
                 if (estate != TRUE) return USER_DEFAULT_SCREEN_DPI;
+                #endif
                 load();
                 // Windows 10 1607 or later
                 if (GetDpiForWindow)
@@ -232,12 +243,16 @@ namespace native
             }
             float getDpiScalingForMonitor(HMONITOR monitor)
             {
+                #ifndef HAVE_MANIFEST
                 if (estate != TRUE) return 1.0f;
+                #endif
                 return (float)getDpiForMonitor(monitor) / (float)USER_DEFAULT_SCREEN_DPI;
             };
             float getDpiScalingForWindow(HWND window)
             {
+                #ifndef HAVE_MANIFEST
                 if (estate != TRUE) return 1.0f;
+                #endif
                 return (float)getDpiForWindow(window) / (float)USER_DEFAULT_SCREEN_DPI;
             }
             

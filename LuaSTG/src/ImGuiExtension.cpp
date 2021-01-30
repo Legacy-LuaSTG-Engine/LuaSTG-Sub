@@ -1,5 +1,7 @@
 ﻿#include "ImGuiExtension.h"
+#include <string>
 #include <fstream>
+#include <filesystem>
 
 #include "imgui.h"
 #include "imgui_stdlib.h"
@@ -9,6 +11,8 @@
 
 #include "lua_imgui.hpp"
 #include "lua_imgui_type.hpp"
+
+#include "Common/DPIHelper.hpp"
 
 #include "Config.h"
 #include "SystemDirectory.hpp"
@@ -67,11 +71,13 @@ void imgui_binding_lua_register_backend(lua_State* L)
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32Ex_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+#define APP LuaSTGPlus::AppFrame::GetInstance()
+
 namespace imgui
 {
     static bool g_ImGuiBindEngine = false;
     static HMODULE g_hXinput = NULL;
-    static DWORD (__stdcall *g_fXInputGetState)(DWORD, XINPUT_STATE*) = NULL;
+    static DWORD (WINAPI *g_fXInputGetState)(DWORD, XINPUT_STATE*) = NULL;
     
     class ImGuiRenderDeviceEventListener : public f2dRenderDeviceEventListener
     {
@@ -82,7 +88,7 @@ namespace imgui
         }
         void OnRenderDeviceReset()
         {
-            IDirect3DDevice9* device = (IDirect3DDevice9*)LuaSTGPlus::AppFrame::GetInstance().GetRenderDev()->GetHandle();
+            IDirect3DDevice9* device = (IDirect3DDevice9*)APP.GetRenderDev()->GetHandle();
             ImGui_ImplDX9_Init(device);
         }
     };
@@ -170,16 +176,32 @@ namespace imgui
         {
             ImFontConfig cfg;
             cfg.OversampleH = 1;
-            io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\msyh.ttc", 16.0f, &cfg, io.Fonts->GetGlyphRangesChineseFull());
-            io.Fonts->AddFontDefault();
+            std::string fontpath = "C:\\Windows\\Fonts\\msyh.ttc";
+            if (!std::filesystem::is_regular_file(fontpath))
+            {
+                fontpath = "C:\\Windows\\Fonts\\msyh.ttf"; // Windows 7
+            }
+            if (std::filesystem::is_regular_file(fontpath))
+            {
+                io.Fonts->AddFontFromFileTTF(
+                    fontpath.c_str(),
+                    16.0f * native::getDpiScalingForWindow((void*)APP.GetEngine()->GetMainWindow()->GetHandle()),
+                    &cfg,
+                    io.Fonts->GetGlyphRangesDefault());
+                io.Fonts->AddFontDefault();
+            }
+            else
+            {
+                io.Fonts->AddFontDefault(); // fallback
+            }
         }
     }
     
     void bindEngine()
     {
-        auto* window = LuaSTGPlus::AppFrame::GetInstance().GetEngine()->GetMainWindow();
-        auto* device = LuaSTGPlus::AppFrame::GetInstance().GetRenderDev();
-        auto* L = LuaSTGPlus::AppFrame::GetInstance().GetLuaEngine();
+        auto* window = APP.GetEngine()->GetMainWindow();
+        auto* device = APP.GetRenderDev();
+        auto* L = APP.GetLuaEngine();
         
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -211,9 +233,9 @@ namespace imgui
         g_fXInputGetState = NULL;
         if (g_hXinput) { FreeLibrary(g_hXinput); g_hXinput = NULL; }
         
-        auto* window = LuaSTGPlus::AppFrame::GetInstance().GetEngine()->GetMainWindow();
-        auto* device = LuaSTGPlus::AppFrame::GetInstance().GetRenderDev();
-        auto* L = LuaSTGPlus::AppFrame::GetInstance().GetLuaEngine();
+        auto* window = APP.GetEngine()->GetMainWindow();
+        auto* device = APP.GetRenderDev();
+        auto* L = APP.GetLuaEngine();
         
         device->RemoveListener(&g_ImGuiRenderDeviceEventListener);
         ImGui_ImplDX9_Shutdown();
@@ -237,7 +259,7 @@ namespace imgui
     {
         if (g_ImGuiBindEngine)
         {
-            auto& engine = LuaSTGPlus::AppFrame::GetInstance();
+            auto& engine = APP;
             
             // 终止渲染过程
             bool bRestartRenderPeriod = false;
@@ -280,7 +302,7 @@ namespace imgui
     
     void showTestInputWindow(bool* p_open)
     {
-        auto* __p = LuaSTGPlus::AppFrame::GetInstance().GetDInput();
+        auto* __p = APP.GetDInput();
         if (__p == nullptr) return;
         auto& dinput = *__p;
         
@@ -290,7 +312,7 @@ namespace imgui
             ImGui::SetNextWindowContentSize(ImVec2(640.0f, 480.0f));
             _first_set_size = true;
         }
-        bool show = ImGui::Begin("输入测试##80FF", p_open);
+        bool show = ImGui::Begin("InputTest##80FF", p_open);
         if (show)
         {
             static char buffer[1024] = { 0 };
@@ -334,10 +356,10 @@ namespace imgui
                         }
                         
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
-                        ImGui::Combo(u8"设备", &current_didx, combo_data.data(), combo_data.size());
+                        ImGui::Combo(u8"Devices", &current_didx, combo_data.data(), combo_data.size());
                         ImGui::SameLine();
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.2f);
-                        if (ImGui::Button(u8"刷新"))
+                        if (ImGui::Button(u8"Refresh"))
                         {
                             dinput.refresh();
                         }
@@ -352,59 +374,59 @@ namespace imgui
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache = state.lX;
-                            ImGui::SliderInt(u8"轴X", &cache, range.XMin, range.XMax);
+                            ImGui::SliderInt(u8"Axis X", &cache, range.XMin, range.XMax);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache = state.lY;
-                            ImGui::SliderInt(u8"轴Y", &cache, range.YMin, range.YMax);
+                            ImGui::SliderInt(u8"Axis Y", &cache, range.YMin, range.YMax);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache = state.lZ;
-                            ImGui::SliderInt(u8"轴Z", &cache, range.ZMin, range.ZMax);
+                            ImGui::SliderInt(u8"Axis Z", &cache, range.ZMin, range.ZMax);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache = state.lRx;
-                            ImGui::SliderInt(u8"轴RX", &cache, range.RxMin, range.RxMax);
+                            ImGui::SliderInt(u8"Axis RX", &cache, range.RxMin, range.RxMax);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache = state.lRy;
-                            ImGui::SliderInt(u8"轴RY", &cache, range.RyMin, range.RyMax);
+                            ImGui::SliderInt(u8"Axis RY", &cache, range.RyMin, range.RyMax);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache = state.lRz;
-                            ImGui::SliderInt(u8"轴RZ", &cache, range.RzMin, range.RzMax);
+                            ImGui::SliderInt(u8"Axis RZ", &cache, range.RzMin, range.RzMax);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache = state.rglSlider[0];
-                            ImGui::SliderInt(u8"滑条1", &cache, range.Slider0Min, range.Slider0Max);
+                            ImGui::SliderInt(u8"Slider 1", &cache, range.Slider0Min, range.Slider0Max);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache = state.rglSlider[1];
-                            ImGui::SliderInt(u8"滑条2", &cache, range.Slider1Min, range.Slider1Max);
+                            ImGui::SliderInt(u8"Slider 2", &cache, range.Slider1Min, range.Slider1Max);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache = (state.rgdwPOV[0] <= 36000) ? state.rgdwPOV[0] : 0;
-                            ImGui::SliderInt(u8"方向帽1", &cache, 0, (state.rgdwPOV[0] <= 36000) ? 36000 : 0);
+                            ImGui::SliderInt(u8"POV 1", &cache, 0, (state.rgdwPOV[0] <= 36000) ? 36000 : 0);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache = (state.rgdwPOV[1] <= 36000) ? state.rgdwPOV[1] : 0;
-                            ImGui::SliderInt(u8"方向帽2", &cache, 0, (state.rgdwPOV[1] <= 36000) ? 36000 : 0);
+                            ImGui::SliderInt(u8"POV 2", &cache, 0, (state.rgdwPOV[1] <= 36000) ? 36000 : 0);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache = (state.rgdwPOV[2] <= 36000) ? state.rgdwPOV[2] : 0;
-                            ImGui::SliderInt(u8"方向帽3", &cache, 0, (state.rgdwPOV[2] <= 36000) ? 36000 : 0);
+                            ImGui::SliderInt(u8"POV 3", &cache, 0, (state.rgdwPOV[2] <= 36000) ? 36000 : 0);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache = (state.rgdwPOV[3] <= 36000) ? state.rgdwPOV[3] : 0;
-                            ImGui::SliderInt(u8"方向帽4", &cache, 0, (state.rgdwPOV[3] <= 36000) ? 36000 : 0);
+                            ImGui::SliderInt(u8"POV 4", &cache, 0, (state.rgdwPOV[3] <= 36000) ? 36000 : 0);
                             
                             bool bcache = false;
                             
                             #define SHOWKEY(I, B) \
                                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.125f);\
                                 bcache = (state.rgbButtons[I - 1] != 0);\
-                                if ((I) < 10) ImGui::Checkbox(u8"按键0" u8#I, &bcache);\
-                                else ImGui::Checkbox(u8"按键" u8#I, &bcache);\
+                                if ((I) < 10) ImGui::Checkbox(u8"Button 0" u8#I, &bcache);\
+                                else ImGui::Checkbox(u8"Button " u8#I, &bcache);\
                                 if (B) ImGui::SameLine();
                             
                             SHOWKEY( 1, 1); SHOWKEY( 2, 1); SHOWKEY( 3, 1); SHOWKEY( 4, 1); SHOWKEY( 5, 1); SHOWKEY( 6, 1); SHOWKEY( 7, 1); SHOWKEY( 8, 0);
@@ -417,7 +439,7 @@ namespace imgui
                     }
                     ImGui::EndTabItem();
                 }
-                if (ImGui::BeginTabItem(u8"DirectInput映射到XInput##8012"))
+                if (ImGui::BeginTabItem(u8"DirectInput to XInput##8012"))
                 {
                     {
                         const auto cnt = dinput.count();
@@ -435,10 +457,10 @@ namespace imgui
                         }
                         
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
-                        ImGui::Combo(u8"设备", &current_didx, combo_data.data(), combo_data.size());
+                        ImGui::Combo(u8"Devices", &current_didx, combo_data.data(), combo_data.size());
                         ImGui::SameLine();
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.2f);
-                        if (ImGui::Button(u8"刷新"))
+                        if (ImGui::Button(u8"Refresh"))
                         {
                             dinput.refresh();
                         }
@@ -453,19 +475,19 @@ namespace imgui
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache[0] = state.sThumbLX; cache[1] = state.sThumbLY;
-                            ImGui::SliderScalarN(u8"左摇杆XY", ImGuiDataType_S16, cache, 2, &minv, &maxv);
+                            ImGui::SliderScalarN(u8"Left Joystick (LJ)", ImGuiDataType_S16, cache, 2, &minv, &maxv);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache[0] = state.sThumbRX; cache[1] = state.sThumbRY;
-                            ImGui::SliderScalarN(u8"右摇杆XY", ImGuiDataType_S16, cache, 2, &minv, &maxv);
+                            ImGui::SliderScalarN(u8"Right Joystick (RJ)", ImGuiDataType_S16, cache, 2, &minv, &maxv);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             bcache = state.bLeftTrigger;
-                            ImGui::SliderScalar(u8"左扳机（LT）", ImGuiDataType_U8, &bcache, &bminv, &bmaxv);
+                            ImGui::SliderScalar(u8"Left Trigger（LT）", ImGuiDataType_U8, &bcache, &bminv, &bmaxv);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             bcache = state.bRightTrigger;
-                            ImGui::SliderScalar(u8"右扳机（RT）", ImGuiDataType_U8, &bcache, &bminv, &bmaxv);
+                            ImGui::SliderScalar(u8"Right Trigger（RT）", ImGuiDataType_U8, &bcache, &bminv, &bmaxv);
                             
                             bool _bstate = false;
                             
@@ -474,24 +496,24 @@ namespace imgui
                                 ImGui::Checkbox(u8#NAME, &_bstate);\
                                 if ((L) != 0) ImGui::SameLine();
                             
-                            SHOWKEY(1, 上方向键（   UP）, XINPUT_GAMEPAD_DPAD_UP       );
-                            SHOWKEY(1, 下方向键（ DOWN）, XINPUT_GAMEPAD_DPAD_DOWN     );
-                            SHOWKEY(1, 左方向键（ LEFT）, XINPUT_GAMEPAD_DPAD_LEFT     );
-                            SHOWKEY(0, 右方向键（RIGHT）, XINPUT_GAMEPAD_DPAD_RIGHT    );
+                            SHOWKEY(1,    UP, XINPUT_GAMEPAD_DPAD_UP       );
+                            SHOWKEY(1,  DOWN, XINPUT_GAMEPAD_DPAD_DOWN     );
+                            SHOWKEY(1,  LEFT, XINPUT_GAMEPAD_DPAD_LEFT     );
+                            SHOWKEY(0, RIGHT, XINPUT_GAMEPAD_DPAD_RIGHT    );
                             
-                            SHOWKEY(1, 菜单键（START）, XINPUT_GAMEPAD_START         );
-                            SHOWKEY(0, 返回键（ BACK）, XINPUT_GAMEPAD_BACK          );
+                            SHOWKEY(1, START, XINPUT_GAMEPAD_START         );
+                            SHOWKEY(0,  BACK, XINPUT_GAMEPAD_BACK          );
                             
-                            SHOWKEY(1, 左摇杆按键（向下压摇杆）, XINPUT_GAMEPAD_LEFT_THUMB    );
-                            SHOWKEY(0, 右摇杆按键（向下压摇杆）, XINPUT_GAMEPAD_RIGHT_THUMB   );
+                            SHOWKEY(1,  Left Thumb (LJB), XINPUT_GAMEPAD_LEFT_THUMB    );
+                            SHOWKEY(0, Right Thumb (RJB), XINPUT_GAMEPAD_RIGHT_THUMB   );
                             
-                            SHOWKEY(1, 左肩键（LB）, XINPUT_GAMEPAD_LEFT_SHOULDER );
-                            SHOWKEY(0, 右肩键（RB）, XINPUT_GAMEPAD_RIGHT_SHOULDER);
+                            SHOWKEY(1,  Left Shoulder (LB), XINPUT_GAMEPAD_LEFT_SHOULDER );
+                            SHOWKEY(0, Right Shoulder (RB), XINPUT_GAMEPAD_RIGHT_SHOULDER);
                             
-                            SHOWKEY(1, A键, XINPUT_GAMEPAD_A             );
-                            SHOWKEY(1, B键, XINPUT_GAMEPAD_B             );
-                            SHOWKEY(1, X键, XINPUT_GAMEPAD_X             );
-                            SHOWKEY(0, Y键, XINPUT_GAMEPAD_Y             );
+                            SHOWKEY(1, A, XINPUT_GAMEPAD_A             );
+                            SHOWKEY(1, B, XINPUT_GAMEPAD_B             );
+                            SHOWKEY(1, X, XINPUT_GAMEPAD_X             );
+                            SHOWKEY(0, Y, XINPUT_GAMEPAD_Y             );
                             
                             #undef SHOWKEY
                         }
@@ -505,13 +527,13 @@ namespace imgui
                         combo_data.resize(xdevice);
                         for (size_t i = 0; i < xdevice; i += 1)
                         {
-                            snprintf(buffer, 1023, u8"%u. %s", i + 1, u8"XBox游戏控制器或兼容XInput的游戏控制器");
+                            snprintf(buffer, 1023, u8"%u. %s", i + 1, u8"XBox Controller & XInput Compatible Controller");
                             combo_str[i] = buffer;
                             combo_data[i] = (char*)combo_str[i].c_str();
                         }
                         
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
-                        ImGui::Combo(u8"设备", &current_xidx, combo_data.data(), combo_data.size());
+                        ImGui::Combo(u8"Devices", &current_xidx, combo_data.data(), combo_data.size());
                         
                         if (current_xidx < xdevice)
                         {
@@ -524,19 +546,19 @@ namespace imgui
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache[0] = state.sThumbLX; cache[1] = state.sThumbLY;
-                            ImGui::SliderScalarN(u8"左摇杆XY", ImGuiDataType_S16, cache, 2, &minv, &maxv);
+                            ImGui::SliderScalarN(u8"Left Joystick (LJ)", ImGuiDataType_S16, cache, 2, &minv, &maxv);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache[0] = state.sThumbRX; cache[1] = state.sThumbRY;
-                            ImGui::SliderScalarN(u8"右摇杆XY", ImGuiDataType_S16, cache, 2, &minv, &maxv);
+                            ImGui::SliderScalarN(u8"Right Joystick (RJ)", ImGuiDataType_S16, cache, 2, &minv, &maxv);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             bcache = state.bLeftTrigger;
-                            ImGui::SliderScalar(u8"左扳机（LT）", ImGuiDataType_U8, &bcache, &bminv, &bmaxv);
+                            ImGui::SliderScalar(u8"Left Trigger（LT）", ImGuiDataType_U8, &bcache, &bminv, &bmaxv);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             bcache = state.bRightTrigger;
-                            ImGui::SliderScalar(u8"右扳机（RT）", ImGuiDataType_U8, &bcache, &bminv, &bmaxv);
+                            ImGui::SliderScalar(u8"Right Trigger（RT）", ImGuiDataType_U8, &bcache, &bminv, &bmaxv);
                             
                             bool _bstate = false;
                             
@@ -545,31 +567,31 @@ namespace imgui
                                 ImGui::Checkbox(u8#NAME, &_bstate);\
                                 if ((L) != 0) ImGui::SameLine();
                             
-                            SHOWKEY(1, 上方向键（   UP）, XINPUT_GAMEPAD_DPAD_UP       );
-                            SHOWKEY(1, 下方向键（ DOWN）, XINPUT_GAMEPAD_DPAD_DOWN     );
-                            SHOWKEY(1, 左方向键（ LEFT）, XINPUT_GAMEPAD_DPAD_LEFT     );
-                            SHOWKEY(0, 右方向键（RIGHT）, XINPUT_GAMEPAD_DPAD_RIGHT    );
+                            SHOWKEY(1,    UP, XINPUT_GAMEPAD_DPAD_UP       );
+                            SHOWKEY(1,  DOWN, XINPUT_GAMEPAD_DPAD_DOWN     );
+                            SHOWKEY(1,  LEFT, XINPUT_GAMEPAD_DPAD_LEFT     );
+                            SHOWKEY(0, RIGHT, XINPUT_GAMEPAD_DPAD_RIGHT    );
                             
-                            SHOWKEY(1, 菜单键（START）, XINPUT_GAMEPAD_START         );
-                            SHOWKEY(0, 返回键（ BACK）, XINPUT_GAMEPAD_BACK          );
+                            SHOWKEY(1, START, XINPUT_GAMEPAD_START         );
+                            SHOWKEY(0,  BACK, XINPUT_GAMEPAD_BACK          );
                             
-                            SHOWKEY(1, 左摇杆按键（向下压摇杆）, XINPUT_GAMEPAD_LEFT_THUMB    );
-                            SHOWKEY(0, 右摇杆按键（向下压摇杆）, XINPUT_GAMEPAD_RIGHT_THUMB   );
+                            SHOWKEY(1,  Left Thumb (LJB), XINPUT_GAMEPAD_LEFT_THUMB    );
+                            SHOWKEY(0, Right Thumb (RJB), XINPUT_GAMEPAD_RIGHT_THUMB   );
                             
-                            SHOWKEY(1, 左肩键（LB）, XINPUT_GAMEPAD_LEFT_SHOULDER );
-                            SHOWKEY(0, 右肩键（RB）, XINPUT_GAMEPAD_RIGHT_SHOULDER);
+                            SHOWKEY(1,  Left Shoulder (LB), XINPUT_GAMEPAD_LEFT_SHOULDER );
+                            SHOWKEY(0, Right Shoulder (RB), XINPUT_GAMEPAD_RIGHT_SHOULDER);
                             
-                            SHOWKEY(1, A键, XINPUT_GAMEPAD_A             );
-                            SHOWKEY(1, B键, XINPUT_GAMEPAD_B             );
-                            SHOWKEY(1, X键, XINPUT_GAMEPAD_X             );
-                            SHOWKEY(0, Y键, XINPUT_GAMEPAD_Y             );
+                            SHOWKEY(1, A, XINPUT_GAMEPAD_A             );
+                            SHOWKEY(1, B, XINPUT_GAMEPAD_B             );
+                            SHOWKEY(1, X, XINPUT_GAMEPAD_X             );
+                            SHOWKEY(0, Y, XINPUT_GAMEPAD_Y             );
                             
                             #undef SHOWKEY
                         }
                     }
                     ImGui::EndTabItem();
                 }
-                if (ImGui::BeginTabItem(u8"键盘##8014"))
+                if (ImGui::BeginTabItem(u8"Keyboard##8014"))
                 {
                     for (int i = 0; i < 256; i += 1)
                     {
@@ -580,13 +602,13 @@ namespace imgui
                     }
                     ImGui::EndTabItem();
                 }
-                if (ImGui::BeginTabItem(u8"鼠标##8014"))
+                if (ImGui::BeginTabItem(u8"Mouse##8014"))
                 {
                     const auto x = dinput.getMouseMoveDeltaX();
                     const auto y = dinput.getMouseMoveDeltaY();
                     int xy[2] = { x, y };
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
-                    ImGui::DragInt2(u8"移动增量", xy);
+                    ImGui::DragInt2(u8"Move Delta", xy);
                     
                     static int g_x = 0;
                     static int g_y = 0;
@@ -594,10 +616,10 @@ namespace imgui
                     g_y += y;
                     int g_xy[2] = { g_x, g_y };
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
-                    ImGui::DragInt2(u8"总移动量", g_xy);
+                    ImGui::DragInt2(u8"Total Move", g_xy);
                     ImGui::SameLine();
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.2f);
-                    if (ImGui::Button(u8"归零##1"))
+                    if (ImGui::Button(u8"Reset##1"))
                     {
                         g_x = 0;
                         g_y = 0;
@@ -605,16 +627,16 @@ namespace imgui
                     
                     int z = dinput.getMouseWheelDelta();
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
-                    ImGui::DragInt(u8"滚轮增量", &z);
+                    ImGui::DragInt(u8"Wheel Delta", &z);
                     
                     static int g_z = 0;
                     g_z += z;
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                     int _g_z = g_z;
-                    ImGui::DragInt(u8"总滚动量", &_g_z);
+                    ImGui::DragInt(u8"Total Wheel", &_g_z);
                     ImGui::SameLine();
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.2f);
-                    if (ImGui::Button(u8"归零##2"))
+                    if (ImGui::Button(u8"Reset##2"))
                     {
                         g_z = 0;
                     }
