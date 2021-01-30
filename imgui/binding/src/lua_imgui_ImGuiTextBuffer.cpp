@@ -47,8 +47,9 @@ void imgui_binding_lua_register_ImGuiTextBuffer(lua_State* L)
         static int append(lua_State* L)
         {
             ImGuiTextBuffer* self = imgui_binding_lua_to_ImGuiTextBuffer(L, 1);
-            const char* str = luaL_checkstring(L, 2);
-            self->append(str);
+            size_t len = 0;
+            const char* str = luaL_checklstring(L, 2, &len);
+            self->append(str, str + len);
             return 0;
         }
         
