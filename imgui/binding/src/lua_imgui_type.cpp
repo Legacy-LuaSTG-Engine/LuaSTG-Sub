@@ -1,5 +1,5 @@
-#include "imgui/lua_imgui_type.hpp"
-#include "imgui/lua_imgui_hash.hpp"
+#include "lua_imgui_type.hpp"
+#include "lua_imgui_hash.hpp"
 
 struct __ImVec2
 {

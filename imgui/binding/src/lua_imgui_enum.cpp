@@ -1,4 +1,5 @@
-#include "imgui/lua_imgui_enum.hpp"
+#include "lua_imgui_enum.hpp"
+#include "lua_imgui_type.hpp"
 #include "imgui.h"
 #include <vector>
 #include <string>
@@ -15,9 +16,28 @@ struct enum_name_data_pair
     std::vector<enum_name_value_pair> data;
 };
 
+using enum_data = std::vector<enum_name_data_pair>;
+
 void imgui_binding_lua_register_enum(lua_State* L)
 {
-    std::vector<enum_name_data_pair> datas = {
+    auto regfunc = [&L](enum_data& datas) -> void {
+        //                                          // ? t
+        for(auto& i : datas)
+        {
+            lua_pushstring(L, i.name.c_str());      // ? t k
+            lua_createtable(L, 0, i.data.size());   // ? t k t
+            for(auto& j : i.data)
+            {
+                lua_pushstring(L, j.name.c_str());  // ? t k t k
+                lua_pushinteger(L, j.value);        // ? t k t k v
+                lua_settable(L, -3);                // ? t k t
+            }
+            lua_settable(L, -3);                    // ? t
+        }
+    };
+    
+    // common
+    enum_data datas = {
 {"ImGuiWindowFlags", {
     {"None"                     , ImGuiWindowFlags_None                     },
     {"NoTitleBar"               , ImGuiWindowFlags_NoTitleBar               },
@@ -141,6 +161,83 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"Leading"                     , ImGuiTabItemFlags_Leading                     },
     {"Trailing"                    , ImGuiTabItemFlags_Trailing                    },
 }},
+{"ImGuiTableFlags", {
+    {"None"                      , ImGuiTableFlags_None                      },
+    {"Resizable"                 , ImGuiTableFlags_Resizable                 },
+    {"Reorderable"               , ImGuiTableFlags_Reorderable               },
+    {"Hideable"                  , ImGuiTableFlags_Hideable                  },
+    {"Sortable"                  , ImGuiTableFlags_Sortable                  },
+    {"NoSavedSettings"           , ImGuiTableFlags_NoSavedSettings           },
+    {"ContextMenuInBody"         , ImGuiTableFlags_ContextMenuInBody         },
+    {"RowBg"                     , ImGuiTableFlags_RowBg                     },
+    {"BordersInnerH"             , ImGuiTableFlags_BordersInnerH             },
+    {"BordersOuterH"             , ImGuiTableFlags_BordersOuterH             },
+    {"BordersInnerV"             , ImGuiTableFlags_BordersInnerV             },
+    {"BordersOuterV"             , ImGuiTableFlags_BordersOuterV             },
+    {"BordersH"                  , ImGuiTableFlags_BordersH                  },
+    {"BordersV"                  , ImGuiTableFlags_BordersV                  },
+    {"BordersInner"              , ImGuiTableFlags_BordersInner              },
+    {"BordersOuter"              , ImGuiTableFlags_BordersOuter              },
+    {"Borders"                   , ImGuiTableFlags_Borders                   },
+    {"NoBordersInBody"           , ImGuiTableFlags_NoBordersInBody           },
+    {"NoBordersInBodyUntilResize", ImGuiTableFlags_NoBordersInBodyUntilResize},
+    {"SizingFixedFit"            , ImGuiTableFlags_SizingFixedFit            },
+    {"SizingFixedSame"           , ImGuiTableFlags_SizingFixedSame           },
+    {"SizingStretchProp"         , ImGuiTableFlags_SizingStretchProp         },
+    {"SizingStretchSame"         , ImGuiTableFlags_SizingStretchSame         },
+    {"NoHostExtendX"             , ImGuiTableFlags_NoHostExtendX             },
+    {"NoHostExtendY"             , ImGuiTableFlags_NoHostExtendY             },
+    {"NoKeepColumnsVisible"      , ImGuiTableFlags_NoKeepColumnsVisible      },
+    {"PreciseWidths"             , ImGuiTableFlags_PreciseWidths             },
+    {"NoClip"                    , ImGuiTableFlags_NoClip                    },
+    {"PadOuterX"                 , ImGuiTableFlags_PadOuterX                 },
+    {"NoPadOuterX"               , ImGuiTableFlags_NoPadOuterX               },
+    {"NoPadInnerX"               , ImGuiTableFlags_NoPadInnerX               },
+    {"ScrollX"                   , ImGuiTableFlags_ScrollX                   },
+    {"ScrollY"                   , ImGuiTableFlags_ScrollY                   },
+    {"SortMulti"                 , ImGuiTableFlags_SortMulti                 },
+    {"SortTristate"              , ImGuiTableFlags_SortTristate              },
+}},
+{"ImGuiTableColumnFlags", {
+    {"None"                , ImGuiTableColumnFlags_None                },
+    {"DefaultHide"         , ImGuiTableColumnFlags_DefaultHide         },
+    {"DefaultSort"         , ImGuiTableColumnFlags_DefaultSort         },
+    {"WidthStretch"        , ImGuiTableColumnFlags_WidthStretch        },
+    {"WidthFixed"          , ImGuiTableColumnFlags_WidthFixed          },
+    {"NoResize"            , ImGuiTableColumnFlags_NoResize            },
+    {"NoReorder"           , ImGuiTableColumnFlags_NoReorder           },
+    {"NoHide"              , ImGuiTableColumnFlags_NoHide              },
+    {"NoClip"              , ImGuiTableColumnFlags_NoClip              },
+    {"NoSort"              , ImGuiTableColumnFlags_NoSort              },
+    {"NoSortAscending"     , ImGuiTableColumnFlags_NoSortAscending     },
+    {"NoSortDescending"    , ImGuiTableColumnFlags_NoSortDescending    },
+    {"NoHeaderWidth"       , ImGuiTableColumnFlags_NoHeaderWidth       },
+    {"PreferSortAscending" , ImGuiTableColumnFlags_PreferSortAscending },
+    {"PreferSortDescending", ImGuiTableColumnFlags_PreferSortDescending},
+    {"IndentEnable"        , ImGuiTableColumnFlags_IndentEnable        },
+    {"IndentDisable"       , ImGuiTableColumnFlags_IndentDisable       },
+    {"IsEnabled"           , ImGuiTableColumnFlags_IsEnabled           },
+    {"IsVisible"           , ImGuiTableColumnFlags_IsVisible           },
+    {"IsSorted"            , ImGuiTableColumnFlags_IsSorted            },
+    {"IsHovered"           , ImGuiTableColumnFlags_IsHovered           },
+}},
+{"ImGuiTableRowFlags", {
+    {"None"   , ImGuiTableRowFlags_None   },
+    {"Headers", ImGuiTableRowFlags_Headers},
+}},
+{"ImGuiTableBgTarget", {
+    {"None"  , ImGuiTableBgTarget_None  },
+    {"RowBg0", ImGuiTableBgTarget_RowBg0},
+    {"RowBg1", ImGuiTableBgTarget_RowBg1},
+    {"CellBg", ImGuiTableBgTarget_CellBg},
+}},
+{"ImGuiFocusedFlags", {
+    {"None"               , ImGuiFocusedFlags_None               },
+    {"ChildWindows"       , ImGuiFocusedFlags_ChildWindows       },
+    {"RootWindow"         , ImGuiFocusedFlags_RootWindow         },
+    {"AnyWindow"          , ImGuiFocusedFlags_AnyWindow          },
+    {"RootAndChildWindows", ImGuiFocusedFlags_RootAndChildWindows},
+}},
 {"ImGuiHoveredFlags", {
     {"None"                        , ImGuiHoveredFlags_None                        },
     {"ChildWindows"                , ImGuiHoveredFlags_ChildWindows                },
@@ -177,6 +274,9 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"U64"   , ImGuiDataType_U64   },
     {"Float" , ImGuiDataType_Float },
     {"Double", ImGuiDataType_Double},
+    // lua type
+    {"Integer", ImGuiDataType_Integer},
+    {"Number" , ImGuiDataType_Number },
 }},
 {"ImGuiDir", {
     {"None" , ImGuiDir_None },
@@ -184,6 +284,11 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"Right", ImGuiDir_Right},
     {"Up"   , ImGuiDir_Up   },
     {"Down" , ImGuiDir_Down },
+}},
+{"ImGuiSortDirection", {
+    {"None"      , ImGuiSortDirection_None      },
+    {"Ascending" , ImGuiSortDirection_Ascending },
+    {"Descending", ImGuiSortDirection_Descending},
 }},
 {"ImGuiKey", {
     {"Tab"        , ImGuiKey_Tab        },
@@ -295,6 +400,11 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"PlotLinesHovered"     , ImGuiCol_PlotLinesHovered     },
     {"PlotHistogram"        , ImGuiCol_PlotHistogram        },
     {"PlotHistogramHovered" , ImGuiCol_PlotHistogramHovered },
+    {"TableHeaderBg"        , ImGuiCol_TableHeaderBg        },
+    {"TableBorderStrong"    , ImGuiCol_TableBorderStrong    },
+    {"TableBorderLight"     , ImGuiCol_TableBorderLight     },
+    {"TableRowBg"           , ImGuiCol_TableRowBg           },
+    {"TableRowBgAlt"        , ImGuiCol_TableRowBgAlt        },
     {"TextSelectedBg"       , ImGuiCol_TextSelectedBg       },
     {"DragDropTarget"       , ImGuiCol_DragDropTarget       },
     {"NavHighlight"         , ImGuiCol_NavHighlight         },
@@ -319,6 +429,7 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"ItemSpacing"        , ImGuiStyleVar_ItemSpacing        },
     {"ItemInnerSpacing"   , ImGuiStyleVar_ItemInnerSpacing   },
     {"IndentSpacing"      , ImGuiStyleVar_IndentSpacing      },
+    {"CellPadding"        , ImGuiStyleVar_CellPadding        },
     {"ScrollbarSize"      , ImGuiStyleVar_ScrollbarSize      },
     {"ScrollbarRounding"  , ImGuiStyleVar_ScrollbarRounding  },
     {"GrabMinSize"        , ImGuiStyleVar_GrabMinSize        },
@@ -391,22 +502,41 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"FirstUseEver", ImGuiCond_FirstUseEver},
     {"Appearing"   , ImGuiCond_Appearing   },
 }},
-{"_", {
-    {"_", 0},
+    };
+    regfunc(datas);
+    
+    // draw
+    enum_data datas2 = {
+{"ImDrawCornerFlags", {
+    {"None"    , ImDrawCornerFlags_None    },
+    {"TopLeft" , ImDrawCornerFlags_TopLeft },
+    {"TopRight", ImDrawCornerFlags_TopRight},
+    {"BotLeft" , ImDrawCornerFlags_BotLeft },
+    {"BotRight", ImDrawCornerFlags_BotRight},
+    {"Top"     , ImDrawCornerFlags_Top     },
+    {"Bot"     , ImDrawCornerFlags_Bot     },
+    {"Left"    , ImDrawCornerFlags_Left    },
+    {"Right"   , ImDrawCornerFlags_Right   },
+    {"All"     , ImDrawCornerFlags_All     },
+}},
+{"ImDrawListFlags", {
+    {"None"                  , ImDrawListFlags_None                  },
+    {"AntiAliasedLines"      , ImDrawListFlags_AntiAliasedLines      },
+    {"AntiAliasedLinesUseTex", ImDrawListFlags_AntiAliasedLinesUseTex},
+    {"AntiAliasedFill"       , ImDrawListFlags_AntiAliasedFill       },
+    {"AllowVtxOffset"        , ImDrawListFlags_AllowVtxOffset        },
 }},
     };
+    regfunc(datas2);
     
-    //                                          // ? t
-    for(auto& i : datas)
-    {
-        lua_pushstring(L, i.name.c_str());      // ? t k
-        lua_createtable(L, 0, i.data.size());   // ? t k t
-        for(auto& j : i.data)
-        {
-            lua_pushstring(L, j.name.c_str());  // ? t k t k
-            lua_pushinteger(L, j.value);        // ? t k t k v
-            lua_settable(L, -3);                // ? t k t
-        }
-        lua_settable(L, -3);                    // ? t
-    }
+    // font
+    enum_data datas3 = {
+{"ImFontAtlasFlags", {
+    {"None"              , ImFontAtlasFlags_None              },
+    {"NoPowerOfTwoHeight", ImFontAtlasFlags_NoPowerOfTwoHeight},
+    {"NoMouseCursors"    , ImFontAtlasFlags_NoMouseCursors    },
+    {"NoBakedLines"      , ImFontAtlasFlags_NoBakedLines      },
+}},
+    };
+    regfunc(datas3);
 }

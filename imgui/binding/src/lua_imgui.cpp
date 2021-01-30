@@ -1,9 +1,8 @@
-#include "imgui/lua_imgui_common.hpp"
-#include "imgui/lua_imgui.hpp"
-#include "imgui/lua_imgui_enum.hpp"
-#include "imgui/lua_imgui_type.hpp"
-#include "imgui/lua_imgui_ImGui.hpp"
-#include "imgui/lua_imgui_backend.hpp"
+#include "lua_imgui_common.hpp"
+#include "lua_imgui.hpp"
+#include "lua_imgui_enum.hpp"
+#include "lua_imgui_type.hpp"
+#include "lua_imgui_ImGui.hpp"
 #include "imgui.h"
 
 int luaopen_imgui(lua_State* L)
@@ -24,7 +23,6 @@ int luaopen_imgui(lua_State* L)
     imgui_binding_lua_register_ImGuiStyle(L);
     imgui_binding_lua_register_ImGuiTextBuffer(L);
     imgui_binding_lua_register_ImGui(L);
-    imgui_binding_lua_register_backend(L);
     
     return 1;
 }

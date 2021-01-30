@@ -6,8 +6,9 @@
 #include "imgui_freetype.h"
 #include "imgui_impl_win32ex.h"
 #include "imgui_impl_dx9.h"
-#include "LuaWrapper/imgui/lua_imgui.hpp"
-#include "LuaWrapper/imgui/lua_imgui_type.hpp"
+
+#include "lua_imgui.hpp"
+#include "lua_imgui_type.hpp"
 
 #include "Config.h"
 #include "SystemDirectory.hpp"
@@ -15,6 +16,54 @@
 
 #define XINPUT_USE_9_1_0
 #include <Xinput.h>
+
+// lua imgui backend binding
+
+static int lib_NewFrame(lua_State* L)
+{
+    imgui::updateEngine();
+    return 0;
+}
+static int lib_RenderDrawData(lua_State* L)
+{
+    imgui::drawEngine();
+    return 0;
+}
+
+static int lib_ShowTestInputWindow(lua_State* L)
+{
+    if(lua_gettop(L) >= 1)
+    {
+        bool v = lua_toboolean(L, 1);
+        imgui::showTestInputWindow(&v);
+        lua_pushboolean(L, v);
+        return 1;
+    }
+    else
+    {
+        imgui::showTestInputWindow();
+        return 0;
+    }
+}
+
+void imgui_binding_lua_register_backend(lua_State* L)
+{
+    const luaL_Reg lib_fun[] = {
+        {"NewFrame", &lib_NewFrame},
+        {"RenderDrawData", &lib_RenderDrawData},
+        {"ShowTestInputWindow", &lib_ShowTestInputWindow},
+        {NULL, NULL},
+    };
+    const auto lib_func = (sizeof(lib_fun) / sizeof(luaL_Reg)) - 1;
+    
+    //                                      // ? m
+    lua_pushstring(L, "backend");           // ? m k
+    lua_createtable(L, 0, lib_func);        // ? m k t
+    luaL_setfuncs(L, lib_fun, 0);           // ? m k t
+    lua_settable(L, -3);                    // ? m
+}
+
+// imgui backend binding
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32Ex_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -123,8 +172,6 @@ namespace imgui
             cfg.OversampleH = 1;
             io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\msyh.ttc", 16.0f, &cfg, io.Fonts->GetGlyphRangesChineseFull());
             io.Fonts->AddFontDefault();
-            
-            ImGuiFreeType::BuildFontAtlas(io.Fonts);
         }
     }
     
@@ -147,6 +194,7 @@ namespace imgui
         device->AttachListener(&g_ImGuiRenderDeviceEventListener);
         
         luaopen_imgui(L);
+        imgui_binding_lua_register_backend(L);
         lua_pop(L, 1);
         
         typedef DWORD (__stdcall *f_XInputGetState)(DWORD, XINPUT_STATE*);
