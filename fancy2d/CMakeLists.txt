@@ -1,29 +1,26 @@
-cmake_minimum_required(VERSION 3.15)
-
 add_library(fancy2d SHARED)
 
+set_target_properties(fancy2d PROPERTIES
+    C_STANDARD 11
+    C_STANDARD_REQUIRED ON
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON
+)
 target_compile_options(fancy2d PUBLIC
     "/utf-8"
     "/MP"
-    "/std:c++17"
 )
 
 target_compile_definitions(fancy2d PRIVATE
     UNICODE
     _UNICODE
-    ZLIB_DLL
-    DLL_IMPORT # freetype
 )
 
-target_include_directories(fancy2d PRIVATE
+target_include_directories(fancy2d PUBLIC
     .
-    ../fancylib
+)
+target_include_directories(fancy2d PRIVATE
     ../prebuild/dxsdk/include
-    ../DirectShowClass/src
-    ../prebuild/zlib/include
-    ../prebuild/libogg/include
-    ../prebuild/libvorbis/include
-    ../prebuild/freetype/include
 )
 
 target_sources(fancy2d PRIVATE
@@ -121,25 +118,18 @@ target_sources(fancy2d PRIVATE
 
 target_link_directories(fancy2d PRIVATE
     ../prebuild/dxsdk/lib
-    ../prebuild/zlib/lib/${EXT_LIBRARY_TYPE}
-    ../prebuild/libogg/lib/${EXT_LIBRARY_TYPE}
-    ../prebuild/libvorbis/lib/${EXT_LIBRARY_TYPE}
-    ../prebuild/freetype/lib/${EXT_LIBRARY_TYPE}
 )
 
-target_link_libraries(fancy2d
-    fancylib
-    
+target_link_libraries(fancy2d PRIVATE
     strmiids.lib #???
-    strmbasd
+    strmbasd #!!!
     winmm.lib
     imm32.lib
     dxguid.lib
     d3dx9.lib
     
-    zlib.lib
-    ogg.lib
-    vorbis.lib
-    vorbisfile.lib
-    freetype.lib
+    zlib
+    freetype
+    vorbisfile
+    fancylib
 )

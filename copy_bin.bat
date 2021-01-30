@@ -4,6 +4,7 @@
 @mkdir %DIR%\bin
 
 @set BUILDTYPE=%1
+@echo "BUILDTYPE="%BUILDTYPE%
 ::@set BUILDTYPE=Debug
 ::@set BUILDTYPE=Release
 

@@ -1,27 +1,35 @@
-cmake_minimum_required(VERSION 3.15)
+# imgui
 
-add_library(imgui)
+add_library(imgui STATIC)
+set_target_properties(imgui PROPERTIES
+    C_STANDARD 11
+    C_STANDARD_REQUIRED ON
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON
+)
 target_compile_options(imgui PRIVATE
     "/utf-8"
     "/MP"
-    "/std:c++17"
 )
 target_compile_definitions(imgui PUBLIC
     _UNICODE
     UNICODE
+    IMGUI_DISABLE_OBSOLETE_FUNCTIONS
     #IMGUI_USE_BGRA_PACKED_COLOR
     #IMGUI_USE_WCHAR32
-    IMGUI_DISABLE_OBSOLETE_FUNCTIONS
-    DLL_IMPORT # freetype
+    IMGUI_ENABLE_FREETYPE
 )
 target_include_directories(imgui PUBLIC
-    ../prebuild/freetype/include
     imgui
     imgui/backends
     imgui/misc/cpp
     imgui/misc/freetype
 )
 target_sources(imgui PRIVATE
+    imgui/imstb_rectpack.h
+    imgui/imstb_textedit.h
+    imgui/imstb_truetype.h
+    
     imgui/imconfig.h
     imgui/imgui_demo.cpp
     imgui/imgui_draw.cpp
@@ -42,10 +50,52 @@ target_sources(imgui PRIVATE
     imgui/backends/imgui_impl_win32ex.cpp
     imgui/backends/imgui_impl_win32ex.h
 )
-target_link_directories(imgui PUBLIC
-    ../prebuild/freetype/lib/${EXT_LIBRARY_TYPE}
-)
 target_link_libraries(imgui PUBLIC
     d3d9.lib
-    freetype.lib
+    freetype
+)
+
+# imgui lua binding
+
+add_library(lua_imgui STATIC)
+set_target_properties(lua_imgui PROPERTIES
+    C_STANDARD 11
+    C_STANDARD_REQUIRED ON
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON
+)
+target_compile_options(lua_imgui PRIVATE
+    "/utf-8"
+    "/MP"
+)
+target_include_directories(lua_imgui PUBLIC
+    binding/include
+)
+target_include_directories(lua_imgui PRIVATE
+    binding/src
+)
+target_sources(lua_imgui PRIVATE
+    binding/include/lua_imgui.hpp
+    binding/include/lua_imgui_enum.hpp
+    binding/include/lua_imgui_ImGui.hpp
+    binding/include/lua_imgui_type.hpp
+    
+    binding/src/lua_imgui_common.hpp
+    binding/src/lua_imgui_enum.cpp
+    binding/src/lua_imgui_hash.cpp
+    binding/src/lua_imgui_hash.hpp
+    binding/src/lua_imgui_ImGui_ColorX.inl
+    binding/src/lua_imgui_ImGui_DragX.inl
+    binding/src/lua_imgui_ImGui_InputX.inl
+    binding/src/lua_imgui_ImGui_PlotX.inl
+    binding/src/lua_imgui_ImGui_register.inl
+    binding/src/lua_imgui_ImGui_SliderX.inl
+    binding/src/lua_imgui_ImGui.cpp
+    binding/src/lua_imgui_ImGuiTextBuffer.cpp
+    binding/src/lua_imgui_type.cpp
+    binding/src/lua_imgui.cpp
+)
+target_link_libraries(lua_imgui PUBLIC
+    imgui
+    luajit
 )

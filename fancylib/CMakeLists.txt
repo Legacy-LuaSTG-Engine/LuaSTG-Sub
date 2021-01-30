@@ -1,22 +1,23 @@
-cmake_minimum_required(VERSION 3.15)
+add_library(fancylib STATIC)
 
-add_library(fancylib)
-
+set_target_properties(fancylib PROPERTIES
+    C_STANDARD 11
+    C_STANDARD_REQUIRED ON
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON
+)
 target_compile_options(fancylib PUBLIC
     "/utf-8"
     "/MP"
-    "/std:c++17"
 )
 
 target_compile_definitions(fancylib PRIVATE
     UNICODE
     _UNICODE
-    ZLIB_DLL
 )
 
-target_include_directories(fancylib PRIVATE
+target_include_directories(fancylib PUBLIC
     .
-    ../prebuild/zlib/include
 )
 
 target_sources(fancylib PRIVATE
@@ -68,4 +69,8 @@ target_sources(fancylib PRIVATE
     fcyParser/fcyPathParser.cpp
     fcyParser/fcyXml.h
     fcyParser/fcyXml.cpp
+)
+
+target_link_libraries(fancylib PUBLIC
+    zlib
 )

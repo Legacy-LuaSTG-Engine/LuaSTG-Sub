@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+# LuaSTG Engine
 
 set(LUASTG_RESDIR res)
 #set(LUASTG_RESDIR custom/THEIS)
@@ -9,10 +9,15 @@ set(LUASTG_RESDIR res)
 
 add_executable(LuaSTG WIN32)
 
+set_target_properties(LuaSTG PROPERTIES
+    C_STANDARD 11
+    C_STANDARD_REQUIRED ON
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON
+)
 target_compile_options(LuaSTG PUBLIC
     "/utf-8"
     "/MP"
-    "/std:c++17"
 )
 
 target_include_directories(LuaSTG PRIVATE
@@ -22,28 +27,12 @@ target_include_directories(LuaSTG PRIVATE
     ${LUASTG_RESDIR}
     src/LuaWrapper
     
-    ../fancylib
-    ../fancy2d
-    
-    ../eyes2d
-    
-    ../prebuild/luajit/include
-    ../prebuild/xmath/include
-    ../prebuild/freetype/include
-    ../prebuild/dxsdk/include
-    
     ../SteamAPI/public/steam
 )
 
 target_compile_definitions(LuaSTG PRIVATE
     UNICODE
     _UNICODE
-    LUA_BUILD_AS_DLL
-    
-    #IMGUI_USE_BGRA_PACKED_COLOR
-    #IMGUI_USE_WCHAR32
-    #IMGUI_DISABLE_OBSOLETE_FUNCTIONS
-    #DLL_IMPORT # freetype
 )
 
 target_compile_definitions(LuaSTG PRIVATE LDEVVERSION)
@@ -51,7 +40,6 @@ target_compile_definitions(LuaSTG PRIVATE LDEVVERSION)
 aux_source_directory(../Common COMMON_SRC)
 aux_source_directory(src LUASTG_SRC)
 aux_source_directory(src/LuaWrapper LUASTG_SRC_LW)
-aux_source_directory(src/LuaWrapper/imgui LUASTG_SRC_LW_IMGUI)
 aux_source_directory(${LUASTG_RESDIR} LUASTG_RES)
 
 target_sources(LuaSTG PRIVATE
@@ -59,40 +47,27 @@ target_sources(LuaSTG PRIVATE
     
     ${LUASTG_SRC}
     ${LUASTG_SRC_LW}
-    ${LUASTG_SRC_LW_IMGUI}
     ${LUASTG_RES}
     
+    src/LuaSTG.manifest
     ${LUASTG_RESDIR}/resource.rc
     ${LUASTG_RESDIR}/app.ico
 )
 
 target_link_directories(LuaSTG PRIVATE
-    ../prebuild/dxsdk/lib
-    ../prebuild/luajit/lib/${EXT_LIBRARY_TYPE}
-    ../prebuild/xmath/lib/${EXT_LIBRARY_TYPE}
     ../SteamAPI/redistributable_bin
-    
-    ../prebuild/zlib/lib/${EXT_LIBRARY_TYPE}
-    ../prebuild/libzip/lib/${EXT_LIBRARY_TYPE}
-    ../prebuild/libogg/lib/${EXT_LIBRARY_TYPE}
-    ../prebuild/libvorbis/lib/${EXT_LIBRARY_TYPE}
-    ../prebuild/freetype/lib/${EXT_LIBRARY_TYPE}
 )
 
 target_link_libraries(LuaSTG
     fancylib
     fancy2d
     eyes2d
-    
-    d3d9.lib
-    
-    freetype.lib
-    lua51.lib
-    xmath.lib
-    
+    xmath
+    luajit
     imgui
+    lua_imgui
 )
 
 add_custom_command(TARGET LuaSTG POST_BUILD
-    COMMAND ${CMAKE_SOURCE_DIR}/copy_bin.bat ${EXT_LIBRARY_TYPE}
+    COMMAND ${CMAKE_SOURCE_DIR}/copy_bin.bat $<CONFIG>
 )

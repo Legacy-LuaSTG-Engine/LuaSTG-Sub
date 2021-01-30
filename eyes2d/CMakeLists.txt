@@ -1,25 +1,23 @@
-cmake_minimum_required(VERSION 3.15)
-
 add_library(eyes2d SHARED)
 
+set_target_properties(eyes2d PROPERTIES
+    C_STANDARD 11
+    C_STANDARD_REQUIRED ON
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON
+)
 target_compile_options(eyes2d PRIVATE
-    "/std:c++17"
     "/MP"
     "/utf-8"
 )
 
-target_include_directories(eyes2d PRIVATE
+target_include_directories(eyes2d PUBLIC
     .
-    ../fancylib
-    ../prebuild/dxsdk/include
-    ../prebuild/zlib/include
-    ../prebuild/libzip/include
 )
 
 target_compile_definitions(eyes2d PRIVATE
     UNICODE
     _UNICODE
-    ZLIB_DLL
     EYES2D_EXPORTS
 )
 
@@ -38,14 +36,7 @@ target_sources(eyes2d PRIVATE
     E2DFileManager.cpp
 )
 
-target_link_directories(eyes2d PRIVATE
-    ../prebuild/zlib/lib/${EXT_LIBRARY_TYPE}
-    ../prebuild/libzip/lib/${EXT_LIBRARY_TYPE}
-)
-
-target_link_libraries(eyes2d
+target_link_libraries(eyes2d PRIVATE
     fancylib
-    
-    zlib.lib
-    zip.lib
+    zip
 )
