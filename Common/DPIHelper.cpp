@@ -320,7 +320,7 @@ namespace native
     
     namespace Windows
     {
-        int AdjustWindowRectExForDpi(void* lpRect, unsigned long dwStyle, int bMenu, unsigned long dwExStyle, unsigned int dpi = 0)
+        int AdjustWindowRectExForDpi(void* lpRect, unsigned long dwStyle, int bMenu, unsigned long dwExStyle, unsigned int dpi)
         {
             global_DPIAwarenessHelper.load();
             if (dpi == 0)
