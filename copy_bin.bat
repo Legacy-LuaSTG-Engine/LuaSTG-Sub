@@ -28,8 +28,8 @@
 @del  %DIR%\bin\fancy2d.dll
 @copy %DIR%\build\fancy2d\%BUILDTYPE%\fancy2d.dll             %DIR%\bin\fancy2d.dll
 
-@del  %DIR%\bin\eyes2d.dll
-@copy %DIR%\build\eyes2d\%BUILDTYPE%\eyes2d.dll               %DIR%\bin\eyes2d.dll
+::@del  %DIR%\bin\eyes2d.dll
+::@copy %DIR%\build\eyes2d\%BUILDTYPE%\eyes2d.dll               %DIR%\bin\eyes2d.dll
 
 @del  %DIR%\bin\lua51.dll
 @copy %DIR%\prebuild\luajit\lib\%BUILDTYPE%\lua51.dll         %DIR%\bin\lua51.dll

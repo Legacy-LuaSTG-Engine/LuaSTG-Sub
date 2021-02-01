@@ -1,4 +1,4 @@
-add_library(eyes2d SHARED)
+add_library(eyes2d STATIC)
 
 set_target_properties(eyes2d PROPERTIES
     C_STANDARD 11
@@ -18,7 +18,6 @@ target_include_directories(eyes2d PUBLIC
 target_compile_definitions(eyes2d PRIVATE
     UNICODE
     _UNICODE
-    EYES2D_EXPORTS
 )
 
 target_sources(eyes2d PRIVATE
