@@ -57,7 +57,7 @@ namespace LuaSTGPlus {
 				f2dGlyphInfo tInfo = {
 					fcyRect(x, y, x + w, y + h),
 					fcyVec2(w, h),
-					fcyVec2(-left_offset, h),
+					fcyVec2(left_offset, h),
 					fcyVec2(w + left_offset + right_offset, 0)
 				};
 				if (out.find(c) != out.end())
