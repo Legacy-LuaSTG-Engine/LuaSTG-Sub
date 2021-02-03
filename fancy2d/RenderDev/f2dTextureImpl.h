@@ -55,7 +55,7 @@ public: // 设备丢失
 	void OnRenderDeviceLost();
 	void OnRenderDeviceReset();
 public: // 接口实现
-	void* GetHandle() { return m_pTex; }
+	void* GetHandle() { return m_pTex; } // 记住别手贱把这里改成 m_pCacheTex
 	fuInt GetDimension() { return 2; }
 	fBool IsDynamic() { return true; }
 	fBool IsRenderTarget() { return false; }
