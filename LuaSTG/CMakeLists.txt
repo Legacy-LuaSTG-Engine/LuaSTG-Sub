@@ -18,6 +18,7 @@ set_target_properties(LuaSTG PROPERTIES
 target_compile_options(LuaSTG PUBLIC
     "/utf-8"
     "/MP"
+    "/arch:SSE2"
 )
 
 target_include_directories(LuaSTG PRIVATE
