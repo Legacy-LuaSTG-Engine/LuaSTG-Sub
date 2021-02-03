@@ -123,11 +123,13 @@ target_link_directories(fancy2d PRIVATE
 target_link_libraries(fancy2d PRIVATE
     strmiids.lib #???
     strmbasd #!!!
-    winmm.lib
-    imm32.lib
     dxguid.lib
     d3dx9.lib
     
+    winmm.lib
+    imm32.lib
+    d3d9.lib
+    DirectXToolkit
     zlib
     freetype
     vorbisfile

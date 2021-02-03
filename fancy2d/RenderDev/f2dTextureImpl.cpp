@@ -1,6 +1,8 @@
 ﻿#include "RenderDev/f2dTextureImpl.h"
 
 #include "RenderDev/f2dRenderDeviceImpl.h"
+#include "WICTextureLoader9.h"
+#include <vector>
 
 using namespace std;
 
@@ -13,48 +15,50 @@ f2dTexture2DStatic::f2dTexture2DStatic(f2dRenderDevice* pDev, f2dStream* pStream
 		throw fcyException("f2dTexture2DStatic::f2dTexture2DStatic", "Param 'pStream' is null.");
 	
 	// 读取整个流
-	fByte* tData = new fByte[(size_t)pStream->GetLength()];
+	std::vector<uint8_t> tData;
+	tData.resize((size_t)pStream->GetLength());
 	if(FCYFAILED(pStream->SetPosition(FCYSEEKORIGIN_BEG, 0)))
 	{
-		FCYSAFEDELARR(tData);
 		throw fcyException("f2dTexture2DStatic::f2dTexture2DStatic", "f2dStream::SetPosition Failed.");
 	}
-	if(FCYFAILED(pStream->ReadBytes(tData, pStream->GetLength(), NULL)))
+	if(FCYFAILED(pStream->ReadBytes(tData.data(), pStream->GetLength(), NULL)))
 	{
-		FCYSAFEDELARR(tData);
 		throw fcyException("f2dTexture2DStatic::f2dTexture2DStatic", "f2dStream::ReadBytes Failed.");
 	}
-
-	// 创建Texture
-	D3DXIMAGE_INFO tInfo;
-
-	HRESULT tHR = ((f2dRenderDeviceImpl*)pDev)->GetAPI().DLLEntry_D3DXCreateTextureFromFileInMemoryEx(
-		(IDirect3DDevice9*)pDev->GetHandle(),
-		tData,
-		(fuInt)pStream->GetLength(),
-		Width == 0 ? D3DX_DEFAULT_NONPOW2 : Width,
-		Height == 0 ? D3DX_DEFAULT_NONPOW2 : Height,
-		HasMipmap ? D3DX_DEFAULT : 1,
-		0,
-		D3DFMT_A8R8G8B8,
-		D3DPOOL_MANAGED,
-		D3DX_FILTER_TRIANGLE | D3DX_FILTER_DITHER,
-		D3DX_FILTER_TRIANGLE | D3DX_FILTER_DITHER,
-		0,
-		&tInfo,
-		NULL,
-		&m_pTex
-	);
-
-	FCYSAFEDELARR(tData);
 	
+	// 获取设备特性
+	HRESULT tHR = 0;
+	IDirect3DDevice9* d3d9 = (IDirect3DDevice9*)pDev->GetHandle();
+	D3DCAPS9 caps;
+	ZeroMemory(&caps, sizeof(D3DCAPS9));
+	tHR = d3d9->GetDeviceCaps(&caps);
+	if (FAILED(tHR))
+		throw fcyWin32COMException("f2dTexture2DStatic::f2dTexture2DStatic", "IDirect3DDevice9::GetDeviceCaps Failed.", tHR);
+	
+	// 检查设备特性
+	uint32_t flags = DirectX::WIC_LOADER_DEFAULT;
+	if ((caps.TextureCaps & D3DPTEXTURECAPS_POW2) || (caps.TextureCaps & D3DPTEXTURECAPS_NONPOW2CONDITIONAL)) flags |= DirectX::WIC_LOADER_FIT_POW2;
+	if (caps.TextureCaps & D3DPTEXTURECAPS_SQUAREONLY) flags |= DirectX::WIC_LOADER_MAKE_SQUARE;
+	if (HasMipmap) flags |= DirectX::WIC_LOADER_MIP_AUTOGEN;
+	
+	// 加载图片
+	tHR = DirectX::CreateWICTextureFromMemoryEx(
+		d3d9,
+		tData.data(), tData.size(),
+		(caps.MaxTextureWidth < caps.MaxTextureHeight) ? caps.MaxTextureWidth : caps.MaxTextureHeight,
+		0, D3DPOOL_MANAGED, flags,
+		&m_pTex);
 	if(FAILED(tHR))
-		throw fcyWin32COMException("f2dTexture2DStatic::f2dTexture2DStatic", "D3DXCreateTextureFromFileInMemoryEx Failed.", tHR);
-
-	if(Width == 0)
-		m_Width = tInfo.Width;
-	if(Height == 0)
-		m_Height = tInfo.Height;
+		throw fcyWin32COMException("f2dTexture2DStatic::f2dTexture2DStatic", "DirectX::CreateWICTextureFromMemoryEx Failed.", tHR);
+	
+	// 获取纹理尺寸
+	D3DSURFACE_DESC desc;
+	ZeroMemory(&desc, sizeof(D3DSURFACE_DESC));
+	tHR = m_pTex->GetLevelDesc(0, &desc);
+	if (FAILED(tHR))
+		throw fcyWin32COMException("f2dTexture2DStatic::f2dTexture2DStatic", "IDirect3DTexture9::GetLevelDesc Failed.", tHR);
+	m_Width = desc.Width;
+	m_Height = desc.Height;
 }
 
 f2dTexture2DStatic::f2dTexture2DStatic(f2dRenderDevice* pDev, fcData pMemory, fLen Size, fuInt Width, fuInt Height, fBool HasMipmap)
@@ -62,35 +66,40 @@ f2dTexture2DStatic::f2dTexture2DStatic(f2dRenderDevice* pDev, fcData pMemory, fL
 {
 	if (!pMemory)
 		throw fcyException("f2dTexture2DStatic::f2dTexture2DStatic", "Param 'pMemory' is null.");
-
-	// 创建Texture
-	D3DXIMAGE_INFO tInfo;
-
-	HRESULT tHR = ((f2dRenderDeviceImpl*)pDev)->GetAPI().DLLEntry_D3DXCreateTextureFromFileInMemoryEx(
-		(IDirect3DDevice9*)pDev->GetHandle(),
-		pMemory,
-		(fuInt)Size,
-		Width == 0 ? D3DX_DEFAULT_NONPOW2 : Width,
-		Height == 0 ? D3DX_DEFAULT_NONPOW2 : Height,
-		HasMipmap ? D3DX_DEFAULT : 1,
-		0,
-		D3DFMT_A8R8G8B8,
-		D3DPOOL_MANAGED,
-		D3DX_FILTER_TRIANGLE | D3DX_FILTER_DITHER,
-		D3DX_FILTER_TRIANGLE | D3DX_FILTER_DITHER,
-		0,
-		&tInfo,
-		NULL,
-		&m_pTex
-	);
 	
+	// 获取设备特性
+	HRESULT tHR = 0;
+	IDirect3DDevice9* d3d9 = (IDirect3DDevice9*)pDev->GetHandle();
+	D3DCAPS9 caps;
+	ZeroMemory(&caps, sizeof(D3DCAPS9));
+	tHR = d3d9->GetDeviceCaps(&caps);
 	if (FAILED(tHR))
-		throw fcyWin32COMException("f2dTexture2DStatic::f2dTexture2DStatic", "D3DXCreateTextureFromFileInMemoryEx Failed.", tHR);
-
-	if (Width == 0)
-		m_Width = tInfo.Width;
-	if (Height == 0)
-		m_Height = tInfo.Height;
+		throw fcyWin32COMException("f2dTexture2DStatic::f2dTexture2DStatic", "IDirect3DDevice9::GetDeviceCaps Failed.", tHR);
+	
+	// 检查设备特性
+	uint32_t flags = DirectX::WIC_LOADER_DEFAULT;
+	if ((caps.TextureCaps & D3DPTEXTURECAPS_POW2) || (caps.TextureCaps & D3DPTEXTURECAPS_NONPOW2CONDITIONAL)) flags |= DirectX::WIC_LOADER_FIT_POW2;
+	if (caps.TextureCaps & D3DPTEXTURECAPS_SQUAREONLY) flags |= DirectX::WIC_LOADER_MAKE_SQUARE;
+	if (HasMipmap) flags |= DirectX::WIC_LOADER_MIP_AUTOGEN;
+	
+	// 加载图片
+	tHR = DirectX::CreateWICTextureFromMemoryEx(
+		d3d9,
+		pMemory, (size_t)Size,
+		(caps.MaxTextureWidth < caps.MaxTextureHeight) ? caps.MaxTextureWidth : caps.MaxTextureHeight,
+		0, D3DPOOL_MANAGED, flags,
+		&m_pTex);
+	if (FAILED(tHR))
+		throw fcyWin32COMException("f2dTexture2DStatic::f2dTexture2DStatic", "DirectX::CreateWICTextureFromMemoryEx Failed.", tHR);
+	
+	// 获取纹理尺寸
+	D3DSURFACE_DESC desc;
+	ZeroMemory(&desc, sizeof(D3DSURFACE_DESC));
+	tHR = m_pTex->GetLevelDesc(0, &desc);
+	if (FAILED(tHR))
+		throw fcyWin32COMException("f2dTexture2DStatic::f2dTexture2DStatic", "IDirect3DTexture9::GetLevelDesc Failed.", tHR);
+	m_Width = desc.Width;
+	m_Height = desc.Height;
 }
 
 f2dTexture2DStatic::~f2dTexture2DStatic()
@@ -104,7 +113,7 @@ f2dTexture2DDynamic::f2dTexture2DDynamic(f2dRenderDevice* pDev, fuInt Width, fuI
 	: m_pParent(pDev), m_Width(Width), m_Height(Height)
 {
 	HRESULT tHR = ((IDirect3DDevice9*)m_pParent->GetHandle())->CreateTexture(
-		m_Width, m_Height, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pTex, NULL);
+		m_Width, m_Height, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pTex, NULL);
 
 	if(FAILED(tHR))
 		throw fcyWin32COMException("f2dTexture2DDynamic::f2dTexture2DDynamic", "IDirect3DDevice9::CreateTexture Failed.", tHR);
@@ -126,48 +135,57 @@ f2dTexture2DDynamic::f2dTexture2DDynamic(f2dRenderDevice* pDev, f2dStream* pStre
 		throw fcyException("f2dTexture2DDynamic::f2dTexture2DDynamic", "Param 'pStream' is null.");
 
 	// 读取整个流
-	fByte* tData = new fByte[(size_t)pStream->GetLength()];
+	std::vector<uint8_t> tData;
+	tData.resize((size_t)pStream->GetLength());
 	if(FCYFAILED(pStream->SetPosition(FCYSEEKORIGIN_BEG, 0)))
 	{
-		FCYSAFEDELARR(tData);
-		throw fcyException("f2dTexture2DDynamic::f2dTexture2DDynamic", "f2dStream::SetPosition Failed.");
+		throw fcyException("f2dTexture2DStatic::f2dTexture2DStatic", "f2dStream::SetPosition Failed.");
 	}
-	if(FCYFAILED(pStream->ReadBytes(tData, pStream->GetLength(), NULL)))
+	if(FCYFAILED(pStream->ReadBytes(tData.data(), pStream->GetLength(), NULL)))
 	{
-		FCYSAFEDELARR(tData);
-		throw fcyException("f2dTexture2DDynamic::f2dTexture2DDynamic", "f2dStream::ReadBytes Failed.");
+		throw fcyException("f2dTexture2DStatic::f2dTexture2DStatic", "f2dStream::ReadBytes Failed.");
 	}
-
-	// 创建Texture
-	D3DXIMAGE_INFO tInfo;
-	HRESULT tHR = ((f2dRenderDeviceImpl*)pDev)->GetAPI().DLLEntry_D3DXCreateTextureFromFileInMemoryEx(
-		(IDirect3DDevice9*)pDev->GetHandle(),
-		tData,
-		(fuInt)pStream->GetLength(),
-		Width == 0 ? D3DX_DEFAULT_NONPOW2 : Width,
-		Height == 0 ? D3DX_DEFAULT_NONPOW2 : Height,
-		1,
-		D3DUSAGE_DYNAMIC,
-		D3DFMT_A8R8G8B8,
-		D3DPOOL_DEFAULT,
-		D3DX_FILTER_TRIANGLE | D3DX_FILTER_DITHER,
-		D3DX_FILTER_TRIANGLE | D3DX_FILTER_DITHER,
-		0,
-		&tInfo,
-		NULL,
-		&m_pTex
-	);
-
-	FCYSAFEDELARR(tData);
 	
+	// 获取设备特性
+	HRESULT tHR = 0;
+	IDirect3DDevice9* d3d9 = (IDirect3DDevice9*)pDev->GetHandle();
+	D3DCAPS9 caps;
+	ZeroMemory(&caps, sizeof(D3DCAPS9));
+	tHR = d3d9->GetDeviceCaps(&caps);
+	if (FAILED(tHR))
+		throw fcyWin32COMException("f2dTexture2DDynamic::f2dTexture2DDynamic", "IDirect3DDevice9::GetDeviceCaps Failed.", tHR);
+	
+	// 检查设备特性
+	uint32_t flags = DirectX::WIC_LOADER_DEFAULT | DirectX::WIC_LOADER_FORCE_RGBA32;
+	if ((caps.TextureCaps & D3DPTEXTURECAPS_POW2) || (caps.TextureCaps & D3DPTEXTURECAPS_NONPOW2CONDITIONAL)) flags |= DirectX::WIC_LOADER_FIT_POW2;
+	if (caps.TextureCaps & D3DPTEXTURECAPS_SQUAREONLY) flags |= DirectX::WIC_LOADER_MAKE_SQUARE;
+	
+	// 加载图片为Stage纹理
+	tHR = DirectX::CreateWICTextureFromMemoryEx(
+		d3d9,
+		tData.data(), tData.size(),
+		(caps.MaxTextureWidth < caps.MaxTextureHeight) ? caps.MaxTextureWidth : caps.MaxTextureHeight,
+		D3DUSAGE_DYNAMIC, D3DPOOL_SYSTEMMEM, flags,
+		&m_pCacheTex);
 	if(FAILED(tHR))
-		throw fcyWin32COMException("f2dTexture2DDynamic::f2dTexture2DDynamic", "D3DXCreateTextureFromFileInMemoryEx Failed.", tHR);
-
-	if(Width == 0)
-		m_Width = tInfo.Width;
-	if(Height == 0)
-		m_Height = tInfo.Height;
-
+		throw fcyWin32COMException("f2dTexture2DDynamic::f2dTexture2DDynamic", "DirectX::CreateWICTextureFromMemoryEx Failed.", tHR);
+	
+	// 获取纹理尺寸
+	D3DSURFACE_DESC desc;
+	ZeroMemory(&desc, sizeof(D3DSURFACE_DESC));
+	tHR = m_pCacheTex->GetLevelDesc(0, &desc);
+	if (FAILED(tHR))
+		throw fcyWin32COMException("f2dTexture2DDynamic::f2dTexture2DDynamic", "IDirect3DTexture9::GetLevelDesc Failed.", tHR);
+	m_Width = desc.Width;
+	m_Height = desc.Height;
+	
+	// 创建纹理
+	tHR = ((IDirect3DDevice9*)m_pParent->GetHandle())->CreateTexture(
+		m_Width, m_Height, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pTex, NULL);
+	if(FAILED(tHR))
+		throw fcyWin32COMException("f2dTexture2DDynamic::f2dTexture2DDynamic", "IDirect3DDevice9::CreateTexture Failed.", tHR);
+	Upload();
+	
 	// 追加监听器
 	m_pParent->AttachListener(this);
 }
@@ -177,35 +195,47 @@ f2dTexture2DDynamic::f2dTexture2DDynamic(f2dRenderDevice* pDev, fcData pMemory, 
 {
 	if (!pMemory)
 		throw fcyException("f2dTexture2DDynamic::f2dTexture2DDynamic", "Param 'pMemory' is null.");
-
-	// 创建Texture
-	D3DXIMAGE_INFO tInfo;
-	HRESULT tHR = ((f2dRenderDeviceImpl*)pDev)->GetAPI().DLLEntry_D3DXCreateTextureFromFileInMemoryEx(
-		(IDirect3DDevice9*)pDev->GetHandle(),
-		pMemory,
-		(fuInt)Size,
-		Width == 0 ? D3DX_DEFAULT_NONPOW2 : Width,
-		Height == 0 ? D3DX_DEFAULT_NONPOW2 : Height,
-		1,
-		D3DUSAGE_DYNAMIC,
-		D3DFMT_A8R8G8B8,
-		D3DPOOL_DEFAULT,
-		D3DX_FILTER_TRIANGLE | D3DX_FILTER_DITHER,
-		D3DX_FILTER_TRIANGLE | D3DX_FILTER_DITHER,
-		0,
-		&tInfo,
-		NULL,
-		&m_pTex
-	);
-
+	
+	// 获取设备特性
+	HRESULT tHR = 0;
+	IDirect3DDevice9* d3d9 = (IDirect3DDevice9*)pDev->GetHandle();
+	D3DCAPS9 caps;
+	ZeroMemory(&caps, sizeof(D3DCAPS9));
+	tHR = d3d9->GetDeviceCaps(&caps);
 	if (FAILED(tHR))
-		throw fcyWin32COMException("f2dTexture2DDynamic::f2dTexture2DDynamic", "D3DXCreateTextureFromFileInMemoryEx Failed.", tHR);
-
-	if (Width == 0)
-		m_Width = tInfo.Width;
-	if (Height == 0)
-		m_Height = tInfo.Height;
-
+		throw fcyWin32COMException("f2dTexture2DDynamic::f2dTexture2DDynamic", "IDirect3DDevice9::GetDeviceCaps Failed.", tHR);
+	
+	// 检查设备特性
+	uint32_t flags = DirectX::WIC_LOADER_DEFAULT | DirectX::WIC_LOADER_FORCE_RGBA32;
+	if ((caps.TextureCaps & D3DPTEXTURECAPS_POW2) || (caps.TextureCaps & D3DPTEXTURECAPS_NONPOW2CONDITIONAL)) flags |= DirectX::WIC_LOADER_FIT_POW2;
+	if (caps.TextureCaps & D3DPTEXTURECAPS_SQUAREONLY) flags |= DirectX::WIC_LOADER_MAKE_SQUARE;
+	
+	// 加载图片为Stage纹理
+	tHR = DirectX::CreateWICTextureFromMemoryEx(
+		d3d9,
+		pMemory, (size_t)Size,
+		(caps.MaxTextureWidth < caps.MaxTextureHeight) ? caps.MaxTextureWidth : caps.MaxTextureHeight,
+		D3DUSAGE_DYNAMIC, D3DPOOL_SYSTEMMEM, flags,
+		&m_pCacheTex);
+	if(FAILED(tHR))
+		throw fcyWin32COMException("f2dTexture2DDynamic::f2dTexture2DDynamic", "DirectX::CreateWICTextureFromMemoryEx Failed.", tHR);
+	
+	// 获取纹理尺寸
+	D3DSURFACE_DESC desc;
+	ZeroMemory(&desc, sizeof(D3DSURFACE_DESC));
+	tHR = m_pCacheTex->GetLevelDesc(0, &desc);
+	if (FAILED(tHR))
+		throw fcyWin32COMException("f2dTexture2DDynamic::f2dTexture2DDynamic", "IDirect3DTexture9::GetLevelDesc Failed.", tHR);
+	m_Width = desc.Width;
+	m_Height = desc.Height;
+	
+	// 创建纹理
+	tHR = ((IDirect3DDevice9*)m_pParent->GetHandle())->CreateTexture(
+		m_Width, m_Height, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pTex, NULL);
+	if(FAILED(tHR))
+		throw fcyWin32COMException("f2dTexture2DDynamic::f2dTexture2DDynamic", "IDirect3DDevice9::CreateTexture Failed.", tHR);
+	Upload();
+	
 	// 追加监听器
 	m_pParent->AttachListener(this);
 }
@@ -227,7 +257,7 @@ void f2dTexture2DDynamic::OnRenderDeviceLost()
 void f2dTexture2DDynamic::OnRenderDeviceReset()
 {
 	((IDirect3DDevice9*)m_pParent->GetHandle())->CreateTexture(
-		m_Width, m_Height, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pTex, NULL);
+		m_Width, m_Height, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pTex, NULL);
 }
 
 fResult f2dTexture2DDynamic::Lock(fcyRect* pLockRect, fBool Discard, fuInt* Pitch, fData* pOut)
@@ -251,7 +281,7 @@ fResult f2dTexture2DDynamic::Lock(fcyRect* pLockRect, fBool Discard, fuInt* Pitc
 		tRectToLock.bottom = (int)pLockRect->b.y;
 	}
 	
-	if(FAILED(m_pCacheTex->LockRect(0, &tRectLocked, (pLockRect ? &tRectToLock : NULL), Discard ? D3DLOCK_DISCARD : D3DLOCK_NO_DIRTY_UPDATE)))
+	if(FAILED(m_pCacheTex->LockRect(0, &tRectLocked, (pLockRect ? &tRectToLock : NULL), Discard ? D3DLOCK_DISCARD : 0))) // D3DLOCK_NO_DIRTY_UPDATE
 	{
 		return FCYERR_INTERNALERR;
 	}
