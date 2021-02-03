@@ -316,6 +316,7 @@ fResult f2dInputJoystickImpl::UpdateState()
 	for(fuInt i = 0; i<tSize; ++i)
 	{
 		float tValue = 0.f;
+		#pragma warning(disable:4644)
 		switch(tRawData[i].dwOfs)
 		{
 		case DIJOFS_X:
@@ -384,6 +385,7 @@ fResult f2dInputJoystickImpl::UpdateState()
 						m_pListener->OnJoystickBtnUp(this, tRawData[i].dwOfs - DIJOFS_BUTTON0);
 			}
 		}
+		#pragma warning(default:4644)
 	}
 
 	return FCYERR_OK;

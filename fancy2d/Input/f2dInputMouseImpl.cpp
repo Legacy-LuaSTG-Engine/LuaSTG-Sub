@@ -200,6 +200,7 @@ fResult f2dInputMouseImpl::UpdateState()
 
 	for(fuInt i = 0; i<tSize; ++i)
 	{
+		#pragma warning(disable:4644)
 		switch(tRawData[i].dwOfs)
 		{
 		case DIMOFS_X:
@@ -293,6 +294,7 @@ fResult f2dInputMouseImpl::UpdateState()
 					m_pListener->OnMouseAdditionBtnUp(4);
 			break;
 		}
+		#pragma warning(default:4644)
 	}
 
 	return FCYERR_OK;
