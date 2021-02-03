@@ -664,15 +664,12 @@ void AppFrame::SetFog(float start, float end, fcyColor color)
 LNOINLINE void AppFrame::SnapShot(const char* path)LNOEXCEPT
 {
 	LASSERT(m_pRenderDev);
-
+	
 	try
 	{
-		fcyRefPointer<fcyFileStream> tOutputFile;
-		tOutputFile.DirectSet(new fcyFileStream(fcyStringHelper::MultiByteToWideChar(path, CP_UTF8).c_str(), true));
-		tOutputFile->SetLength(0);
-
-		if (FCYFAILED(m_pRenderDev->SaveScreen(tOutputFile)))
-			LERROR("Snapshot: 保存截图到'%m'失败", path);
+		const std::wstring wpath = fcyStringHelper::MultiByteToWideChar(path, CP_UTF8);
+		if (FCYFAILED(m_pRenderDev->SaveScreen(wpath.c_str())))
+			LERROR("Snapshot: 保存截图到'%s'失败", wpath.c_str());
 	}
 	catch (const bad_alloc&)
 	{
@@ -687,15 +684,12 @@ LNOINLINE void AppFrame::SnapShot(const char* path)LNOEXCEPT
 LNOINLINE void AppFrame::SaveTexture(f2dTexture2D* Tex, const char* path)LNOEXCEPT
 {
 	LASSERT(m_pRenderDev);
-
+	
 	try
 	{
-		fcyRefPointer<fcyFileStream> tOutputFile;
-		tOutputFile.DirectSet(new fcyFileStream(fcyStringHelper::MultiByteToWideChar(path, CP_UTF8).c_str(), true));
-		tOutputFile->SetLength(0);
-
-		if (FCYFAILED(m_pRenderDev->SaveTexture(tOutputFile, Tex)))
-			LERROR("Snapshot: 保存纹理到'%m'失败", path);
+		const std::wstring wpath = fcyStringHelper::MultiByteToWideChar(path, CP_UTF8);
+		if (FCYFAILED(m_pRenderDev->SaveTexture(wpath.c_str(), Tex)))
+			LERROR("Snapshot: 保存纹理到'%s'失败", wpath.c_str());
 	}
 	catch (const bad_alloc&)
 	{

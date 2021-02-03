@@ -13,8 +13,6 @@
 #include "Engine/f2dEngineImpl.h"
 #include <d3d9.h>
 
-using namespace std;
-
 ////////////////////////////////////////////////////////////////////////////////
 
 f2dRenderDeviceImpl::VertexDeclareInfo::VertexDeclareInfo()
@@ -537,7 +535,7 @@ IDirect3DVertexDeclaration9* f2dRenderDeviceImpl::RegisterVertexDeclare(f2dVerte
 		{
 			fBool tHas = true;
 
-			vector<f2dVertexElement>& tVec = m_VDCache[i].ElementData;
+			std::vector<f2dVertexElement>& tVec = m_VDCache[i].ElementData;
 			for(fuInt j = 0; j<tVec.size(); j++)
 			{
 				if(memcmp(&tVec[j], &pElement[j], sizeof(f2dVertexElement))!=0)
@@ -1226,85 +1224,6 @@ fResult f2dRenderDeviceImpl::SetZBufferEnable(fBool v)
 	return FCYERR_OK;
 }
 
-fResult f2dRenderDeviceImpl::SaveScreen(f2dStream* pStream)
-{
-	if(m_bDevLost)
-		return FCYERR_ILLEGAL;
-
-	if(!pStream || !pStream->CanWrite() || !pStream->CanResize())
-		return FCYERR_INVAILDPARAM;
-
-	IDirect3DSurface9* pSurface = NULL;
-
-	if(FAILED(m_pDev->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pSurface)))
-	{
-		FCYSAFEKILL(pSurface);
-		return FCYERR_INTERNALERR;
-	}
-
-	ID3DXBuffer* pDataBuffer = NULL;
-	HRESULT tHR = m_API.DLLEntry_D3DXSaveSurfaceToFileInMemory(&pDataBuffer, D3DXIFF_JPG, pSurface, NULL, NULL);//D3DXIFF_PNG
-	FCYSAFEKILL(pSurface);
-	if(FAILED(tHR))
-	{
-		m_pEngine->ThrowException(fcyWin32COMException("f2dRenderDeviceImpl::SaveScreen", "D3DXSaveSurfaceToFileInMemory Failed.", tHR));
-		return FCYERR_INTERNALERR;
-	}
-
-	// 保存到流
-	if(FCYFAILED(pStream->WriteBytes((fcData)pDataBuffer->GetBufferPointer(), pDataBuffer->GetBufferSize(), NULL)))
-	{
-		FCYSAFEKILL(pDataBuffer);
-		return FCYERR_INTERNALERR;
-	}
-
-	FCYSAFEKILL(pDataBuffer);
-
-	return FCYERR_OK;
-}
-
-fResult f2dRenderDeviceImpl::SaveTexture(f2dStream* pStream, f2dTexture2D* pTex)
-{
-	if(m_bDevLost)
-		return FCYERR_ILLEGAL;
-
-	if(!pStream || !pTex || !pStream->CanWrite() || !pStream->CanResize())
-		return FCYERR_INVAILDPARAM;
-
-	IDirect3DSurface9* pSurface = NULL;
-	if(pTex->IsDynamic())
-		((IDirect3DTexture9*)((f2dTexture2DDynamic*)pTex)->GetHandle())->GetSurfaceLevel(0, &pSurface);
-	else if(pTex->IsRenderTarget())
-	{
-		pSurface = ((f2dTexture2DRenderTarget*)pTex)->GetSurface();
-		pSurface->AddRef();
-	}
-	else
-		((IDirect3DTexture9*)((f2dTexture2DStatic*)pTex)->GetHandle())->GetSurfaceLevel(0, &pSurface);
-
-	if(!pSurface)
-		return FCYERR_INTERNALERR;
-
-	ID3DXBuffer* pDataBuffer = NULL;
-	HRESULT tHR = m_API.DLLEntry_D3DXSaveSurfaceToFileInMemory(&pDataBuffer, D3DXIFF_JPG, pSurface, NULL, NULL);//D3DXIFF_PNG
-	FCYSAFEKILL(pSurface);
-	if(FAILED(tHR))
-	{
-		m_pEngine->ThrowException(fcyWin32COMException("f2dRenderDeviceImpl::SaveTexture", "D3DXSaveSurfaceToFileInMemory Failed.", tHR));
-		return FCYERR_INTERNALERR;
-	}
-
-	// 保存到流
-	if(FCYFAILED(pStream->WriteBytes((fcData)pDataBuffer->GetBufferPointer(), pDataBuffer->GetBufferSize(), NULL)))
-	{
-		FCYSAFEKILL(pDataBuffer);
-		return FCYERR_INTERNALERR;
-	}
-
-	FCYSAFEKILL(pDataBuffer);
-
-	return FCYERR_OK;
-}
 
 fResult f2dRenderDeviceImpl::UpdateScreenToWindow(fcyColor KeyColor, fByte Alpha)
 {
@@ -1434,5 +1353,120 @@ fResult f2dRenderDeviceImpl::SetTextureFilter(F2DTEXFILTERTYPE filter) {
 		return FCYERR_INTERNALERR;
 	if (FAILED(m_pDev->SetSamplerState(0, D3DSAMP_MINFILTER, d3dfilter)))
 		return FCYERR_INTERNALERR;
+	return FCYERR_OK;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+#include <wrl.h>
+#include <wincodec.h>
+#include "ScreenGrab9.h"
+
+fResult f2dRenderDeviceImpl::SaveScreen(fcStrW path)
+{
+	if(m_bDevLost)
+		return FCYERR_ILLEGAL;
+	if(!path)
+		return FCYERR_INVAILDPARAM;
+	
+	// 获取交换链后备缓冲区
+	Microsoft::WRL::ComPtr<IDirect3DSurface9> backbuffer;
+	if(FAILED(m_pDev->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, backbuffer.GetAddressOf())))
+	{
+		return FCYERR_INTERNALERR;
+	}
+	
+	// 获取尺寸、纹理格式
+	D3DSURFACE_DESC desc;
+	ZeroMemory(&desc, sizeof(D3DSURFACE_DESC));
+	if(FAILED(backbuffer->GetDesc(&desc)))
+	{
+		return FCYERR_INTERNALERR;
+	}
+	
+	// 创建Stage纹理，用来从显存下载纹理内容到内存
+	Microsoft::WRL::ComPtr<IDirect3DTexture9> rendertarget;
+	if(FAILED(m_pDev->CreateTexture(
+		desc.Width, desc.Height, 1, D3DUSAGE_DYNAMIC, desc.Format, D3DPOOL_SYSTEMMEM,
+		rendertarget.GetAddressOf(), NULL)))
+	{
+		return FCYERR_INTERNALERR;
+	}
+	Microsoft::WRL::ComPtr<IDirect3DSurface9> surface;
+	if(FAILED(rendertarget->GetSurfaceLevel(0, surface.GetAddressOf())))
+	{
+		return FCYERR_INTERNALERR;
+	}
+	
+	// 下崽
+	if(FAILED(m_pDev->GetRenderTargetData(backbuffer.Get(), surface.Get())))
+	{
+		return FCYERR_INTERNALERR;
+	}
+	
+	// 可以保存了
+	HRESULT tHR = DirectX::SaveWICTextureToFile(surface.Get(), GUID_ContainerFormatJpeg, path, &GUID_WICPixelFormat24bppBGR);
+	if(FAILED(tHR))
+	{
+		m_pEngine->ThrowException(fcyWin32COMException("f2dRenderDeviceImpl::SaveScreen", "DirectX::SaveWICTextureToFile Failed.", tHR));
+		return FCYERR_INTERNALERR;
+	}
+	
+	return FCYERR_OK;
+}
+
+fResult f2dRenderDeviceImpl::SaveTexture(fcStrW path, f2dTexture2D* pTex)
+{
+	if(m_bDevLost)
+		return FCYERR_ILLEGAL;
+	if(!path || !pTex)
+		return FCYERR_INVAILDPARAM;
+	if(!pTex->IsRenderTarget())
+		return FCYERR_INVAILDPARAM;
+	
+	// 获取纹理
+	Microsoft::WRL::ComPtr<IDirect3DSurface9> backbuffer;
+	f2dTexture2DRenderTarget* pRTex = dynamic_cast<f2dTexture2DRenderTarget*>(pTex);
+	*backbuffer.GetAddressOf() = pRTex->GetSurface();
+	if (!backbuffer.Get())
+		return FCYERR_INTERNALERR;
+	backbuffer->AddRef(); // 这里用了智障指针，得手动加一个ref
+	
+	// 获取尺寸、纹理格式
+	D3DSURFACE_DESC desc;
+	ZeroMemory(&desc, sizeof(D3DSURFACE_DESC));
+	if(FAILED(backbuffer->GetDesc(&desc)))
+	{
+		return FCYERR_INTERNALERR;
+	}
+	
+	// 创建Stage纹理，用来从显存下载纹理内容到内存
+	Microsoft::WRL::ComPtr<IDirect3DTexture9> rendertarget;
+	if(FAILED(m_pDev->CreateTexture(
+		desc.Width, desc.Height, 1, D3DUSAGE_DYNAMIC, desc.Format, D3DPOOL_SYSTEMMEM,
+		rendertarget.GetAddressOf(), NULL)))
+	{
+		return FCYERR_INTERNALERR;
+	}
+	Microsoft::WRL::ComPtr<IDirect3DSurface9> surface;
+	if(FAILED(rendertarget->GetSurfaceLevel(0, surface.GetAddressOf())))
+	{
+		return FCYERR_INTERNALERR;
+	}
+	
+	// 下崽
+	if(FAILED(m_pDev->GetRenderTargetData(backbuffer.Get(), surface.Get())))
+	{
+		return FCYERR_INTERNALERR;
+	}
+	
+	// 现在可以保存了
+	HRESULT tHR = DirectX::SaveWICTextureToFile(surface.Get(), GUID_ContainerFormatJpeg, path, &GUID_WICPixelFormat24bppBGR);
+	if(FAILED(tHR))
+	{
+		m_pEngine->ThrowException(fcyWin32COMException("f2dRenderDeviceImpl::SaveTexture", "DirectX::SaveWICTextureToFile Failed.", tHR));
+		return FCYERR_INTERNALERR;
+	}
+	
 	return FCYERR_OK;
 }

@@ -168,10 +168,12 @@ public: // 接口实现
 	fBool IsZBufferEnabled();
 	fResult SetZBufferEnable(fBool v);
 
-	fResult SaveScreen(f2dStream* pStream);
-	fResult SaveTexture(f2dStream* pStream, f2dTexture2D* pTex);
 	fResult UpdateScreenToWindow(fcyColor KeyColor, fByte Alpha);
-
+	fResult SaveScreen(f2dStream* pStream) { return FCYERR_NOTSUPPORT; }
+	fResult SaveTexture(f2dStream* pStream, f2dTexture2D* pTex) { return FCYERR_NOTSUPPORT; }
+	fResult SaveScreen(fcStrW path);
+	fResult SaveTexture(fcStrW path, f2dTexture2D* pTex);
+	
 	//纹理采样设置
 	fResult SetTextureAddress(F2DTEXTUREADDRESS address, const fcyColor& borderColor);
 	fResult SetTextureFilter(F2DTEXFILTERTYPE filter);

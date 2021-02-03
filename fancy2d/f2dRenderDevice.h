@@ -829,17 +829,7 @@ struct f2dRenderDevice
 	virtual fResult SetZBufferEnable(fBool v)=0;
 
 	// --- 高级 ---
-	/// @brief     截屏
-	/// @note      以PNG形式保存
-	/// @param[in] pStream 输出的流，从流的当前位置开始写入
-	virtual fResult SaveScreen(f2dStream* pStream)=0;
-
-	/// @brief     保存纹理
-	/// @note      以PNG形式保存
-	/// @param[in] pStream 输出的流，从流的当前位置开始写入
-	/// @param[in] pTex    要保存的纹理
-	virtual fResult SaveTexture(f2dStream* pStream, f2dTexture2D* pTex)=0;
-
+	
 	/// @brief     调用UpdateLayeredWindow更新分层窗口
 	/// @note      要求主窗口被设置为分层窗口
 	/// @param[in] KeyColor 关键色
@@ -854,6 +844,28 @@ struct f2dRenderDevice
 	/// @brief     纹理采样器
 	/// @param[in] filter 采样器类型
 	virtual fResult SetTextureFilter(F2DTEXFILTERTYPE filter) = 0;
+	
+	/// @brief     截屏
+	/// @note      以JPG形式保存
+	/// @param[in] pStream 输出的流，从流的当前位置开始写入
+	virtual fResult SaveScreen(f2dStream* pStream)=0;
+
+	/// @brief     保存纹理
+	/// @note      以JPG形式保存
+	/// @param[in] pStream 输出的流，从流的当前位置开始写入
+	/// @param[in] pTex    要保存的纹理
+	virtual fResult SaveTexture(f2dStream* pStream, f2dTexture2D* pTex)=0;
+	
+	/// @brief     截屏
+	/// @note      以JPG形式保存
+	/// @param[in] path 文件路径
+	virtual fResult SaveScreen(fcStrW path)=0;
+
+	/// @brief     保存纹理
+	/// @note      以JPG形式保存
+	/// @param[in] path 文件路径
+	/// @param[in] pTex    要保存的纹理
+	virtual fResult SaveTexture(fcStrW path, f2dTexture2D* pTex)=0;
 };
 
 /// @}
