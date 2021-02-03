@@ -14,6 +14,8 @@ target_include_directories(DirectXToolkit PUBLIC
 )
 
 target_sources(DirectXToolkit PRIVATE
+    ScreenGrab9.cpp
+    ScreenGrab9.h
     WICTextureLoader9.cpp
     WICTextureLoader9.h
 )
