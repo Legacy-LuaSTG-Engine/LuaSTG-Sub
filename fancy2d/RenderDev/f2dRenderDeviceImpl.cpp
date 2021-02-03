@@ -11,6 +11,7 @@
 #include "RenderDev/f2dMeshDataImpl.h"
 
 #include "Engine/f2dEngineImpl.h"
+#include <d3d9.h>
 
 using namespace std;
 
@@ -49,10 +50,10 @@ f2dRenderDeviceImpl::f2dRenderDeviceImpl(f2dEngineImpl* pEngine, fuInt BackBuffe
 	HRESULT tHR;
 
 	// --- 创建D3D9 ---
-	m_pD3D9 = m_API.DLLEntry_Direct3DCreate9(D3D_SDK_VERSION);
+	m_pD3D9 = Direct3DCreate9(D3D_SDK_VERSION);
 	if(!m_pD3D9)
 		throw fcyException("f2dRenderDeviceImpl::f2dRenderDeviceImpl", "Direct3DCreate9 Failed.");
-
+	
 	// --- 创建设备 ---
 	// 填充属性
 	m_D3Dpp.BackBufferCount = 1;                      // 后台缓冲页面个数
