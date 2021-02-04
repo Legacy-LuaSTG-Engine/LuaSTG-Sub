@@ -158,6 +158,7 @@ namespace
     //--------------------------------------------------------------------------------------
     BOOL WINAPI InitializeWICFactory(PINIT_ONCE, PVOID, PVOID* ifactory) noexcept
     {
+#if (_WIN32_WINNT >= _WIN32_WINNT_WIN8) || defined(_WIN7_PLATFORM_UPDATE)
         HRESULT hr = CoCreateInstance(
             CLSID_WICImagingFactory2,
             nullptr,
@@ -181,19 +182,16 @@ namespace
                 __uuidof(IWICImagingFactory),
                 ifactory
             );
-            
-            if (SUCCEEDED(hr))
-            {
-                return TRUE;
-            }
-            
-            return SUCCEEDED(CoCreateInstance(
-                CLSID_WICImagingFactory,
-                nullptr,
-                CLSCTX_INPROC_SERVER,
-                __uuidof(IWICImagingFactory),
-                ifactory)) ? TRUE : FALSE;
+            return SUCCEEDED(hr) ? TRUE : FALSE;
         }
+#else
+        return SUCCEEDED(CoCreateInstance(
+            CLSID_WICImagingFactory,
+            nullptr,
+            CLSCTX_INPROC_SERVER,
+            __uuidof(IWICImagingFactory),
+            ifactory)) ? TRUE : FALSE;
+#endif
     }
 
     IWICImagingFactory* _GetWIC() noexcept
