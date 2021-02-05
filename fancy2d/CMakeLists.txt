@@ -53,8 +53,6 @@ target_sources(fancy2d PRIVATE
     
     Input/f2dInputSysImpl.h
     Input/f2dInputSysImpl.cpp
-    Input/f2dInputSysAPI.h
-    Input/f2dInputSysAPI.cpp
     Input/f2dInputKeyboardImpl.h
     Input/f2dInputKeyboardImpl.cpp
     Input/f2dInputMouseImpl.h
