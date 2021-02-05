@@ -1,6 +1,9 @@
 #==================== debug family ====================#
 
 add_library(spdlog STATIC IMPORTED GLOBAL)
+target_compile_definitions(spdlog INTERFACE
+    SPDLOG_COMPILED_LIB # prebuild
+)
 target_include_directories(spdlog INTERFACE
     spdlog/include
 )
