@@ -110,14 +110,14 @@ target_sources(fancy2d PRIVATE
     Sound/f2dSoundSpriteImpl.h
     Sound/f2dSoundSpriteImpl.cpp
     
-    Video/f2dVideoSysImpl.h
-    Video/f2dVideoSysImpl.cpp
-    Video/f2dVideoImpl.h
-    Video/f2dVideoImpl.cpp
-    Video/f2dVideoStream.h
-    Video/f2dVideoStream.cpp
-    Video/f2dVideoRenderer.h
-    Video/f2dVideoRenderer.cpp
+    #Video/f2dVideoSysImpl.h
+    #Video/f2dVideoSysImpl.cpp
+    #Video/f2dVideoImpl.h
+    #Video/f2dVideoImpl.cpp
+    #Video/f2dVideoStream.h
+    #Video/f2dVideoStream.cpp
+    #Video/f2dVideoRenderer.h
+    #Video/f2dVideoRenderer.cpp
 )
 
 target_link_directories(fancy2d PRIVATE
@@ -125,8 +125,8 @@ target_link_directories(fancy2d PRIVATE
 )
 
 target_link_libraries(fancy2d PRIVATE
-    strmiids.lib #???
-    strmbasd #!!!
+    #strmiids.lib #???
+    #strmbasd #!!!
     d3dx9.lib
     
     winmm.lib

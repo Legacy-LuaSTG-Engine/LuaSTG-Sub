@@ -2,7 +2,7 @@
 
 #include "Input/f2dInputSysImpl.h"
 #include "Sound/f2dSoundSysImpl.h"
-#include "Video/f2dVideoSysImpl.h"
+//#include "Video/f2dVideoSysImpl.h"
 #include "Renderer/f2dRendererImpl.h"
 
 #include "fcyOS/fcyDebug.h"
@@ -235,7 +235,7 @@ f2dEngineImpl::f2dEngineImpl(const fcyRect& WinPos, fcStrW Title, fBool Windowed
 	}
 	catch(...)
 	{
-		FCYSAFEKILL(m_pVideoSys);
+		//FCYSAFEKILL(m_pVideoSys);
 		FCYSAFEKILL(m_pRenderer);
 		FCYSAFEKILL(m_pInputSys);
 		FCYSAFEKILL(m_pSoundSys);
@@ -248,7 +248,7 @@ f2dEngineImpl::f2dEngineImpl(const fcyRect& WinPos, fcStrW Title, fBool Windowed
 f2dEngineImpl::~f2dEngineImpl()
 {
 	// 销毁组件
-	FCYSAFEKILL(m_pVideoSys);
+	//FCYSAFEKILL(m_pVideoSys);
 	FCYSAFEKILL(m_pRenderer);
 	FCYSAFEKILL(m_pInputSys);
 	FCYSAFEKILL(m_pSoundSys);
@@ -356,12 +356,12 @@ fResult f2dEngineImpl::InitRenderer(fuInt BufferWidth, fuInt BufferHeight, fBool
 fResult f2dEngineImpl::InitVideoSys()
 {
 #ifndef _M_ARM
-	if(m_pVideoSys || !m_pRenderer)
+	//if(m_pVideoSys || !m_pRenderer)
 		return FCYERR_ILLEGAL;
 
 	try
 	{
-		m_pVideoSys = new f2dVideoSysImpl(this);
+		//m_pVideoSys = new f2dVideoSysImpl(this);
 	}
 	catch(const fcyException& e)
 	{
@@ -378,7 +378,8 @@ fResult f2dEngineImpl::InitVideoSys()
 f2dSoundSys* f2dEngineImpl::GetSoundSys() { return m_pSoundSys; }
 f2dInputSys* f2dEngineImpl::GetInputSys() { return m_pInputSys; }
 f2dRenderer* f2dEngineImpl::GetRenderer() { return m_pRenderer; }
-f2dVideoSys* f2dEngineImpl::GetVideoSys() { return m_pVideoSys; }
+//f2dVideoSys* f2dEngineImpl::GetVideoSys() { return m_pVideoSys; }
+f2dVideoSys* f2dEngineImpl::GetVideoSys() { return NULL; }
 
 void f2dEngineImpl::Abort()
 {

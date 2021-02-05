@@ -7,11 +7,10 @@ add_compile_definitions(
 )
 
 add_subdirectory(prebuild)
-
-add_subdirectory(fancylib)
-
-add_subdirectory(DirectShowClass)
 add_subdirectory(DirectX)
+
+#add_subdirectory(DirectShowClass)
+add_subdirectory(fancylib)
 add_subdirectory(fancy2d)
 
 add_subdirectory(imgui)
