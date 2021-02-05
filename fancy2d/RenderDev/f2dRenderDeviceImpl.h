@@ -3,10 +3,11 @@
 /// @brief fancy2D渲染设备接口实现
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
-#include "RenderDev/f2dRenderDeviceAPI.h"
-
-#include "Engine/f2dWindowImpl.h"
 #include "f2dEngine.h"
+#include "Engine/f2dWindowImpl.h"
+#include "Common/f2dStandardCommon.hpp"
+#include "Common/f2dWindowsCommon.h"
+#include "RenderDev/f2dRenderDeviceAPI.h"
 
 class f2dEngineImpl;
 
@@ -17,32 +18,36 @@ class f2dRenderDeviceImpl :
 	public fcyRefObjImpl<f2dRenderDevice>
 {
 private:
-	struct ListenerNode
+	struct EventListenerNode
 	{
-		f2dRenderDeviceEventListener* pListener;
-		fInt Priority;   // 优先级
-
-		ListenerNode* pNext;
+		int uuid;
+		int priority;
+		f2dRenderDeviceEventListener* listener;
+		
+		bool operator()(const EventListenerNode& lhs, const EventListenerNode& rhs) const
+		{
+			return lhs.uuid != rhs.uuid ? lhs.priority < rhs.priority : lhs.uuid < rhs.uuid;
+		}
 	};
-
+	
 	// 解决从非主线程调用TestCooperativeLevel的问题
-	class DeviceSyncTest
-		: public f2dMainThreadDelegate
+	class DeviceSyncTest : public f2dMainThreadDelegate
 	{
 	private:
-		IDirect3DDevice9* m_pDev;
-		HRESULT m_HR;
+		HWND _window;
+		IDirect3DDevice9Ex* _device;
+		HRESULT _result;
 	public:
-		void AddRef() { /* do nothing */ }
-		void Release() { /* do nothing */ }
-		void Excute() { m_HR = m_pDev->TestCooperativeLevel(); }
-		void Reset() { m_HR = S_OK; }
-		HRESULT GetResult()const { return m_HR; }
+		void AddRef() {}
+		void Release() {}
+		void Excute() { _result = _device->CheckDeviceState(_window); }
+		void Reset() { _result = S_OK; }
+		HRESULT GetResult()const { return _result; }
 	public:
-		DeviceSyncTest(IDirect3DDevice9* p)
-			: m_pDev(p), m_HR(S_OK) {}
+		DeviceSyncTest() : _window(NULL), _device(NULL), _result(S_OK) {}
+		DeviceSyncTest(HWND window, IDirect3DDevice9Ex* device) : _window(window), _device(device), _result(S_OK) {}
 	};
-
+	
 	struct VertexDeclareInfo
 	{
 		fuInt Hash;
@@ -59,26 +64,33 @@ private:
 private:
 	f2dEngineImpl* m_pEngine;
 	DWORD m_CreateThreadID;
-
+	
 	// API入口
 	f2dRenderDeviceAPI m_API;
-
-	// DirectX组件
-	IDirect3D9* m_pD3D9;
-	IDirect3DDevice9* m_pDev;
-	D3DPRESENT_PARAMETERS m_D3Dpp;
-	D3DVIEWPORT9 m_ViewPort;
-	std::string m_DevName;
-
-	// 跨线程事件
-	DeviceSyncTest* m_pSyncTestObj;
 	
-	// 监听器链表
-	ListenerNode* m_ListenerList;
-
+	// DirectX组件
+	Microsoft::WRL::ComPtr<IDirect3D9>         _d3d9;
+	Microsoft::WRL::ComPtr<IDirect3D9Ex>       _d3d9Ex;
+	D3DPRESENT_PARAMETERS                      _d3d9SwapChainInfo;
+	D3DDISPLAYMODEEX                           _d3d9FullScreenSwapChainInfo;
+	Microsoft::WRL::ComPtr<IDirect3DDevice9>   _d3d9Device;
+	Microsoft::WRL::ComPtr<IDirect3DDevice9Ex> _d3d9DeviceEx;
+	
+	IDirect3D9*           m_pD3D9; // 不要调用Release！
+	IDirect3DDevice9*     m_pDev;  // 不要调用Release！
+	D3DVIEWPORT9          m_ViewPort;
+	std::string           m_DevName;
+	
+	// 跨线程事件
+	DeviceSyncTest _d3d9DeviceTest;
+	
+	// 监听器列表
+	int _iEventListenerUUID = 0;
+	std::set<EventListenerNode, EventListenerNode> _setEventListeners;
+	
 	// 顶点声明
 	std::vector<VertexDeclareInfo> m_VDCache;
-
+	
 	// 设备状态
 	bool m_bDevLost;                              // 设备丢失标志
 	bool m_bZBufferEnabled;                       // 是否开启Z-缓冲区
@@ -97,17 +109,19 @@ private:
 
 	IDirect3DVertexDeclaration9* m_pCurVertDecl; // 当前的顶点声明
 	D3DTEXTUREOP m_CurTexBlendOP_Color;          // 当前的纹理混合运算符
-
+	
 	// Window
 	HWND m_hWnd;
 	f2dWindowDC m_DC;
 	IDirect3DSurface9* m_pWinSurface;
 private:
-	HRESULT doReset(D3DPRESENT_PARAMETERS* pD3DPP);  // 保证在主线程执行
-	HRESULT doTestCooperativeLevel();
-	void initState();         // 初始化状态
-	int sendDevLostMsg();     // 发送设备丢失事件, 返回对象数目
-	int sendDevResetMsg();    // 发送设备重置事件
+	HRESULT doReset();                // 保证在主线程执行
+	HRESULT doTestCooperativeLevel(); // 保证在主线程执行
+	void initState();                 // 初始化状态
+	int sendDevLostMsg();             // 发送设备丢失事件, 返回对象数目
+	int sendDevResetMsg();            // 发送设备重置事件
+	int dispatchRenderSizeDependentResourcesCreate();
+	int dispatchRenderSizeDependentResourcesDestroy();
 public: // 内部函数
 	f2dRenderDeviceAPI& GetAPI() { return m_API; }   // 返回API对象
 	f2dEngineImpl* GetEngine() { return m_pEngine; } // 返回引擎对象
@@ -130,9 +144,9 @@ public: // 内部函数
 public: // 接口实现
 	void* GetHandle() { return m_pDev; }
 	fcStr GetDeviceName() { return m_DevName.c_str(); }
-	fuInt GetBufferWidth() { return m_D3Dpp.BackBufferWidth; }
-	fuInt GetBufferHeight() { return m_D3Dpp.BackBufferHeight; }
-	fBool IsWindowed() { return m_D3Dpp.Windowed == TRUE ? 1 : 0; }
+	fuInt GetBufferWidth() { return _d3d9SwapChainInfo.BackBufferWidth; }
+	fuInt GetBufferHeight() { return _d3d9SwapChainInfo.BackBufferHeight; }
+	fBool IsWindowed() { return _d3d9SwapChainInfo.Windowed == TRUE ? 1 : 0; }
 	F2DAALEVEL GetAALevel();
 	fBool CheckMultiSample(F2DAALEVEL AALevel, fBool Windowed);
 	fuInt GetSupportResolutionCount();

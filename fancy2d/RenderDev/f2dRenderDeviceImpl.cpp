@@ -11,7 +11,6 @@
 #include "RenderDev/f2dMeshDataImpl.h"
 
 #include "Engine/f2dEngineImpl.h"
-#include <d3d9.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -33,123 +32,166 @@ f2dRenderDeviceImpl::VertexDeclareInfo::~VertexDeclareInfo()
 
 ////////////////////////////////////////////////////////////////////////////////
 
-f2dRenderDeviceImpl::f2dRenderDeviceImpl(f2dEngineImpl* pEngine, fuInt BackBufferWidth, fuInt BackBufferHeight, fBool Windowed, fBool VSync, F2DAALEVEL AALevel)
-: m_pEngine(pEngine), m_pD3D9(NULL), m_pDev(NULL), m_hWnd((HWND)pEngine->GetMainWindow()->GetHandle()), 
-	m_pSyncTestObj(NULL), m_bDevLost(false), m_pBackBuffer(NULL), m_pBackDepthBuffer(NULL), m_pCurGraphics(NULL),
-	m_ListenerList(NULL), m_pWinSurface(NULL), m_pCurBackBuffer(NULL), m_pCurBackDepthBuffer(NULL),
+static const D3DDISPLAYMODEFILTER g_d3d9DisplayModeFilter = {
+	sizeof(D3DDISPLAYMODEFILTER),
+	D3DFMT_X8R8G8B8,
+	D3DSCANLINEORDERING_PROGRESSIVE,
+};
+
+f2dRenderDeviceImpl::f2dRenderDeviceImpl(f2dEngineImpl* pEngine, fuInt BackBufferWidth, fuInt BackBufferHeight, fBool Windowed, fBool VSync, F2DAALEVEL AALevel) :
+	m_pEngine(pEngine),
+	m_pD3D9(NULL), m_pDev(NULL), m_hWnd((HWND)pEngine->GetMainWindow()->GetHandle()), 
+	m_bDevLost(false), m_pBackBuffer(NULL), m_pBackDepthBuffer(NULL), m_pCurGraphics(NULL),
+	m_pWinSurface(NULL), m_pCurBackBuffer(NULL), m_pCurBackDepthBuffer(NULL),
 	m_pCurVertDecl(NULL), m_CreateThreadID(GetCurrentThreadId()), m_bZBufferEnabled(true)
 {
-	ZeroMemory(&m_D3Dpp,sizeof(m_D3Dpp));
-	m_ScissorRect.left = 0;
-	m_ScissorRect.top = 0;
-	m_ScissorRect.right = BackBufferWidth;
-	m_ScissorRect.bottom = BackBufferHeight;
-
-	HRESULT tHR;
-
-	// --- 创建D3D9 ---
-	m_pD3D9 = Direct3DCreate9(D3D_SDK_VERSION);
-	if(!m_pD3D9)
-		throw fcyException("f2dRenderDeviceImpl::f2dRenderDeviceImpl", "Direct3DCreate9 Failed.");
+	HRESULT hr = S_OK;
 	
-	// --- 创建设备 ---
-	// 填充属性
-	m_D3Dpp.BackBufferCount = 1;                      // 后台缓冲页面个数
-	m_D3Dpp.BackBufferWidth = BackBufferWidth;        // 缓冲页面宽度
-	m_D3Dpp.BackBufferHeight = BackBufferHeight;      // 缓冲页面高度
-	m_D3Dpp.BackBufferFormat = D3DFMT_A8R8G8B8;       // 页面格式
-	m_D3Dpp.AutoDepthStencilFormat = D3DFMT_D24S8;    // 模板和Z缓冲格式
-	m_D3Dpp.EnableAutoDepthStencil = true;            // 开启自动创建模板和Z缓冲
-	m_D3Dpp.Windowed = Windowed;                      // 是否窗口
-	m_D3Dpp.PresentationInterval = VSync? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE;	// 立即交换
-	m_D3Dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
-	m_D3Dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
-	if(AALevel != F2DAALEVEL_NONE && CheckMultiSample(AALevel, Windowed))
+	// --- 创建D3D9 ---
+	
+	hr = Direct3DCreate9Ex(D3D_SDK_VERSION, _d3d9Ex.GetAddressOf());
+	if (hr != S_OK)
 	{
-		// 开启抗锯齿
-		m_D3Dpp.MultiSampleQuality = 0;
-
-		// 开启抗锯齿
-		switch(AALevel)
+		throw fcyWin32COMException("f2dRenderDeviceImpl::f2dRenderDeviceImpl", "Direct3DCreate9Ex Failed.", hr);
+	}
+	hr = _d3d9Ex.As(&_d3d9);
+	if (hr != S_OK)
+	{
+		throw fcyWin32COMException("f2dRenderDeviceImpl::f2dRenderDeviceImpl", "Query interface IDirect3D9 Failed.", hr);
+	}
+	m_pD3D9 = _d3d9.Get();
+	
+	// --- 枚举可用的模式 ---
+	
+	// 清空
+	ZeroMemory(&_d3d9FullScreenSwapChainInfo, sizeof(D3DDISPLAYMODEEX));
+	_d3d9FullScreenSwapChainInfo.Size = sizeof(D3DDISPLAYMODEEX);
+	// 枚举
+	UINT modecnt = _d3d9Ex->GetAdapterModeCountEx(D3DADAPTER_DEFAULT, &g_d3d9DisplayModeFilter);
+	std::vector<D3DDISPLAYMODEEX> modes(modecnt);
+	for (UINT idx = 0; idx < modecnt; idx += 1)
+	{
+		modes[idx].Size = sizeof(D3DDISPLAYMODEEX);
+		_d3d9Ex->EnumAdapterModesEx(D3DADAPTER_DEFAULT, &g_d3d9DisplayModeFilter, idx, &modes[idx]);
+	}
+	// 查找相同的模式
+	bool findmode = false;
+	if (modecnt > 0)
+	{
+		for (int idx = (modecnt - 1); idx >= 0; idx -= 1)
 		{
-		case F2DAALEVEL_2:
-			m_D3Dpp.MultiSampleType = D3DMULTISAMPLE_2_SAMPLES;
-			break;
-		case F2DAALEVEL_4:
-			m_D3Dpp.MultiSampleType = D3DMULTISAMPLE_4_SAMPLES;
-			break;
-		case F2DAALEVEL_8:
-			m_D3Dpp.MultiSampleType = D3DMULTISAMPLE_8_SAMPLES;
-			break;
-		case F2DAALEVEL_16:
-			m_D3Dpp.MultiSampleType = D3DMULTISAMPLE_16_SAMPLES;
-			break;
-		default:
-			m_D3Dpp.MultiSampleQuality = 0;
-			break;
+			if (BackBufferWidth == modes[idx].Width && BackBufferHeight == modes[idx].Height)
+			{
+				_d3d9FullScreenSwapChainInfo = modes[idx];
+				findmode = true;
+				break;
+			}
 		}
 	}
-
-	tHR = m_pD3D9->CreateDevice(
-		D3DADAPTER_DEFAULT,
-		D3DDEVTYPE_HAL,
-		m_hWnd,
-		D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED, // 启动多线程
-		&m_D3Dpp,
-		&m_pDev
-		);
-
-	if (FAILED(tHR))
+	// 找不到，而且不是窗口模式
+	if (!findmode && !Windowed)
 	{
-		tHR = m_pD3D9->CreateDevice(
+		throw fcyException("f2dRenderDeviceImpl::f2dRenderDeviceImpl",
+			"Cannot find a valid full-screen display mode (%ux%u).", BackBufferWidth, BackBufferHeight);
+	}
+	
+	// --- 创建设备 ---
+	
+	// 填充信息
+	ZeroMemory(&_d3d9SwapChainInfo, sizeof(D3DPRESENT_PARAMETERS));
+	auto& winfo = _d3d9SwapChainInfo; {
+		winfo.BackBufferWidth            = BackBufferWidth;
+		winfo.BackBufferHeight           = BackBufferHeight;
+		winfo.BackBufferFormat           = D3DFMT_UNKNOWN; // 窗口模式下，应该自动选择交换链格式
+		winfo.BackBufferCount            = 1;
+		winfo.MultiSampleType            = D3DMULTISAMPLE_NONE;
+		winfo.MultiSampleQuality         = 0;
+		winfo.SwapEffect                 = D3DSWAPEFFECT_DISCARD;
+		winfo.hDeviceWindow              = m_hWnd;
+		winfo.Windowed                   = Windowed;
+		winfo.EnableAutoDepthStencil     = TRUE;
+		winfo.AutoDepthStencilFormat     = D3DFMT_D24S8;
+		winfo.Flags                      = 0;
+		winfo.FullScreen_RefreshRateInHz = 0;
+		winfo.PresentationInterval       = VSync ? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE;
+	};
+	
+	// 创建
+	{
+		hr = _d3d9Ex->CreateDeviceEx(
 			D3DADAPTER_DEFAULT,
 			D3DDEVTYPE_HAL,
 			m_hWnd,
-			D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED, // 启动多线程
-			&m_D3Dpp,
-			&m_pDev
-		);
+			D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED, // 启动多线程 + 硬件顶点处理
+			&_d3d9SwapChainInfo,
+			Windowed ? NULL : &_d3d9FullScreenSwapChainInfo, // 窗口模式下必须为NULL
+			_d3d9DeviceEx.GetAddressOf());
 	}
-
-	if(FAILED(tHR))
+	if (hr != S_OK)
 	{
-		FCYSAFEKILL(m_pD3D9);
-		throw fcyWin32COMException("f2dRenderDeviceImpl::f2dRenderDeviceImpl", "IDirect3D9::CreateDevice Failed.", tHR);
+		hr = _d3d9Ex->CreateDeviceEx(
+			D3DADAPTER_DEFAULT,
+			D3DDEVTYPE_HAL,
+			m_hWnd,
+			D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED, // 启动多线程 + 软件顶点处理
+			&_d3d9SwapChainInfo,
+			Windowed ? NULL : &_d3d9FullScreenSwapChainInfo, // 窗口模式下必须为NULL
+			_d3d9DeviceEx.GetAddressOf());
 	}
-	else
-		m_pSyncTestObj = new DeviceSyncTest(m_pDev);
-
+	if(hr != S_OK)
+	{
+		throw fcyWin32COMException("f2dRenderDeviceImpl::f2dRenderDeviceImpl", "IDirect3D9Ex::CreateDeviceEx Failed.", hr);
+	}
+	hr = _d3d9DeviceEx.As(&_d3d9Device);
+	if (hr != S_OK)
+	{
+		throw fcyWin32COMException("f2dRenderDeviceImpl::f2dRenderDeviceImpl", "Query interface IDirect3DDevice9 Failed.", hr);
+	}
+	m_pDev = _d3d9Device.Get();
+	// 设置帧延迟
+	_d3d9DeviceEx->SetMaximumFrameLatency(1);
+	// 创建同步设施
+	_d3d9DeviceTest = DeviceSyncTest(m_hWnd, _d3d9DeviceEx.Get());
+	
 	// --- 获取设备参数 ---
+	
+	// 清空
 	D3DADAPTER_IDENTIFIER9 tIdentify;
-	m_pD3D9->GetAdapterIdentifier(0, 0, &tIdentify);
-	m_DevName = tIdentify.Description;
-
+	ZeroMemory(&tIdentify, sizeof(D3DADAPTER_IDENTIFIER9));
+	// 获取
+	hr = _d3d9Ex->GetAdapterIdentifier(D3DADAPTER_DEFAULT, 0, &tIdentify);
+	if (hr == D3D_OK)
+	{
+		m_DevName = tIdentify.Description;
+	}
+	
 	// --- 初始化渲染状态 ---
-	m_ViewPort.Width = GetBufferWidth();
+	
+	m_ViewPort.X      = 0;
+	m_ViewPort.Y      = 0;
+	m_ViewPort.Width  = GetBufferWidth();
 	m_ViewPort.Height = GetBufferHeight();
-	m_ViewPort.MaxZ = 1.0f;
-	m_ViewPort.MinZ = 0.0f;
-	m_ViewPort.X = 0;
-	m_ViewPort.Y = 0;
-
+	m_ViewPort.MinZ   = 0.0f;
+	m_ViewPort.MaxZ   = 1.0f;
+	
 	m_ScissorRect.left = 0;
 	m_ScissorRect.top = 0;
 	m_ScissorRect.right = GetBufferWidth();
 	m_ScissorRect.bottom = GetBufferHeight();
 	
-	m_CurBlendState.BlendOp = F2DBLENDOPERATOR_ADD;
-	m_CurBlendState.SrcBlend = F2DBLENDFACTOR_SRCALPHA;
-	m_CurBlendState.DestBlend = F2DBLENDFACTOR_INVSRCALPHA;
-	m_CurBlendState.AlphaBlendOp = F2DBLENDOPERATOR_ADD;
-	m_CurBlendState.AlphaSrcBlend = F2DBLENDFACTOR_SRCALPHA;
+	m_CurBlendState.BlendOp        = F2DBLENDOPERATOR_ADD;
+	m_CurBlendState.SrcBlend       = F2DBLENDFACTOR_SRCALPHA;
+	m_CurBlendState.DestBlend      = F2DBLENDFACTOR_INVSRCALPHA;
+	m_CurBlendState.AlphaBlendOp   = F2DBLENDOPERATOR_ADD;
+	m_CurBlendState.AlphaSrcBlend  = F2DBLENDFACTOR_SRCALPHA;
 	m_CurBlendState.AlphaDestBlend = F2DBLENDFACTOR_INVSRCALPHA;
-
+	
 	m_CurTexBlendOP_Color = D3DTOP_ADD;
-
-	m_CurWorldMat = fcyMatrix4::GetIdentity();
+	
+	m_CurWorldMat  = fcyMatrix4::GetIdentity();
 	m_CurLookatMat = fcyMatrix4::GetIdentity();
-	m_CurProjMat = fcyMatrix4::GetIdentity();
-
+	m_CurProjMat   = fcyMatrix4::GetIdentity();
+	
 	initState();
 }
 
@@ -160,68 +202,61 @@ f2dRenderDeviceImpl::~f2dRenderDeviceImpl()
 	FCYSAFEKILL(m_pCurBackDepthBuffer);
 	FCYSAFEKILL(m_pBackBuffer);
 	FCYSAFEKILL(m_pBackDepthBuffer);
-
+	
 	// 删除渲染器监听链
-	ListenerNode* pListener = m_ListenerList;
-	while(pListener)
+	for (auto& v : _setEventListeners)
 	{
-		ListenerNode* p = pListener;
-
-		pListener = pListener->pNext;
-
-		{
-			// 报告可能的对象泄漏
-			char tTextBuffer[256];
-			sprintf_s(tTextBuffer, "Unrelease listener object at %p", p);
+		// 报告可能的对象泄漏
+		char tTextBuffer[256];
+		sprintf_s(tTextBuffer, "Unrelease listener object at %p", v.listener);
 #ifdef _DEBUG
-			fcyDebug::Trace("[ @ f2dRenderDeviceImpl::~f2dRenderDeviceImpl ] %s\n", tTextBuffer);
+		fcyDebug::Trace("[ @ f2dRenderDeviceImpl::~f2dRenderDeviceImpl ] %s\n", tTextBuffer);
 #endif
-			m_pEngine->ThrowException(fcyException("f2dRenderDeviceImpl::~f2dRenderDeviceImpl", tTextBuffer));
-		}
-
-		delete p;
+		m_pEngine->ThrowException(fcyException("f2dRenderDeviceImpl::~f2dRenderDeviceImpl", tTextBuffer));
 	}
+	_setEventListeners.clear();
 	
 	// 释放顶点声明
 	m_VDCache.clear();
-
-	FCYSAFEDEL(m_pSyncTestObj);
-
+	
 	// 释放DX组件
 	FCYSAFEKILL(m_pWinSurface);
-	FCYSAFEKILL(m_pDev);
-	FCYSAFEKILL(m_pD3D9);
 }
 
-HRESULT f2dRenderDeviceImpl::doReset(D3DPRESENT_PARAMETERS* pD3DPP)
+HRESULT f2dRenderDeviceImpl::doReset()
 {
-	struct _Work : public fcyRefObjImpl<f2dMainThreadDelegate>
+	struct Delegate : public f2dMainThreadDelegate
 	{
-		IDirect3DDevice9* pDev;
-		D3DPRESENT_PARAMETERS* D3DPP;
+		IDirect3DDevice9Ex* DEV;
+		D3DPRESENT_PARAMETERS D3DPP;
+		D3DDISPLAYMODEEX D3DPPEX;
 		HRESULT HR;
 		
-		void Excute() { HR = pDev->Reset(D3DPP); }
-
-		_Work(IDirect3DDevice9* p, D3DPRESENT_PARAMETERS* pp)
-			: pDev(p), D3DPP(pp), HR(D3DERR_DEVICELOST) {}
+		virtual void AddRef() {}
+		virtual void Release() {}
+		void Excute() {
+			HR = DEV->ResetEx(&D3DPP, D3DPP.Windowed ? NULL : &D3DPPEX);
+		}
+		
+		Delegate(IDirect3DDevice9Ex* device, D3DPRESENT_PARAMETERS& pp, D3DDISPLAYMODEEX& ppex) :
+			DEV(device), D3DPP(pp), D3DPPEX(ppex), HR(D3D_OK) {}
 	};
-
+	
 	if(GetCurrentThreadId() != m_CreateThreadID)
 	{
-		HRESULT tHR;
-		_Work* tWork = new _Work(m_pDev, pD3DPP);
-
-		m_pEngine->InvokeDelegateAndWait(tWork);
-
-		tHR = tWork->HR;
-		FCYSAFEKILL(tWork);
-
-		return tHR;
+		Delegate obj(_d3d9DeviceEx.Get(), _d3d9SwapChainInfo, _d3d9FullScreenSwapChainInfo);
+		m_pEngine->InvokeDelegateAndWait(&obj);
+		if (obj.HR != D3D_OK)
+		{
+			m_pEngine->ThrowException(fcyException("f2dRenderDeviceImpl::~doReset", "IDirect3DDevice9Ex::ResetEx failed (HRESULT = 0x%08X).", obj.HR));
+		}
+		return obj.HR;
 	}
 	else
 	{
-		return m_pDev->Reset(pD3DPP);
+		D3DPRESENT_PARAMETERS D3DPP = _d3d9SwapChainInfo;
+		D3DDISPLAYMODEEX D3DPPEX = _d3d9FullScreenSwapChainInfo;
+		return _d3d9DeviceEx->ResetEx(&D3DPP, D3DPP.Windowed ? NULL : &D3DPPEX);
 	}
 }
 
@@ -229,99 +264,94 @@ HRESULT f2dRenderDeviceImpl::doTestCooperativeLevel()
 {
 	if(GetCurrentThreadId() != m_CreateThreadID)
 	{
-		m_pSyncTestObj->Reset();
-		m_pEngine->InvokeDelegateAndWait(m_pSyncTestObj);
-		return m_pSyncTestObj->GetResult();
+		_d3d9DeviceTest.Reset();
+		m_pEngine->InvokeDelegateAndWait(&_d3d9DeviceTest);
+		return _d3d9DeviceTest.GetResult();
 	}
 	else
 	{
-		return m_pDev->TestCooperativeLevel();
+		return _d3d9DeviceEx->CheckDeviceState(m_hWnd);
 	}
 }
 
 void f2dRenderDeviceImpl::initState()
 {
-	// --- 初始化视口 ---
-	m_pDev->SetViewport(&m_ViewPort);
-
+	auto* ctx = _d3d9DeviceEx.Get();
+	
+	// --- 初始化视口和裁剪矩形 ---
+	
+	ctx->SetViewport(&m_ViewPort);
+	ctx->SetScissorRect(&m_ScissorRect);
+	
 	// --- 设置默认渲染状态 ---
-	m_pDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);   // 设置反面剔除
-	m_pDev->SetRenderState(D3DRS_LIGHTING, FALSE);    // 关闭光照
-	m_pDev->SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);  // 打开矩形裁剪功能
-
+	
+	ctx->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);  // 设置反面剔除
+	ctx->SetRenderState(D3DRS_LIGHTING, FALSE);         // 关闭光照
+	ctx->SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE); // 打开矩形裁剪功能
+	
 	// --- 设置ZBUFFER ---
-	m_pDev->SetRenderState(D3DRS_ZENABLE, m_bZBufferEnabled);
-	m_pDev->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
-	m_pDev->SetRenderState(D3DRS_ZFUNC, D3DCMP_LESSEQUAL);
-
+	
+	ctx->SetRenderState(D3DRS_ZENABLE, m_bZBufferEnabled);
+	ctx->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+	ctx->SetRenderState(D3DRS_ZFUNC, D3DCMP_LESSEQUAL);
+	
 	// --- 设置默认混合状态 ---
-	m_pDev->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);  // 启动Alpha混合
-	m_pDev->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, TRUE);
-
-	m_pDev->SetRenderState(D3DRS_BLENDOP, m_CurBlendState.BlendOp);
-	m_pDev->SetRenderState(D3DRS_SRCBLEND, m_CurBlendState.SrcBlend);
-	m_pDev->SetRenderState(D3DRS_DESTBLEND, m_CurBlendState.DestBlend);
-	m_pDev->SetRenderState(D3DRS_BLENDOPALPHA, m_CurBlendState.AlphaBlendOp);
-	m_pDev->SetRenderState(D3DRS_SRCBLENDALPHA, m_CurBlendState.AlphaSrcBlend);
-	m_pDev->SetRenderState(D3DRS_DESTBLENDALPHA, m_CurBlendState.AlphaDestBlend);
-
+	
+	ctx->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+	ctx->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, TRUE);
+	
+	ctx->SetRenderState(D3DRS_BLENDOP, m_CurBlendState.BlendOp);
+	ctx->SetRenderState(D3DRS_SRCBLEND, m_CurBlendState.SrcBlend);
+	ctx->SetRenderState(D3DRS_DESTBLEND, m_CurBlendState.DestBlend);
+	ctx->SetRenderState(D3DRS_BLENDOPALPHA, m_CurBlendState.AlphaBlendOp);
+	ctx->SetRenderState(D3DRS_SRCBLENDALPHA, m_CurBlendState.AlphaSrcBlend);
+	ctx->SetRenderState(D3DRS_DESTBLENDALPHA, m_CurBlendState.AlphaDestBlend);
+	
 	// --- 纹理混合参数默认值 ---
-	m_pDev->SetTextureStageState(0, D3DTSS_COLOROP,  m_CurTexBlendOP_Color);    
-	//m_pDev->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_DIFFUSE);
-	//m_pDev->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_TEXTURE);
-	m_pDev->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
-	m_pDev->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-	// --- 手动premul需要把texture放在第一个乘以texture的alpha
-	m_pDev->SetTextureStageState(0, D3DTSS_ALPHAOP,  D3DTOP_MODULATE);
-	m_pDev->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_DIFFUSE);
-	m_pDev->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_TEXTURE);
-
-	// --- 纹理寻址 ---
-	m_pDev->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-	m_pDev->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-
+	
+	ctx->SetTextureStageState(0, D3DTSS_COLOROP,  m_CurTexBlendOP_Color);    
+	//ctx->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_DIFFUSE);
+	//ctx->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_TEXTURE);
+	ctx->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
+	ctx->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
+	//手动premul需要把texture放在第一个乘以texture的alpha
+	ctx->SetTextureStageState(0, D3DTSS_ALPHAOP,  D3DTOP_MODULATE);
+	ctx->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_DIFFUSE);
+	ctx->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_TEXTURE);
+	
 	// --- 设置采样器 ---
-	// 三线性
-	m_pDev->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-	m_pDev->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);
-	m_pDev->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
-
-	// --- 其他功能 ---
-	// 设置矩形裁剪
-	m_pDev->SetScissorRect(&m_ScissorRect);
-
-	// 设置默认矩阵
-	m_pDev->SetTransform(D3DTS_WORLD, (D3DMATRIX*)&m_CurWorldMat);
-	m_pDev->SetTransform(D3DTS_VIEW, (D3DMATRIX*)&m_CurLookatMat);
-	m_pDev->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)&m_CurProjMat);
-
-	//void Test(LPDIRECT3DDEVICE9 pd3d);
-	//Test(m_pDev);
-
+	
+	ctx->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+	ctx->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+	ctx->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+	ctx->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);
+	ctx->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+	
+	// --- 设置默认变换矩阵 ---
+	
+	ctx->SetTransform(D3DTS_WORLD, (D3DMATRIX*)&m_CurWorldMat);
+	ctx->SetTransform(D3DTS_VIEW, (D3DMATRIX*)&m_CurLookatMat);
+	ctx->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)&m_CurProjMat);
 }
 
 int f2dRenderDeviceImpl::sendDevLostMsg()
 {
 	int tRet = 0;
-
-	m_pCurVertDecl = NULL;
-
+	
 	// 释放可能的对象
+	m_pCurVertDecl = NULL;
 	FCYSAFEKILL(m_pCurBackBuffer);
 	FCYSAFEKILL(m_pCurBackDepthBuffer);
 	FCYSAFEKILL(m_pBackBuffer);
 	FCYSAFEKILL(m_pBackDepthBuffer);
 	
 	// 发送丢失消息
-	ListenerNode* pListener = m_ListenerList;
-	while(pListener)
+	for (auto& v : _setEventListeners)
 	{
-		pListener->pListener->OnRenderDeviceLost();
-		pListener = pListener->pNext;
-		
-		tRet++;
+		v.listener->OnRenderDeviceLost();
+		tRet += 1;
 	}
-
+	
 	return tRet;
 }
 
@@ -330,54 +360,61 @@ int f2dRenderDeviceImpl::sendDevResetMsg()
 	int tRet = 0;
 
 	// 发送重置消息
-	ListenerNode* pListener = m_ListenerList;
-	while(pListener)
+	for (auto& v : _setEventListeners)
 	{
-		pListener->pListener->OnRenderDeviceReset();
-		pListener = pListener->pNext;
-
-		tRet++;
+		v.listener->OnRenderDeviceReset();
+		tRet += 1;
 	}
-
+	
 	return tRet;
+}
+
+int f2dRenderDeviceImpl::dispatchRenderSizeDependentResourcesCreate()
+{
+	int cnt = 0;
+	for (auto& v : _setEventListeners)
+	{
+		v.listener->OnRenderSizeDependentResourcesCreate();
+		cnt += 1;
+	}
+	return cnt;
+}
+
+int f2dRenderDeviceImpl::dispatchRenderSizeDependentResourcesDestroy()
+{
+	int cnt = 0;
+	for (auto& v : _setEventListeners)
+	{
+		v.listener->OnRenderSizeDependentResourcesDestroy();
+		cnt += 1;
+	}
+	return cnt;
 }
 
 fResult f2dRenderDeviceImpl::SyncDevice()
 {
-	HRESULT tHR = doTestCooperativeLevel();	// 设备协作测试
-	
-	if(m_bDevLost) // 设备已经丢失
-	{	
-		if(tHR == D3DERR_DEVICENOTRESET) // 尚未重置
+	// 需要重置设备
+	if (m_bDevLost)
+	{
+		HRESULT hr = doTestCooperativeLevel();
+		if (hr == S_OK)
 		{
-			tHR = doReset(&m_D3Dpp);
-
-			if(SUCCEEDED(tHR)) // 重置成功
+			// 他说可以了
+			hr = doReset();
+			if (hr == S_OK)
 			{
 				m_bDevLost = false;
-
 				initState(); // 重新初始化状态
-
 				int tObjCount = sendDevResetMsg(); // 通知非托管组件恢复工作
-
-				fChar tBuffer[256];
-				sprintf_s(tBuffer, "Device reseted. ( %d Object(s) rested. )", tObjCount);
+				char tBuffer[256] = {};
+				snprintf(tBuffer, 255, "Device reseted. ( %d Object(s) rested. )", tObjCount);
 				m_pEngine->ThrowException(fcyException("f2dRenderDeviceImpl::SyncDevice", tBuffer));
+				return FCYERR_OK;
 			}
 		}
+		return FCYERR_INTERNALERR;
 	}
-	else if(tHR == D3DERR_DEVICELOST || tHR == D3DERR_DEVICENOTRESET) 	// 设备尚未丢失，检查是否丢失
-	{
-		m_bDevLost = true; // 标记设备丢失
-		
-		int tObjCount = sendDevLostMsg();
-
-		fChar tBuffer[256];
-		sprintf_s(tBuffer, "Detected device lost. ( %d Object(s) losted. )", tObjCount);
-		m_pEngine->ThrowException(fcyException("f2dRenderDeviceImpl::SyncDevice", tBuffer));
-	}
-
-	return (m_bDevLost ? FCYERR_INTERNALERR : FCYERR_OK);
+	return FCYERR_OK;
 }
 
 fResult f2dRenderDeviceImpl::Present()
@@ -385,25 +422,32 @@ fResult f2dRenderDeviceImpl::Present()
 	// 还原当前的后台缓冲区
 	if(m_pBackBuffer)
 	{
-		m_pDev->SetRenderTarget(0, m_pBackBuffer);
-
-		// 此时vp已发生变化，跟踪新的vp
-		m_pDev->GetViewport(&m_ViewPort);
-
+		_d3d9DeviceEx->SetRenderTarget(0, m_pBackBuffer);
+		_d3d9DeviceEx->GetViewport(&m_ViewPort); // 切换渲染目标会导致视口变化，这里要刷新视口
 		FCYSAFEKILL(m_pBackBuffer);
 		FCYSAFEKILL(m_pCurBackBuffer);
 	}
 	if(m_pBackDepthBuffer)
 	{
-		m_pDev->SetDepthStencilSurface(m_pBackDepthBuffer);
+		_d3d9DeviceEx->SetDepthStencilSurface(m_pBackDepthBuffer);
 		FCYSAFEKILL(m_pBackDepthBuffer);
 		FCYSAFEKILL(m_pCurBackDepthBuffer);
 	}
-
-	if(FAILED(m_pDev->Present(0,0,0,0)))
-		return FCYERR_INTERNALERR;
-	else
-		return FCYERR_OK;
+	
+	// 呈现
+	HRESULT hr = _d3d9DeviceEx->PresentEx(NULL, NULL, NULL, NULL, 0);
+	//if (hr == D3DERR_DEVICELOST || hr == D3DERR_DEVICEHUNG || hr == D3DERR_DEVICEREMOVED)
+	if (hr != S_OK && hr != S_PRESENT_OCCLUDED && hr != S_PRESENT_MODE_CHANGED)
+	{
+		// 设备丢失，广播设备丢失事件
+		m_bDevLost = true; // 标记为设备丢失状态
+		int tObjCount = sendDevLostMsg();
+		char tBuffer[256] = {};
+		snprintf(tBuffer, 255, "Detected device lost. ( %d Object(s) losted. )", tObjCount);
+		m_pEngine->ThrowException(fcyException("f2dRenderDeviceImpl::Present", tBuffer));
+	}
+	
+	return hr == S_OK ? FCYERR_OK : FCYERR_INTERNALERR;
 }
 
 fResult f2dRenderDeviceImpl::SubmitCurGraphics(f2dGraphics* pGraph, bool bDirty)
@@ -629,7 +673,7 @@ IDirect3DVertexDeclaration9* f2dRenderDeviceImpl::RegisterVertexDeclare(f2dVerte
 
 F2DAALEVEL f2dRenderDeviceImpl::GetAALevel()
 {
-	switch(m_D3Dpp.MultiSampleType)
+	switch(_d3d9SwapChainInfo.MultiSampleType)
 	{
 	case D3DMULTISAMPLE_2_SAMPLES:
 		return F2DAALEVEL_2;
@@ -676,18 +720,19 @@ fBool f2dRenderDeviceImpl::CheckMultiSample(F2DAALEVEL AALevel, fBool Windowed)
 
 fuInt f2dRenderDeviceImpl::GetSupportResolutionCount()
 {
-	return m_pD3D9->GetAdapterModeCount(0, D3DFMT_X8R8G8B8);
+	return _d3d9Ex->GetAdapterModeCountEx(D3DADAPTER_DEFAULT, &g_d3d9DisplayModeFilter);
 }
 
 fcyVec2 f2dRenderDeviceImpl::EnumSupportResolution(fuInt Index)
 {
 	fcyVec2 tRet;
-	D3DDISPLAYMODE tMode;
-
-	if(SUCCEEDED(m_pD3D9->EnumAdapterModes(0, D3DFMT_X8R8G8B8, Index, &tMode)))
+	D3DDISPLAYMODEEX mode = {};
+	mode.Size = sizeof(D3DDISPLAYMODEEX);
+	
+	if (D3D_OK == _d3d9Ex->EnumAdapterModesEx(D3DADAPTER_DEFAULT, &g_d3d9DisplayModeFilter, Index, &mode))
 	{
-		tRet.x = (float)tMode.Width;
-		tRet.y = (float)tMode.Height;
+		tRet.x = (float)mode.Width;
+		tRet.y = (float)mode.Height;
 	}
 	
 	return tRet;
@@ -695,139 +740,125 @@ fcyVec2 f2dRenderDeviceImpl::EnumSupportResolution(fuInt Index)
 
 fResult f2dRenderDeviceImpl::SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, F2DAALEVEL AALevel)
 {
-	// 准备参数
-	D3DPRESENT_PARAMETERS tD3Dpp;
-	ZeroMemory(&tD3Dpp, sizeof(D3DPRESENT_PARAMETERS));
-
-	tD3Dpp.BackBufferCount = 1;                      // 后台缓冲页面个数
-	tD3Dpp.BackBufferWidth = Width;	                 // 缓冲页面宽度
-	tD3Dpp.BackBufferHeight = Height;                // 缓冲页面高度
-	tD3Dpp.BackBufferFormat = D3DFMT_A8R8G8B8;       // 页面格式
-	tD3Dpp.AutoDepthStencilFormat = D3DFMT_D24S8;    // 模板和Z缓冲格式
-	tD3Dpp.EnableAutoDepthStencil = true;            // 开启自动创建模板和Z缓冲
-	tD3Dpp.Windowed = Windowed;                      // 是否窗口
-	tD3Dpp.PresentationInterval = VSync? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE;	// 立即交换
-	tD3Dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
-	tD3Dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
-	if(AALevel != F2DAALEVEL_NONE)
+	// 检查参数
+	if (Width < 1 || Height < 1)
+		return FCYERR_INVAILDPARAM;
+	
+	// 备份交换链配置
+	D3DPRESENT_PARAMETERS D3DPP = _d3d9SwapChainInfo;
+	D3DDISPLAYMODEEX D3DPPEX = _d3d9FullScreenSwapChainInfo;
+	
+	// 枚举
+	UINT modecnt = _d3d9Ex->GetAdapterModeCountEx(D3DADAPTER_DEFAULT, &g_d3d9DisplayModeFilter);
+	std::vector<D3DDISPLAYMODEEX> modes(modecnt);
+	for (UINT idx = 0; idx < modecnt; idx += 1)
 	{
-		tD3Dpp.MultiSampleQuality = 0;
-
-		// 开启抗锯齿
-		switch(AALevel)
+		modes[idx].Size = sizeof(D3DDISPLAYMODEEX);
+		_d3d9Ex->EnumAdapterModesEx(D3DADAPTER_DEFAULT, &g_d3d9DisplayModeFilter, idx, &modes[idx]);
+	}
+	// 查找相同的模式
+	bool findmode = false;
+	if (modecnt > 0)
+	{
+		for (int idx = (modecnt - 1); idx >= 0; idx -= 1)
 		{
-		case F2DAALEVEL_2:
-			tD3Dpp.MultiSampleType = D3DMULTISAMPLE_2_SAMPLES;
-			break;
-		case F2DAALEVEL_4:
-			tD3Dpp.MultiSampleType = D3DMULTISAMPLE_4_SAMPLES;
-			break;
-		case F2DAALEVEL_8:
-			tD3Dpp.MultiSampleType = D3DMULTISAMPLE_8_SAMPLES;
-			break;
-		case F2DAALEVEL_16:
-			tD3Dpp.MultiSampleType = D3DMULTISAMPLE_16_SAMPLES;
-			break;
-		default:
-			tD3Dpp.MultiSampleQuality = 0;
-			break;
+			if (Width == modes[idx].Width && Height == modes[idx].Height)
+			{
+				_d3d9FullScreenSwapChainInfo = modes[idx];
+				findmode = true;
+				break;
+			}
 		}
 	}
-
-	// 销毁所有未托管对象
-	m_bDevLost = true;
-	sendDevLostMsg();
-
-	// 重设渲染系统
-	HRESULT tHR = doReset(&tD3Dpp);
-	if(FAILED(tHR))
+	// 找不到，而且不是窗口模式
+	if (!findmode && !Windowed)
 	{
-		// 设置失败，保留为丢失状态，等待循环时恢复上次状态。
+		m_pEngine->ThrowException(fcyException("f2dRenderDeviceImpl::f2dRenderDeviceImpl",
+			"Cannot find a valid full-screen display mode (%ux%u).", Width, Height));
 		return FCYERR_INVAILDPARAM;
 	}
-	else
+	
+	// 准备参数
+	auto& winfo = _d3d9SwapChainInfo; {
+		winfo.BackBufferWidth      = Width;
+		winfo.BackBufferHeight     = Height;
+		winfo.BackBufferFormat     = Windowed ? D3DFMT_UNKNOWN : _d3d9FullScreenSwapChainInfo.Format; // 窗口模式下让d3d9决定画面格式，否则必须指定格式
+		winfo.Windowed             = Windowed;
+		winfo.FullScreen_RefreshRateInHz = Windowed ? 0 : _d3d9FullScreenSwapChainInfo.RefreshRate; // 窗口模式下让d3d9决定刷新率，否则必须指定刷新率
+		winfo.PresentationInterval = VSync ? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE;
+	}
+	
+	// 首先，通知一些资源需要释放
+	dispatchRenderSizeDependentResourcesDestroy();
+	
+	HRESULT hr = doReset();
+	if (hr == D3D_OK)
 	{
-		// 成功，恢复所有状态
-		m_bDevLost = false;
-		m_D3Dpp = tD3Dpp;
-
+		// 成功，更新状态
+		
 		m_ScissorRect.left = 0;
 		m_ScissorRect.top = 0;
 		m_ScissorRect.right = GetBufferWidth();
 		m_ScissorRect.bottom = GetBufferHeight();
 
-		m_ViewPort.Width = GetBufferWidth();
-		m_ViewPort.Height = GetBufferHeight();
-		m_ViewPort.MaxZ = 1.0f;
-		m_ViewPort.MinZ = 0.0f;
 		m_ViewPort.X = 0;
 		m_ViewPort.Y = 0;
-
-		initState();
-
-		sendDevResetMsg();
-
-		return FCYERR_OK;
+		m_ViewPort.Width = GetBufferWidth();
+		m_ViewPort.Height = GetBufferHeight();
+		m_ViewPort.MinZ = 0.0f;
+		m_ViewPort.MaxZ = 1.0f;
+		
+		// 恢复资源
+		dispatchRenderSizeDependentResourcesCreate();
 	}
+	else
+	{
+		// 我们假设上一个交换链配置是有效的
+		_d3d9SwapChainInfo = D3DPP;
+		_d3d9FullScreenSwapChainInfo = D3DPPEX;
+		// 设备丢失，广播设备丢失事件
+		m_bDevLost = true; // 标记为设备丢失状态
+		int tObjCount = sendDevLostMsg();
+		char tBuffer[256] = {};
+		snprintf(tBuffer, 255, "Detected device lost. ( %d Object(s) losted. )", tObjCount);
+		m_pEngine->ThrowException(fcyException("f2dRenderDeviceImpl::SetBufferSize", tBuffer));
+	}
+	
+	return hr == D3D_OK ? FCYERR_OK : FCYERR_INTERNALERR;
 }
 
 fResult f2dRenderDeviceImpl::AttachListener(f2dRenderDeviceEventListener* Listener, fInt Priority)
 {
 	if(Listener == NULL)
 		return FCYERR_INVAILDPARAM;
-
-	ListenerNode* pNew = new ListenerNode();
-	pNew->pListener = Listener;
-	pNew->Priority = Priority;
-	pNew->pNext = m_ListenerList;
-
-	m_ListenerList = pNew;
-
-	// 对优先级进行插入排序
-	ListenerNode* p = m_ListenerList;
-	while(p->pNext && p->Priority > p->pNext->Priority)
-	{
-		ListenerNode* t = p->pNext;
-
-		std::swap(p->pListener, t->pListener);
-		std::swap(p->Priority, t->Priority);
-
-		p = t;
-	}
-
+	
+	_setEventListeners.insert({
+		_iEventListenerUUID,
+		Priority,
+		Listener,
+	});
+	_iEventListenerUUID += 1;
+	
 	return FCYERR_OK;
 }
 
 fResult f2dRenderDeviceImpl::RemoveListener(f2dRenderDeviceEventListener* Listener)
 {
-	if(m_ListenerList)
+	int ifind = 0;
+	for (auto it = _setEventListeners.begin(); it != _setEventListeners.end();)
 	{
-		if(m_ListenerList->pListener == Listener)
+		if (it->listener == Listener)
 		{
-			ListenerNode* p = m_ListenerList->pNext;
-			delete m_ListenerList;
-			m_ListenerList = p;
+			it = _setEventListeners.erase(it);
+			ifind += 1;
 		}
 		else
 		{
-			ListenerNode* p = m_ListenerList;
-			while(p)
-			{
-				ListenerNode* pNext = p->pNext;
-
-				if(pNext && pNext->pListener == Listener)
-				{
-					p->pNext = pNext->pNext;
-					delete pNext;
-					return FCYERR_OK;
-				}
-
-				p = pNext;
-			}
+			it++;
 		}
 	}
-
-	return FCYERR_OBJNOTEXSIT;
+	
+	return ifind > 0 ? FCYERR_OK : FCYERR_OBJNOTEXSIT;
 }
 
 fResult f2dRenderDeviceImpl::CreateTextureFromStream(f2dStream* pStream, fuInt Width, fuInt Height, fBool IsDynamic, fBool HasMipmap, f2dTexture2D** pOut)
@@ -1224,7 +1255,6 @@ fResult f2dRenderDeviceImpl::SetZBufferEnable(fBool v)
 	return FCYERR_OK;
 }
 
-
 fResult f2dRenderDeviceImpl::UpdateScreenToWindow(fcyColor KeyColor, fByte Alpha)
 {
 	fuInt tBackWidth = GetBufferWidth();
@@ -1358,8 +1388,6 @@ fResult f2dRenderDeviceImpl::SetTextureFilter(F2DTEXFILTERTYPE filter) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <wrl.h>
-#include <wincodec.h>
 #include "ScreenGrab9.h"
 
 fResult f2dRenderDeviceImpl::SaveScreen(fcStrW path)

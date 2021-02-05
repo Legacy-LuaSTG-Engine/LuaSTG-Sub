@@ -46,7 +46,7 @@ f2dTexture2DStatic::f2dTexture2DStatic(f2dRenderDevice* pDev, f2dStream* pStream
 		d3d9,
 		tData.data(), tData.size(),
 		(caps.MaxTextureWidth < caps.MaxTextureHeight) ? caps.MaxTextureWidth : caps.MaxTextureHeight,
-		0, D3DPOOL_MANAGED, flags,
+		0, D3DPOOL_DEFAULT, flags,
 		&m_pTex);
 	if(FAILED(tHR))
 		throw fcyWin32COMException("f2dTexture2DStatic::f2dTexture2DStatic", "DirectX::CreateWICTextureFromMemoryEx Failed.", tHR);
@@ -87,7 +87,7 @@ f2dTexture2DStatic::f2dTexture2DStatic(f2dRenderDevice* pDev, fcData pMemory, fL
 		d3d9,
 		pMemory, (size_t)Size,
 		(caps.MaxTextureWidth < caps.MaxTextureHeight) ? caps.MaxTextureWidth : caps.MaxTextureHeight,
-		0, D3DPOOL_MANAGED, flags,
+		0, D3DPOOL_DEFAULT, flags,
 		&m_pTex);
 	if (FAILED(tHR))
 		throw fcyWin32COMException("f2dTexture2DStatic::f2dTexture2DStatic", "DirectX::CreateWICTextureFromMemoryEx Failed.", tHR);
@@ -402,6 +402,16 @@ void f2dTexture2DRenderTarget::OnRenderDeviceReset()
 		m_pTex->GetSurfaceLevel(0, &m_pSurface);
 }
 
+void f2dTexture2DRenderTarget::OnRenderSizeDependentResourcesDestroy()
+{
+	OnRenderDeviceLost();
+}
+
+void f2dTexture2DRenderTarget::OnRenderSizeDependentResourcesCreate()
+{
+	OnRenderDeviceReset();
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 f2dDepthStencilSurfaceImpl::f2dDepthStencilSurfaceImpl(f2dRenderDevice* pDev, fuInt Width, fuInt Height, fBool AutoResize, fBool Discard)
@@ -446,6 +456,16 @@ void f2dDepthStencilSurfaceImpl::OnRenderDeviceReset()
 	}
 
 	((IDirect3DDevice9*)m_pParent->GetHandle())->CreateDepthStencilSurface(m_Width, m_Height, D3DFMT_D24S8, D3DMULTISAMPLE_NONE, 0, m_bDiscard, &m_pSurface, NULL);
+}
+
+void f2dDepthStencilSurfaceImpl::OnRenderSizeDependentResourcesDestroy()
+{
+	OnRenderDeviceLost();
+}
+
+void f2dDepthStencilSurfaceImpl::OnRenderSizeDependentResourcesCreate()
+{
+	OnRenderDeviceReset();
 }
 
 void* f2dDepthStencilSurfaceImpl::GetHandle()

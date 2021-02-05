@@ -37,6 +37,11 @@ target_sources(fancy2d PRIVATE
     f2dRenderer.h
     f2dVideoSys.h
     
+    Common/f2dStandardCommon.hpp
+    Common/f2dStandardCommon.cpp
+    Common/f2dWindowsCommon.h
+    Common/f2dWindowsCommon.cpp
+    
     Engine/f2dMsgPumpImpl.h
     Engine/f2dFPSControllerImpl.h
     Engine/f2dEngineImpl.h

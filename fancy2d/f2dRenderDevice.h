@@ -628,10 +628,16 @@ enum F2DAALEVEL
 struct f2dRenderDeviceEventListener
 {
 	/// @brief 设备丢失事件
-	virtual void OnRenderDeviceLost(){}
+	virtual void OnRenderDeviceLost() {}
 
 	/// @brief 设备重置事件
-	virtual void OnRenderDeviceReset(){}
+	virtual void OnRenderDeviceReset() {}
+	
+	// 与渲染大小（窗口大小、DPI缩放、交换链旋转、交换链大小）相关的资源需要释放
+	virtual void OnRenderSizeDependentResourcesDestroy() {}
+	
+	// 与渲染大小（窗口大小、DPI缩放、交换链旋转、交换链大小）相关的资源需要创建
+	virtual void OnRenderSizeDependentResourcesCreate() {}
 };
 
 ////////////////////////////////////////////////////////////////////////////////

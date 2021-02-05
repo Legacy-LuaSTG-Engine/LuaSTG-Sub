@@ -3,13 +3,10 @@
 /// @brief fancy2D渲染设备接口实现
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
-#include "fcyIO/fcyStream.h"
 #include "fcyException.h"
-
+#include "fcyIO/fcyStream.h"
 #include "f2dRenderDevice.h"
-
-#include <d3d9.h>
-#include <d3dx9.h>
+#include "Common/f2dWindowsCommon.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief d3d9显式加载

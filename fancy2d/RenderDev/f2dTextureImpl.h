@@ -97,6 +97,8 @@ public: // 内部公开接口
 public: // 设备丢失
 	void OnRenderDeviceLost();
 	void OnRenderDeviceReset();
+	void OnRenderSizeDependentResourcesDestroy();
+	void OnRenderSizeDependentResourcesCreate();
 public: // 接口实现
 	void* GetHandle() { return m_pTex; }
 	fuInt GetDimension() { return 2; }
@@ -136,6 +138,8 @@ private:
 public: // 设备丢失
 	void OnRenderDeviceLost();
 	void OnRenderDeviceReset();
+	void OnRenderSizeDependentResourcesDestroy();
+	void OnRenderSizeDependentResourcesCreate();
 public: // 接口实现
 	void* GetHandle();
 	fuInt GetWidth();
