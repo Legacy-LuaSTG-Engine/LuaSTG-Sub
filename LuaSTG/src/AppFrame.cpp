@@ -3,7 +3,6 @@
 #include "d3d9.h"  // for SetFog
 #include "resource.h"
 
-#include "SystemDirectory.hpp"
 #include "AppFrame.h"
 #include "Utility.h"
 #include "SteamAPI.hpp"

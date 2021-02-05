@@ -3,7 +3,7 @@
 #include "LogSystem.h"
 #include "Config.h"
 #include "Utility.h"
-#include "SystemDirectory.hpp"
+#include "Common/SystemDirectory.hpp"
 
 #define LOGSYS_COMPANY APP_COMPANY
 #define LOGSYS_PRODUCT APP_PRODUCT
@@ -12,7 +12,7 @@
 namespace LuaSTGPlus {
 	bool checkDirectory(std::wstring& out) {
 		std::wstring path; // APPDATA
-		if (app::makeApplicationRoamingAppDataDirectory(APP_COMPANY, APP_PRODUCT, path))
+		if (windows::makeApplicationRoamingAppDataDirectory(APP_COMPANY, APP_PRODUCT, path))
 		{
 			out.append(path);
 			out.push_back(L'\\');

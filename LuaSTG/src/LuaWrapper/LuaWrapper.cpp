@@ -1,6 +1,6 @@
 ﻿#include "LuaWrapper/LuaWrapper.hpp"
 #include "Utility.h"
-#include "SystemDirectory.hpp"
+#include "Common/SystemDirectory.hpp"
 
 namespace LuaSTGPlus
 {
@@ -13,7 +13,7 @@ namespace LuaSTGPlus
 				{
 					try {
 						std::wstring wpath;
-						if (app::getLocalAppDataDirectory(wpath))
+						if (windows::getLocalAppDataDirectory(wpath))
 						{
 							std::string path = fcyStringHelper::WideCharToMultiByte(wpath, CP_UTF8);
 							lua_pushstring(L, path.c_str());
@@ -32,7 +32,7 @@ namespace LuaSTGPlus
 				{
 					try {
 						std::wstring wpath;
-						if (app::getRoamingAppDataDirectory(wpath))
+						if (windows::getRoamingAppDataDirectory(wpath))
 						{
 							std::string path = fcyStringHelper::WideCharToMultiByte(wpath, CP_UTF8);
 							lua_pushstring(L, path.c_str());

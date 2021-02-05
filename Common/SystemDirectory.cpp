@@ -1,24 +1,30 @@
-﻿#include "SystemDirectory.hpp"
+﻿#include "Common/SystemDirectory.hpp"
 #include <Windows.h>
 #include <Shobjidl.h>
 #include <Knownfolders.h>
 
-namespace app {
-	bool getDirectory(const KNOWNFOLDERID& id, std::wstring& out) {
+namespace windows
+{
+	inline bool getDirectory(const KNOWNFOLDERID& id, std::wstring& out)
+	{
+		out.clear();
 		bool ok = false;
-		HRESULT hr;
-		IKnownFolderManager* manager;
-		hr = CoCreateInstance(CLSID_KnownFolderManager, nullptr, CLSCTX_INPROC_SERVER, IID_IKnownFolderManager, (LPVOID*)&manager);
-		if (hr == S_OK) {
-			IKnownFolder* folder;
+		HRESULT hr = S_OK;
+		IKnownFolderManager* manager = NULL;
+		hr = ::CoCreateInstance(CLSID_KnownFolderManager, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&manager));
+		if (hr == S_OK)
+		{
+			IKnownFolder* folder = NULL;
 			hr = manager->GetFolder(id, &folder);
-			if (hr == S_OK) {
+			if (hr == S_OK)
+			{
 				LPWSTR str = NULL;
 				hr = folder->GetPath(0, &str);
-				if (hr == S_OK && str != NULL) {
+				if (hr == S_OK && str != NULL)
+				{
 					out = str;
 					ok = true;
-					CoTaskMemFree(str);
+					::CoTaskMemFree(str);
 				}
 				folder->Release();
 			}
@@ -27,11 +33,13 @@ namespace app {
 		return ok;
 	}
 	
-	bool getLocalAppDataDirectory(std::wstring& out) {
+	bool getLocalAppDataDirectory(std::wstring& out)
+	{
 		return getDirectory(FOLDERID_LocalAppData, out);
 	}
 	
-	bool getRoamingAppDataDirectory(std::wstring& out) {
+	bool getRoamingAppDataDirectory(std::wstring& out)
+	{
 		return getDirectory(FOLDERID_RoamingAppData, out);
 	}
 	
@@ -40,22 +48,24 @@ namespace app {
 		out.clear();
 		if (!getRoamingAppDataDirectory(out))
 		{
-			out.clear();
 			return false;
 		}
+		
 		BOOL ret = FALSE;
+		
 		out.push_back(L'\\');
 		out.append(company);
-		ret = CreateDirectoryW(out.c_str(), NULL);
-		if ((ret == FALSE) && (GetLastError() != ERROR_ALREADY_EXISTS))
+		ret = ::CreateDirectoryW(out.c_str(), NULL);
+		if ((ret == FALSE) && (::GetLastError() != ERROR_ALREADY_EXISTS))
 		{
 			out.clear();
 			return false;
 		}
+		
 		out.push_back(L'\\');
 		out.append(product);
-		ret = CreateDirectoryW(out.c_str(), NULL);
-		if ((ret == FALSE) && (GetLastError() != ERROR_ALREADY_EXISTS))
+		ret = ::CreateDirectoryW(out.c_str(), NULL);
+		if ((ret == FALSE) && (::GetLastError() != ERROR_ALREADY_EXISTS))
 		{
 			out.clear();
 			return false;
