@@ -297,7 +297,7 @@ const DIOBJECTDATAFORMAT f2dInputKeyboardImpl::DIODF_Keyboard[256] =
 f2dInputKeyboardImpl::f2dInputKeyboardImpl(f2dInputSysImpl* pSys, HWND Win, const GUID& pGUID, fBool bGlobalFocus)
 	: m_pSys(pSys), m_pDev(NULL), m_DefaultListener(pSys), m_pListener(&m_DefaultListener)
 {
-	IDirectInput8* pDev = pSys->GetHandle();
+	IDirectInput8W* pDev = pSys->GetHandle();
 
 	memset(m_ButtonState, 0, sizeof(m_ButtonState));
 
@@ -469,7 +469,7 @@ const fuInt f2dInputKeyboardImpl2::BufferSize = 64;
 f2dInputKeyboardImpl2::f2dInputKeyboardImpl2(f2dInputSysImpl* pSys, HWND Win, const GUID& pGUID, fBool bGlobalFocus)
 	: m_pSys(pSys), m_pDev(NULL), m_DefaultListener(pSys), m_pListener(&m_DefaultListener)
 {
-	IDirectInput8* pDev = pSys->GetHandle();
+	IDirectInput8W* pDev = pSys->GetHandle();
 
 	memset(m_ButtonState, 0, sizeof(m_ButtonState));
 

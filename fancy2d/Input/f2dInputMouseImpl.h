@@ -5,10 +5,8 @@
 #pragma once
 #include "fcyRefObj.h"
 #include "fcyIO\fcyStream.h"
-
 #include "f2dInputSys.h"
-
-#include "Input/f2dInputSysAPI.h"
+#include "Common/f2dWindowsCommon.h"
 
 class f2dEngineImpl;
 
@@ -42,11 +40,9 @@ protected:
 	};
 private:
 	static const fuInt BufferSize;
-	static const DIDATAFORMAT DIDF_Mouse;
-	static const DIOBJECTDATAFORMAT DIODF_Mouse[7];
 private:
 	f2dInputSysImpl* m_pSys;
-	IDirectInputDevice8* m_pDev;
+	IDirectInputDevice8W* m_pDev;
 	DefaultListener m_DefaultListener;
 	f2dInputMouseEventListener* m_pListener;
 	

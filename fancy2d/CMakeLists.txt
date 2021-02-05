@@ -129,12 +129,13 @@ target_link_directories(fancy2d PRIVATE
 target_link_libraries(fancy2d PRIVATE
     strmiids.lib #???
     strmbasd #!!!
-    dxguid.lib
     d3dx9.lib
     
     winmm.lib
     imm32.lib
+    dxguid.lib
     d3d9.lib
+    dinput8.lib
     DirectXToolkit
     zlib
     freetype

@@ -69,31 +69,14 @@ void f2dInputMouseImpl::DefaultListener::OnMouseAdditionBtnUp(fuInt Index)
 
 const fuInt f2dInputMouseImpl::BufferSize = 32;
 
-const DIDATAFORMAT f2dInputMouseImpl::DIDF_Mouse = 
-{
-	24, 16, 2, 16, 7,
-	(LPDIOBJECTDATAFORMAT)&f2dInputMouseImpl::DIODF_Mouse
-};
-
-const DIOBJECTDATAFORMAT f2dInputMouseImpl::DIODF_Mouse[7] = 
-{
-	{ &GUID_XAxis, 0, 0x00FFFF03, 0 },
-	{ &GUID_YAxis, 4, 0x00FFFF03, 0 },
-	{ &GUID_ZAxis, 8, 0x80FFFF03, 0 },
-	{ 0, 12, 0x00FFFF0C, 0 },
-	{ 0, 13, 0x00FFFF0C, 0 },  
-	{ 0, 14, 0x80FFFF0C, 0 },
-	{ 0, 15, 0x80FFFF0C, 0 }
-};
-
 f2dInputMouseImpl::f2dInputMouseImpl(f2dInputSysImpl* pSys, HWND Win, const GUID& pGUID, fBool bGlobalFocus)
 	: m_pSys(pSys), m_pDev(NULL), m_DefaultListener(pSys), m_pListener(&m_DefaultListener),
 	m_TotalOffsetX(0), m_TotalOffsetY(0), m_TotalOffsetZ(0)
 {
-	IDirectInput8* pDev = pSys->GetHandle();
-
+	IDirectInput8W* pDev = pSys->GetHandle();
+	
 	memset(m_BtnState, 0, sizeof(m_BtnState));
-
+	
 	HRESULT tHR = pDev->CreateDevice(pGUID, &m_pDev, NULL);
 	if(FAILED(tHR))
 		throw fcyWin32COMException("f2dInputMouseImpl::f2dInputMouseImpl", "CreateDevice Failed.", tHR);

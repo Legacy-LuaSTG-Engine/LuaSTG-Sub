@@ -60,67 +60,13 @@ void f2dInputJoystickImpl::DefaultListener::OnJoystickZAxisRotationChange(f2dInp
 
 const fuInt f2dInputJoystickImpl::BufferSize = 32;
 
-const DIDATAFORMAT f2dInputJoystickImpl::DIDF_Joystick = 
-{
-	24, 16, 1, 80, 44,
-	(LPDIOBJECTDATAFORMAT)&f2dInputJoystickImpl::DIODF_Joystick
-};
-
-const DIOBJECTDATAFORMAT f2dInputJoystickImpl::DIODF_Joystick[44] = 
-{
-	{ &GUID_XAxis, 0, 2164260611, 256 },
-	{ &GUID_YAxis, 4, 2164260611, 256 },
-	{ &GUID_ZAxis, 8, 2164260611, 256 },
-	{ &GUID_RxAxis, 12, 2164260611, 256 },
-	{ &GUID_RyAxis, 16, 2164260611, 256 },
-	{ &GUID_RzAxis, 20, 2164260611, 256 },
-	{ &GUID_Slider, 24, 2164260611, 256 },
-	{ &GUID_Slider, 28, 2164260611, 256 },
-	{ &GUID_POV, 32, 2164260624, 0 },
-	{ &GUID_POV, 36, 2164260624, 0 },
-	{ &GUID_POV, 40, 2164260624, 0 },
-	{ &GUID_POV, 44, 2164260624, 0 },
-	{ 00000000, 48, 2164260620, 0 },
-	{ 00000000, 49, 2164260620, 0 },
-	{ 00000000, 50, 2164260620, 0 },
-	{ 00000000, 51, 2164260620, 0 },
-	{ 00000000, 52, 2164260620, 0 },
-	{ 00000000, 53, 2164260620, 0 },
-	{ 00000000, 54, 2164260620, 0 },
-	{ 00000000, 55, 2164260620, 0 },
-	{ 00000000, 56, 2164260620, 0 },
-	{ 00000000, 57, 2164260620, 0 },
-	{ 00000000, 58, 2164260620, 0 },
-	{ 00000000, 59, 2164260620, 0 },
-	{ 00000000, 60, 2164260620, 0 },
-	{ 00000000, 61, 2164260620, 0 },
-	{ 00000000, 62, 2164260620, 0 },
-	{ 00000000, 63, 2164260620, 0 },
-	{ 00000000, 64, 2164260620, 0 },
-	{ 00000000, 65, 2164260620, 0 },
-	{ 00000000, 66, 2164260620, 0 },
-	{ 00000000, 67, 2164260620, 0 },
-	{ 00000000, 68, 2164260620, 0 },
-	{ 00000000, 69, 2164260620, 0 },
-	{ 00000000, 70, 2164260620, 0 },
-	{ 00000000, 71, 2164260620, 0 },
-	{ 00000000, 72, 2164260620, 0 },
-	{ 00000000, 73, 2164260620, 0 },
-	{ 00000000, 74, 2164260620, 0 },
-	{ 00000000, 75, 2164260620, 0 },
-	{ 00000000, 76, 2164260620, 0 },
-	{ 00000000, 77, 2164260620, 0 },
-	{ 00000000, 78, 2164260620, 0 },
-	{ 00000000, 79, 2164260620, 0 }
-};
-
 f2dInputJoystickImpl::f2dInputJoystickImpl(f2dInputSysImpl* pSys, HWND Win, const GUID& pGUID, bool bGlobalFocus)
 	: m_pSys(pSys), m_pDev(NULL), m_DefaultListener(pSys), m_pListener(&m_DefaultListener),
 	m_lXHalf(0), m_lXHalfLen(0), m_lYHalf(0), m_lYHalfLen(0), m_lZHalf(0), m_lZHalfLen(0), 
 	m_lRxHalf(0), m_lRxHalfLen(0), m_lRyHalf(0), m_lRyHalfLen(0), m_lRzHalf(0), m_lRzHalfLen(0),
 	m_lX(0.f), m_lY(0.f), m_lZ(0.f), m_lRx(0.f), m_lRy(0.f), m_lRz(0.f)
 {
-	IDirectInput8* pDev = pSys->GetHandle();
+	IDirectInput8W* pDev = pSys->GetHandle();
 
 	memset(m_ButtonDown, 0, sizeof(m_ButtonDown));
 	memset(m_Slider, 0, sizeof(m_Slider));
@@ -144,7 +90,7 @@ f2dInputJoystickImpl::f2dInputJoystickImpl(f2dInputSysImpl* pSys, HWND Win, cons
 	}
 
     // 设置数据格式
-	tHR = m_pDev->SetDataFormat(&DIDF_Joystick);
+	tHR = m_pDev->SetDataFormat(&c_dfDIJoystick);
 	if(FAILED(tHR))
 	{
 		FCYSAFEKILL(m_pDev);

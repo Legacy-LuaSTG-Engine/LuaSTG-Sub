@@ -5,10 +5,8 @@
 #pragma once
 #include "fcyRefObj.h"
 #include "fcyIO\fcyStream.h"
-
 #include "f2dInputSys.h"
-
-#include "Input/f2dInputSysAPI.h"
+#include "Common/f2dWindowsCommon.h"
 
 class f2dEngineImpl;
 
@@ -33,11 +31,11 @@ protected:
 	};
 private:
 	static const fuInt BufferSize; 
-	static const DIDATAFORMAT DIDF_Keyboard;
+	static const DIDATAFORMAT DIDF_Keyboard; // 这个是映射成窗口消息的VK的，不能随便删
 	static const DIOBJECTDATAFORMAT DIODF_Keyboard[256];
 private:
 	f2dInputSysImpl* m_pSys;
-	IDirectInputDevice8* m_pDev;
+	IDirectInputDevice8W* m_pDev;
 	DefaultListener m_DefaultListener;
 	f2dInputKeyboardEventListener* m_pListener;
 	fBool m_ButtonState[256];
@@ -79,7 +77,7 @@ private:
 	static const fuInt BufferSize;
 private:
 	f2dInputSysImpl* m_pSys;
-	IDirectInputDevice8* m_pDev;
+	IDirectInputDevice8W* m_pDev;
 	DefaultListener m_DefaultListener;
 	f2dInputKeyboardEventListener* m_pListener;
 	fBool m_ButtonState[256];

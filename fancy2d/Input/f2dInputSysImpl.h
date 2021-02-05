@@ -3,11 +3,9 @@
 /// @brief fancy2D输入系统实现
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
-#include "Input/f2dInputSysAPI.h"
-
 #include "f2dInputSys.h"
-
-#include <vector>
+#include "Common/f2dStandardCommon.hpp"
+#include "Common/f2dWindowsCommon.h"
 
 class f2dEngineImpl;
 
@@ -19,15 +17,13 @@ class f2dInputSysImpl :
 {
 private:
 	f2dEngineImpl* m_pEngine;
-
-	f2dInputSysAPI m_API;
-
-	IDirectInput8* m_pDInput;
+	
+	IDirectInput8W* m_pDInput;
 	HWND m_hWinHandle;
 	std::vector<DIDEVICEINSTANCEW> m_MouseList;    // 鼠标列表
 	std::vector<DIDEVICEINSTANCEW> m_KeyboardList; // 键盘列表
 	std::vector<DIDEVICEINSTANCEW> m_GameCtrlList; // 控制器列表
-
+	
 	std::vector<f2dInputDevice*> m_pObjList;       // 设备列表
 private:
 	static BOOL PASCAL enumMouse(LPCDIDEVICEINSTANCE pInfo, void* pThis);    // 枚举鼠标
@@ -40,12 +36,12 @@ public:  // 内部方法
 	{
 		return m_pEngine;
 	}
-
-	IDirectInput8* GetHandle()
+	
+	IDirectInput8W* GetHandle()
 	{
 		return m_pDInput;
 	}
-
+	
 	void RegisterDevice(f2dInputDevice* pDev)
 	{
 		m_pObjList.push_back(pDev);

@@ -5,10 +5,8 @@
 #pragma once
 #include "fcyRefObj.h"
 #include "fcyIO\fcyStream.h"
-
 #include "f2dInputSys.h"
-
-#include "Input/f2dInputSysAPI.h"
+#include "Common/f2dWindowsCommon.h"
 
 class f2dEngineImpl;
 
@@ -39,14 +37,12 @@ protected:
 	};
 private:
 	static const fuInt BufferSize;
-	static const DIDATAFORMAT DIDF_Joystick;
-	static const DIOBJECTDATAFORMAT DIODF_Joystick[44];
 private:
 	f2dInputSysImpl* m_pSys;
-	IDirectInputDevice8* m_pDev;
+	IDirectInputDevice8W* m_pDev;
 	DefaultListener m_DefaultListener;
 	f2dInputJoystickEventListener* m_pListener;
-
+	
 	// 范围值
 	int m_lXHalf;
 	int m_lXHalfLen;
@@ -60,17 +56,17 @@ private:
 	int m_lRyHalfLen;
 	int m_lRzHalf;
 	int m_lRzHalfLen;
-
+	
 	// 状态
 	float m_lX;               // X轴位置
-    float m_lY;               // Y轴位置
-    float m_lZ;               // Z轴位置
-    float m_lRx;              // X轴旋转
-    float m_lRy;              // Y轴旋转
-    float m_lRz;              // Z轴旋转
+	float m_lY;               // Y轴位置
+	float m_lZ;               // Z轴位置
+	float m_lRx;              // X轴旋转
+	float m_lRy;              // Y轴旋转
+	float m_lRz;              // Z轴旋转
 	bool m_ButtonDown[32];    // 按钮状态
 	int m_Slider[2];          // Slider
-	fuInt m_POV[4];            // POV
+	fuInt m_POV[4];           // POV
 private:
 	void initStates();
 public:

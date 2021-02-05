@@ -37,8 +37,7 @@ BOOL PASCAL f2dInputSysImpl::enumGameCtrl(LPCDIDEVICEINSTANCE pInfo, void* pThis
 f2dInputSysImpl::f2dInputSysImpl(f2dEngineImpl* pEngine)
 	: m_pEngine(pEngine), m_hWinHandle((HWND)pEngine->GetMainWindow()->GetHandle()), m_pDInput(NULL)
 {
-	HRESULT tHR = m_API.DLLEntry_DirectInput8Create( GetModuleHandle(NULL), DIRECTINPUT_VERSION,
-		IID_IDirectInput8, (VOID**)&m_pDInput, NULL );
+	HRESULT tHR = DirectInput8Create(GetModuleHandleW(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8W, (LPVOID*)&m_pDInput, NULL);
 	if(FAILED(tHR))
 		throw fcyWin32COMException("f2dInputSysImpl::f2dInputSysImpl", "DirectInput8Create Failed.", tHR);
 
