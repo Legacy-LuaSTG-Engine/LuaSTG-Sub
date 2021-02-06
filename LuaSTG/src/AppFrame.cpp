@@ -1586,6 +1586,7 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 				m_LastKey = (fInt)tMsg.Param1;
 				m_KeyStateMap[tMsg.Param1] = true;
 			}
+			break;
 		}
 		case F2DMSG_WINDOW_ONKEYUP:
 		{
