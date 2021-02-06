@@ -275,6 +275,9 @@ struct f2dWindow
 
 	/// @brief 返回候选词
 	virtual fcStrW GetIMECandidate(fuInt Index)=0;
+	
+	// 获取窗口的DPI缩放
+	virtual float GetDPIScaling()=0;
 };
 
 /// @}

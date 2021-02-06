@@ -16,6 +16,8 @@ namespace native
     
     namespace Windows
     {
+        constexpr unsigned int WM_DPICHANGED_T = 0x02E0;
+        
         struct RECT
         {
             long left;

@@ -21,6 +21,7 @@ target_include_directories(fancy2d PUBLIC
     .
 )
 target_include_directories(fancy2d PRIVATE
+    ../
     ../prebuild/dxsdk/include
 )
 
@@ -37,6 +38,10 @@ target_sources(fancy2d PRIVATE
     f2dRenderer.h
     f2dVideoSys.h
     
+    Common/fancy2d.manifest
+    
+    ../Common/DPIHelper.hpp
+    ../Common/DPIHelper.cpp
     Common/f2dStandardCommon.hpp
     Common/f2dStandardCommon.cpp
     Common/f2dWindowsCommon.h

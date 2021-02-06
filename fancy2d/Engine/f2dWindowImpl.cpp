@@ -2,6 +2,7 @@
 #include "Engine/f2dWindowImpl.h"
 #include "Engine/f2dEngineImpl.h"
 
+#include "Common/DPIHelper.hpp"
 #include <fcyException.h>
 #include <fcyOS/fcyDebug.h>
 #include <Dbt.h> // DBT_DEVNODES_CHANGED
@@ -62,18 +63,6 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 		}
 		break;
 	
-	#ifdef _FANCY2D_IME_ENABLE
-	case WM_CREATE:
-		// 初始化IME上下文
-		pWindow->HandleIMELanguageChanged();
-		pWindow->InitIMEContext();
-		break;
-	case WM_DESTROY:
-		// 销毁IME上下文
-		pWindow->UninitIMEContext();
-		break;
-	#endif
-	
 	// 由系统发送的消息
 	
 	case WM_ACTIVATEAPP:
@@ -86,9 +75,27 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 			if(pListener) pListener->OnLostFocus();
 		}
 		break;
+	case WM_CREATE:
+		{
+			native::enableNonClientDpiScaling(Handle);
+			#ifdef _FANCY2D_IME_ENABLE
+			// 初始化IME上下文
+			pWindow->HandleIMELanguageChanged();
+			pWindow->InitIMEContext();
+			#endif
+		}
+		break;
+	case WM_DESTROY:
+		{
+			#ifdef _FANCY2D_IME_ENABLE
+			// 销毁IME上下文
+			pWindow->UninitIMEContext();
+			#endif
+		}
+		break;
 	case WM_CLOSE:
 		if(pListener) pListener->OnClose();
-		return 0; // 不应该继续传递
+		break;
 	case WM_PAINT:
 		if(pListener) pListener->OnPaint();
 		break;
@@ -142,18 +149,24 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 		if(pListener) pListener->OnMouseMBDouble(LOWORD(lParam),HIWORD(lParam),wParam);
 		break;
 	case WM_SETFOCUS:
-		#ifdef _FANCY2D_IME_ENABLE
-		pWindow->HandleIMELanguageChanged();
-		#endif
-		//if(pListener) pListener->OnGetFocus();
+		{
+			#ifdef _FANCY2D_IME_ENABLE
+			pWindow->HandleIMELanguageChanged();
+			#endif
+		}
 		break;
 	case WM_KILLFOCUS:
-		//if(pListener) pListener->OnLostFocus();
 		break;
 	case WM_DEVICECHANGE:
 		if (wParam == DBT_DEVNODES_CHANGED)
 		{
 			if(pListener) pListener->OnDeviceChange();
+		}
+		break;
+	case native::Windows::WM_DPICHANGED_T:
+		{
+			pWindow->SetClientRect(pWindow->GetClientRect()); // 刷新一次尺寸（因为非客户区可能会变化）
+			pWindow->MoveToCenter();
 		}
 		break;
 	
@@ -243,6 +256,16 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 	if (pWindow->HandleNativeMessageCallback(Handle, Msg, wParam, lParam))
 		return TRUE;
 	
+	// 某些消息不该继续传递
+	switch (Msg)
+	{
+	case WM_CLOSE:
+	case native::Windows::WM_DPICHANGED_T:
+		return 0;
+	default:
+		break;
+	};
+	
 	// 处理消息返回值
 	return DefWindowProcW(Handle, Msg, wParam, lParam);
 }
@@ -250,6 +273,8 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 f2dWindowClass::f2dWindowClass(f2dEngineImpl* pEngine, fcStrW ClassName)
 	: m_pEngine(pEngine), m_ClsName(ClassName)
 {
+	native::enableDpiAwareness();
+	
 	m_WndClass.cbSize = sizeof(WNDCLASSEXW);
 	m_WndClass.style = CS_HREDRAW | CS_VREDRAW;
 	m_WndClass.lpfnWndProc = WndProc;
@@ -569,31 +594,25 @@ f2dWindowImpl::f2dWindowImpl(f2dEngineImpl* pEngine, f2dWindowClass* WinCls, con
 	default:
 		throw fcyException("f2dWindowImpl::f2dWindowImpl", "Invalid F2DWINBORDERTYPE.");
 	}
-
-	// 计算窗口大小
-	RECT tWinRect = { (int)Pos.a.x , (int)Pos.a.y , (int)Pos.b.x , (int)Pos.b.y};
-	AdjustWindowRectEx(&tWinRect, tWinStyle, FALSE, 0);
-	fuInt tRealWidth = tWinRect.right  - tWinRect.left ;
-	fuInt tRealHeight = tWinRect.bottom  - tWinRect.top;
 	
 	// 创建窗口
-	m_hWnd = CreateWindowExW(
-		0,
-		WinCls->GetName(),
-		m_CaptionText.c_str(),
-		tWinStyle,
-		tWinRect.left,
-		tWinRect.top,
-		tRealWidth,
-		tRealHeight,
-		NULL,
-		NULL,
-		GetModuleHandleW(NULL),
-		NULL
-		);
-	
+	m_hWnd = ::CreateWindowExW(
+		0, WinCls->GetName(), m_CaptionText.c_str(), tWinStyle,
+		0, 0, 640, 480,
+		NULL, NULL, ::GetModuleHandleW(NULL), this);
 	if(!m_hWnd)
 		throw fcyWin32Exception("f2dWindowImpl::f2dWindowImpl", "CreateWindowEx Failed.");
+	
+	// 注册窗口
+	f2dWindowClass::s_WindowCallBack[m_hWnd] = this;
+	
+	// 调整窗口大小
+	RECT tWinRect = { (LONG)Pos.a.x , (LONG)Pos.a.y , (LONG)Pos.b.x , (LONG)Pos.b.y};
+	native::Windows::AdjustWindowRectExForDpi(&tWinRect, tWinStyle, FALSE, 0, native::getDpiForWindow(m_hWnd));
+	::SetWindowPos(
+		m_hWnd, NULL,
+		tWinRect.left, tWinRect.top, tWinRect.right - tWinRect.left, tWinRect.bottom - tWinRect.top,
+		SWP_NOZORDER);
 	
 	// 获取默认输入法上下文
 	_defaultIMC = NULL;
@@ -605,9 +624,6 @@ f2dWindowImpl::f2dWindowImpl(f2dEngineImpl* pEngine, f2dWindowClass* WinCls, con
 		_enableIME = true;
 	}
 	
-	// 注册窗口
-	f2dWindowClass::s_WindowCallBack[m_hWnd] = this;
-
 	// 显示窗口
 	if(m_bShow)
 	{
@@ -821,7 +837,7 @@ fInt f2dWindowImpl::GetHandle()
 
 F2DWINBORDERTYPE f2dWindowImpl::GetBorderType()
 {
-	fuInt tStyle = GetWindowLongPtr(m_hWnd, GWL_STYLE);
+	fuInt tStyle = GetWindowLongPtrW(m_hWnd, GWL_STYLE);
 	switch(tStyle)
 	{
 	case F2DWINDOWSTYLENONEBORDER:
@@ -840,13 +856,13 @@ fResult f2dWindowImpl::SetBorderType(F2DWINBORDERTYPE Type)
 	switch(Type)
 	{
 	case F2DWINBORDERTYPE_NONE:
-		SetWindowLongPtr(m_hWnd, GWL_STYLE, F2DWINDOWSTYLENONEBORDER);
+		SetWindowLongPtrW(m_hWnd, GWL_STYLE, F2DWINDOWSTYLENONEBORDER);
 		break;
 	case F2DWINBORDERTYPE_FIXED:
-		SetWindowLongPtr(m_hWnd, GWL_STYLE, F2DWINDOWSTYLEFIXEDBORDER);
+		SetWindowLongPtrW(m_hWnd, GWL_STYLE, F2DWINDOWSTYLEFIXEDBORDER);
 		break;
 	case F2DWINBORDERTYPE_SIZEABLE:
-		SetWindowLongPtr(m_hWnd, GWL_STYLE, F2DWINDOWSTYLESIZEABLEBORDER);
+		SetWindowLongPtrW(m_hWnd, GWL_STYLE, F2DWINDOWSTYLESIZEABLEBORDER);
 		break;
 	default:
 		return FCYERR_ILLEGAL;
@@ -854,8 +870,8 @@ fResult f2dWindowImpl::SetBorderType(F2DWINBORDERTYPE Type)
 
 	SetWindowPos(m_hWnd, NULL, 0, 0, 0, 0,
 		m_bShow
-			? SWP_SHOWWINDOW | SWP_NOZORDER | SWP_FRAMECHANGED | SWP_NOSIZE | SWP_NOMOVE
-			: SWP_NOZORDER | SWP_FRAMECHANGED | SWP_NOSIZE | SWP_NOMOVE);
+			? SWP_SHOWWINDOW | SWP_FRAMECHANGED | SWP_NOZORDER | SWP_NOSIZE | SWP_NOMOVE
+			:                  SWP_FRAMECHANGED | SWP_NOZORDER | SWP_NOSIZE | SWP_NOMOVE);
 	return FCYERR_OK;
 }
 
@@ -910,9 +926,14 @@ fcyRect f2dWindowImpl::GetClientRect()
 
 fResult f2dWindowImpl::SetClientRect(const fcyRect& Range)
 {
-	RECT tWinRect = { (int)Range.a.x , (int)Range.a.y , (int)Range.b.x , (int)Range.b.y};
-	AdjustWindowRectEx(&tWinRect, GetWindowLongPtr(m_hWnd, GWL_STYLE), FALSE, GetWindowLongPtr(m_hWnd, GWL_EXSTYLE));
-	return SetWindowPos(m_hWnd, 0,
+	RECT tWinRect = { (LONG)Range.a.x , (LONG)Range.a.y , (LONG)Range.b.x , (LONG)Range.b.y};
+	native::Windows::AdjustWindowRectExForDpi(
+		&tWinRect,
+		GetWindowLongPtrW(m_hWnd, GWL_STYLE),
+		FALSE,
+		GetWindowLongPtrW(m_hWnd, GWL_EXSTYLE),
+		native::getDpiForWindow(m_hWnd));
+	return ::SetWindowPos(m_hWnd, 0,
 		tWinRect.left,
 		tWinRect.top,
 		tWinRect.right - tWinRect.left,
@@ -951,7 +972,7 @@ void f2dWindowImpl::MoveToCenter()
 
 fBool f2dWindowImpl::IsTopMost()
 {
-	if(WS_EX_TOPMOST & GetWindowLongPtr(m_hWnd, GWL_EXSTYLE))
+	if(WS_EX_TOPMOST & GetWindowLongPtrW(m_hWnd, GWL_EXSTYLE))
 		return true;
 	else
 		return false;
@@ -977,8 +998,49 @@ void f2dWindowImpl::SetIMEEnable(bool enable)
 		enable ? (LPARAM)TRUE        : (LPARAM)FALSE);
 	_enableIME = enable;
 }
-
 bool f2dWindowImpl::GetIMEEnable()
 {
 	return _enableIME;
+}
+
+fBool f2dWindowImpl::IsHideIME() { return m_bHideIME; }
+void f2dWindowImpl::SetHideIME(fBool v) { m_bHideIME = v; }
+fcStrW f2dWindowImpl::GetIMEDesc()
+{
+	return m_CurIMEDesc.c_str();
+}
+fuInt f2dWindowImpl::GetIMEInfo(F2DIMEINFO InfoType)
+{
+	switch(InfoType)
+	{
+	case F2DIMEINFO_CANDIDATECOUNT:
+		return m_IMETotalCandidate;
+	case F2DIMEINFO_CANDIDATEINDEX:
+		return m_IMESelectedCandidate;
+	case F2DIMEINFO_PAGESIZE:
+		return m_IMEPageCandidateCount;
+	case F2DIMEINFO_PAGESTART:
+		return m_IMEPageStartCandidate;
+	}
+	return 0;
+}
+fcStrW f2dWindowImpl::GetIMECompString()
+{
+	return m_CurIMEComposition.c_str();
+}
+fuInt f2dWindowImpl::GetIMECandidateCount()
+{
+	return m_IMETotalCandidate;
+}
+fcStrW f2dWindowImpl::GetIMECandidate(fuInt Index)
+{
+	if(Index > m_IMETotalCandidate)
+		return NULL;
+	else
+		return m_IMECandidateList[Index].c_str();
+}
+
+float f2dWindowImpl::GetDPIScaling()
+{
+	return native::getDpiScalingForWindow(m_hWnd);
 }

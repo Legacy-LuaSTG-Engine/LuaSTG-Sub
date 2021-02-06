@@ -210,42 +210,15 @@ public: // 接口实现
 	void SetIMEEnable(bool enable);
 	bool GetIMEEnable();
 	
-	fBool IsHideIME() { return m_bHideIME; }
-	void SetHideIME(fBool v) { m_bHideIME = v; }
-	fcStrW GetIMEDesc()
-	{
-		return m_CurIMEDesc.c_str();
-	}
-	fuInt GetIMEInfo(F2DIMEINFO InfoType)
-	{
-		switch(InfoType)
-		{
-		case F2DIMEINFO_CANDIDATECOUNT:
-			return m_IMETotalCandidate;
-		case F2DIMEINFO_CANDIDATEINDEX:
-			return m_IMESelectedCandidate;
-		case F2DIMEINFO_PAGESIZE:
-			return m_IMEPageCandidateCount;
-		case F2DIMEINFO_PAGESTART:
-			return m_IMEPageStartCandidate;
-		}
-		return 0;
-	}
-	fcStrW GetIMECompString()
-	{
-		return m_CurIMEComposition.c_str();
-	}
-	fuInt GetIMECandidateCount()
-	{
-		return m_IMETotalCandidate;
-	}
-	fcStrW GetIMECandidate(fuInt Index)
-	{
-		if(Index > m_IMETotalCandidate)
-			return NULL;
-		else
-			return m_IMECandidateList[Index].c_str();
-	}
+	fBool IsHideIME();
+	void SetHideIME(fBool v);
+	fcStrW GetIMEDesc();
+	fuInt GetIMEInfo(F2DIMEINFO InfoType);
+	fcStrW GetIMECompString();
+	fuInt GetIMECandidateCount();
+	fcStrW GetIMECandidate(fuInt Index);
+	
+	float GetDPIScaling();
 protected:
 	f2dWindowImpl(f2dEngineImpl* pEngine, f2dWindowClass* WinCls, const fcyRect& Pos, fcStrW Title, fBool Visiable, F2DWINBORDERTYPE Border, bool DisableIME = true);
 	~f2dWindowImpl();
