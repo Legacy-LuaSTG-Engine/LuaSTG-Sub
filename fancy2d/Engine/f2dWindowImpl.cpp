@@ -1,5 +1,5 @@
-﻿#include "Engine/f2dWindowImpl.h"
-
+﻿#include "Engine/f2dWindowCommonMessage.h"
+#include "Engine/f2dWindowImpl.h"
 #include "Engine/f2dEngineImpl.h"
 
 #include <fcyException.h>
@@ -9,8 +9,6 @@
 //#define _IME_DEBUG
 //#define _FANCY2D_IME_ENABLE // 妈的，这IME支持还不如不写，一堆bug
 
-using namespace std;
-
 ////////////////////////////////////////////////////////////////////////////
 // 常量
 #define F2DWINDOWSTYLENONEBORDER     ( WS_POPUP )
@@ -18,7 +16,8 @@ using namespace std;
 #define F2DWINDOWSTYLESIZEABLEBORDER ( WS_OVERLAPPEDWINDOW )
 
 ////////////////////////////////////////////////////////////////////////////////
-unordered_map<HWND, f2dWindowImpl*> f2dWindowClass::s_WindowCallBack;
+
+std::unordered_map<HWND, f2dWindowImpl*> f2dWindowClass::s_WindowCallBack;
 
 LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
@@ -28,7 +27,7 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 	// 如果无指针，交给系统处理
 	if (pWindow == nullptr)
 	{
-		return DefWindowProc(Handle,Msg,wParam,lParam);
+		return DefWindowProcW(Handle,Msg,wParam,lParam);
 	}
 	
 	// 提取监听器指针
@@ -37,12 +36,29 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 	// 处理并派送消息
 	switch(Msg)
 	{
-	case WM_USER:
-		// 主线程委托
-		if(lParam)
+	// 由应用程序发送的消息 
+	
+	case WM_MAIN_THREAD_DELEGATE:
 		{
-			((f2dMainThreadDelegate*)lParam)->Excute();
-			((f2dMainThreadDelegate*)lParam)->Release();
+			// 主线程委托
+			if(lParam)
+			{
+				auto self = (f2dMainThreadDelegate*)lParam;
+				self->Excute();
+				self->Release();
+			}
+		}
+		break;
+	case WM_SET_IME_ENABLE:
+		{
+			if ((BOOL)lParam)
+			{
+				::ImmAssociateContext(Handle, (HIMC)wParam);
+			}
+			else
+			{
+				::ImmAssociateContext(Handle, NULL);
+			}
 		}
 		break;
 	
@@ -58,7 +74,8 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 		break;
 	#endif
 	
-		// 普通回调
+	// 由系统发送的消息
+	
 	case WM_ACTIVATEAPP:
 		if (wParam == TRUE)
 		{
@@ -71,7 +88,7 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 		break;
 	case WM_CLOSE:
 		if(pListener) pListener->OnClose();
-		return 0;
+		return 0; // 不应该继续传递
 	case WM_PAINT:
 		if(pListener) pListener->OnPaint();
 		break;
@@ -227,7 +244,7 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 		return TRUE;
 	
 	// 处理消息返回值
-	return DefWindowProc(Handle,Msg,wParam,lParam);
+	return DefWindowProcW(Handle, Msg, wParam, lParam);
 }
 
 f2dWindowClass::f2dWindowClass(f2dEngineImpl* pEngine, fcStrW ClassName)
@@ -559,11 +576,6 @@ f2dWindowImpl::f2dWindowImpl(f2dEngineImpl* pEngine, f2dWindowClass* WinCls, con
 	fuInt tRealWidth = tWinRect.right  - tWinRect.left ;
 	fuInt tRealHeight = tWinRect.bottom  - tWinRect.top;
 	
-	if (DisableIME)
-	{
-		ImmDisableIME(0);//不需要的时候屏蔽输入法
-	}
-	
 	// 创建窗口
 	m_hWnd = CreateWindowExW(
 		0,
@@ -582,7 +594,17 @@ f2dWindowImpl::f2dWindowImpl(f2dEngineImpl* pEngine, f2dWindowClass* WinCls, con
 	
 	if(!m_hWnd)
 		throw fcyWin32Exception("f2dWindowImpl::f2dWindowImpl", "CreateWindowEx Failed.");
-
+	
+	// 获取默认输入法上下文
+	_defaultIMC = NULL;
+	_enableIME = false;
+	_defaultIMC = ::ImmAssociateContext(m_hWnd, NULL);
+	if (!DisableIME)
+	{
+		::ImmAssociateContext(m_hWnd, _defaultIMC);
+		_enableIME = true;
+	}
+	
 	// 注册窗口
 	f2dWindowClass::s_WindowCallBack[m_hWnd] = this;
 
@@ -599,9 +621,11 @@ f2dWindowImpl::~f2dWindowImpl()
 	DestroyWindow(m_hWnd);
 
 	// 取消注册
-	unordered_map<HWND, f2dWindowImpl*>::iterator i = f2dWindowClass::s_WindowCallBack.find(m_hWnd);
-	if(i != f2dWindowClass::s_WindowCallBack.end())
-		f2dWindowClass::s_WindowCallBack.erase(i);
+	auto it = f2dWindowClass::s_WindowCallBack.find(m_hWnd);
+	if(it != f2dWindowClass::s_WindowCallBack.end())
+	{
+		f2dWindowClass::s_WindowCallBack.erase(it);
+	}
 }
 
 void f2dWindowImpl::InitIMEContext()
@@ -944,4 +968,17 @@ fResult f2dWindowImpl::SetTopMost(fBool TopMost)
 void f2dWindowImpl::HideMouse(fBool bHide)
 {
 	ShowCursor((BOOL)!bHide);
+}
+
+void f2dWindowImpl::SetIMEEnable(bool enable)
+{
+	::PostMessageW(m_hWnd, WM_SET_IME_ENABLE,
+		enable ? (WPARAM)_defaultIMC : (WPARAM)NULL,
+		enable ? (LPARAM)TRUE        : (LPARAM)FALSE);
+	_enableIME = enable;
+}
+
+bool f2dWindowImpl::GetIMEEnable()
+{
+	return _enableIME;
 }

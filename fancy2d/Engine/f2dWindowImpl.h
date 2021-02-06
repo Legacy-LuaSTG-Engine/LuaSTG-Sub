@@ -159,6 +159,8 @@ private:
 	f2dWindowEventListener* m_pListener;
 	
 	// 输入法上下文
+	HIMC _defaultIMC;
+	bool _enableIME;
 	HIMC m_hIMC;
 	bool m_bHideIME;
 	std::wstring m_CurIMEDesc;          ///< @brief 输入法描述
@@ -204,6 +206,9 @@ public: // 接口实现
 	fBool IsTopMost();
 	fResult SetTopMost(fBool TopMost);
 	void HideMouse(fBool bShow);
+	
+	void SetIMEEnable(bool enable);
+	bool GetIMEEnable();
 	
 	fBool IsHideIME() { return m_bHideIME; }
 	void SetHideIME(fBool v) { m_bHideIME = v; }

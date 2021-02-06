@@ -248,7 +248,13 @@ struct f2dWindow
 	/// @brief     隐藏鼠标
 	/// @param[in] bHide 是否隐藏鼠标
 	virtual void HideMouse(fBool bHide)=0;
-
+	
+	// 设置输入法启用状态
+	virtual void SetIMEEnable(bool enable)=0;
+	
+	// 获取输入法启用状态
+	virtual bool GetIMEEnable()=0;
+	
 	/// @brief 隐藏IME
 	virtual fBool IsHideIME()=0;
 	

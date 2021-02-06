@@ -48,6 +48,7 @@ target_sources(fancy2d PRIVATE
     Engine/f2dEngineImpl.cpp
     Engine/f2dFileSysImpl.h
     Engine/f2dFileSysImpl.cpp
+    Engine/f2dWindowCommonMessage.h
     Engine/f2dWindowImpl.h
     Engine/f2dWindowImpl.cpp
     

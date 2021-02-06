@@ -115,10 +115,10 @@ fuInt f2dEngineImpl::UpdateAndRenderThread::ThreadJob()
 		if (bDoPresent)
 			m_pEngine->DoPresent(tpRenderDev);
 	}
-
+	
 	// 投递终止消息
 	PostThreadMessage(m_MainThreadID, WM_USER, 0, 0);
-
+	
 	return 0;
 }
 
@@ -494,10 +494,10 @@ void f2dEngineImpl::Run_MultiThread(fuInt UpdateMaxFPS)
 	// 创建工作线程并执行
 	UpdateAndRenderThread tThread(this, UpdateMaxFPS);
 	tThread.Resume();
-
+	
 	// 执行程序循环
 	fBool bExit = false;
-	MSG tMsg;
+	MSG tMsg = {};
 	while(1)
 	{
 		m_Sec.Lock();
@@ -508,30 +508,32 @@ void f2dEngineImpl::Run_MultiThread(fuInt UpdateMaxFPS)
 		{
 			while(WAIT_TIMEOUT == WaitForSingleObject(tThread.GetHandle(), 10))
 			{
-				if(PeekMessage(&tMsg, 0, 0, 0, PM_REMOVE))
+				if(PeekMessageW(&tMsg, 0, 0, 0, PM_REMOVE))
 				{
 					TranslateMessage(&tMsg);
-					DispatchMessage(&tMsg);
+					DispatchMessageW(&tMsg);
 				}
 			}
 			
 			break;
 		}
-
+		
 		// 应用程序消息处理
-		if(GetMessage(&tMsg, 0, 0, 0))
+		if(GetMessageW(&tMsg, 0, 0, 0))
 		{
 			TranslateMessage(&tMsg);
-			DispatchMessage(&tMsg);
+			DispatchMessageW(&tMsg);
 		}
 		else
 		{
 			// 发送退出消息
 			if(tMsg.message == WM_QUIT)
+			{
 				SendMsg(F2DMSG_APP_ONEXIT);
+			}
 		}
 	}
-
+	
 	// 等待工作线程
 	tThread.Wait();
 }

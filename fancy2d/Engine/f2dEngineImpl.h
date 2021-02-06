@@ -10,6 +10,7 @@
 #include "Engine/f2dFPSControllerImpl.h"
 #include "Engine/f2dMsgPumpImpl.h"
 
+#include "Engine/f2dWindowCommonMessage.h"
 #include "Engine/f2dFileSysImpl.h"
 #include "Engine/f2dWindowImpl.h"
 
@@ -161,7 +162,7 @@ public: // 接口实现
 			return FCYERR_INVAILDPARAM;
 
 		pDelegate->AddRef();
-		if(TRUE == PostMessage((HWND)m_pWindow->GetHandle(), WM_USER, 0, (LPARAM)pDelegate))
+		if(TRUE == PostMessage((HWND)m_pWindow->GetHandle(), WM_MAIN_THREAD_DELEGATE, 0, (LPARAM)pDelegate))
 			return FCYERR_OK;
 		else
 			return FCYERR_INTERNALERR;
@@ -172,7 +173,7 @@ public: // 接口实现
 			return FCYERR_INVAILDPARAM;
 
 		pDelegate->AddRef();
-		if(TRUE == SendMessage((HWND)m_pWindow->GetHandle(), WM_USER, 0, (LPARAM)pDelegate))
+		if(TRUE == SendMessage((HWND)m_pWindow->GetHandle(), WM_MAIN_THREAD_DELEGATE, 0, (LPARAM)pDelegate))
 			return FCYERR_OK;
 		else
 			return FCYERR_INTERNALERR;
