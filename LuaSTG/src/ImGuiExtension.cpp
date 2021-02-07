@@ -219,7 +219,7 @@ namespace imgui
         imgui_binding_lua_register_backend(L);
         lua_pop(L, 1);
         
-        typedef DWORD (__stdcall *f_XInputGetState)(DWORD, XINPUT_STATE*);
+        typedef DWORD (WINAPI *f_XInputGetState)(DWORD, XINPUT_STATE*);
         
         g_hXinput = LoadLibraryW(L"xinput9_1_0.dll");
         if (g_hXinput) g_fXInputGetState = (f_XInputGetState)GetProcAddress(g_hXinput, "XInputGetState");

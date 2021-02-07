@@ -77,6 +77,7 @@ struct f2dDepthStencilSurface :
 };
 
 // =============================== 效果包装 ===================================
+#pragma region
 
 // 效果参数：
 
@@ -257,7 +258,10 @@ struct f2dEffect :
 	virtual fuInt GetCurrentPassCount()=0; ///< @brief 返回当前技术的渲染批次个数
 };
 
+#pragma endregion
+
 // ============================= 渲染器包装 ===================================
+#pragma region
 
 // 纹理采样选项：
 
@@ -606,6 +610,8 @@ struct f2dMeshData :
 	/// @param[in] ID 子集ID
 	virtual fResult Render(fInt ID)=0;
 };
+
+#pragma endregion
 
 // ============================= 渲染设备 ===================================
 
