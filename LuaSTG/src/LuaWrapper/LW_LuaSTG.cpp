@@ -1603,54 +1603,6 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 				return luaL_error(L, "PostEffect failed.");
 			return 0;
 		}
-		static int PostEffectCapture(lua_State* L)LNOEXCEPT
-		{
-			if (!LAPP.PostEffectCapture())
-				return luaL_error(L, "PostEffectCapture failed.");
-			return 0;
-		}
-		static int PostEffectApply(lua_State* L)LNOEXCEPT
-		{
-			const char* name = luaL_checkstring(L, 1);
-			BlendMode blend = TranslateBlendMode(L, 2);
-			
-			// 获取fx
-			ResFX* p = LRES.FindFX(name);
-			if (!p)
-				return luaL_error(L, "PostEffectApply: can't find effect '%s'.", name);
-			if (lua_istable(L, 3))
-			{
-				// 设置table上的参数到fx
-				lua_pushnil(L);  // s s t ... nil
-				while (0 != lua_next(L, 3))
-				{
-					// s s t ... nil key value
-					const char* key = luaL_checkstring(L, -2);
-					if (lua_isnumber(L, -1))
-						p->SetValue(key, (float)lua_tonumber(L, -1));
-					else if (lua_isstring(L, -1))
-					{
-						ResTexture* pTex = LRES.FindTexture(lua_tostring(L, -1));
-						if (!pTex)
-							return luaL_error(L, "PostEffectApply: can't find texture '%s'.", lua_tostring(L, -1));
-						p->SetValue(key, pTex->GetTexture());
-					}
-					else if (lua_isuserdata(L, -1))
-					{
-						fcyColor c = *static_cast<fcyColor*>(luaL_checkudata(L, -1, LUASTG_LUA_TYPENAME_COLOR));
-						p->SetValue(key, c);
-					}
-					else
-						return luaL_error(L, "PostEffectApply: invalid data type.");
-
-					lua_pop(L, 1);  // s s t ... nil key
-				}
-			}
-
-			if (!LAPP.PostEffectApply(p, blend))
-				return luaL_error(L, "PostEffectApply failed.");
-			return 0;
-		}
 		//EX+
 		static int SetZBufferEnable(lua_State* L)LNOEXCEPT
 		{
@@ -2089,7 +2041,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		}
 		#pragma endregion
 	};
-
+	
 	luaL_Reg tFunctions[] =
 	{
 		#pragma region 框架函数
@@ -2220,8 +2172,6 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		{ "PushRenderTarget", &WrapperImplement::PushRenderTarget },
 		{ "PopRenderTarget", &WrapperImplement::PopRenderTarget },
 		{ "PostEffect", &WrapperImplement::PostEffect },
-		{ "PostEffectCapture", &WrapperImplement::PostEffectCapture },
-		{ "PostEffectApply", &WrapperImplement::PostEffectApply },
 		//ESC
 		{ "SetZBufferEnable", &WrapperImplement::SetZBufferEnable },
 		{ "ClearZBuffer", &WrapperImplement::ClearZBuffer },
@@ -2285,7 +2235,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		
 		{ NULL, NULL }
 	};
-
+	
 	lua_getglobal(L, "lstg");				// ... t
 	::luaL_register(L, NULL, tFunctions);	// ... t
 	lua_pop(L, 1);							// ...

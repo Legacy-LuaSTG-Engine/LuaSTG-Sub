@@ -593,71 +593,22 @@ LNOINLINE int AppFrame::GetLastChar(lua_State* L)LNOEXCEPT
 	return 1;
 }
 
-bool AppFrame::BeginScene()LNOEXCEPT
+fBool AppFrame::GetMouseState(int button)LNOEXCEPT
 {
-	if (!m_bRenderStarted)
-	{
-		LERROR("不能在RenderFunc以外的地方执行渲染");
-		return false;
+	switch (button) {
+	case 0:
+		return m_Mouse->IsLeftBtnDown();
+	case 1:
+		return m_Mouse->IsMiddleBtnDown();
+	case 2:
+		return m_Mouse->IsRightBtnDown();
+	default:
+		break;
 	}
-
-	if (m_GraphType == GraphicsType::Graph2D)
-	{
-		if (FCYFAILED(m_Graph2D->Begin()))
-		{
-			LERROR("执行f2dGraphics2D::Begin失败");
-			return false;
-		}
+	if (button >= 3 && button <= 7) {
+		return m_Mouse->IsAdditionBtnDown(button - 3);//对齐额外键索引（不包含左中右键）
 	}
-
-	return true;
-}
-
-bool AppFrame::EndScene()LNOEXCEPT
-{
-	if (m_GraphType == GraphicsType::Graph2D)
-	{
-		if (FCYFAILED(m_Graph2D->End()))
-		{
-			LERROR("执行f2dGraphics2D::End失败");
-			return false;
-		}
-	}
-
-	return true;
-}
-
-void AppFrame::SetFog(float start, float end, fcyColor color)
-{
-	if (m_Graph2D->IsInRender())
-		m_Graph2D->Flush();
-
-	// 从f2dRenderDevice中取出D3D设备
-	IDirect3DDevice9* pDev = (IDirect3DDevice9*)m_pRenderDev->GetHandle();
-
-	if (start != end)
-	{
-		pDev->SetRenderState(D3DRS_FOGENABLE, TRUE);
-		pDev->SetRenderState(D3DRS_FOGCOLOR, color.argb);
-		if (start == -1.0f)
-		{
-			pDev->SetRenderState(D3DRS_FOGTABLEMODE, D3DFOG_EXP);
-			pDev->SetRenderState(D3DRS_FOGDENSITY, *(DWORD *)(&end));
-		}
-		else if (start == -2.0f)
-		{
-			pDev->SetRenderState(D3DRS_FOGTABLEMODE, D3DFOG_EXP2);
-			pDev->SetRenderState(D3DRS_FOGDENSITY, *(DWORD *)(&end));
-		}
-		else
-		{
-			pDev->SetRenderState(D3DRS_FOGTABLEMODE, D3DFOG_LINEAR);
-			pDev->SetRenderState(D3DRS_FOGSTART, *(DWORD *)(&start));
-			pDev->SetRenderState(D3DRS_FOGEND, *(DWORD *)(&end));
-		}
-	}
-	else
-		pDev->SetRenderState(D3DRS_FOGENABLE, FALSE);
+	return false;
 }
 
 LNOINLINE void AppFrame::SnapShot(const char* path)LNOEXCEPT
@@ -887,44 +838,6 @@ LNOINLINE bool AppFrame::PostEffect(ResTexture* rt, ResFX* shader, BlendMode ble
 	return PostEffect(rt->GetTexture(), shader, blend);
 }
 
-LNOINLINE bool AppFrame::PostEffectCapture()LNOEXCEPT
-{
-	if (!m_bRenderStarted || m_bPostEffectCaptureStarted)
-	{
-		LERROR("PostEffectCapture: 非法调用 (RenderStarted=%d,PostEffectCaptureStarted=%d)", m_bRenderStarted, m_bPostEffectCaptureStarted);
-		return false;
-	}
-
-	PushRenderTarget(m_PostEffectBuffer);
-	m_pRenderDev->ClearColor();
-	m_bPostEffectCaptureStarted = true;
-	return true;
-}
-
-LNOINLINE bool AppFrame::PostEffectApply(ResFX* shader, BlendMode blend)LNOEXCEPT
-{
-	if (!m_bRenderStarted || !m_bPostEffectCaptureStarted)
-	{
-		LERROR("PostEffectApply: 非法调用 (RenderStarted=%d,PostEffectCaptureStarted=%d)", m_bRenderStarted, m_bPostEffectCaptureStarted);
-		return false;
-	}
-	
-	if (m_stRenderTargetStack.empty() || m_stRenderTargetStack.back() != m_PostEffectBuffer)
-	{
-		LERROR("PostEffectApply: 非法调用，RenderTarget栈空或未匹配");
-		return false;
-	}
-
-	if (!PopRenderTarget())
-	{
-		LERROR("PostEffectApply: PopRenderTarget失败");
-		return false;
-	}
-
-	m_bPostEffectCaptureStarted = false;
-	return PostEffect(m_PostEffectBuffer, shader, blend);
-}
-
 #pragma endregion
 
 #pragma region 框架函数
@@ -1127,18 +1040,7 @@ bool AppFrame::Init()LNOEXCEPT
 		m_Graph3DLastBlendMode = BlendMode::AddAlpha;
 		m_Graph3DBlendState = m_Graph3D->GetBlendState();
 		
-		// 创建PostEffect缓冲
-		if (FCYFAILED(m_pRenderDev->CreateRenderTarget(
-			m_pRenderDev->GetBufferWidth(),
-			m_pRenderDev->GetBufferHeight(),
-			true,
-			&m_PostEffectBuffer)))
-		{
-			LERROR("无法创建POSTEFFECT缓冲区 (fcyRenderDevice::CreateRenderTarget failed)");
-			return false;
-		}
-		
-		// luastg不使用ZBuffer，将其关闭。
+		// 默认关闭深度缓冲
 		m_pRenderDev->SetZBufferEnable(false);
 		m_pRenderDev->ClearZBuffer();
 		
@@ -1275,8 +1177,8 @@ void AppFrame::Shutdown()LNOEXCEPT
 	
 	m_DirectInput = nullptr;
 	m_Mouse = nullptr;
-	m_Keyboard = m_Keyboard2 = nullptr;
-	m_PostEffectBuffer = nullptr;
+	m_Keyboard = nullptr;
+	m_Keyboard2 = nullptr;
 	m_Graph3D = nullptr;
 	m_GRenderer = nullptr;
 	m_FontRenderer = nullptr;
@@ -1665,7 +1567,6 @@ fBool AppFrame::OnRender(fDouble ElapsedTime, f2dFPSController* pFPSController)
 	
 	// 执行渲染函数
 	m_bRenderStarted = true;
-	m_bPostEffectCaptureStarted = false;
 	
 	if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineDraw))
 		m_pEngine->Abort();

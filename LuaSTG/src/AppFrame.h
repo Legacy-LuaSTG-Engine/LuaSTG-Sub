@@ -91,8 +91,6 @@ namespace LuaSTGPlus
 		fcyRefPointer<f2dGraphics3D> m_Graph3D;//3D
 		
 		// PostEffect控制
-		bool m_bPostEffectCaptureStarted = false;
-		fcyRefPointer<f2dTexture2D> m_PostEffectBuffer;//全局临时RenderTarget
 		std::vector<fcyRefPointer<f2dTexture2D>> m_stRenderTargetStack;// RenderTarget控制
 		
 		//输入设备
@@ -109,15 +107,14 @@ namespace LuaSTGPlus
 			m_LastKey = 0;
 			::memset(m_KeyStateMap, 0, sizeof(m_KeyStateMap));
 		}
-	private:
-		void updateGraph2DBlendMode(BlendMode m);
-		void updateGraph3DBlendMode(BlendMode m);
+		
 	public: // 脚本调用接口，含义参见API文档
 		void SetWindowed(bool v)LNOEXCEPT;
 		void SetVsync(bool v)LNOEXCEPT;
 		void SetResolution(fuInt width, fuInt height)LNOEXCEPT;
 		void SetSplash(bool v)LNOEXCEPT;
 		LNOINLINE void SetTitle(const char* v)LNOEXCEPT;  // UTF8编码
+		
 	public:
 		/// @brief 使用新的视频参数更新显示模式
 		/// @note 若切换失败则进行回滚
@@ -138,6 +135,7 @@ namespace LuaSTGPlus
 		//也能读取其他类型的文件，但是会得到无意义的结果
 		LNOINLINE int LoadTextFile(lua_State* L, const char* path, const char *packname)LNOEXCEPT;
 		
+	public:  // 输入系统接口
 		//检查按键是否按下
 		fBool GetKeyState(int VKCode)LNOEXCEPT;
 		
@@ -161,347 +159,100 @@ namespace LuaSTGPlus
 		fInt GetMouseWheelDelta()LNOEXCEPT { return m_Mouse->GetOffsetZ(); }
 		
 		/// @brief 检查鼠标是否按下
-		fBool GetMouseState(int button)LNOEXCEPT
-		{
-			switch (button) {
-			case 0:
-				return m_Mouse->IsLeftBtnDown();
-			case 1:
-				return m_Mouse->IsMiddleBtnDown();
-			case 2:
-				return m_Mouse->IsRightBtnDown();
-			default:
-				break;
-			}
-			if (button >= 3 && button <= 7) {
-				return m_Mouse->IsAdditionBtnDown(button - 3);//对齐额外键索引（不包含左中右键）
-			}
-			return false;
-		}
+		fBool GetMouseState(int button) LNOEXCEPT;
+		
+	private:
+		void updateGraph2DBlendMode(BlendMode m);
+		void updateGraph3DBlendMode(BlendMode m);
+		
 	public:  // 渲染器接口
 		/// @brief 通知开始渲染
-		bool BeginScene()LNOEXCEPT;
-
+		bool BeginScene() LNOEXCEPT;
+		
 		/// @brief 通知结束渲染
-		bool EndScene()LNOEXCEPT;
-
+		bool EndScene() LNOEXCEPT;
+		
 		/// @brief 清屏
-		void ClearScreen(const fcyColor& c)LNOEXCEPT
-		{
-			m_pRenderDev->Clear(c);
-		}
-
+		void ClearScreen(const fcyColor& c) LNOEXCEPT;
+		
 		/// @brief 设置视口
-		bool SetViewport(double left, double right, double bottom, double top)LNOEXCEPT
-		{
-			if (FCYFAILED(m_pRenderDev->SetViewport(fcyRect(
-				static_cast<float>((int)left),
-				static_cast<float>((int)m_pRenderDev->GetBufferHeight() - (int)top),
-				static_cast<float>((int)right),
-				static_cast<float>((int)m_pRenderDev->GetBufferHeight() - (int)bottom)
-			))))
-			{
-				LERROR("设置视口(left: %lf, right: %lf, bottom: %lf, top: %lf)失败", left, right, bottom, top);
-				return false;
-			}
-			return true;
-		}
-
+		bool SetViewport(double left, double right, double bottom, double top) LNOEXCEPT;
+		
 		/// @brief 设置正投影矩阵。
-		void SetOrtho(float left, float right, float bottom, float top, float znear = 8.0f, float zfar = 2048.0f)LNOEXCEPT
-		{
-			if (m_GraphType == GraphicsType::Graph2D)
-			{
-				// luastg的lua部分已经做了坐标修正
-				// m_Graph2D->SetWorldTransform(fcyMatrix4::GetTranslateMatrix(fcyVec3(-0.5f, -0.5f, 0.f)));
-				m_Graph2D->SetWorldTransform(fcyMatrix4::GetIdentity());
-				//m_Graph2D->SetViewTransform(fcyMatrix4::GetIdentity());
-				//允许正交投影下下可以饶原点3D旋转图片精灵
-				m_Graph2D->SetViewTransform(fcyMatrix4::GetTranslateMatrix(fcyVec3(0.0f, 0.0f, znear + (zfar - znear) / 2.0f)));
-				m_Graph2D->SetProjTransform(fcyMatrix4::GetOrthoOffCenterLH(left, right, bottom, top, znear, zfar));
-			}
-		}
+		void SetOrtho(
+			float left, float right, float bottom, float top,
+			float znear = 8.0f, float zfar = 2048.0f) LNOEXCEPT;
 		
 		/// @brief 设置透视投影矩阵
-		void SetPerspective(float eyeX, float eyeY, float eyeZ, float atX, float atY, float atZ, 
-			float upX, float upY, float upZ, float fovy, float aspect, float zn, float zf)LNOEXCEPT
-		{
-			if (m_GraphType == GraphicsType::Graph2D)
-			{
-				m_Graph2D->SetWorldTransform(fcyMatrix4::GetIdentity());
-				m_Graph2D->SetViewTransform(fcyMatrix4::GetLookAtLH(fcyVec3(eyeX, eyeY, eyeZ), fcyVec3(atX, atY, atZ), fcyVec3(upX, upY, upZ)));
-				m_Graph2D->SetProjTransform(fcyMatrix4::GetPespctiveLH(aspect, fovy, zn, zf));
-			}
-		}
-
+		void SetPerspective(
+			float eyeX, float eyeY, float eyeZ,
+			float atX, float atY, float atZ, 
+			float upX, float upY, float upZ,
+			float fovy, float aspect,
+			float zn, float zf) LNOEXCEPT;
+		
 		/// @brief 设置雾值
 		/// @note 扩展方法，视情况移除。
 		void SetFog(float start, float end, fcyColor color);
-
+		
 		// 开启或关闭zbuffer
-		void SetZBufferEnable(bool enable)LNOEXCEPT
-		{
-			if (m_GraphType == GraphicsType::Graph2D)
-			{
-				m_Graph2D->Flush();
-				m_pRenderDev->SetZBufferEnable(enable);
-			}
-		}
-
+		void SetZBufferEnable(bool enable) LNOEXCEPT;
+		
 		// 用指定的值清空zbuffer
-		void ClearZBuffer(float z)LNOEXCEPT
-		{
-			if (m_GraphType == GraphicsType::Graph2D)
-			{
-				m_pRenderDev->ClearZBuffer(z);
-			}
-		}
-
+		void ClearZBuffer(float z) LNOEXCEPT;
+		
 		/// @brief 渲染图像
-		bool Render(ResSprite* p, float x, float y, float rot = 0, float hscale = 1, float vscale = 1, float z = 0.5)LNOEXCEPT
-		{
-			LASSERT(p);
-			if (m_GraphType != GraphicsType::Graph2D)
-			{
-				LERROR("Render: 只有2D渲染器可以执行该方法");
-				return false;
-			}
-
-			// 设置混合
-			updateGraph2DBlendMode(p->GetBlendMode());
-
-			// 渲染
-			f2dSprite* pSprite = p->GetSprite();
-			pSprite->SetZ(z);
-			pSprite->Draw2(m_Graph2D, fcyVec2(x, y), fcyVec2(hscale, vscale), rot, false);
-			return true;
-		}
-
+		bool Render(ResSprite* p, float x, float y, float rot = 0, float hscale = 1, float vscale = 1, float z = 0.5) LNOEXCEPT;
+		
 		/// @brief 渲染动画
-		bool Render(ResAnimation* p, int ani_timer, float x, float y, float rot = 0, float hscale = 1, float vscale = 1)LNOEXCEPT
-		{
-			LASSERT(p);
-			if (m_GraphType != GraphicsType::Graph2D)
-			{
-				LERROR("Render: 只有2D渲染器可以执行该方法");
-				return false;
-			}
-
-			// 设置混合
-			updateGraph2DBlendMode(p->GetBlendMode());
-
-			// 渲染
-			f2dSprite* pSprite = p->GetSprite(((fuInt)ani_timer / p->GetInterval()) % p->GetCount());
-			pSprite->Draw2(m_Graph2D, fcyVec2(x, y), fcyVec2(hscale, vscale), rot, false);
-			return true;
-		}
-
+		bool Render(ResAnimation* p, int ani_timer, float x, float y, float rot = 0, float hscale = 1, float vscale = 1) LNOEXCEPT;
+		
 		/// @brief 渲染粒子
-		bool Render(ResParticle::ParticlePool* p, float hscale = 1, float vscale = 1)LNOEXCEPT
-		{
-			LASSERT(p);
-			if (m_GraphType != GraphicsType::Graph2D)
-			{
-				LERROR("Render: 只有2D渲染器可以执行该方法");
-				return false;
-			}
-
-			// 设置混合
-			updateGraph2DBlendMode(p->GetBlendMode());
-
-			// 渲染
-			p->Render(m_Graph2D, hscale, vscale);
-			return true;
-		}
-
+		bool Render(ResParticle::ParticlePool* p, float hscale = 1, float vscale = 1) LNOEXCEPT;
+		
 		/// @brief 渲染图像
-		bool Render(const char* name, float x, float y, float rot = 0, float hscale = 1, float vscale = 1, float z = 0.5)LNOEXCEPT
-		{
-			fcyRefPointer<ResSprite> p = m_ResourceMgr.FindSprite(name);
-			if (!p)
-			{
-				LERROR("Render: 找不到图像资源'%m'", name);
-				return false;
-			}
-			return Render(p, x, y, rot, hscale, vscale, z);
-		}
-
+		bool Render(const char* name, float x, float y, float rot = 0, float hscale = 1, float vscale = 1, float z = 0.5) LNOEXCEPT;
+		
 		/// @brief 渲染动画
-		bool RenderAnimation(const char* name, int timer, float x, float y, float rot = 0, float hscale = 1, float vscale = 1)LNOEXCEPT
-		{
-			fcyRefPointer<ResAnimation> p = m_ResourceMgr.FindAnimation(name);
-			if (!p)
-			{
-				LERROR("Render: 找不到动画资源'%m'", name);
-				return false;
-			}
-			return Render(p, timer, x, y, rot, hscale, vscale);
-		}
-
+		bool RenderAnimation(const char* name, int timer, float x, float y, float rot = 0, float hscale = 1, float vscale = 1) LNOEXCEPT;
+		
 		/// @brief 渲染图像
-		bool RenderRect(const char* name, float x1, float y1, float x2, float y2)LNOEXCEPT
-		{
-			if (m_GraphType != GraphicsType::Graph2D)
-			{
-				LERROR("RenderRect: 只有2D渲染器可以执行该方法");
-				return false;
-			}
-
-			fcyRefPointer<ResSprite> p = m_ResourceMgr.FindSprite(name);
-			if (!p)
-			{
-				LERROR("RenderRect: 找不到图像资源'%m'", name);
-				return false;
-			}
-
-			// 设置混合
-			updateGraph2DBlendMode(p->GetBlendMode());
-
-			// 渲染
-			f2dSprite* pSprite = p->GetSprite();
-			pSprite->SetZ(0.5f);
-			pSprite->Draw(m_Graph2D, fcyRect(x1, y1, x2, y2), false);
-			return true;
-		}
-
+		bool RenderRect(const char* name, float x1, float y1, float x2, float y2) LNOEXCEPT;
+		
 		/// @brief 渲染图像
-		bool Render4V(const char* name, float x1, float y1, float z1, float x2, float y2, float z2, 
-			float x3, float y3, float z3, float x4, float y4, float z4)LNOEXCEPT
-		{
-			if (m_GraphType != GraphicsType::Graph2D)
-			{
-				LERROR("Render4V: 只有2D渲染器可以执行该方法");
-				return false;
-			}
-
-			fcyRefPointer<ResSprite> p = m_ResourceMgr.FindSprite(name);
-			if (!p)
-			{
-				LERROR("Render4V: 找不到图像资源'%m'", name);
-				return false;
-			}
-			
-			// 设置混合
-			updateGraph2DBlendMode(p->GetBlendMode());
-
-			f2dSprite* pSprite = p->GetSprite();
-			pSprite->SetZ(0.5f);
-			pSprite->Draw(m_Graph2D, fcyVec3(x1, y1, z1), fcyVec3(x2, y2, z2), fcyVec3(x3, y3, z3), fcyVec3(x4, y4, z4), false);
-			return true;
-		}
-
+		bool Render4V(
+			const char* name,
+			float x1, float y1, float z1,
+			float x2, float y2, float z2, 
+			float x3, float y3, float z3,
+			float x4, float y4, float z4) LNOEXCEPT;
+		
 		/// @brief 渲染纹理
-		bool RenderTexture(ResTexture* tex, BlendMode blend, const f2dGraphics2DVertex vertex[])LNOEXCEPT
-		{
-			if (m_GraphType != GraphicsType::Graph2D)
-			{
-				LERROR("RenderTexture: 只有2D渲染器可以执行该方法");
-				return false;
-			}
-			
-			// 设置混合
-			updateGraph2DBlendMode(blend);
-
-			// 复制坐标
-			f2dGraphics2DVertex tVertex[4];
-			memcpy(tVertex, vertex, sizeof(tVertex));
-
-			// 修正UV到[0,1]区间
-			for (int i = 0; i < 4; ++i)
-			{
-				tVertex[i].u /= (float)tex->GetTexture()->GetWidth();
-				tVertex[i].v /= (float)tex->GetTexture()->GetHeight();
-			}
-
-			m_Graph2D->DrawQuad(tex->GetTexture(), tVertex, false);
-			return true;
-		}
-
+		bool RenderTexture(ResTexture* tex, BlendMode blend, const f2dGraphics2DVertex vertex[]) LNOEXCEPT;
+		
 		/// @brief 渲染纹理
-		bool RenderTexture(const char* name, BlendMode blend, f2dGraphics2DVertex vertex[])LNOEXCEPT
-		{
-			if (m_GraphType != GraphicsType::Graph2D)
-			{
-				LERROR("RenderTexture: 只有2D渲染器可以执行该方法");
-				return false;
-			}
-
-			fcyRefPointer<ResTexture> p = m_ResourceMgr.FindTexture(name);
-			if (!p)
-			{
-				LERROR("RenderTexture: 找不到纹理资源'%m'", name);
-				return false;
-			}
-
-			// 设置混合
-			updateGraph2DBlendMode(blend);
-
-			// 修正UV到[0,1]区间
-			const auto w = (float)p->GetTexture()->GetWidth(), h = (float)p->GetTexture()->GetHeight();
-			for (int i = 0; i < 4; ++i)
-			{
-				vertex[i].u /= w;
-				vertex[i].v /= h;
-			}
-
-			m_Graph2D->DrawQuad(p->GetTexture(), vertex, false);
-			return true;
-		}
-
+		bool RenderTexture(const char* name, BlendMode blend, f2dGraphics2DVertex vertex[]) LNOEXCEPT;
+		
 		// 渲染纹理，多顶点，不修正uv坐标
-		bool RenderTexture(const char* name, BlendMode blend, int vcount, const f2dGraphics2DVertex vertex[], int icount, const unsigned short indexs[])LNOEXCEPT
-		{
-			if (m_GraphType != GraphicsType::Graph2D)
-			{
-				LERROR("RenderTexture: 只有2D渲染器可以执行该方法");
-				return false;
-			}
-
-			fcyRefPointer<ResTexture> p = m_ResourceMgr.FindTexture(name);
-			if (!p)
-			{
-				LERROR("RenderTexture: 找不到纹理资源'%m'", name);
-				return false;
-			}
-
-			// 设置混合
-			updateGraph2DBlendMode(blend);
-
-			m_Graph2D->DrawRaw(p->GetTexture(), vcount, icount, vertex, indexs, false);
-			return true;
-		}
-
+		bool RenderTexture(
+			const char* name, BlendMode blend,
+			int vcount, const f2dGraphics2DVertex vertex[],
+			int icount, const unsigned short indexs[]) LNOEXCEPT;
+		
 		// 渲染模型
-		bool RenderModel(const char* name, float x, float y, float z, float sx, float sy, float sz,float rx,float ry ,float rz)LNOEXCEPT
-		{
-			if (m_GraphType != GraphicsType::Graph2D)
-			{
-				LERROR("Render4V: 只有2D渲染器可以执行该方法");
-				return false;
-			}
-			void RenderObj(std::string id);
-
-			fcyMatrix4 f0 = m_Graph2D->GetWorldTransform();
-			fcyMatrix4 f1 = fcyMatrix4::GetTranslateMatrix(fcyVec3(x, y, z));
-			f1 = fcyMatrix4::GetScaleMatrix(fcyVec3(sx, sy, sz)) * f1;
-			if (rx || ry || rz){
-				f1 = fcyMatrix4::GetRotationYawPitchRoll(rx,ry,rz)*f1;
-			}
-
-			m_Graph2D->SetWorldTransform(f1);
-			RenderObj(name);
-			m_Graph2D->SetWorldTransform(f0);
-
-			return true;
-		}
-
+		bool RenderModel(
+			const char* name,
+			float x, float y, float z,
+			float sx, float sy, float sz,
+			float rx, float ry, float rz) LNOEXCEPT;
+		
 		/// @brief 渲染文字
 		bool RenderText(ResFont* p, wchar_t* strBuf, fcyRect rect, fcyVec2 scale, ResFont::FontAlignHorizontal halign, ResFont::FontAlignVertical valign, bool bWordBreak)LNOEXCEPT;
-
+		
 		fcyVec2 CalcuTextSize(ResFont* p, const wchar_t* strBuf, fcyVec2 scale)LNOEXCEPT;
-
+		
 		LNOINLINE bool RenderText(const char* name, const char* str, float x, float y, float scale, ResFont::FontAlignHorizontal halign, ResFont::FontAlignVertical valign)LNOEXCEPT;
-
+		
 		LNOINLINE bool RenderTTF(const char* name, const char* str, float left, float right, float bottom, float top, float scale, int format, fcyColor c)LNOEXCEPT;
 
 		LNOINLINE void SnapShot(const char* path)LNOEXCEPT;
@@ -521,10 +272,6 @@ namespace LuaSTGPlus
 		bool PostEffect(fcyRefPointer<f2dTexture2D> rt, ResFX* shader, BlendMode blend)LNOEXCEPT;
 
 		LNOINLINE bool PostEffect(ResTexture* rt, ResFX* shader, BlendMode blend)LNOEXCEPT;
-
-		LNOINLINE bool PostEffectCapture()LNOEXCEPT;
-		
-		LNOINLINE bool PostEffectApply(ResFX* shader, BlendMode blend)LNOEXCEPT;
 		
 		// 渲染扇形，通过纹理+uv范围渲染
 		bool RenderSector(const char* name, fcyRect uv, bool tran, BlendMode blend, fcyColor color1, fcyColor color2,
@@ -533,6 +280,7 @@ namespace LuaSTGPlus
 		// 渲染环，通过纹理+uv范围渲染
 		bool RenderAnnulus(const char* name, fcyRect uv, bool tran, BlendMode blend, fcyColor color1, fcyColor color2,
 			fcyVec2 pos, float rot, float r1, float r2, int div, int rep);
+		
 	public:
 		// 文字渲染器包装
 		bool FontRenderer_SetFontProvider(const char* name);
@@ -541,6 +289,7 @@ namespace LuaSTGPlus
 		fcyRect FontRenderer_MeasureString(const char* str, bool strict = true);
 		float FontRenderer_MeasureStringWidth(const char* str);
 		bool FontRenderer_DrawTextW2(const char* str, fcyVec2& pos, const float z, const BlendMode blend, const fcyColor& color);
+		
 	public:
 		// 获取框架对象
 		ResourceMgr& GetResourceMgr() LNOEXCEPT { return m_ResourceMgr; }
