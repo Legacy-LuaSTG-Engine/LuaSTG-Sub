@@ -1769,6 +1769,27 @@ static int lib_Selectable(lua_State* L)
 
 //////// Widgets: List Boxes
 
+static int lib_BeginListBox(lua_State* L)
+{
+    const char* label = luaL_checkstring(L, 1);
+    if (lua_gettop(L) <= 1)
+    {
+        const bool ret = ImGui::BeginListBox(label);
+        lua_pushboolean(L, ret);
+    }
+    else
+    {
+        ImVec2* size = imgui_binding_lua_to_ImVec2(L, 2);
+        const bool ret = ImGui::BeginListBox(label, *size);
+        lua_pushboolean(L, ret);
+    }
+    return 1;
+}
+static int lib_EndListBox(lua_State* L)
+{
+    ImGui::EndListBox();
+    return 0;
+}
 static int lib_ListBox(lua_State* L)
 {
     const int argc = lua_gettop(L);
@@ -1834,44 +1855,6 @@ static int lib_ListBox(lua_State* L)
     lua_pushboolean(L, ret);
     lua_pushinteger(L, (lua_Integer)current_item);
     return 2;
-}
-static int lib_ListBoxHeader(lua_State* L)
-{
-    const int argc = lua_gettop(L);
-    const char* label = luaL_checkstring(L, 1);
-    if (argc <= 1)
-    {
-        const bool ret = ImGui::ListBoxHeader(label);
-        lua_pushboolean(L, ret);
-    }
-    else if (argc == 2)
-    {
-        if (lua_type(L, 2) == LUA_TNUMBER)
-        {
-            const int items_count = (int)luaL_checkinteger(L, 2);
-            const bool ret = ImGui::ListBoxHeader(label, items_count);
-            lua_pushboolean(L, ret);
-        }
-        else
-        {
-            ImVec2* size = imgui_binding_lua_to_ImVec2(L, 2);
-            const bool ret = ImGui::ListBoxHeader(label, *size);
-            lua_pushboolean(L, ret);
-        }
-    }
-    else
-    {
-        const int items_count = (int)luaL_checkinteger(L, 2);
-        const int height_in_items = (int)luaL_checkinteger(L, 3);
-        const bool ret = ImGui::ListBoxHeader(label, items_count, height_in_items);
-        lua_pushboolean(L, ret);
-    }
-    return 1;
-}
-static int lib_ListBoxFooter(lua_State* L)
-{
-    ImGui::ListBoxFooter();
-    return 0;
 }
 
 //////// Widgets: Data Plotting

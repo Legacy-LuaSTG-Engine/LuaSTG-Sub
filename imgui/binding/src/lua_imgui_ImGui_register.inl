@@ -243,9 +243,9 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(Selectable),
     
     // Widgets: List Boxes
+    MAKEF(BeginListBox),
+    MAKEF(EndListBox),
     MAKEF(ListBox),
-    MAKEF(ListBoxHeader),
-    MAKEF(ListBoxFooter),
     
     // Widgets: Data Plotting
     MAKEF(PlotLines),
