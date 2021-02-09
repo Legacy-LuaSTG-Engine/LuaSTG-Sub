@@ -13,6 +13,7 @@
 #include "LuaWrapper/LuaStringToEnum.hpp"
 #include "LuaWrapper/LuaInternalSource.hpp"
 #include "ImGuiExtension.h"
+//#include "slowPostEffectExt.hpp"
 
 #ifdef max
 #undef max
@@ -587,6 +588,8 @@ bool AppFrame::Init()LNOEXCEPT
 		
 		// 初始化ImGui
 		imgui::bindEngine();
+		// 初始化自定义后处理特效
+		//slow::effect::bindEngine();
 	}
 	
 	// 设置窗口图标
@@ -679,6 +682,8 @@ void AppFrame::Shutdown()LNOEXCEPT
 	m_ResourceMgr.ClearAllResource();
 	LINFO("已清空所有资源");
 	
+	// 卸载自定义后处理特效
+	//slow::effect::unbindEngine();
 	// 卸载ImGui
 	imgui::unbindEngine();
 	
