@@ -832,11 +832,11 @@ fResult f2dRenderDeviceImpl::AttachListener(f2dRenderDeviceEventListener* Listen
 	if(Listener == NULL)
 		return FCYERR_INVAILDPARAM;
 	
-	_setEventListeners.insert({
-		_iEventListenerUUID,
-		Priority,
-		Listener,
-	});
+	EventListenerNode node;
+	node.uuid = _iEventListenerUUID;
+	node.priority = Priority;
+	node.listener = Listener;
+	auto v = _setEventListeners.emplace(node);
 	_iEventListenerUUID += 1;
 	
 	return FCYERR_OK;

@@ -277,7 +277,7 @@ namespace slow { namespace effect {
         ctx->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
     }
     
-    enum PrimitiveType : uint8_t
+    enum class PrimitiveType : uint8_t
     {
         PointList     = 1,
         LineList      = 2,
@@ -287,7 +287,7 @@ namespace slow { namespace effect {
         TriangleFan   = 6,
     };
     
-    enum BlendMode : uint8_t
+    enum class BlendMode : uint8_t
     {
         Disable =  0, // 关闭混合
         Alpha   =  1, // alpha混合
@@ -303,7 +303,7 @@ namespace slow { namespace effect {
         Screen  = 11, // PhotoShop滤色
     };
     
-    enum VertexColorMode : uint8_t
+    enum class VertexColorMode : uint8_t
     {
         Disable = 0, // 不使用顶点色
         Zero    = 0, // 直接使用纹理色
@@ -314,7 +314,7 @@ namespace slow { namespace effect {
         RevSub  = 5, // 顶点色减去纹理色
     };
     
-    enum TextureAddressMode : uint8_t
+    enum class TextureAddressMode : uint8_t
     {
         Wrap   = 1,
         Mirror = 2,
@@ -322,7 +322,7 @@ namespace slow { namespace effect {
         Border = 4,
     };
     
-    enum TextureFilterMode : uint8_t
+    enum class TextureFilterMode : uint8_t
     {
         None        = 0,
         Point       = 1,

@@ -24,9 +24,9 @@ private:
 		int priority;
 		f2dRenderDeviceEventListener* listener;
 		
-		bool operator()(const EventListenerNode& lhs, const EventListenerNode& rhs) const
+		bool operator<(const EventListenerNode& rhs) const
 		{
-			return lhs.uuid != rhs.uuid ? lhs.priority < rhs.priority : lhs.uuid < rhs.uuid;
+			return priority == rhs.priority ? uuid < rhs.uuid : priority < rhs.priority;
 		}
 	};
 	
@@ -86,7 +86,7 @@ private:
 	
 	// 监听器列表
 	int _iEventListenerUUID = 0;
-	std::set<EventListenerNode, EventListenerNode> _setEventListeners;
+	std::set<EventListenerNode> _setEventListeners;
 	
 	// 顶点声明
 	std::vector<VertexDeclareInfo> m_VDCache;
