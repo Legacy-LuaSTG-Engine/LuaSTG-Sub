@@ -252,12 +252,16 @@ f2dTexture2DDynamic::~f2dTexture2DDynamic()
 void f2dTexture2DDynamic::OnRenderDeviceLost()
 {
 	FCYSAFEKILL(m_pTex);
+	FCYSAFEKILL(m_pCacheTex);
 }
 
 void f2dTexture2DDynamic::OnRenderDeviceReset()
 {
 	((IDirect3DDevice9*)m_pParent->GetHandle())->CreateTexture(
 		m_Width, m_Height, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pTex, NULL);
+	
+	((IDirect3DDevice9*)m_pParent->GetHandle())->CreateTexture(
+		m_Width, m_Height, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, &m_pCacheTex, NULL);
 }
 
 fResult f2dTexture2DDynamic::Lock(fcyRect* pLockRect, fBool Discard, fuInt* Pitch, fData* pOut)
