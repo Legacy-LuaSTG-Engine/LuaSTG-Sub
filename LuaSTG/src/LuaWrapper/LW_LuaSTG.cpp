@@ -1386,7 +1386,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 				static_cast<float>(luaL_optnumber(L, 7, 0.5))
 			))
 			{
-				return luaL_error(L, "can't render '%m'", luaL_checkstring(L, 1));
+				return luaL_error(L, "can't render '%s'", luaL_checkstring(L, 1));
 			}
 			return 0;
 		}
@@ -1402,7 +1402,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 				static_cast<float>(luaL_optnumber(L, 7, luaL_optnumber(L, 6, 1.)) * LRES.GetGlobalImageScaleFactor())
 			))
 			{
-				return luaL_error(L, "can't render '%m'", luaL_checkstring(L, 1));
+				return luaL_error(L, "can't render '%s'", luaL_checkstring(L, 1));
 			}
 			return 0;
 		}
@@ -1416,7 +1416,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 				static_cast<float>(luaL_checknumber(L, 4))
 			))
 			{
-				return luaL_error(L, "can't render '%m'", luaL_checkstring(L, 1));
+				return luaL_error(L, "can't render '%s'", luaL_checkstring(L, 1));
 			}
 			return 0;
 		}
@@ -1438,7 +1438,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 				static_cast<float>(luaL_checknumber(L, 13))
 			))
 			{
-				return luaL_error(L, "can't render '%m'.", luaL_checkstring(L, 1));
+				return luaL_error(L, "can't render '%s'.", luaL_checkstring(L, 1));
 			}
 			return 0;
 		}
@@ -1458,7 +1458,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 				valign
 				))
 			{
-				return luaL_error(L, "can't draw text '%m'.", luaL_checkstring(L, 1));
+				return luaL_error(L, "can't draw text '%s'.", luaL_checkstring(L, 1));
 			}	
 			return 0;
 		}
@@ -1629,7 +1629,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 				static_cast<float>(luaL_optnumber(L, 10, 0))
 			))
 			{
-				return luaL_error(L, "can't render '%m'.", luaL_checkstring(L, 1));
+				return luaL_error(L, "can't render '%s'.", luaL_checkstring(L, 1));
 			}
 			return 0;
 		}
