@@ -28,6 +28,7 @@ private:
 private:
 	HMODULE m_hModuleD3DX9;
 	pDLLEntry_D3DXCreateEffectEx m_Entry_pD3DXCreateEffectEx;
+    void _lazyLoad();
 public:
     HRESULT DLLEntry_D3DXCreateEffectEx(
         LPDIRECT3DDEVICE9               pDevice,

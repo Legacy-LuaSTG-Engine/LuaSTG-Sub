@@ -6,21 +6,26 @@ f2dRenderDeviceAPI::f2dRenderDeviceAPI() :
 	m_hModuleD3DX9(NULL),
 	m_Entry_pD3DXCreateEffectEx(NULL)
 {
-	// 加载模块 D3DX9
-	
-	m_hModuleD3DX9 = LoadLibrary(L"D3DX9_43.dll");
-	if(!m_hModuleD3DX9)
-		throw fcyWin32Exception("f2dRenderDeviceAPI::f2dRenderDeviceAPI", "LoadLibrary(D3DX9_43.dll) Failed.");
-	
-	// 获得入口 D3DX9
-	
-	m_Entry_pD3DXCreateEffectEx = (pDLLEntry_D3DXCreateEffectEx)GetProcAddress(m_hModuleD3DX9, "D3DXCreateEffectEx");
-	if(!m_Entry_pD3DXCreateEffectEx)
-		throw fcyWin32Exception("f2dRenderDeviceAPI::f2dRenderDeviceAPI", "GetProcAddress(D3DXCreateEffectEx) Failed.");
 }
 
 f2dRenderDeviceAPI::~f2dRenderDeviceAPI()
 {
+	if (m_hModuleD3DX9)
+		FreeLibrary(m_hModuleD3DX9);
+	m_hModuleD3DX9 = NULL;
+	m_Entry_pD3DXCreateEffectEx = NULL;
+}
+
+void f2dRenderDeviceAPI::_lazyLoad()
+{
+	if (!m_hModuleD3DX9)
+	{
+		m_hModuleD3DX9 = LoadLibraryW(L"D3DX9_43.dll");
+		if (m_hModuleD3DX9)
+		{
+			m_Entry_pD3DXCreateEffectEx = (pDLLEntry_D3DXCreateEffectEx)GetProcAddress(m_hModuleD3DX9, "D3DXCreateEffectEx");
+		}
+	}
 }
 
 HRESULT f2dRenderDeviceAPI::DLLEntry_D3DXCreateEffectEx(
@@ -35,5 +40,10 @@ HRESULT f2dRenderDeviceAPI::DLLEntry_D3DXCreateEffectEx(
 	LPD3DXEFFECT*                   ppEffect,
 	LPD3DXBUFFER*                   ppCompilationErrors)
 {
+	_lazyLoad();
+	if (!m_Entry_pD3DXCreateEffectEx)
+	{
+		return D3DERR_NOTAVAILABLE;
+	}
 	return m_Entry_pD3DXCreateEffectEx(pDevice, pSrcData, SrcDataLen, pDefines, pInclude,pSkipConstants, Flags, pPool, ppEffect, ppCompilationErrors);
 }
