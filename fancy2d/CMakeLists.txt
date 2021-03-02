@@ -22,7 +22,6 @@ target_include_directories(fancy2d PUBLIC
 )
 target_include_directories(fancy2d PRIVATE
     ../
-    ../prebuild/dxsdk/include
 )
 
 target_sources(fancy2d PRIVATE
@@ -126,20 +125,15 @@ target_sources(fancy2d PRIVATE
     #Video/f2dVideoRenderer.cpp
 )
 
-target_link_directories(fancy2d PRIVATE
-    ../prebuild/dxsdk/lib
-)
-
 target_link_libraries(fancy2d PRIVATE
     #strmiids.lib #???
-    #strmbasd #!!!
-    d3dx9.lib
-    
+    #strmbasd #???
     winmm.lib
     imm32.lib
     dxguid.lib
     d3d9.lib
     dinput8.lib
+    DirectXSDK # must remove it in the future!
     DirectXToolkit
     zlib
     freetype

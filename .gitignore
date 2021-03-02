@@ -1,10 +1,16 @@
-bin
+# IDE
+*.vscode
+*.code-workspace
+
+# build
 build
+
+# publish
+bin
 ver
+
+# cache
 imgui/imgui
 LuaSTG/custom
 tool/RC
-tool/RC/*
-
-*.vscode
-*.code-workspace
+DirectX/DirectXSDK/backup
