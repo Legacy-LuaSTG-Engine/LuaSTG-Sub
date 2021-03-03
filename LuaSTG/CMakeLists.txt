@@ -1,11 +1,12 @@
 # LuaSTG Engine
 
-set(LUASTG_RESDIR res)
-#set(LUASTG_RESDIR custom/THEIS)
-#set(LUASTG_RESDIR custom/THTUO)
-
-#set(LUASTG_RESDIR custom/THBDB.develop)
-#set(LUASTG_RESDIR custom/THBDB.steam.demo)
+include(Custom.cmake OPTIONAL)
+if(NOT DEFINED LUASTG_RESDIR)
+    message("LuaSTG will using default config, built-in resources and source codes")
+    set(LUASTG_RESDIR res)
+else()
+    message("LuaSTG will using custom config, built-in resources and source codes: " ${LUASTG_RESDIR})
+endif()
 
 add_executable(LuaSTG WIN32)
 
@@ -70,5 +71,45 @@ target_link_libraries(LuaSTG
 )
 
 add_custom_command(TARGET LuaSTG POST_BUILD
-    COMMAND ${CMAKE_SOURCE_DIR}/copy_bin.bat $<CONFIG>
+    # z family
+    
+    COMMAND ${CMAKE_COMMAND} -E rm -f "$<TARGET_FILE_DIR:LuaSTG>/$<TARGET_FILE_NAME:zlib>"
+    COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:zlib>/$<TARGET_FILE_NAME:zlib>"                "$<TARGET_FILE_DIR:LuaSTG>"
+    
+    COMMAND ${CMAKE_COMMAND} -E rm -f "$<TARGET_FILE_DIR:LuaSTG>/$<TARGET_FILE_NAME:zip>"
+    COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:zip>/$<TARGET_FILE_NAME:zip>"                  "$<TARGET_FILE_DIR:LuaSTG>"
+    
+    # xiph family
+    
+    COMMAND ${CMAKE_COMMAND} -E rm -f "$<TARGET_FILE_DIR:LuaSTG>/$<TARGET_FILE_NAME:ogg>"
+    COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:ogg>/$<TARGET_FILE_NAME:ogg>"                  "$<TARGET_FILE_DIR:LuaSTG>"
+    
+    COMMAND ${CMAKE_COMMAND} -E rm -f "$<TARGET_FILE_DIR:LuaSTG>/$<TARGET_FILE_NAME:vorbis>"
+    COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:vorbis>/$<TARGET_FILE_NAME:vorbis>"            "$<TARGET_FILE_DIR:LuaSTG>"
+    
+    COMMAND ${CMAKE_COMMAND} -E rm -f "$<TARGET_FILE_DIR:LuaSTG>/$<TARGET_FILE_NAME:vorbisfile>"
+    COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:vorbisfile>/$<TARGET_FILE_NAME:vorbisfile>"    "$<TARGET_FILE_DIR:LuaSTG>"
+    
+    # font family
+    
+    COMMAND ${CMAKE_COMMAND} -E rm -f "$<TARGET_FILE_DIR:LuaSTG>/$<TARGET_FILE_NAME:freetype>"
+    COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:freetype>/$<TARGET_FILE_NAME:freetype>"        "$<TARGET_FILE_DIR:LuaSTG>"
+    
+    # fancy family
+    
+    COMMAND ${CMAKE_COMMAND} -E rm -f "$<TARGET_FILE_DIR:LuaSTG>/$<TARGET_FILE_NAME:fancy2d>"
+    COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:fancy2d>/$<TARGET_FILE_NAME:fancy2d>"          "$<TARGET_FILE_DIR:LuaSTG>"
+    
+    # lua family
+    
+    COMMAND ${CMAKE_COMMAND} -E rm -f "$<TARGET_FILE_DIR:LuaSTG>/$<TARGET_FILE_NAME:luajit>"
+    COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:luajit>/$<TARGET_FILE_NAME:luajit>"            "$<TARGET_FILE_DIR:LuaSTG>"
+    
+    # lua extensions
+    
+    COMMAND ${CMAKE_COMMAND} -E rm -f "$<TARGET_FILE_DIR:LuaSTG>/$<TARGET_FILE_NAME:lcjson>"
+    COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:lcjson>/$<TARGET_FILE_NAME:lcjson>"            "$<TARGET_FILE_DIR:LuaSTG>"
+    
+    COMMAND ${CMAKE_COMMAND} -E rm -f "$<TARGET_FILE_DIR:LuaSTG>/$<TARGET_FILE_NAME:lfs>"
+    COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:lfs>/$<TARGET_FILE_NAME:lfs>"                  "$<TARGET_FILE_DIR:LuaSTG>"
 )

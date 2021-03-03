@@ -89,6 +89,26 @@ set_target_properties(luajit PROPERTIES
     IMPORTED_IMPLIB_RELEASE     ${CMAKE_CURRENT_SOURCE_DIR}/luajit/lib/Release/lua51.lib
 )
 
+#==================== lua extensions ====================#
+
+# cjson
+
+add_executable(lcjson IMPORTED GLOBAL)
+set_target_properties(lcjson PROPERTIES
+    IMPORTED_LOCATION           ${CMAKE_CURRENT_SOURCE_DIR}/luaext/Release/cjson.dll
+    IMPORTED_LOCATION_DEBUG     ${CMAKE_CURRENT_SOURCE_DIR}/luaext/Debug/cjson.dll
+    IMPORTED_LOCATION_RELEASE   ${CMAKE_CURRENT_SOURCE_DIR}/luaext/Release/cjson.dll
+)
+
+# lua file system
+
+add_executable(lfs IMPORTED GLOBAL)
+set_target_properties(lfs PROPERTIES
+    IMPORTED_LOCATION           ${CMAKE_CURRENT_SOURCE_DIR}/luaext/Release/lfs.dll
+    IMPORTED_LOCATION_DEBUG     ${CMAKE_CURRENT_SOURCE_DIR}/luaext/Debug/lfs.dll
+    IMPORTED_LOCATION_RELEASE   ${CMAKE_CURRENT_SOURCE_DIR}/luaext/Release/lfs.dll
+)
+
 #==================== ogg family ====================#
 
 # libogg
