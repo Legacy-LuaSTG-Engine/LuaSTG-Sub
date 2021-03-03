@@ -9,6 +9,9 @@ build
 bin
 ver
 
+#test
+data
+
 # cache
 imgui/imgui
 LuaSTG/Custom.cmake
