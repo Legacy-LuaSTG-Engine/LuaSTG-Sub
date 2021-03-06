@@ -187,7 +187,7 @@ namespace imgui
                     fontpath.c_str(),
                     16.0f * native::getDpiScalingForWindow((void*)APP.GetEngine()->GetMainWindow()->GetHandle()),
                     &cfg,
-                    io.Fonts->GetGlyphRangesDefault());
+                    io.Fonts->GetGlyphRangesChineseFull());
                 io.Fonts->AddFontDefault();
             }
             else
