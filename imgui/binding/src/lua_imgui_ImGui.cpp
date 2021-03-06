@@ -1687,18 +1687,18 @@ static int lib_CollapsingHeader(lua_State* L)
     {
         if (lua_type(L, 2) == LUA_TNUMBER)
         {
+            const ImGuiTreeNodeFlags flags = (ImGuiTreeNodeFlags)luaL_checkinteger(L, 2);
+            const bool ret = ImGui::CollapsingHeader(label, flags);
+            lua_pushboolean(L, ret);
+            return 1;
+        }
+        else
+        {
             bool open_ = lua_toboolean(L, 2);
             const bool ret = ImGui::CollapsingHeader(label, &open_);
             lua_pushboolean(L, ret);
             lua_pushboolean(L, open_);
             return 2;
-        }
-        else
-        {
-            const ImGuiTreeNodeFlags flags = (ImGuiTreeNodeFlags)luaL_checkinteger(L, 2);
-            const bool ret = ImGui::CollapsingHeader(label, flags);
-            lua_pushboolean(L, ret);
-            return 1;
         }
     }
     else
@@ -2259,7 +2259,7 @@ static int lib_TableNextColumn(lua_State* L)
 }
 static int lib_TableSetColumnIndex(lua_State* L)
 {
-    const int column_n = (int)luaL_checkinteger(L, 1);
+    const int column_n = (int)luaL_checkinteger(L, 1) - 1;
     const bool ret = ImGui::TableSetColumnIndex(column_n);
     lua_pushboolean(L, ret);
     return 1;
@@ -2325,13 +2325,13 @@ static int lib_TableGetColumnCount(lua_State* L)
 }
 static int lib_TableGetColumnIndex(lua_State* L)
 {
-    const int ret = ImGui::TableGetColumnIndex();
+    const int ret = ImGui::TableGetColumnIndex() + 1;
     lua_pushinteger(L, (lua_Integer)ret);
     return 1;
 }
 static int lib_TableGetRowIndex(lua_State* L)
 {
-    const int ret = ImGui::TableGetRowIndex();
+    const int ret = ImGui::TableGetRowIndex() + 1;
     lua_pushinteger(L, (lua_Integer)ret);
     return 1;
 }
