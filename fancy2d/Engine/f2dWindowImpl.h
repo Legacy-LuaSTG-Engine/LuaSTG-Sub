@@ -153,6 +153,7 @@ private:
 	std::vector<ptrdiff_t> m_fProc;
 	bool m_bShow;
 	std::wstring m_CaptionText;
+	fcyVec2 m_Size;
 	
 	// 监听器
 	DefaultListener m_DefaultListener;

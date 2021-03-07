@@ -260,6 +260,16 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 	switch (Msg)
 	{
 	case WM_CLOSE:
+		return 0;
+	case WM_GETMINMAXINFO:
+		{
+			MINMAXINFO* info = (MINMAXINFO*)lParam;
+			info->ptMaxSize.x = (LONG)pWindow->m_Size.x + 2;
+			info->ptMaxSize.y = (LONG)pWindow->m_Size.y + 2;
+			info->ptMaxTrackSize.x = (LONG)pWindow->m_Size.x + 2;
+			info->ptMaxTrackSize.y = (LONG)pWindow->m_Size.y + 2;
+		}
+		return 0;
 	case native::Windows::WM_DPICHANGED_T:
 		return 0;
 	default:
@@ -613,6 +623,8 @@ f2dWindowImpl::f2dWindowImpl(f2dEngineImpl* pEngine, f2dWindowClass* WinCls, con
 		m_hWnd, NULL,
 		tWinRect.left, tWinRect.top, tWinRect.right - tWinRect.left, tWinRect.bottom - tWinRect.top,
 		SWP_NOZORDER);
+	m_Size.x = (float)(tWinRect.right - tWinRect.left);
+	m_Size.y = (float)(tWinRect.bottom - tWinRect.top);
 	
 	// 获取默认输入法上下文
 	_defaultIMC = NULL;
@@ -910,6 +922,8 @@ fcyRect f2dWindowImpl::GetRect()
 
 fResult f2dWindowImpl::SetRect(const fcyRect& Range)
 {
+	m_Size.x = Range.GetWidth();
+	m_Size.y = Range.GetHeight();
 	return ::SetWindowPos(m_hWnd, 0,
 		(int)Range.a.x, (int)Range.a.y,
 		(int)Range.GetWidth(), (int)Range.GetHeight(),
@@ -933,6 +947,8 @@ fResult f2dWindowImpl::SetClientRect(const fcyRect& Range)
 		FALSE,
 		GetWindowLongPtrW(m_hWnd, GWL_EXSTYLE),
 		native::getDpiForWindow(m_hWnd));
+	m_Size.x = (float)(tWinRect.right - tWinRect.left);
+	m_Size.y = (float)(tWinRect.bottom - tWinRect.top);
 	return ::SetWindowPos(m_hWnd, 0,
 		tWinRect.left,
 		tWinRect.top,
