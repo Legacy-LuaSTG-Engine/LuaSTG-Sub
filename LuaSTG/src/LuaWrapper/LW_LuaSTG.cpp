@@ -60,60 +60,6 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			lua_pushnumber(L, LAPP.GetFPS());
 			return 1;
 		}
-		static int ChangeVideoMode(lua_State* L)LNOEXCEPT
-		{
-			lua_pushboolean(L, LAPP.ChangeVideoMode(
-				luaL_checkinteger(L, 1),
-				luaL_checkinteger(L, 2),
-				lua_toboolean(L, 3) == 0 ? false : true,
-				lua_toboolean(L, 4) == 0 ? false : true
-			));
-			return 1;
-		}
-		static int SetWindowStyle(lua_State* L)LNOEXCEPT
-		{
-			LAPP.GetWindow()->SetBorderType(
-				(F2DWINBORDERTYPE)luaL_checkinteger(L, 1));
-			LAPP.GetWindow()->MoveToCenter();
-			return 0;
-		}
-		static int SetWindowSize(lua_State* L)LNOEXCEPT
-		{
-			fResult result = LAPP.GetWindow()->SetClientRect(
-				fcyRect(
-					0.0f, 0.0f,
-					(float)luaL_checkinteger(L, 1),
-					(float)luaL_checkinteger(L, 2)));
-			lua_pushboolean(L, result == FCYERR_OK);
-			LAPP.GetWindow()->MoveToCenter();
-			return 1;
-		}
-		static int SetWindowTopMost(lua_State* L)LNOEXCEPT
-		{
-			LAPP.GetWindow()->SetTopMost(lua_toboolean(L, 1));
-			return 0;
-		}
-		static int SetSwapChainSize(lua_State* L)LNOEXCEPT
-		{
-			fResult result = LAPP.GetRenderDev()->SetBufferSize(
-				(fuInt)luaL_checkinteger(L, 1),
-				(fuInt)luaL_checkinteger(L, 2),
-				(fBool)lua_toboolean(L, 3),
-				(fBool)lua_toboolean(L, 4),
-				F2DAALEVEL_NONE);
-			lua_pushboolean(L, result == FCYERR_OK);
-			return 1;
-		}
-		static int SetSplash(lua_State* L)LNOEXCEPT
-		{
-			LAPP.SetSplash(lua_toboolean(L, 1) == 0 ? false : true);
-			return 0;
-		}
-		static int SetTitle(lua_State* L)LNOEXCEPT
-		{
-			LAPP.SetTitle(luaL_checkstring(L, 1));
-			return 0;
-		}
 		static int Log(lua_State* L)LNOEXCEPT
 		{
 			lua_Integer _level = luaL_checkinteger(L, 1);
@@ -221,6 +167,67 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		{
 			// searchpath extendname packname
 			LRES.FindFiles(L, luaL_checkstring(L, 1), luaL_optstring(L, 2, ""), luaL_optstring(L, 3, ""));
+			return 1;
+		}
+		#pragma endregion
+		
+		#pragma region 窗口与交换链控制函数
+		// 窗口与交换链控制函数
+		static int SetSplash(lua_State* L)LNOEXCEPT
+		{
+			LAPP.SetSplash(lua_toboolean(L, 1) == 0 ? false : true);
+			return 0;
+		}
+		static int SetTitle(lua_State* L)LNOEXCEPT
+		{
+			LAPP.SetTitle(luaL_checkstring(L, 1));
+			return 0;
+		}
+		static int ChangeVideoMode(lua_State* L)LNOEXCEPT
+		{
+			lua_pushboolean(L, LAPP.ChangeVideoMode(
+				luaL_checkinteger(L, 1),
+				luaL_checkinteger(L, 2),
+				lua_toboolean(L, 3) == 0 ? false : true,
+				lua_toboolean(L, 4) == 0 ? false : true
+			));
+			return 1;
+		}
+		static int MoveWindowToCenter(lua_State* L)LNOEXCEPT
+		{
+			LAPP.GetWindow()->MoveToCenter();
+			return 0;
+		}
+		static int SetWindowStyle(lua_State* L)LNOEXCEPT
+		{
+			LAPP.GetWindow()->SetBorderType(
+				(F2DWINBORDERTYPE)luaL_checkinteger(L, 1));
+			return 0;
+		}
+		static int SetWindowSize(lua_State* L)LNOEXCEPT
+		{
+			fResult result = LAPP.GetWindow()->SetClientRect(
+				fcyRect(
+					0.0f, 0.0f,
+					(float)luaL_checkinteger(L, 1),
+					(float)luaL_checkinteger(L, 2)));
+			lua_pushboolean(L, result == FCYERR_OK);
+			return 1;
+		}
+		static int SetWindowTopMost(lua_State* L)LNOEXCEPT
+		{
+			LAPP.GetWindow()->SetTopMost(lua_toboolean(L, 1));
+			return 0;
+		}
+		static int SetSwapChainSize(lua_State* L)LNOEXCEPT
+		{
+			fResult result = LAPP.GetRenderDev()->SetBufferSize(
+				(fuInt)luaL_checkinteger(L, 1),
+				(fuInt)luaL_checkinteger(L, 2),
+				(fBool)lua_toboolean(L, 3),
+				(fBool)lua_toboolean(L, 4),
+				F2DAALEVEL_NONE);
+			lua_pushboolean(L, result == FCYERR_OK);
 			return 1;
 		}
 		static int EnumResolutions(lua_State* L) {
@@ -2050,13 +2057,6 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		{ "GetFPS", &WrapperImplement::GetFPS },
 		{ "SetVsync", &WrapperImplement::SetVsync },
 		{ "SetResolution", &WrapperImplement::SetResolution },
-		{ "ChangeVideoMode", &WrapperImplement::ChangeVideoMode },
-		{ "SetWindowStyle", &WrapperImplement::SetWindowStyle },
-		{ "SetWindowSize", &WrapperImplement::SetWindowSize },
-		{ "SetWindowTopMost", &WrapperImplement::SetWindowTopMost },
-		{ "SetSwapChainSize", &WrapperImplement::SetSwapChainSize },
-		{ "SetSplash", &WrapperImplement::SetSplash },
-		{ "SetTitle", &WrapperImplement::SetTitle },
 		{ "Log", &WrapperImplement::Log },
 		{ "SystemLog", &WrapperImplement::SystemLog },
 		{ "Print", &WrapperImplement::Print },
@@ -2068,10 +2068,21 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 #endif // !USING_ENCRYPTION
 		{ "DoFile", &WrapperImplement::DoFile },
 		{ "LoadTextFile", &WrapperImplement::LoadTextFile },
-		{ "EnumResolutions", &WrapperImplement::EnumResolutions },
 		{ "FindFiles", &WrapperImplement::FindFiles },
 		#pragma endregion
-
+		
+		#pragma region 窗口与交换链控制函数
+		{ "SetSplash", &WrapperImplement::SetSplash },
+		{ "SetTitle", &WrapperImplement::SetTitle },
+		{ "ChangeVideoMode", &WrapperImplement::ChangeVideoMode },
+		{ "MoveWindowToCenter", &WrapperImplement::MoveWindowToCenter },
+		{ "SetWindowStyle", &WrapperImplement::SetWindowStyle },
+		{ "SetWindowSize", &WrapperImplement::SetWindowSize },
+		{ "SetWindowTopMost", &WrapperImplement::SetWindowTopMost },
+		{ "SetSwapChainSize", &WrapperImplement::SetSwapChainSize },
+		{ "EnumResolutions", &WrapperImplement::EnumResolutions },
+		#pragma endregion
+		
 		#pragma region 游戏对象
 		//对象池管理
 		{ "GetnObj", &WrapperImplement::GetnObj },

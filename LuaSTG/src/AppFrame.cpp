@@ -989,11 +989,13 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 		}
 		case F2DMSG_WINDOW_ONKEYDOWN:
 		{
+			#ifdef USING_CTRL_ENTER_SWITCH
 			// ctrl+enter全屏
 			if (tMsg.Param1 == VK_RETURN && !m_KeyStateMap[VK_RETURN] && m_KeyStateMap[VK_CONTROL])  // 防止反复触发
 			{
 				ChangeVideoMode((int)m_OptionResolution.x, (int)m_OptionResolution.y, !m_OptionWindowed, m_OptionVsync);
 			}
+			#endif
 			// key
 			if (0 < tMsg.Param1 && tMsg.Param1 < _countof(m_KeyStateMap))
 			{
