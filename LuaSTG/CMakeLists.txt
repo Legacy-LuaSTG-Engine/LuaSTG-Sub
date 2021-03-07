@@ -24,12 +24,9 @@ target_compile_options(LuaSTG PUBLIC
 
 target_include_directories(LuaSTG PRIVATE
     ..
-    
     src
     ${LUASTG_RESDIR}
     src/LuaWrapper
-    
-    ../SteamAPI/public/steam
 )
 
 target_compile_definitions(LuaSTG PRIVATE
@@ -56,11 +53,7 @@ target_sources(LuaSTG PRIVATE
     ${LUASTG_RESDIR}/app.ico
 )
 
-target_link_directories(LuaSTG PRIVATE
-    ../SteamAPI/redistributable_bin
-)
-
-target_link_libraries(LuaSTG
+target_link_libraries(LuaSTG PRIVATE
     fancylib
     fancy2d
     eyes2d
@@ -69,6 +62,11 @@ target_link_libraries(LuaSTG
     imgui
     lua_imgui
 )
+if (DEFINED LUASTG_USING_STEAM_API)
+    target_link_libraries(LuaSTG PRIVATE
+        steam_api
+    )
+endif()
 
 add_custom_command(TARGET LuaSTG POST_BUILD
     # output dir

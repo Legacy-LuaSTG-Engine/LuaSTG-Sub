@@ -1,0 +1,2 @@
+Steam的条款不允许再发行SteamAPI，因此如果需要用到SteamAPI，请前往SteamWorks自行下载。
+下载好后会得到一个压缩包，将压缩包的sdk文件夹内的所有文件解压到这个文件夹中。

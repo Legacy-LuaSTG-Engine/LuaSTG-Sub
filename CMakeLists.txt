@@ -13,6 +13,7 @@ add_subdirectory(fancylib)
 add_subdirectory(fancy2d)
 
 add_subdirectory(imgui)
+add_subdirectory(steam)
 add_subdirectory(eyes2d)
 #add_subdirectory(slow)
 
