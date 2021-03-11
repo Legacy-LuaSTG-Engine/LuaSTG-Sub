@@ -23,3 +23,68 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/public/steam AND EXISTS 
 else()
     message("Steamworks SDK doesn't exist")
 endif()
+
+# binding
+
+add_library(lua_steam_api STATIC)
+set_target_properties(lua_steam_api PROPERTIES
+    C_STANDARD 11
+    C_STANDARD_REQUIRED ON
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON
+)
+target_include_directories(lua_steam_api PUBLIC
+    binding
+)
+target_sources(lua_steam_api PRIVATE
+    binding/lua_steam.h
+    binding/lua_steam.cpp
+)
+if(TARGET steam_api)
+    target_sources(lua_steam_api PRIVATE
+        binding/lua_steam.cpp
+    )
+else()
+    target_sources(lua_steam_api PRIVATE
+        binding/lua_steam_empty.cpp
+    )
+endif()
+target_link_libraries(lua_steam_api PUBLIC
+    steam_api
+    luajit
+)
+
+# binding dll
+
+add_library(steam SHARED)
+set_target_properties(steam PROPERTIES
+    C_STANDARD 11
+    C_STANDARD_REQUIRED ON
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON
+)
+target_compile_definitions(steam PRIVATE
+    BUILD_LUA_STEAM_DLL
+)
+target_include_directories(steam PRIVATE
+    binding
+)
+target_sources(steam PRIVATE
+    binding/lua_steam.h
+    binding/lua_steam.cpp
+)
+if(TARGET steam_api)
+    target_sources(steam PRIVATE
+        binding/lua_steam_SteamInput.inl
+        binding/lua_steam_SteamUserStats.inl
+        binding/lua_steam.cpp
+    )
+else()
+    target_sources(steam PRIVATE
+        binding/lua_steam_empty.cpp
+    )
+endif()
+target_link_libraries(steam PRIVATE
+    steam_api
+    luajit
+)
