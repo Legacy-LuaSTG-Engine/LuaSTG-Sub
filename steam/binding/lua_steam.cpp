@@ -362,6 +362,10 @@ struct xSteamAPI
 #include "lua_steam_SteamInput.inl"
 #include "lua_steam_SteamUserStats.inl"
 
+bool lua_steam_check(uint32_t appid)
+{
+    return SteamAPI_RestartAppIfNecessary(appid);
+}
 int lua_steam_open(lua_State* L)
 {
     const luaL_Reg lib[] = {{NULL, NULL}};
