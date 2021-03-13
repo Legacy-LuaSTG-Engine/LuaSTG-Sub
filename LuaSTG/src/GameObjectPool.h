@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include "Global.h"
 #include "ObjectPool.hpp"
-#include "CirularQueue.hpp"
 #include "ResourceMgr.h"
 #include "GameObject.hpp"
 

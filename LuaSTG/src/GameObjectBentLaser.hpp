@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "Global.h"
-#include "CirularQueue.hpp"
+#include "CircularQueue.hpp"
 #include "GameObject.hpp"
 
 #define LGOBJ_MAXLASERNODE 512  // 曲线激光最大节点数
@@ -23,7 +23,7 @@ namespace LuaSTGPlus
 			bool sharp = false;		//相对上一个节点的朝向成钝角
 		};
 	private:
-		CirularQueue<LaserNode, LGOBJ_MAXLASERNODE> m_Queue;
+		CircularQueue<LaserNode, LGOBJ_MAXLASERNODE> m_Queue;
 		float m_fLength = 0.0f; // 记录激光长度
 	private:
 		float m_fEnvelopeHeight = 0.0f;
