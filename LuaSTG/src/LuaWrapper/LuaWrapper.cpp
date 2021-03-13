@@ -1,5 +1,4 @@
 ﻿#include "LuaWrapper/LuaWrapper.hpp"
-#include "Utility.h"
 #include "Common/SystemDirectory.hpp"
 
 namespace LuaSTGPlus
@@ -116,7 +115,7 @@ namespace LuaSTGPlus
 					return 1;
 				}
 			};
-
+			
 			luaL_Reg tMethod[] =
 			{
 				{ "GetLocalAppDataPath", &Function::GetLocalAppDataPath },
@@ -144,7 +143,7 @@ namespace LuaSTGPlus
 			::lua_setglobal(L, LUASTG_LUA_LIBNAME);	// ...
 		}
 	}
-
+	
 	void RegistBuiltInClassWrapper(lua_State* L)LNOEXCEPT {
 		LuaWrapper::Register(L);
 		BuiltInFunctionWrapper::Register(L);  // 内建函数库

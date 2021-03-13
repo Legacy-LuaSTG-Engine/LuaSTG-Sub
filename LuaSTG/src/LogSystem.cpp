@@ -1,16 +1,20 @@
-﻿#include <ctime>
+﻿#include "LogSystem.h"
+#include <ctime>
 #include <string>
-#include "LogSystem.h"
+#include <cstdarg>
 #include "Config.h"
-#include "Utility.h"
+#include "StringFormat.hpp"
 #include "Common/SystemDirectory.hpp"
+#include <Windows.h>
 
 #define LOGSYS_COMPANY APP_COMPANY
 #define LOGSYS_PRODUCT APP_PRODUCT
 #define LOGSYS_LOGFILE L"log.txt"
 
-namespace LuaSTGPlus {
-	bool checkDirectory(std::wstring& out) {
+namespace LuaSTGPlus
+{
+	bool checkDirectory(std::wstring& out)
+	{
 		std::wstring path; // APPDATA
 		if (windows::makeApplicationRoamingAppDataDirectory(APP_COMPANY, APP_PRODUCT, path))
 		{
@@ -24,7 +28,8 @@ namespace LuaSTGPlus {
 		}
 	}
 	
-	bool checkFile(std::wstring& out) {
+	bool checkFile(std::wstring& out)
+	{
 		bool ok = false;
 		std::wstring filename;
 		std::time_t rawtime;
@@ -44,12 +49,8 @@ namespace LuaSTGPlus {
 		return ok;
 	}
 	
-	__declspec(noinline) LogSystem& LogSystem::GetInstance() {
-		static LogSystem s_Instance;
-		return s_Instance;
-	}
-	
-	LogSystem::LogSystem() {
+	LogSystem::LogSystem()
+	{
 		std::wstring path = L"";
 		std::wstring file = LOGSYS_LOGFILE;
 #ifdef USING_SYSTEM_DIRECTORY
@@ -58,22 +59,32 @@ namespace LuaSTGPlus {
 #endif // USING_SYSTEM_DIRECTORY
 		m_LogFileName = path + file;
 		m_LogFile.open(m_LogFileName, std::ios::out);
-		if (!m_LogFile.is_open()) {
+		if (!m_LogFile.is_open())
+		{
 			Log(LogType::Error, L"无法创建日志文件");
 		}
 	}
 	
-	LogSystem::~LogSystem() {
+	LogSystem::~LogSystem()
+	{
 		if (m_LogFile.is_open()) {
 			m_LogFile.flush();
 			m_LogFile.close();
 		}
 	}
 	
-	__declspec(noinline) void LogSystem::Log(LogType type, const wchar_t* info, ...) noexcept {
+	LogSystem& LogSystem::GetInstance()
+	{
+		static LogSystem s_Instance;
+		return s_Instance;
+	}
+	
+	void LogSystem::Log(LogType type, const wchar_t* info, ...) noexcept
+	{
 		std::wstring tRet;
-
-		try {
+		
+		try
+		{
 			switch (type)
 			{
 			case LogType::Error:
@@ -102,20 +113,24 @@ namespace LuaSTGPlus {
 			va_end(vargs);
 			tRet.push_back(L'\n');
 		}
-		catch (const std::bad_alloc&) {
+		catch (const std::bad_alloc&)
+		{
 			OutputDebugStringW(L"[ERROR] 格式化日志内容时发生内存不足错误");
 			return;
 		}
-
+		
 		OutputDebugStringW(tRet.c_str());
-
-		try {
-			if (m_LogFile.is_open()) {
-				m_LogFile << std::move(fcyStringHelper::WideCharToMultiByte(tRet, CP_UTF8));
+		
+		try
+		{
+			if (m_LogFile.is_open())
+			{
+				m_LogFile << std::move(WideCharToMultiByte(tRet));
 				m_LogFile.flush();
 			}
 		}
-		catch (const std::bad_alloc&) {
+		catch (const std::bad_alloc&)
+		{
 			OutputDebugStringW(L"[ERROR] 写入日志到文件时发生内存不足错误");
 			return;
 		}

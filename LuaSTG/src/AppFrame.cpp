@@ -4,6 +4,7 @@
 
 #include "AppFrame.h"
 #include "Utility.h"
+#include "StringFormat.hpp"
 #include "SteamAPI.hpp"
 #include "ResourcePassword.hpp"
 #include "LuaWrapper/LuaAppFrame.hpp"
