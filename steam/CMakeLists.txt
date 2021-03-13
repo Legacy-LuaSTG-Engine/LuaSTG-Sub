@@ -38,10 +38,11 @@ target_include_directories(lua_steam_api PUBLIC
 )
 target_sources(lua_steam_api PRIVATE
     binding/lua_steam.h
-    binding/lua_steam.cpp
 )
 if(TARGET steam_api)
     target_sources(lua_steam_api PRIVATE
+        binding/lua_steam_SteamInput.inl
+        binding/lua_steam_SteamUserStats.inl
         binding/lua_steam.cpp
     )
 else()
@@ -63,28 +64,9 @@ set_target_properties(steam PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
 )
-target_compile_definitions(steam PRIVATE
-    BUILD_LUA_STEAM_DLL
-)
-target_include_directories(steam PRIVATE
-    binding
-)
 target_sources(steam PRIVATE
-    binding/lua_steam.h
-    binding/lua_steam.cpp
+    binding/lua_steam_dll.cpp
 )
-if(TARGET steam_api)
-    target_sources(steam PRIVATE
-        binding/lua_steam_SteamInput.inl
-        binding/lua_steam_SteamUserStats.inl
-        binding/lua_steam.cpp
-    )
-else()
-    target_sources(steam PRIVATE
-        binding/lua_steam_empty.cpp
-    )
-endif()
 target_link_libraries(steam PRIVATE
-    steam_api
-    luajit
+    lua_steam_api
 )

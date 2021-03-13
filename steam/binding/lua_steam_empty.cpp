@@ -1,5 +1,9 @@
 #include "lua_steam.h"
 
+bool lua_steam_check(uint32_t appid)
+{
+    return true;
+}
 int luaopen_steam(lua_State* L)
 {
     const luaL_Reg lib[] = {{NULL, NULL}};

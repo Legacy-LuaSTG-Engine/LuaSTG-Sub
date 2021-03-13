@@ -364,7 +364,7 @@ struct xSteamAPI
 
 bool lua_steam_check(uint32_t appid)
 {
-    return SteamAPI_RestartAppIfNecessary(appid);
+    return !SteamAPI_RestartAppIfNecessary(appid);
 }
 int lua_steam_open(lua_State* L)
 {
@@ -379,9 +379,3 @@ int lua_steam_open(lua_State* L)
     xSteamUserStats::xRegister(L);
     return 1;
 }
-#ifdef BUILD_LUA_STEAM_DLL
-extern "C" __declspec(dllexport) int luaopen_steam(lua_State* L)
-{
-    return lua_steam_open(L);
-}
-#endif
