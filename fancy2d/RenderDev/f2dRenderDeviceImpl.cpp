@@ -12,6 +12,8 @@
 
 #include "Engine/f2dEngineImpl.h"
 
+#include <algorithm>
+
 ////////////////////////////////////////////////////////////////////////////////
 
 f2dRenderDeviceImpl::VertexDeclareInfo::VertexDeclareInfo()
@@ -1210,14 +1212,22 @@ fResult f2dRenderDeviceImpl::SetViewport(fcyRect vp)
 	if (m_pCurGraphics && m_pCurGraphics->IsInRender())
 		m_pCurGraphics->Flush();
 
-	if (!vp.Intersect(fcyRect(0, 0, (float)GetBufferWidth(), (float)GetBufferHeight()), &vp))
-		return FCYERR_ILLEGAL;
-
+	//if (!vp.Intersect(fcyRect(0, 0, (float)GetBufferWidth(), (float)GetBufferHeight()), &vp))
+	//	return FCYERR_ILLEGAL;
+	
+	// 限制范围
+	const float sWidth = (float)GetBufferWidth();
+	const float sHeight = (float)GetBufferHeight();
+	vp.a.x = std::clamp(vp.a.x, 0.0f, sWidth);
+	vp.b.x = std::clamp(vp.b.x, 0.0f, sWidth);
+	vp.a.y = std::clamp(vp.a.y, 0.0f, sHeight);
+	vp.b.y = std::clamp(vp.b.y, 0.0f, sHeight);
+	
 	DWORD tNewX = (DWORD)vp.a.x;
 	DWORD tNewY = (DWORD)vp.a.y;
 	DWORD tNewW = (DWORD)vp.GetWidth();
 	DWORD tNewH = (DWORD)vp.GetHeight();
-
+	
 	if (tNewX != m_ViewPort.X || tNewY != m_ViewPort.Y || tNewW != m_ViewPort.Width || tNewH != m_ViewPort.Height)
 	{
 		m_ViewPort.X = tNewX;
