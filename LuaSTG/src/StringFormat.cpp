@@ -6,17 +6,17 @@ namespace LuaSTGPlus
 {
     std::wstring MultiByteToWideChar(const std::string& src, unsigned int cp)
     {
-        const int count = ::MultiByteToWideChar(cp, 0, src.c_str(), -1, NULL, 0);
+        const int count = ::MultiByteToWideChar(cp, 0, src.c_str(), src.length(), NULL, 0);
         std::wstring dst; dst.resize((size_t)count);
-        const int result = ::MultiByteToWideChar(cp, 0, src.c_str(), -1, (LPWSTR)dst.data(), count);
+        const int result = ::MultiByteToWideChar(cp, 0, src.c_str(), src.length(), (LPWSTR)dst.data(), count);
         return std::move(dst);
     }
     
     std::string WideCharToMultiByte(const std::wstring& src, unsigned int cp)
     {
-        const int count = ::WideCharToMultiByte(cp, 0, src.c_str(), -1, NULL, 0, NULL, NULL);
+        const int count = ::WideCharToMultiByte(cp, 0, src.c_str(), src.length(), NULL, 0, NULL, NULL);
         std::string dst; dst.resize((size_t)count);
-        const int result = ::WideCharToMultiByte(cp, 0, src.c_str(), -1, (LPSTR)dst.data(), count, NULL, NULL);
+        const int result = ::WideCharToMultiByte(cp, 0, src.c_str(), src.length(), (LPSTR)dst.data(), count, NULL, NULL);
         return std::move(dst);
     }
     
