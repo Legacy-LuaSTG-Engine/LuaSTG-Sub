@@ -1901,7 +1901,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		}
 		static int GetMousePosition(lua_State* L)LNOEXCEPT
 		{
-			fcyVec2 tPos = LAPP.GetMousePosition();
+			fcyVec2 tPos = LAPP.GetMousePosition(lua_toboolean(L, 1));
 			lua_pushnumber(L, tPos.x);
 			lua_pushnumber(L, tPos.y);
 			return 2;

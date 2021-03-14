@@ -1019,8 +1019,10 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 		}
 		case F2DMSG_WINDOW_ONMOUSEMOVE:
 		{
+			m_MousePosition_old.x = (float)static_cast<fInt>(tMsg.Param1);
+			m_MousePosition_old.y = m_OptionResolution.y - (float)static_cast<fInt>(tMsg.Param2);  // ! 潜在大小不匹配问题
 			m_MousePosition.x = (float)static_cast<fInt>(tMsg.Param1);
-			m_MousePosition.y = m_OptionResolution.y - (float)static_cast<fInt>(tMsg.Param2);  // ! 潜在大小不匹配问题
+			m_MousePosition.y = (float)static_cast<fInt>(tMsg.Param2);
 			break;
 		}
 		case F2DMSG_SYSTEM_ON_DEVICE_CHANGE:

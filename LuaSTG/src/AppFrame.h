@@ -102,6 +102,7 @@ namespace LuaSTGPlus
 		fInt m_LastKey;
 		fBool m_KeyStateMap[256];
 		fcyVec2 m_MousePosition;
+		fcyVec2 m_MousePosition_old;
 		void resetKeyStatus()LNOEXCEPT {
 			m_LastChar = 0;
 			m_LastKey = 0;
@@ -153,7 +154,13 @@ namespace LuaSTGPlus
 		int GetLastKey()LNOEXCEPT { return m_LastKey; }
 		
 		/// @brief 获取鼠标位置（以窗口左下角为原点）
-		fcyVec2 GetMousePosition()LNOEXCEPT { return m_MousePosition; }
+		fcyVec2 GetMousePosition(bool no_flip = false)LNOEXCEPT
+		{
+			if (no_flip)
+				return m_MousePosition;
+			else
+				return m_MousePosition_old;
+		}
 		
 		/// @brief 获取鼠标滚轮增量
 		fInt GetMouseWheelDelta()LNOEXCEPT { return m_Mouse->GetOffsetZ(); }

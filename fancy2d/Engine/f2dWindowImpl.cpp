@@ -6,6 +6,7 @@
 #include <fcyException.h>
 #include <fcyOS/fcyDebug.h>
 #include <Dbt.h> // DBT_DEVNODES_CHANGED
+#include <windowsx.h>
 
 //#define _IME_DEBUG
 //#define _FANCY2D_IME_ENABLE // 妈的，这IME支持还不如不写，一堆bug
@@ -106,6 +107,9 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 			if(pListener) pListener->OnSize(cx,cy);
 		}
 		break;
+	
+	// 键盘消息
+	
 	case WM_KEYDOWN:
 		if(pListener) pListener->OnKeyDown(wParam,lParam);
 		break;
@@ -115,39 +119,45 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 	case WM_CHAR:
 		if(pListener) pListener->OnCharInput((wchar_t)wParam, lParam);
 		break;
+	
+	// 鼠标消息
+	
 	case WM_MOUSEMOVE:
-		if(pListener) pListener->OnMouseMove(LOWORD(lParam),HIWORD(lParam),wParam);
+		if(pListener) pListener->OnMouseMove(GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam),wParam);
 		break;
 	case WM_MOUSEWHEEL:
-		if(pListener) pListener->OnMouseWheel(LOWORD(lParam),HIWORD(lParam),((short)HIWORD(wParam))/(float)WHEEL_DELTA,LOWORD(wParam));
+		if(pListener) pListener->OnMouseWheel(GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam),(fFloat)GET_WHEEL_DELTA_WPARAM(wParam),LOWORD(wParam));
 		break;
 	case WM_LBUTTONDOWN:
-		if(pListener) pListener->OnMouseLBDown(LOWORD(lParam),HIWORD(lParam),wParam);
+		if(pListener) pListener->OnMouseLBDown(GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam),wParam);
 		break;
 	case WM_LBUTTONUP:
-		if(pListener) pListener->OnMouseLBUp(LOWORD(lParam),HIWORD(lParam),wParam);
+		if(pListener) pListener->OnMouseLBUp(GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam),wParam);
 		break;
 	case WM_LBUTTONDBLCLK:
-		if(pListener) pListener->OnMouseLBDouble(LOWORD(lParam),HIWORD(lParam),wParam);
+		if(pListener) pListener->OnMouseLBDouble(GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam),wParam);
 		break;
 	case WM_RBUTTONDOWN:
-		if(pListener) pListener->OnMouseRBDown(LOWORD(lParam),HIWORD(lParam),wParam);
+		if(pListener) pListener->OnMouseRBDown(GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam),wParam);
 		break;
 	case WM_RBUTTONUP:
-		if(pListener) pListener->OnMouseRBUp(LOWORD(lParam),HIWORD(lParam),wParam);
+		if(pListener) pListener->OnMouseRBUp(GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam),wParam);
 		break;
 	case WM_RBUTTONDBLCLK:
-		if(pListener) pListener->OnMouseRBDouble(LOWORD(lParam),HIWORD(lParam),wParam);
+		if(pListener) pListener->OnMouseRBDouble(GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam),wParam);
 		break;
 	case WM_MBUTTONDOWN:
-		if(pListener) pListener->OnMouseMBDown(LOWORD(lParam),HIWORD(lParam),wParam);
+		if(pListener) pListener->OnMouseMBDown(GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam),wParam);
 		break;
 	case WM_MBUTTONUP:
-		if(pListener) pListener->OnMouseMBUp(LOWORD(lParam),HIWORD(lParam),wParam);
+		if(pListener) pListener->OnMouseMBUp(GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam),wParam);
 		break;
 	case WM_MBUTTONDBLCLK:
-		if(pListener) pListener->OnMouseMBDouble(LOWORD(lParam),HIWORD(lParam),wParam);
+		if(pListener) pListener->OnMouseMBDouble(GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam),wParam);
 		break;
+	
+	// 其他
+	
 	case WM_SETFOCUS:
 		{
 			#ifdef _FANCY2D_IME_ENABLE
@@ -530,8 +540,10 @@ void f2dWindowImpl::DefaultListener::OnMouseMove(fShort X, fShort Y, fuInt Flag)
 }
 void f2dWindowImpl::DefaultListener::OnMouseWheel(fShort X, fShort Y, fFloat Wheel, fuInt Flag)
 {
-	fDouble tValue = Wheel;
-	m_pEngine->SendMsg(F2DMSG_WINDOW_ONMOUSEWHEEL, X, Y, *(fuLong*)&tValue);
+	fuLong data = Wheel > 0.0f ? (fuLong)Wheel : (fuLong)-Wheel;
+	fuLong flag = Wheel > 0.0f ? (1ull << 63) : 0;
+	flag |= WHEEL_DELTA;
+	m_pEngine->SendMsg(F2DMSG_WINDOW_ONMOUSEWHEEL, X, Y, data, Wheel > 0.0f ? 1 : 0);
 }
 void f2dWindowImpl::DefaultListener::OnMouseLBDown(fShort X, fShort Y, fuInt Flag)
 {
