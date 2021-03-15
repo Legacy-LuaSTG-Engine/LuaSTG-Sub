@@ -240,6 +240,21 @@ namespace LuaSTGPlus
         return true;
     }
     
+    bool AppFrame::SetScissorRect(double left, double right, double bottom, double top) LNOEXCEPT
+    {
+        if (FCYFAILED(m_pRenderDev->SetScissorRect(fcyRect(
+            static_cast<float>((int)left),
+            static_cast<float>((int)m_pRenderDev->GetBufferHeight() - (int)top),
+            static_cast<float>((int)right),
+            static_cast<float>((int)m_pRenderDev->GetBufferHeight() - (int)bottom)
+        ))))
+        {
+            LERROR("设置裁剪矩形(left: %lf, right: %lf, bottom: %lf, top: %lf)失败", left, right, bottom, top);
+            return false;
+        }
+        return true;
+    }
+    
     void AppFrame::SetOrtho(
         float left, float right, float bottom, float top,
         float znear, float zfar) LNOEXCEPT

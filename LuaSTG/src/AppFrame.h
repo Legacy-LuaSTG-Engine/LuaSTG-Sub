@@ -185,6 +185,9 @@ namespace LuaSTGPlus
 		/// @brief 设置视口
 		bool SetViewport(double left, double right, double bottom, double top) LNOEXCEPT;
 		
+		/// @brief 设置裁剪矩形
+		bool SetScissorRect(double left, double right, double bottom, double top) LNOEXCEPT;
+		
 		/// @brief 设置正投影矩阵。
 		void SetOrtho(
 			float left, float right, float bottom, float top,

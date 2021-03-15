@@ -1302,6 +1302,19 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			}
 			return 0;
 		}
+		static int SetScissorRect(lua_State* L)LNOEXCEPT
+		{
+			if (!LAPP.SetScissorRect(
+				luaL_checknumber(L, 1),
+				luaL_checknumber(L, 2),
+				luaL_checknumber(L, 3),
+				luaL_checknumber(L, 4)
+			))
+			{
+				return luaL_error(L, "invalid arguments for 'SetScissorRect'.");
+			}
+			return 0;
+		}
 		static int SetOrtho(lua_State* L)LNOEXCEPT
 		{
 			int top_n = lua_gettop(L);
@@ -2169,6 +2182,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		{ "EndScene", &WrapperImplement::EndScene },
 		{ "RenderClear", &WrapperImplement::RenderClear },
 		{ "SetViewport", &WrapperImplement::SetViewport },
+		{ "SetScissorRect", &WrapperImplement::SetScissorRect },
 		{ "SetOrtho", &WrapperImplement::SetOrtho },
 		{ "SetPerspective", &WrapperImplement::SetPerspective },
 		{ "SetTextureSamplerState", &WrapperImplement::SetTextureSamplerState },
