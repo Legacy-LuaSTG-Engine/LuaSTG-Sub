@@ -52,6 +52,13 @@ static int lib_setTopMost(lua_State* L)
     window->SetTopMost(topmost);
     return 0;
 }
+static int lib_setIMEEnable(lua_State* L)
+{
+    getwindow(window);
+    const bool enable = lua_toboolean(L, 1);
+    window->SetIMEEnable(enable);
+    return 0;
+}
 
 #define makefname(__X__) { #__X__ , &lib_##__X__ }
 
@@ -72,6 +79,7 @@ static const luaL_Reg lib[] = {
     makefname(setStyle),
     makefname(setSize),
     makefname(setTopMost),
+    makefname(setIMEEnable),
     {NULL, NULL},
 };
 
