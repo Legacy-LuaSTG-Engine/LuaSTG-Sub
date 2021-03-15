@@ -114,6 +114,7 @@ private:
 	protected:
 		f2dEngineImpl* m_pEngine;
 		f2dWindowImpl* m_pThis;
+		fCharW m_U16Lead;
 	public:
 		void OnClose();
 		void OnPaint();
@@ -145,7 +146,7 @@ private:
 		void OnDeviceChange();
 	public:
 		DefaultListener(f2dEngineImpl* pEngine, f2dWindowImpl* pThis)
-			: m_pEngine(pEngine), m_pThis(pThis) {}
+			: m_pEngine(pEngine), m_pThis(pThis), m_U16Lead(0) {}
 	};
 private:
 	// 状态

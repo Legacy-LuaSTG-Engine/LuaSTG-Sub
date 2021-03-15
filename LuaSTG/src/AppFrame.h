@@ -62,8 +62,6 @@ namespace LuaSTGPlus
 		fuInt m_OptionFPSLimit = 60;
 		bool m_OptionVsync = false;
 		fcyVec2 m_OptionResolution = fcyVec2(640.f, 480.f);
-		bool m_OptionSplash = true;
-		std::wstring m_OptionTitle = L"LuaSTG";
 		fDouble m_fFPS = 0.;
 		
 		// 引擎
@@ -100,6 +98,7 @@ namespace LuaSTGPlus
 		fcyRefPointer<f2dInputKeyboard> m_Keyboard2;
 		fCharW m_LastChar;
 		fInt m_LastKey;
+		std::wstring m_InputTextBuffer;
 		fBool m_KeyStateMap[256];
 		fcyVec2 m_MousePosition;
 		fcyVec2 m_MousePosition_old;
@@ -113,9 +112,6 @@ namespace LuaSTGPlus
 		void SetWindowed(bool v)LNOEXCEPT;
 		void SetVsync(bool v)LNOEXCEPT;
 		void SetResolution(fuInt width, fuInt height)LNOEXCEPT;
-		void SetSplash(bool v)LNOEXCEPT;
-		LNOINLINE void SetTitle(const char* v)LNOEXCEPT;  // UTF8编码
-		
 	public:
 		/// @brief 使用新的视频参数更新显示模式
 		/// @note 若切换失败则进行回滚
@@ -152,6 +148,15 @@ namespace LuaSTGPlus
 		
 		/// @brief 获得最后一次按键输入
 		int GetLastKey()LNOEXCEPT { return m_LastKey; }
+		
+		/// @brief 获得输入的文本（UTF-8）
+		LNOINLINE int GetTextInput(lua_State* L)LNOEXCEPT;
+		
+		/// @brief 获得输入的文本
+		fcStrW GetTextInput() { return m_InputTextBuffer.c_str(); }
+		
+		/// @brief 清空输入的文本
+		void ClearTextInput() { m_InputTextBuffer.clear(); }
 		
 		/// @brief 获取鼠标位置（以窗口左下角为原点）
 		fcyVec2 GetMousePosition(bool no_flip = false)LNOEXCEPT

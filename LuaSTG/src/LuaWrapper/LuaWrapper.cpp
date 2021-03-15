@@ -132,15 +132,15 @@ namespace LuaSTGPlus
 				{ NULL, NULL }
 			};
 
-			lua_newtable(L);						// ... t
+			::luaL_register(L, LUASTG_LUA_LIBNAME, tMethod);	// ? t
+			WindowWrapper::Register(L);
 			ColorWrapper::Register(L);
 			StopWatchWrapper::Register(L);
 			RandomizerWrapper::Register(L);
 			BentLaserWrapper::Register(L);
 			DInputWrapper::Register(L);
 			IO::Register(L);
-			::luaL_register(L, NULL, tMethod);
-			::lua_setglobal(L, LUASTG_LUA_LIBNAME);	// ...
+			::lua_pop(L, 1);									// ?
 		}
 	}
 	

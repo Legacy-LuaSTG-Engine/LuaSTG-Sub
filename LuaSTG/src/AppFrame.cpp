@@ -86,27 +86,6 @@ void AppFrame::SetResolution(fuInt width, fuInt height)LNOEXCEPT
 		LWARNING("试图在运行时更改分辨率");
 }
 
-void AppFrame::SetSplash(bool v)LNOEXCEPT
-{
-	m_OptionSplash = v;
-	if (m_pMainWindow)
-		m_pMainWindow->HideMouse(!m_OptionSplash);
-}
-
-LNOINLINE void AppFrame::SetTitle(const char* v)LNOEXCEPT
-{
-	try
-	{
-		m_OptionTitle = std::move(fcyStringHelper::MultiByteToWideChar(v, CP_UTF8));
-		if (m_pMainWindow)
-			m_pMainWindow->SetCaption(m_OptionTitle.c_str());
-	}
-	catch (const bad_alloc&)
-	{
-		LERROR("修改窗口标题时无法分配内存");
-	}
-}
-
 LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, bool vsync)LNOEXCEPT
 {
 	if (m_iStatus == AppStatus::Initialized)
@@ -489,7 +468,7 @@ bool AppFrame::Init()LNOEXCEPT
 		if (FCYFAILED(CreateF2DEngineAndInit(
 			F2DVERSION,
 			fcyRect(0.f, 0.f, m_OptionResolution.x, m_OptionResolution.y),
-			m_OptionTitle.c_str(),
+			L"LuaSTG",
 			m_OptionWindowed,
 			m_OptionVsync,
 			F2DAALEVEL_NONE,
@@ -602,7 +581,6 @@ bool AppFrame::Init()LNOEXCEPT
 	// 显示窗口
 	m_pMainWindow->MoveToCenter();
 	m_pMainWindow->SetVisiable(true);
-	m_pMainWindow->HideMouse(!m_OptionSplash);
 	resetKeyStatus(); // clear key status first
 	
 	//////////////////////////////////////// 装载核心脚本
@@ -986,6 +964,7 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 		case F2DMSG_WINDOW_ONCHARINPUT:
 		{
 			m_LastChar = (fCharW)tMsg.Param1;
+			m_InputTextBuffer.push_back((fCharW)tMsg.Param1);
 			break;
 		}
 		case F2DMSG_WINDOW_ONKEYDOWN:

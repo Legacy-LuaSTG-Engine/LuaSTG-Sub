@@ -25,8 +25,6 @@ using namespace LuaSTGPlus;
 
 void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 {
-	//警告：函数的返回值为向lua栈推入的变量数量
-	
 	struct WrapperImplement
 	{
 		#pragma region 框架函数
@@ -173,16 +171,6 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		
 		#pragma region 窗口与交换链控制函数
 		// 窗口与交换链控制函数
-		static int SetSplash(lua_State* L)LNOEXCEPT
-		{
-			LAPP.SetSplash(lua_toboolean(L, 1) == 0 ? false : true);
-			return 0;
-		}
-		static int SetTitle(lua_State* L)LNOEXCEPT
-		{
-			LAPP.SetTitle(luaL_checkstring(L, 1));
-			return 0;
-		}
 		static int ChangeVideoMode(lua_State* L)LNOEXCEPT
 		{
 			lua_pushboolean(L, LAPP.ChangeVideoMode(
@@ -192,32 +180,6 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 				lua_toboolean(L, 4) == 0 ? false : true
 			));
 			return 1;
-		}
-		static int MoveWindowToCenter(lua_State* L)LNOEXCEPT
-		{
-			LAPP.GetWindow()->MoveToCenter();
-			return 0;
-		}
-		static int SetWindowStyle(lua_State* L)LNOEXCEPT
-		{
-			LAPP.GetWindow()->SetBorderType(
-				(F2DWINBORDERTYPE)luaL_checkinteger(L, 1));
-			return 0;
-		}
-		static int SetWindowSize(lua_State* L)LNOEXCEPT
-		{
-			fResult result = LAPP.GetWindow()->SetClientRect(
-				fcyRect(
-					0.0f, 0.0f,
-					(float)luaL_checkinteger(L, 1),
-					(float)luaL_checkinteger(L, 2)));
-			lua_pushboolean(L, result == FCYERR_OK);
-			return 1;
-		}
-		static int SetWindowTopMost(lua_State* L)LNOEXCEPT
-		{
-			LAPP.GetWindow()->SetTopMost(lua_toboolean(L, 1));
-			return 0;
 		}
 		static int SetSwapChainSize(lua_State* L)LNOEXCEPT
 		{
@@ -2085,13 +2047,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		#pragma endregion
 		
 		#pragma region 窗口与交换链控制函数
-		{ "SetSplash", &WrapperImplement::SetSplash },
-		{ "SetTitle", &WrapperImplement::SetTitle },
 		{ "ChangeVideoMode", &WrapperImplement::ChangeVideoMode },
-		{ "MoveWindowToCenter", &WrapperImplement::MoveWindowToCenter },
-		{ "SetWindowStyle", &WrapperImplement::SetWindowStyle },
-		{ "SetWindowSize", &WrapperImplement::SetWindowSize },
-		{ "SetWindowTopMost", &WrapperImplement::SetWindowTopMost },
 		{ "SetSwapChainSize", &WrapperImplement::SetSwapChainSize },
 		{ "EnumResolutions", &WrapperImplement::EnumResolutions },
 		#pragma endregion
@@ -2261,7 +2217,6 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		{ NULL, NULL }
 	};
 	
-	lua_getglobal(L, "lstg");				// ... t
-	::luaL_register(L, NULL, tFunctions);	// ... t
-	lua_pop(L, 1);							// ...
+	::luaL_register(L, LUASTG_LUA_LIBNAME, tFunctions);	// ? t
+	lua_pop(L, 1);										// ?
 }

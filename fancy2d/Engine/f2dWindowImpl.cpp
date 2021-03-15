@@ -450,7 +450,27 @@ void f2dWindowImpl::DefaultListener::OnKeyUp(fuInt KeyCode, fuInt Flag)
 }
 void f2dWindowImpl::DefaultListener::OnCharInput(fCharW CharCode, fuInt Flag)
 {
-	m_pEngine->SendMsg(F2DMSG_WINDOW_ONCHARINPUT, CharCode);
+	// 四字节UTF16前二字节，先保存下来
+	if (CharCode >= 0xD800 && CharCode <= 0xDBFF)
+	{
+		m_U16Lead = CharCode; 
+	}
+	// 四字节UTF16后二字节，一起发送
+	else if (CharCode >= 0xDC00 && CharCode <= 0xDFFF)
+	{
+		// 前一个代理对存在才一起发送
+		if (m_U16Lead > 0)
+		{
+			m_pEngine->SendMsg(F2DMSG_WINDOW_ONCHARINPUT, m_U16Lead);
+			m_pEngine->SendMsg(F2DMSG_WINDOW_ONCHARINPUT, CharCode);
+		}
+		m_U16Lead = 0; // 总之还是要清理一下
+	}
+	// 双字节UTF16
+	else
+	{
+		m_pEngine->SendMsg(F2DMSG_WINDOW_ONCHARINPUT, CharCode);
+	}
 }
 void f2dWindowImpl::DefaultListener::OnIMEStartComposition()
 {
