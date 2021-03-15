@@ -63,12 +63,8 @@ static int lib_setIMEEnable(lua_State* L)
 #define makefname(__X__) { #__X__ , &lib_##__X__ }
 
 static const luaL_Reg compat[] = {
-    { "SetSplash"         , &lib_setMouseEnable },
-    { "SetTitle"          , &lib_setTitle       },
-    { "MoveWindowToCenter", &lib_setCentered    },
-    { "SetWindowStyle"    , &lib_setStyle       },
-    { "SetWindowSize"     , &lib_setSize        },
-    { "SetWindowTopMost"  , &lib_setTopMost     },
+    { "SetSplash", &lib_setMouseEnable },
+    { "SetTitle" , &lib_setTitle       },
     {NULL, NULL},
 };
 
