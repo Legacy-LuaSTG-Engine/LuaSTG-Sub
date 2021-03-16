@@ -76,6 +76,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32Ex_WndProcHandler(HWND hWnd, UINT m
 namespace imgui
 {
     static bool g_ImGuiBindEngine = false;
+    static bool g_ImGuiTexIDValid = false;
     static HMODULE g_hXinput = NULL;
     static DWORD (WINAPI *g_fXInputGetState)(DWORD, XINPUT_STATE*) = NULL;
     
@@ -84,10 +85,12 @@ namespace imgui
     public:
         void OnRenderDeviceLost()
         {
+            g_ImGuiTexIDValid = false;
             ImGui_ImplDX9_Shutdown();
         }
         void OnRenderDeviceReset()
         {
+            g_ImGuiTexIDValid = false;
             IDirect3DDevice9* device = (IDirect3DDevice9*)APP.GetRenderDev()->GetHandle();
             ImGui_ImplDX9_Init(device);
         }
@@ -229,6 +232,7 @@ namespace imgui
     void unbindEngine()
     {
         g_ImGuiBindEngine = false;
+        g_ImGuiTexIDValid = false;
         
         g_fXInputGetState = NULL;
         if (g_hXinput) { FreeLibrary(g_hXinput); g_hXinput = NULL; }
@@ -253,11 +257,12 @@ namespace imgui
         {
             ImGui_ImplDX9_NewFrame();
             ImGui_ImplWin32Ex_NewFrame();
+            g_ImGuiTexIDValid = true;
         }
     }
     void drawEngine()
     {
-        if (g_ImGuiBindEngine)
+        if (g_ImGuiBindEngine && g_ImGuiTexIDValid)
         {
             auto& engine = APP;
             

@@ -79,7 +79,7 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"AllowTabInput"      , ImGuiInputTextFlags_AllowTabInput      },
     {"CtrlEnterForNewLine", ImGuiInputTextFlags_CtrlEnterForNewLine},
     {"NoHorizontalScroll" , ImGuiInputTextFlags_NoHorizontalScroll },
-    {"AlwaysInsertMode"   , ImGuiInputTextFlags_AlwaysInsertMode   },
+    {"AlwaysOverwrite"    , ImGuiInputTextFlags_AlwaysOverwrite    },
     {"ReadOnly"           , ImGuiInputTextFlags_ReadOnly           },
     {"Password"           , ImGuiInputTextFlags_Password           },
     {"NoUndoRedo"         , ImGuiInputTextFlags_NoUndoRedo         },
@@ -507,17 +507,21 @@ void imgui_binding_lua_register_enum(lua_State* L)
     
     // draw
     enum_data datas2 = {
-{"ImDrawCornerFlags", {
-    {"None"    , ImDrawCornerFlags_None    },
-    {"TopLeft" , ImDrawCornerFlags_TopLeft },
-    {"TopRight", ImDrawCornerFlags_TopRight},
-    {"BotLeft" , ImDrawCornerFlags_BotLeft },
-    {"BotRight", ImDrawCornerFlags_BotRight},
-    {"Top"     , ImDrawCornerFlags_Top     },
-    {"Bot"     , ImDrawCornerFlags_Bot     },
-    {"Left"    , ImDrawCornerFlags_Left    },
-    {"Right"   , ImDrawCornerFlags_Right   },
-    {"All"     , ImDrawCornerFlags_All     },
+{"ImDrawFlags", {
+    {"None"                   , ImDrawFlags_None                   },
+    {"Closed"                 , ImDrawFlags_Closed                 },
+    {"RoundCornersTopLeft"    , ImDrawFlags_RoundCornersTopLeft    },
+    {"RoundCornersTopRight"   , ImDrawFlags_RoundCornersTopRight   },
+    {"RoundCornersBottomLeft" , ImDrawFlags_RoundCornersBottomLeft },
+    {"RoundCornersBottomRight", ImDrawFlags_RoundCornersBottomRight},
+    {"RoundCornersNone"       , ImDrawFlags_RoundCornersNone       },
+    {"RoundCornersTop"        , ImDrawFlags_RoundCornersTop        },
+    {"RoundCornersBottom"     , ImDrawFlags_RoundCornersBottom     },
+    {"RoundCornersLeft"       , ImDrawFlags_RoundCornersLeft       },
+    {"RoundCornersRight"      , ImDrawFlags_RoundCornersRight      },
+    {"RoundCornersAll"        , ImDrawFlags_RoundCornersAll        },
+    {"RoundCornersDefault_"   , ImDrawFlags_RoundCornersDefault_   },
+    {"RoundCornersMask_"      , ImDrawFlags_RoundCornersMask_      },
 }},
 {"ImDrawListFlags", {
     {"None"                  , ImDrawListFlags_None                  },

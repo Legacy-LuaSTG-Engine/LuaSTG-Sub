@@ -2288,7 +2288,7 @@ static int lib_TableSetupColumn(lua_State* L)
     {
         const ImGuiTableColumnFlags flags = (ImGuiTableColumnFlags)luaL_checkinteger(L, 2);
         const float init_width_or_weight = (float)luaL_checknumber(L, 3);
-        const ImU32 user_id = (ImU32)luaL_checkinteger(L, 4);
+        const ImGuiID user_id = (ImGuiID)luaL_checkinteger(L, 4);
         ImGui::TableSetupColumn(label, flags, init_width_or_weight, user_id);
     }
     return 0;
@@ -3116,6 +3116,10 @@ static int lib_DebugCheckVersionAndDataLayout(lua_State* L)
 //////// Memory Allocators
 
 static /* !!!! */ int lib_SetAllocatorFunctions(lua_State* L)
+{
+    return 0;
+}
+static /* !!!! */ int lib_GetAllocatorFunctions(lua_State* L)
 {
     return 0;
 }

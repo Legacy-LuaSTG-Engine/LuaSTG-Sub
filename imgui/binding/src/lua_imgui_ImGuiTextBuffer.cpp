@@ -72,8 +72,8 @@ void imgui_binding_lua_register_ImGuiTextBuffer(lua_State* L)
             case LUA_TSTRING:
                 {
                     const char* key = lua_tostring(L, 2);
-                    using E = __ImGuiTextBufferMember;
-                    switch (__ImGuiTextBufferMemberHash(key))
+                    using E = imgui_binding_lua_PropertiesHash;
+                    switch (imgui_binding_lua_ComputePropertiesHash(key))
                     {
                     case E::size:
                         lua_pushcfunction(L, &size);

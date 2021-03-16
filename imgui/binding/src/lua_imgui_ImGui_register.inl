@@ -433,6 +433,7 @@ static const luaL_Reg lib_fun[] = {
     
     // Memory Allocators
     MAKEF(SetAllocatorFunctions),
+    MAKEF(GetAllocatorFunctions),
     MAKEF(MemAlloc),
     MAKEF(MemFree),
     

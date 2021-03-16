@@ -384,7 +384,7 @@ struct __ImGuiStyle
 
 void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
 {
-    using E = __ImGuiStyleMember;
+    using E = imgui_binding_lua_PropertiesHash;
     struct Binding
     {
         static int ScaleAllSizes(lua_State* L)
@@ -399,7 +399,7 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
         {
             ImGuiStyle* data = imgui_binding_lua_to_ImGuiStyle(L, 1);
             const char* key = luaL_checkstring(L, 2);
-            switch(__ImGuiStyleMemberHash(key))
+            switch(imgui_binding_lua_ComputePropertiesHash(key))
             {
             case E::Alpha:
                 lua_pushnumber(L, (lua_Number)data->Alpha);
@@ -512,8 +512,8 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
             case E::CurveTessellationTol:
                 lua_pushnumber(L, (lua_Number)data->CurveTessellationTol);
                 return 1;
-            case E::CircleSegmentMaxError:
-                lua_pushnumber(L, (lua_Number)data->CircleSegmentMaxError);
+            case E::CircleTessellationMaxError:
+                lua_pushnumber(L, (lua_Number)data->CircleTessellationMaxError);
                 return 1;
             case E::Colors:
                 imgui_binding_lua_ref_array_ImVec4(L, data->Colors, ImGuiCol_COUNT);
@@ -530,7 +530,7 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
         {
             ImGuiStyle* data = imgui_binding_lua_to_ImGuiStyle(L, 1);
             const char* key = luaL_checkstring(L, 2);
-            switch(__ImGuiStyleMemberHash(key))
+            switch(imgui_binding_lua_ComputePropertiesHash(key))
             {
             case E::Alpha:
                 data->Alpha = (float)luaL_checknumber(L, 3);
@@ -643,8 +643,8 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
             case E::CurveTessellationTol:
                 data->CurveTessellationTol = (float)luaL_checknumber(L, 3);
                 break;
-            case E::CircleSegmentMaxError:
-                data->CircleSegmentMaxError = (float)luaL_checknumber(L, 3);
+            case E::CircleTessellationMaxError:
+                data->CircleTessellationMaxError = (float)luaL_checknumber(L, 3);
                 break;
             case E::Colors:
                 imgui_binding_lua_ref_array_ImVec4(L, data->Colors, ImGuiCol_COUNT);
