@@ -1,0 +1,16 @@
+# check Platform architecture
+
+# message("size of void*: " ${CMAKE_SIZEOF_VOID_P})
+if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+    message("Platform architecture: amd64")
+    set(platform_x86 FALSE)
+    set(platform_amd64 TRUE)
+elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+    message("Platform architecture: x86")
+    set(platform_x86 TRUE)
+    set(platform_amd64 FALSE)
+else()
+    message(FATAL_ERROR "Unknown platform architecture")
+    set(platform_x86 FALSE)
+    set(platform_amd64 FALSE)
+endif()
