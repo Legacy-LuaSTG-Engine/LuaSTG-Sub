@@ -874,9 +874,9 @@ bool f2dWindowImpl::HandleNativeMessageCallback(HWND hWnd, UINT msg, WPARAM wPar
 	return should_skip;
 }
 
-fInt f2dWindowImpl::GetHandle()
+fHandle f2dWindowImpl::GetHandle()
 {
-	return (fInt)m_hWnd;
+	return (fHandle)m_hWnd;
 }
 
 F2DWINBORDERTYPE f2dWindowImpl::GetBorderType()

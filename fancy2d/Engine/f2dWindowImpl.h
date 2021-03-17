@@ -192,7 +192,7 @@ public: // 接口实现
 	void AddNativeMessageCallback(ptrdiff_t pWndProc);
 	void RemoveNativeMessageCallback(ptrdiff_t pWndProc);
 	bool HandleNativeMessageCallback(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-	fInt GetHandle();
+	fHandle GetHandle();
 	
 	F2DWINBORDERTYPE GetBorderType();
 	fResult SetBorderType(F2DWINBORDERTYPE Type);

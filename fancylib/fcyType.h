@@ -28,6 +28,7 @@ typedef int64_t             fLong;   ///< @brief 64位长整数
 typedef uint64_t            fuLong;  ///< @brief 64位无符号长整数
 typedef float               fFloat;  ///< @brief 浮点型
 typedef double              fDouble; ///< @brief 双精度浮点型
+typedef ptrdiff_t           fHandle; ///< @brief 可储存指针或者句柄
 typedef fChar*              fStr;    ///< @brief C式字符串
 typedef const fChar*        fcStr;   ///< @brief C式字符串常量
 typedef fCharW*             fStrW;   ///< @brief C式宽字符串

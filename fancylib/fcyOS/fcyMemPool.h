@@ -109,7 +109,7 @@ public:
 	{
 #ifdef _DEBUG
 		if(GetTotalSize()!=GetFreeSize())
-			fcyDebug::Trace(L"fcyMemPool(@ %x):: MemLeak!\n", (fuInt)this);
+			fcyDebug::Trace(L"fcyMemPool(@ %x):: MemLeak!\n", (fHandle)this);
 #endif
 		for(std::vector<void*>::iterator i = m_AllocMemPtr.begin(); i != m_AllocMemPtr.end(); ++i)
 		{

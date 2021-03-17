@@ -203,7 +203,7 @@ struct f2dWindow
 	/// @brief   返回Windows窗口句柄
 	/// @note    需要强转到HWND
 	/// @warning 如无特殊情况应当避免使用本方法
-	virtual fInt GetHandle()=0;
+	virtual fHandle GetHandle()=0;
 	
 	/// @brief 返回边框类型
 	virtual F2DWINBORDERTYPE GetBorderType()=0;
