@@ -6,17 +6,19 @@ namespace LuaSTGPlus
 {
 	inline void SinCos(float ang, float& fSin, float& fCos)
 	{
-		float s, c;
-
-		__asm fld ang
-		__asm fsincos
-		__asm fstp c
-		__asm fstp s
-
-		fSin = s;
-		fCos = c;
+		//float s, c;
+		//
+		//__asm fld ang
+		//__asm fsincos
+		//__asm fstp c
+		//__asm fstp s
+		//
+		//fSin = s;
+		//fCos = c;
+		fSin = std::sinf(ang);
+		fCos = std::cosf(ang);
 	}
-
+	
 	/// @brief 线段覆盖测试
 	/// @note  需要保证lineA.x < lineA.y 和 lineB.x < lineB.y
 	inline bool OverlapTest(fcyVec2 lineA, fcyVec2 lineB)
@@ -26,7 +28,7 @@ namespace LuaSTGPlus
 		else
 			return lineB.y > lineA.x;
 	}
-
+	
 	/// @brief 圆形相交测试
 	inline bool CircleHitTest(fcyVec2 P1, float R1, fcyVec2 P2, float R2)
 	{
@@ -35,7 +37,7 @@ namespace LuaSTGPlus
 
 		return tOffset.Length2() < tRTotal * tRTotal;
 	}
-
+	
 	/// @brief 无向矩形(AABB)相交测试
 	/// @param[in] P1    矩形1的中心位置
 	/// @param[in] Size1 矩形1的半边长
@@ -48,7 +50,7 @@ namespace LuaSTGPlus
 
 		return tRect1.Intersect(tRect2, NULL);
 	}
-
+	
 	/// @brief OBB有向矩形碰撞检测
 	/// @param[in] P1     矩形1中心
 	/// @param[in] Size1  矩形1半边长
@@ -58,7 +60,7 @@ namespace LuaSTGPlus
 	/// @param[in] Angle2 矩形2旋转
 	bool OBBHitTest(fcyVec2 P1, fcyVec2 Size1, float Angle1,
 					fcyVec2 P2, fcyVec2 Size2, float Angle2);
-
+	
 	/// @brief OBB有向矩形与圆碰撞检测
 	/// @param[in] P1    矩形中心
 	/// @param[in] Size  矩形半边长
@@ -67,7 +69,7 @@ namespace LuaSTGPlus
 	/// @param[in] R     圆半径
 	bool OBBCircleHitTest(	fcyVec2 P1, fcyVec2 Size, float Angle,
 							fcyVec2 P2, float R);
-
+	
 	/// @brief OBB有向矩形与AABB包围盒碰撞检测
 	/// @param[in] P     矩形中心
 	/// @param[in] Size  矩形半边长
@@ -75,7 +77,7 @@ namespace LuaSTGPlus
 	/// @param[in] Rect  AABB位置
 	bool OBBAABBHitTest(fcyVec2 P, fcyVec2 Size, float Angle,
 						fcyRect Rect);
-
+	
 	/// @brief 椭圆与点碰撞检测
 	/// @param[in] P1    椭圆中心
 	/// @param[in] a1    长轴
@@ -83,7 +85,7 @@ namespace LuaSTGPlus
 	/// @param[in] rot1  旋转
 	/// @param[in] P2    点
 	bool ElliTestPoint(fcyVec2 P1, float a1, float b1, float rot1, fcyVec2 P2);
-
+	
 	/// @brief 椭圆近似碰撞检测
 	/// @param[in] P1    椭圆中心
 	/// @param[in] a1    长轴
