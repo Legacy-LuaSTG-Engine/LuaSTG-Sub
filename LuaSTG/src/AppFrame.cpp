@@ -781,6 +781,17 @@ bool AppFrame::SafeCallScript(const char* source, size_t len, const char* desc)L
 	return true;
 }
 
+bool AppFrame::UnsafeCallGlobalFunction(const char* name, int retc)LNOEXCEPT
+{
+	lua_getglobal(L, name); // ... f
+	if (lua_isfunction(L, -1) || lua_iscfunction(L, -1))
+	{
+		lua_call(L, 0, retc);
+		return true;
+	}
+	return false;
+}
+
 bool AppFrame::SafeCallGlobalFunction(const char* name, int retc)LNOEXCEPT
 {
 	lua_pushcfunction(L, &StackTraceback);	// ... c

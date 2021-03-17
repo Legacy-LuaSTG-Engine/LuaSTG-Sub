@@ -336,7 +336,11 @@ namespace LuaSTGPlus
 		/// @brief 保护模式执行脚本
 		/// @note 该函数仅限框架调用，为主逻辑最外层调用。若脚本运行时发生错误，该函数负责截获错误发出错误消息。
 		bool SafeCallScript(const char* source, size_t len, const char* desc)LNOEXCEPT;
-
+		
+		/// @brief 不保护调用全局函数
+		/// @note 该函数仅限框架调用，为主逻辑最外层调用
+		bool UnsafeCallGlobalFunction(const char* name, int retc = 0)LNOEXCEPT;
+		
 		/// @brief 保护模式调用全局函数
 		/// @note 该函数仅限框架调用，为主逻辑最外层调用。若脚本运行时发生错误，该函数负责截获错误发出错误消息。调用者负责维持栈平衡。
 		bool SafeCallGlobalFunction(const char* name, int retc = 0)LNOEXCEPT;
