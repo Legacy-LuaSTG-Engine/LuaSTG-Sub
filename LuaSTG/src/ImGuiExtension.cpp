@@ -349,7 +349,7 @@ namespace imgui
                         const auto cnt = dinput.count();
                         combo_str.resize(cnt);
                         combo_data.resize(cnt);
-                        for (size_t i = 0; i < cnt; i += 1)
+                        for (uint32_t i = 0; i < cnt; i += 1)
                         {
                             auto s1 = dinput.getDeviceName(i);
                             auto s2 = dinput.getProductName(i);
@@ -450,7 +450,7 @@ namespace imgui
                         const auto cnt = dinput.count();
                         combo_str.resize(cnt);
                         combo_data.resize(cnt);
-                        for (size_t i = 0; i < cnt; i += 1)
+                        for (uint32_t i = 0; i < cnt; i += 1)
                         {
                             auto s1 = dinput.getDeviceName(i);
                             auto s2 = dinput.getProductName(i);
@@ -530,7 +530,7 @@ namespace imgui
                     {
                         combo_str.resize(xdevice);
                         combo_data.resize(xdevice);
-                        for (size_t i = 0; i < xdevice; i += 1)
+                        for (uint32_t i = 0; i < xdevice; i += 1)
                         {
                             snprintf(buffer, 1023, u8"%u. %s", i + 1, u8"XBox Controller & XInput Compatible Controller");
                             combo_str[i] = buffer;
