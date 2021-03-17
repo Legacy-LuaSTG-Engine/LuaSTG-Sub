@@ -455,7 +455,12 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			lua_pop(L, 1);
 
 			BlendMode m = TranslateBlendMode(L, 2);
-			fcyColor c(luaL_checkinteger(L, 3), luaL_checkinteger(L, 4), luaL_checkinteger(L, 5), luaL_checkinteger(L, 6));
+			fcyColor c(
+				(fInt)luaL_checkinteger(L, 3),
+				(fInt)luaL_checkinteger(L, 4),
+				(fInt)luaL_checkinteger(L, 5),
+				(fInt)luaL_checkinteger(L, 6)
+			);
 			if (!LPOOL.SetImgState(id, m, c))
 				return luaL_error(L, "invalid lstg object for 'SetImgState'.");
 			return 0;
@@ -469,7 +474,12 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			lua_pop(L, 1);
 
 			BlendMode m = TranslateBlendMode(L, 2);
-			fcyColor c(luaL_checkinteger(L, 3), luaL_checkinteger(L, 4), luaL_checkinteger(L, 5), luaL_checkinteger(L, 6));
+			fcyColor c(
+				(fInt)luaL_checkinteger(L, 3),
+				(fInt)luaL_checkinteger(L, 4),
+				(fInt)luaL_checkinteger(L, 5),
+				(fInt)luaL_checkinteger(L, 6)
+			);
 			if (!LPOOL.SetParState(id, m, c))
 				return luaL_error(L, "invalid lstg object for 'SetParState'.");
 			return 0;
@@ -890,13 +900,13 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 				
 				lua_getfield(L, 2, "glyph_count");
 				if (lua_type(L, -1) == LUA_TNUMBER) {
-					param.glyph_count = (fuInt)std::max(0, luaL_checkinteger(L, -1));
+					param.glyph_count = (fuInt)std::max<fInt>(0, luaL_checkinteger(L, -1));
 				}
 				lua_pop(L, 1);
 				
 				lua_getfield(L, 2, "texture_size");
 				if (lua_type(L, -1) == LUA_TNUMBER) {
-					param.texture_size = (fuInt)std::max(0, luaL_checkinteger(L, -1));
+					param.texture_size = (fuInt)std::max<fInt>(0, luaL_checkinteger(L, -1));
 				}
 				lua_pop(L, 1);
 			}

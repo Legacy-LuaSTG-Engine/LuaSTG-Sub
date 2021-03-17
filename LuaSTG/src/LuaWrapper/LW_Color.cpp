@@ -105,10 +105,10 @@ namespace LuaSTGPlus
 						*q = RGB2HSV(*p);
 						return 0;
 					case 5:
-						p->a = (fByte)std::clamp(luaL_checkinteger(L, 2), 0, 255);
-						p->r = (fByte)std::clamp(luaL_checkinteger(L, 3), 0, 255);
-						p->g = (fByte)std::clamp(luaL_checkinteger(L, 4), 0, 255);
-						p->b = (fByte)std::clamp(luaL_checkinteger(L, 5), 0, 255);
+						p->a = (fByte)std::clamp<fInt>(luaL_checkinteger(L, 2), 0, 255);
+						p->r = (fByte)std::clamp<fInt>(luaL_checkinteger(L, 3), 0, 255);
+						p->g = (fByte)std::clamp<fInt>(luaL_checkinteger(L, 4), 0, 255);
+						p->b = (fByte)std::clamp<fInt>(luaL_checkinteger(L, 5), 0, 255);
 						*q = RGB2HSV(*p);
 						return 0;
 					default:
@@ -188,18 +188,18 @@ namespace LuaSTGPlus
 					switch (Xrysnow::ColorWrapperPropertyHash(L, 2))
 					{
 					case Xrysnow::ColorWrapperProperty::m_a:
-						p->a = (fByte)std::clamp(luaL_checkinteger(L, 3), 0, 255);
+						p->a = (fByte)std::clamp<fInt>(luaL_checkinteger(L, 3), 0, 255);
 						break;
 					case Xrysnow::ColorWrapperProperty::m_r:
-						p->r = (fByte)std::clamp(luaL_checkinteger(L, 3), 0, 255);
+						p->r = (fByte)std::clamp<fInt>(luaL_checkinteger(L, 3), 0, 255);
 						*q = RGB2HSV(*p);
 						break;
 					case Xrysnow::ColorWrapperProperty::m_g:
-						p->g = (fByte)std::clamp(luaL_checkinteger(L, 3), 0, 255);
+						p->g = (fByte)std::clamp<fInt>(luaL_checkinteger(L, 3), 0, 255);
 						*q = RGB2HSV(*p);
 						break;
 					case Xrysnow::ColorWrapperProperty::m_b:
-						p->b = (fByte)std::clamp(luaL_checkinteger(L, 3), 0, 255);
+						p->b = (fByte)std::clamp<fInt>(luaL_checkinteger(L, 3), 0, 255);
 						*q = RGB2HSV(*p);
 						break;
 					case Xrysnow::ColorWrapperProperty::m_argb:

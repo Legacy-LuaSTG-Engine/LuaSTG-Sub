@@ -79,10 +79,10 @@ namespace LuaSTGPlus
 					}
 					else {
 						ColorWrapper::CreateAndPush(L, fcyColor(
-							luaL_checkinteger(L, 1),
-							luaL_checkinteger(L, 2),
-							luaL_checkinteger(L, 3),
-							luaL_checkinteger(L, 4)
+							(fInt)luaL_checkinteger(L, 1),
+							(fInt)luaL_checkinteger(L, 2),
+							(fInt)luaL_checkinteger(L, 3),
+							(fInt)luaL_checkinteger(L, 4)
 						));
 					}
 					return 1;
