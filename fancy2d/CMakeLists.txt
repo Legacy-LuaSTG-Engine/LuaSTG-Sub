@@ -9,8 +9,12 @@ set_target_properties(fancy2d PROPERTIES
 target_compile_options(fancy2d PUBLIC
     "/utf-8"
     "/MP"
-    "/arch:SSE2"
 )
+if(NOT platform_amd64)
+    target_compile_options(fancy2d PUBLIC
+        "/arch:SSE2"
+    )
+endif()
 
 target_compile_definitions(fancy2d PRIVATE
     UNICODE

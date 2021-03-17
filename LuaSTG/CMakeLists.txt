@@ -19,8 +19,12 @@ set_target_properties(LuaSTG PROPERTIES
 target_compile_options(LuaSTG PUBLIC
     "/utf-8"
     "/MP"
-    "/arch:SSE2"
 )
+if(NOT platform_amd64)
+    target_compile_options(LuaSTG PUBLIC
+        "/arch:SSE2"
+    )
+endif()
 
 target_include_directories(LuaSTG PRIVATE
     ..
