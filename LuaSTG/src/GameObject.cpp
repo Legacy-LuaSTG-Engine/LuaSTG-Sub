@@ -3,7 +3,8 @@
 #include "ResourceSprite.hpp"
 #include "ResourceAnimation.hpp"
 
-namespace LuaSTGPlus {
+namespace LuaSTGPlus
+{
 	void GameObject::Reset() {
 		status = (GAMEOBJECTSTATUS)STATUS_FREE;
 		id = (size_t)-1;
@@ -49,7 +50,7 @@ namespace LuaSTGPlus {
 		vertexcolor.argb = 0xFFFFFFFF;
 #endif // USING_ADVANCE_GAMEOBJECT_CLASS
 	}
-
+	
 	void GameObject::DirtReset()
 	{
 		status = (GAMEOBJECTSTATUS)STATUS_DEFAULT;
@@ -90,7 +91,7 @@ namespace LuaSTGPlus {
 		vertexcolor.argb = 0xFFFFFFFF;
 #endif // USING_ADVANCE_GAMEOBJECT_CLASS
 	}
-
+	
 	void GameObject::ReleaseResource()
 	{
 		if (res)
@@ -105,7 +106,7 @@ namespace LuaSTGPlus {
 			res = nullptr;
 		}
 	}
-
+	
 	bool GameObject::ChangeResource(const char* res_name)
 	{
 		fcyRefPointer<ResSprite> tSprite = LRES.FindSprite(res_name);
@@ -172,12 +173,12 @@ namespace LuaSTGPlus {
 
 		return false;
 	}
-
+	
 	bool CollisionCheck(GameObject* p1, GameObject* p2)LNOEXCEPT {
 		//忽略不碰撞对象
 		if (!p1->colli || !p2->colli)
 			return false;//返回点0
-
+		
 		//快速AABB检测
 		if ((p1->x - p1->col_r >= p2->x + p2->col_r) ||
 			(p1->x + p1->col_r <= p2->x - p2->col_r) ||
@@ -186,7 +187,7 @@ namespace LuaSTGPlus {
 		{
 			return false;
 		}
-
+		
 		float x1 = (float)p1->x;
 		float x2 = (float)p2->x;
 		float y1 = (float)p1->y;
@@ -199,36 +200,39 @@ namespace LuaSTGPlus {
 		float rot2 = (float)p2->rot;
 		float cr1 = (float)p1->col_r;
 		float cr2 = (float)p2->col_r;
-
+		
+		using XVec2 = cocos2d::Vec2;
+		
 		//外接圆碰撞检测，没发生碰撞则直接PASS
-		if (!xmath::collision::check(xmath::Vec2(x1, y1), cr1, cr1, rot1, XColliderType::Circle,
-			xmath::Vec2(x2, y2), cr2, cr2, rot2, XColliderType::Circle)) {
+		
+		if (!xmath::collision::check(XVec2(x1, y1), cr1, cr1, rot1, XColliderType::Circle,
+			XVec2(x2, y2), cr2, cr2, rot2, XColliderType::Circle)) {
 			return false;
 		}
-
+		
 		//精确碰撞检测
 		if (!p1->rect && !p2->rect) {
 			//椭圆、椭圆碰撞检测
-			return xmath::collision::check(xmath::Vec2(x1, y1), a1, b1, rot1, XColliderType::Ellipse,
-				xmath::Vec2(x2, y2), a2, b2, rot2, XColliderType::Ellipse);
+			return xmath::collision::check(XVec2(x1, y1), a1, b1, rot1, XColliderType::Ellipse,
+				XVec2(x2, y2), a2, b2, rot2, XColliderType::Ellipse);
 		}
 		else if (p1->rect && p2->rect) {
 			//矩形、矩形碰撞检测
-			return xmath::collision::check(xmath::Vec2(x1, y1), a1, b1, rot1, XColliderType::OBB,
-				xmath::Vec2(x2, y2), a2, b2, rot2, XColliderType::OBB);
+			return xmath::collision::check(XVec2(x1, y1), a1, b1, rot1, XColliderType::OBB,
+				XVec2(x2, y2), a2, b2, rot2, XColliderType::OBB);
 		}
 		else
 		{
 			//矩形、椭圆碰撞检测
 			if (p1->rect && (!p2->rect))
 			{
-				return xmath::collision::check(xmath::Vec2(x1, y1), a1, b1, rot1, XColliderType::OBB,
-					xmath::Vec2(x2, y2), a2, b2, rot2, XColliderType::Ellipse);
+				return xmath::collision::check(XVec2(x1, y1), a1, b1, rot1, XColliderType::OBB,
+					XVec2(x2, y2), a2, b2, rot2, XColliderType::Ellipse);
 			}
 			else if ((!p1->rect) && p2->rect)
 			{
-				return xmath::collision::check(xmath::Vec2(x1, y1), a1, b1, rot1, XColliderType::Ellipse,
-					xmath::Vec2(x2, y2), a2, b2, rot2, XColliderType::OBB);
+				return xmath::collision::check(XVec2(x1, y1), a1, b1, rot1, XColliderType::Ellipse,
+					XVec2(x2, y2), a2, b2, rot2, XColliderType::OBB);
 			}
 		}
 		return false;
