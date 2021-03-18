@@ -2,5 +2,5 @@
 #include <string>
 
 namespace LuaSTGPlus {
-	const std::string& LuaInternalSource_1();
+	std::string LuaInternalSource_1();
 }

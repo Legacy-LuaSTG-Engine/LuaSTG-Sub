@@ -1,7 +1,29 @@
 ﻿#include "LuaWrapper/LuaInternalSource.hpp"
 
+static const std::string _InternalSource_x86 = R"(
+
+package.cpath = ""
+package.cpath = package.cpath .. ".\\x86\\?.dll;"
+package.cpath = package.cpath .. ".\\?.dll;"
+
+)";
+
+static const std::string _InternalSource_amd64 = R"(
+
+package.cpath = ""
+package.cpath = package.cpath .. ".\\amd64\\?.dll;"
+package.cpath = package.cpath .. ".\\?.dll;"
+
+)";
+
 static const std::string _InternalSource_1 = R"(
-	
+
+package.path = ""
+package.path = package.path .. "?.lua;"
+package.path = package.path .. "src/?.lua;"
+package.path = package.path .. ".\\?.lua;"
+package.path = package.path .. ".\\src\\?.lua;"
+
 function GameInit()
 end
 function FrameFunc()
@@ -28,7 +50,14 @@ pcall(_lfs)
 )";
 
 namespace LuaSTGPlus {
-	const std::string& LuaInternalSource_1() {
-		return _InternalSource_1;
+	std::string LuaInternalSource_1() {
+		if (sizeof(void*) >= 8)
+		{
+			return _InternalSource_amd64 + _InternalSource_1;
+		}
+		else
+		{
+			return _InternalSource_x86 + _InternalSource_1;
+		}
 	}
 }
