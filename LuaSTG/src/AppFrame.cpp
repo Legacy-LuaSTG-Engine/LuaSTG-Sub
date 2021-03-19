@@ -371,7 +371,7 @@ bool AppFrame::Init()LNOEXCEPT
 	//////////////////////////////////////// Lua初始化部分
 	{
 		LINFO("开始初始化Lua虚拟机 版本: %m", LVERSION_LUA);
-		L = lua_open();
+		L = luaL_newstate();
 		if (!L)
 		{
 			LERROR("无法初始化Lua虚拟机");
@@ -410,25 +410,27 @@ bool AppFrame::Init()LNOEXCEPT
 		LERROR("无法为对象池分配足够内存");
 		return false;
 	}
-
+	
 	// 设置命令行参数
-	regex tDebuggerPattern("\\/debugger:(\\d+)");
-	lua_getglobal(L, "lstg");  // t
-	lua_newtable(L);  // t t
-	for (int i = 0, c = 1; i < __argc; ++i)
 	{
-		cmatch tMatch;
-		if (regex_match(__argv[i], tMatch, tDebuggerPattern))
+		const WCHAR* cmd = ::GetCommandLineW();
+		int argc = 0;
+		WCHAR** argv = ::CommandLineToArgvW(cmd, &argc);
+		if (argv != NULL)
 		{
-			// 不将debugger项传入用户命令行参数中
-			continue;
+			lua_getglobal(L, "lstg");			// ? t
+			lua_createtable(L, argc, 0);		// ? t t
+			for (int idx = 0; idx < argc; idx++)
+			{
+				std::string v = fcyStringHelper::WideCharToMultiByte(argv[idx], CP_UTF8);
+				lua_pushstring(L, v.c_str());	// ? t t s
+				lua_rawseti(L, -2, idx + 1);	// ? t t
+			}
+			lua_setfield(L, -2, "args");		// ? t
+			lua_pop(L, 1);						// ?
+			::LocalFree(argv);
 		}
-		lua_pushinteger(L, c++);  // t t i
-		lua_pushstring(L, __argv[i]);  // t t i s
-		lua_settable(L, -3);  // t t
 	}
-	lua_setfield(L, -2, "args");  // t
-	lua_pop(L, 1);
 	
 	//////////////////////////////////////// 装载初始化脚本
 	fcyRefPointer<fcyMemStream> tMemStream;

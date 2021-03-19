@@ -3,20 +3,17 @@
 #include "Utility.h"
 #include "SteamAPI.hpp"
 
-using namespace std;
-using namespace LuaSTGPlus;
-
-int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int)
 {
-#ifdef LDEBUG
+	#ifdef LDEBUG
 	_CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG) | _CRTDBG_LEAK_CHECK_DF);
 	// _CrtSetBreakAlloc(5351);
-#endif
+	#endif
 	
 	int ret = 0;
-	if (SteamAPI::Init())
+	if (LuaSTGPlus::SteamAPI::Init())
 	{
-		CoInitializeScope co;
+		LuaSTGPlus::CoInitializeScope co;
 		if (co())
 		{
 			if (LAPP.Init())
@@ -44,7 +41,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 				MB_ICONERROR | MB_OK);
 			ret = -1;
 		}
-		SteamAPI::Shutdown();
+		LuaSTGPlus::SteamAPI::Shutdown();
 	}
 	else
 	{
