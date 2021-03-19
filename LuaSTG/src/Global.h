@@ -57,8 +57,6 @@
 
 // 全局文件
 #define LLOGFILE L"log.txt"
-#define LLAUNCH_SCRIPT L"launch"
-#define LCORE_SCRIPT L"core.lua"
 
 // 对象池信息
 #define LGOBJ_MAXCNT 32768  // 最大对象数 //32768(full) //16384(half)

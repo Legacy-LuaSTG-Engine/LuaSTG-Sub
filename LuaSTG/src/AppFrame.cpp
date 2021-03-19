@@ -1,12 +1,8 @@
 ﻿#include <string>
 #include <fstream>
 #include "resource.h"
-
 #include "AppFrame.h"
 #include "Utility.h"
-#include "StringFormat.hpp"
-#include "SteamAPI.hpp"
-#include "ResourcePassword.hpp"
 #include "LuaWrapper/LuaAppFrame.hpp"
 #include "LuaWrapper/LuaWrapper.hpp"
 #include "LuaWrapper/LW_SteamAPI.h"
@@ -15,18 +11,6 @@
 #include "LuaWrapper/LuaInternalSource.hpp"
 #include "ImGuiExtension.h"
 
-#ifdef max
-#undef max
-#endif
-#ifdef min
-#undef min
-#endif
-
-// 内置lua扩展
-//extern "C" int luaopen_lfs(lua_State *L);
-//extern "C" int luaopen_cjson(lua_State* L);
-
-using namespace std;
 using namespace LuaSTGPlus;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -64,7 +48,7 @@ void AppFrame::SetWindowed(bool v)LNOEXCEPT
 
 void AppFrame::SetFPS(fuInt v)LNOEXCEPT
 {
-	m_OptionFPSLimit = std::max(v, 1u);
+	m_OptionFPSLimit = (v > 1u) ? v : 1u; // 最低也得有1FPS每秒
 }
 
 void AppFrame::SetVsync(bool v)LNOEXCEPT
@@ -91,7 +75,7 @@ void AppFrame::SetTitle(const char* v)LNOEXCEPT
 		if (m_pMainWindow)
 			m_pMainWindow->SetCaption(m_OptionTitle.c_str());
 	}
-	catch (const bad_alloc&)
+	catch (const std::bad_alloc&)
 	{
 		LERROR("修改窗口标题时无法分配内存");
 	}
@@ -190,27 +174,6 @@ LNOINLINE bool AppFrame::UpdateVideoMode()LNOEXCEPT
 	return false;
 }
 
-LNOINLINE void AppFrame::LoadScript(const char* path,const char *packname)LNOEXCEPT
-{
-	LINFO("装载脚本'%m'", path);
-	fcyRefPointer<fcyMemStream> tMemStream;
-	if (!m_ResourceMgr.LoadFile(path, tMemStream, packname))
-	{
-		luaL_error(L, "can't load script '%s'", path);
-		return;
-	}
-	if (luaL_loadbuffer(L, (fcStr)tMemStream->GetInternalBuffer(), (size_t)tMemStream->GetLength(), luaL_checkstring(L, 1)))
-	{
-		tMemStream = nullptr;
-		const char* tDetail = lua_tostring(L, -1);
-		LERROR("编译脚本'%m'失败: %m", path, tDetail);
-		luaL_error(L, "failed to compile '%s': %s", path, tDetail);
-		return;
-	}
-	tMemStream = nullptr;
-	lua_call(L, 0, LUA_MULTRET);//保证DoFile后有返回值
-}
-
 LNOINLINE int AppFrame::LoadTextFile(lua_State* L, const char* path, const char *packname)LNOEXCEPT
 {
 	LINFO("读取文本文件'%m'", path);
@@ -234,7 +197,7 @@ LNOINLINE void AppFrame::SnapShot(const char* path)LNOEXCEPT
 		if (FCYFAILED(m_pRenderDev->SaveScreen(wpath.c_str())))
 			LERROR("Snapshot: 保存截图到'%s'失败", wpath.c_str());
 	}
-	catch (const bad_alloc&)
+	catch (const std::bad_alloc&)
 	{
 		LERROR("Snapshot: 内存不足");
 	}
@@ -254,7 +217,7 @@ LNOINLINE void AppFrame::SaveTexture(f2dTexture2D* Tex, const char* path)LNOEXCE
 		if (FCYFAILED(m_pRenderDev->SaveTexture(wpath.c_str(), Tex)))
 			LERROR("Snapshot: 保存纹理到'%s'失败", wpath.c_str());
 	}
-	catch (const bad_alloc&)
+	catch (const std::bad_alloc&)
 	{
 		LERROR("Snapshot: 内存不足");
 	}
@@ -267,38 +230,6 @@ LNOINLINE void AppFrame::SaveTexture(f2dTexture2D* Tex, const char* path)LNOEXCE
 #pragma endregion
 
 #pragma region 框架函数
-
-static int StackTraceback(lua_State *L)
-{
-	// errmsg
-	int ret = 0;
-
-	lua_getfield(L, LUA_GLOBALSINDEX, "debug");								// errmsg t
-	if (!lua_istable(L, -1))
-	{
-		lua_pop(L, 1);														// errmsg
-		return 1;
-	}
-
-	lua_getfield(L, -1, "traceback");										// errmsg t f
-	if (!lua_isfunction(L, -1) && !lua_iscfunction(L, -1))
-	{
-		lua_pop(L, 2);														// errmsg
-		return 1;
-	}
-
-	lua_pushvalue(L, 1);													// errmsg t f errmsg
-	lua_pushinteger(L, 2);													// errmsg t f errmsg 2
-	ret = lua_pcall(L, 2, 1, 0);											// errmsg t msg
-	if (0 != ret)
-	{
-		LWARNING("执行stacktrace时发生错误。(%m)", lua_tostring(L, -1));		// errmsg t errmsg
-		lua_pop(L, 2);														// errmsg
-		return 1;
-	}
-	
-	return 1;
-}
 
 bool AppFrame::Init()LNOEXCEPT
 {
@@ -337,18 +268,6 @@ bool AppFrame::Init()LNOEXCEPT
 		lua_gc(L, LUA_GCRESTART, -1);  // 重启GC
 	}
 	
-	// 为对象池分配空间
-	LINFO("初始化对象池 上限=%u", LGOBJ_MAXCNT);
-	try
-	{
-		m_GameObjectPool = make_unique<GameObjectPool>(L);
-	}
-	catch (const bad_alloc&)
-	{
-		LERROR("无法为对象池分配足够内存");
-		return false;
-	}
-	
 	// 设置命令行参数
 	{
 		const WCHAR* cmd = ::GetCommandLineW();
@@ -370,30 +289,30 @@ bool AppFrame::Init()LNOEXCEPT
 		}
 	}
 	
+	// 加载初始化脚本（可选）
+	if (!OnLoadLaunchScriptAndFiles())
+	{
+		return false;
+	}
+	
 	//////////////////////////////////////// 装载初始化脚本
 	fcyRefPointer<fcyMemStream> tMemStream;
-#ifdef USING_LAUNCH_FILE
-	LINFO("加载初始化脚本'%s'", LLAUNCH_SCRIPT);
-	if (m_ResourceMgr.LoadFile(LLAUNCH_SCRIPT, tMemStream)) {
-		if (!SafeCallScript((fcStr)tMemStream->GetInternalBuffer(), (size_t)tMemStream->GetLength(), "launch"))
-			return false;
-	}
-	else {
-		LWARNING("找不到文件'%s'", LLAUNCH_SCRIPT);
-	}
-#endif // USING_LAUNCH_FILE
-
-	//////////////////////////////////////// 装载基础资源包
-#ifdef USING_ENCRYPTION
-	if (!m_FileManager.LoadArchive("data", 0, GetGameName().c_str())) {
-#ifdef LDEVVERSION
-		LWARNING("找不到资源包'data'");
-#endif //LDEVVERSION
-	}
-#endif
 	
-	//////////////////////////////////////// 初始化fancy2d引擎
+	//////////////////////////////////////// 初始化引擎
 	{
+		// 为对象池分配空间
+		LINFO("初始化对象池 上限=%u", LGOBJ_MAXCNT);
+		try
+		{
+			m_GameObjectPool = std::make_unique<GameObjectPool>(L);
+		}
+		catch (const std::bad_alloc&)
+		{
+			LERROR("无法为对象池分配足够内存");
+			return false;
+		}
+		
+		// 初始化fancy2d引擎
 		LINFO("初始化fancy2d 版本 %d.%d (分辨率: %dx%d 垂直同步: %b 窗口化: %b)",
 			(F2DVERSION & 0xFFFF0000) >> 16, F2DVERSION & 0x0000FFFF,
 			(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed);
@@ -501,7 +420,7 @@ bool AppFrame::Init()LNOEXCEPT
 				LINFO("成功创建了%d个DirectInput手柄", (int)cnt);
 			}
 		}
-		catch (const bad_alloc&)
+		catch (const std::bad_alloc&)
 		{
 			LERROR("无法创建DirectInput");
 		}
@@ -523,60 +442,10 @@ bool AppFrame::Init()LNOEXCEPT
 	m_pMainWindow->SetVisiable(true);
 	resetKeyStatus(); // clear key status first
 	
-	//////////////////////////////////////// 装载核心脚本
+	// 装载main脚本
+	if (!OnLoadMainScriptAndFiles())
 	{
-		const wchar_t* entry_file_array_w[] = {
-			L"core.lua",
-			L"main.lua",
-			L"src/main.lua",
-		};
-		const char* entry_file_array[] = {
-			"core.lua",
-			"main.lua",
-			"src/main.lua",
-		};
-		const int entry_file_count = sizeof(entry_file_array) / sizeof(char*);
-
-		for (int idx = 0; idx < entry_file_count; idx++) {
-			const char* entry_file = entry_file_array[idx];
-			const wchar_t* entry_file_w = entry_file_array_w[idx];
-
-#ifdef USING_ENCRYPTION
-			if (m_FileManager.ArchiveExist("data")) {
-				auto* zip = m_FileManager.GetArchive("data");
-				if (zip->FileExist(entry_file)) {
-					auto* steam = zip->LoadEncryptedFile(entry_file, GetGameName().c_str());
-					if (steam) {
-						fcyMemStream* mms = (fcyMemStream*)steam;
-#ifdef LDEVVERSION
-						LINFO("装载核心脚本'%s'", entry_file_w);
-#endif // LDEVVERSION
-						if (SafeCallScript((fcStr)mms->GetInternalBuffer(), (size_t)mms->GetLength(), entry_file)) {
-#ifdef LDEVVERSION
-							LINFO("装载核心脚本'%s'完成", entry_file_w);
-#endif // LDEVVERSION
-							break; // finish
-						}
-
-						mms = nullptr;
-						steam->Release();
-					}
-				}
-			}
-#else // USING_ENCRYPTION
-			if (m_ResourceMgr.LoadFile(entry_file_w, tMemStream)) {
-#ifdef LDEVVERSION
-				LINFO("装载核心脚本'%s'", entry_file_w);
-#endif // LDEVVERSION
-				if (SafeCallScript((fcStr)tMemStream->GetInternalBuffer(), (size_t)tMemStream->GetLength(), entry_file)) {
-#ifdef LDEVVERSION
-					LINFO("装载核心脚本'%s'完成", entry_file_w);
-#endif // LDEVVERSION
-					break; // finish
-				}
-			}
-#endif // USING_ENCRYPTION
-		}
+		return false;
 	}
 	
 	//////////////////////////////////////// 初始化完成
@@ -657,190 +526,6 @@ void AppFrame::Run()LNOEXCEPT
 	m_pEngine->Run(F2DENGTHREADMODE_MULTITHREAD, m_OptionFPSLimit);
 
 	LINFO("结束游戏循环");
-}
-
-bool AppFrame::SafeCallScript(const char* source, size_t len, const char* desc)LNOEXCEPT
-{
-	lua_pushcfunction(L, StackTraceback);			// ... c
-
-	if (0 != luaL_loadbuffer(L, source, len, desc))
-	{
-		try
-		{
-			wstring tErrorInfo = StringFormat(
-				L"脚本'%m'编译失败: %m",
-				desc,
-				lua_tostring(L, -1)
-			);
-
-			LERROR("脚本错误：%s", tErrorInfo.c_str());
-			MessageBox(
-				m_pMainWindow ? (HWND)m_pMainWindow->GetHandle() : 0,
-				tErrorInfo.c_str(),
-				L"LuaSTGPlus脚本错误",
-				MB_ICONERROR | MB_OK
-			);
-		}
-		catch (const bad_alloc&)
-		{
-			LERROR("尝试写出脚本错误时发生内存不足错误");
-		}
-		
-		lua_pop(L, 2);
-		return false;
-	}
-	// ... c s
-	if (0 != lua_pcall(L, 0, 0, lua_gettop(L) - 1))
-	{
-		try
-		{
-			wstring tErrorInfo = StringFormat(
-				L"脚本'%m'中产生未处理的运行时错误:\n\t%m",
-				desc,
-				lua_tostring(L, -1)
-			);
-
-			LERROR("脚本错误：%s", tErrorInfo.c_str());
-			MessageBox(
-				m_pMainWindow ? (HWND)m_pMainWindow->GetHandle() : 0,
-				tErrorInfo.c_str(),
-				L"LuaSTGPlus脚本错误",
-				MB_ICONERROR | MB_OK
-			);
-		}
-		catch (const bad_alloc&)
-		{
-			LERROR("尝试写出脚本错误时发生内存不足错误");
-		}
-
-		lua_pop(L, 2);
-		return false;
-	}
-
-	lua_pop(L, 1);
-	return true;
-}
-
-bool AppFrame::UnsafeCallGlobalFunction(const char* name, int retc)LNOEXCEPT
-{
-	lua_getglobal(L, name); // ... f
-	if (lua_isfunction(L, -1) || lua_iscfunction(L, -1))
-	{
-		lua_call(L, 0, retc);
-		return true;
-	}
-	return false;
-}
-
-bool AppFrame::SafeCallGlobalFunction(const char* name, int retc)LNOEXCEPT
-{
-	lua_pushcfunction(L, &StackTraceback);	// ... c
-	int tStacktraceIndex = lua_gettop(L);
-
-	lua_getglobal(L, name);					// ... c f
-	if (0 != lua_pcall(L, 0, retc, tStacktraceIndex))
-	{
-		try
-		{
-			wstring tErrorInfo = StringFormat(
-				L"执行函数'%m'时产生未处理的运行时错误:\n\t%m",
-				name,
-				lua_tostring(L, -1)
-			);
-
-			LERROR("脚本错误：%s", tErrorInfo.c_str());
-			MessageBox(
-				m_pMainWindow ? (HWND)m_pMainWindow->GetHandle() : 0,
-				tErrorInfo.c_str(),
-				L"LuaSTGPlus脚本错误",
-				MB_ICONERROR | MB_OK
-			);
-		}
-		catch (const bad_alloc&)
-		{
-			LERROR("尝试写出脚本错误时发生内存不足错误");
-		}
-
-		lua_pop(L, 2);
-		return false;
-	}
-
-	lua_remove(L, tStacktraceIndex);
-	return true;
-}
-
-bool AppFrame::SafeCallGlobalFunctionB(const char* name, int argc, int retc)LNOEXCEPT
-{
-	const int base_stack = lua_gettop(L) - argc;
-	//																// ? ...
-	lua_pushcfunction(L, StackTraceback);							// ? ... trace
-	lua_getglobal(L, name);											// ? ... trace func
-	if (lua_type(L, lua_gettop(L)) != LUA_TFUNCTION)
-	{
-		//															// ? ... trace nil
-		try
-		{
-			wstring tErrorInfo = StringFormat(
-					L"执行函数'%m'时产生未处理的运行时错误:\n\t函数'%m'不存在",
-					name, name);
-			LERROR("脚本错误：%s", tErrorInfo.c_str());
-			/*
-			MessageBox(
-				m_pMainWindow ? (HWND)m_pMainWindow->GetHandle() : NULL,
-				tErrorInfo.c_str(),
-				L"LuaSTGPlus脚本错误",
-				MB_ICONERROR | MB_OK);
-			//*/
-		}
-		catch (const bad_alloc&)
-		{
-			LERROR("尝试写出脚本错误时发生内存不足错误");
-		}
-		lua_pop(L, argc + 2); 										// ?
-		return false;
-	}
-	if (argc > 0)
-	{
-		lua_insert(L, base_stack + 1);								// ? func ... trace
-		lua_insert(L, base_stack + 1);								// ? trace func ...
-	}
-	if (0 != lua_pcall(L, argc, retc, base_stack + 1))
-	{
-		//															// ? trace errmsg
-		try
-		{
-			wstring tErrorInfo = StringFormat(
-				L"执行函数'%m'时产生未处理的运行时错误:\n\t%m",
-				name,
-				lua_tostring(L, lua_gettop(L)));
-			LERROR("脚本错误：%s", tErrorInfo.c_str());
-			MessageBox(
-				m_pMainWindow ? (HWND)m_pMainWindow->GetHandle() : 0,
-				tErrorInfo.c_str(),
-				L"LuaSTGPlus脚本错误",
-				MB_ICONERROR | MB_OK);
-		}
-		catch (const bad_alloc&)
-		{
-			LERROR("尝试写出脚本错误时发生内存不足错误");
-		}
-		lua_pop(L, 2);												// ?
-		return false;
-	}
-	else
-	{
-		if (retc > 0)
-		{
-			//														// ? trace ...
-			lua_remove(L, base_stack + 1);							// ? ...
-		}
-		else
-		{
-			//														// ? trace
-			lua_pop(L, 1);											// ?
-		}
-		return true;
-	}
 }
 
 #pragma endregion

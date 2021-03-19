@@ -1,4 +1,5 @@
 ﻿#include "AppFrame.h"
+#include "UnicodeStringEncoding.h"
 
 namespace LuaSTGPlus {
 	// deug

@@ -4,7 +4,6 @@
 #include "Global.h"
 #include "ResourceMgr.h"
 #include "GameObjectPool.h"
-#include "UnicodeStringEncoding.h"
 #include "E2DFileManager.hpp"
 #include "Common/DirectInput.h"
 
@@ -106,30 +105,29 @@ namespace LuaSTGPlus
 		fcyVec2 m_MousePosition_old;
 		void resetKeyStatus()LNOEXCEPT;
 		
-	public: // 脚本调用接口，含义参见API文档
-		void SetWindowed(bool v)LNOEXCEPT;
-		void SetVsync(bool v)LNOEXCEPT;
-		void SetResolution(fuInt width, fuInt height)LNOEXCEPT;
-		void SetTitle(const char* v)LNOEXCEPT;
 	public:
-		/// @brief 使用新的视频参数更新显示模式
-		/// @note 若切换失败则进行回滚
-		LNOINLINE bool ChangeVideoMode(int width, int height, bool windowed, bool vsync)LNOEXCEPT;
+		/// @brief 保护模式执行脚本
+		/// @note 该函数仅限框架调用，为主逻辑最外层调用。若脚本运行时发生错误，该函数负责截获错误发出错误消息。
+		bool SafeCallScript(const char* source, size_t len, const char* desc)LNOEXCEPT;
 		
-		LNOINLINE bool UpdateVideoMode()LNOEXCEPT;
+		/// @brief 不保护调用全局函数
+		/// @note 该函数仅限框架调用，为主逻辑最外层调用
+		bool UnsafeCallGlobalFunction(const char* name, int retc = 0)LNOEXCEPT;
 		
-		void SetFPS(fuInt v)LNOEXCEPT;
+		/// @brief 保护模式调用全局函数
+		/// @note 该函数仅限框架调用，为主逻辑最外层调用。若脚本运行时发生错误，该函数负责截获错误发出错误消息。调用者负责维持栈平衡。
+		bool SafeCallGlobalFunction(const char* name, int retc = 0)LNOEXCEPT;
 		
-		/// @brief 获取当前的FPS
-		double GetFPS()LNOEXCEPT { return m_fFPS; }
+		/// @brief 保护模式调用全局函数
+		/// @note 该函数仅限框架调用，为主逻辑最外层调用。若脚本运行时发生错误，该函数负责截获错误发出错误消息。调用者负责维持栈平衡。
+		bool SafeCallGlobalFunctionB(const char* name, int argc = 0, int retc = 0)LNOEXCEPT;
 		
 		/// @brief 执行资源包中的文件
 		/// @note 该函数为脚本系统使用
 		LNOINLINE void LoadScript(const char* path,const char *packname)LNOEXCEPT;
 		
-		//读取资源包中的文本文件
-		//也能读取其他类型的文件，但是会得到无意义的结果
-		LNOINLINE int LoadTextFile(lua_State* L, const char* path, const char *packname)LNOEXCEPT;
+		bool OnLoadLaunchScriptAndFiles();
+		bool OnLoadMainScriptAndFiles();
 		
 	public:  // 输入系统接口
 		//检查按键是否按下
@@ -166,6 +164,28 @@ namespace LuaSTGPlus
 		
 		/// @brief 检查鼠标是否按下
 		fBool GetMouseState(int button) LNOEXCEPT;
+		
+	public: // 脚本调用接口，含义参见API文档
+		void SetWindowed(bool v)LNOEXCEPT;
+		void SetVsync(bool v)LNOEXCEPT;
+		void SetResolution(fuInt width, fuInt height)LNOEXCEPT;
+		void SetTitle(const char* v)LNOEXCEPT;
+		
+	public:
+		/// @brief 使用新的视频参数更新显示模式
+		/// @note 若切换失败则进行回滚
+		LNOINLINE bool ChangeVideoMode(int width, int height, bool windowed, bool vsync)LNOEXCEPT;
+		
+		LNOINLINE bool UpdateVideoMode()LNOEXCEPT;
+		
+		void SetFPS(fuInt v)LNOEXCEPT;
+		
+		/// @brief 获取当前的FPS
+		double GetFPS()LNOEXCEPT { return m_fFPS; }
+		
+		//读取资源包中的文本文件
+		//也能读取其他类型的文件，但是会得到无意义的结果
+		LNOINLINE int LoadTextFile(lua_State* L, const char* path, const char *packname)LNOEXCEPT;
 		
 	private:
 		void updateGraph2DBlendMode(BlendMode m);
@@ -323,25 +343,10 @@ namespace LuaSTGPlus
 		/// @brief 终止框架并回收资源
 		/// @note 该函数可以由框架自行调用，且仅能调用一次
 		void Shutdown()LNOEXCEPT;
-
+		
 		/// @brief 执行框架，进入游戏循环
 		void Run()LNOEXCEPT;
-
-		/// @brief 保护模式执行脚本
-		/// @note 该函数仅限框架调用，为主逻辑最外层调用。若脚本运行时发生错误，该函数负责截获错误发出错误消息。
-		bool SafeCallScript(const char* source, size_t len, const char* desc)LNOEXCEPT;
 		
-		/// @brief 不保护调用全局函数
-		/// @note 该函数仅限框架调用，为主逻辑最外层调用
-		bool UnsafeCallGlobalFunction(const char* name, int retc = 0)LNOEXCEPT;
-		
-		/// @brief 保护模式调用全局函数
-		/// @note 该函数仅限框架调用，为主逻辑最外层调用。若脚本运行时发生错误，该函数负责截获错误发出错误消息。调用者负责维持栈平衡。
-		bool SafeCallGlobalFunction(const char* name, int retc = 0)LNOEXCEPT;
-		
-		/// @brief 保护模式调用全局函数
-		/// @note 该函数仅限框架调用，为主逻辑最外层调用。若脚本运行时发生错误，该函数负责截获错误发出错误消息。调用者负责维持栈平衡。
-		bool SafeCallGlobalFunctionB(const char* name, int argc = 0, int retc = 0)LNOEXCEPT;
 	protected:  // fancy2d逻辑循环回调
 		fBool OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, f2dMsgPump* pMsgPump);
 		fBool OnRender(fDouble ElapsedTime, f2dFPSController* pFPSController);
