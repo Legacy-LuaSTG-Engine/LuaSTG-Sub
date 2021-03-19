@@ -1,6 +1,10 @@
 #include "AppFrame.h"
 #include "LuaWrapper.hpp"
 
+#ifdef LAPP
+#undef LAPP
+#endif
+#define LAPP() (LuaSTGPlus::AppFrame::GetInstance())
 #define LWIN() (LuaSTGPlus::AppFrame::GetInstance().GetWindow())
 
 #define getwindow(__NAME__)\
@@ -60,6 +64,33 @@ static int lib_setIMEEnable(lua_State* L)
     return 0;
 }
 
+static int lib_setTextInputEnable(lua_State* L)
+{
+    const bool enable = lua_toboolean(L, 1);
+    LAPP().SetTextInputEnable(enable);
+    return 0;
+}
+static int lib_getTextInput(lua_State* L)
+{
+    try
+    {
+        fcStrW text = LAPP().GetTextInput();
+        std::string u8text = fcyStringHelper::WideCharToMultiByte(text, CP_UTF8);
+        lua_pushstring(L, u8text.c_str());
+        return 1;
+    }
+    catch(...)
+    {
+        lua_pushstring(L, "");
+        return 1;
+    }
+}
+static int lib_clearTextInput(lua_State* L)
+{
+    LAPP().ClearTextInput();
+    return 0;
+}
+
 #define makefname(__X__) { #__X__ , &lib_##__X__ }
 
 static const luaL_Reg compat[] = {
@@ -76,6 +107,11 @@ static const luaL_Reg lib[] = {
     makefname(setSize),
     makefname(setTopMost),
     makefname(setIMEEnable),
+    
+    makefname(setTextInputEnable),
+    makefname(getTextInput),
+    makefname(clearTextInput),
+    
     {NULL, NULL},
 };
 

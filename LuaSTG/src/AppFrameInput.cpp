@@ -6,7 +6,8 @@ namespace LuaSTGPlus
     void AppFrame::resetKeyStatus()LNOEXCEPT
     {
         m_LastKey = 0;
-        m_InputTextBuffer.clear();
+        //m_InputTextEnable = false;
+        //m_InputTextBuffer.clear();
         ::memset(m_KeyStateMap, 0, sizeof(m_KeyStateMap));
     }
     
@@ -49,6 +50,84 @@ namespace LuaSTGPlus
         else {
             return false;
         }
+    }
+    
+    void AppFrame::OnTextInputDeleteFront()
+    {
+        if (m_InputTextBuffer.length() > 1)
+        {
+            if (m_InputTextBuffer.front() >= 0xD800 && m_InputTextBuffer.front() <= 0xDBFF)
+            {
+                m_InputTextBuffer.erase(m_InputTextBuffer.begin());
+                m_InputTextBuffer.erase(m_InputTextBuffer.begin());
+            }
+            else
+            {
+                m_InputTextBuffer.erase(m_InputTextBuffer.begin());
+            }
+        }
+        else if (m_InputTextBuffer.length() > 0)
+        {
+            m_InputTextBuffer.erase(m_InputTextBuffer.begin());
+        }
+    }
+    void AppFrame::OnTextInputDeleteBack()
+    {
+        if (m_InputTextBuffer.length() > 1)
+        {
+            //CharCode >= 0xD800 && CharCode <= 0xDBFF
+            //CharCode >= 0xDC00 && CharCode <= 0xDFFF
+            if (m_InputTextBuffer.back() >= 0xDC00 && m_InputTextBuffer.back() <= 0xDFFF)
+            {
+                m_InputTextBuffer.pop_back();
+                m_InputTextBuffer.pop_back();
+            }
+            else
+            {
+                m_InputTextBuffer.pop_back();
+            }
+        }
+        else if (m_InputTextBuffer.length() > 0)
+        {
+            m_InputTextBuffer.pop_back();
+        }
+    }
+    void AppFrame::OnTextInputPasting()
+    {
+        if (FALSE != ::IsClipboardFormatAvailable(CF_UNICODETEXT))
+        {
+            if (FALSE != ::OpenClipboard((HWND)m_pMainWindow->GetHandle()))
+            {
+                HANDLE cbdata = ::GetClipboardData(CF_UNICODETEXT);
+                if (cbdata)
+                {
+                    LPWSTR wtext = (LPWSTR)::GlobalLock(cbdata);
+                    if (wtext != NULL) 
+                    {
+                        WCHAR* p = wtext;
+                        while (*p)
+                        {
+                            OnTextInputChar(*p);
+                            p++;
+                        }
+                        ::GlobalUnlock(wtext);
+                    }
+                }
+                ::CloseClipboard();
+            }
+        }
+    }
+    void AppFrame::OnTextInputChar(fCharW c)
+    {
+        if ((c == 0x09 || c == 0x0A) || (c >= 0x20 && c <= 0x7E) || (c > 0x7F)) // \t, \n
+        {
+            m_InputTextBuffer.push_back(c); 
+        }
+    }
+    
+    void AppFrame::SetTextInputEnable(bool enable)LNOEXCEPT
+    {
+        m_InputTextEnable = enable;
     }
     
     fcStrW AppFrame::GetTextInput()LNOEXCEPT

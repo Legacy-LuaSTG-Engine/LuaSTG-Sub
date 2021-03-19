@@ -863,6 +863,10 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 			{
 				m_DirectInput->reset();
 			}
+			if (m_LastInputTextEnable)
+			{
+				m_InputTextEnable = true;
+			}
 			
 			lua_pushinteger(L, (lua_Integer)LuaSTG::LuaEngine::EngineEvent::WindowActive);
 			lua_pushboolean(L, true);
@@ -874,6 +878,8 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 		}
 		case F2DMSG_WINDOW_ONLOSTFOCUS:
 		{
+			m_LastInputTextEnable = m_InputTextEnable;
+			m_InputTextEnable = false;
 			resetKeyStatus(); // clear input status
 			m_pInputSys->Reset(); // clear input status
 			if (m_DirectInput.get())
@@ -899,7 +905,10 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 		}
 		case F2DMSG_WINDOW_ONCHARINPUT:
 		{
-			m_InputTextBuffer.push_back((fCharW)tMsg.Param1);
+			if (m_InputTextEnable)
+			{
+				OnTextInputChar((fCharW)tMsg.Param1);
+			}
 			break;
 		}
 		case F2DMSG_WINDOW_ONKEYDOWN:
@@ -911,6 +920,22 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 				ChangeVideoMode((int)m_OptionResolution.x, (int)m_OptionResolution.y, !m_OptionWindowed, m_OptionVsync);
 			}
 			#endif
+			// text input
+			if (m_InputTextEnable)
+			{
+				if (tMsg.Param1 == VK_BACK)
+				{
+					OnTextInputDeleteBack();
+				}
+				else if (tMsg.Param1 == VK_DELETE)
+				{
+					OnTextInputDeleteFront();
+				}
+				else if (tMsg.Param1 == 0x56 && !m_KeyStateMap[0x56] && m_KeyStateMap[VK_CONTROL]) // VK_RETURN + VK_V
+				{
+					OnTextInputPasting();
+				}
+			}
 			// key
 			if (0 < tMsg.Param1 && tMsg.Param1 < _countof(m_KeyStateMap))
 			{

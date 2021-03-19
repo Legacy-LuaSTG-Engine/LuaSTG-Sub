@@ -96,7 +96,9 @@ namespace LuaSTGPlus
 		fcyRefPointer<f2dInputMouse> m_Mouse;
 		fcyRefPointer<f2dInputKeyboard> m_Keyboard;
 		fcyRefPointer<f2dInputKeyboard> m_Keyboard2;
-		fInt m_LastKey;
+		fInt m_LastKey = 0;
+		bool m_InputTextEnable = false;
+		bool m_LastInputTextEnable = false;
 		std::wstring m_InputTextBuffer;
 		fBool m_KeyStateMap[256];
 		fcyVec2 m_MousePosition;
@@ -137,9 +139,16 @@ namespace LuaSTGPlus
 		//检查键盘按键是否按下，Dinput KeyCode
 		fBool GetKeyboardState(DWORD VKCode)LNOEXCEPT;
 		
+		void OnTextInputDeleteFront();
+		void OnTextInputDeleteBack();
+		void OnTextInputPasting();
+		void OnTextInputChar(fCharW c);
+		
 		//检查键盘按键是否按下，使用的是GetAsyncKeyState
 		//和GetKeyboardState不同，这个检测的不是按下过的，而是现在被按住的键
 		bool GetAsyncKeyState(int VKCode)LNOEXCEPT;
+		
+		void SetTextInputEnable(bool enable = false)LNOEXCEPT;
 		
 		/// @brief 获得输入的文本
 		fcStrW GetTextInput()LNOEXCEPT;
