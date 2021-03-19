@@ -3,13 +3,8 @@
 #include "resource.h"
 #include "AppFrame.h"
 #include "Utility.h"
-#include "LuaWrapper/LuaAppFrame.hpp"
-#include "LuaWrapper/LuaWrapper.hpp"
-#include "LuaWrapper/LW_SteamAPI.h"
-#include "LuaWrapper/LuaCustomLoader.hpp"
-#include "LuaWrapper/LuaStringToEnum.hpp"
-#include "LuaWrapper/LuaInternalSource.hpp"
 #include "ImGuiExtension.h"
+#include "LuaWrapper/LuaAppFrame.hpp"
 
 using namespace LuaSTGPlus;
 
@@ -238,55 +233,10 @@ bool AppFrame::Init()LNOEXCEPT
 	m_iStatus = AppStatus::Initializing;
 	
 	//////////////////////////////////////// Lua初始化部分
+	// 开启Lua引擎
+	if (!OnOpenLuaEngine())
 	{
-		LINFO("开始初始化Lua虚拟机 版本: %m", LVERSION_LUA);
-		L = luaL_newstate();
-		if (!L)
-		{
-			LERROR("无法初始化Lua虚拟机");
-			return false;
-		}
-		if (0 != luaJIT_setmode(L, 0, LUAJIT_MODE_ENGINE | LUAJIT_MODE_ON))
-			LWARNING("无法启动JIT模式");
-		lua_gc(L, LUA_GCSTOP, 0);  // 初始化时关闭GC
-
-		luaL_openlibs(L);  // 内建库 (lua build in lib)
-		lua_register_custom_loader(L); // 加强版 package 库 (require)
-		luaopen_steam(L); // Steam API
-		
-		//luaopen_lfs(L);  // 文件系统库 (file system)
-		//luaopen_cjson(L);  // CJSON库 (json)
-		lua_settop(L, 0);// 不知道为什么弄了6个table在栈顶……
-		
-		if (!SafeCallScript(LuaInternalSource_1().c_str(), LuaInternalSource_1().length(), "internal")) {
-			LERROR("内置资源出错");
-		}
-		
-		RegistBuiltInClassWrapper(L);  // 注册内建类 (luastg lib)
-		Xrysnow::InitStringToEnumHash(L); // 准备属性hash
-		
-		lua_gc(L, LUA_GCRESTART, -1);  // 重启GC
-	}
-	
-	// 设置命令行参数
-	{
-		const WCHAR* cmd = ::GetCommandLineW();
-		int argc = 0;
-		WCHAR** argv = ::CommandLineToArgvW(cmd, &argc);
-		if (argv != NULL)
-		{
-			lua_getglobal(L, "lstg");			// ? t
-			lua_createtable(L, argc, 0);		// ? t t
-			for (int idx = 0; idx < argc; idx++)
-			{
-				std::string v = fcyStringHelper::WideCharToMultiByte(argv[idx], CP_UTF8);
-				lua_pushstring(L, v.c_str());	// ? t t s
-				lua_rawseti(L, -2, idx + 1);	// ? t t
-			}
-			lua_setfield(L, -2, "args");		// ? t
-			lua_pop(L, 1);						// ?
-			::LocalFree(argv);
-		}
+		return false;
 	}
 	
 	// 加载初始化脚本（可选）
@@ -294,9 +244,6 @@ bool AppFrame::Init()LNOEXCEPT
 	{
 		return false;
 	}
-	
-	//////////////////////////////////////// 装载初始化脚本
-	fcyRefPointer<fcyMemStream> tMemStream;
 	
 	//////////////////////////////////////// 初始化引擎
 	{
@@ -429,18 +376,20 @@ bool AppFrame::Init()LNOEXCEPT
 		imgui::bindEngine();
 		// 初始化自定义后处理特效
 		//slow::effect::bindEngine();
+		
+		// 设置窗口图标
+		HICON hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_APPICON));
+		SendMessage((HWND)m_pMainWindow->GetHandle(), WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hIcon);
+		SendMessage((HWND)m_pMainWindow->GetHandle(), WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)hIcon);
+		DestroyIcon(hIcon);
+		
+		// 显示窗口
+		m_pMainWindow->SetBorderType(F2DWINBORDERTYPE_FIXED);
+		m_pMainWindow->SetClientRect(fcyRect(0.f, 0.f, m_OptionResolution.x, m_OptionResolution.y));
+		m_pMainWindow->MoveToCenter();
+		m_pMainWindow->SetVisiable(true);
+		resetKeyStatus(); // clear key status first
 	}
-	
-	// 设置窗口图标
-	HICON hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_APPICON));
-	SendMessage((HWND)m_pMainWindow->GetHandle(), WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hIcon);
-	SendMessage((HWND)m_pMainWindow->GetHandle(), WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)hIcon);
-	DestroyIcon(hIcon);
-	
-	// 显示窗口
-	m_pMainWindow->MoveToCenter();
-	m_pMainWindow->SetVisiable(true);
-	resetKeyStatus(); // clear key status first
 	
 	// 装载main脚本
 	if (!OnLoadMainScriptAndFiles())
