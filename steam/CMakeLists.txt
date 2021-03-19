@@ -31,6 +31,9 @@ set_target_properties(lua_steam_api PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
 )
+target_compile_options(lua_steam_api PRIVATE
+    "/wd4819"
+)
 target_include_directories(lua_steam_api PUBLIC
     binding
 )
@@ -61,6 +64,9 @@ set_target_properties(steam PROPERTIES
     C_STANDARD_REQUIRED ON
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
+)
+target_compile_options(steam PRIVATE
+    "/wd4819"
 )
 target_sources(steam PRIVATE
     binding/lua_steam_dll.cpp
