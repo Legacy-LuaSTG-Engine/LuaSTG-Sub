@@ -83,6 +83,20 @@ void AppFrame::SetResolution(fuInt width, fuInt height)LNOEXCEPT
 		LWARNING("试图在运行时更改分辨率");
 }
 
+void AppFrame::SetTitle(const char* v)LNOEXCEPT
+{
+	try
+	{
+		m_OptionTitle = std::move(fcyStringHelper::MultiByteToWideChar(v, CP_UTF8));
+		if (m_pMainWindow)
+			m_pMainWindow->SetCaption(m_OptionTitle.c_str());
+	}
+	catch (const bad_alloc&)
+	{
+		LERROR("修改窗口标题时无法分配内存");
+	}
+}
+
 LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, bool vsync)LNOEXCEPT
 {
 	if (m_iStatus == AppStatus::Initialized)
@@ -394,7 +408,7 @@ bool AppFrame::Init()LNOEXCEPT
 		if (FCYFAILED(CreateF2DEngineAndInit(
 			F2DVERSION,
 			fcyRect(0.f, 0.f, m_OptionResolution.x, m_OptionResolution.y),
-			L"LuaSTG",
+			m_OptionTitle.c_str(),
 			m_OptionWindowed,
 			m_OptionVsync,
 			F2DAALEVEL_NONE,

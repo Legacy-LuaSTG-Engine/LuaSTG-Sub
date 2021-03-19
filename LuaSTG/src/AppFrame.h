@@ -62,6 +62,7 @@ namespace LuaSTGPlus
 		fuInt m_OptionFPSLimit = 60;
 		bool m_OptionVsync = false;
 		fcyVec2 m_OptionResolution = fcyVec2(640.f, 480.f);
+		std::wstring m_OptionTitle = L"LuaSTG";
 		fDouble m_fFPS = 0.;
 		
 		// 引擎
@@ -109,6 +110,7 @@ namespace LuaSTGPlus
 		void SetWindowed(bool v)LNOEXCEPT;
 		void SetVsync(bool v)LNOEXCEPT;
 		void SetResolution(fuInt width, fuInt height)LNOEXCEPT;
+		void SetTitle(const char* v)LNOEXCEPT;
 	public:
 		/// @brief 使用新的视频参数更新显示模式
 		/// @note 若切换失败则进行回滚
