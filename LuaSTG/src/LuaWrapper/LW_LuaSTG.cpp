@@ -1880,10 +1880,6 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			lua_pushinteger(L, LAPP.GetLastKey());
 			return 1;
 		}
-		static int GetLastChar(lua_State* L)LNOEXCEPT
-		{
-			return LAPP.GetLastChar(L);
-		}
 		static int GetMousePosition(lua_State* L)LNOEXCEPT
 		{
 			fcyVec2 tPos = LAPP.GetMousePosition(lua_toboolean(L, 1));
@@ -2199,7 +2195,6 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		#pragma region 输入控制函数
 		{ "GetKeyState", &WrapperImplement::GetKeyState },
 		{ "GetLastKey", &WrapperImplement::GetLastKey },
-		{ "GetLastChar", &WrapperImplement::GetLastChar },
 		{ "GetMousePosition", &WrapperImplement::GetMousePosition },
 		{ "GetMouseWheelDelta", &WrapperImplement::GetMouseWheelDelta },
 		{ "GetMouseState", &WrapperImplement::GetMouseState },

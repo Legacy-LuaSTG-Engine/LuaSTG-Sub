@@ -96,17 +96,12 @@ namespace LuaSTGPlus
 		fcyRefPointer<f2dInputMouse> m_Mouse;
 		fcyRefPointer<f2dInputKeyboard> m_Keyboard;
 		fcyRefPointer<f2dInputKeyboard> m_Keyboard2;
-		fCharW m_LastChar;
 		fInt m_LastKey;
 		std::wstring m_InputTextBuffer;
 		fBool m_KeyStateMap[256];
 		fcyVec2 m_MousePosition;
 		fcyVec2 m_MousePosition_old;
-		void resetKeyStatus()LNOEXCEPT {
-			m_LastChar = 0;
-			m_LastKey = 0;
-			::memset(m_KeyStateMap, 0, sizeof(m_KeyStateMap));
-		}
+		void resetKeyStatus()LNOEXCEPT;
 		
 	public: // 脚本调用接口，含义参见API文档
 		void SetWindowed(bool v)LNOEXCEPT;
@@ -136,6 +131,9 @@ namespace LuaSTGPlus
 		//检查按键是否按下
 		fBool GetKeyState(int VKCode)LNOEXCEPT;
 		
+		/// @brief 获得最后一次按键输入
+		int GetLastKey()LNOEXCEPT;
+		
 		//检查键盘按键是否按下，Dinput KeyCode
 		fBool GetKeyboardState(DWORD VKCode)LNOEXCEPT;
 		
@@ -143,32 +141,17 @@ namespace LuaSTGPlus
 		//和GetKeyboardState不同，这个检测的不是按下过的，而是现在被按住的键
 		bool GetAsyncKeyState(int VKCode)LNOEXCEPT;
 		
-		/// @brief 获得最后一次字符输入（UTF-8）
-		LNOINLINE int GetLastChar(lua_State* L)LNOEXCEPT;
-		
-		/// @brief 获得最后一次按键输入
-		int GetLastKey()LNOEXCEPT { return m_LastKey; }
-		
-		/// @brief 获得输入的文本（UTF-8）
-		LNOINLINE int GetTextInput(lua_State* L)LNOEXCEPT;
-		
 		/// @brief 获得输入的文本
-		fcStrW GetTextInput() { return m_InputTextBuffer.c_str(); }
+		fcStrW GetTextInput()LNOEXCEPT;
 		
 		/// @brief 清空输入的文本
-		void ClearTextInput() { m_InputTextBuffer.clear(); }
+		void ClearTextInput()LNOEXCEPT;
 		
 		/// @brief 获取鼠标位置（以窗口左下角为原点）
-		fcyVec2 GetMousePosition(bool no_flip = false)LNOEXCEPT
-		{
-			if (no_flip)
-				return m_MousePosition;
-			else
-				return m_MousePosition_old;
-		}
+		fcyVec2 GetMousePosition(bool no_flip = false)LNOEXCEPT;
 		
 		/// @brief 获取鼠标滚轮增量
-		fInt GetMouseWheelDelta()LNOEXCEPT { return m_Mouse->GetOffsetZ(); }
+		fInt GetMouseWheelDelta()LNOEXCEPT;
 		
 		/// @brief 检查鼠标是否按下
 		fBool GetMouseState(int button) LNOEXCEPT;

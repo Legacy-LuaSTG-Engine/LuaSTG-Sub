@@ -14,7 +14,6 @@
 #include "LuaWrapper/LuaStringToEnum.hpp"
 #include "LuaWrapper/LuaInternalSource.hpp"
 #include "ImGuiExtension.h"
-//#include "slowPostEffectExt.hpp"
 
 #ifdef max
 #undef max
@@ -26,8 +25,6 @@
 // 内置lua扩展
 //extern "C" int luaopen_lfs(lua_State *L);
 //extern "C" int luaopen_cjson(lua_State* L);
-
-#include "f2dKeyCodeConvert.inl"
 
 using namespace std;
 using namespace LuaSTGPlus;
@@ -211,79 +208,6 @@ LNOINLINE int AppFrame::LoadTextFile(lua_State* L, const char* path, const char 
 	lua_pushlstring(L, (char*)tMemStream->GetInternalBuffer(), (size_t)tMemStream->GetLength());
 	tMemStream = nullptr;
 	return 1;
-}
-
-fBool AppFrame::GetKeyState(int VKCode)LNOEXCEPT
-{
-	if (VKCode > 0 && VKCode < _countof(m_KeyStateMap))
-	{
-		if (m_Keyboard) {
-			return m_Keyboard->IsKeyDown(VKKeyToF2DKey(VKCode));
-		}
-		else {
-			//return m_KeyStateMap[VKCode] || GetAsyncKeyState(VKCode);
-			return m_KeyStateMap[VKCode];
-		}
-	}
-	return false;
-}
-
-fBool AppFrame::GetKeyboardState(DWORD VKCode)LNOEXCEPT {
-	if (m_Keyboard2) {
-		return m_Keyboard2->KeyPress(VKCode);
-	}
-	else {
-		return false;
-	}
-}
-
-bool AppFrame::GetAsyncKeyState(int VKCode)LNOEXCEPT {
-	SHORT KeyState = ::GetAsyncKeyState(VKCode);//应该使用WinUser的方法，这个是在全局命名空间里面的，不然会出现我调用我自己的bug
-	if (KeyState & 0x8000) {
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-
-LNOINLINE int AppFrame::GetLastChar(lua_State* L)LNOEXCEPT
-{
-	if (m_LastChar)
-	{
-		try
-		{
-			fCharW tBuf[2] = { m_LastChar, 0 };
-			lua_pushstring(L,
-				fcyStringHelper::WideCharToMultiByte(tBuf, CP_UTF8).c_str());
-		}
-		catch (const bad_alloc&)
-		{
-			LERROR("GetLastChar: 内存不足");
-			return 0;
-		}
-	}
-	else
-		lua_pushstring(L, "");
-	return 1;
-}
-
-fBool AppFrame::GetMouseState(int button)LNOEXCEPT
-{
-	switch (button) {
-	case 0:
-		return m_Mouse->IsLeftBtnDown();
-	case 1:
-		return m_Mouse->IsMiddleBtnDown();
-	case 2:
-		return m_Mouse->IsRightBtnDown();
-	default:
-		break;
-	}
-	if (button >= 3 && button <= 7) {
-		return m_Mouse->IsAdditionBtnDown(button - 3);//对齐额外键索引（不包含左中右键）
-	}
-	return false;
 }
 
 LNOINLINE void AppFrame::SnapShot(const char* path)LNOEXCEPT
@@ -918,7 +842,6 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 	m_fFPS = (float)pFPSController->GetFPS();
 	pFPSController->SetLimitedFPS(m_OptionFPSLimit);
 	
-	m_LastChar = 0;
 	m_LastKey = 0;
 	
 	// 处理消息
@@ -976,7 +899,6 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 		}
 		case F2DMSG_WINDOW_ONCHARINPUT:
 		{
-			m_LastChar = (fCharW)tMsg.Param1;
 			m_InputTextBuffer.push_back((fCharW)tMsg.Param1);
 			break;
 		}
