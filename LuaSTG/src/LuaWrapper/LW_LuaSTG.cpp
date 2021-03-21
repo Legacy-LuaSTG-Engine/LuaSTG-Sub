@@ -1023,13 +1023,26 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		static int CreateRenderTarget(lua_State* L)LNOEXCEPT
 		{
 			const char* name = luaL_checkstring(L, 1);
-
+			
 			ResourcePool* pActivedPool = LRES.GetActivedPool();
 			if (!pActivedPool)
 				return luaL_error(L, "can't load resource at this time.");
-
-			if (!pActivedPool->CreateRenderTarget(name))
-				return luaL_error(L, "can't create render target with name '%s'.", name);
+			
+			if (lua_gettop(L) >= 2)
+			{
+				const int width = (int)luaL_checkinteger(L, 2);
+				const int height = (int)luaL_checkinteger(L, 3);
+				if (width < 1 || height < 1)
+					return luaL_error(L, "invalid render target size (%dx%d).", width, height);
+				if (!pActivedPool->CreateRenderTarget(name, width, height))
+					return luaL_error(L, "can't create render target with name '%s'.", name);
+			}
+			else
+			{
+				if (!pActivedPool->CreateRenderTarget(name))
+					return luaL_error(L, "can't create render target with name '%s'.", name);
+			}
+			
 			return 0;
 		}
 		static int IsRenderTarget(lua_State* L)LNOEXCEPT

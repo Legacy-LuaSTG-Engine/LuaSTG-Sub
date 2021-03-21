@@ -177,7 +177,9 @@ namespace LuaSTGPlus
 
 		/// @brief 构造RenderTarget
 		LNOINLINE bool CreateRenderTarget(const char* name)LNOEXCEPT;
-
+		
+		bool CreateRenderTarget(const char* name, int width, int height)LNOEXCEPT;
+		
 		/// @brief 获取纹理
 		fcyRefPointer<ResTexture> GetTexture(const char* name)LNOEXCEPT
 		{

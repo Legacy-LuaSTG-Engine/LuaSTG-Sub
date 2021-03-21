@@ -1190,3 +1190,46 @@ LNOINLINE bool ResourcePool::CreateRenderTarget(const char* name)LNOEXCEPT
 	LDEBUG_RESOURCEHINT(ResourceType::Texture, L"[RenderTarget]");
 	return true;
 }
+
+bool ResourcePool::CreateRenderTarget(const char* name, int width, int height)LNOEXCEPT
+{
+	LDEBUG_RESOURCETIMER;
+
+	{
+		LDEBUG_RESOURCESCOPE;
+
+		LASSERT(LAPP.GetRenderDev());
+
+		if (m_TexturePool.find(name) != m_TexturePool.end())
+		{
+			LWARNING("CreateRenderTarget: '%m'已存在，创建操作已被取消", name);
+			return true;
+		}
+
+		fcyRefPointer<f2dTexture2D> tTexture;
+		if (FCYFAILED(LAPP.GetRenderDev()->CreateRenderTarget((fuInt)width, (fuInt)height, false, &tTexture)))
+		{
+			LERROR("CreateRenderTarget: 创建渲染目标'%m'失败", name);
+			return false;
+		}
+
+		try
+		{
+			fcyRefPointer<ResTexture> tRes;
+			tRes.DirectSet(new ResTexture(name, tTexture));
+			m_TexturePool.emplace(name, tRes);
+		}
+		catch (const bad_alloc&)
+		{
+			LERROR("CreateRenderTarget: 内存不足");
+			return false;
+		}
+
+#ifdef LSHOWRESLOADINFO
+		LINFO("CreateRenderTarget: '%m'已创建 (%s)", name, getResourcePoolTypeName());
+#endif
+	}
+
+	LDEBUG_RESOURCEHINT(ResourceType::Texture, L"[RenderTarget]");
+	return true;
+}
