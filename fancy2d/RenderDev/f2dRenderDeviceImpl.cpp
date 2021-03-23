@@ -40,14 +40,131 @@ static const D3DDISPLAYMODEFILTER g_d3d9DisplayModeFilter = {
 	D3DSCANLINEORDERING_PROGRESSIVE,
 };
 
+static const D3DPRESENT_PARAMETERS gc_d3d9TestSwapChainDesc = {
+	// 测试用最小交换链(1x1)，窗口模式下，应该自动选择交换链格式
+	1, 1, D3DFMT_UNKNOWN, 1,
+	// 多重采样必须是关的
+	D3DMULTISAMPLE_NONE, 0,
+	// 窗口模式，传统交换链模型
+	D3DSWAPEFFECT_DISCARD, NULL, TRUE,
+	// 因为是测试目的，所以不用开自动深度缓冲区
+	FALSE, D3DFMT_UNKNOWN,
+	// 其他
+	0,
+	// 显示器，窗口模式下刷新率必须为0
+	0, D3DPRESENT_INTERVAL_IMMEDIATE,
+};
+
+bool _findMatchDisplayMode(IDirect3D9Ex* d3d9, D3DDISPLAYMODEEX& mode, UINT width, UINT height)
+{
+	// 清空
+	ZeroMemory(&mode, sizeof(D3DDISPLAYMODEEX));
+	mode.Size = sizeof(D3DDISPLAYMODEEX);
+	
+	// 枚举
+	UINT modecnt = d3d9->GetAdapterModeCountEx(D3DADAPTER_DEFAULT, &g_d3d9DisplayModeFilter);
+	std::vector<D3DDISPLAYMODEEX> modes(modecnt);
+	for (UINT idx = 0; idx < modecnt; idx += 1)
+	{
+		ZeroMemory(&modes[idx], sizeof(D3DDISPLAYMODEEX));
+		modes[idx].Size = sizeof(D3DDISPLAYMODEEX);
+		d3d9->EnumAdapterModesEx(D3DADAPTER_DEFAULT, &g_d3d9DisplayModeFilter, idx, &modes[idx]);
+	}
+	
+	// 匹配合适的模式
+	D3DDISPLAYMODEEX curmode = {};
+	bool findmode = false;
+	// 预处理，筛掉大小不一样的模式
+	for (auto it = modes.begin(); it != modes.end();)
+	{
+		if (it->Width != width || it->Height != height)
+			it = modes.erase(it);
+		else
+			it++;
+	}
+	// 第一轮寻找，查找60Hz或者60Hz倍数的刷新率（最适合的模式）
+	ZeroMemory(&curmode, sizeof(D3DDISPLAYMODEEX));
+	for (auto& v : modes)
+	{
+		if (v.RefreshRate >= 60 && (v.RefreshRate % 60) == 0)
+		{
+			if (curmode.RefreshRate < v.RefreshRate)
+			{
+				curmode = v;
+				findmode = true;
+			}
+		}
+	}
+	if (findmode)
+	{
+		mode = curmode;
+		return true;
+	}
+	// 第二轮寻找，查找接近60Hz或者接近120Hz的刷新率（有一些误差的模式）
+	ZeroMemory(&curmode, sizeof(D3DDISPLAYMODEEX));
+	for (auto& v : modes)
+	{
+		if ((v.RefreshRate >= 59 && v.RefreshRate <= 61) || (v.RefreshRate >= 118 && v.RefreshRate <= 122))
+		{
+			if (curmode.RefreshRate < v.RefreshRate)
+			{
+				curmode = v;
+				findmode = true;
+			}
+		}
+	}
+	if (findmode)
+	{
+		mode = curmode;
+		return true;
+	}
+	// 第三轮寻找，查找大于等于120Hz的刷新率（可以接受的模式）
+	ZeroMemory(&curmode, sizeof(D3DDISPLAYMODEEX));
+	for (auto& v : modes)
+	{
+		if (v.RefreshRate >= 120)
+		{
+			if (curmode.RefreshRate < v.RefreshRate)
+			{
+				curmode = v;
+				findmode = true;
+			}
+		}
+	}
+	if (findmode)
+	{
+		mode = curmode;
+		return true;
+	}
+	// 第四轮寻找，查找剩下的刷新率最高的模式（可能会导致画面不流畅或帧率较低的模式）
+	ZeroMemory(&curmode, sizeof(D3DDISPLAYMODEEX));
+	for (auto& v : modes)
+	{
+		if (curmode.RefreshRate < v.RefreshRate)
+		{
+			curmode = v;
+			findmode = true;
+		}
+	}
+	if (findmode)
+	{
+		mode = curmode;
+		return true;
+	}
+	
+	// 依然没找到
+	return false;
+};
+
 f2dRenderDeviceImpl::f2dRenderDeviceImpl(f2dEngineImpl* pEngine, fuInt BackBufferWidth, fuInt BackBufferHeight, fBool Windowed, fBool VSync, F2DAALEVEL AALevel) :
 	m_pEngine(pEngine),
-	m_pD3D9(NULL), m_pDev(NULL), m_hWnd((HWND)pEngine->GetMainWindow()->GetHandle()), 
+	m_pD3D9(NULL), m_pDev(NULL), m_hWnd(NULL),
 	m_bDevLost(false), m_pBackBuffer(NULL), m_pBackDepthBuffer(NULL), m_pCurGraphics(NULL),
 	m_pWinSurface(NULL), m_pCurBackBuffer(NULL), m_pCurBackDepthBuffer(NULL),
 	m_pCurVertDecl(NULL), m_CreateThreadID(GetCurrentThreadId()), m_bZBufferEnabled(true)
 {
 	HRESULT hr = S_OK;
+	m_hWnd = (HWND)pEngine->GetMainWindow()->GetHandle();
 	
 	// --- 创建D3D9 ---
 	
@@ -63,38 +180,55 @@ f2dRenderDeviceImpl::f2dRenderDeviceImpl(f2dEngineImpl* pEngine, fuInt BackBuffe
 	}
 	m_pD3D9 = _d3d9.Get();
 	
-	// --- 枚举可用的模式 ---
+	// --- 测试 ---
 	
-	// 清空
-	ZeroMemory(&_d3d9FullScreenSwapChainInfo, sizeof(D3DDISPLAYMODEEX));
-	_d3d9FullScreenSwapChainInfo.Size = sizeof(D3DDISPLAYMODEEX);
-	// 枚举
-	UINT modecnt = _d3d9Ex->GetAdapterModeCountEx(D3DADAPTER_DEFAULT, &g_d3d9DisplayModeFilter);
-	std::vector<D3DDISPLAYMODEEX> modes(modecnt);
-	for (UINT idx = 0; idx < modecnt; idx += 1)
+	// 检查是否支持硬件顶点处理
 	{
-		modes[idx].Size = sizeof(D3DDISPLAYMODEEX);
-		_d3d9Ex->EnumAdapterModesEx(D3DADAPTER_DEFAULT, &g_d3d9DisplayModeFilter, idx, &modes[idx]);
-	}
-	// 查找相同的模式
-	bool findmode = false;
-	if (modecnt > 0)
+		D3DPRESENT_PARAMETERS testinfo = gc_d3d9TestSwapChainDesc;
+		testinfo.hDeviceWindow = m_hWnd;
+		hr = _d3d9Ex->CreateDeviceEx(
+			D3DADAPTER_DEFAULT,
+			D3DDEVTYPE_HAL,
+			m_hWnd,
+			D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,
+			&testinfo,
+			NULL,
+			_d3d9DeviceEx.GetAddressOf());
+		_d3d9SupportHWVertex = (hr == S_OK);
+		_d3d9DeviceEx.Reset();
+	};
+	
+	// 顶点处理的flag，这个变量一会会频繁用到，启动多线程 + 自动决定顶点处理
+	DWORD BehaviorFlags = D3DCREATE_MULTITHREADED
+						| (_d3d9SupportHWVertex ? D3DCREATE_HARDWARE_VERTEXPROCESSING : D3DCREATE_SOFTWARE_VERTEXPROCESSING);
+	
+	// 检查是否支持FLIPEX
 	{
-		for (int idx = (modecnt - 1); idx >= 0; idx -= 1)
+		D3DPRESENT_PARAMETERS testinfo = gc_d3d9TestSwapChainDesc;
+		testinfo.SwapEffect = D3DSWAPEFFECT_FLIPEX;
+		testinfo.hDeviceWindow = m_hWnd;
+		hr = _d3d9Ex->CreateDeviceEx(
+			D3DADAPTER_DEFAULT,
+			D3DDEVTYPE_HAL,
+			m_hWnd,
+			BehaviorFlags,
+			&testinfo,
+			NULL,
+			_d3d9DeviceEx.GetAddressOf());
+		_d3d9SupportFlip = (hr == S_OK);
+		_d3d9DeviceEx.Reset();
+	};
+	
+	// --- 枚举可用的全屏模式 ---
+	
+	// 有没有找到？
+	if (!_findMatchDisplayMode(_d3d9Ex.Get(), _d3d9FullScreenSwapChainInfo, BackBufferWidth, BackBufferHeight))
+	{
+		if (!Windowed) // 想全屏，但是没匹配的模式
 		{
-			if (BackBufferWidth == modes[idx].Width && BackBufferHeight == modes[idx].Height)
-			{
-				_d3d9FullScreenSwapChainInfo = modes[idx];
-				findmode = true;
-				break;
-			}
+			throw fcyException("f2dRenderDeviceImpl::f2dRenderDeviceImpl",
+				"Cannot find a valid full-screen display mode (%ux%u).", BackBufferWidth, BackBufferHeight);
 		}
-	}
-	// 找不到，而且不是窗口模式
-	if (!findmode && !Windowed)
-	{
-		throw fcyException("f2dRenderDeviceImpl::f2dRenderDeviceImpl",
-			"Cannot find a valid full-screen display mode (%ux%u).", BackBufferWidth, BackBufferHeight);
 	}
 	
 	// --- 创建设备 ---
@@ -124,36 +258,25 @@ f2dRenderDeviceImpl::f2dRenderDeviceImpl(f2dEngineImpl* pEngine, fuInt BackBuffe
 			D3DADAPTER_DEFAULT,
 			D3DDEVTYPE_HAL,
 			m_hWnd,
-			D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED, // 启动多线程 + 硬件顶点处理
+			BehaviorFlags,
 			&_d3d9SwapChainInfo,
 			Windowed ? NULL : &_d3d9FullScreenSwapChainInfo, // 窗口模式下必须为NULL
 			_d3d9DeviceEx.GetAddressOf());
-	}
-	if (hr != S_OK)
-	{
-		hr = _d3d9Ex->CreateDeviceEx(
-			D3DADAPTER_DEFAULT,
-			D3DDEVTYPE_HAL,
-			m_hWnd,
-			D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED, // 启动多线程 + 软件顶点处理
-			&_d3d9SwapChainInfo,
-			Windowed ? NULL : &_d3d9FullScreenSwapChainInfo, // 窗口模式下必须为NULL
-			_d3d9DeviceEx.GetAddressOf());
-	}
-	if(hr != S_OK)
-	{
-		throw fcyWin32COMException("f2dRenderDeviceImpl::f2dRenderDeviceImpl", "IDirect3D9Ex::CreateDeviceEx Failed.", hr);
-	}
-	hr = _d3d9DeviceEx.As(&_d3d9Device);
-	if (hr != S_OK)
-	{
-		throw fcyWin32COMException("f2dRenderDeviceImpl::f2dRenderDeviceImpl", "Query interface IDirect3DDevice9 Failed.", hr);
-	}
-	m_pDev = _d3d9Device.Get();
-	// 设置帧延迟
-	_d3d9DeviceEx->SetMaximumFrameLatency(1);
-	// 创建同步设施
-	_d3d9DeviceTest = DeviceSyncTest(m_hWnd, _d3d9DeviceEx.Get());
+		if(hr != S_OK)
+		{
+			throw fcyWin32COMException("f2dRenderDeviceImpl::f2dRenderDeviceImpl", "IDirect3D9Ex::CreateDeviceEx Failed.", hr);
+		}
+		hr = _d3d9DeviceEx.As(&_d3d9Device);
+		if (hr != S_OK)
+		{
+			throw fcyWin32COMException("f2dRenderDeviceImpl::f2dRenderDeviceImpl", "Query interface IDirect3DDevice9 Failed.", hr);
+		}
+		m_pDev = _d3d9Device.Get();
+		// 设置帧延迟
+		_d3d9DeviceEx->SetMaximumFrameLatency(1);
+		// 创建同步设施
+		_d3d9DeviceTest = DeviceSyncTest(m_hWnd, _d3d9DeviceEx.Get());
+	};
 	
 	// --- 获取设备参数 ---
 	
@@ -750,34 +873,15 @@ fResult f2dRenderDeviceImpl::SetBufferSize(fuInt Width, fuInt Height, fBool Wind
 	D3DPRESENT_PARAMETERS D3DPP = _d3d9SwapChainInfo;
 	D3DDISPLAYMODEEX D3DPPEX = _d3d9FullScreenSwapChainInfo;
 	
-	// 枚举
-	UINT modecnt = _d3d9Ex->GetAdapterModeCountEx(D3DADAPTER_DEFAULT, &g_d3d9DisplayModeFilter);
-	std::vector<D3DDISPLAYMODEEX> modes(modecnt);
-	for (UINT idx = 0; idx < modecnt; idx += 1)
+	// 有没有找到合适的全屏模式？
+	if (!_findMatchDisplayMode(_d3d9Ex.Get(), _d3d9FullScreenSwapChainInfo, Width, Height))
 	{
-		modes[idx].Size = sizeof(D3DDISPLAYMODEEX);
-		_d3d9Ex->EnumAdapterModesEx(D3DADAPTER_DEFAULT, &g_d3d9DisplayModeFilter, idx, &modes[idx]);
-	}
-	// 查找相同的模式
-	bool findmode = false;
-	if (modecnt > 0)
-	{
-		for (int idx = (modecnt - 1); idx >= 0; idx -= 1)
+		if (!Windowed) // 想全屏，但是没匹配的模式
 		{
-			if (Width == modes[idx].Width && Height == modes[idx].Height)
-			{
-				_d3d9FullScreenSwapChainInfo = modes[idx];
-				findmode = true;
-				break;
-			}
+			m_pEngine->ThrowException(fcyException("f2dRenderDeviceImpl::SetBufferSize",
+				"Cannot find a valid full-screen display mode (%ux%u).", Width, Height));
+			return FCYERR_INVAILDPARAM;
 		}
-	}
-	// 找不到，而且不是窗口模式
-	if (!findmode && !Windowed)
-	{
-		m_pEngine->ThrowException(fcyException("f2dRenderDeviceImpl::f2dRenderDeviceImpl",
-			"Cannot find a valid full-screen display mode (%ux%u).", Width, Height));
-		return FCYERR_INVAILDPARAM;
 	}
 	
 	// 准备参数

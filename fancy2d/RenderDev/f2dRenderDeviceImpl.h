@@ -75,6 +75,8 @@ private:
 	D3DDISPLAYMODEEX                           _d3d9FullScreenSwapChainInfo;
 	Microsoft::WRL::ComPtr<IDirect3DDevice9>   _d3d9Device;
 	Microsoft::WRL::ComPtr<IDirect3DDevice9Ex> _d3d9DeviceEx;
+	bool                                       _d3d9SupportFlip;
+	bool                                       _d3d9SupportHWVertex;
 	
 	IDirect3D9*           m_pD3D9; // 不要调用Release！
 	IDirect3DDevice9*     m_pDev;  // 不要调用Release！
