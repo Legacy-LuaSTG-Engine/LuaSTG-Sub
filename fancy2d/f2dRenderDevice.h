@@ -686,13 +686,14 @@ struct f2dRenderDevice
 
 	/// @brief     重设缓冲区
 	/// @note      该操作过后需要手动设置Graphics的矩阵和Viewport大小
-	/// @param[in] Width    缓冲区宽度
-	/// @param[in] Height   缓冲区高度
-	/// @param[in] Windowed 窗口化
-	/// @param[in] VSync    垂直同步
-	/// @param[in] AALevel  抗锯齿等级
-	virtual fResult SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, F2DAALEVEL AALevel)=0;
-
+	/// @param[in] Width     缓冲区宽度
+	/// @param[in] Height    缓冲区高度
+	/// @param[in] Windowed  窗口化
+	/// @param[in] VSync     垂直同步
+	/// @param[in] FlipModel FLIPEX交换链模式
+	/// @param[in] AALevel   抗锯齿等级
+	virtual fResult SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, fBool FlipModel, F2DAALEVEL AALevel)=0;
+	
 	// --- 事件监听器 ---
 	/// @brief     挂接一个消息监听器
 	/// @param[in] Listener 要绑定的监听器

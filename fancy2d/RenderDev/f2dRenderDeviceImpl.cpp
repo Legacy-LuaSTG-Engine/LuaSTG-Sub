@@ -205,6 +205,7 @@ f2dRenderDeviceImpl::f2dRenderDeviceImpl(f2dEngineImpl* pEngine, fuInt BackBuffe
 	// 检查是否支持FLIPEX
 	{
 		D3DPRESENT_PARAMETERS testinfo = gc_d3d9TestSwapChainDesc;
+		//testinfo.BackBufferCount = 2;
 		testinfo.SwapEffect = D3DSWAPEFFECT_FLIPEX;
 		testinfo.hDeviceWindow = m_hWnd;
 		hr = _d3d9Ex->CreateDeviceEx(
@@ -367,6 +368,7 @@ HRESULT f2dRenderDeviceImpl::doReset()
 			DEV(device), D3DPP(pp), D3DPPEX(ppex), HR(D3D_OK) {}
 	};
 	
+	HRESULT hr = S_OK;
 	if(GetCurrentThreadId() != m_CreateThreadID)
 	{
 		Delegate obj(_d3d9DeviceEx.Get(), _d3d9SwapChainInfo, _d3d9FullScreenSwapChainInfo);
@@ -375,14 +377,15 @@ HRESULT f2dRenderDeviceImpl::doReset()
 		{
 			m_pEngine->ThrowException(fcyException("f2dRenderDeviceImpl::~doReset", "IDirect3DDevice9Ex::ResetEx failed (HRESULT = 0x%08X).", obj.HR));
 		}
-		return obj.HR;
+		hr = obj.HR;
 	}
 	else
 	{
 		D3DPRESENT_PARAMETERS D3DPP = _d3d9SwapChainInfo;
 		D3DDISPLAYMODEEX D3DPPEX = _d3d9FullScreenSwapChainInfo;
-		return _d3d9DeviceEx->ResetEx(&D3DPP, D3DPP.Windowed ? NULL : &D3DPPEX);
+		hr = _d3d9DeviceEx->ResetEx(&D3DPP, D3DPP.Windowed ? NULL : &D3DPPEX);
 	}
+	return hr;
 }
 
 HRESULT f2dRenderDeviceImpl::doTestCooperativeLevel()
@@ -863,7 +866,7 @@ fcyVec2 f2dRenderDeviceImpl::EnumSupportResolution(fuInt Index)
 	return tRet;
 }
 
-fResult f2dRenderDeviceImpl::SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, F2DAALEVEL AALevel)
+fResult f2dRenderDeviceImpl::SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, fBool FlipModel, F2DAALEVEL AALevel)
 {
 	// 检查参数
 	if (Width < 1 || Height < 1)
@@ -888,11 +891,18 @@ fResult f2dRenderDeviceImpl::SetBufferSize(fuInt Width, fuInt Height, fBool Wind
 	auto& winfo = _d3d9SwapChainInfo; {
 		winfo.BackBufferWidth      = Width;
 		winfo.BackBufferHeight     = Height;
+		winfo.BackBufferCount      = 1;
+		winfo.SwapEffect           = D3DSWAPEFFECT_DISCARD;
+		if (Windowed && _d3d9SupportFlip && FlipModel)
+		{
+			//winfo.BackBufferCount  = 2;
+			winfo.SwapEffect       = D3DSWAPEFFECT_FLIPEX; // 窗口模式下，且支持FLIPEX交换链模型，就可以开启
+		}
 		winfo.BackBufferFormat     = Windowed ? D3DFMT_UNKNOWN : _d3d9FullScreenSwapChainInfo.Format; // 窗口模式下让d3d9决定画面格式，否则必须指定格式
 		winfo.Windowed             = Windowed;
 		winfo.FullScreen_RefreshRateInHz = Windowed ? 0 : _d3d9FullScreenSwapChainInfo.RefreshRate; // 窗口模式下让d3d9决定刷新率，否则必须指定刷新率
 		winfo.PresentationInterval = VSync ? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE;
-	}
+	};
 	
 	// 首先，通知一些资源需要释放
 	dispatchRenderSizeDependentResourcesDestroy();

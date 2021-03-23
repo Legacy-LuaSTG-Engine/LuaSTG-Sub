@@ -183,12 +183,22 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		}
 		static int SetSwapChainSize(lua_State* L)LNOEXCEPT
 		{
-			fResult result = LAPP.GetRenderDev()->SetBufferSize(
-				(fuInt)luaL_checkinteger(L, 1),
-				(fuInt)luaL_checkinteger(L, 2),
-				(fBool)lua_toboolean(L, 3),
-				(fBool)lua_toboolean(L, 4),
-				F2DAALEVEL_NONE);
+			const fuInt width = (fuInt)luaL_checkinteger(L, 1);
+			const fuInt height = (fuInt)luaL_checkinteger(L, 2);
+			const fBool windowed = lua_toboolean(L, 3);
+			const fBool vsync = lua_toboolean(L, 4);
+			const fBool flip = lua_toboolean(L, 5);
+			fResult result = LAPP.GetRenderDev()->SetBufferSize(width, height, windowed, vsync, flip, F2DAALEVEL_NONE);
+			if (result == FCYERR_OK)
+			{
+				LINFO("交换链更新成功 (%ux%u) Windowed:%b Vsync:%b Flip:%b",
+					width, height, windowed, vsync, flip);
+			}
+			else
+			{
+				LERROR("交换链更新失败 (%ux%u) Windowed:%b Vsync:%b Flip:%b",
+					width, height, windowed, vsync, flip);
+			}
 			lua_pushboolean(L, result == FCYERR_OK);
 			return 1;
 		}

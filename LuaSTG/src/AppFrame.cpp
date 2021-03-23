@@ -85,6 +85,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, b
 			(fuInt)width,
 			(fuInt)height,
 			windowed,
+			false,
 			vsync,
 			F2DAALEVEL_NONE)))
 		{
@@ -136,6 +137,7 @@ LNOINLINE bool AppFrame::UpdateVideoMode()LNOEXCEPT
 			(fuInt)m_OptionResolution.y,
 			m_OptionWindowed,
 			m_OptionVsync,
+			false,
 			F2DAALEVEL_NONE)))
 		{
 			LINFO("视频模式切换成功 (%dx%d Vsync:%b Windowed:%b)",
