@@ -257,7 +257,7 @@ namespace LuaSTGPlus
             LERROR("无法初始化Lua虚拟机");
             return false;
         }
-        if (0 != luaJIT_setmode(L, 0, LUAJIT_MODE_ENGINE | LUAJIT_MODE_ON))
+        if (0 == luaJIT_setmode(L, 0, LUAJIT_MODE_ENGINE | LUAJIT_MODE_ON))
             LWARNING("无法启动JIT模式");
         lua_gc(L, LUA_GCSTOP, 0);  // 初始化时关闭GC
         {
