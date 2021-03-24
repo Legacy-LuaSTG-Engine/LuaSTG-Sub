@@ -14,6 +14,10 @@
 
 #include <algorithm>
 
+#ifdef max
+#undef max // FUCK YOU!
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////
 
 f2dRenderDeviceImpl::VertexDeclareInfo::VertexDeclareInfo()
@@ -1291,24 +1295,35 @@ fResult f2dRenderDeviceImpl::SetDepthStencilSurface(f2dDepthStencilSurface* pSur
 
 fcyRect f2dRenderDeviceImpl::GetScissorRect()
 {
-	fcyRect tRet((float)m_ScissorRect.left, (float)m_ScissorRect.top, (float)m_ScissorRect.right, (float)m_ScissorRect.bottom);
-	return tRet;
+	return fcyRect(
+		(float)m_ScissorRect.left,
+		(float)m_ScissorRect.top,
+		(float)m_ScissorRect.right,
+		(float)m_ScissorRect.bottom
+	);
 }
 
 fResult f2dRenderDeviceImpl::SetScissorRect(const fcyRect& pRect)
 {
 	if (m_pCurGraphics && m_pCurGraphics->IsInRender())
 		m_pCurGraphics->Flush();
-
-	m_ScissorRect.left = (int)pRect.a.x;
-	m_ScissorRect.top = (int)pRect.a.y;
-	m_ScissorRect.right = (int)pRect.b.x;
-	m_ScissorRect.bottom = (int)pRect.b.y;
-
-	if(FAILED(m_pDev->SetScissorRect(&m_ScissorRect)))
-		return FCYERR_INTERNALERR;
-	else
-		return FCYERR_OK;
+	
+	const LONG	_l = (LONG)pRect.a.x,
+				_t = (LONG)pRect.a.y,
+				_r = (LONG)pRect.b.x,
+				_b = (LONG)pRect.b.y;
+	
+	if (_l != m_ScissorRect.left || _t != m_ScissorRect.top || _r != m_ScissorRect.right || _b != m_ScissorRect.bottom)
+	{
+		m_ScissorRect.left   = _l;
+		m_ScissorRect.top    = _t;
+		m_ScissorRect.right  = _r;
+		m_ScissorRect.bottom = _b;
+		if(FAILED(m_pDev->SetScissorRect(&m_ScissorRect)))
+			return FCYERR_INTERNALERR;
+	}
+	
+	return FCYERR_OK;
 }
 
 fcyRect f2dRenderDeviceImpl::GetViewport()
@@ -1330,28 +1345,32 @@ fResult f2dRenderDeviceImpl::SetViewport(fcyRect vp)
 	//	return FCYERR_ILLEGAL;
 	
 	// 限制范围
-	const float sWidth = (float)GetBufferWidth();
-	const float sHeight = (float)GetBufferHeight();
-	vp.a.x = std::clamp(vp.a.x, 0.0f, sWidth);
-	vp.b.x = std::clamp(vp.b.x, 0.0f, sWidth);
-	vp.a.y = std::clamp(vp.a.y, 0.0f, sHeight);
-	vp.b.y = std::clamp(vp.b.y, 0.0f, sHeight);
+	//const float sWidth = (float)GetBufferWidth();
+	//const float sHeight = (float)GetBufferHeight();
+	//vp.a.x = std::clamp(vp.a.x, 0.0f, sWidth);
+	//vp.b.x = std::clamp(vp.b.x, 0.0f, sWidth);
+	//vp.a.y = std::clamp(vp.a.y, 0.0f, sHeight);
+	//vp.b.y = std::clamp(vp.b.y, 0.0f, sHeight);
+	vp.a.x = std::max(0.0f, vp.a.x);
+	vp.a.y = std::max(0.0f, vp.a.y);
+	vp.b.x = std::max(vp.a.x + 1.0f, vp.b.x);
+	vp.b.y = std::max(vp.a.y + 1.0f, vp.b.y);
 	
-	DWORD tNewX = (DWORD)vp.a.x;
-	DWORD tNewY = (DWORD)vp.a.y;
-	DWORD tNewW = (DWORD)vp.GetWidth();
-	DWORD tNewH = (DWORD)vp.GetHeight();
+	const DWORD	_x = (DWORD)vp.a.x,
+				_y = (DWORD)vp.a.y,
+				_w = (DWORD)vp.GetWidth(),
+				_h = (DWORD)vp.GetHeight();
 	
-	if (tNewX != m_ViewPort.X || tNewY != m_ViewPort.Y || tNewW != m_ViewPort.Width || tNewH != m_ViewPort.Height)
+	if (_x != m_ViewPort.X || _y != m_ViewPort.Y || _w != m_ViewPort.Width || _h != m_ViewPort.Height)
 	{
-		m_ViewPort.X = tNewX;
-		m_ViewPort.Y = tNewY;
-		m_ViewPort.Width = tNewW;
-		m_ViewPort.Height = tNewH;
-
+		m_ViewPort.X      = _x;
+		m_ViewPort.Y      = _y;
+		m_ViewPort.Width  = _w;
+		m_ViewPort.Height = _h;
 		if (FAILED(m_pDev->SetViewport(&m_ViewPort)))
 			return FCYERR_INTERNALERR;
 	}
+	
 	return FCYERR_OK;
 }
 
