@@ -76,6 +76,13 @@ void AppFrame::SetTitle(const char* v)LNOEXCEPT
 	}
 }
 
+void AppFrame::SetSplash(bool v)LNOEXCEPT
+{
+	m_OptionCursor = v;
+	if (m_pMainWindow)
+		m_pMainWindow->HideMouse(!m_OptionCursor);
+}
+
 LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, bool vsync)LNOEXCEPT
 {
 	if (m_iStatus == AppStatus::Initialized)
@@ -390,6 +397,7 @@ bool AppFrame::Init()LNOEXCEPT
 		m_pMainWindow->SetClientRect(fcyRect(0.f, 0.f, m_OptionResolution.x, m_OptionResolution.y));
 		m_pMainWindow->MoveToCenter();
 		m_pMainWindow->SetVisiable(true);
+		m_pMainWindow->HideMouse(!m_OptionCursor);
 		resetKeyStatus(); // clear key status first
 	}
 	

@@ -91,6 +91,11 @@ static int lib_clearTextInput(lua_State* L)
     return 0;
 }
 
+static int compat_SetSplash(lua_State* L)
+{
+    LAPP().SetSplash(lua_toboolean(L, 1));
+    return 0;
+}
 static int compat_SetTitle(lua_State* L)
 {
     LAPP().SetTitle(luaL_checkstring(L, 1));
@@ -100,8 +105,8 @@ static int compat_SetTitle(lua_State* L)
 #define makefname(__X__) { #__X__ , &lib_##__X__ }
 
 static const luaL_Reg compat[] = {
-    { "SetSplash", &lib_setMouseEnable },
-    { "SetTitle" , &compat_SetTitle    },
+    { "SetSplash", &compat_SetSplash },
+    { "SetTitle" , &compat_SetTitle  },
     {NULL, NULL},
 };
 
