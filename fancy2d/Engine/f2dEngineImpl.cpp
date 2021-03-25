@@ -117,7 +117,7 @@ fuInt f2dEngineImpl::UpdateAndRenderThread::ThreadJob()
 	}
 	
 	// 投递终止消息
-	PostThreadMessage(m_MainThreadID, WM_USER, 0, 0);
+	PostThreadMessageW(m_MainThreadID, WM_USER, 0, 0);
 	
 	return 0;
 }
@@ -153,7 +153,7 @@ fuInt f2dEngineImpl::UpdateThread::ThreadJob()
 	}
 
 	// 投递终止消息
-	PostThreadMessage(m_MainThreadID, WM_USER, 0, 0);
+	PostThreadMessageW(m_MainThreadID, WM_USER, 0, 0);
 
 	return 0;
 }
@@ -258,12 +258,12 @@ f2dEngineImpl::~f2dEngineImpl()
 void f2dEngineImpl::ThrowException(const fcyException& e)
 {
 	FCYDEBUGEXCPT(e);
-
+	
 	// 设置最近一次错误
 	m_LastErrTime = e.GetTime();
 	m_LastErrSrc = e.GetSrc();
 	m_LastErrDesc = e.GetDesc();
-
+	
 	// 封装并抛出消息
 	f2dMsgMemHelper<fcyException>* tObjMem = new f2dMsgMemHelper<fcyException>(e);
 	SendMsg(
@@ -339,7 +339,7 @@ fResult f2dEngineImpl::InitRenderer(fuInt BufferWidth, fuInt BufferHeight, fBool
 {
 	if(m_pRenderer || !m_pWindow)
 		return FCYERR_ILLEGAL;
-
+	
 	try
 	{
 		m_pRenderer = new f2dRendererImpl(this, BufferWidth, BufferHeight, Windowed, VSync, AALevel);
@@ -349,7 +349,7 @@ fResult f2dEngineImpl::InitRenderer(fuInt BufferWidth, fuInt BufferHeight, fBool
 		ThrowException(e);
 		return FCYERR_INTERNALERR;
 	}
-
+	
 	return FCYERR_OK;
 }
 
@@ -358,7 +358,7 @@ fResult f2dEngineImpl::InitVideoSys()
 #ifndef _M_ARM
 	//if(m_pVideoSys || !m_pRenderer)
 		return FCYERR_ILLEGAL;
-
+	
 	try
 	{
 		//m_pVideoSys = new f2dVideoSysImpl(this);
@@ -368,7 +368,7 @@ fResult f2dEngineImpl::InitVideoSys()
 		ThrowException(e);
 		return FCYERR_INTERNALERR;
 	}
-
+	
 	return FCYERR_OK;
 #else
 	return FCYERR_NOTSUPPORT;
@@ -393,9 +393,7 @@ void f2dEngineImpl::Run(F2DENGTHREADMODE ThreadMode, fuInt UpdateMaxFPS, fuInt R
 	m_Sec.Lock();
 	m_bStop = false;
 	m_Sec.UnLock();
-
 	m_ThreadMode = ThreadMode;
-
 	switch(ThreadMode)
 	{
 	case F2DENGTHREADMODE_SINGLETHREAD:
@@ -413,11 +411,8 @@ void f2dEngineImpl::Run(F2DENGTHREADMODE ThreadMode, fuInt UpdateMaxFPS, fuInt R
 fResult f2dEngineImpl::SendMsg(const f2dMsg& Msg, f2dInterface* pMemObj)
 {
 	m_Sec.Lock();
-
 	m_MsgPump[m_PumpIndex].Push(Msg, pMemObj);
-
 	m_Sec.UnLock();
-
 	return FCYERR_OK;
 }
 
@@ -458,10 +453,10 @@ void f2dEngineImpl::Run_SingleThread(fuInt UpdateMaxFPS)
 		// 应用程序消息处理
 		{
 			tMsgTimer.Reset();
-			if(PeekMessage(&tMsg, 0, 0, 0, PM_REMOVE))
+			if(PeekMessageW(&tMsg, 0, 0, 0, PM_REMOVE))
 			{
 				TranslateMessage(&tMsg);
-				DispatchMessage(&tMsg);
+				DispatchMessageW(&tMsg);
 
 				// 发送退出消息
 				if(tMsg.message == WM_QUIT)
@@ -469,20 +464,20 @@ void f2dEngineImpl::Run_SingleThread(fuInt UpdateMaxFPS)
 			}
 			tMsgTime = tMsgTimer.GetElapsed();
 		}
-
+		
 		// 更新FPS
 		tTime = tFPSController.Update(tTimer) - tMsgTime;  // 修正由于处理消息额外耗费的时间
 		
 		// 执行显示事件
 		//if(bDoPresent)
 			//DoPresent(tpRenderDev);
-
+		
 		// 执行更新事件
 		DoUpdate(tTime, &tFPSController);
-
+		
 		// 执行渲染事件
 		bDoPresent = DoRender(tTime, &tFPSController, tpRenderDev);
-
+		
 		// 执行显示事件
 		if (bDoPresent)
 			DoPresent(tpRenderDev);
@@ -545,7 +540,7 @@ void f2dEngineImpl::Run_FullMultiThread(fuInt UpdateMaxFPS, fuInt RenderMaxFPS)
 	RenderThread tRenderThread(this, RenderMaxFPS);
 	tUpdateThread.Resume();
 	tRenderThread.Resume();
-
+	
 	// 执行程序循环
 	fBool bExit = false;
 	MSG tMsg;
@@ -554,7 +549,7 @@ void f2dEngineImpl::Run_FullMultiThread(fuInt UpdateMaxFPS, fuInt RenderMaxFPS)
 		m_Sec.Lock();
 		bExit = m_bStop;
 		m_Sec.UnLock();
-
+		
 		if(bExit)
 		{
 			while(1)
@@ -562,22 +557,22 @@ void f2dEngineImpl::Run_FullMultiThread(fuInt UpdateMaxFPS, fuInt RenderMaxFPS)
 				if(WAIT_TIMEOUT != WaitForSingleObject(tUpdateThread.GetHandle(), 10))
 					if(WAIT_TIMEOUT != WaitForSingleObject(tRenderThread.GetHandle(), 10))
 						break;
-
-				if(PeekMessage(&tMsg, 0, 0, 0, PM_REMOVE))
+				
+				if(PeekMessageW(&tMsg, 0, 0, 0, PM_REMOVE))
 				{
 					TranslateMessage(&tMsg);
-					DispatchMessage(&tMsg);
+					DispatchMessageW(&tMsg);
 				}
 			}
 			
 			break;
 		}
-
+		
 		// 应用程序消息处理
-		if(GetMessage(&tMsg, 0, 0, 0))
+		if(GetMessageW(&tMsg, 0, 0, 0))
 		{
 			TranslateMessage(&tMsg);
-			DispatchMessage(&tMsg);
+			DispatchMessageW(&tMsg);
 		}
 		else
 		{
@@ -586,7 +581,7 @@ void f2dEngineImpl::Run_FullMultiThread(fuInt UpdateMaxFPS, fuInt RenderMaxFPS)
 				SendMsg(F2DMSG_APP_ONEXIT);
 		}
 	}
-
+	
 	// 等待工作线程
 	tUpdateThread.Wait();
 	tRenderThread.Wait();
