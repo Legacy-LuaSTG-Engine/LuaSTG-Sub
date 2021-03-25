@@ -19,6 +19,7 @@ endif()
 target_compile_definitions(fancy2d PRIVATE
     UNICODE
     _UNICODE
+    # USING_D3D11_BACKEND
 )
 
 target_include_directories(fancy2d PUBLIC
@@ -85,6 +86,14 @@ target_sources(fancy2d PRIVATE
     RenderDev/f2dMeshDataImpl.h
     RenderDev/f2dMeshDataImpl.cpp
     
+    #GraphicDevice11/f2dGraphics2DImpl.cpp
+    #GraphicDevice11/f2dGraphics2DImpl.h
+    #GraphicDevice11/f2dGraphicsImpl.h
+    #GraphicDevice11/f2dRenderDeviceImpl.cpp
+    #GraphicDevice11/f2dRenderDeviceImpl.h
+    #GraphicDevice11/f2dTextureImpl.cpp
+    #GraphicDevice11/f2dTextureImpl.h
+    
     Renderer/f2dRendererImpl.h
     Renderer/f2dRendererImpl.cpp
     Renderer/f2dGeometryRendererImpl.h
@@ -139,6 +148,8 @@ target_link_libraries(fancy2d PRIVATE
     dinput8.lib
     DirectXSDK # must remove it in the future!
     DirectXToolkit
+    dxgi.lib
+    d3d11.lib
     zlib
     freetype
     vorbisfile
