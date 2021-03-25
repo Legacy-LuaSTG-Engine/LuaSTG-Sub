@@ -205,6 +205,7 @@ public: // 接口实现
 	fcyRect GetClientRect();
 	fResult SetClientRect(const fcyRect& Range);
 	void MoveToCenter();
+	void EnterFullScreen();
 	fBool IsTopMost();
 	fResult SetTopMost(fBool TopMost);
 	void HideMouse(fBool bShow);
@@ -221,6 +222,8 @@ public: // 接口实现
 	fcStrW GetIMECandidate(fuInt Index);
 	
 	float GetDPIScaling();
+	
+	fcyVec2 GetMonitorSize();
 protected:
 	f2dWindowImpl(f2dEngineImpl* pEngine, f2dWindowClass* WinCls, const fcyRect& Pos, fcStrW Title, fBool Visiable, F2DWINBORDERTYPE Border, bool DisableIME = true);
 	~f2dWindowImpl();

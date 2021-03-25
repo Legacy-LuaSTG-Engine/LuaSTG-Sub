@@ -1018,6 +1018,23 @@ void f2dWindowImpl::MoveToCenter()
 	}
 }
 
+void f2dWindowImpl::EnterFullScreen()
+{
+	// 获得关联的显示器
+	HMONITOR monitor = ::MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
+	if (monitor)
+	{
+		// 获得显示器信息
+		MONITORINFO moninfo = { sizeof(MONITORINFO), {}, {}, 0 };
+		if (FALSE != ::GetMonitorInfoA(monitor, &moninfo))
+		{
+			// 修改窗口位置
+			const auto& area = moninfo.rcMonitor;
+			::SetWindowPos(m_hWnd, NULL, area.left, area.top, area.right - area.left, area.bottom - area.top, SWP_NOZORDER | SWP_SHOWWINDOW);
+		}
+	}
+};
+
 fBool f2dWindowImpl::IsTopMost()
 {
 	if(WS_EX_TOPMOST & GetWindowLongPtrW(m_hWnd, GWL_EXSTYLE))
@@ -1092,3 +1109,23 @@ float f2dWindowImpl::GetDPIScaling()
 {
 	return native::getDpiScalingForWindow(m_hWnd);
 }
+
+fcyVec2 f2dWindowImpl::GetMonitorSize()
+{
+	fcyVec2 size;
+	
+	// 获得关联的显示器
+	HMONITOR monitor = ::MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
+	if (monitor)
+	{
+		// 获得显示器信息
+		MONITORINFO moninfo = { sizeof(MONITORINFO), {}, {}, 0 };
+		if (FALSE != ::GetMonitorInfoA(monitor, &moninfo))
+		{
+			size.x = (fFloat)(moninfo.rcMonitor.right - moninfo.rcMonitor.left);
+			size.y = (fFloat)(moninfo.rcMonitor.bottom - moninfo.rcMonitor.top);
+		}
+	}
+	
+	return size;
+};

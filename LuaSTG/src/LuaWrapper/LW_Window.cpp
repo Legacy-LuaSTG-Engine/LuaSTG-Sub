@@ -32,6 +32,20 @@ static int lib_setCentered(lua_State* L)
     window->MoveToCenter();
     return 0;
 }
+static int lib_setFullScreen(lua_State* L)
+{
+    getwindow(window);
+    window->EnterFullScreen();
+    return 0;
+}
+static int lib_getFullScreenSize(lua_State* L)
+{
+    getwindow(window);
+    const fcyVec2 size = window->GetMonitorSize();
+    lua_pushnumber(L, size.x);
+    lua_pushnumber(L, size.y);
+    return 2;
+}
 static int lib_setStyle(lua_State* L)
 {
     getwindow(window);
@@ -114,6 +128,8 @@ static const luaL_Reg lib[] = {
     makefname(setMouseEnable),
     makefname(setTitle),
     makefname(setCentered),
+    makefname(setFullScreen),
+    makefname(getFullScreenSize),
     makefname(setStyle),
     makefname(setSize),
     makefname(setTopMost),

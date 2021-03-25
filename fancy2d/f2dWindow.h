@@ -238,7 +238,10 @@ struct f2dWindow
 
 	/// @brief 移动到屏幕中心
 	virtual void MoveToCenter()=0;
-
+	
+	// 在关联的显示器上全屏显示
+	virtual void EnterFullScreen()=0;
+	
 	/// @brief 是否置顶
 	virtual fBool IsTopMost()=0;
 
@@ -278,6 +281,9 @@ struct f2dWindow
 	
 	// 获取窗口的DPI缩放
 	virtual float GetDPIScaling()=0;
+	
+	// 获取窗口关联的显示器的大小（有可能不是实际大小）
+	virtual fcyVec2 GetMonitorSize()=0;
 };
 
 /// @}
