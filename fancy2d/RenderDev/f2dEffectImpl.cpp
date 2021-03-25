@@ -131,7 +131,7 @@ f2dEffectImpl::f2dEffectImpl(f2dRenderDeviceImpl* pDev, f2dStream* pStream, fBoo
 		
 			tErrBuffer.resize(pErr->GetBufferSize() + 1024);
 			sprintf_s(&tErrBuffer[0], pErr->GetBufferSize() + 1024, 
-				"D3DXCreateEffectEx failed. ( HR = %d )\nDetail: %s",
+				"D3DXCreateEffectEx failed. ( HRESULT = %d )\nDetail: %s",
 				tHR,
 				(const char*)pErr->GetBufferPointer());
 

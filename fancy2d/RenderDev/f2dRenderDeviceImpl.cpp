@@ -360,16 +360,16 @@ HRESULT f2dRenderDeviceImpl::doReset()
 		IDirect3DDevice9Ex* DEV;
 		D3DPRESENT_PARAMETERS D3DPP;
 		D3DDISPLAYMODEEX D3DPPEX;
-		HRESULT HR;
+		HRESULT result;
 		
 		virtual void AddRef() {}
 		virtual void Release() {}
 		void Excute() {
-			HR = DEV->ResetEx(&D3DPP, D3DPP.Windowed ? NULL : &D3DPPEX);
+			result = DEV->ResetEx(&D3DPP, D3DPP.Windowed ? NULL : &D3DPPEX);
 		}
 		
 		Delegate(IDirect3DDevice9Ex* device, D3DPRESENT_PARAMETERS& pp, D3DDISPLAYMODEEX& ppex) :
-			DEV(device), D3DPP(pp), D3DPPEX(ppex), HR(D3D_OK) {}
+			DEV(device), D3DPP(pp), D3DPPEX(ppex), result(D3D_OK) {}
 	};
 	
 	HRESULT hr = S_OK;
@@ -377,11 +377,11 @@ HRESULT f2dRenderDeviceImpl::doReset()
 	{
 		Delegate obj(_d3d9DeviceEx.Get(), _d3d9SwapChainInfo, _d3d9FullScreenSwapChainInfo);
 		m_pEngine->InvokeDelegateAndWait(&obj);
-		if (obj.HR != D3D_OK)
+		if (obj.result != D3D_OK)
 		{
-			m_pEngine->ThrowException(fcyException("f2dRenderDeviceImpl::~doReset", "IDirect3DDevice9Ex::ResetEx failed (HRESULT = 0x%08X).", obj.HR));
+			m_pEngine->ThrowException(fcyException("f2dRenderDeviceImpl::~doReset", "IDirect3DDevice9Ex::ResetEx failed (HRESULT = 0x%08X).", obj.result));
 		}
-		hr = obj.HR;
+		hr = obj.result;
 	}
 	else
 	{
