@@ -28,23 +28,12 @@ private:
 			return priority == rhs.priority ? uuid < rhs.uuid : priority < rhs.priority;
 		}
 	};
-	
-	struct VertexDeclareInfo
-	{
-		fuInt Hash;
-		std::vector<f2dVertexElement> ElementData;
-		IDirect3DVertexDeclaration9* pVertexDeclare;
-		fuInt VertexSize;
-
-		VertexDeclareInfo();
-		VertexDeclareInfo(const VertexDeclareInfo& Org);
-		~VertexDeclareInfo();
-	protected:
-		VertexDeclareInfo& operator=(const VertexDeclareInfo& Right);
-	};
 private:
 	f2dEngineImpl* m_pEngine;
+	
+	// Window
 	DWORD m_CreateThreadID;
+	HWND m_hWnd;
 	
 	// states
 	bool isDeviceLost = false;
@@ -62,6 +51,9 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11Device1>          d3d11Device1;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext1>   d3d11DeviceContext1;
 	
+	// listeners
+	int _iEventListenerUUID = 0;
+	std::set<EventListenerNode> _setEventListeners;
 	
 	
 	
@@ -82,13 +74,6 @@ private:
 	D3DVIEWPORT9          m_ViewPort;
 	std::string           m_DevName;
 	
-	// 监听器列表
-	int _iEventListenerUUID = 0;
-	std::set<EventListenerNode> _setEventListeners;
-	
-	// 顶点声明
-	std::vector<VertexDeclareInfo> m_VDCache;
-	
 	// 设备状态
 	bool m_bDevLost;                              // 设备丢失标志
 	bool m_bZBufferEnabled;                       // 是否开启Z-缓冲区
@@ -98,20 +83,15 @@ private:
 	
 	f2dTexture2D* m_pCurBackBuffer;               // 记录当前的后备缓冲区
 	f2dDepthStencilSurface* m_pCurBackDepthBuffer;// 记录当前的后备深度缓冲区
-
+	
 	f2dGraphics* m_pCurGraphics;   // 当前的绘图对象，只记录指针
 	fcyMatrix4 m_CurWorldMat;      // 当前世界矩阵
 	fcyMatrix4 m_CurLookatMat;     // 当前观察矩阵
 	fcyMatrix4 m_CurProjMat;       // 当前投影矩阵
 	f2dBlendState m_CurBlendState; // 当前混合状态
-
+	
 	IDirect3DVertexDeclaration9* m_pCurVertDecl; // 当前的顶点声明
 	D3DTEXTUREOP m_CurTexBlendOP_Color;          // 当前的纹理混合运算符
-	
-	// Window
-	HWND m_hWnd;
-	f2dWindowDC m_DC;
-	IDirect3DSurface9* m_pWinSurface;
 private:
 	HRESULT doReset();                // 保证在主线程执行
 	int sendDevLostMsg();             // 发送设备丢失事件, 返回对象数目
@@ -139,9 +119,9 @@ public: // 内部函数
 public: // 接口实现
 	void* GetHandle() { return m_pDev; }
 	fcStr GetDeviceName() { return m_DevName.c_str(); }
-	fuInt GetBufferWidth() { return _d3d9SwapChainInfo.BackBufferWidth; }
-	fuInt GetBufferHeight() { return _d3d9SwapChainInfo.BackBufferHeight; }
-	fBool IsWindowed() { return _d3d9SwapChainInfo.Windowed == TRUE ? 1 : 0; }
+	fuInt GetBufferWidth();
+	fuInt GetBufferHeight();
+	fBool IsWindowed();
 	F2DAALEVEL GetAALevel();
 	fBool CheckMultiSample(F2DAALEVEL AALevel, fBool Windowed);
 	fuInt GetSupportResolutionCount();
@@ -177,8 +157,10 @@ public: // 接口实现
 	fResult SetScissorRect(const fcyRect& pRect);
 	fcyRect GetViewport();
 	fResult SetViewport(fcyRect vp);
-	fBool IsZBufferEnabled();
-	fResult SetZBufferEnable(fBool v);
+	fBool IsZBufferEnabled()
+		{ return false; }
+	fResult SetZBufferEnable(fBool v)
+		{ return FCYERR_NOTSUPPORT; }
 	
 	fResult UpdateScreenToWindow(fcyColor KeyColor, fByte Alpha)
 		{ return FCYERR_NOTSUPPORT; }
@@ -186,12 +168,16 @@ public: // 接口实现
 		{ return FCYERR_NOTSUPPORT; }
 	fResult SaveTexture(f2dStream* pStream, f2dTexture2D* pTex)
 		{ return FCYERR_NOTSUPPORT; }
-	fResult SaveScreen(fcStrW path);
-	fResult SaveTexture(fcStrW path, f2dTexture2D* pTex);
+	fResult SaveScreen(fcStrW path)
+		{ return FCYERR_NOTSUPPORT; }
+	fResult SaveTexture(fcStrW path, f2dTexture2D* pTex)
+		{ return FCYERR_NOTSUPPORT; }
 	
 	//纹理采样设置
-	fResult SetTextureAddress(F2DTEXTUREADDRESS address, const fcyColor& borderColor);
-	fResult SetTextureFilter(F2DTEXFILTERTYPE filter);
+	fResult SetTextureAddress(F2DTEXTUREADDRESS address, const fcyColor& borderColor)
+		{ return FCYERR_NOTSUPPORT; }
+	fResult SetTextureFilter(F2DTEXFILTERTYPE filter)
+		{ return FCYERR_NOTSUPPORT; }
 public:
 	f2dRenderDeviceImpl(f2dEngineImpl* pEngine, fuInt BackBufferWidth, fuInt BackBufferHeight, fBool Windowed, fBool VSync, F2DAALEVEL AALevel);
 	~f2dRenderDeviceImpl();

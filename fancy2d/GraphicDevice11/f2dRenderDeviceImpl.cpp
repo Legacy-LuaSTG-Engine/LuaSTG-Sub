@@ -17,24 +17,6 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-f2dRenderDeviceImpl::VertexDeclareInfo::VertexDeclareInfo()
-	: Hash(0), pVertexDeclare(NULL)
-{}
-
-f2dRenderDeviceImpl::VertexDeclareInfo::VertexDeclareInfo(const VertexDeclareInfo& Org)
-	: Hash(Org.Hash), ElementData(Org.ElementData), pVertexDeclare(Org.pVertexDeclare)
-{
-	if(pVertexDeclare)
-		pVertexDeclare->AddRef();
-}
-
-f2dRenderDeviceImpl::VertexDeclareInfo::~VertexDeclareInfo()
-{
-	FCYSAFEKILL(pVertexDeclare);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
 static const D3DDISPLAYMODEFILTER g_d3d9DisplayModeFilter = {
 	sizeof(D3DDISPLAYMODEFILTER),
 	D3DFMT_X8R8G8B8,
@@ -45,7 +27,7 @@ f2dRenderDeviceImpl::f2dRenderDeviceImpl(f2dEngineImpl* pEngine, fuInt BackBuffe
 	m_pEngine(pEngine),
 	m_pD3D9(NULL), m_pDev(NULL), m_hWnd(NULL),
 	m_bDevLost(false), m_pBackBuffer(NULL), m_pBackDepthBuffer(NULL), m_pCurGraphics(NULL),
-	m_pWinSurface(NULL), m_pCurBackBuffer(NULL), m_pCurBackDepthBuffer(NULL),
+	m_pCurBackBuffer(NULL), m_pCurBackDepthBuffer(NULL),
 	m_pCurVertDecl(NULL), m_CreateThreadID(GetCurrentThreadId()), m_bZBufferEnabled(true)
 {
 	m_hWnd = (HWND)pEngine->GetMainWindow()->GetHandle();
@@ -905,22 +887,4 @@ fResult f2dRenderDeviceImpl::SetZBufferEnable(fBool v)
 	return FCYERR_OK;
 }
 
-fResult f2dRenderDeviceImpl::SetTextureAddress(F2DTEXTUREADDRESS address, const fcyColor& borderColor) {
-	return FCYERR_OK;
-}
-
-fResult f2dRenderDeviceImpl::SetTextureFilter(F2DTEXFILTERTYPE filter) {
-	return FCYERR_OK;
-}
-
 ////////////////////////////////////////////////////////////////////////////////
-
-fResult f2dRenderDeviceImpl::SaveScreen(fcStrW path)
-{
-	return FCYERR_NOTSUPPORT;
-}
-
-fResult f2dRenderDeviceImpl::SaveTexture(fcStrW path, f2dTexture2D* pTex)
-{
-	return FCYERR_NOTSUPPORT;
-}
