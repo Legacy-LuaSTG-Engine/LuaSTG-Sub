@@ -27,6 +27,7 @@ if(NOT platform_amd64)
 endif()
 
 target_include_directories(LuaSTG PRIVATE
+    .
     ..
     src
     ${LUASTG_RESDIR}
@@ -58,6 +59,13 @@ target_sources(LuaSTG PRIVATE
     src/LuaSTG.manifest
     ${LUASTG_RESDIR}/resource.rc
     ${LUASTG_RESDIR}/app.ico
+)
+target_sources(LuaSTG PRIVATE
+    Graphic/Type.h
+    Graphic/Device.h
+    Graphic/Device.cpp
+    Graphic/DearImGuiRenderer.h
+    Graphic/DearImGuiRenderer.cpp
 )
 
 target_link_libraries(LuaSTG PRIVATE
