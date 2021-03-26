@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "Global.h"
-#include "ObjectPool.hpp"
+#include "cpp/fixed_object_pool.hpp"
 #include "ResourceMgr.h"
 #include "GameObject.hpp"
 
@@ -12,9 +12,9 @@ namespace LuaSTGPlus
 	private:
 		lua_State* L = nullptr;
 		uint64_t m_iUid = 0;
-		FixedObjectPool<GameObject, LGOBJ_MAXCNT> m_ObjectPool;
+		cpp::fixed_object_pool<GameObject, LGOBJ_MAXCNT> m_ObjectPool;
 		GameObject* m_pCurrentObject = nullptr;
-
+		
 		// Comparer
 		struct _less_object {
 			bool operator()(const GameObject* x, const GameObject* y) const {
@@ -78,10 +78,10 @@ namespace LuaSTGPlus
 		bool CheckIsMainThread(lua_State* pL)LNOEXCEPT { return pL == L; }
 
 		/// @brief 获取已分配对象数量
-		size_t GetObjectCount()LNOEXCEPT { return m_ObjectPool.Size(); }
+		size_t GetObjectCount()LNOEXCEPT { return m_ObjectPool.size(); }
 		
 		/// @brief 获取对象
-		GameObject* GetPooledObject(size_t i)LNOEXCEPT { return m_ObjectPool.Data(i); }
+		GameObject* GetPooledObject(size_t i)LNOEXCEPT { return m_ObjectPool.object(i); }
 
 		/// @brief 执行对象的Frame函数
 		void DoFrame()LNOEXCEPT;
@@ -165,7 +165,7 @@ namespace LuaSTGPlus
 
 		/// @brief 执行默认渲染
 		bool DoDefaultRender(size_t id)LNOEXCEPT {
-			return DoDefaultRender(m_ObjectPool.Data(id));
+			return DoDefaultRender(m_ObjectPool.object(id));
 		}
 
 		/// @brief 获取下一个元素的ID

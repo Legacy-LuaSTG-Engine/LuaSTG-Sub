@@ -73,10 +73,10 @@ void GameObjectPool::_PrepareLuaObjectTable() {
 
 GameObject* GameObjectPool::_AllocObject() {
 	size_t id = 0;
-	if (!m_ObjectPool.Alloc(id)) {
+	if (!m_ObjectPool.alloc(id)) {
 		return nullptr;
 	}
-	GameObject* p = m_ObjectPool.Data(id);
+	GameObject* p = m_ObjectPool.object(id);
 	p->Reset();
 	p->status = STATUS_DEFAULT;
 	p->id = id;
@@ -109,7 +109,7 @@ GameObject* GameObjectPool::_ReleaseObject(GameObject* object) {
 		m_pCurrentObject = nullptr;
 	}
 	object->status = STATUS_FREE;
-	m_ObjectPool.Free(object->id);
+	m_ObjectPool.free(object->id);
 	return ret;
 }
 
@@ -437,7 +437,7 @@ int GameObjectPool::Del(lua_State* L)LNOEXCEPT
 	if (!lua_istable(L, 1))
 		return luaL_error(L, "invalid argument #1, luastg object required for 'Del'.");
 	lua_rawgeti(L, 1, 2);  // t(object) ... id
-	GameObject* p = m_ObjectPool.Data((size_t)luaL_checknumber(L, -1));
+	GameObject* p = m_ObjectPool.object((size_t)luaL_checknumber(L, -1));
 	lua_pop(L, 1);  // t(object) ...
 	if (!p)
 		return luaL_error(L, "invalid argument #1, invalid luastg object.");
@@ -461,7 +461,7 @@ int GameObjectPool::Kill(lua_State* L)LNOEXCEPT
 	if (!lua_istable(L, 1))
 		return luaL_error(L, "invalid argument #1, luastg object required for 'Kill'.");
 	lua_rawgeti(L, 1, 2);  // t(object) ... id
-	GameObject* p = m_ObjectPool.Data((size_t)luaL_checknumber(L, -1));
+	GameObject* p = m_ObjectPool.object((size_t)luaL_checknumber(L, -1));
 	lua_pop(L, 1);  // t(object) ...
 	if (!p)
 		return luaL_error(L, "invalid argument #1, invalid luastg object.");
@@ -499,7 +499,7 @@ int GameObjectPool::IsValid(lua_State* L)LNOEXCEPT
 	// 在对象池中检查
 	size_t id = (size_t)lua_tonumber(L, -1);
 	lua_pop(L, 1);  // t(object)
-	if (!m_ObjectPool.Data(id))
+	if (!m_ObjectPool.object(id))
 	{
 		lua_pushboolean(L, 0);
 		return 1;
@@ -515,7 +515,7 @@ int GameObjectPool::IsValid(lua_State* L)LNOEXCEPT
 }
 
 bool GameObjectPool::DirtResetObject(size_t id)LNOEXCEPT {
-	GameObject* p = m_ObjectPool.Data(id);
+	GameObject* p = m_ObjectPool.object(id);
 	if (p) {
 		_SetObjectLayer(p, 0.0);
 		_SetObjectColliGroup(p, LGOBJ_DEFAULTGROUP);
@@ -529,8 +529,8 @@ bool GameObjectPool::DirtResetObject(size_t id)LNOEXCEPT {
 
 bool GameObjectPool::Angle(size_t idA, size_t idB, double& out)LNOEXCEPT
 {
-	GameObject* pA = m_ObjectPool.Data(idA);
-	GameObject* pB = m_ObjectPool.Data(idB);
+	GameObject* pA = m_ObjectPool.object(idA);
+	GameObject* pB = m_ObjectPool.object(idB);
 	if (!pA || !pB)
 		return false;
 	out = LRAD2DEGREE * atan2(pB->y - pA->y, pB->x - pA->x);
@@ -539,8 +539,8 @@ bool GameObjectPool::Angle(size_t idA, size_t idB, double& out)LNOEXCEPT
 
 bool GameObjectPool::Dist(size_t idA, size_t idB, double& out)LNOEXCEPT
 {
-	GameObject* pA = m_ObjectPool.Data(idA);
-	GameObject* pB = m_ObjectPool.Data(idB);
+	GameObject* pA = m_ObjectPool.object(idA);
+	GameObject* pB = m_ObjectPool.object(idB);
 	if (!pA || !pB)
 		return false;
 	lua_Number dx = pB->x - pA->x;
@@ -550,8 +550,8 @@ bool GameObjectPool::Dist(size_t idA, size_t idB, double& out)LNOEXCEPT
 }
 
 bool GameObjectPool::ColliCheck(size_t idA, size_t idB, bool ignoreWorldMask, bool& out)LNOEXCEPT {
-	GameObject* pA = m_ObjectPool.Data(idA);
-	GameObject* pB = m_ObjectPool.Data(idB);
+	GameObject* pA = m_ObjectPool.object(idA);
+	GameObject* pB = m_ObjectPool.object(idB);
 	if (!pA || !pB) {
 		return false;//找不到对象，GG
 	}
@@ -575,7 +575,7 @@ bool GameObjectPool::ColliCheck(size_t idA, size_t idB, bool ignoreWorldMask, bo
 
 bool GameObjectPool::GetV(size_t id, double& v, double& a)LNOEXCEPT
 {
-	GameObject* p = m_ObjectPool.Data(id);
+	GameObject* p = m_ObjectPool.object(id);
 	if (!p)
 		return false;
 	v = sqrt(p->vx * p->vx + p->vy * p->vy);
@@ -585,7 +585,7 @@ bool GameObjectPool::GetV(size_t id, double& v, double& a)LNOEXCEPT
 
 bool GameObjectPool::SetV(size_t id, double v, double a, bool updateRot)LNOEXCEPT
 {
-	GameObject* p = m_ObjectPool.Data(id);
+	GameObject* p = m_ObjectPool.object(id);
 	if (!p)
 		return false;
 	a *= LDEGREE2RAD;
@@ -598,7 +598,7 @@ bool GameObjectPool::SetV(size_t id, double v, double a, bool updateRot)LNOEXCEP
 
 bool GameObjectPool::SetImgState(size_t id, BlendMode m, fcyColor c)LNOEXCEPT
 {
-	GameObject* p = m_ObjectPool.Data(id);
+	GameObject* p = m_ObjectPool.object(id);
 	if (!p)
 		return false;
 	if (p->res)
@@ -626,7 +626,7 @@ bool GameObjectPool::SetImgState(size_t id, BlendMode m, fcyColor c)LNOEXCEPT
 
 bool GameObjectPool::SetParState(size_t id, BlendMode m, fcyColor c)LNOEXCEPT
 {
-	GameObject* p = m_ObjectPool.Data(id);
+	GameObject* p = m_ObjectPool.object(id);
 	if (!p)
 		return false;
 	if (p->res)
@@ -646,7 +646,7 @@ bool GameObjectPool::SetParState(size_t id, BlendMode m, fcyColor c)LNOEXCEPT
 
 bool GameObjectPool::BoxCheck(size_t id, double left, double right, double top, double bottom, bool& ret)LNOEXCEPT
 {
-	GameObject* p = m_ObjectPool.Data(id);
+	GameObject* p = m_ObjectPool.object(id);
 	if (!p)
 		return false;
 	ret = (p->x > left) && (p->x < right) && (p->y > top) && (p->y < bottom);
@@ -787,7 +787,7 @@ int GameObjectPool::NextObject(int groupId, int id)LNOEXCEPT
 	if (id < 0)
 		return -1;
 
-	GameObject* p = m_ObjectPool.Data(static_cast<size_t>(id));
+	GameObject* p = m_ObjectPool.object(static_cast<size_t>(id));
 	if (!p)
 		return -1;
 
@@ -867,7 +867,7 @@ int GameObjectPool::GetAttr(lua_State* L)LNOEXCEPT
 	size_t id = static_cast<size_t>(lua_tonumber(L, -1));
 	lua_pop(L, 1);  // t(object) s(key)
 
-	GameObject* p = m_ObjectPool.Data(id);
+	GameObject* p = m_ObjectPool.object(id);
 	if (!p)
 		return luaL_error(L, "invalid lstg object for '__index' meta operation.");
 	
@@ -1094,7 +1094,7 @@ int GameObjectPool::SetAttr(lua_State* L)LNOEXCEPT
 	size_t id = static_cast<size_t>(lua_tonumber(L, -1));
 	lua_pop(L, 1);  // t(object) s(key) any(v)
 
-	GameObject* p = m_ObjectPool.Data(id);
+	GameObject* p = m_ObjectPool.object(id);
 	if (!p)
 		return luaL_error(L, "invalid lstg object for '__newindex' meta operation.");
 
@@ -1362,7 +1362,7 @@ int GameObjectPool::ParticleStop(lua_State* L)LNOEXCEPT
 	size_t id = (size_t)luaL_checkinteger(L, -1);
 	lua_pop(L, 1);
 
-	GameObject* p = m_ObjectPool.Data(id);
+	GameObject* p = m_ObjectPool.object(id);
 	if (!p)
 		return luaL_error(L, "invalid lstg object for 'ParticleStop'.");
 	if (!p->res || p->res->GetType() != ResourceType::Particle)
@@ -1382,7 +1382,7 @@ int GameObjectPool::ParticleFire(lua_State* L)LNOEXCEPT
 	size_t id = (size_t)luaL_checkinteger(L, -1);
 	lua_pop(L, 1);
 
-	GameObject* p = m_ObjectPool.Data(id);
+	GameObject* p = m_ObjectPool.object(id);
 	if (!p)
 		return luaL_error(L, "invalid lstg object for 'ParticleFire'.");
 	if (!p->res || p->res->GetType() != ResourceType::Particle)
@@ -1402,7 +1402,7 @@ int GameObjectPool::ParticleGetn(lua_State* L)LNOEXCEPT
 	size_t id = (size_t)luaL_checkinteger(L, -1);
 	lua_pop(L, 1);
 
-	GameObject* p = m_ObjectPool.Data(id);
+	GameObject* p = m_ObjectPool.object(id);
 	if (!p)
 		return luaL_error(L, "invalid lstg object for 'ParticleFire'.");
 	if (!p->res || p->res->GetType() != ResourceType::Particle)
@@ -1422,7 +1422,7 @@ int GameObjectPool::ParticleGetEmission(lua_State* L)LNOEXCEPT
 	size_t id = (size_t)luaL_checkinteger(L, -1);
 	lua_pop(L, 1);
 
-	GameObject* p = m_ObjectPool.Data(id);
+	GameObject* p = m_ObjectPool.object(id);
 	if (!p)
 		return luaL_error(L, "invalid lstg object for 'ParticleGetEmission'.");
 	if (!p->res || p->res->GetType() != ResourceType::Particle)
@@ -1443,7 +1443,7 @@ int GameObjectPool::ParticleSetEmission(lua_State* L)LNOEXCEPT
 	size_t id = (size_t)luaL_checkinteger(L, -1);
 	lua_pop(L, 1);
 
-	GameObject* p = m_ObjectPool.Data(id);
+	GameObject* p = m_ObjectPool.object(id);
 	if (!p)
 		return luaL_error(L, "invalid lstg object for 'ParticleGetEmission'.");
 	if (!p->res || p->res->GetType() != ResourceType::Particle)
