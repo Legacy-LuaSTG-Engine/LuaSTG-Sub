@@ -1,10 +1,9 @@
 ﻿#include "AppFrame.h"
-#include "UnicodeStringEncoding.h"
 
 namespace LuaSTGPlus {
 	// deug
 	
-#ifdef LSHOWFONTBASELINE
+	#ifdef LSHOWFONTBASELINE
 	class FontBaseLineDebugHelper :
 		public f2dFontRendererListener
 	{
@@ -40,7 +39,7 @@ namespace LuaSTGPlus {
 			m_pGRenderer->DrawRectangle(G, BaseRect);
 		}
 	};
-#endif
+	#endif
 	
 	// luastg plus interface
 	
@@ -185,13 +184,14 @@ namespace LuaSTGPlus {
 			// 移动y轴
 			vRenderPos.y -= p->GetFontProvider()->GetLineHeight() * scale.y;
 		}
-
-	#ifdef LSHOWFONTBASELINE
+		
+		#ifdef LSHOWFONTBASELINE
 		m_FontRenderer->SetListener(nullptr);
-	#endif
+		#endif
+		
 		return true;
 	}
-
+	
 	fcyVec2 AppFrame::CalcuTextSize(ResFont* p, const wchar_t* strBuf, fcyVec2 scale)LNOEXCEPT
 	{
 		if (m_GraphType != GraphicsType::Graph2D)
@@ -199,9 +199,9 @@ namespace LuaSTGPlus {
 			LERROR("RenderText: 只有2D渲染器可以执行该方法");
 			return fcyVec2();
 		}
-
+		
 		f2dFontProvider* pFontProvider = p->GetFontProvider();
-
+		
 		int iLineCount = 1;
 		float fLineWidth = 0.f;
 		float fMaxLineWidth = 0.f;
@@ -222,10 +222,10 @@ namespace LuaSTGPlus {
 			++strBuf;
 		}
 		fMaxLineWidth = max(fMaxLineWidth, fLineWidth);
-
+		
 		return fcyVec2(fMaxLineWidth, iLineCount * pFontProvider->GetLineHeight() * scale.y);
 	}
-
+	
 	LNOINLINE bool AppFrame::RenderText(const char* name, const char* str, float x, float y, float scale, ResFont::FontAlignHorizontal halign, ResFont::FontAlignVertical valign)LNOEXCEPT
 	{
 		fcyRefPointer<ResFont> p = m_ResourceMgr.FindSpriteFont(name);
@@ -234,19 +234,19 @@ namespace LuaSTGPlus {
 			LERROR("RenderText: 找不到文字资源'%m'", name);
 			return false;
 		}
-
+		
 		// 编码转换
 		static std::wstring s_TempStringBuf;
 		try
 		{
-			Utf8ToUtf16(str, s_TempStringBuf);
+			s_TempStringBuf = fcyStringHelper::MultiByteToWideChar(str, CP_UTF8);
 		}
 		catch (const std::bad_alloc&)
 		{
 			LERROR("RenderText: 内存不足");
 			return false;
 		}
-
+		
 		// 计算渲染位置
 		fcyVec2 tSize = CalcuTextSize(p, s_TempStringBuf.c_str(), fcyVec2(scale, scale));
 		switch (halign)
@@ -273,7 +273,7 @@ namespace LuaSTGPlus {
 		default:
 			break;
 		}
-
+		
 		return RenderText(
 			p,
 			const_cast<wchar_t*>(s_TempStringBuf.data()),
@@ -297,7 +297,7 @@ namespace LuaSTGPlus {
 		// 编码转换
 		static std::wstring s_TempStringBuf;
 		try {
-			Utf8ToUtf16(str, s_TempStringBuf);
+			s_TempStringBuf = fcyStringHelper::MultiByteToWideChar(str, CP_UTF8);
 		}
 		catch (const std::bad_alloc&) {
 			LERROR("RenderTTF: 内存不足");
@@ -313,12 +313,12 @@ namespace LuaSTGPlus {
 			halign = ResFont::FontAlignHorizontal::Center;
 		else if ((format & DT_RIGHT) == DT_RIGHT)
 			halign = ResFont::FontAlignHorizontal::Right;
-
+		
 		if ((format & DT_VCENTER) == DT_VCENTER)
 			valign = ResFont::FontAlignVertical::Middle;
 		else if ((format & DT_BOTTOM) == DT_BOTTOM)
 			valign = ResFont::FontAlignVertical::Bottom;
-
+		
 		if ((format & DT_WORDBREAK) == DT_WORDBREAK)
 			bWordBreak = true;
 		
