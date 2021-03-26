@@ -62,7 +62,7 @@ namespace LuaSTGPlus
 		bool m_OptionVsync = false;
 		fcyVec2 m_OptionResolution = fcyVec2(640.f, 480.f);
 		std::wstring m_OptionTitle = L"LuaSTG";
-		bool m_OptionCursor = false;
+		bool m_OptionCursor = true;
 		fDouble m_fFPS = 0.;
 		
 		// 引擎
