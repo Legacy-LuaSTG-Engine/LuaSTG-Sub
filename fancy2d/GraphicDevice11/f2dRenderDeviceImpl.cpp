@@ -41,122 +41,6 @@ static const D3DDISPLAYMODEFILTER g_d3d9DisplayModeFilter = {
 	D3DSCANLINEORDERING_PROGRESSIVE,
 };
 
-static const D3DPRESENT_PARAMETERS gc_d3d9TestSwapChainDesc = {
-	// 测试用最小交换链(1x1)，窗口模式下，应该自动选择交换链格式
-	1, 1, D3DFMT_UNKNOWN, 1,
-	// 多重采样必须是关的
-	D3DMULTISAMPLE_NONE, 0,
-	// 窗口模式，传统交换链模型
-	D3DSWAPEFFECT_DISCARD, NULL, TRUE,
-	// 因为是测试目的，所以不用开自动深度缓冲区
-	FALSE, D3DFMT_UNKNOWN,
-	// 其他
-	0,
-	// 显示器，窗口模式下刷新率必须为0
-	0, D3DPRESENT_INTERVAL_IMMEDIATE,
-};
-
-bool _findMatchDisplayMode(IDirect3D9Ex* d3d9, D3DDISPLAYMODEEX& mode, UINT width, UINT height)
-{
-	// 清空
-	ZeroMemory(&mode, sizeof(D3DDISPLAYMODEEX));
-	mode.Size = sizeof(D3DDISPLAYMODEEX);
-	
-	// 枚举
-	UINT modecnt = d3d9->GetAdapterModeCountEx(D3DADAPTER_DEFAULT, &g_d3d9DisplayModeFilter);
-	std::vector<D3DDISPLAYMODEEX> modes(modecnt);
-	for (UINT idx = 0; idx < modecnt; idx += 1)
-	{
-		ZeroMemory(&modes[idx], sizeof(D3DDISPLAYMODEEX));
-		modes[idx].Size = sizeof(D3DDISPLAYMODEEX);
-		d3d9->EnumAdapterModesEx(D3DADAPTER_DEFAULT, &g_d3d9DisplayModeFilter, idx, &modes[idx]);
-	}
-	
-	// 匹配合适的模式
-	D3DDISPLAYMODEEX curmode = {};
-	bool findmode = false;
-	// 预处理，筛掉大小不一样的模式
-	for (auto it = modes.begin(); it != modes.end();)
-	{
-		if (it->Width != width || it->Height != height)
-			it = modes.erase(it);
-		else
-			it++;
-	}
-	// 第一轮寻找，查找60Hz或者60Hz倍数的刷新率（最适合的模式）
-	ZeroMemory(&curmode, sizeof(D3DDISPLAYMODEEX));
-	for (auto& v : modes)
-	{
-		if (v.RefreshRate >= 60 && (v.RefreshRate % 60) == 0)
-		{
-			if (curmode.RefreshRate < v.RefreshRate)
-			{
-				curmode = v;
-				findmode = true;
-			}
-		}
-	}
-	if (findmode)
-	{
-		mode = curmode;
-		return true;
-	}
-	// 第二轮寻找，查找接近60Hz或者接近120Hz的刷新率（有一些误差的模式）
-	ZeroMemory(&curmode, sizeof(D3DDISPLAYMODEEX));
-	for (auto& v : modes)
-	{
-		if ((v.RefreshRate >= 59 && v.RefreshRate <= 61) || (v.RefreshRate >= 118 && v.RefreshRate <= 122))
-		{
-			if (curmode.RefreshRate < v.RefreshRate)
-			{
-				curmode = v;
-				findmode = true;
-			}
-		}
-	}
-	if (findmode)
-	{
-		mode = curmode;
-		return true;
-	}
-	// 第三轮寻找，查找大于等于120Hz的刷新率（可以接受的模式）
-	ZeroMemory(&curmode, sizeof(D3DDISPLAYMODEEX));
-	for (auto& v : modes)
-	{
-		if (v.RefreshRate >= 120)
-		{
-			if (curmode.RefreshRate < v.RefreshRate)
-			{
-				curmode = v;
-				findmode = true;
-			}
-		}
-	}
-	if (findmode)
-	{
-		mode = curmode;
-		return true;
-	}
-	// 第四轮寻找，查找剩下的刷新率最高的模式（可能会导致画面不流畅或帧率较低的模式）
-	ZeroMemory(&curmode, sizeof(D3DDISPLAYMODEEX));
-	for (auto& v : modes)
-	{
-		if (curmode.RefreshRate < v.RefreshRate)
-		{
-			curmode = v;
-			findmode = true;
-		}
-	}
-	if (findmode)
-	{
-		mode = curmode;
-		return true;
-	}
-	
-	// 依然没找到
-	return false;
-};
-
 f2dRenderDeviceImpl::f2dRenderDeviceImpl(f2dEngineImpl* pEngine, fuInt BackBufferWidth, fuInt BackBufferHeight, fBool Windowed, fBool VSync, F2DAALEVEL AALevel) :
 	m_pEngine(pEngine),
 	m_pD3D9(NULL), m_pDev(NULL), m_hWnd(NULL),
@@ -335,15 +219,8 @@ f2dRenderDeviceImpl::f2dRenderDeviceImpl(f2dEngineImpl* pEngine, fuInt BackBuffe
 
 f2dRenderDeviceImpl::~f2dRenderDeviceImpl()
 {
-	// ---------- 其他
+	// ---------- 删除渲染器监听链
 	
-	// 释放对象
-	FCYSAFEKILL(m_pCurBackBuffer);
-	FCYSAFEKILL(m_pCurBackDepthBuffer);
-	FCYSAFEKILL(m_pBackBuffer);
-	FCYSAFEKILL(m_pBackDepthBuffer);
-	
-	// 删除渲染器监听链
 	for (auto& v : _setEventListeners)
 	{
 		// 报告可能的对象泄漏
@@ -355,12 +232,6 @@ f2dRenderDeviceImpl::~f2dRenderDeviceImpl()
 		m_pEngine->ThrowException(fcyException("f2dRenderDeviceImpl::~f2dRenderDeviceImpl", tTextBuffer));
 	}
 	_setEventListeners.clear();
-	
-	// 释放顶点声明
-	m_VDCache.clear();
-	
-	// 释放DX组件
-	FCYSAFEKILL(m_pWinSurface);
 	
 	// ---------- 清理状态
 	
@@ -429,13 +300,6 @@ HRESULT f2dRenderDeviceImpl::doReset()
 int f2dRenderDeviceImpl::sendDevLostMsg()
 {
 	int tRet = 0;
-	
-	// 释放可能的对象
-	m_pCurVertDecl = NULL;
-	FCYSAFEKILL(m_pCurBackBuffer);
-	FCYSAFEKILL(m_pCurBackDepthBuffer);
-	FCYSAFEKILL(m_pBackBuffer);
-	FCYSAFEKILL(m_pBackDepthBuffer);
 	
 	// 发送丢失消息
 	for (auto& v : _setEventListeners)
@@ -510,79 +374,52 @@ fResult f2dRenderDeviceImpl::SyncDevice()
 
 fResult f2dRenderDeviceImpl::SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, fBool FlipModel, F2DAALEVEL AALevel)
 {
+	HRESULT hr = S_OK;
+	
 	// 检查参数
 	if (Width < 1 || Height < 1)
 		return FCYERR_INVAILDPARAM;
 	
-	// 备份交换链配置
-	D3DPRESENT_PARAMETERS D3DPP = _d3d9SwapChainInfo;
-	D3DDISPLAYMODEEX D3DPPEX = _d3d9FullScreenSwapChainInfo;
-	
-	// 有没有找到合适的全屏模式？
-	if (!_findMatchDisplayMode(_d3d9Ex.Get(), _d3d9FullScreenSwapChainInfo, Width, Height))
-	{
-		if (!Windowed) // 想全屏，但是没匹配的模式
-		{
-			m_pEngine->ThrowException(fcyException("f2dRenderDeviceImpl::SetBufferSize",
-				"Cannot find a valid full-screen display mode (%ux%u).", Width, Height));
-			return FCYERR_INVAILDPARAM;
-		}
-	}
-	
-	// 准备参数
-	auto& winfo = _d3d9SwapChainInfo; {
-		winfo.BackBufferWidth      = Width;
-		winfo.BackBufferHeight     = Height;
-		winfo.BackBufferCount      = 1;
-		winfo.SwapEffect           = D3DSWAPEFFECT_DISCARD;
-		if (Windowed && _d3d9SupportFlip && FlipModel)
-		{
-			//winfo.BackBufferCount  = 2;
-			winfo.SwapEffect       = D3DSWAPEFFECT_FLIPEX; // 窗口模式下，且支持FLIPEX交换链模型，就可以开启
-		}
-		winfo.BackBufferFormat     = Windowed ? D3DFMT_UNKNOWN : _d3d9FullScreenSwapChainInfo.Format; // 窗口模式下让d3d9决定画面格式，否则必须指定格式
-		winfo.Windowed             = Windowed;
-		winfo.FullScreen_RefreshRateInHz = Windowed ? 0 : _d3d9FullScreenSwapChainInfo.RefreshRate; // 窗口模式下让d3d9决定刷新率，否则必须指定刷新率
-		winfo.PresentationInterval = VSync ? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE;
-	};
-	
-	// 首先，通知一些资源需要释放
+	// 通知一些资源需要释放
 	dispatchRenderSizeDependentResourcesDestroy();
+	// 移除旧的后备缓冲区
+	d3d11BackBuffer.Reset();
 	
-	HRESULT hr = doReset();
-	if (hr == D3D_OK)
+	// 修改交换链大小
+	if (dxgiSwapChain1)
 	{
-		// 成功，更新状态
-		
-		m_ScissorRect.left = 0;
-		m_ScissorRect.top = 0;
-		m_ScissorRect.right = GetBufferWidth();
-		m_ScissorRect.bottom = GetBufferHeight();
-
-		m_ViewPort.X = 0;
-		m_ViewPort.Y = 0;
-		m_ViewPort.Width = GetBufferWidth();
-		m_ViewPort.Height = GetBufferHeight();
-		m_ViewPort.MinZ = 0.0f;
-		m_ViewPort.MaxZ = 1.0f;
-		
-		// 恢复资源
-		dispatchRenderSizeDependentResourcesCreate();
+		DXGI_SWAP_CHAIN_DESC1 lastinfo = {};
+		hr = dxgiSwapChain1->GetDesc1(&lastinfo);
+		hr = dxgiSwapChain1->ResizeBuffers(lastinfo.BufferCount, Width, Height, lastinfo.Format, lastinfo.Flags);
 	}
 	else
 	{
-		// 我们假设上一个交换链配置是有效的
-		_d3d9SwapChainInfo = D3DPP;
-		_d3d9FullScreenSwapChainInfo = D3DPPEX;
-		// 设备丢失，广播设备丢失事件
-		m_bDevLost = true; // 标记为设备丢失状态
+		DXGI_SWAP_CHAIN_DESC lastinfo = {};
+		hr = dxgiSwapChain->GetDesc(&lastinfo);
+		hr = dxgiSwapChain->ResizeBuffers(lastinfo.BufferCount, Width, Height, lastinfo.BufferDesc.Format, lastinfo.Flags);
+	}
+	if (hr != S_OK)
+	{
+		debugPrintHRESULT(hr, L"[f2dRenderDeviceImpl::SetBufferSize] IDXGISwapChain ResizeBuffers failed.");
+		// 设备丢失
+		isDeviceLost = true; // 标记为设备丢失状态
+		// 广播设备丢失事件
 		int tObjCount = sendDevLostMsg();
 		char tBuffer[256] = {};
 		snprintf(tBuffer, 255, "Detected device lost. ( %d Object(s) losted. )", tObjCount);
 		m_pEngine->ThrowException(fcyException("f2dRenderDeviceImpl::SetBufferSize", tBuffer));
+		return hr == FCYERR_INTERNALERR;
 	}
 	
-	return hr == D3D_OK ? FCYERR_OK : FCYERR_INTERNALERR;
+	// 重新创建缓冲区
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> texture_;
+	hr = dxgiSwapChain->GetBuffer(0, IID_PPV_ARGS(texture_.GetAddressOf()));
+	hr = d3d11Device->CreateRenderTargetView(texture_.Get(), NULL, d3d11BackBuffer.GetAddressOf());
+	
+	// 恢复资源
+	dispatchRenderSizeDependentResourcesCreate();
+	
+	return FCYERR_OK;
 }
 
 fResult f2dRenderDeviceImpl::Present()
@@ -597,6 +434,7 @@ fResult f2dRenderDeviceImpl::Present()
 	hr = dxgiSwapChain->Present(0, 0);
 	if (hr == DXGI_ERROR_DEVICE_RESET || hr == DXGI_ERROR_DEVICE_REMOVED)
 	{
+		debugPrintHRESULT(hr, L"[f2dRenderDeviceImpl::Present] IDXGISwapChain Present failed.");
 		// 设备丢失
 		isDeviceLost = true; // 标记为设备丢失状态
 		// 广播设备丢失事件
@@ -656,155 +494,17 @@ fResult f2dRenderDeviceImpl::SubmitTextureBlendOP_Color(D3DTEXTUREOP ColorOP)
 
 IDirect3DVertexDeclaration9* f2dRenderDeviceImpl::RegisterVertexDeclare(f2dVertexElement* pElement, fuInt ElementCount, fuInt& ElementSize)
 {
-	if(ElementCount == 0)
-		return NULL;
-
-	// === Hash检查 ===
-	fuInt HashCode = fcyHash::SuperFastHash((fcData)pElement, sizeof(f2dVertexElement) * ElementCount);
-	
-	for(fuInt i = 0; i<m_VDCache.size(); ++i)
-	{
-		if(m_VDCache[i].ElementData.size() == ElementCount && m_VDCache[i].Hash == HashCode)
-		{
-			fBool tHas = true;
-
-			std::vector<f2dVertexElement>& tVec = m_VDCache[i].ElementData;
-			for(fuInt j = 0; j<tVec.size(); j++)
-			{
-				if(memcmp(&tVec[j], &pElement[j], sizeof(f2dVertexElement))!=0)
-				{
-					tHas = false;
-					break;
-				}
-			}
-
-			/*
-				感谢漆黑の刃提出issue
-			*/
-			if (tHas)
-			{
-				ElementSize = m_VDCache[i].VertexSize;
-				return m_VDCache[i].pVertexDeclare;
-			}
-		}
-	}
-
-	// === 创建条目 ===
-	D3DVERTEXELEMENT9* pElementArr = new D3DVERTEXELEMENT9[ ElementCount + 1 ];
-	ZeroMemory(pElementArr, sizeof(D3DVERTEXELEMENT9) * (ElementCount + 1));
-
-	// 结尾
-	D3DVERTEXELEMENT9 tEnd = D3DDECL_END();
-	pElementArr[ ElementCount ] = tEnd;
-
-	fuInt tOffset = 0;
-
-	for(fuInt i = 0; i<ElementCount; ++i)
-	{
-		pElementArr[i].Stream = 0;
-		pElementArr[i].Offset = tOffset;
-		pElementArr[i].Type = pElement[i].Type;
-		pElementArr[i].Method = D3DDECLMETHOD_DEFAULT;
-		pElementArr[i].Usage = pElement[i].Usage;
-		pElementArr[i].UsageIndex = pElement[i].UsageIndex;
-
-		switch(pElementArr[i].Type)
-		{
-		case D3DDECLTYPE_FLOAT1:
-			tOffset += sizeof(float);
-			break;
-		case D3DDECLTYPE_FLOAT2:
-			tOffset += sizeof(float) * 2;
-			break;
-		case D3DDECLTYPE_FLOAT3:
-			tOffset += sizeof(float) * 3;
-			break;
-		case D3DDECLTYPE_FLOAT4:
-			tOffset += sizeof(float) * 4;
-			break;
-		case D3DDECLTYPE_D3DCOLOR:
-			tOffset += sizeof(char) * 4;
-			break;
-		case D3DDECLTYPE_UBYTE4:
-			tOffset += sizeof(char) * 4;
-			break;
-		case D3DDECLTYPE_SHORT2:
-			tOffset += sizeof(short) * 2;
-			break;
-		case D3DDECLTYPE_SHORT4:
-			tOffset += sizeof(short) * 4;
-			break;
-		}
-	}
-
-	IDirect3DVertexDeclaration9* pVD = NULL;
-	HRESULT tHR = m_pDev->CreateVertexDeclaration(pElementArr, &pVD);
-	FCYSAFEDELARR(pElementArr);
-
-	if(FAILED(tHR))
-		return NULL;
-
-	VertexDeclareInfo tInfo;
-	tInfo.Hash = HashCode;
-	tInfo.pVertexDeclare = pVD;
-	tInfo.ElementData.resize(ElementCount);
-	tInfo.VertexSize = tOffset;
-	for(fuInt i = 0; i<ElementCount; ++i)
-	{
-		tInfo.ElementData[i] = pElement[i];
-	}
-	m_VDCache.push_back(tInfo);
-
-	ElementSize = tOffset;
-
-	return pVD;
+	return NULL;
 }
 
 F2DAALEVEL f2dRenderDeviceImpl::GetAALevel()
 {
-	switch(_d3d9SwapChainInfo.MultiSampleType)
-	{
-	case D3DMULTISAMPLE_2_SAMPLES:
-		return F2DAALEVEL_2;
-	case D3DMULTISAMPLE_4_SAMPLES:
-		return F2DAALEVEL_4;
-	case D3DMULTISAMPLE_8_SAMPLES:
-		return F2DAALEVEL_8;
-	case D3DMULTISAMPLE_16_SAMPLES:
-		return F2DAALEVEL_16;
-	}
 	return F2DAALEVEL_NONE;
 }
 
 fBool f2dRenderDeviceImpl::CheckMultiSample(F2DAALEVEL AALevel, fBool Windowed)
 {
-	DWORD Quality = 0;
-	HRESULT tHr;
-
-	switch(AALevel)
-	{
-	case F2DAALEVEL_NONE:
-		return true;
-	case F2DAALEVEL_2:
-		tHr = m_pD3D9->CheckDeviceMultiSampleType(0, D3DDEVTYPE_HAL, D3DFMT_A8R8G8B8, Windowed, D3DMULTISAMPLE_2_SAMPLES, &Quality);
-		break;
-	case F2DAALEVEL_4:
-		tHr = m_pD3D9->CheckDeviceMultiSampleType(0, D3DDEVTYPE_HAL, D3DFMT_A8R8G8B8, Windowed, D3DMULTISAMPLE_4_SAMPLES, &Quality);
-		break;
-	case F2DAALEVEL_8:
-		tHr = m_pD3D9->CheckDeviceMultiSampleType(0, D3DDEVTYPE_HAL, D3DFMT_A8R8G8B8, Windowed, D3DMULTISAMPLE_8_SAMPLES, &Quality);
-		break;
-	case F2DAALEVEL_16:
-		tHr = m_pD3D9->CheckDeviceMultiSampleType(0, D3DDEVTYPE_HAL, D3DFMT_A8R8G8B8, Windowed, D3DMULTISAMPLE_16_SAMPLES, &Quality);
-		break;
-	default:
-		return false;
-	}
-
-	if(FAILED(tHr))
-		return false;
-	else
-		return true;
+	return false;
 }
 
 fuInt f2dRenderDeviceImpl::GetSupportResolutionCount()
@@ -1201,190 +901,26 @@ fBool f2dRenderDeviceImpl::IsZBufferEnabled()
 
 fResult f2dRenderDeviceImpl::SetZBufferEnable(fBool v)
 {
-	if (v != m_bZBufferEnabled)
-	{
-		if (m_pCurGraphics && m_pCurGraphics->IsInRender())
-			m_pCurGraphics->Flush();
-		if (FAILED(m_pDev->SetRenderState(D3DRS_ZENABLE, v ? TRUE : FALSE)))
-			return FCYERR_INTERNALERR;
-		m_bZBufferEnabled = v;
-		/*
-		if (v == TRUE){
-			void TestDraw();
-			TestDraw();
-		}*/
-	}
-
+	m_bZBufferEnabled = v;
 	return FCYERR_OK;
 }
 
 fResult f2dRenderDeviceImpl::SetTextureAddress(F2DTEXTUREADDRESS address, const fcyColor& borderColor) {
-	if (m_pCurGraphics && m_pCurGraphics->IsInRender())
-		m_pCurGraphics->Flush();
-	
-	D3DTEXTUREADDRESS d3daddress;
-	switch (address) {
-	case F2DTEXTUREADDRESS_WRAP:
-		d3daddress = D3DTADDRESS_WRAP;
-		break;
-	case F2DTEXTUREADDRESS_MIRROR:
-		d3daddress = D3DTADDRESS_MIRROR;
-		break;
-	case F2DTEXTUREADDRESS_CLAMP:
-		d3daddress = D3DTADDRESS_CLAMP;
-		break;
-	case F2DTEXTUREADDRESS_BORDER:
-		d3daddress = D3DTADDRESS_BORDER;
-		break;
-	case F2DTEXTUREADDRESS_MIRRORONCE:
-		d3daddress = D3DTADDRESS_MIRRORONCE;
-		break;
-	default:
-		return FCYERR_INVAILDPARAM;
-	}
-	if (FAILED(m_pDev->SetSamplerState(0, D3DSAMP_ADDRESSU, d3daddress)))
-		return FCYERR_INTERNALERR;
-	if (FAILED(m_pDev->SetSamplerState(0, D3DSAMP_ADDRESSV, d3daddress)))
-		return FCYERR_INTERNALERR;
-	if (FAILED(m_pDev->SetSamplerState(0, D3DSAMP_BORDERCOLOR, borderColor.argb)))
-		return FCYERR_INTERNALERR;
 	return FCYERR_OK;
 }
 
 fResult f2dRenderDeviceImpl::SetTextureFilter(F2DTEXFILTERTYPE filter) {
-	if (m_pCurGraphics && m_pCurGraphics->IsInRender())
-		m_pCurGraphics->Flush();
-
-	D3DTEXTUREFILTERTYPE d3dfilter;
-	switch (filter)
-	{
-	case F2DTEXFILTER_POINT:
-		d3dfilter = D3DTEXF_POINT;
-		break;
-	case F2DTEXFILTER_LINEAR:
-		d3dfilter = D3DTEXF_LINEAR;
-		break;
-	default:
-		return FCYERR_INVAILDPARAM;
-	}
-	if (FAILED(m_pDev->SetSamplerState(0, D3DSAMP_MAGFILTER, d3dfilter)))
-		return FCYERR_INTERNALERR;
-	if (FAILED(m_pDev->SetSamplerState(0, D3DSAMP_MIPFILTER, d3dfilter)))
-		return FCYERR_INTERNALERR;
-	if (FAILED(m_pDev->SetSamplerState(0, D3DSAMP_MINFILTER, d3dfilter)))
-		return FCYERR_INTERNALERR;
 	return FCYERR_OK;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "ScreenGrab9.h"
-
 fResult f2dRenderDeviceImpl::SaveScreen(fcStrW path)
 {
-	if(m_bDevLost)
-		return FCYERR_ILLEGAL;
-	if(!path)
-		return FCYERR_INVAILDPARAM;
-	
-	// 获取交换链后备缓冲区
-	Microsoft::WRL::ComPtr<IDirect3DSurface9> backbuffer;
-	if(FAILED(m_pDev->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, backbuffer.GetAddressOf())))
-	{
-		return FCYERR_INTERNALERR;
-	}
-	
-	// 获取尺寸、纹理格式
-	D3DSURFACE_DESC desc;
-	ZeroMemory(&desc, sizeof(D3DSURFACE_DESC));
-	if(FAILED(backbuffer->GetDesc(&desc)))
-	{
-		return FCYERR_INTERNALERR;
-	}
-	
-	// 创建Stage纹理，用来从显存下载纹理内容到内存
-	Microsoft::WRL::ComPtr<IDirect3DTexture9> rendertarget;
-	if(FAILED(m_pDev->CreateTexture(
-		desc.Width, desc.Height, 1, D3DUSAGE_DYNAMIC, desc.Format, D3DPOOL_SYSTEMMEM,
-		rendertarget.GetAddressOf(), NULL)))
-	{
-		return FCYERR_INTERNALERR;
-	}
-	Microsoft::WRL::ComPtr<IDirect3DSurface9> surface;
-	if(FAILED(rendertarget->GetSurfaceLevel(0, surface.GetAddressOf())))
-	{
-		return FCYERR_INTERNALERR;
-	}
-	
-	// 下崽
-	if(FAILED(m_pDev->GetRenderTargetData(backbuffer.Get(), surface.Get())))
-	{
-		return FCYERR_INTERNALERR;
-	}
-	
-	// 可以保存了
-	HRESULT tHR = DirectX::SaveWICTextureToFile(surface.Get(), GUID_ContainerFormatJpeg, path, &GUID_WICPixelFormat24bppBGR);
-	if(FAILED(tHR))
-	{
-		m_pEngine->ThrowException(fcyWin32COMException("f2dRenderDeviceImpl::SaveScreen", "DirectX::SaveWICTextureToFile Failed.", tHR));
-		return FCYERR_INTERNALERR;
-	}
-	
-	return FCYERR_OK;
+	return FCYERR_NOTSUPPORT;
 }
 
 fResult f2dRenderDeviceImpl::SaveTexture(fcStrW path, f2dTexture2D* pTex)
 {
-	if(m_bDevLost)
-		return FCYERR_ILLEGAL;
-	if(!path || !pTex)
-		return FCYERR_INVAILDPARAM;
-	if(!pTex->IsRenderTarget())
-		return FCYERR_INVAILDPARAM;
-	
-	// 获取纹理
-	Microsoft::WRL::ComPtr<IDirect3DSurface9> backbuffer;
-	f2dTexture2DRenderTarget* pRTex = dynamic_cast<f2dTexture2DRenderTarget*>(pTex);
-	*backbuffer.GetAddressOf() = pRTex->GetSurface();
-	if (!backbuffer.Get())
-		return FCYERR_INTERNALERR;
-	backbuffer->AddRef(); // 这里用了智障指针，得手动加一个ref
-	
-	// 获取尺寸、纹理格式
-	D3DSURFACE_DESC desc;
-	ZeroMemory(&desc, sizeof(D3DSURFACE_DESC));
-	if(FAILED(backbuffer->GetDesc(&desc)))
-	{
-		return FCYERR_INTERNALERR;
-	}
-	
-	// 创建Stage纹理，用来从显存下载纹理内容到内存
-	Microsoft::WRL::ComPtr<IDirect3DTexture9> rendertarget;
-	if(FAILED(m_pDev->CreateTexture(
-		desc.Width, desc.Height, 1, D3DUSAGE_DYNAMIC, desc.Format, D3DPOOL_SYSTEMMEM,
-		rendertarget.GetAddressOf(), NULL)))
-	{
-		return FCYERR_INTERNALERR;
-	}
-	Microsoft::WRL::ComPtr<IDirect3DSurface9> surface;
-	if(FAILED(rendertarget->GetSurfaceLevel(0, surface.GetAddressOf())))
-	{
-		return FCYERR_INTERNALERR;
-	}
-	
-	// 下崽
-	if(FAILED(m_pDev->GetRenderTargetData(backbuffer.Get(), surface.Get())))
-	{
-		return FCYERR_INTERNALERR;
-	}
-	
-	// 现在可以保存了
-	HRESULT tHR = DirectX::SaveWICTextureToFile(surface.Get(), GUID_ContainerFormatJpeg, path, &GUID_WICPixelFormat24bppBGR);
-	if(FAILED(tHR))
-	{
-		m_pEngine->ThrowException(fcyWin32COMException("f2dRenderDeviceImpl::SaveTexture", "DirectX::SaveWICTextureToFile Failed.", tHR));
-		return FCYERR_INTERNALERR;
-	}
-	
-	return FCYERR_OK;
+	return FCYERR_NOTSUPPORT;
 }

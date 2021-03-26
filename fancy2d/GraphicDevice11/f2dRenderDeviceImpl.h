@@ -29,24 +29,6 @@ private:
 		}
 	};
 	
-	// 解决从非主线程调用TestCooperativeLevel的问题
-	class DeviceSyncTest : public f2dMainThreadDelegate
-	{
-	private:
-		HWND _window;
-		IDirect3DDevice9Ex* _device;
-		HRESULT _result;
-	public:
-		void AddRef() {}
-		void Release() {}
-		void Excute() { _result = _device->CheckDeviceState(_window); }
-		void Reset() { _result = S_OK; }
-		HRESULT GetResult()const { return _result; }
-	public:
-		DeviceSyncTest() : _window(NULL), _device(NULL), _result(S_OK) {}
-		DeviceSyncTest(HWND window, IDirect3DDevice9Ex* device) : _window(window), _device(device), _result(S_OK) {}
-	};
-	
 	struct VertexDeclareInfo
 	{
 		fuInt Hash;
@@ -67,10 +49,10 @@ private:
 	// states
 	bool isDeviceLost = false;
 	// DXGI
-	Microsoft::WRL::ComPtr<IDXGIFactory1>   dxgiFactory1;
-	Microsoft::WRL::ComPtr<IDXGIFactory2>   dxgiFactory2;
-	Microsoft::WRL::ComPtr<IDXGISwapChain>  dxgiSwapChain;
-	Microsoft::WRL::ComPtr<IDXGISwapChain1> dxgiSwapChain1;
+	Microsoft::WRL::ComPtr<IDXGIFactory1>          dxgiFactory1;
+	Microsoft::WRL::ComPtr<IDXGIFactory2>          dxgiFactory2;
+	Microsoft::WRL::ComPtr<IDXGISwapChain>         dxgiSwapChain;
+	Microsoft::WRL::ComPtr<IDXGISwapChain1>        dxgiSwapChain1;
 	// Direct3D11
 	Microsoft::WRL::ComPtr<ID3D11Device>           d3d11Device;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext>    d3d11DeviceContext;
@@ -99,9 +81,6 @@ private:
 	IDirect3DDevice9*     m_pDev;  // 不要调用Release！
 	D3DVIEWPORT9          m_ViewPort;
 	std::string           m_DevName;
-	
-	// 跨线程事件
-	DeviceSyncTest _d3d9DeviceTest;
 	
 	// 监听器列表
 	int _iEventListenerUUID = 0;
