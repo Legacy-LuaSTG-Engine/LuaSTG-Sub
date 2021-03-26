@@ -1,5 +1,4 @@
 ﻿#include "AppFrame.h"
-#include "RuntimeCheck.hpp"
 #include "Utility.h"
 #include "SteamAPI.hpp"
 
