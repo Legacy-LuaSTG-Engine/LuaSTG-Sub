@@ -11,7 +11,6 @@ namespace slow::Graphic
         Implement* implememt = nullptr;
     public:
         handle_t getDeviceHandle();
-        handle_t getDeviceContextHandle();
     public:
         bool autoResizeSwapChain();
         bool resizeSwapChain(uint32_t width, uint32_t height);

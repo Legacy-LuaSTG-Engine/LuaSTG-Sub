@@ -59,10 +59,6 @@ namespace slow::Graphic
     {
         return (handle_t)self.d3d11Device.Get();
     };
-    handle_t Device::getDeviceContextHandle()
-    {
-        return (handle_t)self.d3d11DeviceContext.Get();
-    };
     
     bool Device::autoResizeSwapChain()
     {
