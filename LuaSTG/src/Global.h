@@ -114,8 +114,6 @@
 #define LASSERT(cond)
 #endif
 
-#define LPARTICLE_MAXCNT 500  // 单个粒子池最多有500个粒子
-
 #define LSOUNDGLOBALFOCUS  true
 
 namespace LuaSTGPlus

@@ -1,9 +1,10 @@
 ﻿#pragma once
-#include "Global.h"
-#include "XCollision.h"
+#include <cstdint>
 #include "ResourceBase.hpp"
 #include "ResourceParticle.hpp"
+#include "lua.hpp"
 #include "GameObjectClass.hpp"
+#include "Config.h"
 
 namespace LuaSTGPlus
 {
@@ -14,86 +15,6 @@ namespace LuaSTGPlus
 		STATUS_DEFAULT = 1, //正常状态
 		STATUS_KILL    = 2, //被kill事件触发
 		STATUS_DEL     = 3, //被del事件触发
-	};
-	
-	//游戏碰撞体类型
-	enum class GameObjectColliderType {
-		None      = -1, // 关闭
-		
-		Circle    = 0,  // 严格圆
-		OBB       = 1,  // 矩形
-		Ellipse   = 2,  // 椭圆
-		Diamond   = 3,  // 菱形
-		Triangle  = 4,  // 三角
-		Point     = 5,  // 点
-		
-		BentLazer = 100, //曲线激光
-	};
-	
-	//【弃用】游戏碰撞体
-	struct GameObjectCollider
-	{
-		GameObjectColliderType type;  //碰撞体类型
-		float a;                      //椭圆半长轴、矩形半宽
-		float b;                      //椭圆半短轴、矩形半高
-		float rot;                    //相对旋转
-		float dx;                     //相对偏移x
-		float dy;                     //相对偏移y
-		
-		float circum_r;               //外接圆
-		
-		float absx;                   //计算后的绝对坐标x
-		float absy;                   //计算后的绝对坐标y
-		float absrot;                 //计算后的绝对旋转方向
-		XColliderType xtype;          //转换后的碰撞体类型
-		
-		//重置数值
-		void reset() {
-			type = GameObjectColliderType::None;
-			a = 0.0f; b = 0.0f; rot = 0.0f;
-			dx = 0.0f; dy = 0.0f;
-			circum_r = 0.0f;
-			absx = 0.0f; absy = 0.0f; absrot = 0.0f;
-			xtype = XColliderType::Ellipse;
-		}
-		//计算外接圆和对应的XMath库碰撞体类型
-		void calcircum() {
-			switch (type)
-			{
-			case GameObjectColliderType::Circle:
-				circum_r = a > b ? a : b;
-				xtype = XColliderType::Circle;
-				break;
-			case GameObjectColliderType::OBB:
-				circum_r = std::sqrtf(std::powf(a, 2.0f) + std::powf(b, 2.0f));
-				xtype = XColliderType::OBB;
-				break;
-			case GameObjectColliderType::Ellipse:
-				circum_r = a > b ? a : b;
-				xtype = XColliderType::Ellipse;
-				break;
-			case GameObjectColliderType::Diamond:
-				circum_r = a > b ? a : b;
-				xtype = XColliderType::Diamond;
-				break;
-			case GameObjectColliderType::Triangle:
-				circum_r = std::sqrtf(std::powf(a, 2.0f) + std::powf(b, 2.0f));
-				xtype = XColliderType::Triangle;
-				break;
-			case GameObjectColliderType::Point:
-				circum_r = 0.0f;
-				xtype = XColliderType::Point;
-				break;
-			}
-		}
-		//根据偏移计算绝对坐标和旋转
-		void caloffset(float x, float y, float _rot) {
-			float tCos = std::cosf(-_rot);
-			float tSin = std::sinf(-_rot);
-			absx = x + dx * tCos + dy * tSin;
-			absy = y + dy * tCos - dx * tSin;
-			absrot = _rot + rot;
-		}
 	};
 	
 	// 游戏对象
@@ -158,29 +79,12 @@ namespace LuaSTGPlus
 #endif // USING_ADVANCE_GAMEOBJECT_CLASS
 
 		void Reset();
-
 		void DirtReset();
-
-		inline void UpdateCollisionCirclrRadius() {
-			if (rect) {
-				//矩形
-				col_r = ::sqrt(a * a + b * b);
-			}
-			else if (!rect && (a != b)) {
-				//椭圆
-				col_r = a > b ? a : b;
-			}
-			else {
-				//严格的正圆
-				col_r = (a + b) / 2;
-			}
-		}
-
-		void ReleaseResource();
-
+		void UpdateCollisionCirclrRadius();
 		bool ChangeResource(const char* res_name);
+		void ReleaseResource();
 	};
 	
 	//对两个游戏对象进行碰撞检测
-	bool CollisionCheck(GameObject* p1, GameObject* p2)LNOEXCEPT;
+	bool CollisionCheck(GameObject* p1, GameObject* p2) noexcept;
 }

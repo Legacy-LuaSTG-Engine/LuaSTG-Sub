@@ -1603,7 +1603,7 @@ void GameObjectPool::DrawGroupCollider(f2dGraphics2D* graph, f2dGeometryRenderer
 			else {
 				//备份，为以后做准备
 				/*
-				case GameObjectColliderType::Diamond:
+				case _::Diamond:
 				{
 					fcyVec2 tHalfSize(cc.a, cc.b);
 					// 计算出菱形的4个顶点
@@ -1627,7 +1627,7 @@ void GameObjectPool::DrawGroupCollider(f2dGraphics2D* graph, f2dGeometryRenderer
 					graph->DrawQuad(nullptr, tFinalPos);
 					break;
 				}
-				case GameObjectColliderType::Triangle:
+				case _::Triangle:
 				{
 					fcyVec2 tHalfSize(cc.a, cc.b);
 					// 计算出菱形的4个顶点
@@ -1651,7 +1651,7 @@ void GameObjectPool::DrawGroupCollider(f2dGraphics2D* graph, f2dGeometryRenderer
 					graph->DrawQuad(nullptr, tFinalPos);
 					break;
 				}
-				case GameObjectColliderType::Point:
+				case _::Point:
 				{
 					//点使用直径1的圆来替代
 					grender->FillCircle(graph, fcyVec2(cc.absx, cc.absy), 0.5f, fillColor, fillColor, 3);

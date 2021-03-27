@@ -9,6 +9,7 @@
 #include "imgui_impl_win32ex.h"
 #include "imgui_impl_dx9.h"
 
+#include "lua.hpp"
 #include "lua_imgui.hpp"
 #include "lua_imgui_type.hpp"
 

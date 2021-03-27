@@ -1,14 +1,21 @@
 ﻿#pragma once
 #include "ResourceBase.hpp"
+#include "fcyMath.h"
+#include "fcyOS/fcyMemPool.h"
+#include "f2dRenderer.h"
+#include <array>
 
-namespace LuaSTGPlus {
+#define LPARTICLE_MAXCNT 500  // 单个粒子池最多有500个粒子，这是HGE粒子特效的实现，不应该修改
+
+namespace LuaSTGPlus
+{
 	// 粒子系统
 	// HGE粒子系统的f2d实现
 	class ResParticle :
 		public Resource
 	{
 	public:
-		/// @brief 粒子信息
+		// 粒子信息
 		struct ParticleInfo
 		{
 			fuInt iBlendInfo;
@@ -46,7 +53,7 @@ namespace LuaSTGPlus {
 			float fColorVar;  // 颜色抖动值
 			float fAlphaVar;  // alpha抖动值
 		};
-		/// @brief 粒子实例
+		// 粒子实例
 		struct ParticleInstance
 		{
 			fcyVec2 vecLocation;  // 位置
@@ -68,7 +75,7 @@ namespace LuaSTGPlus {
 			float fAge;  // 当前存活时间
 			float fTerminalAge;  // 终止时间
 		};
-		/// @brief 粒子池
+		// 粒子池
 		class ParticlePool
 		{
 			friend class ResParticle;
@@ -80,7 +87,6 @@ namespace LuaSTGPlus {
 			};
 		private:
 			fcyRefPointer<ResParticle> m_pInstance;  // 信息
-
 			BlendMode m_BlendMode = BlendMode::MulAlpha;
 			fcyColor m_MixColor;//渲染时整体颜色
 			Status m_iStatus = Status::Alive;  // 状态
@@ -93,24 +99,24 @@ namespace LuaSTGPlus {
 			float m_fEmissionResidue = 0.f;  // 不足的粒子数
 			std::array<ParticleInstance, LPARTICLE_MAXCNT> m_ParticlePool;
 		public:
-			size_t GetAliveCount()const LNOEXCEPT { return m_iAlive; }
-			BlendMode GetBlendMode()const LNOEXCEPT { return m_BlendMode; }
-			void SetBlendMode(BlendMode m)LNOEXCEPT { m_BlendMode = m; }
-			fcyColor GetMixColor()LNOEXCEPT { return m_MixColor; }
-			void SetMixColor(fcyColor c)LNOEXCEPT { m_MixColor = c; }
-			float GetEmission()const LNOEXCEPT { return m_fEmission; }
-			void SetEmission(float e)LNOEXCEPT { m_fEmission = e; }
-			bool IsActived()const LNOEXCEPT { return m_iStatus == Status::Alive; }
-			void SetActive()LNOEXCEPT
+			size_t GetAliveCount() const noexcept { return m_iAlive; }
+			BlendMode GetBlendMode() const noexcept { return m_BlendMode; }
+			void SetBlendMode(BlendMode m) noexcept { m_BlendMode = m; }
+			fcyColor GetMixColor() noexcept { return m_MixColor; }
+			void SetMixColor(fcyColor c) noexcept { m_MixColor = c; }
+			float GetEmission() const noexcept { return m_fEmission; }
+			void SetEmission(float e) noexcept { m_fEmission = e; }
+			bool IsActived() const noexcept { return m_iStatus == Status::Alive; }
+			void SetActive() noexcept
 			{
 				m_iStatus = Status::Alive;
 				m_fAge = 0.f;
 			}
-			void SetInactive()LNOEXCEPT
+			void SetInactive() noexcept
 			{
 				m_iStatus = Status::Sleep;
 			}
-			void SetCenter(fcyVec2 pos)LNOEXCEPT
+			void SetCenter(fcyVec2 pos) noexcept
 			{
 				if (m_iStatus == Status::Alive)
 					m_vPrevCenter = m_vCenter;
@@ -118,7 +124,7 @@ namespace LuaSTGPlus {
 					m_vPrevCenter = pos;
 				m_vCenter = pos;
 			}
-			void SetRotation(float r)LNOEXCEPT { m_fRotation = r; }
+			void SetRotation(float r) noexcept { m_fRotation = r; }
 			void Update(float delta);
 			void Render(f2dGraphics2D* graph, float scaleX, float scaleY);
 		public:
@@ -126,7 +132,6 @@ namespace LuaSTGPlus {
 		};
 	private:
 		static fcyMemPool<sizeof(ParticlePool)> s_MemoryPool;
-
 		fcyRefPointer<f2dSprite> m_BindedSprite;
 		BlendMode m_BlendMode = BlendMode::MulAlpha;
 		ParticleInfo m_ParticleInfo;
@@ -134,15 +139,15 @@ namespace LuaSTGPlus {
 		double m_HalfSizeY = 0.;
 		bool m_bRectangle = false;
 	public:
-		ParticlePool* AllocInstance()LNOEXCEPT;
-		void FreeInstance(ParticlePool* p)LNOEXCEPT;
-
-		f2dSprite* GetBindedSprite()LNOEXCEPT { return m_BindedSprite; }
-		const ParticleInfo& GetParticleInfo()const LNOEXCEPT { return m_ParticleInfo; }
-		double GetHalfSizeX()const LNOEXCEPT { return m_HalfSizeX; }
-		double GetHalfSizeY()const LNOEXCEPT { return m_HalfSizeY; }
-		bool IsRectangle()const LNOEXCEPT { return m_bRectangle; }
+		ParticlePool* AllocInstance() noexcept;
+		void FreeInstance(ParticlePool* p) noexcept;
+	public:
+		f2dSprite* GetBindedSprite() noexcept { return m_BindedSprite; }
+		const ParticleInfo& GetParticleInfo() const noexcept { return m_ParticleInfo; }
+		double GetHalfSizeX() const noexcept { return m_HalfSizeX; }
+		double GetHalfSizeY() const noexcept { return m_HalfSizeY; }
+		bool IsRectangle() const noexcept { return m_bRectangle; }
 	public:
 		ResParticle(const char* name, const ParticleInfo& pinfo, fcyRefPointer<f2dSprite> sprite, BlendMode bld, double a, double b, bool rect = false);
 	};
-}
+};
