@@ -1,10 +1,10 @@
-﻿#include <string>
+﻿#include "LuaWrapper/LuaStringToEnum.hpp"
+#include <string>
 #include <unordered_map>
-#include "LuaWrapper/LuaStringToEnum.hpp"
-
-using namespace Xrysnow;
 
 static const int HASH_OFFSET = -2; //hash值在TString结构中的偏移，相对的是const char*指针的偏移
+
+namespace Xrysnow {
 
 static std::unordered_map<std::string, GameObjectProperty> prop_map = {
 	// object
@@ -125,6 +125,8 @@ void init_colorprop_hash_map(lua_State* L) {
 		colorprop_hash_map[hash] = it.second;
 	}
 }
+
+};
 
 namespace Xrysnow {
 	// GameObject 属性

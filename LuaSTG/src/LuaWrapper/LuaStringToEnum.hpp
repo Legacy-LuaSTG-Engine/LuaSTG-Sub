@@ -1,10 +1,11 @@
 ﻿#pragma once
 #include "lua.hpp"
-#include "ResourceMgr.h"
+#include "ResourceBase.hpp"
 
-namespace Xrysnow {
-	// GameObject 属性
-
+namespace Xrysnow
+{
+	// ---------- lstg.GameObject
+	
 	enum class GameObjectProperty
 	{
 		// object
@@ -67,24 +68,25 @@ namespace Xrysnow {
 
 		_KEY_NOT_FOUND = -1
 	};
-
+	
 	//必须是lua的TString类型，直接以原始字符串作为参数是不能正常工作的
 	GameObjectProperty GameObjectPropertyHash(const char* key);
-
+	
 	//index是参数在栈上的索引
 	GameObjectProperty GameObjectPropertyHash(lua_State* L, int index);
-
+	
 	//index是参数在栈上的索引，str是返回的字符串
 	GameObjectProperty GameObjectPropertyHash(lua_State* L, int index, const char** str);
-
-	// BlendMode 枚举
-
+	
+	// ---------- lstg.BlendMode
+	
 	//字符串转混合模式枚举
 	LuaSTGPlus::BlendMode BlendModeHash(lua_State* L, int index);
-
-	// Color 包装器
-
-	enum class ColorWrapperProperty {
+	
+	// ---------- lstg.Color
+	
+	enum class ColorWrapperProperty
+	{
 		m_a = 0,
 		m_r,
 		m_g,
@@ -95,14 +97,14 @@ namespace Xrysnow {
 		m_v,
 		f_ARGB,
 		f_AHSV,
-
+		
 		_KEY_NOT_FOUND = -1,
 	};
-
+	
 	ColorWrapperProperty ColorWrapperPropertyHash(lua_State* L, int index);
-
-	// 初始化方法
-
+	
+	// ---------- 初始化方法
+	
 	//初始化所有hash表
 	void InitStringToEnumHash(lua_State* L);
-}
+};
