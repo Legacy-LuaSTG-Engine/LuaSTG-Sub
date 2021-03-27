@@ -1,7 +1,9 @@
 ﻿#pragma once
-#include "Global.h"
+#include <string>
+#include "fcyRefObj.h"
 
-namespace LuaSTGPlus {
+namespace LuaSTGPlus
+{
 	// 资源类型
 	enum class ResourceType
 	{
@@ -54,13 +56,12 @@ namespace LuaSTGPlus {
 		ResourceType m_Type;
 		std::string m_ResName;
 	public:
-		ResourceType GetType()const noexcept { return m_Type; }
-		const std::string& GetResName()const noexcept { return m_ResName; }
+		ResourceType GetType() const noexcept { return m_Type; }
+		const std::string& GetResName() const noexcept { return m_ResName; }
 	private:
 		Resource& operator=(const Resource&);
 		Resource(const Resource&);
 	public:
-		Resource(ResourceType t, const char* name)
-			: m_Type(t), m_ResName(name) {}
+		Resource(ResourceType t, const char* name) : m_Type(t), m_ResName(name) {}
 	};
-}
+};

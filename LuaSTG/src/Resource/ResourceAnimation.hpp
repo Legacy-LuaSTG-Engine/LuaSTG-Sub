@@ -1,8 +1,11 @@
 ﻿#pragma once
 #include "ResourceBase.hpp"
 #include "ResourceTexture.hpp"
+#include "f2dRenderer.h"
+#include <vector>
 
-namespace LuaSTGPlus {
+namespace LuaSTGPlus
+{
 	// 动画资源
 	class ResAnimation :
 		public Resource
@@ -15,19 +18,19 @@ namespace LuaSTGPlus {
 		double m_HalfSizeY = 0.;
 		bool m_bRectangle = false;
 	public:
-		size_t GetCount()const LNOEXCEPT { return m_ImageSequences.size(); }
-		f2dSprite* GetSprite(fuInt index)LNOEXCEPT
+		size_t GetCount() const noexcept { return m_ImageSequences.size(); }
+		f2dSprite* GetSprite(fuInt index) noexcept
 		{
 			if (index >= GetCount())
 				return nullptr;
 			return m_ImageSequences[index];
 		}
-		fuInt GetInterval()const LNOEXCEPT { return m_Interval; }
-		BlendMode GetBlendMode()const LNOEXCEPT { return m_BlendMode; }
-		void SetBlendMode(BlendMode m)LNOEXCEPT { m_BlendMode = m; }
-		double GetHalfSizeX()const LNOEXCEPT { return m_HalfSizeX; }
-		double GetHalfSizeY()const LNOEXCEPT { return m_HalfSizeY; }
-		bool IsRectangle()const LNOEXCEPT { return m_bRectangle; }
+		fuInt GetInterval() const noexcept { return m_Interval; }
+		BlendMode GetBlendMode() const noexcept { return m_BlendMode; }
+		void SetBlendMode(BlendMode m) noexcept { m_BlendMode = m; }
+		double GetHalfSizeX() const noexcept { return m_HalfSizeX; }
+		double GetHalfSizeY() const noexcept { return m_HalfSizeY; }
+		bool IsRectangle() const noexcept { return m_bRectangle; }
 	public:
 		ResAnimation(const char* name, fcyRefPointer<ResTexture> tex,
 			float x, float y, float w, float h,

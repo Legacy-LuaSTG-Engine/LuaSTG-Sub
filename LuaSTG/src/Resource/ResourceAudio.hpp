@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "ResourceBase.hpp"
+#include "f2dSoundSys.h"
 #include "E2DMath.hpp"
 
 namespace LuaSTGPlus {

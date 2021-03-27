@@ -1,5 +1,7 @@
 ﻿#pragma once
 #include "ResourceBase.hpp"
+#include "f2dRenderer.h"
+#include <unordered_map>
 
 namespace LuaSTGPlus {
 	// 纹理字体
@@ -19,7 +21,7 @@ namespace LuaSTGPlus {
 			Middle,
 			Bottom
 		};
-
+		
 		// HGE纹理字体实现
 		class HGEFont :
 			public fcyRefObjImpl<f2dFontProvider>
@@ -48,11 +50,11 @@ namespace LuaSTGPlus {
 		BlendMode m_BlendMode = BlendMode::MulAlpha;
 		fcyColor m_BlendColor = fcyColor(0xFFFFFFFF);
 	public:
-		f2dFontProvider* GetFontProvider()LNOEXCEPT { return m_pFontProvider; }
-		BlendMode GetBlendMode()const LNOEXCEPT { return m_BlendMode; }
-		void SetBlendMode(BlendMode m)LNOEXCEPT { m_BlendMode = m; }
-		fcyColor GetBlendColor()const LNOEXCEPT { return m_BlendColor; }
-		void SetBlendColor(fcyColor c)LNOEXCEPT { m_BlendColor = c; }
+		f2dFontProvider* GetFontProvider() noexcept { return m_pFontProvider; }
+		BlendMode GetBlendMode() const noexcept { return m_BlendMode; }
+		void SetBlendMode(BlendMode m) noexcept { m_BlendMode = m; }
+		fcyColor GetBlendColor() const noexcept { return m_BlendColor; }
+		void SetBlendColor(fcyColor c) noexcept { m_BlendColor = c; }
 	public:
 		ResFont(const char* name, fcyRefPointer<f2dFontProvider> pFont);
 	};

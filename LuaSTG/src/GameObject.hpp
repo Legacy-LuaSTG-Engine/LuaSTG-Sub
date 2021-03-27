@@ -10,42 +10,43 @@ namespace LuaSTGPlus
 	// 游戏对象状态
 	enum GAMEOBJECTSTATUS
 	{
-		STATUS_FREE = 0,//空闲状态、用于标识链表伪头部
-		STATUS_DEFAULT = 1,//正常状态
-		STATUS_KILL = 2,//被kill事件触发
-		STATUS_DEL = 3,//被del事件触发
+		STATUS_FREE    = 0, //空闲状态、用于标识链表伪头部
+		STATUS_DEFAULT = 1, //正常状态
+		STATUS_KILL    = 2, //被kill事件触发
+		STATUS_DEL     = 3, //被del事件触发
 	};
-
+	
 	//游戏碰撞体类型
 	enum class GameObjectColliderType {
-		None = -1, //关闭
-
-		Circle = 0,  //严格圆
-		OBB = 1,  //矩形
-		Ellipse = 2,  //椭圆
-		Diamond = 3,  //菱形
-		Triangle = 4,  //三角
-		Point = 5,  //点
-
-		BentLazer = 100,//曲线激光
+		None      = -1, // 关闭
+		
+		Circle    = 0,  // 严格圆
+		OBB       = 1,  // 矩形
+		Ellipse   = 2,  // 椭圆
+		Diamond   = 3,  // 菱形
+		Triangle  = 4,  // 三角
+		Point     = 5,  // 点
+		
+		BentLazer = 100, //曲线激光
 	};
-
-	//游戏碰撞体
-	struct GameObjectCollider {
+	
+	//【弃用】游戏碰撞体
+	struct GameObjectCollider
+	{
 		GameObjectColliderType type;  //碰撞体类型
 		float a;                      //椭圆半长轴、矩形半宽
 		float b;                      //椭圆半短轴、矩形半高
 		float rot;                    //相对旋转
 		float dx;                     //相对偏移x
 		float dy;                     //相对偏移y
-
+		
 		float circum_r;               //外接圆
-
+		
 		float absx;                   //计算后的绝对坐标x
 		float absy;                   //计算后的绝对坐标y
 		float absrot;                 //计算后的绝对旋转方向
 		XColliderType xtype;          //转换后的碰撞体类型
-
+		
 		//重置数值
 		void reset() {
 			type = GameObjectColliderType::None;
@@ -94,7 +95,7 @@ namespace LuaSTGPlus
 			absrot = _rot + rot;
 		}
 	};
-
+	
 	// 游戏对象
 	struct GameObject
 	{
@@ -179,7 +180,7 @@ namespace LuaSTGPlus
 
 		bool ChangeResource(const char* res_name);
 	};
-
+	
 	//对两个游戏对象进行碰撞检测
 	bool CollisionCheck(GameObject* p1, GameObject* p2)LNOEXCEPT;
 }

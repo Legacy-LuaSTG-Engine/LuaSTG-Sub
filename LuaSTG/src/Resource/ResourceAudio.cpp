@@ -1,4 +1,5 @@
 ﻿#include "ResourceAudio.hpp"
+#include <cassert>
 
 namespace LuaSTGPlus {
 	fResult ResMusic::BGMWrapper::Read(fData pBuffer, fuInt SizeToRead, fuInt* pSizeRead)
@@ -58,7 +59,7 @@ namespace LuaSTGPlus {
 	ResMusic::BGMWrapper::BGMWrapper(fcyRefPointer<f2dSoundDecoder> pOrg, fDouble LoopStart, fDouble LoopEnd)
 		: m_pDecoder(pOrg)
 	{
-		LASSERT(pOrg);
+		assert(pOrg);
 
 		// 计算参数
 		m_TotalSample = m_pDecoder->GetBufferSize() / m_pDecoder->GetBlockAlign();

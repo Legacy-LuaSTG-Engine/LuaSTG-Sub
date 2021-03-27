@@ -1,7 +1,9 @@
 ﻿#pragma once
 #include "ResourceBase.hpp"
+#include "f2dRenderDevice.h"
 
-namespace LuaSTGPlus {
+namespace LuaSTGPlus
+{
 	// 纹理资源
 	class ResTexture :
 		public Resource
@@ -15,4 +17,4 @@ namespace LuaSTGPlus {
 		ResTexture(const char* name, fcyRefPointer<f2dTexture2D> tex)
 			: Resource(ResourceType::Texture, name), m_Texture(tex) {}
 	};
-}
+};

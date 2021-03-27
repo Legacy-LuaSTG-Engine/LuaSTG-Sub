@@ -8,9 +8,8 @@
 #undef min
 #endif
 
-using namespace std;
-
-namespace LuaSTGPlus {
+namespace LuaSTGPlus
+{
 	void ResFont::HGEFont::ReadDefine(const std::wstring& data, std::unordered_map<wchar_t, f2dGlyphInfo>& out, std::wstring& tex)
 	{
 		out.clear();
@@ -29,15 +28,15 @@ namespace LuaSTGPlus {
 
 		for (size_t i = 1; i < tLines.size(); ++i)
 		{
-			wstring& tLine = tLines[i];
+			std::wstring& tLine = tLines[i];
 			if (tLine.size() == 0)
 				continue;
 
-			wstring::size_type tPos;
-			if (string::npos == (tPos = tLine.find_first_of(L"=")))
+			std::wstring::size_type tPos;
+			if (std::string::npos == (tPos = tLine.find_first_of(L"=")))
 				throw fcyException("ResFont::HGEFont::readDefine", "Bad file format.");
-			wstring tKey = tLine.substr(0, tPos);
-			wstring tValue = tLine.substr(tPos + 1, tLine.size() - tPos - 1);
+			std::wstring tKey = tLine.substr(0, tPos);
+			std::wstring tValue = tLine.substr(tPos + 1, tLine.size() - tPos - 1);
 			if (tKey == L"Bitmap")
 				tex = tValue;
 			else if (tKey == L"Char")
@@ -70,15 +69,15 @@ namespace LuaSTGPlus {
 		if (tex.empty())
 			throw fcyException("ResFont::HGEFont::readDefine", "Bad file format.");
 	}
-
+	
 	ResFont::HGEFont::HGEFont(std::unordered_map<wchar_t, f2dGlyphInfo>&& org, fcyRefPointer<f2dTexture2D> pTex)
 		: m_Charset(std::move(org)), m_pTex(pTex)
 	{
 		// 计算最高行作为LineHeight
 		m_fLineHeight = 0;
 		for (auto i = m_Charset.begin(); i != m_Charset.end(); ++i)
-			m_fLineHeight = ::max(m_fLineHeight, i->second.GlyphSize.y);
-
+			m_fLineHeight = std::max(m_fLineHeight, i->second.GlyphSize.y);
+		
 		// 修正纹理坐标
 		for (auto& i : m_Charset)
 		{
@@ -88,44 +87,41 @@ namespace LuaSTGPlus {
 			i.second.GlyphPos.b.y /= pTex->GetHeight();
 		}
 	}
-
+	
 	fFloat ResFont::HGEFont::GetLineHeight()
 	{
 		return m_fLineHeight + 1.f;
 	}
-
+	
 	fFloat ResFont::HGEFont::GetAscender()
 	{
 		return m_fLineHeight;
 	}
-
+	
 	fFloat ResFont::HGEFont::GetDescender()
 	{
 		return 0.f;
 	}
-
+	
 	f2dTexture2D* ResFont::HGEFont::GetCacheTexture()
 	{
 		return m_pTex;
 	}
-
+	
 	fResult ResFont::HGEFont::CacheString(fcStrW String)
 	{
 		return FCYERR_OK;  // 纹理字体不需要实现CacheString
 	}
-
+	
 	fResult ResFont::HGEFont::QueryGlyph(f2dGraphics* pGraph, fCharW Character, f2dGlyphInfo* InfoOut)
 	{
-		unordered_map<wchar_t, f2dGlyphInfo>::iterator i = m_Charset.find(Character);
-
-		if (i == m_Charset.end())
+		auto it = m_Charset.find(Character);
+		if (it == m_Charset.end())
 			return FCYERR_OBJNOTEXSIT;
-
-		*InfoOut = i->second;
-
+		*InfoOut = it->second;
 		return FCYERR_OK;
 	}
-
+	
 	ResFont::ResFont(const char* name, fcyRefPointer<f2dFontProvider> pFont)
 		: Resource(ResourceType::SpriteFont, name), m_pFontProvider(pFont)
 	{
