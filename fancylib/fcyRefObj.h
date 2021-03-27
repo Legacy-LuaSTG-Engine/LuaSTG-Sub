@@ -4,10 +4,13 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyType.h"
-
-#include <Windows.h>
-
 #define FCYREFOBJ
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief 平台接口
+////////////////////////////////////////////////////////////////////////////////
+long _api_InterlockedIncrement(long volatile *add_);
+long _api_InterlockedDecrement(long volatile *add_);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief 引用计数接口定义
@@ -27,30 +30,25 @@ struct fcyRefObj
 /// @note  使用模版进行代码复用防止出现菱形继承
 ////////////////////////////////////////////////////////////////////////////////
 template<class T>
-class fcyRefObjImpl : 
-	public T
+class fcyRefObjImpl : public T
 {
 private:
-	fuInt m_cRef;
+	long m_cRef;
 public:
-	/// @brief AddRef实现
 	virtual void AddRef()
 	{
-		InterlockedIncrement(&m_cRef);
+		_api_InterlockedIncrement(&m_cRef);
 	}
-
-	/// @brief Release实现
 	virtual void Release()
 	{
-		fuInt tRet = InterlockedDecrement(&m_cRef);
-		if(tRet == 0)
+		const long tRet = _api_InterlockedDecrement(&m_cRef);
+		if(tRet <= 0)
 			delete this;
 	}
 private:
 	fcyRefObjImpl(const fcyRefObjImpl& Org);
 public:
-	fcyRefObjImpl()
-		: m_cRef(1) {}
+	fcyRefObjImpl() : m_cRef(1) {}
 	virtual ~fcyRefObjImpl() {}
 };
 

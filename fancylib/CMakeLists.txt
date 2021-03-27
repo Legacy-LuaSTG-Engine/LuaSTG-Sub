@@ -22,7 +22,9 @@ target_include_directories(fancylib PUBLIC
 
 target_sources(fancylib PRIVATE
     fcyType.h
+    fcyResult.h
     fcyRefObj.h
+    fcyRefObj.cpp
     
     fcyException.h
     fcyException.cpp

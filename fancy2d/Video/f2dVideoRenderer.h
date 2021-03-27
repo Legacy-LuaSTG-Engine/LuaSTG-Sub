@@ -50,7 +50,7 @@ private:
 	fFloat m_DataPerSecond;
 	fFloat m_FPS;
 private:
-	FCYINLINE fByte clip255(fInt value)
+	fByte clip255(fInt value)
 	{
 		if(value < 0)
 			return 0;
