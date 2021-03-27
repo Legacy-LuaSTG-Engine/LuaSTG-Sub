@@ -110,7 +110,7 @@ namespace LuaSTGPlus
 		colli = bound = true;
 		hide = navi = false;
 
-		group = LGOBJ_DEFAULTGROUP;
+		group = 0;
 		timer = ani_timer = 0;
 
 		res = nullptr;
@@ -152,7 +152,7 @@ namespace LuaSTGPlus
 		colli = bound = true;
 		hide = navi = false;
 
-		group = LGOBJ_DEFAULTGROUP;
+		group = 0;
 		timer = ani_timer = 0;
 
 		ReleaseResource();

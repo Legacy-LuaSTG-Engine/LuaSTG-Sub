@@ -1,6 +1,5 @@
 ﻿#include "GameObjectPool.h"
 #include "AppFrame.h"
-#include "CollisionDetect.h"
 #include "LuaWrapper/LuaWrapper.hpp"
 #include "LuaWrapper/LuaStringToEnum.hpp"
 
@@ -49,7 +48,7 @@ GameObjectPool::~GameObjectPool()
 void GameObjectPool::_PrepareLuaObjectTable() {
 	// 创建一个全局表用于存放所有对象
 	lua_pushlightuserdata(L, (void*)& LAPP);	// ??? p   (使用APP实例指针作键用以防止用户访问)
-	lua_createtable(L, LGOBJ_MAXCNT, 0);		// ??? p t (创建足够大的table用于存放所有的游戏对象在lua中的对应对象)
+	lua_createtable(L, LOBJPOOL_SIZE, 0);		// ??? p t (创建足够大的table用于存放所有的游戏对象在lua中的对应对象)
 
 	struct Metatable {
 		static int GetAttr(lua_State* L) {
@@ -129,7 +128,7 @@ void GameObjectPool::_SetObjectColliGroup(GameObject* object, lua_Integer group)
 	}
 }
 
-GameObject* GameObjectPool::freeObject(GameObject* p)LNOEXCEPT
+GameObject* GameObjectPool::freeObject(GameObject* p) noexcept
 {
 	// 删除lua对象表中元素
 	GETOBJTABLE;					// ot
@@ -145,7 +144,7 @@ GameObject* GameObjectPool::freeObject(GameObject* p)LNOEXCEPT
 	return pRet;
 }
 
-int GameObjectPool::PushCurrentObject(lua_State* L) LNOEXCEPT
+int GameObjectPool::PushCurrentObject(lua_State* L)  noexcept
 {
 	if (!m_pCurrentObject)
 	{
@@ -157,7 +156,7 @@ int GameObjectPool::PushCurrentObject(lua_State* L) LNOEXCEPT
 	return 1;
 }
 
-void GameObjectPool::DoFrame()LNOEXCEPT
+void GameObjectPool::DoFrame() noexcept
 {
 	//处理超级暂停
 	GETOBJTABLE;  // ot
@@ -245,7 +244,7 @@ void GameObjectPool::DoFrame()LNOEXCEPT
 	lua_pop(L, 1);
 }
 
-void GameObjectPool::DoRender()LNOEXCEPT
+void GameObjectPool::DoRender() noexcept
 {
 	GETOBJTABLE;  // ot
 
@@ -283,7 +282,7 @@ void GameObjectPool::DoRender()LNOEXCEPT
 	lua_pop(L, 1);
 }
 
-void GameObjectPool::BoundCheck()LNOEXCEPT
+void GameObjectPool::BoundCheck() noexcept
 {
 	GETOBJTABLE;  // ot
 
@@ -319,9 +318,9 @@ void GameObjectPool::BoundCheck()LNOEXCEPT
 	lua_pop(L, 1);
 }
 
-void GameObjectPool::CollisionCheck(size_t groupA, size_t groupB)LNOEXCEPT
+void GameObjectPool::CollisionCheck(size_t groupA, size_t groupB) noexcept
 {
-	if (groupA < 0 || groupA >= LGOBJ_MAXCNT || groupB < 0 || groupB >= LGOBJ_MAXCNT)
+	if (groupA < 0 || groupA >= LOBJPOOL_SIZE || groupB < 0 || groupB >= LOBJPOOL_SIZE)
 		luaL_error(L, "Invalid collision group.");
 
 	GETOBJTABLE;  // ot
@@ -357,7 +356,7 @@ void GameObjectPool::CollisionCheck(size_t groupA, size_t groupB)LNOEXCEPT
 	lua_pop(L, 1);
 }
 
-void GameObjectPool::UpdateXY()LNOEXCEPT
+void GameObjectPool::UpdateXY() noexcept
 {
 	int superpause = GetSuperPauseTime();
 
@@ -374,7 +373,7 @@ void GameObjectPool::UpdateXY()LNOEXCEPT
 	}
 }
 
-void GameObjectPool::AfterFrame()LNOEXCEPT
+void GameObjectPool::AfterFrame() noexcept
 {
 	int superpause = GetSuperPauseTime();
 
@@ -391,7 +390,7 @@ void GameObjectPool::AfterFrame()LNOEXCEPT
 	}
 }
 
-int GameObjectPool::New(lua_State* L)LNOEXCEPT
+int GameObjectPool::New(lua_State* L) noexcept
 {
 	// 检查参数
 	if (!GameObjectClass::CheckClassValid(L, 1)) {
@@ -432,7 +431,7 @@ int GameObjectPool::New(lua_State* L)LNOEXCEPT
 	return 1;
 }
 
-int GameObjectPool::Del(lua_State* L)LNOEXCEPT
+int GameObjectPool::Del(lua_State* L) noexcept
 {
 	if (!lua_istable(L, 1))
 		return luaL_error(L, "invalid argument #1, luastg object required for 'Del'.");
@@ -456,7 +455,7 @@ int GameObjectPool::Del(lua_State* L)LNOEXCEPT
 	return 0;
 }
 
-int GameObjectPool::Kill(lua_State* L)LNOEXCEPT
+int GameObjectPool::Kill(lua_State* L) noexcept
 {
 	if (!lua_istable(L, 1))
 		return luaL_error(L, "invalid argument #1, luastg object required for 'Kill'.");
@@ -480,7 +479,7 @@ int GameObjectPool::Kill(lua_State* L)LNOEXCEPT
 	return 0;
 }
 
-int GameObjectPool::IsValid(lua_State* L)LNOEXCEPT
+int GameObjectPool::IsValid(lua_State* L) noexcept
 {
 	if (lua_gettop(L) != 1)
 		return luaL_error(L, "invalid argument count, 1 argument required for 'IsValid'.");
@@ -514,11 +513,11 @@ int GameObjectPool::IsValid(lua_State* L)LNOEXCEPT
 	return 1;
 }
 
-bool GameObjectPool::DirtResetObject(size_t id)LNOEXCEPT {
+bool GameObjectPool::DirtResetObject(size_t id) noexcept {
 	GameObject* p = m_ObjectPool.object(id);
 	if (p) {
 		_SetObjectLayer(p, 0.0);
-		_SetObjectColliGroup(p, LGOBJ_DEFAULTGROUP);
+		_SetObjectColliGroup(p, 0);
 		p->DirtReset();
 		return true;
 	}
@@ -527,7 +526,7 @@ bool GameObjectPool::DirtResetObject(size_t id)LNOEXCEPT {
 	}
 }
 
-bool GameObjectPool::Angle(size_t idA, size_t idB, double& out)LNOEXCEPT
+bool GameObjectPool::Angle(size_t idA, size_t idB, double& out) noexcept
 {
 	GameObject* pA = m_ObjectPool.object(idA);
 	GameObject* pB = m_ObjectPool.object(idB);
@@ -537,7 +536,7 @@ bool GameObjectPool::Angle(size_t idA, size_t idB, double& out)LNOEXCEPT
 	return true;
 }
 
-bool GameObjectPool::Dist(size_t idA, size_t idB, double& out)LNOEXCEPT
+bool GameObjectPool::Dist(size_t idA, size_t idB, double& out) noexcept
 {
 	GameObject* pA = m_ObjectPool.object(idA);
 	GameObject* pB = m_ObjectPool.object(idB);
@@ -549,7 +548,7 @@ bool GameObjectPool::Dist(size_t idA, size_t idB, double& out)LNOEXCEPT
 	return true;
 }
 
-bool GameObjectPool::ColliCheck(size_t idA, size_t idB, bool ignoreWorldMask, bool& out)LNOEXCEPT {
+bool GameObjectPool::ColliCheck(size_t idA, size_t idB, bool ignoreWorldMask, bool& out) noexcept {
 	GameObject* pA = m_ObjectPool.object(idA);
 	GameObject* pB = m_ObjectPool.object(idB);
 	if (!pA || !pB) {
@@ -573,7 +572,7 @@ bool GameObjectPool::ColliCheck(size_t idA, size_t idB, bool ignoreWorldMask, bo
 	return true;
 }
 
-bool GameObjectPool::GetV(size_t id, double& v, double& a)LNOEXCEPT
+bool GameObjectPool::GetV(size_t id, double& v, double& a) noexcept
 {
 	GameObject* p = m_ObjectPool.object(id);
 	if (!p)
@@ -583,7 +582,7 @@ bool GameObjectPool::GetV(size_t id, double& v, double& a)LNOEXCEPT
 	return true;
 }
 
-bool GameObjectPool::SetV(size_t id, double v, double a, bool updateRot)LNOEXCEPT
+bool GameObjectPool::SetV(size_t id, double v, double a, bool updateRot) noexcept
 {
 	GameObject* p = m_ObjectPool.object(id);
 	if (!p)
@@ -596,7 +595,7 @@ bool GameObjectPool::SetV(size_t id, double v, double a, bool updateRot)LNOEXCEP
 	return true;
 }
 
-bool GameObjectPool::SetImgState(size_t id, BlendMode m, fcyColor c)LNOEXCEPT
+bool GameObjectPool::SetImgState(size_t id, BlendMode m, fcyColor c) noexcept
 {
 	GameObject* p = m_ObjectPool.object(id);
 	if (!p)
@@ -624,7 +623,7 @@ bool GameObjectPool::SetImgState(size_t id, BlendMode m, fcyColor c)LNOEXCEPT
 	return true;
 }
 
-bool GameObjectPool::SetParState(size_t id, BlendMode m, fcyColor c)LNOEXCEPT
+bool GameObjectPool::SetParState(size_t id, BlendMode m, fcyColor c) noexcept
 {
 	GameObject* p = m_ObjectPool.object(id);
 	if (!p)
@@ -644,7 +643,7 @@ bool GameObjectPool::SetParState(size_t id, BlendMode m, fcyColor c)LNOEXCEPT
 	return true;
 }
 
-bool GameObjectPool::BoxCheck(size_t id, double left, double right, double top, double bottom, bool& ret)LNOEXCEPT
+bool GameObjectPool::BoxCheck(size_t id, double left, double right, double top, double bottom, bool& ret) noexcept
 {
 	GameObject* p = m_ObjectPool.object(id);
 	if (!p)
@@ -653,7 +652,7 @@ bool GameObjectPool::BoxCheck(size_t id, double left, double right, double top, 
 	return true;
 }
 
-void GameObjectPool::ResetPool()LNOEXCEPT
+void GameObjectPool::ResetPool() noexcept
 {
 	for (auto it = m_UpdateList.begin(); it != m_UpdateList.end();) {
 		auto p = *it;
@@ -673,7 +672,7 @@ void GameObjectPool::ResetPool()LNOEXCEPT
 	m_nextsuperpause = 0;
 }
 
-bool GameObjectPool::DoDefaultRender(GameObject* p)LNOEXCEPT
+bool GameObjectPool::DoDefaultRender(GameObject* p) noexcept
 {
 	if (!p) {
 		return false;
@@ -782,7 +781,7 @@ bool GameObjectPool::DoDefaultRender(GameObject* p)LNOEXCEPT
 	return true;
 }
 
-int GameObjectPool::NextObject(int groupId, int id)LNOEXCEPT
+int GameObjectPool::NextObject(int groupId, int id) noexcept
 {
 	if (id < 0)
 		return -1;
@@ -792,7 +791,7 @@ int GameObjectPool::NextObject(int groupId, int id)LNOEXCEPT
 		return -1;
 
 	// 如果不是一个有效的分组，则在整个对象表中遍历
-	if (groupId < 0 || groupId >= LGOBJ_GROUPCNT)
+	if (groupId < 0 || groupId >= LOBJPOOL_GROUPN)
 	{
 		auto it = m_UpdateList.find(p);
 		it++;
@@ -819,7 +818,7 @@ int GameObjectPool::NextObject(int groupId, int id)LNOEXCEPT
 	}
 }
 
-int GameObjectPool::NextObject(lua_State* L)LNOEXCEPT
+int GameObjectPool::NextObject(lua_State* L) noexcept
 {
 	// i(groupId) id(lastobj)
 	int g = luaL_checkinteger(L, 1);
@@ -834,10 +833,10 @@ int GameObjectPool::NextObject(lua_State* L)LNOEXCEPT
 	return 2;
 }
 
-int GameObjectPool::FirstObject(int groupId)LNOEXCEPT
+int GameObjectPool::FirstObject(int groupId) noexcept
 {
 	// 如果不是一个有效的分组，则在整个对象表中遍历
-	if (groupId < 0 || groupId >= LGOBJ_GROUPCNT)
+	if (groupId < 0 || groupId >= LOBJPOOL_GROUPN)
 	{
 		auto it = m_UpdateList.begin();
 		if (it != m_UpdateList.end()) {
@@ -859,7 +858,7 @@ int GameObjectPool::FirstObject(int groupId)LNOEXCEPT
 	}
 }
 
-int GameObjectPool::GetAttr(lua_State* L)LNOEXCEPT
+int GameObjectPool::GetAttr(lua_State* L) noexcept
 {
 	using namespace Xrysnow;
 	
@@ -1086,7 +1085,7 @@ int GameObjectPool::GetAttr(lua_State* L)LNOEXCEPT
 	return 1;
 }
 
-int GameObjectPool::SetAttr(lua_State* L)LNOEXCEPT
+int GameObjectPool::SetAttr(lua_State* L) noexcept
 {
 	using namespace Xrysnow;
 	
@@ -1163,7 +1162,7 @@ int GameObjectPool::SetAttr(lua_State* L)LNOEXCEPT
 	case GameObjectProperty::GROUP:
 	{
 		int group = luaL_checkinteger(L, 3);
-		if (0 <= group && group < LGOBJ_GROUPCNT)
+		if (0 <= group && group < LOBJPOOL_GROUPN)
 		{
 			_SetObjectColliGroup(p, group);
 		}
@@ -1348,13 +1347,13 @@ int GameObjectPool::SetAttr(lua_State* L)LNOEXCEPT
 	return 0;
 }
 
-int GameObjectPool::GetObjectTable(lua_State* L)LNOEXCEPT
+int GameObjectPool::GetObjectTable(lua_State* L) noexcept
 {
 	GETOBJTABLE;
 	return 1;
 }
 
-int GameObjectPool::ParticleStop(lua_State* L)LNOEXCEPT
+int GameObjectPool::ParticleStop(lua_State* L) noexcept
 {
 	if (!lua_istable(L, 1))
 		return luaL_error(L, "invalid lstg object for 'ParticleStop'.");
@@ -1374,7 +1373,7 @@ int GameObjectPool::ParticleStop(lua_State* L)LNOEXCEPT
 	return 0;
 }
 
-int GameObjectPool::ParticleFire(lua_State* L)LNOEXCEPT
+int GameObjectPool::ParticleFire(lua_State* L) noexcept
 {
 	if (!lua_istable(L, 1))
 	return luaL_error(L, "invalid lstg object for 'ParticleFire'.");
@@ -1394,7 +1393,7 @@ int GameObjectPool::ParticleFire(lua_State* L)LNOEXCEPT
 	return 0;
 }
 
-int GameObjectPool::ParticleGetn(lua_State* L)LNOEXCEPT
+int GameObjectPool::ParticleGetn(lua_State* L) noexcept
 {
 	if (!lua_istable(L, 1))
 	return luaL_error(L, "invalid lstg object for 'ParticleFire'.");
@@ -1414,7 +1413,7 @@ int GameObjectPool::ParticleGetn(lua_State* L)LNOEXCEPT
 	return 1;
 }
 
-int GameObjectPool::ParticleGetEmission(lua_State* L)LNOEXCEPT
+int GameObjectPool::ParticleGetEmission(lua_State* L) noexcept
 {
 	if (!lua_istable(L, 1))
 	return luaL_error(L, "invalid lstg object for 'ParticleGetEmission'.");
@@ -1435,7 +1434,7 @@ int GameObjectPool::ParticleGetEmission(lua_State* L)LNOEXCEPT
 	return 1;
 }
 
-int GameObjectPool::ParticleSetEmission(lua_State* L)LNOEXCEPT
+int GameObjectPool::ParticleSetEmission(lua_State* L) noexcept
 {
 	if (!lua_istable(L, 1))
 	return luaL_error(L, "invalid lstg object for 'ParticleGetEmission'.");
@@ -1532,8 +1531,8 @@ void GameObjectPool::DrawGroupCollider(f2dGraphics2D* graph, f2dGeometryRenderer
 					{ -tHalfSize.x, tHalfSize.y, 0.5f, fillColor.argb, 1.0f, 0.0f }
 				};
 				// 变换
-				float tSin, tCos;
-				SinCos((float)p->rot, tSin, tCos);
+				float tCos = std::cosf((float)p->rot);
+				float tSin = std::sinf((float)p->rot);
 				for (int i = 0; i < 4; i++)
 				{
 					fFloat tx = tFinalPos[i].x * tCos - tFinalPos[i].y * tSin,
@@ -1587,8 +1586,8 @@ void GameObjectPool::DrawGroupCollider(f2dGraphics2D* graph, f2dGeometryRenderer
 				}
 				// 变换
 				{
-					float tSin, tCos;
-					SinCos(p->rot, tSin, tCos);
+					float tCos = std::cosf((float)p->rot);
+					float tSin = std::sinf((float)p->rot);
 					for (int i = 0; i < vertcount; i++)
 					{
 						fFloat tx = vert[i].x * tCos - vert[i].y * tSin,
@@ -1614,8 +1613,8 @@ void GameObjectPool::DrawGroupCollider(f2dGraphics2D* graph, f2dGeometryRenderer
 						{ -tHalfSize.x,         0.0f, 0.5f, fillColor.argb, 1.0f, 1.0f },
 						{         0.0f,  tHalfSize.y, 0.5f, fillColor.argb, 1.0f, 0.0f }
 					};
-					float tSin, tCos;
-					SinCos(cc.absrot, tSin, tCos);
+					float tCos = std::cosf((float)p->rot);
+					float tSin = std::sinf((float)p->rot);
 					// 变换
 					for (int i = 0; i < 4; i++)
 					{
@@ -1638,8 +1637,8 @@ void GameObjectPool::DrawGroupCollider(f2dGraphics2D* graph, f2dGeometryRenderer
 						{ -tHalfSize.x,  tHalfSize.y, 0.5f, fillColor.argb, 1.0f, 1.0f },
 						{ -tHalfSize.x,  tHalfSize.y, 0.5f, fillColor.argb, 1.0f, 1.0f },//和第三个点相同
 					};
-					float tSin, tCos;
-					SinCos(cc.absrot, tSin, tCos);
+					float tCos = std::cosf((float)p->rot);
+					float tSin = std::sinf((float)p->rot);
 					// 变换
 					for (int i = 0; i < 4; i++)
 					{
