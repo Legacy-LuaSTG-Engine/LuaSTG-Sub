@@ -5,6 +5,7 @@
 #include "Utility.h"
 #include "ImGuiExtension.h"
 #include "LuaWrapper/LuaAppFrame.hpp"
+#include "Graphic/Test.h"
 
 using namespace LuaSTGPlus;
 
@@ -257,7 +258,7 @@ bool AppFrame::Init()LNOEXCEPT
 	//////////////////////////////////////// 初始化引擎
 	{
 		// 为对象池分配空间
-		LINFO("初始化对象池 上限=%u", LGOBJ_MAXCNT);
+		LINFO("初始化对象池 上限=%u", LOBJPOOL_SIZE);
 		try
 		{
 			m_GameObjectPool = std::make_unique<GameObjectPool>(L);
@@ -383,6 +384,8 @@ bool AppFrame::Init()LNOEXCEPT
 		
 		// 初始化ImGui
 		imgui::bindEngine();
+		// test
+		slow::Graphic::_bindEngine((void*)m_pMainWindow->GetHandle());
 		// 初始化自定义后处理特效
 		//slow::effect::bindEngine();
 		
@@ -431,6 +434,8 @@ void AppFrame::Shutdown()LNOEXCEPT
 	
 	// 卸载自定义后处理特效
 	//slow::effect::unbindEngine();
+	// test
+	slow::Graphic::_unbindEngine();
 	// 卸载ImGui
 	imgui::unbindEngine();
 	
@@ -493,9 +498,9 @@ void AppFrame::Run()LNOEXCEPT
 
 fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, f2dMsgPump* pMsgPump)
 {
-#if (defined LDEVVERSION) || (defined LDEBUG)
+	#if (defined LDEVVERSION) || (defined LDEBUG)
 	TimerScope tProfileScope(m_UpdateTimer);
-#endif
+	#endif
 	
 	m_fFPS = (float)pFPSController->GetFPS();
 	pFPSController->SetLimitedFPS(m_OptionFPSLimit);
@@ -639,13 +644,16 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 		}
 	}
 	
+	if (!slow::Graphic::_update())
+		return false;
+	
 	// 执行帧函数
 	if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineUpdate, 1))
 		return false;
 	bool tAbort = lua_toboolean(L, -1) == 0 ? false : true;
 	lua_pop(L, 1);
 	
-#if (defined LDEVVERSION) || (defined LDEBUG)
+	#if (defined LDEVVERSION) || (defined LDEBUG)
 	// 刷新性能计数器
 	m_PerformanceUpdateTimer += static_cast<float>(ElapsedTime);
 	m_PerformanceUpdateCounter += 1.f;
@@ -666,17 +674,22 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 		m_UpdateTimerTotal = 0.f;
 		m_RenderTimerTotal = 0.f;
 	}
-#endif
+	#endif
 	
 	return !tAbort;
 }
 
 fBool AppFrame::OnRender(fDouble ElapsedTime, f2dFPSController* pFPSController)
 {
-#if (defined LDEVVERSION) || (defined LDEBUG)
+	#if (defined LDEVVERSION) || (defined LDEBUG)
 	TimerScope tProfileScope(m_RenderTimer);
-#endif
-
+	#endif
+	
+	if (slow::Graphic::_draw())
+	{
+		return false;
+	}
+	
 	m_pRenderDev->Clear();
 	
 	// 执行渲染函数

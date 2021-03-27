@@ -24,12 +24,72 @@ namespace slow::Graphic
         D3D_FEATURE_LEVEL* pFeatureLevel,
         ID3D11DeviceContext** ppImmediateContext
     );
+    
+    using Microsoft::WRL::ComPtr;
 }
+
+#define self (*implememt)
 
 namespace slow::Graphic
 {
-    using Microsoft::WRL::ComPtr;
+    struct DeviceContext::Implement
+    {
+        ComPtr<ID3D11DeviceContext> d3d11DeviceContext;
+        ComPtr<ID3D11BlendState>    d3d11BlendState;
+        FLOAT                       d3d11BlendFactor[4];
+        
+        void reset()
+        {
+            d3d11DeviceContext.Reset();
+            d3d11BlendState.Reset();
+            d3d11BlendFactor[0] = 0.0f;
+            d3d11BlendFactor[1] = 0.0f;
+            d3d11BlendFactor[2] = 0.0f;
+            d3d11BlendFactor[3] = 0.0f;
+        };
+    };
     
+    void DeviceContext::setBlendState(IBlendState* p)
+    {
+        if (self.d3d11BlendState.Get() != (ID3D11BlendState*)p->getHandle())
+        {
+            self.d3d11BlendState = (ID3D11BlendState*)p->getHandle();
+            if (self.d3d11DeviceContext)
+            {
+                self.d3d11DeviceContext->OMSetBlendState(self.d3d11BlendState.Get(), self.d3d11BlendFactor, 0xFFFFFFFF);
+            }
+        }
+    };
+    void DeviceContext::setBlendFactor(float r, float g, float b, float a)
+    {
+        if (self.d3d11BlendFactor[0] != r ||
+            self.d3d11BlendFactor[1] != g ||
+            self.d3d11BlendFactor[2] != b ||
+            self.d3d11BlendFactor[3] != a)
+        {
+            self.d3d11BlendFactor[0] = r;
+            self.d3d11BlendFactor[1] = g;
+            self.d3d11BlendFactor[2] = b;
+            self.d3d11BlendFactor[3] = a;
+            if (self.d3d11DeviceContext)
+            {
+                self.d3d11DeviceContext->OMSetBlendState(self.d3d11BlendState.Get(), self.d3d11BlendFactor, 0xFFFFFFFF);
+            }
+        }
+    };
+    
+    DeviceContext::DeviceContext()
+    {
+        implememt = new Implement;
+    };
+    DeviceContext::~DeviceContext()
+    {
+        delete implememt;
+    };
+};
+
+namespace slow::Graphic
+{
     struct Device::Implement
     {
         // window
@@ -51,13 +111,17 @@ namespace slow::Graphic
         ComPtr<ID3D11DeviceContext1>   d3d11DeviceContext1;
         ComPtr<ID3D11RenderTargetView> d3d11BackBuffer;
         ComPtr<ID3D11DepthStencilView> d3d11DepthStencil;
+        // class
+        DeviceContext                  vContext;
     };
     
-    #define self (*implememt)
-    
-    handle_t Device::getDeviceHandle()
+    handle_t Device::getHandle()
     {
         return (handle_t)self.d3d11Device.Get();
+    };
+    DeviceContext& Device::getContext()
+    {
+        return self.vContext;
     };
     
     bool Device::autoResizeSwapChain()
@@ -404,10 +468,17 @@ namespace slow::Graphic
             }
         }
         
+        // bind context
+        self.vContext.implememt->reset();
+        self.vContext.implememt->d3d11DeviceContext = self.d3d11DeviceContext;
+        
         return true;
     };
     void Device::unbind()
     {
+        // unbind context
+        self.vContext.implememt->reset();
+        
         // destroy swapchain
         if (self.d3d11DeviceContext)
         {
@@ -459,5 +530,54 @@ namespace slow::Graphic
     {
         static Device instance;
         return instance;
+    };
+};
+
+#include "Graphic/DeviceStateObject.h"
+
+namespace slow::Graphic
+{
+    bool Device::createBlendState(const DBlendState& def, IBlendState** pp)
+    {
+        if (!self.d3d11Device)
+        {
+            return false;
+        }
+        D3D11_RENDER_TARGET_BLEND_DESC blend_ = {};
+        blend_.BlendEnable           = def.enable ? TRUE : FALSE;
+        blend_.SrcBlend              = (D3D11_BLEND)def.outputColor;
+        blend_.DestBlend             = (D3D11_BLEND)def.bufferColor;
+        blend_.BlendOp               = (D3D11_BLEND_OP)def.colorOperate;
+        blend_.SrcBlendAlpha         = (D3D11_BLEND)def.outputAlpha;
+        blend_.DestBlendAlpha        = (D3D11_BLEND)def.bufferAlpha;
+        blend_.BlendOpAlpha          = (D3D11_BLEND_OP)def.alphaOperate;
+        blend_.RenderTargetWriteMask = (UINT8)def.writeEnable;
+        D3D11_BLEND_DESC desc_ = {};
+        desc_.AlphaToCoverageEnable  = FALSE;
+        desc_.IndependentBlendEnable = FALSE;
+        desc_.RenderTarget[0] = blend_;
+        desc_.RenderTarget[1] = blend_;
+        desc_.RenderTarget[2] = blend_;
+        desc_.RenderTarget[3] = blend_;
+        desc_.RenderTarget[4] = blend_;
+        desc_.RenderTarget[5] = blend_;
+        desc_.RenderTarget[6] = blend_;
+        desc_.RenderTarget[7] = blend_;
+        ComPtr<ID3D11BlendState> obj_;
+        HRESULT hr = self.d3d11Device->CreateBlendState(&desc_, obj_.GetAddressOf());
+        if (hr != S_OK)
+        {
+            return false;
+        }
+        try
+        {
+            BlendState* iobj_ = new BlendState(def, obj_.Get());
+            *pp = dynamic_cast<IBlendState*>(iobj_);
+            return true;
+        }
+        catch (...)
+        {
+            return false;
+        }
     };
 };

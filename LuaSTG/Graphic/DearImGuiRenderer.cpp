@@ -32,7 +32,7 @@ namespace slow::Graphic
         ComPtr<ID3D11PixelShader>        imPixelShader;
         
         ComPtr<ID3D11DepthStencilState>  imDepthStencilState;
-        ComPtr<ID3D11BlendState>         imBlendState;
+        Pointer<IBlendState>             imBlendState;
         
         void reset()
         {
@@ -58,7 +58,7 @@ namespace slow::Graphic
             imPixelShader.Reset();
             
             imDepthStencilState.Reset();
-            imBlendState.Reset();
+            imBlendState.reset();
         };
     };
     
@@ -138,21 +138,14 @@ namespace slow::Graphic
         }
         
         // blend
-        D3D11_RENDER_TARGET_BLEND_DESC blend0_;
-        ZeroMemory(&blend0_, sizeof(D3D11_RENDER_TARGET_BLEND_DESC));
-        blend0_.BlendEnable = TRUE;
-        blend0_.SrcBlend = D3D11_BLEND_SRC_ALPHA;
-        blend0_.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-        blend0_.BlendOp = D3D11_BLEND_OP_ADD;
-        blend0_.SrcBlendAlpha = D3D11_BLEND_ONE;
-        blend0_.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
-        blend0_.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-        blend0_.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-        D3D11_BLEND_DESC blend_;
-        ZeroMemory(&blend_, sizeof(D3D11_BLEND_DESC));
-        blend_.RenderTarget[0] = blend0_;
-        hr = dev_->CreateBlendState(&blend_, self.imBlendState.ReleaseAndGetAddressOf());
-        if (hr != S_OK)
+        DBlendState blend_;
+        blend_.enable = true;
+        blend_.outputColor = EBlend::OutputAlpha;
+        blend_.bufferColor = EBlend::InvOutputAlpha;
+        blend_.outputAlpha = EBlend::One;
+        blend_.bufferAlpha = EBlend::InvOutputAlpha;
+        self.imBlendState.reset();
+        if (!Device::get().createBlendState(blend_, &self.imBlendState))
         {
             return false;
         }
@@ -410,8 +403,7 @@ namespace slow::Graphic
         
         // OM
         ctx_->OMSetDepthStencilState(self.imDepthStencilState.Get(), 0);
-        const FLOAT blend_factor_[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-        ctx_->OMSetBlendState(self.imBlendState.Get(), blend_factor_, 0xFFFFFFFF);
+        Device::get().getContext().setBlendState(self.imBlendState);
         
         // Other
         ctx_->GSSetShader(NULL, NULL, 0);
@@ -509,7 +501,7 @@ namespace slow::Graphic
         
         // get device
         
-        self.imDevice = (ID3D11Device*)device.getDeviceHandle();
+        self.imDevice = (ID3D11Device*)device.getHandle();
         self.imDevice->GetImmediateContext(self.imDeviceContext.ReleaseAndGetAddressOf());
         
         return true;
