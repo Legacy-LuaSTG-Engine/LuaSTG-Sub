@@ -42,7 +42,7 @@ namespace slow
         virtual ~Object() {};
     };
     
-    template<class T>
+    template<class T = IObject>
     class Pointer
     {
     private:
@@ -78,26 +78,33 @@ namespace slow
         T* operator -> () const { return _p; }
         T* operator * () const { return _p; }
         T** operator & () { return &_p; }
+        T** operator ~ () { _free(); return &_p; }
         operator T* () const { return _p; }
         operator bool () const { return _p != nullptr; }
     public:
-        void set(T* p) {
-            if (_p != p) {
+        void set(T* p)
+        {
+            if (_p != p)
+            {
                 _free();
                 _p = p;
                 _add();
             }
         }
-        void rawset(T* p) {
-            if (_p != p) {
+        void rawset(T* p)
+        {
+            if (_p != p)
+            {
                 _free();
                 _p = p;
             }
         }
+        T* get() { return _p; }
+        T** getref() { return &_p; }
         void reset() { _free(); }
-        T* remove() { T* r = _p; _free(); return r; }
+        T* remove() { T* r_ = _p; _free(); return r_; }
+        void swap(Pointer& p) { T* v_ = _p; _p = p._p; p._p = v_; }
         void clear() { _p = nullptr; }
-        void swap(Pointer& p) { T* _tmp = _p; _p = p._p; p._p = _tmp; }
     public:
         Pointer() {}
         Pointer(T* p) : _p(p) { _add(); }

@@ -31,7 +31,7 @@ namespace slow::Graphic
         ComPtr<ID3D11ShaderResourceView> imFontAtlas;
         ComPtr<ID3D11PixelShader>        imPixelShader;
         
-        ComPtr<ID3D11DepthStencilState>  imDepthStencilState;
+        Pointer<IDepthStencilState>      imDepthStencilState;
         Pointer<IBlendState>             imBlendState;
         
         void reset()
@@ -57,7 +57,7 @@ namespace slow::Graphic
             imFontAtlas.Reset();
             imPixelShader.Reset();
             
-            imDepthStencilState.Reset();
+            imDepthStencilState.reset();
             imBlendState.reset();
         };
     };
@@ -129,10 +129,8 @@ namespace slow::Graphic
         }
         
         // depth
-        D3D11_DEPTH_STENCIL_DESC ds_;
-        ZeroMemory(&ds_, sizeof(D3D11_DEPTH_STENCIL_DESC));
-        hr = dev_->CreateDepthStencilState(&ds_, self.imDepthStencilState.ReleaseAndGetAddressOf());
-        if (hr != S_OK)
+        DDepthStencilState ds_;
+        if (!Device::get().createDepthStencilState(ds_, ~self.imDepthStencilState))
         {
             return false;
         }
@@ -144,8 +142,7 @@ namespace slow::Graphic
         blend_.bufferColor = EBlend::InvOutputAlpha;
         blend_.outputAlpha = EBlend::One;
         blend_.bufferAlpha = EBlend::InvOutputAlpha;
-        self.imBlendState.reset();
-        if (!Device::get().createBlendState(blend_, &self.imBlendState))
+        if (!Device::get().createBlendState(blend_, ~self.imBlendState))
         {
             return false;
         }
@@ -402,7 +399,7 @@ namespace slow::Graphic
         ctx_->PSSetShader(self.imPixelShader.Get(), NULL, 0);
         
         // OM
-        ctx_->OMSetDepthStencilState(self.imDepthStencilState.Get(), 0);
+        Device::get().getContext().setDepthStencilState(self.imDepthStencilState);
         Device::get().getContext().setBlendState(self.imBlendState);
         
         // Other

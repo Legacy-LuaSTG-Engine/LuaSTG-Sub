@@ -12,6 +12,7 @@ namespace slow::Graphic
         struct Implement;
         Implement* implememt = nullptr;
     public:
+        void setDepthStencilState(IDepthStencilState* p);
         void setBlendState(IBlendState* p);
         void setBlendFactor(float r = 0.0f, float g = 0.0f, float b = 0.0f, float a = 0.0f);
     private:
@@ -35,6 +36,7 @@ namespace slow::Graphic
         void clearDepthBuffer(float depth = 1.0f, uint8_t stencil = 0u);
         bool updateSwapChain(bool vsync = true);
     public:
+        bool createDepthStencilState(const DDepthStencilState& def, IDepthStencilState** pp);
         bool createBlendState(const DBlendState& def, IBlendState** pp);
     public:
         bool bind(handle_t window);

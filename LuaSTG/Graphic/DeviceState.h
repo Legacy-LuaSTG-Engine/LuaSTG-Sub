@@ -4,6 +4,22 @@
 
 namespace slow::Graphic
 {
+    // common
+    
+    enum class EComparisonFunction
+    {
+        Never        = 1,
+        Less         = 2,
+        Equal        = 3,
+        LessEqual    = 4,
+        Greater      = 5,
+        NotEqual     = 6,
+        GreaterEqual = 7,
+        Always       = 8,
+    };
+    
+    //
+    
     class IInputLayout : public IObject
     {
     };
@@ -16,9 +32,30 @@ namespace slow::Graphic
     {
     };
     
+    // depth stencil state
+    
+    enum class EDepthWriteEnable : uint8_t
+    {
+        None  = 0,
+        All   = 1,
+    };
+    
+    struct DDepthStencilState
+    {
+        uint8_t             depthEnable      = false;
+        EDepthWriteEnable   depthWriteEnable = EDepthWriteEnable::All;
+        EComparisonFunction depthFunction    = EComparisonFunction::Less;
+        uint8_t             _                = 0;
+    };
+    
     class IDepthStencilState : public IObject
     {
+    public:
+        virtual handle_t getHandle() = 0;
+        virtual DDepthStencilState getDefinition() = 0;
     };
+    
+    // blend state
     
     enum class EBlend : uint8_t
     {

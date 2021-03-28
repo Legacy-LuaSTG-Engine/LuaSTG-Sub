@@ -6,6 +6,19 @@
 
 namespace slow::Graphic
 {
+    class DepthStencilState : public Object<IDepthStencilState>
+    {
+    private:
+        ComPtr<ID3D11DepthStencilState> _obj;
+        DDepthStencilState _def;
+    public:
+        handle_t getHandle() { return (handle_t)_obj.Get(); };
+        DDepthStencilState getDefinition() { return _def; };
+    public:
+        DepthStencilState(const DDepthStencilState& d, ID3D11DepthStencilState* p) : _obj(p), _def(d) {};
+        virtual ~DepthStencilState() {};
+    };
+    
     class BlendState : public Object<IBlendState>
     {
     private:

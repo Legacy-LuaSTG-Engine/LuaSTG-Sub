@@ -34,13 +34,15 @@ namespace slow::Graphic
 {
     struct DeviceContext::Implement
     {
-        ComPtr<ID3D11DeviceContext> d3d11DeviceContext;
-        ComPtr<ID3D11BlendState>    d3d11BlendState;
-        FLOAT                       d3d11BlendFactor[4];
+        ComPtr<ID3D11DeviceContext>     d3d11DeviceContext;
+        ComPtr<ID3D11DepthStencilState> d3d11DepthStencilState;
+        ComPtr<ID3D11BlendState>        d3d11BlendState;
+        FLOAT                           d3d11BlendFactor[4];
         
         void reset()
         {
             d3d11DeviceContext.Reset();
+            d3d11DepthStencilState.Reset();
             d3d11BlendState.Reset();
             d3d11BlendFactor[0] = 0.0f;
             d3d11BlendFactor[1] = 0.0f;
@@ -49,6 +51,17 @@ namespace slow::Graphic
         };
     };
     
+    void DeviceContext::setDepthStencilState(IDepthStencilState* p)
+    {
+        if (self.d3d11DepthStencilState.Get() != (ID3D11DepthStencilState*)p->getHandle())
+        {
+            self.d3d11DepthStencilState = (ID3D11DepthStencilState*)p->getHandle();
+            if (self.d3d11DeviceContext)
+            {
+                self.d3d11DeviceContext->OMSetDepthStencilState(self.d3d11DepthStencilState.Get(), 0);
+            }
+        }
+    };
     void DeviceContext::setBlendState(IBlendState* p)
     {
         if (self.d3d11BlendState.Get() != (ID3D11BlendState*)p->getHandle())
@@ -537,34 +550,64 @@ namespace slow::Graphic
 
 namespace slow::Graphic
 {
+    bool Device::createDepthStencilState(const DDepthStencilState& def, IDepthStencilState** pp)
+    {
+        if (!self.d3d11Device)
+        {
+            return false;
+        }
+        D3D11_DEPTH_STENCIL_DESC ds_ = {};
+        ZeroMemory(&ds_, sizeof(D3D11_DEPTH_STENCIL_DESC));
+        ds_.DepthEnable    = def.depthEnable ? TRUE : FALSE;
+        ds_.DepthWriteMask = (D3D11_DEPTH_WRITE_MASK)def.depthWriteEnable;
+        ds_.DepthFunc      = (D3D11_COMPARISON_FUNC)def.depthFunction;
+        ComPtr<ID3D11DepthStencilState> obj_;
+        HRESULT hr = self.d3d11Device->CreateDepthStencilState(&ds_, obj_.GetAddressOf());
+        if (hr != S_OK)
+        {
+            return false;
+        }
+        try
+        {
+            DepthStencilState* iobj_ = new DepthStencilState(def, obj_.Get());
+            *pp = dynamic_cast<IDepthStencilState*>(iobj_);
+            return true;
+        }
+        catch (...)
+        {
+            return false;
+        }
+    };
     bool Device::createBlendState(const DBlendState& def, IBlendState** pp)
     {
         if (!self.d3d11Device)
         {
             return false;
         }
-        D3D11_RENDER_TARGET_BLEND_DESC blend_ = {};
-        blend_.BlendEnable           = def.enable ? TRUE : FALSE;
-        blend_.SrcBlend              = (D3D11_BLEND)def.outputColor;
-        blend_.DestBlend             = (D3D11_BLEND)def.bufferColor;
-        blend_.BlendOp               = (D3D11_BLEND_OP)def.colorOperate;
-        blend_.SrcBlendAlpha         = (D3D11_BLEND)def.outputAlpha;
-        blend_.DestBlendAlpha        = (D3D11_BLEND)def.bufferAlpha;
-        blend_.BlendOpAlpha          = (D3D11_BLEND_OP)def.alphaOperate;
-        blend_.RenderTargetWriteMask = (UINT8)def.writeEnable;
-        D3D11_BLEND_DESC desc_ = {};
-        desc_.AlphaToCoverageEnable  = FALSE;
-        desc_.IndependentBlendEnable = FALSE;
-        desc_.RenderTarget[0] = blend_;
-        desc_.RenderTarget[1] = blend_;
-        desc_.RenderTarget[2] = blend_;
-        desc_.RenderTarget[3] = blend_;
-        desc_.RenderTarget[4] = blend_;
-        desc_.RenderTarget[5] = blend_;
-        desc_.RenderTarget[6] = blend_;
-        desc_.RenderTarget[7] = blend_;
+        D3D11_RENDER_TARGET_BLEND_DESC blend0_ = {};
+        ZeroMemory(&blend0_, sizeof(D3D11_RENDER_TARGET_BLEND_DESC));
+        blend0_.BlendEnable           = def.enable ? TRUE : FALSE;
+        blend0_.SrcBlend              = (D3D11_BLEND)def.outputColor;
+        blend0_.DestBlend             = (D3D11_BLEND)def.bufferColor;
+        blend0_.BlendOp               = (D3D11_BLEND_OP)def.colorOperate;
+        blend0_.SrcBlendAlpha         = (D3D11_BLEND)def.outputAlpha;
+        blend0_.DestBlendAlpha        = (D3D11_BLEND)def.bufferAlpha;
+        blend0_.BlendOpAlpha          = (D3D11_BLEND_OP)def.alphaOperate;
+        blend0_.RenderTargetWriteMask = (UINT8)def.writeEnable;
+        D3D11_BLEND_DESC blend_ = {};
+        ZeroMemory(&blend_, sizeof(D3D11_BLEND_DESC));
+        blend_.AlphaToCoverageEnable  = FALSE;
+        blend_.IndependentBlendEnable = FALSE;
+        blend_.RenderTarget[0] = blend0_;
+        blend_.RenderTarget[1] = blend0_;
+        blend_.RenderTarget[2] = blend0_;
+        blend_.RenderTarget[3] = blend0_;
+        blend_.RenderTarget[4] = blend0_;
+        blend_.RenderTarget[5] = blend0_;
+        blend_.RenderTarget[6] = blend0_;
+        blend_.RenderTarget[7] = blend0_;
         ComPtr<ID3D11BlendState> obj_;
-        HRESULT hr = self.d3d11Device->CreateBlendState(&desc_, obj_.GetAddressOf());
+        HRESULT hr = self.d3d11Device->CreateBlendState(&blend_, obj_.GetAddressOf());
         if (hr != S_OK)
         {
             return false;
