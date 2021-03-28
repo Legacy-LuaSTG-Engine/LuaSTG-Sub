@@ -3,8 +3,8 @@ project(LuaSTGSub)
 
 include(cmake/CheckPlatform.cmake)
 add_compile_definitions(
-    _WIN32_WINNT=1537       # _WIN32_WINNT_WIN7 (0x0601)
-    NTDDI_VERSION=100728832 # NTDDI_WIN7 (0x06010000)
+    _WIN32_WINNT=0x0601       # _WIN32_WINNT_WIN7
+    NTDDI_VERSION=0x06010000  # NTDDI_WIN7
 )
 
 add_subdirectory(prebuild)
