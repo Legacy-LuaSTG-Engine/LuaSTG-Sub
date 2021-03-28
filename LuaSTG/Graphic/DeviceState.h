@@ -28,8 +28,45 @@ namespace slow::Graphic
     {
     };
     
+    // sampler state
+    
+    enum class ETextureFilter : uint8_t
+    {
+        Point        = 0x00,
+        MipLinear    = 0x01,
+        MagLinear    = 0x04,
+        MagMipLinear = 0x05,
+        MinLinear    = 0x10,
+        MinMipLinear = 0x11,
+        MinMagLinear = 0x14,
+        Linear       = 0x15,
+        Anisotropic  = 0x55,
+    };
+    
+    enum class ETextureAddress : uint8_t
+    {
+        Wrap       = 1,
+        Mirror     = 2,
+        Clamp      = 3,
+        Border     = 4,
+        MirrorOnce = 5
+    };
+    
+    struct DSamplerState
+    {
+        ETextureFilter  filter         = ETextureFilter::Linear;
+        ETextureAddress addressU       = ETextureAddress::Clamp;
+        ETextureAddress addressV       = ETextureAddress::Clamp;
+        ETextureAddress addressW       = ETextureAddress::Clamp;
+        uint32_t        maxAnisotropy  = 1;
+        float           borderColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    };
+    
     class ISamplerState : public IObject
     {
+    public:
+        virtual handle_t getHandle() = 0;
+        virtual DSamplerState getDefinition() = 0;
     };
     
     // depth stencil state

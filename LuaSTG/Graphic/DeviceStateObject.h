@@ -6,6 +6,19 @@
 
 namespace slow::Graphic
 {
+    class SamplerState : public Object<ISamplerState>
+    {
+    private:
+        ComPtr<ID3D11SamplerState> _obj;
+        DSamplerState _def;
+    public:
+        handle_t getHandle() { return (handle_t)_obj.Get(); };
+        DSamplerState getDefinition() { return _def; };
+    public:
+        SamplerState(const DSamplerState& d, ID3D11SamplerState* p) : _obj(p), _def(d) {};
+        virtual ~SamplerState() {};
+    };
+    
     class DepthStencilState : public Object<IDepthStencilState>
     {
     private:

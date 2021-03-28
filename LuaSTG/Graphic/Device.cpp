@@ -35,6 +35,9 @@ namespace slow::Graphic
     struct DeviceContext::Implement
     {
         ComPtr<ID3D11DeviceContext>     d3d11DeviceContext;
+        
+        ComPtr<ID3D11SamplerState>      d3d11SamplerStatePS[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
+        
         ComPtr<ID3D11DepthStencilState> d3d11DepthStencilState;
         ComPtr<ID3D11BlendState>        d3d11BlendState;
         FLOAT                           d3d11BlendFactor[4];
@@ -51,6 +54,13 @@ namespace slow::Graphic
         };
     };
     
+    void DeviceContext::setSamplerState(ISamplerState* p)
+    {
+            if (self.d3d11DeviceContext)
+            {
+                
+            }
+    };
     void DeviceContext::setDepthStencilState(IDepthStencilState* p)
     {
         if (self.d3d11DepthStencilState.Get() != (ID3D11DepthStencilState*)p->getHandle())
@@ -550,6 +560,42 @@ namespace slow::Graphic
 
 namespace slow::Graphic
 {
+    bool Device::createSamplerState(const DSamplerState& def, ISamplerState** pp)
+    {
+        if (!self.d3d11Device)
+        {
+            return false;
+        }
+        D3D11_SAMPLER_DESC sampler_ = {};
+        ZeroMemory(&sampler_, sizeof(D3D11_SAMPLER_DESC));
+        sampler_.Filter         = (D3D11_FILTER)def.filter;
+        sampler_.AddressU       = (D3D11_TEXTURE_ADDRESS_MODE)def.addressU;
+        sampler_.AddressV       = (D3D11_TEXTURE_ADDRESS_MODE)def.addressV;
+        sampler_.AddressW       = (D3D11_TEXTURE_ADDRESS_MODE)def.addressW;
+        sampler_.MaxAnisotropy  = def.maxAnisotropy;
+        sampler_.BorderColor[0] = def.borderColor[0];
+        sampler_.BorderColor[1] = def.borderColor[1];
+        sampler_.BorderColor[2] = def.borderColor[2];
+        sampler_.BorderColor[3] = def.borderColor[3];
+        sampler_.MinLOD         = -D3D11_FLOAT32_MAX;
+        sampler_.MaxLOD         = D3D11_FLOAT32_MAX;
+        ComPtr<ID3D11SamplerState> obj_;
+        HRESULT hr = self.d3d11Device->CreateSamplerState(&sampler_, obj_.GetAddressOf());
+        if (hr != S_OK)
+        {
+            return false;
+        }
+        try
+        {
+            SamplerState* iobj_ = new SamplerState(def, obj_.Get());
+            *pp = dynamic_cast<ISamplerState*>(iobj_);
+            return true;
+        }
+        catch (...)
+        {
+            return false;
+        }
+    };
     bool Device::createDepthStencilState(const DDepthStencilState& def, IDepthStencilState** pp)
     {
         if (!self.d3d11Device)

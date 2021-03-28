@@ -65,6 +65,7 @@ target_sources(LuaSTG PRIVATE
     Graphic/Object.h
     Graphic/DeviceState.h
     Graphic/DeviceStateObject.h
+    Graphic/DeviceResource.h
     Graphic/Device.h
     Graphic/Device.cpp
     Graphic/SpriteRenderer.h
