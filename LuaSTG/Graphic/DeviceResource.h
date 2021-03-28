@@ -20,7 +20,6 @@ namespace slow::Graphic
     public:
         virtual EResourceType getType()=0;
         virtual handle_t getHandle()=0;
-        virtual handle_t getViewHandle()=0;
     };
     
     // buffer

@@ -6,7 +6,7 @@ namespace slow::Graphic
 {
     // common
     
-    enum class EComparisonFunction
+    enum class EComparisonFunction : uint8_t
     {
         Never        = 1,
         Less         = 2,
@@ -24,8 +24,38 @@ namespace slow::Graphic
     {
     };
     
+    // rasterizer state
+    
+    enum class EFillMode : uint8_t
+    {
+        WireFrame = 2,
+        Solid     = 3,
+    };
+    
+    enum class ECullMode : uint8_t
+    {
+        None  = 1,
+        Front = 2,
+        Back  = 3,
+    };
+    
+    struct DRasterizerState
+    {
+        EFillMode fillMode               = EFillMode::Solid;
+        ECullMode cullMode               = ECullMode::None;
+        uint8_t   frontCounterClockwise  = false;
+        uint8_t   depthClipEnable        = true;
+        uint8_t   scissorEnable          = true;
+        uint8_t   multiSampleEnable      = false;
+        uint8_t   antialiasingLineEnable = false;
+        uint8_t   _                      = 0;
+    };
+    
     class IRasterizerState : public IObject
     {
+    public:
+        virtual handle_t getHandle() = 0;
+        virtual DRasterizerState getDefinition() = 0;
     };
     
     // sampler state

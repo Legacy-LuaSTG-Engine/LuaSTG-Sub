@@ -2,6 +2,7 @@
 #include <cstdint>
 #include "Graphic/Type.h"
 #include "Graphic/DeviceState.h"
+#include "Graphic/DeviceResource.h"
 
 namespace slow::Graphic
 {
@@ -12,7 +13,8 @@ namespace slow::Graphic
         struct Implement;
         Implement* implememt = nullptr;
     public:
-        void setSamplerState(ISamplerState* p);
+        void setRasterizerState(IRasterizerState* p);
+        void setPixelShaderSampler(uint32_t slot, ISamplerState* p);
         void setDepthStencilState(IDepthStencilState* p);
         void setBlendState(IBlendState* p);
         void setBlendFactor(float r = 0.0f, float g = 0.0f, float b = 0.0f, float a = 0.0f);
@@ -37,9 +39,12 @@ namespace slow::Graphic
         void clearDepthBuffer(float depth = 1.0f, uint8_t stencil = 0u);
         bool updateSwapChain(bool vsync = true);
     public:
+        bool createRasterizerState(const DRasterizerState& def, IRasterizerState** pp);
         bool createSamplerState(const DSamplerState& def, ISamplerState** pp);
         bool createDepthStencilState(const DDepthStencilState& def, IDepthStencilState** pp);
         bool createBlendState(const DBlendState& def, IBlendState** pp);
+    public:
+        bool createTexture2D(const char* path, ITexture2D** pp);
     public:
         bool bind(handle_t window);
         void unbind();

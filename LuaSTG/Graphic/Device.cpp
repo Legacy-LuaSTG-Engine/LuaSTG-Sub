@@ -1,4 +1,5 @@
 #include "Graphic/Device.h"
+#include <cassert>
 #include <string>
 #include <Windows.h>
 #include <wrl.h>
@@ -31,13 +32,22 @@ namespace slow::Graphic {
 namespace slow::Graphic {
     struct DeviceContext::Implement {
         ComPtr<ID3D11DeviceContext> d3d11DeviceContext;
-        //ComPtr<ID3D11SamplerState> d3d11SamplerStatePS[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
+        ComPtr<ID3D11RasterizerState> d3d11RasterizerState;
+        ComPtr<ID3D11SamplerState> d3d11SamplerStatePS[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
         ComPtr<ID3D11DepthStencilState> d3d11DepthStencilState;
         ComPtr<ID3D11BlendState> d3d11BlendState;
         FLOAT d3d11BlendFactor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
         
         void reset() {
             d3d11DeviceContext.Reset();
+            resetState();
+        };
+        
+        void resetState() {
+            d3d11RasterizerState.Reset();
+            for (auto& v : d3d11SamplerStatePS) {
+                v.Reset();
+            }
             d3d11DepthStencilState.Reset();
             d3d11BlendState.Reset();
             d3d11BlendFactor[0] = 0.0f;
@@ -47,9 +57,23 @@ namespace slow::Graphic {
         };
     };
     
-    void DeviceContext::setSamplerState(ISamplerState* p) {
-        if (self.d3d11DeviceContext) {
-            (void) p;
+    void DeviceContext::setRasterizerState(IRasterizerState* p) {
+        if (self.d3d11RasterizerState.Get() != (ID3D11RasterizerState*) p->getHandle()) {
+            self.d3d11RasterizerState = (ID3D11RasterizerState*) p->getHandle();
+            if (self.d3d11DeviceContext) {
+                self.d3d11DeviceContext->RSSetState(self.d3d11RasterizerState.Get());
+            }
+        }
+    }
+    
+    void DeviceContext::setPixelShaderSampler(uint32_t slot, ISamplerState* p) {
+        assert(slot < D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
+        if (self.d3d11SamplerStatePS[slot].Get() != (ID3D11SamplerState*) p->getHandle()) {
+            self.d3d11SamplerStatePS[slot] = (ID3D11SamplerState*) p->getHandle();
+            if (self.d3d11DeviceContext) {
+                ID3D11SamplerState* const sampler_[1] = {self.d3d11SamplerStatePS[slot].Get()};
+                self.d3d11DeviceContext->PSSetSamplers(slot, 1, sampler_);
+            }
         }
     }
     
@@ -186,6 +210,7 @@ namespace slow::Graphic {
         }
         
         // clear
+        self.vContext.implememt->resetState();
         if (self.d3d11DeviceContext) {
             self.d3d11DeviceContext->ClearState();
         }
@@ -295,7 +320,7 @@ namespace slow::Graphic {
         
         if (self.dxgiSwapChain) {
             hr = self.dxgiSwapChain->Present(vsync ? 1 : 0, 0);
-            if (hr != S_OK) {
+            if (hr != S_OK && hr != DXGI_STATUS_OCCLUDED) {
                 return false;
             }
         }
@@ -440,6 +465,13 @@ namespace slow::Graphic {
             }
         }
         
+        // unbind window
+        hr = self.dxgiFactory1->MakeWindowAssociation(self.window, DXGI_MWA_NO_WINDOW_CHANGES | DXGI_MWA_NO_ALT_ENTER |
+                                                                   DXGI_MWA_NO_PRINT_SCREEN);
+        if (hr != S_OK) {
+            return false;
+        }
+        
         // bind context
         self.vContext.implememt->reset();
         self.vContext.implememt->d3d11DeviceContext = self.d3d11DeviceContext;
@@ -505,6 +537,34 @@ namespace slow::Graphic {
 #include "Graphic/DeviceStateObject.h"
 
 namespace slow::Graphic {
+    bool Device::createRasterizerState(const DRasterizerState& def, IRasterizerState** pp) {
+        if (!self.d3d11Device) {
+            return false;
+        }
+        D3D11_RASTERIZER_DESC rs_;
+        ZeroMemory(&rs_, sizeof(D3D11_RASTERIZER_DESC));
+        rs_.FillMode = (D3D11_FILL_MODE) def.fillMode;
+        rs_.CullMode = (D3D11_CULL_MODE) def.cullMode;
+        rs_.FrontCounterClockwise = def.frontCounterClockwise ? TRUE : FALSE;
+        rs_.DepthClipEnable = def.depthClipEnable ? TRUE : FALSE;
+        rs_.ScissorEnable = def.scissorEnable ? TRUE : FALSE;
+        rs_.MultisampleEnable = def.multiSampleEnable ? TRUE : FALSE;
+        rs_.AntialiasedLineEnable = def.antialiasingLineEnable ? TRUE : FALSE;
+        ComPtr<ID3D11RasterizerState> obj_;
+        HRESULT hr = self.d3d11Device->CreateRasterizerState(&rs_, obj_.GetAddressOf());
+        if (hr != S_OK) {
+            return false;
+        }
+        try {
+            auto* iobj_ = new RasterizerState(def, obj_.Get());
+            *pp = dynamic_cast<IRasterizerState*>(iobj_);
+            return true;
+        }
+        catch (...) {
+            return false;
+        }
+    }
+    
     bool Device::createSamplerState(const DSamplerState& def, ISamplerState** pp) {
         if (!self.d3d11Device) {
             return false;
@@ -595,6 +655,71 @@ namespace slow::Graphic {
         try {
             auto* iobj_ = new BlendState(def, obj_.Get());
             *pp = dynamic_cast<IBlendState*>(iobj_);
+            return true;
+        }
+        catch (...) {
+            return false;
+        }
+    }
+}
+
+#include "Graphic/DeviceResourceObject.h"
+#include "WICTextureLoader/WICTextureLoader11.h"
+
+namespace slow::Graphic {
+    inline bool to_wstring(const std::string& u8str, std::wstring& wstr) {
+        const int need_ = ::MultiByteToWideChar(CP_UTF8, 0,
+                                                u8str.c_str(), u8str.length(),
+                                                nullptr, 0);
+        if (need_ < 1) {
+            return false;
+        }
+        wstr.resize(need_);
+        const int cvret_ = ::MultiByteToWideChar(CP_UTF8, 0,
+                                                 u8str.c_str(), u8str.length(),
+                                                 wstr.data(), need_);
+        if (cvret_ < 1) {
+            wstr.clear();
+            return false;
+        }
+        return true;
+    }
+    
+    bool Device::createTexture2D(const char* path, ITexture2D** pp) {
+        if (path == nullptr || pp == nullptr) {
+            return false;
+        }
+        if (!self.d3d11Device) {
+            return false;
+        }
+        std::wstring wpath_;
+        if (!to_wstring(path, wpath_)) {
+            return false;
+        }
+        ComPtr<ID3D11Resource> texres_;
+        ComPtr<ID3D11Texture2D> tex2d_;
+        ComPtr<ID3D11ShaderResourceView> tex2d_srv_;
+        HRESULT hr = DirectX::CreateWICTextureFromFileEx(
+            self.d3d11Device.Get(),
+            wpath_.c_str(),
+            0,
+            D3D11_USAGE_DEFAULT, // D3D11_USAGE_IMMUTABLE ?
+            D3D11_BIND_SHADER_RESOURCE,
+            0,
+            0,
+            0,
+            texres_.GetAddressOf(),
+            tex2d_srv_.GetAddressOf());
+        if (hr != S_OK) {
+            return false;
+        }
+        hr = texres_.As(&tex2d_);
+        if (hr != S_OK) {
+            return false;
+        }
+        try {
+            auto* iobj_ = new Texture2D(tex2d_.Get(), tex2d_srv_.Get());
+            *pp = dynamic_cast<ITexture2D*>(iobj_);
             return true;
         }
         catch (...) {

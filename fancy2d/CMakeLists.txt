@@ -147,7 +147,7 @@ target_link_libraries(fancy2d PRIVATE
     d3d9.lib
     dinput8.lib
     DirectXSDK # must remove it in the future!
-    DirectXToolkit
+    DirectXTex0
     dxgi.lib
     d3d11.lib
     zlib

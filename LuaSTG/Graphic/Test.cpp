@@ -2,6 +2,7 @@
 #include "Graphic/Device.h"
 #include "Graphic/DearImGuiRenderer.h"
 #include "imgui_impl_win32ex.h"
+#include "AppFrame.h"
 
 namespace slow::Graphic
 {
@@ -16,6 +17,9 @@ namespace slow::Graphic
                 return false;
             if (!slow::Graphic::DearImGuiRenderer::get().bind(slow::Graphic::Device::get()))
                 return false;
+            Pointer<ITexture2D> tex_;
+            Device::get().createTexture2D(u8"res/lenna.png", ~tex_);
+            
             _ok = true;
         }
         return true;
@@ -30,6 +34,23 @@ namespace slow::Graphic
     {
         if (_ok)
         {
+            if (ImGui::IsKeyPressed(/*VK_N1*/0x31))
+            {
+                LuaSTGPlus::AppFrame::GetInstance().GetWindow()->SetClientRect(fcyRect(0, 0, 1280, 720));
+                LuaSTGPlus::AppFrame::GetInstance().GetWindow()->MoveToCenter();
+                Device::get().resizeSwapChain(1280, 720);
+            }
+            else if (ImGui::IsKeyPressed(/*VK_N2*/0x32))
+            {
+                LuaSTGPlus::AppFrame::GetInstance().GetWindow()->SetClientRect(fcyRect(0, 0, 2560, 1440));
+                LuaSTGPlus::AppFrame::GetInstance().GetWindow()->MoveToCenter();
+                Device::get().resizeSwapChain(2560, 1440);
+            }
+            else
+            {
+                slow::Graphic::Device::get().autoResizeSwapChain();
+            }
+            
             slow::Graphic::DearImGuiRenderer::get().update();
             ImGui_ImplWin32Ex_NewFrame();
             
@@ -44,7 +65,7 @@ namespace slow::Graphic
     {
         if (_ok)
         {
-            slow::Graphic::Device::get().autoResizeSwapChain();
+            
             slow::Graphic::Device::get().setSwapChain();
             slow::Graphic::Device::get().clearRenderTarget();
             slow::Graphic::Device::get().clearDepthBuffer();

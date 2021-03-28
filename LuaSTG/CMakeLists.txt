@@ -66,6 +66,7 @@ target_sources(LuaSTG PRIVATE
     Graphic/DeviceState.h
     Graphic/DeviceStateObject.h
     Graphic/DeviceResource.h
+    Graphic/DeviceResourceObject.h
     Graphic/Device.h
     Graphic/Device.cpp
     Graphic/SpriteRenderer.h
@@ -81,6 +82,7 @@ target_link_libraries(LuaSTG PRIVATE
     fancylib
     fancy2d
     eyes2d
+    DirectXTex0
     xmath
     luajit
     imgui

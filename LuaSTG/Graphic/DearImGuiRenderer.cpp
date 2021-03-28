@@ -24,8 +24,9 @@ namespace slow::Graphic {
         ComPtr<ID3D11Buffer> imConstantBuffer;
         ComPtr<ID3D11VertexShader> imVertexShader;
         
-        ComPtr<ID3D11RasterizerState> imRasterizerState;
-        ComPtr<ID3D11SamplerState> imSamplerState;
+        Pointer<IRasterizerState> imRasterizerState;
+        
+        Pointer<ISamplerState> imSamplerState;
         ComPtr<ID3D11ShaderResourceView> imFontAtlas;
         ComPtr<ID3D11PixelShader> imPixelShader;
         
@@ -49,8 +50,9 @@ namespace slow::Graphic {
             imConstantBuffer.Reset();
             imVertexShader.Reset();
             
-            imRasterizerState.Reset();
-            imSamplerState.Reset();
+            imRasterizerState.reset();
+            
+            imSamplerState.reset();
             imFontAtlas.Reset();
             imPixelShader.Reset();
             
@@ -97,26 +99,16 @@ namespace slow::Graphic {
         }
         
         // rasterizer
-        D3D11_RASTERIZER_DESC rs_;
-        ZeroMemory(&rs_, sizeof(D3D11_RASTERIZER_DESC));
-        rs_.FillMode = D3D11_FILL_SOLID;
-        rs_.CullMode = D3D11_CULL_NONE;
-        rs_.DepthClipEnable = TRUE;
-        rs_.ScissorEnable = TRUE;
-        hr = dev_->CreateRasterizerState(&rs_, self.imRasterizerState.ReleaseAndGetAddressOf());
-        if (hr != S_OK) {
+        DRasterizerState rs_;
+        if (!Device::get().createRasterizerState(rs_, ~self.imRasterizerState)) {
             return false;
         }
         
-        D3D11_SAMPLER_DESC samp_;
-        ZeroMemory(&samp_, sizeof(D3D11_SAMPLER_DESC));
-        samp_.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-        samp_.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-        samp_.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-        samp_.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-        samp_.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-        hr = dev_->CreateSamplerState(&samp_, self.imSamplerState.ReleaseAndGetAddressOf());
-        if (hr != S_OK) {
+        // sampler
+        DSamplerState samp_;
+        samp_.filter = ETextureFilter::Linear;
+        samp_.addressU = samp_.addressV = samp_.addressW = ETextureAddress::Clamp;
+        if (!Device::get().createSamplerState(samp_, ~self.imSamplerState)) {
             return false;
         }
         
@@ -354,22 +346,15 @@ namespace slow::Graphic {
             }
         };
         ctx_->RSSetViewports(1, vp_);
-        ctx_->RSSetState(self.imRasterizerState.Get());
+        Device::get().getContext().setRasterizerState(*self.imRasterizerState);
         
         // PS
-        ID3D11SamplerState* const sampler_[1] = {self.imSamplerState.Get()};
-        ctx_->PSSetSamplers(0, 1, sampler_);
+        Device::get().getContext().setPixelShaderSampler(0, *self.imSamplerState);
         ctx_->PSSetShader(self.imPixelShader.Get(), nullptr, 0);
         
         // OM
         Device::get().getContext().setDepthStencilState(*self.imDepthStencilState);
         Device::get().getContext().setBlendState(*self.imBlendState);
-        
-        // Other
-        ctx_->GSSetShader(nullptr, nullptr, 0);
-        ctx_->HSSetShader(nullptr, nullptr, 0);
-        ctx_->DSSetShader(nullptr, nullptr, 0);
-        ctx_->CSSetShader(nullptr, nullptr, 0);
     }
     
     void DearImGuiRenderer::draw() {
