@@ -24,4 +24,4 @@ namespace slow::Graphic
         ~DearImGuiRenderer();
         static DearImGuiRenderer& get();
     };
-};
+}

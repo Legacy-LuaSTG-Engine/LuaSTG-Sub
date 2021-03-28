@@ -1,18 +1,16 @@
 #include "Graphic/Device.h"
 #include <string>
 #include <Windows.h>
-#include <VersionHelpers.h>
 #include <wrl.h>
 #include <dxgi1_6.h>
 #include <d3d11_4.h>
 
-namespace slow::Graphic
-{
-    using f_CreateDXGIFactory1 = HRESULT (WINAPI *)(
+namespace slow::Graphic {
+    using f_CreateDXGIFactory1 = HRESULT (WINAPI*)(
         REFIID riid,
         void** ppFactory
     );
-    using f_D3D11CreateDevice = HRESULT (WINAPI *)(
+    using f_D3D11CreateDevice = HRESULT (WINAPI*)(
         IDXGIAdapter* pAdapter,
         D3D_DRIVER_TYPE DriverType,
         HMODULE Software,
@@ -30,20 +28,15 @@ namespace slow::Graphic
 
 #define self (*implememt)
 
-namespace slow::Graphic
-{
-    struct DeviceContext::Implement
-    {
-        ComPtr<ID3D11DeviceContext>     d3d11DeviceContext;
-        
-        ComPtr<ID3D11SamplerState>      d3d11SamplerStatePS[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
-        
+namespace slow::Graphic {
+    struct DeviceContext::Implement {
+        ComPtr<ID3D11DeviceContext> d3d11DeviceContext;
+        //ComPtr<ID3D11SamplerState> d3d11SamplerStatePS[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
         ComPtr<ID3D11DepthStencilState> d3d11DepthStencilState;
-        ComPtr<ID3D11BlendState>        d3d11BlendState;
-        FLOAT                           d3d11BlendFactor[4];
+        ComPtr<ID3D11BlendState> d3d11BlendState;
+        FLOAT d3d11BlendFactor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
         
-        void reset()
-        {
+        void reset() {
             d3d11DeviceContext.Reset();
             d3d11DepthStencilState.Reset();
             d3d11BlendState.Reset();
@@ -54,111 +47,96 @@ namespace slow::Graphic
         };
     };
     
-    void DeviceContext::setSamplerState(ISamplerState* p)
-    {
-            if (self.d3d11DeviceContext)
-            {
-                
-            }
-    };
-    void DeviceContext::setDepthStencilState(IDepthStencilState* p)
-    {
-        if (self.d3d11DepthStencilState.Get() != (ID3D11DepthStencilState*)p->getHandle())
-        {
-            self.d3d11DepthStencilState = (ID3D11DepthStencilState*)p->getHandle();
-            if (self.d3d11DeviceContext)
-            {
+    void DeviceContext::setSamplerState(ISamplerState* p) {
+        if (self.d3d11DeviceContext) {
+            (void) p;
+        }
+    }
+    
+    void DeviceContext::setDepthStencilState(IDepthStencilState* p) {
+        if (self.d3d11DepthStencilState.Get() != (ID3D11DepthStencilState*) p->getHandle()) {
+            self.d3d11DepthStencilState = (ID3D11DepthStencilState*) p->getHandle();
+            if (self.d3d11DeviceContext) {
                 self.d3d11DeviceContext->OMSetDepthStencilState(self.d3d11DepthStencilState.Get(), 0);
             }
         }
-    };
-    void DeviceContext::setBlendState(IBlendState* p)
-    {
-        if (self.d3d11BlendState.Get() != (ID3D11BlendState*)p->getHandle())
-        {
-            self.d3d11BlendState = (ID3D11BlendState*)p->getHandle();
-            if (self.d3d11DeviceContext)
-            {
+    }
+    
+    void DeviceContext::setBlendState(IBlendState* p) {
+        if (self.d3d11BlendState.Get() != (ID3D11BlendState*) p->getHandle()) {
+            self.d3d11BlendState = (ID3D11BlendState*) p->getHandle();
+            if (self.d3d11DeviceContext) {
                 self.d3d11DeviceContext->OMSetBlendState(self.d3d11BlendState.Get(), self.d3d11BlendFactor, 0xFFFFFFFF);
             }
         }
-    };
-    void DeviceContext::setBlendFactor(float r, float g, float b, float a)
-    {
+    }
+    
+    void DeviceContext::setBlendFactor(float r, float g, float b, float a) {
         if (self.d3d11BlendFactor[0] != r ||
             self.d3d11BlendFactor[1] != g ||
             self.d3d11BlendFactor[2] != b ||
-            self.d3d11BlendFactor[3] != a)
-        {
+            self.d3d11BlendFactor[3] != a) {
             self.d3d11BlendFactor[0] = r;
             self.d3d11BlendFactor[1] = g;
             self.d3d11BlendFactor[2] = b;
             self.d3d11BlendFactor[3] = a;
-            if (self.d3d11DeviceContext)
-            {
+            if (self.d3d11DeviceContext) {
                 self.d3d11DeviceContext->OMSetBlendState(self.d3d11BlendState.Get(), self.d3d11BlendFactor, 0xFFFFFFFF);
             }
         }
-    };
+    }
     
-    DeviceContext::DeviceContext()
-    {
+    DeviceContext::DeviceContext() {
         implememt = new Implement;
-    };
-    DeviceContext::~DeviceContext()
-    {
+    }
+    
+    DeviceContext::~DeviceContext() {
         delete implememt;
-    };
-};
+    }
+}
 
-namespace slow::Graphic
-{
-    struct Device::Implement
-    {
+namespace slow::Graphic {
+    struct Device::Implement {
         // window
-        HWND                           window             = NULL;
+        HWND window = nullptr;
         // dll
-        HMODULE                        dxgi               = NULL;
-        HMODULE                        d3d11              = NULL;
-        f_CreateDXGIFactory1           CreateDXGIFactory1 = NULL;
-        f_D3D11CreateDevice            D3D11CreateDevice  = NULL;
+        HMODULE dxgi = nullptr;
+        HMODULE d3d11 = nullptr;
+        f_CreateDXGIFactory1 CreateDXGIFactory1 = nullptr;
+        f_D3D11CreateDevice D3D11CreateDevice = nullptr;
         // DXGI
-        ComPtr<IDXGIFactory1>          dxgiFactory1;
-        ComPtr<IDXGIFactory2>          dxgiFactory2;
-        ComPtr<IDXGISwapChain>         dxgiSwapChain;
-        ComPtr<IDXGISwapChain1>        dxgiSwapChain1;
+        ComPtr<IDXGIFactory1> dxgiFactory1;
+        ComPtr<IDXGIFactory2> dxgiFactory2;
+        ComPtr<IDXGISwapChain> dxgiSwapChain;
+        ComPtr<IDXGISwapChain1> dxgiSwapChain1;
         // Direct3D11
-        ComPtr<ID3D11Device>           d3d11Device;
-        ComPtr<ID3D11Device1>          d3d11Device1;
-        ComPtr<ID3D11DeviceContext>    d3d11DeviceContext;
-        ComPtr<ID3D11DeviceContext1>   d3d11DeviceContext1;
+        ComPtr<ID3D11Device> d3d11Device;
+        ComPtr<ID3D11Device1> d3d11Device1;
+        ComPtr<ID3D11DeviceContext> d3d11DeviceContext;
+        ComPtr<ID3D11DeviceContext1> d3d11DeviceContext1;
         ComPtr<ID3D11RenderTargetView> d3d11BackBuffer;
         ComPtr<ID3D11DepthStencilView> d3d11DepthStencil;
         // class
-        DeviceContext                  vContext;
+        DeviceContext vContext;
     };
     
-    handle_t Device::getHandle()
-    {
-        return (handle_t)self.d3d11Device.Get();
-    };
-    DeviceContext& Device::getContext()
-    {
+    handle_t Device::getHandle() {
+        return (handle_t) self.d3d11Device.Get();
+    }
+    
+    DeviceContext& Device::getContext() {
         return self.vContext;
-    };
+    }
     
-    bool Device::autoResizeSwapChain()
-    {
+    bool Device::autoResizeSwapChain() {
         // check
-        if (!self.dxgiSwapChain)
-        {
+        if (!self.dxgiSwapChain) {
             return false;
         }
         
         // get window size
         RECT rect_ = {};
-        if (FALSE == ::GetClientRect(self.window, &rect_))
-        {
+        if (FALSE == ::GetClientRect(self.window, &rect_)) {
             return false;
         }
         UINT new_width_ = rect_.right - rect_.left;
@@ -166,28 +144,24 @@ namespace slow::Graphic
         new_width_ = (new_width_ > 0) ? new_width_ : 1;
         new_height_ = (new_height_ > 0) ? new_height_ : 1;
         
-        HRESULT hr = 0;
+        HRESULT hr;
         
         // get size
-        UINT old_width_ = 0;
-        UINT old_height_ = 0;
-        if (self.dxgiSwapChain1)
-        {
+        UINT old_width_;
+        UINT old_height_;
+        if (self.dxgiSwapChain1) {
             DXGI_SWAP_CHAIN_DESC1 lastinfo_ = {};
             hr = self.dxgiSwapChain1->GetDesc1(&lastinfo_);
-            if (hr != S_OK)
-            {
+            if (hr != S_OK) {
                 return false;
             }
             old_width_ = lastinfo_.Width;
             old_height_ = lastinfo_.Height;
         }
-        else
-        {
+        else {
             DXGI_SWAP_CHAIN_DESC lastinfo_ = {};
             hr = self.dxgiSwapChain->GetDesc(&lastinfo_);
-            if (hr != S_OK)
-            {
+            if (hr != S_OK) {
                 return false;
             }
             old_width_ = lastinfo_.BufferDesc.Width;
@@ -195,61 +169,53 @@ namespace slow::Graphic
         }
         
         // resize
-        if (new_width_ != old_width_ || new_height_ != old_height_)
-        {
+        if (new_width_ != old_width_ || new_height_ != old_height_) {
             return resizeSwapChain(new_width_, new_height_);
         }
         
         return true;
-    };
-    bool Device::resizeSwapChain(uint32_t width, uint32_t height)
-    {
+    }
+    
+    bool Device::resizeSwapChain(uint32_t width, uint32_t height) {
         // check
-        if (width == 0 || height == 0)
-        {
+        if (width == 0 || height == 0) {
             return false;
         }
-        if (!self.dxgiSwapChain)
-        {
+        if (!self.dxgiSwapChain) {
             return false;
         }
         
         // clear
-        if (self.d3d11DeviceContext)
-        {
+        if (self.d3d11DeviceContext) {
             self.d3d11DeviceContext->ClearState();
         }
         self.d3d11BackBuffer.Reset();
         self.d3d11DepthStencil.Reset();
         
-        HRESULT hr = 0;
+        HRESULT hr;
         
         // resize
-        if (self.dxgiSwapChain1)
-        {
+        if (self.dxgiSwapChain1) {
             DXGI_SWAP_CHAIN_DESC1 lastinfo_ = {};
             hr = self.dxgiSwapChain1->GetDesc1(&lastinfo_);
-            if (hr != S_OK)
-            {
+            if (hr != S_OK) {
                 return false;
             }
-            hr = self.dxgiSwapChain1->ResizeBuffers(lastinfo_.BufferCount, width, height, lastinfo_.Format, lastinfo_.Flags);
-            if (hr != S_OK)
-            {
+            hr = self.dxgiSwapChain1->ResizeBuffers(lastinfo_.BufferCount, width, height, lastinfo_.Format,
+                                                    lastinfo_.Flags);
+            if (hr != S_OK) {
                 return false;
             }
         }
-        else
-        {
+        else {
             DXGI_SWAP_CHAIN_DESC lastinfo_ = {};
             hr = self.dxgiSwapChain->GetDesc(&lastinfo_);
-            if (hr != S_OK)
-            {
+            if (hr != S_OK) {
                 return false;
             }
-            hr = self.dxgiSwapChain->ResizeBuffers(lastinfo_.BufferCount, width, height, lastinfo_.BufferDesc.Format, lastinfo_.Flags);
-            if (hr != S_OK)
-            {
+            hr = self.dxgiSwapChain->ResizeBuffers(lastinfo_.BufferCount, width, height, lastinfo_.BufferDesc.Format,
+                                                   lastinfo_.Flags);
+            if (hr != S_OK) {
                 return false;
             }
         }
@@ -257,19 +223,18 @@ namespace slow::Graphic
         // create backbuffer
         Microsoft::WRL::ComPtr<ID3D11Texture2D> backbuffer_;
         hr = self.dxgiSwapChain->GetBuffer(0, IID_PPV_ARGS(backbuffer_.GetAddressOf()));
-        if (hr != S_OK)
-        {
+        if (hr != S_OK) {
             return false;
         }
-        hr = self.d3d11Device->CreateRenderTargetView(backbuffer_.Get(), NULL, self.d3d11BackBuffer.GetAddressOf());
-        if (hr != S_OK)
-        {
+        hr = self.d3d11Device->CreateRenderTargetView(backbuffer_.Get(), nullptr, self.d3d11BackBuffer.GetAddressOf());
+        if (hr != S_OK) {
             return false;
         }
         
         // create depth stencil
         Microsoft::WRL::ComPtr<ID3D11Texture2D> dsbuffer_;
-        D3D11_TEXTURE2D_DESC dsinfo_ = {}; {
+        D3D11_TEXTURE2D_DESC dsinfo_ = {};
+        {
             dsinfo_.Width = width;
             dsinfo_.Height = height;
             dsinfo_.MipLevels = 1;
@@ -281,129 +246,115 @@ namespace slow::Graphic
             dsinfo_.BindFlags = D3D11_BIND_DEPTH_STENCIL;
             dsinfo_.CPUAccessFlags = 0;
             dsinfo_.MiscFlags = 0;
-        };
-        hr = self.d3d11Device->CreateTexture2D(&dsinfo_, NULL, dsbuffer_.GetAddressOf());
-        if (hr != S_OK)
-        {
+        }
+        hr = self.d3d11Device->CreateTexture2D(&dsinfo_, nullptr, dsbuffer_.GetAddressOf());
+        if (hr != S_OK) {
             return false;
         }
-        hr = self.d3d11Device->CreateDepthStencilView(dsbuffer_.Get(), NULL, self.d3d11DepthStencil.GetAddressOf());
-        if (hr != S_OK)
-        {
+        hr = self.d3d11Device->CreateDepthStencilView(dsbuffer_.Get(), nullptr, self.d3d11DepthStencil.GetAddressOf());
+        if (hr != S_OK) {
             return false;
         }
         
         return true;
-    };
-    void Device::setSwapChain()
-    {
-        if (self.d3d11DeviceContext)
-        {
-            ID3D11RenderTargetView* const rts_[1] = { self.d3d11BackBuffer.Get() };
+    }
+    
+    void Device::setSwapChain() {
+        if (self.d3d11DeviceContext) {
+            ID3D11RenderTargetView* const rts_[1] = {self.d3d11BackBuffer.Get()};
             self.d3d11DeviceContext->OMSetRenderTargets(1, rts_, self.d3d11DepthStencil.Get());
         }
-    };
-    void Device::clearRenderTarget(float r, float g, float b, float a)
-    {
-        if (self.d3d11DeviceContext)
-        {
-            ID3D11RenderTargetView* rts_[1] = { NULL };
-            self.d3d11DeviceContext->OMGetRenderTargets(1, rts_, NULL);
-            if (rts_[0])
-            {
-                const FLOAT color_[4] = { r, g, b, a };
+    }
+    
+    void Device::clearRenderTarget(float r, float g, float b, float a) {
+        if (self.d3d11DeviceContext) {
+            ID3D11RenderTargetView* rts_[1] = {nullptr};
+            self.d3d11DeviceContext->OMGetRenderTargets(1, rts_, nullptr);
+            if (rts_[0]) {
+                const FLOAT color_[4] = {r, g, b, a};
                 self.d3d11DeviceContext->ClearRenderTargetView(rts_[0], color_);
                 rts_[0]->Release();
             }
         }
     }
-    void Device::clearDepthBuffer(float depth, uint8_t stencil)
-    {
-        if (self.d3d11DeviceContext)
-        {
-            ID3D11DepthStencilView* ds_ = NULL;
-            self.d3d11DeviceContext->OMGetRenderTargets(0, NULL, &ds_);
-            if (ds_)
-            {
-                self.d3d11DeviceContext->ClearDepthStencilView(ds_, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, depth, stencil);
+    
+    void Device::clearDepthBuffer(float depth, uint8_t stencil) {
+        if (self.d3d11DeviceContext) {
+            ID3D11DepthStencilView* ds_ = nullptr;
+            self.d3d11DeviceContext->OMGetRenderTargets(0, nullptr, &ds_);
+            if (ds_) {
+                self.d3d11DeviceContext->ClearDepthStencilView(ds_, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, depth,
+                                                               stencil);
                 ds_->Release();
             }
         }
     }
-    bool Device::updateSwapChain(bool vsync)
-    {
-        HRESULT hr = 0;
+    
+    bool Device::updateSwapChain(bool vsync) {
+        HRESULT hr;
         
-        if (self.dxgiSwapChain)
-        {
+        if (self.dxgiSwapChain) {
             hr = self.dxgiSwapChain->Present(vsync ? 1 : 0, 0);
-            if (hr != S_OK)
-            {
+            if (hr != S_OK) {
                 return false;
             }
         }
-        else
-        {
+        else {
             // no swap chain
             return false;
         }
         
         return true;
-    };
+    }
     
-    bool Device::bind(handle_t window)
-    {
+    bool Device::bind(handle_t window) {
         unbind();
         
         // setup window
-        self.window = (HWND)window;
+        self.window = (HWND) window;
         
         // load module
         self.dxgi = ::LoadLibraryW(L"dxgi.dll");
         self.d3d11 = ::LoadLibraryW(L"d3d11.dll");
-        if (self.dxgi == NULL || self.d3d11 == NULL)
-        {
+        if (self.dxgi == nullptr || self.d3d11 == nullptr) {
             return false;
         }
-        self.CreateDXGIFactory1 = (f_CreateDXGIFactory1)::GetProcAddress(self.dxgi, "CreateDXGIFactory1");
-        self.D3D11CreateDevice = (f_D3D11CreateDevice)::GetProcAddress(self.d3d11, "D3D11CreateDevice");
-        if (self.CreateDXGIFactory1 == NULL || self.D3D11CreateDevice == NULL)
-        {
+        self.CreateDXGIFactory1 = (f_CreateDXGIFactory1) ::GetProcAddress(self.dxgi, "CreateDXGIFactory1");
+        self.D3D11CreateDevice = (f_D3D11CreateDevice) ::GetProcAddress(self.d3d11, "D3D11CreateDevice");
+        if (self.CreateDXGIFactory1 == nullptr || self.D3D11CreateDevice == nullptr) {
             return false;
         }
         
-        HRESULT hr = 0;
+        HRESULT hr;
         
         // create dxgi
         hr = self.CreateDXGIFactory1(IID_PPV_ARGS(self.dxgiFactory1.GetAddressOf()));
-        if (hr != S_OK)
-        {
+        if (hr != S_OK) {
             return false;
         }
         self.dxgiFactory1.As(&self.dxgiFactory2);
         ComPtr<IDXGIAdapter1> dxgiAdapter1_;
         ComPtr<IDXGIFactory6> dxgiFactory6_;
         self.dxgiFactory1.As(&dxgiFactory6_);
-        if (dxgiFactory6_)
-        {
-            dxgiFactory6_->EnumAdapterByGpuPreference(0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(dxgiAdapter1_.GetAddressOf()));
+        if (dxgiFactory6_) {
+            dxgiFactory6_->EnumAdapterByGpuPreference(0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE,
+                                                      IID_PPV_ARGS(dxgiAdapter1_.GetAddressOf()));
         }
-        if (!dxgiAdapter1_)
-        {
+        if (!dxgiAdapter1_) {
             hr = self.dxgiFactory1->EnumAdapters1(0, dxgiAdapter1_.GetAddressOf());
-            if (hr != S_OK)
-            {
+            if (hr != S_OK) {
                 return false;
             }
         }
-        if (true)
         {
             DXGI_ADAPTER_DESC1 desc_ = {};
             hr = dxgiAdapter1_->GetDesc1(&desc_);
-            std::wstring msg = L"current adapter: ";
-                        msg += desc_.Description;
-                        msg += L"\n";
-            ::OutputDebugStringW(msg.c_str());
+            if (hr == S_OK) {
+                std::wstring msg = L"current adapter: ";
+                msg += desc_.Description;
+                msg += L"\n";
+                ::OutputDebugStringW(msg.c_str());
+            }
         }
         
         // create d3d11
@@ -419,17 +370,15 @@ namespace slow::Graphic
         };
         D3D_FEATURE_LEVEL feature_level_ = D3D_FEATURE_LEVEL_9_1;
         hr = self.D3D11CreateDevice(
-            dxgiAdapter1_.Get(), D3D_DRIVER_TYPE_UNKNOWN, NULL,
+            dxgiAdapter1_.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr,
             d3d11Flags_, target_levels_, 4, D3D11_SDK_VERSION,
             self.d3d11Device.GetAddressOf(), &feature_level_, self.d3d11DeviceContext.GetAddressOf());
-        if (hr != S_OK)
-        {
+        if (hr != S_OK) {
             hr = self.D3D11CreateDevice(
-                dxgiAdapter1_.Get(), D3D_DRIVER_TYPE_UNKNOWN, NULL,
+                dxgiAdapter1_.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr,
                 d3d11Flags_, target_levels_ + 1, 3, D3D11_SDK_VERSION,
                 self.d3d11Device.GetAddressOf(), &feature_level_, self.d3d11DeviceContext.GetAddressOf());
-            if (hr != S_OK)
-            {
+            if (hr != S_OK) {
                 return false;
             }
         }
@@ -437,9 +386,9 @@ namespace slow::Graphic
         self.d3d11DeviceContext.As(&self.d3d11DeviceContext1);
         
         // create swapchain
-        if (self.dxgiFactory2 && self.d3d11Device1 && self.d3d11DeviceContext1)
-        {
-            DXGI_SWAP_CHAIN_DESC1 scinfo_ = {}; {
+        if (self.dxgiFactory2 && self.d3d11Device1 && self.d3d11DeviceContext1) {
+            DXGI_SWAP_CHAIN_DESC1 scinfo_ = {};
+            {
                 scinfo_.Width = 1;
                 scinfo_.Height = 1;
                 scinfo_.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
@@ -454,20 +403,20 @@ namespace slow::Graphic
                 scinfo_.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
                 //scinfo_.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
                 //scinfo_.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-            };
-            hr = self.dxgiFactory2->CreateSwapChainForHwnd(self.d3d11Device1.Get(), self.window, &scinfo_, NULL, NULL, self.dxgiSwapChain1.GetAddressOf());
-            if (hr == S_OK)
-            {
+            }
+            hr = self.dxgiFactory2->CreateSwapChainForHwnd(self.d3d11Device1.Get(), self.window, &scinfo_, nullptr,
+                                                           nullptr,
+                                                           self.dxgiSwapChain1.GetAddressOf());
+            if (hr == S_OK) {
                 hr = self.dxgiSwapChain1.As(&self.dxgiSwapChain);
-                if (hr != S_OK)
-                {
+                if (hr != S_OK) {
                     self.dxgiSwapChain1.Reset(); // error?
                 }
             }
         }
-        if (!self.dxgiSwapChain)
-        {
-            DXGI_SWAP_CHAIN_DESC scinfo_ = {}; {
+        if (!self.dxgiSwapChain) {
+            DXGI_SWAP_CHAIN_DESC scinfo_ = {};
+            {
                 scinfo_.BufferDesc.Width = 1;
                 scinfo_.BufferDesc.Height = 1;
                 scinfo_.BufferDesc.RefreshRate.Numerator = 0;
@@ -483,10 +432,10 @@ namespace slow::Graphic
                 scinfo_.Windowed = TRUE;
                 scinfo_.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
                 scinfo_.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-            };
-            hr = self.dxgiFactory1->CreateSwapChain(self.d3d11Device.Get(), &scinfo_, self.dxgiSwapChain.GetAddressOf());
-            if (hr != S_OK)
-            {
+            }
+            hr = self.dxgiFactory1->CreateSwapChain(self.d3d11Device.Get(), &scinfo_,
+                                                    self.dxgiSwapChain.GetAddressOf());
+            if (hr != S_OK) {
                 return false;
             }
         }
@@ -496,15 +445,14 @@ namespace slow::Graphic
         self.vContext.implememt->d3d11DeviceContext = self.d3d11DeviceContext;
         
         return true;
-    };
-    void Device::unbind()
-    {
+    }
+    
+    void Device::unbind() {
         // unbind context
         self.vContext.implememt->reset();
         
         // destroy swapchain
-        if (self.d3d11DeviceContext)
-        {
+        if (self.d3d11DeviceContext) {
             self.d3d11DeviceContext->ClearState();
         }
         self.d3d11BackBuffer.Reset();
@@ -523,126 +471,113 @@ namespace slow::Graphic
         // dll
         if (self.dxgi) ::FreeLibrary(self.dxgi);
         if (self.d3d11) ::FreeLibrary(self.d3d11);
-        self.dxgi = NULL;
-        self.d3d11 = NULL;
-        self.CreateDXGIFactory1 = NULL;
-        self.D3D11CreateDevice = NULL;
+        self.dxgi = nullptr;
+        self.d3d11 = nullptr;
+        self.CreateDXGIFactory1 = nullptr;
+        self.D3D11CreateDevice = nullptr;
         
         // window
-        self.window = NULL;
-    };
-    bool Device::validate()
-    {
-        if (!self.d3d11Device || !self.d3d11DeviceContext || !self.dxgiSwapChain)
-        {
+        self.window = nullptr;
+    }
+    
+    bool Device::validate() {
+        if (!self.d3d11Device || !self.d3d11DeviceContext || !self.dxgiSwapChain) {
             return false;
         }
         return true;
-    };
+    }
     
-    Device::Device()
-    {
+    Device::Device() {
         implememt = new Implement;
-    };
-    Device::~Device()
-    {
+    }
+    
+    Device::~Device() {
         unbind();
         delete implememt;
-    };
-    Device& Device::get()
-    {
+    }
+    
+    Device& Device::get() {
         static Device instance;
         return instance;
-    };
-};
+    }
+}
 
 #include "Graphic/DeviceStateObject.h"
 
-namespace slow::Graphic
-{
-    bool Device::createSamplerState(const DSamplerState& def, ISamplerState** pp)
-    {
-        if (!self.d3d11Device)
-        {
+namespace slow::Graphic {
+    bool Device::createSamplerState(const DSamplerState& def, ISamplerState** pp) {
+        if (!self.d3d11Device) {
             return false;
         }
         D3D11_SAMPLER_DESC sampler_ = {};
         ZeroMemory(&sampler_, sizeof(D3D11_SAMPLER_DESC));
-        sampler_.Filter         = (D3D11_FILTER)def.filter;
-        sampler_.AddressU       = (D3D11_TEXTURE_ADDRESS_MODE)def.addressU;
-        sampler_.AddressV       = (D3D11_TEXTURE_ADDRESS_MODE)def.addressV;
-        sampler_.AddressW       = (D3D11_TEXTURE_ADDRESS_MODE)def.addressW;
-        sampler_.MaxAnisotropy  = def.maxAnisotropy;
+        sampler_.Filter = (D3D11_FILTER) def.filter;
+        sampler_.AddressU = (D3D11_TEXTURE_ADDRESS_MODE) def.addressU;
+        sampler_.AddressV = (D3D11_TEXTURE_ADDRESS_MODE) def.addressV;
+        sampler_.AddressW = (D3D11_TEXTURE_ADDRESS_MODE) def.addressW;
+        sampler_.MaxAnisotropy = def.maxAnisotropy;
         sampler_.BorderColor[0] = def.borderColor[0];
         sampler_.BorderColor[1] = def.borderColor[1];
         sampler_.BorderColor[2] = def.borderColor[2];
         sampler_.BorderColor[3] = def.borderColor[3];
-        sampler_.MinLOD         = -D3D11_FLOAT32_MAX;
-        sampler_.MaxLOD         = D3D11_FLOAT32_MAX;
+        sampler_.MinLOD = -D3D11_FLOAT32_MAX;
+        sampler_.MaxLOD = D3D11_FLOAT32_MAX;
         ComPtr<ID3D11SamplerState> obj_;
         HRESULT hr = self.d3d11Device->CreateSamplerState(&sampler_, obj_.GetAddressOf());
-        if (hr != S_OK)
-        {
+        if (hr != S_OK) {
             return false;
         }
-        try
-        {
-            SamplerState* iobj_ = new SamplerState(def, obj_.Get());
+        try {
+            auto* iobj_ = new SamplerState(def, obj_.Get());
             *pp = dynamic_cast<ISamplerState*>(iobj_);
             return true;
         }
-        catch (...)
-        {
+        catch (...) {
             return false;
         }
-    };
-    bool Device::createDepthStencilState(const DDepthStencilState& def, IDepthStencilState** pp)
-    {
-        if (!self.d3d11Device)
-        {
+    }
+    
+    bool Device::createDepthStencilState(const DDepthStencilState& def, IDepthStencilState** pp) {
+        if (!self.d3d11Device) {
             return false;
         }
         D3D11_DEPTH_STENCIL_DESC ds_ = {};
         ZeroMemory(&ds_, sizeof(D3D11_DEPTH_STENCIL_DESC));
-        ds_.DepthEnable    = def.depthEnable ? TRUE : FALSE;
-        ds_.DepthWriteMask = (D3D11_DEPTH_WRITE_MASK)def.depthWriteEnable;
-        ds_.DepthFunc      = (D3D11_COMPARISON_FUNC)def.depthFunction;
+        ds_.DepthEnable = def.depthEnable ? TRUE : FALSE;
+        ds_.DepthWriteMask = (D3D11_DEPTH_WRITE_MASK) def.depthWriteEnable;
+        ds_.DepthFunc = (D3D11_COMPARISON_FUNC) def.depthFunction;
         ComPtr<ID3D11DepthStencilState> obj_;
         HRESULT hr = self.d3d11Device->CreateDepthStencilState(&ds_, obj_.GetAddressOf());
-        if (hr != S_OK)
-        {
+        if (hr != S_OK) {
             return false;
         }
-        try
-        {
-            DepthStencilState* iobj_ = new DepthStencilState(def, obj_.Get());
+        try {
+            auto* iobj_ = new DepthStencilState(def, obj_.Get());
             *pp = dynamic_cast<IDepthStencilState*>(iobj_);
             return true;
         }
-        catch (...)
-        {
+        catch (...) {
             return false;
         }
-    };
-    bool Device::createBlendState(const DBlendState& def, IBlendState** pp)
-    {
-        if (!self.d3d11Device)
-        {
+    }
+    
+    bool Device::createBlendState(const DBlendState& def, IBlendState** pp) {
+        if (!self.d3d11Device) {
             return false;
         }
         D3D11_RENDER_TARGET_BLEND_DESC blend0_ = {};
         ZeroMemory(&blend0_, sizeof(D3D11_RENDER_TARGET_BLEND_DESC));
-        blend0_.BlendEnable           = def.enable ? TRUE : FALSE;
-        blend0_.SrcBlend              = (D3D11_BLEND)def.outputColor;
-        blend0_.DestBlend             = (D3D11_BLEND)def.bufferColor;
-        blend0_.BlendOp               = (D3D11_BLEND_OP)def.colorOperate;
-        blend0_.SrcBlendAlpha         = (D3D11_BLEND)def.outputAlpha;
-        blend0_.DestBlendAlpha        = (D3D11_BLEND)def.bufferAlpha;
-        blend0_.BlendOpAlpha          = (D3D11_BLEND_OP)def.alphaOperate;
-        blend0_.RenderTargetWriteMask = (UINT8)def.writeEnable;
+        blend0_.BlendEnable = def.enable ? TRUE : FALSE;
+        blend0_.SrcBlend = (D3D11_BLEND) def.outputColor;
+        blend0_.DestBlend = (D3D11_BLEND) def.bufferColor;
+        blend0_.BlendOp = (D3D11_BLEND_OP) def.colorOperate;
+        blend0_.SrcBlendAlpha = (D3D11_BLEND) def.outputAlpha;
+        blend0_.DestBlendAlpha = (D3D11_BLEND) def.bufferAlpha;
+        blend0_.BlendOpAlpha = (D3D11_BLEND_OP) def.alphaOperate;
+        blend0_.RenderTargetWriteMask = (UINT8) def.writeEnable;
         D3D11_BLEND_DESC blend_ = {};
         ZeroMemory(&blend_, sizeof(D3D11_BLEND_DESC));
-        blend_.AlphaToCoverageEnable  = FALSE;
+        blend_.AlphaToCoverageEnable = FALSE;
         blend_.IndependentBlendEnable = FALSE;
         blend_.RenderTarget[0] = blend0_;
         blend_.RenderTarget[1] = blend0_;
@@ -654,19 +589,16 @@ namespace slow::Graphic
         blend_.RenderTarget[7] = blend0_;
         ComPtr<ID3D11BlendState> obj_;
         HRESULT hr = self.d3d11Device->CreateBlendState(&blend_, obj_.GetAddressOf());
-        if (hr != S_OK)
-        {
+        if (hr != S_OK) {
             return false;
         }
-        try
-        {
-            BlendState* iobj_ = new BlendState(def, obj_.Get());
+        try {
+            auto* iobj_ = new BlendState(def, obj_.Get());
             *pp = dynamic_cast<IBlendState*>(iobj_);
             return true;
         }
-        catch (...)
-        {
+        catch (...) {
             return false;
         }
-    };
-};
+    }
+}

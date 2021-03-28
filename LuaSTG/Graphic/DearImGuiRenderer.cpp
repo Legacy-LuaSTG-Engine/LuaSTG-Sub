@@ -71,13 +71,13 @@ namespace slow::Graphic {
         
         // input layout
         const D3D11_INPUT_ELEMENT_DESC layout_[] = {
-                {"POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-                {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 8, D3D11_INPUT_PER_VERTEX_DATA, 0},
-                #ifdef IMGUI_USE_BGRA_PACKED_COLOR
-                {"COLOR", 0, DXGI_FORMAT_B8G8R8A8_UNORM, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0},
-                #else
-                { "COLOR"   , 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-                #endif
+            {"POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+            {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 8, D3D11_INPUT_PER_VERTEX_DATA, 0},
+            #ifdef IMGUI_USE_BGRA_PACKED_COLOR
+            {"COLOR", 0, DXGI_FORMAT_B8G8R8A8_UNORM, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0},
+            #else
+            { "COLOR"   , 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            #endif
         };
         hr = dev_->CreateInputLayout(layout_, 3, g_VSBlob, sizeof(g_VSBlob),
                                      self.imInputLayout.ReleaseAndGetAddressOf());
@@ -265,7 +265,8 @@ namespace slow::Graphic {
                 vtx_dst_ += cmd_list_->VtxBuffer.Size;
             }
             ctx_->Unmap(self.imVertexBuffer.Get(), 0);
-        } else {
+        }
+        else {
             return false; // error
         }
         // upload IB
@@ -278,7 +279,8 @@ namespace slow::Graphic {
                 idx_dst_ += cmd_list_->IdxBuffer.Size;
             }
             ctx_->Unmap(self.imIndexBuffer.Get(), 0);
-        } else {
+        }
+        else {
             return false; // error
         }
         
@@ -297,18 +299,19 @@ namespace slow::Graphic {
         
         // upload constant buffer
         const DirectX::XMMATRIX proj_ = DirectX::XMMatrixOrthographicOffCenterLH(
-                draw_data_->DisplayPos.x,
-                draw_data_->DisplayPos.x + draw_data_->DisplaySize.x,
-                draw_data_->DisplayPos.y + draw_data_->DisplaySize.y,
-                draw_data_->DisplayPos.y,
-                0.0f, 1.0f);
+            draw_data_->DisplayPos.x,
+            draw_data_->DisplayPos.x + draw_data_->DisplaySize.x,
+            draw_data_->DisplayPos.y + draw_data_->DisplaySize.y,
+            draw_data_->DisplayPos.y,
+            0.0f, 1.0f);
         DirectX::XMFLOAT4X4 mvp_ = {};
         DirectX::XMStoreFloat4x4(&mvp_, proj_);
         D3D11_MAPPED_SUBRESOURCE mvpdata_ = {};
         if (S_OK == ctx_->Map(self.imConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mvpdata_)) {
             CopyMemory(mvpdata_.pData, &mvp_, sizeof(DirectX::XMFLOAT4X4));
             ctx_->Unmap(self.imConstantBuffer.Get(), 0);
-        } else {
+        }
+        else {
             return false; // error
         }
         
@@ -344,11 +347,11 @@ namespace slow::Graphic {
         
         // RS
         const D3D11_VIEWPORT vp_[1] = {
-                {
-                        0.0f, 0.0f,
-                        draw_data_->DisplaySize.x, draw_data_->DisplaySize.y,
-                        0.0f, 1.0f
-                }
+            {
+                0.0f, 0.0f,
+                draw_data_->DisplaySize.x, draw_data_->DisplaySize.y,
+                0.0f, 1.0f
+            }
         };
         ctx_->RSSetViewports(1, vp_);
         ctx_->RSSetState(self.imRasterizerState.Get());
@@ -402,17 +405,19 @@ namespace slow::Graphic {
                 if (pcmd->UserCallback != nullptr) {
                     if (pcmd->UserCallback == ImDrawCallback_ResetRenderState) {
                         setRenderState();
-                    } else {
+                    }
+                    else {
                         pcmd->UserCallback(cmd_list, pcmd);
                     }
-                } else {
+                }
+                else {
                     const D3D11_RECT sr_[1] = {
-                            {
-                                    (LONG) (pcmd->ClipRect.x - clip_pos_.x),
-                                    (LONG) (pcmd->ClipRect.y - clip_pos_.y),
-                                    (LONG) (pcmd->ClipRect.z - clip_pos_.x),
-                                    (LONG) (pcmd->ClipRect.w - clip_pos_.y),
-                            }
+                        {
+                            (LONG) (pcmd->ClipRect.x - clip_pos_.x),
+                            (LONG) (pcmd->ClipRect.y - clip_pos_.y),
+                            (LONG) (pcmd->ClipRect.z - clip_pos_.x),
+                            (LONG) (pcmd->ClipRect.w - clip_pos_.y),
+                        }
                     };
                     ctx_->RSSetScissorRects(1, sr_);
                     ID3D11ShaderResourceView* const srv_[1] = {(ID3D11ShaderResourceView*) pcmd->TextureId};
