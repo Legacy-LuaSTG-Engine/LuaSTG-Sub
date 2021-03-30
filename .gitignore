@@ -17,5 +17,4 @@ data
 imgui/imgui
 LuaSTG/Custom.cmake
 LuaSTG/custom
-tool/RC
 DirectX/DirectXSDK/backup
