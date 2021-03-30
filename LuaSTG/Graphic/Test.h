@@ -6,4 +6,4 @@ namespace slow::Graphic
     void _unbindEngine();
     bool _update();
     bool _draw();
-};
+}
