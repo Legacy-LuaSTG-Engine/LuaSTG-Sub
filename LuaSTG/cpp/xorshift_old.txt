@@ -1,0 +1,459 @@
+#pragma once
+
+#include <cstdint>
+
+namespace random {
+    // https://prng.di.unimi.it/
+    
+    // Written in 2015 by Sebastiano Vigna (vigna@acm.org)
+    //
+    // To the extent possible under law, the author has dedicated all copyright
+    // and related and neighboring rights to this software to the public domain
+    // worldwide. This software is distributed without any warranty.
+    //
+    // See <http://creativecommons.org/publicdomain/zero/1.0/>.
+    class splitmix64 {
+    public:
+        using result_type = uint64_t;
+    private:
+        uint64_t x = 0; // The state can be seeded with any value.
+    public:
+        static uint64_t min() {
+            return UINT64_C(0);
+        }
+        
+        static uint64_t max() {
+            return UINT64_MAX;
+        }
+        
+        void seed(uint64_t seedv) {
+            x = seedv;
+        }
+        
+        // This is a fixed-increment version of Java 8's SplittableRandom generator
+        // See http://dx.doi.org/10.1145/2714064.2660195 and
+        // http://docs.oracle.com/javase/8/docs/api/java/util/SplittableRandom.html
+        //
+        // It is a very fast generator passing BigCrush, and it can be useful if
+        // for some reason you absolutely want 64 bits of state.
+        uint64_t next() {
+            uint64_t z = (x += 0x9e3779b97f4a7c15);
+            z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
+            z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
+            return z ^ (z >> 31);
+        }
+        
+        uint64_t operator()() {
+            return next();
+        }
+    
+    public:
+        explicit splitmix64(uint64_t s) : x(s) {}
+    };
+    
+    // Written in 2018 by David Blackman and Sebastiano Vigna (vigna@acm.org)
+    //
+    // To the extent possible under law, the author has dedicated all copyright
+    // and related and neighboring rights to this software to the public domain
+    // worldwide. This software is distributed without any warranty.
+    //
+    // See <http://creativecommons.org/publicdomain/zero/1.0/>.
+    class xoshiro256p {
+    public:
+        using result_type = uint64_t;
+    private:
+        uint64_t s[4] = {};
+        
+        static inline uint64_t rotl(const uint64_t x, int k) {
+            return (x << k) | (x >> (64 - k));
+        }
+    
+    public:
+        static uint64_t min() {
+            return UINT64_C(0);
+        }
+        
+        static uint64_t max() {
+            return UINT64_MAX;
+        }
+        
+        void seed(uint64_t seedv) {
+            splitmix64 gn(seedv);
+            s[0] = gn.next();
+            s[1] = gn.next();
+            s[2] = gn.next();
+            s[3] = gn.next();
+        }
+        
+        // This is xoshiro256+ 1.0, our best and fastest generator for floating-point
+        // numbers. We suggest to use its upper bits for floating-point
+        // generation, as it is slightly faster than xoshiro256++/xoshiro256**. It
+        // passes all tests we are aware of except for the lowest three bits,
+        // which might fail linearity tests (and just those), so if low linear
+        // complexity is not considered an issue (as it is usually the case) it
+        // can be used to generate 64-bit outputs, too.
+        //
+        // We suggest to use a sign test to extract a random Boolean value, and
+        // right shifts to extract subsets of bits.
+        //
+        // The state must be seeded so that it is not everywhere zero. If you have
+        // a 64-bit seed, we suggest to seed a splitmix64 generator and use its
+        // output to fill s.
+        uint64_t next() {
+            const uint64_t result = s[0] + s[3];
+            
+            const uint64_t t = s[1] << 17;
+            
+            s[2] ^= s[0];
+            s[3] ^= s[1];
+            s[1] ^= s[2];
+            s[0] ^= s[3];
+            
+            s[2] ^= t;
+            
+            s[3] = rotl(s[3], 45);
+            
+            return result;
+        }
+        
+        // This is the jump function for the generator. It is equivalent
+        // to 2^128 calls to next(); it can be used to generate 2^128
+        // non-overlapping subsequences for parallel computations.
+        void jump() {
+            static const uint64_t JUMP[4] = {
+                0x180ec6d33cfd0aba,
+                0xd5a61266f0c9392c,
+                0xa9582618e03fc9aa,
+                0x39abdc4529b1661c,
+            };
+            uint64_t s0 = 0;
+            uint64_t s1 = 0;
+            uint64_t s2 = 0;
+            uint64_t s3 = 0;
+            for (int i = 0; i < 4; i++) {
+                for (int b = 0; b < 64; b++) {
+                    if (JUMP[i] & UINT64_C(1) << b) {
+                        s0 ^= s[0];
+                        s1 ^= s[1];
+                        s2 ^= s[2];
+                        s3 ^= s[3];
+                    }
+                    next();
+                }
+            }
+            s[0] = s0;
+            s[1] = s1;
+            s[2] = s2;
+            s[3] = s3;
+        }
+        
+        // This is the long-jump function for the generator. It is equivalent to
+        // 2^192 calls to next(); it can be used to generate 2^64 starting points,
+        // from each of which jump() will generate 2^64 non-overlapping
+        // subsequences for parallel distributed computations.
+        void long_jump() {
+            static const uint64_t LONG_JUMP[4] = {
+                0x76e15d3efefdcbbf,
+                0xc5004e441c522fb3,
+                0x77710069854ee241,
+                0x39109bb02acbe635,
+            };
+            uint64_t s0 = 0;
+            uint64_t s1 = 0;
+            uint64_t s2 = 0;
+            uint64_t s3 = 0;
+            for (int i = 0; i < 4; i++) {
+                for (int b = 0; b < 64; b++) {
+                    if (LONG_JUMP[i] & UINT64_C(1) << b) {
+                        s0 ^= s[0];
+                        s1 ^= s[1];
+                        s2 ^= s[2];
+                        s3 ^= s[3];
+                    }
+                    next();
+                }
+            }
+            s[0] = s0;
+            s[1] = s1;
+            s[2] = s2;
+            s[3] = s3;
+        }
+        
+        uint64_t operator()() {
+            return next();
+        }
+    
+    public:
+        explicit xoshiro256p(uint64_t seedv) {
+            seed(seedv);
+        }
+    };
+    
+    // Written in 2019 by David Blackman and Sebastiano Vigna (vigna@acm.org)
+    //
+    // To the extent possible under law, the author has dedicated all copyright
+    // and related and neighboring rights to this software to the public domain
+    // worldwide. This software is distributed without any warranty.
+    //
+    // See <http://creativecommons.org/publicdomain/zero/1.0/>.
+    class xoshiro256pp {
+    public:
+        using result_type = uint64_t;
+    private:
+        uint64_t s[4] = {};
+        
+        static inline uint64_t rotl(const uint64_t x, int k) {
+            return (x << k) | (x >> (64 - k));
+        }
+    
+    public:
+        static uint64_t min() {
+            return UINT64_C(0);
+        }
+        
+        static uint64_t max() {
+            return UINT64_MAX;
+        }
+        
+        void seed(uint64_t seedv) {
+            splitmix64 gn(seedv);
+            s[0] = gn.next();
+            s[1] = gn.next();
+            s[2] = gn.next();
+            s[3] = gn.next();
+        }
+        
+        // This is xoshiro256++ 1.0, one of our all-purpose, rock-solid generators.
+        // It has excellent (sub-ns) speed, a state (256 bits) that is large
+        // enough for any parallel application, and it passes all tests we are
+        // aware of.
+        //
+        // For generating just floating-point numbers, xoshiro256+ is even faster.
+        //
+        // The state must be seeded so that it is not everywhere zero. If you have
+        // a 64-bit seed, we suggest to seed a splitmix64 generator and use its
+        // output to fill s.
+        uint64_t next() {
+            const uint64_t result = rotl(s[0] + s[3], 23) + s[0];
+            
+            const uint64_t t = s[1] << 17;
+            
+            s[2] ^= s[0];
+            s[3] ^= s[1];
+            s[1] ^= s[2];
+            s[0] ^= s[3];
+            
+            s[2] ^= t;
+            
+            s[3] = rotl(s[3], 45);
+            
+            return result;
+        }
+        
+        // This is the jump function for the generator. It is equivalent
+        // to 2^128 calls to next(); it can be used to generate 2^128
+        // non-overlapping subsequences for parallel computations.
+        void jump() {
+            static const uint64_t JUMP[4] = {
+                0x180ec6d33cfd0aba,
+                0xd5a61266f0c9392c,
+                0xa9582618e03fc9aa,
+                0x39abdc4529b1661c,
+            };
+            uint64_t s0 = 0;
+            uint64_t s1 = 0;
+            uint64_t s2 = 0;
+            uint64_t s3 = 0;
+            for (int i = 0; i < 4; i++) {
+                for (int b = 0; b < 64; b++) {
+                    if (JUMP[i] & UINT64_C(1) << b) {
+                        s0 ^= s[0];
+                        s1 ^= s[1];
+                        s2 ^= s[2];
+                        s3 ^= s[3];
+                    }
+                    next();
+                }
+            }
+            s[0] = s0;
+            s[1] = s1;
+            s[2] = s2;
+            s[3] = s3;
+        }
+        
+        // This is the long-jump function for the generator. It is equivalent to
+        // 2^192 calls to next(); it can be used to generate 2^64 starting points,
+        // from each of which jump() will generate 2^64 non-overlapping
+        // subsequences for parallel distributed computations.
+        void long_jump() {
+            static const uint64_t LONG_JUMP[4] = {
+                0x76e15d3efefdcbbf,
+                0xc5004e441c522fb3,
+                0x77710069854ee241,
+                0x39109bb02acbe635,
+            };
+            uint64_t s0 = 0;
+            uint64_t s1 = 0;
+            uint64_t s2 = 0;
+            uint64_t s3 = 0;
+            for (int i = 0; i < 4; i++) {
+                for (int b = 0; b < 64; b++) {
+                    if (LONG_JUMP[i] & UINT64_C(1) << b) {
+                        s0 ^= s[0];
+                        s1 ^= s[1];
+                        s2 ^= s[2];
+                        s3 ^= s[3];
+                    }
+                    next();
+                }
+            }
+            s[0] = s0;
+            s[1] = s1;
+            s[2] = s2;
+            s[3] = s3;
+        }
+        
+        uint64_t operator()() {
+            return next();
+        }
+    
+    public:
+        explicit xoshiro256pp(uint64_t seedv) {
+            seed(seedv);
+        }
+    };
+    
+    // Written in 2018 by David Blackman and Sebastiano Vigna (vigna@acm.org)
+    //
+    // To the extent possible under law, the author has dedicated all copyright
+    // and related and neighboring rights to this software to the public domain
+    // worldwide. This software is distributed without any warranty.
+    //
+    // See <http://creativecommons.org/publicdomain/zero/1.0/>.
+    class xoshiro256ss {
+    public:
+        using result_type = uint64_t;
+    private:
+        uint64_t s[4] = {};
+        
+        static inline uint64_t rotl(const uint64_t x, int k) {
+            return (x << k) | (x >> (64 - k));
+        }
+    
+    public:
+        static uint64_t min() {
+            return UINT64_C(0);
+        }
+        
+        static uint64_t max() {
+            return UINT64_MAX;
+        }
+        
+        void seed(uint64_t seedv) {
+            splitmix64 gn(seedv);
+            s[0] = gn.next();
+            s[1] = gn.next();
+            s[2] = gn.next();
+            s[3] = gn.next();
+        }
+        
+        // This is xoshiro256** 1.0, one of our all-purpose, rock-solid
+        // generators. It has excellent (sub-ns) speed, a state (256 bits) that is
+        // large enough for any parallel application, and it passes all tests we
+        // are aware of.
+        //
+        // For generating just floating-point numbers, xoshiro256+ is even faster.
+        //
+        // The state must be seeded so that it is not everywhere zero. If you have
+        // a 64-bit seed, we suggest to seed a splitmix64 generator and use its
+        // output to fill s.
+        uint64_t next() {
+            const uint64_t result = rotl(s[1] * 5, 7) * 9;
+            
+            const uint64_t t = s[1] << 17;
+            
+            s[2] ^= s[0];
+            s[3] ^= s[1];
+            s[1] ^= s[2];
+            s[0] ^= s[3];
+            
+            s[2] ^= t;
+            
+            s[3] = rotl(s[3], 45);
+            
+            return result;
+        }
+        
+        // This is the jump function for the generator. It is equivalent
+        // to 2^128 calls to next(); it can be used to generate 2^128
+        // non-overlapping subsequences for parallel computations.
+        void jump() {
+            static const uint64_t JUMP[4] = {
+                0x180ec6d33cfd0aba,
+                0xd5a61266f0c9392c,
+                0xa9582618e03fc9aa,
+                0x39abdc4529b1661c,
+            };
+            uint64_t s0 = 0;
+            uint64_t s1 = 0;
+            uint64_t s2 = 0;
+            uint64_t s3 = 0;
+            for (int i = 0; i < 4; i++) {
+                for (int b = 0; b < 64; b++) {
+                    if (JUMP[i] & UINT64_C(1) << b) {
+                        s0 ^= s[0];
+                        s1 ^= s[1];
+                        s2 ^= s[2];
+                        s3 ^= s[3];
+                    }
+                    next();
+                }
+            }
+            s[0] = s0;
+            s[1] = s1;
+            s[2] = s2;
+            s[3] = s3;
+        }
+        
+        // This is the long-jump function for the generator. It is equivalent to
+        // 2^192 calls to next(); it can be used to generate 2^64 starting points,
+        // from each of which jump() will generate 2^64 non-overlapping
+        // subsequences for parallel distributed computations.
+        void long_jump() {
+            static const uint64_t LONG_JUMP[4] = {
+                0x76e15d3efefdcbbf,
+                0xc5004e441c522fb3,
+                0x77710069854ee241,
+                0x39109bb02acbe635,
+            };
+            uint64_t s0 = 0;
+            uint64_t s1 = 0;
+            uint64_t s2 = 0;
+            uint64_t s3 = 0;
+            for (int i = 0; i < 4; i++) {
+                for (int b = 0; b < 64; b++) {
+                    if (LONG_JUMP[i] & UINT64_C(1) << b) {
+                        s0 ^= s[0];
+                        s1 ^= s[1];
+                        s2 ^= s[2];
+                        s3 ^= s[3];
+                    }
+                    next();
+                }
+            }
+            s[0] = s0;
+            s[1] = s1;
+            s[2] = s2;
+            s[3] = s3;
+        }
+        
+        uint64_t operator()() {
+            return next();
+        }
+    
+    public:
+        explicit xoshiro256ss(uint64_t seedv) {
+            seed(seedv);
+        }
+    };
+}
