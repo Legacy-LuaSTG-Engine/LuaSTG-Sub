@@ -2053,8 +2053,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		#pragma endregion
 	};
 	
-	luaL_Reg tFunctions[] =
-	{
+	luaL_Reg tFunctions[] = {
 		#pragma region 框架函数
 		{ "SetWindowed", &WrapperImplement::SetWindowed },
 		{ "SetFPS", &WrapperImplement::SetFPS },
@@ -2067,9 +2066,9 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		{ "LoadPack", &WrapperImplement::LoadPack },
 		{ "LoadPackSub", &WrapperImplement::LoadPackSub },
 		{ "UnloadPack", &WrapperImplement::UnloadPack },
-#ifndef USING_ENCRYPTION
+        #ifndef USING_ENCRYPTION
 		{ "ExtractRes", &WrapperImplement::ExtractRes },
-#endif // !USING_ENCRYPTION
+        #endif // !USING_ENCRYPTION
 		{ "DoFile", &WrapperImplement::DoFile },
 		{ "LoadTextFile", &WrapperImplement::LoadTextFile },
 		{ "FindFiles", &WrapperImplement::FindFiles },
