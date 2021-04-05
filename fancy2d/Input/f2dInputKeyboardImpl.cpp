@@ -610,7 +610,7 @@ fResult f2dInputKeyboardImpl2::SetListener(f2dInputKeyboardEventListener* pListe
 	return FCYERR_OK;
 }
 
-fBool f2dInputKeyboardImpl2::KeyPress(DWORD KeyCode) {
+fBool f2dInputKeyboardImpl2::KeyPress(fuInt KeyCode) {
 	if (KeyCode > 255)
 		return false;
 	return m_ButtonState[KeyCode];

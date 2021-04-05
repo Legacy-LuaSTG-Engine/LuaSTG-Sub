@@ -27,7 +27,7 @@ namespace LuaSTGPlus {
 					fuInt tVaildSample = m_pLoopEndSample - tCurSample;
 					fuInt tVaildSize = tVaildSample * tBlockAlign;
 
-					if (FAILED(tFR = m_pDecoder->Read(pBuffer, tVaildSize, pSizeRead)))
+					if (FCYFAILED(tFR = m_pDecoder->Read(pBuffer, tVaildSize, pSizeRead)))
 						return tFR;
 
 					// 指针后移
@@ -43,7 +43,7 @@ namespace LuaSTGPlus {
 			else
 			{
 				// 直接填充数据
-				if (FAILED(tFR = m_pDecoder->Read(pBuffer, tSampleToRead * tBlockAlign, pSizeRead)))
+				if (FCYFAILED(tFR = m_pDecoder->Read(pBuffer, tSampleToRead * tBlockAlign, pSizeRead)))
 					return tFR;
 
 				break;
@@ -71,7 +71,7 @@ namespace LuaSTGPlus {
 		if (LoopEnd <= 0)
 			m_pLoopEndSample = m_TotalSample;
 		else
-			m_pLoopEndSample = min(m_TotalSample, (fuInt)(LoopEnd * m_pDecoder->GetSamplesPerSec()));
+			m_pLoopEndSample = std::min(m_TotalSample, (fuInt)(LoopEnd * m_pDecoder->GetSamplesPerSec()));
 
 		if (m_pLoopEndSample < m_pLoopStartSample)
 			std::swap(m_pLoopStartSample, m_pLoopEndSample);

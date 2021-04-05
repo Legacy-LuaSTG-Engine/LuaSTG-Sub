@@ -51,7 +51,7 @@ public:
 	fResult SetListener(f2dInputKeyboardEventListener* pListener);
 	
 	fBool IsKeyDown(F2DINPUTKEYCODE KeyCode);
-	fBool KeyPress(DWORD KeyCode) { return false; };
+	fBool KeyPress(fuInt KeyCode) { return false; };
 protected: // 禁止直接new/delete
 	f2dInputKeyboardImpl(f2dInputSysImpl* pSys, HWND Win, const GUID& pGUID, fBool bGlobalFocus);
 	~f2dInputKeyboardImpl();
@@ -93,7 +93,7 @@ public:
 	fResult SetListener(f2dInputKeyboardEventListener* pListener);
 	
 	fBool IsKeyDown(F2DINPUTKEYCODE KeyCode) { return false; }
-	fBool KeyPress(DWORD KeyCode);
+	fBool KeyPress(fuInt KeyCode);
 protected: // 禁止直接new/delete
 	f2dInputKeyboardImpl2(f2dInputSysImpl* pSys, HWND Win, const GUID& pGUID, fBool bGlobalFocus);
 	~f2dInputKeyboardImpl2();

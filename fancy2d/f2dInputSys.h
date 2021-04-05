@@ -291,7 +291,7 @@ struct f2dInputKeyboard : public f2dInputDevice
 
 	//判断按键是否按下
 	//param[in] KeyCode Dinput键代码
-	virtual fBool KeyPress(DWORD KeyCode) = 0;
+	virtual fBool KeyPress(fuInt KeyCode) = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

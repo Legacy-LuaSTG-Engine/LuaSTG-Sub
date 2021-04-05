@@ -501,7 +501,7 @@ void f2dEngineImpl::Run_MultiThread(fuInt UpdateMaxFPS)
 
 		if(bExit)
 		{
-			while(WAIT_TIMEOUT == WaitForSingleObject(tThread.GetHandle(), 10))
+			while(WAIT_TIMEOUT == WaitForSingleObject((HANDLE)tThread.GetHandle(), 10))
 			{
 				if(PeekMessageW(&tMsg, 0, 0, 0, PM_REMOVE))
 				{
@@ -554,8 +554,8 @@ void f2dEngineImpl::Run_FullMultiThread(fuInt UpdateMaxFPS, fuInt RenderMaxFPS)
 		{
 			while(1)
 			{
-				if(WAIT_TIMEOUT != WaitForSingleObject(tUpdateThread.GetHandle(), 10))
-					if(WAIT_TIMEOUT != WaitForSingleObject(tRenderThread.GetHandle(), 10))
+				if(WAIT_TIMEOUT != WaitForSingleObject((HANDLE)tUpdateThread.GetHandle(), 10))
+					if(WAIT_TIMEOUT != WaitForSingleObject((HANDLE)tRenderThread.GetHandle(), 10))
 						break;
 				
 				if(PeekMessageW(&tMsg, 0, 0, 0, PM_REMOVE))

@@ -1,6 +1,7 @@
 ﻿#include "fcyParser/fcyLexicalParser.h"
 
 #include "fcyMisc/fcyStringHelper.h"
+#include <Windows.h>
 
 using namespace std;
 

@@ -467,10 +467,10 @@ bool f2dFontFileProvider::makeCacheMain() {
 		m_MaxGlyphWidth = (m_MaxGlyphWidth > m_TexSize) ? m_TexSize : m_MaxGlyphWidth;
 		m_MaxGlyphHeight = (m_MaxGlyphHeight > m_TexSize) ? m_TexSize : m_MaxGlyphHeight;
 	};
-	caldata(min(2048, m_BaseParam.texture_size));
+	caldata(std::min<fuInt>(2048, m_BaseParam.texture_size));
 	if(!makeCache(m_TexSize))
 	{
-		caldata(min(1024, m_BaseParam.texture_size)); // 改小一点重新试一次
+		caldata(std::min<fuInt>(1024, m_BaseParam.texture_size)); // 改小一点重新试一次
 		// 这次失败就真没救了
 		if(!makeCache(m_TexSize))
 		{

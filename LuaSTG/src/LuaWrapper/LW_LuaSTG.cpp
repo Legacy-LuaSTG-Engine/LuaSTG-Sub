@@ -12,10 +12,6 @@
 #undef max
 #endif
 
-#ifdef LoadImage
-#undef LoadImage
-#endif
-
 #ifdef PlaySound
 #undef PlaySound
 #endif
@@ -684,7 +680,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 				return luaL_error(L, "can't load texture from file '%s'.", path);
 			return 0;
 		}
-		static int LoadImage(lua_State* L)LNOEXCEPT
+		static int LoadSprite(lua_State* L)LNOEXCEPT
 		{
 			const char* name = luaL_checkstring(L, 1);
 			const char* texname = luaL_checkstring(L, 2);
@@ -693,7 +689,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			if (!pActivedPool)
 				return luaL_error(L, "can't load resource at this time.");
 
-			if (!pActivedPool->LoadImage(
+			if (!pActivedPool->LoadSprite(
 				name,
 				texname,
 				luaL_checknumber(L, 3),
@@ -2134,7 +2130,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		{ "SetResourceStatus", &WrapperImplement::SetResourceStatus },
 		{ "GetResourceStatus", &WrapperImplement::GetResourceStatus },
 		{ "LoadTexture", &WrapperImplement::LoadTexture },
-		{ "LoadImage", &WrapperImplement::LoadImage },
+		{ "LoadImage", &WrapperImplement::LoadSprite },
 		{ "LoadAnimation", &WrapperImplement::LoadAnimation },
 		{ "LoadPS", &WrapperImplement::LoadPS },
 		{ "LoadSound", &WrapperImplement::LoadSound },

@@ -1,5 +1,6 @@
 ﻿#include "LuaWrapper/LuaWrapper.hpp"
 #include "Common/SystemDirectory.hpp"
+#include <Windows.h>
 
 namespace LuaSTGPlus
 {

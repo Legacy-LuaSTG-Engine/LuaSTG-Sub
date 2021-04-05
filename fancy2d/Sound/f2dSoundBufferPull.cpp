@@ -14,9 +14,9 @@ fuInt f2dSoundBufferPull::SoundBufferFiller::ThreadJob()
 	bool tRunning = true;
 	HANDLE tWaitList[3] =
 	{
-		m_pParent->m_EvtBegin.GetHandle(),
-		m_pParent->m_EvtHalf.GetHandle(),
-		m_pParent->m_EvtStop.GetHandle()
+		(HANDLE)m_pParent->m_EvtBegin.GetHandle(),
+		(HANDLE)m_pParent->m_EvtHalf.GetHandle(),
+		(HANDLE)m_pParent->m_EvtStop.GetHandle()
 	};
 
 	while (tRunning)
@@ -165,8 +165,8 @@ void f2dSoundBufferPull::regNotify()
 {
 	DSBPOSITIONNOTIFY tNotifyList[2] =
 	{
-		{ 0, m_EvtBegin.GetHandle() },
-		{ m_iBufferSize / 2, m_EvtHalf.GetHandle() }
+		{ 0, (HANDLE)m_EvtBegin.GetHandle() },
+		{ m_iBufferSize / 2, (HANDLE)m_EvtHalf.GetHandle() }
 	};
 
 	m_pNotify->SetNotificationPositions(2, tNotifyList);
@@ -178,7 +178,7 @@ void f2dSoundBufferPull::regStopNotify(fuInt Pos)
 
 	DSBPOSITIONNOTIFY tNotifyList[1] =
 	{
-		{ Pos, m_EvtStop.GetHandle() }
+		{ Pos, (HANDLE)m_EvtStop.GetHandle() }
 	};
 
 	m_pNotify->SetNotificationPositions(1, tNotifyList);

@@ -3,6 +3,8 @@
 #include "fcyOS/fcyDebug.h"
 #include "fcyMisc/fcyStringHelper.h"
 
+#include <Windows.h>
+
 using namespace std;
 
 ////////////////////////////////////////////////////////////////////////////////

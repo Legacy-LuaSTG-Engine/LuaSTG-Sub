@@ -2,6 +2,7 @@
 
 #include "fcyMisc/fcyStringHelper.h"
 #include "fcyIO/fcyBinaryHelper.h"
+#include <Windows.h>
 
 using namespace std;
 
