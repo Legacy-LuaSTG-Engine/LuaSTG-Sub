@@ -136,15 +136,18 @@ namespace LuaSTGPlus
         bool GetTextureSize(const char* name, fcyVec2& out) noexcept;
         void CacheTTFFontString(const char* name, const char* text) noexcept;
     private:
+        static bool g_ResourceLoadingLog;
         float m_GlobalImageScaleFactor = 1.0f;
         float m_GlobalSoundEffectVolume = 1.0f;
         float m_GlobalMusicVolume = 1.0f;
     public:
-        float GetGlobalImageScaleFactor() const  noexcept { return m_GlobalImageScaleFactor; }
+        static void SetResourceLoadingLog(bool b);
+        static bool GetResourceLoadingLog();
+        float GetGlobalImageScaleFactor() const noexcept { return m_GlobalImageScaleFactor; }
         void SetGlobalImageScaleFactor(float s) noexcept { m_GlobalImageScaleFactor = s; }
-        float GetGlobalSoundEffectVolume() const  noexcept { return m_GlobalSoundEffectVolume; }
+        float GetGlobalSoundEffectVolume() const noexcept { return m_GlobalSoundEffectVolume; }
         void SetGlobalSoundEffectVolume(float s) noexcept { m_GlobalSoundEffectVolume = s; }
-        float GetGlobalMusicVolume() const  noexcept { return m_GlobalMusicVolume; }
+        float GetGlobalMusicVolume() const noexcept { return m_GlobalMusicVolume; }
         void SetGlobalMusicVolume(float s) noexcept { m_GlobalMusicVolume = s; }
     public:
         ResourceMgr();

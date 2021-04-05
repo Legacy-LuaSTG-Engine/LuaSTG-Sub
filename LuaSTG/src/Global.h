@@ -76,21 +76,22 @@
 #define LNOEXCEPT noexcept // throw()
 #define LNOINLINE __declspec(noinline)
 #define LNOUSE(x) static_cast<void>(x)
-#ifdef _DEBUG
-#define LDEBUG
-#endif
-// 调试辅助
-#if (defined LDEVVERSION) || (defined LDEBUG)
-#define LSHOWRESLOADINFO  // 显示加载信息
-#endif
-// #define LSHOWFONTBASELINE  // 显示文字基线
-#define LPERFORMANCEUPDATETIMER 0.25f  // 刷新一次计数器（间隔：秒）
 
 #define LAPP (LuaSTGPlus::AppFrame::GetInstance())
 #define LLOGGER (LuaSTGPlus::LogSystem::GetInstance())
 #define LPOOL (LAPP.GetGameObjectPool())
 #define LRES (LAPP.GetResourceMgr())
 #define LFMGR (LAPP.GetFileManager())
+
+#define LSOUNDGLOBALFOCUS  true
+
+// 调试辅助
+#ifdef _DEBUG
+#define LDEBUG
+#endif
+
+// #define LSHOWFONTBASELINE  // 显示文字基线
+#define LPERFORMANCEUPDATETIMER 0.25f  // 刷新一次计数器（间隔：秒）
 
 #define LWIDE_(x) L ## x
 #define LWIDE(x) LWIDE_(x)
@@ -108,8 +109,6 @@
 #else
 #define LASSERT(cond)
 #endif
-
-#define LSOUNDGLOBALFOCUS  true
 
 namespace LuaSTGPlus
 {

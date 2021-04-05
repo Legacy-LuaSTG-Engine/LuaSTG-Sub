@@ -344,3 +344,15 @@ void ResourceMgr::CacheTTFFontString(const char* name, const char* text) noexcep
         LERROR("ResourceMgr: 转换字符编码时无法分配内存");
     }
 }
+
+// 其他
+
+#ifdef NDEBUG
+bool ResourceMgr::g_ResourceLoadingLog = false;
+#else
+bool ResourceMgr::g_ResourceLoadingLog = true;
+#endif
+
+void ResourceMgr::SetResourceLoadingLog(bool b) { g_ResourceLoadingLog = b; }
+
+bool ResourceMgr::GetResourceLoadingLog() { return g_ResourceLoadingLog; }

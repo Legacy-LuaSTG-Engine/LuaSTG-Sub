@@ -228,7 +228,9 @@ namespace LuaSTGPlus
     
     LNOINLINE void AppFrame::LoadScript(const char* path,const char *packname)LNOEXCEPT
     {
-        LINFO("装载脚本'%m'", path);
+        if (ResourceMgr::GetResourceLoadingLog()) {
+            LINFO("装载脚本'%m'", path);
+        }
         fcyRefPointer<fcyMemStream> tMemStream;
         if (!m_ResourceMgr.LoadFile(path, tMemStream, packname))
         {

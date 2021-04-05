@@ -181,7 +181,9 @@ LNOINLINE bool AppFrame::UpdateVideoMode()LNOEXCEPT
 
 LNOINLINE int AppFrame::LoadTextFile(lua_State* L, const char* path, const char *packname)LNOEXCEPT
 {
-	LINFO("读取文本文件'%m'", path);
+    if (ResourceMgr::GetResourceLoadingLog()) {
+        LINFO("读取文本文件'%m'", path);
+    }
 	fcyRefPointer<fcyMemStream> tMemStream;
 	if (!m_ResourceMgr.LoadFile(path, tMemStream, packname)) {
 		LWARNING("无法加载文件'%m'.", path);

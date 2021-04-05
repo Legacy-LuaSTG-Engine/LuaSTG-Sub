@@ -9,9 +9,6 @@
 #undef min
 #endif
 
-using namespace std;
-using namespace LuaSTGPlus;
-
 #if (defined LDEVVERSION) || (defined LDEBUG)
 #define LDEBUG_RESOURCETIMER float tResourceLoadingTime
 #define LDEBUG_RESOURCESCOPE TimerScope tLoadingTimer(tResourceLoadingTime)
@@ -21,6 +18,8 @@ using namespace LuaSTGPlus;
 #define LDEBUG_RESOURCESCOPE
 #define LDEBUG_RESOURCEHINT
 #endif
+
+using namespace LuaSTGPlus;
 
 // 总体管理
 
@@ -44,9 +43,9 @@ void removeResource(Dictionary<fcyRefPointer<T>>& pool, const char* name) {
         return;
     }
     pool.erase(i);
-#ifdef LSHOWRESLOADINFO
-    LINFO("RemoveResource: 资源'%m'已卸载", name);
-#endif
+    if (ResourceMgr::GetResourceLoadingLog()) {
+        LINFO("RemoveResource: 资源'%m'已卸载", name);
+    }
 }
 
 const wchar_t* ResourcePool::getResourcePoolTypeName() {
@@ -115,6 +114,7 @@ bool ResourcePool::CheckResourceExists(ResourceType t, const std::string& name) 
         case ResourceType::FX:
             return m_FXPool.find(name.c_str()) != m_FXPool.end();
         default:
+            LWARNING("CheckRes: 试图检索一个不存在的资源类型 (%d)", (int)t);
             break;
     }
     return false;
@@ -187,6 +187,7 @@ int ResourcePool::ExportResourceList(lua_State* L, ResourceType t) const noexcep
             }
             break;
         default:
+            LWARNING("EnumRes: 试图枚举一个不存在的资源类型 (%d)", (int)t);
             // lua_pushnil(L);
             lua_createtable(L, 0, 0);
             break;
@@ -226,18 +227,28 @@ bool ResourcePool::LoadTexture(const char* name, const std::wstring& path, bool 
             tRes.DirectSet(new ResTexture(name, tTexture));
             m_TexturePool.emplace(name, tRes);
         }
-        catch (const bad_alloc&) {
+        catch (const std::bad_alloc&) {
             LERROR("LoadTexture: 内存不足");
             return false;
         }
-
-#ifdef LSHOWRESLOADINFO
-        LINFO("LoadTexture: 纹理'%s'已装载 -> '%m' (%s)", path.c_str(), name, getResourcePoolTypeName());
-#endif
+    
+        if (ResourceMgr::GetResourceLoadingLog()) {
+            LINFO("LoadTexture: 纹理'%s'已装载 -> '%m' (%s)", path.c_str(), name, getResourcePoolTypeName());
+        }
     }
     
     LDEBUG_RESOURCEHINT(ResourceType::Texture, path.c_str());
     return true;
+}
+
+bool ResourcePool::LoadTexture(const char* name, const char* path, bool mipmaps) noexcept {
+    try {
+        return LoadTexture(name, fcyStringHelper::MultiByteToWideChar(path, CP_UTF8), mipmaps);
+    }
+    catch (const std::bad_alloc&) {
+        LERROR("LoadTexture: 转换编码时无法分配内存");
+        return false;
+    }
 }
 
 bool ResourcePool::LoadModel(const char* name, const std::wstring& path) noexcept {
@@ -265,9 +276,9 @@ bool ResourcePool::LoadModel(const char* name, const std::wstring& path) noexcep
         if (!m_pMgr->LoadFile(path2.c_str(), tDataBuf2))
             return false;
         void* model = NULL;
-        void* LoadObj(const string& id, const string& path, const string& path2);
-        string buf((char*) tDataBuf->GetInternalBuffer(), tDataBuf->GetLength());
-        string buf2((char*) tDataBuf2->GetInternalBuffer(), tDataBuf2->GetLength());
+        void* LoadObj(const std::string& id, const std::string& path, const std::string& path2);
+        std::string buf((char*) tDataBuf->GetInternalBuffer(), tDataBuf->GetLength());
+        std::string buf2((char*) tDataBuf2->GetInternalBuffer(), tDataBuf2->GetLength());
         model = LoadObj(name, buf, buf2);
         
         try {
@@ -275,14 +286,14 @@ bool ResourcePool::LoadModel(const char* name, const std::wstring& path) noexcep
             tRes.DirectSet(new ResModel(name, model));
             m_ModelPool.emplace(name, tRes);
         }
-        catch (const bad_alloc&) {
+        catch (const std::bad_alloc&) {
             LERROR("LoadModel: 内存不足");
             return false;
         }
-
-#ifdef LSHOWRESLOADINFO
-        LINFO("LoadTexture: 纹理'%s'已装载 -> '%m' (%s)", path.c_str(), name, getResourcePoolTypeName());
-#endif
+    
+        if (ResourceMgr::GetResourceLoadingLog()) {
+            LINFO("LoadTexture: 纹理'%s'已装载 -> '%m' (%s)", path.c_str(), name, getResourcePoolTypeName());
+        }
     }
     
     LDEBUG_RESOURCEHINT(ResourceType::Texture, path.c_str());
@@ -293,18 +304,8 @@ bool ResourcePool::LoadModel(const char* name, const char* path) noexcept {
     try {
         return LoadModel(name, fcyStringHelper::MultiByteToWideChar(path, CP_UTF8));
     }
-    catch (const bad_alloc&) {
+    catch (const std::bad_alloc&) {
         LERROR("LoadModel: 转换编码时无法分配内存");
-        return false;
-    }
-}
-
-bool ResourcePool::LoadTexture(const char* name, const char* path, bool mipmaps) noexcept {
-    try {
-        return LoadTexture(name, fcyStringHelper::MultiByteToWideChar(path, CP_UTF8), mipmaps);
-    }
-    catch (const bad_alloc&) {
-        LERROR("LoadTexture: 转换编码时无法分配内存");
         return false;
     }
 }
@@ -341,14 +342,14 @@ bool ResourcePool::LoadSprite(const char* name, const char* texname,
             tRes.DirectSet(new ResSprite(name, pSprite, a, b, rect));
             m_SpritePool.emplace(name, tRes);
         }
-        catch (const bad_alloc&) {
+        catch (const std::bad_alloc&) {
             LERROR("LoadSprite: 内存不足");
             return false;
         }
-
-#ifdef LSHOWRESLOADINFO
-        LINFO("LoadSprite: 图像'%m'已装载 (%s)", name, getResourcePoolTypeName());
-#endif
+    
+        if (ResourceMgr::GetResourceLoadingLog()) {
+            LINFO("LoadSprite: 图像'%m'已装载 (%s)", name, getResourcePoolTypeName());
+        }
     }
     
     LDEBUG_RESOURCEHINT(ResourceType::Sprite, L"N/A");
@@ -384,14 +385,14 @@ bool ResourcePool::LoadAnimation(const char* name, const char* texname,
             LERROR("LoadAnimation: 构造动画'%m'时失败", name);
             return false;
         }
-        catch (const bad_alloc&) {
+        catch (const std::bad_alloc&) {
             LERROR("LoadAnimation: 内存不足");
             return false;
         }
-
-#ifdef LSHOWRESLOADINFO
-        LINFO("LoadAnimation: 动画'%m'已装载 (%s)", name, getResourcePoolTypeName());
-#endif
+    
+        if (ResourceMgr::GetResourceLoadingLog()) {
+            LINFO("LoadAnimation: 动画'%m'已装载 (%s)", name, getResourcePoolTypeName());
+        }
     }
     
     LDEBUG_RESOURCEHINT(ResourceType::Animation, L"N/A");
@@ -443,14 +444,14 @@ bool ResourcePool::LoadMusic(const char* name, const std::wstring& path, double 
             LERROR("LoadMusic: 解码文件'%s'的音频数据时发生错误，格式不支持？ (异常信息'%m' 源'%m')", path.c_str(), e.GetDesc(), e.GetSrc());
             return false;
         }
-        catch (const bad_alloc&) {
+        catch (const std::bad_alloc&) {
             LERROR("LoadMusic: 内存不足");
             return false;
         }
-
-#ifdef LSHOWRESLOADINFO
-        LINFO("LoadMusic: BGM'%m'已装载 (%s)", name, getResourcePoolTypeName());
-#endif
+    
+        if (ResourceMgr::GetResourceLoadingLog()) {
+            LINFO("LoadMusic: BGM'%m'已装载 (%s)", name, getResourcePoolTypeName());
+        }
     }
     
     LDEBUG_RESOURCEHINT(ResourceType::Music, path.c_str());
@@ -461,7 +462,7 @@ bool ResourcePool::LoadMusic(const char* name, const char* path, double start, d
     try {
         return LoadMusic(name, fcyStringHelper::MultiByteToWideChar(path, CP_UTF8), start, end);
     }
-    catch (const bad_alloc&) {
+    catch (const std::bad_alloc&) {
         LERROR("LoadMusic: 转换编码时无法分配内存");
         return false;
     }
@@ -503,14 +504,14 @@ bool ResourcePool::LoadSound(const char* name, const std::wstring& path) noexcep
             LERROR("LoadSound: 解码文件'%s'的音频数据时发生错误，格式不支持？ (异常信息'%m' 源'%m')", path.c_str(), e.GetDesc(), e.GetSrc());
             return false;
         }
-        catch (const bad_alloc&) {
+        catch (const std::bad_alloc&) {
             LERROR("LoadSound: 内存不足");
             return false;
         }
-
-#ifdef LSHOWRESLOADINFO
-        LINFO("LoadSound: 音效'%m'已装载 (%s)", name, getResourcePoolTypeName());
-#endif
+    
+        if (ResourceMgr::GetResourceLoadingLog()) {
+            LINFO("LoadSound: 音效'%m'已装载 (%s)", name, getResourcePoolTypeName());
+        }
     }
     
     LDEBUG_RESOURCEHINT(ResourceType::SoundEffect, path.c_str());
@@ -521,14 +522,14 @@ bool ResourcePool::LoadSound(const char* name, const char* path) noexcept {
     try {
         return LoadSound(name, fcyStringHelper::MultiByteToWideChar(path, CP_UTF8));
     }
-    catch (const bad_alloc&) {
+    catch (const std::bad_alloc&) {
         LERROR("LoadSound: 转换编码时无法分配内存");
         return false;
     }
 }
 
-bool ResourcePool::LoadParticle(const char* name, const std::wstring& path, const char* img_name, double a, double b,
-                                bool rect) noexcept {
+bool ResourcePool::LoadParticle(const char* name, const std::wstring& path, const char* img_name,
+                                double a, double b,bool rect) noexcept {
     LDEBUG_RESOURCETIMER;
     
     {
@@ -595,21 +596,22 @@ bool ResourcePool::LoadParticle(const char* name, const std::wstring& path, cons
             tRes.DirectSet(new ResParticle(name, tInfo, pClone, tBlendInfo, a, b, rect));
             m_ParticlePool.emplace(name, tRes);
         }
-        catch (const bad_alloc&) {
+        catch (const std::bad_alloc&) {
             LERROR("LoadParticle: 内存不足");
             return false;
         }
-#ifdef LSHOWRESLOADINFO
-        LINFO("LoadParticle: 粒子'%m'已装载 (%s)", name, getResourcePoolTypeName());
-#endif
+        
+        if (ResourceMgr::GetResourceLoadingLog()) {
+            LINFO("LoadParticle: 粒子'%m'已装载 (%s)", name, getResourcePoolTypeName());
+        }
     }
     
     LDEBUG_RESOURCEHINT(ResourceType::Particle, path.c_str());
     return true;
 }
 
-bool ResourcePool::LoadParticle(const char* name, const ResParticle::ParticleInfo& info, const char* img_name, double a,
-                                double b, bool rect) noexcept {
+bool ResourcePool::LoadParticle(const char* name, const ResParticle::ParticleInfo& info, const char* img_name,
+                                double a,double b, bool rect) noexcept {
     LDEBUG_RESOURCETIMER;
     
     {
@@ -667,25 +669,26 @@ bool ResourcePool::LoadParticle(const char* name, const ResParticle::ParticleInf
             tRes.DirectSet(new ResParticle(name, tInfo, pClone, tBlendInfo, a, b, rect));
             m_ParticlePool.emplace(name, tRes);
         }
-        catch (const bad_alloc&) {
+        catch (const std::bad_alloc&) {
             LERROR("LoadParticle: 内存不足");
             return false;
         }
-#ifdef LSHOWRESLOADINFO
-        LINFO("LoadParticle: 粒子'%m'已装载 (%s)", name, getResourcePoolTypeName());
-#endif
+    
+        if (ResourceMgr::GetResourceLoadingLog()) {
+            LINFO("LoadParticle: 粒子'%m'已装载 (%s)", name, getResourcePoolTypeName());
+        }
     }
     
     LDEBUG_RESOURCEHINT(ResourceType::Particle, L"binary");
     return true;
 }
 
-bool ResourcePool::LoadParticle(const char* name, const char* path, const char* img_name, double a, double b,
-                                bool rect) noexcept {
+bool ResourcePool::LoadParticle(const char* name, const char* path, const char* img_name,
+                                double a, double b,bool rect) noexcept {
     try {
         return LoadParticle(name, fcyStringHelper::MultiByteToWideChar(path, CP_UTF8), img_name, a, b, rect);
     }
-    catch (const bad_alloc&) {
+    catch (const std::bad_alloc&) {
         LERROR("LoadParticle: 转换编码时无法分配内存");
         return false;
     }
@@ -715,15 +718,15 @@ bool ResourcePool::LoadSpriteFont(const char* name, const std::wstring& path, bo
         }
         
         // 转换编码
-        wstring tFileData;
+        std::wstring tFileData;
         try {
             if (tDataBuf->GetLength() > 0) {
                 // stupid
                 tFileData = fcyStringHelper::MultiByteToWideChar(
-                    string((const char*) tDataBuf->GetInternalBuffer(), (size_t) tDataBuf->GetLength()), CP_UTF8);
+                    std::string((const char*) tDataBuf->GetInternalBuffer(), (size_t) tDataBuf->GetLength()), CP_UTF8);
             }
         }
-        catch (const bad_alloc&) {
+        catch (const std::bad_alloc&) {
             LERROR("LoadFont: 转换编码时无法分配内存");
             return false;
         }
@@ -736,7 +739,7 @@ bool ResourcePool::LoadSpriteFont(const char* name, const std::wstring& path, bo
             LERROR("LoadFont: 装载HGE字体定义文件'%s'失败 (异常信息'%m' 源'%m')", path.c_str(), e.GetDesc(), e.GetSrc());
             return false;
         }
-        catch (const bad_alloc&) {
+        catch (const std::bad_alloc&) {
             LERROR("LoadFont: 内存不足");
             return false;
         }
@@ -748,7 +751,7 @@ bool ResourcePool::LoadSpriteFont(const char* name, const std::wstring& path, bo
                 return false;
             }
         }
-        catch (const bad_alloc&) {
+        catch (const std::bad_alloc&) {
             LERROR("LoadFont: 内存不足");
             return false;
         }
@@ -770,13 +773,14 @@ bool ResourcePool::LoadSpriteFont(const char* name, const std::wstring& path, bo
             tRes.DirectSet(new ResFont(name, tFontProvider));
             m_SpriteFontPool.emplace(name, tRes);
         }
-        catch (const bad_alloc&) {
+        catch (const std::bad_alloc&) {
             LERROR("LoadFont: 内存不足");
             return false;
         }
-#ifdef LSHOWRESLOADINFO
-        LINFO("LoadFont: 纹理字体'%m'已装载 (%s)", name, getResourcePoolTypeName());
-#endif
+    
+        if (ResourceMgr::GetResourceLoadingLog()) {
+            LINFO("LoadFont: 纹理字体'%m'已装载 (%s)", name, getResourcePoolTypeName());
+        }
     }
     
     LDEBUG_RESOURCEHINT(ResourceType::SpriteFont, path.c_str());
@@ -803,15 +807,15 @@ bool ResourcePool::LoadSpriteFont(const char* name, const std::wstring& path, co
             return false;
         
         // 转换编码
-        wstring tFileData;
+        std::wstring tFileData;
         try {
             if (tDataBuf->GetLength() > 0) {
                 // stupid
                 tFileData = fcyStringHelper::MultiByteToWideChar(
-                    string((const char*) tDataBuf->GetInternalBuffer(), (size_t) tDataBuf->GetLength()), CP_UTF8);
+                    std::string((const char*) tDataBuf->GetInternalBuffer(), (size_t) tDataBuf->GetLength()), CP_UTF8);
             }
         }
-        catch (const bad_alloc&) {
+        catch (const std::bad_alloc&) {
             LERROR("LoadFont: 转换编码时无法分配内存");
             return false;
         }
@@ -823,7 +827,7 @@ bool ResourcePool::LoadSpriteFont(const char* name, const std::wstring& path, co
                     return false;
             }
         }
-        catch (const bad_alloc&) {
+        catch (const std::bad_alloc&) {
             LERROR("LoadFont: 内存不足");
             return false;
         }
@@ -848,13 +852,14 @@ bool ResourcePool::LoadSpriteFont(const char* name, const std::wstring& path, co
             tRes.DirectSet(new ResFont(name, tFontProvider));
             m_SpriteFontPool.emplace(name, tRes);
         }
-        catch (const bad_alloc&) {
+        catch (const std::bad_alloc&) {
             LERROR("LoadFont: 内存不足");
             return false;
         }
-#ifdef LSHOWRESLOADINFO
-        LINFO("LoadFont: 纹理字体'%m'已装载 (%s)", name, getResourcePoolTypeName());
-#endif
+        
+        if (ResourceMgr::GetResourceLoadingLog()) {
+            LINFO("LoadFont: 纹理字体'%m'已装载 (%s)", name, getResourcePoolTypeName());
+        }
     }
     
     LDEBUG_RESOURCEHINT(ResourceType::SpriteFont, path.c_str());
@@ -865,7 +870,7 @@ bool ResourcePool::LoadSpriteFont(const char* name, const char* path, bool mipma
     try {
         return LoadSpriteFont(name, fcyStringHelper::MultiByteToWideChar(path, CP_UTF8), mipmaps);
     }
-    catch (const bad_alloc&) {
+    catch (const std::bad_alloc&) {
         LERROR("LoadSpriteFont: 转换编码时无法分配内存");
         return false;
     }
@@ -876,14 +881,14 @@ bool ResourcePool::LoadSpriteFont(const char* name, const char* path, const char
         return LoadSpriteFont(name, fcyStringHelper::MultiByteToWideChar(path, CP_UTF8),
                               fcyStringHelper::MultiByteToWideChar(tex_path, CP_UTF8), mipmaps);
     }
-    catch (const bad_alloc&) {
+    catch (const std::bad_alloc&) {
         LERROR("LoadSpriteFont: 转换编码时无法分配内存");
         return false;
     }
 }
 
-bool ResourcePool::LoadTTFFont(const char* name, const std::wstring& path, float width, float height, float bboxwidth,
-                               float bboxheight) noexcept {
+bool ResourcePool::LoadTTFFont(const char* name, const std::wstring& path, float width, float height,
+                               float bboxwidth,float bboxheight) noexcept {
     LDEBUG_RESOURCETIMER;
     
     {
@@ -921,42 +926,47 @@ bool ResourcePool::LoadTTFFont(const char* name, const std::wstring& path, float
                     return false;
                 }
             }
-#ifdef LSHOWRESLOADINFO
-            LINFO("字形缓存数量：%d，字形缓存贴图大小：%dx%d", tFontProvider->GetCacheCount(), tFontProvider->GetCacheTexSize(),
-                  tFontProvider->GetCacheTexSize());
-#endif
+    
+            if (ResourceMgr::GetResourceLoadingLog()) {
+                LINFO("字形缓存数量：%d，字形缓存贴图大小：%dx%d",
+                      tFontProvider->GetCacheCount(),
+                      tFontProvider->GetCacheTexSize(),
+                      tFontProvider->GetCacheTexSize());
+            }
+            
             fcyRefPointer<ResFont> tRes;
             tRes.DirectSet(new ResFont(name, tFontProvider));
             tRes->SetBlendMode(BlendMode::AddAlpha);
             m_TTFFontPool.emplace(name, tRes);
         }
-        catch (const bad_alloc&) {
+        catch (const std::bad_alloc&) {
             LERROR("LoadTTFFont: 内存不足");
             return false;
         }
-#ifdef LSHOWRESLOADINFO
-        LINFO("LoadTTFFont: truetype字体'%m'已装载 (%s)", name, getResourcePoolTypeName());
-#endif
+        
+        if (ResourceMgr::GetResourceLoadingLog()) {
+            LINFO("LoadTTFFont: truetype字体'%m'已装载 (%s)", name, getResourcePoolTypeName());
+        }
     }
     
     LDEBUG_RESOURCEHINT(ResourceType::TrueTypeFont, path.c_str());
     return true;
 }
 
-bool ResourcePool::LoadTTFFont(const char* name, const char* path, float width, float height, float bboxwidth,
-                               float bboxheight) noexcept {
+bool ResourcePool::LoadTTFFont(const char* name, const char* path, float width, float height,
+                               float bboxwidth,float bboxheight) noexcept {
     try {
-        return LoadTTFFont(name, fcyStringHelper::MultiByteToWideChar(path, CP_UTF8), width, height, bboxwidth,
-                           bboxheight);
+        return LoadTTFFont(name, fcyStringHelper::MultiByteToWideChar(path, CP_UTF8), width, height,
+                           bboxwidth, bboxheight);
     }
-    catch (const bad_alloc&) {
+    catch (const std::bad_alloc&) {
         LERROR("LoadTTFFont: 转换编码时无法分配内存");
         return false;
     }
 }
 
-bool ResourcePool::LoadTTFFont(const char* name, fcyStream* stream, float width, float height, float bboxwidth,
-                               float bboxheight) noexcept {
+bool ResourcePool::LoadTTFFont(const char* name, fcyStream* stream, float width, float height,
+                               float bboxwidth,float bboxheight) noexcept {
     LDEBUG_RESOURCETIMER;
     
     {
@@ -982,13 +992,15 @@ bool ResourcePool::LoadTTFFont(const char* name, fcyStream* stream, float width,
             tRes.DirectSet(new ResFont(name, tFontProvider));
             tRes->SetBlendMode(BlendMode::AddAlpha);
             m_TTFFontPool.emplace(name, tRes);
-#ifdef LSHOWRESLOADINFO
-            LINFO("LoadTTFFont: truetype字体'%m'已装载 (%s)", name, getResourcePoolTypeName());
-            LINFO("字形缓存数量：%d，字形缓存贴图大小：%dx%d",
-                  tFontProvider->GetCacheCount(), tFontProvider->GetCacheTexSize(), tFontProvider->GetCacheTexSize());
-#endif
+    
+            if (ResourceMgr::GetResourceLoadingLog()) {
+                LINFO("LoadTTFFont: truetype字体'%m'已装载 (%s)", name, getResourcePoolTypeName());
+                LINFO("字形缓存数量：%d，字形缓存贴图大小：%dx%d",
+                      tFontProvider->GetCacheCount(),
+                      tFontProvider->GetCacheTexSize(), tFontProvider->GetCacheTexSize());
+            }
         }
-        catch (const bad_alloc&) {
+        catch (const std::bad_alloc&) {
             LERROR("LoadTTFFont: 内存不足");
             return false;
         }
@@ -998,8 +1010,8 @@ bool ResourcePool::LoadTTFFont(const char* name, fcyStream* stream, float width,
     return true;
 }
 
-bool ResourcePool::LoadTrueTypeFont(const char* name, f2dFontProviderParam param, f2dTrueTypeFontParam* fonts,
-                                    fuInt count) noexcept {
+bool ResourcePool::LoadTrueTypeFont(const char* name,
+                                    f2dFontProviderParam param, f2dTrueTypeFontParam* fonts,fuInt count) noexcept {
     LDEBUG_RESOURCETIMER;
     
     {
@@ -1024,13 +1036,15 @@ bool ResourcePool::LoadTrueTypeFont(const char* name, f2dFontProviderParam param
             tRes.DirectSet(new ResFont(name, tFontProvider));
             tRes->SetBlendMode(BlendMode::AddAlpha);
             m_TTFFontPool.emplace(name, tRes);
-#ifdef LSHOWRESLOADINFO
-            LINFO("LoadTrueTypeFont: TrueType字体组'%m'已装载 (%s)", name, getResourcePoolTypeName());
-            LINFO("字形缓存数量：%d，字形缓存贴图大小：%dx%d",
-                  tFontProvider->GetCacheCount(), tFontProvider->GetCacheTexSize(), tFontProvider->GetCacheTexSize());
-#endif
+            
+            if (ResourceMgr::GetResourceLoadingLog()) {
+                LINFO("LoadTrueTypeFont: TrueType字体组'%m'已装载 (%s)", name, getResourcePoolTypeName());
+                LINFO("字形缓存数量：%d，字形缓存贴图大小：%dx%d",
+                      tFontProvider->GetCacheCount(),
+                      tFontProvider->GetCacheTexSize(), tFontProvider->GetCacheTexSize());
+            }
         }
-        catch (const bad_alloc&) {
+        catch (const std::bad_alloc&) {
             LERROR("LoadTrueTypeFont: 内存不足");
             return false;
         }
@@ -1073,13 +1087,14 @@ bool ResourcePool::LoadFX(const char* name, const std::wstring& path) noexcept {
             LERROR("LoadFX: 绑定变量于文件'%s'失败 (异常信息'%m' 源'%m')", path.c_str(), e.GetDesc(), e.GetSrc());
             return false;
         }
-        catch (const bad_alloc&) {
+        catch (const std::bad_alloc&) {
             LERROR("LoadFX: 内存不足");
             return false;
         }
-#ifdef LSHOWRESLOADINFO
-        LINFO("LoadFX: FX'%m'已装载 (%s)", name, getResourcePoolTypeName());
-#endif
+        
+        if (ResourceMgr::GetResourceLoadingLog()) {
+            LINFO("LoadFX: FX'%m'已装载 (%s)", name, getResourcePoolTypeName());
+        }
     }
     
     LDEBUG_RESOURCEHINT(ResourceType::FX, path.c_str());
@@ -1090,7 +1105,7 @@ bool ResourcePool::LoadFX(const char* name, const char* path) noexcept {
     try {
         return LoadFX(name, fcyStringHelper::MultiByteToWideChar(path, CP_UTF8));
     }
-    catch (const bad_alloc&) {
+    catch (const std::bad_alloc&) {
         LERROR("LoadFX: 转换编码时无法分配内存");
         return false;
     }
@@ -1122,14 +1137,14 @@ bool ResourcePool::CreateRenderTarget(const char* name) noexcept {
             tRes.DirectSet(new ResTexture(name, tTexture));
             m_TexturePool.emplace(name, tRes);
         }
-        catch (const bad_alloc&) {
+        catch (const std::bad_alloc&) {
             LERROR("CreateRenderTarget: 内存不足");
             return false;
         }
-
-#ifdef LSHOWRESLOADINFO
-        LINFO("CreateRenderTarget: '%m'已创建 (%s)", name, getResourcePoolTypeName());
-#endif
+        
+        if (ResourceMgr::GetResourceLoadingLog()) {
+            LINFO("CreateRenderTarget: '%m'已创建 (%s)", name, getResourcePoolTypeName());
+        }
     }
     
     LDEBUG_RESOURCEHINT(ResourceType::Texture, L"[RenderTarget]");
@@ -1160,14 +1175,14 @@ bool ResourcePool::CreateRenderTarget(const char* name, int width, int height) n
             tRes.DirectSet(new ResTexture(name, tTexture));
             m_TexturePool.emplace(name, tRes);
         }
-        catch (const bad_alloc&) {
+        catch (const std::bad_alloc&) {
             LERROR("CreateRenderTarget: 内存不足");
             return false;
         }
-
-#ifdef LSHOWRESLOADINFO
-        LINFO("CreateRenderTarget: '%m'已创建 (%s)", name, getResourcePoolTypeName());
-#endif
+    
+        if (ResourceMgr::GetResourceLoadingLog()) {
+            LINFO("CreateRenderTarget: '%m' (%uX%u) 已创建 (%s)", name, width, height, getResourcePoolTypeName());
+        }
     }
     
     LDEBUG_RESOURCEHINT(ResourceType::Texture, L"[RenderTarget]");

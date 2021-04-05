@@ -638,6 +638,10 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		
 		#pragma region 资源控制函数
 		// 资源控制函数
+		static int SetResLoadInfo(lua_State* L) noexcept {
+		    ResourceMgr::SetResourceLoadingLog((bool)lua_toboolean(L, 1));
+		    return 0;
+		}
 		static int SetResourceStatus(lua_State* L)LNOEXCEPT
 		{
 			const char* s = luaL_checkstring(L, 1);
@@ -2127,6 +2131,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		#pragma endregion
 
 		#pragma region 资源控制函数
+        { "SetResLoadInfo", &WrapperImplement::SetResLoadInfo },
 		{ "SetResourceStatus", &WrapperImplement::SetResourceStatus },
 		{ "GetResourceStatus", &WrapperImplement::GetResourceStatus },
 		{ "LoadTexture", &WrapperImplement::LoadTexture },
