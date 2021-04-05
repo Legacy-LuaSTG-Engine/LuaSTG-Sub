@@ -2051,6 +2051,10 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			return 1;
 		}
 		#pragma endregion
+		
+		static int _Empty(lua_State* L) noexcept {
+		    return 0;
+		}
 	};
 	
 	luaL_Reg tFunctions[] = {
@@ -2060,6 +2064,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		{ "GetFPS", &WrapperImplement::GetFPS },
 		{ "SetVsync", &WrapperImplement::SetVsync },
 		{ "SetResolution", &WrapperImplement::SetResolution },
+        { "ShowSplashWindow", &WrapperImplement::_Empty },
 		{ "Log", &WrapperImplement::Log },
 		{ "SystemLog", &WrapperImplement::SystemLog },
 		{ "Print", &WrapperImplement::Print },

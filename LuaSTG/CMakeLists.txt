@@ -60,7 +60,7 @@ target_sources(LuaSTG PRIVATE
     ${LUASTG_RESDIR}/resource.rc
     ${LUASTG_RESDIR}/app.ico
 )
-if(TRUE)
+if(FALSE)
     target_sources(LuaSTG PRIVATE
         Graphic/Type.h
         Graphic/Object.h

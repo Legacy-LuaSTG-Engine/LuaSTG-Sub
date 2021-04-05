@@ -347,10 +347,10 @@ void ResourceMgr::CacheTTFFontString(const char* name, const char* text) noexcep
 
 // 其他
 
-#ifdef NDEBUG
-bool ResourceMgr::g_ResourceLoadingLog = false;
-#else
+#ifdef LDEVVERSION
 bool ResourceMgr::g_ResourceLoadingLog = true;
+#else
+bool ResourceMgr::g_ResourceLoadingLog = false;
 #endif
 
 void ResourceMgr::SetResourceLoadingLog(bool b) { g_ResourceLoadingLog = b; }
