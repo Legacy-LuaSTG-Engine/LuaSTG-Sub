@@ -6,6 +6,8 @@
 #include "ImGuiExtension.h"
 #include "LuaWrapper/LuaAppFrame.hpp"
 #include "Graphic/Test.h"
+#include "spdlog/spdlog.h"
+#include "LConfig.h"
 
 using namespace LuaSTGPlus;
 
@@ -241,13 +243,19 @@ LNOINLINE void AppFrame::SaveTexture(f2dTexture2D* Tex, const char* path)LNOEXCE
 bool AppFrame::Init()LNOEXCEPT
 {
 	LASSERT(m_iStatus == AppStatus::NotInitialized);
-	LINFO("开始初始化 版本: %s", LVERSION);
+	
+	spdlog::info(LUASTG_INFO);
+	spdlog::info(u8"[luastg] 初始化引擎");
 	m_iStatus = AppStatus::Initializing;
 	
 	//////////////////////////////////////// Lua初始化部分
+	
+	spdlog::info(u8"[luastg] 初始化luajit引擎");
+	
 	// 开启Lua引擎
 	if (!OnOpenLuaEngine())
 	{
+		spdlog::info(u8"[luastg] 初始化luajit引擎失败");
 		return false;
 	}
 	
@@ -260,26 +268,26 @@ bool AppFrame::Init()LNOEXCEPT
 	//////////////////////////////////////// 初始化引擎
 	{
 		// 为对象池分配空间
-		LINFO("初始化对象池 上限=%u", LOBJPOOL_SIZE);
+		spdlog::info(u8"[luastg] 初始化对象池，容量{}", LOBJPOOL_SIZE);
 		try
 		{
 			m_GameObjectPool = std::make_unique<GameObjectPool>(L);
 		}
 		catch (const std::bad_alloc&)
 		{
-			LERROR("无法为对象池分配足够内存");
+			spdlog::error(u8"[luastg] 无法为对象池分配内存");
 			return false;
 		}
 		
 		// 初始化fancy2d引擎
-		LINFO("初始化fancy2d 版本 %d.%d (分辨率: %dx%d 垂直同步: %b 窗口化: %b)",
-			(F2DVERSION & 0xFFFF0000) >> 16, F2DVERSION & 0x0000FFFF,
+		spdlog::info(u8"[fancy2d] 初始化，窗口分辨率：{}x{}，垂直同步：{}，窗口化：{}",
 			(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed);
+		
 		struct : public f2dInitialErrListener
 		{
 			void OnErr(fuInt TimeTick, fcStr Src, fcStr Desc)
 			{
-				LERROR("初始化fancy2d失败 (异常信息'%m' 源'%m')", Desc, Src);
+				spdlog::error(u8"[fancy2d] [{}] {}", Src, Desc);
 			}
 		} tErrListener;
 		
@@ -295,6 +303,7 @@ bool AppFrame::Init()LNOEXCEPT
 			&tErrListener
 			)))
 		{
+			spdlog::error(u8"[fancy2d] 初始化失败");
 			return false;
 		}
 		
@@ -308,13 +317,24 @@ bool AppFrame::Init()LNOEXCEPT
 		// 打印设备信息
 		f2dCPUInfo stCPUInfo = { 0 };
 		m_pEngine->GetCPUInfo(stCPUInfo);
-		LINFO("CPU %m %m / GPU %m", stCPUInfo.CPUBrandString, stCPUInfo.CPUString, m_pRenderDev->GetDeviceName());
+		spdlog::info(u8"[fancy2d] CPU {} {}", stCPUInfo.CPUBrandString, stCPUInfo.CPUString);
+		spdlog::info(u8"[fancy2d] GPU {}", m_pRenderDev->GetDeviceName());
+		
+		// 设置窗口图标
+		HICON hIcon = LoadIconW(GetModuleHandleW(NULL), MAKEINTRESOURCEW(IDI_APPICON));
+		SendMessageW((HWND)m_pMainWindow->GetHandle(), WM_SETICON, (WPARAM)ICON_BIG  , (LPARAM)hIcon);
+		SendMessageW((HWND)m_pMainWindow->GetHandle(), WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)hIcon);
+		DestroyIcon(hIcon);
+		
+		// 默认关闭深度缓冲
+		m_pRenderDev->SetZBufferEnable(false);
+		m_pRenderDev->ClearZBuffer();
 		
 		// 创建渲染器
-		//原来的大小只有20000，20000
+		spdlog::info(u8"[fancy2d] 创建2D渲染器，顶点容量{}，索引容量{}", 16384, 24576);
 		if (FCYFAILED(m_pRenderDev->CreateGraphics2D(16384, 24576, &m_Graph2D)))
 		{
-			LERROR("无法创建渲染器 (fcyRenderDevice::CreateGraphics2D failed)");
+			spdlog::error(u8"[fancy2d] [f2dRenderDevice::CreateGraphics2D] 创建2D渲染器失败");
 			return false;
 		}
 		m_Graph2DLastBlendMode = BlendMode::AddAlpha;
@@ -323,44 +343,51 @@ bool AppFrame::Init()LNOEXCEPT
 		m_bRenderStarted = false;
 		
 		// 创建文字渲染器
+		spdlog::info(u8"[fancy2d] 创建文本渲染器");
 		if (FCYFAILED(m_pRenderer->CreateFontRenderer(nullptr, &m_FontRenderer)))
 		{
-			LERROR("无法创建字体渲染器 (fcyRenderer::CreateFontRenderer failed)");
+			spdlog::error(u8"[fancy2d] [fcyRenderer::CreateFontRenderer] 创建文本渲染器失败");
 			return false;
 		}
 		m_FontRenderer->SetZ(0.5f);
 		
 		// 创建图元渲染器
+		spdlog::info(u8"[fancy2d] 创建平面几何渲染器");
 		if (FCYFAILED(m_pRenderer->CreateGeometryRenderer(&m_GRenderer)))
 		{
-			LERROR("无法创建图元渲染器 (fcyRenderer::CreateGeometryRenderer failed)");
+			spdlog::error(u8"[fancy2d] [fcyRenderer::CreateGeometryRenderer] 创建平面几何渲染器失败");
 			return false;
 		}
 		
 		// 创建3D渲染器
+		spdlog::info(u8"[fancy2d] 创建后处理特效渲染器");
 		if (FCYFAILED(m_pRenderDev->CreateGraphics3D(nullptr, &m_Graph3D)))
 		{
-			LERROR("无法创建3D渲染器 (fcyRenderDevice::CreateGraphics3D failed)");
+			spdlog::error(u8"[fancy2d] [f2dRenderDevice::CreateGraphics3D] 创建后处理特效渲染器失败");
 			return false;
 		}
 		m_Graph3DLastBlendMode = BlendMode::AddAlpha;
 		m_Graph3DBlendState = m_Graph3D->GetBlendState();
 		
-		// 默认关闭深度缓冲
-		m_pRenderDev->SetZBufferEnable(false);
-		m_pRenderDev->ClearZBuffer();
-		
 		//创建鼠标输入
+		spdlog::info(u8"[fancy2d] 创建DirectInput鼠标设备");
 		m_pInputSys->CreateMouse(-1, false, &m_Mouse);
 		if (!m_Mouse)
-			LWARNING("无法创建鼠标设备，将使用窗口消息作为输入源 (f2dInputSys::CreateMouse failed.)");
+		{
+			spdlog::error(u8"[fancy2d] [f2dInputSys::CreateMouse] 创建DirectInput鼠标设备失败");
+		}
 		// 创建键盘输入
+		spdlog::info(u8"[fancy2d] 创建DirectInput键盘设备");
 		m_pInputSys->CreateKeyboard(-1, false, &m_Keyboard);
 		if (!m_Keyboard)
-			LWARNING("无法创建键盘设备，将使用窗口消息作为输入源 (f2dInputSys::CreateKeyboard failed.)");
+		{
+			spdlog::error(u8"[fancy2d] [f2dInputSys::CreateKeyboard] 创建DirectInput键盘设备失败");
+		}
 		m_pInputSys->CreateDefaultKeyboard(-1, false, &m_Keyboard2);
 		if (!m_Keyboard2)
-			LWARNING("无法创建键盘设备，将使用窗口消息作为输入源 (f2dInputSys::CreateDefaultKeyboard failed.)");
+		{
+			spdlog::error(u8"[fancy2d] [f2dInputSys::CreateDefaultKeyboard] 创建DirectInput键盘设备失败");
+		}
 		
 		//创建手柄输入
 		try
@@ -371,17 +398,18 @@ bool AppFrame::Init()LNOEXCEPT
 				uint32_t cnt = m_DirectInput->count();
 				for (uint32_t i = 0; i < cnt; i += 1)
 				{
-					LINFO("侦测到%s手柄 设备名：%s 产品名：%s",
-						m_DirectInput->isXInputDevice(i) ? L"XInput" : L"DirectInput",
-						m_DirectInput->getDeviceName(i),
-						m_DirectInput->getProductName(i));
+					spdlog::info(u8"[luastg] 检测到{}控制器：{} {}",
+						m_DirectInput->isXInputDevice(i) ? u8"XInput" : u8"DirectInput",
+						fcyStringHelper::WideCharToMultiByte(m_DirectInput->getDeviceName(i)),
+						fcyStringHelper::WideCharToMultiByte(m_DirectInput->getProductName(i))
+					);
 				}
-				LINFO("成功创建了%d个DirectInput手柄", (int)cnt);
+				spdlog::info(u8"[luastg] 成功创建了{}个控制器", cnt);
 			}
 		}
 		catch (const std::bad_alloc&)
 		{
-			LERROR("无法创建DirectInput");
+			spdlog::error(u8"[luastg] 无法为DirectInput分配内存");
 		}
 		
 		// 初始化ImGui
@@ -390,12 +418,6 @@ bool AppFrame::Init()LNOEXCEPT
 		slow::Graphic::_bindEngine((void*)m_pMainWindow->GetHandle());
 		// 初始化自定义后处理特效
 		//slow::effect::bindEngine();
-		
-		// 设置窗口图标
-		HICON hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_APPICON));
-		SendMessage((HWND)m_pMainWindow->GetHandle(), WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hIcon);
-		SendMessage((HWND)m_pMainWindow->GetHandle(), WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)hIcon);
-		DestroyIcon(hIcon);
 		
 		// 显示窗口
 		m_pMainWindow->SetBorderType(F2DWINBORDERTYPE_FIXED);
@@ -414,7 +436,7 @@ bool AppFrame::Init()LNOEXCEPT
 	
 	//////////////////////////////////////// 初始化完成
 	m_iStatus = AppStatus::Initialized;
-	LINFO("初始化成功完成");
+	spdlog::info(u8"[luastg] 初始化完成");
 	
 	//////////////////////////////////////// 调用GameInit
 	if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineInit)) {
@@ -429,10 +451,10 @@ void AppFrame::Shutdown()LNOEXCEPT
 	SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineStop);
 	
 	m_GameObjectPool = nullptr;
-	LINFO("已清空对象池");
+	spdlog::info(u8"[luastg] 清空对象池");
 
 	m_ResourceMgr.ClearAllResource();
-	LINFO("已清空所有资源");
+	spdlog::info(u8"[luastg] 清空所有游戏资源");
 	
 	// 卸载自定义后处理特效
 	//slow::effect::unbindEngine();
@@ -455,27 +477,27 @@ void AppFrame::Shutdown()LNOEXCEPT
 	m_pRenderer = nullptr;
 	m_pMainWindow = nullptr;
 	m_pEngine = nullptr;
-	LINFO("已卸载fancy2d");
-
+	spdlog::info(u8"[fancy2d] 卸载所有组件");
+	
 	if (L)
 	{
 		lua_close(L);
 		L = nullptr;
-		LINFO("已卸载Lua虚拟机");
+		spdlog::info(u8"[luastg] 关闭luajit引擎");
 	}
-
+	
 	m_FileManager.UnloadAllArchive();
-	LINFO("已卸载所有资源包");
-
+	spdlog::info(u8"[luastg] 卸载所有资源包");
+	
 	m_iStatus = AppStatus::Destroyed;
-	LINFO("框架销毁");
+	spdlog::info(u8"[luastg] 引擎关闭");
 }
 
 void AppFrame::Run()LNOEXCEPT
 {
 	LASSERT(m_iStatus == AppStatus::Initialized);
-	LINFO("开始游戏循环");
-
+	spdlog::info(u8"[luastg] 开始更新&渲染循环");
+	
 	m_fFPS = 0.f;
 #if (defined LDEVVERSION) || (defined LDEBUG)
 	m_UpdateTimer = 0.f;
@@ -487,11 +509,10 @@ void AppFrame::Run()LNOEXCEPT
 	m_UpdateTimerTotal = 0.f;
 	m_RenderTimerTotal = 0.f;
 #endif
-
-	// 启动游戏循环
+	
 	m_pEngine->Run(F2DENGTHREADMODE_MULTITHREAD, m_OptionFPSLimit);
-
-	LINFO("结束游戏循环");
+	
+	spdlog::info(u8"[luastg] 结束更新&渲染循环");
 }
 
 #pragma endregion
@@ -701,7 +722,7 @@ fBool AppFrame::OnRender(fDouble ElapsedTime, f2dFPSController* pFPSController)
 		m_pEngine->Abort();
 	if (!m_stRenderTargetStack.empty())
 	{
-		LWARNING("OnRender: 渲染结束时没有推出所有的RenderTarget.");
+		spdlog::error(u8"[luastg] [AppFrame::OnRender] 渲染结束时RenderTarget栈不为空，可能缺少对lstg.PopRenderTarget的调用");
 		while (!m_stRenderTargetStack.empty())
 			PopRenderTarget();
 	}

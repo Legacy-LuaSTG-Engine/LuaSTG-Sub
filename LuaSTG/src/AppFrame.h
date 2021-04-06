@@ -125,7 +125,7 @@ namespace LuaSTGPlus
 		
 		/// @brief 执行资源包中的文件
 		/// @note 该函数为脚本系统使用
-		LNOINLINE void LoadScript(const char* path,const char *packname)LNOEXCEPT;
+		void LoadScript(const char* path,const char *packname)LNOEXCEPT;
 		
 		bool OnOpenLuaEngine();
 		bool OnLoadLaunchScriptAndFiles();

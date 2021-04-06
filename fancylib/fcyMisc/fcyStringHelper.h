@@ -103,12 +103,12 @@ namespace fcyStringHelper
 	/// @param[in] Org 原始字符串
 	/// @param[in] CodePage 代码页，具体查阅MSDN
 	/// @return    返回被转换的字符串
-	std::wstring MultiByteToWideChar(const std::string& Org, fuInt CodePage=1);
+	std::wstring MultiByteToWideChar(const std::string& Org, fuInt CodePage=65001);
 
 	/// @brief     wstring到string
 	/// @param[in] Org 原始字符串
 	/// @param[in] CodePage 代码页，具体查阅MSDN
 	/// @return    返回被转换的字符串
-	std::string WideCharToMultiByte(const std::wstring& Org, fuInt CodePage=1);
+	std::string WideCharToMultiByte(const std::wstring& Org, fuInt CodePage=65001);
 }
 /// @}

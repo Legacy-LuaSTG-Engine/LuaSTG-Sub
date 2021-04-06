@@ -86,6 +86,7 @@ else()
 endif()
 
 target_link_libraries(LuaSTG PRIVATE
+    spdlog::spdlog
     fancylib
     fancy2d
     eyes2d
