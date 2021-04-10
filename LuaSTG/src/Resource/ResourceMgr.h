@@ -38,7 +38,7 @@ namespace LuaSTGPlus
         Dictionary<fcyRefPointer<ResFX>> m_FXPool;
         Dictionary<fcyRefPointer<ResModel>> m_ModelPool;
     private:
-        const wchar_t* getResourcePoolTypeName();
+        const char* getResourcePoolTypeName();
     public:
         void Clear() noexcept;
         void RemoveResource(ResourceType t, const char* name) noexcept;
@@ -46,46 +46,37 @@ namespace LuaSTGPlus
         int ExportResourceList(lua_State* L, ResourceType t) const  noexcept;
         
         // 纹理
-        bool LoadTexture(const char* name, const std::wstring& path, bool mipmaps = true) noexcept;
         bool LoadTexture(const char* name, const char* path, bool mipmaps = true) noexcept;
         // 渲染目标
-        bool CreateRenderTarget(const char* name) noexcept;
-        bool CreateRenderTarget(const char* name, int width, int height) noexcept;
+        bool CreateRenderTarget(const char* name, int width = 0, int height = 0) noexcept;
         // 图片精灵
-        bool LoadSprite(const char* name, const char* texname,
-            double x, double y, double w, double h, double a, double b, bool rect = false) noexcept;
+        bool CreateSprite(const char* name, const char* texname,
+                          double x, double y, double w, double h,
+                          double a, double b, bool rect = false) noexcept;
         // 动画精灵
-        bool LoadAnimation(const char* name, const char* texname,
-            double x, double y, double w, double h, int n, int m, int intv, double a, double b, bool rect = false) noexcept;
+        bool CreateAnimation(const char* name, const char* texname,
+                             double x, double y, double w, double h, int n, int m, int intv,
+                             double a, double b, bool rect = false) noexcept;
         // 音乐
-        bool LoadMusic(const char* name, const std::wstring& path, double start, double end) noexcept;
         bool LoadMusic(const char* name, const char* path, double start, double end) noexcept;
         // 音效
-        bool LoadSound(const char* name, const std::wstring& path) noexcept;
-        bool LoadSound(const char* name, const char* path) noexcept;
+        bool LoadSoundEffect(const char* name, const char* path) noexcept;
         // 粒子特效(HGE)
-        bool LoadParticle(const char* name, const std::wstring& path, const char* img_name,
-                          double a, double b, bool rect = false) noexcept;
         bool LoadParticle(const char* name, const ResParticle::ParticleInfo& info, const char* img_name,
-                          double a, double b, bool rect = false) noexcept;
+                          double a, double b, bool rect = false, bool _nolog = false) noexcept;
         bool LoadParticle(const char* name, const char* path, const char* img_name,
                           double a, double b, bool rect = false) noexcept;
         // 装载纹理字体(HGE)
-        bool LoadSpriteFont(const char* name, const std::wstring& path, bool mipmaps = true) noexcept;
         bool LoadSpriteFont(const char* name, const char* path, bool mipmaps = true) noexcept;
         // 装载纹理字体(fancy2d)
-        bool LoadSpriteFont(const char* name, const std::wstring& path, const std::wstring& tex_path, bool mipmaps = true) noexcept;
         bool LoadSpriteFont(const char* name, const char* path, const char* tex_path, bool mipmaps = true) noexcept;
         // 加载矢量字体
-        bool LoadTTFFont(const char* name, const std::wstring& path, float width, float height, float bboxwidth, float bboxheight) noexcept;
         bool LoadTTFFont(const char* name, const char* path, float width, float height, float bboxwidth, float bboxheight) noexcept;
         bool LoadTTFFont(const char* name, fcyStream* stream, float width, float height, float bboxwidth, float bboxheight) noexcept;
         bool LoadTrueTypeFont(const char* name, f2dFontProviderParam param, f2dTrueTypeFontParam* fonts, fuInt count) noexcept;
         // 特效
-        bool LoadFX(const char* name, const std::wstring& path) noexcept;
         bool LoadFX(const char* name, const char* path) noexcept;
         // 模型（什么垃圾）
-        bool LoadModel(const char* name, const std::wstring& path) noexcept;
         bool LoadModel(const char* name, const char* path) noexcept;
         
         fcyRefPointer<ResTexture> GetTexture(const char* name) noexcept;

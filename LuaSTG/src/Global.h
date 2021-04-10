@@ -93,12 +93,12 @@
 // #define LSHOWFONTBASELINE  // 显示文字基线
 #define LPERFORMANCEUPDATETIMER 0.25f  // 刷新一次计数器（间隔：秒）
 
-#define LWIDE_(x) L ## x
-#define LWIDE(x) LWIDE_(x)
 #define LERROR(info, ...) LLOGGER.Log(LuaSTGPlus::LogType::Error, L##info, __VA_ARGS__)
 #define LWARNING(info, ...) LLOGGER.Log(LuaSTGPlus::LogType::Warning, L##info, __VA_ARGS__)
 #define LINFO(info, ...) LLOGGER.Log(LuaSTGPlus::LogType::Information, L##info, __VA_ARGS__)
 
+#define LWIDE_(x) L ## x
+#define LWIDE(x) LWIDE_(x)
 #ifdef LDEBUG
 #define LASSERT(cond) \
 	if (!(cond)) \

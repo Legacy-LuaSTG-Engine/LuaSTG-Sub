@@ -99,7 +99,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, b
 			vsync,
 			F2DAALEVEL_NONE)))
 		{
-			LINFO("视频模式切换成功 (%dx%d Vsync:%b Windowed:%b) -> (%dx%d Vsync:%b Windowed:%b)",
+			spdlog::info(u8"[luastg] 视频模式切换成功 ({}x{} Vsync:{} Windowed:{}) -> ({}x{} Vsync:{} Windowed:{})",
 				(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
 				width, height, vsync, windowed);
 
@@ -129,7 +129,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, b
 			m_pMainWindow->SetTopMost(!m_OptionWindowed);
 			m_pMainWindow->MoveToCenter();
 
-			LINFO("视频模式切换失败 (%dx%d Vsync:%b Windowed:%b) -> (%dx%d Vsync:%b Windowed:%b)",
+			spdlog::error(u8"[luastg] 视频模式切换失败 ({}x{} Vsync:{} Windowed:{}) -> ({}x{} Vsync:{} Windowed:{})",
 				(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
 				width, height, vsync, windowed);
 		}
@@ -150,7 +150,7 @@ LNOINLINE bool AppFrame::UpdateVideoMode()LNOEXCEPT
 			false,
 			F2DAALEVEL_NONE)))
 		{
-			LINFO("视频模式切换成功 (%dx%d Vsync:%b Windowed:%b)",
+			spdlog::info(u8"[luastg] 视频模式切换成功 ({}x{} Vsync:{} Windowed:{})",
 				(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed);
 			// 切换窗口大小
 			m_pMainWindow->SetBorderType(m_OptionWindowed ? F2DWINBORDERTYPE_FIXED : F2DWINBORDERTYPE_NONE);
@@ -174,7 +174,7 @@ LNOINLINE bool AppFrame::UpdateVideoMode()LNOEXCEPT
 			m_pMainWindow->SetTopMost(!m_OptionWindowed);
 			m_pMainWindow->MoveToCenter();
 
-			LINFO("视频模式切换失败 (%dx%d Vsync:%b Windowed:%b)",
+			spdlog::error(u8"[luastg] 视频模式切换失败 ({}x{} Vsync:{} Windowed:{})",
 				(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed);
 		}
 	}
@@ -183,12 +183,12 @@ LNOINLINE bool AppFrame::UpdateVideoMode()LNOEXCEPT
 
 LNOINLINE int AppFrame::LoadTextFile(lua_State* L, const char* path, const char *packname)LNOEXCEPT
 {
-    if (ResourceMgr::GetResourceLoadingLog()) {
-        LINFO("读取文本文件'%m'", path);
-    }
+	if (ResourceMgr::GetResourceLoadingLog()) {
+		spdlog::info(u8"[luastg] 读取文本文件'{}'", path);
+	}
 	fcyRefPointer<fcyMemStream> tMemStream;
 	if (!m_ResourceMgr.LoadFile(path, tMemStream, packname)) {
-		LWARNING("无法加载文件'%m'.", path);
+		spdlog::error(u8"[luastg] 无法加载文件'{}'", path);
 		return 0;
 	}
 	lua_pushlstring(L, (char*)tMemStream->GetInternalBuffer(), (size_t)tMemStream->GetLength());

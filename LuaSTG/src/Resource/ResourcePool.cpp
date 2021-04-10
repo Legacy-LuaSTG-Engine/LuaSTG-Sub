@@ -1,22 +1,13 @@
 ﻿#include "ResourceMgr.h"
 #include "AppFrame.h"
 #include "Utility.h"
+#include "spdlog/spdlog.h"
 
 #ifdef max
 #undef max
 #endif
 #ifdef min
 #undef min
-#endif
-
-#if (defined LDEVVERSION) || (defined LDEBUG)
-#define LDEBUG_RESOURCETIMER float tResourceLoadingTime
-#define LDEBUG_RESOURCESCOPE TimerScope tLoadingTimer(tResourceLoadingTime)
-#define LDEBUG_RESOURCEHINT(t, path)
-#else
-#define LDEBUG_RESOURCETIMER
-#define LDEBUG_RESOURCESCOPE
-#define LDEBUG_RESOURCEHINT
 #endif
 
 using namespace LuaSTGPlus;
@@ -33,29 +24,30 @@ void ResourcePool::Clear() noexcept {
     m_SpriteFontPool.clear();
     m_TTFFontPool.clear();
     m_FXPool.clear();
+    spdlog::info(u8"[luastg] {}已清空", getResourcePoolTypeName());
 }
 
 template<typename T>
 void removeResource(Dictionary<fcyRefPointer<T>>& pool, const char* name) {
     auto i = pool.find(name);
     if (i == pool.end()) {
-        LWARNING("RemoveResource: 试图移除一个不存在的资源'%m'", name);
+        spdlog::warn(u8"[luastg] RemoveResource: 试图卸载一个不存在的资源'{}'", name);
         return;
     }
     pool.erase(i);
     if (ResourceMgr::GetResourceLoadingLog()) {
-        LINFO("RemoveResource: 资源'%m'已卸载", name);
+        spdlog::info(u8"[luastg] RemoveResource: 资源'{}'已卸载", name);
     }
 }
 
-const wchar_t* ResourcePool::getResourcePoolTypeName() {
+const char* ResourcePool::getResourcePoolTypeName() {
     switch (m_iType) {
         case ResourcePoolType::Global:
-            return L"全局资源池";
+            return u8"全局资源池";
         case ResourcePoolType::Stage:
-            return L"关卡资源池";
+            return u8"关卡资源池";
         default:
-            return nullptr;
+            return u8"未知资源池";
     }
 }
 
@@ -114,7 +106,7 @@ bool ResourcePool::CheckResourceExists(ResourceType t, const std::string& name) 
         case ResourceType::FX:
             return m_FXPool.find(name.c_str()) != m_FXPool.end();
         default:
-            LWARNING("CheckRes: 试图检索一个不存在的资源类型 (%d)", (int)t);
+            spdlog::warn(u8"[luastg] CheckRes: 试图检索一个不存在的资源类型({})", (int)t);
             break;
     }
     return false;
@@ -187,7 +179,7 @@ int ResourcePool::ExportResourceList(lua_State* L, ResourceType t) const noexcep
             }
             break;
         default:
-            LWARNING("EnumRes: 试图枚举一个不存在的资源类型 (%d)", (int)t);
+            spdlog::warn(u8"[luastg] EnumRes: 试图枚举一个不存在的资源类型({})", (int)t);
             // lua_pushnil(L);
             lua_createtable(L, 0, 0);
             break;
@@ -195,998 +187,851 @@ int ResourcePool::ExportResourceList(lua_State* L, ResourceType t) const noexcep
     return 1;
 }
 
-// 加载
-
-bool ResourcePool::LoadTexture(const char* name, const std::wstring& path, bool mipmaps) noexcept {
-    LDEBUG_RESOURCETIMER;
-    
-    {
-        LDEBUG_RESOURCESCOPE;
-        
-        LASSERT(LAPP.GetRenderDev());
-        
-        if (m_TexturePool.find(name) != m_TexturePool.end()) {
-            LWARNING("LoadTexture: 纹理'%m'已存在，试图使用'%s'加载的操作已被取消", name, path.c_str());
-            return true;
-        }
-        
-        fcyRefPointer<fcyMemStream> tDataBuf;
-        if (!m_pMgr->LoadFile(path.c_str(), tDataBuf))
-            return false;
-        
-        fcyRefPointer<f2dTexture2D> tTexture;
-        if (FCYFAILED(
-            LAPP.GetRenderDev()->CreateTextureFromMemory((fcData) tDataBuf->GetInternalBuffer(), tDataBuf->GetLength(),
-                                                         0, 0, false, mipmaps, &tTexture))) {
-            LERROR("LoadTexture: 从文件'%s'创建纹理'%m'失败", path.c_str(), name);
-            return false;
-        }
-        
-        try {
-            fcyRefPointer<ResTexture> tRes;
-            tRes.DirectSet(new ResTexture(name, tTexture));
-            m_TexturePool.emplace(name, tRes);
-        }
-        catch (const std::bad_alloc&) {
-            LERROR("LoadTexture: 内存不足");
-            return false;
-        }
-    
-        if (ResourceMgr::GetResourceLoadingLog()) {
-            LINFO("LoadTexture: 纹理'%s'已装载 -> '%m' (%s)", path.c_str(), name, getResourcePoolTypeName());
-        }
-    }
-    
-    LDEBUG_RESOURCEHINT(ResourceType::Texture, path.c_str());
-    return true;
-}
+// 加载纹理
 
 bool ResourcePool::LoadTexture(const char* name, const char* path, bool mipmaps) noexcept {
-    try {
-        return LoadTexture(name, fcyStringHelper::MultiByteToWideChar(path, CP_UTF8), mipmaps);
-    }
-    catch (const std::bad_alloc&) {
-        LERROR("LoadTexture: 转换编码时无法分配内存");
+    if (!LAPP.GetRenderDev()) {
+        spdlog::error(u8"[luastg] LoadTexture: 无法加载纹理'{}'，f2dRenderDevice未准备好", name);
         return false;
     }
-}
-
-bool ResourcePool::LoadModel(const char* name, const std::wstring& path) noexcept {
-    LDEBUG_RESOURCETIMER;
     
-    {
-        LDEBUG_RESOURCESCOPE;
-        
-        LASSERT(LAPP.GetRenderDev());
-        
-        if (m_TexturePool.find(name) != m_TexturePool.end()) {
-            LWARNING("LoadModel: 模型'%m'已存在，试图使用'%s'加载的操作已被取消", name, path.c_str());
-            return true;
-        }
-        
-        fcyRefPointer<fcyMemStream> tDataBuf;
-        if (!m_pMgr->LoadFile(path.c_str(), tDataBuf))
-            return false;
-        fcyRefPointer<fcyMemStream> tDataBuf2;
-        std::wstring path2 = path;
-        int i = path2.length();
-        path2[i - 3] = 'm';
-        path2[i - 2] = 't';
-        path2[i - 1] = 'l';
-        if (!m_pMgr->LoadFile(path2.c_str(), tDataBuf2))
-            return false;
-        void* model = NULL;
-        void* LoadObj(const std::string& id, const std::string& path, const std::string& path2);
-        std::string buf((char*) tDataBuf->GetInternalBuffer(), tDataBuf->GetLength());
-        std::string buf2((char*) tDataBuf2->GetInternalBuffer(), tDataBuf2->GetLength());
-        model = LoadObj(name, buf, buf2);
-        
-        try {
-            fcyRefPointer<ResModel> tRes;
-            tRes.DirectSet(new ResModel(name, model));
-            m_ModelPool.emplace(name, tRes);
-        }
-        catch (const std::bad_alloc&) {
-            LERROR("LoadModel: 内存不足");
-            return false;
-        }
-    
+    if (m_TexturePool.find(name) != m_TexturePool.end()) {
         if (ResourceMgr::GetResourceLoadingLog()) {
-            LINFO("LoadTexture: 纹理'%s'已装载 -> '%m' (%s)", path.c_str(), name, getResourcePoolTypeName());
+            spdlog::warn(u8"[luastg] LoadTexture: 纹理'{}'已存在，加载操作已取消", name);
         }
+        return true;
     }
     
-    LDEBUG_RESOURCEHINT(ResourceType::Texture, path.c_str());
-    return true;
-}
-
-bool ResourcePool::LoadModel(const char* name, const char* path) noexcept {
-    try {
-        return LoadModel(name, fcyStringHelper::MultiByteToWideChar(path, CP_UTF8));
-    }
-    catch (const std::bad_alloc&) {
-        LERROR("LoadModel: 转换编码时无法分配内存");
+    fcyRefPointer<fcyMemStream> tDataBuf;
+    if (!m_pMgr->LoadFile(path, tDataBuf)) {
+        spdlog::error(u8"[luastg] LoadTexture: 无法从'{}'加载纹理'{}'，读取文件失败", path, name);
         return false;
     }
-}
-
-bool ResourcePool::LoadSprite(const char* name, const char* texname,
-                             double x, double y, double w, double h, double a, double b, bool rect) noexcept {
-    LDEBUG_RESOURCETIMER;
     
-    {
-        LDEBUG_RESOURCESCOPE;
-        
-        LASSERT(LAPP.GetRenderer());
-        
-        if (m_SpritePool.find(name) != m_SpritePool.end()) {
-            LWARNING("LoadSprite: 图像'%m'已存在，加载操作已被取消", name);
-            return true;
-        }
-        
-        fcyRefPointer<ResTexture> pTex = m_pMgr->FindTexture(texname);
-        if (!pTex) {
-            LWARNING("LoadSprite: 加载图像'%m'失败, 无法找到纹理'%m'", name, texname);
-            return false;
-        }
-        
-        fcyRefPointer<f2dSprite> pSprite;
-        fcyRect tRect((float) x, (float) y, (float) (x + w), (float) (y + h));
-        if (FCYFAILED(LAPP.GetRenderer()->CreateSprite2D(pTex->GetTexture(), tRect, &pSprite))) {
-            LERROR("LoadSprite: 无法从纹理'%m'加载图像'%m' (CreateSprite2D failed)", texname, name);
-            return false;
-        }
-        
-        try {
-            fcyRefPointer<ResSprite> tRes;
-            tRes.DirectSet(new ResSprite(name, pSprite, a, b, rect));
-            m_SpritePool.emplace(name, tRes);
-        }
-        catch (const std::bad_alloc&) {
-            LERROR("LoadSprite: 内存不足");
-            return false;
-        }
-    
-        if (ResourceMgr::GetResourceLoadingLog()) {
-            LINFO("LoadSprite: 图像'%m'已装载 (%s)", name, getResourcePoolTypeName());
-        }
+    fcyRefPointer<f2dTexture2D> tTexture;
+    fResult fr = LAPP.GetRenderDev()->CreateTextureFromMemory((fcData) tDataBuf->GetInternalBuffer(), tDataBuf->GetLength(),
+                                                        0, 0, false, mipmaps, &tTexture);
+    if (FCYFAILED(fr)) {
+        spdlog::error(u8"[fancy2d] [f2dRenderDevice::CreateTextureFromMemory] 从'{}'创建纹理'{}'失败(fResult={})", path, name, fr);
+        return false;
     }
     
-    LDEBUG_RESOURCEHINT(ResourceType::Sprite, L"N/A");
+    try {
+        fcyRefPointer<ResTexture> tRes;
+        tRes.DirectSet(new ResTexture(name, tTexture));
+        m_TexturePool.emplace(name, tRes);
+    }
+    catch (const std::bad_alloc&) {
+        spdlog::error(u8"[luastg] LoadTexture: 内存不足");
+        return false;
+    }
+    
+    if (ResourceMgr::GetResourceLoadingLog()) {
+        spdlog::info(u8"[luastg] LoadTexture: 已从'{}'加载纹理'{}' ({})", path, name, getResourcePoolTypeName());
+    }
+    
     return true;
 }
 
-bool ResourcePool::LoadAnimation(const char* name, const char* texname,
-                                 double x, double y, double w, double h, int n, int m, int intv, double a, double b,
-                                 bool rect) noexcept {
-    LDEBUG_RESOURCETIMER;
+// 创建渲染目标
+
+bool ResourcePool::CreateRenderTarget(const char* name, int width, int height) noexcept {
+    if (!LAPP.GetRenderDev()) {
+        spdlog::error(u8"[luastg] CreateRenderTarget: 无法创建渲染目标'{}'，f2dRenderDevice未准备好", name);
+        return false;
+    }
     
-    {
-        LDEBUG_RESOURCESCOPE;
-        
-        if (m_AnimationPool.find(name) != m_AnimationPool.end()) {
-            LWARNING("LoadAnimation: 动画'%m'已存在，加载操作已被取消", name);
-            return true;
-        }
-        
-        fcyRefPointer<ResTexture> pTex = m_pMgr->FindTexture(texname);
-        if (!pTex) {
-            LWARNING("LoadAnimation: 加载动画'%m'失败, 无法找到纹理'%m'", name, texname);
-            return false;
-        }
-        
-        try {
-            fcyRefPointer<ResAnimation> tRes;
-            tRes.DirectSet(
-                new ResAnimation(name, pTex, (float) x, (float) y, (float) w, (float) h, n, m, intv, a, b, rect));
-            m_AnimationPool.emplace(name, tRes);
-        }
-        catch (const fcyException&) {
-            LERROR("LoadAnimation: 构造动画'%m'时失败", name);
-            return false;
-        }
-        catch (const std::bad_alloc&) {
-            LERROR("LoadAnimation: 内存不足");
-            return false;
-        }
-    
+    if (m_TexturePool.find(name) != m_TexturePool.end()) {
         if (ResourceMgr::GetResourceLoadingLog()) {
-            LINFO("LoadAnimation: 动画'%m'已装载 (%s)", name, getResourcePoolTypeName());
+            spdlog::warn(u8"[luastg] CreateRenderTarget: 渲染目标'{}'已存在，创建操作已取消", name);
+        }
+        return true;
+    }
+    
+    fcyRefPointer<f2dTexture2D> tTexture;
+    fResult fr = 0;
+    if (width <= 0 || height <= 0) {
+        fr = LAPP.GetRenderDev()->CreateRenderTarget(
+            LAPP.GetRenderDev()->GetBufferWidth(), LAPP.GetRenderDev()->GetBufferHeight(),
+            true, &tTexture);
+    }
+    else {
+        fr = LAPP.GetRenderDev()->CreateRenderTarget(
+            (fuInt) width, (fuInt) height,
+            false, &tTexture);
+    }
+    if (FCYFAILED(fr)) {
+        spdlog::error(u8"[fancy2d] [f2dRenderDevice::CreateRenderTarget] 创建渲染目标'{}'失败(fResult={})", name, fr);
+        return false;
+    }
+    
+    try {
+        fcyRefPointer<ResTexture> tRes;
+        tRes.DirectSet(new ResTexture(name, tTexture));
+        m_TexturePool.emplace(name, tRes);
+    }
+    catch (const std::bad_alloc&) {
+        spdlog::error(u8"[luastg] CreateRenderTarget: 内存不足");
+        return false;
+    }
+    
+    if (ResourceMgr::GetResourceLoadingLog()) {
+        if (width <= 0 || height <= 0) {
+            spdlog::info(u8"[luastg] CreateRenderTarget: 已创建渲染目标'{}' ({})", name, getResourcePoolTypeName());
+        }
+        else {
+            spdlog::info(u8"[luastg] CreateRenderTarget: 已创建渲染目标'{}'({}x{}) ({})", name, width, height, getResourcePoolTypeName());
         }
     }
     
-    LDEBUG_RESOURCEHINT(ResourceType::Animation, L"N/A");
     return true;
 }
 
-bool ResourcePool::LoadMusic(const char* name, const std::wstring& path, double start, double end) noexcept {
-    LDEBUG_RESOURCETIMER;
-    
-    {
-        LDEBUG_RESOURCESCOPE;
-        
-        //检查音频系统是否已经初始化
-        LASSERT(LAPP.GetSoundSys());
-        
-        //加载音频文件流，加载到内存
-        fcyRefPointer<fcyMemStream> tDataBuf;
-        if (!m_pMgr->LoadFile(path.c_str(), tDataBuf))
-            return false;
-        
-        try {
-            //加载解码器，优先OGG解码器，加载失败则使用WAV解码器，都失败则error糊脸
-            fcyRefPointer<f2dSoundDecoder> tDecoder;
-            if (FCYFAILED(LAPP.GetSoundSys()->CreateOGGVorbisDecoder(tDataBuf, &tDecoder))) {
-                tDataBuf->SetPosition(FCYSEEKORIGIN_BEG, 0);
-                if (FCYFAILED(LAPP.GetSoundSys()->CreateWaveDecoder(tDataBuf, &tDecoder))) {
-                    LERROR("LoadMusic: 无法解码文件'%s'", path.c_str());
-                    return false;
-                }
-            }
-            
-            //加载解码器
-            fcyRefPointer<ResMusic::BGMWrapper> tWrapperedBuffer;
-            tWrapperedBuffer.DirectSet(new ResMusic::BGMWrapper(tDecoder, start, end));
-            
-            //加载音频缓冲曲，动态缓冲区
-            fcyRefPointer<f2dSoundBuffer> tBuffer;
-            if (FCYFAILED(LAPP.GetSoundSys()->CreateDynamicBuffer(tWrapperedBuffer, LSOUNDGLOBALFOCUS, &tBuffer))) {
-                LERROR("LoadMusic: 无法创建音频缓冲区，文件'%s' (f2dSoundSys::CreateDynamicBuffer failed.)", path.c_str());
-                return false;
-            }
-            
-            //存入资源池
-            fcyRefPointer<ResMusic> tRes;
-            tRes.DirectSet(new ResMusic(name, tBuffer));
-            m_MusicPool.emplace(name, tRes);
-        }
-        catch (const fcyException& e) {
-            LERROR("LoadMusic: 解码文件'%s'的音频数据时发生错误，格式不支持？ (异常信息'%m' 源'%m')", path.c_str(), e.GetDesc(), e.GetSrc());
-            return false;
-        }
-        catch (const std::bad_alloc&) {
-            LERROR("LoadMusic: 内存不足");
-            return false;
-        }
-    
-        if (ResourceMgr::GetResourceLoadingLog()) {
-            LINFO("LoadMusic: BGM'%m'已装载 (%s)", name, getResourcePoolTypeName());
-        }
+// 创建图片精灵
+
+bool ResourcePool::CreateSprite(const char* name, const char* texname,
+                                double x, double y, double w, double h,
+                                double a, double b, bool rect) noexcept {
+    if (!LAPP.GetRenderer()) {
+        spdlog::error(u8"[luastg] CreateSprite: 无法创建图片精灵'{}'，f2dRenderer未准备好", name);
+        return false;
     }
     
-    LDEBUG_RESOURCEHINT(ResourceType::Music, path.c_str());
+    if (m_SpritePool.find(name) != m_SpritePool.end()) {
+        if (ResourceMgr::GetResourceLoadingLog()) {
+            spdlog::warn(u8"[luastg] CreateSprite: 图片精灵'{}'已存在，创建操作已取消", name);
+        }
+        return true;
+    }
+    
+    fcyRefPointer<ResTexture> pTex = m_pMgr->FindTexture(texname);
+    if (!pTex) {
+        spdlog::error(u8"[luastg] CreateSprite: 无法创建图片精灵'{}'，无法找到纹理'{}'", name, texname);
+        return false;
+    }
+    
+    fcyRefPointer<f2dSprite> pSprite;
+    fcyRect tRect((float) x, (float) y, (float) (x + w), (float) (y + h));
+    fResult fr = LAPP.GetRenderer()->CreateSprite2D(pTex->GetTexture(), tRect, &pSprite);
+    if (FCYFAILED(fr)) {
+        spdlog::error(u8"[fancy2d] [f2dRenderer::CreateSprite2D] 从'{}'创建图片精灵'{}'失败(fResult={})", texname, name, fr);
+        return false;
+    }
+    
+    try {
+        fcyRefPointer<ResSprite> tRes;
+        tRes.DirectSet(new ResSprite(name, pSprite, a, b, rect));
+        m_SpritePool.emplace(name, tRes);
+    }
+    catch (const std::bad_alloc&) {
+        spdlog::error(u8"[luastg] CreateSprite: 内存不足");
+        return false;
+    }
+    
+    if (ResourceMgr::GetResourceLoadingLog()) {
+        spdlog::info(u8"[luastg] CreateSprite: 已从'{}'创建图片精灵'{}' ({})", texname, name, getResourcePoolTypeName());
+    }
+    
     return true;
 }
+
+// 创建动画精灵
+
+bool ResourcePool::CreateAnimation(const char* name, const char* texname,
+                                   double x, double y, double w, double h, int n, int m, int intv,
+                                   double a, double b, bool rect) noexcept {
+    if (!LAPP.GetRenderer()) {
+        spdlog::error(u8"[luastg] CreateAnimation: 无法创建动画精灵'{}'，f2dRenderer未准备好", name);
+        return false;
+    }
+    
+    if (m_AnimationPool.find(name) != m_AnimationPool.end()) {
+        if (ResourceMgr::GetResourceLoadingLog()) {
+            spdlog::warn(u8"[luastg] CreateAnimation: 动画精灵'{}'已存在，创建操作已取消", name);
+        }
+        return true;
+    }
+    
+    fcyRefPointer<ResTexture> pTex = m_pMgr->FindTexture(texname);
+    if (!pTex) {
+        spdlog::error(u8"[luastg] CreateAnimation: 无法创建动画精灵'{}'，无法找到纹理'{}'", name, texname);
+        return false;
+    }
+    
+    try {
+        fcyRefPointer<ResAnimation> tRes;
+        tRes.DirectSet(
+            new ResAnimation(name, pTex, (float) x, (float) y, (float) w, (float) h, n, m, intv, a, b, rect));
+        m_AnimationPool.emplace(name, tRes);
+    }
+    catch (const fcyException&) {
+        spdlog::error(u8"[luastg] CreateAnimation: 无法创建动画精灵'{}'，内部错误", name);
+        return false;
+    }
+    catch (const std::bad_alloc&) {
+        spdlog::error(u8"[luastg] CreateAnimation: 内存不足");
+        return false;
+    }
+    
+    if (ResourceMgr::GetResourceLoadingLog()) {
+        spdlog::info(u8"[luastg] CreateAnimation: 已从'{}'创建动画精灵'{}' ({})", texname, name, getResourcePoolTypeName());
+    }
+    
+    return true;
+}
+
+// 加载音乐
 
 bool ResourcePool::LoadMusic(const char* name, const char* path, double start, double end) noexcept {
-    try {
-        return LoadMusic(name, fcyStringHelper::MultiByteToWideChar(path, CP_UTF8), start, end);
-    }
-    catch (const std::bad_alloc&) {
-        LERROR("LoadMusic: 转换编码时无法分配内存");
+    if (!LAPP.GetRenderer()) {
+        spdlog::error(u8"[luastg] LoadMusic: 无法加载音乐'{}'，f2dSoundSys未准备好", name);
         return false;
     }
-}
-
-bool ResourcePool::LoadSound(const char* name, const std::wstring& path) noexcept {
-    LDEBUG_RESOURCETIMER;
     
-    {
-        LDEBUG_RESOURCESCOPE;
-        
-        LASSERT(LAPP.GetSoundSys());
-        
-        fcyRefPointer<fcyMemStream> tDataBuf;
-        if (!m_pMgr->LoadFile(path.c_str(), tDataBuf))
-            return false;
-        
-        try {
-            fcyRefPointer<f2dSoundDecoder> tDecoder;
+    fcyRefPointer<fcyMemStream> tDataBuf;
+    if (!m_pMgr->LoadFile(path, tDataBuf)) {
+        spdlog::error(u8"[luastg] LoadMusic: 无法从'{}'加载音乐'{}'，读取文件失败", path, name);
+        return false;
+    }
+    
+    try {
+        //加载解码器，优先OGG解码器，加载失败则使用WAV解码器，都失败则error糊脸
+        fcyRefPointer<f2dSoundDecoder> tDecoder;
+        if (FCYFAILED(LAPP.GetSoundSys()->CreateOGGVorbisDecoder(tDataBuf, &tDecoder))) {
+            tDataBuf->SetPosition(FCYSEEKORIGIN_BEG, 0);
             if (FCYFAILED(LAPP.GetSoundSys()->CreateWaveDecoder(tDataBuf, &tDecoder))) {
-                tDataBuf->SetPosition(FCYSEEKORIGIN_BEG, 0);
-                if (FCYFAILED(LAPP.GetSoundSys()->CreateOGGVorbisDecoder(tDataBuf, &tDecoder))) {
-                    LERROR("LoadSound: 无法解码文件'%s'", path.c_str());
-                    return false;
-                }
-            }
-            
-            fcyRefPointer<f2dSoundBuffer> tBuffer;
-            if (FCYFAILED(LAPP.GetSoundSys()->CreateStaticBuffer(tDecoder, LSOUNDGLOBALFOCUS, &tBuffer))) {
-                LERROR("LoadSound: 无法创建音频缓冲区，文件'%s' (f2dSoundSys::CreateStaticBuffer failed.)", path.c_str());
+                spdlog::error(u8"[luastg] LoadMusic: 无法解码文件'{}'，要求文件格式为WAV或OGG", path);
                 return false;
             }
-            
-            fcyRefPointer<ResSound> tRes;
-            tRes.DirectSet(new ResSound(name, tBuffer));
-            m_SoundSpritePool.emplace(name, tRes);
         }
-        catch (const fcyException& e) {
-            LERROR("LoadSound: 解码文件'%s'的音频数据时发生错误，格式不支持？ (异常信息'%m' 源'%m')", path.c_str(), e.GetDesc(), e.GetSrc());
+        
+        //配置循环解码器
+        fcyRefPointer<ResMusic::BGMWrapper> tWrapperedBuffer;
+        tWrapperedBuffer.DirectSet(new ResMusic::BGMWrapper(tDecoder, start, end));
+        
+        //加载音频缓冲曲，动态缓冲区
+        fcyRefPointer<f2dSoundBuffer> tBuffer;
+        fResult fr = LAPP.GetSoundSys()->CreateDynamicBuffer(tWrapperedBuffer, LSOUNDGLOBALFOCUS, &tBuffer);
+        if (FCYFAILED(fr)) {
+            spdlog::error(u8"[fancy2d] [f2dSoundSys::CreateDynamicBuffer] 无法从'{}'创建音频流'{}'(fResult={})", path, name, fr);
             return false;
         }
-        catch (const std::bad_alloc&) {
-            LERROR("LoadSound: 内存不足");
-            return false;
-        }
-    
-        if (ResourceMgr::GetResourceLoadingLog()) {
-            LINFO("LoadSound: 音效'%m'已装载 (%s)", name, getResourcePoolTypeName());
-        }
+        
+        //存入资源池
+        fcyRefPointer<ResMusic> tRes;
+        tRes.DirectSet(new ResMusic(name, tBuffer));
+        m_MusicPool.emplace(name, tRes);
     }
-    
-    LDEBUG_RESOURCEHINT(ResourceType::SoundEffect, path.c_str());
-    return true;
-}
-
-bool ResourcePool::LoadSound(const char* name, const char* path) noexcept {
-    try {
-        return LoadSound(name, fcyStringHelper::MultiByteToWideChar(path, CP_UTF8));
-    }
-    catch (const std::bad_alloc&) {
-        LERROR("LoadSound: 转换编码时无法分配内存");
+    catch (const fcyException& e) {
+        spdlog::error(u8"[fancy2d] [{}] 无法从'{}'创建音频流'{}'：{}", e.GetSrc(), path, name, e.GetDesc());
         return false;
     }
-}
-
-bool ResourcePool::LoadParticle(const char* name, const std::wstring& path, const char* img_name,
-                                double a, double b,bool rect) noexcept {
-    LDEBUG_RESOURCETIMER;
-    
-    {
-        LDEBUG_RESOURCESCOPE;
-        
-        LASSERT(LAPP.GetRenderer());
-        
-        if (m_ParticlePool.find(name) != m_ParticlePool.end()) {
-            LWARNING("LoadParticle: 粒子'%m'已存在，加载操作已被取消", name);
-            return true;
-        }
-        
-        fcyRefPointer<ResSprite> pSprite = m_pMgr->FindSprite(img_name);
-        fcyRefPointer<f2dSprite> pClone;
-        if (!pSprite) {
-            LWARNING("LoadParticle: 加载粒子'%m'失败, 无法找到精灵'%m'", name, img_name);
-            return false;
-        }
-        else {
-            // 克隆一个精灵对象
-            if (FCYFAILED(LAPP.GetRenderer()->CreateSprite2D(pSprite->GetSprite()->GetTexture(),
-                                                             pSprite->GetSprite()->GetTexRect(),
-                                                             pSprite->GetSprite()->GetHotSpot(), &pClone))) {
-                LERROR("LoadParticle: 克隆图片'%m'失败", img_name);
-                return false;
-            }
-            pClone->SetColor(0, pSprite->GetSprite()->GetColor(0U));
-            pClone->SetColor(1, pSprite->GetSprite()->GetColor(1U));
-            pClone->SetColor(2, pSprite->GetSprite()->GetColor(2U));
-            pClone->SetColor(3, pSprite->GetSprite()->GetColor(3U));
-            pClone->SetZ(pSprite->GetSprite()->GetZ());
-        }
-        
-        fcyRefPointer<fcyMemStream> outBuf;
-        if (!LRES.LoadFile(path.c_str(), outBuf))
-            return false;
-        if (outBuf->GetLength() != sizeof(ResParticle::ParticleInfo)) {
-            LERROR("LoadParticle: 粒子定义文件'%s'格式不正确", path.c_str());
-            return false;
-        }
-        
-        try {
-            ResParticle::ParticleInfo tInfo;
-            memcpy(&tInfo, outBuf->GetInternalBuffer(), sizeof(ResParticle::ParticleInfo));
-            tInfo.iBlendInfo = (tInfo.iBlendInfo >> 16) & 0x00000003;
-            
-            BlendMode tBlendInfo = BlendMode::AddAlpha;
-            if (tInfo.iBlendInfo & 1)  // ADD
-            {
-                if (tInfo.iBlendInfo & 2)  // ALPHA
-                    tBlendInfo = BlendMode::AddAlpha;
-                else
-                    tBlendInfo = BlendMode::AddAdd;
-            }
-            else  // MUL
-            {
-                if (tInfo.iBlendInfo & 2)  // ALPHA
-                    tBlendInfo = BlendMode::MulAlpha;
-                else
-                    tBlendInfo = BlendMode::MulAdd;
-            }
-            
-            fcyRefPointer<ResParticle> tRes;
-            tRes.DirectSet(new ResParticle(name, tInfo, pClone, tBlendInfo, a, b, rect));
-            m_ParticlePool.emplace(name, tRes);
-        }
-        catch (const std::bad_alloc&) {
-            LERROR("LoadParticle: 内存不足");
-            return false;
-        }
-        
-        if (ResourceMgr::GetResourceLoadingLog()) {
-            LINFO("LoadParticle: 粒子'%m'已装载 (%s)", name, getResourcePoolTypeName());
-        }
+    catch (const std::bad_alloc&) {
+        spdlog::error(u8"[luastg] LoadMusic: 内存不足");
+        return false;
     }
     
-    LDEBUG_RESOURCEHINT(ResourceType::Particle, path.c_str());
+    if (ResourceMgr::GetResourceLoadingLog()) {
+        spdlog::info(u8"[luastg] LoadMusic: 已从'{}'加载音乐'{}' ({})", path, name, getResourcePoolTypeName());
+    }
+    
     return true;
 }
+
+// 加载音效
+
+bool ResourcePool::LoadSoundEffect(const char* name, const char* path) noexcept {
+    if (!LAPP.GetRenderer()) {
+        spdlog::error(u8"[luastg] LoadSoundEffect: 无法加载音效'{}'，f2dSoundSys未准备好", name);
+        return false;
+    }
+    
+    fcyRefPointer<fcyMemStream> tDataBuf;
+    if (!m_pMgr->LoadFile(path, tDataBuf)) {
+        spdlog::error(u8"[luastg] LoadSoundEffect: 无法从'{}'加载音效'{}'，读取文件失败", path, name);
+        return false;
+    }
+    
+    try {
+        fcyRefPointer<f2dSoundDecoder> tDecoder;
+        if (FCYFAILED(LAPP.GetSoundSys()->CreateWaveDecoder(tDataBuf, &tDecoder))) {
+            tDataBuf->SetPosition(FCYSEEKORIGIN_BEG, 0);
+            if (FCYFAILED(LAPP.GetSoundSys()->CreateOGGVorbisDecoder(tDataBuf, &tDecoder))) {
+                spdlog::error(u8"[luastg] LoadSoundEffect: 无法解码文件'{}'，要求文件格式为WAV或OGG", path);
+                return false;
+            }
+        }
+        
+        fcyRefPointer<f2dSoundBuffer> tBuffer;
+        fResult fr = LAPP.GetSoundSys()->CreateStaticBuffer(tDecoder, LSOUNDGLOBALFOCUS, &tBuffer);
+        if (FCYFAILED(fr)) {
+            spdlog::error(u8"[fancy2d] [f2dSoundSys::CreateStaticBuffer] 无法从'{}'创建音频流'{}'(fResult={})", path, name, fr);
+            return false;
+        }
+        
+        fcyRefPointer<ResSound> tRes;
+        tRes.DirectSet(new ResSound(name, tBuffer));
+        m_SoundSpritePool.emplace(name, tRes);
+    }
+    catch (const fcyException& e) {
+        spdlog::error(u8"[fancy2d] [{}] 无法从'{}'创建音频流'{}'：{}", e.GetSrc(), path, name, e.GetDesc());
+        return false;
+    }
+    catch (const std::bad_alloc&) {
+        spdlog::error(u8"[luastg] LoadSoundEffect: 内存不足");
+        return false;
+    }
+    
+    if (ResourceMgr::GetResourceLoadingLog()) {
+        spdlog::info(u8"[luastg] LoadSoundEffect: 已从'{}'加载音效'{}' ({})", path, name, getResourcePoolTypeName());
+    }
+    
+    return true;
+}
+
+// 创建粒子特效
 
 bool ResourcePool::LoadParticle(const char* name, const ResParticle::ParticleInfo& info, const char* img_name,
-                                double a,double b, bool rect) noexcept {
-    LDEBUG_RESOURCETIMER;
-    
-    {
-        LDEBUG_RESOURCESCOPE;
-        
-        LASSERT(LAPP.GetRenderer());
-        
-        if (m_ParticlePool.find(name) != m_ParticlePool.end()) {
-            LWARNING("LoadParticle: 粒子'%m'已存在，加载操作已被取消", name);
-            return true;
-        }
-        
-        fcyRefPointer<ResSprite> pSprite = m_pMgr->FindSprite(img_name);
-        fcyRefPointer<f2dSprite> pClone;
-        if (!pSprite) {
-            LWARNING("LoadParticle: 加载粒子'%m'失败, 无法找到精灵'%m'", name, img_name);
-            return false;
-        }
-        else {
-            // 克隆一个精灵对象
-            if (FCYFAILED(LAPP.GetRenderer()->CreateSprite2D(pSprite->GetSprite()->GetTexture(),
-                                                             pSprite->GetSprite()->GetTexRect(),
-                                                             pSprite->GetSprite()->GetHotSpot(), &pClone))) {
-                LERROR("LoadParticle: 克隆图片'%m'失败", img_name);
-                return false;
-            }
-            pClone->SetColor(0, pSprite->GetSprite()->GetColor(0U));
-            pClone->SetColor(1, pSprite->GetSprite()->GetColor(1U));
-            pClone->SetColor(2, pSprite->GetSprite()->GetColor(2U));
-            pClone->SetColor(3, pSprite->GetSprite()->GetColor(3U));
-            pClone->SetZ(pSprite->GetSprite()->GetZ());
-        }
-        
-        try {
-            ResParticle::ParticleInfo tInfo = info;
-            tInfo.iBlendInfo = (tInfo.iBlendInfo >> 16) & 0x00000003;
-            
-            BlendMode tBlendInfo = BlendMode::AddAlpha;
-            if (tInfo.iBlendInfo & 1)  // ADD
-            {
-                if (tInfo.iBlendInfo & 2)  // ALPHA
-                    tBlendInfo = BlendMode::AddAlpha;
-                else
-                    tBlendInfo = BlendMode::AddAdd;
-            }
-            else  // MUL
-            {
-                if (tInfo.iBlendInfo & 2)  // ALPHA
-                    tBlendInfo = BlendMode::MulAlpha;
-                else
-                    tBlendInfo = BlendMode::MulAdd;
-            }
-            
-            fcyRefPointer<ResParticle> tRes;
-            tRes.DirectSet(new ResParticle(name, tInfo, pClone, tBlendInfo, a, b, rect));
-            m_ParticlePool.emplace(name, tRes);
-        }
-        catch (const std::bad_alloc&) {
-            LERROR("LoadParticle: 内存不足");
-            return false;
-        }
-    
-        if (ResourceMgr::GetResourceLoadingLog()) {
-            LINFO("LoadParticle: 粒子'%m'已装载 (%s)", name, getResourcePoolTypeName());
-        }
+                                double a,double b, bool rect, bool _nolog) noexcept {
+    if (!LAPP.GetRenderer()) {
+        spdlog::error(u8"[luastg] LoadParticle: 无法创建粒子特效'{}'，f2dRenderer未准备好", name);
+        return false;
     }
     
-    LDEBUG_RESOURCEHINT(ResourceType::Particle, L"binary");
+    if (m_ParticlePool.find(name) != m_ParticlePool.end()) {
+        if (ResourceMgr::GetResourceLoadingLog()) {
+            spdlog::warn(u8"[luastg] LoadParticle: 粒子特效'{}'已存在，创建操作已取消", name);
+        }
+        return true;
+    }
+    
+    fcyRefPointer<ResSprite> pSprite = m_pMgr->FindSprite(img_name);
+    if (!pSprite) {
+        spdlog::error(u8"[luastg] LoadParticle: 无法创建粒子特效'{}'，找不到图片精灵'{}'", name, img_name);
+        return false;
+    }
+    
+    fcyRefPointer<f2dSprite> pClone;
+    if (FCYFAILED(LAPP.GetRenderer()->CreateSprite2D(pSprite->GetSprite()->GetTexture(),
+                                                     pSprite->GetSprite()->GetTexRect(),
+                                                     pSprite->GetSprite()->GetHotSpot(),
+                                                     &pClone))) {
+        spdlog::error(u8"[luastg] LoadParticle: 无法创建粒子特效'{}'，复制图片精灵'{}'失败", name, img_name);
+        return false;
+    }
+    pClone->SetColor(0, pSprite->GetSprite()->GetColor(0U));
+    pClone->SetColor(1, pSprite->GetSprite()->GetColor(1U));
+    pClone->SetColor(2, pSprite->GetSprite()->GetColor(2U));
+    pClone->SetColor(3, pSprite->GetSprite()->GetColor(3U));
+    pClone->SetZ(pSprite->GetSprite()->GetZ());
+    
+    try {
+        ResParticle::ParticleInfo tInfo = info;
+        tInfo.iBlendInfo = (tInfo.iBlendInfo >> 16) & 0x00000003;
+        
+        BlendMode tBlendInfo = BlendMode::AddAlpha;
+        if (tInfo.iBlendInfo & 1)  // ADD
+        {
+            if (tInfo.iBlendInfo & 2)  // ALPHA
+                tBlendInfo = BlendMode::AddAlpha;
+            else
+                tBlendInfo = BlendMode::AddAdd;
+        }
+        else  // MUL
+        {
+            if (tInfo.iBlendInfo & 2)  // ALPHA
+                tBlendInfo = BlendMode::MulAlpha;
+            else
+                tBlendInfo = BlendMode::MulAdd;
+        }
+        
+        fcyRefPointer<ResParticle> tRes;
+        tRes.DirectSet(new ResParticle(name, tInfo, pClone, tBlendInfo, a, b, rect));
+        m_ParticlePool.emplace(name, tRes);
+    }
+    catch (const std::bad_alloc&) {
+        spdlog::error(u8"[luastg] LoadParticle: 内存不足");
+        return false;
+    }
+    
+    if (!_nolog && ResourceMgr::GetResourceLoadingLog()) {
+        spdlog::info(u8"[luastg] LoadParticle: 已创建粒子特效'{}' ({})", name, getResourcePoolTypeName());
+    }
+    
     return true;
 }
 
 bool ResourcePool::LoadParticle(const char* name, const char* path, const char* img_name,
                                 double a, double b,bool rect) noexcept {
-    try {
-        return LoadParticle(name, fcyStringHelper::MultiByteToWideChar(path, CP_UTF8), img_name, a, b, rect);
-    }
-    catch (const std::bad_alloc&) {
-        LERROR("LoadParticle: 转换编码时无法分配内存");
+    fcyRefPointer<fcyMemStream> outBuf;
+    if (!LRES.LoadFile(path, outBuf)) {
+        spdlog::error(u8"[luastg] LoadParticle: 无法从'{}'创建粒子特效'{}'，读取文件失败", path, name);
         return false;
     }
-}
-
-bool ResourcePool::LoadSpriteFont(const char* name, const std::wstring& path, bool mipmaps) noexcept {
-    LDEBUG_RESOURCETIMER;
     
-    {
-        LDEBUG_RESOURCESCOPE;
-        
-        LASSERT(LAPP.GetRenderer());
-        
-        if (m_SpriteFontPool.find(name) != m_SpriteFontPool.end()) {
-            LWARNING("LoadFont: 字体'%m'已存在，加载操作已被取消", name);
-            return true;
-        }
-        
-        std::unordered_map<wchar_t, f2dGlyphInfo> tOutputCharset;
-        std::wstring tOutputTextureName;
-        
-        // 读取文件
-        fcyRefPointer<fcyMemStream> tDataBuf;
-        if (!m_pMgr->LoadFile(path.c_str(), tDataBuf)) {
-            LERROR("LoadFont: 无法加载字体定义文件 ");
-            return false;
-        }
-        
-        // 转换编码
-        std::wstring tFileData;
-        try {
-            if (tDataBuf->GetLength() > 0) {
-                // stupid
-                tFileData = fcyStringHelper::MultiByteToWideChar(
-                    std::string((const char*) tDataBuf->GetInternalBuffer(), (size_t) tDataBuf->GetLength()), CP_UTF8);
-            }
-        }
-        catch (const std::bad_alloc&) {
-            LERROR("LoadFont: 转换编码时无法分配内存");
-            return false;
-        }
-        
-        // 读取HGE字体定义
-        try {
-            ResFont::HGEFont::ReadDefine(tFileData, tOutputCharset, tOutputTextureName);
-        }
-        catch (const fcyException& e) {
-            LERROR("LoadFont: 装载HGE字体定义文件'%s'失败 (异常信息'%m' 源'%m')", path.c_str(), e.GetDesc(), e.GetSrc());
-            return false;
-        }
-        catch (const std::bad_alloc&) {
-            LERROR("LoadFont: 内存不足");
-            return false;
-        }
-        
-        // 装载纹理
-        try {
-            if (!m_pMgr->LoadFile((fcyPathParser::GetPath(path) + tOutputTextureName).c_str(), tDataBuf)) {
-                LERROR("LoadFont: 无法加载字体纹理图片");
-                return false;
-            }
-        }
-        catch (const std::bad_alloc&) {
-            LERROR("LoadFont: 内存不足");
-            return false;
-        }
-        
-        fcyRefPointer<f2dTexture2D> tTexture;
-        if (FCYFAILED(
-            LAPP.GetRenderDev()->CreateTextureFromMemory((fcData) tDataBuf->GetInternalBuffer(), tDataBuf->GetLength(),
-                                                         0, 0, false, mipmaps, &tTexture))) {
-            LERROR("LoadFont: 从文件'%s'创建纹理'%m'失败", tOutputTextureName.c_str(), name);
-            return false;
-        }
-        
-        // 创建定义
-        try {
-            fcyRefPointer<f2dFontProvider> tFontProvider;
-            tFontProvider.DirectSet(new ResFont::HGEFont(std::move(tOutputCharset), tTexture));
-            
-            fcyRefPointer<ResFont> tRes;
-            tRes.DirectSet(new ResFont(name, tFontProvider));
-            m_SpriteFontPool.emplace(name, tRes);
-        }
-        catch (const std::bad_alloc&) {
-            LERROR("LoadFont: 内存不足");
-            return false;
-        }
+    if (outBuf->GetLength() != sizeof(ResParticle::ParticleInfo)) {
+        spdlog::error(u8"[luastg] LoadParticle: 粒子特效定义文件'{}'格式不正确", path);
+        return false;
+    }
+    ResParticle::ParticleInfo tInfo;
+    memcpy(&tInfo, outBuf->GetInternalBuffer(), sizeof(ResParticle::ParticleInfo));
     
-        if (ResourceMgr::GetResourceLoadingLog()) {
-            LINFO("LoadFont: 纹理字体'%m'已装载 (%s)", name, getResourcePoolTypeName());
-        }
+    if (!LoadParticle(name, tInfo, img_name, a, b, rect, /* _nolog */ true)) {
+        return false;
     }
     
-    LDEBUG_RESOURCEHINT(ResourceType::SpriteFont, path.c_str());
+    if (ResourceMgr::GetResourceLoadingLog()) {
+        spdlog::info(u8"[luastg] LoadParticle: 已从'{}'创建粒子特效'{}' ({})", path, name, getResourcePoolTypeName());
+    }
+    
     return true;
 }
 
-bool ResourcePool::LoadSpriteFont(const char* name, const std::wstring& path, const std::wstring& tex_path,
-                                  bool mipmaps) noexcept {
-    LDEBUG_RESOURCETIMER;
-    
-    {
-        LDEBUG_RESOURCESCOPE;
-        
-        LASSERT(LAPP.GetRenderer());
-        
-        if (m_SpriteFontPool.find(name) != m_SpriteFontPool.end()) {
-            LWARNING("LoadFont: 字体'%m'已存在，加载操作已被取消", name);
-            return true;
-        }
-        
-        // 读取文件
-        fcyRefPointer<fcyMemStream> tDataBuf;
-        if (!m_pMgr->LoadFile(path.c_str(), tDataBuf))
-            return false;
-        
-        // 转换编码
-        std::wstring tFileData;
-        try {
-            if (tDataBuf->GetLength() > 0) {
-                // stupid
-                tFileData = fcyStringHelper::MultiByteToWideChar(
-                    std::string((const char*) tDataBuf->GetInternalBuffer(), (size_t) tDataBuf->GetLength()), CP_UTF8);
-            }
-        }
-        catch (const std::bad_alloc&) {
-            LERROR("LoadFont: 转换编码时无法分配内存");
-            return false;
-        }
-        
-        // 装载纹理
-        try {
-            if (!m_pMgr->LoadFile((fcyPathParser::GetPath(path) + tex_path).c_str(), tDataBuf)) {
-                if (!m_pMgr->LoadFile(tex_path.c_str(), tDataBuf))
-                    return false;
-            }
-        }
-        catch (const std::bad_alloc&) {
-            LERROR("LoadFont: 内存不足");
-            return false;
-        }
-        
-        fcyRefPointer<f2dTexture2D> tTexture;
-        if (FCYFAILED(
-            LAPP.GetRenderDev()->CreateTextureFromMemory((fcData) tDataBuf->GetInternalBuffer(), tDataBuf->GetLength(),
-                                                         0, 0, false, mipmaps, &tTexture))) {
-            LERROR("LoadFont: 从文件'%s'创建纹理'%m'失败", tex_path.c_str(), name);
-            return false;
-        }
-        
-        // 创建定义
-        try {
-            fcyRefPointer<f2dFontProvider> tFontProvider;
-            if (FCYFAILED(LAPP.GetRenderer()->CreateFontFromTex(tFileData.c_str(), tTexture, &tFontProvider))) {
-                LERROR("LoadFont: 从文件'%s'创建纹理字体失败", path.c_str());
-                return false;
-            }
-            
-            fcyRefPointer<ResFont> tRes;
-            tRes.DirectSet(new ResFont(name, tFontProvider));
-            m_SpriteFontPool.emplace(name, tRes);
-        }
-        catch (const std::bad_alloc&) {
-            LERROR("LoadFont: 内存不足");
-            return false;
-        }
-        
-        if (ResourceMgr::GetResourceLoadingLog()) {
-            LINFO("LoadFont: 纹理字体'%m'已装载 (%s)", name, getResourcePoolTypeName());
-        }
-    }
-    
-    LDEBUG_RESOURCEHINT(ResourceType::SpriteFont, path.c_str());
-    return true;
-}
+// 加载纹理字体（HGE）
 
 bool ResourcePool::LoadSpriteFont(const char* name, const char* path, bool mipmaps) noexcept {
-    try {
-        return LoadSpriteFont(name, fcyStringHelper::MultiByteToWideChar(path, CP_UTF8), mipmaps);
-    }
-    catch (const std::bad_alloc&) {
-        LERROR("LoadSpriteFont: 转换编码时无法分配内存");
+    if (!LAPP.GetRenderer()) {
+        spdlog::error(u8"[luastg] LoadSpriteFont: 无法加载纹理字体'{}'，f2dRenderer未准备好", name);
         return false;
     }
+    
+    if (m_SpriteFontPool.find(name) != m_SpriteFontPool.end()) {
+        if (ResourceMgr::GetResourceLoadingLog()) {
+            spdlog::warn(u8"[luastg] LoadSpriteFont: 纹理字体'{}'已存在，加载操作已取消", name);
+        }
+        return true;
+    }
+    
+    fcyRefPointer<fcyMemStream> tDataBuf;
+    if (!LRES.LoadFile(path, tDataBuf)) {
+        spdlog::error(u8"[luastg] LoadSpriteFont: 无法从'{}'加载纹理字体'{}'，读取文件失败", path, name);
+        return false;
+    }
+    
+    // 转换编码
+    std::wstring tFileData;
+    try {
+        if (tDataBuf->GetLength() > 0) {
+            // stupid
+            tFileData = fcyStringHelper::MultiByteToWideChar(
+                std::string((const char*) tDataBuf->GetInternalBuffer(), (size_t) tDataBuf->GetLength())
+            );
+        }
+    }
+    catch (const std::bad_alloc&) {
+        spdlog::error(u8"[luastg] LoadSpriteFont: 内存不足");
+        return false;
+    }
+    
+    // 读取HGE字体定义
+    std::unordered_map<wchar_t, f2dGlyphInfo> tOutputCharset;
+    std::string texpath;
+    try {
+        std::wstring tOutputTextureName;
+        ResFont::HGEFont::ReadDefine(tFileData, tOutputCharset, tOutputTextureName);
+        texpath = fcyPathParser::GetPath(path) + fcyStringHelper::WideCharToMultiByte(tOutputTextureName);
+    }
+    catch (const fcyException& e) {
+        spdlog::error(u8"[luastg] [{}] 无法从'{}'加载纹理字体'{}'：{}", e.GetSrc(), path, name, e.GetDesc());
+        return false;
+    }
+    catch (const std::bad_alloc&) {
+        spdlog::error(u8"[luastg] LoadSpriteFont: 内存不足");
+        return false;
+    }
+    
+    // 装载纹理
+    try {
+        if (!m_pMgr->LoadFile(texpath.c_str(), tDataBuf)) {
+            spdlog::error(u8"[luastg] LoadSpriteFont: 无法从'{}'加载纹理字体'{}'，读取文件失败", texpath, name);
+            return false;
+        }
+    }
+    catch (const std::bad_alloc&) {
+        spdlog::error(u8"[luastg] LoadSpriteFont: 内存不足");
+        return false;
+    }
+    
+    fcyRefPointer<f2dTexture2D> tTexture;
+    fResult fr = LAPP.GetRenderDev()->CreateTextureFromMemory(
+        (fcData) tDataBuf->GetInternalBuffer(), tDataBuf->GetLength(), 0, 0, false, mipmaps, &tTexture);
+    if (FCYFAILED(fr)) {
+        spdlog::error(u8"[fancy2d] [f2dRenderDevice::CreateTextureFromMemory] 从'{}'创建纹理'{}'失败(fResult={})", texpath, name, fr);
+        return false;
+    }
+    
+    // 创建定义
+    try {
+        fcyRefPointer<f2dFontProvider> tFontProvider;
+        tFontProvider.DirectSet(new ResFont::HGEFont(std::move(tOutputCharset), tTexture));
+        
+        fcyRefPointer<ResFont> tRes;
+        tRes.DirectSet(new ResFont(name, tFontProvider));
+        m_SpriteFontPool.emplace(name, tRes);
+    }
+    catch (const std::bad_alloc&) {
+        spdlog::error(u8"[luastg] LoadSpriteFont: 内存不足");
+        return false;
+    }
+    
+    if (ResourceMgr::GetResourceLoadingLog()) {
+        spdlog::info(u8"[luastg] LoadSpriteFont: 已从'{}'和'{}'加载纹理字体'{}' ({})", path, texpath, name, getResourcePoolTypeName());
+    }
+    
+    return true;
 }
+
+// 加载纹理字体（fancy2d）
 
 bool ResourcePool::LoadSpriteFont(const char* name, const char* path, const char* tex_path, bool mipmaps) noexcept {
-    try {
-        return LoadSpriteFont(name, fcyStringHelper::MultiByteToWideChar(path, CP_UTF8),
-                              fcyStringHelper::MultiByteToWideChar(tex_path, CP_UTF8), mipmaps);
-    }
-    catch (const std::bad_alloc&) {
-        LERROR("LoadSpriteFont: 转换编码时无法分配内存");
+    if (!LAPP.GetRenderer()) {
+        spdlog::error(u8"[luastg] LoadSpriteFont: 无法加载纹理字体'{}'，f2dRenderer未准备好", name);
         return false;
     }
-}
-
-bool ResourcePool::LoadTTFFont(const char* name, const std::wstring& path, float width, float height,
-                               float bboxwidth,float bboxheight) noexcept {
-    LDEBUG_RESOURCETIMER;
     
-    {
-        LDEBUG_RESOURCESCOPE;
-        
-        LASSERT(LAPP.GetRenderer());
-        
-        if (m_TTFFontPool.find(name) != m_TTFFontPool.end()) {
-            LWARNING("LoadTTFFont: 字体'%m'已存在，加载操作已被取消", name);
-            return true;
+    if (m_SpriteFontPool.find(name) != m_SpriteFontPool.end()) {
+        if (ResourceMgr::GetResourceLoadingLog()) {
+            spdlog::warn(u8"[luastg] LoadSpriteFont: 纹理字体'{}'已存在，加载操作已取消", name);
+        }
+        return true;
+    }
+    
+    // 加载字体定义文件
+    fcyRefPointer<fcyMemStream> tDataBuf;
+    if (!LRES.LoadFile(path, tDataBuf)) {
+        spdlog::error(u8"[luastg] LoadSpriteFont: 无法从'{}'加载纹理字体'{}'，读取文件失败", path, name);
+        return false;
+    }
+    
+    // 转换编码
+    std::wstring tFileData;
+    try {
+        if (tDataBuf->GetLength() > 0) {
+            // stupid
+            tFileData = fcyStringHelper::MultiByteToWideChar(
+                std::string((const char*) tDataBuf->GetInternalBuffer(), (size_t) tDataBuf->GetLength())
+            );
+        }
+    }
+    catch (const std::bad_alloc&) {
+        spdlog::error(u8"[luastg] LoadSpriteFont: 内存不足");
+        return false;
+    }
+    
+    // 加载纹理文件
+    try {
+        const std::string fulltexpath = fcyPathParser::GetPath(path) + tex_path;
+        if (!m_pMgr->LoadFile(fulltexpath.c_str(), tDataBuf)) {
+            if (!m_pMgr->LoadFile(tex_path, tDataBuf)) {
+                spdlog::error(u8"[luastg] LoadSpriteFont: 无法从'{}'或'{}'加载纹理字体'{}'，读取文件失败", fulltexpath, tex_path, name);
+                return false;
+            }
+        }
+    }
+    catch (const std::bad_alloc&) {
+        spdlog::error(u8"[luastg] LoadSpriteFont: 内存不足");
+        return false;
+    }
+    
+    fResult fr = 0;
+    
+    fcyRefPointer<f2dTexture2D> tTexture;
+    fr = LAPP.GetRenderDev()->CreateTextureFromMemory(
+        (fcData) tDataBuf->GetInternalBuffer(), tDataBuf->GetLength(), 0, 0, false, mipmaps, &tTexture);
+    if (FCYFAILED(fr)) {
+        spdlog::error(u8"[fancy2d] [f2dRenderDevice::CreateTextureFromMemory] 从'{}'创建纹理'{}'失败(fResult={})", tex_path, name, fr);
+        return false;
+    }
+    
+    // 创建定义
+    try {
+        fcyRefPointer<f2dFontProvider> tFontProvider;
+        fr = LAPP.GetRenderer()->CreateFontFromTex(tFileData.c_str(), tTexture, &tFontProvider);
+        if (FCYFAILED(fr)) {
+            spdlog::error(u8"[fancy2d] [f2dRenderer::CreateFontFromTex] 创建纹理字体'{}'失败(fResult={})", name, fr);
+            return false;
         }
         
-        fcyRefPointer<f2dFontProvider> tFontProvider;
-        
-        // 读取文件
-        fcyRefPointer<fcyMemStream> tDataBuf;
-        if (!m_pMgr->LoadFile(path.c_str(), tDataBuf)) {
-            LINFO("LoadTTFFont: 无法在路径'%s'上加载字体，尝试以系统字体对待并加载系统字体", path.c_str());
-            if (FCYFAILED(
-                LAPP.GetRenderer()->CreateSystemFont(path.c_str(), 0, fcyVec2(width, height), F2DFONTFLAG_NONE,
-                                                     &tFontProvider))) {
-                //LERROR("LoadTTFFont: 尝试失败，无法从路径'%s'上加载字体", path.c_str());
-                LWARNING("LoadTTFFont: 尝试失败，无法从系统字体库加载字体'%s'", path.c_str());//向lua层返回错误，而不是直接崩游戏
+        fcyRefPointer<ResFont> tRes;
+        tRes.DirectSet(new ResFont(name, tFontProvider));
+        m_SpriteFontPool.emplace(name, tRes);
+    }
+    catch (const std::bad_alloc&) {
+        spdlog::error(u8"[luastg] LoadSpriteFont: 内存不足");
+        return false;
+    }
+    
+    if (ResourceMgr::GetResourceLoadingLog()) {
+        spdlog::info(u8"[luastg] LoadSpriteFont: 已从'{}'和'{}'加载纹理字体'{}' ({})", path, tex_path, name, getResourcePoolTypeName());
+    }
+    
+    return true;
+}
+
+// 加载TrueType字体
+
+bool ResourcePool::LoadTTFFont(const char* name, const char* path,
+                               float width, float height, float bboxwidth,float bboxheight) noexcept {
+    if (!LAPP.GetRenderer()) {
+        spdlog::error(u8"[luastg] LoadTTFFont: 无法加载矢量字体'{}'，f2dRenderer未准备好", name);
+        return false;
+    }
+    
+    if (m_TTFFontPool.find(name) != m_TTFFontPool.end()) {
+        if (ResourceMgr::GetResourceLoadingLog()) {
+            spdlog::warn(u8"[luastg] LoadTTFFont: 矢量字体'{}'已存在，加载操作已取消", name);
+        }
+        return true;
+    }
+    
+    fcyRefPointer<f2dFontProvider> tFontProvider;
+    
+    // 读取文件
+    fcyRefPointer<fcyMemStream> tDataBuf;
+    if (!m_pMgr->LoadFile(path, tDataBuf)) {
+        spdlog::warn(u8"[luastg] LoadTTFFont: 无法从'{}'加载矢量字体，文件不存在，尝试从系统字体库加载字体", path);
+        try {
+            const std::wstring wpath = fcyStringHelper::MultiByteToWideChar(path);
+            if (FCYFAILED(LAPP.GetRenderer()->CreateSystemFont(
+                wpath.c_str(), 0, fcyVec2(width, height), F2DFONTFLAG_NONE, &tFontProvider))) {
+                spdlog::error(u8"[luastg] LoadTTFFont: 尝试失败，无法从系统字体库加载字体'{}'", path);//向lua层返回错误，而不是直接崩游戏
+                return false;
+            }
+        }
+        catch (const std::bad_alloc&) {
+            spdlog::error(u8"[luastg] LoadTTFFont: 内存不足");
+            return false;
+        }
+    }
+    
+    // 创建定义
+    try {
+        if (!tFontProvider) {
+            fResult fr = LAPP.GetRenderer()->CreateFontFromMemory(tDataBuf, 0, fcyVec2(width, height),
+                                                                  fcyVec2(bboxwidth, bboxheight), F2DFONTFLAG_NONE,
+                                                                  &tFontProvider);
+            if (FCYFAILED(fr)) {
+                spdlog::error(u8"[fancy2d] [f2dRenderer::CreateFontFromMemory] 从'{}'创建矢量字体'{}'失败(fResult={})", path, name, fr);
                 return false;
             }
         }
         
-        // 创建定义
-        try {
-            if (!tFontProvider) {
-                if (FCYFAILED(LAPP.GetRenderer()->CreateFontFromMemory(tDataBuf, 0, fcyVec2(width, height),
-                                                                       fcyVec2(bboxwidth, bboxheight), F2DFONTFLAG_NONE,
-                                                                       &tFontProvider))) {
-                    LERROR("LoadTTFFont: 从文件'%s'创建TrueType字体失败", path.c_str());
-                    return false;
-                }
-            }
-    
-            if (ResourceMgr::GetResourceLoadingLog()) {
-                LINFO("字形缓存数量：%d，字形缓存贴图大小：%dx%d",
-                      tFontProvider->GetCacheCount(),
-                      tFontProvider->GetCacheTexSize(),
-                      tFontProvider->GetCacheTexSize());
-            }
-            
-            fcyRefPointer<ResFont> tRes;
-            tRes.DirectSet(new ResFont(name, tFontProvider));
-            tRes->SetBlendMode(BlendMode::AddAlpha);
-            m_TTFFontPool.emplace(name, tRes);
-        }
-        catch (const std::bad_alloc&) {
-            LERROR("LoadTTFFont: 内存不足");
-            return false;
-        }
-        
-        if (ResourceMgr::GetResourceLoadingLog()) {
-            LINFO("LoadTTFFont: truetype字体'%m'已装载 (%s)", name, getResourcePoolTypeName());
-        }
-    }
-    
-    LDEBUG_RESOURCEHINT(ResourceType::TrueTypeFont, path.c_str());
-    return true;
-}
-
-bool ResourcePool::LoadTTFFont(const char* name, const char* path, float width, float height,
-                               float bboxwidth,float bboxheight) noexcept {
-    try {
-        return LoadTTFFont(name, fcyStringHelper::MultiByteToWideChar(path, CP_UTF8), width, height,
-                           bboxwidth, bboxheight);
+        fcyRefPointer<ResFont> tRes;
+        tRes.DirectSet(new ResFont(name, tFontProvider));
+        tRes->SetBlendMode(BlendMode::AddAlpha);
+        m_TTFFontPool.emplace(name, tRes);
     }
     catch (const std::bad_alloc&) {
-        LERROR("LoadTTFFont: 转换编码时无法分配内存");
+        spdlog::error(u8"[luastg] LoadTTFFont: 内存不足");
         return false;
     }
+    
+    if (ResourceMgr::GetResourceLoadingLog()) {
+        spdlog::info(u8"[luastg] LoadTTFFont: 字形缓存数量：{}，字形缓存贴图大小：({}x{})",
+            tFontProvider->GetCacheCount(),
+            tFontProvider->GetCacheTexSize(),
+            tFontProvider->GetCacheTexSize()
+        );
+        spdlog::info(u8"[luastg] LoadTTFFont: 已从'{}'加载矢量字体'{}' ({})", path, name, getResourcePoolTypeName());
+    }
+    
+    return true;
 }
 
 bool ResourcePool::LoadTTFFont(const char* name, fcyStream* stream, float width, float height,
                                float bboxwidth,float bboxheight) noexcept {
-    LDEBUG_RESOURCETIMER;
-    
-    {
-        LDEBUG_RESOURCESCOPE;
-        
-        LASSERT(LAPP.GetRenderer());
-        
-        if (m_TTFFontPool.find(name) != m_TTFFontPool.end()) {
-            LWARNING("LoadTTFFont: 字体'%m'已存在，加载操作已被取消", name);
-            return true;
-        }
-        
-        // 创建定义
-        fcyRefPointer<f2dFontProvider> tFontProvider;
-        try {
-            if (FCYFAILED(LAPP.GetRenderer()->CreateFontFromMemory(
-                (fcyMemStream*) stream, 0, fcyVec2(width, height), fcyVec2(bboxwidth, bboxheight), F2DFONTFLAG_NONE,
-                &tFontProvider))) {
-                LERROR("LoadTTFFont: 从内存创建TrueType字体失败");
-                return false;
-            }
-            fcyRefPointer<ResFont> tRes;
-            tRes.DirectSet(new ResFont(name, tFontProvider));
-            tRes->SetBlendMode(BlendMode::AddAlpha);
-            m_TTFFontPool.emplace(name, tRes);
-    
-            if (ResourceMgr::GetResourceLoadingLog()) {
-                LINFO("LoadTTFFont: truetype字体'%m'已装载 (%s)", name, getResourcePoolTypeName());
-                LINFO("字形缓存数量：%d，字形缓存贴图大小：%dx%d",
-                      tFontProvider->GetCacheCount(),
-                      tFontProvider->GetCacheTexSize(), tFontProvider->GetCacheTexSize());
-            }
-        }
-        catch (const std::bad_alloc&) {
-            LERROR("LoadTTFFont: 内存不足");
-            return false;
-        }
+    if (!LAPP.GetRenderer()) {
+        spdlog::error(u8"[luastg] LoadTTFFont: 无法加载矢量字体'{}'，f2dRenderer未准备好", name);
+        return false;
     }
     
-    LDEBUG_RESOURCEHINT(ResourceType::TrueTypeFont, L"Memory");
+    if (m_TTFFontPool.find(name) != m_TTFFontPool.end()) {
+        if (ResourceMgr::GetResourceLoadingLog()) {
+            spdlog::warn(u8"[luastg] LoadTTFFont: 矢量字体'{}'已存在，加载操作已取消", name);
+        }
+        return true;
+    }
+    
+    // 创建定义
+    fcyRefPointer<f2dFontProvider> tFontProvider;
+    try {
+        fResult fr = LAPP.GetRenderer()->CreateFontFromMemory((fcyMemStream*) stream, 0, fcyVec2(width, height),
+                                                            fcyVec2(bboxwidth, bboxheight), F2DFONTFLAG_NONE,
+                                                            &tFontProvider);
+        if (FCYFAILED(fr)) {
+            spdlog::error(u8"[fancy2d] [f2dRenderer::CreateFontFromMemory] 创建矢量字体'{}'失败(fResult={})", name, fr);
+            return false;
+        }
+        
+        fcyRefPointer<ResFont> tRes;
+        tRes.DirectSet(new ResFont(name, tFontProvider));
+        tRes->SetBlendMode(BlendMode::AddAlpha);
+        m_TTFFontPool.emplace(name, tRes);
+    }
+    catch (const std::bad_alloc&) {
+        spdlog::error(u8"[luastg] LoadTTFFont: 内存不足");
+        return false;
+    }
+    
+    if (ResourceMgr::GetResourceLoadingLog()) {
+        spdlog::info(u8"[luastg] LoadTTFFont: 字形缓存数量：{}，字形缓存贴图大小：({}x{})",
+            tFontProvider->GetCacheCount(),
+            tFontProvider->GetCacheTexSize(),
+            tFontProvider->GetCacheTexSize()
+        );
+        spdlog::info(u8"[luastg] LoadTTFFont: 已加载矢量字体'{}' ({})", name, getResourcePoolTypeName());
+    }
+    
     return true;
 }
 
 bool ResourcePool::LoadTrueTypeFont(const char* name,
                                     f2dFontProviderParam param, f2dTrueTypeFontParam* fonts,fuInt count) noexcept {
-    LDEBUG_RESOURCETIMER;
-    
-    {
-        LDEBUG_RESOURCESCOPE;
-        
-        LASSERT(LAPP.GetRenderer());
-        
-        if (m_TTFFontPool.find(name) != m_TTFFontPool.end()) {
-            LWARNING("LoadTrueTypeFont: 字体组'%m'已存在，加载操作已被取消", name);
-            return true;
-        }
-        
-        // 创建定义
-        fcyRefPointer<f2dFontProvider> tFontProvider;
-        try {
-            if (FCYFAILED(LAPP.GetRenderer()->CreateFontFromMemory(
-                param, fonts, count, &tFontProvider))) {
-                LERROR("LoadTrueTypeFont: 从内存创建TrueType字体组失败");
-                return false;
-            }
-            fcyRefPointer<ResFont> tRes;
-            tRes.DirectSet(new ResFont(name, tFontProvider));
-            tRes->SetBlendMode(BlendMode::AddAlpha);
-            m_TTFFontPool.emplace(name, tRes);
-            
-            if (ResourceMgr::GetResourceLoadingLog()) {
-                LINFO("LoadTrueTypeFont: TrueType字体组'%m'已装载 (%s)", name, getResourcePoolTypeName());
-                LINFO("字形缓存数量：%d，字形缓存贴图大小：%dx%d",
-                      tFontProvider->GetCacheCount(),
-                      tFontProvider->GetCacheTexSize(), tFontProvider->GetCacheTexSize());
-            }
-        }
-        catch (const std::bad_alloc&) {
-            LERROR("LoadTrueTypeFont: 内存不足");
-            return false;
-        }
-    }
-    
-    LDEBUG_RESOURCEHINT(ResourceType::TrueTypeFont, L"Memory");
-    return true;
-}
-
-bool ResourcePool::LoadFX(const char* name, const std::wstring& path) noexcept {
-    LDEBUG_RESOURCETIMER;
-    
-    {
-        LDEBUG_RESOURCESCOPE;
-        
-        LASSERT(LAPP.GetRenderDev());
-        
-        if (m_FXPool.find(name) != m_FXPool.end()) {
-            LWARNING("LoadFX: FX'%m'已存在，加载操作已被取消", name);
-            return true;
-        }
-        
-        // 读取文件
-        fcyRefPointer<fcyMemStream> tDataBuf;
-        if (!m_pMgr->LoadFile(path.c_str(), tDataBuf))
-            return false;
-        
-        try {
-            fcyRefPointer<f2dEffect> tEffect;
-            if (FCYFAILED(LAPP.GetRenderDev()->CreateEffect(tDataBuf, false, &tEffect))) {
-                LERROR("LoadFX: 加载shader于文件'%s'失败 (lasterr=%m)", path.c_str(), LAPP.GetEngine()->GetLastErrDesc());
-                return false;
-            }
-            
-            fcyRefPointer<ResFX> tRes;
-            tRes.DirectSet(new ResFX(name, tEffect));
-            m_FXPool.emplace(name, tRes);
-        }
-        catch (const fcyException& e) {
-            LERROR("LoadFX: 绑定变量于文件'%s'失败 (异常信息'%m' 源'%m')", path.c_str(), e.GetDesc(), e.GetSrc());
-            return false;
-        }
-        catch (const std::bad_alloc&) {
-            LERROR("LoadFX: 内存不足");
-            return false;
-        }
-        
-        if (ResourceMgr::GetResourceLoadingLog()) {
-            LINFO("LoadFX: FX'%m'已装载 (%s)", name, getResourcePoolTypeName());
-        }
-    }
-    
-    LDEBUG_RESOURCEHINT(ResourceType::FX, path.c_str());
-    return true;
-}
-
-bool ResourcePool::LoadFX(const char* name, const char* path) noexcept {
-    try {
-        return LoadFX(name, fcyStringHelper::MultiByteToWideChar(path, CP_UTF8));
-    }
-    catch (const std::bad_alloc&) {
-        LERROR("LoadFX: 转换编码时无法分配内存");
+    if (!LAPP.GetRenderer()) {
+        spdlog::error(u8"[luastg] LoadTrueTypeFont: 无法加载矢量字体组'{}'，f2dRenderer未准备好", name);
         return false;
     }
-}
-
-bool ResourcePool::CreateRenderTarget(const char* name) noexcept {
-    LDEBUG_RESOURCETIMER;
     
-    {
-        LDEBUG_RESOURCESCOPE;
-        
-        LASSERT(LAPP.GetRenderDev());
-        
-        if (m_TexturePool.find(name) != m_TexturePool.end()) {
-            LWARNING("CreateRenderTarget: '%m'已存在，创建操作已被取消", name);
-            return true;
-        }
-        
-        fcyRefPointer<f2dTexture2D> tTexture;
-        if (FCYFAILED(LAPP.GetRenderDev()->CreateRenderTarget(LAPP.GetRenderDev()->GetBufferWidth(),
-                                                              LAPP.GetRenderDev()->GetBufferHeight(), true,
-                                                              &tTexture))) {
-            LERROR("CreateRenderTarget: 创建渲染目标'%m'失败", name);
-            return false;
-        }
-        
-        try {
-            fcyRefPointer<ResTexture> tRes;
-            tRes.DirectSet(new ResTexture(name, tTexture));
-            m_TexturePool.emplace(name, tRes);
-        }
-        catch (const std::bad_alloc&) {
-            LERROR("CreateRenderTarget: 内存不足");
-            return false;
-        }
-        
+    if (m_TTFFontPool.find(name) != m_TTFFontPool.end()) {
         if (ResourceMgr::GetResourceLoadingLog()) {
-            LINFO("CreateRenderTarget: '%m'已创建 (%s)", name, getResourcePoolTypeName());
+            spdlog::warn(u8"[luastg] LoadTrueTypeFont: 矢量字体组'{}'已存在，加载操作已取消", name);
         }
+        return true;
     }
     
-    LDEBUG_RESOURCEHINT(ResourceType::Texture, L"[RenderTarget]");
+    // 创建定义
+    fcyRefPointer<f2dFontProvider> tFontProvider;
+    try {
+        fResult fr = LAPP.GetRenderer()->CreateFontFromMemory(param, fonts, count, &tFontProvider);
+        if (FCYFAILED(fr)) {
+            spdlog::error(u8"[fancy2d] [f2dRenderer::CreateFontFromMemory] 创建矢量字体组'{}'失败(fResult={})", name, fr);
+            return false;
+        }
+        
+        fcyRefPointer<ResFont> tRes;
+        tRes.DirectSet(new ResFont(name, tFontProvider));
+        tRes->SetBlendMode(BlendMode::AddAlpha);
+        m_TTFFontPool.emplace(name, tRes);
+    }
+    catch (const std::bad_alloc&) {
+        spdlog::error(u8"[luastg] LoadTTFFont: 内存不足");
+        return false;
+    }
+    
+    if (ResourceMgr::GetResourceLoadingLog()) {
+        spdlog::info(u8"[luastg] LoadTrueTypeFont: 字形缓存数量：{}，字形缓存贴图大小：({}x{})",
+            tFontProvider->GetCacheCount(),
+            tFontProvider->GetCacheTexSize(),
+            tFontProvider->GetCacheTexSize()
+        );
+        spdlog::info(u8"[luastg] LoadTrueTypeFont: 已加载矢量字体组'{}' ({})", name, getResourcePoolTypeName());
+    }
+    
     return true;
 }
 
-bool ResourcePool::CreateRenderTarget(const char* name, int width, int height) noexcept {
-    LDEBUG_RESOURCETIMER;
-    
-    {
-        LDEBUG_RESOURCESCOPE;
-        
-        LASSERT(LAPP.GetRenderDev());
-        
-        if (m_TexturePool.find(name) != m_TexturePool.end()) {
-            LWARNING("CreateRenderTarget: '%m'已存在，创建操作已被取消", name);
-            return true;
-        }
-        
-        fcyRefPointer<f2dTexture2D> tTexture;
-        if (FCYFAILED(LAPP.GetRenderDev()->CreateRenderTarget((fuInt) width, (fuInt) height, false, &tTexture))) {
-            LERROR("CreateRenderTarget: 创建渲染目标'%m'失败", name);
-            return false;
-        }
-        
-        try {
-            fcyRefPointer<ResTexture> tRes;
-            tRes.DirectSet(new ResTexture(name, tTexture));
-            m_TexturePool.emplace(name, tRes);
-        }
-        catch (const std::bad_alloc&) {
-            LERROR("CreateRenderTarget: 内存不足");
-            return false;
-        }
-    
-        if (ResourceMgr::GetResourceLoadingLog()) {
-            LINFO("CreateRenderTarget: '%m' (%uX%u) 已创建 (%s)", name, width, height, getResourcePoolTypeName());
-        }
+// 加载后处理特效
+
+bool ResourcePool::LoadFX(const char* name, const char* path) noexcept {
+    if (!LAPP.GetRenderDev()) {
+        spdlog::error(u8"[luastg] LoadFX: 无法加载后处理特效'{}'，f2dRenderDevice未准备好", name);
+        return false;
     }
     
-    LDEBUG_RESOURCEHINT(ResourceType::Texture, L"[RenderTarget]");
+    if (m_FXPool.find(name) != m_FXPool.end()) {
+        if (ResourceMgr::GetResourceLoadingLog()) {
+            spdlog::warn(u8"[luastg] LoadFX: 后处理特效'{}'已存在，加载操作已取消", name);
+        }
+        return true;
+    }
+    
+    fcyRefPointer<fcyMemStream> tDataBuf;
+    if (!m_pMgr->LoadFile(path, tDataBuf)) {
+        spdlog::error(u8"[luastg] LoadFX: 无法从'{}'加载后处理特效'{}'，读取文件失败", path, name);
+        return false;
+    }
+    
+    try {
+        fcyRefPointer<f2dEffect> tEffect;
+        fResult fr = LAPP.GetRenderDev()->CreateEffect(tDataBuf, false, &tEffect);
+        if (FCYFAILED(fr)) {
+            spdlog::error(u8"[fancy2d] [f2dRenderDevice::CreateEffect] 从'{}'创建后处理特效'{}'失败(fResult={})：{}",
+                path, name, fr, LAPP.GetEngine()->GetLastErrDesc());
+            return false;
+        }
+        
+        fcyRefPointer<ResFX> tRes;
+        tRes.DirectSet(new ResFX(name, tEffect));
+        m_FXPool.emplace(name, tRes);
+    }
+    catch (const fcyException& e) {
+        spdlog::error(u8"[fancy2d] [{}] 无法从'{}'创建后处理特效'{}'：{}", e.GetSrc(), path, name, e.GetDesc());
+        return false;
+    }
+    catch (const std::bad_alloc&) {
+        spdlog::error(u8"[luastg] LoadFX: 内存不足");
+        return false;
+    }
+    
+    if (ResourceMgr::GetResourceLoadingLog()) {
+        spdlog::info(u8"[luastg] LoadFX: 已从'{}'加载后处理特效'{}' ({})", path, name, getResourcePoolTypeName());
+    }
+    
     return true;
+}
+
+// 加载模型（废弃）
+
+bool ResourcePool::LoadModel(const char* name, const char* path) noexcept {
+    //try {
+    //    return LoadModel(name, fcyStringHelper::MultiByteToWideChar(path, CP_UTF8));
+    //}
+    //catch (const std::bad_alloc&) {
+    //    //("LoadModel: 转换编码时无法分配内存");
+    //    return false;
+    //}
+    
+    //LASSERT(LAPP.GetRenderDev());
+    //
+    //if (m_TexturePool.find(name) != m_TexturePool.end()) {
+    //    //("LoadModel: 模型'%m'已存在，试图使用'%s'加载的操作已被取消", name, path.c_str());
+    //    return true;
+    //}
+    //
+    //fcyRefPointer<fcyMemStream> tDataBuf;
+    //if (!m_pMgr->LoadFile(path.c_str(), tDataBuf))
+    //    return false;
+    //fcyRefPointer<fcyMemStream> tDataBuf2;
+    //std::wstring path2 = path;
+    //int i = path2.length();
+    //path2[i - 3] = 'm';
+    //path2[i - 2] = 't';
+    //path2[i - 1] = 'l';
+    //if (!m_pMgr->LoadFile(path2.c_str(), tDataBuf2))
+    //    return false;
+    //void* model = NULL;
+    //void* LoadObj(const std::string& id, const std::string& path, const std::string& path2);
+    //std::string buf((char*) tDataBuf->GetInternalBuffer(), tDataBuf->GetLength());
+    //std::string buf2((char*) tDataBuf2->GetInternalBuffer(), tDataBuf2->GetLength());
+    //model = LoadObj(name, buf, buf2);
+    //
+    //try {
+    //    fcyRefPointer<ResModel> tRes;
+    //    tRes.DirectSet(new ResModel(name, model));
+    //    m_ModelPool.emplace(name, tRes);
+    //}
+    //catch (const std::bad_alloc&) {
+    //    //("LoadModel: 内存不足");
+    //    return false;
+    //}
+    //
+    //if (ResourceMgr::GetResourceLoadingLog()) {
+    //    //("LoadTexture: 纹理'%s'已装载 -> '%m' (%s)", path.c_str(), name, getResourcePoolTypeNameW());
+    //}
+    //
+    //return true;
+    
+    return false;
 }
 
 // 查找并获取

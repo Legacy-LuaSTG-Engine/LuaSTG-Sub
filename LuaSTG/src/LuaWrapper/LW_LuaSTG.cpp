@@ -3,6 +3,7 @@
 #include "LuaWrapper\LuaWrapper.hpp"
 #include "AppFrame.h"
 #include <filesystem>
+#include "spdlog/spdlog.h"
 
 #ifdef min
 #undef min
@@ -56,41 +57,15 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		}
 		static int Log(lua_State* L)LNOEXCEPT
 		{
-			lua_Integer _level = luaL_checkinteger(L, 1);
-			LuaSTGPlus::LogType level = LuaSTGPlus::LogType::Information;
-			switch (_level)
-			{
-			case 1:
-				level = LuaSTGPlus::LogType::Debug;
-				break;
-			case 2:
-				level = LuaSTGPlus::LogType::Information;
-				break;
-			case 3:
-				level = LuaSTGPlus::LogType::Warning;
-				break;
-			case 4:
-				level = LuaSTGPlus::LogType::Error;
-				break;
-			case 5:
-				level = LuaSTGPlus::LogType::Fatal;
-				break;
-			default:
-				level = LuaSTGPlus::LogType::Information;
-				break;
-			}
-			try {
-				std::wstring msg = fcyStringHelper::MultiByteToWideChar(luaL_checkstring(L, 2), CP_UTF8);
-				LLOGGER.Log(level, msg.c_str());
-			}
-			catch (...) {
-				return luaL_error(L, "Failed to write log message.");
-			}
+			const lua_Integer level = luaL_checkinteger(L, 1);
+			const char* msg = luaL_checkstring(L, 2);
+			spdlog::log((spdlog::level::level_enum)level, u8"[lua] {}", msg);
 			return 0;
 		}
 		static int SystemLog(lua_State* L)LNOEXCEPT
 		{
-			LINFO("脚本日志：%m", luaL_checkstring(L, 1));
+			const char* msg = luaL_checkstring(L, 1);
+			spdlog::info(u8"[lua] {}", msg);
 			return 0;
 		}
 		static int Print(lua_State* L)LNOEXCEPT
@@ -111,9 +86,9 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 				const char* x = luaL_checkstring(L, -1);
 				lua_concat(L, 2); // ... f s
 			}
-			LINFO("脚本日志：%m", luaL_checkstring(L, -1));
-			//lua_pop(L, 2);
-			return 1;
+			const char* msg = luaL_checkstring(L, -1);
+			spdlog::info(u8"[lua] {}", msg);
+			return 0;
 		}
 		static int LoadPack(lua_State* L)LNOEXCEPT
 		{
@@ -187,12 +162,13 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			fResult result = LAPP.GetRenderDev()->SetBufferSize(width, height, windowed, vsync, flip, F2DAALEVEL_NONE);
 			if (result == FCYERR_OK)
 			{
-				LINFO("交换链更新成功 (%ux%u) Windowed:%b Vsync:%b Flip:%b",
+				spdlog::info(u8"[fancy2d] 交换链更新成功 Size:({}x{}) Windowed:{} Vsync:{} Flip:{}",
 					width, height, windowed, vsync, flip);
 			}
 			else
 			{
-				LERROR("交换链更新失败 (%ux%u) Windowed:%b Vsync:%b Flip:%b",
+				spdlog::error(u8"[fancy2d] [f2dRenderDevice::SetBufferSize] 交换链更新失败(fResult={})，参数为 Size:({}x{}) Windowed:{} Vsync:{} Flip:{}",
+					result,
 					width, height, windowed, vsync, flip);
 			}
 			lua_pushboolean(L, result == FCYERR_OK);
@@ -693,7 +669,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			if (!pActivedPool)
 				return luaL_error(L, "can't load resource at this time.");
 
-			if (!pActivedPool->LoadSprite(
+			if (!pActivedPool->CreateSprite(
 				name,
 				texname,
 				luaL_checknumber(L, 3),
@@ -718,7 +694,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			if (!pActivedPool)
 				return luaL_error(L, "can't load resource at this time.");
 			
-			if (!pActivedPool->LoadAnimation(
+			if (!pActivedPool->CreateAnimation(
 				name,
 				texname,
 				luaL_checknumber(L, 3),
@@ -789,7 +765,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			if (!pActivedPool)
 				return luaL_error(L, "can't load resource at this time.");
 
-			if (!pActivedPool->LoadSound(name, path))
+			if (!pActivedPool->LoadSoundEffect(name, path))
 				return luaL_error(L, "load sound failed (name=%s, path=%s)", name, path);
 			return 0;
 		}
@@ -1092,11 +1068,9 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 				{
 				case ResourcePoolType::Stage:
 					LRES.GetResourcePool(ResourcePoolType::Stage)->Clear();
-					LINFO("关卡资源池已清空");
 					break;
 				case ResourcePoolType::Global:
 					LRES.GetResourcePool(ResourcePoolType::Global)->Clear();
-					LINFO("全局资源池已清空");
 					break;
 				default:
 					break;
