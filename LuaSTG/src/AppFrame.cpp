@@ -93,8 +93,8 @@ LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, b
 			(fuInt)width,
 			(fuInt)height,
 			windowed,
-			false,
 			vsync,
+			false,
 			F2DAALEVEL_NONE)))
 		{
 			spdlog::info(u8"[luastg] 视频模式切换成功 ({}x{} Vsync:{} Windowed:{}) -> ({}x{} Vsync:{} Windowed:{})",
