@@ -3,7 +3,6 @@
 #include "GameObject.hpp"
 #include <array>
 #include <set>
-#include "Config.h"
 
 // 对象池信息
 #define LOBJPOOL_SIZE   32768 // 最大对象数 //32768(full) //16384(half)

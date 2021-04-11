@@ -1,5 +1,4 @@
 ﻿#include "SteamAPI.hpp"
-#include "Config.h"
 
 #ifdef USING_STEAM_API
 #pragma comment(lib, "steam_api.lib")

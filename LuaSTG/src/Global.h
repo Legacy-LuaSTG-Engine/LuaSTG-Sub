@@ -42,9 +42,6 @@
 // luajit
 #include <lua.hpp>
 
-// 配置文件
-#include "Config.h"
-
 // 数学常量
 #define DBL_HALF_MAX (DBL_MAX / 2.0) //双精度浮点的半大值
 #define LRAD2DEGREE (180.0/3.141592653589793) // 弧度到角度

@@ -6,7 +6,6 @@
 #include "ImGuiExtension.h"
 #include "LuaWrapper/LuaAppFrame.hpp"
 #include "Graphic/Test.h"
-#include "LConfig.h"
 
 using namespace LuaSTGPlus;
 

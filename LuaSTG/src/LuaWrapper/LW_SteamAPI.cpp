@@ -1,5 +1,4 @@
-﻿#include "Config.h"
-#include "LuaWrapper/LW_SteamAPI.h"
+﻿#include "LuaWrapper/LW_SteamAPI.h"
 #include "lua.hpp"
 
 #ifdef USING_STEAM_API

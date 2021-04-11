@@ -4,7 +4,6 @@
 #include "ResourceParticle.hpp"
 #include "lua.hpp"
 #include "GameObjectClass.hpp"
-#include "Config.h"
 
 namespace LuaSTGPlus
 {

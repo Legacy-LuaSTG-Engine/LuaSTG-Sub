@@ -1,7 +1,6 @@
 ﻿#include "LLogger.hpp"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/basic_file_sink.h"
-#include "Config.h"
 #include "Common/SystemDirectory.hpp"
 
 namespace slow {

@@ -16,7 +16,6 @@
 #include "Common/DPIHelper.hpp"
 #include "Common/SystemDirectory.hpp"
 
-#include "Config.h"
 #include "AppFrame.h"
 
 #define XINPUT_USE_9_1_0

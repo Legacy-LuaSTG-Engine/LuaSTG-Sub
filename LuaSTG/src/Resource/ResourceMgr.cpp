@@ -5,7 +5,6 @@
 #include <filesystem>
 
 #include "AppFrame.h"
-#include "LConfig.h"
 
 #include "E2DFileManager.hpp"
 #include "E2DCodePage.hpp"
