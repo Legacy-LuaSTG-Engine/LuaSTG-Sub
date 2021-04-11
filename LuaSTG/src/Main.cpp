@@ -38,7 +38,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int)
 				NULL,
 				L"引擎未能成功初始化：\n"
 				L"请尝试重新启动此应用程序，或者联系开发人员。\n"
-				L"查看日志文件（log.txt或luastg.log）可以获得更多信息。",
+				L"在日志文件（engine.log，可以用记事本打开）中可以获得更多信息。",
 				L"引擎初始化失败",
 				MB_ICONERROR | MB_OK);
 			ret = EXIT_FAILURE;
