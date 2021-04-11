@@ -251,12 +251,14 @@ f2dTexture2DDynamic::~f2dTexture2DDynamic()
 
 void f2dTexture2DDynamic::OnRenderDeviceLost()
 {
+	m_IsDirty = true; // 设备丢失则为脏
 	FCYSAFEKILL(m_pTex);
 	FCYSAFEKILL(m_pCacheTex);
 }
 
 void f2dTexture2DDynamic::OnRenderDeviceReset()
 {
+	m_IsDirty = true; // 设备丢失则为脏
 	((IDirect3DDevice9*)m_pParent->GetHandle())->CreateTexture(
 		m_Width, m_Height, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pTex, NULL);
 	
@@ -293,7 +295,7 @@ fResult f2dTexture2DDynamic::Lock(fcyRect* pLockRect, fBool Discard, fuInt* Pitc
 	{
 		*Pitch = tRectLocked.Pitch;
 		*pOut = ((fData)tRectLocked.pBits);
-
+		m_IsDirty = Discard; // 只有丢弃原有内容的时候才标记为脏
 		return FCYERR_OK;
 	}
 }
@@ -325,11 +327,15 @@ fResult f2dTexture2DDynamic::AddDirtyRect(fcyRect* pDirtyRect) {
 		tRectToLock.bottom = (int)pDirtyRect->b.y;
 	}
 	m_pCacheTex->AddDirtyRect(pDirtyRect ? &tRectToLock : NULL);
+	m_IsDirty = true;
 	return FCYERR_OK;
 }
 
 fResult f2dTexture2DDynamic::Upload()
 {
+	if (!m_IsDirty)
+		return FCYERR_OK;
+	
 	if(!m_pCacheTex || !m_pTex)
 		return FCYERR_INTERNALERR;
 
@@ -339,6 +345,7 @@ fResult f2dTexture2DDynamic::Upload()
 	}
 	else
 	{
+		m_IsDirty = false;
 		return FCYERR_OK;
 	}
 }

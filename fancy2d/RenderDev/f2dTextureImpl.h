@@ -51,6 +51,7 @@ private:
 	IDirect3DTexture9* m_pCacheTex = nullptr;
 	fuInt m_Width = 0;
 	fuInt m_Height = 0;
+	fBool m_IsDirty = true;
 public: // 设备丢失
 	void OnRenderDeviceLost();
 	void OnRenderDeviceReset();
