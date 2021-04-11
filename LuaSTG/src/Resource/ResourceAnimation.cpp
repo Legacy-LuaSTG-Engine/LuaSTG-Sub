@@ -8,14 +8,13 @@ namespace LuaSTGPlus {
 		double a, double b, bool rect)
 		: Resource(ResourceType::Animation, name), m_Interval(intv), m_HalfSizeX(a), m_HalfSizeY(b), m_bRectangle(rect)
 	{
-		LASSERT(LAPP.GetRenderer());
-
 		// 分割纹理
 		for (int j = 0; j < m; ++j)  // 行
 		{
 			for (int i = 0; i < n; ++i)  // 列
 			{
 				fcyRefPointer<f2dSprite> t;
+				// new 只在资源池中调用，那边已经检查过了f2dRenderer是否存在
 				if (FCYFAILED(LAPP.GetRenderer()->CreateSprite2D(tex->GetTexture(), fcyRect(
 					x + w * i, y + h * j, x + w * (i + 1), y + h * (j + 1)
 				), &t)))

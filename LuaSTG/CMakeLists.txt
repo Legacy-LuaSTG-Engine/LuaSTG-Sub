@@ -26,6 +26,10 @@ if(NOT platform_amd64)
     )
 endif()
 
+target_precompile_headers(LuaSTG PRIVATE
+    pch/pch.h # common header
+)
+
 target_include_directories(LuaSTG PRIVATE
     .
     ..
@@ -49,6 +53,7 @@ aux_source_directory(src/LuaWrapper LUASTG_SRC_LW)
 aux_source_directory(${LUASTG_RESDIR} LUASTG_RES)
 
 target_sources(LuaSTG PRIVATE
+    pch/pch.cpp # common header
     ${COMMON_SRC}
     
     ${LUASTG_SRC}

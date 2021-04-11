@@ -11,8 +11,6 @@
 #include "E2DCodePage.hpp"
 #include "E2DFilePath.hpp"
 
-#include "spdlog/spdlog.h"
-
 using namespace std;
 using namespace LuaSTGPlus;
 

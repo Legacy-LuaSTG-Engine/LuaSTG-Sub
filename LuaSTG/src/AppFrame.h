@@ -283,13 +283,13 @@ namespace LuaSTGPlus
 		
 		fcyVec2 CalcuTextSize(ResFont* p, const wchar_t* strBuf, fcyVec2 scale)LNOEXCEPT;
 		
-		LNOINLINE bool RenderText(const char* name, const char* str, float x, float y, float scale, ResFont::FontAlignHorizontal halign, ResFont::FontAlignVertical valign)LNOEXCEPT;
+		bool RenderText(const char* name, const char* str, float x, float y, float scale, ResFont::FontAlignHorizontal halign, ResFont::FontAlignVertical valign)LNOEXCEPT;
 		
-		LNOINLINE bool RenderTTF(const char* name, const char* str, float left, float right, float bottom, float top, float scale, int format, fcyColor c)LNOEXCEPT;
+		bool RenderTTF(const char* name, const char* str, float left, float right, float bottom, float top, float scale, int format, fcyColor c)LNOEXCEPT;
 
-		LNOINLINE void SnapShot(const char* path)LNOEXCEPT;
-
-		LNOINLINE void SaveTexture(f2dTexture2D* Tex, const char* path)LNOEXCEPT;
+		void SnapShot(const char* path)LNOEXCEPT;
+		void SaveTexture(f2dTexture2D* Tex, const char* path)LNOEXCEPT;
+		void SaveTexture(const char* tex_name, const char* path)LNOEXCEPT;
 
 		bool CheckRenderTargetInUse(fcyRefPointer<f2dTexture2D> rt)LNOEXCEPT;
 
@@ -297,13 +297,13 @@ namespace LuaSTGPlus
 
 		bool PushRenderTarget(fcyRefPointer<f2dTexture2D> rt)LNOEXCEPT;
 
-		LNOINLINE bool PushRenderTarget(ResTexture* rt)LNOEXCEPT;
+		bool PushRenderTarget(ResTexture* rt)LNOEXCEPT;
 
-		LNOINLINE bool PopRenderTarget()LNOEXCEPT;
+		bool PopRenderTarget()LNOEXCEPT;
 
 		bool PostEffect(fcyRefPointer<f2dTexture2D> rt, ResFX* shader, BlendMode blend)LNOEXCEPT;
 
-		LNOINLINE bool PostEffect(ResTexture* rt, ResFX* shader, BlendMode blend)LNOEXCEPT;
+		bool PostEffect(ResTexture* rt, ResFX* shader, BlendMode blend)LNOEXCEPT;
 		
 		// 渲染扇形，通过纹理+uv范围渲染
 		bool RenderSector(const char* name, fcyRect uv, bool tran, BlendMode blend, fcyColor color1, fcyColor color2,

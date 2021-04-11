@@ -232,7 +232,7 @@ namespace LuaSTGPlus
 			if (!(ps = tParticle->AllocInstance()))
 			{
 				res = nullptr;
-				LERROR("无法构造粒子池，内存不足");
+				spdlog::error(u8"[luastg] ResParticle: 无法构造粒子池，内存不足");
 				return false;
 			}
 			ps->SetInactive();
@@ -262,7 +262,7 @@ namespace LuaSTGPlus
 		{
 			if (res->GetType() == ResourceType::Particle)
 			{
-				LASSERT(ps);
+				assert(ps);
 				static_cast<ResParticle*>(res)->FreeInstance(ps);
 				ps = nullptr;
 			}
@@ -271,7 +271,7 @@ namespace LuaSTGPlus
 		}
 	}
 	
-	bool CollisionCheck(GameObject* p1, GameObject* p2)LNOEXCEPT {
+	bool CollisionCheck(GameObject* p1, GameObject* p2) noexcept {
 		//忽略不碰撞对象
 		if (!p1->colli || !p2->colli)
 			return false;//返回点0

@@ -7,7 +7,6 @@
 #include "LuaWrapper/LuaCustomLoader.hpp"
 #include "LuaWrapper/LuaStringToEnum.hpp"
 #include "LuaWrapper/LuaInternalSource.hpp"
-#include "spdlog/spdlog.h"
 
 namespace LuaSTGPlus
 {

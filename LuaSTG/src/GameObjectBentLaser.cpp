@@ -21,17 +21,17 @@ void GameObjectBentLaser::FreeInstance(GameObjectBentLaser* p)
 	s_GameObjectBentLaserPool.Free(p);
 }
 
-GameObjectBentLaser::GameObjectBentLaser()LNOEXCEPT
+GameObjectBentLaser::GameObjectBentLaser() noexcept
 {
 }
 
-GameObjectBentLaser::~GameObjectBentLaser()LNOEXCEPT
+GameObjectBentLaser::~GameObjectBentLaser() noexcept
 {
 }
 
 //======================================
 
-void GameObjectBentLaser::_UpdateNode(size_t i)LNOEXCEPT {
+void GameObjectBentLaser::_UpdateNode(size_t i) noexcept {
 	LaserNode& cur = m_Queue[i];
 	cur.sharp = false;
 	int sz = m_Queue.Size() - 1;
@@ -81,7 +81,7 @@ void GameObjectBentLaser::_UpdateNode(size_t i)LNOEXCEPT {
 	}
 }
 
-void GameObjectBentLaser::_UpdateAllNode()LNOEXCEPT {
+void GameObjectBentLaser::_UpdateAllNode() noexcept {
 	//注意，尾部才是最后插入的，头部是最早插入的
 	m_fLength = 0.0f;
 	size_t sz = m_Queue.Size();
@@ -118,7 +118,7 @@ void GameObjectBentLaser::_UpdateAllNode()LNOEXCEPT {
 	}
 }
 
-void GameObjectBentLaser::_PopHead()LNOEXCEPT {
+void GameObjectBentLaser::_PopHead() noexcept {
 	if (m_Queue.Size() > 1) {
 		LaserNode tLastPop;
 		m_Queue.Pop(tLastPop);
@@ -133,11 +133,11 @@ void GameObjectBentLaser::_PopHead()LNOEXCEPT {
 	}
 }
 
-int GameObjectBentLaser::GetSize()LNOEXCEPT {
+int GameObjectBentLaser::GetSize() noexcept {
 	return (int)m_Queue.Size();
 }
 
-GameObjectBentLaser::LaserNode* GameObjectBentLaser::GetNode(size_t i)LNOEXCEPT {
+GameObjectBentLaser::LaserNode* GameObjectBentLaser::GetNode(size_t i) noexcept {
 	if (m_Queue.Size() > 0u) {
 		if (i >= 0u && i < m_Queue.Size()) {
 			return &(m_Queue[i]);
@@ -146,22 +146,22 @@ GameObjectBentLaser::LaserNode* GameObjectBentLaser::GetNode(size_t i)LNOEXCEPT 
 	return nullptr;
 }
 
-void GameObjectBentLaser::GetEnvelope(float& height, float& base, float& rate, float& power)LNOEXCEPT {
+void GameObjectBentLaser::GetEnvelope(float& height, float& base, float& rate, float& power) noexcept {
 	height = m_fEnvelopeHeight;
 	base = m_fEnvelopeBase;
 	rate = m_fEnvelopeRate;
 	power = m_fEnvelopePower;
 }
 
-bool GameObjectBentLaser::Update(size_t id, int length, float width, bool active)LNOEXCEPT
+bool GameObjectBentLaser::Update(size_t id, int length, float width, bool active) noexcept
 {
 	GameObject* p = LPOOL.GetPooledObject(id);
 	if (!p) {
-		LERROR("lstg.BentLaser: 无效的lstg.GameObject");
+		spdlog::error(u8"[luastg] [GameObjectBentLaser::Update] 无效的lstg.GameObject");
 		return false;
 	}
 	if (length <= 1) {
-		LERROR("lstg.BentLaser: 无效的参数length");
+		spdlog::error(u8"[luastg] [GameObjectBentLaser::Update] 无效的参数length={}", length);
 		return false;
 	}
 	
@@ -226,7 +226,7 @@ bool GameObjectBentLaser::Update(size_t id, int length, float width, bool active
 	return true;
 }
 
-void GameObjectBentLaser::SetAllWidth(float width) LNOEXCEPT
+void GameObjectBentLaser::SetAllWidth(float width)  noexcept
 {
 	for (size_t i = 0u; i < m_Queue.Size(); i++)
 	{
@@ -234,7 +234,7 @@ void GameObjectBentLaser::SetAllWidth(float width) LNOEXCEPT
 	}
 }
 
-bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, fcyColor c, float tex_left, float tex_top, float tex_width, float tex_height, float scale)LNOEXCEPT
+bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, fcyColor c, float tex_left, float tex_top, float tex_width, float tex_height, float scale) noexcept
 {
 	// 忽略只有一个节点的情况
 	if (m_Queue.Size() <= 1)
@@ -243,7 +243,7 @@ bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, fcyColor
 	fcyRefPointer<ResTexture> pTex = LRES.FindTexture(tex_name);
 	if (!pTex)
 	{
-		LERROR("lstgBentLaserData: 找不到纹理资源'%m'", tex_name);
+		spdlog::error(u8"[luastg] [GameObjectBentLaser::Render] 找不到纹理'{}'", tex_name);
 		return false;
 	}
 
@@ -316,7 +316,7 @@ bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, fcyColor
 	return true;
 }
 
-void GameObjectBentLaser::RenderCollider(fcyColor fillColor)LNOEXCEPT {
+void GameObjectBentLaser::RenderCollider(fcyColor fillColor) noexcept {
 	// 忽略只有一个节点的情况
 	int sn = m_Queue.Size();
 	if (sn <= 1)
@@ -402,14 +402,14 @@ void GameObjectBentLaser::RenderCollider(fcyColor fillColor)LNOEXCEPT {
 	graph->SetColorBlendType(txState);
 }
 
-void GameObjectBentLaser::SetEnvelope(float height, float base, float rate, float power)LNOEXCEPT {
+void GameObjectBentLaser::SetEnvelope(float height, float base, float rate, float power) noexcept {
 	m_fEnvelopeHeight = height;
 	m_fEnvelopeBase = std::clamp(base, 0.0f, 1.0f);
 	m_fEnvelopeRate = rate;
 	m_fEnvelopePower = 0.4f * std::floorf(power / 0.4f); // 不要问，问就是魔法数字
 }
 
-bool GameObjectBentLaser::CollisionCheck(float x, float y, float rot, float a, float b, bool rect)LNOEXCEPT
+bool GameObjectBentLaser::CollisionCheck(float x, float y, float rot, float a, float b, bool rect) noexcept
 {
 	// 忽略只有一个节点的情况
 	if (m_Queue.Size() <= 1)
@@ -466,7 +466,7 @@ bool GameObjectBentLaser::CollisionCheck(float x, float y, float rot, float a, f
 	return false;
 }
 
-bool GameObjectBentLaser::CollisionCheckW(float x, float y, float rot, float a, float b, bool rect, float width)LNOEXCEPT
+bool GameObjectBentLaser::CollisionCheckW(float x, float y, float rot, float a, float b, bool rect, float width) noexcept
 {
 	// 忽略只有一个节点的情况
 	if (m_Queue.Size() <= 1)
@@ -524,7 +524,7 @@ bool GameObjectBentLaser::CollisionCheckW(float x, float y, float rot, float a, 
 	return false;
 }
 
-bool GameObjectBentLaser::BoundCheck()LNOEXCEPT
+bool GameObjectBentLaser::BoundCheck() noexcept
 {
 	fcyRect tBound = LPOOL.GetBound();
 	for (size_t i = 0u; i < m_Queue.Size(); i++)
@@ -539,15 +539,15 @@ bool GameObjectBentLaser::BoundCheck()LNOEXCEPT
 	return false;
 }
 
-bool GameObjectBentLaser::UpdateByNode(size_t id, int node, int length, float width, bool active)LNOEXCEPT
+bool GameObjectBentLaser::UpdateByNode(size_t id, int node, int length, float width, bool active) noexcept
 {
 	GameObject* p = LPOOL.GetPooledObject(id);
 	if (!p) {
-		LERROR("lstg.BentLaser: 无效的lstg.GameObject");
+		spdlog::error(u8"[luastg] [GameObjectBentLaser::UpdateByNode] 无效的lstg.GameObject");
 		return false;
 	}
 	if (length <= 1) {
-		LERROR("lstg.BentLaser: 无效的参数length");
+		spdlog::error(u8"[luastg] [GameObjectBentLaser::UpdateByNode] 无效的参数length={}", length);
 		return false;
 	}
 
@@ -567,7 +567,7 @@ bool GameObjectBentLaser::UpdateByNode(size_t id, int node, int length, float wi
 	return true;
 }
 
-bool GameObjectBentLaser::UpdatePositionByList(lua_State * L, int length, float width, int index, bool revert) LNOEXCEPT// ... t(list) //lua index从1开始
+bool GameObjectBentLaser::UpdatePositionByList(lua_State * L, int length, float width, int index, bool revert) noexcept// ... t(list) //lua index从1开始
 {
 	// ... t(list)
 	int push_count = 0;//以插入头的节点数量 
@@ -621,7 +621,7 @@ bool GameObjectBentLaser::UpdatePositionByList(lua_State * L, int length, float 
 	return true;
 }
 
-int GameObjectBentLaser::SampleL(lua_State * L, float length) LNOEXCEPT
+int GameObjectBentLaser::SampleL(lua_State * L, float length) noexcept
 {
 	//插入一个数组
 	lua_newtable(L); //... t(list)
@@ -661,7 +661,7 @@ int GameObjectBentLaser::SampleL(lua_State * L, float length) LNOEXCEPT
 	return true;
 }
 
-int GameObjectBentLaser::SampleT(lua_State * L, float delay) LNOEXCEPT
+int GameObjectBentLaser::SampleT(lua_State * L, float delay) noexcept
 {
 	//插入一个数组
 	lua_newtable(L); //... t(list)

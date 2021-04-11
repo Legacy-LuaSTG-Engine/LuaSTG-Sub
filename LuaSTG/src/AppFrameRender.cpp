@@ -186,19 +186,20 @@ namespace LuaSTGPlus
         }
     }
     
-    bool AppFrame::BeginScene() LNOEXCEPT
+    bool AppFrame::BeginScene() noexcept
     {
         if (!m_bRenderStarted)
         {
-            LERROR("不能在RenderFunc以外的地方执行渲染");
+            spdlog::error(u8"[luastg] 不能在RenderFunc以外的地方执行渲染");
             return false;
         }
         
         if (m_GraphType == GraphicsType::Graph2D)
         {
-            if (FCYFAILED(m_Graph2D->Begin()))
+            fResult fr = m_Graph2D->Begin();
+            if (FCYFAILED(fr))
             {
-                LERROR("执行f2dGraphics2D::Begin失败");
+                spdlog::error(u8"[fancy2d] [f2dGraphics2D::Begin] 失败(fResult={})", fr);
                 return false;
             }
         }
@@ -206,13 +207,20 @@ namespace LuaSTGPlus
         return true;
     }
     
-    bool AppFrame::EndScene() LNOEXCEPT
+    bool AppFrame::EndScene() noexcept
     {
+        if (!m_bRenderStarted)
+        {
+            spdlog::error(u8"[luastg] 不能在RenderFunc以外的地方执行渲染");
+            return false;
+        }
+        
         if (m_GraphType == GraphicsType::Graph2D)
         {
-            if (FCYFAILED(m_Graph2D->End()))
+            fResult fr = m_Graph2D->End();
+            if (FCYFAILED(fr))
             {
-                LERROR("执行f2dGraphics2D::End失败");
+                spdlog::error(u8"[fancy2d] [f2dGraphics2D::End] 失败(fResult={})", fr);
                 return false;
             }
         }
@@ -220,36 +228,42 @@ namespace LuaSTGPlus
         return true;
     }
     
-    void AppFrame::ClearScreen(const fcyColor& c)LNOEXCEPT
+    void AppFrame::ClearScreen(const fcyColor& c) noexcept
     {
         m_pRenderDev->Clear(c);
     }
     
-    bool AppFrame::SetViewport(double left, double right, double bottom, double top) LNOEXCEPT
+    bool AppFrame::SetViewport(double left, double right, double bottom, double top) noexcept
     {
-        if (FCYFAILED(m_pRenderDev->SetViewport(fcyRect(
-            static_cast<float>((int)left),
-            static_cast<float>((int)m_pRenderDev->GetBufferHeight() - (int)top),
-            static_cast<float>((int)right),
-            static_cast<float>((int)m_pRenderDev->GetBufferHeight() - (int)bottom)
-        ))))
+        const auto rect = fcyRect(
+            (float)((int)left),
+            (float)((int)m_pRenderDev->GetBufferHeight() - (int)top),
+            (float)((int)right),
+            (float)((int)m_pRenderDev->GetBufferHeight() - (int)bottom)
+        );
+        fResult fr = m_pRenderDev->SetViewport(rect);
+        if (FCYFAILED(fr))
         {
-            LERROR("设置视口(left: %lf, right: %lf, bottom: %lf, top: %lf)失败", left, right, bottom, top);
+            spdlog::error(u8"[fancy2d] [f2dRenderDevice::SetViewport] 设置视口(left:{}, right:{}, bottom:{}, top:{})失败(fResult={})",
+                left, right, bottom, top, fr);
             return false;
         }
         return true;
     }
     
-    bool AppFrame::SetScissorRect(double left, double right, double bottom, double top) LNOEXCEPT
+    bool AppFrame::SetScissorRect(double left, double right, double bottom, double top) noexcept
     {
-        if (FCYFAILED(m_pRenderDev->SetScissorRect(fcyRect(
-            static_cast<float>((int)left),
-            static_cast<float>((int)m_pRenderDev->GetBufferHeight() - (int)top),
-            static_cast<float>((int)right),
-            static_cast<float>((int)m_pRenderDev->GetBufferHeight() - (int)bottom)
-        ))))
+        const auto rect = fcyRect(
+            (float)((int)left),
+            (float)((int)m_pRenderDev->GetBufferHeight() - (int)top),
+            (float)((int)right),
+            (float)((int)m_pRenderDev->GetBufferHeight() - (int)bottom)
+        );
+        fResult fr = m_pRenderDev->SetScissorRect(rect);
+        if (FCYFAILED(fr))
         {
-            LERROR("设置裁剪矩形(left: %lf, right: %lf, bottom: %lf, top: %lf)失败", left, right, bottom, top);
+            spdlog::error(u8"[fancy2d] [f2dRenderDevice::SetScissorRect] 设置裁剪矩形(left:{}, right:{}, bottom:{}, top:{})失败(fResult={})",
+                left, right, bottom, top, fr);
             return false;
         }
         return true;
@@ -257,16 +271,18 @@ namespace LuaSTGPlus
     
     void AppFrame::SetOrtho(
         float left, float right, float bottom, float top,
-        float znear, float zfar) LNOEXCEPT
+        float znear, float zfar) noexcept
     {
         if (m_GraphType == GraphicsType::Graph2D)
         {
             // luastg的lua部分已经做了坐标修正
             // m_Graph2D->SetWorldTransform(fcyMatrix4::GetTranslateMatrix(fcyVec3(-0.5f, -0.5f, 0.f)));
             m_Graph2D->SetWorldTransform(fcyMatrix4::GetIdentity());
-            //m_Graph2D->SetViewTransform(fcyMatrix4::GetIdentity());
+            
             //允许正交投影下下可以饶原点3D旋转图片精灵
+            //m_Graph2D->SetViewTransform(fcyMatrix4::GetIdentity());
             m_Graph2D->SetViewTransform(fcyMatrix4::GetTranslateMatrix(fcyVec3(0.0f, 0.0f, znear + (zfar - znear) / 2.0f)));
+            
             m_Graph2D->SetProjTransform(fcyMatrix4::GetOrthoOffCenterLH(left, right, bottom, top, znear, zfar));
         }
     }
@@ -276,7 +292,7 @@ namespace LuaSTGPlus
         float atX, float atY, float atZ, 
         float upX, float upY, float upZ,
         float fovy, float aspect,
-        float zn, float zf) LNOEXCEPT
+        float zn, float zf) noexcept
     {
         if (m_GraphType == GraphicsType::Graph2D)
         {
@@ -323,7 +339,7 @@ namespace LuaSTGPlus
         }
     }
     
-    void AppFrame::SetZBufferEnable(bool enable) LNOEXCEPT
+    void AppFrame::SetZBufferEnable(bool enable) noexcept
     {
         if (m_GraphType == GraphicsType::Graph2D)
         {
@@ -332,7 +348,7 @@ namespace LuaSTGPlus
         }
     }
     
-    void AppFrame::ClearZBuffer(float z) LNOEXCEPT
+    void AppFrame::ClearZBuffer(float z) noexcept
     {
         if (m_GraphType == GraphicsType::Graph2D)
         {
@@ -340,12 +356,12 @@ namespace LuaSTGPlus
         }
     }
     
-    bool AppFrame::Render(ResSprite* p, float x, float y, float rot, float hscale, float vscale, float z) LNOEXCEPT
+    bool AppFrame::Render(ResSprite* p, float x, float y, float rot, float hscale, float vscale, float z) noexcept
     {
-        LASSERT(p);
+        assert(p);
         if (m_GraphType != GraphicsType::Graph2D)
         {
-            LERROR("Render: 只有2D渲染器可以执行该方法");
+            spdlog::error(u8"[luastg] Render: 只有2D渲染器可以执行该方法");
             return false;
         }
         
@@ -359,12 +375,12 @@ namespace LuaSTGPlus
         return true;
     }
     
-    bool AppFrame::Render(ResAnimation* p, int ani_timer, float x, float y, float rot, float hscale, float vscale) LNOEXCEPT
+    bool AppFrame::Render(ResAnimation* p, int ani_timer, float x, float y, float rot, float hscale, float vscale) noexcept
     {
-        LASSERT(p);
+        assert(p);
         if (m_GraphType != GraphicsType::Graph2D)
         {
-            LERROR("Render: 只有2D渲染器可以执行该方法");
+            spdlog::error(u8"[luastg] Render: 只有2D渲染器可以执行该方法");
             return false;
         }
         
@@ -377,12 +393,12 @@ namespace LuaSTGPlus
         return true;
     }
     
-    bool AppFrame::Render(ResParticle::ParticlePool* p, float hscale, float vscale) LNOEXCEPT
+    bool AppFrame::Render(ResParticle::ParticlePool* p, float hscale, float vscale) noexcept
     {
-        LASSERT(p);
+        assert(p);
         if (m_GraphType != GraphicsType::Graph2D)
         {
-            LERROR("Render: 只有2D渲染器可以执行该方法");
+            spdlog::error(u8"[luastg] Render: 只有2D渲染器可以执行该方法");
             return false;
         }
         
@@ -394,40 +410,40 @@ namespace LuaSTGPlus
         return true;
     }
     
-    bool AppFrame::Render(const char* name, float x, float y, float rot, float hscale, float vscale, float z) LNOEXCEPT
+    bool AppFrame::Render(const char* name, float x, float y, float rot, float hscale, float vscale, float z) noexcept
     {
         fcyRefPointer<ResSprite> p = m_ResourceMgr.FindSprite(name);
         if (!p)
         {
-            LERROR("Render: 找不到图像资源'%m'", name);
+            spdlog::error(u8"[luastg] Render: 找不到图片精灵'{}'", name);
             return false;
         }
         return Render(p, x, y, rot, hscale, vscale, z);
     }
     
-    bool AppFrame::RenderAnimation(const char* name, int timer, float x, float y, float rot, float hscale, float vscale) LNOEXCEPT
+    bool AppFrame::RenderAnimation(const char* name, int timer, float x, float y, float rot, float hscale, float vscale) noexcept
     {
         fcyRefPointer<ResAnimation> p = m_ResourceMgr.FindAnimation(name);
         if (!p)
         {
-            LERROR("Render: 找不到动画资源'%m'", name);
+            spdlog::error(u8"[luastg] Render: 找不到动画精灵'{}'", name);
             return false;
         }
         return Render(p, timer, x, y, rot, hscale, vscale);
     }
     
-    bool AppFrame::RenderRect(const char* name, float x1, float y1, float x2, float y2) LNOEXCEPT
+    bool AppFrame::RenderRect(const char* name, float x1, float y1, float x2, float y2) noexcept
     {
         if (m_GraphType != GraphicsType::Graph2D)
         {
-            LERROR("RenderRect: 只有2D渲染器可以执行该方法");
+            spdlog::error(u8"[luastg] RenderRect: 只有2D渲染器可以执行该方法");
             return false;
         }
 
         fcyRefPointer<ResSprite> p = m_ResourceMgr.FindSprite(name);
         if (!p)
         {
-            LERROR("RenderRect: 找不到图像资源'%m'", name);
+            spdlog::error(u8"[luastg] RenderRect: 找不到图片精灵'{}'", name);
             return false;
         }
         
@@ -446,18 +462,18 @@ namespace LuaSTGPlus
         float x1, float y1, float z1,
         float x2, float y2, float z2, 
         float x3, float y3, float z3,
-        float x4, float y4, float z4) LNOEXCEPT
+        float x4, float y4, float z4) noexcept
     {
         if (m_GraphType != GraphicsType::Graph2D)
         {
-            LERROR("Render4V: 只有2D渲染器可以执行该方法");
+            spdlog::error(u8"[luastg] Render4V: 只有2D渲染器可以执行该方法");
             return false;
         }
         
         fcyRefPointer<ResSprite> p = m_ResourceMgr.FindSprite(name);
         if (!p)
         {
-            LERROR("Render4V: 找不到图像资源'%m'", name);
+            spdlog::error(u8"[luastg] Render4V: 找不到图片精灵'{}'", name);
             return false;
         }
         
@@ -470,11 +486,11 @@ namespace LuaSTGPlus
         return true;
     }
     
-    bool AppFrame::RenderTexture(ResTexture* tex, BlendMode blend, const f2dGraphics2DVertex vertex[]) LNOEXCEPT
+    bool AppFrame::RenderTexture(ResTexture* tex, BlendMode blend, const f2dGraphics2DVertex vertex[]) noexcept
     {
         if (m_GraphType != GraphicsType::Graph2D)
         {
-            LERROR("RenderTexture: 只有2D渲染器可以执行该方法");
+            spdlog::error(u8"[luastg] RenderTexture: 只有2D渲染器可以执行该方法");
             return false;
         }
         
@@ -496,18 +512,18 @@ namespace LuaSTGPlus
         return true;
     }
     
-    bool AppFrame::RenderTexture(const char* name, BlendMode blend, f2dGraphics2DVertex vertex[]) LNOEXCEPT
+    bool AppFrame::RenderTexture(const char* name, BlendMode blend, f2dGraphics2DVertex vertex[]) noexcept
     {
         if (m_GraphType != GraphicsType::Graph2D)
         {
-            LERROR("RenderTexture: 只有2D渲染器可以执行该方法");
+            spdlog::error(u8"[luastg] RenderTexture: 只有2D渲染器可以执行该方法");
             return false;
         }
         
         fcyRefPointer<ResTexture> p = m_ResourceMgr.FindTexture(name);
         if (!p)
         {
-            LERROR("RenderTexture: 找不到纹理资源'%m'", name);
+            spdlog::error(u8"[luastg] RenderTexture: 找不到纹理'{}'", name);
             return false;
         }
         
@@ -529,18 +545,18 @@ namespace LuaSTGPlus
     bool AppFrame::RenderTexture(
         const char* name, BlendMode blend,
         int vcount, const f2dGraphics2DVertex vertex[],
-        int icount, const unsigned short indexs[]) LNOEXCEPT
+        int icount, const unsigned short indexs[]) noexcept
     {
         if (m_GraphType != GraphicsType::Graph2D)
         {
-            LERROR("RenderTexture: 只有2D渲染器可以执行该方法");
+            spdlog::error(u8"[luastg] RenderTexture: 只有2D渲染器可以执行该方法");
             return false;
         }
         
         fcyRefPointer<ResTexture> p = m_ResourceMgr.FindTexture(name);
         if (!p)
         {
-            LERROR("RenderTexture: 找不到纹理资源'%m'", name);
+            spdlog::error(u8"[luastg] RenderTexture: 找不到纹理'{}'", name);
             return false;
         }
         
@@ -555,28 +571,89 @@ namespace LuaSTGPlus
         const char* name,
         float x, float y, float z,
         float sx, float sy, float sz,
-        float rx, float ry, float rz) LNOEXCEPT
+        float rx, float ry, float rz) noexcept
     {
-        if (m_GraphType != GraphicsType::Graph2D)
-        {
-            LERROR("Render4V: 只有2D渲染器可以执行该方法");
-            return false;
-        }
+        //if (m_GraphType != GraphicsType::Graph2D)
+        //{
+        //    spdlog::error(u8"[luastg] RenderModel: 只有2D渲染器可以执行该方法");
+        //    return false;
+        //}
+        //
+        //void RenderObj(std::string id);
+        //
+        //fcyMatrix4 f0 = m_Graph2D->GetWorldTransform();
+        //fcyMatrix4 f1 = fcyMatrix4::GetTranslateMatrix(fcyVec3(x, y, z));
+        //f1 = fcyMatrix4::GetScaleMatrix(fcyVec3(sx, sy, sz)) * f1;
+        //if (rx || ry || rz){
+        //    f1 = fcyMatrix4::GetRotationYawPitchRoll(rx,ry,rz)*f1;
+        //}
+        //
+        //m_Graph2D->SetWorldTransform(f1);
+        //RenderObj(name);
+        //m_Graph2D->SetWorldTransform(f0);
+        //
+        //return true;
         
-        void RenderObj(std::string id);
-        
-        fcyMatrix4 f0 = m_Graph2D->GetWorldTransform();
-        fcyMatrix4 f1 = fcyMatrix4::GetTranslateMatrix(fcyVec3(x, y, z));
-        f1 = fcyMatrix4::GetScaleMatrix(fcyVec3(sx, sy, sz)) * f1;
-        if (rx || ry || rz){
-            f1 = fcyMatrix4::GetRotationYawPitchRoll(rx,ry,rz)*f1;
-        }
-        
-        m_Graph2D->SetWorldTransform(f1);
-        RenderObj(name);
-        m_Graph2D->SetWorldTransform(f0);
-        
-        return true;
+        return false;
     }
     
+    void AppFrame::SnapShot(const char* path) noexcept
+    {
+        if (!LAPP.GetRenderDev()) {
+            spdlog::error(u8"[luastg] Snapshot: f2dRenderDevice未准备好");
+            return;
+        }
+        
+        try
+        {
+            const std::wstring wpath = fcyStringHelper::MultiByteToWideChar(path);
+            fResult fr = LAPP.GetRenderDev()->SaveScreen(wpath.c_str());
+            if (FCYFAILED(fr))
+                spdlog::error(u8"[fancy2d] [f2dRenderDevice::SaveScreen] 保存截图到'{}'失败(fResult={})", path, fr);
+        }
+        catch (const std::bad_alloc&)
+        {
+            spdlog::error(u8"[luastg] Snapshot: 内存不足");
+        }
+        catch (const fcyException& e)
+        {
+            spdlog::error(u8"[fancy2d] [{}] {}", e.GetSrc(), e.GetDesc());
+        }
+    }
+    
+    void AppFrame::SaveTexture(f2dTexture2D* Tex, const char* path) noexcept
+    {
+        if (!LAPP.GetRenderDev()) {
+            spdlog::error(u8"[luastg] SaveTexture: f2dRenderDevice未准备好");
+            return;
+        }
+        
+        try
+        {
+            const char* path = luaL_checkstring(L, 2);
+            const std::wstring wpath = fcyStringHelper::MultiByteToWideChar(path);
+            fResult fr = LAPP.GetRenderDev()->SaveTexture(wpath.c_str(), Tex);
+            if (FCYFAILED(fr))
+                spdlog::error(u8"[fancy2d] [f2dRenderDevice::SaveTexture] 保存纹理到'{}'失败(fResult={})", path, fr);
+        }
+        catch (const std::bad_alloc&)
+        {
+            spdlog::error(u8"[luastg] SaveTexture: 内存不足");
+        }
+        catch (const fcyException& e)
+        {
+            spdlog::error(u8"[fancy2d] [{}] {}", e.GetSrc(), e.GetDesc());
+        }
+    }
+    
+    void AppFrame::SaveTexture(const char* tex_name, const char* path) noexcept
+    {
+        fcyRefPointer<ResTexture> resTex = LRES.FindTexture(tex_name);
+        if (!resTex)
+        {
+            spdlog::error(u8"[luastg] SaveTexture: 找不到纹理资源'{}'", tex_name);
+            return;
+        }
+        return SaveTexture(resTex->GetTexture(), path);
+    }
 };

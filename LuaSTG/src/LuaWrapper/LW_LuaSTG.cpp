@@ -3,7 +3,6 @@
 #include "LuaWrapper\LuaWrapper.hpp"
 #include "AppFrame.h"
 #include <filesystem>
-#include "spdlog/spdlog.h"
 
 #ifdef min
 #undef min
@@ -97,7 +96,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			if (lua_isstring(L, 2))
 				pwd = luaL_checkstring(L, 2);
 			if (!LFMGR.LoadArchive(p, 0, pwd))
-				LWARNING("无法装载资源包'%m'，文件不存在或不是合法的资源包格式", p);
+				spdlog::error(u8"[luastg] LoadPack: 无法装载资源包'{}'，文件不存在或不是合法的资源包格式", p);
 			return 0;
 		}
 		static int LoadPackSub(lua_State* L)LNOEXCEPT
@@ -105,7 +104,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			const char* p = luaL_checkstring(L, 1);
 			std::string pw = LuaSTGPlus::GetGameName();
 			if (!LFMGR.LoadArchive(p, 0, pw.c_str()))
-				LWARNING("无法装载资源包'%m'，文件不存在或不是合法的资源包格式", p);
+				spdlog::error(u8"[luastg] LoadPackSub: 无法装载资源包'{}'，文件不存在或不是合法的资源包格式", p);
 			return 0;
 		}
 		static int UnloadPack(lua_State* L)LNOEXCEPT
@@ -1915,19 +1914,15 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		#pragma region 杂项
 		static int Snapshot(lua_State* L)LNOEXCEPT
 		{
-			LAPP.SnapShot(luaL_checkstring(L, 1));
+			const char* path = luaL_checkstring(L, 1);
+			LAPP.SnapShot(path);
 			return 0;
 		}
 		static int SaveTexture(lua_State* L)LNOEXCEPT
 		{
 			const char* tex_name = luaL_checkstring(L, 1);
-			fcyRefPointer<ResTexture> resTex = LRES.FindTexture(tex_name);
-			if (!resTex)
-			{
-				LERROR("RenderTexture: 找不到纹理资源'%m'", tex_name);
-				return false;
-			}
-			LAPP.SaveTexture(resTex->GetTexture(), luaL_checkstring(L, 2));
+			const char* path = luaL_checkstring(L, 2);
+			LAPP.SaveTexture(tex_name, path);
 			return 0;
 		}
 		static int Execute(lua_State* L)LNOEXCEPT

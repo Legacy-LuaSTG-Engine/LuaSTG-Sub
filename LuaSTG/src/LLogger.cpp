@@ -21,7 +21,7 @@ namespace slow {
     
     void openLogger() {
         std::wstring path = L"";
-        std::wstring file = L"luastg.log";
+        std::wstring file = L"engine.log";
         #ifdef USING_SYSTEM_DIRECTORY
         checkDirectory(path);
         #endif

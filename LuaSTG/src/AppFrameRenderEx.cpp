@@ -23,7 +23,7 @@ namespace LuaSTGPlus {
         fcyRect orgVP = m_pRenderDev->GetViewport();
         if (FCYFAILED(m_pRenderDev->SetRenderTarget(rt)))
         {
-            LERROR("PushRenderTarget: 内部错误 (f2dRenderDevice::SetRenderTarget failed.)");
+            spdlog::error(u8"[luastg] PushRenderTarget: 内部错误 (f2dRenderDevice::SetRenderTarget failed.)");
             return false;
         }
         m_pRenderDev->SetViewport(orgVP);
@@ -34,7 +34,7 @@ namespace LuaSTGPlus {
         }
         catch (const std::bad_alloc&)
         {
-            LERROR("PushRenderTarget: 内存不足");
+            spdlog::error(u8"[luastg] PushRenderTarget: 内存不足");
             if (m_stRenderTargetStack.empty())
                 m_pRenderDev->SetRenderTarget(nullptr);
             else
@@ -46,7 +46,7 @@ namespace LuaSTGPlus {
         return true;
     }
     
-    LNOINLINE bool AppFrame::PushRenderTarget(ResTexture* rt)LNOEXCEPT
+    bool AppFrame::PushRenderTarget(ResTexture* rt)LNOEXCEPT
     {
         if (!rt || !rt->IsRenderTarget())
         {
@@ -56,24 +56,24 @@ namespace LuaSTGPlus {
         
         if (!m_bRenderStarted)
         {
-            LERROR("PushRenderTarget: 非法调用");
+            spdlog::error(u8"[luastg] PushRenderTarget: 无效调用");
             return false;
         }
         
         return PushRenderTarget(rt->GetTexture());
     }
     
-    LNOINLINE bool AppFrame::PopRenderTarget()LNOEXCEPT
+    bool AppFrame::PopRenderTarget()LNOEXCEPT
     {
         if (!m_bRenderStarted)
         {
-            LERROR("PopRenderTarget: 非法调用");
+            spdlog::error(u8"[luastg] PopRenderTarget: 无效调用");
             return false;
         }
         
         if (m_stRenderTargetStack.empty())
         {
-            LERROR("PopRenderTarget: RenderTarget栈为空");
+            spdlog::error(u8"[luastg] PopRenderTarget: RenderTarget栈已为空");
             return false;
         }
         
@@ -95,14 +95,14 @@ namespace LuaSTGPlus {
         
         if (!pTechnique)
         {
-            LERROR("PostEffect: 无效的Shader数据");
+            spdlog::error(u8"[luastg] PostEffect: 无效的后处理特效");
             return false;
         }
         
         // 纹理使用检查
         if (CheckRenderTargetInUse(rt))
         {
-            LERROR("PostEffect: 无法在一个RenderTarget正在使用时作为后处理输入");
+            spdlog::error(u8"[luastg] PostEffect: RenderTarget无法同时绑定为着色器纹理资源和渲染输出目标");
             return false;
         }
         
@@ -144,7 +144,7 @@ namespace LuaSTGPlus {
         if (FCYFAILED(m_Graph3D->Begin()))
         {
             // ！ 异常退出不可恢复渲染过程
-            LERROR("PostEffect: 内部错误 (f2dGraphics3D::Begin failed)");
+            spdlog::error(u8"[luastg] PostEffect: 内部错误 (f2dGraphics3D::Begin failed)");
             return false;
         }
         // 执行所有的pass
@@ -178,11 +178,11 @@ namespace LuaSTGPlus {
         return true;
     }
     
-    LNOINLINE bool AppFrame::PostEffect(ResTexture* rt, ResFX* shader, BlendMode blend)LNOEXCEPT
+    bool AppFrame::PostEffect(ResTexture* rt, ResFX* shader, BlendMode blend)LNOEXCEPT
     {
         if (!m_bRenderStarted)
         {
-            LERROR("PostEffect: 非法调用");
+            spdlog::error(u8"[luastg] PostEffect: 无效调用");
             return false;
         }
         
@@ -198,7 +198,7 @@ namespace LuaSTGPlus {
         // 检查渲染器
         if (m_GraphType != GraphicsType::Graph2D)
         {
-            LERROR("RenderTexture: 只有2D渲染器可以执行该方法");
+            spdlog::error(u8"[luastg] RenderSector: 只有2D渲染器可以执行该方法");
             return false;
         }
         // 计算顶点
@@ -209,14 +209,14 @@ namespace LuaSTGPlus {
         int total_vertex = total * 2;
         int total_index = div * 6;
         if (total_vertex > 2048 || total_index > 8192) {
-            LERROR("RenderSector: 顶点数量过多");
+            spdlog::error(u8"[luastg] RenderSector: 顶点数量过多");
             return false;
         }
         // 寻找纹理
         fcyRefPointer<ResTexture> p = m_ResourceMgr.FindTexture(name);
         if (!p)
         {
-            LERROR("RenderTexture: 找不到纹理资源'%m'", name);
+            spdlog::error(u8"[luastg] RenderSector: 找不到纹理'{}'", name);
             return false;
         }
         // 更新混合模式

@@ -1,7 +1,6 @@
 ﻿#include "ResourceMgr.h"
 #include "AppFrame.h"
 #include "Utility.h"
-#include "spdlog/spdlog.h"
 
 #ifdef max
 #undef max
@@ -993,7 +992,7 @@ bool ResourcePool::LoadModel(const char* name, const char* path) noexcept {
     //    return false;
     //}
     
-    //LASSERT(LAPP.GetRenderDev());
+    //ASSERT(LAPP.GetRenderDev());
     //
     //if (m_TexturePool.find(name) != m_TexturePool.end()) {
     //    //("LoadModel: 模型'%m'已存在，试图使用'%s'加载的操作已被取消", name, path.c_str());

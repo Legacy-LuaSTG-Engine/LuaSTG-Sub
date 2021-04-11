@@ -6,7 +6,6 @@
 #include "ImGuiExtension.h"
 #include "LuaWrapper/LuaAppFrame.hpp"
 #include "Graphic/Test.h"
-#include "spdlog/spdlog.h"
 #include "LConfig.h"
 
 using namespace LuaSTGPlus;
@@ -41,7 +40,7 @@ void AppFrame::SetWindowed(bool v)LNOEXCEPT
 	if (m_iStatus == AppStatus::Initializing)
 		m_OptionWindowed = v;
 	else if (m_iStatus == AppStatus::Running)
-		LWARNING("试图在运行时更改窗口化模式");
+		spdlog::warn(u8"[luastg] SetWindowed: 试图在运行时更改窗口化模式");
 }
 
 void AppFrame::SetFPS(fuInt v)LNOEXCEPT
@@ -54,7 +53,7 @@ void AppFrame::SetVsync(bool v)LNOEXCEPT
 	if (m_iStatus == AppStatus::Initializing)
 		m_OptionVsync = v;
 	else if (m_iStatus == AppStatus::Running)
-		LWARNING("试图在运行时更改垂直同步模式");
+		spdlog::warn(u8"[luastg] SetVsync: 试图在运行时更改垂直同步模式");
 }
 
 void AppFrame::SetResolution(fuInt width, fuInt height)LNOEXCEPT
@@ -62,7 +61,7 @@ void AppFrame::SetResolution(fuInt width, fuInt height)LNOEXCEPT
 	if (m_iStatus == AppStatus::Initializing)
 		m_OptionResolution.Set((float)width, (float)height);
 	else if (m_iStatus == AppStatus::Running)
-		LWARNING("试图在运行时更改分辨率");
+		spdlog::warn(u8"[luastg] SetResolution: 试图在运行时更改分辨率");
 }
 
 void AppFrame::SetTitle(const char* v)LNOEXCEPT
@@ -75,7 +74,7 @@ void AppFrame::SetTitle(const char* v)LNOEXCEPT
 	}
 	catch (const std::bad_alloc&)
 	{
-		LERROR("修改窗口标题时无法分配内存");
+		spdlog::error(u8"[luastg] SetTitle: 内存不足");
 	}
 }
 
@@ -196,53 +195,13 @@ LNOINLINE int AppFrame::LoadTextFile(lua_State* L, const char* path, const char 
 	return 1;
 }
 
-LNOINLINE void AppFrame::SnapShot(const char* path)LNOEXCEPT
-{
-	LASSERT(m_pRenderDev);
-	
-	try
-	{
-		const std::wstring wpath = fcyStringHelper::MultiByteToWideChar(path, CP_UTF8);
-		if (FCYFAILED(m_pRenderDev->SaveScreen(wpath.c_str())))
-			LERROR("Snapshot: 保存截图到'%s'失败", wpath.c_str());
-	}
-	catch (const std::bad_alloc&)
-	{
-		LERROR("Snapshot: 内存不足");
-	}
-	catch (const fcyException& e)
-	{
-		LERROR("Snapshot: 保存截图失败 (异常信息'%m' 源'%m')", e.GetDesc(), e.GetSrc());
-	}
-}
-
-LNOINLINE void AppFrame::SaveTexture(f2dTexture2D* Tex, const char* path)LNOEXCEPT
-{
-	LASSERT(m_pRenderDev);
-	
-	try
-	{
-		const std::wstring wpath = fcyStringHelper::MultiByteToWideChar(path, CP_UTF8);
-		if (FCYFAILED(m_pRenderDev->SaveTexture(wpath.c_str(), Tex)))
-			LERROR("Snapshot: 保存纹理到'%s'失败", wpath.c_str());
-	}
-	catch (const std::bad_alloc&)
-	{
-		LERROR("Snapshot: 内存不足");
-	}
-	catch (const fcyException& e)
-	{
-		LERROR("Snapshot: 保存纹理失败 (异常信息'%m' 源'%m')", e.GetDesc(), e.GetSrc());
-	}
-}
-
 #pragma endregion
 
 #pragma region 框架函数
 
 bool AppFrame::Init()LNOEXCEPT
 {
-	LASSERT(m_iStatus == AppStatus::NotInitialized);
+	assert(m_iStatus == AppStatus::NotInitialized);
 	
 	spdlog::info(LUASTG_INFO);
 	spdlog::info(u8"[luastg] 初始化引擎");
@@ -495,7 +454,7 @@ void AppFrame::Shutdown()LNOEXCEPT
 
 void AppFrame::Run()LNOEXCEPT
 {
-	LASSERT(m_iStatus == AppStatus::Initialized);
+	assert(m_iStatus == AppStatus::Initialized);
 	spdlog::info(u8"[luastg] 开始更新&渲染循环");
 	
 	m_fFPS = 0.f;
