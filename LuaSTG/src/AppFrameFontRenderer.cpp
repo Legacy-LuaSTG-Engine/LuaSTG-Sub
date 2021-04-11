@@ -1,9 +1,10 @@
 ﻿#include "AppFrame.h"
 
+//#define LSHOWFONTBASELINE // 显示文字基线
+
 namespace LuaSTGPlus {
 	// deug
 	
-	#ifdef LSHOWFONTBASELINE
 	class FontBaseLineDebugHelper :
 		public f2dFontRendererListener
 	{
@@ -39,7 +40,6 @@ namespace LuaSTGPlus {
 			m_pGRenderer->DrawRectangle(G, BaseRect);
 		}
 	};
-	#endif
 	
 	// luastg plus interface
 	

@@ -684,7 +684,7 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 	m_ObjectTotal += (float)m_GameObjectPool->GetObjectCount();
 	m_UpdateTimerTotal += m_UpdateTimer;
 	m_RenderTimerTotal += m_RenderTimer;
-	if (m_PerformanceUpdateTimer > LPERFORMANCEUPDATETIMER)
+	if (m_PerformanceUpdateTimer > 0.05f) // 每隔1/20秒刷新一次计数器
 	{
 		//m_FPSTotal / m_PerformanceUpdateCounter,
 		//m_ObjectTotal / m_PerformanceUpdateCounter,

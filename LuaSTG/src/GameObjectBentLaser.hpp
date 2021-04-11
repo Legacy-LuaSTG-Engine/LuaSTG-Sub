@@ -1,7 +1,8 @@
 ﻿#pragma once
-#include "Global.h"
 #include "CircularQueue.hpp"
-#include "GameObject.hpp"
+#include "fcyMath.h"
+#include "ResourceBase.hpp"
+#include "lua.hpp"
 
 #define LGOBJ_MAXLASERNODE 512  // 曲线激光最大节点数
 
@@ -35,33 +36,33 @@ namespace LuaSTGPlus
 			float ret = m_fEnvelopeHeight + (m_fEnvelopeBase * (1.0f - m_fEnvelopeRate * std::powf(2.0f * (t - 0.5f), m_fEnvelopePower)));
 			return (std::max)(0.0f, ret);
 		}
-		void _UpdateNode(size_t i)LNOEXCEPT; // 计算节点的渲染顶点
-		void _UpdateAllNode()LNOEXCEPT; // 重新计算所有节点的朝向和距离
-		void _PopHead()LNOEXCEPT; // 弹出头部节点，较早的节点
+		void _UpdateNode(size_t i) noexcept; // 计算节点的渲染顶点
+		void _UpdateAllNode() noexcept; // 重新计算所有节点的朝向和距离
+		void _PopHead() noexcept; // 弹出头部节点，较早的节点
 	public:
 		// 读取
-		int GetSize()LNOEXCEPT; // 获取节点数量
-		LaserNode* GetNode(size_t i)LNOEXCEPT; // 获取节点，并非长期有效
-		float GetLength()LNOEXCEPT { return m_fLength; } // 获取曲线激光长度
-		void GetEnvelope(float& height, float& base, float& rate, float& power)LNOEXCEPT; // 碰撞包络
+		int GetSize() noexcept; // 获取节点数量
+		LaserNode* GetNode(size_t i) noexcept; // 获取节点，并非长期有效
+		float GetLength() noexcept { return m_fLength; } // 获取曲线激光长度
+		void GetEnvelope(float& height, float& base, float& rate, float& power) noexcept; // 碰撞包络
 		// 更新
-		bool Update(size_t id, int length, float width, bool active)LNOEXCEPT; // 根据新的位置更新节点
-		void SetAllWidth(float width)LNOEXCEPT; // 更改所有节点的碰撞和渲染宽度
+		bool Update(size_t id, int length, float width, bool active) noexcept; // 根据新的位置更新节点
+		void SetAllWidth(float width) noexcept; // 更改所有节点的碰撞和渲染宽度
 		// 渲染
-		bool Render(const char* tex_name, BlendMode blend, fcyColor c, float tex_left, float tex_top, float tex_width, float tex_height, float scale)LNOEXCEPT;
-		void RenderCollider(fcyColor fillColor)LNOEXCEPT;
+		bool Render(const char* tex_name, BlendMode blend, fcyColor c, float tex_left, float tex_top, float tex_width, float tex_height, float scale) noexcept;
+		void RenderCollider(fcyColor fillColor) noexcept;
 		// 碰撞检测
-		void SetEnvelope(float height, float base, float rate, float power)LNOEXCEPT; // 设置碰撞包络
-		bool BoundCheck()LNOEXCEPT; // 检查是否离开边界
-		bool CollisionCheck(float x, float y, float rot, float a, float b, bool rect)LNOEXCEPT; // 碰撞检测
+		void SetEnvelope(float height, float base, float rate, float power) noexcept; // 设置碰撞包络
+		bool BoundCheck() noexcept; // 检查是否离开边界
+		bool CollisionCheck(float x, float y, float rot, float a, float b, bool rect) noexcept; // 碰撞检测
 		// 即将被废弃
-		bool UpdateByNode(size_t id, int node, int length, float width, bool active)LNOEXCEPT; // 对某个节点开启或关闭并更新
-		bool UpdatePositionByList(lua_State* L, int length, float width, int index, bool revert)LNOEXCEPT; // 更改所有节点的坐标并更新
-		bool CollisionCheckW(float x, float y, float rot, float a, float b, bool rect, float width)LNOEXCEPT;
-		int SampleL(lua_State* L, float length)LNOEXCEPT;
-		int SampleT(lua_State* L, float delay) LNOEXCEPT;
+		bool UpdateByNode(size_t id, int node, int length, float width, bool active) noexcept; // 对某个节点开启或关闭并更新
+		bool UpdatePositionByList(lua_State* L, int length, float width, int index, bool revert) noexcept; // 更改所有节点的坐标并更新
+		bool CollisionCheckW(float x, float y, float rot, float a, float b, bool rect, float width) noexcept;
+		int SampleL(lua_State* L, float length) noexcept;
+		int SampleT(lua_State* L, float delay)  noexcept;
 	protected:
-		GameObjectBentLaser()LNOEXCEPT;
-		~GameObjectBentLaser()LNOEXCEPT;
+		GameObjectBentLaser() noexcept;
+		~GameObjectBentLaser() noexcept;
 	};
 }

@@ -1,6 +1,5 @@
 ﻿#include <string>
 #include <string_view>
-#include "Global.h"
 #include "AppFrame.h"
 #include "LuaWrapper\LuaWrapper.hpp"
 #include "E2DFilePath.hpp"

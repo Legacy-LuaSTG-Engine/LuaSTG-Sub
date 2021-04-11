@@ -1,6 +1,13 @@
 ﻿#pragma once
 #include "lua.hpp"
 
+#define LGOBJ_CC_INIT 1
+#define LGOBJ_CC_DEL 2
+#define LGOBJ_CC_FRAME 3
+#define LGOBJ_CC_RENDER 4
+#define LGOBJ_CC_COLLI 5
+#define LGOBJ_CC_KILL 6
+
 namespace LuaSTGPlus
 {
 	struct GameObjectClass

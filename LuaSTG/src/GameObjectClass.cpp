@@ -1,5 +1,4 @@
 #include "GameObjectClass.hpp"
-#include "Global.h"
 
 namespace LuaSTGPlus
 {

@@ -10,6 +10,8 @@
 #undef min
 #endif
 
+#define LSOUNDGLOBALFOCUS true // 谁会希望窗口失去焦点就没声音呢？
+
 using namespace LuaSTGPlus;
 
 // 总体管理

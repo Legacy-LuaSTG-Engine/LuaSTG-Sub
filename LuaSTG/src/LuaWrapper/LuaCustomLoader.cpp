@@ -1,6 +1,5 @@
 ﻿#include <string>
 #include "LuaWrapper/LuaCustomLoader.hpp"
-#include "Global.h"
 #include "AppFrame.h"
 
 static int readable(const char* filename) {

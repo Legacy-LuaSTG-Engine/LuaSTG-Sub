@@ -1,6 +1,5 @@
 ﻿#include <string>
 #include <filesystem>
-#include "Global.h"
 #include "AppFrame.h"
 #include "LuaWrapper\LuaWrapper.hpp"
 #include "E2DCodePage.hpp"

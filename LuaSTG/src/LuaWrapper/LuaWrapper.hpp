@@ -3,9 +3,7 @@
 #pragma once
 #include "LuaWrapper/LuaWrapperMisc.hpp"
 #include "LuaWrapper/LuaStringToEnum.hpp"
-#include "Global.h"
-#include "ResourceMgr.h"
-#include "GameObjectPool.h"
+#include "AppFrame.h"
 
 #define LUASTG_LUA_LIBNAME "lstg"
 

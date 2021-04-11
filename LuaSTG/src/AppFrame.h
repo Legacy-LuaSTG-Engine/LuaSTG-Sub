@@ -360,3 +360,8 @@ namespace LuaSTGPlus
 		static LNOINLINE AppFrame& GetInstance();
 	};
 }
+
+#define LAPP (LuaSTGPlus::AppFrame::GetInstance())
+#define LPOOL (LAPP.GetGameObjectPool())
+#define LRES (LAPP.GetResourceMgr())
+#define LFMGR (LAPP.GetFileManager())

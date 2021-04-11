@@ -5,12 +5,13 @@
 #include <filesystem>
 
 #include "AppFrame.h"
+#include "LConfig.h"
 
 #include "E2DFileManager.hpp"
 #include "E2DCodePage.hpp"
 #include "E2DFilePath.hpp"
 
-#include "Global.h"
+#include "spdlog/spdlog.h"
 
 using namespace std;
 using namespace LuaSTGPlus;
@@ -55,48 +56,35 @@ bool ResourceMgr::LoadFile(const char* path, fcyRefPointer<fcyMemStream>& outBuf
     }
 }
 
-bool ResourceMgr::ExtractRes(const wchar_t* path, const wchar_t* target) noexcept {
-    fcyRefPointer<fcyMemStream> tBuf;
-    
+bool ResourceMgr::ExtractRes(const char* path, const char* target) noexcept {
     // 读取文件
+    fcyRefPointer<fcyMemStream> tBuf;
     if (LoadFile(path, tBuf)) {
         // 打开本地文件
         fcyRefPointer<fcyFileStream> pFile;
         try {
-            pFile.DirectSet(new fcyFileStream(target, true));
+            pFile.DirectSet(new fcyFileStream(fcyStringHelper::MultiByteToWideChar(target).c_str(), true));
             if (FCYFAILED(pFile->SetLength(0))) {
-                LERROR("ResourceMgr: 无法清空文件'%s' (fcyFileStream::SetLength 失败)", target);
+                spdlog::error(u8"[luastg] ExtractRes: 无法清空文件'{}' (fcyFileStream::SetLength 失败)", target);
                 return false;
             }
             if (tBuf->GetLength() > 0) {
                 if (FCYFAILED(pFile->WriteBytes((fcData) tBuf->GetInternalBuffer(), tBuf->GetLength(), nullptr))) {
-                    LERROR("ResourceMgr: 无法向文件'%s'写出数据", target);
+                    spdlog::error(u8"[luastg] ExtractRes: 无法向文件'{}'写出数据", target);
                     return false;
                 }
             }
         }
-        catch (const bad_alloc&) {
-            LERROR("ResourceMgr: 无法分配足够内存来向文件'%s'写出数据", target);
+        catch (const fcyException& e) {
+            spdlog::error(u8"[luastg] ExtractRes: 打开本地文件'{}'失败 (异常信息'{}' 源'{}')", target, e.GetDesc(), e.GetSrc());
             return false;
         }
-        catch (const fcyException& e) {
-            LERROR("ResourceMgr: 打开本地文件'%s'失败 (异常信息'%m' 源'%m')", target, e.GetDesc(), e.GetSrc());
+        catch (const bad_alloc&) {
+            spdlog::error(u8"[luastg] ExtractRes: 内存不足");
             return false;
         }
     }
     return true;
-}
-
-bool ResourceMgr::ExtractRes(const char* path, const char* target) noexcept {
-    try {
-        wstring tPath = fcyStringHelper::MultiByteToWideChar(path, CP_UTF8);
-        wstring tTarget = fcyStringHelper::MultiByteToWideChar(target, CP_UTF8);
-        return ExtractRes(tPath.c_str(), tTarget.c_str());
-    }
-    catch (const bad_alloc&) {
-        LERROR("ResourceMgr: 转换字符编码时无法分配内存");
-    }
-    return false;
 }
 
 bool listFilesS(lua_State* L, const char* dir, const char* ext, int& index) {
@@ -336,12 +324,13 @@ void ResourceMgr::CacheTTFFontString(const char* name, const char* text) noexcep
     try {
         std::wstring t = fcyStringHelper::MultiByteToWideChar(text, CP_UTF8);
         fcyRefPointer<ResFont> f = FindTTFFont(name);
-        if (f) f->GetFontProvider()->CacheString(t.c_str());
+        if (f)
+            f->GetFontProvider()->CacheString(t.c_str());
         else
-            LWARNING("ResourceMgr: 缓存字形贴图时未找到指定字体");
+            spdlog::error(u8"[luastg] CacheTTFFontString: 缓存字形时未找到指定字体'{}'", name);
     }
     catch (const std::bad_alloc&) {
-        LERROR("ResourceMgr: 转换字符编码时无法分配内存");
+        spdlog::error(u8"[luastg] CacheTTFFontString: 内存不足");
     }
 }
 
