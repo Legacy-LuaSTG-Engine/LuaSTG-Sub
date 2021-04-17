@@ -274,33 +274,37 @@ struct f2dFontProvider :
 {
 	/// @brief 获得默认行高
 	virtual fFloat GetLineHeight()=0;
-
+	
 	/// @brief 获得基线到轮廓线的距离
 	virtual fFloat GetAscender()=0;
-
+	
 	/// @brief 与Ascender相反
 	virtual fFloat GetDescender()=0;
-
+	
 	/// @brief 返回缓冲纹理
 	virtual f2dTexture2D* GetCacheTexture()=0;
-
+	
 	/// @breif     缓存字符串
 	/// @note      针对动态产生文字的特定方法
 	/// @param[in] String 字符串
 	virtual fResult CacheString(fcStrW String)=0;
-
+	
+	// 缓存字符串
+	virtual fResult CacheStringU8(fcStr Text, fuInt Count)=0;
+	
 	/// @brief      请求一个字形
 	/// @param[in]  pGraph    正在使用的渲染器，空表示只查询字形数据
 	/// @param[in]  Character 请求的字符
 	/// @param[out] InfoOut   返回的字形数据
-	virtual fResult QueryGlyph(f2dGraphics* pGraph, fCharW Character, f2dGlyphInfo* InfoOut)=0;
-
-	/// @brief      获取可用的字形缓存数量
+	virtual fResult QueryGlyph(f2dGraphics* pGraph, fCharU Character, f2dGlyphInfo* InfoOut)=0;
+	
+	// 获取可用的字形缓存数量
 	virtual fInt GetCacheCount() = 0;
-
-	/// @brief      获取字形缓存贴图大小
+	
+	// 获取字形缓存贴图大小
 	virtual fInt GetCacheTexSize() = 0;
 	
+	// 提交纹理修改
 	virtual fResult Flush() = 0;
 };
 

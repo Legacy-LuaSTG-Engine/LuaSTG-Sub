@@ -7,6 +7,7 @@
 typedef bool                fBool;   // 逻辑型
 typedef char                fChar;   // 字符型
 typedef wchar_t             fCharW;  // 宽字符
+typedef char32_t            fCharU;  // 足以容纳下所有Unicode代码点的字符
 typedef uint8_t             fByte;   // 字节型
 typedef int16_t             fShort;  // 16位短整数
 typedef uint16_t            fuShort; // 16位无符号短整数

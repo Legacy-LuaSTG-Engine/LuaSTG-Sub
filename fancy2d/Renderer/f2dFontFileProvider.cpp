@@ -368,7 +368,7 @@ bool f2dFontFileProvider::findGlyph(FT_ULong code, FT_Face& face, FT_UInt& index
 	return false;
 }
 
-f2dGlyphInfo f2dFontFileProvider::getGlyphInfo(fCharW Char) {
+f2dGlyphInfo f2dFontFileProvider::getGlyphInfo(fCharU Char) {
 	FT_Face face = nullptr;
 	FT_UInt index = 0;
 	f2dGlyphInfo info;
@@ -385,7 +385,7 @@ f2dGlyphInfo f2dFontFileProvider::getGlyphInfo(fCharW Char) {
 	return info;
 }
 
-f2dFontFileProvider::FontCacheInfo* f2dFontFileProvider::getChar(fCharW Char)
+f2dFontFileProvider::FontCacheInfo* f2dFontFileProvider::getChar(fCharU Char)
 {
 	// 先在字典里面寻找
 	FontCacheInfo* pCache = m_Dict[Char];
@@ -423,27 +423,31 @@ f2dFontFileProvider::FontCacheInfo* f2dFontFileProvider::getChar(fCharW Char)
 	}
 
 	// 没有空位了
-	{
+	if (true) {
 		// 从UsedList的最后取出
 		pCache = m_UsedNodeList->pPrev;
-
+		
 		// 清空对应的缓存数据
 		m_Dict[pCache->Character] = NULL;
-
+		
 		// 移除
 		removeUsedNode(pCache);
-
+		
 		// 绘制
 		renderCache(pCache, Char);
-
+		
 		// 记录
 		m_Dict[Char] = pCache;
-
+		
 		// 加入MRU列表
 		addUsedNode(pCache);
-
+		
 		// 返回
 		return pCache;
+	}
+	else
+	{
+		// 更加激进的处理方式，清理一半的字形缓存
 	}
 }
 
@@ -571,7 +575,7 @@ bool f2dFontFileProvider::makeCache(fuInt Size)
 	return true;
 }
 
-bool f2dFontFileProvider::renderCache(FontCacheInfo* pCache, fCharW Char)
+bool f2dFontFileProvider::renderCache(FontCacheInfo* pCache, fCharU Char)
 {
 	FT_Face face = nullptr;
 	FT_UInt index = 0;
@@ -613,6 +617,7 @@ bool f2dFontFileProvider::renderCache(FontCacheInfo* pCache, fCharW Char)
 			}
 			
 			m_CacheTex->AddDirtyRect(&pCache->CacheSize);
+			m_IsDirty = true; // 标记为脏
 		}
 		
 		return true;
@@ -650,7 +655,7 @@ fResult f2dFontFileProvider::CacheString(fcStrW String)
 	return FCYERR_OK;
 }
 
-fResult f2dFontFileProvider::QueryGlyph(f2dGraphics* pGraph, fCharW Character, f2dGlyphInfo* InfoOut)
+fResult f2dFontFileProvider::QueryGlyph(f2dGraphics* pGraph, fCharU Character, f2dGlyphInfo* InfoOut)
 {
 	if(!InfoOut)
 		return FCYERR_INVAILDPARAM;
@@ -714,14 +719,48 @@ fResult f2dFontFileProvider::QueryGlyph(f2dGraphics* pGraph, fCharW Character, f
 }
 
 fResult f2dFontFileProvider::Flush() {
-	m_UsedMark.fill(0);
-	m_UsedCount = 0;
-	m_CacheTex->Unlock();
-	fResult r = m_CacheTex->Upload();
-	fuInt tPitch = 0;
-	fData tData = NULL;
-	if(FCYFAILED(m_CacheTex->Lock(NULL, false, &tPitch, &tData)))
-		return FCYERR_INTERNALERR;
-	m_CacheTexData = (fcyColor*)tData;
-	return r;
+	if (m_UsedCount > 0)
+	{
+		m_UsedMark.fill(0);
+		m_UsedCount = 0;
+	}
+	if (m_IsDirty)
+	{
+		// 解锁
+		m_CacheTex->Unlock();
+		// 上传
+		fResult r = m_CacheTex->Upload();
+		// 重新锁定
+		fuInt tPitch = 0;
+		fData tData = NULL;
+		if(FCYFAILED(m_CacheTex->Lock(NULL, false, &tPitch, &tData)))
+			return FCYERR_INTERNALERR;
+		// 记录
+		m_CacheTexData = (fcyColor*)tData;
+		m_IsDirty = false; // 不脏了
+		return r;
+	}
+	return FCYERR_OK;
+}
+
+// utf-8 接口
+
+#include "Common/utf.hpp"
+
+fResult f2dFontFileProvider::CacheStringU8(fcStr Text, fuInt Count)
+{
+	// utf-8 迭代器
+	char32_t code_ = 0;
+	utf::utf8reader reader_(Text, Count);
+	if (Count == static_cast<fuInt>(-1))
+	{
+		reader_ = utf::utf8reader(Text); // 没给长度的情况
+	}
+	
+	while (reader_(code_))
+	{
+		getChar(code_); // iswprint
+	}
+	
+	return FCYERR_OK;
 }

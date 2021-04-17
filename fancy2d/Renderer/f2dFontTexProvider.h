@@ -48,11 +48,9 @@ public:
 	{
 		return m_OrgTex;
 	}
-	fResult CacheString(fcStrW String)
-	{
-		return FCYERR_NOTSUPPORT;
-	}
-	fResult QueryGlyph(f2dGraphics* pGraph, fCharW Character, f2dGlyphInfo* InfoOut);
+	fResult CacheString(fcStrW String) { return FCYERR_OK; }
+	fResult CacheStringU8(fcStr Text, fuInt Count) { return FCYERR_OK; }
+	fResult QueryGlyph(f2dGraphics* pGraph, fCharU Character, f2dGlyphInfo* InfoOut);
 	fInt GetCacheCount() { return 0; }
 	fInt GetCacheTexSize() { return 0; }
 	fResult Flush() { return FCYERR_OK; }

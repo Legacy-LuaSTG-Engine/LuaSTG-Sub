@@ -47,7 +47,7 @@ protected:
 		fcyRect CacheSize;  // 缓冲位置
 
 		// 字体属性
-		fCharW Character;   // 当前的字符
+		fCharU Character;   // 当前的字符
 		fcyRect UV;         // 字符UV
 		fcyVec2 GlyphSize;  // 字形大小
 		fcyVec2 BrushPos;   // 笔触位置
@@ -81,10 +81,11 @@ protected:
 	fcyColor* m_CacheTexData = nullptr;		// 缓冲区纹理指针
 	
 	// 字形缓存数据结构
+	fBool m_IsDirty = false;							// 是否需要Flush
 	std::vector<FontCacheInfo> m_Cache;					// 缓冲区
 	FontCacheInfo* m_UsedNodeList	= nullptr;			// 使用中节点，保证为循环链表
 	FontCacheInfo* m_FreeNodeList	= nullptr;			// 空闲节点，单向链表
-	std::unordered_map<fCharW, FontCacheInfo*> m_Dict;	// 字符表
+	std::unordered_map<fCharU, FontCacheInfo*> m_Dict;	// 字符表
 	
 	// 用过的标记
 	std::array<uint8_t, 0x110000> m_UsedMark;
@@ -98,11 +99,11 @@ protected: // 字体缓冲链表操作
 	void removeFreeNode(FontCacheInfo* p);   // 移除空闲节点p的连接
 	void removeUsedNode(FontCacheInfo* p);   // 移除使用中节点p的连接
 protected: // 字体缓冲操作
-	f2dGlyphInfo getGlyphInfo(fCharW Char);  // 仅获得字形信息（不包括UV坐标）
-	FontCacheInfo* getChar(fCharW Char);     // 获得字体
+	f2dGlyphInfo getGlyphInfo(fCharU Char);  // 仅获得字形信息（不包括UV坐标）
+	FontCacheInfo* getChar(fCharU Char);     // 获得字体
 	bool makeCacheMain();                                 // 创建缓冲区
 	bool makeCache(fuInt Size);                           // 创建缓冲区，存放XCount * YCount个文字
-	bool renderCache(FontCacheInfo* pCache, fCharW Char); // 在缓冲区的pCache位置绘制字体Char
+	bool renderCache(FontCacheInfo* pCache, fCharU Char); // 在缓冲区的pCache位置绘制字体Char
 public: // 事件监听
 	void OnRenderDeviceLost();
 	void OnRenderDeviceReset();
@@ -112,7 +113,8 @@ public: // 接口实现
 	fFloat GetDescender();
 	f2dTexture2D* GetCacheTexture() { return m_CacheTex; }
 	fResult CacheString(fcStrW String);
-	fResult QueryGlyph(f2dGraphics* pGraph, fCharW Character, f2dGlyphInfo* InfoOut);
+	fResult CacheStringU8(fcStr Text, fuInt Count);
+	fResult QueryGlyph(f2dGraphics* pGraph, fCharU Character, f2dGlyphInfo* InfoOut);
 	fInt GetCacheCount() { return m_CacheXCount * m_CacheYCount; }
 	fInt GetCacheTexSize() { return m_TexSize; }
 	fResult Flush();

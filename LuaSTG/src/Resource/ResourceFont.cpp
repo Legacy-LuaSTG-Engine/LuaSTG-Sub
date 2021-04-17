@@ -112,10 +112,14 @@ namespace LuaSTGPlus
 	{
 		return FCYERR_OK;  // 纹理字体不需要实现CacheString
 	}
-	
-	fResult ResFont::HGEFont::QueryGlyph(f2dGraphics* pGraph, fCharW Character, f2dGlyphInfo* InfoOut)
+	fResult ResFont::HGEFont::CacheStringU8(fcStr Text, fuInt Count)
 	{
-		auto it = m_Charset.find(Character);
+		return FCYERR_OK;  // 纹理字体不需要实现CacheString
+	}
+	
+	fResult ResFont::HGEFont::QueryGlyph(f2dGraphics* pGraph, fCharU Character, f2dGlyphInfo* InfoOut)
+	{
+		auto it = m_Charset.find((fCharW)Character);
 		if (it == m_Charset.end())
 			return FCYERR_OBJNOTEXSIT;
 		*InfoOut = it->second;

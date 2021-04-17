@@ -674,7 +674,7 @@ fcyRect f2dFontRendererImpl::MeasureTextBoundaryU8(fcStr Text, fuInt Count)
 			tStartPos.y -= tLineHeight;
 			continue;
 		}
-		if(FCYOK(m_pProvider->QueryGlyph(NULL, (fCharW)code_, &tInfo))) // TODO: 这里有点问题
+		if(FCYOK(m_pProvider->QueryGlyph(NULL, code_, &tInfo)))
 		{
 			// 更新包围盒
 			const float tLeft   = tStartPos.x + tInfo.BrushPos.x;
@@ -730,7 +730,7 @@ fcyVec2 f2dFontRendererImpl::MeasureTextAdvanceU8(fcStr Text, fuInt Count)
 			tPos.x = 0.0f;
 			continue;
 		}
-		if (FCYOK(m_pProvider->QueryGlyph(NULL, (fCharW)code_, &tInfo))) // TODO: 这里有点问题
+		if (FCYOK(m_pProvider->QueryGlyph(NULL, code_, &tInfo)))
 		{
 			tPos += tInfo.Advance;
 		}
@@ -786,7 +786,7 @@ fResult f2dFontRendererImpl::DrawTextU8(f2dGraphics2D* pGraph, fcStr Text, fuInt
 		}
 		
 		// 取出文字
-		const fResult fret = m_pProvider->QueryGlyph(pGraph, (fCharW)code_, &tInfo); // TODO: 这里有问题
+		const fResult fret = m_pProvider->QueryGlyph(pGraph, code_, &tInfo);
 		if (fret == FCYERR_OK || fret == FCYERR_OUTOFRANGE)
 		{
 			// 缩放

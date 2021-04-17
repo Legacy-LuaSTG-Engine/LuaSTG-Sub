@@ -101,9 +101,9 @@ void f2dFontTexProvider::loadDefine(fcyXmlDocument& Xml)
 	}
 }
 
-fResult f2dFontTexProvider::QueryGlyph(f2dGraphics* pGraph, fCharW Character, f2dGlyphInfo* InfoOut)
+fResult f2dFontTexProvider::QueryGlyph(f2dGraphics* pGraph, fCharU Character, f2dGlyphInfo* InfoOut)
 {
-	unordered_map<fCharW, f2dGlyphInfo*>::iterator i = m_Cache.find(Character);
+	unordered_map<fCharW, f2dGlyphInfo*>::iterator i = m_Cache.find((fCharW)Character);
 
 	if(i == m_Cache.end())
 		return FCYERR_OBJNOTEXSIT;

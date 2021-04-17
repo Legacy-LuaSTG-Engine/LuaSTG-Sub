@@ -38,7 +38,8 @@ namespace LuaSTGPlus {
 			fFloat GetDescender();
 			f2dTexture2D* GetCacheTexture();
 			fResult CacheString(fcStrW String);
-			fResult QueryGlyph(f2dGraphics* pGraph, fCharW Character, f2dGlyphInfo* InfoOut);
+			fResult CacheStringU8(fcStr Text, fuInt Count);
+			fResult QueryGlyph(f2dGraphics* pGraph, fCharU Character, f2dGlyphInfo* InfoOut);
 			fInt GetCacheCount() { return 0; }
 			fInt GetCacheTexSize() { return 0; }
 			fResult Flush() { return FCYERR_OK; }
