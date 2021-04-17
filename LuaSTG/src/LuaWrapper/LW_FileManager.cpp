@@ -313,26 +313,66 @@ void FileManagerWrapper::Register(lua_State* L)LNOEXCEPT {
 			lua_pushnumber(L, (lua_Number)pos.y);
 			return 3;
 		}
+		
+		static int MeasureTextBoundary(lua_State* L) {
+			size_t len = 0;
+			const char* str = luaL_checklstring(L, 1, &len);
+			const fcyRect v = LAPP.FontRenderer_MeasureTextBoundary(str, len);
+			lua_pushnumber(L, v.a.x);
+			lua_pushnumber(L, v.b.x);
+			lua_pushnumber(L, v.b.y);
+			lua_pushnumber(L, v.a.y);
+			return 4;
+		}
+		static int MeasureTextAdvance(lua_State* L) {
+			size_t len = 0;
+			const char* str = luaL_checklstring(L, 1, &len);
+			const fcyVec2 v = LAPP.FontRenderer_MeasureTextAdvance(str, len);
+			lua_pushnumber(L, v.x);
+			lua_pushnumber(L, v.y);
+			return 2;
+		}
+		static int RenderText(lua_State* L) {
+			size_t len = 0;
+			const char* str = luaL_checklstring(L, 1, &len);
+			fcyVec2 pos = fcyVec2((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3));
+			fcyColor color = *static_cast<fcyColor*>(luaL_checkudata(L, 6, LUASTG_LUA_TYPENAME_COLOR));
+			const bool ret = LAPP.FontRenderer_RenderText(
+				str, len,
+				pos, (float)luaL_checknumber(L, 4),
+				TranslateBlendMode(L, 5),
+				color);
+			lua_pushboolean(L, ret);
+			lua_pushnumber(L, (lua_Number)pos.x);
+			lua_pushnumber(L, (lua_Number)pos.y);
+			return 3;
+		}
 	};
-
+	
 	luaL_Reg FR_Method[] = {
 		{ "SetFontProvider", &FR_Wrapper::SetFontProvider },
 		{ "SetScale", &FR_Wrapper::SetScale },
-		{ "MeasureString", &FR_Wrapper::MeasureString },
-		{ "MeasureStringWidth", &FR_Wrapper::MeasureStringWidth },
-		{ "DrawText", &FR_Wrapper::DrawText },
+		
+		{ "MeasureString", &FR_Wrapper::MeasureString }, // 应该弃用
+		{ "MeasureStringWidth", &FR_Wrapper::MeasureStringWidth }, // 应该弃用
+		{ "DrawText", &FR_Wrapper::DrawText }, // 应该弃用
+		
+		{ "MeasureTextBoundary", &FR_Wrapper::MeasureTextBoundary },
+		{ "MeasureTextAdvance", &FR_Wrapper::MeasureTextAdvance },
+		{ "RenderText", &FR_Wrapper::RenderText },
+		
 		{ NULL, NULL }
 	};
-
+	
 	lua_getglobal(L, "lstg"); // ??? t 
-
+	
 	lua_newtable(L); // ??? t t
 	luaL_register(L, NULL, tMethods); // ??? t t 
 	lua_setfield(L, -2, "FileManager"); // ??? t 
-
+	
 	lua_newtable(L); // ??? t t
 	luaL_register(L, NULL, FR_Method); // ??? t t 
 	lua_setfield(L, -2, "FontRenderer"); // ??? t 
-
+	
 	lua_pop(L, 1); // ??? 
 }

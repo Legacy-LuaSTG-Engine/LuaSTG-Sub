@@ -73,6 +73,8 @@ void f2dFontRendererImpl::SetListener(f2dFontRendererListener* pListener)
 	m_pListener = pListener;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
 f2dFontProvider* f2dFontRendererImpl::GetFontProvider()
 {
 	return m_pProvider;
@@ -132,6 +134,8 @@ void f2dFontRendererImpl::SetFlipType(F2DSPRITEFLIP Type)
 {
 	m_FlipType = Type;
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 fcyVec2 f2dFontRendererImpl::GetScale()
 {
@@ -241,6 +245,8 @@ fFloat f2dFontRendererImpl::MeasureStringWidth(fcStrW String)
 
 	return tLen;
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 fResult f2dFontRendererImpl::DrawTextW(f2dGraphics2D* pGraph, fcStrW Text, const fcyVec2& StartPos)
 {
@@ -430,6 +436,8 @@ fResult f2dFontRendererImpl::DrawTextW(f2dGraphics2D* pGraph, fcStrW Text, fuInt
 
 	return FCYERR_OK;
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, const fcyVec2& StartPos)
 {
@@ -631,5 +639,220 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 		*PosOut = tPos;
 	
 	m_pProvider->Flush();// 记得提交字形纹理
+	return FCYERR_OK;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+#include "Common/utf.hpp"
+
+fcyRect f2dFontRendererImpl::MeasureTextBoundaryU8(fcStr Text, fuInt Count)
+{
+	if (!m_pProvider)
+	{
+		return fcyRect();
+	}
+	
+	char32_t code_ = 0;
+	utf::utf8reader reader_(Text, Count);
+	if (Count == static_cast<fuInt>(-1))
+	{
+		reader_ = utf::utf8reader(Text); // 没给长度的情况
+	}
+	
+	f2dGlyphInfo tInfo = {};
+	fcyVec2 tStartPos;
+	fcyRect tBoundBox; tBoundBox.a = fcyVec2(FLT_MAX, -FLT_MAX); tBoundBox.b = fcyVec2(-FLT_MAX, FLT_MAX);
+	bool tUpdated = false;
+	const fFloat tLineHeight = m_pProvider->GetLineHeight();
+	
+	while (reader_(code_))
+	{
+		if(code_ == U'\n')
+		{
+			tStartPos.x = 0;
+			tStartPos.y -= tLineHeight;
+			continue;
+		}
+		if(FCYOK(m_pProvider->QueryGlyph(NULL, (fCharW)code_, &tInfo))) // TODO: 这里有点问题
+		{
+			// 更新包围盒
+			const float tLeft   = tStartPos.x + tInfo.BrushPos.x;
+			const float tTop    = tStartPos.y + tInfo.BrushPos.y;
+			const float tRight  = tLeft       + tInfo.GlyphSize.x;
+			const float tBottom = tTop        - tInfo.GlyphSize.y;
+			tBoundBox.a.x = FCYMIN(tBoundBox.a.x, tLeft);
+			tBoundBox.a.y = FCYMAX(tBoundBox.a.y, tTop);
+			tBoundBox.b.x = FCYMAX(tBoundBox.b.x, tRight);
+			tBoundBox.b.y = FCYMIN(tBoundBox.b.y, tBottom);
+			tUpdated = true;
+			// 前进
+			tStartPos += tInfo.Advance;
+		}
+	}
+	
+	if (tUpdated)
+	{
+		tBoundBox.a.x *= m_Scale.x;
+		tBoundBox.a.y *= m_Scale.y;
+		tBoundBox.b.x *= m_Scale.x;
+		tBoundBox.b.y *= m_Scale.y;
+	}
+	else
+	{
+		tBoundBox = fcyRect();
+	}
+	
+	return tBoundBox;
+}
+
+fcyVec2 f2dFontRendererImpl::MeasureTextAdvanceU8(fcStr Text, fuInt Count)
+{
+	if (!m_pProvider)
+	{
+		return fcyVec2();
+	}
+	
+	char32_t code_ = 0;
+	utf::utf8reader reader_(Text, Count);
+	if (Count == static_cast<fuInt>(-1))
+	{
+		reader_ = utf::utf8reader(Text); // 没给长度的情况
+	}
+	
+	f2dGlyphInfo tInfo = {};
+	fcyVec2 tPos;
+	
+	while (reader_(code_))
+	{
+		if(code_ == U'\n')
+		{
+			tPos.x = 0.0f;
+			continue;
+		}
+		if (FCYOK(m_pProvider->QueryGlyph(NULL, (fCharW)code_, &tInfo))) // TODO: 这里有点问题
+		{
+			tPos += tInfo.Advance;
+		}
+	}
+	
+	return tPos;
+}
+
+fResult f2dFontRendererImpl::DrawTextU8(f2dGraphics2D* pGraph, fcStr Text, fuInt Count, const fcyVec2& StartPos, fcyVec2* PosOut)
+{
+	if (!m_pProvider || !pGraph || !pGraph->IsInRender())
+	{
+		return FCYERR_ILLEGAL;
+	}
+	f2dTexture2D* pTex = m_pProvider->GetCacheTexture();
+	if (!pTex)
+	{
+		return FCYERR_INTERNALERR;
+	}
+	
+	// utf-8 迭代器
+	char32_t code_ = 0;
+	utf::utf8reader reader_(Text, Count);
+	if (Count == static_cast<fuInt>(-1))
+	{
+		reader_ = utf::utf8reader(Text); // 没给长度的情况
+	}
+	
+	// 绘制参数
+	f2dGlyphInfo tInfo = {};
+	fcyVec2 tPos = StartPos;  // 笔触位置
+	float tHeight = m_pProvider->GetLineHeight() * m_Scale.y;  // 行高
+	f2dGraphics2DVertex tVerts[4] = {
+		{ 0.0f, 0.0f, m_ZValue, m_BlendColor[0].argb, 0.0f, 0.0f },
+		{ 0.0f, 0.0f, m_ZValue, m_BlendColor[1].argb, 0.0f, 0.0f },
+		{ 0.0f, 0.0f, m_ZValue, m_BlendColor[2].argb, 0.0f, 0.0f },
+		{ 0.0f, 0.0f, m_ZValue, m_BlendColor[3].argb, 0.0f, 0.0f },
+	};
+	// d3d9特有问题，uv坐标要偏移0.5
+	static const bool uv_offset_ = false;
+	const float u_offset_ = 0.5f / (float)pTex->GetWidth();
+	const float v_offset_ = 0.5f / (float)pTex->GetHeight();
+	
+	// 迭代绘制所有文字
+	while (reader_(code_))
+	{
+		// 换行处理
+		if (code_ == U'\n')
+		{
+			tPos.x = StartPos.x;
+			tPos.y -= tHeight; // 向下换行
+			continue;
+		}
+		
+		// 取出文字
+		const fResult fret = m_pProvider->QueryGlyph(pGraph, (fCharW)code_, &tInfo); // TODO: 这里有问题
+		if (fret == FCYERR_OK || fret == FCYERR_OUTOFRANGE)
+		{
+			// 缩放
+			tInfo.Advance.x *= m_Scale.x;
+			tInfo.Advance.y *= m_Scale.y;
+			tInfo.BrushPos.x *= m_Scale.x;
+			tInfo.BrushPos.y *= m_Scale.y;
+			tInfo.GlyphSize.x *= m_Scale.x;
+			tInfo.GlyphSize.y *= m_Scale.y;
+			
+			// 计算位置矩形
+			tVerts[0].x = tPos.x + tInfo.BrushPos.x;
+			tVerts[0].y = tPos.y + tInfo.BrushPos.y;
+			tVerts[1].x = tVerts[0].x + tInfo.GlyphSize.x;
+			tVerts[1].y = tVerts[0].y;
+			tVerts[2].x = tVerts[0].x + tInfo.GlyphSize.x;
+			tVerts[2].y = tVerts[0].y - tInfo.GlyphSize.y;
+			tVerts[3].x = tVerts[0].x;
+			tVerts[3].y = tVerts[2].y;
+			
+			// 计算uv坐标
+			if (uv_offset_)
+			{
+				tVerts[0].u = tInfo.GlyphPos.a.x + u_offset_;
+				tVerts[0].v = tInfo.GlyphPos.a.y + v_offset_;
+				tVerts[1].u = tInfo.GlyphPos.b.x + u_offset_;
+				tVerts[1].v = tInfo.GlyphPos.a.y + v_offset_;
+				tVerts[2].u = tInfo.GlyphPos.b.x + u_offset_;
+				tVerts[2].v = tInfo.GlyphPos.b.y + v_offset_;
+				tVerts[3].u = tInfo.GlyphPos.a.x + u_offset_;
+				tVerts[3].v = tInfo.GlyphPos.b.y + v_offset_;
+			}
+			else
+			{
+				tVerts[0].u = tInfo.GlyphPos.a.x;
+				tVerts[0].v = tInfo.GlyphPos.a.y;
+				tVerts[1].u = tInfo.GlyphPos.b.x;
+				tVerts[1].v = tInfo.GlyphPos.a.y;
+				tVerts[2].u = tInfo.GlyphPos.b.x;
+				tVerts[2].v = tInfo.GlyphPos.b.y;
+				tVerts[3].u = tInfo.GlyphPos.a.x;
+				tVerts[3].v = tInfo.GlyphPos.b.y;
+			}
+			
+			// 绘图
+			pGraph->DrawQuad(pTex, tVerts, false); // 这里不应该瞎JB加0.5的顶点偏移
+			// 如果需要，flush一下
+			if (fret == FCYERR_OUTOFRANGE)
+			{
+				m_pProvider->Flush(); // 上传纹理更改
+				pGraph->Flush(); // 执行绘制命令
+			}
+			
+			// 前进
+			tPos += tInfo.Advance;
+		}
+	}
+	
+	// 返回新的笔触位置
+	if (PosOut)
+	{
+		*PosOut = tPos;
+	}
+	
+	// 上传纹理更改
+	m_pProvider->Flush();
+	
 	return FCYERR_OK;
 }

@@ -51,6 +51,10 @@ public: // 接口实现
 	fResult DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, const fcyVec2& StartPos);
 	fResult DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuInt Count, const fcyVec2& StartPos, fcyVec2* PosOut);
 	fResult DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuInt Count, fFloat Bias, const fcyVec2& StartPos, fcyVec2* PosOut);
+	
+	fcyRect MeasureTextBoundaryU8(fcStr Text, fuInt Count);
+	fcyVec2 MeasureTextAdvanceU8(fcStr Text, fuInt Count);
+	fResult DrawTextU8(f2dGraphics2D* pGraph, fcStr Text, fuInt Count, const fcyVec2& StartPos, fcyVec2* PosOut);
 protected:
 	f2dFontRendererImpl(f2dFontProvider* pProvider);
 	~f2dFontRendererImpl();

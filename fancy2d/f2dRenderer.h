@@ -441,6 +441,16 @@ struct f2dFontRenderer :
 	/// @param[in]  StartPos 绘制起始基准
 	/// @param[out] PosOut   绘制终止位置，可空
 	virtual fResult DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuInt Count, fFloat Bias, const fcyVec2& StartPos, fcyVec2* PosOut) = 0;
+	
+	// 测量一个字符串绘制的包围盒大小（会被SetScale缩放）
+	virtual fcyRect MeasureTextBoundaryU8(fcStr Text, fuInt Count) = 0;
+	
+	// 测量一个字符串绘制的前进量（会被SetScale缩放）
+	virtual fcyVec2 MeasureTextAdvanceU8(fcStr Text, fuInt Count) = 0;
+	
+	// 绘制文字，y轴朝上（会被SetScale缩放）
+	// 输入的字符串为utf-8的
+	virtual fResult DrawTextU8(f2dGraphics2D* pGraph, fcStr Text, fuInt Count, const fcyVec2& StartPos, fcyVec2* PosOut) = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

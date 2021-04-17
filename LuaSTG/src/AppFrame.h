@@ -322,6 +322,10 @@ namespace LuaSTGPlus
 		float FontRenderer_MeasureStringWidth(const char* str);
 		bool FontRenderer_DrawTextW2(const char* str, fcyVec2& pos, const float z, const BlendMode blend, const fcyColor& color);
 		
+		fcyRect FontRenderer_MeasureTextBoundary(const char* str, size_t len);
+		fcyVec2 FontRenderer_MeasureTextAdvance(const char* str, size_t len);
+		bool FontRenderer_RenderText(const char* str, size_t len, fcyVec2& pos, const float z, const BlendMode blend, const fcyColor& color);
+		
 	public:
 		// 获取框架对象
 		ResourceMgr& GetResourceMgr() LNOEXCEPT { return m_ResourceMgr; }

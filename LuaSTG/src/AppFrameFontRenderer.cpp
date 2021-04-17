@@ -401,4 +401,33 @@ namespace LuaSTGPlus {
 		m_FontRenderer->SetZ(lastz);
 		return result;
 	}
+	
+	fcyRect AppFrame::FontRenderer_MeasureTextBoundary(const char* str, size_t len)
+	{
+		return m_FontRenderer->MeasureTextBoundaryU8(str, len);
+	}
+	
+	fcyVec2 AppFrame::FontRenderer_MeasureTextAdvance(const char* str, size_t len)
+	{
+		return m_FontRenderer->MeasureTextAdvanceU8(str, len);
+	}
+	
+	bool AppFrame::FontRenderer_RenderText(const char* str, size_t len, fcyVec2& pos, const float z, const BlendMode blend, const fcyColor& color)
+	{
+		if (m_GraphType != GraphicsType::Graph2D) {
+			spdlog::error(u8"[luastg] DrawText: 只有2D渲染器可以执行该方法");
+			return false;
+		}
+		
+		const float lastz = m_FontRenderer->GetZ();
+		m_FontRenderer->SetZ(z);
+		
+		updateGraph2DBlendMode(blend);
+		m_FontRenderer->SetColor(color);
+		
+		const bool result = FCYERR_OK == m_FontRenderer->DrawTextU8(m_Graph2D, str, len, pos, &pos);
+		
+		m_FontRenderer->SetZ(lastz);
+		return result;
+	}
 };
