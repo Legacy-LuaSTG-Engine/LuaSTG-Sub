@@ -187,6 +187,47 @@ void f2dFontFileProvider::OnRenderDeviceReset()
 
 // MRU 链表管理
 
+void f2dFontFileProvider::addFreeNode(FontCacheInfo* p)
+{
+	// 移除本身的连接
+	if(p->pPrev)
+		p->pPrev->pNext = p->pNext;
+	if(p->pNext)
+		p->pNext->pPrev = p->pPrev;
+	
+	// 清空值
+	p->pNext = p->pPrev = NULL;
+	
+	// 插入空闲链表
+	if (m_FreeNodeList)
+	{
+		p->pNext = m_FreeNodeList;
+		m_FreeNodeList->pPrev = p;
+		//m_FreeNodeList->pNext 不用管
+	}
+	else
+	{
+		// 我自己就是头
+		m_FreeNodeList = p;
+	}
+}
+
+void f2dFontFileProvider::removeFreeNode(FontCacheInfo* p)
+{
+	// 检查是否为表头
+	if(p == m_FreeNodeList)
+		m_FreeNodeList = p->pNext;
+
+	// 移除本身的连接
+	if(p->pPrev)
+		p->pPrev->pNext = p->pNext;
+	if(p->pNext)
+		p->pNext->pPrev = p->pPrev;
+
+	// 清空值
+	p->pNext = p->pPrev = NULL;
+}
+
 void f2dFontFileProvider::addUsedNode(FontCacheInfo* p)
 {
 	// 连接本节点
@@ -207,22 +248,6 @@ void f2dFontFileProvider::addUsedNode(FontCacheInfo* p)
 		m_UsedNodeList->pPrev = p;
 	}
 	m_UsedNodeList = p;
-}
-
-void f2dFontFileProvider::removeFreeNode(FontCacheInfo* p)
-{
-	// 检查是否为表头
-	if(p == m_FreeNodeList)
-		m_FreeNodeList = p->pNext;
-
-	// 移除本身的连接
-	if(p->pPrev)
-		p->pPrev->pNext = p->pNext;
-	if(p->pNext)
-		p->pNext->pPrev = p->pPrev;
-
-	// 清空值
-	p->pNext = p->pPrev = NULL;
 }
 
 void f2dFontFileProvider::removeUsedNode(FontCacheInfo* p)
@@ -447,7 +472,27 @@ f2dFontFileProvider::FontCacheInfo* f2dFontFileProvider::getChar(fCharU Char)
 	}
 	else
 	{
-		// 更加激进的处理方式，清理一半的字形缓存
+		// 更加激进的处理方式（似乎有破坏性）
+		
+		// 清理所有字形缓存
+		m_Dict.clear();
+		FontCacheInfo* node_ = m_UsedNodeList;
+		while (node_)
+		{
+			removeUsedNode(node_);
+			addFreeNode(node_);
+			node_ = m_UsedNodeList;
+		}
+		
+		// 缓存
+		pCache = m_FreeNodeList;
+		removeFreeNode(pCache);
+		addUsedNode(pCache);
+		m_Dict[Char] = pCache;
+		// 绘制字体
+		renderCache(pCache, Char);
+		
+		return pCache;
 	}
 }
 
@@ -503,17 +548,17 @@ bool f2dFontFileProvider::makeCache(fuInt Size)
 	else
 	{
 		// 生成空数据
-		std::vector<fcyColor> _data;
-		_data.resize(Size * Size);
-		auto _byte_size = sizeof(fcyColor) * Size * Size;
-		memset(_data.data(), 0, _byte_size);
+		std::vector<fcyColor> _data(Size, fcyColor(0)); // 一行的
+		const size_t line_bytes_ = sizeof(fcyColor) * Size;
 		// 复制
 		fuInt tPitch = 0;
 		fData tData = NULL;
-		if(FCYFAILED(m_CacheTex->Lock(NULL, false, &tPitch, &tData)))
+		if(FCYFAILED(m_CacheTex->Lock(NULL, true, &tPitch, &tData)))
 			return false;
-		memcpy(tData, _data.data(), _byte_size);
+		for (fuInt i = 0; i < Size; i += 1)
+			memcpy(tData + (tPitch * i), _data.data(), line_bytes_);
 		m_CacheTexData = (fcyColor*)tData;
+		m_IsDirty = true;
 		//m_CacheTex->Unlock(); // 别问为什么注释掉，反正就是从头lock到尾，lock他妈的，提升性能
 	}
 	
@@ -521,7 +566,6 @@ bool f2dFontFileProvider::makeCache(fuInt Size)
 	fuInt tCount = m_CacheXCount * m_CacheYCount;
 	m_Cache.resize(tCount);
 	// 初始化缓冲链表内容
-	m_FreeNodeList = &m_Cache[0]; // 空闲头
 	fuInt tCurIndex = 0;
 	fuInt x = 1; // 纹理的U坐标（像素坐标）
 	fuInt y = 1; // 纹理的V坐标（像素坐标）
@@ -555,6 +599,7 @@ bool f2dFontFileProvider::makeCache(fuInt Size)
 		y += (m_MaxGlyphHeight + 1); // 下一行
 	}
 	// 连接缓冲链表
+	m_FreeNodeList = &m_Cache[0]; // 空闲头
 	if (tCount > 1) {
 		m_Cache[0].pPrev = nullptr;
 		m_Cache[0].pNext = &m_Cache[1];
@@ -571,6 +616,10 @@ bool f2dFontFileProvider::makeCache(fuInt Size)
 		m_Cache[0].pPrev = nullptr;
 		m_Cache[0].pNext = nullptr;
 	}
+	
+	// 清空
+	m_UsedMark.fill(0);
+	m_UsedCount = 0;
 	
 	return true;
 }

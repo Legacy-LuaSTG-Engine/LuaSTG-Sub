@@ -95,9 +95,10 @@ protected: // 字体操作
 	void closeFonts();
 	bool findGlyph(FT_ULong code, FT_Face& face, FT_UInt& index);
 protected: // 字体缓冲链表操作
-	void addUsedNode(FontCacheInfo* p);      // 加入最多使用节点
-	void removeFreeNode(FontCacheInfo* p);   // 移除空闲节点p的连接
-	void removeUsedNode(FontCacheInfo* p);   // 移除使用中节点p的连接
+	void addFreeNode(FontCacheInfo* p);    // 加入最多空闲节点
+	void removeFreeNode(FontCacheInfo* p); // 移除空闲节点p的连接
+	void addUsedNode(FontCacheInfo* p);    // 加入最多使用节点
+	void removeUsedNode(FontCacheInfo* p); // 移除使用中节点p的连接
 protected: // 字体缓冲操作
 	f2dGlyphInfo getGlyphInfo(fCharU Char);  // 仅获得字形信息（不包括UV坐标）
 	FontCacheInfo* getChar(fCharU Char);     // 获得字体
