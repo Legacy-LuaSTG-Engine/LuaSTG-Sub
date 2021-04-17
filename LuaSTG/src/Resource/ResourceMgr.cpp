@@ -317,18 +317,12 @@ bool ResourceMgr::GetTextureSize(const char* name, fcyVec2& out) noexcept {
     return true;
 }
 
-void ResourceMgr::CacheTTFFontString(const char* name, const char* text) noexcept {
-    try {
-        std::wstring t = fcyStringHelper::MultiByteToWideChar(text, CP_UTF8);
-        fcyRefPointer<ResFont> f = FindTTFFont(name);
-        if (f)
-            f->GetFontProvider()->CacheString(t.c_str());
-        else
-            spdlog::error(u8"[luastg] CacheTTFFontString: 缓存字形时未找到指定字体'{}'", name);
-    }
-    catch (const std::bad_alloc&) {
-        spdlog::error(u8"[luastg] CacheTTFFontString: 内存不足");
-    }
+void ResourceMgr::CacheTTFFontString(const char* name, const char* text, size_t len) noexcept {
+    fcyRefPointer<ResFont> f = FindTTFFont(name);
+    if (f)
+        f->GetFontProvider()->CacheStringU8(text, len);
+    else
+        spdlog::error(u8"[luastg] CacheTTFFontString: 缓存字形时未找到指定字体'{}'", name);
 }
 
 // 其他

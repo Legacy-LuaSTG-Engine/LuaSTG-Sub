@@ -1214,7 +1214,9 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			return 0;
 		}
 		static int CacheTTFString(lua_State* L) {
-			LRES.CacheTTFFontString(luaL_checkstring(L, 1), luaL_checkstring(L, 2));
+			size_t len = 0;
+			const char* str = luaL_checklstring(L, 2, &len);
+			LRES.CacheTTFFontString(luaL_checkstring(L, 1), str, len);
 			return 0;
 		}
 		//EX+ model

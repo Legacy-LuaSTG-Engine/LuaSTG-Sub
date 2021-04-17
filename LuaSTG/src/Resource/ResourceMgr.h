@@ -124,7 +124,7 @@ namespace LuaSTGPlus
         fcyRefPointer<ResFX> FindFX(const char* name) noexcept;
         
         bool GetTextureSize(const char* name, fcyVec2& out) noexcept;
-        void CacheTTFFontString(const char* name, const char* text) noexcept;
+        void CacheTTFFontString(const char* name, const char* text, size_t len) noexcept;
     private:
         static bool g_ResourceLoadingLog;
         float m_GlobalImageScaleFactor = 1.0f;
