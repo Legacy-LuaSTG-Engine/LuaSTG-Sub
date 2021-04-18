@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "ResourceBase.hpp"
 #include "f2dSoundSys.h"
-#include "E2DMath.hpp"
+#include "Common/volume.hpp"
 
 namespace LuaSTGPlus {
 	// 声音资源
@@ -48,7 +48,7 @@ namespace LuaSTGPlus {
 			m_pBuffer->Stop();
 
 			//float nv = VolumeFix(vol);
-			float nv = (float)Eyes2D::Math::LinearToLog(vol);
+			float nv = (float)volume::LinearToLog(vol);
 			if (m_pBuffer->GetVolume() != nv)
 				m_pBuffer->SetVolume(nv);
 			if (m_pBuffer->GetPan() != pan)
@@ -167,7 +167,7 @@ namespace LuaSTGPlus {
 			m_pBuffer->SetTime(position);
 
 			//float nv = VolumeFix(vol);
-			float nv = (float)Eyes2D::Math::LinearToLog(vol);
+			float nv = (float)volume::LinearToLog(vol);
 			if (m_pBuffer->GetVolume() != nv)
 				m_pBuffer->SetVolume(nv);
 
@@ -211,14 +211,14 @@ namespace LuaSTGPlus {
 		void SetVolume(float v)
 		{
 			//float nv = VolumeFix(v);
-			float nv = (float)Eyes2D::Math::LinearToLog(v);
+			float nv = (float)volume::LinearToLog(v);
 			if (m_pBuffer->GetVolume() != nv)
 				m_pBuffer->SetVolume(nv);
 		}
 
 		float GetVolume() {
 			double dv = (double)m_pBuffer->GetVolume();
-			double tv = Eyes2D::Math::LogToLinear(dv);
+			double tv = volume::LogToLinear(dv);
 			return (float)tv;
 			//return m_pBuffer->GetVolume();
 		}

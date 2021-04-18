@@ -27,7 +27,6 @@ target_sources(eyes2d PRIVATE
     E2DLogSystem.hpp
     E2DLogSystem.cpp
     
-    E2DMath.hpp
     E2DCodePage.hpp
     E2DFilePath.hpp
     
