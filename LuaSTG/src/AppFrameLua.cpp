@@ -257,10 +257,12 @@ namespace LuaSTGPlus
             spdlog::info(u8"[luajit] 注册标准库与内置包");
             luaL_openlibs(L);  // 内建库 (lua build in lib)
             lua_register_custom_loader(L); // 加强版 package 库 (require)
-            if (!SafeCallScript(LuaInternalSource_1().c_str(), LuaInternalSource_1().length(), "internal")) {
-                spdlog::error(u8"[luajit] 内置脚本出错");
+            
+            if (!SafeCallScript(LuaInternalSource_1().c_str(), LuaInternalSource_1().length(), "internal.main")) {
+                spdlog::error(u8"[luajit] 内置脚本'internal.main'出错");
                 return false;
             }
+            
             luaopen_steam(L); // Steam API
             //luaopen_lfs(L);  // 文件系统库 (file system)
             //luaopen_cjson(L);  // CJSON库 (json)
@@ -288,6 +290,11 @@ namespace LuaSTGPlus
                 lua_pop(L, 1);						// ?
                 ::LocalFree(argv);
             }
+            
+            if (!SafeCallScript(LuaInternalSource_2().c_str(), LuaInternalSource_2().length(), "internal.api")) {
+                spdlog::error(u8"[luajit] 内置脚本'internal.api'出错");
+                return false;
+            }
         }
         lua_gc(L, LUA_GCRESTART, -1);  // 重启GC
         
@@ -310,7 +317,7 @@ namespace LuaSTGPlus
         #ifdef USING_LAUNCH_FILE
         fcyRefPointer<fcyMemStream> tMemStream;
         spdlog::info(u8"[luastg] 加载初始化脚本");
-        if (m_ResourceMgr.LoadFile(L"launch", tMemStream))
+        if (m_ResourceMgr.LoadFile(u8"launch", tMemStream))
         {
             if (SafeCallScript((fcStr)tMemStream->GetInternalBuffer(), (size_t)tMemStream->GetLength(), "launch"))
             {
