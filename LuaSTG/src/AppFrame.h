@@ -326,6 +326,10 @@ namespace LuaSTGPlus
 		fcyVec2 FontRenderer_MeasureTextAdvance(const char* str, size_t len);
 		bool FontRenderer_RenderText(const char* str, size_t len, fcyVec2& pos, const float z, const BlendMode blend, const fcyColor& color);
 		
+		float FontRenderer_GetFontLineHeight();
+		float FontRenderer_GetFontAscender();
+		float FontRenderer_GetFontDescender();
+		
 	public:
 		// 获取框架对象
 		ResourceMgr& GetResourceMgr() LNOEXCEPT { return m_ResourceMgr; }

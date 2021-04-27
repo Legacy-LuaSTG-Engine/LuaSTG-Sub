@@ -347,6 +347,19 @@ void FileManagerWrapper::Register(lua_State* L)LNOEXCEPT {
 			lua_pushnumber(L, (lua_Number)pos.y);
 			return 3;
 		}
+		
+		static int GetFontLineHeight(lua_State* L) {
+			lua_pushnumber(L, LAPP.FontRenderer_GetFontLineHeight());
+			return 1;
+		};
+		static int GetFontAscender(lua_State* L) {
+			lua_pushnumber(L, LAPP.FontRenderer_GetFontAscender());
+			return 1;
+		};
+		static int GetFontDescender(lua_State* L) {
+			lua_pushnumber(L, LAPP.FontRenderer_GetFontDescender());
+			return 1;
+		};
 	};
 	
 	luaL_Reg FR_Method[] = {
@@ -360,6 +373,10 @@ void FileManagerWrapper::Register(lua_State* L)LNOEXCEPT {
 		{ "MeasureTextBoundary", &FR_Wrapper::MeasureTextBoundary },
 		{ "MeasureTextAdvance", &FR_Wrapper::MeasureTextAdvance },
 		{ "RenderText", &FR_Wrapper::RenderText },
+		
+		{ "GetFontLineHeight", &FR_Wrapper::GetFontLineHeight },
+		{ "GetFontAscender", &FR_Wrapper::GetFontAscender },
+		{ "GetFontDescender", &FR_Wrapper::GetFontDescender },
 		
 		{ NULL, NULL }
 	};

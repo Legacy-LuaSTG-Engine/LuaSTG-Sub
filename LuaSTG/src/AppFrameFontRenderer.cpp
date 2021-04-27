@@ -430,4 +430,25 @@ namespace LuaSTGPlus {
 		m_FontRenderer->SetZ(lastz);
 		return result;
 	}
+	
+	float AppFrame::FontRenderer_GetFontLineHeight()
+	{
+		auto* p = m_FontRenderer->GetFontProvider();
+		if (p) return p->GetLineHeight();
+		return 0.0f;
+	}
+	
+	float AppFrame::FontRenderer_GetFontAscender()
+	{
+		auto* p = m_FontRenderer->GetFontProvider();
+		if (p) return p->GetAscender();
+		return 0.0f;
+	}
+	
+	float AppFrame::FontRenderer_GetFontDescender()
+	{
+		auto* p = m_FontRenderer->GetFontProvider();
+		if (p) return p->GetDescender();
+		return 0.0f;
+	}
 };
