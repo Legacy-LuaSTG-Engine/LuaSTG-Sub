@@ -1,7 +1,7 @@
 ﻿#include "GameObjectPool.h"
 #include "AppFrame.h"
 #include "LuaWrapper/LuaWrapper.hpp"
-#include "LuaWrapper/LuaStringToEnum.hpp"
+#include "LuaWrapper/lua_luastg_hash.hpp"
 
 #define METATABLE_OBJ "mt"
 
@@ -860,96 +860,77 @@ int GameObjectPool::FirstObject(int groupId) noexcept
 
 int GameObjectPool::GetAttr(lua_State* L) noexcept
 {
-	using namespace Xrysnow;
-	
 	lua_rawgeti(L, 1, 2);  // t(object) s(key) ??? i(id)
 	size_t id = static_cast<size_t>(lua_tonumber(L, -1));
 	lua_pop(L, 1);  // t(object) s(key)
-
+	
 	GameObject* p = m_ObjectPool.object(id);
 	if (!p)
 		return luaL_error(L, "invalid lstg object for '__index' meta operation.");
 	
-	// 查询属性
 	const char* key = luaL_checkstring(L, 2);
-	
-	// 对x,y作特化处理
-	if (key[1] == '\0') {
-		switch (key[0])
-		{
-		case 'x':
-			lua_pushnumber(L, p->x);
-			return 1;
-		case 'y':
-			lua_pushnumber(L, p->y);
-			return 1;
-		}
-	}
-
-	// 一般属性
-	switch (GameObjectPropertyHash(L, 2))
-	//switch (GameObjectPropertyHash(key))
+	switch (LuaSTG::MapGameObjectMember(key))
 	{
-	case GameObjectProperty::DX:
+	case LuaSTG::GameObjectMember::DX:
 		lua_pushnumber(L, p->dx);
 		break;
-	case GameObjectProperty::DY:
+	case LuaSTG::GameObjectMember::DY:
 		lua_pushnumber(L, p->dy);
 		break;
-	case GameObjectProperty::ROT:
+	case LuaSTG::GameObjectMember::ROT:
 		lua_pushnumber(L, p->rot * LRAD2DEGREE);
 		break;
-	case GameObjectProperty::OMEGA:
+	case LuaSTG::GameObjectMember::OMEGA:
 		lua_pushnumber(L, p->omiga * LRAD2DEGREE);
 		break;
-	case GameObjectProperty::TIMER:
+	case LuaSTG::GameObjectMember::TIMER:
 		lua_pushinteger(L, p->timer);
 		break;
-	case GameObjectProperty::VX:
+	case LuaSTG::GameObjectMember::VX:
 		lua_pushnumber(L, p->vx);
 		break;
-	case GameObjectProperty::VY:
+	case LuaSTG::GameObjectMember::VY:
 		lua_pushnumber(L, p->vy);
 		break;
-	case GameObjectProperty::AX:
+	case LuaSTG::GameObjectMember::AX:
 		lua_pushnumber(L, p->ax);
 		break;
-	case GameObjectProperty::AY:
+	case LuaSTG::GameObjectMember::AY:
 		lua_pushnumber(L, p->ay);
 		break;
 #ifdef USER_SYSTEM_OPERATION
-	case GameObjectProperty::MAXV:
+	case LuaSTG::GameObjectMember::MAXV:
 		lua_pushnumber(L, p->maxv);
 		break;
-	case GameObjectProperty::MAXVX:
+	case LuaSTG::GameObjectMember::MAXVX:
 		lua_pushnumber(L, p->maxvx);
 		break;
-	case GameObjectProperty::MAXVY:
+	case LuaSTG::GameObjectMember::MAXVY:
 		lua_pushnumber(L, p->maxvy);
 		break;
-	case GameObjectProperty::AG:
+	case LuaSTG::GameObjectMember::AG:
 		lua_pushnumber(L, p->ag);
 		break;
 #endif
-	case GameObjectProperty::LAYER:
+	case LuaSTG::GameObjectMember::LAYER:
 		lua_pushnumber(L, p->layer);
 		break;
-	case GameObjectProperty::GROUP:
+	case LuaSTG::GameObjectMember::GROUP:
 		lua_pushinteger(L, p->group);
 		break;
-	case GameObjectProperty::HIDE:
+	case LuaSTG::GameObjectMember::HIDE:
 		lua_pushboolean(L, p->hide);
 		break;
-	case GameObjectProperty::BOUND:
+	case LuaSTG::GameObjectMember::BOUND:
 		lua_pushboolean(L, p->bound);
 		break;
-	case GameObjectProperty::NAVI:
+	case LuaSTG::GameObjectMember::NAVI:
 		lua_pushboolean(L, p->navi);
 		break;
-	case GameObjectProperty::COLLI:
+	case LuaSTG::GameObjectMember::COLLI:
 		lua_pushboolean(L, p->colli);
 		break;
-	case GameObjectProperty::STATUS:
+	case LuaSTG::GameObjectMember::STATUS:
 		switch (p->status)
 		{
 		case STATUS_DEFAULT:
@@ -965,48 +946,48 @@ int GameObjectPool::GetAttr(lua_State* L) noexcept
 			return luaL_error(L, "unknown lstg object status.");
 		}
 		break;
-	case GameObjectProperty::HSCALE:
+	case LuaSTG::GameObjectMember::HSCALE:
 		lua_pushnumber(L, p->hscale);
 		break;
-	case GameObjectProperty::VSCALE:
+	case LuaSTG::GameObjectMember::VSCALE:
 		lua_pushnumber(L, p->vscale);
 		break;
-	case GameObjectProperty::CLASS:
+	case LuaSTG::GameObjectMember::CLASS:
 		lua_rawgeti(L, 1, 1);
 		break;
-	case GameObjectProperty::A:
+	case LuaSTG::GameObjectMember::A:
 #ifdef GLOBAL_SCALE_COLLI_SHAPE
 		lua_pushnumber(L, p->a / LRES.GetGlobalImageScaleFactor());
 #else
 		lua_pushnumber(L, p->a);
 #endif // GLOBAL_SCALE_COLLI_SHAPE
 		break;
-	case GameObjectProperty::B:
+	case LuaSTG::GameObjectMember::B:
 #ifdef GLOBAL_SCALE_COLLI_SHAPE
 		lua_pushnumber(L, p->b / LRES.GetGlobalImageScaleFactor());
 #else
 		lua_pushnumber(L, p->b);
 #endif // GLOBAL_SCALE_COLLI_SHAPE
 		break;
-	case GameObjectProperty::RECT:
+	case LuaSTG::GameObjectMember::RECT:
 		lua_pushboolean(L, p->rect);
 		break;
-	case GameObjectProperty::IMG:
+	case LuaSTG::GameObjectMember::IMG:
 		if (p->res)
 			lua_pushstring(L, p->res->GetResName().c_str());
 		else
 			lua_pushnil(L);
 		break;
-	case GameObjectProperty::ANI:
+	case LuaSTG::GameObjectMember::ANI:
 		lua_pushinteger(L, p->ani_timer);
 		break;
-	case GameObjectProperty::RESOLVEMOVE:
+	case LuaSTG::GameObjectMember::RESOLVEMOVE:
 		lua_pushboolean(L, p->resolve_move);
 		break;
-	case GameObjectProperty::VSPEED:
+	case LuaSTG::GameObjectMember::VSPEED:
 		lua_pushnumber(L, sqrt(p->vx*p->vx + p->vy*p->vy));
 		break;
-	case GameObjectProperty::VANGLE:
+	case LuaSTG::GameObjectMember::VANGLE:
 		if (p->vx || p->vy){
 			lua_pushnumber(L, atan2(p->vy, p->vx)*LRAD2DEGREE);
 		}
@@ -1014,17 +995,17 @@ int GameObjectPool::GetAttr(lua_State* L) noexcept
 			lua_pushnumber(L, p->rot*LRAD2DEGREE);
 		}
 		break;
-	case GameObjectProperty::IGNORESUPERPAUSE:
+	case LuaSTG::GameObjectMember::IGNORESUPERPAUSE:
 		lua_pushboolean(L, p->ignore_superpause);
 		break;
-	case GameObjectProperty::PAUSE:
+	case LuaSTG::GameObjectMember::PAUSE:
 		lua_pushinteger(L, p->pause);
 		break;
-	case GameObjectProperty::WORLD:
+	case LuaSTG::GameObjectMember::WORLD:
 		lua_pushinteger(L, p->world);
 		break;
 #ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-	case GameObjectProperty::_BLEND:
+	case LuaSTG::GameObjectMember::_BLEND:
 		if (p->luaclass.IsRenderClass) {
 			TranslateBlendModeToString(L, p->blendmode);
 		}
@@ -1032,7 +1013,7 @@ int GameObjectPool::GetAttr(lua_State* L) noexcept
 			lua_pushnil(L);
 		}
 		break;
-	case GameObjectProperty::_COLOR:
+	case LuaSTG::GameObjectMember::_COLOR:
 		if (p->luaclass.IsRenderClass) {
 			LuaWrapper::ColorWrapper::CreateAndPush(L, fcyColor(p->vertexcolor.argb));
 		}
@@ -1040,7 +1021,7 @@ int GameObjectPool::GetAttr(lua_State* L) noexcept
 			lua_pushnil(L);
 		}
 		break;
-	case GameObjectProperty::_A:
+	case LuaSTG::GameObjectMember::_A:
 		if (p->luaclass.IsRenderClass) {
 			lua_pushinteger(L, p->vertexcolor.a);
 		}
@@ -1048,7 +1029,7 @@ int GameObjectPool::GetAttr(lua_State* L) noexcept
 			lua_pushnil(L);
 		}
 		break;
-	case GameObjectProperty::_R:
+	case LuaSTG::GameObjectMember::_R:
 		if (p->luaclass.IsRenderClass) {
 			lua_pushinteger(L, p->vertexcolor.r);
 		}
@@ -1056,7 +1037,7 @@ int GameObjectPool::GetAttr(lua_State* L) noexcept
 			lua_pushnil(L);
 		}
 		break;
-	case GameObjectProperty::_G:
+	case LuaSTG::GameObjectMember::_G:
 		if (p->luaclass.IsRenderClass) {
 			lua_pushinteger(L, p->vertexcolor.g);
 		}
@@ -1064,7 +1045,7 @@ int GameObjectPool::GetAttr(lua_State* L) noexcept
 			lua_pushnil(L);
 		}
 		break;
-	case GameObjectProperty::_B:
+	case LuaSTG::GameObjectMember::_B:
 		if (p->luaclass.IsRenderClass) {
 			lua_pushinteger(L, p->vertexcolor.b);
 		}
@@ -1073,92 +1054,76 @@ int GameObjectPool::GetAttr(lua_State* L) noexcept
 		}
 		break;
 #endif // USING_ADVANCE_GAMEOBJECT_CLASS
-	case GameObjectProperty::X:
-	case GameObjectProperty::Y:
+	case LuaSTG::GameObjectMember::X:
+		lua_pushnumber(L, p->x);
+		break;
+	case LuaSTG::GameObjectMember::Y:
+		lua_pushnumber(L, p->y);
 		break;
 	default:
 		lua_pushnil(L);
 		break;
 	}
-
+	
 	return 1;
 }
 
 int GameObjectPool::SetAttr(lua_State* L) noexcept
 {
-	using namespace Xrysnow;
-	
 	lua_rawgeti(L, 1, 2);  // t(object) s(key) any(v) i(id)
 	size_t id = static_cast<size_t>(lua_tonumber(L, -1));
 	lua_pop(L, 1);  // t(object) s(key) any(v)
-
+	
 	GameObject* p = m_ObjectPool.object(id);
 	if (!p)
 		return luaL_error(L, "invalid lstg object for '__newindex' meta operation.");
-
-	// 查询属性
+	
 	const char* key = luaL_checkstring(L, 2);
-	std::string keypp = key;
-
-	// 对x,y作特化处理
-	if (key[1] == '\0') {
-		switch (key[0])
-		{
-		case 'x':
-			p->x = luaL_checknumber(L, 3);
-			return 0;
-		case 'y':
-			p->y = luaL_checknumber(L, 3);
-			return 0;
-		}
-	}
-
-	// 一般属性
-	switch (GameObjectPropertyHash(L, 2))
+	switch (LuaSTG::MapGameObjectMember(key))
 	{
-	case GameObjectProperty::DX:
+	case LuaSTG::GameObjectMember::DX:
 		return luaL_error(L, "property 'dx' is readonly.");
-	case GameObjectProperty::DY:
+	case LuaSTG::GameObjectMember::DY:
 		return luaL_error(L, "property 'dy' is readonly.");
-	case GameObjectProperty::ROT:
+	case LuaSTG::GameObjectMember::ROT:
 		p->rot = luaL_checknumber(L, 3) * LDEGREE2RAD;
 		break;
-	case GameObjectProperty::OMEGA:
+	case LuaSTG::GameObjectMember::OMEGA:
 		p->omiga = luaL_checknumber(L, 3) * LDEGREE2RAD;
 		break;
-	case GameObjectProperty::TIMER:
+	case LuaSTG::GameObjectMember::TIMER:
 		p->timer = luaL_checkinteger(L, 3);
 		break;
-	case GameObjectProperty::VX:
+	case LuaSTG::GameObjectMember::VX:
 		p->vx = luaL_checknumber(L, 3);
 		break;
-	case GameObjectProperty::VY:
+	case LuaSTG::GameObjectMember::VY:
 		p->vy = luaL_checknumber(L, 3);
 		break;
-	case GameObjectProperty::AX:
+	case LuaSTG::GameObjectMember::AX:
 		p->ax = luaL_checknumber(L, 3);
 		break;
-	case GameObjectProperty::AY:
+	case LuaSTG::GameObjectMember::AY:
 		p->ay = luaL_checknumber(L, 3);
 		break;
 #ifdef USER_SYSTEM_OPERATION
-	case GameObjectProperty::MAXV:
+	case LuaSTG::GameObjectMember::MAXV:
 		p->maxv = luaL_checknumber(L, 3);
 		break;
-	case GameObjectProperty::MAXVX:
+	case LuaSTG::GameObjectMember::MAXVX:
 		p->maxvx = luaL_checknumber(L, 3);
 		break;
-	case GameObjectProperty::MAXVY:
+	case LuaSTG::GameObjectMember::MAXVY:
 		p->maxvy = luaL_checknumber(L, 3);
 		break;
-	case GameObjectProperty::AG:
+	case LuaSTG::GameObjectMember::AG:
 		p->ag = luaL_checknumber(L, 3);
 		break;
 #endif
-	case GameObjectProperty::LAYER:
+	case LuaSTG::GameObjectMember::LAYER:
 		_SetObjectLayer(p, luaL_checknumber(L, 3));
 		break;
-	case GameObjectProperty::GROUP:
+	case LuaSTG::GameObjectMember::GROUP:
 	{
 		int group = luaL_checkinteger(L, 3);
 		if (0 <= group && group < LOBJPOOL_GROUPN)
@@ -1167,29 +1132,29 @@ int GameObjectPool::SetAttr(lua_State* L) noexcept
 		}
 		break;
 	}
-	case GameObjectProperty::HIDE:
+	case LuaSTG::GameObjectMember::HIDE:
 		p->hide = lua_toboolean(L, 3) == 0 ? false : true;
 		break;
-	case GameObjectProperty::BOUND:
+	case LuaSTG::GameObjectMember::BOUND:
 		p->bound = lua_toboolean(L, 3) == 0 ? false : true;
 		break;
-	case GameObjectProperty::NAVI:
+	case LuaSTG::GameObjectMember::NAVI:
 		p->navi = lua_toboolean(L, 3) == 0 ? false : true;
 		break;
-	case GameObjectProperty::COLLI:
+	case LuaSTG::GameObjectMember::COLLI:
 		p->colli = lua_toboolean(L, 3) == 0 ? false : true;
 		break;
 
-	case GameObjectProperty::RESOLVEMOVE:
+	case LuaSTG::GameObjectMember::RESOLVEMOVE:
 		p->resolve_move = lua_toboolean(L, 3) == 0 ? false : true;
 		break;
-	case GameObjectProperty::IGNORESUPERPAUSE:
+	case LuaSTG::GameObjectMember::IGNORESUPERPAUSE:
 		p->ignore_superpause = lua_toboolean(L, 3) == 0 ? false : true;
 		break;
-	case GameObjectProperty::PAUSE:
+	case LuaSTG::GameObjectMember::PAUSE:
 		p->pause = luaL_checkinteger(L, 3);
 		break;
-	case GameObjectProperty::STATUS:
+	case LuaSTG::GameObjectMember::STATUS:
 		do {
 			const char* val = luaL_checkstring(L, 3);
 			if (strcmp(val, "normal") == 0)
@@ -1202,13 +1167,13 @@ int GameObjectPool::SetAttr(lua_State* L) noexcept
 				return luaL_error(L, "invalid argument for property 'status'.");
 		} while (false);
 		break;
-	case GameObjectProperty::HSCALE:
+	case LuaSTG::GameObjectMember::HSCALE:
 		p->hscale = luaL_checknumber(L, 3);
 		break;
-	case GameObjectProperty::VSCALE:
+	case LuaSTG::GameObjectMember::VSCALE:
 		p->vscale = luaL_checknumber(L, 3);
 		break;
-	case GameObjectProperty::CLASS:
+	case LuaSTG::GameObjectMember::CLASS:
 	{
 #ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 		if (!GameObjectClass::CheckClassValid(L, 3))
@@ -1218,7 +1183,7 @@ int GameObjectPool::SetAttr(lua_State* L) noexcept
 		lua_rawseti(L, 1, 1);
 		break;
 	}
-	case GameObjectProperty::A:
+	case LuaSTG::GameObjectMember::A:
 #ifdef GLOBAL_SCALE_COLLI_SHAPE
 		p->a = luaL_checknumber(L, 3) * LRES.GetGlobalImageScaleFactor();
 #else
@@ -1226,7 +1191,7 @@ int GameObjectPool::SetAttr(lua_State* L) noexcept
 #endif // GLOBAL_SCALE_COLLI_SHAPE
 		p->UpdateCollisionCirclrRadius();
 		break;
-	case GameObjectProperty::B:
+	case LuaSTG::GameObjectMember::B:
 #ifdef GLOBAL_SCALE_COLLI_SHAPE
 		p->b = luaL_checknumber(L, 3) * LRES.GetGlobalImageScaleFactor();
 #else
@@ -1234,11 +1199,11 @@ int GameObjectPool::SetAttr(lua_State* L) noexcept
 #endif // GLOBAL_SCALE_COLLI_SHAPE
 		p->UpdateCollisionCirclrRadius();
 		break;
-	case GameObjectProperty::RECT:
+	case LuaSTG::GameObjectMember::RECT:
 		p->rect = lua_toboolean(L, 3) == 0 ? false : true;
 		p->UpdateCollisionCirclrRadius();
 		break;
-	case GameObjectProperty::IMG:
+	case LuaSTG::GameObjectMember::IMG:
 	{
 		if (lua_isstring(L, 3)) {
 			const char* name = lua_tostring(L, 3);
@@ -1254,7 +1219,7 @@ int GameObjectPool::SetAttr(lua_State* L) noexcept
 		}
 		break;
 	}
-	case GameObjectProperty::VSPEED:
+	case LuaSTG::GameObjectMember::VSPEED:
 	{
 		float a1 = sqrt(p->vx*p->vx + p->vy*p->vy);
 		float a2 = luaL_checknumber(L, 3);
@@ -1268,7 +1233,7 @@ int GameObjectPool::SetAttr(lua_State* L) noexcept
 		p->vy *= a2;
 		break;
 	}
-	case GameObjectProperty::VANGLE:
+	case LuaSTG::GameObjectMember::VANGLE:
 	{
 		float a1 = sqrt(p->vx * p->vx + p->vy * p->vy);
 		float a2 = luaL_checknumber(L, 3) * LDEGREE2RAD;
@@ -1280,13 +1245,13 @@ int GameObjectPool::SetAttr(lua_State* L) noexcept
 		p->vy = a1 * sin(a2);
 		break;
 	}
-	case GameObjectProperty::WORLD:
+	case LuaSTG::GameObjectMember::WORLD:
 		p->world = luaL_checknumber(L, 3);
 		break;
-	case GameObjectProperty::ANI:
+	case LuaSTG::GameObjectMember::ANI:
 		return luaL_error(L, "property 'ani' is readonly.");
 #ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-	case GameObjectProperty::_BLEND:
+	case LuaSTG::GameObjectMember::_BLEND:
 		if (p->luaclass.IsRenderClass) {
 			p->blendmode = TranslateBlendMode(L, 3);
 		}
@@ -1294,7 +1259,7 @@ int GameObjectPool::SetAttr(lua_State* L) noexcept
 			lua_rawset(L, 1);
 		}
 		break;
-	case GameObjectProperty::_COLOR:
+	case LuaSTG::GameObjectMember::_COLOR:
 		if (p->luaclass.IsRenderClass) {
 			p->vertexcolor.argb = static_cast<fcyColor*>(luaL_checkudata(L, 3, LUASTG_LUA_TYPENAME_COLOR))->argb;
 		}
@@ -1302,7 +1267,7 @@ int GameObjectPool::SetAttr(lua_State* L) noexcept
 			lua_rawset(L, 1);
 		}
 		break;
-	case GameObjectProperty::_A:
+	case LuaSTG::GameObjectMember::_A:
 		if (p->luaclass.IsRenderClass) {
 			p->vertexcolor.a = (uint8_t)luaL_checknumber(L, 3);
 		}
@@ -1310,7 +1275,7 @@ int GameObjectPool::SetAttr(lua_State* L) noexcept
 			lua_rawset(L, 1);
 		}
 		break;
-	case GameObjectProperty::_R:
+	case LuaSTG::GameObjectMember::_R:
 		if (p->luaclass.IsRenderClass) {
 			p->vertexcolor.r = (uint8_t)luaL_checknumber(L, 3);
 		}
@@ -1318,7 +1283,7 @@ int GameObjectPool::SetAttr(lua_State* L) noexcept
 			lua_rawset(L, 1);
 		}
 		break;
-	case GameObjectProperty::_G:
+	case LuaSTG::GameObjectMember::_G:
 		if (p->luaclass.IsRenderClass) {
 			p->vertexcolor.g = (uint8_t)luaL_checknumber(L, 3);
 		}
@@ -1326,7 +1291,7 @@ int GameObjectPool::SetAttr(lua_State* L) noexcept
 			lua_rawset(L, 1);
 		}
 		break;
-	case GameObjectProperty::_B:
+	case LuaSTG::GameObjectMember::_B:
 		if (p->luaclass.IsRenderClass) {
 			p->vertexcolor.b = (uint8_t)luaL_checknumber(L, 3);
 		}
@@ -1335,14 +1300,17 @@ int GameObjectPool::SetAttr(lua_State* L) noexcept
 		}
 		break;
 #endif // USING_ADVANCE_GAMEOBJECT_CLASS
-	case GameObjectProperty::X:
-	case GameObjectProperty::Y:
+	case LuaSTG::GameObjectMember::X:
+		p->x = luaL_checknumber(L, 3);
+		break;
+	case LuaSTG::GameObjectMember::Y:
+		p->y = luaL_checknumber(L, 3);
 		break;
 	default:
 		lua_rawset(L, 1);
 		break;
 	}
-
+	
 	return 0;
 }
 

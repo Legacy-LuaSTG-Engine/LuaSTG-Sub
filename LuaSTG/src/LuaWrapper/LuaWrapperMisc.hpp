@@ -3,7 +3,7 @@
 #include "ResourceBase.hpp"
 #include "ResourceFont.hpp"
 #include "ResourceParticle.hpp"
-#include "LuaWrapper/LuaStringToEnum.hpp"
+#include "LuaWrapper/lua_luastg_hash.hpp"
 
 namespace LuaSTGPlus
 {
@@ -67,21 +67,23 @@ namespace LuaSTGPlus
 		lua_pop(L, 1);						// ... t s t		//清理
 		lua_settable(L, -3);				// ... t			//把静态方法塞进栈顶
 	}
-
+	
 	//翻译字符串到混合模式
-	static inline BlendMode TranslateBlendMode(lua_State* L, int argnum)
+	inline BlendMode TranslateBlendMode(lua_State* L, int argnum)
 	{
-		const char* key = luaL_checkstring(L, argnum);
-		if (strcmp(key, "") == 0 || strcmp(key, "mul+alpha") == 0)
+		size_t len = 0;
+		const char* key = luaL_checklstring(L, argnum, &len);
+		if (len == 0 || strcmp(key, "mul+alpha") == 0) {
 			return BlendMode::MulAlpha;
-		BlendMode mode = Xrysnow::BlendModeHash(L, argnum);
+		}
+		BlendMode mode = static_cast<BlendMode>(LuaSTG::MapBlendModeX(key));
 		if (mode == BlendMode::_KEY_NOT_FOUND) {
 			luaL_error(L, "invalid blend mode '%s'.", key);
 			return BlendMode::MulAlpha;
 		}
 		return mode;
 	}
-
+	
 	//翻译混合模式回到lua string
 	static inline int TranslateBlendModeToString(lua_State* L, BlendMode blendmode) {
 		static const char* sc_sblendmodes[] = {

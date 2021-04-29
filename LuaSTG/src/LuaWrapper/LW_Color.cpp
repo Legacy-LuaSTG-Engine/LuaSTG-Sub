@@ -1,4 +1,5 @@
 ﻿#include "LuaWrapper/LuaWrapper.hpp"
+#include "LuaWrapper/lua_luastg_hash.hpp"
 
 #ifdef min
 #undef min
@@ -48,7 +49,7 @@ namespace LuaSTGPlus
 			v *= 100.0f;
 			return { h, s, v };
 		}
-
+		
 		fcyColor ColorWrapper::HSV2RGB(const HSVColor& hsv)LNOEXCEPT {
 			float h = hsv.hue, s = hsv.saturation, v = hsv.value;
 			h -= std::floorf((h / 360.0f)) * 360.0f;
@@ -81,7 +82,7 @@ namespace LuaSTGPlus
 				return fcyColor(0);
 			}
 		}
-
+		
 		void ColorWrapper::Register(lua_State* L)LNOEXCEPT {
 			struct Function {
 #define _GETUDATA(i) static_cast<fcyColor*>(luaL_checkudata(L, (i), LUASTG_LUA_TYPENAME_COLOR));
@@ -143,36 +144,37 @@ namespace LuaSTGPlus
 				{
 					GETUDATA(p, 1);
 					GETUDATAHSV(q, 1);
-					switch (Xrysnow::ColorWrapperPropertyHash(L, 2))
+					const char* key = luaL_checkstring(L, 2);
+					switch (LuaSTG::MapColorMember(key))
 					{
-					case Xrysnow::ColorWrapperProperty::m_a:
+					case LuaSTG::ColorMember::m_a:
 						lua_pushinteger(L, (lua_Integer)p->a);
 						break;
-					case Xrysnow::ColorWrapperProperty::m_r:
+					case LuaSTG::ColorMember::m_r:
 						lua_pushinteger(L, (lua_Integer)p->r);
 						break;
-					case Xrysnow::ColorWrapperProperty::m_g:
+					case LuaSTG::ColorMember::m_g:
 						lua_pushinteger(L, (lua_Integer)p->g);
 						break;
-					case Xrysnow::ColorWrapperProperty::m_b:
+					case LuaSTG::ColorMember::m_b:
 						lua_pushinteger(L, (lua_Integer)p->b);
 						break;
-					case Xrysnow::ColorWrapperProperty::m_argb:
+					case LuaSTG::ColorMember::m_argb:
 						lua_pushnumber(L, (lua_Number)p->argb);
 						break;
-					case Xrysnow::ColorWrapperProperty::m_h:
+					case LuaSTG::ColorMember::m_h:
 						lua_pushnumber(L, (lua_Number)q->hue);
 						break;
-					case Xrysnow::ColorWrapperProperty::m_s:
+					case LuaSTG::ColorMember::m_s:
 						lua_pushnumber(L, (lua_Number)q->saturation);
 						break;
-					case Xrysnow::ColorWrapperProperty::m_v:
+					case LuaSTG::ColorMember::m_v:
 						lua_pushnumber(L, (lua_Number)q->value);
 						break;
-					case Xrysnow::ColorWrapperProperty::f_ARGB:
+					case LuaSTG::ColorMember::f_ARGB:
 						lua_pushcfunction(L, ARGB);
 						break;
-					case Xrysnow::ColorWrapperProperty::f_AHSV:
+					case LuaSTG::ColorMember::f_AHSV:
 						lua_pushcfunction(L, AHSV);
 						break;
 					default:
@@ -185,38 +187,39 @@ namespace LuaSTGPlus
 					GETUDATA(p, 1);
 					GETUDATAHSV(q, 1);
 					fByte olda = p->a;
-					switch (Xrysnow::ColorWrapperPropertyHash(L, 2))
+					const char* key = luaL_checkstring(L, 2);
+					switch (LuaSTG::MapColorMember(key))
 					{
-					case Xrysnow::ColorWrapperProperty::m_a:
+					case LuaSTG::ColorMember::m_a:
 						p->a = (fByte)std::clamp<fInt>(luaL_checkinteger(L, 3), 0, 255);
 						break;
-					case Xrysnow::ColorWrapperProperty::m_r:
+					case LuaSTG::ColorMember::m_r:
 						p->r = (fByte)std::clamp<fInt>(luaL_checkinteger(L, 3), 0, 255);
 						*q = RGB2HSV(*p);
 						break;
-					case Xrysnow::ColorWrapperProperty::m_g:
+					case LuaSTG::ColorMember::m_g:
 						p->g = (fByte)std::clamp<fInt>(luaL_checkinteger(L, 3), 0, 255);
 						*q = RGB2HSV(*p);
 						break;
-					case Xrysnow::ColorWrapperProperty::m_b:
+					case LuaSTG::ColorMember::m_b:
 						p->b = (fByte)std::clamp<fInt>(luaL_checkinteger(L, 3), 0, 255);
 						*q = RGB2HSV(*p);
 						break;
-					case Xrysnow::ColorWrapperProperty::m_argb:
+					case LuaSTG::ColorMember::m_argb:
 						p->argb = (fuInt)luaL_checknumber(L, 3);
 						*q = RGB2HSV(*p);
 						break;
-					case Xrysnow::ColorWrapperProperty::m_h:
+					case LuaSTG::ColorMember::m_h:
 						q->hue = (float)luaL_checknumber(L, 3); // any angle
 						*p = HSV2RGB(*q);
 						p->a = olda;
 						break;
-					case Xrysnow::ColorWrapperProperty::m_s:
+					case LuaSTG::ColorMember::m_s:
 						q->saturation = (float)std::clamp(luaL_checknumber(L, 3), 0.0, 100.0);
 						*p = HSV2RGB(*q);
 						p->a = olda;
 						break;
-					case Xrysnow::ColorWrapperProperty::m_v:
+					case LuaSTG::ColorMember::m_v:
 						q->value = (float)std::clamp(luaL_checknumber(L, 3), 0.0, 100.0);
 						*p = HSV2RGB(*q);
 						p->a = olda;

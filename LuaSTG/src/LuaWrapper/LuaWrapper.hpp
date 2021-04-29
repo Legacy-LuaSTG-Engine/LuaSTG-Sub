@@ -1,9 +1,8 @@
 ﻿/// @file LuaWrapper.h
 /// @brief lua包装层 用于导出C++函数和类
 #pragma once
-#include "LuaWrapper/LuaWrapperMisc.hpp"
-#include "LuaWrapper/LuaStringToEnum.hpp"
 #include "AppFrame.h"
+#include "LuaWrapper/LuaWrapperMisc.hpp"
 
 #define LUASTG_LUA_LIBNAME "lstg"
 

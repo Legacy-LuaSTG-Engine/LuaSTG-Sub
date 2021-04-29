@@ -5,7 +5,6 @@
 #include "LuaWrapper/LuaWrapper.hpp"
 #include "LuaWrapper/LW_SteamAPI.h"
 #include "LuaWrapper/LuaCustomLoader.hpp"
-#include "LuaWrapper/LuaStringToEnum.hpp"
 #include "LuaWrapper/LuaInternalSource.hpp"
 
 namespace LuaSTGPlus
@@ -268,7 +267,6 @@ namespace LuaSTGPlus
             //luaopen_cjson(L);  // CJSON库 (json)
             lua_settop(L, 0);// 不知道为什么弄了6个table在栈顶……
             RegistBuiltInClassWrapper(L);  // 注册内建类 (luastg lib)
-            Xrysnow::InitStringToEnumHash(L); // 准备属性hash
             
             // 设置命令行参数
             spdlog::info(u8"[luajit] 储存命令行参数");
