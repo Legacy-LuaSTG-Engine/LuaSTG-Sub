@@ -736,6 +736,8 @@ fcyVec2 f2dFontRendererImpl::MeasureTextAdvanceU8(fcStr Text, fuInt Count)
 		}
 	}
 	
+	tPos.x *= m_Scale.x;
+	tPos.y *= m_Scale.y;
 	return tPos;
 }
 
