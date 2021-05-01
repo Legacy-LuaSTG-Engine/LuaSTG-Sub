@@ -108,162 +108,6 @@ uint64_t lua_to_uint64(lua_State* L, const int n, const char* name)
     return (a << 48) | (b << 32) | (c << 16) | d;
 };
 
-class SteamCallbackWrapper
-{
-public:
-    static const int ID = 0;
-    static const int STEAM = 0;
-    static bool Installed;
-public:
-    lua_State* L;
-private:
-    uint32 _appid;
-private:
-    #define MYCALLBACK(_T) STEAM_CALLBACK(SteamCallbackWrapper, On##_T, _T##_t)
-    //MYCALLBACK(GlobalAchievementPercentagesReady);
-    //MYCALLBACK(GlobalStatsReceived);
-    //MYCALLBACK(LeaderboardFindResult);
-    //MYCALLBACK(LeaderboardScoresDownloaded);
-    //MYCALLBACK(LeaderboardScoreUploaded);
-    //MYCALLBACK(LeaderboardUGCSet);
-    MYCALLBACK(NumberOfCurrentPlayers);
-    //MYCALLBACK(UserAchievementIconFetched);
-    MYCALLBACK(UserAchievementStored);
-    MYCALLBACK(UserStatsReceived);
-    MYCALLBACK(UserStatsStored);
-    MYCALLBACK(UserStatsUnloaded);
-    #undef MYCALLBACK
-public:
-    static int CommonCallback(lua_State* _)
-    {
-        (void)_;
-        return 0;
-    };
-    static int xRegister(lua_State* L)
-    {
-        static const luaL_Reg lib[] = {
-            {"OnNumberOfCurrentPlayers", &CommonCallback},
-            {"OnUserAchievementStored", &CommonCallback},
-            {"OnUserStatsReceived", &CommonCallback},
-            {"OnUserStatsStored", &CommonCallback},
-            {"OnUserStatsUnloaded", &CommonCallback},
-            {NULL, NULL},
-        };
-        luaL_register(L, NULL, lib);
-        return 0;
-    };
-public:
-    SteamCallbackWrapper() : L(NULL)
-    {
-        _appid = SteamUtils()->GetAppID();
-    };
-    ~SteamCallbackWrapper() {};
-};
-bool SteamCallbackWrapper::Installed = false;
-#define MYFUNCTION(_T) void SteamCallbackWrapper::On##_T (_T##_t* pParam)
-MYFUNCTION(NumberOfCurrentPlayers)
-{
-    if (L)
-    {
-        lua_pushlightuserdata(L, (void*)&STEAM);                            // ? p
-        lua_gettable(L, LUA_REGISTRYINDEX);                                 // ? t
-        lua_getfield(L, -1, "OnNumberOfCurrentPlayers");                    // ? t f
-        if (lua_isfunction(L, -1) || lua_iscfunction(L, -1))
-        {
-            lua_createtable(L, 0, 2);                                       // ? t f a
-            lua_pushinteger(L, pParam->m_bSuccess);                         // ? t f a i
-            lua_setfield(L, -2, "m_bSuccess");                              // ? t f a
-            lua_pushinteger(L, pParam->m_cPlayers);                         // ? t f a i
-            lua_setfield(L, -2, "m_cPlayers");                              // ? t f a
-            lua_call(L, 1, 0);                                              // ? t
-        }
-        lua_pop(L, 1);                                                      // ?
-    }
-};
-MYFUNCTION(UserAchievementStored)
-{
-    if (L)
-    {
-        lua_pushlightuserdata(L, (void*)&STEAM);                            // ? p
-        lua_gettable(L, LUA_REGISTRYINDEX);                                 // ? t
-        lua_getfield(L, -1, "OnUserAchievementStored");                     // ? t f
-        if (lua_isfunction(L, -1) || lua_iscfunction(L, -1))
-        {
-            lua_createtable(L, 0, 5);                                       // ? t f a
-            lua_push_uint64(L, pParam->m_nGameID);                          // ? t f a i
-            lua_setfield(L, -2, "m_nGameID");                               // ? t f a
-            lua_pushboolean(L, pParam->m_bGroupAchievement);                // ? t f a b
-            lua_setfield(L, -2, "m_bGroupAchievement");                     // ? t f a
-            lua_pushstring(L, pParam->m_rgchAchievementName);               // ? t f a s
-            lua_setfield(L, -2, "m_rgchAchievementName");                   // ? t f a
-            lua_push_uint32(L, pParam->m_nCurProgress);                     // ? t f a u
-            lua_setfield(L, -2, "m_nCurProgress");                          // ? t f a
-            lua_push_uint32(L, pParam->m_nMaxProgress);                     // ? t f a u
-            lua_setfield(L, -2, "m_nMaxProgress");                          // ? t f a
-            lua_call(L, 1, 0);                                              // ? t
-        }
-        lua_pop(L, 1);                                                      // ?
-    }
-};
-MYFUNCTION(UserStatsReceived)
-{
-    if (L)
-    {
-        lua_pushlightuserdata(L, (void*)&STEAM);                            // ? p
-        lua_gettable(L, LUA_REGISTRYINDEX);                                 // ? t
-        lua_getfield(L, -1, "OnUserStatsReceived");                         // ? t f
-        if (lua_isfunction(L, -1) || lua_iscfunction(L, -1))
-        {
-            lua_createtable(L, 0, 3);                                       // ? t f a
-            lua_push_uint64(L, pParam->m_nGameID);                          // ? t f a i
-            lua_setfield(L, -2, "m_nGameID");                               // ? t f a
-            lua_pushinteger(L, (lua_Integer)pParam->m_eResult);             // ? t f a i
-            lua_setfield(L, -2, "m_eResult");                               // ? t f a
-            lua_push_uint64(L, pParam->m_steamIDUser.ConvertToUint64());    // ? t f a i
-            lua_setfield(L, -2, "m_steamIDUser");                           // ? t f a
-            lua_call(L, 1, 0);                                              // ? t
-        }
-        lua_pop(L, 1);                                                      // ?
-    }
-};
-MYFUNCTION(UserStatsStored)
-{
-    if (L)
-    {
-        lua_pushlightuserdata(L, (void*)&STEAM);                            // ? p
-        lua_gettable(L, LUA_REGISTRYINDEX);                                 // ? t
-        lua_getfield(L, -1, "OnUserStatsStored");                           // ? t f
-        if (lua_isfunction(L, -1) || lua_iscfunction(L, -1))
-        {
-            lua_createtable(L, 0, 2);                                       // ? t f a
-            lua_push_uint64(L, pParam->m_nGameID);                          // ? t f a i
-            lua_setfield(L, -2, "m_nGameID");                               // ? t f a
-            lua_pushinteger(L, (lua_Integer)pParam->m_eResult);             // ? t f a i
-            lua_setfield(L, -2, "m_eResult");                               // ? t f a
-            lua_call(L, 1, 0);                                              // ? t
-        }
-        lua_pop(L, 1);                                                      // ?
-    }
-};
-MYFUNCTION(UserStatsUnloaded)
-{
-    if (L)
-    {
-        lua_pushlightuserdata(L, (void*)&STEAM);                            // ? p
-        lua_gettable(L, LUA_REGISTRYINDEX);                                 // ? t
-        lua_getfield(L, -1, "OnUserStatsUnloaded");                         // ? t f
-        if (lua_isfunction(L, -1) || lua_iscfunction(L, -1))
-        {
-            lua_createtable(L, 0, 1);                                       // ? t f a
-            lua_push_uint64(L, pParam->m_steamIDUser.ConvertToUint64());    // ? t f a i
-            lua_setfield(L, -2, "m_steamIDUser");                           // ? t f a
-            lua_call(L, 1, 0);                                              // ? t
-        }
-        lua_pop(L, 1);                                                      // ?
-    }
-};
-#undef MYFUNCTION
-
 #define lua_push_to_uin64_t(_T)\
     inline int lua_push_##_T (lua_State* L, const _T v) { return lua_push_uint64(L, (uint64_t)v); };\
     inline _T lua_to_##_T (lua_State* L, const int n) { return (_T)lua_to_uint64(L, n, #_T); };
@@ -277,88 +121,10 @@ lua_push_to_uin64_t(InputHandle_t);
 
 #define xfbinding(_X) { #_X , & _X }
 
-struct xSteamAPI
-{
-    static int RestartAppIfNecessary(lua_State* L)
-    {
-        const uint32_t unOwnAppID = lua_to_uint32(L, 1);
-        const bool ret = SteamAPI_RestartAppIfNecessary(unOwnAppID);
-        lua_pushboolean(L, ret);
-        return 1;
-    };
-    static int Init(lua_State* L)
-    {
-        const bool ret = SteamAPI_Init();
-        if (ret && !SteamCallbackWrapper::Installed)
-        {
-            SteamCallbackWrapper* udata = new SteamCallbackWrapper;
-            lua_pushlightuserdata(L, (void*)&SteamCallbackWrapper::ID);
-            lua_pushlightuserdata(L, udata);
-            lua_settable(L, LUA_REGISTRYINDEX);
-            SteamCallbackWrapper::Installed = true;
-        }
-        lua_pushboolean(L, ret);
-        return 1;
-    };
-    static int Shutdown(lua_State* L)
-    {
-        if (SteamCallbackWrapper::Installed)
-        {
-            lua_pushlightuserdata(L, (void*)&SteamCallbackWrapper::ID);
-            lua_gettable(L, LUA_REGISTRYINDEX);
-            if (lua_islightuserdata(L, -1))
-            {
-                SteamCallbackWrapper* udata = (SteamCallbackWrapper*)lua_touserdata(L, -1);
-                delete udata;
-            }
-            lua_pop(L, 1);
-            lua_pushlightuserdata(L, (void*)&SteamCallbackWrapper::ID);
-            lua_pushnil(L);
-            lua_settable(L, LUA_REGISTRYINDEX);
-            SteamCallbackWrapper::Installed = false;
-        }
-        SteamAPI_Shutdown();
-        return 0;
-    };
-    static int RunCallbacks(lua_State* L)
-    {
-        SteamCallbackWrapper* cb = NULL;
-        lua_pushlightuserdata(L, (void*)&SteamCallbackWrapper::ID);
-        lua_gettable(L, LUA_REGISTRYINDEX);
-        if (lua_islightuserdata(L, -1))
-            cb = (SteamCallbackWrapper*)lua_touserdata(L, -1);
-        lua_pop(L, 1);
-        if (cb)
-            cb->L = L;
-        SteamAPI_RunCallbacks();
-        if (cb)
-            cb->L = NULL;
-        return 0;
-    };
-    static int ReleaseCurrentThreadMemory(lua_State* L)
-    {
-        SteamAPI_ReleaseCurrentThreadMemory();
-        return 0;
-    };
-    
-    static int xRegister(lua_State* L)
-    {
-        static const luaL_Reg lib[] = {
-            xfbinding(RestartAppIfNecessary),
-            xfbinding(Init),
-            xfbinding(Shutdown),
-            xfbinding(RunCallbacks),
-            xfbinding(ReleaseCurrentThreadMemory),
-            {NULL, NULL},
-        };
-        lua_pushstring(L, "SteamAPI");
-        lua_createtable(L, 0, 5);
-        luaL_register(L, NULL, lib);
-        lua_settable(L, -3);
-        return 0;
-    };
-};
+static void* xSteamLuaKey = nullptr;
 
+#include "lua_steam_SteamCallbackWrapper.inl"
+#include "lua_steam_SteamAPI.inl"
 #include "lua_steam_SteamInput.inl"
 #include "lua_steam_SteamUserStats.inl"
 
@@ -368,11 +134,13 @@ bool lua_steam_check(uint32_t appid)
 }
 int lua_steam_open(lua_State* L)
 {
+    // create and register steam lib
     const luaL_Reg lib[] = {{NULL, NULL}};
-    luaL_register(L, "steam", lib);
-    lua_pushlightuserdata(L, (void*)&SteamCallbackWrapper::STEAM);
-    lua_pushvalue(L, -2);
-    lua_settable(L, LUA_REGISTRYINDEX);
+    luaL_register(L, "steam", lib);         // t
+    lua_pushlightuserdata(L, xSteamLuaKey); // t k
+    lua_pushvalue(L, -2);                   // t k t
+    lua_settable(L, LUA_REGISTRYINDEX);     // t
+    // register steam modules
     SteamCallbackWrapper::xRegister(L);
     xSteamAPI::xRegister(L);
     xSteamInput::xRegister(L);

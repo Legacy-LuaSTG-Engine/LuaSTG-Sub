@@ -7,11 +7,17 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/public/steam AND EXISTS 
         SteamworksSDK/sdk/public/steam
     )
     if(NOT platform_amd64)
+        target_link_directories(steam_api INTERFACE
+            ${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin
+        )
         set_target_properties(steam_api PROPERTIES
             IMPORTED_LOCATION           ${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin/steam_api.dll
             IMPORTED_IMPLIB             ${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin/steam_api.lib
         )
     else()
+        target_link_directories(steam_api INTERFACE
+            ${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin/win64
+        )
         set_target_properties(steam_api PROPERTIES
             IMPORTED_LOCATION           ${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin/win64/steam_api64.dll
             IMPORTED_IMPLIB             ${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin/win64/steam_api64.lib
@@ -42,6 +48,8 @@ target_sources(lua_steam_api PRIVATE
 )
 if(TARGET steam_api)
     target_sources(lua_steam_api PRIVATE
+        binding/lua_steam_SteamCallbackWrapper.inl
+        binding/lua_steam_SteamAPI.inl
         binding/lua_steam_SteamInput.inl
         binding/lua_steam_SteamUserStats.inl
         binding/lua_steam.cpp
