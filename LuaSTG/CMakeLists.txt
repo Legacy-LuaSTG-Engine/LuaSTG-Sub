@@ -50,6 +50,7 @@ aux_source_directory(../Common COMMON_SRC)
 aux_source_directory(src LUASTG_SRC)
 aux_source_directory(src/Resource LUASTG_SRC_RES)
 aux_source_directory(src/LuaWrapper LUASTG_SRC_LW)
+aux_source_directory(src/SteamAPI LUASTG_SRC_STEAMAPI)
 aux_source_directory(${LUASTG_RESDIR} LUASTG_RES)
 
 target_sources(LuaSTG PRIVATE
@@ -59,6 +60,7 @@ target_sources(LuaSTG PRIVATE
     ${LUASTG_SRC}
     ${LUASTG_SRC_RES}
     ${LUASTG_SRC_LW}
+    ${LUASTG_SRC_STEAMAPI}
     ${LUASTG_RES}
     
     src/LuaSTG.manifest
@@ -101,7 +103,7 @@ target_link_libraries(LuaSTG PRIVATE
     imgui
     lua_imgui
 )
-if (DEFINED LUASTG_USING_STEAM_API)
+if (TARGET steam_api)
     target_link_libraries(LuaSTG PRIVATE
         steam_api
     )

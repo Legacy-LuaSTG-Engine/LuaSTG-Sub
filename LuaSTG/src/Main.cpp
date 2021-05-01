@@ -1,6 +1,6 @@
 ﻿#include "AppFrame.h"
 #include "Utility.h"
-#include "SteamAPI.hpp"
+#include "SteamAPI/SteamAPI.hpp"
 #include "LLogger.hpp"
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int)

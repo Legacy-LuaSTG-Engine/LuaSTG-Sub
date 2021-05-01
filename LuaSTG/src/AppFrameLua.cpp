@@ -2,10 +2,10 @@
 #include "StringFormat.hpp"
 #include "ResourcePassword.hpp"
 #include "LuaWrapper/LuaAppFrame.hpp"
-#include "LuaWrapper/LuaWrapper.hpp"
-#include "LuaWrapper/LW_SteamAPI.h"
 #include "LuaWrapper/LuaCustomLoader.hpp"
 #include "LuaWrapper/LuaInternalSource.hpp"
+#include "LuaWrapper/LuaWrapper.hpp"
+#include "SteamAPI/LW_SteamAPI.h"
 
 namespace LuaSTGPlus
 {
