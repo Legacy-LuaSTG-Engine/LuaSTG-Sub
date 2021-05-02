@@ -137,7 +137,7 @@ int lua_steam_open(lua_State* L)
     // create and register steam lib
     const luaL_Reg lib[] = {{NULL, NULL}};
     luaL_register(L, "steam", lib);         // t
-    lua_pushlightuserdata(L, xSteamLuaKey); // t k
+    lua_pushlightuserdata(L, &xSteamLuaKey); // t k
     lua_pushvalue(L, -2);                   // t k t
     lua_settable(L, LUA_REGISTRYINDEX);     // t
     // register steam modules

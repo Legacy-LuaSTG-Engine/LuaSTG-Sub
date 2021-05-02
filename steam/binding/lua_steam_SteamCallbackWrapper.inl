@@ -3,9 +3,10 @@ class SteamCallbackWrapper
 {
 public:
     static const char NAME[];
+    static const char MEMBER_NAME[];
 private:
-    lua_State* L;
-    uint32 _appid;
+    lua_State* L = NULL;
+    uint32 _appid = 0;
     struct UserDataHandle
     {
         SteamCallbackWrapper* data;
@@ -37,21 +38,21 @@ public:
         return 0;
     };
     
-    int xRunCallbacks(lua_State* L2)
+    int xRunCallbacks(lua_State* L)
     {
-        lua_pushlightuserdata(L, xSteamLuaKey); // ... k
-        lua_gettable(L, LUA_REGISTRYINDEX);     // ... t
-        L = L2;
+        lua_pushlightuserdata(L, &xSteamLuaKey); // ... k
+        lua_gettable(L, LUA_REGISTRYINDEX);      // ... t
+        this->L = L;
         SteamAPI_RunCallbacks();
-        L = NULL;
-        lua_pop(L, 1);                          // ...
+        this->L = NULL;
+        lua_pop(L, 1);                           // ...
         return 0;
     };
     
     static int xRegister(lua_State* L)
     {
         static const luaL_Reg mt[] = {
-            {"__gc", &__gc},
+            xfbinding(__gc),
             {NULL, NULL},
         };
         luaL_newmetatable(L, NAME);   // ... t mt
@@ -98,7 +99,7 @@ public:
         return self->data;
     };
 public:
-    SteamCallbackWrapper() : L(NULL)
+    SteamCallbackWrapper()
     {
         _appid = SteamUtils()->GetAppID();
     };
@@ -106,6 +107,7 @@ public:
 };
 
 const char SteamCallbackWrapper::NAME[] = "steam.SteamCallbackWrapper";
+const char SteamCallbackWrapper::MEMBER_NAME[] = "SteamCallbackWrapper";
 
 #define MYFUNCTION(_T) void SteamCallbackWrapper::On##_T (_T##_t* pParam)
 MYFUNCTION(NumberOfCurrentPlayers)

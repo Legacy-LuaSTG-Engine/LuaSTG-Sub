@@ -102,12 +102,8 @@ target_link_libraries(LuaSTG PRIVATE
     luajit
     imgui
     lua_imgui
+    lua_steam_api
 )
-if (TARGET steam_api)
-    target_link_libraries(LuaSTG PRIVATE
-        steam_api
-    )
-endif()
 
 add_custom_command(TARGET LuaSTG POST_BUILD
     # output dir

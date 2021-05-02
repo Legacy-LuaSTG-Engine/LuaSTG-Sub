@@ -21,15 +21,16 @@ struct xSteamAPI
     };
     static int RunCallbacks(lua_State* L)
     {
-        lua_pushlightuserdata(L, xSteamLuaKey);         // k
-        lua_gettable(L, LUA_REGISTRYINDEX);             // t
-        lua_getfield(L, 1, "SteamCallbackWrapper");     // t ?
+        const char* M_NAME = SteamCallbackWrapper::MEMBER_NAME;
+        lua_pushlightuserdata(L, &xSteamLuaKey); // k
+        lua_gettable(L, LUA_REGISTRYINDEX);      // t
+        lua_getfield(L, 1, M_NAME);              // t ?
         if (!lua_isuserdata(L, 2))
         { 
-            lua_pop(L, 1);                              // t
-            SteamCallbackWrapper::xCreate(L);           // t c
-            lua_pushvalue(L, 2);                        // t c c
-            lua_setfield(L, 1, "SteamCallbackWrapper"); // t c
+            lua_pop(L, 1);                       // t
+            SteamCallbackWrapper::xCreate(L);    // t c
+            lua_pushvalue(L, 2);                 // t c c
+            lua_setfield(L, 1, M_NAME);          // t c
         }
         SteamCallbackWrapper* self = SteamCallbackWrapper::xCast(L, 2);
         if (self)

@@ -5,7 +5,7 @@
 #include "LuaWrapper/LuaCustomLoader.hpp"
 #include "LuaWrapper/LuaInternalSource.hpp"
 #include "LuaWrapper/LuaWrapper.hpp"
-#include "SteamAPI/LW_SteamAPI.h"
+#include "lua_steam.h"
 
 namespace LuaSTGPlus
 {
@@ -262,11 +262,11 @@ namespace LuaSTGPlus
                 return false;
             }
             
-            luaopen_steam(L); // Steam API
             //luaopen_lfs(L);  // 文件系统库 (file system)
             //luaopen_cjson(L);  // CJSON库 (json)
-            lua_settop(L, 0);// 不知道为什么弄了6个table在栈顶……
+            lua_steam_open(L); // Steam API
             RegistBuiltInClassWrapper(L);  // 注册内建类 (luastg lib)
+            lua_settop(L, 0);
             
             // 设置命令行参数
             spdlog::info(u8"[luajit] 储存命令行参数");

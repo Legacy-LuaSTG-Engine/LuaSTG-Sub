@@ -47,6 +47,9 @@ target_sources(lua_steam_api PRIVATE
     binding/lua_steam.h
 )
 if(TARGET steam_api)
+    target_compile_definitions(lua_steam_api PUBLIC
+        HAVE_STEAM_API
+    )
     target_sources(lua_steam_api PRIVATE
         binding/lua_steam_SteamCallbackWrapper.inl
         binding/lua_steam_SteamAPI.inl
@@ -54,13 +57,15 @@ if(TARGET steam_api)
         binding/lua_steam_SteamUserStats.inl
         binding/lua_steam.cpp
     )
+    target_link_libraries(lua_steam_api PUBLIC
+        steam_api
+    )
 else()
     target_sources(lua_steam_api PRIVATE
         binding/lua_steam_empty.cpp
     )
 endif()
 target_link_libraries(lua_steam_api PUBLIC
-    steam_api
     luajit
 )
 
