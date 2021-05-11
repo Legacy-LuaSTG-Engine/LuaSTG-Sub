@@ -21,3 +21,5 @@ option(SPDLOG_SANITIZE_ADDRESS "Enable address sanitizer in tests" ON)
 option(SPDLOG_WCHAR_FILENAMES "Support wchar filenames" ON)
 option(SPDLOG_DISABLE_DEFAULT_LOGGER "Disable default logger creation" ON)
 add_subdirectory(spdlog)
+
+add_subdirectory(pugixml)
