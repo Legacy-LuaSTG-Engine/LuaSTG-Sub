@@ -6,11 +6,16 @@
 #pragma once
 
 // 导出函数定义
-#ifdef F2DEXPORT
-#define F2DDLLFUNC __declspec(dllexport)
+#ifdef F2DDLL
+	#define F2DEXTERNC extern "C"
+	#ifdef F2DEXPORT
+		#define F2DDLLFUNC __declspec(dllexport)
+	#else
+		#define F2DDLLFUNC __declspec(dllimport)
+	#endif
 #else
-/// @brief F2DDLL导入函数
-#define F2DDLLFUNC __declspec(dllimport)
+	#define F2DEXTERNC
+	#define F2DDLLFUNC
 #endif
 
 #include "f2dEngine.h"
@@ -36,7 +41,7 @@ struct f2dInitialErrListener
 /// @param[in]  pListener            可空，用来设置引擎监听器。
 /// @param[out] pOut                 输出的引擎指针
 /// @param[in]  pErrListener         可空，初始化错误回调。
-extern "C" fResult F2DDLLFUNC CreateF2DEngine(
+F2DEXTERNC fResult F2DDLLFUNC CreateF2DEngine(
 	fuInt Version,
 	f2dEngineEventListener* pListener,
 	f2dEngine** pOut,
@@ -52,7 +57,7 @@ extern "C" fResult F2DDLLFUNC CreateF2DEngine(
 /// @param[in]  pListener            可空，用来设置引擎监听器。
 /// @param[out] pOut                 输出的引擎指针
 /// @param[in]  pErrListener         可空，初始化错误回调。
-extern "C" fResult F2DDLLFUNC CreateF2DEngineAndInit(
+F2DEXTERNC fResult F2DDLLFUNC CreateF2DEngineAndInit(
 	fuInt Version, 
 	const fcyRect& WinPos, 
 	fcStrW Title, 

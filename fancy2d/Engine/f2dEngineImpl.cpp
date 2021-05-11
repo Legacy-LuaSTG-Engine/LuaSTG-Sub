@@ -8,14 +8,13 @@
 #include "fcyOS/fcyDebug.h"
 #include "fcyOS/fcyCPUID.h"
 
-#define F2DEXPORT
 #include "f2d.h"
 
 using namespace std;
 
 ////////////////////////////////////////////////////////////////////////////////
 // 导出函数
-extern "C" fResult F2DDLLFUNC CreateF2DEngine(fuInt Version, f2dEngineEventListener* pListener, f2dEngine** pOut, f2dInitialErrListener* pErrListener)
+F2DEXTERNC fResult F2DDLLFUNC CreateF2DEngine(fuInt Version, f2dEngineEventListener* pListener, f2dEngine** pOut, f2dInitialErrListener* pErrListener)
 {
 	if(!pOut)
 		return FCYERR_ILLEGAL;
@@ -39,7 +38,7 @@ extern "C" fResult F2DDLLFUNC CreateF2DEngine(fuInt Version, f2dEngineEventListe
 	return FCYERR_OK;
 }
 
-extern "C" fResult F2DDLLFUNC CreateF2DEngineAndInit(fuInt Version, const fcyRect& WinPos, fcStrW Title, fBool Windowed, fBool VSync, F2DAALEVEL AA, f2dEngineEventListener* pListener, f2dEngine** pOut, f2dInitialErrListener* pErrListener)
+F2DEXTERNC fResult F2DDLLFUNC CreateF2DEngineAndInit(fuInt Version, const fcyRect& WinPos, fcStrW Title, fBool Windowed, fBool VSync, F2DAALEVEL AA, f2dEngineEventListener* pListener, f2dEngine** pOut, f2dInitialErrListener* pErrListener)
 {
 	if(!pOut)
 		return FCYERR_ILLEGAL;

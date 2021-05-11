@@ -490,6 +490,7 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 	
 	// 处理消息
 	f2dMsg tMsg;
+	bool bResetDevice = false;
 	bool bUpdateDevice = false;
 	while (FCYOK(pMsgPump->GetMsg(&tMsg)))
 	{
@@ -503,10 +504,7 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 		{
 			resetKeyStatus(); // clear input status
 			m_pInputSys->Reset(); // clear input status
-			if (m_DirectInput.get())
-			{
-				m_DirectInput->reset();
-			}
+			bResetDevice = true;
 			if (m_LastInputTextEnable)
 			{
 				m_InputTextEnable = true;
@@ -526,10 +524,7 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 			m_InputTextEnable = false;
 			resetKeyStatus(); // clear input status
 			m_pInputSys->Reset(); // clear input status
-			if (m_DirectInput.get())
-			{
-				m_DirectInput->reset();
-			}
+			bResetDevice = true;
 			
 			lua_pushinteger(L, (lua_Integer)LuaSTG::LuaEngine::EngineEvent::WindowActive);
 			lua_pushboolean(L, false);
@@ -617,12 +612,11 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 			break;
 		}
 	}
-	if (bUpdateDevice)
+	
+	if (m_DirectInput.get())
 	{
-		if (m_DirectInput.get())
-		{
-			m_DirectInput->refresh();
-		}
+		if (bResetDevice) m_DirectInput->reset();
+		if (bUpdateDevice) m_DirectInput->refresh();
 	}
 	
 	if (!slow::Graphic::_update())

@@ -46,7 +46,7 @@ target_include_directories(lua_steam_api PUBLIC
 target_sources(lua_steam_api PRIVATE
     binding/lua_steam.h
 )
-if(TARGET steam_api)
+if(LINK_STEAM_API AND (TARGET steam_api))
     target_compile_definitions(lua_steam_api PUBLIC
         HAVE_STEAM_API
     )
@@ -60,10 +60,12 @@ if(TARGET steam_api)
     target_link_libraries(lua_steam_api PUBLIC
         steam_api
     )
+    message("Link Steamworks SDK")
 else()
     target_sources(lua_steam_api PRIVATE
         binding/lua_steam_empty.cpp
     )
+    message("Ignore Steamworks SDK")
 endif()
 target_link_libraries(lua_steam_api PUBLIC
     luajit

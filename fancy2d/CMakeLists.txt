@@ -1,38 +1,9 @@
-add_library(fancy2d SHARED)
+# 源文件
 
-set_target_properties(fancy2d PROPERTIES
-    C_STANDARD 11
-    C_STANDARD_REQUIRED ON
-    CXX_STANDARD 17
-    CXX_STANDARD_REQUIRED ON
-)
-target_compile_options(fancy2d PUBLIC
-    "/utf-8"
-    "/MP"
-)
-if(NOT platform_amd64)
-    target_compile_options(fancy2d PUBLIC
-        "/arch:SSE2"
-    )
-endif()
-
-target_compile_definitions(fancy2d PRIVATE
-    UNICODE
-    _UNICODE
-    # USING_D3D11_BACKEND
-)
-
-target_include_directories(fancy2d PUBLIC
-    .
-)
-target_include_directories(fancy2d PRIVATE
-    ../
-)
-
-target_sources(fancy2d PRIVATE
+set(FANCY2D_SOURCE
     f2d.h
     f2dInterface.h
-    
+
     f2dEngine.h
     f2dFileSys.h
     f2dWindow.h
@@ -41,16 +12,16 @@ target_sources(fancy2d PRIVATE
     f2dRenderDevice.h
     f2dRenderer.h
     f2dVideoSys.h
-    
+
     Common/fancy2d.manifest
-    
+
     ../Common/DPIHelper.hpp
     ../Common/DPIHelper.cpp
     Common/f2dStandardCommon.hpp
     Common/f2dStandardCommon.cpp
     Common/f2dWindowsCommon.h
     Common/f2dWindowsCommon.cpp
-    
+
     Engine/f2dMsgPumpImpl.h
     Engine/f2dFPSControllerImpl.h
     Engine/f2dEngineImpl.h
@@ -62,7 +33,7 @@ target_sources(fancy2d PRIVATE
     Engine/f2dWindowImpl.cpp
     Engine/f2dMonitorHelper.h
     Engine/f2dMonitorHelper.cpp
-    
+
     Input/f2dInputSysImpl.h
     Input/f2dInputSysImpl.cpp
     Input/f2dInputKeyboardImpl.h
@@ -71,7 +42,7 @@ target_sources(fancy2d PRIVATE
     Input/f2dInputMouseImpl.cpp
     Input/f2dInputJoystickImpl.h
     Input/f2dInputJoystickImpl.cpp
-    
+
     RenderDev/f2dRenderDeviceImpl.h
     RenderDev/f2dRenderDeviceImpl.cpp
     RenderDev/f2dRenderDeviceAPI.h
@@ -87,7 +58,7 @@ target_sources(fancy2d PRIVATE
     RenderDev/f2dEffectImpl.cpp
     RenderDev/f2dMeshDataImpl.h
     RenderDev/f2dMeshDataImpl.cpp
-    
+
     #GraphicDevice11/f2dGraphics2DImpl.cpp
     #GraphicDevice11/f2dGraphics2DImpl.h
     #GraphicDevice11/f2dGraphicsImpl.h
@@ -95,7 +66,7 @@ target_sources(fancy2d PRIVATE
     #GraphicDevice11/f2dRenderDeviceImpl.h
     #GraphicDevice11/f2dTextureImpl.cpp
     #GraphicDevice11/f2dTextureImpl.h
-    
+
     Renderer/f2dRendererImpl.h
     Renderer/f2dRendererImpl.cpp
     Renderer/f2dGeometryRendererImpl.h
@@ -112,7 +83,7 @@ target_sources(fancy2d PRIVATE
     Renderer/f2dFontFileProvider.cpp
     Renderer/f2dFontTexProvider.h
     Renderer/f2dFontTexProvider.cpp
-    
+
     Sound/f2dSoundSysImpl.h
     Sound/f2dSoundSysImpl.cpp
     Sound/f2dSoundSysAPI.h
@@ -129,7 +100,7 @@ target_sources(fancy2d PRIVATE
     Sound/f2dSoundBufferPull.cpp
     Sound/f2dSoundSpriteImpl.h
     Sound/f2dSoundSpriteImpl.cpp
-    
+
     #Video/f2dVideoSysImpl.h
     #Video/f2dVideoSysImpl.cpp
     #Video/f2dVideoImpl.h
@@ -140,7 +111,44 @@ target_sources(fancy2d PRIVATE
     #Video/f2dVideoRenderer.cpp
 )
 
-target_link_libraries(fancy2d PRIVATE
+# 静态库
+
+add_library(fancy2dlib STATIC)
+
+set_target_properties(fancy2dlib PROPERTIES
+    C_STANDARD 11
+    C_STANDARD_REQUIRED ON
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON
+)
+target_compile_options(fancy2dlib PUBLIC
+    "/utf-8"
+    "/MP"
+)
+if(NOT platform_amd64)
+    target_compile_options(fancy2dlib PUBLIC
+        "/arch:SSE2"
+    )
+endif()
+
+target_compile_definitions(fancy2dlib PRIVATE
+    UNICODE
+    _UNICODE
+    # USING_D3D11_BACKEND
+)
+
+target_include_directories(fancy2dlib PUBLIC
+    .
+)
+target_include_directories(fancy2dlib PRIVATE
+    ../
+)
+
+target_sources(fancy2dlib PRIVATE
+    ${FANCY2D_SOURCE}
+)
+
+target_link_libraries(fancy2dlib PUBLIC
     #strmiids.lib #???
     #strmbasd #???
     winmm.lib
@@ -157,3 +165,64 @@ target_link_libraries(fancy2d PRIVATE
     vorbisfile
     fancylib
 )
+
+# 动态库
+
+if(FALSE)
+    add_library(fancy2d SHARED)
+
+    set_target_properties(fancy2d PROPERTIES
+        C_STANDARD 11
+        C_STANDARD_REQUIRED ON
+        CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED ON
+    )
+    target_compile_options(fancy2d PUBLIC
+        "/utf-8"
+        "/MP"
+    )
+    if(NOT platform_amd64)
+        target_compile_options(fancy2d PUBLIC
+            "/arch:SSE2"
+        )
+    endif()
+
+    target_compile_definitions(fancy2d PRIVATE
+        UNICODE
+        _UNICODE
+        # USING_D3D11_BACKEND
+        F2DEXPORT
+    )
+    target_compile_definitions(fancy2d PUBLIC
+        F2DDLL
+    )
+
+    target_include_directories(fancy2d PUBLIC
+        .
+    )
+    target_include_directories(fancy2d PRIVATE
+        ../
+    )
+
+    target_sources(fancy2d PRIVATE
+        ${FANCY2D_SOURCE}
+    )
+
+    target_link_libraries(fancy2d PRIVATE
+        #strmiids.lib #???
+        #strmbasd #???
+        winmm.lib
+        imm32.lib
+        dxguid.lib
+        d3d9.lib
+        dinput8.lib
+        DirectXSDK # must remove it in the future!
+        DirectXTex0
+        dxgi.lib
+        d3d11.lib
+        zlib
+        freetype
+        vorbisfile
+        fancylib
+    )
+endif()
