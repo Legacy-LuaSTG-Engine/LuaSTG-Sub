@@ -60,6 +60,8 @@ target_sources(fancy2d PRIVATE
     Engine/f2dWindowCommonMessage.h
     Engine/f2dWindowImpl.h
     Engine/f2dWindowImpl.cpp
+    Engine/f2dMonitorHelper.h
+    Engine/f2dMonitorHelper.cpp
     
     Input/f2dInputSysImpl.h
     Input/f2dInputSysImpl.cpp

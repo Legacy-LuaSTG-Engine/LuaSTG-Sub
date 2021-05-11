@@ -1,6 +1,7 @@
 ﻿#include "Engine/f2dWindowCommonMessage.h"
 #include "Engine/f2dWindowImpl.h"
 #include "Engine/f2dEngineImpl.h"
+#include "Engine/f2dMonitorHelper.h"
 
 #include "Common/DPIHelper.hpp"
 #include <fcyException.h>
@@ -972,6 +973,7 @@ fcyRect f2dWindowImpl::GetClientRect()
 
 fResult f2dWindowImpl::SetClientRect(const fcyRect& Range)
 {
+	// 计算包括窗口框架的尺寸
 	RECT tWinRect = { (LONG)Range.a.x , (LONG)Range.a.y , (LONG)Range.b.x , (LONG)Range.b.y};
 	native::Windows::AdjustWindowRectExForDpi(
 		&tWinRect,
@@ -979,8 +981,23 @@ fResult f2dWindowImpl::SetClientRect(const fcyRect& Range)
 		FALSE,
 		GetWindowLongPtrW(m_hWnd, GWL_EXSTYLE),
 		native::getDpiForWindow(m_hWnd));
+	// 记录
 	m_Size.x = (float)(tWinRect.right - tWinRect.left);
 	m_Size.y = (float)(tWinRect.bottom - tWinRect.top);
+	// 获取最近的显示器的位置
+	if (HMONITOR monitor = ::MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST))
+	{
+		MONITORINFO moninfo = { sizeof(MONITORINFO), {}, {}, 0 };
+		if (FALSE != ::GetMonitorInfoA(monitor, &moninfo))
+		{
+			// 偏移到该显示器0点位置
+			tWinRect.left += moninfo.rcMonitor.left;
+			tWinRect.right += moninfo.rcMonitor.left;
+			tWinRect.top += moninfo.rcMonitor.top;
+			tWinRect.bottom += moninfo.rcMonitor.top;
+		}
+	}
+	// 最后再应用
 	return ::SetWindowPos(m_hWnd, 0,
 		tWinRect.left,
 		tWinRect.top,
