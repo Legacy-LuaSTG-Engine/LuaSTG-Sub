@@ -5,6 +5,11 @@
 #include "LuaWrapper/LuaCustomLoader.hpp"
 #include "LuaWrapper/LuaInternalSource.hpp"
 #include "LuaWrapper/LuaWrapper.hpp"
+extern "C" {
+#include "lua_cjson.h"
+#include "lua_fs.h"
+}
+#include "lua_xlsx_csv.h"
 #include "lua_steam.h"
 
 namespace LuaSTGPlus
@@ -262,9 +267,13 @@ namespace LuaSTGPlus
                 return false;
             }
             
-            //luaopen_lfs(L);  // 文件系统库 (file system)
-            //luaopen_cjson(L);  // CJSON库 (json)
-            lua_steam_open(L); // Steam API
+            lua_cjson_open(L);
+            lua_fs_open(L);
+            lua_xlsx_open(L);
+            lua_csv_open(L);
+            lua_steam_open(L);
+            lua_settop(L, 0);
+            
             RegistBuiltInClassWrapper(L);  // 注册内建类 (luastg lib)
             lua_settop(L, 0);
             

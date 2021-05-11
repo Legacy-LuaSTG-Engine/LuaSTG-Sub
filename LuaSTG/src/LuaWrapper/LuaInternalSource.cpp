@@ -43,14 +43,14 @@ end
 function FocusGainFunc()
 end
 
-local function _cjson()
-	cjson = require("cjson")
-end
-local function _lfs()
-	lfs = require("lfs")
-end
-pcall(_cjson)
-pcall(_lfs)
+--local function _cjson()
+--	cjson = require("cjson")
+--end
+--local function _lfs()
+--	lfs = require("lfs")
+--end
+--pcall(_cjson)
+--pcall(_lfs)
 
 )";
 #pragma endregion

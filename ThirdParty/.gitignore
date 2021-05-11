@@ -1,4 +1,11 @@
 spdlog
 spdlog/*
+
 pugixml
 pugixml/*
+
+luacjson
+luacjson/*
+
+luafilesystem
+luafilesystem/*
