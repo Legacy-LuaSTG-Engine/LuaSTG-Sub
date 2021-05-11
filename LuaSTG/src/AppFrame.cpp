@@ -348,6 +348,7 @@ bool AppFrame::Init()LNOEXCEPT
 		}
 		
 		//创建手柄输入
+		/*
 		try
 		{
 			m_DirectInput = std::make_unique<native::DirectInput>((ptrdiff_t)m_pMainWindow->GetHandle());
@@ -369,6 +370,7 @@ bool AppFrame::Init()LNOEXCEPT
 		{
 			spdlog::error(u8"[luastg] 无法为DirectInput分配内存");
 		}
+		//*/
 		
 		// 初始化ImGui
 		imgui::bindEngine();

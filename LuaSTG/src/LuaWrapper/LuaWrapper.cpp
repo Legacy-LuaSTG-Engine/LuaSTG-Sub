@@ -139,7 +139,7 @@ namespace LuaSTGPlus
 			StopWatchWrapper::Register(L);
 			RandomizerWrapper::Register(L);
 			BentLaserWrapper::Register(L);
-			DInputWrapper::Register(L);
+			//DInputWrapper::Register(L);
 			IO::Register(L);
 			::lua_pop(L, 1);									// ?
 		}
