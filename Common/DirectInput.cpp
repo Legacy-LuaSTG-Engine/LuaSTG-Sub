@@ -439,18 +439,11 @@ namespace native
     bool _isXInputDevice(const GUID* guid)
     {
         constexpr UINT _UINT_1 = (UINT)(-1);
-        
         UINT count_ = 0;
-        if (GetRawInputDeviceList(NULL, &count_, sizeof(RAWINPUTDEVICELIST)) != 0)
-        {
-            return false;
-        }
+        if (GetRawInputDeviceList(NULL, &count_, sizeof(RAWINPUTDEVICELIST)) != 0) return false;
         std::vector<RAWINPUTDEVICELIST> device_(count_);
         const UINT device_count_ = GetRawInputDeviceList(device_.data(), &count_, sizeof(RAWINPUTDEVICELIST));
-        if (device_count_ == _UINT_1)
-        {
-            return false;
-        }
+        if (device_count_ == _UINT_1) return false;
         bool is_xinput_ = false;
         std::vector<char> name_(256);
         for (UINT i = 0; i < device_count_; i += 1)
@@ -471,10 +464,6 @@ namespace native
                         We can ignore GUID::Data2, GUID::Data3, GUID::Data4
                         because Microsoft official reference implementation also ignore them.
                         https://docs.microsoft.com/en-us/windows/win32/xinput/xinput-and-directinput
-                        
-                        But, Microsoft official reference implementation is slow!
-                        Enum each PNP device using WMI and check each device ID to see if it contains "IG_"
-                        will takes a lot of time (even a few seconds).
                     */
                     const unsigned long guid_data1_ = (info_.hid.dwVendorId & 0xFFFF) | ((info_.hid.dwProductId & 0xFFFF) << 16);
                     if(guid_data1_ == guid->Data1)
@@ -483,10 +472,7 @@ namespace native
                         const UINT result_ = GetRawInputDeviceInfoA(device_[i].hDevice, RIDI_DEVICENAME, NULL, &buffer_size_);
                         if (result_ == 0) // if pData is NULL, the function returns a value of zero
                         {
-                            while (name_.size() < buffer_size_)
-                            {
-                                name_.resize(name_.size() * 2);
-                            }
+                            while (name_.size() < buffer_size_) name_.resize(name_.size() * 2);
                             const UINT read_ = GetRawInputDeviceInfoA(device_[i].hDevice, RIDI_DEVICENAME, name_.data(), &buffer_size_);
                             if (read_ > 0 && read_ != _UINT_1)
                             {
