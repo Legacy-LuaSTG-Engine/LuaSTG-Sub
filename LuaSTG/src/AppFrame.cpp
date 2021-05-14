@@ -348,7 +348,6 @@ bool AppFrame::Init()LNOEXCEPT
 		}
 		
 		//创建手柄输入
-		/*
 		try
 		{
 			m_DirectInput = std::make_unique<native::DirectInput>((ptrdiff_t)m_pMainWindow->GetHandle());
@@ -357,10 +356,10 @@ bool AppFrame::Init()LNOEXCEPT
 				uint32_t cnt = m_DirectInput->count();
 				for (uint32_t i = 0; i < cnt; i += 1)
 				{
-					spdlog::info(u8"[luastg] 检测到{}控制器：{} {}",
+					spdlog::info(u8"[luastg] 检测到{}控制器 产品名称：{} 设备名称：{}",
 						m_DirectInput->isXInputDevice(i) ? u8"XInput" : u8"DirectInput",
-						fcyStringHelper::WideCharToMultiByte(m_DirectInput->getDeviceName(i)),
-						fcyStringHelper::WideCharToMultiByte(m_DirectInput->getProductName(i))
+						fcyStringHelper::WideCharToMultiByte(m_DirectInput->getProductName(i)),
+						fcyStringHelper::WideCharToMultiByte(m_DirectInput->getDeviceName(i))
 					);
 				}
 				spdlog::info(u8"[luastg] 成功创建了{}个控制器", cnt);
@@ -370,7 +369,6 @@ bool AppFrame::Init()LNOEXCEPT
 		{
 			spdlog::error(u8"[luastg] 无法为DirectInput分配内存");
 		}
-		//*/
 		
 		// 初始化ImGui
 		imgui::bindEngine();

@@ -1,6 +1,7 @@
 #include "Common/DirectInput.h"
 
 #include <vector>
+#include <string_view>
 
 #include <Windows.h>
 #include <wrl.h>
@@ -12,15 +13,12 @@
 #define DIDFT_OPTIONAL          0x80000000
 #endif
 
-#include "Common/DebugLog.hpp"
 #if 0
+#include "Common/DebugLog.hpp"
 #define _LOGDEBUG(fmt, ...) DebugLog(fmt, __VA_ARGS__)
 #else
 #define _LOGDEBUG(fmt, ...)
 #endif
-
-// MAGIC CODE
-BOOL IsXInputDevice(const GUID* pGuidProductFromDirectInput);
 
 // DirectInput Data & Format
 namespace native
@@ -424,6 +422,89 @@ namespace native
         Microsoft::WRL::ComPtr<IDirectInputDevice8W> mouse;
     };
     
+    template<typename T>
+    inline T clamp(T v, T a, T b)
+    {
+        if (a > b)
+        {
+            const T c = a;
+            a = b;
+            b = c;
+        }
+        v = (v > a) ? v : a;
+        v = (v < b) ? v : b;
+        return v;
+    }
+    
+    bool _isXInputDevice(const GUID* guid)
+    {
+        constexpr UINT _UINT_1 = (UINT)(-1);
+        
+        UINT count_ = 0;
+        if (GetRawInputDeviceList(NULL, &count_, sizeof(RAWINPUTDEVICELIST)) != 0)
+        {
+            return false;
+        }
+        std::vector<RAWINPUTDEVICELIST> device_(count_);
+        const UINT device_count_ = GetRawInputDeviceList(device_.data(), &count_, sizeof(RAWINPUTDEVICELIST));
+        if (device_count_ == _UINT_1)
+        {
+            return false;
+        }
+        bool is_xinput_ = false;
+        std::vector<char> name_(256);
+        for (UINT i = 0; i < device_count_; i += 1)
+        {
+            if (device_[i].dwType == RIM_TYPEHID) // ignore mouse, keyboard
+            {
+                RID_DEVICE_INFO info_ = { sizeof(RID_DEVICE_INFO) };
+                UINT size_ = sizeof(RID_DEVICE_INFO);
+                if (GetRawInputDeviceInfoA(device_[i].hDevice, RIDI_DEVICEINFO, &info_, &size_) != _UINT_1)
+                {
+                    /*
+                        Here is a name example:
+                        "\\\\?\\HID#VID_046D&PID_C21F&IG_00#8&10942631&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}"
+                        We are intersted in "VID_046D" and "PID_C21F", but we didn't need to call sscanf,
+                        because RID_DEVICE_INFO::hid::dwVendorId and RID_DEVICE_INFO::hid::dwProductId provide the same value.
+                        We also intersted in "IG_00". If name contains "IG_", it's an XInput device.
+                        
+                        We can ignore GUID::Data2, GUID::Data3, GUID::Data4
+                        because Microsoft official reference implementation also ignore them.
+                        https://docs.microsoft.com/en-us/windows/win32/xinput/xinput-and-directinput
+                        
+                        But, Microsoft official reference implementation is slow!
+                        Enum each PNP device using WMI and check each device ID to see if it contains "IG_"
+                        will takes a lot of time (even a few seconds).
+                    */
+                    const unsigned long guid_data1_ = (info_.hid.dwVendorId & 0xFFFF) | ((info_.hid.dwProductId & 0xFFFF) << 16);
+                    if(guid_data1_ == guid->Data1)
+                    {
+                        UINT buffer_size_ = 0;
+                        const UINT result_ = GetRawInputDeviceInfoA(device_[i].hDevice, RIDI_DEVICENAME, NULL, &buffer_size_);
+                        if (result_ == 0) // if pData is NULL, the function returns a value of zero
+                        {
+                            while (name_.size() < buffer_size_)
+                            {
+                                name_.resize(name_.size() * 2);
+                            }
+                            const UINT read_ = GetRawInputDeviceInfoA(device_[i].hDevice, RIDI_DEVICENAME, name_.data(), &buffer_size_);
+                            if (read_ > 0 && read_ != _UINT_1)
+                            {
+                                const std::string_view name_view_ = std::string_view(name_.data(), read_);
+                                if (name_view_.find("IG_") != std::string_view::npos)
+                                {
+                                    is_xinput_ = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return is_xinput_;
+    }
+    
     static bool _excludeXInput = true;
     static BOOL CALLBACK _listGamepads(LPCDIDEVICEINSTANCEW device, LPVOID data)
     {
@@ -448,7 +529,7 @@ namespace native
             default: { _LOGDEBUG(L"    DI8DEVTYPE_UNKNOWN\n"); break; }
         };
         #undef case_print
-        const bool isXInput = IsXInputDevice(&device->guidProduct);
+        const bool isXInput = _isXInputDevice(&device->guidProduct);
         if (_excludeXInput && isXInput)
         {
             _LOGDEBUG(L"    XInput support\n");
@@ -469,19 +550,6 @@ namespace native
         return DIENUM_CONTINUE; // DIENUM_STOP
     };
     
-    template<typename T>
-    inline T clamp(T v, T a, T b)
-    {
-        if (a > b)
-        {
-            const T c = a;
-            a = b;
-            b = c;
-        }
-        v = (v > a) ? v : a;
-        v = (v < b) ? v : b;
-        return v;
-    }
     inline bool _initGamepad(HWND window, IDirectInputDevice8W* device, DirectInput::AxisRange& range)
     {
         HRESULT hr = 0;
@@ -881,11 +949,10 @@ namespace native
         }
     }
     
-    #define getself() _Data& self = *_data;
+    #define self (*_data)
     
     uint32_t DirectInput::refresh()
     {
-        getself();
         clear(); // clear first
         if (self.dinput)
         {
@@ -956,7 +1023,6 @@ namespace native
     }
     void DirectInput::update()
     {
-        getself();
         for (size_t idx = 0; idx < self.gamepad.size(); idx += 1)
         {
             _updateGamepad(self.gamepad[idx].Get(), self.gamepad_state[idx], idx);
@@ -975,7 +1041,6 @@ namespace native
     }
     void DirectInput::reset()
     {
-        getself();
         for (size_t idx = 0; idx < self.gamepad.size(); idx += 1)
         {
             auto& range = self.gamepad_prop[idx];
@@ -1004,7 +1069,6 @@ namespace native
     }
     void DirectInput::clear()
     {
-        getself();
         self.gamepad_device.clear();
         self.gamepad.clear();
         self.gamepad_prop.clear();
@@ -1015,7 +1079,6 @@ namespace native
     
     bool DirectInput::getKeyboardKeyState(int32_t code)
     {
-        getself();
         if (code >= 0 && code < 256)
         {
             return (self.keyboard_state[code] != 0);
@@ -1024,7 +1087,6 @@ namespace native
     }
     bool DirectInput::getMouseKeyState(int32_t code)
     {
-        getself();
         if (code >= 0 && code < 8)
         {
             return (self.mouse_state.rgbButtons[code] != 0);
@@ -1033,28 +1095,23 @@ namespace native
     }
     int32_t DirectInput::getMouseMoveDeltaX()
     {
-        getself();
         return (int32_t)self.mouse_state.lX;
     }
     int32_t DirectInput::getMouseMoveDeltaY()
     {
-        getself();
         return (int32_t)self.mouse_state.lY;
     }
     int32_t DirectInput::getMouseWheelDelta()
     {
-        getself();
         return (int32_t)self.mouse_state.lZ;
     }
     
     uint32_t DirectInput::count()
     {
-        getself();
         return (uint32_t)self.gamepad.size();
     }
     bool DirectInput::getAxisRange(uint32_t index, DirectInput::AxisRange* range)
     {
-        getself();
         if (index < self.gamepad_prop.size())
         {
             CopyMemory(range, &self.gamepad_prop[index], sizeof(DirectInput::AxisRange));
@@ -1064,7 +1121,6 @@ namespace native
     }
     bool DirectInput::getRawState(uint32_t index, DirectInput::RawState* state)
     {
-        getself();
         if (index < self.gamepad_state.size())
         {
             CopyMemory(state, &self.gamepad_state[index], sizeof(DirectInput::RawState));
@@ -1074,7 +1130,6 @@ namespace native
     }
     bool DirectInput::getState(uint32_t index, DirectInput::State* state)
     {
-        getself();
         if (index < self.gamepad_state.size())
         {
             auto& device = self.gamepad_device[index];
@@ -1196,7 +1251,6 @@ namespace native
     }
     const wchar_t* DirectInput::getDeviceName(uint32_t index)
     {
-        getself();
         if (index < self.gamepad_device.size())
         {
             return self.gamepad_device[index].tszInstanceName;
@@ -1205,7 +1259,6 @@ namespace native
     }
     const wchar_t* DirectInput::getProductName(uint32_t index)
     {
-        getself();
         if (index < self.gamepad_device.size())
         {
             return self.gamepad_device[index].tszProductName;
@@ -1214,7 +1267,6 @@ namespace native
     }
     bool DirectInput::isXInputDevice(uint32_t index)
     {
-        getself();
         if (index < self.gamepad_device.size())
         {
             return self.gamepad_device[index].dwSize != 0;
@@ -1224,7 +1276,6 @@ namespace native
     
     bool DirectInput::updateTargetWindow(ptrdiff_t window)
     {
-        getself();
         self.window = (HWND)window;
         if (self.window == NULL)
         {
@@ -1242,7 +1293,6 @@ namespace native
         {
             throw;
         }
-        getself();
         
         self.window = (HWND)window;
         if (self.window == NULL)
@@ -1272,8 +1322,6 @@ namespace native
     }
     DirectInput::~DirectInput()
     {
-        getself();
-        
         clear();
         self.dinput.Reset();
         if (self.dll != NULL)
@@ -1290,129 +1338,3 @@ namespace native
         _data = nullptr;
     }
 };
-
-//********** MAGIC CODE **********//
-
-#include <wbemidl.h>
-#include <oleauto.h>
-
-#ifndef SAFE_RELEASE
-#define SAFE_RELEASE(x) if (x) { (x)->Release(); (x) = NULL; }
-#endif
-
-//-----------------------------------------------------------------------------
-// Enum each PNP device using WMI and check each device ID to see if it contains 
-// "IG_" (ex. "VID_045E&PID_028E&IG_00").  If it does, then it's an XInput device
-// Unfortunately this information can not be found by just using DirectInput 
-//-----------------------------------------------------------------------------
-BOOL IsXInputDevice( const GUID* pGuidProductFromDirectInput )
-{
-    IWbemLocator*           pIWbemLocator  = NULL;
-    IEnumWbemClassObject*   pEnumDevices   = NULL;
-    IWbemClassObject*       pDevices[20]   = {0};
-    IWbemServices*          pIWbemServices = NULL;
-    BSTR                    bstrNamespace  = NULL;
-    BSTR                    bstrDeviceID   = NULL;
-    BSTR                    bstrClassName  = NULL;
-    DWORD                   uReturned      = 0;
-    bool                    bIsXinputDevice= false;
-    UINT                    iDevice        = 0;
-    VARIANT                 var;
-    HRESULT                 hr;
-
-    // CoInit if needed
-    hr = CoInitialize(NULL);
-    bool bCleanupCOM = SUCCEEDED(hr);
-
-    // So we can call VariantClear() later, even if we never had a successful IWbemClassObject::Get().
-    VariantInit(&var);
-
-    // Create WMI
-    hr = CoCreateInstance( __uuidof(WbemLocator),
-                           NULL,
-                           CLSCTX_INPROC_SERVER,
-                           __uuidof(IWbemLocator),
-                           (LPVOID*) &pIWbemLocator);
-    if( FAILED(hr) || pIWbemLocator == NULL )
-        goto LCleanup;
-
-    bstrNamespace = SysAllocString( L"\\\\.\\root\\cimv2" );if( bstrNamespace == NULL ) goto LCleanup;        
-    bstrClassName = SysAllocString( L"Win32_PNPEntity" );   if( bstrClassName == NULL ) goto LCleanup;        
-    bstrDeviceID  = SysAllocString( L"DeviceID" );          if( bstrDeviceID == NULL )  goto LCleanup;        
-    
-    // Connect to WMI 
-    hr = pIWbemLocator->ConnectServer( bstrNamespace, NULL, NULL, 0L, 
-                                       0L, NULL, NULL, &pIWbemServices );
-    if( FAILED(hr) || pIWbemServices == NULL )
-        goto LCleanup;
-
-    // Switch security level to IMPERSONATE. 
-    CoSetProxyBlanket( pIWbemServices, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, NULL, 
-                       RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE, NULL, EOAC_NONE );                    
-
-    hr = pIWbemServices->CreateInstanceEnum( bstrClassName, 0, NULL, &pEnumDevices ); 
-    if( FAILED(hr) || pEnumDevices == NULL )
-        goto LCleanup;
-
-    // Loop over all devices
-    for( ;; )
-    {
-        // Get 20 at a time
-        hr = pEnumDevices->Next( 10000, 20, pDevices, &uReturned );
-        if( FAILED(hr) )
-            goto LCleanup;
-        if( uReturned == 0 )
-            break;
-
-        for( iDevice=0; iDevice<uReturned; iDevice++ )
-        {
-            // For each device, get its device ID
-            hr = pDevices[iDevice]->Get( bstrDeviceID, 0L, &var, NULL, NULL );
-            if( SUCCEEDED( hr ) && var.vt == VT_BSTR && var.bstrVal != NULL )
-            {
-                // Check if the device ID contains "IG_".  If it does, then it's an XInput device
-                    // This information can not be found from DirectInput 
-                if( wcsstr( var.bstrVal, L"IG_" ) )
-                {
-                    // If it does, then get the VID/PID from var.bstrVal
-                    DWORD dwPid = 0, dwVid = 0;
-                    WCHAR* strVid = wcsstr( var.bstrVal, L"VID_" );
-                    if( strVid && swscanf( strVid, L"VID_%4X", &dwVid ) != 1 )
-                        dwVid = 0;
-                    WCHAR* strPid = wcsstr( var.bstrVal, L"PID_" );
-                    if( strPid && swscanf( strPid, L"PID_%4X", &dwPid ) != 1 )
-                        dwPid = 0;
-
-                    // Compare the VID/PID to the DInput device
-                    DWORD dwVidPid = MAKELONG( dwVid, dwPid );
-                    if( dwVidPid == pGuidProductFromDirectInput->Data1 )
-                    {
-                        bIsXinputDevice = true;
-                        goto LCleanup;
-                    }
-                }
-            }
-            VariantClear(&var);
-            SAFE_RELEASE( pDevices[iDevice] );
-        }
-    }
-
-LCleanup:
-    VariantClear(&var);
-    if(bstrNamespace)
-        SysFreeString(bstrNamespace);
-    if(bstrDeviceID)
-        SysFreeString(bstrDeviceID);
-    if(bstrClassName)
-        SysFreeString(bstrClassName);
-    for( iDevice=0; iDevice<20; iDevice++ )
-        SAFE_RELEASE( pDevices[iDevice] );
-    SAFE_RELEASE( pEnumDevices );
-    SAFE_RELEASE( pIWbemLocator );
-    SAFE_RELEASE( pIWbemServices );
-
-    if( bCleanupCOM )
-        CoUninitialize();
-
-    return bIsXinputDevice;
-}
