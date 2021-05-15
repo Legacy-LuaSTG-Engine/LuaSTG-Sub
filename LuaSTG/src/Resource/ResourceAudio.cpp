@@ -5,57 +5,77 @@ namespace LuaSTGPlus {
 	fResult ResMusic::BGMWrapper::Read(fData pBuffer, fuInt SizeToRead, fuInt* pSizeRead)
 	{
 		fResult tFR;
-
+		
 		// 获得单个采样大小
 		fuInt tBlockAlign = GetBlockAlign();
-
+		
 		// 计算需要读取的采样个数
 		fuInt tSampleToRead = SizeToRead / tBlockAlign;
-
+		
 		// 填充音频数据
-		while (tSampleToRead)
+		if (m_bIsLoop)
 		{
-			// 获得当前解码器位置(采样)
-			fuInt tCurSample = (fuInt)GetPosition() / tBlockAlign;
-
-			// 检查读取位置是否超出循环节
-			if (tCurSample + tSampleToRead > m_pLoopEndSample)
+			while (tSampleToRead)
 			{
-				// 填充尚未填充数据
-				if (tCurSample < m_pLoopEndSample)
-				{
-					fuInt tVaildSample = m_pLoopEndSample - tCurSample;
-					fuInt tVaildSize = tVaildSample * tBlockAlign;
+				// 获得当前解码器位置(采样)
+				fuInt tCurSample = (fuInt)GetPosition() / tBlockAlign;
 
-					if (FCYFAILED(tFR = m_pDecoder->Read(pBuffer, tVaildSize, pSizeRead)))
+				// 检查读取位置是否超出循环节
+				if (tCurSample + tSampleToRead > m_pLoopEndSample)
+				{
+					// 填充尚未填充数据
+					if (tCurSample < m_pLoopEndSample)
+					{
+						fuInt tVaildSample = m_pLoopEndSample - tCurSample;
+						fuInt tVaildSize = tVaildSample * tBlockAlign;
+
+						if (FCYFAILED(tFR = m_pDecoder->Read(pBuffer, tVaildSize, pSizeRead)))
+							return tFR;
+
+						// 指针后移
+						pBuffer += tVaildSize;
+
+						// 减少采样
+						tSampleToRead -= tVaildSample;
+					}
+
+					// 跳到循环头
+					SetPosition(FCYSEEKORIGIN_BEG, m_pLoopStartSample * tBlockAlign);
+				}
+				else
+				{
+					// 直接填充数据
+					if (FCYFAILED(tFR = m_pDecoder->Read(pBuffer, tSampleToRead * tBlockAlign, pSizeRead)))
 						return tFR;
 
-					// 指针后移
-					pBuffer += tVaildSize;
-
-					// 减少采样
-					tSampleToRead -= tVaildSample;
+					break;
 				}
-
-				// 跳到循环头
-				SetPosition(FCYSEEKORIGIN_BEG, m_pLoopStartSample * tBlockAlign);
-			}
-			else
-			{
-				// 直接填充数据
-				if (FCYFAILED(tFR = m_pDecoder->Read(pBuffer, tSampleToRead * tBlockAlign, pSizeRead)))
-					return tFR;
-
-				break;
 			}
 		}
-
+		else
+		{
+			// 直接填充数据
+			fuInt size_read_ = 0;
+			if (FCYFAILED(tFR = m_pDecoder->Read(pBuffer, SizeToRead, &size_read_)))
+				return tFR;
+			pBuffer += size_read_;
+			
+			// 剩下的数据全部置为0
+			fuInt size_to_write_ = SizeToRead - size_read_;
+			for (fuInt i = 0; i < size_to_write_; i += 1)
+			{
+				pBuffer[i] = 0;
+			}
+		}
+		
 		if (pSizeRead)
-			* pSizeRead = SizeToRead;
-
+		{
+			*pSizeRead = SizeToRead;
+		}
+		
 		return FCYERR_OK;
 	}
-
+	
 	ResMusic::BGMWrapper::BGMWrapper(fcyRefPointer<f2dSoundDecoder> pOrg, fDouble LoopStart, fDouble LoopEnd)
 		: m_pDecoder(pOrg)
 	{

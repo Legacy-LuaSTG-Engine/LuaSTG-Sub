@@ -131,7 +131,7 @@ namespace LuaSTGPlus {
 		{
 		protected:
 			fcyRefPointer<f2dSoundDecoder> m_pDecoder;
-
+			bool m_bIsLoop = true;
 			// 转到采样为单位
 			fuInt m_TotalSample;
 			fuInt m_pLoopStartSample;
@@ -152,10 +152,13 @@ namespace LuaSTGPlus {
 
 			// 对Read作处理
 			fResult Read(fData pBuffer, fuInt SizeToRead, fuInt* pSizeRead);
+			
+			void SetLoop(bool v) { m_bIsLoop = v ;}
 		public:
 			BGMWrapper(fcyRefPointer<f2dSoundDecoder> pOrg, fDouble LoopStart, fDouble LoopEnd);
 		};
 	private:
+		fcyRefPointer<BGMWrapper> m_pDecoder;
 		fcyRefPointer<f2dSoundBuffer> m_pBuffer;
 		int m_status;//0停止1暂停2播放
 		float m_lastfrq;
@@ -246,8 +249,14 @@ namespace LuaSTGPlus {
 				return m_lastfrq;
 			}
 		}
+		
+		void SetLoop(bool v)
+		{
+			m_pDecoder->SetLoop(v);
+		}
 	public:
-		ResMusic(const char* name, fcyRefPointer<f2dSoundBuffer> buffer) : Resource(ResourceType::Music, name) {
+		ResMusic(const char* name, fcyRefPointer<BGMWrapper> decoder, fcyRefPointer<f2dSoundBuffer> buffer) : Resource(ResourceType::Music, name) {
+			m_pDecoder = decoder;
 			m_pBuffer = buffer;
 			m_status = 0;
 			m_lastfrq = -1.0f;

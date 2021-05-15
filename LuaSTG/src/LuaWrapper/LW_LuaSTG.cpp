@@ -1864,6 +1864,15 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			lua_pushnumber(L, p->GetSpeed());
 			return 1;
 		}
+		static int SetBGMLoop(lua_State* L) {
+			const char* s = luaL_checkstring(L, 1);
+			bool loop = lua_toboolean(L, 2);
+			ResMusic* p = LRES.FindMusic(s);
+			if (!p)
+				return luaL_error(L, "music '%s' not found.", s);
+			p->SetLoop(loop);
+			return 0;
+		}
 		#pragma endregion
 
 		#pragma region 输入控制函数
@@ -2189,6 +2198,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		{ "GetSESpeed", &WrapperImplement::GetSESpeed },
 		{ "SetBGMSpeed", &WrapperImplement::SetBGMSpeed },
 		{ "GetBGMSpeed", &WrapperImplement::GetBGMSpeed },
+		{ "SetBGMLoop", &WrapperImplement::SetBGMLoop },
 		#pragma endregion
 		
 		#pragma region 输入控制函数

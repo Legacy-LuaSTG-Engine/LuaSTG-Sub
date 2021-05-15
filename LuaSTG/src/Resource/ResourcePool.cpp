@@ -420,7 +420,7 @@ bool ResourcePool::LoadMusic(const char* name, const char* path, double start, d
         
         //存入资源池
         fcyRefPointer<ResMusic> tRes;
-        tRes.DirectSet(new ResMusic(name, tBuffer));
+        tRes.DirectSet(new ResMusic(name, tWrapperedBuffer, tBuffer));
         m_MusicPool.emplace(name, tRes);
     }
     catch (const fcyException& e) {

@@ -42,6 +42,8 @@ function FocusLoseFunc()
 end
 function FocusGainFunc()
 end
+function EventFunc(event, ...)
+end
 
 --local function _cjson()
 --	cjson = require("cjson")
