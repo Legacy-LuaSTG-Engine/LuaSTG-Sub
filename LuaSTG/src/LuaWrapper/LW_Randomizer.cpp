@@ -42,7 +42,7 @@ namespace LuaSTGPlus
 				static int Sign(lua_State* L)LNOEXCEPT
 				{
 					GETUDATA(p, 1);
-					lua_pushinteger(L, p->GetRandUInt(1) * 2 - 1);
+					lua_pushinteger(L, (lua_Integer)p->GetRandUInt(1) * 2 - 1);
 					return 1;
 				}
 				static int Meta_ToString(lua_State* L)LNOEXCEPT
