@@ -371,7 +371,9 @@ bool AppFrame::Init()LNOEXCEPT
 		}
 		
 		// 初始化ImGui
-		imgui::bindEngine();
+		#ifdef USING_DEAR_IMGUI
+			imgui::bindEngine();
+		#endif
 		// test
 		slow::Graphic::_bindEngine((void*)m_pMainWindow->GetHandle());
 		// 初始化自定义后处理特效
@@ -419,7 +421,9 @@ void AppFrame::Shutdown()LNOEXCEPT
 	// test
 	slow::Graphic::_unbindEngine();
 	// 卸载ImGui
-	imgui::unbindEngine();
+	#ifdef USING_DEAR_IMGUI
+		imgui::unbindEngine();
+	#endif
 	
 	m_DirectInput = nullptr;
 	m_Mouse = nullptr;
