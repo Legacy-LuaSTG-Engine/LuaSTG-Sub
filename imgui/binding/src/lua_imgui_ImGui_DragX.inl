@@ -671,7 +671,7 @@ static int lib_DragScalar(lua_State* L)
         lua_Integer data = luaL_checkinteger(L, 3);
         if (argc <= 3)
         {
-            ret = ImGui::DragScalar(label, data_type, &data, 1.0f); // helper
+            ret = ImGui::DragScalar(label, data_type, &data);
         }
         else if (argc == 4)
         {
@@ -790,14 +790,9 @@ static int lib_DragScalarN(lua_State* L)
             data.data[i] = luaL_checkinteger(L, -1);
             lua_pop(L, 1);
         }
-        if (argc <= 3)
+        if (argc <= 4)
         {
-            ret = ImGui::DragScalarN(label, data_type, data.data, components, 1.0f); // helper
-        }
-        else if (argc == 4)
-        {
-            const float v_speed = (float)luaL_checknumber(L, 5);
-            ret = ImGui::DragScalarN(label, data_type, data.data, components, 1.0f); // helper
+            ret = ImGui::DragScalarN(label, data_type, data.data, components);
         }
         else if (argc == 5)
         {

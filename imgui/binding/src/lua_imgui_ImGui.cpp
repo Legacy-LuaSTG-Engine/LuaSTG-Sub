@@ -2066,17 +2066,38 @@ static int lib_EndPopup(lua_State* L)
 //////// Popups: open/close functions
 static int lib_OpenPopup(lua_State* L)
 {
-    const char* str_id = luaL_checkstring(L, 1);
-    if (lua_gettop(L) <= 1)
+    switch(lua_type(L, 1))
     {
-        ImGui::OpenPopup(str_id);
+    case LUA_TNUMBER:
+        {
+            const ImGuiID id = (ImGuiID)luaL_checkinteger(L, 1);
+            if (lua_gettop(L) <= 1)
+            {
+                ImGui::OpenPopup(id);
+            }
+            else
+            {
+                const ImGuiPopupFlags flags = (ImGuiPopupFlags)luaL_checkinteger(L, 2);
+                ImGui::OpenPopup(id, flags);
+            }
+            return 0;
+        }
+    case LUA_TSTRING:
+    default:
+        {
+            const char* str_id = luaL_checkstring(L, 1);
+            if (lua_gettop(L) <= 1)
+            {
+                ImGui::OpenPopup(str_id);
+            }
+            else
+            {
+                const ImGuiPopupFlags flags = (ImGuiPopupFlags)luaL_checkinteger(L, 2);
+                ImGui::OpenPopup(str_id, flags);
+            }
+            return 0;
+        }
     }
-    else
-    {
-        const ImGuiPopupFlags flags = (ImGuiPopupFlags)luaL_checkinteger(L, 2);
-        ImGui::OpenPopup(str_id, flags);
-    }
-    return 0;
 }
 static int lib_OpenPopupOnItemClick(lua_State* L)
 {
@@ -2364,6 +2385,12 @@ static int lib_TableGetColumnFlags(lua_State* L)
         lua_pushinteger(L, (lua_Integer)ret);
     }
     return 1;
+}
+static int lib_TableSetColumnEnabled(lua_State* L)
+{
+    const int column_n = (int)luaL_checkinteger(L, 1);
+    const bool v = lua_toboolean(L, 2);
+    ImGui::TableSetColumnEnabled(column_n, v);
 }
 static int lib_TableSetBgColor(lua_State* L)
 {
