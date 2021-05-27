@@ -2391,6 +2391,7 @@ static int lib_TableSetColumnEnabled(lua_State* L)
     const int column_n = (int)luaL_checkinteger(L, 1);
     const bool v = lua_toboolean(L, 2);
     ImGui::TableSetColumnEnabled(column_n, v);
+    return 0;
 }
 static int lib_TableSetBgColor(lua_State* L)
 {
