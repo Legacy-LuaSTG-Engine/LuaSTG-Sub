@@ -371,7 +371,7 @@ namespace LuaSTGPlus
         auto* zip = m_FileManager.GetArchive("data");
         if (zip == nullptr)
         {
-            auto* zip = m_FileManager.GetArchive("data.zip");
+            zip = m_FileManager.GetArchive("data.zip");
             if (zip == nullptr)
             {
                 spdlog::error(u8"[luastg] 资源包'data'或'data.zip'不存在");
