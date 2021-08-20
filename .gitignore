@@ -1,20 +1,22 @@
 # IDE
-.idea
-*.vscode
-*.code-workspace
+.idea/*
+.vscode/*
+.vs/*
 
 # build
-build
+build/*
+out/*
+install/*
 
 # publish
-bin
-ver
+bin/*
+ver/*
 
 #test
-data
+data/*
 
 # cache
 imgui/imgui
 LuaSTG/Custom.cmake
-LuaSTG/custom
-DirectX/DirectXSDK/backup
+LuaSTG/custom/*
+DirectX/DirectXSDK/backup/*
