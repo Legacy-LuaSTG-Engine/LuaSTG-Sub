@@ -10,9 +10,9 @@ target_compile_definitions(imgui PUBLIC
 )
 target_include_directories(imgui PUBLIC
     imgui
-    imgui/backends
     imgui/misc/cpp
     imgui/misc/freetype
+    backend
 )
 target_sources(imgui PRIVATE
     imgui/imstb_rectpack.h
@@ -34,10 +34,10 @@ target_sources(imgui PRIVATE
     imgui/misc/freetype/imgui_freetype.cpp
     imgui/misc/freetype/imgui_freetype.h
     
-    imgui/backends/imgui_impl_dx9.cpp
-    imgui/backends/imgui_impl_dx9.h
-    imgui/backends/imgui_impl_win32ex.cpp
-    imgui/backends/imgui_impl_win32ex.h
+    backend/imgui_impl_dx9.cpp
+    backend/imgui_impl_dx9.h
+    backend/imgui_impl_win32ex.cpp
+    backend/imgui_impl_win32ex.h
 )
 target_link_libraries(imgui PUBLIC
     d3d9.lib
