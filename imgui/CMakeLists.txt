@@ -12,6 +12,7 @@ target_include_directories(imgui PUBLIC
     imgui
     imgui/misc/cpp
     imgui/misc/freetype
+    imgui/backends
     backend
 )
 target_sources(imgui PRIVATE
@@ -34,8 +35,9 @@ target_sources(imgui PRIVATE
     imgui/misc/freetype/imgui_freetype.cpp
     imgui/misc/freetype/imgui_freetype.h
     
-    backend/imgui_impl_dx9.cpp
-    backend/imgui_impl_dx9.h
+    imgui/backends/imgui_impl_dx9.cpp
+    imgui/backends/imgui_impl_dx9.h
+    
     backend/imgui_impl_win32ex.cpp
     backend/imgui_impl_win32ex.h
 )

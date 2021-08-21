@@ -664,6 +664,48 @@ imgui_binding_lua_PropertiesHash imgui_binding_lua_ComputePropertiesHash(const c
             case 's':
               switch(key[3])
               {
+                case 'a':
+                  switch(key[4])
+                  {
+                    case 'b':
+                      switch(key[5])
+                      {
+                        case 'l':
+                          switch(key[6])
+                          {
+                            case 'e':
+                              switch(key[7])
+                              {
+                                case 'd':
+                                  switch(key[8])
+                                  {
+                                    case 'A':
+                                      switch(key[9])
+                                      {
+                                        case 'l':
+                                          switch(key[10])
+                                          {
+                                            case 'p':
+                                              switch(key[11])
+                                              {
+                                                case 'h':
+                                                  switch(key[12])
+                                                  {
+                                                    case 'a':
+                                                      switch(key[13])
+                                                      {
+                                                        case '\0':
+                                                          return imgui_binding_lua_PropertiesHash::DisabledAlpha;
+                                                      }
+                                                  }
+                                              }
+                                          }
+                                      }
+                                  }
+                              }
+                          }
+                      }
+                  }
                 case 'p':
                   switch(key[4])
                   {
@@ -2270,3 +2312,4 @@ imgui_binding_lua_PropertiesHash imgui_binding_lua_ComputePropertiesHash(const c
   }
   return imgui_binding_lua_PropertiesHash::__NOT_FOUND;
 }
+

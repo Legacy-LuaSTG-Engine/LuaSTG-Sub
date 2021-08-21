@@ -2631,6 +2631,27 @@ static /* !!!! */ int lib_GetDragDropPayload(lua_State* L)
     return 0;
 }
 
+//////// Disabling
+
+static int lib_BeginDisabled(lua_State* L)
+{
+    if (lua_gettop(L) < 1)
+    {
+        ImGui::BeginDisabled();
+    }
+    else
+    {
+        const bool disabled = lua_toboolean(L, 1);
+        ImGui::BeginDisabled(disabled);
+    }
+    return 0;
+}
+static int lib_EndDisabled(lua_State* L)
+{
+    ImGui::EndDisabled();
+    return 0;
+}
+
 //////// Clipping
 
 static int lib_PushClipRect(lua_State* L)

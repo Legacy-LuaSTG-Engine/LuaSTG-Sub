@@ -200,6 +200,7 @@ void imgui_binding_lua_register_enum(lua_State* L)
 }},
 {"ImGuiTableColumnFlags", {
     {"None"                , ImGuiTableColumnFlags_None                },
+    {"Disabled"            , ImGuiTableColumnFlags_Disabled            },
     {"DefaultHide"         , ImGuiTableColumnFlags_DefaultHide         },
     {"DefaultSort"         , ImGuiTableColumnFlags_DefaultSort         },
     {"WidthStretch"        , ImGuiTableColumnFlags_WidthStretch        },
@@ -211,6 +212,7 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"NoSort"              , ImGuiTableColumnFlags_NoSort              },
     {"NoSortAscending"     , ImGuiTableColumnFlags_NoSortAscending     },
     {"NoSortDescending"    , ImGuiTableColumnFlags_NoSortDescending    },
+    {"NoHeaderLabel"       , ImGuiTableColumnFlags_NoHeaderLabel       },
     {"NoHeaderWidth"       , ImGuiTableColumnFlags_NoHeaderWidth       },
     {"PreferSortAscending" , ImGuiTableColumnFlags_PreferSortAscending },
     {"PreferSortDescending", ImGuiTableColumnFlags_PreferSortDescending},
@@ -414,6 +416,7 @@ void imgui_binding_lua_register_enum(lua_State* L)
 }},
 {"ImGuiStyleVar", {
     {"Alpha"              , ImGuiStyleVar_Alpha              },
+    {"DisabledAlpha"      , ImGuiStyleVar_DisabledAlpha      },
     {"WindowPadding"      , ImGuiStyleVar_WindowPadding      },
     {"WindowRounding"     , ImGuiStyleVar_WindowRounding     },
     {"WindowBorderSize"   , ImGuiStyleVar_WindowBorderSize   },
@@ -469,7 +472,7 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"PickerHueWheel"  , ImGuiColorEditFlags_PickerHueWheel  },
     {"InputRGB"        , ImGuiColorEditFlags_InputRGB        },
     {"InputHSV"        , ImGuiColorEditFlags_InputHSV        },
-    {"_OptionsDefault" , ImGuiColorEditFlags__OptionsDefault },
+    {"DefaultOptions_" , ImGuiColorEditFlags_DefaultOptions_ },
 }},
 {"ImGuiSliderFlags", {
     {"None"           , ImGuiSliderFlags_None           },

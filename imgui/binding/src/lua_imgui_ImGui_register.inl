@@ -344,6 +344,10 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(EndDragDropTarget),
     MAKEF(GetDragDropPayload),
     
+    // Disabling
+    MAKEF(BeginDisabled),
+    MAKEF(EndDisabled),
+    
     // Clipping
     MAKEF(PushClipRect),
     MAKEF(PopClipRect),
