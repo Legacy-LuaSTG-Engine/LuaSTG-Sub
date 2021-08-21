@@ -448,10 +448,12 @@ void f2dEngineImpl::Run_SingleThread(fuInt UpdateMaxFPS)
 
 		if(bExit)
 			break;
-
+		
+		tTime = tFPSController.Update(tTimer);
+		
 		// 应用程序消息处理
 		{
-			tMsgTimer.Reset();
+			//tMsgTimer.Reset();
 			if(PeekMessageW(&tMsg, 0, 0, 0, PM_REMOVE))
 			{
 				TranslateMessage(&tMsg);
@@ -461,11 +463,12 @@ void f2dEngineImpl::Run_SingleThread(fuInt UpdateMaxFPS)
 				if(tMsg.message == WM_QUIT)
 					SendMsg(F2DMSG_APP_ONEXIT);
 			}
-			tMsgTime = tMsgTimer.GetElapsed();
+			//tMsgTime = tMsgTimer.GetElapsed();
 		}
 		
 		// 更新FPS
-		tTime = tFPSController.Update(tTimer) - tMsgTime;  // 修正由于处理消息额外耗费的时间
+		//tTime = tFPSController.Update(tTimer) - tMsgTime;  // 修正由于处理消息额外耗费的时间
+		
 		
 		// 执行显示事件
 		//if(bDoPresent)
