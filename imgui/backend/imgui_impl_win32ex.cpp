@@ -333,16 +333,13 @@ void ImGui_ImplWin32Ex_ProcessMessage()
     
     auto resetImGuiInput = [&]() -> void
     {
+        io.AddFocusEvent(false);
+        
         std::memset(&io.MouseDown, 0, sizeof(io.MouseDown));
         io.MouseWheel = 0;
         io.MouseWheelH = 0;
         io.MousePos = ImVec2(0.0f, 0.0f);
         PostMessageW(g_tData.window, MSG_MOUSE_CAPTURE, MSG_MOUSE_CAPTURE_RELEASE, 0); // cancel capture
-        
-        std::memset(&io.KeysDown, 0, sizeof(io.KeysDown));
-        io.KeyShift = false;
-        io.KeyCtrl = false;
-        io.KeyAlt = false;
     };
     
     auto updateMousePosition = [&]() -> void
@@ -447,6 +444,10 @@ void ImGui_ImplWin32Ex_ProcessMessage()
         case WM_KEYUP:
         case WM_SYSKEYUP:
             updateKeyboardKey(false);
+            return true;
+        case WM_SETFOCUS:
+        case WM_KILLFOCUS:
+            io.AddFocusEvent(msg.uMsg == WM_SETFOCUS);
             return true;
         case WM_CHAR:
             if (msg.wParam > 0 && msg.wParam < 0x10000)
@@ -713,6 +714,8 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32Ex_WndProcHandler(HWND hWnd, UINT uMsg, WP
     case WM_SYSKEYDOWN:
     case WM_KEYUP:
     case WM_SYSKEYUP:
+    case WM_SETFOCUS:
+    case WM_KILLFOCUS:
     case WM_CHAR:
     
     case WM_SIZE:
