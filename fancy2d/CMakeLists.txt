@@ -115,25 +115,10 @@ set(FANCY2D_SOURCE
 
 add_library(fancy2dlib STATIC)
 
-set_target_properties(fancy2dlib PROPERTIES
-    C_STANDARD 11
-    C_STANDARD_REQUIRED ON
-    CXX_STANDARD 17
-    CXX_STANDARD_REQUIRED ON
-)
-target_compile_options(fancy2dlib PUBLIC
-    "/utf-8"
-    "/MP"
-)
-if(NOT platform_amd64)
-    target_compile_options(fancy2dlib PUBLIC
-        "/arch:SSE2"
-    )
-endif()
+luastg_target_common_options(fancy2dlib)
 
 target_compile_definitions(fancy2dlib PRIVATE
-    UNICODE
-    _UNICODE
+    ____EMPTY_0000_0000_0000_0000____
     # USING_D3D11_BACKEND
 )
 
@@ -171,25 +156,9 @@ target_link_libraries(fancy2dlib PUBLIC
 if(FALSE)
     add_library(fancy2d SHARED)
 
-    set_target_properties(fancy2d PROPERTIES
-        C_STANDARD 11
-        C_STANDARD_REQUIRED ON
-        CXX_STANDARD 17
-        CXX_STANDARD_REQUIRED ON
-    )
-    target_compile_options(fancy2d PUBLIC
-        "/utf-8"
-        "/MP"
-    )
-    if(NOT platform_amd64)
-        target_compile_options(fancy2d PUBLIC
-            "/arch:SSE2"
-        )
-    endif()
+    luastg_target_common_options(fancy2d)
 
     target_compile_definitions(fancy2d PRIVATE
-        UNICODE
-        _UNICODE
         # USING_D3D11_BACKEND
         F2DEXPORT
     )

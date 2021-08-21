@@ -9,27 +9,11 @@ else()
 endif()
 
 add_executable(LuaSTG WIN32)
-
-set_target_properties(LuaSTG PROPERTIES
-    C_STANDARD 11
-    C_STANDARD_REQUIRED ON
-    CXX_STANDARD 17
-    CXX_STANDARD_REQUIRED ON
-)
-target_compile_options(LuaSTG PUBLIC
-    "/utf-8"
-    "/MP"
-)
-if(NOT platform_amd64)
-    target_compile_options(LuaSTG PUBLIC
-        "/arch:SSE2"
-    )
-endif()
+luastg_target_common_options(LuaSTG)
 
 target_precompile_headers(LuaSTG PRIVATE
     pch/pch.h # common header
 )
-
 target_include_directories(LuaSTG PRIVATE
     .
     ..
@@ -37,11 +21,6 @@ target_include_directories(LuaSTG PRIVATE
     ${LUASTG_RESDIR}
     src/Resource
     src/LuaWrapper
-)
-
-target_compile_definitions(LuaSTG PRIVATE
-    UNICODE
-    _UNICODE
 )
 
 target_compile_definitions(LuaSTG PRIVATE LDEVVERSION)

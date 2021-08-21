@@ -1,20 +1,6 @@
 add_library(fancylib STATIC)
 
-set_target_properties(fancylib PROPERTIES
-    C_STANDARD 11
-    C_STANDARD_REQUIRED ON
-    CXX_STANDARD 17
-    CXX_STANDARD_REQUIRED ON
-)
-target_compile_options(fancylib PUBLIC
-    "/utf-8"
-    "/MP"
-)
-
-target_compile_definitions(fancylib PRIVATE
-    UNICODE
-    _UNICODE
-)
+luastg_target_common_options(fancylib)
 
 target_include_directories(fancylib PUBLIC
     .

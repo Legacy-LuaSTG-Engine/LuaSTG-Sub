@@ -1,19 +1,8 @@
 # imgui
 
 add_library(imgui STATIC)
-set_target_properties(imgui PROPERTIES
-    C_STANDARD 11
-    C_STANDARD_REQUIRED ON
-    CXX_STANDARD 17
-    CXX_STANDARD_REQUIRED ON
-)
-target_compile_options(imgui PRIVATE
-    "/utf-8"
-    "/MP"
-)
+luastg_target_common_options(imgui)
 target_compile_definitions(imgui PUBLIC
-    _UNICODE
-    UNICODE
     IMGUI_DISABLE_OBSOLETE_FUNCTIONS
     IMGUI_USE_BGRA_PACKED_COLOR
     #IMGUI_USE_WCHAR32
@@ -58,16 +47,7 @@ target_link_libraries(imgui PUBLIC
 # imgui lua binding
 
 add_library(lua_imgui STATIC)
-set_target_properties(lua_imgui PROPERTIES
-    C_STANDARD 11
-    C_STANDARD_REQUIRED ON
-    CXX_STANDARD 17
-    CXX_STANDARD_REQUIRED ON
-)
-target_compile_options(lua_imgui PRIVATE
-    "/utf-8"
-    "/MP"
-)
+luastg_target_common_options(lua_imgui)
 target_include_directories(lua_imgui PUBLIC
     binding/include
 )
