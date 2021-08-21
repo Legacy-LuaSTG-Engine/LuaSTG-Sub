@@ -58,14 +58,14 @@ target_include_directories(lua_imgui PRIVATE
 )
 target_sources(lua_imgui PRIVATE
     binding/include/lua_imgui.hpp
-    binding/include/lua_imgui_enum.hpp
-    binding/include/lua_imgui_ImGui.hpp
     binding/include/lua_imgui_type.hpp
     
     binding/src/lua_imgui_common.hpp
+    binding/src/lua_imgui_enum.hpp
     binding/src/lua_imgui_enum.cpp
     binding/src/lua_imgui_hash.cpp
     binding/src/lua_imgui_hash.hpp
+    binding/src/lua_imgui_ImGui.hpp
     binding/src/lua_imgui_ImGui_ColorX.inl
     binding/src/lua_imgui_ImGui_DragX.inl
     binding/src/lua_imgui_ImGui_InputX.inl
