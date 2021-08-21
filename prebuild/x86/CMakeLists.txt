@@ -159,15 +159,3 @@ set_target_properties(vorbisfile PROPERTIES
     IMPORTED_IMPLIB_DEBUG       ${CMAKE_CURRENT_SOURCE_DIR}/libvorbis/lib/Debug/vorbisfile.lib
     IMPORTED_IMPLIB_RELEASE     ${CMAKE_CURRENT_SOURCE_DIR}/libvorbis/lib/Release/vorbisfile.lib
 )
-
-#==================== math family ====================#
-
-add_library(xmath STATIC IMPORTED GLOBAL)
-target_include_directories(xmath INTERFACE
-    xmath/include
-)
-set_target_properties(xmath PROPERTIES
-    IMPORTED_LOCATION           ${CMAKE_CURRENT_SOURCE_DIR}/xmath/lib/Release/xmath.lib
-    IMPORTED_LOCATION_DEBUG     ${CMAKE_CURRENT_SOURCE_DIR}/xmath/lib/Debug/xmath.lib
-    IMPORTED_LOCATION_RELEASE   ${CMAKE_CURRENT_SOURCE_DIR}/xmath/lib/Release/xmath.lib
-)

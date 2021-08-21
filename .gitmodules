@@ -1,0 +1,3 @@
+[submodule "xmath/xmath"]
+	path = xmath/xmath
+	url = https://github.com/Legacy-LuaSTG-Engine/lstgx_Math.git
