@@ -72,7 +72,7 @@ static int lib_PlotLines(lua_State* L)
     }
     else
     {
-        const int values_count = (argc >= 3) ? (int)luaL_checkinteger(L, 3) : _imgui_binding_lua_len(L, 2);
+        const int values_count = (argc >= 3) ? (int)luaL_checkinteger(L, 3) : _luaL_len(L, 2);
         float_array values(values_count);
         for (int i = 0; i < values_count; i += 1)
         {
@@ -208,7 +208,7 @@ static int lib_PlotHistogram(lua_State* L)
     }
     else
     {
-        const int values_count = (argc >= 3) ? (int)luaL_checkinteger(L, 3) : _imgui_binding_lua_len(L, 2);
+        const int values_count = (argc >= 3) ? (int)luaL_checkinteger(L, 3) : _luaL_len(L, 2);
         float_array values(values_count);
         for (int i = 0; i < values_count; i += 1)
         {

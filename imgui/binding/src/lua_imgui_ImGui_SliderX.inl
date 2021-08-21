@@ -459,7 +459,7 @@ static int lib_SliderScalar(lua_State* L)
     {
         if (data_type >= 0 && data_type < (ImGuiDataType)ImGuiDataType_COUNT)
         {
-            return luaL_error(L, R"(unsupported data type '%s')", imgui_binding_lua_ImGuiDataType_name[data_type]);
+            return luaL_error(L, R"(unsupported data type '%s')", ImGuiDataTypeName[data_type]);
         }
         return luaL_error(L, R"(unsupported data type '?')");
     }
@@ -562,7 +562,7 @@ static int lib_SliderScalarN(lua_State* L)
     {
         if (data_type >= 0 && data_type < (ImGuiDataType)ImGuiDataType_COUNT)
         {
-            return luaL_error(L, R"(unsupported data type '%s')", imgui_binding_lua_ImGuiDataType_name[data_type]);
+            return luaL_error(L, R"(unsupported data type '%s')", ImGuiDataTypeName[data_type]);
         }
         return luaL_error(L, R"(unsupported data type '?')");
     }
@@ -686,7 +686,7 @@ static int lib_VSliderScalar(lua_State* L)
     {
         if (data_type >= 0 && data_type < (ImGuiDataType)ImGuiDataType_COUNT)
         {
-            return luaL_error(L, R"(unsupported data type '%s')", imgui_binding_lua_ImGuiDataType_name[data_type]);
+            return luaL_error(L, R"(unsupported data type '%s')", ImGuiDataTypeName[data_type]);
         }
         return luaL_error(L, R"(unsupported data type '?')");
     }

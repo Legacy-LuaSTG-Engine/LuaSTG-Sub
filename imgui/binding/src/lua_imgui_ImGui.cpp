@@ -1,7 +1,7 @@
-#include <cstdint>
 #include "lua_imgui_common.hpp"
 #include "lua_imgui_ImGui.hpp"
 #include "lua_imgui_type.hpp"
+#include <cstdint>
 #include "imgui.h"
 
 template<typename T>
@@ -35,24 +35,28 @@ using number_array = type_array<lua_Number>;
 static lua_State* GLUA = NULL;
 static const int IMGUI_REGISTRY = 9961;
 #define IMGUI_GET_REGISTRY(L) lua_pushlightuserdata(L, (void*)&IMGUI_REGISTRY); lua_gettable(L, LUA_REGISTRYINDEX);
+#define LUA_IMGUI_NOT_SUPPORT return luaL_error(L, "not supported");
+
+// XXXX: will not implement (or should not export to lua API)
+// !!!!: works in progress
 
 //////// Context creation and access
 
-static /* !!!! */ int lib_CreateContext(lua_State* L)
+static /* XXXX */ int lib_CreateContext(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
-static /* !!!! */ int lib_DestroyContext(lua_State* L)
+static /* XXXX */ int lib_DestroyContext(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
-static /* !!!! */ int lib_GetCurrentContext(lua_State* L)
+static /* XXXX */ int lib_GetCurrentContext(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
-static /* !!!! */ int lib_SetCurrentContext(lua_State* L)
+static /* XXXX */ int lib_SetCurrentContext(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 
 //////// Main
@@ -1213,7 +1217,7 @@ static int lib_Text(lua_State* L)
 }
 static /* XXXX */ int lib_TextV(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 static int lib_TextColored(lua_State* L)
 {
@@ -1224,7 +1228,7 @@ static int lib_TextColored(lua_State* L)
 }
 static /* XXXX */ int lib_TextColoredV(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 static int lib_TextDisabled(lua_State* L)
 {
@@ -1234,7 +1238,7 @@ static int lib_TextDisabled(lua_State* L)
 }
 static /* XXXX */ int lib_TextDisabledV(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 static int lib_TextWrapped(lua_State* L)
 {
@@ -1244,7 +1248,7 @@ static int lib_TextWrapped(lua_State* L)
 }
 static /* XXXX */ int lib_TextWrappedV(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 static int lib_LabelText(lua_State* L)
 {
@@ -1255,7 +1259,7 @@ static int lib_LabelText(lua_State* L)
 }
 static /* XXXX */ int lib_LabelTextV(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 static int lib_BulletText(lua_State* L)
 {
@@ -1265,7 +1269,7 @@ static int lib_BulletText(lua_State* L)
 }
 static /* XXXX */ int lib_BulletTextV(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 
 //////// Widgets: Main
@@ -1430,7 +1434,7 @@ static int lib_Combo(lua_State* L)
         {
             if (argc <= 4)
             {
-                const int items_count = (argc < 4) ? _imgui_binding_lua_len(L, 3) : (int)luaL_checkinteger(L, 4);
+                const int items_count = (argc < 4) ? _luaL_len(L, 3) : (int)luaL_checkinteger(L, 4);
                 char_array items(items_count);
                 for (int i = 1; i <= items_count; i += 1)
                 {
@@ -1576,7 +1580,7 @@ static int lib_TreeNode(lua_State* L)
 }
 static /* XXXX */ int lib_TreeNodeV(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 static int lib_TreeNodeEx(lua_State* L)
 {
@@ -1627,7 +1631,7 @@ static int lib_TreeNodeEx(lua_State* L)
 }
 static /* XXXX */ int lib_TreeNodeExV(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 static int lib_TreePush(lua_State* L)
 {
@@ -1833,7 +1837,7 @@ static int lib_ListBox(lua_State* L)
     }
     else
     {
-        const int items_count = (argc >= 4) ? (int)luaL_checkinteger(L, 4) : _imgui_binding_lua_len(L, 3);
+        const int items_count = (argc >= 4) ? (int)luaL_checkinteger(L, 4) : _luaL_len(L, 3);
         char_array items(items_count);
         for (int i = 0; i < items_count; i += 1)
         {
@@ -2009,7 +2013,7 @@ static int lib_SetTooltip(lua_State* L)
 }
 static /* XXXX */ int lib_SetTooltipV(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 
 //////// Popups, Modals
@@ -3133,7 +3137,7 @@ static int lib_LoadIniSettingsFromMemory(lua_State* L)
     }
     else
     {
-        const size_t size = _imgui_binding_lua_len_size_t(L, 1);
+        const size_t size = _luaL_szlen(L, 1);
         ImGui::LoadIniSettingsFromMemory(data, size);
     }
     return 0;
@@ -3164,29 +3168,29 @@ static int lib_DebugCheckVersionAndDataLayout(lua_State* L)
 
 //////// Memory Allocators
 
-static /* !!!! */ int lib_SetAllocatorFunctions(lua_State* L)
+static /* XXXX */ int lib_SetAllocatorFunctions(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
-static /* !!!! */ int lib_GetAllocatorFunctions(lua_State* L)
+static /* XXXX */ int lib_GetAllocatorFunctions(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
-static /* !!!! */ int lib_MemAlloc(lua_State* L)
+static /* XXXX */ int lib_MemAlloc(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
-static /* !!!! */ int lib_MemFree(lua_State* L)
+static /* XXXX */ int lib_MemFree(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 
 void imgui_binding_lua_register_ImGui(lua_State* L)
 {
 #include "lua_imgui_ImGui_register.inl"
-    //                                      // ? m
-    lua_pushstring(L, "ImGui");             // ? m k
-    lua_createtable(L, 0, lib_func);        // ? m k t
-    luaL_setfuncs(L, lib_fun, 0);           // ? m k t
-    lua_settable(L, -3);                    // ? m
+    //                                  // ? M
+    lua_pushstring(L, "ImGui");         // ? M k
+    lua_createtable(L, 0, lib_func);    // ? M k t
+    _luaL_setfuncs(L, lib_fun);         // ? M k t
+    lua_settable(L, -3);                // ? M
 }

@@ -1,3 +1,4 @@
+#include "lua_imgui_common.hpp"
 #include "lua_imgui_type.hpp"
 #include "lua_imgui_hash.hpp"
 
@@ -130,7 +131,7 @@ void imgui_binding_lua_register_ImGuiTextBuffer(lua_State* L)
         }
         static int __gc(lua_State* L)
         {
-            __ImGuiTextBuffer* p = (__ImGuiTextBuffer*)luaL_checkudata(L, 1, imgui_binding_lua_class_ImGuiTextBuffer);
+            __ImGuiTextBuffer* p = (__ImGuiTextBuffer*)luaL_checkudata(L, 1, lua_class_imgui_ImGuiTextBuffer);
             if (!p->reft)
             {
                 delete p->data;
@@ -141,7 +142,7 @@ void imgui_binding_lua_register_ImGuiTextBuffer(lua_State* L)
         };
         static int __tostring(lua_State* L)
         {
-            lua_pushstring(L, imgui_binding_lua_class_ImGuiTextBuffer);
+            lua_pushstring(L, lua_class_imgui_ImGuiTextBuffer);
             return 1;
         };
         
@@ -160,8 +161,8 @@ void imgui_binding_lua_register_ImGuiTextBuffer(lua_State* L)
         {NULL, NULL},
     };
     
-    luaL_newmetatable(L, imgui_binding_lua_class_ImGuiTextBuffer);
-    luaL_setfuncs(L, mt_lib, 0);
+    luaL_newmetatable(L, lua_class_imgui_ImGuiTextBuffer);
+    _luaL_setfuncs(L, mt_lib);
     lua_pop(L, 1);
     
     const luaL_Reg cls_lib[] = {
@@ -169,14 +170,14 @@ void imgui_binding_lua_register_ImGuiTextBuffer(lua_State* L)
         {NULL, NULL},
     };
     
-    luaL_setfuncs(L, cls_lib, 0);
+    _luaL_setfuncs(L, cls_lib);
 }
 ImGuiTextBuffer* imgui_binding_lua_new_ImGuiTextBuffer(lua_State* L)
 {
     __ImGuiTextBuffer* p = (__ImGuiTextBuffer*)lua_newuserdata(L, sizeof(__ImGuiTextBuffer));
     p->data = new ImGuiTextBuffer;
     p->reft = false;
-    luaL_getmetatable(L, imgui_binding_lua_class_ImGuiTextBuffer);
+    luaL_getmetatable(L, lua_class_imgui_ImGuiTextBuffer);
     lua_setmetatable(L, -2);
     return p->data;
 }
@@ -185,12 +186,12 @@ ImGuiTextBuffer* imgui_binding_lua_ref_ImGuiTextBuffer(lua_State* L, ImGuiTextBu
     __ImGuiTextBuffer* p = (__ImGuiTextBuffer*)lua_newuserdata(L, sizeof(__ImGuiTextBuffer));
     p->data = v;
     p->reft = true;
-    luaL_getmetatable(L, imgui_binding_lua_class_ImGuiTextBuffer);
+    luaL_getmetatable(L, lua_class_imgui_ImGuiTextBuffer);
     lua_setmetatable(L, -2);
     return p->data;
 }
 ImGuiTextBuffer* imgui_binding_lua_to_ImGuiTextBuffer(lua_State* L, int idx)
 {
-    __ImGuiTextBuffer* p = (__ImGuiTextBuffer*)luaL_checkudata(L, idx, imgui_binding_lua_class_ImGuiTextBuffer);
+    __ImGuiTextBuffer* p = (__ImGuiTextBuffer*)luaL_checkudata(L, idx, lua_class_imgui_ImGuiTextBuffer);
     return p->data;
 }

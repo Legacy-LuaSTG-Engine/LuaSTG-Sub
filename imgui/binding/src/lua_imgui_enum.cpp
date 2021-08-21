@@ -2,17 +2,17 @@
 #include "lua_imgui_type.hpp"
 #include "imgui.h"
 #include <vector>
-#include <string>
+#include <string_view>
 
 struct enum_name_value_pair
 {
-    std::string name;
+    std::string_view name;
     int value;
 };
 
 struct enum_name_data_pair
 {
-    std::string name;
+    std::string_view name;
     std::vector<enum_name_value_pair> data;
 };
 
@@ -21,23 +21,23 @@ using enum_data = std::vector<enum_name_data_pair>;
 void imgui_binding_lua_register_enum(lua_State* L)
 {
     auto regfunc = [&L](enum_data& datas) -> void {
-        //                                          // ? t
+        //                                                          // ? M
         for(auto& i : datas)
         {
-            lua_pushstring(L, i.name.c_str());      // ? t k
-            lua_createtable(L, 0, i.data.size());   // ? t k t
+            lua_pushlstring(L, i.name.data(), i.name.length());     // ? M k
+            lua_createtable(L, 0, i.data.size());                   // ? M k t
             for(auto& j : i.data)
             {
-                lua_pushstring(L, j.name.c_str());  // ? t k t k
-                lua_pushinteger(L, j.value);        // ? t k t k v
-                lua_settable(L, -3);                // ? t k t
+                lua_pushlstring(L, j.name.data(), j.name.length()); // ? M k t k
+                lua_pushinteger(L, j.value);                        // ? M k t k v
+                lua_settable(L, -3);                                // ? M k t
             }
-            lua_settable(L, -3);                    // ? t
+            lua_settable(L, -3);                                    // ? M
         }
     };
     
     // common
-    enum_data datas = {
+    enum_data datas1 = {
 {"ImGuiWindowFlags", {
     {"None"                     , ImGuiWindowFlags_None                     },
     {"NoTitleBar"               , ImGuiWindowFlags_NoTitleBar               },
@@ -506,7 +506,7 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"Appearing"   , ImGuiCond_Appearing   },
 }},
     };
-    regfunc(datas);
+    regfunc(datas1);
     
     // draw
     enum_data datas2 = {
@@ -546,4 +546,15 @@ void imgui_binding_lua_register_enum(lua_State* L)
 }},
     };
     regfunc(datas3);
+    
+    // viewport
+    enum_data datas4 = {
+{"ImGuiViewportFlags", {
+    {"None"             , ImGuiViewportFlags_None             },
+    {"IsPlatformWindow" , ImGuiViewportFlags_IsPlatformWindow },
+    {"IsPlatformMonitor", ImGuiViewportFlags_IsPlatformMonitor},
+    {"OwnedByApp"       , ImGuiViewportFlags_OwnedByApp       },
+}},
+    };
+    regfunc(datas4);
 }

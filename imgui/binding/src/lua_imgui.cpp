@@ -7,15 +7,14 @@
 
 int luaopen_imgui(lua_State* L)
 {
-    _imgui_binding_lua_new_library(L, "imgui");
+    _luaL_reglib(L, lua_module_imgui);      // ? M
     
-    //                                      // ? m
-    lua_pushstring(L, "IMGUI_VERSION");     // ? m k
-    lua_pushstring(L, IMGUI_VERSION);       // ? m k s
-    lua_settable(L, -3);                    // ? m
-    lua_pushstring(L, "IMGUI_VERSION_NUM"); // ? m k
-    lua_pushinteger(L, IMGUI_VERSION_NUM);  // ? m k v
-    lua_settable(L, -3);                    // ? m
+    lua_pushstring(L, "IMGUI_VERSION");     // ? M k
+    lua_pushstring(L, IMGUI_VERSION);       // ? M k s
+    lua_settable(L, -3);                    // ? M
+    lua_pushstring(L, "IMGUI_VERSION_NUM"); // ? M k
+    lua_pushinteger(L, IMGUI_VERSION_NUM);  // ? M k v
+    lua_settable(L, -3);                    // ? M
     
     imgui_binding_lua_register_enum(L);
     imgui_binding_lua_register_ImVec2(L);
