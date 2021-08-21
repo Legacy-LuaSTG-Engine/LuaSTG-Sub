@@ -16,7 +16,6 @@ ver/*
 data/*
 
 # cache
-imgui/imgui
 LuaSTG/Custom.cmake
 LuaSTG/custom/*
 DirectX/DirectXSDK/backup/*
