@@ -122,6 +122,21 @@ static int lib_ShowMetricsWindow(lua_State* L)
         return 0;
     }
 }
+static int lib_ShowStackToolWindow(lua_State* L)
+{
+    if(lua_gettop(L) >= 1)
+    {
+        bool p_open = lua_toboolean(L, 1);
+        ImGui::ShowStackToolWindow(&p_open);
+        lua_pushboolean(L, p_open);
+        return 1;
+    }
+    else
+    {
+        ImGui::ShowStackToolWindow();
+        return 0;
+    }
+}
 static int lib_ShowAboutWindow(lua_State* L)
 {
     if(lua_gettop(L) >= 1)
@@ -679,12 +694,6 @@ static int lib_GetWindowContentRegionMax(lua_State* L)
 {
     ImVec2* vec2 = imgui_binding_lua_new_ImVec2(L);
     *vec2 = ImGui::GetWindowContentRegionMax();
-    return 1;
-}
-static int lib_GetWindowContentRegionWidth(lua_State* L)
-{
-    const float ret = ImGui::GetWindowContentRegionWidth();
-    lua_pushnumber(L, (lua_Number)ret);
     return 1;
 }
 

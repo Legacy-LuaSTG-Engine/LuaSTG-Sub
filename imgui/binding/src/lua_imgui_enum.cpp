@@ -238,6 +238,7 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"ChildWindows"       , ImGuiFocusedFlags_ChildWindows       },
     {"RootWindow"         , ImGuiFocusedFlags_RootWindow         },
     {"AnyWindow"          , ImGuiFocusedFlags_AnyWindow          },
+    {"NoPopupHierarchy"   , ImGuiFocusedFlags_NoPopupHierarchy   },
     {"RootAndChildWindows", ImGuiFocusedFlags_RootAndChildWindows},
 }},
 {"ImGuiHoveredFlags", {
@@ -245,6 +246,7 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"ChildWindows"                , ImGuiHoveredFlags_ChildWindows                },
     {"RootWindow"                  , ImGuiHoveredFlags_RootWindow                  },
     {"AnyWindow"                   , ImGuiHoveredFlags_AnyWindow                   },
+    {"NoPopupHierarchy"            , ImGuiHoveredFlags_NoPopupHierarchy            },
     {"AllowWhenBlockedByPopup"     , ImGuiHoveredFlags_AllowWhenBlockedByPopup     },
     {"AllowWhenBlockedByActiveItem", ImGuiHoveredFlags_AllowWhenBlockedByActiveItem},
     {"AllowWhenOverlapped"         , ImGuiHoveredFlags_AllowWhenOverlapped         },

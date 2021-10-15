@@ -20,6 +20,7 @@ static const luaL_Reg lib_fun[] = {
     // Demo, Debug, Information
     MAKEF(ShowDemoWindow),
     MAKEF(ShowMetricsWindow),
+    MAKEF(ShowStackToolWindow),
     MAKEF(ShowAboutWindow),
     MAKEF(ShowStyleEditor),
     MAKEF(ShowStyleSelector),
@@ -69,7 +70,6 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(GetContentRegionMax),
     MAKEF(GetWindowContentRegionMin),
     MAKEF(GetWindowContentRegionMax),
-    MAKEF(GetWindowContentRegionWidth),
     
     // Windows Scrolling
     MAKEF(GetScrollX),
