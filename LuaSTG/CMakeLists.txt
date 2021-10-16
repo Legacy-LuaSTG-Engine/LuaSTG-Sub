@@ -42,6 +42,11 @@ target_sources(LuaSTG PRIVATE
     ${LUASTG_SRC_STEAMAPI}
     ${LUASTG_RES}
     
+    ../xinput/xinput.hpp
+    ../xinput/xinput.cpp
+    ../xinput/lua_xinput.hpp
+    ../xinput/lua_xinput.cpp
+    
     src/LuaSTG.manifest
     ${LUASTG_RESDIR}/resource.rc
     ${LUASTG_RESDIR}/app.ico
