@@ -14,7 +14,6 @@ static int xinput_update(lua_State* L)
     xinput::update();
     return 0;
 }
-
 static int xinput_getKeyState(lua_State* L)
 {
     if (lua_gettop(L) >= 2)
@@ -55,7 +54,6 @@ int lua_xinput_open(lua_State* L)
     const luaL_Reg lib[] = {
         MakePair(refresh),
         MakePair(update),
-        
         MakePair(getKeyState),
         MakePair(getLeftTrigger),
         MakePair(getRightTrigger),
@@ -63,12 +61,12 @@ int lua_xinput_open(lua_State* L)
         MakePair(getLeftThumbY),
         MakePair(getRightThumbX),
         MakePair(getRightThumbY),
-        
         {NULL, NULL},
     };
     luaL_register(L, "xinput", lib);
     #define MakeValue(_Name) std::make_pair<std::string_view, lua_Integer>(#_Name, (lua_Integer)xinput::_Name)
-    const std::array<std::pair<std::string_view, lua_Integer>, 14> libval = {
+    const std::array<std::pair<std::string_view, lua_Integer>, 15> libval = {
+        MakeValue(Null         ),
         MakeValue(Up           ),
         MakeValue(Down         ),
         MakeValue(Left         ),

@@ -2,6 +2,7 @@
 
 namespace xinput
 {
+    constexpr int Null            = 0x0000;
     constexpr int Up              = 0x0001;
     constexpr int Down            = 0x0002;
     constexpr int Left            = 0x0004;
