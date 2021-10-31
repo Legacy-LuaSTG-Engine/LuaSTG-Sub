@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.19)
 project(LuaSTGSub)
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 include(cmake/CheckPlatform.cmake)
 include(cmake/TargetCommonOptions.cmake)
 add_compile_definitions(
