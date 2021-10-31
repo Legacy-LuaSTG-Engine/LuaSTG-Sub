@@ -211,6 +211,7 @@ namespace native
                     {
                         int dpi_x = ::GetDeviceCaps(dc, LOGPIXELSX);
                         // int dpi_y = ::GetDeviceCaps(dc, LOGPIXELSY);
+                        ::ReleaseDC(NULL, dc);
                         return (unsigned int)dpi_x; // will dpi_x != dpi_y happen? I don't known
                     }
                 }
