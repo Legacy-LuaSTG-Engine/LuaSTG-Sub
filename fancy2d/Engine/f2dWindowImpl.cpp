@@ -175,6 +175,7 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 		}
 		break;
 	case native::Windows::WM_DPICHANGED_T:
+		if (pWindow->m_bAutoResizeWindowOnDPIScaling)
 		{
 			pWindow->SetClientRect(pWindow->GetClientRect()); // 刷新一次尺寸（因为非客户区可能会变化）
 			pWindow->MoveToCenter();
@@ -282,7 +283,10 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 		}
 		return 0;
 	case native::Windows::WM_DPICHANGED_T:
-		return 0;
+		if (pWindow->m_bAutoResizeWindowOnDPIScaling)
+			return 0;
+		else
+			break;
 	default:
 		break;
 	};

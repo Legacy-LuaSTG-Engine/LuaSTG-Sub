@@ -281,6 +281,7 @@ struct f2dWindow
 	
 	// 获取窗口的DPI缩放
 	virtual float GetDPIScaling()=0;
+	virtual void SetAutoResizeWindowOnDPIScaling(bool v)=0;
 	
 	// 获取窗口关联的显示器的大小（有可能不是实际大小）
 	virtual fcyVec2 GetMonitorSize()=0;

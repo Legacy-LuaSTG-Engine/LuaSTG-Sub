@@ -158,6 +158,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			const fBool windowed = lua_toboolean(L, 3);
 			const fBool vsync = lua_toboolean(L, 4);
 			const fBool flip = lua_toboolean(L, 5);
+			LAPP.GetWindow()->SetAutoResizeWindowOnDPIScaling(windowed);
 			fResult result = LAPP.GetRenderDev()->SetBufferSize(width, height, windowed, vsync, flip, F2DAALEVEL_NONE);
 			if (result == FCYERR_OK)
 			{
@@ -166,6 +167,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			}
 			else
 			{
+				LAPP.GetWindow()->SetAutoResizeWindowOnDPIScaling(true);
 				spdlog::error(u8"[fancy2d] [f2dRenderDevice::SetBufferSize] 交换链更新失败(fResult={})，参数为 Size:({}x{}) Windowed:{} Vsync:{} Flip:{}",
 					result,
 					width, height, windowed, vsync, flip);

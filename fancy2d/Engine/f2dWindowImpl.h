@@ -155,6 +155,7 @@ private:
 	bool m_bShow;
 	std::wstring m_CaptionText;
 	fcyVec2 m_Size;
+	bool m_bAutoResizeWindowOnDPIScaling = true;
 	
 	// 监听器
 	DefaultListener m_DefaultListener;
@@ -222,6 +223,7 @@ public: // 接口实现
 	fcStrW GetIMECandidate(fuInt Index);
 	
 	float GetDPIScaling();
+	void SetAutoResizeWindowOnDPIScaling(bool v) { m_bAutoResizeWindowOnDPIScaling = v; };
 	
 	fcyVec2 GetMonitorSize();
 protected:
