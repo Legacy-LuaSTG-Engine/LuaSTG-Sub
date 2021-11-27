@@ -14,7 +14,7 @@
     
     :: x86
     @echo ============================ build Win32 ===========================
-    cmake -S %SOURCE% -B %BUILD32% -G "Visual Studio 16 2019" -A Win32
+    cmake -S %SOURCE% -B %BUILD32% -G "Visual Studio 17 2022" -T v143 -A Win32
     cmake --build %BUILD32% --target ALL_BUILD --config Release --clean-first
     ::cmake --build %BUILD32% --target ALL_BUILD --config Release        --clean-first
     ::cmake --build %BUILD32% --target ALL_BUILD --config Debug          --clean-first
@@ -23,7 +23,7 @@
     
     :: amd64
     @echo ============================= build x64 ============================
-    cmake -S %SOURCE% -B %BUILD64% -G "Visual Studio 16 2019" -A x64
+    cmake -S %SOURCE% -B %BUILD64% -G "Visual Studio 17 2022" -T v143 -A x64
     cmake --build %BUILD64% --target ALL_BUILD --config Release --clean-first
     ::cmake --build %BUILD64% --target ALL_BUILD --config Release        --clean-first
     ::cmake --build %BUILD64% --target ALL_BUILD --config Debug          --clean-first

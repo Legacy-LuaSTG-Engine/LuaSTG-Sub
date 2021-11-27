@@ -9,8 +9,8 @@ add_compile_definitions(
     NTDDI_VERSION=0x06010000  # NTDDI_WIN7
 )
 
+add_subdirectory(external)
 add_subdirectory(ThirdParty)
-add_subdirectory(prebuild)
 add_subdirectory(DirectX)
 
 add_subdirectory(fancylib)
