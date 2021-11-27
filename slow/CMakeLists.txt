@@ -25,6 +25,7 @@ add_library(slow STATIC)
 slow_common_options(slow)
 target_precompile_headers(slow PRIVATE src/pch.hpp)
 target_include_directories(slow PUBLIC
+    ${CMAKE_BINARY_DIR}
     include
 )
 target_include_directories(slow PRIVATE
@@ -35,8 +36,7 @@ target_sources(slow PRIVATE
     src/slow.cpp
 )
 
-add_custom_command(TARGET slow_make_type PRE_BUILD
-    COMMAND echo ${CMAKE_BINARY_DIR}/slow
+add_custom_command(TARGET slow PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/slow
     COMMAND $<TARGET_FILE:slow_make_type> -o ${CMAKE_BINARY_DIR}/slow/NativeType.hpp
 )
