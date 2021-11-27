@@ -109,7 +109,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, b
 			
 			m_pMainWindow->SetBorderType(F2DWINBORDERTYPE_FIXED);
 			m_pMainWindow->SetClientRect(fcyRect(0.0f, 0.0f, (fFloat)width, (fFloat)height));
-			//m_pMainWindow->SetTopMost(false);
+			m_pMainWindow->SetTopMost(false); // 强制取消窗口置顶
 			m_pMainWindow->MoveToCenter();
 			
 			m_OptionResolution.Set((fFloat)width, (fFloat)height);
@@ -124,7 +124,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, b
 			
 			m_pMainWindow->SetBorderType(F2DWINBORDERTYPE_NONE);
 			m_pMainWindow->SetClientRect(fcyRect(0.0f, 0.0f, (fFloat)width, (fFloat)height));
-			//m_pMainWindow->SetTopMost(true);
+			m_pMainWindow->SetTopMost(true);
 			//m_pMainWindow->MoveToCenter();
 			
 			if (FCYOK(m_pRenderDev->SetBufferSize((fuInt)width, (fuInt)height, windowed, vsync, false, F2DAALEVEL_NONE)))
@@ -151,7 +151,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, b
 				
 				m_pMainWindow->SetBorderType(F2DWINBORDERTYPE_FIXED);
 				m_pMainWindow->SetClientRect(fcyRect(0.0f, 0.0f, (fFloat)width, (fFloat)height));
-				//m_pMainWindow->SetTopMost(false);
+				m_pMainWindow->SetTopMost(false); // 强制取消窗口置顶
 				m_pMainWindow->MoveToCenter();
 				
 				m_OptionResolution.Set((fFloat)width, (fFloat)height);
@@ -706,7 +706,7 @@ fBool AppFrame::OnRender(fDouble ElapsedTime, f2dFPSController* pFPSController)
 	
 	if (slow::Graphic::_draw())
 	{
-		return false;
+		return false; // tell fancy2d do not present d3d9 swapchain
 	}
 	
 	m_pRenderDev->Clear();
