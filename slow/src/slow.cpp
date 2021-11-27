@@ -1,3 +1,2 @@
-#include "slow/slow.hpp"
-
-namespace slow {};
+#include "slow/Type.hpp"
+#include "slow/Object.hpp"
