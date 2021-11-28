@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cassert>
+#include <cstdint>
+
 #include <Windows.h>
 #include <wrl.h>
 

@@ -34,9 +34,28 @@ target_include_directories(slow PRIVATE
 target_sources(slow PRIVATE
     src/pch.cpp
     src/slow.cpp
+    src/ByteArray.cpp
 )
 
 add_custom_command(TARGET slow PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/slow
     COMMAND $<TARGET_FILE:slow_make_type> -o ${CMAKE_BINARY_DIR}/slow/NativeType.hpp
 )
+
+add_library(lua_slow STATIC)
+slow_common_options(lua_slow)
+target_include_directories(lua_slow PUBLIC
+    binding
+)
+target_sources(lua_slow PRIVATE
+    binding/lua_slow.h
+    binding/lua_slow.cpp
+)
+target_link_libraries(lua_slow PUBLIC
+    slow
+    luajit
+)
+
+add_executable(slow_test src/test.cpp)
+slow_common_options(slow_test)
+target_link_libraries(slow_test PRIVATE slow)
