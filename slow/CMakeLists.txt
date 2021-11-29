@@ -21,6 +21,25 @@ endfunction()
 add_executable(slow_make_type src/make_type.cpp)
 slow_common_options(slow_make_type)
 
+set(slow_lib_inc
+    include/slow/slow.hpp
+    include/slow/Type.hpp
+    include/slow/Object.hpp
+    include/slow/ByteArray.hpp
+    include/slow/Graphics/ShaderCompiler.hpp
+    include/slow/Graphics/Format.hpp
+    include/slow/Graphics/PipelineState.hpp
+    include/slow/Graphics/Resource.hpp
+    include/slow/Graphics/Device.hpp
+)
+set(slow_lib_src
+    src/slow/slow.cpp
+    src/slow/ByteArray.cpp
+    src/slow/Graphics/Device.cpp
+)
+source_group(TREE ${CMAKE_CURRENT_LIST_DIR}/include FILES ${slow_lib_inc})
+source_group(TREE ${CMAKE_CURRENT_LIST_DIR}/src     FILES ${slow_lib_src})
+
 add_library(slow STATIC)
 slow_common_options(slow)
 target_precompile_headers(slow PRIVATE src/pch.hpp)
@@ -32,9 +51,18 @@ target_include_directories(slow PRIVATE
     src
 )
 target_sources(slow PRIVATE
+    src/pch.hpp
     src/pch.cpp
-    src/slow.cpp
-    src/ByteArray.cpp
+    ${slow_lib_inc}
+    ${slow_lib_src}
+)
+target_link_libraries(slow PUBLIC
+    dxguid.lib
+    dxgi.lib
+    d3d11.lib
+    d3dcompiler.lib
+    windowscodecs.lib
+    DirectXTex0
 )
 
 #add_custom_command(TARGET slow PRE_BUILD
