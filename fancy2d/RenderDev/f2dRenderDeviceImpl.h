@@ -153,7 +153,9 @@ public: // 接口实现
 	fBool CheckMultiSample(F2DAALEVEL AALevel, fBool Windowed);
 	fuInt GetSupportResolutionCount();
 	fcyVec2 EnumSupportResolution(fuInt Index);
+	fuInt EnumSupportRefreshRate(fuInt Index);
 	fResult SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, fBool FlipModel, F2DAALEVEL AALevel);
+	fResult SetDisplayMode(fuInt Width, fuInt Height, fuInt RefreshRate, fBool Windowed, fBool VSync, fBool FlipModel);
 
 	fResult AttachListener(f2dRenderDeviceEventListener* Listener, fInt Priority=0);
 	fResult RemoveListener(f2dRenderDeviceEventListener* Listener);

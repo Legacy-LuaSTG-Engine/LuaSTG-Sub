@@ -29,21 +29,47 @@ static int lib_setTitle(lua_State* L)
 static int lib_setCentered(lua_State* L)
 {
     getwindow(window);
-    window->MoveToCenter();
+    if (lua_gettop(L) > 0)
+    {
+        const fuInt index = (fuInt)luaL_checkinteger(L, 1);
+        window->MoveToMonitorCenter(index);
+    }
+    else
+    {
+        window->MoveToCenter();
+    }
     return 0;
 }
 static int lib_setFullScreen(lua_State* L)
 {
     getwindow(window);
-    window->EnterFullScreen();
+    if (lua_gettop(L) > 0)
+    {
+        const fuInt index = (fuInt)luaL_checkinteger(L, 1);
+        window->EnterMonitorFullScreen(index);
+    }
+    else
+    {
+        window->EnterFullScreen();
+    }
     return 0;
 }
 static int lib_getFullScreenSize(lua_State* L)
 {
     getwindow(window);
-    const fcyVec2 size = window->GetMonitorSize();
-    lua_pushnumber(L, size.x);
-    lua_pushnumber(L, size.y);
+    if (lua_gettop(L) > 0)
+    {
+        const fuInt index = (fuInt)luaL_checkinteger(L, 1);
+        const fcyRect rect = window->GetMonitorRect(index);
+        lua_pushnumber(L, rect.GetWidth());
+        lua_pushnumber(L, rect.GetHeight());
+    }
+    else
+    {
+        const fcyVec2 size = window->GetMonitorSize();
+        lua_pushnumber(L, size.x);
+        lua_pushnumber(L, size.y);
+    }
     return 2;
 }
 static int lib_setStyle(lua_State* L)
@@ -142,12 +168,50 @@ static const luaL_Reg lib[] = {
     {NULL, NULL},
 };
 
+static int molib_getCount(lua_State* L)
+{
+    getwindow(window);
+    lua_pushinteger(L, (lua_Integer)window->GetMonitorCount());
+    return 1;
+}
+static int molib_getPos(lua_State* L)
+{
+    getwindow(window);
+    const fuInt index = (fuInt)luaL_checkinteger(L, 1);
+    const fcyRect rect = window->GetMonitorRect(index);
+    lua_pushnumber(L, rect.a.x);
+    lua_pushnumber(L, rect.a.y);
+    return 2;
+}
+static int molib_getSize(lua_State* L)
+{
+    getwindow(window);
+    const fuInt index = (fuInt)luaL_checkinteger(L, 1);
+    const fcyRect rect = window->GetMonitorRect(index);
+    lua_pushnumber(L, rect.GetWidth());
+    lua_pushnumber(L, rect.GetHeight());
+    return 2;
+}
+
+static const luaL_Reg molib[] = {
+    { "getCount", &molib_getCount },
+    { "getPos"  , &molib_getPos   },
+    { "getSize" , &molib_getSize  },
+    {NULL, NULL},
+};
+
 void LuaSTGPlus::LuaWrapper::WindowWrapper::Register(lua_State* L) LNOEXCEPT
 {
     luaL_register(L, LUASTG_LUA_LIBNAME, compat); // ? t
+    // Window
     lua_pushstring(L, "Window");                  // ? t k
     lua_newtable(L);                              // ? t k t
     luaL_register(L, NULL, lib);                  // ? t k t
+    lua_settable(L, -3);                          // ? t
+    // Monitor
+    lua_pushstring(L, "Monitor");                 // ? t k
+    lua_newtable(L);                              // ? t k t
+    luaL_register(L, NULL, molib);                // ? t k t
     lua_settable(L, -3);                          // ? t
     lua_pop(L, 1);                                // ?
 };

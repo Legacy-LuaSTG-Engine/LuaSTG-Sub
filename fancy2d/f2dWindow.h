@@ -285,6 +285,11 @@ struct f2dWindow
 	
 	// 获取窗口关联的显示器的大小（有可能不是实际大小）
 	virtual fcyVec2 GetMonitorSize()=0;
+
+	virtual fuInt GetMonitorCount() = 0;
+	virtual fcyRect GetMonitorRect(fuInt index) = 0;
+	virtual void MoveToMonitorCenter(fuInt index) = 0;
+	virtual void EnterMonitorFullScreen(fuInt index) = 0;
 };
 
 /// @}

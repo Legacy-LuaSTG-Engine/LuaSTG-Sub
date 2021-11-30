@@ -14,9 +14,7 @@ set(FANCY2D_SOURCE
     f2dVideoSys.h
 
     Common/fancy2d.manifest
-
-    ../Common/DPIHelper.hpp
-    ../Common/DPIHelper.cpp
+    
     Common/f2dStandardCommon.hpp
     Common/f2dStandardCommon.cpp
     Common/f2dWindowsCommon.h
@@ -110,6 +108,7 @@ set(FANCY2D_SOURCE
     #Video/f2dVideoRenderer.h
     #Video/f2dVideoRenderer.cpp
 )
+source_group(TREE ${CMAKE_CURRENT_LIST_DIR} PREFIX fancy2d FILES ${FANCY2D_SOURCE})
 
 # 静态库
 
@@ -131,6 +130,8 @@ target_include_directories(fancy2dlib PRIVATE
 
 target_sources(fancy2dlib PRIVATE
     ${FANCY2D_SOURCE}
+    ../Common/DPIHelper.hpp
+    ../Common/DPIHelper.cpp
 )
 
 target_link_libraries(fancy2dlib PUBLIC

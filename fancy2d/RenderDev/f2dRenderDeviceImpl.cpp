@@ -869,6 +869,18 @@ fcyVec2 f2dRenderDeviceImpl::EnumSupportResolution(fuInt Index)
 	
 	return tRet;
 }
+fuInt f2dRenderDeviceImpl::EnumSupportRefreshRate(fuInt Index)
+{
+	D3DDISPLAYMODEEX mode = {};
+	mode.Size = sizeof(D3DDISPLAYMODEEX);
+
+	if (D3D_OK == _d3d9Ex->EnumAdapterModesEx(D3DADAPTER_DEFAULT, &g_d3d9DisplayModeFilter, Index, &mode))
+	{
+		return mode.RefreshRate;
+	}
+
+	return 0;
+}
 
 fResult f2dRenderDeviceImpl::SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, fBool FlipModel, F2DAALEVEL AALevel)
 {
@@ -944,6 +956,76 @@ fResult f2dRenderDeviceImpl::SetBufferSize(fuInt Width, fuInt Height, fBool Wind
 		m_pEngine->ThrowException(fcyException("f2dRenderDeviceImpl::SetBufferSize", tBuffer));
 	}
 	
+	return hr == D3D_OK ? FCYERR_OK : FCYERR_INTERNALERR;
+}
+fResult f2dRenderDeviceImpl::SetDisplayMode(fuInt Width, fuInt Height, fuInt RefreshRate, fBool Windowed, fBool VSync, fBool FlipModel)
+{
+	// 检查参数
+	if (Width < 1 || Height < 1 || RefreshRate < 1)
+		return FCYERR_INVAILDPARAM;
+
+	// 备份交换链配置
+	D3DPRESENT_PARAMETERS D3DPP = _d3d9SwapChainInfo;
+	D3DDISPLAYMODEEX D3DPPEX = _d3d9FullScreenSwapChainInfo;
+
+	// 准备参数
+	auto& finfo = _d3d9FullScreenSwapChainInfo; {
+		finfo.Width = Width;
+		finfo.Height = Height;
+		finfo.RefreshRate = RefreshRate;
+	};
+	auto& winfo = _d3d9SwapChainInfo; {
+		winfo.BackBufferWidth = Width;
+		winfo.BackBufferHeight = Height;
+		winfo.BackBufferCount = 1;
+		winfo.SwapEffect = D3DSWAPEFFECT_DISCARD;
+		if (Windowed && _d3d9SupportFlip && FlipModel)
+		{
+			//winfo.BackBufferCount  = 2;
+			winfo.SwapEffect = D3DSWAPEFFECT_FLIPEX; // 窗口模式下，且支持FLIPEX交换链模型，就可以开启
+		}
+		winfo.BackBufferFormat = Windowed ? D3DFMT_UNKNOWN : _d3d9FullScreenSwapChainInfo.Format; // 窗口模式下让d3d9决定画面格式，否则必须指定格式
+		winfo.Windowed = Windowed;
+		winfo.FullScreen_RefreshRateInHz = Windowed ? 0 : _d3d9FullScreenSwapChainInfo.RefreshRate; // 窗口模式下让d3d9决定刷新率，否则必须指定刷新率
+		winfo.PresentationInterval = VSync ? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE;
+	};
+
+	// 首先，通知一些资源需要释放
+	dispatchRenderSizeDependentResourcesDestroy();
+
+	HRESULT hr = doReset();
+	if (hr == D3D_OK)
+	{
+		// 成功，更新状态
+
+		m_ScissorRect.left = 0;
+		m_ScissorRect.top = 0;
+		m_ScissorRect.right = GetBufferWidth();
+		m_ScissorRect.bottom = GetBufferHeight();
+
+		m_ViewPort.X = 0;
+		m_ViewPort.Y = 0;
+		m_ViewPort.Width = GetBufferWidth();
+		m_ViewPort.Height = GetBufferHeight();
+		m_ViewPort.MinZ = 0.0f;
+		m_ViewPort.MaxZ = 1.0f;
+
+		// 恢复资源
+		dispatchRenderSizeDependentResourcesCreate();
+	}
+	else
+	{
+		// 我们假设上一个交换链配置是有效的
+		_d3d9SwapChainInfo = D3DPP;
+		_d3d9FullScreenSwapChainInfo = D3DPPEX;
+		// 设备丢失，广播设备丢失事件
+		m_bDevLost = true; // 标记为设备丢失状态
+		int tObjCount = sendDevLostMsg();
+		char tBuffer[256] = {};
+		snprintf(tBuffer, 255, "Detected device lost. ( %d Object(s) losted. )", tObjCount);
+		m_pEngine->ThrowException(fcyException("f2dRenderDeviceImpl::SetBufferSize", tBuffer));
+	}
+
 	return hr == D3D_OK ? FCYERR_OK : FCYERR_INTERNALERR;
 }
 

@@ -226,6 +226,11 @@ public: // 接口实现
 	void SetAutoResizeWindowOnDPIScaling(bool v) { m_bAutoResizeWindowOnDPIScaling = v; };
 	
 	fcyVec2 GetMonitorSize();
+
+	fuInt GetMonitorCount();
+	fcyRect GetMonitorRect(fuInt index);
+	void MoveToMonitorCenter(fuInt index);
+	void EnterMonitorFullScreen(fuInt index);
 protected:
 	f2dWindowImpl(f2dEngineImpl* pEngine, f2dWindowClass* WinCls, const fcyRect& Pos, fcStrW Title, fBool Visiable, F2DWINBORDERTYPE Border, bool DisableIME = true);
 	~f2dWindowImpl();

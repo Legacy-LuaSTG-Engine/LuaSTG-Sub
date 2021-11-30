@@ -1150,3 +1150,58 @@ fcyVec2 f2dWindowImpl::GetMonitorSize()
 	
 	return size;
 };
+
+fuInt f2dWindowImpl::GetMonitorCount()
+{
+	auto& c = f2dMonitorHelper::get();
+	c.refresh();
+	return c.getCount();
+}
+fcyRect f2dWindowImpl::GetMonitorRect(fuInt index)
+{
+	auto& c = f2dMonitorHelper::get();
+	fcyRect rect;
+	rect.a.x = c.getX(index);
+	rect.a.y = c.getY(index);
+	rect.b.x = rect.a.x + c.getWidth(index);
+	rect.b.y = rect.a.y + c.getHeight(index);
+	return rect;
+}
+void f2dWindowImpl::MoveToMonitorCenter(fuInt index)
+{
+	auto& mohelp = f2dMonitorHelper::get();
+	HMONITOR monitor = (HMONITOR)mohelp.getHandle(index);
+	if (monitor)
+	{
+		MONITORINFO moninfo = { sizeof(MONITORINFO), {}, {}, 0 };
+		if (FALSE != ::GetMonitorInfoA(monitor, &moninfo))
+		{
+			RECT rect = {};
+			if (FALSE != ::GetWindowRect(m_hWnd, &rect))
+			{
+				const auto& area = moninfo.rcMonitor;
+				const auto sx = area.left;
+				const auto sy = area.top;
+				const auto sw = area.right - area.left;
+				const auto sh = area.bottom - area.top;
+				const auto ww = rect.right - rect.left;
+				const auto wh = rect.bottom - rect.top;
+				::SetWindowPos(m_hWnd, NULL, sx + (sw / 2) - (ww / 2), sy + (sh / 2) - (wh / 2), ww, wh, SWP_NOZORDER | SWP_SHOWWINDOW);
+			}
+		}
+	}
+}
+void f2dWindowImpl::EnterMonitorFullScreen(fuInt index)
+{
+	auto& mohelp = f2dMonitorHelper::get();
+	HMONITOR monitor = (HMONITOR)mohelp.getHandle(index);
+	if (monitor)
+	{
+		MONITORINFO moninfo = { sizeof(MONITORINFO), {}, {}, 0 };
+		if (FALSE != ::GetMonitorInfoA(monitor, &moninfo))
+		{
+			const auto& area = moninfo.rcMonitor;
+			::SetWindowPos(m_hWnd, NULL, area.left, area.top, area.right - area.left, area.bottom - area.top, SWP_NOZORDER | SWP_SHOWWINDOW);
+		}
+	}
+}

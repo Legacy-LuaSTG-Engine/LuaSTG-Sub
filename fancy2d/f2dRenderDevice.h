@@ -683,6 +683,7 @@ struct f2dRenderDevice
 
 	/// @brief 枚举支持的分辨率
 	virtual fcyVec2 EnumSupportResolution(fuInt Index)=0;
+	virtual fuInt EnumSupportRefreshRate(fuInt Index) = 0;
 
 	/// @brief     重设缓冲区
 	/// @note      该操作过后需要手动设置Graphics的矩阵和Viewport大小
@@ -693,6 +694,7 @@ struct f2dRenderDevice
 	/// @param[in] FlipModel FLIPEX交换链模式
 	/// @param[in] AALevel   抗锯齿等级
 	virtual fResult SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, fBool FlipModel, F2DAALEVEL AALevel)=0;
+	virtual fResult SetDisplayMode(fuInt Width, fuInt Height, fuInt RefreshRate, fBool Windowed, fBool VSync, fBool FlipModel) = 0;
 	
 	// --- 事件监听器 ---
 	/// @brief     挂接一个消息监听器

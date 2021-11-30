@@ -45,6 +45,12 @@ uint32_t f2dMonitorHelper::getCount()
 {
     return (uint32_t)self.monitor.size();
 }
+void* f2dMonitorHelper::getHandle(uint32_t index)
+{
+    if (self.info.size() == 0) return nullptr;
+    assert(index < self.info.size());
+    return self.monitor[index];
+}
 int32_t f2dMonitorHelper::getX(uint32_t index)
 {
     if (self.info.size() == 0) return 0;
@@ -89,6 +95,10 @@ uint32_t f2dMonitorHelper::findFromWindow(void* window, bool primary)
         }
     }
     return 0;
+}
+void* f2dMonitorHelper::getFromWindow(void* window, bool primary)
+{
+    return getHandle(findFromWindow(window, primary));
 }
 
 f2dMonitorHelper::f2dMonitorHelper()

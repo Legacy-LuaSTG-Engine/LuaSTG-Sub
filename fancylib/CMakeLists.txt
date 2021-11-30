@@ -1,32 +1,25 @@
-add_library(fancylib STATIC)
 
-luastg_target_common_options(fancylib)
-
-target_include_directories(fancylib PUBLIC
-    .
-)
-
-target_sources(fancylib PRIVATE
+set(fancylib_src
     fcyType.h
     fcyResult.h
     fcyRefObj.h
     fcyRefObj.cpp
-    
+
     fcyException.h
     fcyException.cpp
-    
+
     fcyMath.h
-    
+
     fcyFile/fcyResPackage.h
     fcyFile/fcyResPackage.cpp
-    
+
     fcyIO/fcyStream.h
     fcyIO/fcyStream.cpp
     fcyIO/fcyDeflate.h
     fcyIO/fcyDeflate.cpp
     fcyIO/fcyBinaryHelper.h
     fcyIO/fcyBinaryHelper.cpp
-    
+
     fcyMisc/fcyFunctor.h
     fcyMisc/fcyHash.h
     fcyMisc/fcyHash.cpp
@@ -36,7 +29,7 @@ target_sources(fancylib PRIVATE
     fcyMisc/fcyStopWatch.cpp
     fcyMisc/fcyStringHelper.h
     fcyMisc/fcyStringHelper.cpp
-    
+
     fcyOS/fcyMemPool.h
     fcyOS/fcyCPUID.h
     fcyOS/fcyCPUID.cpp
@@ -46,7 +39,7 @@ target_sources(fancylib PRIVATE
     fcyOS/fcyMultiThread.cpp
     fcyOS/fcySocket.h
     fcyOS/fcySocket.cpp
-    
+
     fcyParser/fcyLexicalParser.h
     fcyParser/fcyLexicalParser.cpp
     fcyParser/fcyIni.h
@@ -58,7 +51,14 @@ target_sources(fancylib PRIVATE
     fcyParser/fcyXml.h
     fcyParser/fcyXml.cpp
 )
+source_group(TREE ${CMAKE_CURRENT_LIST_DIR} PREFIX fancylib FILES ${fancylib_src})
 
+add_library(fancylib STATIC)
+luastg_target_common_options(fancylib)
+target_include_directories(fancylib PUBLIC
+    .
+)
+target_sources(fancylib PRIVATE ${fancylib_src})
 target_link_libraries(fancylib PUBLIC
     zlib
 )

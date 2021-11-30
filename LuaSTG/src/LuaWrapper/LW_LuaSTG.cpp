@@ -175,6 +175,31 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			lua_pushboolean(L, result == FCYERR_OK);
 			return 1;
 		}
+		static int SetDisplayMode(lua_State* L)LNOEXCEPT
+		{
+			const fuInt width = (fuInt)luaL_checkinteger(L, 1);
+			const fuInt height = (fuInt)luaL_checkinteger(L, 2);
+			const fuInt refreshrate = (fuInt)luaL_checkinteger(L, 3);
+			const fBool windowed = lua_toboolean(L, 4);
+			const fBool vsync = lua_toboolean(L, 5);
+			const fBool flip = lua_toboolean(L, 6);
+			LAPP.GetWindow()->SetAutoResizeWindowOnDPIScaling(windowed);
+			fResult result = LAPP.GetRenderDev()->SetDisplayMode(width, height, refreshrate, windowed, vsync, flip);
+			if (result == FCYERR_OK)
+			{
+				spdlog::info(u8"[fancy2d] 交换链更新成功 Size:({}x{}) RefreshRate:{} Windowed:{} Vsync:{} Flip:{}",
+					width, height, refreshrate, windowed, vsync, flip);
+			}
+			else
+			{
+				LAPP.GetWindow()->SetAutoResizeWindowOnDPIScaling(true);
+				spdlog::error(u8"[fancy2d] [f2dRenderDevice::SetDisplayMode] 交换链更新失败(fResult={})，参数为 Size:({}x{}) RefreshRate:{} Windowed:{} Vsync:{} Flip:{}",
+					result,
+					width, height, refreshrate, windowed, vsync, flip);
+			}
+			lua_pushboolean(L, result == FCYERR_OK);
+			return 1;
+		}
 		static int EnumResolutions(lua_State* L) {
 			//返回一个lua表，该表中又包含多个表，分别储存着所支持的屏幕分辨率宽和屏幕分辨率的高，均为整数
 			//例如{ {1920,1080}, {1600,900}, ...  }
@@ -183,11 +208,14 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 				lua_createtable(L, count, 0);		// t
 				for (auto index = 0; index < count; index++) {
 					auto res = LAPP.GetRenderDev()->EnumSupportResolution(index);
-					lua_createtable(L, 2, 0);		// t t
+					auto rhz = LAPP.GetRenderDev()->EnumSupportRefreshRate(index);
+					lua_createtable(L, 3, 0);		// t t
 					lua_pushinteger(L, res.x);		// t t x
 					lua_rawseti(L, -2, 1);			// t t
 					lua_pushinteger(L, res.y);		// t t y
 					lua_rawseti(L, -2, 2);			// t t
+					lua_pushinteger(L, rhz);		// t t y
+					lua_rawseti(L, -2, 3);			// t t
 					lua_rawseti(L, -2, index + 1);	// t
 				}
 				return 1;
@@ -1620,6 +1648,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		#pragma region 窗口与交换链控制函数
 		{ "ChangeVideoMode", &WrapperImplement::ChangeVideoMode },
 		{ "SetSwapChainSize", &WrapperImplement::SetSwapChainSize },
+		{ "SetDisplayMode", &WrapperImplement::SetDisplayMode },
 		{ "EnumResolutions", &WrapperImplement::EnumResolutions },
 		#pragma endregion
 		
