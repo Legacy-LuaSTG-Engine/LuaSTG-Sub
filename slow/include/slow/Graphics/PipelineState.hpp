@@ -55,11 +55,11 @@ namespace slow::Graphics
 	{
 		EFillMode fill_mode;
 		ECullMode cull_mode;
-		u8 front_counter_clock_wise;
-		u8 depth_clip_enable;
-		u8 scissor_enable;
-		u8 multi_sample_enable;
-		u8 antialiased_line_enable;
+		b8 front_counter_clock_wise;
+		b8 depth_clip_enable;
+		b8 scissor_enable;
+		b8 multi_sample_enable;
+		b8 antialiased_line_enable;
 		u8 _padding;
 		i32 depth_bias;
 		f32 depth_bias_clamp;
@@ -106,12 +106,12 @@ namespace slow::Graphics
 
 	struct TDepthStencilState
 	{
-		u8 depth_enable;
+		b8 depth_enable;
 		EDepthWriteMask depth_write_mask;
 		EComparisonFunction depth_function;
 		u8 _padding1;
 
-		u8 stencil_enable;
+		b8 stencil_enable;
 		u8 stencil_read_mask;
 		u8 stencil_write_mask;
 		u8 _padding2;
@@ -159,7 +159,7 @@ namespace slow::Graphics
 
 	struct TBlendState
 	{
-		u8 enable;
+		b8 enable;
 		EBlendFactor pixel_color_factor;
 		EBlendFactor buffer_color_factor;
 		EBlendOperation color_operation;

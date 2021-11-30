@@ -246,4 +246,6 @@ namespace slow
         // waring: unsafe, only avaliable for C-style null-terminal string
         c8view(c8 const* data_) : data(data_), size(0) { for (size = 0; data[size]; size += 1); }
     };
+
+    constexpr int padding = 0;
 }
