@@ -3,7 +3,7 @@
 
 namespace slow
 {
-    inline bool is_pow2(size_t v)
+    inline b8 is_pow2(size_t v)
     {
         return (v & (v - 1)) == 0;
     }
@@ -32,8 +32,8 @@ namespace slow
         }
         void _alloc(size_t size_, size_t align_)
         {
-            if (!is_pow2(align_))
-                return; // 不支持的对齐，必须为二次幂
+            if ((align_ != 0) && !is_pow2(align_))
+                return; // 不支持的对齐，必须为二次幂，或者0代表默认对齐
             if (align_ > MEMORY_ALLOCATION_ALIGNMENT)
             {
                 _realsize = size_ + align_; // 至少分配这么多的空间用于对齐
@@ -58,6 +58,10 @@ namespace slow
             }
         }
     public:
+        u8view view() const
+        {
+            return u8view(data(), size());
+        }
         u8* data() const
         {
             return _ptr;
@@ -66,7 +70,7 @@ namespace slow
         {
             return _size;
         }
-        bool resizable() const
+        b8 resizable() const
         {
             return _resizable;
         }
@@ -74,7 +78,7 @@ namespace slow
         {
             return _align;
         }
-        bool resize(u32 size_, u32 align_)
+        b8 resize(u32 size_, u32 align_)
         {
             if (!_resizable)
                 return false;
@@ -92,126 +96,126 @@ namespace slow
         #define _read(T) *v = *(T*)(_ptr + offset);
         #define _read_align_check(T) if ((offset % sizeof(T)) != 0) return false; _read(T);
         
-        bool writeu8(u8 v, u32 offset)
+        b8 writeu8(u8 v, u32 offset)
         {
             _offset_check_light();
             _write(u8);
             return true;
         }
-        bool writeu16(u16 v, u32 offset)
+        b8 writeu16(u16 v, u32 offset)
         {
             _offset_check(u16);
             _write_align_check(u16);
             return true;
         }
-        bool writeu32(u32 v, u32 offset)
+        b8 writeu32(u32 v, u32 offset)
         {
             _offset_check(u32);
             _write_align_check(u32);
             return true;
         }
-        bool writeu64(u64 v, u32 offset)
+        b8 writeu64(u64 v, u32 offset)
         {
             _offset_check(u64);
             _write_align_check(u64);
             return true;
         }
         
-        bool writei8(i8 v, u32 offset)
+        b8 writei8(i8 v, u32 offset)
         {
             _offset_check_light();
             _write(i8);
             return true;
         }
-        bool writei16(i16 v, u32 offset)
+        b8 writei16(i16 v, u32 offset)
         {
             _offset_check(i16);
             _write_align_check(i16);
             return true;
         }
-        bool writei32(i32 v, u32 offset)
+        b8 writei32(i32 v, u32 offset)
         {
             _offset_check(i32);
             _write_align_check(i32);
             return true;
         }
-        bool writei64(i64 v, u32 offset)
+        b8 writei64(i64 v, u32 offset)
         {
             _offset_check(i64);
             _write_align_check(i64);
             return true;
         }
         
-        bool writef32(f32 v, u32 offset)
+        b8 writef32(f32 v, u32 offset)
         {
             _offset_check(f32);
             _write_align_check(f32);
             return true;
         }
-        bool writef64(f64 v, u32 offset)
+        b8 writef64(f64 v, u32 offset)
         {
             _offset_check(f64);
             _write_align_check(f64);
             return true;
         }
         
-        bool readu8(u8* v, u32 offset) const
+        b8 readu8(u8* v, u32 offset) const
         {
             _offset_check_light();
             _read(u8);
             return true;
         }
-        bool readu16(u16* v, u32 offset) const
+        b8 readu16(u16* v, u32 offset) const
         {
             _offset_check(u16);
             _read_align_check(u16);
             return true;
         }
-        bool readu32(u32* v, u32 offset) const
+        b8 readu32(u32* v, u32 offset) const
         {
             _offset_check(u32);
             _read_align_check(u32);
             return true;
         }
-        bool readu64(u64* v, u32 offset) const
+        b8 readu64(u64* v, u32 offset) const
         {
             _offset_check(u64);
             _read_align_check(u64);
             return true;
         }
         
-        bool readi8(i8* v, u32 offset) const
+        b8 readi8(i8* v, u32 offset) const
         {
             _offset_check_light();
             _read(i8);
             return true;
         }
-        bool readi16(i16* v, u32 offset) const
+        b8 readi16(i16* v, u32 offset) const
         {
             _offset_check(i16);
             _read_align_check(i16);
             return true;
         }
-        bool readi32(i32* v, u32 offset) const
+        b8 readi32(i32* v, u32 offset) const
         {
             _offset_check(i32);
             _read_align_check(i32);
             return true;
         }
-        bool readi64(i64* v, u32 offset) const
+        b8 readi64(i64* v, u32 offset) const
         {
             _offset_check(i64);
             _read_align_check(i64);
             return true;
         }
         
-        bool readf32(f32* v, u32 offset) const
+        b8 readf32(f32* v, u32 offset) const
         {
             _offset_check(f32);
             _read_align_check(f32);
             return true;
         }
-        bool readf64(f64* v, u32 offset) const
+        b8 readf64(f64* v, u32 offset) const
         {
             _offset_check(f64);
             _read_align_check(f64);
@@ -234,7 +238,7 @@ namespace slow
             , _resizable(true)
         {
         }
-        ByteArray(u32 size_, u32 align_, bool resizable_)
+        ByteArray(u32 size_, u32 align_, b8 resizable_)
             : _data(nullptr)
             , _ptr(nullptr)
             , _realsize(0)
@@ -252,12 +256,45 @@ namespace slow
         }
     };
     
-    bool createByteArray(IByteArray** obj, u32 size, u32 align, bool resizable)
+    b8 createByteArray(IByteArray** obj, u32 size, u32 align, b8 resizable)
     {
         try
         {
             ByteArray* ins = new ByteArray(size, align, resizable);
             *obj = dynamic_cast<IByteArray*>(ins);
+            return true;
+        }
+        catch (...)
+        {
+            *obj = nullptr;
+            return false;
+        }
+    }
+    b8 createByteArrayFromFile(IByteArray** obj, c8view path, u32 align)
+    {
+        try
+        {
+            Microsoft::WRL::Wrappers::FileHandle file;
+            file.Attach(::CreateFileW(_to_wide(path.data).c_str(), 0, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL));
+            if (!file.IsValid())
+                return false;
+            LARGE_INTEGER file_pos = {}; file_pos.QuadPart = 0;
+            if (!::SetFilePointerEx(file.Get(), file_pos, NULL, FILE_BEGIN))
+                return false;
+            LARGE_INTEGER file_size = {};
+            if (!::GetFileSizeEx(file.Get(), &file_size))
+                return false;
+            if (file_size.HighPart != 0)
+                return false;
+            object_ptr<ByteArray> buf;
+            buf.setDirect(new ByteArray(file_size.LowPart, align, false));
+            DWORD readbs = 0;
+            if (!::ReadFile(file.Get(), buf->data(), file_size.LowPart, &readbs, NULL))
+                return false;
+            if (file_size.LowPart != readbs)
+                return false;
+            file.Close();
+            *obj = dynamic_cast<IByteArray*>(buf.getOwnership());
             return true;
         }
         catch (...)

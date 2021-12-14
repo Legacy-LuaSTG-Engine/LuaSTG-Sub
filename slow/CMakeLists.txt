@@ -36,6 +36,7 @@ set(slow_lib_src
     src/slow/slow.cpp
     src/slow/ByteArray.cpp
     src/slow/Graphics/Device.cpp
+    src/slow/Graphics/ShaderCompiler.cpp
 )
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR}/include FILES ${slow_lib_inc})
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR}/src     FILES ${slow_lib_src})

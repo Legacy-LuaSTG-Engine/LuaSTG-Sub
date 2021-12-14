@@ -1,2 +1,1 @@
-#include "slow/Type.hpp"
-#include "slow/Object.hpp"
+#include "slow/slow.hpp"

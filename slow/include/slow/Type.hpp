@@ -97,20 +97,16 @@ namespace slow
 }
 #endif
 
-// string
-namespace slow
-{
-    using c8str = c8*;
-    using c16str = c16*;
-    using c32str = c32*;
-    using c8cstr = c8 const*;
-    using c16cstr = c16 const*;
-    using c32cstr = c32 const*;
-}
-
 // basic types
 namespace slow
 {
+    struct u32x2
+    {
+        u32 x;
+        u32 y;
+        u32x2() : x(0), y(0) {}
+        u32x2(u32 x_, u32 y_) : x(x_), y(y_) {}
+    };
     struct u32x4
     {
         union
@@ -135,6 +131,14 @@ namespace slow
         u32x4(u32 x_, u32 y_, u32 z_, u32 w_) : x(x_), y(y_), z(z_), w(w_) {}
     };
     
+    struct i32x2
+    {
+        i32 x;
+        i32 y;
+        i32x2() : x(0), y(0) {}
+        i32x2(i32 x_, i32 y_) : x(x_), y(y_) {}
+    };
+
     struct f32x2
     {
         union
