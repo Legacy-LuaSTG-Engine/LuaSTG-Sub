@@ -29,6 +29,7 @@ bool f2dMonitorHelper::refresh()
     {
         return false;
     }
+    self.info.resize(self.monitor.size());
     for (size_t idx = 0; idx < self.monitor.size(); idx++)
     {
         self.info[idx] = MONITORINFO{};
