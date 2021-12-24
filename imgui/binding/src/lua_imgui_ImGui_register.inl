@@ -385,7 +385,6 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(GetStyleColorName),
     MAKEF(SetStateStorage),
     MAKEF(GetStateStorage),
-    MAKEF(CalcListClipping),
     MAKEF(BeginChildFrame),
     MAKEF(EndChildFrame),
     
@@ -411,6 +410,7 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(IsMouseClicked),
     MAKEF(IsMouseReleased),
     MAKEF(IsMouseDoubleClicked),
+    MAKEF(GetMouseClickedCount),
     MAKEF(IsMouseHoveringRect),
     MAKEF(IsMousePosValid),
     MAKEF(IsAnyMouseDown),

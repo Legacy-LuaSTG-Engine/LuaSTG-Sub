@@ -2858,18 +2858,6 @@ static /* !!!! */ int lib_GetStateStorage(lua_State* L)
 {
     return 0;
 }
-static int lib_CalcListClipping(lua_State* L)
-{
-    const int items_count = luaL_checkinteger(L, 1);
-    const float items_height = (float)luaL_checknumber(L, 2);
-    int out_items_display_start = 0;
-    int out_items_display_end = 0;
-    ImGui::CalcListClipping(items_count, items_height,
-        &out_items_display_start, &out_items_display_end);
-    lua_pushinteger(L, (lua_Integer)out_items_display_start);
-    lua_pushinteger(L, (lua_Integer)out_items_display_end);
-    return 2;
-}
 static int lib_BeginChildFrame(lua_State* L)
 {
     const ImGuiID id = (ImGuiID)luaL_checkinteger(L, 1);
@@ -3032,6 +3020,13 @@ static int lib_IsMouseDoubleClicked(lua_State* L)
 {
     const ImGuiMouseButton button = (ImGuiMouseButton)luaL_checkinteger(L, 1);
     const bool ret = ImGui::IsMouseDoubleClicked(button);
+    lua_pushboolean(L, ret);
+    return 1;
+}
+static int lib_GetMouseClickedCount(lua_State* L)
+{
+    const ImGuiMouseButton button = (ImGuiMouseButton)luaL_checkinteger(L, 1);
+    const bool ret = ImGui::GetMouseClickedCount(button);
     lua_pushboolean(L, ret);
     return 1;
 }
