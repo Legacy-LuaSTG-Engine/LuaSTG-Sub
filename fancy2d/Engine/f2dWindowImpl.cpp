@@ -273,15 +273,15 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 	{
 	case WM_CLOSE:
 		return 0;
-	case WM_GETMINMAXINFO:
-		{
-			MINMAXINFO* info = (MINMAXINFO*)lParam;
-			info->ptMaxSize.x = (LONG)pWindow->m_Size.x + 2;
-			info->ptMaxSize.y = (LONG)pWindow->m_Size.y + 2;
-			info->ptMaxTrackSize.x = (LONG)pWindow->m_Size.x + 2;
-			info->ptMaxTrackSize.y = (LONG)pWindow->m_Size.y + 2;
-		}
-		return 0;
+	//case WM_GETMINMAXINFO:
+	//	{
+	//		MINMAXINFO* info = (MINMAXINFO*)lParam;
+	//		info->ptMaxSize.x = (LONG)pWindow->m_Size.x + 2;
+	//		info->ptMaxSize.y = (LONG)pWindow->m_Size.y + 2;
+	//		info->ptMaxTrackSize.x = (LONG)pWindow->m_Size.x + 2;
+	//		info->ptMaxTrackSize.y = (LONG)pWindow->m_Size.y + 2;
+	//	}
+	//	return 0;
 	case native::Windows::WM_DPICHANGED_T:
 		if (pWindow->m_bAutoResizeWindowOnDPIScaling)
 			return 0;
