@@ -213,6 +213,99 @@ LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, b
 	}
 	return false;
 }
+LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, bool vsync, int hz)LNOEXCEPT
+{
+	if (m_iStatus == AppStatus::Initialized)
+	{
+		if (windowed)
+		{
+			m_pMainWindow->SetAutoResizeWindowOnDPIScaling(true);
+			
+			if (m_OptionWindowed)
+			{
+				// 窗口模式下，先改变窗口设置再修改交换链
+				m_pMainWindow->SetBorderType(F2DWINBORDERTYPE_FIXED);
+				m_pMainWindow->SetClientRect(fcyRect(0.0f, 0.0f, (fFloat)width, (fFloat)height));
+				m_pMainWindow->SetTopMost(false); // 强制取消窗口置顶
+				m_pMainWindow->MoveToCenter();
+			}
+			
+			bool bResult = true;
+			if (FCYOK(m_pRenderDev->SetDisplayMode((fuInt)width, (fuInt)height, 0, windowed, vsync, false)))
+			{
+				spdlog::info(u8"[luastg] 显示模式切换成功 ({}x{} Vsync:{} Windowed:{}) -> ({}x{} Vsync:{} Windowed:{})",
+					(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
+					width, height, vsync, windowed);
+			}
+			else
+			{
+				spdlog::error(u8"[luastg] 显示模式切换失败 ({}x{} Vsync:{} Windowed:{}) -> ({}x{} Vsync:{} Windowed:{})",
+					(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
+					width, height, vsync, windowed);
+				bResult = false;
+			}
+			
+			if (!m_OptionWindowed)
+			{
+				// 全屏模式切回窗口模式，先修改交换链再更新窗口，避免出现winxp、win7风格窗口
+				m_pMainWindow->SetBorderType(F2DWINBORDERTYPE_FIXED);
+				m_pMainWindow->SetClientRect(fcyRect(0.0f, 0.0f, (fFloat)width, (fFloat)height));
+				m_pMainWindow->SetTopMost(false); // 强制取消窗口置顶
+				m_pMainWindow->MoveToCenter();
+			}
+			
+			m_OptionResolution.Set((fFloat)width, (fFloat)height);
+			m_OptionWindowed = windowed;
+			m_OptionVsync = vsync;
+			
+			return bResult;
+		}
+		else
+		{
+			m_pMainWindow->SetAutoResizeWindowOnDPIScaling(false);
+			
+			m_pMainWindow->SetBorderType(F2DWINBORDERTYPE_NONE);
+			m_pMainWindow->SetClientRect(fcyRect(0.0f, 0.0f, (fFloat)width, (fFloat)height));
+			m_pMainWindow->SetTopMost(true);
+			//m_pMainWindow->MoveToCenter();
+			
+			if (FCYOK(m_pRenderDev->SetDisplayMode((fuInt)width, (fuInt)height, (fuInt)hz, windowed, vsync, false)))
+			{
+				spdlog::info(u8"[luastg] 显示模式切换成功 ({}x{} Vsync:{} Windowed:{}) -> ({}x{}@{} Vsync:{} Windowed:{})",
+					(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
+					width, height, hz, vsync, windowed);
+				
+				m_OptionResolution.Set((fFloat)width, (fFloat)height);
+				m_OptionWindowed = windowed;
+				m_OptionVsync = vsync;
+				
+				return true;
+			}
+			else
+			{
+				spdlog::error(u8"[luastg] 显示模式切换失败 ({}x{} Vsync:{} Windowed:{}) -> ({}x{}@{} Vsync:{} Windowed:{})",
+					(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
+					width, height, hz, vsync, windowed);
+				
+				m_pMainWindow->SetAutoResizeWindowOnDPIScaling(true);
+				windowed = true; // 强制窗口化
+				m_pRenderDev->SetBufferSize((fuInt)width, (fuInt)height, true, vsync, false, F2DAALEVEL_NONE); // 出错也不用管了
+				
+				m_pMainWindow->SetBorderType(F2DWINBORDERTYPE_FIXED);
+				m_pMainWindow->SetClientRect(fcyRect(0.0f, 0.0f, (fFloat)width, (fFloat)height));
+				m_pMainWindow->SetTopMost(false); // 强制取消窗口置顶
+				m_pMainWindow->MoveToCenter();
+				
+				m_OptionResolution.Set((fFloat)width, (fFloat)height);
+				m_OptionWindowed = windowed;
+				m_OptionVsync = vsync;
+				
+				return false;
+			}
+		}
+	}
+	return false;
+}
 
 LNOINLINE bool AppFrame::UpdateVideoMode()LNOEXCEPT
 {

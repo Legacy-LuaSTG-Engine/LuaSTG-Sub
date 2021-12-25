@@ -178,6 +178,7 @@ namespace LuaSTGPlus
 		/// @brief 使用新的视频参数更新显示模式
 		/// @note 若切换失败则进行回滚
 		LNOINLINE bool ChangeVideoMode(int width, int height, bool windowed, bool vsync)LNOEXCEPT;
+		LNOINLINE bool ChangeVideoMode2(int width, int height, bool windowed, bool vsync, int hz)LNOEXCEPT;
 		
 		LNOINLINE bool UpdateVideoMode()LNOEXCEPT;
 		

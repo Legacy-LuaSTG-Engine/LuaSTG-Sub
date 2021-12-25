@@ -143,12 +143,25 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		// 窗口与交换链控制函数
 		static int ChangeVideoMode(lua_State* L)LNOEXCEPT
 		{
-			lua_pushboolean(L, LAPP.ChangeVideoMode(
-				luaL_checkinteger(L, 1),
-				luaL_checkinteger(L, 2),
-				lua_toboolean(L, 3) == 0 ? false : true,
-				lua_toboolean(L, 4) == 0 ? false : true
-			));
+			if (lua_gettop(L) <= 4)
+			{
+				lua_pushboolean(L, LAPP.ChangeVideoMode(
+					luaL_checkinteger(L, 1),
+					luaL_checkinteger(L, 2),
+					lua_toboolean(L, 3) == 0 ? false : true,
+					lua_toboolean(L, 4) == 0 ? false : true
+				));
+			}
+			else
+			{
+				lua_pushboolean(L, LAPP.ChangeVideoMode2(
+					luaL_checkinteger(L, 1),
+					luaL_checkinteger(L, 2),
+					lua_toboolean(L, 3) == 0 ? false : true,
+					lua_toboolean(L, 4) == 0 ? false : true,
+					luaL_checkinteger(L, 5)
+				));
+			}
 			return 1;
 		}
 		static int SetSwapChainSize(lua_State* L)LNOEXCEPT
