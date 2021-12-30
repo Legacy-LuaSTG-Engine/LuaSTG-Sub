@@ -44,7 +44,7 @@ constexpr ImGuiDataType ImGuiDataType_Number =
     : (ImGuiDataType)ImGuiDataType_Float
 );
 
-constexpr char* ImGuiDataTypeName[] = {
+constexpr char const* ImGuiDataTypeName[] = {
     "S8",
     "U8",
     "S16",

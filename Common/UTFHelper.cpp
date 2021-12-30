@@ -1,6 +1,8 @@
 #include "Common/UTFHelper.hpp"
 #include <cassert>
 
+static_assert(sizeof(char8_t) == sizeof(char), "invalid type size");
+
 namespace utf
 {
     type checktype(uint8_t* buffer, size_t len, size_t* bom)
@@ -304,7 +306,7 @@ namespace utf
             {
                 char16to8(cstart, &read, utf8, &write);
                 cstart += read;
-                buffer.append(utf8, write);
+                buffer.append((char*)utf8, write);
             }
             else
             {

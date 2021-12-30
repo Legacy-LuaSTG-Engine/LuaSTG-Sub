@@ -134,7 +134,7 @@ void LogFileSystem::Log(LogLevel lv, const char* msg) {
 
 	ostringstream oss;
 
-	oss << m_Impl->levelstring[index] << msg << u8"\n";
+	oss << m_Impl->levelstring[index] << msg << "\n";
 
 	m_Impl->logfile << oss.str();
 	m_Impl->logfile.flush();
@@ -153,7 +153,7 @@ void LogFileSystem::Log(LogLevel lv, const char* msg, bool utf8) {
 		ostringstream oss;
 
 		string toutf8 = std::move(Eyes2D::String::ANSIToUTF8(string(msg)));
-		oss << m_Impl->levelstring[index] << toutf8 << u8"\n";
+		oss << m_Impl->levelstring[index] << toutf8 << "\n";
 
 		m_Impl->logfile << oss.str();
 		m_Impl->logfile.flush();
@@ -174,7 +174,7 @@ void LogFileSystem::Log(LogLevel lv, const wchar_t* msg) {
 	ostringstream oss;
 
 	string toutf8 = std::move(Eyes2D::String::UTF16ToUTF8(wstring(msg)));
-	oss << m_Impl->levelstring[index] << toutf8 << u8"\n";
+	oss << m_Impl->levelstring[index] << toutf8 << "\n";
 
 	m_Impl->logfile << oss.str();
 	m_Impl->logfile.flush();
@@ -192,7 +192,7 @@ void LogFileSystem::Log(LogLevel lv, Eyes2D::E2DException& e) {
 
 	string toutf8src = std::move(Eyes2D::String::UTF16ToUTF8(e.errSrc));
 	string toutf8desc = std::move(Eyes2D::String::UTF16ToUTF8(e.errDesc));
-	oss << m_Impl->levelstring[index] << toutf8desc << u8" (" << toutf8src << u8")\n";
+	oss << m_Impl->levelstring[index] << toutf8desc << " (" << toutf8src << ")\n";
 
 	m_Impl->logfile << oss.str();
 	m_Impl->logfile.flush();

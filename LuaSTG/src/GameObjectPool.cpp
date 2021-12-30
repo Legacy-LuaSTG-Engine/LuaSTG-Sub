@@ -1333,7 +1333,7 @@ int GameObjectPool::ParticleStop(lua_State* L) noexcept
 		return luaL_error(L, "invalid lstg object for 'ParticleStop'.");
 	if (!p->res || p->res->GetType() != ResourceType::Particle)
 	{
-		spdlog::warn(u8"[luastg] ParticleStop: 试图停止一个不带有粒子发射器的对象的粒子发射过程(uid={})", m_iUid);
+		spdlog::warn("[luastg] ParticleStop: 试图停止一个不带有粒子发射器的对象的粒子发射过程(uid={})", m_iUid);
 		return 0;
 	}	
 	p->ps->SetInactive();
@@ -1353,7 +1353,7 @@ int GameObjectPool::ParticleFire(lua_State* L) noexcept
 		return luaL_error(L, "invalid lstg object for 'ParticleFire'.");
 	if (!p->res || p->res->GetType() != ResourceType::Particle)
 	{
-		spdlog::warn(u8"[luastg] ParticleFire: 试图启动一个不带有粒子发射器的对象的粒子发射过程(uid={})", m_iUid);
+		spdlog::warn("[luastg] ParticleFire: 试图启动一个不带有粒子发射器的对象的粒子发射过程(uid={})", m_iUid);
 		return 0;
 	}	
 	p->ps->SetActive();
@@ -1373,7 +1373,7 @@ int GameObjectPool::ParticleGetn(lua_State* L) noexcept
 		return luaL_error(L, "invalid lstg object for 'ParticleFire'.");
 	if (!p->res || p->res->GetType() != ResourceType::Particle)
 	{
-		spdlog::warn(u8"[luastg] ParticleGetn: 试图获取一个不带有粒子发射器的对象的粒子数量(uid={})", m_iUid);
+		spdlog::warn("[luastg] ParticleGetn: 试图获取一个不带有粒子发射器的对象的粒子数量(uid={})", m_iUid);
 		lua_pushinteger(L, 0);
 		return 1;
 	}
@@ -1394,7 +1394,7 @@ int GameObjectPool::ParticleGetEmission(lua_State* L) noexcept
 		return luaL_error(L, "invalid lstg object for 'ParticleGetEmission'.");
 	if (!p->res || p->res->GetType() != ResourceType::Particle)
 	{
-		spdlog::warn(u8"[luastg] ParticleGetEmission: 试图获取一个不带有粒子发射器的对象的粒子发射密度(uid={})", m_iUid);
+		spdlog::warn("[luastg] ParticleGetEmission: 试图获取一个不带有粒子发射器的对象的粒子发射密度(uid={})", m_iUid);
 		lua_pushinteger(L, 0);
 		return 1;
 	}
@@ -1415,7 +1415,7 @@ int GameObjectPool::ParticleSetEmission(lua_State* L) noexcept
 		return luaL_error(L, "invalid lstg object for 'ParticleGetEmission'.");
 	if (!p->res || p->res->GetType() != ResourceType::Particle)
 	{
-		spdlog::warn(u8"[luastg] ParticleSetEmission: 试图设置一个不带有粒子发射器的对象的粒子发射密度(uid={})", m_iUid);
+		spdlog::warn("[luastg] ParticleSetEmission: 试图设置一个不带有粒子发射器的对象的粒子发射密度(uid={})", m_iUid);
 		return 0;
 	}
 	p->ps->SetEmission((float)::max(0., luaL_checknumber(L, 2)));

@@ -62,22 +62,22 @@ bool ResourceMgr::ExtractRes(const char* path, const char* target) noexcept {
         try {
             pFile.DirectSet(new fcyFileStream(fcyStringHelper::MultiByteToWideChar(target).c_str(), true));
             if (FCYFAILED(pFile->SetLength(0))) {
-                spdlog::error(u8"[luastg] ExtractRes: 无法清空文件'{}' (fcyFileStream::SetLength 失败)", target);
+                spdlog::error("[luastg] ExtractRes: 无法清空文件'{}' (fcyFileStream::SetLength 失败)", target);
                 return false;
             }
             if (tBuf->GetLength() > 0) {
                 if (FCYFAILED(pFile->WriteBytes((fcData) tBuf->GetInternalBuffer(), tBuf->GetLength(), nullptr))) {
-                    spdlog::error(u8"[luastg] ExtractRes: 无法向文件'{}'写出数据", target);
+                    spdlog::error("[luastg] ExtractRes: 无法向文件'{}'写出数据", target);
                     return false;
                 }
             }
         }
         catch (const fcyException& e) {
-            spdlog::error(u8"[luastg] ExtractRes: 打开本地文件'{}'失败 (异常信息'{}' 源'{}')", target, e.GetDesc(), e.GetSrc());
+            spdlog::error("[luastg] ExtractRes: 打开本地文件'{}'失败 (异常信息'{}' 源'{}')", target, e.GetDesc(), e.GetSrc());
             return false;
         }
         catch (const bad_alloc&) {
-            spdlog::error(u8"[luastg] ExtractRes: 内存不足");
+            spdlog::error("[luastg] ExtractRes: 内存不足");
             return false;
         }
     }
@@ -322,7 +322,7 @@ void ResourceMgr::CacheTTFFontString(const char* name, const char* text, size_t 
     if (f)
         f->GetFontProvider()->CacheStringU8(text, len);
     else
-        spdlog::error(u8"[luastg] CacheTTFFontString: 缓存字形时未找到指定字体'{}'", name);
+        spdlog::error("[luastg] CacheTTFFontString: 缓存字形时未找到指定字体'{}'", name);
 }
 
 // 其他

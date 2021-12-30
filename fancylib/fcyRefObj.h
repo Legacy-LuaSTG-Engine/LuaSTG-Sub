@@ -71,7 +71,7 @@ public:
 public:
 	bool operator==(const fcyRefPointer& Right)const
 	{
-		return (m_pPointer == Right);
+		return (m_pPointer == Right.m_pPointer);
 	}
 	fcyRefPointer& operator=(const fcyRefPointer& Right)
 	{

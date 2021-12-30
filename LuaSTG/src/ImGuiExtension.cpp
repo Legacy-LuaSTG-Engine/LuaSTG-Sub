@@ -343,7 +343,7 @@ namespace imgui
             
             if (ImGui::BeginTabBar("##8010"))
             {
-                if (ImGui::BeginTabItem(u8"DirectInput##8011"))
+                if (ImGui::BeginTabItem("DirectInput##8011"))
                 {
                     {
                         const auto cnt = dinput.count();
@@ -361,10 +361,10 @@ namespace imgui
                         }
                         
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
-                        ImGui::Combo(u8"Devices", &current_didx, combo_data.data(), combo_data.size());
+                        ImGui::Combo("Devices", &current_didx, combo_data.data(), combo_data.size());
                         ImGui::SameLine();
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.2f);
-                        if (ImGui::Button(u8"Refresh"))
+                        if (ImGui::Button("Refresh"))
                         {
                             dinput.refresh();
                         }
@@ -379,59 +379,59 @@ namespace imgui
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache = state.lX;
-                            ImGui::SliderInt(u8"Axis X", &cache, range.XMin, range.XMax);
+                            ImGui::SliderInt("Axis X", &cache, range.XMin, range.XMax);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache = state.lY;
-                            ImGui::SliderInt(u8"Axis Y", &cache, range.YMin, range.YMax);
+                            ImGui::SliderInt("Axis Y", &cache, range.YMin, range.YMax);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache = state.lZ;
-                            ImGui::SliderInt(u8"Axis Z", &cache, range.ZMin, range.ZMax);
+                            ImGui::SliderInt("Axis Z", &cache, range.ZMin, range.ZMax);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache = state.lRx;
-                            ImGui::SliderInt(u8"Axis RX", &cache, range.RxMin, range.RxMax);
+                            ImGui::SliderInt("Axis RX", &cache, range.RxMin, range.RxMax);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache = state.lRy;
-                            ImGui::SliderInt(u8"Axis RY", &cache, range.RyMin, range.RyMax);
+                            ImGui::SliderInt("Axis RY", &cache, range.RyMin, range.RyMax);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache = state.lRz;
-                            ImGui::SliderInt(u8"Axis RZ", &cache, range.RzMin, range.RzMax);
+                            ImGui::SliderInt("Axis RZ", &cache, range.RzMin, range.RzMax);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache = state.rglSlider[0];
-                            ImGui::SliderInt(u8"Slider 1", &cache, range.Slider0Min, range.Slider0Max);
+                            ImGui::SliderInt("Slider 1", &cache, range.Slider0Min, range.Slider0Max);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache = state.rglSlider[1];
-                            ImGui::SliderInt(u8"Slider 2", &cache, range.Slider1Min, range.Slider1Max);
+                            ImGui::SliderInt("Slider 2", &cache, range.Slider1Min, range.Slider1Max);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache = (state.rgdwPOV[0] <= 36000) ? state.rgdwPOV[0] : 0;
-                            ImGui::SliderInt(u8"POV 1", &cache, 0, (state.rgdwPOV[0] <= 36000) ? 36000 : 0);
+                            ImGui::SliderInt("POV 1", &cache, 0, (state.rgdwPOV[0] <= 36000) ? 36000 : 0);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache = (state.rgdwPOV[1] <= 36000) ? state.rgdwPOV[1] : 0;
-                            ImGui::SliderInt(u8"POV 2", &cache, 0, (state.rgdwPOV[1] <= 36000) ? 36000 : 0);
+                            ImGui::SliderInt("POV 2", &cache, 0, (state.rgdwPOV[1] <= 36000) ? 36000 : 0);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache = (state.rgdwPOV[2] <= 36000) ? state.rgdwPOV[2] : 0;
-                            ImGui::SliderInt(u8"POV 3", &cache, 0, (state.rgdwPOV[2] <= 36000) ? 36000 : 0);
+                            ImGui::SliderInt("POV 3", &cache, 0, (state.rgdwPOV[2] <= 36000) ? 36000 : 0);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache = (state.rgdwPOV[3] <= 36000) ? state.rgdwPOV[3] : 0;
-                            ImGui::SliderInt(u8"POV 4", &cache, 0, (state.rgdwPOV[3] <= 36000) ? 36000 : 0);
+                            ImGui::SliderInt("POV 4", &cache, 0, (state.rgdwPOV[3] <= 36000) ? 36000 : 0);
                             
                             bool bcache = false;
                             
                             #define SHOWKEY(I, B) \
                                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.125f);\
                                 bcache = (state.rgbButtons[I - 1] != 0);\
-                                if ((I) < 10) ImGui::Checkbox(u8"Button 0" u8#I, &bcache);\
-                                else ImGui::Checkbox(u8"Button " u8#I, &bcache);\
+                                if ((I) < 10) ImGui::Checkbox("Button 0" #I, &bcache);\
+                                else ImGui::Checkbox("Button " #I, &bcache);\
                                 if (B) ImGui::SameLine();
                             
                             SHOWKEY( 1, 1); SHOWKEY( 2, 1); SHOWKEY( 3, 1); SHOWKEY( 4, 1); SHOWKEY( 5, 1); SHOWKEY( 6, 1); SHOWKEY( 7, 1); SHOWKEY( 8, 0);
@@ -444,7 +444,7 @@ namespace imgui
                     }
                     ImGui::EndTabItem();
                 }
-                if (ImGui::BeginTabItem(u8"DirectInput to XInput##8012"))
+                if (ImGui::BeginTabItem("DirectInput to XInput##8012"))
                 {
                     {
                         const auto cnt = dinput.count();
@@ -462,10 +462,10 @@ namespace imgui
                         }
                         
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
-                        ImGui::Combo(u8"Devices", &current_didx, combo_data.data(), combo_data.size());
+                        ImGui::Combo("Devices", &current_didx, combo_data.data(), combo_data.size());
                         ImGui::SameLine();
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.2f);
-                        if (ImGui::Button(u8"Refresh"))
+                        if (ImGui::Button("Refresh"))
                         {
                             dinput.refresh();
                         }
@@ -480,25 +480,25 @@ namespace imgui
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache[0] = state.sThumbLX; cache[1] = state.sThumbLY;
-                            ImGui::SliderScalarN(u8"Left Joystick (LJ)", ImGuiDataType_S16, cache, 2, &minv, &maxv);
+                            ImGui::SliderScalarN("Left Joystick (LJ)", ImGuiDataType_S16, cache, 2, &minv, &maxv);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache[0] = state.sThumbRX; cache[1] = state.sThumbRY;
-                            ImGui::SliderScalarN(u8"Right Joystick (RJ)", ImGuiDataType_S16, cache, 2, &minv, &maxv);
+                            ImGui::SliderScalarN("Right Joystick (RJ)", ImGuiDataType_S16, cache, 2, &minv, &maxv);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             bcache = state.bLeftTrigger;
-                            ImGui::SliderScalar(u8"Left Trigger（LT）", ImGuiDataType_U8, &bcache, &bminv, &bmaxv);
+                            ImGui::SliderScalar("Left Trigger（LT）", ImGuiDataType_U8, &bcache, &bminv, &bmaxv);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             bcache = state.bRightTrigger;
-                            ImGui::SliderScalar(u8"Right Trigger（RT）", ImGuiDataType_U8, &bcache, &bminv, &bmaxv);
+                            ImGui::SliderScalar("Right Trigger（RT）", ImGuiDataType_U8, &bcache, &bminv, &bmaxv);
                             
                             bool _bstate = false;
                             
                             #define SHOWKEY(L, NAME, C) \
                                 _bstate = ((state.wButtons & C) != 0);\
-                                ImGui::Checkbox(u8#NAME, &_bstate);\
+                                ImGui::Checkbox(#NAME, &_bstate);\
                                 if ((L) != 0) ImGui::SameLine();
                             
                             SHOWKEY(1,    UP, XINPUT_GAMEPAD_DPAD_UP       );
@@ -525,20 +525,20 @@ namespace imgui
                     }
                     ImGui::EndTabItem();
                 }
-                if (ImGui::BeginTabItem(u8"XInput##8013"))
+                if (ImGui::BeginTabItem("XInput##8013"))
                 {
                     {
                         combo_str.resize(xdevice);
                         combo_data.resize(xdevice);
                         for (uint32_t i = 0; i < xdevice; i += 1)
                         {
-                            snprintf(buffer, 1023, u8"%u. %s", i + 1, u8"XBox Controller & XInput Compatible Controller");
+                            snprintf(buffer, 1023, "%u. %s", i + 1, "XBox Controller & XInput Compatible Controller");
                             combo_str[i] = buffer;
                             combo_data[i] = (char*)combo_str[i].c_str();
                         }
                         
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
-                        ImGui::Combo(u8"Devices", &current_xidx, combo_data.data(), combo_data.size());
+                        ImGui::Combo("Devices", &current_xidx, combo_data.data(), combo_data.size());
                         
                         if (current_xidx < xdevice)
                         {
@@ -551,25 +551,25 @@ namespace imgui
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache[0] = state.sThumbLX; cache[1] = state.sThumbLY;
-                            ImGui::SliderScalarN(u8"Left Joystick (LJ)", ImGuiDataType_S16, cache, 2, &minv, &maxv);
+                            ImGui::SliderScalarN("Left Joystick (LJ)", ImGuiDataType_S16, cache, 2, &minv, &maxv);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             cache[0] = state.sThumbRX; cache[1] = state.sThumbRY;
-                            ImGui::SliderScalarN(u8"Right Joystick (RJ)", ImGuiDataType_S16, cache, 2, &minv, &maxv);
+                            ImGui::SliderScalarN("Right Joystick (RJ)", ImGuiDataType_S16, cache, 2, &minv, &maxv);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             bcache = state.bLeftTrigger;
-                            ImGui::SliderScalar(u8"Left Trigger（LT）", ImGuiDataType_U8, &bcache, &bminv, &bmaxv);
+                            ImGui::SliderScalar("Left Trigger（LT）", ImGuiDataType_U8, &bcache, &bminv, &bmaxv);
                             
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                             bcache = state.bRightTrigger;
-                            ImGui::SliderScalar(u8"Right Trigger（RT）", ImGuiDataType_U8, &bcache, &bminv, &bmaxv);
+                            ImGui::SliderScalar("Right Trigger（RT）", ImGuiDataType_U8, &bcache, &bminv, &bmaxv);
                             
                             bool _bstate = false;
                             
                             #define SHOWKEY(L, NAME, C) \
                                 _bstate = ((state.wButtons & C) != 0);\
-                                ImGui::Checkbox(u8#NAME, &_bstate);\
+                                ImGui::Checkbox(#NAME, &_bstate);\
                                 if ((L) != 0) ImGui::SameLine();
                             
                             SHOWKEY(1,    UP, XINPUT_GAMEPAD_DPAD_UP       );
@@ -596,24 +596,24 @@ namespace imgui
                     }
                     ImGui::EndTabItem();
                 }
-                if (ImGui::BeginTabItem(u8"Keyboard##8014"))
+                if (ImGui::BeginTabItem("Keyboard##8014"))
                 {
                     for (int i = 0; i < 256; i += 1)
                     {
                         if (dinput.getKeyboardKeyState(i))
                         {
-                            ImGui::Text(u8"[%d]", i);
+                            ImGui::Text("[%d]", i);
                         }
                     }
                     ImGui::EndTabItem();
                 }
-                if (ImGui::BeginTabItem(u8"Mouse##8014"))
+                if (ImGui::BeginTabItem("Mouse##8014"))
                 {
                     const auto x = dinput.getMouseMoveDeltaX();
                     const auto y = dinput.getMouseMoveDeltaY();
                     int xy[2] = { x, y };
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
-                    ImGui::DragInt2(u8"Move Delta", xy);
+                    ImGui::DragInt2("Move Delta", xy);
                     
                     static int g_x = 0;
                     static int g_y = 0;
@@ -621,10 +621,10 @@ namespace imgui
                     g_y += y;
                     int g_xy[2] = { g_x, g_y };
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
-                    ImGui::DragInt2(u8"Total Move", g_xy);
+                    ImGui::DragInt2("Total Move", g_xy);
                     ImGui::SameLine();
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.2f);
-                    if (ImGui::Button(u8"Reset##1"))
+                    if (ImGui::Button("Reset##1"))
                     {
                         g_x = 0;
                         g_y = 0;
@@ -632,16 +632,16 @@ namespace imgui
                     
                     int z = dinput.getMouseWheelDelta();
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
-                    ImGui::DragInt(u8"Wheel Delta", &z);
+                    ImGui::DragInt("Wheel Delta", &z);
                     
                     static int g_z = 0;
                     g_z += z;
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                     int _g_z = g_z;
-                    ImGui::DragInt(u8"Total Wheel", &_g_z);
+                    ImGui::DragInt("Total Wheel", &_g_z);
                     ImGui::SameLine();
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.2f);
-                    if (ImGui::Button(u8"Reset##2"))
+                    if (ImGui::Button("Reset##2"))
                     {
                         g_z = 0;
                     }
@@ -650,7 +650,7 @@ namespace imgui
                     {
                         if (dinput.getMouseKeyState(i))
                         {
-                            ImGui::Text(u8"[%d]", i);
+                            ImGui::Text("[%d]", i);
                         }
                     }
                     ImGui::EndTabItem();

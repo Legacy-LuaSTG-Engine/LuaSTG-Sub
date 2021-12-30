@@ -58,13 +58,13 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		{
 			const lua_Integer level = luaL_checkinteger(L, 1);
 			const char* msg = luaL_checkstring(L, 2);
-			spdlog::log((spdlog::level::level_enum)level, u8"[lua] {}", msg);
+			spdlog::log((spdlog::level::level_enum)level, "[lua] {}", msg);
 			return 0;
 		}
 		static int SystemLog(lua_State* L)LNOEXCEPT
 		{
 			const char* msg = luaL_checkstring(L, 1);
-			spdlog::info(u8"[lua] {}", msg);
+			spdlog::info("[lua] {}", msg);
 			return 0;
 		}
 		static int Print(lua_State* L)LNOEXCEPT
@@ -86,7 +86,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 				lua_concat(L, 2); // ... f s
 			}
 			const char* msg = luaL_checkstring(L, -1);
-			spdlog::info(u8"[lua] {}", msg);
+			spdlog::info("[lua] {}", msg);
 			return 0;
 		}
 		static int LoadPack(lua_State* L)LNOEXCEPT
@@ -96,7 +96,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			if (lua_isstring(L, 2))
 				pwd = luaL_checkstring(L, 2);
 			if (!LFMGR.LoadArchive(p, 0, pwd))
-				spdlog::error(u8"[luastg] LoadPack: 无法装载资源包'{}'，文件不存在或不是合法的资源包格式", p);
+				spdlog::error("[luastg] LoadPack: 无法装载资源包'{}'，文件不存在或不是合法的资源包格式", p);
 			return 0;
 		}
 		static int LoadPackSub(lua_State* L)LNOEXCEPT
@@ -104,7 +104,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			const char* p = luaL_checkstring(L, 1);
 			std::string pw = LuaSTGPlus::GetGameName();
 			if (!LFMGR.LoadArchive(p, 0, pw.c_str()))
-				spdlog::error(u8"[luastg] LoadPackSub: 无法装载资源包'{}'，文件不存在或不是合法的资源包格式", p);
+				spdlog::error("[luastg] LoadPackSub: 无法装载资源包'{}'，文件不存在或不是合法的资源包格式", p);
 			return 0;
 		}
 		static int UnloadPack(lua_State* L)LNOEXCEPT
@@ -175,13 +175,13 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			fResult result = LAPP.GetRenderDev()->SetBufferSize(width, height, windowed, vsync, flip, F2DAALEVEL_NONE);
 			if (result == FCYERR_OK)
 			{
-				spdlog::info(u8"[fancy2d] 交换链更新成功 Size:({}x{}) Windowed:{} Vsync:{} Flip:{}",
+				spdlog::info("[fancy2d] 交换链更新成功 Size:({}x{}) Windowed:{} Vsync:{} Flip:{}",
 					width, height, windowed, vsync, flip);
 			}
 			else
 			{
 				LAPP.GetWindow()->SetAutoResizeWindowOnDPIScaling(true);
-				spdlog::error(u8"[fancy2d] [f2dRenderDevice::SetBufferSize] 交换链更新失败(fResult={})，参数为 Size:({}x{}) Windowed:{} Vsync:{} Flip:{}",
+				spdlog::error("[fancy2d] [f2dRenderDevice::SetBufferSize] 交换链更新失败(fResult={})，参数为 Size:({}x{}) Windowed:{} Vsync:{} Flip:{}",
 					result,
 					width, height, windowed, vsync, flip);
 			}
@@ -200,13 +200,13 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			fResult result = LAPP.GetRenderDev()->SetDisplayMode(width, height, refreshrate, windowed, vsync, flip);
 			if (result == FCYERR_OK)
 			{
-				spdlog::info(u8"[fancy2d] 交换链更新成功 Size:({}x{}) RefreshRate:{} Windowed:{} Vsync:{} Flip:{}",
+				spdlog::info("[fancy2d] 交换链更新成功 Size:({}x{}) RefreshRate:{} Windowed:{} Vsync:{} Flip:{}",
 					width, height, refreshrate, windowed, vsync, flip);
 			}
 			else
 			{
 				LAPP.GetWindow()->SetAutoResizeWindowOnDPIScaling(true);
-				spdlog::error(u8"[fancy2d] [f2dRenderDevice::SetDisplayMode] 交换链更新失败(fResult={})，参数为 Size:({}x{}) RefreshRate:{} Windowed:{} Vsync:{} Flip:{}",
+				spdlog::error("[fancy2d] [f2dRenderDevice::SetDisplayMode] 交换链更新失败(fResult={})，参数为 Size:({}x{}) RefreshRate:{} Windowed:{} Vsync:{} Flip:{}",
 					result,
 					width, height, refreshrate, windowed, vsync, flip);
 			}

@@ -232,7 +232,7 @@ namespace LuaSTGPlus
 			if (!(ps = tParticle->AllocInstance()))
 			{
 				res = nullptr;
-				spdlog::error(u8"[luastg] ResParticle: 无法构造粒子池，内存不足");
+				spdlog::error("[luastg] ResParticle: 无法构造粒子池，内存不足");
 				return false;
 			}
 			ps->SetInactive();

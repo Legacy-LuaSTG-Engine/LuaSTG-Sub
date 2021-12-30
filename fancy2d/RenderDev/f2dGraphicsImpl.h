@@ -50,6 +50,7 @@ public: // 接口实现
 
 		return FCYERR_OK;
 	}
+	virtual fResult Flush() { return FCYERR_OK; }
 	const fcyMatrix4& GetWorldTransform()
 	{
 		return m_WorldMat;

@@ -11,7 +11,7 @@ function(luastg_target_common_options __TARGET__)
     set_target_properties(${__TARGET__} PROPERTIES
         C_STANDARD 11
         C_STANDARD_REQUIRED ON
-        CXX_STANDARD 17
+        CXX_STANDARD 20
         CXX_STANDARD_REQUIRED ON
     )
     target_compile_definitions(${__TARGET__} PRIVATE
@@ -33,7 +33,7 @@ function(luastg_target_common_options2 __TARGET__)
     set_target_properties(${__TARGET__} PROPERTIES
         C_STANDARD 11
         C_STANDARD_REQUIRED ON
-        CXX_STANDARD 17
+        CXX_STANDARD 20
         CXX_STANDARD_REQUIRED ON
     )
 endfunction()

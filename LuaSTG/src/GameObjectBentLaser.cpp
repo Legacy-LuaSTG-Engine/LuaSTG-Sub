@@ -157,11 +157,11 @@ bool GameObjectBentLaser::Update(size_t id, int length, float width, bool active
 {
 	GameObject* p = LPOOL.GetPooledObject(id);
 	if (!p) {
-		spdlog::error(u8"[luastg] [GameObjectBentLaser::Update] 无效的lstg.GameObject");
+		spdlog::error("[luastg] [GameObjectBentLaser::Update] 无效的lstg.GameObject");
 		return false;
 	}
 	if (length <= 1) {
-		spdlog::error(u8"[luastg] [GameObjectBentLaser::Update] 无效的参数length={}", length);
+		spdlog::error("[luastg] [GameObjectBentLaser::Update] 无效的参数length={}", length);
 		return false;
 	}
 	
@@ -243,7 +243,7 @@ bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, fcyColor
 	fcyRefPointer<ResTexture> pTex = LRES.FindTexture(tex_name);
 	if (!pTex)
 	{
-		spdlog::error(u8"[luastg] [GameObjectBentLaser::Render] 找不到纹理'{}'", tex_name);
+		spdlog::error("[luastg] [GameObjectBentLaser::Render] 找不到纹理'{}'", tex_name);
 		return false;
 	}
 
@@ -543,11 +543,11 @@ bool GameObjectBentLaser::UpdateByNode(size_t id, int node, int length, float wi
 {
 	GameObject* p = LPOOL.GetPooledObject(id);
 	if (!p) {
-		spdlog::error(u8"[luastg] [GameObjectBentLaser::UpdateByNode] 无效的lstg.GameObject");
+		spdlog::error("[luastg] [GameObjectBentLaser::UpdateByNode] 无效的lstg.GameObject");
 		return false;
 	}
 	if (length <= 1) {
-		spdlog::error(u8"[luastg] [GameObjectBentLaser::UpdateByNode] 无效的参数length={}", length);
+		spdlog::error("[luastg] [GameObjectBentLaser::UpdateByNode] 无效的参数length={}", length);
 		return false;
 	}
 

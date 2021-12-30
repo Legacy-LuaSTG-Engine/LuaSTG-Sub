@@ -15,7 +15,7 @@ namespace LuaSTGPlus {
         if (!rt || !rt->IsRenderTarget() || m_stRenderTargetStack.empty())
             return false;
         
-        return rt->GetTexture() == m_stRenderTargetStack.back();
+        return rt->GetTexture() == *m_stRenderTargetStack.back();
     }
     
     bool AppFrame::PushRenderTarget(fcyRefPointer<f2dTexture2D> rt)LNOEXCEPT
@@ -23,7 +23,7 @@ namespace LuaSTGPlus {
         fcyRect orgVP = m_pRenderDev->GetViewport();
         if (FCYFAILED(m_pRenderDev->SetRenderTarget(rt)))
         {
-            spdlog::error(u8"[luastg] PushRenderTarget: 内部错误 (f2dRenderDevice::SetRenderTarget failed.)");
+            spdlog::error("[luastg] PushRenderTarget: 内部错误 (f2dRenderDevice::SetRenderTarget failed.)");
             return false;
         }
         m_pRenderDev->SetViewport(orgVP);
@@ -34,7 +34,7 @@ namespace LuaSTGPlus {
         }
         catch (const std::bad_alloc&)
         {
-            spdlog::error(u8"[luastg] PushRenderTarget: 内存不足");
+            spdlog::error("[luastg] PushRenderTarget: 内存不足");
             if (m_stRenderTargetStack.empty())
                 m_pRenderDev->SetRenderTarget(nullptr);
             else
@@ -56,7 +56,7 @@ namespace LuaSTGPlus {
         
         if (!m_bRenderStarted)
         {
-            spdlog::error(u8"[luastg] PushRenderTarget: 无效调用");
+            spdlog::error("[luastg] PushRenderTarget: 无效调用");
             return false;
         }
         
@@ -67,13 +67,13 @@ namespace LuaSTGPlus {
     {
         if (!m_bRenderStarted)
         {
-            spdlog::error(u8"[luastg] PopRenderTarget: 无效调用");
+            spdlog::error("[luastg] PopRenderTarget: 无效调用");
             return false;
         }
         
         if (m_stRenderTargetStack.empty())
         {
-            spdlog::error(u8"[luastg] PopRenderTarget: RenderTarget栈已为空");
+            spdlog::error("[luastg] PopRenderTarget: RenderTarget栈已为空");
             return false;
         }
         
@@ -95,14 +95,14 @@ namespace LuaSTGPlus {
         
         if (!pTechnique)
         {
-            spdlog::error(u8"[luastg] PostEffect: 无效的后处理特效");
+            spdlog::error("[luastg] PostEffect: 无效的后处理特效");
             return false;
         }
         
         // 纹理使用检查
         if (CheckRenderTargetInUse(rt))
         {
-            spdlog::error(u8"[luastg] PostEffect: RenderTarget无法同时绑定为着色器纹理资源和渲染输出目标");
+            spdlog::error("[luastg] PostEffect: RenderTarget无法同时绑定为着色器纹理资源和渲染输出目标");
             return false;
         }
         
@@ -144,7 +144,7 @@ namespace LuaSTGPlus {
         if (FCYFAILED(m_Graph3D->Begin()))
         {
             // ！ 异常退出不可恢复渲染过程
-            spdlog::error(u8"[luastg] PostEffect: 内部错误 (f2dGraphics3D::Begin failed)");
+            spdlog::error("[luastg] PostEffect: 内部错误 (f2dGraphics3D::Begin failed)");
             return false;
         }
         // 执行所有的pass
@@ -182,7 +182,7 @@ namespace LuaSTGPlus {
     {
         if (!m_bRenderStarted)
         {
-            spdlog::error(u8"[luastg] PostEffect: 无效调用");
+            spdlog::error("[luastg] PostEffect: 无效调用");
             return false;
         }
         
@@ -198,7 +198,7 @@ namespace LuaSTGPlus {
         // 检查渲染器
         if (m_GraphType != GraphicsType::Graph2D)
         {
-            spdlog::error(u8"[luastg] RenderSector: 只有2D渲染器可以执行该方法");
+            spdlog::error("[luastg] RenderSector: 只有2D渲染器可以执行该方法");
             return false;
         }
         // 计算顶点
@@ -209,14 +209,14 @@ namespace LuaSTGPlus {
         int total_vertex = total * 2;
         int total_index = div * 6;
         if (total_vertex > 2048 || total_index > 8192) {
-            spdlog::error(u8"[luastg] RenderSector: 顶点数量过多");
+            spdlog::error("[luastg] RenderSector: 顶点数量过多");
             return false;
         }
         // 寻找纹理
         fcyRefPointer<ResTexture> p = m_ResourceMgr.FindTexture(name);
         if (!p)
         {
-            spdlog::error(u8"[luastg] RenderSector: 找不到纹理'{}'", name);
+            spdlog::error("[luastg] RenderSector: 找不到纹理'{}'", name);
             return false;
         }
         // 更新混合模式

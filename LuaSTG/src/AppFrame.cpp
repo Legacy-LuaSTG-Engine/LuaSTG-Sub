@@ -39,7 +39,7 @@ void AppFrame::SetWindowed(bool v)LNOEXCEPT
 	if (m_iStatus == AppStatus::Initializing)
 		m_OptionWindowed = v;
 	else if (m_iStatus == AppStatus::Running)
-		spdlog::warn(u8"[luastg] SetWindowed: 试图在运行时更改窗口化模式");
+		spdlog::warn("[luastg] SetWindowed: 试图在运行时更改窗口化模式");
 }
 
 void AppFrame::SetFPS(fuInt v)LNOEXCEPT
@@ -52,7 +52,7 @@ void AppFrame::SetVsync(bool v)LNOEXCEPT
 	if (m_iStatus == AppStatus::Initializing)
 		m_OptionVsync = v;
 	else if (m_iStatus == AppStatus::Running)
-		spdlog::warn(u8"[luastg] SetVsync: 试图在运行时更改垂直同步模式");
+		spdlog::warn("[luastg] SetVsync: 试图在运行时更改垂直同步模式");
 }
 
 void AppFrame::SetResolution(fuInt width, fuInt height)LNOEXCEPT
@@ -60,7 +60,7 @@ void AppFrame::SetResolution(fuInt width, fuInt height)LNOEXCEPT
 	if (m_iStatus == AppStatus::Initializing)
 		m_OptionResolution.Set((float)width, (float)height);
 	else if (m_iStatus == AppStatus::Running)
-		spdlog::warn(u8"[luastg] SetResolution: 试图在运行时更改分辨率");
+		spdlog::warn("[luastg] SetResolution: 试图在运行时更改分辨率");
 }
 
 void AppFrame::SetTitle(const char* v)LNOEXCEPT
@@ -73,7 +73,7 @@ void AppFrame::SetTitle(const char* v)LNOEXCEPT
 	}
 	catch (const std::bad_alloc&)
 	{
-		spdlog::error(u8"[luastg] SetTitle: 内存不足");
+		spdlog::error("[luastg] SetTitle: 内存不足");
 	}
 }
 
@@ -95,13 +95,13 @@ LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, b
 			bool bResult = true;
 			if (FCYOK(m_pRenderDev->SetBufferSize((fuInt)width, (fuInt)height, windowed, vsync, false, F2DAALEVEL_NONE)))
 			{
-				spdlog::info(u8"[luastg] 显示模式切换成功 ({}x{} Vsync:{} Windowed:{}) -> ({}x{} Vsync:{} Windowed:{})",
+				spdlog::info("[luastg] 显示模式切换成功 ({}x{} Vsync:{} Windowed:{}) -> ({}x{} Vsync:{} Windowed:{})",
 					(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
 					width, height, vsync, windowed);
 			}
 			else
 			{
-				spdlog::error(u8"[luastg] 显示模式切换失败 ({}x{} Vsync:{} Windowed:{}) -> ({}x{} Vsync:{} Windowed:{})",
+				spdlog::error("[luastg] 显示模式切换失败 ({}x{} Vsync:{} Windowed:{}) -> ({}x{} Vsync:{} Windowed:{})",
 					(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
 					width, height, vsync, windowed);
 				bResult = false;
@@ -129,7 +129,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, b
 			
 			if (FCYOK(m_pRenderDev->SetBufferSize((fuInt)width, (fuInt)height, windowed, vsync, false, F2DAALEVEL_NONE)))
 			{
-				spdlog::info(u8"[luastg] 显示模式切换成功 ({}x{} Vsync:{} Windowed:{}) -> ({}x{} Vsync:{} Windowed:{})",
+				spdlog::info("[luastg] 显示模式切换成功 ({}x{} Vsync:{} Windowed:{}) -> ({}x{} Vsync:{} Windowed:{})",
 					(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
 					width, height, vsync, windowed);
 				
@@ -141,7 +141,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, b
 			}
 			else
 			{
-				spdlog::error(u8"[luastg] 显示模式切换失败 ({}x{} Vsync:{} Windowed:{}) -> ({}x{} Vsync:{} Windowed:{})",
+				spdlog::error("[luastg] 显示模式切换失败 ({}x{} Vsync:{} Windowed:{}) -> ({}x{} Vsync:{} Windowed:{})",
 					(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
 					width, height, vsync, windowed);
 				
@@ -173,7 +173,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, b
 			false,
 			F2DAALEVEL_NONE)))
 		{
-			spdlog::info(u8"[luastg] 视频模式切换成功 ({}x{} Vsync:{} Windowed:{}) -> ({}x{} Vsync:{} Windowed:{})",
+			spdlog::info("[luastg] 视频模式切换成功 ({}x{} Vsync:{} Windowed:{}) -> ({}x{} Vsync:{} Windowed:{})",
 				(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
 				width, height, vsync, windowed);
 
@@ -205,7 +205,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, b
 			m_pMainWindow->SetTopMost(!m_OptionWindowed);
 			m_pMainWindow->MoveToCenter();
 
-			spdlog::error(u8"[luastg] 视频模式切换失败 ({}x{} Vsync:{} Windowed:{}) -> ({}x{} Vsync:{} Windowed:{})",
+			spdlog::error("[luastg] 视频模式切换失败 ({}x{} Vsync:{} Windowed:{}) -> ({}x{} Vsync:{} Windowed:{})",
 				(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
 				width, height, vsync, windowed);
 		}
@@ -233,13 +233,13 @@ LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, 
 			bool bResult = true;
 			if (FCYOK(m_pRenderDev->SetDisplayMode((fuInt)width, (fuInt)height, 0, windowed, vsync, false)))
 			{
-				spdlog::info(u8"[luastg] 显示模式切换成功 ({}x{} Vsync:{} Windowed:{}) -> ({}x{} Vsync:{} Windowed:{})",
+				spdlog::info("[luastg] 显示模式切换成功 ({}x{} Vsync:{} Windowed:{}) -> ({}x{} Vsync:{} Windowed:{})",
 					(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
 					width, height, vsync, windowed);
 			}
 			else
 			{
-				spdlog::error(u8"[luastg] 显示模式切换失败 ({}x{} Vsync:{} Windowed:{}) -> ({}x{} Vsync:{} Windowed:{})",
+				spdlog::error("[luastg] 显示模式切换失败 ({}x{} Vsync:{} Windowed:{}) -> ({}x{} Vsync:{} Windowed:{})",
 					(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
 					width, height, vsync, windowed);
 				bResult = false;
@@ -271,7 +271,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, 
 			
 			if (FCYOK(m_pRenderDev->SetDisplayMode((fuInt)width, (fuInt)height, (fuInt)hz, windowed, vsync, false)))
 			{
-				spdlog::info(u8"[luastg] 显示模式切换成功 ({}x{} Vsync:{} Windowed:{}) -> ({}x{}@{} Vsync:{} Windowed:{})",
+				spdlog::info("[luastg] 显示模式切换成功 ({}x{} Vsync:{} Windowed:{}) -> ({}x{}@{} Vsync:{} Windowed:{})",
 					(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
 					width, height, hz, vsync, windowed);
 				
@@ -283,7 +283,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, 
 			}
 			else
 			{
-				spdlog::error(u8"[luastg] 显示模式切换失败 ({}x{} Vsync:{} Windowed:{}) -> ({}x{}@{} Vsync:{} Windowed:{})",
+				spdlog::error("[luastg] 显示模式切换失败 ({}x{} Vsync:{} Windowed:{}) -> ({}x{}@{} Vsync:{} Windowed:{})",
 					(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
 					width, height, hz, vsync, windowed);
 				
@@ -315,11 +315,11 @@ LNOINLINE bool AppFrame::UpdateVideoMode()LNOEXCEPT
 LNOINLINE int AppFrame::LoadTextFile(lua_State* L, const char* path, const char *packname)LNOEXCEPT
 {
 	if (ResourceMgr::GetResourceLoadingLog()) {
-		spdlog::info(u8"[luastg] 读取文本文件'{}'", path);
+		spdlog::info("[luastg] 读取文本文件'{}'", path);
 	}
 	fcyRefPointer<fcyMemStream> tMemStream;
 	if (!m_ResourceMgr.LoadFile(path, tMemStream, packname)) {
-		spdlog::error(u8"[luastg] 无法加载文件'{}'", path);
+		spdlog::error("[luastg] 无法加载文件'{}'", path);
 		return 0;
 	}
 	lua_pushlstring(L, (char*)tMemStream->GetInternalBuffer(), (size_t)tMemStream->GetLength());
@@ -336,17 +336,17 @@ bool AppFrame::Init()LNOEXCEPT
 	assert(m_iStatus == AppStatus::NotInitialized);
 	
 	spdlog::info(LUASTG_INFO);
-	spdlog::info(u8"[luastg] 初始化引擎");
+	spdlog::info("[luastg] 初始化引擎");
 	m_iStatus = AppStatus::Initializing;
 	
 	//////////////////////////////////////// Lua初始化部分
 	
-	spdlog::info(u8"[luastg] 初始化luajit引擎");
+	spdlog::info("[luastg] 初始化luajit引擎");
 	
 	// 开启Lua引擎
 	if (!OnOpenLuaEngine())
 	{
-		spdlog::info(u8"[luastg] 初始化luajit引擎失败");
+		spdlog::info("[luastg] 初始化luajit引擎失败");
 		return false;
 	}
 	
@@ -359,26 +359,26 @@ bool AppFrame::Init()LNOEXCEPT
 	//////////////////////////////////////// 初始化引擎
 	{
 		// 为对象池分配空间
-		spdlog::info(u8"[luastg] 初始化对象池，容量{}", LOBJPOOL_SIZE);
+		spdlog::info("[luastg] 初始化对象池，容量{}", LOBJPOOL_SIZE);
 		try
 		{
 			m_GameObjectPool = std::make_unique<GameObjectPool>(L);
 		}
 		catch (const std::bad_alloc&)
 		{
-			spdlog::error(u8"[luastg] 无法为对象池分配内存");
+			spdlog::error("[luastg] 无法为对象池分配内存");
 			return false;
 		}
 		
 		// 初始化fancy2d引擎
-		spdlog::info(u8"[fancy2d] 初始化，窗口分辨率：{}x{}，垂直同步：{}，窗口化：{}",
+		spdlog::info("[fancy2d] 初始化，窗口分辨率：{}x{}，垂直同步：{}，窗口化：{}",
 			(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed);
 		
 		struct : public f2dInitialErrListener
 		{
 			void OnErr(fuInt TimeTick, fcStr Src, fcStr Desc)
 			{
-				spdlog::error(u8"[fancy2d] [{}] {}", Src, Desc);
+				spdlog::error("[fancy2d] [{}] {}", Src, Desc);
 			}
 		} tErrListener;
 		
@@ -394,7 +394,7 @@ bool AppFrame::Init()LNOEXCEPT
 			&tErrListener
 			)))
 		{
-			spdlog::error(u8"[fancy2d] 初始化失败");
+			spdlog::error("[fancy2d] 初始化失败");
 			return false;
 		}
 		
@@ -408,8 +408,8 @@ bool AppFrame::Init()LNOEXCEPT
 		// 打印设备信息
 		f2dCPUInfo stCPUInfo = { 0 };
 		m_pEngine->GetCPUInfo(stCPUInfo);
-		spdlog::info(u8"[fancy2d] CPU {} {}", stCPUInfo.CPUBrandString, stCPUInfo.CPUString);
-		spdlog::info(u8"[fancy2d] GPU {}", m_pRenderDev->GetDeviceName());
+		spdlog::info("[fancy2d] CPU {} {}", stCPUInfo.CPUBrandString, stCPUInfo.CPUString);
+		spdlog::info("[fancy2d] GPU {}", m_pRenderDev->GetDeviceName());
 		
 		// 设置窗口图标
 		HICON hIcon = LoadIconW(GetModuleHandleW(NULL), MAKEINTRESOURCEW(IDI_APPICON));
@@ -422,10 +422,10 @@ bool AppFrame::Init()LNOEXCEPT
 		m_pRenderDev->ClearZBuffer();
 		
 		// 创建渲染器
-		spdlog::info(u8"[fancy2d] 创建2D渲染器，顶点容量{}，索引容量{}", 16384, 24576);
+		spdlog::info("[fancy2d] 创建2D渲染器，顶点容量{}，索引容量{}", 16384, 24576);
 		if (FCYFAILED(m_pRenderDev->CreateGraphics2D(16384, 24576, &m_Graph2D)))
 		{
-			spdlog::error(u8"[fancy2d] [f2dRenderDevice::CreateGraphics2D] 创建2D渲染器失败");
+			spdlog::error("[fancy2d] [f2dRenderDevice::CreateGraphics2D] 创建2D渲染器失败");
 			return false;
 		}
 		m_Graph2DLastBlendMode = BlendMode::AddAlpha;
@@ -434,50 +434,50 @@ bool AppFrame::Init()LNOEXCEPT
 		m_bRenderStarted = false;
 		
 		// 创建文字渲染器
-		spdlog::info(u8"[fancy2d] 创建文本渲染器");
+		spdlog::info("[fancy2d] 创建文本渲染器");
 		if (FCYFAILED(m_pRenderer->CreateFontRenderer(nullptr, &m_FontRenderer)))
 		{
-			spdlog::error(u8"[fancy2d] [fcyRenderer::CreateFontRenderer] 创建文本渲染器失败");
+			spdlog::error("[fancy2d] [fcyRenderer::CreateFontRenderer] 创建文本渲染器失败");
 			return false;
 		}
 		m_FontRenderer->SetZ(0.5f);
 		
 		// 创建图元渲染器
-		spdlog::info(u8"[fancy2d] 创建平面几何渲染器");
+		spdlog::info("[fancy2d] 创建平面几何渲染器");
 		if (FCYFAILED(m_pRenderer->CreateGeometryRenderer(&m_GRenderer)))
 		{
-			spdlog::error(u8"[fancy2d] [fcyRenderer::CreateGeometryRenderer] 创建平面几何渲染器失败");
+			spdlog::error("[fancy2d] [fcyRenderer::CreateGeometryRenderer] 创建平面几何渲染器失败");
 			return false;
 		}
 		
 		// 创建3D渲染器
-		spdlog::info(u8"[fancy2d] 创建后处理特效渲染器");
+		spdlog::info("[fancy2d] 创建后处理特效渲染器");
 		if (FCYFAILED(m_pRenderDev->CreateGraphics3D(nullptr, &m_Graph3D)))
 		{
-			spdlog::error(u8"[fancy2d] [f2dRenderDevice::CreateGraphics3D] 创建后处理特效渲染器失败");
+			spdlog::error("[fancy2d] [f2dRenderDevice::CreateGraphics3D] 创建后处理特效渲染器失败");
 			return false;
 		}
 		m_Graph3DLastBlendMode = BlendMode::AddAlpha;
 		m_Graph3DBlendState = m_Graph3D->GetBlendState();
 		
 		//创建鼠标输入
-		spdlog::info(u8"[fancy2d] 创建DirectInput鼠标设备");
+		spdlog::info("[fancy2d] 创建DirectInput鼠标设备");
 		m_pInputSys->CreateMouse(-1, false, &m_Mouse);
 		if (!m_Mouse)
 		{
-			spdlog::error(u8"[fancy2d] [f2dInputSys::CreateMouse] 创建DirectInput鼠标设备失败");
+			spdlog::error("[fancy2d] [f2dInputSys::CreateMouse] 创建DirectInput鼠标设备失败");
 		}
 		// 创建键盘输入
-		spdlog::info(u8"[fancy2d] 创建DirectInput键盘设备");
+		spdlog::info("[fancy2d] 创建DirectInput键盘设备");
 		m_pInputSys->CreateKeyboard(-1, false, &m_Keyboard);
 		if (!m_Keyboard)
 		{
-			spdlog::error(u8"[fancy2d] [f2dInputSys::CreateKeyboard] 创建DirectInput键盘设备失败");
+			spdlog::error("[fancy2d] [f2dInputSys::CreateKeyboard] 创建DirectInput键盘设备失败");
 		}
 		m_pInputSys->CreateDefaultKeyboard(-1, false, &m_Keyboard2);
 		if (!m_Keyboard2)
 		{
-			spdlog::error(u8"[fancy2d] [f2dInputSys::CreateDefaultKeyboard] 创建DirectInput键盘设备失败");
+			spdlog::error("[fancy2d] [f2dInputSys::CreateDefaultKeyboard] 创建DirectInput键盘设备失败");
 		}
 		
 		//创建手柄输入
@@ -489,18 +489,18 @@ bool AppFrame::Init()LNOEXCEPT
 				uint32_t cnt = m_DirectInput->count();
 				for (uint32_t i = 0; i < cnt; i += 1)
 				{
-					spdlog::info(u8"[luastg] 检测到{}控制器 产品名称：{} 设备名称：{}",
-						m_DirectInput->isXInputDevice(i) ? u8"XInput" : u8"DirectInput",
+					spdlog::info("[luastg] 检测到{}控制器 产品名称：{} 设备名称：{}",
+						m_DirectInput->isXInputDevice(i) ? "XInput" : "DirectInput",
 						fcyStringHelper::WideCharToMultiByte(m_DirectInput->getProductName(i)),
 						fcyStringHelper::WideCharToMultiByte(m_DirectInput->getDeviceName(i))
 					);
 				}
-				spdlog::info(u8"[luastg] 成功创建了{}个控制器", cnt);
+				spdlog::info("[luastg] 成功创建了{}个控制器", cnt);
 			}
 		}
 		catch (const std::bad_alloc&)
 		{
-			spdlog::error(u8"[luastg] 无法为DirectInput分配内存");
+			spdlog::error("[luastg] 无法为DirectInput分配内存");
 		}
 		
 		// 初始化ImGui
@@ -529,7 +529,7 @@ bool AppFrame::Init()LNOEXCEPT
 	
 	//////////////////////////////////////// 初始化完成
 	m_iStatus = AppStatus::Initialized;
-	spdlog::info(u8"[luastg] 初始化完成");
+	spdlog::info("[luastg] 初始化完成");
 	
 	//////////////////////////////////////// 调用GameInit
 	if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineInit)) {
@@ -544,10 +544,10 @@ void AppFrame::Shutdown()LNOEXCEPT
 	SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineStop);
 	
 	m_GameObjectPool = nullptr;
-	spdlog::info(u8"[luastg] 清空对象池");
+	spdlog::info("[luastg] 清空对象池");
 
 	m_ResourceMgr.ClearAllResource();
-	spdlog::info(u8"[luastg] 清空所有游戏资源");
+	spdlog::info("[luastg] 清空所有游戏资源");
 	
 	// 卸载自定义后处理特效
 	//slow::effect::unbindEngine();
@@ -572,26 +572,26 @@ void AppFrame::Shutdown()LNOEXCEPT
 	m_pRenderer = nullptr;
 	m_pMainWindow = nullptr;
 	m_pEngine = nullptr;
-	spdlog::info(u8"[fancy2d] 卸载所有组件");
+	spdlog::info("[fancy2d] 卸载所有组件");
 	
 	if (L)
 	{
 		lua_close(L);
 		L = nullptr;
-		spdlog::info(u8"[luastg] 关闭luajit引擎");
+		spdlog::info("[luastg] 关闭luajit引擎");
 	}
 	
 	m_FileManager.UnloadAllArchive();
-	spdlog::info(u8"[luastg] 卸载所有资源包");
+	spdlog::info("[luastg] 卸载所有资源包");
 	
 	m_iStatus = AppStatus::Destroyed;
-	spdlog::info(u8"[luastg] 引擎关闭");
+	spdlog::info("[luastg] 引擎关闭");
 }
 
 void AppFrame::Run()LNOEXCEPT
 {
 	assert(m_iStatus == AppStatus::Initialized);
-	spdlog::info(u8"[luastg] 开始更新&渲染循环");
+	spdlog::info("[luastg] 开始更新&渲染循环");
 	
 	m_fFPS = 0.f;
 #if (defined LDEVVERSION) || (defined LDEBUG)
@@ -607,7 +607,7 @@ void AppFrame::Run()LNOEXCEPT
 	
 	m_pEngine->Run(F2DENGTHREADMODE_MULTITHREAD, m_OptionFPSLimit);
 	
-	spdlog::info(u8"[luastg] 结束更新&渲染循环");
+	spdlog::info("[luastg] 结束更新&渲染循环");
 }
 
 #pragma endregion
@@ -811,7 +811,7 @@ fBool AppFrame::OnRender(fDouble ElapsedTime, f2dFPSController* pFPSController)
 		m_pEngine->Abort();
 	if (!m_stRenderTargetStack.empty())
 	{
-		spdlog::error(u8"[luastg] [AppFrame::OnRender] 渲染结束时RenderTarget栈不为空，可能缺少对lstg.PopRenderTarget的调用");
+		spdlog::error("[luastg] [AppFrame::OnRender] 渲染结束时RenderTarget栈不为空，可能缺少对lstg.PopRenderTarget的调用");
 		while (!m_stRenderTargetStack.empty())
 			PopRenderTarget();
 	}

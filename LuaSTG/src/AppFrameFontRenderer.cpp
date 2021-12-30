@@ -46,7 +46,7 @@ namespace LuaSTGPlus {
 	bool AppFrame::RenderText(ResFont* p, wchar_t* strBuf, fcyRect rect, fcyVec2 scale, ResFont::FontAlignHorizontal halign, ResFont::FontAlignVertical valign, bool bWordBreak)LNOEXCEPT
 	{
 		if (m_GraphType != GraphicsType::Graph2D) {
-			spdlog::error(u8"[luastg] RenderText: 只有2D渲染器可以执行该方法");
+			spdlog::error("[luastg] RenderText: 只有2D渲染器可以执行该方法");
 			return false;
 		}
 		
@@ -196,7 +196,7 @@ namespace LuaSTGPlus {
 	{
 		if (m_GraphType != GraphicsType::Graph2D)
 		{
-			spdlog::error(u8"[luastg] CalcuTextSize: 只有2D渲染器可以执行该方法");
+			spdlog::error("[luastg] CalcuTextSize: 只有2D渲染器可以执行该方法");
 			return fcyVec2();
 		}
 		
@@ -231,7 +231,7 @@ namespace LuaSTGPlus {
 		fcyRefPointer<ResFont> p = m_ResourceMgr.FindSpriteFont(name);
 		if (!p)
 		{
-			spdlog::error(u8"[luastg] RenderText: 找不到字体资源'{}'", name);
+			spdlog::error("[luastg] RenderText: 找不到字体资源'{}'", name);
 			return false;
 		}
 		
@@ -243,7 +243,7 @@ namespace LuaSTGPlus {
 		}
 		catch (const std::bad_alloc&)
 		{
-			spdlog::error(u8"[luastg] RenderText: 内存不足");
+			spdlog::error("[luastg] RenderText: 内存不足");
 			return false;
 		}
 		
@@ -290,7 +290,7 @@ namespace LuaSTGPlus {
 	{
 		fcyRefPointer<ResFont> p = m_ResourceMgr.FindTTFFont(name);
 		if (!p) {
-			spdlog::error(u8"[luastg] RenderTTF: 找不到字体资源'%m'", name);
+			spdlog::error("[luastg] RenderTTF: 找不到字体资源'%m'", name);
 			return false;
 		}
 		
@@ -300,7 +300,7 @@ namespace LuaSTGPlus {
 			s_TempStringBuf = fcyStringHelper::MultiByteToWideChar(str, CP_UTF8);
 		}
 		catch (const std::bad_alloc&) {
-			spdlog::error(u8"[luastg] RenderTTF: 内存不足");
+			spdlog::error("[luastg] RenderTTF: 内存不足");
 			return false;
 		}
 		
@@ -340,7 +340,7 @@ namespace LuaSTGPlus {
 		fcyRefPointer<ResFont> p = m_ResourceMgr.FindTTFFont(name);
 		if (!p)
 		{
-			spdlog::error(u8"[luastg] SetFontProvider: 找不到字体资源'{}'", name);
+			spdlog::error("[luastg] SetFontProvider: 找不到字体资源'{}'", name);
 			return false;
 		}
 		m_FontRenderer->SetFontProvider(p->GetFontProvider());
@@ -379,7 +379,7 @@ namespace LuaSTGPlus {
 	
 	bool AppFrame::FontRenderer_DrawTextW2(const char* str, fcyVec2& pos, const float z, const BlendMode blend, const fcyColor& color) {
 		if (m_GraphType != GraphicsType::Graph2D) {
-			spdlog::error(u8"[luastg] DrawText: 只有2D渲染器可以执行该方法");
+			spdlog::error("[luastg] DrawText: 只有2D渲染器可以执行该方法");
 			return false;
 		}
 		
@@ -415,7 +415,7 @@ namespace LuaSTGPlus {
 	bool AppFrame::FontRenderer_RenderText(const char* str, size_t len, fcyVec2& pos, const float z, const BlendMode blend, const fcyColor& color)
 	{
 		if (m_GraphType != GraphicsType::Graph2D) {
-			spdlog::error(u8"[luastg] DrawText: 只有2D渲染器可以执行该方法");
+			spdlog::error("[luastg] DrawText: 只有2D渲染器可以执行该方法");
 			return false;
 		}
 		

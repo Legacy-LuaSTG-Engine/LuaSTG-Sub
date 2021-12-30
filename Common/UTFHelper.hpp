@@ -2,8 +2,14 @@
 #include <cstdint>
 #include <string>
 
+#ifdef _MSVC_LANG
+#if (_MSVC_LANG <= 201703L)
+using char8_t = char;
+#endif
+#else
 #if (__cplusplus <= 201703L)
 using char8_t = char;
+#endif
 #endif
 
 namespace utf
