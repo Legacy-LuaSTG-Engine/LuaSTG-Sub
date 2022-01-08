@@ -58,6 +58,7 @@ namespace LuaSTGPlus
 		
 		// 选项与值
 		bool m_OptionWindowed = true;
+		F2DWINBORDERTYPE m_OptionWindowStyle = F2DWINBORDERTYPE_FIXED;
 		fuInt m_OptionFPSLimit = 60;
 		bool m_OptionVsync = false;
 		fcyVec2 m_OptionResolution = fcyVec2(640.f, 480.f);
@@ -169,6 +170,7 @@ namespace LuaSTGPlus
 		
 	public: // 脚本调用接口，含义参见API文档
 		void SetWindowed(bool v)LNOEXCEPT;
+		void SetDefaultWindowStyle(F2DWINBORDERTYPE v) { m_OptionWindowStyle = v; };
 		void SetVsync(bool v)LNOEXCEPT;
 		void SetResolution(fuInt width, fuInt height)LNOEXCEPT;
 		void SetTitle(const char* v)LNOEXCEPT;

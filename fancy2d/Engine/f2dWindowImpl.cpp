@@ -268,6 +268,11 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 	if (pWindow->HandleNativeMessageCallback(Handle, Msg, wParam, lParam))
 		return TRUE;
 	
+	// 特殊处理
+	auto rResult = WindowMoveSizeController::handleSizeMove(&pWindow->m_MoveSizeCtrl, Handle, Msg, wParam, lParam);
+	if (rResult.bReturn)
+		return rResult.lResult;
+	
 	// 某些消息不该继续传递
 	switch (Msg)
 	{
@@ -673,6 +678,9 @@ f2dWindowImpl::f2dWindowImpl(f2dEngineImpl* pEngine, f2dWindowClass* WinCls, con
 		_enableIME = true;
 	}
 	
+	// 配置窗口挪动控制器
+	m_MoveSizeCtrl.setWindow(m_hWnd);
+	
 	// 显示窗口
 	if(m_bShow)
 	{
@@ -682,15 +690,18 @@ f2dWindowImpl::f2dWindowImpl(f2dEngineImpl* pEngine, f2dWindowClass* WinCls, con
 
 f2dWindowImpl::~f2dWindowImpl()
 {
-	// 销毁窗口
-	DestroyWindow(m_hWnd);
-
 	// 取消注册
 	auto it = f2dWindowClass::s_WindowCallBack.find(m_hWnd);
 	if(it != f2dWindowClass::s_WindowCallBack.end())
 	{
 		f2dWindowClass::s_WindowCallBack.erase(it);
 	}
+	
+	// 关闭移动控制
+	m_MoveSizeCtrl.setWindow(NULL);
+	
+	// 销毁窗口
+	DestroyWindow(m_hWnd);
 }
 
 void f2dWindowImpl::InitIMEContext()
@@ -886,18 +897,14 @@ fHandle f2dWindowImpl::GetHandle()
 
 F2DWINBORDERTYPE f2dWindowImpl::GetBorderType()
 {
-	fuInt tStyle = GetWindowLongPtrW(m_hWnd, GWL_STYLE);
-	switch(tStyle)
-	{
-	case F2DWINDOWSTYLENONEBORDER:
-		return F2DWINBORDERTYPE_NONE;
-	case F2DWINDOWSTYLEFIXEDBORDER:
-		return F2DWINBORDERTYPE_FIXED;
-	case F2DWINDOWSTYLESIZEABLEBORDER:
+	auto tStyle = GetWindowLongPtrW(m_hWnd, GWL_STYLE);
+	if ((tStyle & F2DWINDOWSTYLESIZEABLEBORDER) == F2DWINDOWSTYLESIZEABLEBORDER)
 		return F2DWINBORDERTYPE_SIZEABLE;
-	default:
+	if ((tStyle & F2DWINDOWSTYLEFIXEDBORDER) == F2DWINDOWSTYLEFIXEDBORDER)
+		return F2DWINBORDERTYPE_FIXED;
+	if ((tStyle & F2DWINDOWSTYLENONEBORDER) == F2DWINDOWSTYLENONEBORDER)
 		return F2DWINBORDERTYPE_NONE;
-	}
+	return F2DWINBORDERTYPE_NONE;
 }
 
 fResult f2dWindowImpl::SetBorderType(F2DWINBORDERTYPE Type)
@@ -1204,4 +1211,39 @@ void f2dWindowImpl::EnterMonitorFullScreen(fuInt index)
 			::SetWindowPos(m_hWnd, NULL, area.left, area.top, area.right - area.left, area.bottom - area.top, SWP_NOZORDER | SWP_SHOWWINDOW);
 		}
 	}
+}
+
+void f2dWindowImpl::SetCustomMoveSizeEnable(fBool v)
+{
+	m_MoveSizeCtrl.setEnable(v ? TRUE : FALSE);
+}
+void f2dWindowImpl::SetCustomMinimizeButtonRect(fcyRect v)
+{
+	RECT rc = {
+		.left = (LONG)v.a.x,
+		.top = (LONG)v.a.y,
+		.right = (LONG)v.b.x,
+		.bottom = (LONG)v.b.y,
+	};
+	m_MoveSizeCtrl.setMinimizeButtonRect(rc);
+}
+void f2dWindowImpl::SetCustomCloseButtonRect(fcyRect v)
+{
+	RECT rc = {
+		.left = (LONG)v.a.x,
+		.top = (LONG)v.a.y,
+		.right = (LONG)v.b.x,
+		.bottom = (LONG)v.b.y,
+	};
+	m_MoveSizeCtrl.setCloseButtonRect(rc);
+}
+void f2dWindowImpl::SetCustomMoveButtonRect(fcyRect v)
+{
+	RECT rc = {
+		.left = (LONG)v.a.x,
+		.top = (LONG)v.a.y,
+		.right = (LONG)v.b.x,
+		.bottom = (LONG)v.b.y,
+	};
+	m_MoveSizeCtrl.setTitleBarRect(rc);
 }

@@ -290,6 +290,11 @@ struct f2dWindow
 	virtual fcyRect GetMonitorRect(fuInt index) = 0;
 	virtual void MoveToMonitorCenter(fuInt index) = 0;
 	virtual void EnterMonitorFullScreen(fuInt index) = 0;
+	
+	virtual void SetCustomMoveSizeEnable(fBool v) = 0;
+	virtual void SetCustomMinimizeButtonRect(fcyRect v) = 0;
+	virtual void SetCustomCloseButtonRect(fcyRect v) = 0;
+	virtual void SetCustomMoveButtonRect(fcyRect v) = 0;
 };
 
 /// @}

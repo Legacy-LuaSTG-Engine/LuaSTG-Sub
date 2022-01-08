@@ -107,7 +107,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, b
 				bResult = false;
 			}
 			
-			m_pMainWindow->SetBorderType(F2DWINBORDERTYPE_FIXED);
+			m_pMainWindow->SetBorderType(m_OptionWindowStyle);
 			m_pMainWindow->SetClientRect(fcyRect(0.0f, 0.0f, (fFloat)width, (fFloat)height));
 			m_pMainWindow->SetTopMost(false); // 强制取消窗口置顶
 			m_pMainWindow->MoveToCenter();
@@ -149,7 +149,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, b
 				windowed = true; // 强制窗口化
 				m_pRenderDev->SetBufferSize((fuInt)width, (fuInt)height, true, vsync, false, F2DAALEVEL_NONE); // 出错也不用管了
 				
-				m_pMainWindow->SetBorderType(F2DWINBORDERTYPE_FIXED);
+				m_pMainWindow->SetBorderType(m_OptionWindowStyle);
 				m_pMainWindow->SetClientRect(fcyRect(0.0f, 0.0f, (fFloat)width, (fFloat)height));
 				m_pMainWindow->SetTopMost(false); // 强制取消窗口置顶
 				m_pMainWindow->MoveToCenter();
@@ -161,55 +161,6 @@ LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, b
 				return false;
 			}
 		}
-		
-		/*
-		m_pMainWindow->SetAutoResizeWindowOnDPIScaling(windowed);
-		// 切换到新的视频选项
-		if (FCYOK(m_pRenderDev->SetBufferSize(
-			(fuInt)width,
-			(fuInt)height,
-			windowed,
-			vsync,
-			false,
-			F2DAALEVEL_NONE)))
-		{
-			spdlog::info("[luastg] 视频模式切换成功 ({}x{} Vsync:{} Windowed:{}) -> ({}x{} Vsync:{} Windowed:{})",
-				(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
-				width, height, vsync, windowed);
-
-			m_OptionResolution.Set((float)width, (float)height);
-			m_OptionWindowed = windowed;
-			m_OptionVsync = vsync;
-
-			// 切换窗口大小
-			m_pMainWindow->SetBorderType(m_OptionWindowed ? F2DWINBORDERTYPE_FIXED : F2DWINBORDERTYPE_NONE);
-			m_pMainWindow->SetClientRect(
-				fcyRect(10.f, 10.f, 10.f + m_OptionResolution.x, 10.f + m_OptionResolution.y)
-				);
-			m_pMainWindow->SetTopMost(!m_OptionWindowed);
-			m_pMainWindow->MoveToCenter();
-			return true;
-		}
-		else
-		{
-			m_pMainWindow->SetAutoResizeWindowOnDPIScaling(true);
-			
-			// 改变交换链大小失败后将窗口模式设为true
-			m_OptionWindowed = true;
-
-			// 切换窗口大小
-			m_pMainWindow->SetBorderType(m_OptionWindowed ? F2DWINBORDERTYPE_FIXED : F2DWINBORDERTYPE_NONE);
-			m_pMainWindow->SetClientRect(
-				fcyRect(10.f, 10.f, 10.f + m_OptionResolution.x, 10.f + m_OptionResolution.y)
-				);
-			m_pMainWindow->SetTopMost(!m_OptionWindowed);
-			m_pMainWindow->MoveToCenter();
-
-			spdlog::error("[luastg] 视频模式切换失败 ({}x{} Vsync:{} Windowed:{}) -> ({}x{} Vsync:{} Windowed:{})",
-				(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
-				width, height, vsync, windowed);
-		}
-		//*/
 	}
 	return false;
 }
@@ -224,7 +175,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, 
 			if (m_OptionWindowed)
 			{
 				// 窗口模式下，先改变窗口设置再修改交换链
-				m_pMainWindow->SetBorderType(F2DWINBORDERTYPE_FIXED);
+				m_pMainWindow->SetBorderType(m_OptionWindowStyle);
 				m_pMainWindow->SetClientRect(fcyRect(0.0f, 0.0f, (fFloat)width, (fFloat)height));
 				m_pMainWindow->SetTopMost(false); // 强制取消窗口置顶
 				m_pMainWindow->MoveToCenter();
@@ -248,7 +199,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, 
 			if (!m_OptionWindowed)
 			{
 				// 全屏模式切回窗口模式，先修改交换链再更新窗口，避免出现winxp、win7风格窗口
-				m_pMainWindow->SetBorderType(F2DWINBORDERTYPE_FIXED);
+				m_pMainWindow->SetBorderType(m_OptionWindowStyle);
 				m_pMainWindow->SetClientRect(fcyRect(0.0f, 0.0f, (fFloat)width, (fFloat)height));
 				m_pMainWindow->SetTopMost(false); // 强制取消窗口置顶
 				m_pMainWindow->MoveToCenter();
@@ -291,7 +242,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, 
 				windowed = true; // 强制窗口化
 				m_pRenderDev->SetBufferSize((fuInt)width, (fuInt)height, true, vsync, false, F2DAALEVEL_NONE); // 出错也不用管了
 				
-				m_pMainWindow->SetBorderType(F2DWINBORDERTYPE_FIXED);
+				m_pMainWindow->SetBorderType(m_OptionWindowStyle);
 				m_pMainWindow->SetClientRect(fcyRect(0.0f, 0.0f, (fFloat)width, (fFloat)height));
 				m_pMainWindow->SetTopMost(false); // 强制取消窗口置顶
 				m_pMainWindow->MoveToCenter();

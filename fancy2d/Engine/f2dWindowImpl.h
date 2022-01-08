@@ -12,6 +12,7 @@
 #include <unordered_map>
 
 #include <Windows.h>
+#include "Common/WindowMoveSizeController.hpp"
 
 class f2dEngineImpl;
 class f2dWindowImpl;
@@ -156,6 +157,7 @@ private:
 	std::wstring m_CaptionText;
 	fcyVec2 m_Size;
 	bool m_bAutoResizeWindowOnDPIScaling = true;
+	WindowMoveSizeController m_MoveSizeCtrl;
 	
 	// 监听器
 	DefaultListener m_DefaultListener;
@@ -231,6 +233,11 @@ public: // 接口实现
 	fcyRect GetMonitorRect(fuInt index);
 	void MoveToMonitorCenter(fuInt index);
 	void EnterMonitorFullScreen(fuInt index);
+	
+	void SetCustomMoveSizeEnable(fBool v);
+	void SetCustomMinimizeButtonRect(fcyRect v);
+	void SetCustomCloseButtonRect(fcyRect v);
+	void SetCustomMoveButtonRect(fcyRect v);
 protected:
 	f2dWindowImpl(f2dEngineImpl* pEngine, f2dWindowClass* WinCls, const fcyRect& Pos, fcStrW Title, fBool Visiable, F2DWINBORDERTYPE Border, bool DisableIME = true);
 	~f2dWindowImpl();

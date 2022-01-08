@@ -77,6 +77,7 @@ static int lib_setStyle(lua_State* L)
     getwindow(window);
     const F2DWINBORDERTYPE style = (F2DWINBORDERTYPE)luaL_checkinteger(L, 1);
     window->SetBorderType(style);
+    LAPP().SetDefaultWindowStyle(style); // compat
     return 0;
 }
 static int lib_setSize(lua_State* L)
@@ -102,6 +103,13 @@ static int lib_setIMEEnable(lua_State* L)
     const bool enable = lua_toboolean(L, 1);
     window->SetIMEEnable(enable);
     return 0;
+}
+static int lib_getDPIScaling(lua_State* L)
+{
+    getwindow(window);
+    const float dpi_scale = window->GetDPIScaling();
+    lua_pushnumber(L, dpi_scale);
+    return 1;
 }
 
 static int lib_setTextInputEnable(lua_State* L)
@@ -131,6 +139,51 @@ static int lib_clearTextInput(lua_State* L)
     return 0;
 }
 
+static int lib_setCustomMoveSizeEnable(lua_State* L)
+{
+    getwindow(window);
+    window->SetCustomMoveSizeEnable(lua_toboolean(L, 1));
+    return 0;
+}
+static int lib_setCustomMinimizeButtonRect(lua_State* L)
+{
+    getwindow(window);
+    window->SetCustomMinimizeButtonRect(fcyRect(
+        luaL_checknumber(L, 1),
+        luaL_checknumber(L, 2),
+        luaL_checknumber(L, 3),
+        luaL_checknumber(L, 4)
+    ));
+    return 0;
+}
+static int lib_setCustomCloseButtonRect(lua_State* L)
+{
+    getwindow(window);
+    window->SetCustomCloseButtonRect(fcyRect(
+        luaL_checknumber(L, 1),
+        luaL_checknumber(L, 2),
+        luaL_checknumber(L, 3),
+        luaL_checknumber(L, 4)
+    ));
+    return 0;
+}
+static int lib_setCustomMoveButtonRect(lua_State* L)
+{
+    getwindow(window);
+    window->SetCustomMoveButtonRect(fcyRect(
+        luaL_checknumber(L, 1),
+        luaL_checknumber(L, 2),
+        luaL_checknumber(L, 3),
+        luaL_checknumber(L, 4)
+    ));
+    return 0;
+}
+
+static int compat_SetDefaultWindowStyle(lua_State* L)
+{
+    LAPP().SetDefaultWindowStyle((F2DWINBORDERTYPE)luaL_checkinteger(L, 1));
+    return 0;
+}
 static int compat_SetSplash(lua_State* L)
 {
     LAPP().SetSplash(lua_toboolean(L, 1));
@@ -145,6 +198,7 @@ static int compat_SetTitle(lua_State* L)
 #define makefname(__X__) { #__X__ , &lib_##__X__ }
 
 static const luaL_Reg compat[] = {
+    { "SetDefaultWindowStyle", &compat_SetDefaultWindowStyle },
     { "SetSplash", &compat_SetSplash },
     { "SetTitle" , &compat_SetTitle  },
     {NULL, NULL},
@@ -160,10 +214,16 @@ static const luaL_Reg lib[] = {
     makefname(setSize),
     makefname(setTopMost),
     makefname(setIMEEnable),
+    makefname(getDPIScaling),
     
     makefname(setTextInputEnable),
     makefname(getTextInput),
     makefname(clearTextInput),
+    
+    makefname(setCustomMoveSizeEnable),
+    makefname(setCustomMinimizeButtonRect),
+    makefname(setCustomCloseButtonRect),
+    makefname(setCustomMoveButtonRect),
     
     {NULL, NULL},
 };
