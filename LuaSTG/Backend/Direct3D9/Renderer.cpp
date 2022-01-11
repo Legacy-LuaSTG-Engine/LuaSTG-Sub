@@ -45,6 +45,50 @@ namespace LuaSTG::Core
 		return compileShader(name, data, size, "ps_3_0", ppBlob);
 	}
 
+	struct RendererStateSet
+	{
+		Box viewport = {};
+		Rect scissor_rect = {};
+		float fog_near_or_density = 0.0f;
+		float fog_far = 0.0f;
+		Color fog_color = {};
+		VertexColorBlendState vertex_color_blend_state = VertexColorBlendState::Mul;
+		SamplerState sampler_state = SamplerState::LinearClamp;
+		FogState fog_state = FogState::Disable;
+		TextureAlphaType texture_alpha_type = TextureAlphaType::Normal;
+		DepthState depth_state = DepthState::Disable;
+		BlendState blend_state = BlendState::Alpha;
+	};
+
+	struct CameraStateSet
+	{
+		Box ortho = {};
+		Vector3 eye = {};
+		Vector3 lookat = {};
+		Vector3 headup = {};
+		float fov = 0.0f;
+		float aspect = 0.0f;
+		float znear = 0.0f;
+		float zfar = 0.0f;
+		bool is_3D = false;
+		
+		bool isEqual(Box const& box)
+		{
+			return !is_3D && ortho == box;
+		}
+		bool isEqual(Vector3 const& eye_, Vector3 const& lookat_, Vector3 const& headup_, float fov_, float aspect_, float znear_, float zfar_)
+		{
+			return is_3D
+				&& eye == eye_
+				&& lookat == lookat_
+				&& headup == headup_
+				&& fov == fov_
+				&& aspect == aspect_
+				&& znear == znear_
+				&& zfar == zfar_;
+		}
+	};
+
 	class Renderer::RendererImpl
 	{
 	private:
@@ -67,6 +111,7 @@ namespace LuaSTG::Core
 		TextureAlphaType _texture_alpha_type = TextureAlphaType::Normal;
 		DepthState _depth_state = DepthState::Disable;
 		BlendState _blend_state = BlendState::Alpha;
+		CameraStateSet _camera_state;
 	private:
 		void releaseTexture()
 		{
@@ -131,6 +176,81 @@ namespace LuaSTG::Core
 			_draw_list.index.size = 0;
 			_draw_list.command.size = 0;
 			return true;
+		}
+		void setSamplerState(SamplerState state, DWORD index)
+		{
+			IDirect3DDevice9Ex* ctx = _device.Get();
+			switch (state)
+			{
+			case SamplerState::PointWrap:
+				ctx->SetSamplerState(index, D3DSAMP_MINFILTER, D3DTEXF_POINT);
+				ctx->SetSamplerState(index, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+				ctx->SetSamplerState(index, D3DSAMP_MIPFILTER, D3DTEXF_POINT);
+				ctx->SetSamplerState(index, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);
+				ctx->SetSamplerState(index, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP);
+				ctx->SetSamplerState(index, D3DSAMP_ADDRESSW, D3DTADDRESS_WRAP);
+				break;
+			case SamplerState::PointClamp:
+				ctx->SetSamplerState(index, D3DSAMP_MINFILTER, D3DTEXF_POINT);
+				ctx->SetSamplerState(index, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+				ctx->SetSamplerState(index, D3DSAMP_MIPFILTER, D3DTEXF_POINT);
+				ctx->SetSamplerState(index, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+				ctx->SetSamplerState(index, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+				ctx->SetSamplerState(index, D3DSAMP_ADDRESSW, D3DTADDRESS_CLAMP);
+				break;
+			case SamplerState::PointBorderBlack:
+				ctx->SetSamplerState(index, D3DSAMP_MINFILTER, D3DTEXF_POINT);
+				ctx->SetSamplerState(index, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+				ctx->SetSamplerState(index, D3DSAMP_MIPFILTER, D3DTEXF_POINT);
+				ctx->SetSamplerState(index, D3DSAMP_ADDRESSU, D3DTADDRESS_BORDER);
+				ctx->SetSamplerState(index, D3DSAMP_ADDRESSV, D3DTADDRESS_BORDER);
+				ctx->SetSamplerState(index, D3DSAMP_ADDRESSW, D3DTADDRESS_BORDER);
+				ctx->SetSamplerState(index, D3DSAMP_BORDERCOLOR, 0x00000000);
+				break;
+			case SamplerState::PointBorderWhite:
+				ctx->SetSamplerState(index, D3DSAMP_MINFILTER, D3DTEXF_POINT);
+				ctx->SetSamplerState(index, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+				ctx->SetSamplerState(index, D3DSAMP_MIPFILTER, D3DTEXF_POINT);
+				ctx->SetSamplerState(index, D3DSAMP_ADDRESSU, D3DTADDRESS_BORDER);
+				ctx->SetSamplerState(index, D3DSAMP_ADDRESSV, D3DTADDRESS_BORDER);
+				ctx->SetSamplerState(index, D3DSAMP_ADDRESSW, D3DTADDRESS_BORDER);
+				ctx->SetSamplerState(index, D3DSAMP_BORDERCOLOR, 0xFFFFFFFF);
+				break;
+			case SamplerState::LinearWrap:
+				ctx->SetSamplerState(index, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+				ctx->SetSamplerState(index, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+				ctx->SetSamplerState(index, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);
+				ctx->SetSamplerState(index, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);
+				ctx->SetSamplerState(index, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP);
+				ctx->SetSamplerState(index, D3DSAMP_ADDRESSW, D3DTADDRESS_WRAP);
+				break;
+			case SamplerState::LinearClamp:
+			default:
+				ctx->SetSamplerState(index, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+				ctx->SetSamplerState(index, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+				ctx->SetSamplerState(index, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);
+				ctx->SetSamplerState(index, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+				ctx->SetSamplerState(index, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+				ctx->SetSamplerState(index, D3DSAMP_ADDRESSW, D3DTADDRESS_CLAMP);
+				break;
+			case SamplerState::LinearBorderBlack:
+				ctx->SetSamplerState(index, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+				ctx->SetSamplerState(index, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+				ctx->SetSamplerState(index, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);
+				ctx->SetSamplerState(index, D3DSAMP_ADDRESSU, D3DTADDRESS_BORDER);
+				ctx->SetSamplerState(index, D3DSAMP_ADDRESSV, D3DTADDRESS_BORDER);
+				ctx->SetSamplerState(index, D3DSAMP_ADDRESSW, D3DTADDRESS_BORDER);
+				ctx->SetSamplerState(index, D3DSAMP_BORDERCOLOR, 0x00000000);
+				break;
+			case SamplerState::LinearBorderWhite:
+				ctx->SetSamplerState(index, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+				ctx->SetSamplerState(index, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+				ctx->SetSamplerState(index, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);
+				ctx->SetSamplerState(index, D3DSAMP_ADDRESSU, D3DTADDRESS_BORDER);
+				ctx->SetSamplerState(index, D3DSAMP_ADDRESSV, D3DTADDRESS_BORDER);
+				ctx->SetSamplerState(index, D3DSAMP_ADDRESSW, D3DTADDRESS_BORDER);
+				ctx->SetSamplerState(index, D3DSAMP_BORDERCOLOR, 0xFFFFFFFF);
+			}
 		}
 	public:
 		bool attachDevice(void* dev)
@@ -600,9 +720,6 @@ namespace LuaSTG::Core
 
 			// [PS State]
 
-			// sampler state
-			ctx->SetSamplerState(0, D3DSAMP_BORDERCOLOR, 0x00000000);
-
 			// [OM Stage]
 
 			// depth stencil state
@@ -626,6 +743,15 @@ namespace LuaSTG::Core
 			ctx->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
 			
 			_state_dirty = true;
+
+			if (!_camera_state.is_3D)
+			{
+				setOrtho(_camera_state.ortho);
+			}
+			else
+			{
+				setPerspective(_camera_state.eye, _camera_state.lookat, _camera_state.headup, _camera_state.fov, _camera_state.aspect, _camera_state.znear, _camera_state.zfar);
+			}
 
 			setViewport(_viewport);
 			setScissorRect(_scissor_rect);
@@ -668,25 +794,41 @@ namespace LuaSTG::Core
 
 		void setOrtho(Box const& box)
 		{
-			batchFlush();
-			DirectX::XMFLOAT4X4 f4x4;
-			DirectX::XMStoreFloat4x4(&f4x4, DirectX::XMMatrixOrthographicOffCenterLH(box.left, box.right, box.bottom, box.top, box.front, box.back));
-			_device->SetVertexShaderConstantF(0, (float*)&f4x4, 4);
+			if (_state_dirty || !_camera_state.isEqual(box))
+			{
+				_camera_state.ortho = box;
+				_camera_state.is_3D = false;
+				batchFlush();
+				DirectX::XMFLOAT4X4 f4x4;
+				DirectX::XMStoreFloat4x4(&f4x4, DirectX::XMMatrixOrthographicOffCenterLH(box.left, box.right, box.bottom, box.top, box.front, box.back));
+				_device->SetVertexShaderConstantF(0, (float*)&f4x4, 4);
+			}
 		}
 		void setPerspective(Vector3 const& eye, Vector3 const& lookat, Vector3 const& headup, float fov, float aspect, float znear, float zfar)
 		{
-			batchFlush();
-			DirectX::XMFLOAT3 const eyef3(eye.x, eye.y, eye.z);
-			DirectX::XMFLOAT3 const lookatf3(lookat.x, lookat.y, lookat.z);
-			DirectX::XMFLOAT3 const headupf3(headup.x, headup.y, headup.z);
-			DirectX::XMFLOAT4X4 f4x4;
-			DirectX::XMStoreFloat4x4(&f4x4,
-				DirectX::XMMatrixMultiply(
-					DirectX::XMMatrixLookAtLH(DirectX::XMLoadFloat3(&eyef3), DirectX::XMLoadFloat3(&lookatf3), DirectX::XMLoadFloat3(&headupf3)),
-					DirectX::XMMatrixPerspectiveFovLH(fov, aspect, znear, zfar)));
-			_device->SetVertexShaderConstantF(0, (float*)&f4x4, 4);
-			float const camera_pos[4] = { eye.x, eye.y, eye.z, 0.0f };
-			_device->SetPixelShaderConstantF(0, camera_pos, 1);
+			if (_state_dirty || !_camera_state.isEqual(eye, lookat, headup, fov, aspect, znear, zfar))
+			{
+				_camera_state.eye = eye;
+				_camera_state.lookat = lookat;
+				_camera_state.headup = headup;
+				_camera_state.fov = fov;
+				_camera_state.aspect = aspect;
+				_camera_state.znear = znear;
+				_camera_state.zfar = zfar;
+				_camera_state.is_3D = true;
+				batchFlush();
+				DirectX::XMFLOAT3 const eyef3(eye.x, eye.y, eye.z);
+				DirectX::XMFLOAT3 const lookatf3(lookat.x, lookat.y, lookat.z);
+				DirectX::XMFLOAT3 const headupf3(headup.x, headup.y, headup.z);
+				DirectX::XMFLOAT4X4 f4x4;
+				DirectX::XMStoreFloat4x4(&f4x4,
+					DirectX::XMMatrixMultiply(
+						DirectX::XMMatrixLookAtLH(DirectX::XMLoadFloat3(&eyef3), DirectX::XMLoadFloat3(&lookatf3), DirectX::XMLoadFloat3(&headupf3)),
+						DirectX::XMMatrixPerspectiveFovLH(fov, aspect, znear, zfar)));
+				_device->SetVertexShaderConstantF(0, (float*)&f4x4, 4);
+				float const camera_pos[4] = { eye.x, eye.y, eye.z, 0.0f };
+				_device->SetPixelShaderConstantF(0, camera_pos, 1);
+			}
 		}
 
 		void setViewport(Box const& box)
@@ -721,7 +863,14 @@ namespace LuaSTG::Core
 				_device->SetScissorRect(&rc);
 			}
 		}
-		
+		void setViewportAndScissorRect()
+		{
+			_state_dirty = true;
+			setViewport(_viewport);
+			setScissorRect(_scissor_rect);
+			_state_dirty = false;
+		}
+
 		void setVertexColorBlendState(VertexColorBlendState state)
 		{
 			if (_state_dirty || _vertex_color_blend_state != state)
@@ -737,43 +886,7 @@ namespace LuaSTG::Core
 			{
 				_sampler_state = state;
 				batchFlush();
-				IDirect3DDevice9Ex* ctx = _device.Get();
-				switch (state)
-				{
-				case SamplerState::PointWrap:
-					ctx->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
-					ctx->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
-					ctx->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_POINT);
-					ctx->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);
-					ctx->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP);
-					ctx->SetSamplerState(0, D3DSAMP_ADDRESSW, D3DTADDRESS_WRAP);
-					break;
-				case SamplerState::PointClamp:
-					ctx->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
-					ctx->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
-					ctx->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_POINT);
-					ctx->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-					ctx->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-					ctx->SetSamplerState(0, D3DSAMP_ADDRESSW, D3DTADDRESS_CLAMP);
-					break;
-				case SamplerState::LinearWrap:
-					ctx->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
-					ctx->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-					ctx->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);
-					ctx->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);
-					ctx->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP);
-					ctx->SetSamplerState(0, D3DSAMP_ADDRESSW, D3DTADDRESS_WRAP);
-					break;
-				case SamplerState::LinearClamp:
-				default:
-					ctx->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
-					ctx->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-					ctx->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);
-					ctx->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-					ctx->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-					ctx->SetSamplerState(0, D3DSAMP_ADDRESSW, D3DTADDRESS_CLAMP);
-					break;
-				}
+				setSamplerState(state, 0);
 			}
 		}
 		void setFogState(FogState state, Color const& color, float density_or_znear, float zfar)
@@ -1016,6 +1129,99 @@ namespace LuaSTG::Core
 			cmd_.vertex_count += nvert;
 			cmd_.index_count += nidx;
 		}
+
+		void postEffect(ShaderID const& ps, TextureID const& rt, SamplerState rtsv, Vector4 const* cv, size_t cv_n, TextureID const* tv, SamplerState const* sv, size_t tv_sv_n, BlendState blend)
+		{
+			batchFlush();
+			IDirect3DDevice9Ex* ctx = _device.Get();
+
+			auto backup = RendererStateSet{
+				.viewport = _viewport,
+				.scissor_rect = _scissor_rect,
+				.fog_near_or_density = _fog_range[0],
+				.fog_far = _fog_range[1],
+				.fog_color = _fog_color,
+				.vertex_color_blend_state = _vertex_color_blend_state,
+				.sampler_state = _sampler_state,
+				.fog_state = _fog_state,
+				.texture_alpha_type = _texture_alpha_type,
+				.depth_state = _depth_state,
+				.blend_state = _blend_state,
+			};
+			auto cbak = _camera_state;
+
+			Microsoft::WRL::ComPtr<IDirect3DSurface9> surface_;
+			ctx->GetRenderTarget(0, &surface_);
+			D3DSURFACE_DESC desc_ = {};
+			surface_->GetDesc(&desc_);
+			float const sw_ = (float)desc_.Width;
+			float const sh_ = (float)desc_.Height;
+
+			setOrtho(Box{ .left = 0.0f, .top = sh_, .front = 0.0f, .right = sw_, .bottom = 0.0f, .back = 1.0f });
+
+			setViewport(Box{ .left = 0.0f, .top = 0.0f, .front = 0.0f, .right = sw_, .bottom = sh_, .back = 1.0f});
+			setScissorRect(Rect{ .left = 0.0f, .top = 0.0f, .right = sw_, .bottom = sh_ });
+
+			setVertexColorBlendState(VertexColorBlendState::Zero);
+			setFogState(FogState::Disable, Color{ .color = 0 }, 0.0f, 0.0f);
+			setDepthState(DepthState::Disable);
+			setBlendState(blend);
+
+			ctx->SetTexture(4, (IDirect3DTexture9*)rt.handle);
+			setSamplerState(rtsv, 4);
+			for (DWORD stage = 0; stage < std::min<DWORD>((DWORD)tv_sv_n, 4); stage += 1)
+			{
+				ctx->SetTexture(stage, (IDirect3DTexture9*)tv[stage].handle);
+				setSamplerState(sv[stage], stage);
+			}
+			ctx->SetPixelShaderConstantF(0, (float*)cv, std::min<UINT>((UINT)cv_n, 8));
+			float ps_cbdata[8] = {
+				sw_, sh_, 0.0f, 0.0f,
+				backup.viewport.left, backup.viewport.top, backup.viewport.right, backup.viewport.bottom,
+			};
+			ctx->SetPixelShaderConstantF(8, ps_cbdata, 2);
+			ctx->SetPixelShader((IDirect3DPixelShader9*)ps.handle);
+
+			if (tv_sv_n > 0)
+			{
+				setTexture(tv[0]);
+			}
+			else
+			{
+				setTexture(TextureID());
+			}
+
+			drawQuad(
+				DrawVertex2D{ .x = 0.5f + 0.f, .y = 0.5f + sh_, .z = 0.5f, .u = 0.0f, .v = 0.0f, .color = 0xFFFFFFFF },
+				DrawVertex2D{ .x = 0.5f + sw_, .y = 0.5f + sh_, .z = 0.5f, .u = 1.0f, .v = 0.0f, .color = 0xFFFFFFFF },
+				DrawVertex2D{ .x = 0.5f + sw_, .y = 0.5f + 0.f, .z = 0.5f, .u = 1.0f, .v = 1.0f, .color = 0xFFFFFFFF },
+				DrawVertex2D{ .x = 0.5f + 0.f, .y = 0.5f + 0.f, .z = 0.5f, .u = 0.0f, .v = 1.0f, .color = 0xFFFFFFFF });
+
+			batchFlush();
+
+			_state_dirty = true;
+
+			if (!cbak.is_3D)
+			{
+				setOrtho(cbak.ortho);
+			}
+			else
+			{
+				setPerspective(cbak.eye, cbak.lookat, cbak.headup, cbak.fov, cbak.aspect, cbak.znear, cbak.zfar);
+			}
+
+			setViewport(backup.viewport);
+			setScissorRect(backup.scissor_rect);
+
+			setVertexColorBlendState(backup.vertex_color_blend_state);
+			setSamplerState(backup.sampler_state);
+			setFogState(backup.fog_state, backup.fog_color, backup.fog_near_or_density, backup.fog_far);
+			setDepthState(backup.depth_state);
+			setBlendState(backup.blend_state);
+			setTexture(TextureID());
+
+			_state_dirty = false;
+		}
 	};
 }
 
@@ -1065,6 +1271,10 @@ namespace LuaSTG::Core
 	{
 		_pImpl->setScissorRect(rect);
 	}
+	void Renderer::setViewportAndScissorRect()
+	{
+		_pImpl->setViewportAndScissorRect();
+	}
 
 	void Renderer::setVertexColorBlendState(VertexColorBlendState state)
 	{
@@ -1106,6 +1316,11 @@ namespace LuaSTG::Core
 	void Renderer::drawRaw(DrawVertex2D const* pvert, uint16_t nvert, DrawIndex2D const* pidx, uint16_t nidx)
 	{
 		_pImpl->drawRaw(pvert, nvert, pidx, nidx);
+	}
+
+	void Renderer::postEffect(ShaderID const& ps, TextureID const& rt, SamplerState rtsv, Vector4 const* cv, size_t cv_n, TextureID const* tv, SamplerState const* sv, size_t tv_sv_n, BlendState blend)
+	{
+		_pImpl->postEffect(ps, rt, rtsv, cv, cv_n, tv, sv, tv_sv_n, blend);
 	}
 
 	Renderer::Renderer() : _pImpl(nullptr)

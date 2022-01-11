@@ -19,6 +19,24 @@ namespace LuaSTG::Core
 				|| z != right_.z;
 		}
 	};
+	struct Vector4
+	{
+		float x, y, z, w;
+		bool operator==(Vector4 const& right_) const
+		{
+			return x == right_.x
+				&& y == right_.y
+				&& z == right_.z
+				&& w == right_.w;
+		}
+		bool operator!=(Vector4 const& right_) const
+		{
+			return x != right_.x
+				|| y != right_.y
+				|| z != right_.z
+				|| w != right_.w;
+		}
+	};
 	struct Color
 	{
 		union
@@ -98,6 +116,20 @@ namespace LuaSTG::Core
 		TextureID(U* handle_) : address(0) { handle = static_cast<void*>(handle_); }
 		TextureID(uint64_t address_) : address(address_) {}
 	};
+	struct ShaderID
+	{
+		union
+		{
+			uint64_t address; // 64bit device (GPU) address
+			void* handle; // host handle
+		};
+		bool operator==(ShaderID const& right) const { return address == right.address; }
+		bool operator!=(ShaderID const& right) const { return address != right.address; }
+		ShaderID() : address(0) {}
+		template<typename U>
+		ShaderID(U* handle_) : address(0) { handle = static_cast<void*>(handle_); }
+		ShaderID(uint64_t address_) : address(address_) {}
+	};
 	enum class TextureAlphaType : uint8_t
 	{
 		MIN_INDEX = 0,
@@ -156,8 +188,12 @@ namespace LuaSTG::Core
 	{
 		PointWrap,
 		PointClamp,
+		PointBorderBlack,
+		PointBorderWhite,
 		LinearWrap,
 		LinearClamp,
+		LinearBorderBlack,
+		LinearBorderWhite,
 	};
 
 	struct DrawVertex2D
@@ -216,6 +252,7 @@ namespace LuaSTG::Core
 
 		void setViewport(Box const& box);
 		void setScissorRect(Rect const& rect);
+		void setViewportAndScissorRect();
 		
 		void setVertexColorBlendState(VertexColorBlendState state);
 		void setSamplerState(SamplerState state);
@@ -229,10 +266,7 @@ namespace LuaSTG::Core
 		void drawQuad(DrawVertex2D const& v1, DrawVertex2D const& v2, DrawVertex2D const& v3, DrawVertex2D const& v4);
 		void drawRaw(DrawVertex2D const* pvert, uint16_t nvert, DrawIndex2D const* pidx, uint16_t nidx);
 
-		//void renderText(void* spritetext, char const* text, float x, float y, float scale, int align);
-		//void renderTTF(void* ttf, char const* text, float left, float right, float bottom, float top, float scale, int format, Color color);
-
-		//void postEffect(); // !
+		void postEffect(ShaderID const& ps, TextureID const& rt, SamplerState rtsv, Vector4 const* cv, size_t cv_n, TextureID const* tv, SamplerState const* sv, size_t tv_sv_n, BlendState blend);
 	public:
 		Renderer();
 		Renderer(Renderer&) = delete;
