@@ -1,8 +1,11 @@
 ﻿#include "ResourceFX.hpp"
+#include <d3d9.h>
 
-namespace LuaSTGPlus {
+namespace LuaSTGPlus
+{
     ResFX::ResFX(const char* name, fcyRefPointer<f2dEffect> shader)
-        : Resource(ResourceType::FX, name), m_pShader(shader) {
+        : Resource(ResourceType::FX, name), m_bIsEffect(true), m_pShader(shader), m_pPixelShader(nullptr)
+    {
         // 扫描所有的变量注释
         for (fuInt i = 0; i < m_pShader->GetParamCount(); ++i) {
             f2dEffectParam* pParam = m_pShader->GetParam(i);
@@ -40,6 +43,16 @@ namespace LuaSTGPlus {
                     }
                 }
             }
+        }
+    }
+    ResFX::ResFX(const char* name, void* shader)
+        : Resource(ResourceType::FX, name), m_bIsEffect(false), m_pPixelShader(shader)
+    {    }
+    ResFX::~ResFX()
+    {
+        if (m_pPixelShader)
+        {
+            ((IDirect3DPixelShader9*)m_pPixelShader)->Release();
         }
     }
     

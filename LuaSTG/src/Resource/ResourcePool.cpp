@@ -1,6 +1,8 @@
 ﻿#include "ResourceMgr.h"
 #include "AppFrame.h"
 #include "Utility.h"
+#include <d3d9.h>
+#include <d3dcompiler.h>
 
 #ifdef max
 #undef max
@@ -933,7 +935,7 @@ bool ResourcePool::LoadTrueTypeFont(const char* name,
 
 // 加载后处理特效
 
-bool ResourcePool::LoadFX(const char* name, const char* path) noexcept {
+bool ResourcePool::LoadFX(const char* name, const char* path, bool is_effect) noexcept {
     if (!LAPP.GetRenderDev()) {
         spdlog::error("[luastg] LoadFX: 无法加载后处理特效'{}'，f2dRenderDevice未准备好", name);
         return false;
@@ -952,30 +954,68 @@ bool ResourcePool::LoadFX(const char* name, const char* path) noexcept {
         return false;
     }
     
-    try {
-        fcyRefPointer<f2dEffect> tEffect;
-        fResult fr = LAPP.GetRenderDev()->CreateEffect(tDataBuf, false, &tEffect);
-        if (FCYFAILED(fr)) {
-            spdlog::error("[fancy2d] [f2dRenderDevice::CreateEffect] 从'{}'创建后处理特效'{}'失败(fResult={})：{}",
-                path, name, fr, LAPP.GetEngine()->GetLastErrDesc());
+    if (is_effect)
+    {
+        try {
+            fcyRefPointer<f2dEffect> tEffect;
+            fResult fr = LAPP.GetRenderDev()->CreateEffect(tDataBuf, false, &tEffect);
+            if (FCYFAILED(fr)) {
+                spdlog::error("[fancy2d] [f2dRenderDevice::CreateEffect] 从'{}'创建后处理特效'{}'失败(fResult={})：{}",
+                    path, name, fr, LAPP.GetEngine()->GetLastErrDesc());
+                return false;
+            }
+        
+            fcyRefPointer<ResFX> tRes;
+            tRes.DirectSet(new ResFX(name, tEffect));
+            m_FXPool.emplace(name, tRes);
+        }
+        catch (const fcyException& e) {
+            spdlog::error("[fancy2d] [{}] 无法从'{}'创建后处理特效'{}'：{}", e.GetSrc(), path, name, e.GetDesc());
             return false;
         }
-        
-        fcyRefPointer<ResFX> tRes;
-        tRes.DirectSet(new ResFX(name, tEffect));
-        m_FXPool.emplace(name, tRes);
-    }
-    catch (const fcyException& e) {
-        spdlog::error("[fancy2d] [{}] 无法从'{}'创建后处理特效'{}'：{}", e.GetSrc(), path, name, e.GetDesc());
-        return false;
-    }
-    catch (const std::bad_alloc&) {
-        spdlog::error("[luastg] LoadFX: 内存不足");
-        return false;
-    }
+        catch (const std::bad_alloc&) {
+            spdlog::error("[luastg] LoadFX: 内存不足");
+            return false;
+        }
     
-    if (ResourceMgr::GetResourceLoadingLog()) {
-        spdlog::info("[luastg] LoadFX: 已从'{}'加载后处理特效'{}' ({})", path, name, getResourcePoolTypeName());
+        if (ResourceMgr::GetResourceLoadingLog()) {
+            spdlog::info("[luastg] LoadFX: 已从'{}'加载后处理特效'{}' ({})", path, name, getResourcePoolTypeName());
+        }
+    }
+    else
+    {
+        HRESULT hr = 0;
+        Microsoft::WRL::ComPtr<ID3DBlob> hlsl;
+        Microsoft::WRL::ComPtr<ID3DBlob> error;
+        hr = D3DCompile(tDataBuf->GetInternalBuffer(), (SIZE_T)tDataBuf->GetLength(), name, NULL, NULL, "main", "ps_3_0", 0, 0, &hlsl, &error);
+        if (FAILED(hr))
+        {
+            spdlog::error("[luastg] LoadFX: 编译着色器 '{}' ('{}') 失败：{}", name, path, (char*)error->GetBufferPointer());
+            return false;
+        }
+        Microsoft::WRL::ComPtr<IDirect3DPixelShader9> ps;
+        hr = ((IDirect3DDevice9*)LAPP.GetRenderDev()->GetHandle())->CreatePixelShader((DWORD*)hlsl->GetBufferPointer(), &ps);
+        if (FAILED(hr))
+        {
+            spdlog::error("[luastg] LoadFX: 创建着色器 '{}' ('{}') 失败：调用 IDirect3DDevice9::CreatePixelShader 出错 (HRESULT={})", name, path, hr);
+            return false;
+        }
+
+        try
+        {
+            fcyRefPointer<ResFX> tRes;
+            tRes.DirectSet(new ResFX(name, (void*)ps.Detach()));
+            m_FXPool.emplace(name, tRes);
+        }
+        catch (const std::bad_alloc&)
+        {
+            spdlog::error("[luastg] LoadFX: 内存不足");
+            return false;
+        }
+
+        if (ResourceMgr::GetResourceLoadingLog()) {
+            spdlog::info("[luastg] LoadFX: 已从'{}'加载后处理特效'{}' ({})", path, name, getResourcePoolTypeName());
+        }
     }
     
     return true;
