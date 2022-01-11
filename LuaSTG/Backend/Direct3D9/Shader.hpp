@@ -77,19 +77,15 @@ PS_Output main(PS_Input input)
 {
     // sample texture
     float4 color = tex2D(texture0, input.uv);
-#if defined(PREMUL_ALPHA)
-    color.rgb *= color.a;
-#endif
     
     // vertex color blend
-    float4 vert_color = input.col;
-    vert_color.rgb *= vert_color.a;
 #if defined(VERTEX_COLOR_BLEND_MUL)
-    color = vert_color * color;
+    color = input.col * color;
 #elif defined(VERTEX_COLOR_BLEND_ADD)
-    color = vert_color + color;
+    color.rgb += input.col.rgb;
+    color.a *= input.col.a;
 #elif defined(VERTEX_COLOR_BLEND_ONE)
-    color = vert_color;
+    color = input.col;
 #else // VERTEX_COLOR_BLEND_ZERO
     // color = color;
 #endif
@@ -97,19 +93,22 @@ PS_Output main(PS_Input input)
     // fog color blend
 #if defined(FOG_ENABLE)
     float mc_distance = distance(camera_pos.xyz, input.pos.xyz);
-    float4 fog_color2 = fog_color;
-    fog_color2.rgb *= fog_color2.a;
-    fog_color2 *= color.a;
+    float4 fog_value = fog_color;
+    fog_value.a *= color.a;
 #if defined(FOG_EXP)
     float fog_factor = clamp(exp(-(mc_distance * fog_range.x)), 0.0f, 1.0f);
-    color = lerp(fog_color2, color, fog_factor);
+    color = lerp(fog_value, color, fog_factor);
 #elif defined(FOG_EXP2)
     float fog_factor = clamp(exp(-pow(mc_distance * fog_range.x, 2.0f)), 0.0f, 1.0f);
-    color = lerp(fog_color2, color, fog_factor);
+    color = lerp(fog_value, color, fog_factor);
 #else // FOG_LINEAR
     float fog_factor = clamp((mc_distance - fog_range.x) / fog_range.w, 0.0f, 1.0f);
-    color = lerp(color, fog_color2, fog_factor);
+    color = lerp(color, fog_value, fog_factor);
 #endif
+#endif
+
+#if defined(PREMUL_ALPHA)
+    color.rgb *= color.a;
 #endif
 
     // output color

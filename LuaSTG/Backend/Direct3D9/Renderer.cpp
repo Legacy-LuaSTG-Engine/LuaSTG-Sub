@@ -993,6 +993,29 @@ namespace LuaSTG::Core
 			cmd_.vertex_count += 4;
 			cmd_.index_count += 6;
 		}
+		void drawRaw(DrawVertex2D const* pvert, uint16_t nvert, DrawIndex2D const* pidx, uint16_t nidx)
+		{
+			if ((_draw_list.vertex.capacity - _draw_list.vertex.size) < nvert || (_draw_list.index.capacity - _draw_list.index.size) < nidx)
+			{
+				batchFlush();
+			}
+
+			DrawCommand& cmd_ = _draw_list.command.data[_draw_list.command.size - 1];
+
+			DrawVertex2D* vbuf_ = _draw_list.vertex.data + _draw_list.vertex.size;
+			CopyMemory(vbuf_, pvert, nvert * sizeof(DrawVertex2D));
+			_draw_list.vertex.size += nvert;
+
+			DrawIndex2D* ibuf_ = _draw_list.index.data + _draw_list.index.size;
+			for (size_t idx_ = 0; idx_ < nidx; idx_ += 1)
+			{
+				ibuf_[idx_] = cmd_.vertex_count + pidx[idx_];
+			}
+			_draw_list.index.size += nidx;
+
+			cmd_.vertex_count += nvert;
+			cmd_.index_count += nidx;
+		}
 	};
 }
 
@@ -1079,6 +1102,10 @@ namespace LuaSTG::Core
 	void Renderer::drawQuad(DrawVertex2D const& v1, DrawVertex2D const& v2, DrawVertex2D const& v3, DrawVertex2D const& v4)
 	{
 		_pImpl->drawQuad(v1, v2, v3, v4);
+	}
+	void Renderer::drawRaw(DrawVertex2D const* pvert, uint16_t nvert, DrawIndex2D const* pidx, uint16_t nidx)
+	{
+		_pImpl->drawRaw(pvert, nvert, pidx, nidx);
 	}
 
 	Renderer::Renderer() : _pImpl(nullptr)

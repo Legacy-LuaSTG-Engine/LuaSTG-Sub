@@ -227,6 +227,7 @@ namespace LuaSTG::Core
 		bool flush();
 		void drawTriangle(DrawVertex2D const& v1, DrawVertex2D const& v2, DrawVertex2D const& v3);
 		void drawQuad(DrawVertex2D const& v1, DrawVertex2D const& v2, DrawVertex2D const& v3, DrawVertex2D const& v4);
+		void drawRaw(DrawVertex2D const* pvert, uint16_t nvert, DrawIndex2D const* pidx, uint16_t nidx);
 
 		//void renderText(void* spritetext, char const* text, float x, float y, float scale, int align);
 		//void renderTTF(void* ttf, char const* text, float left, float right, float bottom, float top, float scale, int format, Color color);
