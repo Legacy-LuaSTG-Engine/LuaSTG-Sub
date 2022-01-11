@@ -1,4 +1,4 @@
-# LuaSTG Engine
+# LuaSTG
 
 include(Custom.cmake OPTIONAL)
 if(NOT DEFINED LUASTG_RESDIR)
@@ -7,6 +7,38 @@ if(NOT DEFINED LUASTG_RESDIR)
 else()
     message("LuaSTG will using custom config, built-in resources and source codes: " ${LUASTG_RESDIR})
 endif()
+
+# LuaSTG Core && Backend
+
+add_library(LuaSTGCore STATIC)
+luastg_target_common_options(LuaSTGCore)
+target_precompile_headers(LuaSTGCore PRIVATE
+    Backend/framework.hpp
+)
+target_include_directories(LuaSTGCore PUBLIC
+    .
+)
+
+set(LuaSTGCore_SRC
+    Core/Renderer.hpp
+    Backend/framework.hpp
+    Backend/framework.cpp
+    Backend/Direct3D9/Shader.hpp
+    Backend/Direct3D9/Renderer.cpp
+)
+source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${LuaSTGCore_SRC})
+target_sources(LuaSTGCore PRIVATE
+    ${LuaSTGCore_SRC}
+)
+
+target_link_libraries(LuaSTGCore PUBLIC
+    fancylib
+    fancy2dlib
+    d3dcompiler.lib
+    d3d9.lib
+)
+
+# LuaSTG Engine
 
 add_executable(LuaSTG WIN32)
 luastg_target_common_options(LuaSTG)
@@ -82,6 +114,7 @@ target_link_libraries(LuaSTG PRIVATE
     fancy2dlib
     eyes2d
     DirectXTex0
+    LuaSTGCore
     xmath
     luajit
     imgui
