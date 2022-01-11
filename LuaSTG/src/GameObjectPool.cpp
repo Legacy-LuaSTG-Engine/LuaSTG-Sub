@@ -2,6 +2,7 @@
 #include "AppFrame.h"
 #include "LuaWrapper/LuaWrapper.hpp"
 #include "LuaWrapper/lua_luastg_hash.hpp"
+#include "LConfig.h"
 
 #define METATABLE_OBJ "mt"
 
@@ -685,7 +686,7 @@ bool GameObjectPool::DoDefaultRender(GameObject* p) noexcept
 			switch (p->res->GetType())
 			{
 			case ResourceType::Sprite:
-				LAPP.Render(
+				api_GameObject_drawSprite(
 					static_cast<ResSprite*>(p->res),
 					static_cast<float>(p->x),
 					static_cast<float>(p->y),
@@ -695,7 +696,7 @@ bool GameObjectPool::DoDefaultRender(GameObject* p) noexcept
 				);
 				break;
 			case ResourceType::Animation:
-				LAPP.Render(
+				api_GameObject_drawSpriteSequence(
 					static_cast<ResAnimation*>(p->res),
 					p->ani_timer,
 					static_cast<float>(p->x),
@@ -706,7 +707,7 @@ bool GameObjectPool::DoDefaultRender(GameObject* p) noexcept
 				);
 				break;
 			case ResourceType::Particle:
-				LAPP.Render(
+				api_GameObject_drawParticle(
 					p->ps,
 					static_cast<float>(p->hscale * LRES.GetGlobalImageScaleFactor()),
 					static_cast<float>(p->vscale * LRES.GetGlobalImageScaleFactor())
@@ -726,7 +727,7 @@ bool GameObjectPool::DoDefaultRender(GameObject* p) noexcept
 				BlendMode blend = static_cast<ResSprite*>(p->res)->GetBlendMode();
 				static_cast<ResSprite*>(p->res)->GetSprite()->SetColor(fcyColor(p->vertexcolor.argb));
 				static_cast<ResSprite*>(p->res)->SetBlendMode(p->blendmode);
-				LAPP.Render(
+				api_GameObject_drawSprite(
 					static_cast<ResSprite*>(p->res),
 					static_cast<float>(p->x),
 					static_cast<float>(p->y),
@@ -746,7 +747,7 @@ bool GameObjectPool::DoDefaultRender(GameObject* p) noexcept
 				for (size_t i = 0; i < static_cast<ResAnimation*>(p->res)->GetCount(); ++i) {
 					static_cast<ResAnimation*>(p->res)->GetSprite(i)->SetColor(newcolor);
 				}
-				LAPP.Render(
+				api_GameObject_drawSpriteSequence(
 					static_cast<ResAnimation*>(p->res),
 					p->ani_timer,
 					static_cast<float>(p->x),
@@ -765,7 +766,7 @@ bool GameObjectPool::DoDefaultRender(GameObject* p) noexcept
 			{
 				p->ps->SetBlendMode(p->blendmode);
 				p->ps->SetMixColor(fcyColor(p->vertexcolor.argb));
-				LAPP.Render(
+				api_GameObject_drawParticle(
 					p->ps,
 					static_cast<float>(p->hscale * LRES.GetGlobalImageScaleFactor()),
 					static_cast<float>(p->vscale * LRES.GetGlobalImageScaleFactor())

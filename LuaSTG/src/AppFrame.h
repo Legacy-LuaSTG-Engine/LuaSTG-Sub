@@ -6,6 +6,7 @@
 #include "GameObjectPool.h"
 #include "E2DFileManager.hpp"
 #include "Common/DirectInput.h"
+#include "LuaSTG/Core/Renderer.hpp"
 
 namespace LuaSTGPlus
 {
@@ -89,6 +90,20 @@ namespace LuaSTGPlus
 		fcyRefPointer<f2dFontRenderer> m_FontRenderer;//2D
 		fcyRefPointer<f2dGraphics2D> m_Graph2D;//2D
 		fcyRefPointer<f2dGraphics3D> m_Graph3D;//3D
+		struct NewRenderer2DListener : public f2dRenderDeviceEventListener
+		{
+			AppFrame* _app = nullptr;
+			void OnRenderDeviceLost()
+			{
+				_app->m_NewRenderer2D.detachDevice();
+			}
+			void OnRenderDeviceReset()
+			{
+				_app->m_NewRenderer2D.attachDevice(_app->m_pRenderDev->GetHandle());
+			}
+		};
+		NewRenderer2DListener m_NewRenderer2DListener;
+		LuaSTG::Core::Renderer m_NewRenderer2D;
 		
 		// PostEffect控制
 		std::vector<fcyRefPointer<f2dTexture2D>> m_stRenderTargetStack;// RenderTarget控制
@@ -348,6 +363,7 @@ namespace LuaSTGPlus
 		GraphicsType GetGraphicsType() LNOEXCEPT { return m_GraphType; }
 		fcyRefPointer<f2dGraphics3D> GetGraphics3D() LNOEXCEPT { return m_Graph3D; }
 		fcyRefPointer<f2dGraphics2D> GetGraphics2D() LNOEXCEPT { return m_Graph2D; }
+		LuaSTG::Core::Renderer& GetRenderer2D() { return m_NewRenderer2D; }
 		lua_State* GetLuaEngine() LNOEXCEPT { return L; }
 	public:
 		/// @brief 初始化框架
@@ -376,3 +392,9 @@ namespace LuaSTGPlus
 #define LPOOL (LAPP.GetGameObjectPool())
 #define LRES (LAPP.GetResourceMgr())
 #define LFMGR (LAPP.GetFileManager())
+
+void api_GameObject_updateBlendMode(LuaSTGPlus::BlendMode blend);
+void api_GameObject_drawSprite(LuaSTGPlus::ResSprite* pimg2dres, float const x, float const y, float const rot, float const hscale, float const vscale, float const z = 0.5f);
+void api_GameObject_drawSpriteSequence(LuaSTGPlus::ResAnimation* pani2dres, int const ani_timer, float const x, float const y, float const rot, float const hscale, float const vscale, float const z = 0.5f);
+void api_GameObject_drawSprite(f2dSprite* pimg2d, float const x, float const y, float const rot, float const hscale, float const vscale, float const z = 0.5f);
+void api_GameObject_drawParticle(LuaSTGPlus::ResParticle::ParticlePool* p, float hscale, float vscale);

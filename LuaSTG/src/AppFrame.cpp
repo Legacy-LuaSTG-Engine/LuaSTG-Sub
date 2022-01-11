@@ -6,6 +6,90 @@
 #include "ImGuiExtension.h"
 #include "LuaWrapper/LuaAppFrame.hpp"
 #include "Graphic/Test.h"
+#include "LConfig.h"
+
+class f2dGraphic2dAdapter : public f2dGraphics2D
+{
+	inline LuaSTG::Core::DrawVertex2D convert(f2dGraphics2DVertex const& v)
+	{
+		return LuaSTG::Core::DrawVertex2D{
+			.x = v.x,
+			.y = v.y,
+			.z = v.z,
+			.u = v.u,
+			.v = v.v,
+			.color = v.color,
+		};
+	}
+	
+public:
+	// 用不上
+	void AddRef() {}
+	void Release() {}
+
+	fBool IsGraphics3D() { return false; }
+
+	fBool IsInRender() { return true; }
+	fResult Begin() { return FCYERR_OK; }
+	fResult Flush()
+	{
+		LAPP.GetRenderer2D().flush();
+		return FCYERR_OK;
+	}
+	fResult End()
+	{
+		LAPP.GetRenderer2D().flush();
+		return FCYERR_OK;
+	}
+
+	// 用不上
+	const fcyMatrix4& GetWorldTransform() { return {}; }
+	const fcyMatrix4& GetViewTransform() { return {}; }
+	const fcyMatrix4& GetProjTransform() { return {}; }
+
+	// 用不上
+	void SetWorldTransform(const fcyMatrix4& Mat) {}
+	void SetViewTransform(const fcyMatrix4& Mat) {}
+	void SetProjTransform(const fcyMatrix4& Mat) {}
+
+	// 用不上
+	const f2dBlendState& GetBlendState() { return {}; }
+	void SetBlendState(const f2dBlendState& State) {}
+
+	// 用不上
+	F2DGRAPH2DBLENDTYPE GetColorBlendType()
+	{
+		return F2DGRAPH2DBLENDTYPE_MODULATE;
+	}
+	fResult SetColorBlendType(F2DGRAPH2DBLENDTYPE Type)
+	{
+		return FCYERR_OK;
+	}
+
+	fResult DrawQuad(f2dTexture2D* pTex, const f2dGraphics2DVertex& v1, const f2dGraphics2DVertex& v2, const f2dGraphics2DVertex& v3, const f2dGraphics2DVertex& v4, fBool bAutoFixCoord = true)
+	{
+		LAPP.GetRenderer2D().setTexture(LuaSTG::Core::TextureID(pTex->GetHandle()));
+		LAPP.GetRenderer2D().drawQuad(convert(v1), convert(v2), convert(v3), convert(v4));
+		return FCYERR_OK;
+	}
+	fResult DrawQuad(f2dTexture2D* pTex, const f2dGraphics2DVertex* arr, fBool bAutoFixCoord = true)
+	{
+		LAPP.GetRenderer2D().setTexture(LuaSTG::Core::TextureID(pTex->GetHandle()));
+		LAPP.GetRenderer2D().drawQuad(convert(arr[0]), convert(arr[1]), convert(arr[2]), convert(arr[3]));
+		return FCYERR_OK;
+	}
+	fResult DrawRaw(f2dTexture2D* pTex, fuInt VertCount, fuInt IndexCount, const f2dGraphics2DVertex* VertArr, const fuShort* IndexArr, fBool bAutoFixCoord = true)
+	{
+		LAPP.GetRenderer2D().setTexture(LuaSTG::Core::TextureID(pTex->GetHandle()));
+		std::vector<LuaSTG::Core::DrawVertex2D> vtxdata(VertCount);
+		for (size_t i = 0; i < VertCount; i += 1)
+		{
+			vtxdata[i] = convert(VertArr[i]);
+		}
+		LAPP.GetRenderer2D().drawRaw(vtxdata.data(), (uint16_t)VertCount, (LuaSTG::Core::DrawIndex2D*)IndexArr, (uint16_t)IndexCount);
+		return FCYERR_OK;
+	}
+};
 
 using namespace LuaSTGPlus;
 
@@ -373,12 +457,18 @@ bool AppFrame::Init()LNOEXCEPT
 		m_pRenderDev->ClearZBuffer();
 		
 		// 创建渲染器
+	#ifdef LUASTG_D3D9_SHADER
+		spdlog::info("[fancy2d] 创建2D渲染器适配器");
+		static f2dGraphic2dAdapter g2dadaper;
+		m_Graph2D = &g2dadaper;
+	#else
 		spdlog::info("[fancy2d] 创建2D渲染器，顶点容量{}，索引容量{}", 16384, 24576);
 		if (FCYFAILED(m_pRenderDev->CreateGraphics2D(16384, 24576, &m_Graph2D)))
 		{
 			spdlog::error("[fancy2d] [f2dRenderDevice::CreateGraphics2D] 创建2D渲染器失败");
 			return false;
 		}
+	#endif
 		m_Graph2DLastBlendMode = BlendMode::AddAlpha;
 		m_Graph2DBlendState = m_Graph2D->GetBlendState();
 		m_Graph2DColorBlendState = m_Graph2D->GetColorBlendType();
@@ -462,6 +552,10 @@ bool AppFrame::Init()LNOEXCEPT
 		slow::Graphic::_bindEngine((void*)m_pMainWindow->GetHandle());
 		// 初始化自定义后处理特效
 		//slow::effect::bindEngine();
+		// test
+		m_NewRenderer2D.attachDevice(m_pRenderDev->GetHandle());
+		m_NewRenderer2DListener._app = this;
+		m_pRenderDev->AttachListener(&m_NewRenderer2DListener);
 		
 		// 显示窗口
 		m_pMainWindow->SetBorderType(F2DWINBORDERTYPE_FIXED);
@@ -500,6 +594,9 @@ void AppFrame::Shutdown()LNOEXCEPT
 	m_ResourceMgr.ClearAllResource();
 	spdlog::info("[luastg] 清空所有游戏资源");
 	
+	// test
+	m_pRenderDev->RemoveListener(&m_NewRenderer2DListener);
+	m_NewRenderer2D.detachDevice();
 	// 卸载自定义后处理特效
 	//slow::effect::unbindEngine();
 	// test

@@ -144,7 +144,7 @@ public: // 内部函数
 	// 注册顶点声明
 	IDirect3DVertexDeclaration9* RegisterVertexDeclare(f2dVertexElement* pElement, fuInt ElementCount, fuInt& ElementSize);
 public: // 接口实现
-	void* GetHandle() { return m_pDev; }
+	void* GetHandle() { return _d3d9DeviceEx.Get(); }
 	fcStr GetDeviceName() { return m_DevName.c_str(); }
 	fuInt GetBufferWidth() { return _d3d9SwapChainInfo.BackBufferWidth; }
 	fuInt GetBufferHeight() { return _d3d9SwapChainInfo.BackBufferHeight; }

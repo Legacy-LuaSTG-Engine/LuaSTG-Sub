@@ -1,10 +1,14 @@
 #include "AppFrame.h"
+#include "LConfig.h"
 #include <d3d9.h>
 
 namespace LuaSTGPlus
 {
     void AppFrame::updateGraph2DBlendMode(BlendMode m)
     {
+    #ifdef LUASTG_D3D9_SHADER
+        api_GameObject_updateBlendMode(m);
+    #else
         if (m != m_Graph2DLastBlendMode)
         {
             m_Graph2DBlendState.SrcBlend = F2DBLENDFACTOR_SRCALPHA;
@@ -110,6 +114,7 @@ namespace LuaSTGPlus
             m_Graph2D->SetBlendState(m_Graph2DBlendState);
             m_Graph2D->SetColorBlendType(m_Graph2DColorBlendState);
         }
+    #endif
     }
     
     void AppFrame::updateGraph3DBlendMode(BlendMode m)

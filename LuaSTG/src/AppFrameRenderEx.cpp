@@ -1,4 +1,5 @@
 ﻿#include "AppFrame.h"
+#include "LConfig.h"
 #include <d3d9.h>
 
 namespace LuaSTGPlus {
@@ -26,7 +27,9 @@ namespace LuaSTGPlus {
             spdlog::error("[luastg] PushRenderTarget: 内部错误 (f2dRenderDevice::SetRenderTarget failed.)");
             return false;
         }
+    #ifndef LUASTG_D3D9_SHADER
         m_pRenderDev->SetViewport(orgVP);
+    #endif
         
         try
         {
@@ -39,7 +42,9 @@ namespace LuaSTGPlus {
                 m_pRenderDev->SetRenderTarget(nullptr);
             else
                 m_pRenderDev->SetRenderTarget(m_stRenderTargetStack.back());
+        #ifndef LUASTG_D3D9_SHADER
             m_pRenderDev->SetViewport(orgVP);
+        #endif
             return false;
         }
         
@@ -85,7 +90,9 @@ namespace LuaSTGPlus {
         else
             m_pRenderDev->SetRenderTarget(m_stRenderTargetStack.back());
         
+    #ifndef LUASTG_D3D9_SHADER
         m_pRenderDev->SetViewport(orgVP);
+    #endif
         return true;
     }
     

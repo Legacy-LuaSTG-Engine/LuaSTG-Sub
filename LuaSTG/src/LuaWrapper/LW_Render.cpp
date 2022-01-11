@@ -1,5 +1,6 @@
 #include "LuaWrapper\LuaWrapper.hpp"
 #include "AppFrame.h"
+#include "LConfig.h"
 
 void LuaSTGPlus::LuaWrapper::RenderWrapper::Register(lua_State* L) LNOEXCEPT
 {
@@ -455,6 +456,7 @@ void LuaSTGPlus::LuaWrapper::RenderWrapper::Register(lua_State* L) LNOEXCEPT
     };
     
     luaL_Reg lib[] = {
+#ifndef LUASTG_D3D9_SHADER
         { "BeginScene", &Wrapper::BeginScene },
         { "EndScene", &Wrapper::EndScene },
         { "RenderClear", &Wrapper::RenderClear },
@@ -467,16 +469,11 @@ void LuaSTGPlus::LuaWrapper::RenderWrapper::Register(lua_State* L) LNOEXCEPT
         { "RenderAnimation", &Wrapper::RenderAnimation },
         { "RenderRect", &Wrapper::RenderRect },
         { "Render4V", &Wrapper::Render4V },
-        { "RenderText", &Wrapper::RenderText },
         { "RenderTexture", &Wrapper::RenderTexture },
-        { "RenderTTF", &Wrapper::RenderTTF },
         { "SetFog", &Wrapper::SetFog },
         { "PushRenderTarget", &Wrapper::PushRenderTarget },
         { "PopRenderTarget", &Wrapper::PopRenderTarget },
         { "PostEffect", &Wrapper::PostEffect },
-        //EX
-        { "Snapshot", &Wrapper::Snapshot },
-        { "SaveTexture", &Wrapper::SaveTexture },
         //EX+
         { "SetZBufferEnable", &Wrapper::SetZBufferEnable },
         { "ClearZBuffer", &Wrapper::ClearZBuffer },
@@ -486,6 +483,12 @@ void LuaSTGPlus::LuaWrapper::RenderWrapper::Register(lua_State* L) LNOEXCEPT
         { "RenderGroupCollider", &Wrapper::RenderGroupCollider },
         { "RenderTextureSector", &Wrapper::RenderTextureSector },
         { "RenderTextureAnnulus", &Wrapper::RenderTextureAnnulus },
+#endif
+        { "RenderText", &Wrapper::RenderText },
+        { "RenderTTF", &Wrapper::RenderTTF },
+        //EX
+        { "Snapshot", &Wrapper::Snapshot },
+        { "SaveTexture", &Wrapper::SaveTexture },
         // END
         { NULL, NULL },
     };
