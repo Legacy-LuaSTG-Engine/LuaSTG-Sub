@@ -228,16 +228,10 @@ namespace LuaSTG::Core
 		void drawTriangle(DrawVertex2D const& v1, DrawVertex2D const& v2, DrawVertex2D const& v3);
 		void drawQuad(DrawVertex2D const& v1, DrawVertex2D const& v2, DrawVertex2D const& v3, DrawVertex2D const& v4);
 
-		//void pushRenderTarget(void* rt);
-		//void popRenderTarget();
-
 		//void renderText(void* spritetext, char const* text, float x, float y, float scale, int align);
 		//void renderTTF(void* ttf, char const* text, float left, float right, float bottom, float top, float scale, int format, Color color);
 
 		//void postEffect(); // !
-
-		//bool snapshot(char const* path);
-		//bool saveTexture(void* texture, char const* path);
 	public:
 		Renderer();
 		Renderer(Renderer&) = delete;

@@ -16,6 +16,10 @@ namespace LuaSTG::Core
 		Microsoft::WRL::ComPtr<ID3DBlob> errmsg_;
 		if (FAILED(D3DCompile(data, size, name, defs, NULL, "main", target, flag_, 0, ppBlob, &errmsg_)))
 		{
+			OutputDebugStringA(name);
+			OutputDebugStringA(":\n");
+			OutputDebugStringA((char*)errmsg_->GetBufferPointer());
+			assert(false);
 			return false;
 		}
 		return true;
@@ -220,24 +224,28 @@ namespace LuaSTG::Core
 
 				const D3D_SHADER_MACRO ps_def_zero_line_[] = {
 					{ "VERTEX_COLOR_BLEND_ZERO", "1"},
+					{ "FOG_ENABLE", "1"},
 					{ "FOG_LINEAR", "1"},
 					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_one0_line_[] = {
 					{ "VERTEX_COLOR_BLEND_ONE", "1"},
+					{ "FOG_ENABLE", "1"},
 					{ "FOG_LINEAR", "1"},
 					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_add0_line_[] = {
 					{ "VERTEX_COLOR_BLEND_ADD", "1"},
+					{ "FOG_ENABLE", "1"},
 					{ "FOG_LINEAR", "1"},
 					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_mul0_line_[] = {
 					{ "VERTEX_COLOR_BLEND_MUL", "1"},
+					{ "FOG_ENABLE", "1"},
 					{ "FOG_LINEAR", "1"},
 					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
@@ -265,24 +273,28 @@ namespace LuaSTG::Core
 
 				const D3D_SHADER_MACRO ps_def_zero_exp0_[] = {
 					{ "VERTEX_COLOR_BLEND_ZERO", "1"},
+					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP", "1"},
 					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_one0_exp0_[] = {
 					{ "VERTEX_COLOR_BLEND_ONE", "1"},
+					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP", "1"},
 					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_add0_exp0_[] = {
 					{ "VERTEX_COLOR_BLEND_ADD", "1"},
+					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP", "1"},
 					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_mul0_exp0_[] = {
 					{ "VERTEX_COLOR_BLEND_MUL", "1"},
+					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP", "1"},
 					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
@@ -310,24 +322,28 @@ namespace LuaSTG::Core
 
 				const D3D_SHADER_MACRO ps_def_zero_exp2_[] = {
 					{ "VERTEX_COLOR_BLEND_ZERO", "1"},
+					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP2", "1"},
 					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_one0_exp2_[] = {
 					{ "VERTEX_COLOR_BLEND_ONE", "1"},
+					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP2", "1"},
 					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_add0_exp2_[] = {
 					{ "VERTEX_COLOR_BLEND_ADD", "1"},
+					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP2", "1"},
 					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_mul0_exp2_[] = {
 					{ "VERTEX_COLOR_BLEND_MUL", "1"},
+					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP2", "1"},
 					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
@@ -392,21 +408,25 @@ namespace LuaSTG::Core
 
 				const D3D_SHADER_MACRO ps_def_zero_line_mula_[] = {
 					{ "VERTEX_COLOR_BLEND_ZERO", "1"},
+					{ "FOG_ENABLE", "1"},
 					{ "FOG_LINEAR", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_one0_line_mula_[] = {
 					{ "VERTEX_COLOR_BLEND_ONE", "1"},
+					{ "FOG_ENABLE", "1"},
 					{ "FOG_LINEAR", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_add0_line_mula_[] = {
 					{ "VERTEX_COLOR_BLEND_ADD", "1"},
+					{ "FOG_ENABLE", "1"},
 					{ "FOG_LINEAR", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_mul0_line_mula_[] = {
 					{ "VERTEX_COLOR_BLEND_MUL", "1"},
+					{ "FOG_ENABLE", "1"},
 					{ "FOG_LINEAR", "1"},
 					{ NULL, NULL },
 				};
@@ -433,21 +453,25 @@ namespace LuaSTG::Core
 
 				const D3D_SHADER_MACRO ps_def_zero_exp0_mula_[] = {
 					{ "VERTEX_COLOR_BLEND_ZERO", "1"},
+					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_one0_exp0_mula_[] = {
 					{ "VERTEX_COLOR_BLEND_ONE", "1"},
+					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_add0_exp0_mula_[] = {
 					{ "VERTEX_COLOR_BLEND_ADD", "1"},
+					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_mul0_exp0_mula_[] = {
 					{ "VERTEX_COLOR_BLEND_MUL", "1"},
+					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP", "1"},
 					{ NULL, NULL },
 				};
@@ -474,22 +498,25 @@ namespace LuaSTG::Core
 
 				const D3D_SHADER_MACRO ps_def_zero_exp2_mula_[] = {
 					{ "VERTEX_COLOR_BLEND_ZERO", "1"},
+					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP2", "1"},
-					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_one0_exp2_mula_[] = {
 					{ "VERTEX_COLOR_BLEND_ONE", "1"},
+					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP2", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_add0_exp2_mula_[] = {
 					{ "VERTEX_COLOR_BLEND_ADD", "1"},
+					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP2", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_mul0_exp2_mula_[] = {
 					{ "VERTEX_COLOR_BLEND_MUL", "1"},
+					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP2", "1"},
 					{ NULL, NULL },
 				};
@@ -656,7 +683,7 @@ namespace LuaSTG::Core
 			DirectX::XMStoreFloat4x4(&f4x4,
 				DirectX::XMMatrixMultiply(
 					DirectX::XMMatrixLookAtLH(DirectX::XMLoadFloat3(&eyef3), DirectX::XMLoadFloat3(&lookatf3), DirectX::XMLoadFloat3(&headupf3)),
-					DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(fov), aspect, znear, zfar)));
+					DirectX::XMMatrixPerspectiveFovLH(fov, aspect, znear, zfar)));
 			_device->SetVertexShaderConstantF(0, (float*)&f4x4, 4);
 			float const camera_pos[4] = { eye.x, eye.y, eye.z, 0.0f };
 			_device->SetPixelShaderConstantF(0, camera_pos, 1);
@@ -761,7 +788,7 @@ namespace LuaSTG::Core
 				_device->SetVertexShader(_vertex_shader[IDX(_fog_state)].Get());
 				float const fog_color_and_range[8] = {
 					(float)color.r / 255.0f, (float)color.g / 255.0f, (float)color.b / 255.0f, (float)color.a / 255.0f,
-					density_or_znear, zfar, 0.0f, 0.0f,
+					density_or_znear, zfar, 0.0f, zfar - density_or_znear,
 				};
 				_device->SetPixelShaderConstantF(1, fog_color_and_range, 2);
 				_device->SetPixelShader(_pixel_shader[IDX(_vertex_color_blend_state)][IDX(_fog_state)][IDX(_texture_alpha_type)].Get());
