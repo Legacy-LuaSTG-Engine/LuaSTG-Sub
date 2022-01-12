@@ -5,7 +5,6 @@
 #include "Utility.h"
 #include "ImGuiExtension.h"
 #include "LuaWrapper/LuaAppFrame.hpp"
-#include "Graphic/Test.h"
 #include "LConfig.h"
 
 class f2dGraphic2dAdapter : public f2dGraphics2D
@@ -21,6 +20,8 @@ class f2dGraphic2dAdapter : public f2dGraphics2D
 			.color = v.color,
 		};
 	}
+	fcyMatrix4 m_tMat;
+	f2dBlendState m_tState = {};
 	
 public:
 	// 用不上
@@ -43,18 +44,18 @@ public:
 	}
 
 	// 用不上
-	const fcyMatrix4& GetWorldTransform() { return {}; }
-	const fcyMatrix4& GetViewTransform() { return {}; }
-	const fcyMatrix4& GetProjTransform() { return {}; }
+	const fcyMatrix4& GetWorldTransform() { return m_tMat; }
+	const fcyMatrix4& GetViewTransform() { return m_tMat; }
+	const fcyMatrix4& GetProjTransform() { return m_tMat; }
 
 	// 用不上
 	void SetWorldTransform(const fcyMatrix4& Mat) {}
 	void SetViewTransform(const fcyMatrix4& Mat) {}
-	void SetProjTransform(const fcyMatrix4& Mat) {}
+	void SetProjTransform(const fcyMatrix4& Mat) { m_tMat = Mat; }
 
 	// 用不上
-	const f2dBlendState& GetBlendState() { return {}; }
-	void SetBlendState(const f2dBlendState& State) {}
+	const f2dBlendState& GetBlendState() { return m_tState; }
+	void SetBlendState(const f2dBlendState& State) { m_tState = State; }
 
 	// 用不上
 	F2DGRAPH2DBLENDTYPE GetColorBlendType()
@@ -548,11 +549,7 @@ bool AppFrame::Init()LNOEXCEPT
 		#ifdef USING_DEAR_IMGUI
 			imgui::bindEngine();
 		#endif
-		// test
-		slow::Graphic::_bindEngine((void*)m_pMainWindow->GetHandle());
-		// 初始化自定义后处理特效
-		//slow::effect::bindEngine();
-		// test
+		// Renderer
 		m_NewRenderer2D.attachDevice(m_pRenderDev->GetHandle());
 		m_NewRenderer2DListener._app = this;
 		m_pRenderDev->AttachListener(&m_NewRenderer2DListener);
@@ -594,13 +591,9 @@ void AppFrame::Shutdown()LNOEXCEPT
 	m_ResourceMgr.ClearAllResource();
 	spdlog::info("[luastg] 清空所有游戏资源");
 	
-	// test
+	// Renderer
 	m_pRenderDev->RemoveListener(&m_NewRenderer2DListener);
 	m_NewRenderer2D.detachDevice();
-	// 卸载自定义后处理特效
-	//slow::effect::unbindEngine();
-	// test
-	slow::Graphic::_unbindEngine();
 	// 卸载ImGui
 	#ifdef USING_DEAR_IMGUI
 		imgui::unbindEngine();
@@ -804,9 +797,6 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 		if (bUpdateDevice) m_DirectInput->refresh();
 	}
 	
-	if (!slow::Graphic::_update())
-		return false;
-	
 	// 执行帧函数
 	if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineUpdate, 1))
 		return false;
@@ -844,11 +834,6 @@ fBool AppFrame::OnRender(fDouble ElapsedTime, f2dFPSController* pFPSController)
 	#if (defined LDEVVERSION) || (defined LDEBUG)
 	TimerScope tProfileScope(m_RenderTimer);
 	#endif
-	
-	if (slow::Graphic::_draw())
-	{
-		return false; // tell fancy2d do not present d3d9 swapchain
-	}
 	
 	m_pRenderDev->Clear();
 	

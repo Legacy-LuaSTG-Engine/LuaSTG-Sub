@@ -83,30 +83,6 @@ target_sources(LuaSTG PRIVATE
     ${LUASTG_RESDIR}/resource.rc
     ${LUASTG_RESDIR}/app.ico
 )
-if(FALSE)
-    target_sources(LuaSTG PRIVATE
-        Graphic/Type.h
-        Graphic/Object.h
-        Graphic/DeviceState.h
-        Graphic/DeviceStateObject.h
-        Graphic/DeviceResource.h
-        Graphic/DeviceResourceObject.h
-        Graphic/Device.h
-        Graphic/Device.cpp
-        Graphic/SpriteRenderer.h
-        Graphic/SpriteRenderer.cpp
-        Graphic/DearImGuiRenderer.h
-        Graphic/DearImGuiRendererShader.inl
-        Graphic/DearImGuiRenderer.cpp
-        Graphic/Test.h
-        Graphic/Test.cpp
-    )
-else()
-    target_sources(LuaSTG PRIVATE
-        Graphic/Test.h
-        Graphic/TestEmpty.cpp
-    )
-endif()
 
 target_link_libraries(LuaSTG PRIVATE
     spdlog::spdlog
