@@ -58,28 +58,17 @@ target_include_directories(LuaSTG PRIVATE
 target_compile_definitions(LuaSTG PRIVATE LDEVVERSION)
 
 aux_source_directory(../Common COMMON_SRC)
-aux_source_directory(src LUASTG_SRC)
-aux_source_directory(src/Resource LUASTG_SRC_RES)
-aux_source_directory(src/LuaWrapper LUASTG_SRC_LW)
-aux_source_directory(src/SteamAPI LUASTG_SRC_STEAMAPI)
 aux_source_directory(${LUASTG_RESDIR} LUASTG_RES)
 
+include(Sources.cmake)
 target_sources(LuaSTG PRIVATE
-    pch/pch.cpp # common header
     ${COMMON_SRC}
-    
-    ${LUASTG_SRC}
-    ${LUASTG_SRC_RES}
-    ${LUASTG_SRC_LW}
-    ${LUASTG_SRC_STEAMAPI}
+    ${LUASTG_ENGINE_SOURCES}
     ${LUASTG_RES}
-    
     ../xinput/xinput.hpp
     ../xinput/xinput.cpp
     ../xinput/lua_xinput.hpp
     ../xinput/lua_xinput.cpp
-    
-    src/LuaSTG.manifest
     ${LUASTG_RESDIR}/resource.rc
     ${LUASTG_RESDIR}/app.ico
 )
