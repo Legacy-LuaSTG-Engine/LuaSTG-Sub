@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "CircularQueue.hpp"
+#include "cpp/CircularQueue.hpp"
 #include "fcyMath.h"
 #include "ResourceBase.hpp"
 #include "lua.hpp"
