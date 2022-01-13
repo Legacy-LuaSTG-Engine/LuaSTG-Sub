@@ -56,13 +56,15 @@ struct f2dTexture2D :
 	/// @param[out] Pitch     行对齐字节
 	/// @param[out] pOut      返回的内存指针，自动计算到区域的首字节
 	virtual fResult Lock(fcyRect* pLockRect, fBool Discard, fuInt* Pitch, fData* pOut)=0;
-
-	/// @brief 解锁纹理
 	virtual fResult Unlock()=0;
 	
-	virtual fResult AddDirtyRect(fcyRect* pDirtyRect)=0;
-	
-	virtual fResult Upload()=0;
+
+	// 更新纹理，默认的像素格式为 B8G8R8A8_UNORM
+	virtual fResult Update(fcyRect* dstRect, fData pData, fuInt pitch) = 0;
+
+	// 废弃的方法
+	virtual fResult AddDirtyRect(fcyRect* pDirtyRect) = 0;
+	virtual fResult Upload() = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -75,6 +77,7 @@ struct f2dDepthStencilSurface :
 	virtual fuInt GetWidth()=0;    ///< @brief 返回宽度
 	virtual fuInt GetHeight()=0;   ///< @brief 返回高度
 };
+
 
 // =============================== 效果包装 ===================================
 #pragma region
@@ -118,13 +121,13 @@ enum F2DEPVTYPE
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dEffectParam
 {
-	virtual fcStr GetName()=0;                 ///< @brief 返回参数名称
-	virtual F2DEPTYPE GetType()=0;             ///< @brief 返回参数类型
+	virtual fcStr GetName() = 0;                 ///< @brief 返回参数名称
+	virtual F2DEPTYPE GetType() = 0;             ///< @brief 返回参数类型
 
-	virtual fcStr GetSemantic()=0;                        ///< @brief 获得参数语义
-	virtual f2dEffectParam* GetAnnotation(fcStr Name)=0;  ///< @brief 返回注释对象
-	virtual f2dEffectParam* GetAnnotation(fuInt Index)=0; ///< @brief 返回注释对象
-	virtual fuInt GetAnnotationCount()=0;                 ///< @brief 返回注释对象个数
+	virtual fcStr GetSemantic() = 0;                        ///< @brief 获得参数语义
+	virtual f2dEffectParam* GetAnnotation(fcStr Name) = 0;  ///< @brief 返回注释对象
+	virtual f2dEffectParam* GetAnnotation(fuInt Index) = 0; ///< @brief 返回注释对象
+	virtual fuInt GetAnnotationCount() = 0;                 ///< @brief 返回注释对象个数
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -134,28 +137,28 @@ struct f2dEffectParam
 struct f2dEffectParamValue :
 	public f2dEffectParam
 {
-	virtual F2DEPVTYPE GetValueType()=0;      ///< @brief 获得类型
+	virtual F2DEPVTYPE GetValueType() = 0;      ///< @brief 获得类型
 
-	virtual fuInt GetRow()=0;                 ///< @brief 获得向量/矩阵行数
-	virtual fuInt GetColumn()=0;              ///< @brief 获得向量/矩阵列数
+	virtual fuInt GetRow() = 0;                 ///< @brief 获得向量/矩阵行数
+	virtual fuInt GetColumn() = 0;              ///< @brief 获得向量/矩阵列数
 
-	virtual fBool IsRowFirstMatrix()=0;       ///< @brief 是否为行优先矩阵
+	virtual fBool IsRowFirstMatrix() = 0;       ///< @brief 是否为行优先矩阵
 
-	virtual fBool GetBool()=0;                ///< @brief 返回Bool型
-	virtual fFloat GetFloat()=0;              ///< @brief 返回Float型
-	virtual fInt GetInt()=0;                  ///< @brief 返回Int型
-	virtual fcyVec4 GetVector()=0;            ///< @brief 返回向量
-	virtual fcyMatrix4 GetMatrix()=0;         ///< @brief 返回矩阵
-	virtual f2dTexture* GetTexture()=0;       ///< @brief 获得纹理对象
-	virtual fcStr GetString()=0;              ///< @brief 返回字符串数据
+	virtual fBool GetBool() = 0;                ///< @brief 返回Bool型
+	virtual fFloat GetFloat() = 0;              ///< @brief 返回Float型
+	virtual fInt GetInt() = 0;                  ///< @brief 返回Int型
+	virtual fcyVec4 GetVector() = 0;            ///< @brief 返回向量
+	virtual fcyMatrix4 GetMatrix() = 0;         ///< @brief 返回矩阵
+	virtual f2dTexture* GetTexture() = 0;       ///< @brief 获得纹理对象
+	virtual fcStr GetString() = 0;              ///< @brief 返回字符串数据
 
-	virtual fResult SetBool(fBool Value)=0;   ///< @brief 设置Bool型
-	virtual fResult SetFloat(fFloat Value)=0; ///< @brief 设置Float型
-	virtual fResult SetInt(fInt Value)=0;     ///< @brief 设置Int型
-	virtual fResult SetVector(const fcyVec4& Value)=0;    ///< @brief 设置向量
-	virtual fResult SetMatrix(const fcyMatrix4& Value)=0; ///< @brief 设置矩阵
-	virtual fResult SetTexture(f2dTexture* pTex)=0;       ///< @brief 设置纹理
-	virtual fResult SetString(fcStr Str)=0;               ///< @brief 设置字符串
+	virtual fResult SetBool(fBool Value) = 0;   ///< @brief 设置Bool型
+	virtual fResult SetFloat(fFloat Value) = 0; ///< @brief 设置Float型
+	virtual fResult SetInt(fInt Value) = 0;     ///< @brief 设置Int型
+	virtual fResult SetVector(const fcyVec4& Value) = 0;    ///< @brief 设置向量
+	virtual fResult SetMatrix(const fcyMatrix4& Value) = 0; ///< @brief 设置矩阵
+	virtual fResult SetTexture(f2dTexture* pTex) = 0;       ///< @brief 设置纹理
+	virtual fResult SetString(fcStr Str) = 0;               ///< @brief 设置字符串
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -166,10 +169,10 @@ struct f2dEffectParamArr :
 	public f2dEffectParam
 {
 	/// @brief 返回元素个数
-	virtual fuInt GetElementCount()=0;
+	virtual fuInt GetElementCount() = 0;
 
 	/// @brief 通过元素Index获取元素
-	virtual f2dEffectParam* GetElement(fuInt Index)=0;
+	virtual f2dEffectParam* GetElement(fuInt Index) = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -180,12 +183,12 @@ struct f2dEffectParamStruct :
 	public f2dEffectParam
 {
 	///< @brief 获得成员数目
-	virtual fuInt GetElementCount()=0;
+	virtual fuInt GetElementCount() = 0;
 
 	///< @brief 通过成员名获得成员
-	virtual f2dEffectParam* GetElement(fcStr Name)=0;
+	virtual f2dEffectParam* GetElement(fcStr Name) = 0;
 	///< @brief 通过成员下标获得成员
-	virtual f2dEffectParam* GetElement(fuInt Index)=0;
+	virtual f2dEffectParam* GetElement(fuInt Index) = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -194,10 +197,10 @@ struct f2dEffectParamStruct :
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dEffectFunction
 {
-	virtual fcStr GetName()=0;                            ///< @brief 返回入口名称
-	virtual f2dEffectParam* GetAnnotation(fcStr Name)=0;  ///< @brief 返回注释对象
-	virtual f2dEffectParam* GetAnnotation(fuInt Index)=0; ///< @brief 返回注释对象
-	virtual fuInt GetAnnotationCount()=0;                 ///< @brief 返回注释对象个数
+	virtual fcStr GetName() = 0;                            ///< @brief 返回入口名称
+	virtual f2dEffectParam* GetAnnotation(fcStr Name) = 0;  ///< @brief 返回注释对象
+	virtual f2dEffectParam* GetAnnotation(fuInt Index) = 0; ///< @brief 返回注释对象
+	virtual fuInt GetAnnotationCount() = 0;                 ///< @brief 返回注释对象个数
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -206,11 +209,11 @@ struct f2dEffectFunction
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dEffectPass
 {
-	virtual fuInt GetIndex()=0;                           ///< @brief 返回Pass的Index
-	virtual fcStr GetName()=0;                            ///< @brief 返回名称
-	virtual f2dEffectParam* GetAnnotation(fcStr Name)=0;  ///< @brief 返回注释对象
-	virtual f2dEffectParam* GetAnnotation(fuInt Index)=0; ///< @brief 返回注释对象
-	virtual fuInt GetAnnotationCount()=0;                 ///< @brief 返回注释对象个数
+	virtual fuInt GetIndex() = 0;                           ///< @brief 返回Pass的Index
+	virtual fcStr GetName() = 0;                            ///< @brief 返回名称
+	virtual f2dEffectParam* GetAnnotation(fcStr Name) = 0;  ///< @brief 返回注释对象
+	virtual f2dEffectParam* GetAnnotation(fuInt Index) = 0; ///< @brief 返回注释对象
+	virtual fuInt GetAnnotationCount() = 0;                 ///< @brief 返回注释对象个数
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -218,15 +221,15 @@ struct f2dEffectPass
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dEffectTechnique
 {
-	virtual fcStr GetName()=0;                            ///< @brief 返回名称
-	virtual f2dEffectParam* GetAnnotation(fcStr Name)=0;  ///< @brief 返回注释对象
-	virtual f2dEffectParam* GetAnnotation(fuInt Index)=0; ///< @brief 返回注释对象
-	virtual fuInt GetAnnotationCount()=0;                 ///< @brief 返回注释对象个数
+	virtual fcStr GetName() = 0;                            ///< @brief 返回名称
+	virtual f2dEffectParam* GetAnnotation(fcStr Name) = 0;  ///< @brief 返回注释对象
+	virtual f2dEffectParam* GetAnnotation(fuInt Index) = 0; ///< @brief 返回注释对象
+	virtual fuInt GetAnnotationCount() = 0;                 ///< @brief 返回注释对象个数
 
-	virtual fBool IsValidate()=0;                 ///< @brief 检查设备是否支持该效果
-	virtual fuInt GetPassCount()=0;               ///< @brief 返回效果批次个数
-	virtual f2dEffectPass* GetPass(fuInt Index)=0;///< @brief 获得渲染批次
-	virtual f2dEffectPass* GetPass(fcStr Name)=0; ///< @brief 获得渲染批次
+	virtual fBool IsValidate() = 0;                 ///< @brief 检查设备是否支持该效果
+	virtual fuInt GetPassCount() = 0;               ///< @brief 返回效果批次个数
+	virtual f2dEffectPass* GetPass(fuInt Index) = 0;///< @brief 获得渲染批次
+	virtual f2dEffectPass* GetPass(fcStr Name) = 0; ///< @brief 获得渲染批次
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -238,24 +241,24 @@ struct f2dEffect :
 {
 	/// @brief   获得ID3DXEffect对象
 	/// @warning 高级方法
-	virtual void* GetHandle()=0;
+	virtual void* GetHandle() = 0;
 
-	virtual fuInt GetParamCount()=0;                  ///< @brief 获得参数个数
-	virtual f2dEffectParam* GetParam(fuInt Index)=0;  ///< @brief 获得参数
-	virtual f2dEffectParam* GetParam(fcStr Name)=0;   ///< @brief 获得参数
+	virtual fuInt GetParamCount() = 0;                  ///< @brief 获得参数个数
+	virtual f2dEffectParam* GetParam(fuInt Index) = 0;  ///< @brief 获得参数
+	virtual f2dEffectParam* GetParam(fcStr Name) = 0;   ///< @brief 获得参数
 
-	virtual fuInt GetTechniqueCount()=0;                     ///< @brief 获得技术个数
-	virtual f2dEffectTechnique* GetTechnique(fuInt Index)=0; ///< @brief 获得技术
-	virtual f2dEffectTechnique* GetTechnique(fcStr Name)=0;  ///< @brief 获得技术
+	virtual fuInt GetTechniqueCount() = 0;                     ///< @brief 获得技术个数
+	virtual f2dEffectTechnique* GetTechnique(fuInt Index) = 0; ///< @brief 获得技术
+	virtual f2dEffectTechnique* GetTechnique(fcStr Name) = 0;  ///< @brief 获得技术
 
-	virtual fuInt GetFunctionCount()=0;                     ///< @brief 获得函数个数
-	virtual f2dEffectFunction* GetFunction(fuInt Index)=0;  ///< @brief 获得函数
-	virtual f2dEffectFunction* GetFunction(fcStr Name)=0;   ///< @brief 获得函数
-	
-	virtual f2dEffectTechnique* GetCurrentTechnique()=0;              ///< @brief 获得当前渲染技术
-	virtual fResult SetCurrentTechnique(f2dEffectTechnique* pTech)=0; ///< @brief 设置当前渲染技术
+	virtual fuInt GetFunctionCount() = 0;                     ///< @brief 获得函数个数
+	virtual f2dEffectFunction* GetFunction(fuInt Index) = 0;  ///< @brief 获得函数
+	virtual f2dEffectFunction* GetFunction(fcStr Name) = 0;   ///< @brief 获得函数
 
-	virtual fuInt GetCurrentPassCount()=0; ///< @brief 返回当前技术的渲染批次个数
+	virtual f2dEffectTechnique* GetCurrentTechnique() = 0;              ///< @brief 获得当前渲染技术
+	virtual fResult SetCurrentTechnique(f2dEffectTechnique* pTech) = 0; ///< @brief 设置当前渲染技术
+
+	virtual fuInt GetCurrentPassCount() = 0; ///< @brief 返回当前技术的渲染批次个数
 };
 
 #pragma endregion
@@ -515,32 +518,32 @@ struct f2dVertexElement
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief 3D渲染器接口
+/// @brief 【准备废弃】 3D渲染器接口
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dGraphics3D :
 	public f2dGraphics
 {
 	// === FX状态 ===
 	/// @brief 返回当前渲染程序
-	virtual f2dEffect* GetEffect()=0;
+	virtual f2dEffect* GetEffect() = 0;
 
 	/// @brief 设置当前渲染程序
-	virtual fResult SetEffect(f2dEffect* Effect)=0;
+	virtual fResult SetEffect(f2dEffect* Effect) = 0;
 
 	/// @brief     开始一个渲染遍
 	/// @param[in] PassIndex 渲染遍下标
-	virtual fResult BeginPass(fuInt PassIndex)=0;
+	virtual fResult BeginPass(fuInt PassIndex) = 0;
 
 	/// @brief 结束一个渲染遍
-	virtual fResult EndPass()=0;
+	virtual fResult EndPass() = 0;
 
 	/// @brief 刷新Effect状态
 	/// @note  在pass中改变状态需要手动调用本函数
-	virtual fResult CommitState()=0;
+	virtual fResult CommitState() = 0;
 
 	// === PostEffect ===
 	/// @brief 为执行PostEffect进行渲染
-	virtual fResult RenderPostEffect()=0;
+	virtual fResult RenderPostEffect() = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -646,56 +649,61 @@ struct f2dRenderDeviceEventListener
 	virtual void OnRenderSizeDependentResourcesCreate() {}
 };
 
+// 有理数（分数），用于刷新率的描述
+struct f2dRational
+{
+	fuInt numerator = 0; // 分子
+	fuInt denominator = 0; // 分母
+};
+
+// 独占全屏用的显示模式
+struct f2dDisplayMode
+{
+	fuInt width = 0; // 宽度
+	fuInt height = 0; // 高度
+	f2dRational refresh_rate; // 刷新率
+	fuInt format = 0; // 纹理格式，平台相关的值
+	fuInt scanline_ordering = 0; // 扫描模式，平台相关的值
+	fuInt scaling = 0; // 缩放，平台相关的值
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief 渲染设备
 /// @note  负责渲染对象的创建和设备管理。
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dRenderDevice
 {
-	// --- 渲染器属性 ---
-	/// @brief   返回D3D设备指针
-	/// @warning 高级方法。如无特殊需要，应当避免使用该方法
-	/// @return  返回IDirect3DDevice9接口指针
-	virtual void* GetHandle()=0;
+	// Direct3D9 返回 IDirect3DDevice9 接口
+	// Direct3D11 返回 ID3D11Device 接口
+	virtual void* GetHandle() = 0;
 	
-	/// @brief 返回显卡名称
-	virtual fcStr GetDeviceName()=0;
+	// 返回显卡名称
+	virtual fcStr GetDeviceName() = 0;
 
-	/// @brief 返回缓冲区宽度
-	virtual fuInt GetBufferWidth()=0;
+	// 获得支持的显示模式数量
+	virtual fuInt GetSupportedDisplayModeCount(fBool refresh = false) = 0;
+	// 获得支持的显示模式
+	virtual f2dDisplayMode GetSupportedDisplayMode(fuInt Index) = 0;
+	// 设置显示模式（窗口）
+	virtual fResult SetDisplayMode(fuInt Width, fuInt Height, fBool VSync, fBool FlipModel) = 0;
+	// 设置显示模式（独占全屏）
+	virtual fResult SetDisplayMode(f2dDisplayMode mode, fBool VSync) = 0;
+	// 返回交换链宽度
+	virtual fuInt GetBufferWidth() = 0;
+	// 返回交换链高度
+	virtual fuInt GetBufferHeight() = 0;
+	// 窗口化状态
+	virtual fBool IsWindowed() = 0;
 
-	/// @brief 返回缓冲区高度
-	virtual fuInt GetBufferHeight()=0;
-
-	/// @brief 是否窗口化
-	virtual fBool IsWindowed()=0;
-
-	/// @brief 获得抗锯齿等级
-	virtual F2DAALEVEL GetAALevel()=0;
-
-	/// @brief 检查抗锯齿是否被支持
-	/// @param[in] AALevel  要检测的抗锯齿等级
-	/// @param[in] Windowed 是否窗口模式
-	virtual fBool CheckMultiSample(F2DAALEVEL AALevel, fBool Windowed)=0;
-
-	/// @brief 返回支持的全屏分辨率数量
-	virtual fuInt GetSupportResolutionCount()=0;
-
-	/// @brief 枚举支持的分辨率
-	virtual fcyVec2 EnumSupportResolution(fuInt Index)=0;
+	// 废弃
+	virtual F2DAALEVEL GetAALevel() = 0;
+	virtual fBool CheckMultiSample(F2DAALEVEL AALevel, fBool Windowed) = 0;
+	virtual fuInt GetSupportResolutionCount() = 0;
+	virtual fcyVec2 EnumSupportResolution(fuInt Index) = 0;
 	virtual fuInt EnumSupportRefreshRate(fuInt Index) = 0;
-
-	/// @brief     重设缓冲区
-	/// @note      该操作过后需要手动设置Graphics的矩阵和Viewport大小
-	/// @param[in] Width     缓冲区宽度
-	/// @param[in] Height    缓冲区高度
-	/// @param[in] Windowed  窗口化
-	/// @param[in] VSync     垂直同步
-	/// @param[in] FlipModel FLIPEX交换链模式
-	/// @param[in] AALevel   抗锯齿等级
-	virtual fResult SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, fBool FlipModel, F2DAALEVEL AALevel)=0;
+	virtual fResult SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, fBool FlipModel, F2DAALEVEL AALevel) = 0;
 	virtual fResult SetDisplayMode(fuInt Width, fuInt Height, fuInt RefreshRate, fBool Windowed, fBool VSync, fBool FlipModel) = 0;
-	
+
 	// --- 事件监听器 ---
 	/// @brief     挂接一个消息监听器
 	/// @param[in] Listener 要绑定的监听器

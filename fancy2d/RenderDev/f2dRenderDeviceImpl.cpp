@@ -854,7 +854,6 @@ fuInt f2dRenderDeviceImpl::GetSupportResolutionCount()
 {
 	return _d3d9Ex->GetAdapterModeCountEx(D3DADAPTER_DEFAULT, &g_d3d9DisplayModeFilter);
 }
-
 fcyVec2 f2dRenderDeviceImpl::EnumSupportResolution(fuInt Index)
 {
 	fcyVec2 tRet;
@@ -881,7 +880,37 @@ fuInt f2dRenderDeviceImpl::EnumSupportRefreshRate(fuInt Index)
 
 	return 0;
 }
+fuInt f2dRenderDeviceImpl::GetSupportedDisplayModeCount(fBool refresh)
+{
+	return GetSupportResolutionCount();
+}
+f2dDisplayMode f2dRenderDeviceImpl::GetSupportedDisplayMode(fuInt Index)
+{
+	f2dDisplayMode fmode = {};
+	D3DDISPLAYMODEEX mode = {};
+	mode.Size = sizeof(D3DDISPLAYMODEEX);
 
+	if (D3D_OK == _d3d9Ex->EnumAdapterModesEx(D3DADAPTER_DEFAULT, &g_d3d9DisplayModeFilter, Index, &mode))
+	{
+		fmode.width = mode.Width;
+		fmode.height = mode.Height;
+		fmode.refresh_rate.numerator = mode.RefreshRate;
+		fmode.refresh_rate.denominator = 1; // 因为d3d9的刷新率枚举只有整数没有分数
+		fmode.format = (fuInt)mode.Format;
+		fmode.scanline_ordering = (fuInt)mode.ScanLineOrdering;
+		fmode.scaling = 0; // 不存在
+	}
+
+	return fmode;
+}
+fResult f2dRenderDeviceImpl::SetDisplayMode(fuInt Width, fuInt Height, fBool VSync, fBool FlipModel)
+{
+	return SetBufferSize(Width, Height, true, VSync, FlipModel, F2DAALEVEL_NONE);
+}
+fResult f2dRenderDeviceImpl::SetDisplayMode(f2dDisplayMode mode, fBool VSync)
+{
+	return SetDisplayMode(mode.width, mode.height, mode.refresh_rate.numerator, false, VSync, false);
+}
 fResult f2dRenderDeviceImpl::SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, fBool FlipModel, F2DAALEVEL AALevel)
 {
 	// 检查参数

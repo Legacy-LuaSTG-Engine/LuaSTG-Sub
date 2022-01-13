@@ -5,9 +5,13 @@
 //#include "Video/f2dVideoSysImpl.h"
 #include "Renderer/f2dRendererImpl.h"
 
+#include "RenderDev/f2dRenderDeviceImpl.h"
+#include "RenderDev/f2dRenderDevice11.h"
+
 #include "fcyOS/fcyDebug.h"
 #include "fcyOS/fcyCPUID.h"
 
+#include "f2dConfig.h"
 #include "f2d.h"
 
 using namespace std;
@@ -75,9 +79,9 @@ fuInt f2dEngineImpl::UpdateAndRenderThread::ThreadJob()
 	f2dFPSControllerImpl tFPSController(m_MaxFPS);
 
 	// 获得渲染设备
-	f2dRenderDeviceImpl* tpRenderDev = NULL;
+	f2dRenderDevice* tpRenderDev = NULL;
 	if(m_pEngine->GetRenderer())
-		tpRenderDev = (f2dRenderDeviceImpl*)m_pEngine->GetRenderer()->GetDevice();
+		tpRenderDev = m_pEngine->GetRenderer()->GetDevice();
 
 	// 开始计时
 	tTimer.Reset();
@@ -164,9 +168,9 @@ fuInt f2dEngineImpl::RenderThread::ThreadJob()
 	f2dFPSControllerImpl tFPSController(m_MaxFPS);
 
 	// 获得渲染设备
-	f2dRenderDeviceImpl* tpRenderDev = NULL;
+	f2dRenderDevice* tpRenderDev = NULL;
 	if(m_pEngine->GetRenderer())
-		tpRenderDev = (f2dRenderDeviceImpl*)m_pEngine->GetRenderer()->GetDevice();
+		tpRenderDev = m_pEngine->GetRenderer()->GetDevice();
 
 	// 开始计时
 	tTimer.Reset();
@@ -427,9 +431,9 @@ void f2dEngineImpl::Run_SingleThread(fuInt UpdateMaxFPS)
 	f2dFPSControllerImpl tFPSController(UpdateMaxFPS);
 
 	// 获得渲染设备
-	f2dRenderDeviceImpl* tpRenderDev = NULL;
+	f2dRenderDevice* tpRenderDev = NULL;
 	if(m_pRenderer)
-		tpRenderDev = (f2dRenderDeviceImpl*)m_pRenderer->GetDevice();
+		tpRenderDev = m_pRenderer->GetDevice();
 
 	// 开始计时
 	tTimer.Reset();
@@ -612,10 +616,14 @@ void f2dEngineImpl::DoUpdate(fDouble ElapsedTime, f2dFPSControllerImpl* pFPSCont
 	}
 }
 
-bool f2dEngineImpl::DoRender(fDouble ElapsedTime, f2dFPSControllerImpl* pFPSController, f2dRenderDeviceImpl* pDev)
+bool f2dEngineImpl::DoRender(fDouble ElapsedTime, f2dFPSControllerImpl* pFPSController, f2dRenderDevice* pDev)
 {
 	// 同步设备状态，处理设备丢失
-	if(pDev && FCYOK(pDev->SyncDevice()))
+#ifdef F2D_GRAPHIC_API_D3D11
+	if(pDev && FCYOK(((f2dRenderDevice11*)pDev)->SyncDevice()))
+#else
+	if (pDev && FCYOK(((f2dRenderDeviceImpl*)pDev)->SyncDevice()))
+#endif
 	{
 		if(m_pListener) // 触发渲染事件
 			return m_pListener->OnRender(ElapsedTime, pFPSController);
@@ -624,8 +632,12 @@ bool f2dEngineImpl::DoRender(fDouble ElapsedTime, f2dFPSControllerImpl* pFPSCont
 	return false;
 }
 
-void f2dEngineImpl::DoPresent(f2dRenderDeviceImpl* pDev)
+void f2dEngineImpl::DoPresent(f2dRenderDevice* pDev)
 {
 	// 递交画面
-	pDev->Present();
+#ifdef F2D_GRAPHIC_API_D3D11
+	((f2dRenderDevice11*)pDev)->Present();
+#else
+	((f2dRenderDeviceImpl*)pDev)->Present();
+#endif
 }

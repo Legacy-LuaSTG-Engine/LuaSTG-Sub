@@ -310,6 +310,36 @@ fResult f2dTexture2DDynamic::Upload()
 	return FCYERR_OK;
 }
 
+fResult f2dTexture2DDynamic::Update(fcyRect* dstRect, fData pData, fuInt pitch)
+{
+	fResult fr = 0;
+
+	fuInt lineSize = m_Width * sizeof(fcyColor); // 因为纹理格式已知
+	fuInt lineCount = m_Height;
+	if (dstRect)
+	{
+		lineSize = (fuInt)dstRect->GetWidth() * sizeof(fcyColor);
+		lineCount = (fuInt)dstRect->GetHeight();
+	}
+
+	fuInt uPitch = 0;
+	fData puData = nullptr;
+	fr = Lock(dstRect, dstRect ? false : true, &uPitch, &puData);
+	if (FCYFAILED(fr)) return fr;
+
+	fData prData = pData;
+	for (fuInt y = 0; y < lineCount; y += 1)
+	{
+		CopyMemory(puData, prData, lineSize);
+		puData += uPitch;
+		prData += pitch;
+	}
+
+	fr = Unlock();
+	if (FCYFAILED(fr)) return fr;
+	return FCYERR_OK;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 f2dTexture2DRenderTarget::f2dTexture2DRenderTarget(f2dRenderDevice* pDev, fuInt Width, fuInt Height, fBool AutoResize)

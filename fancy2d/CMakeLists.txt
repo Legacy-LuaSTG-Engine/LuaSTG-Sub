@@ -1,6 +1,7 @@
 # 源文件
 
 set(FANCY2D_SOURCE
+    f2dConfig.h
     f2d.h
     f2dInterface.h
 
@@ -10,6 +11,7 @@ set(FANCY2D_SOURCE
     f2dInputSys.h
     f2dSoundSys.h
     f2dRenderDevice.h
+    f2dRenderEffect.h
     f2dRenderer.h
     f2dVideoSys.h
 
@@ -56,6 +58,10 @@ set(FANCY2D_SOURCE
     RenderDev/f2dEffectImpl.cpp
     RenderDev/f2dMeshDataImpl.h
     RenderDev/f2dMeshDataImpl.cpp
+    RenderDev/f2dRenderDevice11.h
+    RenderDev/f2dRenderDevice11.cpp
+    RenderDev/f2dTexture11.h
+    RenderDev/f2dTexture11.cpp
 
     #GraphicDevice11/f2dGraphics2DImpl.cpp
     #GraphicDevice11/f2dGraphics2DImpl.h

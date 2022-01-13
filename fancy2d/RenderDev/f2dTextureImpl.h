@@ -21,15 +21,14 @@ public: // 接口实现
 	fuInt GetDimension() { return 2; }
 	fBool IsDynamic() { return false; }
 	fBool IsRenderTarget() { return false; }
-
 	fuInt GetWidth() { return m_Width; }
 	fuInt GetHeight() { return m_Height; }
 
 	fResult Lock(fcyRect* pLockRect, fBool Discard, fuInt* Pitch, fData* pOut) { return FCYERR_NOTSUPPORT; }
-
 	fResult Unlock() { return FCYERR_NOTSUPPORT; }
 	fResult AddDirtyRect(fcyRect* pDirtyRect) { return FCYERR_NOTSUPPORT; }
 	fResult Upload() { return FCYERR_NOTSUPPORT; }
+	fResult Update(fcyRect* dstRect, fData pData, fuInt pitch) { return FCYERR_NOTSUPPORT; }
 protected:
 	f2dTexture2DStatic(f2dRenderDevice* pDev, f2dStream* pStream, fuInt Width, fuInt Height, fBool HasMipmap);
 	f2dTexture2DStatic(f2dRenderDevice* pDev, fcData pMemory, fLen Size, fuInt Width, fuInt Height, fBool HasMipmap);
@@ -58,7 +57,6 @@ public: // 接口实现
 	fuInt GetDimension() { return 2; }
 	fBool IsDynamic() { return true; }
 	fBool IsRenderTarget() { return false; }
-
 	fuInt GetWidth() { return m_Width; }
 	fuInt GetHeight() { return m_Height; }
 
@@ -66,6 +64,7 @@ public: // 接口实现
 	fResult Unlock();
 	fResult AddDirtyRect(fcyRect* pDirtyRect);
 	fResult Upload();
+	fResult Update(fcyRect* dstRect, fData pData, fuInt pitch);
 protected:
 	f2dTexture2DDynamic(f2dRenderDevice* pDev, fuInt Width, fuInt Height);
 	f2dTexture2DDynamic(f2dRenderDevice* pDev, f2dStream* pStream, fuInt Width, fuInt Height);
@@ -103,15 +102,14 @@ public: // 接口实现
 	fuInt GetDimension() { return 2; }
 	fBool IsDynamic() { return false; }
 	fBool IsRenderTarget() { return true; }
-
 	fuInt GetWidth() { return m_Width; }
 	fuInt GetHeight() { return m_Height; }
 
 	fResult Lock(fcyRect* pLockRect, fBool Discard, fuInt* Pitch, fData* pOut) { return FCYERR_NOTSUPPORT; }
-
 	fResult Unlock() { return FCYERR_NOTSUPPORT; }
 	fResult AddDirtyRect(fcyRect* pDirtyRect) { return FCYERR_NOTSUPPORT; }
 	fResult Upload() { return FCYERR_NOTSUPPORT; }
+	fResult Update(fcyRect* dstRect, fData pData, fuInt pitch) { return FCYERR_NOTSUPPORT; }
 protected:
 	f2dTexture2DRenderTarget(f2dRenderDevice* pDev, fuInt Width, fuInt Height, fBool AutoResize);
 	~f2dTexture2DRenderTarget();

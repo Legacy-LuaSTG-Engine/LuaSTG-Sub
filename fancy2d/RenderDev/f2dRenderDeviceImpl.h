@@ -156,6 +156,10 @@ public: // 接口实现
 	fuInt EnumSupportRefreshRate(fuInt Index);
 	fResult SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, fBool FlipModel, F2DAALEVEL AALevel);
 	fResult SetDisplayMode(fuInt Width, fuInt Height, fuInt RefreshRate, fBool Windowed, fBool VSync, fBool FlipModel);
+	fuInt GetSupportedDisplayModeCount(fBool refresh = false);
+	f2dDisplayMode GetSupportedDisplayMode(fuInt Index);
+	fResult SetDisplayMode(fuInt Width, fuInt Height, fBool VSync, fBool FlipModel);
+	fResult SetDisplayMode(f2dDisplayMode mode, fBool VSync);
 
 	fResult AttachListener(f2dRenderDeviceEventListener* Listener, fInt Priority=0);
 	fResult RemoveListener(f2dRenderDeviceEventListener* Listener);

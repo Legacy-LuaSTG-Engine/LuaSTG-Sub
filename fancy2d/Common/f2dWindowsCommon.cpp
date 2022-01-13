@@ -1,5 +1,6 @@
 #include "Common/f2dWindowsCommon.h"
 #include <cstdio>
+#include <cstring>
 
 void debugPrintHRESULT(HRESULT hr, const wchar_t* message) noexcept
 {
@@ -16,4 +17,42 @@ void debugPrintHRESULT(HRESULT hr, const wchar_t* message) noexcept
     OutputDebugStringW(L"\n");
     OutputDebugStringW(buffer);
     OutputDebugStringW(L"\n");
+}
+
+HRESULT HResultCheck::operator=(HRESULT v)
+{
+    hr = v;
+    if (FAILED(hr))
+    {
+        WCHAR buffer[256] = {};
+        swprintf_s(buffer, L"line: %d\n", line);
+
+        OutputDebugStringW(L"file: ");
+        OutputDebugStringW(file);
+        OutputDebugStringW(L"\n");
+
+        OutputDebugStringW(buffer);
+
+        debugPrintHRESULT(hr, message);
+    }
+    return hr;
+}
+HResultCheck& HResultCheck::get(wchar_t const* file, int line, wchar_t const* message)
+{
+    static HResultCheck v;
+    v.file = file;
+    v.line = line;
+    v.message = message;
+    return v;
+}
+
+bool HResultToBool::operator=(HRESULT v)
+{
+    hr = v;
+    return SUCCEEDED(v);
+}
+HResultToBool& HResultToBool::get()
+{
+    static HResultToBool v;
+    return v;
 }

@@ -3,9 +3,8 @@
 /// @brief fancy2D渲染器接口实现
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
-#include "RenderDev/f2dRenderDeviceImpl.h"
-
 #include "f2dRenderer.h"
+#include "Engine/f2dEngineImpl.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief fancy2D渲染器实现
@@ -29,7 +28,7 @@ private:
 private:
 	f2dEngineImpl* m_pEngine;
 
-	f2dRenderDeviceImpl* m_pDev;
+	f2dRenderDevice* m_pDev; // 这个设备可能是不同的实现
 	DefaultListener m_DefaultListener;
 public:
 	fcyFileStream* enumSystemFont(fcStrW FontName);

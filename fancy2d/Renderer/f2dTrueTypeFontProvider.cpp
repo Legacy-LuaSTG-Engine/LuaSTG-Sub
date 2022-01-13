@@ -429,22 +429,7 @@ fResult f2dTrueTypeFontProvider::Flush()
 		if (t.dirty_l != 0x7FFFFFFF)
 		{
 			fcyRect rc((fFloat)t.dirty_l, (fFloat)t.dirty_t, (fFloat)t.dirty_r, (fFloat)t.dirty_b);
-			fuInt pitch = 0;
-			fData pData = nullptr;
-			if (FCYFAILED(t.texture->Lock(&rc, false, &pitch, &pData))) // 带区域的 lock 不能 discard
-			{
-				return FCYERR_INTERNALERR;
-			}
-			fData pPixel = (fData) & t.image.pixel(t.dirty_l, t.dirty_t);
-			fuInt const total_w = t.dirty_r - t.dirty_l;
-			fuInt const total_h = t.dirty_b - t.dirty_t;
-			for (fuInt i = 0; i < total_h; i += 1)
-			{
-				std::memcpy(pData, pPixel, total_w * sizeof(fcyColor));
-				pData += pitch;
-				pPixel += t.image.pitch;
-			}
-			if (FCYFAILED(t.texture->Unlock()))
+			if (FCYFAILED(t.texture->Update(&rc, (fData)&t.image.pixel(t.dirty_l, t.dirty_t), t.image.pitch)))
 			{
 				return FCYERR_INTERNALERR;
 			}
