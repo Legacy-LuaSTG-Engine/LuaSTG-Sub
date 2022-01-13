@@ -493,6 +493,8 @@ bool AppFrame::Init()LNOEXCEPT
 		}
 		
 		// 创建3D渲染器
+	#ifdef LUASTG_D3D9_SHADER
+	#else
 		spdlog::info("[fancy2d] 创建后处理特效渲染器");
 		if (FCYFAILED(m_pRenderDev->CreateGraphics3D(nullptr, &m_Graph3D)))
 		{
@@ -501,6 +503,7 @@ bool AppFrame::Init()LNOEXCEPT
 		}
 		m_Graph3DLastBlendMode = BlendMode::AddAlpha;
 		m_Graph3DBlendState = m_Graph3D->GetBlendState();
+	#endif
 		
 		//创建鼠标输入
 		spdlog::info("[fancy2d] 创建DirectInput鼠标设备");
@@ -670,6 +673,9 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 	f2dMsg tMsg;
 	bool bResetDevice = false;
 	bool bUpdateDevice = false;
+	bool bResizeWindow = false;
+	lua_Integer iWindowWidth = 0;
+	lua_Integer iWindowHeight = 0;
 	while (FCYOK(pMsgPump->GetMsg(&tMsg)))
 	{
 		switch (tMsg.Type)
@@ -714,10 +720,9 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 		}
 		case F2DMSG_WINDOW_ONRESIZE:
 		{
-			lua_pushinteger(L, (lua_Integer)LuaSTG::LuaEngine::EngineEvent::WindowResize);
-			lua_pushinteger(L, (lua_Integer)tMsg.Param1);
-			lua_pushinteger(L, (lua_Integer)tMsg.Param2);
-			SafeCallGlobalFunctionB(LuaSTG::LuaEngine::G_CALLBACK_EngineEvent, 3, 0);
+			bResizeWindow = true;
+			iWindowWidth = (lua_Integer)tMsg.Param1;
+			iWindowHeight = (lua_Integer)tMsg.Param2;
 			break;
 		}
 		case F2DMSG_WINDOW_ONCHARINPUT:
@@ -791,6 +796,14 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 		}
 	}
 	
+	if (bResizeWindow)
+	{
+		lua_pushinteger(L, (lua_Integer)LuaSTG::LuaEngine::EngineEvent::WindowResize);
+		lua_pushinteger(L, iWindowWidth);
+		lua_pushinteger(L, iWindowHeight);
+		SafeCallGlobalFunctionB(LuaSTG::LuaEngine::G_CALLBACK_EngineEvent, 3, 0);
+	}
+
 	if (m_DirectInput.get())
 	{
 		if (bResetDevice) m_DirectInput->reset();

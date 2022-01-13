@@ -956,6 +956,7 @@ bool ResourcePool::LoadFX(const char* name, const char* path, bool is_effect) no
     
     if (is_effect)
     {
+        #ifndef LUASTG_D3D9_SHADER
         try {
             fcyRefPointer<f2dEffect> tEffect;
             fResult fr = LAPP.GetRenderDev()->CreateEffect(tDataBuf, false, &tEffect);
@@ -981,6 +982,7 @@ bool ResourcePool::LoadFX(const char* name, const char* path, bool is_effect) no
         if (ResourceMgr::GetResourceLoadingLog()) {
             spdlog::info("[luastg] LoadFX: 已从'{}'加载后处理特效'{}' ({})", path, name, getResourcePoolTypeName());
         }
+        #endif
     }
     else
     {
