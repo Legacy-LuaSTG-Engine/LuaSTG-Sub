@@ -63,14 +63,6 @@ set(FANCY2D_SOURCE
     RenderDev/f2dTexture11.h
     RenderDev/f2dTexture11.cpp
 
-    #GraphicDevice11/f2dGraphics2DImpl.cpp
-    #GraphicDevice11/f2dGraphics2DImpl.h
-    #GraphicDevice11/f2dGraphicsImpl.h
-    #GraphicDevice11/f2dRenderDeviceImpl.cpp
-    #GraphicDevice11/f2dRenderDeviceImpl.h
-    #GraphicDevice11/f2dTextureImpl.cpp
-    #GraphicDevice11/f2dTextureImpl.h
-
     Renderer/f2dRendererImpl.h
     Renderer/f2dRendererImpl.cpp
     Renderer/f2dGeometryRendererImpl.h
@@ -124,7 +116,6 @@ luastg_target_common_options(fancy2dlib)
 
 target_compile_definitions(fancy2dlib PRIVATE
     ____EMPTY_0000_0000_0000_0000____
-    # USING_D3D11_BACKEND
 )
 
 target_include_directories(fancy2dlib PUBLIC
@@ -166,7 +157,7 @@ if(FALSE)
     luastg_target_common_options(fancy2d)
 
     target_compile_definitions(fancy2d PRIVATE
-        # USING_D3D11_BACKEND
+        ____EMPTY_0000_0000_0000_0000____
         F2DEXPORT
     )
     target_compile_definitions(fancy2d PUBLIC
