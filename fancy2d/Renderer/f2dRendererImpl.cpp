@@ -5,6 +5,7 @@
 #include "Renderer/f2dFontRendererImpl.h"
 #include "Renderer/f2dFontFileProvider.h"
 #include "Renderer/f2dFontTexProvider.h"
+#include "Renderer/f2dTrueTypeFontProvider.h"
 #include "Renderer/f2dSpriteAnimationImpl.h"
 #include "Renderer/f2dParticle.h"
 
@@ -236,7 +237,12 @@ fResult f2dRendererImpl::CreateFontFromFile(
 
 	try
 	{
-		*pOut = new f2dFontFileProvider(m_pDev, pStream, FontSize, BBoxSize, FaceIndex, Flag);
+		//*pOut = new f2dFontFileProvider(m_pDev, pStream, FontSize, BBoxSize, FaceIndex, Flag);
+		f2dTrueTypeFontParam param = {};
+		param.font_file = pStream;
+		param.font_face = FaceIndex;
+		param.font_size = FontSize;
+		*pOut = new f2dTrueTypeFontProvider(m_pDev, &param, 1);
 	}
 	catch(const fcyException& e)
 	{
@@ -260,7 +266,12 @@ fResult f2dRendererImpl::CreateFontFromMemory(
 
 	try
 	{
-		*pOut = new f2dFontFileProvider(m_pDev, pStream, FontSize, BBoxSize, FaceIndex, Flag);
+		//*pOut = new f2dFontFileProvider(m_pDev, pStream, FontSize, BBoxSize, FaceIndex, Flag);
+		f2dTrueTypeFontParam param = {};
+		param.font_source = pStream;
+		param.font_face = FaceIndex;
+		param.font_size = FontSize;
+		*pOut = new f2dTrueTypeFontProvider(m_pDev, &param, 1);
 	}
 	catch(const fcyException& e)
 	{
@@ -284,9 +295,34 @@ fResult f2dRendererImpl::CreateFontFromMemory(
 	
 	try
 	{
-		*pOut = new f2dFontFileProvider(m_pDev, param, fonts, count);
+		//*pOut = new f2dFontFileProvider(m_pDev, param, fonts, count);
+		*pOut = new f2dTrueTypeFontProvider(m_pDev, fonts, count);
 	}
 	catch(const fcyException& e)
+	{
+		m_pEngine->ThrowException(e);
+		return FCYERR_INTERNALERR;
+	}
+
+	return FCYERR_OK;
+}
+
+fResult f2dRendererImpl::CreateFontFromParam(
+	f2dTrueTypeFontParam* fonts, fuInt count, f2dFontProvider** pOut)
+{
+	if (pOut)
+		*pOut = NULL;
+	else
+		return FCYERR_INVAILDPARAM;
+
+	if (!fonts || count == 0)
+		return FCYERR_INVAILDPARAM;
+
+	try
+	{
+		*pOut = new f2dTrueTypeFontProvider(m_pDev, fonts, count);
+	}
+	catch (const fcyException& e)
 	{
 		m_pEngine->ThrowException(e);
 		return FCYERR_INTERNALERR;

@@ -53,6 +53,7 @@ namespace LuaSTGPlus
 
 				// 计算到f2d字体偏移量
 				f2dGlyphInfo tInfo = {
+					0,
 					fcyRect(x, y, x + w, y + h),
 					fcyVec2(w, h),
 					fcyVec2(left_offset, h),
@@ -103,7 +104,12 @@ namespace LuaSTGPlus
 		return 0.f;
 	}
 	
-	f2dTexture2D* ResFont::HGEFont::GetCacheTexture()
+	fuInt ResFont::HGEFont::GetCacheTextureCount()
+	{
+		return 1;
+	}
+	
+	f2dTexture2D* ResFont::HGEFont::GetCacheTexture(fuInt index)
 	{
 		return m_pTex;
 	}

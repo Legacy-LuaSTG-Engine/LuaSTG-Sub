@@ -243,10 +243,11 @@ struct f2dGeometryRenderer :
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dGlyphInfo
 {
-	fcyRect GlyphPos;    ///< @brief 字形在纹理上的uv坐标
-	fcyVec2 GlyphSize;   ///< @brief 字形大小
-	fcyVec2 BrushPos;    ///< @brief 笔触距离字形左上角坐标
-	fcyVec2 Advance;     ///< @brief 笔触的前进量(像素)
+	fuInt TextureIndex = 0; // 字形在哪个纹理上
+	fcyRect GlyphPos;       // 字形在纹理上的uv坐标
+	fcyVec2 GlyphSize;      // 字形大小
+	fcyVec2 BrushPos;       // 笔触距离字形左上角坐标
+	fcyVec2 Advance;        // 前进量
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -281,8 +282,10 @@ struct f2dFontProvider :
 	/// @brief 与Ascender相反
 	virtual fFloat GetDescender()=0;
 	
+	virtual fuInt GetCacheTextureCount() = 0;
+	
 	/// @brief 返回缓冲纹理
-	virtual f2dTexture2D* GetCacheTexture()=0;
+	virtual f2dTexture2D* GetCacheTexture(fuInt index = 0)=0;
 	
 	/// @breif     缓存字符串
 	/// @note      针对动态产生文字的特定方法
@@ -713,6 +716,9 @@ struct f2dRenderer
 	virtual fResult CreateFontFromMemory(
 		f2dFontProviderParam param, f2dTrueTypeFontParam* fonts, fuInt count, f2dFontProvider** pOut)=0;
 	
+	virtual fResult CreateFontFromParam(
+		f2dTrueTypeFontParam* fonts, fuInt count, f2dFontProvider** pOut) = 0;
+
 	/// @brief      从系统加载字体
 	/// @param[in]  FaceName  字体在注册表中的名称
 	/// @param[in]  FaceIndex 若有多个Face，可以指定索引。0总是有效值。

@@ -48,15 +48,13 @@ private:
 	f2dRenderDevice* m_pParent = nullptr;
 
 	IDirect3DTexture9* m_pTex = nullptr;
-	IDirect3DTexture9* m_pCacheTex = nullptr;
 	fuInt m_Width = 0;
 	fuInt m_Height = 0;
-	fBool m_IsDirty = true;
 public: // 设备丢失
 	void OnRenderDeviceLost();
 	void OnRenderDeviceReset();
 public: // 接口实现
-	void* GetHandle() { return m_pTex; } // 记住别手贱把这里改成 m_pCacheTex
+	void* GetHandle() { return m_pTex; }
 	fuInt GetDimension() { return 2; }
 	fBool IsDynamic() { return true; }
 	fBool IsRenderTarget() { return false; }

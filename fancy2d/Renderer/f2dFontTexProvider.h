@@ -44,7 +44,8 @@ public:
 	{
 		return m_Descender;
 	}
-	f2dTexture2D* GetCacheTexture()
+	fuInt GetCacheTextureCount() { return 1; }
+	f2dTexture2D* GetCacheTexture(fuInt index)
 	{
 		return m_OrgTex;
 	}

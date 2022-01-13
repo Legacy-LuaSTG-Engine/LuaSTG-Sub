@@ -112,7 +112,8 @@ public: // 接口实现
 	fFloat GetLineHeight();
 	fFloat GetAscender();
 	fFloat GetDescender();
-	f2dTexture2D* GetCacheTexture() { return m_CacheTex; }
+	fuInt GetCacheTextureCount() { return 1; }
+	f2dTexture2D* GetCacheTexture(fuInt index) { return m_CacheTex; }
 	fResult CacheString(fcStrW String);
 	fResult CacheStringU8(fcStr Text, fuInt Count);
 	fResult QueryGlyph(f2dGraphics* pGraph, fCharU Character, f2dGlyphInfo* InfoOut);

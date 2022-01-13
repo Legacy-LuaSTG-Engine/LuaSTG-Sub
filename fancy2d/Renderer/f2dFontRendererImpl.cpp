@@ -276,10 +276,6 @@ fResult f2dFontRendererImpl::DrawTextW(f2dGraphics2D* pGraph, fcStrW Text, fuInt
 	float tHeight = m_pProvider->GetLineHeight() * m_Scale.y;  // 行高
 
 	// --- 绘制每一个字符 ---
-	f2dTexture2D* pTex = m_pProvider->GetCacheTexture();
-	if(!pTex)
-		return FCYERR_INTERNALERR;
-
 	f2dGlyphInfo tInfo;
 	for(fuInt i = 0; i<tCount; ++i)
 	{
@@ -326,6 +322,9 @@ fResult f2dFontRendererImpl::DrawTextW(f2dGraphics2D* pGraph, fcStrW Text, fuInt
 					m_pListener->OnGlyphCalcuCoord(tVerts);
 
 				// 绘图
+				f2dTexture2D* pTex = m_pProvider->GetCacheTexture(tInfo.TextureIndex);
+				if(!pTex)
+					return FCYERR_INTERNALERR;
 				pGraph->DrawQuad(pTex, tVerts);
 			}
 
@@ -367,10 +366,6 @@ fResult f2dFontRendererImpl::DrawTextW(f2dGraphics2D* pGraph, fcStrW Text, fuInt
 	Bias = tan(Bias);
 
 	// --- 绘制每一个字符 ---
-	f2dTexture2D* pTex = m_pProvider->GetCacheTexture();
-	if(!pTex)
-		return FCYERR_INTERNALERR;
-
 	f2dGlyphInfo tInfo;
 	for(fuInt i = 0; i<tCount; ++i)
 	{
@@ -422,6 +417,9 @@ fResult f2dFontRendererImpl::DrawTextW(f2dGraphics2D* pGraph, fcStrW Text, fuInt
 					m_pListener->OnGlyphCalcuCoord(tVerts);
 
 				// 绘图
+				f2dTexture2D* pTex = m_pProvider->GetCacheTexture(tInfo.TextureIndex);
+				if(!pTex)
+					return FCYERR_INTERNALERR;
 				pGraph->DrawQuad(pTex, tVerts);
 			}
 
@@ -467,10 +465,6 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 	float tHeight = m_pProvider->GetLineHeight() * m_Scale.y;  // 行高
 
 	// --- 绘制每一个字符 ---
-	f2dTexture2D* pTex = m_pProvider->GetCacheTexture();
-	if (!pTex)
-		return FCYERR_INTERNALERR;
-
 	f2dGlyphInfo tInfo;
 	for (fuInt i = 0; i<tCount; ++i)
 	{
@@ -518,6 +512,9 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 					m_pListener->OnGlyphCalcuCoord(tVerts);
 				
 				// 绘图
+				f2dTexture2D* pTex = m_pProvider->GetCacheTexture(tInfo.TextureIndex);
+				if(!pTex)
+					return FCYERR_INTERNALERR;
 				pGraph->DrawQuad(pTex, tVerts);
 				// 如果需要，flush一下
 				if (fret == FCYERR_OUTOFRANGE) {
@@ -565,10 +562,6 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 	Bias = tan(Bias);
 
 	// --- 绘制每一个字符 ---
-	f2dTexture2D* pTex = m_pProvider->GetCacheTexture();
-	if (!pTex)
-		return FCYERR_INTERNALERR;
-
 	f2dGlyphInfo tInfo;
 	for (fuInt i = 0; i<tCount; ++i)
 	{
@@ -621,6 +614,9 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 					m_pListener->OnGlyphCalcuCoord(tVerts);
 
 				// 绘图
+				f2dTexture2D* pTex = m_pProvider->GetCacheTexture(tInfo.TextureIndex);
+				if(!pTex)
+					return FCYERR_INTERNALERR;
 				pGraph->DrawQuad(pTex, tVerts);
 				// 如果需要，flush一下
 				if (fret == FCYERR_OUTOFRANGE) {
@@ -747,11 +743,6 @@ fResult f2dFontRendererImpl::DrawTextU8(f2dGraphics2D* pGraph, fcStr Text, fuInt
 	{
 		return FCYERR_ILLEGAL;
 	}
-	f2dTexture2D* pTex = m_pProvider->GetCacheTexture();
-	if (!pTex)
-	{
-		return FCYERR_INTERNALERR;
-	}
 	
 	// utf-8 迭代器
 	char32_t code_ = 0;
@@ -771,10 +762,6 @@ fResult f2dFontRendererImpl::DrawTextU8(f2dGraphics2D* pGraph, fcStr Text, fuInt
 		{ 0.0f, 0.0f, m_ZValue, m_BlendColor[2].argb, 0.0f, 0.0f },
 		{ 0.0f, 0.0f, m_ZValue, m_BlendColor[3].argb, 0.0f, 0.0f },
 	};
-	// d3d9特有问题，uv坐标要偏移0.5
-	static const bool uv_offset_ = false;
-	const float u_offset_ = 0.5f / (float)pTex->GetWidth();
-	const float v_offset_ = 0.5f / (float)pTex->GetHeight();
 	
 	// 迭代绘制所有文字
 	while (reader_(code_))
@@ -808,6 +795,15 @@ fResult f2dFontRendererImpl::DrawTextU8(f2dGraphics2D* pGraph, fcStr Text, fuInt
 			tVerts[2].y = tVerts[0].y - tInfo.GlyphSize.y;
 			tVerts[3].x = tVerts[0].x;
 			tVerts[3].y = tVerts[2].y;
+			
+			// 获得纹理
+			f2dTexture2D* pTex = m_pProvider->GetCacheTexture(tInfo.TextureIndex);
+			if(!pTex)
+				return FCYERR_INTERNALERR;
+			// d3d9特有问题，uv坐标要偏移0.5
+			static const bool uv_offset_ = false;
+			const float u_offset_ = 0.5f / (float)pTex->GetWidth();
+			const float v_offset_ = 0.5f / (float)pTex->GetHeight();
 			
 			// 计算uv坐标
 			if (uv_offset_)

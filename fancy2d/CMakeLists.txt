@@ -81,6 +81,8 @@ set(FANCY2D_SOURCE
     Renderer/f2dFontFileProvider.cpp
     Renderer/f2dFontTexProvider.h
     Renderer/f2dFontTexProvider.cpp
+    Renderer/f2dTrueTypeFontProvider.h
+    Renderer/f2dTrueTypeFontProvider.cpp
 
     Sound/f2dSoundSysImpl.h
     Sound/f2dSoundSysImpl.cpp

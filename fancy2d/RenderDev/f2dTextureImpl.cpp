@@ -113,14 +113,8 @@ f2dTexture2DDynamic::f2dTexture2DDynamic(f2dRenderDevice* pDev, fuInt Width, fuI
 	: m_pParent(pDev), m_Width(Width), m_Height(Height)
 {
 	HRESULT tHR = ((IDirect3DDevice9*)m_pParent->GetHandle())->CreateTexture(
-		m_Width, m_Height, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pTex, NULL);
+		m_Width, m_Height, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pTex, NULL);
 
-	if(FAILED(tHR))
-		throw fcyWin32COMException("f2dTexture2DDynamic::f2dTexture2DDynamic", "IDirect3DDevice9::CreateTexture Failed.", tHR);
-	
-	tHR = ((IDirect3DDevice9*)m_pParent->GetHandle())->CreateTexture(
-		m_Width, m_Height, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, &m_pCacheTex, NULL);
-	
 	if(FAILED(tHR))
 		throw fcyWin32COMException("f2dTexture2DDynamic::f2dTexture2DDynamic", "IDirect3DDevice9::CreateTexture Failed.", tHR);
 	
@@ -165,26 +159,19 @@ f2dTexture2DDynamic::f2dTexture2DDynamic(f2dRenderDevice* pDev, f2dStream* pStre
 		d3d9,
 		tData.data(), tData.size(),
 		(caps.MaxTextureWidth < caps.MaxTextureHeight) ? caps.MaxTextureWidth : caps.MaxTextureHeight,
-		D3DUSAGE_DYNAMIC, D3DPOOL_SYSTEMMEM, flags,
-		&m_pCacheTex);
+		D3DUSAGE_DYNAMIC, D3DPOOL_DEFAULT, flags,
+		&m_pTex);
 	if(FAILED(tHR))
 		throw fcyWin32COMException("f2dTexture2DDynamic::f2dTexture2DDynamic", "DirectX::CreateWICTextureFromMemoryEx Failed.", tHR);
 	
 	// 获取纹理尺寸
 	D3DSURFACE_DESC desc;
 	ZeroMemory(&desc, sizeof(D3DSURFACE_DESC));
-	tHR = m_pCacheTex->GetLevelDesc(0, &desc);
+	tHR = m_pTex->GetLevelDesc(0, &desc);
 	if (FAILED(tHR))
 		throw fcyWin32COMException("f2dTexture2DDynamic::f2dTexture2DDynamic", "IDirect3DTexture9::GetLevelDesc Failed.", tHR);
 	m_Width = desc.Width;
 	m_Height = desc.Height;
-	
-	// 创建纹理
-	tHR = ((IDirect3DDevice9*)m_pParent->GetHandle())->CreateTexture(
-		m_Width, m_Height, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pTex, NULL);
-	if(FAILED(tHR))
-		throw fcyWin32COMException("f2dTexture2DDynamic::f2dTexture2DDynamic", "IDirect3DDevice9::CreateTexture Failed.", tHR);
-	Upload();
 	
 	// 追加监听器
 	m_pParent->AttachListener(this);
@@ -215,26 +202,19 @@ f2dTexture2DDynamic::f2dTexture2DDynamic(f2dRenderDevice* pDev, fcData pMemory, 
 		d3d9,
 		pMemory, (size_t)Size,
 		(caps.MaxTextureWidth < caps.MaxTextureHeight) ? caps.MaxTextureWidth : caps.MaxTextureHeight,
-		D3DUSAGE_DYNAMIC, D3DPOOL_SYSTEMMEM, flags,
-		&m_pCacheTex);
+		D3DUSAGE_DYNAMIC, D3DPOOL_DEFAULT, flags,
+		&m_pTex);
 	if(FAILED(tHR))
 		throw fcyWin32COMException("f2dTexture2DDynamic::f2dTexture2DDynamic", "DirectX::CreateWICTextureFromMemoryEx Failed.", tHR);
 	
 	// 获取纹理尺寸
 	D3DSURFACE_DESC desc;
 	ZeroMemory(&desc, sizeof(D3DSURFACE_DESC));
-	tHR = m_pCacheTex->GetLevelDesc(0, &desc);
+	tHR = m_pTex->GetLevelDesc(0, &desc);
 	if (FAILED(tHR))
 		throw fcyWin32COMException("f2dTexture2DDynamic::f2dTexture2DDynamic", "IDirect3DTexture9::GetLevelDesc Failed.", tHR);
 	m_Width = desc.Width;
 	m_Height = desc.Height;
-	
-	// 创建纹理
-	tHR = ((IDirect3DDevice9*)m_pParent->GetHandle())->CreateTexture(
-		m_Width, m_Height, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pTex, NULL);
-	if(FAILED(tHR))
-		throw fcyWin32COMException("f2dTexture2DDynamic::f2dTexture2DDynamic", "IDirect3DDevice9::CreateTexture Failed.", tHR);
-	Upload();
 	
 	// 追加监听器
 	m_pParent->AttachListener(this);
@@ -243,7 +223,6 @@ f2dTexture2DDynamic::f2dTexture2DDynamic(f2dRenderDevice* pDev, fcData pMemory, 
 f2dTexture2DDynamic::~f2dTexture2DDynamic()
 {
 	FCYSAFEKILL(m_pTex);
-	FCYSAFEKILL(m_pCacheTex);
 
 	// 移除监听器
 	m_pParent->RemoveListener(this);
@@ -251,61 +230,57 @@ f2dTexture2DDynamic::~f2dTexture2DDynamic()
 
 void f2dTexture2DDynamic::OnRenderDeviceLost()
 {
-	m_IsDirty = true; // 设备丢失则为脏
 	FCYSAFEKILL(m_pTex);
-	FCYSAFEKILL(m_pCacheTex);
 }
 
 void f2dTexture2DDynamic::OnRenderDeviceReset()
 {
-	m_IsDirty = true; // 设备丢失则为脏
 	((IDirect3DDevice9*)m_pParent->GetHandle())->CreateTexture(
-		m_Width, m_Height, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pTex, NULL);
-	
-	((IDirect3DDevice9*)m_pParent->GetHandle())->CreateTexture(
-		m_Width, m_Height, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, &m_pCacheTex, NULL);
+		m_Width, m_Height, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pTex, NULL);
 }
 
 fResult f2dTexture2DDynamic::Lock(fcyRect* pLockRect, fBool Discard, fuInt* Pitch, fData* pOut)
 {
+	if (!Pitch || !pOut)
+		return FCYERR_INVAILDPARAM;
 	if(pOut)
 		*pOut = NULL;
-	if(!m_pCacheTex)
+	if(!m_pTex)
 		return FCYERR_INTERNALERR;
 	if(Pitch)
 		*Pitch = 0;
 
 
-	RECT tRectToLock;
-	D3DLOCKED_RECT tRectLocked;
+	RECT tRectToLock = {};
+	D3DLOCKED_RECT tRectLocked = {};
 
 	if(pLockRect)
 	{
-		tRectToLock.left = (int)pLockRect->a.x;
-		tRectToLock.top = (int)pLockRect->a.y;
-		tRectToLock.right = (int)pLockRect->b.x;
-		tRectToLock.bottom = (int)pLockRect->b.y;
+		tRectToLock.left = (LONG)pLockRect->a.x;
+		tRectToLock.top = (LONG)pLockRect->a.y;
+		tRectToLock.right = (LONG)pLockRect->b.x;
+		tRectToLock.bottom = (LONG)pLockRect->b.y;
 	}
 	
-	if(FAILED(m_pCacheTex->LockRect(0, &tRectLocked, (pLockRect ? &tRectToLock : NULL), Discard ? D3DLOCK_DISCARD : D3DLOCK_NO_DIRTY_UPDATE))) // D3DLOCK_NO_DIRTY_UPDATE
+	HRESULT hr = m_pTex->LockRect(0, &tRectLocked, (pLockRect ? &tRectToLock : NULL), Discard ? D3DLOCK_DISCARD : 0); // D3DLOCK_NO_DIRTY_UPDATE
+	if(FAILED(hr))
 	{
 		return FCYERR_INTERNALERR;
 	}
 	else
 	{
 		*Pitch = tRectLocked.Pitch;
-		*pOut = ((fData)tRectLocked.pBits);
-		m_IsDirty = Discard; // 只有丢弃原有内容的时候才标记为脏
+		*pOut = (fData)tRectLocked.pBits;
 		return FCYERR_OK;
 	}
 }
 
 fResult f2dTexture2DDynamic::Unlock()
 {
-	if(!m_pCacheTex)
+	if(!m_pTex)
 		return FCYERR_INTERNALERR;
 
-	if(FAILED(m_pCacheTex->UnlockRect(0)))
+	if(FAILED(m_pTex->UnlockRect(0)))
 	{
 		return FCYERR_INTERNALERR;
 	}
@@ -316,9 +291,9 @@ fResult f2dTexture2DDynamic::Unlock()
 }
 
 fResult f2dTexture2DDynamic::AddDirtyRect(fcyRect* pDirtyRect) {
-	if(!m_pCacheTex)
+	if(!m_pTex)
 		return FCYERR_INTERNALERR;
-	RECT tRectToLock;
+	RECT tRectToLock = {};
 	if(pDirtyRect)
 	{
 		tRectToLock.left = (int)pDirtyRect->a.x;
@@ -326,28 +301,13 @@ fResult f2dTexture2DDynamic::AddDirtyRect(fcyRect* pDirtyRect) {
 		tRectToLock.right = (int)pDirtyRect->b.x;
 		tRectToLock.bottom = (int)pDirtyRect->b.y;
 	}
-	m_pCacheTex->AddDirtyRect(pDirtyRect ? &tRectToLock : NULL);
-	m_IsDirty = true;
+	m_pTex->AddDirtyRect(pDirtyRect ? &tRectToLock : NULL);
 	return FCYERR_OK;
 }
 
 fResult f2dTexture2DDynamic::Upload()
 {
-	if (!m_IsDirty)
-		return FCYERR_OK;
-	
-	if(!m_pCacheTex || !m_pTex)
-		return FCYERR_INTERNALERR;
-
-	if(FAILED(((IDirect3DDevice9*)m_pParent->GetHandle())->UpdateTexture(m_pCacheTex, m_pTex)))
-	{
-		return FCYERR_INTERNALERR;
-	}
-	else
-	{
-		m_IsDirty = false;
-		return FCYERR_OK;
-	}
+	return FCYERR_OK;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

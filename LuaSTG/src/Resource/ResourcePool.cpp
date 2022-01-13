@@ -821,7 +821,7 @@ bool ResourcePool::LoadTTFFont(const char* name, const char* path,
         
         fcyRefPointer<ResFont> tRes;
         tRes.DirectSet(new ResFont(name, tFontProvider));
-        tRes->SetBlendMode(BlendMode::AddAlpha);
+        tRes->SetBlendMode(BlendMode::MulAlpha);
         m_TTFFontPool.emplace(name, tRes);
     }
     catch (const std::bad_alloc&) {
@@ -868,7 +868,7 @@ bool ResourcePool::LoadTTFFont(const char* name, fcyStream* stream, float width,
         
         fcyRefPointer<ResFont> tRes;
         tRes.DirectSet(new ResFont(name, tFontProvider));
-        tRes->SetBlendMode(BlendMode::AddAlpha);
+        tRes->SetBlendMode(BlendMode::MulAlpha);
         m_TTFFontPool.emplace(name, tRes);
     }
     catch (const std::bad_alloc&) {
@@ -913,7 +913,7 @@ bool ResourcePool::LoadTrueTypeFont(const char* name,
         
         fcyRefPointer<ResFont> tRes;
         tRes.DirectSet(new ResFont(name, tFontProvider));
-        tRes->SetBlendMode(BlendMode::AddAlpha);
+        tRes->SetBlendMode(BlendMode::MulAlpha);
         m_TTFFontPool.emplace(name, tRes);
     }
     catch (const std::bad_alloc&) {
