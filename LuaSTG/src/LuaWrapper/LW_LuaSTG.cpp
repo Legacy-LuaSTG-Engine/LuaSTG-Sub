@@ -214,27 +214,44 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			return 1;
 		}
 		static int EnumResolutions(lua_State* L) {
-			//返回一个lua表，该表中又包含多个表，分别储存着所支持的屏幕分辨率宽和屏幕分辨率的高，均为整数
-			//例如{ {1920,1080}, {1600,900}, ...  }
-			if (LAPP.GetRenderDev()) {
-				auto count = LAPP.GetRenderDev()->GetSupportResolutionCount();
+			if (LAPP.GetRenderDev())
+			{
+				auto count = LAPP.GetRenderDev()->GetSupportedDisplayModeCount(true);
 				lua_createtable(L, count, 0);		// t
-				for (auto index = 0; index < count; index++) {
-					auto res = LAPP.GetRenderDev()->EnumSupportResolution(index);
-					auto rhz = LAPP.GetRenderDev()->EnumSupportRefreshRate(index);
-					lua_createtable(L, 3, 0);		// t t
-					lua_pushinteger(L, res.x);		// t t x
-					lua_rawseti(L, -2, 1);			// t t
-					lua_pushinteger(L, res.y);		// t t y
-					lua_rawseti(L, -2, 2);			// t t
-					lua_pushinteger(L, rhz);		// t t y
-					lua_rawseti(L, -2, 3);			// t t
+				for (auto index = 0; index < count; index++)
+				{
+					f2dDisplayMode mode = LAPP.GetRenderDev()->GetSupportedDisplayMode(index);
+
+					lua_createtable(L, 7, 0);		// t t
+
+					lua_pushinteger(L, (lua_Integer)mode.width);
+					lua_rawseti(L, -2, 1);
+
+					lua_pushinteger(L, (lua_Integer)mode.height);
+					lua_rawseti(L, -2, 2);
+
+					lua_pushnumber(L, (lua_Number)mode.refresh_rate.numerator); // 有点担心存不下
+					lua_rawseti(L, -2, 3);
+
+					lua_pushnumber(L, (lua_Number)mode.refresh_rate.denominator); // 有点担心存不下
+					lua_rawseti(L, -2, 4);
+
+					lua_pushinteger(L, (lua_Integer)mode.format);
+					lua_rawseti(L, -2, 5);
+
+					lua_pushinteger(L, (lua_Integer)mode.scanline_ordering);
+					lua_rawseti(L, -2, 6);
+
+					lua_pushinteger(L, (lua_Integer)mode.scaling);
+					lua_rawseti(L, -2, 7);
+
 					lua_rawseti(L, -2, index + 1);	// t
 				}
 				return 1;
 			}
-			else {
-				return luaL_error(L, "The fancy2D Engine is null.");
+			else
+			{
+				return luaL_error(L, "render device is not avilable.");
 			}
 		}
 		#pragma endregion

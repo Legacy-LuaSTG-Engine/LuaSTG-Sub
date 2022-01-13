@@ -850,39 +850,9 @@ fBool f2dRenderDeviceImpl::CheckMultiSample(F2DAALEVEL AALevel, fBool Windowed)
 		return true;
 }
 
-fuInt f2dRenderDeviceImpl::GetSupportResolutionCount()
-{
-	return _d3d9Ex->GetAdapterModeCountEx(D3DADAPTER_DEFAULT, &g_d3d9DisplayModeFilter);
-}
-fcyVec2 f2dRenderDeviceImpl::EnumSupportResolution(fuInt Index)
-{
-	fcyVec2 tRet;
-	D3DDISPLAYMODEEX mode = {};
-	mode.Size = sizeof(D3DDISPLAYMODEEX);
-	
-	if (D3D_OK == _d3d9Ex->EnumAdapterModesEx(D3DADAPTER_DEFAULT, &g_d3d9DisplayModeFilter, Index, &mode))
-	{
-		tRet.x = (float)mode.Width;
-		tRet.y = (float)mode.Height;
-	}
-	
-	return tRet;
-}
-fuInt f2dRenderDeviceImpl::EnumSupportRefreshRate(fuInt Index)
-{
-	D3DDISPLAYMODEEX mode = {};
-	mode.Size = sizeof(D3DDISPLAYMODEEX);
-
-	if (D3D_OK == _d3d9Ex->EnumAdapterModesEx(D3DADAPTER_DEFAULT, &g_d3d9DisplayModeFilter, Index, &mode))
-	{
-		return mode.RefreshRate;
-	}
-
-	return 0;
-}
 fuInt f2dRenderDeviceImpl::GetSupportedDisplayModeCount(fBool refresh)
 {
-	return GetSupportResolutionCount();
+	return _d3d9Ex->GetAdapterModeCountEx(D3DADAPTER_DEFAULT, &g_d3d9DisplayModeFilter);
 }
 f2dDisplayMode f2dRenderDeviceImpl::GetSupportedDisplayMode(fuInt Index)
 {

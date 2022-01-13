@@ -925,20 +925,6 @@ fResult f2dRenderDevice11::CreateMeshData(f2dVertexElement* pVertElement, fuInt 
 	// 模型功能也没有完成
 	return FCYERR_NOTIMPL;
 }
-fuInt f2dRenderDevice11::GetSupportResolutionCount()
-{
-	return GetSupportedDisplayModeCount(true);
-}
-fcyVec2 f2dRenderDevice11::EnumSupportResolution(fuInt Index)
-{
-	f2dDisplayMode mode = GetSupportedDisplayMode(Index);
-	return fcyVec2((fFloat)mode.width, (fFloat)mode.height);
-}
-fuInt f2dRenderDevice11::EnumSupportRefreshRate(fuInt Index)
-{
-	f2dDisplayMode mode = GetSupportedDisplayMode(Index);
-	return mode.refresh_rate.numerator / mode.refresh_rate.denominator; // 注意啦，这个值是没有意义的，看看就好
-}
 fResult f2dRenderDevice11::SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, fBool FlipModel, F2DAALEVEL AALevel)
 {
 	if (Windowed)

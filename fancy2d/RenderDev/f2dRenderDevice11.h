@@ -146,9 +146,6 @@ public:
 	fResult UpdateScreenToWindow(fcyColor KeyColor, fByte Alpha);
 	fResult SetTextureAddress(F2DTEXTUREADDRESS address, const fcyColor& borderColor);
 	fResult SetTextureFilter(F2DTEXFILTERTYPE filter);
-	fuInt GetSupportResolutionCount();
-	fcyVec2 EnumSupportResolution(fuInt Index);
-	fuInt EnumSupportRefreshRate(fuInt Index);
 	fResult SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, fBool FlipModel, F2DAALEVEL AALevel);
 	fResult SetDisplayMode(fuInt Width, fuInt Height, fuInt RefreshRate, fBool Windowed, fBool VSync, fBool FlipModel);
 public:

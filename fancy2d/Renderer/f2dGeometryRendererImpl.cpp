@@ -1,4 +1,5 @@
 ﻿#include "Renderer/f2dGeometryRendererImpl.h"
+#include "f2dRenderDevice.h"
 
 using namespace std;
 
