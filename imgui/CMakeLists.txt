@@ -37,12 +37,15 @@ target_sources(imgui PRIVATE
     
     imgui/backends/imgui_impl_dx9.cpp
     imgui/backends/imgui_impl_dx9.h
+    imgui/backends/imgui_impl_dx11.cpp
+    imgui/backends/imgui_impl_dx11.h
     
     backend/imgui_impl_win32ex.cpp
     backend/imgui_impl_win32ex.h
 )
 target_link_libraries(imgui PUBLIC
     d3d9.lib
+    d3d11.lib
     freetype
 )
 

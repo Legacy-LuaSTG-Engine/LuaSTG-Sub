@@ -8,6 +8,8 @@
 #include "imgui_freetype.h"
 #include "imgui_impl_win32ex.h"
 #include "imgui_impl_dx9.h"
+#include "imgui_impl_dx11.h"
+#include <d3d11.h>
 
 #include "lua.hpp"
 #include "lua_imgui.hpp"
@@ -17,6 +19,7 @@
 #include "Common/SystemDirectory.hpp"
 
 #include "AppFrame.h"
+#include "f2dConfig.h"
 
 #define XINPUT_USE_9_1_0
 #include <Xinput.h>
@@ -86,13 +89,25 @@ namespace imgui
         void OnRenderDeviceLost()
         {
             g_ImGuiTexIDValid = false;
+        #ifdef F2D_GRAPHIC_API_D3D11
+            ImGui_ImplDX11_Shutdown();
+        #else
             ImGui_ImplDX9_Shutdown();
+        #endif
         }
         void OnRenderDeviceReset()
         {
             g_ImGuiTexIDValid = false;
+        #ifdef F2D_GRAPHIC_API_D3D11
+            ID3D11Device* device = (ID3D11Device*)APP.GetRenderDev()->GetHandle();
+            ID3D11DeviceContext* context = NULL;
+            device->GetImmediateContext(&context);
+            ImGui_ImplDX11_Init(device, context);
+            context->Release();
+        #else
             IDirect3DDevice9* device = (IDirect3DDevice9*)APP.GetRenderDev()->GetHandle();
             ImGui_ImplDX9_Init(device);
+        #endif
         }
     };
     static ImGuiRenderDeviceEventListener g_ImGuiRenderDeviceEventListener;
@@ -215,7 +230,7 @@ namespace imgui
         ImGui_ImplWin32Ex_Init((void*)window->GetHandle());
         window->AddNativeMessageCallback((ptrdiff_t)&ImGui_ImplWin32Ex_WndProcHandler);
         
-        ImGui_ImplDX9_Init((IDirect3DDevice9*)device->GetHandle());
+        g_ImGuiRenderDeviceEventListener.OnRenderDeviceReset();
         device->AttachListener(&g_ImGuiRenderDeviceEventListener);
         
         luaopen_imgui(L);
@@ -242,7 +257,7 @@ namespace imgui
         auto* L = APP.GetLuaEngine();
         
         device->RemoveListener(&g_ImGuiRenderDeviceEventListener);
-        ImGui_ImplDX9_Shutdown();
+        g_ImGuiRenderDeviceEventListener.OnRenderDeviceLost();
         
         window->RemoveNativeMessageCallback((ptrdiff_t)&ImGui_ImplWin32Ex_WndProcHandler);
         ImGui_ImplWin32Ex_Shutdown();
@@ -255,7 +270,11 @@ namespace imgui
     {
         if (g_ImGuiBindEngine)
         {
+        #ifdef F2D_GRAPHIC_API_D3D11
+            ImGui_ImplDX11_NewFrame();
+        #else
             ImGui_ImplDX9_NewFrame();
+        #endif
             ImGui_ImplWin32Ex_NewFrame();
             g_ImGuiTexIDValid = true;
         }
@@ -287,7 +306,11 @@ namespace imgui
             }
             
             // 绘制GUI数据
+        #ifdef F2D_GRAPHIC_API_D3D11
+            ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+        #else
             ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+        #endif
             
             // 重启渲染过程
             if (bRestartRenderPeriod)
