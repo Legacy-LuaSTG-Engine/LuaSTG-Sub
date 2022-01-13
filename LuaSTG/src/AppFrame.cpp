@@ -9,6 +9,7 @@
 
 class f2dGraphic2dAdapter : public f2dGraphics2D
 {
+private:
 	inline LuaSTG::Core::DrawVertex2D convert(f2dGraphics2DVertex const& v)
 	{
 		return LuaSTG::Core::DrawVertex2D{
@@ -22,7 +23,7 @@ class f2dGraphic2dAdapter : public f2dGraphics2D
 	}
 	fcyMatrix4 m_tMat;
 	f2dBlendState m_tState = {};
-	
+	LuaSTG::Core::Renderer* m_Renderer = nullptr;
 public:
 	// 用不上
 	void AddRef() {}
@@ -34,13 +35,11 @@ public:
 	fResult Begin() { return FCYERR_OK; }
 	fResult Flush()
 	{
-		LAPP.GetRenderer2D().flush();
-		return FCYERR_OK;
+		return m_Renderer->flush() ? FCYERR_OK : FCYERR_INTERNALERR;
 	}
 	fResult End()
 	{
-		LAPP.GetRenderer2D().flush();
-		return FCYERR_OK;
+		return Flush();
 	}
 
 	// 用不上
@@ -69,27 +68,30 @@ public:
 
 	fResult DrawQuad(f2dTexture2D* pTex, const f2dGraphics2DVertex& v1, const f2dGraphics2DVertex& v2, const f2dGraphics2DVertex& v3, const f2dGraphics2DVertex& v4, fBool bAutoFixCoord = true)
 	{
-		LAPP.GetRenderer2D().setTexture(LuaSTG::Core::TextureID(pTex->GetHandle()));
-		LAPP.GetRenderer2D().drawQuad(convert(v1), convert(v2), convert(v3), convert(v4));
+		m_Renderer->setTexture(LuaSTG::Core::TextureID(pTex->GetHandle()));
+		m_Renderer->drawQuad(convert(v1), convert(v2), convert(v3), convert(v4));
 		return FCYERR_OK;
 	}
 	fResult DrawQuad(f2dTexture2D* pTex, const f2dGraphics2DVertex* arr, fBool bAutoFixCoord = true)
 	{
-		LAPP.GetRenderer2D().setTexture(LuaSTG::Core::TextureID(pTex->GetHandle()));
-		LAPP.GetRenderer2D().drawQuad(convert(arr[0]), convert(arr[1]), convert(arr[2]), convert(arr[3]));
+		m_Renderer->setTexture(LuaSTG::Core::TextureID(pTex->GetHandle()));
+		m_Renderer->drawQuad(convert(arr[0]), convert(arr[1]), convert(arr[2]), convert(arr[3]));
 		return FCYERR_OK;
 	}
 	fResult DrawRaw(f2dTexture2D* pTex, fuInt VertCount, fuInt IndexCount, const f2dGraphics2DVertex* VertArr, const fuShort* IndexArr, fBool bAutoFixCoord = true)
 	{
-		LAPP.GetRenderer2D().setTexture(LuaSTG::Core::TextureID(pTex->GetHandle()));
+		m_Renderer->setTexture(LuaSTG::Core::TextureID(pTex->GetHandle()));
 		std::vector<LuaSTG::Core::DrawVertex2D> vtxdata(VertCount);
 		for (size_t i = 0; i < VertCount; i += 1)
 		{
 			vtxdata[i] = convert(VertArr[i]);
 		}
-		LAPP.GetRenderer2D().drawRaw(vtxdata.data(), (uint16_t)VertCount, (LuaSTG::Core::DrawIndex2D*)IndexArr, (uint16_t)IndexCount);
+		m_Renderer->drawRaw(vtxdata.data(), (uint16_t)VertCount, (LuaSTG::Core::DrawIndex2D*)IndexArr, (uint16_t)IndexCount);
 		return FCYERR_OK;
 	}
+
+	f2dGraphic2dAdapter() : m_Renderer(nullptr) {}
+	f2dGraphic2dAdapter(LuaSTG::Core::Renderer* r2d) : m_Renderer(r2d) {}
 };
 
 using namespace LuaSTGPlus;
@@ -461,6 +463,7 @@ bool AppFrame::Init()LNOEXCEPT
 	#ifdef LUASTG_D3D9_SHADER
 		spdlog::info("[fancy2d] 创建2D渲染器适配器");
 		static f2dGraphic2dAdapter g2dadaper;
+		g2dadaper = f2dGraphic2dAdapter(&m_NewRenderer2D);
 		m_Graph2D = &g2dadaper;
 	#else
 		spdlog::info("[fancy2d] 创建2D渲染器，顶点容量{}，索引容量{}", 16384, 24576);
