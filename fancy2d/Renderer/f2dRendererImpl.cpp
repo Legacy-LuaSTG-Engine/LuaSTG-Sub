@@ -6,7 +6,6 @@
 #include "Renderer/f2dSpriteImpl.h"
 #include "Renderer/f2dGeometryRendererImpl.h"
 #include "Renderer/f2dFontRendererImpl.h"
-#include "Renderer/f2dFontFileProvider.h"
 #include "Renderer/f2dFontTexProvider.h"
 #include "Renderer/f2dTrueTypeFontProvider.h"
 #include "Renderer/f2dSpriteAnimationImpl.h"
@@ -183,7 +182,6 @@ fResult f2dRendererImpl::CreateFontFromFile(
 
 	try
 	{
-		//*pOut = new f2dFontFileProvider(m_pDev, pStream, FontSize, BBoxSize, FaceIndex, Flag);
 		f2dTrueTypeFontParam param = {};
 		param.font_file = pStream;
 		param.font_face = FaceIndex;
@@ -212,7 +210,6 @@ fResult f2dRendererImpl::CreateFontFromMemory(
 
 	try
 	{
-		//*pOut = new f2dFontFileProvider(m_pDev, pStream, FontSize, BBoxSize, FaceIndex, Flag);
 		f2dTrueTypeFontParam param = {};
 		param.font_source = pStream;
 		param.font_face = FaceIndex;
@@ -241,7 +238,6 @@ fResult f2dRendererImpl::CreateFontFromMemory(
 	
 	try
 	{
-		//*pOut = new f2dFontFileProvider(m_pDev, param, fonts, count);
 		*pOut = new f2dTrueTypeFontProvider(m_pDev, fonts, count);
 	}
 	catch(const fcyException& e)

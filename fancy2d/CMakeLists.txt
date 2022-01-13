@@ -83,8 +83,6 @@ set(FANCY2D_SOURCE
     Renderer/f2dParticle.cpp
     Renderer/f2dFontRendererImpl.h
     Renderer/f2dFontRendererImpl.cpp
-    Renderer/f2dFontFileProvider.h
-    Renderer/f2dFontFileProvider.cpp
     Renderer/f2dFontTexProvider.h
     Renderer/f2dFontTexProvider.cpp
     Renderer/f2dTrueTypeFontProvider.h
