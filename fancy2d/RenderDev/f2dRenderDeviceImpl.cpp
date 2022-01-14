@@ -879,7 +879,7 @@ fResult f2dRenderDeviceImpl::SetDisplayMode(fuInt Width, fuInt Height, fBool VSy
 }
 fResult f2dRenderDeviceImpl::SetDisplayMode(f2dDisplayMode mode, fBool VSync)
 {
-	return SetDisplayMode(mode.width, mode.height, mode.refresh_rate.numerator, false, VSync, false);
+	return SetDisplayMode(mode.width, mode.height, mode.refresh_rate.numerator, mode.refresh_rate.denominator, false, VSync, false);
 }
 fResult f2dRenderDeviceImpl::SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, fBool FlipModel, F2DAALEVEL AALevel)
 {
@@ -957,10 +957,10 @@ fResult f2dRenderDeviceImpl::SetBufferSize(fuInt Width, fuInt Height, fBool Wind
 	
 	return hr == D3D_OK ? FCYERR_OK : FCYERR_INTERNALERR;
 }
-fResult f2dRenderDeviceImpl::SetDisplayMode(fuInt Width, fuInt Height, fuInt RefreshRate, fBool Windowed, fBool VSync, fBool FlipModel)
+fResult f2dRenderDeviceImpl::SetDisplayMode(fuInt Width, fuInt Height, fuInt RefreshRateA, fuInt RefreshRateB, fBool Windowed, fBool VSync, fBool FlipModel)
 {
 	// 检查参数
-	if (Width < 1 || Height < 1 || RefreshRate < 1)
+	if (Width < 1 || Height < 1 || (RefreshRateB == 0 && RefreshRateA > 0))
 		return FCYERR_INVAILDPARAM;
 
 	// 备份交换链配置
@@ -971,7 +971,7 @@ fResult f2dRenderDeviceImpl::SetDisplayMode(fuInt Width, fuInt Height, fuInt Ref
 	auto& finfo = _d3d9FullScreenSwapChainInfo; {
 		finfo.Width = Width;
 		finfo.Height = Height;
-		finfo.RefreshRate = RefreshRate;
+		finfo.RefreshRate = RefreshRateA / RefreshRateB;
 	};
 	auto& winfo = _d3d9SwapChainInfo; {
 		winfo.BackBufferWidth = Width;

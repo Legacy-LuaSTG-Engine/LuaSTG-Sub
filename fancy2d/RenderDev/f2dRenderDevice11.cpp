@@ -992,7 +992,7 @@ fResult f2dRenderDevice11::SetBufferSize(fuInt Width, fuInt Height, fBool Window
 		return FCYERR_INVAILDPARAM;
 	}
 }
-fResult f2dRenderDevice11::SetDisplayMode(fuInt Width, fuInt Height, fuInt RefreshRate, fBool Windowed, fBool VSync, fBool FlipModel)
+fResult f2dRenderDevice11::SetDisplayMode(fuInt Width, fuInt Height, fuInt RefreshRateA, fuInt RefreshRateB, fBool Windowed, fBool VSync, fBool FlipModel)
 {
 	if (Windowed)
 	{
@@ -1010,7 +1010,7 @@ fResult f2dRenderDevice11::SetDisplayMode(fuInt Width, fuInt Height, fuInt Refre
 				DXGI_MODE_DESC target_mode = {
 					.Width = Width,
 					.Height = Height,
-					.RefreshRate = DXGI_RATIONAL{.Numerator = RefreshRate,.Denominator = 1},
+					.RefreshRate = DXGI_RATIONAL{.Numerator = RefreshRateA,.Denominator = RefreshRateB},
 					.Format = DXGI_FORMAT_B8G8R8A8_UNORM,
 					.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE,
 					.Scaling = DXGI_MODE_SCALING_UNSPECIFIED,

@@ -251,7 +251,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, b
 	}
 	return false;
 }
-LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, bool vsync, int hz)LNOEXCEPT
+LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, bool vsync, int hza, int hzb)LNOEXCEPT
 {
 	if (m_iStatus == AppStatus::Initialized)
 	{
@@ -269,7 +269,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, 
 			}
 			
 			bool bResult = true;
-			if (FCYOK(m_pRenderDev->SetDisplayMode((fuInt)width, (fuInt)height, 0, windowed, vsync, false)))
+			if (FCYOK(m_pRenderDev->SetDisplayMode((fuInt)width, (fuInt)height, (fuInt)hza, (fuInt)hzb, windowed, vsync, false)))
 			{
 				spdlog::info("[luastg] 显示模式切换成功 ({}x{} Vsync:{} Windowed:{}) -> ({}x{} Vsync:{} Windowed:{})",
 					(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
@@ -307,11 +307,11 @@ LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, 
 			m_pMainWindow->SetTopMost(true);
 			//m_pMainWindow->MoveToCenter();
 			
-			if (FCYOK(m_pRenderDev->SetDisplayMode((fuInt)width, (fuInt)height, (fuInt)hz, windowed, vsync, false)))
+			if (FCYOK(m_pRenderDev->SetDisplayMode((fuInt)width, (fuInt)height, (fuInt)hza, (fuInt)hzb, windowed, vsync, false)))
 			{
 				spdlog::info("[luastg] 显示模式切换成功 ({}x{} Vsync:{} Windowed:{}) -> ({}x{}@{} Vsync:{} Windowed:{})",
 					(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
-					width, height, hz, vsync, windowed);
+					width, height, (float)hza / (float)hzb, vsync, windowed);
 				
 				m_OptionResolution.Set((fFloat)width, (fFloat)height);
 				m_OptionWindowed = windowed;
@@ -323,7 +323,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, 
 			{
 				spdlog::error("[luastg] 显示模式切换失败 ({}x{} Vsync:{} Windowed:{}) -> ({}x{}@{} Vsync:{} Windowed:{})",
 					(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
-					width, height, hz, vsync, windowed);
+					width, height, (float)hza / (float)hzb, vsync, windowed);
 				
 				m_pMainWindow->SetAutoResizeWindowOnDPIScaling(true);
 				windowed = true; // 强制窗口化

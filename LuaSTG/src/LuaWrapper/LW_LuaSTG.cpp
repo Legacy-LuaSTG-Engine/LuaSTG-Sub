@@ -159,7 +159,8 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 					luaL_checkinteger(L, 2),
 					lua_toboolean(L, 3) == 0 ? false : true,
 					lua_toboolean(L, 4) == 0 ? false : true,
-					luaL_checkinteger(L, 5)
+					luaL_checkinteger(L, 5),
+					luaL_optinteger(L, 6, 1)
 				));
 			}
 			return 1;
@@ -196,19 +197,20 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			const fBool windowed = lua_toboolean(L, 4);
 			const fBool vsync = lua_toboolean(L, 5);
 			const fBool flip = lua_toboolean(L, 6);
+			const fuInt refreshrateb = (fuInt)luaL_optinteger(L, 7, 1);
 			LAPP.GetWindow()->SetAutoResizeWindowOnDPIScaling(windowed);
-			fResult result = LAPP.GetRenderDev()->SetDisplayMode(width, height, refreshrate, windowed, vsync, flip);
+			fResult result = LAPP.GetRenderDev()->SetDisplayMode(width, height, refreshrate, refreshrateb, windowed, vsync, flip);
 			if (result == FCYERR_OK)
 			{
 				spdlog::info("[fancy2d] 交换链更新成功 Size:({}x{}) RefreshRate:{} Windowed:{} Vsync:{} Flip:{}",
-					width, height, refreshrate, windowed, vsync, flip);
+					width, height, (float)refreshrate / (float)refreshrateb, windowed, vsync, flip);
 			}
 			else
 			{
 				LAPP.GetWindow()->SetAutoResizeWindowOnDPIScaling(true);
 				spdlog::error("[fancy2d] [f2dRenderDevice::SetDisplayMode] 交换链更新失败(fResult={})，参数为 Size:({}x{}) RefreshRate:{} Windowed:{} Vsync:{} Flip:{}",
 					result,
-					width, height, refreshrate, windowed, vsync, flip);
+					width, height, (float)refreshrate / (float)refreshrateb, windowed, vsync, flip);
 			}
 			lua_pushboolean(L, result == FCYERR_OK);
 			return 1;

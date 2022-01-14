@@ -152,7 +152,7 @@ public: // 接口实现
 	F2DAALEVEL GetAALevel();
 	fBool CheckMultiSample(F2DAALEVEL AALevel, fBool Windowed);
 	fResult SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, fBool FlipModel, F2DAALEVEL AALevel);
-	fResult SetDisplayMode(fuInt Width, fuInt Height, fuInt RefreshRate, fBool Windowed, fBool VSync, fBool FlipModel);
+	fResult SetDisplayMode(fuInt Width, fuInt Height, fuInt RefreshRateA, fuInt RefreshRateB, fBool Windowed, fBool VSync, fBool FlipModel);
 	fuInt GetSupportedDisplayModeCount(fBool refresh = false);
 	f2dDisplayMode GetSupportedDisplayMode(fuInt Index);
 	fResult SetDisplayMode(fuInt Width, fuInt Height, fBool VSync, fBool FlipModel);

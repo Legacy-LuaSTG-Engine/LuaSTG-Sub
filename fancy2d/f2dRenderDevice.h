@@ -699,7 +699,7 @@ struct f2dRenderDevice
 	virtual F2DAALEVEL GetAALevel() = 0;
 	virtual fBool CheckMultiSample(F2DAALEVEL AALevel, fBool Windowed) = 0;
 	virtual fResult SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, fBool FlipModel, F2DAALEVEL AALevel) = 0;
-	virtual fResult SetDisplayMode(fuInt Width, fuInt Height, fuInt RefreshRate, fBool Windowed, fBool VSync, fBool FlipModel) = 0;
+	virtual fResult SetDisplayMode(fuInt Width, fuInt Height, fuInt RefreshRateA, fuInt RefreshRateB, fBool Windowed, fBool VSync, fBool FlipModel) = 0;
 
 	// --- 事件监听器 ---
 	/// @brief     挂接一个消息监听器
