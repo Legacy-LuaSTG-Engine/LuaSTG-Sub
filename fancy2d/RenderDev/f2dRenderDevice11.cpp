@@ -613,6 +613,8 @@ bool f2dRenderDevice11::createSwapchain(f2dDisplayMode* pmode)
 		}
 	}
 
+	dxgi_factory->MakeWindowAssociation(win32_window, DXGI_MWA_NO_ALT_ENTER); // 别他妈乱切换了
+
 	if (!createRenderAttachments())
 	{
 		return false;
