@@ -229,21 +229,21 @@ namespace LuaSTG::Core
 	{
 		struct VertexBuffer
 		{
-			const size_t capacity = 65536;
+			const size_t capacity = 32768;
 			size_t size = 0;
-			DrawVertex2D data[65536] = {};
+			DrawVertex2D data[32768] = {};
 		} vertex;
 		struct IndexBuffer
 		{
-			const size_t capacity = 65536;
+			const size_t capacity = 32768;
 			size_t size = 0;
-			DrawIndex2D data[65536] = {};
+			DrawIndex2D data[32768] = {};
 		} index;
 		struct DrawCommandBuffer
 		{
-			const size_t capacity = 16384;
+			const size_t capacity = 2048;
 			size_t size = 0;
-			DrawCommand data[16384] = {};
+			DrawCommand data[2048] = {};
 		} command;
 	};
 
