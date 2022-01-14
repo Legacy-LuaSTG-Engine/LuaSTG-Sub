@@ -150,7 +150,7 @@ namespace LuaSTG::Core
 		Add,
 		Mul,
 
-		MAX_INDEX = Add,
+		MAX_INDEX = Mul,
 		MAX_COUNT,
 	};
 	enum class FogState : uint8_t
@@ -167,12 +167,19 @@ namespace LuaSTG::Core
 	};
 	enum class DepthState : uint8_t
 	{
-		Disable,
+		MIN_INDEX = 0,
+
+		Disable = MIN_INDEX,
 		Enable,
+
+		MAX_INDEX = Enable,
+		MAX_COUNT,
 	};
 	enum class BlendState : uint8_t
 	{
-		Disable,
+		MIN_INDEX = 0,
+
+		Disable = MIN_INDEX,
 		Alpha,
 		One,
 		Min,
@@ -183,10 +190,15 @@ namespace LuaSTG::Core
 		Sub,
 		RevSub,
 		Inv,
+
+		MAX_INDEX = Inv,
+		MAX_COUNT,
 	};
 	enum class SamplerState : uint8_t
 	{
-		PointWrap,
+		MIN_INDEX = 0,
+
+		PointWrap = MIN_INDEX,
 		PointClamp,
 		PointBorderBlack,
 		PointBorderWhite,
@@ -194,6 +206,9 @@ namespace LuaSTG::Core
 		LinearClamp,
 		LinearBorderBlack,
 		LinearBorderWhite,
+
+		MAX_INDEX = LinearBorderWhite,
+		MAX_COUNT,
 	};
 
 	struct DrawVertex2D
@@ -236,7 +251,8 @@ namespace LuaSTG::Core
 	{
 	private:
 		class RendererImpl;
-		RendererImpl* _pImpl;
+		class Renderer11;
+		void* _pImpl;
 	public:
 		bool attachDevice(void* dev);
 		void detachDevice();
