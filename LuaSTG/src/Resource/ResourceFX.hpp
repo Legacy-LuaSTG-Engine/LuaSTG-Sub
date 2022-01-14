@@ -2,6 +2,7 @@
 #include "ResourceBase.hpp"
 #include "cpp/Dictionary.hpp"
 #include "f2dRenderDevice.h"
+#include "Core/Renderer.hpp"
 
 namespace LuaSTGPlus {
     // shader包装
@@ -21,12 +22,12 @@ namespace LuaSTGPlus {
         // 变量绑定
         Dictionary<std::vector<f2dEffectParamValue*>> m_pBindingVar;
         
-        void* m_pPixelShader;
+        LuaSTG::Core::ShaderID m_pPixelShader;
     public:
         bool IsEffect() noexcept { return m_bIsEffect; };
         
         f2dEffect* GetEffect() noexcept { return m_pShader; }
-        void* GetPixelShader() noexcept { return m_pPixelShader; }
+        LuaSTG::Core::ShaderID GetPixelShader() noexcept { return m_pPixelShader; }
         
         void SetPostEffectTexture(f2dTexture2D* val) noexcept;
         void SetViewport(fcyRect rect) noexcept;
@@ -37,7 +38,7 @@ namespace LuaSTGPlus {
         void SetValue(const char* key, f2dTexture2D* val) noexcept;
     public:
         ResFX(const char* name, fcyRefPointer<f2dEffect> shader);
-        ResFX(const char* name, void* shader);
+        ResFX(const char* name, LuaSTG::Core::ShaderID shader);
         virtual ~ResFX();
     };
 }

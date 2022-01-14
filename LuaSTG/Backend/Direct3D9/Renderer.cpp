@@ -19,7 +19,6 @@ namespace LuaSTG::Core
 			OutputDebugStringA(name);
 			OutputDebugStringA(":\n");
 			OutputDebugStringA((char*)errmsg_->GetBufferPointer());
-			assert(false);
 			return false;
 		}
 		return true;
@@ -1127,6 +1126,24 @@ namespace LuaSTG::Core
 			cmd_.index_count += nidx;
 		}
 
+		ShaderID createPostEffectShader(char const* name, void const* data, size_t size)
+		{
+			Microsoft::WRL::ComPtr<ID3DBlob> ps_blob_;
+			if (!compilePixelShaderMacro(name, data, size, NULL, &ps_blob_))
+				return ShaderID();
+			Microsoft::WRL::ComPtr<IDirect3DPixelShader9> ps_;
+			if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &ps_)))
+				return ShaderID();
+			return ShaderID(ps_.Detach());
+		}
+		void destroyPostEffectShader(ShaderID& ps)
+		{
+			if (ps.handle)
+			{
+				((IDirect3DPixelShader9*)ps.handle)->Release();
+				ps.handle = nullptr;
+			}
+		}
 		void postEffect(ShaderID const& ps, TextureID const& rt, SamplerState rtsv, Vector4 const* cv, size_t cv_n, TextureID const* tv, SamplerState const* sv, size_t tv_sv_n, BlendState blend)
 		{
 			batchFlush();
@@ -1235,7 +1252,7 @@ namespace LuaSTG::Core
 		Microsoft::WRL::ComPtr<ID3D11Buffer> _world_matrix_buffer;
 		Microsoft::WRL::ComPtr<ID3D11Buffer> _camera_pos_buffer; // 在 postEffect 的时候被替换了
 		Microsoft::WRL::ComPtr<ID3D11Buffer> _fog_data_buffer; // 同时也用于储存 postEffect 的 纹理大小和视口范围
-		Microsoft::WRL::ComPtr<ID3D11Buffer> _user_float_buffer; // 在 postEffect 的时候 c0 用这个
+		Microsoft::WRL::ComPtr<ID3D11Buffer> _user_float_buffer; // 在 postEffect 的时候用这个
 	private:
 		Microsoft::WRL::ComPtr<ID3D11InputLayout> _input_layout;
 		Microsoft::WRL::ComPtr<ID3D11VertexShader> _vertex_shader[IDX(FogState::MAX_COUNT)]; // FogState
@@ -2382,6 +2399,24 @@ namespace LuaSTG::Core
 			cmd_.index_count += nidx;
 		}
 
+		ShaderID createPostEffectShader(char const* name, void const* data, size_t size)
+		{
+			Microsoft::WRL::ComPtr<ID3DBlob> ps_blob_;
+			if (!compilePixelShaderMacro11(name, data, size, NULL, &ps_blob_))
+				return ShaderID();
+			Microsoft::WRL::ComPtr<ID3D11PixelShader> ps_;
+			if (FAILED(_device->CreatePixelShader(ps_blob_->GetBufferPointer(), ps_blob_->GetBufferSize(), NULL, &ps_)))
+				return ShaderID();
+			return ShaderID(ps_.Detach());
+		}
+		void destroyPostEffectShader(ShaderID& ps)
+		{
+			if (ps.handle)
+			{
+				((ID3D11PixelShader*)ps.handle)->Release();
+				ps.handle = nullptr;
+			}
+		}
 		void postEffect(ShaderID const& ps, TextureID const& rt, SamplerState rtsv, Vector4 const* cv, size_t cv_n, TextureID const* tv, SamplerState const* sv, size_t tv_sv_n, BlendState blend)
 		{
 			batchFlush();
@@ -2587,6 +2622,14 @@ namespace LuaSTG::Core
 		self->drawRaw(pvert, nvert, pidx, nidx);
 	}
 
+	ShaderID Renderer::createPostEffectShader(char const* name, void const* data, size_t size)
+	{
+		return self->createPostEffectShader(name, data, size);
+	}
+	void Renderer::destroyPostEffectShader(ShaderID& ps)
+	{
+		self->destroyPostEffectShader(ps);
+	}
 	void Renderer::postEffect(ShaderID const& ps, TextureID const& rt, SamplerState rtsv, Vector4 const* cv, size_t cv_n, TextureID const* tv, SamplerState const* sv, size_t tv_sv_n, BlendState blend)
 	{
 		self->postEffect(ps, rt, rtsv, cv, cv_n, tv, sv, tv_sv_n, blend);

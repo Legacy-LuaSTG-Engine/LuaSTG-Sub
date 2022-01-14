@@ -282,6 +282,8 @@ namespace LuaSTG::Core
 		void drawQuad(DrawVertex2D const& v1, DrawVertex2D const& v2, DrawVertex2D const& v3, DrawVertex2D const& v4);
 		void drawRaw(DrawVertex2D const* pvert, uint16_t nvert, DrawIndex2D const* pidx, uint16_t nidx);
 
+		ShaderID createPostEffectShader(char const* name, void const* data, size_t size);
+		void destroyPostEffectShader(ShaderID& ps);
 		void postEffect(ShaderID const& ps, TextureID const& rt, SamplerState rtsv, Vector4 const* cv, size_t cv_n, TextureID const* tv, SamplerState const* sv, size_t tv_sv_n, BlendState blend);
 	public:
 		Renderer();

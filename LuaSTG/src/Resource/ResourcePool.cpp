@@ -986,27 +986,15 @@ bool ResourcePool::LoadFX(const char* name, const char* path, bool is_effect) no
     }
     else
     {
-        HRESULT hr = 0;
-        Microsoft::WRL::ComPtr<ID3DBlob> hlsl;
-        Microsoft::WRL::ComPtr<ID3DBlob> error;
-        hr = D3DCompile(tDataBuf->GetInternalBuffer(), (SIZE_T)tDataBuf->GetLength(), name, NULL, NULL, "main", "ps_3_0", 0, 0, &hlsl, &error);
-        if (FAILED(hr))
+        LuaSTG::Core::ShaderID shader = LAPP.GetRenderer2D().createPostEffectShader(name, tDataBuf->GetInternalBuffer(), (SIZE_T)tDataBuf->GetLength());
+        if (!shader.handle)
         {
-            spdlog::error("[luastg] LoadFX: 编译着色器 '{}' ('{}') 失败：{}", name, path, (char*)error->GetBufferPointer());
-            return false;
+            spdlog::error("[luastg] LoadFX: 创建着色器 '{}' ('{}') 失败：调用 LuaSTG::Core::Renderer::createPostEffectShader 出错", name, path);
         }
-        Microsoft::WRL::ComPtr<IDirect3DPixelShader9> ps;
-        hr = ((IDirect3DDevice9*)LAPP.GetRenderDev()->GetHandle())->CreatePixelShader((DWORD*)hlsl->GetBufferPointer(), &ps);
-        if (FAILED(hr))
-        {
-            spdlog::error("[luastg] LoadFX: 创建着色器 '{}' ('{}') 失败：调用 IDirect3DDevice9::CreatePixelShader 出错 (HRESULT={})", name, path, hr);
-            return false;
-        }
-
         try
         {
             fcyRefPointer<ResFX> tRes;
-            tRes.DirectSet(new ResFX(name, (void*)ps.Detach()));
+            tRes.DirectSet(new ResFX(name, shader));
             m_FXPool.emplace(name, tRes);
         }
         catch (const std::bad_alloc&)

@@ -1,10 +1,10 @@
 ﻿#include "ResourceFX.hpp"
-#include <d3d9.h>
+#include "AppFrame.h"
 
 namespace LuaSTGPlus
 {
     ResFX::ResFX(const char* name, fcyRefPointer<f2dEffect> shader)
-        : Resource(ResourceType::FX, name), m_bIsEffect(true), m_pShader(shader), m_pPixelShader(nullptr)
+        : Resource(ResourceType::FX, name), m_bIsEffect(true), m_pShader(shader)
     {
         // 扫描所有的变量注释
         for (fuInt i = 0; i < m_pShader->GetParamCount(); ++i) {
@@ -45,15 +45,15 @@ namespace LuaSTGPlus
             }
         }
     }
-    ResFX::ResFX(const char* name, void* shader)
-        : Resource(ResourceType::FX, name), m_bIsEffect(false), m_pPixelShader(shader)
-    {    }
+    ResFX::ResFX(const char* name, LuaSTG::Core::ShaderID shader)
+        : Resource(ResourceType::FX, name)
+        , m_bIsEffect(false)
+        , m_pPixelShader(shader)
+    {
+    }
     ResFX::~ResFX()
     {
-        if (m_pPixelShader)
-        {
-            ((IDirect3DPixelShader9*)m_pPixelShader)->Release();
-        }
+        LAPP.GetRenderer2D().destroyPostEffectShader(m_pPixelShader);
     }
     
     void ResFX::SetPostEffectTexture(f2dTexture2D* val) noexcept {
