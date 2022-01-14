@@ -1433,7 +1433,7 @@ namespace LuaSTG::Core
 					.DepthBias = D3D11_DEFAULT_DEPTH_BIAS,
 					.DepthBiasClamp = D3D11_DEFAULT_DEPTH_BIAS_CLAMP,
 					.SlopeScaledDepthBias = D3D11_DEFAULT_SLOPE_SCALED_DEPTH_BIAS,
-					.DepthClipEnable = FALSE,
+					.DepthClipEnable = TRUE,
 					.ScissorEnable = TRUE,
 					.MultisampleEnable = FALSE,
 					.AntialiasedLineEnable = FALSE,
@@ -1743,9 +1743,9 @@ namespace LuaSTG::Core
 				D3D11_INPUT_ELEMENT_DESC layout_[] =
 				{
 					// DrawVertex2D
-					{ "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT  , 0, 0 , D3D11_INPUT_PER_VERTEX_DATA, 0 },
-					{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT  , 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-					{ "COLOR",    0, DXGI_FORMAT_B8G8R8A8_UNORM, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+					{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0 , D3D11_INPUT_PER_VERTEX_DATA, 0 },
+					{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT   , 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+					{ "COLOR",    0, DXGI_FORMAT_B8G8R8A8_UNORM , 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 				};
 				hr = gHR = _device->CreateInputLayout(layout_, 3, blob_->GetBufferPointer(), blob_->GetBufferSize(), &_input_layout);
 				if (FAILED(hr))
