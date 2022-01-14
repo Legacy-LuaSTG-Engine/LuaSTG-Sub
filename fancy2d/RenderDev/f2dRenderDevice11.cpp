@@ -370,14 +370,20 @@ fResult f2dRenderDevice11::Clear(const fcyColor& BackBufferColor, fFloat ZValue)
 	{
 		ID3D11RenderTargetView* rtv = *m_RenderTarget ? ((f2dRenderTarget11*)*m_RenderTarget)->GetRTView() : d3d11_rendertarget.Get();
 		ID3D11DepthStencilView* dsv = *m_DepthStencil ? ((f2dDepthStencil11*)*m_DepthStencil)->GetView() : d3d11_depthstencil.Get();
-		FLOAT clear_color[4] = {
-			(float)BackBufferColor.r / 255.0f,
-			(float)BackBufferColor.g / 255.0f,
-			(float)BackBufferColor.b / 255.0f,
-			(float)BackBufferColor.a / 255.0f,
-		};
-		d3d11_devctx->ClearRenderTargetView(rtv, clear_color);
-		d3d11_devctx->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, ZValue, 0);
+		if (rtv)
+		{
+			FLOAT clear_color[4] = {
+				(float)BackBufferColor.r / 255.0f,
+				(float)BackBufferColor.g / 255.0f,
+				(float)BackBufferColor.b / 255.0f,
+				(float)BackBufferColor.a / 255.0f,
+			};
+			d3d11_devctx->ClearRenderTargetView(rtv, clear_color);
+		}
+		if (dsv)
+		{
+			d3d11_devctx->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, ZValue, 0);
+		}
 	}
 	return FCYERR_OK;
 }
@@ -387,14 +393,20 @@ fResult f2dRenderDevice11::Clear(const fcyColor& BackBufferColor, fFloat ZValue,
 	{
 		ID3D11RenderTargetView* rtv = *m_RenderTarget ? ((f2dRenderTarget11*)*m_RenderTarget)->GetRTView() : d3d11_rendertarget.Get();
 		ID3D11DepthStencilView* dsv = *m_DepthStencil ? ((f2dDepthStencil11*)*m_DepthStencil)->GetView() : d3d11_depthstencil.Get();
-		FLOAT clear_color[4] = {
-			(float)BackBufferColor.r / 255.0f,
-			(float)BackBufferColor.g / 255.0f,
-			(float)BackBufferColor.b / 255.0f,
-			(float)BackBufferColor.a / 255.0f,
-		};
-		d3d11_devctx->ClearRenderTargetView(rtv, clear_color);
-		d3d11_devctx->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, ZValue, (UINT8)StencilValue);
+		if (rtv)
+		{
+			FLOAT clear_color[4] = {
+				(float)BackBufferColor.r / 255.0f,
+				(float)BackBufferColor.g / 255.0f,
+				(float)BackBufferColor.b / 255.0f,
+				(float)BackBufferColor.a / 255.0f,
+			};
+			d3d11_devctx->ClearRenderTargetView(rtv, clear_color);
+		}
+		if (dsv)
+		{
+			d3d11_devctx->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, ZValue, (UINT8)StencilValue);
+		}
 	}
 	return FCYERR_OK;
 }
@@ -403,13 +415,16 @@ fResult f2dRenderDevice11::ClearColor(const fcyColor& BackBufferColor)
 	if (d3d11_devctx)
 	{
 		ID3D11RenderTargetView* rtv = *m_RenderTarget ? ((f2dRenderTarget11*)*m_RenderTarget)->GetRTView() : d3d11_rendertarget.Get();
-		FLOAT clear_color[4] = {
-			(float)BackBufferColor.r / 255.0f,
-			(float)BackBufferColor.g / 255.0f,
-			(float)BackBufferColor.b / 255.0f,
-			(float)BackBufferColor.a / 255.0f,
-		};
-		d3d11_devctx->ClearRenderTargetView(rtv, clear_color);
+		if (rtv)
+		{
+			FLOAT clear_color[4] = {
+				(float)BackBufferColor.r / 255.0f,
+				(float)BackBufferColor.g / 255.0f,
+				(float)BackBufferColor.b / 255.0f,
+				(float)BackBufferColor.a / 255.0f,
+			};
+			d3d11_devctx->ClearRenderTargetView(rtv, clear_color);
+		}
 	}
 	return FCYERR_OK;
 }
@@ -418,7 +433,10 @@ fResult f2dRenderDevice11::ClearZBuffer(fFloat Value)
 	if (d3d11_devctx)
 	{
 		ID3D11DepthStencilView* dsv = *m_DepthStencil ? ((f2dDepthStencil11*)*m_DepthStencil)->GetView() : d3d11_depthstencil.Get();
-		d3d11_devctx->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, Value, 0);
+		if (dsv)
+		{
+			d3d11_devctx->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, Value, 0);
+		}
 	}
 	return FCYERR_OK;
 }
@@ -427,7 +445,10 @@ fResult f2dRenderDevice11::ClearStencilBuffer(fuInt StencilValue)
 	if (d3d11_devctx)
 	{
 		ID3D11DepthStencilView* dsv = *m_DepthStencil ? ((f2dDepthStencil11*)*m_DepthStencil)->GetView() : d3d11_depthstencil.Get();
-		d3d11_devctx->ClearDepthStencilView(dsv, D3D11_CLEAR_STENCIL, 0.0f, (UINT8)StencilValue);
+		if (dsv)
+		{
+			d3d11_devctx->ClearDepthStencilView(dsv, D3D11_CLEAR_STENCIL, 0.0f, (UINT8)StencilValue);
+		}
 	}
 	return FCYERR_OK;
 }
@@ -642,7 +663,7 @@ bool f2dRenderDevice11::createSwapchain(f2dDisplayMode* pmode)
 			hr = gHR = dxgi_swapchain1.As(&dxgi_swapchain);
 		}
 	}
-	if (FAILED(hr))
+	if (!dxgi_swapchain)
 	{
 		// 回落到 Windows 7 的方式创建
 		DXGI_MODE_DESC mode = {
@@ -701,6 +722,11 @@ void f2dRenderDevice11::destroyRenderAttachments()
 }
 bool f2dRenderDevice11::createRenderAttachments()
 {
+	if (!dxgi_swapchain)
+	{
+		return false;
+	}
+
 	HRESULT hr = 0;
 
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> dxgi_surface;
