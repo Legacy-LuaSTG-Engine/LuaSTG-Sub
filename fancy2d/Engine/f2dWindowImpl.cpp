@@ -70,11 +70,13 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 	case WM_ACTIVATEAPP:
 		if (wParam == TRUE)
 		{
-			if(pListener) pListener->OnGetFocus();
+			if (pWindow->m_pGraphicListener) pWindow->m_pGraphicListener->OnGetFocus();
+			if (pListener) pListener->OnGetFocus();
 		}
 		else if (wParam == FALSE)
 		{
-			if(pListener) pListener->OnLostFocus();
+			if (pWindow->m_pGraphicListener) pWindow->m_pGraphicListener->OnLostFocus();
+			if (pListener) pListener->OnLostFocus();
 		}
 		break;
 	case WM_CREATE:
@@ -627,7 +629,7 @@ void f2dWindowImpl::DefaultListener::OnDeviceChange()
 ////////////////////////////////////////////////////////////////////////////////
 
 f2dWindowImpl::f2dWindowImpl(f2dEngineImpl* pEngine, f2dWindowClass* WinCls, const fcyRect& Pos, fcStrW Title, fBool Visiable, F2DWINBORDERTYPE Border, bool DisableIME)
-	: m_DefaultListener(pEngine, this), m_pListener(&m_DefaultListener), m_hWnd(NULL), m_bShow(false), m_CaptionText(Title),
+	: m_DefaultListener(pEngine, this), m_pListener(&m_DefaultListener), m_pGraphicListener(nullptr), m_hWnd(NULL), m_bShow(false), m_CaptionText(Title),
 	m_bHideIME(true), m_hIMC(NULL), m_IMETotalCandidate(0), m_IMESelectedCandidate(0), m_IMEPageStartCandidate(0), m_IMEPageCandidateCount(0)
 {
 	// 定义窗口样式
@@ -848,10 +850,18 @@ f2dWindowEventListener* f2dWindowImpl::GetListener()
 {
 	return m_pListener;
 }
-
 fResult f2dWindowImpl::SetListener(f2dWindowEventListener* pListener)
 {
 	m_pListener = pListener;
+	return FCYERR_OK;
+}
+f2dWindowEventListener* f2dWindowImpl::GetGraphicListener()
+{
+	return m_pGraphicListener;
+}
+fResult f2dWindowImpl::SetGraphicListener(f2dWindowEventListener* pListener)
+{
+	m_pGraphicListener = pListener;
 	return FCYERR_OK;
 }
 

@@ -196,6 +196,9 @@ struct f2dWindow
 	/// @brief 设置监听器
 	virtual fResult SetListener(f2dWindowEventListener* pListener)=0;
 	
+	virtual f2dWindowEventListener* GetGraphicListener() = 0;
+	virtual fResult SetGraphicListener(f2dWindowEventListener* pListener) = 0;
+
 	virtual void AddNativeMessageCallback(ptrdiff_t pWndProc)=0;
 	
 	virtual void RemoveNativeMessageCallback(ptrdiff_t pWndProc)=0;

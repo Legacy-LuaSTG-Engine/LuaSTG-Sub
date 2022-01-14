@@ -162,6 +162,7 @@ private:
 	// 监听器
 	DefaultListener m_DefaultListener;
 	f2dWindowEventListener* m_pListener;
+	f2dWindowEventListener* m_pGraphicListener;
 	
 	// 输入法上下文
 	HIMC _defaultIMC;
@@ -191,6 +192,8 @@ protected: // 内部方法
 public: // 接口实现
 	f2dWindowEventListener* GetListener();
 	fResult SetListener(f2dWindowEventListener* pListener);
+	f2dWindowEventListener* GetGraphicListener();
+	fResult SetGraphicListener(f2dWindowEventListener* pListener);
 	
 	void AddNativeMessageCallback(ptrdiff_t pWndProc);
 	void RemoveNativeMessageCallback(ptrdiff_t pWndProc);

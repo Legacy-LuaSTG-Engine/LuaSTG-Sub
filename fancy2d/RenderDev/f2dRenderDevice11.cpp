@@ -77,9 +77,14 @@ f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, fuInt BackBufferWid
 	{
 		throw fcyException("f2dRenderDevice11::f2dRenderDevice11", "f2dRenderDevice11::createSwapchain failed.");
 	}
+
+	m_pEngine->GetMainWindow()->SetGraphicListener(this);
 }
 f2dRenderDevice11::~f2dRenderDevice11()
 {
+	if (m_pEngine->GetMainWindow())
+		m_pEngine->GetMainWindow()->SetGraphicListener(nullptr);
+
 	// 删除渲染器监听链
 	for (auto& v : _setEventListeners)
 	{
@@ -192,7 +197,25 @@ fResult f2dRenderDevice11::SyncDevice()
 	}
 	// 小 Hack，在这里绑定交换链的 RenderTarget
 	setupRenderAttachments();
+	// 试着重新进入全屏
+	if (swapchain_want_enter_fullscreen)
+	{
+		swapchain_want_enter_fullscreen = false;
+		if (!swapchain_windowed && dxgi_swapchain)
+		{
+			BOOL bFSC = FALSE;
+			HRESULT hr = gHR = dxgi_swapchain->GetFullscreenState(&bFSC, NULL);
+			if (FAILED(hr) || !bFSC)
+			{
+				dxgi_swapchain->SetFullscreenState(TRUE, NULL);
+			}
+		}
+	}
 	return FCYERR_OK;
+}
+void f2dRenderDevice11::OnGetFocus()
+{
+	swapchain_want_enter_fullscreen = true;
 }
 
 // 创建资源

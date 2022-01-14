@@ -15,7 +15,8 @@ class f2dEngineImpl;
 /// @brief fancy2D渲染设备实现
 ////////////////////////////////////////////////////////////////////////////////
 class f2dRenderDevice11 :
-	public fcyRefObjImpl<f2dRenderDevice>
+	public fcyRefObjImpl<f2dRenderDevice>,
+	public f2dWindowEventListener
 {
 private:
 	struct EventListenerNode
@@ -50,6 +51,7 @@ private:
 	fBool swapchain_windowed = true;
 	fBool swapchain_vsync = false;
 	fBool swapchain_flip = false;
+	fBool swapchain_want_enter_fullscreen = false;
 	std::vector<f2dDisplayMode> display_modes;
 
 	Microsoft::WRL::ComPtr<IDXGIFactory1> dxgi_factory;
@@ -90,6 +92,10 @@ public: // 内部函数
 	fResult SubmitBlendState(const f2dBlendState& State);
 	fResult SubmitVD(IDirect3DVertexDeclaration9* pVD);
 	fResult SubmitTextureBlendOP_Color(D3DTEXTUREOP ColorOP);
+public:
+	// 用于全屏
+
+	void OnGetFocus();
 public:
 	// 接口实现
 
