@@ -2469,6 +2469,10 @@ namespace LuaSTG::Core
 					gHR = S_FALSE;
 				}
 			}
+			if (sw_ < 1.0f || sh_ < 1.0f)
+			{
+				return;
+			}
 
 			setOrtho(Box{ .left = 0.0f, .top = sh_, .front = 0.0f, .right = sw_, .bottom = 0.0f, .back = 1.0f });
 
