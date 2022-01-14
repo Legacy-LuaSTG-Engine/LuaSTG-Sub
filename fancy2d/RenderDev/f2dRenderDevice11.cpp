@@ -195,17 +195,34 @@ fResult f2dRenderDevice11::SyncDevice()
 		m_pEngine->ThrowException(fcyException("f2dRenderDevice11::SyncDevice", tBuffer));
 		return FCYERR_OK;
 	}
-	// 试着重新进入全屏
-	if (swapchain_want_enter_fullscreen)
+	// 要退出全屏
+	if (swapchain_want_exit_fullscreen)
 	{
-		swapchain_want_enter_fullscreen = false;
+		swapchain_want_exit_fullscreen = false;
 		if (!swapchain_windowed && dxgi_swapchain)
 		{
 			BOOL bFSC = FALSE;
 			HRESULT hr = gHR = dxgi_swapchain->GetFullscreenState(&bFSC, NULL);
-			if (FAILED(hr) || !bFSC)
+			if (bFSC)
 			{
-				dxgi_swapchain->SetFullscreenState(TRUE, NULL);
+				dxgi_swapchain->SetFullscreenState(FALSE, NULL);
+			}
+		}
+	}
+	else
+	{
+		// 试着重新进入全屏
+		if (swapchain_want_enter_fullscreen)
+		{
+			swapchain_want_enter_fullscreen = false;
+			if (!swapchain_windowed && dxgi_swapchain)
+			{
+				BOOL bFSC = FALSE;
+				HRESULT hr = gHR = dxgi_swapchain->GetFullscreenState(&bFSC, NULL);
+				if (FAILED(hr) || !bFSC)
+				{
+					dxgi_swapchain->SetFullscreenState(TRUE, NULL);
+				}
 			}
 		}
 	}
@@ -230,6 +247,10 @@ fResult f2dRenderDevice11::SyncDevice()
 	// 小 Hack，在这里绑定交换链的 RenderTarget
 	setupRenderAttachments();
 	return FCYERR_OK;
+}
+void f2dRenderDevice11::OnLostFocus()
+{
+	swapchain_want_exit_fullscreen = true;
 }
 void f2dRenderDevice11::OnGetFocus()
 {

@@ -51,6 +51,7 @@ private:
 	fBool swapchain_windowed = true;
 	fBool swapchain_vsync = false;
 	fBool swapchain_flip = false;
+	fBool swapchain_want_exit_fullscreen = false;
 	fBool swapchain_want_enter_fullscreen = false;
 	fBool swapchain_want_resize = false;
 	std::vector<f2dDisplayMode> display_modes;
@@ -96,6 +97,7 @@ public: // 内部函数
 public:
 	// 用于全屏
 
+	void OnLostFocus();
 	void OnGetFocus();
 	void OnSize(fuInt ClientWidth, fuInt ClientHeight);
 public:
