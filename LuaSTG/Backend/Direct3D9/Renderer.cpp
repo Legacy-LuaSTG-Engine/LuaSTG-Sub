@@ -1247,6 +1247,12 @@ namespace LuaSTG::Core
 		Microsoft::WRL::ComPtr<ID3D11Buffer> _vertex_buffer;
 		Microsoft::WRL::ComPtr<ID3D11Buffer> _index_buffer;
 		DrawList _draw_list;
+		struct VIBufferWriteFence
+		{
+			INT vertex_offset = 0;
+			UINT index_offset = 0;
+		};
+		VIBufferWriteFence _vi_buffer_fence;
 	private:
 		Microsoft::WRL::ComPtr<ID3D11Buffer> _vp_matrix_buffer;
 		Microsoft::WRL::ComPtr<ID3D11Buffer> _world_matrix_buffer;
@@ -1286,27 +1292,41 @@ namespace LuaSTG::Core
 				if (_draw_list.vertex.size > 0)
 				{
 					D3D11_MAPPED_SUBRESOURCE res_ = {};
-					hr = gHR = _devctx->Map(_vertex_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
+					if ((_draw_list.vertex.capacity - _vi_buffer_fence.vertex_offset) < _draw_list.vertex.size)
+					{
+						_vi_buffer_fence.vertex_offset = 0;
+						hr = gHR = _devctx->Map(_vertex_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
+					}
+					else
+					{
+						hr = gHR = _devctx->Map(_vertex_buffer.Get(), 0, D3D11_MAP_WRITE_NO_OVERWRITE, 0, &res_);
+					}
 					if (FAILED(hr))
 						return false;
-					std::memcpy(res_.pData, _draw_list.vertex.data, _draw_list.vertex.size * sizeof(DrawVertex2D));
+					std::memcpy((DrawVertex2D*)res_.pData + _vi_buffer_fence.vertex_offset, _draw_list.vertex.data, _draw_list.vertex.size * sizeof(DrawVertex2D));
 					_devctx->Unmap(_vertex_buffer.Get(), 0);
 				}
 				// copy index data
 				if (_draw_list.index.size > 0)
 				{
 					D3D11_MAPPED_SUBRESOURCE res_ = {};
-					hr = gHR = _devctx->Map(_index_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
+					if ((_draw_list.index.capacity - _vi_buffer_fence.index_offset) < _draw_list.index.size)
+					{
+						_vi_buffer_fence.index_offset = 0;
+						hr = gHR = _devctx->Map(_index_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
+					}
+					else
+					{
+						hr = gHR = _devctx->Map(_index_buffer.Get(), 0, D3D11_MAP_WRITE_NO_OVERWRITE, 0, &res_);
+					}
 					if (FAILED(hr))
 						return false;
-					std::memcpy(res_.pData, _draw_list.index.data, _draw_list.index.size * sizeof(DrawIndex2D));
+					std::memcpy((DrawIndex2D*)res_.pData + _vi_buffer_fence.index_offset, _draw_list.index.data, _draw_list.index.size * sizeof(DrawIndex2D));
 					_devctx->Unmap(_index_buffer.Get(), 0);
 				}
 				// draw
 				if (_draw_list.command.size > 0)
 				{
-					INT vertex_offset_ = 0;
-					UINT index_offset_ = 0;
 					for (size_t j_ = 0; j_ < _draw_list.command.size; j_ += 1)
 					{
 						const DrawCommand& cmd_ = _draw_list.command.data[j_];
@@ -1314,10 +1334,10 @@ namespace LuaSTG::Core
 						{
 							ID3D11ShaderResourceView* srv = (ID3D11ShaderResourceView*)cmd_.texture.handle;
 							_devctx->PSSetShaderResources(0, 1, &srv);
-							_devctx->DrawIndexed(cmd_.index_count, index_offset_, vertex_offset_);
+							_devctx->DrawIndexed(cmd_.index_count, _vi_buffer_fence.index_offset, _vi_buffer_fence.vertex_offset);
 							// QUESTION: will vertex_count != index_count happen?
-							vertex_offset_ += cmd_.vertex_count;
-							index_offset_ += cmd_.index_count;
+							_vi_buffer_fence.vertex_offset += cmd_.vertex_count;
+							_vi_buffer_fence.index_offset += cmd_.index_count;
 						}
 					}
 				}
@@ -1413,7 +1433,7 @@ namespace LuaSTG::Core
 					.DepthBias = D3D11_DEFAULT_DEPTH_BIAS,
 					.DepthBiasClamp = D3D11_DEFAULT_DEPTH_BIAS_CLAMP,
 					.SlopeScaledDepthBias = D3D11_DEFAULT_SLOPE_SCALED_DEPTH_BIAS,
-					.DepthClipEnable = TRUE,
+					.DepthClipEnable = FALSE,
 					.ScissorEnable = TRUE,
 					.MultisampleEnable = FALSE,
 					.AntialiasedLineEnable = FALSE,
@@ -2517,6 +2537,11 @@ namespace LuaSTG::Core
 
 			ID3D11Buffer* psdata_ = _camera_pos_buffer.Get();
 			_devctx->PSSetConstantBuffers(0, 1, &psdata_);
+			ID3D11SamplerState* void_samp_[4] = { NULL, NULL, NULL, NULL };
+			_devctx->PSSetSamplers(1, 4, void_samp_);
+			ID3D11ShaderResourceView* void_srv_[4] = { NULL, NULL, NULL, NULL };
+			_devctx->PSSetShaderResources(1, 4, void_srv_);
+
 			_state_set = sbak;
 			_camera_state_set = cbak;
 			initState();
