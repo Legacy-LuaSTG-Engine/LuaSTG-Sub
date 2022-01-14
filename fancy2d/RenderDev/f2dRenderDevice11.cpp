@@ -195,8 +195,6 @@ fResult f2dRenderDevice11::SyncDevice()
 		m_pEngine->ThrowException(fcyException("f2dRenderDevice11::SyncDevice", tBuffer));
 		return FCYERR_OK;
 	}
-	// 小 Hack，在这里绑定交换链的 RenderTarget
-	setupRenderAttachments();
 	// 试着重新进入全屏
 	if (swapchain_want_enter_fullscreen)
 	{
@@ -211,11 +209,35 @@ fResult f2dRenderDevice11::SyncDevice()
 			}
 		}
 	}
+	// 需要重新调整交换链大小
+	if (swapchain_want_resize)
+	{
+		swapchain_want_resize = false;
+		destroyRenderAttachments();
+		if (dxgi_swapchain)
+		{
+			HRESULT hr = gHR = dxgi_swapchain->ResizeBuffers(0, swapchain_width, swapchain_height, DXGI_FORMAT_UNKNOWN, 0);
+			if (FAILED(hr))
+			{
+				return FCYERR_INTERNALERR;
+			}
+		}
+		if (!createRenderAttachments())
+		{
+			return FCYERR_INTERNALERR;
+		}
+	}
+	// 小 Hack，在这里绑定交换链的 RenderTarget
+	setupRenderAttachments();
 	return FCYERR_OK;
 }
 void f2dRenderDevice11::OnGetFocus()
 {
 	swapchain_want_enter_fullscreen = true;
+}
+void f2dRenderDevice11::OnSize(fuInt ClientWidth, fuInt ClientHeight)
+{
+	swapchain_want_resize = true;
 }
 
 // 创建资源

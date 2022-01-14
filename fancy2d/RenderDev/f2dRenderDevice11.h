@@ -52,6 +52,7 @@ private:
 	fBool swapchain_vsync = false;
 	fBool swapchain_flip = false;
 	fBool swapchain_want_enter_fullscreen = false;
+	fBool swapchain_want_resize = false;
 	std::vector<f2dDisplayMode> display_modes;
 
 	Microsoft::WRL::ComPtr<IDXGIFactory1> dxgi_factory;
@@ -96,6 +97,7 @@ public:
 	// 用于全屏
 
 	void OnGetFocus();
+	void OnSize(fuInt ClientWidth, fuInt ClientHeight);
 public:
 	// 接口实现
 

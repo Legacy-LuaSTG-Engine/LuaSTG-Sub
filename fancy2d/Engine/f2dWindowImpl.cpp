@@ -107,6 +107,7 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 		{
 			fuInt cx = LOWORD(lParam);
 			fuInt cy = HIWORD(lParam); 
+			if (pWindow->m_pGraphicListener) pWindow->m_pGraphicListener->OnSize(cx, cy);
 			if(pListener) pListener->OnSize(cx,cy);
 		}
 		break;
