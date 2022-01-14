@@ -372,7 +372,7 @@ f2dTexture2D* f2dRenderDevice11::GetRenderTarget()
 }
 fResult f2dRenderDevice11::SetRenderTarget(f2dTexture2D* pTex)
 {
-	if (!pTex->IsRenderTarget())
+	if (pTex && !pTex->IsRenderTarget())
 		return FCYERR_INVAILDPARAM;
 
 	if (m_pCurGraphics && m_pCurGraphics->IsInRender())
@@ -558,7 +558,7 @@ bool f2dRenderDevice11::createSwapchain(f2dDisplayMode* pmode)
 			.RefreshRate = DXGI_RATIONAL{.Numerator = 0, .Denominator = 0,}, // 警告：这些数值全™是我杜撰的，要是程序崩溃了不关我的事情
 			.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE, // 警告：这些数值全™是我杜撰的，要是程序崩溃了不关我的事情
 			.Scaling = DXGI_MODE_SCALING_UNSPECIFIED, // 警告：这些数值全™是我杜撰的，要是程序崩溃了不关我的事情
-			.Windowed = FALSE,
+			.Windowed = TRUE,
 		};
 		if (pmode)
 		{
@@ -602,7 +602,7 @@ bool f2dRenderDevice11::createSwapchain(f2dDisplayMode* pmode)
 			.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
 			.BufferCount = 2,
 			.OutputWindow = win32_window,
-			.Windowed = swapchain_windowed,
+			.Windowed = TRUE,
 			.SwapEffect = DXGI_SWAP_EFFECT_DISCARD, // Windows 7 只支持这个
 			.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH,
 		};
