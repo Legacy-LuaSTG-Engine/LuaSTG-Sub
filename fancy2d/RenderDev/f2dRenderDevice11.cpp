@@ -172,6 +172,40 @@ char const* windows_version_to_string()
 
 	return "Windows ?（如果此程序能运行，也是一件美事）";
 }
+char const* d3d_feature_level_to_string(bool b, D3D_FEATURE_LEVEL level)
+{
+	if (b)
+	{
+		switch (level)
+		{
+		case D3D_FEATURE_LEVEL_12_1: return "功能级别 12.1";
+		case D3D_FEATURE_LEVEL_12_0: return "功能级别 12.0";
+		case D3D_FEATURE_LEVEL_11_1: return "功能级别 11.1";
+		case D3D_FEATURE_LEVEL_11_0: return "功能级别 11.0";
+		case D3D_FEATURE_LEVEL_10_1: return "功能级别 10.1";
+		case D3D_FEATURE_LEVEL_10_0: return "功能级别 10.0";
+		default: return "功能级别 ??.?（如果你遇到这种情况请告诉我）";
+		}
+	}
+	else
+	{
+		return "不支持，或功能级别过低";
+	}
+}
+char const* d3d_feature_level_to_string2(D3D_FEATURE_LEVEL level)
+{
+	switch (level)
+	{
+	case 0xc200: return "12.2";
+	case D3D_FEATURE_LEVEL_12_1: return "12.1";
+	case D3D_FEATURE_LEVEL_12_0: return "12.0";
+	case D3D_FEATURE_LEVEL_11_1: return "11.1";
+	case D3D_FEATURE_LEVEL_11_0: return "11.0";
+	case D3D_FEATURE_LEVEL_10_1: return "10.1";
+	default:
+	case D3D_FEATURE_LEVEL_10_0: return "10.0";
+	}
+}
 
 #ifdef max
 #undef max // FUCK YOU!
@@ -181,31 +215,9 @@ char const* windows_version_to_string()
 
 // 类主体
 
-f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, fuInt BackBufferWidth, fuInt BackBufferHeight, fBool Windowed, fBool VSync, F2DAALEVEL AALevel)
-	: m_pEngine(pEngine)
-	, m_CreateThreadID(GetCurrentThreadId())
-	, swapchain_width(BackBufferWidth)
-	, swapchain_height(BackBufferHeight)
-	, swapchain_windowed(false) // 必须以窗口模式启动
-	, swapchain_vsync(VSync)
+bool f2dRenderDevice11::selectAdapter()
 {
-	m_hWnd = (HWND)pEngine->GetMainWindow()->GetHandle();
-	win32_window = m_hWnd;
 	HRESULT hr = 0;
-
-	spdlog::info("[fancy2d] 操作系统版本：{}", windows_version_to_string());
-	spdlog::info("[fancy2d] 开始创建图形组件");
-
-	spdlog::info("[fancy2d] 开始创建基本 DXGI 组件");
-
-	// 创建 DXGI 工厂
-
-	hr = gHR = CreateDXGIFactory1(IID_IDXGIFactory1, &dxgi_factory);
-	if (FAILED(hr))
-	{
-		spdlog::error("[fancy2d] CreateDXGIFactory1 调用失败");
-		throw fcyWin32COMException("f2dRenderDevice11::f2dRenderDevice11", "CreateDXGIFactory1 failed.", hr);
-	}
 
 	// 公共参数
 
@@ -288,24 +300,6 @@ f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, fuInt BackBufferWid
 				return "硬件设备";
 			}
 		};
-		auto to_d3d11_string = [](bool b, D3D_FEATURE_LEVEL level) -> char const*
-		{
-			if (b)
-			{
-				switch (level)
-				{
-				case D3D_FEATURE_LEVEL_11_1: return "功能级别 11.1";
-				case D3D_FEATURE_LEVEL_11_0: return "功能级别 11.0";
-				case D3D_FEATURE_LEVEL_10_1: return "功能级别 10.1";
-				case D3D_FEATURE_LEVEL_10_0: return "功能级别 10.0";
-				default: return "功能级别 ??.?（如果你遇到这种情况请告诉我）";
-				}
-			}
-			else
-			{
-				return "不支持，或功能级别过低";
-			}
-		};
 		DXGI_ADAPTER_DESC1 desc_ = {};
 		if (bHR = gHR = dxgi_adapter_temp->GetDesc1(&desc_))
 		{
@@ -326,7 +320,7 @@ f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, fuInt BackBufferWid
 				, idx
 				, dev_name
 				, adapter_flags_to_string(desc_.Flags)
-				, to_d3d11_string(supported_d3d11, level_info), soft_dev_type ? "（注：软件或远程设备性能不足以运行游戏，仅供开发使用）" : ""
+				, d3d_feature_level_to_string(supported_d3d11, level_info), soft_dev_type ? "（注：软件或远程设备性能不足以运行游戏，仅供开发使用）" : ""
 				, bytes_count_to_string(desc_.DedicatedVideoMemory)
 				, bytes_count_to_string(desc_.DedicatedSystemMemory)
 				, bytes_count_to_string(desc_.SharedSystemMemory)
@@ -338,7 +332,7 @@ f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, fuInt BackBufferWid
 			);
 			if (soft_dev_type)
 			{
-				supported_d3d11 = false;
+				supported_d3d11 = false; // 排除软件或远程设备
 			}
 		}
 		else
@@ -460,7 +454,7 @@ f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, fuInt BackBufferWid
 		}
 	}
 	dxgi_adapter_temp.Reset();
-	
+
 	// 获取图形设备
 
 	if (dxgi_adapter)
@@ -483,7 +477,189 @@ f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, fuInt BackBufferWid
 			"        *1 除非已安装虚拟机软件提供的图形驱动程序\n"
 			"        *2 比如 Windows 系统玄学 Bug\n"
 		);
-		throw fcyException("f2dRenderDevice11::f2dRenderDevice11", "no adapter avalid.");
+		return false;
+	}
+
+	return true;
+}
+bool f2dRenderDevice11::checkFeatureSupported()
+{
+	auto mt_support_to_string = [](D3D11_FEATURE_DATA_THREADING v) -> std::string
+	{
+		std::string buf;
+		if (v.DriverConcurrentCreates)
+		{
+			buf += "异步资源创建";
+		}
+		if (v.DriverCommandLists)
+		{
+			if (!buf.empty())
+			{
+				buf += "、";
+			}
+			buf += "多线程命令队列";
+		}
+		if (buf.empty())
+		{
+			return buf;
+		}
+		return "不支持";
+	};
+
+	D3D11_FEATURE_DATA_THREADING d3d11_feature_mt = {};
+	HRESULT hr_mt = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_THREADING, &d3d11_feature_mt, sizeof(d3d11_feature_mt));
+
+	D3D11_FEATURE_DATA_FORMAT_SUPPORT d3d11_feature_format_rgba32 = { .InFormat = DXGI_FORMAT_R8G8B8A8_UNORM };
+	HRESULT hr_fmt_rgba32 = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_FORMAT_SUPPORT, &d3d11_feature_format_rgba32, sizeof(d3d11_feature_format_rgba32));
+	D3D11_FEATURE_DATA_FORMAT_SUPPORT d3d11_feature_format_rgba32_srgb = { .InFormat = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB };
+	HRESULT hr_fmt_rgba32_srgb = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_FORMAT_SUPPORT, &d3d11_feature_format_rgba32_srgb, sizeof(d3d11_feature_format_rgba32_srgb));
+	D3D11_FEATURE_DATA_FORMAT_SUPPORT  d3d11_feature_format_bgra32 = { .InFormat = DXGI_FORMAT_B8G8R8A8_UNORM };
+	HRESULT hr_fmt_bgra32 = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_FORMAT_SUPPORT, &d3d11_feature_format_bgra32, sizeof(d3d11_feature_format_bgra32));
+	D3D11_FEATURE_DATA_FORMAT_SUPPORT d3d11_feature_format_bgra32_srgb = { .InFormat = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB };
+	HRESULT hr_fmt_bgra32_srgb = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_FORMAT_SUPPORT, &d3d11_feature_format_bgra32_srgb, sizeof(d3d11_feature_format_bgra32_srgb));
+	D3D11_FEATURE_DATA_FORMAT_SUPPORT d3d11_feature_format_d24_s8 = { .InFormat = DXGI_FORMAT_D24_UNORM_S8_UINT };
+	HRESULT hr_fmt_d24_s8 = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_FORMAT_SUPPORT, &d3d11_feature_format_d24_s8, sizeof(d3d11_feature_format_d24_s8));
+
+	D3D11_FEATURE_DATA_ARCHITECTURE_INFO d3d11_feature_arch = {};
+	HRESULT hr_arch = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_ARCHITECTURE_INFO, &d3d11_feature_arch, sizeof(d3d11_feature_arch));
+
+	D3D11_FEATURE_DATA_D3D11_OPTIONS2 d3d11_feature_o2 = {};
+	HRESULT hr_o2 = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_D3D11_OPTIONS2, &d3d11_feature_o2, sizeof(d3d11_feature_o2));
+
+#define _FORMAT_INFO_STRING_FMT \
+		"        创建二维纹理：{}\n"\
+		"        用于顶点颜色：{}\n"\
+		"        多级渐进纹理：{}\n"\
+		"        自动生成多级渐进纹理：{}\n"\
+		"        绑定为渲染目标：{}\n"\
+		"        参与像素颜色混合：{}\n"\
+		"        作为显示输出：{}\n"
+
+#define _FORMAT_INFO_STRING_FMT2 \
+		"        创建二维纹理：{}\n"\
+		"        多级渐进纹理：{}\n"\
+		"        自动生成多级渐进纹理：{}\n"\
+		"        绑定为渲染目标：{}\n"\
+		"        参与像素颜色混合：{}\n"\
+		"        作为显示输出：{}\n"
+
+#define _FORMAT_INFO_STRING_ARG(x) \
+		, (x.OutFormatSupport & D3D11_FORMAT_SUPPORT_TEXTURE2D) ? "支持" : "不支持"\
+		, (x.OutFormatSupport & D3D11_FORMAT_SUPPORT_IA_VERTEX_BUFFER) ? "支持" : "不支持"\
+		, (x.OutFormatSupport & D3D11_FORMAT_SUPPORT_MIP) ? "支持" : "不支持"\
+		, (x.OutFormatSupport & D3D11_FORMAT_SUPPORT_MIP_AUTOGEN) ? "支持" : "不支持"\
+		, (x.OutFormatSupport & D3D11_FORMAT_SUPPORT_RENDER_TARGET) ? "支持" : "不支持"\
+		, (x.OutFormatSupport & D3D11_FORMAT_SUPPORT_BLENDABLE) ? "支持" : "不支持"\
+		, (x.OutFormatSupport & D3D11_FORMAT_SUPPORT_DISPLAY) ? "支持" : "不支持"
+
+#define _FORMAT_INFO_STRING_ARG2(x) \
+		, (x.OutFormatSupport & D3D11_FORMAT_SUPPORT_TEXTURE2D) ? "支持" : "不支持"\
+		, (x.OutFormatSupport & D3D11_FORMAT_SUPPORT_MIP) ? "支持" : "不支持"\
+		, (x.OutFormatSupport & D3D11_FORMAT_SUPPORT_MIP_AUTOGEN) ? "支持" : "不支持"\
+		, (x.OutFormatSupport & D3D11_FORMAT_SUPPORT_RENDER_TARGET) ? "支持" : "不支持"\
+		, (x.OutFormatSupport & D3D11_FORMAT_SUPPORT_BLENDABLE) ? "支持" : "不支持"\
+		, (x.OutFormatSupport & D3D11_FORMAT_SUPPORT_DISPLAY) ? "支持" : "不支持"
+
+	spdlog::info("[fancy2d] Direct3D 11 设备功能支持：\n"
+		"    功能级别：{}\n"
+		"    R8G8B8A8 格式：\n"
+		_FORMAT_INFO_STRING_FMT
+		"    R8G8B8A8 sRGB 格式：\n"
+		_FORMAT_INFO_STRING_FMT2
+		"    B8G8R8A8 格式：\n"
+		_FORMAT_INFO_STRING_FMT
+		"    B8G8R8A8 sRGB 格式：\n"
+		_FORMAT_INFO_STRING_FMT2
+		"    D24 S8 格式：\n"
+		"        创建二维纹理：{}\n"\
+		"        绑定为深度、模板缓冲区：{}\n"\
+		"    最大二维纹理尺寸：{}\n"
+		"    多线程架构：{}\n"
+		"    渲染架构：{}\n"
+		"    统一内存架构（UMA）：{}"
+		, d3d_feature_level_to_string2(d3d11_level)
+		_FORMAT_INFO_STRING_ARG(d3d11_feature_format_rgba32)
+		_FORMAT_INFO_STRING_ARG2(d3d11_feature_format_rgba32_srgb)
+		_FORMAT_INFO_STRING_ARG(d3d11_feature_format_bgra32)
+		_FORMAT_INFO_STRING_ARG2(d3d11_feature_format_bgra32_srgb)
+		, (d3d11_feature_format_d24_s8.OutFormatSupport & D3D11_FORMAT_SUPPORT_TEXTURE2D) ? "支持" : "不支持"\
+		, (d3d11_feature_format_d24_s8.OutFormatSupport & D3D11_FORMAT_SUPPORT_DEPTH_STENCIL) ? "支持" : "不支持"\
+		, (d3d11_level >= D3D_FEATURE_LEVEL_11_0) ? "16384 x 16384" : "8192 x 8192"
+		, mt_support_to_string(d3d11_feature_mt)
+		, (SUCCEEDED(hr_arch) && d3d11_feature_arch.TileBasedDeferredRenderer) ? "Tile Based Deferred Renderer（TBDR）架构" : "未知，桌面平台一般为 Immediate Mode Rendering（IMR）架构"
+		, (SUCCEEDED(hr_o2) && d3d11_feature_o2.UnifiedMemoryArchitecture) ? "支持" : "不支持"
+	);
+
+#undef _FORMAT_INFO_STRING_FMT
+#undef _FORMAT_INFO_STRING_ARG
+
+	if (
+		(d3d11_feature_format_bgra32.OutFormatSupport & D3D11_FORMAT_SUPPORT_TEXTURE2D)
+		&& (d3d11_feature_format_bgra32.OutFormatSupport & D3D11_FORMAT_SUPPORT_IA_VERTEX_BUFFER)
+		&& (d3d11_feature_format_bgra32.OutFormatSupport & D3D11_FORMAT_SUPPORT_MIP)
+		&& (d3d11_feature_format_bgra32.OutFormatSupport & D3D11_FORMAT_SUPPORT_RENDER_TARGET)
+		&& (d3d11_feature_format_bgra32.OutFormatSupport & D3D11_FORMAT_SUPPORT_BLENDABLE)
+		&& (d3d11_feature_format_bgra32.OutFormatSupport & D3D11_FORMAT_SUPPORT_DISPLAY)
+		)
+	{
+		d3d11_support_bgra = true;
+	}
+	else
+	{
+		spdlog::warn("[fancy2d] 此设备没有完整的 B8G8R8A8 格式支持，程序可能无法正常运行");
+	}
+
+	return d3d11_support_bgra;
+}
+f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, fuInt BackBufferWidth, fuInt BackBufferHeight, fBool Windowed, fBool VSync, F2DAALEVEL AALevel)
+	: m_pEngine(pEngine)
+	, m_CreateThreadID(GetCurrentThreadId())
+	, swapchain_width(BackBufferWidth)
+	, swapchain_height(BackBufferHeight)
+	, swapchain_windowed(false) // 必须以窗口模式启动
+	, swapchain_vsync(VSync)
+{
+	m_hWnd = (HWND)pEngine->GetMainWindow()->GetHandle();
+	win32_window = m_hWnd;
+	HRESULT hr = 0;
+
+	spdlog::info("[fancy2d] 操作系统版本：{}", windows_version_to_string());
+	spdlog::info("[fancy2d] 开始创建图形组件");
+
+	spdlog::info("[fancy2d] 开始创建基本 DXGI 组件");
+
+	// 创建 DXGI 工厂
+
+	hr = gHR = CreateDXGIFactory1(IID_IDXGIFactory1, &dxgi_factory);
+	if (FAILED(hr))
+	{
+		spdlog::error("[fancy2d] CreateDXGIFactory1 调用失败");
+		throw fcyWin32COMException("f2dRenderDevice11::f2dRenderDevice11", "CreateDXGIFactory1 failed.", hr);
+	}
+
+	// 公共参数
+
+	UINT d3d11_creation_flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+#ifdef _DEBUG
+	d3d11_creation_flags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
+	D3D_FEATURE_LEVEL const target_levels_downlevel[3] = {
+			D3D_FEATURE_LEVEL_11_0,
+			D3D_FEATURE_LEVEL_10_1,
+			D3D_FEATURE_LEVEL_10_0,
+	};
+	D3D_FEATURE_LEVEL const target_levels[4] = {
+		D3D_FEATURE_LEVEL_11_1, // Windows 7 没有这个
+		D3D_FEATURE_LEVEL_11_0,
+		D3D_FEATURE_LEVEL_10_1,
+		D3D_FEATURE_LEVEL_10_0,
+	};
+
+	// 获取图形设备
+
+	if (!selectAdapter())
+	{
+		throw fcyException("f2dRenderDevice11::f2dRenderDevice11", "f2dRenderDevice11::selectAdapter failed, no adapter avalid.");
 	}
 	
 	spdlog::info("[fancy2d] 已创建基本 DXGI 组件：DXGI Factory + 图形设备");
@@ -502,6 +678,10 @@ f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, fuInt BackBufferWid
 		throw fcyWin32COMException("f2dRenderDevice11::f2dRenderDevice11", "D3D11CreateDevice failed.", hr);
 	}
 	spdlog::info("[fancy2d] 已创建基本 Direct3D 11 组件：Direct3D 11 设备");
+
+	// 检查各种特性
+
+	checkFeatureSupported();
 
 	// 交换链
 

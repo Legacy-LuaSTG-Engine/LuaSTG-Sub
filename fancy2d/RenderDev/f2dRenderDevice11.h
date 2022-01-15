@@ -69,11 +69,15 @@ private:
 
 	fcyRefPointer<f2dTexture2D> m_RenderTarget;
 	fcyRefPointer<f2dDepthStencilSurface> m_DepthStencil;
+
+	fBool d3d11_support_bgra = false;
 private:
 	int sendDevLostMsg();             // 发送设备丢失事件, 返回对象数目
 	int sendDevResetMsg();            // 发送设备重置事件
 	int dispatchRenderSizeDependentResourcesCreate();
 	int dispatchRenderSizeDependentResourcesDestroy();
+	bool selectAdapter();
+	bool checkFeatureSupported();
 	void destroySwapchain();
 	bool createSwapchain(f2dDisplayMode* mode);
 	void destroyRenderAttachments();
