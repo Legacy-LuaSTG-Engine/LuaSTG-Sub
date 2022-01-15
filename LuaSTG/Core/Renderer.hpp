@@ -250,7 +250,6 @@ namespace LuaSTG::Core
 	class Renderer
 	{
 	private:
-		class RendererImpl;
 		class Renderer11;
 		void* _pImpl;
 	public:

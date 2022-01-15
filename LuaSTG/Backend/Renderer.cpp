@@ -1,5 +1,5 @@
 #include "Core/Renderer.hpp"
-#include "Backend/Direct3D9/Shader.hpp"
+#include "Backend/Shader.hpp"
 #include "Backend/framework.hpp"
 
 #define IDX(x) (size_t)static_cast<uint8_t>(x)
@@ -14,22 +14,14 @@ namespace LuaSTG::Core
 		flag_ |= D3DCOMPILE_SKIP_OPTIMIZATION;
 	#endif
 		Microsoft::WRL::ComPtr<ID3DBlob> errmsg_;
-		if (FAILED(D3DCompile(data, size, name, defs, NULL, "main", target, flag_, 0, ppBlob, &errmsg_)))
+		HRESULT hr = gHR = D3DCompile(data, size, name, defs, NULL, "main", target, flag_, 0, ppBlob, &errmsg_);
+		if (FAILED(hr))
 		{
-			OutputDebugStringA(name);
-			OutputDebugStringA(":\n");
-			OutputDebugStringA((char*)errmsg_->GetBufferPointer());
+			spdlog::error("[luastg] D3DCompile 调用失败");
+			spdlog::error("[luastg] 编译着色器 '{}' 失败：{}", name, (char*)errmsg_->GetBufferPointer());
 			return false;
 		}
 		return true;
-	}
-	bool compileVertexShaderMacro(char const* name, void const* data, size_t size, const D3D_SHADER_MACRO* defs, ID3DBlob** ppBlob)
-	{
-		return compileShaderMacro(name, data, size, "vs_3_0", defs, ppBlob);
-	}
-	bool compilePixelShaderMacro(char const* name, void const* data, size_t size, const D3D_SHADER_MACRO* defs, ID3DBlob** ppBlob)
-	{
-		return compileShaderMacro(name, data, size, "ps_3_0", defs, ppBlob);
 	}
 	bool compileVertexShaderMacro11(char const* name, void const* data, size_t size, const D3D_SHADER_MACRO* defs, ID3DBlob** ppBlob)
 	{
@@ -81,1160 +73,6 @@ namespace LuaSTG::Core
 				&& aspect == aspect_
 				&& znear == znear_
 				&& zfar == zfar_;
-		}
-	};
-
-	class Renderer::RendererImpl
-	{
-	private:
-		Microsoft::WRL::ComPtr<IDirect3DDevice9Ex> _device;
-		Microsoft::WRL::ComPtr<IDirect3DVertexDeclaration9> _input_layout;
-		Microsoft::WRL::ComPtr<IDirect3DVertexBuffer9> _vertex_buffer;
-		Microsoft::WRL::ComPtr<IDirect3DIndexBuffer9> _index_buffer;
-		Microsoft::WRL::ComPtr<IDirect3DVertexShader9> _vertex_shader[4]; // FogState
-		Microsoft::WRL::ComPtr<IDirect3DPixelShader9> _pixel_shader[4][4][2]; // VertexColorBlendState, FogState, TextureAlphaType
-		Microsoft::WRL::ComPtr<IDirect3DStateBlock9> _state_backup;
-	private:
-		DrawList _draw_list;
-		Box _viewport = {};
-		Rect _scissor_rect = {};
-		float _fog_range[2] = {};
-		Color _fog_color = {};
-		bool _state_dirty = false;
-		VertexColorBlendState _vertex_color_blend_state = VertexColorBlendState::Mul;
-		SamplerState _sampler_state = SamplerState::LinearClamp;
-		FogState _fog_state = FogState::Disable;
-		TextureAlphaType _texture_alpha_type = TextureAlphaType::Normal;
-		DepthState _depth_state = DepthState::Disable;
-		BlendState _blend_state = BlendState::Alpha;
-		CameraStateSet _camera_state;
-	private:
-		void releaseTexture()
-		{
-			for (size_t j_ = 0; j_ < _draw_list.command.size; j_ += 1)
-			{
-				DrawCommand& cmd_ = _draw_list.command.data[j_];
-				if (cmd_.texture.handle)
-				{
-					((IDirect3DTexture9*)(cmd_.texture.handle))->Release();
-				}
-			}
-		}
-		bool batchFlush(bool discard = false)
-		{
-			if (!discard)
-			{
-				// copy vertex data
-				if (_draw_list.vertex.size > 0)
-				{
-					void* p_vertex_data_ = NULL;
-					const size_t p_vertex_data_size_ = _draw_list.vertex.size * sizeof(DrawVertex2D);
-					if (FAILED(_vertex_buffer->Lock(0, (UINT)p_vertex_data_size_, &p_vertex_data_, D3DLOCK_DISCARD)))
-						return false;
-					CopyMemory(p_vertex_data_, _draw_list.vertex.data, p_vertex_data_size_);
-					if (FAILED(_vertex_buffer->Unlock()))
-						return false;
-				}
-				// copy index data
-				if (_draw_list.index.size > 0)
-				{
-					void* p_index_data_ = NULL;
-					const size_t p_index_data_size_ = _draw_list.index.size * sizeof(DrawIndex2D);
-					if (FAILED(_index_buffer->Lock(0, (UINT)p_index_data_size_, &p_index_data_, D3DLOCK_DISCARD)))
-						return false;
-					CopyMemory(p_index_data_, _draw_list.index.data, p_index_data_size_);
-					if (FAILED(_index_buffer->Unlock()))
-						return false;
-				}
-				// draw
-				if (_draw_list.command.size > 0)
-				{
-					INT vertex_offset_ = 0;
-					UINT index_offset_ = 0;
-					for (size_t j_ = 0; j_ < _draw_list.command.size; j_ += 1)
-					{
-						const DrawCommand& cmd_ = _draw_list.command.data[j_];
-						if (cmd_.vertex_count > 0 && cmd_.index_count > 0)
-						{
-							_device->SetTexture(0, (IDirect3DTexture9*)cmd_.texture.handle);
-							if (FAILED(_device->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, vertex_offset_, 0, cmd_.vertex_count, index_offset_, cmd_.index_count / 3)))
-								return false;
-							// QUESTION: will vertex_count != index_count happen?
-							vertex_offset_ += cmd_.vertex_count;
-							index_offset_ += cmd_.index_count;
-						}
-					}
-				}
-			}
-			// clear
-			releaseTexture();
-			_draw_list.vertex.size = 0;
-			_draw_list.index.size = 0;
-			_draw_list.command.size = 0;
-			return true;
-		}
-		void setSamplerState(SamplerState state, DWORD index)
-		{
-			IDirect3DDevice9Ex* ctx = _device.Get();
-			switch (state)
-			{
-			case SamplerState::PointWrap:
-				ctx->SetSamplerState(index, D3DSAMP_MINFILTER, D3DTEXF_POINT);
-				ctx->SetSamplerState(index, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
-				ctx->SetSamplerState(index, D3DSAMP_MIPFILTER, D3DTEXF_POINT);
-				ctx->SetSamplerState(index, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);
-				ctx->SetSamplerState(index, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP);
-				ctx->SetSamplerState(index, D3DSAMP_ADDRESSW, D3DTADDRESS_WRAP);
-				break;
-			case SamplerState::PointClamp:
-				ctx->SetSamplerState(index, D3DSAMP_MINFILTER, D3DTEXF_POINT);
-				ctx->SetSamplerState(index, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
-				ctx->SetSamplerState(index, D3DSAMP_MIPFILTER, D3DTEXF_POINT);
-				ctx->SetSamplerState(index, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-				ctx->SetSamplerState(index, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-				ctx->SetSamplerState(index, D3DSAMP_ADDRESSW, D3DTADDRESS_CLAMP);
-				break;
-			case SamplerState::PointBorderBlack:
-				ctx->SetSamplerState(index, D3DSAMP_MINFILTER, D3DTEXF_POINT);
-				ctx->SetSamplerState(index, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
-				ctx->SetSamplerState(index, D3DSAMP_MIPFILTER, D3DTEXF_POINT);
-				ctx->SetSamplerState(index, D3DSAMP_ADDRESSU, D3DTADDRESS_BORDER);
-				ctx->SetSamplerState(index, D3DSAMP_ADDRESSV, D3DTADDRESS_BORDER);
-				ctx->SetSamplerState(index, D3DSAMP_ADDRESSW, D3DTADDRESS_BORDER);
-				ctx->SetSamplerState(index, D3DSAMP_BORDERCOLOR, 0x00000000);
-				break;
-			case SamplerState::PointBorderWhite:
-				ctx->SetSamplerState(index, D3DSAMP_MINFILTER, D3DTEXF_POINT);
-				ctx->SetSamplerState(index, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
-				ctx->SetSamplerState(index, D3DSAMP_MIPFILTER, D3DTEXF_POINT);
-				ctx->SetSamplerState(index, D3DSAMP_ADDRESSU, D3DTADDRESS_BORDER);
-				ctx->SetSamplerState(index, D3DSAMP_ADDRESSV, D3DTADDRESS_BORDER);
-				ctx->SetSamplerState(index, D3DSAMP_ADDRESSW, D3DTADDRESS_BORDER);
-				ctx->SetSamplerState(index, D3DSAMP_BORDERCOLOR, 0xFFFFFFFF);
-				break;
-			case SamplerState::LinearWrap:
-				ctx->SetSamplerState(index, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
-				ctx->SetSamplerState(index, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-				ctx->SetSamplerState(index, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);
-				ctx->SetSamplerState(index, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);
-				ctx->SetSamplerState(index, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP);
-				ctx->SetSamplerState(index, D3DSAMP_ADDRESSW, D3DTADDRESS_WRAP);
-				break;
-			case SamplerState::LinearClamp:
-			default:
-				ctx->SetSamplerState(index, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
-				ctx->SetSamplerState(index, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-				ctx->SetSamplerState(index, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);
-				ctx->SetSamplerState(index, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-				ctx->SetSamplerState(index, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-				ctx->SetSamplerState(index, D3DSAMP_ADDRESSW, D3DTADDRESS_CLAMP);
-				break;
-			case SamplerState::LinearBorderBlack:
-				ctx->SetSamplerState(index, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
-				ctx->SetSamplerState(index, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-				ctx->SetSamplerState(index, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);
-				ctx->SetSamplerState(index, D3DSAMP_ADDRESSU, D3DTADDRESS_BORDER);
-				ctx->SetSamplerState(index, D3DSAMP_ADDRESSV, D3DTADDRESS_BORDER);
-				ctx->SetSamplerState(index, D3DSAMP_ADDRESSW, D3DTADDRESS_BORDER);
-				ctx->SetSamplerState(index, D3DSAMP_BORDERCOLOR, 0x00000000);
-				break;
-			case SamplerState::LinearBorderWhite:
-				ctx->SetSamplerState(index, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
-				ctx->SetSamplerState(index, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-				ctx->SetSamplerState(index, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);
-				ctx->SetSamplerState(index, D3DSAMP_ADDRESSU, D3DTADDRESS_BORDER);
-				ctx->SetSamplerState(index, D3DSAMP_ADDRESSV, D3DTADDRESS_BORDER);
-				ctx->SetSamplerState(index, D3DSAMP_ADDRESSW, D3DTADDRESS_BORDER);
-				ctx->SetSamplerState(index, D3DSAMP_BORDERCOLOR, 0xFFFFFFFF);
-			}
-		}
-	public:
-		bool attachDevice(void* dev)
-		{
-			if (dev == nullptr)
-				return false;
-			_device = static_cast<IDirect3DDevice9Ex*>(dev);
-
-			D3DVERTEXELEMENT9 const input_layout_desc_[4] = {
-				{ 0,  0, D3DDECLTYPE_FLOAT3  , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
-				{ 0, 12, D3DDECLTYPE_FLOAT2  , D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
-				{ 0, 20, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR   , 0 },
-				D3DDECL_END(),
-			};
-			if (FAILED(_device->CreateVertexDeclaration(input_layout_desc_, &_input_layout)))
-				return false;
-
-			const DWORD usage_ = D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY;
-			if (FAILED(_device->CreateVertexBuffer(65536 * sizeof(DrawVertex2D), usage_, 0, D3DPOOL_DEFAULT, &_vertex_buffer, NULL)))
-				return false;
-			if (FAILED(_device->CreateIndexBuffer(65536 * sizeof(DrawIndex2D), usage_, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &_index_buffer, NULL)))
-				return false;
-
-			{
-				const D3D_SHADER_MACRO vs_def_fog0_[] = {
-					{ NULL, NULL },
-				};
-				const D3D_SHADER_MACRO vs_def_fog1_[] = {
-					{ "FOG_ENABLE", "1"},
-					{ NULL, NULL },
-				};
-
-				Microsoft::WRL::ComPtr<ID3DBlob> vs_blob_;
-
-				if (!compileVertexShaderMacro("LVS0", g_VertexShader, sizeof(g_VertexShader), vs_def_fog0_, &vs_blob_))
-					return false;
-				if (FAILED(_device->CreateVertexShader(static_cast<DWORD*>(vs_blob_->GetBufferPointer()), &_vertex_shader[0])))
-					return false;
-
-				if (!compileVertexShaderMacro("LVS1", g_VertexShader, sizeof(g_VertexShader), vs_def_fog1_, &vs_blob_))
-					return false;
-				if (FAILED(_device->CreateVertexShader(static_cast<DWORD*>(vs_blob_->GetBufferPointer()), &_vertex_shader[1])))
-					return false;
-
-				_vertex_shader[2] = _vertex_shader[1];
-				_vertex_shader[3] = _vertex_shader[1];
-			}
-			{
-				Microsoft::WRL::ComPtr<ID3DBlob> ps_blob_;
-
-				const D3D_SHADER_MACRO ps_def_zero_[] = {
-					{ "VERTEX_COLOR_BLEND_ZERO", "1"},
-					{ "PREMUL_ALPHA", "1"},
-					{ NULL, NULL },
-				};
-				const D3D_SHADER_MACRO ps_def_one0_[] = {
-					{ "VERTEX_COLOR_BLEND_ONE", "1"},
-					{ "PREMUL_ALPHA", "1"},
-					{ NULL, NULL },
-				};
-				const D3D_SHADER_MACRO ps_def_add0_[] = {
-					{ "VERTEX_COLOR_BLEND_ADD", "1"},
-					{ "PREMUL_ALPHA", "1"},
-					{ NULL, NULL },
-				};
-				const D3D_SHADER_MACRO ps_def_mul0_[] = {
-					{ "VERTEX_COLOR_BLEND_MUL", "1"},
-					{ "PREMUL_ALPHA", "1"},
-					{ NULL, NULL },
-				};
-
-				if (!compilePixelShaderMacro("LPS000", g_PixelShader, sizeof(g_PixelShader), ps_def_zero_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[0][0][0])))
-					return false;
-
-				if (!compilePixelShaderMacro("LPS100", g_PixelShader, sizeof(g_PixelShader), ps_def_one0_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[1][0][0])))
-					return false;
-
-				if (!compilePixelShaderMacro("LPS200", g_PixelShader, sizeof(g_PixelShader), ps_def_add0_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[2][0][0])))
-					return false;
-
-				if (!compilePixelShaderMacro("LPS300", g_PixelShader, sizeof(g_PixelShader), ps_def_mul0_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[3][0][0])))
-					return false;
-
-				const D3D_SHADER_MACRO ps_def_zero_line_[] = {
-					{ "VERTEX_COLOR_BLEND_ZERO", "1"},
-					{ "FOG_ENABLE", "1"},
-					{ "FOG_LINEAR", "1"},
-					{ "PREMUL_ALPHA", "1"},
-					{ NULL, NULL },
-				};
-				const D3D_SHADER_MACRO ps_def_one0_line_[] = {
-					{ "VERTEX_COLOR_BLEND_ONE", "1"},
-					{ "FOG_ENABLE", "1"},
-					{ "FOG_LINEAR", "1"},
-					{ "PREMUL_ALPHA", "1"},
-					{ NULL, NULL },
-				};
-				const D3D_SHADER_MACRO ps_def_add0_line_[] = {
-					{ "VERTEX_COLOR_BLEND_ADD", "1"},
-					{ "FOG_ENABLE", "1"},
-					{ "FOG_LINEAR", "1"},
-					{ "PREMUL_ALPHA", "1"},
-					{ NULL, NULL },
-				};
-				const D3D_SHADER_MACRO ps_def_mul0_line_[] = {
-					{ "VERTEX_COLOR_BLEND_MUL", "1"},
-					{ "FOG_ENABLE", "1"},
-					{ "FOG_LINEAR", "1"},
-					{ "PREMUL_ALPHA", "1"},
-					{ NULL, NULL },
-				};
-
-				if (!compilePixelShaderMacro("LPS010", g_PixelShader, sizeof(g_PixelShader), ps_def_zero_line_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[0][1][0])))
-					return false;
-
-				if (!compilePixelShaderMacro("LPS110", g_PixelShader, sizeof(g_PixelShader), ps_def_one0_line_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[1][1][0])))
-					return false;
-
-				if (!compilePixelShaderMacro("LPS210", g_PixelShader, sizeof(g_PixelShader), ps_def_add0_line_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[2][1][0])))
-					return false;
-
-				if (!compilePixelShaderMacro("LPS310", g_PixelShader, sizeof(g_PixelShader), ps_def_mul0_line_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[3][1][0])))
-					return false;
-
-				const D3D_SHADER_MACRO ps_def_zero_exp0_[] = {
-					{ "VERTEX_COLOR_BLEND_ZERO", "1"},
-					{ "FOG_ENABLE", "1"},
-					{ "FOG_EXP", "1"},
-					{ "PREMUL_ALPHA", "1"},
-					{ NULL, NULL },
-				};
-				const D3D_SHADER_MACRO ps_def_one0_exp0_[] = {
-					{ "VERTEX_COLOR_BLEND_ONE", "1"},
-					{ "FOG_ENABLE", "1"},
-					{ "FOG_EXP", "1"},
-					{ "PREMUL_ALPHA", "1"},
-					{ NULL, NULL },
-				};
-				const D3D_SHADER_MACRO ps_def_add0_exp0_[] = {
-					{ "VERTEX_COLOR_BLEND_ADD", "1"},
-					{ "FOG_ENABLE", "1"},
-					{ "FOG_EXP", "1"},
-					{ "PREMUL_ALPHA", "1"},
-					{ NULL, NULL },
-				};
-				const D3D_SHADER_MACRO ps_def_mul0_exp0_[] = {
-					{ "VERTEX_COLOR_BLEND_MUL", "1"},
-					{ "FOG_ENABLE", "1"},
-					{ "FOG_EXP", "1"},
-					{ "PREMUL_ALPHA", "1"},
-					{ NULL, NULL },
-				};
-
-				if (!compilePixelShaderMacro("LPS020", g_PixelShader, sizeof(g_PixelShader), ps_def_zero_exp0_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[0][2][0])))
-					return false;
-
-				if (!compilePixelShaderMacro("LPS120", g_PixelShader, sizeof(g_PixelShader), ps_def_one0_exp0_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[1][2][0])))
-					return false;
-
-				if (!compilePixelShaderMacro("LPS220", g_PixelShader, sizeof(g_PixelShader), ps_def_add0_exp0_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[2][2][0])))
-					return false;
-
-				if (!compilePixelShaderMacro("LPS320", g_PixelShader, sizeof(g_PixelShader), ps_def_mul0_exp0_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[3][2][0])))
-					return false;
-
-				const D3D_SHADER_MACRO ps_def_zero_exp2_[] = {
-					{ "VERTEX_COLOR_BLEND_ZERO", "1"},
-					{ "FOG_ENABLE", "1"},
-					{ "FOG_EXP2", "1"},
-					{ "PREMUL_ALPHA", "1"},
-					{ NULL, NULL },
-				};
-				const D3D_SHADER_MACRO ps_def_one0_exp2_[] = {
-					{ "VERTEX_COLOR_BLEND_ONE", "1"},
-					{ "FOG_ENABLE", "1"},
-					{ "FOG_EXP2", "1"},
-					{ "PREMUL_ALPHA", "1"},
-					{ NULL, NULL },
-				};
-				const D3D_SHADER_MACRO ps_def_add0_exp2_[] = {
-					{ "VERTEX_COLOR_BLEND_ADD", "1"},
-					{ "FOG_ENABLE", "1"},
-					{ "FOG_EXP2", "1"},
-					{ "PREMUL_ALPHA", "1"},
-					{ NULL, NULL },
-				};
-				const D3D_SHADER_MACRO ps_def_mul0_exp2_[] = {
-					{ "VERTEX_COLOR_BLEND_MUL", "1"},
-					{ "FOG_ENABLE", "1"},
-					{ "FOG_EXP2", "1"},
-					{ "PREMUL_ALPHA", "1"},
-					{ NULL, NULL },
-				};
-
-				if (!compilePixelShaderMacro("LPS030", g_PixelShader, sizeof(g_PixelShader), ps_def_zero_exp2_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[0][3][0])))
-					return false;
-
-				if (!compilePixelShaderMacro("LPS130", g_PixelShader, sizeof(g_PixelShader), ps_def_one0_exp2_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[1][3][0])))
-					return false;
-
-				if (!compilePixelShaderMacro("LPS230", g_PixelShader, sizeof(g_PixelShader), ps_def_add0_exp2_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[2][3][0])))
-					return false;
-
-				if (!compilePixelShaderMacro("LPS330", g_PixelShader, sizeof(g_PixelShader), ps_def_mul0_exp2_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[3][3][0])))
-					return false;
-
-				const D3D_SHADER_MACRO ps_def_zero_nfog_mula_[] = {
-					{ "VERTEX_COLOR_BLEND_ZERO", "1"},
-					{ NULL, NULL },
-				};
-				const D3D_SHADER_MACRO ps_def_one0_nfog_mula_[] = {
-					{ "VERTEX_COLOR_BLEND_ONE", "1"},
-					{ NULL, NULL },
-				};
-				const D3D_SHADER_MACRO ps_def_add0_nfog_mula_[] = {
-					{ "VERTEX_COLOR_BLEND_ADD", "1"},
-					{ NULL, NULL },
-				};
-				const D3D_SHADER_MACRO ps_def_mul0_nfog_mula_[] = {
-					{ "VERTEX_COLOR_BLEND_MUL", "1"},
-					{ NULL, NULL },
-				};
-
-				if (!compilePixelShaderMacro("LPS001", g_PixelShader, sizeof(g_PixelShader), ps_def_zero_nfog_mula_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[0][0][1])))
-					return false;
-
-				if (!compilePixelShaderMacro("LPS101", g_PixelShader, sizeof(g_PixelShader), ps_def_one0_nfog_mula_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[1][0][1])))
-					return false;
-
-				if (!compilePixelShaderMacro("LPS201", g_PixelShader, sizeof(g_PixelShader), ps_def_add0_nfog_mula_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[2][0][1])))
-					return false;
-
-				if (!compilePixelShaderMacro("LPS301", g_PixelShader, sizeof(g_PixelShader), ps_def_mul0_nfog_mula_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[3][0][1])))
-					return false;
-
-				const D3D_SHADER_MACRO ps_def_zero_line_mula_[] = {
-					{ "VERTEX_COLOR_BLEND_ZERO", "1"},
-					{ "FOG_ENABLE", "1"},
-					{ "FOG_LINEAR", "1"},
-					{ NULL, NULL },
-				};
-				const D3D_SHADER_MACRO ps_def_one0_line_mula_[] = {
-					{ "VERTEX_COLOR_BLEND_ONE", "1"},
-					{ "FOG_ENABLE", "1"},
-					{ "FOG_LINEAR", "1"},
-					{ NULL, NULL },
-				};
-				const D3D_SHADER_MACRO ps_def_add0_line_mula_[] = {
-					{ "VERTEX_COLOR_BLEND_ADD", "1"},
-					{ "FOG_ENABLE", "1"},
-					{ "FOG_LINEAR", "1"},
-					{ NULL, NULL },
-				};
-				const D3D_SHADER_MACRO ps_def_mul0_line_mula_[] = {
-					{ "VERTEX_COLOR_BLEND_MUL", "1"},
-					{ "FOG_ENABLE", "1"},
-					{ "FOG_LINEAR", "1"},
-					{ NULL, NULL },
-				};
-
-				if (!compilePixelShaderMacro("LPS011", g_PixelShader, sizeof(g_PixelShader), ps_def_zero_line_mula_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[0][1][1])))
-					return false;
-
-				if (!compilePixelShaderMacro("LPS111", g_PixelShader, sizeof(g_PixelShader), ps_def_one0_line_mula_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[1][1][1])))
-					return false;
-
-				if (!compilePixelShaderMacro("LPS211", g_PixelShader, sizeof(g_PixelShader), ps_def_add0_line_mula_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[2][1][1])))
-					return false;
-
-				if (!compilePixelShaderMacro("LPS311", g_PixelShader, sizeof(g_PixelShader), ps_def_mul0_line_mula_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[3][1][1])))
-					return false;
-
-				const D3D_SHADER_MACRO ps_def_zero_exp0_mula_[] = {
-					{ "VERTEX_COLOR_BLEND_ZERO", "1"},
-					{ "FOG_ENABLE", "1"},
-					{ "FOG_EXP", "1"},
-					{ NULL, NULL },
-				};
-				const D3D_SHADER_MACRO ps_def_one0_exp0_mula_[] = {
-					{ "VERTEX_COLOR_BLEND_ONE", "1"},
-					{ "FOG_ENABLE", "1"},
-					{ "FOG_EXP", "1"},
-					{ NULL, NULL },
-				};
-				const D3D_SHADER_MACRO ps_def_add0_exp0_mula_[] = {
-					{ "VERTEX_COLOR_BLEND_ADD", "1"},
-					{ "FOG_ENABLE", "1"},
-					{ "FOG_EXP", "1"},
-					{ NULL, NULL },
-				};
-				const D3D_SHADER_MACRO ps_def_mul0_exp0_mula_[] = {
-					{ "VERTEX_COLOR_BLEND_MUL", "1"},
-					{ "FOG_ENABLE", "1"},
-					{ "FOG_EXP", "1"},
-					{ NULL, NULL },
-				};
-
-				if (!compilePixelShaderMacro("LPS021", g_PixelShader, sizeof(g_PixelShader), ps_def_zero_exp0_mula_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[0][2][1])))
-					return false;
-
-				if (!compilePixelShaderMacro("LPS121", g_PixelShader, sizeof(g_PixelShader), ps_def_one0_exp0_mula_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[1][2][1])))
-					return false;
-
-				if (!compilePixelShaderMacro("LPS221", g_PixelShader, sizeof(g_PixelShader), ps_def_add0_exp0_mula_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[2][2][1])))
-					return false;
-
-				if (!compilePixelShaderMacro("LPS321", g_PixelShader, sizeof(g_PixelShader), ps_def_mul0_exp0_mula_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[3][2][1])))
-					return false;
-
-				const D3D_SHADER_MACRO ps_def_zero_exp2_mula_[] = {
-					{ "VERTEX_COLOR_BLEND_ZERO", "1"},
-					{ "FOG_ENABLE", "1"},
-					{ "FOG_EXP2", "1"},
-					{ NULL, NULL },
-				};
-				const D3D_SHADER_MACRO ps_def_one0_exp2_mula_[] = {
-					{ "VERTEX_COLOR_BLEND_ONE", "1"},
-					{ "FOG_ENABLE", "1"},
-					{ "FOG_EXP2", "1"},
-					{ NULL, NULL },
-				};
-				const D3D_SHADER_MACRO ps_def_add0_exp2_mula_[] = {
-					{ "VERTEX_COLOR_BLEND_ADD", "1"},
-					{ "FOG_ENABLE", "1"},
-					{ "FOG_EXP2", "1"},
-					{ NULL, NULL },
-				};
-				const D3D_SHADER_MACRO ps_def_mul0_exp2_mula_[] = {
-					{ "VERTEX_COLOR_BLEND_MUL", "1"},
-					{ "FOG_ENABLE", "1"},
-					{ "FOG_EXP2", "1"},
-					{ NULL, NULL },
-				};
-
-				if (!compilePixelShaderMacro("LPS031", g_PixelShader, sizeof(g_PixelShader), ps_def_zero_exp2_mula_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[0][3][1])))
-					return false;
-
-				if (!compilePixelShaderMacro("LPS131", g_PixelShader, sizeof(g_PixelShader), ps_def_one0_exp2_mula_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[1][3][1])))
-					return false;
-
-				if (!compilePixelShaderMacro("LPS231", g_PixelShader, sizeof(g_PixelShader), ps_def_add0_exp2_mula_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[2][3][1])))
-					return false;
-
-				if (!compilePixelShaderMacro("LPS331", g_PixelShader, sizeof(g_PixelShader), ps_def_mul0_exp2_mula_, &ps_blob_))
-					return false;
-				if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &_pixel_shader[3][3][1])))
-					return false;
-			}
-
-			return true;
-		}
-		void detachDevice()
-		{
-			batchFlush(true);
-			_device.Reset();
-			_input_layout.Reset();
-			_vertex_buffer.Reset();
-			_index_buffer.Reset();
-			for (auto& v : _vertex_shader)
-			{
-				v.Reset();
-			}
-			for (auto& i : _pixel_shader)
-			{
-				for (auto& j : i)
-				{
-					for (auto& v : j)
-					{
-						v.Reset();
-					}
-				}
-			}
-			_state_backup.Reset();
-		}
-
-		bool beginScene()
-		{
-			if (FAILED(_device->CreateStateBlock(D3DSBT_ALL, &_state_backup)))
-				return false;
-			if (FAILED(_state_backup->Capture()))
-			{
-				_state_backup.Reset();
-				return false;
-			}
-			if (FAILED(_device->BeginScene()))
-				return false;
-			
-			IDirect3DDevice9Ex* ctx = _device.Get();
-			
-			// [IA Stage]
-
-			ctx->SetVertexDeclaration(_input_layout.Get());
-			ctx->SetStreamSource(0, _vertex_buffer.Get(), 0, sizeof(DrawVertex2D));
-			ctx->SetStreamSourceFreq(0, 1);
-			ctx->SetIndices(_index_buffer.Get());
-
-			// [RS Stage]
-
-			// rastrizer state
-			ctx->SetRenderState(D3DRS_FILLMODE, D3DFILL_SOLID);
-			ctx->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
-			ctx->SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);
-			ctx->SetRenderState(D3DRS_MULTISAMPLEANTIALIAS, FALSE);
-			ctx->SetRenderState(D3DRS_ANTIALIASEDLINEENABLE, FALSE);
-
-			// [PS State]
-
-			// [OM Stage]
-
-			// depth stencil state
-			ctx->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
-			ctx->SetRenderState(D3DRS_ZFUNC, D3DCMP_LESSEQUAL);
-			ctx->SetRenderState(D3DRS_STENCILENABLE, FALSE);
-			// blend state
-			ctx->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-			ctx->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, TRUE);
-			ctx->SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE | D3DCOLORWRITEENABLE_ALPHA);
-
-			// [Fixed Pipeline] disable these features, especially lighting
-
-			ctx->SetRenderState(D3DRS_CLIPPING, FALSE);
-			ctx->SetRenderState(D3DRS_CLIPPLANEENABLE, 0);
-			ctx->SetRenderState(D3DRS_LIGHTING, FALSE);
-			ctx->SetRenderState(D3DRS_SPECULARENABLE, FALSE);
-			ctx->SetRenderState(D3DRS_POINTSPRITEENABLE, FALSE);
-			ctx->SetRenderState(D3DRS_FOGENABLE, FALSE);
-			ctx->SetRenderState(D3DRS_RANGEFOGENABLE, FALSE);
-			ctx->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
-			
-			_state_dirty = true;
-
-			if (!_camera_state.is_3D)
-			{
-				setOrtho(_camera_state.ortho);
-			}
-			else
-			{
-				setPerspective(_camera_state.eye, _camera_state.lookat, _camera_state.headup, _camera_state.fov, _camera_state.aspect, _camera_state.znear, _camera_state.zfar);
-			}
-
-			setViewport(_viewport);
-			setScissorRect(_scissor_rect);
-
-			setVertexColorBlendState(_vertex_color_blend_state);
-			setSamplerState(_sampler_state);
-			setFogState(_fog_state, _fog_color, _fog_range[0], _fog_range[1]);
-			setDepthState(_depth_state);
-			setBlendState(_blend_state);
-			setTexture(TextureID());
-
-			_state_dirty = false;
-
-			return true;
-		}
-		bool endScene()
-		{
-			if (!batchFlush())
-				return false;
-			if (FAILED(_device->EndScene()))
-				return false;
-			if (_state_backup)
-			{
-				_state_backup->Apply();
-				_state_backup.Reset();
-			}
-			return true;
-		}
-
-		void clearRenderTarget(Color const& color)
-		{
-			batchFlush();
-			_device->Clear(0, NULL, D3DCLEAR_TARGET, (D3DCOLOR)color.color, 0.0f, 0);
-		}
-		void clearDepthBuffer(float zvalue)
-		{
-			batchFlush();
-			_device->Clear(0, NULL, D3DCLEAR_ZBUFFER, 0, zvalue, 0);
-		}
-
-		void setOrtho(Box const& box)
-		{
-			if (_state_dirty || !_camera_state.isEqual(box))
-			{
-				_camera_state.ortho = box;
-				_camera_state.is_3D = false;
-				batchFlush();
-				DirectX::XMFLOAT4X4 f4x4;
-				DirectX::XMStoreFloat4x4(&f4x4, DirectX::XMMatrixOrthographicOffCenterLH(box.left, box.right, box.bottom, box.top, box.front, box.back));
-				_device->SetVertexShaderConstantF(0, (float*)&f4x4, 4);
-			}
-		}
-		void setPerspective(Vector3 const& eye, Vector3 const& lookat, Vector3 const& headup, float fov, float aspect, float znear, float zfar)
-		{
-			if (_state_dirty || !_camera_state.isEqual(eye, lookat, headup, fov, aspect, znear, zfar))
-			{
-				_camera_state.eye = eye;
-				_camera_state.lookat = lookat;
-				_camera_state.headup = headup;
-				_camera_state.fov = fov;
-				_camera_state.aspect = aspect;
-				_camera_state.znear = znear;
-				_camera_state.zfar = zfar;
-				_camera_state.is_3D = true;
-				batchFlush();
-				DirectX::XMFLOAT3 const eyef3(eye.x, eye.y, eye.z);
-				DirectX::XMFLOAT3 const lookatf3(lookat.x, lookat.y, lookat.z);
-				DirectX::XMFLOAT3 const headupf3(headup.x, headup.y, headup.z);
-				DirectX::XMFLOAT4X4 f4x4;
-				DirectX::XMStoreFloat4x4(&f4x4,
-					DirectX::XMMatrixMultiply(
-						DirectX::XMMatrixLookAtLH(DirectX::XMLoadFloat3(&eyef3), DirectX::XMLoadFloat3(&lookatf3), DirectX::XMLoadFloat3(&headupf3)),
-						DirectX::XMMatrixPerspectiveFovLH(fov, aspect, znear, zfar)));
-				_device->SetVertexShaderConstantF(0, (float*)&f4x4, 4);
-				float const camera_pos[4] = { eye.x, eye.y, eye.z, 0.0f };
-				_device->SetPixelShaderConstantF(0, camera_pos, 1);
-			}
-		}
-
-		void setViewport(Box const& box)
-		{
-			if (_state_dirty || _viewport != box)
-			{
-				_viewport = box;
-				batchFlush();
-				D3DVIEWPORT9 const vp = {
-					.X = (DWORD)(LONG)(box.left),
-					.Y = (DWORD)(LONG)(box.top),
-					.Width = (DWORD)(LONG)(box.right - box.left),
-					.Height = (DWORD)(LONG)(box.bottom - box.top),
-					.MinZ = box.front,
-					.MaxZ = box.back,
-				};
-				_device->SetViewport(&vp);
-			}
-		}
-		void setScissorRect(Rect const& rect)
-		{
-			if (_state_dirty || _scissor_rect != rect)
-			{
-				_scissor_rect = rect;
-				batchFlush();
-				RECT const rc = {
-					.left = (LONG)rect.left,
-					.top = (LONG)rect.top,
-					.right = (LONG)rect.right,
-					.bottom = (LONG)rect.bottom,
-				};
-				_device->SetScissorRect(&rc);
-			}
-		}
-		void setViewportAndScissorRect()
-		{
-			_state_dirty = true;
-			setViewport(_viewport);
-			setScissorRect(_scissor_rect);
-			_state_dirty = false;
-		}
-
-		void setVertexColorBlendState(VertexColorBlendState state)
-		{
-			if (_state_dirty || _vertex_color_blend_state != state)
-			{
-				_vertex_color_blend_state = state;
-				batchFlush();
-				_device->SetPixelShader(_pixel_shader[IDX(_vertex_color_blend_state)][IDX(_fog_state)][IDX(_texture_alpha_type)].Get());
-			}
-		}
-		void setSamplerState(SamplerState state)
-		{
-			if (_state_dirty || _sampler_state != state)
-			{
-				_sampler_state = state;
-				batchFlush();
-				setSamplerState(state, 0);
-			}
-		}
-		void setFogState(FogState state, Color const& color, float density_or_znear, float zfar)
-		{
-			if (_state_dirty || _fog_state != state || _fog_color != color || _fog_range[0] != density_or_znear || _fog_range[1] != zfar)
-			{
-				_fog_state = state;
-				_fog_color = color;
-				_fog_range[0] = density_or_znear;
-				_fog_range[1] = zfar;
-				batchFlush();
-				_device->SetVertexShader(_vertex_shader[IDX(_fog_state)].Get());
-				float const fog_color_and_range[8] = {
-					(float)color.r / 255.0f, (float)color.g / 255.0f, (float)color.b / 255.0f, (float)color.a / 255.0f,
-					density_or_znear, zfar, 0.0f, zfar - density_or_znear,
-				};
-				_device->SetPixelShaderConstantF(1, fog_color_and_range, 2);
-				_device->SetPixelShader(_pixel_shader[IDX(_vertex_color_blend_state)][IDX(_fog_state)][IDX(_texture_alpha_type)].Get());
-			}
-		}
-		void setDepthState(DepthState state)
-		{
-			if (_state_dirty || _depth_state != state)
-			{
-				_depth_state = state;
-				batchFlush();
-				IDirect3DDevice9Ex* ctx = _device.Get();
-				switch (state)
-				{
-				default:
-				case DepthState::Disable:
-					ctx->SetRenderState(D3DRS_ZENABLE, D3DZB_FALSE);
-					break;
-				case DepthState::Enable:
-					ctx->SetRenderState(D3DRS_ZENABLE, D3DZB_TRUE);
-					break;
-				}
-			}
-		}
-		void setBlendState(BlendState state)
-		{
-			if (_state_dirty || _blend_state != state)
-			{
-				_blend_state = state;
-				batchFlush();
-				IDirect3DDevice9Ex* ctx = _device.Get();
-				switch (state)
-				{
-				default:
-				case BlendState::Disable:
-					ctx->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
-					break;
-				case BlendState::Alpha:
-					ctx->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-					ctx->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
-					ctx->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ONE);
-					ctx->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-					ctx->SetRenderState(D3DRS_BLENDOPALPHA, D3DBLENDOP_ADD);
-					ctx->SetRenderState(D3DRS_SRCBLENDALPHA, D3DBLEND_ONE);
-					ctx->SetRenderState(D3DRS_DESTBLENDALPHA, D3DBLEND_INVSRCALPHA);
-					break;
-				case BlendState::One:
-					ctx->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-					ctx->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
-					ctx->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ONE);
-					ctx->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ZERO);
-					ctx->SetRenderState(D3DRS_BLENDOPALPHA, D3DBLENDOP_ADD);
-					ctx->SetRenderState(D3DRS_SRCBLENDALPHA, D3DBLEND_ONE);
-					ctx->SetRenderState(D3DRS_DESTBLENDALPHA, D3DBLEND_ZERO);
-					break;
-				case BlendState::Min:
-					ctx->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-					ctx->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_MIN);
-					ctx->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ONE);
-					ctx->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
-					ctx->SetRenderState(D3DRS_BLENDOPALPHA, D3DBLENDOP_MIN);
-					ctx->SetRenderState(D3DRS_SRCBLENDALPHA, D3DBLEND_ONE);
-					ctx->SetRenderState(D3DRS_DESTBLENDALPHA, D3DBLEND_ONE);
-					break;
-				case BlendState::Max:
-					ctx->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-					ctx->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_MAX);
-					ctx->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ONE);
-					ctx->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
-					ctx->SetRenderState(D3DRS_BLENDOPALPHA, D3DBLENDOP_MAX);
-					ctx->SetRenderState(D3DRS_SRCBLENDALPHA, D3DBLEND_ONE);
-					ctx->SetRenderState(D3DRS_DESTBLENDALPHA, D3DBLEND_ONE);
-					break;
-				case BlendState::Mul:
-					ctx->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-					ctx->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
-					ctx->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_DESTCOLOR);
-					ctx->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ZERO);
-					ctx->SetRenderState(D3DRS_BLENDOPALPHA, D3DBLENDOP_ADD);
-					ctx->SetRenderState(D3DRS_SRCBLENDALPHA, D3DBLEND_ZERO);
-					ctx->SetRenderState(D3DRS_DESTBLENDALPHA, D3DBLEND_ONE);
-					break;
-				case BlendState::Screen:
-					ctx->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-					ctx->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
-					ctx->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ONE);
-					ctx->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCCOLOR);
-					ctx->SetRenderState(D3DRS_BLENDOPALPHA, D3DBLENDOP_ADD);
-					ctx->SetRenderState(D3DRS_SRCBLENDALPHA, D3DBLEND_ONE);
-					ctx->SetRenderState(D3DRS_DESTBLENDALPHA, D3DBLEND_ONE);
-					break;
-				case BlendState::Add:
-					ctx->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-					ctx->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
-					ctx->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ONE);
-					ctx->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
-					ctx->SetRenderState(D3DRS_BLENDOPALPHA, D3DBLENDOP_ADD);
-					ctx->SetRenderState(D3DRS_SRCBLENDALPHA, D3DBLEND_ONE);
-					ctx->SetRenderState(D3DRS_DESTBLENDALPHA, D3DBLEND_ONE);
-					break;
-				case BlendState::Sub:
-					ctx->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-					ctx->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_SUBTRACT);
-					ctx->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ONE);
-					ctx->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
-					ctx->SetRenderState(D3DRS_BLENDOPALPHA, D3DBLENDOP_ADD);
-					ctx->SetRenderState(D3DRS_SRCBLENDALPHA, D3DBLEND_ONE);
-					ctx->SetRenderState(D3DRS_DESTBLENDALPHA, D3DBLEND_ONE);
-					break;
-				case BlendState::RevSub:
-					ctx->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-					ctx->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_REVSUBTRACT);
-					ctx->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ONE);
-					ctx->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
-					ctx->SetRenderState(D3DRS_BLENDOPALPHA, D3DBLENDOP_ADD);
-					ctx->SetRenderState(D3DRS_SRCBLENDALPHA, D3DBLEND_ONE);
-					ctx->SetRenderState(D3DRS_DESTBLENDALPHA, D3DBLEND_ONE);
-					break;
-				case BlendState::Inv:
-					ctx->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-					ctx->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
-					ctx->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_INVDESTCOLOR);
-					ctx->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCCOLOR);
-					ctx->SetRenderState(D3DRS_BLENDOPALPHA, D3DBLENDOP_ADD);
-					ctx->SetRenderState(D3DRS_SRCBLENDALPHA, D3DBLEND_ZERO);
-					ctx->SetRenderState(D3DRS_DESTBLENDALPHA, D3DBLEND_ONE);
-					break;
-				}
-			}
-		}
-		void setTexture(TextureID texture)
-		{
-			if (_draw_list.command.size > 0 && _draw_list.command.data[_draw_list.command.size - 1].texture == texture)
-			{
-				// no op
-			}
-			else
-			{
-				// new command
-				if ((_draw_list.command.capacity - _draw_list.command.size) < 1)
-				{
-					batchFlush(); // no space
-				}
-				_draw_list.command.size += 1;
-				DrawCommand& cmd_ = _draw_list.command.data[_draw_list.command.size - 1];
-				cmd_.texture = texture;
-				cmd_.vertex_count = 0;
-				cmd_.index_count = 0;
-				if (texture.handle)
-				{
-					((IDirect3DTexture9*)(texture.handle))->AddRef();
-				}
-			}
-		}
-		
-		bool flush()
-		{
-			return batchFlush();
-		}
-		void drawTriangle(DrawVertex2D const& v1, DrawVertex2D const& v2, DrawVertex2D const& v3)
-		{
-			if ((_draw_list.vertex.capacity - _draw_list.vertex.size) < 3 || (_draw_list.index.capacity - _draw_list.index.size) < 3)
-			{
-				batchFlush();
-			}
-			DrawCommand& cmd_ = _draw_list.command.data[_draw_list.command.size - 1];
-			DrawVertex2D* vbuf_ = _draw_list.vertex.data + _draw_list.vertex.size;
-			vbuf_[0] = v1;
-			vbuf_[1] = v2;
-			vbuf_[2] = v3;
-			_draw_list.vertex.size += 3;
-			DrawIndex2D* ibuf_ = _draw_list.index.data + _draw_list.index.size;
-			ibuf_[0] = cmd_.vertex_count;
-			ibuf_[1] = cmd_.vertex_count + 1;
-			ibuf_[2] = cmd_.vertex_count + 2;
-			_draw_list.index.size += 3;
-			cmd_.vertex_count += 3;
-			cmd_.index_count += 3;
-			
-		}
-		void drawQuad(DrawVertex2D const& v1, DrawVertex2D const& v2, DrawVertex2D const& v3, DrawVertex2D const& v4)
-		{
-			if ((_draw_list.vertex.capacity - _draw_list.vertex.size) < 4 || (_draw_list.index.capacity - _draw_list.index.size) < 6)
-			{
-				batchFlush();
-			}
-			DrawCommand& cmd_ = _draw_list.command.data[_draw_list.command.size - 1];
-			DrawVertex2D* vbuf_ = _draw_list.vertex.data + _draw_list.vertex.size;
-			vbuf_[0] = v1;
-			vbuf_[1] = v2;
-			vbuf_[2] = v3;
-			vbuf_[3] = v4;
-			_draw_list.vertex.size += 4;
-			DrawIndex2D* ibuf_ = _draw_list.index.data + _draw_list.index.size;
-			ibuf_[0] = cmd_.vertex_count;
-			ibuf_[1] = cmd_.vertex_count + 1;
-			ibuf_[2] = cmd_.vertex_count + 2;
-			ibuf_[3] = cmd_.vertex_count;
-			ibuf_[4] = cmd_.vertex_count + 2;
-			ibuf_[5] = cmd_.vertex_count + 3;
-			_draw_list.index.size += 6;
-			cmd_.vertex_count += 4;
-			cmd_.index_count += 6;
-		}
-		void drawRaw(DrawVertex2D const* pvert, uint16_t nvert, DrawIndex2D const* pidx, uint16_t nidx)
-		{
-			if ((_draw_list.vertex.capacity - _draw_list.vertex.size) < nvert || (_draw_list.index.capacity - _draw_list.index.size) < nidx)
-			{
-				batchFlush();
-			}
-
-			DrawCommand& cmd_ = _draw_list.command.data[_draw_list.command.size - 1];
-
-			DrawVertex2D* vbuf_ = _draw_list.vertex.data + _draw_list.vertex.size;
-			CopyMemory(vbuf_, pvert, nvert * sizeof(DrawVertex2D));
-			_draw_list.vertex.size += nvert;
-
-			DrawIndex2D* ibuf_ = _draw_list.index.data + _draw_list.index.size;
-			for (size_t idx_ = 0; idx_ < nidx; idx_ += 1)
-			{
-				ibuf_[idx_] = cmd_.vertex_count + pidx[idx_];
-			}
-			_draw_list.index.size += nidx;
-
-			cmd_.vertex_count += nvert;
-			cmd_.index_count += nidx;
-		}
-
-		ShaderID createPostEffectShader(char const* name, void const* data, size_t size)
-		{
-			Microsoft::WRL::ComPtr<ID3DBlob> ps_blob_;
-			if (!compilePixelShaderMacro(name, data, size, NULL, &ps_blob_))
-				return ShaderID();
-			Microsoft::WRL::ComPtr<IDirect3DPixelShader9> ps_;
-			if (FAILED(_device->CreatePixelShader(static_cast<DWORD*>(ps_blob_->GetBufferPointer()), &ps_)))
-				return ShaderID();
-			return ShaderID(ps_.Detach());
-		}
-		void destroyPostEffectShader(ShaderID& ps)
-		{
-			if (ps.handle)
-			{
-				((IDirect3DPixelShader9*)ps.handle)->Release();
-				ps.handle = nullptr;
-			}
-		}
-		void postEffect(ShaderID const& ps, TextureID const& rt, SamplerState rtsv, Vector4 const* cv, size_t cv_n, TextureID const* tv, SamplerState const* sv, size_t tv_sv_n, BlendState blend)
-		{
-			batchFlush();
-			IDirect3DDevice9Ex* ctx = _device.Get();
-
-			auto backup = RendererStateSet{
-				.viewport = _viewport,
-				.scissor_rect = _scissor_rect,
-				.fog_near_or_density = _fog_range[0],
-				.fog_far = _fog_range[1],
-				.fog_color = _fog_color,
-				.vertex_color_blend_state = _vertex_color_blend_state,
-				.sampler_state = _sampler_state,
-				.fog_state = _fog_state,
-				.texture_alpha_type = _texture_alpha_type,
-				.depth_state = _depth_state,
-				.blend_state = _blend_state,
-			};
-			auto cbak = _camera_state;
-
-			Microsoft::WRL::ComPtr<IDirect3DSurface9> surface_;
-			ctx->GetRenderTarget(0, &surface_);
-			D3DSURFACE_DESC desc_ = {};
-			surface_->GetDesc(&desc_);
-			float const sw_ = (float)desc_.Width;
-			float const sh_ = (float)desc_.Height;
-
-			setOrtho(Box{ .left = 0.0f, .top = sh_, .front = 0.0f, .right = sw_, .bottom = 0.0f, .back = 1.0f });
-
-			setViewport(Box{ .left = 0.0f, .top = 0.0f, .front = 0.0f, .right = sw_, .bottom = sh_, .back = 1.0f});
-			setScissorRect(Rect{ .left = 0.0f, .top = 0.0f, .right = sw_, .bottom = sh_ });
-
-			setVertexColorBlendState(VertexColorBlendState::Zero);
-			setFogState(FogState::Disable, Color{ .color = 0 }, 0.0f, 0.0f);
-			setDepthState(DepthState::Disable);
-			setBlendState(blend);
-
-			ctx->SetTexture(4, (IDirect3DTexture9*)rt.handle);
-			setSamplerState(rtsv, 4);
-			for (DWORD stage = 0; stage < std::min<DWORD>((DWORD)tv_sv_n, 4); stage += 1)
-			{
-				ctx->SetTexture(stage, (IDirect3DTexture9*)tv[stage].handle);
-				setSamplerState(sv[stage], stage);
-			}
-			ctx->SetPixelShaderConstantF(0, (float*)cv, std::min<UINT>((UINT)cv_n, 8));
-			float ps_cbdata[8] = {
-				sw_, sh_, 0.0f, 0.0f,
-				backup.viewport.left, backup.viewport.top, backup.viewport.right, backup.viewport.bottom,
-			};
-			ctx->SetPixelShaderConstantF(8, ps_cbdata, 2);
-			ctx->SetPixelShader((IDirect3DPixelShader9*)ps.handle);
-
-			if (tv_sv_n > 0)
-			{
-				setTexture(tv[0]);
-			}
-			else
-			{
-				setTexture(TextureID());
-			}
-
-			drawQuad(
-				DrawVertex2D{ .x = 0.5f + 0.f, .y = 0.5f + sh_, .z = 0.5f, .u = 0.0f, .v = 0.0f, .color = 0xFFFFFFFF },
-				DrawVertex2D{ .x = 0.5f + sw_, .y = 0.5f + sh_, .z = 0.5f, .u = 1.0f, .v = 0.0f, .color = 0xFFFFFFFF },
-				DrawVertex2D{ .x = 0.5f + sw_, .y = 0.5f + 0.f, .z = 0.5f, .u = 1.0f, .v = 1.0f, .color = 0xFFFFFFFF },
-				DrawVertex2D{ .x = 0.5f + 0.f, .y = 0.5f + 0.f, .z = 0.5f, .u = 0.0f, .v = 1.0f, .color = 0xFFFFFFFF });
-
-			batchFlush();
-
-			_state_dirty = true;
-
-			if (!cbak.is_3D)
-			{
-				setOrtho(cbak.ortho);
-			}
-			else
-			{
-				setPerspective(cbak.eye, cbak.lookat, cbak.headup, cbak.fov, cbak.aspect, cbak.znear, cbak.zfar);
-			}
-
-			setViewport(backup.viewport);
-			setScissorRect(backup.scissor_rect);
-
-			setVertexColorBlendState(backup.vertex_color_blend_state);
-			setSamplerState(backup.sampler_state);
-			setFogState(backup.fog_state, backup.fog_color, backup.fog_near_or_density, backup.fog_far);
-			setDepthState(backup.depth_state);
-			setBlendState(backup.blend_state);
-			setTexture(TextureID());
-
-			_state_dirty = false;
 		}
 	};
 
@@ -1302,7 +140,10 @@ namespace LuaSTG::Core
 						hr = gHR = _devctx->Map(_vertex_buffer.Get(), 0, D3D11_MAP_WRITE_NO_OVERWRITE, 0, &res_);
 					}
 					if (FAILED(hr))
+					{
+						spdlog::error("[luastg] ID3D11DeviceContext::Map -> #vertex_buffer 调用失败，无法上传顶点");
 						return false;
+					}
 					std::memcpy((DrawVertex2D*)res_.pData + _vi_buffer_fence.vertex_offset, _draw_list.vertex.data, _draw_list.vertex.size * sizeof(DrawVertex2D));
 					_devctx->Unmap(_vertex_buffer.Get(), 0);
 				}
@@ -1320,7 +161,10 @@ namespace LuaSTG::Core
 						hr = gHR = _devctx->Map(_index_buffer.Get(), 0, D3D11_MAP_WRITE_NO_OVERWRITE, 0, &res_);
 					}
 					if (FAILED(hr))
+					{
+						spdlog::error("[luastg] ID3D11DeviceContext::Map -> #index_buffer 调用失败，无法上传顶点索引");
 						return false;
+					}
 					std::memcpy((DrawIndex2D*)res_.pData + _vi_buffer_fence.index_offset, _draw_list.index.data, _draw_list.index.size * sizeof(DrawIndex2D));
 					_devctx->Unmap(_index_buffer.Get(), 0);
 				}
@@ -2039,11 +883,25 @@ namespace LuaSTG::Core
 			{
 				return false;
 			}
+			spdlog::info("[luastg] 开始创建渲染器");
 			_device = (ID3D11Device*)dev;
 			_device->GetImmediateContext(&_devctx);
-			if (!createBuffers()) return false;
-			if (!createStates()) return false;
-			if (!createShaders()) return false;
+			if (!createBuffers())
+			{
+				spdlog::error("[luastg] 无法创建渲染器所需的顶点、索引缓冲区和着色器常量缓冲区");
+				return false;
+			}
+			if (!createStates())
+			{
+				spdlog::error("[luastg] 无法创建渲染器所需的渲染状态");
+				return false;
+			}
+			if (!createShaders())
+			{
+				spdlog::error("[luastg] 无法创建渲染器所需的内置着色器");
+				return false;
+			}
+			spdlog::info("[luastg] 已创建渲染器");
 			return true;
 		}
 		void detachDevice()
@@ -2090,6 +948,7 @@ namespace LuaSTG::Core
 			{
 				v.Reset();
 			}
+			spdlog::info("[luastg] 已关闭渲染器");
 		}
 
 		bool beginScene()
@@ -2180,8 +1039,15 @@ namespace LuaSTG::Core
 				/* upload vp matrix */ {
 					D3D11_MAPPED_SUBRESOURCE res_ = {};
 					HRESULT hr = gHR = _devctx->Map(_vp_matrix_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
-					std::memcpy(res_.pData, &f4x4, sizeof(f4x4));
-					_devctx->Unmap(_vp_matrix_buffer.Get(), 0);
+					if (SUCCEEDED(hr))
+					{
+						std::memcpy(res_.pData, &f4x4, sizeof(f4x4));
+						_devctx->Unmap(_vp_matrix_buffer.Get(), 0);
+					}
+					else
+					{
+						spdlog::error("[luastg] ID3D11DeviceContext::Map -> #view_projection_matrix_buffer 调用失败，无法上传摄像机变换矩阵");
+					}
 				}
 			}
 		}
@@ -2210,14 +1076,28 @@ namespace LuaSTG::Core
 				/* upload vp matrix */ {
 					D3D11_MAPPED_SUBRESOURCE res_ = {};
 					HRESULT hr = gHR = _devctx->Map(_vp_matrix_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
-					std::memcpy(res_.pData, &f4x4, sizeof(f4x4));
-					_devctx->Unmap(_vp_matrix_buffer.Get(), 0);
+					if (SUCCEEDED(hr))
+					{
+						std::memcpy(res_.pData, &f4x4, sizeof(f4x4));
+						_devctx->Unmap(_vp_matrix_buffer.Get(), 0);
+					}
+					else
+					{
+						spdlog::error("[luastg] ID3D11DeviceContext::Map -> #view_projection_matrix_buffer 调用失败，无法上传摄像机变换矩阵");
+					}
 				}
 				/* upload camera pos */ {
 					D3D11_MAPPED_SUBRESOURCE res_ = {};
 					HRESULT hr = gHR = _devctx->Map(_camera_pos_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
-					std::memcpy(res_.pData, camera_pos, sizeof(camera_pos));
-					_devctx->Unmap(_camera_pos_buffer.Get(), 0);
+					if (SUCCEEDED(hr))
+					{
+						std::memcpy(res_.pData, camera_pos, sizeof(camera_pos));
+						_devctx->Unmap(_camera_pos_buffer.Get(), 0);
+					}
+					else
+					{
+						spdlog::error("[luastg] ID3D11DeviceContext::Map -> #camera_position_buffer 调用失败，无法上传摄像机位置");
+					}
 				}
 			}
 		}
@@ -2297,8 +1177,15 @@ namespace LuaSTG::Core
 				/* upload */ {
 					D3D11_MAPPED_SUBRESOURCE res_ = {};
 					HRESULT hr = gHR = _devctx->Map(_fog_data_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
-					std::memcpy(res_.pData, fog_color_and_range, sizeof(fog_color_and_range));
-					_devctx->Unmap(_fog_data_buffer.Get(), 0);
+					if (SUCCEEDED(hr))
+					{
+						std::memcpy(res_.pData, fog_color_and_range, sizeof(fog_color_and_range));
+						_devctx->Unmap(_fog_data_buffer.Get(), 0);
+					}
+					else
+					{
+						spdlog::error("[luastg] ID3D11DeviceContext::Map -> #fog_data_buffer 调用失败，无法上传雾颜色、范围和密度信息");
+					}
 				}
 				_devctx->PSSetShader(_pixel_shader[IDX(_state_set.vertex_color_blend_state)][IDX(state)][IDX(_state_set.texture_alpha_type)].Get(), NULL, 0);
 			}
@@ -2462,15 +1349,16 @@ namespace LuaSTG::Core
 						sw_ = (float)desc_.Width;
 						sh_ = (float)desc_.Height;
 					}
+					else
+					{
+						spdlog::error("[luastg] ID3D11Resource::QueryInterface -> #ID3D11Texture2D 调用失败");
+					}
 					rtv_->Release();
-				}
-				else
-				{
-					gHR = S_FALSE;
 				}
 			}
 			if (sw_ < 1.0f || sh_ < 1.0f)
 			{
+				spdlog::warn("[luastg] LuaSTG::Core::Renderer::postEffect 调用提前中止，当前渲染管线未绑定渲染目标");
 				return;
 			}
 
@@ -2498,6 +1386,7 @@ namespace LuaSTG::Core
 				HRESULT hr = gHR = _devctx->Map(_user_float_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
 				if (FAILED(hr))
 				{
+					spdlog::error("[luastg] ID3D11DeviceContext::Map -> #user_float_buffer 调用失败，上传数据失败，LuaSTG::Core::Renderer::postEffect 调用提前中止");
 					return;
 				}
 				std::memcpy(res_.pData, cv, std::min<UINT>((UINT)cv_n, 8) * sizeof(Vector4));
@@ -2512,6 +1401,7 @@ namespace LuaSTG::Core
 				HRESULT hr = gHR = _devctx->Map(_fog_data_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
 				if (FAILED(hr))
 				{
+					spdlog::error("[luastg] ID3D11DeviceContext::Map -> #engine_built_in_value_buffer 调用失败，无法上传渲染目标尺寸和视口信息，LuaSTG::Core::Renderer::postEffect 调用提前中止");
 					return;
 				}
 				std::memcpy(res_.pData, ps_cbdata, sizeof(ps_cbdata));
@@ -2553,7 +1443,6 @@ namespace LuaSTG::Core
 	};
 }
 
-//#define RendererClass RendererImpl
 #define RendererClass Renderer11
 
 #define self ((RendererClass*)_pImpl)

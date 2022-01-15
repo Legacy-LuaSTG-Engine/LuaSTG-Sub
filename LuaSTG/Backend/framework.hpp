@@ -6,26 +6,25 @@
 #include <Windows.h>
 #include <wrl/client.h>
 #include <wrl/wrappers/corewrappers.h>
-#include <d3d9.h>
 #include <dxgi1_6.h>
 #include <d3d11_4.h>
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
 
+#include "spdlog/spdlog.h"
+
 namespace LuaSTG
 {
-	// Helper function
-	void debugPrintHRESULT(HRESULT hr, const wchar_t* message) noexcept;
-
 	// Helper struct
 	struct HResultCheck
 	{
 		HRESULT hr = 0;
+		char const* cfile = nullptr;
 		wchar_t const* file = nullptr;
 		int line = 0;
 		wchar_t const* message = nullptr;
 		HRESULT operator=(HRESULT v);
-		static HResultCheck& get(wchar_t const* file, int line, wchar_t const* message);
+		static HResultCheck& get(char const* cfile, wchar_t const* file, int line, wchar_t const* message);
 	};
 	struct HResultToBool
 	{
@@ -35,6 +34,12 @@ namespace LuaSTG
 	};
 }
 
-#define gHR HResultCheck::get(__FILEW__, __LINE__, L"")
-#define cHR(__ERROR_MESSAGE__) HResultCheck::get(__FILEW__, __LINE__, __ERROR_MESSAGE__)
+#ifdef _DEBUG
+#define gHR HResultCheck::get(__FILE__, __FILEW__, __LINE__, L"")
+#define cHR(__ERROR_MESSAGE__) HResultCheck::get(__FILE__, __FILEW__, __LINE__, __ERROR_MESSAGE__)
+#else
+#define gHR HResultCheck::get(nullptr, nullptr, 0, L"")
+#define cHR(__ERROR_MESSAGE__) HResultCheck::get(nullptr, nullptr, 0, __ERROR_MESSAGE__)
+#endif
+
 #define bHR HResultToBool::get()

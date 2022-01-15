@@ -23,8 +23,8 @@ set(LuaSTGCore_SRC
     Core/Renderer.hpp
     Backend/framework.hpp
     Backend/framework.cpp
-    Backend/Direct3D9/Shader.hpp
-    Backend/Direct3D9/Renderer.cpp
+    Backend/Shader.hpp
+    Backend/Renderer.cpp
 )
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${LuaSTGCore_SRC})
 target_sources(LuaSTGCore PRIVATE
@@ -32,10 +32,13 @@ target_sources(LuaSTGCore PRIVATE
 )
 
 target_link_libraries(LuaSTGCore PUBLIC
+    spdlog::spdlog
     fancylib
     fancy2dlib
     d3dcompiler.lib
-    d3d9.lib
+    dxguid.lib
+    dxgi.lib
+    d3d11.lib
 )
 
 # LuaSTG Engine
