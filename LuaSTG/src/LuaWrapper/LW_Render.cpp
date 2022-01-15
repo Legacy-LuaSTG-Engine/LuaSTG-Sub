@@ -456,7 +456,7 @@ void LuaSTGPlus::LuaWrapper::RenderWrapper::Register(lua_State* L) LNOEXCEPT
     };
     
     luaL_Reg lib[] = {
-#ifndef LUASTG_D3D9_SHADER
+#ifndef LUASTG_GRAPHIC_API_D3D11
         { "BeginScene", &Wrapper::BeginScene },
         { "EndScene", &Wrapper::EndScene },
         { "RenderClear", &Wrapper::RenderClear },

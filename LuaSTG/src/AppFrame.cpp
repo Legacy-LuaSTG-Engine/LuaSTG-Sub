@@ -460,7 +460,7 @@ bool AppFrame::Init()LNOEXCEPT
 		m_pRenderDev->ClearZBuffer();
 		
 		// 创建渲染器
-	#ifdef LUASTG_D3D9_SHADER
+	#ifdef LUASTG_GRAPHIC_API_D3D11
 		spdlog::info("[fancy2d] 创建2D渲染器适配器");
 		static f2dGraphic2dAdapter g2dadaper;
 		g2dadaper = f2dGraphic2dAdapter(&m_NewRenderer2D);
@@ -496,7 +496,7 @@ bool AppFrame::Init()LNOEXCEPT
 		}
 		
 		// 创建3D渲染器
-	#ifdef LUASTG_D3D9_SHADER
+	#ifdef LUASTG_GRAPHIC_API_D3D11
 	#else
 		spdlog::info("[fancy2d] 创建后处理特效渲染器");
 		if (FCYFAILED(m_pRenderDev->CreateGraphics3D(nullptr, &m_Graph3D)))

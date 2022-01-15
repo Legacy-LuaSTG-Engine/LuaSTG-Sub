@@ -27,7 +27,7 @@ namespace LuaSTGPlus {
             spdlog::error("[luastg] PushRenderTarget: 内部错误 (f2dRenderDevice::SetRenderTarget failed.)");
             return false;
         }
-    #ifndef LUASTG_D3D9_SHADER
+    #ifndef LUASTG_GRAPHIC_API_D3D11
         m_pRenderDev->SetViewport(orgVP);
     #endif
         
@@ -42,7 +42,7 @@ namespace LuaSTGPlus {
                 m_pRenderDev->SetRenderTarget(nullptr);
             else
                 m_pRenderDev->SetRenderTarget(m_stRenderTargetStack.back());
-        #ifndef LUASTG_D3D9_SHADER
+        #ifndef LUASTG_GRAPHIC_API_D3D11
             m_pRenderDev->SetViewport(orgVP);
         #endif
             return false;
@@ -90,7 +90,7 @@ namespace LuaSTGPlus {
         else
             m_pRenderDev->SetRenderTarget(m_stRenderTargetStack.back());
         
-    #ifndef LUASTG_D3D9_SHADER
+    #ifndef LUASTG_GRAPHIC_API_D3D11
         m_pRenderDev->SetViewport(orgVP);
     #endif
         return true;

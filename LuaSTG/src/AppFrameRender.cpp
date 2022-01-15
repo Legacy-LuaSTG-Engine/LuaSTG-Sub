@@ -6,7 +6,7 @@ namespace LuaSTGPlus
 {
     void AppFrame::updateGraph2DBlendMode(BlendMode m)
     {
-    #ifdef LUASTG_D3D9_SHADER
+    #ifdef LUASTG_GRAPHIC_API_D3D11
         api_GameObject_updateBlendMode(m);
     #else
         if (m != m_Graph2DLastBlendMode)

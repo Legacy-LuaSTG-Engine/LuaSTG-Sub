@@ -306,13 +306,13 @@ static void api_drawSpriteSequence(char const* name, int const ani_timer, float 
 
 void api_GameObject_updateBlendMode(LuaSTGPlus::BlendMode blend)
 {
-#ifdef LUASTG_D3D9_SHADER
+#ifdef LUASTG_GRAPHIC_API_D3D11
     translate_blend(LR2D(), blend);
 #endif
 }
 void api_GameObject_drawSprite(LuaSTGPlus::ResSprite* pimg2dres, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {
-#ifdef LUASTG_D3D9_SHADER
+#ifdef LUASTG_GRAPHIC_API_D3D11
     api_drawSprite(pimg2dres, x, y, rot, hscale, vscale, z);
 #else
     LAPP.Render(pimg2dres, x, y, rot, hscale, vscale, z);
@@ -320,7 +320,7 @@ void api_GameObject_drawSprite(LuaSTGPlus::ResSprite* pimg2dres, float const x, 
 }
 void api_GameObject_drawSpriteSequence(LuaSTGPlus::ResAnimation* pani2dres, int const ani_timer, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {
-#ifdef LUASTG_D3D9_SHADER
+#ifdef LUASTG_GRAPHIC_API_D3D11
     api_drawSpriteSequence(pani2dres, ani_timer, x, y, rot, hscale, vscale, z);
 #else
     LAPP.Render(pani2dres, ani_timer, x, y, rot, hscale, vscale);
@@ -328,7 +328,7 @@ void api_GameObject_drawSpriteSequence(LuaSTGPlus::ResAnimation* pani2dres, int 
 }
 void api_GameObject_drawSprite(f2dSprite* pimg2d, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {
-#ifdef LUASTG_D3D9_SHADER
+#ifdef LUASTG_GRAPHIC_API_D3D11
     auto& ctx = LR2D();
 
     f2dTexture2D* const ptex2d = pimg2d->GetTexture();
@@ -343,7 +343,7 @@ void api_GameObject_drawSprite(f2dSprite* pimg2d, float const x, float const y, 
 }
 void api_GameObject_drawParticle(LuaSTGPlus::ResParticle::ParticlePool* p, float hscale, float vscale)
 {
-#ifdef LUASTG_D3D9_SHADER
+#ifdef LUASTG_GRAPHIC_API_D3D11
     p->Render(LAPP.GetGraphics2D(), hscale, vscale);
 #else
     LAPP.Render(p, hscale, vscale);
@@ -954,7 +954,7 @@ static int compat_Noop(lua_State* L)
 }
 
 static luaL_Reg const lib_compat[] = {
-#ifdef LUASTG_D3D9_SHADER
+#ifdef LUASTG_GRAPHIC_API_D3D11
     { "BeginScene", &lib_beginScene },
     { "EndScene", &lib_endScene },
     { "RenderClear", &lib_clearRenderTarget },

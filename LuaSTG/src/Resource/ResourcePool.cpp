@@ -956,7 +956,7 @@ bool ResourcePool::LoadFX(const char* name, const char* path, bool is_effect) no
     
     if (is_effect)
     {
-        #ifndef LUASTG_D3D9_SHADER
+        #ifndef LUASTG_GRAPHIC_API_D3D11
         try {
             fcyRefPointer<f2dEffect> tEffect;
             fResult fr = LAPP.GetRenderDev()->CreateEffect(tDataBuf, false, &tEffect);
