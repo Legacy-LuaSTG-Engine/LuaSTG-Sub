@@ -1,45 +1,34 @@
 #include "Common/f2dWindowsCommon.h"
 #include <cstdio>
 #include <cstring>
-
-void debugPrintHRESULT(HRESULT hr, const wchar_t* message) noexcept
-{
-    WCHAR buffer[256] = {};
-    DWORD result = ::FormatMessageW(
-        FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-        NULL,
-        hr,
-        MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
-        buffer,
-        256,
-        NULL);
-    OutputDebugStringW(message);
-    OutputDebugStringW(L"\n");
-    OutputDebugStringW(buffer);
-    OutputDebugStringW(L"\n");
-}
+#include "spdlog/spdlog.h"
 
 HRESULT HResultCheck::operator=(HRESULT v)
 {
     hr = v;
     if (FAILED(hr))
     {
-        WCHAR buffer[256] = {};
-        swprintf_s(buffer, L"line: %d\n", line);
-
-        OutputDebugStringW(L"file: ");
-        OutputDebugStringW(file);
-        OutputDebugStringW(L"\n");
-
-        OutputDebugStringW(buffer);
-
-        debugPrintHRESULT(hr, message);
+        char buffer[512] = {};
+        DWORD result = ::FormatMessageA(
+            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL,
+            hr,
+            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+            buffer,
+            512,
+            NULL);
+#ifdef _DEBUG
+        spdlog::error("[fancy2d] 文件：'{}' 第 {} 行：(HRESULT = 0x{:08X}) {}", cfile, line, static_cast<unsigned long>(hr), buffer);
+#else
+        spdlog::error("[fancy2d] (HRESULT = 0x{:08X}) {}", buffer);
+#endif
     }
     return hr;
 }
-HResultCheck& HResultCheck::get(wchar_t const* file, int line, wchar_t const* message)
+HResultCheck& HResultCheck::get(char const* cfile, wchar_t const* file, int line, wchar_t const* message)
 {
     static HResultCheck v;
+    v.cfile = cfile;
     v.file = file;
     v.line = line;
     v.message = message;

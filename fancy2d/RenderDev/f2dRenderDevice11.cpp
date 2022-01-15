@@ -6,10 +6,178 @@
 #include "RenderDev/f2dTexture11.h"
 
 #include "Engine/f2dEngineImpl.h"
+#include <VersionHelpers.h>
+
+VERSIONHELPERAPI
+IsWindows11OrGreater()
+{
+	OSVERSIONINFOEXW osvi = { sizeof(osvi), 0, 0, 0, 0, {0}, 0, 0 };
+	DWORDLONG const dwlConditionMask = VerSetConditionMask(
+		VerSetConditionMask(
+			VerSetConditionMask(
+				0, VER_MAJORVERSION, VER_GREATER_EQUAL),
+			VER_MINORVERSION, VER_GREATER_EQUAL),
+		VER_BUILDNUMBER, VER_GREATER_EQUAL);
+
+	osvi.dwMajorVersion = HIBYTE(_WIN32_WINNT_WIN10);
+	osvi.dwMinorVersion = LOBYTE(_WIN32_WINNT_WIN10);
+	osvi.dwBuildNumber = 22000;
+
+	return VerifyVersionInfoW(&osvi, VER_MAJORVERSION | VER_MINORVERSION | VER_BUILDNUMBER, dwlConditionMask) != FALSE;
+}
+
+VERSIONHELPERAPI
+IsWindows10VersionOrGreater(DWORD build)
+{
+	OSVERSIONINFOEXW osvi = { sizeof(osvi), 0, 0, 0, 0, {0}, 0, 0 };
+	DWORDLONG const dwlConditionMask = VerSetConditionMask(
+		VerSetConditionMask(
+			VerSetConditionMask(
+				0, VER_MAJORVERSION, VER_GREATER_EQUAL),
+			VER_MINORVERSION, VER_GREATER_EQUAL),
+		VER_BUILDNUMBER, VER_GREATER_EQUAL);
+
+	osvi.dwMajorVersion = HIBYTE(_WIN32_WINNT_WIN10);
+	osvi.dwMinorVersion = LOBYTE(_WIN32_WINNT_WIN10);
+	osvi.dwBuildNumber = build;
+
+	return VerifyVersionInfoW(&osvi, VER_MAJORVERSION | VER_MINORVERSION | VER_BUILDNUMBER, dwlConditionMask) != FALSE;
+}
+
+char const* windows_version_to_string()
+{
+	if (IsWindowsServer())
+	{
+		return "Windows Server（如果此程序能运行，也是一件美事）";
+	}
+
+	// Windows 11
+
+	if (IsWindows10VersionOrGreater(22001))
+	{
+		return "Windows 11 21H2+";
+	}
+	if (IsWindows10VersionOrGreater(22000))
+	{
+		return "Windows 11 21H2";
+	}
+	if (IsWindows11OrGreater())
+	{
+		return "Windows 11";
+	}
+
+	// Windows 10
+
+	if (IsWindows10VersionOrGreater(19045))
+	{
+		return "Windows 10 21H2+";
+	}
+	if (IsWindows10VersionOrGreater(19044))
+	{
+		return "Windows 10 21H2";
+	}
+	if (IsWindows10VersionOrGreater(19043))
+	{
+		return "Windows 10 21H1";
+	}
+	if (IsWindows10VersionOrGreater(19042))
+	{
+		return "Windows 10 20H2";
+	}
+	if (IsWindows10VersionOrGreater(19041))
+	{
+		return "Windows 10 2004（不受微软支持的版本，此程序仍然可以运行，可以考虑升级到 Windows 10 更新的版本）";
+	}
+	if (IsWindows10VersionOrGreater(18363))
+	{
+		return "Windows 10 1909";
+	}
+	if (IsWindows10VersionOrGreater(18362))
+	{
+		return "Windows 10 1903（不受微软支持的版本，此程序仍然可以运行，可以考虑升级到 Windows 10 更新的版本）";
+	}
+	if (IsWindows10VersionOrGreater(17763))
+	{
+		return "Windows 10 1809";
+	}
+	if (IsWindows10VersionOrGreater(17134))
+	{
+		return "Windows 10 1803（不受微软支持的版本，此程序仍然可以运行，可以考虑升级到 Windows 10 更新的版本）";
+	}
+	if (IsWindows10VersionOrGreater(16299))
+	{
+		return "Windows 10 1709（不受微软支持的版本，此程序仍然可以运行，可以考虑升级到 Windows 10 更新的版本）";
+	}
+	if (IsWindows10VersionOrGreater(15063))
+	{
+		return "Windows 10 1703（不受微软支持的版本，此程序仍然可以运行，可以考虑升级到 Windows 10 更新的版本）";
+	}
+	if (IsWindows10VersionOrGreater(14393))
+	{
+		return "Windows 10 1607";
+	}
+	if (IsWindows10VersionOrGreater(10586))
+	{
+		return "Windows 10 1511（不受微软支持的版本，此程序仍然可以运行，可以考虑升级到 Windows 10 更新的版本）";
+	}
+	if (IsWindows10VersionOrGreater(10240))
+	{
+		return "Windows 10 1507 (RTM)（不受微软支持的版本，此程序仍然可以运行，可以考虑升级到 Windows 10 更新的版本）";
+	}
+	if (IsWindows10OrGreater())
+	{
+		return "Windows 10 DEV（不受微软支持的早期开发版本，此程序可能无法正常运行，可以考虑升级到 Windows 10 更新的版本）";
+	}
+
+	// Windows 8
+
+	if (IsWindows8Point1OrGreater())
+	{
+		return "Windows 8.1";
+	}
+	if (IsWindows8OrGreater())
+	{
+		return "Windows 8（不受微软支持的版本，此程序仍然可以运行，可以考虑升级 Windows 8.1）";
+	}
+
+	// Windows 7
+
+	if (IsWindows7SP1OrGreater())
+	{
+		BOOL b7 = FALSE;
+		Microsoft::WRL::ComPtr<IDXGIFactory1> dxgi_factory;
+		if (SUCCEEDED(CreateDXGIFactory1(IID_IDXGIFactory1, &dxgi_factory)))
+		{
+			Microsoft::WRL::ComPtr<IDXGIFactory2> dxgi_factory2;
+			if (SUCCEEDED(dxgi_factory.As(&dxgi_factory2)))
+			{
+				b7 = TRUE;
+			}
+		}
+		if (b7)
+		{
+			return "Windows 7 SP1 With Platform Update（不受微软支持的版本，此程序仍然可以运行）";
+		}
+		else
+		{
+			return "Windows 7 SP1（不受微软支持的版本，此程序可运行的最低要求版本，建议安装 Platform Update for Windows 7，即 KB2670838：https://www.microsoft.com/en-us/download/details.aspx?id=36805）";
+		}
+	}
+	if (IsWindows7OrGreater())
+	{
+		return "Windows 7（不受微软支持的版本，不符合此程序可运行的最低要求版本，程序可能无法正常运行，可以考虑升级 Windows 7 SP1）";
+	}
+
+	// Windows ?
+
+	return "Windows ?（如果此程序能运行，也是一件美事）";
+}
 
 #ifdef max
 #undef max // FUCK YOU!
 #endif
+
+#include "spdlog/spdlog.h"
 
 // 类主体
 
@@ -25,58 +193,311 @@ f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, fuInt BackBufferWid
 	win32_window = m_hWnd;
 	HRESULT hr = 0;
 
-	// create DXGI basic components
+	spdlog::info("[fancy2d] 操作系统版本：{}", windows_version_to_string());
+	spdlog::info("[fancy2d] 开始创建图形组件");
+
+	spdlog::info("[fancy2d] 开始创建基本 DXGI 组件");
+
+	// 创建 DXGI 工厂
 
 	hr = gHR = CreateDXGIFactory1(IID_IDXGIFactory1, &dxgi_factory);
 	if (FAILED(hr))
 	{
+		spdlog::error("[fancy2d] CreateDXGIFactory1 调用失败");
 		throw fcyWin32COMException("f2dRenderDevice11::f2dRenderDevice11", "CreateDXGIFactory1 failed.", hr);
 	}
-	hr = gHR = dxgi_factory->EnumAdapters1(0, &dxgi_adapter);
-	if (FAILED(hr))
-	{
-		throw fcyWin32COMException("f2dRenderDevice11::f2dRenderDevice11", "IDXGIFactory1::EnumAdapters1 failed.", hr);
-	}
-	DXGI_ADAPTER_DESC1 adapter_info = {};
-	hr = gHR = dxgi_adapter->GetDesc1(&adapter_info);
-	if (SUCCEEDED(hr))
-	{
-		m_DevName = fcyStringHelper::WideCharToMultiByte(adapter_info.Description);
-	}
 
-	// create Direct3D11 basic components
+	// 公共参数
 
-	UINT creation_flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+	UINT d3d11_creation_flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 #ifdef _DEBUG
-	creation_flags |= D3D11_CREATE_DEVICE_DEBUG;
+	d3d11_creation_flags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
+	D3D_FEATURE_LEVEL const target_levels_downlevel[3] = {
+			D3D_FEATURE_LEVEL_11_0,
+			D3D_FEATURE_LEVEL_10_1,
+			D3D_FEATURE_LEVEL_10_0,
+	};
 	D3D_FEATURE_LEVEL const target_levels[4] = {
-		D3D_FEATURE_LEVEL_11_1,
+		D3D_FEATURE_LEVEL_11_1, // Windows 7 没有这个
 		D3D_FEATURE_LEVEL_11_0,
 		D3D_FEATURE_LEVEL_10_1,
 		D3D_FEATURE_LEVEL_10_0,
 	};
-	hr = gHR = D3D11CreateDevice(dxgi_adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, NULL, creation_flags, target_levels, 4, D3D11_SDK_VERSION, &d3d11_device, &d3d11_level, &d3d11_devctx);
+
+	// 枚举所有图形设备
+
+	spdlog::info("[fancy2d] 枚举所有图形设备");
+	Microsoft::WRL::ComPtr<IDXGIAdapter1> dxgi_adapter_temp;
+	bool link_to_output = false;
+	for (UINT idx = 0; bHR = dxgi_factory->EnumAdapters1(idx, &dxgi_adapter_temp); idx += 1)
+	{
+		// 检查此设备是否支持 Direct3D 11 并获取特性级别
+		bool supported_d3d11 = false;
+		D3D_FEATURE_LEVEL level_info = D3D_FEATURE_LEVEL_10_0;
+		hr = gHR = D3D11CreateDevice(dxgi_adapter_temp.Get(), D3D_DRIVER_TYPE_UNKNOWN, NULL, d3d11_creation_flags, target_levels, 4, D3D11_SDK_VERSION, NULL, &level_info, NULL);
+		if (FAILED(hr))
+		{
+			// 处理 Windows 7 的情况
+			hr = gHR = D3D11CreateDevice(dxgi_adapter_temp.Get(), D3D_DRIVER_TYPE_UNKNOWN, NULL, d3d11_creation_flags, target_levels_downlevel, 3, D3D11_SDK_VERSION, NULL, &level_info, NULL);
+		}
+		if (SUCCEEDED(hr))
+		{
+			supported_d3d11 = true;
+		}
+		// 获取图形设备信息
+		std::string dev_name = "<NULL>";
+		auto bytes_count_to_string = [](SIZE_T size) -> std::string
+		{
+			int count = 0;
+			char buffer[64] = {};
+			if (size < 1024) // B
+			{
+				count = std::snprintf(buffer, 64, "%u B", size);
+			}
+			else if (size < (1024 * 1024)) // KB
+			{
+				count = std::snprintf(buffer, 64, "%.2f KB", (double)size / 1024.0);
+			}
+			else if (size < (1024 * 1024 * 1024)) // MB
+			{
+				count = std::snprintf(buffer, 64, "%.2f MB", (double)size / 1048576.0);
+			}
+			else // GB
+			{
+				count = std::snprintf(buffer, 64, "%.2f GB", (double)size / 1073741824.0);
+			}
+			return std::string(buffer, count);
+		};
+		auto adapter_flags_to_string = [](UINT flags) -> char const*
+		{
+			if ((flags & DXGI_ADAPTER_FLAG_REMOTE) && (flags & DXGI_ADAPTER_FLAG_SOFTWARE))
+			{
+				return "远程软件设备";
+			}
+			else if (flags & DXGI_ADAPTER_FLAG_REMOTE)
+			{
+				return "远程硬件设备";
+			}
+			else if (flags & DXGI_ADAPTER_FLAG_SOFTWARE)
+			{
+				return "软件设备";
+			}
+			else
+			{
+				return "硬件设备";
+			}
+		};
+		auto to_d3d11_string = [](bool b, D3D_FEATURE_LEVEL level) -> char const*
+		{
+			if (b)
+			{
+				switch (level)
+				{
+				case D3D_FEATURE_LEVEL_11_1: return "功能级别 11.1";
+				case D3D_FEATURE_LEVEL_11_0: return "功能级别 11.0";
+				case D3D_FEATURE_LEVEL_10_1: return "功能级别 10.1";
+				case D3D_FEATURE_LEVEL_10_0: return "功能级别 10.0";
+				default: return "功能级别 ??.?（如果你遇到这种情况请告诉我）";
+				}
+			}
+			else
+			{
+				return "不支持，或功能级别过低";
+			}
+		};
+		DXGI_ADAPTER_DESC1 desc_ = {};
+		if (bHR = gHR = dxgi_adapter_temp->GetDesc1(&desc_))
+		{
+			dev_name = fcyStringHelper::WideCharToMultiByte(desc_.Description);
+			spdlog::info("[fancy2d] 图形设备[{}]：\n"
+				"    设备名称：{}\n"
+				"    设备类型：{}\n"
+				"    Direct3D 11 支持情况：{}\n"
+				"    专用显存：{}\n"
+				"    专用内存：{}\n"
+				"    共享内存：{}\n"
+				"    供应商 ID：0x{:08X}\n"
+				"    设备 ID：0x{:08X}\n"
+				"    子系统 ID：0x{:08X}\n"
+				"    修订号：0x{:08X}\n"
+				"    设备 LUID：{:08X}-{:08X}"
+				, idx
+				, dev_name
+				, adapter_flags_to_string(desc_.Flags)
+				, to_d3d11_string(supported_d3d11, level_info)
+				, bytes_count_to_string(desc_.DedicatedVideoMemory)
+				, bytes_count_to_string(desc_.DedicatedSystemMemory)
+				, bytes_count_to_string(desc_.SharedSystemMemory)
+				, desc_.VendorId
+				, desc_.DeviceId
+				, desc_.SubSysId
+				, desc_.Revision
+				, static_cast<DWORD>(desc_.AdapterLuid.HighPart), desc_.AdapterLuid.LowPart
+			);
+		}
+		else
+		{
+			spdlog::error("[fancy2d] IDXGIAdapter1::GetDesc1 调用失败，无法获取图形设备的信息");
+			spdlog::info("[fancy2d] 图形设备[{}]：*无法读取设备信息", idx);
+		}
+		// 枚举显示输出
+		bool has_linked_output = false;
+		Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output_temp;
+		for (UINT odx = 0; bHR = dxgi_adapter_temp->EnumOutputs(odx, &dxgi_output_temp); odx += 1)
+		{
+			Microsoft::WRL::ComPtr<IDXGIOutput6> dxgi_output_temp6;
+			dxgi_output_temp.As(&dxgi_output_temp6);
+			DXGI_OUTPUT_DESC1 o_desc = {};
+			bool read_o_desc = false;
+			UINT comp_sp_flags = 0;
+			if (dxgi_output_temp6)
+			{
+				if (!(bHR = gHR = dxgi_output_temp6->CheckHardwareCompositionSupport(&comp_sp_flags)))
+				{
+					comp_sp_flags = 0;
+					spdlog::error("[fancy2d] IDXGIOutput6::CheckHardwareCompositionSupport 调用失败");
+				}
+				if (bHR = gHR = dxgi_output_temp6->GetDesc1(&o_desc))
+				{
+					read_o_desc = true;
+				}
+				else
+				{
+					spdlog::error("[fancy2d] IDXGIOutput6::GetDesc1 调用失败");
+				}
+			}
+			if (!read_o_desc)
+			{
+				DXGI_OUTPUT_DESC desc_ = {};
+				if (bHR = gHR = dxgi_output_temp->GetDesc(&desc_))
+				{
+					std::memcpy(o_desc.DeviceName, desc_.DeviceName, sizeof(o_desc.DeviceName));
+					o_desc.DesktopCoordinates = desc_.DesktopCoordinates;
+					o_desc.AttachedToDesktop = desc_.AttachedToDesktop;
+					o_desc.Rotation = desc_.Rotation;
+					o_desc.Monitor = desc_.Monitor;
+					read_o_desc = true;
+				}
+			}
+			if (read_o_desc)
+			{
+				auto comp_flags_to_string = [](UINT flags) -> std::string
+				{
+					std::string buffer;
+					if (flags & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_FULLSCREEN)
+					{
+						buffer += "全屏";
+					}
+					if (flags & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_WINDOWED)
+					{
+						if (!buffer.empty())
+						{
+							buffer += "、";
+						}
+						buffer += "窗口";
+					}
+					if (flags & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_CURSOR_STRETCHED)
+					{
+						if (!buffer.empty())
+						{
+							buffer += "、";
+						}
+						buffer += "鼠标指针缩放";
+					}
+					if (!buffer.empty())
+					{
+						return buffer;
+					}
+					return "不支持";
+				};
+				auto rotate_to_string = [](DXGI_MODE_ROTATION rot) -> char const*
+				{
+					switch (rot)
+					{
+					default:
+					case DXGI_MODE_ROTATION_UNSPECIFIED: return "未知";
+					case DXGI_MODE_ROTATION_IDENTITY: return "无";
+					case DXGI_MODE_ROTATION_ROTATE90: return "90 度";
+					case DXGI_MODE_ROTATION_ROTATE180: return "180 度";
+					case DXGI_MODE_ROTATION_ROTATE270: return "270 度";
+					}
+				};
+				spdlog::info("[fancy2d] 图形设备[{}]关联的显示输出设备[{}]：\n"
+					"    连接状态：{}\n"
+					"    显示区域：({}, {}) ({} x {})\n"
+					"    旋转状态：{}\n"
+					"    硬件表面合成支持情况：{}"
+					, idx, odx
+					, o_desc.AttachedToDesktop ? "已连接" : "未连接"
+					, o_desc.DesktopCoordinates.left, o_desc.DesktopCoordinates.top, o_desc.DesktopCoordinates.right - o_desc.DesktopCoordinates.left, o_desc.DesktopCoordinates.bottom - o_desc.DesktopCoordinates.top
+					, rotate_to_string(o_desc.Rotation)
+					, comp_flags_to_string(comp_sp_flags)
+				);
+				has_linked_output = true;
+			}
+			else
+			{
+				spdlog::error("[fancy2d] IDXGIOutput::GetDesc 调用失败，无法获取显示输出设备的信息");
+				spdlog::info("[fancy2d] 显示输出设备[{}]：*无法读取设备信息", odx);
+			}
+		}
+		dxgi_output_temp.Reset();
+		// 选择这个设备
+		if (supported_d3d11 && !dxgi_adapter)
+		{
+			dxgi_adapter = dxgi_adapter_temp;
+			m_DevName = dev_name;
+			if (has_linked_output)
+			{
+				link_to_output = true;
+			}
+		}
+	}
+	dxgi_adapter_temp.Reset();
+	
+	// 获取图形设备
+
+	if (dxgi_adapter)
+	{
+		spdlog::info("[fancy2d] 已选择图形设备：{}", m_DevName);
+		if (!link_to_output)
+		{
+			spdlog::warn("[fancy2d] 选择的图形设备：{}，似乎没有连接到任何显示输出，这可能导致独占全屏时通过 PCI-E 复制显示画面或者 Desktop Window Manager（DWM，桌面窗口管理器）介入进行桌面合成，性能可能会下降", m_DevName);
+		}
+	}
+	else
+	{
+		spdlog::error("[fancy2d] 没有可用的图形设备");
+		throw fcyException("f2dRenderDevice11::f2dRenderDevice11", "no adapter avalid.");
+	}
+	
+	spdlog::info("[fancy2d] 已创建基本 DXGI 组件：DXGI Factory + 图形设备");
+
+	// 创建 D3D11 组件
+
+	spdlog::info("[fancy2d] 开始创建基本 Direct3D 11 组件");
+	hr = gHR = D3D11CreateDevice(dxgi_adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, NULL, d3d11_creation_flags, target_levels, 4, D3D11_SDK_VERSION, &d3d11_device, &d3d11_level, &d3d11_devctx);
 	if (FAILED(hr))
 	{
-		D3D_FEATURE_LEVEL const target_levels_downlevel[3] = {
-			D3D_FEATURE_LEVEL_11_0,
-			D3D_FEATURE_LEVEL_10_1,
-			D3D_FEATURE_LEVEL_10_0,
-		};
-		hr = gHR = D3D11CreateDevice(dxgi_adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, NULL, creation_flags, target_levels_downlevel, 3, D3D11_SDK_VERSION, &d3d11_device, &d3d11_level, &d3d11_devctx);
+		hr = gHR = D3D11CreateDevice(dxgi_adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, NULL, d3d11_creation_flags, target_levels_downlevel, 3, D3D11_SDK_VERSION, &d3d11_device, &d3d11_level, &d3d11_devctx);
 	}
 	if (FAILED(hr))
 	{
+		spdlog::info("[fancy2d] D3D11CreateDevice 调用失败");
 		throw fcyWin32COMException("f2dRenderDevice11::f2dRenderDevice11", "D3D11CreateDevice failed.", hr);
 	}
+	spdlog::info("[fancy2d] 已创建基本 Direct3D 11 组件：Direct3D 11 设备");
 
-	// create swapchain
+	// 交换链
 
 	if (!createSwapchain(nullptr))
 	{
 		throw fcyException("f2dRenderDevice11::f2dRenderDevice11", "f2dRenderDevice11::createSwapchain failed.");
 	}
+	GetSupportedDisplayModeCount(true);
+
+	spdlog::info("[fancy2d] 已创建图形组件（图形 API：DXGI + Direct3D 11）");
 
 	m_pEngine->GetMainWindow()->SetGraphicListener(this);
 }
@@ -205,7 +626,12 @@ fResult f2dRenderDevice11::SyncDevice()
 			HRESULT hr = gHR = dxgi_swapchain->GetFullscreenState(&bFSC, NULL);
 			if (bFSC)
 			{
-				dxgi_swapchain->SetFullscreenState(FALSE, NULL);
+				spdlog::info("[fancy2d] 尝试退出独占全屏");
+				hr = gHR = dxgi_swapchain->SetFullscreenState(FALSE, NULL);
+				if (FAILED(hr))
+				{
+					spdlog::error("[fancy2d] IDXGISwapChain::SetFullscreenState -> #FALSE 调用失败");
+				}
 			}
 		}
 	}
@@ -221,7 +647,12 @@ fResult f2dRenderDevice11::SyncDevice()
 				HRESULT hr = gHR = dxgi_swapchain->GetFullscreenState(&bFSC, NULL);
 				if (FAILED(hr) || !bFSC)
 				{
-					dxgi_swapchain->SetFullscreenState(TRUE, NULL);
+					spdlog::info("[fancy2d] 尝试切换到独占全屏");
+					hr = gHR = dxgi_swapchain->SetFullscreenState(TRUE, NULL);
+					if (FAILED(hr))
+					{
+						spdlog::error("[fancy2d] IDXGISwapChain::SetFullscreenState -> #TRUE 调用失败，无法进入独占全屏");
+					}
 				}
 			}
 		}
@@ -611,7 +1042,12 @@ void f2dRenderDevice11::destroySwapchain()
 		HRESULT hr = gHR = dxgi_swapchain->GetFullscreenState(&bFullscreen, &dxgi_output);
 		if (SUCCEEDED(hr) || bFullscreen)
 		{
-			dxgi_swapchain->SetFullscreenState(FALSE, NULL); // 不关心结果，反正你给我离开独占全屏
+			spdlog::info("[fancy2d] 尝试退出独占全屏");
+			hr = gHR = dxgi_swapchain->SetFullscreenState(FALSE, NULL);
+			if (FAILED(hr))
+			{
+				spdlog::error("[fancy2d] IDXGISwapChain::SetFullscreenState -> #FALSE 调用失败");
+			}
 		}
 	}
 	dxgi_swapchain.Reset();
@@ -625,6 +1061,7 @@ bool f2dRenderDevice11::createSwapchain(f2dDisplayMode* pmode)
 	Microsoft::WRL::ComPtr<ID3D11Device1> d3d11_device1;
 	d3d11_device.As(&d3d11_device1);
 	
+	spdlog::info("[fancy2d] 开始创建 SwapChain（交换链）组件");
 	if (dxgi_factory2 && d3d11_device1)
 	{
 		// Windows 7 平台更新已安装，或者 Windows 8 及以上
@@ -661,6 +1098,14 @@ bool f2dRenderDevice11::createSwapchain(f2dDisplayMode* pmode)
 		if (SUCCEEDED(hr))
 		{
 			hr = gHR = dxgi_swapchain1.As(&dxgi_swapchain);
+			if (FAILED(hr))
+			{
+				spdlog::error("[fancy2d] IDXGISwapChain1::QueryInterface -> #IDXGISwapChain 调用失败，创建 SwapChain（交换链）组件失败");
+			}
+		}
+		else
+		{
+			spdlog::error("[fancy2d] IDXGIFactory2::CreateSwapChainForHwnd 调用失败，创建 SwapChain（交换链）组件失败");
 		}
 	}
 	if (!dxgi_swapchain)
@@ -696,11 +1141,21 @@ bool f2dRenderDevice11::createSwapchain(f2dDisplayMode* pmode)
 		hr = gHR = dxgi_factory->CreateSwapChain(d3d11_device.Get(), &desc, &dxgi_swapchain);
 		if (FAILED(hr))
 		{
+			spdlog::error("[fancy2d] IDXGIFactory1::CreateSwapChain 调用失败，创建 SwapChain（交换链）组件失败");
 			return false;
 		}
 	}
-
-	dxgi_factory->MakeWindowAssociation(win32_window, DXGI_MWA_NO_ALT_ENTER); // 别他妈乱切换了
+	if (dxgi_swapchain)
+	{
+		spdlog::info("[fancy2d] 已创建 SwapChain（交换链）组件");
+	}
+	
+	hr = gHR = dxgi_factory->MakeWindowAssociation(win32_window, DXGI_MWA_NO_ALT_ENTER); // 别他妈乱切换了
+	if (FAILED(hr))
+	{
+		spdlog::error("[fancy2d] IDXGIFactory1::MakeWindowAssociation 调用失败，无法关闭 DXGI 自带的 ALT+ENTER 切换全屏功能（该功能会导致画面显示异常）");
+		return false;
+	}
 
 	if (!createRenderAttachments())
 	{
@@ -727,20 +1182,27 @@ bool f2dRenderDevice11::createRenderAttachments()
 		return false;
 	}
 
+	spdlog::info("[fancy2d] 开始创建 RenderAttachment（渲染附件）");
+
 	HRESULT hr = 0;
 
+	spdlog::info("[fancy2d] 开始创建 RenderTarget（渲染目标）");
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> dxgi_surface;
 	hr = gHR = dxgi_swapchain->GetBuffer(0, IID_ID3D11Texture2D, &dxgi_surface);
 	if (FAILED(hr))
 	{
+		spdlog::error("[fancy2d] IDXGISwapChain::GetBuffer -> #0 调用失败，无法获得 BackBuffer（后备缓冲区）");
 		return false;
 	}
 	hr = gHR = d3d11_device->CreateRenderTargetView(dxgi_surface.Get(), NULL, &d3d11_rendertarget);
 	if (FAILED(hr))
 	{
+		spdlog::error("[fancy2d] ID3D11Device::CreateRenderTargetView 调用失败");
 		return false;
 	}
-	
+	spdlog::info("[fancy2d] 已创建 RenderTarget（渲染目标）");
+
+	spdlog::info("[fancy2d] 开始创建 DepthStencilBuffer（深度&模板缓冲区）");
 	D3D11_TEXTURE2D_DESC tex2ddef = {
 		.Width = swapchain_width,
 		.Height = swapchain_height,
@@ -757,6 +1219,7 @@ bool f2dRenderDevice11::createRenderAttachments()
 	hr = gHR = d3d11_device->CreateTexture2D(&tex2ddef, NULL, &d3d11_texture2d);
 	if (FAILED(hr))
 	{
+		spdlog::error("[fancy2d] ID3D11Device::CreateTexture2D 调用失败");
 		return false;
 	}
 	D3D11_DEPTH_STENCIL_VIEW_DESC dsvdef = {
@@ -768,8 +1231,12 @@ bool f2dRenderDevice11::createRenderAttachments()
 	hr = gHR = d3d11_device->CreateDepthStencilView(d3d11_texture2d.Get(), &dsvdef, &d3d11_depthstencil);
 	if (FAILED(hr))
 	{
+		spdlog::error("[fancy2d] ID3D11Device::CreateDepthStencilView 调用失败");
 		return false;
 	}
+	spdlog::info("[fancy2d] 已创建 DepthStencilBuffer（深度&模板缓冲区）");
+
+	spdlog::info("[fancy2d] 已创建 RenderAttachment（渲染附件）");
 
 	return true;
 }
@@ -789,29 +1256,107 @@ fuInt f2dRenderDevice11::GetSupportedDisplayModeCount(fBool refresh)
 		display_modes.clear();
 		HRESULT hr = 0;
 
-		if (!dxgi_swapchain) return 0;
+		spdlog::info("[fancy2d] 开始枚举支持的显示模式");
+
+		if (!dxgi_swapchain)
+		{
+			spdlog::error("[fancy2d] 无法获得 Output（显示输出）设备");
+			return 0;
+		}
 		
 		Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output;
 		hr = gHR = dxgi_swapchain->GetContainingOutput(&dxgi_output);
-		if (FAILED(hr)) return 0;
+		if (FAILED(hr))
+		{
+			spdlog::error("[fancy2d] IDXGISwapChain::GetContainingOutput 调用失败，无法获得 Output（显示输出）设备");
+			return 0;
+		}
 
 		UINT mode_count = 0;
 		hr = gHR = dxgi_output->GetDisplayModeList(DXGI_FORMAT_B8G8R8A8_UNORM, 0, &mode_count, NULL);
-		if (FAILED(hr)) return 0;
+		if (FAILED(hr))
+		{
+			spdlog::error("[fancy2d] IDXGIOutput::GetDisplayModeList 调用失败");
+			return 0;
+		}
 		std::vector<DXGI_MODE_DESC> modes(mode_count);
 		hr = gHR = dxgi_output->GetDisplayModeList(DXGI_FORMAT_B8G8R8A8_UNORM, 0, &mode_count, modes.data());
-		if (FAILED(hr)) return 0;
+		if (FAILED(hr))
+		{
+			spdlog::error("[fancy2d] IDXGIOutput::GetDisplayModeList 调用失败");
+			return 0;
+		}
 
-		display_modes.resize(mode_count);
+		display_modes.reserve(mode_count);
 		for (UINT i = 0; i < mode_count; i += 1)
 		{
-			display_modes[i].width = modes[i].Width;
-			display_modes[i].height = modes[i].Height;
-			display_modes[i].refresh_rate.numerator = modes[i].RefreshRate.Numerator;
-			display_modes[i].refresh_rate.denominator = modes[i].RefreshRate.Denominator;
-			display_modes[i].format = (fuInt)modes[i].Format;
-			display_modes[i].scanline_ordering = (fuInt)modes[i].ScanlineOrdering;
-			display_modes[i].scaling = (fuInt)modes[i].Scaling;
+			if (
+				((double)modes[i].RefreshRate.Numerator / (double)modes[i].RefreshRate.Denominator) >= 58.5
+				&& (modes[i].Width >= 640 || modes[i].Height >= 360)
+				&& (modes[i].ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED || modes[i].ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE)
+				&& modes[i].Scaling == DXGI_MODE_SCALING_UNSPECIFIED)
+			{
+				
+				display_modes.emplace_back(f2dDisplayMode{
+					.width = modes[i].Width,
+					.height = modes[i].Height,
+					.refresh_rate = f2dRational{
+						.numerator = modes[i].RefreshRate.Numerator,
+						.denominator = modes[i].RefreshRate.Denominator,
+					},
+					.format = (fuInt)modes[i].Format,
+					.scanline_ordering = (fuInt)modes[i].ScanlineOrdering,
+					.scaling = (fuInt)modes[i].Scaling,
+				});
+			}
+		}
+		if (!display_modes.empty())
+		{
+			spdlog::info("[fancy2d] 共找到 {} 个支持的显示模式：", display_modes.size());
+			for (size_t i = 0; i < display_modes.size(); i += 1)
+			{
+				spdlog::info("{: >4d}: ({: >5d} x {: >5d}) {:.2f}Hz"
+					, i
+					, display_modes[i].width, display_modes[i].height
+					, (double)display_modes[i].refresh_rate.numerator / (double)display_modes[i].refresh_rate.denominator
+				);
+			}
+		}
+		else
+		{
+			for (UINT i = 0; i < mode_count; i += 1)
+			{
+				display_modes.emplace_back(f2dDisplayMode{
+						.width = modes[i].Width,
+						.height = modes[i].Height,
+						.refresh_rate = f2dRational{
+							.numerator = modes[i].RefreshRate.Numerator,
+							.denominator = modes[i].RefreshRate.Denominator,
+						},
+						.format = (fuInt)modes[i].Format,
+						.scanline_ordering = (fuInt)modes[i].ScanlineOrdering,
+						.scaling = (fuInt)modes[i].Scaling,
+					});
+			}
+			if (!display_modes.empty())
+			{
+				spdlog::warn("[fancy2d] 找不到支持的显示模式，开始查找兼容的显示模式");
+				spdlog::info("[fancy2d] 共找到 {} 个兼容的显示模式：", display_modes.size());
+				for (size_t i = 0; i < display_modes.size(); i += 1)
+				{
+					spdlog::info("{: >4d}: ({: >5d} x {: >5d}) {:.2f}Hz"
+						, i
+						, display_modes[i].width, display_modes[i].height
+						, (double)display_modes[i].refresh_rate.numerator / (double)display_modes[i].refresh_rate.denominator
+					);
+				}
+			}
+			else
+			{
+				spdlog::error("[fancy2d] 枚举支持的显示模式失败，没有可用的显示模式");
+				display_modes.clear();
+				return 0;
+			}
 		}
 	}
 	return (fuInt)display_modes.size();
@@ -855,9 +1400,11 @@ fResult f2dRenderDevice11::SetDisplayMode(f2dDisplayMode mode, fBool VSync)
 		return FCYERR_INTERNALERR;
 	}
 	dispatchRenderSizeDependentResourcesCreate();
+	spdlog::info("[fancy2d] 尝试切换到独占全屏");
 	HRESULT hr = gHR = dxgi_swapchain->SetFullscreenState(TRUE, NULL);
 	if (FAILED(hr))
 	{
+		spdlog::error("[fancy2d] IDXGISwapChain::SetFullscreenState -> #TRUE 调用失败，无法进入独占全屏");
 		return FCYERR_INTERNALERR;
 	}
 	return FCYERR_OK;
@@ -879,6 +1426,17 @@ fResult f2dRenderDevice11::Present()
 	HRESULT hr = gHR = dxgi_swapchain->Present(swapchain_vsync ? 1 : 0, 0);
 	if (hr != S_OK && hr != DXGI_STATUS_OCCLUDED && hr != DXGI_STATUS_MODE_CHANGED && hr != DXGI_STATUS_MODE_CHANGE_IN_PROGRESS)
 	{
+		spdlog::critical("[fancy2d] IDXGISwapChain::Present 调用失败，注意：设备已丢失，接下来的渲染将无法正常进行");
+		spdlog::info("[fancy2d] 可能导致设备丢失的情况：\n"
+			"    1、其他应用程序独占图形设备\n"
+			"    2、图形设备驱动程序因驱动更新而重置\n"
+			"    3、图形设备驱动程序崩溃\n"
+			"    4、图形设备因运行异常，或电脑休眠/睡眠，而停止工作\n"
+			"    5、图形设备已被移除*1\n"
+			"    6、其他意外情况*2\n"
+			"        *1 注意，某些电脑的显卡是热插拔的，比如某些平板、笔记本二合一电脑，独立显卡装在键盘、触控板和额外电池一侧上，如果把该侧移除变成平板形态，独显就也一起没了\n"
+			"        *2 比如 Windows 系统玄学 Bug\n"
+		);
 		// 设备丢失，广播设备丢失事件
 		m_bDevLost = true; // 标记为设备丢失状态
 		int tObjCount = sendDevLostMsg();

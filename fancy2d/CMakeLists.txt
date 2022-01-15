@@ -134,6 +134,7 @@ target_sources(fancy2dlib PRIVATE
 target_link_libraries(fancy2dlib PUBLIC
     #strmiids.lib #???
     #strmbasd #???
+    spdlog::spdlog
     winmm.lib
     imm32.lib
     dxguid.lib
@@ -178,6 +179,7 @@ if(FALSE)
     target_link_libraries(fancy2d PRIVATE
         #strmiids.lib #???
         #strmbasd #???
+        spdlog::spdlog
         winmm.lib
         imm32.lib
         dxguid.lib
