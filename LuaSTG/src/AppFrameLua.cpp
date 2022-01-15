@@ -315,6 +315,14 @@ namespace LuaSTGPlus
     bool AppFrame::OnLoadLaunchScriptAndFiles()
     {
         #ifdef USING_ENCRYPTION
+        spdlog::info("[luastg] 加载脚本包");
+        if (!m_FileManager.LoadArchive("script", 0, GetGameName().c_str()))
+        {
+            if (!m_FileManager.LoadArchive("script.zip", 0, GetGameName().c_str()))
+            {
+                spdlog::error("[luastg] 找不到文件'script'或'script.zip'");
+            }
+        }
         spdlog::info("[luastg] 加载资源包");
         if (!m_FileManager.LoadArchive("data", 0, GetGameName().c_str()))
         {
@@ -372,13 +380,13 @@ namespace LuaSTGPlus
             }
         }
         #else
-        auto* zip = m_FileManager.GetArchive("data");
+        auto* zip = m_FileManager.GetArchive("script");
         if (zip == nullptr)
         {
-            zip = m_FileManager.GetArchive("data.zip");
+            zip = m_FileManager.GetArchive("script.zip");
             if (zip == nullptr)
             {
-                spdlog::error("[luastg] 资源包'data'或'data.zip'不存在");
+                spdlog::error("[luastg] 资源包'script'或'script.zip'不存在");
                 return false;
             }
         }
@@ -397,6 +405,37 @@ namespace LuaSTGPlus
                         break;
                     }
                     steam->Release();
+                }
+            }
+        }
+        if (!is_load)
+        {
+            zip = m_FileManager.GetArchive("data");
+            if (zip == nullptr)
+            {
+                zip = m_FileManager.GetArchive("data.zip");
+                if (zip == nullptr)
+                {
+                    spdlog::error("[luastg] 资源包'data'或'data.zip'不存在");
+                    return false;
+                }
+            }
+            for (auto& v : entry_scripts)
+            {
+                if (zip->FileExist(v.c_str()))
+                {
+                    auto* steam = zip->LoadEncryptedFile(v.c_str(), GetGameName().c_str());
+                    if (steam)
+                    {
+                        fcyMemStream* source = (fcyMemStream*)steam;
+                        if (SafeCallScript((fcStr)source->GetInternalBuffer(), (size_t)source->GetLength(), v.c_str()))
+                        {
+                            spdlog::info("[luastg] 加载脚本'{}'", v.c_str());
+                            is_load = true;
+                            break;
+                        }
+                        steam->Release();
+                    }
                 }
             }
         }
