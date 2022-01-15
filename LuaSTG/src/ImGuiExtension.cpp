@@ -26,6 +26,29 @@
 
 // lua imgui backend binding
 
+static std::string bytes_count_to_string(DWORDLONG size)
+{
+    int count = 0;
+    char buffer[64] = {};
+    if (size < 1024) // B
+    {
+        count = std::snprintf(buffer, 64, "%u B", (unsigned int)size);
+    }
+    else if (size < (1024 * 1024)) // KB
+    {
+        count = std::snprintf(buffer, 64, "%.2f KB", (double)size / 1024.0);
+    }
+    else if (size < (1024 * 1024 * 1024)) // MB
+    {
+        count = std::snprintf(buffer, 64, "%.2f MB", (double)size / 1048576.0);
+    }
+    else // GB
+    {
+        count = std::snprintf(buffer, 64, "%.2f GB", (double)size / 1073741824.0);
+    }
+    return std::string(buffer, count);
+}
+
 static int lib_NewFrame(lua_State* L)
 {
     imgui::updateEngine();
@@ -52,6 +75,52 @@ static int lib_ShowTestInputWindow(lua_State* L)
         return 0;
     }
 }
+static int lib_ShowMemoryUsageWindow(lua_State* L)
+{
+    bool v = (lua_gettop(L) >= 1) ? lua_toboolean(L, 1) : true;
+    if (v)
+    {
+        if (ImGui::Begin("Memory Usage", &v))
+        {
+            MEMORYSTATUSEX info = { sizeof(MEMORYSTATUSEX) };
+            BOOL bret = GlobalMemoryStatusEx(&info);
+            if (bret)
+            {
+                ImGui::Text("System Memory Usage: %u%%", info.dwMemoryLoad);
+                ImGui::Text("Totoal Physical Memory: %s", bytes_count_to_string(info.ullTotalPhys).c_str());
+                ImGui::Text("Avalid Physical Memory: %s", bytes_count_to_string(info.ullAvailPhys).c_str());
+                ImGui::Text("Totoal Page File: %s", bytes_count_to_string(info.ullTotalPageFile).c_str());
+                ImGui::Text("Avalid Page File: %s", bytes_count_to_string(info.ullAvailPageFile).c_str());
+                ImGui::Text("Totoal User Mode Memory Space: %s", bytes_count_to_string(info.ullTotalVirtual).c_str());
+                ImGui::Text("Avalid User Mode Memory Space: %s", bytes_count_to_string(info.ullAvailVirtual).c_str());
+                ImGui::Text("Alloc* User Mode Memory Space: %s", bytes_count_to_string(info.ullTotalVirtual - info.ullAvailVirtual).c_str());
+                if (ImGui::Button("Write To LOG File"))
+                {
+                    spdlog::info("[fancy2d] 系统内存使用情况：\n"
+                        "    使用百分比：{}%\n"
+                        "    总物理内存：{}\n"
+                        "    剩余物理内存：{}\n"
+                        "    当前进程可提交内存限制：{}\n"
+                        "    当前进程剩余的可提交内存：{}\n"
+                        "    当前进程用户模式内存空间限制*1：{}\n"
+                        "    当前进程剩余的用户模式内存空间：{}\n"
+                        "        *1 此项反映此程序实际上能用的最大内存，在 32 位应用程序上此项一般为 2 GB，修改 Windows 操作系统注册表后可能为 1 到 3 GB"
+                        , info.dwMemoryLoad
+                        , bytes_count_to_string(info.ullTotalPhys)
+                        , bytes_count_to_string(info.ullAvailPhys)
+                        , bytes_count_to_string(info.ullTotalPageFile)
+                        , bytes_count_to_string(info.ullAvailPageFile)
+                        , bytes_count_to_string(info.ullTotalVirtual)
+                        , bytes_count_to_string(info.ullAvailVirtual)
+                    );
+                }
+            }
+        }
+        ImGui::End();
+    }
+    lua_pushboolean(L, v);
+    return 1;
+}
 
 void imgui_binding_lua_register_backend(lua_State* L)
 {
@@ -59,6 +128,7 @@ void imgui_binding_lua_register_backend(lua_State* L)
         {"NewFrame", &lib_NewFrame},
         {"RenderDrawData", &lib_RenderDrawData},
         {"ShowTestInputWindow", &lib_ShowTestInputWindow},
+        {"ShowMemoryUsageWindow", &lib_ShowMemoryUsageWindow},
         {NULL, NULL},
     };
     const auto lib_func = (sizeof(lib_fun) / sizeof(luaL_Reg)) - 1;
@@ -194,18 +264,20 @@ namespace imgui
         {
             ImFontConfig cfg;
             cfg.OversampleH = 1;
-            std::string fontpath = "C:\\Windows\\Fonts\\msyh.ttc";
-            if (!std::filesystem::is_regular_file(fontpath))
-            {
-                fontpath = "C:\\Windows\\Fonts\\msyh.ttf"; // Windows 7
-            }
+            //std::string fontpath = "C:\\Windows\\Fonts\\msyh.ttc";
+            //if (!std::filesystem::is_regular_file(fontpath))
+            //{
+            //    fontpath = "C:\\Windows\\Fonts\\msyh.ttf"; // Windows 7
+            //}
+            std::string fontpath = "C:\\Windows\\Fonts\\consola.ttf";
             if (std::filesystem::is_regular_file(fontpath))
             {
                 io.Fonts->AddFontFromFileTTF(
                     fontpath.c_str(),
                     16.0f * native::getDpiScalingForWindow((void*)APP.GetEngine()->GetMainWindow()->GetHandle()),
-                    &cfg,
-                    io.Fonts->GetGlyphRangesChineseFull());
+                    &cfg
+                    //, io.Fonts->GetGlyphRangesChineseFull()
+                );
                 io.Fonts->AddFontDefault();
             }
             else
