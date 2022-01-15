@@ -309,11 +309,12 @@ f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, fuInt BackBufferWid
 		DXGI_ADAPTER_DESC1 desc_ = {};
 		if (bHR = gHR = dxgi_adapter_temp->GetDesc1(&desc_))
 		{
+			bool soft_dev_type = (desc_.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) || (desc_.Flags & DXGI_ADAPTER_FLAG_REMOTE);
 			dev_name = fcyStringHelper::WideCharToMultiByte(desc_.Description);
 			spdlog::info("[fancy2d] 图形设备[{}]：\n"
 				"    设备名称：{}\n"
 				"    设备类型：{}\n"
-				"    Direct3D 11 支持情况：{}\n"
+				"    Direct3D 11 支持情况：{}{}\n"
 				"    专用显存：{}\n"
 				"    专用内存：{}\n"
 				"    共享内存：{}\n"
@@ -325,7 +326,7 @@ f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, fuInt BackBufferWid
 				, idx
 				, dev_name
 				, adapter_flags_to_string(desc_.Flags)
-				, to_d3d11_string(supported_d3d11, level_info)
+				, to_d3d11_string(supported_d3d11, level_info), soft_dev_type ? "（注：软件或远程设备性能不足以运行游戏，仅供开发使用）" : ""
 				, bytes_count_to_string(desc_.DedicatedVideoMemory)
 				, bytes_count_to_string(desc_.DedicatedSystemMemory)
 				, bytes_count_to_string(desc_.SharedSystemMemory)
@@ -335,6 +336,10 @@ f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, fuInt BackBufferWid
 				, desc_.Revision
 				, static_cast<DWORD>(desc_.AdapterLuid.HighPart), desc_.AdapterLuid.LowPart
 			);
+			if (soft_dev_type)
+			{
+				supported_d3d11 = false;
+			}
 		}
 		else
 		{
@@ -468,7 +473,16 @@ f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, fuInt BackBufferWid
 	}
 	else
 	{
-		spdlog::error("[fancy2d] 没有可用的图形设备");
+		spdlog::critical("[fancy2d] 没有可用的图形设备");
+		spdlog::info("[fancy2d] 可能导致没有可用的图形设备的情况：\n"
+			"    1、硬件过于老旧\n"
+			"    2、在虚拟机中运行此程序*1\n"
+			"    3、驱动程序未安装或不是最新\n"
+			"    4、图形设备未正常连接\n"
+			"    5、其他意外情况*2\n"
+			"        *1 除非已安装虚拟机软件提供的图形驱动程序\n"
+			"        *2 比如 Windows 系统玄学 Bug\n"
+		);
 		throw fcyException("f2dRenderDevice11::f2dRenderDevice11", "no adapter avalid.");
 	}
 	
@@ -1040,7 +1054,7 @@ void f2dRenderDevice11::destroySwapchain()
 		BOOL bFullscreen = FALSE;
 		Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output;
 		HRESULT hr = gHR = dxgi_swapchain->GetFullscreenState(&bFullscreen, &dxgi_output);
-		if (SUCCEEDED(hr) || bFullscreen)
+		if (bFullscreen)
 		{
 			spdlog::info("[fancy2d] 尝试退出独占全屏");
 			hr = gHR = dxgi_swapchain->SetFullscreenState(FALSE, NULL);
