@@ -9,7 +9,7 @@
 #include <VersionHelpers.h>
 
 VERSIONHELPERAPI
-IsWindows11OrGreater()
+static IsWindows11OrGreater()
 {
 	OSVERSIONINFOEXW osvi = { sizeof(osvi), 0, 0, 0, 0, {0}, 0, 0 };
 	DWORDLONG const dwlConditionMask = VerSetConditionMask(
@@ -27,7 +27,7 @@ IsWindows11OrGreater()
 }
 
 VERSIONHELPERAPI
-IsWindows10VersionOrGreater(DWORD build)
+static IsWindows10VersionOrGreater(DWORD build)
 {
 	OSVERSIONINFOEXW osvi = { sizeof(osvi), 0, 0, 0, 0, {0}, 0, 0 };
 	DWORDLONG const dwlConditionMask = VerSetConditionMask(
@@ -44,7 +44,30 @@ IsWindows10VersionOrGreater(DWORD build)
 	return VerifyVersionInfoW(&osvi, VER_MAJORVERSION | VER_MINORVERSION | VER_BUILDNUMBER, dwlConditionMask) != FALSE;
 }
 
-char const* windows_version_to_string()
+static std::string bytes_count_to_string(DWORDLONG size)
+{
+	int count = 0;
+	char buffer[64] = {};
+	if (size < 1024) // B
+	{
+		count = std::snprintf(buffer, 64, "%u B", (unsigned int)size);
+	}
+	else if (size < (1024 * 1024)) // KB
+	{
+		count = std::snprintf(buffer, 64, "%.2f KB", (double)size / 1024.0);
+	}
+	else if (size < (1024 * 1024 * 1024)) // MB
+	{
+		count = std::snprintf(buffer, 64, "%.2f MB", (double)size / 1048576.0);
+	}
+	else // GB
+	{
+		count = std::snprintf(buffer, 64, "%.2f GB", (double)size / 1073741824.0);
+	}
+	return std::string(buffer, count);
+}
+
+static char const* windows_version_to_string()
 {
 	if (IsWindowsServer())
 	{
@@ -172,7 +195,7 @@ char const* windows_version_to_string()
 
 	return "Windows ?（如果此程序能运行，也是一件美事）";
 }
-char const* d3d_feature_level_to_string(bool b, D3D_FEATURE_LEVEL level)
+static char const* d3d_feature_level_to_string(bool b, D3D_FEATURE_LEVEL level)
 {
 	if (b)
 	{
@@ -192,7 +215,7 @@ char const* d3d_feature_level_to_string(bool b, D3D_FEATURE_LEVEL level)
 		return "不支持，或功能级别过低";
 	}
 }
-char const* d3d_feature_level_to_string2(D3D_FEATURE_LEVEL level)
+static char const* d3d_feature_level_to_string2(D3D_FEATURE_LEVEL level)
 {
 	switch (level)
 	{
@@ -212,6 +235,35 @@ char const* d3d_feature_level_to_string2(D3D_FEATURE_LEVEL level)
 #endif
 
 #include "spdlog/spdlog.h"
+
+static void get_system_memory_status()
+{
+	MEMORYSTATUSEX info = { sizeof(MEMORYSTATUSEX) };
+	if (GlobalMemoryStatusEx(&info))
+	{
+		spdlog::info("[fancy2d] 系统内存使用情况：\n"
+			"    使用百分比：{}%\n"
+			"    总物理内存：{}\n"
+			"    剩余物理内存：{}\n"
+			"    当前进程可提交内存限制：{}\n"
+			"    当前进程剩余的可提交内存：{}\n"
+			"    当前进程用户模式内存空间限制*1：{}\n"
+			"    当前进程剩余的用户模式内存空间：{}\n"
+			"        *1 此项反映此程序实际上能用的最大内存，在 32 位应用程序上此项一般为 2 GB，修改 Windows 操作系统注册表后可能为 1 到 3 GB"
+			, info.dwMemoryLoad
+			, bytes_count_to_string(info.ullTotalPhys)
+			, bytes_count_to_string(info.ullAvailPhys)
+			, bytes_count_to_string(info.ullTotalPageFile)
+			, bytes_count_to_string(info.ullAvailPageFile)
+			, bytes_count_to_string(info.ullTotalVirtual)
+			, bytes_count_to_string(info.ullAvailVirtual)
+		);
+	}
+	else
+	{
+		spdlog::error("[fancy2d] 无法获取系统内存使用情况");
+	}
+}
 
 // 类主体
 
@@ -259,28 +311,6 @@ bool f2dRenderDevice11::selectAdapter()
 		}
 		// 获取图形设备信息
 		std::string dev_name = "<NULL>";
-		auto bytes_count_to_string = [](SIZE_T size) -> std::string
-		{
-			int count = 0;
-			char buffer[64] = {};
-			if (size < 1024) // B
-			{
-				count = std::snprintf(buffer, 64, "%u B", size);
-			}
-			else if (size < (1024 * 1024)) // KB
-			{
-				count = std::snprintf(buffer, 64, "%.2f KB", (double)size / 1024.0);
-			}
-			else if (size < (1024 * 1024 * 1024)) // MB
-			{
-				count = std::snprintf(buffer, 64, "%.2f MB", (double)size / 1048576.0);
-			}
-			else // GB
-			{
-				count = std::snprintf(buffer, 64, "%.2f GB", (double)size / 1073741824.0);
-			}
-			return std::string(buffer, count);
-		};
 		auto adapter_flags_to_string = [](UINT flags) -> char const*
 		{
 			if ((flags & DXGI_ADAPTER_FLAG_REMOTE) && (flags & DXGI_ADAPTER_FLAG_SOFTWARE))
@@ -624,6 +654,7 @@ f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, fuInt BackBufferWid
 	HRESULT hr = 0;
 
 	spdlog::info("[fancy2d] 操作系统版本：{}", windows_version_to_string());
+	get_system_memory_status();
 	spdlog::info("[fancy2d] 开始创建图形组件");
 
 	spdlog::info("[fancy2d] 开始创建基本 DXGI 组件");
