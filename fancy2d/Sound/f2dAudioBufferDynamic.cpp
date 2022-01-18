@@ -295,40 +295,14 @@ fResult f2dAudioBufferDynamic::SetVolume(fFloat Value)
 
 fFloat f2dAudioBufferDynamic::GetPan()
 {
-	fuShort ch = m_pDecoder->GetChannelCount();
-	float v[7] = {};
-	xa2_source->GetChannelVolumes(ch, v);
-	if (v[0] < 1.0f)
-	{
-		return 1.0f - v[0];
-	}
-	else if (v[1] < 1.0f)
-	{
-		return -(1.0f - v[1]);
-	}
-	else
-	{
-		return 0.0f;
-	}
+	return output_pan;
 }
 
 fResult f2dAudioBufferDynamic::SetPan(fFloat Value)
 {
-	fuShort ch = m_pDecoder->GetChannelCount();
-	float v[7] = {};
-	Value = std::clamp(Value, -1.0f, 1.0f);
-	if (Value < 0.0f)
-	{
-		v[0] = 1.0f;
-		v[1] = 1.0f + Value;
-	}
-	else
-	{
-		v[0] = 1.0f - Value;
-		v[1] = 1.0f;
-	}
-	HRESULT hr = gHR = xa2_source->SetChannelVolumes(ch, v);
-	return FAILED(hr) ? FCYERR_INTERNALERR : FCYERR_OK;
+	output_pan = std::clamp(Value, -1.0f, 1.0f);
+	f2dSoundSysImpl* pSys = (f2dSoundSysImpl*)m_pSoundSys;
+	return pSys->SetSoundEffectPan(xa2_source, Value);
 }
 
 fuInt f2dAudioBufferDynamic::GetFrequency()

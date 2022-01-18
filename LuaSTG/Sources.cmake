@@ -20,6 +20,7 @@ set(LUASTG_ENGINE_SOURCES
     src/LuaWrapper/LuaWrapper.hpp
     src/LuaWrapper/LuaWrapperMisc.hpp
     src/LuaWrapper/LW_Archive.cpp
+    src/LuaWrapper/LW_Audio.cpp
     src/LuaWrapper/LW_BentLaser.cpp
     src/LuaWrapper/LW_Color.cpp
     src/LuaWrapper/LW_DInput.cpp

@@ -11,6 +11,9 @@
 #include "fcyException.h"
 #include "spdlog/spdlog.h"
 
+#include <ks.h>
+#include <ksmedia.h>
+
 ////////////////////////////////////////////////////////////////////////////////
 
 f2dSoundSysImpl::f2dSoundSysImpl(f2dEngineImpl* pEngine)
@@ -37,14 +40,14 @@ f2dSoundSysImpl::f2dSoundSysImpl(f2dEngineImpl* pEngine)
 	XAUDIO2_VOICE_DETAILS voice_info = {};
 	m_pXAudio2->xa2_master->GetVoiceDetails(&voice_info);
 
-	hr = gHR = m_pXAudio2->xa2_xaudio2->CreateSubmixVoice(&m_pXAudio2->xa2_soundeffect, voice_info.InputChannels, voice_info.InputSampleRate);
+	hr = gHR = m_pXAudio2->xa2_xaudio2->CreateSubmixVoice(&m_pXAudio2->xa2_soundeffect, 2, voice_info.InputSampleRate); // 固定2声道
 	if (FAILED(hr))
 	{
 		spdlog::error("[fancy2d] IXAudio2::CreateSubmixVoice -> #audio_soundeffect 调用失败");
 		throw fcyWin32COMException("f2dSoundSysImpl::f2dSoundSysImpl", "IXAudio2::CreateSubmixVoice Failed.", hr);
 	}
 
-	hr = gHR = m_pXAudio2->xa2_xaudio2->CreateSubmixVoice(&m_pXAudio2->xa2_music, voice_info.InputChannels, voice_info.InputSampleRate);
+	hr = gHR = m_pXAudio2->xa2_xaudio2->CreateSubmixVoice(&m_pXAudio2->xa2_music, 2, voice_info.InputSampleRate); // 固定2声道
 	if (FAILED(hr))
 	{
 		spdlog::error("[fancy2d] IXAudio2::CreateSubmixVoice -> #audio_music 调用失败");
@@ -84,6 +87,49 @@ void f2dSoundSysImpl::DecXAudio2Ref() { if (m_pXAudio2) m_pXAudio2->Release(); }
 IXAudio2* f2dSoundSysImpl::GetXAudio2() { return m_pXAudio2 ? m_pXAudio2->xa2_xaudio2.Get() : nullptr; }
 IXAudio2SubmixVoice* f2dSoundSysImpl::GetSoundEffectChannel() { return m_pXAudio2 ? m_pXAudio2->xa2_soundeffect : nullptr; }
 IXAudio2SubmixVoice* f2dSoundSysImpl::GetMusicChannel() { return m_pXAudio2 ? m_pXAudio2->xa2_music : nullptr; }
+fResult f2dSoundSysImpl::SetSoundEffectPan(IXAudio2SourceVoice* p, float v)
+{
+	XAUDIO2_VOICE_DETAILS detail = {};
+	p->GetVoiceDetails(&detail);
+	float output_matrix_2x2[4] = {0};
+	float pan = std::clamp(v, -1.0f, 1.0f);
+	switch (detail.InputChannels)
+	{
+	case 1:
+		if (pan < 0.0f)
+		{
+			output_matrix_2x2[0] = 1.0f;
+			output_matrix_2x2[1] = 1.0f + pan;
+		}
+		else
+		{
+			output_matrix_2x2[0] = 1.0f - pan;
+			output_matrix_2x2[1] = 1.0f;
+		}
+	case 2:
+		if (pan < 0.0f)
+		{
+			output_matrix_2x2[0] = 1.0f;
+			output_matrix_2x2[3] = 1.0f + pan;
+		}
+		else
+		{
+			output_matrix_2x2[0] = 1.0f - pan;
+			output_matrix_2x2[3] = 1.0f;
+		}
+		break;
+	default:
+		spdlog::error("[fancy2d] 无法识别的的音频声道数量：{}，无法设置音量平衡", detail.InputChannels);
+		return FCYERR_NOTSUPPORT;
+	}
+	HRESULT hr = gHR = p->SetOutputMatrix(NULL, detail.InputChannels, 2, output_matrix_2x2);
+	if (FAILED(hr))
+	{
+		spdlog::error("[fancy2d] IXAudio2SourceVoice::SetOutputMatrix 调用失败");
+		return FCYERR_INTERNALERR;
+	}
+	return FCYERR_OK;
+}
 
 fResult f2dSoundSysImpl::CreateStaticBuffer(f2dSoundDecoder* pDecoder, fBool bGlobalFocus, f2dSoundBuffer** pOut)
 {

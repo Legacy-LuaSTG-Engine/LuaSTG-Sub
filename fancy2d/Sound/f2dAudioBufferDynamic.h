@@ -36,6 +36,7 @@ protected:
 	fDouble start_time = 0.0;
 	fDouble total_time = 0.0;
 	fDouble current_time = 0.0;
+	fFloat output_pan = 0.0f;
 	CRITICAL_SECTION start_time_lock;
 public:
 	void WINAPI OnVoiceProcessingPassStart(UINT32 BytesRequired);

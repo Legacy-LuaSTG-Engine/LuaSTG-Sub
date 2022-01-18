@@ -23,6 +23,7 @@ protected:
 	XAUDIO2_BUFFER xa2_buffer = {};
 	Microsoft::WRL::Wrappers::Event event_end;
 	std::vector<BYTE> pcm_data;
+	fFloat output_pan = 0.0f;
 	fuInt sample_rate = 0;
 	fuShort channel_cnt = 0;
 	fBool is_playing = false;

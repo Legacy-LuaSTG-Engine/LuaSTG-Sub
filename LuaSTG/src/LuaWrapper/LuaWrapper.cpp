@@ -150,6 +150,7 @@ namespace LuaSTGPlus
 		BuiltInFunctionWrapper::Register(L);  // 内建函数库
 		LuaWrapper::RenderWrapper::Register(L);
 		LuaWrapper::RendererWrapper::Register(L);
+		LuaWrapper::AudioWrapper::Register(L);
 		FileManagerWrapper::Register(L); //内建函数库，文件资源管理，请确保位于内建函数库后加载
 		ArchiveWrapper::Register(L); //压缩包
 #ifdef USING_ADVANCE_COLLIDER

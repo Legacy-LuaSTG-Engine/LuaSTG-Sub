@@ -46,6 +46,7 @@ public:
 	IXAudio2* GetXAudio2();
 	IXAudio2SubmixVoice* GetSoundEffectChannel();
 	IXAudio2SubmixVoice* GetMusicChannel();
+	fResult SetSoundEffectPan(IXAudio2SourceVoice* p, float v);
 public:
 	fResult CreateStaticBuffer(f2dSoundDecoder* pDecoder, fBool bGlobalFocus, f2dSoundBuffer** pOut);
 	fResult CreateSharedStaticBuffer(f2dSoundBuffer* pOrg, f2dSoundBuffer** pOut);
