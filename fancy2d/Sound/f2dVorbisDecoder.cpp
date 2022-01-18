@@ -4,8 +4,6 @@
 
 #include "fcyOS/fcyDebug.h"
 
-using namespace std;
-
 ////////////////////////////////////////////////////////////////////////////////
 
 size_t f2dVorbisDecoder::streamReadFunc(void *ptr, size_t size, size_t nmemb, void *datasource)
@@ -26,6 +24,7 @@ int f2dVorbisDecoder::streamSeekFunc(void *datasource, ogg_int64_t offset, int w
 	FCYSEEKORIGIN tOrigin = FCYSEEKORIGIN_BEG;
 	switch(whence)
 	{
+	default:
 	case 0:
 		tOrigin = FCYSEEKORIGIN_BEG;
 		break;
@@ -53,24 +52,29 @@ long f2dVorbisDecoder::streamTellFunc(void *datasource)
 }
 
 f2dVorbisDecoder::f2dVorbisDecoder(fcyStream* pStream)
-	: m_CurrentSec(0), m_CurrentPos(0), m_pStream(pStream)
+	: m_pStream(pStream)
 {
-	ov_callbacks tCallbacks = 
-	{
-		(size_t (*)(void *, size_t, size_t, void *))  streamReadFunc,
-		(int (*)(void *, ogg_int64_t, int))           streamSeekFunc,
-		(int (*)(void *))                             streamCloseFunc,
-		(long (*)(void *))                            streamTellFunc
-	};
-
 	if(!m_pStream)
 		throw fcyException("f2dVorbisDecoder::f2dVorbisDecoder", "Invalid Pointer.");
-	m_pStream->AddRef();
 
+	m_pStream->AddRef();
 	m_pStream->Lock();
 	m_pStream->SetPosition(FCYSEEKORIGIN_BEG, m_CurrentPos);
 
+	ov_callbacks tCallbacks = {
+		&streamReadFunc,
+		&streamSeekFunc,
+		&streamCloseFunc,
+		&streamTellFunc
+	};
 	int tRet = ov_open_callbacks(m_pStream, &m_OggFile, NULL, 0, tCallbacks);
+	if (tRet == 0)
+	{
+		pcm_total_cnt = ov_pcm_total(&m_OggFile, -1);
+		vorbis_info* info = ov_info(&m_OggFile, -1);
+		channel_cnt = info->channels;
+		sample_rate = info->rate;
+	}
 	
 	m_CurrentPos = m_pStream->GetPosition();
  	m_pStream->Unlock();
@@ -96,7 +100,7 @@ f2dVorbisDecoder::~f2dVorbisDecoder()
 
 fuInt f2dVorbisDecoder::GetBufferSize()
 {
-	return (fuInt)ov_pcm_total(&m_OggFile, -1) * GetBlockAlign();
+	return pcm_total_cnt * GetBlockAlign();
 }
 
 fuInt f2dVorbisDecoder::GetAvgBytesPerSec()
@@ -111,19 +115,17 @@ fuShort f2dVorbisDecoder::GetBlockAlign()
 
 fuShort f2dVorbisDecoder::GetChannelCount()
 {
-	vorbis_info* tInfo = ov_info(&m_OggFile, -1);
-	return (fuShort)tInfo->channels;
+	return (fuShort)channel_cnt;
 }
 
 fuInt f2dVorbisDecoder::GetSamplesPerSec()
 {
-	vorbis_info* tInfo = ov_info(&m_OggFile, -1);
-	return (fuInt)tInfo->rate;
+	return (fuInt)sample_rate;
 }
 
 fuShort f2dVorbisDecoder::GetFormatTag()
 {
-	return 1;
+	return 1; // WAVE_FORMAT_PCM
 }
 
 fuShort f2dVorbisDecoder::GetBitsPerSample()
@@ -133,7 +135,7 @@ fuShort f2dVorbisDecoder::GetBitsPerSample()
 
 fLen f2dVorbisDecoder::GetPosition()
 {
-	return (fLen)(ov_time_tell(&m_OggFile) * GetSamplesPerSec()) * GetBlockAlign();
+	return (fLen)ov_pcm_tell(&m_OggFile) * GetBlockAlign();
 }
 
 fResult f2dVorbisDecoder::SetPosition(F2DSEEKORIGIN Origin, fInt Offset)
@@ -154,17 +156,17 @@ fResult f2dVorbisDecoder::SetPosition(F2DSEEKORIGIN Origin, fInt Offset)
 	default:
 		return FCYERR_INVAILDPARAM;
 	}
-	if(Offset<0 && ((fuInt)(-Offset))>tPCMPointer)
+	if (Offset < 0 && ((fuInt)(-Offset)) > tPCMPointer)
 	{
 		tPCMPointer = 0;
 		return FCYERR_OUTOFRANGE;
 	}
-	else if(Offset>0 && Offset+tPCMPointer>=GetBufferSize())
+	else if(Offset > 0 && (Offset + tPCMPointer) >= GetBufferSize())
 	{
 		tPCMPointer = GetBufferSize();
 		return FCYERR_OUTOFRANGE;
 	}
-	tPCMPointer+=Offset;
+	tPCMPointer += Offset;
 
 	// 进行Seek操作
 	m_CurrentSec = 0;
@@ -172,7 +174,7 @@ fResult f2dVorbisDecoder::SetPosition(F2DSEEKORIGIN Origin, fInt Offset)
 	m_pStream->Lock();  // 锁定流
 	m_pStream->SetPosition(FCYSEEKORIGIN_BEG, m_CurrentPos);
 
-	int tRet = ov_time_seek(&m_OggFile, tPCMPointer / (double)(GetSamplesPerSec() * GetBlockAlign()));
+	int tRet = ov_pcm_seek(&m_OggFile, tPCMPointer / GetBlockAlign());
 	
 	m_CurrentPos = m_pStream->GetPosition();
 	m_pStream->Unlock();

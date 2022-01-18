@@ -19,9 +19,12 @@ class f2dVorbisDecoder:
 {
 private:
 	OggVorbis_File m_OggFile;
-	f2dStream* m_pStream;
-	int m_CurrentSec;
-	fLen m_CurrentPos;
+	f2dStream* m_pStream = nullptr;
+	int m_CurrentSec = 0;
+	fLen m_CurrentPos = 0;
+	ogg_int64_t pcm_total_cnt = 0;
+	int channel_cnt = 0;
+	long sample_rate = 0;
 private:
 	static size_t streamReadFunc(void *ptr, size_t size, size_t nmemb, void *datasource);
 	static int streamSeekFunc(void *datasource, ogg_int64_t offset, int whence);

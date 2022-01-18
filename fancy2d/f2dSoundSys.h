@@ -144,6 +144,11 @@ struct f2dSoundSys
 	/// @param[in]  pStream 数据流
 	/// @param[out] pOut    输出的解码器指针
 	virtual fResult CreateOGGVorbisDecoder(f2dStream* pStream, f2dSoundDecoder** pOut)=0;
+
+	virtual fResult SetSoundEffectChannelVolume(fFloat v) = 0;
+	virtual fResult SetMusicChannelVolume(fFloat v) = 0;
+	virtual fFloat GetSoundEffectChannelVolume() = 0;
+	virtual fFloat GetMusicChannelVolume() = 0;
 };
 
 /// @}

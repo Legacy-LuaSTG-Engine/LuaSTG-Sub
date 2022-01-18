@@ -170,9 +170,11 @@ namespace LuaSTGPlus {
 			m_pBuffer->SetTime(position);
 
 			//float nv = VolumeFix(vol);
-			float nv = (float)volume::LinearToLog(vol);
-			if (m_pBuffer->GetVolume() != nv)
-				m_pBuffer->SetVolume(nv);
+			//float nv = (float)volume::LinearToLog(vol);
+			//if (m_pBuffer->GetVolume() != nv)
+			//	m_pBuffer->SetVolume(nv);
+
+			m_pBuffer->SetVolume(vol);
 
 			m_pBuffer->Play();
 			m_status = 2;
@@ -214,16 +216,19 @@ namespace LuaSTGPlus {
 		void SetVolume(float v)
 		{
 			//float nv = VolumeFix(v);
-			float nv = (float)volume::LinearToLog(v);
-			if (m_pBuffer->GetVolume() != nv)
-				m_pBuffer->SetVolume(nv);
+			//float nv = (float)volume::LinearToLog(v);
+			//if (m_pBuffer->GetVolume() != nv)
+			//	m_pBuffer->SetVolume(nv);
+
+			m_pBuffer->SetVolume(v);
 		}
 
 		float GetVolume() {
-			double dv = (double)m_pBuffer->GetVolume();
-			double tv = volume::LogToLinear(dv);
-			return (float)tv;
-			//return m_pBuffer->GetVolume();
+			//double dv = (double)m_pBuffer->GetVolume();
+			//double tv = volume::LogToLinear(dv);
+			//return (float)tv;
+			
+			return m_pBuffer->GetVolume();
 		}
 
 		bool SetSpeed(float speed) {

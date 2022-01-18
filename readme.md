@@ -26,6 +26,6 @@ LuaSTG Sub, is a derivative branch of LuaSTG Plus.
 
 ## Contributors
 
-* [9chu](https://github.com/9chu) (creator)  
-* [Xiliusha](https://github.com/Xiliusha) (current maintainer)  
-* [璀境石](https://github.com/Demonese) (contributor)  
+* [9chu](https://github.com/9chu) (creator of LuaSTG Plus)  
+* [Xiliusha](https://github.com/Xiliusha) (contributor)  
+* [璀境石](https://github.com/Demonese) (current maintainer)  

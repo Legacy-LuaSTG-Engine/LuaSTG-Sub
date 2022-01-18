@@ -21,6 +21,9 @@
 #include "ScreenGrab9.h"
 #include "WICTextureLoader11.h"
 #include "ScreenGrab11.h"
+// Audio
+#include "xaudio2redist.h"
+#define SAFE_RELEASE_VOICE(x) if (x) { x->DestroyVoice(); x = NULL; }
 // DirectInput
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>

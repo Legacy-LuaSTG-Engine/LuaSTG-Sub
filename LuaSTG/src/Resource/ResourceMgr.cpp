@@ -215,7 +215,6 @@ void ResourceMgr::ClearAllResource() noexcept {
     m_ActivedPool = ResourcePoolType::Global;
     m_GlobalImageScaleFactor = 1.0f;
     m_GlobalSoundEffectVolume = 1.0f;
-    m_GlobalMusicVolume = 1.0f;
 }
 
 ResourcePoolType ResourceMgr::GetActivedPoolType() noexcept {

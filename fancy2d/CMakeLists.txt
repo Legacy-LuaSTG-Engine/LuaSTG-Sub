@@ -96,6 +96,8 @@ set(FANCY2D_SOURCE
     Sound/f2dSoundBufferPull.cpp
     Sound/f2dSoundSpriteImpl.h
     Sound/f2dSoundSpriteImpl.cpp
+    Sound/f2dAudioBufferDynamic.h
+    Sound/f2dAudioBufferDynamic.cpp
 
     #Video/f2dVideoSysImpl.h
     #Video/f2dVideoSysImpl.cpp
@@ -141,6 +143,7 @@ target_link_libraries(fancy2dlib PUBLIC
     d3d9.lib
     dinput8.lib
     DirectXSDK # must remove it in the future!
+    DirectX::XAudio2Redist
     DirectXTex0
     dxgi.lib
     d3d11.lib
