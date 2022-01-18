@@ -1,42 +1,31 @@
 ﻿////////////////////////////////////////////////////////////////////////////////
-/// @file  f2dSoundBufferDynamic.h
-/// @brief fancy2D音频系统 动态缓冲区
+/// @file  f2dSoundSysAPI.h
+/// @brief fancy2D音频系统 静态缓冲区
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fcyRefObj.h"
-#include "fcyIO/fcyStream.h"
+#include "fcyIO\fcyStream.h"
 #include "f2dSoundSys.h"
 #include "Common/f2dStandardCommon.hpp"
 #include "Common/f2dWindowsCommon.h"
 
-// 通过不断解码播放音频
-class f2dAudioBufferDynamic
+////////////////////////////////////////////////////////////////////////////////
+/// @brief 静态声音缓冲
+////////////////////////////////////////////////////////////////////////////////
+class f2dAudioBufferStatic
 	: public fcyRefObjImpl<f2dSoundBuffer>
 	, public IXAudio2VoiceCallback
 {
 	friend class f2dSoundSysImpl;
 protected:
-	enum class State
-	{
-		Stop,
-		Pause,
-		Play,
-	};
-	State source_state = State::Stop;
 	f2dSoundSys* m_pSoundSys = nullptr;
-	f2dSoundDecoder* m_pDecoder;
 	IXAudio2SourceVoice* xa2_source = NULL;
-	Microsoft::WRL::Wrappers::Event event_start;
-	Microsoft::WRL::Wrappers::Event event_stop;
-	Microsoft::WRL::Wrappers::Event event_reset;
-	Microsoft::WRL::Wrappers::Event event_buf1;
-	Microsoft::WRL::Wrappers::Event event_buf2;
-	Microsoft::WRL::Wrappers::Event event_exit;
-	Microsoft::WRL::Wrappers::HandleT<Microsoft::WRL::Wrappers::HandleTraits::HANDLENullTraits> working_thread;
-	fDouble start_time = 0.0;
-	fDouble total_time = 0.0;
-	fDouble current_time = 0.0;
-	CRITICAL_SECTION start_time_lock;
+	XAUDIO2_BUFFER xa2_buffer = {};
+	Microsoft::WRL::Wrappers::Event event_end;
+	std::vector<BYTE> pcm_data;
+	fuInt sample_rate = 0;
+	fuShort channel_cnt = 0;
+	fBool is_playing = false;
 public:
 	void WINAPI OnVoiceProcessingPassStart(UINT32 BytesRequired);
 	void WINAPI OnVoiceProcessingPassEnd();
@@ -45,8 +34,6 @@ public:
 	void WINAPI OnBufferEnd(void* pBufferContext);
 	void WINAPI OnLoopEnd(void* pBufferContext);
 	void WINAPI OnVoiceError(void* pBufferContext, HRESULT Error);
-private:
-	static DWORD WINAPI WorkingThread(LPVOID lpThreadParameter);
 public:
 	// 接口实现
 
@@ -72,6 +59,6 @@ public:
 	fBool IsLoop();
 	void SetLoop(fBool bValue);
 protected: // 禁止直接new/delete
-	f2dAudioBufferDynamic(f2dSoundSys* pSoundSys, f2dSoundDecoder* pDecoder, fBool bGlobalFocus);
-	~f2dAudioBufferDynamic();
+	f2dAudioBufferStatic(f2dSoundSys* pSoundSys, f2dSoundDecoder* pDecoder, fBool bGlobalFocus);
+	~f2dAudioBufferStatic();
 };

@@ -128,14 +128,11 @@ namespace LuaSTGPlus
     private:
         static bool g_ResourceLoadingLog;
         float m_GlobalImageScaleFactor = 1.0f;
-        float m_GlobalSoundEffectVolume = 1.0f;
     public:
         static void SetResourceLoadingLog(bool b);
         static bool GetResourceLoadingLog();
         float GetGlobalImageScaleFactor() const noexcept { return m_GlobalImageScaleFactor; }
         void SetGlobalImageScaleFactor(float s) noexcept { m_GlobalImageScaleFactor = s; }
-        float GetGlobalSoundEffectVolume() const noexcept { return m_GlobalSoundEffectVolume; }
-        void SetGlobalSoundEffectVolume(float s) noexcept { m_GlobalSoundEffectVolume = s; }
     public:
         ResourceMgr();
     };

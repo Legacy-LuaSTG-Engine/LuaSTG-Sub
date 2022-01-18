@@ -4,6 +4,7 @@
 #include "Sound/f2dSoundBufferDynamic.h"
 #include "Sound/f2dSoundBufferPull.h"
 #include "Sound/f2dSoundSpriteImpl.h"
+#include "Sound/f2dAudioBufferStatic.h"
 #include "Sound/f2dAudioBufferDynamic.h"
 
 #include "Sound/f2dWaveDecoder.h"
@@ -114,7 +115,8 @@ fResult f2dSoundSysImpl::CreateStaticBuffer(f2dSoundDecoder* pDecoder, fBool bGl
 
 	try
 	{
-		pBuffer = new f2dSoundBufferStatic(m_pDSound8, pDecoder, bGlobalFocus);
+		//pBuffer = new f2dSoundBufferStatic(m_pDSound8, pDecoder, bGlobalFocus);
+		pBuffer = new f2dAudioBufferStatic(this, pDecoder, bGlobalFocus);
 	}
 	catch(const fcyException& e)
 	{

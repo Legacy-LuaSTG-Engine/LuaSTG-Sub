@@ -4,35 +4,6 @@
 #include "Common/volume.hpp"
 
 namespace LuaSTGPlus {
-	// 声音资源
-	/*
-	class ResAudio :
-		public Resource
-	{
-	private:
-		fcyRefPointer<f2dSoundBuffer> m_pBuffer;
-		int m_status;//0停止1暂停2播放
-		float m_lastfrq;
-		long m_freq;
-	public:
-		void Resume()
-		{
-			m_pBuffer->Play();
-			m_status = 2;
-		}
-		void Pause()
-		{
-			m_pBuffer->Pause();
-			m_status = 1;
-		}
-		void Stop()
-		{
-			m_pBuffer->Stop();
-			m_status = 0;
-		}
-	};
-	//*/
-
 	// 音效
 	class ResSound :
 		public Resource
@@ -48,11 +19,14 @@ namespace LuaSTGPlus {
 			m_pBuffer->Stop();
 
 			//float nv = VolumeFix(vol);
-			float nv = (float)volume::LinearToLog(vol);
-			if (m_pBuffer->GetVolume() != nv)
-				m_pBuffer->SetVolume(nv);
-			if (m_pBuffer->GetPan() != pan)
-				m_pBuffer->SetPan(pan);
+			//float nv = (float)volume::LinearToLog(vol);
+			//if (m_pBuffer->GetVolume() != nv)
+			//	m_pBuffer->SetVolume(nv);
+			//if (m_pBuffer->GetPan() != pan)
+			//	m_pBuffer->SetPan(pan);
+
+			m_pBuffer->SetVolume(vol);
+			m_pBuffer->SetPan(pan);
 
 			m_pBuffer->Play();
 			m_status = 2;
@@ -83,8 +57,7 @@ namespace LuaSTGPlus {
 
 		bool IsStopped()
 		{
-			return !IsPlaying() && m_pBuffer->GetTime() == 0.;
-			//return !IsPlaying() || m_status == 0;
+			return !IsPlaying() && m_status != 1;
 		}
 
 		bool SetSpeed(float speed) {
@@ -203,14 +176,14 @@ namespace LuaSTGPlus {
 			return m_pBuffer->IsPlaying();
 		}
 
-		bool IsPaused() {
+		bool IsPaused()
+		{
 			return m_status == 1;
 		}
 
 		bool IsStopped()
 		{
-			return !IsPlaying() && m_pBuffer->GetTime() == 0.;//用播放时间来判断貌似会遇到[播放然后立即判断状态会返回stop状态]的错误
-			//return (!IsPlaying() || m_status == 0) && m_pBuffer->GetTime() == 0.;
+			return !IsPlaying() && m_pBuffer->GetTotalTime() == 0.0;
 		}
 
 		void SetVolume(float v)

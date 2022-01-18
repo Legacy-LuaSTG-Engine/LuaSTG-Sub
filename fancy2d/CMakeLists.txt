@@ -96,6 +96,8 @@ set(FANCY2D_SOURCE
     Sound/f2dSoundBufferPull.cpp
     Sound/f2dSoundSpriteImpl.h
     Sound/f2dSoundSpriteImpl.cpp
+    Sound/f2dAudioBufferStatic.h
+    Sound/f2dAudioBufferStatic.cpp
     Sound/f2dAudioBufferDynamic.h
     Sound/f2dAudioBufferDynamic.cpp
 

@@ -1320,7 +1320,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			ResSound* p = LRES.FindSound(s);
 			if (!p)
 				return luaL_error(L, "sound '%s' not found.", s);
-			p->Play((float)luaL_checknumber(L, 2) * LRES.GetGlobalSoundEffectVolume(), (float)luaL_optnumber(L, 3, 0.));
+			p->Play((float)luaL_checknumber(L, 2), (float)luaL_optnumber(L, 3, 0.0));
 			return 0;
 		}
 		static int StopSound(lua_State* L)LNOEXCEPT
@@ -1371,12 +1371,13 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		}
 		static int SetSEVolume(lua_State* L)LNOEXCEPT
 		{
-			float x = static_cast<float>(luaL_checknumber(L, 1));
-			LRES.SetGlobalSoundEffectVolume(max(min(x, 1.f), 0.f));
+			float v = static_cast<float>(luaL_checknumber(L, 1));
+			LAPP.GetSoundSys()->SetSoundEffectChannelVolume(v);
 			return 0;
 		}
-		static int GetSEVolume(lua_State* L) {
-			lua_pushnumber(L, LRES.GetGlobalSoundEffectVolume());
+		static int GetSEVolume(lua_State* L)
+		{
+			lua_pushnumber(L, LAPP.GetSoundSys()->GetSoundEffectChannelVolume());
 			return 1;
 		}
 		static int SetSESpeed(lua_State* L) {
