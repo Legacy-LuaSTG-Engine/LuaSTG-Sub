@@ -1,9 +1,5 @@
 ﻿#include "Sound/f2dSoundSysImpl.h"
 
-#include "Sound/f2dSoundBufferStatic.h"
-#include "Sound/f2dSoundBufferDynamic.h"
-#include "Sound/f2dSoundBufferPull.h"
-#include "Sound/f2dSoundSpriteImpl.h"
 #include "Sound/f2dAudioBufferStatic.h"
 #include "Sound/f2dAudioBufferDynamic.h"
 
@@ -20,27 +16,18 @@
 f2dSoundSysImpl::f2dSoundSysImpl(f2dEngineImpl* pEngine)
 	: m_pEngine(pEngine)
 {
-	// 使用默认回放设备创建DSound
-	HRESULT tHR;
-	tHR = m_API.DLLEntry_DirectSoundCreate8(NULL, &m_pDSound8, NULL);
-	if(FAILED(tHR))
-		throw fcyWin32COMException("f2dSoundSysImpl::f2dSoundSysImpl", "DirectSoundCreate8 Failed", tHR);
-
-	// 设置设备协作性
-	tHR = m_pDSound8->SetCooperativeLevel((HWND)pEngine->GetMainWindow()->GetHandle(), DSSCL_PRIORITY);
-	if(FAILED(tHR))
-		throw fcyWin32COMException("f2dSoundSysImpl::f2dSoundSysImpl", "SetCooperativeLevel Failed.", tHR);
-
+	m_pXAudio2 = new f2dXAudio2Components;
+	
 	HRESULT hr = 0;
-
-	hr = gHR = XAudio2Create(&xa2_xaudio2);
+	
+	hr = gHR = XAudio2Create(&m_pXAudio2->xa2_xaudio2);
 	if (FAILED(hr))
 	{
 		spdlog::error("[fancy2d] XAudio2Create 调用失败");
 		throw fcyWin32COMException("f2dSoundSysImpl::f2dSoundSysImpl", "XAudio2Create Failed.", hr);
 	}
 
-	hr = gHR = xa2_xaudio2->CreateMasteringVoice(&xa2_master);
+	hr = gHR = m_pXAudio2->xa2_xaudio2->CreateMasteringVoice(&m_pXAudio2->xa2_master);
 	if (FAILED(hr))
 	{
 		spdlog::error("[fancy2d] IXAudio2::CreateMasteringVoice 调用失败");
@@ -48,16 +35,16 @@ f2dSoundSysImpl::f2dSoundSysImpl(f2dEngineImpl* pEngine)
 	}
 
 	XAUDIO2_VOICE_DETAILS voice_info = {};
-	xa2_master->GetVoiceDetails(&voice_info);
+	m_pXAudio2->xa2_master->GetVoiceDetails(&voice_info);
 
-	hr = gHR = xa2_xaudio2->CreateSubmixVoice(&xa2_soundeffect, voice_info.InputChannels, voice_info.InputSampleRate);
+	hr = gHR = m_pXAudio2->xa2_xaudio2->CreateSubmixVoice(&m_pXAudio2->xa2_soundeffect, voice_info.InputChannels, voice_info.InputSampleRate);
 	if (FAILED(hr))
 	{
 		spdlog::error("[fancy2d] IXAudio2::CreateSubmixVoice -> #audio_soundeffect 调用失败");
 		throw fcyWin32COMException("f2dSoundSysImpl::f2dSoundSysImpl", "IXAudio2::CreateSubmixVoice Failed.", hr);
 	}
 
-	hr = gHR = xa2_xaudio2->CreateSubmixVoice(&xa2_music, voice_info.InputChannels, voice_info.InputSampleRate);
+	hr = gHR = m_pXAudio2->xa2_xaudio2->CreateSubmixVoice(&m_pXAudio2->xa2_music, voice_info.InputChannels, voice_info.InputSampleRate);
 	if (FAILED(hr))
 	{
 		spdlog::error("[fancy2d] IXAudio2::CreateSubmixVoice -> #audio_music 调用失败");
@@ -66,44 +53,37 @@ f2dSoundSysImpl::f2dSoundSysImpl(f2dEngineImpl* pEngine)
 
 	XAUDIO2_SEND_DESCRIPTOR voice_send_master = {
 		.Flags = 0,
-		.pOutputVoice = xa2_master,
+		.pOutputVoice = m_pXAudio2->xa2_master,
 	};
 	XAUDIO2_VOICE_SENDS voice_send_list = {
 		.SendCount = 1,
 		.pSends = &voice_send_master
 	};
 
-	hr = gHR = xa2_soundeffect->SetOutputVoices(&voice_send_list);
+	hr = gHR = m_pXAudio2->xa2_soundeffect->SetOutputVoices(&voice_send_list);
 	if (FAILED(hr))
 	{
 		spdlog::error("[fancy2d] @audio_soundeffect -> IXAudio2SubmixVoice::SetOutputVoices -> #audio_master 调用失败");
 		throw fcyWin32COMException("f2dSoundSysImpl::f2dSoundSysImpl", "IXAudio2SubmixVoice::SetOutputVoices Failed.", hr);
 	}
 
-	hr = gHR = xa2_music->SetOutputVoices(&voice_send_list);
+	hr = gHR = m_pXAudio2->xa2_music->SetOutputVoices(&voice_send_list);
 	if (FAILED(hr))
 	{
 		spdlog::error("[fancy2d] @audio_music -> IXAudio2SubmixVoice::SetOutputVoices -> #audio_master 调用失败");
 		throw fcyWin32COMException("f2dSoundSysImpl::f2dSoundSysImpl", "IXAudio2SubmixVoice::SetOutputVoices Failed.", hr);
 	}
 }
-
 f2dSoundSysImpl::~f2dSoundSysImpl()
 {
-	FCYSAFEKILL(m_pDSound8);
-	SAFE_RELEASE_VOICE(xa2_soundeffect);
-	SAFE_RELEASE_VOICE(xa2_music);
-	SAFE_RELEASE_VOICE(xa2_master);
+	FCYSAFEKILL(m_pXAudio2);
 }
 
-void f2dSoundSysImpl::AddXAudio2Ref()
-{
-	xa2_xaudio2->AddRef();
-}
-void f2dSoundSysImpl::DecXAudio2Ref()
-{
-	xa2_xaudio2->Release();
-}
+void f2dSoundSysImpl::AddXAudio2Ref() { if (m_pXAudio2) m_pXAudio2->AddRef(); }
+void f2dSoundSysImpl::DecXAudio2Ref() { if (m_pXAudio2) m_pXAudio2->Release(); }
+IXAudio2* f2dSoundSysImpl::GetXAudio2() { return m_pXAudio2 ? m_pXAudio2->xa2_xaudio2.Get() : nullptr; }
+IXAudio2SubmixVoice* f2dSoundSysImpl::GetSoundEffectChannel() { return m_pXAudio2 ? m_pXAudio2->xa2_soundeffect : nullptr; }
+IXAudio2SubmixVoice* f2dSoundSysImpl::GetMusicChannel() { return m_pXAudio2 ? m_pXAudio2->xa2_music : nullptr; }
 
 fResult f2dSoundSysImpl::CreateStaticBuffer(f2dSoundDecoder* pDecoder, fBool bGlobalFocus, f2dSoundBuffer** pOut)
 {
@@ -129,26 +109,27 @@ fResult f2dSoundSysImpl::CreateStaticBuffer(f2dSoundDecoder* pDecoder, fBool bGl
 }
 fResult f2dSoundSysImpl::CreateSharedStaticBuffer(f2dSoundBuffer* pOrg, f2dSoundBuffer** pOut)
 {
-	if(!pOrg || !pOut)
-		return FCYERR_INVAILDPARAM;
-	
-	*pOut = NULL;
-
-	if(pOrg->IsDynamic())
-		return FCYERR_ILLEGAL;
-
-	IDirectSoundBuffer* tpOut = NULL;
-	HRESULT tHR = m_pDSound8->DuplicateSoundBuffer(((f2dSoundBufferStatic*)pOrg)->m_pBuffer, &tpOut);
-	if(FAILED(tHR))
-	{
-		m_pEngine->ThrowException(fcyWin32COMException("f2dSoundSysImpl::CreateSharedStaticBuffer", "DuplicateSoundBuffer failed.", tHR));
-		return FCYERR_INTERNALERR;
-	}
-
-	f2dSoundBufferStatic* tRet = new f2dSoundBufferStatic(tpOut);
-	*pOut = tRet;
-
-	return FCYERR_OK;
+	//if(!pOrg || !pOut)
+	//	return FCYERR_INVAILDPARAM;
+	//
+	//*pOut = NULL;
+	//
+	//if(pOrg->IsDynamic())
+	//	return FCYERR_ILLEGAL;
+	//
+	//IDirectSoundBuffer* tpOut = NULL;
+	//HRESULT tHR = m_pDSound8->DuplicateSoundBuffer(((f2dSoundBufferStatic*)pOrg)->m_pBuffer, &tpOut);
+	//if(FAILED(tHR))
+	//{
+	//	m_pEngine->ThrowException(fcyWin32COMException("f2dSoundSysImpl::CreateSharedStaticBuffer", "DuplicateSoundBuffer failed.", tHR));
+	//	return FCYERR_INTERNALERR;
+	//}
+	//
+	//f2dSoundBufferStatic* tRet = new f2dSoundBufferStatic(tpOut);
+	//*pOut = tRet;
+	//
+	//return FCYERR_OK;
+	return FCYERR_NOTIMPL;
 }
 fResult f2dSoundSysImpl::CreateDynamicBuffer(f2dSoundDecoder* pDecoder, fBool bGlobalFocus, f2dSoundBuffer** pOut)
 {
@@ -174,45 +155,47 @@ fResult f2dSoundSysImpl::CreateDynamicBuffer(f2dSoundDecoder* pDecoder, fBool bG
 }
 fResult f2dSoundSysImpl::CreatePullBuffer(f2dSoundDecoder* pDecoder, fuInt iBufferSampleCount, fBool bGlobalFocus, f2dSoundBuffer** pOut)
 {
-	if (!pDecoder || !pOut)
-		return FCYERR_INVAILDPARAM;
-
-	*pOut = NULL;
-	f2dSoundBuffer* pBuffer = NULL;
-
-	try
-	{
-		pBuffer = new f2dSoundBufferPull(m_pDSound8, pDecoder, iBufferSampleCount, bGlobalFocus);
-	}
-	catch (const fcyException& e)
-	{
-		m_pEngine->ThrowException(e);
-		return FCYERR_INTERNALERR;
-	}
-
-	*pOut = pBuffer;
-	return FCYERR_OK;
+	//if (!pDecoder || !pOut)
+	//	return FCYERR_INVAILDPARAM;
+	//
+	//*pOut = NULL;
+	//f2dSoundBuffer* pBuffer = NULL;
+	//
+	//try
+	//{
+	//	pBuffer = new f2dSoundBufferPull(m_pDSound8, pDecoder, iBufferSampleCount, bGlobalFocus);
+	//}
+	//catch (const fcyException& e)
+	//{
+	//	m_pEngine->ThrowException(e);
+	//	return FCYERR_INTERNALERR;
+	//}
+	//
+	//*pOut = pBuffer;
+	//return FCYERR_OK;
+	return FCYERR_NOTIMPL;
 }
 fResult f2dSoundSysImpl::CreateSoundSprite(f2dSoundDecoder* pDecoder, fBool bGlobalFocus, fuInt iMaxCount, f2dSoundSprite** pOut)
 {
-	if(!pDecoder || !pOut)
-		return FCYERR_INVAILDPARAM;
-
-	*pOut = NULL;
-	f2dSoundSprite* pBuffer = NULL;
-
-	try
-	{
-		pBuffer = new f2dSoundSpriteImpl(m_pDSound8, pDecoder, bGlobalFocus, iMaxCount);
-	}
-	catch(const fcyException& e)
-	{
-		m_pEngine->ThrowException(e);
-		return FCYERR_INTERNALERR;
-	}
-
-	*pOut = pBuffer;
-	return FCYERR_OK;
+	//if(!pDecoder || !pOut)
+	//	return FCYERR_INVAILDPARAM;
+	//
+	//*pOut = NULL;
+	//f2dSoundSprite* pBuffer = NULL;
+	//
+	//try
+	//{
+	//	pBuffer = new f2dSoundSpriteImpl(m_pDSound8, pDecoder, bGlobalFocus, iMaxCount);
+	//}
+	//catch(const fcyException& e)
+	//{
+	//	m_pEngine->ThrowException(e);
+	//	return FCYERR_INTERNALERR;
+	//}
+	//
+	//*pOut = pBuffer;
+	//return FCYERR_OK;
+	return FCYERR_NOTIMPL;
 }
 
 fResult f2dSoundSysImpl::CreateWaveDecoder(f2dStream* pStream, f2dSoundDecoder** pOut)
@@ -260,23 +243,23 @@ fResult f2dSoundSysImpl::CreateOGGVorbisDecoder(f2dStream* pStream, f2dSoundDeco
 
 fResult f2dSoundSysImpl::SetSoundEffectChannelVolume(fFloat v)
 {
-	HRESULT hr = gHR = xa2_soundeffect->SetVolume(std::clamp(v, 0.0f, 1.0f));
+	HRESULT hr = gHR = m_pXAudio2->xa2_soundeffect->SetVolume(std::clamp(v, 0.0f, 1.0f));
 	return SUCCEEDED(hr) ? FCYERR_OK : FCYERR_INTERNALERR;
 }
 fResult f2dSoundSysImpl::SetMusicChannelVolume(fFloat v)
 {
-	HRESULT hr = gHR = xa2_music->SetVolume(std::clamp(v, 0.0f, 1.0f));
+	HRESULT hr = gHR = m_pXAudio2->xa2_music->SetVolume(std::clamp(v, 0.0f, 1.0f));
 	return SUCCEEDED(hr) ? FCYERR_OK : FCYERR_INTERNALERR;
 }
 fFloat f2dSoundSysImpl::GetSoundEffectChannelVolume()
 {
 	float v = 0.0f;
-	xa2_soundeffect->GetVolume(&v);
+	m_pXAudio2->xa2_soundeffect->GetVolume(&v);
 	return v;
 }
 fFloat f2dSoundSysImpl::GetMusicChannelVolume()
 {
 	float v = 0.0f;
-	xa2_music->GetVolume(&v);
+	m_pXAudio2->xa2_music->GetVolume(&v);
 	return v;
 }

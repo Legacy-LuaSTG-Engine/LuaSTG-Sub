@@ -22,21 +22,30 @@ class f2dSoundSysImpl :
 {
 private:
 	f2dEngineImpl* m_pEngine = nullptr;
-
-	f2dSoundSysAPI m_API;
-
-	IDirectSound8* m_pDSound8;
-	Microsoft::WRL::ComPtr<IXAudio2> xa2_xaudio2;
-	IXAudio2MasteringVoice* xa2_master = NULL;
-	IXAudio2SubmixVoice* xa2_soundeffect = NULL;
-	IXAudio2SubmixVoice* xa2_music = NULL;
+	class f2dXAudio2Components : public fcyRefObjImpl<f2dInterface>
+	{
+	public:
+		Microsoft::WRL::ComPtr<IXAudio2> xa2_xaudio2;
+		IXAudio2MasteringVoice* xa2_master = NULL;
+		IXAudio2SubmixVoice* xa2_soundeffect = NULL;
+		IXAudio2SubmixVoice* xa2_music = NULL;
+	public:
+		~f2dXAudio2Components()
+		{
+			SAFE_RELEASE_VOICE(xa2_soundeffect);
+			SAFE_RELEASE_VOICE(xa2_music);
+			SAFE_RELEASE_VOICE(xa2_master);
+			xa2_xaudio2.Reset();
+		}
+	};
+	f2dXAudio2Components* m_pXAudio2 = nullptr;
 public:
 	// 内部公开方法
 	void AddXAudio2Ref();
 	void DecXAudio2Ref();
-	IXAudio2* GetXAudio2() { return xa2_xaudio2.Get(); }
-	IXAudio2SubmixVoice* GetSoundEffectChannel() { return xa2_soundeffect; }
-	IXAudio2SubmixVoice* GetMusicChannel() { return xa2_music; }
+	IXAudio2* GetXAudio2();
+	IXAudio2SubmixVoice* GetSoundEffectChannel();
+	IXAudio2SubmixVoice* GetMusicChannel();
 public:
 	fResult CreateStaticBuffer(f2dSoundDecoder* pDecoder, fBool bGlobalFocus, f2dSoundBuffer** pOut);
 	fResult CreateSharedStaticBuffer(f2dSoundBuffer* pOrg, f2dSoundBuffer** pOut);

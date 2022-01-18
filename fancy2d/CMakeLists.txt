@@ -82,20 +82,10 @@ set(FANCY2D_SOURCE
 
     Sound/f2dSoundSysImpl.h
     Sound/f2dSoundSysImpl.cpp
-    Sound/f2dSoundSysAPI.h
-    Sound/f2dSoundSysAPI.cpp
     Sound/f2dWaveDecoder.h
     Sound/f2dWaveDecoder.cpp
     Sound/f2dVorbisDecoder.h
     Sound/f2dVorbisDecoder.cpp
-    Sound/f2dSoundBufferStatic.h
-    Sound/f2dSoundBufferStatic.cpp
-    Sound/f2dSoundBufferDynamic.h
-    Sound/f2dSoundBufferDynamic.cpp
-    Sound/f2dSoundBufferPull.h
-    Sound/f2dSoundBufferPull.cpp
-    Sound/f2dSoundSpriteImpl.h
-    Sound/f2dSoundSpriteImpl.cpp
     Sound/f2dAudioBufferStatic.h
     Sound/f2dAudioBufferStatic.cpp
     Sound/f2dAudioBufferDynamic.h
