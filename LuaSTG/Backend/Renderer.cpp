@@ -185,6 +185,9 @@ namespace LuaSTG::Core
 						}
 					}
 				}
+				// unbound: solve some debug warning
+				ID3D11ShaderResourceView* null_srv = NULL;
+				_devctx->PSSetShaderResources(0, 1, &null_srv);
 			}
 			// clear
 			releaseTexture();
