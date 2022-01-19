@@ -221,10 +221,10 @@ static void api_drawSpriteRect(LuaSTGPlus::ResSprite* pimg2dres, float const l, 
     pimg2d->GetColor(color_ls);
 
     LuaSTG::Core::DrawVertex2D vertex[4] = {
-        {.x = l, .y = t, .z = z, .u = img_rect.a.x / tex_w, .v = img_rect.a.y / tex_h, .color = color_ls[0].argb },
-        {.x = r, .y = t, .z = z, .u = img_rect.b.x / tex_w, .v = img_rect.a.y / tex_h, .color = color_ls[1].argb },
-        {.x = r, .y = b, .z = z, .u = img_rect.b.x / tex_w, .v = img_rect.b.y / tex_h, .color = color_ls[2].argb },
-        {.x = l, .y = b, .z = z, .u = img_rect.a.x / tex_w, .v = img_rect.b.y / tex_h, .color = color_ls[3].argb },
+        {.x = l, .y = t, .z = z, .color = color_ls[0].argb, .u = img_rect.a.x / tex_w, .v = img_rect.a.y / tex_h },
+        {.x = r, .y = t, .z = z, .color = color_ls[1].argb, .u = img_rect.b.x / tex_w, .v = img_rect.a.y / tex_h },
+        {.x = r, .y = b, .z = z, .color = color_ls[2].argb, .u = img_rect.b.x / tex_w, .v = img_rect.b.y / tex_h },
+        {.x = l, .y = b, .z = z, .color = color_ls[3].argb, .u = img_rect.a.x / tex_w, .v = img_rect.b.y / tex_h },
     };
 
     auto& ctx = LR2D();
@@ -256,10 +256,10 @@ static void api_drawSprite4V(LuaSTGPlus::ResSprite* pimg2dres, float const x1, f
     pimg2d->GetColor(color_ls);
 
     LuaSTG::Core::DrawVertex2D vertex[4] = {
-        {.x = x1, .y = y1, .z = z1, .u = img_rect.a.x / tex_w, .v = img_rect.a.y / tex_h, .color = color_ls[0].argb },
-        {.x = x2, .y = y2, .z = z2, .u = img_rect.b.x / tex_w, .v = img_rect.a.y / tex_h, .color = color_ls[1].argb },
-        {.x = x3, .y = y3, .z = z3, .u = img_rect.b.x / tex_w, .v = img_rect.b.y / tex_h, .color = color_ls[2].argb },
-        {.x = x4, .y = y4, .z = z4, .u = img_rect.a.x / tex_w, .v = img_rect.b.y / tex_h, .color = color_ls[3].argb },
+        {.x = x1, .y = y1, .z = z1, .color = color_ls[0].argb, .u = img_rect.a.x / tex_w, .v = img_rect.a.y / tex_h },
+        {.x = x2, .y = y2, .z = z2, .color = color_ls[1].argb, .u = img_rect.b.x / tex_w, .v = img_rect.a.y / tex_h },
+        {.x = x3, .y = y3, .z = z3, .color = color_ls[2].argb, .u = img_rect.b.x / tex_w, .v = img_rect.b.y / tex_h },
+        {.x = x4, .y = y4, .z = z4, .color = color_ls[3].argb, .u = img_rect.a.x / tex_w, .v = img_rect.b.y / tex_h },
     };
 
     auto& ctx = LR2D();

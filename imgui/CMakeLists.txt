@@ -35,8 +35,6 @@ target_sources(imgui PRIVATE
     imgui/misc/freetype/imgui_freetype.cpp
     imgui/misc/freetype/imgui_freetype.h
     
-    #imgui/backends/imgui_impl_dx9.cpp
-    #imgui/backends/imgui_impl_dx9.h
     imgui/backends/imgui_impl_dx11.h
     backend/imgui_impl_dx11.cpp # TODO
     
@@ -44,7 +42,6 @@ target_sources(imgui PRIVATE
     backend/imgui_impl_win32ex.h
 )
 target_link_libraries(imgui PUBLIC
-    #d3d9.lib
     d3d11.lib
     freetype
 )

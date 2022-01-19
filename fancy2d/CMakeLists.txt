@@ -11,7 +11,6 @@ set(FANCY2D_SOURCE
     f2dInputSys.h
     f2dSoundSys.h
     f2dRenderDevice.h
-    f2dRenderEffect.h
     f2dRenderer.h
     f2dVideoSys.h
 
@@ -43,21 +42,10 @@ set(FANCY2D_SOURCE
     Input/f2dInputJoystickImpl.h
     Input/f2dInputJoystickImpl.cpp
 
-    RenderDev/f2dRenderDeviceImpl.h
-    RenderDev/f2dRenderDeviceImpl.cpp
-    RenderDev/f2dRenderDeviceAPI.h
-    RenderDev/f2dRenderDeviceAPI.cpp
-    RenderDev/f2dGraphicsImpl.h
-    RenderDev/f2dGraphics2DImpl.h
-    RenderDev/f2dGraphics2DImpl.cpp
-    RenderDev/f2dGraphics3DImpl.h
-    RenderDev/f2dGraphics3DImpl.cpp
-    RenderDev/f2dTextureImpl.h
-    RenderDev/f2dTextureImpl.cpp
-    RenderDev/f2dEffectImpl.h
-    RenderDev/f2dEffectImpl.cpp
-    RenderDev/f2dMeshDataImpl.h
-    RenderDev/f2dMeshDataImpl.cpp
+    #RenderDev/f2dEffectImpl.h
+    #RenderDev/f2dEffectImpl.cpp
+    #RenderDev/f2dMeshDataImpl.h
+    #RenderDev/f2dMeshDataImpl.cpp
     RenderDev/f2dRenderDevice11.h
     RenderDev/f2dRenderDevice11.cpp
     RenderDev/f2dTexture11.h
@@ -132,9 +120,7 @@ target_link_libraries(fancy2dlib PUBLIC
     winmm.lib
     imm32.lib
     dxguid.lib
-    d3d9.lib
     dinput8.lib
-    DirectXSDK # must remove it in the future!
     DirectX::XAudio2Redist
     DirectXTex0
     dxgi.lib
@@ -178,9 +164,8 @@ if(FALSE)
         winmm.lib
         imm32.lib
         dxguid.lib
-        d3d9.lib
         dinput8.lib
-        DirectXSDK # must remove it in the future!
+        DirectX::XAudio2Redist
         DirectXTex0
         dxgi.lib
         d3d11.lib

@@ -1,8 +1,6 @@
 ﻿#include "ResourceMgr.h"
 #include "AppFrame.h"
 #include "Utility.h"
-#include <d3d9.h>
-#include <d3dcompiler.h>
 
 #ifdef max
 #undef max
@@ -954,37 +952,7 @@ bool ResourcePool::LoadFX(const char* name, const char* path, bool is_effect) no
         return false;
     }
     
-    if (is_effect)
-    {
-        #ifndef LUASTG_GRAPHIC_API_D3D11
-        try {
-            fcyRefPointer<f2dEffect> tEffect;
-            fResult fr = LAPP.GetRenderDev()->CreateEffect(tDataBuf, false, &tEffect);
-            if (FCYFAILED(fr)) {
-                spdlog::error("[fancy2d] [f2dRenderDevice::CreateEffect] 从'{}'创建后处理特效'{}'失败(fResult={})：{}",
-                    path, name, fr, LAPP.GetEngine()->GetLastErrDesc());
-                return false;
-            }
-        
-            fcyRefPointer<ResFX> tRes;
-            tRes.DirectSet(new ResFX(name, tEffect));
-            m_FXPool.emplace(name, tRes);
-        }
-        catch (const fcyException& e) {
-            spdlog::error("[fancy2d] [{}] 无法从'{}'创建后处理特效'{}'：{}", e.GetSrc(), path, name, e.GetDesc());
-            return false;
-        }
-        catch (const std::bad_alloc&) {
-            spdlog::error("[luastg] LoadFX: 内存不足");
-            return false;
-        }
-    
-        if (ResourceMgr::GetResourceLoadingLog()) {
-            spdlog::info("[luastg] LoadFX: 已从'{}'加载后处理特效'{}' ({})", path, name, getResourcePoolTypeName());
-        }
-        #endif
-    }
-    else
+    if (!is_effect) // 不是 d3d9 的 effect9 文件
     {
         LuaSTG::Core::ShaderID shader = LAPP.GetRenderer2D().createPostEffectShader(name, tDataBuf->GetInternalBuffer(), (SIZE_T)tDataBuf->GetLength());
         if (!shader.handle)

@@ -5,7 +5,6 @@
 //#include "Video/f2dVideoSysImpl.h"
 #include "Renderer/f2dRendererImpl.h"
 
-#include "RenderDev/f2dRenderDeviceImpl.h"
 #include "RenderDev/f2dRenderDevice11.h"
 
 #include "fcyOS/fcyDebug.h"
@@ -619,11 +618,7 @@ void f2dEngineImpl::DoUpdate(fDouble ElapsedTime, f2dFPSControllerImpl* pFPSCont
 bool f2dEngineImpl::DoRender(fDouble ElapsedTime, f2dFPSControllerImpl* pFPSController, f2dRenderDevice* pDev)
 {
 	// 同步设备状态，处理设备丢失
-#ifdef F2D_GRAPHIC_API_D3D11
 	if(pDev && FCYOK(((f2dRenderDevice11*)pDev)->SyncDevice()))
-#else
-	if (pDev && FCYOK(((f2dRenderDeviceImpl*)pDev)->SyncDevice()))
-#endif
 	{
 		if(m_pListener) // 触发渲染事件
 			return m_pListener->OnRender(ElapsedTime, pFPSController);
@@ -635,9 +630,5 @@ bool f2dEngineImpl::DoRender(fDouble ElapsedTime, f2dFPSControllerImpl* pFPSCont
 void f2dEngineImpl::DoPresent(f2dRenderDevice* pDev)
 {
 	// 递交画面
-#ifdef F2D_GRAPHIC_API_D3D11
 	((f2dRenderDevice11*)pDev)->Present();
-#else
-	((f2dRenderDeviceImpl*)pDev)->Present();
-#endif
 }

@@ -1,6 +1,5 @@
 ﻿#include "Renderer/f2dRendererImpl.h"
 
-#include "RenderDev/f2dRenderDeviceImpl.h"
 #include "RenderDev/f2dRenderDevice11.h"
 
 #include "Renderer/f2dSpriteImpl.h"
@@ -33,11 +32,7 @@ void f2dRendererImpl::DefaultListener::OnRenderDeviceReset()
 f2dRendererImpl::f2dRendererImpl(f2dEngineImpl* pEngine, fuInt BackBufferWidth, fuInt BackBufferHeight, fBool Windowed, fBool VSync, F2DAALEVEL AALevel)
 	: m_pEngine(pEngine), m_pDev(NULL), m_DefaultListener(pEngine)
 {
-#ifdef F2D_GRAPHIC_API_D3D11
 	m_pDev = new f2dRenderDevice11(pEngine, BackBufferWidth, BackBufferHeight, Windowed, VSync, AALevel);
-#else
-	m_pDev = new f2dRenderDeviceImpl(pEngine, BackBufferWidth, BackBufferHeight, Windowed, VSync, AALevel);
-#endif
 	m_pDev->AttachListener(&m_DefaultListener);
 }
 
@@ -46,11 +41,7 @@ f2dRendererImpl::~f2dRendererImpl()
 	if (m_pDev)
 	{
 		m_pDev->RemoveListener(&m_DefaultListener);
-	#ifdef F2D_GRAPHIC_API_D3D11
 		((f2dRenderDevice11*)m_pDev)->Release();
-	#else
-		((f2dRenderDeviceImpl*)m_pDev)->Release();
-	#endif
 		m_pDev = nullptr;
 	}
 }

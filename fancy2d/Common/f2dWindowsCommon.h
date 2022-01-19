@@ -8,9 +8,6 @@
 // Direct3D11
 #include <dxgi1_6.h>
 #include <d3d11_4.h>
-// Direct3D9
-#include <d3d9.h>
-#include "d3dx9.h"
 // HLSL
 #include <d3dcompiler.h>
 // Math

@@ -78,31 +78,12 @@ namespace LuaSTGPlus
 		//渲染状态
 		GraphicsType m_GraphType = GraphicsType::Graph2D;
 		bool m_bRenderStarted = false;
-		bool m_bLockBlendMode = false;
-		BlendMode m_Graph2DLastBlendMode;//2D
-		f2dBlendState m_Graph2DBlendState;//2D
-		F2DGRAPH2DBLENDTYPE m_Graph2DColorBlendState;//2D
-		BlendMode m_Graph3DLastBlendMode;//3D
-		f2dBlendState m_Graph3DBlendState;//3D
 		
 		//渲染器
 		fcyRefPointer<f2dGeometryRenderer> m_GRenderer;//2D
 		fcyRefPointer<f2dFontRenderer> m_FontRenderer;//2D
 		fcyRefPointer<f2dGraphics2D> m_Graph2D;//2D
 		fcyRefPointer<f2dGraphics3D> m_Graph3D;//3D
-		struct NewRenderer2DListener : public f2dRenderDeviceEventListener
-		{
-			AppFrame* _app = nullptr;
-			void OnRenderDeviceLost()
-			{
-				_app->m_NewRenderer2D.detachDevice();
-			}
-			void OnRenderDeviceReset()
-			{
-				_app->m_NewRenderer2D.attachDevice(_app->m_pRenderDev->GetHandle());
-			}
-		};
-		NewRenderer2DListener m_NewRenderer2DListener;
 		LuaSTG::Core::Renderer m_NewRenderer2D;
 		
 		// PostEffect控制

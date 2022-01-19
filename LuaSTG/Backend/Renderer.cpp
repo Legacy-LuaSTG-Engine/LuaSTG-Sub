@@ -588,8 +588,8 @@ namespace LuaSTG::Core
 				{
 					// DrawVertex2D
 					{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0 , D3D11_INPUT_PER_VERTEX_DATA, 0 },
-					{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT   , 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-					{ "COLOR",    0, DXGI_FORMAT_B8G8R8A8_UNORM , 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+					{ "COLOR",    0, DXGI_FORMAT_B8G8R8A8_UNORM , 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+					{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT   , 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 				};
 				hr = gHR = _device->CreateInputLayout(layout_, 3, blob_->GetBufferPointer(), blob_->GetBufferSize(), &_input_layout);
 				if (FAILED(hr))
@@ -1258,6 +1258,10 @@ namespace LuaSTG::Core
 			cmd_.vertex_count += 3;
 			cmd_.index_count += 3;
 		}
+		void drawTriangle(DrawVertex2D const* pvert)
+		{
+			drawTriangle(pvert[0], pvert[1], pvert[2]);
+		}
 		void drawQuad(DrawVertex2D const& v1, DrawVertex2D const& v2, DrawVertex2D const& v3, DrawVertex2D const& v4)
 		{
 			if ((_draw_list.vertex.capacity - _draw_list.vertex.size) < 4 || (_draw_list.index.capacity - _draw_list.index.size) < 6)
@@ -1281,6 +1285,10 @@ namespace LuaSTG::Core
 			_draw_list.index.size += 6;
 			cmd_.vertex_count += 4;
 			cmd_.index_count += 6;
+		}
+		void drawQuad(DrawVertex2D const* pvert)
+		{
+			drawQuad(pvert[0], pvert[1], pvert[2], pvert[3]);
 		}
 		void drawRaw(DrawVertex2D const* pvert, uint16_t nvert, DrawIndex2D const* pidx, uint16_t nidx)
 		{
@@ -1422,10 +1430,10 @@ namespace LuaSTG::Core
 			}
 
 			drawQuad(
-				DrawVertex2D{ .x = 0.5f + 0.f, .y = 0.5f + sh_, .z = 0.5f, .u = 0.0f, .v = 0.0f, .color = 0xFFFFFFFF },
-				DrawVertex2D{ .x = 0.5f + sw_, .y = 0.5f + sh_, .z = 0.5f, .u = 1.0f, .v = 0.0f, .color = 0xFFFFFFFF },
-				DrawVertex2D{ .x = 0.5f + sw_, .y = 0.5f + 0.f, .z = 0.5f, .u = 1.0f, .v = 1.0f, .color = 0xFFFFFFFF },
-				DrawVertex2D{ .x = 0.5f + 0.f, .y = 0.5f + 0.f, .z = 0.5f, .u = 0.0f, .v = 1.0f, .color = 0xFFFFFFFF });
+				DrawVertex2D{ .x = 0.5f + 0.f, .y = 0.5f + sh_, .z = 0.5f, .color = 0xFFFFFFFF, .u = 0.0f, .v = 0.0f },
+				DrawVertex2D{ .x = 0.5f + sw_, .y = 0.5f + sh_, .z = 0.5f, .color = 0xFFFFFFFF, .u = 1.0f, .v = 0.0f },
+				DrawVertex2D{ .x = 0.5f + sw_, .y = 0.5f + 0.f, .z = 0.5f, .color = 0xFFFFFFFF, .u = 1.0f, .v = 1.0f },
+				DrawVertex2D{ .x = 0.5f + 0.f, .y = 0.5f + 0.f, .z = 0.5f, .color = 0xFFFFFFFF, .u = 0.0f, .v = 1.0f });
 
 			batchFlush();
 
@@ -1531,9 +1539,17 @@ namespace LuaSTG::Core
 	{
 		self->drawTriangle(v1, v2, v3);
 	}
+	void Renderer::drawTriangle(DrawVertex2D const* pvert)
+	{
+		self->drawTriangle(pvert);
+	}
 	void Renderer::drawQuad(DrawVertex2D const& v1, DrawVertex2D const& v2, DrawVertex2D const& v3, DrawVertex2D const& v4)
 	{
 		self->drawQuad(v1, v2, v3, v4);
+	}
+	void Renderer::drawQuad(DrawVertex2D const* pvert)
+	{
+		self->drawQuad(pvert);
 	}
 	void Renderer::drawRaw(DrawVertex2D const* pvert, uint16_t nvert, DrawIndex2D const* pidx, uint16_t nidx)
 	{

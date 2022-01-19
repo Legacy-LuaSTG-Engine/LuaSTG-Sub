@@ -7,7 +7,6 @@
 #include "Engine/f2dWindowImpl.h"
 #include "Common/f2dStandardCommon.hpp"
 #include "Common/f2dWindowsCommon.h"
-#include "RenderDev/f2dRenderDeviceAPI.h"
 
 class f2dEngineImpl;
 
@@ -32,7 +31,6 @@ private:
 	};
 private:
 	f2dEngineImpl* m_pEngine = nullptr;
-	f2dRenderDeviceAPI m_API;
 
 	int _iEventListenerUUID = 0;
 	std::set<EventListenerNode> _setEventListeners;
@@ -84,7 +82,6 @@ private:
 	bool createRenderAttachments();
 	void setupRenderAttachments();
 public: // 内部函数
-	f2dRenderDeviceAPI& GetAPI() { return m_API; }   // 返回API对象
 	f2dEngineImpl* GetEngine() { return m_pEngine; } // 返回引擎对象
 	fResult SyncDevice();                           // 协作测试，完成设备丢失处理
 	fResult Present();                              // 呈现

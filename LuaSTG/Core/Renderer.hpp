@@ -214,8 +214,8 @@ namespace LuaSTG::Core
 	struct DrawVertex2D
 	{
 		float x, y, z;
-		float u, v;
 		uint32_t color;
+		float u, v;
 	};
 	using DrawIndex2D = uint16_t;
 
@@ -278,7 +278,9 @@ namespace LuaSTG::Core
 
 		bool flush();
 		void drawTriangle(DrawVertex2D const& v1, DrawVertex2D const& v2, DrawVertex2D const& v3);
+		void drawTriangle(DrawVertex2D const* pvert);
 		void drawQuad(DrawVertex2D const& v1, DrawVertex2D const& v2, DrawVertex2D const& v3, DrawVertex2D const& v4);
+		void drawQuad(DrawVertex2D const* pvert);
 		void drawRaw(DrawVertex2D const* pvert, uint16_t nvert, DrawIndex2D const* pidx, uint16_t nidx);
 
 		ShaderID createPostEffectShader(char const* name, void const* data, size_t size);

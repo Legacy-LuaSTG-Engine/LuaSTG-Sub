@@ -7,7 +7,9 @@
 #include "LuaWrapper/LuaAppFrame.hpp"
 #include "LConfig.h"
 
-class f2dGraphic2dAdapter : public f2dGraphics2D
+class f2dGraphic2dAdapter
+	: public f2dGraphics2D
+	, public f2dRenderDeviceEventListener
 {
 private:
 	inline LuaSTG::Core::DrawVertex2D convert(f2dGraphics2DVertex const& v)
@@ -16,9 +18,9 @@ private:
 			.x = v.x,
 			.y = v.y,
 			.z = v.z,
+			.color = v.color,
 			.u = v.u,
 			.v = v.v,
-			.color = v.color,
 		};
 	}
 	fcyMatrix4 m_tMat;
@@ -69,29 +71,43 @@ public:
 	fResult DrawQuad(f2dTexture2D* pTex, const f2dGraphics2DVertex& v1, const f2dGraphics2DVertex& v2, const f2dGraphics2DVertex& v3, const f2dGraphics2DVertex& v4, fBool bAutoFixCoord = true)
 	{
 		m_Renderer->setTexture(LuaSTG::Core::TextureID(pTex->GetHandle()));
-		m_Renderer->drawQuad(convert(v1), convert(v2), convert(v3), convert(v4));
+		m_Renderer->drawQuad(
+			convert(v1),
+			convert(v2),
+			convert(v3),
+			convert(v4));
 		return FCYERR_OK;
 	}
 	fResult DrawQuad(f2dTexture2D* pTex, const f2dGraphics2DVertex* arr, fBool bAutoFixCoord = true)
 	{
 		m_Renderer->setTexture(LuaSTG::Core::TextureID(pTex->GetHandle()));
-		m_Renderer->drawQuad(convert(arr[0]), convert(arr[1]), convert(arr[2]), convert(arr[3]));
+		m_Renderer->drawQuad((LuaSTG::Core::DrawVertex2D*)arr);
 		return FCYERR_OK;
 	}
 	fResult DrawRaw(f2dTexture2D* pTex, fuInt VertCount, fuInt IndexCount, const f2dGraphics2DVertex* VertArr, const fuShort* IndexArr, fBool bAutoFixCoord = true)
 	{
 		m_Renderer->setTexture(LuaSTG::Core::TextureID(pTex->GetHandle()));
-		std::vector<LuaSTG::Core::DrawVertex2D> vtxdata(VertCount);
-		for (size_t i = 0; i < VertCount; i += 1)
-		{
-			vtxdata[i] = convert(VertArr[i]);
-		}
-		m_Renderer->drawRaw(vtxdata.data(), (uint16_t)VertCount, (LuaSTG::Core::DrawIndex2D*)IndexArr, (uint16_t)IndexCount);
+		m_Renderer->drawRaw((LuaSTG::Core::DrawVertex2D*)VertArr, (uint16_t)VertCount, (LuaSTG::Core::DrawIndex2D*)IndexArr, (uint16_t)IndexCount);
 		return FCYERR_OK;
 	}
-
+	
+	void OnRenderDeviceLost()
+	{
+		m_Renderer->detachDevice();
+	}
+	void OnRenderDeviceReset()
+	{
+		m_Renderer->attachDevice(LAPP.GetRenderDev()->GetHandle());
+	}
+	
 	f2dGraphic2dAdapter() : m_Renderer(nullptr) {}
 	f2dGraphic2dAdapter(LuaSTG::Core::Renderer* r2d) : m_Renderer(r2d) {}
+public:
+	static f2dGraphic2dAdapter& get()
+	{
+		static f2dGraphic2dAdapter i;
+		return i;
+	}
 };
 
 using namespace LuaSTGPlus;
@@ -459,23 +475,18 @@ bool AppFrame::Init()LNOEXCEPT
 		m_pRenderDev->SetZBufferEnable(false);
 		m_pRenderDev->ClearZBuffer();
 		
-		// 创建渲染器
-	#ifdef LUASTG_GRAPHIC_API_D3D11
-		spdlog::info("[fancy2d] 创建2D渲染器适配器");
-		static f2dGraphic2dAdapter g2dadaper;
-		g2dadaper = f2dGraphic2dAdapter(&m_NewRenderer2D);
-		m_Graph2D = &g2dadaper;
-	#else
-		spdlog::info("[fancy2d] 创建2D渲染器，顶点容量{}，索引容量{}", 16384, 24576);
-		if (FCYFAILED(m_pRenderDev->CreateGraphics2D(16384, 24576, &m_Graph2D)))
+		// 渲染器
+		spdlog::info("[luastg] 创建2D渲染器");
+		if (!m_NewRenderer2D.attachDevice(m_pRenderDev->GetHandle()))
 		{
-			spdlog::error("[fancy2d] [f2dRenderDevice::CreateGraphics2D] 创建2D渲染器失败");
+			spdlog::info("[luastg] 创建2D渲染器失败");
 			return false;
 		}
-	#endif
-		m_Graph2DLastBlendMode = BlendMode::AddAlpha;
-		m_Graph2DBlendState = m_Graph2D->GetBlendState();
-		m_Graph2DColorBlendState = m_Graph2D->GetColorBlendType();
+		// 渲染器适配器
+		spdlog::info("[luastg] 创建2D渲染器适配器");
+		f2dGraphic2dAdapter::get() = f2dGraphic2dAdapter(&m_NewRenderer2D);
+		m_Graph2D = &f2dGraphic2dAdapter::get();
+		m_pRenderDev->AttachListener(&f2dGraphic2dAdapter::get());
 		m_bRenderStarted = false;
 		
 		// 创建文字渲染器
@@ -494,19 +505,6 @@ bool AppFrame::Init()LNOEXCEPT
 			spdlog::error("[fancy2d] [fcyRenderer::CreateGeometryRenderer] 创建平面几何渲染器失败");
 			return false;
 		}
-		
-		// 创建3D渲染器
-	#ifdef LUASTG_GRAPHIC_API_D3D11
-	#else
-		spdlog::info("[fancy2d] 创建后处理特效渲染器");
-		if (FCYFAILED(m_pRenderDev->CreateGraphics3D(nullptr, &m_Graph3D)))
-		{
-			spdlog::error("[fancy2d] [f2dRenderDevice::CreateGraphics3D] 创建后处理特效渲染器失败");
-			return false;
-		}
-		m_Graph3DLastBlendMode = BlendMode::AddAlpha;
-		m_Graph3DBlendState = m_Graph3D->GetBlendState();
-	#endif
 		
 		//创建鼠标输入
 		spdlog::info("[fancy2d] 创建DirectInput鼠标设备");
@@ -555,10 +553,6 @@ bool AppFrame::Init()LNOEXCEPT
 		#ifdef USING_DEAR_IMGUI
 			imgui::bindEngine();
 		#endif
-		// Renderer
-		m_NewRenderer2D.attachDevice(m_pRenderDev->GetHandle());
-		m_NewRenderer2DListener._app = this;
-		m_pRenderDev->AttachListener(&m_NewRenderer2DListener);
 		
 		// 显示窗口
 		m_pMainWindow->SetBorderType(F2DWINBORDERTYPE_FIXED);
@@ -597,13 +591,14 @@ void AppFrame::Shutdown()LNOEXCEPT
 	m_ResourceMgr.ClearAllResource();
 	spdlog::info("[luastg] 清空所有游戏资源");
 	
-	// Renderer
-	m_pRenderDev->RemoveListener(&m_NewRenderer2DListener);
-	m_NewRenderer2D.detachDevice();
 	// 卸载ImGui
 	#ifdef USING_DEAR_IMGUI
 		imgui::unbindEngine();
 	#endif
+	
+	// 关闭渲染器
+	m_pRenderDev->RemoveListener(&f2dGraphic2dAdapter::get());
+	m_NewRenderer2D.detachDevice();
 	
 	m_DirectInput = nullptr;
 	m_Mouse = nullptr;
