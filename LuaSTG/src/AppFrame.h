@@ -88,6 +88,7 @@ namespace LuaSTGPlus
 		
 		// PostEffect控制
 		std::vector<fcyRefPointer<f2dTexture2D>> m_stRenderTargetStack;// RenderTarget控制
+		std::vector<fcyRefPointer<f2dDepthStencilSurface>> m_stDepthStencilStack;// DepthStencil控制
 		
 		//输入设备
 		std::unique_ptr<native::DirectInput> m_DirectInput;

@@ -56,7 +56,24 @@ namespace LuaSTGPlus {
             return false;
         }
         
-        return PushRenderTarget(rt->GetTexture());
+        //return PushRenderTarget(rt->GetTexture());
+        // 下面是新增的
+
+        if (FCYFAILED(m_pRenderDev->SetRenderTarget(rt->GetTexture())))
+        {
+            spdlog::error("[luastg] PushRenderTarget: 内部错误 (f2dRenderDevice::SetRenderTarget failed.)");
+            return false;
+        }
+        if (FCYFAILED(m_pRenderDev->SetDepthStencilSurface(rt->GetDepthStencilSurface()))) // 这个可能是空指针，如果传空指针进去代表换回 RenderDev 默认的 ds
+        {
+            spdlog::error("[luastg] PushRenderTarget: 内部错误 (f2dRenderDevice::SetDepthStencilSurface failed.)");
+            return false;
+        }
+
+        m_stRenderTargetStack.push_back(rt->GetTexture());
+        m_stDepthStencilStack.push_back(rt->GetDepthStencilSurface()); // 这个可能是空指针
+        
+        return true;
     }
     bool AppFrame::PopRenderTarget()LNOEXCEPT
     {
@@ -68,16 +85,28 @@ namespace LuaSTGPlus {
         
         if (m_stRenderTargetStack.empty())
         {
-            spdlog::error("[luastg] PopRenderTarget: RenderTarget栈已为空");
+            spdlog::error("[luastg] PopRenderTarget: RenderTarget 栈已为空");
+            return false;
+        }
+        if (m_stDepthStencilStack.empty())
+        {
+            spdlog::error("[luastg] PopRenderTarget: DepthStencil 栈已为空");
             return false;
         }
         
         m_stRenderTargetStack.pop_back();
+        m_stDepthStencilStack.pop_back();
+
         if (m_stRenderTargetStack.empty())
             m_pRenderDev->SetRenderTarget(nullptr);
         else
             m_pRenderDev->SetRenderTarget(m_stRenderTargetStack.back());
         
+        if (m_stDepthStencilStack.empty())
+            m_pRenderDev->SetDepthStencilSurface(nullptr);
+        else
+            m_pRenderDev->SetDepthStencilSurface(m_stDepthStencilStack.back());
+
         return true;
     }
     

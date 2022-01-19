@@ -249,8 +249,8 @@ bool ResourcePool::CreateRenderTarget(const char* name, int width, int height) n
         return true;
     }
     
-    fcyRefPointer<f2dTexture2D> tTexture;
     fResult fr = 0;
+    fcyRefPointer<f2dTexture2D> tTexture;
     if (width <= 0 || height <= 0) {
         fr = LAPP.GetRenderDev()->CreateRenderTarget(
             LAPP.GetRenderDev()->GetBufferWidth(), LAPP.GetRenderDev()->GetBufferHeight(),
@@ -265,10 +265,21 @@ bool ResourcePool::CreateRenderTarget(const char* name, int width, int height) n
         spdlog::error("[fancy2d] [f2dRenderDevice::CreateRenderTarget] 创建渲染目标'{}'失败(fResult={})", name, fr);
         return false;
     }
-    
+    fcyRefPointer<f2dDepthStencilSurface> tDepthStencil;
+    if (width > 0 && height > 0) {
+        fr = LAPP.GetRenderDev()->CreateDepthStencilSurface(
+            (fuInt)width, (fuInt)height,
+            false, false, &tDepthStencil);
+    }
+    else { fr = FCYERR_OK; }
+    if (FCYFAILED(fr)) {
+        spdlog::error("[fancy2d] [f2dRenderDevice::CreateDepthStencilSurface] 创建渲染目标附带的深度模板缓冲区'{}'失败(fResult={})", name, fr);
+        return false;
+    }
+
     try {
         fcyRefPointer<ResTexture> tRes;
-        tRes.DirectSet(new ResTexture(name, tTexture));
+        tRes.DirectSet(new ResTexture(name, tTexture, tDepthStencil));
         m_TexturePool.emplace(name, tRes);
     }
     catch (const std::bad_alloc&) {

@@ -853,10 +853,10 @@ fBool AppFrame::OnRender(fDouble ElapsedTime, f2dFPSController* pFPSController)
 	
 	if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineDraw))
 		m_pEngine->Abort();
-	if (!m_stRenderTargetStack.empty())
+	if (!m_stRenderTargetStack.empty() || !m_stDepthStencilStack.empty())
 	{
-		spdlog::error("[luastg] [AppFrame::OnRender] 渲染结束时RenderTarget栈不为空，可能缺少对lstg.PopRenderTarget的调用");
-		while (!m_stRenderTargetStack.empty())
+		spdlog::error("[luastg] [AppFrame::OnRender] 渲染结束时 RenderTarget 栈不为空，可能缺少对 lstg.PopRenderTarget 的调用");
+		while (!m_stRenderTargetStack.empty() || !m_stDepthStencilStack.empty())
 			PopRenderTarget();
 	}
 	m_bRenderStarted = false;
