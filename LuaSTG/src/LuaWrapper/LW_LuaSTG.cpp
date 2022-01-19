@@ -160,7 +160,8 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 					lua_toboolean(L, 3) == 0 ? false : true,
 					lua_toboolean(L, 4) == 0 ? false : true,
 					luaL_checkinteger(L, 5),
-					luaL_optinteger(L, 6, 1)
+					luaL_optinteger(L, 6, 1),
+					lua_toboolean(L, 7)
 				));
 			}
 			return 1;
