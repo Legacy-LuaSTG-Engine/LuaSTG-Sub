@@ -146,10 +146,13 @@ DWORD WINAPI f2dAudioBufferDynamic::WorkingThread(LPVOID lpThreadParameter)
 		case WAIT_OBJECT_0 + 5:
 		default:
 			is_running = false; // 需要退出或者出错了
-			// ResetEvent(events[45]); // 让它一直亮着
+			// ResetEvent(events[5]); // 让它一直亮着
 			break;
 		}
 	}
+
+	xa2_source->Stop();
+	xa2_source->FlushSourceBuffers(); // 防止继续使用上面的局部 buffer 导致内存读取错误
 
 	return 0;
 }
@@ -208,16 +211,15 @@ f2dAudioBufferDynamic::f2dAudioBufferDynamic(f2dSoundSys* pSoundSys, f2dSoundDec
 	event_buf2.Attach(CreateEventExW(NULL, NULL, CREATE_EVENT_MANUAL_RESET | CREATE_EVENT_INITIAL_SET, EVENT_ALL_ACCESS));
 	event_exit.Attach(CreateEventExW(NULL, NULL, CREATE_EVENT_MANUAL_RESET, EVENT_ALL_ACCESS));
 
-	working_thread.Attach(CreateThread(NULL, 0, &WorkingThread, this, 0, NULL));
-
 	InitializeCriticalSection(&start_time_lock);
+	working_thread.Attach(CreateThread(NULL, 0, &WorkingThread, this, 0, NULL));
 }
 
 f2dAudioBufferDynamic::~f2dAudioBufferDynamic()
 {
-	DeleteCriticalSection(&start_time_lock);
 	SetEvent(event_exit.Get());
 	WaitForSingleObject(working_thread.Get(), INFINITE);
+	DeleteCriticalSection(&start_time_lock);
 	SAFE_RELEASE_VOICE(xa2_source);
 	FCYSAFEKILL(m_pDecoder);
 
