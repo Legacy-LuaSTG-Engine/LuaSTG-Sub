@@ -18,6 +18,7 @@ inline void rotate_float2(float& x, float& y, const float r)
     x = tx;
     y = ty;
 }
+// 要改这个记得也改 LuaSTGPlus::AppFrame::updateGraph2DBlendMode
 static void translate_blend(LuaSTG::Core::Renderer& ctx, const LuaSTGPlus::BlendMode blend)
 {
     switch (blend)
@@ -304,13 +305,14 @@ static void api_drawSpriteSequence(char const* name, int const ani_timer, float 
     api_drawSpriteSequence(*pani2dres, ani_timer, x, y, rot, hscale, vscale, z);
 }
 
-void api_GameObject_updateBlendMode(LuaSTGPlus::BlendMode blend)
+// 下面 api_GameObject_ 系列是要废弃的
+static void api_GameObject_updateBlendMode(LuaSTGPlus::BlendMode blend)
 {
 #ifdef LUASTG_GRAPHIC_API_D3D11
     translate_blend(LR2D(), blend);
 #endif
 }
-void api_GameObject_drawSprite(LuaSTGPlus::ResSprite* pimg2dres, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
+static void api_GameObject_drawSprite(LuaSTGPlus::ResSprite* pimg2dres, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {
 #ifdef LUASTG_GRAPHIC_API_D3D11
     api_drawSprite(pimg2dres, x, y, rot, hscale, vscale, z);
@@ -318,7 +320,7 @@ void api_GameObject_drawSprite(LuaSTGPlus::ResSprite* pimg2dres, float const x, 
     LAPP.Render(pimg2dres, x, y, rot, hscale, vscale, z);
 #endif
 }
-void api_GameObject_drawSpriteSequence(LuaSTGPlus::ResAnimation* pani2dres, int const ani_timer, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
+static void api_GameObject_drawSpriteSequence(LuaSTGPlus::ResAnimation* pani2dres, int const ani_timer, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {
 #ifdef LUASTG_GRAPHIC_API_D3D11
     api_drawSpriteSequence(pani2dres, ani_timer, x, y, rot, hscale, vscale, z);
@@ -326,7 +328,7 @@ void api_GameObject_drawSpriteSequence(LuaSTGPlus::ResAnimation* pani2dres, int 
     LAPP.Render(pani2dres, ani_timer, x, y, rot, hscale, vscale);
 #endif
 }
-void api_GameObject_drawSprite(f2dSprite* pimg2d, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
+static void api_GameObject_drawSprite(f2dSprite* pimg2d, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {
 #ifdef LUASTG_GRAPHIC_API_D3D11
     auto& ctx = LR2D();
@@ -341,7 +343,7 @@ void api_GameObject_drawSprite(f2dSprite* pimg2d, float const x, float const y, 
     pimg2d->Draw2(LAPP.GetGraphics2D(), fcyVec2(x, y), fcyVec2(hscale, vscale), rot, false);
 #endif
 }
-void api_GameObject_drawParticle(LuaSTGPlus::ResParticle::ParticlePool* p, float hscale, float vscale)
+static void api_GameObject_drawParticle(LuaSTGPlus::ResParticle::ParticlePool* p, float hscale, float vscale)
 {
 #ifdef LUASTG_GRAPHIC_API_D3D11
     p->Render(LAPP.GetGraphics2D(), hscale, vscale);

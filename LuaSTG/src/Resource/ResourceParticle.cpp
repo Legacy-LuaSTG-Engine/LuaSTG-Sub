@@ -148,8 +148,6 @@ namespace LuaSTGPlus {
 
 	void ResParticle::ParticlePool::Render(f2dGraphics2D* graph, float scaleX, float scaleY)
 	{
-		api_GameObject_updateBlendMode(GetBlendMode());
-		
 		f2dSprite* p = m_pInstance->GetBindedSprite();
 		const ParticleInfo& pInfo = m_pInstance->GetParticleInfo();
 		fcyColor tOrgColor = p->GetColor(0U);//获取精灵第一个顶点的颜色（总共4个顶点）
@@ -185,8 +183,7 @@ namespace LuaSTGPlus {
 					(fInt)(pInst.colColor[2] * m_MixColor.b)
 				));
 			}
-			//p->Draw2(graph, fcyVec2(pInst.vecLocation.x, pInst.vecLocation.y), fcyVec2(scaleX * pInst.fSize, scaleY * pInst.fSize), pInst.fSpin, false);
-			api_GameObject_drawSprite(p, pInst.vecLocation.x, pInst.vecLocation.y, pInst.fSpin, scaleX * pInst.fSize, scaleY * pInst.fSize);
+			p->Draw2(graph, fcyVec2(pInst.vecLocation.x, pInst.vecLocation.y), fcyVec2(scaleX * pInst.fSize, scaleY * pInst.fSize), pInst.fSpin, false);
 		}
 
 		p->SetColor(tOrgColor);//恢复精灵顶点颜色

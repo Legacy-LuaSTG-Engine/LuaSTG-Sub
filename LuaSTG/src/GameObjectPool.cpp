@@ -686,7 +686,7 @@ bool GameObjectPool::DoDefaultRender(GameObject* p) noexcept
 			switch (p->res->GetType())
 			{
 			case ResourceType::Sprite:
-				api_GameObject_drawSprite(
+				LAPP.Render(
 					static_cast<ResSprite*>(p->res),
 					static_cast<float>(p->x),
 					static_cast<float>(p->y),
@@ -696,7 +696,7 @@ bool GameObjectPool::DoDefaultRender(GameObject* p) noexcept
 				);
 				break;
 			case ResourceType::Animation:
-				api_GameObject_drawSpriteSequence(
+				LAPP.Render(
 					static_cast<ResAnimation*>(p->res),
 					p->ani_timer,
 					static_cast<float>(p->x),
@@ -707,7 +707,7 @@ bool GameObjectPool::DoDefaultRender(GameObject* p) noexcept
 				);
 				break;
 			case ResourceType::Particle:
-				api_GameObject_drawParticle(
+				LAPP.Render(
 					p->ps,
 					static_cast<float>(p->hscale * LRES.GetGlobalImageScaleFactor()),
 					static_cast<float>(p->vscale * LRES.GetGlobalImageScaleFactor())
@@ -727,7 +727,7 @@ bool GameObjectPool::DoDefaultRender(GameObject* p) noexcept
 				BlendMode blend = static_cast<ResSprite*>(p->res)->GetBlendMode();
 				static_cast<ResSprite*>(p->res)->GetSprite()->SetColor(fcyColor(p->vertexcolor.argb));
 				static_cast<ResSprite*>(p->res)->SetBlendMode(p->blendmode);
-				api_GameObject_drawSprite(
+				LAPP.Render(
 					static_cast<ResSprite*>(p->res),
 					static_cast<float>(p->x),
 					static_cast<float>(p->y),
@@ -747,7 +747,7 @@ bool GameObjectPool::DoDefaultRender(GameObject* p) noexcept
 				for (size_t i = 0; i < static_cast<ResAnimation*>(p->res)->GetCount(); ++i) {
 					static_cast<ResAnimation*>(p->res)->GetSprite(i)->SetColor(newcolor);
 				}
-				api_GameObject_drawSpriteSequence(
+				LAPP.Render(
 					static_cast<ResAnimation*>(p->res),
 					p->ani_timer,
 					static_cast<float>(p->x),
@@ -766,7 +766,7 @@ bool GameObjectPool::DoDefaultRender(GameObject* p) noexcept
 			{
 				p->ps->SetBlendMode(p->blendmode);
 				p->ps->SetMixColor(fcyColor(p->vertexcolor.argb));
-				api_GameObject_drawParticle(
+				LAPP.Render(
 					p->ps,
 					static_cast<float>(p->hscale * LRES.GetGlobalImageScaleFactor()),
 					static_cast<float>(p->vscale * LRES.GetGlobalImageScaleFactor())
