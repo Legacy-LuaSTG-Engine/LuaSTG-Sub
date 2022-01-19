@@ -1460,6 +1460,17 @@ bool f2dRenderDevice11::createSwapchain(f2dDisplayMode* pmode)
 		return false;
 	}
 
+	Microsoft::WRL::ComPtr<IDXGIDevice1> dxgi_device1;
+	hr = gHR = d3d11_device.As(&dxgi_device1);
+	if (SUCCEEDED(hr))
+	{
+		hr = gHR = dxgi_device1->SetMaximumFrameLatency(1);
+		if (FAILED(hr))
+		{
+			spdlog::error("[fancy2d] IDXGIDevice1::SetMaximumFrameLatency -> #1 调用失败");
+		}
+	}
+
 	if (!createRenderAttachments())
 	{
 		return false;
