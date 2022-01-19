@@ -282,6 +282,7 @@ namespace LuaSTG::Core
 		void drawQuad(DrawVertex2D const& v1, DrawVertex2D const& v2, DrawVertex2D const& v3, DrawVertex2D const& v4);
 		void drawQuad(DrawVertex2D const* pvert);
 		void drawRaw(DrawVertex2D const* pvert, uint16_t nvert, DrawIndex2D const* pidx, uint16_t nidx);
+		void drawRequest(uint16_t nvert, uint16_t nidx, DrawVertex2D** ppvert, DrawIndex2D** ppidx, uint16_t* idxoffset);
 
 		ShaderID createPostEffectShader(char const* name, void const* data, size_t size);
 		void destroyPostEffectShader(ShaderID& ps);

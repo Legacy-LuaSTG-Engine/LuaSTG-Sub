@@ -1313,6 +1313,25 @@ namespace LuaSTG::Core
 			cmd_.vertex_count += nvert;
 			cmd_.index_count += nidx;
 		}
+		void drawRequest(uint16_t nvert, uint16_t nidx, DrawVertex2D** ppvert, DrawIndex2D** ppidx, uint16_t* idxoffset)
+		{
+			if ((_draw_list.vertex.capacity - _draw_list.vertex.size) < nvert || (_draw_list.index.capacity - _draw_list.index.size) < nidx)
+			{
+				batchFlush();
+			}
+
+			DrawCommand& cmd_ = _draw_list.command.data[_draw_list.command.size - 1];
+
+			*ppvert = _draw_list.vertex.data + _draw_list.vertex.size;
+			_draw_list.vertex.size += nvert;
+
+			*ppidx = _draw_list.index.data + _draw_list.index.size;
+			_draw_list.index.size += nidx;
+
+			*idxoffset = cmd_.vertex_count; // 输出顶点索引偏移
+			cmd_.vertex_count += nvert;
+			cmd_.index_count += nidx;
+		}
 
 		ShaderID createPostEffectShader(char const* name, void const* data, size_t size)
 		{
@@ -1554,6 +1573,10 @@ namespace LuaSTG::Core
 	void Renderer::drawRaw(DrawVertex2D const* pvert, uint16_t nvert, DrawIndex2D const* pidx, uint16_t nidx)
 	{
 		self->drawRaw(pvert, nvert, pidx, nidx);
+	}
+	void Renderer::drawRequest(uint16_t nvert, uint16_t nidx, DrawVertex2D** ppvert, DrawIndex2D** ppidx, uint16_t* idxoffset)
+	{
+		self->drawRequest(nvert, nidx, ppvert, ppidx, idxoffset);
 	}
 
 	ShaderID Renderer::createPostEffectShader(char const* name, void const* data, size_t size)
