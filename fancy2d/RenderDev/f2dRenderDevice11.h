@@ -29,6 +29,13 @@ private:
 			return priority == rhs.priority ? uuid < rhs.uuid : priority < rhs.priority;
 		}
 	};
+	struct DXGISwapchainResizeData
+	{
+		UINT BufferCount = 0;
+		DXGI_FORMAT Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+		UINT Flags = 0;
+		BOOL AllowTearing = FALSE;
+	};
 private:
 	f2dEngineImpl* m_pEngine = nullptr;
 
@@ -52,6 +59,7 @@ private:
 	fBool swapchain_want_exit_fullscreen = false;
 	fBool swapchain_want_enter_fullscreen = false;
 	fBool swapchain_want_resize = false;
+	DXGISwapchainResizeData swapchain_resize_data;
 	std::vector<f2dDisplayMode> display_modes;
 
 	Microsoft::WRL::ComPtr<IDXGIFactory1> dxgi_factory;
@@ -69,6 +77,7 @@ private:
 	fcyRefPointer<f2dDepthStencilSurface> m_DepthStencil;
 
 	fBool d3d11_support_bgra = false;
+	fBool dxgi_support_tearing = false;
 private:
 	int sendDevLostMsg();             // 发送设备丢失事件, 返回对象数目
 	int sendDevResetMsg();            // 发送设备重置事件
@@ -76,6 +85,7 @@ private:
 	int dispatchRenderSizeDependentResourcesDestroy();
 	bool selectAdapter();
 	bool checkFeatureSupported();
+	void beforeDestroyDevice();
 	void destroySwapchain();
 	bool createSwapchain(f2dDisplayMode* mode);
 	void destroyRenderAttachments();

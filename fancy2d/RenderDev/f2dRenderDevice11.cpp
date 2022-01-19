@@ -667,7 +667,30 @@ f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, fuInt BackBufferWid
 		spdlog::error("[fancy2d] CreateDXGIFactory1 调用失败");
 		throw fcyWin32COMException("f2dRenderDevice11::f2dRenderDevice11", "CreateDXGIFactory1 failed.", hr);
 	}
-
+	{
+		Microsoft::WRL::ComPtr<IDXGIFactory5> dxgi_factory5;
+		hr = gHR = dxgi_factory.As(&dxgi_factory5);
+		if (SUCCEEDED(hr))
+		{
+			BOOL bs = FALSE;
+			hr = gHR = dxgi_factory5->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &bs, sizeof(bs));
+			if (SUCCEEDED(hr))
+			{
+				if (IsWindows10OrGreater())
+				{
+					if (bs)
+					{
+						dxgi_support_tearing = true;
+					}
+				}
+			}
+		}
+		spdlog::info("[fancy2d] DXGI 组件功能支持："
+			"    呈现时允许画面撕裂：{}"
+			, dxgi_support_tearing ? "支持" : "不支持"
+		);
+	}
+	
 	// 公共参数
 
 	UINT d3d11_creation_flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
@@ -730,6 +753,8 @@ f2dRenderDevice11::~f2dRenderDevice11()
 {
 	if (m_pEngine->GetMainWindow())
 		m_pEngine->GetMainWindow()->SetGraphicListener(nullptr);
+
+	beforeDestroyDevice(); // 一定要先退出独占全屏
 
 	// 删除渲染器监听链
 	for (auto& v : _setEventListeners)
@@ -848,7 +873,8 @@ fResult f2dRenderDevice11::SyncDevice()
 		if (!swapchain_windowed && dxgi_swapchain)
 		{
 			BOOL bFSC = FALSE;
-			HRESULT hr = gHR = dxgi_swapchain->GetFullscreenState(&bFSC, NULL);
+			Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output;
+			HRESULT hr = gHR = dxgi_swapchain->GetFullscreenState(&bFSC, &dxgi_output);
 			if (bFSC)
 			{
 				spdlog::info("[fancy2d] 尝试退出独占全屏");
@@ -869,7 +895,8 @@ fResult f2dRenderDevice11::SyncDevice()
 			if (!swapchain_windowed && dxgi_swapchain)
 			{
 				BOOL bFSC = FALSE;
-				HRESULT hr = gHR = dxgi_swapchain->GetFullscreenState(&bFSC, NULL);
+				Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output;
+				HRESULT hr = gHR = dxgi_swapchain->GetFullscreenState(&bFSC, &dxgi_output);
 				if (FAILED(hr) || !bFSC)
 				{
 					spdlog::info("[fancy2d] 尝试切换到独占全屏");
@@ -889,7 +916,7 @@ fResult f2dRenderDevice11::SyncDevice()
 		destroyRenderAttachments();
 		if (dxgi_swapchain)
 		{
-			HRESULT hr = gHR = dxgi_swapchain->ResizeBuffers(0, swapchain_width, swapchain_height, DXGI_FORMAT_UNKNOWN, 0);
+			HRESULT hr = gHR = dxgi_swapchain->ResizeBuffers(swapchain_resize_data.BufferCount, swapchain_width, swapchain_height, swapchain_resize_data.Format, swapchain_resize_data.Flags);
 			if (FAILED(hr))
 			{
 				return FCYERR_INTERNALERR;
@@ -1257,6 +1284,29 @@ fResult f2dRenderDevice11::SetViewport(fcyRect vp)
 
 // 交换链
 
+void f2dRenderDevice11::beforeDestroyDevice()
+{
+	if (d3d11_devctx)
+	{
+		d3d11_devctx->ClearState();
+		d3d11_devctx->Flush();
+	}
+	if (dxgi_swapchain)
+	{
+		BOOL bFullscreen = FALSE;
+		Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output;
+		HRESULT hr = gHR = dxgi_swapchain->GetFullscreenState(&bFullscreen, &dxgi_output);
+		if (bFullscreen)
+		{
+			spdlog::info("[fancy2d] 尝试退出独占全屏");
+			hr = gHR = dxgi_swapchain->SetFullscreenState(FALSE, NULL);
+			if (FAILED(hr))
+			{
+				spdlog::error("[fancy2d] IDXGISwapChain::SetFullscreenState -> #FALSE 调用失败");
+			}
+		}
+	}
+}
 void f2dRenderDevice11::destroySwapchain()
 {
 	destroyRenderAttachments();
@@ -1318,6 +1368,20 @@ bool f2dRenderDevice11::createSwapchain(f2dDisplayMode* pmode)
 			descf.ScanlineOrdering = (DXGI_MODE_SCANLINE_ORDER)pmode->scanline_ordering;
 			descf.Scaling = (DXGI_MODE_SCALING)pmode->scaling;
 		}
+		if (swapchain_windowed && swapchain_flip && dxgi_support_tearing)
+		{
+			// 只有在窗口模式下才允许开这个功能
+			desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+			desc1.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+			swapchain_resize_data.AllowTearing = TRUE;
+		}
+		else
+		{
+			swapchain_resize_data.AllowTearing = FALSE;
+		}
+		swapchain_resize_data.BufferCount = desc1.BufferCount;
+		swapchain_resize_data.Format = desc1.Format;
+		swapchain_resize_data.Flags = desc1.Flags;
 		Microsoft::WRL::ComPtr<IDXGISwapChain1> dxgi_swapchain1;
 		hr = gHR = dxgi_factory2->CreateSwapChainForHwnd(d3d11_device1.Get(), win32_window, &desc1, swapchain_windowed ? NULL : &descf, NULL, &dxgi_swapchain1);
 		if (SUCCEEDED(hr))
@@ -1363,6 +1427,20 @@ bool f2dRenderDevice11::createSwapchain(f2dDisplayMode* pmode)
 			.SwapEffect = DXGI_SWAP_EFFECT_DISCARD, // Windows 7 只支持这个
 			.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH,
 		};
+		if (swapchain_windowed && swapchain_flip && dxgi_support_tearing)
+		{
+			// 只有在窗口模式下才允许开这个功能
+			desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+			desc.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+			swapchain_resize_data.AllowTearing = TRUE;
+		}
+		else
+		{
+			swapchain_resize_data.AllowTearing = FALSE;
+		}
+		swapchain_resize_data.BufferCount = desc.BufferCount;
+		swapchain_resize_data.Format = mode.Format;
+		swapchain_resize_data.Flags = desc.Flags;
 		hr = gHR = dxgi_factory->CreateSwapChain(d3d11_device.Get(), &desc, &dxgi_swapchain);
 		if (FAILED(hr))
 		{
@@ -1617,7 +1695,7 @@ fResult f2dRenderDevice11::SetDisplayMode(f2dDisplayMode mode, fBool VSync)
 	swapchain_height = mode.height;
 	swapchain_windowed = false;
 	swapchain_vsync = VSync;
-	swapchain_flip = false;
+	swapchain_flip = false; // 独占全屏永远不能开这个功能
 	dispatchRenderSizeDependentResourcesDestroy();
 	destroySwapchain();
 	if (!createSwapchain(&mode))
@@ -1625,6 +1703,7 @@ fResult f2dRenderDevice11::SetDisplayMode(f2dDisplayMode mode, fBool VSync)
 		return FCYERR_INTERNALERR;
 	}
 	dispatchRenderSizeDependentResourcesCreate();
+	// 进入全屏
 	spdlog::info("[fancy2d] 尝试切换到独占全屏");
 	HRESULT hr = gHR = dxgi_swapchain->SetFullscreenState(TRUE, NULL);
 	if (FAILED(hr))
@@ -1648,7 +1727,9 @@ fResult f2dRenderDevice11::Present()
 	m_RenderTarget = nullptr;
 	m_DepthStencil = nullptr;
 
-	HRESULT hr = gHR = dxgi_swapchain->Present(swapchain_vsync ? 1 : 0, 0);
+	UINT interval = swapchain_vsync ? 1 : 0;
+	UINT flags = (swapchain_resize_data.AllowTearing && (!swapchain_vsync)) ? DXGI_PRESENT_ALLOW_TEARING : 0; // 这个功能只有窗口下才能开
+	HRESULT hr = gHR = dxgi_swapchain->Present(interval, flags);
 	if (hr != S_OK && hr != DXGI_STATUS_OCCLUDED && hr != DXGI_STATUS_MODE_CHANGED && hr != DXGI_STATUS_MODE_CHANGE_IN_PROGRESS)
 	{
 		spdlog::critical("[fancy2d] IDXGISwapChain::Present 调用失败，注意：设备已丢失，接下来的渲染将无法正常进行");
