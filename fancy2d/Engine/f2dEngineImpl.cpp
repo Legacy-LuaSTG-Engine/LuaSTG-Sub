@@ -70,8 +70,8 @@ F2DEXTERNC fResult F2DDLLFUNC CreateF2DEngineAndInit(fuInt Version, const fcyRec
 fuInt f2dEngineImpl::UpdateAndRenderThread::ThreadJob()
 {
 	// 线程相关设置
-	SetThreadAffinityMask(GetCurrentThread(), 1);
-	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
+	//SetThreadAffinityMask(GetCurrentThread(), 1);
+	//SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
 
 	// 初始化计数器和FPS控制器
 	fcyStopWatch tTimer;
@@ -90,7 +90,7 @@ fuInt f2dEngineImpl::UpdateAndRenderThread::ThreadJob()
 	fBool bExit = false;
 	fBool bDoPresent = false;
 	fDouble tTime = 0;
-	while(1)
+	while (true)
 	{
 		tLock.Lock();
 		bExit = m_pEngine->m_bStop;
