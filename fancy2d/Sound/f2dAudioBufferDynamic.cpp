@@ -91,21 +91,21 @@ DWORD WINAPI f2dAudioBufferDynamic::WorkingThread(LPVOID lpThreadParameter)
 		{
 		default:
 		case ActionType::Exit:
-			spdlog::debug("ActionType::Exit");
+			//spdlog::debug("ActionType::Exit");
 			is_running = false; // 该滚蛋了
 			self->xa2_source->Stop();
 			self->xa2_source->FlushSourceBuffers(); // 防止继续使用上面的局部 buffer 导致内存读取错误
 			break;
 		case ActionType::Stop:
-			spdlog::debug("ActionType::Stop");
+			//spdlog::debug("ActionType::Stop");
 			self->xa2_source->Stop();
 			break;
 		case ActionType::Start:
-			spdlog::debug("ActionType::Start");
+			//spdlog::debug("ActionType::Start");
 			self->xa2_source->Start();
 			break;
 		case ActionType::Reset:
-			spdlog::debug("ActionType::Reset [{}]", action.action_reset.play ? "X" : "");
+			//spdlog::debug("ActionType::Reset [{}]", action.action_reset.play ? "X" : "");
 			self->xa2_source->Stop();
 			self->xa2_source->FlushSourceBuffers();
 			self->total_time = 0.0;
@@ -119,7 +119,7 @@ DWORD WINAPI f2dAudioBufferDynamic::WorkingThread(LPVOID lpThreadParameter)
 			}
 			break;
 		case ActionType::SetTime:
-			spdlog::debug("ActionType::SetTime ({})", action.action_set_time.time);
+			//spdlog::debug("ActionType::SetTime ({})", action.action_set_time.time);
 			start_time = action.action_set_time.time;
 			self->xa2_source->FlushSourceBuffers();
 			self->total_time = 0.0;
@@ -129,7 +129,7 @@ DWORD WINAPI f2dAudioBufferDynamic::WorkingThread(LPVOID lpThreadParameter)
 			buffer_set_time[0] = buffer_set_time[1] = start_time;
 			break;
 		case ActionType::BufferAvailable:
-			spdlog::debug("ActionType::BufferAvailable [{}]", action.action_buffer_available.index);
+			//spdlog::debug("ActionType::BufferAvailable [{}]", action.action_buffer_available.index);
 			buffer_index = action.action_buffer_available.index;
 			self->total_time += buffer_add_time[buffer_index];
 			self->current_time = buffer_set_time[buffer_index];
