@@ -685,7 +685,7 @@ f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, fuInt BackBufferWid
 				}
 			}
 		}
-		spdlog::info("[fancy2d] DXGI 组件功能支持："
+		spdlog::info("[fancy2d] DXGI 组件功能支持：\n"
 			"    呈现时允许画面撕裂：{}"
 			, dxgi_support_tearing ? "支持" : "不支持"
 		);
