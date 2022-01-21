@@ -668,6 +668,18 @@ f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, fuInt BackBufferWid
 		throw fcyWin32COMException("f2dRenderDevice11::f2dRenderDevice11", "CreateDXGIFactory1 failed.", hr);
 	}
 	{
+		if (IsWindows8OrGreater())
+		{
+			dxgi_support_flipmodel = true;
+		}
+		if (IsWindows10OrGreater())
+		{
+			dxgi_support_flipmodel2 = true;
+		}
+		if (IsWindows8Point1OrGreater())
+		{
+			dxgi_support_lowlatency = true;
+		}
 		Microsoft::WRL::ComPtr<IDXGIFactory5> dxgi_factory5;
 		hr = gHR = dxgi_factory.As(&dxgi_factory5);
 		if (SUCCEEDED(hr))
@@ -685,9 +697,39 @@ f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, fuInt BackBufferWid
 				}
 			}
 		}
+		char const* dwm_acc_lv = "不支持";
+		if (dxgi_support_flipmodel) dwm_acc_lv = "1";
+		if (dxgi_support_lowlatency) dwm_acc_lv = "2";
+		if (dxgi_support_flipmodel2) dwm_acc_lv = "3";
+		if (dxgi_support_tearing) dwm_acc_lv = "4";
 		spdlog::info("[fancy2d] DXGI 组件功能支持：\n"
-			"    呈现时允许画面撕裂：{}"
-			, dxgi_support_tearing ? "支持" : "不支持"
+			"    桌面窗口管理器（DWM）*1优化级别*2：{}\n"
+			"    交换链模式：\n"
+			"        位块传输（Bitblt）*3模式*4：支持\n"
+			"        序列交换*5模式*6：{}\n"
+			"        快速交换模式*7：{}\n"
+			"    低延迟呈现*8：{}\n"
+			"    呈现时允许画面撕裂*9：{}\n"
+			"        *1 桌面窗口管理器，即 Desktop Window Manager (DWM)，从 Windows Vista 开始掌管 Windows 桌面合成，从 Windows 8 开始强制开启，无法被用户关闭\n"
+			"        *2 桌面窗口管理器优化级别是指此程序处于全屏无边框窗口时能多大程度降低性能消耗、画面呈现延迟，总共分为 5 个级别：\n"
+			"           　　级别 0：完全不支持\n"
+			"           　　级别 1：序列交换模式可用\n"
+			"           　　级别 2：序列交换模式、低延迟呈现可用\n"
+			"           　　级别 3：快速交换模式、低延迟呈现可用\n"
+			"           　　级别 4：快速交换模式、低延迟呈现、呈现时允许画面撕裂可用\n"
+			"           当支持级别 4 时，相同渲染分辨率下的全屏无边框窗口模式和传统全屏独占模式性能、延迟差异较小，两种模式可近似代替\n"
+			"        *3 位块传输，即 Bit-block transfer (Bitblt)，可视为数据复制，复制的过程会消耗时间\n"
+			"        *4 当程序处于窗口化或全屏无边框窗口时，通过位块传输呈现画面\n"
+			"        *5 指交换缓冲区，不发生复制\n"
+			"        *6 如果其他窗口部分或全部遮挡此程序画面，则通过位块传输呈现画面。否则：当程序处于窗口化时，通过交换缓冲区呈现画面；当程序处于全屏无边框窗口时，桌面窗口管理器休眠，程序会获得全屏独占模式\n"
+			"        *7 当程序处于窗口化时，通过交换缓冲区呈现画面；当程序处于全屏无边框窗口时，通过交换缓冲区呈现画面，特别地，如果没有其他窗口部分或全部遮挡此程序画面，则桌面窗口管理器休眠，程序会获得全屏独占模式\n"
+			"        *8 通过减少呈现队列中排队的缓冲区数量、对齐显示器垂直空白降低延迟，效果可能不明显\n"
+			"        *9 当程序处于全屏无边框窗口且垂直同步关闭时，允许呈现的画面撕裂，这允许在显示器刷新画面过程中更新缓冲区，类似传统全屏独占模式关闭垂直同步下的行为"
+			, dwm_acc_lv
+			, dxgi_support_flipmodel ? "支持" : "不支持（最低系统要求为 Windows 8）"
+			, dxgi_support_flipmodel2 ? "支持" : "不支持（最低系统要求为 Windows 10）"
+			, dxgi_support_lowlatency ? "支持" : "不支持（最低系统要求为 Windows 8.1）"
+			, dxgi_support_tearing ? "支持" : "不支持（最低系统要求为 Windows 10，且要求 DXGI 组件支持该功能）"
 		);
 	}
 	
@@ -1325,6 +1367,7 @@ void f2dRenderDevice11::destroySwapchain()
 			}
 		}
 	}
+	dxgi_swapchain_event.Close();
 	dxgi_swapchain.Reset();
 }
 bool f2dRenderDevice11::createSwapchain(f2dDisplayMode* pmode)
@@ -1368,15 +1411,46 @@ bool f2dRenderDevice11::createSwapchain(f2dDisplayMode* pmode)
 			descf.ScanlineOrdering = (DXGI_MODE_SCANLINE_ORDER)pmode->scanline_ordering;
 			descf.Scaling = (DXGI_MODE_SCALING)pmode->scaling;
 		}
-		if (swapchain_windowed && swapchain_flip && dxgi_support_tearing)
+		if (swapchain_windowed && swapchain_flip)
 		{
 			// 只有在窗口模式下才允许开这个功能
-			desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-			desc1.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-			swapchain_resize_data.AllowTearing = TRUE;
+			if (dxgi_support_flipmodel2 && dxgi_support_lowlatency && dxgi_support_tearing)
+			{
+				desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+				desc1.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+				desc1.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+				swapchain_resize_data.FrameLatencyWaitableObject = TRUE;
+				swapchain_resize_data.AllowTearing = TRUE;
+			}
+			else if (dxgi_support_flipmodel2 && dxgi_support_lowlatency)
+			{
+				desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+				desc1.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+				swapchain_resize_data.FrameLatencyWaitableObject = TRUE;
+				swapchain_resize_data.AllowTearing = FALSE;
+			}
+			else if (dxgi_support_flipmodel && dxgi_support_lowlatency)
+			{
+				desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+				desc1.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+				swapchain_resize_data.FrameLatencyWaitableObject = TRUE;
+				swapchain_resize_data.AllowTearing = FALSE;
+			}
+			else if (dxgi_support_flipmodel)
+			{
+				desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+				swapchain_resize_data.FrameLatencyWaitableObject = FALSE;
+				swapchain_resize_data.AllowTearing = FALSE;
+			}
+			else
+			{
+				swapchain_resize_data.FrameLatencyWaitableObject = FALSE;
+				swapchain_resize_data.AllowTearing = FALSE;
+			}
 		}
 		else
 		{
+			swapchain_resize_data.FrameLatencyWaitableObject = FALSE;
 			swapchain_resize_data.AllowTearing = FALSE;
 		}
 		swapchain_resize_data.BufferCount = desc1.BufferCount;
@@ -1427,15 +1501,46 @@ bool f2dRenderDevice11::createSwapchain(f2dDisplayMode* pmode)
 			.SwapEffect = DXGI_SWAP_EFFECT_DISCARD, // Windows 7 只支持这个
 			.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH,
 		};
-		if (swapchain_windowed && swapchain_flip && dxgi_support_tearing)
+		if (swapchain_windowed && swapchain_flip)
 		{
 			// 只有在窗口模式下才允许开这个功能
-			desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-			desc.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-			swapchain_resize_data.AllowTearing = TRUE;
+			if (dxgi_support_flipmodel2 && dxgi_support_lowlatency && dxgi_support_tearing)
+			{
+				desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+				desc.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+				desc.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+				swapchain_resize_data.FrameLatencyWaitableObject = TRUE;
+				swapchain_resize_data.AllowTearing = TRUE;
+			}
+			else if (dxgi_support_flipmodel2 && dxgi_support_lowlatency)
+			{
+				desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+				desc.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+				swapchain_resize_data.FrameLatencyWaitableObject = TRUE;
+				swapchain_resize_data.AllowTearing = FALSE;
+			}
+			else if (dxgi_support_flipmodel && dxgi_support_lowlatency)
+			{
+				desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+				desc.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+				swapchain_resize_data.FrameLatencyWaitableObject = TRUE;
+				swapchain_resize_data.AllowTearing = FALSE;
+			}
+			else if (dxgi_support_flipmodel)
+			{
+				desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+				swapchain_resize_data.FrameLatencyWaitableObject = FALSE;
+				swapchain_resize_data.AllowTearing = FALSE;
+			}
+			else
+			{
+				swapchain_resize_data.FrameLatencyWaitableObject = FALSE;
+				swapchain_resize_data.AllowTearing = FALSE;
+			}
 		}
 		else
 		{
+			swapchain_resize_data.FrameLatencyWaitableObject = FALSE;
 			swapchain_resize_data.AllowTearing = FALSE;
 		}
 		swapchain_resize_data.BufferCount = desc.BufferCount;
@@ -1460,14 +1565,32 @@ bool f2dRenderDevice11::createSwapchain(f2dDisplayMode* pmode)
 		return false;
 	}
 
-	Microsoft::WRL::ComPtr<IDXGIDevice1> dxgi_device1;
-	hr = gHR = d3d11_device.As(&dxgi_device1);
-	if (SUCCEEDED(hr))
+	Microsoft::WRL::ComPtr<IDXGISwapChain2> dxgi_swapchain2;
+	hr = gHR = dxgi_swapchain.As(&dxgi_swapchain2);
+	if (swapchain_resize_data.FrameLatencyWaitableObject && SUCCEEDED(hr))
 	{
-		hr = gHR = dxgi_device1->SetMaximumFrameLatency(1);
+		hr = gHR = dxgi_swapchain2->SetMaximumFrameLatency(1);
 		if (FAILED(hr))
 		{
-			spdlog::error("[fancy2d] IDXGIDevice1::SetMaximumFrameLatency -> #1 调用失败");
+			spdlog::error("[fancy2d] IDXGISwapChain2::SetMaximumFrameLatency -> #1 调用失败");
+		}
+		dxgi_swapchain_event.Attach(dxgi_swapchain2->GetFrameLatencyWaitableObject());
+		if (!dxgi_swapchain_event.IsValid())
+		{
+			spdlog::error("[fancy2d] IDXGISwapChain2::GetFrameLatencyWaitableObject 调用失败");
+		}
+	}
+	else
+	{
+		Microsoft::WRL::ComPtr<IDXGIDevice1> dxgi_device1;
+		hr = gHR = d3d11_device.As(&dxgi_device1);
+		if (SUCCEEDED(hr))
+		{
+			hr = gHR = dxgi_device1->SetMaximumFrameLatency(1);
+			if (FAILED(hr))
+			{
+				spdlog::error("[fancy2d] IDXGIDevice1::SetMaximumFrameLatency -> #1 调用失败");
+			}
 		}
 	}
 
@@ -1727,6 +1850,14 @@ fResult f2dRenderDevice11::SetDisplayMode(f2dDisplayMode mode, fBool VSync)
 fuInt f2dRenderDevice11::GetBufferWidth() { return swapchain_width; }
 fuInt f2dRenderDevice11::GetBufferHeight() { return swapchain_height; }
 fBool f2dRenderDevice11::IsWindowed() { return swapchain_windowed; }
+fResult f2dRenderDevice11::WaitDevice()
+{
+	if (swapchain_resize_data.FrameLatencyWaitableObject && dxgi_swapchain_event.IsValid())
+	{
+		WaitForSingleObject(dxgi_swapchain_event.Get(), 1000);
+	}
+	return FCYERR_OK;
+}
 fResult f2dRenderDevice11::Present()
 {
 	if (!dxgi_swapchain)

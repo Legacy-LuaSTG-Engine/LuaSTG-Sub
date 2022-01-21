@@ -34,6 +34,7 @@ private:
 		UINT BufferCount = 0;
 		DXGI_FORMAT Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 		UINT Flags = 0;
+		BOOL FrameLatencyWaitableObject = FALSE;
 		BOOL AllowTearing = FALSE;
 	};
 private:
@@ -69,6 +70,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> d3d11_devctx;
 	D3D_FEATURE_LEVEL d3d11_level = D3D_FEATURE_LEVEL_10_0;
 	
+	Microsoft::WRL::Wrappers::Event dxgi_swapchain_event;
 	Microsoft::WRL::ComPtr<IDXGISwapChain> dxgi_swapchain;
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> d3d11_rendertarget;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> d3d11_depthstencil;
@@ -77,6 +79,9 @@ private:
 	fcyRefPointer<f2dDepthStencilSurface> m_DepthStencil;
 
 	fBool d3d11_support_bgra = false;
+	fBool dxgi_support_flipmodel = false;
+	fBool dxgi_support_flipmodel2 = false;
+	fBool dxgi_support_lowlatency = false;
 	fBool dxgi_support_tearing = false;
 private:
 	int sendDevLostMsg();             // 发送设备丢失事件, 返回对象数目
@@ -93,6 +98,7 @@ private:
 	void setupRenderAttachments();
 public: // 内部函数
 	f2dEngineImpl* GetEngine() { return m_pEngine; } // 返回引擎对象
+	fResult WaitDevice();
 	fResult SyncDevice();                           // 协作测试，完成设备丢失处理
 	fResult Present();                              // 呈现
 	f2dGraphics* QueryCurGraphics();

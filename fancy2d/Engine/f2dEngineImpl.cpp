@@ -100,6 +100,9 @@ fuInt f2dEngineImpl::UpdateAndRenderThread::ThreadJob()
 		if(bExit)
 			break;
 		
+		// 如果需要，等待设备
+		((f2dRenderDevice11*)tpRenderDev)->WaitDevice();
+
 		// 更新FPS
 		tTime = tFPSController.Update(tTimer);
 		
