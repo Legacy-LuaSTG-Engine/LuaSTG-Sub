@@ -45,15 +45,6 @@ end
 function EventFunc(event, ...)
 end
 
---local function _cjson()
---	cjson = require("cjson")
---end
---local function _lfs()
---	lfs = require("lfs")
---end
---pcall(_cjson)
---pcall(_lfs)
-
 )";
 #pragma endregion
 
@@ -63,30 +54,6 @@ static const std::string _InternalSource_API = R"(
 local lstg = require("lstg")
 
 function lstg.ShowSplashWindow()
-end
-
-local _render_target = "__RENDER_TARGET__"
-
-local _lstg_CheckRes = lstg.CheckRes
-local function _check_render_target()
-    if not _lstg_CheckRes(1, _render_target) then
-        lstg.CreateRenderTarget(_render_target)
-    end
-end
-
-function lstg.PostEffectCapture()
-    _check_render_target()
-    lstg.PushRenderTarget(_render_target)
-end
-
-function lstg.PostEffectApply(fxname, blend, args)
-    _check_render_target()
-    lstg.PopRenderTarget()
-    lstg.PostEffect(_render_target, fxname, blend, args)
-end
-
-function lstg.GetLastChar()
-    return ""
 end
 
 )";
