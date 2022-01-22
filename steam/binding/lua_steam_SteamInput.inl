@@ -4,7 +4,8 @@ struct xSteamInput
 {
     static int Init(lua_State* L)
     {
-        const bool ret = SteamInput()->Init();
+        const bool run_cb_manually = lua_toboolean(L, 1);
+        const bool ret = SteamInput()->Init(run_cb_manually);
         lua_pushboolean(L, ret);
         return 1;
     };
@@ -351,7 +352,7 @@ struct xSteamInput
     static int GetGlyphForActionOrigin(lua_State* L)
     {
         const EInputActionOrigin eOrigin = (EInputActionOrigin)luaL_checkinteger(L, 1);
-        const char* ret = SteamInput()->GetGlyphForActionOrigin(eOrigin);
+        const char* ret = SteamInput()->GetGlyphForActionOrigin_Legacy(eOrigin);
         lua_pushstring(L, ret);
         return 1;
     };
@@ -401,7 +402,7 @@ struct xSteamInput
         const InputHandle_t inputHandle = lua_to_InputHandle_t(L, 1);
         const ESteamControllerPad eTargetPad = (ESteamControllerPad)luaL_checkinteger(L, 2);
         const unsigned short usDurationMicroSec = (unsigned short)luaL_checkinteger(L, 3);
-        SteamInput()->TriggerHapticPulse(inputHandle, eTargetPad, usDurationMicroSec);
+        SteamInput()->Legacy_TriggerHapticPulse(inputHandle, eTargetPad, usDurationMicroSec);
         return 0;
     };
     static int TriggerRepeatedHapticPulse(lua_State* L)
@@ -412,7 +413,7 @@ struct xSteamInput
         const unsigned short usOffMicroSec      = (unsigned short)luaL_checkinteger(L, 4);
         const unsigned short unRepeat           = (unsigned short)luaL_checkinteger(L, 5);
         const unsigned int nFlags = lua_to_uint(L, 6);
-        SteamInput()->TriggerRepeatedHapticPulse(inputHandle, eTargetPad, usDurationMicroSec, usOffMicroSec, unRepeat, nFlags);
+        SteamInput()->Legacy_TriggerRepeatedHapticPulse(inputHandle, eTargetPad, usDurationMicroSec, usOffMicroSec, unRepeat, nFlags);
         return 0;
     };
     static int TriggerVibration(lua_State* L)
