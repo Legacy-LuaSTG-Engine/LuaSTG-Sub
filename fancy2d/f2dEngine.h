@@ -192,6 +192,15 @@ enum F2DENGTHREADMODE
 	F2DENGTHREADMODE_FULLMULTITHREAD  ///< @brief OnUpdate和OnRender分跨两个线程，不共用FPS控制器
 };
 
+// fancy2D 引擎性能数据
+struct f2dEngineFrameStatistics
+{
+	fDouble update_time;
+	fDouble render_time;
+	fDouble present_time;
+	fDouble total_time;
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief fancy2D引擎
 ////////////////////////////////////////////////////////////////////////////////
@@ -295,5 +304,8 @@ struct f2dEngine : f2dInterface
 	/// @brief     返回CPU信息
 	/// @param[in] Info 输出的CPU信息
 	virtual void GetCPUInfo(f2dCPUInfo& Info)=0;
+
+	// 获取每帧性能数据
+	virtual void GetFrameStatistics(f2dEngineFrameStatistics& Info) = 0;
 };
 /// @}

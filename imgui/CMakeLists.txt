@@ -7,6 +7,7 @@ target_compile_definitions(imgui PUBLIC
     IMGUI_USE_BGRA_PACKED_COLOR
     #IMGUI_USE_WCHAR32
     IMGUI_ENABLE_FREETYPE
+    IMPLOT_DISABLE_OBSOLETE_FUNCTIONS
 )
 target_include_directories(imgui PUBLIC
     imgui
@@ -14,6 +15,7 @@ target_include_directories(imgui PUBLIC
     imgui/misc/freetype
     imgui/backends
     backend
+    implot
 )
 target_sources(imgui PRIVATE
     imgui/imstb_rectpack.h
@@ -40,6 +42,12 @@ target_sources(imgui PRIVATE
     
     backend/imgui_impl_win32ex.cpp
     backend/imgui_impl_win32ex.h
+    
+    implot/implot_demo.cpp
+    implot/implot_internal.h
+    implot/implot_items.cpp
+    implot/implot.cpp
+    implot/implot.h
 )
 target_link_libraries(imgui PUBLIC
     d3d11.lib

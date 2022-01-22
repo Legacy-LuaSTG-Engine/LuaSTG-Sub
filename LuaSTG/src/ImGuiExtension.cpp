@@ -2,12 +2,14 @@
 #include <string>
 #include <fstream>
 #include <filesystem>
+#include <vector>
 
 #include "imgui.h"
 #include "imgui_stdlib.h"
 #include "imgui_freetype.h"
 #include "imgui_impl_win32ex.h"
 #include "imgui_impl_dx11.h"
+#include "implot.h"
 #include <d3d11.h>
 
 #include "lua.hpp"
@@ -22,6 +24,33 @@
 
 #define XINPUT_USE_9_1_0
 #include <Xinput.h>
+
+template<typename T>
+struct ImScrollingBuffer
+{
+    size_t MaxSize;
+    ptrdiff_t Offset;
+    ImVector<T> Data;
+    ImScrollingBuffer(size_t max_size = 1024) {
+        MaxSize = max_size;
+        Offset = 0;
+        Data.reserve(MaxSize);
+    }
+    void Add(T const& v) {
+        if (Data.size() < MaxSize)
+            Data.push_back(v);
+        else {
+            Data[Offset] = v;
+            Offset = (Offset + 1) % MaxSize;
+        }
+    }
+    void Erase() {
+        if (Data.size() > 0) {
+            Data.shrink(0);
+            Offset = 0;
+        }
+    }
+};
 
 // lua imgui backend binding
 
@@ -120,6 +149,91 @@ static int lib_ShowMemoryUsageWindow(lua_State* L)
     lua_pushboolean(L, v);
     return 1;
 }
+static int lib_ShowFrameStatistics(lua_State* L)
+{
+    constexpr size_t arr_size = 3600;
+    static std::vector<double> arr_update_time(arr_size);
+    static std::vector<double> arr_render_time(arr_size);
+    static std::vector<double> arr_present_time(arr_size);
+    static std::vector<double> arr_total_time(arr_size);
+    static size_t arr_index = 0;
+    static size_t record_range = 240;
+    constexpr size_t record_range_min = 60;
+    constexpr size_t record_range_max = 3600;
+    static float height = 384.0f;
+    static bool auto_fit = true;
+
+    bool v = (lua_gettop(L) >= 1) ? lua_toboolean(L, 1) : true;
+    if (v)
+    {
+        if (ImGui::Begin("Frame Statistics", &v))
+        {
+            f2dEngineFrameStatistics info = {};
+            LuaSTGPlus::AppFrame::GetInstance().GetEngine()->GetFrameStatistics(info);
+            
+            ImGui::Text("Update : %.3fms", info.update_time  * 1000.0);
+            ImGui::Text("Render : %.3fms", info.render_time  * 1000.0);
+            ImGui::Text("Present: %.3fms", info.present_time * 1000.0);
+            ImGui::Text("Total  : %.3fms", info.total_time   * 1000.0);
+            
+            ImGui::SliderScalar("Record Range", sizeof(size_t) == 8 ? ImGuiDataType_U64 : ImGuiDataType_U32, &record_range, &record_range_min, &record_range_max);
+            ImGui::SliderFloat("Timeline Height", &height, 256.0f, 512.0f);
+            ImGui::Checkbox("Auto-Fit Y Axis", &auto_fit);
+
+            arr_update_time[arr_index] = 1000.0 * (info.update_time);
+            arr_render_time[arr_index] = 1000.0 * (info.update_time + info.render_time);
+            arr_present_time[arr_index] = 1000.0 * (info.update_time + info.render_time + info.present_time);
+            arr_total_time[arr_index] = 1000.0 * (info.total_time);
+            arr_index = (arr_index + 1) % record_range;
+
+            if (ImPlot::BeginPlot("##Frame Statistics", ImVec2(-1, height), 0))
+            {
+                //ImPlot::SetupAxes("Frame", "Time", flags, flags);
+                ImPlot::SetupAxisLimits(ImAxis_X1, 0.0, (double)(record_range + 1), ImGuiCond_Always);
+                //ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0, 1000.0 / 18.0, ImGuiCond_Always);
+                if (auto_fit)
+                    ImPlot::SetupAxes(NULL, NULL, ImPlotAxisFlags_None, ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_RangeFit);
+                else
+                    ImPlot::SetupAxes(NULL, NULL);
+
+                ImPlot::SetupLegend(ImPlotLocation_North, ImPlotLegendFlags_Horizontal | ImPlotLegendFlags_Outside);
+
+                ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.5f);
+                ImPlot::PlotShaded("Total", arr_total_time.data(), (int)record_range);
+                ImPlot::PlotShaded("Present", arr_present_time.data(), (int)record_range);
+                ImPlot::PlotShaded("Render", arr_render_time.data(), (int)record_range);
+                ImPlot::PlotShaded("Update", arr_update_time.data(), (int)record_range);
+                ImPlot::PopStyleVar();
+
+                ImPlot::PlotLine("Total", arr_total_time.data(), (int)record_range);
+                ImPlot::PlotLine("Present", arr_present_time.data(), (int)record_range);
+                ImPlot::PlotLine("Render", arr_render_time.data(), (int)record_range);
+                ImPlot::PlotLine("Update", arr_update_time.data(), (int)record_range);
+                
+                static double arr_ms[] = {
+                    1000.0 / 60.0,
+                    1000.0 / 30.0,
+                    1000.0 / 20.0,
+                };
+                ImPlot::SetNextLineStyle(ImVec4(0.2f, 1.0f, 0.2f, 1.0f));
+                ImPlot::PlotHLines("##60 FPS", arr_ms, 1);
+                //ImPlot::SetNextLineStyle(ImVec4(1.0f, 1.2f, 0.2f, 1.0f));
+                //ImPlot::PlotHLines("##30 FPS", arr_ms + 1, 1);
+                //ImPlot::SetNextLineStyle(ImVec4(1.0f, 0.2f, 0.2f, 1.0f));
+                //ImPlot::PlotHLines("##20 FPS", arr_ms + 2, 1);
+
+                double mark = (double)arr_index;
+                ImPlot::SetNextLineStyle(ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+                ImPlot::PlotVLines("##Current Time", &arr_index, 1);
+
+                ImPlot::EndPlot();
+            }
+        }
+        ImGui::End();
+    }
+    lua_pushboolean(L, v);
+    return 1;
+}
 
 void imgui_binding_lua_register_backend(lua_State* L)
 {
@@ -128,6 +242,7 @@ void imgui_binding_lua_register_backend(lua_State* L)
         {"RenderDrawData", &lib_RenderDrawData},
         {"ShowTestInputWindow", &lib_ShowTestInputWindow},
         {"ShowMemoryUsageWindow", &lib_ShowMemoryUsageWindow},
+        {"ShowFrameStatistics", &lib_ShowFrameStatistics},
         {NULL, NULL},
     };
     const auto lib_func = (sizeof(lib_fun) / sizeof(luaL_Reg)) - 1;
@@ -285,6 +400,7 @@ namespace imgui
         
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
+        ImPlot::CreateContext();
         
         setConfig();
         loadConfig();
@@ -325,6 +441,8 @@ namespace imgui
         ImGui_ImplWin32Ex_Shutdown();
         
         saveConfig();
+
+        ImPlot::DestroyContext();
         ImGui::DestroyContext();
     }
     

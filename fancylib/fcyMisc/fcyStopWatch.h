@@ -14,10 +14,10 @@
 class fcyStopWatch
 {
 private:
-	fuLong m_cFreq;      ///< @brief CPU频率
-	fuLong m_cLast;      ///< @brief 上一次时间
-	fuLong m_cFixStart;  ///< @brief 暂停时的时间修复参数
-	fuLong m_cFixAll;    ///< @brief 暂停时的时间修复参数
+	fLong m_cFreq;      ///< @brief CPU频率
+	fLong m_cLast;      ///< @brief 上一次时间
+	fLong m_cFixStart;  ///< @brief 暂停时的时间修复参数
+	fLong m_cFixAll;    ///< @brief 暂停时的时间修复参数
 public:
 	void Pause();        ///< @brief 暂停
 	void Resume();       ///< @brief 继续

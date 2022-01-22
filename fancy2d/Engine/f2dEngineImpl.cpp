@@ -100,6 +100,9 @@ fuInt f2dEngineImpl::UpdateAndRenderThread::ThreadJob()
 		if(bExit)
 			break;
 		
+		m_pEngine->NextFrameStatistics();
+		m_pEngine->BeginFrameStatisticsElement(FrameStatisticsElement::Total);
+
 		// 如果需要，等待设备
 		((f2dRenderDevice11*)tpRenderDev)->WaitDevice();
 
@@ -111,14 +114,22 @@ fuInt f2dEngineImpl::UpdateAndRenderThread::ThreadJob()
 			//m_pEngine->DoPresent(tpRenderDev);
 
 		// 执行更新事件
+		m_pEngine->BeginFrameStatisticsElement(FrameStatisticsElement::Update);
 		m_pEngine->DoUpdate(tTime, &tFPSController);
+		m_pEngine->EndFrameStatisticsElement(FrameStatisticsElement::Update);
 
 		// 执行渲染事件
+		m_pEngine->BeginFrameStatisticsElement(FrameStatisticsElement::Render);
 		bDoPresent = m_pEngine->DoRender(tTime, &tFPSController, tpRenderDev);
+		m_pEngine->EndFrameStatisticsElement(FrameStatisticsElement::Render);
 
 		// 执行显示事件
+		m_pEngine->BeginFrameStatisticsElement(FrameStatisticsElement::Present);
 		if (bDoPresent)
 			m_pEngine->DoPresent(tpRenderDev);
+		m_pEngine->EndFrameStatisticsElement(FrameStatisticsElement::Present);
+
+		m_pEngine->EndFrameStatisticsElement(FrameStatisticsElement::Total);
 	}
 	
 	// 投递终止消息

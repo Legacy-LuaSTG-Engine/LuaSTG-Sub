@@ -107,6 +107,11 @@ private:
 	// 消息泵
 	fuInt m_PumpIndex;
 	f2dMsgPumpImpl m_MsgPump[2];
+
+	// 性能数据
+	fcyStopWatch m_FrameStatisticsTimer;
+	fuInt m_FrameStatisticsIndex;
+	f2dEngineFrameStatistics m_FrameStatistics[2] = {};
 protected:
 	void Run_SingleThread(fuInt UpdateMaxFPS);
 	void Run_MultiThread(fuInt UpdateMaxFPS);
@@ -118,6 +123,54 @@ protected:
 public: // 内部公开方法
 	// 当异常被触发时调用该函数
 	void ThrowException(const fcyException& e);
+	void NextFrameStatistics()
+	{
+		m_FrameStatisticsIndex = (m_FrameStatisticsIndex + 1) % 2;
+		m_FrameStatisticsTimer.Reset();
+	}
+	enum class FrameStatisticsElement
+	{
+		Update,
+		Render,
+		Present,
+		Total,
+	};
+	void BeginFrameStatisticsElement(FrameStatisticsElement e)
+	{
+		switch (e)
+		{
+		case FrameStatisticsElement::Update:
+			m_FrameStatistics[m_FrameStatisticsIndex].update_time = m_FrameStatisticsTimer.GetElapsed();
+			break;
+		case FrameStatisticsElement::Render:
+			m_FrameStatistics[m_FrameStatisticsIndex].render_time = m_FrameStatisticsTimer.GetElapsed();
+			break;
+		case FrameStatisticsElement::Present:
+			m_FrameStatistics[m_FrameStatisticsIndex].present_time = m_FrameStatisticsTimer.GetElapsed();
+			break;
+		case FrameStatisticsElement::Total:
+			m_FrameStatistics[m_FrameStatisticsIndex].total_time = m_FrameStatisticsTimer.GetElapsed();
+			break;
+		}
+	}
+	void EndFrameStatisticsElement(FrameStatisticsElement e)
+	{
+		switch (e)
+		{
+		case FrameStatisticsElement::Update:
+			m_FrameStatistics[m_FrameStatisticsIndex].update_time = m_FrameStatisticsTimer.GetElapsed() - m_FrameStatistics[m_FrameStatisticsIndex].update_time;
+			break;
+		case FrameStatisticsElement::Render:
+			m_FrameStatistics[m_FrameStatisticsIndex].render_time = m_FrameStatisticsTimer.GetElapsed() - m_FrameStatistics[m_FrameStatisticsIndex].render_time;
+			break;
+		case FrameStatisticsElement::Present:
+			m_FrameStatistics[m_FrameStatisticsIndex].present_time = m_FrameStatisticsTimer.GetElapsed() - m_FrameStatistics[m_FrameStatisticsIndex].present_time;
+			break;
+		case FrameStatisticsElement::Total:
+			m_FrameStatistics[m_FrameStatisticsIndex].total_time = m_FrameStatisticsTimer.GetElapsed() - m_FrameStatistics[m_FrameStatisticsIndex].total_time;
+			break;
+		}
+	}
 public: // 接口实现
 	f2dEngineEventListener* GetListener()                  { return m_pListener; }
 	fResult SetListener(f2dEngineEventListener* pListener) { m_pListener = pListener; return FCYERR_OK; }
@@ -184,6 +237,7 @@ public: // 接口实现
 		tInfo.CPUString = m_CPUString.c_str();
 		tInfo.CPUBrandString = m_CPUBrandString.c_str();
 	}
+	void GetFrameStatistics(f2dEngineFrameStatistics& Info) { Info = m_FrameStatistics[(m_FrameStatisticsIndex - 1) % 2]; }
 public:
 	f2dEngineImpl(f2dEngineEventListener* pListener);
 	f2dEngineImpl(const fcyRect& WinPos, fcStrW Title, fBool Windowed, fBool VSync, F2DAALEVEL AA, f2dEngineEventListener* pListener);
