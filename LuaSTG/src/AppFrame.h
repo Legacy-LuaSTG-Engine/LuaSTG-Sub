@@ -7,6 +7,7 @@
 #include "E2DFileManager.hpp"
 #include "Common/DirectInput.h"
 #include "LuaSTG/Core/Renderer.hpp"
+#include "LConfig.h"
 
 namespace LuaSTGPlus
 {
@@ -63,7 +64,7 @@ namespace LuaSTGPlus
 		fuInt m_OptionFPSLimit = 60;
 		bool m_OptionVsync = false;
 		fcyVec2 m_OptionResolution = fcyVec2(640.f, 480.f);
-		std::wstring m_OptionTitle = L"LuaSTG";
+		std::wstring m_OptionTitle = L"" LUASTG_INFO;
 		bool m_OptionCursor = true;
 		fDouble m_fFPS = 0.;
 		
