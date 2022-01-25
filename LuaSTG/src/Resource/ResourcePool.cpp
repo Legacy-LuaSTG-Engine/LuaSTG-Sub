@@ -963,28 +963,30 @@ bool ResourcePool::LoadFX(const char* name, const char* path, bool is_effect) no
         return false;
     }
     
-    if (!is_effect) // 不是 d3d9 的 effect9 文件
+    LuaSTG::Core::ShaderID shader = LAPP.GetRenderer2D().createPostEffectShader(name, tDataBuf->GetInternalBuffer(), (SIZE_T)tDataBuf->GetLength());
+    if (!shader.handle)
     {
-        LuaSTG::Core::ShaderID shader = LAPP.GetRenderer2D().createPostEffectShader(name, tDataBuf->GetInternalBuffer(), (SIZE_T)tDataBuf->GetLength());
-        if (!shader.handle)
-        {
-            spdlog::error("[luastg] LoadFX: 创建着色器 '{}' ('{}') 失败：调用 LuaSTG::Core::Renderer::createPostEffectShader 出错", name, path);
-        }
-        try
-        {
-            fcyRefPointer<ResFX> tRes;
-            tRes.DirectSet(new ResFX(name, shader));
-            m_FXPool.emplace(name, tRes);
-        }
-        catch (const std::bad_alloc&)
-        {
-            spdlog::error("[luastg] LoadFX: 内存不足");
-            return false;
-        }
+        spdlog::error("[luastg] LoadFX: 创建着色器 '{}' ('{}') 失败：调用 LuaSTG::Core::Renderer::createPostEffectShader 出错", name, path);
+    }
+    try
+    {
+        fcyRefPointer<ResFX> tRes;
+        tRes.DirectSet(new ResFX(name, shader));
+        m_FXPool.emplace(name, tRes);
+    }
+    catch (const std::bad_alloc&)
+    {
+        LAPP.GetRenderer2D().destroyPostEffectShader(shader);
+        spdlog::error("[luastg] LoadFX: 内存不足");
+        return false;
+    }
+    catch (...)
+    {
+        LAPP.GetRenderer2D().destroyPostEffectShader(shader);
+    }
 
-        if (ResourceMgr::GetResourceLoadingLog()) {
-            spdlog::info("[luastg] LoadFX: 已从'{}'加载后处理特效'{}' ({})", path, name, getResourcePoolTypeName());
-        }
+    if (ResourceMgr::GetResourceLoadingLog()) {
+        spdlog::info("[luastg] LoadFX: 已从'{}'加载后处理特效'{}' ({})", path, name, getResourcePoolTypeName());
     }
     
     return true;
