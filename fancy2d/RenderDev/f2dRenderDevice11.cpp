@@ -927,6 +927,7 @@ fResult f2dRenderDevice11::SyncDevice()
 				}
 			}
 		}
+		m_pEngine->GetMainWindow()->SetTopMost(false);
 	}
 	else
 	{
@@ -1819,6 +1820,7 @@ fResult f2dRenderDevice11::SetDisplayMode(fuInt Width, fuInt Height, fBool VSync
 		return FCYERR_INTERNALERR;
 	}
 	dispatchRenderSizeDependentResourcesCreate();
+	((f2dWindowImpl*)m_pEngine->GetMainWindow())->MoveMouseToRightBottom();
 	return FCYERR_OK;
 }
 fResult f2dRenderDevice11::SetDisplayMode(f2dDisplayMode mode, fBool VSync)
@@ -1845,6 +1847,7 @@ fResult f2dRenderDevice11::SetDisplayMode(f2dDisplayMode mode, fBool VSync)
 		spdlog::error("[fancy2d] IDXGISwapChain::SetFullscreenState -> #TRUE 调用失败，无法进入独占全屏");
 		return FCYERR_INTERNALERR;
 	}
+	((f2dWindowImpl*)m_pEngine->GetMainWindow())->MoveMouseToRightBottom();
 	return FCYERR_OK;
 }
 fuInt f2dRenderDevice11::GetBufferWidth() { return swapchain_width; }

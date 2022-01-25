@@ -1072,6 +1072,7 @@ void f2dWindowImpl::EnterFullScreen()
 			::SetWindowPos(m_hWnd, NULL, area.left, area.top, area.right - area.left, area.bottom - area.top, SWP_NOZORDER | SWP_SHOWWINDOW);
 		}
 	}
+	MoveMouseToRightBottom();
 };
 
 fBool f2dWindowImpl::IsTopMost()
@@ -1222,6 +1223,7 @@ void f2dWindowImpl::EnterMonitorFullScreen(fuInt index)
 			::SetWindowPos(m_hWnd, NULL, area.left, area.top, area.right - area.left, area.bottom - area.top, SWP_NOZORDER | SWP_SHOWWINDOW);
 		}
 	}
+	MoveMouseToRightBottom();
 }
 
 void f2dWindowImpl::SetCustomMoveSizeEnable(fBool v)
@@ -1257,4 +1259,15 @@ void f2dWindowImpl::SetCustomMoveButtonRect(fcyRect v)
 		.bottom = (LONG)v.b.y,
 	};
 	m_MoveSizeCtrl.setTitleBarRect(rc);
+}
+
+void f2dWindowImpl::MoveMouseToRightBottom()
+{
+	RECT rc = {};
+	if (!::GetClientRect(m_hWnd, &rc))
+		return;
+	POINT pt = { rc.right, rc.bottom };
+	if (!::ClientToScreen(m_hWnd, &pt))
+		return;
+	::SetCursorPos(pt.x - 2, pt.y - 2);
 }

@@ -189,6 +189,8 @@ protected: // 内部方法
 	void HandleIMEComposition();
 	/// @brief 处理选词
 	void HandleIMECandidate();
+public: // 内部公开
+	void MoveMouseToRightBottom();
 public: // 接口实现
 	f2dWindowEventListener* GetListener();
 	fResult SetListener(f2dWindowEventListener* pListener);
