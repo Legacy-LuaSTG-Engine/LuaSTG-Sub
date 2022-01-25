@@ -646,7 +646,7 @@ f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, fuInt BackBufferWid
 	, m_CreateThreadID(GetCurrentThreadId())
 	, swapchain_width(BackBufferWidth)
 	, swapchain_height(BackBufferHeight)
-	, swapchain_windowed(false) // 必须以窗口模式启动
+	, swapchain_windowed(true) // 必须以窗口模式启动
 	, swapchain_vsync(VSync)
 {
 	m_hWnd = (HWND)pEngine->GetMainWindow()->GetHandle();
