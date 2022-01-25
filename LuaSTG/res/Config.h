@@ -1,8 +1,8 @@
 ﻿#pragma once
 
 // log file
-#define APP_COMPANY L"team.luastg.xiliusha"
-#define APP_PRODUCT L"LuaSTG"
+#define APP_COMPANY L"璀境石"
+#define APP_PRODUCT L"LuaSTG Sub"
 //#define USING_SYSTEM_DIRECTORY
 
 // steam
