@@ -79,7 +79,7 @@ namespace LuaSTGPlus
             ctx.setBlendState(LuaSTG::Core::BlendState::Screen);
             break;
         case LuaSTGPlus::BlendMode::One:
-            ctx.setVertexColorBlendState(LuaSTG::Core::VertexColorBlendState::Zero);
+            ctx.setVertexColorBlendState(LuaSTG::Core::VertexColorBlendState::Mul);
             ctx.setBlendState(LuaSTG::Core::BlendState::One);
             break;
         }
