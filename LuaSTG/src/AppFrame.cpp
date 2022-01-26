@@ -166,6 +166,22 @@ void AppFrame::SetResolution(fuInt width, fuInt height)LNOEXCEPT
 		spdlog::warn("[luastg] SetResolution: 试图在运行时更改分辨率");
 }
 
+void AppFrame::SetSEVolume(float v)
+{
+	if (m_pSoundSys)
+		m_pSoundSys->SetSoundEffectChannelVolume(v);
+	else
+		m_gSEVol = v;
+}
+
+void AppFrame::SetBGMVolume(float v)
+{
+	if (m_pSoundSys)
+		m_pSoundSys->SetMusicChannelVolume(v);
+	else
+		m_gBGMVol = v;
+}
+
 void AppFrame::SetTitle(const char* v)LNOEXCEPT
 {
 	try
@@ -459,6 +475,10 @@ bool AppFrame::Init()LNOEXCEPT
 		m_pSoundSys = m_pEngine->GetSoundSys();
 		m_pInputSys = m_pEngine->GetInputSys();
 		
+		// 配置音量
+		m_pSoundSys->SetSoundEffectChannelVolume(m_gSEVol);
+		m_pSoundSys->SetMusicChannelVolume(m_gBGMVol);
+
 		// 打印设备信息
 		f2dCPUInfo stCPUInfo = { 0 };
 		m_pEngine->GetCPUInfo(stCPUInfo);

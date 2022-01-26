@@ -71,7 +71,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L) LNOEXCEPT
 		static int SetSEVolume(lua_State* L)LNOEXCEPT
 		{
 			float v = static_cast<float>(luaL_checknumber(L, 1));
-			LAPP.GetSoundSys()->SetSoundEffectChannelVolume(v);
+			LAPP.SetSEVolume(v);
 			return 0;
 		}
 		static int GetSEVolume(lua_State* L)
@@ -161,7 +161,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L) LNOEXCEPT
 			if (lua_gettop(L) <= 1)
 			{
 				float x = static_cast<float>(luaL_checknumber(L, 1));
-				LAPP.GetSoundSys()->SetMusicChannelVolume(x);
+				LAPP.SetBGMVolume(x);
 			}
 			else
 			{

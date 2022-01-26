@@ -67,7 +67,9 @@ namespace LuaSTGPlus
 		std::wstring m_OptionTitle = L"" LUASTG_INFO;
 		bool m_OptionCursor = true;
 		fDouble m_fFPS = 0.;
-		
+		fFloat m_gSEVol = 1.0f;
+		fFloat m_gBGMVol = 1.0f;
+
 		// 引擎
 		fcyRefPointer<f2dEngine> m_pEngine;
 		f2dWindow* m_pMainWindow = nullptr;
@@ -173,6 +175,8 @@ namespace LuaSTGPlus
 		void SetResolution(fuInt width, fuInt height)LNOEXCEPT;
 		void SetTitle(const char* v)LNOEXCEPT;
 		void SetSplash(bool v)LNOEXCEPT;
+		void SetSEVolume(float v);
+		void SetBGMVolume(float v);
 		
 	public:
 		/// @brief 使用新的视频参数更新显示模式
