@@ -47,9 +47,8 @@ DWORD WINAPI f2dAudioBufferDynamic::WorkingThread(LPVOID lpThreadParameter)
 	f2dAudioBufferDynamic* self = (f2dAudioBufferDynamic*)lpThreadParameter;
 
 	f2dSoundDecoder* decoder = self->m_pDecoder;
-	size_t buffer_bytes = decoder->GetAvgBytesPerSec();
-	std::vector<uint8_t> raw_buffer(buffer_bytes * 2);
-	uint8_t* buffer[2] = { raw_buffer.data(), raw_buffer.data() + buffer_bytes };
+	size_t buffer_bytes = self->raw_buffer.size() / 2;
+	uint8_t* buffer[2] = { self->raw_buffer.data(), self->raw_buffer.data() + buffer_bytes };
 
 	XAUDIO2_BUFFER xa2_buffer[2] = {
 		XAUDIO2_BUFFER {
@@ -139,6 +138,7 @@ DWORD WINAPI f2dAudioBufferDynamic::WorkingThread(LPVOID lpThreadParameter)
 			self->xa2_source->SubmitSourceBuffer(&xa2_buffer[buffer_index]);
 			buffer_add_time[buffer_index] = (double)bytes_read / (double)decoder->GetAvgBytesPerSec();
 			buffer_set_time[buffer_index] = (double)bytes_pos / (double)decoder->GetAvgBytesPerSec();
+			self->audio_buffer_index = buffer_index;
 			break;
 		}
 	}
@@ -199,7 +199,12 @@ f2dAudioBufferDynamic::f2dAudioBufferDynamic(f2dSoundSys* pSoundSys, f2dSoundDec
 		throw fcyException("f2dAudioBufferDynamic::f2dAudioBufferDynamic", "CreateSemaphoreExW or CreateEventExW Failed.");
 	}
 
+	size_t buffer_bytes = pDecoder->GetBlockAlign() * 2048;
+	raw_buffer.resize(buffer_bytes * 2);
+	p_audio_buffer[0] = raw_buffer.data();
+	p_audio_buffer[1] = raw_buffer.data() + buffer_bytes;
 	working_thread.Attach(CreateThread(NULL, 0, &WorkingThread, this, 0, NULL));
+	SetThreadPriority(working_thread.Get(), THREAD_PRIORITY_ABOVE_NORMAL);
 
 	action_queue.notifyBufferAvailable(0);
 	action_queue.notifyBufferAvailable(1);
@@ -310,6 +315,87 @@ fResult f2dAudioBufferDynamic::SetFrequency(fuInt Value)
 	fuInt samp = m_pDecoder->GetSamplesPerSec();
 	HRESULT hr = gHR = xa2_source->SetFrequencyRatio((float)Value / (float)samp);
 	return FAILED(hr) ? FCYERR_INTERNALERR : FCYERR_OK;
+}
+
+// 高科技
+
+#include "xmath/xmath/XFFT.h"
+
+void f2dAudioBufferDynamic::UpdateFFT()
+{
+	constexpr size_t sample_count = 512;
+	// 第一步，填充音频数据
+	if (fft_wave_data.size() != sample_count)
+	{
+		fft_wave_data.resize(sample_count);
+	}
+	std::memset(fft_wave_data.data(), 0, fft_wave_data.size() * sizeof(float));
+	if (true)
+	{
+		uint8_t* p_data = p_audio_buffer[(audio_buffer_index + 1) % 2];
+		if (m_pDecoder->GetBitsPerSample() == 16)
+		{
+			int16_t* p_pcm = (int16_t*)p_data;
+			size_t pitch = m_pDecoder->GetChannelCount();
+			if (!(pitch == 1 || pitch == 2))
+			{
+				return; // 没法处理的声道数
+			}
+			for (size_t i = 0; i < sample_count; i += 1)
+			{
+				fft_wave_data[i] = (float)(*p_pcm) / (float)(-(INT16_MIN));
+				p_pcm += pitch;
+			}
+		}
+		else if (m_pDecoder->GetBitsPerSample() == 8)
+		{
+			int8_t* p_pcm = (int8_t*)p_data;
+			size_t pitch = m_pDecoder->GetChannelCount();
+			if (!(pitch == 1 || pitch == 2))
+			{
+				return; // 没法处理的声道数
+			}
+			for (size_t i = 0; i < sample_count; i += 1)
+			{
+				fft_wave_data[i] = (float)(*p_pcm) / (float)(-(INT8_MIN));
+				p_pcm += pitch;
+			}
+		}
+		else
+		{
+			return; // 没法处理的位深度
+		}
+	}
+	// 第二步，获得采样窗
+	if (fft_window.size() != sample_count)
+	{
+		fft_window.resize(sample_count);
+		xmath::fft::getWindow(fft_window.size(), fft_window.data());
+	}
+	// 第三步，应用采样窗
+	for (size_t i = 0; i < sample_count; i += 1)
+	{
+		fft_wave_data[i] *= fft_window[i];
+	}
+	// 第四步，申请 FFT 计算空间
+	const size_t fft_data_size = xmath::fft::getNeededWorksetSize(fft_wave_data.size());
+	const size_t fft_data_float_size = (fft_data_size / sizeof(float)) + 1;
+	if (fft_data.size() != fft_data_float_size)
+	{
+		fft_data.resize(fft_data_float_size);
+	}
+	if (fft_complex_output.size() != (fft_wave_data.size() * 2))
+	{
+		fft_complex_output.resize(fft_wave_data.size() * 2);
+	}
+	if (fft_output.size() != (sample_count / 2))
+	{
+		fft_output.resize(sample_count / 2);
+	}
+	// 第五步，可以计算 FFT 了
+	xmath::fft::fft(fft_wave_data.size(), fft_data.data(), fft_wave_data.data(), fft_complex_output.data(), fft_output.data());
+	// 我先打个断点在这
+	std::ignore = nullptr;
 }
 
 // 应该废弃的方法

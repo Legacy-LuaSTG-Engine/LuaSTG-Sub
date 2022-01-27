@@ -156,6 +156,26 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L) LNOEXCEPT
 			//lua_pushstring(L, "paused");
 			return 1;
 		}
+		static int GetMusicFFT(lua_State* L)LNOEXCEPT
+		{
+			const char* s = luaL_checkstring(L, 1);
+			ResMusic* p = LRES.FindMusic(s);
+			if (!p)
+				return luaL_error(L, "music '%s' not found.", s);
+			p->GetAudioSource()->UpdateFFT();
+			size_t sz = p->GetAudioSource()->GetFFTSize();
+			float* fdata = p->GetAudioSource()->GetFFTData();
+			if (!lua_istable(L, 2))
+			{
+				lua_createtable(L, (int)sz, 0);
+			}
+			for (int i = 0; i < sz; i += 1)
+			{
+				lua_pushnumber(L, (lua_Number)fdata[i]);
+				lua_rawseti(L, 2, i + 1);
+			}
+			return 1;
+		}
 		static int SetBGMVolume(lua_State* L)LNOEXCEPT
 		{
 			if (lua_gettop(L) <= 1)
@@ -236,6 +256,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L) LNOEXCEPT
 		{ "PauseMusic", &Wrapper::PauseMusic },
 		{ "ResumeMusic", &Wrapper::ResumeMusic },
 		{ "GetMusicState", &Wrapper::GetMusicState },
+		{ "GetMusicFFT", &Wrapper::GetMusicFFT },
 		{ "SetBGMVolume", &Wrapper::SetBGMVolume },
 		{ "GetBGMVolume", &Wrapper::GetBGMVolume },
 		{ "SetBGMSpeed", &Wrapper::SetBGMSpeed },

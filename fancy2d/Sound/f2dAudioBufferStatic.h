@@ -36,6 +36,10 @@ public:
 	void WINAPI OnLoopEnd(void* pBufferContext);
 	void WINAPI OnVoiceError(void* pBufferContext, HRESULT Error);
 public:
+	void UpdateFFT() {};
+	fuInt GetFFTSize() { return 0; }
+	fFloat* GetFFTData() { return nullptr; }
+public:
 	// 接口实现
 
 	fBool IsDynamic();

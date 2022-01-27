@@ -163,6 +163,19 @@ protected:
 	fDouble current_time = 0.0;
 	fFloat output_pan = 0.0f;
 	ActionQueue action_queue;
+	std::vector<uint8_t> raw_buffer;
+protected:
+	uint8_t* p_audio_buffer[2] = {};
+	size_t audio_buffer_index = 0;
+	std::vector<float> fft_wave_data;
+	std::vector<float> fft_window;
+	std::vector<float> fft_data;
+	std::vector<float> fft_complex_output;
+	std::vector<float> fft_output;
+public:
+	void UpdateFFT();
+	fuInt GetFFTSize() { return (fuInt)fft_output.size(); }
+	fFloat* GetFFTData() { return fft_output.data(); }
 public:
 	void WINAPI OnVoiceProcessingPassStart(UINT32 BytesRequired);
 	void WINAPI OnVoiceProcessingPassEnd();

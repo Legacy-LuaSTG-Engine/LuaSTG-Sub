@@ -76,6 +76,10 @@ struct f2dSoundBuffer : public f2dInterface
 	                                             ///< @return 返回每秒钟采样次数
 	virtual fResult SetFrequency(fuInt Value)=0; ///< @brief     设置播放频率
 	                                             ///< @param[in] Value 取值范围[100~100,000]
+
+	virtual void UpdateFFT() = 0;
+	virtual fuInt GetFFTSize() = 0;
+	virtual fFloat* GetFFTData() = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

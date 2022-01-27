@@ -173,5 +173,6 @@ if(FALSE)
         freetype
         vorbisfile
         fancylib
+        xmath
     )
 endif()

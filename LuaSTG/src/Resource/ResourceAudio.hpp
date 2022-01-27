@@ -137,6 +137,8 @@ namespace LuaSTGPlus {
 		float m_lastfrq;
 		long m_freq;
 	public:
+		f2dSoundBuffer* GetAudioSource() { return *m_pBuffer; }
+
 		void Play(float vol, double position)
 		{
 			m_pBuffer->Stop();

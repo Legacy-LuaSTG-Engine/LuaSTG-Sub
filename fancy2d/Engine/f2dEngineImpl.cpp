@@ -71,7 +71,7 @@ fuInt f2dEngineImpl::UpdateAndRenderThread::ThreadJob()
 {
 	// 线程相关设置
 	//SetThreadAffinityMask(GetCurrentThread(), 1);
-	//SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
+	SetThreadPriority((HANDLE)GetHandle(), THREAD_PRIORITY_HIGHEST);
 
 	// 初始化计数器和FPS控制器
 	fcyStopWatch tTimer;
