@@ -953,7 +953,6 @@ namespace native
             // *
             // DIEDFL_ALLDEVICES
             // DIEDFL_ATTACHEDONLY
-            _excludeXInput = false;
             hr = self.dinput->EnumDevices(DI8DEVCLASS_GAMECTRL, &_listGamepads, &raw_device, DI8DEVCLASS_ALL);
             if (hr != DI_OK)
             {
