@@ -853,7 +853,7 @@ static int compat_SetFog(lua_State* L)LNOEXCEPT
         api_setFogState(
             static_cast<float>(luaL_checknumber(L, 1)),
             static_cast<float>(luaL_checknumber(L, 2)),
-            0x00000000
+            0xFF000000
         );
     }
     else
