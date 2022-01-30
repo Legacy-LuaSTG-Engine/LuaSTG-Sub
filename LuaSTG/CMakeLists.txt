@@ -63,15 +63,24 @@ target_compile_definitions(LuaSTG PRIVATE LDEVVERSION)
 aux_source_directory(../Common COMMON_SRC)
 aux_source_directory(${LUASTG_RESDIR} LUASTG_RES)
 
+set(LUASTG_LUA_EXTENSION_SOURCES
+    ../xinput/xinput.hpp
+    ../xinput/xinput.cpp
+    ../xinput/lua_xinput.hpp
+    ../xinput/lua_xinput.cpp
+    ../security/security.hpp
+    ../security/security.cpp
+    ../security/lua_security.hpp
+    ../security/lua_security.cpp
+)
+source_group(TREE ${CMAKE_CURRENT_LIST_DIR}/.. FILES ${LUASTG_LUA_EXTENSION_SOURCES})
+
 include(Sources.cmake)
 target_sources(LuaSTG PRIVATE
     ${COMMON_SRC}
     ${LUASTG_ENGINE_SOURCES}
     ${LUASTG_RES}
-    ../xinput/xinput.hpp
-    ../xinput/xinput.cpp
-    ../xinput/lua_xinput.hpp
-    ../xinput/lua_xinput.cpp
+    ${LUASTG_LUA_EXTENSION_SOURCES}
     ${LUASTG_RESDIR}/resource.rc
     ${LUASTG_RESDIR}/app.ico
 )
