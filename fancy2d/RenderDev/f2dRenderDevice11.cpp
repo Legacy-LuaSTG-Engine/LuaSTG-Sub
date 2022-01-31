@@ -1228,6 +1228,29 @@ fResult f2dRenderDevice11::SetDepthStencilSurface(f2dDepthStencilSurface* pSurfa
 
 	return FCYERR_OK;
 }
+fResult f2dRenderDevice11::SetRenderTargetAndDepthStencilSurface(f2dTexture2D* pTex, f2dDepthStencilSurface* pSurface)
+{
+	if (pTex && !pTex->IsRenderTarget())
+		return FCYERR_INVAILDPARAM;
+
+	if (*m_RenderTarget == pTex && *m_DepthStencil == pSurface)
+		return FCYERR_OK;
+	
+	if (m_pCurGraphics && m_pCurGraphics->IsInRender())
+		m_pCurGraphics->Flush();
+
+	m_RenderTarget = pTex; // 注意 pTex 可能是 NULL 代表需要重置为交换链的 RenderTarget
+	m_DepthStencil = pSurface; // 注意 pSurface 可能是 NULL 代表需要重置为默认的 DepthStencil
+
+	if (d3d11_devctx)
+	{
+		ID3D11RenderTargetView* rtv = *m_RenderTarget ? ((f2dRenderTarget11*)*m_RenderTarget)->GetRTView() : d3d11_rendertarget.Get();
+		ID3D11DepthStencilView* dsv = *m_DepthStencil ? ((f2dDepthStencil11*)*m_DepthStencil)->GetView() : d3d11_depthstencil.Get();
+		d3d11_devctx->OMSetRenderTargets(1, &rtv, dsv);
+	}
+
+	return FCYERR_OK;
+}
 
 // 状态设置
 

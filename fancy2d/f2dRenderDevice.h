@@ -827,6 +827,8 @@ struct f2dRenderDevice
 	/// @note  若需设置为默认模板缓冲区，请置为NULL
 	virtual fResult SetDepthStencilSurface(f2dDepthStencilSurface* pSurface)=0;
 
+	virtual fResult SetRenderTargetAndDepthStencilSurface(f2dTexture2D* pTex, f2dDepthStencilSurface* pSurface) = 0;
+
 	/// @brief 返回目前的裁剪矩形
 	virtual fcyRect GetScissorRect()=0;
 

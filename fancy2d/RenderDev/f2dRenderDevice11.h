@@ -150,6 +150,7 @@ public:
 	fResult SetRenderTarget(f2dTexture2D* pTex);
 	f2dDepthStencilSurface* GetDepthStencilSurface();
 	fResult SetDepthStencilSurface(f2dDepthStencilSurface* pSurface);
+	fResult SetRenderTargetAndDepthStencilSurface(f2dTexture2D* pTex, f2dDepthStencilSurface* pSurface);
 
 	fcyRect GetScissorRect();
 	fResult SetScissorRect(const fcyRect& pRect);
