@@ -806,23 +806,29 @@ static luaL_Reg const lib_func[] = {
 static int compat_SetViewport(lua_State* L)LNOEXCEPT
 {
     LuaSTG::Core::Box box;
+    box.left = (float)luaL_checknumber(L, 1);
+    box.top = (float)luaL_checknumber(L, 4);
+    box.right = (float)luaL_checknumber(L, 2);
+    box.bottom = (float)luaL_checknumber(L, 3);
     if (lua_gettop(L) < 6)
     {
-        box.left = (float)luaL_checknumber(L, 1);
-        box.top = (float)LRDEV()->GetBufferHeight() - (float)luaL_checknumber(L, 4);
-        box.right = (float)luaL_checknumber(L, 2);
-        box.bottom = (float)LRDEV()->GetBufferHeight() - (float)luaL_checknumber(L, 3);
         box.front = 0.0f;
         box.back = 1.0f;
     }
     else
     {
-        box.left = (float)luaL_checknumber(L, 1);
-        box.top = (float)LRDEV()->GetBufferHeight() - (float)luaL_checknumber(L, 4);
-        box.right = (float)luaL_checknumber(L, 2);
-        box.bottom = (float)LRDEV()->GetBufferHeight() - (float)luaL_checknumber(L, 3);
         box.front = (float)luaL_checknumber(L, 5);
         box.back = (float)luaL_checknumber(L, 6);
+    }
+    if (auto* p = LRDEV()->GetRenderTarget())
+    {
+        box.top = (float)p->GetHeight() - box.top;
+        box.bottom = (float)p->GetHeight() - box.bottom;
+    }
+    else
+    {
+        box.top = (float)LRDEV()->GetBufferHeight() - box.top;
+        box.bottom = (float)LRDEV()->GetBufferHeight() - box.bottom;
     }
     LR2D().setViewport(box);
     return 0;
@@ -831,9 +837,19 @@ static int compat_SetScissorRect(lua_State* L)LNOEXCEPT
 {
     LuaSTG::Core::Rect rect;
     rect.left = (float)luaL_checknumber(L, 1);
-    rect.top = (float)LRDEV()->GetBufferHeight() - (float)luaL_checknumber(L, 4);
+    rect.top = (float)luaL_checknumber(L, 4);
     rect.right = (float)luaL_checknumber(L, 2);
-    rect.bottom = (float)LRDEV()->GetBufferHeight() - (float)luaL_checknumber(L, 3);
+    rect.bottom = (float)luaL_checknumber(L, 3);
+    if (auto* p = LRDEV()->GetRenderTarget())
+    {
+        rect.top = (float)p->GetHeight() - rect.top;
+        rect.bottom = (float)p->GetHeight() - rect.bottom;
+    }
+    else
+    {
+        rect.top = (float)LRDEV()->GetBufferHeight() - rect.top;
+        rect.bottom = (float)LRDEV()->GetBufferHeight() - rect.bottom;
+    }
     LR2D().setScissorRect(rect);
     return 0;
 }
