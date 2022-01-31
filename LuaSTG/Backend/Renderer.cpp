@@ -179,10 +179,9 @@ namespace LuaSTG::Core
 							ID3D11ShaderResourceView* srv = (ID3D11ShaderResourceView*)cmd_.texture.handle;
 							_devctx->PSSetShaderResources(0, 1, &srv);
 							_devctx->DrawIndexed(cmd_.index_count, _vi_buffer_fence.index_offset, _vi_buffer_fence.vertex_offset);
-							// QUESTION: will vertex_count != index_count happen?
-							_vi_buffer_fence.vertex_offset += cmd_.vertex_count;
-							_vi_buffer_fence.index_offset += cmd_.index_count;
 						}
+						_vi_buffer_fence.vertex_offset += cmd_.vertex_count;
+						_vi_buffer_fence.index_offset += cmd_.index_count;
 					}
 				}
 				// unbound: solve some debug warning
@@ -1452,10 +1451,10 @@ namespace LuaSTG::Core
 			}
 
 			drawQuad(
-				DrawVertex2D{ .x = 0.5f + 0.f, .y = 0.5f + sh_, .z = 0.5f, .color = 0xFFFFFFFF, .u = 0.0f, .v = 0.0f },
-				DrawVertex2D{ .x = 0.5f + sw_, .y = 0.5f + sh_, .z = 0.5f, .color = 0xFFFFFFFF, .u = 1.0f, .v = 0.0f },
-				DrawVertex2D{ .x = 0.5f + sw_, .y = 0.5f + 0.f, .z = 0.5f, .color = 0xFFFFFFFF, .u = 1.0f, .v = 1.0f },
-				DrawVertex2D{ .x = 0.5f + 0.f, .y = 0.5f + 0.f, .z = 0.5f, .color = 0xFFFFFFFF, .u = 0.0f, .v = 1.0f });
+				DrawVertex2D{ .x = 0.f, .y = sh_, .z = 0.5f, .color = 0xFFFFFFFF, .u = 0.0f, .v = 0.0f },
+				DrawVertex2D{ .x = sw_, .y = sh_, .z = 0.5f, .color = 0xFFFFFFFF, .u = 1.0f, .v = 0.0f },
+				DrawVertex2D{ .x = sw_, .y = 0.f, .z = 0.5f, .color = 0xFFFFFFFF, .u = 1.0f, .v = 1.0f },
+				DrawVertex2D{ .x = 0.f, .y = 0.f, .z = 0.5f, .color = 0xFFFFFFFF, .u = 0.0f, .v = 1.0f });
 
 			batchFlush();
 
