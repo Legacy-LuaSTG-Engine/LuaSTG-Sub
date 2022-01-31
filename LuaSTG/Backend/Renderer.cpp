@@ -1034,9 +1034,9 @@ namespace LuaSTG::Core
 		{
 			if (_state_dirty || !_camera_state_set.isEqual(box))
 			{
+				batchFlush();
 				_camera_state_set.ortho = box;
 				_camera_state_set.is_3D = false;
-				batchFlush();
 				DirectX::XMFLOAT4X4 f4x4;
 				DirectX::XMStoreFloat4x4(&f4x4, DirectX::XMMatrixOrthographicOffCenterLH(box.left, box.right, box.bottom, box.top, box.front, box.back));
 				/* upload vp matrix */ {
@@ -1206,8 +1206,8 @@ namespace LuaSTG::Core
 		{
 			if (_state_dirty || _state_set.blend_state != state)
 			{
-				_state_set.blend_state = state;
 				batchFlush();
+				_state_set.blend_state = state;
 				FLOAT const factor[4] = {};
 				_devctx->OMSetBlendState(_blend_state[IDX(state)].Get(), factor, D3D11_DEFAULT_SAMPLE_MASK);
 			}
