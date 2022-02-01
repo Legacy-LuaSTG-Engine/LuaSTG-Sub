@@ -32,8 +32,21 @@ namespace LuaSTG::Core
 		return compileShaderMacro(name, data, size, "ps_4_0", defs, ppBlob);
 	}
 
+	inline void TextureID_retain(TextureID& texture)
+	{
+		if (texture.handle)
+			((ID3D11ShaderResourceView*)(texture.handle))->AddRef();
+	}
+	inline void TextureID_release(TextureID& texture)
+	{
+		if (texture.handle)
+			((ID3D11ShaderResourceView*)(texture.handle))->Release();
+		texture.handle = NULL;
+	}
+
 	struct RendererStateSet
 	{
+		TextureID texture;
 		Box viewport = {};
 		Rect scissor_rect = {};
 		float fog_near_or_density = 0.0f;
@@ -76,21 +89,44 @@ namespace LuaSTG::Core
 		}
 	};
 
+	struct VertexIndexBuffer
+	{
+		Microsoft::WRL::ComPtr<ID3D11Buffer> vertex_buffer;
+		Microsoft::WRL::ComPtr<ID3D11Buffer> index_buffer;
+		INT vertex_offset = 0;
+		UINT index_offset = 0;
+	};
+	
 	class Renderer::Renderer11
 	{
 	private:
 		Microsoft::WRL::ComPtr<ID3D11Device> _device;
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> _devctx;
 	private:
-		Microsoft::WRL::ComPtr<ID3D11Buffer> _vertex_buffer;
-		Microsoft::WRL::ComPtr<ID3D11Buffer> _index_buffer;
+		VertexIndexBuffer _vi_buffer[1];
+		size_t _vi_buffer_index = 0;
+		const size_t _vi_buffer_count = 1;
 		DrawList _draw_list;
-		struct VIBufferWriteFence
+		void setVertexIndexBuffer(size_t index = 0xFFFF)
 		{
-			INT vertex_offset = 0;
-			UINT index_offset = 0;
-		};
-		VIBufferWriteFence _vi_buffer_fence;
+			auto& vi = _vi_buffer[(index == 0xFFFF) ? _vi_buffer_index : index];
+			ID3D11Buffer* vbo[1] = { vi.vertex_buffer.Get() };
+			UINT stride[1] = { sizeof(DrawVertex2D) };
+			UINT offset[1] = { 0 };
+			_devctx->IASetVertexBuffers(0, 1, vbo, stride, offset);
+			constexpr DXGI_FORMAT format = sizeof(DrawIndex2D) < 4 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
+			_devctx->IASetIndexBuffer(vi.index_buffer.Get(), format, 0);
+		}
+		void clearDrawList()
+		{
+			for (size_t j_ = 0; j_ < _draw_list.command.size; j_ += 1)
+			{
+				TextureID_release(_draw_list.command.data[j_].texture);
+			}
+			_draw_list.vertex.size = 0;
+			_draw_list.index.size = 0;
+			_draw_list.command.size = 0;
+		}
 	private:
 		Microsoft::WRL::ComPtr<ID3D11Buffer> _vp_matrix_buffer;
 		Microsoft::WRL::ComPtr<ID3D11Buffer> _world_matrix_buffer;
@@ -109,68 +145,77 @@ namespace LuaSTG::Core
 		RendererStateSet _state_set;
 		bool _state_dirty = false;
 	private:
-		void releaseTexture()
+		bool uploadVertexIndexBuffer(bool discard)
 		{
-			for (size_t j_ = 0; j_ < _draw_list.command.size; j_ += 1)
+			HRESULT hr = 0;
+			auto& vi_ = _vi_buffer[_vi_buffer_index];
+			const D3D11_MAP map_type_ = discard ? D3D11_MAP_WRITE_DISCARD : D3D11_MAP_WRITE_NO_OVERWRITE;
+			// copy vertex data
+			if (_draw_list.vertex.size > 0)
 			{
-				DrawCommand& cmd_ = _draw_list.command.data[j_];
-				if (cmd_.texture.handle)
+				D3D11_MAPPED_SUBRESOURCE res_ = {};
+				hr = gHR = _devctx->Map(vi_.vertex_buffer.Get(), 0, map_type_, 0, &res_);
+				if (FAILED(hr))
 				{
-					((ID3D11ShaderResourceView*)(cmd_.texture.handle))->Release();
-					cmd_.texture.handle = NULL;
+					spdlog::error("[luastg] ID3D11DeviceContext::Map -> #vertex_buffer[{}] 调用失败，无法上传顶点", _vi_buffer_index);
+					return false;
 				}
+				std::memcpy((DrawVertex2D*)res_.pData + vi_.vertex_offset, _draw_list.vertex.data, _draw_list.vertex.size * sizeof(DrawVertex2D));
+				_devctx->Unmap(vi_.vertex_buffer.Get(), 0);
 			}
+			// copy index data
+			if (_draw_list.index.size > 0)
+			{
+				D3D11_MAPPED_SUBRESOURCE res_ = {};
+				hr = gHR = _devctx->Map(vi_.index_buffer.Get(), 0, map_type_, 0, &res_);
+				if (FAILED(hr))
+				{
+					spdlog::error("[luastg] ID3D11DeviceContext::Map -> #index_buffer[{}] 调用失败，无法上传顶点索引", _vi_buffer_index);
+					return false;
+				}
+				std::memcpy((DrawIndex2D*)res_.pData + vi_.index_offset, _draw_list.index.data, _draw_list.index.size * sizeof(DrawIndex2D));
+				_devctx->Unmap(vi_.index_buffer.Get(), 0);
+			}
+			return true;
 		}
 		bool batchFlush(bool discard = false)
 		{
 			if (!discard)
 			{
 				HRESULT hr = 0;
-				// copy vertex data
-				if (_draw_list.vertex.size > 0)
+				// upload data
+				if ((_draw_list.vertex.capacity - _vi_buffer[_vi_buffer_index].vertex_offset) < _draw_list.vertex.size
+					|| (_draw_list.index.capacity - _vi_buffer[_vi_buffer_index].index_offset) < _draw_list.index.size)
 				{
-					D3D11_MAPPED_SUBRESOURCE res_ = {};
-					if ((_draw_list.vertex.capacity - _vi_buffer_fence.vertex_offset) < _draw_list.vertex.size)
+					// next  buffer
+					_vi_buffer_index = (_vi_buffer_index + 1) % _vi_buffer_count;
+					_vi_buffer[_vi_buffer_index].vertex_offset = 0;
+					_vi_buffer[_vi_buffer_index].index_offset = 0;
+					// discard and copy
+					if (!uploadVertexIndexBuffer(true))
 					{
-						_vi_buffer_fence.vertex_offset = 0;
-						hr = gHR = _devctx->Map(_vertex_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
-					}
-					else
-					{
-						hr = gHR = _devctx->Map(_vertex_buffer.Get(), 0, D3D11_MAP_WRITE_NO_OVERWRITE, 0, &res_);
-					}
-					if (FAILED(hr))
-					{
-						spdlog::error("[luastg] ID3D11DeviceContext::Map -> #vertex_buffer 调用失败，无法上传顶点");
+						clearDrawList();
 						return false;
 					}
-					std::memcpy((DrawVertex2D*)res_.pData + _vi_buffer_fence.vertex_offset, _draw_list.vertex.data, _draw_list.vertex.size * sizeof(DrawVertex2D));
-					_devctx->Unmap(_vertex_buffer.Get(), 0);
+					// bind buffer
+					if (_vi_buffer_count > 1)
+					{
+						setVertexIndexBuffer(); // need to switch v/i buffers
+					}
 				}
-				// copy index data
-				if (_draw_list.index.size > 0)
+				else
 				{
-					D3D11_MAPPED_SUBRESOURCE res_ = {};
-					if ((_draw_list.index.capacity - _vi_buffer_fence.index_offset) < _draw_list.index.size)
+					// copy no overwrite
+					if (!uploadVertexIndexBuffer(false))
 					{
-						_vi_buffer_fence.index_offset = 0;
-						hr = gHR = _devctx->Map(_index_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
-					}
-					else
-					{
-						hr = gHR = _devctx->Map(_index_buffer.Get(), 0, D3D11_MAP_WRITE_NO_OVERWRITE, 0, &res_);
-					}
-					if (FAILED(hr))
-					{
-						spdlog::error("[luastg] ID3D11DeviceContext::Map -> #index_buffer 调用失败，无法上传顶点索引");
+						clearDrawList();
 						return false;
 					}
-					std::memcpy((DrawIndex2D*)res_.pData + _vi_buffer_fence.index_offset, _draw_list.index.data, _draw_list.index.size * sizeof(DrawIndex2D));
-					_devctx->Unmap(_index_buffer.Get(), 0);
 				}
 				// draw
 				if (_draw_list.command.size > 0)
 				{
+					auto& vi_ = _vi_buffer[_vi_buffer_index];
 					for (size_t j_ = 0; j_ < _draw_list.command.size; j_ += 1)
 					{
 						const DrawCommand& cmd_ = _draw_list.command.data[j_];
@@ -178,10 +223,10 @@ namespace LuaSTG::Core
 						{
 							ID3D11ShaderResourceView* srv = (ID3D11ShaderResourceView*)cmd_.texture.handle;
 							_devctx->PSSetShaderResources(0, 1, &srv);
-							_devctx->DrawIndexed(cmd_.index_count, _vi_buffer_fence.index_offset, _vi_buffer_fence.vertex_offset);
+							_devctx->DrawIndexed(cmd_.index_count, vi_.index_offset, vi_.vertex_offset);
 						}
-						_vi_buffer_fence.vertex_offset += cmd_.vertex_count;
-						_vi_buffer_fence.index_offset += cmd_.index_count;
+						vi_.vertex_offset += cmd_.vertex_count;
+						vi_.index_offset += cmd_.index_count;
 					}
 				}
 				// unbound: solve some debug warning
@@ -189,10 +234,8 @@ namespace LuaSTG::Core
 				_devctx->PSSetShaderResources(0, 1, &null_srv);
 			}
 			// clear
-			releaseTexture();
-			_draw_list.vertex.size = 0;
-			_draw_list.index.size = 0;
-			_draw_list.command.size = 0;
+			clearDrawList();
+			setTexture(_state_set.texture);
 			return true;
 		}
 		void setSamplerState(SamplerState state, UINT index)
@@ -204,32 +247,35 @@ namespace LuaSTG::Core
 		{
 			HRESULT hr = 0;
 
+			for (auto& vi_ : _vi_buffer)
 			{
-				D3D11_BUFFER_DESC desc_ = {
-					.ByteWidth = sizeof(_draw_list.vertex.data),
-					.Usage = D3D11_USAGE_DYNAMIC,
-					.BindFlags = D3D11_BIND_VERTEX_BUFFER,
-					.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
-					.MiscFlags = 0,
-					.StructureByteStride = 0,
-				};
-				hr = gHR = _device->CreateBuffer(&desc_, NULL, &_vertex_buffer);
-				if (FAILED(hr))
-					return false;
-			}
+				{
+					D3D11_BUFFER_DESC desc_ = {
+						.ByteWidth = sizeof(_draw_list.vertex.data),
+						.Usage = D3D11_USAGE_DYNAMIC,
+						.BindFlags = D3D11_BIND_VERTEX_BUFFER,
+						.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
+						.MiscFlags = 0,
+						.StructureByteStride = 0,
+					};
+					hr = gHR = _device->CreateBuffer(&desc_, NULL, &vi_.vertex_buffer);
+					if (FAILED(hr))
+						return false;
+				}
 
-			{
-				D3D11_BUFFER_DESC desc_ = {
-					.ByteWidth = sizeof(_draw_list.index.data),
-					.Usage = D3D11_USAGE_DYNAMIC,
-					.BindFlags = D3D11_BIND_INDEX_BUFFER,
-					.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
-					.MiscFlags = 0,
-					.StructureByteStride = 0,
-				};
-				hr = gHR = _device->CreateBuffer(&desc_, NULL, &_index_buffer);
-				if (FAILED(hr))
-					return false;
+				{
+					D3D11_BUFFER_DESC desc_ = {
+						.ByteWidth = sizeof(_draw_list.index.data),
+						.Usage = D3D11_USAGE_DYNAMIC,
+						.BindFlags = D3D11_BIND_INDEX_BUFFER,
+						.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
+						.MiscFlags = 0,
+						.StructureByteStride = 0,
+					};
+					hr = gHR = _device->CreateBuffer(&desc_, NULL, &vi_.index_buffer);
+					if (FAILED(hr))
+						return false;
+				}
 			}
 
 			{
@@ -874,7 +920,7 @@ namespace LuaSTG::Core
 			setFogState(_state_set.fog_state, _state_set.fog_color, _state_set.fog_near_or_density, _state_set.fog_far);
 			setDepthState(_state_set.depth_state);
 			setBlendState(_state_set.blend_state);
-			setTexture(TextureID());
+			setTexture(_state_set.texture);
 
 			_state_dirty = false;
 		}
@@ -910,11 +956,19 @@ namespace LuaSTG::Core
 		{
 			batchFlush(true);
 
+			TextureID_release(_state_set.texture);
+
 			_device.Reset();
 			_devctx.Reset();
 
-			_vertex_buffer.Reset();
-			_index_buffer.Reset();
+			for (auto& v : _vi_buffer)
+			{
+				v.vertex_buffer.Reset();
+				v.index_buffer.Reset();
+				v.vertex_offset = 0;
+				v.index_offset = 0;
+			}
+			_vi_buffer_index = 0;
 
 			_vp_matrix_buffer.Reset();
 			_world_matrix_buffer.Reset();
@@ -959,11 +1013,7 @@ namespace LuaSTG::Core
 
 			_devctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			_devctx->IASetInputLayout(_input_layout.Get());
-			ID3D11Buffer* vbo = _vertex_buffer.Get();
-			UINT stride = sizeof(DrawVertex2D);
-			UINT offset = 0;
-			_devctx->IASetVertexBuffers(0, 1, &vbo, &stride, &offset);
-			_devctx->IASetIndexBuffer(_index_buffer.Get(), sizeof(DrawIndex2D) < 4 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT, 0);
+			setVertexIndexBuffer();
 
 			// [VS State]
 
@@ -997,6 +1047,7 @@ namespace LuaSTG::Core
 		{
 			if (!batchFlush())
 				return false;
+			TextureID_release(_state_set.texture);
 			return true;
 		}
 
@@ -1229,10 +1280,13 @@ namespace LuaSTG::Core
 				cmd_.texture = texture;
 				cmd_.vertex_count = 0;
 				cmd_.index_count = 0;
-				if (texture.handle)
-				{
-					((ID3D11ShaderResourceView*)(texture.handle))->AddRef();
-				}
+				TextureID_retain(cmd_.texture);
+			}
+			if (_state_set.texture != texture)
+			{
+				TextureID_release(_state_set.texture);
+				_state_set.texture = texture;
+				TextureID_retain(_state_set.texture);
 			}
 		}
 
@@ -1246,6 +1300,7 @@ namespace LuaSTG::Core
 			{
 				batchFlush();
 			}
+			assert(_draw_list.command.size > 0);
 			DrawCommand& cmd_ = _draw_list.command.data[_draw_list.command.size - 1];
 			DrawVertex2D* vbuf_ = _draw_list.vertex.data + _draw_list.vertex.size;
 			vbuf_[0] = v1;
@@ -1270,6 +1325,7 @@ namespace LuaSTG::Core
 			{
 				batchFlush();
 			}
+			assert(_draw_list.command.size > 0);
 			DrawCommand& cmd_ = _draw_list.command.data[_draw_list.command.size - 1];
 			DrawVertex2D* vbuf_ = _draw_list.vertex.data + _draw_list.vertex.size;
 			vbuf_[0] = v1;
@@ -1299,6 +1355,7 @@ namespace LuaSTG::Core
 				batchFlush();
 			}
 
+			assert(_draw_list.command.size > 0);
 			DrawCommand& cmd_ = _draw_list.command.data[_draw_list.command.size - 1];
 
 			DrawVertex2D* vbuf_ = _draw_list.vertex.data + _draw_list.vertex.size;
@@ -1322,6 +1379,7 @@ namespace LuaSTG::Core
 				batchFlush();
 			}
 
+			assert(_draw_list.command.size > 0);
 			DrawCommand& cmd_ = _draw_list.command.data[_draw_list.command.size - 1];
 
 			*ppvert = _draw_list.vertex.data + _draw_list.vertex.size;
@@ -1357,6 +1415,7 @@ namespace LuaSTG::Core
 		{
 			batchFlush();
 			
+			TextureID_retain(_state_set.texture);
 			RendererStateSet sbak = _state_set;
 			CameraStateSet cbak = _camera_state_set;
 
@@ -1467,6 +1526,7 @@ namespace LuaSTG::Core
 
 			_state_set = sbak;
 			_camera_state_set = cbak;
+			TextureID_retain(_state_set.texture);
 			initState();
 		}
 	};
