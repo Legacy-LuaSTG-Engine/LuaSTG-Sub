@@ -220,7 +220,12 @@ namespace LuaSTGPlus
         updateGraph2DBlendMode(blend);
         
         // 复制坐标，修正UV到[0,1]区间
-        f2dGraphics2DVertex tVertex[4] = {};
+        f2dGraphics2DVertex tVertex[4] = {
+            vertex[0],
+            vertex[1],
+            vertex[2],
+            vertex[3],
+        };
         float const du_ = 1.0f / (float)tex->GetTexture()->GetWidth();
         float const dv_ = 1.0f / (float)tex->GetTexture()->GetHeight();
         for (int i = 0; i < 4; ++i)
