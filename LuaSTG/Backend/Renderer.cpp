@@ -1466,7 +1466,7 @@ namespace LuaSTG::Core
 			for (DWORD stage = 0; stage < std::min<DWORD>((DWORD)tv_sv_n, 4); stage += 1)
 			{
 				ID3D11ShaderResourceView* srv_ = (ID3D11ShaderResourceView*)tv[stage].handle;
-				_devctx->PSSetShaderResources(4, 1, &srv_);
+				_devctx->PSSetShaderResources(stage, 1, &srv_);
 				setSamplerState(sv[stage], stage);
 			}
 			/* upload built-in value */ {
