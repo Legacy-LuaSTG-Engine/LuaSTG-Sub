@@ -14,6 +14,7 @@ add_subdirectory(external)
 add_subdirectory(ThirdParty)
 add_subdirectory(DirectX)
 
+add_subdirectory(utility)
 add_subdirectory(fancylib)
 add_subdirectory(fancy2d)
 

@@ -87,6 +87,7 @@ target_sources(LuaSTG PRIVATE
 
 target_link_libraries(LuaSTG PRIVATE
     spdlog::spdlog
+    utility
     fancylib
     fancy2dlib
     eyes2d
