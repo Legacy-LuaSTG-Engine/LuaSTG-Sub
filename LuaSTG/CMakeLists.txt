@@ -88,9 +88,9 @@ target_sources(LuaSTG PRIVATE
 target_link_libraries(LuaSTG PRIVATE
     spdlog::spdlog
     utility
+    zip
     fancylib
     fancy2dlib
-    eyes2d
     DirectXTex0
     LuaSTGCore
     xmath
