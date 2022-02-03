@@ -9,7 +9,6 @@ target_sources(eyes2d PRIVATE
     E2DGlobal.hpp
     E2DException.hpp
     
-    E2DCodePage.hpp
     E2DFilePath.hpp
     
     E2DFileManager.hpp
@@ -18,4 +17,5 @@ target_sources(eyes2d PRIVATE
 target_link_libraries(eyes2d PRIVATE
     fancylib
     zip
+    utility
 )

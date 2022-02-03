@@ -4,9 +4,10 @@
 #include <fstream>
 #include <filesystem>
 #include "E2DFileManager.hpp"
-#include "E2DCodePage.hpp"
 #include "fcyMisc/fcyStringHelper.h"
 #include "zip.h"
+
+#include "utility/encoding.hpp"
 
 #define CUSTOM_ZIP_STAT (ZIP_STAT_NAME | ZIP_STAT_INDEX | ZIP_STAT_SIZE | ZIP_STAT_ENCRYPTION_METHOD)
 
@@ -44,7 +45,7 @@ void Archive::class_init(const char* path, const char* password) {
 	m_Impl->ZipFile = nullptr;
 	int err; m_Impl->ZipFile = zip_open(frompath.c_str(), ZIP_RDONLY, &err);//默认视作ANSI
 	if (m_Impl->ZipFile == nullptr) {
-		string topath = std::move(Eyes2D::String::UTF8ToANSI(frompath));
+		string topath = std::move(utility::encoding::to_ansi(frompath));
 		m_Impl->ZipFile = zip_open(topath.c_str(), ZIP_RDONLY, &err);//加载错误，可能是UTF8，需要转换为ANSI
 		if (m_Impl->ZipFile != nullptr) {
 			load = true;
@@ -66,7 +67,7 @@ void Archive::class_init(const char* path, const char* password) {
 		zip_error_t error;
 		zip_error_init_with_code(&error, err);
 		string errstr = zip_error_strerror(&error);
-		wstring errwstr = std::move(Eyes2D::String::ANSIToUTF16(errstr));
+		wstring errwstr = std::move(utility::encoding::to_wide(errstr));
 		zip_error_fini(&error);
 		throw E2DException(0, 0, L"Eyes2D::IO::Archive::Archive", wstring(L"Failed to open archive file : ") + errwstr);
 	}
@@ -124,7 +125,7 @@ long long Archive::file_precheck(const char* filepath) {
 	bool find = false;
 	zip_int64_t index = zip_name_locate(m_Impl->ZipFile, frompath.c_str(), ZIP_FL_ENC_GUESS);
 	if (index < 0) {
-		string topath = std::move(Eyes2D::String::UTF8ToANSI(frompath));
+		string topath = std::move(utility::encoding::to_ansi(frompath));
 		index = zip_name_locate(m_Impl->ZipFile, topath.c_str(), ZIP_FL_ENC_GUESS);
 		if (index >= 0) {
 			find = true;
@@ -423,7 +424,7 @@ void FileManager::UnloadAllArchive() {
 }
 
 bool FileManager::FileExist(const char* filepath) {
-	filesystem::path p(Eyes2D::String::UTF8ToANSI(filepath));
+	filesystem::path p(utility::encoding::to_wide(filepath));
 	filesystem::directory_entry en(p);
 	if (en.is_regular_file() && filesystem::exists(p)) {
 		return true;
@@ -473,8 +474,7 @@ fcyStream* FileManager::LoadFile(const char* filepath) {
 	//*/
 	//*
 	fstream f;
-	string ansipath = Eyes2D::String::UTF8ToANSI(string(filepath));
-	f.open(ansipath, ios::in | ios::binary);
+	f.open(utility::encoding::to_wide(filepath), ios::in | ios::binary);
 	if (!f.is_open()) {
 		return nullptr;
 	}

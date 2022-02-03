@@ -31,4 +31,22 @@ namespace utility::encoding
         }
         return L"";
     }
+    std::string to_ansi(std::string_view utf8_string)
+    {
+        return std::move(to_ansi(to_wide(utf8_string)));
+    }
+    std::string to_ansi(std::wstring_view wide_string)
+    {
+        int const size = ::WideCharToMultiByte(CP_ACP, 0, wide_string.data(), (int)wide_string.length(), NULL, 0, NULL, NULL);
+        if (size > 0)
+        {
+            std::string buf(size, '\0');
+            int const result = ::WideCharToMultiByte(CP_ACP, 0, wide_string.data(), (int)wide_string.length(), buf.data(), size, NULL, NULL);
+            if (result == size)
+            {
+                return std::move(buf);
+            }
+        }
+        return "";
+    }
 }
