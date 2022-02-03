@@ -963,7 +963,7 @@ bool ResourcePool::LoadFX(const char* name, const char* path, bool is_effect) no
         return false;
     }
     
-    LuaSTG::Core::ShaderID shader = LAPP.GetRenderer2D().createPostEffectShader(name, tDataBuf->GetInternalBuffer(), (SIZE_T)tDataBuf->GetLength());
+    LuaSTG::Core::ShaderID shader = LAPP.GetRenderer2D().createPostEffectShader(name, tDataBuf->GetInternalBuffer(), (size_t)tDataBuf->GetLength());
     if (!shader.handle)
     {
         spdlog::error("[luastg] LoadFX: 创建着色器 '{}' ('{}') 失败：调用 LuaSTG::Core::Renderer::createPostEffectShader 出错", name, path);

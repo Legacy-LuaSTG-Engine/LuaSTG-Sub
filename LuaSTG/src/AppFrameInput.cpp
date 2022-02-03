@@ -1,6 +1,9 @@
 #include "AppFrame.h"
 #include "f2dKeyCodeConvert.inl"
 
+#define NOMINMAX
+#include <Windows.h>
+
 namespace LuaSTGPlus
 {
     void AppFrame::resetKeyStatus()LNOEXCEPT
@@ -31,7 +34,7 @@ namespace LuaSTGPlus
         return m_LastKey;
     }
     
-    fBool AppFrame::GetKeyboardState(DWORD VKCode)LNOEXCEPT
+    fBool AppFrame::GetKeyboardState(uint32_t VKCode)LNOEXCEPT
     {
         if (m_Keyboard2) {
             return m_Keyboard2->KeyPress(VKCode);

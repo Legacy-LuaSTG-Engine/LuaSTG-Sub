@@ -4,6 +4,9 @@
 #include "LuaWrapper/lua_luastg_hash.hpp"
 #include "LConfig.h"
 
+#define NOMINMAX
+#include <Windows.h>
+
 #define METATABLE_OBJ "mt"
 
 #ifdef min

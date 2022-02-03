@@ -140,7 +140,7 @@ namespace LuaSTGPlus
 		int GetLastKey()LNOEXCEPT;
 		
 		//检查键盘按键是否按下，Dinput KeyCode
-		fBool GetKeyboardState(DWORD VKCode)LNOEXCEPT;
+		fBool GetKeyboardState(uint32_t VKCode)LNOEXCEPT;
 		
 		void OnTextInputDeleteFront();
 		void OnTextInputDeleteBack();

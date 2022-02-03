@@ -2,6 +2,9 @@
 
 //#define LSHOWFONTBASELINE // 显示文字基线
 
+#define NOMINMAX
+#include <Windows.h>
+
 namespace LuaSTGPlus {
 	// deug
 	
@@ -210,7 +213,7 @@ namespace LuaSTGPlus {
 			if (*strBuf == L'\n')
 			{
 				++iLineCount;
-				fMaxLineWidth = max(fMaxLineWidth, fLineWidth);
+				fMaxLineWidth = std::max(fMaxLineWidth, fLineWidth);
 				fLineWidth = 0.f;
 			}
 			else
@@ -221,7 +224,7 @@ namespace LuaSTGPlus {
 			}
 			++strBuf;
 		}
-		fMaxLineWidth = max(fMaxLineWidth, fLineWidth);
+		fMaxLineWidth = std::max(fMaxLineWidth, fLineWidth);
 		
 		return fcyVec2(fMaxLineWidth, iLineCount * pFontProvider->GetLineHeight() * scale.y);
 	}

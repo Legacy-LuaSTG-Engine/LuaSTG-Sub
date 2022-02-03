@@ -170,7 +170,7 @@ namespace LuaSTGPlus
                         {
                             try
                             {
-                                std::string utf8name = fcyStringHelper::WideCharToMultiByte(name, CP_UTF8);
+                                std::string utf8name = fcyStringHelper::WideCharToMultiByte(name);
                                 lua_pushstring(L, utf8name.c_str());
                                 return 1;
                             }
@@ -190,7 +190,7 @@ namespace LuaSTGPlus
                         {
                             try
                             {
-                                std::string utf8name = fcyStringHelper::WideCharToMultiByte(name, CP_UTF8);
+                                std::string utf8name = fcyStringHelper::WideCharToMultiByte(name);
                                 lua_pushstring(L, utf8name.c_str());
                                 return 1;
                             }

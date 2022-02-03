@@ -1,11 +1,10 @@
 ﻿#pragma once
-#include "E2DGlobal.hpp"
 #include "fcyIO/fcyStream.h"
 
 namespace Eyes2D {
 	namespace IO {
 		//压缩包
-		class EYESDLLAPI Archive {
+		class Archive {
 		public:
 			struct ArchiveSort {
 				int priority;//优先级，越大越靠前
@@ -71,7 +70,7 @@ namespace Eyes2D {
 		};
 		
 		//文件读取、文件系统
-		class EYESDLLAPI FileManager {
+		class FileManager {
 		private:
 			unsigned int m_ArchiveUID;
 			struct Impl;

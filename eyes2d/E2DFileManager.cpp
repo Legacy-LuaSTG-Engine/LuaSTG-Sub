@@ -9,6 +9,21 @@
 
 #include "utility/encoding.hpp"
 
+namespace Eyes2D {
+	struct E2DException {
+		long errCode;
+		long errResult;//用于COM
+		std::wstring errSrc;
+		std::wstring errDesc;
+		E2DException(long code, long result, const std::wstring& src, const std::wstring& desc) {
+			errCode = code;
+			errResult = result;
+			errSrc = std::move(src);
+			errDesc = std::move(desc);
+		}
+	};
+}
+
 #define CUSTOM_ZIP_STAT (ZIP_STAT_NAME | ZIP_STAT_INDEX | ZIP_STAT_SIZE | ZIP_STAT_ENCRYPTION_METHOD)
 
 using namespace std;

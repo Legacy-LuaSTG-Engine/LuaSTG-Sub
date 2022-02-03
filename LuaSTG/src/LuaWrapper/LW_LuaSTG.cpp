@@ -4,6 +4,9 @@
 #include "AppFrame.h"
 #include <filesystem>
 
+#define NOMINMAX
+#include <Windows.h>
+
 #ifdef min
 #undef min
 #endif

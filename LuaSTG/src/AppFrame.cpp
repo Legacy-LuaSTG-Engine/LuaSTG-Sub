@@ -7,6 +7,9 @@
 #include "LuaWrapper/LuaAppFrame.hpp"
 #include "LConfig.h"
 
+#define NOMINMAX
+#include <Windows.h>
+
 class f2dGraphic2dAdapter
 	: public f2dGraphics2D
 	, public f2dRenderDeviceEventListener
@@ -186,7 +189,7 @@ void AppFrame::SetTitle(const char* v)LNOEXCEPT
 {
 	try
 	{
-		m_OptionTitle = std::move(fcyStringHelper::MultiByteToWideChar(v, CP_UTF8));
+		m_OptionTitle = std::move(fcyStringHelper::MultiByteToWideChar(v));
 		if (m_pMainWindow)
 			m_pMainWindow->SetCaption(m_OptionTitle.c_str());
 	}

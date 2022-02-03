@@ -3,6 +3,9 @@
 #include "SteamAPI/SteamAPI.hpp"
 #include "LLogger.hpp"
 
+#define NOMINMAX
+#include <Windows.h>
+
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int)
 {
 	#ifdef LDEBUG

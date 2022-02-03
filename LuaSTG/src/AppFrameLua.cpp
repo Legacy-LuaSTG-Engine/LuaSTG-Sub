@@ -16,6 +16,9 @@ extern "C" {
 
 #include "utility/encoding.hpp"
 
+#define NOMINMAX
+#include <Windows.h>
+
 namespace LuaSTGPlus
 {
     static int StackTraceback(lua_State *L) noexcept

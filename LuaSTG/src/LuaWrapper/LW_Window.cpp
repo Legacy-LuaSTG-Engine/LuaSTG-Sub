@@ -22,7 +22,7 @@ static int lib_setTitle(lua_State* L)
 {
     getwindow(window);
     const char* text = luaL_checkstring(L, 1);
-    const std::wstring wtext = std::move(fcyStringHelper::MultiByteToWideChar(text, CP_UTF8));;
+    const std::wstring wtext = std::move(fcyStringHelper::MultiByteToWideChar(text));;
     window->SetCaption(wtext.c_str());
     return 0;
 }
@@ -123,7 +123,7 @@ static int lib_getTextInput(lua_State* L)
     try
     {
         fcStrW text = LAPP().GetTextInput();
-        std::string u8text = fcyStringHelper::WideCharToMultiByte(text, CP_UTF8);
+        std::string u8text = fcyStringHelper::WideCharToMultiByte(text);
         lua_pushstring(L, u8text.c_str());
         return 1;
     }
