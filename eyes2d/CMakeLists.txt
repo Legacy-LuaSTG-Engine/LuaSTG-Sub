@@ -9,9 +9,6 @@ target_sources(eyes2d PRIVATE
     E2DGlobal.hpp
     E2DException.hpp
     
-    E2DLogSystem.hpp
-    E2DLogSystem.cpp
-    
     E2DCodePage.hpp
     E2DFilePath.hpp
     

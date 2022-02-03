@@ -5,7 +5,6 @@
 #include <filesystem>
 #include "E2DFileManager.hpp"
 #include "E2DCodePage.hpp"
-#include "E2DLogSystem.hpp"
 #include "fcyMisc/fcyStringHelper.h"
 #include "zip.h"
 
@@ -268,10 +267,10 @@ void Archive::ListFile() {
 	for (zip_int64_t index = 0; index < count; index++) {
 		const char* pname = zip_get_name(m_Impl->ZipFile, index, ZIP_FL_ENC_RAW | ZIP_FL_ENC_GUESS);
 		if (pname != nullptr) {
-			Eyes2D::EYESINFO(pname);
+			//Eyes2D::EYESINFO(pname);
 		}
 		else {
-			Eyes2D::EYESERROR("NULL");
+			//Eyes2D::EYESERROR("NULL");
 		}
 	}
 }
@@ -303,12 +302,12 @@ bool FileManager::LoadArchive(const char* name, int priority, const char* passwo
 		}
 	}
 	catch (E2DException& e) {
-		Eyes2D::EYESERROR(e);
+		//Eyes2D::EYESERROR(e);
 		return false;
 	}
 	m_Impl->ArchiveSet.insert(zip);
 	m_ArchiveUID++;
-	Eyes2D::EYESDEBUG(string(string("Archive : ") + string(name) + string(" was loaded.")).c_str());
+	//Eyes2D::EYESDEBUG(string(string("Archive : ") + string(name) + string(" was loaded.")).c_str());
 	return true;
 }
 
@@ -364,7 +363,7 @@ Archive* FileManager::GetArchive(const char* name) {
 			return i;
 		}
 	}
-	Eyes2D::EYESERROR(string(string("Can't find archive : ") + string(name)).c_str());
+	//Eyes2D::EYESERROR(string(string("Can't find archive : ") + string(name)).c_str());
 	return nullptr;
 }
 
@@ -412,7 +411,7 @@ void FileManager::UnloadArchive(const char* name) {
 		}
 		++it;
 	}
-	Eyes2D::EYESWARN(string(string("Can't find archive : ") + string(name)).c_str());
+	//Eyes2D::EYESWARN(string(string("Can't find archive : ") + string(name)).c_str());
 }
 
 void FileManager::UnloadAllArchive() {
