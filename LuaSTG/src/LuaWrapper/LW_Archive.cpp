@@ -2,8 +2,9 @@
 #include <string_view>
 #include "AppFrame.h"
 #include "LuaWrapper\LuaWrapper.hpp"
-#include "E2DFilePath.hpp"
 #include "E2DFileManager.hpp"
+
+#include "utility/path.hpp"
 
 using namespace std;
 using namespace LuaSTGPlus;
@@ -28,7 +29,7 @@ void ArchiveWrapper::Register(lua_State* L)LNOEXCEPT {
 			Archive* zip = LFMGR.GetArchiveByUID(p->uid);
 			if (zip != nullptr) {
 				string frompathattr = luaL_checkstring(L, -1);
-				Eyes2D::Platform::PathFormatLinux(frompathattr);//转换为'/'分隔符
+				utility::path::to_slash(frompathattr);//转换为'/'分隔符
 				if ((frompathattr.size() == 1) && (frompathattr.back() == '/')) {
 					frompathattr.pop_back();//根目录不需要分隔符
 				}
@@ -116,7 +117,7 @@ void ArchiveWrapper::Register(lua_State* L)LNOEXCEPT {
 			Archive* zip = LFMGR.GetArchiveByUID(p->uid);
 			if (zip != nullptr) {
 				string frompath = luaL_checkstring(L, -1);
-				Eyes2D::Platform::PathFormatLinux(frompath);//转换为'/'分隔符
+				utility::path::to_slash(frompath);//转换为'/'分隔符
 				lua_pushboolean(L, zip->FileExist(frompath.c_str()));
 			}
 			else {

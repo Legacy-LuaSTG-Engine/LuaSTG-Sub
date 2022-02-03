@@ -7,9 +7,9 @@
 #include "AppFrame.h"
 
 #include "E2DFileManager.hpp"
-#include "E2DFilePath.hpp"
 
 #include "utility/encoding.hpp"
+#include "utility/path.hpp"
 
 using namespace std;
 using namespace LuaSTGPlus;
@@ -34,7 +34,7 @@ bool ResourceMgr::LoadFile(const wchar_t* path, fcyRefPointer<fcyMemStream>& out
 
 bool ResourceMgr::LoadFile(const char* path, fcyRefPointer<fcyMemStream>& outBuf, const char* packname) noexcept {
     std::string utf8path = path;//文件路径
-    Eyes2D::Platform::PathFormatLinux(utf8path);
+    utility::path::to_slash(utf8path);
     
     Eyes2D::IO::FileManager& FMGR = LFMGR;
     fcyStream* stream = nullptr;
@@ -131,7 +131,7 @@ bool listFilesA(lua_State* L, const char* dir, const char* ext, const char* pack
     Eyes2D::IO::Archive* zip = nullptr;
     
     string searchpath = dir;
-    Eyes2D::Platform::PathFormatLinux(searchpath);//格式化为Linux风格
+    utility::path::to_slash(searchpath);//格式化为Linux风格
     if ((searchpath == ".") || (searchpath == "./") || (searchpath == "/")) {
         searchpath = "";//去掉".","./","/"这类路径
     }

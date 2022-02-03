@@ -2,10 +2,10 @@
 #include <filesystem>
 #include "AppFrame.h"
 #include "LuaWrapper\LuaWrapper.hpp"
-#include "E2DFilePath.hpp"
 #include "E2DFileManager.hpp"
 
 #include "utility/encoding.hpp"
+#include "utility/path.hpp"
 
 #ifdef DrawText
 #undef DrawText
@@ -115,7 +115,7 @@ void FileManagerWrapper::Register(lua_State* L)LNOEXCEPT {
 				checkext = true;
 			}
 
-			Eyes2D::Platform::PathFormatLinux(searchpath);
+			utility::path::to_slash(searchpath);
 			if ((searchpath == ".") || (searchpath == "/") || (searchpath == "./")) {
 				searchpath = "";// "/" or "." 不需要
 			}
@@ -162,7 +162,7 @@ void FileManagerWrapper::Register(lua_State* L)LNOEXCEPT {
 				checkext = true;
 			}
 
-			Eyes2D::Platform::PathFormatLinux(searchpath);
+			utility::path::to_slash(searchpath);
 			if ((searchpath == ".") || (searchpath == "/") || (searchpath == "./")) {
 				searchpath = "";// "/" or "." 不需要
 			}
