@@ -85,8 +85,6 @@ set(LUASTG_ENGINE_SOURCES
     src/LMathConstant.hpp
     src/Main.cpp
     src/ScopeObject.cpp
-    src/StringFormat.cpp
-    src/StringFormat.hpp
     src/Utility.h
     
     src/LuaSTG.manifest

@@ -1,5 +1,4 @@
 ﻿#include "AppFrame.h"
-#include "StringFormat.hpp"
 #include "ResourcePassword.hpp"
 #include "LuaWrapper/LuaAppFrame.hpp"
 #include "LuaWrapper/LuaCustomLoader.hpp"
@@ -14,6 +13,8 @@ extern "C" {
 #include "xinput/lua_xinput.hpp"
 #include "security/lua_security.hpp"
 #include "lua_slow.h"
+
+#include "utility/encoding.hpp"
 
 namespace LuaSTGPlus
 {
@@ -56,14 +57,11 @@ namespace LuaSTGPlus
             try
             {
                 spdlog::error("[luajit] 编译'{}'失败：{}", desc, lua_tostring(L, -1));
-                std::wstring tErrorInfo = StringFormat(
-                    L"编译'%m'失败：%m",
-                    desc,
-                    lua_tostring(L, -1)
-                );
                 MessageBoxW(
                     m_pMainWindow ? (HWND)m_pMainWindow->GetHandle() : NULL,
-                    tErrorInfo.c_str(),
+                    utility::encoding::to_wide(
+                        fmt::format("编译'{}'失败：{}", desc, lua_tostring(L, -1))
+                    ).c_str(),
                     L"程序异常中止",
                     MB_ICONERROR | MB_OK
                 );
@@ -80,14 +78,11 @@ namespace LuaSTGPlus
             try
             {
                 spdlog::error("[luajit] 运行'{}'时出错：{}", desc, lua_tostring(L, -1));
-                std::wstring tErrorInfo = StringFormat(
-                    L"运行'%m'时出错：\n\t%m",
-                    desc,
-                    lua_tostring(L, -1)
-                );
                 MessageBoxW(
                     m_pMainWindow ? (HWND)m_pMainWindow->GetHandle() : NULL,
-                    tErrorInfo.c_str(),
+                    utility::encoding::to_wide(
+                        fmt::format("运行'{}'时出错：\n{}", desc, lua_tostring(L, -1))
+                    ).c_str(),
                     L"程序异常中止",
                     MB_ICONERROR | MB_OK
                 );
@@ -124,14 +119,11 @@ namespace LuaSTGPlus
             try
             {
                 spdlog::error("[luajit] 调用全局函数'{}'时出错：{}", name, lua_tostring(L, -1));
-                std::wstring tErrorInfo = StringFormat(
-                    L"调用全局函数'%m'时出错：\n\t%m",
-                    name,
-                    lua_tostring(L, -1)
-                );
                 MessageBoxW(
                     m_pMainWindow ? (HWND)m_pMainWindow->GetHandle() : NULL,
-                    tErrorInfo.c_str(),
+                    utility::encoding::to_wide(
+                        fmt::format("调用全局函数'{}'时出错：\n{}", name, lua_tostring(L, -1))
+                    ).c_str(),
                     L"程序异常中止",
                     MB_ICONERROR | MB_OK
                 );
@@ -185,14 +177,11 @@ namespace LuaSTGPlus
             try
             {
                 spdlog::error("[luajit] 调用全局函数'{}'时出错：{}", name, lua_tostring(L, -1));
-                std::wstring tErrorInfo = StringFormat(
-                    L"调用全局函数'%m'时出错：\n\t%m",
-                    name,
-                    lua_tostring(L, -1)
-                );
                 MessageBoxW(
                     m_pMainWindow ? (HWND)m_pMainWindow->GetHandle() : NULL,
-                    tErrorInfo.c_str(),
+                    utility::encoding::to_wide(
+                        fmt::format("调用全局函数'{}'时出错：\n{}", name, lua_tostring(L, -1))
+                    ).c_str(),
                     L"程序异常中止",
                     MB_ICONERROR | MB_OK);
             }

@@ -9,3 +9,6 @@ luacjson/*
 
 luafilesystem
 luafilesystem/*
+
+fmt
+fmt/*
