@@ -7,8 +7,9 @@
 #include "AppFrame.h"
 
 #include "E2DFileManager.hpp"
-#include "E2DCodePage.hpp"
 #include "E2DFilePath.hpp"
+
+#include "utility/encoding.hpp"
 
 using namespace std;
 using namespace LuaSTGPlus;
@@ -21,9 +22,9 @@ ResourceMgr::ResourceMgr() :
 // 文件操作
 
 bool ResourceMgr::LoadFile(const wchar_t* path, fcyRefPointer<fcyMemStream>& outBuf, const wchar_t* packname) noexcept {
-    std::string utf8path = Eyes2D::String::UTF16ToUTF8(path);//文件路径
+    std::string utf8path = utility::encoding::to_utf8(path);//文件路径
     if (packname != nullptr) {
-        std::string utf8pack = Eyes2D::String::UTF16ToUTF8(packname); // 压缩包名
+        std::string utf8pack = utility::encoding::to_utf8(packname); // 压缩包名
         return LoadFile(utf8path.c_str(), outBuf, utf8pack.c_str());
     }
     else {
@@ -88,7 +89,7 @@ bool listFilesS(lua_State* L, const char* dir, const char* ext, int& index) {
     //传入的肯定是utf8格式的搜索目录和拓展名
     // ??? t
     string searchpath = dir;//搜索路径
-    filesystem::path searchdir = filesystem::path(Eyes2D::String::UTF8ToUTF16(searchpath));//路径，需要转换为UTF16
+    filesystem::path searchdir = filesystem::path(utility::encoding::to_wide(searchpath));//路径，需要转换为UTF16
     
     string_view extendpath = ext;//拓展名
     size_t extendsize = extendpath.size();//拓展名长度
@@ -109,7 +110,7 @@ bool listFilesS(lua_State* L, const char* dir, const char* ext, int& index) {
                 lua_pushinteger(L, index);// ??? t index
                 lua_createtable(L, 1, 0);// ??? t index t //一个数组元素，没有非数组元素
                 lua_pushinteger(L, 1);// ??? t index t 1
-                string u8path = Eyes2D::String::UTF16ToUTF8(f.path().wstring());
+                string u8path = utility::encoding::to_utf8(f.path().wstring());
                 lua_pushstring(L, u8path.c_str());// ??? t index t 1 path
                 lua_settable(L, -3);// ??? t index t
                 lua_settable(L, -3);// ??? t

@@ -48,31 +48,6 @@ namespace LuaSTGPlus
 					return 1;
 				}
 				
-				static int ANSIToUTF8(lua_State* L)LNOEXCEPT {
-					try {
-						std::string fromstring = luaL_checkstring(L, 1);
-						std::wstring tempstring = fcyStringHelper::MultiByteToWideChar(fromstring, CP_ACP);
-						std::string tostring = fcyStringHelper::WideCharToMultiByte(tempstring, CP_UTF8);
-						lua_pushstring(L, tostring.c_str());
-					}
-					catch (const std::bad_alloc&) {
-						lua_pushnil(L);
-					}
-					return 1;
-				}
-				static int UTF8ToANSI(lua_State* L)LNOEXCEPT {
-					try {
-						std::string fromstring = luaL_checkstring(L, 1);
-						std::wstring tempstring = fcyStringHelper::MultiByteToWideChar(fromstring, CP_UTF8);
-						std::string tostring = fcyStringHelper::WideCharToMultiByte(tempstring, CP_ACP);
-						lua_pushstring(L, tostring.c_str());
-					}
-					catch (const std::bad_alloc&) {
-						lua_pushnil(L);
-					}
-					return 1;
-				}
-				
 				static int Color(lua_State* L)LNOEXCEPT
 				{
 					if (lua_gettop(L) == 1) {
@@ -122,9 +97,6 @@ namespace LuaSTGPlus
 				{ "GetLocalAppDataPath", &Function::GetLocalAppDataPath },
 				{ "GetRoamingAppDataPath", &Function::GetRoamingAppDataPath },
 
-				{ "ANSIToUTF8", &Function::ANSIToUTF8 },
-				{ "UTF8ToANSI", &Function::UTF8ToANSI },
-				
 				{ "Color", &Function::Color },
 				{ "HSVColor", &Function::HSVColor },
 				{ "StopWatch", &Function::StopWatch },

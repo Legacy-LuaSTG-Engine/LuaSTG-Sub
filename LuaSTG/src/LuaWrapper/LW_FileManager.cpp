@@ -2,9 +2,10 @@
 #include <filesystem>
 #include "AppFrame.h"
 #include "LuaWrapper\LuaWrapper.hpp"
-#include "E2DCodePage.hpp"
 #include "E2DFilePath.hpp"
 #include "E2DFileManager.hpp"
+
+#include "utility/encoding.hpp"
 
 #ifdef DrawText
 #undef DrawText
@@ -134,7 +135,7 @@ void FileManagerWrapper::Register(lua_State* L)LNOEXCEPT {
 						lua_pushinteger(L, index); // ??? path t index 
 						lua_newtable(L); // ??? path t index tt 
 						lua_pushinteger(L, 1); // ??? path t index tt 1 
-						string u8path = Eyes2D::String::UTF16ToUTF8(p.path().wstring());
+						string u8path = utility::encoding::to_utf8(p.path().wstring());
 						if (filesystem::is_directory(p.path())) {
 							u8path.push_back('/');//在目录路径后面手动添加一个分隔符
 						}
@@ -182,7 +183,7 @@ void FileManagerWrapper::Register(lua_State* L)LNOEXCEPT {
 						lua_pushinteger(L, index); // ??? path t index 
 						lua_newtable(L); // ??? path t index tt 
 						lua_pushinteger(L, 1); // ??? path t index tt 1 
-						string u8path = Eyes2D::String::UTF16ToUTF8(p.path().wstring());
+						string u8path = utility::encoding::to_utf8(p.path().wstring());
 						if (filesystem::is_directory(p.path())) {
 							u8path.push_back('/');//在目录路径后面手动添加一个分隔符
 						}
