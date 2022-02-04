@@ -32,7 +32,7 @@ static int xinput_getKeyState(lua_State* L)
     {\
         if (lua_gettop(L) >= 1)\
         {\
-            lua_pushnumber(L, (lua_Number)xinput::_F((int)luaL_checkinteger(L, 1)));\
+            lua_pushnumber(L, (lua_Number)xinput::_F((int)luaL_checkinteger(L, 1) - 1));\
         }\
         else\
         {\
