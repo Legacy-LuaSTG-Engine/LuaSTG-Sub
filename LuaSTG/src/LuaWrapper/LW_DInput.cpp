@@ -227,10 +227,12 @@ namespace LuaSTGPlus
                 {NULL, NULL},
             };
             
-            lua_pushstring(L, "DirectInput");
-            lua_newtable(L);
-            luaL_register(L, NULL, lib);
-            lua_settable(L, -3);
+            lua_pushstring(L, "DirectInput"); // ??? lstg "DirectInput"
+            lua_newtable(L);                  // ??? lstg "DirectInput" lib
+            luaL_register(L, NULL, lib);      // ??? lstg "DirectInput" lib
+            lua_settable(L, -3);              // ??? lstg
+            luaL_register(L, "dinput", lib);  // ??? lstg lib
+            lua_pop(L, 1);                    // ??? lstg
         }
     };
 };
