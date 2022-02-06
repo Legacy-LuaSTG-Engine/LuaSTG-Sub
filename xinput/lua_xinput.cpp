@@ -18,7 +18,7 @@ static int xinput_getKeyState(lua_State* L)
 {
     if (lua_gettop(L) >= 2)
     {
-        lua_pushboolean(L, xinput::getKeyState((int)luaL_checkinteger(L, 1), (int)luaL_checkinteger(L, 2)));
+        lua_pushboolean(L, xinput::getKeyState((int)luaL_checkinteger(L, 1) - 1, (int)luaL_checkinteger(L, 2)));
     }
     else
     {
