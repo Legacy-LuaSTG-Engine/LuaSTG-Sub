@@ -17,10 +17,18 @@ HRESULT HResultCheck::operator=(HRESULT v)
             buffer,
             512,
             NULL);
+        if (result > 0)
+        {
+            buffer[result - 1] = '\0'; // \n
+            if (result > 1)
+            {
+                buffer[result - 2] = '\0'; // \r
+            }
+        }
 #ifdef _DEBUG
         spdlog::error("[fancy2d] 文件：'{}' 第 {} 行：(HRESULT = 0x{:08X}) {}", cfile, line, static_cast<unsigned long>(hr), buffer);
 #else
-        spdlog::error("[fancy2d] (HRESULT = 0x{:08X}) {}", buffer);
+        spdlog::error("[fancy2d] (HRESULT = 0x{:08X}) {}", static_cast<unsigned long>(hr), buffer);
 #endif
     }
     return hr;

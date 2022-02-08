@@ -1,5 +1,6 @@
 ﻿#include "RenderDev/f2dTexture11.h"
 #include "RenderDev/f2dRenderDevice11.h"
+#include <spdlog/spdlog.h>
 
 // Texture2D
 
