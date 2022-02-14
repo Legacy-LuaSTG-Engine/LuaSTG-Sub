@@ -42,10 +42,6 @@ set(FANCY2D_SOURCE
     Input/f2dInputJoystickImpl.h
     Input/f2dInputJoystickImpl.cpp
 
-    #RenderDev/f2dEffectImpl.h
-    #RenderDev/f2dEffectImpl.cpp
-    #RenderDev/f2dMeshDataImpl.h
-    #RenderDev/f2dMeshDataImpl.cpp
     RenderDev/f2dRenderDevice11.h
     RenderDev/f2dRenderDevice11.cpp
     RenderDev/f2dTexture11.h
