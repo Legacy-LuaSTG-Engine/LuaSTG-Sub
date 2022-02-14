@@ -1,12 +1,3 @@
-#==================== legecy DXSDK ====================#
-
-# DXSDK (must remove it in the future!)
-
-add_library(DirectXSDK INTERFACE IMPORTED GLOBAL) # load dll at runtime
-target_include_directories(DirectXSDK INTERFACE
-    DirectXSDK/include
-)
-
 #==================== DirectXTK family ====================#
 
 add_library(DirectXTex0 STATIC)
