@@ -14,8 +14,6 @@
 #include <DirectXMath.h>
 // Image
 #include <wincodec.h>
-#include "WICTextureLoader9.h"
-#include "ScreenGrab9.h"
 #include "WICTextureLoader11.h"
 #include "ScreenGrab11.h"
 // Audio
