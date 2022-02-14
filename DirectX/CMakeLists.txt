@@ -1,23 +1,19 @@
 #==================== DirectXTK family ====================#
 
-add_library(DirectXTex0 STATIC)
-luastg_target_common_options(DirectXTex0)
-target_include_directories(DirectXTex0 PUBLIC
+add_library(DirectXTexMini STATIC)
+luastg_target_common_options(DirectXTexMini)
+target_include_directories(DirectXTexMini PUBLIC
     DirectXTex
     DirectXTex/ScreenGrab
     DirectXTex/WICTextureLoader
 )
-target_sources(DirectXTex0 PRIVATE
-    DirectXTex/ScreenGrab/ScreenGrab9.h
-    DirectXTex/ScreenGrab/ScreenGrab9.cpp
+target_sources(DirectXTexMini PRIVATE
     DirectXTex/ScreenGrab/ScreenGrab11.h
     DirectXTex/ScreenGrab/ScreenGrab11.cpp
-    DirectXTex/WICTextureLoader/WICTextureLoader9.h
-    DirectXTex/WICTextureLoader/WICTextureLoader9.cpp
     DirectXTex/WICTextureLoader/WICTextureLoader11.h
     DirectXTex/WICTextureLoader/WICTextureLoader11.cpp
 )
-target_link_libraries(DirectXTex0 PUBLIC
+target_link_libraries(DirectXTexMini PUBLIC
     dxguid.lib
 )
 

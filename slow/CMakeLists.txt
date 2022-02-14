@@ -63,7 +63,7 @@ target_link_libraries(slow PUBLIC
     d3d11.lib
     d3dcompiler.lib
     windowscodecs.lib
-    DirectXTex0
+    DirectXTexMini
 )
 
 #add_custom_command(TARGET slow PRE_BUILD

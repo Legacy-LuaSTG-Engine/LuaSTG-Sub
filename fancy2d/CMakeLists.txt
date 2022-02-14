@@ -120,7 +120,7 @@ target_link_libraries(fancy2dlib PUBLIC
     dxguid.lib
     dinput8.lib
     DirectX::XAudio2Redist
-    DirectXTex0
+    DirectXTexMini
     dxgi.lib
     d3d11.lib
     zlib
@@ -162,7 +162,7 @@ if(FALSE)
         dxguid.lib
         dinput8.lib
         DirectX::XAudio2Redist
-        DirectXTex0
+        DirectXTexMini
         dxgi.lib
         d3d11.lib
         zlib

@@ -78,7 +78,7 @@ target_link_libraries(LuaSTG PRIVATE
     zip
     fancylib
     fancy2dlib
-    DirectXTex0
+    DirectXTexMini
     LuaSTGCore
     xmath
     luajit
