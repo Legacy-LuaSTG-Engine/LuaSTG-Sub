@@ -6,7 +6,6 @@
 #include "fcyRefObj.h"
 #include "fcyIO/fcyStream.h"
 
-#include "Sound/f2dSoundSysAPI.h"
 #include "Common/f2dStandardCommon.hpp"
 #include "Common/f2dWindowsCommon.h"
 
