@@ -379,7 +379,7 @@ namespace imgui
             {
                 io.Fonts->AddFontFromFileTTF(
                     fontpath.c_str(),
-                    16.0f * native::getDpiScalingForWindow((void*)APP.GetEngine()->GetMainWindow()->GetHandle()),
+                    16.0f * APP.GetEngine()->GetMainWindow()->GetDPIScaling(),
                     &cfg
                     //, io.Fonts->GetGlyphRangesChineseFull()
                 );

@@ -177,7 +177,7 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 			if(pListener) pListener->OnDeviceChange();
 		}
 		break;
-	case native::Windows::WM_DPICHANGED_T:
+	case WM_DPICHANGED:
 		if (pWindow->m_bAutoResizeWindowOnDPIScaling)
 		{
 			pWindow->SetClientRect(pWindow->GetClientRect()); // 刷新一次尺寸（因为非客户区可能会变化）
@@ -290,7 +290,7 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 	//		info->ptMaxTrackSize.y = (LONG)pWindow->m_Size.y + 2;
 	//	}
 	//	return 0;
-	case native::Windows::WM_DPICHANGED_T:
+	case WM_DPICHANGED:
 		if (pWindow->m_bAutoResizeWindowOnDPIScaling)
 			return 0;
 		else
