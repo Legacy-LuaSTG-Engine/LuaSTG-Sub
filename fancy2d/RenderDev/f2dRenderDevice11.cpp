@@ -1994,11 +1994,11 @@ fResult f2dRenderDevice11::SubmitBlendState(const f2dBlendState& State)
 {
 	return FCYERR_NOTIMPL;
 }
-fResult f2dRenderDevice11::SubmitVD(IDirect3DVertexDeclaration9* pVD)
+fResult f2dRenderDevice11::SubmitVD(void* pVD)
 {
 	return FCYERR_NOTIMPL;
 }
-fResult f2dRenderDevice11::SubmitTextureBlendOP_Color(D3DTEXTUREOP ColorOP)
+fResult f2dRenderDevice11::SubmitTextureBlendOP_Color(int ColorOP)
 {
 	return FCYERR_NOTIMPL;
 }

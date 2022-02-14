@@ -109,8 +109,8 @@ public: // 内部函数
 	fResult SubmitLookatMat(const fcyMatrix4& Mat);
 	fResult SubmitProjMat(const fcyMatrix4& Mat);
 	fResult SubmitBlendState(const f2dBlendState& State);
-	fResult SubmitVD(IDirect3DVertexDeclaration9* pVD);
-	fResult SubmitTextureBlendOP_Color(D3DTEXTUREOP ColorOP);
+	fResult SubmitVD(void* pVD);
+	fResult SubmitTextureBlendOP_Color(int ColorOP);
 public:
 	// 用于全屏
 
