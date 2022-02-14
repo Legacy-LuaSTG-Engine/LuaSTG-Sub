@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include "ResourceBase.hpp"
 #include "f2dSoundSys.h"
-#include "Common/volume.hpp"
 
 namespace LuaSTGPlus {
 	// 音效
