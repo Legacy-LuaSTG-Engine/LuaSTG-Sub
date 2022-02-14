@@ -2944,43 +2944,43 @@ static int lib_ColorConvertHSVtoRGB(lua_State* L)
 
 //////// Inputs Utilities: Keyboard
 
-static int lib_GetKeyIndex(lua_State* L)
-{
-    const ImGuiKey imgui_key = (ImGuiKey)luaL_checkinteger(L, 1);
-    const int ret = ImGui::GetKeyIndex(imgui_key);
-    lua_pushinteger(L, (lua_Integer)ret);
-    return 1;
-}
 static int lib_IsKeyDown(lua_State* L)
 {
-    const int user_key_index = luaL_checkinteger(L, 1);
-    const bool ret = ImGui::IsKeyDown(user_key_index);
+    const ImGuiKey key = (ImGuiKey)luaL_checkinteger(L, 1);
+    const bool ret = ImGui::IsKeyDown(key);
     lua_pushboolean(L, ret);
     return 1;
 }
 static int lib_IsKeyPressed(lua_State* L)
 {
     const int argc = lua_gettop(L);
-    const int user_key_index = luaL_checkinteger(L, 1);
+    const ImGuiKey key = (ImGuiKey)luaL_checkinteger(L, 1);
     const bool repeat = (argc >= 2) ? lua_toboolean(L, 2) : true;
-    const bool ret = ImGui::IsKeyPressed(user_key_index, repeat);
+    const bool ret = ImGui::IsKeyPressed(key, repeat);
     lua_pushboolean(L, ret);
     return 1;
 }
 static int lib_IsKeyReleased(lua_State* L)
 {
-    const int user_key_index = luaL_checkinteger(L, 1);
-    const bool ret = ImGui::IsKeyReleased(user_key_index);
+    const ImGuiKey key = (ImGuiKey)luaL_checkinteger(L, 1);
+    const bool ret = ImGui::IsKeyReleased(key);
     lua_pushboolean(L, ret);
     return 1;
 }
 static int lib_GetKeyPressedAmount(lua_State* L)
 {
-    const int key_index = luaL_checkinteger(L, 1);
+    const ImGuiKey key = (ImGuiKey)luaL_checkinteger(L, 1);
     const float repeat_delay = (float)luaL_checknumber(L, 2);
     const float rate = (float)luaL_checknumber(L, 3);
-    const int ret = ImGui::GetKeyPressedAmount(key_index, repeat_delay, rate);
+    const int ret = ImGui::GetKeyPressedAmount(key, repeat_delay, rate);
     lua_pushinteger(L, (lua_Integer)ret);
+    return 1;
+}
+static int lib_GetKeyName(lua_State* L)
+{
+    const ImGuiKey key = (ImGuiKey)luaL_checkinteger(L, 1);
+    const char* name = ImGui::GetKeyName(key);
+    lua_pushstring(L, name);
     return 1;
 }
 static int lib_CaptureKeyboardFromApp(lua_State* L)

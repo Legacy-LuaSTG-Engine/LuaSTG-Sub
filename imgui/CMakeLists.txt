@@ -4,7 +4,8 @@ add_library(imgui STATIC)
 luastg_target_common_options(imgui)
 target_compile_definitions(imgui PUBLIC
     IMGUI_DISABLE_OBSOLETE_FUNCTIONS
-    IMGUI_USE_BGRA_PACKED_COLOR
+    IMGUI_DISABLE_OBSOLETE_KEYIO
+    #IMGUI_USE_BGRA_PACKED_COLOR
     #IMGUI_USE_WCHAR32
     IMGUI_ENABLE_FREETYPE
     IMPLOT_DISABLE_OBSOLETE_FUNCTIONS
@@ -38,10 +39,10 @@ target_sources(imgui PRIVATE
     imgui/misc/freetype/imgui_freetype.h
     
     imgui/backends/imgui_impl_dx11.h
-    backend/imgui_impl_dx11.cpp # TODO
+    imgui/backends/imgui_impl_dx11.cpp # TODO
     
-    backend/imgui_impl_win32ex.cpp
-    backend/imgui_impl_win32ex.h
+    imgui/backends/imgui_impl_win32.cpp
+    imgui/backends/imgui_impl_win32.h
     
     implot/implot_demo.cpp
     implot/implot_internal.h

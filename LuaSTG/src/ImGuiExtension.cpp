@@ -7,7 +7,7 @@
 #include "imgui.h"
 #include "imgui_stdlib.h"
 #include "imgui_freetype.h"
-#include "imgui_impl_win32ex.h"
+#include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
 #include "implot.h"
 #include <d3d11.h>
@@ -24,33 +24,6 @@
 
 #define XINPUT_USE_9_1_0
 #include <Xinput.h>
-
-template<typename T>
-struct ImScrollingBuffer
-{
-    size_t MaxSize;
-    ptrdiff_t Offset;
-    ImVector<T> Data;
-    ImScrollingBuffer(size_t max_size = 1024) {
-        MaxSize = max_size;
-        Offset = 0;
-        Data.reserve(MaxSize);
-    }
-    void Add(T const& v) {
-        if (Data.size() < MaxSize)
-            Data.push_back(v);
-        else {
-            Data[Offset] = v;
-            Offset = (Offset + 1) % MaxSize;
-        }
-    }
-    void Erase() {
-        if (Data.size() > 0) {
-            Data.shrink(0);
-            Offset = 0;
-        }
-    }
-};
 
 // lua imgui backend binding
 
@@ -256,7 +229,7 @@ void imgui_binding_lua_register_backend(lua_State* L)
 
 // imgui backend binding
 
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32Ex_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 #define APP LuaSTGPlus::AppFrame::GetInstance()
 
@@ -405,8 +378,8 @@ namespace imgui
         setConfig();
         loadConfig();
         
-        ImGui_ImplWin32Ex_Init((void*)window->GetHandle());
-        window->AddNativeMessageCallback((ptrdiff_t)&ImGui_ImplWin32Ex_WndProcHandler);
+        ImGui_ImplWin32_Init((void*)window->GetHandle());
+        window->AddNativeMessageCallback((ptrdiff_t)&ImGui_ImplWin32_WndProcHandler);
         
         g_ImGuiRenderDeviceEventListener.OnRenderDeviceReset();
         device->AttachListener(&g_ImGuiRenderDeviceEventListener);
@@ -437,8 +410,8 @@ namespace imgui
         device->RemoveListener(&g_ImGuiRenderDeviceEventListener);
         g_ImGuiRenderDeviceEventListener.OnRenderDeviceLost();
         
-        window->RemoveNativeMessageCallback((ptrdiff_t)&ImGui_ImplWin32Ex_WndProcHandler);
-        ImGui_ImplWin32Ex_Shutdown();
+        window->RemoveNativeMessageCallback((ptrdiff_t)&ImGui_ImplWin32_WndProcHandler);
+        ImGui_ImplWin32_Shutdown();
         
         saveConfig();
 
@@ -451,7 +424,7 @@ namespace imgui
         if (g_ImGuiBindEngine)
         {
             ImGui_ImplDX11_NewFrame();
-            ImGui_ImplWin32Ex_NewFrame();
+            ImGui_ImplWin32_NewFrame();
             g_ImGuiTexIDValid = true;
         }
     }
