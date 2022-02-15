@@ -10,7 +10,7 @@ add_compile_definitions(
 )
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Debug>:DLL>")
 
-add_subdirectory(external)
+add_subdirectory(prebuild)
 add_subdirectory(ThirdParty)
 add_subdirectory(DirectX)
 
