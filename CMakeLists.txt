@@ -22,6 +22,5 @@ add_subdirectory(imgui)
 add_subdirectory(steam)
 add_subdirectory(xmath)
 add_subdirectory(slow)
-#add_subdirectory(tool)
 
 add_subdirectory(LuaSTG)
