@@ -1,4 +1,4 @@
-﻿// dear imgui: Platform Backend for Windows (standard windows API for 32 and 64 bits applications)
+// dear imgui: Platform Backend for Windows (standard windows API for 32 and 64 bits applications)
 // This needs to be used along with a Renderer (e.g. DirectX11, OpenGL3, Vulkan..)
 
 // Implemented features:
@@ -30,14 +30,16 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <windowsx.h>
-// Dbt.h
-#ifndef DBT_DEVNODES_CHANGED
-#define DBT_DEVNODES_CHANGED 0x0007
-#endif
 // Using XInput for gamepad (will load DLL dynamically)
 #include <Xinput.h>
 typedef DWORD(WINAPI* PFN_XInputGetCapabilities)(DWORD, DWORD, XINPUT_CAPABILITIES*);
 typedef DWORD(WINAPI* PFN_XInputGetState)(DWORD, XINPUT_STATE*);
+// Dbt.h
+#ifndef DBT_DEVNODES_CHANGED
+#define DBT_DEVNODES_CHANGED 0x0007
+#endif
+// There is no distinct VK_xxx for keypad enter, instead it is VK_RETURN + KF_EXTENDED, we assign it an arbitrary value to make code more readable (VK_ codes go up to 255)
+#define IM_VK_KEYPAD_ENTER (VK_RETURN + 256)
 
 constexpr UINT MSG_NONE             = IMGUI_IMPL_WIN32EX_WM_USER;
 constexpr UINT MSG_MOUSE_CAPTURE    = IMGUI_IMPL_WIN32EX_WM_USER + 1;
@@ -66,22 +68,22 @@ struct Win32MessageQueue
 
     bool write(Win32Message const& v)
     {
-        if (WaitForSingleObject(semaphore_space, INFINITE) == WAIT_OBJECT_0) // 减少剩余空间的信号量，减少到 0 就会阻塞，大于 0 才会继续执行
+        if (::WaitForSingleObject(semaphore_space, INFINITE) == WAIT_OBJECT_0)
         {
             data[writer_index] = v;
             writer_index = (writer_index + 1) % size;
-            ReleaseSemaphore(semaphore_data, 1, NULL); // 增加已用空间的信号量
+            ::ReleaseSemaphore(semaphore_data, 1, NULL);
             return true;
         }
         return false;
     }
     bool read(Win32Message& v)
     {
-        if (WaitForSingleObject(semaphore_data, 0) == WAIT_OBJECT_0) // 减少已用空间的信号量，减少到 0 就会阻塞，大于 0 才会继续执行
+        if (::WaitForSingleObject(semaphore_data, 0) == WAIT_OBJECT_0)
         {
             v = data[reader_index];
             reader_index = (reader_index + 1) % size;
-            ReleaseSemaphore(semaphore_space, 1, NULL); // 增加剩余空间的信号量
+            ::ReleaseSemaphore(semaphore_space, 1, NULL);
             return true;
         }
         return false;
@@ -92,8 +94,8 @@ struct Win32MessageQueue
         LONG const value = (LONG)size;
         writer_index = 0;
         reader_index = 0;
-        semaphore_space = CreateSemaphoreExW(NULL, value, value, NULL, 0, SEMAPHORE_ALL_ACCESS);
-        semaphore_data = CreateSemaphoreExW(NULL, 0, value, NULL, 0, SEMAPHORE_ALL_ACCESS);
+        semaphore_space = ::CreateSemaphoreExW(NULL, value, value, NULL, 0, SEMAPHORE_ALL_ACCESS);
+        semaphore_data = ::CreateSemaphoreExW(NULL, 0, value, NULL, 0, SEMAPHORE_ALL_ACCESS);
         if (semaphore_space == NULL || semaphore_data == NULL)
             throw;
     }
@@ -101,8 +103,8 @@ struct Win32MessageQueue
     {
         writer_index = 0;
         reader_index = 0;
-        if (semaphore_space) CloseHandle(semaphore_space); semaphore_space = NULL;
-        if (semaphore_data) CloseHandle(semaphore_data); semaphore_data = NULL;
+        if (semaphore_space) ::CloseHandle(semaphore_space); semaphore_space = NULL;
+        if (semaphore_data) ::CloseHandle(semaphore_data); semaphore_data = NULL;
     }
 };
 
@@ -143,7 +145,6 @@ static void ImGui_ImplWin32Ex_AddKeyEvent(ImGuiKey key, bool down, int native_ke
 }
 static ImGuiKey ImGui_ImplWin32Ex_VirtualKeyToImGuiKey(WPARAM wParam)
 {
-#define IM_VK_KEYPAD_ENTER      (VK_RETURN + 256)
     switch (wParam)
     {
     case VK_TAB: return ImGuiKey_Tab;
@@ -288,7 +289,7 @@ static void ImGui_ImplWin32Ex_UpdateMouseData()
         // (Optional) Set OS mouse position from Dear ImGui if requested (rarely used, only when ImGuiConfigFlags_NavEnableSetMousePos is enabled by user)
         if (io.WantSetMousePos)
         {
-            PostMessageW(bd->hWnd, MSG_SET_MOUSE_POS, (WPARAM)(LONG)(io.MousePos.x), (LPARAM)(LONG)(io.MousePos.y));
+            ::PostMessageW(bd->hWnd, MSG_SET_MOUSE_POS, (WPARAM)(LONG)(io.MousePos.x), (LPARAM)(LONG)(io.MousePos.y));
         }
 
         // (Optional) Fallback to provide mouse position when focused (WM_MOUSEMOVE already provides this when hovered or captured)
@@ -341,14 +342,13 @@ static bool ImGui_ImplWin32Ex_UpdateMouseCursor()
     LPWSTR win32_cursor = NULL;
     if (ImGui_ImplWin32Ex_MapMouseCursor(&win32_cursor))
     {
-        PostMessageW(bd->hWnd, MSG_SET_MOUSE_CURSOR, (WPARAM)win32_cursor, 0);
+        ::PostMessageW(bd->hWnd, MSG_SET_MOUSE_CURSOR, (WPARAM)win32_cursor, 0);
         return true;
     }
     return false;
 }
 static void ImGui_ImplWin32Ex_UpdateGamepads()
 {
-#ifndef IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
     ImGuiIO& io = ImGui::GetIO();
     ImGui_ImplWin32Ex_Data* bd = ImGui_ImplWin32Ex_GetBackendData();
     if ((io.ConfigFlags & ImGuiConfigFlags_NavEnableGamepad) == 0)
@@ -399,12 +399,11 @@ static void ImGui_ImplWin32Ex_UpdateGamepads()
     MAP_ANALOG(ImGuiKey_GamepadRStickDown, gamepad.sThumbRY, -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, -32768);
 #undef MAP_BUTTON
 #undef MAP_ANALOG
-#endif // #ifndef IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
 }
 static void ImGui_ImplWin32Ex_UpdateIME(ImGuiViewport* viewport, ImGuiPlatformImeData* data)
 {
     ImGui_ImplWin32Ex_Data* bd = ImGui_ImplWin32Ex_GetBackendData();
-    PostMessageW(bd->hWnd, MSG_SET_IME_POS, (WPARAM)(LONG)data->InputPos.x, (LPARAM)(LONG)data->InputPos.y);
+    ::PostMessageW(bd->hWnd, MSG_SET_IME_POS, (WPARAM)(LONG)data->InputPos.x, (LPARAM)(LONG)data->InputPos.y);
 }
 static void ImGui_ImplWin32Ex_ProcessMessage()
 {
@@ -434,7 +433,7 @@ static void ImGui_ImplWin32Ex_ProcessMessage()
                 if (msg.uMsg == WM_MBUTTONDOWN || msg.uMsg == WM_MBUTTONDBLCLK) { button = 2; }
                 if (msg.uMsg == WM_XBUTTONDOWN || msg.uMsg == WM_XBUTTONDBLCLK) { button = (GET_XBUTTON_WPARAM(msg.wParam) == XBUTTON1) ? 3 : 4; }
                 if (bd->MouseButtonsDown == 0)
-                    PostMessageW(bd->hWnd, MSG_MOUSE_CAPTURE, MSG_MOUSE_CAPTURE_SET, 0);
+                    ::PostMessageW(bd->hWnd, MSG_MOUSE_CAPTURE, MSG_MOUSE_CAPTURE_SET, 0);
                 bd->MouseButtonsDown |= 1 << button;
                 io.AddMouseButtonEvent(button, true);
             }
@@ -451,7 +450,7 @@ static void ImGui_ImplWin32Ex_ProcessMessage()
                 if (msg.uMsg == WM_XBUTTONUP) { button = (GET_XBUTTON_WPARAM(msg.wParam) == XBUTTON1) ? 3 : 4; }
                 bd->MouseButtonsDown &= ~(1 << button);
                 if (bd->MouseButtonsDown == 0)
-                    PostMessageW(bd->hWnd, MSG_MOUSE_CAPTURE, MSG_MOUSE_CAPTURE_RELEASE, 0);
+                    ::PostMessageW(bd->hWnd, MSG_MOUSE_CAPTURE, MSG_MOUSE_CAPTURE_RELEASE, 0);
                 io.AddMouseButtonEvent(button, false);
             }
             return true;
@@ -559,11 +558,11 @@ bool ImGui_ImplWin32Ex_Init(void* window)
 
     LARGE_INTEGER perf_frequency = {};
     LARGE_INTEGER perf_counter = {};
-    if (!QueryPerformanceFrequency(&perf_frequency))
+    if (!::QueryPerformanceFrequency(&perf_frequency))
         return false;
-    if (!QueryPerformanceCounter(&perf_counter))
+    if (!::QueryPerformanceCounter(&perf_counter))
         return false;
-
+    
     // create data
     ImGui_ImplWin32Ex_Data* bd = IM_NEW(ImGui_ImplWin32Ex_Data)();
     io.BackendPlatformUserData = (void*)bd;
@@ -593,11 +592,11 @@ bool ImGui_ImplWin32Ex_Init(void* window)
     };
     for (auto name : xinput_dll_names)
     {
-        if (HMODULE dll = LoadLibraryW(name))
+        if (HMODULE dll = ::LoadLibraryW(name))
         {
             bd->XInputDLL = dll;
-            bd->XInputGetCapabilities = (PFN_XInputGetCapabilities)GetProcAddress(dll, "XInputGetCapabilities");
-            bd->XInputGetState = (PFN_XInputGetState)GetProcAddress(dll, "XInputGetState");
+            bd->XInputGetCapabilities = (PFN_XInputGetCapabilities)::GetProcAddress(dll, "XInputGetCapabilities");
+            bd->XInputGetState = (PFN_XInputGetState)::GetProcAddress(dll, "XInputGetState");
             break;
         }
     }
@@ -611,7 +610,7 @@ void ImGui_ImplWin32Ex_Shutdown()
     ImGuiIO& io = ImGui::GetIO();
 
     // Unload XInput library
-    if (bd->XInputDLL) FreeLibrary(bd->XInputDLL);
+    if (bd->XInputDLL) ::FreeLibrary(bd->XInputDLL);
 
     io.BackendPlatformName = NULL;
     io.BackendPlatformUserData = NULL;
@@ -669,38 +668,6 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32Ex_WndProcHandler(HWND hWnd, UINT uMsg, WP
     {
     // messages want to process by imgui
     
-    case WM_ACTIVATEAPP:
-    
-    case WM_LBUTTONDOWN:
-    case WM_RBUTTONDOWN:
-    case WM_MBUTTONDOWN:
-    case WM_XBUTTONDOWN:
-    case WM_LBUTTONDBLCLK:
-    case WM_RBUTTONDBLCLK:
-    case WM_MBUTTONDBLCLK:
-    case WM_XBUTTONDBLCLK:
-    case WM_LBUTTONUP:
-    case WM_RBUTTONUP:
-    case WM_MBUTTONUP:
-    case WM_XBUTTONUP:
-    case WM_MOUSEWHEEL:
-    case WM_MOUSEHWHEEL:
-    
-    case WM_MOUSEHOVER:
-    
-    case WM_KEYDOWN:
-    case WM_SYSKEYDOWN:
-    case WM_KEYUP:
-    case WM_SYSKEYUP:
-    case WM_SETFOCUS:
-    case WM_KILLFOCUS:
-    case WM_CHAR:
-    
-    case WM_SIZE:
-    case WM_DEVICECHANGE:
-        bd->MessageQueue.write({ hWnd, uMsg, wParam, lParam });
-        return 0;
-    
     case WM_MOUSEMOVE:
         // We need to call TrackMouseEvent in order to receive WM_MOUSELEAVE events
         bd->MouseHwnd = hWnd;
@@ -719,51 +686,72 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32Ex_WndProcHandler(HWND hWnd, UINT uMsg, WP
         bd->MessageQueue.write({ hWnd, uMsg, wParam, lParam });
         return 0;
 
+    case WM_LBUTTONDOWN:
+    case WM_RBUTTONDOWN:
+    case WM_MBUTTONDOWN:
+    case WM_XBUTTONDOWN:
+    case WM_LBUTTONDBLCLK:
+    case WM_RBUTTONDBLCLK:
+    case WM_MBUTTONDBLCLK:
+    case WM_XBUTTONDBLCLK:
+    case WM_LBUTTONUP:
+    case WM_RBUTTONUP:
+    case WM_MBUTTONUP:
+    case WM_XBUTTONUP:
+    case WM_MOUSEWHEEL:
+    case WM_MOUSEHWHEEL:
+    
+    case WM_KEYDOWN:
+    case WM_SYSKEYDOWN:
+    case WM_KEYUP:
+    case WM_SYSKEYUP:
+    case WM_SETFOCUS:
+    case WM_KILLFOCUS:
+    case WM_CHAR:
+    
+    case WM_ACTIVATEAPP:
+    case WM_SIZE:
+    case WM_DEVICECHANGE:
+        bd->MessageQueue.write({ hWnd, uMsg, wParam, lParam });
+        return 0;
+    
     // messages we recive from imgui (working thread)
     
     case MSG_MOUSE_CAPTURE:
         switch(wParam)
         {
         case MSG_MOUSE_CAPTURE_SET:
-            if (GetCapture() == NULL)
-            {
-                SetCapture(hWnd);
-            }
-            break;
+            if (::GetCapture() == NULL) ::SetCapture(hWnd); break;
         case MSG_MOUSE_CAPTURE_RELEASE:
-            if (GetCapture() == hWnd)
-            {
-                ReleaseCapture();
-            }
-            break;
+            if (::GetCapture() == hWnd) ::ReleaseCapture(); break;
         }
-        return 0;
+        return 1; // tell GUI thread do not continue to pass this message
     case MSG_SET_MOUSE_POS:
         {
             POINT pos;
             pos.x = (LONG)wParam;
             pos.y = (LONG)lParam;
-            ClientToScreen(hWnd, &pos);
-            SetCursorPos(pos.x, pos.y);
+            ::ClientToScreen(hWnd, &pos);
+            ::SetCursorPos(pos.x, pos.y);
         }
-        return 0;
+        return 1; // tell GUI thread do not continue to pass this message
     case MSG_SET_MOUSE_CURSOR:
         {
             if (wParam)
-                SetCursor(LoadCursorW(NULL, (LPCWSTR)wParam));
+                ::SetCursor(::LoadCursorW(NULL, (LPCWSTR)wParam));
             else
-                SetCursor(NULL);
+                ::SetCursor(NULL);
         }
         return 1; // tell GUI thread do not continue to pass this message
     case MSG_SET_IME_POS:
-        if (HIMC himc = ImmGetContext(hWnd))
+        if (HIMC himc = ::ImmGetContext(hWnd))
         {
             POINT pos = { (LONG)wParam, (LONG)lParam };
             COMPOSITIONFORM cf = { CFS_FORCE_POSITION, pos, {} };
-            ImmSetCompositionWindow(himc, &cf);
-            ImmReleaseContext(hWnd, himc);
+            ::ImmSetCompositionWindow(himc, &cf);
+            ::ImmReleaseContext(hWnd, himc);
         }
-        return 0;
+        return 1; // tell GUI thread do not continue to pass this message
     
     // other messages
     
@@ -774,9 +762,9 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32Ex_WndProcHandler(HWND hWnd, UINT uMsg, WP
             if (ImGui_ImplWin32Ex_MapMouseCursor(&win32_cursor))
             {
                 if (win32_cursor)
-                    SetCursor(LoadCursorW(NULL, win32_cursor));
+                    ::SetCursor(::LoadCursorW(NULL, win32_cursor));
                 else
-                    SetCursor(NULL);
+                    ::SetCursor(NULL);
                 return 1; // tell GUI thread do not continue to pass this message
             }
         }
