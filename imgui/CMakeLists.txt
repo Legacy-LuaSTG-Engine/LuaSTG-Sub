@@ -57,6 +57,8 @@ target_link_libraries(imgui PUBLIC
     freetype
 )
 
+set_target_properties(imgui PROPERTIES FOLDER external)
+
 # imgui lua binding
 
 add_library(lua_imgui STATIC)
@@ -92,3 +94,5 @@ target_link_libraries(lua_imgui PUBLIC
     imgui
     luajit
 )
+
+set_target_properties(lua_imgui PROPERTIES FOLDER external)

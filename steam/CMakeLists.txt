@@ -71,21 +71,25 @@ target_link_libraries(lua_steam_api PUBLIC
     luajit
 )
 
+set_target_properties(lua_steam_api PROPERTIES FOLDER external)
+
 # binding dll
 
-add_library(steam SHARED)
-set_target_properties(steam PROPERTIES
-    C_STANDARD 11
-    C_STANDARD_REQUIRED ON
-    CXX_STANDARD 17
-    CXX_STANDARD_REQUIRED ON
-)
-target_compile_options(steam PRIVATE
-    "/wd4819"
-)
-target_sources(steam PRIVATE
-    binding/lua_steam_dll.cpp
-)
-target_link_libraries(steam PRIVATE
-    lua_steam_api
-)
+if(FALSE)
+    add_library(steam SHARED)
+    set_target_properties(steam PROPERTIES
+        C_STANDARD 11
+        C_STANDARD_REQUIRED ON
+        CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED ON
+    )
+    target_compile_options(steam PRIVATE
+        "/wd4819"
+    )
+    target_sources(steam PRIVATE
+        binding/lua_steam_dll.cpp
+    )
+    target_link_libraries(steam PRIVATE
+        lua_steam_api
+    )
+endif()

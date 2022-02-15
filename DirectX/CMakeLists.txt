@@ -17,6 +17,8 @@ target_link_libraries(DirectXTexMini PUBLIC
     dxguid.lib
 )
 
+set_target_properties(DirectXTexMini PROPERTIES FOLDER external)
+
 #==================== XAudio2 ====================#
 
 add_library(XAudio2Redist SHARED IMPORTED GLOBAL)

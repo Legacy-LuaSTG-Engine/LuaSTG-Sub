@@ -22,6 +22,8 @@ option(SPDLOG_WCHAR_FILENAMES "Support wchar filenames" ON)
 option(SPDLOG_DISABLE_DEFAULT_LOGGER "Disable default logger creation" ON)
 add_subdirectory(spdlog)
 
+set_target_properties(spdlog PROPERTIES FOLDER external)
+
 #==================== lua cjson ====================#
 
 add_library(lua_cjson STATIC)
@@ -47,6 +49,8 @@ target_link_libraries(lua_cjson PUBLIC
     luajit
 )
 
+set_target_properties(lua_cjson PROPERTIES FOLDER external)
+
 #==================== lua fs ====================#
 
 add_library(lua_fs STATIC)
@@ -65,9 +69,13 @@ target_link_libraries(lua_fs PUBLIC
     luajit
 )
 
+set_target_properties(lua_fs PROPERTIES FOLDER external)
+
 #==================== lua extension ====================#
 
 add_subdirectory(pugixml)
+
+set_target_properties(pugixml-static PROPERTIES FOLDER external)
 
 add_library(lua_xlsx_csv STATIC)
 set_target_properties(lua_xlsx_csv PROPERTIES
@@ -89,3 +97,5 @@ target_link_libraries(lua_xlsx_csv PUBLIC
     zip
     pugixml
 )
+
+set_target_properties(lua_xlsx_csv PROPERTIES FOLDER external)

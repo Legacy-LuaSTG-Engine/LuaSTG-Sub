@@ -31,3 +31,5 @@ target_sources(xmath PRIVATE
     xmath/XTween.cpp
     xmath/XTween.h
 )
+
+set_target_properties(xmath PROPERTIES FOLDER external)

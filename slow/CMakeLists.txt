@@ -21,6 +21,8 @@ endfunction()
 add_executable(slow_make_type src/make_type.cpp)
 slow_common_options(slow_make_type)
 
+set_target_properties(slow_make_type PROPERTIES FOLDER slow)
+
 set(slow_lib_inc
     include/slow/slow.hpp
     include/slow/Type.hpp
@@ -66,6 +68,8 @@ target_link_libraries(slow PUBLIC
     DirectXTexMini
 )
 
+set_target_properties(slow PROPERTIES FOLDER slow)
+
 #add_custom_command(TARGET slow PRE_BUILD
 #    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/slow
 #    COMMAND $<TARGET_FILE:slow_make_type> -o ${CMAKE_BINARY_DIR}/slow/NativeType.hpp
@@ -85,6 +89,10 @@ target_link_libraries(lua_slow PUBLIC
     luajit
 )
 
+set_target_properties(lua_slow PROPERTIES FOLDER slow)
+
 add_executable(slow_test src/test.cpp)
 slow_common_options(slow_test)
 target_link_libraries(slow_test PRIVATE slow)
+
+set_target_properties(slow_test PROPERTIES FOLDER slow)
