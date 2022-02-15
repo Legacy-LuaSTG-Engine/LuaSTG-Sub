@@ -7,3 +7,6 @@
 [submodule "imgui/implot"]
 	path = imgui/implot
 	url = https://github.com/epezent/implot.git
+[submodule "DirectX/DirectXTex"]
+	path = DirectX/DirectXTex
+	url = https://github.com/microsoft/DirectXTex.git
