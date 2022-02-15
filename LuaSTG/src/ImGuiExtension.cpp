@@ -7,7 +7,7 @@
 #include "imgui.h"
 #include "imgui_stdlib.h"
 #include "imgui_freetype.h"
-#include "imgui_impl_win32.h"
+#include "imgui_impl_win32ex.h"
 #include "imgui_impl_dx11.h"
 #include "implot.h"
 #include <d3d11.h>
@@ -229,7 +229,7 @@ void imgui_binding_lua_register_backend(lua_State* L)
 
 // imgui backend binding
 
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32Ex_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 #define APP LuaSTGPlus::AppFrame::GetInstance()
 
@@ -378,8 +378,8 @@ namespace imgui
         setConfig();
         loadConfig();
         
-        ImGui_ImplWin32_Init((void*)window->GetHandle());
-        window->AddNativeMessageCallback((ptrdiff_t)&ImGui_ImplWin32_WndProcHandler);
+        ImGui_ImplWin32Ex_Init((void*)window->GetHandle());
+        window->AddNativeMessageCallback((ptrdiff_t)&ImGui_ImplWin32Ex_WndProcHandler);
         
         g_ImGuiRenderDeviceEventListener.OnRenderDeviceReset();
         device->AttachListener(&g_ImGuiRenderDeviceEventListener);
@@ -410,8 +410,8 @@ namespace imgui
         device->RemoveListener(&g_ImGuiRenderDeviceEventListener);
         g_ImGuiRenderDeviceEventListener.OnRenderDeviceLost();
         
-        window->RemoveNativeMessageCallback((ptrdiff_t)&ImGui_ImplWin32_WndProcHandler);
-        ImGui_ImplWin32_Shutdown();
+        window->RemoveNativeMessageCallback((ptrdiff_t)&ImGui_ImplWin32Ex_WndProcHandler);
+        ImGui_ImplWin32Ex_Shutdown();
         
         saveConfig();
 
@@ -424,7 +424,7 @@ namespace imgui
         if (g_ImGuiBindEngine)
         {
             ImGui_ImplDX11_NewFrame();
-            ImGui_ImplWin32_NewFrame();
+            ImGui_ImplWin32Ex_NewFrame();
             g_ImGuiTexIDValid = true;
         }
     }

@@ -34,15 +34,7 @@
 #pragma once
 #include "imgui.h"      // IMGUI_IMPL_API
 
-typedef int ImGui_ImplWin32ExFlags;
-
-enum ImGui_ImplWin32ExFlags_
-{
-    ImGui_ImplWin32ExFlags_ResetInputWhenWindowFocusLose = 1,
-    ImGui_ImplWin32ExFlags_ReceiveInputInBackground      = 2,
-};
-
-IMGUI_IMPL_API bool ImGui_ImplWin32Ex_Init(void* window, ImGui_ImplWin32ExFlags flags = 1);
+IMGUI_IMPL_API bool ImGui_ImplWin32Ex_Init(void* window);
 IMGUI_IMPL_API void ImGui_ImplWin32Ex_Shutdown();
 IMGUI_IMPL_API void ImGui_ImplWin32Ex_NewFrame();
 
