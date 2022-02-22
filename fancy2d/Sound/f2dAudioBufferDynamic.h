@@ -203,8 +203,8 @@ public:
 	fResult SetVolume(fFloat Value);
 	fFloat GetPan();
 	fResult SetPan(fFloat Value);
-	fuInt GetFrequency();
-	fResult SetFrequency(fuInt Value);
+	fFloat GetFrequency();
+	fResult SetFrequency(fFloat Value);
 
 	// 应该废弃的方法
 

@@ -10,20 +10,11 @@ namespace LuaSTGPlus {
 	private:
 		fcyRefPointer<f2dSoundBuffer> m_pBuffer;
 		int m_status;//0停止1暂停2播放
-		float m_lastfrq;
-		long m_freq;
 	public:
 		void Play(float vol, float pan)
 		{
 			m_pBuffer->Stop();
-
-			//float nv = VolumeFix(vol);
-			//float nv = (float)volume::LinearToLog(vol);
-			//if (m_pBuffer->GetVolume() != nv)
-			//	m_pBuffer->SetVolume(nv);
-			//if (m_pBuffer->GetPan() != pan)
-			//	m_pBuffer->SetPan(pan);
-
+			
 			m_pBuffer->SetVolume(vol);
 			m_pBuffer->SetPan(pan);
 
@@ -60,33 +51,15 @@ namespace LuaSTGPlus {
 		}
 
 		bool SetSpeed(float speed) {
-			float frq = (float)m_freq;
-			int newfrq = (int)(frq * speed);
-			if (newfrq > 100000 || newfrq < 100) {
-				return false;
-			}
-			if (m_pBuffer->SetFrequency(newfrq) == FCYERR_OK) {
-				m_lastfrq = speed;
-				return true;
-			}
-			else {
-				return false;
-			}
+			return m_pBuffer->SetFrequency(speed) == FCYERR_OK;
 		}
 
 		float GetSpeed() {
-			if (m_lastfrq <= 0.0f) {
-				return 1.0f;
-			}
-			else {
-				return m_lastfrq;
-			}
+			return m_pBuffer->GetFrequency();
 		}
 	public:
 		ResSound(const char* name, fcyRefPointer<f2dSoundBuffer> buffer) : Resource(ResourceType::SoundEffect, name) {
 			m_pBuffer = buffer;
-			m_lastfrq = -1.0f;
-			m_freq = m_pBuffer->GetFrequency();
 		}
 	};
 
@@ -133,8 +106,6 @@ namespace LuaSTGPlus {
 		fcyRefPointer<BGMWrapper> m_pDecoder;
 		fcyRefPointer<f2dSoundBuffer> m_pBuffer;
 		int m_status;//0停止1暂停2播放
-		float m_lastfrq;
-		long m_freq;
 	public:
 		f2dSoundBuffer* GetAudioSource() { return *m_pBuffer; }
 
@@ -142,11 +113,6 @@ namespace LuaSTGPlus {
 		{
 			m_pBuffer->Stop();
 			m_pBuffer->SetTime(position);
-
-			//float nv = VolumeFix(vol);
-			//float nv = (float)volume::LinearToLog(vol);
-			//if (m_pBuffer->GetVolume() != nv)
-			//	m_pBuffer->SetVolume(nv);
 
 			m_pBuffer->SetVolume(vol);
 
@@ -189,44 +155,20 @@ namespace LuaSTGPlus {
 
 		void SetVolume(float v)
 		{
-			//float nv = VolumeFix(v);
-			//float nv = (float)volume::LinearToLog(v);
-			//if (m_pBuffer->GetVolume() != nv)
-			//	m_pBuffer->SetVolume(nv);
-
 			m_pBuffer->SetVolume(v);
 		}
 
-		float GetVolume() {
-			//double dv = (double)m_pBuffer->GetVolume();
-			//double tv = volume::LogToLinear(dv);
-			//return (float)tv;
-			
+		float GetVolume()
+		{
 			return m_pBuffer->GetVolume();
 		}
 
 		bool SetSpeed(float speed) {
-			float frq = (float)m_freq;
-			int newfrq = (int)(frq * speed);
-			if (newfrq > 100000 || newfrq < 100) {
-				return false;
-			}
-			if (m_pBuffer->SetFrequency(newfrq) == FCYERR_OK) {
-				m_lastfrq = speed;
-				return true;
-			}
-			else {
-				return false;
-			}
+			return m_pBuffer->SetFrequency(speed) == FCYERR_OK;
 		}
 
 		float GetSpeed() {
-			if (m_lastfrq <= 0.0f) {
-				return 1.0f;
-			}
-			else {
-				return m_lastfrq;
-			}
+			return m_pBuffer->GetFrequency();
 		}
 		
 		void SetLoop(bool v)
@@ -238,8 +180,6 @@ namespace LuaSTGPlus {
 			m_pDecoder = decoder;
 			m_pBuffer = buffer;
 			m_status = 0;
-			m_lastfrq = -1.0f;
-			m_freq = m_pBuffer->GetFrequency();
 		}
 	};
 }

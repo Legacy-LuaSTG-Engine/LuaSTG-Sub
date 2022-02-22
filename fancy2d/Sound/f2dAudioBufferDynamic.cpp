@@ -302,18 +302,16 @@ fResult f2dAudioBufferDynamic::SetPan(fFloat Value)
 	return pSys->SetSoundEffectPan(xa2_source, Value);
 }
 
-fuInt f2dAudioBufferDynamic::GetFrequency()
+fFloat f2dAudioBufferDynamic::GetFrequency()
 {
 	float v = 0.0f;
 	xa2_source->GetFrequencyRatio(&v);
-	fuInt samp = m_pDecoder->GetSamplesPerSec();
-	return (fuInt)((float)samp * v);
+	return v;
 }
 
-fResult f2dAudioBufferDynamic::SetFrequency(fuInt Value)
+fResult f2dAudioBufferDynamic::SetFrequency(fFloat Value)
 {
-	fuInt samp = m_pDecoder->GetSamplesPerSec();
-	HRESULT hr = gHR = xa2_source->SetFrequencyRatio((float)Value / (float)samp);
+	HRESULT hr = gHR = xa2_source->SetFrequencyRatio(Value);
 	return FAILED(hr) ? FCYERR_INTERNALERR : FCYERR_OK;
 }
 

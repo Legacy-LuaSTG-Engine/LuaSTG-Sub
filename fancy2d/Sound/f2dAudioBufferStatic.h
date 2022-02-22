@@ -24,8 +24,6 @@ protected:
 	Microsoft::WRL::Wrappers::Event event_end;
 	std::vector<BYTE> pcm_data;
 	fFloat output_pan = 0.0f;
-	fuInt sample_rate = 0;
-	fuShort channel_cnt = 0;
 	fBool is_playing = false;
 public:
 	void WINAPI OnVoiceProcessingPassStart(UINT32 BytesRequired);
@@ -56,8 +54,8 @@ public:
 	fResult SetVolume(fFloat Value);
 	fFloat GetPan();
 	fResult SetPan(fFloat Value);
-	fuInt GetFrequency();
-	fResult SetFrequency(fuInt Value);
+	fFloat GetFrequency();
+	fResult SetFrequency(fFloat Value);
 
 	// 应该废弃的方法
 

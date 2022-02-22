@@ -72,10 +72,10 @@ struct f2dSoundBuffer : public f2dInterface
 	                                             ///< @return 返回[-1~1]，-1左声道，0正常，1右声道
 	virtual fResult SetPan(fFloat Value)=0;      ///< @brief     设置声道平衡
 	                                             ///< @param[in] Value 平衡参数[-1~1]，-1左声道，0正常，1右声道
-	virtual fuInt GetFrequency()=0;              ///< @brief  获得播放频率
-	                                             ///< @return 返回每秒钟采样次数
-	virtual fResult SetFrequency(fuInt Value)=0; ///< @brief     设置播放频率
-	                                             ///< @param[in] Value 取值范围[100~100,000]
+	virtual fFloat GetFrequency()=0;              ///< @brief  获得播放速率
+	                                             ///< @return 1.0代表原速
+	virtual fResult SetFrequency(fFloat Value)=0; ///< @brief     设置播放速率
+	                                             ///< @param[in] 1.0代表原速
 
 	virtual void UpdateFFT() = 0;
 	virtual fuInt GetFFTSize() = 0;

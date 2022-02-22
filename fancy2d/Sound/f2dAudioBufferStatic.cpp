@@ -105,9 +105,6 @@ f2dAudioBufferStatic::f2dAudioBufferStatic(f2dSoundSys* pSoundSys, f2dSoundDecod
 	};
 
 	event_end.Attach(CreateEventExW(NULL, NULL, CREATE_EVENT_MANUAL_RESET, EVENT_ALL_ACCESS));
-
-	channel_cnt = pDecoder->GetChannelCount();
-	sample_rate = pDecoder->GetSamplesPerSec();
 }
 
 f2dAudioBufferStatic::~f2dAudioBufferStatic()
@@ -199,15 +196,15 @@ fResult f2dAudioBufferStatic::SetPan(fFloat Value)
 	return pSys->SetSoundEffectPan(xa2_source, Value);
 }
 
-fuInt f2dAudioBufferStatic::GetFrequency()
+fFloat f2dAudioBufferStatic::GetFrequency()
 {
 	float v = 0.0f;
 	xa2_source->GetFrequencyRatio(&v);
-	return (fuInt)((float)sample_rate * v);
+	return v;
 }
 
-fResult f2dAudioBufferStatic::SetFrequency(fuInt Value)
+fResult f2dAudioBufferStatic::SetFrequency(fFloat Value)
 {
-	HRESULT hr = gHR = xa2_source->SetFrequencyRatio((float)Value / (float)sample_rate);
+	HRESULT hr = gHR = xa2_source->SetFrequencyRatio(Value);
 	return FAILED(hr) ? FCYERR_INTERNALERR : FCYERR_OK;
 }
