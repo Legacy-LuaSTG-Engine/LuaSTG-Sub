@@ -85,6 +85,7 @@ static int lib_ShowMemoryUsageWindow(lua_State* L)
         {
             MEMORYSTATUSEX info = { sizeof(MEMORYSTATUSEX) };
             BOOL bret = GlobalMemoryStatusEx(&info);
+            f2dAdapterMemoryUsageStatistics gmuinfo = LAPP.GetRenderDev() ? LAPP.GetRenderDev()->GetAdapterMemoryUsageStatistics() : f2dAdapterMemoryUsageStatistics{};
             if (bret)
             {
                 ImGui::Text("System Memory Usage: %u%%", info.dwMemoryLoad);
@@ -95,6 +96,17 @@ static int lib_ShowMemoryUsageWindow(lua_State* L)
                 ImGui::Text("Totoal User Mode Memory Space: %s", bytes_count_to_string(info.ullTotalVirtual).c_str());
                 ImGui::Text("Avalid User Mode Memory Space: %s", bytes_count_to_string(info.ullAvailVirtual).c_str());
                 ImGui::Text("Alloc* User Mode Memory Space: %s", bytes_count_to_string(info.ullTotalVirtual - info.ullAvailVirtual).c_str());
+
+                ImGui::Text("Adapter Local Budget: %s", bytes_count_to_string(gmuinfo.local.budget).c_str());
+                ImGui::Text("Adapter Local Usage: %s", bytes_count_to_string(gmuinfo.local.current_usage).c_str());
+                ImGui::Text("Adapter Local Available For Reservation: %s", bytes_count_to_string(gmuinfo.local.available_for_reservation).c_str());
+                ImGui::Text("Adapter Local Current Reservation: %s", bytes_count_to_string(gmuinfo.local.current_reservation).c_str());
+
+                ImGui::Text("Adapter Non-Local Budget: %s", bytes_count_to_string(gmuinfo.non_local.budget).c_str());
+                ImGui::Text("Adapter Non-Local Usage: %s", bytes_count_to_string(gmuinfo.non_local.current_usage).c_str());
+                ImGui::Text("Adapter Non-Local Available For Reservation: %s", bytes_count_to_string(gmuinfo.non_local.available_for_reservation).c_str());
+                ImGui::Text("Adapter Non-Local Current Reservation: %s", bytes_count_to_string(gmuinfo.non_local.current_reservation).c_str());
+
                 if (ImGui::Button("Write To LOG File"))
                 {
                     spdlog::info("[fancy2d] 系统内存使用情况：\n"

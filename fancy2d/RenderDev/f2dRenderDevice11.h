@@ -122,6 +122,7 @@ public:
 
 	void* GetHandle();
 	fcStr GetDeviceName();
+	f2dAdapterMemoryUsageStatistics GetAdapterMemoryUsageStatistics();
 	
 	fResult AttachListener(f2dRenderDeviceEventListener* Listener, fInt Priority = 0);
 	fResult RemoveListener(f2dRenderDeviceEventListener* Listener);

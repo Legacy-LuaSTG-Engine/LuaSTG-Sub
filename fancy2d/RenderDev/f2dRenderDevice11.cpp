@@ -814,6 +814,30 @@ f2dRenderDevice11::~f2dRenderDevice11()
 
 void* f2dRenderDevice11::GetHandle() { return d3d11_device.Get(); }
 fcStr f2dRenderDevice11::GetDeviceName() { return m_DevName.c_str(); }
+f2dAdapterMemoryUsageStatistics f2dRenderDevice11::GetAdapterMemoryUsageStatistics()
+{
+	f2dAdapterMemoryUsageStatistics data = {};
+	Microsoft::WRL::ComPtr<IDXGIAdapter3> adapter;
+	if (bHR = dxgi_adapter.As(&adapter))
+	{
+		DXGI_QUERY_VIDEO_MEMORY_INFO info = {};
+		if (bHR = gHR = adapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &info))
+		{
+			data.local.budget = info.Budget;
+			data.local.current_usage = info.CurrentUsage;
+			data.local.available_for_reservation = info.AvailableForReservation;
+			data.local.current_reservation = info.CurrentReservation;
+		}
+		if (bHR = gHR = adapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL, &info))
+		{
+			data.non_local.budget = info.Budget;
+			data.non_local.current_usage = info.CurrentUsage;
+			data.non_local.available_for_reservation = info.AvailableForReservation;
+			data.non_local.current_reservation = info.CurrentReservation;
+		}
+	}
+	return data;
+}
 
 // 设备丢失与恢复
 

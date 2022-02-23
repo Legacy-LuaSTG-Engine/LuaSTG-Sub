@@ -667,6 +667,24 @@ struct f2dDisplayMode
 	fuInt scaling = 0; // 缩放，平台相关的值
 };
 
+struct f2dAdapterMemoryUsageStatistics
+{
+	struct
+	{
+		fuLong budget;
+		fuLong current_usage;
+		fuLong available_for_reservation;
+		fuLong current_reservation;
+	} local;
+	struct
+	{
+		fuLong budget;
+		fuLong current_usage;
+		fuLong available_for_reservation;
+		fuLong current_reservation;
+	} non_local;
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief 渲染设备
 /// @note  负责渲染对象的创建和设备管理。
@@ -679,6 +697,8 @@ struct f2dRenderDevice
 	
 	// 返回显卡名称
 	virtual fcStr GetDeviceName() = 0;
+
+	virtual f2dAdapterMemoryUsageStatistics GetAdapterMemoryUsageStatistics() = 0;
 
 	// 获得支持的显示模式数量
 	virtual fuInt GetSupportedDisplayModeCount(fBool refresh = false) = 0;
