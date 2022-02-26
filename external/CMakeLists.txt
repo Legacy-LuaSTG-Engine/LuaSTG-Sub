@@ -130,3 +130,41 @@ target_link_libraries(lua_xlsx_csv PUBLIC
 )
 
 set_target_properties(lua_xlsx_csv PROPERTIES FOLDER external)
+
+# ==================== xmath ====================
+
+add_library(xmath STATIC)
+luastg_target_common_options(xmath)
+target_include_directories(xmath PUBLIC
+    xmath-patch
+    xmath
+    .
+)
+target_sources(xmath PRIVATE
+    xmath-patch/math/Vec2.h
+    xmath-patch/math/Vec2.cpp
+    xmath/meow_fft.c
+    xmath/meow_fft.h
+    xmath/XCollision.cpp
+    xmath/XCollision.h
+    xmath/XComplex.cpp
+    xmath/XComplex.h
+    xmath/XConstant.h
+    xmath/XDistance.cpp
+    xmath/XDistance.h
+    xmath/XEquation.cpp
+    xmath/XEquation.h
+    xmath/XFFT.cpp
+    xmath/XFFT.h
+    xmath/XIntersect.cpp
+    xmath/XIntersect.h
+    xmath/XMath.h
+    xmath/XRandom.cpp
+    xmath/XRandom.h
+    xmath/XSpline.cpp
+    xmath/XSpline.h
+    xmath/XTween.cpp
+    xmath/XTween.h
+)
+
+set_target_properties(xmath PROPERTIES FOLDER external)

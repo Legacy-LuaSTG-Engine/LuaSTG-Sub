@@ -317,7 +317,7 @@ fResult f2dAudioBufferDynamic::SetFrequency(fFloat Value)
 
 // 高科技
 
-#include "xmath/xmath/XFFT.h"
+#include "xmath/XFFT.h"
 
 void f2dAudioBufferDynamic::UpdateFFT()
 {

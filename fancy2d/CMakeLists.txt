@@ -123,6 +123,7 @@ target_link_libraries(fancy2dlib PUBLIC
     freetype
     vorbisfile
     fancylib
+    xmath
 )
 
 # 动态库
