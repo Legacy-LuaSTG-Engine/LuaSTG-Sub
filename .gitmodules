@@ -1,15 +1,9 @@
-[submodule "xmath/xmath"]
-	path = xmath/xmath
-	url = https://github.com/Legacy-LuaSTG-Engine/lstgx_Math.git
 [submodule "imgui/imgui"]
 	path = imgui/imgui
 	url = https://github.com/ocornut/imgui.git
 [submodule "imgui/implot"]
 	path = imgui/implot
 	url = https://github.com/epezent/implot.git
-[submodule "DirectX/DirectXTex"]
-	path = DirectX/DirectXTex
-	url = https://github.com/microsoft/DirectXTex.git
 [submodule "external/spdlog"]
 	path = external/spdlog
 	url = https://github.com/gabime/spdlog.git
