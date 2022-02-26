@@ -14,7 +14,7 @@ set(FANCY2D_SOURCE
     f2dRenderer.h
     f2dVideoSys.h
 
-    Common/fancy2d.manifest
+    #Common/fancy2d.manifest
     
     Common/f2dStandardCommon.hpp
     Common/f2dStandardCommon.cpp
