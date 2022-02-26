@@ -1,0 +1,21 @@
+# IDE
+.idea/*
+.vscode/*
+.vs/*
+
+# build
+build/*
+out/*
+install/*
+
+# publish
+bin/*
+
+# test
+data/*
+
+# cache
+LuaSTG/Custom.cmake
+LuaSTG/backup/*
+LuaSTG/custom/*
+DirectX/DirectXSDK/backup/*

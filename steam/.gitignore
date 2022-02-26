@@ -1,0 +1,4 @@
+SteamworksSDK/*
+!SteamworksSDK/sdk
+SteamworksSDK/sdk/*
+!SteamworksSDK/sdk/Download.txt

@@ -1,0 +1,24 @@
+[submodule "imgui/imgui"]
+	path = imgui/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "imgui/implot"]
+	path = imgui/implot
+	url = https://github.com/epezent/implot.git
+[submodule "external/spdlog"]
+	path = external/spdlog
+	url = https://github.com/gabime/spdlog.git
+[submodule "external/DirectXTex"]
+	path = external/DirectXTex
+	url = https://github.com/microsoft/DirectXTex.git
+[submodule "external/lua-cjson"]
+	path = external/lua-cjson
+	url = https://github.com/mpx/lua-cjson.git
+[submodule "external/lua-filesystem"]
+	path = external/lua-filesystem
+	url = https://github.com/keplerproject/luafilesystem.git
+[submodule "external/pugixml"]
+	path = external/pugixml
+	url = https://github.com/zeux/pugixml.git
+[submodule "external/xmath"]
+	path = external/xmath
+	url = https://github.com/Legacy-LuaSTG-Engine/lstgx_Math.git
