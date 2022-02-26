@@ -11,7 +11,6 @@ extern "C" {
 #include "lua_xlsx_csv.h"
 #include "lua_steam.h"
 #include "xinput/lua_xinput.hpp"
-#include "security/lua_security.hpp"
 
 #include "utility/encoding.hpp"
 
@@ -267,7 +266,6 @@ namespace LuaSTGPlus
             lua_csv_open(L);
             lua_steam_open(L);
             lua_xinput_open(L);
-            lua_security_open(L);
             lua_settop(L, 0);
             
             RegistBuiltInClassWrapper(L);  // 注册内建类 (luastg lib)
