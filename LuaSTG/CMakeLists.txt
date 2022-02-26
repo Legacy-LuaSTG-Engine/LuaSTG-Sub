@@ -87,7 +87,6 @@ target_link_libraries(LuaSTG PRIVATE
     lua_fs
     lua_xlsx_csv
     lua_imgui
-    lua_slow
     lua_steam_api
 )
 

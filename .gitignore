@@ -10,9 +10,8 @@ install/*
 
 # publish
 bin/*
-ver/*
 
-#test
+# test
 data/*
 
 # cache

@@ -12,7 +12,6 @@ extern "C" {
 #include "lua_steam.h"
 #include "xinput/lua_xinput.hpp"
 #include "security/lua_security.hpp"
-#include "lua_slow.h"
 
 #include "utility/encoding.hpp"
 
@@ -269,7 +268,6 @@ namespace LuaSTGPlus
             lua_steam_open(L);
             lua_xinput_open(L);
             lua_security_open(L);
-            luaopen_slow(L);
             lua_settop(L, 0);
             
             RegistBuiltInClassWrapper(L);  // 注册内建类 (luastg lib)
