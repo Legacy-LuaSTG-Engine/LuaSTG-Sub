@@ -16,3 +16,6 @@
 [submodule "external/DirectXTex"]
 	path = external/DirectXTex
 	url = https://github.com/microsoft/DirectXTex.git
+[submodule "external/lua-cjson"]
+	path = external/lua-cjson
+	url = https://github.com/mpx/lua-cjson.git

@@ -54,3 +54,33 @@ else()
     message(FATAL_ERROR "unknown platform")
 endif()
 add_library(DirectX::XAudio2Redist ALIAS XAudio2Redist)
+
+#==================== lua cjson ====================#
+
+add_library(lua_cjson STATIC)
+luastg_target_common_options(lua_cjson)
+target_compile_definitions(lua_cjson PRIVATE
+    _CRT_SECURE_NO_WARNINGS
+    DISABLE_INVALID_NUMBERS
+    ENABLE_CJSON_GLOBAL
+    #snprintf=_snprintf
+    #strncasecmp=_strnicmp
+    strncasecmp=strnicmp
+)
+target_include_directories(lua_cjson PUBLIC
+    lua-cjson-patch
+    lua-cjson
+)
+target_sources(lua_cjson PRIVATE
+    lua-cjson-patch/lua_cjson.h
+    lua-cjson-patch/lua_cjson.c
+    lua-cjson/strbuf.h
+    lua-cjson/strbuf.c
+    lua-cjson/fpconv.h
+    lua-cjson/fpconv.c
+)
+target_link_libraries(lua_cjson PUBLIC
+    luajit
+)
+
+set_target_properties(lua_cjson PROPERTIES FOLDER external)

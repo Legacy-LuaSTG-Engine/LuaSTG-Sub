@@ -1,29 +1,3 @@
-#==================== lua cjson ====================#
-
-add_library(lua_cjson STATIC)
-target_compile_definitions(lua_cjson PRIVATE
-    _CRT_SECURE_NO_WARNINGS
-    DISABLE_INVALID_NUMBERS
-    #snprintf=_snprintf
-    #strncasecmp=_strnicmp
-    strncasecmp=strnicmp
-)
-target_include_directories(lua_cjson PUBLIC
-    luacjson
-)
-target_sources(lua_cjson PRIVATE
-    luacjson/lua_cjson.h
-    luacjson/lua_cjson.c
-    luacjson/strbuf.h
-    luacjson/strbuf.c
-    luacjson/fpconv.h
-    luacjson/fpconv.c
-)
-target_link_libraries(lua_cjson PUBLIC
-    luajit
-)
-
-set_target_properties(lua_cjson PROPERTIES FOLDER external)
 
 #==================== lua fs ====================#
 
