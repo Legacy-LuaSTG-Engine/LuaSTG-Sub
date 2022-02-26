@@ -13,7 +13,7 @@ target_compile_options(spdlog PUBLIC
 
 set_target_properties(spdlog PROPERTIES FOLDER external)
 
-#==================== DirectXTK family ====================#
+# ==================== DirectXTK family ====================#
 
 add_library(DirectXTexMini STATIC)
 luastg_target_common_options(DirectXTexMini)
@@ -34,7 +34,7 @@ target_link_libraries(DirectXTexMini PUBLIC
 
 set_target_properties(DirectXTexMini PROPERTIES FOLDER external)
 
-#==================== XAudio2 ====================#
+# ==================== XAudio2 ====================
 
 add_library(XAudio2Redist SHARED IMPORTED GLOBAL)
 target_include_directories(XAudio2Redist INTERFACE
@@ -55,7 +55,7 @@ else()
 endif()
 add_library(DirectX::XAudio2Redist ALIAS XAudio2Redist)
 
-#==================== lua filesystem ====================#
+# ==================== lua filesystem ====================
 
 add_library(lua_filesystem STATIC)
 luastg_target_common_options2(lua_filesystem)
@@ -67,7 +67,7 @@ target_include_directories(lua_filesystem PUBLIC
 )
 target_sources(lua_filesystem PRIVATE
     lua-filesystem-patch/lfs.h
-    lua-filesystem/src/lfs.c
+    lua-filesystem-patch/lfs.c
 )
 target_link_libraries(lua_filesystem PUBLIC
     luajit
@@ -75,7 +75,7 @@ target_link_libraries(lua_filesystem PUBLIC
 
 set_target_properties(lua_filesystem PROPERTIES FOLDER external)
 
-#==================== lua cjson ====================#
+# ==================== lua cjson ====================
 
 add_library(lua_cjson STATIC)
 luastg_target_common_options(lua_cjson)
@@ -104,3 +104,29 @@ target_link_libraries(lua_cjson PUBLIC
 )
 
 set_target_properties(lua_cjson PROPERTIES FOLDER external)
+
+# ==================== pugixml ====================
+
+add_subdirectory(pugixml)
+
+set_target_properties(pugixml-static PROPERTIES FOLDER external)
+
+# ==================== lua csv ====================
+
+add_library(lua_xlsx_csv STATIC)
+luastg_target_common_options(lua_xlsx_csv)
+target_include_directories(lua_xlsx_csv PUBLIC
+    lua-csv
+)
+target_sources(lua_xlsx_csv PRIVATE
+    lua-csv/lua_xlsx_csv.h
+    lua-csv/lua_xlsx.cpp
+    lua-csv/lua_csv.cpp
+)
+target_link_libraries(lua_xlsx_csv PUBLIC
+    luajit
+    zip
+    pugixml
+)
+
+set_target_properties(lua_xlsx_csv PROPERTIES FOLDER external)
