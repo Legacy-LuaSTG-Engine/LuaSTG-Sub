@@ -1,23 +1,5 @@
 
-#==================== lua fs ====================#
 
-add_library(lua_fs STATIC)
-target_compile_definitions(lua_fs PRIVATE
-    _CRT_SECURE_NO_WARNINGS
-)
-target_include_directories(lua_fs PUBLIC
-    luafilesystem/src
-)
-target_sources(lua_fs PRIVATE
-    luafilesystem/src/lua_fs.h
-    luafilesystem/src/lfs.h
-    luafilesystem/src/lfs.c
-)
-target_link_libraries(lua_fs PUBLIC
-    luajit
-)
-
-set_target_properties(lua_fs PROPERTIES FOLDER external)
 
 #==================== lua extension ====================#
 

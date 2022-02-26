@@ -84,7 +84,7 @@ target_link_libraries(LuaSTG PRIVATE
     luajit
     imgui
     lua_cjson
-    lua_fs
+    lua_filesystem
     lua_xlsx_csv
     lua_imgui
     lua_steam_api

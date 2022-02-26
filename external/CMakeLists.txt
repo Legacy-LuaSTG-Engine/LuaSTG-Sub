@@ -55,6 +55,26 @@ else()
 endif()
 add_library(DirectX::XAudio2Redist ALIAS XAudio2Redist)
 
+#==================== lua filesystem ====================#
+
+add_library(lua_filesystem STATIC)
+luastg_target_common_options2(lua_filesystem)
+target_compile_definitions(lua_filesystem PRIVATE
+    _CRT_SECURE_NO_WARNINGS
+)
+target_include_directories(lua_filesystem PUBLIC
+    lua-filesystem-patch
+)
+target_sources(lua_filesystem PRIVATE
+    lua-filesystem-patch/lfs.h
+    lua-filesystem/src/lfs.c
+)
+target_link_libraries(lua_filesystem PUBLIC
+    luajit
+)
+
+set_target_properties(lua_filesystem PROPERTIES FOLDER external)
+
 #==================== lua cjson ====================#
 
 add_library(lua_cjson STATIC)

@@ -6,7 +6,7 @@
 #include "LuaWrapper/LuaWrapper.hpp"
 extern "C" {
 #include "lua_cjson.h"
-#include "lua_fs.h"
+#include "lfs.h"
 }
 #include "lua_xlsx_csv.h"
 #include "lua_steam.h"
@@ -262,7 +262,7 @@ namespace LuaSTGPlus
             }
             
             luaopen_cjson(L);
-            lua_fs_open(L);
+            luaopen_lfs(L);
             lua_xlsx_open(L);
             lua_csv_open(L);
             lua_steam_open(L);
