@@ -68,7 +68,7 @@ struct Win32MessageQueue
 
     bool write(Win32Message const& v)
     {
-        if (::WaitForSingleObject(semaphore_space, INFINITE) == WAIT_OBJECT_0)
+        if (::WaitForSingleObject(semaphore_space, 0) == WAIT_OBJECT_0)
         {
             data[writer_index] = v;
             writer_index = (writer_index + 1) % size;
