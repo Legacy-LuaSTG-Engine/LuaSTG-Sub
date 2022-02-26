@@ -12,7 +12,6 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$<$<CONFIG:
 
 add_subdirectory(prebuild)
 add_subdirectory(ThirdParty)
-add_subdirectory(DirectX)
 add_subdirectory(external)
 
 add_subdirectory(utility)
