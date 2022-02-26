@@ -131,35 +131,11 @@ add_custom_command(TARGET LuaSTG POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:DirectX::XAudio2Redist>/$<TARGET_FILE_NAME:DirectX::XAudio2Redist>"        "$<TARGET_FILE_DIR:LuaSTG>"
     COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:DirectX::XAudio2Redist>/$<TARGET_FILE_NAME:DirectX::XAudio2Redist>"        ${CMAKE_SOURCE_DIR}/bin
     
-    # fancy family
-    
-    #COMMAND ${CMAKE_COMMAND} -E rm -f "$<TARGET_FILE_DIR:LuaSTG>/$<TARGET_FILE_NAME:fancy2d>"
-    #COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:fancy2d>/$<TARGET_FILE_NAME:fancy2d>"          "$<TARGET_FILE_DIR:LuaSTG>"
-    #COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:fancy2d>/$<TARGET_FILE_NAME:fancy2d>"          ${CMAKE_SOURCE_DIR}/bin
-    
     # lua family
     
     COMMAND ${CMAKE_COMMAND} -E rm -f "$<TARGET_FILE_DIR:LuaSTG>/$<TARGET_FILE_NAME:luajit>"
     COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:luajit>/$<TARGET_FILE_NAME:luajit>"            "$<TARGET_FILE_DIR:LuaSTG>"
     COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:luajit>/$<TARGET_FILE_NAME:luajit>"            ${CMAKE_SOURCE_DIR}/bin
-    
-    # lua extensions
-    
-    #COMMAND ${CMAKE_COMMAND} -E rm -f "$<TARGET_FILE_DIR:LuaSTG>/$<TARGET_FILE_NAME:lcjson>"
-    #COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:lcjson>/$<TARGET_FILE_NAME:lcjson>"            "$<TARGET_FILE_DIR:LuaSTG>"
-    #COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:lcjson>/$<TARGET_FILE_NAME:lcjson>"            ${CMAKE_SOURCE_DIR}/bin
-    
-    #COMMAND ${CMAKE_COMMAND} -E rm -f "$<TARGET_FILE_DIR:LuaSTG>/$<TARGET_FILE_NAME:lfs>"
-    #COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:lfs>/$<TARGET_FILE_NAME:lfs>"                  "$<TARGET_FILE_DIR:LuaSTG>"
-    #COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:lfs>/$<TARGET_FILE_NAME:lfs>"                  ${CMAKE_SOURCE_DIR}/bin
-    
-    #COMMAND ${CMAKE_COMMAND} -E rm -f "$<TARGET_FILE_DIR:LuaSTG>/$<TARGET_FILE_NAME:lcsv>"
-    #COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:lcsv>/$<TARGET_FILE_NAME:lcsv>"                "$<TARGET_FILE_DIR:LuaSTG>"
-    #COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:lcsv>/$<TARGET_FILE_NAME:lcsv>"                ${CMAKE_SOURCE_DIR}/bin
-    
-    #COMMAND ${CMAKE_COMMAND} -E rm -f "$<TARGET_FILE_DIR:LuaSTG>/$<TARGET_FILE_NAME:lxlsx>"
-    #COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:lxlsx>/$<TARGET_FILE_NAME:lxlsx>"              "$<TARGET_FILE_DIR:LuaSTG>"
-    #COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:lxlsx>/$<TARGET_FILE_NAME:lxlsx>"              ${CMAKE_SOURCE_DIR}/bin
     
     # luastg engine
     
