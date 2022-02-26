@@ -261,7 +261,7 @@ namespace LuaSTGPlus
                 return false;
             }
             
-            lua_cjson_open(L);
+            luaopen_cjson(L);
             lua_fs_open(L);
             lua_xlsx_open(L);
             lua_csv_open(L);

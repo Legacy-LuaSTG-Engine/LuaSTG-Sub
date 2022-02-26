@@ -54,11 +54,14 @@
 #define CJSON_VERSION   "2.1devel"
 #endif
 
+#if 0
 #ifdef _MSC_VER
 #define CJSON_EXPORT    __declspec(dllexport)
 #else
 #define CJSON_EXPORT    extern
 #endif
+#endif
+#define CJSON_EXPORT
 
 /* Workaround for Solaris platforms missing isinf() */
 #if !defined(isinf) && (defined(USE_INTERNAL_ISINF) || defined(MISSING_ISINF))
@@ -1304,6 +1307,7 @@ static int json_decode(lua_State *l)
 
 /* ===== INITIALISATION ===== */
 
+#if 0
 #if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 502
 /* Compatibility for Lua 5.1.
  *
@@ -1322,6 +1326,7 @@ static void luaL_setfuncs (lua_State *l, const luaL_Reg *reg, int nup)
     }
     lua_pop(l, nup);  /* remove upvalues */
 }
+#endif
 #endif
 
 /* Call target function in protected mode with all supplied args.

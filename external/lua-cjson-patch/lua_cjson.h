@@ -1,4 +1,4 @@
 #pragma once
 #include "lua.h"
 
-int lua_cjson_open(lua_State* L);
+int luaopen_cjson(lua_State* L);
