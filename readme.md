@@ -13,7 +13,7 @@ LuaSTG Sub 分支的基础功能被迁移到新的系统 API，用于替代老�
 
 ## 配置要求  
 
-* 系统要求：最低为 Windows 7 SP1  
+* 系统要求：最低为 Windows 7 SP1 且安装平台更新（[KB2670838](https://www.microsoft.com/en-us/download/details.aspx?id=36805)）  
 * 显卡需求：支持 Direct3D 11 且 Direct3D 功能级别至少为 D3D_FEATURE_LEVEL_10_0  
 * 声卡需求：支持 XAudio2  
 
@@ -37,7 +37,7 @@ LuaSTG Sub, is a branch that the basic functions migrated to the new system API,
 
 ## Requirements  
 
-* Operating System: Windows 7 SP1 or above  
+* Operating System: Windows 7 SP1 with platform update ([KB2670838](https://www.microsoft.com/en-us/download/details.aspx?id=36805)) or above  
 * Graphics Card: compatible with Direct3D11, Direct3D feature level is D3D_FEATURE_LEVEL_10_0 or above  
 * Audio Card: compatible with XAudio2  
 
