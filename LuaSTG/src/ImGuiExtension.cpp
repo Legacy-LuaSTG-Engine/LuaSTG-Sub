@@ -16,12 +16,11 @@
 #include "lua_imgui.hpp"
 #include "lua_imgui_type.hpp"
 
-#include "Common/DPIHelper.hpp"
 #include "Common/SystemDirectory.hpp"
 
 #include "AppFrame.h"
-#include "f2dConfig.h"
 
+#define NOMINMAX
 #define XINPUT_USE_9_1_0
 #include <Xinput.h>
 
@@ -137,6 +136,8 @@ static int lib_ShowMemoryUsageWindow(lua_State* L)
 static int lib_ShowFrameStatistics(lua_State* L)
 {
     constexpr size_t arr_size = 3600;
+    static bool is_init = false;
+    static std::vector<double> arr_x(arr_size);
     static std::vector<double> arr_update_time(arr_size);
     static std::vector<double> arr_render_time(arr_size);
     static std::vector<double> arr_present_time(arr_size);
@@ -147,7 +148,16 @@ static int lib_ShowFrameStatistics(lua_State* L)
     constexpr size_t record_range_max = 3600;
     static float height = 384.0f;
     static bool auto_fit = true;
-
+    
+    if (!is_init)
+    {
+        is_init = true;
+        for (size_t x = 0; x < arr_size; x += 1)
+        {
+            arr_x[x] = (double)x;
+        }
+    }
+    
     bool v = (lua_gettop(L) >= 1) ? lua_toboolean(L, 1) : true;
     if (v)
     {
@@ -162,6 +172,7 @@ static int lib_ShowFrameStatistics(lua_State* L)
             ImGui::Text("Total  : %.3fms", info.total_time   * 1000.0);
             
             ImGui::SliderScalar("Record Range", sizeof(size_t) == 8 ? ImGuiDataType_U64 : ImGuiDataType_U32, &record_range, &record_range_min, &record_range_max);
+            record_range = std::clamp<size_t>(record_range, 2, record_range_max);
             ImGui::SliderFloat("Timeline Height", &height, 256.0f, 512.0f);
             ImGui::Checkbox("Auto-Fit Y Axis", &auto_fit);
 
@@ -174,7 +185,7 @@ static int lib_ShowFrameStatistics(lua_State* L)
             if (ImPlot::BeginPlot("##Frame Statistics", ImVec2(-1, height), 0))
             {
                 //ImPlot::SetupAxes("Frame", "Time", flags, flags);
-                ImPlot::SetupAxisLimits(ImAxis_X1, 0.0, (double)(record_range + 1), ImGuiCond_Always);
+                ImPlot::SetupAxisLimits(ImAxis_X1, 0.0, (double)(record_range - 1), ImGuiCond_Always);
                 //ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0, 1000.0 / 18.0, ImGuiCond_Always);
                 if (auto_fit)
                     ImPlot::SetupAxes(NULL, NULL, ImPlotAxisFlags_None, ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_RangeFit);
@@ -184,10 +195,10 @@ static int lib_ShowFrameStatistics(lua_State* L)
                 ImPlot::SetupLegend(ImPlotLocation_North, ImPlotLegendFlags_Horizontal | ImPlotLegendFlags_Outside);
 
                 ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.5f);
-                ImPlot::PlotShaded("Total", arr_total_time.data(), (int)record_range);
-                ImPlot::PlotShaded("Present", arr_present_time.data(), (int)record_range);
-                ImPlot::PlotShaded("Render", arr_render_time.data(), (int)record_range);
-                ImPlot::PlotShaded("Update", arr_update_time.data(), (int)record_range);
+                ImPlot::PlotShaded("Total", arr_x.data(), arr_present_time.data(), arr_total_time.data(), (int)record_range);
+                ImPlot::PlotShaded("Present", arr_x.data(), arr_render_time.data(), arr_present_time.data(), (int)record_range);
+                ImPlot::PlotShaded("Render", arr_x.data(), arr_update_time.data(), arr_render_time.data(), (int)record_range);
+                ImPlot::PlotShaded("Update", arr_x.data(), arr_update_time.data(), (int)record_range);
                 ImPlot::PopStyleVar();
 
                 ImPlot::PlotLine("Total", arr_total_time.data(), (int)record_range);
