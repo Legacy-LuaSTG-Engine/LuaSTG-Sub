@@ -194,18 +194,6 @@ static int lib_ShowFrameStatistics(lua_State* L)
 
                 ImPlot::SetupLegend(ImPlotLocation_North, ImPlotLegendFlags_Horizontal | ImPlotLegendFlags_Outside);
 
-                ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.5f);
-                ImPlot::PlotShaded("Total", arr_x.data(), arr_present_time.data(), arr_total_time.data(), (int)record_range);
-                ImPlot::PlotShaded("Present", arr_x.data(), arr_render_time.data(), arr_present_time.data(), (int)record_range);
-                ImPlot::PlotShaded("Render", arr_x.data(), arr_update_time.data(), arr_render_time.data(), (int)record_range);
-                ImPlot::PlotShaded("Update", arr_x.data(), arr_update_time.data(), (int)record_range);
-                ImPlot::PopStyleVar();
-
-                ImPlot::PlotLine("Total", arr_total_time.data(), (int)record_range);
-                ImPlot::PlotLine("Present", arr_present_time.data(), (int)record_range);
-                ImPlot::PlotLine("Render", arr_render_time.data(), (int)record_range);
-                ImPlot::PlotLine("Update", arr_update_time.data(), (int)record_range);
-                
                 static double arr_ms[] = {
                     1000.0 / 60.0,
                     1000.0 / 30.0,
@@ -218,6 +206,18 @@ static int lib_ShowFrameStatistics(lua_State* L)
                 //ImPlot::SetNextLineStyle(ImVec4(1.0f, 0.2f, 0.2f, 1.0f));
                 //ImPlot::PlotHLines("##20 FPS", arr_ms + 2, 1);
 
+                ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.5f);
+                ImPlot::PlotShaded("Total", arr_x.data(), arr_present_time.data(), arr_total_time.data(), (int)record_range);
+                ImPlot::PlotShaded("Present", arr_x.data(), arr_render_time.data(), arr_present_time.data(), (int)record_range);
+                ImPlot::PlotShaded("Render", arr_x.data(), arr_update_time.data(), arr_render_time.data(), (int)record_range);
+                ImPlot::PlotShaded("Update", arr_x.data(), arr_update_time.data(), (int)record_range);
+                ImPlot::PopStyleVar();
+
+                ImPlot::PlotLine("Total", arr_total_time.data(), (int)record_range);
+                ImPlot::PlotLine("Present", arr_present_time.data(), (int)record_range);
+                ImPlot::PlotLine("Render", arr_render_time.data(), (int)record_range);
+                ImPlot::PlotLine("Update", arr_update_time.data(), (int)record_range);
+                
                 double mark = (double)arr_index;
                 ImPlot::SetNextLineStyle(ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
                 ImPlot::PlotVLines("##Current Time", &arr_index, 1);
