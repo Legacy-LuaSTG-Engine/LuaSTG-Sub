@@ -92,8 +92,9 @@ public:
 	{
 		return m_pPointer;
 	}
-	T** operator&()
+	T** operator~()
 	{
+		FCYSAFEKILL(m_pPointer);
 		return &m_pPointer;
 	}
 	operator T*()const

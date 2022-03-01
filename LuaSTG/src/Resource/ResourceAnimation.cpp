@@ -17,7 +17,7 @@ namespace LuaSTGPlus {
 				// new 只在资源池中调用，那边已经检查过了f2dRenderer是否存在
 				if (FCYFAILED(LAPP.GetRenderer()->CreateSprite2D(tex->GetTexture(), fcyRect(
 					x + w * i, y + h * j, x + w * (i + 1), y + h * (j + 1)
-				), &t)))
+				), ~t)))
 				{
 					throw fcyException("ResAnimation::ResAnimation", "CreateSprite2D failed.");
 				}

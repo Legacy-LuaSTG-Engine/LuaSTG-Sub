@@ -72,7 +72,7 @@ static int package_loader_luastg(lua_State* L) {
     //if (luaL_loadfile(L, filename) != 0)
         //loaderror(L, filename);
     fcyRefPointer<fcyMemStream> stream;
-    if (!GFileManager().loadEx(filename, &stream))
+    if (!GFileManager().loadEx(filename, ~stream))
         loaderror(L, filename);
     else {
         fLen length = stream->GetLength();
