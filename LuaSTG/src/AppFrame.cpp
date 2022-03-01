@@ -6,6 +6,7 @@
 #include "ImGuiExtension.h"
 #include "LuaWrapper/LuaAppFrame.hpp"
 #include "LConfig.h"
+#include "Core/FileManager.hpp"
 
 #define NOMINMAX
 #include <Windows.h>
@@ -646,7 +647,7 @@ void AppFrame::Shutdown()LNOEXCEPT
 		spdlog::info("[luastg] 关闭luajit引擎");
 	}
 	
-	m_FileManager.UnloadAllArchive();
+	GFileManager().unloadAllFileArchive();
 	spdlog::info("[luastg] 卸载所有资源包");
 	
 	m_iStatus = AppStatus::Destroyed;

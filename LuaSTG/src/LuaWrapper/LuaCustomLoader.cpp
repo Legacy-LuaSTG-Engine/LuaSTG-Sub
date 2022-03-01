@@ -1,10 +1,10 @@
 ﻿#include <string>
 #include "LuaWrapper/LuaCustomLoader.hpp"
-#include "AppFrame.h"
+#include "Core/FileManager.hpp"
 
 static int readable(const char* filename) {
     try {
-        return LFMGR.FileExistEx(filename) ? 1 : 0;
+        return GFileManager().containEx(filename) ? 1 : 0;
     }
     catch(...) {}
     return 0;
@@ -71,11 +71,8 @@ static int package_loader_luastg(lua_State* L) {
     if (filename == NULL) return 1;  /* library not found in this path */
     //if (luaL_loadfile(L, filename) != 0)
         //loaderror(L, filename);
-    fcyRefPointer<fcyStream> stream; {
-        fcyStream* p = LAPP.GetFileManager().LoadFile(filename);
-        stream.DirectSet(p);
-    }
-    if (*stream == nullptr)
+    fcyRefPointer<fcyMemStream> stream;
+    if (!GFileManager().loadEx(filename, &stream))
         loaderror(L, filename);
     else {
         fLen length = stream->GetLength();

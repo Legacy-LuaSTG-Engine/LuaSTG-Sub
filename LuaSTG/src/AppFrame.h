@@ -4,7 +4,6 @@
 #include "Global.h"
 #include "ResourceMgr.h"
 #include "GameObjectPool.h"
-#include "E2DFileManager.hpp"
 #include "Common/DirectInput.h"
 #include "LuaSTG/Core/Renderer.hpp"
 #include "LConfig.h"
@@ -49,7 +48,6 @@ namespace LuaSTGPlus
 #endif
 		
 		// 资源管理器
-		Eyes2D::IO::FileManager m_FileManager;
 		ResourceMgr m_ResourceMgr;
 		
 		// 对象池
@@ -338,7 +336,6 @@ namespace LuaSTGPlus
 	public:
 		// 获取框架对象
 		ResourceMgr& GetResourceMgr() LNOEXCEPT { return m_ResourceMgr; }
-		Eyes2D::IO::FileManager& GetFileManager() LNOEXCEPT { return m_FileManager; }
 		GameObjectPool& GetGameObjectPool() LNOEXCEPT{ return *m_GameObjectPool.get(); }
 		f2dEngine* GetEngine() LNOEXCEPT { return m_pEngine; }
 		f2dWindow* GetWindow() LNOEXCEPT { return m_pMainWindow; }
@@ -378,4 +375,3 @@ namespace LuaSTGPlus
 #define LAPP (LuaSTGPlus::AppFrame::GetInstance())
 #define LPOOL (LAPP.GetGameObjectPool())
 #define LRES (LAPP.GetResourceMgr())
-#define LFMGR (LAPP.GetFileManager())

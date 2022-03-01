@@ -35,7 +35,7 @@ namespace LuaSTGPlus
 		struct Wrapper;
 	public:
 		static void Register(lua_State* L)LNOEXCEPT;
-		static void CreateAndPush(lua_State* L, unsigned int uid)LNOEXCEPT;
+		static void CreateAndPush(lua_State* L, uint64_t uuid)LNOEXCEPT;
 	};
 
 	//文件资源管理

@@ -4,12 +4,11 @@
 #include <string_view>
 #include <filesystem>
 
-#include "AppFrame.h"
-
-#include "E2DFileManager.hpp"
-
+#include "Core/FileManager.hpp"
 #include "utility/encoding.hpp"
 #include "utility/path.hpp"
+
+#include "AppFrame.h"
 
 using namespace std;
 using namespace LuaSTGPlus;
@@ -21,36 +20,21 @@ ResourceMgr::ResourceMgr() :
 
 // 文件操作
 
-bool ResourceMgr::LoadFile(const wchar_t* path, fcyRefPointer<fcyMemStream>& outBuf, const wchar_t* packname) noexcept {
-    std::string utf8path = utility::encoding::to_utf8(path);//文件路径
-    if (packname != nullptr) {
-        std::string utf8pack = utility::encoding::to_utf8(packname); // 压缩包名
-        return LoadFile(utf8path.c_str(), outBuf, utf8pack.c_str());
-    }
-    else {
-        return LoadFile(utf8path.c_str(), outBuf, nullptr);
-    }
-}
-
 bool ResourceMgr::LoadFile(const char* path, fcyRefPointer<fcyMemStream>& outBuf, const char* packname) noexcept {
-    std::string utf8path = path;//文件路径
+    std::string utf8path(path);
     utility::path::to_slash(utf8path);
-    
-    Eyes2D::IO::FileManager& FMGR = LFMGR;
-    fcyStream* stream = nullptr;
-    if (packname != nullptr) {
-        stream = FMGR.LoadFile(utf8path.c_str(), packname);
-    }
-    else {
-        stream = FMGR.LoadFile(utf8path.c_str());
-    }
-    
-    if (stream != nullptr) {
-        outBuf.DirectSet((fcyMemStream*) stream);
-        return true;
-    }
-    else {
+    if (packname)
+    {
+        auto& arc = GFileManager().getFileArchive(packname);
+        if (!arc.empty())
+        {
+            return arc.load(utf8path, &outBuf);
+        }
         return false;
+    }
+    else
+    {
+        return GFileManager().loadEx(utf8path, &outBuf);
     }
 }
 
@@ -127,8 +111,7 @@ bool listFilesS(lua_State* L, const char* dir, const char* ext, int& index) {
 bool listFilesA(lua_State* L, const char* dir, const char* ext, const char* packname, int& index) {
     // ??? t
     
-    Eyes2D::IO::FileManager& FMGR = LFMGR;
-    Eyes2D::IO::Archive* zip = nullptr;
+    auto& FMGR = GFileManager();
     
     string searchpath = dir;
     utility::path::to_slash(searchpath);//格式化为Linux风格
@@ -148,15 +131,15 @@ bool listFilesA(lua_State* L, const char* dir, const char* ext, const char* pack
     size_t exsize = expath.size();
     size_t pathsize = 0;
     
-    for (unsigned int select = 0; select < FMGR.GetArchiveCount(); select++) {
-        zip = FMGR.GetArchive(select);
-        if (zip != nullptr) {
-            string zipname = zip->GetArchivePath();
+    for (unsigned int select = 0; select < FMGR.getFileArchiveCount(); select++) {
+        auto& zip = FMGR.getFileArchive(select);
+        if (!zip.empty()) {
+            string zipname(zip.getFileArchiveName());
             if ((frompack.size() > 0) && (frompack != zipname)) {
                 continue;//没有命中压缩包
             }
-            for (long long pos = 0; pos < zip->GetFileCount(); pos++) {
-                string filename = zip->GetFileName(pos);//文件名
+            for (long long pos = 0; pos < zip.getCount(); pos++) {
+                string filename(zip.getName(pos));//文件名
                 pathsize = filename.size();
                 
                 //开始检查路径是否命中
