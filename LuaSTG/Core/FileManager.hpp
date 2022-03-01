@@ -21,8 +21,6 @@ namespace LuaSTG::Core
     
     class FileNodeTree
     {
-    protected:
-        std::vector<FileNode> list;
     public:
         virtual size_t findIndex(std::string_view const& name) = 0;
         virtual size_t getCount() = 0;
@@ -63,8 +61,8 @@ namespace LuaSTG::Core
     class FileManager : public FileNodeTree
     {
     private:
-        std::vector<std::string> search_list;
         std::vector<FileNode> list;
+        std::vector<std::string> search_list;
         FileArchive null_archive;
         std::vector<FileArchive> archive;
         void refresh();
