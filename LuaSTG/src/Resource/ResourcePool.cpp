@@ -1,6 +1,5 @@
 ﻿#include "ResourceMgr.h"
 #include "AppFrame.h"
-#include "Utility.h"
 #include "Core/FileManager.hpp"
 
 #ifdef max
