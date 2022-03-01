@@ -415,6 +415,18 @@ void FileManagerWrapper::Register(lua_State* L)LNOEXCEPT {
 			lua_pushboolean(L, GFileManager().containEx(luaL_checkstring(L, -1)));
 			return 1;
 		}
+		static int AddSearchPath(lua_State* L) {
+			GFileManager().addSearchPath(luaL_checkstring(L, 1));
+			return 0;
+		}
+		static int RemoveSearchPath(lua_State* L) {
+			GFileManager().removeSearchPath(luaL_checkstring(L, 1));
+			return 0;
+		}
+		static int ClearSearchPath(lua_State* L) {
+			GFileManager().clearSearchPath();
+			return 1;
+		}
 	};
 
 	luaL_Reg tMethods[] = {
@@ -428,6 +440,9 @@ void FileManagerWrapper::Register(lua_State* L)LNOEXCEPT {
 		{ "EnumFilesEx", &Wrapper::EnumFilesEx },
 		{ "FileExist", &Wrapper::FileExist },
 		{ "FileExistEx", &Wrapper::FileExistEx },
+		{ "AddSearchPath", &Wrapper::AddSearchPath },
+		{ "RemoveSearchPath", &Wrapper::RemoveSearchPath },
+		{ "ClearSearchPath", &Wrapper::ClearSearchPath },
 		{ NULL, NULL },
 	};
 	
