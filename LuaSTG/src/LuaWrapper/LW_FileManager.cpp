@@ -2,8 +2,8 @@
 #include <filesystem>
 #include "AppFrame.h"
 #include "LuaWrapper\LuaWrapper.hpp"
-#include "E2DFileManager.hpp"
 
+#include "Core/FileManager.hpp"
 #include "utility/encoding.hpp"
 #include "utility/path.hpp"
 
@@ -24,27 +24,27 @@ void FileManagerWrapper::Register(lua_State* L)LNOEXCEPT {
 			switch (argn) {
 			case 1:
 				// path
-				ret = LFMGR.LoadArchive(luaL_checkstring(L, 1), 0, nullptr);
+				ret = GFileManager().loadFileArchive(luaL_checkstring(L, 1));
 				break;
 			case 2:
 				if (lua_isnumber(L, 2)) {
 					// path lv
-					ret = LFMGR.LoadArchive(luaL_checkstring(L, 1), luaL_checkinteger(L, 2), nullptr);
+					ret = GFileManager().loadFileArchive(luaL_checkstring(L, 1));
 				}
 				else {
 					// path pw
-					ret = LFMGR.LoadArchive(luaL_checkstring(L, 1), 0, luaL_checkstring(L, 2));
+					ret = GFileManager().loadFileArchive(luaL_checkstring(L, 1), luaL_checkstring(L, 2));
 				}
 				break;
 			case 3:
 				// path lv pw
-				ret = LFMGR.LoadArchive(luaL_checkstring(L, 1), luaL_checkinteger(L, 2), luaL_checkstring(L, 3));
+				ret = GFileManager().loadFileArchive(luaL_checkstring(L, 1), luaL_checkstring(L, 3));
 				break;
 			}
 			if (ret) {
-				Eyes2D::IO::Archive* zip = LFMGR.GetArchive(luaL_checkstring(L, 1));
-				if (zip != nullptr) {
-					ArchiveWrapper::CreateAndPush(L, zip->GetUID());
+				auto& zip = GFileManager().getFileArchive(luaL_checkstring(L, 1));
+				if (!zip.empty()) {
+					ArchiveWrapper::CreateAndPush(L, zip.getUUID());
 				}
 				else {
 					lua_pushnil(L);
@@ -57,8 +57,8 @@ void FileManagerWrapper::Register(lua_State* L)LNOEXCEPT {
 		}
 		static int UnloadArchive(lua_State* L) {
 			const char* s = luaL_checkstring(L, 1);
-			if (LFMGR.ArchiveExist(s)) {
-				LFMGR.UnloadArchive(s);
+			if (GFileManager().containFileArchive(s)) {
+				GFileManager().unloadFileArchive(s);
 				lua_pushboolean(L, true);
 			}
 			else {
@@ -67,19 +67,19 @@ void FileManagerWrapper::Register(lua_State* L)LNOEXCEPT {
 			return 1;
 		}
 		static int UnloadAllArchive(lua_State* L) {
-			LFMGR.UnloadAllArchive();
+			GFileManager().unloadAllFileArchive();
 			return 0;
 		}
 		static int ArchiveExist(lua_State* L) {
 			lua_pushboolean(L,
-				LFMGR.ArchiveExist(
+				GFileManager().containFileArchive(
 					luaL_checkstring(L, 1)));
 			return 1;
 		}
 		static int GetArchive(lua_State* L) {
-			Eyes2D::IO::Archive* zip = LFMGR.GetArchive(luaL_checkstring(L, 1));
-			if (zip != nullptr) {
-				ArchiveWrapper::CreateAndPush(L, zip->GetUID());
+			auto& zip = GFileManager().getFileArchive(luaL_checkstring(L, 1));
+			if (!zip.empty()) {
+				ArchiveWrapper::CreateAndPush(L, zip.getUUID());
 			}
 			else {
 				lua_pushnil(L);
@@ -88,16 +88,16 @@ void FileManagerWrapper::Register(lua_State* L)LNOEXCEPT {
 		}
 		static int EnumArchives(lua_State* L) {
 			lua_newtable(L); // ??? t 
-			for (unsigned int index = 1; index <= LFMGR.GetArchiveCount(); index++) {
-				Eyes2D::IO::Archive* ref = LFMGR.GetArchive(index - 1);
-				if (ref != nullptr) {
+			for (unsigned int index = 1; index <= GFileManager().getFileArchiveCount(); index++) {
+				auto& ref = GFileManager().getFileArchive(index - 1);
+				if (!ref.empty()) {
 					lua_pushinteger(L, (lua_Integer)index); // ??? t index 
 					lua_newtable(L); // ??? t index tt 
 					lua_pushinteger(L, 1); // ??? t index tt 1 
-					lua_pushstring(L, ref->GetArchivePath()); // ??? t index tt 1 s
+					lua_pushstring(L, ref.getFileArchiveName().data()); // ??? t index tt 1 s
 					lua_settable(L, -3); // ??? t index tt 
 					lua_pushinteger(L, 2); // ??? t index tt 2 
-					lua_pushinteger(L, ref->GetPriority()); // ??? t index tt 2 priority 
+					lua_pushinteger(L, 0); // ??? t index tt 2 priority 
 					lua_settable(L, -3); // ??? t index tt 
 					lua_settable(L, -3); // ??? t 
 				}
@@ -197,13 +197,13 @@ void FileManagerWrapper::Register(lua_State* L)LNOEXCEPT {
 					}
 				}
 			}
-			for (auto z = 0; z < LFMGR.GetArchiveCount(); z++) {
-				Eyes2D::IO::Archive* zip = LFMGR.GetArchive(z);
-				if (zip != nullptr) {
+			for (auto z = 0; z < GFileManager().getFileArchiveCount(); z++) {
+				auto& zip = GFileManager().getFileArchive(z);
+				if (!zip.empty()) {
 					string_view frompath = searchpath; //目标路径
 					int i = 1;
-					for (auto f = 0; f < zip->GetFileCount(); f++) {
-						string topath = zip->GetFileName(f); //要比较的路径
+					for (auto f = 0; f < zip.getCount(); f++) {
+						string topath(zip.getName(f)); //要比较的路径
 						if (frompath.size() >= topath.size()) {
 							continue; // 短的直接pass
 						}
@@ -238,7 +238,7 @@ void FileManagerWrapper::Register(lua_State* L)LNOEXCEPT {
 									lua_pushboolean(L, (topath.back() == '/'));// ??? self searchpath t i tt 2 bool //以分隔符结尾的都是文件夹
 									lua_settable(L, -3);// ??? self searchpath t i tt 
 									lua_pushinteger(L, 3);// ??? self searchpath t i tt 3 
-									lua_pushstring(L, zip->GetArchivePath());// ??? self searchpath t i tt 3 s 
+									lua_pushstring(L, zip.getFileArchiveName().data());// ??? self searchpath t i tt 3 s 
 									lua_settable(L, -3);// ??? self searchpath t i tt 
 									lua_settable(L, -3);// ??? self searchpath t 
 									index++;
@@ -252,12 +252,12 @@ void FileManagerWrapper::Register(lua_State* L)LNOEXCEPT {
 		}
 		static int FileExist(lua_State* L) {
 			// ??? filepath
-			lua_pushboolean(L, LFMGR.FileExist(luaL_checkstring(L, -1)));
+			lua_pushboolean(L, GFileManager().contain(luaL_checkstring(L, -1)));
 			return 1;
 		}
 		static int FileExistEx(lua_State* L) {
 			// ??? filepath
-			lua_pushboolean(L, LFMGR.FileExistEx(luaL_checkstring(L, -1)));
+			lua_pushboolean(L, GFileManager().containEx(luaL_checkstring(L, -1)));
 			return 1;
 		}
 	};

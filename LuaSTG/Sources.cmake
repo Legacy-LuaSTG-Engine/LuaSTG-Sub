@@ -86,8 +86,8 @@ set(LUASTG_ENGINE_SOURCES
     src/Main.cpp
     src/ScopeObject.cpp
     src/Utility.h
-    src/E2DFileManager.hpp
-    src/E2DFileManager.cpp
+    Core/FileManager.hpp
+    Backend/FileManager.cpp
     
     src/LuaSTG.manifest
 )

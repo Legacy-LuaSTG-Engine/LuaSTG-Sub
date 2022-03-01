@@ -2,32 +2,38 @@
 #include <string_view>
 #include "AppFrame.h"
 #include "LuaWrapper\LuaWrapper.hpp"
-#include "E2DFileManager.hpp"
+#include "Core/FileManager.hpp"
 
 #include "utility/path.hpp"
 
 using namespace std;
 using namespace LuaSTGPlus;
-using namespace Eyes2D::IO;
 
-struct ArchiveWrapper::Wrapper {
-	unsigned int uid;
-	Archive* handle;
+struct ArchiveWrapper::Wrapper
+{
+	uint64_t uuid;
 };
 
-void ArchiveWrapper::Register(lua_State* L)LNOEXCEPT {
-	struct Function {
-		static int IsValid(lua_State* L) {
+#define getself ArchiveWrapper::Wrapper* self = static_cast<ArchiveWrapper::Wrapper*>(luaL_checkudata(L, 1, LUASTG_LUA_TYPENAME_ARCHIVE));
+#define getthis (GFileManager().getFileArchiveByUUID(self->uuid))
+
+void ArchiveWrapper::Register(lua_State* L)LNOEXCEPT
+{
+	struct Function
+	{
+		static int IsValid(lua_State* L)
+		{
 			// self
-			ArchiveWrapper::Wrapper* p = static_cast<ArchiveWrapper::Wrapper*>(luaL_checkudata(L, -1, LUASTG_LUA_TYPENAME_ARCHIVE));
-			::lua_pushboolean(L, (LFMGR.GetArchiveByUID(p->uid) != nullptr));
+			getself;
+			::lua_pushboolean(L, !getthis.empty());
 			return 1;
 		}
-		static int EnumFiles(lua_State* L) {
+		static int EnumFiles(lua_State* L)
+		{
 			// ??? self searchpath
-			ArchiveWrapper::Wrapper* p = static_cast<ArchiveWrapper::Wrapper*>(luaL_checkudata(L, -2, LUASTG_LUA_TYPENAME_ARCHIVE));
-			Archive* zip = LFMGR.GetArchiveByUID(p->uid);
-			if (zip != nullptr) {
+			getself;
+			auto& zip = getthis;
+			if (!zip.empty()) {
 				string frompathattr = luaL_checkstring(L, -1);
 				utility::path::to_slash(frompathattr);//转换为'/'分隔符
 				if ((frompathattr.size() == 1) && (frompathattr.back() == '/')) {
@@ -39,8 +45,8 @@ void ArchiveWrapper::Register(lua_State* L)LNOEXCEPT {
 				string_view frompath = frompathattr; //目标路径
 				lua_newtable(L);// ??? self searchpath t 
 				int i = 1;
-				for (long long index = 0; index < zip->GetFileCount(); index++) {
-					string topath = zip->GetFileName(index); //要比较的路径
+				for (long long index = 0; index < zip.getCount(); index++) {
+					string topath(zip.getName(index)); //要比较的路径
 					if (frompath.size() >= topath.size()) {
 						continue; // 短的直接pass
 					}
@@ -83,15 +89,16 @@ void ArchiveWrapper::Register(lua_State* L)LNOEXCEPT {
 			}
 			return 1;
 		}
-		static int ListFiles(lua_State* L) {
-			// ??? self
-			ArchiveWrapper::Wrapper* p = static_cast<ArchiveWrapper::Wrapper*>(luaL_checkudata(L, -1, LUASTG_LUA_TYPENAME_ARCHIVE));
-			Archive* zip = LFMGR.GetArchiveByUID(p->uid);
-			if (zip != nullptr) {
+		static int ListFiles(lua_State* L)
+		{
+			// self
+			getself;
+			auto& zip = getthis;
+			if (!zip.empty()) {
 				lua_newtable(L);// ??? self t 
 				int i = 1;
-				for (long long index = 0; index < zip->GetFileCount(); index++) {
-					string topath = zip->GetFileName(index);
+				for (long long index = 0; index < zip.getCount(); index++) {
+					string topath(zip.getName(index));
 
 					lua_pushinteger(L, i);// ??? self searchpath t i 
 					lua_newtable(L);// ??? self searchpath t i tt 
@@ -111,57 +118,58 @@ void ArchiveWrapper::Register(lua_State* L)LNOEXCEPT {
 			}
 			return 1;
 		}
-		static int FileExist(lua_State* L) {
-			// ??? self path
-			ArchiveWrapper::Wrapper* p = static_cast<ArchiveWrapper::Wrapper*>(luaL_checkudata(L, -2, LUASTG_LUA_TYPENAME_ARCHIVE));
-			Archive* zip = LFMGR.GetArchiveByUID(p->uid);
-			if (zip != nullptr) {
+		static int FileExist(lua_State* L)
+		{
+			// self path
+			getself;
+			auto& zip = getthis;
+			if (!zip.empty())
+			{
 				string frompath = luaL_checkstring(L, -1);
-				utility::path::to_slash(frompath);//转换为'/'分隔符
-				lua_pushboolean(L, zip->FileExist(frompath.c_str()));
+				utility::path::to_slash(frompath);
+				lua_pushboolean(L, zip.contain(frompath));
 			}
-			else {
+			else
+			{
 				lua_pushboolean(L, false);
 			}
 			return 1;
 		}
 		static int GetName(lua_State* L) {
-			// ??? self
-			ArchiveWrapper::Wrapper* p = static_cast<ArchiveWrapper::Wrapper*>(luaL_checkudata(L, -1, LUASTG_LUA_TYPENAME_ARCHIVE));
-			Archive* zip = LFMGR.GetArchiveByUID(p->uid);
-			if (zip != nullptr) {
-				lua_pushstring(L, zip->GetArchivePath());
+			getself;
+			auto& zip = getthis;
+			if (!zip.empty())
+			{
+				lua_pushstring(L, zip.getFileArchiveName().data());
 			}
-			else {
+			else
+			{
 				lua_pushnil(L);
 			}
 			return 1;
 		}
-		static int GetPriority(lua_State* L) {
-			// ??? self
-			ArchiveWrapper::Wrapper* p = static_cast<ArchiveWrapper::Wrapper*>(luaL_checkudata(L, -1, LUASTG_LUA_TYPENAME_ARCHIVE));
-			Archive* zip = LFMGR.GetArchiveByUID(p->uid);
-			if (zip != nullptr) {
-				lua_pushinteger(L, zip->GetPriority());
-			}
-			else {
-				lua_pushnil(L);
-			}
-			return 0;
+		static int GetPriority(lua_State* L)
+		{
+			lua_pushinteger(L, 0);
+			return 1;
 		}
-		static int SetPriority(lua_State* L) {
-			// ??? self priority
-			ArchiveWrapper::Wrapper* p = static_cast<ArchiveWrapper::Wrapper*>(luaL_checkudata(L, -2, LUASTG_LUA_TYPENAME_ARCHIVE));
-			int priority = luaL_checkinteger(L, -1);
-			LFMGR.SetArchivePriorityByUID(p->uid, priority);
+		static int SetPriority(lua_State* L)
+		{
 			return 0;
 		}
 
 		static int Meta_ToString(lua_State* L)LNOEXCEPT
 		{
-			// ??? self 
-			ArchiveWrapper::Wrapper* p = static_cast<ArchiveWrapper::Wrapper*>(luaL_checkudata(L, -1, LUASTG_LUA_TYPENAME_ARCHIVE));
-			lua_pushfstring(L, "lstg.Archive object");
+			getself;
+			auto& zip = getthis;
+			if (!zip.empty())
+			{
+				lua_pushfstring(L, "lstg.Archive(%llu, \"%s\")", self->uuid, zip.getFileArchiveName().data());
+			}
+			else
+			{
+				lua_pushfstring(L, "lstg.Archive(%llu)", self->uuid);
+			}
 			return 1;
 		}
 	};
@@ -187,10 +195,10 @@ void ArchiveWrapper::Register(lua_State* L)LNOEXCEPT {
 	LuaSTGPlus::RegisterMethodD(L, LUASTG_LUA_TYPENAME_ARCHIVE, tMethods, tMetaTable);
 }
 
-void ArchiveWrapper::CreateAndPush(lua_State* L, unsigned int uid)LNOEXCEPT {
+void ArchiveWrapper::CreateAndPush(lua_State* L, uint64_t uuid)LNOEXCEPT {
 	ArchiveWrapper::Wrapper* p = static_cast<ArchiveWrapper::Wrapper*>(lua_newuserdata(L, sizeof(ArchiveWrapper::Wrapper))); // udata
 	new(p) ArchiveWrapper::Wrapper(); // udata
-	p->uid = uid;
+	p->uuid = uuid;
 	luaL_getmetatable(L, LUASTG_LUA_TYPENAME_ARCHIVE); // udata mt
 	lua_setmetatable(L, -2); // udata 
 }

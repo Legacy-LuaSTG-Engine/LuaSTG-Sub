@@ -3,6 +3,7 @@
 #include "LuaWrapper\LuaWrapper.hpp"
 #include "AppFrame.h"
 #include <filesystem>
+#include "Core/FileManager.hpp"
 
 #define NOMINMAX
 #include <Windows.h>
@@ -95,25 +96,44 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		static int LoadPack(lua_State* L)LNOEXCEPT
 		{
 			const char* p = luaL_checkstring(L, 1);
-			const char* pwd = nullptr;
 			if (lua_isstring(L, 2))
-				pwd = luaL_checkstring(L, 2);
-			if (!LFMGR.LoadArchive(p, 0, pwd))
-				spdlog::error("[luastg] LoadPack: 无法装载资源包'{}'，文件不存在或不是合法的资源包格式", p);
-			return 0;
+			{
+				const char* pwd = luaL_checkstring(L, 2);
+				if (!GFileManager().loadFileArchive(p, pwd))
+				{
+					spdlog::error("[luastg] LoadPack: 无法装载资源包'{}'，文件不存在或不是合法的资源包格式", p);
+					lua_pushboolean(L, false);
+					return 1;
+				}
+			}
+			else
+			{
+				if (!GFileManager().loadFileArchive(p))
+				{
+					spdlog::error("[luastg] LoadPack: 无法装载资源包'{}'，文件不存在或不是合法的资源包格式", p);
+					lua_pushboolean(L, false);
+					return 1;
+				}
+			}
+			lua_pushboolean(L, true);
+			return 1;
 		}
 		static int LoadPackSub(lua_State* L)LNOEXCEPT
 		{
 			const char* p = luaL_checkstring(L, 1);
-			std::string pw = LuaSTGPlus::GetGameName();
-			if (!LFMGR.LoadArchive(p, 0, pw.c_str()))
+			if (!GFileManager().loadFileArchive(p, LuaSTGPlus::GetGameName()))
+			{
 				spdlog::error("[luastg] LoadPackSub: 无法装载资源包'{}'，文件不存在或不是合法的资源包格式", p);
-			return 0;
+				lua_pushboolean(L, false);
+				return 1;
+			}
+			lua_pushboolean(L, true);
+			return 1;
 		}
 		static int UnloadPack(lua_State* L)LNOEXCEPT
 		{
 			const char* p = luaL_checkstring(L, 1);
-			LFMGR.UnloadArchive(p);
+			GFileManager().unloadFileArchive(p);
 			return 0;
 		}
 		static int ExtractRes(lua_State* L)LNOEXCEPT
@@ -1036,8 +1056,8 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 						catch (...) {}
 						// 没有……那只能从FMGR加载了
 						if (!loaded) {
-							fcyMemStream* stream = (fcyMemStream*)LFMGR.LoadFile(filename);
-							if (stream != nullptr) {
+							fcyMemStream* stream = nullptr;
+							if (!GFileManager().loadEx(filename, &stream)) {
 								streams.push_back(fcyRefPointer<fcyStream>());
 								streams.back().DirectSet(stream);
 								loaded = true;
