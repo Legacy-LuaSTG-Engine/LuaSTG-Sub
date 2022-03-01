@@ -4,7 +4,7 @@
 #include "utility/encoding.hpp"
 #include "zip.h"
 
-#define CUSTOM_ZIP_STAT (ZIP_STAT_NAME | ZIP_STAT_INDEX | ZIP_STAT_SIZE | ZIP_STAT_ENCRYPTION_METHOD)
+#define CUSTOM_ZIP_STAT (ZIP_STAT_INDEX | ZIP_STAT_SIZE | ZIP_STAT_ENCRYPTION_METHOD)
 
 namespace LuaSTG::Core
 {
@@ -71,7 +71,7 @@ namespace LuaSTG::Core
         {
             return false;
         }
-        zip_file_t* zf = zip_fopen_index(p_zip_t, index, ZIP_FL_ENC_GUESS);
+        zip_file_t* zf = zip_fopen_index(p_zip_t, index, ZIP_FL_UNCHANGED);
         if (zf)
         {
             buffer.resize((size_t)zs.size);
@@ -97,14 +97,23 @@ namespace LuaSTG::Core
         {
             return false;
         }
-        zip_file_t* zf = zip_fopen_index(p_zip_t, index, ZIP_FL_ENC_GUESS);
+        zip_file_t* zf = zip_fopen_index(p_zip_t, index, ZIP_FL_UNCHANGED);
         if (zf)
         {
             fcyMemStream* stream = new fcyMemStream(nullptr, zs.size, true, false);
             *buffer = stream;
             zip_int64_t read = zip_fread(zf, stream->GetInternalBuffer(), zs.size);
             zip_fclose(zf);
-            return (zip_int64_t)zs.size == read;
+            if ((zip_int64_t)zs.size == read)
+            {
+                return true;
+            }
+            else
+            {
+                stream->Release();
+                *buffer = nullptr;
+                return false;
+            }
         }
         return false;
     }
@@ -148,7 +157,7 @@ namespace LuaSTG::Core
             return false;
         }
         std::string password_str(password);
-        zip_file_t* zf = zip_fopen_index_encrypted(p_zip_t, index, ZIP_FL_ENC_GUESS, password_str.c_str());
+        zip_file_t* zf = zip_fopen_index_encrypted(p_zip_t, index, ZIP_FL_UNCHANGED, password_str.c_str());
         if (zf)
         {
             buffer.resize((size_t)zs.size);
@@ -179,14 +188,23 @@ namespace LuaSTG::Core
             return false;
         }
         std::string password_str(password);
-        zip_file_t* zf = zip_fopen_index_encrypted(p_zip_t, index, ZIP_FL_ENC_GUESS, password_str.c_str());
+        zip_file_t* zf = zip_fopen_index_encrypted(p_zip_t, index, ZIP_FL_UNCHANGED, password_str.c_str());
         if (zf)
         {
             fcyMemStream* stream = new fcyMemStream(nullptr, zs.size, true, false);
             *buffer = stream;
             zip_int64_t read = zip_fread(zf, stream->GetInternalBuffer(), zs.size);
             zip_fclose(zf);
-            return (zip_int64_t)zs.size == read;
+            if ((zip_int64_t)zs.size == read)
+            {
+                return true;
+            }
+            else
+            {
+                stream->Release();
+                *buffer = nullptr;
+                return false;
+            }
         }
         return false;
     }
@@ -196,15 +214,6 @@ namespace LuaSTG::Core
         int err = 0;
         std::string path_str(path);
         zip_v = zip_open(path_str.c_str(), ZIP_RDONLY, &err);
-        if (!zip_v)
-        {
-            std::string ansi_str = utility::encoding::to_ansi(path);
-            zip_v = zip_open(ansi_str.c_str(), ZIP_RDONLY, &err);
-            if (!zip_v)
-            {
-                throw std::runtime_error("zip_open failed.");
-            }
-        }
     }
     FileArchive::~FileArchive()
     {
@@ -309,56 +318,54 @@ namespace LuaSTG::Core
     {
         for (auto& v : archive)
         {
-            if (v.getUUID() == uuid)
+            if (v->getUUID() == uuid)
             {
-                return v;
+                return *v;
             }
         }
         return null_archive;
     }
     FileArchive& FileManager::getFileArchive(size_t index)
     {
-        return archive[index];
+        return *archive[index];
     }
     FileArchive& FileManager::getFileArchive(std::string_view const& name)
     {
         for (auto& v : archive)
         {
-            if (v.getFileArchiveName() == name)
+            if (v->getFileArchiveName() == name)
             {
-                return v;
+                return *v;
             }
         }
         return null_archive;
     }
     bool FileManager::loadFileArchive(std::string_view const& name)
     {
-        try
+        std::shared_ptr<FileArchive> arc = std::make_shared<FileArchive>(name);
+        if (arc->empty())
         {
-            FileArchive arc(name);
-            archive.insert(archive.begin(), arc);
-            return true;
+            return false;
         }
-        catch (...) {}
-        return false;
+        archive.insert(archive.begin(), arc);
+        return true;
     }
     bool FileManager::loadFileArchive(std::string_view const& name, std::string_view const& password)
     {
-        try
+        std::shared_ptr<FileArchive> arc = std::make_shared<FileArchive>(name);
+        if (arc->empty())
         {
-            FileArchive arc(name);
-            arc.setPassword(password);
-            archive.insert(archive.begin(), arc);
-            return true;
+            return false;
         }
-        catch (...) {}
-        return false;
+        arc->setPassword(password);
+        archive.insert(archive.begin(), arc);
+        return true;
     }
     bool FileManager::containFileArchive(std::string_view const& name)
     {
-        for (auto& arc : archive)
+        for (auto& v : archive)
         {
-            if (arc.getFileArchiveName() == name)
+            if (v->getFileArchiveName() == name)
             {
                 return true;
             }
@@ -369,7 +376,7 @@ namespace LuaSTG::Core
     {
         for (auto it = archive.begin(); it != archive.end();)
         {
-            if (it->getFileArchiveName() == name)
+            if ((*it)->getFileArchiveName() == name)
             {
                 it = archive.erase(it);
             }
@@ -418,7 +425,7 @@ namespace LuaSTG::Core
             }
             for (auto& arc : archive)
             {
-                if (arc.contain(name))
+                if (arc->contain(name))
                 {
                     return true;
                 }
@@ -445,7 +452,7 @@ namespace LuaSTG::Core
         {
             for (auto& arc : archive)
             {
-                if (arc.load(name, buffer))
+                if (arc->load(name, buffer))
                 {
                     return true;
                 }
@@ -476,7 +483,7 @@ namespace LuaSTG::Core
         {
             for (auto& arc : archive)
             {
-                if (arc.load(name, buffer))
+                if (arc->load(name, buffer))
                 {
                     return true;
                 }
@@ -503,6 +510,9 @@ namespace LuaSTG::Core
     }
     
     FileManager::FileManager()
+    {
+    }
+    FileManager::~FileManager()
     {
     }
     

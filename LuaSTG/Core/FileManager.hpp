@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <string_view>
+#include <memory>
 #include "fcyIO/fcyStream.h"
 
 namespace LuaSTG::Core
@@ -64,7 +65,7 @@ namespace LuaSTG::Core
         std::vector<FileNode> list;
         std::vector<std::string> search_list;
         FileArchive null_archive;
-        std::vector<FileArchive> archive;
+        std::vector<std::shared_ptr<FileArchive>> archive;
         void refresh();
     public:
         size_t findIndex(std::string_view const& name);
@@ -94,6 +95,7 @@ namespace LuaSTG::Core
         bool loadEx(std::string_view const& name, fcyMemStream** buffer);
     public:
         FileManager();
+        ~FileManager();
     public:
         static FileManager& get();
     };
