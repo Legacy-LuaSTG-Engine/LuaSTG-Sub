@@ -19,7 +19,8 @@ namespace LuaSTG::Core
         {
             return invalid_index;
         }
-        zip_int64_t index = zip_name_locate(p_zip_t, name.data(), ZIP_FL_ENC_GUESS);
+        std::string name_str(name);
+        zip_int64_t index = zip_name_locate(p_zip_t, name_str.c_str(), ZIP_FL_ENC_GUESS);
         if (index < 0)
         {
             return invalid_index;
@@ -123,7 +124,8 @@ namespace LuaSTG::Core
     }
     bool FileArchive::setPassword(std::string_view const& password)
     {
-        return zip_set_default_password(p_zip_t, password.data()) == 0;
+        std::string password_str(password);
+        return zip_set_default_password(p_zip_t, password_str.c_str()) == 0;
     }
     bool FileArchive::loadEncrypted(std::string_view const& name, std::string_view const& password, std::vector<uint8_t>& buffer)
     {
@@ -145,7 +147,8 @@ namespace LuaSTG::Core
         {
             return false;
         }
-        zip_file_t* zf = zip_fopen_index_encrypted(p_zip_t, index, ZIP_FL_ENC_GUESS, password.data());
+        std::string password_str(password);
+        zip_file_t* zf = zip_fopen_index_encrypted(p_zip_t, index, ZIP_FL_ENC_GUESS, password_str.c_str());
         if (zf)
         {
             buffer.resize((size_t)zs.size);
@@ -175,7 +178,8 @@ namespace LuaSTG::Core
         {
             return false;
         }
-        zip_file_t* zf = zip_fopen_index_encrypted(p_zip_t, index, ZIP_FL_ENC_GUESS, password.data());
+        std::string password_str(password);
+        zip_file_t* zf = zip_fopen_index_encrypted(p_zip_t, index, ZIP_FL_ENC_GUESS, password_str.c_str());
         if (zf)
         {
             fcyMemStream* stream = new fcyMemStream(nullptr, zs.size, true, false);
@@ -190,11 +194,12 @@ namespace LuaSTG::Core
     FileArchive::FileArchive(std::string_view const& path) : name(path), uuid(g_uuid++)
     {
         int err = 0;
-        zip_v = zip_open(path.data(), ZIP_RDONLY, &err);
+        std::string path_str(path);
+        zip_v = zip_open(path_str.c_str(), ZIP_RDONLY, &err);
         if (!zip_v)
         {
-            std::string astr = utility::encoding::to_ansi(path);
-            zip_v = zip_open(astr.c_str(), ZIP_RDONLY, &err);
+            std::string ansi_str = utility::encoding::to_ansi(path);
+            zip_v = zip_open(ansi_str.c_str(), ZIP_RDONLY, &err);
             if (!zip_v)
             {
                 throw std::runtime_error("zip_open failed.");
