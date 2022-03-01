@@ -12,6 +12,7 @@ extern "C" {
 #include "lua_steam.h"
 #include "xinput/lua_xinput.hpp"
 
+#include "Core/FileManager.hpp"
 #include "utility/encoding.hpp"
 
 #define NOMINMAX
@@ -218,8 +219,21 @@ namespace LuaSTGPlus
             else
                 spdlog::info("[luastg] 加载脚本'{}'", path);
         }
+        bool loaded = false;
         fcyRefPointer<fcyMemStream> tMemStream;
-        if (!m_ResourceMgr.LoadFile(path, tMemStream, packname))
+        if (packname)
+        {
+            auto& arc = GFileManager().getFileArchive(packname);
+            if (!arc.empty())
+            {
+                loaded = arc.load(path, ~tMemStream);
+            }
+        }
+        else
+        {
+            loaded = GFileManager().loadEx(path, ~tMemStream);
+        }
+        if (!loaded)
         {
             spdlog::error("[luastg] 无法加载文件'{}'", path);
             luaL_error(L, "can't load file '%s'", path);

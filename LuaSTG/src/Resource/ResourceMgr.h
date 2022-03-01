@@ -103,7 +103,6 @@ namespace LuaSTGPlus
         ResourcePool m_GlobalResourcePool;
         ResourcePool m_StageResourcePool;
     public:
-        bool LoadFile(const char* path, fcyRefPointer<fcyMemStream>& outBuf, const char* pack = nullptr) noexcept;
         bool ExtractRes(const char* path, const char* target) noexcept;
         bool FindFiles(lua_State* L, const char* path, const char* ext, const char* packname) noexcept;
         

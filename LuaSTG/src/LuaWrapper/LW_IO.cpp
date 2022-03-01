@@ -1,5 +1,5 @@
 ﻿#include "LuaWrapper/LuaWrapper.hpp"
-#include "AppFrame.h"
+#include "Core/FileManager.hpp"
 
 namespace LuaSTGPlus
 {
@@ -22,7 +22,7 @@ namespace LuaSTGPlus
 							//stream = _stream;
 
 							fcyRefPointer<fcyMemStream> _memstr;
-							if (LRES.LoadFile(luaL_checkstring(L, 1), _memstr)) {
+							if (GFileManager().loadEx(luaL_checkstring(L, 1), ~_memstr)) {
 								// ref = 1
 								_memstr->AddRef(); // 先+1的引用，防止被释放掉
 								// ref = 2
