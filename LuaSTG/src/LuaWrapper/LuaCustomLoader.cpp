@@ -75,15 +75,10 @@ static int package_loader_luastg(lua_State* L) {
     if (!GFileManager().loadEx(filename, ~stream))
         loaderror(L, filename);
     else {
-        fLen length = stream->GetLength();
-        std::string str;
-        str.resize((size_t)length);
-        stream->SetPosition(FCYSEEKORIGIN_BEG, 0);
-        fLen rd = 0;
-        stream->ReadBytes((fData)str.data(), length, &rd);
-        if (rd != stream->GetLength())
-            loaderror(L, filename);
-        if (luaL_loadstring(L, str.c_str()) != 0)
+        if (luaL_loadbuffer(L,
+            (char*)stream->GetInternalBuffer(),
+            (size_t)stream->GetLength(),
+            filename) != 0)
             loaderror(L, filename);
     }
     return 1;  /* library loaded successfully */
