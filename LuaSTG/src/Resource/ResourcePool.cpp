@@ -211,7 +211,7 @@ bool ResourcePool::LoadTexture(const char* name, const char* path, bool mipmaps)
     
     fcyRefPointer<f2dTexture2D> tTexture;
     fResult fr = LAPP.GetRenderDev()->CreateTextureFromMemory((fcData) tDataBuf->GetInternalBuffer(), tDataBuf->GetLength(),
-                                                        0, 0, false, mipmaps, &tTexture);
+                                                        0, 0, false, mipmaps, ~tTexture);
     if (FCYFAILED(fr)) {
         spdlog::error("[fancy2d] [f2dRenderDevice::CreateTextureFromMemory] 从'{}'创建纹理'{}'失败(fResult={})", path, name, fr);
         return false;
@@ -254,12 +254,12 @@ bool ResourcePool::CreateRenderTarget(const char* name, int width, int height) n
     if (width <= 0 || height <= 0) {
         fr = LAPP.GetRenderDev()->CreateRenderTarget(
             LAPP.GetRenderDev()->GetBufferWidth(), LAPP.GetRenderDev()->GetBufferHeight(),
-            true, &tTexture);
+            true, ~tTexture);
     }
     else {
         fr = LAPP.GetRenderDev()->CreateRenderTarget(
             (fuInt) width, (fuInt) height,
-            false, &tTexture);
+            false, ~tTexture);
     }
     if (FCYFAILED(fr)) {
         spdlog::error("[fancy2d] [f2dRenderDevice::CreateRenderTarget] 创建渲染目标'{}'失败(fResult={})", name, fr);
@@ -269,7 +269,7 @@ bool ResourcePool::CreateRenderTarget(const char* name, int width, int height) n
     if (width > 0 && height > 0) {
         fr = LAPP.GetRenderDev()->CreateDepthStencilSurface(
             (fuInt)width, (fuInt)height,
-            false, false, &tDepthStencil);
+            false, false, ~tDepthStencil);
     }
     else { fr = FCYERR_OK; }
     if (FCYFAILED(fr)) {
@@ -324,7 +324,7 @@ bool ResourcePool::CreateSprite(const char* name, const char* texname,
     
     fcyRefPointer<f2dSprite> pSprite;
     fcyRect tRect((float) x, (float) y, (float) (x + w), (float) (y + h));
-    fResult fr = LAPP.GetRenderer()->CreateSprite2D(pTex->GetTexture(), tRect, &pSprite);
+    fResult fr = LAPP.GetRenderer()->CreateSprite2D(pTex->GetTexture(), tRect, ~pSprite);
     if (FCYFAILED(fr)) {
         spdlog::error("[fancy2d] [f2dRenderer::CreateSprite2D] 从'{}'创建图片精灵'{}'失败(fResult={})", texname, name, fr);
         return false;
@@ -409,9 +409,9 @@ bool ResourcePool::LoadMusic(const char* name, const char* path, double start, d
     try {
         //加载解码器，优先OGG解码器，加载失败则使用WAV解码器，都失败则error糊脸
         fcyRefPointer<f2dSoundDecoder> tDecoder;
-        if (FCYFAILED(LAPP.GetSoundSys()->CreateOGGVorbisDecoder(tDataBuf, &tDecoder))) {
+        if (FCYFAILED(LAPP.GetSoundSys()->CreateOGGVorbisDecoder(tDataBuf, ~tDecoder))) {
             tDataBuf->SetPosition(FCYSEEKORIGIN_BEG, 0);
-            if (FCYFAILED(LAPP.GetSoundSys()->CreateWaveDecoder(tDataBuf, &tDecoder))) {
+            if (FCYFAILED(LAPP.GetSoundSys()->CreateWaveDecoder(tDataBuf, ~tDecoder))) {
                 spdlog::error("[luastg] LoadMusic: 无法解码文件'{}'，要求文件格式为WAV或OGG", path);
                 return false;
             }
@@ -423,7 +423,7 @@ bool ResourcePool::LoadMusic(const char* name, const char* path, double start, d
         
         //加载音频缓冲曲，动态缓冲区
         fcyRefPointer<f2dSoundBuffer> tBuffer;
-        fResult fr = LAPP.GetSoundSys()->CreateDynamicBuffer(tWrapperedBuffer, LSOUNDGLOBALFOCUS, &tBuffer);
+        fResult fr = LAPP.GetSoundSys()->CreateDynamicBuffer(tWrapperedBuffer, LSOUNDGLOBALFOCUS, ~tBuffer);
         if (FCYFAILED(fr)) {
             spdlog::error("[fancy2d] [f2dSoundSys::CreateDynamicBuffer] 无法从'{}'创建音频流'{}'(fResult={})", path, name, fr);
             return false;
@@ -466,16 +466,16 @@ bool ResourcePool::LoadSoundEffect(const char* name, const char* path) noexcept 
     
     try {
         fcyRefPointer<f2dSoundDecoder> tDecoder;
-        if (FCYFAILED(LAPP.GetSoundSys()->CreateWaveDecoder(tDataBuf, &tDecoder))) {
+        if (FCYFAILED(LAPP.GetSoundSys()->CreateWaveDecoder(tDataBuf, ~tDecoder))) {
             tDataBuf->SetPosition(FCYSEEKORIGIN_BEG, 0);
-            if (FCYFAILED(LAPP.GetSoundSys()->CreateOGGVorbisDecoder(tDataBuf, &tDecoder))) {
+            if (FCYFAILED(LAPP.GetSoundSys()->CreateOGGVorbisDecoder(tDataBuf, ~tDecoder))) {
                 spdlog::error("[luastg] LoadSoundEffect: 无法解码文件'{}'，要求文件格式为WAV或OGG", path);
                 return false;
             }
         }
         
         fcyRefPointer<f2dSoundBuffer> tBuffer;
-        fResult fr = LAPP.GetSoundSys()->CreateStaticBuffer(tDecoder, LSOUNDGLOBALFOCUS, &tBuffer);
+        fResult fr = LAPP.GetSoundSys()->CreateStaticBuffer(tDecoder, LSOUNDGLOBALFOCUS, ~tBuffer);
         if (FCYFAILED(fr)) {
             spdlog::error("[fancy2d] [f2dSoundSys::CreateStaticBuffer] 无法从'{}'创建音频流'{}'(fResult={})", path, name, fr);
             return false;
@@ -527,7 +527,7 @@ bool ResourcePool::LoadParticle(const char* name, const ResParticle::ParticleInf
     if (FCYFAILED(LAPP.GetRenderer()->CreateSprite2D(pSprite->GetSprite()->GetTexture(),
                                                      pSprite->GetSprite()->GetTexRect(),
                                                      pSprite->GetSprite()->GetHotSpot(),
-                                                     &pClone))) {
+                                                     ~pClone))) {
         spdlog::error("[luastg] LoadParticle: 无法创建粒子特效'{}'，复制图片精灵'{}'失败", name, img_name);
         return false;
     }
@@ -666,7 +666,7 @@ bool ResourcePool::LoadSpriteFont(const char* name, const char* path, bool mipma
     
     fcyRefPointer<f2dTexture2D> tTexture;
     fResult fr = LAPP.GetRenderDev()->CreateTextureFromMemory(
-        (fcData) tDataBuf->GetInternalBuffer(), tDataBuf->GetLength(), 0, 0, false, mipmaps, &tTexture);
+        (fcData) tDataBuf->GetInternalBuffer(), tDataBuf->GetLength(), 0, 0, false, mipmaps, ~tTexture);
     if (FCYFAILED(fr)) {
         spdlog::error("[fancy2d] [f2dRenderDevice::CreateTextureFromMemory] 从'{}'创建纹理'{}'失败(fResult={})", texpath, name, fr);
         return false;
@@ -749,7 +749,7 @@ bool ResourcePool::LoadSpriteFont(const char* name, const char* path, const char
     
     fcyRefPointer<f2dTexture2D> tTexture;
     fr = LAPP.GetRenderDev()->CreateTextureFromMemory(
-        (fcData) tDataBuf->GetInternalBuffer(), tDataBuf->GetLength(), 0, 0, false, mipmaps, &tTexture);
+        (fcData) tDataBuf->GetInternalBuffer(), tDataBuf->GetLength(), 0, 0, false, mipmaps, ~tTexture);
     if (FCYFAILED(fr)) {
         spdlog::error("[fancy2d] [f2dRenderDevice::CreateTextureFromMemory] 从'{}'创建纹理'{}'失败(fResult={})", tex_path, name, fr);
         return false;
@@ -758,7 +758,7 @@ bool ResourcePool::LoadSpriteFont(const char* name, const char* path, const char
     // 创建定义
     try {
         fcyRefPointer<f2dFontProvider> tFontProvider;
-        fr = LAPP.GetRenderer()->CreateFontFromTex(tFileData.c_str(), tTexture, &tFontProvider);
+        fr = LAPP.GetRenderer()->CreateFontFromTex(tFileData.c_str(), tTexture, ~tFontProvider);
         if (FCYFAILED(fr)) {
             spdlog::error("[fancy2d] [f2dRenderer::CreateFontFromTex] 创建纹理字体'{}'失败(fResult={})", name, fr);
             return false;
@@ -805,7 +805,7 @@ bool ResourcePool::LoadTTFFont(const char* name, const char* path,
         try {
             const std::wstring wpath = fcyStringHelper::MultiByteToWideChar(path);
             if (FCYFAILED(LAPP.GetRenderer()->CreateSystemFont(
-                wpath.c_str(), 0, fcyVec2(width, height), F2DFONTFLAG_NONE, &tFontProvider))) {
+                wpath.c_str(), 0, fcyVec2(width, height), F2DFONTFLAG_NONE, ~tFontProvider))) {
                 spdlog::error("[luastg] LoadTTFFont: 尝试失败，无法从系统字体库加载字体'{}'", path);//向lua层返回错误，而不是直接崩游戏
                 return false;
             }
@@ -821,7 +821,7 @@ bool ResourcePool::LoadTTFFont(const char* name, const char* path,
         if (!tFontProvider) {
             fResult fr = LAPP.GetRenderer()->CreateFontFromMemory(tDataBuf, 0, fcyVec2(width, height),
                                                                   fcyVec2(bboxwidth, bboxheight), F2DFONTFLAG_NONE,
-                                                                  &tFontProvider);
+                                                                  ~tFontProvider);
             if (FCYFAILED(fr)) {
                 spdlog::error("[fancy2d] [f2dRenderer::CreateFontFromMemory] 从'{}'创建矢量字体'{}'失败(fResult={})", path, name, fr);
                 return false;
@@ -869,7 +869,7 @@ bool ResourcePool::LoadTTFFont(const char* name, fcyStream* stream, float width,
     try {
         fResult fr = LAPP.GetRenderer()->CreateFontFromMemory((fcyMemStream*) stream, 0, fcyVec2(width, height),
                                                             fcyVec2(bboxwidth, bboxheight), F2DFONTFLAG_NONE,
-                                                            &tFontProvider);
+                                                            ~tFontProvider);
         if (FCYFAILED(fr)) {
             spdlog::error("[fancy2d] [f2dRenderer::CreateFontFromMemory] 创建矢量字体'{}'失败(fResult={})", name, fr);
             return false;
@@ -914,7 +914,7 @@ bool ResourcePool::LoadTrueTypeFont(const char* name,
     // 创建定义
     fcyRefPointer<f2dFontProvider> tFontProvider;
     try {
-        fResult fr = LAPP.GetRenderer()->CreateFontFromMemory(param, fonts, count, &tFontProvider);
+        fResult fr = LAPP.GetRenderer()->CreateFontFromMemory(param, fonts, count, ~tFontProvider);
         if (FCYFAILED(fr)) {
             spdlog::error("[fancy2d] [f2dRenderer::CreateFontFromMemory] 创建矢量字体组'{}'失败(fResult={})", name, fr);
             return false;

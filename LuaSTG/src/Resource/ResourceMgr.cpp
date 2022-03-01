@@ -28,13 +28,13 @@ bool ResourceMgr::LoadFile(const char* path, fcyRefPointer<fcyMemStream>& outBuf
         auto& arc = GFileManager().getFileArchive(packname);
         if (!arc.empty())
         {
-            return arc.load(utf8path, &outBuf);
+            return arc.load(utf8path, ~outBuf);
         }
         return false;
     }
     else
     {
-        return GFileManager().loadEx(utf8path, &outBuf);
+        return GFileManager().loadEx(utf8path, ~outBuf);
     }
 }
 

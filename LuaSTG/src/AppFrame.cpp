@@ -464,7 +464,7 @@ bool AppFrame::Init()LNOEXCEPT
 			m_OptionVsync,
 			F2DAALEVEL_NONE,
 			this,
-			&m_pEngine,
+			~m_pEngine,
 			&tErrListener
 			)))
 		{
@@ -515,7 +515,7 @@ bool AppFrame::Init()LNOEXCEPT
 		
 		// 创建文字渲染器
 		spdlog::info("[fancy2d] 创建文本渲染器");
-		if (FCYFAILED(m_pRenderer->CreateFontRenderer(nullptr, &m_FontRenderer)))
+		if (FCYFAILED(m_pRenderer->CreateFontRenderer(nullptr, ~m_FontRenderer)))
 		{
 			spdlog::error("[fancy2d] [fcyRenderer::CreateFontRenderer] 创建文本渲染器失败");
 			return false;
@@ -524,7 +524,7 @@ bool AppFrame::Init()LNOEXCEPT
 		
 		// 创建图元渲染器
 		spdlog::info("[fancy2d] 创建平面几何渲染器");
-		if (FCYFAILED(m_pRenderer->CreateGeometryRenderer(&m_GRenderer)))
+		if (FCYFAILED(m_pRenderer->CreateGeometryRenderer(~m_GRenderer)))
 		{
 			spdlog::error("[fancy2d] [fcyRenderer::CreateGeometryRenderer] 创建平面几何渲染器失败");
 			return false;
@@ -532,19 +532,19 @@ bool AppFrame::Init()LNOEXCEPT
 		
 		//创建鼠标输入
 		spdlog::info("[fancy2d] 创建DirectInput鼠标设备");
-		m_pInputSys->CreateMouse(-1, false, &m_Mouse);
+		m_pInputSys->CreateMouse(-1, false, ~m_Mouse);
 		if (!m_Mouse)
 		{
 			spdlog::error("[fancy2d] [f2dInputSys::CreateMouse] 创建DirectInput鼠标设备失败");
 		}
 		// 创建键盘输入
 		spdlog::info("[fancy2d] 创建DirectInput键盘设备");
-		m_pInputSys->CreateKeyboard(-1, false, &m_Keyboard);
+		m_pInputSys->CreateKeyboard(-1, false, ~m_Keyboard);
 		if (!m_Keyboard)
 		{
 			spdlog::error("[fancy2d] [f2dInputSys::CreateKeyboard] 创建DirectInput键盘设备失败");
 		}
-		m_pInputSys->CreateDefaultKeyboard(-1, false, &m_Keyboard2);
+		m_pInputSys->CreateDefaultKeyboard(-1, false, ~m_Keyboard2);
 		if (!m_Keyboard2)
 		{
 			spdlog::error("[fancy2d] [f2dInputSys::CreateDefaultKeyboard] 创建DirectInput键盘设备失败");
