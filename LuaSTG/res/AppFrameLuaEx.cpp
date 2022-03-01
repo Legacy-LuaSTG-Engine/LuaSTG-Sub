@@ -1,5 +1,6 @@
 #include "AppFrame.h"
 #include "Config.h"
+#include "Core/FileManager.hpp"
 
 namespace LuaSTGPlus
 {
@@ -8,7 +9,7 @@ namespace LuaSTGPlus
         #ifdef USING_LAUNCH_FILE
         fcyRefPointer<fcyMemStream> tMemStream;
         spdlog::info("[luastg] 加载初始化脚本");
-        if (m_ResourceMgr.LoadFile("launch", tMemStream))
+        if (GFileManager().loadEx("launch", ~tMemStream))
         {
             if (SafeCallScript((fcStr)tMemStream->GetInternalBuffer(), (size_t)tMemStream->GetLength(), "launch"))
             {
@@ -31,7 +32,7 @@ namespace LuaSTGPlus
     bool AppFrame::OnLoadMainScriptAndFiles()
     {
         spdlog::info("[luastg] 加载入口点脚本");
-        std::string entry_scripts[3] = {
+        std::string_view entry_scripts[3] = {
             "core.lua",
             "main.lua",
             "src/main.lua",
@@ -40,11 +41,11 @@ namespace LuaSTGPlus
         bool is_load = false;
         for (auto& v : entry_scripts)
         {
-            if (m_ResourceMgr.LoadFile(v.c_str(), source))
+            if (GFileManager().loadEx(v, ~source))
             {
-                if (SafeCallScript((fcStr)source->GetInternalBuffer(), (size_t)source->GetLength(), v.c_str()))
+                if (SafeCallScript((fcStr)source->GetInternalBuffer(), (size_t)source->GetLength(), v.data()))
                 {
-                    spdlog::info("[luastg] 加载脚本'{}'", v.c_str());
+                    spdlog::info("[luastg] 加载脚本'{}'", v);
                     is_load = true;
                     break;
                 }

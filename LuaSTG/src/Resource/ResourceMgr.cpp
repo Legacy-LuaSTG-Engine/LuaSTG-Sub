@@ -20,28 +20,10 @@ ResourceMgr::ResourceMgr() :
 
 // 文件操作
 
-bool ResourceMgr::LoadFile(const char* path, fcyRefPointer<fcyMemStream>& outBuf, const char* packname) noexcept {
-    std::string utf8path(path);
-    utility::path::to_slash(utf8path);
-    if (packname)
-    {
-        auto& arc = GFileManager().getFileArchive(packname);
-        if (!arc.empty())
-        {
-            return arc.load(utf8path, ~outBuf);
-        }
-        return false;
-    }
-    else
-    {
-        return GFileManager().loadEx(utf8path, ~outBuf);
-    }
-}
-
 bool ResourceMgr::ExtractRes(const char* path, const char* target) noexcept {
     // 读取文件
     fcyRefPointer<fcyMemStream> tBuf;
-    if (LoadFile(path, tBuf)) {
+    if (GFileManager().loadEx(path, ~tBuf)) {
         // 打开本地文件
         fcyRefPointer<fcyFileStream> pFile;
         try {

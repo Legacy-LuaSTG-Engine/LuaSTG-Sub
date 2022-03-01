@@ -389,10 +389,26 @@ LNOINLINE bool AppFrame::UpdateVideoMode()LNOEXCEPT
 LNOINLINE int AppFrame::LoadTextFile(lua_State* L, const char* path, const char *packname)LNOEXCEPT
 {
 	if (ResourceMgr::GetResourceLoadingLog()) {
-		spdlog::info("[luastg] 读取文本文件'{}'", path);
+		if (packname)
+			spdlog::info("[luastg] 在资源包'{}'中读取文本文件'{}'", packname, path);
+		else
+			spdlog::info("[luastg] 读取文本文件'{}'", path);
 	}
+	bool loaded = false;
 	fcyRefPointer<fcyMemStream> tMemStream;
-	if (!m_ResourceMgr.LoadFile(path, tMemStream, packname)) {
+	if (packname)
+	{
+		auto& arc = GFileManager().getFileArchive(packname);
+		if (!arc.empty())
+		{
+			loaded = arc.load(path, ~tMemStream);
+		}
+	}
+	else
+	{
+		loaded = GFileManager().loadEx(path, ~tMemStream);
+	}
+	if (!loaded) {
 		spdlog::error("[luastg] 无法加载文件'{}'", path);
 		return 0;
 	}

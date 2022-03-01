@@ -1,6 +1,7 @@
 ﻿#include "ResourceMgr.h"
 #include "AppFrame.h"
 #include "Utility.h"
+#include "Core/FileManager.hpp"
 
 #ifdef max
 #undef max
@@ -204,7 +205,7 @@ bool ResourcePool::LoadTexture(const char* name, const char* path, bool mipmaps)
     }
     
     fcyRefPointer<fcyMemStream> tDataBuf;
-    if (!m_pMgr->LoadFile(path, tDataBuf)) {
+    if (!GFileManager().loadEx(path, ~tDataBuf)) {
         spdlog::error("[luastg] LoadTexture: 无法从'{}'加载纹理'{}'，读取文件失败", path, name);
         return false;
     }
@@ -401,7 +402,7 @@ bool ResourcePool::LoadMusic(const char* name, const char* path, double start, d
     }
     
     fcyRefPointer<fcyMemStream> tDataBuf;
-    if (!m_pMgr->LoadFile(path, tDataBuf)) {
+    if (!GFileManager().loadEx(path, ~tDataBuf)) {
         spdlog::error("[luastg] LoadMusic: 无法从'{}'加载音乐'{}'，读取文件失败", path, name);
         return false;
     }
@@ -459,7 +460,7 @@ bool ResourcePool::LoadSoundEffect(const char* name, const char* path) noexcept 
     }
     
     fcyRefPointer<fcyMemStream> tDataBuf;
-    if (!m_pMgr->LoadFile(path, tDataBuf)) {
+    if (!GFileManager().loadEx(path, ~tDataBuf)) {
         spdlog::error("[luastg] LoadSoundEffect: 无法从'{}'加载音效'{}'，读取文件失败", path, name);
         return false;
     }
@@ -576,7 +577,7 @@ bool ResourcePool::LoadParticle(const char* name, const ResParticle::ParticleInf
 bool ResourcePool::LoadParticle(const char* name, const char* path, const char* img_name,
                                 double a, double b,bool rect) noexcept {
     fcyRefPointer<fcyMemStream> outBuf;
-    if (!LRES.LoadFile(path, outBuf)) {
+    if (!GFileManager().loadEx(path, ~outBuf)) {
         spdlog::error("[luastg] LoadParticle: 无法从'{}'创建粒子特效'{}'，读取文件失败", path, name);
         return false;
     }
@@ -615,7 +616,7 @@ bool ResourcePool::LoadSpriteFont(const char* name, const char* path, bool mipma
     }
     
     fcyRefPointer<fcyMemStream> tDataBuf;
-    if (!LRES.LoadFile(path, tDataBuf)) {
+    if (!GFileManager().loadEx(path, ~tDataBuf)) {
         spdlog::error("[luastg] LoadSpriteFont: 无法从'{}'加载纹理字体'{}'，读取文件失败", path, name);
         return false;
     }
@@ -654,7 +655,7 @@ bool ResourcePool::LoadSpriteFont(const char* name, const char* path, bool mipma
     
     // 装载纹理
     try {
-        if (!m_pMgr->LoadFile(texpath.c_str(), tDataBuf)) {
+        if (!GFileManager().loadEx(texpath.c_str(), ~tDataBuf)) {
             spdlog::error("[luastg] LoadSpriteFont: 无法从'{}'加载纹理字体'{}'，读取文件失败", texpath, name);
             return false;
         }
@@ -710,7 +711,7 @@ bool ResourcePool::LoadSpriteFont(const char* name, const char* path, const char
     
     // 加载字体定义文件
     fcyRefPointer<fcyMemStream> tDataBuf;
-    if (!LRES.LoadFile(path, tDataBuf)) {
+    if (!GFileManager().loadEx(path, ~tDataBuf)) {
         spdlog::error("[luastg] LoadSpriteFont: 无法从'{}'加载纹理字体'{}'，读取文件失败", path, name);
         return false;
     }
@@ -733,8 +734,8 @@ bool ResourcePool::LoadSpriteFont(const char* name, const char* path, const char
     // 加载纹理文件
     try {
         const std::string fulltexpath = fcyPathParser::GetPath(path) + tex_path;
-        if (!m_pMgr->LoadFile(fulltexpath.c_str(), tDataBuf)) {
-            if (!m_pMgr->LoadFile(tex_path, tDataBuf)) {
+        if (!GFileManager().loadEx(fulltexpath, ~tDataBuf)) {
+            if (!GFileManager().loadEx(tex_path, ~tDataBuf)) {
                 spdlog::error("[luastg] LoadSpriteFont: 无法从'{}'或'{}'加载纹理字体'{}'，读取文件失败", fulltexpath, tex_path, name);
                 return false;
             }
@@ -800,7 +801,7 @@ bool ResourcePool::LoadTTFFont(const char* name, const char* path,
     
     // 读取文件
     fcyRefPointer<fcyMemStream> tDataBuf;
-    if (!m_pMgr->LoadFile(path, tDataBuf)) {
+    if (!GFileManager().loadEx(path, ~tDataBuf)) {
         spdlog::warn("[luastg] LoadTTFFont: 无法从'{}'加载矢量字体，文件不存在，尝试从系统字体库加载字体", path);
         try {
             const std::wstring wpath = fcyStringHelper::MultiByteToWideChar(path);
@@ -958,7 +959,7 @@ bool ResourcePool::LoadFX(const char* name, const char* path, bool is_effect) no
     }
     
     fcyRefPointer<fcyMemStream> tDataBuf;
-    if (!m_pMgr->LoadFile(path, tDataBuf)) {
+    if (!GFileManager().loadEx(path, ~tDataBuf)) {
         spdlog::error("[luastg] LoadFX: 无法从'{}'加载后处理特效'{}'，读取文件失败", path, name);
         return false;
     }
@@ -1011,7 +1012,7 @@ bool ResourcePool::LoadModel(const char* name, const char* path) noexcept {
     //}
     //
     //fcyRefPointer<fcyMemStream> tDataBuf;
-    //if (!m_pMgr->LoadFile(path.c_str(), tDataBuf))
+    //if (!GFileManager().loadEx(path, ~tDataBuf))
     //    return false;
     //fcyRefPointer<fcyMemStream> tDataBuf2;
     //std::wstring path2 = path;
@@ -1019,7 +1020,7 @@ bool ResourcePool::LoadModel(const char* name, const char* path) noexcept {
     //path2[i - 3] = 'm';
     //path2[i - 2] = 't';
     //path2[i - 1] = 'l';
-    //if (!m_pMgr->LoadFile(path2.c_str(), tDataBuf2))
+    //if (!GFileManager().loadEx(path2, ~tDataBuf2))
     //    return false;
     //void* model = NULL;
     //void* LoadObj(const std::string& id, const std::string& path, const std::string& path2);
