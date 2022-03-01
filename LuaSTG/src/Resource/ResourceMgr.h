@@ -103,9 +103,6 @@ namespace LuaSTGPlus
         ResourcePool m_GlobalResourcePool;
         ResourcePool m_StageResourcePool;
     public:
-        bool ExtractRes(const char* path, const char* target) noexcept;
-        bool FindFiles(lua_State* L, const char* path, const char* ext, const char* packname) noexcept;
-        
         ResourcePoolType GetActivedPoolType() noexcept;
         void SetActivedPoolType(ResourcePoolType t) noexcept;
         ResourcePool* GetActivedPool() noexcept;
