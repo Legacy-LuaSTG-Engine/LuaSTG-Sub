@@ -2,6 +2,7 @@
 #include <filesystem>
 #include <fstream>
 #include "utility/encoding.hpp"
+#include "utility/path.hpp"
 #include "zip.h"
 
 #define CUSTOM_ZIP_STAT (ZIP_STAT_INDEX | ZIP_STAT_SIZE | ZIP_STAT_ENCRYPTION_METHOD)
@@ -20,6 +21,7 @@ namespace LuaSTG::Core
             return invalid_index;
         }
         std::string name_str(name);
+        utility::path::to_slash(name_str);
         zip_int64_t index = zip_name_locate(p_zip_t, name_str.c_str(), ZIP_FL_ENC_GUESS);
         if (index < 0)
         {
