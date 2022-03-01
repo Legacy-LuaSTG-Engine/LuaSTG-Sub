@@ -7,9 +7,164 @@
 #include "utility/encoding.hpp"
 #include "utility/path.hpp"
 
+#include "ResourcePassword.hpp"
+#include "Config.h"
+
 #ifdef DrawText
 #undef DrawText
 #endif
+
+static bool listFilesS(lua_State* L, const char* dir, const char* ext, int& index) {
+	//传入的肯定是utf8格式的搜索目录和拓展名
+	// ??? t
+	std::string searchpath = dir;//搜索路径
+	std::filesystem::path searchdir = std::filesystem::path(utility::encoding::to_wide(searchpath));//路径，需要转换为UTF16
+	
+	std::string_view extendpath = ext;//拓展名
+	size_t extendsize = extendpath.size();//拓展名长度
+	size_t pathsize = 0;//文件路径长度
+	
+	if (std::filesystem::is_directory(searchdir)) {
+		for (auto& f : std::filesystem::directory_iterator(searchdir)) {
+			if (std::filesystem::is_directory(f.path()) || std::filesystem::is_regular_file(f.path())) {
+				std::string path = f.path().string();//文件路径
+				pathsize = path.size();
+				
+				//检查拓展名匹配
+				std::string_view compare(&(path[pathsize - extendsize]), extendsize);//要比较的尾部
+				if ((extendsize > 0) && ((path[pathsize - extendsize - 1] != '.') || (extendpath != compare))) {
+					continue;//拓展名不匹配
+				}
+				
+				lua_pushinteger(L, index);// ??? t index
+				lua_createtable(L, 1, 0);// ??? t index t //一个数组元素，没有非数组元素
+				lua_pushinteger(L, 1);// ??? t index t 1
+				std::string u8path = utility::encoding::to_utf8(f.path().wstring());
+				lua_pushstring(L, u8path.c_str());// ??? t index t 1 path
+				lua_settable(L, -3);// ??? t index t
+				lua_settable(L, -3);// ??? t
+				index++;
+			}
+		}
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+static bool listFilesA(lua_State* L, const char* dir, const char* ext, const char* packname, int& index) {
+	// ??? t
+	
+	auto& FMGR = GFileManager();
+	
+	std::string searchpath = dir;
+	utility::path::to_slash(searchpath);//格式化为Linux风格
+	if ((searchpath == ".") || (searchpath == "./") || (searchpath == "/")) {
+		searchpath = "";//去掉".","./","/"这类路径
+	}
+	else if ((searchpath.size() > 1) && (searchpath.back() != '/')) {
+		searchpath.push_back('/');//补充缺失的斜杠
+	}
+	std::string_view frompath = searchpath;//搜索路径
+	if (frompath.find("..", 0, 2) != std::string_view::npos) {
+		return false;//不能使用".."这种路径！
+	}
+	
+	std::string frompack = packname;//要搜索的压缩包路径
+	std::string_view expath = ext;//拓展名
+	size_t exsize = expath.size();
+	size_t pathsize = 0;
+	
+	for (unsigned int select = 0; select < FMGR.getFileArchiveCount(); select++) {
+		auto& zip = FMGR.getFileArchive(select);
+		if (!zip.empty()) {
+			std::string zipname(zip.getFileArchiveName());
+			if ((frompack.size() > 0) && (frompack != zipname)) {
+				continue;//没有命中压缩包
+			}
+			for (long long pos = 0; pos < zip.getCount(); pos++) {
+				std::string filename(zip.getName(pos));//文件名
+				pathsize = filename.size();
+				
+				//开始检查路径是否命中
+				if (frompath.size() >= pathsize) {
+					continue;//文件名都不够长，跳过
+				}
+				std::string_view leftpath(&(filename[0]), frompath.size());
+				std::string_view rightpath(&(filename[frompath.size()]), pathsize - frompath.size());
+				if ((rightpath.find('/', 0) != std::string_view::npos) || (leftpath != frompath)) {
+					continue;//不是目标目录的文件，或者前半路径不匹配
+				}
+				if ((exsize > 0) && (rightpath.size() > (exsize + 1))) {//拓展名长度要大于0且剩余文件名要长过点号+拓展名
+					std::string_view compare(&(filename[pathsize - exsize]), exsize);
+					if ((filename[pathsize - exsize - 1] != '.') || (expath != compare)) {
+						continue;//拓展名没有命中
+					}
+				}
+				
+				lua_pushinteger(L, index);// ??? t index
+				lua_createtable(L, 2, 0);// ??? t index t //2个数组元素，没有非数组元素
+				lua_pushinteger(L, 1);// ??? t index t 1
+				lua_pushstring(L, filename.c_str());// ??? t index t 1 path
+				lua_settable(L, -3);// ??? t index t
+				lua_pushinteger(L, 2);// ??? t index t 2
+				lua_pushstring(L, zipname.c_str());// ??? t index t 2 pack
+				lua_settable(L, -3);// ??? t index t
+				lua_settable(L, -3);// ??? t
+				index++;
+			}
+		}
+	}
+	
+	return true;
+}
+static bool findFiles(lua_State* L, const char* path, const char* ext, const char* packname) noexcept
+{
+	// 尝试从各个资源包加载
+	lua_newtable(L); // ??? t
+	int index = 1;
+	
+	//搜索压缩包内文件
+	listFilesA(L, path, ext, packname, index);
+	
+	//不限定packname时对文件系统进行查找
+	if (std::string_view(packname).size() <= 0) {
+		listFilesS(L, path, ext, index);
+	}
+	
+	return true;
+}
+static bool extractRes(const char* path, const char* target) noexcept
+{
+	// 读取文件
+	fcyRefPointer<fcyMemStream> tBuf;
+	if (GFileManager().loadEx(path, ~tBuf)) {
+		// 打开本地文件
+		fcyRefPointer<fcyFileStream> pFile;
+		try {
+			pFile.DirectSet(new fcyFileStream(fcyStringHelper::MultiByteToWideChar(target).c_str(), true));
+			if (FCYFAILED(pFile->SetLength(0))) {
+				spdlog::error("[luastg] ExtractRes: 无法清空文件'{}' (fcyFileStream::SetLength 失败)", target);
+				return false;
+			}
+			if (tBuf->GetLength() > 0) {
+				if (FCYFAILED(pFile->WriteBytes((fcData) tBuf->GetInternalBuffer(), tBuf->GetLength(), nullptr))) {
+					spdlog::error("[luastg] ExtractRes: 无法向文件'{}'写出数据", target);
+					return false;
+				}
+			}
+		}
+		catch (const fcyException& e) {
+			spdlog::error("[luastg] ExtractRes: 打开本地文件'{}'失败 (异常信息'{}' 源'{}')", target, e.GetDesc(), e.GetSrc());
+			return false;
+		}
+		catch (const std::bad_alloc&) {
+			spdlog::error("[luastg] ExtractRes: 内存不足");
+			return false;
+		}
+	}
+	return true;
+}
 
 using namespace std;
 using namespace LuaSTGPlus;
@@ -273,7 +428,7 @@ void FileManagerWrapper::Register(lua_State* L)LNOEXCEPT {
 		{ "EnumFilesEx", &Wrapper::EnumFilesEx },
 		{ "FileExist", &Wrapper::FileExist },
 		{ "FileExistEx", &Wrapper::FileExistEx },
-		{ NULL, NULL }
+		{ NULL, NULL },
 	};
 	
 	struct FR_Wrapper {
@@ -379,10 +534,82 @@ void FileManagerWrapper::Register(lua_State* L)LNOEXCEPT {
 		{ "GetFontAscender", &FR_Wrapper::GetFontAscender },
 		{ "GetFontDescender", &FR_Wrapper::GetFontDescender },
 		
-		{ NULL, NULL }
+		{ NULL, NULL },
 	};
 	
-	lua_getglobal(L, "lstg"); // ??? t 
+	struct C_Wrapper
+	{
+		static int LoadPack(lua_State* L)LNOEXCEPT
+		{
+			const char* p = luaL_checkstring(L, 1);
+			if (lua_isstring(L, 2))
+			{
+				const char* pwd = luaL_checkstring(L, 2);
+				if (!GFileManager().loadFileArchive(p, pwd))
+				{
+					spdlog::error("[luastg] LoadPack: 无法装载资源包'{}'，文件不存在或不是合法的资源包格式", p);
+					lua_pushboolean(L, false);
+					return 1;
+				}
+			}
+			else
+			{
+				if (!GFileManager().loadFileArchive(p))
+				{
+					spdlog::error("[luastg] LoadPack: 无法装载资源包'{}'，文件不存在或不是合法的资源包格式", p);
+					lua_pushboolean(L, false);
+					return 1;
+				}
+			}
+			lua_pushboolean(L, true);
+			return 1;
+		}
+		static int LoadPackSub(lua_State* L)LNOEXCEPT
+		{
+			const char* p = luaL_checkstring(L, 1);
+			if (!GFileManager().loadFileArchive(p, LuaSTGPlus::GetGameName()))
+			{
+				spdlog::error("[luastg] LoadPackSub: 无法装载资源包'{}'，文件不存在或不是合法的资源包格式", p);
+				lua_pushboolean(L, false);
+				return 1;
+			}
+			lua_pushboolean(L, true);
+			return 1;
+		}
+		static int UnloadPack(lua_State* L)LNOEXCEPT
+		{
+			const char* p = luaL_checkstring(L, 1);
+			GFileManager().unloadFileArchive(p);
+			return 0;
+		}
+		static int ExtractRes(lua_State* L)LNOEXCEPT
+		{
+			const char* pArgPath = luaL_checkstring(L, 1);
+			const char* pArgTarget = luaL_checkstring(L, 2);
+			if (!extractRes(pArgPath, pArgTarget))
+				return luaL_error(L, "failed to extract resource '%s' to '%s'.", pArgPath, pArgTarget);
+			return 0;
+		}
+		static int FindFiles(lua_State* L)LNOEXCEPT
+		{
+			// searchpath extendname packname
+			findFiles(L, luaL_checkstring(L, 1), luaL_optstring(L, 2, ""), luaL_optstring(L, 3, ""));
+			return 1;
+		}
+	};
+	
+	luaL_Reg compat_lib[] = {
+		{ "LoadPack", &C_Wrapper::LoadPack },
+		{ "LoadPackSub", &C_Wrapper::LoadPackSub },
+		{ "UnloadPack", &C_Wrapper::UnloadPack },
+		#ifndef USING_ENCRYPTION
+		{ "ExtractRes", &C_Wrapper::ExtractRes },
+		#endif // !USING_ENCRYPTION
+		{ "FindFiles", &C_Wrapper::FindFiles },
+		{ NULL, NULL },
+	};
+	
+	luaL_register(L, "lstg", compat_lib); // ??? t 
 	
 	lua_newtable(L); // ??? t t
 	luaL_register(L, NULL, tMethods); // ??? t t 

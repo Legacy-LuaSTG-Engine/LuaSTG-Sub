@@ -1,8 +1,6 @@
 ﻿#include "Global.h"
-#include "ResourcePassword.hpp"
 #include "LuaWrapper\LuaWrapper.hpp"
 #include "AppFrame.h"
-#include <filesystem>
 #include "Core/FileManager.hpp"
 
 #define NOMINMAX
@@ -93,57 +91,6 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			spdlog::info("[lua] {}", msg);
 			return 0;
 		}
-		static int LoadPack(lua_State* L)LNOEXCEPT
-		{
-			const char* p = luaL_checkstring(L, 1);
-			if (lua_isstring(L, 2))
-			{
-				const char* pwd = luaL_checkstring(L, 2);
-				if (!GFileManager().loadFileArchive(p, pwd))
-				{
-					spdlog::error("[luastg] LoadPack: 无法装载资源包'{}'，文件不存在或不是合法的资源包格式", p);
-					lua_pushboolean(L, false);
-					return 1;
-				}
-			}
-			else
-			{
-				if (!GFileManager().loadFileArchive(p))
-				{
-					spdlog::error("[luastg] LoadPack: 无法装载资源包'{}'，文件不存在或不是合法的资源包格式", p);
-					lua_pushboolean(L, false);
-					return 1;
-				}
-			}
-			lua_pushboolean(L, true);
-			return 1;
-		}
-		static int LoadPackSub(lua_State* L)LNOEXCEPT
-		{
-			const char* p = luaL_checkstring(L, 1);
-			if (!GFileManager().loadFileArchive(p, LuaSTGPlus::GetGameName()))
-			{
-				spdlog::error("[luastg] LoadPackSub: 无法装载资源包'{}'，文件不存在或不是合法的资源包格式", p);
-				lua_pushboolean(L, false);
-				return 1;
-			}
-			lua_pushboolean(L, true);
-			return 1;
-		}
-		static int UnloadPack(lua_State* L)LNOEXCEPT
-		{
-			const char* p = luaL_checkstring(L, 1);
-			GFileManager().unloadFileArchive(p);
-			return 0;
-		}
-		static int ExtractRes(lua_State* L)LNOEXCEPT
-		{
-			const char* pArgPath = luaL_checkstring(L, 1);
-			const char* pArgTarget = luaL_checkstring(L, 2);
-			if (!LRES.ExtractRes(pArgPath, pArgTarget))
-				return luaL_error(L, "failed to extract resource '%s' to '%s'.", pArgPath, pArgTarget);
-			return 0;
-		}
 		static int DoFile(lua_State* L)LNOEXCEPT
 		{
 			int args = lua_gettop(L);//获取此时栈上的值的数量
@@ -153,12 +100,6 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		static int LoadTextFile(lua_State* L)LNOEXCEPT
 		{
 			return LAPP.LoadTextFile(L, luaL_checkstring(L, 1), luaL_optstring(L, 2, NULL));
-		}
-		static int FindFiles(lua_State* L)LNOEXCEPT
-		{
-			// searchpath extendname packname
-			LRES.FindFiles(L, luaL_checkstring(L, 1), luaL_optstring(L, 2, ""), luaL_optstring(L, 3, ""));
-			return 1;
 		}
 		#pragma endregion
 		
@@ -1039,19 +980,17 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 						// 先从文件加载试试看
 						try {
 							std::wstring wfilename = fcyStringHelper::MultiByteToWideChar(filename, CP_UTF8);
-							if (std::filesystem::is_regular_file(wfilename)) {
-								try {
-									fcyFileStream* stream = new fcyFileStream(wfilename.c_str(), false);
-									
-									streams.push_back(fcyRefPointer<fcyStream>());
-									streams.back().DirectSet(stream);
-									loaded = true;
-									
-									font.font_source = nullptr; // 这个不要
-									font.font_file = (f2dStream*)stream;
-								}
-								catch (...) {}
+							try {
+								fcyFileStream* stream = new fcyFileStream(wfilename.c_str(), false);
+								
+								streams.push_back(fcyRefPointer<fcyStream>());
+								streams.back().DirectSet(stream);
+								loaded = true;
+								
+								font.font_source = nullptr; // 这个不要
+								font.font_file = (f2dStream*)stream;
 							}
+							catch (...) {}
 						}
 						catch (...) {}
 						// 没有……那只能从FMGR加载了
@@ -1496,15 +1435,8 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		{ "Log", &WrapperImplement::Log },
 		{ "SystemLog", &WrapperImplement::SystemLog },
 		{ "Print", &WrapperImplement::Print },
-		{ "LoadPack", &WrapperImplement::LoadPack },
-		{ "LoadPackSub", &WrapperImplement::LoadPackSub },
-		{ "UnloadPack", &WrapperImplement::UnloadPack },
-        #ifndef USING_ENCRYPTION
-		{ "ExtractRes", &WrapperImplement::ExtractRes },
-        #endif // !USING_ENCRYPTION
 		{ "DoFile", &WrapperImplement::DoFile },
 		{ "LoadTextFile", &WrapperImplement::LoadTextFile },
-		{ "FindFiles", &WrapperImplement::FindFiles },
 		#pragma endregion
 		
 		#pragma region 窗口与交换链控制函数
