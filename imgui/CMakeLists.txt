@@ -14,8 +14,6 @@ target_include_directories(imgui PUBLIC
     imgui
     imgui/misc/cpp
     imgui/misc/freetype
-    imgui/backends
-    backend
     implot
 )
 target_sources(imgui PRIVATE
@@ -38,14 +36,6 @@ target_sources(imgui PRIVATE
     imgui/misc/freetype/imgui_freetype.cpp
     imgui/misc/freetype/imgui_freetype.h
     
-    imgui/backends/imgui_impl_dx11.h
-    imgui/backends/imgui_impl_dx11.cpp # TODO
-    
-    #imgui/backends/imgui_impl_win32.cpp
-    #imgui/backends/imgui_impl_win32.h
-    backend/imgui_impl_win32ex.cpp
-    backend/imgui_impl_win32ex.h
-    
     implot/implot_demo.cpp
     implot/implot_internal.h
     implot/implot_items.cpp
@@ -53,11 +43,58 @@ target_sources(imgui PRIVATE
     implot/implot.h
 )
 target_link_libraries(imgui PUBLIC
-    d3d11.lib
     freetype
 )
 
 set_target_properties(imgui PROPERTIES FOLDER external)
+
+# imgui backend dx11
+
+add_library(imgui_impl_dx11 STATIC)
+luastg_target_common_options(imgui_impl_dx11)
+target_include_directories(imgui_impl_dx11 PUBLIC
+    imgui/backends
+)
+target_sources(imgui_impl_dx11 PRIVATE
+    imgui/backends/imgui_impl_dx11.h
+    imgui/backends/imgui_impl_dx11.cpp
+)
+target_link_libraries(imgui_impl_dx11 PUBLIC
+    imgui
+)
+set_target_properties(imgui_impl_dx11 PROPERTIES FOLDER external)
+
+# imgui backend win32ex
+
+add_library(imgui_impl_win32ex STATIC)
+luastg_target_common_options(imgui_impl_win32ex)
+target_include_directories(imgui_impl_win32ex PUBLIC
+    backend
+)
+target_sources(imgui_impl_win32ex PRIVATE
+    backend/imgui_impl_win32ex.cpp
+    backend/imgui_impl_win32ex.h
+)
+target_link_libraries(imgui_impl_win32ex PUBLIC
+    imgui
+)
+set_target_properties(imgui_impl_win32ex PROPERTIES FOLDER external)
+
+# imgui backend win32
+
+add_library(imgui_impl_win32 STATIC)
+luastg_target_common_options(imgui_impl_win32)
+target_include_directories(imgui_impl_win32 PUBLIC
+    imgui/backends
+)
+target_sources(imgui_impl_win32 PRIVATE
+    imgui/backends/imgui_impl_win32.cpp
+    imgui/backends/imgui_impl_win32.h
+)
+target_link_libraries(imgui_impl_win32 PUBLIC
+    imgui
+)
+set_target_properties(imgui_impl_win32 PROPERTIES FOLDER external)
 
 # imgui lua binding
 
