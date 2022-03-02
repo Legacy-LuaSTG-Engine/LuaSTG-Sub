@@ -13,6 +13,10 @@ target_compile_options(spdlog PUBLIC
 
 set_target_properties(spdlog PROPERTIES FOLDER external)
 
+# ==================== json ====================
+
+add_subdirectory(json)
+
 # ==================== DirectXTK family ====================#
 
 add_library(DirectXTexMini STATIC)
