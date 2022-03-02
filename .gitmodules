@@ -22,3 +22,6 @@
 [submodule "external/xmath"]
 	path = external/xmath
 	url = https://github.com/Legacy-LuaSTG-Engine/lstgx_Math.git
+[submodule "external/json"]
+	path = external/json
+	url = https://github.com/nlohmann/json.git
