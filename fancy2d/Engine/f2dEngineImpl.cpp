@@ -41,7 +41,7 @@ F2DEXTERNC fResult F2DDLLFUNC CreateF2DEngine(fuInt Version, f2dEngineEventListe
 	return FCYERR_OK;
 }
 
-F2DEXTERNC fResult F2DDLLFUNC CreateF2DEngineAndInit(fuInt Version, const fcyRect& WinPos, fcStrW Title, fBool Windowed, fBool VSync, F2DAALEVEL AA, f2dEngineEventListener* pListener, f2dEngine** pOut, f2dInitialErrListener* pErrListener)
+F2DEXTERNC fResult F2DDLLFUNC CreateF2DEngineAndInit(fuInt Version, f2dEngineRenderWindowParam* RenderWindowParam, f2dEngineEventListener* pListener, f2dEngine** pOut, f2dInitialErrListener* pErrListener)
 {
 	if(!pOut)
 		return FCYERR_ILLEGAL;
@@ -52,7 +52,7 @@ F2DEXTERNC fResult F2DDLLFUNC CreateF2DEngineAndInit(fuInt Version, const fcyRec
 	
 	try
 	{
-		*pOut = new f2dEngineImpl(WinPos, Title, Windowed, VSync, AA, pListener);
+		*pOut = new f2dEngineImpl(RenderWindowParam, pListener);
 	}
 	catch(const fcyException& e)
 	{
@@ -229,7 +229,7 @@ f2dEngineImpl::f2dEngineImpl(f2dEngineEventListener* pListener)
 	m_CPUBrandString = fcyCPUID::GetCPUBrand();
 }
 
-f2dEngineImpl::f2dEngineImpl(const fcyRect& WinPos, fcStrW Title, fBool Windowed, fBool VSync, F2DAALEVEL AA, f2dEngineEventListener* pListener)
+f2dEngineImpl::f2dEngineImpl(f2dEngineRenderWindowParam* RenderWindowParam, f2dEngineEventListener* pListener)
 	: m_bStop(true), m_pListener(pListener), m_LastErrTime(0), m_PumpIndex(0),
 	m_MainThreadID(GetCurrentThreadId()), m_ThreadMode(F2DENGTHREADMODE_SINGLETHREAD),
 	m_WinClass(this, L"F2DRenderWindow"),
@@ -241,8 +241,9 @@ f2dEngineImpl::f2dEngineImpl(const fcyRect& WinPos, fcStrW Title, fBool Windowed
 	// 初始化部件
 	try
 	{
-		m_pWindow = m_WinClass.CreateRenderWindow(WinPos, Title, false, F2DWINBORDERTYPE_FIXED);
-		m_pRenderer = new f2dRendererImpl(this, (fuInt)WinPos.GetWidth(), (fuInt)WinPos.GetHeight(), Windowed, VSync, AA);
+		auto rc = fcyRect(0.0f, 0.0f, RenderWindowParam->mode.width, RenderWindowParam->mode.height);
+		m_pWindow = m_WinClass.CreateRenderWindow(rc, RenderWindowParam->title, false, RenderWindowParam->windowed ? F2DWINBORDERTYPE_FIXED : F2DWINBORDERTYPE_NONE);
+		m_pRenderer = new f2dRendererImpl(this, RenderWindowParam);
 		m_pSoundSys = new f2dSoundSysImpl(this);
 #ifndef _M_ARM
 		m_pInputSys = new f2dInputSysImpl(this);
@@ -351,14 +352,14 @@ fResult f2dEngineImpl::InitInputSys()
 #endif
 }
 
-fResult f2dEngineImpl::InitRenderer(fuInt BufferWidth, fuInt BufferHeight, fBool Windowed, fBool VSync, F2DAALEVEL AALevel)
+fResult f2dEngineImpl::InitRenderer(f2dEngineRenderWindowParam* RenderWindowParam)
 {
 	if(m_pRenderer || !m_pWindow)
 		return FCYERR_ILLEGAL;
 	
 	try
 	{
-		m_pRenderer = new f2dRendererImpl(this, BufferWidth, BufferHeight, Windowed, VSync, AALevel);
+		m_pRenderer = new f2dRendererImpl(this, RenderWindowParam);
 	}
 	catch(const fcyException& e)
 	{

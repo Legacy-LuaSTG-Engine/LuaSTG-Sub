@@ -39,8 +39,27 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		}
 		static int SetResolution(lua_State* L)LNOEXCEPT
 		{
-			LAPP.SetResolution(static_cast<fuInt>(::max((int)luaL_checkinteger(L, 1), 0)),
-			static_cast<fuInt>(::max((int)luaL_checkinteger(L, 2), 0)));
+			if (lua_gettop(L) >= 4)
+			{
+				LAPP.SetResolution(
+					(fuInt)luaL_checkinteger(L, 1),
+					(fuInt)luaL_checkinteger(L, 2),
+					(fuInt)luaL_checknumber(L, 3),
+					(fuInt)luaL_checknumber(L, 4)
+				);
+			}
+			else
+			{
+				LAPP.SetResolution(
+					(fuInt)luaL_checkinteger(L, 1),
+					(fuInt)luaL_checkinteger(L, 2)
+				);
+			}
+			return 0;
+		}
+		static int SetPreferenceGPU(lua_State* L)LNOEXCEPT
+		{
+			LAPP.SetPreferenceGPU(luaL_checkstring(L, 1));
 			return 0;
 		}
 		static int SetFPS(lua_State* L)LNOEXCEPT
@@ -212,6 +231,23 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 					lua_pushinteger(L, (lua_Integer)mode.scaling);
 					lua_rawseti(L, -2, 7);
 
+					lua_rawseti(L, -2, index + 1);	// t
+				}
+				return 1;
+			}
+			else
+			{
+				return luaL_error(L, "render device is not avilable.");
+			}
+		}
+		static int EnumGPUs(lua_State* L) {
+			if (LAPP.GetRenderDev())
+			{
+				auto count = LAPP.GetRenderDev()->GetSupportedDeviceCount();
+				lua_createtable(L, count, 0);		// t
+				for (auto index = 0; index < count; index++)
+				{
+					lua_pushstring(L, LAPP.GetRenderDev()->GetSupportedDeviceName(index)); // t name
 					lua_rawseti(L, -2, index + 1);	// t
 				}
 				return 1;
@@ -1430,6 +1466,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		{ "SetFPS", &WrapperImplement::SetFPS },
 		{ "GetFPS", &WrapperImplement::GetFPS },
 		{ "SetVsync", &WrapperImplement::SetVsync },
+		{ "SetPreferenceGPU", &WrapperImplement::SetPreferenceGPU },
 		{ "SetResolution", &WrapperImplement::SetResolution },
         { "ShowSplashWindow", &WrapperImplement::_Empty },
 		{ "Log", &WrapperImplement::Log },
@@ -1444,6 +1481,7 @@ void BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		{ "SetSwapChainSize", &WrapperImplement::SetSwapChainSize },
 		{ "SetDisplayMode", &WrapperImplement::SetDisplayMode },
 		{ "EnumResolutions", &WrapperImplement::EnumResolutions },
+		{ "EnumGPUs", &WrapperImplement::EnumGPUs },
 		#pragma endregion
 		
 		#pragma region 游戏对象

@@ -291,19 +291,34 @@ bool f2dRenderDevice11::selectAdapter()
 
 	// 枚举所有图形设备
 
+	struct AdapterCandidate
+	{
+		Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter;
+		std::string adapter_name;
+		DXGI_ADAPTER_DESC1 adapter_info;
+		D3D_FEATURE_LEVEL feature_level;
+		bool link_to_output;
+	};
+	std::vector<AdapterCandidate> adapter_candidate;
+
 	spdlog::info("[fancy2d] 枚举所有图形设备");
 	Microsoft::WRL::ComPtr<IDXGIAdapter1> dxgi_adapter_temp;
-	bool link_to_output = false;
 	for (UINT idx = 0; bHR = dxgi_factory->EnumAdapters1(idx, &dxgi_adapter_temp); idx += 1)
 	{
 		// 检查此设备是否支持 Direct3D 11 并获取特性级别
 		bool supported_d3d11 = false;
 		D3D_FEATURE_LEVEL level_info = D3D_FEATURE_LEVEL_10_0;
-		hr = gHR = D3D11CreateDevice(dxgi_adapter_temp.Get(), D3D_DRIVER_TYPE_UNKNOWN, NULL, d3d11_creation_flags, target_levels, 4, D3D11_SDK_VERSION, NULL, &level_info, NULL);
+		hr = gHR = D3D11CreateDevice(
+			dxgi_adapter_temp.Get(), D3D_DRIVER_TYPE_UNKNOWN, NULL,
+			d3d11_creation_flags, target_levels, 4, D3D11_SDK_VERSION,
+			NULL, &level_info, NULL);
 		if (FAILED(hr))
 		{
 			// 处理 Windows 7 的情况
-			hr = gHR = D3D11CreateDevice(dxgi_adapter_temp.Get(), D3D_DRIVER_TYPE_UNKNOWN, NULL, d3d11_creation_flags, target_levels_downlevel, 3, D3D11_SDK_VERSION, NULL, &level_info, NULL);
+			hr = gHR = D3D11CreateDevice(
+				dxgi_adapter_temp.Get(), D3D_DRIVER_TYPE_UNKNOWN, NULL,
+				d3d11_creation_flags, target_levels_downlevel, 3, D3D11_SDK_VERSION,
+				NULL, &level_info, NULL);
 		}
 		if (SUCCEEDED(hr))
 		{
@@ -472,18 +487,46 @@ bool f2dRenderDevice11::selectAdapter()
 			}
 		}
 		dxgi_output_temp.Reset();
-		// 选择这个设备
-		if (supported_d3d11 && !dxgi_adapter)
+		// 缓存这个设备
+		if (supported_d3d11)
 		{
-			dxgi_adapter = dxgi_adapter_temp;
-			m_DevName = dev_name;
-			if (has_linked_output)
-			{
-				link_to_output = true;
-			}
+			adapter_candidate.emplace_back(AdapterCandidate{
+				.adapter = dxgi_adapter_temp,
+				.adapter_name = dev_name,
+				.adapter_info = desc_,
+				.feature_level = level_info,
+				.link_to_output = has_linked_output,
+			});
 		}
 	}
 	dxgi_adapter_temp.Reset();
+	
+	// 选择图形设备
+
+	bool link_to_output = false;
+	for (auto& v : adapter_candidate)
+	{
+		if (v.adapter_info.Description == m_PreferDevName)
+		{
+			dxgi_adapter = v.adapter;
+			m_DevName = v.adapter_name;
+			link_to_output = v.link_to_output;
+			break;
+		}
+	}
+	if (!dxgi_adapter && !adapter_candidate.empty())
+	{
+		auto& v = adapter_candidate[0];
+		dxgi_adapter = v.adapter;
+		m_DevName = v.adapter_name;
+		link_to_output = v.link_to_output;
+	}
+	m_DevList.clear();
+	for (auto& v : adapter_candidate)
+	{
+		m_DevList.emplace_back(std::move(v.adapter_name));
+	}
+	adapter_candidate.clear();
 
 	// 获取图形设备
 
@@ -505,7 +548,7 @@ bool f2dRenderDevice11::selectAdapter()
 			"    4、图形设备未正常连接\n"
 			"    5、其他意外情况*2\n"
 			"        *1 除非已安装虚拟机软件提供的图形驱动程序\n"
-			"        *2 比如 Windows 系统玄学 Bug\n"
+			"        *2 比如 Windows 系统玄学 Bug"
 		);
 		return false;
 	}
@@ -641,13 +684,14 @@ bool f2dRenderDevice11::checkFeatureSupported()
 
 	return d3d11_support_bgra;
 }
-f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, fuInt BackBufferWidth, fuInt BackBufferHeight, fBool Windowed, fBool VSync, F2DAALEVEL AALevel)
+f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, f2dEngineRenderWindowParam* RenderWindowParam)
 	: m_pEngine(pEngine)
 	, m_CreateThreadID(GetCurrentThreadId())
-	, swapchain_width(BackBufferWidth)
-	, swapchain_height(BackBufferHeight)
+	, m_PreferDevName(RenderWindowParam->gpu ? RenderWindowParam->gpu : L"")
+	, swapchain_width(RenderWindowParam->mode.width)
+	, swapchain_height(RenderWindowParam->mode.height)
 	, swapchain_windowed(true) // 必须以窗口模式启动
-	, swapchain_vsync(VSync)
+	, swapchain_vsync(RenderWindowParam->vsync)
 {
 	m_hWnd = (HWND)pEngine->GetMainWindow()->GetHandle();
 	win32_window = m_hWnd;
@@ -790,6 +834,17 @@ f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, fuInt BackBufferWid
 	spdlog::info("[fancy2d] 已创建图形组件（图形 API：DXGI + Direct3D 11）");
 
 	m_pEngine->GetMainWindow()->SetGraphicListener(this);
+
+	// 如果需要，试着进入全屏模式
+
+	if (!RenderWindowParam->windowed)
+	{
+		auto& mode = RenderWindowParam->mode;
+		SetDisplayMode(
+			mode.width, mode.height,
+			mode.refresh_rate.numerator, mode.refresh_rate.denominator,
+			RenderWindowParam->windowed, RenderWindowParam->vsync, false);
+	}
 }
 f2dRenderDevice11::~f2dRenderDevice11()
 {
@@ -814,6 +869,8 @@ f2dRenderDevice11::~f2dRenderDevice11()
 
 void* f2dRenderDevice11::GetHandle() { return d3d11_device.Get(); }
 fcStr f2dRenderDevice11::GetDeviceName() { return m_DevName.c_str(); }
+fuInt f2dRenderDevice11::GetSupportedDeviceCount() { return m_DevList.size(); }
+fcStr f2dRenderDevice11::GetSupportedDeviceName(fuInt Index) { return m_DevList[Index].c_str(); }
 f2dAdapterMemoryUsageStatistics f2dRenderDevice11::GetAdapterMemoryUsageStatistics()
 {
 	f2dAdapterMemoryUsageStatistics data = {};

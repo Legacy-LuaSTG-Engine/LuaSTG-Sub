@@ -697,6 +697,10 @@ struct f2dRenderDevice
 	
 	// 返回显卡名称
 	virtual fcStr GetDeviceName() = 0;
+	// 获得支持的显卡数量
+	virtual fuInt GetSupportedDeviceCount() = 0;
+	// 获得支持的显示模式
+	virtual fcStr GetSupportedDeviceName(fuInt Index) = 0;
 
 	virtual f2dAdapterMemoryUsageStatistics GetAdapterMemoryUsageStatistics() = 0;
 

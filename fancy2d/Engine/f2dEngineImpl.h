@@ -178,7 +178,7 @@ public: // 接口实现
 	fResult InitWindow(const fcyRect& Pos, fcStrW Title, fBool Visiable, F2DWINBORDERTYPE Border);
 	fResult InitSoundSys();
 	fResult InitInputSys();
-	fResult InitRenderer(fuInt BufferWidth, fuInt BufferHeight, fBool Windowed, fBool VSync, F2DAALEVEL AALevel);
+	fResult InitRenderer(f2dEngineRenderWindowParam* RenderWindowParam);
 	fResult InitVideoSys();
 
 	fcyCriticalSection& GetCriticalSection() { return m_Sec; }
@@ -240,6 +240,6 @@ public: // 接口实现
 	void GetFrameStatistics(f2dEngineFrameStatistics& Info) { Info = m_FrameStatistics[(m_FrameStatisticsIndex - 1) % 2]; }
 public:
 	f2dEngineImpl(f2dEngineEventListener* pListener);
-	f2dEngineImpl(const fcyRect& WinPos, fcStrW Title, fBool Windowed, fBool VSync, F2DAALEVEL AA, f2dEngineEventListener* pListener);
+	f2dEngineImpl(f2dEngineRenderWindowParam* RenderWindowParam, f2dEngineEventListener* pListener);
 	~f2dEngineImpl();
 };
