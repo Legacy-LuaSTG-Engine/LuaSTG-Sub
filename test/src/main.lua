@@ -7,7 +7,7 @@ local function set_camera()
     lstg.SetFog()
 end
 function GameInit()
-    lstg.ChangeVideoMode(1280, 720, true, true)
+    --lstg.ChangeVideoMode(1280, 720, true, true)
     set_camera()
     lstg.LoadTTF("Sans", "C:/Windows/Fonts/msyh.ttc", 16, 16)
 end
