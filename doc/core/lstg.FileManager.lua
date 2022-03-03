@@ -136,4 +136,21 @@ function m.EnumFilesEx(searchpath, extend)
     return {{"sample.ext",false, nil}, {"sampledir/",true, "sample.zip"}}
 end
 
+--- [LuaSTG Sub v0.10.0 新增]
+--- 添加加载文件的时候的搜索路径条目
+---@param search_path string
+function m.AddSearchPath(search_path)
+end
+
+--- [LuaSTG Sub v0.10.0 新增]
+--- 移除加载文件的时候的搜索路径条目
+---@param search_path string
+function m.RemoveSearchPath(search_path)
+end
+
+--- [LuaSTG Sub v0.10.0 新增]
+--- 移除所有搜索路径条目
+function m.ClearSearchPath()
+end
+
 return m
