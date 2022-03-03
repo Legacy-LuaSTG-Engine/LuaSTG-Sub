@@ -29,10 +29,10 @@ void f2dRendererImpl::DefaultListener::OnRenderDeviceReset()
 
 ////////////////////////////////////////////////////////////////////////////////
 
-f2dRendererImpl::f2dRendererImpl(f2dEngineImpl* pEngine, fuInt BackBufferWidth, fuInt BackBufferHeight, fBool Windowed, fBool VSync, F2DAALEVEL AALevel)
+f2dRendererImpl::f2dRendererImpl(f2dEngineImpl* pEngine, f2dEngineRenderWindowParam* RenderWindowParam)
 	: m_pEngine(pEngine), m_pDev(NULL), m_DefaultListener(pEngine)
 {
-	m_pDev = new f2dRenderDevice11(pEngine, BackBufferWidth, BackBufferHeight, Windowed, VSync, AALevel);
+	m_pDev = new f2dRenderDevice11(pEngine, RenderWindowParam);
 	m_pDev->AttachListener(&m_DefaultListener);
 }
 

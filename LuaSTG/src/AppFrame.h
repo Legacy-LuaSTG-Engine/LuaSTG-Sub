@@ -62,6 +62,9 @@ namespace LuaSTGPlus
 		fuInt m_OptionFPSLimit = 60;
 		bool m_OptionVsync = false;
 		fcyVec2 m_OptionResolution = fcyVec2(640.f, 480.f);
+		fuInt m_OptionRefreshRateA = 0;
+		fuInt m_OptionRefreshRateB = 0;
+		std::wstring m_OptionGPU = L"";
 		std::wstring m_OptionTitle = L"" LUASTG_INFO;
 		bool m_OptionCursor = true;
 		fDouble m_fFPS = 0.;
@@ -170,8 +173,9 @@ namespace LuaSTGPlus
 		void SetWindowed(bool v)LNOEXCEPT;
 		void SetDefaultWindowStyle(F2DWINBORDERTYPE v) { m_OptionWindowStyle = v; };
 		void SetVsync(bool v)LNOEXCEPT;
-		void SetResolution(fuInt width, fuInt height)LNOEXCEPT;
+		void SetResolution(fuInt width, fuInt height, fuInt A = 0, fuInt B = 0)LNOEXCEPT;
 		void SetTitle(const char* v)LNOEXCEPT;
+		void SetPreferenceGPU(const char* v)LNOEXCEPT;
 		void SetSplash(bool v)LNOEXCEPT;
 		void SetSEVolume(float v);
 		void SetBGMVolume(float v);

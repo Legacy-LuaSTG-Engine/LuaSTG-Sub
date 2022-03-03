@@ -204,6 +204,16 @@ struct f2dEngineFrameStatistics
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief fancy2D引擎
 ////////////////////////////////////////////////////////////////////////////////
+
+struct f2dEngineRenderWindowParam
+{
+	fcStrW title;
+	fBool windowed;
+	fBool vsync;
+	f2dDisplayMode mode;
+	fcStrW gpu;
+};
+
 struct f2dEngine : f2dInterface
 {
 	// --- 监听器 ---
@@ -234,12 +244,7 @@ struct f2dEngine : f2dInterface
 	/// @brief     初始化渲染系统
 	/// @warning   禁止跨线程初始化
 	/// @note      需要预先初始化渲染窗口
-	/// @param[in] BufferWidth  缓冲区宽度
-	/// @param[in] BufferHeight 缓冲区高度
-	/// @param[in] Windowed     窗口化
-	/// @param[in] VSync        垂直同步
-	/// @param[in] AALevel      抗锯齿等级
-	virtual fResult InitRenderer(fuInt BufferWidth, fuInt BufferHeight, fBool Windowed, fBool VSync, F2DAALEVEL AALevel)=0;
+	virtual fResult InitRenderer(f2dEngineRenderWindowParam* RenderWindowParam)=0;
 
 	/// @brief 初始化视频系统
 	/// @note  需要渲染系统支持

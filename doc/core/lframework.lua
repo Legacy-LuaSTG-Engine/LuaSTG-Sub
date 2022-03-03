@@ -51,12 +51,23 @@ end
 function lstg.SetVsync(Vsync)
 end
 
+--- [LuaSTG Sub 更改]
 --- 初始化方法，仅在 launch 文件内生效，运行时调用该方法将会触发警告消息
 --- 设置游戏窗口分辨率
 --- 默认设置为 640x480
 ---@param width number
 ---@param height number
-function lstg.SetResolution(width, height)
+---@param refresh_rate_numerator number
+---@param refresh_rate_denominator number
+---@overload fun(width:number, height:number)
+function lstg.SetResolution(width, height, refresh_rate_numerator, refresh_rate_denominator)
+end
+
+--- [LuaSTG Sub 新增]
+--- 初始化方法，仅在 launch 文件内生效，运行时调用该方法将会触发警告消息
+--- 设置引擎创建渲染设备时使用的显卡，一旦创建完成就无法在运行时切换
+---@param gpu string
+function lstg.SetPreferenceGPU(gpu)
 end
 
 --------------------------------------------------------------------------------
@@ -89,6 +100,13 @@ end
 --- 比如 { { 640, 480, 60, 1 }, { 800, 600, 60, 1 } }
 ---@return number[][]
 function lstg.EnumResolutions()
+end
+
+--- [LuaSTG Sub 新增]
+--- 枚举可用的显卡，禁止在launch脚本中调用
+---@return string[]
+function lstg.EnumGPUs()
+    return { "Intel XXXX", "NVIDIA YYYY", "AMD ZZZZ" }
 end
 
 --- [LuaSTG Sub 更改]

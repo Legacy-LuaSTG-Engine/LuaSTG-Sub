@@ -49,21 +49,12 @@ F2DEXTERNC fResult F2DDLLFUNC CreateF2DEngine(
 
 /// @brief      创建fancy2D引擎并初始化所有组件
 /// @param[in]  Version              必须为F2DVERSION，用于检查DLL版本
-/// @param[in]  WinPos               窗口用户区位置
-/// @param[in]  Title                窗口标题
-/// @param[in]  Windowed             是否窗口化
-/// @param[in]  VSync                是否垂直同步
-/// @param[in]  AA                   指定抗锯齿等级
 /// @param[in]  pListener            可空，用来设置引擎监听器。
 /// @param[out] pOut                 输出的引擎指针
 /// @param[in]  pErrListener         可空，初始化错误回调。
 F2DEXTERNC fResult F2DDLLFUNC CreateF2DEngineAndInit(
 	fuInt Version, 
-	const fcyRect& WinPos, 
-	fcStrW Title, 
-	fBool Windowed, 
-	fBool VSync,
-	F2DAALEVEL AA,
+	f2dEngineRenderWindowParam* RenderWindowParam,
 	f2dEngineEventListener* pListener,
 	f2dEngine** pOut,
 	f2dInitialErrListener* pErrListener = NULL);

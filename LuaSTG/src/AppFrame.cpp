@@ -148,12 +148,10 @@ void AppFrame::SetWindowed(bool v)LNOEXCEPT
 	else if (m_iStatus == AppStatus::Running)
 		spdlog::warn("[luastg] SetWindowed: 试图在运行时更改窗口化模式");
 }
-
 void AppFrame::SetFPS(fuInt v)LNOEXCEPT
 {
 	m_OptionFPSLimit = (v > 1u) ? v : 1u; // 最低也得有1FPS每秒
 }
-
 void AppFrame::SetVsync(bool v)LNOEXCEPT
 {
 	if (m_iStatus == AppStatus::Initializing)
@@ -161,15 +159,17 @@ void AppFrame::SetVsync(bool v)LNOEXCEPT
 	else if (m_iStatus == AppStatus::Running)
 		spdlog::warn("[luastg] SetVsync: 试图在运行时更改垂直同步模式");
 }
-
-void AppFrame::SetResolution(fuInt width, fuInt height)LNOEXCEPT
+void AppFrame::SetResolution(fuInt width, fuInt height, fuInt A, fuInt B)LNOEXCEPT
 {
 	if (m_iStatus == AppStatus::Initializing)
+	{
 		m_OptionResolution.Set((float)width, (float)height);
+		m_OptionRefreshRateA = A;
+		m_OptionRefreshRateB = B;
+	}
 	else if (m_iStatus == AppStatus::Running)
 		spdlog::warn("[luastg] SetResolution: 试图在运行时更改分辨率");
 }
-
 void AppFrame::SetSEVolume(float v)
 {
 	if (m_pSoundSys)
@@ -177,7 +177,6 @@ void AppFrame::SetSEVolume(float v)
 	else
 		m_gSEVol = v;
 }
-
 void AppFrame::SetBGMVolume(float v)
 {
 	if (m_pSoundSys)
@@ -185,7 +184,6 @@ void AppFrame::SetBGMVolume(float v)
 	else
 		m_gBGMVol = v;
 }
-
 void AppFrame::SetTitle(const char* v)LNOEXCEPT
 {
 	try
@@ -199,7 +197,17 @@ void AppFrame::SetTitle(const char* v)LNOEXCEPT
 		spdlog::error("[luastg] SetTitle: 内存不足");
 	}
 }
-
+void AppFrame::SetPreferenceGPU(const char* v)LNOEXCEPT
+{
+	try
+	{
+		m_OptionGPU = std::move(fcyStringHelper::MultiByteToWideChar(v));
+	}
+	catch (const std::bad_alloc&)
+	{
+		spdlog::error("[luastg] SetPreferenceGPU: 内存不足");
+	}
+}
 void AppFrame::SetSplash(bool v)LNOEXCEPT
 {
 	m_OptionCursor = v;
@@ -472,13 +480,26 @@ bool AppFrame::Init()LNOEXCEPT
 			}
 		} tErrListener;
 		
+		f2dEngineRenderWindowParam render_window_def = {
+			.title = m_OptionTitle.c_str(),
+			.windowed = m_OptionWindowed,
+			.vsync = m_OptionVsync,
+			.mode = f2dDisplayMode{
+				.width = (fuInt)m_OptionResolution.x,
+				.height = (fuInt)m_OptionResolution.y,
+				.refresh_rate = f2dRational{
+					.numerator = m_OptionRefreshRateA,
+					.denominator = m_OptionRefreshRateB,
+				},
+				.format = 0, // 让引擎自动决定
+				.scanline_ordering = 0, // 让引擎自动决定
+				.scaling = 0, // 让引擎自动决定
+			},
+			.gpu = m_OptionGPU.c_str(),
+		};
 		if (FCYFAILED(CreateF2DEngineAndInit(
 			F2DVERSION,
-			fcyRect(0.f, 0.f, m_OptionResolution.x, m_OptionResolution.y),
-			m_OptionTitle.c_str(),
-			m_OptionWindowed,
-			m_OptionVsync,
-			F2DAALEVEL_NONE,
+			&render_window_def,
 			this,
 			~m_pEngine,
 			&tErrListener

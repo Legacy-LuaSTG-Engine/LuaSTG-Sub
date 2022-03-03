@@ -48,6 +48,8 @@ private:
 	
 	DWORD m_CreateThreadID = 0;
 	HWND m_hWnd = NULL;
+	std::wstring m_PreferDevName;
+	std::vector<std::string> m_DevList;
 	std::string m_DevName;
 	
 	HWND win32_window = NULL;
@@ -122,6 +124,8 @@ public:
 
 	void* GetHandle();
 	fcStr GetDeviceName();
+	fuInt GetSupportedDeviceCount();
+	fcStr GetSupportedDeviceName(fuInt Index);
 	f2dAdapterMemoryUsageStatistics GetAdapterMemoryUsageStatistics();
 	
 	fResult AttachListener(f2dRenderDeviceEventListener* Listener, fInt Priority = 0);
@@ -178,6 +182,6 @@ public:
 	fResult SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, fBool FlipModel, F2DAALEVEL AALevel);
 	fResult SetDisplayMode(fuInt Width, fuInt Height, fuInt RefreshRateA, fuInt RefreshRateB, fBool Windowed, fBool VSync, fBool FlipModel);
 public:
-	f2dRenderDevice11(f2dEngineImpl* pEngine, fuInt BackBufferWidth, fuInt BackBufferHeight, fBool Windowed, fBool VSync, F2DAALEVEL AALevel);
+	f2dRenderDevice11(f2dEngineImpl* pEngine, f2dEngineRenderWindowParam* RenderWindowParam);
 	~f2dRenderDevice11();
 };

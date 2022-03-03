@@ -56,6 +56,6 @@ public: // 接口实现
 	fResult CreateSpriteAnimation(f2dSpriteAnimation** pOut);
 	fResult CreateParticlePool(f2dParticlePool** pOut);
 public:
-	f2dRendererImpl(f2dEngineImpl* pEngine, fuInt BackBufferWidth, fuInt BackBufferHeight, fBool Windowed, fBool VSync, F2DAALEVEL AALevel);
+	f2dRendererImpl(f2dEngineImpl* pEngine, f2dEngineRenderWindowParam* RenderWindowParam);
 	~f2dRendererImpl();
 };
