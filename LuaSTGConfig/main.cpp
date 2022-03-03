@@ -397,7 +397,13 @@ struct Window
                 throw std::runtime_error("IDXGIAdapter1::GetDesc1 failed.");
                 return false;
             }
-            dxgi_adapter_list.emplace_back(utility::encoding::to_utf8(adapter_info.Description));
+            bool soft_dev_type = (adapter_info.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) || (adapter_info.Flags & DXGI_ADAPTER_FLAG_REMOTE);
+            if (!soft_dev_type)
+                dxgi_adapter_list.emplace_back(utility::encoding::to_utf8(adapter_info.Description));
+        }
+        if (dxgi_adapter_list.empty())
+        {
+            dxgi_adapter_list.emplace_back(); // WOW, you didn't have a GPU!
         }
 
         D3D_FEATURE_LEVEL target_levels[3] = {
