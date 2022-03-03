@@ -1,11 +1,13 @@
 #include "AppFrame.h"
 #include "Config.h"
 #include "Core/FileManager.hpp"
+#include "Core/InitializeConfigure.hpp"
 
 namespace LuaSTGPlus
 {
     bool AppFrame::OnLoadLaunchScriptAndFiles()
     {
+        bool is_launch_loaded = false;
         #ifdef USING_LAUNCH_FILE
         fcyRefPointer<fcyMemStream> tMemStream;
         spdlog::info("[luastg] 加载初始化脚本");
@@ -13,6 +15,7 @@ namespace LuaSTGPlus
         {
             if (SafeCallScript((fcStr)tMemStream->GetInternalBuffer(), (size_t)tMemStream->GetLength(), "launch"))
             {
+                is_launch_loaded = true;
                 spdlog::info("[luastg] 加载脚本'launch'");
             }
             else
@@ -20,7 +23,25 @@ namespace LuaSTGPlus
                 spdlog::error("[luastg] 加载初始化脚本'launch'失败");
             }
         }
-        else
+        #endif
+        if (!is_launch_loaded)
+        {
+            LuaSTG::Core::InitializeConfigure config;
+            if (config.loadFromFile("config.json"))
+            {
+                spdlog::info("[luastg] 发现配置文件'config.json'");
+                LAPP.SetWindowed(config.windowed);
+                LAPP.SetVsync(config.vsync);
+                LAPP.SetResolution(config.width, config.height, config.refresh_rate_numerator, config.refresh_rate_denominator);
+                if (!config.gpu.empty())
+                {
+                    LAPP.SetPreferenceGPU(config.gpu.c_str());
+                }
+                is_launch_loaded = true;
+            }
+        }
+        #ifdef USING_LAUNCH_FILE
+        if (!is_launch_loaded)
         {
             spdlog::error("[luastg] 找不到文件'launch'");
         }
