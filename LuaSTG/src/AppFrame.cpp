@@ -616,11 +616,11 @@ bool AppFrame::Init()LNOEXCEPT
 		#endif
 		
 		// 显示窗口
-		m_pMainWindow->SetBorderType(F2DWINBORDERTYPE_FIXED);
-		m_pMainWindow->SetClientRect(fcyRect(0.f, 0.f, m_OptionResolution.x, m_OptionResolution.y));
-		m_pMainWindow->MoveToCenter();
-		m_pMainWindow->SetVisiable(true);
-		m_pMainWindow->HideMouse(!m_OptionCursor);
+		//m_pMainWindow->SetBorderType(F2DWINBORDERTYPE_FIXED);
+		//m_pMainWindow->SetClientRect(fcyRect(0.f, 0.f, m_OptionResolution.x, m_OptionResolution.y));
+		if (m_OptionWindowed) m_pMainWindow->MoveToCenter();
+		//m_pMainWindow->SetVisiable(true);
+		//m_pMainWindow->HideMouse(!m_OptionCursor);
 		resetKeyStatus(); // clear key status first
 	}
 	

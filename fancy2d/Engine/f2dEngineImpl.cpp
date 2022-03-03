@@ -243,7 +243,7 @@ f2dEngineImpl::f2dEngineImpl(f2dEngineRenderWindowParam* RenderWindowParam, f2dE
 	{
 		auto rc = fcyRect(0.0f, 0.0f, RenderWindowParam->mode.width, RenderWindowParam->mode.height);
 		auto style = RenderWindowParam->windowed ? F2DWINBORDERTYPE_FIXED : F2DWINBORDERTYPE_NONE;
-		m_pWindow = m_WinClass.CreateRenderWindow(rc, RenderWindowParam->title, false, style);
+		m_pWindow = m_WinClass.CreateRenderWindow(rc, RenderWindowParam->title, true, style);
 		m_pWindow->SetAutoResizeWindowOnDPIScaling(RenderWindowParam->windowed);
 		m_pRenderer = new f2dRendererImpl(this, RenderWindowParam);
 		m_pSoundSys = new f2dSoundSysImpl(this);
