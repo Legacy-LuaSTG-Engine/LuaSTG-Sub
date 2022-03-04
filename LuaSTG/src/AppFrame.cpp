@@ -11,6 +11,13 @@
 #define NOMINMAX
 #include <Windows.h>
 
+// https://developer.download.nvidia.cn/devzone/devcenter/gamegraphics/files/OptimusRenderingPolicies.pdf
+extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000000;
+
+// https://gpuopen.com/learn/amdpowerxpressrequesthighperformance/
+extern "C" __declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 0x00000000;
+
+
 class f2dGraphic2dAdapter
 	: public f2dGraphics2D
 	, public f2dRenderDeviceEventListener
@@ -197,11 +204,21 @@ void AppFrame::SetTitle(const char* v)LNOEXCEPT
 		spdlog::error("[luastg] SetTitle: 内存不足");
 	}
 }
-void AppFrame::SetPreferenceGPU(const char* v)LNOEXCEPT
+void AppFrame::SetPreferenceGPU(const char* v, bool dGPU_trick)LNOEXCEPT
 {
 	try
 	{
 		m_OptionGPU = std::move(fcyStringHelper::MultiByteToWideChar(v));
+		if (dGPU_trick)
+		{
+			NvOptimusEnablement = 0x00000001;
+			AmdPowerXpressRequestHighPerformance = 0x00000001;
+		}
+		else
+		{
+			NvOptimusEnablement = 0x00000000;
+			AmdPowerXpressRequestHighPerformance = 0x00000000;
+		}
 	}
 	catch (const std::bad_alloc&)
 	{

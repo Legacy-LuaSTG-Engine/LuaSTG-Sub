@@ -175,7 +175,7 @@ namespace LuaSTGPlus
 		void SetVsync(bool v)LNOEXCEPT;
 		void SetResolution(fuInt width, fuInt height, fuInt A = 0, fuInt B = 0)LNOEXCEPT;
 		void SetTitle(const char* v)LNOEXCEPT;
-		void SetPreferenceGPU(const char* v)LNOEXCEPT;
+		void SetPreferenceGPU(const char* v, bool dGPU_trick = false)LNOEXCEPT;
 		void SetSplash(bool v)LNOEXCEPT;
 		void SetSEVolume(float v);
 		void SetBGMVolume(float v);

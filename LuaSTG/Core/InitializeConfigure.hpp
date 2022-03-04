@@ -13,6 +13,7 @@ namespace LuaSTG::Core
         int refresh_rate_denominator = 0;
         bool windowed = true;
         bool vsync = false;
+        bool dgpu_trick = false;
         
         void reset();
         bool load(std::string_view const& source) noexcept;

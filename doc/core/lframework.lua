@@ -64,10 +64,13 @@ function lstg.SetResolution(width, height, refresh_rate_numerator, refresh_rate_
 end
 
 --- [LuaSTG Sub v0.11.0 新增]
+--- [LuaSTG Sub v0.12.0 更改] 新增 dGPU_trick 参数
 --- 初始化方法，仅在 launch 文件内生效，运行时调用该方法将会触发警告消息
 --- 设置引擎创建渲染设备时使用的显卡，一旦创建完成就无法在运行时切换
+--- 当 dGPU_trick 设置为 true 时，强制让 NVIDIA 和 AMD 的显卡处于第一顺位，以解决笔记本电脑独占全屏的问题
 ---@param gpu string
-function lstg.SetPreferenceGPU(gpu)
+---@param dGPU_trick boolean
+function lstg.SetPreferenceGPU(gpu, dGPU_trick)
 end
 
 --------------------------------------------------------------------------------
