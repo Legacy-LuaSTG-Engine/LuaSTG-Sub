@@ -94,6 +94,9 @@ PS_Output main(PS_Input input)
     color = input.col * color;
 #elif defined(VERTEX_COLOR_BLEND_ADD)
     color.rgb += input.col.rgb;
+    color.r = min(color.r, 1.0f);
+    color.g = min(color.g, 1.0f);
+    color.b = min(color.b, 1.0f);
     color.a *= input.col.a;
 #elif defined(VERTEX_COLOR_BLEND_ONE)
     color = input.col;
