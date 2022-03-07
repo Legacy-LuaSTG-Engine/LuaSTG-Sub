@@ -1495,7 +1495,7 @@ bool f2dRenderDevice11::createSwapchain(f2dDisplayMode* pmode)
 			.Stereo = FALSE, // 永远用不上立体交换链
 			.SampleDesc = DXGI_SAMPLE_DESC{.Count = 1, .Quality = 0,},
 			.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
-			.BufferCount = 2,
+			.BufferCount = 1,
 			.Scaling = DXGI_SCALING_STRETCH, // Windows 7 只支持这个
 			.SwapEffect = DXGI_SWAP_EFFECT_DISCARD, // Windows 7 只支持这个
 			.AlphaMode = DXGI_ALPHA_MODE_IGNORE, // 永远用不上 A 通道
@@ -1521,6 +1521,7 @@ bool f2dRenderDevice11::createSwapchain(f2dDisplayMode* pmode)
 			// 只有在窗口模式下才允许开这个功能
 			if (dxgi_support_flipmodel2 && dxgi_support_lowlatency && dxgi_support_tearing)
 			{
+				desc1.BufferCount = 2;
 				desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 				desc1.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 				desc1.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
@@ -1529,6 +1530,7 @@ bool f2dRenderDevice11::createSwapchain(f2dDisplayMode* pmode)
 			}
 			else if (dxgi_support_flipmodel2 && dxgi_support_lowlatency)
 			{
+				desc1.BufferCount = 2;
 				desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 				desc1.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 				swapchain_resize_data.FrameLatencyWaitableObject = TRUE;
@@ -1536,6 +1538,7 @@ bool f2dRenderDevice11::createSwapchain(f2dDisplayMode* pmode)
 			}
 			else if (dxgi_support_flipmodel && dxgi_support_lowlatency)
 			{
+				desc1.BufferCount = 2;
 				desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 				desc1.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 				swapchain_resize_data.FrameLatencyWaitableObject = TRUE;
@@ -1543,6 +1546,7 @@ bool f2dRenderDevice11::createSwapchain(f2dDisplayMode* pmode)
 			}
 			else if (dxgi_support_flipmodel)
 			{
+				desc1.BufferCount = 2;
 				desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 				swapchain_resize_data.FrameLatencyWaitableObject = FALSE;
 				swapchain_resize_data.AllowTearing = FALSE;
@@ -1600,7 +1604,7 @@ bool f2dRenderDevice11::createSwapchain(f2dDisplayMode* pmode)
 			.BufferDesc = mode,
 			.SampleDesc = DXGI_SAMPLE_DESC{.Count = 1, .Quality = 0,},
 			.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
-			.BufferCount = 2,
+			.BufferCount = 1,
 			.OutputWindow = win32_window,
 			.Windowed = TRUE,
 			.SwapEffect = DXGI_SWAP_EFFECT_DISCARD, // Windows 7 只支持这个
@@ -1611,6 +1615,7 @@ bool f2dRenderDevice11::createSwapchain(f2dDisplayMode* pmode)
 			// 只有在窗口模式下才允许开这个功能
 			if (dxgi_support_flipmodel2 && dxgi_support_lowlatency && dxgi_support_tearing)
 			{
+				desc.BufferCount = 2;
 				desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 				desc.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 				desc.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
@@ -1619,6 +1624,7 @@ bool f2dRenderDevice11::createSwapchain(f2dDisplayMode* pmode)
 			}
 			else if (dxgi_support_flipmodel2 && dxgi_support_lowlatency)
 			{
+				desc.BufferCount = 2;
 				desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 				desc.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 				swapchain_resize_data.FrameLatencyWaitableObject = TRUE;
@@ -1626,6 +1632,7 @@ bool f2dRenderDevice11::createSwapchain(f2dDisplayMode* pmode)
 			}
 			else if (dxgi_support_flipmodel && dxgi_support_lowlatency)
 			{
+				desc.BufferCount = 2;
 				desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 				desc.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 				swapchain_resize_data.FrameLatencyWaitableObject = TRUE;
@@ -1633,6 +1640,7 @@ bool f2dRenderDevice11::createSwapchain(f2dDisplayMode* pmode)
 			}
 			else if (dxgi_support_flipmodel)
 			{
+				desc.BufferCount = 2;
 				desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 				swapchain_resize_data.FrameLatencyWaitableObject = FALSE;
 				swapchain_resize_data.AllowTearing = FALSE;
