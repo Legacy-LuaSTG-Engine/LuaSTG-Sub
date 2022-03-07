@@ -87,24 +87,27 @@ static int lib_ShowMemoryUsageWindow(lua_State* L)
             f2dAdapterMemoryUsageStatistics gmuinfo = LAPP.GetRenderDev() ? LAPP.GetRenderDev()->GetAdapterMemoryUsageStatistics() : f2dAdapterMemoryUsageStatistics{};
             if (bret)
             {
-                ImGui::Text("System Memory Usage: %u%%", info.dwMemoryLoad);
-                ImGui::Text("Totoal Physical Memory: %s", bytes_count_to_string(info.ullTotalPhys).c_str());
-                ImGui::Text("Avalid Physical Memory: %s", bytes_count_to_string(info.ullAvailPhys).c_str());
-                ImGui::Text("Totoal Page File: %s", bytes_count_to_string(info.ullTotalPageFile).c_str());
-                ImGui::Text("Avalid Page File: %s", bytes_count_to_string(info.ullAvailPageFile).c_str());
-                ImGui::Text("Totoal User Mode Memory Space: %s", bytes_count_to_string(info.ullTotalVirtual).c_str());
+                static bool more_info = false;
+                ImGui::Checkbox("More Informations", &more_info);
+
+                if (more_info) ImGui::Text("System Memory Usage: %u%%", info.dwMemoryLoad);
+                if (more_info) ImGui::Text("Totoal Physical Memory: %s", bytes_count_to_string(info.ullTotalPhys).c_str());
+                if (more_info) ImGui::Text("Avalid Physical Memory: %s", bytes_count_to_string(info.ullAvailPhys).c_str());
+                if (more_info) ImGui::Text("Totoal Page File: %s", bytes_count_to_string(info.ullTotalPageFile).c_str());
+                if (more_info) ImGui::Text("Avalid Page File: %s", bytes_count_to_string(info.ullAvailPageFile).c_str());
+                if (more_info) ImGui::Text("Totoal User Mode Memory Space: %s", bytes_count_to_string(info.ullTotalVirtual).c_str());
                 ImGui::Text("Avalid User Mode Memory Space: %s", bytes_count_to_string(info.ullAvailVirtual).c_str());
                 ImGui::Text("Alloc* User Mode Memory Space: %s", bytes_count_to_string(info.ullTotalVirtual - info.ullAvailVirtual).c_str());
 
-                ImGui::Text("Adapter Local Budget: %s", bytes_count_to_string(gmuinfo.local.budget).c_str());
+                if (more_info) ImGui::Text("Adapter Local Budget: %s", bytes_count_to_string(gmuinfo.local.budget).c_str());
                 ImGui::Text("Adapter Local Usage: %s", bytes_count_to_string(gmuinfo.local.current_usage).c_str());
-                ImGui::Text("Adapter Local Available For Reservation: %s", bytes_count_to_string(gmuinfo.local.available_for_reservation).c_str());
-                ImGui::Text("Adapter Local Current Reservation: %s", bytes_count_to_string(gmuinfo.local.current_reservation).c_str());
+                if (more_info) ImGui::Text("Adapter Local Available For Reservation: %s", bytes_count_to_string(gmuinfo.local.available_for_reservation).c_str());
+                if (more_info) ImGui::Text("Adapter Local Current Reservation: %s", bytes_count_to_string(gmuinfo.local.current_reservation).c_str());
 
-                ImGui::Text("Adapter Non-Local Budget: %s", bytes_count_to_string(gmuinfo.non_local.budget).c_str());
+                if (more_info) ImGui::Text("Adapter Non-Local Budget: %s", bytes_count_to_string(gmuinfo.non_local.budget).c_str());
                 ImGui::Text("Adapter Non-Local Usage: %s", bytes_count_to_string(gmuinfo.non_local.current_usage).c_str());
-                ImGui::Text("Adapter Non-Local Available For Reservation: %s", bytes_count_to_string(gmuinfo.non_local.available_for_reservation).c_str());
-                ImGui::Text("Adapter Non-Local Current Reservation: %s", bytes_count_to_string(gmuinfo.non_local.current_reservation).c_str());
+                if (more_info) ImGui::Text("Adapter Non-Local Available For Reservation: %s", bytes_count_to_string(gmuinfo.non_local.available_for_reservation).c_str());
+                if (more_info) ImGui::Text("Adapter Non-Local Current Reservation: %s", bytes_count_to_string(gmuinfo.non_local.current_reservation).c_str());
 
                 if (ImGui::Button("Write To LOG File"))
                 {
@@ -517,6 +520,7 @@ namespace imgui
             static std::vector<char*> combo_data;
             static int current_didx = 0;
             static int current_xidx = 0;
+            static bool force_update = false;
             
             XINPUT_STATE xstate[4];
             ZeroMemory(xstate, sizeof(xstate));
@@ -532,6 +536,12 @@ namespace imgui
                 }
             }
             
+            ImGui::Checkbox("Force Update", &force_update);
+            if (force_update)
+            {
+                dinput.update();
+            }
+
             if (ImGui::BeginTabBar("##8010"))
             {
                 if (ImGui::BeginTabItem("DirectInput##8011"))
