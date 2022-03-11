@@ -2151,33 +2151,54 @@ fResult f2dRenderDevice11::SetBufferSize(fuInt Width, fuInt Height, fBool Window
 		if (d3d11_device && dxgi_swapchain)
 		{
 			HRESULT hr = 0;
+
 			Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output;
 			hr = gHR = dxgi_swapchain->GetContainingOutput(&dxgi_output);
-			if (SUCCEEDED(hr))
+			if (FAILED(hr))
 			{
-				DXGI_MODE_DESC target_mode = {
+				return FCYERR_INTERNALERR;
+			}
+
+			DXGI_MODE_DESC target_mode = {
 					.Width = Width,
 					.Height = Height,
 					.RefreshRate = DXGI_RATIONAL{.Numerator = 60,.Denominator = 1},
 					.Format = DXGI_FORMAT_B8G8R8A8_UNORM,
 					.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE,
 					.Scaling = DXGI_MODE_SCALING_UNSPECIFIED,
-				};
-				DXGI_MODE_DESC mode = {};
-				hr = gHR = dxgi_output->FindClosestMatchingMode(&target_mode, &mode, d3d11_device.Get());
-				if (SUCCEEDED(hr))
+			};
+			DXGI_MODE_DESC mode = {};
+			hr = gHR = dxgi_output->FindClosestMatchingMode(&target_mode, &mode, d3d11_device.Get());
+			if (FAILED(hr))
+			{
+				return FCYERR_INTERNALERR;
+			}
+
+			// 检查刷新率，如果太低的话就继续往上匹配
+			UINT const numerator_candidate[] = { 120, 180, 240, 360 };
+			for (auto const& v : numerator_candidate)
+			{
+				if (((double)mode.RefreshRate.Numerator / (double)mode.RefreshRate.Denominator) > 59.5f)
 				{
-					f2dDisplayMode f2dmode = {
-						.width = mode.Width,
-						.height = mode.Height,
-						.refresh_rate = f2dRational{.numerator = mode.RefreshRate.Numerator, .denominator = mode.RefreshRate.Denominator},
-						.format = (fuInt)mode.Format,
-						.scanline_ordering = (fuInt)mode.ScanlineOrdering,
-						.scaling = (fuInt)mode.Scaling,
-					};
-					return SetDisplayMode(f2dmode, VSync);
+					break;
+				}
+				target_mode.RefreshRate = DXGI_RATIONAL{ .Numerator = v,.Denominator = 1 };
+				hr = gHR = dxgi_output->FindClosestMatchingMode(&target_mode, &mode, d3d11_device.Get());
+				if (FAILED(hr))
+				{
+					return FCYERR_INTERNALERR;
 				}
 			}
+
+			f2dDisplayMode f2dmode = {
+				.width = mode.Width,
+				.height = mode.Height,
+				.refresh_rate = f2dRational{.numerator = mode.RefreshRate.Numerator, .denominator = mode.RefreshRate.Denominator},
+				.format = (fuInt)mode.Format,
+				.scanline_ordering = (fuInt)mode.ScanlineOrdering,
+				.scaling = (fuInt)mode.Scaling,
+			};
+			return SetDisplayMode(f2dmode, VSync);
 		}
 		return FCYERR_INVAILDPARAM;
 	}
