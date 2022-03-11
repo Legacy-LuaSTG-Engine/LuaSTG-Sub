@@ -272,7 +272,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, b
 			
 			m_pMainWindow->SetBorderType(F2DWINBORDERTYPE_NONE);
 			m_pMainWindow->SetClientRect(fcyRect(0.0f, 0.0f, (fFloat)width, (fFloat)height));
-			m_pMainWindow->SetTopMost(true);
+			//m_pMainWindow->SetTopMost(true);
 			//m_pMainWindow->MoveToCenter();
 			
 			if (FCYOK(m_pRenderDev->SetBufferSize((fuInt)width, (fuInt)height, windowed, vsync, false, F2DAALEVEL_NONE)))
@@ -365,7 +365,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, 
 			
 			m_pMainWindow->SetBorderType(F2DWINBORDERTYPE_NONE);
 			m_pMainWindow->SetClientRect(fcyRect(0.0f, 0.0f, (fFloat)width, (fFloat)height));
-			m_pMainWindow->SetTopMost(true);
+			//m_pMainWindow->SetTopMost(true);
 			//m_pMainWindow->MoveToCenter();
 			
 			if (FCYOK(m_pRenderDev->SetDisplayMode((fuInt)width, (fuInt)height, (fuInt)hza, (fuInt)hzb, windowed, vsync, flip)))
