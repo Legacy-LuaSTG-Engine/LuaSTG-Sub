@@ -434,6 +434,21 @@ namespace LuaSTGPlus {
 		return result;
 	}
 	
+	bool AppFrame::FontRenderer_RenderTextInSpace(const char* str, size_t len, fcyVec3& pos, const fcyVec3& rvec, const fcyVec3& dvec, const BlendMode blend, const fcyColor& color)
+	{
+		if (m_GraphType != GraphicsType::Graph2D) {
+			spdlog::error("[luastg] DrawText: 只有2D渲染器可以执行该方法");
+			return false;
+		}
+
+		updateGraph2DBlendMode(blend);
+		m_FontRenderer->SetColor(color);
+
+		const bool result = FCYERR_OK == m_FontRenderer->DrawTextInSpaceU8(m_Graph2D, str, len, pos, rvec, dvec, &pos);
+
+		return result;
+	}
+
 	float AppFrame::FontRenderer_GetFontLineHeight()
 	{
 		auto* p = m_FontRenderer->GetFontProvider();

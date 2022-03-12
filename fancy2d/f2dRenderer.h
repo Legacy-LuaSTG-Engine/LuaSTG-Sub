@@ -458,6 +458,12 @@ struct f2dFontRenderer :
 	// 绘制文字，y轴朝上（会被SetScale缩放）
 	// 输入的字符串为utf-8的
 	virtual fResult DrawTextU8(f2dGraphics2D* pGraph, fcStr Text, fuInt Count, const fcyVec2& StartPos, fcyVec2* PosOut) = 0;
+
+	virtual fResult DrawTextInSpaceU8(
+		f2dGraphics2D* pGraph,
+		fcStr Text, fuInt Count,
+		const fcyVec3& StartPos, const fcyVec3& RightVec, const fcyVec3& DownVec,
+		fcyVec3* PosOut) = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
