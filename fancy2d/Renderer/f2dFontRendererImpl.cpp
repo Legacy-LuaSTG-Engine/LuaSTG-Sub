@@ -854,3 +854,116 @@ fResult f2dFontRendererImpl::DrawTextU8(f2dGraphics2D* pGraph, fcStr Text, fuInt
 	
 	return FCYERR_OK;
 }
+
+fResult f2dFontRendererImpl::DrawTextInSpaceU8(
+	f2dGraphics2D* pGraph,
+	fcStr Text, fuInt Count,
+	const fcyVec3& StartPos, const fcyVec3& RightVec, const fcyVec3& DownVec,
+	fcyVec3* PosOut)
+{
+	if (!m_pProvider || !pGraph || !pGraph->IsInRender())
+	{
+		return FCYERR_ILLEGAL;
+	}
+
+	// utf-8 迭代器
+	char32_t code_ = 0;
+	utf::utf8reader reader_(Text, Count);
+	if (Count == static_cast<fuInt>(-1))
+	{
+		reader_ = utf::utf8reader(Text); // 没给长度的情况
+	}
+
+	// 绘制参数
+	f2dGlyphInfo tInfo = {};
+	fcyVec3 tLinePos = StartPos;  // 笔触位置
+	fcyVec3 tPos = StartPos;  // 笔触位置
+	float tHeight = m_pProvider->GetLineHeight() * m_Scale.y;  // 行高
+	f2dGraphics2DVertex tVerts[4] = {
+		{ 0.0f, 0.0f, 0.0f, m_BlendColor[0].argb, 0.0f, 0.0f },
+		{ 0.0f, 0.0f, 0.0f, m_BlendColor[1].argb, 0.0f, 0.0f },
+		{ 0.0f, 0.0f, 0.0f, m_BlendColor[2].argb, 0.0f, 0.0f },
+		{ 0.0f, 0.0f, 0.0f, m_BlendColor[3].argb, 0.0f, 0.0f },
+	};
+
+	// 迭代绘制所有文字
+	while (reader_(code_))
+	{
+		// 换行处理
+		if (code_ == U'\n')
+		{
+			tLinePos += DownVec * tHeight; // 向下换行
+			tPos = tLinePos; // 回到起点
+			continue;
+		}
+
+		// 取出文字
+		const fResult fret = m_pProvider->QueryGlyph(pGraph, code_, &tInfo);
+		if (fret == FCYERR_OK || fret == FCYERR_OUTOFRANGE)
+		{
+			// 缩放
+			tInfo.Advance.x *= m_Scale.x;
+			tInfo.Advance.y *= m_Scale.y;
+			tInfo.BrushPos.x *= m_Scale.x;
+			tInfo.BrushPos.y *= m_Scale.y;
+			tInfo.GlyphSize.x *= m_Scale.x;
+			tInfo.GlyphSize.y *= m_Scale.y;
+
+			// 计算位置矩形
+			fcyVec3 const tBrushPos = tPos + RightVec * tInfo.BrushPos.x - DownVec * tInfo.BrushPos.y; // 这里要变成 UpVec
+			fcyVec3 const tRightTop = tBrushPos + RightVec * tInfo.GlyphSize.x; // 向右
+			fcyVec3 const tRightBottom = tBrushPos + RightVec * tInfo.GlyphSize.x + DownVec * tInfo.GlyphSize.y; // 字形右下角顶点位置
+			fcyVec3 const tLeftBottom = tBrushPos + DownVec * tInfo.GlyphSize.y; // 向下
+			tVerts[0].x = tBrushPos.x;
+			tVerts[0].y = tBrushPos.y;
+			tVerts[0].z = tBrushPos.z;
+			tVerts[1].x = tRightTop.x;
+			tVerts[1].y = tRightTop.y;
+			tVerts[1].z = tRightTop.z;
+			tVerts[2].x = tRightBottom.x;
+			tVerts[2].y = tRightBottom.y;
+			tVerts[2].z = tRightBottom.z;
+			tVerts[3].x = tLeftBottom.x;
+			tVerts[3].y = tLeftBottom.y;
+			tVerts[3].z = tLeftBottom.z;
+
+			// 获得纹理
+			f2dTexture2D* pTex = m_pProvider->GetCacheTexture(tInfo.TextureIndex);
+			if (!pTex)
+				return FCYERR_INTERNALERR;
+			
+			// 计算uv坐标
+			tVerts[0].u = tInfo.GlyphPos.a.x;
+			tVerts[0].v = tInfo.GlyphPos.a.y;
+			tVerts[1].u = tInfo.GlyphPos.b.x;
+			tVerts[1].v = tInfo.GlyphPos.a.y;
+			tVerts[2].u = tInfo.GlyphPos.b.x;
+			tVerts[2].v = tInfo.GlyphPos.b.y;
+			tVerts[3].u = tInfo.GlyphPos.a.x;
+			tVerts[3].v = tInfo.GlyphPos.b.y;
+
+			// 绘图
+			pGraph->DrawQuad(pTex, tVerts, false); // 这里不应该瞎JB加0.5的顶点偏移
+			// 如果需要，flush一下
+			if (fret == FCYERR_OUTOFRANGE)
+			{
+				m_pProvider->Flush(); // 上传纹理更改
+				pGraph->Flush(); // 执行绘制命令
+			}
+
+			// 前进
+			tPos += RightVec * tInfo.Advance.x + DownVec * tInfo.Advance.y;
+		}
+	}
+
+	// 返回新的笔触位置
+	if (PosOut)
+	{
+		*PosOut = tPos;
+	}
+
+	// 上传纹理更改
+	m_pProvider->Flush();
+
+	return FCYERR_OK;
+}

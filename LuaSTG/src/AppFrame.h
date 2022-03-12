@@ -332,6 +332,7 @@ namespace LuaSTGPlus
 		fcyRect FontRenderer_MeasureTextBoundary(const char* str, size_t len);
 		fcyVec2 FontRenderer_MeasureTextAdvance(const char* str, size_t len);
 		bool FontRenderer_RenderText(const char* str, size_t len, fcyVec2& pos, const float z, const BlendMode blend, const fcyColor& color);
+		bool FontRenderer_RenderTextInSpace(const char* str, size_t len, fcyVec3& pos, const fcyVec3& rvec, const fcyVec3& dvec, const BlendMode blend, const fcyColor& color);
 		
 		float FontRenderer_GetFontLineHeight();
 		float FontRenderer_GetFontAscender();

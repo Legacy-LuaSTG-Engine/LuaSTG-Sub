@@ -518,6 +518,27 @@ void FileManagerWrapper::Register(lua_State* L)LNOEXCEPT {
 			lua_pushnumber(L, (lua_Number)pos.y);
 			return 3;
 		}
+		static int RenderTextInSpace(lua_State* L) {
+			size_t len = 0;
+			const char* str = luaL_checklstring(L, 1, &len);
+
+			fcyVec3 pos = fcyVec3((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3), (float)luaL_checknumber(L, 4));
+			fcyVec3 rvec = fcyVec3((float)luaL_checknumber(L, 5), (float)luaL_checknumber(L, 6), (float)luaL_checknumber(L, 7));
+			fcyVec3 dvec = fcyVec3((float)luaL_checknumber(L, 8), (float)luaL_checknumber(L, 9), (float)luaL_checknumber(L, 10));
+
+			BlendMode blend = TranslateBlendMode(L, 11);
+			fcyColor color = *static_cast<fcyColor*>(luaL_checkudata(L, 12, LUASTG_LUA_TYPENAME_COLOR));
+			const bool ret = LAPP.FontRenderer_RenderTextInSpace(
+				str, len,
+				pos, rvec, dvec,
+				blend,
+				color);
+			lua_pushboolean(L, ret);
+			lua_pushnumber(L, (lua_Number)pos.x);
+			lua_pushnumber(L, (lua_Number)pos.y);
+			lua_pushnumber(L, (lua_Number)pos.z);
+			return 4;
+		}
 		
 		static int GetFontLineHeight(lua_State* L) {
 			lua_pushnumber(L, LAPP.FontRenderer_GetFontLineHeight());
@@ -544,6 +565,7 @@ void FileManagerWrapper::Register(lua_State* L)LNOEXCEPT {
 		{ "MeasureTextBoundary", &FR_Wrapper::MeasureTextBoundary },
 		{ "MeasureTextAdvance", &FR_Wrapper::MeasureTextAdvance },
 		{ "RenderText", &FR_Wrapper::RenderText },
+		{ "RenderTextInSpace", &FR_Wrapper::RenderTextInSpace },
 		
 		{ "GetFontLineHeight", &FR_Wrapper::GetFontLineHeight },
 		{ "GetFontAscender", &FR_Wrapper::GetFontAscender },

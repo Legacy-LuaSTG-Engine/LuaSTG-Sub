@@ -55,6 +55,11 @@ public: // 接口实现
 	fcyRect MeasureTextBoundaryU8(fcStr Text, fuInt Count);
 	fcyVec2 MeasureTextAdvanceU8(fcStr Text, fuInt Count);
 	fResult DrawTextU8(f2dGraphics2D* pGraph, fcStr Text, fuInt Count, const fcyVec2& StartPos, fcyVec2* PosOut);
+	fResult DrawTextInSpaceU8(
+		f2dGraphics2D* pGraph,
+		fcStr Text, fuInt Count,
+		const fcyVec3& StartPos, const fcyVec3& RightVec, const fcyVec3& DownVec,
+		fcyVec3* PosOut);
 protected:
 	f2dFontRendererImpl(f2dFontProvider* pProvider);
 	~f2dFontRendererImpl();
