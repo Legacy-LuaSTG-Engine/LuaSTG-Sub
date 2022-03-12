@@ -966,6 +966,81 @@ static int compat_PostEffect(lua_State* L)
     return 0;
 }
 
+// 应该要废弃掉的方法
+static int compat_SetTextureSamplerState(lua_State* L)LNOEXCEPT
+{
+    static F2DTEXFILTERTYPE last_filter = F2DTEXFILTER_LINEAR;
+    static F2DTEXTUREADDRESS last_addr = F2DTEXTUREADDRESS_CLAMP;
+    size_t arg1_l;
+    const char* arg1_s = luaL_checklstring(L, 1, &arg1_l);
+    std::string_view arg1(arg1_s, arg1_l);
+    if (arg1 == "address")
+    {
+        F2DTEXTUREADDRESS arg2 = LuaSTGPlus::TranslateTextureSamplerAddress(L, 2);
+        switch (arg2)
+        {
+        case F2DTEXTUREADDRESS_WRAP:
+            if (last_filter == F2DTEXFILTER_LINEAR)
+            {
+                LR2D().setSamplerState(LuaSTG::Core::SamplerState::LinearWrap);
+            }
+            else
+            {
+                LR2D().setSamplerState(LuaSTG::Core::SamplerState::PointWrap);
+            }
+            break;
+        case F2DTEXTUREADDRESS_CLAMP:
+            if (last_filter == F2DTEXFILTER_LINEAR)
+            {
+                LR2D().setSamplerState(LuaSTG::Core::SamplerState::LinearClamp);
+            }
+            else
+            {
+                LR2D().setSamplerState(LuaSTG::Core::SamplerState::PointClamp);
+            }
+            break;
+        default:
+            return luaL_error(L, "invalid argument address mode.");
+        }
+        last_addr = arg2;
+    }
+    else if (arg1 == "filter")
+    {
+        F2DTEXFILTERTYPE arg2 = LuaSTGPlus::TranslateTextureSamplerFilter(L, 2);
+        switch (arg2)
+        {
+        case F2DTEXFILTER_POINT:
+            if (last_addr == F2DTEXTUREADDRESS_CLAMP)
+            {
+                LR2D().setSamplerState(LuaSTG::Core::SamplerState::PointClamp);
+            }
+            else
+            {
+                LR2D().setSamplerState(LuaSTG::Core::SamplerState::PointWrap);
+            }
+            break;
+        case F2DTEXFILTER_LINEAR:
+            if (last_addr == F2DTEXTUREADDRESS_CLAMP)
+            {
+                LR2D().setSamplerState(LuaSTG::Core::SamplerState::LinearClamp);
+            }
+            else
+            {
+                LR2D().setSamplerState(LuaSTG::Core::SamplerState::LinearWrap);
+            }
+            break;
+        default:
+            return luaL_error(L, "invalid argument address mode.");
+        }
+        last_filter = arg2;
+    }
+    else
+    {
+        return luaL_error(L, "invalid argument '%s'.", arg1.data());
+    }
+    return 0;
+}
+
 static int compat_Noop(lua_State* L)
 {
     return 0;
@@ -991,8 +1066,9 @@ static luaL_Reg const lib_compat[] = {
     { "PushRenderTarget", &compat_PushRenderTarget },
     { "PopRenderTarget", &compat_PopRenderTarget },
     { "PostEffect", &compat_PostEffect },
+    // 应该要废弃掉的方法
+    { "SetTextureSamplerState", &compat_SetTextureSamplerState },
     // 置为空方法
-    { "SetTextureSamplerState", &compat_Noop },
     { "RenderModel", &compat_Noop },
     { "DrawCollider", &compat_Noop },
     { "RenderGroupCollider", &compat_Noop },
