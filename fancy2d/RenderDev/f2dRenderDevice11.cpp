@@ -2047,12 +2047,12 @@ fResult f2dRenderDevice11::SaveTexture(fcStrW path, f2dTexture2D* pTex)
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> d3d11_resource;
 	if (pTex->IsRenderTarget())
 	{
-		f2dTexture2D11* pRTex = dynamic_cast<f2dTexture2D11*>(pTex);
+		f2dRenderTarget11* pRTex = dynamic_cast<f2dRenderTarget11*>(pTex);
 		d3d11_resource = pRTex->GetResource();
 	}
 	else
 	{
-		f2dRenderTarget11* pRTex = dynamic_cast<f2dRenderTarget11*>(pTex);
+		f2dTexture2D11* pRTex = dynamic_cast<f2dTexture2D11*>(pTex);
 		d3d11_resource = pRTex->GetResource();
 	}
 	hr = gHR = DirectX::SaveWICTextureToFile(d3d11_devctx.Get(), d3d11_resource.Get(), GUID_ContainerFormatJpeg, path, &GUID_WICPixelFormat24bppBGR);
