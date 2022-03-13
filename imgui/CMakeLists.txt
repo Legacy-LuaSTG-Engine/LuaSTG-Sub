@@ -147,4 +147,4 @@ target_link_libraries(lua_imgui PUBLIC
     lua51static
 )
 
-set_target_properties(lua_imgui PROPERTIES FOLDER external)
+set_target_properties(lua_imgui PROPERTIES FOLDER lualib)
