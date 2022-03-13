@@ -177,7 +177,11 @@ namespace LuaSTG::Core
         {
             return true;
         }
-        return getCount() == 0;
+        if (MZ_OK != mz_zip_reader_goto_first_entry(mz_zip_v))
+        {
+            return true; // test failed...
+        }
+        return false;
     }
     uint64_t FileArchive::getUUID() { return uuid; }
     std::string_view FileArchive::getFileArchiveName()
