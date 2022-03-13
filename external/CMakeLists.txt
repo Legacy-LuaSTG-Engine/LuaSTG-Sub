@@ -189,7 +189,7 @@ set_target_properties(freetype PROPERTIES FOLDER external)
 
 # ==================== xiph ====================
 
-set(BUILD_TESTING OFF)
+option(BUILD_TESTING "No Testing!" OFF)
 add_subdirectory(libogg)
 set_target_properties(ogg PROPERTIES FOLDER external)
 add_subdirectory(libvorbis)
