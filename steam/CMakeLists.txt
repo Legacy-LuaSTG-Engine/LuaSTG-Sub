@@ -71,7 +71,7 @@ target_link_libraries(lua_steam_api PUBLIC
     lua51static
 )
 
-set_target_properties(lua_steam_api PROPERTIES FOLDER external)
+set_target_properties(lua_steam_api PROPERTIES FOLDER lualib)
 
 # binding dll
 
@@ -92,4 +92,6 @@ if(FALSE)
     target_link_libraries(steam PRIVATE
         lua_steam_api
     )
+
+    set_target_properties(steam PROPERTIES FOLDER lualib)
 endif()

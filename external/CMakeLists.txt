@@ -86,7 +86,7 @@ target_link_libraries(lua_filesystem PUBLIC
     lua51static
 )
 
-set_target_properties(lua_filesystem PROPERTIES FOLDER external)
+set_target_properties(lua_filesystem PROPERTIES FOLDER lualib)
 
 # ==================== lua cjson ====================
 
@@ -116,13 +116,13 @@ target_link_libraries(lua_cjson PUBLIC
     lua51static
 )
 
-set_target_properties(lua_cjson PROPERTIES FOLDER external)
+set_target_properties(lua_cjson PROPERTIES FOLDER lualib)
 
 # ==================== pugixml ====================
 
-add_subdirectory(pugixml)
-
-set_target_properties(pugixml-static PROPERTIES FOLDER external)
+#add_subdirectory(pugixml)
+#
+#set_target_properties(pugixml-static PROPERTIES FOLDER external)
 
 # ==================== lua csv ====================
 
