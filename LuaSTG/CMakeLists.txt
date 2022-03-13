@@ -83,6 +83,7 @@ target_link_libraries(LuaSTG PRIVATE
     xmath
     lua51static
     imgui
+    implot
     lua_cjson
     lua_filesystem
     #lua_xlsx_csv
