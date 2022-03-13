@@ -3,47 +3,98 @@
 #include <fstream>
 #include "utility/encoding.hpp"
 #include "utility/path.hpp"
-#include "zip.h"
-
-#define CUSTOM_ZIP_STAT (ZIP_STAT_INDEX | ZIP_STAT_SIZE | ZIP_STAT_ENCRYPTION_METHOD)
+#include "mz.h"
+#include "mz_strm.h"
+#include "mz_zip.h"
+#include "mz_zip_rw.h"
 
 namespace LuaSTG::Core
 {
-    #define p_zip_t ((zip_t*)zip_v)
-    
     static uint64_t g_uuid = 0;
     constexpr size_t invalid_index = size_t(-1);
     
+    // FileArchive
+
+    struct mz_zip_scope_password
+    {
+        void* mz_zip_v = nullptr;
+        std::string_view password_v;
+        mz_zip_scope_password(void* p, std::string_view const& password, std::string_view const& scope_pw) : mz_zip_v(p), password_v(password)
+        {
+            if (mz_zip_v)
+            {
+                mz_zip_reader_set_password(mz_zip_v, scope_pw.data());
+            }
+        }
+        ~mz_zip_scope_password()
+        {
+            if (mz_zip_v)
+            {
+                mz_zip_reader_set_password(mz_zip_v, password_v.data());
+            }
+        }
+    };
+
+    void FileArchive::refresh()
+    {
+        list.clear();
+        if (!mz_zip_v)
+        {
+            return;
+        }
+        if (MZ_OK != mz_zip_reader_goto_first_entry(mz_zip_v))
+        {
+            return;
+        }
+        do
+        {
+            mz_zip_file* mz_zip_file_v = nullptr;
+            if (MZ_OK == mz_zip_reader_entry_get_info(mz_zip_v, &mz_zip_file_v))
+            {
+                bool is_dir = (MZ_OK == mz_zip_reader_entry_is_dir(mz_zip_v));
+                list.emplace_back(FileNode{
+                    .type = is_dir ? FileType::Directory : FileType::File,
+                    .name = mz_zip_file_v->filename,
+                });
+            }
+        } while (MZ_OK == mz_zip_reader_goto_next_entry(mz_zip_v));
+    }
     size_t FileArchive::findIndex(std::string_view const& name)
     {
-        if (!p_zip_t)
+        if (list.empty())
         {
-            return invalid_index;
+            refresh();
+            if (list.empty())
+            {
+                return invalid_index;
+            }
         }
         std::string name_str(name);
         utility::path::to_slash(name_str);
-        zip_int64_t index = zip_name_locate(p_zip_t, name_str.c_str(), ZIP_FL_ENC_GUESS);
-        if (index < 0)
+        for (auto const& v : list)
         {
-            return invalid_index;
+            if (v.name == name_str)
+            {
+                return &v - list.data();
+            }
         }
-        return (size_t)index;
+        return invalid_index;
     }
     size_t FileArchive::getCount()
     {
-        zip_int64_t count = zip_get_num_entries(p_zip_t, ZIP_FL_UNCHANGED);
-        return (count >= 0) ? count : 0;
+        if (list.empty())
+        {
+            refresh();
+        }
+        return list.size();
     }
     FileType FileArchive::getType(size_t index)
     {
-        if (getName(index).ends_with("/"))
+        if ((index < 0) || (index >= getCount()))
         {
-            return FileType::Directory;
+            return FileType::Unknown;
         }
-        else
-        {
-            return FileType::File;
-        }
+        return list[index].type;
     }
     std::string_view FileArchive::getName(size_t index)
     {
@@ -51,78 +102,78 @@ namespace LuaSTG::Core
         {
             return "";
         }
-        return zip_get_name(p_zip_t, index, ZIP_FL_ENC_GUESS);
+        return list[index].name;
     }
     bool FileArchive::contain(std::string_view const& name)
     {
-        return invalid_index != findIndex(name);
+        if (!mz_zip_v)
+        {
+            return false;
+        }
+        int32_t err = mz_zip_reader_locate_entry(mz_zip_v, name.data(), false);
+        return MZ_OK == err;
     }
     bool FileArchive::load(std::string_view const& name, std::vector<uint8_t>& buffer)
     {
-        size_t index = findIndex(name);
-        if (index == invalid_index)
+        if (!mz_zip_v)
         {
             return false;
         }
-        zip_stat_t zs = {};
-        if (zip_stat_index(p_zip_t, index, ZIP_FL_UNCHANGED, &zs) != 0)
+        if (MZ_OK != mz_zip_reader_locate_entry(mz_zip_v, name.data(), false))
         {
             return false;
         }
-        if (CUSTOM_ZIP_STAT != (zs.valid & CUSTOM_ZIP_STAT))
+        int32_t script_size = mz_zip_reader_entry_save_buffer_length(mz_zip_v);
+        if (script_size < 0)
         {
             return false;
         }
-        zip_file_t* zf = zip_fopen_index(p_zip_t, index, ZIP_FL_UNCHANGED);
-        if (zf)
+        try
         {
-            buffer.resize((size_t)zs.size);
-            zip_int64_t read = zip_fread(zf, buffer.data(), zs.size);
-            zip_fclose(zf);
-            return (zip_int64_t)zs.size == read;
+            buffer.resize(script_size);
         }
-        return false;
+        catch (...)
+        {
+            return false;
+        }
+        return MZ_OK == mz_zip_reader_entry_save_buffer(mz_zip_v, buffer.data(), script_size);
     }
     bool FileArchive::load(std::string_view const& name, fcyMemStream** buffer)
     {
-        size_t index = findIndex(name);
-        if (index == invalid_index)
+        if (!mz_zip_v)
         {
             return false;
         }
-        zip_stat_t zs = {};
-        if (zip_stat_index(p_zip_t, index, ZIP_FL_UNCHANGED, &zs) != 0)
+        if (MZ_OK != mz_zip_reader_locate_entry(mz_zip_v, name.data(), false))
         {
             return false;
         }
-        if (CUSTOM_ZIP_STAT != (zs.valid & CUSTOM_ZIP_STAT))
+        int32_t script_size = mz_zip_reader_entry_save_buffer_length(mz_zip_v);
+        if (script_size < 0)
         {
             return false;
         }
-        zip_file_t* zf = zip_fopen_index(p_zip_t, index, ZIP_FL_UNCHANGED);
-        if (zf)
+        fcyRefPointer<fcyMemStream> stream;
+        try
         {
-            fcyMemStream* stream = new fcyMemStream(nullptr, zs.size, true, false);
-            *buffer = stream;
-            zip_int64_t read = zip_fread(zf, stream->GetInternalBuffer(), zs.size);
-            zip_fclose(zf);
-            if ((zip_int64_t)zs.size == read)
-            {
-                return true;
-            }
-            else
-            {
-                stream->Release();
-                *buffer = nullptr;
-                return false;
-            }
+            stream.DirectSet(new fcyMemStream(nullptr, script_size, true, false));
         }
-        return false;
+        catch (...)
+        {
+            return false;
+        }
+        if (MZ_OK != mz_zip_reader_entry_save_buffer(mz_zip_v, stream->GetInternalBuffer(), script_size))
+        {
+            return false;
+        }
+        stream->AddRef(); // balance ref
+        *buffer = *stream;
+        return true;
     }
     
     bool FileArchive::empty()
     {
-        if (!p_zip_t)
+        if (!mz_zip_v)
         {
             return true;
         }
@@ -135,96 +186,116 @@ namespace LuaSTG::Core
     }
     bool FileArchive::setPassword(std::string_view const& password)
     {
-        std::string password_str(password);
-        return zip_set_default_password(p_zip_t, password_str.c_str()) == 0;
+        if (!mz_zip_v)
+        {
+            return false;
+        }
+        password_ = password;
+        mz_zip_reader_set_password(mz_zip_v, password_.c_str());
+        return true;
     }
     bool FileArchive::loadEncrypted(std::string_view const& name, std::string_view const& password, std::vector<uint8_t>& buffer)
     {
-        size_t index = findIndex(name);
-        if (index == invalid_index)
+        if (!mz_zip_v)
         {
             return false;
         }
-        zip_stat_t zs = {};
-        if (zip_stat_index(p_zip_t, index, ZIP_FL_UNCHANGED, &zs) != 0)
+        mz_zip_scope_password scope_password(mz_zip_v, password_, password);
+        if (MZ_OK != mz_zip_reader_locate_entry(mz_zip_v, name.data(), false))
         {
             return false;
         }
-        if (CUSTOM_ZIP_STAT != (zs.valid & CUSTOM_ZIP_STAT))
+        mz_zip_file* mz_zip_file_v = nullptr;
+        if (MZ_OK != mz_zip_reader_entry_get_info(mz_zip_v, &mz_zip_file_v))
         {
             return false;
         }
-        if (ZIP_EM_NONE == zs.encryption_method)
+        if (MZ_ZIP_FLAG_ENCRYPTED != (mz_zip_file_v->flag & MZ_ZIP_FLAG_ENCRYPTED))
         {
             return false;
         }
-        std::string password_str(password);
-        zip_file_t* zf = zip_fopen_index_encrypted(p_zip_t, index, ZIP_FL_UNCHANGED, password_str.c_str());
-        if (zf)
+        int32_t script_size = mz_zip_reader_entry_save_buffer_length(mz_zip_v);
+        if (script_size < 0)
         {
-            buffer.resize((size_t)zs.size);
-            zip_int64_t read = zip_fread(zf, buffer.data(), zs.size);
-            zip_fclose(zf);
-            return (zip_int64_t)zs.size == read;
+            return false;
         }
-        return false;
+        try
+        {
+            buffer.resize(script_size);
+        }
+        catch (...)
+        {
+            return false;
+        }
+        return MZ_OK == mz_zip_reader_entry_save_buffer(mz_zip_v, buffer.data(), script_size);
     }
     bool FileArchive::loadEncrypted(std::string_view const& name, std::string_view const& password, fcyMemStream** buffer)
     {
-        size_t index = findIndex(name);
-        if (index == invalid_index)
+        if (!mz_zip_v)
         {
             return false;
         }
-        zip_stat_t zs = {};
-        if (zip_stat_index(p_zip_t, index, ZIP_FL_UNCHANGED, &zs) != 0)
+        mz_zip_scope_password scope_password(mz_zip_v, password_, password);
+        if (MZ_OK != mz_zip_reader_locate_entry(mz_zip_v, name.data(), false))
         {
             return false;
         }
-        if (CUSTOM_ZIP_STAT != (zs.valid & CUSTOM_ZIP_STAT))
+        mz_zip_file* mz_zip_file_v = nullptr;
+        if (MZ_OK != mz_zip_reader_entry_get_info(mz_zip_v, &mz_zip_file_v))
         {
             return false;
         }
-        if (ZIP_EM_NONE == zs.encryption_method)
+        if (MZ_ZIP_FLAG_ENCRYPTED != (mz_zip_file_v->flag & MZ_ZIP_FLAG_ENCRYPTED))
         {
             return false;
         }
-        std::string password_str(password);
-        zip_file_t* zf = zip_fopen_index_encrypted(p_zip_t, index, ZIP_FL_UNCHANGED, password_str.c_str());
-        if (zf)
+        int32_t script_size = mz_zip_reader_entry_save_buffer_length(mz_zip_v);
+        if (script_size < 0)
         {
-            fcyMemStream* stream = new fcyMemStream(nullptr, zs.size, true, false);
-            *buffer = stream;
-            zip_int64_t read = zip_fread(zf, stream->GetInternalBuffer(), zs.size);
-            zip_fclose(zf);
-            if ((zip_int64_t)zs.size == read)
-            {
-                return true;
-            }
-            else
-            {
-                stream->Release();
-                *buffer = nullptr;
-                return false;
-            }
+            return false;
         }
-        return false;
+        fcyRefPointer<fcyMemStream> stream;
+        try
+        {
+            stream.DirectSet(new fcyMemStream(nullptr, script_size, true, false));
+        }
+        catch (...)
+        {
+            return false;
+        }
+        if (MZ_OK == mz_zip_reader_entry_save_buffer(mz_zip_v, stream->GetInternalBuffer(), script_size))
+        {
+            stream->AddRef(); // balance ref
+            *buffer = *stream;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
     
     FileArchive::FileArchive(std::string_view const& path) : name(path), uuid(g_uuid++)
     {
-        int err = 0;
-        std::string path_str(path);
-        zip_v = zip_open(path_str.c_str(), ZIP_RDONLY, &err);
+        if (mz_zip_reader_create(&mz_zip_v))
+        {
+            if (MZ_OK == mz_zip_reader_open_file(mz_zip_v, path.data()))
+            {
+                std::ignore = nullptr;
+            }
+        }
     }
     FileArchive::~FileArchive()
     {
-        if (p_zip_t)
+        if (mz_zip_v)
         {
-            zip_discard(p_zip_t);
+            mz_zip_reader_close(mz_zip_v);
+            mz_zip_reader_delete(&mz_zip_v);
         }
     }
     
+    // FileManager
+
     void FileManager::refresh()
     {
         list.clear();

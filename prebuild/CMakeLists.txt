@@ -1,28 +1,28 @@
 # ---- zlib
 
-add_library(zlib SHARED IMPORTED GLOBAL)
-target_compile_definitions(zlib INTERFACE
-    ZLIB_DLL
-)
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    target_include_directories(zlib INTERFACE
-        amd64/include
-    )
-    set_target_properties(zlib PROPERTIES
-        IMPORTED_IMPLIB   ${CMAKE_CURRENT_LIST_DIR}/amd64/lib/zlib.lib
-        IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/amd64/bin/zlib.dll
-    )
-elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
-    target_include_directories(zlib INTERFACE
-        x86/include
-    )
-    set_target_properties(zlib PROPERTIES
-        IMPORTED_IMPLIB   ${CMAKE_CURRENT_LIST_DIR}/x86/lib/zlib.lib
-        IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/x86/bin/zlib.dll
-    )
-else()
-    message(FATAL_ERROR "unknown platform")
-endif()
+#add_library(zlib SHARED IMPORTED GLOBAL)
+#target_compile_definitions(zlib INTERFACE
+#    ZLIB_DLL
+#)
+#if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+#    target_include_directories(zlib INTERFACE
+#        amd64/include
+#    )
+#    set_target_properties(zlib PROPERTIES
+#        IMPORTED_IMPLIB   ${CMAKE_CURRENT_LIST_DIR}/amd64/lib/zlib.lib
+#        IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/amd64/bin/zlib.dll
+#    )
+#elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+#    target_include_directories(zlib INTERFACE
+#        x86/include
+#    )
+#    set_target_properties(zlib PROPERTIES
+#        IMPORTED_IMPLIB   ${CMAKE_CURRENT_LIST_DIR}/x86/lib/zlib.lib
+#        IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/x86/bin/zlib.dll
+#    )
+#else()
+#    message(FATAL_ERROR "unknown platform")
+#endif()
 
 # ---- zip
 

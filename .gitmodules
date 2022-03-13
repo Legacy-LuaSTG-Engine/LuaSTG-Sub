@@ -34,3 +34,9 @@
 [submodule "external/libvorbis"]
 	path = external/libvorbis
 	url = https://github.com/xiph/vorbis.git
+[submodule "external/zlib"]
+	path = external/zlib
+	url = https://github.com/zlib-ng/zlib-ng.git
+[submodule "external/minizip"]
+	path = external/minizip
+	url = https://github.com/Demonese/minizip-ng.git
