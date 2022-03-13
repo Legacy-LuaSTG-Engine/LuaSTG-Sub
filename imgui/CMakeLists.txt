@@ -8,13 +8,11 @@ target_compile_definitions(imgui PUBLIC
     #IMGUI_USE_BGRA_PACKED_COLOR
     #IMGUI_USE_WCHAR32
     IMGUI_ENABLE_FREETYPE
-    IMPLOT_DISABLE_OBSOLETE_FUNCTIONS
 )
 target_include_directories(imgui PUBLIC
     imgui
     imgui/misc/cpp
     imgui/misc/freetype
-    implot
 )
 target_sources(imgui PRIVATE
     imgui/imstb_rectpack.h
@@ -35,18 +33,35 @@ target_sources(imgui PRIVATE
     
     imgui/misc/freetype/imgui_freetype.cpp
     imgui/misc/freetype/imgui_freetype.h
-    
-    implot/implot_demo.cpp
-    implot/implot_internal.h
-    implot/implot_items.cpp
-    implot/implot.cpp
-    implot/implot.h
 )
 target_link_libraries(imgui PUBLIC
     freetype
 )
 
 set_target_properties(imgui PROPERTIES FOLDER external)
+
+# implot
+
+add_library(implot STATIC)
+luastg_target_common_options(implot)
+target_compile_definitions(implot PUBLIC
+    IMPLOT_DISABLE_OBSOLETE_FUNCTIONS
+)
+target_include_directories(implot PUBLIC
+    implot
+)
+target_sources(implot PRIVATE
+    implot/implot_demo.cpp
+    implot/implot_internal.h
+    implot/implot_items.cpp
+    implot/implot.cpp
+    implot/implot.h
+)
+target_link_libraries(implot PUBLIC
+    imgui
+)
+
+set_target_properties(implot PROPERTIES FOLDER external)
 
 # imgui backend dx11
 
