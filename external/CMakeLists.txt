@@ -59,6 +59,15 @@ else()
 endif()
 add_library(DirectX::XAudio2Redist ALIAS XAudio2Redist)
 
+# ==================== luajit ====================
+
+add_subdirectory(luajit)
+set_target_properties(minilua PROPERTIES FOLDER luajit)
+set_target_properties(buildvm PROPERTIES FOLDER luajit)
+set_target_properties(lua51static PROPERTIES FOLDER luajit)
+set_target_properties(lua51 PROPERTIES FOLDER luajit)
+set_target_properties(luajit PROPERTIES FOLDER luajit)
+
 # ==================== lua filesystem ====================
 
 add_library(lua_filesystem STATIC)
@@ -74,7 +83,7 @@ target_sources(lua_filesystem PRIVATE
     lua-filesystem-patch/lfs.c
 )
 target_link_libraries(lua_filesystem PUBLIC
-    luajit
+    lua51static
 )
 
 set_target_properties(lua_filesystem PROPERTIES FOLDER external)
@@ -104,7 +113,7 @@ target_sources(lua_cjson PRIVATE
     lua-cjson/fpconv.c
 )
 target_link_libraries(lua_cjson PUBLIC
-    luajit
+    lua51static
 )
 
 set_target_properties(lua_cjson PROPERTIES FOLDER external)

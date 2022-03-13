@@ -129,7 +129,7 @@ target_sources(lua_imgui PRIVATE
 )
 target_link_libraries(lua_imgui PUBLIC
     imgui
-    luajit
+    lua51static
 )
 
 set_target_properties(lua_imgui PROPERTIES FOLDER external)
