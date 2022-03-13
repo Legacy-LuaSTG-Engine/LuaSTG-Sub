@@ -75,7 +75,6 @@ target_sources(LuaSTG PRIVATE
 target_link_libraries(LuaSTG PRIVATE
     spdlog::spdlog
     utility
-    zip
     MINIZIP::minizip
     fancylib
     fancy2dlib
