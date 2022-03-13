@@ -1415,10 +1415,6 @@ namespace LuaSTG::Core
 		{
 			batchFlush();
 			
-			TextureID_retain(_state_set.texture);
-			RendererStateSet sbak = _state_set;
-			CameraStateSet cbak = _camera_state_set;
-
 			float sw_ = 0.0f;
 			float sh_ = 0.0f;
 			/* get current rendertarget size */ {
@@ -1449,6 +1445,10 @@ namespace LuaSTG::Core
 				spdlog::warn("[luastg] LuaSTG::Core::Renderer::postEffect 调用提前中止，当前渲染管线未绑定渲染目标");
 				return;
 			}
+
+			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> texture_bak = (ID3D11ShaderResourceView*)_state_set.texture.handle;
+			RendererStateSet sbak = _state_set;
+			CameraStateSet cbak = _camera_state_set;
 
 			setOrtho(Box{ .left = 0.0f, .top = sh_, .front = 0.0f, .right = sw_, .bottom = 0.0f, .back = 1.0f });
 
