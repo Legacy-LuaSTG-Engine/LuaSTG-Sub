@@ -9,6 +9,12 @@ inline LuaSTG::Core::Renderer& LR2D() { return LuaSTGPlus::AppFrame::GetInstance
 inline LuaSTGPlus::ResourceMgr& LRESMGR() { return LuaSTGPlus::AppFrame::GetInstance().GetResourceMgr(); }
 inline f2dRenderDevice* LRDEV() { return LuaSTGPlus::AppFrame::GetInstance().GetRenderDev(); }
 
+#ifdef _DEBUG
+#define check_rendertarget_usage(PTEXTURE) assert(!LuaSTGPlus::AppFrame::GetInstance().CheckRenderTargetInUse(PTEXTURE));
+#else
+#define check_rendertarget_usage(PTEXTURE)
+#endif // _DEBUG
+
 inline void rotate_float2(float& x, float& y, const float r)
 {
     float const sinv = std::sinf(r);
@@ -192,6 +198,7 @@ static void api_drawSprite(LuaSTGPlus::ResSprite* pimg2dres, float const x, floa
     translate_blend(ctx, blend);
 
     f2dTexture2D* const ptex2d = pimg2d->GetTexture();
+    check_rendertarget_usage(ptex2d);
     ctx.setTexture(LuaSTG::Core::TextureID(ptex2d->GetHandle()));
 
     LuaSTG::Core::DrawVertex2D vertex[4];
@@ -230,6 +237,7 @@ static void api_drawSpriteRect(LuaSTGPlus::ResSprite* pimg2dres, float const l, 
 
     auto& ctx = LR2D();
     translate_blend(ctx, blend);
+    check_rendertarget_usage(ptex2d);
     ctx.setTexture(LuaSTG::Core::TextureID(ptex2d->GetHandle()));
     ctx.drawQuad(vertex[0], vertex[1], vertex[2], vertex[3]);
 }
@@ -265,6 +273,7 @@ static void api_drawSprite4V(LuaSTGPlus::ResSprite* pimg2dres, float const x1, f
 
     auto& ctx = LR2D();
     translate_blend(ctx, blend);
+    check_rendertarget_usage(ptex2d);
     ctx.setTexture(LuaSTG::Core::TextureID(ptex2d->GetHandle()));
     ctx.drawQuad(vertex[0], vertex[1], vertex[2], vertex[3]);
 }
@@ -288,6 +297,7 @@ static void api_drawSpriteSequence(LuaSTGPlus::ResAnimation* pani2dres, int cons
     translate_blend(ctx, blend);
 
     f2dTexture2D* const ptex2d = pimg2d->GetTexture();
+    check_rendertarget_usage(ptex2d);
     ctx.setTexture(LuaSTG::Core::TextureID(ptex2d->GetHandle()));
 
     LuaSTG::Core::DrawVertex2D vertex[4];
@@ -334,6 +344,7 @@ static void api_GameObject_drawSprite(f2dSprite* pimg2d, float const x, float co
     auto& ctx = LR2D();
 
     f2dTexture2D* const ptex2d = pimg2d->GetTexture();
+    check_rendertarget_usage(ptex2d);
     ctx.setTexture(LuaSTG::Core::TextureID(ptex2d->GetHandle()));
 
     LuaSTG::Core::DrawVertex2D vertex[4];
@@ -539,6 +550,7 @@ static int lib_setTexture(lua_State* L)LNOEXCEPT
     }
     LuaSTG::Core::TextureID tex;
     tex.handle = p->GetTexture()->GetHandle();
+    check_rendertarget_usage(p->GetTexture());
     LR2D().setTexture(tex);
     return 0;
 }
@@ -760,6 +772,7 @@ static int lib_drawTexture(lua_State* L)LNOEXCEPT
         vertex[i].u *= tex_w;
         vertex[i].v *= tex_h;
     }
+    check_rendertarget_usage(ptex2d);
     ctx.setTexture(LuaSTG::Core::TextureID(ptex2d->GetHandle()));
 
     ctx.drawQuad(vertex[0], vertex[1], vertex[2], vertex[3]);
@@ -925,6 +938,7 @@ static int compat_PostEffect(lua_State* L)
     LuaSTGPlus::ResTexture* prt = LRES.FindTexture(rt_name);
     if (!prt)
         return luaL_error(L, "texture '%s' not found.", rt_name);
+    check_rendertarget_usage(prt->GetTexture());
     LuaSTG::Core::TextureID rt(prt->GetTexture()->GetHandle());
 
     LuaSTG::Core::Vector4 cbdata[8] = {};
@@ -957,6 +971,7 @@ static int compat_PostEffect(lua_State* L)
         LuaSTGPlus::ResTexture* ptex = LRES.FindTexture(tx_name);
         if (!ptex)
             return luaL_error(L, "texture '%s' not found.", tx_name);
+        check_rendertarget_usage(ptex->GetTexture());
         tdata[i - 1] = LuaSTG::Core::TextureID(ptex->GetTexture()->GetHandle());
         tsdata[i - 1] = (LuaSTG::Core::SamplerState)luaL_checkinteger(L, -1);
     }
