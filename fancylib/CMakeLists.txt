@@ -59,6 +59,3 @@ target_include_directories(fancylib PUBLIC
     .
 )
 target_sources(fancylib PRIVATE ${fancylib_src})
-target_link_libraries(fancylib PUBLIC
-    zlib
-)

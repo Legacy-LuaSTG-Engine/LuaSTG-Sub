@@ -119,7 +119,6 @@ target_link_libraries(fancy2dlib PUBLIC
     DirectXTexMini
     dxgi.lib
     d3d11.lib
-    zlib
     freetype
     vorbisfile
     fancylib
@@ -162,7 +161,6 @@ if(FALSE)
         DirectXTexMini
         dxgi.lib
         d3d11.lib
-        zlib
         freetype
         vorbisfile
         fancylib

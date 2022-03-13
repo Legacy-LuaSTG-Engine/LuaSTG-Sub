@@ -25,3 +25,12 @@
 [submodule "external/json"]
 	path = external/json
 	url = https://github.com/nlohmann/json.git
+[submodule "external/freetype"]
+	path = external/freetype
+	url = https://github.com/freetype/freetype.git
+[submodule "external/libogg"]
+	path = external/libogg
+	url = https://github.com/xiph/ogg.git
+[submodule "external/libvorbis"]
+	path = external/libvorbis
+	url = https://github.com/xiph/vorbis.git

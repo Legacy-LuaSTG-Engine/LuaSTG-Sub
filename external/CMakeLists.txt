@@ -172,3 +172,18 @@ target_sources(xmath PRIVATE
 )
 
 set_target_properties(xmath PROPERTIES FOLDER external)
+
+# ==================== freetype ====================
+
+add_subdirectory(freetype)
+set_target_properties(freetype PROPERTIES FOLDER external)
+
+# ==================== xiph ====================
+
+set(BUILD_TESTING OFF)
+add_subdirectory(libogg)
+set_target_properties(ogg PROPERTIES FOLDER external)
+add_subdirectory(libvorbis)
+set_target_properties(vorbis PROPERTIES FOLDER external)
+set_target_properties(vorbisfile PROPERTIES FOLDER external)
+set_target_properties(vorbisenc PROPERTIES FOLDER external)

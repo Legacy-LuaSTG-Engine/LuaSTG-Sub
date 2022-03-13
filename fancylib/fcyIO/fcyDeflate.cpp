@@ -1,9 +1,11 @@
 ﻿#include "fcyIO/fcyDeflate.h"
 
+#ifdef FCY_USING_ZLIB
 extern "C"
 {
 	#include <zlib.h>
 }
+#endif
 
 #define DEFLATE_BUFFERSIZE 512
 
@@ -14,6 +16,7 @@ using namespace fcyDeflate;
 
 fResult fcyDeflate::CompressStreamToMem(fcyStream* pIn, fcyStream** pOut, fInt Level)
 {
+#ifdef FCY_USING_ZLIB
 	z_stream tStream;
 	int tErr;
 	fByte tOutBuffer[DEFLATE_BUFFERSIZE], tInBuffer[DEFLATE_BUFFERSIZE];
@@ -81,10 +84,14 @@ fResult fcyDeflate::CompressStreamToMem(fcyStream* pIn, fcyStream** pOut, fInt L
 	pOutStream->SetPosition(FCYSEEKORIGIN_BEG, 0);
 
 	return FCYERR_OK;
+#else
+	return FCYERR_NOTIMPL;
+#endif
 }
 
 fResult fcyDeflate::DecompressStreamToMem(fcyStream* pIn, fcyStream** pOut)
 {
+#ifdef FCY_USING_ZLIB
 	z_stream tStream;
 	int tErr;
 	fByte tOutBuffer[DEFLATE_BUFFERSIZE], tInBuffer[DEFLATE_BUFFERSIZE];
@@ -175,10 +182,14 @@ fResult fcyDeflate::DecompressStreamToMem(fcyStream* pIn, fcyStream** pOut)
 	pOutStream->SetPosition(FCYSEEKORIGIN_BEG, 0);
 
 	return FCYERR_OK;
+#else
+	return FCYERR_NOTIMPL;
+#endif
 }
 
 fResult fcyDeflate::DecompressStreamToMemEx(fcyStream* pIn, fInt Flag, fcyStream** pOut)
 {
+#ifdef FCY_USING_ZLIB
 	z_stream tStream;
 	int tErr;
 	fByte tOutBuffer[DEFLATE_BUFFERSIZE], tInBuffer[DEFLATE_BUFFERSIZE];
@@ -246,4 +257,7 @@ fResult fcyDeflate::DecompressStreamToMemEx(fcyStream* pIn, fInt Flag, fcyStream
 	pOutStream->SetPosition(FCYSEEKORIGIN_BEG, 0);
 
 	return FCYERR_OK;
+#else
+	return FCYERR_NOTIMPL;
+#endif
 }
