@@ -35,9 +35,12 @@ namespace LuaSTG::Core
     class FileArchive : public FileNodeTree
     {
     private:
+        std::vector<FileNode> list;
         std::string name;
+        std::string password_;
         uint64_t uuid = 0;
-        void* zip_v = nullptr;
+        void* mz_zip_v = nullptr;
+        void refresh();
     public:
         size_t findIndex(std::string_view const& name);
         size_t getCount();

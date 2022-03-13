@@ -117,23 +117,23 @@ set_target_properties(pugixml-static PROPERTIES FOLDER external)
 
 # ==================== lua csv ====================
 
-add_library(lua_xlsx_csv STATIC)
-luastg_target_common_options(lua_xlsx_csv)
-target_include_directories(lua_xlsx_csv PUBLIC
-    lua-csv
-)
-target_sources(lua_xlsx_csv PRIVATE
-    lua-csv/lua_xlsx_csv.h
-    lua-csv/lua_xlsx.cpp
-    lua-csv/lua_csv.cpp
-)
-target_link_libraries(lua_xlsx_csv PUBLIC
-    luajit
-    zip
-    pugixml
-)
-
-set_target_properties(lua_xlsx_csv PROPERTIES FOLDER external)
+#add_library(lua_xlsx_csv STATIC)
+#luastg_target_common_options(lua_xlsx_csv)
+#target_include_directories(lua_xlsx_csv PUBLIC
+#    lua-csv
+#)
+#target_sources(lua_xlsx_csv PRIVATE
+#    lua-csv/lua_xlsx_csv.h
+#    lua-csv/lua_xlsx.cpp
+#    lua-csv/lua_csv.cpp
+#)
+#target_link_libraries(lua_xlsx_csv PUBLIC
+#    luajit
+#    zip
+#    pugixml
+#)
+#
+#set_target_properties(lua_xlsx_csv PROPERTIES FOLDER external)
 
 # ==================== xmath ====================
 
@@ -187,3 +187,29 @@ add_subdirectory(libvorbis)
 set_target_properties(vorbis PROPERTIES FOLDER external)
 set_target_properties(vorbisfile PROPERTIES FOLDER external)
 set_target_properties(vorbisenc PROPERTIES FOLDER external)
+
+# ==================== zlib-ng ====================
+
+option(ZLIB_ENABLE_TESTS "Build test binaries" OFF)
+option(WITH_AVX2 "Build with AVX2" OFF)
+option(WITH_AVX512 "Build with AVX512" OFF)
+option(WITH_AVX512VNNI "Build with AVX512 VNNI extensions" OFF)
+option(WITH_SSSE3 "Build with SSSE3" OFF)
+option(WITH_SSE41 "Build with SSE41" OFF)
+option(WITH_SSE42 "Build with SSE42" OFF)
+option(WITH_PCLMULQDQ "Build with PCLMULQDQ" OFF)
+option(WITH_VPCLMULQDQ "Build with VPCLMULQDQ" OFF)
+add_subdirectory(zlib)
+if(TARGET zlib-ng)
+    set_target_properties(zlib-ng PROPERTIES FOLDER external)
+else()
+    set_target_properties(zlib PROPERTIES FOLDER external)
+endif()
+
+# ==================== minizip-ng ====================
+
+option(MZ_COMPAT "Enables compatibility layer" OFF)
+option(MZ_FETCH_LIBS "Enables fetching third-party libraries if not found" OFF)
+set(SKIP_INSTALL_ALL ON)
+add_subdirectory(minizip)
+set_target_properties(minizip-ng PROPERTIES FOLDER external)

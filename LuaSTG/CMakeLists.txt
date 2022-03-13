@@ -76,6 +76,7 @@ target_link_libraries(LuaSTG PRIVATE
     spdlog::spdlog
     utility
     zip
+    MINIZIP::minizip
     fancylib
     fancy2dlib
     DirectXTexMini
@@ -85,7 +86,7 @@ target_link_libraries(LuaSTG PRIVATE
     imgui
     lua_cjson
     lua_filesystem
-    lua_xlsx_csv
+    #lua_xlsx_csv
     lua_imgui
     imgui_impl_win32ex
     imgui_impl_dx11
@@ -97,16 +98,6 @@ add_custom_command(TARGET LuaSTG POST_BUILD
     # output dir
     
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_SOURCE_DIR}/bin
-    
-    # z family
-    
-    COMMAND ${CMAKE_COMMAND} -E rm -f "$<TARGET_FILE_DIR:LuaSTG>/$<TARGET_FILE_NAME:zlib>"
-    COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:zlib>/$<TARGET_FILE_NAME:zlib>"                "$<TARGET_FILE_DIR:LuaSTG>"
-    COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:zlib>/$<TARGET_FILE_NAME:zlib>"                ${CMAKE_SOURCE_DIR}/bin
-    
-    COMMAND ${CMAKE_COMMAND} -E rm -f "$<TARGET_FILE_DIR:LuaSTG>/$<TARGET_FILE_NAME:zip>"
-    COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:zip>/$<TARGET_FILE_NAME:zip>"                  "$<TARGET_FILE_DIR:LuaSTG>"
-    COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:zip>/$<TARGET_FILE_NAME:zip>"                  ${CMAKE_SOURCE_DIR}/bin
     
     # DirectX family
     

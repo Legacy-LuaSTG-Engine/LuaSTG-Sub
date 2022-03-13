@@ -8,7 +8,7 @@ extern "C" {
 #include "lua_cjson.h"
 #include "lfs.h"
 }
-#include "lua_xlsx_csv.h"
+//#include "lua_xlsx_csv.h"
 #include "lua_steam.h"
 #include "xinput/lua_xinput.hpp"
 
@@ -276,8 +276,8 @@ namespace LuaSTGPlus
             
             luaopen_cjson(L);
             luaopen_lfs(L);
-            lua_xlsx_open(L);
-            lua_csv_open(L);
+            //lua_xlsx_open(L);
+            //lua_csv_open(L);
             lua_steam_open(L);
             lua_xinput_open(L);
             lua_settop(L, 0);
