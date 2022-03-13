@@ -31,13 +31,7 @@ add_custom_command(TARGET LuaSTGConfig POST_BUILD
     
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_SOURCE_DIR}/bin
     
-    # font family
-    
-    COMMAND ${CMAKE_COMMAND} -E rm -f "$<TARGET_FILE_DIR:LuaSTGConfig>/$<TARGET_FILE_NAME:freetype>"
-    COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:freetype>/$<TARGET_FILE_NAME:freetype>"        "$<TARGET_FILE_DIR:LuaSTGConfig>"
-    COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:freetype>/$<TARGET_FILE_NAME:freetype>"        ${CMAKE_SOURCE_DIR}/bin
-    
-    # luastg congiguer
+    # luastg configuer
     
     COMMAND ${CMAKE_COMMAND} -E rm -f ${CMAKE_SOURCE_DIR}/bin/$<TARGET_FILE_NAME:LuaSTGConfig>
     COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:LuaSTGConfig>/$<TARGET_FILE_NAME:LuaSTGConfig>"            ${CMAKE_SOURCE_DIR}/bin
