@@ -10,7 +10,6 @@ add_compile_definitions(
 )
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Debug>:DLL>")
 
-add_subdirectory(prebuild)
 add_subdirectory(external)
 add_subdirectory(imgui)
 add_subdirectory(steam)
