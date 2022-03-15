@@ -644,7 +644,7 @@ namespace LuaSTG::Core
 					return false;
 			}
 
-			/* pixel shader premul set */ {
+			/* pixel shader normal set */ {
 				Microsoft::WRL::ComPtr<ID3DBlob> ps_blob_;
 
 			#define loadPS(A, B, C, DEF)\
@@ -654,22 +654,18 @@ namespace LuaSTG::Core
 
 				const D3D_SHADER_MACRO ps_def_zero_[] = {
 					{ "VERTEX_COLOR_BLEND_ZERO", "1"},
-					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_one0_[] = {
 					{ "VERTEX_COLOR_BLEND_ONE", "1"},
-					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_add0_[] = {
 					{ "VERTEX_COLOR_BLEND_ADD", "1"},
-					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_mul0_[] = {
 					{ "VERTEX_COLOR_BLEND_MUL", "1"},
-					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 
@@ -682,28 +678,24 @@ namespace LuaSTG::Core
 					{ "VERTEX_COLOR_BLEND_ZERO", "1"},
 					{ "FOG_ENABLE", "1"},
 					{ "FOG_LINEAR", "1"},
-					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_one0_line_[] = {
 					{ "VERTEX_COLOR_BLEND_ONE", "1"},
 					{ "FOG_ENABLE", "1"},
 					{ "FOG_LINEAR", "1"},
-					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_add0_line_[] = {
 					{ "VERTEX_COLOR_BLEND_ADD", "1"},
 					{ "FOG_ENABLE", "1"},
 					{ "FOG_LINEAR", "1"},
-					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_mul0_line_[] = {
 					{ "VERTEX_COLOR_BLEND_MUL", "1"},
 					{ "FOG_ENABLE", "1"},
 					{ "FOG_LINEAR", "1"},
-					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 
@@ -716,28 +708,24 @@ namespace LuaSTG::Core
 					{ "VERTEX_COLOR_BLEND_ZERO", "1"},
 					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP", "1"},
-					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_one0_exp0_[] = {
 					{ "VERTEX_COLOR_BLEND_ONE", "1"},
 					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP", "1"},
-					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_add0_exp0_[] = {
 					{ "VERTEX_COLOR_BLEND_ADD", "1"},
 					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP", "1"},
-					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_mul0_exp0_[] = {
 					{ "VERTEX_COLOR_BLEND_MUL", "1"},
 					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP", "1"},
-					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 
@@ -750,28 +738,24 @@ namespace LuaSTG::Core
 					{ "VERTEX_COLOR_BLEND_ZERO", "1"},
 					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP2", "1"},
-					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_one0_exp2_[] = {
 					{ "VERTEX_COLOR_BLEND_ONE", "1"},
 					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP2", "1"},
-					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_add0_exp2_[] = {
 					{ "VERTEX_COLOR_BLEND_ADD", "1"},
 					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP2", "1"},
-					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_mul0_exp2_[] = {
 					{ "VERTEX_COLOR_BLEND_MUL", "1"},
 					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP2", "1"},
-					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 
@@ -781,23 +765,27 @@ namespace LuaSTG::Core
 				loadPS(VertexColorBlendState::Mul , FogState::Exp2, TextureAlphaType::Normal, ps_def_mul0_exp2_);
 			}
 			
-			/* pixel shader normal set */ {
+			/* pixel shader premul alpha set */ {
 				Microsoft::WRL::ComPtr<ID3DBlob> ps_blob_;
 
 				const D3D_SHADER_MACRO ps_def_zero_nfog_mula_[] = {
 					{ "VERTEX_COLOR_BLEND_ZERO", "1"},
+					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_one0_nfog_mula_[] = {
 					{ "VERTEX_COLOR_BLEND_ONE", "1"},
+					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_add0_nfog_mula_[] = {
 					{ "VERTEX_COLOR_BLEND_ADD", "1"},
+					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_mul0_nfog_mula_[] = {
 					{ "VERTEX_COLOR_BLEND_MUL", "1"},
+					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 
@@ -810,24 +798,28 @@ namespace LuaSTG::Core
 					{ "VERTEX_COLOR_BLEND_ZERO", "1"},
 					{ "FOG_ENABLE", "1"},
 					{ "FOG_LINEAR", "1"},
+					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_one0_line_mula_[] = {
 					{ "VERTEX_COLOR_BLEND_ONE", "1"},
 					{ "FOG_ENABLE", "1"},
 					{ "FOG_LINEAR", "1"},
+					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_add0_line_mula_[] = {
 					{ "VERTEX_COLOR_BLEND_ADD", "1"},
 					{ "FOG_ENABLE", "1"},
 					{ "FOG_LINEAR", "1"},
+					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_mul0_line_mula_[] = {
 					{ "VERTEX_COLOR_BLEND_MUL", "1"},
 					{ "FOG_ENABLE", "1"},
 					{ "FOG_LINEAR", "1"},
+					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 
@@ -840,24 +832,28 @@ namespace LuaSTG::Core
 					{ "VERTEX_COLOR_BLEND_ZERO", "1"},
 					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP", "1"},
+					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_one0_exp0_mula_[] = {
 					{ "VERTEX_COLOR_BLEND_ONE", "1"},
 					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP", "1"},
+					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_add0_exp0_mula_[] = {
 					{ "VERTEX_COLOR_BLEND_ADD", "1"},
 					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP", "1"},
+					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_mul0_exp0_mula_[] = {
 					{ "VERTEX_COLOR_BLEND_MUL", "1"},
 					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP", "1"},
+					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 
@@ -870,24 +866,28 @@ namespace LuaSTG::Core
 					{ "VERTEX_COLOR_BLEND_ZERO", "1"},
 					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP2", "1"},
+					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_one0_exp2_mula_[] = {
 					{ "VERTEX_COLOR_BLEND_ONE", "1"},
 					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP2", "1"},
+					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_add0_exp2_mula_[] = {
 					{ "VERTEX_COLOR_BLEND_ADD", "1"},
 					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP2", "1"},
+					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 				const D3D_SHADER_MACRO ps_def_mul0_exp2_mula_[] = {
 					{ "VERTEX_COLOR_BLEND_MUL", "1"},
 					{ "FOG_ENABLE", "1"},
 					{ "FOG_EXP2", "1"},
+					{ "PREMUL_ALPHA", "1"},
 					{ NULL, NULL },
 				};
 
