@@ -21,7 +21,6 @@ struct VS_Input
     float2 uv  : TEXCOORD0;
     float4 col : COLOR0;
 };
-
 struct VS_Output
 {
     float4 sxy : SV_POSITION;
@@ -66,8 +65,12 @@ cbuffer fog_data : register(b1)
 };
 #endif
 
+#if !defined(VERTEX_COLOR_BLEND_ONE)
 Texture2D    texture0 : register(t0);
 SamplerState sampler0 : register(s0);
+#endif
+
+float channel_minimum = 1.0f / 255.0f;
 
 struct PS_Input
 {
@@ -86,51 +89,82 @@ struct PS_Output
 
 PS_Output main(PS_Input input)
 {
-    // sample texture
-    float4 color = texture0.Sample(sampler0, input.uv);
-    
-    // vertex color blend
-#if defined(VERTEX_COLOR_BLEND_MUL)
-    color = input.col * color;
-#elif defined(VERTEX_COLOR_BLEND_ADD)
-    color.rgb += input.col.rgb;
-    color.r = min(color.r, 1.0f);
-    color.g = min(color.g, 1.0f);
-    color.b = min(color.b, 1.0f);
-    color.a *= input.col.a;
-#elif defined(VERTEX_COLOR_BLEND_ONE)
-    color = input.col;
-#else // VERTEX_COLOR_BLEND_ZERO
-    // color = color;
-#endif
-    
-    // fog color blend
-#if defined(FOG_ENABLE)
-    float mc_distance = distance(camera_pos.xyz, input.pos.xyz);
-    float4 fog_value = fog_color;
-    fog_value.a *= color.a;
-#if defined(FOG_EXP)
-    float fog_factor = clamp(exp(-(mc_distance * fog_range.x)), 0.0f, 1.0f);
-    color = lerp(fog_value, color, fog_factor);
-#elif defined(FOG_EXP2)
-    float fog_factor = clamp(exp(-pow(mc_distance * fog_range.x, 2.0f)), 0.0f, 1.0f);
-    color = lerp(fog_value, color, fog_factor);
-#else // FOG_LINEAR
-    float fog_factor = clamp((mc_distance - fog_range.x) / fog_range.w, 0.0f, 1.0f);
-    color = lerp(color, fog_value, fog_factor);
-#endif
-#endif
+    // 对纹理进行采样
+    #if !defined(VERTEX_COLOR_BLEND_ONE)
+        float4 color = texture0.Sample(sampler0, input.uv);
+    #else
+        float4 color = float4(1.0f, 1.0f, 1.0f, 1.0f);
+    #endif
 
-#if defined(PREMUL_ALPHA)
-    color.rgb *= color.a;
-#endif
+    // 顶点色混合，顶点色是直通颜色（没有预乘 alpha）；最终的结果是预乘 alpha 的
+    #if defined(VERTEX_COLOR_BLEND_MUL)
+        color = color * input.col;
+        #if !defined(PREMUL_ALPHA)
+            color.rgb *= color.a;
+        #else // PREMUL_ALPHA
+            color.rgb *= input.col.a; // 需要少乘以纹理色的 alpha
+        #endif
+    #elif defined(VERTEX_COLOR_BLEND_ADD)
+        #if !defined(PREMUL_ALPHA)
+            // 已经是直通颜色
+        #else // PREMUL_ALPHA
+            // 先解除预乘 alpha
+            if (color.a < channel_minimum)
+            {
+                discard; // 这里原本是完全透明的，应该舍弃
+            }
+            color.rgb /= color.a;
+        #endif
+        color.rgb += input.col.rgb;
+        color.r = min(color.r, 1.0f);
+        color.g = min(color.g, 1.0f);
+        color.b = min(color.b, 1.0f);
+        color.a *= input.col.a;
+        color.rgb *= color.a;
+    #elif defined(VERTEX_COLOR_BLEND_ONE)
+        color = input.col;
+        #if !defined(PREMUL_ALPHA)
+            color.rgb *= color.a;
+        #else // PREMUL_ALPHA
+            // 已经乘过 alpha
+        #endif
+    #else // VERTEX_COLOR_BLEND_ZERO
+        // color = color;
+        #if !defined(PREMUL_ALPHA)
+            color.rgb *= color.a;
+        #else // PREMUL_ALPHA
+            // 已经乘过 alpha
+        #endif
+    #endif
 
-    // output color
+    // 雾颜色混合，雾颜色是直通颜色（没有预乘 alpha）；最终的结果是预乘 alpha 的
+    #if defined(FOG_ENABLE)
+        // camera_pos.xyz 和 input.pos.xyz 都是在世界坐标系下的坐标，求得的距离也是基于世界坐标系的
+        float dist = distance(camera_pos.xyz, input.pos.xyz);
+        #if defined(FOG_EXP)
+            // 指数雾，fog_range.x 是雾密度
+            float k = clamp(1.0f - exp(-(dist * fog_range.x)), 0.0f, 1.0f);
+        #elif defined(FOG_EXP2)
+            // 二次指数雾，fog_range.x 是雾密度
+            float k = clamp(1.0f - exp(-pow(dist * fog_range.x, 2.0f)), 0.0f, 1.0f);
+        #else // FOG_LINEAR
+            // 线性雾，fog_range.x 是雾起始距离，fog_range.y 是雾浓度最大处的距离，fog_range.w 是雾范围（fog_range.y - fog_range.x）
+            float k = clamp((dist - fog_range.x) / fog_range.w, 0.0f, 1.0f);
+        #endif
+        // 基于预乘 alpha 的雾颜色混合，原理请见后面
+        float k1 = 1.0f - k;
+        float alpha = k1 * color.a + k * color.a * fog_color.a;
+        float ka = k1 * (k1 + k * fog_color.a);
+        float kb = k * alpha;
+        color = float4(ka * color.rgb + kb * fog_color.rgb, alpha);
+    #endif
+
+    // 填充输出
     PS_Output output;
     output.col = color;
 
     return output;
-};
+}
 
 )";
 
