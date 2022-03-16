@@ -24,6 +24,35 @@ inline void rotate_float2(float& x, float& y, const float r)
     x = tx;
     y = ty;
 }
+inline void rotate_float2x4(float& x1, float& y1, float& x2, float& y2, float& x3, float& y3, float& x4, float& y4, const float r)
+{
+    float const sinv = std::sinf(r);
+    float const cosv = std::cosf(r);
+    {
+        float const tx = x1 * cosv - y1 * sinv;
+        float const ty = x1 * sinv + y1 * cosv;
+        x1 = tx;
+        y1 = ty;
+    }
+    {
+        float const tx = x2 * cosv - y2 * sinv;
+        float const ty = x2 * sinv + y2 * cosv;
+        x2 = tx;
+        y2 = ty;
+    }
+    {
+        float const tx = x3 * cosv - y3 * sinv;
+        float const ty = x3 * sinv + y3 * cosv;
+        x3 = tx;
+        y3 = ty;
+    }
+    {
+        float const tx = x4 * cosv - y4 * sinv;
+        float const ty = x4 * sinv + y4 * cosv;
+        x4 = tx;
+        y4 = ty;
+    }
+}
 // 要改这个记得也改 LuaSTGPlus::AppFrame::updateGraph2DBlendMode
 static void translate_blend(LuaSTG::Core::Renderer& ctx, const LuaSTGPlus::BlendMode blend)
 {
@@ -159,10 +188,12 @@ static void make_sprite_vertex(f2dSprite* pimg2d, LuaSTG::Core::DrawVertex2D* ve
     vertex[1].x = hscale * (img_w - center_p.x); vertex[1].y = vscale * (center_p.y l_____l);
     vertex[2].x = hscale * (img_w - center_p.x); vertex[2].y = vscale * (center_p.y - img_h);
     vertex[3].x = hscale * (l___l - center_p.x); vertex[3].y = vscale * (center_p.y - img_h);
-    rotate_float2(vertex[0].x, vertex[0].y, rot);
-    rotate_float2(vertex[1].x, vertex[1].y, rot);
-    rotate_float2(vertex[2].x, vertex[2].y, rot);
-    rotate_float2(vertex[3].x, vertex[3].y, rot);
+    rotate_float2x4(
+        vertex[0].x, vertex[0].y,
+        vertex[1].x, vertex[1].y,
+        vertex[2].x, vertex[2].y,
+        vertex[3].x, vertex[3].y,
+        rot);
     vertex[0].x += x; vertex[0].y += y;
     vertex[1].x += x; vertex[1].y += y;
     vertex[2].x += x; vertex[2].y += y;
@@ -199,6 +230,7 @@ static void api_drawSprite(LuaSTGPlus::ResSprite* pimg2dres, float const x, floa
 
     f2dTexture2D* const ptex2d = pimg2d->GetTexture();
     check_rendertarget_usage(ptex2d);
+    ctx.setTextureAlphaType(ptex2d->IsPremultipliedAlpha() ? LuaSTG::Core::TextureAlphaType::PremulAlpha : LuaSTG::Core::TextureAlphaType::Normal);
     ctx.setTexture(LuaSTG::Core::TextureID(ptex2d->GetHandle()));
 
     LuaSTG::Core::DrawVertex2D vertex[4];
@@ -238,6 +270,7 @@ static void api_drawSpriteRect(LuaSTGPlus::ResSprite* pimg2dres, float const l, 
     auto& ctx = LR2D();
     translate_blend(ctx, blend);
     check_rendertarget_usage(ptex2d);
+    ctx.setTextureAlphaType(ptex2d->IsPremultipliedAlpha() ? LuaSTG::Core::TextureAlphaType::PremulAlpha : LuaSTG::Core::TextureAlphaType::Normal);
     ctx.setTexture(LuaSTG::Core::TextureID(ptex2d->GetHandle()));
     ctx.drawQuad(vertex[0], vertex[1], vertex[2], vertex[3]);
 }
@@ -274,6 +307,7 @@ static void api_drawSprite4V(LuaSTGPlus::ResSprite* pimg2dres, float const x1, f
     auto& ctx = LR2D();
     translate_blend(ctx, blend);
     check_rendertarget_usage(ptex2d);
+    ctx.setTextureAlphaType(ptex2d->IsPremultipliedAlpha() ? LuaSTG::Core::TextureAlphaType::PremulAlpha : LuaSTG::Core::TextureAlphaType::Normal);
     ctx.setTexture(LuaSTG::Core::TextureID(ptex2d->GetHandle()));
     ctx.drawQuad(vertex[0], vertex[1], vertex[2], vertex[3]);
 }
@@ -298,6 +332,7 @@ static void api_drawSpriteSequence(LuaSTGPlus::ResAnimation* pani2dres, int cons
 
     f2dTexture2D* const ptex2d = pimg2d->GetTexture();
     check_rendertarget_usage(ptex2d);
+    ctx.setTextureAlphaType(ptex2d->IsPremultipliedAlpha() ? LuaSTG::Core::TextureAlphaType::PremulAlpha : LuaSTG::Core::TextureAlphaType::Normal);
     ctx.setTexture(LuaSTG::Core::TextureID(ptex2d->GetHandle()));
 
     LuaSTG::Core::DrawVertex2D vertex[4];
@@ -345,6 +380,7 @@ static void api_GameObject_drawSprite(f2dSprite* pimg2d, float const x, float co
 
     f2dTexture2D* const ptex2d = pimg2d->GetTexture();
     check_rendertarget_usage(ptex2d);
+    ctx.setTextureAlphaType(ptex2d->IsPremultipliedAlpha() ? LuaSTG::Core::TextureAlphaType::PremulAlpha : LuaSTG::Core::TextureAlphaType::Normal);
     ctx.setTexture(LuaSTG::Core::TextureID(ptex2d->GetHandle()));
 
     LuaSTG::Core::DrawVertex2D vertex[4];
@@ -551,6 +587,7 @@ static int lib_setTexture(lua_State* L)LNOEXCEPT
     LuaSTG::Core::TextureID tex;
     tex.handle = p->GetTexture()->GetHandle();
     check_rendertarget_usage(p->GetTexture());
+    LR2D().setTextureAlphaType(p->GetTexture()->IsPremultipliedAlpha() ? LuaSTG::Core::TextureAlphaType::PremulAlpha : LuaSTG::Core::TextureAlphaType::Normal);
     LR2D().setTexture(tex);
     return 0;
 }
@@ -773,6 +810,7 @@ static int lib_drawTexture(lua_State* L)LNOEXCEPT
         vertex[i].v *= tex_h;
     }
     check_rendertarget_usage(ptex2d);
+    ctx.setTextureAlphaType(ptex2d->IsPremultipliedAlpha() ? LuaSTG::Core::TextureAlphaType::PremulAlpha : LuaSTG::Core::TextureAlphaType::Normal);
     ctx.setTexture(LuaSTG::Core::TextureID(ptex2d->GetHandle()));
 
     ctx.drawQuad(vertex[0], vertex[1], vertex[2], vertex[3]);

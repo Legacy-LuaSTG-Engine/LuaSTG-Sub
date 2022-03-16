@@ -49,6 +49,9 @@ struct f2dTexture2D :
 	virtual fuInt GetWidth()=0;    ///< @brief 返回宽度
 	virtual fuInt GetHeight()=0;   ///< @brief 返回高度
 
+	virtual fBool IsPremultipliedAlpha() = 0;
+	virtual void SetPremultipliedAlpha(fBool b) = 0;
+
 	// 更新纹理，默认的像素格式为 B8G8R8A8_UNORM
 	virtual fResult Update(fcyRect* dstRect, fData pData, fuInt pitch) = 0;
 };
