@@ -717,16 +717,6 @@ void AppFrame::Run()LNOEXCEPT
 	spdlog::info("[luastg] 开始更新&渲染循环");
 	
 	m_fFPS = 0.f;
-#if (defined LDEVVERSION) || (defined LDEBUG)
-	m_UpdateTimer = 0.f;
-	m_RenderTimer = 0.f;
-	m_PerformanceUpdateTimer = 0.f;
-	m_PerformanceUpdateCounter = 0.f;
-	m_FPSTotal = 0.f;
-	m_ObjectTotal = 0.f;
-	m_UpdateTimerTotal = 0.f;
-	m_RenderTimerTotal = 0.f;
-#endif
 	
 	m_pEngine->Run(F2DENGTHREADMODE_MULTITHREAD, m_OptionFPSLimit);
 	
@@ -739,10 +729,6 @@ void AppFrame::Run()LNOEXCEPT
 
 fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, f2dMsgPump* pMsgPump)
 {
-	#if (defined LDEVVERSION) || (defined LDEBUG)
-	TimerScope tProfileScope(m_UpdateTimer);
-	#endif
-	
 	m_fFPS = (float)pFPSController->GetFPS();
 	pFPSController->SetLimitedFPS(m_OptionFPSLimit);
 	
@@ -895,38 +881,11 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 	bool tAbort = lua_toboolean(L, -1) == 0 ? false : true;
 	lua_pop(L, 1);
 	
-	#if (defined LDEVVERSION) || (defined LDEBUG)
-	// 刷新性能计数器
-	m_PerformanceUpdateTimer += static_cast<float>(ElapsedTime);
-	m_PerformanceUpdateCounter += 1.f;
-	m_FPSTotal += static_cast<float>(m_fFPS);
-	m_ObjectTotal += (float)m_GameObjectPool->GetObjectCount();
-	m_UpdateTimerTotal += m_UpdateTimer;
-	m_RenderTimerTotal += m_RenderTimer;
-	if (m_PerformanceUpdateTimer > 0.05f) // 每隔1/20秒刷新一次计数器
-	{
-		//m_FPSTotal / m_PerformanceUpdateCounter,
-		//m_ObjectTotal / m_PerformanceUpdateCounter,
-		//m_UpdateTimerTotal / m_PerformanceUpdateCounter,
-		//m_RenderTimerTotal / m_PerformanceUpdateCounter
-		m_PerformanceUpdateTimer = 0.f;
-		m_PerformanceUpdateCounter = 0.f;
-		m_FPSTotal = 0.f;
-		m_ObjectTotal = 0.f;
-		m_UpdateTimerTotal = 0.f;
-		m_RenderTimerTotal = 0.f;
-	}
-	#endif
-	
 	return !tAbort;
 }
 
 fBool AppFrame::OnRender(fDouble ElapsedTime, f2dFPSController* pFPSController)
 {
-	#if (defined LDEVVERSION) || (defined LDEBUG)
-	TimerScope tProfileScope(m_RenderTimer);
-	#endif
-	
 	m_pRenderDev->Clear();
 	
 	// 执行渲染函数
