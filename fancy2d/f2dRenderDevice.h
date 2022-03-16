@@ -49,22 +49,8 @@ struct f2dTexture2D :
 	virtual fuInt GetWidth()=0;    ///< @brief 返回宽度
 	virtual fuInt GetHeight()=0;   ///< @brief 返回高度
 
-	/// @brief      锁定纹理
-	/// @note       只有动态纹理可以被锁定。锁定操作和解锁操作配对，在未解锁前只能锁定一次。
-	/// @param[in]  pLockRect 被锁定的区域，设为NULL则锁定整个纹理
-	/// @param[in]  Discard   如果原始数据正在被使用则抛弃原始数据
-	/// @param[out] Pitch     行对齐字节
-	/// @param[out] pOut      返回的内存指针，自动计算到区域的首字节
-	virtual fResult Lock(fcyRect* pLockRect, fBool Discard, fuInt* Pitch, fData* pOut)=0;
-	virtual fResult Unlock()=0;
-	
-
 	// 更新纹理，默认的像素格式为 B8G8R8A8_UNORM
 	virtual fResult Update(fcyRect* dstRect, fData pData, fuInt pitch) = 0;
-
-	// 废弃的方法
-	virtual fResult AddDirtyRect(fcyRect* pDirtyRect) = 0;
-	virtual fResult Upload() = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
