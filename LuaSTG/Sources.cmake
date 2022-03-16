@@ -35,6 +35,9 @@ set(LUASTG_ENGINE_SOURCES
     src/LuaWrapper/LW_Renderer.cpp
     src/LuaWrapper/LW_StopWatch.cpp
     src/LuaWrapper/LW_Window.cpp
+    src/LuaWrapper/LW_ResourceMgr.cpp
+    src/LuaWrapper/LW_Platform.cpp
+    src/LuaWrapper/LW_GameObjectManager.cpp
     
     src/Resource/ResourceAnimation.cpp
     src/Resource/ResourceAnimation.hpp
