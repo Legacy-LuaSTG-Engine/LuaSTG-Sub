@@ -109,7 +109,7 @@ fResult f2dSpriteImpl::SetTexture(f2dTexture2D* pTex)
 	if(!pTex)
 		return FCYERR_INVAILDPARAM;
 
-	f2dTexture* tOrg = m_pTex;
+	f2dTexture2D* tOrg = m_pTex;
 	m_pTex = pTex;
 	m_pTex->AddRef();
 	FCYSAFEKILL(tOrg);
