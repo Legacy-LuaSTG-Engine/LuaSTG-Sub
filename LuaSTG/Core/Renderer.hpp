@@ -275,6 +275,7 @@ namespace LuaSTG::Core
 		void setDepthState(DepthState state);
 		void setBlendState(BlendState state);
 		void setTexture(TextureID texture);
+		void setTextureAlphaType(TextureAlphaType state);
 
 		bool flush();
 		void drawTriangle(DrawVertex2D const& v1, DrawVertex2D const& v2, DrawVertex2D const& v3);
