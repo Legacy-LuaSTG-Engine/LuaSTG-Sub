@@ -40,10 +40,6 @@ public: // 接口实现
 	fuInt GetWidth() { return m_Width; }
 	fuInt GetHeight() { return m_Height; }
 
-	fResult Lock(fcyRect* pLockRect, fBool Discard, fuInt* Pitch, fData* pOut) { return FCYERR_NOTSUPPORT; }
-	fResult Unlock() { return FCYERR_NOTSUPPORT; }
-	fResult AddDirtyRect(fcyRect* pDirtyRect) { return FCYERR_NOTSUPPORT; }
-	fResult Upload() { return FCYERR_NOTSUPPORT; }
 	fResult Update(fcyRect* dstRect, fData pData, fuInt pitch);
 protected:
 	f2dTexture2D11(f2dRenderDevice* pDev, fuInt Width, fuInt Height);
@@ -90,10 +86,6 @@ public: // 接口实现
 	fuInt GetWidth() { return m_Width; }
 	fuInt GetHeight() { return m_Height; }
 
-	fResult Lock(fcyRect* pLockRect, fBool Discard, fuInt* Pitch, fData* pOut) { return FCYERR_NOTSUPPORT; }
-	fResult Unlock() { return FCYERR_NOTSUPPORT; }
-	fResult AddDirtyRect(fcyRect* pDirtyRect) { return FCYERR_NOTSUPPORT; }
-	fResult Upload() { return FCYERR_NOTSUPPORT; }
 	fResult Update(fcyRect* dstRect, fData pData, fuInt pitch) { return FCYERR_NOTSUPPORT; }
 protected:
 	f2dRenderTarget11(f2dRenderDevice* pDev, fuInt Width, fuInt Height, fBool AutoResize);
