@@ -1,15 +1,7 @@
 #include "LuaWrapper\LuaWrapper.hpp"
 #include "AppFrame.h"
-#include "LConfig.h"
 
-#ifdef min
-#undef min
-#endif
-
-#ifdef max
-#undef max
-#endif
-
+// 微软我日你仙人
 #ifdef PlaySound
 #undef PlaySound
 #endif

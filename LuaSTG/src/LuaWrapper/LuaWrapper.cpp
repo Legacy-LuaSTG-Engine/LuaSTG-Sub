@@ -1,6 +1,4 @@
 ﻿#include "LuaWrapper/LuaWrapper.hpp"
-#include "Common/SystemDirectory.hpp"
-#include <Windows.h>
 
 namespace LuaSTGPlus
 {
@@ -9,45 +7,6 @@ namespace LuaSTGPlus
 		void Register(lua_State* L)LNOEXCEPT {
 			struct Function
 			{
-				static int GetLocalAppDataPath(lua_State* L)LNOEXCEPT
-				{
-					try {
-						std::wstring wpath;
-						if (windows::getLocalAppDataDirectory(wpath))
-						{
-							std::string path = fcyStringHelper::WideCharToMultiByte(wpath, CP_UTF8);
-							lua_pushstring(L, path.c_str());
-						}
-						else
-						{
-							lua_pushstring(L, "");
-						}
-					}
-					catch (const std::bad_alloc&) {
-						lua_pushstring(L, "");
-					}
-					return 1;
-				}
-				static int GetRoamingAppDataPath(lua_State* L)LNOEXCEPT
-				{
-					try {
-						std::wstring wpath;
-						if (windows::getRoamingAppDataDirectory(wpath))
-						{
-							std::string path = fcyStringHelper::WideCharToMultiByte(wpath, CP_UTF8);
-							lua_pushstring(L, path.c_str());
-						}
-						else
-						{
-							lua_pushstring(L, "");
-						}
-					}
-					catch (const std::bad_alloc&) {
-						lua_pushstring(L, "");
-					}
-					return 1;
-				}
-				
 				static int Color(lua_State* L)LNOEXCEPT
 				{
 					if (lua_gettop(L) == 1) {
@@ -94,9 +53,6 @@ namespace LuaSTGPlus
 			
 			luaL_Reg tMethod[] =
 			{
-				{ "GetLocalAppDataPath", &Function::GetLocalAppDataPath },
-				{ "GetRoamingAppDataPath", &Function::GetRoamingAppDataPath },
-
 				{ "Color", &Function::Color },
 				{ "HSVColor", &Function::HSVColor },
 				{ "StopWatch", &Function::StopWatch },
@@ -122,11 +78,11 @@ namespace LuaSTGPlus
 		BuiltInFunctionWrapper::Register(L);  // 内建函数库
 		LuaWrapper::RenderWrapper::Register(L);
 		LuaWrapper::RendererWrapper::Register(L);
+		LuaWrapper::GameObjectManagerWrapper::Register(L);
+		LuaWrapper::ResourceMgrWrapper::Register(L);
 		LuaWrapper::AudioWrapper::Register(L);
+		LuaWrapper::PlatformWrapper::Register(L);
 		FileManagerWrapper::Register(L); //内建函数库，文件资源管理，请确保位于内建函数库后加载
 		ArchiveWrapper::Register(L); //压缩包
-#ifdef USING_ADVANCE_COLLIDER
-		GameObjectColliderWrapper::Register(L);//Collider
-#endif // USING_ADVANCE_COLLIDER
 	}
 }

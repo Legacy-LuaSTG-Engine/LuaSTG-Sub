@@ -62,7 +62,22 @@ namespace LuaSTGPlus
 		public:
 			static void Register(lua_State* L)LNOEXCEPT;
 		};
+		class GameObjectManagerWrapper
+		{
+		public:
+			static void Register(lua_State* L)LNOEXCEPT;
+		};
+		class ResourceMgrWrapper
+		{
+		public:
+			static void Register(lua_State* L)LNOEXCEPT;
+		};
 		class AudioWrapper
+		{
+		public:
+			static void Register(lua_State* L)LNOEXCEPT;
+		};
+		class PlatformWrapper
 		{
 		public:
 			static void Register(lua_State* L)LNOEXCEPT;
