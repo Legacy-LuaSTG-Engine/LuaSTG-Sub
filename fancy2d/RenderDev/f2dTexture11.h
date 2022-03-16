@@ -24,6 +24,7 @@ private:
 	fuInt m_Width = 0;
 	fuInt m_Height = 0;
 	fBool m_Dynamic = false;
+	fBool m_PremultipliedAlpha = false;
 private:
 	void f2dTexture2D11FromMemory(fcData pMemory, fLen Size, fBool bMipmap, fBool bDynamic);
 public: // 内部公开接口
@@ -39,6 +40,8 @@ public: // 接口实现
 	fBool IsRenderTarget() { return false; }
 	fuInt GetWidth() { return m_Width; }
 	fuInt GetHeight() { return m_Height; }
+	fBool IsPremultipliedAlpha() { return m_PremultipliedAlpha; }
+	void SetPremultipliedAlpha(fBool b) { m_PremultipliedAlpha = b; }
 
 	fResult Update(fcyRect* dstRect, fData pData, fuInt pitch);
 protected:
@@ -69,6 +72,7 @@ private:
 	fuInt m_Width = 0;
 	fuInt m_Height = 0;
 	fBool m_bAutoResize = true;
+	fBool m_PremultipliedAlpha = true; // RenderTarget 默认其为预乘了 alpha 的纹理
 public: // 内部公开接口
 	ID3D11Texture2D* GetResource() { return d3d11_texture2d.Get(); }
 	ID3D11RenderTargetView* GetRTView() { return d3d11_rtv.Get(); }
@@ -85,6 +89,8 @@ public: // 接口实现
 	fBool IsRenderTarget() { return true; }
 	fuInt GetWidth() { return m_Width; }
 	fuInt GetHeight() { return m_Height; }
+	fBool IsPremultipliedAlpha() { return m_PremultipliedAlpha; }
+	void SetPremultipliedAlpha(fBool b) { m_PremultipliedAlpha = b; }
 
 	fResult Update(fcyRect* dstRect, fData pData, fuInt pitch) { return FCYERR_NOTSUPPORT; }
 protected:

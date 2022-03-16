@@ -921,6 +921,7 @@ namespace LuaSTG::Core
 			setDepthState(_state_set.depth_state);
 			setBlendState(_state_set.blend_state);
 			setTexture(_state_set.texture);
+			setTextureAlphaType(_state_set.texture_alpha_type);
 
 			_state_dirty = false;
 		}
@@ -1295,7 +1296,7 @@ namespace LuaSTG::Core
 			{
 				batchFlush();
 				_state_set.texture_alpha_type = state;
-				_devctx->PSSetShader(_pixel_shader[IDX(state)][IDX(_state_set.fog_state)][IDX(_state_set.texture_alpha_type)].Get(), NULL, 0);
+				_devctx->PSSetShader(_pixel_shader[IDX(_state_set.vertex_color_blend_state)][IDX(_state_set.fog_state)][IDX(state)].Get(), NULL, 0);
 			}
 		}
 
