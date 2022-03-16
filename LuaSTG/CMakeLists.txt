@@ -53,24 +53,31 @@ target_include_directories(LuaSTG PRIVATE
     .
     ..
     src
-    ${LUASTG_RESDIR}
     src/Resource
     src/LuaWrapper
 )
 
 target_compile_definitions(LuaSTG PRIVATE LDEVVERSION)
 
-aux_source_directory(${LUASTG_RESDIR} LUASTG_RES)
-
 include(Sources.cmake)
 target_sources(LuaSTG PRIVATE
     ${LUASTG_ENGINE_SOURCES_COMMON}
     ${LUASTG_ENGINE_SOURCES}
     ${LUASTG_LUA_EXTENSION_SOURCES}
-    ${LUASTG_RES}
-    ${LUASTG_RESDIR}/resource.rc
-    ${LUASTG_RESDIR}/app.ico
 )
+if(EXISTS ${LUASTG_RESDIR}/Custom.cmake)
+    include(${LUASTG_RESDIR}/Custom.cmake)
+else()
+    target_include_directories(LuaSTG PRIVATE
+        ${LUASTG_RESDIR}
+    )
+    aux_source_directory(${LUASTG_RESDIR} LUASTG_RES)
+    target_sources(LuaSTG PRIVATE
+        ${LUASTG_RES}
+        ${LUASTG_RESDIR}/resource.rc
+        ${LUASTG_RESDIR}/app.ico
+    )
+endif()
 
 target_link_libraries(LuaSTG PRIVATE
     spdlog::spdlog
