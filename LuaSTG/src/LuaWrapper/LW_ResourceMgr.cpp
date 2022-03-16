@@ -437,6 +437,16 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			lua_pushboolean(L, p->IsRenderTarget());
 			return 1;
 		}
+		static int SetTexturePreMulAlphaState(lua_State* L) noexcept
+		{
+			ResTexture* p = LRES.FindTexture(luaL_checkstring(L, 1));
+			if (p)
+			{
+				p->GetTexture()->SetPremultipliedAlpha(lua_toboolean(L, 2));
+				return 0;
+			}
+			return luaL_error(L, "texture '%s' not found.", luaL_checkstring(L, 1));
+		}
 		static int GetTextureSize(lua_State* L) noexcept
 		{
 			const char* name = luaL_checkstring(L, 1);
@@ -654,6 +664,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 		{ "LoadFX", &Wrapper::LoadFX },
 		{ "CreateRenderTarget", &Wrapper::CreateRenderTarget },
 		{ "IsRenderTarget", &Wrapper::IsRenderTarget },
+		{ "SetTexturePreMulAlphaState", &Wrapper::SetTexturePreMulAlphaState },
 		{ "GetTextureSize", &Wrapper::GetTextureSize },
 		{ "RemoveResource", &Wrapper::RemoveResource },
 		{ "CheckRes", &Wrapper::CheckRes },
