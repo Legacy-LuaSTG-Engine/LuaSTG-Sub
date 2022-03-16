@@ -136,7 +136,7 @@ namespace LuaSTG::Core
 	private:
 		Microsoft::WRL::ComPtr<ID3D11InputLayout> _input_layout;
 		Microsoft::WRL::ComPtr<ID3D11VertexShader> _vertex_shader[IDX(FogState::MAX_COUNT)]; // FogState
-		Microsoft::WRL::ComPtr<ID3D11PixelShader> _pixel_shader[IDX(VertexColorBlendState::MAX_COUNT)][IDX(FogState::MAX_COUNT)][2]; // VertexColorBlendState, FogState, TextureAlphaType
+		Microsoft::WRL::ComPtr<ID3D11PixelShader> _pixel_shader[IDX(VertexColorBlendState::MAX_COUNT)][IDX(FogState::MAX_COUNT)][IDX(TextureAlphaType::MAX_COUNT)]; // VertexColorBlendState, FogState, TextureAlphaType
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> _raster_state;
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> _sampler_state[IDX(SamplerState::MAX_COUNT)];
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> _depth_state[IDX(DepthState::MAX_COUNT)];
@@ -1289,6 +1289,15 @@ namespace LuaSTG::Core
 				TextureID_retain(_state_set.texture);
 			}
 		}
+		void setTextureAlphaType(TextureAlphaType state)
+		{
+			if (_state_dirty || _state_set.texture_alpha_type != state)
+			{
+				batchFlush();
+				_state_set.texture_alpha_type = state;
+				_devctx->PSSetShader(_pixel_shader[IDX(state)][IDX(_state_set.fog_state)][IDX(_state_set.texture_alpha_type)].Get(), NULL, 0);
+			}
+		}
 
 		bool flush()
 		{
@@ -1610,6 +1619,10 @@ namespace LuaSTG::Core
 	void Renderer::setTexture(TextureID texture)
 	{
 		self->setTexture(texture);
+	}
+	void Renderer::setTextureAlphaType(TextureAlphaType state)
+	{
+		self->setTextureAlphaType(state);
 	}
 
 	bool Renderer::flush()
