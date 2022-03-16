@@ -1,6 +1,5 @@
 ﻿#include "LuaWrapper\LuaWrapper.hpp"
 #include "AppFrame.h"
-#include "LConfig.h"
 
 #define l___l
 #define l_____l
@@ -353,29 +352,18 @@ static void api_drawSpriteSequence(char const* name, int const ani_timer, float 
 // 下面 api_GameObject_ 系列是要废弃的
 static void api_GameObject_updateBlendMode(LuaSTGPlus::BlendMode blend)
 {
-#ifdef LUASTG_GRAPHIC_API_D3D11
     translate_blend(LR2D(), blend);
-#endif
 }
 static void api_GameObject_drawSprite(LuaSTGPlus::ResSprite* pimg2dres, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {
-#ifdef LUASTG_GRAPHIC_API_D3D11
     api_drawSprite(pimg2dres, x, y, rot, hscale, vscale, z);
-#else
-    LAPP.Render(pimg2dres, x, y, rot, hscale, vscale, z);
-#endif
 }
 static void api_GameObject_drawSpriteSequence(LuaSTGPlus::ResAnimation* pani2dres, int const ani_timer, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {
-#ifdef LUASTG_GRAPHIC_API_D3D11
     api_drawSpriteSequence(pani2dres, ani_timer, x, y, rot, hscale, vscale, z);
-#else
-    LAPP.Render(pani2dres, ani_timer, x, y, rot, hscale, vscale);
-#endif
 }
 static void api_GameObject_drawSprite(f2dSprite* pimg2d, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {
-#ifdef LUASTG_GRAPHIC_API_D3D11
     auto& ctx = LR2D();
 
     f2dTexture2D* const ptex2d = pimg2d->GetTexture();
@@ -386,17 +374,10 @@ static void api_GameObject_drawSprite(f2dSprite* pimg2d, float const x, float co
     LuaSTG::Core::DrawVertex2D vertex[4];
     make_sprite_vertex(pimg2d, vertex, x, y, rot, hscale, vscale, z);
     ctx.drawQuad(vertex[0], vertex[1], vertex[2], vertex[3]);
-#else
-    pimg2d->Draw2(LAPP.GetGraphics2D(), fcyVec2(x, y), fcyVec2(hscale, vscale), rot, false);
-#endif
 }
 static void api_GameObject_drawParticle(LuaSTGPlus::ResParticle::ParticlePool* p, float hscale, float vscale)
 {
-#ifdef LUASTG_GRAPHIC_API_D3D11
     p->Render(LAPP.GetGraphics2D(), hscale, vscale);
-#else
-    LAPP.Render(p, hscale, vscale);
-#endif
 }
 
 static void api_setFogState(float start, float end, fcyColor color)
@@ -1100,7 +1081,6 @@ static int compat_Noop(lua_State* L)
 }
 
 static luaL_Reg const lib_compat[] = {
-#ifdef LUASTG_GRAPHIC_API_D3D11
     { "BeginScene", &lib_beginScene },
     { "EndScene", &lib_endScene },
     { "RenderClear", &lib_clearRenderTarget },
@@ -1127,7 +1107,6 @@ static luaL_Reg const lib_compat[] = {
     { "RenderGroupCollider", &compat_Noop },
     { "RenderTextureSector", &compat_Noop },
     { "RenderTextureAnnulus", &compat_Noop },
-#endif
     { NULL, NULL },
 };
 

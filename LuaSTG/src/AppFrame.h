@@ -34,19 +34,6 @@ namespace LuaSTGPlus
 	private:
 		AppStatus m_iStatus = AppStatus::NotInitialized;
 		
-#if (defined LDEVVERSION) || (defined LDEBUG)
-		// 性能计数器
-		float m_UpdateTimer = 0.f;
-		float m_RenderTimer = 0.f;
-
-		float m_PerformanceUpdateTimer = 0.f;  // 记录性能参数的累计采样时间
-		float m_PerformanceUpdateCounter = 0.f;  // 记录采样次数
-		float m_FPSTotal = 0.f;  // 记录在采样时间内累计的FPS
-		float m_ObjectTotal = 0.f;  // 记录在采样时间内累计的对象数
-		float m_UpdateTimerTotal = 0.f;  // 记录在采样时间内累计的更新时间
-		float m_RenderTimerTotal = 0.f;  // 记录在采样时间内累计的渲染时间
-#endif
-		
 		// 资源管理器
 		ResourceMgr m_ResourceMgr;
 		
