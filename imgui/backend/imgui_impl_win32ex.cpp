@@ -57,7 +57,7 @@ struct Win32Message
     WPARAM wParam;
     LPARAM lParam;
 };
-struct Win32MessageQueue
+struct Win32MessageQueueSafe
 {
     size_t const size = 256;
     Win32Message data[256] = {};
@@ -89,7 +89,7 @@ struct Win32MessageQueue
         return false;
     }
 
-    Win32MessageQueue()
+    Win32MessageQueueSafe()
     {
         LONG const value = (LONG)size;
         writer_index = 0;
@@ -99,12 +99,42 @@ struct Win32MessageQueue
         if (semaphore_space == NULL || semaphore_data == NULL)
             throw;
     }
-    ~Win32MessageQueue()
+    ~Win32MessageQueueSafe()
     {
         writer_index = 0;
         reader_index = 0;
         if (semaphore_space) ::CloseHandle(semaphore_space); semaphore_space = NULL;
         if (semaphore_data) ::CloseHandle(semaphore_data); semaphore_data = NULL;
+    }
+};
+struct Win32MessageQueue
+{
+    Win32Message data[0x100] {};
+    volatile int cave[0x100] {};
+    size_t writer_index { 0 };
+    size_t reader_index { 0 };
+    
+    bool write(Win32Message const& v)
+    {
+        if (!cave[writer_index])
+        {
+            cave[writer_index] = 1;
+            data[writer_index] = v;
+            writer_index = (writer_index + 1) % 0x100;
+            return true;
+        }
+        return false;
+    }
+    bool read(Win32Message& v)
+    {
+        if (cave[reader_index])
+        {
+            v = data[reader_index];
+            cave[reader_index] = 0;
+            reader_index = (reader_index + 1) % 0x100;
+            return true;
+        }
+        return false;
     }
 };
 
