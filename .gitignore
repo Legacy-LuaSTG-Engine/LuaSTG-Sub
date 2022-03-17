@@ -11,9 +11,6 @@ install/*
 # publish
 bin/*
 
-# test
-data/*
-
 # cache
 LuaSTG/Custom.cmake
 LuaSTG/backup/*
