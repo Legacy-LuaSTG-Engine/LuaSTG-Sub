@@ -29,6 +29,12 @@ f2dSoundSysImpl::f2dSoundSysImpl(f2dEngineImpl* pEngine)
 		spdlog::error("[fancy2d] XAudio2Create 调用失败");
 		throw fcyWin32COMException("f2dSoundSysImpl::f2dSoundSysImpl", "XAudio2Create Failed.", hr);
 	}
+	#ifdef _DEBUG
+	XAUDIO2_DEBUG_CONFIGURATION debug_cfg = {
+		.TraceMask = XAUDIO2_LOG_ERRORS | XAUDIO2_LOG_WARNINGS,
+	};
+	m_pXAudio2->xa2_xaudio2->SetDebugConfiguration(&debug_cfg);
+	#endif
 
 	hr = gHR = m_pXAudio2->xa2_xaudio2->CreateMasteringVoice(&m_pXAudio2->xa2_master);
 	if (FAILED(hr))

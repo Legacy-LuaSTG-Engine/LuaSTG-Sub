@@ -123,22 +123,28 @@ fBool f2dAudioBufferStatic::IsDynamic()
 void f2dAudioBufferStatic::Play()
 {
 	is_playing = true;
-	xa2_source->Start();
+	ResetEvent(event_end.Get());
+	gHR = xa2_source->Start();
 }
 
 void f2dAudioBufferStatic::Stop()
 {
 	is_playing = false;
-	xa2_source->Stop();
-	xa2_source->FlushSourceBuffers();
-	xa2_source->SubmitSourceBuffer(&xa2_buffer);
-	ResetEvent(event_end.Get());
+	SetEvent(event_end.Get());
+	gHR = xa2_source->Stop();
+	gHR = xa2_source->FlushSourceBuffers();
+	XAUDIO2_VOICE_STATE state = {};
+	do
+	{
+		xa2_source->GetState(&state);
+	} while (state.BuffersQueued >= XAUDIO2_MAX_QUEUED_BUFFERS);
+	gHR = xa2_source->SubmitSourceBuffer(&xa2_buffer);
 }
 
 void f2dAudioBufferStatic::Pause()
 {
 	is_playing = false;
-	xa2_source->Stop();
+	gHR = xa2_source->Stop();
 }
 
 fBool f2dAudioBufferStatic::IsLoop()
