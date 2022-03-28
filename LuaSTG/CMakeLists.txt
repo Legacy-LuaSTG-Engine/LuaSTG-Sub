@@ -25,6 +25,10 @@ set(LuaSTGCore_SRC
     Backend/framework.cpp
     Backend/Shader.hpp
     Backend/Renderer.cpp
+    Backend/ModelShader.hpp
+    Backend/ModelShader.cpp
+    Backend/Model.hpp
+    Backend/Model.cpp
 )
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${LuaSTGCore_SRC})
 target_sources(LuaSTGCore PRIVATE
@@ -39,6 +43,7 @@ target_link_libraries(LuaSTGCore PUBLIC
     dxguid.lib
     dxgi.lib
     d3d11.lib
+    tinygltf
 )
 
 # LuaSTG Engine

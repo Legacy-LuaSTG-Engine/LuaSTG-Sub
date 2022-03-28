@@ -247,6 +247,44 @@ namespace LuaSTG::Core
 		} command;
 	};
 
+	struct IObject
+	{
+		virtual intptr_t retain() = 0;
+		virtual intptr_t release() = 0;
+		virtual ~IObject() {};
+	};
+	
+	template<typename T = IObject>
+	class ScopeObject
+	{
+	private:
+		T* ptr_;
+	private:
+		inline void internal_retain() { if (ptr_) ptr_->retain(); }
+		inline void internal_release() { if (ptr_) ptr_->release(); ptr_ = nullptr; }
+	public:
+		T* operator->() { return ptr_; }
+		T* operator*() { return ptr_; }
+		T** operator~() { internal_release(); return &ptr_; }
+		ScopeObject& operator=(std::nullptr_t) { internal_release(); return *this; }
+		operator bool() { return ptr_ != nullptr; }
+	public:
+		ScopeObject() : ptr_(nullptr) {}
+		ScopeObject(ScopeObject& right) : ptr_(right.ptr_) { internal_retain(); }
+		ScopeObject(ScopeObject const& right) : ptr_(right.ptr_) { internal_retain(); }
+		ScopeObject(ScopeObject&& right) : ptr_(right.ptr_) { right.ptr_ = nullptr; }
+		ScopeObject(ScopeObject const&&) = delete;
+		~ScopeObject() { internal_release(); }
+	};
+	
+	struct IModel : public IObject
+	{
+		virtual void setScaling(Vector3 const& scale) = 0;
+		virtual void setPosition(Vector3 const& pos) = 0;
+		virtual void setRotationRollPitchYaw(float roll, float pitch, float yaw) = 0;
+		virtual void setRotationQuaternion(Vector4 const& quat) = 0;
+	};
+
 	class Renderer
 	{
 	private:
@@ -288,6 +326,9 @@ namespace LuaSTG::Core
 		ShaderID createPostEffectShader(char const* name, void const* data, size_t size);
 		void destroyPostEffectShader(ShaderID& ps);
 		void postEffect(ShaderID const& ps, TextureID const& rt, SamplerState rtsv, Vector4 const* cv, size_t cv_n, TextureID const* tv, SamplerState const* sv, size_t tv_sv_n, BlendState blend);
+	
+		bool createModel(char const* gltf_path, IModel** model);
+		bool drawModel(IModel* model);
 	public:
 		Renderer();
 		Renderer(Renderer&) = delete;

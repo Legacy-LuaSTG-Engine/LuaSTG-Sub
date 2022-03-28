@@ -76,7 +76,7 @@ namespace LuaSTGPlus
         bool LoadTrueTypeFont(const char* name, f2dFontProviderParam param, f2dTrueTypeFontParam* fonts, fuInt count) noexcept;
         // 特效
         bool LoadFX(const char* name, const char* path, bool is_effect = true) noexcept;
-        // 模型（什么垃圾）
+        // 模型
         bool LoadModel(const char* name, const char* path) noexcept;
         
         fcyRefPointer<ResTexture> GetTexture(const char* name) noexcept;
@@ -88,6 +88,7 @@ namespace LuaSTGPlus
         fcyRefPointer<ResFont> GetSpriteFont(const char* name) noexcept;
         fcyRefPointer<ResFont> GetTTFFont(const char* name) noexcept;
         fcyRefPointer<ResFX> GetFX(const char* name) noexcept;
+        fcyRefPointer<ResModel> GetModel(const char* name) noexcept;
     private:
         ResourcePool& operator=(const ResourcePool&);
         ResourcePool(const ResourcePool&);
@@ -108,6 +109,7 @@ namespace LuaSTGPlus
         ResourcePool* GetActivedPool() noexcept;
         ResourcePool* GetResourcePool(ResourcePoolType t) noexcept;
         void ClearAllResource() noexcept;
+
         fcyRefPointer<ResTexture> FindTexture(const char* name) noexcept;
         fcyRefPointer<ResSprite> FindSprite(const char* name) noexcept;
         fcyRefPointer<ResAnimation> FindAnimation(const char* name) noexcept;
@@ -117,6 +119,7 @@ namespace LuaSTGPlus
         fcyRefPointer<ResFont> FindSpriteFont(const char* name) noexcept;
         fcyRefPointer<ResFont> FindTTFFont(const char* name) noexcept;
         fcyRefPointer<ResFX> FindFX(const char* name) noexcept;
+        fcyRefPointer<ResModel> FindModel(const char* name) noexcept;
         
         bool GetTextureSize(const char* name, fcyVec2& out) noexcept;
         void CacheTTFFontString(const char* name, const char* text, size_t len) noexcept;

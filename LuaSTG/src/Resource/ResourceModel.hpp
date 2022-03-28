@@ -1,17 +1,20 @@
 ﻿#pragma once
 #include "ResourceBase.hpp"
+#include "Core/Renderer.hpp"
 
-namespace LuaSTGPlus {
+namespace LuaSTGPlus
+{
 	// 模型资源
-	class ResModel :
-		public Resource
+	class ResModel : public Resource
 	{
 	private:
-		void* m_Model;
+		LuaSTG::Core::ScopeObject<LuaSTG::Core::IModel> model_;
 	public:
-		void* GetModel() { return m_Model; }
+		LuaSTG::Core::IModel* GetModel() { return *model_; }
 	public:
-		ResModel(const char* name, void* model)
-			: Resource(ResourceType::Model, name), m_Model(model) {}
+		ResModel(const char* name, LuaSTG::Core::ScopeObject<LuaSTG::Core::IModel> model)
+			: Resource(ResourceType::Model, name)
+			, model_(model)
+		{}
 	};
 }

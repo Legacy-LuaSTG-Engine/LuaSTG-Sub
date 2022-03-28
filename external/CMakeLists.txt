@@ -222,3 +222,10 @@ option(MZ_FETCH_LIBS "Enables fetching third-party libraries if not found" OFF)
 set(SKIP_INSTALL_ALL ON)
 add_subdirectory(minizip)
 set_target_properties(minizip-ng PROPERTIES FOLDER external)
+
+# ==================== tinygltf ====================
+
+option(TINYGLTF_BUILD_LOADER_EXAMPLE "Build loader_example(load glTF and dump infos)" OFF)
+option(TINYGLTF_INSTALL "Install tinygltf files during install step. Usually set to OFF if you include tinygltf through add_subdirectory()" OFF)
+add_subdirectory(tinygltf)
+set_target_properties(tinygltf PROPERTIES FOLDER external)

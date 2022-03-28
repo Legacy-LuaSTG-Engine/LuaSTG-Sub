@@ -1,4 +1,5 @@
 #include "Core/Renderer.hpp"
+#include "Backend/Model.hpp"
 #include "Backend/Shader.hpp"
 #include "Backend/framework.hpp"
 
@@ -295,7 +296,7 @@ namespace LuaSTG::Core
 				if (FAILED(hr))
 					return false;
 
-				desc_.ByteWidth = sizeof(DirectX::XMFLOAT4);
+				desc_.ByteWidth = 2 * sizeof(DirectX::XMFLOAT4);
 				hr = gHR = _device->CreateBuffer(&desc_, NULL, &_camera_pos_buffer);
 				if (FAILED(hr))
 					return false;
@@ -951,11 +952,25 @@ namespace LuaSTG::Core
 				return false;
 			}
 			spdlog::info("[luastg] 已创建渲染器");
+
+			if (model_shared_)
+			{
+				spdlog::info("[luastg] 创建模型渲染器共享组件");
+				if (!model_shared_->attachDevice((ID3D11Device*)dev))
+				{
+					spdlog::error("[luastg] 无法创建模型渲染器共享组件");
+					return false;
+				}
+				spdlog::info("[luastg] 已创建模型渲染器共享组件");
+			}
+
 			return true;
 		}
 		void detachDevice()
 		{
 			batchFlush(true);
+
+			model_shared_ = nullptr;
 
 			TextureID_release(_state_set.texture);
 
@@ -1126,7 +1141,10 @@ namespace LuaSTG::Core
 					DirectX::XMMatrixMultiply(
 						DirectX::XMMatrixLookAtLH(DirectX::XMLoadFloat3(&eyef3), DirectX::XMLoadFloat3(&lookatf3), DirectX::XMLoadFloat3(&headupf3)),
 						DirectX::XMMatrixPerspectiveFovLH(fov, aspect, znear, zfar)));
-				float const camera_pos[4] = { eye.x, eye.y, eye.z, 0.0f };
+				float const camera_pos[8] = {
+					eye.x, eye.y, eye.z, 0.0f,
+					lookatf3.x - eyef3.x, lookatf3.y - eyef3.y, lookatf3.z - eyef3.z, 0.0f,
+				};
 				/* upload vp matrix */ {
 					D3D11_MAPPED_SUBRESOURCE res_ = {};
 					HRESULT hr = gHR = _devctx->Map(_vp_matrix_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
@@ -1539,6 +1557,58 @@ namespace LuaSTG::Core
 			TextureID_retain(_state_set.texture);
 			initState();
 		}
+	private:
+		ScopeObject<ModelSharedComponent> model_shared_;
+	public:
+		bool createModel(char const* gltf_path, IModel** model)
+		{
+			if (!model_shared_)
+			{
+				spdlog::info("[luastg] 创建模型渲染器共享组件");
+				*(~model_shared_) = new ModelSharedComponent();
+				if (!model_shared_->attachDevice(_device.Get()))
+				{
+					spdlog::error("[luastg] 无法创建模型渲染器共享组件");
+					return false;
+				}
+				spdlog::info("[luastg] 已创建模型渲染器共享组件");
+			}
+
+			ScopeObject<Model> scope_model;
+			*(~scope_model) = new Model(gltf_path, model_shared_);
+			if (!scope_model->attachDevice())
+			{
+				spdlog::error("[luastg] LuaSTG::Core::Renderer::createModel 失败");
+				return false;
+			}
+
+			scope_model->retain();
+			*model = *scope_model;
+
+			return true;
+		}
+		bool drawModel(IModel* model)
+		{
+			if (!model)
+			{
+				assert(false);
+				return false;
+			}
+
+			if (!endScene())
+			{
+				return false;
+			}
+
+			((Model*)model)->draw();
+
+			if (!beginScene())
+			{
+				return false;
+			}
+
+			return true;
+		}
 	};
 }
 
@@ -1666,6 +1736,15 @@ namespace LuaSTG::Core
 	void Renderer::postEffect(ShaderID const& ps, TextureID const& rt, SamplerState rtsv, Vector4 const* cv, size_t cv_n, TextureID const* tv, SamplerState const* sv, size_t tv_sv_n, BlendState blend)
 	{
 		self->postEffect(ps, rt, rtsv, cv, cv_n, tv, sv, tv_sv_n, blend);
+	}
+
+	bool Renderer::createModel(char const* gltf_path, IModel** model)
+	{
+		return self->createModel(gltf_path, model);
+	}
+	bool Renderer::drawModel(IModel* model)
+	{
+		return self->drawModel(model);
 	}
 
 	Renderer::Renderer() : _pImpl(nullptr)
