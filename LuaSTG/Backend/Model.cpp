@@ -1,6 +1,8 @@
 ﻿#include "Backend/Model.hpp"
 #include "Core/FileManager.hpp"
 
+#define IDX(x) (size_t)static_cast<uint8_t>(x)
+
 namespace DirectX
 {
     inline XMMATRIX XM_CALLCONV XMMatrixInverseTranspose(DirectX::FXMMATRIX M)
@@ -381,15 +383,15 @@ namespace LuaSTG::Core
         input_layout_vc.Reset();
         shader_vertex.Reset();
         shader_vertex_vc.Reset();
-        shader_pixel.Reset();
-        shader_pixel_alpha.Reset();
-        shader_pixel_nt.Reset();
-        shader_pixel_alpha_nt.Reset();
-        shader_pixel_vc.Reset();
-        shader_pixel_alpha_vc.Reset();
-        shader_pixel_nt_vc.Reset();
-        shader_pixel_alpha_nt_vc.Reset();
-
+        for (auto& v : shader_pixel) v.Reset();
+        for (auto& v : shader_pixel_alpha) v.Reset();
+        for (auto& v : shader_pixel_nt) v.Reset();
+        for (auto& v : shader_pixel_alpha_nt) v.Reset();
+        for (auto& v : shader_pixel_vc) v.Reset();
+        for (auto& v : shader_pixel_alpha_vc) v.Reset();
+        for (auto& v : shader_pixel_nt_vc) v.Reset();
+        for (auto& v : shader_pixel_alpha_nt_vc) v.Reset();
+        
         state_rs_cull_none.Reset();
         state_rs_cull_back.Reset();
         state_ds.Reset();
@@ -1035,7 +1037,7 @@ namespace LuaSTG::Core
         model_block.clear();
     }
 
-	void Model::draw()
+	void Model::draw(FogState fog)
 	{
         ID3D11DeviceContext* context = shared_->context.Get();
 
@@ -1067,16 +1069,16 @@ namespace LuaSTG::Core
                 if (mblock.image)
                 {
                     if (mblock.color_buffer)
-                        context->PSSetShader(shared_->shader_pixel_vc.Get(), NULL, 0);
+                        context->PSSetShader(shared_->shader_pixel_vc[IDX(fog)].Get(), NULL, 0);
                     else
-                        context->PSSetShader(shared_->shader_pixel.Get(), NULL, 0);
+                        context->PSSetShader(shared_->shader_pixel[IDX(fog)].Get(), NULL, 0);
                 }
                 else
                 {
                     if (mblock.color_buffer)
-                        context->PSSetShader(shared_->shader_pixel_nt_vc.Get(), NULL, 0);
+                        context->PSSetShader(shared_->shader_pixel_nt_vc[IDX(fog)].Get(), NULL, 0);
                     else
-                        context->PSSetShader(shared_->shader_pixel_nt.Get(), NULL, 0);
+                        context->PSSetShader(shared_->shader_pixel_nt[IDX(fog)].Get(), NULL, 0);
                 }
             }
             else
@@ -1084,16 +1086,16 @@ namespace LuaSTG::Core
                 if (mblock.image)
                 {
                     if (mblock.color_buffer)
-                        context->PSSetShader(shared_->shader_pixel_alpha_vc.Get(), NULL, 0);
+                        context->PSSetShader(shared_->shader_pixel_alpha_vc[IDX(fog)].Get(), NULL, 0);
                     else
-                        context->PSSetShader(shared_->shader_pixel_alpha.Get(), NULL, 0);
+                        context->PSSetShader(shared_->shader_pixel_alpha[IDX(fog)].Get(), NULL, 0);
                 }
                 else
                 {
                     if (mblock.color_buffer)
-                        context->PSSetShader(shared_->shader_pixel_alpha_nt_vc.Get(), NULL, 0);
+                        context->PSSetShader(shared_->shader_pixel_alpha_nt_vc[IDX(fog)].Get(), NULL, 0);
                     else
-                        context->PSSetShader(shared_->shader_pixel_alpha_nt.Get(), NULL, 0);
+                        context->PSSetShader(shared_->shader_pixel_alpha_nt[IDX(fog)].Get(), NULL, 0);
                 }
             }
         };
@@ -1169,7 +1171,7 @@ namespace LuaSTG::Core
                 shared_->cbo_alpha.Get(),
                 shared_->cbo_light.Get(),
             };
-            context->PSSetConstantBuffers(1, 2, ps_cbo);
+            context->PSSetConstantBuffers(2, 2, ps_cbo);
 
             // OM
 
@@ -1213,7 +1215,7 @@ namespace LuaSTG::Core
             ID3D11ShaderResourceView* ps_srv[1] = { NULL };
             context->PSSetShaderResources(0, 1, ps_srv);
             ID3D11Buffer* ps_cbo[2] = { NULL, NULL };
-            context->PSSetConstantBuffers(1, 2, ps_cbo);
+            context->PSSetConstantBuffers(2, 2, ps_cbo);
         };
 
         // pass 1 opaque object

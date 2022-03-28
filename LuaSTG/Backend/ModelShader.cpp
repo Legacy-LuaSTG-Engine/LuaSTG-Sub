@@ -1,5 +1,7 @@
-#include "Model.hpp"
+﻿#include "Model.hpp"
 #include "Backend/ModelShader.hpp"
+
+#define IDX(x) (size_t)static_cast<uint8_t>(x)
 
 namespace LuaSTG::Core
 {
@@ -9,93 +11,88 @@ namespace LuaSTG::Core
 
         // built-in: compile shader
 
-        Microsoft::WRL::ComPtr<ID3DBlob> err;
         Microsoft::WRL::ComPtr<ID3DBlob> vs;
         Microsoft::WRL::ComPtr<ID3DBlob> vs_vc;
-        Microsoft::WRL::ComPtr<ID3DBlob> ps;
-        Microsoft::WRL::ComPtr<ID3DBlob> ps_a;
-        Microsoft::WRL::ComPtr<ID3DBlob> ps_nt;
-        Microsoft::WRL::ComPtr<ID3DBlob> ps_a_nt;
-        Microsoft::WRL::ComPtr<ID3DBlob> ps_vc;
-        Microsoft::WRL::ComPtr<ID3DBlob> ps_a_vc;
-        Microsoft::WRL::ComPtr<ID3DBlob> ps_nt_vc;
-        Microsoft::WRL::ComPtr<ID3DBlob> ps_a_nt_vc;
-        UINT compile_flags = D3DCOMPILE_ENABLE_STRICTNESS;
-        #ifdef _DEBUG
-        compile_flags |= (D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION);
-        #endif
-        #define HR_CHECK_ERROR \
-            if (FAILED(hr))\
-            {\
-                if (err)\
-                {\
-                    OutputDebugStringA((char*)err->GetBufferPointer());\
-                    OutputDebugStringA("\n");\
-                }\
-                assert(false);\
-                return false;\
+
+        auto fxc = [&](std::string_view const& name, D3D_SHADER_MACRO const* macro, std::string_view const& entry, int type, ID3DBlob** blob) -> bool
+        {
+            Microsoft::WRL::ComPtr<ID3DBlob> err;
+            UINT compile_flags = D3DCOMPILE_ENABLE_STRICTNESS;
+            #ifdef _DEBUG
+            compile_flags |= (D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION);
+            #endif
+            hr = gHR = D3DCompile(
+                built_in_shader.data(), built_in_shader.size(), name.data(),
+                macro, NULL, entry.data(), type ? "ps_4_0" : "vs_4_0", compile_flags, 0, blob, &err);
+            if (FAILED(hr))
+            {
+                assert(false);
+                spdlog::error("[luastg] D3DCompile 调用失败");
+                spdlog::error("[luastg] 编译着色器 '{}' 失败：{}", name, (char*)err->GetBufferPointer());
+                return false;
             }
+            return true;
+        };
+        
+        if (!fxc("model-vs", NULL, "VS_Main", 0, &vs)) return false;
+        if (!fxc("model-vs-vertex-color", NULL, "VS_Main_VertexColor", 0, &vs_vc)) return false;
+        
+        hr = gHR = device->CreateVertexShader(vs->GetBufferPointer(), vs->GetBufferSize(), NULL, &shader_vertex);
+        if (FAILED(hr)) return false;
+        hr = gHR = device->CreateVertexShader(vs_vc->GetBufferPointer(), vs_vc->GetBufferSize(), NULL, &shader_vertex_vc);
+        if (FAILED(hr)) return false;
 
-        std::string_view const& src = built_in_shader;
+        const D3D_SHADER_MACRO fog_none[] = {
+            { NULL, NULL },
+        };
+        const D3D_SHADER_MACRO fog_line[] = {
+            { "FOG_ENABLE", "1"},
+            { "FOG_LINEAR", "1"},
+            { NULL, NULL },
+        };
+        const D3D_SHADER_MACRO fog_exp1[] = {
+            { "FOG_ENABLE", "1"},
+            { "FOG_EXP", "1"},
+            { NULL, NULL },
+        };
+        const D3D_SHADER_MACRO fog_exp2[] = {
+            { "FOG_ENABLE", "1"},
+            { "FOG_EXP2", "1"},
+            { NULL, NULL },
+        };
 
-        hr = D3DCompile(src.data(), src.size(), "model-vs", NULL, NULL, "VS_Main", "vs_4_0", compile_flags, 0, &vs, &err);
-        HR_CHECK_ERROR;
-        hr = D3DCompile(src.data(), src.size(), "model-vs-vertex-color", NULL, NULL, "VS_Main_VertexColor", "vs_4_0", compile_flags, 0, &vs_vc, &err);
-        HR_CHECK_ERROR;
+        auto fxc_ps = [&](std::string_view const& name, std::string_view const& entry, Microsoft::WRL::ComPtr<ID3D11PixelShader> ps[IDX(FogState::MAX_COUNT)]) -> bool
+        {
+            Microsoft::WRL::ComPtr<ID3DBlob> ps_bc;
 
-        hr = D3DCompile(src.data(), src.size(), "model-ps", NULL, NULL, "PS_Main", "ps_4_0", compile_flags, 0, &ps, &err);
-        HR_CHECK_ERROR;
-        hr = D3DCompile(src.data(), src.size(), "model-ps-alpha", NULL, NULL, "PS_Main_AlphaMask", "ps_4_0", compile_flags, 0, &ps_a, &err);
-        HR_CHECK_ERROR;
-        hr = D3DCompile(src.data(), src.size(), "model-ps-no-texture", NULL, NULL, "PS_Main_NoBaseTexture", "ps_4_0", compile_flags, 0, &ps_nt, &err);
-        HR_CHECK_ERROR;
-        hr = D3DCompile(src.data(), src.size(), "model-ps-alpha-no-texture", NULL, NULL, "PS_Main_NoBaseTexture_AlphaMask", "ps_4_0", compile_flags, 0, &ps_a_nt, &err);
-        HR_CHECK_ERROR;
+            if (!fxc(name, fog_none, entry, 1, &ps_bc)) return false;
+            hr = gHR = device->CreatePixelShader(ps_bc->GetBufferPointer(), ps_bc->GetBufferSize(), NULL, &ps[IDX(FogState::Disable)]);
+            if (FAILED(hr)) return false;
 
-        hr = D3DCompile(src.data(), src.size(), "model-ps-vertex-color", NULL, NULL, "PS_Main_VertexColor", "ps_4_0", compile_flags, 0, &ps_vc, &err);
-        HR_CHECK_ERROR;
-        hr = D3DCompile(src.data(), src.size(), "model-ps-alpha-vertex-color", NULL, NULL, "PS_Main_AlphaMask_VertexColor", "ps_4_0", compile_flags, 0, &ps_a_vc, &err);
-        HR_CHECK_ERROR;
-        hr = D3DCompile(src.data(), src.size(), "model-ps-no-texture-vertex-color", NULL, NULL, "PS_Main_NoBaseTexture_VertexColor", "ps_4_0", compile_flags, 0, &ps_nt_vc, &err);
-        HR_CHECK_ERROR;
-        hr = D3DCompile(src.data(), src.size(), "model-ps-alpha-no-texture-vertex-color", NULL, NULL, "PS_Main_NoBaseTexture_AlphaMask_VertexColor", "ps_4_0", compile_flags, 0, &ps_a_nt_vc, &err);
-        HR_CHECK_ERROR;
+            if (!fxc(name, fog_line, entry, 1, &ps_bc)) return false;
+            hr = gHR = device->CreatePixelShader(ps_bc->GetBufferPointer(), ps_bc->GetBufferSize(), NULL, &ps[IDX(FogState::Linear)]);
+            if (FAILED(hr)) return false;
 
-        #undef HR_CHECK_ERROR
+            if (!fxc(name, fog_exp1, entry, 1, &ps_bc)) return false;
+            hr = gHR = device->CreatePixelShader(ps_bc->GetBufferPointer(), ps_bc->GetBufferSize(), NULL, &ps[IDX(FogState::Exp)]);
+            if (FAILED(hr)) return false;
 
-        // built-in: create shader
+            if (!fxc(name, fog_exp2, entry, 1, &ps_bc)) return false;
+            hr = gHR = device->CreatePixelShader(ps_bc->GetBufferPointer(), ps_bc->GetBufferSize(), NULL, &ps[IDX(FogState::Exp2)]);
+            if (FAILED(hr)) return false;
 
-        #define HR_CHECK_ERROR \
-            if (FAILED(hr))\
-            {\
-                assert(false);\
-                return false;\
-            }
+            return true;
+        };
 
-        hr = device->CreateVertexShader(vs->GetBufferPointer(), vs->GetBufferSize(), NULL, &shader_vertex);
-        HR_CHECK_ERROR;
-        hr = device->CreateVertexShader(vs_vc->GetBufferPointer(), vs_vc->GetBufferSize(), NULL, &shader_vertex_vc);
-        HR_CHECK_ERROR;
+        if (!fxc_ps("model-ps"                 , "PS_Main"                        , shader_pixel)) return false;
+        if (!fxc_ps("model-ps-alpha"           , "PS_Main_AlphaMask"              , shader_pixel_alpha)) return false;
+        if (!fxc_ps("model-ps-no-texture"      , "PS_Main_NoBaseTexture"          , shader_pixel_nt)) return false;
+        if (!fxc_ps("model-ps-alpha-no-texture", "PS_Main_NoBaseTexture_AlphaMask", shader_pixel_alpha_nt)) return false;
 
-        hr = device->CreatePixelShader(ps->GetBufferPointer(), ps->GetBufferSize(), NULL, &shader_pixel);
-        HR_CHECK_ERROR;
-        hr = device->CreatePixelShader(ps_a->GetBufferPointer(), ps_a->GetBufferSize(), NULL, &shader_pixel_alpha);
-        HR_CHECK_ERROR;
-        hr = device->CreatePixelShader(ps_nt->GetBufferPointer(), ps_nt->GetBufferSize(), NULL, &shader_pixel_nt);
-        HR_CHECK_ERROR;
-        hr = device->CreatePixelShader(ps_a_nt->GetBufferPointer(), ps_a_nt->GetBufferSize(), NULL, &shader_pixel_alpha_nt);
-        HR_CHECK_ERROR;
-
-        hr = device->CreatePixelShader(ps_vc->GetBufferPointer(), ps_vc->GetBufferSize(), NULL, &shader_pixel_vc);
-        HR_CHECK_ERROR;
-        hr = device->CreatePixelShader(ps_a_vc->GetBufferPointer(), ps_a_vc->GetBufferSize(), NULL, &shader_pixel_alpha_vc);
-        HR_CHECK_ERROR;
-        hr = device->CreatePixelShader(ps_nt_vc->GetBufferPointer(), ps_nt_vc->GetBufferSize(), NULL, &shader_pixel_nt_vc);
-        HR_CHECK_ERROR;
-        hr = device->CreatePixelShader(ps_a_nt_vc->GetBufferPointer(), ps_a_nt_vc->GetBufferSize(), NULL, &shader_pixel_alpha_nt_vc);
-        HR_CHECK_ERROR;
-
-        #undef HR_CHECK_ERROR
+        if (!fxc_ps("model-ps-vertex-color"                 , "PS_Main_VertexColor"                        , shader_pixel_vc)) return false;
+        if (!fxc_ps("model-ps-alpha-vertex-color"           , "PS_Main_AlphaMask_VertexColor"              , shader_pixel_alpha_vc)) return false;
+        if (!fxc_ps("model-ps-no-texture-vertex-color"      , "PS_Main_NoBaseTexture_VertexColor"          , shader_pixel_nt_vc)) return false;
+        if (!fxc_ps("model-ps-alpha-no-texture-vertex-color", "PS_Main_NoBaseTexture_AlphaMask_VertexColor", shader_pixel_alpha_nt_vc)) return false;
 
         // built-in: input layout
 
@@ -104,7 +101,7 @@ namespace LuaSTG::Core
             { "NORMAL"  , 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
             { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT   , 2, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         };
-        hr = device->CreateInputLayout(ia_layout, 3, vs->GetBufferPointer(), vs->GetBufferSize(), &input_layout);
+        hr = gHR = device->CreateInputLayout(ia_layout, 3, vs->GetBufferPointer(), vs->GetBufferSize(), &input_layout);
         if (FAILED(hr))
         {
             assert(false);
@@ -117,7 +114,7 @@ namespace LuaSTG::Core
             { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT   , 2, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
             { "COLOR"   , 0, DXGI_FORMAT_R32G32B32_FLOAT, 3, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         };
-        hr = device->CreateInputLayout(ia_layout_vc, 4, vs_vc->GetBufferPointer(), vs_vc->GetBufferSize(), &input_layout_vc);
+        hr = gHR = device->CreateInputLayout(ia_layout_vc, 4, vs_vc->GetBufferPointer(), vs_vc->GetBufferSize(), &input_layout_vc);
         if (FAILED(hr))
         {
             assert(false);

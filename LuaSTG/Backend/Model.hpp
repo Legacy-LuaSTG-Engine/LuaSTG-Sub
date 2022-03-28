@@ -2,6 +2,8 @@
 #include "Core/Renderer.hpp"
 #include "tiny_gltf.h"
 
+#define IDX(x) (size_t)static_cast<uint8_t>(x)
+
 namespace LuaSTG::Core
 {
     class ModelSharedComponent : public IObject
@@ -23,14 +25,14 @@ namespace LuaSTG::Core
         Microsoft::WRL::ComPtr<ID3D11InputLayout> input_layout_vc;
         Microsoft::WRL::ComPtr<ID3D11VertexShader> shader_vertex;
         Microsoft::WRL::ComPtr<ID3D11VertexShader> shader_vertex_vc;
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel;
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_alpha;
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_nt;
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_alpha_nt;
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_vc;
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_alpha_vc;
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_nt_vc;
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_alpha_nt_vc;
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel[IDX(FogState::MAX_COUNT)];
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_alpha[IDX(FogState::MAX_COUNT)];
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_nt[IDX(FogState::MAX_COUNT)];
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_alpha_nt[IDX(FogState::MAX_COUNT)];
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_vc[IDX(FogState::MAX_COUNT)];
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_alpha_vc[IDX(FogState::MAX_COUNT)];
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_nt_vc[IDX(FogState::MAX_COUNT)];
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_alpha_nt_vc[IDX(FogState::MAX_COUNT)];
 
         Microsoft::WRL::ComPtr<ID3D11RasterizerState> state_rs_cull_none;
         Microsoft::WRL::ComPtr<ID3D11RasterizerState> state_rs_cull_back;
@@ -159,9 +161,11 @@ namespace LuaSTG::Core
         bool attachDevice();
         void detachDevice();
 	public:
-		void draw();
+		void draw(FogState fog);
 	public:
 		Model(std::string_view const& path, ScopeObject<ModelSharedComponent> model_shared);
 		~Model();
 	};
 }
+
+#undef IDX
