@@ -265,13 +265,6 @@ namespace LuaSTGPlus
 			int vcount, const f2dGraphics2DVertex vertex[],
 			int icount, const unsigned short indexs[]) LNOEXCEPT;
 		
-		// 渲染模型
-		bool RenderModel(
-			const char* name,
-			float x, float y, float z,
-			float sx, float sy, float sz,
-			float rx, float ry, float rz) LNOEXCEPT;
-		
 		/// @brief 渲染文字
 		bool RenderText(ResFont* p, wchar_t* strBuf, fcyRect rect, fcyVec2 scale, ResFont::FontAlignHorizontal halign, ResFont::FontAlignVertical valign, bool bWordBreak)LNOEXCEPT;
 		

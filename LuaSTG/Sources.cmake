@@ -68,8 +68,6 @@ set(LUASTG_ENGINE_SOURCES
     src/AppFrameLua.cpp
     src/AppFrameRender.cpp
     src/AppFrameRenderEx.cpp
-    src/ESC.cpp
-    src/ESC.h
     src/f2dKeyCodeConvert.inl
     src/GameObject.cpp
     src/GameObject.hpp
