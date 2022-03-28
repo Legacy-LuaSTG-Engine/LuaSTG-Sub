@@ -1600,7 +1600,7 @@ namespace LuaSTG::Core
 				return false;
 			}
 
-			((Model*)model)->draw();
+			((Model*)model)->draw(_state_set.fog_state);
 
 			if (!beginScene())
 			{
