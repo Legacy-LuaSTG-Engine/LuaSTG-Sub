@@ -78,24 +78,6 @@ void LuaSTGPlus::LuaWrapper::RenderWrapper::Register(lua_State* L) LNOEXCEPT
             }	
             return 0;
         }
-        static int PushRenderTarget(lua_State* L)LNOEXCEPT
-        {
-            ResTexture* p = LRES.FindTexture(luaL_checkstring(L, 1));
-            if (!p)
-                return luaL_error(L, "rendertarget '%s' not found.", luaL_checkstring(L, 1));
-            if (!p->IsRenderTarget())
-                return luaL_error(L, "'%s' is a texture.", luaL_checkstring(L, 1));
-
-            if (!LAPP.PushRenderTarget(p))
-                return luaL_error(L, "push rendertarget '%s' failed.", luaL_checkstring(L, 1));
-            return 0;
-        }
-        static int PopRenderTarget(lua_State* L)LNOEXCEPT
-        {
-            if (!LAPP.PopRenderTarget())
-                return luaL_error(L, "pop rendertarget failed.");
-            return 0;
-        }
         //EX
         static int Snapshot(lua_State* L)LNOEXCEPT
         {
@@ -111,35 +93,6 @@ void LuaSTGPlus::LuaWrapper::RenderWrapper::Register(lua_State* L) LNOEXCEPT
             return 0;
         }
         //EX+
-        static int SetZBufferEnable(lua_State* L)LNOEXCEPT
-        {
-            LAPP.SetZBufferEnable(luaL_checkinteger(L, 1) != 0);
-            return 0;
-        }
-        static int ClearZBuffer(lua_State* L)LNOEXCEPT
-        {
-            LAPP.ClearZBuffer(luaL_optnumber(L, 1, 1.0f));
-            return 0;
-        }
-        static int RenderModel(lua_State* L)LNOEXCEPT
-        {
-            if (!LAPP.RenderModel(
-                luaL_checkstring(L, 1),
-                static_cast<float>(luaL_checknumber(L, 2)),
-                static_cast<float>(luaL_checknumber(L, 3)),
-                static_cast<float>(luaL_checknumber(L, 4)),
-                static_cast<float>(luaL_optnumber(L, 5, 0)),
-                static_cast<float>(luaL_optnumber(L, 6, 0)),
-                static_cast<float>(luaL_optnumber(L, 7, 0)),
-                static_cast<float>(luaL_optnumber(L, 8, 0)),
-                static_cast<float>(luaL_optnumber(L, 9, 0)),
-                static_cast<float>(luaL_optnumber(L, 10, 0))
-            ))
-            {
-                return luaL_error(L, "can't render '%s'.", luaL_checkstring(L, 1));
-            }
-            return 0;
-        }
         static int DrawCollider(lua_State* L)LNOEXCEPT
         {
             LPOOL.DrawCollider();
@@ -195,12 +148,7 @@ void LuaSTGPlus::LuaWrapper::RenderWrapper::Register(lua_State* L) LNOEXCEPT
     
     luaL_Reg lib[] = {
         //{ "SetTextureSamplerState", &Wrapper::SetTextureSamplerState },
-        //{ "PushRenderTarget", &Wrapper::PushRenderTarget },
-        //{ "PopRenderTarget", &Wrapper::PopRenderTarget },
         ////EX+
-        //{ "SetZBufferEnable", &Wrapper::SetZBufferEnable },
-        //{ "ClearZBuffer", &Wrapper::ClearZBuffer },
-        //{ "RenderModel", &Wrapper::RenderModel },
         //{ "DrawCollider", &Wrapper::DrawCollider },
         ////ETC
         //{ "RenderGroupCollider", &Wrapper::RenderGroupCollider },

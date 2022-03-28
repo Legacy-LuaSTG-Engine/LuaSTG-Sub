@@ -518,33 +518,4 @@ namespace LuaSTGPlus
             m_pRenderDev->ClearZBuffer(z);
         }
     }
-    bool AppFrame::RenderModel(
-        const char* name,
-        float x, float y, float z,
-        float sx, float sy, float sz,
-        float rx, float ry, float rz) noexcept
-    {
-        //if (m_GraphType != GraphicsType::Graph2D)
-        //{
-        //    spdlog::error("[luastg] RenderModel: 只有2D渲染器可以执行该方法");
-        //    return false;
-        //}
-        //
-        //void RenderObj(std::string id);
-        //
-        //fcyMatrix4 f0 = m_Graph2D->GetWorldTransform();
-        //fcyMatrix4 f1 = fcyMatrix4::GetTranslateMatrix(fcyVec3(x, y, z));
-        //f1 = fcyMatrix4::GetScaleMatrix(fcyVec3(sx, sy, sz)) * f1;
-        //if (rx || ry || rz){
-        //    f1 = fcyMatrix4::GetRotationYawPitchRoll(rx,ry,rz)*f1;
-        //}
-        //
-        //m_Graph2D->SetWorldTransform(f1);
-        //RenderObj(name);
-        //m_Graph2D->SetWorldTransform(f0);
-        //
-        //return true;
-
-        return false;
-    }
 };
