@@ -1,5 +1,6 @@
 ﻿#include "LuaWrapper\LuaWrapper.hpp"
 #include "AppFrame.h"
+#include "LMathConstant.hpp"
 
 #define l___l
 #define l_____l
@@ -807,9 +808,9 @@ static int lib_drawModel(lua_State* L)
     float const y = (float)luaL_checknumber(L, 3);
     float const z = (float)luaL_checknumber(L, 4);
 
-    float const roll  = (float)luaL_optnumber(L, 5, 0.0);
-    float const pitch = (float)luaL_optnumber(L, 6, 0.0);
-    float const yaw   = (float)luaL_optnumber(L, 7, 0.0);
+    float const roll  = (float)(L_DEG_TO_RAD * luaL_optnumber(L, 5, 0.0));
+    float const pitch = (float)(L_DEG_TO_RAD * luaL_optnumber(L, 6, 0.0));
+    float const yaw   = (float)(L_DEG_TO_RAD * luaL_optnumber(L, 7, 0.0));
 
     float const sx = (float)luaL_optnumber(L, 8, 1.0);
     float const sy = (float)luaL_optnumber(L, 9, 1.0);
