@@ -25,7 +25,7 @@
 -- 以后可能会将采样器状态和纹理绑定，或者在 RenderTexture 等 API 添加采样器状态参数
 
 -- 关于 LuaSTG Ex Plus 曾经加入过的 lstg.RenderModel：
--- 已经爆破掉
+-- 已经替换为 glTF 模型，其实现也有变动
 
 -- 关于 lstg.DrawCollider 和 lstg.RenderGroupCollider：
 -- 暂未实现，目前是空方法
@@ -266,6 +266,33 @@ end
 ---@param color lstg.Color
 ---@param scale number
 function lstg.RenderTTF(ttfname, text, left, right, bottom, top, align, color, scale)
+end
+
+--------------------------------------------------------------------------------
+--- 模型渲染
+--- Model Rendering
+
+--- [LuaSTG Ex Plus 新增]  
+--- [LuaSTG Sub v0.1.0 移除]  
+--- [LuaSTG Sub v0.15.0 重新添加]  
+--- 指定位置、缩放、欧拉角（角度制）旋转参数，渲染模型  
+--- [LuaSTG Ex Plus v?.?.? Add]  
+--- [LuaSTG Sub v0.1.0 Remove]  
+--- [LuaSTG Sub v0.15.0 Re-add]  
+--- Rendering the model with position, scale, Euler angle (degress) rotation  
+---@param modname string
+---@param x number
+---@param y number
+---@param z number
+---@param roll number
+---@param pitch number
+---@param yaw number
+---@param xscale number
+---@param yscale number
+---@param zscale number
+---@overload fun(modname:string, x:number, y:number, z:number)
+---@overload fun(modname:string, x:number, y:number, z:number, roll:number, pitch:number, yaw:number)
+function lstg.RenderModel(modname, x, y, z, roll, pitch, yaw, xscale, yscale, zscale)
 end
 
 --------------------------------------------------------------------------------

@@ -807,13 +807,13 @@ static int lib_drawModel(lua_State* L)
     float const y = (float)luaL_checknumber(L, 3);
     float const z = (float)luaL_checknumber(L, 4);
 
-    float const roll = (float)luaL_checknumber(L, 5);
-    float const pitch = (float)luaL_checknumber(L, 6);
-    float const yaw = (float)luaL_checknumber(L, 7);
+    float const roll  = (float)luaL_optnumber(L, 5, 0.0);
+    float const pitch = (float)luaL_optnumber(L, 6, 0.0);
+    float const yaw   = (float)luaL_optnumber(L, 7, 0.0);
 
-    float const sx = (float)luaL_checknumber(L, 8);
-    float const sy = (float)luaL_checknumber(L, 9);
-    float const sz = (float)luaL_checknumber(L, 10);
+    float const sx = (float)luaL_optnumber(L, 8, 1.0);
+    float const sy = (float)luaL_optnumber(L, 9, 1.0);
+    float const sz = (float)luaL_optnumber(L, 10, 1.0);
 
     fcyRefPointer<LuaSTGPlus::ResModel> pmodres = LRESMGR().FindModel(name);
     if (!pmodres)

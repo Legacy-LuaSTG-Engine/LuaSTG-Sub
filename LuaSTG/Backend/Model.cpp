@@ -213,7 +213,7 @@ namespace LuaSTG::Core
 
         // // built-in: light
 
-        cbo_def.ByteWidth = 3 * sizeof(DirectX::XMFLOAT4);
+        cbo_def.ByteWidth = 4 * sizeof(DirectX::XMFLOAT4);
         hr = device->CreateBuffer(&cbo_def, NULL, &cbo_light);
         if (FAILED(hr))
         {
@@ -580,6 +580,15 @@ namespace LuaSTG::Core
 		return tmp_;
 	}
 
+    void Model::setAmbient(Vector3 const& color, float brightness)
+    {
+        sunshine.ambient = DirectX::XMFLOAT4(color.x, color.y, color.z, brightness);
+    }
+    void Model::setDirectionalLight(Vector3 const& direction, Vector3 const& color, float brightness)
+    {
+        sunshine.dir = DirectX::XMFLOAT4(direction.x, direction.y, direction.z, 0.0f);
+        sunshine.color = DirectX::XMFLOAT4(color.x, color.y, color.z, brightness);
+    }
 	void Model::setScaling(Vector3 const& scale)
 	{
         t_scale_ = DirectX::XMMatrixScaling(scale.x, scale.y, scale.z);

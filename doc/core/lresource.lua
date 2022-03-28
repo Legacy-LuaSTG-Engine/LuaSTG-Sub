@@ -262,3 +262,20 @@ end
 ---@param filepath string
 function lstg.LoadFX(fxname, filepath)
 end
+
+--------------------------------------------------------------------------------
+--- 模型
+--- Model
+
+--- [LuaSTG Ex Plus 新增]  
+--- [LuaSTG Sub v0.1.0 移除]  
+--- [LuaSTG Sub v0.15.0 重新添加（有更改）]  
+--- 从文件编译并加载 glTF 模型文件  
+--- [LuaSTG Ex Plus Add]  
+--- [LuaSTG Sub v0.1.0 Remove]  
+--- [LuaSTG Sub v0.15.0 Re-add (with changes)]  
+--- Load glTF model from file  
+---@param modname string
+---@param gltfpath string
+function lstg.LoadModel(modname, gltfpath)
+end
