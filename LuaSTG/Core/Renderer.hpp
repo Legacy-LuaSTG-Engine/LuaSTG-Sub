@@ -279,6 +279,9 @@ namespace LuaSTG::Core
 	
 	struct IModel : public IObject
 	{
+		virtual void setAmbient(Vector3 const& color, float brightness) = 0;
+		virtual void setDirectionalLight(Vector3 const& direction, Vector3 const& color, float brightness) = 0;
+
 		virtual void setScaling(Vector3 const& scale) = 0;
 		virtual void setPosition(Vector3 const& pos) = 0;
 		virtual void setRotationRollPitchYaw(float roll, float pitch, float yaw) = 0;

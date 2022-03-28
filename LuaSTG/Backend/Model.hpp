@@ -69,6 +69,8 @@ namespace LuaSTG::Core
 		DirectX::XMMATRIX t_trans_;
 		DirectX::XMMATRIX t_mbrot_;
 	public:
+        void setAmbient(Vector3 const& color, float brightness);
+        void setDirectionalLight(Vector3 const& direction, Vector3 const& color, float brightness);
 		void setScaling(Vector3 const& scale);
 		void setPosition(Vector3 const& pos);
 		void setRotationRollPitchYaw(float roll, float pitch, float yaw);
@@ -105,6 +107,7 @@ namespace LuaSTG::Core
         };
         struct Sunshine
         {
+            DirectX::XMFLOAT4 ambient;
             DirectX::XMFLOAT4 pos;
             DirectX::XMFLOAT4 dir;
             DirectX::XMFLOAT4 color;
@@ -134,8 +137,9 @@ namespace LuaSTG::Core
 
             Sunshine()
             {
+                ambient = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f); // full ambient light
                 dir = DirectX::XMFLOAT4(0.0f, -1.0f, 0.0f, 0.0f);
-                color = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+                color = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 0.0f); // no directional light
             }
         };
 

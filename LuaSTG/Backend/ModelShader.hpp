@@ -88,6 +88,7 @@ cbuffer alphaCull : register(b1)
 };
 cbuffer lightInfo : register(b2)
 {
+    float4 ambient;
     float4 sunshine_pos;
     float4 sunshine_dir;
     float4 sunshine_color;
@@ -102,8 +103,7 @@ float4 ApplySimpleLight(float4 norm, float4 wpos, float4 solid_color)
     float light_factor = max(0.0f, dot(v_normal, -sunshine_dir));
     //float3 pixel_to_eye = normalize(CameraPos.xyz - wpos.xyz);
     //float reflact_factor = pow(max(0.0f, dot(reflect(sunshine_dir, v_normal), pixel_to_eye)), 10.0f);
-    float reflact_factor = 0.0f;
-    return float4((0.1f + sunshine_color * light_factor + reflact_factor) * solid_color.rgb, solid_color.a);
+    return float4((ambient.rgb * ambient.a + sunshine_color.rgb * sunshine_color.a * light_factor) * solid_color.rgb, solid_color.a);
 }
 
 OM_INPUT PS_Main(PS_INPUT input)
