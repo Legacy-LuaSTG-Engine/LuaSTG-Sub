@@ -799,6 +799,39 @@ static int lib_drawTexture(lua_State* L)LNOEXCEPT
     return 0;
 }
 
+static int lib_drawModel(lua_State* L)
+{
+    const char* name = luaL_checkstring(L, 1);
+
+    float const x = (float)luaL_checknumber(L, 2);
+    float const y = (float)luaL_checknumber(L, 3);
+    float const z = (float)luaL_checknumber(L, 4);
+
+    float const roll = (float)luaL_checknumber(L, 5);
+    float const pitch = (float)luaL_checknumber(L, 6);
+    float const yaw = (float)luaL_checknumber(L, 7);
+
+    float const sx = (float)luaL_checknumber(L, 8);
+    float const sy = (float)luaL_checknumber(L, 9);
+    float const sz = (float)luaL_checknumber(L, 10);
+
+    fcyRefPointer<LuaSTGPlus::ResModel> pmodres = LRESMGR().FindModel(name);
+    if (!pmodres)
+    {
+        spdlog::error("[luastg] lstg.Renderer.drawModel failed: can't find model '{}'", name);
+        return false;
+    }
+
+    auto& ctx = LR2D();
+
+    pmodres->GetModel()->setScaling(LuaSTG::Core::Vector3(sx, sy, sz));
+    pmodres->GetModel()->setRotationRollPitchYaw(roll, pitch, yaw);
+    pmodres->GetModel()->setPosition(LuaSTG::Core::Vector3(x, y, z));
+    ctx.drawModel(pmodres->GetModel());
+
+    return 0;
+}
+
 #define MKFUNC(X) {#X, &lib_##X}
 
 static luaL_Reg const lib_func[] = {
@@ -1093,6 +1126,7 @@ static luaL_Reg const lib_compat[] = {
     { "Render4V", &lib_drawSprite4V },
     { "RenderAnimation", &lib_drawSpriteSequence },
     { "RenderTexture", &lib_drawTexture },
+    { "RenderModel", &lib_drawModel },
     { "SetFog", &compat_SetFog },
     { "SetZBufferEnable", &compat_SetZBufferEnable },
     { "ClearZBuffer", &compat_ClearZBuffer },
@@ -1102,7 +1136,6 @@ static luaL_Reg const lib_compat[] = {
     // 应该要废弃掉的方法
     { "SetTextureSamplerState", &compat_SetTextureSamplerState },
     // 置为空方法
-    { "RenderModel", &compat_Noop },
     { "DrawCollider", &compat_Noop },
     { "RenderGroupCollider", &compat_Noop },
     { "RenderTextureSector", &compat_Noop },

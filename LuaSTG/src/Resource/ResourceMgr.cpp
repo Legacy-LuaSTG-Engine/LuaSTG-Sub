@@ -105,6 +105,14 @@ namespace LuaSTGPlus
 		return tRet;
 	}
 
+	fcyRefPointer<ResModel> ResourceMgr::FindModel(const char* name) noexcept
+	{
+		fcyRefPointer<ResModel> tRet;
+		if (!(tRet = m_StageResourcePool.GetModel(name)))
+			tRet = m_GlobalResourcePool.GetModel(name);
+		return tRet;
+	}
+
 	// 其他资源操作
 
 	bool ResourceMgr::GetTextureSize(const char* name, fcyVec2& out) noexcept {

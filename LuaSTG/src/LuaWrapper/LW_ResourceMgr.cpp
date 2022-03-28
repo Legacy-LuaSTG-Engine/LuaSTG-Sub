@@ -404,6 +404,22 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			}
 			return 0;
 		}
+		static int LoadModel(lua_State* L) noexcept
+		{
+			const char* name = luaL_checkstring(L, 1);
+			const char* model_path = luaL_checkstring(L, 2);
+			
+			ResourcePool* pActivedPool = LRES.GetActivedPool();
+			if (!pActivedPool)
+				return luaL_error(L, "can't load resource at this time.");
+			if (!pActivedPool->LoadModel(
+				name,
+				model_path))
+			{
+				return luaL_error(L, "load model failed (name='%s', model='%s').", name, model_path);
+			}
+			return 0;
+		}
 		static int CreateRenderTarget(lua_State* L) noexcept
 		{
 			const char* name = luaL_checkstring(L, 1);
@@ -628,24 +644,6 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			LRES.CacheTTFFontString(luaL_checkstring(L, 1), str, len);
 			return 0;
 		}
-		// 目前已经没法使用
-		static int LoadModel(lua_State* L) noexcept
-		{
-			//const char* name = luaL_checkstring(L, 1);
-			//const char* texname = luaL_checkstring(L, 2);
-			//
-			//ResourcePool* pActivedPool = LRES.GetActivedPool();
-			//if (!pActivedPool)
-			//	return luaL_error(L, "can't load resource at this time.");
-			//bool LoadObj(string id, string path);
-			//if (!pActivedPool->LoadModel(
-			//	name,
-			//	texname))
-			//{
-			//	return luaL_error(L, "load model failed (name='%s', tex='%s').", name, texname);
-			//}
-			return 0;
-		}
 	};
 
 	luaL_Reg const lib[] = {
@@ -662,6 +660,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 		{ "LoadTTF", &Wrapper::LoadTTF },
 		{ "LoadTrueTypeFont", &Wrapper::LoadTrueTypeFont },
 		{ "LoadFX", &Wrapper::LoadFX },
+		{ "LoadModel", &Wrapper::LoadModel },
 		{ "CreateRenderTarget", &Wrapper::CreateRenderTarget },
 		{ "IsRenderTarget", &Wrapper::IsRenderTarget },
 		{ "SetTexturePreMulAlphaState", &Wrapper::SetTexturePreMulAlphaState },
@@ -677,8 +676,6 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 		{ "SetImageCenter", &Wrapper::SetImageCenter },
 		{ "SetAnimationCenter", &Wrapper::SetAnimationCenter },
 		{ "CacheTTFString", &Wrapper::CacheTTFString },
-		// 目前已经没法使用
-		{ "LoadModel", &Wrapper::LoadModel },
 		{ NULL, NULL },
 	};
 

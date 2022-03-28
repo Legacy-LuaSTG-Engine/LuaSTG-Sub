@@ -25,6 +25,7 @@ void ResourcePool::Clear() noexcept {
     m_SpriteFontPool.clear();
     m_TTFFontPool.clear();
     m_FXPool.clear();
+    m_ModelPool.clear();
     spdlog::info("[luastg] {}已清空", getResourcePoolTypeName());
 }
 
@@ -81,6 +82,9 @@ void ResourcePool::RemoveResource(ResourceType t, const char* name) noexcept {
         case ResourceType::FX:
             removeResource(m_FXPool, name);
             break;
+        case ResourceType::Model:
+            removeResource(m_ModelPool, name);
+            break;
         default:
             return;
     }
@@ -106,6 +110,8 @@ bool ResourcePool::CheckResourceExists(ResourceType t, const std::string& name) 
             return m_TTFFontPool.find(name.c_str()) != m_TTFFontPool.end();
         case ResourceType::FX:
             return m_FXPool.find(name.c_str()) != m_FXPool.end();
+        case ResourceType::Model:
+            return m_ModelPool.find(name.c_str()) != m_ModelPool.end();
         default:
             spdlog::warn("[luastg] CheckRes: 试图检索一个不存在的资源类型({})", (int)t);
             break;
@@ -175,6 +181,13 @@ int ResourcePool::ExportResourceList(lua_State* L, ResourceType t) const noexcep
         case ResourceType::FX:
             lua_createtable(L, (int) m_FXPool.size(), 0);  // t
             for (auto& i : m_FXPool) {
+                lua_pushstring(L, i.second->GetResName().c_str());  // t s
+                lua_rawseti(L, -2, cnt++);  // t
+            }
+            break;
+        case ResourceType::Model:
+            lua_createtable(L, (int)m_ModelPool.size(), 0);  // t
+            for (auto& i : m_ModelPool) {
                 lua_pushstring(L, i.second->GetResName().c_str());  // t s
                 lua_rawseti(L, -2, cnt++);  // t
             }
@@ -992,58 +1005,44 @@ bool ResourcePool::LoadFX(const char* name, const char* path, bool is_effect) no
     return true;
 }
 
-// 加载模型（废弃）
+// 加载模型
 
-bool ResourcePool::LoadModel(const char* name, const char* path) noexcept {
-    //try {
-    //    return LoadModel(name, fcyStringHelper::MultiByteToWideChar(path, CP_UTF8));
-    //}
-    //catch (const std::bad_alloc&) {
-    //    //("LoadModel: 转换编码时无法分配内存");
-    //    return false;
-    //}
+bool ResourcePool::LoadModel(const char* name, const char* path) noexcept
+{
+    if (!LAPP.GetRenderDev())
+    {
+        spdlog::error("[luastg] LoadModel: 无法加载模型'{}'，f2dRenderDevice 未初始化", name);
+        return false;
+    }
+
+    if (m_ModelPool.find(name) != m_ModelPool.end()) {
+        if (ResourceMgr::GetResourceLoadingLog()) {
+            spdlog::warn("[luastg] LoadModel: 模型'{}'已存在，加载操作已取消", name);
+        }
+        return true;
+    }
     
-    //ASSERT(LAPP.GetRenderDev());
-    //
-    //if (m_TexturePool.find(name) != m_TexturePool.end()) {
-    //    //("LoadModel: 模型'%m'已存在，试图使用'%s'加载的操作已被取消", name, path.c_str());
-    //    return true;
-    //}
-    //
-    //fcyRefPointer<fcyMemStream> tDataBuf;
-    //if (!GFileManager().loadEx(path, ~tDataBuf))
-    //    return false;
-    //fcyRefPointer<fcyMemStream> tDataBuf2;
-    //std::wstring path2 = path;
-    //int i = path2.length();
-    //path2[i - 3] = 'm';
-    //path2[i - 2] = 't';
-    //path2[i - 1] = 'l';
-    //if (!GFileManager().loadEx(path2, ~tDataBuf2))
-    //    return false;
-    //void* model = NULL;
-    //void* LoadObj(const std::string& id, const std::string& path, const std::string& path2);
-    //std::string buf((char*) tDataBuf->GetInternalBuffer(), tDataBuf->GetLength());
-    //std::string buf2((char*) tDataBuf2->GetInternalBuffer(), tDataBuf2->GetLength());
-    //model = LoadObj(name, buf, buf2);
-    //
-    //try {
-    //    fcyRefPointer<ResModel> tRes;
-    //    tRes.DirectSet(new ResModel(name, model));
-    //    m_ModelPool.emplace(name, tRes);
-    //}
-    //catch (const std::bad_alloc&) {
-    //    //("LoadModel: 内存不足");
-    //    return false;
-    //}
-    //
-    //if (ResourceMgr::GetResourceLoadingLog()) {
-    //    //("LoadTexture: 纹理'%s'已装载 -> '%m' (%s)", path.c_str(), name, getResourcePoolTypeNameW());
-    //}
-    //
-    //return true;
+    LuaSTG::Core::ScopeObject<LuaSTG::Core::IModel> model_ptr;
+    if (!LAPP.GetRenderer2D().createModel(path, ~model_ptr))
+    {
+        spdlog::error("[luastg] LoadFX: 创建模型 '{}' ('{}') 失败：调用 LuaSTG::Core::Renderer::createModel 出错", name, path);
+    }
+
+    try {
+        fcyRefPointer<ResModel> tRes;
+        tRes.DirectSet(new ResModel(name, model_ptr));
+        m_ModelPool.emplace(name, tRes);
+    }
+    catch (const std::bad_alloc&) {
+        spdlog::error("[luastg] LoadModel: 内存不足");
+        return false;
+    }
     
-    return false;
+    if (ResourceMgr::GetResourceLoadingLog()) {
+        spdlog::info("[luastg] LoadModel: 已从'{}'加载模型'{}' ({})", path, name, getResourcePoolTypeName());
+    }
+    
+    return true;
 }
 
 // 查找并获取
@@ -1115,6 +1114,15 @@ fcyRefPointer<ResFont> ResourcePool::GetTTFFont(const char* name) noexcept {
 fcyRefPointer<ResFX> ResourcePool::GetFX(const char* name) noexcept {
     auto i = m_FXPool.find(name);
     if (i == m_FXPool.end())
+        return nullptr;
+    else
+        return i->second;
+}
+
+fcyRefPointer<ResModel> ResourcePool::GetModel(const char* name) noexcept
+{
+    auto i = m_ModelPool.find(name);
+    if (i == m_ModelPool.end())
         return nullptr;
     else
         return i->second;
