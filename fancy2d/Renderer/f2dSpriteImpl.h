@@ -20,6 +20,7 @@ protected:
 	fcyVec2 m_HotSpot;
 	fcyColor m_Color[4];
 	float m_ZValue;
+	float m_ScaleValue;
 
 	fcyRect m_UV;
 	fcyRect m_SpriteRect;
@@ -36,6 +37,8 @@ public: // 接口实现
 	fResult SetFlipType(F2DSPRITEFLIP Type);
 	fFloat GetZ()const;
 	fResult SetZ(fFloat Value);
+	fFloat GetScale()const;
+	void SetScale(fFloat Value);
 	fcyColor GetColor(fuInt Index)const;
 	void GetColor(fcyColor* pOut)const;
 	fResult SetColor(fcyColor Color);

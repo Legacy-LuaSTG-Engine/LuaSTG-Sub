@@ -225,6 +225,7 @@ static void api_drawSprite(LuaSTGPlus::ResSprite* pimg2dres, float const x, floa
     f2dSprite* pimg2d = pimg2dres->GetSprite();
     auto& ctx = LR2D();
 
+    float const scale = pimg2d->GetScale();
     LuaSTGPlus::BlendMode blend = pimg2dres->GetBlendMode();
     translate_blend(ctx, blend);
 
@@ -234,7 +235,7 @@ static void api_drawSprite(LuaSTGPlus::ResSprite* pimg2dres, float const x, floa
     ctx.setTexture(LuaSTG::Core::TextureID(ptex2d->GetHandle()));
 
     LuaSTG::Core::DrawVertex2D vertex[4];
-    make_sprite_vertex(pimg2d, vertex, x, y, rot, hscale, vscale, z);
+    make_sprite_vertex(pimg2d, vertex, x, y, rot, hscale * scale, vscale * scale, z);
     ctx.drawQuad(vertex[0], vertex[1], vertex[2], vertex[3]);
 }
 static void api_drawSprite(char const* name, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
@@ -327,6 +328,7 @@ static void api_drawSpriteSequence(LuaSTGPlus::ResAnimation* pani2dres, int cons
     f2dSprite* pimg2d = pani2dres->GetSprite(((fuInt)ani_timer / pani2dres->GetInterval()) % (fuInt)pani2dres->GetCount());
     auto& ctx = LR2D();
 
+    float const scale = pimg2d->GetScale();
     LuaSTGPlus::BlendMode blend = pani2dres->GetBlendMode();
     translate_blend(ctx, blend);
 
@@ -336,7 +338,7 @@ static void api_drawSpriteSequence(LuaSTGPlus::ResAnimation* pani2dres, int cons
     ctx.setTexture(LuaSTG::Core::TextureID(ptex2d->GetHandle()));
 
     LuaSTG::Core::DrawVertex2D vertex[4];
-    make_sprite_vertex(pimg2d, vertex, x, y, rot, hscale, vscale, z);
+    make_sprite_vertex(pimg2d, vertex, x, y, rot, hscale * scale, vscale * scale, z);
     ctx.drawQuad(vertex[0], vertex[1], vertex[2], vertex[3]);
 }
 static void api_drawSpriteSequence(char const* name, int const ani_timer, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
@@ -367,13 +369,15 @@ static void api_GameObject_drawSprite(f2dSprite* pimg2d, float const x, float co
 {
     auto& ctx = LR2D();
 
+    float const scale = pimg2d->GetScale();
+
     f2dTexture2D* const ptex2d = pimg2d->GetTexture();
     check_rendertarget_usage(ptex2d);
     ctx.setTextureAlphaType(ptex2d->IsPremultipliedAlpha() ? LuaSTG::Core::TextureAlphaType::PremulAlpha : LuaSTG::Core::TextureAlphaType::Normal);
     ctx.setTexture(LuaSTG::Core::TextureID(ptex2d->GetHandle()));
 
     LuaSTG::Core::DrawVertex2D vertex[4];
-    make_sprite_vertex(pimg2d, vertex, x, y, rot, hscale, vscale, z);
+    make_sprite_vertex(pimg2d, vertex, x, y, rot, hscale * scale, vscale * scale, z);
     ctx.drawQuad(vertex[0], vertex[1], vertex[2], vertex[3]);
 }
 static void api_GameObject_drawParticle(LuaSTGPlus::ResParticle::ParticlePool* p, float hscale, float vscale)

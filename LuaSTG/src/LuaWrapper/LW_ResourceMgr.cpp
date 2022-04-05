@@ -540,19 +540,42 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			LRES.GetResourcePool(ResourcePoolType::Stage)->ExportResourceList(L, tResourceType);
 			return 2;
 		}
+
 		static int SetImageScale(lua_State* L) noexcept
 		{
-			float x = static_cast<float>(luaL_checknumber(L, 1));
-			if (x == 0.f)
-				return luaL_error(L, "invalid argument #1 for 'SetImageScale'.");
-			LRES.SetGlobalImageScaleFactor(x);
+			if (lua_gettop(L) <= 1)
+			{
+				float x = static_cast<float>(luaL_checknumber(L, 1));
+				if (x == 0.f)
+					return luaL_error(L, "invalid argument #1 for 'SetImageScale'.");
+				LRES.SetGlobalImageScaleFactor(x);
+			}
+			else
+			{
+				ResSprite* p = LRES.FindSprite(luaL_checkstring(L, 1));
+				if (!p)
+					return luaL_error(L, "image '%s' not found.", luaL_checkstring(L, 1));
+				float x = (float)luaL_checknumber(L, 2);
+				p->GetSprite()->SetScale(x);
+			}
 			return 0;
 		}
 		static int GetImageScale(lua_State* L) noexcept
 		{
-			lua_Number ret = LRES.GetGlobalImageScaleFactor();
-			lua_pushnumber(L, ret);
-			return 1;
+			if (lua_gettop(L) <= 0)
+			{
+				lua_Number ret = LRES.GetGlobalImageScaleFactor();
+				lua_pushnumber(L, ret);
+				return 1;
+			}
+			else
+			{
+				ResSprite* p = LRES.FindSprite(luaL_checkstring(L, 1));
+				if (!p)
+					return luaL_error(L, "image '%s' not found.", luaL_checkstring(L, 1));
+				lua_pushnumber(L, p->GetSprite()->GetScale());
+				return 1;
+			}
 		}
 		static int SetImageState(lua_State* L) noexcept
 		{
@@ -575,19 +598,34 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			}
 			return 0;
 		}
-		static int SetFontState(lua_State* L) noexcept
+		static int SetImageCenter(lua_State* L) noexcept
 		{
-			ResFont* p = LRES.FindSpriteFont(luaL_checkstring(L, 1));
+			ResSprite* p = LRES.FindSprite(luaL_checkstring(L, 1));
 			if (!p)
-				return luaL_error(L, "sprite font '%s' not found.", luaL_checkstring(L, 1));
-
-			p->SetBlendMode(TranslateBlendMode(L, 2));
-			if (lua_gettop(L) == 3)
-			{
-				fcyColor c = *static_cast<fcyColor*>(luaL_checkudata(L, 3, LUASTG_LUA_TYPENAME_COLOR));
-				p->SetBlendColor(c);
-			}
+				return luaL_error(L, "image '%s' not found.", luaL_checkstring(L, 1));
+			p->GetSprite()->SetHotSpot(fcyVec2(
+				static_cast<float>(luaL_checknumber(L, 2) + p->GetSprite()->GetTexRect().a.x),
+				static_cast<float>(luaL_checknumber(L, 3) + p->GetSprite()->GetTexRect().a.y)));
 			return 0;
+		}
+
+		static int SetAnimationScale(lua_State* L) noexcept
+		{
+			ResAnimation* p = LRES.FindAnimation(luaL_checkstring(L, 1));
+			if (!p)
+				return luaL_error(L, "animation '%s' not found.", luaL_checkstring(L, 1));
+			float x = (float)luaL_checknumber(L, 2);
+			for (size_t i = 0; i < p->GetCount(); ++i)
+				p->GetSprite(i)->SetScale(x);
+			return 0;
+		}
+		static int GetAnimationScale(lua_State* L) noexcept
+		{
+			ResAnimation* p = LRES.FindAnimation(luaL_checkstring(L, 1));
+			if (!p)
+				return luaL_error(L, "animation '%s' not found.", luaL_checkstring(L, 1));
+			lua_pushnumber(L, p->GetSprite(0)->GetScale());
+			return 1;
 		}
 		static int SetAnimationState(lua_State* L) noexcept
 		{
@@ -615,16 +653,6 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			}
 			return 0;
 		}
-		static int SetImageCenter(lua_State* L) noexcept
-		{
-			ResSprite* p = LRES.FindSprite(luaL_checkstring(L, 1));
-			if (!p)
-				return luaL_error(L, "image '%s' not found.", luaL_checkstring(L, 1));
-			p->GetSprite()->SetHotSpot(fcyVec2(
-				static_cast<float>(luaL_checknumber(L, 2) + p->GetSprite()->GetTexRect().a.x),
-				static_cast<float>(luaL_checknumber(L, 3) + p->GetSprite()->GetTexRect().a.y)));
-			return 0;
-		}
 		static int SetAnimationCenter(lua_State* L) noexcept
 		{
 			ResAnimation* p = LRES.FindAnimation(luaL_checkstring(L, 1));
@@ -638,6 +666,22 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			}
 			return 0;
 		}
+
+		static int SetFontState(lua_State* L) noexcept
+		{
+			ResFont* p = LRES.FindSpriteFont(luaL_checkstring(L, 1));
+			if (!p)
+				return luaL_error(L, "sprite font '%s' not found.", luaL_checkstring(L, 1));
+
+			p->SetBlendMode(TranslateBlendMode(L, 2));
+			if (lua_gettop(L) == 3)
+			{
+				fcyColor c = *static_cast<fcyColor*>(luaL_checkudata(L, 3, LUASTG_LUA_TYPENAME_COLOR));
+				p->SetBlendColor(c);
+			}
+			return 0;
+		}
+
 		static int CacheTTFString(lua_State* L) {
 			size_t len = 0;
 			const char* str = luaL_checklstring(L, 2, &len);
@@ -668,13 +712,19 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 		{ "RemoveResource", &Wrapper::RemoveResource },
 		{ "CheckRes", &Wrapper::CheckRes },
 		{ "EnumRes", &Wrapper::EnumRes },
+
 		{ "SetImageScale", &Wrapper::SetImageScale },
 		{ "GetImageScale", &Wrapper::GetImageScale },
 		{ "SetImageState", &Wrapper::SetImageState },
-		{ "SetFontState", &Wrapper::SetFontState },
-		{ "SetAnimationState", &Wrapper::SetAnimationState },
 		{ "SetImageCenter", &Wrapper::SetImageCenter },
+
+		{ "SetAnimationScale", &Wrapper::SetAnimationScale },
+		{ "GetAnimationScale", &Wrapper::GetAnimationScale },
+		{ "SetAnimationState", &Wrapper::SetAnimationState },
 		{ "SetAnimationCenter", &Wrapper::SetAnimationCenter },
+
+		{ "SetFontState", &Wrapper::SetFontState },
+
 		{ "CacheTTFString", &Wrapper::CacheTTFString },
 		{ NULL, NULL },
 	};
