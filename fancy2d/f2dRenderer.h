@@ -63,6 +63,9 @@ struct f2dSprite :
 	/// @param[in] Value 新的Z值
 	virtual fResult SetZ(fFloat Value)=0;
 
+	virtual fFloat GetScale()const = 0;
+	virtual void SetScale(fFloat Value) = 0;
+
 	/// @brief     返回顶点的颜色
 	/// @param[in] Index 顶点索引[0~3]，按照顺时针方向定位
 	virtual fcyColor GetColor(fuInt Index)const=0;

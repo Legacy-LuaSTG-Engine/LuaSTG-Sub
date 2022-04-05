@@ -3,7 +3,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 f2dSpriteImpl::f2dSpriteImpl(f2dTexture2D* pTex)
-	: m_pTex(NULL), m_FlipType(F2DSPRITEFLIP_NONE), m_ZValue(1.f)
+	: m_pTex(NULL), m_FlipType(F2DSPRITEFLIP_NONE), m_ZValue(1.f), m_ScaleValue(1.0f)
 {
 	m_pTex = pTex;
 	m_pTex->AddRef();
@@ -17,7 +17,7 @@ f2dSpriteImpl::f2dSpriteImpl(f2dTexture2D* pTex)
 }
 
 f2dSpriteImpl::f2dSpriteImpl(f2dTexture2D* pTex, fcyRect SrcRect)
-	: m_pTex(NULL), m_FlipType(F2DSPRITEFLIP_NONE), m_ZValue(1.f)
+	: m_pTex(NULL), m_FlipType(F2DSPRITEFLIP_NONE), m_ZValue(1.f), m_ScaleValue(1.0f)
 {
 	m_pTex = pTex;
 	m_pTex->AddRef();
@@ -30,7 +30,7 @@ f2dSpriteImpl::f2dSpriteImpl(f2dTexture2D* pTex, fcyRect SrcRect)
 }
 
 f2dSpriteImpl::f2dSpriteImpl(f2dTexture2D* pTex, fcyRect SrcRect, fcyVec2 HotSpot)
-	: m_pTex(NULL), m_FlipType(F2DSPRITEFLIP_NONE), m_ZValue(1.f)
+	: m_pTex(NULL), m_FlipType(F2DSPRITEFLIP_NONE), m_ZValue(1.f), m_ScaleValue(1.0f)
 {
 	m_pTex = pTex;
 	m_pTex->AddRef();
@@ -44,7 +44,7 @@ f2dSpriteImpl::f2dSpriteImpl(f2dTexture2D* pTex, fcyRect SrcRect, fcyVec2 HotSpo
 
 f2dSpriteImpl::f2dSpriteImpl(const f2dSpriteImpl* pOrg)
 	: m_pTex(pOrg->m_pTex), m_FlipType(pOrg->m_FlipType), m_Org(pOrg->m_Org), 
-	m_HotSpot(pOrg->m_HotSpot), m_ZValue(pOrg->m_ZValue), m_UV(pOrg->m_UV), m_SpriteRect(pOrg->m_SpriteRect)
+	m_HotSpot(pOrg->m_HotSpot), m_ZValue(pOrg->m_ZValue), m_ScaleValue(1.0f), m_UV(pOrg->m_UV), m_SpriteRect(pOrg->m_SpriteRect)
 {
 	m_Color[0] = pOrg->m_Color[0];
 	m_Color[1] = pOrg->m_Color[1];
@@ -173,6 +173,16 @@ fResult f2dSpriteImpl::SetZ(fFloat Value)
 	return FCYERR_OK;
 }
 
+fFloat f2dSpriteImpl::GetScale()const
+{
+	return m_ScaleValue;
+}
+
+void f2dSpriteImpl::SetScale(fFloat Value)
+{
+	m_ScaleValue = Value;
+}
+
 fcyColor f2dSpriteImpl::GetColor(fuInt Index)const
 {
 	if(Index>=4)
@@ -295,13 +305,15 @@ fResult f2dSpriteImpl::Draw(f2dGraphics2D* pGraph, const fcyVec2& Center)
 
 fResult f2dSpriteImpl::Draw(f2dGraphics2D* pGraph, const fcyVec2& Center, const fcyVec2& Scale)
 {
+	fcyVec2 sscale = Scale * m_ScaleValue;
+
 	// 准备顶点
 	f2dGraphics2DVertex tVerts[4] = 
 	{
-		{ m_SpriteRect.a.x * Scale.x + Center.x, m_SpriteRect.a.y * Scale.y + Center.y, m_ZValue, m_Color[0].argb, m_UV.a.x, m_UV.a.y },
-		{ m_SpriteRect.b.x * Scale.x + Center.x, m_SpriteRect.a.y * Scale.y + Center.y, m_ZValue, m_Color[1].argb, m_UV.b.x, m_UV.a.y },
-		{ m_SpriteRect.b.x * Scale.x + Center.x, m_SpriteRect.b.y * Scale.y + Center.y, m_ZValue, m_Color[2].argb, m_UV.b.x, m_UV.b.y },
-		{ m_SpriteRect.a.x * Scale.x + Center.x, m_SpriteRect.b.y * Scale.y + Center.y, m_ZValue, m_Color[3].argb, m_UV.a.x, m_UV.b.y }
+		{ m_SpriteRect.a.x * sscale.x + Center.x, m_SpriteRect.a.y * sscale.y + Center.y, m_ZValue, m_Color[0].argb, m_UV.a.x, m_UV.a.y },
+		{ m_SpriteRect.b.x * sscale.x + Center.x, m_SpriteRect.a.y * sscale.y + Center.y, m_ZValue, m_Color[1].argb, m_UV.b.x, m_UV.a.y },
+		{ m_SpriteRect.b.x * sscale.x + Center.x, m_SpriteRect.b.y * sscale.y + Center.y, m_ZValue, m_Color[2].argb, m_UV.b.x, m_UV.b.y },
+		{ m_SpriteRect.a.x * sscale.x + Center.x, m_SpriteRect.b.y * sscale.y + Center.y, m_ZValue, m_Color[3].argb, m_UV.a.x, m_UV.b.y }
 	};
 
 	pGraph->DrawQuad(m_pTex, tVerts);
@@ -311,6 +323,7 @@ fResult f2dSpriteImpl::Draw(f2dGraphics2D* pGraph, const fcyVec2& Center, const 
 
 fResult f2dSpriteImpl::Draw(f2dGraphics2D* pGraph, const fcyVec2& Center, const fcyVec2& Scale, const fcyRect& SubTex)
 {
+	fcyVec2 sscale = Scale * m_ScaleValue;
 	float tUVWidth = m_UV.b.x - m_UV.a.x;
 	float tUVHeight = m_UV.b.y - m_UV.a.y;
 
@@ -324,10 +337,10 @@ fResult f2dSpriteImpl::Draw(f2dGraphics2D* pGraph, const fcyVec2& Center, const 
 	// 准备顶点
 	f2dGraphics2DVertex tVerts[4] = 
 	{
-		{ m_SpriteRect.a.x * Scale.x + Center.x, m_SpriteRect.a.y * Scale.y + Center.y, m_ZValue, m_Color[0].argb, tUV.a.x, tUV.a.y },
-		{ m_SpriteRect.b.x * Scale.x + Center.x, m_SpriteRect.a.y * Scale.y + Center.y, m_ZValue, m_Color[1].argb, tUV.b.x, tUV.a.y },
-		{ m_SpriteRect.b.x * Scale.x + Center.x, m_SpriteRect.b.y * Scale.y + Center.y, m_ZValue, m_Color[2].argb, tUV.b.x, tUV.b.y },
-		{ m_SpriteRect.a.x * Scale.x + Center.x, m_SpriteRect.b.y * Scale.y + Center.y, m_ZValue, m_Color[3].argb, tUV.a.x, tUV.b.y }
+		{ m_SpriteRect.a.x * sscale.x + Center.x, m_SpriteRect.a.y * sscale.y + Center.y, m_ZValue, m_Color[0].argb, tUV.a.x, tUV.a.y },
+		{ m_SpriteRect.b.x * sscale.x + Center.x, m_SpriteRect.a.y * sscale.y + Center.y, m_ZValue, m_Color[1].argb, tUV.b.x, tUV.a.y },
+		{ m_SpriteRect.b.x * sscale.x + Center.x, m_SpriteRect.b.y * sscale.y + Center.y, m_ZValue, m_Color[2].argb, tUV.b.x, tUV.b.y },
+		{ m_SpriteRect.a.x * sscale.x + Center.x, m_SpriteRect.b.y * sscale.y + Center.y, m_ZValue, m_Color[3].argb, tUV.a.x, tUV.b.y }
 	};
 
 	pGraph->DrawQuad(m_pTex, tVerts);
@@ -337,13 +350,15 @@ fResult f2dSpriteImpl::Draw(f2dGraphics2D* pGraph, const fcyVec2& Center, const 
 
 fResult f2dSpriteImpl::Draw(f2dGraphics2D* pGraph, const fcyVec2& Center, const fcyVec2& Scale, fFloat Rotation, fBool bAutoFixCoord)
 {
+	fcyVec2 sscale = Scale * m_ScaleValue;
+
 	// 准备顶点
 	f2dGraphics2DVertex tVerts[4] = 
 	{
-		{ m_SpriteRect.a.x * Scale.x, m_SpriteRect.a.y * Scale.y, m_ZValue, m_Color[0].argb, m_UV.a.x, m_UV.a.y },
-		{ m_SpriteRect.b.x * Scale.x, m_SpriteRect.a.y * Scale.y, m_ZValue, m_Color[1].argb, m_UV.b.x, m_UV.a.y },
-		{ m_SpriteRect.b.x * Scale.x, m_SpriteRect.b.y * Scale.y, m_ZValue, m_Color[2].argb, m_UV.b.x, m_UV.b.y },
-		{ m_SpriteRect.a.x * Scale.x, m_SpriteRect.b.y * Scale.y, m_ZValue, m_Color[3].argb, m_UV.a.x, m_UV.b.y }
+		{ m_SpriteRect.a.x * sscale.x, m_SpriteRect.a.y * sscale.y, m_ZValue, m_Color[0].argb, m_UV.a.x, m_UV.a.y },
+		{ m_SpriteRect.b.x * sscale.x, m_SpriteRect.a.y * sscale.y, m_ZValue, m_Color[1].argb, m_UV.b.x, m_UV.a.y },
+		{ m_SpriteRect.b.x * sscale.x, m_SpriteRect.b.y * sscale.y, m_ZValue, m_Color[2].argb, m_UV.b.x, m_UV.b.y },
+		{ m_SpriteRect.a.x * sscale.x, m_SpriteRect.b.y * sscale.y, m_ZValue, m_Color[3].argb, m_UV.a.x, m_UV.b.y }
 	};
 
 	float tSin = sin(Rotation);
@@ -364,6 +379,7 @@ fResult f2dSpriteImpl::Draw(f2dGraphics2D* pGraph, const fcyVec2& Center, const 
 
 fResult f2dSpriteImpl::Draw(f2dGraphics2D* pGraph, const fcyVec2& Center, const fcyVec2& Scale, fFloat Rotation, const fcyRect& SubTex)
 {
+	fcyVec2 sscale = Scale * m_ScaleValue;
 	float tUVWidth = m_UV.b.x - m_UV.a.x;
 	float tUVHeight = m_UV.b.y - m_UV.a.y;
 
@@ -377,10 +393,10 @@ fResult f2dSpriteImpl::Draw(f2dGraphics2D* pGraph, const fcyVec2& Center, const 
 	// 准备顶点
 	f2dGraphics2DVertex tVerts[4] = 
 	{
-		{ m_SpriteRect.a.x * Scale.x, m_SpriteRect.a.y * Scale.y, m_ZValue, m_Color[0].argb, tUV.a.x, tUV.a.y },
-		{ m_SpriteRect.b.x * Scale.x, m_SpriteRect.a.y * Scale.y, m_ZValue, m_Color[1].argb, tUV.b.x, tUV.a.y },
-		{ m_SpriteRect.b.x * Scale.x, m_SpriteRect.b.y * Scale.y, m_ZValue, m_Color[2].argb, tUV.b.x, tUV.b.y },
-		{ m_SpriteRect.a.x * Scale.x, m_SpriteRect.b.y * Scale.y, m_ZValue, m_Color[3].argb, tUV.a.x, tUV.b.y }
+		{ m_SpriteRect.a.x * sscale.x, m_SpriteRect.a.y * sscale.y, m_ZValue, m_Color[0].argb, tUV.a.x, tUV.a.y },
+		{ m_SpriteRect.b.x * sscale.x, m_SpriteRect.a.y * sscale.y, m_ZValue, m_Color[1].argb, tUV.b.x, tUV.a.y },
+		{ m_SpriteRect.b.x * sscale.x, m_SpriteRect.b.y * sscale.y, m_ZValue, m_Color[2].argb, tUV.b.x, tUV.b.y },
+		{ m_SpriteRect.a.x * sscale.x, m_SpriteRect.b.y * sscale.y, m_ZValue, m_Color[3].argb, tUV.a.x, tUV.b.y }
 	};
 
 	float tSin = sin(Rotation);
@@ -417,13 +433,15 @@ fResult f2dSpriteImpl::Draw2(f2dGraphics2D* pGraph, const fcyVec2& Center)
 
 fResult f2dSpriteImpl::Draw2(f2dGraphics2D* pGraph, const fcyVec2& Center, const fcyVec2& Scale)
 {
+	fcyVec2 sscale = Scale * m_ScaleValue;
+
 	// 准备顶点
 	f2dGraphics2DVertex tVerts[4] =
 	{
-		{ m_SpriteRect.a.x * Scale.x + Center.x, -m_SpriteRect.a.y * Scale.y + Center.y, m_ZValue, m_Color[0].argb, m_UV.a.x, m_UV.a.y },
-		{ m_SpriteRect.b.x * Scale.x + Center.x, -m_SpriteRect.a.y * Scale.y + Center.y, m_ZValue, m_Color[1].argb, m_UV.b.x, m_UV.a.y },
-		{ m_SpriteRect.b.x * Scale.x + Center.x, -m_SpriteRect.b.y * Scale.y + Center.y, m_ZValue, m_Color[2].argb, m_UV.b.x, m_UV.b.y },
-		{ m_SpriteRect.a.x * Scale.x + Center.x, -m_SpriteRect.b.y * Scale.y + Center.y, m_ZValue, m_Color[3].argb, m_UV.a.x, m_UV.b.y }
+		{ m_SpriteRect.a.x * sscale.x + Center.x, -m_SpriteRect.a.y * sscale.y + Center.y, m_ZValue, m_Color[0].argb, m_UV.a.x, m_UV.a.y },
+		{ m_SpriteRect.b.x * sscale.x + Center.x, -m_SpriteRect.a.y * sscale.y + Center.y, m_ZValue, m_Color[1].argb, m_UV.b.x, m_UV.a.y },
+		{ m_SpriteRect.b.x * sscale.x + Center.x, -m_SpriteRect.b.y * sscale.y + Center.y, m_ZValue, m_Color[2].argb, m_UV.b.x, m_UV.b.y },
+		{ m_SpriteRect.a.x * sscale.x + Center.x, -m_SpriteRect.b.y * sscale.y + Center.y, m_ZValue, m_Color[3].argb, m_UV.a.x, m_UV.b.y }
 	};
 
 	pGraph->DrawQuad(m_pTex, tVerts);
@@ -433,6 +451,7 @@ fResult f2dSpriteImpl::Draw2(f2dGraphics2D* pGraph, const fcyVec2& Center, const
 
 fResult f2dSpriteImpl::Draw2(f2dGraphics2D* pGraph, const fcyVec2& Center, const fcyVec2& Scale, const fcyRect& SubTex)
 {
+	fcyVec2 sscale = Scale * m_ScaleValue;
 	float tUVWidth = m_UV.b.x - m_UV.a.x;
 	float tUVHeight = m_UV.b.y - m_UV.a.y;
 
@@ -446,10 +465,10 @@ fResult f2dSpriteImpl::Draw2(f2dGraphics2D* pGraph, const fcyVec2& Center, const
 	// 准备顶点
 	f2dGraphics2DVertex tVerts[4] =
 	{
-		{ m_SpriteRect.a.x * Scale.x + Center.x, -m_SpriteRect.a.y * Scale.y + Center.y, m_ZValue, m_Color[0].argb, tUV.a.x, tUV.a.y },
-		{ m_SpriteRect.b.x * Scale.x + Center.x, -m_SpriteRect.a.y * Scale.y + Center.y, m_ZValue, m_Color[1].argb, tUV.b.x, tUV.a.y },
-		{ m_SpriteRect.b.x * Scale.x + Center.x, -m_SpriteRect.b.y * Scale.y + Center.y, m_ZValue, m_Color[2].argb, tUV.b.x, tUV.b.y },
-		{ m_SpriteRect.a.x * Scale.x + Center.x, -m_SpriteRect.b.y * Scale.y + Center.y, m_ZValue, m_Color[3].argb, tUV.a.x, tUV.b.y }
+		{ m_SpriteRect.a.x * sscale.x + Center.x, -m_SpriteRect.a.y * sscale.y + Center.y, m_ZValue, m_Color[0].argb, tUV.a.x, tUV.a.y },
+		{ m_SpriteRect.b.x * sscale.x + Center.x, -m_SpriteRect.a.y * sscale.y + Center.y, m_ZValue, m_Color[1].argb, tUV.b.x, tUV.a.y },
+		{ m_SpriteRect.b.x * sscale.x + Center.x, -m_SpriteRect.b.y * sscale.y + Center.y, m_ZValue, m_Color[2].argb, tUV.b.x, tUV.b.y },
+		{ m_SpriteRect.a.x * sscale.x + Center.x, -m_SpriteRect.b.y * sscale.y + Center.y, m_ZValue, m_Color[3].argb, tUV.a.x, tUV.b.y }
 	};
 
 	pGraph->DrawQuad(m_pTex, tVerts);
@@ -459,13 +478,15 @@ fResult f2dSpriteImpl::Draw2(f2dGraphics2D* pGraph, const fcyVec2& Center, const
 
 fResult f2dSpriteImpl::Draw2(f2dGraphics2D* pGraph, const fcyVec2& Center, const fcyVec2& Scale, fFloat Rotation, fBool bAutoFixCoord)
 {
+	fcyVec2 sscale = Scale * m_ScaleValue;
+
 	// 准备顶点
 	f2dGraphics2DVertex tVerts[4] =
 	{
-		{ m_SpriteRect.a.x * Scale.x, -m_SpriteRect.a.y * Scale.y, m_ZValue, m_Color[0].argb, m_UV.a.x, m_UV.a.y },
-		{ m_SpriteRect.b.x * Scale.x, -m_SpriteRect.a.y * Scale.y, m_ZValue, m_Color[1].argb, m_UV.b.x, m_UV.a.y },
-		{ m_SpriteRect.b.x * Scale.x, -m_SpriteRect.b.y * Scale.y, m_ZValue, m_Color[2].argb, m_UV.b.x, m_UV.b.y },
-		{ m_SpriteRect.a.x * Scale.x, -m_SpriteRect.b.y * Scale.y, m_ZValue, m_Color[3].argb, m_UV.a.x, m_UV.b.y }
+		{ m_SpriteRect.a.x * sscale.x, -m_SpriteRect.a.y * sscale.y, m_ZValue, m_Color[0].argb, m_UV.a.x, m_UV.a.y },
+		{ m_SpriteRect.b.x * sscale.x, -m_SpriteRect.a.y * sscale.y, m_ZValue, m_Color[1].argb, m_UV.b.x, m_UV.a.y },
+		{ m_SpriteRect.b.x * sscale.x, -m_SpriteRect.b.y * sscale.y, m_ZValue, m_Color[2].argb, m_UV.b.x, m_UV.b.y },
+		{ m_SpriteRect.a.x * sscale.x, -m_SpriteRect.b.y * sscale.y, m_ZValue, m_Color[3].argb, m_UV.a.x, m_UV.b.y }
 	};
 
 	float tSin = sin(Rotation);
@@ -486,6 +507,7 @@ fResult f2dSpriteImpl::Draw2(f2dGraphics2D* pGraph, const fcyVec2& Center, const
 
 fResult f2dSpriteImpl::Draw2(f2dGraphics2D* pGraph, const fcyVec2& Center, const fcyVec2& Scale, fFloat Rotation, const fcyRect& SubTex)
 {
+	fcyVec2 sscale = Scale * m_ScaleValue;
 	float tUVWidth = m_UV.b.x - m_UV.a.x;
 	float tUVHeight = m_UV.b.y - m_UV.a.y;
 
@@ -499,10 +521,10 @@ fResult f2dSpriteImpl::Draw2(f2dGraphics2D* pGraph, const fcyVec2& Center, const
 	// 准备顶点
 	f2dGraphics2DVertex tVerts[4] =
 	{
-		{ m_SpriteRect.a.x * Scale.x, -m_SpriteRect.a.y * Scale.y, m_ZValue, m_Color[0].argb, tUV.a.x, tUV.a.y },
-		{ m_SpriteRect.b.x * Scale.x, -m_SpriteRect.a.y * Scale.y, m_ZValue, m_Color[1].argb, tUV.b.x, tUV.a.y },
-		{ m_SpriteRect.b.x * Scale.x, -m_SpriteRect.b.y * Scale.y, m_ZValue, m_Color[2].argb, tUV.b.x, tUV.b.y },
-		{ m_SpriteRect.a.x * Scale.x, -m_SpriteRect.b.y * Scale.y, m_ZValue, m_Color[3].argb, tUV.a.x, tUV.b.y }
+		{ m_SpriteRect.a.x * sscale.x, -m_SpriteRect.a.y * sscale.y, m_ZValue, m_Color[0].argb, tUV.a.x, tUV.a.y },
+		{ m_SpriteRect.b.x * sscale.x, -m_SpriteRect.a.y * sscale.y, m_ZValue, m_Color[1].argb, tUV.b.x, tUV.a.y },
+		{ m_SpriteRect.b.x * sscale.x, -m_SpriteRect.b.y * sscale.y, m_ZValue, m_Color[2].argb, tUV.b.x, tUV.b.y },
+		{ m_SpriteRect.a.x * sscale.x, -m_SpriteRect.b.y * sscale.y, m_ZValue, m_Color[3].argb, tUV.a.x, tUV.b.y }
 	};
 
 	float tSin = sin(Rotation);
