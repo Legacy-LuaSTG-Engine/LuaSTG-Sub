@@ -51,6 +51,11 @@ namespace LuaSTGPlus
 		public:
 			static void Register(lua_State* L)LNOEXCEPT;
 		};
+		class InputWrapper
+		{
+		public:
+			static void Register(lua_State* L)LNOEXCEPT;
+		};
 		
 		class RenderWrapper
 		{

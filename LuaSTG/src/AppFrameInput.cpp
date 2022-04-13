@@ -3,9 +3,93 @@
 
 #define NOMINMAX
 #include <Windows.h>
+#include "Keyboard.h"
+#include "Mouse.h"
+
+static LRESULT KeyboardMouseMessage(HWND window, UINT message, WPARAM arg1, LPARAM arg2)
+{
+    switch (message)
+    {
+    case WM_ACTIVATE:
+    case WM_ACTIVATEAPP:
+    case WM_KEYDOWN:
+    case WM_SYSKEYDOWN:
+    case WM_KEYUP:
+    case WM_SYSKEYUP:
+        DirectX::Keyboard::ProcessMessage(message, arg1, arg2);
+        break;
+    }
+
+    switch (message)
+    {
+    case WM_ACTIVATE:
+    case WM_ACTIVATEAPP:
+    case WM_INPUT:
+    case WM_MOUSEMOVE:
+    case WM_LBUTTONDOWN:
+    case WM_LBUTTONUP:
+    case WM_RBUTTONDOWN:
+    case WM_RBUTTONUP:
+    case WM_MBUTTONDOWN:
+    case WM_MBUTTONUP:
+    case WM_MOUSEWHEEL:
+    case WM_XBUTTONDOWN:
+    case WM_XBUTTONUP:
+    case WM_MOUSEHOVER:
+        DirectX::Mouse::ProcessMessage(message, arg1, arg2);
+        break;
+    }
+
+    return 0;
+}
 
 namespace LuaSTGPlus
 {
+    static std::unique_ptr<DirectX::Keyboard> Keyboard;
+    static std::unique_ptr<DirectX::Mouse> Mouse;
+    static DirectX::Keyboard::State KeyboardState;
+    static DirectX::Keyboard::KeyboardStateTracker KeyboardStateTracker;
+    static DirectX::Mouse::State MouseState;
+
+    void AppFrame::OpenInput()
+    {
+        Keyboard = std::make_unique<DirectX::Keyboard>();
+        Mouse = std::make_unique<DirectX::Mouse>();
+        ZeroMemory(&KeyboardState, sizeof(KeyboardState));
+        KeyboardStateTracker.Reset();
+        ZeroMemory(&MouseState, sizeof(MouseState));
+        m_pMainWindow->AddNativeMessageCallback((ptrdiff_t)&KeyboardMouseMessage);
+        Mouse->SetWindow((HWND)m_pMainWindow->GetHandle());
+    }
+    void AppFrame::CloseInput()
+    {
+        m_pMainWindow->RemoveNativeMessageCallback((ptrdiff_t)&KeyboardMouseMessage);
+        Keyboard = nullptr;
+        Mouse = nullptr;
+    }
+    void AppFrame::UpdateInput()
+    {
+        if (Keyboard)
+        {
+            KeyboardState = Keyboard->GetState();
+            KeyboardStateTracker.Update(KeyboardState);
+        }
+        else
+        {
+            ZeroMemory(&KeyboardState, sizeof(KeyboardState));
+            KeyboardStateTracker.Reset();
+        }
+        if (Mouse)
+        {
+            MouseState = Mouse->GetState();
+            Mouse->ResetScrollWheelValue();
+        }
+        else
+        {
+            ZeroMemory(&MouseState, sizeof(MouseState));
+        }
+    }
+
     void AppFrame::resetKeyStatus()LNOEXCEPT
     {
         m_LastKey = 0;
@@ -16,43 +100,84 @@ namespace LuaSTGPlus
     
     fBool AppFrame::GetKeyState(int VKCode)LNOEXCEPT
     {
-        if (VKCode > 0 && VKCode < _countof(m_KeyStateMap))
+        //if (VKCode > 0 && VKCode < _countof(m_KeyStateMap))
+        //{
+        //    if (m_Keyboard) {
+        //        return m_Keyboard->IsKeyDown(VKKeyToF2DKey(VKCode));
+        //    }
+        //    else {
+        //        //return m_KeyStateMap[VKCode] || GetAsyncKeyState(VKCode);
+        //        return m_KeyStateMap[VKCode];
+        //    }
+        //}
+        switch (VKCode)
         {
-            if (m_Keyboard) {
-                return m_Keyboard->IsKeyDown(VKKeyToF2DKey(VKCode));
-            }
-            else {
-                //return m_KeyStateMap[VKCode] || GetAsyncKeyState(VKCode);
-                return m_KeyStateMap[VKCode];
-            }
+        case VK_SHIFT:
+            return KeyboardState.IsKeyDown(DirectX::Keyboard::Keys::LeftShift) || KeyboardState.IsKeyDown(DirectX::Keyboard::Keys::RightShift);
+        case VK_CONTROL:
+            return KeyboardState.IsKeyDown(DirectX::Keyboard::Keys::LeftControl) || KeyboardState.IsKeyDown(DirectX::Keyboard::Keys::RightControl);
+        case VK_MENU:
+            return KeyboardState.IsKeyDown(DirectX::Keyboard::Keys::LeftAlt) || KeyboardState.IsKeyDown(DirectX::Keyboard::Keys::RightAlt);
+        default:
+            return KeyboardState.IsKeyDown((DirectX::Keyboard::Keys)(unsigned char)VKCode);
         }
-        return false;
     }
     
     int AppFrame::GetLastKey()LNOEXCEPT
     {
-        return m_LastKey;
+        //return m_LastKey;
+        for (int i = 1; i < 256; i += 1)
+        {
+            switch (i)
+            {
+            case VK_SHIFT:
+                if (KeyboardState.IsKeyDown(DirectX::Keyboard::Keys::LeftShift) || KeyboardState.IsKeyDown(DirectX::Keyboard::Keys::RightShift))
+                {
+                    return i;
+                }
+                break;
+            case VK_CONTROL:
+                if (KeyboardState.IsKeyDown(DirectX::Keyboard::Keys::LeftControl) || KeyboardState.IsKeyDown(DirectX::Keyboard::Keys::RightControl))
+                {
+                    return i;
+                }
+                break;
+            case VK_MENU:
+                if (KeyboardState.IsKeyDown(DirectX::Keyboard::Keys::LeftAlt) || KeyboardState.IsKeyDown(DirectX::Keyboard::Keys::RightAlt))
+                {
+                    return i;
+                }
+                break;
+            default:
+                if (KeyboardStateTracker.IsKeyPressed((DirectX::Keyboard::Keys)(unsigned char)i))
+                {
+                    return i;
+                }
+                break;
+            }
+        }
+        return 0;
     }
-    
     fBool AppFrame::GetKeyboardState(uint32_t VKCode)LNOEXCEPT
     {
-        if (m_Keyboard2) {
-            return m_Keyboard2->KeyPress(VKCode);
-        }
-        else {
-            return false;
-        }
+        //if (m_Keyboard2) {
+        //    return m_Keyboard2->KeyPress(VKCode);
+        //}
+        //else {
+        //    return false;
+        //}
+        return false;
     }
-    
     bool AppFrame::GetAsyncKeyState(int VKCode)LNOEXCEPT
     {
-        SHORT KeyState = ::GetAsyncKeyState(VKCode);
-        if (KeyState & 0x8000) {
-            return true;
-        }
-        else {
-            return false;
-        }
+        //SHORT KeyState = ::GetAsyncKeyState(VKCode);
+        //if (KeyState & 0x8000) {
+        //    return true;
+        //}
+        //else {
+        //    return false;
+        //}
+        return false;
     }
     
     void AppFrame::OnTextInputDeleteFront()
@@ -132,46 +257,65 @@ namespace LuaSTGPlus
     {
         m_InputTextEnable = enable;
     }
-    
     fcStrW AppFrame::GetTextInput()LNOEXCEPT
     {
         return m_InputTextBuffer.c_str();
     }
-    
     void AppFrame::ClearTextInput()LNOEXCEPT
     {
         m_InputTextBuffer.clear();
     }
     
-    fcyVec2 AppFrame::GetMousePosition(bool no_flip)LNOEXCEPT
-    {
-        if (no_flip)
-            return m_MousePosition;
-        else
-            return m_MousePosition_old;
-    }
-    
-    fInt AppFrame::GetMouseWheelDelta()LNOEXCEPT
-    {
-        return m_Mouse->GetOffsetZ();
-    }
-    
     fBool AppFrame::GetMouseState(int button)LNOEXCEPT
     {
-        switch (button) {
+        //switch (button) {
+        //case 0:
+        //    return m_Mouse->IsLeftBtnDown();
+        //case 1:
+        //    return m_Mouse->IsMiddleBtnDown();
+        //case 2:
+        //    return m_Mouse->IsRightBtnDown();
+        //default:
+        //    break;
+        //}
+        //if (button >= 3 && button <= 7) {
+        //    return m_Mouse->IsAdditionBtnDown(button - 3);//对齐额外键索引（不包含左中右键）
+        //}
+        //return false;
+        switch (button)
+        {
         case 0:
-            return m_Mouse->IsLeftBtnDown();
+            return MouseState.leftButton;
         case 1:
-            return m_Mouse->IsMiddleBtnDown();
+            return MouseState.middleButton;
         case 2:
-            return m_Mouse->IsRightBtnDown();
+            return MouseState.rightButton;
+        case 3:
+            return MouseState.xButton1;
+        case 4:
+            return MouseState.xButton2;
         default:
-            break;
+            return false;
         }
-        if (button >= 3 && button <= 7) {
-            return m_Mouse->IsAdditionBtnDown(button - 3);//对齐额外键索引（不包含左中右键）
-        }
-        return false;
     }
-    
+    fcyVec2 AppFrame::GetMousePosition(bool no_flip)LNOEXCEPT
+    {
+        //if (no_flip)
+        //    return m_MousePosition;
+        //else
+        //    return m_MousePosition_old;
+        if (no_flip)
+        {
+            return fcyVec2(MouseState.x, MouseState.y);
+        }
+        else
+        {
+            return fcyVec2(MouseState.x, m_OptionResolution.y - (fFloat)MouseState.y);
+        }
+    }
+    fInt AppFrame::GetMouseWheelDelta()LNOEXCEPT
+    {
+        //return m_Mouse->GetOffsetZ();
+        return MouseState.scrollWheelValue;
+    }
 };

@@ -91,6 +91,7 @@ target_link_libraries(LuaSTG PRIVATE
     fancylib
     fancy2dlib
     DirectXTexMini
+    DirectX::ToolKitMini
     LuaSTGCore
     xmath
     lua51static
