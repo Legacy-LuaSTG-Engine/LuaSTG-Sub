@@ -534,7 +534,7 @@ bool AppFrame::Init()LNOEXCEPT
 		m_pRenderer = m_pEngine->GetRenderer();
 		m_pRenderDev = m_pRenderer->GetDevice();
 		m_pSoundSys = m_pEngine->GetSoundSys();
-		m_pInputSys = m_pEngine->GetInputSys();
+		//m_pInputSys = m_pEngine->GetInputSys();
 		
 		// 配置音量
 		m_pSoundSys->SetSoundEffectChannelVolume(m_gSEVol);
@@ -755,7 +755,7 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 		case F2DMSG_WINDOW_ONGETFOCUS:
 		{
 			resetKeyStatus(); // clear input status
-			m_pInputSys->Reset(); // clear input status
+			//m_pInputSys->Reset(); // clear input status
 			bResetDevice = true;
 			if (m_LastInputTextEnable)
 			{
@@ -775,7 +775,7 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 			m_LastInputTextEnable = m_InputTextEnable;
 			m_InputTextEnable = false;
 			resetKeyStatus(); // clear input status
-			m_pInputSys->Reset(); // clear input status
+			//m_pInputSys->Reset(); // clear input status
 			bResetDevice = true;
 			
 			lua_pushinteger(L, (lua_Integer)LuaSTG::LuaEngine::EngineEvent::WindowActive);

@@ -33,14 +33,14 @@ set(FANCY2D_SOURCE
     Engine/f2dMonitorHelper.h
     Engine/f2dMonitorHelper.cpp
 
-    Input/f2dInputSysImpl.h
-    Input/f2dInputSysImpl.cpp
-    Input/f2dInputKeyboardImpl.h
-    Input/f2dInputKeyboardImpl.cpp
-    Input/f2dInputMouseImpl.h
-    Input/f2dInputMouseImpl.cpp
-    Input/f2dInputJoystickImpl.h
-    Input/f2dInputJoystickImpl.cpp
+    #Input/f2dInputSysImpl.h
+    #Input/f2dInputSysImpl.cpp
+    #Input/f2dInputKeyboardImpl.h
+    #Input/f2dInputKeyboardImpl.cpp
+    #Input/f2dInputMouseImpl.h
+    #Input/f2dInputMouseImpl.cpp
+    #Input/f2dInputJoystickImpl.h
+    #Input/f2dInputJoystickImpl.cpp
 
     RenderDev/f2dRenderDevice11.h
     RenderDev/f2dRenderDevice11.cpp
