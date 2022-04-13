@@ -1,0 +1,74 @@
+--------------------------------------------------------------------------------
+--- LuaSTG Sub 用户输入
+--- LuaSTG Sub user input
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+--- 移植指南
+--- porting guide
+
+-- lstg.GetLastChar():string
+-- 已经废弃，正在考虑如何更好地支持文本输入（包括输入法的输入）
+-- Deprecated, TODO: how to better support text input (including IME)
+
+-- lstg.GetKeyboardState(dinput_san_code:number):boolean
+-- 该平台拓展 API 已经废弃
+-- This platform extension API has been deprecated and removed
+
+-- lstg.GetAsyncKeyState(vkey:number):boolean
+-- 该平台拓展 API 已经废弃
+-- This platform extension API has been deprecated and removed
+
+-- lstg.CreateInputDevice
+-- lstg.ReleaseInputDevice
+-- lstg.AddInputAlias
+-- lstg.ClearInputAlias
+-- lstg.ResetInput
+-- lstg.BindInput
+-- lstg.GetVKeyStateEx
+-- lstg.ConnectTo
+-- lstg.ReceiveData
+-- lstg.SendData
+-- 联机相关的 API 已经被移除
+-- 如果有需要请使用旧版本 LuaSTG Ex Plus
+-- The connection-related API has been removed
+-- If necessary, please use LuaSTG Ex Plus
+
+--------------------------------------------------------------------------------
+--- 输入获取
+--- input query
+
+--- 获取键盘按键状态  
+--- Get keyboard key state  
+---@param vkey number https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
+---@return boolean
+function lstg.GetKeyState(vkey)
+end
+
+--- 以窗口左下角为原点，x 轴向右，y 轴向上  
+--- Bottom-left of the window as the origin, the x-axis is to the right, and the y-axis is up  
+---@return number, number
+function lstg.GetMousePosition()
+end
+
+--- 0、1、2 分别代表鼠标左、中、右键  
+--- 0, 1, 2 Represents the left, middle, and right mouse buttons  
+---@param index number
+---@return boolean
+function lstg.GetMouseState(index)
+end
+
+--- [LuaSTG Ex Plus 新增]  
+--- [LuaSTG Sub v0.15.2 更改]  
+--- 获取鼠标滚轮增量  
+--- [LuaSTG Ex Plus v?.?.? Add]  
+--- [LuaSTG Sub v0.15.2 Changed]  
+--- Get the mouse wheel increment
+---@return number
+function lstg.GetMouseWheelDelta()
+end
+
+---@deprecated
+---@return number
+function lstg.GetLastKey()
+end
