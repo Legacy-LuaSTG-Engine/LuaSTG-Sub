@@ -534,7 +534,6 @@ bool AppFrame::Init()LNOEXCEPT
 		m_pRenderer = m_pEngine->GetRenderer();
 		m_pRenderDev = m_pRenderer->GetDevice();
 		m_pSoundSys = m_pEngine->GetSoundSys();
-		//m_pInputSys = m_pEngine->GetInputSys();
 		
 		// 配置音量
 		m_pSoundSys->SetSoundEffectChannelVolume(m_gSEVol);
@@ -586,26 +585,6 @@ bool AppFrame::Init()LNOEXCEPT
 			spdlog::error("[fancy2d] [fcyRenderer::CreateGeometryRenderer] 创建平面几何渲染器失败");
 			return false;
 		}
-		
-		////创建鼠标输入
-		//spdlog::info("[fancy2d] 创建DirectInput鼠标设备");
-		//m_pInputSys->CreateMouse(-1, false, ~m_Mouse);
-		//if (!m_Mouse)
-		//{
-		//	spdlog::error("[fancy2d] [f2dInputSys::CreateMouse] 创建DirectInput鼠标设备失败");
-		//}
-		//// 创建键盘输入
-		//spdlog::info("[fancy2d] 创建DirectInput键盘设备");
-		//m_pInputSys->CreateKeyboard(-1, false, ~m_Keyboard);
-		//if (!m_Keyboard)
-		//{
-		//	spdlog::error("[fancy2d] [f2dInputSys::CreateKeyboard] 创建DirectInput键盘设备失败");
-		//}
-		//m_pInputSys->CreateDefaultKeyboard(-1, false, ~m_Keyboard2);
-		//if (!m_Keyboard2)
-		//{
-		//	spdlog::error("[fancy2d] [f2dInputSys::CreateDefaultKeyboard] 创建DirectInput键盘设备失败");
-		//}
 		
 		OpenInput();
 
@@ -685,14 +664,10 @@ void AppFrame::Shutdown()LNOEXCEPT
 	
 	CloseInput();
 	m_DirectInput = nullptr;
-	m_Mouse = nullptr;
-	m_Keyboard = nullptr;
-	m_Keyboard2 = nullptr;
 	m_Graph3D = nullptr;
 	m_GRenderer = nullptr;
 	m_FontRenderer = nullptr;
 	m_Graph2D = nullptr;
-	m_pInputSys = nullptr;
 	m_pSoundSys = nullptr;
 	m_pRenderDev = nullptr;
 	m_pRenderer = nullptr;
@@ -755,7 +730,6 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 		case F2DMSG_WINDOW_ONGETFOCUS:
 		{
 			resetKeyStatus(); // clear input status
-			//m_pInputSys->Reset(); // clear input status
 			bResetDevice = true;
 			if (m_LastInputTextEnable)
 			{
@@ -775,7 +749,6 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 			m_LastInputTextEnable = m_InputTextEnable;
 			m_InputTextEnable = false;
 			resetKeyStatus(); // clear input status
-			//m_pInputSys->Reset(); // clear input status
 			bResetDevice = true;
 			
 			lua_pushinteger(L, (lua_Integer)LuaSTG::LuaEngine::EngineEvent::WindowActive);
@@ -844,14 +817,6 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 			{
 				m_KeyStateMap[tMsg.Param1] = false;
 			}
-			break;
-		}
-		case F2DMSG_WINDOW_ONMOUSEMOVE:
-		{
-			m_MousePosition_old.x = (float)static_cast<fInt>(tMsg.Param1);
-			m_MousePosition_old.y = m_OptionResolution.y - (float)static_cast<fInt>(tMsg.Param2);  // ! 潜在大小不匹配问题
-			m_MousePosition.x = (float)static_cast<fInt>(tMsg.Param1);
-			m_MousePosition.y = (float)static_cast<fInt>(tMsg.Param2);
 			break;
 		}
 		case F2DMSG_SYSTEM_ON_DEVICE_CHANGE:
