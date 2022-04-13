@@ -587,27 +587,29 @@ bool AppFrame::Init()LNOEXCEPT
 			return false;
 		}
 		
-		//创建鼠标输入
-		spdlog::info("[fancy2d] 创建DirectInput鼠标设备");
-		m_pInputSys->CreateMouse(-1, false, ~m_Mouse);
-		if (!m_Mouse)
-		{
-			spdlog::error("[fancy2d] [f2dInputSys::CreateMouse] 创建DirectInput鼠标设备失败");
-		}
-		// 创建键盘输入
-		spdlog::info("[fancy2d] 创建DirectInput键盘设备");
-		m_pInputSys->CreateKeyboard(-1, false, ~m_Keyboard);
-		if (!m_Keyboard)
-		{
-			spdlog::error("[fancy2d] [f2dInputSys::CreateKeyboard] 创建DirectInput键盘设备失败");
-		}
-		m_pInputSys->CreateDefaultKeyboard(-1, false, ~m_Keyboard2);
-		if (!m_Keyboard2)
-		{
-			spdlog::error("[fancy2d] [f2dInputSys::CreateDefaultKeyboard] 创建DirectInput键盘设备失败");
-		}
+		////创建鼠标输入
+		//spdlog::info("[fancy2d] 创建DirectInput鼠标设备");
+		//m_pInputSys->CreateMouse(-1, false, ~m_Mouse);
+		//if (!m_Mouse)
+		//{
+		//	spdlog::error("[fancy2d] [f2dInputSys::CreateMouse] 创建DirectInput鼠标设备失败");
+		//}
+		//// 创建键盘输入
+		//spdlog::info("[fancy2d] 创建DirectInput键盘设备");
+		//m_pInputSys->CreateKeyboard(-1, false, ~m_Keyboard);
+		//if (!m_Keyboard)
+		//{
+		//	spdlog::error("[fancy2d] [f2dInputSys::CreateKeyboard] 创建DirectInput键盘设备失败");
+		//}
+		//m_pInputSys->CreateDefaultKeyboard(-1, false, ~m_Keyboard2);
+		//if (!m_Keyboard2)
+		//{
+		//	spdlog::error("[fancy2d] [f2dInputSys::CreateDefaultKeyboard] 创建DirectInput键盘设备失败");
+		//}
 		
-		//创建手柄输入
+		OpenInput();
+
+		// 创建手柄输入
 		try
 		{
 			m_DirectInput = std::make_unique<native::DirectInput>((ptrdiff_t)m_pMainWindow->GetHandle());
@@ -681,6 +683,7 @@ void AppFrame::Shutdown()LNOEXCEPT
 	m_pRenderDev->RemoveListener(&f2dGraphic2dAdapter::get());
 	m_NewRenderer2D.detachDevice();
 	
+	CloseInput();
 	m_DirectInput = nullptr;
 	m_Mouse = nullptr;
 	m_Keyboard = nullptr;
@@ -869,6 +872,7 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 		SafeCallGlobalFunctionB(LuaSTG::LuaEngine::G_CALLBACK_EngineEvent, 3, 0);
 	}
 
+	UpdateInput();
 	if (m_DirectInput.get())
 	{
 		if (bResetDevice) m_DirectInput->reset();

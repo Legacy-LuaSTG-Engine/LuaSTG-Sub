@@ -25,6 +25,7 @@ set(LUASTG_ENGINE_SOURCES
     src/LuaWrapper/LW_Color.cpp
     src/LuaWrapper/LW_DInput.cpp
     src/LuaWrapper/LW_FileManager.cpp
+    src/LuaWrapper/LW_Input.cpp
     src/LuaWrapper/LW_IO_BinaryReader.cpp
     src/LuaWrapper/LW_IO_BinaryWriter.cpp
     src/LuaWrapper/LW_IO_Steam.cpp

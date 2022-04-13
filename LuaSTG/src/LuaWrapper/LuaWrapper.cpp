@@ -76,6 +76,7 @@ namespace LuaSTGPlus
 	void RegistBuiltInClassWrapper(lua_State* L)LNOEXCEPT {
 		LuaWrapper::Register(L);
 		BuiltInFunctionWrapper::Register(L);  // 内建函数库
+		LuaWrapper::InputWrapper::Register(L);
 		LuaWrapper::RenderWrapper::Register(L);
 		LuaWrapper::RendererWrapper::Register(L);
 		LuaWrapper::GameObjectManagerWrapper::Register(L);

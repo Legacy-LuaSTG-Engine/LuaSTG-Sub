@@ -156,6 +156,10 @@ namespace LuaSTGPlus
 		/// @brief 检查鼠标是否按下
 		fBool GetMouseState(int button) LNOEXCEPT;
 		
+		void OpenInput();
+		void CloseInput();
+		void UpdateInput();
+
 	public: // 脚本调用接口，含义参见API文档
 		void SetWindowed(bool v)LNOEXCEPT;
 		void SetDefaultWindowStyle(F2DWINBORDERTYPE v) { m_OptionWindowStyle = v; };
