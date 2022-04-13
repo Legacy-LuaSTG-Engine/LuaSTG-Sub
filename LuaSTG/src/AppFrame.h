@@ -127,17 +127,10 @@ namespace LuaSTGPlus
 		/// @brief 获得最后一次按键输入
 		int GetLastKey()LNOEXCEPT;
 		
-		//检查键盘按键是否按下，Dinput KeyCode
-		fBool GetKeyboardState(uint32_t VKCode)LNOEXCEPT;
-		
 		void OnTextInputDeleteFront();
 		void OnTextInputDeleteBack();
 		void OnTextInputPasting();
 		void OnTextInputChar(fCharW c);
-		
-		//检查键盘按键是否按下，使用的是GetAsyncKeyState
-		//和GetKeyboardState不同，这个检测的不是按下过的，而是现在被按住的键
-		bool GetAsyncKeyState(int VKCode)LNOEXCEPT;
 		
 		void SetTextInputEnable(bool enable = false)LNOEXCEPT;
 		
