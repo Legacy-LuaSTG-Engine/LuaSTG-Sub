@@ -17,7 +17,30 @@ set_target_properties(spdlog PROPERTIES FOLDER external)
 
 add_subdirectory(json)
 
-# ==================== DirectXTK family ====================#
+# ==================== DirectXTK ====================#
+
+add_library(DirectXTKMini STATIC)
+luastg_target_common_options(DirectXTKMini)
+target_include_directories(DirectXTKMini PUBLIC
+    DirectXTK/Inc
+)
+target_sources(DirectXTKMini PRIVATE
+    DirectXTK/Inc/Keyboard.h
+    DirectXTK/Inc/Mouse.h
+    DirectXTK/Src/Keyboard.cpp
+    DirectXTK/Src/Mouse.cpp
+    DirectXTK/Src/pch.h
+    DirectXTK/Src/pch.cpp
+    DirectXTK/Src/PlatformHelpers.h
+)
+#target_link_libraries(DirectXTKMini PUBLIC
+#    dxguid.lib
+#)
+add_library(DirectX::ToolKitMini ALIAS DirectXTKMini)
+
+set_target_properties(DirectXTKMini PROPERTIES FOLDER external)
+
+# ==================== DirectXTex ====================#
 
 add_library(DirectXTexMini STATIC)
 luastg_target_common_options(DirectXTexMini)
