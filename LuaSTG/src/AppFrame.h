@@ -64,7 +64,6 @@ namespace LuaSTGPlus
 		f2dRenderer* m_pRenderer = nullptr;
 		f2dRenderDevice* m_pRenderDev = nullptr;
 		f2dSoundSys* m_pSoundSys = nullptr;
-		f2dInputSys* m_pInputSys = nullptr;
 		
 		//渲染状态
 		GraphicsType m_GraphType = GraphicsType::Graph2D;
@@ -83,16 +82,11 @@ namespace LuaSTGPlus
 		
 		//输入设备
 		std::unique_ptr<native::DirectInput> m_DirectInput;
-		fcyRefPointer<f2dInputMouse> m_Mouse;
-		fcyRefPointer<f2dInputKeyboard> m_Keyboard;
-		fcyRefPointer<f2dInputKeyboard> m_Keyboard2;
 		fInt m_LastKey = 0;
 		bool m_InputTextEnable = false;
 		bool m_LastInputTextEnable = false;
 		std::wstring m_InputTextBuffer;
 		fBool m_KeyStateMap[256];
-		fcyVec2 m_MousePosition;
-		fcyVec2 m_MousePosition_old;
 		void resetKeyStatus()LNOEXCEPT;
 		
 	public:

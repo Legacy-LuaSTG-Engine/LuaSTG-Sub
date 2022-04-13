@@ -100,16 +100,6 @@ namespace LuaSTGPlus
     
     fBool AppFrame::GetKeyState(int VKCode)LNOEXCEPT
     {
-        //if (VKCode > 0 && VKCode < _countof(m_KeyStateMap))
-        //{
-        //    if (m_Keyboard) {
-        //        return m_Keyboard->IsKeyDown(VKKeyToF2DKey(VKCode));
-        //    }
-        //    else {
-        //        //return m_KeyStateMap[VKCode] || GetAsyncKeyState(VKCode);
-        //        return m_KeyStateMap[VKCode];
-        //    }
-        //}
         switch (VKCode)
         {
         case VK_SHIFT:
@@ -125,38 +115,38 @@ namespace LuaSTGPlus
     
     int AppFrame::GetLastKey()LNOEXCEPT
     {
-        //return m_LastKey;
-        for (int i = 1; i < 256; i += 1)
-        {
-            switch (i)
-            {
-            case VK_SHIFT:
-                if (KeyboardStateTracker.IsKeyPressed(DirectX::Keyboard::Keys::LeftShift) || KeyboardStateTracker.IsKeyPressed(DirectX::Keyboard::Keys::RightShift))
-                {
-                    return i;
-                }
-                break;
-            case VK_CONTROL:
-                if (KeyboardStateTracker.IsKeyPressed(DirectX::Keyboard::Keys::LeftControl) || KeyboardStateTracker.IsKeyPressed(DirectX::Keyboard::Keys::RightControl))
-                {
-                    return i;
-                }
-                break;
-            case VK_MENU:
-                if (KeyboardStateTracker.IsKeyPressed(DirectX::Keyboard::Keys::LeftAlt) || KeyboardStateTracker.IsKeyPressed(DirectX::Keyboard::Keys::RightAlt))
-                {
-                    return i;
-                }
-                break;
-            default:
-                if (KeyboardStateTracker.IsKeyPressed((DirectX::Keyboard::Keys)(unsigned char)i))
-                {
-                    return i;
-                }
-                break;
-            }
-        }
-        return 0;
+        return m_LastKey;
+        //for (int i = 1; i < 256; i += 1)
+        //{
+        //    switch (i)
+        //    {
+        //    case VK_SHIFT:
+        //        if (KeyboardStateTracker.IsKeyPressed(DirectX::Keyboard::Keys::LeftShift) || KeyboardStateTracker.IsKeyPressed(DirectX::Keyboard::Keys::RightShift))
+        //        {
+        //            return i;
+        //        }
+        //        break;
+        //    case VK_CONTROL:
+        //        if (KeyboardStateTracker.IsKeyPressed(DirectX::Keyboard::Keys::LeftControl) || KeyboardStateTracker.IsKeyPressed(DirectX::Keyboard::Keys::RightControl))
+        //        {
+        //            return i;
+        //        }
+        //        break;
+        //    case VK_MENU:
+        //        if (KeyboardStateTracker.IsKeyPressed(DirectX::Keyboard::Keys::LeftAlt) || KeyboardStateTracker.IsKeyPressed(DirectX::Keyboard::Keys::RightAlt))
+        //        {
+        //            return i;
+        //        }
+        //        break;
+        //    default:
+        //        if (KeyboardStateTracker.IsKeyPressed((DirectX::Keyboard::Keys)(unsigned char)i))
+        //        {
+        //            return i;
+        //        }
+        //        break;
+        //    }
+        //}
+        //return 0;
     }
     
     void AppFrame::OnTextInputDeleteFront()
@@ -247,20 +237,6 @@ namespace LuaSTGPlus
     
     fBool AppFrame::GetMouseState(int button)LNOEXCEPT
     {
-        //switch (button) {
-        //case 0:
-        //    return m_Mouse->IsLeftBtnDown();
-        //case 1:
-        //    return m_Mouse->IsMiddleBtnDown();
-        //case 2:
-        //    return m_Mouse->IsRightBtnDown();
-        //default:
-        //    break;
-        //}
-        //if (button >= 3 && button <= 7) {
-        //    return m_Mouse->IsAdditionBtnDown(button - 3);//对齐额外键索引（不包含左中右键）
-        //}
-        //return false;
         switch (button)
         {
         case 0:
@@ -279,10 +255,6 @@ namespace LuaSTGPlus
     }
     fcyVec2 AppFrame::GetMousePosition(bool no_flip)LNOEXCEPT
     {
-        //if (no_flip)
-        //    return m_MousePosition;
-        //else
-        //    return m_MousePosition_old;
         if (no_flip)
         {
             return fcyVec2(MouseState.x, MouseState.y);
@@ -294,7 +266,6 @@ namespace LuaSTGPlus
     }
     fInt AppFrame::GetMouseWheelDelta()LNOEXCEPT
     {
-        //return m_Mouse->GetOffsetZ();
         return MouseState.scrollWheelValue;
     }
 };
