@@ -978,26 +978,6 @@ namespace native
                     _LOGDEBUG(L"CreateDevice game controller failed\n");
                 }
             }
-            // create Keyboard device
-            hr = self.dinput->CreateDevice(g_GUID_SysKeyboard, self.keyboard.GetAddressOf(), NULL);
-            if (hr == DI_OK)
-            {
-                _initKeyboard(self.window, self.keyboard.Get());
-            }
-            else
-            {
-                _LOGDEBUG(L"CreateDevice Keyboard failed\n");
-            }
-            // create Mouse device
-            hr = self.dinput->CreateDevice(g_GUID_SysMouse, self.mouse.GetAddressOf(), NULL);
-            if (hr == DI_OK)
-            {
-                _initMouse(self.window, self.mouse.Get());
-            }
-            else
-            {
-                _LOGDEBUG(L"CreateDevice Mouse failed\n");
-            }
         }
         else
         {
@@ -1012,17 +992,6 @@ namespace native
         {
             _updateGamepad(self.gamepad[idx].Get(), self.gamepad_state[idx], idx);
         }
-        if (self.keyboard)
-        {
-            _updateKeyboard(self.keyboard.Get(), self.keyboard_state);
-        }
-        if (self.mouse)
-        {
-            self.mouse_state.lX = 0;
-            self.mouse_state.lY = 0;
-            self.mouse_state.lZ = 0;
-            _updateMouse(self.mouse.Get(), self.mouse_state);
-        }
     }
     void DirectInput::reset()
     {
@@ -1031,7 +1000,7 @@ namespace native
             auto& range = self.gamepad_prop[idx];
             auto& state = self.gamepad_state[idx];
             
-            #define centered(_X, _A, _B) state._X = (range._B - range._A) / 2;
+            #define centered(_X, _A, _B) state._X = (range._A + range._B) / 2;
             centered(lX, XMin, XMax);
             centered(lY, YMin, YMax);
             centered(lZ, ZMin, ZMax);
@@ -1049,8 +1018,6 @@ namespace native
             
             ZeroMemory(&state.rgbButtons, sizeof(state.rgbButtons));
         }
-        ZeroMemory(&self.keyboard_state, sizeof(self.keyboard_state));
-        ZeroMemory(&self.mouse_state, sizeof(self.mouse_state));
     }
     void DirectInput::clear()
     {
@@ -1058,10 +1025,70 @@ namespace native
         self.gamepad.clear();
         self.gamepad_prop.clear();
         self.gamepad_state.clear();
+    }
+    
+    bool DirectInput::createKeyboardAndMouse()
+    {
+        destroyKeyboardAndMouse();
+        if (self.dinput)
+        {
+            HRESULT hr = 0;
+            // create Keyboard device
+            hr = self.dinput->CreateDevice(g_GUID_SysKeyboard, self.keyboard.GetAddressOf(), NULL);
+            if (hr == DI_OK)
+            {
+                _initKeyboard(self.window, self.keyboard.Get());
+            }
+            else
+            {
+                _LOGDEBUG(L"CreateDevice Keyboard failed\n");
+                return false;
+            }
+            // create Mouse device
+            hr = self.dinput->CreateDevice(g_GUID_SysMouse, self.mouse.GetAddressOf(), NULL);
+            if (hr == DI_OK)
+            {
+                _initMouse(self.window, self.mouse.Get());
+            }
+            else
+            {
+                _LOGDEBUG(L"CreateDevice Mouse failed\n");
+                return false;
+            }
+            // final
+            resetKeyboardAndMouse();
+            return true;
+        }
+        else
+        {
+            _LOGDEBUG(L"dinput8 NULL exception\n");
+            return false;
+        }
+    }
+    void DirectInput::destroyKeyboardAndMouse()
+    {
         self.keyboard.Reset();
         self.mouse.Reset();
     }
-    
+    void DirectInput::resetKeyboardAndMouse()
+    {
+        ZeroMemory(&self.keyboard_state, sizeof(self.keyboard_state));
+        ZeroMemory(&self.mouse_state, sizeof(self.mouse_state));
+    }
+    void DirectInput::updateKeyboardAndMouse()
+    {
+        if (self.keyboard)
+        {
+            _updateKeyboard(self.keyboard.Get(), self.keyboard_state);
+        }
+        if (self.mouse)
+        {
+            self.mouse_state.lX = 0;
+            self.mouse_state.lY = 0;
+            self.mouse_state.lZ = 0;
+            _updateMouse(self.mouse.Get(), self.mouse_state);
+        }
+    }
     bool DirectInput::getKeyboardKeyState(int32_t code)
     {
         if (code >= 0 && code < 256)
@@ -1259,18 +1286,6 @@ namespace native
         return false;
     }
     
-    bool DirectInput::updateTargetWindow(ptrdiff_t window)
-    {
-        self.window = (HWND)window;
-        if (self.window == NULL)
-        {
-            _LOGDEBUG(L"NULL window exception\n");
-            return false;
-        }
-        refresh();
-        return true;
-    }
-    
     DirectInput::DirectInput(ptrdiff_t window)
     {
         _data = new _Data;
@@ -1284,6 +1299,7 @@ namespace native
         {
             _LOGDEBUG(L"window is NULL\n");
         }
+
         self.dll = LoadLibraryW(L"Dinput8.dll");
         if (self.dll == NULL)
         {
@@ -1297,6 +1313,7 @@ namespace native
             _LOGDEBUG(L"GetProcAddress failed, can not find DirectInput8Create\n");
             return;
         }
+
         HRESULT hr = 0;
         hr = f(GetModuleHandleW(NULL), DIRECTINPUT_VERSION, g_IID_IDirectInput8W, (LPVOID*)(self.dinput.GetAddressOf()), NULL);
         if (hr != DI_OK)
@@ -1304,16 +1321,22 @@ namespace native
             _LOGDEBUG(L"DirectInput8Create failed\n");
             return;
         }
+
+        reset();
+        resetKeyboardAndMouse();
     }
     DirectInput::~DirectInput()
     {
         clear();
+        destroyKeyboardAndMouse();
         self.dinput.Reset();
+
         if (self.dll != NULL)
         {
             FreeLibrary(self.dll);
             self.dll = NULL;
         }
+
         if (self.window != NULL)
         {
             self.window = NULL;

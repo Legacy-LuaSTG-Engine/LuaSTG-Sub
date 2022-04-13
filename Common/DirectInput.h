@@ -45,6 +45,10 @@ namespace native
         void reset();
         void clear();
     public: // Keyboard & Mouse
+        bool createKeyboardAndMouse();
+        void destroyKeyboardAndMouse();
+        void resetKeyboardAndMouse();
+        void updateKeyboardAndMouse();
         bool getKeyboardKeyState(int32_t code);
         bool getMouseKeyState(int32_t code);
         int32_t getMouseMoveDeltaX();
@@ -58,8 +62,6 @@ namespace native
         const wchar_t* getDeviceName(uint32_t index);
         const wchar_t* getProductName(uint32_t index);
         bool isXInputDevice(uint32_t index);
-    public:
-        bool updateTargetWindow(ptrdiff_t window);
     public:
         DirectInput(ptrdiff_t window);
         ~DirectInput();
