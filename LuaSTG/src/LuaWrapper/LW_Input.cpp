@@ -35,19 +35,6 @@ void LuaSTGPlus::LuaWrapper::InputWrapper::Register(lua_State* L) LNOEXCEPT
 			lua_pushinteger(L, LAPP.GetLastKey());
 			return 1;
 		}
-		static int GetKeyboardStateETC(lua_State* L)LNOEXCEPT
-		{
-			//检查键盘按键是否按下，Dinput KeyCode
-			lua_pushboolean(L, LAPP.GetKeyboardState(luaL_checkinteger(L, -1)));
-			return 1;
-		}
-		static int GetAsyncKeyStateETC(lua_State* L)LNOEXCEPT
-		{
-			//检查键盘按键是否按下，使用微软VKcode，通过GetAsyncKeyState函数获取
-			//和GetKeyboardState不同，这个检测的不是按下过的，而是现在被按住的键
-			lua_pushboolean(L, LAPP.GetAsyncKeyState(luaL_checkinteger(L, -1)));
-			return 1;
-		}
 	};
 
 	luaL_Reg lib_compat[] = {
@@ -57,8 +44,6 @@ void LuaSTGPlus::LuaWrapper::InputWrapper::Register(lua_State* L) LNOEXCEPT
 		{ "GetMouseState", &Wrapper::GetMouseState },
 		// 应该废弃的方法
 		{ "GetLastKey", &Wrapper::GetLastKey },
-		{ "GetKeyboardState", &Wrapper::GetKeyboardStateETC },
-		{ "GetAsyncKeyState", &Wrapper::GetAsyncKeyStateETC },
 		{NULL, NULL},
 	};
 

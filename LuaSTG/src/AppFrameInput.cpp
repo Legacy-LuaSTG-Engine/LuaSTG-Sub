@@ -131,19 +131,19 @@ namespace LuaSTGPlus
             switch (i)
             {
             case VK_SHIFT:
-                if (KeyboardState.IsKeyDown(DirectX::Keyboard::Keys::LeftShift) || KeyboardState.IsKeyDown(DirectX::Keyboard::Keys::RightShift))
+                if (KeyboardStateTracker.IsKeyPressed(DirectX::Keyboard::Keys::LeftShift) || KeyboardStateTracker.IsKeyPressed(DirectX::Keyboard::Keys::RightShift))
                 {
                     return i;
                 }
                 break;
             case VK_CONTROL:
-                if (KeyboardState.IsKeyDown(DirectX::Keyboard::Keys::LeftControl) || KeyboardState.IsKeyDown(DirectX::Keyboard::Keys::RightControl))
+                if (KeyboardStateTracker.IsKeyPressed(DirectX::Keyboard::Keys::LeftControl) || KeyboardStateTracker.IsKeyPressed(DirectX::Keyboard::Keys::RightControl))
                 {
                     return i;
                 }
                 break;
             case VK_MENU:
-                if (KeyboardState.IsKeyDown(DirectX::Keyboard::Keys::LeftAlt) || KeyboardState.IsKeyDown(DirectX::Keyboard::Keys::RightAlt))
+                if (KeyboardStateTracker.IsKeyPressed(DirectX::Keyboard::Keys::LeftAlt) || KeyboardStateTracker.IsKeyPressed(DirectX::Keyboard::Keys::RightAlt))
                 {
                     return i;
                 }
@@ -157,27 +157,6 @@ namespace LuaSTGPlus
             }
         }
         return 0;
-    }
-    fBool AppFrame::GetKeyboardState(uint32_t VKCode)LNOEXCEPT
-    {
-        //if (m_Keyboard2) {
-        //    return m_Keyboard2->KeyPress(VKCode);
-        //}
-        //else {
-        //    return false;
-        //}
-        return false;
-    }
-    bool AppFrame::GetAsyncKeyState(int VKCode)LNOEXCEPT
-    {
-        //SHORT KeyState = ::GetAsyncKeyState(VKCode);
-        //if (KeyState & 0x8000) {
-        //    return true;
-        //}
-        //else {
-        //    return false;
-        //}
-        return false;
     }
     
     void AppFrame::OnTextInputDeleteFront()
