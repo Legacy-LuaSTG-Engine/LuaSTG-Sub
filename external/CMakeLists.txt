@@ -33,9 +33,6 @@ target_sources(DirectXTKMini PRIVATE
     DirectXTK/Src/pch.cpp
     DirectXTK/Src/PlatformHelpers.h
 )
-#target_link_libraries(DirectXTKMini PUBLIC
-#    dxguid.lib
-#)
 add_library(DirectX::ToolKitMini ALIAS DirectXTKMini)
 
 set_target_properties(DirectXTKMini PROPERTIES FOLDER external)

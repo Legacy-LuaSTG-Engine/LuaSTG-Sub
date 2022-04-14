@@ -7,6 +7,13 @@
 --- 移植指南
 --- porting guide
 
+-- 从 LuaSTG Sub v0.15.2 开始，键盘和鼠标输入不再通过 DirectInput 获取，而是通过窗口消息
+-- 原因是微软已将 DirectInput 的键盘和鼠标输入标记为弃用
+-- Since LuaSTG Sub v0.15.2, keyboard and mouse input is no longer
+-- obtained through DirectInput, but through window messages
+-- The reason is that Microsoft has marked DirectInput's
+-- keyboard and mouse input as deprecated
+
 -- lstg.GetLastChar():string
 -- 已经废弃，正在考虑如何更好地支持文本输入（包括输入法的输入）
 -- Deprecated, TODO: how to better support text input (including IME)
