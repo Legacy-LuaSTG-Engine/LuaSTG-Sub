@@ -20,6 +20,7 @@ target_include_directories(LuaSTGCore PUBLIC
 )
 
 set(LuaSTGCore_SRC
+    Core/Type.hpp
     Core/Renderer.hpp
     Backend/framework.hpp
     Backend/framework.cpp
@@ -87,6 +88,7 @@ endif()
 target_link_libraries(LuaSTG PRIVATE
     spdlog::spdlog
     utility
+    platform
     MINIZIP::minizip
     fancylib
     fancy2dlib

@@ -52,7 +52,7 @@ namespace LuaSTG::Core
 		Rect scissor_rect = {};
 		float fog_near_or_density = 0.0f;
 		float fog_far = 0.0f;
-		Color fog_color = {};
+		Color4B fog_color = {};
 		VertexColorBlendState vertex_color_blend_state = VertexColorBlendState::Mul;
 		SamplerState sampler_state = SamplerState::LinearClamp;
 		FogState fog_state = FogState::Disable;
@@ -1067,7 +1067,7 @@ namespace LuaSTG::Core
 			return true;
 		}
 
-		void clearRenderTarget(Color const& color)
+		void clearRenderTarget(Color4B const& color)
 		{
 			batchFlush();
 			ID3D11RenderTargetView* rtv = NULL;
@@ -1232,7 +1232,7 @@ namespace LuaSTG::Core
 				setSamplerState(state, 0);
 			}
 		}
-		void setFogState(FogState state, Color const& color, float density_or_znear, float zfar)
+		void setFogState(FogState state, Color4B const& color, float density_or_znear, float zfar)
 		{
 			if (_state_dirty || _state_set.fog_state != state || _state_set.fog_color != color || _state_set.fog_near_or_density != density_or_znear || _state_set.fog_far != zfar)
 			{
@@ -1484,7 +1484,7 @@ namespace LuaSTG::Core
 			setScissorRect(Rect{ .left = 0.0f, .top = 0.0f, .right = sw_, .bottom = sh_ });
 
 			setVertexColorBlendState(VertexColorBlendState::Zero);
-			setFogState(FogState::Disable, Color{ .color = 0 }, 0.0f, 0.0f);
+			setFogState(FogState::Disable, Color4B{ .color = 0 }, 0.0f, 0.0f);
 			setDepthState(DepthState::Disable);
 			setBlendState(blend);
 
@@ -1636,7 +1636,7 @@ namespace LuaSTG::Core
 		return self->endScene();
 	}
 
-	void Renderer::clearRenderTarget(Color const& color)
+	void Renderer::clearRenderTarget(Color4B const& color)
 	{
 		self->clearRenderTarget(color);
 	}
@@ -1675,7 +1675,7 @@ namespace LuaSTG::Core
 	{
 		self->setSamplerState(state);
 	}
-	void Renderer::setFogState(FogState state, Color const& color, float density_or_znear, float zfar)
+	void Renderer::setFogState(FogState state, Color4B const& color, float density_or_znear, float zfar)
 	{
 		self->setFogState(state, color, density_or_znear, zfar);
 	}

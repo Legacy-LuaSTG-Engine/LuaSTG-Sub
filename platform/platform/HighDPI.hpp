@@ -1,8 +1,4 @@
 #pragma once
-#ifndef WM_SIZE
-#define NOMINMAX
-#include <Windows.h>
-#endif
 
 namespace platform
 {
@@ -21,7 +17,7 @@ namespace platform
 		template<typename T>
 		static inline T ScalingByDpi(T value, UINT dpi)
 		{
-			return ::MulDiv((int)value, (int)dpi, USER_DEFAULT_SCREEN_DPI);
+			return (T)::MulDiv((int)value, (int)dpi, USER_DEFAULT_SCREEN_DPI);
 		}
 		static inline float ScalingFromDpi(UINT dpi)
 		{

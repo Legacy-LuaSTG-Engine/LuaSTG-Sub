@@ -1,7 +1,4 @@
 #include "HighDPI.hpp"
-#include <cassert>
-#include <tuple>
-#include <ShellScalingApi.h>
 
 namespace platform
 {
