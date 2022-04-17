@@ -392,20 +392,20 @@ static void api_setFogState(float start, float end, fcyColor color)
     {
         if (start == -1.0f)
         {
-            ctx.setFogState(LuaSTG::Core::FogState::Exp, LuaSTG::Core::Color{ .color = color.argb }, end, 0.0f);
+            ctx.setFogState(LuaSTG::Core::FogState::Exp, LuaSTG::Core::Color4B{ .color = color.argb }, end, 0.0f);
         }
         else if (start == -2.0f)
         {
-            ctx.setFogState(LuaSTG::Core::FogState::Exp2, LuaSTG::Core::Color{ .color = color.argb }, end, 0.0f);
+            ctx.setFogState(LuaSTG::Core::FogState::Exp2, LuaSTG::Core::Color4B{ .color = color.argb }, end, 0.0f);
         }
         else
         {
-            ctx.setFogState(LuaSTG::Core::FogState::Linear, LuaSTG::Core::Color{ .color = color.argb }, start, end);
+            ctx.setFogState(LuaSTG::Core::FogState::Linear, LuaSTG::Core::Color4B{ .color = color.argb }, start, end);
         }
     }
     else
     {
-        ctx.setFogState(LuaSTG::Core::FogState::Disable, LuaSTG::Core::Color{}, 0.0f, 0.0f);
+        ctx.setFogState(LuaSTG::Core::FogState::Disable, LuaSTG::Core::Color4B{}, 0.0f, 0.0f);
     }
 }
 
@@ -424,7 +424,7 @@ static int lib_endScene(lua_State* L)LNOEXCEPT
 
 static int lib_clearRenderTarget(lua_State* L)LNOEXCEPT
 {
-    LuaSTG::Core::Color color;
+    LuaSTG::Core::Color4B color;
     if (lua_isnumber(L, 1))
     {
         color.color = (uint32_t)lua_tonumber(L, 1);
@@ -535,7 +535,7 @@ static int lib_setSamplerState(lua_State* L)LNOEXCEPT
 }
 static int lib_setFogState(lua_State* L)LNOEXCEPT
 {
-    LuaSTG::Core::Color color;
+    LuaSTG::Core::Color4B color;
     if (lua_isnumber(L, 2))
     {
         color.color = (uint32_t)lua_tonumber(L, 2);
