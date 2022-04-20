@@ -1026,6 +1026,7 @@ bool ResourcePool::LoadModel(const char* name, const char* path) noexcept
     if (!LAPP.GetRenderer2D().createModel(path, ~model_ptr))
     {
         spdlog::error("[luastg] LoadFX: 创建模型 '{}' ('{}') 失败：调用 LuaSTG::Core::Renderer::createModel 出错", name, path);
+        return false;
     }
 
     try {
