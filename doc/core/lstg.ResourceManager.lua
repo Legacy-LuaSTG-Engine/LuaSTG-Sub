@@ -59,16 +59,62 @@ end
 function lstg.EnumRes(restype)
 end
 
---- 全局图片精灵渲染缩放，默认为 1.0  
---- 影响渲染时图片精灵、图片精灵序列、HGE 粒子效果、HGE 纹理字体、矢量字体、曲线激光宽度  
---- 警告：会影响修改游戏对象的 img 时自动设置的碰撞盒大小  
+--- [LuaSTG Sub v0.15.1 更改]  
+--- 设置图片精灵渲染缩放或者全局渲染缩放，默认为 1.0  
+--- 类似某些游戏引擎的 Units per Pixel（每单位有多少像素）功能  
+--- 设置图片精灵渲染缩放时：  
+--- * 影响指定的图片精灵渲染时的缩放  
+--- 
+--- 设置全局渲染缩放时：  
+--- * 影响图片精灵、图片精灵序列、HGE 粒子效果、HGE 纹理字体、矢量字体渲染时的缩放  
+--- * 影响曲线激光宽度  
+--- * 影响修改游戏对象的 img 时自动设置的碰撞盒大小  
+--- 
+--- [LuaSTG Sub v0.15.1 Change]  
+--- Set sprite (image) rendering scaling or global rendering scaling, default to 1.0  
+--- Similar to the Units per Pixel of some game engines  
+--- When set the sprite rendering scaling:  
+--- * Affects the rendering scaling of the specified sprite   
+--- 
+--- When set the global rendering scaling:  
+--- * Affects the rendering scaling of sprites, sprite sequences (animation), HGE particle effects, HGE texture fonts, truetype font  
+--- * Affect curve laser (bent laser) width  
+--- * Affects the collision box size that is automatically set when modifying the game object's .img  
+---@param imgname string
 ---@param scale number
-function lstg.SetImageScale(scale)
+---@overload fun(scale:number)
+function lstg.SetImageScale(imgname, scale)
 end
 
---- 获取全局图片精灵渲染缩放，参考 lstg.SetImageScale
+--- [LuaSTG Ex Plus 新增]  
+--- [LuaSTG Sub v0.15.1 更改]  
+--- 参考 `lstg.SetImageScale`  
+--- [LuaSTG Ex Plus Add]  
+--- [LuaSTG Sub v0.15.1 Change]  
+--- See `lstg.SetImageScale`  
+---@param imgname string
 ---@return number
-function lstg.GetImageScale()
+---@overload fun():number
+function lstg.GetImageScale(imgname)
+end
+
+--- [LuaSTG Sub v0.15.1 新增]  
+--- 设置图片精灵序列（动画）渲染缩放，默认为 1.0  
+--- 类似某些游戏引擎的 Units per Pixel（每单位有多少像素）功能  
+--- [LuaSTG Sub v0.15.1 Add]  
+--- Set the rendering scaling of the specified sprite sequences (animation)  
+--- Similar to the Units per Pixel of some game engines  
+---@param aniname string
+---@param scale number
+function lstg.SetAnimationScale(aniname, scale)
+end
+
+--- [LuaSTG Sub v0.15.1 新增]  
+--- 参考 `lstg.SetAnimationScale`  
+--- [LuaSTG Sub v0.15.1 Add]  
+--- See `lstg.SetAnimationScale`  
+---@return number
+function lstg.GetAnimationScale(aniname)
 end
 
 --------------------------------------------------------------------------------
