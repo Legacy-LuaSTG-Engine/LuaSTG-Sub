@@ -9,7 +9,8 @@
 static void OpenWin32Console();
 static void CloseWin32Console();
 
-namespace slow {
+namespace slow
+{
     bool checkDirectory(std::wstring& out)
     {
         std::wstring path; // APPDATA

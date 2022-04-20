@@ -13,12 +13,7 @@
 #define DIDFT_OPTIONAL          0x80000000
 #endif
 
-#if 0
-#include "Common/DebugLog.hpp"
-#define _LOGDEBUG(fmt, ...) DebugLog(fmt, __VA_ARGS__)
-#else
 #define _LOGDEBUG(fmt, ...)
-#endif
 
 // DirectInput Data & Format
 namespace native
