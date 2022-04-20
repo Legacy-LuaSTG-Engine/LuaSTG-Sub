@@ -8,6 +8,22 @@ local M = {}
 lstg = M
 
 --------------------------------------------------------------------------------
+--- 命令行参数  
+--- Command line arguments  
+
+-- 可用的外部命令行参数  
+-- 1、--log-window      启用引擎日志窗口  
+-- 2、--log-window-wait 关闭程序后不立即关闭引擎日志窗口  
+-- Available external command line arguments  
+-- 1、--log-window      Enable engine log window  
+-- 2、--log-window-wait Do not close the engine log window immediately after closing the program  
+
+--- 命令行参数  
+--- Command line arguments  
+---@type string[]
+M.args = {}
+
+--------------------------------------------------------------------------------
 --- 游戏循环流程
 
 -- 1. 初始化游戏框架，启动 Lua 虚拟机

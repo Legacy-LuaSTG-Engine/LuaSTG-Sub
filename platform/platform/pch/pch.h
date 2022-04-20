@@ -16,9 +16,11 @@
 
 #include <cassert>
 #include <tuple>
+#include <vector>
+#include <string>
+#include <string_view>
 
 #define NOMINMAX
-#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <windowsx.h>
 #include <ShellScalingApi.h>
