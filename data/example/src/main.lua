@@ -1,5 +1,6 @@
 local timer = 0
 local window = { width = 1280, height = 720, }
+local keycode = require("keycode")
 local function set_camera()
     lstg.SetViewport(0, window.width, 0, window.height)
     lstg.SetScissorRect(0, window.width, 0, window.height)
@@ -20,7 +21,10 @@ function GameExit()
 end
 function FrameFunc()
     timer = timer + 1
-	return false
+    if lstg.GetKeyState(keycode.Keyboard.ESCAPE) then
+        return true -- exit
+    end
+    return false
 end
 function RenderFunc()
     lstg.BeginScene()
