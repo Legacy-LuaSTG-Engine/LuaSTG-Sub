@@ -3,11 +3,11 @@
 #include "Engine/f2dEngineImpl.h"
 #include "Engine/f2dMonitorHelper.h"
 
-#include "Common/DPIHelper.hpp"
 #include <fcyException.h>
 #include <fcyOS/fcyDebug.h>
 #include <Dbt.h> // DBT_DEVNODES_CHANGED
 #include <windowsx.h>
+#include "platform/HighDPI.hpp"
 
 //#define _IME_DEBUG
 //#define _FANCY2D_IME_ENABLE // 妈的，这IME支持还不如不写，一堆bug
@@ -81,7 +81,7 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 		break;
 	case WM_CREATE:
 		{
-			native::enableNonClientDpiScaling(Handle);
+			platform::HighDPI::EnableNonClientDpiScaling(Handle);
 			#ifdef _FANCY2D_IME_ENABLE
 			// 初始化IME上下文
 			pWindow->HandleIMELanguageChanged();
@@ -272,7 +272,7 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 		return TRUE;
 	
 	// 特殊处理
-	auto rResult = WindowMoveSizeController::handleSizeMove(&pWindow->m_MoveSizeCtrl, Handle, Msg, wParam, lParam);
+	auto rResult = pWindow->m_SizeMoveCtrl.handleSizeMove(Handle, Msg, wParam, lParam);
 	if (rResult.bReturn)
 		return rResult.lResult;
 	
@@ -306,7 +306,7 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 f2dWindowClass::f2dWindowClass(f2dEngineImpl* pEngine, fcStrW ClassName)
 	: m_pEngine(pEngine), m_ClsName(ClassName)
 {
-	native::enableDpiAwareness();
+	// platform::HighDPI::enable(); // 交给 manifest 文件
 	
 	m_WndClass.cbSize = sizeof(WNDCLASSEXW);
 	m_WndClass.style = CS_HREDRAW | CS_VREDRAW;
@@ -663,7 +663,7 @@ f2dWindowImpl::f2dWindowImpl(f2dEngineImpl* pEngine, f2dWindowClass* WinCls, con
 	
 	// 调整窗口大小
 	RECT tWinRect = { (LONG)Pos.a.x , (LONG)Pos.a.y , (LONG)Pos.b.x , (LONG)Pos.b.y};
-	native::Windows::AdjustWindowRectExForDpi(&tWinRect, tWinStyle, FALSE, 0, native::getDpiForWindow(m_hWnd));
+	platform::HighDPI::AdjustWindowRectExForDpi(&tWinRect, tWinStyle, FALSE, 0, platform::HighDPI::GetDpiForWindow(m_hWnd));
 	::SetWindowPos(
 		m_hWnd, NULL,
 		tWinRect.left, tWinRect.top, tWinRect.right - tWinRect.left, tWinRect.bottom - tWinRect.top,
@@ -682,7 +682,7 @@ f2dWindowImpl::f2dWindowImpl(f2dEngineImpl* pEngine, f2dWindowClass* WinCls, con
 	}
 	
 	// 配置窗口挪动控制器
-	m_MoveSizeCtrl.setWindow(m_hWnd);
+	m_SizeMoveCtrl.setWindow(m_hWnd);
 	
 	// 显示窗口
 	if(m_bShow)
@@ -701,7 +701,7 @@ f2dWindowImpl::~f2dWindowImpl()
 	}
 	
 	// 关闭移动控制
-	m_MoveSizeCtrl.setWindow(NULL);
+	m_SizeMoveCtrl.setWindow(NULL);
 	
 	// 销毁窗口
 	DestroyWindow(m_hWnd);
@@ -997,12 +997,12 @@ fResult f2dWindowImpl::SetClientRect(const fcyRect& Range)
 {
 	// 计算包括窗口框架的尺寸
 	RECT tWinRect = { (LONG)Range.a.x , (LONG)Range.a.y , (LONG)Range.b.x , (LONG)Range.b.y};
-	native::Windows::AdjustWindowRectExForDpi(
+	platform::HighDPI::AdjustWindowRectExForDpi(
 		&tWinRect,
 		GetWindowLongPtrW(m_hWnd, GWL_STYLE),
 		FALSE,
 		GetWindowLongPtrW(m_hWnd, GWL_EXSTYLE),
-		native::getDpiForWindow(m_hWnd));
+		platform::HighDPI::GetDpiForWindow(m_hWnd));
 	// 记录
 	m_Size.x = (float)(tWinRect.right - tWinRect.left);
 	m_Size.y = (float)(tWinRect.bottom - tWinRect.top);
@@ -1147,7 +1147,7 @@ fcStrW f2dWindowImpl::GetIMECandidate(fuInt Index)
 
 float f2dWindowImpl::GetDPIScaling()
 {
-	return native::getDpiScalingForWindow(m_hWnd);
+	return platform::HighDPI::GetDpiScalingForWindow(m_hWnd);
 }
 
 fcyVec2 f2dWindowImpl::GetMonitorSize()
@@ -1228,7 +1228,7 @@ void f2dWindowImpl::EnterMonitorFullScreen(fuInt index)
 
 void f2dWindowImpl::SetCustomMoveSizeEnable(fBool v)
 {
-	m_MoveSizeCtrl.setEnable(v ? TRUE : FALSE);
+	m_SizeMoveCtrl.setEnable(v ? TRUE : FALSE);
 }
 void f2dWindowImpl::SetCustomMinimizeButtonRect(fcyRect v)
 {
@@ -1238,7 +1238,7 @@ void f2dWindowImpl::SetCustomMinimizeButtonRect(fcyRect v)
 		.right = (LONG)v.b.x,
 		.bottom = (LONG)v.b.y,
 	};
-	m_MoveSizeCtrl.setMinimizeButtonRect(rc);
+	m_SizeMoveCtrl.setMinimizeButtonRect(rc);
 }
 void f2dWindowImpl::SetCustomCloseButtonRect(fcyRect v)
 {
@@ -1248,7 +1248,7 @@ void f2dWindowImpl::SetCustomCloseButtonRect(fcyRect v)
 		.right = (LONG)v.b.x,
 		.bottom = (LONG)v.b.y,
 	};
-	m_MoveSizeCtrl.setCloseButtonRect(rc);
+	m_SizeMoveCtrl.setCloseButtonRect(rc);
 }
 void f2dWindowImpl::SetCustomMoveButtonRect(fcyRect v)
 {
@@ -1258,7 +1258,7 @@ void f2dWindowImpl::SetCustomMoveButtonRect(fcyRect v)
 		.right = (LONG)v.b.x,
 		.bottom = (LONG)v.b.y,
 	};
-	m_MoveSizeCtrl.setTitleBarRect(rc);
+	m_SizeMoveCtrl.setTitleBarRect(rc);
 }
 
 void f2dWindowImpl::MoveMouseToRightBottom()

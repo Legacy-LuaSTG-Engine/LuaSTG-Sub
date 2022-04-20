@@ -105,8 +105,6 @@ target_include_directories(fancy2dlib PRIVATE
 
 target_sources(fancy2dlib PRIVATE
     ${FANCY2D_SOURCE}
-    ../Common/DPIHelper.hpp
-    ../Common/DPIHelper.cpp
 )
 
 target_link_libraries(fancy2dlib PUBLIC
@@ -123,6 +121,7 @@ target_link_libraries(fancy2dlib PUBLIC
     vorbisfile
     fancylib
     xmath
+    platform
 )
 
 # 动态库
@@ -165,5 +164,6 @@ if(FALSE)
         vorbisfile
         fancylib
         xmath
+        platform
     )
 endif()

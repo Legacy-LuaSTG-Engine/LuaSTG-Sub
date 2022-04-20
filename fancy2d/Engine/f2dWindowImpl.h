@@ -12,7 +12,7 @@
 #include <unordered_map>
 
 #include <Windows.h>
-#include "Common/WindowMoveSizeController.hpp"
+#include "platform/WindowSizeMoveController.hpp"
 
 class f2dEngineImpl;
 class f2dWindowImpl;
@@ -157,7 +157,7 @@ private:
 	std::wstring m_CaptionText;
 	fcyVec2 m_Size;
 	bool m_bAutoResizeWindowOnDPIScaling = true;
-	WindowMoveSizeController m_MoveSizeCtrl;
+	platform::WindowSizeMoveController m_SizeMoveCtrl;
 	
 	// 监听器
 	DefaultListener m_DefaultListener;
