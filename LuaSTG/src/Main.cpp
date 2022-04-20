@@ -6,7 +6,8 @@
 #define NOMINMAX
 #include <Windows.h>
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int)
+_Use_decl_anno_impl_
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR pCmdLine, int)
 {
 	#ifdef LDEBUG
 	_CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG) | _CRTDBG_LEAK_CHECK_DF);

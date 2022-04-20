@@ -14,6 +14,7 @@ extern "C" {
 
 #include "Core/FileManager.hpp"
 #include "utility/encoding.hpp"
+#include "platform/CommandLine.hpp"
 
 #define NOMINMAX
 #include <Windows.h>
@@ -287,23 +288,30 @@ namespace LuaSTGPlus
             
             // 设置命令行参数
             spdlog::info("[luajit] 储存命令行参数");
-            const WCHAR* cmd = ::GetCommandLineW();
-            int argc = 0;
-            WCHAR** argv = ::CommandLineToArgvW(cmd, &argc);
-            if (argv != NULL)
+            std::vector<std::string> args(platform::CommandLine::get());
+            if (!args.empty())
             {
-                lua_getglobal(L, "lstg");			// ? t
-                lua_createtable(L, argc, 0);		// ? t t
-                for (int idx = 0; idx < argc; idx++)
+                // 打印命令行参数，隐藏不需要的命令行参数
+                std::vector<std::string_view> args_lua;
+                for (size_t idx = 0; idx < args.size(); idx += 1)
                 {
-                    std::string v = fcyStringHelper::WideCharToMultiByte(argv[idx], CP_UTF8);
-                    spdlog::info("[luajit] [{}] {}", idx + 1, v);
-                    lua_pushstring(L, v.c_str());	// ? t t s
-                    lua_rawseti(L, -2, idx + 1);	// ? t t
+                    spdlog::info("[luajit] [{}] {}", idx, args[idx]);
+                    if (args[idx] != "--log-window" &&
+                        args[idx] != "--log-window-wait")
+                    {
+                        args_lua.emplace_back(args[idx]);
+                    }
                 }
-                lua_setfield(L, -2, "args");		// ? t
-                lua_pop(L, 1);						// ?
-                ::LocalFree(argv);
+                // 储存
+                lua_getglobal(L, "lstg");                       // ? t
+                lua_createtable(L, (int)args_lua.size(), 0);    // ? t t
+                for (int idx = 0; idx < (int)args_lua.size(); idx += 1)
+                {
+                    lua_pushstring(L, args_lua[idx].data());    // ? t t s
+                    lua_rawseti(L, -2, idx + 1);                // ? t t
+                }
+                lua_setfield(L, -2, "args");                    // ? t
+                lua_pop(L, 1);                                  // ?
             }
             
             if (!SafeCallScript(LuaInternalSource_2().c_str(), LuaInternalSource_2().length(), "internal.api")) {
