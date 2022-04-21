@@ -1,6 +1,5 @@
 #include "DirectInput.hpp"
 
-#define XINPUT_USE_9_1_0
 #include <Xinput.h>
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
