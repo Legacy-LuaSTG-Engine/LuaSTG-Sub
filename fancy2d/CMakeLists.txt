@@ -122,6 +122,7 @@ target_link_libraries(fancy2dlib PUBLIC
     fancylib
     xmath
     platform
+    utility
 )
 
 # 动态库
@@ -165,5 +166,6 @@ if(FALSE)
         fancylib
         xmath
         platform
+        utility
     )
 endif()
