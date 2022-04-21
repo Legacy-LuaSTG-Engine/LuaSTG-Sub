@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 
-namespace native
+namespace platform
 {
     class DirectInput
     {

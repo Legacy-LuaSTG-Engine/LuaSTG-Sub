@@ -6,7 +6,7 @@ namespace LuaSTGPlus
     namespace LuaWrapper {
         void DInputWrapper::Register(lua_State* L)LNOEXCEPT
         {
-            #define LDI() native::DirectInput* self = LuaSTGPlus::AppFrame::GetInstance().GetDInput()
+            #define LDI() platform::DirectInput* self = LuaSTGPlus::AppFrame::GetInstance().GetDInput()
             
             struct Wrapper
             {
@@ -62,7 +62,7 @@ namespace LuaSTGPlus
                     if (self)
                     {
                         uint32_t index = (uint32_t)(luaL_checkinteger(L, 1) - 1);
-                        native::DirectInput::AxisRange range;
+                        platform::DirectInput::AxisRange range;
                         if (self->getAxisRange(index, &range))
                         {
                             lua_createtable(L, 0, 12);
@@ -85,7 +85,7 @@ namespace LuaSTGPlus
                     if (self)
                     {
                         uint32_t index = (uint32_t)(luaL_checkinteger(L, 1) - 1);
-                        native::DirectInput::RawState state;
+                        platform::DirectInput::RawState state;
                         if (self->getRawState(index, &state))
                         {
                             lua_createtable(L, 0, 9);
@@ -139,7 +139,7 @@ namespace LuaSTGPlus
                     if (self)
                     {
                         uint32_t index = (uint32_t)(luaL_checkinteger(L, 1) - 1);
-                        native::DirectInput::State state;
+                        platform::DirectInput::State state;
                         if (self->getState(index, &state))
                         {
                             lua_createtable(L, 0, 7);

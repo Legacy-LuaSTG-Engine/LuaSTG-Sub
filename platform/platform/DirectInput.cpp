@@ -1,10 +1,5 @@
-#include "Common/DirectInput.h"
+#include "DirectInput.hpp"
 
-#include <vector>
-#include <string_view>
-
-#include <Windows.h>
-#include <wrl.h>
 #define XINPUT_USE_9_1_0
 #include <Xinput.h>
 #define DIRECTINPUT_VERSION 0x0800
@@ -16,7 +11,7 @@
 #define _LOGDEBUG(fmt, ...)
 
 // DirectInput Data & Format
-namespace native
+namespace platform
 {
     // interface
     static const GUID g_IID_IDirectInput8W = {0xBF798031, 0x483A, 0x4DA2, {0xAA, 0x99, 0x5D, 0x64, 0xED, 0x36, 0x97, 0x00}};
@@ -395,7 +390,7 @@ namespace native
 };
 
 // DirectInput
-namespace native
+namespace platform
 {
     constexpr DWORD g_dwKeyboardBufferSize = 32;
     constexpr DWORD g_dwMouseBufferSize = 64;
