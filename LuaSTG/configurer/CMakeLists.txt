@@ -5,15 +5,12 @@ target_precompile_headers(LuaSTGConfig PRIVATE
     pch.h
 )
 target_include_directories(LuaSTGConfig PRIVATE
-    ../platform
-    ../platform/platform
+    .
 )
 target_sources(LuaSTGConfig PRIVATE
     LuaSTGConfig.manifest
     pch.h
     main.cpp
-    ../platform/platform/HighDPI.hpp
-    ../platform/platform/HighDPI.cpp
 )
 target_link_libraries(LuaSTGConfig PRIVATE
     d3d11.lib
@@ -24,6 +21,7 @@ target_link_libraries(LuaSTGConfig PRIVATE
     imgui_impl_win32
     imgui_impl_dx11
     nlohmann_json
+    platform
 )
 
 add_custom_command(TARGET LuaSTGConfig POST_BUILD
