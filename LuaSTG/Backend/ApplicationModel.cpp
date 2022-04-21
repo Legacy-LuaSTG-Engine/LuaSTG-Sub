@@ -35,15 +35,15 @@ namespace LuaSTG::Core
 
 		// Event Listener
 	private:
-		std::vector<ApplicationEventListener*> app_event_listener;
-		std::vector<WindowEventListener*> window_event_listener;
+		std::vector<IApplicationEventListener*> app_event_listener;
+		std::vector<IWindowEventListener*> window_event_listener;
 	public:
-		void addApplicationEventListener(ApplicationEventListener* e)
+		void addApplicationEventListener(IApplicationEventListener* e)
 		{
 			removeApplicationEventListener(e);
 			if (e) app_event_listener.emplace_back(e);
 		}
-		void removeApplicationEventListener(ApplicationEventListener* e)
+		void removeApplicationEventListener(IApplicationEventListener* e)
 		{
 			for (auto it = app_event_listener.begin(); it != app_event_listener.end();)
 			{
@@ -58,12 +58,12 @@ namespace LuaSTG::Core
 			}
 		}
 		#define dispatchApplicationEventListener(X, ...) for (auto e : app_event_listener) e->X(__VA_ARGS__);
-		void addWindowEventListener(WindowEventListener* e)
+		void addWindowEventListener(IWindowEventListener* e)
 		{
 			removeWindowEventListener(e);
 			if (e) window_event_listener.emplace_back(e);
 		}
-		void removeWindowEventListener(WindowEventListener* e)
+		void removeWindowEventListener(IWindowEventListener* e)
 		{
 			for (auto it = window_event_listener.begin(); it != window_event_listener.end();)
 			{
