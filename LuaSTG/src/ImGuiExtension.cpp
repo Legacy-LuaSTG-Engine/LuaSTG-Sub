@@ -16,8 +16,7 @@
 #include "lua_imgui.hpp"
 #include "lua_imgui_type.hpp"
 
-#include "Common/SystemDirectory.hpp"
-
+#include "platform/KnownDirectory.hpp"
 #include "AppFrame.h"
 
 #define NOMINMAX
@@ -295,7 +294,7 @@ namespace imgui
             io.IniFilename = NULL;
             std::wstring path;
             #ifdef USING_SYSTEM_DIRECTORY
-                if (windows::makeApplicationRoamingAppDataDirectory(APP_COMPANY, APP_PRODUCT, path))
+                if (platform::KnownDirectory::makeAppDataW(APP_COMPANY, APP_PRODUCT, path))
                 {
                     path.push_back(L'\\');
                 }
@@ -323,7 +322,7 @@ namespace imgui
         {
             std::wstring path;
             #ifdef USING_SYSTEM_DIRECTORY
-                if (windows::makeApplicationRoamingAppDataDirectory(APP_COMPANY, APP_PRODUCT, path))
+                if (platform::KnownDirectory::makeAppDataW(APP_COMPANY, APP_PRODUCT, path))
                 {
                     path.push_back(L'\\');
                 }

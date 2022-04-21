@@ -2,7 +2,7 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/wincolor_sink.h"
-#include "Common/SystemDirectory.hpp"
+#include "platform/KnownDirectory.hpp"
 #include "platform/CommandLine.hpp"
 #include "Config.h"
 #include "LConfig.h"
@@ -18,7 +18,7 @@ namespace slow
     bool checkDirectory(std::wstring& out)
     {
         std::wstring path; // APPDATA
-        if (windows::makeApplicationRoamingAppDataDirectory(APP_COMPANY, APP_PRODUCT, path))
+        if (platform::KnownDirectory::makeAppDataW(APP_COMPANY, APP_PRODUCT, path))
         {
             out.append(path);
             out.push_back(L'\\');
