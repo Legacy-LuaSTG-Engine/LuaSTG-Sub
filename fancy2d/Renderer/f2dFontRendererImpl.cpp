@@ -640,7 +640,7 @@ fResult f2dFontRendererImpl::DrawTextW2(f2dGraphics2D* pGraph, fcStrW Text, fuIn
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "Common/utf.hpp"
+#include "utility/utf.hpp"
 
 fcyRect f2dFontRendererImpl::MeasureTextBoundaryU8(fcStr Text, fuInt Count)
 {

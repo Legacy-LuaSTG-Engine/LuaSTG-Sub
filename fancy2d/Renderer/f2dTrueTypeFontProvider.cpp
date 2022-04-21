@@ -1,7 +1,7 @@
 #include "Renderer/f2dTrueTypeFontProvider.h"
 #include <stdexcept>
 #include <algorithm>
-#include "Common/utf.hpp"
+#include "utility/utf.hpp"
 
 struct SharedFreeTypeLibrary
 {
