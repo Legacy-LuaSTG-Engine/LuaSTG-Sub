@@ -2,6 +2,7 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/wincolor_sink.h"
+#include "spdlog/sinks/msvc_sink.h"
 #include "platform/KnownDirectory.hpp"
 #include "platform/CommandLine.hpp"
 #include "Config.h"
@@ -60,6 +61,12 @@ namespace slow
         sink->set_pattern("[%Y-%m-%d %H:%M:%S] [%L] %v");
         sinks.emplace_back(sink);
 
+    #if 0
+        auto sink_debugger = std::make_shared<spdlog::sinks::windebug_sink_mt>();
+        sink_debugger->set_pattern("[%Y-%m-%d %H:%M:%S] [%L] %v");
+        sinks.emplace_back(sink_debugger);
+    #endif
+
     #ifdef USING_CONSOLE_OUTPUT
         if (open_console)
         {
@@ -103,9 +110,9 @@ void OpenWin32Console()
         HWND window = GetConsoleWindow();
         HMENU menu = GetSystemMenu(window, FALSE);
         RemoveMenu(menu, SC_CLOSE, MF_BYCOMMAND);
-        SetWindowTextA(window, LUASTG_INFO);
-        SetConsoleOutputCP(CP_UTF8);
+        SetWindowTextW(window, L"" LUASTG_INFO);
         ShowWindow(window, SW_MAXIMIZE);
+        SetConsoleOutputCP(CP_UTF8);
     }
 }
 void CloseWin32Console()
