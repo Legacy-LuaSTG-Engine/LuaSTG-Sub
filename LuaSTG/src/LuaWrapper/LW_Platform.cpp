@@ -1,5 +1,5 @@
 ﻿#include "LuaWrapper/LuaWrapper.hpp"
-#include "Common/SystemDirectory.hpp"
+#include "platform/KnownDirectory.hpp"
 #define NOMINMAX
 #include <Windows.h>
 
@@ -7,13 +7,13 @@ void LuaSTGPlus::LuaWrapper::PlatformWrapper::Register(lua_State* L) noexcept
 {
 	struct Wrapper
 	{
-		static int GetLocalAppDataPath(lua_State* L)LNOEXCEPT
+		static int GetLocalAppDataPath(lua_State* L) noexcept
 		{
-			try {
-				std::wstring wpath;
-				if (windows::getLocalAppDataDirectory(wpath))
+			try
+			{
+				std::string path;
+				if (platform::KnownDirectory::getLocalAppData(path))
 				{
-					std::string path = fcyStringHelper::WideCharToMultiByte(wpath, CP_UTF8);
 					lua_pushstring(L, path.c_str());
 				}
 				else
@@ -21,18 +21,19 @@ void LuaSTGPlus::LuaWrapper::PlatformWrapper::Register(lua_State* L) noexcept
 					lua_pushstring(L, "");
 				}
 			}
-			catch (const std::bad_alloc&) {
+			catch (const std::bad_alloc&)
+			{
 				lua_pushstring(L, "");
 			}
 			return 1;
 		}
-		static int GetRoamingAppDataPath(lua_State* L)LNOEXCEPT
+		static int GetRoamingAppDataPath(lua_State* L) noexcept
 		{
-			try {
-				std::wstring wpath;
-				if (windows::getRoamingAppDataDirectory(wpath))
+			try
+			{
+				std::string path;
+				if (platform::KnownDirectory::getRoamingAppData(path))
 				{
-					std::string path = fcyStringHelper::WideCharToMultiByte(wpath, CP_UTF8);
 					lua_pushstring(L, path.c_str());
 				}
 				else
@@ -40,16 +41,17 @@ void LuaSTGPlus::LuaWrapper::PlatformWrapper::Register(lua_State* L) noexcept
 					lua_pushstring(L, "");
 				}
 			}
-			catch (const std::bad_alloc&) {
+			catch (const std::bad_alloc&)
+			{
 				lua_pushstring(L, "");
 			}
 			return 1;
 		}
-		static int Execute(lua_State* L)LNOEXCEPT
+		static int Execute(lua_State* L) noexcept
 		{
 			struct Detail_
 			{
-				LNOINLINE static bool Execute(const char* path, const char* args, const char* directory, bool bWait, bool bShow)LNOEXCEPT
+				static bool Execute(const char* path, const char* args, const char* directory, bool bWait, bool bShow) noexcept
 				{
 					std::wstring tPath, tArgs, tDirectory;
 

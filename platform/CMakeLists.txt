@@ -15,6 +15,8 @@ set(platform_sources
     platform/pch/pch.cpp
     platform/HighDPI.hpp
     platform/HighDPI.cpp
+    platform/KnownDirectory.hpp
+    platform/KnownDirectory.cpp
     platform/CommandLine.hpp
     platform/CommandLine.cpp
     platform/WindowSizeMoveController.hpp

@@ -103,8 +103,6 @@ source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${LUASTG_ENGINE_SOURCES})
 set(LUASTG_ENGINE_SOURCES_COMMON
     ../Common/DirectInput.h
     ../Common/DirectInput.cpp
-    ../Common/SystemDirectory.hpp
-    ../Common/SystemDirectory.cpp
 )
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR}/.. FILES ${LUASTG_ENGINE_SOURCES_COMMON})
 
