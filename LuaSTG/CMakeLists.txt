@@ -4,7 +4,6 @@ add_subdirectory(configurer)
 
 # LuaSTG
 
-include(Custom.cmake OPTIONAL)
 if(NOT DEFINED LUASTG_RESDIR)
     message("LuaSTG will using default config, built-in resources and source codes")
     set(LUASTG_RESDIR res)
@@ -75,7 +74,11 @@ target_sources(LuaSTG PRIVATE
     ${LUASTG_LUA_EXTENSION_SOURCES}
 )
 if(EXISTS ${LUASTG_RESDIR}/Custom.cmake)
+    message("LuaSTG will using " ${LUASTG_RESDIR}/Custom.cmake)
     include(${LUASTG_RESDIR}/Custom.cmake)
+elseif(EXISTS ${CMAKE_CURRENT_LIST_DIR}/${LUASTG_RESDIR}/Custom.cmake)
+    message("LuaSTG will using " ${CMAKE_CURRENT_LIST_DIR}/${LUASTG_RESDIR}/Custom.cmake)
+    include(${CMAKE_CURRENT_LIST_DIR}/${LUASTG_RESDIR}/Custom.cmake)
 else()
     target_include_directories(LuaSTG PRIVATE
         ${LUASTG_RESDIR}

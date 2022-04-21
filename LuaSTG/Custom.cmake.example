@@ -1,4 +1,0 @@
-# custom
-
-set(LUASTG_RESDIR res)
-set(LINK_STEAM_API FALSE)

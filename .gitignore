@@ -12,7 +12,6 @@ install/*
 bin/*
 
 # cache
-LuaSTG/Custom.cmake
 LuaSTG/backup/*
 LuaSTG/custom/*
 DirectX/DirectXSDK/backup/*
