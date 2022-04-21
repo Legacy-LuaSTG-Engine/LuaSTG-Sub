@@ -17,8 +17,8 @@ namespace xinput
         PFN_XInputGetState GetState = nullptr;
         PFN_XInputSetState SetState = nullptr;
         PFN_XInputGetCapabilities GetCapabilities = nullptr;
-        std::array<bool, XUSER_MAX_COUNT> valid;
-        std::array<XINPUT_STATE, XUSER_MAX_COUNT> state;
+        std::array<bool, XUSER_MAX_COUNT> valid{};
+        std::array<XINPUT_STATE, XUSER_MAX_COUNT> state{};
         
         XInputInstance()
         {
@@ -29,7 +29,7 @@ namespace xinput
                 L"xinput1_2.dll",   // DirectX SDK
                 L"xinput1_1.dll",   // DirectX SDK
             };
-            for (auto v : dll_names)
+            for (auto& v : dll_names)
             {
                 if (HMODULE dll = ::LoadLibraryW(v.data()))
                 {
