@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.19)
 project(LuaSTGSub)
 
+#option(LINK_STEAM_API "Enable Steam API" OFF)
+#option(LUASTG_RESDIR "Custom configurations" "res")
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 include(cmake/CheckPlatform.cmake)
 include(cmake/TargetCommonOptions.cmake)
