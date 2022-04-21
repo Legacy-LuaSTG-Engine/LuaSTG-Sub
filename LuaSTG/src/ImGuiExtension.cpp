@@ -20,7 +20,6 @@
 #include "AppFrame.h"
 
 #define NOMINMAX
-#define XINPUT_USE_9_1_0
 #include <Xinput.h>
 
 // lua imgui backend binding
