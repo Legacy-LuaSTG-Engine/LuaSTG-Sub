@@ -1,4 +1,4 @@
-#include "Resource/ResourceMgr.h"
+﻿#include "Resource/ResourceMgr.h"
 #ifdef USING_DEAR_IMGUI
 #include "imgui.h"
 #endif
@@ -55,7 +55,20 @@ namespace LuaSTGPlus
 				break;
 			}
 
-			auto draw_texture = [](f2dTexture2D* p_res, bool show_info) -> void
+			auto draw_preview_scaling = [](float& scale) -> void
+			{
+				ImGui::PushID(&scale);
+				ImGui::SliderFloat("##SliderFloat", &scale, 0.25f, 4.0f);
+				ImGui::SameLine();
+				if (ImGui::Button("Reset##Button"))
+				{
+					scale = 1.0f;
+				}
+				ImGui::SameLine();
+				ImGui::Text("Preview Scaling");
+				ImGui::PopID();
+			};
+			auto draw_texture = [](f2dTexture2D* p_res, bool show_info, float scale) -> void
 			{
 				if (show_info)
 				{
@@ -67,13 +80,13 @@ namespace LuaSTGPlus
 				}
 				ImGui::Image(
 					p_res->GetHandle(),
-					ImVec2(p_res->GetWidth(), p_res->GetHeight()),
+					ImVec2(scale * (float)p_res->GetWidth(), scale * (float)p_res->GetHeight()),
 					ImVec2(0.0f, 0.0f),
 					ImVec2(1.0f, 1.0f),
 					ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
 					ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
 			};
-			auto draw_sprite = [](f2dSprite* p_res, bool show_info, bool focus) -> void {
+			auto draw_sprite = [](f2dSprite* p_res, bool show_info, bool focus, float scale) -> void {
 				auto color = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
 				if (focus)
 				{
@@ -91,7 +104,7 @@ namespace LuaSTGPlus
 				}
 				ImGui::Image(
 					p_tex->GetHandle(),
-					ImVec2(rc.GetWidth(), rc.GetHeight()),
+					ImVec2(scale * rc.GetWidth(), scale * rc.GetHeight()),
 					ImVec2(rc.a.x / p_tex->GetWidth(), rc.a.y / p_tex->GetHeight()),
 					ImVec2(rc.b.x / p_tex->GetWidth(), rc.b.y / p_tex->GetHeight()),
 					ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
@@ -127,7 +140,9 @@ namespace LuaSTGPlus
 									v.second->GetResName().c_str()
 								))
 								{
-									draw_texture(v.second->GetTexture(), true);
+									static float preview_scale = 1.0f;
+									draw_preview_scaling(preview_scale);
+									draw_texture(v.second->GetTexture(), true, preview_scale);
 									ImGui::TreePop();
 								}
 								res_i += 1;
@@ -156,7 +171,9 @@ namespace LuaSTGPlus
 									v.second->GetResName().c_str()
 								))
 								{
-									draw_sprite(v.second->GetSprite(), true, false);
+									static float preview_scale = 1.0f;
+									draw_preview_scaling(preview_scale);
+									draw_sprite(v.second->GetSprite(), true, false, preview_scale);
 									ImGui::TreePop();
 								}
 								res_i += 1;
@@ -184,17 +201,19 @@ namespace LuaSTGPlus
 									v.second->GetResName().c_str()
 								))
 								{
+									static float preview_scale = 1.0f;
+									draw_preview_scaling(preview_scale);
 									ImGui::Text("Sprite Count: %u", v.second->GetCount());
 									ImGui::Text("Animation Interval: %u", v.second->GetInterval());
 									fuInt ani_idx = (timer / v.second->GetInterval()) % v.second->GetCount();
-									draw_sprite(v.second->GetSprite(ani_idx), false, false);
+									draw_sprite(v.second->GetSprite(ani_idx), false, false, preview_scale);
 									static bool same_line = false;
 									ImGui::Checkbox("Same Line Preview", &same_line);
 									for (fuInt img_idx = 0; img_idx < v.second->GetCount(); img_idx += 1)
 									{
 										if (same_line)
 										{
-											draw_sprite(v.second->GetSprite(img_idx), false, img_idx == ani_idx);
+											draw_sprite(v.second->GetSprite(img_idx), false, img_idx == ani_idx, preview_scale);
 											if (img_idx < (v.second->GetCount() - 1))
 												ImGui::SameLine();
 										}
@@ -202,7 +221,7 @@ namespace LuaSTGPlus
 										{
 											if (ImGui::TreeNode(v.second->GetSprite(img_idx), "Sprite %u", img_idx))
 											{
-												draw_sprite(v.second->GetSprite(img_idx), true, false);
+												draw_sprite(v.second->GetSprite(img_idx), true, false, preview_scale);
 												ImGui::TreePop();
 											}
 										}
