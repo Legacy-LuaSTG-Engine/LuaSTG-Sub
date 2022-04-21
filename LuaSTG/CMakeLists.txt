@@ -1,3 +1,7 @@
+# LuaSTG configurer
+
+add_subdirectory(configurer)
+
 # LuaSTG
 
 include(Custom.cmake OPTIONAL)
