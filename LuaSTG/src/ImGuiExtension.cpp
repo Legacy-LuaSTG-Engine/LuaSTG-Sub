@@ -231,6 +231,21 @@ static int lib_ShowFrameStatistics(lua_State* L)
     lua_pushboolean(L, v);
     return 1;
 }
+static int lib_ShowResourceManagerDebugWindow(lua_State* L)
+{
+    if (lua_gettop(L) >= 1)
+    {
+        bool v = lua_toboolean(L, 1);
+        LRES.ShowResourceManagerDebugWindow(&v);
+        lua_pushboolean(L, v);
+        return 1;
+    }
+    else
+    {
+        LRES.ShowResourceManagerDebugWindow();
+        return 0;
+    }
+}
 
 void imgui_binding_lua_register_backend(lua_State* L)
 {
@@ -240,6 +255,7 @@ void imgui_binding_lua_register_backend(lua_State* L)
         {"ShowTestInputWindow", &lib_ShowTestInputWindow},
         {"ShowMemoryUsageWindow", &lib_ShowMemoryUsageWindow},
         {"ShowFrameStatistics", &lib_ShowFrameStatistics},
+        {"ShowResourceManagerDebugWindow", &lib_ShowResourceManagerDebugWindow},
         {NULL, NULL},
     };
     const auto lib_func = (sizeof(lib_fun) / sizeof(luaL_Reg)) - 1;

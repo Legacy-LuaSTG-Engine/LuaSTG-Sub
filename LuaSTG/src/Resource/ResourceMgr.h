@@ -16,22 +16,25 @@ namespace LuaSTGPlus
     class ResourceMgr;
     
     // 资源池类型
-    enum class ResourcePoolType {
+    enum class ResourcePoolType
+    {
         None = 0,
         Global,
         Stage
     };
     
     // 资源池
-    class ResourcePool {
+    class ResourcePool
+    {
+        friend class ResourceMgr;
     private:
         ResourceMgr* m_pMgr;
         ResourcePoolType m_iType;
         Dictionary<fcyRefPointer<ResTexture>> m_TexturePool;
         Dictionary<fcyRefPointer<ResSprite>> m_SpritePool;
         Dictionary<fcyRefPointer<ResAnimation>> m_AnimationPool;
-        Dictionary<fcyRefPointer<ResSound>> m_MusicPool;
-        Dictionary<fcyRefPointer<ResMusic>> m_SoundSpritePool;
+        Dictionary<fcyRefPointer<ResMusic>> m_MusicPool;
+        Dictionary<fcyRefPointer<ResSound>> m_SoundSpritePool;
         Dictionary<fcyRefPointer<ResParticle>> m_ParticlePool;
         Dictionary<fcyRefPointer<ResFont>> m_SpriteFontPool;
         Dictionary<fcyRefPointer<ResFont>> m_TTFFontPool;
@@ -98,7 +101,8 @@ namespace LuaSTGPlus
     };
     
     // 资源管理器
-    class ResourceMgr {
+    class ResourceMgr
+    {
     private:
         ResourcePoolType m_ActivedPool = ResourcePoolType::Global;
         ResourcePool m_GlobalResourcePool;
@@ -131,6 +135,7 @@ namespace LuaSTGPlus
         static bool GetResourceLoadingLog();
         float GetGlobalImageScaleFactor() const noexcept { return m_GlobalImageScaleFactor; }
         void SetGlobalImageScaleFactor(float s) noexcept { m_GlobalImageScaleFactor = s; }
+        void ShowResourceManagerDebugWindow(bool* p_open = nullptr);
     public:
         ResourceMgr();
     };

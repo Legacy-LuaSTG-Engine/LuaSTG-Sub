@@ -40,6 +40,7 @@ set(LUASTG_ENGINE_SOURCES
     src/LuaWrapper/LW_Platform.cpp
     src/LuaWrapper/LW_GameObjectManager.cpp
     
+    src/Resource/ResourceDebug.cpp
     src/Resource/ResourceAnimation.cpp
     src/Resource/ResourceAnimation.hpp
     src/Resource/ResourceAudio.cpp
