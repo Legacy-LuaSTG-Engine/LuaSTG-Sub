@@ -67,7 +67,6 @@ target_compile_definitions(LuaSTG PRIVATE LDEVVERSION)
 
 include(Sources.cmake)
 target_sources(LuaSTG PRIVATE
-    ${LUASTG_ENGINE_SOURCES_COMMON}
     ${LUASTG_ENGINE_SOURCES}
     ${LUASTG_LUA_EXTENSION_SOURCES}
 )

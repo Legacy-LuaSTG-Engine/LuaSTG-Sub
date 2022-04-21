@@ -21,6 +21,8 @@ set(platform_sources
     platform/CommandLine.cpp
     platform/WindowSizeMoveController.hpp
     platform/WindowSizeMoveController.cpp
+    platform/DirectInput.hpp
+    platform/DirectInput.cpp
 )
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${platform_sources})
 target_sources(platform PRIVATE ${platform_sources})

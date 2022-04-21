@@ -4,7 +4,7 @@
 #include "Global.h"
 #include "ResourceMgr.h"
 #include "GameObjectPool.h"
-#include "Common/DirectInput.h"
+#include "platform/DirectInput.hpp"
 #include "LuaSTG/Core/Renderer.hpp"
 #include "LConfig.h"
 
@@ -81,7 +81,7 @@ namespace LuaSTGPlus
 		std::vector<fcyRefPointer<f2dDepthStencilSurface>> m_stDepthStencilStack;// DepthStencil控制
 		
 		//输入设备
-		std::unique_ptr<native::DirectInput> m_DirectInput;
+		std::unique_ptr<platform::DirectInput> m_DirectInput;
 		fInt m_LastKey = 0;
 		bool m_InputTextEnable = false;
 		bool m_LastInputTextEnable = false;
@@ -315,7 +315,7 @@ namespace LuaSTGPlus
 		GameObjectPool& GetGameObjectPool() LNOEXCEPT{ return *m_GameObjectPool.get(); }
 		f2dEngine* GetEngine() LNOEXCEPT { return m_pEngine; }
 		f2dWindow* GetWindow() LNOEXCEPT { return m_pMainWindow; }
-		native::DirectInput* GetDInput() LNOEXCEPT { return m_DirectInput.get(); }
+		platform::DirectInput* GetDInput() LNOEXCEPT { return m_DirectInput.get(); }
 		f2dRenderer* GetRenderer() LNOEXCEPT { return m_pRenderer; }
 		f2dRenderDevice* GetRenderDev() LNOEXCEPT { return m_pRenderDev; }
 		f2dSoundSys* GetSoundSys() LNOEXCEPT { return m_pSoundSys; }

@@ -569,10 +569,10 @@ namespace imgui
                             dinput.refresh();
                         }
                         
-                        native::DirectInput::RawState state;
+                        platform::DirectInput::RawState state;
                         if (dinput.getRawState(current_didx, &state))
                         {
-                            native::DirectInput::AxisRange range;
+                            platform::DirectInput::AxisRange range;
                             dinput.getAxisRange(current_didx, &range);
                             
                             int cache = 0;
@@ -670,7 +670,7 @@ namespace imgui
                             dinput.refresh();
                         }
                         
-                        native::DirectInput::State state;
+                        platform::DirectInput::State state;
                         if (dinput.getState(current_didx, &state))
                         {
                             SHORT cache[2];

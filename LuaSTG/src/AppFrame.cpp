@@ -591,7 +591,7 @@ bool AppFrame::Init()LNOEXCEPT
 		// 创建手柄输入
 		try
 		{
-			m_DirectInput = std::make_unique<native::DirectInput>((ptrdiff_t)m_pMainWindow->GetHandle());
+			m_DirectInput = std::make_unique<platform::DirectInput>((ptrdiff_t)m_pMainWindow->GetHandle());
 			{
 				m_DirectInput->refresh(); // 这里因为窗口还没显示，所以应该会出现一个Aquire设备失败的错误信息，忽略即可
 				uint32_t cnt = m_DirectInput->count();
