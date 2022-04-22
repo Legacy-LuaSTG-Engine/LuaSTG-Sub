@@ -93,10 +93,15 @@ local function Camera3D()
     end
     return M
 end
+local ps = nil
 function GameInit()
     lstg.ChangeVideoMode(window.width, window.height, true, true)
     set_camera()
     lstg.LoadTTF("Sans", "C:/Windows/Fonts/msyh.ttc", 16, 16)
+    lstg.LoadTexture("tex:particles", "res/particles.png")
+    lstg.LoadImage("img:particle1", "tex:particles", 0, 0, 32, 32)
+    lstg.LoadPS("ps:1", "res/ghost_fire_1.psi", "img:particle1")
+    ps = lstg.ParticleSystemInstance("ps:1")
 end
 function GameExit()
 end
@@ -108,23 +113,26 @@ function FrameFunc()
     imgui.backend.ShowMemoryUsageWindow()
     imgui.backend.ShowFrameStatistics()
     imgui.ImGui.EndFrame()
+    ps:Update(64, 64, 0)
     return false
 end
 function RenderFunc()
     lstg.BeginScene()
-    lstg.RenderClear(lstg.Color(255, 255, 255, 255))
+    lstg.RenderClear(lstg.Color(255, 64, 64, 64))
     lstg.ClearZBuffer(1.0)
 
     set_camera()
-    lstg.RenderTTF("Sans", "您好，别来无恙啊！", 0, 0, 720, 720, 0 + 0, lstg.Color(255, 0, 0, 0), 2)
+    --lstg.RenderTTF("Sans", "您好，别来无恙啊！", 0, 0, 720, 720, 0 + 0, lstg.Color(255, 0, 0, 0), 2)
 
-    RenderTTF3(
-        "Sans", "旋转测试 ++++ 测试文本，。……",
-        window.width / 2, window.height / 2,
-        timer,
-        4, 4,
-        "", lstg.Color(255, 0, 0, 0),
-        "center", "vcenter")
+    --RenderTTF3(
+    --    "Sans", "旋转测试 ++++ 测试文本，。……",
+    --    window.width / 2, window.height / 2,
+    --    timer,
+    --    4, 4,
+    --    "", lstg.Color(255, 0, 0, 0),
+    --    "center", "vcenter")
+
+    ps:Render(1)
 
     imgui.ImGui.Render()
     imgui.backend.RenderDrawData()
