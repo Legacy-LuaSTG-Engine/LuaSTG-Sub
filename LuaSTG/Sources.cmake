@@ -31,6 +31,7 @@ set(LUASTG_ENGINE_SOURCES
     src/LuaWrapper/LW_IO_Steam.cpp
     src/LuaWrapper/LW_IO.cpp
     src/LuaWrapper/LW_LuaSTG.cpp
+    src/LuaWrapper/LW_ParticleSystem.cpp
     src/LuaWrapper/LW_Randomizer.cpp
     src/LuaWrapper/LW_Render.cpp
     src/LuaWrapper/LW_Renderer.cpp

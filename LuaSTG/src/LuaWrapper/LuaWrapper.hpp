@@ -131,6 +131,20 @@ namespace LuaSTGPlus
 			static void Register(lua_State* L)LNOEXCEPT;
 		};
 		
+		class ParticleSystemWrapper
+		{
+		public:
+			struct UserData
+			{
+				ResParticle* res;
+				ResParticle::ParticlePool* ptr;
+			};
+			static std::string_view const ClassID;
+			static UserData* Cast(lua_State* L, int idx);
+			static UserData* Create(lua_State* L);
+			static void Register(lua_State* L);
+		};
+
 		namespace IO {
 			class StreamWrapper
 			{
