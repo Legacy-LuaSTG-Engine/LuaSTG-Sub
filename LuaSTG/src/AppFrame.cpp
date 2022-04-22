@@ -672,7 +672,6 @@ void AppFrame::Shutdown()LNOEXCEPT
 	m_pRenderDev = nullptr;
 	m_pRenderer = nullptr;
 	m_pMainWindow = nullptr;
-	m_pEngine = nullptr;
 	spdlog::info("[fancy2d] 卸载所有组件");
 	
 	if (L)
@@ -685,6 +684,7 @@ void AppFrame::Shutdown()LNOEXCEPT
 	GFileManager().unloadAllFileArchive();
 	spdlog::info("[luastg] 卸载所有资源包");
 	
+	m_pEngine = nullptr;
 	m_iStatus = AppStatus::Destroyed;
 	spdlog::info("[luastg] 引擎关闭");
 }
