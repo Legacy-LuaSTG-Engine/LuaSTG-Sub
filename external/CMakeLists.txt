@@ -124,15 +124,15 @@ target_include_directories(lua_cjson PUBLIC
     lua-cjson-patch
 )
 target_include_directories(lua_cjson PRIVATE
-    openresty-lua-cjson
+    lua-cjson
 )
 target_sources(lua_cjson PRIVATE
     lua-cjson-patch/lua_cjson.h
-    openresty-lua-cjson/lua_cjson.c
-    openresty-lua-cjson/strbuf.h
-    openresty-lua-cjson/strbuf.c
-    openresty-lua-cjson/fpconv.h
-    openresty-lua-cjson/fpconv.c
+    lua-cjson/lua_cjson.c
+    lua-cjson/strbuf.h
+    lua-cjson/strbuf.c
+    lua-cjson/fpconv.h
+    lua-cjson/fpconv.c
 )
 target_link_libraries(lua_cjson PUBLIC
     lua51static
