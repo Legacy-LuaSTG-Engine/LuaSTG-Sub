@@ -10,9 +10,6 @@
 [submodule "external/DirectXTex"]
 	path = external/DirectXTex
 	url = https://github.com/microsoft/DirectXTex.git
-[submodule "external/lua-cjson"]
-	path = external/lua-cjson
-	url = https://github.com/mpx/lua-cjson.git
 [submodule "external/lua-filesystem"]
 	path = external/lua-filesystem
 	url = https://github.com/keplerproject/luafilesystem.git
@@ -49,6 +46,3 @@
 [submodule "external/DirectXTK"]
 	path = external/DirectXTK
 	url = https://github.com/microsoft/DirectXTK.git
-[submodule "external/openresty-lua-cjson"]
-	path = external/openresty-lua-cjson
-	url = https://github.com/openresty/lua-cjson.git
