@@ -46,3 +46,6 @@
 [submodule "external/DirectXTK"]
 	path = external/DirectXTK
 	url = https://github.com/microsoft/DirectXTK.git
+[submodule "external/lua-cjson"]
+	path = external/lua-cjson
+	url = https://github.com/openresty/lua-cjson.git
