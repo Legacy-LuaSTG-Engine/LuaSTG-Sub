@@ -62,6 +62,10 @@ end
 function lstg.PostEffectApply()
 end
 
+if cjson then
+    package.loaded["cjson"] = cjson -- fuck you cjson
+end
+
 )";
 #pragma endregion
 
