@@ -112,25 +112,27 @@ set_target_properties(lua_filesystem PROPERTIES FOLDER lualib)
 
 add_library(lua_cjson STATIC)
 luastg_target_common_options(lua_cjson)
+target_compile_options(lua_cjson PRIVATE
+    "/wd4090" # 不同的const限定符（指针传递）
+)
 target_compile_definitions(lua_cjson PRIVATE
     _CRT_SECURE_NO_WARNINGS
     DISABLE_INVALID_NUMBERS
     ENABLE_CJSON_GLOBAL
-    #snprintf=_snprintf
-    #strncasecmp=_strnicmp
-    strncasecmp=strnicmp
 )
 target_include_directories(lua_cjson PUBLIC
     lua-cjson-patch
-    lua-cjson
+)
+target_include_directories(lua_cjson PRIVATE
+    openresty-lua-cjson
 )
 target_sources(lua_cjson PRIVATE
     lua-cjson-patch/lua_cjson.h
-    lua-cjson-patch/lua_cjson.c
-    lua-cjson/strbuf.h
-    lua-cjson/strbuf.c
-    lua-cjson/fpconv.h
-    lua-cjson/fpconv.c
+    openresty-lua-cjson/lua_cjson.c
+    openresty-lua-cjson/strbuf.h
+    openresty-lua-cjson/strbuf.c
+    openresty-lua-cjson/fpconv.h
+    openresty-lua-cjson/fpconv.c
 )
 target_link_libraries(lua_cjson PUBLIC
     lua51static
