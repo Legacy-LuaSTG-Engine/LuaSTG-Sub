@@ -17,6 +17,6 @@
 #define GLOBAL_SCALE_COLLI_SHAPE // BAKACHU
 #define USING_MULTI_GAME_WORLD // BAKAESC
 #define USING_ADVANCE_GAMEOBJECT_CLASS // aloow render a object directly (no render callback)
-//#define USING_CTRL_ENTER_SWITCH // allow ctrl+enter switch between windowed and fullscreen
+#define USING_CTRL_ENTER_SWITCH // allow ctrl+enter switch between windowed and fullscreen
 #define USING_DEAR_IMGUI
 #define USING_CONSOLE_OUTPUT
