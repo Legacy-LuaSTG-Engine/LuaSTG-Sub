@@ -102,6 +102,22 @@ function GameInit()
     lstg.LoadImage("img:particle1", "tex:particles", 0, 0, 32, 32)
     lstg.LoadPS("ps:1", "res/ghost_fire_1.psi", "img:particle1")
     ps = lstg.ParticleSystemInstance("ps:1")
+
+    local cjson = require("cjson")
+    lstg.Print(cjson.encode({hello="world"}))
+    lstg.Print(cjson.decode("{\"hello\": \"world\"}").hello)
+
+    lstg.FileManager.CreateDirectory("测试test")
+    lstg.FileManager.CreateDirectory("测试test2\\")
+    lstg.FileManager.CreateDirectory("测试test3/")
+    lstg.FileManager.CreateDirectory("第一层/第二层/第三层/第四层/第五层/第六层/第七层/第八层/第九层/第十层")
+    lstg.FileManager.CreateDirectory("第1层/第2层/第3层/第4层/第5层/第6层/第7层/第8层/第9层/第10层")
+
+    lstg.FileManager.RemoveDirectory("测试test")
+    lstg.FileManager.RemoveDirectory("测试test2\\")
+    lstg.FileManager.RemoveDirectory("测试test3/")
+    lstg.FileManager.RemoveDirectory("第一层")
+    lstg.FileManager.RemoveDirectory("第1层/")
 end
 function GameExit()
 end
@@ -217,7 +233,3 @@ function RenderTTF3(ttfname, text, x, y, rot, hscale, vscale, blend, color, ...)
 
     return x2, y2
 end
-
-local cjson = require("cjson")
-lstg.Print(cjson.encode({hello="world"}))
-lstg.Print(cjson.decode("{\"hello\": \"world\"}").hello)
