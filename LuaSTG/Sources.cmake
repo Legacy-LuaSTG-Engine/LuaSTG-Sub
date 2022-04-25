@@ -64,6 +64,8 @@ set(LUASTG_ENGINE_SOURCES
     src/SteamAPI/SteamAPI.cpp
     src/SteamAPI/SteamAPI.hpp
     
+    src/AdapterPolicy.hpp
+    src/AdapterPolicy.cpp
     src/AppFrame.cpp
     src/AppFrame.h
     src/AppFrameFontRenderer.cpp
