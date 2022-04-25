@@ -142,6 +142,7 @@ namespace LuaSTGPlus
 		fInt GetMouseWheelDelta()LNOEXCEPT;
 		
 		/// @brief 检查鼠标是否按下
+		fBool GetMouseState_legacy(int button) LNOEXCEPT;
 		fBool GetMouseState(int button) LNOEXCEPT;
 		
 		void OpenInput();

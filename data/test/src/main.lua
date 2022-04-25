@@ -138,6 +138,26 @@ function RenderFunc()
     lstg.ClearZBuffer(1.0)
 
     set_camera()
+
+    local k = lstg.Input.Keyboard
+    local m = lstg.Input.Mouse
+    
+    local kk1 = k.GetKeyState(k.X)
+    local mk1, mk2, mk3, mk4, mk5 = m.GetKeyState(m.Left), m.GetKeyState(m.Middle), m.GetKeyState(m.Right), m.GetKeyState(m.X1), m.GetKeyState(m.X2)
+    local mx1, my1 = lstg.Input.Mouse.GetPosition()
+    local mx2, my2 = lstg.Input.Mouse.GetPosition(true)
+    local mz = lstg.Input.Mouse.GetWheelDelta()
+
+    local st = string.format("%s\n%s, %s, %s, %s, %s\n%.2f, %.2f\n%.2f, %.2f\n%.2f",
+        kk1,
+        mk1, mk2, mk3, mk4, mk5,
+        mx1, my1,
+        mx2, my2,
+        mz
+    )
+
+    lstg.RenderTTF("Sans", st, 0, 0, 720, 720, 0 + 0, lstg.Color(255, 0, 0, 0), 2)
+
     --lstg.RenderTTF("Sans", "您好，别来无恙啊！", 0, 0, 720, 720, 0 + 0, lstg.Color(255, 0, 0, 0), 2)
 
     --RenderTTF3(
