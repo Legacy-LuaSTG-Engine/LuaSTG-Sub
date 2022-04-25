@@ -235,7 +235,7 @@ namespace LuaSTGPlus
         m_InputTextBuffer.clear();
     }
     
-    fBool AppFrame::GetMouseState(int button)LNOEXCEPT
+    fBool AppFrame::GetMouseState_legacy(int button)LNOEXCEPT
     {
         switch (button)
         {
@@ -248,6 +248,24 @@ namespace LuaSTGPlus
         case 3:
             return MouseState.xButton1;
         case 4:
+            return MouseState.xButton2;
+        default:
+            return false;
+        }
+    }
+    fBool AppFrame::GetMouseState(int button)LNOEXCEPT
+    {
+        switch (button)
+        {
+        case VK_LBUTTON:
+            return MouseState.leftButton;
+        case VK_MBUTTON:
+            return MouseState.middleButton;
+        case VK_RBUTTON:
+            return MouseState.rightButton;
+        case VK_XBUTTON1:
+            return MouseState.xButton1;
+        case VK_XBUTTON2:
             return MouseState.xButton2;
         default:
             return false;

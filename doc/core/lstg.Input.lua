@@ -42,8 +42,8 @@
 -- If necessary, please use LuaSTG Ex Plus
 
 --------------------------------------------------------------------------------
---- 输入获取
---- input query
+--- 兼容性 API
+--- Compatibility API
 
 --- 获取键盘按键状态  
 --- Get keyboard key state  
@@ -59,7 +59,9 @@ function lstg.GetMousePosition()
 end
 
 --- 0、1、2 分别代表鼠标左、中、右键  
+--- 3、4 分别代表鼠标 X1、X2 功能键  
 --- 0, 1, 2 Represents the left, middle, and right mouse buttons  
+--- 3, 4 Represents the X1, X2 mouse buttons  
 ---@param index number
 ---@return boolean
 function lstg.GetMouseState(index)
@@ -79,3 +81,15 @@ end
 ---@return number
 function lstg.GetLastKey()
 end
+
+--------------------------------------------------------------------------------
+--- 键盘与鼠标
+--- Keyboard and mouse
+
+---@class lstg.Input
+local M = {}
+
+M.Keyboard = require("lstg.Input.Keyboard")
+M.Mouse = require("lstg.Input.Mouse")
+
+return M
