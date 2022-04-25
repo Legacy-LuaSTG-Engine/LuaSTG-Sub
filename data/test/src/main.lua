@@ -158,6 +158,11 @@ function RenderFunc()
 
     lstg.RenderTTF("Sans", st, 0, 0, 720, 720, 0 + 0, lstg.Color(255, 0, 0, 0), 2)
 
+    local va, vb, vc = lstg.GetVersionNumber()
+
+    lstg.RenderTTF("Sans", string.format("%d.%d.%d", va, vb, vc), 0, 0, 64, 64, 0 + 8, lstg.Color(255, 0, 0, 0), 2)
+    lstg.RenderTTF("Sans", lstg.GetVersionName(), 0, 0, 0, 0, 0 + 8, lstg.Color(255, 0, 0, 0), 2)
+
     --lstg.RenderTTF("Sans", "您好，别来无恙啊！", 0, 0, 720, 720, 0 + 0, lstg.Color(255, 0, 0, 0), 2)
 
     --RenderTTF3(

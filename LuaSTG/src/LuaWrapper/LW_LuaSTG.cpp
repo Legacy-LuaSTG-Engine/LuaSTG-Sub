@@ -1,5 +1,6 @@
 ﻿#include "LuaWrapper/LuaWrapper.hpp"
 #include "AppFrame.h"
+#include "LConfig.h"
 
 void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 {
@@ -7,6 +8,18 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 	{
 		#pragma region 框架函数
 		// 框架函数
+		static int GetVersionNumber(lua_State* L) noexcept
+		{
+			lua_pushinteger(L, LUASTG_VERSION_MAJOR);
+			lua_pushinteger(L, LUASTG_VERSION_MINOR);
+			lua_pushinteger(L, LUASTG_VERSION_PATCH);
+			return 3;
+		}
+		static int GetVersionName(lua_State* L) noexcept
+		{
+			lua_pushstring(L, LUASTG_INFO);
+			return 1;
+		}
 		static int SetWindowed(lua_State* L)LNOEXCEPT
 		{
 			LAPP.SetWindowed(lua_toboolean(L, 1) == 0 ? false : true);
@@ -284,6 +297,8 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 	
 	luaL_Reg tFunctions[] = {
 		#pragma region 框架函数
+		{ "GetVersionNumber", &WrapperImplement::GetVersionNumber },
+		{ "GetVersionName", &WrapperImplement::GetVersionName },
 		{ "SetWindowed", &WrapperImplement::SetWindowed },
 		{ "SetFPS", &WrapperImplement::SetFPS },
 		{ "GetFPS", &WrapperImplement::GetFPS },
