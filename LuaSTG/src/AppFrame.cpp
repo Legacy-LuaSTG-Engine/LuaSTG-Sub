@@ -7,16 +7,10 @@
 #include "LuaWrapper/LuaAppFrame.hpp"
 #include "LConfig.h"
 #include "Core/FileManager.hpp"
+#include "AdapterPolicy.hpp"
 
 #define NOMINMAX
 #include <Windows.h>
-
-// https://developer.download.nvidia.cn/devzone/devcenter/gamegraphics/files/OptimusRenderingPolicies.pdf
-extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000000;
-
-// https://gpuopen.com/learn/amdpowerxpressrequesthighperformance/
-extern "C" __declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 0x00000000;
-
 
 class f2dGraphic2dAdapter
 	: public f2dGraphics2D
@@ -212,16 +206,7 @@ void AppFrame::SetPreferenceGPU(const char* v, bool dGPU_trick)LNOEXCEPT
 	try
 	{
 		m_OptionGPU = std::move(fcyStringHelper::MultiByteToWideChar(v));
-		if (dGPU_trick)
-		{
-			NvOptimusEnablement = 0x00000001;
-			AmdPowerXpressRequestHighPerformance = 0x00000001;
-		}
-		else
-		{
-			NvOptimusEnablement = 0x00000000;
-			AmdPowerXpressRequestHighPerformance = 0x00000000;
-		}
+		SetAdapterPolicy(dGPU_trick);
 	}
 	catch (const std::bad_alloc&)
 	{
