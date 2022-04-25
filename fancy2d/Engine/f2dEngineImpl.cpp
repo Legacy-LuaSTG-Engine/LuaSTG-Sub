@@ -71,19 +71,15 @@ fuInt f2dEngineImpl::UpdateAndRenderThread::ThreadJob()
 {
 	// 线程相关设置
 	//SetThreadAffinityMask(GetCurrentThread(), 1);
-	SetThreadPriority((HANDLE)GetHandle(), THREAD_PRIORITY_HIGHEST);
+	SetThreadPriority((HANDLE)GetHandle(), THREAD_PRIORITY_TIME_CRITICAL);
 
-	// 初始化计数器和FPS控制器
-	fcyStopWatch tTimer;
+	// 初始化FPS控制器
 	f2dFPSControllerImpl tFPSController(m_MaxFPS);
 
 	// 获得渲染设备
 	f2dRenderDevice* tpRenderDev = NULL;
 	if(m_pEngine->GetRenderer())
 		tpRenderDev = m_pEngine->GetRenderer()->GetDevice();
-
-	// 开始计时
-	tTimer.Reset();
 
 	// 执行渲染更新循环
 	fcyCriticalSection& tLock = m_pEngine->m_Sec;
@@ -107,7 +103,7 @@ fuInt f2dEngineImpl::UpdateAndRenderThread::ThreadJob()
 		((f2dRenderDevice11*)tpRenderDev)->WaitDevice();
 
 		// 更新FPS
-		tTime = tFPSController.Update(tTimer);
+		tTime = tFPSController.Update();
 		
 		// 执行显示事件
 		//if(bDoPresent)
@@ -140,12 +136,8 @@ fuInt f2dEngineImpl::UpdateAndRenderThread::ThreadJob()
 
 fuInt f2dEngineImpl::UpdateThread::ThreadJob()
 {
-	// 初始化计数器和FPS控制器
-	fcyStopWatch tTimer;
+	// 初始化FPS控制器
 	f2dFPSControllerImpl tFPSController(m_MaxFPS);
-
-	// 开始计时
-	tTimer.Reset();
 
 	// 执行渲染更新循环
 	fcyCriticalSection& tLock = m_pEngine->m_Sec;
@@ -162,7 +154,7 @@ fuInt f2dEngineImpl::UpdateThread::ThreadJob()
 			break;
 
 		// 更新FPS
-		tTime = tFPSController.Update(tTimer);
+		tTime = tFPSController.Update();
 		
 		// 执行更新事件
 		m_pEngine->DoUpdate(tTime, &tFPSController);
@@ -176,17 +168,13 @@ fuInt f2dEngineImpl::UpdateThread::ThreadJob()
 
 fuInt f2dEngineImpl::RenderThread::ThreadJob()
 {
-	// 初始化计数器和FPS控制器
-	fcyStopWatch tTimer;
+	// 初始化FPS控制器
 	f2dFPSControllerImpl tFPSController(m_MaxFPS);
 
 	// 获得渲染设备
 	f2dRenderDevice* tpRenderDev = NULL;
 	if(m_pEngine->GetRenderer())
 		tpRenderDev = m_pEngine->GetRenderer()->GetDevice();
-
-	// 开始计时
-	tTimer.Reset();
 
 	// 执行渲染更新循环
 	fcyCriticalSection& tLock = m_pEngine->m_Sec;
@@ -204,7 +192,7 @@ fuInt f2dEngineImpl::RenderThread::ThreadJob()
 			break;
 
 		// 更新FPS
-		tTime = tFPSController.Update(tTimer);
+		tTime = tFPSController.Update();
 
 		// 执行显示事件
 		if(bDoPresent)
@@ -437,21 +425,16 @@ fResult f2dEngineImpl::SendMsg(const f2dMsg& Msg, f2dInterface* pMemObj)
 void f2dEngineImpl::Run_SingleThread(fuInt UpdateMaxFPS)
 {
 	// 线程相关设置
-	SetThreadAffinityMask(GetCurrentThread(), 1);
+	//SetThreadAffinityMask(GetCurrentThread(), 1);
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
 
-	// 初始化计数器和FPS控制器
-	fcyStopWatch tTimer;
-	fcyStopWatch tMsgTimer;
+	// 初始化FPS控制器
 	f2dFPSControllerImpl tFPSController(UpdateMaxFPS);
 
 	// 获得渲染设备
 	f2dRenderDevice* tpRenderDev = NULL;
 	if(m_pRenderer)
 		tpRenderDev = m_pRenderer->GetDevice();
-
-	// 开始计时
-	tTimer.Reset();
 
 	// 执行程序循环
 	fBool bExit = false;
@@ -468,11 +451,10 @@ void f2dEngineImpl::Run_SingleThread(fuInt UpdateMaxFPS)
 		if(bExit)
 			break;
 		
-		tTime = tFPSController.Update(tTimer);
+		tTime = tFPSController.Update();
 		
 		// 应用程序消息处理
 		{
-			//tMsgTimer.Reset();
 			if(PeekMessageW(&tMsg, 0, 0, 0, PM_REMOVE))
 			{
 				TranslateMessage(&tMsg);
@@ -482,16 +464,7 @@ void f2dEngineImpl::Run_SingleThread(fuInt UpdateMaxFPS)
 				if(tMsg.message == WM_QUIT)
 					SendMsg(F2DMSG_APP_ONEXIT);
 			}
-			//tMsgTime = tMsgTimer.GetElapsed();
 		}
-		
-		// 更新FPS
-		//tTime = tFPSController.Update(tTimer) - tMsgTime;  // 修正由于处理消息额外耗费的时间
-		
-		
-		// 执行显示事件
-		//if(bDoPresent)
-			//DoPresent(tpRenderDev);
 		
 		// 执行更新事件
 		DoUpdate(tTime, &tFPSController);

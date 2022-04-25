@@ -33,28 +33,28 @@ struct f2dCPUInfo
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dFPSController
 {
-	/// @brief 返回最大FPS
-	/// @note  0表示不限制
+	// 返回最大FPS
 	virtual fuInt GetLimitedFPS()=0;
 	
-	/// @brief 设置最大FPS
-	/// @param iMaxFPS 最大FPS
+	// 设置最大FPS
 	virtual void SetLimitedFPS(fuInt iMaxFPS)=0;
 	
-	/// @brief 返回FPS
+	// 返回FPS
 	virtual fDouble GetFPS()=0;
 
-	/// @brief 返回总帧数
+	// 返回总帧数
 	virtual fuInt GetTotalFrame()=0;
 	
-	/// @brief 返回运行总时间
-	/// @note  以秒为单位
+	// 返回运行总时间，以秒为单位
 	virtual fDouble GetTotalTime()=0;
 	
-	/// @brief 返回平均FPS
+	// 返回平均FPS
 	virtual fDouble GetAvgFPS()=0;
 	
-	/// @brief 返回最大FPS
+	// 返回最小FPS
+	virtual fDouble GetMinFPS() = 0;
+
+	// 返回最大FPS
 	virtual fDouble GetMaxFPS()=0;
 };
 

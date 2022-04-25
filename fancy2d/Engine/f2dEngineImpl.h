@@ -6,6 +6,7 @@
 #include <fcyRefObj.h>
 #include <fcyIO/fcyStream.h>
 #include <fcyOS/fcyMultiThread.h>
+#include <fcyMisc/fcyStopWatch.h>
 
 #include "Engine/f2dFPSControllerImpl.h"
 #include "Engine/f2dMsgPumpImpl.h"
