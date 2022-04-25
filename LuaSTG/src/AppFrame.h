@@ -55,6 +55,7 @@ namespace LuaSTGPlus
 		std::wstring m_OptionTitle = L"" LUASTG_INFO;
 		bool m_OptionCursor = true;
 		fDouble m_fFPS = 0.;
+		fDouble m_fAvgFPS = 0.;
 		fFloat m_gSEVol = 1.0f;
 		fFloat m_gBGMVol = 1.0f;
 
@@ -169,7 +170,7 @@ namespace LuaSTGPlus
 		void SetFPS(fuInt v)LNOEXCEPT;
 		
 		/// @brief 获取当前的FPS
-		double GetFPS()LNOEXCEPT { return m_fFPS; }
+		double GetFPS()LNOEXCEPT { return m_fAvgFPS; }
 		
 		//读取资源包中的文本文件
 		//也能读取其他类型的文件，但是会得到无意义的结果

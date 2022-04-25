@@ -694,8 +694,6 @@ void AppFrame::Run()LNOEXCEPT
 	assert(m_iStatus == AppStatus::Initialized);
 	spdlog::info("[luastg] 开始更新&渲染循环");
 	
-	m_fFPS = 0.f;
-	
 	m_pEngine->Run(F2DENGTHREADMODE_MULTITHREAD, m_OptionFPSLimit);
 	
 	spdlog::info("[luastg] 结束更新&渲染循环");
@@ -707,7 +705,8 @@ void AppFrame::Run()LNOEXCEPT
 
 fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, f2dMsgPump* pMsgPump)
 {
-	m_fFPS = (float)pFPSController->GetFPS();
+	m_fFPS = pFPSController->GetFPS();
+	m_fAvgFPS = pFPSController->GetAvgFPS();
 	pFPSController->SetLimitedFPS(m_OptionFPSLimit);
 	
 	m_LastKey = 0;

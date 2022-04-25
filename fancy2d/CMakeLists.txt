@@ -23,6 +23,7 @@ set(FANCY2D_SOURCE
 
     Engine/f2dMsgPumpImpl.h
     Engine/f2dFPSControllerImpl.h
+    Engine/f2dFPSControllerImpl.cpp
     Engine/f2dEngineImpl.h
     Engine/f2dEngineImpl.cpp
     Engine/f2dFileSysImpl.h
