@@ -454,15 +454,16 @@ void f2dEngineImpl::Run_SingleThread(fuInt UpdateMaxFPS)
 		tTime = tFPSController.Update();
 		
 		// 应用程序消息处理
+		while (PeekMessageW(&tMsg, 0, 0, 0, PM_REMOVE))
 		{
-			if(PeekMessageW(&tMsg, 0, 0, 0, PM_REMOVE))
+			if (tMsg.message == WM_QUIT)
+			{
+				SendMsg(F2DMSG_APP_ONEXIT);
+			}
+			else
 			{
 				TranslateMessage(&tMsg);
 				DispatchMessageW(&tMsg);
-
-				// 发送退出消息
-				if(tMsg.message == WM_QUIT)
-					SendMsg(F2DMSG_APP_ONEXIT);
 			}
 		}
 		
