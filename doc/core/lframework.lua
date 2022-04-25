@@ -15,6 +15,26 @@
 -- 窗口化则不需要传递刷新率参数
 
 --------------------------------------------------------------------------------
+--- 版本信息
+--- Version Informations
+
+--- [LuaSTG Sub v0.15.6 新增]  
+--- 获取引擎版本号，分别代表 major、minor、patch  
+--- [LuaSTG Sub v0.15.6 Add]  
+--- Get the engine version numbers, representing major, minor, patch  
+---@return number, number, number
+function lstg.GetVersionNumber()
+end
+
+--- [LuaSTG Sub v0.15.6 新增]  
+--- 获取引擎版本友好名称，例如：LuaSTG Sub v0.10.0-beta  
+--- [LuaSTG Sub v0.15.6 Add]  
+--- Get the engine version friendly name, for example: LuaSTG Sub v0.10.0-beta  
+---@return number, number, number
+function lstg.GetVersionName()
+end
+
+--------------------------------------------------------------------------------
 --- 输出日志
 
 --- 输出一条日志
