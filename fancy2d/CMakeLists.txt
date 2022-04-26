@@ -90,6 +90,7 @@ source_group(TREE ${CMAKE_CURRENT_LIST_DIR} PREFIX fancy2d FILES ${FANCY2D_SOURC
 add_library(fancy2dlib STATIC)
 
 luastg_target_common_options(fancy2dlib)
+luastg_target_more_warning(fancy2dlib)
 
 target_compile_definitions(fancy2dlib PRIVATE
     ____EMPTY_0000_0000_0000_0000____
@@ -130,6 +131,7 @@ if(FALSE)
     add_library(fancy2d SHARED)
 
     luastg_target_common_options(fancy2d)
+    luastg_target_more_warning(fancy2d)
 
     target_compile_definitions(fancy2d PRIVATE
         ____EMPTY_0000_0000_0000_0000____

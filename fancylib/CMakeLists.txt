@@ -55,6 +55,7 @@ source_group(TREE ${CMAKE_CURRENT_LIST_DIR} PREFIX fancylib FILES ${fancylib_src
 
 add_library(fancylib STATIC)
 luastg_target_common_options(fancylib)
+luastg_target_more_warning(fancylib)
 target_include_directories(fancylib PUBLIC
     .
 )

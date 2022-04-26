@@ -1,6 +1,7 @@
 
 add_executable(LuaSTGConfig WIN32)
 luastg_target_common_options(LuaSTGConfig)
+luastg_target_more_warning(LuaSTGConfig)
 target_precompile_headers(LuaSTGConfig PRIVATE
     pch.h
 )
