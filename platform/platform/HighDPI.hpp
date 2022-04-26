@@ -5,7 +5,7 @@ namespace platform
 	class HighDPI
 	{
 	public:
-		static void enable();
+		static void Enable();
 		static BOOL EnableNonClientDpiScaling(HWND hWnd);
 		static BOOL AdjustWindowRectExForDpi(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
 		static UINT GetDpiForSystem();

@@ -59,7 +59,7 @@ namespace platform
 			return api_;
 		}
 	}
-	void HighDPI::enable()
+	void HighDPI::Enable()
 	{
 		if (loader().api_SetProcessDpiAwarenessContext)
 		{
