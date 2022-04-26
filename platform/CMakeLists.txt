@@ -19,6 +19,8 @@ set(platform_sources
     platform/KnownDirectory.cpp
     platform/CommandLine.hpp
     platform/CommandLine.cpp
+    platform/Monitor.hpp
+    platform/Monitor.cpp
     platform/WindowSizeMoveController.hpp
     platform/WindowSizeMoveController.cpp
     platform/DirectInput.hpp
