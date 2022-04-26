@@ -15,6 +15,7 @@ endif()
 
 add_library(LuaSTGCore STATIC)
 luastg_target_common_options(LuaSTGCore)
+luastg_target_more_warning(LuaSTGCore)
 target_precompile_headers(LuaSTGCore PRIVATE
     Backend/framework.hpp
 )
@@ -54,6 +55,7 @@ target_link_libraries(LuaSTGCore PUBLIC
 
 add_executable(LuaSTG WIN32)
 luastg_target_common_options(LuaSTG)
+luastg_target_more_warning(LuaSTG)
 
 target_precompile_headers(LuaSTG PRIVATE
     pch/pch.h # common header

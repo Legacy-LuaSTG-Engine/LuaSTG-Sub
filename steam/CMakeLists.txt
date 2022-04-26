@@ -31,6 +31,7 @@ endif()
 # binding
 
 add_library(lua_steam_api STATIC)
+luastg_target_more_warning(lua_steam_api)
 set_target_properties(lua_steam_api PROPERTIES
     C_STANDARD 11
     C_STANDARD_REQUIRED ON
@@ -77,6 +78,7 @@ set_target_properties(lua_steam_api PROPERTIES FOLDER lualib)
 
 if(FALSE)
     add_library(steam SHARED)
+    luastg_target_more_warning(steam)
     set_target_properties(steam PROPERTIES
         C_STANDARD 11
         C_STANDARD_REQUIRED ON

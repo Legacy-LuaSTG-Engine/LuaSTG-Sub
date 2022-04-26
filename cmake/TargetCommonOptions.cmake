@@ -2,7 +2,6 @@ function(luastg_target_common_options __TARGET__)
     target_compile_options(${__TARGET__} PRIVATE
         "/MP"
         "/utf-8"
-        "/W4"
     )
     if(CMAKE_SIZEOF_VOID_P EQUAL 4)
         target_compile_options(${__TARGET__} PRIVATE
@@ -25,7 +24,6 @@ function(luastg_target_common_options2 __TARGET__)
     target_compile_options(${__TARGET__} PRIVATE
         "/MP"
         "/utf-8"
-        "/W4"
     )
     if(CMAKE_SIZEOF_VOID_P EQUAL 4)
         target_compile_options(${__TARGET__} PRIVATE
@@ -37,6 +35,12 @@ function(luastg_target_common_options2 __TARGET__)
         C_STANDARD_REQUIRED ON
         CXX_STANDARD 20
         CXX_STANDARD_REQUIRED ON
+    )
+endfunction()
+
+function(luastg_target_more_warning __TARGET__)
+    target_compile_options(${__TARGET__} PRIVATE
+        "/W4"
     )
 endfunction()
 

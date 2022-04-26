@@ -83,6 +83,7 @@ set_target_properties(imgui_impl_dx11 PROPERTIES FOLDER external)
 
 add_library(imgui_impl_win32ex STATIC)
 luastg_target_common_options(imgui_impl_win32ex)
+luastg_target_more_warning(imgui_impl_win32ex)
 target_include_directories(imgui_impl_win32ex PUBLIC
     backend
 )
@@ -115,6 +116,7 @@ set_target_properties(imgui_impl_win32 PROPERTIES FOLDER external)
 
 add_library(lua_imgui STATIC)
 luastg_target_common_options(lua_imgui)
+luastg_target_more_warning(lua_imgui)
 target_include_directories(lua_imgui PUBLIC
     binding/include
 )

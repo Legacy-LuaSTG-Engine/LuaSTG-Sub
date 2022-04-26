@@ -1,6 +1,7 @@
 
 add_library(utility STATIC)
 luastg_target_common_options(utility)
+luastg_target_more_warning(utility)
 target_include_directories(utility PUBLIC .)
 set(utility_sources
     utility/encoding.hpp

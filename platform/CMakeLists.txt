@@ -1,5 +1,6 @@
 add_library(platform STATIC)
 luastg_target_common_options(platform)
+luastg_target_more_warning(platform)
 target_include_directories(platform PUBLIC
     .
 )
