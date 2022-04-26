@@ -335,7 +335,6 @@ static void ImGui_ImplWin32Ex_UpdateMouseData()
 }
 static bool ImGui_ImplWin32Ex_MapMouseCursor(LPWSTR* outValue)
 {
-    ImGui_ImplWin32Ex_Data* bd = ImGui_ImplWin32Ex_GetBackendData();
     ImGuiIO& io = ImGui::GetIO();
     if (io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange)
         return false;
@@ -432,6 +431,7 @@ static void ImGui_ImplWin32Ex_UpdateGamepads()
 }
 static void ImGui_ImplWin32Ex_UpdateIME(ImGuiViewport* viewport, ImGuiPlatformImeData* data)
 {
+    std::ignore = viewport; // We only have one window
     ImGui_ImplWin32Ex_Data* bd = ImGui_ImplWin32Ex_GetBackendData();
     ::PostMessageW(bd->hWnd, MSG_SET_IME_POS, (WPARAM)(LONG)data->InputPos.x, (LPARAM)(LONG)data->InputPos.y);
 }
@@ -536,7 +536,6 @@ static void ImGui_ImplWin32Ex_ProcessMessage()
                         if (IsVkDown(VK_RMENU) == is_key_down) { ImGui_ImplWin32Ex_AddKeyEvent(ImGuiKey_RightAlt, is_key_down, VK_RMENU, scancode); }
                     }
                 }
-                return 0;
             }
             return true;
         case WM_SETFOCUS:
@@ -689,7 +688,6 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32Ex_WndProcHandler(HWND hWnd, UINT uMsg, WP
     if (!ImGui::GetCurrentContext())
         return 0;
 
-    ImGuiIO& io = ImGui::GetIO();
     ImGui_ImplWin32Ex_Data* bd = ImGui_ImplWin32Ex_GetBackendData();
     if (!bd || bd->hWnd != hWnd)
         return 0;
