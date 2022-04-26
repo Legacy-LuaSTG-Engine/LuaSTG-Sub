@@ -1,6 +1,7 @@
 #include "lua_imgui_common.hpp"
 #include "lua_imgui_type.hpp"
 #include "lua_imgui_hash.hpp"
+#include <tuple>
 
 struct __ImVec2
 {
@@ -284,7 +285,7 @@ void imgui_binding_lua_register_array_ImVec4(lua_State* L)
         {
             __array_ImVec4* p = (__array_ImVec4*)luaL_checkudata(L, 1, imgui_binding_lua_class_array_ImVec4);
             const auto idx = luaL_checkinteger(L, 2);
-            if(idx >= 0 && idx < p->size)
+            if(idx >= 0 && (size_t)idx < p->size)
             {
                 imgui_binding_lua_ref_ImVec4(L, &p->data[idx]);
                 return 1;
@@ -298,7 +299,7 @@ void imgui_binding_lua_register_array_ImVec4(lua_State* L)
         {
             __array_ImVec4* p = (__array_ImVec4*)luaL_checkudata(L, 1, imgui_binding_lua_class_array_ImVec4);
             const auto idx = luaL_checkinteger(L, 2);
-            if(idx >= 0 && idx < p->size)
+            if(idx >= 0 && (size_t)idx < p->size)
             {
                 p->data[idx] = *imgui_binding_lua_to_ImVec4(L, 3);
                 return 0;
@@ -328,6 +329,7 @@ void imgui_binding_lua_register_array_ImVec4(lua_State* L)
         
         static int create(lua_State* L)
         {
+            std::ignore = L;
             return 0;
         };
     };

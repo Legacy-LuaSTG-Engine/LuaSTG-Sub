@@ -225,8 +225,8 @@ static int lib_SliderInt(lua_State* L)
     const int argc = lua_gettop(L);
     const char* label = luaL_checkstring(L, 1);
     int v = (int)luaL_checkinteger(L, 2);
-    const int v_min = (float)luaL_checkinteger(L, 3);
-    const int v_max = (float)luaL_checkinteger(L, 4);
+    const int v_min = (int)luaL_checkinteger(L, 3);
+    const int v_max = (int)luaL_checkinteger(L, 4);
     bool ret = false;
     if (argc <= 4)
     {
@@ -255,8 +255,8 @@ static int lib_SliderInt2(lua_State* L)
     const int argc = lua_gettop(L);
     const char* label = luaL_checkstring(L, 1);
     int v[N] = {};
-    const int v_min = (float)luaL_checkinteger(L, 3);
-    const int v_max = (float)luaL_checkinteger(L, 4);
+    const int v_min = (int)luaL_checkinteger(L, 3);
+    const int v_max = (int)luaL_checkinteger(L, 4);
     bool ret = false;
 
     for (int idx = 0; idx < N; idx += 1)
@@ -305,8 +305,8 @@ static int lib_SliderInt3(lua_State* L)
     const int argc = lua_gettop(L);
     const char* label = luaL_checkstring(L, 1);
     int v[N] = {};
-    const int v_min = (float)luaL_checkinteger(L, 3);
-    const int v_max = (float)luaL_checkinteger(L, 4);
+    const int v_min = (int)luaL_checkinteger(L, 3);
+    const int v_max = (int)luaL_checkinteger(L, 4);
     bool ret = false;
 
     for (int idx = 0; idx < N; idx += 1)
@@ -355,8 +355,8 @@ static int lib_SliderInt4(lua_State* L)
     const int argc = lua_gettop(L);
     const char* label = luaL_checkstring(L, 1);
     int v[N] = {};
-    const int v_min = (float)luaL_checkinteger(L, 3);
-    const int v_max = (float)luaL_checkinteger(L, 4);
+    const int v_min = (int)luaL_checkinteger(L, 3);
+    const int v_max = (int)luaL_checkinteger(L, 4);
     bool ret = false;
 
     for (int idx = 0; idx < N; idx += 1)
@@ -601,8 +601,8 @@ static int lib_VSliderInt(lua_State* L)
     const char* label = luaL_checkstring(L, 1);
     ImVec2* size = imgui_binding_lua_to_ImVec2(L, 2);
     int v = (int)luaL_checkinteger(L, 3);
-    const int v_min = (float)luaL_checkinteger(L, 4);
-    const int v_max = (float)luaL_checkinteger(L, 5);
+    const int v_min = (int)luaL_checkinteger(L, 4);
+    const int v_max = (int)luaL_checkinteger(L, 5);
     bool ret = false;
     if (argc <= 5)
     {
@@ -637,19 +637,19 @@ static int lib_VSliderScalar(lua_State* L)
         const lua_Integer max_ = luaL_checkinteger(L, 6);
         if (argc <= 6)
         {
-            ret = ImGui::SliderScalar(label, data_type, &data, &min_, &max_);
+            ret = ImGui::VSliderScalar(label, *size, data_type, &data, &min_, &max_);
         }
         else if (argc == 6)
         {
             const char* format = luaL_checkstring(L, 7);
-            ret = ImGui::SliderScalar(label, data_type, &data,
+            ret = ImGui::VSliderScalar(label, *size, data_type, &data,
                 &min_, &max_, format);
         }
         else
         {
             const char* format = luaL_checkstring(L, 7);
             const ImGuiSliderFlags flags = (ImGuiSliderFlags)luaL_checkinteger(L, 8);
-            ret = ImGui::SliderScalar(label, data_type, &data,
+            ret = ImGui::VSliderScalar(label, *size, data_type, &data,
                 &min_, &max_, format, flags);
         }
         lua_pushboolean(L, ret);
@@ -663,19 +663,19 @@ static int lib_VSliderScalar(lua_State* L)
         const lua_Number max_ = luaL_checknumber(L, 6);
         if (argc <= 6)
         {
-            ret = ImGui::SliderScalar(label, data_type, &data, &min_, &max_);
+            ret = ImGui::VSliderScalar(label, *size, data_type, &data, &min_, &max_);
         }
         else if (argc == 7)
         {
             const char* format = luaL_checkstring(L, 7);
-            ret = ImGui::SliderScalar(label, data_type, &data,
+            ret = ImGui::VSliderScalar(label, *size, data_type, &data,
                 &min_, &max_, format);
         }
         else
         {
             const char* format = luaL_checkstring(L, 7);
             const ImGuiSliderFlags flags = (ImGuiSliderFlags)luaL_checkinteger(L, 8);
-            ret = ImGui::SliderScalar(label, data_type, &data,
+            ret = ImGui::VSliderScalar(label, *size, data_type, &data,
                 &min_, &max_, format, flags);
         }
         lua_pushboolean(L, ret);

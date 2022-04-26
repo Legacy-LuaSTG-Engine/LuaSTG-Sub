@@ -2,6 +2,7 @@
 #include "lua_imgui_ImGui.hpp"
 #include "lua_imgui_type.hpp"
 #include <cstdint>
+#include <tuple>
 #include "imgui.h"
 
 template<typename T>
@@ -63,7 +64,7 @@ static /* XXXX */ int lib_SetCurrentContext(lua_State* L)
 
 static /* !!!! */ int lib_GetIO(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 static int lib_GetStyle(lua_State* L)
 {
@@ -72,22 +73,25 @@ static int lib_GetStyle(lua_State* L)
 }
 static int lib_NewFrame(lua_State* L)
 {
+    std::ignore = L;
     ImGui::NewFrame();
     return 0;
 }
 static int lib_EndFrame(lua_State* L)
 {
+    std::ignore = L;
     ImGui::EndFrame();
     return 0;
 }
 static int lib_Render(lua_State* L)
 {
+    std::ignore = L;
     ImGui::Render();
     return 0;
 }
 static /* !!!! */ int lib_GetDrawData(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 
 //////// Demo, Debug, Information
@@ -180,6 +184,7 @@ static int lib_ShowFontSelector(lua_State* L)
 }
 static int lib_ShowUserGuide(lua_State* L)
 {
+    std::ignore = L;
     ImGui::ShowUserGuide();
     return 0;
 }
@@ -263,6 +268,7 @@ static int lib_Begin(lua_State* L)
 }
 static int lib_End(lua_State* L)
 {
+    std::ignore = L;
     ImGui::End();
     return 0;
 }
@@ -337,6 +343,7 @@ static int lib_BeginChild(lua_State* L)
 }
 static int lib_EndChild(lua_State* L)
 {
+    std::ignore = L;
     ImGui::EndChild();
     return 0;
 }
@@ -387,7 +394,7 @@ static int lib_IsWindowHovered(lua_State* L)
 }
 static /* !!!! */ int lib_GetWindowDrawList(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 static int lib_GetWindowPos(lua_State* L)
 {
@@ -532,6 +539,7 @@ static int lib_SetNextWindowCollapsed(lua_State* L)
 }
 static int lib_SetNextWindowFocus(lua_State* L)
 {
+    std::ignore = L;
     ImGui::SetNextWindowFocus();
     return 0;
 }
@@ -794,10 +802,11 @@ static int lib_SetScrollFromPosY(lua_State* L)
 
 static /* !!!! */ int lib_PushFont(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 static int lib_PopFont(lua_State* L)
 {
+    std::ignore = L;
     ImGui::PopFont();
     return 0;
 }
@@ -875,6 +884,7 @@ static int lib_PushAllowKeyboardFocus(lua_State* L)
 }
 static int lib_PopAllowKeyboardFocus(lua_State* L)
 {
+    std::ignore = L;
     ImGui::PopAllowKeyboardFocus();
     return 0;
 }
@@ -886,6 +896,7 @@ static int lib_PushButtonRepeat(lua_State* L)
 }
 static int lib_PopButtonRepeat(lua_State* L)
 {
+    std::ignore = L;
     ImGui::PopButtonRepeat();
     return 0;
 }
@@ -900,6 +911,7 @@ static int lib_PushItemWidth(lua_State* L)
 }
 static int lib_PopItemWidth(lua_State* L)
 {
+    std::ignore = L;
     ImGui::PopItemWidth();
     return 0;
 }
@@ -930,6 +942,7 @@ static int lib_PushTextWrapPos(lua_State* L)
 }
 static int lib_PopTextWrapPos(lua_State* L)
 {
+    std::ignore = L;
     ImGui::PopTextWrapPos();
     return 0;
 }
@@ -938,7 +951,7 @@ static int lib_PopTextWrapPos(lua_State* L)
 
 static /* !!!! */ int lib_GetFont(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 static int lib_GetFontSize(lua_State* L)
 {
@@ -994,6 +1007,7 @@ static int lib_GetStyleColorVec4(lua_State* L)
 
 static int lib_Separator(lua_State* L)
 {
+    std::ignore = L;
     ImGui::Separator();
     return 0;
 }
@@ -1019,11 +1033,13 @@ static int lib_SameLine(lua_State* L)
 }
 static int lib_NewLine(lua_State* L)
 {
+    std::ignore = L;
     ImGui::NewLine();
     return 0;
 }
 static int lib_Spacing(lua_State* L)
 {
+    std::ignore = L;
     ImGui::Spacing();
     return 0;
 }
@@ -1061,11 +1077,13 @@ static int lib_Unindent(lua_State* L)
 }
 static int lib_BeginGroup(lua_State* L)
 {
+    std::ignore = L;
     ImGui::BeginGroup();
     return 0;
 }
 static int lib_EndGroup(lua_State* L)
 {
+    std::ignore = L;
     ImGui::EndGroup();
     return 0;
 }
@@ -1125,6 +1143,7 @@ static int lib_SetCursorScreenPos(lua_State* L)
 }
 static int lib_AlignTextToFramePadding(lua_State* L)
 {
+    std::ignore = L;
     ImGui::AlignTextToFramePadding();
     return 0;
 }
@@ -1183,6 +1202,7 @@ static int lib_PushID(lua_State* L)
 }
 static int lib_PopID(lua_State* L)
 {
+    std::ignore = L;
     ImGui::PopID();
     return 0;
 }
@@ -1333,11 +1353,11 @@ static int lib_ArrowButton(lua_State* L)
 }
 static /* !!!! */ int lib_Image(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 static /* !!!! */ int lib_ImageButton(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 static int lib_Checkbox(lua_State* L)
 {
@@ -1403,6 +1423,7 @@ static int lib_ProgressBar(lua_State* L)
 }
 static int lib_Bullet(lua_State* L)
 {
+    std::ignore = L;
     ImGui::Bullet();
     return 0;
 }
@@ -1428,6 +1449,7 @@ static int lib_BeginCombo(lua_State* L)
 }
 static int lib_EndCombo(lua_State* L)
 {
+    std::ignore = L;
     ImGui::EndCombo();
     return 0;
 }
@@ -1677,6 +1699,7 @@ static int lib_TreePush(lua_State* L)
 }
 static int lib_TreePop(lua_State* L)
 {
+    std::ignore = L;
     ImGui::TreePop();
     return 0;
 }
@@ -1800,6 +1823,7 @@ static int lib_BeginListBox(lua_State* L)
 }
 static int lib_EndListBox(lua_State* L)
 {
+    std::ignore = L;
     ImGui::EndListBox();
     return 0;
 }
@@ -1927,6 +1951,7 @@ static int lib_BeginMenuBar(lua_State* L)
 }
 static int lib_EndMenuBar(lua_State* L)
 {
+    std::ignore = L;
     ImGui::EndMenuBar();
     return 0;
 }
@@ -1938,6 +1963,7 @@ static int lib_BeginMainMenuBar(lua_State* L)
 }
 static int lib_EndMainMenuBar(lua_State* L)
 {
+    std::ignore = L;
     ImGui::EndMainMenuBar();
     return 0;
 }
@@ -1959,6 +1985,7 @@ static int lib_BeginMenu(lua_State* L)
 }
 static int lib_EndMenu(lua_State* L)
 {
+    std::ignore = L;
     ImGui::EndMenu();
     return 0;
 }
@@ -2006,11 +2033,13 @@ static int lib_MenuItem(lua_State* L)
 
 static int lib_BeginTooltip(lua_State* L)
 {
+    std::ignore = L;
     ImGui::BeginTooltip();
     return 0;
 }
 static int lib_EndTooltip(lua_State* L)
 {
+    std::ignore = L;
     ImGui::EndTooltip();
     return 0;
 }
@@ -2073,6 +2102,7 @@ static int lib_BeginPopupModal(lua_State* L)
 }
 static int lib_EndPopup(lua_State* L)
 {
+    std::ignore = L;
     ImGui::EndPopup();
     return 0;
 }
@@ -2134,6 +2164,7 @@ static int lib_OpenPopupOnItemClick(lua_State* L)
 }
 static int lib_CloseCurrentPopup(lua_State* L)
 {
+    std::ignore = L;
     ImGui::CloseCurrentPopup();
     return 0;
 }
@@ -2262,6 +2293,7 @@ static int lib_BeginTable(lua_State* L)
 }
 static int lib_EndTable(lua_State* L)
 {
+    std::ignore = L;
     ImGui::EndTable();
     return 0;
 }
@@ -2336,6 +2368,7 @@ static int lib_TableSetupScrollFreeze(lua_State* L)
 }
 static int lib_TableHeadersRow(lua_State* L)
 {
+    std::ignore = L;
     ImGui::TableHeadersRow();
     return 0;
 }
@@ -2348,7 +2381,7 @@ static int lib_TableHeader(lua_State* L)
 //////// Tables: Sorting
 static /* !!!! */ int lib_TableGetSortSpecs(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 //////// Tables: Miscellaneous functions
 static int lib_TableGetColumnCount(lua_State* L)
@@ -2455,6 +2488,7 @@ static int lib_Columns(lua_State* L)
 }
 static int lib_NextColumn(lua_State* L)
 {
+    std::ignore = L;
     ImGui::NextColumn();
     return 0;
 }
@@ -2511,6 +2545,7 @@ static int lib_BeginTabBar(lua_State* L)
 }
 static int lib_EndTabBar(lua_State* L)
 {
+    std::ignore = L;
     ImGui::EndTabBar();
     return 0;
 }
@@ -2544,6 +2579,7 @@ static int lib_BeginTabItem(lua_State* L)
 }
 static int lib_EndTabItem(lua_State* L)
 {
+    std::ignore = L;
     ImGui::EndTabItem();
     return 0;
 }
@@ -2598,11 +2634,13 @@ static int lib_LogToClipboard(lua_State* L)
 }
 static int lib_LogFinish(lua_State* L)
 {
+    std::ignore = L;
     ImGui::LogFinish();
     return 0;
 }
 static int lib_LogButtons(lua_State* L)
 {
+    std::ignore = L;
     ImGui::LogButtons();
     return 0;
 }
@@ -2617,31 +2655,31 @@ static int lib_LogText(lua_State* L)
 
 static /* !!!! */ int lib_BeginDragDropSource(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 static /* !!!! */ int lib_SetDragDropPayload(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 static /* !!!! */ int lib_EndDragDropSource(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 static /* !!!! */ int lib_BeginDragDropTarget(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 static /* !!!! */ int lib_AcceptDragDropPayload(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 static /* !!!! */ int lib_EndDragDropTarget(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 static /* !!!! */ int lib_GetDragDropPayload(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 
 //////// Disabling
@@ -2661,6 +2699,7 @@ static int lib_BeginDisabled(lua_State* L)
 }
 static int lib_EndDisabled(lua_State* L)
 {
+    std::ignore = L;
     ImGui::EndDisabled();
     return 0;
 }
@@ -2677,6 +2716,7 @@ static int lib_PushClipRect(lua_State* L)
 }
 static int lib_PopClipRect(lua_State* L)
 {
+    std::ignore = L;
     ImGui::PopClipRect();
     return 0;
 }
@@ -2685,6 +2725,7 @@ static int lib_PopClipRect(lua_State* L)
 
 static int lib_SetItemDefaultFocus(lua_State* L)
 {
+    std::ignore = L;
     ImGui::SetItemDefaultFocus();
     return 0;
 }
@@ -2797,6 +2838,7 @@ static int lib_GetItemRectSize(lua_State* L)
 }
 static int lib_SetItemAllowOverlap(lua_State* L)
 {
+    std::ignore = L;
     ImGui::SetItemAllowOverlap();
     return 0;
 }
@@ -2833,15 +2875,15 @@ static int lib_GetFrameCount(lua_State* L)
 }
 static /* !!!! */ int lib_GetBackgroundDrawList(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 static /* !!!! */ int lib_GetForegroundDrawList(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 static /* !!!! */ int lib_GetDrawListSharedData(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 static int lib_GetStyleColorName(lua_State* L)
 {
@@ -2852,11 +2894,11 @@ static int lib_GetStyleColorName(lua_State* L)
 }
 static /* !!!! */ int lib_SetStateStorage(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 static /* !!!! */ int lib_GetStateStorage(lua_State* L)
 {
-    return 0;
+    LUA_IMGUI_NOT_SUPPORT;
 }
 static int lib_BeginChildFrame(lua_State* L)
 {
@@ -2869,6 +2911,7 @@ static int lib_BeginChildFrame(lua_State* L)
 }
 static int lib_EndChildFrame(lua_State* L)
 {
+    std::ignore = L;
     ImGui::EndChildFrame();
     return 0;
 }
