@@ -12,7 +12,7 @@
 #include "Engine/f2dMsgPumpImpl.h"
 
 #include "Engine/f2dWindowCommonMessage.h"
-#include "Engine/f2dFileSysImpl.h"
+//#include "Engine/f2dFileSysImpl.h"
 #include "Engine/f2dWindowImpl.h"
 
 class f2dWindowImpl;
@@ -96,7 +96,7 @@ private:
 
 	// 长生存期组件
 	f2dWindowClass m_WinClass;
-	f2dFileSysImpl m_FileSys;
+	//f2dFileSysImpl m_FileSys;
 
 	// 组件
 	f2dWindowImpl*   m_pWindow;
@@ -184,7 +184,8 @@ public: // 接口实现
 
 	fcyCriticalSection& GetCriticalSection() { return m_Sec; }
 	f2dWindow* GetMainWindow() { return m_pWindow;   }
-	f2dFileSys* GetFileSys()   { return &m_FileSys;  }
+	//f2dFileSys* GetFileSys()   { return &m_FileSys;  }
+	f2dFileSys* GetFileSys()   { return nullptr;  }
 	f2dSoundSys* GetSoundSys();
 	f2dInputSys* GetInputSys();
 	f2dRenderer* GetRenderer();

@@ -26,8 +26,8 @@ set(FANCY2D_SOURCE
     Engine/f2dFPSControllerImpl.cpp
     Engine/f2dEngineImpl.h
     Engine/f2dEngineImpl.cpp
-    Engine/f2dFileSysImpl.h
-    Engine/f2dFileSysImpl.cpp
+    #Engine/f2dFileSysImpl.h
+    #Engine/f2dFileSysImpl.cpp
     Engine/f2dWindowCommonMessage.h
     Engine/f2dWindowImpl.h
     Engine/f2dWindowImpl.cpp
