@@ -99,11 +99,12 @@ namespace LuaSTG::Core
             BOOL alpha_cull = FALSE;
             FLOAT alpha = 0.5f;
             UINT draw_count = 0;
-            DXGI_FORMAT index_format;
-            D3D11_PRIMITIVE_TOPOLOGY primitive_topology;
+            DXGI_FORMAT index_format = DXGI_FORMAT_R16_UINT;
+            D3D11_PRIMITIVE_TOPOLOGY primitive_topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
             ModelBlock()
             {
                 DirectX::XMStoreFloat4x4(&local_matrix, DirectX::XMMatrixIdentity());
+                DirectX::XMStoreFloat4x4(&local_matrix_normal, DirectX::XMMatrixIdentity());
                 base_color = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
             }
         };
@@ -140,6 +141,7 @@ namespace LuaSTG::Core
             Sunshine()
             {
                 ambient = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f); // full ambient light
+                pos = DirectX::XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
                 dir = DirectX::XMFLOAT4(0.0f, -1.0f, 0.0f, 0.0f);
                 color = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 0.0f); // no directional light
             }
