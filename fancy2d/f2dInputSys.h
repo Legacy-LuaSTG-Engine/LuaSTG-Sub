@@ -43,6 +43,8 @@ struct f2dInputDevice : public f2dInterface
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dInputMouseEventListener
 {
+#pragma warning(disable:4100)
+
 	/// @brief     鼠标X位置移动
 	/// @param[in] Value 移动的相对值
 	virtual void OnMouseMoveX(fInt Value) {}
@@ -80,6 +82,8 @@ struct f2dInputMouseEventListener
 	/// @brief     鼠标额外按键放开
 	/// @param[in] Index 索引，从0开始
 	virtual void OnMouseAdditionBtnUp(fuInt Index) {}
+
+#pragma warning(default:4100)
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -262,6 +266,8 @@ enum F2DINPUTKEYCODE
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dInputKeyboardEventListener
 {
+#pragma warning(disable:4100)
+
 	/// @brief     键盘按键按下
 	/// @param[in] KeyCode 按键代码
 	virtual void OnKeyboardBtnDown(F2DINPUTKEYCODE KeyCode) {}
@@ -269,6 +275,8 @@ struct f2dInputKeyboardEventListener
 	/// @brief     键盘按键放开
 	/// @param[in] KeyCode 按键代码
 	virtual void OnKeyboardBtnUp(F2DINPUTKEYCODE KeyCode) {}
+
+#pragma warning(default:4100)
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -299,6 +307,8 @@ struct f2dInputKeyboard : public f2dInputDevice
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dInputJoystickEventListener
 {
+#pragma warning(disable:4100)
+
 	/// @brief     按钮按下
 	/// @param[in] p     手柄指针
 	/// @param[in] Index 按键索引
@@ -338,6 +348,8 @@ struct f2dInputJoystickEventListener
 	/// @param[in] p     手柄指针
 	/// @param[in] Value 新的位置
 	virtual void OnJoystickZAxisRotationChange(f2dInputJoystick* p, fFloat Value) {}
+
+#pragma warning(default:4100)
 };
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -52,6 +52,8 @@ struct f2dIMECandidateList
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dWindowEventListener
 {
+#pragma warning(disable:4100)
+
 	/// @brief 窗口关闭事件
 	virtual void OnClose() {}
 
@@ -183,6 +185,8 @@ struct f2dWindowEventListener
 	
 	// 系统设备变化
 	virtual void OnDeviceChange() {}
+
+#pragma warning(default:4100)
 };
 
 ////////////////////////////////////////////////////////////////////////////////
