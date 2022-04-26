@@ -207,6 +207,9 @@ set_target_properties(xmath PROPERTIES FOLDER external)
 # ==================== freetype ====================
 
 add_subdirectory(freetype)
+target_compile_options(freetype PRIVATE
+    "/utf-8" # Unicode warning
+)
 set_target_properties(freetype PROPERTIES FOLDER external)
 
 # ==================== xiph ====================
