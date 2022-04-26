@@ -539,7 +539,7 @@ namespace platform
         {
             _LOGDEBUG(L"game controller SetDataFormat failed\n");
         }
-        DIPROPDWORD bufferProperty;
+        DIPROPDWORD bufferProperty{};
         bufferProperty.diph.dwSize = sizeof(DIPROPDWORD);
         bufferProperty.diph.dwHeaderSize = sizeof(DIPROPHEADER);
         bufferProperty.diph.dwObj = 0;
@@ -551,7 +551,7 @@ namespace platform
             _LOGDEBUG(L"game controller SetProperty failed\n");
         }
         
-        DIPROPRANGE axisRange;
+        DIPROPRANGE axisRange{};
         axisRange.diph.dwSize= sizeof(DIPROPRANGE);
         axisRange.diph.dwHeaderSize = sizeof(DIPROPHEADER);
         axisRange.diph.dwHow = DIPH_BYOFFSET;
@@ -664,6 +664,8 @@ namespace platform
     }
     inline void _updateGamepad(IDirectInputDevice8W* device, DIJOYSTATE& state, size_t idx)
     {
+        std::ignore = idx; // using in debug info
+
         DIDEVICEOBJECTDATA data[g_dwControllerBufferSize];
         DWORD data_n = g_dwControllerBufferSize;
         
@@ -757,7 +759,7 @@ namespace platform
             _LOGDEBUG(L"keyboard SetDataFormat failed\n");
         }
         
-        DIPROPDWORD bufferProperty;
+        DIPROPDWORD bufferProperty{};
         bufferProperty.diph.dwSize = sizeof(DIPROPDWORD);
         bufferProperty.diph.dwHeaderSize = sizeof(DIPROPHEADER);
         bufferProperty.diph.dwObj = 0;
@@ -798,7 +800,7 @@ namespace platform
             }
         }
         
-        DIPROPDWORD bufferProperty;
+        DIPROPDWORD bufferProperty{};
         bufferProperty.diph.dwSize = sizeof(DIPROPDWORD);
         bufferProperty.diph.dwHeaderSize = sizeof(DIPROPHEADER);
         bufferProperty.diph.dwObj = 0;

@@ -39,24 +39,12 @@ namespace LuaSTG::Core
 
         // default: purple & black tile image
 
-        struct RGBA
+        auto RGBA = [](uint8_t r_, uint8_t g_, uint8_t b_, uint8_t a_) -> uint32_t
         {
-            union
-            {
-                struct
-                {
-                    uint8_t r;
-                    uint8_t g;
-                    uint8_t b;
-                    uint8_t a;
-                };
-                uint32_t abgr;
-            };
-            operator uint32_t()
-            {
-                return abgr;
-            }
-            RGBA(uint8_t r_, uint8_t g_, uint8_t b_, uint8_t a_) : r(r_), g(g_), b(b_), a(a_) {}
+            return uint32_t(r_)
+                | (uint32_t(g_) << 8)
+                | (uint32_t(b_) << 16)
+                | (uint32_t(a_) << 24);
         };
         uint32_t black = RGBA(0, 0, 0, 255);
         uint32_t purple = RGBA(255, 0, 255, 255);
@@ -537,11 +525,14 @@ namespace LuaSTG::Core
 	{
 		if (!node.matrix.empty())
 		{
-			DirectX::XMFLOAT4X4 mM(
-				node.matrix[0], node.matrix[1], node.matrix[2], node.matrix[3],
-				node.matrix[4], node.matrix[5], node.matrix[6], node.matrix[7],
-				node.matrix[8], node.matrix[9], node.matrix[10], node.matrix[11],
-				node.matrix[12], node.matrix[13], node.matrix[14], node.matrix[15]);
+        #pragma warning(disable:4244)
+            // [Potential Overflow]
+            DirectX::XMFLOAT4X4 mM(
+                node.matrix[0], node.matrix[1], node.matrix[2], node.matrix[3],
+                node.matrix[4], node.matrix[5], node.matrix[6], node.matrix[7],
+                node.matrix[8], node.matrix[9], node.matrix[10], node.matrix[11],
+                node.matrix[12], node.matrix[13], node.matrix[14], node.matrix[15]);
+        #pragma warning(default:4244)
 			return DirectX::XMLoadFloat4x4(&mM);
 		}
 		else
@@ -551,16 +542,25 @@ namespace LuaSTG::Core
 			DirectX::XMMATRIX mT = DirectX::XMMatrixIdentity();
 			if (!node.scale.empty())
 			{
+            #pragma warning(disable:4244)
+                // [Potential Overflow]
 				mS = DirectX::XMMatrixScaling(node.scale[0], node.scale[1], node.scale[2]);
+            #pragma warning(default:4244)
 			}
 			if (!node.rotation.empty())
 			{
+            #pragma warning(disable:4244)
+                // [Potential Overflow]
 				DirectX::XMFLOAT4 quat(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]);
+            #pragma warning(default:4244)
 				mR = DirectX::XMMatrixRotationQuaternion(DirectX::XMLoadFloat4(&quat));
 			}
 			if (!node.translation.empty())
 			{
+            #pragma warning(disable:4244)
+                // [Potential Overflow]
 				mT = DirectX::XMMatrixTranslation(node.translation[0], node.translation[1], node.translation[2]);
+            #pragma warning(default:4244)
 			}
 			return DirectX::XMMatrixMultiply(DirectX::XMMatrixMultiply(mS, mR), mT);
 		}
@@ -677,7 +677,6 @@ namespace LuaSTG::Core
     bool Model::createSampler(tinygltf::Model& model)
     {
         ID3D11Device* device = shared_->device.Get();
-        ID3D11DeviceContext* context = shared_->context.Get();
 
         HRESULT hr = S_OK;
 
@@ -714,7 +713,6 @@ namespace LuaSTG::Core
     bool Model::processNode(tinygltf::Model& model, tinygltf::Node& node)
     {
         ID3D11Device* device = shared_->device.Get();
-        ID3D11DeviceContext* context = shared_->context.Get();
 
         HRESULT hr = S_OK;
 
@@ -890,7 +888,10 @@ namespace LuaSTG::Core
                 {
                     tinygltf::Material& material = model.materials[prim.material];
                     auto& bcc = material.pbrMetallicRoughness.baseColorFactor;
+                #pragma warning(disable:4244)
+                    // [Potential Overflow]
                     mblock.base_color = DirectX::XMFLOAT4(bcc[0], bcc[1], bcc[2], bcc[3]);
+                #pragma warning(default:4244)
                     tinygltf::TextureInfo& texture_info = material.pbrMetallicRoughness.baseColorTexture;
                     if (texture_info.index >= 0)
                     {
@@ -918,7 +919,10 @@ namespace LuaSTG::Core
                     {
                         mblock.alpha_blend = TRUE;
                     }
+                    // [Potential Overflow]
+                    #pragma warning(disable:4244)
                     mblock.alpha = material.alphaCutoff;
+                    #pragma warning(default:4244)
                     mblock.double_side = material.doubleSided;
                 }
                 map_primitive_topology_to_d3d11(prim, mblock.primitive_topology);
@@ -943,8 +947,6 @@ namespace LuaSTG::Core
     };
     bool Model::createModelBlock(tinygltf::Model& model)
     {
-        HRESULT hr = S_OK;
-
         tinygltf::Scene& scene = model.scenes[model.defaultScene];
         for (int const& node_idx : scene.nodes)
         {
@@ -954,7 +956,6 @@ namespace LuaSTG::Core
                 return false;
             }
         }
-
         return true;
     }
 
@@ -1105,7 +1106,7 @@ namespace LuaSTG::Core
             {
                 DirectX::XMFLOAT4X4 v1;
                 DirectX::XMFLOAT4X4 v2;
-            } v;
+            } v{};
             DirectX::XMMATRIX const t_total_ = DirectX::XMMatrixMultiply(DirectX::XMLoadFloat4x4(&mblock.local_matrix), t_locwo_);
             DirectX::XMStoreFloat4x4(&v.v1, t_total_);
             DirectX::XMStoreFloat4x4(&v.v2, DirectX::XMMatrixInverseTranspose(t_total_));

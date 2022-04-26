@@ -52,7 +52,7 @@ namespace LuaSTG::Core
 		Rect scissor_rect = {};
 		float fog_near_or_density = 0.0f;
 		float fog_far = 0.0f;
-		Color4B fog_color = {};
+		Color4B fog_color;
 		VertexColorBlendState vertex_color_blend_state = VertexColorBlendState::Mul;
 		SamplerState sampler_state = SamplerState::LinearClamp;
 		FogState fog_state = FogState::Disable;
@@ -183,7 +183,6 @@ namespace LuaSTG::Core
 		{
 			if (!discard)
 			{
-				HRESULT hr = 0;
 				// upload data
 				if ((_draw_list.vertex.capacity - _vi_buffer[_vi_buffer_index].vertex_offset) < _draw_list.vertex.size
 					|| (_draw_list.index.capacity - _vi_buffer[_vi_buffer_index].index_offset) < _draw_list.index.size)
@@ -1075,10 +1074,10 @@ namespace LuaSTG::Core
 			if (rtv)
 			{
 				FLOAT const clear_color[4] = {
-					(float)color.r / 255.0f,
-					(float)color.g / 255.0f,
-					(float)color.b / 255.0f,
-					(float)color.a / 255.0f,
+					(float)color.u.s.r / 255.0f,
+					(float)color.u.s.g / 255.0f,
+					(float)color.u.s.b / 255.0f,
+					(float)color.u.s.a / 255.0f,
 				};
 				_devctx->ClearRenderTargetView(rtv, clear_color);
 				rtv->Release();
@@ -1243,7 +1242,10 @@ namespace LuaSTG::Core
 				_state_set.fog_far = zfar;
 				_devctx->VSSetShader(_vertex_shader[IDX(state)].Get(), NULL, 0);
 				float const fog_color_and_range[8] = {
-					(float)color.r / 255.0f, (float)color.g / 255.0f, (float)color.b / 255.0f, (float)color.a / 255.0f,
+					(float)color.u.s.r / 255.0f,
+					(float)color.u.s.g / 255.0f,
+					(float)color.u.s.b / 255.0f,
+					(float)color.u.s.a / 255.0f,
 					density_or_znear, zfar, 0.0f, zfar - density_or_znear,
 				};
 				/* upload */ {
@@ -1484,7 +1486,7 @@ namespace LuaSTG::Core
 			setScissorRect(Rect{ .left = 0.0f, .top = 0.0f, .right = sw_, .bottom = sh_ });
 
 			setVertexColorBlendState(VertexColorBlendState::Zero);
-			setFogState(FogState::Disable, Color4B{ .color = 0 }, 0.0f, 0.0f);
+			setFogState(FogState::Disable, Color4B(), 0.0f, 0.0f);
 			setDepthState(DepthState::Disable);
 			setBlendState(blend);
 

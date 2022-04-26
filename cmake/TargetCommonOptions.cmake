@@ -2,6 +2,7 @@ function(luastg_target_common_options __TARGET__)
     target_compile_options(${__TARGET__} PRIVATE
         "/MP"
         "/utf-8"
+        "/W4"
     )
     if(CMAKE_SIZEOF_VOID_P EQUAL 4)
         target_compile_options(${__TARGET__} PRIVATE
@@ -24,6 +25,7 @@ function(luastg_target_common_options2 __TARGET__)
     target_compile_options(${__TARGET__} PRIVATE
         "/MP"
         "/utf-8"
+        "/W4"
     )
     if(CMAKE_SIZEOF_VOID_P EQUAL 4)
         target_compile_options(${__TARGET__} PRIVATE
