@@ -229,9 +229,9 @@ f2dEngineImpl::f2dEngineImpl(f2dEngineRenderWindowParam* RenderWindowParam, f2dE
 	// 初始化部件
 	try
 	{
-		auto rc = fcyRect(0.0f, 0.0f, RenderWindowParam->mode.width, RenderWindowParam->mode.height);
+		auto rc = fcyRect(0.0f, 0.0f, (fFloat)RenderWindowParam->mode.width, (fFloat)RenderWindowParam->mode.height);
 		auto style = RenderWindowParam->windowed ? F2DWINBORDERTYPE_FIXED : F2DWINBORDERTYPE_NONE;
-		m_pWindow = m_WinClass.CreateRenderWindow(rc, RenderWindowParam->title, true, style);
+		m_pWindow = m_WinClass.CreateRenderWindow(rc, RenderWindowParam->title, false, style);
 		m_pWindow->SetAutoResizeWindowOnDPIScaling(RenderWindowParam->windowed);
 		m_pRenderer = new f2dRendererImpl(this, RenderWindowParam);
 		m_pSoundSys = new f2dSoundSysImpl(this);
@@ -291,7 +291,7 @@ fResult f2dEngineImpl::InitWindow(const fcyRect& Pos, fcStrW Title, fBool Visiab
 
 	try
 	{
-		m_pWindow = m_WinClass.CreateRenderWindow(Pos, Title, false, F2DWINBORDERTYPE_FIXED);
+		m_pWindow = m_WinClass.CreateRenderWindow(Pos, Title, Visiable, Border);
 	}
 	catch(const fcyException& e)
 	{
@@ -362,6 +362,8 @@ fResult f2dEngineImpl::InitRenderer(f2dEngineRenderWindowParam* RenderWindowPara
 
 fResult f2dEngineImpl::InitVideoSys()
 {
+	return FCYERR_NOTSUPPORT;
+	/*
 #ifndef _M_ARM
 	//if(m_pVideoSys || !m_pRenderer)
 		return FCYERR_ILLEGAL;
@@ -380,6 +382,7 @@ fResult f2dEngineImpl::InitVideoSys()
 #else
 	return FCYERR_NOTSUPPORT;
 #endif
+	*/
 }
 
 f2dSoundSys* f2dEngineImpl::GetSoundSys() { return m_pSoundSys; }
@@ -440,7 +443,6 @@ void f2dEngineImpl::Run_SingleThread(fuInt UpdateMaxFPS)
 	fBool bExit = false;
 	fBool bDoPresent = false;
 	fDouble tTime = 0;
-	fDouble tMsgTime = 0;
 	MSG tMsg;
 	while(1)
 	{
@@ -589,7 +591,7 @@ void f2dEngineImpl::DoUpdate(fDouble ElapsedTime, f2dFPSControllerImpl* pFPSCont
 	// 交换消息泵并清空消息泵
 	m_Sec.Lock();
 	tPump = &m_MsgPump[ m_PumpIndex ];
-	m_PumpIndex = !m_PumpIndex;
+	m_PumpIndex = (m_PumpIndex + 1) % 2;
 	m_MsgPump[m_PumpIndex].Clear();
 	m_Sec.UnLock();
 
