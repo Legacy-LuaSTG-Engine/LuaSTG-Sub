@@ -102,7 +102,8 @@ public: // 接口实现
 		f2dMsgImpl& pMsg = m_MsgQueue.front();
 		if(MsgOut)
 		{
-			*MsgOut = pMsg;
+			f2dMsg* MsgBase = dynamic_cast<f2dMsg*>(&pMsg);
+			*MsgOut = *MsgBase;
 			if(pMsg.m_pMemObj)
 			{
 				m_MemObj.push_back(pMsg.m_pMemObj);
@@ -121,7 +122,8 @@ public: // 接口实现
 		f2dMsgImpl& pMsg = m_MsgQueue.front();
 		if(MsgOut)
 		{
-			*MsgOut = pMsg;
+			f2dMsg* MsgBase = dynamic_cast<f2dMsg*>(&pMsg);
+			*MsgOut = *MsgBase;
 		}
 
 		return FCYERR_OK;

@@ -378,9 +378,17 @@ void f2dWindowDC::Create(int nWidth, int nHeight)
 	bih.biCompression = BI_RGB;
 	m_hBmp = NULL;
 	m_hDC  = CreateCompatibleDC(NULL);
+	if (!m_hDC)
+	{
+		return; // TODO: error report
+	}
 	m_hBmp = ::CreateDIBSection(
 		GetSafeHdc(), (BITMAPINFO*)&bih,
 		DIB_RGB_COLORS, (void**)(&m_pBits), NULL, 0);
+	if (!m_hBmp)
+	{
+		return; // TODO: error report
+	}
 	SelectObject(m_hDC, m_hBmp);
 
 	m_Width = nWidth;
@@ -453,15 +461,15 @@ void f2dWindowImpl::DefaultListener::OnSize(fuInt ClientWidth, fuInt ClientHeigh
 {
 	m_pEngine->SendMsg(F2DMSG_WINDOW_ONRESIZE, ClientWidth, ClientHeight);
 }
-void f2dWindowImpl::DefaultListener::OnKeyDown(fuInt KeyCode, fuInt Flag)
+void f2dWindowImpl::DefaultListener::OnKeyDown(fuInt KeyCode, fuInt)
 {
 	m_pEngine->SendMsg(F2DMSG_WINDOW_ONKEYDOWN, KeyCode);
 }
-void f2dWindowImpl::DefaultListener::OnKeyUp(fuInt KeyCode, fuInt Flag)
+void f2dWindowImpl::DefaultListener::OnKeyUp(fuInt KeyCode, fuInt)
 {
 	m_pEngine->SendMsg(F2DMSG_WINDOW_ONKEYUP, KeyCode);
 }
-void f2dWindowImpl::DefaultListener::OnCharInput(fCharW CharCode, fuInt Flag)
+void f2dWindowImpl::DefaultListener::OnCharInput(fCharW CharCode, fuInt)
 {
 	// 四字节UTF16前二字节，先保存下来
 	if (CharCode >= 0xD800 && CharCode <= 0xDBFF)
@@ -567,50 +575,50 @@ void f2dWindowImpl::DefaultListener::OnIMECloseCandidate(f2dIMECandidateList* pL
 		);
 	FCYSAFEKILL(tObjMem);
 }
-void f2dWindowImpl::DefaultListener::OnMouseMove(fShort X, fShort Y, fuInt Flag)
+void f2dWindowImpl::DefaultListener::OnMouseMove(fShort X, fShort Y, fuInt)
 {
 	m_pEngine->SendMsg(F2DMSG_WINDOW_ONMOUSEMOVE, X, Y);
 }
-void f2dWindowImpl::DefaultListener::OnMouseWheel(fShort X, fShort Y, fFloat Wheel, fuInt Flag)
+void f2dWindowImpl::DefaultListener::OnMouseWheel(fShort X, fShort Y, fFloat Wheel, fuInt)
 {
 	fuLong data = Wheel > 0.0f ? (fuLong)Wheel : (fuLong)-Wheel;
 	fuLong flag = Wheel > 0.0f ? (1ull << 63) : 0;
 	flag |= WHEEL_DELTA;
 	m_pEngine->SendMsg(F2DMSG_WINDOW_ONMOUSEWHEEL, X, Y, data, Wheel > 0.0f ? 1 : 0);
 }
-void f2dWindowImpl::DefaultListener::OnMouseLBDown(fShort X, fShort Y, fuInt Flag)
+void f2dWindowImpl::DefaultListener::OnMouseLBDown(fShort X, fShort Y, fuInt)
 {
 	m_pEngine->SendMsg(F2DMSG_WINDOW_ONMOUSELDOWN, X, Y);
 }
-void f2dWindowImpl::DefaultListener::OnMouseLBUp(fShort X, fShort Y, fuInt Flag)
+void f2dWindowImpl::DefaultListener::OnMouseLBUp(fShort X, fShort Y, fuInt)
 {
 	m_pEngine->SendMsg(F2DMSG_WINDOW_ONMOUSELUP, X, Y);
 }
-void f2dWindowImpl::DefaultListener::OnMouseLBDouble(fShort X, fShort Y, fuInt Flag)
+void f2dWindowImpl::DefaultListener::OnMouseLBDouble(fShort X, fShort Y, fuInt)
 {
 	m_pEngine->SendMsg(F2DMSG_WINDOW_ONMOUSELDOUBLE, X, Y);
 }
-void f2dWindowImpl::DefaultListener::OnMouseMBDown(fShort X, fShort Y, fuInt Flag)
+void f2dWindowImpl::DefaultListener::OnMouseMBDown(fShort X, fShort Y, fuInt)
 {
 	m_pEngine->SendMsg(F2DMSG_WINDOW_ONMOUSEMDOWN, X, Y);
 }
-void f2dWindowImpl::DefaultListener::OnMouseMBUp(fShort X, fShort Y, fuInt Flag)
+void f2dWindowImpl::DefaultListener::OnMouseMBUp(fShort X, fShort Y, fuInt)
 {
 	m_pEngine->SendMsg(F2DMSG_WINDOW_ONMOUSEMUP, X, Y);
 }
-void f2dWindowImpl::DefaultListener::OnMouseMBDouble(fShort X, fShort Y, fuInt Flag)
+void f2dWindowImpl::DefaultListener::OnMouseMBDouble(fShort X, fShort Y, fuInt)
 {
 	m_pEngine->SendMsg(F2DMSG_WINDOW_ONMOUSEMDOUBLE, X, Y);
 }
-void f2dWindowImpl::DefaultListener::OnMouseRBDown(fShort X, fShort Y, fuInt Flag)
+void f2dWindowImpl::DefaultListener::OnMouseRBDown(fShort X, fShort Y, fuInt)
 {
 	m_pEngine->SendMsg(F2DMSG_WINDOW_ONMOUSERDOWN, X, Y);
 }
-void f2dWindowImpl::DefaultListener::OnMouseRBUp(fShort X, fShort Y, fuInt Flag)
+void f2dWindowImpl::DefaultListener::OnMouseRBUp(fShort X, fShort Y, fuInt)
 {
 	m_pEngine->SendMsg(F2DMSG_WINDOW_ONMOUSERUP, X, Y);
 }
-void f2dWindowImpl::DefaultListener::OnMouseRBDouble(fShort X, fShort Y, fuInt Flag)
+void f2dWindowImpl::DefaultListener::OnMouseRBDouble(fShort X, fShort Y, fuInt)
 {
 	m_pEngine->SendMsg(F2DMSG_WINDOW_ONMOUSERDOUBLE, X, Y);
 }
@@ -630,7 +638,7 @@ void f2dWindowImpl::DefaultListener::OnDeviceChange()
 ////////////////////////////////////////////////////////////////////////////////
 
 f2dWindowImpl::f2dWindowImpl(f2dEngineImpl* pEngine, f2dWindowClass* WinCls, const fcyRect& Pos, fcStrW Title, fBool Visiable, F2DWINBORDERTYPE Border, bool DisableIME)
-	: m_DefaultListener(pEngine, this), m_pListener(&m_DefaultListener), m_pGraphicListener(nullptr), m_hWnd(NULL), m_bShow(false), m_CaptionText(Title),
+	: m_DefaultListener(pEngine, this), m_pListener(&m_DefaultListener), m_pGraphicListener(nullptr), m_hWnd(NULL), m_bShow(Visiable), m_CaptionText(Title),
 	m_bHideIME(true), m_hIMC(NULL), m_IMETotalCandidate(0), m_IMESelectedCandidate(0), m_IMEPageStartCandidate(0), m_IMEPageCandidateCount(0)
 {
 	// 定义窗口样式
