@@ -49,11 +49,13 @@ static std::string bytes_count_to_string(DWORDLONG size)
 
 static int lib_NewFrame(lua_State* L)
 {
+    std::ignore = L;
     imgui::updateEngine();
     return 0;
 }
 static int lib_RenderDrawData(lua_State* L)
 {
+    std::ignore = L;
     imgui::drawEngine();
     return 0;
 }
@@ -219,7 +221,6 @@ static int lib_ShowFrameStatistics(lua_State* L)
                 ImPlot::PlotLine("Render", arr_render_time.data(), (int)record_range);
                 ImPlot::PlotLine("Update", arr_update_time.data(), (int)record_range);
                 
-                double mark = (double)arr_index;
                 ImPlot::SetNextLineStyle(ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
                 ImPlot::PlotVLines("##Current Time", &arr_index, 1);
 
@@ -445,7 +446,6 @@ namespace imgui
         
         auto* window = APP.GetEngine()->GetMainWindow();
         auto* device = APP.GetRenderDev();
-        auto* L = APP.GetLuaEngine();
         
         device->RemoveListener(&g_ImGuiRenderDeviceEventListener);
         g_ImGuiRenderDeviceEventListener.OnRenderDeviceLost();
@@ -645,9 +645,9 @@ namespace imgui
                             #define SHOWKEY(I, B) \
                                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.125f);\
                                 bcache = (state.rgbButtons[I - 1] != 0);\
-                                if ((I) < 10) ImGui::Checkbox("Button 0" #I, &bcache);\
+                                if constexpr ((I) < 10) ImGui::Checkbox("Button 0" #I, &bcache);\
                                 else ImGui::Checkbox("Button " #I, &bcache);\
-                                if (B) ImGui::SameLine();
+                                if constexpr (B) ImGui::SameLine();
                             
                             SHOWKEY( 1, 1); SHOWKEY( 2, 1); SHOWKEY( 3, 1); SHOWKEY( 4, 1); SHOWKEY( 5, 1); SHOWKEY( 6, 1); SHOWKEY( 7, 1); SHOWKEY( 8, 0);
                             SHOWKEY( 9, 1); SHOWKEY(10, 1); SHOWKEY(11, 1); SHOWKEY(12, 1); SHOWKEY(13, 1); SHOWKEY(14, 1); SHOWKEY(15, 1); SHOWKEY(16, 0);
@@ -714,7 +714,7 @@ namespace imgui
                             #define SHOWKEY(L, NAME, C) \
                                 _bstate = ((state.wButtons & C) != 0);\
                                 ImGui::Checkbox(#NAME, &_bstate);\
-                                if ((L) != 0) ImGui::SameLine();
+                                if constexpr ((L) != 0) ImGui::SameLine();
                             
                             SHOWKEY(1,    UP, XINPUT_GAMEPAD_DPAD_UP       );
                             SHOWKEY(1,  DOWN, XINPUT_GAMEPAD_DPAD_DOWN     );
@@ -755,7 +755,7 @@ namespace imgui
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
                         ImGui::Combo("Devices", &current_xidx, combo_data.data(), combo_data.size());
                         
-                        if (current_xidx < xdevice)
+                        if (current_xidx < (int)xdevice)
                         {
                             auto& state = xstate[current_xidx].Gamepad;
                             
@@ -785,7 +785,7 @@ namespace imgui
                             #define SHOWKEY(L, NAME, C) \
                                 _bstate = ((state.wButtons & C) != 0);\
                                 ImGui::Checkbox(#NAME, &_bstate);\
-                                if ((L) != 0) ImGui::SameLine();
+                                if constexpr ((L) != 0) ImGui::SameLine();
                             
                             SHOWKEY(1,    UP, XINPUT_GAMEPAD_DPAD_UP       );
                             SHOWKEY(1,  DOWN, XINPUT_GAMEPAD_DPAD_DOWN     );
