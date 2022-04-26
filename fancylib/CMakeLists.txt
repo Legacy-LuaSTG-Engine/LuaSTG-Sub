@@ -10,19 +10,19 @@ set(fancylib_src
 
     fcyMath.h
 
-    fcyFile/fcyResPackage.h
-    fcyFile/fcyResPackage.cpp
+    #fcyFile/fcyResPackage.h
+    #fcyFile/fcyResPackage.cpp
 
     fcyIO/fcyStream.h
     fcyIO/fcyStream.cpp
-    fcyIO/fcyDeflate.h
-    fcyIO/fcyDeflate.cpp
+    #fcyIO/fcyDeflate.h
+    #fcyIO/fcyDeflate.cpp
     fcyIO/fcyBinaryHelper.h
     fcyIO/fcyBinaryHelper.cpp
 
-    fcyMisc/fcyFunctor.h
-    fcyMisc/fcyHash.h
-    fcyMisc/fcyHash.cpp
+    #fcyMisc/fcyFunctor.h
+    #fcyMisc/fcyHash.h
+    #fcyMisc/fcyHash.cpp
     fcyMisc/fcyRandom.h
     fcyMisc/fcyRandom.cpp
     fcyMisc/fcyStopWatch.h
@@ -37,15 +37,15 @@ set(fancylib_src
     fcyOS/fcyDebug.cpp
     fcyOS/fcyMultiThread.h
     fcyOS/fcyMultiThread.cpp
-    fcyOS/fcySocket.h
-    fcyOS/fcySocket.cpp
+    #fcyOS/fcySocket.h
+    #fcyOS/fcySocket.cpp
 
     fcyParser/fcyLexicalParser.h
     fcyParser/fcyLexicalParser.cpp
-    fcyParser/fcyIni.h
-    fcyParser/fcyIni.cpp
-    fcyParser/fcyJson.h
-    fcyParser/fcyJson.cpp
+    #fcyParser/fcyIni.h
+    #fcyParser/fcyIni.cpp
+    #fcyParser/fcyJson.h
+    #fcyParser/fcyJson.cpp
     fcyParser/fcyPathParser.h
     fcyParser/fcyPathParser.cpp
     fcyParser/fcyXml.h
