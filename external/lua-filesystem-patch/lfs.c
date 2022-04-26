@@ -30,9 +30,9 @@
 #endif
 #endif
 
-#ifdef _WIN32
-#define _WIN32_WINNT 0x600
-#endif
+//#ifdef _WIN32
+//#define _WIN32_WINNT 0x600
+//#endif
 
 #ifndef LFS_DO_NOT_USE_LARGE_FILE
 #define _LARGEFILE64_SOURCE
