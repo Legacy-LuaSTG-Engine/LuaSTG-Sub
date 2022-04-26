@@ -1,4 +1,4 @@
-#include "Monitor.hpp"
+﻿#include "Monitor.hpp"
 
 namespace platform
 {

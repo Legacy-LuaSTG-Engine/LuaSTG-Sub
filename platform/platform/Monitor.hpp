@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <vector>
 
 namespace platform
@@ -16,6 +16,7 @@ namespace platform
 	private:
 		static BOOL CALLBACK callback(HMONITOR hMonitor, HDC, LPRECT, LPARAM pPraram);
 	public:
+		// 注意：在调用一系列以下成员函数之前，应该先调用一次 Refresh 更新所有显示器信息
 		BOOL Refresh();
 		size_t GetCount();
 		HMONITOR GetHandle(size_t index);
