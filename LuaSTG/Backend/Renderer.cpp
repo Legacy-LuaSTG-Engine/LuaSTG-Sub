@@ -48,8 +48,8 @@ namespace LuaSTG::Core
 	struct RendererStateSet
 	{
 		TextureID texture;
-		Box viewport = {};
-		Rect scissor_rect = {};
+		Box viewport = { 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f };
+		Rect scissor_rect = { 0.0f, 0.0f, 1.0f, 1.0f };
 		float fog_near_or_density = 0.0f;
 		float fog_far = 0.0f;
 		Color4B fog_color;
@@ -63,10 +63,10 @@ namespace LuaSTG::Core
 
 	struct CameraStateSet
 	{
-		Box ortho = {};
-		Vector3 eye = {};
-		Vector3 lookat = {};
-		Vector3 headup = {};
+		Box ortho = { 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f };
+		Vector3 eye = { 0.0f, 0.0f, 0.0f };
+		Vector3 lookat = { 0.0f, 0.0f, 1.0f };
+		Vector3 headup = { 0.0f, 1.0f, 0.0f };
 		float fov = 0.0f;
 		float aspect = 0.0f;
 		float znear = 0.0f;

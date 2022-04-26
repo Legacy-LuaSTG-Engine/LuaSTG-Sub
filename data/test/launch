@@ -1,0 +1,4 @@
+
+--lstg.SetWindowed(false)
+--lstg.SetVsync(false)
+--lstg.SetResolution(2560, 1440)
