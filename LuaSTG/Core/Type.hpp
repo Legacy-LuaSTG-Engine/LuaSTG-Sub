@@ -41,24 +41,39 @@ namespace LuaSTG::Core
 
 	struct Color4B
 	{
-		union
+		union Color4B_byte4_uint_union
 		{
-			struct
+			struct Color4B_byte4
 			{
 				uint8_t b;
 				uint8_t g;
 				uint8_t r;
 				uint8_t a;
-			};
+			} s;
 			uint32_t color;
-		};
+		} u;
 		bool operator==(Color4B const& right) const
 		{
-			return color == right.color;
+			return u.color == right.u.color;
 		}
 		bool operator!=(Color4B const& right) const
 		{
-			return color != right.color;
+			return u.color != right.u.color;
+		}
+		Color4B()
+		{
+			u.color = 0x00000000u;
+		}
+		Color4B(uint32_t color_ARGB)
+		{
+			u.color = color_ARGB;
+		}
+		Color4B(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+		{
+			u.s.b = b;
+			u.s.g = g;
+			u.s.r = r;
+			u.s.a = a;
 		}
 	};
 
