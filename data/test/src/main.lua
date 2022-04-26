@@ -1,5 +1,5 @@
 local timer = 0
-local window = { width = 1920, height = 1080, }
+local window = { width = 2560, height = 1440, }
 local Key = require("keycode").Keyboard
 local MKey = require("keycode").Mouse
 local imgui = require("imgui")
@@ -96,7 +96,6 @@ end
 local ps = nil
 function GameInit()
     lstg.ChangeVideoMode(window.width, window.height, true, true)
-    set_camera()
     lstg.LoadTTF("Sans", "C:/Windows/Fonts/msyh.ttc", 16, 16)
     lstg.LoadTexture("tex:particles", "res/particles.png")
     lstg.LoadImage("img:particle1", "tex:particles", 0, 0, 32, 32)
