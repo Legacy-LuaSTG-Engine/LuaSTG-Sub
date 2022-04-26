@@ -1,13 +1,13 @@
 ﻿#include "Engine/f2dWindowCommonMessage.h"
 #include "Engine/f2dWindowImpl.h"
 #include "Engine/f2dEngineImpl.h"
-#include "Engine/f2dMonitorHelper.h"
 
 #include <fcyException.h>
 #include <fcyOS/fcyDebug.h>
 #include <Dbt.h> // DBT_DEVNODES_CHANGED
 #include <windowsx.h>
 #include "platform/HighDPI.hpp"
+#include "platform/Monitor.hpp"
 
 //#define _IME_DEBUG
 //#define _FANCY2D_IME_ENABLE // 妈的，这IME支持还不如不写，一堆bug
@@ -917,7 +917,6 @@ F2DWINBORDERTYPE f2dWindowImpl::GetBorderType()
 		return F2DWINBORDERTYPE_NONE;
 	return F2DWINBORDERTYPE_NONE;
 }
-
 fResult f2dWindowImpl::SetBorderType(F2DWINBORDERTYPE Type)
 {
 	switch(Type)
@@ -949,7 +948,6 @@ fcStrW f2dWindowImpl::GetCaption()
 	m_CaptionText = tTemp;
 	return m_CaptionText.c_str();
 }
-
 fResult f2dWindowImpl::SetCaption(fcStrW Caption)
 {
 	m_CaptionText = Caption;
@@ -960,7 +958,6 @@ fBool f2dWindowImpl::GetVisiable()
 {
 	return m_bShow;
 }
-
 fResult f2dWindowImpl::SetVisiable(fBool Visiable)
 {
 	m_bShow = Visiable;
@@ -974,7 +971,6 @@ fcyRect f2dWindowImpl::GetRect()
 	fcyRect tRet((float)tRect.left, (float)tRect.top, (float)tRect.right, (float)tRect.bottom);
 	return tRet;
 }
-
 fResult f2dWindowImpl::SetRect(const fcyRect& Range)
 {
 	m_Size.x = Range.GetWidth();
@@ -984,7 +980,6 @@ fResult f2dWindowImpl::SetRect(const fcyRect& Range)
 		(int)Range.GetWidth(), (int)Range.GetHeight(),
 		SWP_NOZORDER) != FALSE ? FCYERR_OK : FCYERR_INTERNALERR;
 }
-
 fcyRect f2dWindowImpl::GetClientRect()
 {
 	RECT tRect;
@@ -992,7 +987,6 @@ fcyRect f2dWindowImpl::GetClientRect()
 	fcyRect tRet((float)tRect.left, (float)tRect.top, (float)tRect.right, (float)tRect.bottom);
 	return tRet;
 }
-
 fResult f2dWindowImpl::SetClientRect(const fcyRect& Range)
 {
 	// 计算包括窗口框架的尺寸
@@ -1030,48 +1024,11 @@ fResult f2dWindowImpl::SetClientRect(const fcyRect& Range)
 
 void f2dWindowImpl::MoveToCenter()
 {
-	// 获得关联的显示器
-	HMONITOR monitor = ::MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
-	if (monitor)
-	{
-		// 获得显示器信息
-		MONITORINFO moninfo = { sizeof(MONITORINFO), {}, {}, 0 };
-		if (FALSE != ::GetMonitorInfoA(monitor, &moninfo))
-		{
-			// 获得窗口位置
-			RECT rect = {};
-			if (FALSE != ::GetWindowRect(m_hWnd, &rect))
-			{
-				// 计算值
-				const auto& area = moninfo.rcMonitor;
-				const auto sx = area.left;
-				const auto sy = area.top;
-				const auto sw = area.right - area.left;
-				const auto sh = area.bottom - area.top;
-				const auto ww = rect.right - rect.left;
-				const auto wh = rect.bottom - rect.top;
-				// 修改窗口位置
-				::SetWindowPos(m_hWnd, NULL, sx + (sw / 2) - (ww / 2), sy + (sh / 2) - (wh / 2), ww, wh, SWP_NOZORDER | SWP_SHOWWINDOW);
-			}
-		}
-	}
+	platform::MonitorList::MoveWindowToCenter(m_hWnd);
 }
-
 void f2dWindowImpl::EnterFullScreen()
 {
-	// 获得关联的显示器
-	HMONITOR monitor = ::MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
-	if (monitor)
-	{
-		// 获得显示器信息
-		MONITORINFO moninfo = { sizeof(MONITORINFO), {}, {}, 0 };
-		if (FALSE != ::GetMonitorInfoA(monitor, &moninfo))
-		{
-			// 修改窗口位置
-			const auto& area = moninfo.rcMonitor;
-			::SetWindowPos(m_hWnd, NULL, area.left, area.top, area.right - area.left, area.bottom - area.top, SWP_NOZORDER | SWP_SHOWWINDOW);
-		}
-	}
+	platform::MonitorList::ResizeWindowToFullScreen(m_hWnd);
 	MoveMouseToRightBottom();
 };
 
@@ -1082,7 +1039,6 @@ fBool f2dWindowImpl::IsTopMost()
 	else
 		return false;
 }
-
 fResult f2dWindowImpl::SetTopMost(fBool TopMost)
 {
 	if(SetWindowPos(m_hWnd, TopMost ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW) != FALSE)
@@ -1153,76 +1109,38 @@ float f2dWindowImpl::GetDPIScaling()
 fcyVec2 f2dWindowImpl::GetMonitorSize()
 {
 	fcyVec2 size;
-	
-	// 获得关联的显示器
-	HMONITOR monitor = ::MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
-	if (monitor)
+	RECT area = {};
+	if (platform::MonitorList::GetRectFromWindow(m_hWnd, &area))
 	{
-		// 获得显示器信息
-		MONITORINFO moninfo = { sizeof(MONITORINFO), {}, {}, 0 };
-		if (FALSE != ::GetMonitorInfoA(monitor, &moninfo))
-		{
-			size.x = (fFloat)(moninfo.rcMonitor.right - moninfo.rcMonitor.left);
-			size.y = (fFloat)(moninfo.rcMonitor.bottom - moninfo.rcMonitor.top);
-		}
+		size.x = (fFloat)(area.right - area.left);
+		size.y = (fFloat)(area.bottom - area.top);
 	}
-	
 	return size;
 };
 
 fuInt f2dWindowImpl::GetMonitorCount()
 {
-	auto& c = f2dMonitorHelper::get();
-	c.refresh();
-	return c.getCount();
+	auto& dishelp = platform::MonitorList::get();
+	dishelp.Refresh();
+	return (fuInt)dishelp.GetCount();
 }
 fcyRect f2dWindowImpl::GetMonitorRect(fuInt index)
 {
-	auto& c = f2dMonitorHelper::get();
+	RECT const rc = platform::MonitorList::get().GetRect(index);
 	fcyRect rect;
-	rect.a.x = c.getX(index);
-	rect.a.y = c.getY(index);
-	rect.b.x = rect.a.x + c.getWidth(index);
-	rect.b.y = rect.a.y + c.getHeight(index);
+	rect.a.x = (fFloat)rc.left;
+	rect.a.y = (fFloat)rc.top;
+	rect.b.x = (fFloat)rc.right;
+	rect.b.y = (fFloat)rc.bottom;
 	return rect;
 }
 void f2dWindowImpl::MoveToMonitorCenter(fuInt index)
 {
-	auto& mohelp = f2dMonitorHelper::get();
-	HMONITOR monitor = (HMONITOR)mohelp.getHandle(index);
-	if (monitor)
-	{
-		MONITORINFO moninfo = { sizeof(MONITORINFO), {}, {}, 0 };
-		if (FALSE != ::GetMonitorInfoA(monitor, &moninfo))
-		{
-			RECT rect = {};
-			if (FALSE != ::GetWindowRect(m_hWnd, &rect))
-			{
-				const auto& area = moninfo.rcMonitor;
-				const auto sx = area.left;
-				const auto sy = area.top;
-				const auto sw = area.right - area.left;
-				const auto sh = area.bottom - area.top;
-				const auto ww = rect.right - rect.left;
-				const auto wh = rect.bottom - rect.top;
-				::SetWindowPos(m_hWnd, NULL, sx + (sw / 2) - (ww / 2), sy + (sh / 2) - (wh / 2), ww, wh, SWP_NOZORDER | SWP_SHOWWINDOW);
-			}
-		}
-	}
+	platform::MonitorList::get().MoveWindowToCenter(index, m_hWnd);
 }
 void f2dWindowImpl::EnterMonitorFullScreen(fuInt index)
 {
-	auto& mohelp = f2dMonitorHelper::get();
-	HMONITOR monitor = (HMONITOR)mohelp.getHandle(index);
-	if (monitor)
-	{
-		MONITORINFO moninfo = { sizeof(MONITORINFO), {}, {}, 0 };
-		if (FALSE != ::GetMonitorInfoA(monitor, &moninfo))
-		{
-			const auto& area = moninfo.rcMonitor;
-			::SetWindowPos(m_hWnd, NULL, area.left, area.top, area.right - area.left, area.bottom - area.top, SWP_NOZORDER | SWP_SHOWWINDOW);
-		}
-	}
+	platform::MonitorList::get().ResizeWindowToFullScreen(index, m_hWnd);
 	MoveMouseToRightBottom();
 }
 
