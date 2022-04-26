@@ -167,6 +167,8 @@ struct f2dMainThreadDelegate : public f2dInterface
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dEngineEventListener
 {
+#pragma warning(disable:4100)
+
 	/// @brief     更新一帧
 	/// @note      应当在这里完成更新操作
 	/// @warning   该方法可能跨线程
@@ -180,6 +182,8 @@ struct f2dEngineEventListener
 	/// @param[in] ElapsedTime 距离上一帧的流逝时间
 	/// @return    返回true更新画面
 	virtual fBool OnRender(fDouble ElapsedTime, f2dFPSController* pFPSController) { return true; }
+
+#pragma warning(default:4100)
 };
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -38,12 +38,16 @@ enum F2DVIDEOFLAG
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dVideoRendererListener
 {
+#pragma warning(disable:4100)
+
 	/// @brief 渲染一帧
 	virtual void OnVideoStartRender() {}
 	/// @brief 绘制一个像素
 	virtual void OnVideoDrawPixel(fuInt X, fuInt Y, fcyColor* pColor) {}
 	/// @brief 结束一帧渲染
 	virtual void OnVideoEndRender() {}
+
+#pragma warning(default:4100)
 };
 
 ////////////////////////////////////////////////////////////////////////////////

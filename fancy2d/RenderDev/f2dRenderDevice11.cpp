@@ -48,15 +48,15 @@ static std::string bytes_count_to_string(DWORDLONG size)
 {
 	int count = 0;
 	char buffer[64] = {};
-	if (size < 1024) // B
+	if (size < 1024llu) // B
 	{
 		count = std::snprintf(buffer, 64, "%u B", (unsigned int)size);
 	}
-	else if (size < (1024 * 1024)) // KB
+	else if (size < (1024llu * 1024llu)) // KB
 	{
 		count = std::snprintf(buffer, 64, "%.2f KB", (double)size / 1024.0);
 	}
-	else if (size < (1024 * 1024 * 1024)) // MB
+	else if (size < (1024llu * 1024llu * 1024llu)) // MB
 	{
 		count = std::snprintf(buffer, 64, "%.2f MB", (double)size / 1048576.0);
 	}
@@ -413,14 +413,14 @@ bool f2dRenderDevice11::selectAdapter()
 			}
 			if (!read_o_desc)
 			{
-				DXGI_OUTPUT_DESC desc_ = {};
-				if (bHR = gHR = dxgi_output_temp->GetDesc(&desc_))
+				DXGI_OUTPUT_DESC desc_0_ = {};
+				if (bHR = gHR = dxgi_output_temp->GetDesc(&desc_0_))
 				{
-					std::memcpy(o_desc.DeviceName, desc_.DeviceName, sizeof(o_desc.DeviceName));
-					o_desc.DesktopCoordinates = desc_.DesktopCoordinates;
-					o_desc.AttachedToDesktop = desc_.AttachedToDesktop;
-					o_desc.Rotation = desc_.Rotation;
-					o_desc.Monitor = desc_.Monitor;
+					std::memcpy(o_desc.DeviceName, desc_0_.DeviceName, sizeof(o_desc.DeviceName));
+					o_desc.DesktopCoordinates = desc_0_.DesktopCoordinates;
+					o_desc.AttachedToDesktop = desc_0_.AttachedToDesktop;
+					o_desc.Rotation = desc_0_.Rotation;
+					o_desc.Monitor = desc_0_.Monitor;
 					read_o_desc = true;
 				}
 			}
@@ -582,6 +582,8 @@ bool f2dRenderDevice11::checkFeatureSupported()
 	D3D11_FEATURE_DATA_THREADING d3d11_feature_mt = {};
 	HRESULT hr_mt = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_THREADING, &d3d11_feature_mt, sizeof(d3d11_feature_mt));
 
+	std::ignore = hr_mt;
+
 	D3D11_FEATURE_DATA_FORMAT_SUPPORT d3d11_feature_format_rgba32 = { .InFormat = DXGI_FORMAT_R8G8B8A8_UNORM };
 	HRESULT hr_fmt_rgba32 = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_FORMAT_SUPPORT, &d3d11_feature_format_rgba32, sizeof(d3d11_feature_format_rgba32));
 	D3D11_FEATURE_DATA_FORMAT_SUPPORT d3d11_feature_format_rgba32_srgb = { .InFormat = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB };
@@ -592,6 +594,12 @@ bool f2dRenderDevice11::checkFeatureSupported()
 	HRESULT hr_fmt_bgra32_srgb = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_FORMAT_SUPPORT, &d3d11_feature_format_bgra32_srgb, sizeof(d3d11_feature_format_bgra32_srgb));
 	D3D11_FEATURE_DATA_FORMAT_SUPPORT d3d11_feature_format_d24_s8 = { .InFormat = DXGI_FORMAT_D24_UNORM_S8_UINT };
 	HRESULT hr_fmt_d24_s8 = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_FORMAT_SUPPORT, &d3d11_feature_format_d24_s8, sizeof(d3d11_feature_format_d24_s8));
+
+	std::ignore = hr_fmt_rgba32;
+	std::ignore = hr_fmt_rgba32_srgb;
+	std::ignore = hr_fmt_bgra32;
+	std::ignore = hr_fmt_bgra32_srgb;
+	std::ignore = hr_fmt_d24_s8;
 
 	D3D11_FEATURE_DATA_ARCHITECTURE_INFO d3d11_feature_arch = {};
 	HRESULT hr_arch = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_ARCHITECTURE_INFO, &d3d11_feature_arch, sizeof(d3d11_feature_arch));
@@ -950,10 +958,11 @@ fResult f2dRenderDevice11::AttachListener(f2dRenderDeviceEventListener* Listener
 	if (Listener == NULL)
 		return FCYERR_INVAILDPARAM;
 
-	EventListenerNode node;
-	node.uuid = _iEventListenerUUID;
-	node.priority = Priority;
-	node.listener = Listener;
+	EventListenerNode node{
+		.uuid = _iEventListenerUUID,
+		.priority = Priority,
+		.listener = Listener,
+	};
 	auto v = _setEventListeners.emplace(node);
 	_iEventListenerUUID += 1;
 
@@ -1065,12 +1074,14 @@ void f2dRenderDevice11::OnGetFocus()
 }
 void f2dRenderDevice11::OnSize(fuInt ClientWidth, fuInt ClientHeight)
 {
+	std::ignore = ClientWidth;
+	std::ignore = ClientHeight;
 	swapchain_want_resize = true;
 }
 
 // 创建资源
 
-fResult f2dRenderDevice11::CreateTextureFromStream(f2dStream* pStream, fuInt Width, fuInt Height, fBool IsDynamic, fBool HasMipmap, f2dTexture2D** pOut)
+fResult f2dRenderDevice11::CreateTextureFromStream(f2dStream* pStream, fuInt, fuInt, fBool IsDynamic, fBool HasMipmap, f2dTexture2D** pOut)
 {
 	if (!pOut)
 		return FCYERR_INVAILDPARAM;
@@ -1092,7 +1103,7 @@ fResult f2dRenderDevice11::CreateTextureFromStream(f2dStream* pStream, fuInt Wid
 
 	return FCYERR_OK;
 }
-fResult f2dRenderDevice11::CreateTextureFromMemory(fcData pMemory, fLen Size, fuInt Width, fuInt Height, fBool IsDynamic, fBool HasMipmap, f2dTexture2D** pOut)
+fResult f2dRenderDevice11::CreateTextureFromMemory(fcData pMemory, fLen Size, fuInt, fuInt, fBool IsDynamic, fBool HasMipmap, f2dTexture2D** pOut)
 {
 	if (!pOut)
 		return FCYERR_INVAILDPARAM;
@@ -1150,7 +1161,7 @@ fResult f2dRenderDevice11::CreateRenderTarget(fuInt Width, fuInt Height, fBool A
 
 	return FCYERR_OK;
 }
-fResult f2dRenderDevice11::CreateDepthStencilSurface(fuInt Width, fuInt Height, fBool Discard, fBool AutoResize, f2dDepthStencilSurface** pOut)
+fResult f2dRenderDevice11::CreateDepthStencilSurface(fuInt Width, fuInt Height, fBool, fBool AutoResize, f2dDepthStencilSurface** pOut)
 {
 	if (!pOut)
 		return FCYERR_INVAILDPARAM;
@@ -2013,8 +2024,8 @@ fResult f2dRenderDevice11::Present()
 
 // 纹理读写
 
-fResult f2dRenderDevice11::SaveScreen(f2dStream* pStream) { return FCYERR_NOTSUPPORT; }
-fResult f2dRenderDevice11::SaveTexture(f2dStream* pStream, f2dTexture2D* pTex) { return FCYERR_NOTSUPPORT; }
+fResult f2dRenderDevice11::SaveScreen(f2dStream*) { return FCYERR_NOTSUPPORT; }
+fResult f2dRenderDevice11::SaveTexture(f2dStream*, f2dTexture2D*) { return FCYERR_NOTSUPPORT; }
 fResult f2dRenderDevice11::SaveScreen(fcStrW path)
 {
 	if (!path)
@@ -2067,27 +2078,27 @@ fResult f2dRenderDevice11::SaveTexture(fcStrW path, f2dTexture2D* pTex)
 
 // 废弃的方法集合，大部分是固定管线遗毒，部分是完全没做好的功能，或者不适应新的图形API
 
-fResult f2dRenderDevice11::SubmitWorldMat(const fcyMatrix4& Mat)
+fResult f2dRenderDevice11::SubmitWorldMat(const fcyMatrix4&)
 {
 	return FCYERR_NOTIMPL;
 }
-fResult f2dRenderDevice11::SubmitLookatMat(const fcyMatrix4& Mat)
+fResult f2dRenderDevice11::SubmitLookatMat(const fcyMatrix4&)
 {
 	return FCYERR_NOTIMPL;
 }
-fResult f2dRenderDevice11::SubmitProjMat(const fcyMatrix4& Mat)
+fResult f2dRenderDevice11::SubmitProjMat(const fcyMatrix4&)
 {
 	return FCYERR_NOTIMPL;
 }
-fResult f2dRenderDevice11::SubmitBlendState(const f2dBlendState& State)
+fResult f2dRenderDevice11::SubmitBlendState(const f2dBlendState&)
 {
 	return FCYERR_NOTIMPL;
 }
-fResult f2dRenderDevice11::SubmitVD(void* pVD)
+fResult f2dRenderDevice11::SubmitVD(void*)
 {
 	return FCYERR_NOTIMPL;
 }
-fResult f2dRenderDevice11::SubmitTextureBlendOP_Color(int ColorOP)
+fResult f2dRenderDevice11::SubmitTextureBlendOP_Color(int)
 {
 	return FCYERR_NOTIMPL;
 }
@@ -2095,7 +2106,7 @@ F2DAALEVEL f2dRenderDevice11::GetAALevel()
 {
 	return F2DAALEVEL_NONE;
 }
-fBool f2dRenderDevice11::CheckMultiSample(F2DAALEVEL AALevel, fBool Windowed)
+fBool f2dRenderDevice11::CheckMultiSample(F2DAALEVEL, fBool)
 {
 	return false;
 }
@@ -2103,44 +2114,39 @@ fBool f2dRenderDevice11::IsZBufferEnabled()
 {
 	return false;
 }
-fResult f2dRenderDevice11::SetZBufferEnable(fBool v)
+fResult f2dRenderDevice11::SetZBufferEnable(fBool)
 {
 	return FCYERR_NOTIMPL;
 }
-fResult f2dRenderDevice11::UpdateScreenToWindow(fcyColor KeyColor, fByte Alpha)
-{
-	// 应该考虑用 DirectComposition 代替
-	return FCYERR_NOTIMPL;
-}
-fResult f2dRenderDevice11::SetTextureAddress(F2DTEXTUREADDRESS address, const fcyColor& borderColor)
+fResult f2dRenderDevice11::UpdateScreenToWindow(fcyColor, fByte)
 {
 	return FCYERR_NOTIMPL;
 }
-fResult f2dRenderDevice11::SetTextureFilter(F2DTEXFILTERTYPE filter)
+fResult f2dRenderDevice11::SetTextureAddress(F2DTEXTUREADDRESS, const fcyColor&)
 {
 	return FCYERR_NOTIMPL;
 }
-fResult f2dRenderDevice11::CreateGraphics2D(fuInt VertexBufferSize, fuInt IndexBufferSize, f2dGraphics2D** pOut)
+fResult f2dRenderDevice11::SetTextureFilter(F2DTEXFILTERTYPE)
 {
-	// 设计的很固定管线，所以抱歉了
 	return FCYERR_NOTIMPL;
 }
-fResult f2dRenderDevice11::CreateGraphics3D(f2dEffect* pDefaultEffect, f2dGraphics3D** pOut)
+fResult f2dRenderDevice11::CreateGraphics2D(fuInt, fuInt, f2dGraphics2D**)
 {
-	// 就支持个破屏幕后处理，也配叫 Graphics3D ？你配吗？配几把？
 	return FCYERR_NOTIMPL;
 }
-fResult f2dRenderDevice11::CreateEffect(f2dStream* pStream, fBool bAutoState, f2dEffect** pOut)
+fResult f2dRenderDevice11::CreateGraphics3D(f2dEffect*, f2dGraphics3D**)
 {
-	// 时代眼泪 Effect 框架
 	return FCYERR_NOTIMPL;
 }
-fResult f2dRenderDevice11::CreateMeshData(f2dVertexElement* pVertElement, fuInt ElementCount, fuInt VertCount, fuInt IndexCount, fBool Int32Index, f2dMeshData** pOut)
+fResult f2dRenderDevice11::CreateEffect(f2dStream*, fBool, f2dEffect**)
 {
-	// 模型功能也没有完成
 	return FCYERR_NOTIMPL;
 }
-fResult f2dRenderDevice11::SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, fBool FlipModel, F2DAALEVEL AALevel)
+fResult f2dRenderDevice11::CreateMeshData(f2dVertexElement*, fuInt, fuInt, fuInt, fBool, f2dMeshData**)
+{
+	return FCYERR_NOTIMPL;
+}
+fResult f2dRenderDevice11::SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, fBool FlipModel, F2DAALEVEL)
 {
 	if (Windowed)
 	{

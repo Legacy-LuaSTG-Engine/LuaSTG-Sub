@@ -328,6 +328,8 @@ enum F2DFONTFLAG
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dFontRendererListener
 {
+#pragma warning(disable:4100)
+
 	/// @brief          正准备绘制字形
 	/// @param[in]      Index     该字符在文本串中的索引
 	/// @param[in]      Character 字符
@@ -338,7 +340,9 @@ struct f2dFontRendererListener
 
 	/// @brief          绘制字形
 	/// @param[in][out] pVerts 顶点数组，大小为4
-	virtual void OnGlyphCalcuCoord(f2dGraphics2DVertex pVerts[]) { }
+	virtual void OnGlyphCalcuCoord(f2dGraphics2DVertex pVerts[]) {}
+
+#pragma warning(default:4100)
 };
 
 ////////////////////////////////////////////////////////////////////////////////
