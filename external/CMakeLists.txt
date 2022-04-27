@@ -91,16 +91,14 @@ set_target_properties(luajit PROPERTIES FOLDER luajit)
 # ==================== lua filesystem ====================
 
 add_library(lua_filesystem STATIC)
-luastg_target_common_options2(lua_filesystem)
-target_compile_definitions(lua_filesystem PRIVATE
-    _CRT_SECURE_NO_WARNINGS
-)
+luastg_target_common_options(lua_filesystem)
+luastg_target_more_warning(lua_filesystem)
 target_include_directories(lua_filesystem PUBLIC
-    lua-filesystem-patch
+    lua-filesystem-lite
 )
 target_sources(lua_filesystem PRIVATE
-    lua-filesystem-patch/lfs.h
-    lua-filesystem-patch/lfs.c
+    lua-filesystem-lite/lfs.h
+    lua-filesystem-lite/lfs.cpp
 )
 target_link_libraries(lua_filesystem PUBLIC
     lua51static
