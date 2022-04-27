@@ -10,9 +10,6 @@
 [submodule "external/DirectXTex"]
 	path = external/DirectXTex
 	url = https://github.com/microsoft/DirectXTex.git
-[submodule "external/lua-filesystem"]
-	path = external/lua-filesystem
-	url = https://github.com/keplerproject/luafilesystem.git
 [submodule "external/pugixml"]
 	path = external/pugixml
 	url = https://github.com/zeux/pugixml.git
