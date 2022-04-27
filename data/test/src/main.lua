@@ -257,3 +257,7 @@ function RenderTTF3(ttfname, text, x, y, rot, hscale, vscale, blend, color, ...)
 
     return x2, y2
 end
+
+for it in lfs.dir(".") do
+    lstg.Print(it, lfs.attributes("./" .. it, "mode"))
+end
