@@ -59,6 +59,8 @@ end
 --------------------------------------------------------------------------------
 --- 实例化的游戏对象
 
+---@alias lstg.GameObject.Status '"normal"' | '"del"' | '"kill"'
+
 ---luastg中实例化的游戏对象
 ---@class lstg.GameObject
 local game_object = {
@@ -72,6 +74,7 @@ local game_object = {
 	--散列部分
 	--========object========
 	---状态，可以为"normal"、"kill"、"del"，分别代表正常状态、被标记为kill、被标记为del
+	---@type lstg.GameObject.Status
 	status = "normal",
 	---class，实际上映射到数组部分索引为1的位置
 	---@type lstg.Class
