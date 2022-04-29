@@ -6,43 +6,7 @@
 #include "RenderDev/f2dTexture11.h"
 
 #include "Engine/f2dEngineImpl.h"
-#include <VersionHelpers.h>
-
-VERSIONHELPERAPI
-static IsWindows11OrGreater()
-{
-	OSVERSIONINFOEXW osvi = { sizeof(osvi), 0, 0, 0, 0, {0}, 0, 0 };
-	DWORDLONG const dwlConditionMask = VerSetConditionMask(
-		VerSetConditionMask(
-			VerSetConditionMask(
-				0, VER_MAJORVERSION, VER_GREATER_EQUAL),
-			VER_MINORVERSION, VER_GREATER_EQUAL),
-		VER_BUILDNUMBER, VER_GREATER_EQUAL);
-
-	osvi.dwMajorVersion = HIBYTE(_WIN32_WINNT_WIN10);
-	osvi.dwMinorVersion = LOBYTE(_WIN32_WINNT_WIN10);
-	osvi.dwBuildNumber = 22000;
-
-	return VerifyVersionInfoW(&osvi, VER_MAJORVERSION | VER_MINORVERSION | VER_BUILDNUMBER, dwlConditionMask) != FALSE;
-}
-
-VERSIONHELPERAPI
-static IsWindows10VersionOrGreater(DWORD build)
-{
-	OSVERSIONINFOEXW osvi = { sizeof(osvi), 0, 0, 0, 0, {0}, 0, 0 };
-	DWORDLONG const dwlConditionMask = VerSetConditionMask(
-		VerSetConditionMask(
-			VerSetConditionMask(
-				0, VER_MAJORVERSION, VER_GREATER_EQUAL),
-			VER_MINORVERSION, VER_GREATER_EQUAL),
-		VER_BUILDNUMBER, VER_GREATER_EQUAL);
-
-	osvi.dwMajorVersion = HIBYTE(_WIN32_WINNT_WIN10);
-	osvi.dwMinorVersion = LOBYTE(_WIN32_WINNT_WIN10);
-	osvi.dwBuildNumber = build;
-
-	return VerifyVersionInfoW(&osvi, VER_MAJORVERSION | VER_MINORVERSION | VER_BUILDNUMBER, dwlConditionMask) != FALSE;
-}
+#include "platform/WindowsVersion.hpp"
 
 static std::string bytes_count_to_string(DWORDLONG size)
 {
@@ -67,134 +31,6 @@ static std::string bytes_count_to_string(DWORDLONG size)
 	return std::string(buffer, count);
 }
 
-static char const* windows_version_to_string()
-{
-	if (IsWindowsServer())
-	{
-		return "Windows Server（如果此程序能运行，也是一件美事）";
-	}
-
-	// Windows 11
-
-	if (IsWindows10VersionOrGreater(22001))
-	{
-		return "Windows 11 21H2+";
-	}
-	if (IsWindows10VersionOrGreater(22000))
-	{
-		return "Windows 11 21H2";
-	}
-	if (IsWindows11OrGreater())
-	{
-		return "Windows 11";
-	}
-
-	// Windows 10
-
-	if (IsWindows10VersionOrGreater(19045))
-	{
-		return "Windows 10 21H2+";
-	}
-	if (IsWindows10VersionOrGreater(19044))
-	{
-		return "Windows 10 21H2";
-	}
-	if (IsWindows10VersionOrGreater(19043))
-	{
-		return "Windows 10 21H1";
-	}
-	if (IsWindows10VersionOrGreater(19042))
-	{
-		return "Windows 10 20H2";
-	}
-	if (IsWindows10VersionOrGreater(19041))
-	{
-		return "Windows 10 2004（不受微软支持的版本，此程序仍然可以运行，可以考虑升级到 Windows 10 更新的版本）";
-	}
-	if (IsWindows10VersionOrGreater(18363))
-	{
-		return "Windows 10 1909";
-	}
-	if (IsWindows10VersionOrGreater(18362))
-	{
-		return "Windows 10 1903（不受微软支持的版本，此程序仍然可以运行，可以考虑升级到 Windows 10 更新的版本）";
-	}
-	if (IsWindows10VersionOrGreater(17763))
-	{
-		return "Windows 10 1809";
-	}
-	if (IsWindows10VersionOrGreater(17134))
-	{
-		return "Windows 10 1803（不受微软支持的版本，此程序仍然可以运行，可以考虑升级到 Windows 10 更新的版本）";
-	}
-	if (IsWindows10VersionOrGreater(16299))
-	{
-		return "Windows 10 1709（不受微软支持的版本，此程序仍然可以运行，可以考虑升级到 Windows 10 更新的版本）";
-	}
-	if (IsWindows10VersionOrGreater(15063))
-	{
-		return "Windows 10 1703（不受微软支持的版本，此程序仍然可以运行，可以考虑升级到 Windows 10 更新的版本）";
-	}
-	if (IsWindows10VersionOrGreater(14393))
-	{
-		return "Windows 10 1607";
-	}
-	if (IsWindows10VersionOrGreater(10586))
-	{
-		return "Windows 10 1511（不受微软支持的版本，此程序仍然可以运行，可以考虑升级到 Windows 10 更新的版本）";
-	}
-	if (IsWindows10VersionOrGreater(10240))
-	{
-		return "Windows 10 1507 (RTM)（不受微软支持的版本，此程序仍然可以运行，可以考虑升级到 Windows 10 更新的版本）";
-	}
-	if (IsWindows10OrGreater())
-	{
-		return "Windows 10 DEV（不受微软支持的早期开发版本，此程序可能无法正常运行，可以考虑升级到 Windows 10 更新的版本）";
-	}
-
-	// Windows 8
-
-	if (IsWindows8Point1OrGreater())
-	{
-		return "Windows 8.1";
-	}
-	if (IsWindows8OrGreater())
-	{
-		return "Windows 8（不受微软支持的版本，此程序仍然可以运行，可以考虑升级 Windows 8.1）";
-	}
-
-	// Windows 7
-
-	if (IsWindows7SP1OrGreater())
-	{
-		BOOL b7 = FALSE;
-		Microsoft::WRL::ComPtr<IDXGIFactory1> dxgi_factory;
-		if (SUCCEEDED(CreateDXGIFactory1(IID_IDXGIFactory1, &dxgi_factory)))
-		{
-			Microsoft::WRL::ComPtr<IDXGIFactory2> dxgi_factory2;
-			if (SUCCEEDED(dxgi_factory.As(&dxgi_factory2)))
-			{
-				b7 = TRUE;
-			}
-		}
-		if (b7)
-		{
-			return "Windows 7 SP1 With Platform Update（不受微软支持的版本，此程序仍然可以运行）";
-		}
-		else
-		{
-			return "Windows 7 SP1（不受微软支持的版本，此程序可运行的最低要求版本，建议安装 Platform Update for Windows 7，即 KB2670838：https://www.microsoft.com/en-us/download/details.aspx?id=36805）";
-		}
-	}
-	if (IsWindows7OrGreater())
-	{
-		return "Windows 7（不受微软支持的版本，不符合此程序可运行的最低要求版本，程序可能无法正常运行，可以考虑升级 Windows 7 SP1）";
-	}
-
-	// Windows ?
-
-	return "Windows ?（如果此程序能运行，也是一件美事）";
-}
 static char const* d3d_feature_level_to_string(bool b, D3D_FEATURE_LEVEL level)
 {
 	if (b)
@@ -705,7 +541,7 @@ f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, f2dEngineRenderWind
 	win32_window = m_hWnd;
 	HRESULT hr = 0;
 
-	spdlog::info("[fancy2d] 操作系统版本：{}", windows_version_to_string());
+	spdlog::info("[fancy2d] 操作系统版本：{}", platform::WindowsVersion::GetName());
 	get_system_memory_status();
 	spdlog::info("[fancy2d] 开始创建图形组件");
 
@@ -720,15 +556,15 @@ f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, f2dEngineRenderWind
 		throw fcyWin32COMException("f2dRenderDevice11::f2dRenderDevice11", "CreateDXGIFactory1 failed.", hr);
 	}
 	{
-		if (IsWindows8OrGreater())
+		if (platform::WindowsVersion::Is8())
 		{
 			dxgi_support_flipmodel = true;
 		}
-		if (IsWindows10OrGreater())
+		if (platform::WindowsVersion::Is10())
 		{
 			dxgi_support_flipmodel2 = true;
 		}
-		if (IsWindows8Point1OrGreater())
+		if (platform::WindowsVersion::Is8Point1())
 		{
 			dxgi_support_lowlatency = true;
 		}
@@ -738,15 +574,9 @@ f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, f2dEngineRenderWind
 		{
 			BOOL bs = FALSE;
 			hr = gHR = dxgi_factory5->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &bs, sizeof(bs));
-			if (SUCCEEDED(hr))
+			if (SUCCEEDED(hr) && bs)
 			{
-				if (IsWindows10OrGreater())
-				{
-					if (bs)
-					{
-						dxgi_support_tearing = true;
-					}
-				}
+				dxgi_support_tearing = true;
 			}
 		}
 		char const* dwm_acc_lv = "不支持";
