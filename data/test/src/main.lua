@@ -258,6 +258,43 @@ function RenderTTF3(ttfname, text, x, y, rot, hscale, vscale, blend, color, ...)
     return x2, y2
 end
 
-for it in lfs.dir(".") do
-    lstg.Print(it, lfs.attributes("./" .. it, "mode"))
+if false then
+    for it in lfs.dir(".") do
+        lstg.Print(it, lfs.attributes("./" .. it, "mode"))
+    end
+    do
+        local f, e = io.open("你好 io.open，你可终于支持中文辣.txt", "wb")
+        assert(f, e)
+        f:write("你妈死了")
+        f:close()
+    end
+    do
+        local f, e = io.open("中文测试测试.txt", "wb")
+        assert(f, e)
+        f:write("你妈死了2")
+        f:close()
+        os.remove("中文测试测试.txt")
+    end
+    do
+        local f, e = io.open("中文测试测试 Test test 还有空格.txt", "wb")
+        assert(f, e)
+        f:write("你妈死了3")
+        f:close()
+        local f2 = io.open("Test 测试重命名.txt", "rb")
+        if f2 then
+            f2:close()
+            os.remove("Test 测试重命名.txt")
+        end
+        os.rename("中文测试测试 Test test 还有空格.txt", "Test 测试重命名.txt")
+    end
+    do
+        for _ = 1, 10 do
+            local s = os.tmpname()
+            lstg.Print(s)
+            local f = io.open(s, "wb")
+            assert(f)
+            f:close()
+            os.remove(s)
+        end
+    end
 end
