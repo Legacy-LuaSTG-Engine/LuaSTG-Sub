@@ -168,13 +168,16 @@ set(LJ_SRC
     ${LJ_ROOT}/src/lib_debug.c
     ${LJ_ROOT}/src/lib_ffi.c
     ${LJ_ROOT}/src/lib_init.c
-    ${LJ_ROOT}/src/lib_io.c
+    #${LJ_ROOT}/src/lib_io.c
     ${LJ_ROOT}/src/lib_jit.c
     ${LJ_ROOT}/src/lib_math.c
-    ${LJ_ROOT}/src/lib_os.c
+    #${LJ_ROOT}/src/lib_os.c
     ${LJ_ROOT}/src/lib_package.c
     ${LJ_ROOT}/src/lib_string.c
     ${LJ_ROOT}/src/lib_table.c
+    patch/lib_io.c
+    patch/lib_os.c
+    patch/lj_win32.c
 )
 
 # lua51 (luajit) lib
@@ -186,6 +189,7 @@ target_include_directories(lua51static PRIVATE
 )
 target_include_directories(lua51static PUBLIC
     ${LJ_ROOT}/src
+    patch
 )
 target_sources(lua51static PRIVATE
     ${LJ_SRC}
@@ -206,6 +210,7 @@ target_compile_definitions(lua51 PUBLIC
 target_include_directories(lua51 PRIVATE
     ${LJ_TEMP}$<CONFIG> # before src
     ${LJ_ROOT}/src
+    patch
 )
 target_sources(lua51 PRIVATE
     ${LJ_SRC}

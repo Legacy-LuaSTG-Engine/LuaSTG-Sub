@@ -39,18 +39,15 @@ inline std::wstring to_wide(std::string_view const& src)
 	}
 	return L"";
 }
+inline std::filesystem::path to_path(std::string_view const& str) { return std::filesystem::path(to_wide(str)); }
+inline std::string from_path(std::filesystem::path const& p) { return to_utf8(p.generic_wstring()); }
+#else
+inline std::filesystem::path to_path(std::string_view const& str) { return std::filesystem::path(str); }
+inline std::string from_path(std::filesystem::path const& p) { return p.generic_string(); }
 #endif
 
 struct lfs_api
 {
-#ifdef _lfs_utf8
-	static inline std::filesystem::path to_path(std::string_view const& str) { return std::filesystem::path(to_wide(str)); }
-	static inline std::string from_path(std::filesystem::path const& p) { return to_utf8(p.generic_wstring()); }
-#else
-	static inline std::filesystem::path to_path(std::string_view const& str) { return std::filesystem::path(str); }
-	static inline std::string from_path(std::filesystem::path const& p) { return p.generic_string(); }
-#endif
-
 	static void push_attributes_table(lua_State* L, int o_f_d, int sz) noexcept
 	{
 		lua_createtable(L, 0, 14);
