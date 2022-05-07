@@ -26,6 +26,10 @@
 #include "lj_ff.h"
 #include "lj_lib.h"
 
+/* PATCH CODE */
+#include "lj_win32.h"
+/* PATCH CODE */
+
 /* Userdata payload for I/O file. */
 typedef struct IOFileUD {
   FILE *fp;		/* File handle. */
@@ -84,7 +88,10 @@ static IOFileUD *io_file_open(lua_State *L, const char *mode)
 {
   const char *fname = strdata(lj_lib_checkstr(L, 1));
   IOFileUD *iof = io_file_new(L);
-  iof->fp = fopen(fname, mode);
+  /* PATCH CODE */
+  /* iof->fp = /* fopen(fname, mode); */
+  iof->fp = _u8fopen(fname, mode);
+  /* PATCH CODE */
   if (iof->fp == NULL)
     luaL_argerror(L, 1, lj_strfmt_pushf(L, "%s: %s", fname, strerror(errno)));
   return iof;
@@ -412,7 +419,10 @@ LJLIB_CF(io_open)
   GCstr *s = lj_lib_optstr(L, 2);
   const char *mode = s ? strdata(s) : "r";
   IOFileUD *iof = io_file_new(L);
-  iof->fp = fopen(fname, mode);
+  /* PATCH CODE */
+  /* iof->fp = /* fopen(fname, mode); */
+  iof->fp = _u8fopen(fname, mode);
+  /* PATCH CODE */
   return iof->fp != NULL ? 1 : luaL_fileresult(L, 0, fname);
 }
 

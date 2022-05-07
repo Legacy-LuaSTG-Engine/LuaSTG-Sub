@@ -33,6 +33,10 @@
 #include <locale.h>
 #endif
 
+/* PATCH CODE */
+#include "lj_win32.h"
+/* PATCH CODE */
+
 /* ------------------------------------------------------------------------ */
 
 #define LJLIB_MODULE_os
@@ -49,7 +53,10 @@ LJLIB_CF(os_execute)
 #endif
 #else
   const char *cmd = luaL_optstring(L, 1, NULL);
-  int stat = system(cmd);
+  /* PATCH CODE */
+  /* int stat = system(cmd); */
+  int stat = _u8system(cmd);
+  /* PATCH CODE */
 #if LJ_52
   if (cmd)
     return luaL_execresult(L, stat);
@@ -64,14 +71,20 @@ LJLIB_CF(os_execute)
 LJLIB_CF(os_remove)
 {
   const char *filename = luaL_checkstring(L, 1);
-  return luaL_fileresult(L, remove(filename) == 0, filename);
+  /* PATCH CODE */
+  /* return luaL_fileresult(L, remove(filename) == 0, filename); */
+  return luaL_fileresult(L, _u8remove(filename) == 0, filename);
+  /* PATCH CODE */
 }
 
 LJLIB_CF(os_rename)
 {
   const char *fromname = luaL_checkstring(L, 1);
   const char *toname = luaL_checkstring(L, 2);
-  return luaL_fileresult(L, rename(fromname, toname) == 0, fromname);
+  /* PATCH CODE */
+  /* return luaL_fileresult(L, rename(fromname, toname) == 0, fromname); */
+  return luaL_fileresult(L, _u8rename(fromname, toname) == 0, fromname);
+  /* PATCH CODE */
 }
 
 LJLIB_CF(os_tmpname)
@@ -90,11 +103,18 @@ LJLIB_CF(os_tmpname)
   else
     lj_err_caller(L, LJ_ERR_OSUNIQF);
 #else
-  char buf[L_tmpnam];
-  if (tmpnam(buf) == NULL)
+  /* PATCH CODE */
+  /* char buf[L_tmpnam]; */
+  /* if (tmpnam(buf) == NULL) */
+  char* buf = _u8tmpnam(NULL);
+  if (buf == NULL)
+  /* PATCH CODE */
     lj_err_caller(L, LJ_ERR_OSUNIQF);
 #endif
   lua_pushstring(L, buf);
+  /* PATCH CODE */
+  _u8gclear();
+  /* PATCH CODE */
   return 1;
 #endif
 }
@@ -104,7 +124,11 @@ LJLIB_CF(os_getenv)
 #if LJ_TARGET_CONSOLE
   lua_pushnil(L);
 #else
-  lua_pushstring(L, getenv(luaL_checkstring(L, 1)));  /* if NULL push nil */
+  /* PATCH CODE */
+  /* lua_pushstring(L, getenv(luaL_checkstring(L, 1))); */ /* if NULL push nil */
+  lua_pushstring(L, _u8getenv(luaL_checkstring(L, 1)));
+  _u8gclear();
+  /* PATCH CODE */
 #endif
   return 1;
 }
