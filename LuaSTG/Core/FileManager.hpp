@@ -26,6 +26,7 @@ namespace LuaSTG::Core
         virtual size_t findIndex(std::string_view const& name) = 0;
         virtual size_t getCount() = 0;
         virtual FileType getType(size_t index) = 0;
+        virtual FileType getType(std::string_view const& name) = 0;
         virtual std::string_view getName(size_t index) = 0;
         virtual bool contain(std::string_view const& name) = 0;
         virtual bool load(std::string_view const& name, std::vector<uint8_t>& buffer) = 0;
@@ -45,6 +46,7 @@ namespace LuaSTG::Core
         size_t findIndex(std::string_view const& name);
         size_t getCount();
         FileType getType(size_t index);
+        FileType getType(std::string_view const& name);
         std::string_view getName(size_t index);
         bool contain(std::string_view const& name);
         bool load(std::string_view const& name, std::vector<uint8_t>& buffer);
@@ -74,6 +76,7 @@ namespace LuaSTG::Core
         size_t findIndex(std::string_view const& name);
         size_t getCount();
         FileType getType(size_t index);
+        FileType getType(std::string_view const& name);
         std::string_view getName(size_t index);
         bool contain(std::string_view const& name);
         bool load(std::string_view const& name, std::vector<uint8_t>& buffer);
