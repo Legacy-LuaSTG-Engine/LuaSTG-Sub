@@ -438,7 +438,10 @@ LJLIB_CF(io_popen)
   fflush(NULL);
   iof->fp = popen(fname, mode);
 #else
-  iof->fp = _popen(fname, mode);
+  /* PATCH CODE */
+  /* iof->fp = _popen(fname, mode); */
+  iof->fp = _u8popen(fname, mode);
+  /* PATCH CODE */
 #endif
   return iof->fp != NULL ? 1 : luaL_fileresult(L, 0, fname);
 #else

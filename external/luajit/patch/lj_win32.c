@@ -74,6 +74,15 @@ FILE* _u8fopen(char const* fname, char const* mode)
     win32_to_wide_free(&w_mode);
     return (result == 0) ? fp : NULL;
 }
+FILE* _u8popen(char const* command, char const* mode)
+{
+    wchar_t* w_command = win32_to_wide(command);
+    wchar_t* w_mode = win32_to_wide(mode);
+    FILE* const result = _wpopen(w_command, w_mode);
+    win32_to_wide_free(&w_command);
+    win32_to_wide_free(&w_mode);
+    return result;
+}
 int _u8system(char const* command)
 {
     wchar_t* w_command = win32_to_wide(command);
