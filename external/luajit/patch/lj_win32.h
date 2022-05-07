@@ -8,6 +8,7 @@
 LJ_FUNC void _u8gclear();
 
 LJ_FUNC FILE* _u8fopen(char const* fname, char const* mode);
+LJ_FUNC FILE* _u8popen(char const* command, char const* mode);
 LJ_FUNC int _u8system(char const* command);
 LJ_FUNC int _u8remove(char const* path);
 LJ_FUNC int _u8rename(char const* oldname, char const* newname);

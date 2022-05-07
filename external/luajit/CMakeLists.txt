@@ -6,6 +6,7 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$<$<CONFIG:
 # build contorller
 
 set(LJ_ROOT ${CMAKE_CURRENT_LIST_DIR}/luajit)
+set(LJ_PATCH_ROOT ${CMAKE_CURRENT_LIST_DIR}/patch)
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     message("64 bits platform")
@@ -81,13 +82,15 @@ set(LJ_ALL_LIB
     ${LJ_ROOT}/src/lib_bit.c
     ${LJ_ROOT}/src/lib_string.c
     ${LJ_ROOT}/src/lib_table.c
-    ${LJ_ROOT}/src/lib_io.c
-    ${LJ_ROOT}/src/lib_os.c
+    #${LJ_ROOT}/src/lib_io.c
+    #${LJ_ROOT}/src/lib_os.c
     ${LJ_ROOT}/src/lib_package.c
     ${LJ_ROOT}/src/lib_debug.c
     ${LJ_ROOT}/src/lib_jit.c
     ${LJ_ROOT}/src/lib_ffi.c
     ${LJ_ROOT}/src/lib_buffer.c
+    ${LJ_PATCH_ROOT}/lib_io.c
+    ${LJ_PATCH_ROOT}/lib_os.c
 )
 add_custom_command(TARGET buildvm POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${LJ_TEMP}$<CONFIG>
