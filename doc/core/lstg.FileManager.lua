@@ -96,15 +96,22 @@ end
 --------------------------------------------------------------------------------
 --- 文件判断和文件枚举
 
----判断指定的文件是否存在，只判断文件系统中的文件
----@param filepath string @文件
+--- [LuaSTG Ex Plus 新增]  
+--- [LuaSTG Sub v0.16.0 修改]  
+--- 检查文件是否存在  
+--- 如果 `also_check_archive` 为 true，该方法还会检查是否有任意一个压缩包存在指定的文件  
+--- [LuaSTG Ex Plus Add]  
+--- [LuaSTG Sub v0.16.0 Change]  
+--- Check if the file exists  
+--- If `also_check_archive` is true, the method also checks if any Archive contain the specified file  
+---@param filepath string
+---@param also_check_archive boolean
 ---@return boolean
-function M.FileExist(filepath)
+---@overload fun(filepath:string):boolean
+function M.FileExist(filepath, also_check_archive)
 end
 
----判断指定的文件是否存在，除了判断文件系统中的文件外，还判断已加载的压缩包中的文件
----@param filepath string @文件
----@return boolean
+---@deprecated
 function M.FileExistEx(filepath)
 end
 
@@ -173,6 +180,19 @@ end
 ---@param path string
 ---@return boolean
 function M.RemoveDirectory(path)
+end
+
+--- [LuaSTG Sub v0.16.0 新增]  
+--- 检查文件夹是否存在  
+--- 如果 `also_check_archive` 为 true，该方法还会检查是否有任意一个压缩包存在指定的文件夹  
+--- [LuaSTG Sub v0.16.0 Add]  
+--- Check if the directory exists  
+--- If `also_check_archive` is true, the method also checks if any Archive contain the specified directory  
+---@param path string
+---@param also_check_archive boolean
+---@return boolean
+---@overload fun(path:string):boolean
+function M.DirectoryExist(path, also_check_archive)
 end
 
 return M

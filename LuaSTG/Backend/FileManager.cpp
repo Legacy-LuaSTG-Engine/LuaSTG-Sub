@@ -69,11 +69,9 @@ namespace LuaSTG::Core
                 return invalid_index;
             }
         }
-        std::string name_str(name);
-        utility::path::to_slash(name_str);
         for (auto const& v : list)
         {
-            if (v.name == name_str)
+            if (v.name == name)
             {
                 return &v - list.data();
             }
@@ -96,6 +94,19 @@ namespace LuaSTG::Core
         }
         return list[index].type;
     }
+    FileType FileArchive::getType(std::string_view const& name)
+    {
+        if (!mz_zip_v)
+        {
+            return FileType::Unknown;
+        }
+        if (MZ_OK != mz_zip_reader_locate_entry(mz_zip_v, name.data(), false))
+        {
+            return FileType::Unknown;
+        }
+        bool const is_dir = (MZ_OK == mz_zip_reader_entry_is_dir(mz_zip_v));
+        return is_dir ? FileType::Directory : FileType::File;
+    }
     std::string_view FileArchive::getName(size_t index)
     {
         if ((index < 0) || (index >= getCount()))
@@ -110,8 +121,11 @@ namespace LuaSTG::Core
         {
             return false;
         }
-        int32_t err = mz_zip_reader_locate_entry(mz_zip_v, name.data(), false);
-        return MZ_OK == err;
+        if (MZ_OK != mz_zip_reader_locate_entry(mz_zip_v, name.data(), false))
+        {
+            return false;
+        }
+        return MZ_OK != mz_zip_reader_entry_is_dir(mz_zip_v);
     }
     bool FileArchive::load(std::string_view const& name, std::vector<uint8_t>& buffer)
     {
@@ -303,7 +317,8 @@ namespace LuaSTG::Core
     void FileManager::refresh()
     {
         list.clear();
-        for (auto& entry : std::filesystem::recursive_directory_iterator(L"."))
+        std::error_code ec;
+        for (auto& entry : std::filesystem::recursive_directory_iterator(L".", ec))
         {
             list.emplace_back();
             FileNode& node = list.back();
@@ -346,10 +361,28 @@ namespace LuaSTG::Core
         return list.size();
     }
     FileType FileManager::getType(size_t index) { return list[index].type; }
+    FileType FileManager::getType(std::string_view const& name)
+    {
+        std::error_code ec;
+        std::wstring name_str(utility::encoding::to_wide(name));
+        if (std::filesystem::is_regular_file(name_str, ec))
+        {
+            return FileType::File;
+        }
+        else if (std::filesystem::is_directory(name_str, ec))
+        {
+            return FileType::Directory;
+        }
+        else
+        {
+            return FileType::Unknown;
+        }
+    }
     std::string_view FileManager::getName(size_t index) { return list[index].name; }
     bool FileManager::contain(std::string_view const& name)
     {
-        return std::filesystem::is_regular_file(utility::encoding::to_wide(name));
+        std::error_code ec;
+        return std::filesystem::is_regular_file(utility::encoding::to_wide(name), ec);
     }
     bool FileManager::load(std::string_view const& name, std::vector<uint8_t>& buffer)
     {

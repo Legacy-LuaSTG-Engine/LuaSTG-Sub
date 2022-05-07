@@ -162,94 +162,127 @@ static bool extractRes(const char* path, const char* target) noexcept
 	return true;
 }
 
+inline std::string_view luaL_to_string_view(lua_State* L, int idx)
+{
+	size_t len = 0;
+	char const* str = luaL_checklstring(L, idx, &len);
+	return std::string_view(str, len);
+}
+inline void lua_push_string_view(lua_State* L, std::string_view const& str)
+{
+	lua_pushlstring(L, str.data(), str.length());
+}
+
 void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)LNOEXCEPT
 {
-	
-	struct Wrapper {
-		static int LoadArchive(lua_State* L) {
+	struct Wrapper
+	{
+		static int LoadArchive(lua_State* L)
+		{
 			// path ???
-			int argn = lua_gettop(L);
+			std::string_view const path = luaL_to_string_view(L, 1);
+			int const argc = lua_gettop(L);
 			bool ret = false;
-			switch (argn) {
-			case 1:
-				// path
-				ret = GFileManager().loadFileArchive(luaL_checkstring(L, 1));
-				break;
-			case 2:
-				if (lua_isnumber(L, 2)) {
-					// path lv
-					ret = GFileManager().loadFileArchive(luaL_checkstring(L, 1));
-				}
-				else {
-					// path pw
-					ret = GFileManager().loadFileArchive(luaL_checkstring(L, 1), luaL_checkstring(L, 2));
-				}
-				break;
-			case 3:
+			if (argc >= 3)
+			{
 				// path lv pw
-				ret = GFileManager().loadFileArchive(luaL_checkstring(L, 1), luaL_checkstring(L, 3));
-				break;
+				std::string_view const pw = luaL_to_string_view(L, 3);
+				ret = GFileManager().loadFileArchive(path, pw);
 			}
-			if (ret) {
-				auto& zip = GFileManager().getFileArchive(luaL_checkstring(L, 1));
-				if (!zip.empty()) {
+			else if (argc == 2)
+			{
+				if (lua_isnumber(L, 2))
+				{
+					// path lv
+					ret = GFileManager().loadFileArchive(path);
+				}
+				else
+				{
+					// path pw
+					std::string_view const pw = luaL_to_string_view(L, 2);
+					ret = GFileManager().loadFileArchive(path, pw);
+				}
+			}
+			else if (argc == 1)
+			{
+				ret = GFileManager().loadFileArchive(path);
+			}
+			if (ret)
+			{
+				auto& zip = GFileManager().getFileArchive(path);
+				if (!zip.empty())
+				{
 					ArchiveWrapper::CreateAndPush(L, zip.getUUID());
 				}
-				else {
+				else
+				{
 					lua_pushnil(L);
 				}
 			}
-			else {
+			else
+			{
 				lua_pushnil(L);
 			}
 			return 1;
 		}
-		static int UnloadArchive(lua_State* L) {
-			const char* s = luaL_checkstring(L, 1);
-			if (GFileManager().containFileArchive(s)) {
-				GFileManager().unloadFileArchive(s);
+		static int UnloadArchive(lua_State* L)
+		{
+			std::string_view const name = luaL_to_string_view(L, 1);
+			if (GFileManager().containFileArchive(name))
+			{
+				GFileManager().unloadFileArchive(name);
 				lua_pushboolean(L, true);
 			}
-			else {
+			else
+			{
 				lua_pushboolean(L, false);
 			}
 			return 1;
 		}
-		static int UnloadAllArchive(lua_State* L) {
+		static int UnloadAllArchive(lua_State* L)
+		{
 			std::ignore = L;
 			GFileManager().unloadAllFileArchive();
 			return 0;
 		}
-		static int ArchiveExist(lua_State* L) {
-			lua_pushboolean(L,
-				GFileManager().containFileArchive(
-					luaL_checkstring(L, 1)));
+		static int ArchiveExist(lua_State* L)
+		{
+			std::string_view const name = luaL_to_string_view(L, 1);
+			lua_pushboolean(L, GFileManager().containFileArchive(name));
 			return 1;
 		}
-		static int GetArchive(lua_State* L) {
-			auto& zip = GFileManager().getFileArchive(luaL_checkstring(L, 1));
-			if (!zip.empty()) {
+		static int GetArchive(lua_State* L)
+		{
+			std::string_view const name = luaL_to_string_view(L, 1);
+			auto& zip = GFileManager().getFileArchive(name);
+			if (!zip.empty())
+			{
 				ArchiveWrapper::CreateAndPush(L, zip.getUUID());
 			}
-			else {
+			else
+			{
 				lua_pushnil(L);
 			}
 			return 1;
 		}
-		static int EnumArchives(lua_State* L) {
-			lua_newtable(L); // ??? t 
-			for (unsigned int index = 1; index <= GFileManager().getFileArchiveCount(); index++) {
-				auto& ref = GFileManager().getFileArchive(index - 1);
-				if (!ref.empty()) {
-					lua_pushinteger(L, (lua_Integer)index); // ??? t index 
-					lua_newtable(L); // ??? t index tt 
-					lua_pushinteger(L, 1); // ??? t index tt 1 
-					lua_pushstring(L, ref.getFileArchiveName().data()); // ??? t index tt 1 s
-					lua_settable(L, -3); // ??? t index tt 
-					lua_pushinteger(L, 2); // ??? t index tt 2 
-					lua_pushinteger(L, 0); // ??? t index tt 2 priority 
-					lua_settable(L, -3); // ??? t index tt 
-					lua_settable(L, -3); // ??? t 
+		static int EnumArchives(lua_State* L)
+		{
+			size_t const count = GFileManager().getFileArchiveCount();
+			lua_createtable(L, (int)count, 0);							// ??? t 
+			for (size_t index = 0; index < count; index += 1)
+			{
+				auto& ref = GFileManager().getFileArchive(index);
+				if (!ref.empty())
+				{
+					lua_pushinteger(L, (lua_Integer)index + 1);			// ??? t index 
+					lua_createtable(L, 2, 0);							// ??? t index tt 
+					lua_pushinteger(L, 1);								// ??? t index tt 1 
+					lua_push_string_view(L, ref.getFileArchiveName());	// ??? t index tt 1 s
+					lua_settable(L, -3);								// ??? t index tt 
+					lua_pushinteger(L, 2);								// ??? t index tt 2 
+					lua_pushinteger(L, 0);								// ??? t index tt 2 priority 
+					lua_settable(L, -3);								// ??? t index tt 
+					lua_settable(L, -3);								// ??? t 
 				}
 			}
 			return 1;
@@ -400,23 +433,31 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)LNOEXCEPT
 			}
 			return 1;
 		}
-		static int FileExist(lua_State* L) {
-			// ??? filepath
-			lua_pushboolean(L, GFileManager().contain(luaL_checkstring(L, -1)));
+		static int FileExist(lua_State* L)
+		{
+			std::string_view const path = luaL_to_string_view(L, 1);
+			bool const respack = lua_toboolean(L, 2);
+			if (respack)
+				lua_pushboolean(L, GFileManager().containEx(path));
+			else
+				lua_pushboolean(L, GFileManager().contain(path));
 			return 1;
 		}
-		static int FileExistEx(lua_State* L) {
-			// ??? filepath
-			lua_pushboolean(L, GFileManager().containEx(luaL_checkstring(L, -1)));
+		static int FileExistEx(lua_State* L)
+		{
+			std::string_view const path = luaL_to_string_view(L, 1);
+			lua_pushboolean(L, GFileManager().containEx(path));
 			return 1;
 		}
-
+		
 		static int AddSearchPath(lua_State* L) {
-			GFileManager().addSearchPath(luaL_checkstring(L, 1));
+			std::string_view const path = luaL_to_string_view(L, 1);
+			GFileManager().addSearchPath(path);
 			return 0;
 		}
 		static int RemoveSearchPath(lua_State* L) {
-			GFileManager().removeSearchPath(luaL_checkstring(L, 1));
+			std::string_view const path = luaL_to_string_view(L, 1);
+			GFileManager().removeSearchPath(path);
 			return 0;
 		}
 		static int ClearSearchPath(lua_State* L) {
@@ -427,13 +468,13 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)LNOEXCEPT
 
 		static int SetCurrentDirectory(lua_State* L)
 		{
-			char const* path = luaL_checkstring(L, 1);
+			std::string_view const path = luaL_to_string_view(L, 1);
 			std::error_code ec;
 			std::filesystem::current_path(utility::encoding::to_wide(path), ec);
 			if (ec)
 			{
 				lua_pushboolean(L, false);
-				lua_pushstring(L, ec.message().c_str());
+				lua_push_string_view(L, ec.message());
 				lua_pushinteger(L, ec.value());
 				return 3;
 			}
@@ -450,7 +491,7 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)LNOEXCEPT
 			if (ec)
 			{
 				lua_pushnil(L);
-				lua_pushstring(L, ec.message().c_str());
+				lua_push_string_view(L, ec.message());
 				lua_pushinteger(L, ec.value());
 				return 3;
 			}
@@ -458,19 +499,19 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)LNOEXCEPT
 			{
 				std::string str = utility::encoding::to_utf8(path.wstring());
 				utility::path::to_slash(str);
-				lua_pushstring(L, str.c_str());
+				lua_push_string_view(L, str);
 				return 1;
 			}
 		}
 		static int CreateDirectory(lua_State* L)
 		{
-			char const* path = luaL_checkstring(L, 1);
+			std::string_view const path = luaL_to_string_view(L, 1);
 			std::error_code ec;
 			bool result = std::filesystem::create_directories(utility::encoding::to_wide(path), ec);
 			lua_pushboolean(L, result);
 			if (ec)
 			{
-				lua_pushstring(L, ec.message().c_str());
+				lua_push_string_view(L, ec.message());
 				lua_pushinteger(L, ec.value());
 				return 3;
 			}
@@ -481,13 +522,13 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)LNOEXCEPT
 		}
 		static int RemoveDirectory(lua_State* L)
 		{
-			char const* path = luaL_checkstring(L, 1);
+			std::string_view const path = luaL_to_string_view(L, 1);
 			std::error_code ec;
 			uintmax_t result = std::filesystem::remove_all(utility::encoding::to_wide(path), ec);
 			lua_pushboolean(L, result != static_cast<std::uintmax_t>(-1));
 			if (ec)
 			{
-				lua_pushstring(L, ec.message().c_str());
+				lua_push_string_view(L, ec.message());
 				lua_pushinteger(L, ec.value());
 				return 3;
 			}
@@ -495,6 +536,51 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)LNOEXCEPT
 			{
 				return 1;
 			}
+		}
+		static int DirectoryExist(lua_State* L)
+		{
+			std::string_view const path = luaL_to_string_view(L, 1);
+			if (path.empty())
+			{
+				lua_pushboolean(L, true); // 相对路径 "" 永远是存在的
+				return 1;
+			}
+			bool const respack = lua_toboolean(L, 2);
+			if (GFileManager().getType(path) == LuaSTG::Core::FileType::Directory)
+			{
+				lua_pushboolean(L, true);
+				return 1;
+			}
+			if (respack)
+			{
+				auto hasDir = [](std::string_view const& p) -> bool
+				{
+					for (size_t idx = 0; idx < GFileManager().getFileArchiveCount(); idx += 1)
+					{
+						auto& zip = GFileManager().getFileArchive(idx);
+						if (zip.getType(p) == LuaSTG::Core::FileType::Directory)
+						{
+							return true;
+						}
+					}
+					return false;
+				};
+				bool has_dir = false;
+				if (path.back() != '/' || path.back() != '\\')
+				{
+					std::string path_dir(path);
+					path_dir.push_back('/');
+					has_dir = hasDir(path_dir);
+				}
+				else
+				{
+					has_dir = hasDir(path);
+				}
+				lua_pushboolean(L, has_dir);
+				return 1;
+			}
+			lua_pushboolean(L, false);
+			return 1;
 		}
 	};
 
@@ -509,7 +595,7 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)LNOEXCEPT
 		{ "EnumFiles", &Wrapper::EnumFiles },
 		{ "EnumFilesEx", &Wrapper::EnumFilesEx },
 		{ "FileExist", &Wrapper::FileExist },
-		{ "FileExistEx", &Wrapper::FileExistEx },
+		{ "FileExistEx", &Wrapper::FileExistEx }, // 要移除
 
 		{ "AddSearchPath", &Wrapper::AddSearchPath },
 		{ "RemoveSearchPath", &Wrapper::RemoveSearchPath },
@@ -519,6 +605,7 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)LNOEXCEPT
 		{ "GetCurrentDirectory", &Wrapper::GetCurrentDirectory },
 		{ "CreateDirectory", &Wrapper::CreateDirectory },
 		{ "RemoveDirectory", &Wrapper::RemoveDirectory },
+		{ "DirectoryExist", &Wrapper::DirectoryExist },
 
 		{ NULL, NULL },
 	};
