@@ -95,6 +95,7 @@ end
 
 --------------------------------------------------------------------------------
 --- 文件判断和文件枚举
+--- Check file exists; list files and directories
 
 --- [LuaSTG Ex Plus 新增]  
 --- [LuaSTG Sub v0.16.0 修改]  
@@ -115,20 +116,32 @@ end
 function M.FileExistEx(filepath)
 end
 
----列出指定路径内所有的文件和文件夹，仅搜索文件系统中的，不包括压缩包中的
----@param searchpath string @搜索路径
----@param extend string|nil @如果该参数存在，则匹配文件拓展名，并且屏蔽文件夹，只保留文件
----@return table<number, table> @返回的表中，每个元素为普通的表，第一项是文件或文件夹的完整路径，第二项为boolean值，为true时代表该项为文件夹
-function M.EnumFiles(searchpath, extend)
-    return {{"sample.ext",false}, {"sampledir/",true}}
+--- [LuaSTG Ex Plus 新增]  
+--- [LuaSTG Sub v0.16.0 修改]  
+--- 列出指定路径下的文件和文件夹  
+--- 如果指定了 `extend` 参数，则忽略文件夹，并匹配检查文件拓展名  
+--- 如果 `also_enum_archives` 为 true，该方法还会列出压缩包内的文件  
+--- [LuaSTG Ex Plus Add]  
+--- [LuaSTG Sub v0.16.0 Change]  
+--- List files and directories under search path   
+--- If `extend` is true, the method ignore directories and match file extension name  
+--- If `also_enum_archives` is true, the method also list files in Archive  
+---@param searchpath string
+---@param extend string
+---@param also_enum_archives boolean
+---@overload fun(searchpath:string)
+---@overload fun(searchpath:string, extend:string)
+---@overload fun(searchpath:string, extend:nil, also_enum_archives:boolean)
+function M.EnumFiles(searchpath, extend, also_enum_archives)
+    return {
+        { "sample.ext"          , false },
+        { "sampledir/"          , true  },
+        { "sampledir/sample.txt", false },
+    }
 end
 
----列出指定路径内所有的文件和文件夹，包括加载的压缩包中的
----@param searchpath string @搜索路径
----@param extend string|nil @如果该参数存在，则匹配文件拓展名，并且屏蔽文件夹，只保留文件
----@return table<number, table> @返回的表中，每个元素为普通的表，第一项是文件或文件夹的完整路径，第二项为boolean值，为true时代表该项为文件夹
+---@deprecated
 function M.EnumFilesEx(searchpath, extend)
-    return {{"sample.ext",false, nil}, {"sampledir/",true, "sample.zip"}}
 end
 
 --------------------------------------------------------------------------------
