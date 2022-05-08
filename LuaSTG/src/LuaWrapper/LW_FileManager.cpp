@@ -10,126 +10,6 @@
 #include "ResourcePassword.hpp"
 #include "Config.h"
 
-static bool listFilesS(lua_State* L, const char* dir, const char* ext, int& index) {
-	//传入的肯定是utf8格式的搜索目录和拓展名
-	// ??? t
-	std::string searchpath = dir;//搜索路径
-	std::filesystem::path searchdir = std::filesystem::path(utility::encoding::to_wide(searchpath));//路径，需要转换为UTF16
-	
-	std::string_view extendpath = ext;//拓展名
-	size_t extendsize = extendpath.size();//拓展名长度
-	size_t pathsize = 0;//文件路径长度
-	
-	if (std::filesystem::is_directory(searchdir)) {
-		for (auto& f : std::filesystem::directory_iterator(searchdir)) {
-			if (std::filesystem::is_directory(f.path()) || std::filesystem::is_regular_file(f.path())) {
-				std::string path = f.path().string();//文件路径
-				pathsize = path.size();
-				
-				//检查拓展名匹配
-				std::string_view compare(&(path[pathsize - extendsize]), extendsize);//要比较的尾部
-				if ((extendsize > 0) && ((path[pathsize - extendsize - 1] != '.') || (extendpath != compare))) {
-					continue;//拓展名不匹配
-				}
-				
-				lua_pushinteger(L, index);// ??? t index
-				lua_createtable(L, 1, 0);// ??? t index t //一个数组元素，没有非数组元素
-				lua_pushinteger(L, 1);// ??? t index t 1
-				std::string u8path = utility::encoding::to_utf8(f.path().wstring());
-				lua_pushstring(L, u8path.c_str());// ??? t index t 1 path
-				lua_settable(L, -3);// ??? t index t
-				lua_settable(L, -3);// ??? t
-				index++;
-			}
-		}
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-static bool listFilesA(lua_State* L, const char* dir, const char* ext, const char* packname, int& index) {
-	// ??? t
-	
-	auto& FMGR = GFileManager();
-	
-	std::string searchpath = dir;
-	utility::path::to_slash(searchpath);//格式化为Linux风格
-	if ((searchpath == ".") || (searchpath == "./") || (searchpath == "/")) {
-		searchpath = "";//去掉".","./","/"这类路径
-	}
-	else if ((searchpath.size() > 1) && (searchpath.back() != '/')) {
-		searchpath.push_back('/');//补充缺失的斜杠
-	}
-	std::string_view frompath = searchpath;//搜索路径
-	if (frompath.find("..", 0, 2) != std::string_view::npos) {
-		return false;//不能使用".."这种路径！
-	}
-	
-	std::string frompack = packname;//要搜索的压缩包路径
-	std::string_view expath = ext;//拓展名
-	size_t exsize = expath.size();
-	size_t pathsize = 0;
-	
-	for (unsigned int select = 0; select < FMGR.getFileArchiveCount(); select++) {
-		auto& zip = FMGR.getFileArchive(select);
-		if (!zip.empty()) {
-			std::string zipname(zip.getFileArchiveName());
-			if ((frompack.size() > 0) && (frompack != zipname)) {
-				continue;//没有命中压缩包
-			}
-			for (size_t pos = 0; pos < zip.getCount(); pos++) {
-				std::string filename(zip.getName(pos));//文件名
-				pathsize = filename.size();
-				
-				//开始检查路径是否命中
-				if (frompath.size() >= pathsize) {
-					continue;//文件名都不够长，跳过
-				}
-				std::string_view leftpath(&(filename[0]), frompath.size());
-				std::string_view rightpath(&(filename[frompath.size()]), pathsize - frompath.size());
-				if ((rightpath.find('/', 0) != std::string_view::npos) || (leftpath != frompath)) {
-					continue;//不是目标目录的文件，或者前半路径不匹配
-				}
-				if ((exsize > 0) && (rightpath.size() > (exsize + 1))) {//拓展名长度要大于0且剩余文件名要长过点号+拓展名
-					std::string_view compare(&(filename[pathsize - exsize]), exsize);
-					if ((filename[pathsize - exsize - 1] != '.') || (expath != compare)) {
-						continue;//拓展名没有命中
-					}
-				}
-				
-				lua_pushinteger(L, index);// ??? t index
-				lua_createtable(L, 2, 0);// ??? t index t //2个数组元素，没有非数组元素
-				lua_pushinteger(L, 1);// ??? t index t 1
-				lua_pushstring(L, filename.c_str());// ??? t index t 1 path
-				lua_settable(L, -3);// ??? t index t
-				lua_pushinteger(L, 2);// ??? t index t 2
-				lua_pushstring(L, zipname.c_str());// ??? t index t 2 pack
-				lua_settable(L, -3);// ??? t index t
-				lua_settable(L, -3);// ??? t
-				index++;
-			}
-		}
-	}
-	
-	return true;
-}
-static bool findFiles(lua_State* L, const char* path, const char* ext, const char* packname) noexcept
-{
-	// 尝试从各个资源包加载
-	lua_newtable(L); // ??? t
-	int index = 1;
-	
-	//搜索压缩包内文件
-	listFilesA(L, path, ext, packname, index);
-	
-	//不限定packname时对文件系统进行查找
-	if (std::string_view(packname).size() <= 0) {
-		listFilesS(L, path, ext, index);
-	}
-	
-	return true;
-}
 static bool extractRes(const char* path, const char* target) noexcept
 {
 	// 读取文件
@@ -288,149 +168,227 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)LNOEXCEPT
 			return 1;
 		}
 
-		static int EnumFiles(lua_State* L) {
+		struct _EnumFilesConfig
+		{
+			std::string searchpath;
+			std::string searchpath2;
+			size_t headlen = 0;
+			std::string extpath;
+			std::string packname;
+			int index = 1;
+			bool checkext = false;
+			bool checkpack = false;
+			bool findfiles = false;
+		};
+		static _EnumFilesConfig _InitEnumFiles(lua_State* L, bool FindFilesMode = false)
+		{
 			// path ext 
-			std::string searchpath = luaL_checkstring(L, 1);
+
+			std::string searchpath(luaL_to_string_view(L, 1));
+			utility::path::to_slash(searchpath);
+			size_t headlen = 0;
+			if (!searchpath.empty() && searchpath.back() != '/')
+			{
+				searchpath.push_back('/');
+			}
+			else if (searchpath.empty())
+			{
+				searchpath.push_back('.');
+				headlen = 2;
+			}
+
+			std::string searchpath2(luaL_to_string_view(L, 1));
+			utility::path::to_slash(searchpath2);
+			if (!searchpath2.empty() && searchpath2.back() != '/')
+			{
+				searchpath2.push_back('/');
+			}
+			else if (searchpath2 == "." || searchpath2 == "./")
+			{
+				searchpath2 = "";
+			}
+
 			std::string extpath = "";
 			bool checkext = false;
-			if (lua_gettop(L) == 2) {
-				extpath = luaL_checkstring(L, 2);
-				extpath = "." + extpath; // 修改成带点格式
-				checkext = true;
-			}
-
-			utility::path::to_slash(searchpath);
-			if ((searchpath == ".") || (searchpath == "/") || (searchpath == "./")) {
-				searchpath = "";// "/" or "." 不需要
-			}
-			else if ((searchpath.size() > 1) && (searchpath.back() != '/')) {
-				searchpath.push_back('/');//在搜索路径后面手动添加一个分隔符
-			}
-
-			lua_newtable(L); // ??? path t 
-			std::filesystem::path path = searchpath;
-			unsigned int index = 1;
-			if (std::filesystem::is_directory(path)) {
-				for (auto& p : std::filesystem::directory_iterator(path)) {
-					if (std::filesystem::is_regular_file(p.path()) || std::filesystem::is_directory(p.path())) {
-						if (checkext && ((p.path().extension().string() != extpath) || std::filesystem::is_directory(p.path()))) {
-							continue;
-						}
-						lua_pushinteger(L, index); // ??? path t index 
-						lua_newtable(L); // ??? path t index tt 
-						lua_pushinteger(L, 1); // ??? path t index tt 1 
-						std::string u8path = utility::encoding::to_utf8(p.path().wstring());
-						if (std::filesystem::is_directory(p.path())) {
-							u8path.push_back('/');//在目录路径后面手动添加一个分隔符
-						}
-						lua_pushstring(L, u8path.c_str()); // ??? path t index tt 1 fpath 
-						lua_settable(L, -3); // ??? path t index tt 
-						lua_pushinteger(L, 2); // ??? path t index tt 2 
-						lua_pushboolean(L, std::filesystem::is_directory(p.path())); // ??? path t index tt 2 bool //为目录时该项为真
-						lua_settable(L, -3); // ??? path t index tt 
-						lua_settable(L, -3); // ??? path t 
-						index++;
-					}
+			if (lua_gettop(L) >= 2 && lua_isstring(L, 2))
+			{
+				std::string_view const argext(luaL_to_string_view(L, 2));
+				if (!argext.empty())
+				{
+					extpath.push_back('.');
+					extpath.append(argext);
+					checkext = true;
 				}
 			}
-			return 1;
+
+			std::string packname = "";
+			bool checkpack = false;
+			if (FindFilesMode && lua_gettop(L) >= 2 && lua_isstring(L, 2))
+			{
+				std::string_view const argpack(luaL_to_string_view(L, 3));
+				if (!argpack.empty())
+				{
+					packname.append(argpack);
+					checkpack = true;
+				}
+			}
+			
+			return _EnumFilesConfig{
+				.searchpath = std::move(searchpath),
+				.searchpath2 = std::move(searchpath2),
+				.headlen = headlen,
+				.extpath = std::move(extpath),
+				.packname = std::move(packname),
+				.index = 1,
+				.checkext = checkext,
+				.checkpack = checkpack,
+				.findfiles = FindFilesMode,
+			};
 		}
-		static int EnumFilesEx(lua_State* L) {
-			// ??? path ext 
-			std::string searchpath = luaL_checkstring(L, 1);
-			std::string extpath = "";
-			bool checkext = false;
-			if (lua_gettop(L) == 2) {
-				extpath = luaL_checkstring(L, 2);
-				extpath = "." + extpath; // 修改成带点格式
-				checkext = true;
-			}
-
-			utility::path::to_slash(searchpath);
-			if ((searchpath == ".") || (searchpath == "/") || (searchpath == "./")) {
-				searchpath = "";// "/" or "." 不需要
-			}
-			else if ((searchpath.size() > 1) && (searchpath.back() != '/')) {
-				searchpath.push_back('/');//在搜索路径后面手动添加一个分隔符
-			}
-
-			lua_newtable(L); // ??? path t 
-			std::filesystem::path path = searchpath;
-			unsigned int index = 1;
-			if (std::filesystem::is_directory(path)) {
-				for (auto& p : std::filesystem::directory_iterator(path)) {
-					if (std::filesystem::is_regular_file(p.path()) || std::filesystem::is_directory(p.path())) {
-						std::string _s = p.path().extension().string();
-						if (checkext && ((p.path().extension().string() != extpath) || std::filesystem::is_directory(p.path()))) {
-							continue;
-						}
-						lua_pushinteger(L, index); // ??? path t index 
-						lua_newtable(L); // ??? path t index tt 
-						lua_pushinteger(L, 1); // ??? path t index tt 1 
-						std::string u8path = utility::encoding::to_utf8(p.path().wstring());
-						if (std::filesystem::is_directory(p.path())) {
-							u8path.push_back('/');//在目录路径后面手动添加一个分隔符
-						}
-						lua_pushstring(L, u8path.c_str()); // ??? path t index tt 1 fpath 
-						lua_settable(L, -3); // ??? path t index tt 
-						lua_pushinteger(L, 2); // ??? path t index tt 2 
-						lua_pushboolean(L, std::filesystem::is_directory(p.path())); // ??? path t index tt 2 bool //为目录时该项为真
-						lua_settable(L, -3); // ??? path t index tt 
-						lua_settable(L, -3); // ??? path t 
-						index++;
+		static void _EnumFilesSystem(lua_State* L, _EnumFilesConfig& cfg)
+		{
+			// path ? t 
+			std::wstring wextpath(utility::encoding::to_wide(cfg.extpath));
+			std::error_code ec;
+			for (auto& p : std::filesystem::directory_iterator(utility::encoding::to_wide(cfg.searchpath), ec))
+			{
+				bool is_dir = p.is_directory();
+				if ((cfg.checkext || cfg.findfiles) && is_dir)
+				{
+					continue; // 需要检查拓展名，那就不可能是文件夹了，或者为 FindFiles 模式（忽略文件夹）
+				}
+				if (p.is_regular_file() || is_dir)
+				{
+					if (cfg.checkext && p.path().extension().wstring() != wextpath)
+					{
+						continue;
 					}
+					lua_pushinteger(L, cfg.index);		// path ? t index 
+					lua_createtable(L, 2, 0);			// path ? t index tt 
+					lua_pushinteger(L, 1);				// path ? t index tt 1 
+					std::string u8path(utility::encoding::to_utf8(p.path().generic_wstring()));
+					if (cfg.headlen) u8path = u8path.substr(cfg.headlen);
+					if (is_dir) u8path.push_back('/');
+					lua_push_string_view(L, u8path);	// path ? t index tt 1 fpath 
+					lua_settable(L, -3);				// path ? t index tt 
+					lua_pushinteger(L, 2);				// path ? t index tt 2 
+					lua_pushboolean(L, is_dir);			// path ? t index tt 2 bool
+					lua_settable(L, -3);				// path ? t index tt 
+					lua_settable(L, -3);				// path ? t 
+					cfg.index += 1;
 				}
 			}
-			for (size_t z = 0; z < GFileManager().getFileArchiveCount(); z++) {
+		}
+		static void _EnumFilesArchive(lua_State* L, _EnumFilesConfig& cfg)
+		{
+			// path ? t 
+			std::wstring wextpath(utility::encoding::to_wide(cfg.extpath));
+			for (size_t z = 0; z < GFileManager().getFileArchiveCount(); z += 1)
+			{
 				auto& zip = GFileManager().getFileArchive(z);
-				if (!zip.empty()) {
-					std::string_view frompath = searchpath; //目标路径
-					for (size_t f = 0; f < zip.getCount(); f++) {
-						std::string topath(zip.getName(f)); //要比较的路径
-						if (frompath.size() >= topath.size()) {
-							continue; // 短的直接pass
+				if (!zip.empty())
+				{
+					if (cfg.checkpack && zip.getFileArchiveName() != cfg.packname)
+					{
+						continue; // 需要匹配压缩包名
+					}
+					std::string_view frompath = cfg.searchpath2; // 目标路径
+					for (size_t f = 0; f < zip.getCount(); f += 1)
+					{
+						bool is_dir = zip.getType(f) == LuaSTG::Core::FileType::Directory;
+						if ((cfg.checkext || cfg.findfiles) && zip.getType(f) != LuaSTG::Core::FileType::File)
+						{
+							continue; // 需要检查拓展名，那就不可能是文件夹了，或者为 FindFiles 模式（忽略文件夹）
 						}
-						else {
-							std::string_view path_head(&topath[0], frompath.size()); //前导部分
-							if (path_head == frompath) {
-								std::string_view path2(&topath[frompath.size()], topath.size() - frompath.size());//剩余部分
-								int count = 0;
-								for (auto& c : path2) {
-									if (c == '/') {
-										count++;
-									}
-								}
-								bool flag = false;
-								if (count <= 0) {
-									flag = true;//没有别的分割符，是查找路径下的文件
-								}
-								else if ((count == 1) && (path2.back() == '/')) {
-									flag = true;//有一个分割符，是查找路径下一级的文件夹
-								}
-								if (flag) {
-									std::filesystem::path checkpath(topath);
-									if (checkext && ((checkpath.extension().string() != extpath) || (topath.back() == '/'))) {
-										continue;
-									}
-									lua_pushinteger(L, index);// ??? self searchpath t i 
-									lua_newtable(L);// ??? self searchpath t i tt 
-									lua_pushinteger(L, 1);// ??? self searchpath t i tt 1 
-									lua_pushstring(L, topath.c_str());// ??? self searchpath t i tt 1 s 
-									lua_settable(L, -3);// ??? self searchpath t i tt 
-									lua_pushinteger(L, 2);// ??? self searchpath t i tt 2 
-									lua_pushboolean(L, (topath.back() == '/'));// ??? self searchpath t i tt 2 bool //以分隔符结尾的都是文件夹
-									lua_settable(L, -3);// ??? self searchpath t i tt 
-									lua_pushinteger(L, 3);// ??? self searchpath t i tt 3 
-									lua_pushstring(L, zip.getFileArchiveName().data());// ??? self searchpath t i tt 3 s 
-									lua_settable(L, -3);// ??? self searchpath t i tt 
-									lua_settable(L, -3);// ??? self searchpath t 
-									index++;
-								}
+						std::string_view topath(zip.getName(f)); // 要比较的路径
+						if (frompath.size() >= topath.size())
+						{
+							continue; // 短的直接 pass
+						}
+						if (!topath.starts_with(frompath))
+						{
+							continue; // 前导部分不一致
+						}
+						std::string_view path2(topath.data() + frompath.size(), topath.size() - frompath.size()); // 剩余部分
+						size_t const find_pos1 = path2.find_first_of('/');
+						size_t find_pos2 = std::string_view::npos;
+						if (find_pos1 != std::string_view::npos)
+						{
+							find_pos2 = path2.find_first_of('/', find_pos1 + 1);
+						}
+						if (find_pos2 != std::string_view::npos)
+						{
+							continue; // 非同级文件或者文件夹，跳过
+						}
+						if (find_pos1 != std::string_view::npos && path2.back() != '/')
+						{
+							continue; // 非同级文件夹，跳过
+						}
+						if (cfg.checkext)
+						{
+							std::filesystem::path checkpath(utility::encoding::to_wide(topath));
+							if (checkpath.extension().wstring() != wextpath)
+							{
+								continue; // 拓展名不匹配
 							}
 						}
+						lua_pushinteger(L, cfg.index);						// path ? t i 
+						lua_createtable(L, 3, 0);							// path ? t i tt 
+						lua_pushinteger(L, 1);								// path ? t i tt 1 
+						lua_push_string_view(L, topath);					// path ? t i tt 1 s 
+						lua_settable(L, -3);								// path ? t i tt 
+						if (!cfg.findfiles)
+						{
+							lua_pushinteger(L, 2);							// path ? t i tt 2 
+							lua_pushboolean(L, is_dir);						// path ? t i tt 2 bool 
+							lua_settable(L, -3);							// path ? t i tt 
+							lua_pushinteger(L, 3);							// path ? t i tt 3 
+						}
+						else
+						{
+							lua_pushinteger(L, 2);							// path ? t i tt 2 
+						}
+						lua_push_string_view(L, zip.getFileArchiveName());	// path ? t i tt X s 
+						lua_settable(L, -3);								// path ? t i tt 
+						lua_settable(L, -3);								// path ? t  
+						cfg.index += 1;
 					}
 				}
 			}
+		}
+
+		static int EnumFiles(lua_State* L)
+		{
+			// path ???
+
+			_EnumFilesConfig cfg = _InitEnumFiles(L);
+			
+			// path ??? t 
+
+			lua_newtable(L); 
+			
+			if (lua_toboolean(L, 3))
+			{
+				_EnumFilesArchive(L, cfg);
+			}
+
+			_EnumFilesSystem(L, cfg);
+
+			return 1;
+		}
+		static int EnumFilesEx(lua_State* L)
+		{
+			// path ???
+
+			_EnumFilesConfig cfg = _InitEnumFiles(L);
+
+			// path ??? t 
+
+			lua_newtable(L);
+
+			_EnumFilesArchive(L, cfg);
+			_EnumFilesSystem(L, cfg);
+
 			return 1;
 		}
 		static int FileExist(lua_State* L)
@@ -450,6 +408,26 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)LNOEXCEPT
 			return 1;
 		}
 		
+		static int FindFiles(lua_State* L)
+		{
+			// path ???
+
+			_EnumFilesConfig cfg = _InitEnumFiles(L, true);
+
+			// path ??? t 
+
+			lua_newtable(L);
+
+			_EnumFilesArchive(L, cfg);
+
+			if (!cfg.checkpack)
+			{
+				_EnumFilesSystem(L, cfg);
+			}
+			
+			return 1;
+		}
+
 		static int AddSearchPath(lua_State* L) {
 			std::string_view const path = luaL_to_string_view(L, 1);
 			GFileManager().addSearchPath(path);
@@ -593,7 +571,7 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)LNOEXCEPT
 
 		{ "EnumArchives", &Wrapper::EnumArchives },
 		{ "EnumFiles", &Wrapper::EnumFiles },
-		{ "EnumFilesEx", &Wrapper::EnumFilesEx },
+		{ "EnumFilesEx", &Wrapper::EnumFilesEx }, // 要移除
 		{ "FileExist", &Wrapper::FileExist },
 		{ "FileExistEx", &Wrapper::FileExistEx }, // 要移除
 
@@ -791,12 +769,6 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)LNOEXCEPT
 				return luaL_error(L, "failed to extract resource '%s' to '%s'.", pArgPath, pArgTarget);
 			return 0;
 		}
-		static int FindFiles(lua_State* L)LNOEXCEPT
-		{
-			// searchpath extendname packname
-			findFiles(L, luaL_checkstring(L, 1), luaL_optstring(L, 2, ""), luaL_optstring(L, 3, ""));
-			return 1;
-		}
 	};
 	
 	luaL_Reg compat_lib[] = {
@@ -806,7 +778,7 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)LNOEXCEPT
 		#ifndef USING_ENCRYPTION
 		{ "ExtractRes", &C_Wrapper::ExtractRes },
 		#endif // !USING_ENCRYPTION
-		{ "FindFiles", &C_Wrapper::FindFiles },
+		{ "FindFiles", &Wrapper::FindFiles },
 		{ NULL, NULL },
 	};
 	
