@@ -263,11 +263,11 @@ bool f2dTrueTypeFontProvider::writeBitmapToCache(GlyphCacheInfo& info, FT_Bitmap
 	// 写入 bitmap 数据，同时写入 1 像素宽的透明边缘，写的有点乱，主要是为了最大化减少 CPU Cache Miss
 	for (int x = 0; x < (bitmap.width + 2); x += 1) // 上 1 像素宽的边，宽度是 bitmap 的宽度再加 2 像素
 	{
-		t.image.pixel(t.pen_x - 1 + x, t.pen_y - 1) = fcyColor(0x00000000);
+		t.image.pixel(t.pen_x - 1 + x, t.pen_y - 1) = fcyColor(0x00FFFFFF);
 	}
 	for (int y = 0; y < bitmap.rows; y += 1)
 	{
-		t.image.pixel(t.pen_x - 1, t.pen_y + y) = fcyColor(0x00000000); // 左 1 像素宽的边
+		t.image.pixel(t.pen_x - 1, t.pen_y + y) = fcyColor(0x00FFFFFF); // 左 1 像素宽的边
 		for (int x = 0; x < bitmap.width; x += 1)
 		{
 			auto& c = t.image.pixel(t.pen_x + x, t.pen_y + y);
@@ -276,11 +276,11 @@ bool f2dTrueTypeFontProvider::writeBitmapToCache(GlyphCacheInfo& info, FT_Bitmap
 			c.b = 255;
 			c.a = bitmap.buffer[y * bitmap.pitch + x];
 		}
-		t.image.pixel(t.pen_x + bitmap.width, t.pen_y + y) = fcyColor(0x00000000); // 右 1 像素宽的边
+		t.image.pixel(t.pen_x + bitmap.width, t.pen_y + y) = fcyColor(0x00FFFFFF); // 右 1 像素宽的边
 	}
 	for (int x = 0; x < (bitmap.width + 2); x += 1) // 下 1 像素宽的边，宽度是 bitmap 的宽度再加 2 像素
 	{
-		t.image.pixel(t.pen_x - 1 + x, t.pen_y + bitmap.rows) = fcyColor(0x00000000);
+		t.image.pixel(t.pen_x - 1 + x, t.pen_y + bitmap.rows) = fcyColor(0x00FFFFFF);
 	}
 	// 更新脏区域
 	if (t.dirty_l == INVALID_RECT)
