@@ -25,6 +25,14 @@ namespace LuaSTGPlus
 				return nullptr;
 			return m_ImageSequences[index];
 		}
+		fuInt GetSpriteIndexByTimer(int ani_timer)
+		{
+			return ((fuInt)ani_timer / m_Interval) % (fuInt)m_ImageSequences.size();
+		}
+		f2dSprite* GetSpriteByTimer(int ani_timer)
+		{
+			return m_ImageSequences[((fuInt)ani_timer / m_Interval) % (fuInt)m_ImageSequences.size()];
+		}
 		fuInt GetInterval() const noexcept { return m_Interval; }
 		BlendMode GetBlendMode() const noexcept { return m_BlendMode; }
 		void SetBlendMode(BlendMode m) noexcept { m_BlendMode = m; }

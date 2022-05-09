@@ -126,7 +126,7 @@ namespace LuaSTGPlus
         updateGraph2DBlendMode(p->GetBlendMode());
         
         // 渲染
-        f2dSprite* pSprite = p->GetSprite(((fuInt)ani_timer / p->GetInterval()) % p->GetCount());
+        f2dSprite* pSprite = p->GetSpriteByTimer(ani_timer);
         pSprite->Draw2(m_Graph2D, fcyVec2(x, y), fcyVec2(hscale, vscale), rot, false);
         return true;
     }
