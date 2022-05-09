@@ -325,7 +325,7 @@ static void api_drawSprite4V(char const* name, float const x1, float const y1, f
 
 static void api_drawSpriteSequence(LuaSTGPlus::ResAnimation* pani2dres, int const ani_timer, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {
-    f2dSprite* pimg2d = pani2dres->GetSprite(((fuInt)ani_timer / pani2dres->GetInterval()) % (fuInt)pani2dres->GetCount());
+    f2dSprite* pimg2d = pani2dres->GetSpriteByTimer(ani_timer);
     auto& ctx = LR2D();
 
     float const scale = pimg2d->GetScale();

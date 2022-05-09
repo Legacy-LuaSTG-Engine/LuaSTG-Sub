@@ -205,7 +205,7 @@ namespace LuaSTGPlus
 									draw_preview_scaling(preview_scale);
 									ImGui::Text("Sprite Count: %u", v.second->GetCount());
 									ImGui::Text("Animation Interval: %u", v.second->GetInterval());
-									fuInt ani_idx = (timer / v.second->GetInterval()) % v.second->GetCount();
+									fuInt ani_idx = v.second->GetSpriteIndexByTimer(timer);
 									draw_sprite(v.second->GetSprite(ani_idx), false, false, preview_scale);
 									static bool same_line = false;
 									ImGui::Checkbox("Same Line Preview", &same_line);
