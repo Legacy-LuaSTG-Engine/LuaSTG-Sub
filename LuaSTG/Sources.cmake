@@ -7,6 +7,7 @@ set(LUASTG_ENGINE_SOURCES
     cpp/Dictionary.hpp
     cpp/fixed_object_pool.hpp
     
+    src/LuaWrapper/lua_utility.hpp
     src/LuaWrapper/lua_luastg_hash.cpp
     src/LuaWrapper/lua_luastg_hash.hpp
     src/LuaWrapper/LuaAppFrame.hpp

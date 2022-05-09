@@ -83,6 +83,11 @@ namespace LuaSTGPlus
 			}
 		}
 		
+		fcyColor* ColorWrapper::Cast(lua_State* L, int idx)
+		{
+			return static_cast<fcyColor*>(luaL_checkudata(L, idx, LUASTG_LUA_TYPENAME_COLOR));
+		}
+
 		void ColorWrapper::Register(lua_State* L)LNOEXCEPT {
 			struct Function {
 #define _GETUDATA(i) static_cast<fcyColor*>(luaL_checkudata(L, (i), LUASTG_LUA_TYPENAME_COLOR));

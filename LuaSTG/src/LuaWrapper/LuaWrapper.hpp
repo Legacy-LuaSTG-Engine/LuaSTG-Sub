@@ -98,6 +98,7 @@ namespace LuaSTGPlus
 			};
 			static HSVColor RGB2HSV(const fcyColor& rgb)LNOEXCEPT;
 			static fcyColor HSV2RGB(const HSVColor& hsv)LNOEXCEPT;
+			static fcyColor* Cast(lua_State* L, int idx);
 			static void Register(lua_State* L)LNOEXCEPT;
 			static void CreateAndPush(lua_State* L, const fcyColor& color);
 		};
