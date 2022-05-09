@@ -81,7 +81,7 @@ GameObject* GameObjectPool::_AllocObject() {
 	}
 	GameObject* p = m_ObjectPool.object(id);
 	p->Reset();
-	p->status = STATUS_DEFAULT;
+	p->status = GameObjectStatus::Active;
 	p->id = id;
 	p->uid = m_iUid;
 	m_iUid++;
@@ -111,7 +111,7 @@ GameObject* GameObjectPool::_ReleaseObject(GameObject* object) {
 	if (m_pCurrentObject == object) {
 		m_pCurrentObject = nullptr;
 	}
-	object->status = STATUS_FREE;
+	object->status = GameObjectStatus::Free;
 	m_ObjectPool.free(object->id);
 	return ret;
 }
@@ -303,7 +303,7 @@ void GameObjectPool::BoundCheck() noexcept
 			{
 				m_pCurrentObject = p;
 				// 越界设置为DEL状态
-				p->status = STATUS_DEL;
+				p->status = GameObjectStatus::Dead;
 
 				// 根据id获取对象的lua绑定table、拿到class再拿到delfunc
 				lua_rawgeti(L, -1, p->id + 1);		// ot t(object)
@@ -387,7 +387,7 @@ void GameObjectPool::AfterFrame() noexcept
 		if (superpause <= 0 || p->ignore_superpause) {
 			p->timer++;
 			p->ani_timer++;
-			if (p->status != STATUS_DEFAULT) {
+			if (p->status != GameObjectStatus::Active) {
 				freeObject(p);
 			}
 		}
@@ -445,9 +445,9 @@ int GameObjectPool::Del(lua_State* L) noexcept
 	if (!p)
 		return luaL_error(L, "invalid argument #1, invalid luastg object.");
 	
-	if (p->status == STATUS_DEFAULT)
+	if (p->status == GameObjectStatus::Active)
 	{
-		p->status = STATUS_DEL;
+		p->status = GameObjectStatus::Dead;
 
 		// 调用类中的回调方法
 		lua_rawgeti(L, 1, 1);				// t(object) ... class
@@ -469,9 +469,9 @@ int GameObjectPool::Kill(lua_State* L) noexcept
 	if (!p)
 		return luaL_error(L, "invalid argument #1, invalid luastg object.");
 
-	if (p->status == STATUS_DEFAULT)
+	if (p->status == GameObjectStatus::Active)
 	{
-		p->status = STATUS_KILL;
+		p->status = GameObjectStatus::Killed;
 
 		// 调用类中的回调方法
 		lua_rawgeti(L, 1, 1);				// t(object) ... class
@@ -937,17 +937,17 @@ int GameObjectPool::GetAttr(lua_State* L) noexcept
 	case LuaSTG::GameObjectMember::STATUS:
 		switch (p->status)
 		{
-		case STATUS_DEFAULT:
-			lua_pushstring(L, "normal");
-			break;
-		case STATUS_KILL:
-			lua_pushstring(L, "kill");
-			break;
-		case STATUS_DEL:
-			lua_pushstring(L, "del");
-			break;
 		default:
 			return luaL_error(L, "unknown lstg object status.");
+		case GameObjectStatus::Active:
+			lua_pushstring(L, "normal");
+			break;
+		case GameObjectStatus::Dead:
+			lua_pushstring(L, "del");
+			break;
+		case GameObjectStatus::Killed:
+			lua_pushstring(L, "kill");
+			break;
 		}
 		break;
 	case LuaSTG::GameObjectMember::HSCALE:
@@ -1162,11 +1162,11 @@ int GameObjectPool::SetAttr(lua_State* L) noexcept
 		do {
 			const char* val = luaL_checkstring(L, 3);
 			if (strcmp(val, "normal") == 0)
-				p->status = STATUS_DEFAULT;
+				p->status = GameObjectStatus::Active;
 			else if (strcmp(val, "del") == 0)
-				p->status = STATUS_DEL;
+				p->status = GameObjectStatus::Dead;
 			else if (strcmp(val, "kill") == 0)
-				p->status = STATUS_KILL;
+				p->status = GameObjectStatus::Killed;
 			else
 				return luaL_error(L, "invalid argument for property 'status'.");
 		} while (false);

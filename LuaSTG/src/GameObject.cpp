@@ -87,7 +87,7 @@ namespace LuaSTGPlus
 	};
 	
 	void GameObject::Reset() {
-		status = (GAMEOBJECTSTATUS)STATUS_FREE;
+		status = GameObjectStatus::Free;
 		id = (size_t)-1;
 		uid = 0;
 #ifdef USING_ADVANCE_GAMEOBJECT_CLASS
@@ -134,7 +134,7 @@ namespace LuaSTGPlus
 	
 	void GameObject::DirtReset()
 	{
-		status = (GAMEOBJECTSTATUS)STATUS_DEFAULT;
+		status = GameObjectStatus::Active;
 
 		x = y = 0.;
 		lastx = lasty = 0.;
