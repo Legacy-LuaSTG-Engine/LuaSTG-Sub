@@ -8,18 +8,18 @@
 namespace LuaSTGPlus
 {
 	// 游戏对象状态
-	enum GAMEOBJECTSTATUS
+	enum class GameObjectStatus
 	{
-		STATUS_FREE    = 0, //空闲状态、用于标识链表伪头部
-		STATUS_DEFAULT = 1, //正常状态
-		STATUS_KILL    = 2, //被kill事件触发
-		STATUS_DEL     = 3, //被del事件触发
+		Free   = 0, // 空闲可用状态
+		Active = 1, // 正常活跃状态
+		Dead   = 2, // 生命周期结束
+		Killed = 4, // 生命周期结束
 	};
 	
 	// 游戏对象
 	struct GameObject
 	{
-		GAMEOBJECTSTATUS status;  // (不可见)对象状态
+		GameObjectStatus status;  // (不可见)对象状态
 		size_t id;  // (不可见)对象在对象池中的id
 		int64_t uid;  // (不可见)对象唯一id
 #ifdef USING_ADVANCE_GAMEOBJECT_CLASS
