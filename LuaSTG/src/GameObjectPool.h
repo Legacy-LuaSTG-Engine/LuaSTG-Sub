@@ -74,7 +74,10 @@ namespace LuaSTGPlus
 		}
 		
 		// 释放一个对象，完全释放，返回下一个可用的对象（可能为nullptr）
-		GameObject* freeObject(GameObject* p) noexcept;
+		GameObject* _FreeObject(GameObject* p, int ot_at = 0) noexcept;
+
+		GameObject* _ToGameObject(lua_State* L, int idx);
+		GameObject* _TableToGameObject(lua_State* L, int idx);
 	public:
 		int PushCurrentObject(lua_State* L) noexcept;
 		
@@ -137,40 +140,14 @@ namespace LuaSTGPlus
 		//重置对象的各项属性，并释放资源，保留uid和id
 		bool DirtResetObject(size_t id) noexcept;
 		
-		/// @brief 求夹角
-		bool Angle(size_t idA, size_t idB, double& out) noexcept;
-		
-		/// @brief 求距离
-		bool Dist(size_t idA, size_t idB, double& out) noexcept;
-		
-		/// @brief 求两个对象是否发生碰撞
-		bool ColliCheck(size_t idA, size_t idB, bool ignoreWorldMask, bool& out) noexcept;
-		
-		/// @brief 计算速度方向和大小
-		bool GetV(size_t id, double& v, double& a) noexcept;
-		
-		/// @brief 设置速度方向和大小
-		bool SetV(size_t id, double v, double a, bool updateRot) noexcept;
-		
 		/// @brief 设置元素的图像状态
 		bool SetImgState(size_t id, BlendMode m, fcyColor c) noexcept;
 		
 		/// @brief 特化设置HGE粒子的渲染状态
 		bool SetParState(size_t id, BlendMode m, fcyColor c) noexcept;
 		
-		/// @brief 范围检查
-		bool BoxCheck(size_t id, double left, double right, double top, double bottom, bool& ret) noexcept;
-		
 		/// @brief 清空对象池
 		void ResetPool() noexcept;
-		
-		/// @brief 执行默认渲染
-		bool DoDefaultRender(GameObject* p) noexcept;
-		
-		/// @brief 执行默认渲染
-		bool DoDefaultRender(size_t id) noexcept {
-			return DoDefaultRender(m_ObjectPool.object(id));
-		}
 		
 		/// @brief 获取下一个元素的ID
 		/// @return 返回-1表示无元素
@@ -184,51 +161,36 @@ namespace LuaSTGPlus
 		/// @return 返回-1表示无元素
 		int FirstObject(int groupId) noexcept;
 		
-		/// @brief 属性读方法
-		int GetAttr(lua_State* L) noexcept;
-		
-		/// @brief 属性写方法
-		int SetAttr(lua_State* L) noexcept;
-		
 		/// @brief 调试目的，获取对象列表
 		int GetObjectTable(lua_State* L) noexcept;
-		
-		/// @brief 对象粒子池相关操作
-		int ParticleStop(lua_State* L) noexcept;
-		int ParticleFire(lua_State* L) noexcept;
-		int ParticleGetn(lua_State* L) noexcept;
-		int ParticleGetEmission(lua_State* L) noexcept;
-		int ParticleSetEmission(lua_State* L) noexcept;
-		
-		/// @brief 对象资源相关操作
 	private:
-		///用于多world
+		// 用于多world
 		
-		lua_Integer m_iWorld = 15;//当前的world mask
-		std::array<lua_Integer, 4> m_Worlds = { 15, 0, 0, 0 };//预置的world mask
+		lua_Integer m_iWorld = 15; // 当前的 world mask
+		std::array<lua_Integer, 4> m_Worlds = { 15, 0, 0, 0 }; // 预置的 world mask
 	public:
-		///用于多world
+		// 用于多world
 		
-		//设置当前的world mask
+		// 设置当前的world mask
 		inline void SetWorldFlag(lua_Integer world) noexcept {
 			m_iWorld = world;
 		}
-		//获取当前的world mask
+		// 获取当前的world mask
 		inline lua_Integer GetWorldFlag() noexcept {
 			return m_iWorld;
 		}
-		//设置预置的world mask
+		// 设置预置的world mask
 		inline void ActiveWorlds(lua_Integer a, lua_Integer b, lua_Integer c, lua_Integer d) noexcept {
 			m_Worlds[0] = a;
 			m_Worlds[1] = b;
 			m_Worlds[2] = c;
 			m_Worlds[3] = d;
 		}
-		//检查两个world mask位与或的结果 //静态函数，不应该只用于类内
+		// 检查两个world mask位与或的结果 //静态函数，不应该只用于类内
 		static inline bool CheckWorld(lua_Integer gameworld, lua_Integer objworld) {
 			return (gameworld == objworld) || (gameworld & objworld);
 		}
-		//对两个world mask，分别与预置的world mask位与或，用于检查是否在同一个world内
+		// 对两个world mask，分别与预置的world mask位与或，用于检查是否在同一个world内
 		bool CheckWorlds(int a, int b) noexcept {
 			if (CheckWorld(a, m_Worlds[0]) && CheckWorld(b, m_Worlds[0]))return true;
 			if (CheckWorld(a, m_Worlds[1]) && CheckWorld(b, m_Worlds[1]))return true;
@@ -237,36 +199,69 @@ namespace LuaSTGPlus
 			return false;
 		}
 	private:
-		///用于超级暂停
+		// 用于超级暂停
 		
 		lua_Integer m_superpause = 0;
 		lua_Integer m_nextsuperpause = 0;
 	public:
-		///用于超级暂停
+		// 用于超级暂停
 		
-		//获取可信的超级暂停时间
+		// 获取可信的超级暂停时间
 		inline lua_Integer GetSuperPauseTime() noexcept {
 			return m_superpause;
 		}
-		//获取超级暂停剩余时间
+		// 获取超级暂停剩余时间
 		inline lua_Integer GetNextFrameSuperPauseTime() noexcept {
 			return m_nextsuperpause;
 		}
-		//设置超级暂停剩余时间
+		// 设置超级暂停剩余时间
 		inline void SetNextFrameSuperPauseTime(lua_Integer time) noexcept {
 			m_nextsuperpause = time;
 		}
-		//更新超级暂停的剩余时间并返回当前的可信值
+		// 更新超级暂停的剩余时间并返回当前的可信值
 		inline lua_Integer UpdateSuperPause() {
 			m_superpause = m_nextsuperpause;
 			if (m_nextsuperpause > 0)
 				m_nextsuperpause = m_nextsuperpause - 1;
 			return m_superpause;
 		}
-	public:  // 内部使用
+	public:
+		// 内部使用
+		
 		void DrawCollider();
 		void DrawGroupCollider(f2dGraphics2D* graph, f2dGeometryRenderer* grender, int groupId, fcyColor fillColor);
 		void DrawGroupCollider2(int groupId, fcyColor fillColor);
+	public:
+		// lua api
+
+		static int api_NextObject(lua_State* L) noexcept;
+		static int api_ObjList(lua_State* L) noexcept;
+
+		static int api_New(lua_State* L) noexcept;
+		static int api_ResetObject(lua_State* L) noexcept;
+		static int api_Del(lua_State* L) noexcept;
+		static int api_Kill(lua_State* L) noexcept;
+		static int api_IsValid(lua_State* L) noexcept;
+		static int api_BoxCheck(lua_State* L) noexcept;
+		static int api_ColliCheck(lua_State* L) noexcept;
+		static int api_Angle(lua_State* L) noexcept;
+		static int api_Dist(lua_State* L) noexcept;
+		static int api_GetV(lua_State* L) noexcept;
+		static int api_SetV(lua_State* L) noexcept;
+
+		static int api_SetImgState(lua_State* L) noexcept;
+		static int api_SetParState(lua_State* L) noexcept;
+		static int api_GetAttr(lua_State* L) noexcept;
+		static int api_SetAttr(lua_State* L) noexcept;
+
+		static int api_DefaultRenderFunc(lua_State* L) noexcept;
+
+		static int api_ParticleStop(lua_State* L) noexcept;
+		static int api_ParticleFire(lua_State* L) noexcept;
+		static int api_ParticleGetn(lua_State* L) noexcept;
+		static int api_ParticleGetEmission(lua_State* L) noexcept;
+		static int api_ParticleSetEmission(lua_State* L) noexcept;
+
 	private:
 		GameObjectPool& operator=(const GameObjectPool&);
 		GameObjectPool(const GameObjectPool&);
