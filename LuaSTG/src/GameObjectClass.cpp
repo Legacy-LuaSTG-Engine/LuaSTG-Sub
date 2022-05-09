@@ -45,15 +45,15 @@ namespace LuaSTGPlus
         return ret;
     }
     
-    bool GameObjectClass::CheckClassValid(lua_State* L, int index) {
-        if (!lua_istable(L, index)) {
+    bool GameObjectClass::CheckClassValid(lua_State* L, int index)
+    {
+        if (!lua_istable(L, index))
+        {
             return false;
         }
-        lua_getfield(L, index, IS_CLASS);			// ??? class ??? ? 
-        if (!lua_toboolean(L, -1)) {
-            return false;
-        }
-        lua_pop(L, 1);										// ??? class ??? 
-        return true;
+        lua_getfield(L, index, IS_CLASS);
+        bool const is_class = lua_toboolean(L, -1);
+        lua_pop(L, 1);
+        return is_class;
     }
 };

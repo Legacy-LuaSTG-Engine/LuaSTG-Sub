@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <cstdint>
 #include "lua.hpp"
 
 #define LGOBJ_CC_INIT 1
@@ -16,9 +17,10 @@ namespace LuaSTGPlus
 		static const char* IS_RENDER_CLASS;
 		static const char* DEFAULT_FUNCTION;
 		
-		bool IsDefaultUpdate = false;
-		bool IsDefaultRender = false;
-		bool IsRenderClass   = false;
+		uint8_t IsDefaultUpdate = false;
+		uint8_t IsDefaultRender = false;
+		uint8_t IsRenderClass   = false;
+		uint8_t _Padding = 0;
 		
 		void Reset();
 		bool CheckClassClass(lua_State* L, int index);
