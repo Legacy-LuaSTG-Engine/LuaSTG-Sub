@@ -16,7 +16,7 @@ namespace LuaSTG::Core
     
     struct FileNode
     {
-        FileType type;
+        FileType type = FileType::Unknown;
         std::string name;
     };
     
@@ -37,7 +37,7 @@ namespace LuaSTG::Core
     {
     private:
         std::vector<FileNode> list;
-        std::string name;
+        std::string name_;
         std::string password_;
         uint64_t uuid = 0;
         void* mz_zip_v = nullptr;
