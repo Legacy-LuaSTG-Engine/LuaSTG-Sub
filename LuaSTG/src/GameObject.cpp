@@ -204,7 +204,7 @@ namespace LuaSTGPlus
 		fcyRefPointer<ResSprite> tSprite = LRES.FindSprite(res_name.data());
 		if (tSprite)
 		{
-			res = tSprite;
+			res = *tSprite;
 			res->AddRef();
 #ifdef GLOBAL_SCALE_COLLI_SHAPE
 			a = tSprite->GetHalfSizeX() * LRES.GetGlobalImageScaleFactor();
@@ -221,7 +221,7 @@ namespace LuaSTGPlus
 		fcyRefPointer<ResAnimation> tAnimation = LRES.FindAnimation(res_name.data());
 		if (tAnimation)
 		{
-			res = tAnimation;
+			res = *tAnimation;
 			res->AddRef();
 #ifdef GLOBAL_SCALE_COLLI_SHAPE
 			a = tAnimation->GetHalfSizeX() * LRES.GetGlobalImageScaleFactor();
@@ -238,18 +238,20 @@ namespace LuaSTGPlus
 		fcyRefPointer<ResParticle> tParticle = LRES.FindParticle(res_name.data());
 		if (tParticle)
 		{
-			res = tParticle;
-			if (!(ps = tParticle->AllocInstance()))
+			// 分配粒子池
+			ps = tParticle->AllocInstance();
+			if (!ps)
 			{
 				res = nullptr;
-				spdlog::error("[luastg] ResParticle: 无法构造粒子池，内存不足");
+				spdlog::error("[luastg] ResParticle: 无法分配粒子池，内存不足");
 				return false;
 			}
 			ps->SetInactive();
 			ps->SetCenter(fcyVec2((float)x, (float)y));
 			ps->SetRotation((float)rot);
 			ps->SetActive();
-
+			// 设置资源
+			res = *tParticle;
 			res->AddRef();
 #ifdef GLOBAL_SCALE_COLLI_SHAPE
 			a = tParticle->GetHalfSizeX() * LRES.GetGlobalImageScaleFactor();
@@ -347,6 +349,24 @@ namespace LuaSTGPlus
 		}
 	}
 	
+	void GameObject::UpdateLast()
+	{
+		dx = x - lastx;
+		dy = y - lasty;
+		lastx = x;
+		lasty = y;
+		if (navi && (std::abs(dx) > DBL_MIN || std::abs(dy) > DBL_MIN))
+		{
+			rot = std::atan2(dy, dx);
+		}
+	}
+
+	void GameObject::UpdateTimer()
+	{
+		timer += 1;
+		ani_timer += 1;
+	}
+
 	void GameObject::Render()
 	{
 		if (res)
@@ -796,13 +816,13 @@ namespace LuaSTGPlus
 			} while (false);
 			return 1;
 		case LuaSTG::GameObjectMember::BOUND:
-			bound = lua_toboolean(L, 3);
+			bound = lua_to_uint8_boolean(L, 3);
 			return 0;
 		case LuaSTG::GameObjectMember::COLLI:
-			colli = lua_toboolean(L, 3);
+			colli = lua_to_uint8_boolean(L, 3);
 			return 0;
 		case LuaSTG::GameObjectMember::RECT:
-			rect = lua_toboolean(L, 3);
+			rect = lua_to_uint8_boolean(L, 3);
 			UpdateCollisionCirclrRadius();
 			return 0;
 		case LuaSTG::GameObjectMember::A:
@@ -886,10 +906,10 @@ namespace LuaSTGPlus
 		case LuaSTG::GameObjectMember::ANI:
 			return luaL_error(L, "property 'ani' is readonly.");
 		case LuaSTG::GameObjectMember::HIDE:
-			hide = lua_toboolean(L, 3);
+			hide = lua_to_uint8_boolean(L, 3);
 			return 0;
 		case LuaSTG::GameObjectMember::NAVI:
-			navi = lua_toboolean(L, 3);
+			navi = lua_to_uint8_boolean(L, 3);
 			return 0;
 		case LuaSTG::GameObjectMember::IMG:
 			do {
@@ -919,10 +939,10 @@ namespace LuaSTGPlus
 			pause = luaL_checkinteger(L, 3);
 			return 0;
 		case LuaSTG::GameObjectMember::RESOLVEMOVE:
-			resolve_move = lua_toboolean(L, 3);
+			resolve_move = lua_to_uint8_boolean(L, 3);
 			return 0;
 		case LuaSTG::GameObjectMember::IGNORESUPERPAUSE:
-			ignore_superpause = lua_toboolean(L, 3);
+			ignore_superpause = lua_to_uint8_boolean(L, 3);
 			return 0;
 		
 			// 默认处理

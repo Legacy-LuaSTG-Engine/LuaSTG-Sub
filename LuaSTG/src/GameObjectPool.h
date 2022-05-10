@@ -16,7 +16,7 @@ namespace LuaSTGPlus
 	private:
 		cpp::fixed_object_pool<GameObject, LOBJPOOL_SIZE> m_ObjectPool;
 		uint64_t m_iUid = 0;
-		lua_State* L = nullptr;
+		lua_State* G_L = nullptr;
 		GameObject* m_pCurrentObject = nullptr;
 		
 		// GameObject List
@@ -83,7 +83,7 @@ namespace LuaSTGPlus
 		int PushCurrentObject(lua_State* L) noexcept;
 		
 		/// @brief 检查是否为主线程
-		bool CheckIsMainThread(lua_State* pL) noexcept { return pL == L; }
+		bool CheckIsMainThread(lua_State* pL) noexcept { return pL == G_L; }
 		
 		/// @brief 获取已分配对象数量
 		size_t GetObjectCount() noexcept { return m_ObjectPool.size(); }
@@ -139,13 +139,13 @@ namespace LuaSTGPlus
 		int IsValid(lua_State* L) noexcept;
 		
 		//重置对象的各项属性，并释放资源，保留uid和id
-		bool DirtResetObject(size_t id) noexcept;
+		void DirtResetObject(GameObject* p) noexcept;
 		
 		/// @brief 设置元素的图像状态
-		bool SetImgState(size_t id, BlendMode m, fcyColor c) noexcept;
+		bool SetImgState(GameObject* p, BlendMode m, fcyColor c) noexcept;
 		
 		/// @brief 特化设置HGE粒子的渲染状态
-		bool SetParState(size_t id, BlendMode m, fcyColor c) noexcept;
+		bool SetParState(GameObject* p, BlendMode m, fcyColor c) noexcept;
 		
 		/// @brief 清空对象池
 		void ResetPool() noexcept;

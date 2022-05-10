@@ -12,3 +12,8 @@ inline void lua_push_string_view(lua_State* L, std::string_view const& str)
 {
 	lua_pushlstring(L, str.data(), str.length());
 }
+
+inline uint8_t lua_to_uint8_boolean(lua_State* L, int idx)
+{
+	return lua_toboolean(L, idx) == 0 ? false : true;
+}
