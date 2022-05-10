@@ -933,7 +933,7 @@ int GameObjectPool::api_IsValid(lua_State* L) noexcept
 int GameObjectPool::api_BoxCheck(lua_State* L) noexcept
 {
 	GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
-	if (lua_gettop(L) <= 1)
+	if (lua_gettop(L) >= 4)
 	{
 		lua_Number const left = luaL_checknumber(L, 2);
 		lua_Number const right = luaL_checknumber(L, 3);
@@ -951,9 +951,9 @@ int GameObjectPool::api_ColliCheck(lua_State* L) noexcept
 {
 	GameObject* p1 = g_GameObjectPool->_ToGameObject(L, 1);
 	GameObject* p2 = g_GameObjectPool->_ToGameObject(L, 2);
-	bool const ignoreWorldMask = (lua_gettop(L) >= 3) ? lua_toboolean(L, 3) : false;
 #ifdef USING_MULTI_GAME_WORLD
-	if (ignoreWorldMask)
+	bool const ignore_world_mask = (lua_gettop(L) >= 3) ? lua_toboolean(L, 3) : false;
+	if (ignore_world_mask)
 	{
 #endif // USING_MULTI_GAME_WORLD
 		lua_pushboolean(L, LuaSTGPlus::CollisionCheck(p1, p2));
