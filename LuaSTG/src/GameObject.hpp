@@ -19,6 +19,12 @@ namespace LuaSTGPlus
 	// 游戏对象
 	struct GameObject
 	{
+		// 链表部分
+		GameObject* pUpdatePrev;		// [P] [不可见]
+		GameObject* pUpdateNext;		// [P] [不可见]
+		GameObject* pColliPrev;			// [P] [不可见]
+		GameObject* pColliNext;			// [P] [不可见]
+
 		// 基本信息
 
 		GameObjectStatus status;		// [4] 对象状态

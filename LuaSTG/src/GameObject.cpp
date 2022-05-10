@@ -90,7 +90,11 @@ namespace LuaSTGPlus
 		}
 	};
 	
-	void GameObject::Reset() {
+	void GameObject::Reset()
+	{
+		pUpdatePrev = pUpdateNext = nullptr;
+		pColliPrev = pColliNext = nullptr;
+
 		status = GameObjectStatus::Free;
 		id = (size_t)-1;
 		uid = 0;
