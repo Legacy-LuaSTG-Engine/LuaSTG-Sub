@@ -287,9 +287,11 @@ function lstg.ColliCheck(unitA, unitB, ignoreworldmask)
 	return false
 end
 
+---@alias lstg.ObjList.Next fun(groupid:number, objid:number):number, lstg.GameObject
+
 --- 碰撞组迭代器，如果填写的碰撞组不是有效的碰撞组，则对所有游戏对象进行迭代
----@param groupid number @[0~15]碰撞组
----@return fun(groupid:number):number, lstg.GameObject @第一个返回值为下一个对象的id，第二个返回值为lstg.GameObject
+---@param groupid number
+---@return lstg.ObjList.Next, number, number
 function lstg.ObjList(groupid)
 end
 
