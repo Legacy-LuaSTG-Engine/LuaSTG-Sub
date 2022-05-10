@@ -149,9 +149,9 @@ void LuaSTGPlus::LuaWrapper::RenderWrapper::Register(lua_State* L) LNOEXCEPT
     luaL_Reg lib[] = {
         //{ "SetTextureSamplerState", &Wrapper::SetTextureSamplerState },
         ////EX+
-        //{ "DrawCollider", &Wrapper::DrawCollider },
+        { "DrawCollider", &Wrapper::DrawCollider },
         ////ETC
-        //{ "RenderGroupCollider", &Wrapper::RenderGroupCollider },
+        { "RenderGroupCollider", &Wrapper::RenderGroupCollider },
         //{ "RenderTextureSector", &Wrapper::RenderTextureSector },
         //{ "RenderTextureAnnulus", &Wrapper::RenderTextureAnnulus },
 

@@ -1141,8 +1141,8 @@ static luaL_Reg const lib_compat[] = {
     // 应该要废弃掉的方法
     { "SetTextureSamplerState", &compat_SetTextureSamplerState },
     // 置为空方法
-    { "DrawCollider", &compat_Noop },
-    { "RenderGroupCollider", &compat_Noop },
+    //{ "DrawCollider", &compat_Noop },
+    //{ "RenderGroupCollider", &compat_Noop },
     { "RenderTextureSector", &compat_Noop },
     { "RenderTextureAnnulus", &compat_Noop },
     { NULL, NULL },
