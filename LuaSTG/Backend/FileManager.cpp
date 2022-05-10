@@ -1,4 +1,4 @@
-#include "Core/FileManager.hpp"
+﻿#include "Core/FileManager.hpp"
 #include <filesystem>
 #include <fstream>
 #include "utility/encoding.hpp"
@@ -200,7 +200,7 @@ namespace LuaSTG::Core
     uint64_t FileArchive::getUUID() { return uuid; }
     std::string_view FileArchive::getFileArchiveName()
     {
-        return name;
+        return name_;
     }
     bool FileArchive::setPassword(std::string_view const& password)
     {
@@ -293,7 +293,7 @@ namespace LuaSTG::Core
         }
     }
     
-    FileArchive::FileArchive(std::string_view const& path) : name(path), uuid(g_uuid++)
+    FileArchive::FileArchive(std::string_view const& path) : name_(path), uuid(g_uuid++)
     {
         if (mz_zip_reader_create(&mz_zip_v))
         {
@@ -396,7 +396,13 @@ namespace LuaSTG::Core
         file.seekg(0, std::ios::beg);
         auto beg = file.tellg();
         auto size = end - beg;
-        buffer.resize(size);
+        if (!(size >= 0 && size <= INTPTR_MAX))
+        {
+            spdlog::error("[luastg] [LuaSTG::Core::FileManager::load] 无法加载文件 '{}'，大小超过 '{}' 字节", name, INTPTR_MAX);
+            assert(false);
+            return false;
+        }
+        buffer.resize((size_t)size);
         file.read((char*)buffer.data(), size);
         file.close();
         return true;
@@ -413,6 +419,12 @@ namespace LuaSTG::Core
         file.seekg(0, std::ios::beg);
         auto beg = file.tellg();
         auto size = end - beg;
+        if (!(size >= 0 && size <= INTPTR_MAX))
+        {
+            spdlog::error("[luastg] [LuaSTG::Core::FileManager::load] 无法加载文件 '{}'，大小超过 '{}' 字节", name, INTPTR_MAX);
+            assert(false);
+            return false;
+        }
         fcyMemStream* stream = new fcyMemStream(nullptr, size, true, false);
         *buffer = stream;
         file.read((char*)stream->GetInternalBuffer(), size);
