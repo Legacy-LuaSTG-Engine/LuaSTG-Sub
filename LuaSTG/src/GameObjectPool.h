@@ -41,9 +41,6 @@ namespace LuaSTGPlus
 		lua_Number m_BoundBottom = -100.f;
 
 		bool m_IsRendering = false;
-		bool m_IsColliCheck = false;
-		size_t m_ColliObjA = -1;
-		size_t m_ColliObjB = -1;
 	private:
 		void _ClearLinkList();
 		void _InsertToUpdateLinkList(GameObject* p);
@@ -158,9 +155,6 @@ namespace LuaSTGPlus
 		/// @brief 获取下一个元素的ID
 		/// @return 返回-1表示无元素
 		int NextObject(int groupId, int id) noexcept;
-		
-		//返回一个碰撞组迭代器
-		int NextObject(lua_State* L) noexcept;
 		
 		/// @brief 获取列表中的第一个元素ID
 		/// @note 为迭代器使用
