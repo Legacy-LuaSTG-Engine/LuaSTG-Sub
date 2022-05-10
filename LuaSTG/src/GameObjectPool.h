@@ -14,17 +14,12 @@ namespace LuaSTGPlus
 	class GameObjectPool
 	{
 	private:
-		lua_State* L = nullptr;
-		uint64_t m_iUid = 0;
 		cpp::fixed_object_pool<GameObject, LOBJPOOL_SIZE> m_ObjectPool;
+		uint64_t m_iUid = 0;
+		lua_State* L = nullptr;
 		GameObject* m_pCurrentObject = nullptr;
 		
-		// Comparer
-		struct _less_object {
-			bool operator()(const GameObject* x, const GameObject* y) const {
-				return x->uid < y->uid;
-			}
-		};
+		// GameObject List
 		struct _less_render {
 			bool operator()(const GameObject* x, const GameObject* y) const {
 				if (x->layer != y->layer) {
@@ -35,17 +30,28 @@ namespace LuaSTGPlus
 				}
 			}
 		};
-		// GameObject List
-		std::set<GameObject*, _less_object> m_UpdateList;
 		std::set<GameObject*, _less_render> m_RenderList;
-		std::array<std::set<GameObject*, _less_object>, LOBJPOOL_GROUPN> m_ColliList;
-		
+		std::pair<GameObject, GameObject> m_UpdateLinkList;
+		std::array<std::pair<GameObject, GameObject>, LOBJPOOL_GROUPN> m_ColliLinkList = {};
+
 		// 场景边界
 		lua_Number m_BoundLeft = -100.f;
 		lua_Number m_BoundRight = 100.f;
 		lua_Number m_BoundTop = 100.f;
 		lua_Number m_BoundBottom = -100.f;
+
+		bool m_IsRendering = false;
+		bool m_IsColliCheck = false;
+		size_t m_ColliObjA = -1;
+		size_t m_ColliObjB = -1;
 	private:
+		void _ClearLinkList();
+		void _InsertToUpdateLinkList(GameObject* p);
+		void _RemoveFromUpdateLinkList(GameObject* p);
+		void _InsertToColliLinkList(GameObject* p, size_t group);
+		void _RemoveFromColliLinkList(GameObject* p);
+		void _MoveToColliLinkList(GameObject* p, size_t group);
+
 		//准备lua表用于存放对象
 		void _PrepareLuaObjectTable();
 		
