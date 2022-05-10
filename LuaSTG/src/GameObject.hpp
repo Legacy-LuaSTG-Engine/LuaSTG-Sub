@@ -64,7 +64,6 @@ namespace LuaSTGPlus
 		// 碰撞体
 
 		lua_Integer group;				// [P] 对象所在的碰撞组
-		lua_Integer nextgroup;			// [P] [不可见] 对象要切换到的碰撞组
 		uint8_t bound;					// [1] 是否离开边界自动回收
 		uint8_t colli;					// [1] 是否参与碰撞
 		uint8_t rect;					// [1] 是否为矩形碰撞盒

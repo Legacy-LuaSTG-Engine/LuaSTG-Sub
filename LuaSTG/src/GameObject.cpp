@@ -787,8 +787,10 @@ namespace LuaSTGPlus
 		case LuaSTG::GameObjectMember::GROUP:
 			do {
 				lua_Integer const group_ = luaL_checkinteger(L, 3);
+				if (group == group_)
+					return 0;
 				if (0 <= group_ && group_ < LOBJPOOL_GROUPN)
-					nextgroup = group_;
+					group = group_;
 				else
 					return luaL_error(L, "invalid argument for property 'group', required 0 <= group <= %d.", LOBJPOOL_GROUPN - 1);
 			} while (false);

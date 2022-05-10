@@ -53,8 +53,10 @@ namespace LuaSTGPlus
 			m_ColliLinkList[i].second.pColliPrev = &m_ColliLinkList[i].first;
 			m_ColliLinkList[i].first.status = GameObjectStatus::Free;
 			m_ColliLinkList[i].first.uid = 0;
+			m_ColliLinkList[i].first.group = (lua_Integer)i;
 			m_ColliLinkList[i].second.status = GameObjectStatus::Free;
 			m_ColliLinkList[i].second.uid = UINT64_MAX;
+			m_ColliLinkList[i].second.group = (lua_Integer)i;
 		}
 	}
 	void GameObjectPool::_InsertToUpdateLinkList(GameObject* p)
@@ -377,12 +379,15 @@ namespace LuaSTGPlus
 
 		GetObjectTable(L); // ot
 
-		m_IsColliCheck = true;
 		m_pCurrentObject = nullptr;
-		for (GameObject* pA = m_ColliLinkList[groupA].first.pColliNext; pA != &m_ColliLinkList[groupA].second; pA = pA->pColliNext)
+		for (GameObject* ptrA = m_ColliLinkList[groupA].first.pColliNext; ptrA != &m_ColliLinkList[groupA].second;)
 		{
-			for (GameObject* pB = m_ColliLinkList[groupB].first.pColliNext; pB != &m_ColliLinkList[groupB].second; pB = pB->pColliNext)
+			GameObject* pA = ptrA;
+			ptrA = ptrA->pColliNext;
+			for (GameObject* ptrB = m_ColliLinkList[groupB].first.pColliNext; ptrB != &m_ColliLinkList[groupB].second;)
 			{
+				GameObject* pB = ptrB;
+				ptrB = ptrB->pColliNext;
 			#ifdef USING_MULTI_GAME_WORLD
 				if (CheckWorlds(pA->world, pB->world))
 				{
@@ -390,8 +395,6 @@ namespace LuaSTGPlus
 					if (LuaSTGPlus::CollisionCheck(pA, pB))
 					{
 						m_pCurrentObject = pA;
-						m_ColliObjA = pA->id;
-						m_ColliObjB = pB->id;
 						// 根据id获取对象的lua绑定table、拿到class再拿到collifunc
 						lua_rawgeti(L, -1, pA->id + 1);		// ot t(object)
 						lua_rawgeti(L, -1, 1);				// ot t(object) t(class)
@@ -407,7 +410,6 @@ namespace LuaSTGPlus
 			}
 		}
 		m_pCurrentObject = nullptr;
-		m_IsColliCheck = false;
 
 		lua_pop(L, 1);
 	}
@@ -668,19 +670,6 @@ namespace LuaSTGPlus
 				return -1;
 		}
 	}
-	int GameObjectPool::NextObject(lua_State* L) noexcept
-	{
-		// i(groupId) id(lastobj)
-		lua_Integer g = luaL_checkinteger(L, 1);
-		lua_Integer id = luaL_checkinteger(L, 2);
-		if (id < 0)
-			return 0;
-		lua_pushinteger(L, NextObject(g, id));	// ??? id(next)
-		GetObjectTable(L);						// ??? id(next) ot
-		lua_rawgeti(L, -1, id + 1);				// ??? id(next) ot t(object)
-		lua_remove(L, -2);						// ??? id(next) t(object)
-		return 2;
-	}
 	
 	void GameObjectPool::DrawCollider()
 	{
@@ -896,7 +885,15 @@ namespace LuaSTGPlus
 
 	int GameObjectPool::api_NextObject(lua_State* L) noexcept
 	{
-		return g_GameObjectPool->NextObject(L);
+		lua_Integer g = luaL_checkinteger(L, 1);
+		lua_Integer id = luaL_checkinteger(L, 2);
+		if (id < 0)
+			return 0;
+		lua_pushinteger(L, g_GameObjectPool->NextObject(g, id));	// i(groupId) id(lastobj) id(next)
+		g_GameObjectPool->GetObjectTable(L);						// i(groupId) id(lastobj) id(next) ot
+		lua_rawgeti(L, -1, id + 1);									// i(groupId) id(lastobj) id(next) ot t(object)
+		lua_remove(L, -2);											// i(groupId) id(lastobj) id(next) t(object)
+		return 2;
 	}
 	int GameObjectPool::api_ObjList(lua_State* L) noexcept
 	{
@@ -1108,9 +1105,8 @@ namespace LuaSTGPlus
 		switch (p->SetAttr(L))
 		{
 		case 1: // group
-			if (g_GameObjectPool->m_IsColliCheck && (g_GameObjectPool->m_ColliObjA == p->id || g_GameObjectPool->m_ColliObjB == p->id))
-				return luaL_error(L, "illegal operation, lstg object 'group' property should not be modified in 'lstg.CollisionCheck'");
-			g_GameObjectPool->_SetObjectColliGroup(p, p->nextgroup);
+			//return luaL_error(L, "illegal operation, lstg object 'group' property should not be modified in 'lstg.CollisionCheck'");
+			g_GameObjectPool->_SetObjectColliGroup(p, p->group);
 			break;
 		case 2: // layer
 			if (g_GameObjectPool->m_IsRendering)
