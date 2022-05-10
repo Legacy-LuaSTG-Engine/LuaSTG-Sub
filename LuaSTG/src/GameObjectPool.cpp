@@ -101,6 +101,15 @@ namespace LuaSTGPlus
 		_InsertToColliLinkList(p, group);
 	}
 
+	void GameObjectPool::_InsertToRenderList(GameObject* p)
+	{
+		m_RenderList.insert(p);
+	}
+	void GameObjectPool::_RemoveFromRenderList(GameObject* p)
+	{
+		m_RenderList.erase(p);
+	}
+
 	void GameObjectPool::_PrepareLuaObjectTable()
 	{
 		// 创建一个全局表用于存放所有对象
@@ -139,7 +148,7 @@ namespace LuaSTGPlus
 		}
 	#endif // USING_MULTI_GAME_WORLD
 		_InsertToUpdateLinkList(p);
-		m_RenderList.insert(p);
+		_InsertToRenderList(p);
 		_InsertToColliLinkList(p, (size_t)p->group);
 		return p;
 	}
@@ -148,7 +157,7 @@ namespace LuaSTGPlus
 	{
 		GameObject* ret = object->pUpdateNext;
 		_RemoveFromUpdateLinkList(object);
-		m_RenderList.erase(object);
+		_RemoveFromRenderList(object);
 		_RemoveFromColliLinkList(object);
 		if (m_pCurrentObject == object)
 		{
@@ -161,17 +170,9 @@ namespace LuaSTGPlus
 
 	void GameObjectPool::_SetObjectLayer(GameObject* object, lua_Number layer)
 	{
-		if (object->layer != layer)
-		{
-			m_RenderList.erase(object);
-			object->layer = layer;
-			m_RenderList.insert(object);
-		}
-	}
-
-	void GameObjectPool::_SetObjectColliGroup(GameObject* object, lua_Integer group)
-	{
-		_MoveToColliLinkList(object, (size_t)group);
+		m_RenderList.erase(object);
+		object->layer = layer;
+		m_RenderList.insert(object);
 	}
 
 	GameObject* GameObjectPool::_FreeObject(GameObject* p, int ot_at) noexcept
@@ -520,11 +521,15 @@ namespace LuaSTGPlus
 		GameObject* p = m_ObjectPool.object(id);
 		if (p)
 		{
-			_SetObjectLayer(p, 0.0);
-			_SetObjectColliGroup(p, 0);
-			p->DirtReset();
+			// 分配新的 UUID 并重新插入更新链表末尾
+			_RemoveFromUpdateLinkList(p);
+			_RemoveFromRenderList(p);
+			_RemoveFromColliLinkList(p);
 			p->uid = m_iUid;
 			m_iUid += 1;
+			_InsertToUpdateLinkList(p);
+			_InsertToRenderList(p);
+			_InsertToColliLinkList(p, (size_t)p->group);
 			return true;
 		}
 		else
@@ -1106,7 +1111,7 @@ namespace LuaSTGPlus
 		{
 		case 1: // group
 			//return luaL_error(L, "illegal operation, lstg object 'group' property should not be modified in 'lstg.CollisionCheck'");
-			g_GameObjectPool->_SetObjectColliGroup(p, p->group);
+			g_GameObjectPool->_MoveToColliLinkList(p, (size_t)p->group);
 			break;
 		case 2: // layer
 			if (g_GameObjectPool->m_IsRendering)

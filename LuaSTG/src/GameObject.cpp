@@ -825,7 +825,13 @@ namespace LuaSTGPlus
 			// 渲染
 
 		case LuaSTG::GameObjectMember::LAYER:
-			nextlayer = luaL_checknumber(L, 3);
+			do
+			{
+				lua_Number const layer_ = luaL_checknumber(L, 3);
+				if (layer == layer_)
+					return 0;
+				nextlayer = layer_;
+			} while (false);
 			return 2;
 		case LuaSTG::GameObjectMember::HSCALE:
 			hscale = luaL_checknumber(L, 3);

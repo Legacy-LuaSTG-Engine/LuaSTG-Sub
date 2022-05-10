@@ -49,6 +49,10 @@ namespace LuaSTGPlus
 		void _RemoveFromColliLinkList(GameObject* p);
 		void _MoveToColliLinkList(GameObject* p, size_t group);
 
+		void _InsertToRenderList(GameObject* p);
+		void _RemoveFromRenderList(GameObject* p);
+		void _SetObjectLayer(GameObject* object, lua_Number layer);
+
 		//准备lua表用于存放对象
 		void _PrepareLuaObjectTable();
 		
@@ -57,12 +61,6 @@ namespace LuaSTGPlus
 		
 		// 释放一个对象，将对象从各个链表中移除，并回收，不处理lua部分和对象资源，返回下一个可用的对象（可能为nullptr）
 		GameObject* _ReleaseObject(GameObject* object);
-		
-		// 更改指定对象的图层，该操作会刷新对象在渲染链表中的位置
-		void _SetObjectLayer(GameObject* object, lua_Number layer);
-		
-		// 更改指定对象的碰撞组，该操作会移动对象在碰撞组中的位置
-		void _SetObjectColliGroup(GameObject* object, lua_Integer group);
 		
 		// 检查指定对象的坐标是否在场景边界内
 		inline bool _ObjectBoundCheck(GameObject* object) {
