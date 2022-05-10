@@ -17,20 +17,21 @@ class f2dGraphic2dAdapter
 	, public f2dRenderDeviceEventListener
 {
 private:
-	inline LuaSTG::Core::DrawVertex2D convert(f2dGraphics2DVertex const& v)
-	{
-		return LuaSTG::Core::DrawVertex2D{
-			.x = v.x,
-			.y = v.y,
-			.z = v.z,
-			.color = v.color,
-			.u = v.u,
-			.v = v.v,
-		};
-	}
 	fcyMatrix4 m_tMat;
 	f2dBlendState m_tState = {};
 	LuaSTG::Core::Renderer* m_Renderer = nullptr;
+	inline void applyTexure(f2dTexture2D* pTex)
+	{
+		if (pTex)
+		{
+			m_Renderer->setTextureAlphaType(pTex->IsPremultipliedAlpha() ? LuaSTG::Core::TextureAlphaType::PremulAlpha : LuaSTG::Core::TextureAlphaType::Normal);
+			m_Renderer->setTexture(LuaSTG::Core::TextureID(pTex->GetHandle()));
+		}
+		else
+		{
+			m_Renderer->setTexture({});
+		}
+	}
 public:
 	// 用不上
 	void AddRef() {}
@@ -75,26 +76,23 @@ public:
 
 	fResult DrawQuad(f2dTexture2D* pTex, const f2dGraphics2DVertex& v1, const f2dGraphics2DVertex& v2, const f2dGraphics2DVertex& v3, const f2dGraphics2DVertex& v4, fBool bAutoFixCoord = true)
 	{
-		m_Renderer->setTextureAlphaType(pTex->IsPremultipliedAlpha() ? LuaSTG::Core::TextureAlphaType::PremulAlpha : LuaSTG::Core::TextureAlphaType::Normal);
-		m_Renderer->setTexture(LuaSTG::Core::TextureID(pTex->GetHandle()));
+		applyTexure(pTex);
 		m_Renderer->drawQuad(
-			convert(v1),
-			convert(v2),
-			convert(v3),
-			convert(v4));
+			(LuaSTG::Core::DrawVertex2D const&)(v1),
+			(LuaSTG::Core::DrawVertex2D const&)(v2),
+			(LuaSTG::Core::DrawVertex2D const&)(v3),
+			(LuaSTG::Core::DrawVertex2D const&)(v4));
 		return FCYERR_OK;
 	}
 	fResult DrawQuad(f2dTexture2D* pTex, const f2dGraphics2DVertex* arr, fBool bAutoFixCoord = true)
 	{
-		m_Renderer->setTextureAlphaType(pTex->IsPremultipliedAlpha() ? LuaSTG::Core::TextureAlphaType::PremulAlpha : LuaSTG::Core::TextureAlphaType::Normal);
-		m_Renderer->setTexture(LuaSTG::Core::TextureID(pTex->GetHandle()));
+		applyTexure(pTex);
 		m_Renderer->drawQuad((LuaSTG::Core::DrawVertex2D*)arr);
 		return FCYERR_OK;
 	}
 	fResult DrawRaw(f2dTexture2D* pTex, fuInt VertCount, fuInt IndexCount, const f2dGraphics2DVertex* VertArr, const fuShort* IndexArr, fBool bAutoFixCoord = true)
 	{
-		m_Renderer->setTextureAlphaType(pTex->IsPremultipliedAlpha() ? LuaSTG::Core::TextureAlphaType::PremulAlpha : LuaSTG::Core::TextureAlphaType::Normal);
-		m_Renderer->setTexture(LuaSTG::Core::TextureID(pTex->GetHandle()));
+		applyTexure(pTex);
 		m_Renderer->drawRaw((LuaSTG::Core::DrawVertex2D*)VertArr, (uint16_t)VertCount, (LuaSTG::Core::DrawIndex2D*)IndexArr, (uint16_t)IndexCount);
 		return FCYERR_OK;
 	}
