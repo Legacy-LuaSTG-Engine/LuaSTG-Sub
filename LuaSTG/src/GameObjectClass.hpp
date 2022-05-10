@@ -13,10 +13,6 @@ namespace LuaSTGPlus
 {
 	struct GameObjectClass
 	{
-		static const char* IS_CLASS;
-		static const char* IS_RENDER_CLASS;
-		static const char* DEFAULT_FUNCTION;
-		
 		uint8_t IsDefaultUpdate = false;
 		uint8_t IsDefaultRender = false;
 		uint8_t IsRenderClass   = false;

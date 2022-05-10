@@ -64,6 +64,7 @@ void LuaSTGPlus::LuaWrapper::GameObjectManagerWrapper::Register(lua_State* L) no
 		}
 		static int ResetPool(lua_State* L) noexcept
 		{
+			std::ignore = L;
 			LPOOL.ResetPool();
 			return 0;
 		}

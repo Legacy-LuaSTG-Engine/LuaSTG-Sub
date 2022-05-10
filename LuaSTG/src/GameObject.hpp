@@ -105,6 +105,8 @@ namespace LuaSTGPlus
 		void ReleaseResource();
 
 		void Update();
+		void UpdateLast();
+		void UpdateTimer();
 		void Render();
 
 		int GetAttr(lua_State* L) noexcept;
