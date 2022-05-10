@@ -224,6 +224,16 @@ namespace LuaSTGPlus
 		return p;
 	}
 
+	void GameObjectPool::_GameObjectCallback(lua_State* L, int otidx, GameObject* p, int cbidx)
+	{
+		lua_rawgeti(L, otidx, (int)p->id + 1);	// ??? ot object
+		lua_rawgeti(L, -1, 1);					// ??? ot object class
+		lua_rawgeti(L, -1, cbidx);				// ??? ot object class frame
+		lua_pushvalue(L, -3);					// ??? ot object class frame object
+		lua_call(L, 1, 0);						// ??? ot object class
+		lua_pop(L, 2);							// ??? ot
+	}
+
 	// --------------------------------------------------------------------------------
 
 	int GameObjectPool::GetObjectTable(lua_State* L) noexcept
@@ -270,6 +280,7 @@ namespace LuaSTGPlus
 	{
 		//处理超级暂停
 		GetObjectTable(G_L);  // ot
+		int const ot_idx = lua_gettop(G_L);
 
 		m_pCurrentObject = nullptr;
 		int superpause = UpdateSuperPause();
@@ -283,12 +294,7 @@ namespace LuaSTGPlus
 				if (!p->luaclass.IsDefaultUpdate)
 				{
 			#endif // USING_ADVANCE_GAMEOBJECT_CLASS
-					lua_rawgeti(G_L, -1, p->id + 1);		// ot t(object)
-					lua_rawgeti(G_L, -1, 1);				// ot t(object) t(class)
-					lua_rawgeti(G_L, -1, LGOBJ_CC_FRAME);	// ot t(object) t(class) f(frame)
-					lua_pushvalue(G_L, -3);					// ot t(object) t(class) f(frame) t(object)
-					lua_call(G_L, 1, 0);					// ot t(object) t(class) 执行帧函数
-					lua_pop(G_L, 2);						// ot
+					_GameObjectCallback(G_L, ot_idx, p, LGOBJ_CC_FRAME);
 			#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 				}
 			#endif // USING_ADVANCE_GAMEOBJECT_CLASS
@@ -302,6 +308,7 @@ namespace LuaSTGPlus
 	void GameObjectPool::DoRender() noexcept
 	{
 		GetObjectTable(G_L); // ot
+		int const ot_idx = lua_gettop(G_L);
 
 		m_IsRendering = true;
 		m_pCurrentObject = nullptr;
@@ -320,13 +327,7 @@ namespace LuaSTGPlus
 				if (!p->luaclass.IsDefaultRender)
 				{
 	#endif // USING_ADVANCE_GAMEOBJECT_CLASS
-					// 根据id获取对象的lua绑定table、拿到class再拿到renderfunc
-					lua_rawgeti(G_L, -1, p->id + 1);		// ot t(object)
-					lua_rawgeti(G_L, -1, 1);				// ot t(object) t(class)
-					lua_rawgeti(G_L, -1, LGOBJ_CC_RENDER);	// ot t(object) t(class) f(render)
-					lua_pushvalue(G_L, -3);					// ot t(object) t(class) f(render) t(object)
-					lua_call(G_L, 1, 0);					// ot t(object) t(class) 执行渲染函数
-					lua_pop(G_L, 2);						// ot
+					_GameObjectCallback(G_L, ot_idx, p, LGOBJ_CC_RENDER);
 	#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 				}
 				else
@@ -344,7 +345,8 @@ namespace LuaSTGPlus
 	void GameObjectPool::BoundCheck() noexcept
 	{
 		GetObjectTable(G_L); // ot
-
+		int const ot_idx = lua_gettop(G_L);
+		
 		m_pCurrentObject = nullptr;
 	#ifdef USING_MULTI_GAME_WORLD
 		lua_Integer world = GetWorldFlag();
@@ -358,16 +360,10 @@ namespace LuaSTGPlus
 				if (!_ObjectBoundCheck(p))
 				{
 					m_pCurrentObject = p;
-					// 越界设置为DEL状态
+					// 越界设置为 del 状态
 					p->status = GameObjectStatus::Dead;
-
-					// 根据id获取对象的lua绑定table、拿到class再拿到delfunc
-					lua_rawgeti(G_L, -1, p->id + 1);	// ot t(object)
-					lua_rawgeti(G_L, -1, 1);			// ot t(object) t(class)
-					lua_rawgeti(G_L, -1, LGOBJ_CC_DEL);	// ot t(object) t(class) f(del)
-					lua_pushvalue(G_L, -3);				// ot t(object) t(class) f(del) t(object)
-					lua_call(G_L, 1, 0);				// ot t(object) t(class)
-					lua_pop(G_L, 2);					// ot
+					// 调用 del 回调
+					_GameObjectCallback(G_L, ot_idx, p, LGOBJ_CC_DEL);
 				}
 		#ifdef USING_MULTI_GAME_WORLD
 			}
@@ -525,35 +521,19 @@ namespace LuaSTGPlus
 		_InsertToRenderList(p);
 		_InsertToColliLinkList(p, (size_t)p->group);
 	}
-	int GameObjectPool::Del(lua_State* L) noexcept
+	int GameObjectPool::Del(lua_State* L, bool kill_mode) noexcept
 	{
 		GameObject* p = _ToGameObject(L, 1);
 		if (p->status == GameObjectStatus::Active)
 		{
-			p->status = GameObjectStatus::Dead;
-
-			// 调用类中的回调方法
-			lua_rawgeti(L, 1, 1);				// t(object) ... class
-			lua_rawgeti(L, -1, LGOBJ_CC_DEL);	// t(object) ... class f(del)
-			lua_insert(L, 1);					// f(del) t(object) ... class
-			lua_pop(L, 1);						// f(del) t(object) ...
-			lua_call(L, lua_gettop(L) - 1, 0);
-		}
-		return 0;
-	}
-	int GameObjectPool::Kill(lua_State* L) noexcept
-	{
-		GameObject* p = _ToGameObject(L, 1);
-		if (p->status == GameObjectStatus::Active)
-		{
-			p->status = GameObjectStatus::Killed;
-
-			// 调用类中的回调方法
-			lua_rawgeti(L, 1, 1);				// t(object) ... class
-			lua_rawgeti(L, -1, LGOBJ_CC_KILL);	// t(object) ... class f(kill)
-			lua_insert(L, 1);					// f(kill) t(object) ... class
-			lua_pop(L, 1);						// f(kill) t(object) ...
-			lua_call(L, lua_gettop(L) - 1, 0);
+			// 标记为即将回收的状态
+			p->status = (!kill_mode) ? GameObjectStatus::Dead : GameObjectStatus::Killed;
+			// 回调
+			lua_rawgeti(L, 1, 1);												// object ... class
+			lua_rawgeti(L, -1, (!kill_mode) ? LGOBJ_CC_DEL : LGOBJ_CC_KILL);	// object ... class callback
+			lua_insert(L, 1);													// callback object ...
+			lua_pop(L, 1);														// callback object ...
+			lua_call(L, lua_gettop(L) - 1, 0);									// 
 		}
 		return 0;
 	}
@@ -907,7 +887,7 @@ namespace LuaSTGPlus
 	}
 	int GameObjectPool::api_Kill(lua_State* L) noexcept
 	{
-		return g_GameObjectPool->Kill(L);
+		return g_GameObjectPool->Del(L, true);
 	}
 	int GameObjectPool::api_IsValid(lua_State* L) noexcept
 	{

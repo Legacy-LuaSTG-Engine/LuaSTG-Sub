@@ -79,6 +79,8 @@ namespace LuaSTGPlus
 
 		GameObject* _ToGameObject(lua_State* L, int idx);
 		GameObject* _TableToGameObject(lua_State* L, int idx);
+
+		void _GameObjectCallback(lua_State* L, int otidx, GameObject* p, int cbidx);
 	public:
 		int PushCurrentObject(lua_State* L) noexcept;
 		
@@ -130,10 +132,7 @@ namespace LuaSTGPlus
 		int New(lua_State* L) noexcept;
 		
 		/// @brief 通知对象删除
-		int Del(lua_State* L) noexcept;
-		
-		/// @brief 通知对象消亡
-		int Kill(lua_State* L) noexcept;
+		int Del(lua_State* L, bool kill_mode = false) noexcept;
 		
 		/// @brief 检查对象是否有效
 		int IsValid(lua_State* L) noexcept;
