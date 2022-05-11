@@ -4,6 +4,11 @@ namespace platform
 {
 	// https://github.com/microsoft/WindowsAppSDK/issues/41#
 
+	// optional Mica support (but have bug)
+	//   DWORD const DWMWA_MICA_EFFFECT = 0x405;
+	//   BOOL mica_effect = TRUE;
+	//   HRESULT hr = loader().api_DwmSetWindowAttribute(hWnd, DWMWA_MICA_EFFFECT, &mica_effect, sizeof(mica_effect));
+
 	struct DwmapiLoader
 	{
 		HMODULE dll_dwmapi = NULL;
