@@ -2,6 +2,8 @@
 
 namespace platform
 {
+	// https://github.com/microsoft/WindowsAppSDK/issues/41#
+
 	struct DwmapiLoader
 	{
 		HMODULE dll_dwmapi = NULL;
