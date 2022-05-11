@@ -154,6 +154,7 @@ private:
 	HWND m_hWnd = NULL;
 	std::vector<ptrdiff_t> m_fProc;
 	bool m_bShow;
+	bool m_bActive = true;
 	std::wstring m_CaptionText;
 	fcyVec2 m_Size;
 	bool m_bAutoResizeWindowOnDPIScaling = true;
