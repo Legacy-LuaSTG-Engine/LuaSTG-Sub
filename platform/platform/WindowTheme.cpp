@@ -1,0 +1,101 @@
+﻿#include "WindowTheme.hpp"
+
+namespace platform
+{
+	struct DwmapiLoader
+	{
+		HMODULE dll_dwmapi = NULL;
+		decltype(::DwmSetWindowAttribute)* api_DwmSetWindowAttribute = NULL;
+		decltype(::DwmGetWindowAttribute)* api_DwmGetWindowAttribute = NULL;
+		decltype(::DwmEnableBlurBehindWindow)* api_DwmEnableBlurBehindWindow = NULL;
+		decltype(::DwmExtendFrameIntoClientArea)* api_DwmExtendFrameIntoClientArea = NULL;
+		DwmapiLoader()
+		{
+			dll_dwmapi = LoadLibraryW(L"dwmapi.dll");
+			if (dll_dwmapi)
+			{
+				api_DwmSetWindowAttribute = (decltype(::DwmSetWindowAttribute)*)GetProcAddress(dll_dwmapi, "DwmSetWindowAttribute");
+				api_DwmGetWindowAttribute = (decltype(::DwmGetWindowAttribute)*)GetProcAddress(dll_dwmapi, "DwmGetWindowAttribute");
+				api_DwmEnableBlurBehindWindow = (decltype(::DwmEnableBlurBehindWindow)*)GetProcAddress(dll_dwmapi, "DwmEnableBlurBehindWindow");
+				api_DwmExtendFrameIntoClientArea = (decltype(::DwmExtendFrameIntoClientArea)*)GetProcAddress(dll_dwmapi, "DwmExtendFrameIntoClientArea");
+			}
+		}
+		~DwmapiLoader()
+		{
+			if (dll_dwmapi)
+			{
+				FreeLibrary(dll_dwmapi);
+			}
+		}
+	};
+	static DwmapiLoader& loader()
+	{
+		static DwmapiLoader instance;
+		return instance;
+	}
+
+	BOOL WindowTheme::IsSystemDarkModeEnabled()
+	{
+		HKEY hKey = NULL;
+		if (ERROR_SUCCESS == RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", 0, KEY_READ, &hKey))
+		{
+			DWORD dwValue = 0;
+			DWORD dwValueSize = 4;
+			DWORD dwType = 0;
+			if (ERROR_SUCCESS == RegQueryValueExW(hKey, L"SystemUsesLightTheme", NULL, &dwType, (BYTE*)&dwValue, &dwValueSize))
+			{
+				RegCloseKey(hKey);
+				return dwValue == 0;
+			}
+			else
+			{
+				RegCloseKey(hKey);
+				return FALSE;
+			}
+		}
+		return FALSE;
+	}
+	BOOL WindowTheme::ShouldApplicationEnableDarkMode()
+	{
+		HKEY hKey = NULL;
+		if (ERROR_SUCCESS == RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", 0, KEY_READ, &hKey))
+		{
+			DWORD dwValue = 0;
+			DWORD dwValueSize = 4;
+			DWORD dwType = 0;
+			if (ERROR_SUCCESS == RegQueryValueExW(hKey, L"AppsUseLightTheme", NULL, &dwType, (BYTE*)&dwValue, &dwValueSize))
+			{
+				RegCloseKey(hKey);
+				return dwValue == 0;
+			}
+			else
+			{
+				RegCloseKey(hKey);
+				return FALSE;
+			}
+		}
+		return FALSE;
+	}
+	BOOL WindowTheme::SetDarkMode(HWND hWnd, BOOL bEnable, BOOL bFocus)
+	{
+		if (loader().api_DwmSetWindowAttribute)
+		{
+			// Method 1 (Native but not good?): DWMWA_USE_IMMERSIVE_DARK_MODE
+			
+			BOOL dark_mode = bEnable;
+			HRESULT hr = loader().api_DwmSetWindowAttribute(hWnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &dark_mode, sizeof(dark_mode));
+			return SUCCEEDED(hr);
+			
+			// Method 2: DWMWA_CAPTION_COLOR
+			
+			//COLORREF color = bEnable ? (bFocus ? 0x00202020 : 0x002B2B2B) : 0x00FFFFFF; // 0x002E2E2E
+			//HRESULT hr = loader().api_DwmSetWindowAttribute(hWnd, DWMWA_CAPTION_COLOR, &color, sizeof(color));
+			//return SUCCEEDED(hr);
+		}
+		return FALSE;
+	}
+	BOOL WindowTheme::UpdateColorMode(HWND hWnd, BOOL bFocus)
+	{
+		return SetDarkMode(hWnd, ShouldApplicationEnableDarkMode(), bFocus);
+	}
+}

@@ -8,6 +8,7 @@
 #include <windowsx.h>
 #include "platform/HighDPI.hpp"
 #include "platform/Monitor.hpp"
+#include "platform/WindowTheme.hpp"
 
 //#define _IME_DEBUG
 //#define _FANCY2D_IME_ENABLE // 妈的，这IME支持还不如不写，一堆bug
@@ -70,11 +71,15 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 	case WM_ACTIVATEAPP:
 		if (wParam == TRUE)
 		{
+			pWindow->m_bActive = true;
+			platform::WindowTheme::UpdateColorMode(Handle, pWindow->m_bActive);
 			if (pWindow->m_pGraphicListener) pWindow->m_pGraphicListener->OnGetFocus();
 			if (pListener) pListener->OnGetFocus();
 		}
 		else if (wParam == FALSE)
 		{
+			pWindow->m_bActive = false;
+			platform::WindowTheme::UpdateColorMode(Handle, pWindow->m_bActive);
 			if (pWindow->m_pGraphicListener) pWindow->m_pGraphicListener->OnLostFocus();
 			if (pListener) pListener->OnLostFocus();
 		}
@@ -183,6 +188,10 @@ LRESULT CALLBACK f2dWindowClass::WndProc(HWND Handle, UINT Msg, WPARAM wParam, L
 			pWindow->SetClientRect(pWindow->GetClientRect()); // 刷新一次尺寸（因为非客户区可能会变化）
 			pWindow->MoveToCenter();
 		}
+		break;
+	case WM_SETTINGCHANGE:
+	case WM_THEMECHANGED:
+		platform::WindowTheme::UpdateColorMode(Handle, pWindow->m_bActive);
 		break;
 	
 	#ifdef _FANCY2D_IME_ENABLE
@@ -692,6 +701,9 @@ f2dWindowImpl::f2dWindowImpl(f2dEngineImpl* pEngine, f2dWindowClass* WinCls, con
 	// 配置窗口挪动控制器
 	m_SizeMoveCtrl.setWindow(m_hWnd);
 	
+	// 暗色模式
+	platform::WindowTheme::UpdateColorMode(m_hWnd, TRUE);
+
 	// 显示窗口
 	if(m_bShow)
 	{

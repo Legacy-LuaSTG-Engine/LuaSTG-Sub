@@ -24,6 +24,7 @@
 #include <Windows.h>
 #include <windowsx.h>
 #include <wrl/client.h>
+#include <dwmapi.h>
 #include <ShellScalingApi.h>
 #include <Shobjidl.h>
 #include <Knownfolders.h>
