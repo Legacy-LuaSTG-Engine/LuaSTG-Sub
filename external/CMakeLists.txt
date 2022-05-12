@@ -255,11 +255,15 @@ set_target_properties(tinygltf PROPERTIES FOLDER external)
 
 # ==================== tracy ====================
 
+option(ENABLE_TRACY_CLIENT "" OFF)
+
 add_library(tracy STATIC)
 luastg_target_common_options(tracy)
-target_compile_definitions(tracy PUBLIC
-    TRACY_ENABLE
-)
+if(ENABLE_TRACY_CLIENT)
+    target_compile_definitions(tracy PUBLIC
+        TRACY_ENABLE
+    )
+endif()
 target_include_directories(tracy PUBLIC
     tracy
 )
