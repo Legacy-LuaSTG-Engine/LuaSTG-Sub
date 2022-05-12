@@ -3,8 +3,14 @@
 
 #define NOMINMAX
 #include <Windows.h>
-#include "Keyboard.h"
 #include "Mouse.h"
+#include "platform/Keyboard.hpp"
+
+namespace LuaSTGPlus
+{
+    static platform::Keyboard g_Keyboard;
+    static platform::Keyboard::State g_KeyboardState;
+}
 
 static LRESULT KeyboardMouseMessage(HWND window, UINT message, WPARAM arg1, LPARAM arg2)
 {
@@ -16,7 +22,7 @@ static LRESULT KeyboardMouseMessage(HWND window, UINT message, WPARAM arg1, LPAR
     case WM_SYSKEYDOWN:
     case WM_KEYUP:
     case WM_SYSKEYUP:
-        DirectX::Keyboard::ProcessMessage(message, arg1, arg2);
+        LuaSTGPlus::g_Keyboard.ProcessMessage(window, message, arg1, arg2);
         break;
     }
 
@@ -45,18 +51,13 @@ static LRESULT KeyboardMouseMessage(HWND window, UINT message, WPARAM arg1, LPAR
 
 namespace LuaSTGPlus
 {
-    static std::unique_ptr<DirectX::Keyboard> Keyboard;
     static std::unique_ptr<DirectX::Mouse> Mouse;
-    static DirectX::Keyboard::State KeyboardState;
-    static DirectX::Keyboard::KeyboardStateTracker KeyboardStateTracker;
     static DirectX::Mouse::State MouseState;
 
     void AppFrame::OpenInput()
     {
-        Keyboard = std::make_unique<DirectX::Keyboard>();
+        g_Keyboard.Reset();
         Mouse = std::make_unique<DirectX::Mouse>();
-        ZeroMemory(&KeyboardState, sizeof(KeyboardState));
-        KeyboardStateTracker.Reset();
         ZeroMemory(&MouseState, sizeof(MouseState));
         m_pMainWindow->AddNativeMessageCallback((ptrdiff_t)&KeyboardMouseMessage);
         Mouse->SetWindow((HWND)m_pMainWindow->GetHandle());
@@ -64,21 +65,11 @@ namespace LuaSTGPlus
     void AppFrame::CloseInput()
     {
         m_pMainWindow->RemoveNativeMessageCallback((ptrdiff_t)&KeyboardMouseMessage);
-        Keyboard = nullptr;
         Mouse = nullptr;
     }
     void AppFrame::UpdateInput()
     {
-        if (Keyboard)
-        {
-            KeyboardState = Keyboard->GetState();
-            KeyboardStateTracker.Update(KeyboardState);
-        }
-        else
-        {
-            ZeroMemory(&KeyboardState, sizeof(KeyboardState));
-            KeyboardStateTracker.Reset();
-        }
+        g_Keyboard.GetState(g_KeyboardState, true);
         if (Mouse)
         {
             MouseState = Mouse->GetState();
@@ -100,53 +91,12 @@ namespace LuaSTGPlus
     
     fBool AppFrame::GetKeyState(int VKCode)LNOEXCEPT
     {
-        switch (VKCode)
-        {
-        case VK_SHIFT:
-            return KeyboardState.IsKeyDown(DirectX::Keyboard::Keys::LeftShift) || KeyboardState.IsKeyDown(DirectX::Keyboard::Keys::RightShift);
-        case VK_CONTROL:
-            return KeyboardState.IsKeyDown(DirectX::Keyboard::Keys::LeftControl) || KeyboardState.IsKeyDown(DirectX::Keyboard::Keys::RightControl);
-        case VK_MENU:
-            return KeyboardState.IsKeyDown(DirectX::Keyboard::Keys::LeftAlt) || KeyboardState.IsKeyDown(DirectX::Keyboard::Keys::RightAlt);
-        default:
-            return KeyboardState.IsKeyDown((DirectX::Keyboard::Keys)(unsigned char)VKCode);
-        }
+        return g_KeyboardState.IsKeyDown((platform::Keyboard::Key)VKCode);
     }
     
     int AppFrame::GetLastKey()LNOEXCEPT
     {
-        return m_LastKey;
-        //for (int i = 1; i < 256; i += 1)
-        //{
-        //    switch (i)
-        //    {
-        //    case VK_SHIFT:
-        //        if (KeyboardStateTracker.IsKeyPressed(DirectX::Keyboard::Keys::LeftShift) || KeyboardStateTracker.IsKeyPressed(DirectX::Keyboard::Keys::RightShift))
-        //        {
-        //            return i;
-        //        }
-        //        break;
-        //    case VK_CONTROL:
-        //        if (KeyboardStateTracker.IsKeyPressed(DirectX::Keyboard::Keys::LeftControl) || KeyboardStateTracker.IsKeyPressed(DirectX::Keyboard::Keys::RightControl))
-        //        {
-        //            return i;
-        //        }
-        //        break;
-        //    case VK_MENU:
-        //        if (KeyboardStateTracker.IsKeyPressed(DirectX::Keyboard::Keys::LeftAlt) || KeyboardStateTracker.IsKeyPressed(DirectX::Keyboard::Keys::RightAlt))
-        //        {
-        //            return i;
-        //        }
-        //        break;
-        //    default:
-        //        if (KeyboardStateTracker.IsKeyPressed((DirectX::Keyboard::Keys)(unsigned char)i))
-        //        {
-        //            return i;
-        //        }
-        //        break;
-        //    }
-        //}
-        //return 0;
+        return (int)g_KeyboardState.LastKeyDown;
     }
     
     void AppFrame::OnTextInputDeleteFront()
