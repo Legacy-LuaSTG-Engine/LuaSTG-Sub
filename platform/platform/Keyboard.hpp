@@ -397,20 +397,13 @@ namespace platform
 			bool IsKeyDown(Key key, bool include_history = false);
 			bool IsKeyUp(Key key, bool include_history = false);
 		};
-		struct AtomicState
-		{
-			std::atomic_uint32_t KeyState[8];
-			std::atomic_uint32_t KeyDown[8];
-			std::atomic_uint32_t KeyUp[8];
-			std::atomic_uint8_t LastKeyDown;
-			std::atomic_uint8_t LastKeyUp;
-			uint8_t _Padding[2];
-
-			void Reset();
-			void ResetFrame();
-		};
 	private:
-		AtomicState AtomicState_ = {};
+		std::atomic_uint32_t KeyState[8]{};
+		std::atomic_uint32_t KeyDown[8]{};
+		std::atomic_uint32_t KeyUp[8]{};
+		std::atomic_uint8_t LastKeyDown{};
+		std::atomic_uint8_t LastKeyUp{};
+		uint8_t _Padding[2]{};
 	public:
 		void Reset();
 		void ResetFrame();
