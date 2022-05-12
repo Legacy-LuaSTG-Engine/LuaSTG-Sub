@@ -272,3 +272,5 @@ target_sources(tracy PRIVATE
     tracy/TracyD3D11.hpp
     tracy/TracyClient.cpp
 )
+
+set_target_properties(tracy PROPERTIES FOLDER external)
