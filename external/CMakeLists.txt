@@ -252,3 +252,19 @@ option(TINYGLTF_BUILD_LOADER_EXAMPLE "Build loader_example(load glTF and dump in
 option(TINYGLTF_INSTALL "Install tinygltf files during install step. Usually set to OFF if you include tinygltf through add_subdirectory()" OFF)
 add_subdirectory(tinygltf)
 set_target_properties(tinygltf PROPERTIES FOLDER external)
+
+# ==================== tracy ====================
+
+add_library(tracy STATIC)
+luastg_target_common_options(tracy)
+target_compile_definitions(tracy PUBLIC
+    TRACY_ENABLE
+)
+target_include_directories(tracy PUBLIC
+    tracy
+)
+target_sources(tracy PRIVATE
+    tracy/Tracy.hpp
+    tracy/TracyD3D11.hpp
+    tracy/TracyClient.cpp
+)

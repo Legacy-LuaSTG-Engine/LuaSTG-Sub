@@ -44,7 +44,7 @@ set_target_properties(imgui PROPERTIES FOLDER external)
 
 add_library(implot STATIC)
 luastg_target_common_options(implot)
-target_compile_definitions(implot INTERFACE
+target_compile_definitions(implot PUBLIC
     IMPLOT_DISABLE_OBSOLETE_FUNCTIONS
 )
 target_include_directories(implot PUBLIC
