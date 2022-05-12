@@ -30,6 +30,8 @@ set(platform_sources
     platform/WindowsVersion.cpp
     platform/WindowTheme.hpp
     platform/WindowTheme.cpp
+    platform/Keyboard.hpp
+    platform/Keyboard.cpp
 )
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${platform_sources})
 target_sources(platform PRIVATE ${platform_sources})

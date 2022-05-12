@@ -1,6 +1,7 @@
 ﻿#include "LuaWrapper\LuaWrapper.hpp"
 #include "AppFrame.h"
 #include "Keyboard.h"
+#include "platform/Keyboard.hpp"
 #include "Mouse.h"
 
 static int register_keyboard(lua_State* L)
@@ -26,8 +27,8 @@ static int register_keyboard(lua_State* L)
 	luaL_register(L, LUASTG_LUA_LIBNAME ".Input.Keyboard", lib_keyboard); // ??? lstg.Input lstg.Input.Keyboard
 
 	struct { char const* id; char const* name; lua_Integer value; } kcode[] = {
-	#define KV(KEY) { #KEY, #KEY, (lua_Integer)DirectX::Keyboard::Keys::##KEY }
-	#define KNV(NAME, KEY) { NAME, NAME, (lua_Integer)DirectX::Keyboard::Keys::##KEY }
+	#define KV(KEY) { #KEY, #KEY, (lua_Integer)platform::Keyboard::Key::##KEY }
+	#define KNV(NAME, KEY) { NAME, NAME, (lua_Integer)platform::Keyboard::Key::##KEY }
 		KV(None),
 
 		KV(Back),
@@ -201,6 +202,8 @@ static int register_keyboard(lua_State* L)
 		KNV("Oem102", OemBackslash),
 
 		KV(ProcessKey),
+
+		KV(NumPadEnter),
 
 		KV(OemCopy),
 		KV(OemAuto),
