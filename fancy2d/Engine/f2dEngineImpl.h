@@ -118,6 +118,7 @@ protected:
 	void Run_MultiThread(fuInt UpdateMaxFPS);
 	void Run_FullMultiThread(fuInt UpdateMaxFPS, fuInt RenderMaxFPS);
 
+	void DoFrame(f2dFPSControllerImpl* pFPSController);
 	void DoUpdate(fDouble ElapsedTime, f2dFPSControllerImpl* pFPSController);
 	bool DoRender(fDouble ElapsedTime, f2dFPSControllerImpl* pFPSController, f2dRenderDevice* pDev);
 	void DoPresent(f2dRenderDevice* pDev);
