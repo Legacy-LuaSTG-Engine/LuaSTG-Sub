@@ -74,7 +74,7 @@ namespace platform
         return GetKey(include_history ? KeyUp.Data : KeyState.Data, static_cast<uint8_t>(key));
     }
 
-    void Keyboard::AtomicState::Reset()
+    void Keyboard::Reset()
     {
         KeyState[0].store(0u);
         KeyState[1].store(0u);
@@ -88,7 +88,7 @@ namespace platform
         _Padding[0] = 0;
         _Padding[1] = 0;
     }
-    void Keyboard::AtomicState::ResetFrame()
+    void Keyboard::ResetFrame()
     {
         KeyDown[0].store(0u);
         KeyDown[1].store(0u);
@@ -110,15 +110,6 @@ namespace platform
         LastKeyUp.store(0u);
     }
 
-    void Keyboard::Reset()
-    {
-        AtomicState_.Reset();
-    }
-    void Keyboard::ResetFrame()
-    {
-        AtomicState_.ResetFrame();
-    }
-
     Keyboard::State Keyboard::GetState(bool new_frame)
     {
         Keyboard::State Copy = {};
@@ -127,55 +118,55 @@ namespace platform
     }
     void Keyboard::GetState(Keyboard::State& Ref, bool new_frame)
     {
-        Ref.KeyState.Data[0] = AtomicState_.KeyState[0].load();
-        Ref.KeyState.Data[1] = AtomicState_.KeyState[1].load();
-        Ref.KeyState.Data[2] = AtomicState_.KeyState[2].load();
-        Ref.KeyState.Data[3] = AtomicState_.KeyState[3].load();
-        Ref.KeyState.Data[4] = AtomicState_.KeyState[4].load();
-        Ref.KeyState.Data[5] = AtomicState_.KeyState[5].load();
-        Ref.KeyState.Data[6] = AtomicState_.KeyState[6].load();
-        Ref.KeyState.Data[7] = AtomicState_.KeyState[7].load();
+        Ref.KeyState.Data[0] = KeyState[0].load();
+        Ref.KeyState.Data[1] = KeyState[1].load();
+        Ref.KeyState.Data[2] = KeyState[2].load();
+        Ref.KeyState.Data[3] = KeyState[3].load();
+        Ref.KeyState.Data[4] = KeyState[4].load();
+        Ref.KeyState.Data[5] = KeyState[5].load();
+        Ref.KeyState.Data[6] = KeyState[6].load();
+        Ref.KeyState.Data[7] = KeyState[7].load();
         if (new_frame)
         {
-            Ref.KeyDown.Data[0] = AtomicState_.KeyDown[0].exchange(0u);
-            Ref.KeyDown.Data[1] = AtomicState_.KeyDown[1].exchange(0u);
-            Ref.KeyDown.Data[2] = AtomicState_.KeyDown[2].exchange(0u);
-            Ref.KeyDown.Data[3] = AtomicState_.KeyDown[3].exchange(0u);
-            Ref.KeyDown.Data[4] = AtomicState_.KeyDown[4].exchange(0u);
-            Ref.KeyDown.Data[5] = AtomicState_.KeyDown[5].exchange(0u);
-            Ref.KeyDown.Data[6] = AtomicState_.KeyDown[6].exchange(0u);
-            Ref.KeyDown.Data[7] = AtomicState_.KeyDown[7].exchange(0u);
-            Ref.KeyUp.Data[0] = AtomicState_.KeyUp[0].exchange(0u);
-            Ref.KeyUp.Data[1] = AtomicState_.KeyUp[1].exchange(0u);
-            Ref.KeyUp.Data[2] = AtomicState_.KeyUp[2].exchange(0u);
-            Ref.KeyUp.Data[3] = AtomicState_.KeyUp[3].exchange(0u);
-            Ref.KeyUp.Data[4] = AtomicState_.KeyUp[4].exchange(0u);
-            Ref.KeyUp.Data[5] = AtomicState_.KeyUp[5].exchange(0u);
-            Ref.KeyUp.Data[6] = AtomicState_.KeyUp[6].exchange(0u);
-            Ref.KeyUp.Data[7] = AtomicState_.KeyUp[7].exchange(0u);
-            Ref.LastKeyDown = static_cast<Key>(AtomicState_.LastKeyDown.exchange(0));
-            Ref.LastKeyUp = static_cast<Key>(AtomicState_.LastKeyUp.exchange(0));
+            Ref.KeyDown.Data[0] = KeyDown[0].exchange(0u);
+            Ref.KeyDown.Data[1] = KeyDown[1].exchange(0u);
+            Ref.KeyDown.Data[2] = KeyDown[2].exchange(0u);
+            Ref.KeyDown.Data[3] = KeyDown[3].exchange(0u);
+            Ref.KeyDown.Data[4] = KeyDown[4].exchange(0u);
+            Ref.KeyDown.Data[5] = KeyDown[5].exchange(0u);
+            Ref.KeyDown.Data[6] = KeyDown[6].exchange(0u);
+            Ref.KeyDown.Data[7] = KeyDown[7].exchange(0u);
+            Ref.KeyUp.Data[0] = KeyUp[0].exchange(0u);
+            Ref.KeyUp.Data[1] = KeyUp[1].exchange(0u);
+            Ref.KeyUp.Data[2] = KeyUp[2].exchange(0u);
+            Ref.KeyUp.Data[3] = KeyUp[3].exchange(0u);
+            Ref.KeyUp.Data[4] = KeyUp[4].exchange(0u);
+            Ref.KeyUp.Data[5] = KeyUp[5].exchange(0u);
+            Ref.KeyUp.Data[6] = KeyUp[6].exchange(0u);
+            Ref.KeyUp.Data[7] = KeyUp[7].exchange(0u);
+            Ref.LastKeyDown = static_cast<Key>(LastKeyDown.exchange(0));
+            Ref.LastKeyUp = static_cast<Key>(LastKeyUp.exchange(0));
         }
         else
         {
-            Ref.KeyDown.Data[0] = AtomicState_.KeyDown[0].load();
-            Ref.KeyDown.Data[1] = AtomicState_.KeyDown[1].load();
-            Ref.KeyDown.Data[2] = AtomicState_.KeyDown[2].load();
-            Ref.KeyDown.Data[3] = AtomicState_.KeyDown[3].load();
-            Ref.KeyDown.Data[4] = AtomicState_.KeyDown[4].load();
-            Ref.KeyDown.Data[5] = AtomicState_.KeyDown[5].load();
-            Ref.KeyDown.Data[6] = AtomicState_.KeyDown[6].load();
-            Ref.KeyDown.Data[7] = AtomicState_.KeyDown[7].load();
-            Ref.KeyUp.Data[0] = AtomicState_.KeyUp[0].load();
-            Ref.KeyUp.Data[1] = AtomicState_.KeyUp[1].load();
-            Ref.KeyUp.Data[2] = AtomicState_.KeyUp[2].load();
-            Ref.KeyUp.Data[3] = AtomicState_.KeyUp[3].load();
-            Ref.KeyUp.Data[4] = AtomicState_.KeyUp[4].load();
-            Ref.KeyUp.Data[5] = AtomicState_.KeyUp[5].load();
-            Ref.KeyUp.Data[6] = AtomicState_.KeyUp[6].load();
-            Ref.KeyUp.Data[7] = AtomicState_.KeyUp[7].load();
-            Ref.LastKeyDown = static_cast<Key>(AtomicState_.LastKeyDown.load());
-            Ref.LastKeyUp = static_cast<Key>(AtomicState_.LastKeyUp.load());
+            Ref.KeyDown.Data[0] = KeyDown[0].load();
+            Ref.KeyDown.Data[1] = KeyDown[1].load();
+            Ref.KeyDown.Data[2] = KeyDown[2].load();
+            Ref.KeyDown.Data[3] = KeyDown[3].load();
+            Ref.KeyDown.Data[4] = KeyDown[4].load();
+            Ref.KeyDown.Data[5] = KeyDown[5].load();
+            Ref.KeyDown.Data[6] = KeyDown[6].load();
+            Ref.KeyDown.Data[7] = KeyDown[7].load();
+            Ref.KeyUp.Data[0] = KeyUp[0].load();
+            Ref.KeyUp.Data[1] = KeyUp[1].load();
+            Ref.KeyUp.Data[2] = KeyUp[2].load();
+            Ref.KeyUp.Data[3] = KeyUp[3].load();
+            Ref.KeyUp.Data[4] = KeyUp[4].load();
+            Ref.KeyUp.Data[5] = KeyUp[5].load();
+            Ref.KeyUp.Data[6] = KeyUp[6].load();
+            Ref.KeyUp.Data[7] = KeyUp[7].load();
+            Ref.LastKeyDown = static_cast<Key>(LastKeyDown.load());
+            Ref.LastKeyUp = static_cast<Key>(LastKeyUp.load());
         }
     }
 
@@ -216,8 +207,8 @@ namespace platform
             if (!down)
             {
                 // Windows system feature :(
-                AtomicSetKey(AtomicState_.KeyState, VK_RSHIFT, down);
-                AtomicSetKey(AtomicState_.KeyState, VK_LSHIFT, down);
+                AtomicSetKey(KeyState, VK_RSHIFT, down);
+                AtomicSetKey(KeyState, VK_LSHIFT, down);
             }
             break;
         case VK_CONTROL:
@@ -227,20 +218,20 @@ namespace platform
             vk_translated = IsExtendedKey(lParam) ? VK_RMENU : VK_LMENU;
             break;
         }
-        AtomicSetKey(AtomicState_.KeyState, vk, down);
+        AtomicSetKey(KeyState, vk, down);
         if (vk != vk_translated)
         {
-            AtomicSetKey(AtomicState_.KeyState, vk_translated, down);
+            AtomicSetKey(KeyState, vk_translated, down);
         }
         if (down)
         {
-            AtomicSetKey(AtomicState_.KeyDown, vk_translated, true);
-            AtomicState_.LastKeyDown.store(vk_translated);
+            AtomicSetKey(KeyDown, vk_translated, true);
+            LastKeyDown.store(vk_translated);
         }
         else
         {
-            AtomicSetKey(AtomicState_.KeyUp, vk_translated, true);
-            AtomicState_.LastKeyUp.store(vk_translated);
+            AtomicSetKey(KeyUp, vk_translated, true);
+            LastKeyUp.store(vk_translated);
         }
     }
 }
