@@ -84,8 +84,6 @@ fuInt f2dEngineImpl::UpdateAndRenderThread::ThreadJob()
 	// 执行渲染更新循环
 	fcyCriticalSection& tLock = m_pEngine->m_Sec;
 	fBool bExit = false;
-	fBool bDoPresent = false;
-	fDouble tTime = 0;
 	while (true)
 	{
 		tLock.Lock();
@@ -96,36 +94,7 @@ fuInt f2dEngineImpl::UpdateAndRenderThread::ThreadJob()
 		if(bExit)
 			break;
 		
-		m_pEngine->NextFrameStatistics();
-		m_pEngine->BeginFrameStatisticsElement(FrameStatisticsElement::Total);
-
-		// 如果需要，等待设备
-		((f2dRenderDevice11*)tpRenderDev)->WaitDevice();
-
-		// 更新FPS
-		tTime = tFPSController.Update();
-		
-		// 执行显示事件
-		//if(bDoPresent)
-			//m_pEngine->DoPresent(tpRenderDev);
-
-		// 执行更新事件
-		m_pEngine->BeginFrameStatisticsElement(FrameStatisticsElement::Update);
-		m_pEngine->DoUpdate(tTime, &tFPSController);
-		m_pEngine->EndFrameStatisticsElement(FrameStatisticsElement::Update);
-
-		// 执行渲染事件
-		m_pEngine->BeginFrameStatisticsElement(FrameStatisticsElement::Render);
-		bDoPresent = m_pEngine->DoRender(tTime, &tFPSController, tpRenderDev);
-		m_pEngine->EndFrameStatisticsElement(FrameStatisticsElement::Render);
-
-		// 执行显示事件
-		m_pEngine->BeginFrameStatisticsElement(FrameStatisticsElement::Present);
-		if (bDoPresent)
-			m_pEngine->DoPresent(tpRenderDev);
-		m_pEngine->EndFrameStatisticsElement(FrameStatisticsElement::Present);
-
-		m_pEngine->EndFrameStatisticsElement(FrameStatisticsElement::Total);
+		m_pEngine->DoFrame(&tFPSController);
 	}
 	
 	// 投递终止消息
@@ -584,8 +553,50 @@ void f2dEngineImpl::Run_FullMultiThread(fuInt UpdateMaxFPS, fuInt RenderMaxFPS)
 	tRenderThread.Wait();
 }
 
+void f2dEngineImpl::DoFrame(f2dFPSControllerImpl* pFPSController)
+{
+	ZoneScoped;
+
+	f2dRenderDevice11* tpRenderDev = (f2dRenderDevice11*)GetRenderer()->GetDevice();
+
+	NextFrameStatistics();
+	BeginFrameStatisticsElement(FrameStatisticsElement::Total);
+
+	// 如果需要，等待设备
+	((f2dRenderDevice11*)GetRenderer()->GetDevice())->WaitDevice();
+
+	// 更新FPS
+	fDouble tTime = pFPSController->Update();
+
+	// 执行显示事件
+	//if(bDoPresent)
+		//m_pEngine->DoPresent(tpRenderDev);
+
+	// 执行更新事件
+	BeginFrameStatisticsElement(FrameStatisticsElement::Update);
+	DoUpdate(tTime, pFPSController);
+	EndFrameStatisticsElement(FrameStatisticsElement::Update);
+
+	// 执行渲染事件
+	BeginFrameStatisticsElement(FrameStatisticsElement::Render);
+	fBool bDoPresent = DoRender(tTime, pFPSController, tpRenderDev);
+	EndFrameStatisticsElement(FrameStatisticsElement::Render);
+
+	// 执行显示事件
+	BeginFrameStatisticsElement(FrameStatisticsElement::Present);
+	if (bDoPresent)
+		DoPresent(tpRenderDev);
+	EndFrameStatisticsElement(FrameStatisticsElement::Present);
+
+	EndFrameStatisticsElement(FrameStatisticsElement::Total);
+
+	FrameMark;
+}
+
 void f2dEngineImpl::DoUpdate(fDouble ElapsedTime, f2dFPSControllerImpl* pFPSController)
 {
+	ZoneScoped;
+
 	f2dMsgPump* tPump = NULL;
 
 	// 交换消息泵并清空消息泵
@@ -609,6 +620,8 @@ void f2dEngineImpl::DoUpdate(fDouble ElapsedTime, f2dFPSControllerImpl* pFPSCont
 
 bool f2dEngineImpl::DoRender(fDouble ElapsedTime, f2dFPSControllerImpl* pFPSController, f2dRenderDevice* pDev)
 {
+	ZoneScoped;
+
 	// 同步设备状态，处理设备丢失
 	if(pDev && FCYOK(((f2dRenderDevice11*)pDev)->SyncDevice()))
 	{
@@ -621,6 +634,8 @@ bool f2dEngineImpl::DoRender(fDouble ElapsedTime, f2dFPSControllerImpl* pFPSCont
 
 void f2dEngineImpl::DoPresent(f2dRenderDevice* pDev)
 {
+	ZoneScoped;
+
 	// 递交画面
 	((f2dRenderDevice11*)pDev)->Present();
 }

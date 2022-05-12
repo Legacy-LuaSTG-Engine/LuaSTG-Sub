@@ -16,6 +16,8 @@ set(FANCY2D_SOURCE
 
     #Common/fancy2d.manifest
     
+    Common/pch.h
+    Common/pch.cpp
     Common/f2dStandardCommon.hpp
     Common/f2dStandardCommon.cpp
     Common/f2dWindowsCommon.h
@@ -96,6 +98,10 @@ target_compile_definitions(fancy2dlib PRIVATE
     ____EMPTY_0000_0000_0000_0000____
 )
 
+target_precompile_headers(fancy2dlib PRIVATE
+    Common/pch.h
+)
+
 target_include_directories(fancy2dlib PUBLIC
     .
 )
@@ -123,50 +129,5 @@ target_link_libraries(fancy2dlib PUBLIC
     xmath
     platform
     utility
+    tracy
 )
-
-# 动态库
-
-if(FALSE)
-    add_library(fancy2d SHARED)
-
-    luastg_target_common_options(fancy2d)
-    luastg_target_more_warning(fancy2d)
-
-    target_compile_definitions(fancy2d PRIVATE
-        ____EMPTY_0000_0000_0000_0000____
-        F2DEXPORT
-    )
-    target_compile_definitions(fancy2d PUBLIC
-        F2DDLL
-    )
-
-    target_include_directories(fancy2d PUBLIC
-        .
-    )
-    target_include_directories(fancy2d PRIVATE
-        ../
-    )
-
-    target_sources(fancy2d PRIVATE
-        ${FANCY2D_SOURCE}
-    )
-
-    target_link_libraries(fancy2d PRIVATE
-        spdlog::spdlog
-        winmm.lib
-        imm32.lib
-        dxguid.lib
-        dinput8.lib
-        DirectX::XAudio2Redist
-        DirectXTexMini
-        dxgi.lib
-        d3d11.lib
-        freetype
-        vorbisfile
-        fancylib
-        xmath
-        platform
-        utility
-    )
-endif()
