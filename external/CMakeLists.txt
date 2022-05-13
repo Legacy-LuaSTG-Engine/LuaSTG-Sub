@@ -266,11 +266,14 @@ if(ENABLE_TRACY_CLIENT)
 endif()
 target_include_directories(tracy PUBLIC
     tracy
+    tracy-patch
 )
 target_sources(tracy PRIVATE
     tracy/Tracy.hpp
     tracy/TracyD3D11.hpp
     tracy/TracyClient.cpp
+    tracy-patch/TracyD3D11Ctx.hpp
+    tracy-patch/TracyD3D11Ctx.cpp
 )
 
 set_target_properties(tracy PROPERTIES FOLDER external)

@@ -443,13 +443,13 @@ void f2dEngineImpl::Run_SingleThread(fuInt UpdateMaxFPS)
 			DoUpdate(tTime, &tFPSController);
 		
 			{
-				TracyD3D11Zone(tpRenderDev->GetTracyContext(), "DeviceContext");
+				TracyD3D11Zone(tracy::xTracyD3D11Ctx(), "DeviceContext");
 				bDoPresent = DoRender(tTime, &tFPSController, tpRenderDev);
 			}
 			{
 				if (bDoPresent)
 					DoPresent(tpRenderDev);
-				TracyD3D11Collect(tpRenderDev->GetTracyContext());
+				TracyD3D11Collect(tracy::xTracyD3D11Ctx());
 			}
 		}
 		
@@ -580,7 +580,7 @@ void f2dEngineImpl::DoFrame(f2dFPSControllerImpl* pFPSController)
 	fBool bDoPresent = false;
 	BeginFrameStatisticsElement(FrameStatisticsElement::Render);
 	{
-		TracyD3D11Zone(tpRenderDev->GetTracyContext(), "DeviceContext");
+		TracyD3D11Zone(tracy::xTracyD3D11Ctx(), "DeviceContext");
 		bDoPresent = DoRender(tTime, pFPSController, tpRenderDev);
 	}
 	EndFrameStatisticsElement(FrameStatisticsElement::Render);
@@ -589,7 +589,7 @@ void f2dEngineImpl::DoFrame(f2dFPSControllerImpl* pFPSController)
 	{
 		if (bDoPresent)
 			DoPresent(tpRenderDev);
-		TracyD3D11Collect(tpRenderDev->GetTracyContext());
+		TracyD3D11Collect(tracy::xTracyD3D11Ctx());
 	}
 	EndFrameStatisticsElement(FrameStatisticsElement::Present);
 

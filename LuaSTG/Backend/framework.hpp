@@ -13,6 +13,10 @@
 
 #include "spdlog/spdlog.h"
 
+#include "Tracy.hpp"
+#include "TracyD3D11.hpp"
+#include "TracyD3D11Ctx.hpp"
+
 namespace LuaSTG
 {
 	// Helper struct
