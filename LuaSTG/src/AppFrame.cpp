@@ -8,6 +8,7 @@
 #include "LConfig.h"
 #include "Core/FileManager.hpp"
 #include "AdapterPolicy.hpp"
+#include "utility/encoding.hpp"
 
 #define NOMINMAX
 #include <Windows.h>
@@ -190,7 +191,7 @@ void AppFrame::SetTitle(const char* v)LNOEXCEPT
 {
 	try
 	{
-		m_OptionTitle = std::move(fcyStringHelper::MultiByteToWideChar(v));
+		m_OptionTitle = std::move(utility::encoding::to_wide(v));
 		if (m_pMainWindow)
 			m_pMainWindow->SetCaption(m_OptionTitle.c_str());
 	}
@@ -203,7 +204,7 @@ void AppFrame::SetPreferenceGPU(const char* v, bool dGPU_trick)LNOEXCEPT
 {
 	try
 	{
-		m_OptionGPU = std::move(fcyStringHelper::MultiByteToWideChar(v));
+		m_OptionGPU = std::move(utility::encoding::to_wide(v));
 		SetAdapterPolicy(dGPU_trick);
 	}
 	catch (const std::bad_alloc&)
@@ -580,18 +581,18 @@ bool AppFrame::Init()LNOEXCEPT
 				uint32_t cnt = m_DirectInput->count();
 				for (uint32_t i = 0; i < cnt; i += 1)
 				{
-					spdlog::info("[luastg] 检测到{}控制器 产品名称：{} 设备名称：{}",
+					spdlog::info("[luastg] 检测到 {} 控制器 产品名称：{} 设备名称：{}",
 						m_DirectInput->isXInputDevice(i) ? "XInput" : "DirectInput",
-						fcyStringHelper::WideCharToMultiByte(m_DirectInput->getProductName(i)),
-						fcyStringHelper::WideCharToMultiByte(m_DirectInput->getDeviceName(i))
+						utility::encoding::to_utf8(m_DirectInput->getProductName(i)),
+						utility::encoding::to_utf8(m_DirectInput->getDeviceName(i))
 					);
 				}
-				spdlog::info("[luastg] 成功创建了{}个控制器", cnt);
+				spdlog::info("[luastg] 成功创建了 {} 个控制器", cnt);
 			}
 		}
 		catch (const std::bad_alloc&)
 		{
-			spdlog::error("[luastg] 无法为DirectInput分配内存");
+			spdlog::error("[luastg] 无法为 DirectInput 分配内存");
 		}
 		
 		// 初始化ImGui

@@ -1,5 +1,6 @@
 #include "AppFrame.h"
 #include "LuaWrapper.hpp"
+#include "utility/encoding.hpp"
 
 #ifdef LAPP
 #undef LAPP
@@ -22,7 +23,7 @@ static int lib_setTitle(lua_State* L)
 {
     getwindow(window);
     const char* text = luaL_checkstring(L, 1);
-    const std::wstring wtext = std::move(fcyStringHelper::MultiByteToWideChar(text));;
+    const std::wstring wtext = std::move(utility::encoding::to_wide(text));;
     window->SetCaption(wtext.c_str());
     return 0;
 }
@@ -123,7 +124,7 @@ static int lib_getTextInput(lua_State* L)
     try
     {
         fcStrW text = LAPP().GetTextInput();
-        std::string u8text = fcyStringHelper::WideCharToMultiByte(text);
+        std::string u8text = std::move(utility::encoding::to_utf8(text));
         lua_pushstring(L, u8text.c_str());
         return 1;
     }

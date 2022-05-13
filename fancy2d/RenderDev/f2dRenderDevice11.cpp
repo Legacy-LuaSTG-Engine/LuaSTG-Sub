@@ -1,11 +1,10 @@
 ﻿#include "RenderDev/f2dRenderDevice11.h"
 
-#include <fcyMisc/fcyStringHelper.h>
 #include <fcyOS/fcyDebug.h>
-
 #include "RenderDev/f2dTexture11.h"
-
 #include "Engine/f2dEngineImpl.h"
+
+#include "utility/encoding.hpp"
 #include "platform/WindowsVersion.hpp"
 
 static std::string bytes_count_to_string(DWORDLONG size)
@@ -179,7 +178,7 @@ bool f2dRenderDevice11::selectAdapter()
 		if (bHR = gHR = dxgi_adapter_temp->GetDesc1(&desc_))
 		{
 			bool soft_dev_type = (desc_.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) || (desc_.Flags & DXGI_ADAPTER_FLAG_REMOTE);
-			dev_name = fcyStringHelper::WideCharToMultiByte(desc_.Description);
+			dev_name = std::move(utility::encoding::to_utf8(desc_.Description));
 			spdlog::info("[fancy2d] 图形设备[{}]：\n"
 				"    设备名称：{}\n"
 				"    设备类型：{}\n"

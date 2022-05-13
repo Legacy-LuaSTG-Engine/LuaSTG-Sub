@@ -1,6 +1,7 @@
 #include "Core/FileManager.hpp"
 #include "LuaWrapper/LuaWrapper.hpp"
 #include "AppFrame.h"
+#include "utility/encoding.hpp"
 
 void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 {
@@ -345,7 +346,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 						bool loaded = false;
 						// 先从文件加载试试看
 						try {
-							std::wstring wfilename = fcyStringHelper::MultiByteToWideChar(filename);
+							std::wstring wfilename = std::move(utility::encoding::to_wide(filename));
 							try {
 								fcyFileStream* stream = new fcyFileStream(wfilename.c_str(), false);
 								

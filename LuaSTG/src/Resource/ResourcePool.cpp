@@ -1,6 +1,7 @@
 ﻿#include "ResourceMgr.h"
 #include "AppFrame.h"
 #include "Core/FileManager.hpp"
+#include "utility/encoding.hpp"
 
 #ifdef max
 #undef max
@@ -638,9 +639,9 @@ bool ResourcePool::LoadSpriteFont(const char* name, const char* path, bool mipma
     try {
         if (tDataBuf->GetLength() > 0) {
             // stupid
-            tFileData = fcyStringHelper::MultiByteToWideChar(
-                std::string((const char*) tDataBuf->GetInternalBuffer(), (size_t) tDataBuf->GetLength())
-            );
+            tFileData = std::move(utility::encoding::to_wide(
+                std::string_view((const char*)tDataBuf->GetInternalBuffer(), (size_t)tDataBuf->GetLength())
+            ));
         }
     }
     catch (const std::bad_alloc&) {
@@ -654,7 +655,7 @@ bool ResourcePool::LoadSpriteFont(const char* name, const char* path, bool mipma
     try {
         std::wstring tOutputTextureName;
         ResFont::HGEFont::ReadDefine(tFileData, tOutputCharset, tOutputTextureName);
-        texpath = fcyPathParser::GetPath(path) + fcyStringHelper::WideCharToMultiByte(tOutputTextureName);
+        texpath = fcyPathParser::GetPath(path) + utility::encoding::to_utf8(tOutputTextureName);
     }
     catch (const fcyException& e) {
         spdlog::error("[luastg] [{}] 无法从'{}'加载纹理字体'{}'：{}", e.GetSrc(), path, name, e.GetDesc());
@@ -733,9 +734,9 @@ bool ResourcePool::LoadSpriteFont(const char* name, const char* path, const char
     try {
         if (tDataBuf->GetLength() > 0) {
             // stupid
-            tFileData = fcyStringHelper::MultiByteToWideChar(
-                std::string((const char*) tDataBuf->GetInternalBuffer(), (size_t) tDataBuf->GetLength())
-            );
+            tFileData = std::move(utility::encoding::to_wide(
+                std::string_view((const char*)tDataBuf->GetInternalBuffer(), (size_t)tDataBuf->GetLength())
+            ));
         }
     }
     catch (const std::bad_alloc&) {
@@ -816,7 +817,7 @@ bool ResourcePool::LoadTTFFont(const char* name, const char* path,
     if (!GFileManager().loadEx(path, ~tDataBuf)) {
         spdlog::warn("[luastg] LoadTTFFont: 无法从'{}'加载矢量字体，文件不存在，尝试从系统字体库加载字体", path);
         try {
-            const std::wstring wpath = fcyStringHelper::MultiByteToWideChar(path);
+            const std::wstring wpath = std::move(utility::encoding::to_wide(path));
             if (FCYFAILED(LAPP.GetRenderer()->CreateSystemFont(
                 wpath.c_str(), 0, fcyVec2(width, height), F2DFONTFLAG_NONE, ~tFontProvider))) {
                 spdlog::error("[luastg] LoadTTFFont: 尝试失败，无法从系统字体库加载字体'{}'", path);//向lua层返回错误，而不是直接崩游戏
