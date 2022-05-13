@@ -3,7 +3,6 @@
 /// @brief fancy2D渲染窗口接口定义
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
-#include <cstdint>
 #include "f2dInterface.h"
 
 /// @addtogroup f2d渲染窗口
@@ -203,9 +202,9 @@ struct f2dWindow
 	virtual f2dWindowEventListener* GetGraphicListener() = 0;
 	virtual fResult SetGraphicListener(f2dWindowEventListener* pListener) = 0;
 
-	virtual void AddNativeMessageCallback(ptrdiff_t pWndProc)=0;
+	virtual void AddNativeMessageCallback(fHandle pWndProc)=0;
 	
-	virtual void RemoveNativeMessageCallback(ptrdiff_t pWndProc)=0;
+	virtual void RemoveNativeMessageCallback(fHandle pWndProc)=0;
 	
 	/// @brief   返回Windows窗口句柄
 	/// @note    需要强转到HWND

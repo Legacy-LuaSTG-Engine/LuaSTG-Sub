@@ -883,13 +883,13 @@ fResult f2dWindowImpl::SetGraphicListener(f2dWindowEventListener* pListener)
 	return FCYERR_OK;
 }
 
-void f2dWindowImpl::AddNativeMessageCallback(ptrdiff_t pWndProc)
+void f2dWindowImpl::AddNativeMessageCallback(fHandle pWndProc)
 {
 	RemoveNativeMessageCallback(pWndProc);
 	m_fProc.push_back(pWndProc);
 }
 
-void f2dWindowImpl::RemoveNativeMessageCallback(ptrdiff_t pWndProc)
+void f2dWindowImpl::RemoveNativeMessageCallback(fHandle pWndProc)
 {
 	for (auto it = m_fProc.begin(); it != m_fProc.end();)
 	{

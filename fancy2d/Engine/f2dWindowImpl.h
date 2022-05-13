@@ -146,7 +146,7 @@ private:
 private:
 	// 状态
 	HWND m_hWnd = NULL;
-	std::vector<ptrdiff_t> m_fProc;
+	std::vector<fHandle> m_fProc;
 	bool m_bShow;
 	bool m_bActive = true;
 	std::wstring m_CaptionText;
@@ -192,8 +192,8 @@ public: // 接口实现
 	f2dWindowEventListener* GetGraphicListener();
 	fResult SetGraphicListener(f2dWindowEventListener* pListener);
 	
-	void AddNativeMessageCallback(ptrdiff_t pWndProc);
-	void RemoveNativeMessageCallback(ptrdiff_t pWndProc);
+	void AddNativeMessageCallback(fHandle pWndProc);
+	void RemoveNativeMessageCallback(fHandle pWndProc);
 	bool HandleNativeMessageCallback(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 	fHandle GetHandle();
 	
