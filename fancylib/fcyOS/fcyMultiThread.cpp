@@ -52,6 +52,7 @@ fuInt fcyBaseThread::GetExitCode() {
 ////////////////////////////////////////////////////////////////////////////////
 
 fcyCriticalSection::fcyCriticalSection() {
+    static_assert(sizeof(fcyCriticalSection::m_Section) >= sizeof(CRITICAL_SECTION));
     InitializeCriticalSection((CRITICAL_SECTION*) &m_Section);
 }
 
