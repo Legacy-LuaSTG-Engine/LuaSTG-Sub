@@ -59,12 +59,12 @@ namespace LuaSTGPlus
         g_Keyboard.Reset();
         Mouse = std::make_unique<DirectX::Mouse>();
         ZeroMemory(&MouseState, sizeof(MouseState));
-        m_pMainWindow->AddNativeMessageCallback((ptrdiff_t)&KeyboardMouseMessage);
+        m_pMainWindow->AddNativeMessageCallback((fHandle)&KeyboardMouseMessage);
         Mouse->SetWindow((HWND)m_pMainWindow->GetHandle());
     }
     void AppFrame::CloseInput()
     {
-        m_pMainWindow->RemoveNativeMessageCallback((ptrdiff_t)&KeyboardMouseMessage);
+        m_pMainWindow->RemoveNativeMessageCallback((fHandle)&KeyboardMouseMessage);
         Mouse = nullptr;
     }
     void AppFrame::UpdateInput()

@@ -420,7 +420,7 @@ namespace imgui
         loadConfig();
         
         ImGui_ImplWin32Ex_Init((void*)window->GetHandle());
-        window->AddNativeMessageCallback((ptrdiff_t)&ImGui_ImplWin32Ex_WndProcHandler);
+        window->AddNativeMessageCallback((fHandle)&ImGui_ImplWin32Ex_WndProcHandler);
         
         g_ImGuiRenderDeviceEventListener.OnRenderDeviceReset();
         device->AttachListener(&g_ImGuiRenderDeviceEventListener);
@@ -450,7 +450,7 @@ namespace imgui
         device->RemoveListener(&g_ImGuiRenderDeviceEventListener);
         g_ImGuiRenderDeviceEventListener.OnRenderDeviceLost();
         
-        window->RemoveNativeMessageCallback((ptrdiff_t)&ImGui_ImplWin32Ex_WndProcHandler);
+        window->RemoveNativeMessageCallback((fHandle)&ImGui_ImplWin32Ex_WndProcHandler);
         ImGui_ImplWin32Ex_Shutdown();
         
         saveConfig();
