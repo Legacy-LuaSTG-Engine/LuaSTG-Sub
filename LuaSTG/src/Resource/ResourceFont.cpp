@@ -1,12 +1,6 @@
 ﻿#include "ResourceFont.hpp"
 #include "AppFrame.h"
-
-#ifdef max
-#undef max
-#endif
-#ifdef min
-#undef min
-#endif
+#include "fcyMisc/fcyStringHelper.h"
 
 namespace LuaSTGPlus
 {
