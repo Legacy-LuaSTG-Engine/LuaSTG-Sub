@@ -35,11 +35,11 @@ namespace LuaSTG
 }
 
 #ifdef _DEBUG
-#define gHR HResultCheck::get(__FILE__, __FILEW__, __LINE__, L"")
-#define cHR(__ERROR_MESSAGE__) HResultCheck::get(__FILE__, __FILEW__, __LINE__, __ERROR_MESSAGE__)
+#define gHR LuaSTG::HResultCheck::get(__FILE__, __FILEW__, __LINE__, L"")
+#define cHR(__ERROR_MESSAGE__) LuaSTG::HResultCheck::get(__FILE__, __FILEW__, __LINE__, __ERROR_MESSAGE__)
 #else
-#define gHR HResultCheck::get(nullptr, nullptr, 0, L"")
-#define cHR(__ERROR_MESSAGE__) HResultCheck::get(nullptr, nullptr, 0, __ERROR_MESSAGE__)
+#define gHR LuaSTG::HResultCheck::get(nullptr, nullptr, 0, L"")
+#define cHR(__ERROR_MESSAGE__) LuaSTG::HResultCheck::get(nullptr, nullptr, 0, __ERROR_MESSAGE__)
 #endif
 
-#define bHR HResultToBool::get()
+#define bHR LuaSTG::HResultToBool::get()
