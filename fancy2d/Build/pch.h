@@ -37,6 +37,7 @@ constexpr UINT const WM_SET_IME_ENABLE       = WM_USER + 0x0011;
 
 #include "Tracy.hpp"
 #include "TracyD3D11.hpp"
+#include "TracyD3D11Ctx.hpp"
 
 // Helper struct
 namespace fancy2d

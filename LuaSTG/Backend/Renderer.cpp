@@ -148,6 +148,8 @@ namespace LuaSTG::Core
 	private:
 		bool uploadVertexIndexBuffer(bool discard)
 		{
+			ZoneScoped;
+			TracyD3D11Zone(tracy::xTracyD3D11Ctx(), "UploadVertexIndexBuffer");
 			HRESULT hr = 0;
 			auto& vi_ = _vi_buffer[_vi_buffer_index];
 			const D3D11_MAP map_type_ = discard ? D3D11_MAP_WRITE_DISCARD : D3D11_MAP_WRITE_NO_OVERWRITE;
@@ -181,8 +183,10 @@ namespace LuaSTG::Core
 		}
 		bool batchFlush(bool discard = false)
 		{
+			ZoneScoped;
 			if (!discard)
 			{
+				TracyD3D11Zone(tracy::xTracyD3D11Ctx(), "BatchFlush");
 				// upload data
 				if ((_draw_list.vertex.capacity - _vi_buffer[_vi_buffer_index].vertex_offset) < _draw_list.vertex.size
 					|| (_draw_list.index.capacity - _vi_buffer[_vi_buffer_index].index_offset) < _draw_list.index.size)

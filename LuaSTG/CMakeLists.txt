@@ -49,6 +49,7 @@ target_link_libraries(LuaSTGCore PUBLIC
     dxgi.lib
     d3d11.lib
     tinygltf
+    tracy
 )
 
 # LuaSTG Engine
