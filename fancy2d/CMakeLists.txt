@@ -14,14 +14,9 @@ set(FANCY2D_SOURCE
     f2dRenderer.h
     f2dVideoSys.h
 
-    #Common/fancy2d.manifest
-    
-    Common/pch.h
-    Common/pch.cpp
-    Common/f2dStandardCommon.hpp
-    Common/f2dStandardCommon.cpp
-    Common/f2dWindowsCommon.h
-    Common/f2dWindowsCommon.cpp
+    #Build/fancy2d.manifest
+    Build/pch.h
+    Build/pch.cpp
 
     Engine/f2dMsgPumpImpl.h
     Engine/f2dFPSControllerImpl.h
@@ -30,7 +25,6 @@ set(FANCY2D_SOURCE
     Engine/f2dEngineImpl.cpp
     #Engine/f2dFileSysImpl.h
     #Engine/f2dFileSysImpl.cpp
-    Engine/f2dWindowCommonMessage.h
     Engine/f2dWindowImpl.h
     Engine/f2dWindowImpl.cpp
 
@@ -99,7 +93,7 @@ target_compile_definitions(fancy2dlib PRIVATE
 )
 
 target_precompile_headers(fancy2dlib PRIVATE
-    Common/pch.h
+    Build/pch.h
 )
 
 target_include_directories(fancy2dlib PUBLIC

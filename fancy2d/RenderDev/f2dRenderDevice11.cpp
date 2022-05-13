@@ -673,6 +673,8 @@ f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, f2dEngineRenderWind
 
 	m_pEngine->GetMainWindow()->SetGraphicListener(this);
 
+	pTracyD3D11Ctx = TracyD3D11Context(d3d11_device.Get(), d3d11_devctx.Get());
+
 	// 如果需要，试着进入全屏模式
 
 	if (!RenderWindowParam->windowed)
@@ -686,6 +688,8 @@ f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, f2dEngineRenderWind
 }
 f2dRenderDevice11::~f2dRenderDevice11()
 {
+	TracyD3D11Destroy(pTracyD3D11Ctx);
+
 	if (m_pEngine->GetMainWindow())
 		m_pEngine->GetMainWindow()->SetGraphicListener(nullptr);
 

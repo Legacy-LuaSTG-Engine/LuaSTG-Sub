@@ -5,8 +5,6 @@
 #pragma once
 #include "f2dEngine.h"
 #include "Engine/f2dWindowImpl.h"
-#include "Common/f2dStandardCommon.hpp"
-#include "Common/f2dWindowsCommon.h"
 
 class f2dEngineImpl;
 
@@ -85,6 +83,8 @@ private:
 	fBool dxgi_support_flipmodel2 = false;
 	fBool dxgi_support_lowlatency = false;
 	fBool dxgi_support_tearing = false;
+
+	TracyD3D11Ctx pTracyD3D11Ctx{};
 private:
 	int sendDevLostMsg();             // 发送设备丢失事件, 返回对象数目
 	int sendDevResetMsg();            // 发送设备重置事件
@@ -99,6 +99,8 @@ private:
 	bool createRenderAttachments();
 	void setupRenderAttachments();
 public: // 内部函数
+	TracyD3D11Ctx GetTracyContext() { return pTracyD3D11Ctx; }
+
 	f2dEngineImpl* GetEngine() { return m_pEngine; } // 返回引擎对象
 	fResult WaitDevice();
 	fResult SyncDevice();                           // 协作测试，完成设备丢失处理

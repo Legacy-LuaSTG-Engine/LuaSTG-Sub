@@ -6,7 +6,6 @@
 #include "fcyRefObj.h"
 #include "fcyIO\fcyStream.h"
 #include "f2dInputSys.h"
-#include "Common/f2dWindowsCommon.h"
 
 class f2dEngineImpl;
 

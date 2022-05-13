@@ -81,7 +81,6 @@ fuInt f2dEngineImpl::UpdateAndRenderThread::ThreadJob()
 	if(m_pEngine->GetRenderer())
 		tpRenderDev = m_pEngine->GetRenderer()->GetDevice();
 
-	// 执行渲染更新循环
 	fcyCriticalSection& tLock = m_pEngine->m_Sec;
 	fBool bExit = false;
 	while (true)
@@ -89,15 +88,12 @@ fuInt f2dEngineImpl::UpdateAndRenderThread::ThreadJob()
 		tLock.Lock();
 		bExit = m_pEngine->m_bStop;
 		tLock.UnLock();
-
-		// 检查退出
 		if(bExit)
 			break;
-		
 		m_pEngine->DoFrame(&tFPSController);
+		FrameMark;
 	}
 	
-	// 投递终止消息
 	PostThreadMessageW(m_MainThreadID, WM_USER, 0, 0);
 	
 	return 0;
@@ -404,49 +400,60 @@ void f2dEngineImpl::Run_SingleThread(fuInt UpdateMaxFPS)
 	f2dFPSControllerImpl tFPSController(UpdateMaxFPS);
 
 	// 获得渲染设备
-	f2dRenderDevice* tpRenderDev = NULL;
+	f2dRenderDevice11* tpRenderDev = NULL;
 	if(m_pRenderer)
-		tpRenderDev = m_pRenderer->GetDevice();
+		tpRenderDev = (f2dRenderDevice11*)m_pRenderer->GetDevice();
 
 	// 执行程序循环
 	fBool bExit = false;
 	fBool bDoPresent = false;
 	fDouble tTime = 0;
 	MSG tMsg;
-	while(1)
+	while(true)
 	{
-		m_Sec.Lock();
-		bExit = m_bStop;
-		m_Sec.UnLock();
-
-		if(bExit)
-			break;
-		
-		tTime = tFPSController.Update();
-		
-		// 应用程序消息处理
-		while (PeekMessageW(&tMsg, 0, 0, 0, PM_REMOVE))
 		{
-			if (tMsg.message == WM_QUIT)
+			ZoneScopedN("DoFrame");
+
+			m_Sec.Lock();
+			bExit = m_bStop;
+			m_Sec.UnLock();
+
+			if(bExit)
+				break;
+		
+			tTime = tFPSController.Update();
+		
+			// 应用程序消息处理
 			{
-				SendMsg(F2DMSG_APP_ONEXIT);
+				ZoneScopedN("PeekMessage");
+				while (PeekMessageW(&tMsg, 0, 0, 0, PM_REMOVE))
+				{
+					if (tMsg.message == WM_QUIT)
+					{
+						SendMsg(F2DMSG_APP_ONEXIT);
+					}
+					else
+					{
+						TranslateMessage(&tMsg);
+						DispatchMessageW(&tMsg);
+					}
+				}
 			}
-			else
+		
+			DoUpdate(tTime, &tFPSController);
+		
 			{
-				TranslateMessage(&tMsg);
-				DispatchMessageW(&tMsg);
+				TracyD3D11Zone(tpRenderDev->GetTracyContext(), "DeviceContext");
+				bDoPresent = DoRender(tTime, &tFPSController, tpRenderDev);
+			}
+			{
+				if (bDoPresent)
+					DoPresent(tpRenderDev);
+				TracyD3D11Collect(tpRenderDev->GetTracyContext());
 			}
 		}
 		
-		// 执行更新事件
-		DoUpdate(tTime, &tFPSController);
-		
-		// 执行渲染事件
-		bDoPresent = DoRender(tTime, &tFPSController, tpRenderDev);
-		
-		// 执行显示事件
-		if (bDoPresent)
-			DoPresent(tpRenderDev);
+		FrameMark;
 	}
 }
 
@@ -562,35 +569,31 @@ void f2dEngineImpl::DoFrame(f2dFPSControllerImpl* pFPSController)
 	NextFrameStatistics();
 	BeginFrameStatisticsElement(FrameStatisticsElement::Total);
 
-	// 如果需要，等待设备
-	((f2dRenderDevice11*)GetRenderer()->GetDevice())->WaitDevice();
+	tpRenderDev->WaitDevice();
 
-	// 更新FPS
 	fDouble tTime = pFPSController->Update();
 
-	// 执行显示事件
-	//if(bDoPresent)
-		//m_pEngine->DoPresent(tpRenderDev);
-
-	// 执行更新事件
 	BeginFrameStatisticsElement(FrameStatisticsElement::Update);
 	DoUpdate(tTime, pFPSController);
 	EndFrameStatisticsElement(FrameStatisticsElement::Update);
 
-	// 执行渲染事件
+	fBool bDoPresent = false;
 	BeginFrameStatisticsElement(FrameStatisticsElement::Render);
-	fBool bDoPresent = DoRender(tTime, pFPSController, tpRenderDev);
+	{
+		TracyD3D11Zone(tpRenderDev->GetTracyContext(), "DeviceContext");
+		bDoPresent = DoRender(tTime, pFPSController, tpRenderDev);
+	}
 	EndFrameStatisticsElement(FrameStatisticsElement::Render);
 
-	// 执行显示事件
 	BeginFrameStatisticsElement(FrameStatisticsElement::Present);
-	if (bDoPresent)
-		DoPresent(tpRenderDev);
+	{
+		if (bDoPresent)
+			DoPresent(tpRenderDev);
+		TracyD3D11Collect(tpRenderDev->GetTracyContext());
+	}
 	EndFrameStatisticsElement(FrameStatisticsElement::Present);
 
 	EndFrameStatisticsElement(FrameStatisticsElement::Total);
-
-	FrameMark;
 }
 
 void f2dEngineImpl::DoUpdate(fDouble ElapsedTime, f2dFPSControllerImpl* pFPSController)

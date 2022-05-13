@@ -4,8 +4,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "f2dInputSys.h"
-#include "Common/f2dStandardCommon.hpp"
-#include "Common/f2dWindowsCommon.h"
 
 class f2dEngineImpl;
 

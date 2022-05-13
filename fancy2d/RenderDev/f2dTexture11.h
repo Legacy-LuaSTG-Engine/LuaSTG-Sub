@@ -1,8 +1,6 @@
 ﻿#pragma once
 #include "fcyIO/fcyStream.h"
 #include "f2dRenderDevice.h"
-#include "Common/f2dStandardCommon.hpp"
-#include "Common/f2dWindowsCommon.h"
 
 // Texture2D 静态或者动态
 class f2dTexture2D11 :
