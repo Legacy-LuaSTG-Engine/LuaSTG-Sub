@@ -5,12 +5,7 @@
 #pragma once
 #include "fcyRefObj.h"
 #include "fcyIO/fcyBinaryHelper.h"
-
 #include "f2dSoundSys.h"
-
-#include <string>
-#include <vector>
-#include <unordered_map>
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief Wave解码器

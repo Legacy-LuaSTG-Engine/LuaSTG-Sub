@@ -1,6 +1,5 @@
 ﻿#include "Sound/f2dAudioBufferStatic.h"
 #include "Sound/f2dSoundSysImpl.h"
-#include "spdlog/spdlog.h"
 
 // Called just before this voice's processing pass begins.
 void WINAPI f2dAudioBufferStatic::OnVoiceProcessingPassStart(UINT32 BytesRequired)

@@ -5,13 +5,7 @@
 #pragma once
 #include "fcyRefObj.h"
 #include "fcyIO\fcyStream.h"
-
 #include "f2dWindow.h"
-
-#include <string>
-#include <unordered_map>
-
-#include <Windows.h>
 #include "platform/WindowSizeMoveController.hpp"
 
 class f2dEngineImpl;

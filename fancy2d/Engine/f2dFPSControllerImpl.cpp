@@ -1,8 +1,5 @@
 ﻿#include "Engine/f2dFPSControllerImpl.h"
 
-#define NOMINMAX
-#include <Windows.h>
-
 fDouble f2dFPSControllerImpl::Update()
 {
 	// 先获取当前计数器

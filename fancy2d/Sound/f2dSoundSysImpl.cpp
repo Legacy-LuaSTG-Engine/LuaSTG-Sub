@@ -9,7 +9,6 @@
 #include "Engine/f2dEngineImpl.h"
 
 #include "fcyException.h"
-#include "spdlog/spdlog.h"
 
 #include <ks.h>
 #include <ksmedia.h>
