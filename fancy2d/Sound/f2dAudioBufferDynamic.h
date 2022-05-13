@@ -6,8 +6,6 @@
 #include "fcyRefObj.h"
 #include "fcyIO/fcyStream.h"
 #include "f2dSoundSys.h"
-#include "Common/f2dStandardCommon.hpp"
-#include "Common/f2dWindowsCommon.h"
 
 // 通过不断解码播放音频
 class f2dAudioBufferDynamic

@@ -5,10 +5,6 @@
 #pragma once
 #include "fcyRefObj.h"
 #include "fcyIO/fcyStream.h"
-
-#include "Common/f2dStandardCommon.hpp"
-#include "Common/f2dWindowsCommon.h"
-
 #include "f2dSoundSys.h"
 
 class f2dEngineImpl;
