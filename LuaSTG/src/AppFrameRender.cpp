@@ -1,7 +1,6 @@
 #include "AppFrame.h"
 #include "LConfig.h"
 #include "utility/encoding.hpp"
-#include <d3d9.h>
 
 namespace LuaSTGPlus
 {
@@ -436,73 +435,6 @@ namespace LuaSTGPlus
             return false;
         }
         return true;
-    }
-    void AppFrame::SetOrtho(
-        float left, float right, float bottom, float top,
-        float znear, float zfar) noexcept
-    {
-        if (m_GraphType == GraphicsType::Graph2D)
-        {
-            // luastg的lua部分已经做了坐标修正
-            // m_Graph2D->SetWorldTransform(fcyMatrix4::GetTranslateMatrix(fcyVec3(-0.5f, -0.5f, 0.f)));
-            m_Graph2D->SetWorldTransform(fcyMatrix4::GetIdentity());
-
-            //允许正交投影下下可以饶原点3D旋转图片精灵
-            //m_Graph2D->SetViewTransform(fcyMatrix4::GetIdentity());
-            m_Graph2D->SetViewTransform(fcyMatrix4::GetTranslateMatrix(fcyVec3(0.0f, 0.0f, znear + (zfar - znear) / 2.0f)));
-
-            m_Graph2D->SetProjTransform(fcyMatrix4::GetOrthoOffCenterLH(left, right, bottom, top, znear, zfar));
-        }
-    }
-    void AppFrame::SetPerspective(
-        float eyeX, float eyeY, float eyeZ,
-        float atX, float atY, float atZ,
-        float upX, float upY, float upZ,
-        float fovy, float aspect,
-        float zn, float zf) noexcept
-    {
-        if (m_GraphType == GraphicsType::Graph2D)
-        {
-            m_Graph2D->SetWorldTransform(fcyMatrix4::GetIdentity());
-            m_Graph2D->SetViewTransform(fcyMatrix4::GetLookAtLH(fcyVec3(eyeX, eyeY, eyeZ), fcyVec3(atX, atY, atZ), fcyVec3(upX, upY, upZ)));
-            m_Graph2D->SetProjTransform(fcyMatrix4::GetPespctiveLH(aspect, fovy, zn, zf));
-        }
-    }
-    void AppFrame::SetFog(float start, float end, fcyColor color)
-    {
-        if (m_Graph2D->IsInRender())
-        {
-            m_Graph2D->Flush();
-        }
-
-        // 从f2dRenderDevice中取出D3D设备
-        IDirect3DDevice9* pDev = (IDirect3DDevice9*)m_pRenderDev->GetHandle();
-
-        if (start != end)
-        {
-            pDev->SetRenderState(D3DRS_FOGENABLE, TRUE);
-            pDev->SetRenderState(D3DRS_FOGCOLOR, color.argb);
-            if (start == -1.0f)
-            {
-                pDev->SetRenderState(D3DRS_FOGTABLEMODE, D3DFOG_EXP);
-                pDev->SetRenderState(D3DRS_FOGDENSITY, *(DWORD*)(&end));
-            }
-            else if (start == -2.0f)
-            {
-                pDev->SetRenderState(D3DRS_FOGTABLEMODE, D3DFOG_EXP2);
-                pDev->SetRenderState(D3DRS_FOGDENSITY, *(DWORD*)(&end));
-            }
-            else
-            {
-                pDev->SetRenderState(D3DRS_FOGTABLEMODE, D3DFOG_LINEAR);
-                pDev->SetRenderState(D3DRS_FOGSTART, *(DWORD*)(&start));
-                pDev->SetRenderState(D3DRS_FOGEND, *(DWORD*)(&end));
-            }
-        }
-        else
-        {
-            pDev->SetRenderState(D3DRS_FOGENABLE, FALSE);
-        }
     }
     void AppFrame::SetZBufferEnable(bool enable) noexcept
     {
