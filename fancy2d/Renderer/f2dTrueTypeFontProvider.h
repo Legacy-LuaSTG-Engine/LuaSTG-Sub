@@ -4,9 +4,6 @@
 #include <fcyIO/fcyStream.h>
 #include "f2dRenderer.h"
 
-#include <vector>
-#include <unordered_map>
-
 #include <ft2build.h> 
 #include FT_FREETYPE_H
 

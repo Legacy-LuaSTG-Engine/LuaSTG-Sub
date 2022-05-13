@@ -5,13 +5,8 @@
 #pragma once
 #include "fcyRefObj.h"
 #include "fcyIO\fcyStream.h"
-
-#include "f2dEngine.h"
-
-#include <queue>
-#include <vector>
-
 #include <fcyOS/fcyMultiThread.h>
+#include "f2dEngine.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief 消息内存辅助

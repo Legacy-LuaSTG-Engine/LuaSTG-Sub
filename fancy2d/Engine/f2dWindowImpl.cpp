@@ -3,8 +3,6 @@
 
 #include <fcyException.h>
 #include <fcyOS/fcyDebug.h>
-#include <Dbt.h> // DBT_DEVNODES_CHANGED
-#include <windowsx.h>
 #include "platform/HighDPI.hpp"
 #include "platform/Monitor.hpp"
 #include "platform/WindowTheme.hpp"

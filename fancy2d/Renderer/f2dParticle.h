@@ -6,8 +6,6 @@
 #include "fcyRefObj.h"
 #include "f2dRenderer.h"
 
-#include <vector>
-
 #include "fcyMisc\fcyRandom.h"
 
 ////////////////////////////////////////////////////////////////////////////////

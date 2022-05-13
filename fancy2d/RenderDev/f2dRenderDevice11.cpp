@@ -66,12 +66,6 @@ static char const* d3d_feature_level_to_string2(D3D_FEATURE_LEVEL level)
 	}
 }
 
-#ifdef max
-#undef max // FUCK YOU!
-#endif
-
-#include "spdlog/spdlog.h"
-
 static void get_system_memory_status()
 {
 	MEMORYSTATUSEX info = { sizeof(MEMORYSTATUSEX) };

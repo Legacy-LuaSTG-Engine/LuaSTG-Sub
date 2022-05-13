@@ -1,9 +1,12 @@
 #pragma once
 
 #include <cassert>
+#include <string>
 #include <vector>
 #include <set>
 #include <map>
+#include <queue>
+#include <unordered_map>
 #include <algorithm>
 
 #include "spdlog/spdlog.h"
@@ -11,8 +14,10 @@
 // Windows
 #define NOMINMAX
 #include <Windows.h>
+#include <windowsx.h>
 #include <wrl/client.h>
 #include <wrl/wrappers/corewrappers.h>
+#include <Dbt.h> // DBT_DEVNODES_CHANGED
 constexpr UINT const WM_MAIN_THREAD_DELEGATE = WM_USER + 0x0010;
 constexpr UINT const WM_SET_IME_ENABLE       = WM_USER + 0x0011;
 // Direct3D11
