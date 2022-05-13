@@ -1,5 +1,6 @@
 #include "AppFrame.h"
 #include "LConfig.h"
+#include "utility/encoding.hpp"
 #include <d3d9.h>
 
 namespace LuaSTGPlus
@@ -302,7 +303,7 @@ namespace LuaSTGPlus
         
         try
         {
-            const std::wstring wpath = fcyStringHelper::MultiByteToWideChar(path);
+            const std::wstring wpath = std::move(utility::encoding::to_wide(path));
             fResult fr = LAPP.GetRenderDev()->SaveScreen(wpath.c_str());
             if (FCYFAILED(fr))
                 spdlog::error("[fancy2d] [f2dRenderDevice::SaveScreen] 保存截图到'{}'失败(fResult={})", path, fr);
@@ -328,7 +329,7 @@ namespace LuaSTGPlus
         try
         {
             const char* path = luaL_checkstring(L, 2);
-            const std::wstring wpath = fcyStringHelper::MultiByteToWideChar(path);
+            const std::wstring wpath = std::move(utility::encoding::to_wide(path));
             fResult fr = LAPP.GetRenderDev()->SaveTexture(wpath.c_str(), Tex);
             if (FCYFAILED(fr))
                 spdlog::error("[fancy2d] [f2dRenderDevice::SaveTexture] 保存纹理到'{}'失败(fResult={})", path, fr);

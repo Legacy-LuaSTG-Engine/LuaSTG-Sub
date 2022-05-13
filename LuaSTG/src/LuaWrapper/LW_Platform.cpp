@@ -58,10 +58,10 @@ void LuaSTGPlus::LuaWrapper::PlatformWrapper::Register(lua_State* L) noexcept
 
 					try
 					{
-						tPath = fcyStringHelper::MultiByteToWideChar(path);
-						tArgs = fcyStringHelper::MultiByteToWideChar(args);
+						tPath = std::move(utility::encoding::to_wide(path));
+						tArgs = std::move(utility::encoding::to_wide(args));
 						if (directory)
-							tDirectory = fcyStringHelper::MultiByteToWideChar(directory);
+							tDirectory = std::move(utility::encoding::to_wide(directory));
 
 						SHELLEXECUTEINFO tShellExecuteInfo;
 						memset(&tShellExecuteInfo, 0, sizeof(SHELLEXECUTEINFO));

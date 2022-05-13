@@ -1,4 +1,5 @@
 ﻿#include "AppFrame.h"
+#include "utility/encoding.hpp"
 
 //#define LSHOWFONTBASELINE // 显示文字基线
 
@@ -239,10 +240,10 @@ namespace LuaSTGPlus {
 		}
 		
 		// 编码转换
-		static std::wstring s_TempStringBuf;
+		std::wstring s_TempStringBuf;
 		try
 		{
-			s_TempStringBuf = fcyStringHelper::MultiByteToWideChar(str, CP_UTF8);
+			s_TempStringBuf = std::move(utility::encoding::to_wide(str));
 		}
 		catch (const std::bad_alloc&)
 		{
@@ -298,9 +299,9 @@ namespace LuaSTGPlus {
 		}
 		
 		// 编码转换
-		static std::wstring s_TempStringBuf;
+		std::wstring s_TempStringBuf;
 		try {
-			s_TempStringBuf = fcyStringHelper::MultiByteToWideChar(str, CP_UTF8);
+			s_TempStringBuf = std::move(utility::encoding::to_wide(str));
 		}
 		catch (const std::bad_alloc&) {
 			spdlog::error("[luastg] RenderTTF: 内存不足");
@@ -358,11 +359,10 @@ namespace LuaSTGPlus {
 		m_FontRenderer->SetScale(s);
 	}
 	
-	static std::wstring g_wbuffer;
-	
 	fcyRect AppFrame::FontRenderer_MeasureString(const char* str, bool strict) {
+		std::wstring g_wbuffer;
 		try {
-			g_wbuffer = fcyStringHelper::MultiByteToWideChar(str, CP_UTF8);
+			g_wbuffer = std::move(utility::encoding::to_wide(str));
 		}
 		catch (...) {
 			return fcyRect();
@@ -371,8 +371,9 @@ namespace LuaSTGPlus {
 	}
 	
 	float AppFrame::FontRenderer_MeasureStringWidth(const char* str) {
+		std::wstring g_wbuffer;
 		try {
-			g_wbuffer = fcyStringHelper::MultiByteToWideChar(str, CP_UTF8);
+			g_wbuffer = std::move(utility::encoding::to_wide(str));
 		}
 		catch (...) {
 			return 0.0f;
@@ -386,8 +387,9 @@ namespace LuaSTGPlus {
 			return false;
 		}
 		
+		std::wstring g_wbuffer;
 		try {
-			g_wbuffer = fcyStringHelper::MultiByteToWideChar(str, CP_UTF8);
+			g_wbuffer = std::move(utility::encoding::to_wide(str));
 		}
 		catch (...) {
 			return false;

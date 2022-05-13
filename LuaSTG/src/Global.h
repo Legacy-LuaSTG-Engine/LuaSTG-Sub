@@ -33,7 +33,6 @@
 #include <fcyIO/fcyBinaryHelper.h>
 #include <fcyParser/fcyPathParser.h>
 #include <fcyMisc/fcyStopWatch.h>
-#include <fcyMisc/fcyStringHelper.h>
 #include <fcyMisc/fcyRandom.h>
 #include <fcyOS/fcyMemPool.h>
 #include <f2d.h>

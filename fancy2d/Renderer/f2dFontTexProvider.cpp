@@ -1,7 +1,5 @@
 ﻿#include "Renderer/f2dFontTexProvider.h"
 
-#include "fcyMisc/fcyStringHelper.h"
-
 using namespace std;
 
 ////////////////////////////////////////////////////////////////////////////////

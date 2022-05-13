@@ -19,7 +19,7 @@ static bool extractRes(const char* path, const char* target) noexcept
 		// 打开本地文件
 		fcyRefPointer<fcyFileStream> pFile;
 		try {
-			pFile.DirectSet(new fcyFileStream(fcyStringHelper::MultiByteToWideChar(target).c_str(), true));
+			pFile.DirectSet(new fcyFileStream(utility::encoding::to_wide(target).c_str(), true));
 			if (FCYFAILED(pFile->SetLength(0))) {
 				spdlog::error("[luastg] ExtractRes: 无法清空文件'{}' (fcyFileStream::SetLength 失败)", target);
 				return false;
