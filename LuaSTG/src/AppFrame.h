@@ -197,23 +197,6 @@ namespace LuaSTGPlus
 		/// @brief 设置裁剪矩形
 		bool SetScissorRect(double left, double right, double bottom, double top) LNOEXCEPT;
 		
-		/// @brief 设置正投影矩阵。
-		void SetOrtho(
-			float left, float right, float bottom, float top,
-			float znear = 8.0f, float zfar = 2048.0f) LNOEXCEPT;
-		
-		/// @brief 设置透视投影矩阵
-		void SetPerspective(
-			float eyeX, float eyeY, float eyeZ,
-			float atX, float atY, float atZ, 
-			float upX, float upY, float upZ,
-			float fovy, float aspect,
-			float zn, float zf) LNOEXCEPT;
-		
-		/// @brief 设置雾值
-		/// @note 扩展方法，视情况移除。
-		void SetFog(float start, float end, fcyColor color);
-		
 		// 开启或关闭zbuffer
 		void SetZBufferEnable(bool enable) LNOEXCEPT;
 		
