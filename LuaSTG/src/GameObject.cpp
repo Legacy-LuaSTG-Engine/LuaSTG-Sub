@@ -282,7 +282,7 @@ namespace LuaSTGPlus
 	}
 	void GameObject::ChangeLuaRC(lua_State* L, int idx)
 	{
-		if (res && ps)
+		if (luaclass.IsRenderClass && res && ps)
 		{
 			auto p = LuaWrapper::ParticleSystemWrapper::Create(L);
 			p->res = dynamic_cast<ResParticle*>(res); res->AddRef();
@@ -296,9 +296,11 @@ namespace LuaSTGPlus
 		lua_rawgeti(L, idx, 4);
 		if (lua_isuserdata(L, -1))
 		{
-			auto p = LuaWrapper::ParticleSystemWrapper::Cast(L, -1);
-			if (p) p->res->Release();
-			p->ptr = nullptr; // 不要释放 ps，因为已经在 ReleaseResource 做过了
+			if (auto p = LuaWrapper::ParticleSystemWrapper::Cast(L, -1))
+			{
+				if (p->res) p->res->Release();
+				p->ptr = nullptr; // 不要释放 ps，因为已经在 ReleaseResource 做过了
+			}
 		}
 		lua_pop(L, 1);
 		// set nil
@@ -689,12 +691,14 @@ namespace LuaSTGPlus
 			else
 				lua_pushnil(L);
 			return 1;
+		#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 		case LuaSTG::GameObjectMember::RES_RC:
 			if (luaclass.IsRenderClass)
 				lua_rawgeti(L, 1, 4);
 			else
 				lua_pushnil(L);
 			return 1;
+		#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 
 			// 更新控制
 
@@ -743,6 +747,7 @@ namespace LuaSTGPlus
 				if (!GameObjectClass::CheckClassValid(L, 3))
 					return luaL_error(L, "invalid argument for property 'class', required luastg object class.");
 				luaclass.CheckClassClass(L, 3); // 刷新对象的class
+				if (!luaclass.IsRenderClass) ReleaseLuaRC(L, 1); // 你怎么回事，还给变回去了，那就释放资源
 			#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 				lua_rawseti(L, 1, 1);
 			} while (false);
@@ -958,12 +963,14 @@ namespace LuaSTGPlus
 				}
 			} while (false);
 			return 0;
+		#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 		case LuaSTG::GameObjectMember::RES_RC:
 			if (luaclass.IsRenderClass)
 				return luaL_error(L, "property 'rc' is readonly.");
 			else
 				lua_rawset(L, 1);
 			return 0;
+		#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 
 			// 更新控制
 
