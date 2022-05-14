@@ -36,6 +36,7 @@ local lstg_GameObject = {
         E("layer" , "LAYER" ),
         E("hide"  , "HIDE"  ),
         E("img"   , "IMG"   ),
+        E("rc"    , "RES_RC"),
         E("ani"   , "ANI"   ),
         E("_blend", "_BLEND"),
         E("_color", "_COLOR"),
