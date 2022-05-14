@@ -17,7 +17,7 @@ fcyRandomWELL512::fcyRandomWELL512(fuInt Seed)
 fcyRandomWELL512::~fcyRandomWELL512()
 {}
 
-fuInt fcyRandomWELL512::GetRandSeed()
+fuInt fcyRandomWELL512::GetRandSeed() const
 {
 	return m_RSeed;
 }

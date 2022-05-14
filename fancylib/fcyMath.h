@@ -168,7 +168,7 @@ public: // 函数
 		x = tx; y = ty;
 	}
 	/// @brief 计算与x轴的夹角
-	fFloat CalcuAngle()
+	fFloat CalcuAngle() const
 	{
 		return atan2(y,x);
 	}
