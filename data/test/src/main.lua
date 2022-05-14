@@ -131,6 +131,7 @@ function GameInit()
     lstg.LoadImage("img:particle1", "tex:particles", 0, 0, 32, 32)
     lstg.LoadPS("ps:1", "res/ghost_fire_1.psi", "img:particle1")
     ps = lstg.ParticleSystemData("ps:1")
+    ps:SetOldBehavior(false)
 
     local cjson = require("cjson")
     lstg.Print(cjson.encode({hello="world"}))
@@ -164,9 +165,9 @@ function FrameFunc()
         if lstg.GetMouseState(0) then
             ps:setActive(true)
         end
-        ps:Update(mx, my)
+        ps:Update(1 / 60, mx, my, timer % 360)
     else
-        ps:Update(0, 0)
+        ps:Update(1 / 60, 0, 0, timer % 360)
     end
     return false
 end

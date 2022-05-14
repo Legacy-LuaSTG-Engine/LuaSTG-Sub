@@ -206,20 +206,26 @@ namespace LuaSTGPlus
 				tInst.vecLocation.x += m_Random.GetRandFloat(-2.0f, 2.0f);
 				tInst.vecLocation.y += m_Random.GetRandFloat(-2.0f, 2.0f);
 
-				// TODO: 删除
-				//float ang = /* pInfo.fDirection */ (m_fRotation - (float)LPI_HALF) - (float)LPI_HALF + s_ParticleRandomizer.GetRandFloat(0, pInfo.fSpread) - pInfo.fSpread / 2.0f;
-				
-				// 来自 HGE 的原始代码，但是似乎 HGE 的坐标系 y 轴是向下的，直接拿来用并不可行
-				//float ang = pInfo.fDirection - (float)LPI_HALF + m_Random.GetRandFloat(0, pInfo.fSpread) - pInfo.fSpread / 2.0f;
-				// 修改后的正确的代码应该是这个
-				float ang = -pInfo.fDirection + (float)LPI_HALF + m_Random.GetRandFloat(0, pInfo.fSpread) - pInfo.fSpread / 2.0f;
-				if (pInfo.bRelative)
+				float ang = 0.0f;
+				if (m_bOldBehavior)
 				{
-					ang += (m_vPrevCenter - m_vCenter).CalcuAngle() + (float)LPI_HALF;
+					// LuaSTG Plus、LuaSTG Ex Plus、LuaSTG-x 的代码
+					ang = /* pInfo.fDirection */ (m_fDirection - (float)LPI_HALF) - (float)LPI_HALF + m_Random.GetRandFloat(0.0f, pInfo.fSpread) - pInfo.fSpread / 2.0f;
 				}
-				// 此外，我们还有自己的旋转量
-				ang += m_fDirection;
-				
+				else
+				{
+					// 来自 HGE 的原始代码，但是似乎 HGE 的坐标系 y 轴是向下的，直接拿来用并不可行
+					//float ang = pInfo.fDirection - (float)LPI_HALF + m_Random.GetRandFloat(0.0f, pInfo.fSpread) - pInfo.fSpread / 2.0f;
+					// 修改后的正确的代码应该是这个
+					ang = -pInfo.fDirection + (float)LPI_HALF + m_Random.GetRandFloat(0.0f, pInfo.fSpread) - pInfo.fSpread / 2.0f;
+					if (pInfo.bRelative)
+					{
+						ang += (m_vPrevCenter - m_vCenter).CalcuAngle() + (float)LPI_HALF;
+					}
+					// 此外，我们还有自己的旋转量
+					ang += m_fDirection;
+				}
+
 				tInst.vecVelocity.x = std::cos(ang);
 				tInst.vecVelocity.y = std::sin(ang);
 				tInst.vecVelocity *= m_Random.GetRandFloat(pInfo.fSpeedMin, pInfo.fSpeedMax);
