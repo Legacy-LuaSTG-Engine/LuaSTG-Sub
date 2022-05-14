@@ -187,6 +187,7 @@ namespace LuaSTGPlus
 			ot_stk = lua_gettop(G_L);
 		}
 		lua_rawgeti(G_L, ot_stk, index);		// ot object
+		p->ReleaseLuaRC(G_L, lua_gettop(G_L));	// ot object				// 释放可能的粒子系统
 		lua_pushlightuserdata(G_L, nullptr);	// ot object nullptr
 		lua_rawseti(G_L, -2, 3);				// ot object
 		lua_pop(G_L, 1);						// ot
@@ -583,7 +584,7 @@ namespace LuaSTGPlus
 			{
 			case ResourceType::Particle:
 				p->ps->SetBlendMode(m);
-				p->ps->SetMixColor(c);
+				p->ps->SetVertexColor(c);
 				break;
 			default:
 				break;
@@ -1134,7 +1135,7 @@ namespace LuaSTGPlus
 			lua_pushinteger(L, 0);
 			return 1;
 		}
-		lua_pushnumber(L, p->ps->GetEmission());
+		lua_pushinteger(L, p->ps->GetEmission());
 		return 1;
 	}
 	int GameObjectPool::api_ParticleSetEmission(lua_State* L) noexcept
@@ -1145,7 +1146,7 @@ namespace LuaSTGPlus
 			spdlog::warn("[luastg] ParticleSetEmission: 试图设置一个不带有粒子发射器的对象的粒子发射密度 (uid={})", p->uid);
 			return 0;
 		}
-		p->ps->SetEmission((float)std::max(0.0, luaL_checknumber(L, 2)));
+		p->ps->SetEmission((int)std::max<lua_Integer>(0, luaL_checkinteger(L, 2)));
 		return 0;
 	}
 }

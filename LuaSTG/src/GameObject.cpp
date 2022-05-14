@@ -140,7 +140,6 @@ namespace LuaSTGPlus
 		vertexcolor = 0xFFFFFFFF;
 #endif // USING_ADVANCE_GAMEOBJECT_CLASS
 	}
-	
 	void GameObject::DirtReset()
 	{
 		status = GameObjectStatus::Active;
@@ -267,7 +266,6 @@ namespace LuaSTGPlus
 
 		return false;
 	}
-	
 	void GameObject::ReleaseResource()
 	{
 		if (res)
@@ -281,6 +279,31 @@ namespace LuaSTGPlus
 			res->Release();
 			res = nullptr;
 		}
+	}
+	void GameObject::ChangeLuaRC(lua_State* L, int idx)
+	{
+		if (res && ps)
+		{
+			auto p = LuaWrapper::ParticleSystemWrapper::Create(L);
+			p->res = dynamic_cast<ResParticle*>(res); res->AddRef();
+			p->ptr = ps;
+			lua_rawseti(L, idx, 4);
+		}
+	}
+	void GameObject::ReleaseLuaRC(lua_State* L, int idx)
+	{
+		// release
+		lua_rawgeti(L, idx, 4);
+		if (lua_isuserdata(L, -1))
+		{
+			auto p = LuaWrapper::ParticleSystemWrapper::Cast(L, -1);
+			if (p) p->res->Release();
+			p->ptr = nullptr; // 不要释放 ps，因为已经在 ReleaseResource 做过了
+		}
+		lua_pop(L, 1);
+		// set nil
+		lua_pushnil(L);
+		lua_rawseti(L, idx, 4);
 	}
 	
 	void GameObject::Update()
@@ -348,7 +371,6 @@ namespace LuaSTGPlus
 			}
 		}
 	}
-	
 	void GameObject::UpdateLast()
 	{
 		dx = x - lastx;
@@ -360,7 +382,6 @@ namespace LuaSTGPlus
 			rot = std::atan2(dy, dx);
 		}
 	}
-
 	void GameObject::UpdateTimer()
 	{
 		timer += 1;
@@ -468,7 +489,7 @@ namespace LuaSTGPlus
 					if (ps)
 					{
 						ps->SetBlendMode(blendmode);
-						ps->SetMixColor(fcyColor(vertexcolor));
+						ps->SetVertexColor(fcyColor(vertexcolor));
 						LAPP.Render(
 							ps,
 							static_cast<float>(hscale) * gscale,
@@ -668,6 +689,12 @@ namespace LuaSTGPlus
 			else
 				lua_pushnil(L);
 			return 1;
+		case LuaSTG::GameObjectMember::RES_RC:
+			if (luaclass.IsRenderClass)
+				lua_rawgeti(L, 1, 4);
+			else
+				lua_pushnil(L);
+			return 1;
 
 			// 更新控制
 
@@ -689,7 +716,6 @@ namespace LuaSTGPlus
 			return 1;
 		}
 	}
-
 	int GameObject::SetAttr(lua_State* L) noexcept
 	{
 		// self k v
@@ -918,16 +944,25 @@ namespace LuaSTGPlus
 					std::string_view const value = luaL_check_string_view(L, 3);
 					if (!res || value != res->GetResName())
 					{
+						ReleaseLuaRC(L, 1); // TODO: 默认 table 是第一个？
 						ReleaseResource();
 						if (!ChangeResource(value))
 							return luaL_error(L, "can't find resource '%s' in image/animation/particle pool.", value.data());
+						ChangeLuaRC(L, 1); // TODO: 默认 table 是第一个？
 					}
 				}
 				else
 				{
+					ReleaseLuaRC(L, 1); // TODO: 默认 table 是第一个？
 					ReleaseResource();
 				}
 			} while (false);
+			return 0;
+		case LuaSTG::GameObjectMember::RES_RC:
+			if (luaclass.IsRenderClass)
+				return luaL_error(L, "property 'rc' is readonly.");
+			else
+				lua_rawset(L, 1);
 			return 0;
 
 			// 更新控制
