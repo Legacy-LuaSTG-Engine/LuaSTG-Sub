@@ -84,7 +84,12 @@ local game_object = {
 	--- [LuaSTG Sub v0.16.1 新增]  
 	--- 数组部分 [3] 是引擎内部用途的指针，严禁访问或修改  
 	---@type lstg.GameObject.Internal
-	[3] = {};
+	[3] = {},
+
+	--- [LuaSTG Sub v0.17.0 新增]  
+	--- 数组部分 [4] 是引擎内部用途的类实例，严禁访问或修改  
+	---@type lstg.ParticleSystem
+	[4] = {};
 
 	-------- 散列部分 --------
 
@@ -287,4 +292,9 @@ local render_object = {
 	--- [LuaSTG Ex Plus 新增]  
 	--- 绑定在游戏对象上的顶点色蓝色分量  
 	_b = 255,
+
+	--- [LuaSTG Sub v0.17.0 新增]  
+	--- 【不可赋值】  
+	--- 绑定在游戏对象上的粒子系统  
+	rc = lstg.ParticleSystemData("");
 }

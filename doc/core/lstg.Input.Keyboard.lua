@@ -3,6 +3,7 @@
 --- LuaSTG Sub keyboard input
 --------------------------------------------------------------------------------
 
+--- [LuaSTG Sub v0.15.6 新增]  
 ---@class lstg.Input.Keyboard
 local M = {}
 
@@ -199,6 +200,10 @@ M.Quotes = 222
 --M.Oem8 = 223
 --M.Oem102 = 226
 --M.ProcessKey = 229
+
+--- [LuaSTG Sub v0.17.0 新增]  
+M.NumPadEnter = 232
+
 --M.OemCopy = 242
 --M.OemAuto = 243
 --M.OemEnlW = 244
