@@ -461,6 +461,12 @@ LuaSTG::GameObjectMember LuaSTG::MapGameObjectMember(const char* key) {
       break;
     case 'r':
       switch(key[1]) {
+        case 'c':
+          switch(key[2]) {
+            case '\0':
+              return LuaSTG::GameObjectMember::RES_RC;
+          }
+          break;
         case 'e':
           switch(key[2]) {
             case 'c':
