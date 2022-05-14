@@ -26,7 +26,8 @@ local C = {}
 --------------------------------------------------------------------------------
 --- 默认行为
 
---- 时间增量 time_delta 默认为 1.0 / 60.0
+--- rot 为角度制，可以让实际发射角度在发射角度 Direction 基础上进一步旋转
+--- 时间增量 time_delta 默认为 1.0 / 60.0  
 ---@param x number
 ---@param y number
 ---@param rot number
@@ -69,7 +70,6 @@ function C:getColorVar()
 end
 
 --- 和 LuaSTG-x 不兼容，LuaSTG-x 没有用上 Direction  
---- 实际上相当于 Rotation - PI / 2  
 ---@return number
 function C:getDirection()
 end
@@ -122,7 +122,7 @@ end
 function C:getResource()
 end
 
---- 实际上相当于 Direction + PI / 2
+-- 在发射角度 Direction 基础上的进一步旋转
 ---@return number
 function C:getRotation()
 end
@@ -207,7 +207,6 @@ function C:setColorVar(v)
 end
 
 --- 和 LuaSTG-x 不兼容，LuaSTG-x 没有用上 Direction  
---- 实际上相当于 Rotation - PI / 2  
 ---@param v number
 function C:setDirection(v)
 end
@@ -256,7 +255,7 @@ end
 function C:setRenderMode(blend)
 end
 
---- 实际上相当于 Direction + PI / 2
+--- 让实际发射角度在发射角度 Direction 基础上进一步旋转
 ---@param v number
 function C:setRotation(v)
 end
