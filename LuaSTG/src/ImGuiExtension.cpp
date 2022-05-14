@@ -1,4 +1,5 @@
-﻿#include "ImGuiExtension.h"
+﻿#define NOMINMAX
+#include "ImGuiExtension.h"
 #include <string>
 #include <fstream>
 #include <filesystem>
@@ -18,8 +19,8 @@
 
 #include "platform/KnownDirectory.hpp"
 #include "AppFrame.h"
+#include "LuaWrapper/LuaWrapper.hpp"
 
-#define NOMINMAX
 #include <Xinput.h>
 
 // lua imgui backend binding
@@ -45,6 +46,205 @@ static std::string bytes_count_to_string(DWORDLONG size)
         count = std::snprintf(buffer, 64, "%.2f GB", (double)size / 1073741824.0);
     }
     return std::string(buffer, count);
+}
+
+static void showParticleSystemEditor(bool* p_open, LuaSTGPlus::ResParticle::ParticlePool* sys)
+{
+    struct EditorData
+    {
+        bool bContinuous = false;
+        bool bSyncParticleLife = false;
+        bool bSyncSpeed = false;
+        bool bSyncGravity = false;
+        bool bSyncRadialAccel = false;
+        bool bSyncTangentialAccel = false;
+        bool bSyncSize = false;
+        bool bSyncSpin = false;
+        bool bSyncAlpha = false;
+        int nBlendMode = 0;
+    };
+    static std::unordered_map<void*, EditorData> g_EditorData;
+    if (ImGui::Begin("Particle System Editor", p_open))
+    {
+        if (sys)
+        {
+            auto& info = sys->GetParticleSystemInfo();
+            if (g_EditorData.find(&info) == g_EditorData.end())
+            {
+                g_EditorData.emplace(&info, EditorData{
+                    .bContinuous = (info.fLifetime - (-1.0f)) < std::numeric_limits<float>::min(),
+                    .bSyncParticleLife = false,
+                    .bSyncSpeed = false,
+                    .bSyncGravity = false,
+                    .bSyncRadialAccel = false,
+                    .bSyncTangentialAccel = false,
+                    .bSyncSize = false,
+                    .bSyncSpin = false,
+                    .bSyncAlpha = false,
+                    .nBlendMode = sys->GetBlendMode() == LuaSTGPlus::BlendMode::MulAdd ? 0 : 1,
+                });
+            }
+            auto& data = g_EditorData[&info];
+
+            auto widgetSyncMinMax = [](std::string_view name, float& minv, float& maxv, float a, float b, bool& sync) -> void {
+                std::string checkbox_text = "Sync##"; checkbox_text.append(name);
+                std::string min_text = "Min##"; min_text.append(name);
+                std::string max_text = "Max##"; max_text.append(name);
+                ImGui::AlignTextToFramePadding();
+                ImGui::Text(name.data());
+                ImGui::SameLine();
+                if (ImGui::Checkbox(checkbox_text.data(), &sync))
+                {
+                    if (sync)
+                    {
+                        maxv = minv;
+                    }
+                }
+                if (sync)
+                {
+                    if (ImGui::SliderFloat(min_text.data(), &minv, a, b))
+                    {
+                        maxv = minv;
+                    }
+                    if (ImGui::SliderFloat(max_text.data(), &maxv, a, b))
+                    {
+                        minv = maxv;
+                    }
+                }
+                else
+                {
+                    ImGui::SliderFloat(min_text.data(), &minv, a, b);
+                    ImGui::SliderFloat(max_text.data(), &maxv, a, b);
+                }
+            };
+
+            auto widgetSyncStartEndVar = [](std::string_view name, float& begv, float& endv, float& varv, float a, float b, bool& sync) -> void {
+                std::string checkbox_text = "Sync##"; checkbox_text.append(name);
+                std::string beg_text = "Start##"; beg_text.append(name);
+                std::string end_text = "End##"; end_text.append(name);
+                std::string var_text = "Variation##"; var_text.append(name);
+                ImGui::AlignTextToFramePadding();
+                ImGui::Text(name.data());
+                ImGui::SameLine();
+                if (ImGui::Checkbox(checkbox_text.data(), &sync))
+                {
+                    if (sync)
+                    {
+                        endv = begv;
+                    }
+                }
+                if (sync)
+                {
+                    if (ImGui::SliderFloat(beg_text.data(), &begv, a, b))
+                    {
+                        endv = begv;
+                    }
+                    if (ImGui::SliderFloat(end_text.data(), &endv, a, b))
+                    {
+                        begv = endv;
+                    }
+                }
+                else
+                {
+                    ImGui::SliderFloat(beg_text.data(), &begv, a, b);
+                    ImGui::SliderFloat(end_text.data(), &endv, a, b);
+                }
+                ImGui::SliderFloat(var_text.data(), &varv, 0.0f, 1.0f);
+            };
+
+            if (ImGui::CollapsingHeader("System Information"))
+            {
+                ImGui::LabelText("Particle Alive", "%u", (uint32_t)sys->GetAliveCount());
+                ImGui::LabelText("FPS", "%.2f", LAPP.GetFPS());
+            }
+
+            if (ImGui::CollapsingHeader("System Parameter"))
+            {
+                if (!data.bContinuous)
+                {
+                    if (info.fLifetime < 0.0f)
+                    {
+                        info.fLifetime = 5.0f;
+                    }
+                    ImGui::SliderFloat("System Lifetime", &info.fLifetime, 0.0f, 10.0f);
+                }
+                else
+                {
+                    float fFake = 5.0f;
+                    ImGui::SliderFloat("System Lifetime", &fFake, 0.0f, 10.0f);
+                }
+                ImGui::Checkbox("Continuous", &data.bContinuous);
+                if (data.bContinuous)
+                {
+                    info.fLifetime = -1.0f;
+                }
+                ImGui::Separator();
+
+                ImGui::SliderInt("Emission", &info.nEmission, 0, 1000, "%d (p/sec)");
+                ImGui::Separator();
+
+                widgetSyncMinMax("Particle Lifetime", info.fParticleLifeMin, info.fParticleLifeMax, 0.0f, 5.0f, data.bSyncParticleLife);
+                ImGui::Separator();
+
+                char const* const chBlendMode[2] = {
+                    "Add",
+                    "Alpha",
+                };
+                if (ImGui::Combo("Blend Mode", &data.nBlendMode, chBlendMode, 2))
+                {
+                    sys->SetBlendMode(data.nBlendMode == 0 ? LuaSTGPlus::BlendMode::MulAdd : LuaSTGPlus::BlendMode::MulAlpha);
+                }
+            }
+
+            if (ImGui::CollapsingHeader("Particle Movement"))
+            {
+                if (info.bRelative)
+                {
+                    float fDir = info.fDirection;
+                    ImGui::SliderAngle("Direction", &fDir, 0.0f, 360.0f);
+                }
+                else
+                {
+                    ImGui::SliderAngle("Direction", &info.fDirection, 0.0f, 360.0f);
+                }
+                ImGui::Checkbox("Relative", &info.bRelative);
+                ImGui::Separator();
+
+                ImGui::SliderAngle("Spread", &info.fSpread, 0.0f, 360.0f);
+                ImGui::Separator();
+
+                widgetSyncMinMax("Start Speed", info.fSpeedMin, info.fSpeedMax, -300.0f, 300.0f, data.bSyncSpeed);
+                ImGui::Separator();
+
+                widgetSyncMinMax("Gravity", info.fGravityMin, info.fGravityMax, -900.0f, 900.0f, data.bSyncGravity);
+                ImGui::Separator();
+
+                widgetSyncMinMax("Radial Acceleration", info.fRadialAccelMin, info.fRadialAccelMax, -900.0f, 900.0f, data.bSyncRadialAccel);
+                ImGui::Separator();
+
+                widgetSyncMinMax("Tangential Acceleration", info.fTangentialAccelMin, info.fTangentialAccelMax, -900.0f, 900.0f, data.bSyncGravity);
+            }
+            
+            if (ImGui::CollapsingHeader("Particle Appearance"))
+            {
+                widgetSyncStartEndVar("Particle Size", info.fSizeStart, info.fSizeEnd, info.fSizeVar, 1.0f / 32.0f, 100.0f / 32.0f, data.bSyncSize);
+                ImGui::Separator();
+
+                widgetSyncStartEndVar("Particle Spin", info.fSpinStart, info.fSpinEnd, info.fSpinVar, -50.0f, 50.0f, data.bSyncSpin);
+                ImGui::Separator();
+
+                widgetSyncStartEndVar("Particle Alpha", info.colColorStart[3], info.colColorEnd[3], info.fAlphaVar, 0.0f, 1.0f, data.bSyncAlpha);
+                ImGui::Separator();
+
+                ImGui::AlignTextToFramePadding();
+                ImGui::Text("Particle Color");
+                ImGui::ColorEdit3("Start##Particle Color", info.colColorStart);
+                ImGui::ColorEdit3("End##Particle Color", info.colColorEnd);
+                ImGui::SliderFloat("Variation##Particle Color", &info.fColorVar, 0.0f, 1.0f);
+            }
+        }
+    }
+    ImGui::End();
 }
 
 static int lib_NewFrame(lua_State* L)
@@ -247,6 +447,23 @@ static int lib_ShowResourceManagerDebugWindow(lua_State* L)
         return 0;
     }
 }
+static int lib_ShowParticleSystemEditor(lua_State* L)
+{
+    if (lua_gettop(L) >= 2)
+    {
+        bool v = lua_toboolean(L, 1);
+        auto p = LuaSTGPlus::LuaWrapper::ParticleSystemWrapper::Cast(L, 2);
+        showParticleSystemEditor(&v, p->ptr);
+        lua_pushboolean(L, v);
+        return 1;
+    }
+    else
+    {
+        auto p = LuaSTGPlus::LuaWrapper::ParticleSystemWrapper::Cast(L, 1);
+        showParticleSystemEditor(nullptr, p->ptr);
+        return 0;
+    }
+}
 
 void imgui_binding_lua_register_backend(lua_State* L)
 {
@@ -257,6 +474,7 @@ void imgui_binding_lua_register_backend(lua_State* L)
         {"ShowMemoryUsageWindow", &lib_ShowMemoryUsageWindow},
         {"ShowFrameStatistics", &lib_ShowFrameStatistics},
         {"ShowResourceManagerDebugWindow", &lib_ShowResourceManagerDebugWindow},
+        {"ShowParticleSystemEditor", &lib_ShowParticleSystemEditor},
         {NULL, NULL},
     };
     const auto lib_func = (sizeof(lib_fun) / sizeof(luaL_Reg)) - 1;
@@ -360,10 +578,10 @@ namespace imgui
         ImGuiIO& io = ImGui::GetIO();
         
         //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableSetMousePos;
+        //io.ConfigFlags |= ImGuiConfigFlags_NavEnableSetMousePos;
         
-        ImGui::StyleColorsDark();
-        ImGuiStyle& style = ImGui::GetStyle();
+        ImGuiStyle style;
+        ImGui::StyleColorsDark(&style);
         
         style.WindowRounding = 0.0f;
         style.ChildRounding = 0.0f;
@@ -379,6 +597,10 @@ namespace imgui
         style.FrameBorderSize = 1.0f;
         style.TabBorderSize = 1.0f;
         
+        style.ScaleAllSizes(APP.GetEngine()->GetMainWindow()->GetDPIScaling());
+
+        ImGui::GetStyle() = style;
+
         if (true)
         {
             ImFontConfig cfg;
