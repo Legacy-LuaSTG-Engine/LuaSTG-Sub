@@ -25,12 +25,14 @@ end
 function lstg.ObjRender()
 end
 
----【禁止在协同程序中调用此方法】
----对所有游戏对象进行出界判断，如果离开场景边界，将会触发对象的del回调函数
+---【禁止在协同程序中调用此方法】  
+--- 对所有游戏对象进行出界判断，如果离开场景边界，将会触发对象的 del 回调函数  
 function lstg.BoundCheck()
 end
 
----更改场景边界，默认为-100, 100, -100, 100
+--- [LuaSTG Sub v0.17.0 修改]  
+--- 更改场景边界，默认为-100, 100, -100, 100  
+--- LuaSTG Sub v0.17.0 修复了设置场景边界时参数被取整为整数的问题  
 ---@param left number
 ---@param right number
 ---@param bottom number

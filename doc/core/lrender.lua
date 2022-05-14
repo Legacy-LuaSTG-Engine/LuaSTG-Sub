@@ -27,9 +27,6 @@
 -- 关于 LuaSTG Ex Plus 曾经加入过的 lstg.RenderModel：
 -- 已经替换为 glTF 模型，其实现也有变动
 
--- 关于 lstg.DrawCollider 和 lstg.RenderGroupCollider：
--- 暂未实现，目前是空方法
-
 --------------------------------------------------------------------------------
 --- 混合模式
 
@@ -293,6 +290,30 @@ end
 ---@overload fun(modname:string, x:number, y:number, z:number)
 ---@overload fun(modname:string, x:number, y:number, z:number, roll:number, pitch:number, yaw:number)
 function lstg.RenderModel(modname, x, y, z, roll, pitch, yaw, xscale, yscale, zscale)
+end
+
+--- [LuaSTG Sub v0.1.0 移除]  
+--- [LuaSTG Sub v0.16.1 重新添加]  
+--- 渲染碰撞判定，通过 F8 开启/关闭  
+--- 会渲染 1、2、4、5 共四个碰撞组  
+--- [LuaSTG Sub v0.1.0 Remove]  
+--- [LuaSTG Sub v0.16.1 Re-add]  
+--- Render collision detection, turn on/off with F8  
+--- Will render 1, 2, 4, 5 total of four collision groups
+function lstg.DrawCollider()
+end
+
+--- [LuaSTG Ex Plus 新增]  
+--- [LuaSTG Sub v0.1.0 移除]  
+--- [LuaSTG Sub v0.16.1 重新添加]  
+--- 用指定颜色渲染指定碰撞组的碰撞体  
+--- [LuaSTG Ex Plus v?.?.? Add]  
+--- [LuaSTG Sub v0.1.0 Remove]  
+--- [LuaSTG Sub v0.16.1 Re-add]  
+--- Renders the colliders of the specified collision group with the specified color  
+---@param group number
+---@param color lstg.Color
+function lstg.RenderGroupCollider(group, color)
 end
 
 --------------------------------------------------------------------------------
