@@ -20,7 +20,7 @@ private:
 	fuInt m_RSeed;       ///< @brief 随机数种子
 public:
 	/// @brief 获得随机数种子
-	fuInt GetRandSeed();
+	fuInt GetRandSeed() const;
 	/// @brief     设置随机数种子
 	/// @param[in] Seed 随机数种子
 	void SetSeed(fuInt Seed);
