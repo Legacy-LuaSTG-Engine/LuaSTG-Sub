@@ -191,17 +191,16 @@ namespace LuaSTGPlus::LuaWrapper
 					int const argc = lua_gettop(L) - 1;
 					if (argc >= 4)
 					{
-						float const x = (float)luaL_checknumber(L, 2);
-						float const y = (float)luaL_checknumber(L, 3);
-						float const rot = (float)(luaL_checknumber(L, 4) * L_DEG_TO_RAD);
-						float const delta = (float)luaL_checknumber(L, 5);
-
+						float const delta = (float)luaL_checknumber(L, 2);
+						float const x = (float)luaL_checknumber(L, 3);
+						float const y = (float)luaL_checknumber(L, 4);
+						float const rot = (float)(luaL_checknumber(L, 5) * L_DEG_TO_RAD);
 						self->ptr->SetRotation((float)rot);
 						if (self->ptr->IsActived())  // 兼容性处理
 						{
-							//self->ptr->SetActive(false);
+							self->ptr->SetActive(false);
 							self->ptr->SetCenter(fcyVec2(x, y));
-							//self->ptr->SetActive(true);
+							self->ptr->SetActive(true);
 						}
 						else
 						{
@@ -211,33 +210,14 @@ namespace LuaSTGPlus::LuaWrapper
 					}
 					else if (argc == 3)
 					{
-						float const x = (float)luaL_checknumber(L, 2);
-						float const y = (float)luaL_checknumber(L, 3);
-						float const rot = (float)(luaL_checknumber(L, 4) * L_DEG_TO_RAD);
-
-						self->ptr->SetRotation((float)rot);
+						float const delta = (float)luaL_checknumber(L, 2);
+						float const x = (float)luaL_checknumber(L, 3);
+						float const y = (float)luaL_checknumber(L, 4);
 						if (self->ptr->IsActived())  // 兼容性处理
 						{
-							//self->ptr->SetActive(false);
+							self->ptr->SetActive(false);
 							self->ptr->SetCenter(fcyVec2(x, y));
-							//self->ptr->SetActive(true);
-						}
-						else
-						{
-							self->ptr->SetCenter(fcyVec2(x, y));
-						}
-						self->ptr->Update(1.0f / 60.0f);
-					}
-					else if (argc == 2)
-					{
-						float const x = (float)luaL_checknumber(L, 2);
-						float const y = (float)luaL_checknumber(L, 3);
-
-						if (self->ptr->IsActived())  // 兼容性处理
-						{
-							//self->ptr->SetActive(false);
-							self->ptr->SetCenter(fcyVec2(x, y));
-							//self->ptr->SetActive(true);
+							self->ptr->SetActive(true);
 						}
 						else
 						{
@@ -247,7 +227,8 @@ namespace LuaSTGPlus::LuaWrapper
 					}
 					else
 					{
-						self->ptr->Update(1.0f / 60.0f);
+						float const delta = (float)luaL_optnumber(L, 2, 1.0 / 60.0);
+						self->ptr->Update(delta);
 					}
 				}
 				else
@@ -263,6 +244,20 @@ namespace LuaSTGPlus::LuaWrapper
 				{
 					float const scale = (float)luaL_checknumber(L, 2);
 					LAPP.Render(self->ptr, scale, scale);
+				}
+				else
+				{
+					return luaL_error(L, "invalid particle system instance.");
+				}
+				return 0;
+			}
+			static int SetOldBehavior(lua_State* L)
+			{
+				UserData* self = (UserData*)luaL_checkudata(L, 1, ClassID.data());
+				if (self->ptr)
+				{
+					bool const b = lua_toboolean(L, 2);
+					self->ptr->SetOldBehavior(b);
 				}
 				else
 				{
@@ -1160,6 +1155,7 @@ namespace LuaSTGPlus::LuaWrapper
 			{ "GetEmission", &Wrapper::GetEmission },
 			{ "Update", &Wrapper::Update },
 			{ "Render", &Wrapper::Render },
+			{ "SetOldBehavior", &Wrapper::SetOldBehavior },
 
 		#define F(X) { #X, &Wrapper::X }
 			F(getAliveCount),

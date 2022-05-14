@@ -24,20 +24,41 @@ local T_col4 = {
 local C = {}
 
 --------------------------------------------------------------------------------
---- 默认行为
+--- API
 
---- rot 为角度制，可以让实际发射角度在发射角度 Direction 基础上进一步旋转
+--- rot 为角度制，可以让实际发射角度在发射角度 Direction 基础上进一步旋转  
+--- 如果不填写 rot 参数，则不会（修改）更新 Rotation  
+--- 如果不填写 x 和 y 参数，则不会（修改）更新 Center  
 --- 时间增量 time_delta 默认为 1.0 / 60.0  
+---@param dt number
 ---@param x number
 ---@param y number
 ---@param rot number
----@param time_delta number
----@overload fun(x:number, y:number, rot:number)
-function C:Update(x, y, rot, time_delta)
+---@overload fun()
+---@overload fun(dt:number)
+---@overload fun(dt:number, x:number, y:number)
+function C:Update(dt, x, y, rot)
 end
 
 ---@param scale number
 function C:Render(scale)
+end
+
+--- 默认情况下，开启旧行为模式  
+--- 
+--- 在旧行为模式下：  
+---   * HGE 粒子特效文件 psi 定义的发射角度 Direction 被忽略  
+---   * HGE 粒子特效文件 psi 定义的让发射角度与移动方向相关的开关 Relative 被忽略  
+--- 和 LuaSTG Plus、LuaSTG Ex Plus、LuaSTG-x 一致  
+--- 
+--- 关闭旧行为模式后：  
+---   * HGE 粒子特效文件 psi 定义的发射角度 Direction 不会忽略，最终粒子发射角度会和 Rotation 相加  
+---   * HGE 粒子特效文件 psi 定义的让发射角度与移动方向相关的开关 Relative 不会忽略  
+--- 
+--- 和 HGE 粒子特效编辑器效果一致  
+--- 但是，即使如此，仍然不推荐开启 Relative 功能，除非 Rotation 始终为 0  
+---@param enable boolean
+function C:SetOldBehavior(enable)
 end
 
 --------------------------------------------------------------------------------
@@ -69,7 +90,8 @@ end
 function C:getColorVar()
 end
 
---- 和 LuaSTG-x 不兼容，LuaSTG-x 没有用上 Direction  
+--- 【行为可变更】  
+--- 默认情况下未使用该属性，请查看 `SetOldBehavior` 方法获得更多信息  
 ---@return number
 function C:getDirection()
 end
@@ -106,7 +128,8 @@ end
 function C:getRadialAccelMin()
 end
 
---- 和 LuaSTG-x 不兼容，LuaSTG-x 没有用上 Relative
+--- 【行为可变更】  
+--- 默认情况下未使用该属性，请查看 `SetOldBehavior` 方法获得更多信息  
 ---@return boolean
 function C:getRelative()
 end
@@ -122,7 +145,8 @@ end
 function C:getResource()
 end
 
--- 在发射角度 Direction 基础上的进一步旋转
+--- 【行为可变更】  
+--- 默认情况下 Rotation 会覆盖 Direction 属性，请查看 `SetOldBehavior` 方法获得更多信息  
 ---@return number
 function C:getRotation()
 end
@@ -206,7 +230,8 @@ end
 function C:setColorVar(v)
 end
 
---- 和 LuaSTG-x 不兼容，LuaSTG-x 没有用上 Direction  
+--- 【行为可变更】  
+--- 默认情况下未使用该属性，请查看 `SetOldBehavior` 方法获得更多信息  
 ---@param v number
 function C:setDirection(v)
 end
@@ -245,7 +270,8 @@ end
 function C:setRadialAccelMin(v)
 end
 
---- 和 LuaSTG-x 不兼容，LuaSTG-x 没有用上 Relative
+--- 【行为可变更】  
+--- 默认情况下未使用该属性，请查看 `SetOldBehavior` 方法获得更多信息  
 ---@param b boolean
 function C:setRelative(b)
 end
@@ -255,7 +281,8 @@ end
 function C:setRenderMode(blend)
 end
 
---- 让实际发射角度在发射角度 Direction 基础上进一步旋转
+--- 【行为可变更】  
+--- 默认情况下 Rotation 会覆盖 Direction 属性，请查看 `SetOldBehavior` 方法获得更多信息  
 ---@param v number
 function C:setRotation(v)
 end

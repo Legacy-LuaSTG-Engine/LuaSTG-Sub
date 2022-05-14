@@ -114,6 +114,7 @@ namespace LuaSTGPlus
 			float m_fDirection = 0.0f; // 相对发射角度
 			float m_fAge = 0.f;  // 已存活时间
 			float m_fEmissionResidue = 0.f;  // 不足的粒子数
+			bool m_bOldBehavior = true; // 使用旧行为
 		public:
 			hgeParticleSystemInfo& GetParticleSystemInfo() { return m_Info.tParticleSystemInfo; };
 			size_t GetAliveCount() const noexcept;
@@ -133,6 +134,7 @@ namespace LuaSTGPlus
 			void SetRotation(float r) noexcept;
 			void Update(float delta);
 			void Render(f2dGraphics2D* graph, float scaleX, float scaleY);
+			void SetOldBehavior(bool b) noexcept { m_bOldBehavior = b; }
 		public:
 			ParticlePool(fcyRefPointer<ResParticle> ref);
 		};
