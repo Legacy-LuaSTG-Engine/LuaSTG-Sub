@@ -126,8 +126,8 @@ namespace LuaSTGPlus
 	{
 		return m_vCenter;
 	}
-	void ResParticle::ParticlePool::SetRotation(float r) noexcept { m_Info.tParticleSystemInfo.fDirection = r - (float)LPI_HALF; }
-	float ResParticle::ParticlePool::GetRotation() const noexcept { return m_Info.tParticleSystemInfo.fDirection + (float)LPI_HALF; }
+	void ResParticle::ParticlePool::SetRotation(float r) noexcept { m_fDirection = r; }
+	float ResParticle::ParticlePool::GetRotation() const noexcept { return m_fDirection; }
 	void ResParticle::ParticlePool::Update(float delta)
 	{
 		hgeParticleSystemInfo const& pInfo = m_Info.tParticleSystemInfo;
@@ -209,11 +209,16 @@ namespace LuaSTGPlus
 				// TODO: 删除
 				//float ang = /* pInfo.fDirection */ (m_fRotation - (float)LPI_HALF) - (float)LPI_HALF + s_ParticleRandomizer.GetRandFloat(0, pInfo.fSpread) - pInfo.fSpread / 2.0f;
 				
-				float ang = pInfo.fDirection - (float)LPI_HALF + m_Random.GetRandFloat(0, pInfo.fSpread) - pInfo.fSpread / 2.0f;
+				// 来自 HGE 的原始代码，但是似乎 HGE 的坐标系 y 轴是向下的，直接拿来用并不可行
+				//float ang = pInfo.fDirection - (float)LPI_HALF + m_Random.GetRandFloat(0, pInfo.fSpread) - pInfo.fSpread / 2.0f;
+				// 修改后的正确的代码应该是这个
+				float ang = -pInfo.fDirection + (float)LPI_HALF + m_Random.GetRandFloat(0, pInfo.fSpread) - pInfo.fSpread / 2.0f;
 				if (pInfo.bRelative)
 				{
 					ang += (m_vPrevCenter - m_vCenter).CalcuAngle() + (float)LPI_HALF;
 				}
+				// 此外，我们还有自己的旋转量
+				ang += m_fDirection;
 				
 				tInst.vecVelocity.x = std::cos(ang);
 				tInst.vecVelocity.y = std::sin(ang);
