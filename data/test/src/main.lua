@@ -10,6 +10,35 @@ local function set_camera()
     lstg.SetImageScale(1)
     lstg.SetFog()
 end
+local function set_touhou_world()
+    local hscale = window.width / 384
+    local vscale = window.height / 448
+    local scale = math.min(hscale, vscale)
+    local width = 384 * scale
+    local height = 448 * scale
+    local dx = (window.width - width) * 0.5
+    local dy = (window.height - height) * 0.5
+    lstg.SetViewport(dx, dx + width, dy, dy + height)
+    lstg.SetScissorRect(dx, dx + width, dy, dy + height)
+    lstg.SetOrtho(-192, 192, -224, 224)
+    lstg.SetImageScale(1)
+    lstg.SetFog()
+end
+local function get_touhou_world_cursor()
+    local hscale = window.width / 384
+    local vscale = window.height / 448
+    local scale = math.min(hscale, vscale)
+    local width = 384 * scale
+    local height = 448 * scale
+    local dx = (window.width - width) * 0.5
+    local dy = (window.height - height) * 0.5
+    local mx, my = lstg.GetMousePosition()
+    local x = mx - dx
+    local y = my - dy
+    local xv = -192 + 384 * (x / width)
+    local yv = -224 + 448 * (y / height)
+    return xv, yv
+end
 local function Camera3D()
     ---@class kuanlan.Camera3D
     local M = {
@@ -93,6 +122,7 @@ local function Camera3D()
     end
     return M
 end
+---@type lstg.ParticleSystem
 local ps = nil
 function GameInit()
     lstg.ChangeVideoMode(window.width, window.height, true, true)
@@ -100,7 +130,7 @@ function GameInit()
     lstg.LoadTexture("tex:particles", "res/particles.png")
     lstg.LoadImage("img:particle1", "tex:particles", 0, 0, 32, 32)
     lstg.LoadPS("ps:1", "res/ghost_fire_1.psi", "img:particle1")
-    ps = lstg.ParticleSystemInstance("ps:1")
+    ps = lstg.ParticleSystemData("ps:1")
 
     local cjson = require("cjson")
     lstg.Print(cjson.encode({hello="world"}))
@@ -127,13 +157,22 @@ function FrameFunc()
     imgui.ImGui.ShowDemoWindow()
     imgui.backend.ShowMemoryUsageWindow()
     imgui.backend.ShowFrameStatistics()
+    imgui.backend.ShowParticleSystemEditor(ps)
     imgui.ImGui.EndFrame()
-    ps:Update(64, 64, 0)
+    if lstg.GetMouseState(2) or lstg.GetMouseState(0) then
+        local mx, my = get_touhou_world_cursor()
+        if lstg.GetMouseState(0) then
+            ps:setActive(true)
+        end
+        ps:Update(mx, my)
+    else
+        ps:Update(0, 0)
+    end
     return false
 end
 function RenderFunc()
     lstg.BeginScene()
-    lstg.RenderClear(lstg.Color(255, 64, 64, 64))
+    lstg.RenderClear(lstg.Color(255, 0, 0, 0))
     lstg.ClearZBuffer(1.0)
 
     set_camera()
@@ -155,12 +194,15 @@ function RenderFunc()
         mz
     )
 
-    lstg.RenderTTF("Sans", st, 0, 0, 720, 720, 0 + 0, lstg.Color(255, 0, 0, 0), 2)
+    local c_white = lstg.Color(255, 255, 255, 255)
+
+    lstg.RenderTTF("Sans", st, 0, 0, 720, 720, 0 + 0, c_white, 2)
 
     local va, vb, vc = lstg.GetVersionNumber()
 
-    lstg.RenderTTF("Sans", string.format("版本号 %d.%d.%d", va, vb, vc), 0, 0, 64, 64, 0 + 8, lstg.Color(255, 0, 0, 0), 2)
-    lstg.RenderTTF("Sans", lstg.GetVersionName(), 0, 0, 0, 0, 0 + 8, lstg.Color(255, 0, 0, 0), 2)
+    lstg.RenderTTF("Sans", string.format("版本号 %d.%d.%d", va, vb, vc), 0, 0, 64, 64, 0 + 8, c_white, 2)
+    lstg.RenderTTF("Sans", lstg.GetVersionName(), 0, 0, 0, 0, 0 + 8, c_white, 2)
+    lstg.RenderTTF("Sans", string.format("timer: %d", timer), 0, 0, 32, 32, 0 + 8, c_white, 2)
 
     --lstg.RenderTTF("Sans", "您好，别来无恙啊！", 0, 0, 720, 720, 0 + 0, lstg.Color(255, 0, 0, 0), 2)
 
@@ -172,7 +214,10 @@ function RenderFunc()
     --    "", lstg.Color(255, 0, 0, 0),
     --    "center", "vcenter")
 
+    set_touhou_world()
     ps:Render(1)
+
+    set_camera()
 
     imgui.ImGui.Render()
     imgui.backend.RenderDrawData()
