@@ -111,6 +111,7 @@ namespace LuaSTGPlus
 			fcyVec2 m_vCenter;  // 中心
 			fcyVec2 m_vPrevCenter;  // 上一个中心
 			size_t m_iAlive = 0;  // 存活数
+			float m_fDirection = 0.0f; // 相对发射角度
 			float m_fAge = 0.f;  // 已存活时间
 			float m_fEmissionResidue = 0.f;  // 不足的粒子数
 		public:
