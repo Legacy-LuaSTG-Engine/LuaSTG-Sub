@@ -65,7 +65,7 @@ namespace LuaSTGPlus
         // 音效
         bool LoadSoundEffect(const char* name, const char* path) noexcept;
         // 粒子特效(HGE)
-        bool LoadParticle(const char* name, const ResParticle::ParticleInfo& info, const char* img_name,
+        bool LoadParticle(const char* name, const ResParticle::hgeParticleSystemInfo& info, const char* img_name,
                           double a, double b, bool rect = false, bool _nolog = false) noexcept;
         bool LoadParticle(const char* name, const char* path, const char* img_name,
                           double a, double b, bool rect = false) noexcept;

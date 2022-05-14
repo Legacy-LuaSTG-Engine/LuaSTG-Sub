@@ -1100,7 +1100,7 @@ namespace LuaSTGPlus
 			spdlog::warn("[luastg] ParticleStop: 试图停止一个不带有粒子发射器的对象的粒子发射过程 (uid={})", p->uid);
 			return 0;
 		}
-		p->ps->SetInactive();
+		p->ps->SetActive(false);
 		return 0;
 	}
 	int GameObjectPool::api_ParticleFire(lua_State* L) noexcept
@@ -1111,7 +1111,7 @@ namespace LuaSTGPlus
 			spdlog::warn("[luastg] ParticleFire: 试图启动一个不带有粒子发射器的对象的粒子发射过程 (uid={})", p->uid);
 			return 0;
 		}
-		p->ps->SetActive();
+		p->ps->SetActive(true);
 		return 0;
 	}
 	int GameObjectPool::api_ParticleGetn(lua_State* L) noexcept

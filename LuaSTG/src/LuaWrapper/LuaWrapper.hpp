@@ -139,6 +139,7 @@ namespace LuaSTGPlus
 			{
 				ResParticle* res;
 				ResParticle::ParticlePool* ptr;
+				void ReleaseAll();
 			};
 			static std::string_view const ClassID;
 			static UserData* Cast(lua_State* L, int idx);
