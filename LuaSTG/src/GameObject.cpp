@@ -245,10 +245,10 @@ namespace LuaSTGPlus
 				spdlog::error("[luastg] ResParticle: 无法分配粒子池，内存不足");
 				return false;
 			}
-			ps->SetInactive();
+			ps->SetActive(false);
 			ps->SetCenter(fcyVec2((float)x, (float)y));
 			ps->SetRotation((float)rot);
-			ps->SetActive();
+			ps->SetActive(true);
 			// 设置资源
 			res = *tParticle;
 			res->AddRef();
@@ -359,9 +359,9 @@ namespace LuaSTGPlus
 				ps->SetRotation((fFloat)rot);
 				if (ps->IsActived()) // 兼容性处理
 				{
-					ps->SetInactive();
+					ps->SetActive(false);
 					ps->SetCenter(fcyVec2((fFloat)x, (fFloat)y));
-					ps->SetActive();
+					ps->SetActive(true);
 				}
 				else
 				{

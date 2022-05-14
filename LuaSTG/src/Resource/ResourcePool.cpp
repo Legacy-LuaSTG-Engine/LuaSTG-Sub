@@ -517,7 +517,7 @@ bool ResourcePool::LoadSoundEffect(const char* name, const char* path) noexcept 
 
 // 创建粒子特效
 
-bool ResourcePool::LoadParticle(const char* name, const ResParticle::ParticleInfo& info, const char* img_name,
+bool ResourcePool::LoadParticle(const char* name, const ResParticle::hgeParticleSystemInfo& info, const char* img_name,
                                 double a,double b, bool rect, bool _nolog) noexcept {
     if (!LAPP.GetRenderer()) {
         spdlog::error("[luastg] LoadParticle: 无法创建粒子特效'{}'，f2dRenderer未准备好", name);
@@ -545,34 +545,14 @@ bool ResourcePool::LoadParticle(const char* name, const ResParticle::ParticleInf
         spdlog::error("[luastg] LoadParticle: 无法创建粒子特效'{}'，复制图片精灵'{}'失败", name, img_name);
         return false;
     }
-    pClone->SetColor(0, pSprite->GetSprite()->GetColor(0U));
-    pClone->SetColor(1, pSprite->GetSprite()->GetColor(1U));
-    pClone->SetColor(2, pSprite->GetSprite()->GetColor(2U));
-    pClone->SetColor(3, pSprite->GetSprite()->GetColor(3U));
+    fcyColor tCopyColor[4] = {};
+    pSprite->GetSprite()->GetColor(tCopyColor);
+    pClone->SetColor(tCopyColor);
     pClone->SetZ(pSprite->GetSprite()->GetZ());
     
     try {
-        ResParticle::ParticleInfo tInfo = info;
-        tInfo.iBlendInfo = (tInfo.iBlendInfo >> 16) & 0x00000003;
-        
-        BlendMode tBlendInfo = BlendMode::AddAlpha;
-        if (tInfo.iBlendInfo & 1)  // ADD
-        {
-            if (tInfo.iBlendInfo & 2)  // ALPHA
-                tBlendInfo = BlendMode::AddAlpha;
-            else
-                tBlendInfo = BlendMode::AddAdd;
-        }
-        else  // MUL
-        {
-            if (tInfo.iBlendInfo & 2)  // ALPHA
-                tBlendInfo = BlendMode::MulAlpha;
-            else
-                tBlendInfo = BlendMode::MulAdd;
-        }
-        
         fcyRefPointer<ResParticle> tRes;
-        tRes.DirectSet(new ResParticle(name, tInfo, pClone, tBlendInfo, a, b, rect));
+        tRes.DirectSet(new ResParticle(name, info, pClone, a, b, rect));
         m_ParticlePool.emplace(name, tRes);
     }
     catch (const std::bad_alloc&) {
@@ -595,12 +575,12 @@ bool ResourcePool::LoadParticle(const char* name, const char* path, const char* 
         return false;
     }
     
-    if (outBuf->GetLength() != sizeof(ResParticle::ParticleInfo)) {
+    if (outBuf->GetLength() != sizeof(ResParticle::hgeParticleSystemInfo)) {
         spdlog::error("[luastg] LoadParticle: 粒子特效定义文件'{}'格式不正确", path);
         return false;
     }
-    ResParticle::ParticleInfo tInfo;
-    memcpy(&tInfo, outBuf->GetInternalBuffer(), sizeof(ResParticle::ParticleInfo));
+    ResParticle::hgeParticleSystemInfo tInfo;
+    memcpy(&tInfo, outBuf->GetInternalBuffer(), sizeof(ResParticle::hgeParticleSystemInfo));
     
     if (!LoadParticle(name, tInfo, img_name, a, b, rect, /* _nolog */ true)) {
         return false;

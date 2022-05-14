@@ -116,7 +116,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			const char* name = luaL_checkstring(L, 1);
 			const char* img_name = luaL_checkstring(L, 3);
 			if (lua_type(L, 2) == LUA_TTABLE) {
-				ResParticle::ParticleInfo info;
+				ResParticle::hgeParticleSystemInfo info;
 				bool ret = TranslateTableToParticleInfo(L, 2, info);
 				if (!ret) return luaL_error(L, "load particle failed (name='%s', define=?, img='%s').", name, img_name);
 				if (!pActivedPool->LoadParticle(

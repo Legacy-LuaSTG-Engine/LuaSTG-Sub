@@ -162,7 +162,7 @@ namespace LuaSTGPlus
 		return F2DTEXFILTER_LINEAR;
 	}
 
-	inline bool TranslateTableToParticleInfo(lua_State* L, int argnum, ResParticle::ParticleInfo& info) {
+	inline bool TranslateTableToParticleInfo(lua_State* L, int argnum, ResParticle::hgeParticleSystemInfo& info) {
 		if (lua_istable(L, argnum)) {
 			#define GET_ATTR(luakey, cppkey, valuetype, valueproc) {\
 				lua_pushstring(L, luakey);\
