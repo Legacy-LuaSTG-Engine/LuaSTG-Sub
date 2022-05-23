@@ -180,6 +180,11 @@ namespace LuaSTGPlus
 		int const index = (int)p->id + 1;
 		int ot_stk = ot_at;
 
+	#if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
+		static std::string _name("<null>");
+		spdlog::debug("[object] free {}-{} (img = {})", p->id, p->uid, p->res ? p->res->GetResName() : _name);
+	#endif
+
 		// 删除lua对象表中元素
 		if (ot_at <= 0)
 		{
@@ -217,6 +222,12 @@ namespace LuaSTGPlus
 	}
 	GameObject* GameObjectPool::_TableToGameObject(lua_State* L, int idx)
 	{
+	#if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
+		lua_rawgeti(L, idx, 2);
+		size_t oidx = (size_t)(luaL_checkinteger(L, -1));
+		lua_pop(L, 1);
+		GameObject* pukn = m_ObjectPool.object(oidx);
+	#endif
 		lua_rawgeti(L, idx, 3);
 		GameObject* p = (GameObject*)lua_touserdata(L, -1);
 		lua_pop(L, 1);
@@ -264,6 +275,15 @@ namespace LuaSTGPlus
 		{
 			p = _FreeObject(p, ot_at);
 		}
+	#if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
+		for (int i = 1; i <= LOBJPOOL_SIZE; i += 1)
+		{
+			// 确保所有 lua 侧对象都被正确回收
+			lua_rawgeti(G_L, ot_at, i);
+			assert(!lua_istable(G_L, -1));
+			lua_pop(G_L, 1);
+		}
+	#endif
 		lua_pop(G_L, 1);
 		// 重置其他链表
 		_ClearLinkList();
@@ -507,6 +527,11 @@ namespace LuaSTGPlus
 		// 更新初始状态
 		p->lastx = p->x;
 		p->lasty = p->y;
+
+	#if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
+		static std::string _name("<null>");
+		spdlog::debug("[object] new {}-{} (img = {})", p->id, p->uid, p->res ? p->res->GetResName() : _name);
+	#endif
 
 		return 1;
 	}

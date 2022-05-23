@@ -827,6 +827,12 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 		if (bUpdateDevice) m_DirectInput->refresh();
 	}
 	
+#if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
+	static uint64_t _frame_count = 0;
+	spdlog::debug("[frame] ---------- {} ----------", _frame_count);
+	_frame_count += 1;
+#endif
+
 	// 执行帧函数
 	if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineUpdate, 1))
 		return false;
