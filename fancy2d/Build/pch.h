@@ -35,37 +35,10 @@ constexpr UINT const WM_SET_IME_ENABLE       = WM_USER + 0x0011;
 #include "xaudio2redist.h"
 #define SAFE_RELEASE_VOICE(x) if (x) { x->DestroyVoice(); x = NULL; }
 
+// Trace
 #include "Tracy.hpp"
 #include "TracyD3D11.hpp"
 #include "TracyD3D11Ctx.hpp"
 
 // Helper struct
-namespace fancy2d
-{
-	struct HResultCheck
-	{
-		HRESULT hr = 0;
-		char const* cfile = nullptr;
-		wchar_t const* file = nullptr;
-		int line = 0;
-		wchar_t const* message = nullptr;
-		HRESULT operator=(HRESULT v);
-		static HResultCheck& get(char const* cfile, wchar_t const* file, int line, wchar_t const* message);
-	};
-	struct HResultToBool
-	{
-		HRESULT hr = 0;
-		bool operator=(HRESULT v);
-		static HResultToBool& get();
-	};
-}
-
-#ifdef _DEBUG
-#define gHR fancy2d::HResultCheck::get(__FILE__, __FILEW__, __LINE__, L"")
-#define cHR(__ERROR_MESSAGE__) fancy2d::HResultCheck::get(__FILE__, __FILEW__, __LINE__, __ERROR_MESSAGE__)
-#else
-#define gHR fancy2d::HResultCheck::get(nullptr, nullptr, 0, L"")
-#define cHR(__ERROR_MESSAGE__) fancy2d::HResultCheck::get(nullptr, nullptr, 0, __ERROR_MESSAGE__)
-#endif
-
-#define bHR fancy2d::HResultToBool::get()
+#include "platform/HResultChecker.hpp"
