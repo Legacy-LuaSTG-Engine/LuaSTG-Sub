@@ -5,6 +5,7 @@
 #include "spdlog/sinks/msvc_sink.h"
 #include "platform/KnownDirectory.hpp"
 #include "platform/CommandLine.hpp"
+#include "platform/HResultChecker.hpp"
 #include "Config.h"
 #include "LConfig.h"
 
@@ -31,6 +32,11 @@ namespace slow
         }
     }
     
+    static void CustomPrintCallback(std::string_view const message)
+    {
+        spdlog::error("[luastg] {}", message);
+    }
+
     void openLogger()
     {
     #ifdef USING_CONSOLE_OUTPUT
@@ -84,6 +90,8 @@ namespace slow
         logger->flush_on(spdlog::level::info);
         
         spdlog::set_default_logger(logger);
+
+        platform::HResultChecker::SetPrintCallback(&CustomPrintCallback);
     }
     void closeLogger()
     {
@@ -91,6 +99,7 @@ namespace slow
         {
             logger->flush();
         }
+        platform::HResultChecker::SetPrintCallback();
         spdlog::drop_all();
         spdlog::shutdown();
     #ifdef USING_CONSOLE_OUTPUT
