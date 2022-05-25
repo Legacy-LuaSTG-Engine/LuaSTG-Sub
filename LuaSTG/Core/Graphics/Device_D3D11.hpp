@@ -45,25 +45,25 @@ namespace LuaSTG::Core::Graphics
 	public:
 		// Get API
 
-		IDXGIFactory1* GetDXGIFactory1() { return dxgi_factory.Get(); }
-		IDXGIFactory2* GetDXGIFactory2() { return dxgi_factory2.Get(); }
-		IDXGIAdapter1* GetDXGIAdapter1() { return dxgi_adapter.Get(); }
+		IDXGIFactory1* GetDXGIFactory1() const noexcept { return dxgi_factory.Get(); }
+		IDXGIFactory2* GetDXGIFactory2() const noexcept { return dxgi_factory2.Get(); }
+		IDXGIAdapter1* GetDXGIAdapter1() const noexcept { return dxgi_adapter.Get(); }
 
 		void SetPreferredAdapter(std::string_view name) { preferred_adapter_name = name; }
-		std::string_view GetAdapterName() { return dxgi_adapter_name; }
-		std::vector<std::string_view> GetAdapterNameArray()
-		{
-			std::vector<std::string_view> arr(dxgi_adapter_names.size());
-			for (auto const& s : dxgi_adapter_names) arr.emplace_back(s);
-			return std::move(arr);
-		}
+		std::string_view GetAdapterName() const noexcept { return dxgi_adapter_name; }
+		std::vector<std::string> GetAdapterNameArray() const { return dxgi_adapter_names; }
 
-		D3D_FEATURE_LEVEL GetD3DFeatureLevel() { return d3d_feature_level; }
+		D3D_FEATURE_LEVEL GetD3DFeatureLevel() const noexcept { return d3d_feature_level; }
 
-		ID3D11Device* GetD3D11Device() { return d3d11_device.Get(); }
-		ID3D11Device1* GetD3D11Device1() { return d3d11_device1.Get(); }
-		ID3D11DeviceContext* GetD3D11DeviceContext() { return d3d11_devctx.Get(); }
-		ID3D11DeviceContext1* GetD3D11DeviceContext1() { return d3d11_devctx1.Get(); }
+		ID3D11Device* GetD3D11Device() const noexcept { return d3d11_device.Get(); }
+		ID3D11Device1* GetD3D11Device1() const noexcept { return d3d11_device1.Get(); }
+		ID3D11DeviceContext* GetD3D11DeviceContext() const noexcept { return d3d11_devctx.Get(); }
+		ID3D11DeviceContext1* GetD3D11DeviceContext1() const noexcept { return d3d11_devctx1.Get(); }
+
+		BOOL IsFlipSequentialSupport() const noexcept { return dxgi_support_flip_model; }
+		BOOL IsFrameLatencySupport() const noexcept { return dxgi_support_low_latency; }
+		BOOL IsFlipDiscardSupport() const noexcept { return dxgi_support_flip_model2; }
+		BOOL IsTearingSupport() const noexcept { return dxgi_support_tearing; }
 
 	public:
 		bool selectAdapter();

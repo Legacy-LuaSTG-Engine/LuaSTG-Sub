@@ -61,6 +61,10 @@ target_link_libraries(LuaSTGCore PUBLIC
     tracy
 )
 
+target_link_libraries(fancy2dlib PUBLIC
+    LuaSTGCore
+)
+
 # LuaSTG Engine
 
 add_executable(LuaSTG WIN32)

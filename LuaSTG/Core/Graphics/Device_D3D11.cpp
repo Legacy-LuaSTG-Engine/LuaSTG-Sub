@@ -15,15 +15,15 @@ namespace LuaSTG::Core::Graphics
 		}
 		else if (size < (1024llu * 1024llu)) // KB
 		{
-			count = std::snprintf(buffer, 64, "%.2f KB", (double)size / 1024.0);
+			count = std::snprintf(buffer, 64, "%.2f KiB", (double)size / 1024.0);
 		}
 		else if (size < (1024llu * 1024llu * 1024llu)) // MB
 		{
-			count = std::snprintf(buffer, 64, "%.2f MB", (double)size / 1048576.0);
+			count = std::snprintf(buffer, 64, "%.2f MiB", (double)size / (1024.0 * 1024.0));
 		}
 		else // GB
 		{
-			count = std::snprintf(buffer, 64, "%.2f GB", (double)size / 1073741824.0);
+			count = std::snprintf(buffer, 64, "%.2f GiB", (double)size / (1024.0 * 1024.0 * 1024.0));
 		}
 		return std::string(buffer, count);
 	}

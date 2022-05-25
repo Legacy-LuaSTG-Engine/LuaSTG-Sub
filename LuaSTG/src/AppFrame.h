@@ -5,7 +5,7 @@
 #include "ResourceMgr.h"
 #include "GameObjectPool.h"
 #include "platform/DirectInput.hpp"
-#include "LuaSTG/Core/Renderer.hpp"
+#include "Core/Renderer.hpp"
 #include "LConfig.h"
 
 namespace LuaSTGPlus
