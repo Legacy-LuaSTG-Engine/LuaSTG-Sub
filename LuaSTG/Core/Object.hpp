@@ -16,7 +16,7 @@ namespace LuaSTG::Core
 		intptr_t release()
 		{
 			intptr_t const ref_last_ = ref_.fetch_sub(1);
-			if (ref_last_ < 1)
+			if (ref_last_ <= 1)
 			{
 				delete this;
 			}
