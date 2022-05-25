@@ -1,6 +1,11 @@
 #pragma once
 
+#include <string>
+#include <string_view>
+#include <atomic>
 #include <algorithm>
+#include <vector>
+#include <unordered_map>
 
 #define NOMINMAX
 #include <Windows.h>

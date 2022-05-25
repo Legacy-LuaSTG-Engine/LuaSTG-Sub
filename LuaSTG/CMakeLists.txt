@@ -26,6 +26,15 @@ target_include_directories(LuaSTGCore PUBLIC
 set(LuaSTGCore_SRC
     Core/Type.hpp
     Core/Renderer.hpp
+
+    Core/i18n.hpp
+    Core/i18n.cpp
+
+    Core/Object.hpp
+    Core/Graphics/Device.hpp
+    Core/Graphics/Device_D3D11.hpp
+    Core/Graphics/Device_D3D11.cpp
+
     Backend/framework.hpp
     Backend/framework.cpp
     Backend/Shader.hpp

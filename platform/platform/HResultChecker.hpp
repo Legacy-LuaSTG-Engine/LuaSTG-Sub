@@ -48,4 +48,5 @@ namespace platform
 #define gHR platform::HResultChecker()
 #endif
 
+#define gHRLastError gHR = HRESULT_FROM_WIN32(GetLastError())
 #define bHR platform::HResultToBool()
