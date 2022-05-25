@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <string_view>
 
 namespace LuaSTG::Core
 {
@@ -120,6 +121,8 @@ namespace LuaSTG::Core
 				|| back != right_.back;
 		}
 	};
+
+	using StringView = std::string_view;
 
 	struct IObject
 	{
