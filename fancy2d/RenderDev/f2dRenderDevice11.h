@@ -5,6 +5,7 @@
 #pragma once
 #include "f2dEngine.h"
 #include "Engine/f2dWindowImpl.h"
+#include "Core/Graphics/Device.hpp"
 
 class f2dEngineImpl;
 
@@ -37,6 +38,7 @@ private:
 	};
 private:
 	f2dEngineImpl* m_pEngine = nullptr;
+	LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::IDevice> m_pGraphicsDevice;
 
 	int _iEventListenerUUID = 0;
 	std::set<EventListenerNode> _setEventListeners;
@@ -78,7 +80,6 @@ private:
 	fcyRefPointer<f2dTexture2D> m_RenderTarget;
 	fcyRefPointer<f2dDepthStencilSurface> m_DepthStencil;
 
-	fBool d3d11_support_bgra = false;
 	fBool dxgi_support_flipmodel = false;
 	fBool dxgi_support_flipmodel2 = false;
 	fBool dxgi_support_lowlatency = false;
@@ -88,8 +89,6 @@ private:
 	int sendDevResetMsg();            // 发送设备重置事件
 	int dispatchRenderSizeDependentResourcesCreate();
 	int dispatchRenderSizeDependentResourcesDestroy();
-	bool selectAdapter();
-	bool checkFeatureSupported();
 	void beforeDestroyDevice();
 	void destroySwapchain();
 	bool createSwapchain(f2dDisplayMode* mode);
@@ -137,6 +136,9 @@ public:
 	fuInt GetBufferHeight();
 	fBool IsWindowed();
 	
+	fResult SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, fBool FlipModel, F2DAALEVEL AALevel);
+	fResult SetDisplayMode(fuInt Width, fuInt Height, fuInt RefreshRateA, fuInt RefreshRateB, fBool Windowed, fBool VSync, fBool FlipModel);
+
 	fResult CreateTextureFromStream(f2dStream* pStream, fuInt Width, fuInt Height, fBool IsDynamic, fBool HasMipmap, f2dTexture2D** pOut);
 	fResult CreateTextureFromMemory(fcData pMemory, fLen Size, fuInt Width, fuInt Height, fBool IsDynamic, fBool HasMipmap, f2dTexture2D** pOut);
 	fResult CreateDynamicTexture(fuInt Width, fuInt Height, f2dTexture2D** pOut);
@@ -177,8 +179,6 @@ public:
 	fResult UpdateScreenToWindow(fcyColor KeyColor, fByte Alpha);
 	fResult SetTextureAddress(F2DTEXTUREADDRESS address, const fcyColor& borderColor);
 	fResult SetTextureFilter(F2DTEXFILTERTYPE filter);
-	fResult SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, fBool FlipModel, F2DAALEVEL AALevel);
-	fResult SetDisplayMode(fuInt Width, fuInt Height, fuInt RefreshRateA, fuInt RefreshRateB, fBool Windowed, fBool VSync, fBool FlipModel);
 public:
 	f2dRenderDevice11(f2dEngineImpl* pEngine, f2dEngineRenderWindowParam* RenderWindowParam);
 	~f2dRenderDevice11();
