@@ -321,9 +321,7 @@ void GameObjectBentLaser::RenderCollider(fcyColor fillColor) noexcept {
 	int sn = m_Queue.Size();
 	if (sn <= 1)
 		return;
-
-	LAPP.GetRenderDev()->ClearZBuffer();
-
+	
 	fcyRefPointer<f2dGeometryRenderer> grender = LAPP.GetGeometryRenderer();
 	fcyRefPointer<f2dGraphics2D> graph = LAPP.GetGraphics2D();
 
