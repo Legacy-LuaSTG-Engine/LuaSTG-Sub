@@ -42,6 +42,11 @@ namespace LuaSTG::Core::Graphics
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> d3d11_devctx;
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext1> d3d11_devctx1;
 
+		// Window Image Component
+
+		Microsoft::WRL::ComPtr<IWICImagingFactory> wic_factory;
+		Microsoft::WRL::ComPtr<IWICImagingFactory2> wic_factory2;
+
 		// Direct2D 1
 		
 		HMODULE d2d1_dll{ NULL };
@@ -83,6 +88,8 @@ namespace LuaSTG::Core::Graphics
 		void destroyDXGI();
 		bool createD3D11();
 		void destroyD3D11();
+		bool createWIC();
+		void destroyWIC();
 		bool createD2D1();
 		void destroyD2D1();
 

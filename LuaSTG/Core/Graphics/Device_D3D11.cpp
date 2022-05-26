@@ -201,6 +201,8 @@ namespace LuaSTG::Core::Graphics
 			throw std::runtime_error("create basic DXGI components failed");
 		if (!createD3D11())
 			throw std::runtime_error("create basic D3D11 components failed");
+		if (!createWIC())
+			throw std::runtime_error("create basic WIC components failed");
 		if (!createD2D1())
 			throw std::runtime_error("create basic D2D1 components failed");
 
@@ -210,6 +212,7 @@ namespace LuaSTG::Core::Graphics
 	{
 		// 清理对象
 		destroyD2D1();
+		destroyWIC();
 		destroyD3D11();
 		destroyDXGI();
 		unloadDLL();
@@ -938,6 +941,41 @@ namespace LuaSTG::Core::Graphics
 		d3d11_device1.Reset();
 		d3d11_devctx.Reset();
 		d3d11_devctx1.Reset();
+	}
+	bool Device_D3D11::createWIC()
+	{
+		HRESULT hr = S_OK;
+
+		hr = gHR = CoCreateInstance(CLSID_WICImagingFactory2, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&wic_factory2));
+		if (SUCCEEDED(hr))
+		{
+			hr = gHR = wic_factory2.As(&wic_factory);
+			assert(SUCCEEDED(hr));
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "IWICImagingFactory2::QueryInterface -> IWICImagingFactory");
+				return false;
+			}
+		}
+		else
+		{
+			i18n_log_error_fmt("[core].system_call_failed_f", "CoCreateInstance -> IWICImagingFactory2");
+			// 没有那么严重，来再一次
+			hr = gHR = CoCreateInstance(CLSID_WICImagingFactory1, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&wic_factory));
+			assert(SUCCEEDED(hr));
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "CoCreateInstance -> IWICImagingFactory");
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	void Device_D3D11::destroyWIC()
+	{
+		wic_factory.Reset();
+		wic_factory2.Reset();
 	}
 	bool Device_D3D11::createD2D1()
 	{
