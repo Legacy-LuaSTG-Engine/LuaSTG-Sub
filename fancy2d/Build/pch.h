@@ -25,6 +25,7 @@ constexpr UINT const WM_SET_IME_ENABLE       = WM_USER + 0x0011;
 #include <d3d11_4.h>
 // Direct2D1
 #include <d2d1_3.h>
+#include <dwrite_3.h>
 // HLSL
 #include <d3dcompiler.h>
 // Math
