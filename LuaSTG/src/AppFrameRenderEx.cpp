@@ -18,30 +18,6 @@ namespace LuaSTGPlus {
         return rt->GetTexture() == *m_stRenderTargetStack.back();
     }
     
-    bool AppFrame::PushRenderTarget(fcyRefPointer<f2dTexture2D> rt)LNOEXCEPT
-    {
-        if (FCYFAILED(m_pRenderDev->SetRenderTarget(rt)))
-        {
-            spdlog::error("[luastg] PushRenderTarget: 内部错误 (f2dRenderDevice::SetRenderTarget failed.)");
-            return false;
-        }
-        
-        try
-        {
-            m_stRenderTargetStack.push_back(rt);
-        }
-        catch (const std::bad_alloc&)
-        {
-            spdlog::error("[luastg] PushRenderTarget: 内存不足");
-            if (m_stRenderTargetStack.empty())
-                m_pRenderDev->SetRenderTarget(nullptr);
-            else
-                m_pRenderDev->SetRenderTarget(m_stRenderTargetStack.back());
-            return false;
-        }
-        
-        return true;
-    }
     bool AppFrame::PushRenderTarget(ResTexture* rt)LNOEXCEPT
     {
         if (!rt || !rt->IsRenderTarget())
