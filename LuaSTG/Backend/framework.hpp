@@ -1,5 +1,13 @@
 #pragma once
 
+#ifdef _WIN32_WINNT
+#undef _WIN32_WINNT
+#endif
+#ifdef NTDDI_VERSION
+#undef NTDDI_VERSION
+#endif
+#include <sdkddkver.h>
+
 #include <string>
 #include <string_view>
 #include <atomic>
@@ -16,6 +24,7 @@
 #include <d2d1_3.h>
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
+#include <wincodec.h>
 
 #include "spdlog/spdlog.h"
 
