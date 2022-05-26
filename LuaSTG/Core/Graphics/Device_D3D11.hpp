@@ -87,7 +87,7 @@ namespace LuaSTG::Core::Graphics
 		BOOL IsFlipDiscardSupport() const noexcept { return dxgi_support_flip_model2; }
 		BOOL IsTearingSupport() const noexcept { return dxgi_support_tearing; }
 
-	public:
+	private:
 		bool loadDLL();
 		void unloadDLL();
 		bool selectAdapter();
@@ -101,6 +101,22 @@ namespace LuaSTG::Core::Graphics
 		void destroyD2D1();
 		bool createDWrite();
 		void destroyDWrite();
+		bool doDestroyAndCreate();
+
+	private:
+		enum class EventType
+		{
+			DeviceCreate,
+			DeviceDestroy,
+		};
+		bool m_is_dispatch_event{ false };
+		std::vector<IDeviceEventListener*> m_eventobj;
+		std::vector<IDeviceEventListener*> m_eventobj_late;
+	private:
+		void dispatchEvent(EventType t);
+	public:
+		void addEventListener(IDeviceEventListener* e);
+		void removeEventListener(IDeviceEventListener* e);
 
 	public:
 		Device_D3D11(std::string_view const& prefered_gpu = "");

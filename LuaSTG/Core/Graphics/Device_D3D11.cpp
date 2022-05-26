@@ -213,9 +213,9 @@ namespace LuaSTG::Core::Graphics
 	Device_D3D11::~Device_D3D11()
 	{
 		// 清理对象
-		destroyDWrite();
+		destroyDWrite(); // 长生存期
 		destroyD2D1();
-		destroyWIC();
+		destroyWIC(); // 长生存期
 		destroyD3D11();
 		destroyDXGI();
 		unloadDLL();
@@ -1091,6 +1091,93 @@ namespace LuaSTG::Core::Graphics
 	void Device_D3D11::destroyDWrite()
 	{
 		dwrite_factory.Reset();
+	}
+	bool Device_D3D11::doDestroyAndCreate()
+	{
+		dispatchEvent(EventType::DeviceDestroy);
+
+		//destroyDWrite(); // 长生存期
+		destroyD2D1();
+		//destroyWIC(); // 长生存期
+		destroyD3D11();
+		destroyDXGI();
+
+		if (!createDXGI()) return false;
+		if (!createD3D11()) return false;
+		//if (!createWIC()) return false; // 长生存期
+		if (!createD2D1()) return false;
+		//if (!createDWrite()) return false; // 长生存期
+
+		dispatchEvent(EventType::DeviceCreate);
+
+		return true;
+	}
+
+	void Device_D3D11::dispatchEvent(EventType t)
+	{
+		// 回调
+		m_is_dispatch_event = true;
+		switch (t)
+		{
+		case EventType::DeviceCreate:
+			for (auto& v : m_eventobj)
+			{
+				if (v) v->onDeviceCreate();
+			}
+			break;
+		case EventType::DeviceDestroy:
+			for (auto& v : m_eventobj)
+			{
+				if (v) v->onDeviceDestroy();
+			}
+			break;
+		}
+		m_is_dispatch_event = false;
+		// 处理那些延迟的对象
+		removeEventListener(nullptr);
+		for (auto& v : m_eventobj_late)
+		{
+			m_eventobj.emplace_back(v);
+		}
+		m_eventobj_late.clear();
+	}
+
+	void Device_D3D11::addEventListener(IDeviceEventListener* e)
+	{
+		removeEventListener(e);
+		if (m_is_dispatch_event)
+		{
+			m_eventobj_late.emplace_back(e);
+		}
+		else
+		{
+			m_eventobj.emplace_back(e);
+		}
+		
+	}
+	void Device_D3D11::removeEventListener(IDeviceEventListener* e)
+	{
+		if (m_is_dispatch_event)
+		{
+			for (auto& v : m_eventobj)
+			{
+				if (v == e)
+				{
+					v = nullptr; // 不破坏遍历过程
+				}
+			}
+		}
+		else
+		{
+			for (auto it = m_eventobj.begin(); it != m_eventobj.end();)
+			{
+				if (*it == e)
+					it = m_eventobj.erase(it);
+				else
+					it++;
+			}
+		}
+		
 	}
 
 	bool IDevice::create(StringView prefered_gpu, IDevice** p_device)
