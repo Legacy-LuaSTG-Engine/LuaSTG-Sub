@@ -7,37 +7,37 @@ void LuaSTGPlus::LuaWrapper::RenderWrapper::Register(lua_State* L) LNOEXCEPT
     {
         static int SetTextureSamplerState(lua_State* L)LNOEXCEPT
         {
-            bool ret;
-            if (lua_gettop(L) == 2) {
-                // string string
-                const char* s = luaL_checkstring(L, 1);
-                if (strcmp(s, "address") == 0) {
-                    // "address" string
-                    fcyColor color(0,0,0,0);
-                    ret = (FCYERR_OK == LAPP.GetRenderDev()->SetTextureAddress(TranslateTextureSamplerAddress(L, 2), color));
-                    if (!ret) {
-                        return luaL_error(L, "Failed to set texture sampler address mode.");
-                    }
-                }
-                else if (strcmp(s, "filter") == 0) {
-                    // "filter" string
-                    ret = (FCYERR_OK == LAPP.GetRenderDev()->SetTextureFilter(TranslateTextureSamplerFilter(L, 2)));
-                    if (!ret) {
-                        return luaL_error(L, "Failed to set texture sampler filter type.");
-                    }
-                }
-                else {
-                    return luaL_error(L, "Invalid argument '%m'.",s);
-                }
-            }
-            else if (lua_gettop(L) == 3) {
-                // "address" string color
-                fcyColor* p = static_cast<fcyColor*>(luaL_checkudata(L, 3, LUASTG_LUA_TYPENAME_COLOR));
-                ret = (FCYERR_OK == LAPP.GetRenderDev()->SetTextureAddress(TranslateTextureSamplerAddress(L, 2), *p));
-                if (!ret) {
-                    return luaL_error(L, "Failed to set texture sampler address mode.");
-                }
-            }
+            //bool ret;
+            //if (lua_gettop(L) == 2) {
+            //    // string string
+            //    const char* s = luaL_checkstring(L, 1);
+            //    if (strcmp(s, "address") == 0) {
+            //        // "address" string
+            //        fcyColor color(0,0,0,0);
+            //        ret = (FCYERR_OK == LAPP.GetRenderDev()->SetTextureAddress(TranslateTextureSamplerAddress(L, 2), color));
+            //        if (!ret) {
+            //            return luaL_error(L, "Failed to set texture sampler address mode.");
+            //        }
+            //    }
+            //    else if (strcmp(s, "filter") == 0) {
+            //        // "filter" string
+            //        ret = (FCYERR_OK == LAPP.GetRenderDev()->SetTextureFilter(TranslateTextureSamplerFilter(L, 2)));
+            //        if (!ret) {
+            //            return luaL_error(L, "Failed to set texture sampler filter type.");
+            //        }
+            //    }
+            //    else {
+            //        return luaL_error(L, "Invalid argument '%m'.",s);
+            //    }
+            //}
+            //else if (lua_gettop(L) == 3) {
+            //    // "address" string color
+            //    fcyColor* p = static_cast<fcyColor*>(luaL_checkudata(L, 3, LUASTG_LUA_TYPENAME_COLOR));
+            //    ret = (FCYERR_OK == LAPP.GetRenderDev()->SetTextureAddress(TranslateTextureSamplerAddress(L, 2), *p));
+            //    if (!ret) {
+            //        return luaL_error(L, "Failed to set texture sampler address mode.");
+            //    }
+            //}
             return 0;
         }
         static int RenderText(lua_State* L)LNOEXCEPT
