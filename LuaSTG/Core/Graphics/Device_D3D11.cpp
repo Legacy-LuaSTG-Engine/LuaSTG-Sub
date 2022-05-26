@@ -191,6 +191,32 @@ namespace LuaSTG::Core::Graphics
 	Device_D3D11::Device_D3D11(std::string_view const& prefered_gpu)
 		: preferred_adapter_name(prefered_gpu)
 	{
+		// 创建图形组件
+
+		i18n_log_info("[core].Device_D3D11.start_creating_graphic_components");
+
+		if (!loadDLL())
+			throw std::runtime_error("load DLL failed");
+		if (!createDXGI())
+			throw std::runtime_error("create basic DXGI components failed");
+		if (!createD3D11())
+			throw std::runtime_error("create basic D3D11 components failed");
+		if (!createD2D1())
+			throw std::runtime_error("create basic D2D1 components failed");
+
+		i18n_log_info("[core].Device_D3D11.created_graphic_components");
+	}
+	Device_D3D11::~Device_D3D11()
+	{
+		// 清理对象
+		destroyD2D1();
+		destroyD3D11();
+		destroyDXGI();
+		unloadDLL();
+	}
+
+	bool Device_D3D11::loadDLL()
+	{
 		HRESULT hr = S_OK;
 
 		// 加载 DXGI 模块
@@ -202,13 +228,15 @@ namespace LuaSTG::Core::Graphics
 			// 不应该出现这种情况
 			hr = gHRLastError;
 			i18n_log_error_fmt("[core].system_dll_load_failed_f", "dxgi.dll");
-			throw std::runtime_error("dxgi.dll not found");
+			return false;
 		}
 		dxgi_api_CreateDXGIFactory1 = (decltype(dxgi_api_CreateDXGIFactory1))GetProcAddress(dxgi_dll, "CreateDXGIFactory1");
 		assert(dxgi_api_CreateDXGIFactory1);
 		if (dxgi_api_CreateDXGIFactory1 == NULL)
 		{
+			// 不应该出现这种情况
 			i18n_log_error_fmt("[core].system_dll_load_func_failed_f", "dxgi.dll", "CreateDXGIFactory1");
+			return false;
 		}
 		dxgi_api_CreateDXGIFactory2 = (decltype(dxgi_api_CreateDXGIFactory2))GetProcAddress(dxgi_dll, "CreateDXGIFactory2");
 		if (dxgi_api_CreateDXGIFactory2 == NULL)
@@ -225,33 +253,41 @@ namespace LuaSTG::Core::Graphics
 			// 不应该出现这种情况
 			hr = gHRLastError;
 			i18n_log_error_fmt("[core].system_dll_load_failed_f", "d3d11.dll");
-			throw std::runtime_error("d3d11.dll not found");
+			return false;
 		}
 		d3d11_api_D3D11CreateDevice = (decltype(d3d11_api_D3D11CreateDevice))GetProcAddress(d3d11_dll, "D3D11CreateDevice");
 		assert(d3d11_api_D3D11CreateDevice);
 		if (d3d11_api_D3D11CreateDevice == NULL)
 		{
+			// 不应该出现这种情况
 			i18n_log_error_fmt("[core].system_dll_load_func_failed_f", "d3d11.dll", "D3D11CreateDevice");
+			return false;
 		}
 
-		// 创建图形组件
+		// 加载 Direct2D 1 模块
 
-		i18n_log_info("[core].Device_D3D11.start_creating_graphic_components");
+		d2d1_dll = LoadLibraryW(L"d2d1.dll");
+		assert(d2d1_dll);
+		if (d2d1_dll == NULL)
+		{
+			// 不应该出现这种情况
+			hr = gHRLastError;
+			i18n_log_error_fmt("[core].system_dll_load_failed_f", "d2d1.dll");
+			return false;
+		}
+		d2d1_api_D2D1CreateFactory = (decltype(d2d1_api_D2D1CreateFactory))GetProcAddress(d2d1_dll, "D2D1CreateFactory");
+		assert(d2d1_api_D2D1CreateFactory);
+		if (d2d1_api_D2D1CreateFactory == NULL)
+		{
+			// 不应该出现这种情况
+			i18n_log_error_fmt("[core].system_dll_load_func_failed_f", "d2d1.dll", "D2D1CreateFactory");
+			return false;
+		}
 
-		if (!createDXGI())
-			throw std::runtime_error("create basic DXGI components failed");
-		if (!createD3D11())
-			throw std::runtime_error("create basic D3D11 components failed");
-
-		i18n_log_info("[core].Device_D3D11.created_graphic_components");
+		return true;
 	}
-	Device_D3D11::~Device_D3D11()
+	void Device_D3D11::unloadDLL()
 	{
-		// 清理对象
-
-		destroyD3D11();
-		destroyDXGI();
-
 		// 卸载 DXGI 模块
 
 		if (dxgi_dll) FreeLibrary(dxgi_dll); dxgi_dll = NULL;
@@ -262,8 +298,12 @@ namespace LuaSTG::Core::Graphics
 
 		if (d3d11_dll) FreeLibrary(d3d11_dll); d3d11_dll = NULL;
 		d3d11_api_D3D11CreateDevice = NULL;
-	}
 
+		// 卸载 Direct2D 1 模块
+
+		if (d2d1_dll) FreeLibrary(d2d1_dll); d2d1_dll = NULL;
+		d2d1_api_D2D1CreateFactory = NULL;
+	}
 	bool Device_D3D11::selectAdapter()
 	{
 		HRESULT hr = S_OK;
@@ -898,6 +938,76 @@ namespace LuaSTG::Core::Graphics
 		d3d11_device1.Reset();
 		d3d11_devctx.Reset();
 		d3d11_devctx1.Reset();
+	}
+	bool Device_D3D11::createD2D1()
+	{
+		HRESULT hr = S_OK;
+
+		D2D1_FACTORY_OPTIONS d2d1_creation_option = {
+		#ifdef _DEBUG
+			.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION,
+		#else
+			.debugLevel = D2D1_DEBUG_LEVEL_NONE,
+		#endif
+		};
+		hr = gHR = d2d1_api_D2D1CreateFactory(
+			D2D1_FACTORY_TYPE_MULTI_THREADED,
+			__uuidof(ID2D1Factory),
+			&d2d1_creation_option,
+			&d2d1_factory);
+		if (FAILED(hr))
+		{
+			i18n_log_error_fmt("[core].system_call_failed_f", "D2D1CreateFactory");
+			return false;
+		}
+
+		// 下面就是 Windows 7 无法到达的领域啦
+
+		hr = gHR = d2d1_factory.As(&d2d1_factory1);
+		if (FAILED(hr))
+		{
+			i18n_log_error_fmt("[core].system_call_failed_f", "ID2D1Factory::QueryInterface -> ID2D1Factory1");
+			// 不是严重错误
+		}
+		
+		if (d2d1_factory1)
+		{
+			Microsoft::WRL::ComPtr<IDXGIDevice> dxgi_device;
+			hr = gHR = d3d11_device.As(&dxgi_device);
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::QueryInterface -> IDXGIDevice");
+				// 不是严重错误
+			}
+			if (dxgi_device)
+			{
+				hr = gHR = d2d1_factory1->CreateDevice(dxgi_device.Get(), &d2d1_device);
+				if (FAILED(hr))
+				{
+					i18n_log_error_fmt("[core].system_call_failed_f", "ID2D1Factory1::CreateDevice");
+					// 不是严重错误
+				}
+			}
+		}
+
+		if (d2d1_device)
+		{
+			hr = gHR = d2d1_device->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, &d2d1_devctx);
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "ID2D1Device::CreateDeviceContext");
+				// 不是严重错误
+			}
+		}
+
+		return true;
+	}
+	void Device_D3D11::destroyD2D1()
+	{
+		d2d1_factory.Reset();
+		d2d1_factory1.Reset();
+		d2d1_device.Reset();
+		d2d1_devctx.Reset();
 	}
 
 	bool IDevice::create(StringView prefered_gpu, IDevice** p_device)

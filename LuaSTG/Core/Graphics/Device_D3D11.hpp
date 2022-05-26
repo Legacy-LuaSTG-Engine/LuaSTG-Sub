@@ -42,6 +42,16 @@ namespace LuaSTG::Core::Graphics
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> d3d11_devctx;
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext1> d3d11_devctx1;
 
+		// Direct2D 1
+		
+		HMODULE d2d1_dll{ NULL };
+		HRESULT(WINAPI* d2d1_api_D2D1CreateFactory)(D2D1_FACTORY_TYPE, REFIID, CONST D2D1_FACTORY_OPTIONS*, void**) { NULL };
+
+		Microsoft::WRL::ComPtr<ID2D1Factory> d2d1_factory;
+		Microsoft::WRL::ComPtr<ID2D1Factory1> d2d1_factory1;
+		Microsoft::WRL::ComPtr<ID2D1Device> d2d1_device;
+		Microsoft::WRL::ComPtr<ID2D1DeviceContext> d2d1_devctx;
+
 	public:
 		// Get API
 
@@ -66,11 +76,15 @@ namespace LuaSTG::Core::Graphics
 		BOOL IsTearingSupport() const noexcept { return dxgi_support_tearing; }
 
 	public:
+		bool loadDLL();
+		void unloadDLL();
 		bool selectAdapter();
 		bool createDXGI();
 		void destroyDXGI();
 		bool createD3D11();
 		void destroyD3D11();
+		bool createD2D1();
+		void destroyD2D1();
 
 	public:
 		Device_D3D11(std::string_view const& prefered_gpu = "");
