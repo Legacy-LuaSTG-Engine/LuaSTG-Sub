@@ -31,9 +31,14 @@ set(LuaSTGCore_SRC
     Core/i18n.cpp
 
     Core/Object.hpp
+    Core/Graphics/Format.hpp
+    Core/Graphics/Format_D3D11.hpp
     Core/Graphics/Device.hpp
     Core/Graphics/Device_D3D11.hpp
     Core/Graphics/Device_D3D11.cpp
+    Core/Graphics/SwapChain.hpp
+    Core/Graphics/SwapChain_D3D11.hpp
+    Core/Graphics/SwapChain_D3D11.cpp
 
     Backend/framework.hpp
     Backend/framework.cpp

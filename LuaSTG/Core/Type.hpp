@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <cstdint>
 #include <string_view>
 
@@ -122,6 +122,12 @@ namespace LuaSTG::Core
 		}
 	};
 
+	struct Rational
+	{
+		uint32_t numerator{ 0 }; // 分子
+		uint32_t denominator{ 0 }; // 分母
+	};
+
 	using StringView = std::string_view;
 
 	struct IObject
@@ -146,11 +152,13 @@ namespace LuaSTG::Core
 		ScopeObject& operator=(std::nullptr_t) { internal_release(); return *this; }
 		operator bool() { return ptr_ != nullptr; }
 	public:
+		ScopeObject(T* ptr) : ptr_(ptr) { internal_retain(); }
+	public:
 		ScopeObject() : ptr_(nullptr) {}
-		ScopeObject(ScopeObject& right) : ptr_(right.ptr_) { internal_retain(); }
-		ScopeObject(ScopeObject const& right) : ptr_(right.ptr_) { internal_retain(); }
-		ScopeObject(ScopeObject&& right) : ptr_(right.ptr_) { right.ptr_ = nullptr; }
-		ScopeObject(ScopeObject const&&) = delete;
+		ScopeObject(ScopeObject<T>& right) : ptr_(right.ptr_) { internal_retain(); }
+		ScopeObject(ScopeObject<T> const& right) : ptr_(right.ptr_) { internal_retain(); }
+		ScopeObject(ScopeObject<T>&& right) : ptr_(right.ptr_) { right.ptr_ = nullptr; }
+		ScopeObject(ScopeObject<T> const&&) = delete;
 		~ScopeObject() { internal_release(); }
 	};
 }

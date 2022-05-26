@@ -73,7 +73,7 @@ namespace LuaSTG::Core::Graphics
 
 		void SetPreferredAdapter(std::string_view name) { preferred_adapter_name = name; }
 		std::string_view GetAdapterName() const noexcept { return dxgi_adapter_name; }
-		std::vector<std::string> GetAdapterNameArray() const { return dxgi_adapter_names; }
+		std::vector<std::string>& GetAdapterNameArray() { return dxgi_adapter_names; }
 
 		D3D_FEATURE_LEVEL GetD3DFeatureLevel() const noexcept { return d3d_feature_level; }
 
@@ -102,6 +102,10 @@ namespace LuaSTG::Core::Graphics
 		bool createDWrite();
 		void destroyDWrite();
 		bool doDestroyAndCreate();
+
+	public:
+		bool handleDeviceLost();
+		bool validateDXGIFactory();
 
 	private:
 		enum class EventType
