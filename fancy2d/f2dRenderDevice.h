@@ -680,7 +680,6 @@ struct f2dAdapterMemoryUsageStatistics
 ////////////////////////////////////////////////////////////////////////////////
 struct f2dRenderDevice
 {
-	// Direct3D9 返回 IDirect3DDevice9 接口
 	// Direct3D11 返回 ID3D11Device 接口
 	virtual void* GetHandle() = 0;
 	
@@ -709,8 +708,6 @@ struct f2dRenderDevice
 	virtual fBool IsWindowed() = 0;
 
 	// 废弃
-	virtual F2DAALEVEL GetAALevel() = 0;
-	virtual fBool CheckMultiSample(F2DAALEVEL AALevel, fBool Windowed) = 0;
 	virtual fResult SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, fBool FlipModel, F2DAALEVEL AALevel) = 0;
 	virtual fResult SetDisplayMode(fuInt Width, fuInt Height, fuInt RefreshRateA, fuInt RefreshRateB, fBool Windowed, fBool VSync, fBool FlipModel) = 0;
 
@@ -771,114 +768,21 @@ struct f2dRenderDevice
 	/// @param[out] pOut       输出的缓冲区指针
 	virtual fResult CreateDepthStencilSurface(fuInt Width, fuInt Height, fBool Discard, fBool AutoResize, f2dDepthStencilSurface** pOut)=0;
 
-	/// @brief      创建一个2D渲染器
-	/// @param[in]  VertexBufferSize 内部顶点缓冲区大小，置为0则默认
-	/// @param[in]  IndexBufferSize  内部索引缓冲区大小，置为0则默认
-	/// @param[out] pOut             输出指针
-	virtual fResult CreateGraphics2D(fuInt VertexBufferSize, fuInt IndexBufferSize, f2dGraphics2D** pOut)=0;
-
-	/// @brief      创建一个3D渲染器（基于fx的）
-	/// @param[in]  pDefaultEffect 默认效果，可空
-	/// @param[out] pOut           输出的渲染器指针
-	virtual fResult CreateGraphics3D(f2dEffect* pDefaultEffect, f2dGraphics3D** pOut)=0;
-
-	/// @brief      创建一个效果
-	/// @param[in]  pStream    效果代码(fx文件)，将读取整个流
-	/// @param[in]  bAutoState 是否自动设置状态，当被Graphics3D激活时将会自动设置所有关联的渲染参数。
-	/// @param[out] pOut       输出的效果
-	/// @param[out] pErrOut    错误信息，可空，仅当创建失败时设置
-	virtual fResult CreateEffect(f2dStream* pStream, fBool bAutoState, f2dEffect** pOut)=0;
-
-	/// @brief      创建一个网格数据
-	/// @param[in]  pVertElement 顶点元素数组
-	/// @param[in]  ElementCount 顶点元素个数
-	/// @param[in]  VertCount    顶点数量
-	/// @param[in]  IndexCount   索引数量
-	/// @param[in]  Int32Index   是否使用Int作为索引单位，否则使用Short
-	/// @param[out] pOut         输出的模型数据对象
-	virtual fResult CreateMeshData(f2dVertexElement* pVertElement, fuInt ElementCount, fuInt VertCount, fuInt IndexCount, fBool Int32Index, f2dMeshData** pOut)=0;
-
 	// --- 绘图状态 ---
-	/// @brief     清空Z缓冲和渲染目标
-	/// @param[in] BackBufferColor 背景颜色
-	/// @param[in] ZValue          Z深度值，无特殊情况应取1.0f
-	virtual fResult Clear(const fcyColor& BackBufferColor = 0, fFloat ZValue = 1.0f)=0;
-
-	/// @brief     清空Z缓冲、渲染目标、模板缓冲区
-	/// @param[in] BackBufferColor 背景颜色
-	/// @param[in] ZValue          Z深度值，无特殊情况应取1.0f
-	/// @param[in] StencilValue    模板缓冲区值
-	virtual fResult Clear(const fcyColor& BackBufferColor, fFloat ZValue, fuInt StencilValue)=0;
-
-	/// @brief     清空渲染目标
-	/// @param[in] BackBufferColor 背景颜色
-	virtual fResult ClearColor(const fcyColor& BackBufferColor = 0)=0;
-
-	/// @brief     清空Z缓冲
-	/// @param[in] Value Z深度值，无特殊情况应取1.0f
-	virtual fResult ClearZBuffer(fFloat Value=1.0f)=0;
-
-	/// @brief     清空模板缓冲
-	/// @param[in] StencilValue 模板缓冲值
-	virtual fResult ClearStencilBuffer(fuInt StencilValue=0)=0;
 
 	/// @brief   返回目前使用中的渲染目标
 	/// @warning 渲染目标会在一轮渲染结束后恢复到默认后台缓冲区
 	/// @note    如果为默认后台缓冲区将返回NULL；该函数不增加引用计数
 	virtual f2dTexture2D* GetRenderTarget()=0;
 
-	/// @brief 设置渲染目标
-	/// @note  若需设置为默认后台缓冲区，请置为NULL
-	virtual fResult SetRenderTarget(f2dTexture2D* pTex)=0;
-
 	/// @brief   返回目前使用中的深度模板缓冲区
 	/// @warning 深度模板缓冲区会在一轮渲染结束后恢复到默认后台缓冲区
 	/// @note    若为默认后台缓冲区返回NULL；该函数不增加引用计数
 	virtual f2dDepthStencilSurface* GetDepthStencilSurface()=0;
 
-	/// @brief 设置深度模板缓冲区
-	/// @note  若需设置为默认模板缓冲区，请置为NULL
-	virtual fResult SetDepthStencilSurface(f2dDepthStencilSurface* pSurface)=0;
-
 	virtual fResult SetRenderTargetAndDepthStencilSurface(f2dTexture2D* pTex, f2dDepthStencilSurface* pSurface) = 0;
 
-	/// @brief 返回目前的裁剪矩形
-	virtual fcyRect GetScissorRect()=0;
-
-	/// @brief   设置裁剪矩形
-	/// @warning 矩形应当小于RenderTarget大小
-	/// @note    重新设置缓冲区大小时该值会被覆盖
-	virtual fResult SetScissorRect(const fcyRect& pRect)=0;
-
-	/// @brief 返回目前的Viewport
-	virtual fcyRect GetViewport()=0;
-
-	/// @brief     设置目前的Viewport
-	/// @param[in] vp 给定的视区
-	virtual fResult SetViewport(fcyRect vp)=0;
-
-	/// @brief 返回是否开启Z-buffer测试
-	virtual fBool IsZBufferEnabled()=0;
-
-	/// @brief 设置是否开启Z-buffer测试
-	virtual fResult SetZBufferEnable(fBool v)=0;
-
 	// --- 高级 ---
-	
-	/// @brief     调用UpdateLayeredWindow更新分层窗口
-	/// @note      要求主窗口被设置为分层窗口
-	/// @param[in] KeyColor 关键色
-	/// @param[in] Alpha    透明度
-	virtual fResult UpdateScreenToWindow(fcyColor KeyColor, fByte Alpha)=0;
-
-	/// @brief     设置纹理采样时地址取值方式
-	/// @param[in] address     取值方式
-	/// @param[in] borderColor 界外颜色
-	virtual fResult SetTextureAddress(F2DTEXTUREADDRESS address, const fcyColor& borderColor) = 0;
-
-	/// @brief     纹理采样器
-	/// @param[in] filter 采样器类型
-	virtual fResult SetTextureFilter(F2DTEXFILTERTYPE filter) = 0;
 	
 	/// @brief     截屏
 	/// @note      以JPG形式保存
@@ -901,6 +805,12 @@ struct f2dRenderDevice
 	/// @param[in] path 文件路径
 	/// @param[in] pTex    要保存的纹理
 	virtual fResult SaveTexture(fcStrW path, f2dTexture2D* pTex)=0;
+
+	// 废弃
+	virtual fResult CreateGraphics2D(fuInt VertexBufferSize, fuInt IndexBufferSize, f2dGraphics2D** pOut)=0;
+	virtual fResult CreateGraphics3D(f2dEffect* pDefaultEffect, f2dGraphics3D** pOut)=0;
+	virtual fResult CreateEffect(f2dStream* pStream, fBool bAutoState, f2dEffect** pOut)=0;
+	virtual fResult CreateMeshData(f2dVertexElement* pVertElement, fuInt ElementCount, fuInt VertCount, fuInt IndexCount, fBool Int32Index, f2dMeshData** pOut)=0;
 };
 
 /// @}
