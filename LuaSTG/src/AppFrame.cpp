@@ -535,10 +535,6 @@ bool AppFrame::Init()LNOEXCEPT
 		SendMessageW((HWND)m_pMainWindow->GetHandle(), WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)hIcon);
 		DestroyIcon(hIcon);
 		
-		// 默认关闭深度缓冲
-		m_pRenderDev->SetZBufferEnable(false);
-		m_pRenderDev->ClearZBuffer();
-		
 		// 渲染器
 		spdlog::info("[luastg] 创建2D渲染器");
 		if (!m_NewRenderer2D.attachDevice(m_pRenderDev->GetHandle()))
@@ -844,7 +840,8 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 
 fBool AppFrame::OnRender(fDouble ElapsedTime, f2dFPSController* pFPSController)
 {
-	m_pRenderDev->Clear();
+	m_NewRenderer2D.clearRenderTarget({});
+	m_NewRenderer2D.clearDepthBuffer(1.0f);
 	
 	// 执行渲染函数
 	m_bRenderStarted = true;

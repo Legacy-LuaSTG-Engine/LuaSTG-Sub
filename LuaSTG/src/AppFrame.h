@@ -188,21 +188,6 @@ namespace LuaSTGPlus
 		/// @brief 通知结束渲染
 		bool EndScene() LNOEXCEPT;
 		
-		/// @brief 清屏
-		void ClearScreen(const fcyColor& c) LNOEXCEPT;
-		
-		/// @brief 设置视口
-		bool SetViewport(double left, double right, double bottom, double top) LNOEXCEPT;
-		
-		/// @brief 设置裁剪矩形
-		bool SetScissorRect(double left, double right, double bottom, double top) LNOEXCEPT;
-		
-		// 开启或关闭zbuffer
-		void SetZBufferEnable(bool enable) LNOEXCEPT;
-		
-		// 用指定的值清空zbuffer
-		void ClearZBuffer(float z) LNOEXCEPT;
-		
 		/// @brief 渲染图像
 		bool Render(ResSprite* p, float x, float y, float rot = 0, float hscale = 1, float vscale = 1, float z = 0.5) LNOEXCEPT;
 		
@@ -258,10 +243,7 @@ namespace LuaSTGPlus
 
 		bool CheckRenderTargetInUse(ResTexture* rt)LNOEXCEPT;
 
-		bool PushRenderTarget(fcyRefPointer<f2dTexture2D> rt)LNOEXCEPT;
-
 		bool PushRenderTarget(ResTexture* rt)LNOEXCEPT;
-
 		bool PopRenderTarget()LNOEXCEPT;
 
 		bool PostEffect(fcyRefPointer<f2dTexture2D> rt, ResFX* shader, BlendMode blend)LNOEXCEPT;
