@@ -205,12 +205,15 @@ namespace LuaSTG::Core::Graphics
 			throw std::runtime_error("create basic WIC components failed");
 		if (!createD2D1())
 			throw std::runtime_error("create basic D2D1 components failed");
+		if (!createDWrite())
+			throw std::runtime_error("create basic DWrite components failed");
 
 		i18n_log_info("[core].Device_D3D11.created_graphic_components");
 	}
 	Device_D3D11::~Device_D3D11()
 	{
 		// 清理对象
+		destroyDWrite();
 		destroyD2D1();
 		destroyWIC();
 		destroyD3D11();
@@ -287,6 +290,26 @@ namespace LuaSTG::Core::Graphics
 			return false;
 		}
 
+		// 加载 DirectWrite 模块
+
+		dwrite_dll = LoadLibraryW(L"dwrite.dll");
+		assert(dwrite_dll);
+		if (dwrite_dll == NULL)
+		{
+			// 不应该出现这种情况
+			hr = gHRLastError;
+			i18n_log_error_fmt("[core].system_dll_load_failed_f", "dwrite.dll");
+			return false;
+		}
+		dwrite_api_DWriteCreateFactory = (decltype(dwrite_api_DWriteCreateFactory))GetProcAddress(dwrite_dll, "DWriteCreateFactory");
+		assert(dwrite_api_DWriteCreateFactory);
+		if (dwrite_api_DWriteCreateFactory == NULL)
+		{
+			// 不应该出现这种情况
+			i18n_log_error_fmt("[core].system_dll_load_func_failed_f", "dwrite.dll", "DWriteCreateFactory");
+			return false;
+		}
+
 		return true;
 	}
 	void Device_D3D11::unloadDLL()
@@ -306,6 +329,11 @@ namespace LuaSTG::Core::Graphics
 
 		if (d2d1_dll) FreeLibrary(d2d1_dll); d2d1_dll = NULL;
 		d2d1_api_D2D1CreateFactory = NULL;
+
+		// 卸载 DirectWrite 模块
+
+		if (dwrite_dll) FreeLibrary(dwrite_dll); dwrite_dll = NULL;
+		dwrite_api_DWriteCreateFactory = NULL;
 	}
 	bool Device_D3D11::selectAdapter()
 	{
@@ -1046,6 +1074,23 @@ namespace LuaSTG::Core::Graphics
 		d2d1_factory1.Reset();
 		d2d1_device.Reset();
 		d2d1_devctx.Reset();
+	}
+	bool Device_D3D11::createDWrite()
+	{
+		HRESULT hr = S_OK;
+
+		hr = gHR = dwrite_api_DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), &dwrite_factory);
+		if (FAILED(hr))
+		{
+			i18n_log_error_fmt("[core].system_call_failed_f", "DWriteCreateFactory -> DWRITE_FACTORY_TYPE_SHARED");
+			return false;
+		}
+
+		return true;
+	}
+	void Device_D3D11::destroyDWrite()
+	{
+		dwrite_factory.Reset();
 	}
 
 	bool IDevice::create(StringView prefered_gpu, IDevice** p_device)

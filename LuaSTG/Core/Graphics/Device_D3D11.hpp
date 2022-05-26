@@ -57,6 +57,13 @@ namespace LuaSTG::Core::Graphics
 		Microsoft::WRL::ComPtr<ID2D1Device> d2d1_device;
 		Microsoft::WRL::ComPtr<ID2D1DeviceContext> d2d1_devctx;
 
+		// DirectWrite
+
+		HMODULE dwrite_dll{ NULL };
+		decltype(DWriteCreateFactory)* dwrite_api_DWriteCreateFactory{ NULL };
+
+		Microsoft::WRL::ComPtr<IDWriteFactory> dwrite_factory;
+
 	public:
 		// Get API
 
@@ -92,6 +99,8 @@ namespace LuaSTG::Core::Graphics
 		void destroyWIC();
 		bool createD2D1();
 		void destroyD2D1();
+		bool createDWrite();
+		void destroyDWrite();
 
 	public:
 		Device_D3D11(std::string_view const& prefered_gpu = "");
