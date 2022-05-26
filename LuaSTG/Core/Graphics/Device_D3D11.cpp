@@ -1113,6 +1113,62 @@ namespace LuaSTG::Core::Graphics
 		return true;
 	}
 
+	bool Device_D3D11::handleDeviceLost()
+	{
+		return doDestroyAndCreate();
+	}
+	bool Device_D3D11::validateDXGIFactory()
+	{
+		if (!dxgi_factory->IsCurrent())
+		{
+			HRESULT hr = S_OK;
+
+			dxgi_factory.Reset();
+			dxgi_factory2.Reset();
+			dxgi_adapter.Reset();
+
+			Microsoft::WRL::ComPtr<IDXGIDevice> dxgi_device;
+			hr = gHR = d3d11_device.As(&dxgi_device);
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::QueryInterface -> IDXGIDevice");
+				return false;
+			}
+
+			Microsoft::WRL::ComPtr<IDXGIAdapter> dxgi_adapter_tmp;
+			hr = gHR = dxgi_device->GetAdapter(&dxgi_adapter_tmp);
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIDevice::GetAdapter");
+				return false;
+			}
+
+			hr = gHR = dxgi_adapter_tmp.As(&dxgi_adapter);
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIAdapter::QueryInterface -> IDXGIAdapter1");
+				return false;
+			}
+			
+			hr = gHR = dxgi_adapter->GetParent(IID_PPV_ARGS(&dxgi_factory));
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIAdapter1::GetParent -> IDXGIFactory1");
+				return false;
+			}
+
+			hr = gHR = dxgi_factory.As(&dxgi_factory2);
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory1::QueryInterface -> IDXGIFactory2");
+				// 不是大问题
+			}
+
+			assert(dxgi_factory->IsCurrent());
+		}
+		return true;
+	}
+
 	void Device_D3D11::dispatchEvent(EventType t)
 	{
 		// 回调
@@ -1153,7 +1209,6 @@ namespace LuaSTG::Core::Graphics
 		{
 			m_eventobj.emplace_back(e);
 		}
-		
 	}
 	void Device_D3D11::removeEventListener(IDeviceEventListener* e)
 	{
@@ -1177,7 +1232,6 @@ namespace LuaSTG::Core::Graphics
 					it++;
 			}
 		}
-		
 	}
 
 	bool IDevice::create(StringView prefered_gpu, IDevice** p_device)
