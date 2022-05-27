@@ -150,13 +150,13 @@ namespace LuaSTG::Core
 
 	struct IModel : public IObject
 	{
-		virtual void setAmbient(Vector3 const& color, float brightness) = 0;
-		virtual void setDirectionalLight(Vector3 const& direction, Vector3 const& color, float brightness) = 0;
+		virtual void setAmbient(Vector3F const& color, float brightness) = 0;
+		virtual void setDirectionalLight(Vector3F const& direction, Vector3F const& color, float brightness) = 0;
 
-		virtual void setScaling(Vector3 const& scale) = 0;
-		virtual void setPosition(Vector3 const& pos) = 0;
+		virtual void setScaling(Vector3F const& scale) = 0;
+		virtual void setPosition(Vector3F const& pos) = 0;
 		virtual void setRotationRollPitchYaw(float roll, float pitch, float yaw) = 0;
-		virtual void setRotationQuaternion(Vector4 const& quat) = 0;
+		virtual void setRotationQuaternion(Vector4F const& quat) = 0;
 	};
 
 	class Renderer
@@ -174,11 +174,11 @@ namespace LuaSTG::Core
 		void clearRenderTarget(Color4B const& color);
 		void clearDepthBuffer(float zvalue);
 		
-		void setOrtho(Box const& box);
-		void setPerspective(Vector3 const& eye, Vector3 const& lookat, Vector3 const& headup, float fov, float aspect, float znear, float zfar);
+		void setOrtho(BoxF const& box);
+		void setPerspective(Vector3F const& eye, Vector3F const& lookat, Vector3F const& headup, float fov, float aspect, float znear, float zfar);
 
-		void setViewport(Box const& box);
-		void setScissorRect(Rect const& rect);
+		void setViewport(BoxF const& box);
+		void setScissorRect(RectF const& rect);
 		void setViewportAndScissorRect();
 		
 		void setVertexColorBlendState(VertexColorBlendState state);
@@ -199,7 +199,7 @@ namespace LuaSTG::Core
 
 		ShaderID createPostEffectShader(char const* name, void const* data, size_t size);
 		void destroyPostEffectShader(ShaderID& ps);
-		void postEffect(ShaderID const& ps, TextureID const& rt, SamplerState rtsv, Vector4 const* cv, size_t cv_n, TextureID const* tv, SamplerState const* sv, size_t tv_sv_n, BlendState blend);
+		void postEffect(ShaderID const& ps, TextureID const& rt, SamplerState rtsv, Vector4F const* cv, size_t cv_n, TextureID const* tv, SamplerState const* sv, size_t tv_sv_n, BlendState blend);
 	
 		bool createModel(char const* gltf_path, IModel** model);
 		bool drawModel(IModel* model);

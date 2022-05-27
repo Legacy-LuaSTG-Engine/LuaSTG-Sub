@@ -48,8 +48,8 @@ namespace LuaSTG::Core
 	struct RendererStateSet
 	{
 		TextureID texture;
-		Box viewport = { 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f };
-		Rect scissor_rect = { 0.0f, 0.0f, 1.0f, 1.0f };
+		BoxF viewport = { 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f };
+		RectF scissor_rect = { 0.0f, 0.0f, 1.0f, 1.0f };
 		float fog_near_or_density = 0.0f;
 		float fog_far = 0.0f;
 		Color4B fog_color;
@@ -63,21 +63,21 @@ namespace LuaSTG::Core
 
 	struct CameraStateSet
 	{
-		Box ortho = { 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f };
-		Vector3 eye = { 0.0f, 0.0f, 0.0f };
-		Vector3 lookat = { 0.0f, 0.0f, 1.0f };
-		Vector3 headup = { 0.0f, 1.0f, 0.0f };
+		BoxF ortho = { 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f };
+		Vector3F eye = { 0.0f, 0.0f, 0.0f };
+		Vector3F lookat = { 0.0f, 0.0f, 1.0f };
+		Vector3F headup = { 0.0f, 1.0f, 0.0f };
 		float fov = 0.0f;
 		float aspect = 0.0f;
 		float znear = 0.0f;
 		float zfar = 0.0f;
 		bool is_3D = false;
 		
-		bool isEqual(Box const& box)
+		bool isEqual(BoxF const& box)
 		{
 			return !is_3D && ortho == box;
 		}
-		bool isEqual(Vector3 const& eye_, Vector3 const& lookat_, Vector3 const& headup_, float fov_, float aspect_, float znear_, float zfar_)
+		bool isEqual(Vector3F const& eye_, Vector3F const& lookat_, Vector3F const& headup_, float fov_, float aspect_, float znear_, float zfar_)
 		{
 			return is_3D
 				&& eye == eye_
@@ -1099,7 +1099,7 @@ namespace LuaSTG::Core
 			}
 		}
 
-		void setOrtho(Box const& box)
+		void setOrtho(BoxF const& box)
 		{
 			if (_state_dirty || !_camera_state_set.isEqual(box))
 			{
@@ -1107,7 +1107,7 @@ namespace LuaSTG::Core
 				_camera_state_set.ortho = box;
 				_camera_state_set.is_3D = false;
 				DirectX::XMFLOAT4X4 f4x4;
-				DirectX::XMStoreFloat4x4(&f4x4, DirectX::XMMatrixOrthographicOffCenterLH(box.left, box.right, box.bottom, box.top, box.front, box.back));
+				DirectX::XMStoreFloat4x4(&f4x4, DirectX::XMMatrixOrthographicOffCenterLH(box.a.x, box.b.x, box.b.y, box.a.y, box.a.z, box.b.z));
 				/* upload vp matrix */ {
 					D3D11_MAPPED_SUBRESOURCE res_ = {};
 					HRESULT hr = gHR = _devctx->Map(_vp_matrix_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
@@ -1123,7 +1123,7 @@ namespace LuaSTG::Core
 				}
 			}
 		}
-		void setPerspective(Vector3 const& eye, Vector3 const& lookat, Vector3 const& headup, float fov, float aspect, float znear, float zfar)
+		void setPerspective(Vector3F const& eye, Vector3F const& lookat, Vector3F const& headup, float fov, float aspect, float znear, float zfar)
 		{
 			if (_state_dirty || !_camera_state_set.isEqual(eye, lookat, headup, fov, aspect, znear, zfar))
 			{
@@ -1177,34 +1177,34 @@ namespace LuaSTG::Core
 			}
 		}
 
-		void setViewport(Box const& box)
+		void setViewport(BoxF const& box)
 		{
 			if (_state_dirty || _state_set.viewport != box)
 			{
 				batchFlush();
 				_state_set.viewport = box;
 				D3D11_VIEWPORT const vp = {
-					.TopLeftX = box.left,
-					.TopLeftY = box.top,
-					.Width = box.right - box.left,
-					.Height = box.bottom - box.top,
-					.MinDepth = box.front,
-					.MaxDepth = box.back,
+					.TopLeftX = box.a.x,
+					.TopLeftY = box.a.y,
+					.Width = box.b.x - box.a.x,
+					.Height = box.b.y - box.a.y,
+					.MinDepth = box.a.z,
+					.MaxDepth = box.b.z,
 				};
 				_devctx->RSSetViewports(1, &vp);
 			}
 		}
-		void setScissorRect(Rect const& rect)
+		void setScissorRect(RectF const& rect)
 		{
 			if (_state_dirty || _state_set.scissor_rect != rect)
 			{
 				batchFlush();
 				_state_set.scissor_rect = rect;
 				D3D11_RECT const rc = {
-					.left = (LONG)rect.left,
-					.top = (LONG)rect.top,
-					.right = (LONG)rect.right,
-					.bottom = (LONG)rect.bottom,
+					.left = (LONG)rect.a.x,
+					.top = (LONG)rect.a.y,
+					.right = (LONG)rect.b.x,
+					.bottom = (LONG)rect.b.y,
 				};
 				_devctx->RSSetScissorRects(1, &rc);
 			}
@@ -1445,7 +1445,7 @@ namespace LuaSTG::Core
 				ps.handle = nullptr;
 			}
 		}
-		void postEffect(ShaderID const& ps, TextureID const& rt, SamplerState rtsv, Vector4 const* cv, size_t cv_n, TextureID const* tv, SamplerState const* sv, size_t tv_sv_n, BlendState blend)
+		void postEffect(ShaderID const& ps, TextureID const& rt, SamplerState rtsv, Vector4F const* cv, size_t cv_n, TextureID const* tv, SamplerState const* sv, size_t tv_sv_n, BlendState blend)
 		{
 			batchFlush();
 			
@@ -1484,10 +1484,10 @@ namespace LuaSTG::Core
 			RendererStateSet sbak = _state_set;
 			CameraStateSet cbak = _camera_state_set;
 
-			setOrtho(Box{ .left = 0.0f, .top = sh_, .front = 0.0f, .right = sw_, .bottom = 0.0f, .back = 1.0f });
+			setOrtho(BoxF(0.0f, sh_, 0.0f, sw_, 0.0f, 1.0f)); // l t front r b back
 
-			setViewport(Box{ .left = 0.0f, .top = 0.0f, .front = 0.0f, .right = sw_, .bottom = sh_, .back = 1.0f });
-			setScissorRect(Rect{ .left = 0.0f, .top = 0.0f, .right = sw_, .bottom = sh_ });
+			setViewport(BoxF(0.0f, 0.0f, 0.0f, sw_, sh_, 1.0f)); // l t front r b back
+			setScissorRect(RectF(0.0f, 0.0f, sw_, sh_));
 
 			setVertexColorBlendState(VertexColorBlendState::Zero);
 			setFogState(FogState::Disable, Color4B(), 0.0f, 0.0f);
@@ -1511,12 +1511,12 @@ namespace LuaSTG::Core
 					spdlog::error("[luastg] ID3D11DeviceContext::Map -> #user_float_buffer 调用失败，上传数据失败，LuaSTG::Core::Renderer::postEffect 调用提前中止");
 					return;
 				}
-				std::memcpy(res_.pData, cv, std::min<UINT>((UINT)cv_n, 8) * sizeof(Vector4));
+				std::memcpy(res_.pData, cv, std::min<UINT>((UINT)cv_n, 8) * sizeof(Vector4F));
 				_devctx->Unmap(_user_float_buffer.Get(), 0);
 			}
 			float ps_cbdata[8] = {
 				sw_, sh_, 0.0f, 0.0f,
-				sbak.viewport.left, sbak.viewport.top, sbak.viewport.right, sbak.viewport.bottom,
+				sbak.viewport.a.x, sbak.viewport.a.y, sbak.viewport.b.x, sbak.viewport.b.y,
 			};
 			/* upload built-in value */ {
 				D3D11_MAPPED_SUBRESOURCE res_ = {};
@@ -1651,20 +1651,20 @@ namespace LuaSTG::Core
 		self->clearDepthBuffer(zvalue);
 	}
 
-	void Renderer::setOrtho(Box const& box)
+	void Renderer::setOrtho(BoxF const& box)
 	{
 		self->setOrtho(box);
 	}
-	void Renderer::setPerspective(Vector3 const& eye, Vector3 const& lookat, Vector3 const& headup, float fov, float aspect, float znear, float zfar)
+	void Renderer::setPerspective(Vector3F const& eye, Vector3F const& lookat, Vector3F const& headup, float fov, float aspect, float znear, float zfar)
 	{
 		self->setPerspective(eye, lookat, headup, fov, aspect, znear, zfar);
 	}
 
-	void Renderer::setViewport(Box const& box)
+	void Renderer::setViewport(BoxF const& box)
 	{
 		self->setViewport(box);
 	}
-	void Renderer::setScissorRect(Rect const& rect)
+	void Renderer::setScissorRect(RectF const& rect)
 	{
 		self->setScissorRect(rect);
 	}
@@ -1739,7 +1739,7 @@ namespace LuaSTG::Core
 	{
 		self->destroyPostEffectShader(ps);
 	}
-	void Renderer::postEffect(ShaderID const& ps, TextureID const& rt, SamplerState rtsv, Vector4 const* cv, size_t cv_n, TextureID const* tv, SamplerState const* sv, size_t tv_sv_n, BlendState blend)
+	void Renderer::postEffect(ShaderID const& ps, TextureID const& rt, SamplerState rtsv, Vector4F const* cv, size_t cv_n, TextureID const* tv, SamplerState const* sv, size_t tv_sv_n, BlendState blend)
 	{
 		self->postEffect(ps, rt, rtsv, cv, cv_n, tv, sv, tv_sv_n, blend);
 	}

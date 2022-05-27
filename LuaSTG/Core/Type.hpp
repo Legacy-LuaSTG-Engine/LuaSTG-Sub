@@ -4,41 +4,143 @@
 
 namespace LuaSTG::Core
 {
+	// 二维向量
+
+	template<typename T>
+	struct Vector2
+	{
+		T x{};
+		T y{};
+
+		Vector2() noexcept : x(0), y(0) {}
+		Vector2(T const x_, T const y_) noexcept : x(x_), y(y_) {}
+
+		inline Vector2 operator+(Vector2 const& r) const noexcept { return Vector2(x + r.x, y + r.y); }
+		inline Vector2 operator-(Vector2 const& r) const noexcept { return Vector2(x - r.x, y - r.y); }
+		inline Vector2 operator*(T const r) const noexcept { return Vector2(x * r, y * r); }
+		inline Vector2 operator/(T const r) const noexcept { return Vector2(x / r, y / r); }
+
+		inline Vector2 operator+=(Vector2 const& r) noexcept { x += r.x; y += r.y; }
+		inline Vector2 operator-=(Vector2 const& r) noexcept { x -= r.x; y -= r.y; }
+		inline Vector2 operator*=(T const r) noexcept { x *= r; y *= r; }
+		inline Vector2 operator/=(T const r) noexcept { x /= r; y /= r; }
+
+		inline bool operator==(Vector2 const& r) const noexcept { return x == r.x && y == r.y; }
+		inline bool operator!=(Vector2 const& r) const noexcept { return x != r.x || y != r.y; }
+
+		inline T& operator[](size_t const i) { return (&x)[i]; }
+	};
+
+	using Vector2I = Vector2<int32_t>;
+	using Vector2U = Vector2<uint32_t>;
+	using Vector2F = Vector2<float>;
+
+	// 表示一个长方形区域
+
+	template<typename T>
+	struct Rect
+	{
+		Vector2<T> a;
+		Vector2<T> b;
+
+		Rect() noexcept {}
+		Rect(Vector2<T> const& a_, Vector2<T> const& b_) noexcept : a(a_), b(b_) {}
+		Rect(T const left, T const top, T const right, T const bottom) noexcept : a(left, top), b(right, bottom) {}
+
+		inline bool operator==(Rect const& r) const noexcept { return a == r.a && b == r.b; }
+		inline bool operator!=(Rect const& r) const noexcept { return a != r.a || b != r.b; }
+	};
+
+	using RectI = Rect<int32_t>;
+	using RectU = Rect<uint32_t>;
+	using RectF = Rect<float>;
+
+	// 三维向量
+
+	template<typename T>
 	struct Vector3
 	{
-		float x, y, z;
-		bool operator==(Vector3 const& right_) const
-		{
-			return x == right_.x
-				&& y == right_.y
-				&& z == right_.z;
-		}
-		bool operator!=(Vector3 const& right_) const
-		{
-			return x != right_.x
-				|| y != right_.y
-				|| z != right_.z;
-		}
+		T x{};
+		T y{};
+		T z{};
+
+		Vector3() noexcept : x(0), y(0), z(0) {}
+		Vector3(T const x_, T const y_, T const z_) noexcept : x(x_), y(y_), z(z_) {}
+
+		inline Vector3 operator+(Vector3 const& r) const noexcept { return Vector3(x + r.x, y + r.y, z + r.z); }
+		inline Vector3 operator-(Vector3 const& r) const noexcept { return Vector3(x - r.x, y - r.y, z - r.z); }
+		inline Vector3 operator*(T const r) const noexcept { return Vector3(x * r, y * r, z * r); }
+		inline Vector3 operator/(T const r) const noexcept { return Vector3(x / r, y / r, z / r); }
+
+		inline Vector3 operator+=(Vector3 const& r) noexcept { x += r.x; y += r.y; z += r.z; }
+		inline Vector3 operator-=(Vector3 const& r) noexcept { x -= r.x; y -= r.y; z -= r.z; }
+		inline Vector3 operator*=(T const r) noexcept { x *= r; y *= r; z *= r; }
+		inline Vector3 operator/=(T const r) noexcept { x /= r; y /= r; z /= r; }
+
+		inline bool operator==(Vector3 const& r) const noexcept { return x == r.x && y == r.y && z == r.z; }
+		inline bool operator!=(Vector3 const& r) const noexcept { return x != r.x || y != r.y || z != r.z; }
+
+		inline T& operator[](size_t const i) { return (&x)[i]; }
 	};
-	
+
+	using Vector3I = Vector3<int32_t>;
+	using Vector3U = Vector3<uint32_t>;
+	using Vector3F = Vector3<float>;
+
+	// 表示一个长方体区域
+
+	template<typename T>
+	struct Box
+	{
+		Vector3<T> a;
+		Vector3<T> b;
+
+		Box() noexcept {}
+		Box(Vector3<T> const& a_, Vector3<T> const& b_) noexcept : a(a_), b(b_) {}
+		Box(T const left, T const top, T const front, T const right, T const bottom, T const back) noexcept : a(left, top, front), b(right, bottom, back) {}
+
+		inline bool operator==(Box const& r) const noexcept { return a == r.a && b == r.b; }
+		inline bool operator!=(Box const& r) const noexcept { return a != r.a || b != r.b; }
+	};
+
+	using BoxI = Box<int32_t>;
+	using BoxU = Box<uint32_t>;
+	using BoxF = Box<float>;
+
+	// 四维向量
+
+	template<typename T>
 	struct Vector4
 	{
-		float x, y, z, w;
-		bool operator==(Vector4 const& right_) const
-		{
-			return x == right_.x
-				&& y == right_.y
-				&& z == right_.z
-				&& w == right_.w;
-		}
-		bool operator!=(Vector4 const& right_) const
-		{
-			return x != right_.x
-				|| y != right_.y
-				|| z != right_.z
-				|| w != right_.w;
-		}
+		T x{};
+		T y{};
+		T z{};
+		T w{};
+
+		Vector4() noexcept : x(0), y(0), z(0), w(0) {}
+		Vector4(T const x_, T const y_, T const z_, T const w_) noexcept : x(x_), y(y_), z(z_), w(w_) {}
+
+		inline Vector4 operator+(Vector4 const& r) const noexcept { return Vector4(x + r.x, y + r.y, z + r.z, w + r.w); }
+		inline Vector4 operator-(Vector4 const& r) const noexcept { return Vector4(x - r.x, y - r.y, z - r.z, w - r.w); }
+		inline Vector4 operator*(T const r) const noexcept { return Vector4(x * r, y * r, z * r, w * r); }
+		inline Vector4 operator/(T const r) const noexcept { return Vector4(x / r, y / r, z / r, w / r); }
+
+		inline Vector4 operator+=(Vector4 const& r) noexcept { x += r.x; y += r.y; z += r.z; w += r.w; }
+		inline Vector4 operator-=(Vector4 const& r) noexcept { x -= r.x; y -= r.y; z -= r.z; w -= r.w; }
+		inline Vector4 operator*=(T const r) noexcept { x *= r; y *= r; z *= z; w *= r; }
+		inline Vector4 operator/=(T const r) noexcept { x /= r; y /= r; z /= z; w /= r; }
+
+		inline bool operator==(Vector4 const& r) const noexcept { return x == r.x && y == r.y && z == r.z && w == r.w; }
+		inline bool operator!=(Vector4 const& r) const noexcept { return x != r.x || y != r.y || z != r.z || w != r.w; }
+
+		inline T& operator[](size_t const i) { return (&x)[i]; }
 	};
+
+	using Vector4I = Vector4<int32_t>;
+	using Vector4U = Vector4<uint32_t>;
+	using Vector4F = Vector4<float>;
+
+	// 颜色
 
 	struct Color4B
 	{
@@ -75,50 +177,6 @@ namespace LuaSTG::Core
 			u.s.g = g;
 			u.s.r = r;
 			u.s.a = a;
-		}
-	};
-
-	struct Rect
-	{
-		float left, top;
-		float right, bottom;
-		bool operator==(Rect const& right_) const
-		{
-			return left == right_.left
-				&& top == right_.top
-				&& right == right_.right
-				&& bottom == right_.bottom;
-		}
-		bool operator!=(Rect const& right_) const
-		{
-			return left != right_.left
-				|| top != right_.top
-				|| right != right_.right
-				|| bottom != right_.bottom;
-		}
-	};
-
-	struct Box
-	{
-		float left, top, front;
-		float right, bottom, back;
-		bool operator==(Box const& right_) const
-		{
-			return left == right_.left
-				&& top == right_.top
-				&& front == right_.front
-				&& right == right_.right
-				&& bottom == right_.bottom
-				&& back == right_.back;
-		}
-		bool operator!=(Box const& right_) const
-		{
-			return left != right_.left
-				|| top != right_.top
-				|| front != right_.front
-				|| right != right_.right
-				|| bottom != right_.bottom
-				|| back != right_.back;
 		}
 	};
 

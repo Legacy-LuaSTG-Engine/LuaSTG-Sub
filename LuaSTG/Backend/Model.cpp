@@ -582,20 +582,20 @@ namespace LuaSTG::Core
 		return tmp_;
 	}
 
-    void Model::setAmbient(Vector3 const& color, float brightness)
+    void Model::setAmbient(Vector3F const& color, float brightness)
     {
         sunshine.ambient = DirectX::XMFLOAT4(color.x, color.y, color.z, brightness);
     }
-    void Model::setDirectionalLight(Vector3 const& direction, Vector3 const& color, float brightness)
+    void Model::setDirectionalLight(Vector3F const& direction, Vector3F const& color, float brightness)
     {
         sunshine.dir = DirectX::XMFLOAT4(direction.x, direction.y, direction.z, 0.0f);
         sunshine.color = DirectX::XMFLOAT4(color.x, color.y, color.z, brightness);
     }
-	void Model::setScaling(Vector3 const& scale)
+	void Model::setScaling(Vector3F const& scale)
 	{
         t_scale_ = DirectX::XMMatrixScaling(scale.x, scale.y, scale.z);
 	}
-	void Model::setPosition(Vector3 const& pos)
+	void Model::setPosition(Vector3F const& pos)
 	{
         t_trans_ = DirectX::XMMatrixTranslation(pos.x, pos.y, pos.z);
 	}
@@ -603,7 +603,7 @@ namespace LuaSTG::Core
 	{
         t_mbrot_ = DirectX::XMMatrixRotationRollPitchYaw(pitch, yaw, roll);
 	}
-	void Model::setRotationQuaternion(Vector4 const& quat)
+	void Model::setRotationQuaternion(Vector4F const& quat)
 	{
 		DirectX::XMFLOAT4 const xq(quat.x, quat.y, quat.z, quat.w);
         t_mbrot_ = DirectX::XMMatrixRotationQuaternion(DirectX::XMLoadFloat4(&xq));
