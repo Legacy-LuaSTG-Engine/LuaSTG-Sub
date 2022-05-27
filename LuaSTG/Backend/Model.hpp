@@ -71,12 +71,12 @@ namespace LuaSTG::Core
 		DirectX::XMMATRIX t_trans_;
 		DirectX::XMMATRIX t_mbrot_;
 	public:
-        void setAmbient(Vector3 const& color, float brightness);
-        void setDirectionalLight(Vector3 const& direction, Vector3 const& color, float brightness);
-		void setScaling(Vector3 const& scale);
-		void setPosition(Vector3 const& pos);
+        void setAmbient(Vector3F const& color, float brightness);
+        void setDirectionalLight(Vector3F const& direction, Vector3F const& color, float brightness);
+		void setScaling(Vector3F const& scale);
+		void setPosition(Vector3F const& pos);
 		void setRotationRollPitchYaw(float roll, float pitch, float yaw);
-		void setRotationQuaternion(Vector4 const& quat);
+		void setRotationQuaternion(Vector4F const& quat);
 	private:
         ScopeObject<ModelSharedComponent> shared_;
 

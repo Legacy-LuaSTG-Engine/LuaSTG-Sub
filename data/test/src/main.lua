@@ -1,5 +1,5 @@
 local timer = 0
-local window = { width = 2560, height = 1440, }
+local window = { width = 1920, height = 1080, }
 local Key = require("keycode").Keyboard
 local MKey = require("keycode").Mouse
 local imgui = require("imgui")

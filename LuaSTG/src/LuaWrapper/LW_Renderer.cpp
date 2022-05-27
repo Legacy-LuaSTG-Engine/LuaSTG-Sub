@@ -444,39 +444,43 @@ static int lib_clearDepthBuffer(lua_State* L)LNOEXCEPT
 
 static int lib_setOrtho(lua_State* L)LNOEXCEPT
 {
-    LuaSTG::Core::Box box;
+    LuaSTG::Core::BoxF box;
     if (lua_gettop(L) < 6)
     {
-        box.left = (float)luaL_checknumber(L, 1);
-        box.right = (float)luaL_checknumber(L, 2);
-        box.bottom = (float)luaL_checknumber(L, 3);
-        box.top = (float)luaL_checknumber(L, 4);
-        box.front = 0.0f;
-        box.back = 1.0f;
+        box = LuaSTG::Core::BoxF(
+            (float)luaL_checknumber(L, 1),
+            (float)luaL_checknumber(L, 4),
+            0.0f,
+            (float)luaL_checknumber(L, 2),
+            (float)luaL_checknumber(L, 3),
+            1.0f
+        );
     }
     else
     {
-        box.left = (float)luaL_checknumber(L, 1);
-        box.right = (float)luaL_checknumber(L, 2);
-        box.bottom = (float)luaL_checknumber(L, 3);
-        box.top = (float)luaL_checknumber(L, 4);
-        box.front = (float)luaL_checknumber(L, 5);
-        box.back = (float)luaL_checknumber(L, 6);
+        box = LuaSTG::Core::BoxF(
+            (float)luaL_checknumber(L, 1),
+            (float)luaL_checknumber(L, 4),
+            (float)luaL_checknumber(L, 5),
+            (float)luaL_checknumber(L, 2),
+            (float)luaL_checknumber(L, 3),
+            (float)luaL_checknumber(L, 6)
+        );
     }
     LR2D().setOrtho(box);
     return 0;
 }
 static int lib_setPerspective(lua_State* L)LNOEXCEPT
 {
-    LuaSTG::Core::Vector3 eye;
+    LuaSTG::Core::Vector3F eye;
     eye.x = (float)luaL_checknumber(L, 1);
     eye.y = (float)luaL_checknumber(L, 2);
     eye.z = (float)luaL_checknumber(L, 3);
-    LuaSTG::Core::Vector3 lookat;
+    LuaSTG::Core::Vector3F lookat;
     lookat.x = (float)luaL_checknumber(L, 4);
     lookat.y = (float)luaL_checknumber(L, 5);
     lookat.z = (float)luaL_checknumber(L, 6);
-    LuaSTG::Core::Vector3 headup;
+    LuaSTG::Core::Vector3F headup;
     headup.x = (float)luaL_checknumber(L, 7);
     headup.y = (float)luaL_checknumber(L, 8);
     headup.z = (float)luaL_checknumber(L, 9);
@@ -490,36 +494,40 @@ static int lib_setPerspective(lua_State* L)LNOEXCEPT
 
 static int lib_setViewport(lua_State* L)LNOEXCEPT
 {
-    LuaSTG::Core::Box box;
+    LuaSTG::Core::BoxF box;
     if (lua_gettop(L) < 6)
     {
-        box.left = (float)luaL_checknumber(L, 1);
-        box.top = (float)luaL_checknumber(L, 2);
-        box.right = (float)luaL_checknumber(L, 3);
-        box.bottom = (float)luaL_checknumber(L, 4);
-        box.front = 0.0f;
-        box.back = 1.0f;
+        box = LuaSTG::Core::BoxF(
+            (float)luaL_checknumber(L, 1),
+            (float)luaL_checknumber(L, 2),
+            0.0f,
+            (float)luaL_checknumber(L, 3),
+            (float)luaL_checknumber(L, 4),
+            1.0f
+        );
     }
     else
     {
-        box.left = (float)luaL_checknumber(L, 1);
-        box.top = (float)luaL_checknumber(L, 2);
-        box.right = (float)luaL_checknumber(L, 3);
-        box.bottom = (float)luaL_checknumber(L, 4);
-        box.front = (float)luaL_checknumber(L, 5);
-        box.back = (float)luaL_checknumber(L, 6);
+        box = LuaSTG::Core::BoxF(
+            (float)luaL_checknumber(L, 1),
+            (float)luaL_checknumber(L, 2),
+            (float)luaL_checknumber(L, 5),
+            (float)luaL_checknumber(L, 3),
+            (float)luaL_checknumber(L, 4),
+            (float)luaL_checknumber(L, 6)
+        );
     }
     LR2D().setViewport(box);
     return 0;
 }
 static int lib_setScissorRect(lua_State* L)LNOEXCEPT
 {
-    LuaSTG::Core::Rect rect;
-    rect.left = (float)luaL_checknumber(L, 1);
-    rect.top = (float)luaL_checknumber(L, 2);
-    rect.right = (float)luaL_checknumber(L, 3);
-    rect.bottom = (float)luaL_checknumber(L, 4);
-    LR2D().setScissorRect(rect);
+    LR2D().setScissorRect(LuaSTG::Core::RectF(
+        (float)luaL_checknumber(L, 1),
+        (float)luaL_checknumber(L, 2),
+        (float)luaL_checknumber(L, 3),
+        (float)luaL_checknumber(L, 4)
+    ));
     return 0;
 }
 
@@ -829,9 +837,9 @@ static int lib_drawModel(lua_State* L)
 
     auto& ctx = LR2D();
 
-    pmodres->GetModel()->setScaling(LuaSTG::Core::Vector3(sx, sy, sz));
+    pmodres->GetModel()->setScaling(LuaSTG::Core::Vector3F(sx, sy, sz));
     pmodres->GetModel()->setRotationRollPitchYaw(roll, pitch, yaw);
-    pmodres->GetModel()->setPosition(LuaSTG::Core::Vector3(x, y, z));
+    pmodres->GetModel()->setPosition(LuaSTG::Core::Vector3F(x, y, z));
     ctx.drawModel(pmodres->GetModel());
 
     return 0;
@@ -875,50 +883,59 @@ static luaL_Reg const lib_func[] = {
 
 static int compat_SetViewport(lua_State* L)LNOEXCEPT
 {
-    LuaSTG::Core::Box box;
-    box.left = (float)luaL_checknumber(L, 1);
-    box.top = (float)luaL_checknumber(L, 4);
-    box.right = (float)luaL_checknumber(L, 2);
-    box.bottom = (float)luaL_checknumber(L, 3);
-    if (lua_gettop(L) < 6)
+    LuaSTG::Core::BoxF box;
+    if (lua_gettop(L) >= 6)
     {
-        box.front = 0.0f;
-        box.back = 1.0f;
+        box = LuaSTG::Core::BoxF(
+            (float)luaL_checknumber(L, 1),
+            (float)luaL_checknumber(L, 4),
+            (float)luaL_checknumber(L, 5),
+            (float)luaL_checknumber(L, 2),
+            (float)luaL_checknumber(L, 3),
+            (float)luaL_checknumber(L, 6)
+        );
     }
     else
     {
-        box.front = (float)luaL_checknumber(L, 5);
-        box.back = (float)luaL_checknumber(L, 6);
+        box = LuaSTG::Core::BoxF(
+            (float)luaL_checknumber(L, 1),
+            (float)luaL_checknumber(L, 4),
+            0.0f,
+            (float)luaL_checknumber(L, 2),
+            (float)luaL_checknumber(L, 3),
+            1.0f
+        );
     }
     if (auto* p = LRDEV()->GetRenderTarget())
     {
-        box.top = (float)p->GetHeight() - box.top;
-        box.bottom = (float)p->GetHeight() - box.bottom;
+        box.a.y = (float)p->GetHeight() - box.a.y;
+        box.b.y = (float)p->GetHeight() - box.b.y;
     }
     else
     {
-        box.top = (float)LRDEV()->GetBufferHeight() - box.top;
-        box.bottom = (float)LRDEV()->GetBufferHeight() - box.bottom;
+        box.a.y = (float)LRDEV()->GetBufferHeight() - box.a.y;
+        box.b.y = (float)LRDEV()->GetBufferHeight() - box.b.y;
     }
     LR2D().setViewport(box);
     return 0;
 }
 static int compat_SetScissorRect(lua_State* L)LNOEXCEPT
 {
-    LuaSTG::Core::Rect rect;
-    rect.left = (float)luaL_checknumber(L, 1);
-    rect.top = (float)luaL_checknumber(L, 4);
-    rect.right = (float)luaL_checknumber(L, 2);
-    rect.bottom = (float)luaL_checknumber(L, 3);
+    LuaSTG::Core::RectF rect(
+        (float)luaL_checknumber(L, 1),
+        (float)luaL_checknumber(L, 4),
+        (float)luaL_checknumber(L, 2),
+        (float)luaL_checknumber(L, 3)
+    );
     if (auto* p = LRDEV()->GetRenderTarget())
     {
-        rect.top = (float)p->GetHeight() - rect.top;
-        rect.bottom = (float)p->GetHeight() - rect.bottom;
+        rect.a.y = (float)p->GetHeight() - rect.a.y;
+        rect.b.y = (float)p->GetHeight() - rect.b.y;
     }
     else
     {
-        rect.top = (float)LRDEV()->GetBufferHeight() - rect.top;
-        rect.bottom = (float)LRDEV()->GetBufferHeight() - rect.bottom;
+        rect.a.y = (float)LRDEV()->GetBufferHeight() - rect.a.y;
+        rect.b.y = (float)LRDEV()->GetBufferHeight() - rect.b.y;
     }
     LR2D().setScissorRect(rect);
     return 0;
@@ -998,7 +1015,7 @@ static int compat_PostEffect(lua_State* L)
     check_rendertarget_usage(prt->GetTexture());
     LuaSTG::Core::TextureID rt(prt->GetTexture()->GetHandle());
 
-    LuaSTG::Core::Vector4 cbdata[8] = {};
+    LuaSTG::Core::Vector4F cbdata[8] = {};
     LuaSTG::Core::TextureID tdata[4] = {};
     LuaSTG::Core::SamplerState tsdata[4] = {};
     
