@@ -346,8 +346,8 @@ namespace LuaSTG::Core::Graphics
 	#else
 		UINT const d3d11_creation_flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 	#endif
-		D3D_FEATURE_LEVEL const target_levels[7] = {
-			D3D_FEATURE_LEVEL_12_2, // Windows 7, 8, 8.1 没有这个
+		D3D_FEATURE_LEVEL const target_levels[] = {
+			//D3D_FEATURE_LEVEL_12_2, // Direct3D 11 不支持
 			D3D_FEATURE_LEVEL_12_1, // Windows 7, 8, 8.1 没有这个
 			D3D_FEATURE_LEVEL_12_0, // Windows 7, 8, 8.1 没有这个
 			D3D_FEATURE_LEVEL_11_1, // Windows 7 没有这个
@@ -376,7 +376,7 @@ namespace LuaSTG::Core::Graphics
 			// 检查此设备是否支持 Direct3D 11 并获取特性级别
 			bool supported_d3d11 = false;
 			D3D_FEATURE_LEVEL level_info = D3D_FEATURE_LEVEL_10_0;
-			for (UINT offset = 0; offset < 5; offset += 1)
+			for (UINT offset = 0; offset < 4; offset += 1)
 			{
 				hr = gHR = D3D11CreateDevice(
 					dxgi_adapter_temp.Get(),
@@ -580,15 +580,14 @@ namespace LuaSTG::Core::Graphics
 			if (FAILED(hr))
 			{
 				i18n_log_error_fmt("[core].system_call_failed_f", "CreateDXGIFactory2 -> IDXGIFactory2");
-				return false;
+				assert(false); return false;
 			}
 			// 获得 1.1 的组件
 			hr = gHR = dxgi_factory2.As(&dxgi_factory);
-			assert(SUCCEEDED(hr)); // 不应该出现这种情况
 			if (FAILED(hr))
 			{
 				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory2::QueryInterface -> IDXGIFactory1");
-				return false;
+				assert(false); return false;
 			}
 		}
 		else if (dxgi_api_CreateDXGIFactory1)
@@ -598,7 +597,7 @@ namespace LuaSTG::Core::Graphics
 			if (FAILED(hr))
 			{
 				i18n_log_error_fmt("[core].system_call_failed_f", "CreateDXGIFactory1 -> IDXGIFactory1");
-				return false;
+				assert(false); return false;
 			}
 			// 获得 1.2 的组件（Windows 7 平台更新）
 			hr = gHR = dxgi_factory.As(&dxgi_factory2);
@@ -612,7 +611,7 @@ namespace LuaSTG::Core::Graphics
 		{
 			// 不应该出现这种情况
 			i18n_log_error_fmt("[core].system_call_failed_f", "CreateDXGIFactory");
-			return false;
+			assert(false); return false;
 		}
 		
 		// 检测特性支持情况
@@ -759,8 +758,8 @@ namespace LuaSTG::Core::Graphics
 	#else
 		UINT const d3d11_creation_flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 	#endif
-		D3D_FEATURE_LEVEL const target_levels[7] = {
-			D3D_FEATURE_LEVEL_12_2, // Windows 7, 8, 8.1 没有这个
+		D3D_FEATURE_LEVEL const target_levels[] = {
+			//D3D_FEATURE_LEVEL_12_2, // Direct3D 11 不支持
 			D3D_FEATURE_LEVEL_12_1, // Windows 7, 8, 8.1 没有这个
 			D3D_FEATURE_LEVEL_12_0, // Windows 7, 8, 8.1 没有这个
 			D3D_FEATURE_LEVEL_11_1, // Windows 7 没有这个
@@ -773,7 +772,7 @@ namespace LuaSTG::Core::Graphics
 
 		i18n_log_info("[core].Device_D3D11.start_creating_basic_D3D11_components");
 
-		for (UINT offset = 0; offset < 5; offset += 1)
+		for (UINT offset = 0; offset < 4; offset += 1)
 		{
 			hr = gHR = D3D11CreateDevice(
 				dxgi_adapter.Get(),
@@ -1150,18 +1149,63 @@ namespace LuaSTG::Core::Graphics
 				return false;
 			}
 			
-			hr = gHR = dxgi_adapter->GetParent(IID_PPV_ARGS(&dxgi_factory));
-			if (FAILED(hr))
-			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIAdapter1::GetParent -> IDXGIFactory1");
-				return false;
-			}
+			//hr = gHR = dxgi_adapter->GetParent(IID_PPV_ARGS(&dxgi_factory));
+			//if (FAILED(hr))
+			//{
+			//	i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIAdapter1::GetParent -> IDXGIFactory1");
+			//	return false;
+			//}
+			//
+			//hr = gHR = dxgi_factory.As(&dxgi_factory2);
+			//if (FAILED(hr))
+			//{
+			//	i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory1::QueryInterface -> IDXGIFactory2");
+			//	// 不是大问题
+			//}
 
-			hr = gHR = dxgi_factory.As(&dxgi_factory2);
-			if (FAILED(hr))
+			if (dxgi_api_CreateDXGIFactory2)
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory1::QueryInterface -> IDXGIFactory2");
-				// 不是大问题
+				// 创建 1.2 的组件
+				UINT dxgi_flags = 0;
+			#ifdef _DEBUG
+				dxgi_flags |= DXGI_CREATE_FACTORY_DEBUG;
+			#endif
+				hr = gHR = dxgi_api_CreateDXGIFactory2(dxgi_flags, IID_PPV_ARGS(&dxgi_factory2));
+				if (FAILED(hr))
+				{
+					i18n_log_error_fmt("[core].system_call_failed_f", "CreateDXGIFactory2 -> IDXGIFactory2");
+					assert(false); return false;
+				}
+				// 获得 1.1 的组件
+				hr = gHR = dxgi_factory2.As(&dxgi_factory);
+				if (FAILED(hr))
+				{
+					i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory2::QueryInterface -> IDXGIFactory1");
+					assert(false); return false;
+				}
+			}
+			else if (dxgi_api_CreateDXGIFactory1)
+			{
+				// 创建 1.1 的组件
+				hr = gHR = dxgi_api_CreateDXGIFactory1(IID_PPV_ARGS(&dxgi_factory));
+				if (FAILED(hr))
+				{
+					i18n_log_error_fmt("[core].system_call_failed_f", "CreateDXGIFactory1 -> IDXGIFactory1");
+					assert(false); return false;
+				}
+				// 获得 1.2 的组件（Windows 7 平台更新）
+				hr = gHR = dxgi_factory.As(&dxgi_factory2);
+				if (FAILED(hr))
+				{
+					i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory1::QueryInterface -> IDXGIFactory2");
+					// 不是严重错误
+				}
+			}
+			else
+			{
+				// 不应该出现这种情况
+				i18n_log_error_fmt("[core].system_call_failed_f", "CreateDXGIFactory");
+				assert(false); return false;
 			}
 
 			assert(dxgi_factory->IsCurrent());

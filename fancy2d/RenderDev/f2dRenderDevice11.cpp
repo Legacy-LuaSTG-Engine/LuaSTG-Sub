@@ -307,10 +307,10 @@ fResult f2dRenderDevice11::SyncDevice()
 	if (swapchain_want_resize)
 	{
 		swapchain_want_resize = false;
-		if (!m_pSwapChain->setSize(uint32_t(-1), uint32_t(-1)))
-		{
-			return FCYERR_INTERNALERR;
-		}
+		//if (!m_pSwapChain->setSize(uint32_t(-1), uint32_t(-1)))
+		//{
+		//	return FCYERR_INTERNALERR;
+		//}
 	}
 	// 小 Hack，在这里绑定交换链的 RenderTarget
 	m_pSwapChain->applyRenderAttachment();

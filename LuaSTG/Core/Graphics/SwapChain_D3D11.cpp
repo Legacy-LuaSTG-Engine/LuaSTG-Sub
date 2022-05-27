@@ -285,7 +285,14 @@ namespace LuaSTG::Core::Graphics
 
 		// 关闭傻逼快捷键
 
-		hr = gHR = dxgi_factory->MakeWindowAssociation(win32_window, DXGI_MWA_NO_ALT_ENTER); // 别他妈乱切换了
+		Microsoft::WRL::ComPtr<IDXGIFactory1> dxgi_factory_sw; // 这里他妈有坑，新创建的 DXGI 工厂和交换链内部的的不是同一个
+		hr = gHR = dxgi_swapchain->GetParent(IID_PPV_ARGS(&dxgi_factory_sw));
+		if (FAILED(hr))
+		{
+			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::GetParent -> IDXGIFactory1");
+			assert(false); return false;
+		}
+		hr = gHR = dxgi_factory_sw->MakeWindowAssociation(win32_window, DXGI_MWA_NO_ALT_ENTER); // 别他妈乱切换了
 		if (FAILED(hr))
 		{
 			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory1::MakeWindowAssociation -> DXGI_MWA_NO_ALT_ENTER");
@@ -766,6 +773,13 @@ namespace LuaSTG::Core::Graphics
 			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::SetFullscreenState -> TRUE");
 			return false;
 		}
+		// 需要重设交换链大小（特别是 Flip 交换链模型）
+		hr = gHR = dxgi_swapchain->ResizeBuffers(m_swapchain_buffer_count, mode.width, mode.height, m_swapchain_format, m_swapchain_flags);
+		if (FAILED(hr))
+		{
+			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::ResizeBuffers");
+			assert(false); return false;
+		}
 		// 创建渲染附件
 		if (!createRenderAttachment())
 		{
@@ -859,6 +873,10 @@ namespace LuaSTG::Core::Graphics
 						i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::SetFullscreenState -> TRUE");
 						return false;
 					}
+					else
+					{
+						return setSize(uint32_t(-1), uint32_t(-1));
+					}
 				}
 			}
 			else
@@ -886,6 +904,10 @@ namespace LuaSTG::Core::Graphics
 					{
 						i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::SetFullscreenState -> FALSE");
 						return false;
+					}
+					else
+					{
+						return setSize(uint32_t(-1), uint32_t(-1));
 					}
 				}
 			}
