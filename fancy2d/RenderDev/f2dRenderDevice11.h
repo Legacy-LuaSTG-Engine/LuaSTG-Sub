@@ -4,7 +4,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "f2dEngine.h"
-#include "Engine/f2dWindowImpl.h"
 #include "Core/Graphics/Device_D3D11.hpp"
 #include "Core/Graphics/SwapChain_D3D11.hpp"
 
@@ -50,7 +49,6 @@ private:
 	fcyRefPointer<f2dDepthStencilSurface> m_DepthStencil;
 
 public: // 内部函数
-	f2dEngineImpl* GetEngine() { return m_pEngine; } // 返回引擎对象
 	fResult WaitDevice();
 	fResult SyncDevice();                           // 协作测试，完成设备丢失处理
 	fResult Present();                              // 呈现

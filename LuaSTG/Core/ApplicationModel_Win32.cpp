@@ -153,6 +153,24 @@ namespace LuaSTG::Core
 
 namespace LuaSTG::Core
 {
+	struct ScopeTimer
+	{
+		LARGE_INTEGER freq{};
+		LARGE_INTEGER last{};
+		double& t;
+		ScopeTimer(double& v_ref) : t(v_ref)
+		{
+			QueryPerformanceFrequency(&freq);
+			QueryPerformanceCounter(&last);
+		}
+		~ScopeTimer()
+		{
+			LARGE_INTEGER curr{};
+			QueryPerformanceCounter(&curr);
+			t = (double)(curr.QuadPart - last.QuadPart) / (double)freq.QuadPart;
+		}
+	};
+
 	DWORD WINAPI ApplicationModel_Win32::win32_thread_worker_entry(LPVOID lpThreadParameter)
 	{
 		static_cast<ApplicationModel_Win32*>(lpThreadParameter)->worker();
@@ -163,33 +181,56 @@ namespace LuaSTG::Core
 		// 设置线程优先级为最高，并尽量让它运行在同一个 CPU 核心上，降低切换开销
 		SetThreadAffinityMask(GetCurrentThread(), 1);
 		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
+
 		// 更新、渲染循环
 		while (true)
 		{
-			// 如果需要退出
-			if (WAIT_OBJECT_0 == WaitForSingleObjectEx(win32_event_exit.Get(), 0, TRUE))
-			{
-				break;
-			}
-			
+			size_t const i = (m_framestate_index + 1) % 2;
+			FrameStatistics& d = m_framestate[i];
+			ScopeTimer t(d.total_time);
+
 			// 等待下一帧
-			m_swapchain->waitFrameLatency();
-			m_ratelimit.update();
+			{
+				ScopeTimer t(d.wait_time);
+				// 如果需要退出
+				if (WAIT_OBJECT_0 == WaitForSingleObjectEx(win32_event_exit.Get(), 0, TRUE))
+				{
+					break;
+				}
+				m_swapchain->waitFrameLatency();
+				m_ratelimit.update();
+			}
 
 			// 更新
-			m_listener->onUpdate();
-
+			{
+				ScopeTimer t(d.update_time);
+				m_listener->onUpdate();
+				m_swapchain->syncWindowActive();
+			}
+			
 			// 渲染
-			m_swapchain->syncWindowActive();
-			m_swapchain->applyRenderAttachment();
-			m_swapchain->clearRenderAttachment();
-			m_listener->onRender();
-
+			{
+				ScopeTimer t(d.render_time);
+				m_swapchain->applyRenderAttachment();
+				m_swapchain->clearRenderAttachment();
+				m_listener->onRender();
+			}
+			
 			// 呈现
-			m_swapchain->present();
+			{
+				ScopeTimer t(d.render_time);
+				m_swapchain->present();
+			}
+			
+			m_framestate_index = i;
 		}
 	}
 	
+	FrameStatistics ApplicationModel_Win32::getFrameStatistics()
+	{
+		return m_framestate[m_framestate_index];
+	}
+
 	void ApplicationModel_Win32::requestExit()
 	{
 		SetEvent(win32_event_exit.Get());

@@ -11,42 +11,45 @@ namespace LuaSTGPlus
     static platform::Keyboard::State g_KeyboardState;
 }
 
-static LRESULT KeyboardMouseMessage(HWND window, UINT message, WPARAM arg1, LPARAM arg2)
+static struct InputEventListener : public LuaSTG::Core::Graphics::IWindowEventListener
 {
-    switch (message)
+    NativeWindowMessageResult onNativeWindowMessage(void* window, uint32_t message, uintptr_t arg1, intptr_t arg2)
     {
-    case WM_ACTIVATE:
-    case WM_ACTIVATEAPP:
-    case WM_KEYDOWN:
-    case WM_SYSKEYDOWN:
-    case WM_KEYUP:
-    case WM_SYSKEYUP:
-        LuaSTGPlus::g_Keyboard.ProcessMessage(window, message, arg1, arg2);
-        break;
-    }
+        switch (message)
+        {
+        case WM_ACTIVATE:
+        case WM_ACTIVATEAPP:
+        case WM_KEYDOWN:
+        case WM_SYSKEYDOWN:
+        case WM_KEYUP:
+        case WM_SYSKEYUP:
+            LuaSTGPlus::g_Keyboard.ProcessMessage((HWND)window, message, arg1, arg2);
+            break;
+        }
 
-    switch (message)
-    {
-    case WM_ACTIVATE:
-    case WM_ACTIVATEAPP:
-    case WM_INPUT:
-    case WM_MOUSEMOVE:
-    case WM_LBUTTONDOWN:
-    case WM_LBUTTONUP:
-    case WM_RBUTTONDOWN:
-    case WM_RBUTTONUP:
-    case WM_MBUTTONDOWN:
-    case WM_MBUTTONUP:
-    case WM_MOUSEWHEEL:
-    case WM_XBUTTONDOWN:
-    case WM_XBUTTONUP:
-    case WM_MOUSEHOVER:
-        DirectX::Mouse::ProcessMessage(message, arg1, arg2);
-        break;
-    }
+        switch (message)
+        {
+        case WM_ACTIVATE:
+        case WM_ACTIVATEAPP:
+        case WM_INPUT:
+        case WM_MOUSEMOVE:
+        case WM_LBUTTONDOWN:
+        case WM_LBUTTONUP:
+        case WM_RBUTTONDOWN:
+        case WM_RBUTTONUP:
+        case WM_MBUTTONDOWN:
+        case WM_MBUTTONUP:
+        case WM_MOUSEWHEEL:
+        case WM_XBUTTONDOWN:
+        case WM_XBUTTONUP:
+        case WM_MOUSEHOVER:
+            DirectX::Mouse::ProcessMessage(message, arg1, arg2);
+            break;
+        }
 
-    return 0;
-}
+        return {};
+    }
+} g_InputEventListener;
 
 namespace LuaSTGPlus
 {
@@ -58,12 +61,12 @@ namespace LuaSTGPlus
         g_Keyboard.Reset();
         Mouse = std::make_unique<DirectX::Mouse>();
         ZeroMemory(&MouseState, sizeof(MouseState));
-        m_pMainWindow->AddNativeMessageCallback((fHandle)&KeyboardMouseMessage);
-        Mouse->SetWindow((HWND)m_pMainWindow->GetHandle());
+        m_pAppModel->getWindow()->addEventListener(&g_InputEventListener);
+        Mouse->SetWindow((HWND)m_pAppModel->getWindow()->getNativeHandle());
     }
     void AppFrame::CloseInput()
     {
-        m_pMainWindow->RemoveNativeMessageCallback((fHandle)&KeyboardMouseMessage);
+        m_pAppModel->getWindow()->removeEventListener(&g_InputEventListener);
         Mouse = nullptr;
     }
     void AppFrame::UpdateInput()

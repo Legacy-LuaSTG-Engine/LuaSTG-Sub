@@ -40,7 +40,14 @@ namespace LuaSTG::Core::Graphics
 		// 特殊
 		for (auto& v : m_eventobj)
 		{
-			if (v) v->onNativeWindowMessage(window, message, arg1, arg2);
+			if (v)
+			{
+				auto r = v->onNativeWindowMessage(window, message, arg1, arg2);
+				if (r.should_return)
+				{
+					return r.result;
+				}
+			}
 		}
 		// 其他消息
 		switch (message)

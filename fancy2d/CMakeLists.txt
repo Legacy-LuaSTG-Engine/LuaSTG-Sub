@@ -5,7 +5,6 @@ set(FANCY2D_SOURCE
     f2dInterface.h
 
     f2dEngine.h
-    f2dWindow.h
     f2dSoundSys.h
     f2dRenderDevice.h
     f2dRenderer.h
@@ -16,8 +15,6 @@ set(FANCY2D_SOURCE
 
     Engine/f2dEngineImpl.h
     Engine/f2dEngineImpl.cpp
-    Engine/f2dWindowImpl.h
-    Engine/f2dWindowImpl.cpp
 
     RenderDev/f2dRenderDevice11.h
     RenderDev/f2dRenderDevice11.cpp

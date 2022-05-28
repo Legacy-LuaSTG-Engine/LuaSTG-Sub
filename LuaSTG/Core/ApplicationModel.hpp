@@ -26,6 +26,15 @@ namespace LuaSTG::Core
         virtual void onRender() {}
     };
 
+    struct FrameStatistics
+    {
+        double total_time{};
+        double wait_time{};
+        double update_time{};
+        double render_time{};
+        double present_time{};
+    };
+
     struct IApplicationModel : public IObject
     {
         // [工作线程]
@@ -36,6 +45,8 @@ namespace LuaSTG::Core
         virtual Graphics::IDevice* getDevice() = 0;
         // [工作线程]
         virtual Graphics::ISwapChain* getSwapChain() = 0;
+        // [工作线程]
+        virtual FrameStatistics getFrameStatistics() = 0;
 
         // [主线程|工作线程]
         virtual void requestExit() = 0;

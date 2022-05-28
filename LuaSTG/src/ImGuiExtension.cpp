@@ -35,15 +35,15 @@ static std::string bytes_count_to_string(DWORDLONG size)
     }
     else if (size < (1024 * 1024)) // KB
     {
-        count = std::snprintf(buffer, 64, "%.2f KB", (double)size / 1024.0);
+        count = std::snprintf(buffer, 64, "%.2f KiB", (double)size / 1024.0);
     }
     else if (size < (1024 * 1024 * 1024)) // MB
     {
-        count = std::snprintf(buffer, 64, "%.2f MB", (double)size / 1048576.0);
+        count = std::snprintf(buffer, 64, "%.2f MiB", (double)size / 1048576.0);
     }
     else // GB
     {
-        count = std::snprintf(buffer, 64, "%.2f GB", (double)size / 1073741824.0);
+        count = std::snprintf(buffer, 64, "%.2f GiB", (double)size / 1073741824.0);
     }
     return std::string(buffer, count);
 }
@@ -368,65 +368,65 @@ static int lib_ShowFrameStatistics(lua_State* L)
         {
             // TODO:
 
-            // info = {};
-            //
-            //ImGui::Text("Update : %.3fms", info.update_time  * 1000.0);
-            //ImGui::Text("Render : %.3fms", info.render_time  * 1000.0);
-            //ImGui::Text("Present: %.3fms", info.present_time * 1000.0);
-            //ImGui::Text("Total  : %.3fms", info.total_time   * 1000.0);
-            //
-            //ImGui::SliderScalar("Record Range", sizeof(size_t) == 8 ? ImGuiDataType_U64 : ImGuiDataType_U32, &record_range, &record_range_min, &record_range_max);
-            //record_range = std::clamp<size_t>(record_range, 2, record_range_max);
-            //ImGui::SliderFloat("Timeline Height", &height, 256.0f, 512.0f);
-            //ImGui::Checkbox("Auto-Fit Y Axis", &auto_fit);
-//
-            //arr_update_time[arr_index] = 1000.0 * (info.update_time);
-            //arr_render_time[arr_index] = 1000.0 * (info.update_time + info.render_time);
-            //arr_present_time[arr_index] = 1000.0 * (info.update_time + info.render_time + info.present_time);
-            //arr_total_time[arr_index] = 1000.0 * (info.total_time);
-            //arr_index = (arr_index + 1) % record_range;
-//
-            //if (ImPlot::BeginPlot("##Frame Statistics", ImVec2(-1, height), 0))
-            //{
-            //    //ImPlot::SetupAxes("Frame", "Time", flags, flags);
-            //    ImPlot::SetupAxisLimits(ImAxis_X1, 0.0, (double)(record_range - 1), ImGuiCond_Always);
-            //    //ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0, 1000.0 / 18.0, ImGuiCond_Always);
-            //    if (auto_fit)
-            //        ImPlot::SetupAxes(NULL, NULL, ImPlotAxisFlags_None, ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_RangeFit);
-            //    else
-            //        ImPlot::SetupAxes(NULL, NULL);
-//
-            //    ImPlot::SetupLegend(ImPlotLocation_North, ImPlotLegendFlags_Horizontal | ImPlotLegendFlags_Outside);
-//
-            //    static double arr_ms[] = {
-            //        1000.0 / 60.0,
-            //        1000.0 / 30.0,
-            //        1000.0 / 20.0,
-            //    };
-            //    ImPlot::SetNextLineStyle(ImVec4(0.2f, 1.0f, 0.2f, 1.0f));
-            //    ImPlot::PlotHLines("##60 FPS", arr_ms, 1);
-            //    //ImPlot::SetNextLineStyle(ImVec4(1.0f, 1.2f, 0.2f, 1.0f));
-            //    //ImPlot::PlotHLines("##30 FPS", arr_ms + 1, 1);
-            //    //ImPlot::SetNextLineStyle(ImVec4(1.0f, 0.2f, 0.2f, 1.0f));
-            //    //ImPlot::PlotHLines("##20 FPS", arr_ms + 2, 1);
-//
-            //    ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.5f);
-            //    ImPlot::PlotShaded("Total", arr_x.data(), arr_present_time.data(), arr_total_time.data(), (int)record_range);
-            //    ImPlot::PlotShaded("Present", arr_x.data(), arr_render_time.data(), arr_present_time.data(), (int)record_range);
-            //    ImPlot::PlotShaded("Render", arr_x.data(), arr_update_time.data(), arr_render_time.data(), (int)record_range);
-            //    ImPlot::PlotShaded("Update", arr_x.data(), arr_update_time.data(), (int)record_range);
-            //    ImPlot::PopStyleVar();
-//
-            //    ImPlot::PlotLine("Total", arr_total_time.data(), (int)record_range);
-            //    ImPlot::PlotLine("Present", arr_present_time.data(), (int)record_range);
-            //    ImPlot::PlotLine("Render", arr_render_time.data(), (int)record_range);
-            //    ImPlot::PlotLine("Update", arr_update_time.data(), (int)record_range);
-            //    
-            //    ImPlot::SetNextLineStyle(ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-            //    ImPlot::PlotVLines("##Current Time", &arr_index, 1);
-//
-            //    ImPlot::EndPlot();
-            //}
+            auto info = LAPP.GetAppModel()->getFrameStatistics();
+            
+            ImGui::Text("Update : %.3fms", info.update_time  * 1000.0);
+            ImGui::Text("Render : %.3fms", info.render_time  * 1000.0);
+            ImGui::Text("Present: %.3fms", info.present_time * 1000.0);
+            ImGui::Text("Total  : %.3fms", info.total_time   * 1000.0);
+            
+            ImGui::SliderScalar("Record Range", sizeof(size_t) == 8 ? ImGuiDataType_U64 : ImGuiDataType_U32, &record_range, &record_range_min, &record_range_max);
+            record_range = std::clamp<size_t>(record_range, 2, record_range_max);
+            ImGui::SliderFloat("Timeline Height", &height, 256.0f, 512.0f);
+            ImGui::Checkbox("Auto-Fit Y Axis", &auto_fit);
+
+            arr_update_time[arr_index] = 1000.0 * (info.update_time);
+            arr_render_time[arr_index] = 1000.0 * (info.update_time + info.render_time);
+            arr_present_time[arr_index] = 1000.0 * (info.update_time + info.render_time + info.present_time);
+            arr_total_time[arr_index] = 1000.0 * (info.total_time);
+            arr_index = (arr_index + 1) % record_range;
+
+            if (ImPlot::BeginPlot("##Frame Statistics", ImVec2(-1, height), 0))
+            {
+                //ImPlot::SetupAxes("Frame", "Time", flags, flags);
+                ImPlot::SetupAxisLimits(ImAxis_X1, 0.0, (double)(record_range - 1), ImGuiCond_Always);
+                //ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0, 1000.0 / 18.0, ImGuiCond_Always);
+                if (auto_fit)
+                    ImPlot::SetupAxes(NULL, NULL, ImPlotAxisFlags_None, ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_RangeFit);
+                else
+                    ImPlot::SetupAxes(NULL, NULL);
+
+                ImPlot::SetupLegend(ImPlotLocation_North, ImPlotLegendFlags_Horizontal | ImPlotLegendFlags_Outside);
+
+                static double arr_ms[] = {
+                    1000.0 / 60.0,
+                    1000.0 / 30.0,
+                    1000.0 / 20.0,
+                };
+                ImPlot::SetNextLineStyle(ImVec4(0.2f, 1.0f, 0.2f, 1.0f));
+                ImPlot::PlotHLines("##60 FPS", arr_ms, 1);
+                //ImPlot::SetNextLineStyle(ImVec4(1.0f, 1.2f, 0.2f, 1.0f));
+                //ImPlot::PlotHLines("##30 FPS", arr_ms + 1, 1);
+                //ImPlot::SetNextLineStyle(ImVec4(1.0f, 0.2f, 0.2f, 1.0f));
+                //ImPlot::PlotHLines("##20 FPS", arr_ms + 2, 1);
+
+                ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.5f);
+                ImPlot::PlotShaded("Total", arr_x.data(), arr_present_time.data(), arr_total_time.data(), (int)record_range);
+                ImPlot::PlotShaded("Present", arr_x.data(), arr_render_time.data(), arr_present_time.data(), (int)record_range);
+                ImPlot::PlotShaded("Render", arr_x.data(), arr_update_time.data(), arr_render_time.data(), (int)record_range);
+                ImPlot::PlotShaded("Update", arr_x.data(), arr_update_time.data(), (int)record_range);
+                ImPlot::PopStyleVar();
+
+                ImPlot::PlotLine("Total", arr_total_time.data(), (int)record_range);
+                ImPlot::PlotLine("Present", arr_present_time.data(), (int)record_range);
+                ImPlot::PlotLine("Render", arr_render_time.data(), (int)record_range);
+                ImPlot::PlotLine("Update", arr_update_time.data(), (int)record_range);
+                
+                ImPlot::SetNextLineStyle(ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+                ImPlot::PlotVLines("##Current Time", &arr_index, 1);
+
+                ImPlot::EndPlot();
+            }
         }
         ImGui::End();
     }
@@ -500,7 +500,9 @@ namespace imgui
     static HMODULE g_hXinput = NULL;
     static DWORD (WINAPI *g_fXInputGetState)(DWORD, XINPUT_STATE*) = NULL;
     
-    class ImGuiRenderDeviceEventListener : public f2dRenderDeviceEventListener
+    class ImGuiBackendEventListener
+        : public f2dRenderDeviceEventListener
+        , public LuaSTG::Core::Graphics::IWindowEventListener
     {
     public:
         void OnRenderDeviceLost()
@@ -517,8 +519,16 @@ namespace imgui
             ImGui_ImplDX11_Init(device, context);
             context->Release();
         }
+        NativeWindowMessageResult onNativeWindowMessage(void* hwnd, uint32_t msg, uintptr_t wparam, intptr_t lparam)
+        {
+            LRESULT lresult = ImGui_ImplWin32Ex_WndProcHandler((HWND)hwnd, msg, wparam, lparam);
+            if (lresult)
+                return NativeWindowMessageResult{ .result = lresult, .should_return = true };
+            else
+                return {};
+        }
     };
-    static ImGuiRenderDeviceEventListener g_ImGuiRenderDeviceEventListener;
+    static ImGuiBackendEventListener g_ImGuiRenderDeviceEventListener;
     
     void loadConfig()
     {
@@ -598,7 +608,7 @@ namespace imgui
         style.FrameBorderSize = 1.0f;
         style.TabBorderSize = 1.0f;
         
-        style.ScaleAllSizes(APP.GetEngine()->GetMainWindow()->GetDPIScaling());
+        style.ScaleAllSizes(APP.GetAppModel()->getWindow()->getDPIScaling());
 
         ImGui::GetStyle() = style;
 
@@ -616,7 +626,7 @@ namespace imgui
             {
                 io.Fonts->AddFontFromFileTTF(
                     fontpath.c_str(),
-                    16.0f * APP.GetEngine()->GetMainWindow()->GetDPIScaling(),
+                    16.0f * APP.GetAppModel()->getWindow()->getDPIScaling(),
                     &cfg
                     //, io.Fonts->GetGlyphRangesChineseFull()
                 );
@@ -631,7 +641,7 @@ namespace imgui
     
     void bindEngine()
     {
-        auto* window = APP.GetEngine()->GetMainWindow();
+        auto* window = APP.GetAppModel()->getWindow();
         auto* device = APP.GetRenderDev();
         auto* L = APP.GetLuaEngine();
         
@@ -642,8 +652,8 @@ namespace imgui
         setConfig();
         loadConfig();
         
-        ImGui_ImplWin32Ex_Init((void*)window->GetHandle());
-        window->AddNativeMessageCallback((fHandle)&ImGui_ImplWin32Ex_WndProcHandler);
+        ImGui_ImplWin32Ex_Init((void*)window->getNativeHandle());
+        window->addEventListener(&g_ImGuiRenderDeviceEventListener);
         
         g_ImGuiRenderDeviceEventListener.OnRenderDeviceReset();
         device->AttachListener(&g_ImGuiRenderDeviceEventListener);
@@ -667,13 +677,13 @@ namespace imgui
         g_fXInputGetState = NULL;
         if (g_hXinput) { FreeLibrary(g_hXinput); g_hXinput = NULL; }
         
-        auto* window = APP.GetEngine()->GetMainWindow();
+        auto* window = APP.GetAppModel()->getWindow();
         auto* device = APP.GetRenderDev();
         
         device->RemoveListener(&g_ImGuiRenderDeviceEventListener);
         g_ImGuiRenderDeviceEventListener.OnRenderDeviceLost();
         
-        window->RemoveNativeMessageCallback((fHandle)&ImGui_ImplWin32Ex_WndProcHandler);
+        window->removeEventListener(&g_ImGuiRenderDeviceEventListener);
         ImGui_ImplWin32Ex_Shutdown();
         
         saveConfig();
@@ -681,7 +691,7 @@ namespace imgui
         ImPlot::DestroyContext();
         ImGui::DestroyContext();
     }
-    
+
     void updateEngine()
     {
         if (g_ImGuiBindEngine)
@@ -715,7 +725,7 @@ namespace imgui
             }
         }
     }
-    
+
     void showTestInputWindow(bool* p_open)
     {
         auto* __p = APP.GetDInput();

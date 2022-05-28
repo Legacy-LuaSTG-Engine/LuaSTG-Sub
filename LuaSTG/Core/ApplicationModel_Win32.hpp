@@ -56,6 +56,8 @@ namespace LuaSTG::Core
 		ScopeObject<Graphics::SwapChain_D3D11> m_swapchain;
 		FrameRateController m_ratelimit;
 		IApplicationEventListener* m_listener{ nullptr };
+		size_t m_framestate_index{ 0 };
+		FrameStatistics m_framestate[2]{};
 
 		static DWORD WINAPI win32_thread_worker_entry(LPVOID lpThreadParameter);
 		void worker();
@@ -71,6 +73,7 @@ namespace LuaSTG::Core
 		IFrameRateController* getFrameRateController() { return &m_ratelimit; };
 		Graphics::IDevice* getDevice() { return *m_device; }
 		Graphics::ISwapChain* getSwapChain() { return *m_swapchain; }
+		FrameStatistics getFrameStatistics();
 
 		// 仅限主线程
 

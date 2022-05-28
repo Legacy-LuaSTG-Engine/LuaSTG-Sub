@@ -29,9 +29,10 @@ namespace LuaSTGPlus
             LuaSTG::Core::InitializeConfigure config;
             if (config.loadFromFile("config.json"))
             {
+                using namespace LuaSTG::Core::Graphics;
                 spdlog::info("[luastg] 发现配置文件'config.json'");
                 LAPP.SetWindowed(config.windowed);
-                LAPP.SetDefaultWindowStyle(config.windowed ? F2DWINBORDERTYPE_FIXED : F2DWINBORDERTYPE_NONE);
+                LAPP.SetDefaultWindowStyle(config.windowed ? WindowFrameStyle::Fixed : WindowFrameStyle::None);
                 LAPP.SetVsync(config.vsync);
                 LAPP.SetResolution(config.width, config.height, config.refresh_rate_numerator, config.refresh_rate_denominator);
                 if (!config.gpu.empty())

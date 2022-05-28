@@ -51,7 +51,7 @@ namespace LuaSTGPlus
 		
 		// 选项与值
 		bool m_OptionWindowed = true;
-		F2DWINBORDERTYPE m_OptionWindowStyle = F2DWINBORDERTYPE_FIXED;
+		LuaSTG::Core::Graphics::WindowFrameStyle m_OptionWindowStyle = LuaSTG::Core::Graphics::WindowFrameStyle::Fixed;
 		fuInt m_OptionFPSLimit = 60;
 		bool m_OptionVsync = false;
 		fcyVec2 m_OptionResolution = fcyVec2(640.f, 480.f);
@@ -67,7 +67,6 @@ namespace LuaSTGPlus
 
 		// 引擎
 		fcyRefPointer<f2dEngine> m_pEngine;
-		f2dWindow* m_pMainWindow = nullptr;
 		f2dRenderer* m_pRenderer = nullptr;
 		f2dRenderDevice* m_pRenderDev = nullptr;
 		f2dSoundSys* m_pSoundSys = nullptr;
@@ -137,7 +136,7 @@ namespace LuaSTGPlus
 		
 	public: // 脚本调用接口，含义参见API文档
 		void SetWindowed(bool v)LNOEXCEPT;
-		void SetDefaultWindowStyle(F2DWINBORDERTYPE v) { m_OptionWindowStyle = v; };
+		void SetDefaultWindowStyle(LuaSTG::Core::Graphics::WindowFrameStyle v) { m_OptionWindowStyle = v; };
 		void SetVsync(bool v)LNOEXCEPT;
 		void SetResolution(fuInt width, fuInt height, fuInt A = 0, fuInt B = 0)LNOEXCEPT;
 		void SetTitle(const char* v)LNOEXCEPT;
@@ -266,8 +265,6 @@ namespace LuaSTGPlus
 
 		GameObjectPool& GetGameObjectPool() LNOEXCEPT{ return *m_GameObjectPool.get(); }
 
-		f2dEngine* GetEngine() LNOEXCEPT { return m_pEngine; }
-		f2dWindow* GetWindow() LNOEXCEPT { return m_pMainWindow; }
 		f2dRenderer* GetRenderer() LNOEXCEPT { return m_pRenderer; }
 		f2dRenderDevice* GetRenderDev() LNOEXCEPT { return m_pRenderDev; }
 		f2dSoundSys* GetSoundSys() LNOEXCEPT { return m_pSoundSys; }
@@ -277,6 +274,8 @@ namespace LuaSTGPlus
 		platform::DirectInput* GetDInput() LNOEXCEPT { return m_DirectInput.get(); }
 		
 		LuaSTG::Core::Renderer& GetRenderer2D() { return m_NewRenderer2D; }
+
+		LuaSTG::Core::IApplicationModel* GetAppModel() { return *m_pAppModel; }
 
 	public:
 		/// @brief 初始化框架
