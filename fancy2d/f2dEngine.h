@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include "f2dInterface.h"
-#include "f2dWindow.h"
 #include "f2dSoundSys.h"
 #include "f2dRenderer.h"
 
@@ -18,7 +17,6 @@ struct f2dEngine : f2dInterface
 {
 	// --- 获得组件 ---
 
-	virtual f2dWindow* GetMainWindow()=0;
 	virtual f2dSoundSys* GetSoundSys()=0;
 	virtual f2dRenderer* GetRenderer()=0;
 

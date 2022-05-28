@@ -1,29 +1,33 @@
 #include "AppFrame.h"
 #include "LuaWrapper.hpp"
+#include "LuaWrapper/lua_utility.hpp"
 #include "utility/encoding.hpp"
 
-#ifdef LAPP
-#undef LAPP
-#endif
-#define LAPP() (LuaSTGPlus::AppFrame::GetInstance())
-#define LWIN() (LuaSTGPlus::AppFrame::GetInstance().GetWindow())
+using namespace LuaSTG::Core;
+using namespace LuaSTG::Core::Graphics;
 
-#define getwindow(__NAME__)\
-    f2dWindow* __NAME__ = LuaSTGPlus::AppFrame::GetInstance().GetWindow();\
-    if (!__NAME__) { return luaL_error(L, "lstg.Window is not available"); }
+inline IWindow* _get_window()
+{
+    return LuaSTGPlus::AppFrame::GetInstance().GetAppModel()->getWindow();
+}
+
+#define getwindow(__NAME__) auto* __NAME__ = _get_window()
 
 static int lib_setMouseEnable(lua_State* L)
 {
     getwindow(window);
-    const bool enable = lua_toboolean(L, 1);
-    window->HideMouse(!enable);
+    bool const enable = lua_toboolean(L, 1);
+    if (enable)
+        window->setCursor(WindowCursor::Arrow);
+    else
+        window->setCursor(WindowCursor::None);
     return 0;
 }
 static int lib_setTitle(lua_State* L)
 {
     getwindow(window);
-    const char* text = luaL_checkstring(L, 1);
-    window->SetCaption(text);
+    std::string_view const text = luaL_check_string_view(L, 1);
+    window->setTitleText(text);
     return 0;
 }
 static int lib_setCentered(lua_State* L)
@@ -31,12 +35,12 @@ static int lib_setCentered(lua_State* L)
     getwindow(window);
     if (lua_gettop(L) > 0)
     {
-        const fuInt index = (fuInt)luaL_checkinteger(L, 1);
-        window->MoveToMonitorCenter(index);
+        uint32_t const index = (uint32_t)luaL_checkinteger(L, 1);
+        window->setMonitorCentered(index);
     }
     else
     {
-        window->MoveToCenter();
+        window->setCentered();
     }
     return 0;
 }
@@ -45,12 +49,12 @@ static int lib_setFullScreen(lua_State* L)
     getwindow(window);
     if (lua_gettop(L) > 0)
     {
-        const fuInt index = (fuInt)luaL_checkinteger(L, 1);
-        window->EnterMonitorFullScreen(index);
+        uint32_t const index = (uint32_t)luaL_checkinteger(L, 1);
+        window->setMonitorFullScreen(index);
     }
     else
     {
-        window->EnterFullScreen();
+        window->setFullScreen();
     }
     return 0;
 }
@@ -59,14 +63,14 @@ static int lib_getFullScreenSize(lua_State* L)
     getwindow(window);
     if (lua_gettop(L) > 0)
     {
-        const fuInt index = (fuInt)luaL_checkinteger(L, 1);
-        const fcyRect rect = window->GetMonitorRect(index);
-        lua_pushnumber(L, rect.GetWidth());
-        lua_pushnumber(L, rect.GetHeight());
+        uint32_t const index = (uint32_t)luaL_checkinteger(L, 1);
+        RectI const rc = window->getMonitorRect(index);
+        lua_pushnumber(L, rc.b.x - rc.a.x);
+        lua_pushnumber(L, rc.b.y - rc.a.y);
     }
     else
     {
-        const fcyVec2 size = window->GetMonitorSize();
+        Vector2I const size = window->getMonitorSize();
         lua_pushnumber(L, size.x);
         lua_pushnumber(L, size.y);
     }
@@ -75,39 +79,41 @@ static int lib_getFullScreenSize(lua_State* L)
 static int lib_setStyle(lua_State* L)
 {
     getwindow(window);
-    const F2DWINBORDERTYPE style = (F2DWINBORDERTYPE)luaL_checkinteger(L, 1);
-    window->SetBorderType(style);
-    LAPP().SetDefaultWindowStyle(style); // compat
+    WindowFrameStyle style = (WindowFrameStyle)luaL_checkinteger(L, 1);
+    window->setFrameStyle(style);
+    LAPP.SetDefaultWindowStyle(style); // compat
     return 0;
 }
 static int lib_setSize(lua_State* L)
 {
     getwindow(window);
-    const float width = (float)luaL_checkinteger(L, 1);
-    const float height = (float)luaL_checkinteger(L, 2);
-    const fcyRect rect(0.0f, 0.0f, width, height);
-    const fResult result = window->SetClientRect(rect);
-    lua_pushboolean(L, result == FCYERR_OK);
+    int32_t const width = (int32_t)luaL_checkinteger(L, 1);
+    int32_t const height = (int32_t)luaL_checkinteger(L, 2);
+    bool const result = window->setSize(Vector2I(width, height));
+    lua_pushboolean(L, result);
     return 1;
 }
 static int lib_setTopMost(lua_State* L)
 {
     getwindow(window);
-    const bool topmost = lua_toboolean(L, 1);
-    window->SetTopMost(topmost);
+    bool const topmost = lua_toboolean(L, 1);
+    if (topmost)
+        window->setLayer(WindowLayer::TopMost);
+    else
+        window->setLayer(WindowLayer::Normal);
     return 0;
 }
 static int lib_setIMEEnable(lua_State* L)
 {
     getwindow(window);
-    const bool enable = lua_toboolean(L, 1);
-    window->SetIMEEnable(enable);
+    bool const enable = lua_toboolean(L, 1);
+    window->setIMEState(enable);
     return 0;
 }
 static int lib_getDPIScaling(lua_State* L)
 {
     getwindow(window);
-    const float dpi_scale = window->GetDPIScaling();
+    float const dpi_scale = window->getDPIScaling();
     lua_pushnumber(L, dpi_scale);
     return 1;
 }
@@ -130,56 +136,56 @@ static int lib_clearTextInput(lua_State* L)
 static int lib_setCustomMoveSizeEnable(lua_State* L)
 {
     getwindow(window);
-    window->SetCustomMoveSizeEnable(lua_toboolean(L, 1));
+    window->setCustomSizeMoveEnable(lua_toboolean(L, 1));
     return 0;
 }
 static int lib_setCustomMinimizeButtonRect(lua_State* L)
 {
     getwindow(window);
-    window->SetCustomMinimizeButtonRect(fcyRect(
-        luaL_checknumber(L, 1),
-        luaL_checknumber(L, 2),
-        luaL_checknumber(L, 3),
-        luaL_checknumber(L, 4)
+    window->setCustomMinimizeButtonRect(RectI(
+        luaL_checkinteger(L, 1),
+        luaL_checkinteger(L, 2),
+        luaL_checkinteger(L, 3),
+        luaL_checkinteger(L, 4)
     ));
     return 0;
 }
 static int lib_setCustomCloseButtonRect(lua_State* L)
 {
     getwindow(window);
-    window->SetCustomCloseButtonRect(fcyRect(
-        luaL_checknumber(L, 1),
-        luaL_checknumber(L, 2),
-        luaL_checknumber(L, 3),
-        luaL_checknumber(L, 4)
+    window->setCustomCloseButtonRect(RectI(
+        luaL_checkinteger(L, 1),
+        luaL_checkinteger(L, 2),
+        luaL_checkinteger(L, 3),
+        luaL_checkinteger(L, 4)
     ));
     return 0;
 }
 static int lib_setCustomMoveButtonRect(lua_State* L)
 {
     getwindow(window);
-    window->SetCustomMoveButtonRect(fcyRect(
-        luaL_checknumber(L, 1),
-        luaL_checknumber(L, 2),
-        luaL_checknumber(L, 3),
-        luaL_checknumber(L, 4)
+    window->setCustomMoveButtonRect(RectI(
+        luaL_checkinteger(L, 1),
+        luaL_checkinteger(L, 2),
+        luaL_checkinteger(L, 3),
+        luaL_checkinteger(L, 4)
     ));
     return 0;
 }
 
 static int compat_SetDefaultWindowStyle(lua_State* L)
 {
-    LAPP().SetDefaultWindowStyle((F2DWINBORDERTYPE)luaL_checkinteger(L, 1));
+    LAPP.SetDefaultWindowStyle((LuaSTG::Core::Graphics::WindowFrameStyle)luaL_checkinteger(L, 1));
     return 0;
 }
 static int compat_SetSplash(lua_State* L)
 {
-    LAPP().SetSplash(lua_toboolean(L, 1));
+    LAPP.SetSplash(lua_toboolean(L, 1));
     return 0;
 }
 static int compat_SetTitle(lua_State* L)
 {
-    LAPP().SetTitle(luaL_checkstring(L, 1));
+    LAPP.SetTitle(luaL_checkstring(L, 1));
     return 0;
 }
 
@@ -219,25 +225,25 @@ static const luaL_Reg lib[] = {
 static int molib_getCount(lua_State* L)
 {
     getwindow(window);
-    lua_pushinteger(L, (lua_Integer)window->GetMonitorCount());
+    lua_pushinteger(L, (lua_Integer)window->getMonitorCount());
     return 1;
 }
 static int molib_getPos(lua_State* L)
 {
     getwindow(window);
-    const fuInt index = (fuInt)luaL_checkinteger(L, 1);
-    const fcyRect rect = window->GetMonitorRect(index);
-    lua_pushnumber(L, rect.a.x);
-    lua_pushnumber(L, rect.a.y);
+    uint32_t const index = (uint32_t)luaL_checkinteger(L, 1);
+    RectI const rc = window->getMonitorRect(index);
+    lua_pushinteger(L, rc.a.x);
+    lua_pushinteger(L, rc.a.y);
     return 2;
 }
 static int molib_getSize(lua_State* L)
 {
     getwindow(window);
-    const fuInt index = (fuInt)luaL_checkinteger(L, 1);
-    const fcyRect rect = window->GetMonitorRect(index);
-    lua_pushnumber(L, rect.GetWidth());
-    lua_pushnumber(L, rect.GetHeight());
+    uint32_t const index = (uint32_t)luaL_checkinteger(L, 1);
+    RectI const rc = window->getMonitorRect(index);
+    lua_pushinteger(L, rc.b.x - rc.a.x);
+    lua_pushinteger(L, rc.b.y - rc.a.y);
     return 2;
 }
 

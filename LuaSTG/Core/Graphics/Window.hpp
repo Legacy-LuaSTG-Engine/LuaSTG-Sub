@@ -17,7 +17,13 @@ namespace LuaSTG::Core::Graphics
 
 		virtual void onDeviceChange() {};
 
-		virtual void onNativeWindowMessage(void*, uint32_t, uintptr_t, intptr_t) {};
+		struct NativeWindowMessageResult
+		{
+			intptr_t result;
+			bool should_return;
+		};
+
+		virtual NativeWindowMessageResult onNativeWindowMessage(void*, uint32_t, uintptr_t, intptr_t) { return {}; };
 	};
 
 	enum class WindowFrameStyle
