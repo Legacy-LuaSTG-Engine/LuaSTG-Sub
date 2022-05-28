@@ -122,6 +122,8 @@ namespace LuaSTG::Core::Graphics
 		void addEventListener(IDeviceEventListener* e);
 		void removeEventListener(IDeviceEventListener* e);
 
+		DeviceMemoryUsageStatistics getMemoryUsageStatistics();
+
 	public:
 		Device_D3D11(std::string_view const& prefered_gpu = "");
 		~Device_D3D11();

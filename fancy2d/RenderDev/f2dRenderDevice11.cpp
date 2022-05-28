@@ -1,61 +1,7 @@
 ﻿#include "RenderDev/f2dRenderDevice11.h"
-
 #include "RenderDev/f2dTexture11.h"
 #include "Engine/f2dEngineImpl.h"
 
-#include "utility/encoding.hpp"
-#include "platform/WindowsVersion.hpp"
-
-static std::string bytes_count_to_string(DWORDLONG size)
-{
-	int count = 0;
-	char buffer[64] = {};
-	if (size < 1024llu) // B
-	{
-		count = std::snprintf(buffer, 64, "%u B", (unsigned int)size);
-	}
-	else if (size < (1024llu * 1024llu)) // KB
-	{
-		count = std::snprintf(buffer, 64, "%.2f KiB", (double)size / 1024.0);
-	}
-	else if (size < (1024llu * 1024llu * 1024llu)) // MB
-	{
-		count = std::snprintf(buffer, 64, "%.2f MiB", (double)size / 1048576.0);
-	}
-	else // GB
-	{
-		count = std::snprintf(buffer, 64, "%.2f GiB", (double)size / 1073741824.0);
-	}
-	return std::string(buffer, count);
-}
-static void get_system_memory_status()
-{
-	MEMORYSTATUSEX info = { sizeof(MEMORYSTATUSEX) };
-	if (GlobalMemoryStatusEx(&info))
-	{
-		spdlog::info("[fancy2d] 系统内存使用情况：\n"
-			"    使用百分比：{}%\n"
-			"    总物理内存：{}\n"
-			"    剩余物理内存：{}\n"
-			"    当前进程可提交内存限制：{}\n"
-			"    当前进程剩余的可提交内存：{}\n"
-			"    当前进程用户模式内存空间限制*1：{}\n"
-			"    当前进程剩余的用户模式内存空间：{}\n"
-			"        *1 此项反映此程序实际上能用的最大内存，在 32 位应用程序上此项一般为 2 GB，修改 Windows 操作系统注册表后可能为 1 到 3 GB"
-			, info.dwMemoryLoad
-			, bytes_count_to_string(info.ullTotalPhys)
-			, bytes_count_to_string(info.ullAvailPhys)
-			, bytes_count_to_string(info.ullTotalPageFile)
-			, bytes_count_to_string(info.ullAvailPageFile)
-			, bytes_count_to_string(info.ullTotalVirtual)
-			, bytes_count_to_string(info.ullAvailVirtual)
-		);
-	}
-	else
-	{
-		spdlog::error("[fancy2d] 无法获取系统内存使用情况");
-	}
-}
 inline f2dDisplayMode display_mode_from(LuaSTG::Core::Graphics::DisplayMode const& mode)
 {
 	return f2dDisplayMode{
@@ -88,9 +34,6 @@ inline LuaSTG::Core::Graphics::DisplayMode display_mode_to(f2dDisplayMode const&
 f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, f2dEngineRenderWindowParam* RenderWindowParam)
 	: m_pEngine(pEngine)
 {
-	spdlog::info("[fancy2d] 操作系统版本：{}", platform::WindowsVersion::GetName());
-	get_system_memory_status();
-
 	// 设备族
 
 	m_pGraphicsDevice = dynamic_cast<LuaSTG::Core::Graphics::Device_D3D11*>(pEngine->GGetAppModel()->getDevice());
@@ -115,33 +58,8 @@ f2dRenderDevice11::~f2dRenderDevice11()
 }
 
 void* f2dRenderDevice11::GetHandle() { return d3d11_device.Get(); }
-fcStr f2dRenderDevice11::GetDeviceName() { return m_pGraphicsDevice->GetAdapterName().data(); }
 fuInt f2dRenderDevice11::GetSupportedDeviceCount() { return m_pGraphicsDevice->GetAdapterNameArray().size(); }
 fcStr f2dRenderDevice11::GetSupportedDeviceName(fuInt Index) { return m_pGraphicsDevice->GetAdapterNameArray()[Index].c_str(); }
-f2dAdapterMemoryUsageStatistics f2dRenderDevice11::GetAdapterMemoryUsageStatistics()
-{
-	f2dAdapterMemoryUsageStatistics data = {};
-	Microsoft::WRL::ComPtr<IDXGIAdapter3> adapter;
-	if (bHR = dxgi_adapter.As(&adapter))
-	{
-		DXGI_QUERY_VIDEO_MEMORY_INFO info = {};
-		if (bHR = gHR = adapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &info))
-		{
-			data.local.budget = info.Budget;
-			data.local.current_usage = info.CurrentUsage;
-			data.local.available_for_reservation = info.AvailableForReservation;
-			data.local.current_reservation = info.CurrentReservation;
-		}
-		if (bHR = gHR = adapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL, &info))
-		{
-			data.non_local.budget = info.Budget;
-			data.non_local.current_usage = info.CurrentUsage;
-			data.non_local.available_for_reservation = info.AvailableForReservation;
-			data.non_local.current_reservation = info.CurrentReservation;
-		}
-	}
-	return data;
-}
 
 // 事件
 
@@ -353,18 +271,6 @@ fResult f2dRenderDevice11::SetRenderTargetAndDepthStencilSurface(f2dTexture2D* p
 
 // 交换链
 
-fuInt f2dRenderDevice11::GetSupportedDisplayModeCount(fBool refresh)
-{
-	if (m_pSwapChain->getDisplayModeCount() < 1 || refresh)
-	{
-		m_pSwapChain->refreshDisplayMode();
-	}
-	return m_pSwapChain->getDisplayModeCount();
-}
-f2dDisplayMode f2dRenderDevice11::GetSupportedDisplayMode(fuInt Index)
-{
-	return display_mode_from(m_pSwapChain->getDisplayMode(Index));
-}
 fResult f2dRenderDevice11::SetDisplayMode(fuInt Width, fuInt Height, fBool VSync, fBool FlipModel)
 {
 	m_pSwapChain->setVSync(VSync);
@@ -385,28 +291,6 @@ fResult f2dRenderDevice11::SetDisplayMode(f2dDisplayMode mode, fBool VSync)
 }
 fuInt f2dRenderDevice11::GetBufferWidth() { return m_pSwapChain->getWidth(); }
 fuInt f2dRenderDevice11::GetBufferHeight() { return m_pSwapChain->getHeight(); }
-fBool f2dRenderDevice11::IsWindowed() { return m_pSwapChain->isWindowMode(); }
-fResult f2dRenderDevice11::SyncDevice()
-{
-	// 小 Hack，在这里绑定交换链的 RenderTarget
-	m_pSwapChain->applyRenderAttachment();
-	return FCYERR_OK;
-}
-fResult f2dRenderDevice11::WaitDevice()
-{
-	m_pSwapChain->waitFrameLatency();
-	return FCYERR_OK;
-}
-fResult f2dRenderDevice11::Present()
-{
-	m_RenderTarget = nullptr;
-	m_DepthStencil = nullptr;
-	if (!m_pSwapChain->present())
-	{
-		return FCYERR_INTERNALERR;
-	}
-	return FCYERR_OK;
-}
 
 fResult f2dRenderDevice11::SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, fBool FlipModel, F2DAALEVEL)
 {

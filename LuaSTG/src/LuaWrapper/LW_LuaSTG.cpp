@@ -191,11 +191,13 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		static int EnumResolutions(lua_State* L) {
 			if (LAPP.GetRenderDev())
 			{
-				auto count = LAPP.GetRenderDev()->GetSupportedDisplayModeCount(true);
+				auto* p_swapchain = LAPP.GetAppModel()->getSwapChain();
+				p_swapchain->refreshDisplayMode();
+				auto count = p_swapchain->getDisplayModeCount();
 				lua_createtable(L, count, 0);		// t
 				for (auto index = 0; index < count; index++)
 				{
-					f2dDisplayMode mode = LAPP.GetRenderDev()->GetSupportedDisplayMode(index);
+					auto mode = p_swapchain->getDisplayMode(index);
 
 					lua_createtable(L, 7, 0);		// t t
 
@@ -214,10 +216,10 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 					lua_pushinteger(L, (lua_Integer)mode.format);
 					lua_rawseti(L, -2, 5);
 
-					lua_pushinteger(L, (lua_Integer)mode.scanline_ordering);
+					lua_pushinteger(L, 0); // legacy
 					lua_rawseti(L, -2, 6);
 
-					lua_pushinteger(L, (lua_Integer)mode.scaling);
+					lua_pushinteger(L, 0); // legacy
 					lua_rawseti(L, -2, 7);
 
 					lua_rawseti(L, -2, index + 1);	// t

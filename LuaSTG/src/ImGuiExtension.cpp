@@ -284,7 +284,7 @@ static int lib_ShowMemoryUsageWindow(lua_State* L)
         {
             MEMORYSTATUSEX info = { sizeof(MEMORYSTATUSEX) };
             BOOL bret = GlobalMemoryStatusEx(&info);
-            f2dAdapterMemoryUsageStatistics gmuinfo = LAPP.GetRenderDev() ? LAPP.GetRenderDev()->GetAdapterMemoryUsageStatistics() : f2dAdapterMemoryUsageStatistics{};
+            auto gmuinfo = LAPP.GetAppModel()->getDevice()->getMemoryUsageStatistics();
             if (bret)
             {
                 static bool more_info = false;
