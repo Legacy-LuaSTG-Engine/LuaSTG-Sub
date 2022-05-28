@@ -1,7 +1,10 @@
 ﻿#include "Core/Graphics/Device_D3D11.hpp"
+#include "Core/FileManager.hpp"
 #include "Core/i18n.hpp"
 #include "utility/encoding.hpp"
 #include "platform/WindowsVersion.hpp"
+
+#include "WICTextureLoader11.h"
 
 namespace LuaSTG::Core::Graphics
 {
@@ -1307,6 +1310,61 @@ namespace LuaSTG::Core::Graphics
 		return data;
 	}
 
+	bool Device_D3D11::createTextureFromFile(StringView path, bool mipmap, ITexture2D** pp_texutre)
+	{
+		try
+		{
+			*pp_texutre = new Texture2D_D3D11(this, path, mipmap);
+			return true;
+		}
+		catch (...)
+		{
+			*pp_texutre = nullptr;
+			return false;
+		}
+	}
+	//bool createTextureFromMemory(void const* data, size_t size, bool mipmap, ITexture2D** pp_texutre);
+	bool Device_D3D11::createTexture(Vector2U size, ITexture2D** pp_texutre)
+	{
+		try
+		{
+			*pp_texutre = new Texture2D_D3D11(this, size, false);
+			return true;
+		}
+		catch (...)
+		{
+			*pp_texutre = nullptr;
+			return false;
+		}
+	}
+
+	bool Device_D3D11::createRenderTarget(Vector2U size, IRenderTarget** pp_rt)
+	{
+		try
+		{
+			*pp_rt = new RenderTarget_D3D11(this, size);
+			return true;
+		}
+		catch (...)
+		{
+			*pp_rt = nullptr;
+			return false;
+		}
+	}
+	bool Device_D3D11::createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** pp_ds)
+	{
+		try
+		{
+			*pp_ds = new DepthStencilBuffer_D3D11(this, size);
+			return true;
+		}
+		catch (...)
+		{
+			*pp_ds = nullptr;
+			return false;
+		}
+	}
+
 	bool Device_D3D11::create(StringView prefered_gpu, Device_D3D11** p_device)
 	{
 		try
@@ -1333,5 +1391,279 @@ namespace LuaSTG::Core::Graphics
 			*p_device = nullptr;
 			return false;
 		}
+	}
+}
+
+namespace LuaSTG::Core::Graphics
+{
+	// Texture2D
+
+	bool Texture2D_D3D11::uploadPixelData(RectU rc, void const* data, uint32_t pitch)
+	{
+		if (!m_dynamic)
+		{
+			return false;
+		}
+		auto* d3d11_devctx = m_device->GetD3D11DeviceContext();
+		if (!d3d11_devctx || !d3d11_texture2d)
+		{
+			return false;
+		}
+		D3D11_BOX box = {
+			.left = rc.a.x,
+			.top = rc.a.y,
+			.front = 0,
+			.right = rc.b.x,
+			.bottom = rc.b.y,
+			.back = 1,
+		};
+		d3d11_devctx->UpdateSubresource(d3d11_texture2d.Get(), 0, &box, data, pitch, 0);
+		return true;
+	}
+
+	void Texture2D_D3D11::onDeviceCreate()
+	{
+		createResource();
+	}
+	void Texture2D_D3D11::onDeviceDestroy()
+	{
+		d3d11_texture2d.Reset();
+		d3d11_srv.Reset();
+	}
+
+	bool Texture2D_D3D11::createResource()
+	{
+		HRESULT hr = S_OK;
+
+		auto* d3d11_device = m_device->GetD3D11Device();
+		auto* d3d11_devctx = m_device->GetD3D11DeviceContext();
+		if (!d3d11_device || !d3d11_devctx)
+			return false;
+
+		if (!source_path.empty())
+		{
+			std::vector<uint8_t> src;
+			if (!GFileManager().loadEx(source_path, src))
+			{
+				spdlog::error("[core] 无法加载文件 '{}'", source_path);
+				return false;
+			}
+
+			// 加载图片
+			Microsoft::WRL::ComPtr<ID3D11Resource> res;
+			hr = gHR = DirectX::CreateWICTextureFromMemoryEx(
+				d3d11_device, m_mipmap ? d3d11_devctx : NULL,
+				src.data(), src.size(),
+				0,
+				D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0,
+				DirectX::WIC_LOADER_DEFAULT,
+				&res, &d3d11_srv);
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "DirectX::CreateWICTextureFromMemoryEx");
+				return false;
+			}
+
+			// 转换类型
+			hr = gHR = res.As(&d3d11_texture2d);
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Resource::QueryInterface -> ID3D11Texture2D");
+				return false;
+			}
+
+			// 获取图片尺寸
+			D3D11_TEXTURE2D_DESC t2dinfo = {};
+			d3d11_texture2d->GetDesc(&t2dinfo);
+			m_size.x = t2dinfo.Width;
+			m_size.y = t2dinfo.Height;
+		}
+		else
+		{
+			D3D11_TEXTURE2D_DESC texdef = {
+				.Width = m_size.x,
+				.Height = m_size.y,
+				.MipLevels = 1,
+				.ArraySize = 1,
+				.Format = DXGI_FORMAT_B8G8R8A8_UNORM,
+				.SampleDesc = DXGI_SAMPLE_DESC{.Count = 1,.Quality = 0},
+				.Usage = D3D11_USAGE_DEFAULT,
+				.BindFlags = D3D11_BIND_SHADER_RESOURCE | (m_isrt ? D3D11_BIND_RENDER_TARGET : 0u),
+				.CPUAccessFlags = 0,
+				.MiscFlags = 0,
+			};
+			hr = gHR = d3d11_device->CreateTexture2D(&texdef, NULL, &d3d11_texture2d);
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CreateTexture2D");
+				return false;
+			}
+
+			D3D11_SHADER_RESOURCE_VIEW_DESC viewdef = {
+				.Format = texdef.Format,
+				.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D,
+				.Texture2D = D3D11_TEX2D_SRV{.MostDetailedMip = 0,.MipLevels = 1,},
+			};
+			hr = gHR = d3d11_device->CreateShaderResourceView(d3d11_texture2d.Get(), &viewdef, &d3d11_srv);
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CreateShaderResourceView");
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	Texture2D_D3D11::Texture2D_D3D11(Device_D3D11* device, StringView path, bool mipmap)
+		: m_device(device)
+		, source_path(path)
+		, m_dynamic(false)
+		, m_premul(false)
+		, m_mipmap(mipmap)
+		, m_isrt(false)
+	{
+		if (!createResource())
+			throw std::runtime_error("Texture2D::Texture2D");
+		m_device->addEventListener(this);
+	}
+	Texture2D_D3D11::Texture2D_D3D11(Device_D3D11* device, Vector2U size, bool rendertarget)
+		: m_device(device)
+		, m_size(size)
+		, m_dynamic(true)
+		, m_premul(rendertarget) // 默认是预乘 alpha 的
+		, m_mipmap(false)
+		, m_isrt(rendertarget)
+	{
+		if (!createResource())
+			throw std::runtime_error("Texture2D::Texture2D");
+		if (!m_isrt)
+			m_device->addEventListener(this);
+	}
+	Texture2D_D3D11::~Texture2D_D3D11()
+	{
+		if (!m_isrt)
+			m_device->removeEventListener(this);
+	}
+
+	// RenderTarget
+
+	void RenderTarget_D3D11::onDeviceCreate()
+	{
+		if (m_texture->createResource())
+			createResource();
+	}
+	void RenderTarget_D3D11::onDeviceDestroy()
+	{
+		d3d11_rtv.Reset();
+		m_texture->onDeviceDestroy();
+	}
+
+	bool RenderTarget_D3D11::createResource()
+	{
+		HRESULT hr = S_OK;
+
+		auto* d3d11_device = m_device->GetD3D11Device();
+		auto* d3d11_devctx = m_device->GetD3D11DeviceContext();
+		if (!d3d11_device || !d3d11_devctx)
+			return false;
+
+		D3D11_TEXTURE2D_DESC tex2ddef = {};
+		m_texture->GetResource()->GetDesc(&tex2ddef);
+
+		D3D11_RENDER_TARGET_VIEW_DESC rtvdef = {
+			.Format = tex2ddef.Format,
+			.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D,
+			.Texture2D = D3D11_TEX2D_RTV{.MipSlice = 0,},
+		};
+		hr = gHR = d3d11_device->CreateRenderTargetView(m_texture->GetResource(), &rtvdef, &d3d11_rtv);
+		if (FAILED(hr))
+		{
+			i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CreateRenderTargetView");
+			return false;
+		}
+
+		return true;
+	}
+
+	RenderTarget_D3D11::RenderTarget_D3D11(Device_D3D11* device, Vector2U size)
+		: m_device(device)
+	{
+		m_texture.rawset(new Texture2D_D3D11(device, size, true));
+		if (!createResource())
+			throw std::runtime_error("RenderTarget::RenderTarget");
+		m_device->addEventListener(this);
+	}
+	RenderTarget_D3D11::~RenderTarget_D3D11()
+	{
+		m_device->removeEventListener(this);
+	}
+
+	// DepthStencil
+
+	void DepthStencilBuffer_D3D11::onDeviceCreate()
+	{
+		createResource();
+	}
+	void DepthStencilBuffer_D3D11::onDeviceDestroy()
+	{
+		d3d11_texture2d.Reset();
+		d3d11_dsv.Reset();
+	}
+
+	bool DepthStencilBuffer_D3D11::createResource()
+	{
+		HRESULT hr = S_OK;
+
+		auto* d3d11_device = m_device->GetD3D11Device();
+		auto* d3d11_devctx = m_device->GetD3D11DeviceContext();
+		if (!d3d11_device || !d3d11_devctx)
+			return false;
+
+		D3D11_TEXTURE2D_DESC tex2ddef = {
+			.Width = m_size.x,
+			.Height = m_size.y,
+			.MipLevels = 1,
+			.ArraySize = 1,
+			.Format = DXGI_FORMAT_D24_UNORM_S8_UINT,
+			.SampleDesc = DXGI_SAMPLE_DESC{.Count = 1,.Quality = 0,},
+			.Usage = D3D11_USAGE_DEFAULT,
+			.BindFlags = D3D11_BIND_DEPTH_STENCIL,
+			.CPUAccessFlags = 0,
+			.MiscFlags = 0,
+		};
+		hr = gHR = d3d11_device->CreateTexture2D(&tex2ddef, NULL, &d3d11_texture2d);
+		if (FAILED(hr))
+		{
+			i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CreateTexture2D");
+			return false;
+		}
+
+		D3D11_DEPTH_STENCIL_VIEW_DESC dsvdef = {
+			.Format = tex2ddef.Format,
+			.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D,
+			.Texture2D = D3D11_TEX2D_DSV{.MipSlice = 0,},
+		};
+		hr = gHR = d3d11_device->CreateDepthStencilView(d3d11_texture2d.Get(), &dsvdef, &d3d11_dsv);
+		if (FAILED(hr))
+		{
+			i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CreateDepthStencilView");
+			return false;
+		}
+
+		return true;
+	}
+
+	DepthStencilBuffer_D3D11::DepthStencilBuffer_D3D11(Device_D3D11* device, Vector2U size)
+		: m_device(device)
+		, m_size(size)
+	{
+		if (!createResource())
+			throw std::runtime_error("DepthStencilBuffer::DepthStencilBuffer");
+		m_device->addEventListener(this);
+	}
+	DepthStencilBuffer_D3D11::~DepthStencilBuffer_D3D11()
+	{
+		m_device->removeEventListener(this);
 	}
 }
