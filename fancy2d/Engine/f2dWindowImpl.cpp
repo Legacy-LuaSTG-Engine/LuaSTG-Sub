@@ -15,8 +15,6 @@ LuaSTG::Core::RectI coreRect_from(fcyRect v)
 ////////////////////////////////////////////////////////////////////////////////
 
 f2dWindowImpl::f2dWindowImpl(f2dEngineImpl* pEngine, const fcyRect& Pos, fcStrW Title, fBool Visiable, F2DWINBORDERTYPE Border, bool DisableIME)
-	: m_DefaultListener(pEngine, this)
-	, m_pListener(&m_DefaultListener)
 {
 	m_window = dynamic_cast<LuaSTG::Core::Graphics::Window_Win32*>(pEngine->GGetAppModel()->getWindow());
 
@@ -166,9 +164,4 @@ void f2dWindowImpl::SetCustomCloseButtonRect(fcyRect v)
 void f2dWindowImpl::SetCustomMoveButtonRect(fcyRect v)
 {
 	m_window->setCustomMoveButtonRect(coreRect_from(v));
-}
-
-void f2dWindowImpl::MoveMouseToRightBottom()
-{
-	m_window->setCursorToRightBottom();
 }

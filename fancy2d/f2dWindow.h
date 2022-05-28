@@ -139,8 +139,7 @@ struct f2dWindow
 {
 	virtual void AddNativeMessageCallback(fHandle pWndProc)=0;
 	virtual void RemoveNativeMessageCallback(fHandle pWndProc)=0;
-	
-	virtual fHandle GetIWindow() = 0;
+
 	virtual fHandle GetHandle()=0;
 	virtual fResult SetBorderType(F2DWINBORDERTYPE Type)=0;
 	virtual fResult SetCaption(fcStr Caption)=0;
