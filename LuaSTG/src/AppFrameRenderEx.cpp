@@ -85,116 +85,11 @@ namespace LuaSTGPlus {
     }
     
     // 废弃
-    bool AppFrame::PostEffect(fcyRefPointer<f2dTexture2D> rt, ResFX* shader, BlendMode blend)LNOEXCEPT
-    {
-        //2dEffectTechnique* pTechnique = shader->GetEffect()->GetTechnique(0U);
-        //
-        //f (!pTechnique)
-        //
-        //   spdlog::error("[luastg] PostEffect: 无效的后处理特效");
-        //   return false;
-        //
-        //
-        /// 纹理使用检查
-        //f (CheckRenderTargetInUse(rt))
-        //
-        //   spdlog::error("[luastg] PostEffect: RenderTarget无法同时绑定为着色器纹理资源和渲染输出目标");
-        //   return false;
-        //
-        //
-        /// 终止渲染过程
-        //ool bRestartRenderPeriod = false;
-        //witch (m_GraphType)
-        //
-        //ase GraphicsType::Graph2D:
-        //   if (m_Graph2D->IsInRender())
-        //   {
-        //       bRestartRenderPeriod = true;
-        //       m_Graph2D->End();
-        //   }
-        //   break;
-        //ase GraphicsType::Graph3D:
-        //   if (m_Graph3D->IsInRender())
-        //   {
-        //       bRestartRenderPeriod = true;
-        //       m_Graph3D->End();
-        //   }
-        //   break;
-        //
-        //
-        /// 更新渲染状态
-        //pdateGraph3DBlendMode(blend);
-        //
-        /// 关闭fog
-        //Direct3DDevice9* pDev = (IDirect3DDevice9*)m_pRenderDev->GetHandle();
-        //WORD iFogEnabled = FALSE;
-        //Dev->GetRenderState(D3DRS_FOGENABLE, &iFogEnabled);
-        //f (iFogEnabled == TRUE)
-        //   pDev->SetRenderState(D3DRS_FOGENABLE, FALSE);
-        //
-        /// 设置effect
-        //hader->SetPostEffectTexture(rt);
-        //hader->SetViewport(m_pRenderDev->GetViewport());
-        //hader->SetScreenSize(fcyVec2((float)m_pRenderDev->GetBufferWidth(), (float)m_pRenderDev->GetBufferHeight()));
-        //_Graph3D->SetEffect(shader->GetEffect());
-        //f (FCYFAILED(m_Graph3D->Begin()))
-        //
-        //   // ！ 异常退出不可恢复渲染过程
-        //   spdlog::error("[luastg] PostEffect: 内部错误 (f2dGraphics3D::Begin failed)");
-        //   return false;
-        //
-        /// 执行所有的pass
-        //or (fuInt i = 0; i < pTechnique->GetPassCount(); ++i)
-        //
-        //   m_Graph3D->BeginPass(i);
-        //   m_Graph3D->RenderPostEffect();
-        //   m_Graph3D->EndPass();
-        //
-        //_Graph3D->End();
-        //hader->SetPostEffectTexture(NULL);
-        //
-        /// 检查是否开启了雾
-        //f (iFogEnabled == TRUE)
-        //   pDev->SetRenderState(D3DRS_FOGENABLE, TRUE);
-        //
-        /// 重启渲染过程
-        //f (bRestartRenderPeriod)
-        //
-        //   switch (m_GraphType)
-        //   {
-        //   case GraphicsType::Graph2D:
-        //       m_Graph2D->Begin();
-        //       break;
-        //   case GraphicsType::Graph3D:
-        //       m_Graph3D->Begin();
-        //       break;
-        //   }
-        //
-        //
-        return true;
-    }
-    bool AppFrame::PostEffect(ResTexture* rt, ResFX* shader, BlendMode blend)LNOEXCEPT
-    {
-        //if (!m_bRenderStarted)
-        //{
-        //    spdlog::error("[luastg] PostEffect: 无效调用");
-        //    return false;
-        //}
-        //
-        //return PostEffect(rt->GetTexture(), shader, blend);
-        return true;
-    }
     //static f2dGraphics2DVertex vcache[2048];
     //static fuShort             icache[8192];
     bool AppFrame::RenderSector(const char* name, fcyRect uv, bool tran, BlendMode blend, fcyColor color1, fcyColor color2,
         fcyVec2 pos, float rot, float exp, float r1, float r2, int div)
     {
-        //// 检查渲染器
-        //if (m_GraphType != GraphicsType::Graph2D)
-        //{
-        //    spdlog::error("[luastg] RenderSector: 只有2D渲染器可以执行该方法");
-        //    return false;
-        //}
         //// 计算顶点
         //if (div < 1) {
         //    return true; // 不需要绘制

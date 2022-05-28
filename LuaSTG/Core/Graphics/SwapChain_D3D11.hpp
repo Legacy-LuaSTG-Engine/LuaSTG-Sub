@@ -1,17 +1,20 @@
-﻿#include "Core/Object.hpp"
+﻿#pragma once
+#include "Core/Object.hpp"
 #include "Core/Graphics/SwapChain.hpp"
+#include "Core/Graphics/Window_Win32.hpp"
 #include "Core/Graphics/Device_D3D11.hpp"
 
 namespace LuaSTG::Core::Graphics
 {
 	class SwapChain_D3D11
 		: public Object<ISwapChain>
+		, public IWindowEventListener
 		, public IDeviceEventListener
 	{
 	private:
+		ScopeObject<Window_Win32> m_window;
 		ScopeObject<Device_D3D11> m_device;
-		HWND win32_window{ NULL };
-
+		
 		Microsoft::WRL::Wrappers::Event dxgi_swapchain_event;
 		Microsoft::WRL::ComPtr<IDXGISwapChain> dxgi_swapchain;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> d3d11_rtv;
@@ -30,6 +33,21 @@ namespace LuaSTG::Core::Graphics
 		BOOL m_swapchain_last_flip{ FALSE };
 
 		BOOL m_init{ FALSE };
+		std::atomic_int m_window_active_changed{ 0 };
+	private:
+		void onDeviceCreate();
+		void onDeviceDestroy();
+
+		void onWindowCreate();
+		void onWindowDestroy();
+
+		void onWindowActive();
+		void onWindowInactive();
+	private:
+		void destroySwapChain();
+		bool createSwapChain(bool windowed, bool flip, DisplayMode const& mode, bool no_attachment);
+		void destroyRenderAttachment();
+		bool createRenderAttachment();
 	private:
 		enum class EventType
 		{
@@ -43,15 +61,7 @@ namespace LuaSTG::Core::Graphics
 	public:
 		void addEventListener(ISwapChainEventListener* e);
 		void removeEventListener(ISwapChainEventListener* e);
-	private:
-		void onDeviceCreate();
-		void onDeviceDestroy();
-	private:
-		void destroySwapChain();
-		bool createSwapChain(bool windowed, bool flip, DisplayMode const& mode, bool no_attachment);
-		void destroyRenderAttachment();
-		bool createRenderAttachment();
-	public:
+		
 		bool refreshDisplayMode();
 		uint32_t getDisplayModeCount();
 		DisplayMode getDisplayMode(uint32_t index);
@@ -64,15 +74,16 @@ namespace LuaSTG::Core::Graphics
 		uint32_t getWidth() { return m_swapchain_last_mode.width; }
 		uint32_t getHeight() { return m_swapchain_last_mode.height; }
 
+		void clearRenderAttachment();
 		void applyRenderAttachment();
+		void syncWindowActive();
 		void waitFrameLatency();
 		void setVSync(bool enable);
 		bool present();
-
-		bool onWindowActive();
-		bool onWindowInactive();
 	public:
-		SwapChain_D3D11(HWND p_window, Device_D3D11* p_device);
+		SwapChain_D3D11(Window_Win32* p_window, Device_D3D11* p_device);
 		~SwapChain_D3D11();
+	public:
+		static bool create(Window_Win32* p_window, Device_D3D11* p_device, SwapChain_D3D11** pp_swapchain);
 	};
 }

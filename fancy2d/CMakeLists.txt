@@ -1,41 +1,23 @@
 # 源文件
 
 set(FANCY2D_SOURCE
-    f2dConfig.h
     f2d.h
     f2dInterface.h
 
     f2dEngine.h
-    f2dFileSys.h
     f2dWindow.h
-    f2dInputSys.h
     f2dSoundSys.h
     f2dRenderDevice.h
     f2dRenderer.h
-    f2dVideoSys.h
 
     #Build/fancy2d.manifest
     Build/pch.h
     Build/pch.cpp
 
-    Engine/f2dMsgPumpImpl.h
-    Engine/f2dFPSControllerImpl.h
-    Engine/f2dFPSControllerImpl.cpp
     Engine/f2dEngineImpl.h
     Engine/f2dEngineImpl.cpp
-    #Engine/f2dFileSysImpl.h
-    #Engine/f2dFileSysImpl.cpp
     Engine/f2dWindowImpl.h
     Engine/f2dWindowImpl.cpp
-
-    #Input/f2dInputSysImpl.h
-    #Input/f2dInputSysImpl.cpp
-    #Input/f2dInputKeyboardImpl.h
-    #Input/f2dInputKeyboardImpl.cpp
-    #Input/f2dInputMouseImpl.h
-    #Input/f2dInputMouseImpl.cpp
-    #Input/f2dInputJoystickImpl.h
-    #Input/f2dInputJoystickImpl.cpp
 
     RenderDev/f2dRenderDevice11.h
     RenderDev/f2dRenderDevice11.cpp
@@ -69,15 +51,6 @@ set(FANCY2D_SOURCE
     Sound/f2dAudioBufferStatic.cpp
     Sound/f2dAudioBufferDynamic.h
     Sound/f2dAudioBufferDynamic.cpp
-
-    #Video/f2dVideoSysImpl.h
-    #Video/f2dVideoSysImpl.cpp
-    #Video/f2dVideoImpl.h
-    #Video/f2dVideoImpl.cpp
-    #Video/f2dVideoStream.h
-    #Video/f2dVideoStream.cpp
-    #Video/f2dVideoRenderer.h
-    #Video/f2dVideoRenderer.cpp
 )
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} PREFIX fancy2d FILES ${FANCY2D_SOURCE})
 

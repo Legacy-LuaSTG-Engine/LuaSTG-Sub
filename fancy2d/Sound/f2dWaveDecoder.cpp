@@ -2,8 +2,6 @@
 
 #include "fcyException.h"
 
-#include "fcyOS/fcyDebug.h"
-
 using namespace std;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -105,8 +103,6 @@ f2dWaveDecoder::f2dWaveDecoder(f2dStream* pStream)
 	}
 	catch(const fcyException& e) // 处理读取异常
 	{
-		FCYDEBUGEXCPT(e);
-
 		m_pStream->Unlock();
 		clear();                // 清除无用数据
 		FCYSAFEKILL(m_pStream); // 释放引用

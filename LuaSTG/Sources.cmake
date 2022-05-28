@@ -74,7 +74,6 @@ set(LUASTG_ENGINE_SOURCES
     src/AppFrameLua.cpp
     src/AppFrameRender.cpp
     src/AppFrameRenderEx.cpp
-    src/f2dKeyCodeConvert.inl
     src/GameObject.cpp
     src/GameObject.hpp
     src/GameObjectBentLaser.cpp
@@ -93,9 +92,8 @@ set(LUASTG_ENGINE_SOURCES
     src/Main.cpp
     src/ScopeObject.cpp
     src/Utility.h
+    
     Core/Type.hpp
-    Core/ApplicationModel.hpp
-    Backend/ApplicationModel.cpp
     Core/FileManager.hpp
     Backend/FileManager.cpp
     Core/InitializeConfigure.hpp

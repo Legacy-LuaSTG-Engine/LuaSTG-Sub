@@ -169,6 +169,9 @@ function FrameFunc()
     else
         ps:Update(1 / 60, 0, 0, timer % 360)
     end
+    if lstg.GetKeyState(Key.ESCAPE) then
+        return true
+    end
     return false
 end
 function RenderFunc()

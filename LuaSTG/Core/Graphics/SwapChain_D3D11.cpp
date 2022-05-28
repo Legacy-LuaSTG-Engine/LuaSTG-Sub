@@ -123,6 +123,24 @@ namespace LuaSTG::Core::Graphics
 		destroySwapChain();
 	}
 
+	void SwapChain_D3D11::onWindowCreate()
+	{
+		//onDeviceCreate();
+	}
+	void SwapChain_D3D11::onWindowDestroy()
+	{
+		//onDeviceDestroy();
+	}
+
+	void SwapChain_D3D11::onWindowActive()
+	{
+		m_window_active_changed.store(0x1);
+	}
+	void SwapChain_D3D11::onWindowInactive()
+	{
+		m_window_active_changed.store(0x2);
+	}
+
 	void SwapChain_D3D11::destroySwapChain()
 	{
 		destroyRenderAttachment();
@@ -150,7 +168,7 @@ namespace LuaSTG::Core::Graphics
 
 		spdlog::info("[core] 开始创建 SwapChain");
 
-		if (!win32_window)
+		if (!m_window->GetWindow())
 		{
 			spdlog::error("[fancy2d] 无法创建 SwapChain，窗口为空");
 			assert(false); return false;
@@ -229,7 +247,7 @@ namespace LuaSTG::Core::Graphics
 			m_swapchain_buffer_count = desc1.BufferCount;
 			m_swapchain_flags = desc1.Flags;
 			Microsoft::WRL::ComPtr<IDXGISwapChain1> dxgi_swapchain1;
-			hr = gHR = dxgi_factory2->CreateSwapChainForHwnd(d3d11_device, win32_window, &desc1, windowed ? NULL : &descf, NULL, &dxgi_swapchain1);
+			hr = gHR = dxgi_factory2->CreateSwapChainForHwnd(d3d11_device, m_window->GetWindow(), &desc1, windowed ? NULL : &descf, NULL, &dxgi_swapchain1);
 			if (SUCCEEDED(hr))
 			{
 				hr = gHR = dxgi_swapchain1.As(&dxgi_swapchain);
@@ -268,7 +286,7 @@ namespace LuaSTG::Core::Graphics
 				},
 				.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
 				.BufferCount = 1,
-				.OutputWindow = win32_window,
+				.OutputWindow = m_window->GetWindow(),
 				.Windowed = TRUE, // 创建交换链后暂时保持在窗口化状态
 				.SwapEffect = DXGI_SWAP_EFFECT_DISCARD,
 				.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH,
@@ -292,7 +310,7 @@ namespace LuaSTG::Core::Graphics
 			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::GetParent -> IDXGIFactory1");
 			assert(false); return false;
 		}
-		hr = gHR = dxgi_factory_sw->MakeWindowAssociation(win32_window, DXGI_MWA_NO_ALT_ENTER); // 别他妈乱切换了
+		hr = gHR = dxgi_factory_sw->MakeWindowAssociation(m_window->GetWindow(), DXGI_MWA_NO_ALT_ENTER); // 别他妈乱切换了
 		if (FAILED(hr))
 		{
 			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory1::MakeWindowAssociation -> DXGI_MWA_NO_ALT_ENTER");
@@ -441,6 +459,21 @@ namespace LuaSTG::Core::Graphics
 		{
 			ID3D11RenderTargetView* rtvs[1] = { d3d11_rtv.Get() };
 			ctx->OMSetRenderTargets(1, rtvs, d3d11_dsv.Get());
+		}
+	}
+	void SwapChain_D3D11::clearRenderAttachment()
+	{
+		if (auto* ctx = m_device->GetD3D11DeviceContext())
+		{
+			if (d3d11_rtv)
+			{
+				FLOAT const clear_color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+				ctx->ClearRenderTargetView(d3d11_rtv.Get(), clear_color);
+			}
+			if (d3d11_dsv)
+			{
+				ctx->ClearDepthStencilView(d3d11_dsv.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0u);
+			}
 		}
 	}
 
@@ -710,6 +743,7 @@ namespace LuaSTG::Core::Graphics
 		m_swapchain_last_windowed = TRUE;
 		m_swapchain_last_flip = flip_model;
 		m_init = TRUE;
+		m_window->setCursorToRightBottom();
 		return true;
 	}
 	bool SwapChain_D3D11::setSize(uint32_t width, uint32_t height)
@@ -750,6 +784,7 @@ namespace LuaSTG::Core::Graphics
 		dispatchEvent(EventType::SwapChainCreate);
 		m_swapchain_last_mode.width = width;
 		m_swapchain_last_mode.height = height;
+		m_window->setCursorToRightBottom();
 		return true;
 	}
 	bool SwapChain_D3D11::setExclusiveFullscreenMode(DisplayMode const& mode)
@@ -791,9 +826,73 @@ namespace LuaSTG::Core::Graphics
 		m_swapchain_last_windowed = FALSE;
 		m_swapchain_last_flip = FALSE;
 		m_init = TRUE;
+		m_window->setCursorToRightBottom();
 		return true;
 	}
 	
+	void SwapChain_D3D11::syncWindowActive()
+	{
+		int window_active_changed = m_window_active_changed.exchange(0);
+		if (window_active_changed & 0x1)
+		{
+			if (!m_swapchain_last_windowed && dxgi_swapchain)
+			{
+				BOOL bFSC = FALSE;
+				Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output;
+				HRESULT hr = gHR = dxgi_swapchain->GetFullscreenState(&bFSC, &dxgi_output);
+				if (SUCCEEDED(hr))
+				{
+					if (!bFSC)
+					{
+						spdlog::info("[core] 尝试切换到独占全屏");
+						hr = gHR = dxgi_swapchain->SetFullscreenState(TRUE, NULL);
+						if (FAILED(hr))
+						{
+							i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::SetFullscreenState -> TRUE");
+						}
+						else
+						{
+							setSize(uint32_t(-1), uint32_t(-1));
+						}
+					}
+				}
+				else
+				{
+					i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::GetFullscreenState");
+				}
+			}
+		}
+		else if (window_active_changed & 0x2)
+		{
+			if (!m_swapchain_last_windowed && dxgi_swapchain)
+			{
+				BOOL bFSC = FALSE;
+				Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output;
+				HRESULT hr = gHR = dxgi_swapchain->GetFullscreenState(&bFSC, &dxgi_output);
+				if (SUCCEEDED(hr))
+				{
+					if (bFSC)
+					{
+						spdlog::info("[fancy2d] 尝试退出独占全屏");
+						hr = gHR = dxgi_swapchain->SetFullscreenState(FALSE, NULL);
+						if (FAILED(hr))
+						{
+							i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::SetFullscreenState -> FALSE");
+						}
+						else
+						{
+							setSize(uint32_t(-1), uint32_t(-1));
+						}
+					}
+				}
+				else
+				{
+					i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::GetFullscreenState");
+				}
+			}
+			m_window->setLayer(WindowLayer::Normal);
+		}
+	}
 	void SwapChain_D3D11::waitFrameLatency()
 	{
 		if (dxgi_swapchain_event.IsValid() && (m_swapchain_flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT))
@@ -855,88 +954,39 @@ namespace LuaSTG::Core::Graphics
 		return true;
 	}
 
-	bool SwapChain_D3D11::onWindowActive()
+	SwapChain_D3D11::SwapChain_D3D11(Window_Win32* p_window, Device_D3D11* p_device)
+		: m_window(p_window)
+		, m_device(p_device)
 	{
-		if (!m_swapchain_last_windowed && dxgi_swapchain)
-		{
-			BOOL bFSC = FALSE;
-			Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output;
-			HRESULT hr = gHR = dxgi_swapchain->GetFullscreenState(&bFSC, &dxgi_output);
-			if (SUCCEEDED(hr))
-			{
-				if (!bFSC)
-				{
-					spdlog::info("[core] 尝试切换到独占全屏");
-					hr = gHR = dxgi_swapchain->SetFullscreenState(TRUE, NULL);
-					if (FAILED(hr))
-					{
-						i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::SetFullscreenState -> TRUE");
-						return false;
-					}
-					else
-					{
-						return setSize(uint32_t(-1), uint32_t(-1));
-					}
-				}
-			}
-			else
-			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::GetFullscreenState");
-				return false;
-			}
-		}
-		return true;
-	}
-	bool SwapChain_D3D11::onWindowInactive()
-	{
-		if (!m_swapchain_last_windowed && dxgi_swapchain)
-		{
-			BOOL bFSC = FALSE;
-			Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output;
-			HRESULT hr = gHR = dxgi_swapchain->GetFullscreenState(&bFSC, &dxgi_output);
-			if (SUCCEEDED(hr))
-			{
-				if (bFSC)
-				{
-					spdlog::info("[fancy2d] 尝试退出独占全屏");
-					hr = gHR = dxgi_swapchain->SetFullscreenState(FALSE, NULL);
-					if (FAILED(hr))
-					{
-						i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::SetFullscreenState -> FALSE");
-						return false;
-					}
-					else
-					{
-						return setSize(uint32_t(-1), uint32_t(-1));
-					}
-				}
-			}
-			else
-			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::GetFullscreenState");
-				return false;
-			}
-		}
-		return true;
-	}
-
-	SwapChain_D3D11::SwapChain_D3D11(HWND p_window, Device_D3D11* p_device)
-		: m_device(p_device)
-		, win32_window(p_window)
-	{
+		m_window->addEventListener(this);
 		m_device->addEventListener(this);
 	}
 	SwapChain_D3D11::~SwapChain_D3D11()
 	{
+		m_window->removeEventListener(this);
 		m_device->removeEventListener(this);
 		destroySwapChain();
 	}
 
-	bool ISwapChain::create(void* p_window, IDevice* p_device, ISwapChain** pp_swapchain)
+	bool SwapChain_D3D11::create(Window_Win32* p_window, Device_D3D11* p_device, SwapChain_D3D11** pp_swapchain)
 	{
 		try
 		{
-			*pp_swapchain = new SwapChain_D3D11(static_cast<HWND>(p_window), dynamic_cast<Device_D3D11*>(p_device));
+			*pp_swapchain = new SwapChain_D3D11(dynamic_cast<Window_Win32*>(p_window), dynamic_cast<Device_D3D11*>(p_device));
+			return true;
+		}
+		catch (...)
+		{
+			*pp_swapchain = nullptr;
+			return false;
+		}
+	}
+
+	bool ISwapChain::create(IWindow* p_window, IDevice* p_device, ISwapChain** pp_swapchain)
+	{
+		try
+		{
+			*pp_swapchain = new SwapChain_D3D11(dynamic_cast<Window_Win32*>(p_window), dynamic_cast<Device_D3D11*>(p_device));
 			return true;
 		}
 		catch (...)

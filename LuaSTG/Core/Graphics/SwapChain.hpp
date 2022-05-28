@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Core/Type.hpp"
+#include "Core/Graphics/Window.hpp"
 #include "Core/Graphics/Format.hpp"
 #include "Core/Graphics/Device.hpp"
 
@@ -36,14 +37,13 @@ namespace LuaSTG::Core::Graphics
 		virtual uint32_t getWidth() = 0;
 		virtual uint32_t getHeight() = 0;
 
+		virtual void clearRenderAttachment() = 0;
 		virtual void applyRenderAttachment() = 0;
 		virtual void waitFrameLatency() = 0;
+		virtual void syncWindowActive() = 0;
 		virtual void setVSync(bool enable) = 0;
 		virtual bool present() = 0;
 
-		virtual bool onWindowActive() = 0;
-		virtual bool onWindowInactive() = 0;
-
-		static bool create(void* p_window, IDevice* p_device, ISwapChain** pp_swapchain);
+		static bool create(IWindow* p_window, IDevice* p_device, ISwapChain** pp_swapchain);
 	};
 }

@@ -958,10 +958,14 @@ namespace LuaSTG::Core::Graphics
 
 		i18n_log_info("[core].Device_D3D11.created_basic_D3D11_components");
 
+		tracy::xTracyD3D11Context(d3d11_device.Get(), d3d11_devctx.Get());
+
 		return true;
 	}
 	void Device_D3D11::destroyD3D11()
 	{
+		tracy::xTracyD3D11Destroy();
+
 		d3d_feature_level = D3D_FEATURE_LEVEL_10_0;
 
 		d3d11_device.Reset();
@@ -1275,6 +1279,20 @@ namespace LuaSTG::Core::Graphics
 				else
 					it++;
 			}
+		}
+	}
+
+	bool Device_D3D11::create(StringView prefered_gpu, Device_D3D11** p_device)
+	{
+		try
+		{
+			*p_device = new Device_D3D11(prefered_gpu);
+			return true;
+		}
+		catch (...)
+		{
+			*p_device = nullptr;
+			return false;
 		}
 	}
 

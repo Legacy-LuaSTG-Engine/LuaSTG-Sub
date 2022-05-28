@@ -31,10 +31,6 @@ set(fancylib_src
     fcyMisc/fcyStringHelper.cpp
 
     fcyOS/fcyMemPool.h
-    fcyOS/fcyCPUID.h
-    fcyOS/fcyCPUID.cpp
-    fcyOS/fcyDebug.h
-    fcyOS/fcyDebug.cpp
     fcyOS/fcyMultiThread.h
     fcyOS/fcyMultiThread.cpp
     #fcyOS/fcySocket.h

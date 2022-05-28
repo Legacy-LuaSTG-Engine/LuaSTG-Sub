@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <vector>
 #include <unordered_map>
+#include <thread>
 
 #define NOMINMAX
 #include <Windows.h>
@@ -34,3 +35,14 @@
 #include "TracyD3D11Ctx.hpp"
 
 #include "platform/HResultChecker.hpp"
+
+namespace Microsoft::WRL::Wrappers
+{
+	namespace HandleTraits
+	{
+		struct ThreadHandleTraits : HANDLENullTraits
+		{
+		};
+	}
+	using ThreadHandle = HandleT<HandleTraits::ThreadHandleTraits>;
+}

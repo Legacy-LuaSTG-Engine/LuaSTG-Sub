@@ -1,25 +1,47 @@
-#pragma once
+﻿#pragma once
 #include "Core/Type.hpp"
+#include "Core/Graphics/Window.hpp"
+#include "Core/Graphics/Device.hpp"
+#include "Core/Graphics/SwapChain.hpp"
 
 namespace LuaSTG::Core
 {
-    struct IWindowEventListener
+    struct IFrameRateController
     {
-        virtual void onCreate(void* window) {}
-        virtual void onDestroy() {}
+        virtual uint32_t getTargetFPS() = 0;
+        virtual void setTargetFPS(uint32_t target_FPS) = 0;
+        virtual double getFPS() = 0;
+        virtual uint64_t getTotalFrame() = 0;
+        virtual double getTotalTime() = 0;
+        virtual double getAvgFPS() = 0;
+        virtual double getMinFPS() = 0;
+        virtual double getMaxFPS() = 0;
     };
 
     struct IApplicationEventListener
     {
+        // [工作线程]
         virtual void onUpdate() {}
+        // [工作线程]
+        virtual void onRender() {}
     };
 
-    struct IApplication : public IObject
+    struct IApplicationModel : public IObject
     {
-        virtual void addApplicationEventListener(IApplicationEventListener* e) = 0;
-        virtual void removeApplicationEventListener(IApplicationEventListener * e) = 0;
+        // [工作线程]
+        virtual IFrameRateController* getFrameRateController() = 0;
+        // [主线程|工作线程]
+        virtual Graphics::IWindow* getWindow() = 0;
+        // [工作线程]
+        virtual Graphics::IDevice* getDevice() = 0;
+        // [工作线程]
+        virtual Graphics::ISwapChain* getSwapChain() = 0;
 
-        virtual void addWindowEventListener(IWindowEventListener* e) = 0;
-        virtual void removeWindowEventListener(IWindowEventListener* e) = 0;
+        // [主线程|工作线程]
+        virtual void requestExit() = 0;
+        // [主线程]
+        virtual bool run() = 0;
+
+        static bool create(IApplicationEventListener* p_app, IApplicationModel** pp_model);
     };
 }

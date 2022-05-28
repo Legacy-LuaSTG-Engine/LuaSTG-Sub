@@ -5,8 +5,8 @@
 #pragma once
 #include "f2dEngine.h"
 #include "Engine/f2dWindowImpl.h"
-#include "Core/Graphics/Device.hpp"
-#include "Core/Graphics/SwapChain.hpp"
+#include "Core/Graphics/Device_D3D11.hpp"
+#include "Core/Graphics/SwapChain_D3D11.hpp"
 
 class f2dEngineImpl;
 
@@ -15,7 +15,6 @@ class f2dEngineImpl;
 ////////////////////////////////////////////////////////////////////////////////
 class f2dRenderDevice11
 	: public fcyRefObjImpl<f2dRenderDevice>
-	, public f2dWindowEventListener
 	, public LuaSTG::Core::Graphics::IDeviceEventListener
 	, public LuaSTG::Core::Graphics::ISwapChainEventListener
 {
@@ -33,20 +32,14 @@ private:
 	};
 private:
 	f2dEngineImpl* m_pEngine = nullptr;
-	LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::IDevice> m_pGraphicsDevice;
-	LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::ISwapChain> m_pSwapChain;
+	LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::Device_D3D11> m_pGraphicsDevice;
+	LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::SwapChain_D3D11> m_pSwapChain;
 
 	int _iEventListenerUUID = 0;
 	std::set<EventListenerNode> _setEventListeners;
 	
 	f2dGraphics* m_pCurGraphics = nullptr; // 当前的绘图对象，只记录指针
 	
-	HWND win32_window = NULL;
-
-	fBool swapchain_want_exit_fullscreen = false;
-	fBool swapchain_want_enter_fullscreen = false;
-	fBool swapchain_want_resize = false;
-
 	Microsoft::WRL::ComPtr<IDXGIFactory1> dxgi_factory;
 	Microsoft::WRL::ComPtr<IDXGIAdapter1> dxgi_adapter;
 
@@ -56,18 +49,11 @@ private:
 	fcyRefPointer<f2dTexture2D> m_RenderTarget;
 	fcyRefPointer<f2dDepthStencilSurface> m_DepthStencil;
 
-private:
-	int sendDevLostMsg();             // 发送设备丢失事件, 返回对象数目
-	int sendDevResetMsg();            // 发送设备重置事件
-	int dispatchRenderSizeDependentResourcesCreate();
-	int dispatchRenderSizeDependentResourcesDestroy();
 public: // 内部函数
 	f2dEngineImpl* GetEngine() { return m_pEngine; } // 返回引擎对象
 	fResult WaitDevice();
 	fResult SyncDevice();                           // 协作测试，完成设备丢失处理
 	fResult Present();                              // 呈现
-	f2dGraphics* QueryCurGraphics();
-	fResult SubmitCurGraphics(f2dGraphics* pGraph, bool bDirty);
 public:
 	// 事件监听
 
@@ -76,10 +62,6 @@ public:
 
 	void onSwapChainCreate();
 	void onSwapChainDestroy();
-
-	void OnLostFocus();
-	void OnGetFocus();
-	void OnSize(fuInt ClientWidth, fuInt ClientHeight);
 public:
 	// 接口实现
 
@@ -113,16 +95,16 @@ public:
 	f2dDepthStencilSurface* GetDepthStencilSurface();
 	fResult SetRenderTargetAndDepthStencilSurface(f2dTexture2D* pTex, f2dDepthStencilSurface* pSurface);
 
-	fResult SaveScreen(f2dStream* pStream);
-	fResult SaveTexture(f2dStream* pStream, f2dTexture2D* pTex);
+	fResult SaveScreen(f2dStream* pStream) { return FCYERR_NOTSUPPORT; }
+	fResult SaveTexture(f2dStream* pStream, f2dTexture2D* pTex) { return FCYERR_NOTSUPPORT; }
 	fResult SaveScreen(fcStrW path);
 	fResult SaveTexture(fcStrW path, f2dTexture2D* pTex);
 	
 	// 废弃方法集合
-	fResult CreateGraphics2D(fuInt VertexBufferSize, fuInt IndexBufferSize, f2dGraphics2D** pOut);
-	fResult CreateGraphics3D(f2dEffect* pDefaultEffect, f2dGraphics3D** pOut);
-	fResult CreateEffect(f2dStream* pStream, fBool bAutoState, f2dEffect** pOut);
-	fResult CreateMeshData(f2dVertexElement* pVertElement, fuInt ElementCount, fuInt VertCount, fuInt IndexCount, fBool Int32Index, f2dMeshData** pOut);
+	fResult CreateGraphics2D(fuInt VertexBufferSize, fuInt IndexBufferSize, f2dGraphics2D** pOut) { return FCYERR_NOTIMPL; }
+	fResult CreateGraphics3D(f2dEffect* pDefaultEffect, f2dGraphics3D** pOut) { return FCYERR_NOTIMPL; }
+	fResult CreateEffect(f2dStream* pStream, fBool bAutoState, f2dEffect** pOut) { return FCYERR_NOTIMPL; }
+	fResult CreateMeshData(f2dVertexElement* pVertElement, fuInt ElementCount, fuInt VertCount, fuInt IndexCount, fBool Int32Index, f2dMeshData** pOut) { return FCYERR_NOTIMPL; }
 public:
 	f2dRenderDevice11(f2dEngineImpl* pEngine, f2dEngineRenderWindowParam* RenderWindowParam);
 	~f2dRenderDevice11();

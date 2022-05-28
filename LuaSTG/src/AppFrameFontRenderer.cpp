@@ -49,11 +49,6 @@ namespace LuaSTGPlus {
 	
 	bool AppFrame::RenderText(ResFont* p, wchar_t* strBuf, fcyRect rect, fcyVec2 scale, ResFont::FontAlignHorizontal halign, ResFont::FontAlignVertical valign, bool bWordBreak)LNOEXCEPT
 	{
-		if (m_GraphType != GraphicsType::Graph2D) {
-			spdlog::error("[luastg] RenderText: 只有2D渲染器可以执行该方法");
-			return false;
-		}
-		
 		f2dFontProvider* pFontProvider = p->GetFontProvider();
 		
 		// 准备渲染字体
@@ -198,12 +193,6 @@ namespace LuaSTGPlus {
 	
 	fcyVec2 AppFrame::CalcuTextSize(ResFont* p, const wchar_t* strBuf, fcyVec2 scale)LNOEXCEPT
 	{
-		if (m_GraphType != GraphicsType::Graph2D)
-		{
-			spdlog::error("[luastg] CalcuTextSize: 只有2D渲染器可以执行该方法");
-			return fcyVec2();
-		}
-		
 		f2dFontProvider* pFontProvider = p->GetFontProvider();
 		
 		int iLineCount = 1;
@@ -382,11 +371,6 @@ namespace LuaSTGPlus {
 	}
 	
 	bool AppFrame::FontRenderer_DrawTextW2(const char* str, fcyVec2& pos, const float z, const BlendMode blend, const fcyColor& color) {
-		if (m_GraphType != GraphicsType::Graph2D) {
-			spdlog::error("[luastg] DrawText: 只有2D渲染器可以执行该方法");
-			return false;
-		}
-		
 		std::wstring g_wbuffer;
 		try {
 			g_wbuffer = std::move(utility::encoding::to_wide(str));
@@ -419,11 +403,6 @@ namespace LuaSTGPlus {
 	
 	bool AppFrame::FontRenderer_RenderText(const char* str, size_t len, fcyVec2& pos, const float z, const BlendMode blend, const fcyColor& color)
 	{
-		if (m_GraphType != GraphicsType::Graph2D) {
-			spdlog::error("[luastg] DrawText: 只有2D渲染器可以执行该方法");
-			return false;
-		}
-		
 		const float lastz = m_FontRenderer->GetZ();
 		m_FontRenderer->SetZ(z);
 		
@@ -438,11 +417,6 @@ namespace LuaSTGPlus {
 	
 	bool AppFrame::FontRenderer_RenderTextInSpace(const char* str, size_t len, fcyVec3& pos, const fcyVec3& rvec, const fcyVec3& dvec, const BlendMode blend, const fcyColor& color)
 	{
-		if (m_GraphType != GraphicsType::Graph2D) {
-			spdlog::error("[luastg] DrawText: 只有2D渲染器可以执行该方法");
-			return false;
-		}
-
 		updateGraph2DBlendMode(blend);
 		m_FontRenderer->SetColor(color);
 

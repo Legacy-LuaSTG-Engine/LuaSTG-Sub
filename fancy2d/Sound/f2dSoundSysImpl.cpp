@@ -151,7 +151,6 @@ fResult f2dSoundSysImpl::CreateStaticBuffer(f2dSoundDecoder* pDecoder, fBool bGl
 	}
 	catch(const fcyException& e)
 	{
-		m_pEngine->ThrowException(e);
 		return FCYERR_INTERNALERR;
 	}
 
@@ -172,7 +171,6 @@ fResult f2dSoundSysImpl::CreateSharedStaticBuffer(f2dSoundBuffer* pOrg, f2dSound
 	//HRESULT tHR = m_pDSound8->DuplicateSoundBuffer(((f2dSoundBufferStatic*)pOrg)->m_pBuffer, &tpOut);
 	//if(FAILED(tHR))
 	//{
-	//	m_pEngine->ThrowException(fcyWin32COMException("f2dSoundSysImpl::CreateSharedStaticBuffer", "DuplicateSoundBuffer failed.", tHR));
 	//	return FCYERR_INTERNALERR;
 	//}
 	//
@@ -197,7 +195,6 @@ fResult f2dSoundSysImpl::CreateDynamicBuffer(f2dSoundDecoder* pDecoder, fBool bG
 	}
 	catch(const fcyException& e)
 	{
-		m_pEngine->ThrowException(e);
 		return FCYERR_INTERNALERR;
 	}
 
@@ -218,7 +215,6 @@ fResult f2dSoundSysImpl::CreatePullBuffer(f2dSoundDecoder* pDecoder, fuInt iBuff
 	//}
 	//catch (const fcyException& e)
 	//{
-	//	m_pEngine->ThrowException(e);
 	//	return FCYERR_INTERNALERR;
 	//}
 	//
@@ -240,7 +236,6 @@ fResult f2dSoundSysImpl::CreateSoundSprite(f2dSoundDecoder* pDecoder, fBool bGlo
 	//}
 	//catch(const fcyException& e)
 	//{
-	//	m_pEngine->ThrowException(e);
 	//	return FCYERR_INTERNALERR;
 	//}
 	//
@@ -263,7 +258,6 @@ fResult f2dSoundSysImpl::CreateWaveDecoder(f2dStream* pStream, f2dSoundDecoder**
 	}
 	catch(const fcyException& e)
 	{
-		m_pEngine->ThrowException(e);
 		return FCYERR_INTERNALERR;
 	}
 
@@ -284,7 +278,6 @@ fResult f2dSoundSysImpl::CreateOGGVorbisDecoder(f2dStream* pStream, f2dSoundDeco
 	}
 	catch(const fcyException& e)
 	{
-		m_pEngine->ThrowException(e);
 		return FCYERR_INTERNALERR;
 	}
 
