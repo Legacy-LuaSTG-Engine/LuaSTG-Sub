@@ -18,28 +18,11 @@ class f2dWindowImpl
 	, public LuaSTG::Core::Graphics::IWindowEventListener
 {
 private:
-	class DefaultListener :
-		public f2dWindowEventListener
-	{
-	protected:
-		f2dEngineImpl* m_pEngine;
-		f2dWindowImpl* m_pThis;
-		fCharW m_U16Lead;
-	public:
-		DefaultListener(f2dEngineImpl* pEngine, f2dWindowImpl* pThis)
-			: m_pEngine(pEngine), m_pThis(pThis), m_U16Lead(0) {}
-	};
-private:
 	// 监听器
 	LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::Window_Win32> m_window;
 	std::vector<fHandle> m_fProc;
-	DefaultListener m_DefaultListener;
-	f2dWindowEventListener* m_pListener;
-
 	void onNativeWindowMessage(void* w, uint32_t m, uintptr_t a, intptr_t b) { HandleNativeMessageCallback((HWND)w, m, a, b); }
 public:
-	fHandle GetIWindow() { return (fHandle)dynamic_cast<LuaSTG::Core::Graphics::IWindow*>(*m_window) ; }
-
 	// 接口实现
 
 	void AddNativeMessageCallback(fHandle pWndProc);
@@ -71,8 +54,6 @@ public:
 	void SetCustomMinimizeButtonRect(fcyRect v);
 	void SetCustomCloseButtonRect(fcyRect v);
 	void SetCustomMoveButtonRect(fcyRect v);
-
-	void MoveMouseToRightBottom();
 public:
 	f2dWindowImpl(f2dEngineImpl* pEngine, const fcyRect& Pos, fcStrW Title, fBool Visiable, F2DWINBORDERTYPE Border, bool DisableIME = true);
 	~f2dWindowImpl();
