@@ -1,5 +1,7 @@
 ﻿#include "Core/ApplicationModel_Win32.hpp"
 #include "Core/i18n.hpp"
+#include "platform/WindowsVersion.hpp"
+#include "platform/DetectCPU.hpp"
 
 namespace LuaSTG::Core
 {
@@ -153,6 +155,57 @@ namespace LuaSTG::Core
 
 namespace LuaSTG::Core
 {
+	static std::string bytes_count_to_string(DWORDLONG size)
+	{
+		int count = 0;
+		char buffer[64] = {};
+		if (size < 1024llu) // B
+		{
+			count = std::snprintf(buffer, 64, "%u B", (unsigned int)size);
+		}
+		else if (size < (1024llu * 1024llu)) // KB
+		{
+			count = std::snprintf(buffer, 64, "%.2f KiB", (double)size / 1024.0);
+		}
+		else if (size < (1024llu * 1024llu * 1024llu)) // MB
+		{
+			count = std::snprintf(buffer, 64, "%.2f MiB", (double)size / 1048576.0);
+		}
+		else // GB
+		{
+			count = std::snprintf(buffer, 64, "%.2f GiB", (double)size / 1073741824.0);
+		}
+		return std::string(buffer, count);
+	}
+	static void get_system_memory_status()
+	{
+		MEMORYSTATUSEX info = { sizeof(MEMORYSTATUSEX) };
+		if (GlobalMemoryStatusEx(&info))
+		{
+			spdlog::info("[core] 系统内存使用情况：\n"
+				"    使用百分比：{}%\n"
+				"    总物理内存：{}\n"
+				"    剩余物理内存：{}\n"
+				"    当前进程可提交内存限制：{}\n"
+				"    当前进程剩余的可提交内存：{}\n"
+				"    当前进程用户模式内存空间限制*1：{}\n"
+				"    当前进程剩余的用户模式内存空间：{}\n"
+				"        *1 此项反映此程序实际上能用的最大内存，在 32 位应用程序上此项一般为 2 GB，修改 Windows 操作系统注册表后可能为 1 到 3 GB"
+				, info.dwMemoryLoad
+				, bytes_count_to_string(info.ullTotalPhys)
+				, bytes_count_to_string(info.ullAvailPhys)
+				, bytes_count_to_string(info.ullTotalPageFile)
+				, bytes_count_to_string(info.ullAvailPageFile)
+				, bytes_count_to_string(info.ullTotalVirtual)
+				, bytes_count_to_string(info.ullAvailVirtual)
+			);
+		}
+		else
+		{
+			spdlog::error("[fancy2d] 无法获取系统内存使用情况");
+		}
+	}
+
 	struct ScopeTimer
 	{
 		LARGE_INTEGER freq{};
@@ -321,6 +374,9 @@ namespace LuaSTG::Core
 		: m_listener(p_listener)
 	{
 		assert(m_listener);
+		spdlog::info("[core] OS {}", platform::WindowsVersion::GetName());
+		spdlog::info("[core] CPU {} {}", InstructionSet::Vendor(), InstructionSet::Brand());
+		get_system_memory_status();
 		if (!Graphics::Window_Win32::create(~m_window))
 			throw std::runtime_error("Graphics::Window_Win32::create");
 		if (!Graphics::Device_D3D11::create("", ~m_device))

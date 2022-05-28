@@ -9,7 +9,6 @@
 #include "Core/FileManager.hpp"
 #include "AdapterPolicy.hpp"
 #include "utility/encoding.hpp"
-#include "platform/DetectCPU.hpp"
 
 class f2dGraphic2dAdapter
 	: public f2dGraphics2D
@@ -474,10 +473,6 @@ bool AppFrame::Init()LNOEXCEPT
 		m_pSoundSys->SetSoundEffectChannelVolume(m_gSEVol);
 		m_pSoundSys->SetMusicChannelVolume(m_gBGMVol);
 
-		// 打印设备信息
-		spdlog::info("[fancy2d] CPU {} {}", InstructionSet::Vendor(), InstructionSet::Brand());
-		spdlog::info("[fancy2d] GPU {}", m_pRenderDev->GetDeviceName());
-		
 		// 渲染器
 		spdlog::info("[luastg] 创建2D渲染器");
 		if (!m_NewRenderer2D.attachDevice(m_pRenderDev->GetHandle()))

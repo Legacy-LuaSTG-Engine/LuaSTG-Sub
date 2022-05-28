@@ -1282,6 +1282,31 @@ namespace LuaSTG::Core::Graphics
 		}
 	}
 
+	DeviceMemoryUsageStatistics Device_D3D11::getMemoryUsageStatistics()
+	{
+		DeviceMemoryUsageStatistics data = {};
+		Microsoft::WRL::ComPtr<IDXGIAdapter3> adapter;
+		if (bHR = dxgi_adapter.As(&adapter))
+		{
+			DXGI_QUERY_VIDEO_MEMORY_INFO info = {};
+			if (bHR = gHR = adapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &info))
+			{
+				data.local.budget = info.Budget;
+				data.local.current_usage = info.CurrentUsage;
+				data.local.available_for_reservation = info.AvailableForReservation;
+				data.local.current_reservation = info.CurrentReservation;
+			}
+			if (bHR = gHR = adapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL, &info))
+			{
+				data.non_local.budget = info.Budget;
+				data.non_local.current_usage = info.CurrentUsage;
+				data.non_local.available_for_reservation = info.AvailableForReservation;
+				data.non_local.current_reservation = info.CurrentReservation;
+			}
+		}
+		return data;
+	}
+
 	bool Device_D3D11::create(StringView prefered_gpu, Device_D3D11** p_device)
 	{
 		try

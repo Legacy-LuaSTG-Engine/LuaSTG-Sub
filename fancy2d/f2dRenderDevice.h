@@ -656,24 +656,6 @@ struct f2dDisplayMode
 	fuInt scaling = 0; // 缩放，平台相关的值
 };
 
-struct f2dAdapterMemoryUsageStatistics
-{
-	struct
-	{
-		fuLong budget;
-		fuLong current_usage;
-		fuLong available_for_reservation;
-		fuLong current_reservation;
-	} local;
-	struct
-	{
-		fuLong budget;
-		fuLong current_usage;
-		fuLong available_for_reservation;
-		fuLong current_reservation;
-	} non_local;
-};
-
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief 渲染设备
 /// @note  负责渲染对象的创建和设备管理。
@@ -683,19 +665,11 @@ struct f2dRenderDevice
 	// Direct3D11 返回 ID3D11Device 接口
 	virtual void* GetHandle() = 0;
 	
-	// 返回显卡名称
-	virtual fcStr GetDeviceName() = 0;
 	// 获得支持的显卡数量
 	virtual fuInt GetSupportedDeviceCount() = 0;
 	// 获得支持的显示模式
 	virtual fcStr GetSupportedDeviceName(fuInt Index) = 0;
 
-	virtual f2dAdapterMemoryUsageStatistics GetAdapterMemoryUsageStatistics() = 0;
-
-	// 获得支持的显示模式数量
-	virtual fuInt GetSupportedDisplayModeCount(fBool refresh = false) = 0;
-	// 获得支持的显示模式
-	virtual f2dDisplayMode GetSupportedDisplayMode(fuInt Index) = 0;
 	// 设置显示模式（窗口）
 	virtual fResult SetDisplayMode(fuInt Width, fuInt Height, fBool VSync, fBool FlipModel) = 0;
 	// 设置显示模式（独占全屏）
@@ -704,8 +678,6 @@ struct f2dRenderDevice
 	virtual fuInt GetBufferWidth() = 0;
 	// 返回交换链高度
 	virtual fuInt GetBufferHeight() = 0;
-	// 窗口化状态
-	virtual fBool IsWindowed() = 0;
 
 	// 废弃
 	virtual fResult SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, fBool FlipModel, F2DAALEVEL AALevel) = 0;
@@ -783,18 +755,7 @@ struct f2dRenderDevice
 	virtual fResult SetRenderTargetAndDepthStencilSurface(f2dTexture2D* pTex, f2dDepthStencilSurface* pSurface) = 0;
 
 	// --- 高级 ---
-	
-	/// @brief     截屏
-	/// @note      以JPG形式保存
-	/// @param[in] pStream 输出的流，从流的当前位置开始写入
-	virtual fResult SaveScreen(f2dStream* pStream)=0;
 
-	/// @brief     保存纹理
-	/// @note      以JPG形式保存
-	/// @param[in] pStream 输出的流，从流的当前位置开始写入
-	/// @param[in] pTex    要保存的纹理
-	virtual fResult SaveTexture(f2dStream* pStream, f2dTexture2D* pTex)=0;
-	
 	/// @brief     截屏
 	/// @note      以JPG形式保存
 	/// @param[in] path 文件路径
@@ -805,12 +766,6 @@ struct f2dRenderDevice
 	/// @param[in] path 文件路径
 	/// @param[in] pTex    要保存的纹理
 	virtual fResult SaveTexture(fcStrW path, f2dTexture2D* pTex)=0;
-
-	// 废弃
-	virtual fResult CreateGraphics2D(fuInt VertexBufferSize, fuInt IndexBufferSize, f2dGraphics2D** pOut)=0;
-	virtual fResult CreateGraphics3D(f2dEffect* pDefaultEffect, f2dGraphics3D** pOut)=0;
-	virtual fResult CreateEffect(f2dStream* pStream, fBool bAutoState, f2dEffect** pOut)=0;
-	virtual fResult CreateMeshData(f2dVertexElement* pVertElement, fuInt ElementCount, fuInt VertCount, fuInt IndexCount, fBool Int32Index, f2dMeshData** pOut)=0;
 };
 
 /// @}
