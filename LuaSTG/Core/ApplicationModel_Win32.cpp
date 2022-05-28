@@ -240,7 +240,7 @@ namespace LuaSTG::Core
 		{
 			size_t const i = (m_framestate_index + 1) % 2;
 			FrameStatistics& d = m_framestate[i];
-			ScopeTimer t(d.total_time);
+			ScopeTimer gt(d.total_time);
 
 			// 等待下一帧
 			{

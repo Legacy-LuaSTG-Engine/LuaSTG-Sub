@@ -135,7 +135,7 @@ namespace LuaSTG::Core::Graphics
 		cls.style = CS_HREDRAW | CS_VREDRAW;
 		cls.lpfnWndProc = &win32_window_callback;
 		cls.hInstance = hInstance;
-		cls.hCursor = LoadCursorW(NULL, MAKEINTRESOURCEW(IDC_ARROW));
+		cls.hCursor = LoadCursor(NULL, MAKEINTRESOURCE(IDC_ARROW));
 		cls.lpszClassName = win32_window_class_name;
 
 		win32_window_class_atom = RegisterClassExW(&cls);
@@ -370,7 +370,7 @@ namespace LuaSTG::Core::Graphics
 	void* Window_Win32::getNativeHandle() { return win32_window; }
 	void Window_Win32::setNativeIcon(void* id)
 	{
-		HICON hIcon = LoadIconW(win32_window_class.hInstance, MAKEINTRESOURCEW(id));
+		HICON hIcon = LoadIcon(win32_window_class.hInstance, MAKEINTRESOURCE((int)id));
 		SendMessageW(win32_window, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hIcon);
 		SendMessageW(win32_window, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)hIcon);
 		DestroyIcon(hIcon);
@@ -378,6 +378,7 @@ namespace LuaSTG::Core::Graphics
 
 	void Window_Win32::setIMEState(bool enable)
 	{
+		win32_window_ime_enable = enable;
 		if (win32_window_ime_enable)
 			ImmAssociateContext(win32_window, win32_window_imc);
 		else
