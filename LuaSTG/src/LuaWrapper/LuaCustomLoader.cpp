@@ -71,13 +71,13 @@ static int package_loader_luastg(lua_State* L) {
     if (filename == NULL) return 1;  /* library not found in this path */
     //if (luaL_loadfile(L, filename) != 0)
         //loaderror(L, filename);
-    fcyRefPointer<fcyMemStream> stream;
-    if (!GFileManager().loadEx(filename, ~stream))
+    std::vector<uint8_t> src;
+    if (!GFileManager().loadEx(filename, src))
         loaderror(L, filename);
     else {
         if (luaL_loadbuffer(L,
-            (char*)stream->GetInternalBuffer(),
-            (size_t)stream->GetLength(),
+            (char*)src.data(),
+            src.size(),
             filename) != 0)
             loaderror(L, filename);
     }

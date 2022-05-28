@@ -130,11 +130,21 @@ void fcyFileStream::Unlock() {
 ////////////////////////////////////////////////////////////////////////////////
 
 fcyMemStream::fcyMemStream(fcData Src, fLen Length, fBool Writable, fBool Resizable)
-    : m_bResizable(Resizable), m_bWritable(Writable), m_cPointer(0) {
+    : m_bResizable(Resizable)
+    , m_bWritable(Writable)
+    , m_cPointer(0)
+{
     m_Data.resize((size_t) Length);
     if (Src)
         memcpy(&m_Data[0], Src, (size_t) Length);
 }
+
+fcyMemStream::fcyMemStream(std::vector<uint8_t>&& rvData)
+    : m_Data(rvData)
+    , m_bResizable(false)
+    , m_bWritable(false)
+    , m_cPointer(0)
+{}
 
 fcyMemStream::~fcyMemStream() {
 }

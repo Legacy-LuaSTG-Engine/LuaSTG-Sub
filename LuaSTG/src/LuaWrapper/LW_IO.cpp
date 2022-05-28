@@ -21,19 +21,13 @@ namespace LuaSTGPlus
 							//fcyFileStream* _stream = new fcyFileStream(wpath.c_str(), write);
 							//stream = _stream;
 
-							fcyRefPointer<fcyMemStream> _memstr;
-							if (GFileManager().loadEx(luaL_checkstring(L, 1), ~_memstr)) {
-								// ref = 1
-								_memstr->AddRef(); // 先+1的引用，防止被释放掉
-								// ref = 2
-								stream = (fcyStream*)*_memstr;
-							}
-							else {
+							std::vector<uint8_t> src;
+							if (!GFileManager().loadEx(luaL_checkstring(L, 1), src))
+							{
 								lua_pushnil(L);
 								return 1;
 							}
-							// 此时被释放
-							// ref = 1
+							stream = new fcyMemStream(std::move(src));
 						}
 						catch (...) {
 							lua_pushnil(L);

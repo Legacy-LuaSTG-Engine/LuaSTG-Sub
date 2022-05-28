@@ -362,13 +362,12 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 						catch (...) {}
 						// 没有……那只能从FMGR加载了
 						if (!loaded) {
-							fcyMemStream* stream = nullptr;
-							if (!GFileManager().loadEx(filename, &stream)) {
+							std::vector<uint8_t> src;
+							if (!GFileManager().loadEx(filename, src)) {
 								streams.push_back(fcyRefPointer<fcyStream>());
-								streams.back().DirectSet(stream);
+								streams.back().DirectSet(new fcyMemStream(std::move(src)));
 								loaded = true;
-								
-								font.font_source = stream;
+								font.font_source = (fcyMemStream*)(*streams.back());
 							}
 						}
 					}

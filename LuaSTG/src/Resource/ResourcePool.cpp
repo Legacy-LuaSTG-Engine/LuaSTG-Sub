@@ -10,6 +10,19 @@
 #undef min
 #endif
 
+inline fcyRefPointer<fcyMemStream> _load_file(std::string_view method, std::string_view restype, std::string_view path, std::string_view resname)
+{
+    std::vector<uint8_t> src;
+    if (!GFileManager().loadEx(path, src))
+    {
+        spdlog::error("[luastg] {}：无法从 '{}' 加载{} '{}'，读取文件失败", method, path, restype, resname);
+        return fcyRefPointer<fcyMemStream>();
+    }
+    fcyRefPointer<fcyMemStream> tDataBuf;
+    tDataBuf.DirectSet(new fcyMemStream(std::move(src)));
+    return std::move(tDataBuf);
+}
+
 #define LSOUNDGLOBALFOCUS true // 谁会希望窗口失去焦点就没声音呢？
 
 using namespace LuaSTGPlus;
@@ -217,11 +230,8 @@ bool ResourcePool::LoadTexture(const char* name, const char* path, bool mipmaps)
         return true;
     }
     
-    fcyRefPointer<fcyMemStream> tDataBuf;
-    if (!GFileManager().loadEx(path, ~tDataBuf)) {
-        spdlog::error("[luastg] LoadTexture: 无法从'{}'加载纹理'{}'，读取文件失败", path, name);
-        return false;
-    }
+    fcyRefPointer<fcyMemStream> tDataBuf(_load_file("LoadTexture", "纹理", path, name));
+    if (!tDataBuf) return false;
     
     fcyRefPointer<f2dTexture2D> tTexture;
     fResult fr = LAPP.GetRenderDev()->CreateTextureFromMemory((fcData) tDataBuf->GetInternalBuffer(), tDataBuf->GetLength(),
@@ -414,11 +424,8 @@ bool ResourcePool::LoadMusic(const char* name, const char* path, double start, d
         return false;
     }
     
-    fcyRefPointer<fcyMemStream> tDataBuf;
-    if (!GFileManager().loadEx(path, ~tDataBuf)) {
-        spdlog::error("[luastg] LoadMusic: 无法从'{}'加载音乐'{}'，读取文件失败", path, name);
-        return false;
-    }
+    fcyRefPointer<fcyMemStream> tDataBuf(_load_file("LoadMusic", "音乐", path, name));
+    if (!tDataBuf) return false;
     
     try {
         //加载解码器，优先OGG解码器，加载失败则使用WAV解码器，都失败则error糊脸
@@ -472,11 +479,8 @@ bool ResourcePool::LoadSoundEffect(const char* name, const char* path) noexcept 
         return false;
     }
     
-    fcyRefPointer<fcyMemStream> tDataBuf;
-    if (!GFileManager().loadEx(path, ~tDataBuf)) {
-        spdlog::error("[luastg] LoadSoundEffect: 无法从'{}'加载音效'{}'，读取文件失败", path, name);
-        return false;
-    }
+    fcyRefPointer<fcyMemStream> tDataBuf(_load_file("LoadSoundEffect", "音效", path, name));
+    if (!tDataBuf) return false;
     
     try {
         fcyRefPointer<f2dSoundDecoder> tDecoder;
@@ -569,11 +573,8 @@ bool ResourcePool::LoadParticle(const char* name, const ResParticle::hgeParticle
 
 bool ResourcePool::LoadParticle(const char* name, const char* path, const char* img_name,
                                 double a, double b,bool rect) noexcept {
-    fcyRefPointer<fcyMemStream> outBuf;
-    if (!GFileManager().loadEx(path, ~outBuf)) {
-        spdlog::error("[luastg] LoadParticle: 无法从'{}'创建粒子特效'{}'，读取文件失败", path, name);
-        return false;
-    }
+    fcyRefPointer<fcyMemStream> outBuf(_load_file("LoadParticle", "粒子特效", path, name));
+    if (!outBuf) return false;
     
     if (outBuf->GetLength() != sizeof(ResParticle::hgeParticleSystemInfo)) {
         spdlog::error("[luastg] LoadParticle: 粒子特效定义文件'{}'格式不正确", path);
@@ -608,12 +609,9 @@ bool ResourcePool::LoadSpriteFont(const char* name, const char* path, bool mipma
         return true;
     }
     
-    fcyRefPointer<fcyMemStream> tDataBuf;
-    if (!GFileManager().loadEx(path, ~tDataBuf)) {
-        spdlog::error("[luastg] LoadSpriteFont: 无法从'{}'加载纹理字体'{}'，读取文件失败", path, name);
-        return false;
-    }
-    
+    fcyRefPointer<fcyMemStream> tDataBuf(_load_file("LoadSpriteFont", "纹理字体", path, name));
+    if (!tDataBuf) return false;
+
     // 转换编码
     std::wstring tFileData;
     try {
@@ -648,10 +646,8 @@ bool ResourcePool::LoadSpriteFont(const char* name, const char* path, bool mipma
     
     // 装载纹理
     try {
-        if (!GFileManager().loadEx(texpath.c_str(), ~tDataBuf)) {
-            spdlog::error("[luastg] LoadSpriteFont: 无法从'{}'加载纹理字体'{}'，读取文件失败", texpath, name);
-            return false;
-        }
+        tDataBuf = _load_file("LoadSpriteFont", "纹理字体", texpath, name);
+        if (!tDataBuf) return false;
     }
     catch (const std::bad_alloc&) {
         spdlog::error("[luastg] LoadSpriteFont: 内存不足");
@@ -703,11 +699,8 @@ bool ResourcePool::LoadSpriteFont(const char* name, const char* path, const char
     }
     
     // 加载字体定义文件
-    fcyRefPointer<fcyMemStream> tDataBuf;
-    if (!GFileManager().loadEx(path, ~tDataBuf)) {
-        spdlog::error("[luastg] LoadSpriteFont: 无法从'{}'加载纹理字体'{}'，读取文件失败", path, name);
-        return false;
-    }
+    fcyRefPointer<fcyMemStream> tDataBuf(_load_file("LoadSpriteFont", "纹理字体", path, name));
+    if (!tDataBuf) return false;
     
     // 转换编码
     std::wstring tFileData;
@@ -727,12 +720,9 @@ bool ResourcePool::LoadSpriteFont(const char* name, const char* path, const char
     // 加载纹理文件
     try {
         const std::string fulltexpath = fcyPathParser::GetPath(path) + tex_path;
-        if (!GFileManager().loadEx(fulltexpath, ~tDataBuf)) {
-            if (!GFileManager().loadEx(tex_path, ~tDataBuf)) {
-                spdlog::error("[luastg] LoadSpriteFont: 无法从'{}'或'{}'加载纹理字体'{}'，读取文件失败", fulltexpath, tex_path, name);
-                return false;
-            }
-        }
+        tDataBuf = _load_file("LoadSpriteFont", "纹理字体", fulltexpath, name);
+        if (!tDataBuf) tDataBuf = _load_file("LoadSpriteFont", "纹理字体", tex_path, name);
+        if (!tDataBuf) return false;
     }
     catch (const std::bad_alloc&) {
         spdlog::error("[luastg] LoadSpriteFont: 内存不足");
@@ -793,9 +783,9 @@ bool ResourcePool::LoadTTFFont(const char* name, const char* path,
     fcyRefPointer<f2dFontProvider> tFontProvider;
     
     // 读取文件
-    fcyRefPointer<fcyMemStream> tDataBuf;
-    if (!GFileManager().loadEx(path, ~tDataBuf)) {
-        spdlog::warn("[luastg] LoadTTFFont: 无法从'{}'加载矢量字体，文件不存在，尝试从系统字体库加载字体", path);
+    fcyRefPointer<fcyMemStream> tDataBuf(_load_file("LoadTTFFont", "矢量字体", path, name));
+    if (!tDataBuf) {
+        spdlog::info("[luastg] LoadTTFFont: 尝试从系统字体库加载字体");
         try {
             const std::wstring wpath = std::move(utility::encoding::to_wide(path));
             if (FCYFAILED(LAPP.GetRenderer()->CreateSystemFont(
@@ -951,11 +941,8 @@ bool ResourcePool::LoadFX(const char* name, const char* path, bool is_effect) no
         return true;
     }
     
-    fcyRefPointer<fcyMemStream> tDataBuf;
-    if (!GFileManager().loadEx(path, ~tDataBuf)) {
-        spdlog::error("[luastg] LoadFX: 无法从'{}'加载后处理特效'{}'，读取文件失败", path, name);
-        return false;
-    }
+    fcyRefPointer<fcyMemStream> tDataBuf(_load_file("LoadFX", "后处理特效", path, name));
+    if (!tDataBuf) return false;
     
     LuaSTG::Core::ShaderID shader = LAPP.GetRenderer2D().createPostEffectShader(name, tDataBuf->GetInternalBuffer(), (size_t)tDataBuf->GetLength());
     if (!shader.handle)
