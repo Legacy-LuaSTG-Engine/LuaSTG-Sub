@@ -163,6 +163,8 @@ public:
     /// @param[in] Resizable 可变长
     fcyMemStream(fcData Src, fLen Length, fBool Writable, fBool Resizable);
 
+    fcyMemStream(std::vector<uint8_t>&& rvData);
+
 protected:
     ~fcyMemStream();
 };

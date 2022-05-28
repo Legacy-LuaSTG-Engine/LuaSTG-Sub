@@ -9,11 +9,11 @@ namespace LuaSTGPlus
     {
         bool is_launch_loaded = false;
         #ifdef USING_LAUNCH_FILE
-        fcyRefPointer<fcyMemStream> tMemStream;
         spdlog::info("[luastg] 加载初始化脚本");
-        if (GFileManager().loadEx("launch", ~tMemStream))
+        std::vector<uint8_t> src;
+        if (GFileManager().loadEx("launch", src))
         {
-            if (SafeCallScript((fcStr)tMemStream->GetInternalBuffer(), (size_t)tMemStream->GetLength(), "launch"))
+            if (SafeCallScript((fcStr)src.data(), src.size(), "launch"))
             {
                 is_launch_loaded = true;
                 spdlog::info("[luastg] 加载脚本'launch'");
@@ -60,13 +60,13 @@ namespace LuaSTGPlus
             "main.lua",
             "src/main.lua",
         };
-        fcyRefPointer<fcyMemStream> source;
+        std::vector<uint8_t> src;
         bool is_load = false;
         for (auto& v : entry_scripts)
         {
-            if (GFileManager().loadEx(v, ~source))
+            if (GFileManager().loadEx(v, src))
             {
-                if (SafeCallScript((fcStr)source->GetInternalBuffer(), (size_t)source->GetLength(), v.data()))
+                if (SafeCallScript((fcStr)src.data(), src.size(), v.data()))
                 {
                     spdlog::info("[luastg] 加载脚本'{}'", v);
                     is_load = true;

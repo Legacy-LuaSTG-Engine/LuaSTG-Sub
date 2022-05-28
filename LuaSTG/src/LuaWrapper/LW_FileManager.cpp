@@ -14,8 +14,8 @@
 static bool extractRes(const char* path, const char* target) noexcept
 {
 	// 读取文件
-	fcyRefPointer<fcyMemStream> tBuf;
-	if (GFileManager().loadEx(path, ~tBuf)) {
+	std::vector<uint8_t> src;
+	if (GFileManager().loadEx(path, src)) {
 		// 打开本地文件
 		fcyRefPointer<fcyFileStream> pFile;
 		try {
@@ -24,8 +24,8 @@ static bool extractRes(const char* path, const char* target) noexcept
 				spdlog::error("[luastg] ExtractRes: 无法清空文件'{}' (fcyFileStream::SetLength 失败)", target);
 				return false;
 			}
-			if (tBuf->GetLength() > 0) {
-				if (FCYFAILED(pFile->WriteBytes((fcData) tBuf->GetInternalBuffer(), tBuf->GetLength(), nullptr))) {
+			if (src.size() > 0) {
+				if (FCYFAILED(pFile->WriteBytes((fcData)src.data(), src.size(), nullptr))) {
 					spdlog::error("[luastg] ExtractRes: 无法向文件'{}'写出数据", target);
 					return false;
 				}

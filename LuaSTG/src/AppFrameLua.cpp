@@ -221,18 +221,18 @@ namespace LuaSTGPlus
                 spdlog::info("[luastg] 加载脚本'{}'", path);
         }
         bool loaded = false;
-        fcyRefPointer<fcyMemStream> tMemStream;
+        std::vector<uint8_t> src;
         if (packname)
         {
             auto& arc = GFileManager().getFileArchive(packname);
             if (!arc.empty())
             {
-                loaded = arc.load(path, ~tMemStream);
+                loaded = arc.load(path, src);
             }
         }
         else
         {
-            loaded = GFileManager().loadEx(path, ~tMemStream);
+            loaded = GFileManager().loadEx(path, src);
         }
         if (!loaded)
         {
@@ -240,7 +240,7 @@ namespace LuaSTGPlus
             luaL_error(L, "can't load file '%s'", path);
             return;
         }
-        if (0 != luaL_loadbuffer(L, (fcStr)tMemStream->GetInternalBuffer(), (size_t)tMemStream->GetLength(), luaL_checkstring(L, 1)))
+        if (0 != luaL_loadbuffer(L, (fcStr)src.data(), (size_t)src.size(), luaL_checkstring(L, 1)))
         {
             const char* tDetail = lua_tostring(L, -1);
             spdlog::error("[luajit] 编译'{}'失败：{}", path, tDetail);

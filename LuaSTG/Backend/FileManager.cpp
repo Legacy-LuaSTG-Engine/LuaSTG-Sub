@@ -152,38 +152,6 @@ namespace LuaSTG::Core
         }
         return MZ_OK == mz_zip_reader_entry_save_buffer(mz_zip_v, buffer.data(), script_size);
     }
-    bool FileArchive::load(std::string_view const& name, fcyMemStream** buffer)
-    {
-        if (!mz_zip_v)
-        {
-            return false;
-        }
-        if (MZ_OK != mz_zip_reader_locate_entry(mz_zip_v, name.data(), false))
-        {
-            return false;
-        }
-        int32_t script_size = mz_zip_reader_entry_save_buffer_length(mz_zip_v);
-        if (script_size < 0)
-        {
-            return false;
-        }
-        fcyRefPointer<fcyMemStream> stream;
-        try
-        {
-            stream.DirectSet(new fcyMemStream(nullptr, script_size, true, false));
-        }
-        catch (...)
-        {
-            return false;
-        }
-        if (MZ_OK != mz_zip_reader_entry_save_buffer(mz_zip_v, stream->GetInternalBuffer(), script_size))
-        {
-            return false;
-        }
-        stream->AddRef(); // balance ref
-        *buffer = *stream;
-        return true;
-    }
     
     bool FileArchive::empty()
     {
@@ -246,51 +214,6 @@ namespace LuaSTG::Core
             return false;
         }
         return MZ_OK == mz_zip_reader_entry_save_buffer(mz_zip_v, buffer.data(), script_size);
-    }
-    bool FileArchive::loadEncrypted(std::string_view const& name, std::string_view const& password, fcyMemStream** buffer)
-    {
-        if (!mz_zip_v)
-        {
-            return false;
-        }
-        mz_zip_scope_password scope_password(mz_zip_v, password_, password);
-        if (MZ_OK != mz_zip_reader_locate_entry(mz_zip_v, name.data(), false))
-        {
-            return false;
-        }
-        mz_zip_file* mz_zip_file_v = nullptr;
-        if (MZ_OK != mz_zip_reader_entry_get_info(mz_zip_v, &mz_zip_file_v))
-        {
-            return false;
-        }
-        if (MZ_ZIP_FLAG_ENCRYPTED != (mz_zip_file_v->flag & MZ_ZIP_FLAG_ENCRYPTED))
-        {
-            return false;
-        }
-        int32_t script_size = mz_zip_reader_entry_save_buffer_length(mz_zip_v);
-        if (script_size < 0)
-        {
-            return false;
-        }
-        fcyRefPointer<fcyMemStream> stream;
-        try
-        {
-            stream.DirectSet(new fcyMemStream(nullptr, script_size, true, false));
-        }
-        catch (...)
-        {
-            return false;
-        }
-        if (MZ_OK == mz_zip_reader_entry_save_buffer(mz_zip_v, stream->GetInternalBuffer(), script_size))
-        {
-            stream->AddRef(); // balance ref
-            *buffer = *stream;
-            return true;
-        }
-        else
-        {
-            return false;
-        }
     }
     
     FileArchive::FileArchive(std::string_view const& path) : name_(path), uuid(g_uuid++)
@@ -404,30 +327,6 @@ namespace LuaSTG::Core
         }
         buffer.resize((size_t)size);
         file.read((char*)buffer.data(), size);
-        file.close();
-        return true;
-    }
-    bool FileManager::load(std::string_view const& name, fcyMemStream** buffer)
-    {
-        std::ifstream file(utility::encoding::to_wide(name), std::ios::in | std::ios::binary);
-        if (!file.is_open())
-        {
-            return false;
-        }
-        file.seekg(0, std::ios::end);
-        auto end = file.tellg();
-        file.seekg(0, std::ios::beg);
-        auto beg = file.tellg();
-        auto size = end - beg;
-        if (!(size >= 0 && size <= INTPTR_MAX))
-        {
-            spdlog::error("[luastg] [LuaSTG::Core::FileManager::load] 无法加载文件 '{}'，大小超过 '{}' 字节", name, INTPTR_MAX);
-            assert(false);
-            return false;
-        }
-        fcyMemStream* stream = new fcyMemStream(nullptr, size, true, false);
-        *buffer = stream;
-        file.read((char*)stream->GetInternalBuffer(), size);
         file.close();
         return true;
     }
@@ -571,37 +470,6 @@ namespace LuaSTG::Core
     bool FileManager::loadEx(std::string_view const& name, std::vector<uint8_t>& buffer)
     {
         auto proc = [&](std::string_view const& name, std::vector<uint8_t>& buffer) -> bool
-        {
-            for (auto& arc : archive)
-            {
-                if (arc->load(name, buffer))
-                {
-                    return true;
-                }
-            }
-            if (load(name, buffer))
-            {
-                return true;
-            }
-            return false;
-        };
-        if (proc(name, buffer))
-        {
-            return true;
-        }
-        for (auto& p : search_list)
-        {
-            std::string path(p); path.append(name);
-            if (proc(path, buffer))
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-    bool FileManager::loadEx(std::string_view const& name, fcyMemStream** buffer)
-    {
-        auto proc = [&](std::string_view const& name, fcyMemStream** buffer) -> bool
         {
             for (auto& arc : archive)
             {

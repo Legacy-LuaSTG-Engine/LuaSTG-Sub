@@ -369,25 +369,24 @@ LNOINLINE int AppFrame::LoadTextFile(lua_State* L, const char* path, const char 
 			spdlog::info("[luastg] 读取文本文件'{}'", path);
 	}
 	bool loaded = false;
-	fcyRefPointer<fcyMemStream> tMemStream;
+	std::vector<uint8_t> src;
 	if (packname)
 	{
 		auto& arc = GFileManager().getFileArchive(packname);
 		if (!arc.empty())
 		{
-			loaded = arc.load(path, ~tMemStream);
+			loaded = arc.load(path, src);
 		}
 	}
 	else
 	{
-		loaded = GFileManager().loadEx(path, ~tMemStream);
+		loaded = GFileManager().loadEx(path, src);
 	}
 	if (!loaded) {
 		spdlog::error("[luastg] 无法加载文件'{}'", path);
 		return 0;
 	}
-	lua_pushlstring(L, (char*)tMemStream->GetInternalBuffer(), (size_t)tMemStream->GetLength());
-	tMemStream = nullptr;
+	lua_pushlstring(L, (char*)src.data(), src.size());
 	return 1;
 }
 

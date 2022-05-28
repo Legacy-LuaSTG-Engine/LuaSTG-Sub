@@ -3,7 +3,6 @@
 #include <string>
 #include <string_view>
 #include <memory>
-#include "fcyIO/fcyStream.h"
 
 namespace LuaSTG::Core
 {
@@ -30,7 +29,6 @@ namespace LuaSTG::Core
         virtual std::string_view getName(size_t index) = 0;
         virtual bool contain(std::string_view const& name) = 0;
         virtual bool load(std::string_view const& name, std::vector<uint8_t>& buffer) = 0;
-        virtual bool load(std::string_view const& name, fcyMemStream** buffer) = 0;
     };
     
     class FileArchive : public FileNodeTree
@@ -50,14 +48,12 @@ namespace LuaSTG::Core
         std::string_view getName(size_t index);
         bool contain(std::string_view const& name);
         bool load(std::string_view const& name, std::vector<uint8_t>& buffer);
-        bool load(std::string_view const& name, fcyMemStream** buffer);
     public:
         bool empty();
         uint64_t getUUID();
         std::string_view getFileArchiveName();
         bool setPassword(std::string_view const& password);
         bool loadEncrypted(std::string_view const& name, std::string_view const& password, std::vector<uint8_t>& buffer);
-        bool loadEncrypted(std::string_view const& name, std::string_view const& password, fcyMemStream** buffer);
     public:
         FileArchive() = default;
         FileArchive(std::string_view const& path);
@@ -80,7 +76,6 @@ namespace LuaSTG::Core
         std::string_view getName(size_t index);
         bool contain(std::string_view const& name);
         bool load(std::string_view const& name, std::vector<uint8_t>& buffer);
-        bool load(std::string_view const& name, fcyMemStream** buffer);
     public:
         size_t getFileArchiveCount();
         FileArchive& getFileArchiveByUUID(uint64_t uuid);
@@ -98,7 +93,6 @@ namespace LuaSTG::Core
     public:
         bool containEx(std::string_view const& name);
         bool loadEx(std::string_view const& name, std::vector<uint8_t>& buffer);
-        bool loadEx(std::string_view const& name, fcyMemStream** buffer);
     public:
         FileManager();
         ~FileManager();
