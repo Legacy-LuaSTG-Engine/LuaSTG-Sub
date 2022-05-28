@@ -30,6 +30,9 @@ set(LuaSTGCore_SRC
     Core/i18n.hpp
     Core/i18n.cpp
 
+    Core/FileManager.hpp
+    Core/FileManager.cpp
+
     Core/Object.hpp
     Core/Graphics/Window.hpp
     Core/Graphics/Window_Win32.hpp
@@ -70,6 +73,7 @@ target_link_libraries(LuaSTGCore PUBLIC
     d3d11.lib
     tinygltf
     tracy
+    MINIZIP::minizip
 )
 
 target_link_libraries(fancy2dlib PUBLIC
@@ -122,7 +126,6 @@ target_link_libraries(LuaSTG PRIVATE
     spdlog::spdlog
     utility
     platform
-    MINIZIP::minizip
     fancylib
     fancy2dlib
     DirectXTexMini
