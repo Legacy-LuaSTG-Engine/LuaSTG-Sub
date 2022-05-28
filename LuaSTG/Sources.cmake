@@ -94,8 +94,6 @@ set(LUASTG_ENGINE_SOURCES
     src/Utility.h
     
     Core/Type.hpp
-    Core/FileManager.hpp
-    Backend/FileManager.cpp
     Core/InitializeConfigure.hpp
     Backend/InitializeConfigure.cpp
     
