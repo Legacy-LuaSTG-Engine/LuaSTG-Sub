@@ -124,11 +124,118 @@ namespace LuaSTG::Core::Graphics
 
 		DeviceMemoryUsageStatistics getMemoryUsageStatistics();
 
+		bool createTextureFromFile(StringView path, bool mipmap, ITexture2D** pp_texutre);
+		//bool createTextureFromMemory(void const* data, size_t size, bool mipmap, ITexture2D** pp_texutre);
+		bool createTexture(Vector2U size, ITexture2D** pp_texutre);
+
+		bool createRenderTarget(Vector2U size, IRenderTarget** pp_rt);
+		bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** pp_ds);
+
 	public:
 		Device_D3D11(std::string_view const& prefered_gpu = "");
 		~Device_D3D11();
 
 	public:
 		static bool create(StringView prefered_gpu, Device_D3D11** p_device);
+	};
+
+	class Texture2D_D3D11
+		: public Object<ITexture2D>
+		, public IDeviceEventListener
+	{
+	private:
+		ScopeObject<Device_D3D11> m_device;
+		std::string source_path;
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> d3d11_texture2d;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> d3d11_srv;
+		Vector2U m_size{};
+		bool m_dynamic{ false };
+		bool m_premul{ false };
+		bool m_mipmap{ false };
+		bool m_isrt{ false };
+
+	public:
+		void onDeviceCreate();
+		void onDeviceDestroy();
+
+		bool createResource();
+
+	public:
+		ID3D11Texture2D* GetResource() { return d3d11_texture2d.Get(); }
+		ID3D11ShaderResourceView* GetView() { return d3d11_srv.Get(); }
+
+	public:
+		void* getNativeHandle() { return d3d11_srv.Get(); }
+
+		bool isDynamic() { return m_dynamic; }
+		bool isPremultipliedAlpha() { return m_premul; }
+
+		void setPremultipliedAlpha(bool v) { m_premul = v; }
+
+		Vector2U getSize() { return m_size; }
+
+		bool uploadPixelData(RectU rc, void const* data, uint32_t pitch);
+
+	public:
+		Texture2D_D3D11(Device_D3D11* device, StringView path, bool mipmap);
+		Texture2D_D3D11(Device_D3D11* device, Vector2U size, bool rendertarget); // rendertarget = true 时不注册监听器，交给 RenderTarget_D3D11 控制
+		~Texture2D_D3D11();
+	};
+
+	class RenderTarget_D3D11
+		: public Object<IRenderTarget>
+		, public IDeviceEventListener
+	{
+		ScopeObject<Device_D3D11> m_device;
+		ScopeObject<Texture2D_D3D11> m_texture;
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> d3d11_rtv;
+
+	public:
+		void onDeviceCreate();
+		void onDeviceDestroy();
+
+		bool createResource();
+
+	public:
+		ID3D11RenderTargetView* GetView() { return d3d11_rtv.Get(); }
+
+	public:
+		void* getNativeHandle() { return d3d11_rtv.Get(); }
+
+		ITexture2D* getTexture() { return *m_texture; }
+
+	public:
+		RenderTarget_D3D11(Device_D3D11* device, Vector2U size);
+		~RenderTarget_D3D11();
+	};
+
+	class DepthStencilBuffer_D3D11
+		: public Object<IDepthStencilBuffer>
+		, public IDeviceEventListener
+	{
+	private:
+		ScopeObject<Device_D3D11> m_device;
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> d3d11_texture2d;
+		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> d3d11_dsv;
+		Vector2U m_size{};
+
+	public:
+		void onDeviceCreate();
+		void onDeviceDestroy();
+
+		bool createResource();
+
+	public:
+		ID3D11Texture2D* GetResource() { return d3d11_texture2d.Get(); }
+		ID3D11DepthStencilView* GetView() { return d3d11_dsv.Get(); }
+
+	public:
+		void* getNativeHandle() { return d3d11_dsv.Get(); }
+
+		Vector2U getSize() { return m_size; }
+
+	public:
+		DepthStencilBuffer_D3D11(Device_D3D11* device, Vector2U size);
+		~DepthStencilBuffer_D3D11();
 	};
 }
