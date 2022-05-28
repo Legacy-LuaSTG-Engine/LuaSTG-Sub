@@ -125,5 +125,8 @@ namespace LuaSTG::Core::Graphics
 	public:
 		Device_D3D11(std::string_view const& prefered_gpu = "");
 		~Device_D3D11();
+
+	public:
+		static bool create(StringView prefered_gpu, Device_D3D11** p_device);
 	};
 }

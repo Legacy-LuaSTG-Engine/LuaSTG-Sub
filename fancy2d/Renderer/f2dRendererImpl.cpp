@@ -11,7 +11,6 @@
 #include "Renderer/f2dParticle.h"
 
 #include "Engine/f2dEngineImpl.h"
-#include "f2dConfig.h"
 
 using namespace std;
 
@@ -19,12 +18,10 @@ using namespace std;
 
 void f2dRendererImpl::DefaultListener::OnRenderDeviceLost()
 {
-	m_pEngine->SendMsg(F2DMSG_RENDER_ONDEVLOST);
 }
 
 void f2dRendererImpl::DefaultListener::OnRenderDeviceReset()
 {
-	m_pEngine->SendMsg(F2DMSG_RENDER_ONDEVRESET);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -67,7 +64,6 @@ fResult f2dRendererImpl::CreateSprite2D(f2dTexture2D* pTex, f2dSprite** pOut)
 	}
 	catch(const fcyException& e)
 	{
-		m_pEngine->ThrowException(e);
 		return FCYERR_INTERNALERR;
 	}
 
@@ -90,7 +86,6 @@ fResult f2dRendererImpl::CreateSprite2D(f2dTexture2D* pTex, const fcyRect& Org, 
 	}
 	catch(const fcyException& e)
 	{
-		m_pEngine->ThrowException(e);
 		return FCYERR_INTERNALERR;
 	}
 
@@ -113,7 +108,6 @@ fResult f2dRendererImpl::CreateSprite2D(f2dTexture2D* pTex, const fcyRect& Org, 
 	}
 	catch(const fcyException& e)
 	{
-		m_pEngine->ThrowException(e);
 		return FCYERR_INTERNALERR;
 	}
 
@@ -133,7 +127,6 @@ fResult f2dRendererImpl::CreateGeometryRenderer(f2dGeometryRenderer** pOut)
 	}
 	catch(const fcyException& e)
 	{
-		m_pEngine->ThrowException(e);
 		return FCYERR_INTERNALERR;
 	}
 
@@ -153,7 +146,6 @@ fResult f2dRendererImpl::CreateFontRenderer(f2dFontProvider* pProvider, f2dFontR
 	}
 	catch(const fcyException& e)
 	{
-		m_pEngine->ThrowException(e);
 		return FCYERR_INTERNALERR;
 	}
 
@@ -181,7 +173,6 @@ fResult f2dRendererImpl::CreateFontFromFile(
 	}
 	catch(const fcyException& e)
 	{
-		m_pEngine->ThrowException(e);
 		return FCYERR_INTERNALERR;
 	}
 
@@ -209,7 +200,6 @@ fResult f2dRendererImpl::CreateFontFromMemory(
 	}
 	catch(const fcyException& e)
 	{
-		m_pEngine->ThrowException(e);
 		return FCYERR_INTERNALERR;
 	}
 
@@ -233,7 +223,6 @@ fResult f2dRendererImpl::CreateFontFromMemory(
 	}
 	catch(const fcyException& e)
 	{
-		m_pEngine->ThrowException(e);
 		return FCYERR_INTERNALERR;
 	}
 
@@ -257,7 +246,6 @@ fResult f2dRendererImpl::CreateFontFromParam(
 	}
 	catch (const fcyException& e)
 	{
-		m_pEngine->ThrowException(e);
 		return FCYERR_INTERNALERR;
 	}
 
@@ -274,8 +262,6 @@ fResult f2dRendererImpl::CreateSystemFont(fcStrW FaceName, fuInt FaceIndex, cons
 	}
 	catch(const fcyException& e)
 	{
-		m_pEngine->ThrowException(e);
-
 		return FCYERR_INTERNALERR;
 	}
 
@@ -298,7 +284,6 @@ fResult f2dRendererImpl::CreateFontFromTex(f2dStream* pDefineFile, f2dTexture2D*
 	}
 	catch(const fcyException& e)
 	{
-		m_pEngine->ThrowException(e);
 		return FCYERR_INTERNALERR;
 	}
 
@@ -321,7 +306,6 @@ fResult f2dRendererImpl::CreateFontFromTex(fcStrW pDefineText, f2dTexture2D* pTe
 	}
 	catch(const fcyException& e)
 	{
-		m_pEngine->ThrowException(e);
 		return FCYERR_INTERNALERR;
 	}
 
@@ -341,7 +325,6 @@ fResult f2dRendererImpl::CreateSpriteAnimation(f2dSpriteAnimation** pOut)
 	}
 	catch(const fcyException& e)
 	{
-		m_pEngine->ThrowException(e);
 		return FCYERR_INTERNALERR;
 	}
 
@@ -361,7 +344,6 @@ fResult f2dRendererImpl::CreateParticlePool(f2dParticlePool** pOut)
 	}
 	catch(const fcyException& e)
 	{
-		m_pEngine->ThrowException(e);
 		return FCYERR_INTERNALERR;
 	}
 

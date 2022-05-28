@@ -1,13 +1,10 @@
 ﻿#include "RenderDev/f2dRenderDevice11.h"
 
-#include <fcyOS/fcyDebug.h>
 #include "RenderDev/f2dTexture11.h"
 #include "Engine/f2dEngineImpl.h"
 
 #include "utility/encoding.hpp"
 #include "platform/WindowsVersion.hpp"
-#include "Core/Graphics/Device_D3D11.hpp"
-#include "Core/Graphics/SwapChain_D3D11.hpp"
 
 static std::string bytes_count_to_string(DWORDLONG size)
 {
@@ -91,79 +88,36 @@ inline LuaSTG::Core::Graphics::DisplayMode display_mode_to(f2dDisplayMode const&
 f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, f2dEngineRenderWindowParam* RenderWindowParam)
 	: m_pEngine(pEngine)
 {
-	win32_window = (HWND)pEngine->GetMainWindow()->GetHandle();
-
 	spdlog::info("[fancy2d] 操作系统版本：{}", platform::WindowsVersion::GetName());
 	get_system_memory_status();
 
 	// 设备族
 
-	if (!LuaSTG::Core::Graphics::IDevice::create(utility::encoding::to_utf8(RenderWindowParam->gpu ? RenderWindowParam->gpu : L""), ~m_pGraphicsDevice))
-	{
-		throw fcyException("f2dRenderDevice11::f2dRenderDevice11", "LuaSTG::Core::Graphics::IDevice::create failed");
-	}
+	m_pGraphicsDevice = dynamic_cast<LuaSTG::Core::Graphics::Device_D3D11*>(pEngine->GGetAppModel()->getDevice());
 
-	auto* p_dev = dynamic_cast<LuaSTG::Core::Graphics::Device_D3D11*>(*m_pGraphicsDevice);
+	dxgi_factory = m_pGraphicsDevice->GetDXGIFactory1();
+	dxgi_adapter = m_pGraphicsDevice->GetDXGIAdapter1();
 
-	dxgi_factory = p_dev->GetDXGIFactory1();
-	dxgi_adapter = p_dev->GetDXGIAdapter1();
-
-	d3d11_device = p_dev->GetD3D11Device();
-	d3d11_devctx = p_dev->GetD3D11DeviceContext();
+	d3d11_device = m_pGraphicsDevice->GetD3D11Device();
+	d3d11_devctx = m_pGraphicsDevice->GetD3D11DeviceContext();
 	
-	tracy::xTracyD3D11Context(d3d11_device.Get(), d3d11_devctx.Get());
-
 	// 交换链
 
-	if (!LuaSTG::Core::Graphics::ISwapChain::create(win32_window, *m_pGraphicsDevice, ~m_pSwapChain))
-	{
-		throw fcyException("f2dRenderDevice11::f2dRenderDevice11", "f2dRenderDevice11::createSwapchain failed.");
-	}
-	if (RenderWindowParam->windowed)
-	{
-		auto& mode = RenderWindowParam->mode;
-		m_pSwapChain->setVSync(RenderWindowParam->vsync);
-		if (!m_pSwapChain->setWindowMode(mode.width, mode.height, false))
-			throw fcyException("f2dRenderDevice11::f2dRenderDevice11", "f2dRenderDevice11::createSwapchain failed.");
-	}
-	else
-	{
-		m_pSwapChain->setVSync(RenderWindowParam->vsync);
-		if (!m_pSwapChain->setExclusiveFullscreenMode(display_mode_to(RenderWindowParam->mode)))
-			throw fcyException("f2dRenderDevice11::f2dRenderDevice11", "f2dRenderDevice11::createSwapchain failed.");
-	}
-	m_pSwapChain->refreshDisplayMode();
+	m_pSwapChain = dynamic_cast<LuaSTG::Core::Graphics::SwapChain_D3D11*>(pEngine->GGetAppModel()->getSwapChain());
 
-	m_pEngine->GetMainWindow()->SetGraphicListener(this);
 	m_pGraphicsDevice->addEventListener(this);
 	m_pSwapChain->addEventListener(this);
 }
 f2dRenderDevice11::~f2dRenderDevice11()
 {
-	m_pEngine->GetMainWindow()->SetGraphicListener(nullptr);
 	m_pGraphicsDevice->removeEventListener(this);
 	m_pSwapChain->removeEventListener(this);
-
-	tracy::xTracyD3D11Destroy();
-
-	// 删除渲染器监听链
-	for (auto& v : _setEventListeners)
-	{
-		// 报告可能的对象泄漏
-		char tTextBuffer[256];
-		sprintf_s(tTextBuffer, "Unrelease listener object at %p", v.listener);
-#ifdef _DEBUG
-		fcyDebug::Trace("[@f2dRenderDevice11::~f2dRenderDevice11] %s\n", tTextBuffer);
-#endif
-		m_pEngine->ThrowException(fcyException("f2dRenderDevice11::~f2dRenderDevice11", tTextBuffer));
-	}
-	_setEventListeners.clear();
 }
 
 void* f2dRenderDevice11::GetHandle() { return d3d11_device.Get(); }
-fcStr f2dRenderDevice11::GetDeviceName() { return dynamic_cast<LuaSTG::Core::Graphics::Device_D3D11*>(*m_pGraphicsDevice)->GetAdapterName().data(); }
-fuInt f2dRenderDevice11::GetSupportedDeviceCount() { return dynamic_cast<LuaSTG::Core::Graphics::Device_D3D11*>(*m_pGraphicsDevice)->GetAdapterNameArray().size(); }
-fcStr f2dRenderDevice11::GetSupportedDeviceName(fuInt Index) { return dynamic_cast<LuaSTG::Core::Graphics::Device_D3D11*>(*m_pGraphicsDevice)->GetAdapterNameArray()[Index].c_str(); }
+fcStr f2dRenderDevice11::GetDeviceName() { return m_pGraphicsDevice->GetAdapterName().data(); }
+fuInt f2dRenderDevice11::GetSupportedDeviceCount() { return m_pGraphicsDevice->GetAdapterNameArray().size(); }
+fcStr f2dRenderDevice11::GetSupportedDeviceName(fuInt Index) { return m_pGraphicsDevice->GetAdapterNameArray()[Index].c_str(); }
 f2dAdapterMemoryUsageStatistics f2dRenderDevice11::GetAdapterMemoryUsageStatistics()
 {
 	f2dAdapterMemoryUsageStatistics data = {};
@@ -189,71 +143,36 @@ f2dAdapterMemoryUsageStatistics f2dRenderDevice11::GetAdapterMemoryUsageStatisti
 	return data;
 }
 
-// 设备丢失与恢复
-
-int f2dRenderDevice11::sendDevLostMsg()
-{
-	int tRet = 0;
-
-	// 发送丢失消息
-	for (auto& v : _setEventListeners)
-	{
-		v.listener->OnRenderDeviceLost();
-		tRet += 1;
-	}
-
-	return tRet;
-}
-int f2dRenderDevice11::sendDevResetMsg()
-{
-	int tRet = 0;
-
-	// 发送重置消息
-	for (auto& v : _setEventListeners)
-	{
-		v.listener->OnRenderDeviceReset();
-		tRet += 1;
-	}
-
-	return tRet;
-}
-int f2dRenderDevice11::dispatchRenderSizeDependentResourcesCreate()
-{
-	int cnt = 0;
-	for (auto& v : _setEventListeners)
-	{
-		v.listener->OnRenderSizeDependentResourcesCreate();
-		cnt += 1;
-	}
-	return cnt;
-}
-int f2dRenderDevice11::dispatchRenderSizeDependentResourcesDestroy()
-{
-	int cnt = 0;
-	for (auto& v : _setEventListeners)
-	{
-		v.listener->OnRenderSizeDependentResourcesDestroy();
-		cnt += 1;
-	}
-	return cnt;
-}
+// 事件
 
 void f2dRenderDevice11::onDeviceCreate()
 {
-	sendDevResetMsg();
+	for (auto& v : _setEventListeners)
+	{
+		v.listener->OnRenderDeviceReset();
+	}
 }
 void f2dRenderDevice11::onDeviceDestroy()
 {
-	sendDevLostMsg();
+	for (auto& v : _setEventListeners)
+	{
+		v.listener->OnRenderDeviceLost();
+	}
 }
 
 void f2dRenderDevice11::onSwapChainCreate()
 {
-	dispatchRenderSizeDependentResourcesCreate();
+	for (auto& v : _setEventListeners)
+	{
+		v.listener->OnRenderSizeDependentResourcesCreate();
+	}
 }
 void f2dRenderDevice11::onSwapChainDestroy()
 {
-	dispatchRenderSizeDependentResourcesDestroy();
+	for (auto& v : _setEventListeners)
+	{
+		v.listener->OnRenderSizeDependentResourcesDestroy();
+	}
 }
 
 fResult f2dRenderDevice11::AttachListener(f2dRenderDeviceEventListener* Listener, fInt Priority)
@@ -289,48 +208,6 @@ fResult f2dRenderDevice11::RemoveListener(f2dRenderDeviceEventListener* Listener
 
 	return ifind > 0 ? FCYERR_OK : FCYERR_OBJNOTEXSIT;
 }
-fResult f2dRenderDevice11::SyncDevice()
-{
-	// 处理窗口焦点
-	if (swapchain_want_exit_fullscreen)
-	{
-		swapchain_want_exit_fullscreen = false;
-		m_pSwapChain->onWindowInactive();
-		m_pEngine->GetMainWindow()->SetTopMost(false);
-	}
-	else if (swapchain_want_enter_fullscreen)
-	{
-		swapchain_want_enter_fullscreen = false;
-		m_pSwapChain->onWindowActive();
-	}
-	// 需要重新调整交换链大小
-	if (swapchain_want_resize)
-	{
-		swapchain_want_resize = false;
-		//if (!m_pSwapChain->setSize(uint32_t(-1), uint32_t(-1)))
-		//{
-		//	return FCYERR_INTERNALERR;
-		//}
-	}
-	// 小 Hack，在这里绑定交换链的 RenderTarget
-	m_pSwapChain->applyRenderAttachment();
-	return FCYERR_OK;
-}
-
-void f2dRenderDevice11::OnLostFocus()
-{
-	swapchain_want_exit_fullscreen = true;
-}
-void f2dRenderDevice11::OnGetFocus()
-{
-	swapchain_want_enter_fullscreen = true;
-}
-void f2dRenderDevice11::OnSize(fuInt ClientWidth, fuInt ClientHeight)
-{
-	std::ignore = ClientWidth;
-	std::ignore = ClientHeight;
-	swapchain_want_resize = true;
-}
 
 // 创建资源
 
@@ -350,7 +227,6 @@ fResult f2dRenderDevice11::CreateTextureFromStream(f2dStream* pStream, fuInt, fu
 	}
 	catch (const fcyException& e)
 	{
-		m_pEngine->ThrowException(e);
 		return FCYERR_INTERNALERR;
 	}
 
@@ -372,7 +248,6 @@ fResult f2dRenderDevice11::CreateTextureFromMemory(fcData pMemory, fLen Size, fu
 	}
 	catch (const fcyException& e)
 	{
-		m_pEngine->ThrowException(e);
 		return FCYERR_INTERNALERR;
 	}
 
@@ -390,7 +265,6 @@ fResult f2dRenderDevice11::CreateDynamicTexture(fuInt Width, fuInt Height, f2dTe
 	}
 	catch (const fcyException& e)
 	{
-		m_pEngine->ThrowException(e);
 		return FCYERR_INTERNALERR;
 	}
 
@@ -408,7 +282,6 @@ fResult f2dRenderDevice11::CreateRenderTarget(fuInt Width, fuInt Height, fBool A
 	}
 	catch (const fcyException& e)
 	{
-		m_pEngine->ThrowException(e);
 		return FCYERR_INTERNALERR;
 	}
 
@@ -426,7 +299,6 @@ fResult f2dRenderDevice11::CreateDepthStencilSurface(fuInt Width, fuInt Height, 
 	}
 	catch (const fcyException& e)
 	{
-		m_pEngine->ThrowException(e);
 		return FCYERR_INTERNALERR;
 	}
 
@@ -479,30 +351,6 @@ fResult f2dRenderDevice11::SetRenderTargetAndDepthStencilSurface(f2dTexture2D* p
 	return FCYERR_OK;
 }
 
-// 状态设置
-
-f2dGraphics* f2dRenderDevice11::QueryCurGraphics() { return m_pCurGraphics; }
-fResult f2dRenderDevice11::SubmitCurGraphics(f2dGraphics* pGraph, bool bDirty)
-{
-	if (pGraph == NULL)
-	{
-		m_pCurGraphics = NULL;
-		return FCYERR_OK;
-	}
-	else if (m_pCurGraphics)
-	{
-		if (m_pCurGraphics->IsInRender())
-			return FCYERR_ILLEGAL;
-	}
-
-	if (!bDirty && pGraph == m_pCurGraphics)
-		return FCYERR_OK;
-
-	m_pCurGraphics = pGraph;
-
-	return FCYERR_OK;
-}
-
 // 交换链
 
 fuInt f2dRenderDevice11::GetSupportedDisplayModeCount(fBool refresh)
@@ -524,7 +372,6 @@ fResult f2dRenderDevice11::SetDisplayMode(fuInt Width, fuInt Height, fBool VSync
 	{
 		return FCYERR_INTERNALERR;
 	}
-	((f2dWindowImpl*)m_pEngine->GetMainWindow())->MoveMouseToRightBottom();
 	return FCYERR_OK;
 }
 fResult f2dRenderDevice11::SetDisplayMode(f2dDisplayMode mode, fBool VSync)
@@ -534,12 +381,17 @@ fResult f2dRenderDevice11::SetDisplayMode(f2dDisplayMode mode, fBool VSync)
 	{
 		return FCYERR_INTERNALERR;
 	}
-	((f2dWindowImpl*)m_pEngine->GetMainWindow())->MoveMouseToRightBottom();
 	return FCYERR_OK;
 }
 fuInt f2dRenderDevice11::GetBufferWidth() { return m_pSwapChain->getWidth(); }
 fuInt f2dRenderDevice11::GetBufferHeight() { return m_pSwapChain->getHeight(); }
 fBool f2dRenderDevice11::IsWindowed() { return m_pSwapChain->isWindowMode(); }
+fResult f2dRenderDevice11::SyncDevice()
+{
+	// 小 Hack，在这里绑定交换链的 RenderTarget
+	m_pSwapChain->applyRenderAttachment();
+	return FCYERR_OK;
+}
 fResult f2dRenderDevice11::WaitDevice()
 {
 	m_pSwapChain->waitFrameLatency();
@@ -585,8 +437,6 @@ fResult f2dRenderDevice11::SetDisplayMode(fuInt Width, fuInt Height, fuInt Refre
 
 // 纹理读写
 
-fResult f2dRenderDevice11::SaveScreen(f2dStream*) { return FCYERR_NOTSUPPORT; }
-fResult f2dRenderDevice11::SaveTexture(f2dStream*, f2dTexture2D*) { return FCYERR_NOTSUPPORT; }
 fResult f2dRenderDevice11::SaveScreen(fcStrW path)
 {
 	if (!path)
@@ -606,7 +456,6 @@ fResult f2dRenderDevice11::SaveScreen(fcStrW path)
 	hr = gHR = DirectX::SaveWICTextureToFile(d3d11_devctx.Get(), d3d11_resource.Get(), GUID_ContainerFormatJpeg, path, &GUID_WICPixelFormat24bppBGR);
 	if (FAILED(hr))
 	{
-		m_pEngine->ThrowException(fcyWin32COMException("f2dRenderDevice11::SaveScreen", "DirectX::SaveWICTextureToFile failed", hr));
 		return FCYERR_INTERNALERR;
 	}
 
@@ -635,28 +484,8 @@ fResult f2dRenderDevice11::SaveTexture(fcStrW path, f2dTexture2D* pTex)
 	hr = gHR = DirectX::SaveWICTextureToFile(d3d11_devctx.Get(), d3d11_resource.Get(), GUID_ContainerFormatJpeg, path, &GUID_WICPixelFormat24bppBGR);
 	if (FAILED(hr))
 	{
-		m_pEngine->ThrowException(fcyWin32COMException("f2dRenderDevice11::SaveScreen", "DirectX::SaveWICTextureToFile failed", hr));
 		return FCYERR_INTERNALERR;
 	}
 
 	return FCYERR_OK;
-}
-
-// 废弃的方法集合，大部分是固定管线遗毒，部分是完全没做好的功能，或者不适应新的图形API
-
-fResult f2dRenderDevice11::CreateGraphics2D(fuInt, fuInt, f2dGraphics2D**)
-{
-	return FCYERR_NOTIMPL;
-}
-fResult f2dRenderDevice11::CreateGraphics3D(f2dEffect*, f2dGraphics3D**)
-{
-	return FCYERR_NOTIMPL;
-}
-fResult f2dRenderDevice11::CreateEffect(f2dStream*, fBool, f2dEffect**)
-{
-	return FCYERR_NOTIMPL;
-}
-fResult f2dRenderDevice11::CreateMeshData(f2dVertexElement*, fuInt, fuInt, fuInt, fBool, f2dMeshData**)
-{
-	return FCYERR_NOTIMPL;
 }

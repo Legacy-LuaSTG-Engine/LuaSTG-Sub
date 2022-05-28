@@ -9,9 +9,7 @@
 #include "Core/FileManager.hpp"
 #include "AdapterPolicy.hpp"
 #include "utility/encoding.hpp"
-
-#define NOMINMAX
-#include <Windows.h>
+#include "platform/DetectCPU.hpp"
 
 class f2dGraphic2dAdapter
 	: public f2dGraphics2D
@@ -128,11 +126,9 @@ LNOINLINE AppFrame& AppFrame::GetInstance()
 	static AppFrame s_Instance;
 	return s_Instance;
 }
-
 AppFrame::AppFrame() LNOEXCEPT
 {
 }
-
 AppFrame::~AppFrame() LNOEXCEPT
 {
 	if (m_iStatus != AppStatus::NotInitialized && m_iStatus != AppStatus::Destroyed)
@@ -191,9 +187,9 @@ void AppFrame::SetTitle(const char* v)LNOEXCEPT
 {
 	try
 	{
-		m_OptionTitle = std::move(utility::encoding::to_wide(v));
+		m_OptionTitle = v;
 		if (m_pMainWindow)
-			m_pMainWindow->SetCaption(m_OptionTitle.c_str());
+			m_pMainWindow->SetCaption(v);
 	}
 	catch (const std::bad_alloc&)
 	{
@@ -225,8 +221,6 @@ LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, b
 	{
 		if (windowed)
 		{
-			m_pMainWindow->SetAutoResizeWindowOnDPIScaling(true);
-			
 			bool bResult = true;
 			if (FCYOK(m_pRenderDev->SetBufferSize((fuInt)width, (fuInt)height, windowed, vsync, false, F2DAALEVEL_NONE)))
 			{
@@ -255,8 +249,6 @@ LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, b
 		}
 		else
 		{
-			m_pMainWindow->SetAutoResizeWindowOnDPIScaling(false);
-			
 			m_pMainWindow->SetBorderType(F2DWINBORDERTYPE_NONE);
 			m_pMainWindow->SetClientRect(fcyRect(0.0f, 0.0f, (fFloat)width, (fFloat)height));
 			//m_pMainWindow->SetTopMost(true);
@@ -280,7 +272,6 @@ LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, b
 					(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
 					width, height, vsync, windowed);
 				
-				m_pMainWindow->SetAutoResizeWindowOnDPIScaling(true);
 				windowed = true; // 强制窗口化
 				m_pRenderDev->SetBufferSize((fuInt)width, (fuInt)height, true, vsync, false, F2DAALEVEL_NONE); // 出错也不用管了
 				
@@ -305,8 +296,6 @@ LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, 
 	{
 		if (windowed)
 		{
-			m_pMainWindow->SetAutoResizeWindowOnDPIScaling(true);
-			
 			if (m_OptionWindowed)
 			{
 				// 窗口模式下，先改变窗口设置再修改交换链
@@ -348,8 +337,6 @@ LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, 
 		}
 		else
 		{
-			m_pMainWindow->SetAutoResizeWindowOnDPIScaling(false);
-			
 			m_pMainWindow->SetBorderType(F2DWINBORDERTYPE_NONE);
 			m_pMainWindow->SetClientRect(fcyRect(0.0f, 0.0f, (fFloat)width, (fFloat)height));
 			//m_pMainWindow->SetTopMost(true);
@@ -373,7 +360,6 @@ LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, 
 					(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
 					width, height, (float)hza / (float)hzb, vsync, windowed);
 				
-				m_pMainWindow->SetAutoResizeWindowOnDPIScaling(true);
 				windowed = true; // 强制窗口化
 				m_pRenderDev->SetDisplayMode((fuInt)width, (fuInt)height, (fuInt)hza, (fuInt)hzb, windowed, vsync, flip); // 出错也不用管了
 				
@@ -392,7 +378,6 @@ LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, 
 	}
 	return false;
 }
-
 LNOINLINE bool AppFrame::UpdateVideoMode()LNOEXCEPT
 {
 	return ChangeVideoMode(m_OptionResolution.x, m_OptionResolution.y, m_OptionWindowed, m_OptionVsync);
@@ -441,6 +426,11 @@ bool AppFrame::Init()LNOEXCEPT
 	spdlog::info("[luastg] 初始化引擎");
 	m_iStatus = AppStatus::Initializing;
 	
+	////////////////////////////////////////
+
+	if (!LuaSTG::Core::IApplicationModel::create(this, ~m_pAppModel))
+		return false;
+	
 	//////////////////////////////////////// Lua初始化部分
 	
 	spdlog::info("[luastg] 初始化luajit引擎");
@@ -460,6 +450,20 @@ bool AppFrame::Init()LNOEXCEPT
 	
 	//////////////////////////////////////// 初始化引擎
 	{
+		// 配置窗口
+		{
+			using namespace LuaSTG::Core;
+			auto* p_window = m_pAppModel->getWindow();
+			p_window->setSize(Vector2I(m_OptionResolution.x, m_OptionResolution.y));
+			if (m_OptionWindowed)
+				p_window->setFrameStyle(Graphics::WindowFrameStyle::Fixed);
+			else
+				p_window->setFrameStyle(Graphics::WindowFrameStyle::None);
+			p_window->setTitleText(m_OptionTitle);
+			p_window->setNativeIcon((void*)(ptrdiff_t)IDI_APPICON);
+			p_window->setCursor(m_OptionCursor ? Graphics::WindowCursor::Arrow : Graphics::WindowCursor::None);
+		}
+
 		// 为对象池分配空间
 		spdlog::info("[luastg] 初始化对象池，容量{}", LOBJPOOL_SIZE);
 		try
@@ -485,7 +489,7 @@ bool AppFrame::Init()LNOEXCEPT
 		} tErrListener;
 		
 		f2dEngineRenderWindowParam render_window_def = {
-			.title = m_OptionTitle.c_str(),
+			.title = L"",
 			.windowed = m_OptionWindowed,
 			.vsync = m_OptionVsync,
 			.mode = f2dDisplayMode{
@@ -500,11 +504,11 @@ bool AppFrame::Init()LNOEXCEPT
 				.scaling = 0, // 让引擎自动决定
 			},
 			.gpu = m_OptionGPU.c_str(),
+			.appmodel = *m_pAppModel,
 		};
 		if (FCYFAILED(CreateF2DEngineAndInit(
 			F2DVERSION,
 			&render_window_def,
-			this,
 			~m_pEngine,
 			&tErrListener
 			)))
@@ -524,16 +528,8 @@ bool AppFrame::Init()LNOEXCEPT
 		m_pSoundSys->SetMusicChannelVolume(m_gBGMVol);
 
 		// 打印设备信息
-		f2dCPUInfo stCPUInfo = { 0 };
-		m_pEngine->GetCPUInfo(stCPUInfo);
-		spdlog::info("[fancy2d] CPU {} {}", stCPUInfo.CPUBrandString, stCPUInfo.CPUString);
+		spdlog::info("[fancy2d] CPU {} {}", InstructionSet::Vendor(), InstructionSet::Brand());
 		spdlog::info("[fancy2d] GPU {}", m_pRenderDev->GetDeviceName());
-		
-		// 设置窗口图标
-		HICON hIcon = LoadIconW(GetModuleHandleW(NULL), MAKEINTRESOURCEW(IDI_APPICON));
-		SendMessageW((HWND)m_pMainWindow->GetHandle(), WM_SETICON, (WPARAM)ICON_BIG  , (LPARAM)hIcon);
-		SendMessageW((HWND)m_pMainWindow->GetHandle(), WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)hIcon);
-		DestroyIcon(hIcon);
 		
 		// 渲染器
 		spdlog::info("[luastg] 创建2D渲染器");
@@ -597,12 +593,38 @@ bool AppFrame::Init()LNOEXCEPT
 		#endif
 		
 		// 显示窗口
-		//m_pMainWindow->SetBorderType(F2DWINBORDERTYPE_FIXED);
-		//m_pMainWindow->SetClientRect(fcyRect(0.f, 0.f, m_OptionResolution.x, m_OptionResolution.y));
-		if (m_OptionWindowed) m_pMainWindow->MoveToCenter();
-		m_pMainWindow->SetVisiable(true);
-		//m_pMainWindow->HideMouse(!m_OptionCursor);
-		resetKeyStatus(); // clear key status first
+		{
+			using namespace LuaSTG::Core;
+			auto* p_window = m_pAppModel->getWindow();
+			if (m_OptionWindowed)
+				p_window->setCentered();
+			p_window->setLayer(Graphics::WindowLayer::Normal);
+		}
+		// 启动交换链
+		{
+			using namespace LuaSTG::Core;
+			auto* p_swapchain = m_pAppModel->getSwapChain();
+			p_swapchain->setVSync(m_OptionVsync);
+			if (m_OptionWindowed)
+			{
+				p_swapchain->setWindowMode(m_OptionResolution.x, m_OptionResolution.y, false);
+			}
+			else
+			{
+				Graphics::DisplayMode mode = {
+					.width = (uint32_t)m_OptionResolution.x,
+					.height = (uint32_t)m_OptionResolution.y,
+					.refresh_rate = Rational{
+						.numerator = m_OptionRefreshRateA,
+						.denominator = m_OptionRefreshRateB,
+					},
+					.format = Graphics::Format::B8G8R8A8_UNORM, // 未使用
+				};
+				p_swapchain->findBestMatchDisplayMode(mode);
+				p_swapchain->setExclusiveFullscreenMode(mode);
+			}
+			p_swapchain->refreshDisplayMode();
+		}
 	}
 	
 	// 装载main脚本
@@ -622,7 +644,6 @@ bool AppFrame::Init()LNOEXCEPT
 	
 	return true;
 }
-
 void AppFrame::Shutdown()LNOEXCEPT
 {
 	SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineStop);
@@ -644,7 +665,6 @@ void AppFrame::Shutdown()LNOEXCEPT
 	
 	CloseInput();
 	m_DirectInput = nullptr;
-	m_Graph3D = nullptr;
 	m_GRenderer = nullptr;
 	m_FontRenderer = nullptr;
 	m_Graph2D = nullptr;
@@ -665,17 +685,24 @@ void AppFrame::Shutdown()LNOEXCEPT
 	spdlog::info("[luastg] 卸载所有资源包");
 	
 	m_pEngine = nullptr;
+
+	m_pAppModel = nullptr;
+
 	m_iStatus = AppStatus::Destroyed;
 	spdlog::info("[luastg] 引擎关闭");
 }
-
 void AppFrame::Run()LNOEXCEPT
 {
 	assert(m_iStatus == AppStatus::Initialized);
 	spdlog::info("[luastg] 开始更新&渲染循环");
 	
-	m_pEngine->Run(F2DENGTHREADMODE_MULTITHREAD, m_OptionFPSLimit);
+	m_pAppModel->getWindow()->addEventListener(this);
+
+	m_pAppModel->getFrameRateController()->setTargetFPS(m_OptionFPSLimit);
+	m_pAppModel->run();
 	
+	m_pAppModel->getWindow()->removeEventListener(this);
+
 	spdlog::info("[luastg] 结束更新&渲染循环");
 }
 
@@ -683,146 +710,65 @@ void AppFrame::Run()LNOEXCEPT
 
 #pragma region 游戏循环
 
-fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, f2dMsgPump* pMsgPump)
+void AppFrame::onWindowActive()
 {
-	m_fFPS = pFPSController->GetFPS();
-	m_fAvgFPS = pFPSController->GetAvgFPS();
-	pFPSController->SetLimitedFPS(m_OptionFPSLimit);
-	
-	m_LastKey = 0;
-	
-	// 处理消息
-	f2dMsg tMsg;
-	bool bResetDevice = false;
-	bool bUpdateDevice = false;
-	bool bResizeWindow = false;
-	lua_Integer iWindowWidth = 0;
-	lua_Integer iWindowHeight = 0;
-	while (FCYOK(pMsgPump->GetMsg(&tMsg)))
+	m_window_active_changed.fetch_or(0x1);
+}
+void AppFrame::onWindowInactive()
+{
+	m_window_active_changed.fetch_or(0x2);
+}
+void AppFrame::onDeviceChange()
+{
+	m_window_active_changed.fetch_or(0x4);
+}
+
+void AppFrame::onUpdate()
+{
+	m_fFPS = m_pAppModel->getFrameRateController()->getFPS();
+	m_fAvgFPS = m_pAppModel->getFrameRateController()->getAvgFPS();
+	m_pAppModel->getFrameRateController()->setTargetFPS(m_OptionFPSLimit);
+
+	int window_active_changed = m_window_active_changed.exchange(0);
+	if (window_active_changed & 0x2)
 	{
-		switch (tMsg.Type)
-		{
-		case F2DMSG_WINDOW_ONCLOSE:
-		{
-			return false;  // 关闭窗口时结束循环
-		}
-		case F2DMSG_WINDOW_ONGETFOCUS:
-		{
-			resetKeyStatus(); // clear input status
-			bResetDevice = true;
-			if (m_LastInputTextEnable)
-			{
-				m_InputTextEnable = true;
-			}
-			
-			lua_pushinteger(L, (lua_Integer)LuaSTG::LuaEngine::EngineEvent::WindowActive);
-			lua_pushboolean(L, true);
-			SafeCallGlobalFunctionB(LuaSTG::LuaEngine::G_CALLBACK_EngineEvent, 2, 0);
-			
-			if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_FocusGainFunc))
-				return false;
-			break;
-		}
-		case F2DMSG_WINDOW_ONLOSTFOCUS:
-		{
-			m_LastInputTextEnable = m_InputTextEnable;
-			m_InputTextEnable = false;
-			resetKeyStatus(); // clear input status
-			bResetDevice = true;
-			
-			lua_pushinteger(L, (lua_Integer)LuaSTG::LuaEngine::EngineEvent::WindowActive);
-			lua_pushboolean(L, false);
-			SafeCallGlobalFunctionB(LuaSTG::LuaEngine::G_CALLBACK_EngineEvent, 2, 0);
-			
-			if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_FocusLoseFunc))
-				return false;
-			break;
-		}
-		case F2DMSG_WINDOW_ONRESIZE:
-		{
-			bResizeWindow = true;
-			iWindowWidth = (lua_Integer)tMsg.Param1;
-			iWindowHeight = (lua_Integer)tMsg.Param2;
-			break;
-		}
-		case F2DMSG_WINDOW_ONCHARINPUT:
-		{
-			if (m_InputTextEnable)
-			{
-				OnTextInputChar((fCharW)tMsg.Param1);
-			}
-			break;
-		}
-		case F2DMSG_WINDOW_ONKEYDOWN:
-		{
-			#ifdef USING_CTRL_ENTER_SWITCH
-			// ctrl+enter全屏
-			if (tMsg.Param1 == VK_RETURN && !m_KeyStateMap[VK_RETURN] && m_KeyStateMap[VK_CONTROL])  // 防止反复触发
-			{
-				ChangeVideoMode((int)m_OptionResolution.x, (int)m_OptionResolution.y, !m_OptionWindowed, m_OptionVsync);
-			}
-			#endif
-			// text input
-			if (m_InputTextEnable)
-			{
-				if (tMsg.Param1 == VK_BACK)
-				{
-					OnTextInputDeleteBack();
-				}
-				else if (tMsg.Param1 == VK_DELETE)
-				{
-					OnTextInputDeleteFront();
-				}
-				else if (tMsg.Param1 == 0x56 && !m_KeyStateMap[0x56] && m_KeyStateMap[VK_CONTROL]) // VK_RETURN + VK_V
-				{
-					OnTextInputPasting();
-				}
-			}
-			// key
-			if (0 < tMsg.Param1 && tMsg.Param1 < _countof(m_KeyStateMap))
-			{
-				m_LastKey = (fInt)tMsg.Param1;
-				m_KeyStateMap[tMsg.Param1] = true;
-			}
-			break;
-		}
-		case F2DMSG_WINDOW_ONKEYUP:
-		{
-			if (m_LastKey == tMsg.Param1)
-			{
-				m_LastKey = 0;
-			}
-			if (0 < tMsg.Param1 && tMsg.Param1 < _countof(m_KeyStateMap))
-			{
-				m_KeyStateMap[tMsg.Param1] = false;
-			}
-			break;
-		}
-		case F2DMSG_SYSTEM_ON_DEVICE_CHANGE:
-		{
-			bUpdateDevice = true;
-			break;
-		}
-		default:
-			break;
-		}
+		if (m_DirectInput)
+			m_DirectInput->reset();
+
+		lua_pushinteger(L, (lua_Integer)LuaSTG::LuaEngine::EngineEvent::WindowActive);
+		lua_pushboolean(L, false);
+		SafeCallGlobalFunctionB(LuaSTG::LuaEngine::G_CALLBACK_EngineEvent, 2, 0);
+
+		if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_FocusLoseFunc))
+			m_pAppModel->requestExit();
 	}
-	
-	if (bResizeWindow)
+	if (window_active_changed & 0x1)
 	{
-		lua_pushinteger(L, (lua_Integer)LuaSTG::LuaEngine::EngineEvent::WindowResize);
-		lua_pushinteger(L, iWindowWidth);
-		lua_pushinteger(L, iWindowHeight);
-		SafeCallGlobalFunctionB(LuaSTG::LuaEngine::G_CALLBACK_EngineEvent, 3, 0);
+		if (m_DirectInput)
+			m_DirectInput->reset();
+
+		lua_pushinteger(L, (lua_Integer)LuaSTG::LuaEngine::EngineEvent::WindowActive);
+		lua_pushboolean(L, true);
+		SafeCallGlobalFunctionB(LuaSTG::LuaEngine::G_CALLBACK_EngineEvent, 2, 0);
+
+		if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_FocusGainFunc))
+			m_pAppModel->requestExit();
+	}
+	if (window_active_changed & 0x4)
+	{
+		if (m_DirectInput)
+			m_DirectInput->refresh();
 	}
 
 	UpdateInput();
-	if (m_DirectInput.get())
-	{
-		if (bResetDevice) m_DirectInput->reset();
-		if (bUpdateDevice) m_DirectInput->refresh();
-	}
 	
+#ifdef USING_CTRL_ENTER_SWITCH
+	if (WantSwitchFullScreenMode())
+	{
+		ChangeVideoMode((int)m_OptionResolution.x, (int)m_OptionResolution.y, !m_OptionWindowed, m_OptionVsync);
+	}
+#endif
+
 #if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
 	static uint64_t _frame_count = 0;
 	spdlog::debug("[frame] ---------- {} ----------", _frame_count);
@@ -831,32 +777,26 @@ fBool AppFrame::OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, 
 
 	// 执行帧函数
 	if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineUpdate, 1))
-		return false;
+		m_pAppModel->requestExit();
 	bool tAbort = lua_toboolean(L, -1) == 0 ? false : true;
 	lua_pop(L, 1);
-	
-	return !tAbort;
+	if (tAbort)
+		m_pAppModel->requestExit();
 }
-
-fBool AppFrame::OnRender(fDouble ElapsedTime, f2dFPSController* pFPSController)
+void AppFrame::onRender()
 {
-	m_NewRenderer2D.clearRenderTarget({});
-	m_NewRenderer2D.clearDepthBuffer(1.0f);
-	
 	// 执行渲染函数
 	m_bRenderStarted = true;
-	
 	if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineDraw))
-		m_pEngine->Abort();
+		m_pAppModel->requestExit();
+	m_bRenderStarted = false;
+	// 发出警告
 	if (!m_stRenderTargetStack.empty() || !m_stDepthStencilStack.empty())
 	{
 		spdlog::error("[luastg] [AppFrame::OnRender] 渲染结束时 RenderTarget 栈不为空，可能缺少对 lstg.PopRenderTarget 的调用");
 		while (!m_stRenderTargetStack.empty() || !m_stDepthStencilStack.empty())
 			PopRenderTarget();
 	}
-	m_bRenderStarted = false;
-	
-	return true;
 }
 
 #pragma endregion

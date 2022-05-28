@@ -88,12 +88,7 @@ namespace LuaSTGPlus
     bool AppFrame::Render(ResSprite* p, float x, float y, float rot, float hscale, float vscale, float z) noexcept
     {
         assert(p);
-        //if (m_GraphType != GraphicsType::Graph2D)
-        //{
-        //    spdlog::error("[luastg] Render: 只有2D渲染器可以执行该方法");
-        //    return false;
-        //}
-        
+
         // 设置混合
         updateGraph2DBlendMode(p->GetBlendMode());
         
@@ -116,12 +111,7 @@ namespace LuaSTGPlus
     bool AppFrame::Render(ResAnimation* p, int ani_timer, float x, float y, float rot, float hscale, float vscale) noexcept
     {
         assert(p);
-        //if (m_GraphType != GraphicsType::Graph2D)
-        //{
-        //    spdlog::error("[luastg] Render: 只有2D渲染器可以执行该方法");
-        //    return false;
-        //}
-        
+
         // 设置混合
         updateGraph2DBlendMode(p->GetBlendMode());
         
@@ -143,12 +133,7 @@ namespace LuaSTGPlus
     bool AppFrame::Render(ResParticle::ParticlePool* p, float hscale, float vscale) noexcept
     {
         assert(p);
-        //if (m_GraphType != GraphicsType::Graph2D)
-        //{
-        //    spdlog::error("[luastg] Render: 只有2D渲染器可以执行该方法");
-        //    return false;
-        //}
-        
+
         // 设置混合
         updateGraph2DBlendMode(p->GetBlendMode());
         
@@ -158,12 +143,6 @@ namespace LuaSTGPlus
     }
     bool AppFrame::RenderRect(const char* name, float x1, float y1, float x2, float y2) noexcept
     {
-        //if (m_GraphType != GraphicsType::Graph2D)
-        //{
-        //    spdlog::error("[luastg] RenderRect: 只有2D渲染器可以执行该方法");
-        //    return false;
-        //}
-
         fcyRefPointer<ResSprite> p = m_ResourceMgr.FindSprite(name);
         if (!p)
         {
@@ -187,12 +166,6 @@ namespace LuaSTGPlus
         float x3, float y3, float z3,
         float x4, float y4, float z4) noexcept
     {
-        //if (m_GraphType != GraphicsType::Graph2D)
-        //{
-        //    spdlog::error("[luastg] Render4V: 只有2D渲染器可以执行该方法");
-        //    return false;
-        //}
-        
         fcyRefPointer<ResSprite> p = m_ResourceMgr.FindSprite(name);
         if (!p)
         {
@@ -210,12 +183,6 @@ namespace LuaSTGPlus
     }
     bool AppFrame::RenderTexture(ResTexture* tex, BlendMode blend, const f2dGraphics2DVertex vertex[]) noexcept
     {
-        //if (m_GraphType != GraphicsType::Graph2D)
-        //{
-        //    spdlog::error("[luastg] RenderTexture: 只有2D渲染器可以执行该方法");
-        //    return false;
-        //}
-        
         // 设置混合
         updateGraph2DBlendMode(blend);
         
@@ -239,12 +206,6 @@ namespace LuaSTGPlus
     }
     bool AppFrame::RenderTexture(const char* name, BlendMode blend, f2dGraphics2DVertex vertex[]) noexcept
     {
-        //if (m_GraphType != GraphicsType::Graph2D)
-        //{
-        //    spdlog::error("[luastg] RenderTexture: 只有2D渲染器可以执行该方法");
-        //    return false;
-        //}
-        
         fcyRefPointer<ResTexture> p = m_ResourceMgr.FindTexture(name);
         if (!p)
         {
@@ -272,12 +233,6 @@ namespace LuaSTGPlus
         int vcount, const f2dGraphics2DVertex vertex[],
         int icount, const unsigned short indexs[]) noexcept
     {
-        //if (m_GraphType != GraphicsType::Graph2D)
-        //{
-        //    spdlog::error("[luastg] RenderTexture: 只有2D渲染器可以执行该方法");
-        //    return false;
-        //}
-        
         fcyRefPointer<ResTexture> p = m_ResourceMgr.FindTexture(name);
         if (!p)
         {
@@ -366,16 +321,13 @@ namespace LuaSTGPlus
             return false;
         }
 
-        if (m_GraphType == GraphicsType::Graph2D)
+        fResult fr = m_Graph2D->Begin();
+        if (FCYFAILED(fr))
         {
-            fResult fr = m_Graph2D->Begin();
-            if (FCYFAILED(fr))
-            {
-                spdlog::error("[fancy2d] [f2dGraphics2D::Begin] 失败(fResult={})", fr);
-                return false;
-            }
+            spdlog::error("[fancy2d] [f2dGraphics2D::Begin] 失败(fResult={})", fr);
+            return false;
         }
-
+        
         return true;
     }
     bool AppFrame::EndScene() noexcept
@@ -386,14 +338,11 @@ namespace LuaSTGPlus
             return false;
         }
 
-        if (m_GraphType == GraphicsType::Graph2D)
+        fResult fr = m_Graph2D->End();
+        if (FCYFAILED(fr))
         {
-            fResult fr = m_Graph2D->End();
-            if (FCYFAILED(fr))
-            {
-                spdlog::error("[fancy2d] [f2dGraphics2D::End] 失败(fResult={})", fr);
-                return false;
-            }
+            spdlog::error("[fancy2d] [f2dGraphics2D::End] 失败(fResult={})", fr);
+            return false;
         }
 
         return true;

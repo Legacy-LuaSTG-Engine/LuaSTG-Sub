@@ -34,6 +34,8 @@ set(platform_sources
     platform/Keyboard.cpp
     platform/HResultChecker.hpp
     platform/HResultChecker.cpp
+    platform/DetectCPU.hpp
+    platform/DetectCPU.cpp
 )
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${platform_sources})
 target_sources(platform PRIVATE ${platform_sources})

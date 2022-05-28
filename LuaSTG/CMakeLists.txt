@@ -31,6 +31,9 @@ set(LuaSTGCore_SRC
     Core/i18n.cpp
 
     Core/Object.hpp
+    Core/Graphics/Window.hpp
+    Core/Graphics/Window_Win32.hpp
+    Core/Graphics/Window_Win32.cpp
     Core/Graphics/Format.hpp
     Core/Graphics/Format_D3D11.hpp
     Core/Graphics/Device.hpp
@@ -39,6 +42,9 @@ set(LuaSTGCore_SRC
     Core/Graphics/SwapChain.hpp
     Core/Graphics/SwapChain_D3D11.hpp
     Core/Graphics/SwapChain_D3D11.cpp
+    Core/ApplicationModel.hpp
+    Core/ApplicationModel_Win32.hpp
+    Core/ApplicationModel_Win32.cpp
 
     Backend/framework.hpp
     Backend/framework.cpp

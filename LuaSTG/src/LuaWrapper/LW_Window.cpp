@@ -23,8 +23,7 @@ static int lib_setTitle(lua_State* L)
 {
     getwindow(window);
     const char* text = luaL_checkstring(L, 1);
-    const std::wstring wtext = std::move(utility::encoding::to_wide(text));;
-    window->SetCaption(wtext.c_str());
+    window->SetCaption(text);
     return 0;
 }
 static int lib_setCentered(lua_State* L)
@@ -116,27 +115,15 @@ static int lib_getDPIScaling(lua_State* L)
 static int lib_setTextInputEnable(lua_State* L)
 {
     const bool enable = lua_toboolean(L, 1);
-    LAPP().SetTextInputEnable(enable);
     return 0;
 }
 static int lib_getTextInput(lua_State* L)
 {
-    try
-    {
-        fcStrW text = LAPP().GetTextInput();
-        std::string u8text = std::move(utility::encoding::to_utf8(text));
-        lua_pushstring(L, u8text.c_str());
-        return 1;
-    }
-    catch(...)
-    {
-        lua_pushstring(L, "");
-        return 1;
-    }
+    lua_pushstring(L, "");
+    return 1;
 }
 static int lib_clearTextInput(lua_State* L)
 {
-    LAPP().ClearTextInput();
     return 0;
 }
 

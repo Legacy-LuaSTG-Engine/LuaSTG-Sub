@@ -6,7 +6,7 @@
 #include "../fcyType.h"
 
 #ifdef _DEBUG
-#include "fcyDebug.h"
+#include <cassert>
 #endif
 
 #include <vector>
@@ -109,7 +109,7 @@ public:
 	{
 #ifdef _DEBUG
 		if(GetTotalSize()!=GetFreeSize())
-			fcyDebug::Trace(L"fcyMemPool(@ %x):: MemLeak!\n", (fHandle)this);
+			assert(false);
 #endif
 		for(std::vector<void*>::iterator i = m_AllocMemPtr.begin(); i != m_AllocMemPtr.end(); ++i)
 		{

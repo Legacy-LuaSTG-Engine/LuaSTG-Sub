@@ -5,6 +5,7 @@
 #include "ResourceMgr.h"
 #include "GameObjectPool.h"
 #include "platform/DirectInput.hpp"
+#include "Core/ApplicationModel.hpp"
 #include "Core/Renderer.hpp"
 #include "LConfig.h"
 
@@ -29,11 +30,16 @@ namespace LuaSTGPlus
 	};
 
 	/// @brief 应用程序框架
-	class AppFrame : public f2dEngineEventListener
+	class AppFrame
+		: public LuaSTG::Core::IApplicationEventListener
+		, public LuaSTG::Core::Graphics::IWindowEventListener
 	{
 	private:
 		AppStatus m_iStatus = AppStatus::NotInitialized;
 		
+		// 应用程序框架
+		LuaSTG::Core::ScopeObject<LuaSTG::Core::IApplicationModel> m_pAppModel;
+
 		// 资源管理器
 		ResourceMgr m_ResourceMgr;
 		
@@ -52,7 +58,7 @@ namespace LuaSTGPlus
 		fuInt m_OptionRefreshRateA = 0;
 		fuInt m_OptionRefreshRateB = 0;
 		std::wstring m_OptionGPU = L"";
-		std::wstring m_OptionTitle = L"" LUASTG_INFO;
+		std::string m_OptionTitle = LUASTG_INFO;
 		bool m_OptionCursor = true;
 		fDouble m_fFPS = 0.;
 		fDouble m_fAvgFPS = 0.;
@@ -67,14 +73,12 @@ namespace LuaSTGPlus
 		f2dSoundSys* m_pSoundSys = nullptr;
 		
 		//渲染状态
-		GraphicsType m_GraphType = GraphicsType::Graph2D;
 		bool m_bRenderStarted = false;
 		
 		//渲染器
 		fcyRefPointer<f2dGeometryRenderer> m_GRenderer;//2D
 		fcyRefPointer<f2dFontRenderer> m_FontRenderer;//2D
 		fcyRefPointer<f2dGraphics2D> m_Graph2D;//2D
-		fcyRefPointer<f2dGraphics3D> m_Graph3D;//3D
 		LuaSTG::Core::Renderer m_NewRenderer2D;
 		
 		// PostEffect控制
@@ -83,12 +87,6 @@ namespace LuaSTGPlus
 		
 		//输入设备
 		std::unique_ptr<platform::DirectInput> m_DirectInput;
-		fInt m_LastKey = 0;
-		bool m_InputTextEnable = false;
-		bool m_LastInputTextEnable = false;
-		std::wstring m_InputTextBuffer;
-		fBool m_KeyStateMap[256];
-		void resetKeyStatus()LNOEXCEPT;
 		
 	public:
 		/// @brief 保护模式执行脚本
@@ -116,24 +114,16 @@ namespace LuaSTGPlus
 		bool OnLoadMainScriptAndFiles();
 		
 	public:  // 输入系统接口
+		void OpenInput();
+		void CloseInput();
+		void UpdateInput();
+		bool WantSwitchFullScreenMode();
+
 		//检查按键是否按下
 		fBool GetKeyState(int VKCode)LNOEXCEPT;
 		
 		/// @brief 获得最后一次按键输入
 		int GetLastKey()LNOEXCEPT;
-		
-		void OnTextInputDeleteFront();
-		void OnTextInputDeleteBack();
-		void OnTextInputPasting();
-		void OnTextInputChar(fCharW c);
-		
-		void SetTextInputEnable(bool enable = false)LNOEXCEPT;
-		
-		/// @brief 获得输入的文本
-		fcStrW GetTextInput()LNOEXCEPT;
-		
-		/// @brief 清空输入的文本
-		void ClearTextInput()LNOEXCEPT;
 		
 		/// @brief 获取鼠标位置（以窗口左下角为原点）
 		fcyVec2 GetMousePosition(bool no_flip = false)LNOEXCEPT;
@@ -145,10 +135,6 @@ namespace LuaSTGPlus
 		fBool GetMouseState_legacy(int button) LNOEXCEPT;
 		fBool GetMouseState(int button) LNOEXCEPT;
 		
-		void OpenInput();
-		void CloseInput();
-		void UpdateInput();
-
 	public: // 脚本调用接口，含义参见API文档
 		void SetWindowed(bool v)LNOEXCEPT;
 		void SetDefaultWindowStyle(F2DWINBORDERTYPE v) { m_OptionWindowStyle = v; };
@@ -246,10 +232,6 @@ namespace LuaSTGPlus
 		bool PushRenderTarget(ResTexture* rt)LNOEXCEPT;
 		bool PopRenderTarget()LNOEXCEPT;
 
-		bool PostEffect(fcyRefPointer<f2dTexture2D> rt, ResFX* shader, BlendMode blend)LNOEXCEPT;
-
-		bool PostEffect(ResTexture* rt, ResFX* shader, BlendMode blend)LNOEXCEPT;
-		
 		// 渲染扇形，通过纹理+uv范围渲染
 		bool RenderSector(const char* name, fcyRect uv, bool tran, BlendMode blend, fcyColor color1, fcyColor color2,
 			fcyVec2 pos, float rot, float exp, float r1, float r2, int div);
@@ -278,20 +260,24 @@ namespace LuaSTGPlus
 		
 	public:
 		// 获取框架对象
+		lua_State* GetLuaEngine() LNOEXCEPT { return L; }
+
 		ResourceMgr& GetResourceMgr() LNOEXCEPT { return m_ResourceMgr; }
+
 		GameObjectPool& GetGameObjectPool() LNOEXCEPT{ return *m_GameObjectPool.get(); }
+
 		f2dEngine* GetEngine() LNOEXCEPT { return m_pEngine; }
 		f2dWindow* GetWindow() LNOEXCEPT { return m_pMainWindow; }
-		platform::DirectInput* GetDInput() LNOEXCEPT { return m_DirectInput.get(); }
 		f2dRenderer* GetRenderer() LNOEXCEPT { return m_pRenderer; }
 		f2dRenderDevice* GetRenderDev() LNOEXCEPT { return m_pRenderDev; }
 		f2dSoundSys* GetSoundSys() LNOEXCEPT { return m_pSoundSys; }
 		fcyRefPointer<f2dGeometryRenderer> GetGeometryRenderer() LNOEXCEPT { return m_GRenderer; }
-		GraphicsType GetGraphicsType() LNOEXCEPT { return m_GraphType; }
-		fcyRefPointer<f2dGraphics3D> GetGraphics3D() LNOEXCEPT { return m_Graph3D; }
 		fcyRefPointer<f2dGraphics2D> GetGraphics2D() LNOEXCEPT { return m_Graph2D; }
+
+		platform::DirectInput* GetDInput() LNOEXCEPT { return m_DirectInput.get(); }
+		
 		LuaSTG::Core::Renderer& GetRenderer2D() { return m_NewRenderer2D; }
-		lua_State* GetLuaEngine() LNOEXCEPT { return L; }
+
 	public:
 		/// @brief 初始化框架
 		/// @note 该函数必须在一开始被调用，且仅能调用一次
@@ -304,9 +290,15 @@ namespace LuaSTGPlus
 		/// @brief 执行框架，进入游戏循环
 		void Run()LNOEXCEPT;
 		
-	protected:  // fancy2d逻辑循环回调
-		fBool OnUpdate(fDouble ElapsedTime, f2dFPSController* pFPSController, f2dMsgPump* pMsgPump);
-		fBool OnRender(fDouble ElapsedTime, f2dFPSController* pFPSController);
+	protected:
+		std::atomic_int m_window_active_changed{ 0 };
+
+		void onWindowActive();
+		void onWindowInactive();
+		void onDeviceChange();
+
+		void onUpdate();
+		void onRender();
 	public:
 		AppFrame()LNOEXCEPT;
 		~AppFrame()LNOEXCEPT;
