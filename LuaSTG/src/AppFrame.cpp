@@ -458,38 +458,8 @@ bool AppFrame::Init()LNOEXCEPT
 		spdlog::info("[fancy2d] 初始化，窗口分辨率：{}x{}，垂直同步：{}，窗口化：{}",
 			(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed);
 		
-		struct : public f2dInitialErrListener
-		{
-			void OnErr(fuInt TimeTick, fcStr Src, fcStr Desc)
-			{
-				spdlog::error("[fancy2d] [{}] {}", Src, Desc);
-			}
-		} tErrListener;
-		
-		f2dEngineRenderWindowParam render_window_def = {
-			.title = L"",
-			.windowed = m_OptionWindowed,
-			.vsync = m_OptionVsync,
-			.mode = f2dDisplayMode{
-				.width = (fuInt)m_OptionResolution.x,
-				.height = (fuInt)m_OptionResolution.y,
-				.refresh_rate = f2dRational{
-					.numerator = m_OptionRefreshRateA,
-					.denominator = m_OptionRefreshRateB,
-				},
-				.format = 0, // 让引擎自动决定
-				.scanline_ordering = 0, // 让引擎自动决定
-				.scaling = 0, // 让引擎自动决定
-			},
-			.gpu = m_OptionGPU.c_str(),
-			.appmodel = *m_pAppModel,
-		};
-		if (FCYFAILED(CreateF2DEngineAndInit(
-			F2DVERSION,
-			&render_window_def,
-			~m_pEngine,
-			&tErrListener
-			)))
+		f2dEngineRenderWindowParam render_window_def = { .appmodel = *m_pAppModel };
+		if (FCYFAILED(CreateF2DEngineAndInit(&render_window_def, ~m_pEngine)))
 		{
 			spdlog::error("[fancy2d] 初始化失败");
 			return false;

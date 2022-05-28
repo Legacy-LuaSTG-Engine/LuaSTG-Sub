@@ -1,7 +1,6 @@
 # 源文件
 
 set(FANCY2D_SOURCE
-    f2d.h
     f2dInterface.h
 
     f2dEngine.h
