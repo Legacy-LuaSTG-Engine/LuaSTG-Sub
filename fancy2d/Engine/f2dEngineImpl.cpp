@@ -1,5 +1,4 @@
 ﻿#include "Engine/f2dEngineImpl.h"
-#include "f2d.h"
 
 f2dEngineImpl::f2dEngineImpl(f2dEngineRenderWindowParam* RenderWindowParam)
 	: m_pSoundSys(NULL)
@@ -28,24 +27,18 @@ f2dEngineImpl::~f2dEngineImpl()
 	FCYSAFEKILL(m_pSoundSys);
 }
 
-F2DEXTERNC fResult F2DDLLFUNC CreateF2DEngineAndInit(fuInt Version, f2dEngineRenderWindowParam* RenderWindowParam, f2dEngine** pOut, f2dInitialErrListener* pErrListener)
+fResult CreateF2DEngineAndInit(f2dEngineRenderWindowParam* RenderWindowParam, f2dEngine** pOut)
 {
 	if(!pOut)
 		return FCYERR_ILLEGAL;
 	*pOut = NULL;
 
-	if(Version != F2DVERSION)
-		return FCYERR_INVAILDVERSION;
-	
 	try
 	{
 		*pOut = new f2dEngineImpl(RenderWindowParam);
 	}
 	catch(const fcyException& e)
 	{
-		if(pErrListener)
-			pErrListener->OnErr(e.GetTime(), e.GetSrc(), e.GetDesc());
-
 		return FCYERR_INTERNALERR;
 	}
 

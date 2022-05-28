@@ -35,7 +35,7 @@
 #include <fcyMisc/fcyStopWatch.h>
 #include <fcyMisc/fcyRandom.h>
 #include <fcyOS/fcyMemPool.h>
-#include <f2d.h>
+#include "f2dEngine.h"
 
 // luajit
 #include <lua.hpp>

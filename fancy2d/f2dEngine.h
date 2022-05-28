@@ -5,11 +5,6 @@
 
 struct f2dEngineRenderWindowParam
 {
-	fcStrW title;
-	fBool windowed;
-	fBool vsync;
-	f2dDisplayMode mode;
-	fcStrW gpu;
 	void* appmodel = nullptr;
 };
 
@@ -24,3 +19,5 @@ struct f2dEngine : f2dInterface
 
 	virtual void* GetAppModel() = 0;
 };
+
+fResult CreateF2DEngineAndInit(f2dEngineRenderWindowParam* RenderWindowParam, f2dEngine** pOut);
