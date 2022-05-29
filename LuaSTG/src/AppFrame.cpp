@@ -725,11 +725,10 @@ void AppFrame::onUpdate()
 }
 void AppFrame::onRender()
 {
-	// 执行渲染函数
 	m_bRenderStarted = true;
+	// 执行渲染函数
 	if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineDraw))
 		m_pAppModel->requestExit();
-	m_bRenderStarted = false;
 	// 发出警告
 	if (!m_stRenderTargetStack.empty() || !m_stDepthStencilStack.empty())
 	{
@@ -737,6 +736,7 @@ void AppFrame::onRender()
 		while (!m_stRenderTargetStack.empty() || !m_stDepthStencilStack.empty())
 			PopRenderTarget();
 	}
+	m_bRenderStarted = false;
 }
 
 #pragma endregion
