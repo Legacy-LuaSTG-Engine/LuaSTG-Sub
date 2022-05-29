@@ -64,26 +64,26 @@ namespace LuaSTG::Core::Graphics
 				dispatchEvent(EventType::WindowInactive);
 			}
 			break;
-		case WM_SIZE:
-			break;
-		case WM_ENTERSIZEMOVE:
-			win32_window_is_sizemove = TRUE;
-			InvalidateRect(window, NULL, FALSE); // 标记窗口区域为需要重新绘制，以便产生 WM_PAINT 消息
-			return 0;
-		case WM_EXITSIZEMOVE:
-			win32_window_is_sizemove = FALSE;
-			ValidateRect(window, NULL);
-			return 0;
-		case WM_PAINT:
-			if (win32_window_is_sizemove)
-			{
-				dispatchEvent(EventType::WindowSizeMovePaint);
-			}
-			else
-			{
-				ValidateRect(window, NULL); // 正常情况下，WM_PAINT 忽略掉
-			}
-			return 0;
+		//case WM_SIZE:
+		//	break;
+		//case WM_ENTERSIZEMOVE:
+		//	win32_window_is_sizemove = TRUE;
+		//	InvalidateRect(window, NULL, FALSE); // 标记窗口区域为需要重新绘制，以便产生 WM_PAINT 消息
+		//	return 0;
+		//case WM_EXITSIZEMOVE:
+		//	win32_window_is_sizemove = FALSE;
+		//	ValidateRect(window, NULL);
+		//	return 0;
+		//case WM_PAINT:
+		//	if (win32_window_is_sizemove)
+		//	{
+		//		dispatchEvent(EventType::WindowSizeMovePaint);
+		//	}
+		//	else
+		//	{
+		//		ValidateRect(window, NULL); // 正常情况下，WM_PAINT 忽略掉
+		//	}
+		//	return 0;
 		case WM_DPICHANGED:
 			if (getFrameStyle() != WindowFrameStyle::None)
 			{
