@@ -366,7 +366,44 @@ namespace LuaSTG::Core
 		}
 		// 让工作线程退出
 		requestExit();
-		WaitForSingleObjectEx(win32_thread_worker.Get(), INFINITE, TRUE);
+		//WaitForSingleObjectEx(win32_thread_worker.Get(), INFINITE, TRUE);
+		auto wait_worker = [&]()
+		{
+			for (;;)
+			{
+				switch (WaitForSingleObjectEx(win32_thread_worker.Get(), 1000, TRUE))
+				{
+				case WAIT_OBJECT_0:
+					return; // ok
+				case WAIT_ABANDONED:
+					spdlog::warn("[core] (File: {} Line: {}) WaitForSingleObjectEx: WAIT_ABANDONED", __FILE__, __LINE__);
+					break;
+				case WAIT_TIMEOUT:
+					spdlog::warn("[core] (File: {} Line: {}) WaitForSingleObjectEx: WAIT_TIMEOUT", __FILE__, __LINE__);
+					break;
+				case WAIT_IO_COMPLETION:
+					spdlog::info("[core] (File: {} Line: {}) WaitForSingleObjectEx: WAIT_IO_COMPLETION", __FILE__, __LINE__);
+					break;
+				case WAIT_FAILED:
+					gHRLastError;
+					return; // failed
+				}
+				// 你妈的，是不是还有消息没处理
+				if (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
+				{
+					if (msg.message == WM_QUIT)
+					{
+						// 没事了
+					}
+					else
+					{
+						TranslateMessage(&msg);
+						DispatchMessageW(&msg);
+					}
+				}
+			}
+		};
+		wait_worker();
 		return true;
 	}
 
