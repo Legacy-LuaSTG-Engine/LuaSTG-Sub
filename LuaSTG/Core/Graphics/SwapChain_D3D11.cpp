@@ -738,12 +738,12 @@ namespace LuaSTG::Core::Graphics
 		{
 			return false;
 		}
-		dispatchEvent(EventType::SwapChainCreate);
 		m_swapchain_last_mode = mode;
 		m_swapchain_last_windowed = TRUE;
 		m_swapchain_last_flip = flip_model;
 		m_init = TRUE;
 		m_window->setCursorToRightBottom();
+		dispatchEvent(EventType::SwapChainCreate);
 		return true;
 	}
 	bool SwapChain_D3D11::setSize(uint32_t width, uint32_t height)
@@ -781,10 +781,10 @@ namespace LuaSTG::Core::Graphics
 			return false;
 		}
 		applyRenderAttachment();
-		dispatchEvent(EventType::SwapChainCreate);
 		m_swapchain_last_mode.width = width;
 		m_swapchain_last_mode.height = height;
 		m_window->setCursorToRightBottom();
+		dispatchEvent(EventType::SwapChainCreate);
 		return true;
 	}
 	bool SwapChain_D3D11::setExclusiveFullscreenMode(DisplayMode const& mode)
@@ -821,12 +821,12 @@ namespace LuaSTG::Core::Graphics
 			return false;
 		}
 		applyRenderAttachment();
-		dispatchEvent(EventType::SwapChainCreate);
 		m_swapchain_last_mode = mode;
 		m_swapchain_last_windowed = FALSE;
 		m_swapchain_last_flip = FALSE;
 		m_init = TRUE;
 		m_window->setCursorToRightBottom();
+		dispatchEvent(EventType::SwapChainCreate);
 		return true;
 	}
 	
