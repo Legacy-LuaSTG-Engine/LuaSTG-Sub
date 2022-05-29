@@ -103,8 +103,12 @@ namespace LuaSTG::Core::Graphics
 			}
 			break;
 		case WM_SETCURSOR:
-			SetCursor(win32_window_cursor);
-			return TRUE;
+			if (LOWORD(arg2) == HTCLIENT)
+			{
+				SetCursor(win32_window_cursor);
+				return TRUE;
+			}
+			break;
 		case WM_MENUCHAR:
 			// 快捷键能不能死全家
 			return MAKELRESULT(0, MNC_CLOSE);
