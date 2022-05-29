@@ -249,18 +249,14 @@ fResult f2dRenderDevice11::SetRenderTargetAndDepthStencilSurface(f2dTexture2D* p
 
 	if (d3d11_devctx)
 	{
-		m_pSwapChain->applyRenderAttachment();
-		ID3D11RenderTargetView* rtvs[1] = { NULL };
-		ID3D11DepthStencilView* dsv = NULL;
-		d3d11_devctx->OMGetRenderTargets(1, rtvs, &dsv);
+		ID3D11RenderTargetView* rtvs[1] = { m_pSwapChain->GetRTV() };
+		ID3D11DepthStencilView* dsv = m_pSwapChain->GetDSV();
 		if (*m_RenderTarget)
 		{
-			if (rtvs[0]) rtvs[0]->Release();
 			rtvs[0] = ((f2dRenderTarget11*)*m_RenderTarget)->GetRTView();
 		}
 		if (*m_DepthStencil)
 		{
-			if (dsv) dsv->Release();
 			dsv = ((f2dDepthStencil11*)*m_DepthStencil)->GetView();
 		}
 		d3d11_devctx->OMSetRenderTargets(1, rtvs, dsv);
