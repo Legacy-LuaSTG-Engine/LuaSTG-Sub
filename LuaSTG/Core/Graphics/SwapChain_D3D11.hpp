@@ -34,6 +34,7 @@ namespace LuaSTG::Core::Graphics
 
 		BOOL m_init{ FALSE };
 		std::atomic_int m_window_active_changed{ 0 };
+
 	private:
 		void onDeviceCreate();
 		void onDeviceDestroy();
@@ -43,11 +44,17 @@ namespace LuaSTG::Core::Graphics
 
 		void onWindowActive();
 		void onWindowInactive();
+
+	public:
+		ID3D11RenderTargetView* GetRTV() { return d3d11_rtv.Get(); }
+		ID3D11DepthStencilView* GetDSV() { return d3d11_dsv.Get(); }
+
 	private:
 		void destroySwapChain();
 		bool createSwapChain(bool windowed, bool flip, DisplayMode const& mode, bool no_attachment);
 		void destroyRenderAttachment();
 		bool createRenderAttachment();
+
 	private:
 		enum class EventType
 		{
