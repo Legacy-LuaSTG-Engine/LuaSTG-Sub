@@ -129,7 +129,7 @@ fResult f2dRenderDevice11::RemoveListener(f2dRenderDeviceEventListener* Listener
 
 // 创建资源
 
-fResult f2dRenderDevice11::CreateTextureFromStream(f2dStream* pStream, fuInt, fuInt, fBool IsDynamic, fBool HasMipmap, f2dTexture2D** pOut)
+fResult f2dRenderDevice11::CreateTextureFromFile(fcStr path, fBool HasMipmap, f2dTexture2D** pOut)
 {
 	if (!pOut)
 		return FCYERR_INVAILDPARAM;
@@ -137,32 +137,7 @@ fResult f2dRenderDevice11::CreateTextureFromStream(f2dStream* pStream, fuInt, fu
 
 	try
 	{
-		*pOut = new f2dTexture2D11(this, pStream, HasMipmap, IsDynamic);
-	}
-	catch (const std::bad_alloc&)
-	{
-		return FCYERR_OUTOFMEM;
-	}
-	catch (const fcyException& e)
-	{
-		return FCYERR_INTERNALERR;
-	}
-
-	return FCYERR_OK;
-}
-fResult f2dRenderDevice11::CreateTextureFromMemory(fcData pMemory, fLen Size, fuInt, fuInt, fBool IsDynamic, fBool HasMipmap, f2dTexture2D** pOut)
-{
-	if (!pOut)
-		return FCYERR_INVAILDPARAM;
-	*pOut = NULL;
-
-	try
-	{
-		*pOut = new f2dTexture2D11(this, pMemory, Size, HasMipmap, IsDynamic);
-	}
-	catch (const std::bad_alloc&)
-	{
-		return FCYERR_OUTOFMEM;
+		*pOut = new f2dTexture2D11(this, path, HasMipmap);
 	}
 	catch (const fcyException& e)
 	{

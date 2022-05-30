@@ -10,24 +10,21 @@
 #include "AdapterPolicy.hpp"
 #include "utility/encoding.hpp"
 
-class f2dGraphic2dAdapter
-	: public f2dGraphics2D
-	, public f2dRenderDeviceEventListener
+class f2dGraphic2dAdapter : public f2dGraphics2D
 {
 private:
 	fcyMatrix4 m_tMat;
 	f2dBlendState m_tState = {};
-	LuaSTG::Core::Renderer* m_Renderer = nullptr;
+	LuaSTG::Core::Graphics::IRenderer* m_Renderer = nullptr;
 	inline void applyTexure(f2dTexture2D* pTex)
 	{
 		if (pTex)
 		{
-			m_Renderer->setTextureAlphaType(pTex->IsPremultipliedAlpha() ? LuaSTG::Core::TextureAlphaType::PremulAlpha : LuaSTG::Core::TextureAlphaType::Normal);
-			m_Renderer->setTexture(LuaSTG::Core::TextureID(pTex->GetHandle()));
+			m_Renderer->setTexture(pTex->GetNativeTexture2D());
 		}
 		else
 		{
-			m_Renderer->setTexture({});
+			m_Renderer->setTexture(nullptr);
 		}
 	}
 public:
@@ -76,36 +73,31 @@ public:
 	{
 		applyTexure(pTex);
 		m_Renderer->drawQuad(
-			(LuaSTG::Core::DrawVertex2D const&)(v1),
-			(LuaSTG::Core::DrawVertex2D const&)(v2),
-			(LuaSTG::Core::DrawVertex2D const&)(v3),
-			(LuaSTG::Core::DrawVertex2D const&)(v4));
+			(LuaSTG::Core::Graphics::IRenderer::DrawVertex const&)(v1),
+			(LuaSTG::Core::Graphics::IRenderer::DrawVertex const&)(v2),
+			(LuaSTG::Core::Graphics::IRenderer::DrawVertex const&)(v3),
+			(LuaSTG::Core::Graphics::IRenderer::DrawVertex const&)(v4));
 		return FCYERR_OK;
 	}
 	fResult DrawQuad(f2dTexture2D* pTex, const f2dGraphics2DVertex* arr, fBool bAutoFixCoord = true)
 	{
 		applyTexure(pTex);
-		m_Renderer->drawQuad((LuaSTG::Core::DrawVertex2D*)arr);
+		m_Renderer->drawQuad((LuaSTG::Core::Graphics::IRenderer::DrawVertex*)arr);
 		return FCYERR_OK;
 	}
 	fResult DrawRaw(f2dTexture2D* pTex, fuInt VertCount, fuInt IndexCount, const f2dGraphics2DVertex* VertArr, const fuShort* IndexArr, fBool bAutoFixCoord = true)
 	{
 		applyTexure(pTex);
-		m_Renderer->drawRaw((LuaSTG::Core::DrawVertex2D*)VertArr, (uint16_t)VertCount, (LuaSTG::Core::DrawIndex2D*)IndexArr, (uint16_t)IndexCount);
+		m_Renderer->drawRaw(
+			(LuaSTG::Core::Graphics::IRenderer::DrawVertex*)VertArr,
+			(uint16_t)VertCount,
+			(LuaSTG::Core::Graphics::IRenderer::DrawIndex*)IndexArr,
+			(uint16_t)IndexCount);
 		return FCYERR_OK;
 	}
 	
-	void OnRenderDeviceLost()
-	{
-		m_Renderer->detachDevice();
-	}
-	void OnRenderDeviceReset()
-	{
-		m_Renderer->attachDevice(LAPP.GetRenderDev()->GetHandle());
-	}
-	
 	f2dGraphic2dAdapter() : m_Renderer(nullptr) {}
-	f2dGraphic2dAdapter(LuaSTG::Core::Renderer* r2d) : m_Renderer(r2d) {}
+	f2dGraphic2dAdapter(LuaSTG::Core::Graphics::IRenderer* r2d) : m_Renderer(r2d) {}
 public:
 	static f2dGraphic2dAdapter& get()
 	{
@@ -472,18 +464,10 @@ bool AppFrame::Init()LNOEXCEPT
 		m_pSoundSys->SetSoundEffectChannelVolume(m_gSEVol);
 		m_pSoundSys->SetMusicChannelVolume(m_gBGMVol);
 
-		// 渲染器
-		spdlog::info("[luastg] 创建2D渲染器");
-		if (!m_NewRenderer2D.attachDevice(m_pRenderDev->GetHandle()))
-		{
-			spdlog::info("[luastg] 创建2D渲染器失败");
-			return false;
-		}
 		// 渲染器适配器
 		spdlog::info("[luastg] 创建2D渲染器适配器");
-		f2dGraphic2dAdapter::get() = f2dGraphic2dAdapter(&m_NewRenderer2D);
+		f2dGraphic2dAdapter::get() = f2dGraphic2dAdapter(m_pAppModel->getRenderer());
 		m_Graph2D = &f2dGraphic2dAdapter::get();
-		m_pRenderDev->AttachListener(&f2dGraphic2dAdapter::get());
 		m_bRenderStarted = false;
 		
 		// 创建文字渲染器
@@ -599,10 +583,6 @@ void AppFrame::Shutdown()LNOEXCEPT
 	#ifdef USING_DEAR_IMGUI
 		imgui::unbindEngine();
 	#endif
-	
-	// 关闭渲染器
-	m_pRenderDev->RemoveListener(&f2dGraphic2dAdapter::get());
-	m_NewRenderer2D.detachDevice();
 	
 	CloseInput();
 	m_DirectInput = nullptr;

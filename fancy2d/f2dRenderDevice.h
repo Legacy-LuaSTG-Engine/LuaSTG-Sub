@@ -4,6 +4,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "f2dInterface.h"
+#include "Core/Graphics/Device.hpp"
 
 /// @addtogroup f2d渲染系统
 /// @brief fancy2d引擎中的渲染系统，提供对2D图形的渲染支持。
@@ -46,6 +47,9 @@ struct f2dTexture :
 struct f2dTexture2D :
 	public f2dTexture
 {
+	virtual LuaSTG::Core::Graphics::ITexture2D* GetNativeTexture2D() = 0;
+	virtual LuaSTG::Core::Graphics::IRenderTarget* GetNativeRenderTarget() = 0;
+
 	virtual fuInt GetWidth()=0;    ///< @brief 返回宽度
 	virtual fuInt GetHeight()=0;   ///< @brief 返回高度
 
@@ -62,6 +66,8 @@ struct f2dTexture2D :
 struct f2dDepthStencilSurface :
 	public f2dInterface
 {
+	virtual LuaSTG::Core::Graphics::IDepthStencilBuffer* GetNativeDepthStencilBuffer() = 0;
+
 	virtual void* GetHandle()=0;   ///< @brief 返回IDirect3DSurface对象，高级方法
 	virtual fuInt GetWidth()=0;    ///< @brief 返回宽度
 	virtual fuInt GetHeight()=0;   ///< @brief 返回高度
@@ -702,8 +708,10 @@ struct f2dRenderDevice
 	/// @param[in]  IsDynamic 是否为动态纹理
 	/// @param[in]  HasMipmap 创建Mipmap链，用于加快图像渲染，对动态纹理和渲染目标无效。推荐设为true
 	/// @param[out] pOut      输出的纹理指针
-	virtual fResult CreateTextureFromStream(f2dStream* pStream, fuInt Width, fuInt Height, fBool IsDynamic, fBool HasMipmap, f2dTexture2D** pOut)=0;
-	
+	//virtual fResult CreateTextureFromStream(f2dStream* pStream, fuInt Width, fuInt Height, fBool IsDynamic, fBool HasMipmap, f2dTexture2D** pOut)=0;
+
+	virtual fResult CreateTextureFromFile(fcStr path, fBool HasMipmap, f2dTexture2D** pOut) = 0;
+
 	/// @brief      从内存区域创建纹理
 	/// @note       可以选择性创建动态/静态纹理
 	/// @param[in]  pMemory   内存区域
@@ -713,7 +721,7 @@ struct f2dRenderDevice
 	/// @param[in]  IsDynamic 是否为动态纹理
 	/// @param[in]  HasMipmap 创建Mipmap链，用于加快图像渲染，对动态纹理和渲染目标无效。推荐设为true
 	/// @param[out] pOut      输出的纹理指针
-	virtual fResult CreateTextureFromMemory(fcData pMemory, fLen Size, fuInt Width, fuInt Height, fBool IsDynamic, fBool HasMipmap, f2dTexture2D** pOut) = 0;
+	//virtual fResult CreateTextureFromMemory(fcData pMemory, fLen Size, fuInt Width, fuInt Height, fBool IsDynamic, fBool HasMipmap, f2dTexture2D** pOut) = 0;
 
 	/// @brief      创建一个动态纹理
 	/// @note       动态纹理之中的数据会在设备丢失之后消失。

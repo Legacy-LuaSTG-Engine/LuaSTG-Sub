@@ -230,14 +230,10 @@ bool ResourcePool::LoadTexture(const char* name, const char* path, bool mipmaps)
         return true;
     }
     
-    fcyRefPointer<fcyMemStream> tDataBuf(_load_file("LoadTexture", "纹理", path, name));
-    if (!tDataBuf) return false;
-    
     fcyRefPointer<f2dTexture2D> tTexture;
-    fResult fr = LAPP.GetRenderDev()->CreateTextureFromMemory((fcData) tDataBuf->GetInternalBuffer(), tDataBuf->GetLength(),
-                                                        0, 0, false, mipmaps, ~tTexture);
+    fResult fr = LAPP.GetRenderDev()->CreateTextureFromFile(path, mipmaps, ~tTexture);
     if (FCYFAILED(fr)) {
-        spdlog::error("[fancy2d] [f2dRenderDevice::CreateTextureFromMemory] 从'{}'创建纹理'{}'失败(fResult={})", path, name, fr);
+        spdlog::error("[fancy2d] [f2dRenderDevice::CreateTextureFromFile] 从'{}'创建纹理'{}'失败(fResult={})", path, name, fr);
         return false;
     }
     
@@ -645,20 +641,10 @@ bool ResourcePool::LoadSpriteFont(const char* name, const char* path, bool mipma
     }
     
     // 装载纹理
-    try {
-        tDataBuf = _load_file("LoadSpriteFont", "纹理字体", texpath, name);
-        if (!tDataBuf) return false;
-    }
-    catch (const std::bad_alloc&) {
-        spdlog::error("[luastg] LoadSpriteFont: 内存不足");
-        return false;
-    }
-    
     fcyRefPointer<f2dTexture2D> tTexture;
-    fResult fr = LAPP.GetRenderDev()->CreateTextureFromMemory(
-        (fcData) tDataBuf->GetInternalBuffer(), tDataBuf->GetLength(), 0, 0, false, mipmaps, ~tTexture);
+    fResult fr = LAPP.GetRenderDev()->CreateTextureFromFile(texpath.c_str(), mipmaps, ~tTexture);
     if (FCYFAILED(fr)) {
-        spdlog::error("[fancy2d] [f2dRenderDevice::CreateTextureFromMemory] 从'{}'创建纹理'{}'失败(fResult={})", texpath, name, fr);
+        spdlog::error("[fancy2d] [f2dRenderDevice::CreateTextureFromFile] 从'{}'创建纹理'{}'失败(fResult={})", texpath, name, fr);
         return false;
     }
     
@@ -718,25 +704,16 @@ bool ResourcePool::LoadSpriteFont(const char* name, const char* path, const char
     }
     
     // 加载纹理文件
-    try {
-        const std::string fulltexpath = fcyPathParser::GetPath(path) + tex_path;
-        tDataBuf = _load_file("LoadSpriteFont", "纹理字体", fulltexpath, name);
-        if (!tDataBuf) tDataBuf = _load_file("LoadSpriteFont", "纹理字体", tex_path, name);
-        if (!tDataBuf) return false;
-    }
-    catch (const std::bad_alloc&) {
-        spdlog::error("[luastg] LoadSpriteFont: 内存不足");
-        return false;
-    }
-    
+    const std::string fulltexpath = fcyPathParser::GetPath(path) + tex_path;
     fResult fr = 0;
-    
     fcyRefPointer<f2dTexture2D> tTexture;
-    fr = LAPP.GetRenderDev()->CreateTextureFromMemory(
-        (fcData) tDataBuf->GetInternalBuffer(), tDataBuf->GetLength(), 0, 0, false, mipmaps, ~tTexture);
+    fr = LAPP.GetRenderDev()->CreateTextureFromFile(fulltexpath.c_str(), mipmaps, ~tTexture);
     if (FCYFAILED(fr)) {
-        spdlog::error("[fancy2d] [f2dRenderDevice::CreateTextureFromMemory] 从'{}'创建纹理'{}'失败(fResult={})", tex_path, name, fr);
-        return false;
+        fr = LAPP.GetRenderDev()->CreateTextureFromFile(tex_path, mipmaps, ~tTexture);
+        if (FCYFAILED(fr)) {
+            spdlog::error("[fancy2d] [f2dRenderDevice::CreateTextureFromFile] 从'{}'创建纹理'{}'失败(fResult={})", tex_path, name, fr);
+            return false;
+        }
     }
     
     // 创建定义
@@ -941,29 +918,16 @@ bool ResourcePool::LoadFX(const char* name, const char* path, bool is_effect) no
         return true;
     }
     
-    fcyRefPointer<fcyMemStream> tDataBuf(_load_file("LoadFX", "后处理特效", path, name));
-    if (!tDataBuf) return false;
-    
-    LuaSTG::Core::ShaderID shader = LAPP.GetRenderer2D().createPostEffectShader(name, tDataBuf->GetInternalBuffer(), (size_t)tDataBuf->GetLength());
-    if (!shader.handle)
-    {
-        spdlog::error("[luastg] LoadFX: 创建着色器 '{}' ('{}') 失败：调用 LuaSTG::Core::Renderer::createPostEffectShader 出错", name, path);
-    }
     try
     {
         fcyRefPointer<ResFX> tRes;
-        tRes.DirectSet(new ResFX(name, shader));
+        tRes.DirectSet(new ResFX(name, path));
         m_FXPool.emplace(name, tRes);
     }
     catch (const std::bad_alloc&)
     {
-        LAPP.GetRenderer2D().destroyPostEffectShader(shader);
         spdlog::error("[luastg] LoadFX: 内存不足");
         return false;
-    }
-    catch (...)
-    {
-        LAPP.GetRenderer2D().destroyPostEffectShader(shader);
     }
 
     if (ResourceMgr::GetResourceLoadingLog()) {
@@ -990,16 +954,9 @@ bool ResourcePool::LoadModel(const char* name, const char* path) noexcept
         return true;
     }
     
-    LuaSTG::Core::ScopeObject<LuaSTG::Core::IModel> model_ptr;
-    if (!LAPP.GetRenderer2D().createModel(path, ~model_ptr))
-    {
-        spdlog::error("[luastg] LoadFX: 创建模型 '{}' ('{}') 失败：调用 LuaSTG::Core::Renderer::createModel 出错", name, path);
-        return false;
-    }
-
     try {
         fcyRefPointer<ResModel> tRes;
-        tRes.DirectSet(new ResModel(name, model_ptr));
+        tRes.DirectSet(new ResModel(name, path));
         m_ModelPool.emplace(name, tRes);
     }
     catch (const std::bad_alloc&) {

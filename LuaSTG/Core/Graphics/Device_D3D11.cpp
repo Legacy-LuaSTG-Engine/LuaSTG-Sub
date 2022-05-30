@@ -1589,7 +1589,7 @@ namespace LuaSTG::Core::Graphics
 	RenderTarget_D3D11::RenderTarget_D3D11(Device_D3D11* device, Vector2U size)
 		: m_device(device)
 	{
-		m_texture.rawset(new Texture2D_D3D11(device, size, true));
+		m_texture.attach(new Texture2D_D3D11(device, size, true));
 		if (!createResource())
 			throw std::runtime_error("RenderTarget::RenderTarget");
 		m_device->addEventListener(this);

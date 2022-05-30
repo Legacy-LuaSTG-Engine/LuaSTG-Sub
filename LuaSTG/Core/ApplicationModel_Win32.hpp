@@ -4,6 +4,7 @@
 #include "Core/Graphics/Window_Win32.hpp"
 #include "Core/Graphics/Device_D3D11.hpp"
 #include "Core/Graphics/SwapChain_D3D11.hpp"
+#include "Core/Graphics/Renderer_D3D11.hpp"
 
 namespace LuaSTG::Core
 {
@@ -54,6 +55,7 @@ namespace LuaSTG::Core
 
 		ScopeObject<Graphics::Device_D3D11> m_device;
 		ScopeObject<Graphics::SwapChain_D3D11> m_swapchain;
+		ScopeObject<Graphics::Renderer_D3D11> m_renderer;
 		FrameRateController m_ratelimit;
 		IApplicationEventListener* m_listener{ nullptr };
 		size_t m_framestate_index{ 0 };
@@ -73,6 +75,7 @@ namespace LuaSTG::Core
 		IFrameRateController* getFrameRateController() { return &m_ratelimit; };
 		Graphics::IDevice* getDevice() { return *m_device; }
 		Graphics::ISwapChain* getSwapChain() { return *m_swapchain; }
+		Graphics::IRenderer* getRenderer() { return *m_renderer; }
 		FrameStatistics getFrameStatistics();
 
 		// 仅限主线程

@@ -6,7 +6,6 @@
 #include "GameObjectPool.h"
 #include "platform/DirectInput.hpp"
 #include "Core/ApplicationModel.hpp"
-#include "Core/Renderer.hpp"
 #include "LConfig.h"
 
 namespace LuaSTGPlus
@@ -78,7 +77,6 @@ namespace LuaSTGPlus
 		fcyRefPointer<f2dGeometryRenderer> m_GRenderer;//2D
 		fcyRefPointer<f2dFontRenderer> m_FontRenderer;//2D
 		fcyRefPointer<f2dGraphics2D> m_Graph2D;//2D
-		LuaSTG::Core::Renderer m_NewRenderer2D;
 		
 		// PostEffect控制
 		std::vector<fcyRefPointer<f2dTexture2D>> m_stRenderTargetStack;// RenderTarget控制
@@ -162,11 +160,9 @@ namespace LuaSTGPlus
 		//也能读取其他类型的文件，但是会得到无意义的结果
 		LNOINLINE int LoadTextFile(lua_State* L, const char* path, const char *packname)LNOEXCEPT;
 		
-	private:
-		void updateGraph2DBlendMode(BlendMode m);
-		void updateGraph3DBlendMode(BlendMode m);
-		
 	public:  // 渲染器接口
+		void updateGraph2DBlendMode(BlendMode m);
+
 		/// @brief 通知开始渲染
 		bool BeginScene() LNOEXCEPT;
 		
@@ -273,7 +269,7 @@ namespace LuaSTGPlus
 
 		platform::DirectInput* GetDInput() LNOEXCEPT { return m_DirectInput.get(); }
 		
-		LuaSTG::Core::Renderer& GetRenderer2D() { return m_NewRenderer2D; }
+		LuaSTG::Core::Graphics::IRenderer* GetRenderer2D() { return m_pAppModel->getRenderer(); }
 
 		LuaSTG::Core::IApplicationModel* GetAppModel() { return *m_pAppModel; }
 

@@ -210,11 +210,13 @@ namespace LuaSTG::Core
 		ScopeObject& operator=(std::nullptr_t) { internal_release(); return *this; }
 		ScopeObject& operator=(T* ptr) { if (ptr_ != ptr) { internal_release(); ptr_ = ptr; internal_retain(); } return *this; }
 		operator bool() { return ptr_ != nullptr; }
-		ScopeObject& rawset(T* ptr) { internal_release(); ptr_ = ptr;return *this; }
-	public:
-		ScopeObject(T* ptr) : ptr_(ptr) { internal_retain(); }
+		ScopeObject& attach(T* ptr) { internal_release(); ptr_ = ptr; return *this; }
+		T* detach()  { T* tmp_ = ptr_; ptr_ = nullptr; return tmp_; }
+		ScopeObject& reset() { internal_release(); return *this; }
+		T* get() const { return ptr_; }
 	public:
 		ScopeObject() : ptr_(nullptr) {}
+		ScopeObject(T* ptr) : ptr_(ptr) { internal_retain(); }
 		ScopeObject(ScopeObject& right) : ptr_(right.ptr_) { internal_retain(); }
 		ScopeObject(ScopeObject const& right) : ptr_(right.ptr_) { internal_retain(); }
 		ScopeObject(ScopeObject&& right) : ptr_(right.ptr_) { right.ptr_ = nullptr; }
