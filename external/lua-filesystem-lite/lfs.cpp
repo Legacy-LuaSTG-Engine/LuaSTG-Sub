@@ -110,6 +110,7 @@ struct lfs_api
 		size_t arg1_size{ 0 };
 		char const* arg1 = luaL_checklstring(L, 1, &arg1_size);
 		std::string_view const filepath(arg1, arg1_size);
+		std::wstring widepath(to_path(filepath));
 		if (lua_isstring(L, 2))
 		{
 			size_t arg2_size{ 0 };
@@ -118,29 +119,34 @@ struct lfs_api
 			if (request_name == "mode")
 			{
 				std::error_code ec;
-				if (std::filesystem::is_regular_file(to_path(filepath), ec))
+				if (std::filesystem::is_regular_file(widepath, ec))
 				{
 					std::string_view const mode_file("file");
 					lua_pushlstring(L, mode_file.data(), mode_file.length());
 					return 1;
 				}
-				else if (std::filesystem::is_directory(to_path(filepath), ec))
+				else if (std::filesystem::is_directory(widepath, ec))
 				{
 					std::string_view const mode_directory("directory");
 					lua_pushlstring(L, mode_directory.data(), mode_directory.length());
 					return 1;
 				}
-				else
+				else if (std::filesystem::exists(widepath))
 				{
 					std::string_view const mode_other("other");
 					lua_pushlstring(L, mode_other.data(), mode_other.length());
+					return 1;
+				}
+				else
+				{
+					lua_pushnil(L);
 					return 1;
 				}
 			}
 			if (request_name == "size")
 			{
 				std::error_code ec;
-				uintmax_t const size = std::filesystem::file_size(filepath, ec);
+				uintmax_t const size = std::filesystem::file_size(widepath, ec);
 				if (size != static_cast<std::uintmax_t>(-1))
 				{
 					lua_pushinteger(L, (lua_Integer)size);
@@ -162,15 +168,15 @@ struct lfs_api
 			int o_f_d = 0;
 			int sz = 0;
 			std::error_code ec;
-			if (std::filesystem::is_regular_file(to_path(filepath), ec))
+			if (std::filesystem::is_regular_file(widepath, ec))
 			{
 				o_f_d = 1;
 			}
-			else if (std::filesystem::is_directory(to_path(filepath), ec))
+			else if (std::filesystem::is_directory(widepath, ec))
 			{
 				o_f_d = 2;
 			}
-			uintmax_t const size = std::filesystem::file_size(to_path(filepath), ec);
+			uintmax_t const size = std::filesystem::file_size(widepath, ec);
 			if (size != static_cast<std::uintmax_t>(-1))
 			{
 				sz = (lua_Integer)size;
