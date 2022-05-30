@@ -1,22 +1,20 @@
 ﻿#pragma once
-#include "Core/Renderer.hpp"
+#include "Core/Object.hpp"
+#include "Core/Graphics/Renderer.hpp"
+#include "Core/Graphics/Device_D3D11.hpp"
 #include "tiny_gltf.h"
 
 #define IDX(x) (size_t)static_cast<uint8_t>(x)
 
-namespace LuaSTG::Core
+namespace LuaSTG::Core::Graphics
 {
-    class ModelSharedComponent : public IObject
+    class ModelSharedComponent_D3D11
+        : public Object<IObject>
+        , public IDeviceEventListener
     {
-        friend class Model;
+        friend class Model_D3D11;
     private:
-        volatile intptr_t ref_;
-    public:
-        intptr_t retain();
-        intptr_t release();
-    private:
-        Microsoft::WRL::ComPtr<ID3D11Device> device;
-        Microsoft::WRL::ComPtr<ID3D11DeviceContext> context;
+        ScopeObject<Device_D3D11> m_device;
 
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> default_image;
         Microsoft::WRL::ComPtr<ID3D11SamplerState> default_sampler;
@@ -25,14 +23,14 @@ namespace LuaSTG::Core
         Microsoft::WRL::ComPtr<ID3D11InputLayout> input_layout_vc;
         Microsoft::WRL::ComPtr<ID3D11VertexShader> shader_vertex;
         Microsoft::WRL::ComPtr<ID3D11VertexShader> shader_vertex_vc;
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel[IDX(FogState::MAX_COUNT)];
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_alpha[IDX(FogState::MAX_COUNT)];
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_nt[IDX(FogState::MAX_COUNT)];
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_alpha_nt[IDX(FogState::MAX_COUNT)];
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_vc[IDX(FogState::MAX_COUNT)];
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_alpha_vc[IDX(FogState::MAX_COUNT)];
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_nt_vc[IDX(FogState::MAX_COUNT)];
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_alpha_nt_vc[IDX(FogState::MAX_COUNT)];
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel[IDX(IRenderer::FogState::MAX_COUNT)];
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_alpha[IDX(IRenderer::FogState::MAX_COUNT)];
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_nt[IDX(IRenderer::FogState::MAX_COUNT)];
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_alpha_nt[IDX(IRenderer::FogState::MAX_COUNT)];
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_vc[IDX(IRenderer::FogState::MAX_COUNT)];
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_alpha_vc[IDX(IRenderer::FogState::MAX_COUNT)];
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_nt_vc[IDX(IRenderer::FogState::MAX_COUNT)];
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_alpha_nt_vc[IDX(IRenderer::FogState::MAX_COUNT)];
 
         Microsoft::WRL::ComPtr<ID3D11RasterizerState> state_rs_cull_none;
         Microsoft::WRL::ComPtr<ID3D11RasterizerState> state_rs_cull_back;
@@ -45,43 +43,37 @@ namespace LuaSTG::Core
         Microsoft::WRL::ComPtr<ID3D11Buffer> cbo_caminfo;
         Microsoft::WRL::ComPtr<ID3D11Buffer> cbo_alpha;
         Microsoft::WRL::ComPtr<ID3D11Buffer> cbo_light;
+
     private:
         bool createImage();
         bool createSampler();
         bool createShader();
         bool createConstantBuffer();
         bool createState();
+
+        bool createResources();
+        void onDeviceCreate();
+        void onDeviceDestroy();
+
     public:
-        bool attachDevice(ID3D11Device* dev);
-        void detachDevice();
-    public:
-        ModelSharedComponent();
-        ~ModelSharedComponent();
+        ModelSharedComponent_D3D11(Device_D3D11* p_device);
+        ~ModelSharedComponent_D3D11();
     };
-    
-	class Model : public IModel
-	{
-	private:
-		volatile intptr_t ref_;
-	public:
-		intptr_t retain();
-		intptr_t release();
-	private:
-		DirectX::XMMATRIX t_scale_;
-		DirectX::XMMATRIX t_trans_;
-		DirectX::XMMATRIX t_mbrot_;
-	public:
-        void setAmbient(Vector3F const& color, float brightness);
-        void setDirectionalLight(Vector3F const& direction, Vector3F const& color, float brightness);
-		void setScaling(Vector3F const& scale);
-		void setPosition(Vector3F const& pos);
-		void setRotationRollPitchYaw(float roll, float pitch, float yaw);
-		void setRotationQuaternion(Vector4F const& quat);
-	private:
-        ScopeObject<ModelSharedComponent> shared_;
+
+    class Model_D3D11
+        : public Object<IModel>
+        , public IDeviceEventListener
+    {
+    private:
+        ScopeObject<Device_D3D11> m_device;
+        ScopeObject<ModelSharedComponent_D3D11> shared_;
+
+        DirectX::XMMATRIX t_scale_;
+        DirectX::XMMATRIX t_trans_;
+        DirectX::XMMATRIX t_mbrot_;
 
         std::string gltf_path;
-        
+
         struct ModelBlock
         {
             Microsoft::WRL::ComPtr<ID3D11Buffer> vertex_buffer;
@@ -155,19 +147,31 @@ namespace LuaSTG::Core
         Sunshine sunshine;
 
         std::vector<DirectX::XMMATRIX> mTRS_stack;
+
         bool processNode(tinygltf::Model& model, tinygltf::Node& node);
         bool createImage(tinygltf::Model& model);
         bool createSampler(tinygltf::Model& model);
         bool createModelBlock(tinygltf::Model& model);
+
+        bool createResources();
+        void onDeviceCreate();
+        void onDeviceDestroy();
+
     public:
-        bool attachDevice();
-        void detachDevice();
-	public:
-		void draw(FogState fog);
-	public:
-		Model(std::string_view const& path, ScopeObject<ModelSharedComponent> model_shared);
-		~Model();
-	};
+
+        void setAmbient(Vector3F const& color, float brightness);
+        void setDirectionalLight(Vector3F const& direction, Vector3F const& color, float brightness);
+        void setScaling(Vector3F const& scale);
+        void setPosition(Vector3F const& pos);
+        void setRotationRollPitchYaw(float roll, float pitch, float yaw);
+        void setRotationQuaternion(Vector4F const& quat);
+
+        void draw(IRenderer::FogState fog);
+
+    public:
+        Model_D3D11(Device_D3D11* p_device, ModelSharedComponent_D3D11* p_model_shared, StringView path);
+        ~Model_D3D11();
+    };
 }
 
 #undef IDX

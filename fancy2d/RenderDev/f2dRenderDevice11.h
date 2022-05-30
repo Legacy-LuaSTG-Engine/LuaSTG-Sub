@@ -60,6 +60,8 @@ public:
 	// 接口实现
 
 	void* GetHandle();
+	LuaSTG::Core::Graphics::Device_D3D11* GetDevice() { return *m_pGraphicsDevice; }
+	LuaSTG::Core::Graphics::SwapChain_D3D11* GetSwapChain() { return *m_pSwapChain; }
 	fuInt GetSupportedDeviceCount();
 	fcStr GetSupportedDeviceName(fuInt Index);
 
@@ -74,8 +76,7 @@ public:
 	fResult SetBufferSize(fuInt Width, fuInt Height, fBool Windowed, fBool VSync, fBool FlipModel, F2DAALEVEL AALevel);
 	fResult SetDisplayMode(fuInt Width, fuInt Height, fuInt RefreshRateA, fuInt RefreshRateB, fBool Windowed, fBool VSync, fBool FlipModel);
 
-	fResult CreateTextureFromStream(f2dStream* pStream, fuInt Width, fuInt Height, fBool IsDynamic, fBool HasMipmap, f2dTexture2D** pOut);
-	fResult CreateTextureFromMemory(fcData pMemory, fLen Size, fuInt Width, fuInt Height, fBool IsDynamic, fBool HasMipmap, f2dTexture2D** pOut);
+	fResult CreateTextureFromFile(fcStr path, fBool HasMipmap, f2dTexture2D** pOut);
 	fResult CreateDynamicTexture(fuInt Width, fuInt Height, f2dTexture2D** pOut);
 	fResult CreateRenderTarget(fuInt Width, fuInt Height, fBool AutoResize , f2dTexture2D** pOut);
 	fResult CreateDepthStencilSurface(fuInt Width, fuInt Height, fBool Discard, fBool AutoResize, f2dDepthStencilSurface** pOut);

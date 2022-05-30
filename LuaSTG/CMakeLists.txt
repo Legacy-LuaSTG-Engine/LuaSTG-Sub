@@ -17,7 +17,7 @@ add_library(LuaSTGCore STATIC)
 luastg_target_common_options(LuaSTGCore)
 luastg_target_more_warning(LuaSTGCore)
 target_precompile_headers(LuaSTGCore PRIVATE
-    Backend/framework.hpp
+    Core/framework.hpp
 )
 target_include_directories(LuaSTGCore PUBLIC
     .
@@ -29,6 +29,8 @@ set(LuaSTGCore_SRC
 
     Core/i18n.hpp
     Core/i18n.cpp
+    Core/framework.hpp
+    Core/framework.cpp
 
     Core/FileManager.hpp
     Core/FileManager.cpp
@@ -45,18 +47,16 @@ set(LuaSTGCore_SRC
     Core/Graphics/SwapChain.hpp
     Core/Graphics/SwapChain_D3D11.hpp
     Core/Graphics/SwapChain_D3D11.cpp
+    Core/Graphics/Renderer.hpp
+    Core/Graphics/Renderer_D3D11.hpp
+    Core/Graphics/Renderer_D3D11.cpp
+    Core/Graphics/Renderer_Shader_D3D11.cpp
+    Core/Graphics/Model_D3D11.hpp
+    Core/Graphics/Model_D3D11.cpp
+    Core/Graphics/Model_Shader_D3D11.cpp
     Core/ApplicationModel.hpp
     Core/ApplicationModel_Win32.hpp
     Core/ApplicationModel_Win32.cpp
-
-    Backend/framework.hpp
-    Backend/framework.cpp
-    Backend/Shader.hpp
-    Backend/Renderer.cpp
-    Backend/ModelShader.hpp
-    Backend/ModelShader.cpp
-    Backend/Model.hpp
-    Backend/Model.cpp
 )
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${LuaSTGCore_SRC})
 target_sources(LuaSTGCore PRIVATE

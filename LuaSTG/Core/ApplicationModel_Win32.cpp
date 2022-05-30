@@ -420,6 +420,8 @@ namespace LuaSTG::Core
 			throw std::runtime_error("Graphics::Device_D3D11::create");
 		if (!Graphics::SwapChain_D3D11::create(*m_window, *m_device, ~m_swapchain))
 			throw std::runtime_error("Graphics::SwapChain_D3D11::create");
+		if (!Graphics::Renderer_D3D11::create(*m_device, ~m_renderer))
+			throw std::runtime_error("Graphics::Renderer_D3D11::create");
 	}
 	ApplicationModel_Win32::~ApplicationModel_Win32()
 	{

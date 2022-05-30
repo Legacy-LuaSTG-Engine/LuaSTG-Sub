@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "ResourceBase.hpp"
-#include "Core/Renderer.hpp"
+#include "Core/Graphics/Renderer.hpp"
 
 namespace LuaSTGPlus
 {
@@ -8,13 +8,11 @@ namespace LuaSTGPlus
 	class ResModel : public Resource
 	{
 	private:
-		LuaSTG::Core::ScopeObject<LuaSTG::Core::IModel> model_;
+		LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::IModel> model_;
 	public:
-		LuaSTG::Core::IModel* GetModel() { return *model_; }
+		LuaSTG::Core::Graphics::IModel* GetModel() { return *model_; }
 	public:
-		ResModel(const char* name, LuaSTG::Core::ScopeObject<LuaSTG::Core::IModel> model)
-			: Resource(ResourceType::Model, name)
-			, model_(model)
-		{}
+		ResModel(const char* name, const char* path);
+		virtual ~ResModel();
 	};
 }

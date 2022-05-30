@@ -1,4 +1,4 @@
-﻿#include "Backend/Model.hpp"
+﻿#include "Core/Graphics/Model_D3D11.hpp"
 #include "Core/FileManager.hpp"
 
 #define IDX(x) (size_t)static_cast<uint8_t>(x)
@@ -15,26 +15,13 @@ namespace DirectX
     }
 }
 
-namespace LuaSTG::Core
+namespace LuaSTG::Core::Graphics
 {
-    intptr_t ModelSharedComponent::retain()
+    bool ModelSharedComponent_D3D11::createImage()
     {
-        ref_++;
-        return ref_;
-    }
-    intptr_t ModelSharedComponent::release()
-    {
-        ref_--;
-        intptr_t tmp_ = ref_;
-        if (ref_ < 1)
-        {
-            delete this;
-        }
-        return tmp_;
-    }
+        auto* device = m_device->GetD3D11Device();
+        assert(device);
 
-    bool ModelSharedComponent::createImage()
-    {
         HRESULT hr = S_OK;
 
         // default: purple & black tile image
@@ -120,11 +107,14 @@ namespace LuaSTG::Core
             assert(false);
             return false;
         }
-        
+
         return true;
     }
-    bool ModelSharedComponent::createSampler()
+    bool ModelSharedComponent_D3D11::createSampler()
     {
+        auto* device = m_device->GetD3D11Device();
+        assert(device);
+
         HRESULT hr = S_OK;
 
         // default: create
@@ -150,8 +140,11 @@ namespace LuaSTG::Core
 
         return true;
     }
-    bool ModelSharedComponent::createConstantBuffer()
+    bool ModelSharedComponent_D3D11::createConstantBuffer()
     {
+        auto* device = m_device->GetD3D11Device();
+        assert(device);
+
         HRESULT hr = S_OK;
 
         // built-in: view-proj matrix
@@ -213,8 +206,11 @@ namespace LuaSTG::Core
 
         return true;
     }
-    bool ModelSharedComponent::createState()
+    bool ModelSharedComponent_D3D11::createState()
     {
+        auto* device = m_device->GetD3D11Device();
+        assert(device);
+
         HRESULT hr = S_OK;
 
         //// RS \\\\
@@ -330,13 +326,8 @@ namespace LuaSTG::Core
         return true;
     }
 
-    bool ModelSharedComponent::attachDevice(ID3D11Device* dev)
+    bool ModelSharedComponent_D3D11::createResources()
     {
-        // setup device, command queue and command list
-
-        device = dev;
-        device->GetImmediateContext(&context);
-
         // load image to shader resource
 
         if (!createImage()) return false;
@@ -359,14 +350,15 @@ namespace LuaSTG::Core
 
         return true;
     }
-    void ModelSharedComponent::detachDevice()
+    void ModelSharedComponent_D3D11::onDeviceCreate()
     {
-        device.Reset();
-        context.Reset();
-
+        createResources();
+    }
+    void ModelSharedComponent_D3D11::onDeviceDestroy()
+    {
         default_image.Reset();
         default_sampler.Reset();
-        
+
         input_layout.Reset();
         input_layout_vc.Reset();
         shader_vertex.Reset();
@@ -379,7 +371,7 @@ namespace LuaSTG::Core
         for (auto& v : shader_pixel_alpha_vc) v.Reset();
         for (auto& v : shader_pixel_nt_vc) v.Reset();
         for (auto& v : shader_pixel_alpha_nt_vc) v.Reset();
-        
+
         state_rs_cull_none.Reset();
         state_rs_cull_back.Reset();
         state_ds.Reset();
@@ -392,22 +384,25 @@ namespace LuaSTG::Core
         cbo_alpha.Reset();
         cbo_light.Reset();
     }
-    
-    ModelSharedComponent::ModelSharedComponent()
-        : ref_(1)
+
+    ModelSharedComponent_D3D11::ModelSharedComponent_D3D11(Device_D3D11* p_device)
+        : m_device(p_device)
     {
+        if (!createResources())
+            throw std::runtime_error("ModelSharedComponent_D3D11::ModelSharedComponent_D3D11");
+        m_device->addEventListener(this);
     }
-    ModelSharedComponent::~ModelSharedComponent()
+    ModelSharedComponent_D3D11::~ModelSharedComponent_D3D11()
     {
-        detachDevice();
+        m_device->removeEventListener(this);
     }
 }
 
-namespace LuaSTG::Core
+namespace LuaSTG::Core::Graphics
 {
     void map_sampler_to_d3d11(tinygltf::Sampler& samp, D3D11_SAMPLER_DESC& desc)
     {
-        #define MAKE_FILTER(MIN, MAG_MIP) ((MAG_MIP << 16) | (MIN))
+    #define MAKE_FILTER(MIN, MAG_MIP) ((MAG_MIP << 16) | (MIN))
         switch (MAKE_FILTER(samp.minFilter, samp.magFilter))
         {
         default:
@@ -458,7 +453,7 @@ namespace LuaSTG::Core
             desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
             break;
         }
-        #undef MAKE_FILTER
+    #undef MAKE_FILTER
         switch (samp.wrapS)
         {
         default:
@@ -521,10 +516,10 @@ namespace LuaSTG::Core
             break;
         }
     }
-	DirectX::XMMATRIX XM_CALLCONV get_local_transfrom_from_node(tinygltf::Node& node)
-	{
-		if (!node.matrix.empty())
-		{
+    DirectX::XMMATRIX XM_CALLCONV get_local_transfrom_from_node(tinygltf::Node& node)
+    {
+        if (!node.matrix.empty())
+        {
         #pragma warning(disable:4244)
             // [Potential Overflow]
             DirectX::XMFLOAT4X4 mM(
@@ -533,86 +528,70 @@ namespace LuaSTG::Core
                 node.matrix[8], node.matrix[9], node.matrix[10], node.matrix[11],
                 node.matrix[12], node.matrix[13], node.matrix[14], node.matrix[15]);
         #pragma warning(default:4244)
-			return DirectX::XMLoadFloat4x4(&mM);
-		}
-		else
-		{
-			DirectX::XMMATRIX mS = DirectX::XMMatrixIdentity();
-			DirectX::XMMATRIX mR = DirectX::XMMatrixIdentity();
-			DirectX::XMMATRIX mT = DirectX::XMMatrixIdentity();
-			if (!node.scale.empty())
-			{
+            return DirectX::XMLoadFloat4x4(&mM);
+        }
+        else
+        {
+            DirectX::XMMATRIX mS = DirectX::XMMatrixIdentity();
+            DirectX::XMMATRIX mR = DirectX::XMMatrixIdentity();
+            DirectX::XMMATRIX mT = DirectX::XMMatrixIdentity();
+            if (!node.scale.empty())
+            {
             #pragma warning(disable:4244)
                 // [Potential Overflow]
-				mS = DirectX::XMMatrixScaling(node.scale[0], node.scale[1], node.scale[2]);
+                mS = DirectX::XMMatrixScaling(node.scale[0], node.scale[1], node.scale[2]);
             #pragma warning(default:4244)
-			}
-			if (!node.rotation.empty())
-			{
+            }
+            if (!node.rotation.empty())
+            {
             #pragma warning(disable:4244)
                 // [Potential Overflow]
-				DirectX::XMFLOAT4 quat(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]);
+                DirectX::XMFLOAT4 quat(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]);
             #pragma warning(default:4244)
-				mR = DirectX::XMMatrixRotationQuaternion(DirectX::XMLoadFloat4(&quat));
-			}
-			if (!node.translation.empty())
-			{
+                mR = DirectX::XMMatrixRotationQuaternion(DirectX::XMLoadFloat4(&quat));
+            }
+            if (!node.translation.empty())
+            {
             #pragma warning(disable:4244)
                 // [Potential Overflow]
-				mT = DirectX::XMMatrixTranslation(node.translation[0], node.translation[1], node.translation[2]);
+                mT = DirectX::XMMatrixTranslation(node.translation[0], node.translation[1], node.translation[2]);
             #pragma warning(default:4244)
-			}
-			return DirectX::XMMatrixMultiply(DirectX::XMMatrixMultiply(mS, mR), mT);
-		}
-	}
+            }
+            return DirectX::XMMatrixMultiply(DirectX::XMMatrixMultiply(mS, mR), mT);
+        }
+    }
 
-	intptr_t Model::retain()
-	{
-		ref_++;
-		return ref_;
-	}
-	intptr_t Model::release()
-	{
-		ref_--;
-		intptr_t tmp_ = ref_;
-		if (ref_ < 1)
-		{
-			delete this;
-		}
-		return tmp_;
-	}
-
-    void Model::setAmbient(Vector3F const& color, float brightness)
+    void Model_D3D11::setAmbient(Vector3F const& color, float brightness)
     {
         sunshine.ambient = DirectX::XMFLOAT4(color.x, color.y, color.z, brightness);
     }
-    void Model::setDirectionalLight(Vector3F const& direction, Vector3F const& color, float brightness)
+    void Model_D3D11::setDirectionalLight(Vector3F const& direction, Vector3F const& color, float brightness)
     {
         sunshine.dir = DirectX::XMFLOAT4(direction.x, direction.y, direction.z, 0.0f);
         sunshine.color = DirectX::XMFLOAT4(color.x, color.y, color.z, brightness);
     }
-	void Model::setScaling(Vector3F const& scale)
-	{
-        t_scale_ = DirectX::XMMatrixScaling(scale.x, scale.y, scale.z);
-	}
-	void Model::setPosition(Vector3F const& pos)
-	{
-        t_trans_ = DirectX::XMMatrixTranslation(pos.x, pos.y, pos.z);
-	}
-	void Model::setRotationRollPitchYaw(float roll, float pitch, float yaw)
-	{
-        t_mbrot_ = DirectX::XMMatrixRotationRollPitchYaw(pitch, yaw, roll);
-	}
-	void Model::setRotationQuaternion(Vector4F const& quat)
-	{
-		DirectX::XMFLOAT4 const xq(quat.x, quat.y, quat.z, quat.w);
-        t_mbrot_ = DirectX::XMMatrixRotationQuaternion(DirectX::XMLoadFloat4(&xq));
-	}
-
-    bool Model::createImage(tinygltf::Model& model)
+    void Model_D3D11::setScaling(Vector3F const& scale)
     {
-        ID3D11Device* device = shared_->device.Get();
-        ID3D11DeviceContext* context = shared_->context.Get();
+        t_scale_ = DirectX::XMMatrixScaling(scale.x, scale.y, scale.z);
+    }
+    void Model_D3D11::setPosition(Vector3F const& pos)
+    {
+        t_trans_ = DirectX::XMMatrixTranslation(pos.x, pos.y, pos.z);
+    }
+    void Model_D3D11::setRotationRollPitchYaw(float roll, float pitch, float yaw)
+    {
+        t_mbrot_ = DirectX::XMMatrixRotationRollPitchYaw(pitch, yaw, roll);
+    }
+    void Model_D3D11::setRotationQuaternion(Vector4F const& quat)
+    {
+        DirectX::XMFLOAT4 const xq(quat.x, quat.y, quat.z, quat.w);
+        t_mbrot_ = DirectX::XMMatrixRotationQuaternion(DirectX::XMLoadFloat4(&xq));
+    }
+
+    bool Model_D3D11::createImage(tinygltf::Model& model)
+    {
+        auto* device = m_device->GetD3D11Device();
+        auto* context = m_device->GetD3D11DeviceContext();
 
         HRESULT hr = S_OK;
 
@@ -674,9 +653,9 @@ namespace LuaSTG::Core
 
         return true;
     }
-    bool Model::createSampler(tinygltf::Model& model)
+    bool Model_D3D11::createSampler(tinygltf::Model& model)
     {
-        ID3D11Device* device = shared_->device.Get();
+        auto* device = m_device->GetD3D11Device();
 
         HRESULT hr = S_OK;
 
@@ -710,9 +689,9 @@ namespace LuaSTG::Core
 
         return true;
     }
-    bool Model::processNode(tinygltf::Model& model, tinygltf::Node& node)
+    bool Model_D3D11::processNode(tinygltf::Model& model, tinygltf::Node& node)
     {
-        ID3D11Device* device = shared_->device.Get();
+        auto* device = m_device->GetD3D11Device();
 
         HRESULT hr = S_OK;
 
@@ -920,16 +899,16 @@ namespace LuaSTG::Core
                         mblock.alpha_blend = TRUE;
                     }
                     // [Potential Overflow]
-                    #pragma warning(disable:4244)
+                #pragma warning(disable:4244)
                     mblock.alpha = material.alphaCutoff;
-                    #pragma warning(default:4244)
+                #pragma warning(default:4244)
                     mblock.double_side = material.doubleSided;
                 }
                 map_primitive_topology_to_d3d11(prim, mblock.primitive_topology);
                 model_block.emplace_back(mblock);
             }
         }
-        
+
         mTRS_stack.push_back(mTRS);
         if (!node.children.empty())
         {
@@ -945,7 +924,7 @@ namespace LuaSTG::Core
 
         return true;
     };
-    bool Model::createModelBlock(tinygltf::Model& model)
+    bool Model_D3D11::createModelBlock(tinygltf::Model& model)
     {
         tinygltf::Scene& scene = model.scenes[model.defaultScene];
         for (int const& node_idx : scene.nodes)
@@ -959,7 +938,7 @@ namespace LuaSTG::Core
         return true;
     }
 
-    bool Model::attachDevice()
+    bool Model_D3D11::createResources()
     {
         struct FileSystemWrapper
         {
@@ -982,7 +961,7 @@ namespace LuaSTG::Core
         tinygltf::FsCallbacks fs_cb = {
             .FileExists = &FileSystemWrapper::FileExists,
             .ExpandFilePath = &tinygltf::ExpandFilePath,
-            .ReadWholeFile =  &FileSystemWrapper::ReadWholeFile,
+            .ReadWholeFile = &FileSystemWrapper::ReadWholeFile,
             .WriteWholeFile = &tinygltf::WriteWholeFile,
             .user_data = nullptr,
         };
@@ -1005,11 +984,11 @@ namespace LuaSTG::Core
         }
         if (!warn.empty())
         {
-            spdlog::warn("[luastg] gltf model warning: {}", warn);
+            spdlog::warn("[core] gltf model warning: {}", warn);
         }
         if (!err.empty())
         {
-            spdlog::error("[luastg] gltf model error: {}", err);
+            spdlog::error("[core] gltf model error: {}", err);
         }
         if (!ret)
         {
@@ -1030,7 +1009,11 @@ namespace LuaSTG::Core
 
         return true;
     }
-    void Model::detachDevice()
+    void Model_D3D11::onDeviceCreate()
+    {
+        createResources();
+    }
+    void Model_D3D11::onDeviceDestroy()
     {
         image.clear();
         sampler.clear();
@@ -1038,9 +1021,9 @@ namespace LuaSTG::Core
         model_block.clear();
     }
 
-	void Model::draw(FogState fog)
-	{
-        ID3D11DeviceContext* context = shared_->context.Get();
+    void Model_D3D11::draw(IRenderer::FogState fog)
+    {
+        auto* context = m_device->GetD3D11DeviceContext();
 
         // common data
 
@@ -1255,19 +1238,22 @@ namespace LuaSTG::Core
         // unbind
 
         clear_state();
-	}
+    }
 
-    Model::Model(std::string_view const& path, ScopeObject<ModelSharedComponent> model_shared)
-        : ref_(1)
+    Model_D3D11::Model_D3D11(Device_D3D11* p_device, ModelSharedComponent_D3D11* p_model_shared, StringView path)
+        : m_device(p_device)
+        , shared_(p_model_shared)
         , gltf_path(path)
-        , shared_(model_shared)
     {
         t_scale_ = DirectX::XMMatrixIdentity();
         t_trans_ = DirectX::XMMatrixIdentity();
         t_mbrot_ = DirectX::XMMatrixIdentity();
+        if (!createResources())
+            throw std::runtime_error("Model_D3D11::Model_D3D11");
+        m_device->addEventListener(this);
     }
-    Model::~Model()
+    Model_D3D11::~Model_D3D11()
     {
-        detachDevice();
+        m_device->removeEventListener(this);
     }
 }

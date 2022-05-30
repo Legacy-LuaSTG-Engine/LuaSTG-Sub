@@ -4,83 +4,84 @@
 
 namespace LuaSTGPlus
 {
-    void AppFrame::updateGraph2DBlendMode(BlendMode m)
+    void AppFrame::updateGraph2DBlendMode(BlendMode blend)
     {
-        auto& ctx = m_NewRenderer2D;
-        switch (m)
+        using namespace LuaSTG::Core::Graphics;
+        auto* ctx = m_pAppModel->getRenderer();
+        switch (blend)
         {
         default:
         case LuaSTGPlus::BlendMode::MulAlpha:
-            ctx.setVertexColorBlendState(LuaSTG::Core::VertexColorBlendState::Mul);
-            ctx.setBlendState(LuaSTG::Core::BlendState::Alpha);
+            ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Mul);
+            ctx->setBlendState(IRenderer::BlendState::Alpha);
             break;
         case LuaSTGPlus::BlendMode::MulAdd:
-            ctx.setVertexColorBlendState(LuaSTG::Core::VertexColorBlendState::Mul);
-            ctx.setBlendState(LuaSTG::Core::BlendState::Add);
+            ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Mul);
+            ctx->setBlendState(IRenderer::BlendState::Add);
             break;
         case LuaSTGPlus::BlendMode::MulRev:
-            ctx.setVertexColorBlendState(LuaSTG::Core::VertexColorBlendState::Mul);
-            ctx.setBlendState(LuaSTG::Core::BlendState::RevSub);
+            ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Mul);
+            ctx->setBlendState(IRenderer::BlendState::RevSub);
             break;
         case LuaSTGPlus::BlendMode::MulSub:
-            ctx.setVertexColorBlendState(LuaSTG::Core::VertexColorBlendState::Mul);
-            ctx.setBlendState(LuaSTG::Core::BlendState::Sub);
+            ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Mul);
+            ctx->setBlendState(IRenderer::BlendState::Sub);
             break;
         case LuaSTGPlus::BlendMode::AddAlpha:
-            ctx.setVertexColorBlendState(LuaSTG::Core::VertexColorBlendState::Add);
-            ctx.setBlendState(LuaSTG::Core::BlendState::Alpha);
+            ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Add);
+            ctx->setBlendState(IRenderer::BlendState::Alpha);
             break;
         case LuaSTGPlus::BlendMode::AddAdd:
-            ctx.setVertexColorBlendState(LuaSTG::Core::VertexColorBlendState::Add);
-            ctx.setBlendState(LuaSTG::Core::BlendState::Add);
+            ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Add);
+            ctx->setBlendState(IRenderer::BlendState::Add);
             break;
         case LuaSTGPlus::BlendMode::AddRev:
-            ctx.setVertexColorBlendState(LuaSTG::Core::VertexColorBlendState::Add);
-            ctx.setBlendState(LuaSTG::Core::BlendState::RevSub);
+            ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Add);
+            ctx->setBlendState(IRenderer::BlendState::RevSub);
             break;
         case LuaSTGPlus::BlendMode::AddSub:
-            ctx.setVertexColorBlendState(LuaSTG::Core::VertexColorBlendState::Add);
-            ctx.setBlendState(LuaSTG::Core::BlendState::Sub);
+            ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Add);
+            ctx->setBlendState(IRenderer::BlendState::Sub);
             break;
         case LuaSTGPlus::BlendMode::AlphaBal:
-            ctx.setVertexColorBlendState(LuaSTG::Core::VertexColorBlendState::Mul);
-            ctx.setBlendState(LuaSTG::Core::BlendState::Inv);
+            ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Mul);
+            ctx->setBlendState(IRenderer::BlendState::Inv);
             break;
         case LuaSTGPlus::BlendMode::MulMin:
-            ctx.setVertexColorBlendState(LuaSTG::Core::VertexColorBlendState::Mul);
-            ctx.setBlendState(LuaSTG::Core::BlendState::Min);
+            ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Mul);
+            ctx->setBlendState(IRenderer::BlendState::Min);
             break;
         case LuaSTGPlus::BlendMode::MulMax:
-            ctx.setVertexColorBlendState(LuaSTG::Core::VertexColorBlendState::Mul);
-            ctx.setBlendState(LuaSTG::Core::BlendState::Max);
+            ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Mul);
+            ctx->setBlendState(IRenderer::BlendState::Max);
             break;
         case LuaSTGPlus::BlendMode::MulMutiply:
-            ctx.setVertexColorBlendState(LuaSTG::Core::VertexColorBlendState::Mul);
-            ctx.setBlendState(LuaSTG::Core::BlendState::Mul);
+            ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Mul);
+            ctx->setBlendState(IRenderer::BlendState::Mul);
             break;
         case LuaSTGPlus::BlendMode::MulScreen:
-            ctx.setVertexColorBlendState(LuaSTG::Core::VertexColorBlendState::Mul);
-            ctx.setBlendState(LuaSTG::Core::BlendState::Screen);
+            ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Mul);
+            ctx->setBlendState(IRenderer::BlendState::Screen);
             break;
         case LuaSTGPlus::BlendMode::AddMin:
-            ctx.setVertexColorBlendState(LuaSTG::Core::VertexColorBlendState::Add);
-            ctx.setBlendState(LuaSTG::Core::BlendState::Min);
+            ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Add);
+            ctx->setBlendState(IRenderer::BlendState::Min);
             break;
         case LuaSTGPlus::BlendMode::AddMax:
-            ctx.setVertexColorBlendState(LuaSTG::Core::VertexColorBlendState::Add);
-            ctx.setBlendState(LuaSTG::Core::BlendState::Max);
+            ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Add);
+            ctx->setBlendState(IRenderer::BlendState::Max);
             break;
         case LuaSTGPlus::BlendMode::AddMutiply:
-            ctx.setVertexColorBlendState(LuaSTG::Core::VertexColorBlendState::Add);
-            ctx.setBlendState(LuaSTG::Core::BlendState::Mul);
+            ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Add);
+            ctx->setBlendState(IRenderer::BlendState::Mul);
             break;
         case LuaSTGPlus::BlendMode::AddScreen:
-            ctx.setVertexColorBlendState(LuaSTG::Core::VertexColorBlendState::Add);
-            ctx.setBlendState(LuaSTG::Core::BlendState::Screen);
+            ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Add);
+            ctx->setBlendState(IRenderer::BlendState::Screen);
             break;
         case LuaSTGPlus::BlendMode::One:
-            ctx.setVertexColorBlendState(LuaSTG::Core::VertexColorBlendState::Mul);
-            ctx.setBlendState(LuaSTG::Core::BlendState::One);
+            ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Mul);
+            ctx->setBlendState(IRenderer::BlendState::One);
             break;
         }
     }
@@ -309,10 +310,6 @@ namespace LuaSTGPlus
     }
 
     // 废弃
-    void AppFrame::updateGraph3DBlendMode(BlendMode m)
-    {
-        updateGraph2DBlendMode(m);
-    }
     bool AppFrame::BeginScene() noexcept
     {
         if (!m_bRenderStarted)

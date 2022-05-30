@@ -693,13 +693,14 @@ namespace LuaSTGPlus
 	
 		if (f8)
 		{
+			using namespace LuaSTG::Core::Graphics;
 			fcyRefPointer<f2dGeometryRenderer> grender = LAPP.GetGeometryRenderer();
 			fcyRefPointer<f2dGraphics2D> graph = LAPP.GetGraphics2D();
-			auto& r2d = LAPP.GetRenderer2D();
-			r2d.setBlendState(LuaSTG::Core::BlendState::Alpha);
-			r2d.setDepthState(LuaSTG::Core::DepthState::Disable);
-			r2d.setFogState(LuaSTG::Core::FogState::Disable, {}, 0.0f, 0.0f);
-			r2d.setVertexColorBlendState(LuaSTG::Core::VertexColorBlendState::One);
+			auto* r2d = LAPP.GetRenderer2D();
+			r2d->setBlendState(IRenderer::BlendState::Alpha);
+			r2d->setDepthState(IRenderer::DepthState::Disable);
+			r2d->setFogState(IRenderer::FogState::Disable, {}, 0.0f, 0.0f);
+			r2d->setVertexColorBlendState(IRenderer::VertexColorBlendState::One);
 			for (ColliderDisplayConfig cfg : m_collidercfg)
 			{
 				DrawGroupCollider(*graph, *grender, cfg.group, fcyColor(cfg.color.argb));
@@ -864,13 +865,14 @@ namespace LuaSTGPlus
 	}
 	void GameObjectPool::DrawGroupCollider2(int groupId, fcyColor fillColor)
 	{
+		using namespace LuaSTG::Core::Graphics;
 		fcyRefPointer<f2dGeometryRenderer> grender = LAPP.GetGeometryRenderer();
 		fcyRefPointer<f2dGraphics2D> graph = LAPP.GetGraphics2D();
-		auto& r2d = LAPP.GetRenderer2D();
-		r2d.setBlendState(LuaSTG::Core::BlendState::Alpha);
-		r2d.setDepthState(LuaSTG::Core::DepthState::Disable);
-		r2d.setFogState(LuaSTG::Core::FogState::Disable, {}, 0.0f, 0.0f);
-		r2d.setVertexColorBlendState(LuaSTG::Core::VertexColorBlendState::One);
+		auto* r2d = LAPP.GetRenderer2D();
+		r2d->setBlendState(IRenderer::BlendState::Alpha);
+		r2d->setDepthState(IRenderer::DepthState::Disable);
+		r2d->setFogState(IRenderer::FogState::Disable, {}, 0.0f, 0.0f);
+		r2d->setVertexColorBlendState(IRenderer::VertexColorBlendState::One);
 		DrawGroupCollider(*graph, *grender, groupId, fillColor);
 	}
 
