@@ -25,8 +25,6 @@ target_include_directories(LuaSTGCore PUBLIC
 
 set(LuaSTGCore_SRC
     Core/Type.hpp
-    Core/Renderer.hpp
-
     Core/i18n.hpp
     Core/i18n.cpp
     Core/framework.hpp
@@ -34,7 +32,6 @@ set(LuaSTGCore_SRC
 
     Core/FileManager.hpp
     Core/FileManager.cpp
-
     Core/Object.hpp
     Core/Graphics/Window.hpp
     Core/Graphics/Window_Win32.hpp

@@ -95,7 +95,7 @@ set(LUASTG_ENGINE_SOURCES
     
     Core/Type.hpp
     Core/InitializeConfigure.hpp
-    Backend/InitializeConfigure.cpp
+    Core/InitializeConfigure.cpp
     
     src/LuaSTG.manifest
 )
