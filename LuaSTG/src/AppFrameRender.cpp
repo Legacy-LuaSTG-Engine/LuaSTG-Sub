@@ -283,7 +283,6 @@ namespace LuaSTGPlus
         
         try
         {
-            const char* path = luaL_checkstring(L, 2);
             const std::wstring wpath = std::move(utility::encoding::to_wide(path));
             fResult fr = LAPP.GetRenderDev()->SaveTexture(wpath.c_str(), Tex);
             if (FCYFAILED(fr))

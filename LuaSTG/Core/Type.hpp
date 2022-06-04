@@ -49,6 +49,11 @@ namespace LuaSTG::Core
 
 		inline bool operator==(Rect const& r) const noexcept { return a == r.a && b == r.b; }
 		inline bool operator!=(Rect const& r) const noexcept { return a != r.a || b != r.b; }
+
+		inline Rect operator+(Vector2<T> const& r) const noexcept { return Rect(a + r, b + r); }
+		inline Rect operator-(Vector2<T> const& r) const noexcept { return Rect(a - r, b - r); }
+
+		//inline Rect operator*(T const r) const noexcept { return Rect(a * r, b * r); }
 	};
 
 	using RectI = Rect<int32_t>;

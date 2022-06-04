@@ -21,6 +21,8 @@ namespace LuaSTG::Core::Graphics
 		{
 			intptr_t result;
 			bool should_return;
+			NativeWindowMessageResult() : result(0), should_return(false) {}
+			NativeWindowMessageResult(intptr_t v, bool b) : result(v), should_return(b) {}
 		};
 
 		virtual NativeWindowMessageResult onNativeWindowMessage(void*, uint32_t, uintptr_t, intptr_t) { return {}; };
@@ -46,7 +48,21 @@ namespace LuaSTG::Core::Graphics
 	enum class WindowCursor
 	{
 		None,
+
 		Arrow,
+		Hand,
+
+		Cross,
+		TextInput,
+
+		Resize,
+		ResizeEW,
+		ResizeNS,
+		ResizeNESW,
+		ResizeNWSE,
+
+		NotAllowed,
+		Wait,
 	};
 
 	struct IWindow : public IObject

@@ -16,6 +16,9 @@ endif()
 add_library(LuaSTGCore STATIC)
 luastg_target_common_options(LuaSTGCore)
 luastg_target_more_warning(LuaSTGCore)
+target_compile_definitions(LuaSTGCore PRIVATE
+    LUASTG_CORE_USING_IMGUI
+)
 target_precompile_headers(LuaSTGCore PRIVATE
     Core/framework.hpp
 )
@@ -51,6 +54,11 @@ set(LuaSTGCore_SRC
     Core/Graphics/Model_D3D11.hpp
     Core/Graphics/Model_D3D11.cpp
     Core/Graphics/Model_Shader_D3D11.cpp
+    Core/Graphics/Sprite.hpp
+    Core/Graphics/Sprite_D3D11.hpp
+    Core/Graphics/Sprite_D3D11.cpp
+    Core/Graphics/DearImGui_Win32_D3D11.hpp
+    Core/Graphics/DearImGui_Win32_D3D11.cpp
     Core/ApplicationModel.hpp
     Core/ApplicationModel_Win32.hpp
     Core/ApplicationModel_Win32.cpp
@@ -70,6 +78,7 @@ target_link_libraries(LuaSTGCore PUBLIC
     d3d11.lib
     tinygltf
     tracy
+    imgui
     MINIZIP::minizip
 )
 

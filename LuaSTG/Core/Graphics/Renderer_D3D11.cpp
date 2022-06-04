@@ -1247,8 +1247,6 @@ namespace LuaSTG::Core::Graphics
 		ID3D11ShaderResourceView* void_srv_[4] = { NULL, NULL, NULL, NULL };
 		ctx->PSSetShaderResources(1, 4, void_srv_);
 
-		std::string;
-
 		_state_texture = tbak.get();
 		_state_set = sbak;
 		_camera_state_set = cbak;
@@ -1286,8 +1284,6 @@ namespace LuaSTG::Core::Graphics
 			spdlog::error("[luastg] LuaSTG::Core::Renderer::createModel 失败");
 			return false;
 		}
-
-		return true;
 	}
 	bool Renderer_D3D11::drawModel(IModel* p_model)
 	{
