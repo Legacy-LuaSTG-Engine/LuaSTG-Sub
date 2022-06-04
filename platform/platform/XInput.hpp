@@ -1,6 +1,6 @@
 #pragma once
 
-namespace xinput
+namespace platform::XInput
 {
     constexpr int Null            = 0x0000;
     constexpr int Up              = 0x0001;
@@ -17,10 +17,12 @@ namespace xinput
     constexpr int B               = 0x2000;
     constexpr int X               = 0x4000;
     constexpr int Y               = 0x8000;
-    
+
+    void setEnable(bool state);
+    bool isConnected(int index);
     int refresh();
     void update();
-    
+
     bool getKeyState(int index, int key);
     float getLeftTrigger(int index);
     float getRightTrigger(int index);
@@ -28,7 +30,7 @@ namespace xinput
     float getLeftThumbY(int index);
     float getRightThumbX(int index);
     float getRightThumbY(int index);
-    
+
     bool getKeyState(int key);
     float getLeftTrigger();
     float getRightTrigger();
@@ -36,4 +38,10 @@ namespace xinput
     float getLeftThumbY();
     float getRightThumbX();
     float getRightThumbY();
+
+    #ifdef XINPUT_DLL
+    DWORD getState(DWORD dwUserIndex, XINPUT_STATE* pState);
+    DWORD setState(DWORD dwUserIndex, XINPUT_VIBRATION* pVibration);
+    DWORD getCapabilities(DWORD dwUserIndex, DWORD dwFlags, XINPUT_CAPABILITIES* pCapabilities);
+    #endif
 }

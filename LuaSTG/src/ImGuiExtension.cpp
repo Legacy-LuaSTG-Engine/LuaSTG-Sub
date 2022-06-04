@@ -22,7 +22,7 @@
 #include "LuaWrapper/LuaWrapper.hpp"
 
 #include <Xinput.h>
-#include "xinput/xinput_native.hpp"
+#include "platform/XInput.hpp"
 
 // lua imgui backend binding
 
@@ -754,7 +754,7 @@ namespace imgui
             DWORD xdevice = 0;
             for (size_t i = 0; i < 4; i += 1)
             {
-                auto hr = xinput::getState(i, xstate);
+                auto hr = platform::XInput::getState(i, xstate);
                 if (hr == ERROR_SUCCESS)
                 {
                     bxstate[i] = true;

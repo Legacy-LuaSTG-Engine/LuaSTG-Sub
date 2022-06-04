@@ -1,8 +1,17 @@
-#include "xinput/lua_xinput.hpp"
-#include "xinput/xinput.hpp"
+#include "lua_xinput.hpp"
+#include "platform/XInput.hpp"
 #include <array>
 #include <string_view>
 
+namespace xinput = platform::XInput;
+
+static int xinput_isConnected(lua_State* L)
+{
+    const int idx = luaL_checkinteger(L, 1);
+    const bool ret = xinput::isConnected(idx);
+    lua_pushboolean(L, ret);
+    return 1;
+}
 static int xinput_refresh(lua_State* L)
 {
     const int ret = xinput::refresh();
@@ -52,6 +61,7 @@ int lua_xinput_open(lua_State* L)
 {
     #define MakePair(_Name) {#_Name, &xinput_##_Name}
     const luaL_Reg lib[] = {
+        MakePair(isConnected),
         MakePair(refresh),
         MakePair(update),
         MakePair(getKeyState),

@@ -10,7 +10,7 @@ extern "C" {
 }
 //#include "lua_xlsx_csv.h"
 #include "lua_steam.h"
-#include "xinput/lua_xinput.hpp"
+#include "LuaWrapper/lua_xinput.hpp"
 
 #include "Core/FileManager.hpp"
 #include "utility/encoding.hpp"

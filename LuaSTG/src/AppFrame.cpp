@@ -9,6 +9,7 @@
 #include "Core/FileManager.hpp"
 #include "AdapterPolicy.hpp"
 #include "utility/encoding.hpp"
+#include "platform/XInput.hpp"
 
 class f2dGraphic2dAdapter : public f2dGraphics2D
 {
@@ -632,10 +633,12 @@ void AppFrame::Run()LNOEXCEPT
 
 void AppFrame::onWindowActive()
 {
+	platform::XInput::setEnable(true);
 	m_window_active_changed.fetch_or(0x1);
 }
 void AppFrame::onWindowInactive()
 {
+	platform::XInput::setEnable(false);
 	m_window_active_changed.fetch_or(0x2);
 }
 void AppFrame::onDeviceChange()
