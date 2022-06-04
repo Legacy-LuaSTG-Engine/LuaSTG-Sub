@@ -23,6 +23,13 @@ static int lib_setMouseEnable(lua_State* L)
         window->setCursor(WindowCursor::None);
     return 0;
 }
+static int lib_setCursorStyle(lua_State* L)
+{
+    getwindow(window);
+    WindowCursor const style = (WindowCursor)luaL_checkinteger(L, 1);
+    window->setCursor(style);
+    return 0;
+}
 static int lib_setTitle(lua_State* L)
 {
     getwindow(window);
@@ -200,6 +207,7 @@ static const luaL_Reg compat[] = {
 
 static const luaL_Reg lib[] = {
     makefname(setMouseEnable),
+    makefname(setCursorStyle),
     makefname(setTitle),
     makefname(setCentered),
     makefname(setFullScreen),
