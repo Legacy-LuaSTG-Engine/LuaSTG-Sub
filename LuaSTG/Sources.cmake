@@ -104,6 +104,7 @@ source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${LUASTG_ENGINE_SOURCES})
 set(LUASTG_LUA_EXTENSION_SOURCES
     ../xinput/xinput.hpp
     ../xinput/xinput.cpp
+    ../xinput/xinput_native.hpp
     ../xinput/lua_xinput.hpp
     ../xinput/lua_xinput.cpp
 )

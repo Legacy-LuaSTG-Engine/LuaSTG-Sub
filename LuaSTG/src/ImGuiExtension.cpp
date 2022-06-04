@@ -22,6 +22,7 @@
 #include "LuaWrapper/LuaWrapper.hpp"
 
 #include <Xinput.h>
+#include "xinput/xinput_native.hpp"
 
 // lua imgui backend binding
 
@@ -497,9 +498,7 @@ namespace imgui
 {
     static bool g_ImGuiBindEngine = false;
     static bool g_ImGuiTexIDValid = false;
-    static HMODULE g_hXinput = NULL;
-    static DWORD (WINAPI *g_fXInputGetState)(DWORD, XINPUT_STATE*) = NULL;
-    
+
     class ImGuiBackendEventListener
         : public f2dRenderDeviceEventListener
         , public LuaSTG::Core::Graphics::IWindowEventListener
@@ -662,20 +661,19 @@ namespace imgui
         imgui_binding_lua_register_backend(L);
         lua_pop(L, 1);
         
-        typedef DWORD (WINAPI *f_XInputGetState)(DWORD, XINPUT_STATE*);
-        
-        g_hXinput = LoadLibraryW(L"xinput9_1_0.dll");
-        if (g_hXinput) g_fXInputGetState = (f_XInputGetState)GetProcAddress(g_hXinput, "XInputGetState");
-        
         g_ImGuiBindEngine = true;
     }
     void unbindEngine()
     {
+        if (g_ImGuiBindEngine)
+        {
+            auto& io = ImGui::GetIO();
+            if (io.WantSaveIniSettings)
+                saveConfig();
+        }
+        
         g_ImGuiBindEngine = false;
         g_ImGuiTexIDValid = false;
-        
-        g_fXInputGetState = NULL;
-        if (g_hXinput) { FreeLibrary(g_hXinput); g_hXinput = NULL; }
         
         auto* window = APP.GetAppModel()->getWindow();
         auto* device = APP.GetRenderDev();
@@ -686,8 +684,6 @@ namespace imgui
         window->removeEventListener(&g_ImGuiRenderDeviceEventListener);
         ImGui_ImplWin32Ex_Shutdown();
         
-        saveConfig();
-
         ImPlot::DestroyContext();
         ImGui::DestroyContext();
     }
@@ -696,6 +692,9 @@ namespace imgui
     {
         if (g_ImGuiBindEngine)
         {
+            auto& io = ImGui::GetIO();
+            if (io.WantSaveIniSettings)
+                saveConfig();
             ImGui_ImplDX11_NewFrame();
             ImGui_ImplWin32Ex_NewFrame();
             g_ImGuiTexIDValid = true;
@@ -755,7 +754,7 @@ namespace imgui
             DWORD xdevice = 0;
             for (size_t i = 0; i < 4; i += 1)
             {
-                auto hr = g_fXInputGetState(i, xstate);
+                auto hr = xinput::getState(i, xstate);
                 if (hr == ERROR_SUCCESS)
                 {
                     bxstate[i] = true;
