@@ -523,7 +523,7 @@ namespace imgui
         {
             LRESULT lresult = ImGui_ImplWin32Ex_WndProcHandler((HWND)hwnd, msg, wparam, lparam);
             if (lresult)
-                return NativeWindowMessageResult{ .result = lresult, .should_return = true };
+                return NativeWindowMessageResult(lresult, true);
             else
                 return {};
         }

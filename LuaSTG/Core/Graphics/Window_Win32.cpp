@@ -139,7 +139,7 @@ namespace LuaSTG::Core::Graphics
 		cls.style = CS_HREDRAW | CS_VREDRAW;
 		cls.lpfnWndProc = &win32_window_callback;
 		cls.hInstance = hInstance;
-		cls.hCursor = LoadCursor(NULL, MAKEINTRESOURCE(IDC_ARROW));
+		cls.hCursor = LoadCursor(NULL, IDC_ARROW);
 		cls.lpszClassName = win32_window_class_name;
 
 		win32_window_class_atom = RegisterClassExW(&cls);
@@ -574,11 +574,46 @@ namespace LuaSTG::Core::Graphics
 		{
 		default:
 			assert(false); return false;
+
 		case LuaSTG::Core::Graphics::WindowCursor::None:
 			win32_window_cursor = NULL;
 			break;
+
 		case LuaSTG::Core::Graphics::WindowCursor::Arrow:
-			win32_window_cursor = LoadCursor(NULL, MAKEINTRESOURCE(IDC_ARROW));
+			win32_window_cursor = LoadCursor(NULL, IDC_ARROW);
+			break;
+		case LuaSTG::Core::Graphics::WindowCursor::Hand:
+			win32_window_cursor = LoadCursor(NULL, IDC_HAND);
+			break;
+
+		case LuaSTG::Core::Graphics::WindowCursor::Cross:
+			win32_window_cursor = LoadCursor(NULL, IDC_CROSS);
+			break;
+		case LuaSTG::Core::Graphics::WindowCursor::TextInput:
+			win32_window_cursor = LoadCursor(NULL, IDC_IBEAM);
+			break;
+		
+		case LuaSTG::Core::Graphics::WindowCursor::Resize:
+			win32_window_cursor = LoadCursor(NULL, IDC_SIZEALL);
+			break;
+		case LuaSTG::Core::Graphics::WindowCursor::ResizeEW:
+			win32_window_cursor = LoadCursor(NULL, IDC_SIZEWE);
+			break;
+		case LuaSTG::Core::Graphics::WindowCursor::ResizeNS:
+			win32_window_cursor = LoadCursor(NULL, IDC_SIZENS);
+			break;
+		case LuaSTG::Core::Graphics::WindowCursor::ResizeNESW:
+			win32_window_cursor = LoadCursor(NULL, IDC_SIZENESW);
+			break;
+		case LuaSTG::Core::Graphics::WindowCursor::ResizeNWSE:
+			win32_window_cursor = LoadCursor(NULL, IDC_SIZENWSE);
+			break;
+
+		case LuaSTG::Core::Graphics::WindowCursor::NotAllowed:
+			win32_window_cursor = LoadCursor(NULL, IDC_NO);
+			break;
+		case LuaSTG::Core::Graphics::WindowCursor::Wait:
+			win32_window_cursor = LoadCursor(NULL, IDC_WAIT);
 			break;
 		}
 		return true;
