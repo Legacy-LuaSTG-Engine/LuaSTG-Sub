@@ -688,11 +688,21 @@ namespace imgui
         ImGui::DestroyContext();
     }
 
-    void updateEngine()
+    void cancelSetCursor()
     {
         if (g_ImGuiBindEngine)
         {
             auto& io = ImGui::GetIO();
+            io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
+        }
+    }
+    void updateEngine()
+    {
+        if (g_ImGuiBindEngine)
+        {
+            constexpr int const mask = (~((int)ImGuiConfigFlags_NoMouseCursorChange));
+            auto& io = ImGui::GetIO();
+            io.ConfigFlags &= mask;
             if (io.WantSaveIniSettings)
                 saveConfig();
             ImGui_ImplDX11_NewFrame();

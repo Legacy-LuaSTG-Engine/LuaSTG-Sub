@@ -699,6 +699,7 @@ void AppFrame::onUpdate()
 #endif
 
 	// 执行帧函数
+	imgui::cancelSetCursor();
 	if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineUpdate, 1))
 		m_pAppModel->requestExit();
 	bool tAbort = lua_toboolean(L, -1) == 0 ? false : true;
