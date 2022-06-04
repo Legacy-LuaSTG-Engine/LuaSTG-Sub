@@ -58,17 +58,17 @@ void f2dRenderTarget11::OnRenderSizeDependentResourcesCreate()
 // DepthStencil
 
 f2dDepthStencil11::f2dDepthStencil11(f2dRenderDevice* pDev, fuInt Width, fuInt Height, fBool AutoResize)
-	: m_pParent((f2dRenderDevice11*)pDev)
+	: m_dev((f2dRenderDevice11*)pDev)
 	, m_Width(Width)
 	, m_Height(Height)
 	, m_bAutoResize(AutoResize)
 {
 	OnRenderSizeDependentResourcesCreate();
-	m_pParent->AttachListener(this);
+	m_dev->AttachListener(this);
 }
 f2dDepthStencil11::~f2dDepthStencil11()
 {
-	m_pParent->RemoveListener(this);
+	m_dev->RemoveListener(this);
 }
 
 void f2dDepthStencil11::OnRenderSizeDependentResourcesCreate()

@@ -85,7 +85,6 @@ class f2dDepthStencil11 :
 {
 	friend class f2dRenderDevice11;
 private:
-	f2dRenderDevice11* m_pParent = nullptr;
 	f2dRenderDevice11* m_dev{ nullptr };
 	LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::DepthStencilBuffer_D3D11> m_ds;
 	fuInt m_Width = 0;
