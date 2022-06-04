@@ -8,6 +8,7 @@ namespace imgui
     void bindEngine();
     void unbindEngine();
     
+    void cancelSetCursor();
     void updateEngine();
     void drawEngine();
 
