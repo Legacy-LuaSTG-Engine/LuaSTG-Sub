@@ -108,7 +108,6 @@ target_compile_definitions(LuaSTG PRIVATE LDEVVERSION)
 include(Sources.cmake)
 target_sources(LuaSTG PRIVATE
     ${LUASTG_ENGINE_SOURCES}
-    ${LUASTG_LUA_EXTENSION_SOURCES}
 )
 if(EXISTS ${LUASTG_RESDIR}/Custom.cmake)
     message("LuaSTG will using " ${LUASTG_RESDIR}/Custom.cmake)

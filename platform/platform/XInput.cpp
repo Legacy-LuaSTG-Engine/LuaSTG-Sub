@@ -1,4 +1,3 @@
-#include "xinput/xinput.hpp"
 #include <array>
 #include <algorithm>
 #include <string_view>
@@ -6,19 +5,23 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <Xinput.h>
-#include "xinput/xinput_native.hpp"
+#include "XInput.hpp"
 
-namespace xinput
+namespace platform::XInput
 {
+	// NOTICE: XInputEnable is deprecated, we should simulate its behavior
+
 	struct XInputLoader
 	{
 		HMODULE dll_xinput{ NULL };
+		//decltype(::XInputEnable)* api_XInputEnable{ NULL };
 		decltype(::XInputGetState)* api_XInputGetState{ NULL };
 		decltype(::XInputSetState)* api_XInputSetState{ NULL };
 		decltype(::XInputGetCapabilities)* api_XInputGetCapabilities{ NULL };
 
 		std::array<bool, XUSER_MAX_COUNT> valid{};
 		std::array<XINPUT_STATE, XUSER_MAX_COUNT> state{};
+		bool enable{ true };
 
 		XInputLoader()
 		{
@@ -34,6 +37,8 @@ namespace xinput
 				if (HMODULE dll = ::LoadLibraryW(v.data()))
 				{
 					dll_xinput = dll;
+					//api_XInputEnable = (decltype(api_XInputEnable))
+					//	::GetProcAddress(dll, "XInputEnable");
 					api_XInputGetState = (decltype(api_XInputGetState))
 						::GetProcAddress(dll, "XInputGetState");
 					api_XInputSetState = (decltype(api_XInputSetState))
@@ -49,6 +54,7 @@ namespace xinput
 			if (dll_xinput)
 				::FreeLibrary(dll_xinput);
 			dll_xinput = NULL;
+			//api_XInputEnable = NULL;
 			api_XInputGetState = NULL;
 			api_XInputSetState = NULL;
 			api_XInputGetCapabilities = NULL;
@@ -56,6 +62,26 @@ namespace xinput
 	};
 	static XInputLoader XInput;
 
+	void setEnable(bool state)
+	{
+		//if (XInput.api_XInputEnable)
+		//{
+		//	XInput.api_XInputEnable(state ? TRUE : FALSE);
+		//}
+		XInput.enable = state;
+		if (!state)
+		{
+			XInput.state.fill({});
+		}
+	}
+	bool isConnected(int index)
+	{
+		if (index >= 0 && index < XUSER_MAX_COUNT)
+		{
+			return XInput.valid[index];
+		}
+		return false;
+	}
 	int refresh()
 	{
 		int count = 0;
@@ -91,7 +117,7 @@ namespace xinput
 
 	bool getKeyState(int index, int key)
 	{
-		if (index >= 0 && index < XUSER_MAX_COUNT)
+		if (XInput.enable && index >= 0 && index < XUSER_MAX_COUNT)
 		{
 			return (XInput.state[index].Gamepad.wButtons & key) != 0;
 		}
@@ -100,7 +126,7 @@ namespace xinput
 
 	float getLeftTrigger(int index)
 	{
-		if (index >= 0 && index < XUSER_MAX_COUNT)
+		if (XInput.enable && index >= 0 && index < XUSER_MAX_COUNT)
 		{
 			return std::clamp((float)XInput.state[index].Gamepad.bLeftTrigger / 255.0f, 0.0f, 1.0f);
 		}
@@ -108,7 +134,7 @@ namespace xinput
 	}
 	float getRightTrigger(int index)
 	{
-		if (index >= 0 && index < XUSER_MAX_COUNT)
+		if (XInput.enable && index >= 0 && index < XUSER_MAX_COUNT)
 		{
 			return std::clamp((float)XInput.state[index].Gamepad.bRightTrigger / 255.0f, 0.0f, 1.0f);
 		}
@@ -117,7 +143,7 @@ namespace xinput
 
 	float getLeftThumbX(int index)
 	{
-		if (index >= 0 && index < XUSER_MAX_COUNT)
+		if (XInput.enable && index >= 0 && index < XUSER_MAX_COUNT)
 		{
 			return std::clamp((float)XInput.state[index].Gamepad.sThumbLX / 32767.0f, -1.0f, 1.0f);
 		}
@@ -125,7 +151,7 @@ namespace xinput
 	}
 	float getLeftThumbY(int index)
 	{
-		if (index >= 0 && index < XUSER_MAX_COUNT)
+		if (XInput.enable && index >= 0 && index < XUSER_MAX_COUNT)
 		{
 			return std::clamp((float)XInput.state[index].Gamepad.sThumbLY / 32767.0f, -1.0f, 1.0f);
 		}
@@ -133,7 +159,7 @@ namespace xinput
 	}
 	float getRightThumbX(int index)
 	{
-		if (index >= 0 && index < XUSER_MAX_COUNT)
+		if (XInput.enable && index >= 0 && index < XUSER_MAX_COUNT)
 		{
 			return std::clamp((float)XInput.state[index].Gamepad.sThumbRX / 32767.0f, -1.0f, 1.0f);
 		}
@@ -141,7 +167,7 @@ namespace xinput
 	}
 	float getRightThumbY(int index)
 	{
-		if (index >= 0 && index < XUSER_MAX_COUNT)
+		if (XInput.enable && index >= 0 && index < XUSER_MAX_COUNT)
 		{
 			return std::clamp((float)XInput.state[index].Gamepad.sThumbRY / 32767.0f, -1.0f, 1.0f);
 		}
