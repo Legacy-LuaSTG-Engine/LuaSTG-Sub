@@ -22,7 +22,7 @@ namespace LuaSTGPlus
 				LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::ISprite> p_sprite;
 				if (!LuaSTG::Core::Graphics::ISprite::create(
 					LAPP.GetAppModel()->getRenderer(),
-					tex->GetTexture()->GetNativeTexture2D(),
+					tex->GetTexture(),
 					~p_sprite
 				))
 				{

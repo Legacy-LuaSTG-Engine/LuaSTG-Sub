@@ -78,9 +78,8 @@ namespace LuaSTGPlus
 		fcyRefPointer<f2dFontRenderer> m_FontRenderer;//2D
 		fcyRefPointer<f2dGraphics2D> m_Graph2D;//2D
 		
-		// PostEffect控制
-		std::vector<fcyRefPointer<f2dTexture2D>> m_stRenderTargetStack;// RenderTarget控制
-		std::vector<fcyRefPointer<f2dDepthStencilSurface>> m_stDepthStencilStack;// DepthStencil控制
+		// 渲染目标栈
+		std::vector<fcyRefPointer<ResTexture>> m_stRenderTargetStack;
 		
 		//输入设备
 		std::unique_ptr<platform::DirectInput> m_DirectInput;
@@ -206,7 +205,6 @@ namespace LuaSTGPlus
 		bool RenderTTF(const char* name, const char* str, float left, float right, float bottom, float top, float scale, int format, fcyColor c)LNOEXCEPT;
 
 		void SnapShot(const char* path)LNOEXCEPT;
-		void SaveTexture(f2dTexture2D* Tex, const char* path)LNOEXCEPT;
 		void SaveTexture(const char* tex_name, const char* path)LNOEXCEPT;
 
 		bool CheckRenderTargetInUse(fcyRefPointer<f2dTexture2D> rt)LNOEXCEPT;

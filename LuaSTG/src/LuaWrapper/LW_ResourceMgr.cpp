@@ -458,7 +458,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			ResTexture* p = LRES.FindTexture(luaL_checkstring(L, 1));
 			if (p)
 			{
-				p->GetTexture()->SetPremultipliedAlpha(lua_toboolean(L, 2));
+				p->GetTexture()->setPremultipliedAlpha(lua_toboolean(L, 2));
 				return 0;
 			}
 			return luaL_error(L, "texture '%s' not found.", luaL_checkstring(L, 1));

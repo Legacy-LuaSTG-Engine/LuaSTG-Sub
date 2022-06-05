@@ -148,21 +148,19 @@ namespace LuaSTGPlus
         updateGraph2DBlendMode(blend);
         
         // 复制坐标，修正UV到[0,1]区间
-        f2dGraphics2DVertex tVertex[4] = {
-            vertex[0],
-            vertex[1],
-            vertex[2],
-            vertex[3],
+        LuaSTG::Core::Vector2U const tSize = tex->GetTexture()->getSize();
+        float const us = 1.0f / (float)tSize.x;
+        float const vs = 1.0f / (float)tSize.y;
+        using VTX = LuaSTG::Core::Graphics::IRenderer::DrawVertex;
+        VTX tVertex[4] = {
+            VTX(vertex[0].x, vertex[0].y, vertex[0].z, vertex[0].u * us, vertex[0].v * vs, vertex[0].color),
+            VTX(vertex[1].x, vertex[1].y, vertex[1].z, vertex[1].u * us, vertex[1].v * vs, vertex[1].color),
+            VTX(vertex[2].x, vertex[2].y, vertex[2].z, vertex[2].u * us, vertex[2].v * vs, vertex[2].color),
+            VTX(vertex[3].x, vertex[3].y, vertex[3].z, vertex[3].u * us, vertex[3].v * vs, vertex[3].color),
         };
-        float const du_ = 1.0f / (float)tex->GetTexture()->GetWidth();
-        float const dv_ = 1.0f / (float)tex->GetTexture()->GetHeight();
-        for (int i = 0; i < 4; ++i)
-        {
-            tVertex[i].u *= du_;
-            tVertex[i].v *= dv_;
-        }
         
-        m_Graph2D->DrawQuad(tex->GetTexture(), tVertex, false);
+        GetRenderer2D()->setTexture(tex->GetTexture());
+        GetRenderer2D()->drawQuad(tVertex);
         return true;
     }
     bool AppFrame::RenderTexture(const char* name, BlendMode blend, f2dGraphics2DVertex vertex[]) noexcept
@@ -173,21 +171,7 @@ namespace LuaSTGPlus
             spdlog::error("[luastg] RenderTexture: 找不到纹理'{}'", name);
             return false;
         }
-        
-        // 设置混合
-        updateGraph2DBlendMode(blend);
-        
-        // 修正UV到[0,1]区间
-        float const du_ = 1.0f / (float)p->GetTexture()->GetWidth();
-        float const dv_ = 1.0f / (float)p->GetTexture()->GetHeight();
-        for (int i = 0; i < 4; ++i)
-        {
-            vertex[i].u *= du_;
-            vertex[i].v *= dv_;
-        }
-        
-        m_Graph2D->DrawQuad(p->GetTexture(), vertex, false);
-        return true;
+        return RenderTexture(*p, blend, vertex);
     }
     bool AppFrame::RenderTexture(
         const char* name, BlendMode blend,
@@ -204,7 +188,13 @@ namespace LuaSTGPlus
         // 设置混合
         updateGraph2DBlendMode(blend);
         
-        m_Graph2D->DrawRaw(p->GetTexture(), vcount, icount, vertex, indexs, false);
+        using namespace LuaSTG::Core::Graphics;
+        GetRenderer2D()->setTexture(p->GetTexture());
+        GetRenderer2D()->drawRaw(
+            (IRenderer::DrawVertex*)vertex,
+            (uint16_t)vcount,
+            indexs,
+            (uint16_t)icount);
         return true;
     }
     
@@ -232,31 +222,6 @@ namespace LuaSTGPlus
             spdlog::error("[fancy2d] [{}] {}", e.GetSrc(), e.GetDesc());
         }
     }
-    void AppFrame::SaveTexture(f2dTexture2D* Tex, const char* path) noexcept
-    {
-        assert(Tex);
-        if (!LAPP.GetRenderDev())
-        {
-            spdlog::error("[luastg] SaveTexture: f2dRenderDevice未准备好");
-            return;
-        }
-        
-        try
-        {
-            const std::wstring wpath = std::move(utility::encoding::to_wide(path));
-            fResult fr = LAPP.GetRenderDev()->SaveTexture(wpath.c_str(), Tex);
-            if (FCYFAILED(fr))
-                spdlog::error("[fancy2d] [f2dRenderDevice::SaveTexture] 保存纹理到'{}'失败(fResult={})", path, fr);
-        }
-        catch (const std::bad_alloc&)
-        {
-            spdlog::error("[luastg] SaveTexture: 内存不足");
-        }
-        catch (const fcyException& e)
-        {
-            spdlog::error("[fancy2d] [{}] {}", e.GetSrc(), e.GetDesc());
-        }
-    }
     void AppFrame::SaveTexture(const char* tex_name, const char* path) noexcept
     {
         fcyRefPointer<ResTexture> resTex = LRES.FindTexture(tex_name);
@@ -265,7 +230,7 @@ namespace LuaSTGPlus
             spdlog::error("[luastg] SaveTexture: 找不到纹理资源'{}'", tex_name);
             return;
         }
-        return SaveTexture(resTex->GetTexture(), path);
+        resTex->GetTexture()->saveToFile(path);
     }
 
     // 废弃

@@ -230,16 +230,16 @@ bool ResourcePool::LoadTexture(const char* name, const char* path, bool mipmaps)
         return true;
     }
     
-    fcyRefPointer<f2dTexture2D> tTexture;
-    fResult fr = LAPP.GetRenderDev()->CreateTextureFromFile(path, mipmaps, ~tTexture);
-    if (FCYFAILED(fr)) {
-        spdlog::error("[fancy2d] [f2dRenderDevice::CreateTextureFromFile] 从'{}'创建纹理'{}'失败(fResult={})", path, name, fr);
+    LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::ITexture2D> p_texture;
+    if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(path, mipmaps, ~p_texture))
+    {
+        spdlog::error("[luastg] 从'{}'创建纹理'{}'失败", path, name);
         return false;
     }
-    
+
     try {
         fcyRefPointer<ResTexture> tRes;
-        tRes.DirectSet(new ResTexture(name, tTexture));
+        tRes.DirectSet(new ResTexture(name, p_texture.get()));
         m_TexturePool.emplace(name, tRes);
     }
     catch (const std::bad_alloc&) {
@@ -269,40 +269,26 @@ bool ResourcePool::CreateRenderTarget(const char* name, int width, int height) n
         return true;
     }
     
-    fResult fr = 0;
-    fcyRefPointer<f2dTexture2D> tTexture;
-    if (width <= 0 || height <= 0) {
-        fr = LAPP.GetRenderDev()->CreateRenderTarget(
-            LAPP.GetRenderDev()->GetBufferWidth(), LAPP.GetRenderDev()->GetBufferHeight(),
-            true, ~tTexture);
-    }
-    else {
-        fr = LAPP.GetRenderDev()->CreateRenderTarget(
-            (fuInt) width, (fuInt) height,
-            false, ~tTexture);
-    }
-    if (FCYFAILED(fr)) {
-        spdlog::error("[fancy2d] [f2dRenderDevice::CreateRenderTarget] 创建渲染目标'{}'失败(fResult={})", name, fr);
-        return false;
-    }
-    fcyRefPointer<f2dDepthStencilSurface> tDepthStencil;
-    if (width > 0 && height > 0) {
-        fr = LAPP.GetRenderDev()->CreateDepthStencilSurface(
-            (fuInt)width, (fuInt)height,
-            false, false, ~tDepthStencil);
-    }
-    else { fr = FCYERR_OK; }
-    if (FCYFAILED(fr)) {
-        spdlog::error("[fancy2d] [f2dRenderDevice::CreateDepthStencilSurface] 创建渲染目标附带的深度模板缓冲区'{}'失败(fResult={})", name, fr);
-        return false;
-    }
-
-    try {
+    try
+    {
         fcyRefPointer<ResTexture> tRes;
-        tRes.DirectSet(new ResTexture(name, tTexture, tDepthStencil));
+        if (width <= 0 || height <= 0)
+        {
+            tRes.DirectSet(new ResTexture(name, true));
+        }
+        else
+        {
+            tRes.DirectSet(new ResTexture(name, width, height, true));
+        }
         m_TexturePool.emplace(name, tRes);
     }
-    catch (const std::bad_alloc&) {
+    catch (const std::runtime_error&)
+    {
+        spdlog::error("[luastg] CreateRenderTarget: 内部错误");
+        return false;
+    }
+    catch (const std::bad_alloc&)
+    {
         spdlog::error("[luastg] CreateRenderTarget: 内存不足");
         return false;
     }
@@ -340,7 +326,7 @@ bool ResourcePool::CreateSprite(const char* name, const char* texname,
     LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::ISprite> p_sprite;
     if (!LuaSTG::Core::Graphics::ISprite::create(
         LAPP.GetAppModel()->getRenderer(),
-        pTex->GetTexture()->GetNativeTexture2D(),
+        pTex->GetTexture(),
         ~p_sprite
     ))
     {

@@ -123,6 +123,7 @@ namespace LuaSTG::Core::Graphics
 
 		virtual void clearRenderTarget(Color4B const& color) = 0;
 		virtual void clearDepthBuffer(float zvalue) = 0;
+		virtual void setRenderAttachment(IRenderTarget* p_rt, IDepthStencilBuffer* p_ds) = 0;
 
 		virtual void setOrtho(BoxF const& box) = 0;
 		virtual void setPerspective(Vector3F const& eye, Vector3F const& lookat, Vector3F const& headup, float fov, float aspect, float znear, float zfar) = 0;

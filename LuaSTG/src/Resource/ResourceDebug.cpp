@@ -68,19 +68,20 @@ namespace LuaSTGPlus
 				ImGui::Text("Preview Scaling");
 				ImGui::PopID();
 			};
-			auto draw_texture = [](f2dTexture2D* p_res, bool show_info, float scale) -> void
+			auto draw_texture = [](ResTexture* p_res, bool show_info, float scale) -> void
 			{
+				auto const size = p_res->GetTexture()->getSize();
 				if (show_info)
 				{
-					ImGui::Text("Size: %u x %u", p_res->GetWidth(), p_res->GetHeight());
+					ImGui::Text("Size: %u x %u", size.x, size.y);
 					ImGui::Text("RenderTarget: %s", p_res->IsRenderTarget() ? "Yes" : "Not");
 					ImGui::Text("Dynamic: %s", p_res->IsRenderTarget() ? "Yes" : "Not");
-					unsigned long long mem_usage = p_res->GetWidth() * p_res->GetHeight() * 4;
+					unsigned long long mem_usage = size.x * size.y * 4;
 					ImGui::Text("Adapter Memory Usage (Approximate): %s", bytes_count_to_string(mem_usage).c_str());
 				}
 				ImGui::Image(
-					p_res->GetHandle(),
-					ImVec2(scale * (float)p_res->GetWidth(), scale * (float)p_res->GetHeight()),
+					p_res->GetTexture()->getNativeHandle(),
+					ImVec2(scale * (float)size.x, scale * (float)size.y),
 					ImVec2(0.0f, 0.0f),
 					ImVec2(1.0f, 1.0f),
 					ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
@@ -134,7 +135,8 @@ namespace LuaSTGPlus
 							if (filter.PassFilter(v.second->GetResName().c_str()))
 							{
 								auto* p_res = v.second->GetTexture();
-								unsigned long long mem_usage = p_res->GetWidth() * p_res->GetHeight() * 4;
+								auto const p_tex_size = p_res->getSize();
+								unsigned long long mem_usage = p_tex_size.x * p_tex_size.y * 4;
 								if (ImGui::TreeNode(*v.second,
 									"%d. %s",
 									res_i,
@@ -143,7 +145,7 @@ namespace LuaSTGPlus
 								{
 									static float preview_scale = 1.0f;
 									draw_preview_scaling(preview_scale);
-									draw_texture(v.second->GetTexture(), true, preview_scale);
+									draw_texture(*(v.second), true, preview_scale);
 									ImGui::TreePop();
 								}
 								res_i += 1;
