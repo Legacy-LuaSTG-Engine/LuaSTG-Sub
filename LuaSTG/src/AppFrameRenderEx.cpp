@@ -3,19 +3,11 @@
 #include <d3d9.h>
 
 namespace LuaSTGPlus {
-    bool AppFrame::CheckRenderTargetInUse(fcyRefPointer<f2dTexture2D> rt)LNOEXCEPT
-    {
-        if (!rt || !rt->IsRenderTarget() || m_stRenderTargetStack.empty())
-            return false;
-        
-        return rt == m_stRenderTargetStack.back();
-    }
     bool AppFrame::CheckRenderTargetInUse(ResTexture* rt)LNOEXCEPT
     {
         if (!rt || !rt->IsRenderTarget() || m_stRenderTargetStack.empty())
             return false;
-        
-        return rt->GetTexture() == *m_stRenderTargetStack.back();
+        return rt == *(m_stRenderTargetStack.back());
     }
     
     bool AppFrame::PushRenderTarget(ResTexture* rt)LNOEXCEPT
@@ -25,25 +17,19 @@ namespace LuaSTGPlus {
             assert(false);  // 这不该发生
             return false;
         }
-        
         if (!m_bRenderStarted)
         {
             spdlog::error("[luastg] PushRenderTarget: 无效调用");
             return false;
         }
         
-        //return PushRenderTarget(rt->GetTexture());
-        // 下面是新增的
+        GetRenderer2D()->setRenderAttachment(
+            rt->GetRenderTarget(),
+            rt->GetDepthStencilBuffer()
+        );
 
-        if (FCYFAILED(m_pRenderDev->SetRenderTargetAndDepthStencilSurface(rt->GetTexture(), rt->GetDepthStencilSurface()))) // 这个可能是空指针，如果传空指针进去代表换回 RenderDev 默认的 ds
-        {
-            spdlog::error("[luastg] PushRenderTarget: 内部错误 (f2dRenderDevice::SetRenderTargetAndDepthStencilSurface failed.)");
-            return false;
-        }
-        
-        m_stRenderTargetStack.push_back(rt->GetTexture());
-        m_stDepthStencilStack.push_back(rt->GetDepthStencilSurface()); // 这个可能是空指针
-        
+        m_stRenderTargetStack.push_back(rt);
+
         return true;
     }
     bool AppFrame::PopRenderTarget()LNOEXCEPT
@@ -59,26 +45,20 @@ namespace LuaSTGPlus {
             spdlog::error("[luastg] PopRenderTarget: RenderTarget 栈已为空");
             return false;
         }
-        if (m_stDepthStencilStack.empty())
-        {
-            spdlog::error("[luastg] PopRenderTarget: DepthStencil 栈已为空");
-            return false;
-        }
         
         m_stRenderTargetStack.pop_back();
-        m_stDepthStencilStack.pop_back();
 
-        f2dTexture2D* pTex = nullptr;
-        f2dDepthStencilSurface* pSurface = nullptr;
         if (!m_stRenderTargetStack.empty())
-            pTex = *m_stRenderTargetStack.back();
-        if (!m_stDepthStencilStack.empty())
-            pSurface = *m_stDepthStencilStack.back();
-
-        if (FCYFAILED(m_pRenderDev->SetRenderTargetAndDepthStencilSurface(pTex, pSurface))) // 这个可能是空指针，如果传空指针进去代表换回 RenderDev 默认的 ds
         {
-            spdlog::error("[luastg] PushRenderTarget: 内部错误 (f2dRenderDevice::SetRenderTargetAndDepthStencilSurface failed.)");
-            return false;
+            ResTexture* rt = *(m_stRenderTargetStack.back());
+            GetRenderer2D()->setRenderAttachment(
+                rt->GetRenderTarget(),
+                rt->GetDepthStencilBuffer()
+            );
+        }
+        else
+        {
+            GetAppModel()->getSwapChain()->applyRenderAttachment();
         }
 
         return true;

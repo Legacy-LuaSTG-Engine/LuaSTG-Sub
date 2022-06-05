@@ -745,6 +745,15 @@ namespace LuaSTG::Core::Graphics
 			dsv->Release();
 		}
 	}
+	void Renderer_D3D11::setRenderAttachment(IRenderTarget* p_rt, IDepthStencilBuffer* p_ds)
+	{
+		batchFlush();
+		auto* ctx = m_device->GetD3D11DeviceContext();
+		assert(ctx);
+		ID3D11RenderTargetView* rtv[1] = { p_rt ? static_cast<RenderTarget_D3D11*>(p_rt)->GetView() : NULL };
+		ID3D11DepthStencilView* dsv = p_ds ? static_cast<DepthStencilBuffer_D3D11*>(p_ds)->GetView() : NULL;
+		ctx->OMSetRenderTargets(1, rtv, dsv);
+	}
 
 	void Renderer_D3D11::setOrtho(BoxF const& box)
 	{

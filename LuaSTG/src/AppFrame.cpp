@@ -713,10 +713,10 @@ void AppFrame::onRender()
 	if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineDraw))
 		m_pAppModel->requestExit();
 	// 发出警告
-	if (!m_stRenderTargetStack.empty() || !m_stDepthStencilStack.empty())
+	if (!m_stRenderTargetStack.empty())
 	{
 		spdlog::error("[luastg] [AppFrame::OnRender] 渲染结束时 RenderTarget 栈不为空，可能缺少对 lstg.PopRenderTarget 的调用");
-		while (!m_stRenderTargetStack.empty() || !m_stDepthStencilStack.empty())
+		while (!m_stRenderTargetStack.empty())
 			PopRenderTarget();
 	}
 	m_bRenderStarted = false;

@@ -34,6 +34,8 @@ namespace LuaSTG::Core::Graphics
 		virtual Vector2U getSize() = 0;
 
 		virtual bool uploadPixelData(RectU rc, void const* data, uint32_t pitch) = 0;
+
+		virtual bool saveToFile(StringView path) = 0;
 	};
 
 	struct IRenderTarget : public IObject

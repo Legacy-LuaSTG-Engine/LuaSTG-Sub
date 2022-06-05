@@ -176,6 +176,8 @@ namespace LuaSTG::Core::Graphics
 
 		bool uploadPixelData(RectU rc, void const* data, uint32_t pitch);
 
+		bool saveToFile(StringView path);
+
 	public:
 		Texture2D_D3D11(Device_D3D11* device, StringView path, bool mipmap);
 		Texture2D_D3D11(Device_D3D11* device, Vector2U size, bool rendertarget); // rendertarget = true 时不注册监听器，交给 RenderTarget_D3D11 控制

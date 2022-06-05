@@ -119,8 +119,9 @@ namespace LuaSTGPlus
 		fcyRefPointer<ResTexture> tRet = FindTexture(name);
 		if (!tRet)
 			return false;
-		out.x = static_cast<float>(tRet->GetTexture()->GetWidth());
-		out.y = static_cast<float>(tRet->GetTexture()->GetHeight());
+		LuaSTG::Core::Vector2U const size = tRet->GetTexture()->getSize();
+		out.x = static_cast<float>(size.x);
+		out.y = static_cast<float>(size.y);
 		return true;
 	}
 

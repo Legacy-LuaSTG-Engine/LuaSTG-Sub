@@ -5,6 +5,7 @@
 #include "platform/WindowsVersion.hpp"
 
 #include "WICTextureLoader11.h"
+#include "ScreenGrab11.h"
 
 namespace LuaSTG::Core::Graphics
 {
@@ -1419,6 +1420,19 @@ namespace LuaSTG::Core::Graphics
 		};
 		d3d11_devctx->UpdateSubresource(d3d11_texture2d.Get(), 0, &box, data, pitch, 0);
 		return true;
+	}
+
+	bool Texture2D_D3D11::saveToFile(StringView path)
+	{
+		std::wstring wpath = utility::encoding::to_wide(path);
+		HRESULT hr = S_OK;
+		hr = gHR = DirectX::SaveWICTextureToFile(
+			m_device->GetD3D11DeviceContext(),
+			d3d11_texture2d.Get(),
+			GUID_ContainerFormatJpeg,
+			wpath.c_str(),
+			&GUID_WICPixelFormat24bppBGR);
+		return SUCCEEDED(hr);
 	}
 
 	void Texture2D_D3D11::onDeviceCreate()

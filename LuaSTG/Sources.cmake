@@ -63,6 +63,7 @@ set(LUASTG_ENGINE_SOURCES
     src/Resource/ResourcePool.cpp
     src/Resource/ResourceSprite.hpp
     src/Resource/ResourceTexture.hpp
+    src/Resource/ResourceTexture.cpp
     
     src/SteamAPI/SteamAPI.cpp
     src/SteamAPI/SteamAPI.hpp

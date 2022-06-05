@@ -450,8 +450,8 @@ static int lib_setTexture(lua_State* L)LNOEXCEPT
         spdlog::error("[luastg] lstg.Renderer.setTexture failed: can't find texture '{}'", name);
         return false;
     }
-    check_rendertarget_usage(p->GetTexture());
-    LR2D()->setTexture(p->GetTexture()->GetNativeTexture2D());
+    check_rendertarget_usage(*p);
+    LR2D()->setTexture(p->GetTexture());
     return 0;
 }
 
@@ -648,7 +648,7 @@ static int lib_drawTexture(lua_State* L)LNOEXCEPT
         }
         else
         {
-            vertex[i].color = static_cast<fcyColor*>(luaL_checkudata(L, -1, LUASTG_LUA_TYPENAME_COLOR))->argb;
+            vertex[i].color = LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(L, -1)->argb;
         }
 
         lua_pop(L, 6);
@@ -664,16 +664,16 @@ static int lib_drawTexture(lua_State* L)LNOEXCEPT
         spdlog::error("[luastg] lstg.Renderer.drawTexture failed: can't find texture '{}'", name);
         return false;
     }
-    f2dTexture2D* const ptex2d = ptex2dres->GetTexture();
-    float const tex_w = 1.0f / (float)ptex2d->GetWidth();
-    float const tex_h = 1.0f / (float)ptex2d->GetHeight();
+    check_rendertarget_usage(*ptex2dres);
+    LuaSTG::Core::Graphics::ITexture2D* ptex2d = ptex2dres->GetTexture();
+    float const uscale = 1.0f / (float)ptex2d->getSize().x;
+    float const vscale = 1.0f / (float)ptex2d->getSize().y;
     for (int i = 0; i < 4; ++i)
     {
-        vertex[i].u *= tex_w;
-        vertex[i].v *= tex_h;
+        vertex[i].u *= uscale;
+        vertex[i].v *= vscale;
     }
-    check_rendertarget_usage(ptex2d);
-    ctx->setTexture(ptex2d->GetNativeTexture2D());
+    ctx->setTexture(ptex2d);
 
     ctx->drawQuad(vertex[0], vertex[1], vertex[2], vertex[3]);
 
@@ -877,7 +877,7 @@ static int compat_PostEffect(lua_State* L)
     LuaSTGPlus::ResTexture* prt = LRES.FindTexture(rt_name);
     if (!prt)
         return luaL_error(L, "texture '%s' not found.", rt_name);
-    check_rendertarget_usage(prt->GetTexture());
+    check_rendertarget_usage(prt);
     
     LuaSTG::Core::Vector4F cbdata[8] = {};
     ITexture2D* tdata[4] = {};
@@ -909,12 +909,12 @@ static int compat_PostEffect(lua_State* L)
         LuaSTGPlus::ResTexture* ptex = LRES.FindTexture(tx_name);
         if (!ptex)
             return luaL_error(L, "texture '%s' not found.", tx_name);
-        check_rendertarget_usage(ptex->GetTexture());
-        tdata[i - 1] = ptex->GetTexture()->GetNativeTexture2D();
+        check_rendertarget_usage(ptex);
+        tdata[i - 1] = ptex->GetTexture();
         tsdata[i - 1] = (IRenderer::SamplerState)luaL_checkinteger(L, -1);
     }
 
-    LR2D()->drawPostEffect(pfx->GetPostEffectShader(), blend, prt->GetTexture()->GetNativeTexture2D(), rtsv, cbdata, cbdata_n, tdata, tsdata, tdata_n);
+    LR2D()->drawPostEffect(pfx->GetPostEffectShader(), blend, prt->GetTexture(), rtsv, cbdata, cbdata_n, tdata, tsdata, tdata_n);
 
     return 0;
 }
