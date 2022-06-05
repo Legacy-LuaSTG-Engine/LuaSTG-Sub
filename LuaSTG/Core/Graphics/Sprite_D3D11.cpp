@@ -89,10 +89,10 @@ namespace LuaSTG::Core::Graphics
 		m_renderer->setTexture(m_texture.get());
 
 		RectF const rect = RectF(
-			m_pos_rc.a.x *= scale.x,
-			m_pos_rc.a.y *= scale.y,
-			m_pos_rc.b.x *= scale.x,
-			m_pos_rc.b.y *= scale.y
+			m_pos_rc.a.x * scale.x,
+			m_pos_rc.a.y * scale.y,
+			m_pos_rc.b.x * scale.x,
+			m_pos_rc.b.y * scale.y
 		);
 		
 		IRenderer::DrawVertex const vert[4] = {
@@ -115,10 +115,10 @@ namespace LuaSTG::Core::Graphics
 		m_renderer->setTexture(m_texture.get());
 
 		RectF const rect = RectF(
-			m_pos_rc.a.x *= scale.x,
-			m_pos_rc.a.y *= scale.y,
-			m_pos_rc.b.x *= scale.x,
-			m_pos_rc.b.y *= scale.y
+			m_pos_rc.a.x * scale.x,
+			m_pos_rc.a.y * scale.y,
+			m_pos_rc.b.x * scale.x,
+			m_pos_rc.b.y * scale.y
 		);
 
 		IRenderer::DrawVertex vert[4] = {
