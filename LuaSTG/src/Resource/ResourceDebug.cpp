@@ -111,31 +111,7 @@ namespace LuaSTGPlus
 					ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
 					color);
 			};
-			auto draw_sprite_old = [](f2dSprite* p_res, bool show_info, bool focus, float scale) -> void {
-				auto color = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
-				if (focus)
-				{
-					color = ImVec4(1.0f, 0.4f, 0.4f, 1.0f);
-				}
-				auto* p_tex = p_res->GetTexture();
-				auto rc = p_res->GetTexRect();
-				auto cp = p_res->GetHotSpot() - rc.a;
-				if (show_info)
-				{
-					ImGui::Text("Pos: %.2f x %.2f", rc.a.x, rc.a.y);
-					ImGui::Text("Size: %.2f x %.2f", rc.GetWidth(), rc.GetHeight());
-					ImGui::Text("Center: %.2f x %.2f", cp.x, cp.y);
-					ImGui::Text("Units Per Pixel: %.4f", p_res->GetScale());
-				}
-				ImGui::Image(
-					p_tex->GetHandle(),
-					ImVec2(scale * rc.GetWidth(), scale * rc.GetHeight()),
-					ImVec2(rc.a.x / p_tex->GetWidth(), rc.a.y / p_tex->GetHeight()),
-					ImVec2(rc.b.x / p_tex->GetWidth(), rc.b.y / p_tex->GetHeight()),
-					ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
-					color);
-			};
-
+			
 			if (p_pool)
 			{
 				if (ImGui::BeginTabBar("##lstg.ResourceManager"))
@@ -231,14 +207,14 @@ namespace LuaSTGPlus
 									ImGui::Text("Sprite Count: %u", v.second->GetCount());
 									ImGui::Text("Animation Interval: %u", v.second->GetInterval());
 									fuInt ani_idx = v.second->GetSpriteIndexByTimer(timer);
-									draw_sprite_old(v.second->GetSprite(ani_idx), false, false, preview_scale);
+									draw_sprite(v.second->GetSprite(ani_idx), false, false, preview_scale);
 									static bool same_line = false;
 									ImGui::Checkbox("Same Line Preview", &same_line);
 									for (fuInt img_idx = 0; img_idx < v.second->GetCount(); img_idx += 1)
 									{
 										if (same_line)
 										{
-											draw_sprite_old(v.second->GetSprite(img_idx), false, img_idx == ani_idx, preview_scale);
+											draw_sprite(v.second->GetSprite(img_idx), false, img_idx == ani_idx, preview_scale);
 											if (img_idx < (v.second->GetCount() - 1))
 												ImGui::SameLine();
 										}
@@ -246,7 +222,7 @@ namespace LuaSTGPlus
 										{
 											if (ImGui::TreeNode(v.second->GetSprite(img_idx), "Sprite %u", img_idx))
 											{
-												draw_sprite_old(v.second->GetSprite(img_idx), true, false, preview_scale);
+												draw_sprite(v.second->GetSprite(img_idx), true, false, preview_scale);
 												ImGui::TreePop();
 											}
 										}

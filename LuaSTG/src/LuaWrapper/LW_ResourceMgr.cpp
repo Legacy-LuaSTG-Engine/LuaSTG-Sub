@@ -616,7 +616,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 				return luaL_error(L, "animation '%s' not found.", luaL_checkstring(L, 1));
 			float x = (float)luaL_checknumber(L, 2);
 			for (size_t i = 0; i < p->GetCount(); ++i)
-				p->GetSprite(i)->SetScale(x);
+				p->GetSprite(i)->setUnitsPerPixel(x);
 			return 0;
 		}
 		static int GetAnimationScale(lua_State* L) noexcept
@@ -624,7 +624,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			ResAnimation* p = LRES.FindAnimation(luaL_checkstring(L, 1));
 			if (!p)
 				return luaL_error(L, "animation '%s' not found.", luaL_checkstring(L, 1));
-			lua_pushnumber(L, p->GetSprite(0)->GetScale());
+			lua_pushnumber(L, p->GetSprite(0)->getUnitsPerPixel());
 			return 1;
 		}
 		static int SetAnimationState(lua_State* L) noexcept
@@ -636,20 +636,19 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			p->SetBlendMode(TranslateBlendMode(L, 2));
 			if (lua_gettop(L) == 3)
 			{
-				fcyColor c = *static_cast<fcyColor*>(luaL_checkudata(L, 3, LUASTG_LUA_TYPENAME_COLOR));
 				for (size_t i = 0; i < p->GetCount(); ++i)
-					p->GetSprite(i)->SetColor(c);
+					p->GetSprite(i)->setColor(ColorWrapper::Cast(L, 3)->argb);
 			}
 			else if (lua_gettop(L) == 6)
 			{
-				fcyColor tColors[] = {
-					*static_cast<fcyColor*>(luaL_checkudata(L, 3, LUASTG_LUA_TYPENAME_COLOR)),
-					*static_cast<fcyColor*>(luaL_checkudata(L, 4, LUASTG_LUA_TYPENAME_COLOR)),
-					*static_cast<fcyColor*>(luaL_checkudata(L, 5, LUASTG_LUA_TYPENAME_COLOR)),
-					*static_cast<fcyColor*>(luaL_checkudata(L, 6, LUASTG_LUA_TYPENAME_COLOR))
+				LuaSTG::Core::Color4B tColors[] = {
+					ColorWrapper::Cast(L, 3)->argb,
+					ColorWrapper::Cast(L, 4)->argb,
+					ColorWrapper::Cast(L, 5)->argb,
+					ColorWrapper::Cast(L, 6)->argb
 				};
 				for (size_t i = 0; i < p->GetCount(); ++i)
-					p->GetSprite(i)->SetColor(tColors);
+					p->GetSprite(i)->setColor(tColors);
 			}
 			return 0;
 		}
@@ -660,9 +659,10 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 				return luaL_error(L, "animation '%s' not found.", luaL_checkstring(L, 1));
 			for (size_t i = 0; i < p->GetCount(); ++i)
 			{
-				p->GetSprite(i)->SetHotSpot(fcyVec2(
-					static_cast<float>(luaL_checknumber(L, 2) + p->GetSprite(i)->GetTexRect().a.x),
-					static_cast<float>(luaL_checknumber(L, 3) + p->GetSprite(i)->GetTexRect().a.y)));
+				p->GetSprite(i)->setTextureCenter(LuaSTG::Core::Vector2F(
+					static_cast<float>(luaL_checknumber(L, 2) + p->GetSprite(i)->getTextureRect().a.x),
+					static_cast<float>(luaL_checknumber(L, 3) + p->GetSprite(i)->getTextureRect().a.y)
+				));
 			}
 			return 0;
 		}

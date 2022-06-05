@@ -592,7 +592,7 @@ namespace LuaSTGPlus
 					ResAnimation* ani = static_cast<ResAnimation*>(p->res);
 					ani->SetBlendMode(m);
 					for (size_t i = 0; i < ani->GetCount(); ++i)
-						ani->GetSprite(i)->SetColor(c);
+						ani->GetSprite(i)->setColor(LuaSTG::Core::Color4B(c.argb));
 				} while (false);
 				break;
 			default:

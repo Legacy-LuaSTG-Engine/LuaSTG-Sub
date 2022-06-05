@@ -467,11 +467,11 @@ namespace LuaSTGPlus
 						ResAnimation* ani = static_cast<ResAnimation*>(res);
 						fuInt const idx = ani->GetSpriteIndexByTimer(ani_timer);
 						// backup
-						fcyColor color[4] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
-						ani->GetSprite(idx)->GetColor(color);
+						LuaSTG::Core::Color4B color[4] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+						ani->GetSprite(idx)->getColor(color);
 						BlendMode blend = ani->GetBlendMode();
 						// setup
-						ani->GetSprite(idx)->SetColor(fcyColor(vertexcolor));
+						ani->GetSprite(idx)->setColor(LuaSTG::Core::Color4B(vertexcolor));
 						ani->SetBlendMode(blend);
 						LAPP.Render(
 							ani,
@@ -483,7 +483,7 @@ namespace LuaSTGPlus
 							static_cast<float>(vscale) * gscale
 						);
 						// restore
-						ani->GetSprite(idx)->SetColor(color);
+						ani->GetSprite(idx)->setColor(color);
 						ani->SetBlendMode(blend);
 					} while (false);
 					break;

@@ -1,30 +1,64 @@
 ﻿#include "ResourceAnimation.hpp"
 #include "AppFrame.h" // 用于创建图片精灵
 
-namespace LuaSTGPlus {
+namespace LuaSTGPlus
+{
 	ResAnimation::ResAnimation(const char* name, fcyRefPointer<ResTexture> tex,
 		float x, float y, float w, float h,
 		int n, int m, int intv,
 		double a, double b, bool rect)
-		: Resource(ResourceType::Animation, name), m_Interval(intv), m_HalfSizeX(a), m_HalfSizeY(b), m_bRectangle(rect)
+		: Resource(ResourceType::Animation, name)
+		, m_Interval(intv)
+		, m_HalfSizeX(a)
+		, m_HalfSizeY(b)
+		, m_bRectangle(rect)
 	{
 		// 分割纹理
+		m_sprites.reserve(m * n);
 		for (int j = 0; j < m; ++j)  // 行
 		{
 			for (int i = 0; i < n; ++i)  // 列
 			{
-				fcyRefPointer<f2dSprite> t;
-				// new 只在资源池中调用，那边已经检查过了f2dRenderer是否存在
-				if (FCYFAILED(LAPP.GetRenderer()->CreateSprite2D(tex->GetTexture(), fcyRect(
-					x + w * i, y + h * j, x + w * (i + 1), y + h * (j + 1)
-				), ~t)))
+				LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::ISprite> p_sprite;
+				if (!LuaSTG::Core::Graphics::ISprite::create(
+					LAPP.GetAppModel()->getRenderer(),
+					tex->GetTexture()->GetNativeTexture2D(),
+					~p_sprite
+				))
 				{
-					throw fcyException("ResAnimation::ResAnimation", "CreateSprite2D failed.");
+					throw std::runtime_error("ResAnimation::ResAnimation");
 				}
-				t->SetZ(0.5f);
-				t->SetColor(0xFFFFFFFF);
-				m_ImageSequences.push_back(t);
+				LuaSTG::Core::RectF rc = LuaSTG::Core::RectF(
+					x + w * i,
+					y + h * j,
+					x + w * (i + 1),
+					y + h * (j + 1)
+				);
+				p_sprite->setTextureRect(rc);
+				p_sprite->setTextureCenter(LuaSTG::Core::Vector2F(
+					(rc.a.x + rc.b.x) * 0.5f,
+					(rc.a.y + rc.b.y) * 0.5f
+				));
+				m_sprites.emplace_back(p_sprite);
 			}
 		}
+	}
+	ResAnimation::~ResAnimation() {}
+
+	LuaSTG::Core::Graphics::ISprite* ResAnimation::GetSprite(fuInt index)
+	{
+		if (index >= GetCount())
+		{
+			assert(false); return nullptr;
+		}
+		return m_sprites[index].get();
+	}
+	fuInt ResAnimation::GetSpriteIndexByTimer(int ani_timer)
+	{
+		return ((fuInt)ani_timer / m_Interval) % GetCount();
+	}
+	LuaSTG::Core::Graphics::ISprite* ResAnimation::GetSpriteByTimer(int ani_timer)
+	{
+		return m_sprites[GetSpriteIndexByTimer(ani_timer)].get();
 	}
 }
