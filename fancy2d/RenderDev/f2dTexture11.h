@@ -39,6 +39,8 @@ protected:
 	~f2dTexture2D11() {}
 };
 
+/*
+
 // RenderTarget
 class f2dRenderTarget11 :
 	public fcyRefObjImpl<f2dTexture2D>,
@@ -107,3 +109,5 @@ protected:
 	f2dDepthStencil11(f2dRenderDevice* pDev, fuInt Width, fuInt Height, fBool AutoResize);
 	~f2dDepthStencil11();
 };
+
+//*/

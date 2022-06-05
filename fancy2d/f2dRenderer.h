@@ -689,20 +689,20 @@ struct f2dRenderer
 	/// @brief      创建Sprite2D
 	/// @param[in]  pTex 绑定的纹理
 	/// @param[out] pOut 创建的Sprite
-	virtual fResult CreateSprite2D(f2dTexture2D* pTex, f2dSprite** pOut)=0;
+	//virtual fResult CreateSprite2D(f2dTexture2D* pTex, f2dSprite** pOut)=0;
 
 	/// @brief      创建Sprite2D
 	/// @param[in]  pTex 绑定的纹理
 	/// @param[in]  Org  原始纹理矩形
 	/// @param[out] pOut 创建的Sprite
-	virtual fResult CreateSprite2D(f2dTexture2D* pTex, const fcyRect& Org, f2dSprite** pOut)=0;
+	//virtual fResult CreateSprite2D(f2dTexture2D* pTex, const fcyRect& Org, f2dSprite** pOut)=0;
 
 	/// @brief      创建Sprite2D
 	/// @param[in]  pTex    绑定的纹理
 	/// @param[in]  Org     原始纹理矩形
 	/// @param[in]  HotSopt 热点
 	/// @param[out] pOut    创建的Sprite
-	virtual fResult CreateSprite2D(f2dTexture2D* pTex, const fcyRect& Org, const fcyVec2& HotSopt, f2dSprite** pOut)=0;
+	//virtual fResult CreateSprite2D(f2dTexture2D* pTex, const fcyRect& Org, const fcyVec2& HotSopt, f2dSprite** pOut)=0;
 
 	/// @brief      创建几何体渲染器
 	/// @param[out] pOut 输出的渲染器对象
@@ -754,11 +754,11 @@ struct f2dRenderer
 
 	/// @brief      创建精灵动画
 	/// @param[out] pOut        返回的对象
-	virtual fResult CreateSpriteAnimation(f2dSpriteAnimation** pOut)=0;
+	//virtual fResult CreateSpriteAnimation(f2dSpriteAnimation** pOut)=0;
 
 	/// @brief      创建粒子池
 	/// @param[out] pOut        返回的对象
-	virtual fResult CreateParticlePool(f2dParticlePool** pOut)=0;
+	//virtual fResult CreateParticlePool(f2dParticlePool** pOut)=0;
 };
 
 /// @}

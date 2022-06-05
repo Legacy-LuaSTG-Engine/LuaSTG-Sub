@@ -2,13 +2,13 @@
 
 #include "RenderDev/f2dRenderDevice11.h"
 
-#include "Renderer/f2dSpriteImpl.h"
+//#include "Renderer/f2dSpriteImpl.h"
 #include "Renderer/f2dGeometryRendererImpl.h"
 #include "Renderer/f2dFontRendererImpl.h"
 #include "Renderer/f2dFontTexProvider.h"
 #include "Renderer/f2dTrueTypeFontProvider.h"
-#include "Renderer/f2dSpriteAnimationImpl.h"
-#include "Renderer/f2dParticle.h"
+//#include "Renderer/f2dSpriteAnimationImpl.h"
+//#include "Renderer/f2dParticle.h"
 
 #include "Engine/f2dEngineImpl.h"
 
@@ -47,6 +47,8 @@ f2dRenderDevice* f2dRendererImpl::GetDevice()
 {
 	return m_pDev;
 }
+
+/*
 
 fResult f2dRendererImpl::CreateSprite2D(f2dTexture2D* pTex, f2dSprite** pOut)
 {
@@ -113,6 +115,8 @@ fResult f2dRendererImpl::CreateSprite2D(f2dTexture2D* pTex, const fcyRect& Org, 
 
 	return FCYERR_OK;
 }
+
+//*/
 
 fResult f2dRendererImpl::CreateGeometryRenderer(f2dGeometryRenderer** pOut)
 {
@@ -312,6 +316,8 @@ fResult f2dRendererImpl::CreateFontFromTex(fcStrW pDefineText, f2dTexture2D* pTe
 	return FCYERR_OK;
 }
 
+/*
+
 fResult f2dRendererImpl::CreateSpriteAnimation(f2dSpriteAnimation** pOut)
 {
 	if(pOut)
@@ -349,6 +355,8 @@ fResult f2dRendererImpl::CreateParticlePool(f2dParticlePool** pOut)
 
 	return FCYERR_OK;
 }
+
+//*/
 
 ////////////////////////////////////////////////////////////////////////////////
 

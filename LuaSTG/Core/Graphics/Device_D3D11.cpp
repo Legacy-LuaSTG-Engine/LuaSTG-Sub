@@ -1424,7 +1424,7 @@ namespace LuaSTG::Core::Graphics
 
 	bool Texture2D_D3D11::saveToFile(StringView path)
 	{
-		std::wstring wpath = utility::encoding::to_wide(path);
+		std::wstring wpath(utility::encoding::to_wide(path));
 		HRESULT hr = S_OK;
 		hr = gHR = DirectX::SaveWICTextureToFile(
 			m_device->GetD3D11DeviceContext(),

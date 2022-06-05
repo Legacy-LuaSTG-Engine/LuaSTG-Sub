@@ -730,50 +730,6 @@ struct f2dRenderDevice
 	/// @param[out] pOut   输出的纹理指针
 	virtual fResult CreateDynamicTexture(fuInt Width, fuInt Height, f2dTexture2D** pOut)=0;
 
-	/// @brief      创建一个渲染目标
-	/// @note       渲染目标用于存放渲染数据，不可锁定
-	/// @warning    渲染目标大小应和深度模板缓冲区大小一致，否则将会造成不可预料的结果。
-	/// @param[in]  Width      宽度
-	/// @param[in]  Height     高度
-	/// @param[in]  AutoResize 重置时自动设为屏幕分辨率
-	/// @param[out] pOut       输出的纹理指针
-	virtual fResult CreateRenderTarget(fuInt Width, fuInt Height, fBool AutoResize, f2dTexture2D** pOut)=0;
-
-	/// @brief      创建一个深度模板缓冲区
-	/// @warning    渲染目标大小应和深度模板缓冲区大小一致，否则将会造成不可预料的结果。
-	/// @param[in]  Width      宽度
-	/// @param[in]  Height     高度
-	/// @param[in]  Discard    不保留数据
-	/// @param[in]  AutoResize 重置时自动设为屏幕分辨率
-	/// @param[out] pOut       输出的缓冲区指针
-	virtual fResult CreateDepthStencilSurface(fuInt Width, fuInt Height, fBool Discard, fBool AutoResize, f2dDepthStencilSurface** pOut)=0;
-
-	// --- 绘图状态 ---
-
-	/// @brief   返回目前使用中的渲染目标
-	/// @warning 渲染目标会在一轮渲染结束后恢复到默认后台缓冲区
-	/// @note    如果为默认后台缓冲区将返回NULL；该函数不增加引用计数
-	virtual f2dTexture2D* GetRenderTarget()=0;
-
-	/// @brief   返回目前使用中的深度模板缓冲区
-	/// @warning 深度模板缓冲区会在一轮渲染结束后恢复到默认后台缓冲区
-	/// @note    若为默认后台缓冲区返回NULL；该函数不增加引用计数
-	virtual f2dDepthStencilSurface* GetDepthStencilSurface()=0;
-
-	virtual fResult SetRenderTargetAndDepthStencilSurface(f2dTexture2D* pTex, f2dDepthStencilSurface* pSurface) = 0;
-
-	// --- 高级 ---
-
-	/// @brief     截屏
-	/// @note      以JPG形式保存
-	/// @param[in] path 文件路径
-	virtual fResult SaveScreen(fcStrW path)=0;
-
-	/// @brief     保存纹理
-	/// @note      以JPG形式保存
-	/// @param[in] path 文件路径
-	/// @param[in] pTex    要保存的纹理
-	virtual fResult SaveTexture(fcStrW path, f2dTexture2D* pTex)=0;
 };
 
 /// @}

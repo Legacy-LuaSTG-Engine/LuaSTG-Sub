@@ -200,26 +200,10 @@ namespace LuaSTGPlus
     
     void AppFrame::SnapShot(const char* path) noexcept
     {
-        if (!LAPP.GetRenderDev())
+        if (!GetAppModel()->getSwapChain()->saveSnapshotToFile(path))
         {
-            spdlog::error("[luastg] Snapshot: f2dRenderDevice未准备好");
+            spdlog::error("[luastg] SnapShot: 保存截图到文件'{}'失败", path);
             return;
-        }
-        
-        try
-        {
-            const std::wstring wpath = std::move(utility::encoding::to_wide(path));
-            fResult fr = LAPP.GetRenderDev()->SaveScreen(wpath.c_str());
-            if (FCYFAILED(fr))
-                spdlog::error("[fancy2d] [f2dRenderDevice::SaveScreen] 保存截图到'{}'失败(fResult={})", path, fr);
-        }
-        catch (const std::bad_alloc&)
-        {
-            spdlog::error("[luastg] Snapshot: 内存不足");
-        }
-        catch (const fcyException& e)
-        {
-            spdlog::error("[fancy2d] [{}] {}", e.GetSrc(), e.GetDesc());
         }
     }
     void AppFrame::SaveTexture(const char* tex_name, const char* path) noexcept
@@ -230,7 +214,11 @@ namespace LuaSTGPlus
             spdlog::error("[luastg] SaveTexture: 找不到纹理资源'{}'", tex_name);
             return;
         }
-        resTex->GetTexture()->saveToFile(path);
+        if (!resTex->GetTexture()->saveToFile(path))
+        {
+            spdlog::error("[luastg] SaveTexture: 保存纹理'{}'到文件'{}'失败", tex_name, path);
+            return;
+        }
     }
 
     // 废弃

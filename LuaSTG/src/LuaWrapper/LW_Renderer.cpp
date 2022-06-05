@@ -238,20 +238,6 @@ static void api_GameObject_drawSpriteSequence(LuaSTGPlus::ResAnimation* pani2dre
 {
     api_drawSpriteSequence(pani2dres, ani_timer, x, y, rot, hscale, vscale, z);
 }
-static void api_GameObject_drawSprite(f2dSprite* pimg2d, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
-{
-    auto* ctx = LR2D();
-
-    float const scale = pimg2d->GetScale();
-
-    f2dTexture2D* const ptex2d = pimg2d->GetTexture();
-    check_rendertarget_usage(ptex2d);
-    ctx->setTexture(ptex2d->GetNativeTexture2D());
-
-    IRenderer::DrawVertex vertex[4];
-    make_sprite_vertex(pimg2d, vertex, x, y, rot, hscale * scale, vscale * scale, z);
-    ctx->drawQuad(vertex[0], vertex[1], vertex[2], vertex[3]);
-}
 static void api_GameObject_drawParticle(LuaSTGPlus::ResParticle::ParticlePool* p, float hscale, float vscale)
 {
     p->Render(hscale, vscale);
@@ -772,16 +758,9 @@ static int compat_SetViewport(lua_State* L)LNOEXCEPT
             1.0f
         );
     }
-    if (auto* p = LRDEV()->GetRenderTarget())
-    {
-        box.a.y = (float)p->GetHeight() - box.a.y;
-        box.b.y = (float)p->GetHeight() - box.b.y;
-    }
-    else
-    {
-        box.a.y = (float)LRDEV()->GetBufferHeight() - box.a.y;
-        box.b.y = (float)LRDEV()->GetBufferHeight() - box.b.y;
-    }
+    fcyVec2 const backbuf_size = LAPP.GetCurrentRenderTargetSize();
+    box.a.y = backbuf_size.y - box.a.y;
+    box.b.y = backbuf_size.y - box.b.y;
     LR2D()->setViewport(box);
     return 0;
 }
@@ -793,16 +772,9 @@ static int compat_SetScissorRect(lua_State* L)LNOEXCEPT
         (float)luaL_checknumber(L, 2),
         (float)luaL_checknumber(L, 3)
     );
-    if (auto* p = LRDEV()->GetRenderTarget())
-    {
-        rect.a.y = (float)p->GetHeight() - rect.a.y;
-        rect.b.y = (float)p->GetHeight() - rect.b.y;
-    }
-    else
-    {
-        rect.a.y = (float)LRDEV()->GetBufferHeight() - rect.a.y;
-        rect.b.y = (float)LRDEV()->GetBufferHeight() - rect.b.y;
-    }
+    fcyVec2 const backbuf_size = LAPP.GetCurrentRenderTargetSize();
+    rect.a.y = backbuf_size.y - rect.a.y;
+    rect.b.y = backbuf_size.y - rect.b.y;
     LR2D()->setScissorRect(rect);
     return 0;
 }
