@@ -312,7 +312,7 @@ namespace LuaSTG::Core
 			if (win32_events[0])
 			{
 				// 监控退出事件和消息队列
-				switch (MsgWaitForMultipleObjectsEx(1, win32_events, 1000, QS_ALLINPUT, 0))
+				switch (MsgWaitForMultipleObjectsEx(1, win32_events, 4 * 1000, QS_ALLINPUT, 0))
 				{
 				case (WAIT_OBJECT_0):
 					// 退出信号不是由窗口触发的，而是由工作线程触发的
@@ -371,7 +371,7 @@ namespace LuaSTG::Core
 		{
 			for (;;)
 			{
-				switch (WaitForSingleObjectEx(win32_thread_worker.Get(), 1000, TRUE))
+				switch (WaitForSingleObjectEx(win32_thread_worker.Get(), USER_TIMER_MINIMUM, TRUE))
 				{
 				case WAIT_OBJECT_0:
 					return; // ok
