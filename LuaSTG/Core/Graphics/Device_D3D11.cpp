@@ -911,7 +911,7 @@ namespace LuaSTG::Core::Graphics
 		, (d3d11_feature_format_##_NAME.OutFormatSupport2 & D3D11_FORMAT_SUPPORT2_SHAREABLE             ) ? _FORMAT_MAKE_SUPPORT\
 		, (d3d11_feature_format_##_NAME.OutFormatSupport2 & D3D11_FORMAT_SUPPORT2_MULTIPLANE_OVERLAY    ) ? _FORMAT_MAKE_SUPPORT
 
-		spdlog::info("[fancy2d] Direct3D 11 设备功能支持：\n"
+		spdlog::info("[core] Direct3D 11 设备功能支持：\n"
 			"    Direct3D 功能级别：{}\n"
 			"    R8G8B8A8 格式：\n"
 			_FORMAT_INFO_STRING_FMT3
@@ -956,7 +956,7 @@ namespace LuaSTG::Core::Graphics
 		}
 		else
 		{
-			spdlog::warn("[fancy2d] 此设备没有完整的 B8G8R8A8 格式支持，程序可能无法正常运行");
+			spdlog::warn("[core] 此设备没有完整的 B8G8R8A8 格式支持，程序可能无法正常运行");
 		}
 
 		i18n_log_info("[core].Device_D3D11.created_basic_D3D11_components");
