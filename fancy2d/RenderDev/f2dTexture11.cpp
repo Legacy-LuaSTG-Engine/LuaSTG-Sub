@@ -20,6 +20,8 @@ f2dTexture2D11::f2dTexture2D11(f2dRenderDevice* pDev, fcStr path, fBool bMipmap)
 		throw std::runtime_error("f2dTexture2D11 (2)");
 }
 
+/*
+
 // RenderTarget
 
 f2dRenderTarget11::f2dRenderTarget11(f2dRenderDevice* pDev, fuInt Width, fuInt Height, fBool AutoResize)
@@ -88,3 +90,5 @@ void f2dDepthStencil11::OnRenderSizeDependentResourcesCreate()
 	else
 		throw std::runtime_error("f2dDepthStencil11");
 }
+
+//*/

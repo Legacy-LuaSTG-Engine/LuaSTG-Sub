@@ -44,6 +44,8 @@ namespace LuaSTG::Core::Graphics
 		virtual void setVSync(bool enable) = 0;
 		virtual bool present() = 0;
 
+		virtual bool saveSnapshotToFile(StringView path) = 0;
+
 		static bool create(IWindow* p_window, IDevice* p_device, ISwapChain** pp_swapchain);
 	};
 }

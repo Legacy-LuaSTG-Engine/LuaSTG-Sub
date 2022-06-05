@@ -1,6 +1,9 @@
 ﻿#include "Core/Graphics/SwapChain_D3D11.hpp"
 #include "Core/Graphics/Format_D3D11.hpp"
 #include "Core/i18n.hpp"
+#include "utility/encoding.hpp"
+
+#include "ScreenGrab11.h"
 
 namespace LuaSTG::Core::Graphics
 {
@@ -952,6 +955,21 @@ namespace LuaSTG::Core::Graphics
 			return false;
 
 		return true;
+	}
+
+	bool SwapChain_D3D11::saveSnapshotToFile(StringView path)
+	{
+		std::wstring wpath(utility::encoding::to_wide(path));
+		HRESULT hr = S_OK;
+		Microsoft::WRL::ComPtr<ID3D11Resource> d3d11_resource;
+		d3d11_rtv->GetResource(&d3d11_resource);
+		hr = gHR = DirectX::SaveWICTextureToFile(
+			m_device->GetD3D11DeviceContext(),
+			d3d11_resource.Get(),
+			GUID_ContainerFormatJpeg,
+			wpath.c_str(),
+			&GUID_WICPixelFormat24bppBGR);
+		return SUCCEEDED(hr);
 	}
 
 	SwapChain_D3D11::SwapChain_D3D11(Window_Win32* p_window, Device_D3D11* p_device)

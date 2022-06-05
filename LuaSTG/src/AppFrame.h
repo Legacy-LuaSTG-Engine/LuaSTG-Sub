@@ -207,12 +207,10 @@ namespace LuaSTGPlus
 		void SnapShot(const char* path)LNOEXCEPT;
 		void SaveTexture(const char* tex_name, const char* path)LNOEXCEPT;
 
-		bool CheckRenderTargetInUse(fcyRefPointer<f2dTexture2D> rt)LNOEXCEPT;
-
 		bool CheckRenderTargetInUse(ResTexture* rt)LNOEXCEPT;
-
 		bool PushRenderTarget(ResTexture* rt)LNOEXCEPT;
 		bool PopRenderTarget()LNOEXCEPT;
+		fcyVec2 GetCurrentRenderTargetSize();
 
 		// 渲染扇形，通过纹理+uv范围渲染
 		bool RenderSector(const char* name, fcyRect uv, bool tran, BlendMode blend, fcyColor color1, fcyColor color2,

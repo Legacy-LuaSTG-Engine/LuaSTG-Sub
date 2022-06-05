@@ -78,16 +78,7 @@ public:
 
 	fResult CreateTextureFromFile(fcStr path, fBool HasMipmap, f2dTexture2D** pOut);
 	fResult CreateDynamicTexture(fuInt Width, fuInt Height, f2dTexture2D** pOut);
-	fResult CreateRenderTarget(fuInt Width, fuInt Height, fBool AutoResize , f2dTexture2D** pOut);
-	fResult CreateDepthStencilSurface(fuInt Width, fuInt Height, fBool Discard, fBool AutoResize, f2dDepthStencilSurface** pOut);
 	
-	f2dTexture2D* GetRenderTarget();
-	f2dDepthStencilSurface* GetDepthStencilSurface();
-	fResult SetRenderTargetAndDepthStencilSurface(f2dTexture2D* pTex, f2dDepthStencilSurface* pSurface);
-
-	fResult SaveScreen(fcStrW path);
-	fResult SaveTexture(fcStrW path, f2dTexture2D* pTex);
-
 public:
 	f2dRenderDevice11(f2dEngineImpl* pEngine, f2dEngineRenderWindowParam* RenderWindowParam);
 	~f2dRenderDevice11();

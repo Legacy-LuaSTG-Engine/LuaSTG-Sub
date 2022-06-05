@@ -87,6 +87,9 @@ namespace LuaSTG::Core::Graphics
 		void waitFrameLatency();
 		void setVSync(bool enable);
 		bool present();
+
+		bool saveSnapshotToFile(StringView path);
+
 	public:
 		SwapChain_D3D11(Window_Win32* p_window, Device_D3D11* p_device);
 		~SwapChain_D3D11();

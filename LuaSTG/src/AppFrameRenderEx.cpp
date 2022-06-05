@@ -64,6 +64,19 @@ namespace LuaSTGPlus {
         return true;
     }
     
+    fcyVec2 AppFrame::GetCurrentRenderTargetSize()
+    {
+        if (!m_stRenderTargetStack.empty())
+        {
+            ResTexture* rt = *(m_stRenderTargetStack.back());
+            return fcyVec2((float)rt->GetTexture()->getSize().x, (float)rt->GetTexture()->getSize().y);
+        }
+        else
+        {
+            return fcyVec2((float)GetAppModel()->getSwapChain()->getWidth(), (float)GetAppModel()->getSwapChain()->getHeight());
+        }
+    }
+
     // 废弃
     //static f2dGraphics2DVertex vcache[2048];
     //static fuShort             icache[8192];

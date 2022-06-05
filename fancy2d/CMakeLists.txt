@@ -24,12 +24,12 @@ set(FANCY2D_SOURCE
     Renderer/f2dRendererImpl.cpp
     Renderer/f2dGeometryRendererImpl.h
     Renderer/f2dGeometryRendererImpl.cpp
-    Renderer/f2dSpriteImpl.h
-    Renderer/f2dSpriteImpl.cpp
-    Renderer/f2dSpriteAnimationImpl.h
-    Renderer/f2dSpriteAnimationImpl.cpp
-    Renderer/f2dParticle.h
-    Renderer/f2dParticle.cpp
+    #Renderer/f2dSpriteImpl.h
+    #Renderer/f2dSpriteImpl.cpp
+    #Renderer/f2dSpriteAnimationImpl.h
+    #Renderer/f2dSpriteAnimationImpl.cpp
+    #Renderer/f2dParticle.h
+    #Renderer/f2dParticle.cpp
     Renderer/f2dFontRendererImpl.h
     Renderer/f2dFontRendererImpl.cpp
     Renderer/f2dFontTexProvider.h
