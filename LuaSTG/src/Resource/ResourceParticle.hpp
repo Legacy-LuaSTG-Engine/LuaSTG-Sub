@@ -3,7 +3,7 @@
 #include "fcyMath.h"
 #include "fcyOS/fcyMemPool.h"
 #include "fcyMisc/fcyRandom.h"
-#include "f2dRenderer.h"
+#include "Core/Graphics/Sprite.hpp"
 #include <array>
 
 #define LPARTICLE_MAXCNT 500  // 单个粒子池最多有500个粒子，这是HGE粒子特效的实现，不应该修改
@@ -85,7 +85,7 @@ namespace LuaSTGPlus
 		struct ParticleSystemResourceInfo
 		{
 			hgeParticleSystemInfo tParticleSystemInfo = {};
-			fcyRefPointer<f2dSprite> pSprite;
+			LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::ISprite> pSprite;
 			BlendMode eBlendMode = BlendMode::MulAlpha;
 			float colVertexColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
@@ -133,7 +133,7 @@ namespace LuaSTGPlus
 			float GetRotation() const noexcept;
 			void SetRotation(float r) noexcept;
 			void Update(float delta);
-			void Render(f2dGraphics2D* graph, float scaleX, float scaleY);
+			void Render(float scaleX, float scaleY);
 			void SetOldBehavior(bool b) noexcept { m_bOldBehavior = b; }
 		public:
 			ParticlePool(fcyRefPointer<ResParticle> ref);
@@ -153,6 +153,6 @@ namespace LuaSTGPlus
 		double GetHalfSizeY() const noexcept { return m_HalfSizeY; }
 		bool IsRectangle() const noexcept { return m_bRectangle; }
 	public:
-		ResParticle(const char* name, const hgeParticleSystemInfo& pinfo, fcyRefPointer<f2dSprite> sprite, double a, double b, bool rect = false);
+		ResParticle(const char* name, const hgeParticleSystemInfo& pinfo, LuaSTG::Core::Graphics::ISprite* sprite, double a, double b, bool rect = false);
 	};
 };

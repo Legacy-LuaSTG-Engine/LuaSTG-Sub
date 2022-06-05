@@ -443,11 +443,11 @@ namespace LuaSTGPlus
 					do {
 						ResSprite* img = static_cast<ResSprite*>(res);
 						// backup
-						fcyColor color[4] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
-						img->GetSprite()->GetColor(color);
+						LuaSTG::Core::Color4B color[4] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+						img->GetSprite()->getColor(color);
 						BlendMode blend = img->GetBlendMode();
 						// setup
-						img->GetSprite()->SetColor(fcyColor(vertexcolor));
+						img->GetSprite()->setColor(LuaSTG::Core::Color4B(vertexcolor));
 						img->SetBlendMode(blendmode);
 						LAPP.Render(
 							img,
@@ -458,7 +458,7 @@ namespace LuaSTGPlus
 							static_cast<float>(vscale) * gscale
 						);
 						// restore
-						img->GetSprite()->SetColor(color);
+						img->GetSprite()->setColor(color);
 						img->SetBlendMode(blend);
 					} while (false);
 					break;

@@ -10,11 +10,14 @@ namespace LuaSTG::Core::Graphics
 		ScopeObject<IRenderer> m_renderer;
 		ScopeObject<ITexture2D> m_texture;
 		RectF m_rect;
+		RectF m_pos_rc;
 		RectF m_uv;
 		Vector2F m_center;
 		float m_z;
 		float m_scale;
 		Color4B m_color[4];
+
+		void updateRect();
 
 	public:
 		ITexture2D* getTexture() { return m_texture.get(); }
@@ -23,10 +26,10 @@ namespace LuaSTG::Core::Graphics
 		void setTextureRect(RectF const& rc);
 		RectF getTextureRect() { return m_rect; }
 
-		void setTextureCenter(Vector2F const& pt) { m_center = pt; }
+		void setTextureCenter(Vector2F const& pt);
 		Vector2F getTextureCenter() { return m_center; }
 
-		void setUnitsPerPixel(float v) { m_scale = v; }
+		void setUnitsPerPixel(float v);
 		float getUnitsPerPixel() { return m_scale; }
 
 		void setZ(float v) { m_z = v; }
@@ -54,11 +57,15 @@ namespace LuaSTG::Core::Graphics
 			color[3] = m_color[3];
 		}
 
+		void draw(RectF const& rc);
+		void draw(Vector3F const& p1, Vector3F const& p2, Vector3F const& p3, Vector3F const& p4);
 		void draw(Vector2F const& pos);
 		void draw(Vector2F const& pos, float scale);
 		void draw(Vector2F const& pos, float scale, float rotation);
 		void draw(Vector2F const& pos, Vector2F const& scale);
 		void draw(Vector2F const& pos, Vector2F const& scale, float rotation);
+
+		bool clone(ISprite** pp_sprite);
 
 	public:
 		Sprite_D3D11(IRenderer* p_renderer, ITexture2D* p_texture);

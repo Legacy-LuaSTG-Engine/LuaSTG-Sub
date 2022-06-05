@@ -94,9 +94,9 @@ namespace LuaSTGPlus
         updateGraph2DBlendMode(p->GetBlendMode());
         
         // 渲染
-        f2dSprite* pSprite = p->GetSprite();
-        pSprite->SetZ(z);
-        pSprite->Draw2(m_Graph2D, fcyVec2(x, y), fcyVec2(hscale, vscale), rot, false);
+        LuaSTG::Core::Graphics::ISprite* pSprite = p->GetSprite();
+        pSprite->setZ(z);
+        pSprite->draw(LuaSTG::Core::Vector2F(x, y), LuaSTG::Core::Vector2F(hscale, vscale), rot);
         return true;
     }
     bool AppFrame::Render(const char* name, float x, float y, float rot, float hscale, float vscale, float z) noexcept
@@ -139,47 +139,7 @@ namespace LuaSTGPlus
         updateGraph2DBlendMode(p->GetBlendMode());
         
         // 渲染
-        p->Render(m_Graph2D, hscale, vscale);
-        return true;
-    }
-    bool AppFrame::RenderRect(const char* name, float x1, float y1, float x2, float y2) noexcept
-    {
-        fcyRefPointer<ResSprite> p = m_ResourceMgr.FindSprite(name);
-        if (!p)
-        {
-            spdlog::error("[luastg] RenderRect: 找不到图片精灵'{}'", name);
-            return false;
-        }
-        
-        // 设置混合
-        updateGraph2DBlendMode(p->GetBlendMode());
-        
-        // 渲染
-        f2dSprite* pSprite = p->GetSprite();
-        pSprite->SetZ(0.5f);
-        pSprite->Draw(m_Graph2D, fcyRect(x1, y1, x2, y2), false);
-        return true;
-    }
-    bool AppFrame::Render4V(
-        const char* name,
-        float x1, float y1, float z1,
-        float x2, float y2, float z2, 
-        float x3, float y3, float z3,
-        float x4, float y4, float z4) noexcept
-    {
-        fcyRefPointer<ResSprite> p = m_ResourceMgr.FindSprite(name);
-        if (!p)
-        {
-            spdlog::error("[luastg] Render4V: 找不到图片精灵'{}'", name);
-            return false;
-        }
-        
-        // 设置混合
-        updateGraph2DBlendMode(p->GetBlendMode());
-        
-        f2dSprite* pSprite = p->GetSprite();
-        pSprite->SetZ(0.5f);
-        pSprite->Draw(m_Graph2D, fcyVec3(x1, y1, z1), fcyVec3(x2, y2, z2), fcyVec3(x3, y3, z3), fcyVec3(x4, y4, z4), false);
+        p->Render(hscale, vscale);
         return true;
     }
     bool AppFrame::RenderTexture(ResTexture* tex, BlendMode blend, const f2dGraphics2DVertex vertex[]) noexcept
