@@ -556,7 +556,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 				if (!p)
 					return luaL_error(L, "image '%s' not found.", luaL_checkstring(L, 1));
 				float x = (float)luaL_checknumber(L, 2);
-				p->GetSprite()->SetScale(x);
+				p->GetSprite()->setUnitsPerPixel(x);
 			}
 			return 0;
 		}
@@ -573,7 +573,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 				ResSprite* p = LRES.FindSprite(luaL_checkstring(L, 1));
 				if (!p)
 					return luaL_error(L, "image '%s' not found.", luaL_checkstring(L, 1));
-				lua_pushnumber(L, p->GetSprite()->GetScale());
+				lua_pushnumber(L, p->GetSprite()->getUnitsPerPixel());
 				return 1;
 			}
 		}
@@ -585,16 +585,16 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 
 			p->SetBlendMode(TranslateBlendMode(L, 2));
 			if (lua_gettop(L) == 3)
-				p->GetSprite()->SetColor(*static_cast<fcyColor*>(luaL_checkudata(L, 3, LUASTG_LUA_TYPENAME_COLOR)));
+				p->GetSprite()->setColor(ColorWrapper::Cast(L, 3)->argb);
 			else if (lua_gettop(L) == 6)
 			{
-				fcyColor tColors[] = {
-					*static_cast<fcyColor*>(luaL_checkudata(L, 3, LUASTG_LUA_TYPENAME_COLOR)),
-					*static_cast<fcyColor*>(luaL_checkudata(L, 4, LUASTG_LUA_TYPENAME_COLOR)),
-					*static_cast<fcyColor*>(luaL_checkudata(L, 5, LUASTG_LUA_TYPENAME_COLOR)),
-					*static_cast<fcyColor*>(luaL_checkudata(L, 6, LUASTG_LUA_TYPENAME_COLOR))
+				LuaSTG::Core::Color4B tColors[] = {
+					ColorWrapper::Cast(L, 3)->argb,
+					ColorWrapper::Cast(L, 4)->argb,
+					ColorWrapper::Cast(L, 5)->argb,
+					ColorWrapper::Cast(L, 6)->argb
 				};
-				p->GetSprite()->SetColor(tColors);
+				p->GetSprite()->setColor(tColors);
 			}
 			return 0;
 		}
@@ -603,9 +603,9 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			ResSprite* p = LRES.FindSprite(luaL_checkstring(L, 1));
 			if (!p)
 				return luaL_error(L, "image '%s' not found.", luaL_checkstring(L, 1));
-			p->GetSprite()->SetHotSpot(fcyVec2(
-				static_cast<float>(luaL_checknumber(L, 2) + p->GetSprite()->GetTexRect().a.x),
-				static_cast<float>(luaL_checknumber(L, 3) + p->GetSprite()->GetTexRect().a.y)));
+			p->GetSprite()->setTextureCenter(LuaSTG::Core::Vector2F(
+				static_cast<float>(luaL_checknumber(L, 2) + p->GetSprite()->getTextureRect().a.x),
+				static_cast<float>(luaL_checknumber(L, 3) + p->GetSprite()->getTextureRect().a.y)));
 			return 0;
 		}
 

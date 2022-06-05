@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "cpp/fixed_object_pool.hpp"
 #include "GameObject.hpp"
+#include "f2dRenderer.h"
 #include <array>
 #include <set>
 

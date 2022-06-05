@@ -585,7 +585,7 @@ namespace LuaSTGPlus
 			{
 			case ResourceType::Sprite:
 				static_cast<ResSprite*>(p->res)->SetBlendMode(m);
-				static_cast<ResSprite*>(p->res)->GetSprite()->SetColor(c);
+				static_cast<ResSprite*>(p->res)->GetSprite()->setColor(LuaSTG::Core::Color4B(c.argb));
 				break;
 			case ResourceType::Animation:
 				do {

@@ -149,20 +149,11 @@ static void make_sprite_vertex(f2dSprite* pimg2d, IRenderer::DrawVertex* vertex,
 
 static void api_drawSprite(LuaSTGPlus::ResSprite* pimg2dres, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {
-    f2dSprite* pimg2d = pimg2dres->GetSprite();
+    LuaSTG::Core::Graphics::ISprite* p_sprite = pimg2dres->GetSprite();
     auto* ctx = LR2D();
-
-    float const scale = pimg2d->GetScale();
-    LuaSTGPlus::BlendMode blend = pimg2dres->GetBlendMode();
-    translate_blend(ctx, blend);
-
-    f2dTexture2D* const ptex2d = pimg2d->GetTexture();
-    check_rendertarget_usage(ptex2d);
-    ctx->setTexture(ptex2d->GetNativeTexture2D());
-
-    IRenderer::DrawVertex vertex[4];
-    make_sprite_vertex(pimg2d, vertex, x, y, rot, hscale * scale, vscale * scale, z);
-    ctx->drawQuad(vertex[0], vertex[1], vertex[2], vertex[3]);
+    translate_blend(ctx, pimg2dres->GetBlendMode());
+    p_sprite->setZ(z);
+    p_sprite->draw(LuaSTG::Core::Vector2F(x, y), LuaSTG::Core::Vector2F(hscale, vscale), rot);
 }
 static void api_drawSprite(char const* name, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {
@@ -176,29 +167,11 @@ static void api_drawSprite(char const* name, float const x, float const y, float
 }
 static void api_drawSpriteRect(LuaSTGPlus::ResSprite* pimg2dres, float const l, float const r, float const b, float const t, float const z)
 {
-    f2dSprite* pimg2d = pimg2dres->GetSprite();
-    f2dTexture2D* ptex2d = pimg2d->GetTexture();
-
-    fFloat tex_w = (fFloat)ptex2d->GetWidth();
-    fFloat tex_h = (fFloat)ptex2d->GetHeight();
-
-    fcyRect img_rect = pimg2d->GetTexRect();
-    LuaSTGPlus::BlendMode blend = pimg2dres->GetBlendMode();
-    fcyColor color_ls[4];
-    pimg2d->GetColor(color_ls);
-
-    IRenderer::DrawVertex vertex[4] = {
-        IRenderer::DrawVertex(l, t, z, img_rect.a.x / tex_w, img_rect.a.y / tex_h, color_ls[0].argb),
-        IRenderer::DrawVertex(r, t, z, img_rect.b.x / tex_w, img_rect.a.y / tex_h, color_ls[1].argb),
-        IRenderer::DrawVertex(r, b, z, img_rect.b.x / tex_w, img_rect.b.y / tex_h, color_ls[2].argb),
-        IRenderer::DrawVertex(l, b, z, img_rect.a.x / tex_w, img_rect.b.y / tex_h, color_ls[3].argb),
-    };
-
+    LuaSTG::Core::Graphics::ISprite* p_sprite = pimg2dres->GetSprite();
     auto* ctx = LR2D();
-    translate_blend(ctx, blend);
-    check_rendertarget_usage(ptex2d);
-    ctx->setTexture(ptex2d->GetNativeTexture2D());
-    ctx->drawQuad(vertex[0], vertex[1], vertex[2], vertex[3]);
+    translate_blend(ctx, pimg2dres->GetBlendMode());
+    p_sprite->setZ(z);
+    p_sprite->draw(LuaSTG::Core::RectF(l, t, r, b));
 }
 static void api_drawSpriteRect(char const* name, float const l, float const r, float const b, float const t, float const z)
 {
@@ -212,29 +185,15 @@ static void api_drawSpriteRect(char const* name, float const l, float const r, f
 }
 static void api_drawSprite4V(LuaSTGPlus::ResSprite* pimg2dres, float const x1, float const y1, float const z1, float const x2, float const y2, float const z2, float const x3, float const y3, float const z3, float const x4, float const y4, float const z4)
 {
-    f2dSprite* pimg2d = pimg2dres->GetSprite();
-    f2dTexture2D* ptex2d = pimg2d->GetTexture();
-
-    fFloat tex_w = (fFloat)ptex2d->GetWidth();
-    fFloat tex_h = (fFloat)ptex2d->GetHeight();
-
-    fcyRect img_rect = pimg2d->GetTexRect();
-    LuaSTGPlus::BlendMode blend = pimg2dres->GetBlendMode();
-    fcyColor color_ls[4];
-    pimg2d->GetColor(color_ls);
-
-    IRenderer::DrawVertex vertex[4] = {
-        IRenderer::DrawVertex(x1, y1, z1, img_rect.a.x / tex_w, img_rect.a.y / tex_h, color_ls[0].argb),
-        IRenderer::DrawVertex(x2, y2, z2, img_rect.b.x / tex_w, img_rect.a.y / tex_h, color_ls[1].argb),
-        IRenderer::DrawVertex(x3, y3, z3, img_rect.b.x / tex_w, img_rect.b.y / tex_h, color_ls[2].argb),
-        IRenderer::DrawVertex(x4, y4, z4, img_rect.a.x / tex_w, img_rect.b.y / tex_h, color_ls[3].argb),
-    };
-
+    LuaSTG::Core::Graphics::ISprite* p_sprite = pimg2dres->GetSprite();
     auto* ctx = LR2D();
-    translate_blend(ctx, blend);
-    check_rendertarget_usage(ptex2d);
-    ctx->setTexture(ptex2d->GetNativeTexture2D());
-    ctx->drawQuad(vertex[0], vertex[1], vertex[2], vertex[3]);
+    translate_blend(ctx, pimg2dres->GetBlendMode());
+    p_sprite->draw(
+        LuaSTG::Core::Vector3F(x1, y1, z1),
+        LuaSTG::Core::Vector3F(x2, y2, z2),
+        LuaSTG::Core::Vector3F(x3, y3, z3),
+        LuaSTG::Core::Vector3F(x4, y4, z4)
+    );
 }
 static void api_drawSprite4V(char const* name, float const x1, float const y1, float const z1, float const x2, float const y2, float const z2, float const x3, float const y3, float const z3, float const x4, float const y4, float const z4)
 {
@@ -304,7 +263,7 @@ static void api_GameObject_drawSprite(f2dSprite* pimg2d, float const x, float co
 }
 static void api_GameObject_drawParticle(LuaSTGPlus::ResParticle::ParticlePool* p, float hscale, float vscale)
 {
-    p->Render(LAPP.GetGraphics2D(), hscale, vscale);
+    p->Render(hscale, vscale);
 }
 
 static void api_setFogState(float start, float end, fcyColor color)

@@ -214,6 +214,8 @@ namespace LuaSTG::Core
 		T** operator~() { internal_release(); return &ptr_; }
 		ScopeObject& operator=(std::nullptr_t) { internal_release(); return *this; }
 		ScopeObject& operator=(T* ptr) { if (ptr_ != ptr) { internal_release(); ptr_ = ptr; internal_retain(); } return *this; }
+		ScopeObject& operator=(ScopeObject& right) { if (ptr_ != right.ptr_) { internal_release(); ptr_ = right.ptr_; internal_retain(); } return *this; }
+		ScopeObject& operator=(ScopeObject const& right) { if (ptr_ != right.ptr_) { internal_release(); ptr_ = right.ptr_; internal_retain(); } return *this; }
 		operator bool() { return ptr_ != nullptr; }
 		ScopeObject& attach(T* ptr) { internal_release(); ptr_ = ptr; return *this; }
 		T* detach()  { T* tmp_ = ptr_; ptr_ = nullptr; return tmp_; }

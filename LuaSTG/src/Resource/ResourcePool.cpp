@@ -324,11 +324,6 @@ bool ResourcePool::CreateRenderTarget(const char* name, int width, int height) n
 bool ResourcePool::CreateSprite(const char* name, const char* texname,
                                 double x, double y, double w, double h,
                                 double a, double b, bool rect) noexcept {
-    if (!LAPP.GetRenderer()) {
-        spdlog::error("[luastg] CreateSprite: 无法创建图片精灵'{}'，f2dRenderer未准备好", name);
-        return false;
-    }
-    
     if (m_SpritePool.find(name) != m_SpritePool.end()) {
         if (ResourceMgr::GetResourceLoadingLog()) {
             spdlog::warn("[luastg] CreateSprite: 图片精灵'{}'已存在，创建操作已取消", name);
@@ -342,17 +337,22 @@ bool ResourcePool::CreateSprite(const char* name, const char* texname,
         return false;
     }
     
-    fcyRefPointer<f2dSprite> pSprite;
-    fcyRect tRect((float) x, (float) y, (float) (x + w), (float) (y + h));
-    fResult fr = LAPP.GetRenderer()->CreateSprite2D(pTex->GetTexture(), tRect, ~pSprite);
-    if (FCYFAILED(fr)) {
-        spdlog::error("[fancy2d] [f2dRenderer::CreateSprite2D] 从'{}'创建图片精灵'{}'失败(fResult={})", texname, name, fr);
+    LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::ISprite> p_sprite;
+    if (!LuaSTG::Core::Graphics::ISprite::create(
+        LAPP.GetAppModel()->getRenderer(),
+        pTex->GetTexture()->GetNativeTexture2D(),
+        ~p_sprite
+    ))
+    {
+        spdlog::error("[luastg] 从'{}'创建图片精灵'{}'失败", texname, name);
         return false;
     }
+    p_sprite->setTextureRect(LuaSTG::Core::RectF(x, y, x + w, y + h));
+    p_sprite->setTextureCenter(LuaSTG::Core::Vector2F(x + w * 0.5f, y + h * 0.5f));
     
     try {
         fcyRefPointer<ResSprite> tRes;
-        tRes.DirectSet(new ResSprite(name, pSprite, a, b, rect));
+        tRes.DirectSet(new ResSprite(name, p_sprite.get(), a, b, rect));
         m_SpritePool.emplace(name, tRes);
     }
     catch (const std::bad_alloc&) {
@@ -537,22 +537,16 @@ bool ResourcePool::LoadParticle(const char* name, const ResParticle::hgeParticle
         return false;
     }
     
-    fcyRefPointer<f2dSprite> pClone;
-    if (FCYFAILED(LAPP.GetRenderer()->CreateSprite2D(pSprite->GetSprite()->GetTexture(),
-                                                     pSprite->GetSprite()->GetTexRect(),
-                                                     pSprite->GetSprite()->GetHotSpot(),
-                                                     ~pClone))) {
+    LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::ISprite> p_sprite;
+    if (!pSprite->GetSprite()->clone(~p_sprite))
+    {
         spdlog::error("[luastg] LoadParticle: 无法创建粒子特效'{}'，复制图片精灵'{}'失败", name, img_name);
         return false;
     }
-    fcyColor tCopyColor[4] = {};
-    pSprite->GetSprite()->GetColor(tCopyColor);
-    pClone->SetColor(tCopyColor);
-    pClone->SetZ(pSprite->GetSprite()->GetZ());
-    
+
     try {
         fcyRefPointer<ResParticle> tRes;
-        tRes.DirectSet(new ResParticle(name, info, pClone, a, b, rect));
+        tRes.DirectSet(new ResParticle(name, info, p_sprite.get(), a, b, rect));
         m_ParticlePool.emplace(name, tRes);
     }
     catch (const std::bad_alloc&) {

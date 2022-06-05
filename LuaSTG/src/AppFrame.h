@@ -184,17 +184,6 @@ namespace LuaSTGPlus
 		/// @brief 渲染动画
 		bool RenderAnimation(const char* name, int timer, float x, float y, float rot = 0, float hscale = 1, float vscale = 1) LNOEXCEPT;
 		
-		/// @brief 渲染图像
-		bool RenderRect(const char* name, float x1, float y1, float x2, float y2) LNOEXCEPT;
-		
-		/// @brief 渲染图像
-		bool Render4V(
-			const char* name,
-			float x1, float y1, float z1,
-			float x2, float y2, float z2, 
-			float x3, float y3, float z3,
-			float x4, float y4, float z4) LNOEXCEPT;
-		
 		/// @brief 渲染纹理
 		bool RenderTexture(ResTexture* tex, BlendMode blend, const f2dGraphics2DVertex vertex[]) LNOEXCEPT;
 		

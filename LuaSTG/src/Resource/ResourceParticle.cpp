@@ -45,7 +45,7 @@ namespace LuaSTGPlus
 		return true;
 	}
 
-	ResParticle::ResParticle(const char* name, const hgeParticleSystemInfo& pinfo, fcyRefPointer<f2dSprite> sprite, double a, double b, bool rect)
+	ResParticle::ResParticle(const char* name, const hgeParticleSystemInfo& pinfo, LuaSTG::Core::Graphics::ISprite* sprite, double a, double b, bool rect)
 		: Resource(ResourceType::Particle, name)
 		, m_HalfSizeX(a)
 		, m_HalfSizeY(b)
@@ -258,11 +258,9 @@ namespace LuaSTGPlus
 
 		m_vPrevCenter = m_vCenter;
 	}
-	void ResParticle::ParticlePool::Render(f2dGraphics2D* graph, float scaleX, float scaleY)
+	void ResParticle::ParticlePool::Render(float scaleX, float scaleY)
 	{
-		f2dSprite* pSprite = *m_Info.pSprite;
-		fcyColor tOrgColor[4] = {};
-		pSprite->GetColor(tOrgColor);
+		LuaSTG::Core::Graphics::ISprite* pSprite = m_Info.pSprite.get();
 		hgeParticleSystemInfo const& pInfo = m_Info.tParticleSystemInfo;
 		fcyColor const tVertexColor = GetVertexColor();
 		for (size_t i = 0; i < m_iAlive; i += 1)
@@ -270,7 +268,7 @@ namespace LuaSTGPlus
 			hgeParticle const& pInst = m_ParticlePool[i];
 			if (pInfo.colColorStart[0] < 0) // r < 0
 			{
-				pSprite->SetColor(fcyColor(
+				pSprite->setColor(LuaSTG::Core::Color4B(
 					(fByte)std::clamp(pInst.colColor[3] * (float)tVertexColor.a, 0.0f, 255.0f),
 					tVertexColor.r,
 					tVertexColor.g,
@@ -279,15 +277,17 @@ namespace LuaSTGPlus
 			}
 			else
 			{
-				pSprite->SetColor(fcyColor(
-					(fInt)std::clamp(pInst.colColor[3] * (float)tVertexColor.a, 0.0f, 255.0f),
-					(fInt)std::clamp(pInst.colColor[0] * (float)tVertexColor.r, 0.0f, 255.0f),
-					(fInt)std::clamp(pInst.colColor[1] * (float)tVertexColor.g, 0.0f, 255.0f),
-					(fInt)std::clamp(pInst.colColor[2] * (float)tVertexColor.b, 0.0f, 255.0f)
+				pSprite->setColor(LuaSTG::Core::Color4B(
+					(uint8_t)std::clamp(pInst.colColor[3] * (float)tVertexColor.a, 0.0f, 255.0f),
+					(uint8_t)std::clamp(pInst.colColor[0] * (float)tVertexColor.r, 0.0f, 255.0f),
+					(uint8_t)std::clamp(pInst.colColor[1] * (float)tVertexColor.g, 0.0f, 255.0f),
+					(uint8_t)std::clamp(pInst.colColor[2] * (float)tVertexColor.b, 0.0f, 255.0f)
 				));
 			}
-			pSprite->Draw2(graph, pInst.vecLocation, fcyVec2(scaleX * pInst.fSize, scaleY * pInst.fSize), pInst.fSpin);
+			pSprite->draw(
+				LuaSTG::Core::Vector2F(pInst.vecLocation.x, pInst.vecLocation.y),
+				LuaSTG::Core::Vector2F(scaleX * pInst.fSize, scaleY * pInst.fSize),
+				pInst.fSpin);
 		}
-		pSprite->SetColor(tOrgColor);
 	}
 }
