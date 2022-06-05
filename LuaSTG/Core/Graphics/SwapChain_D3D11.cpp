@@ -170,19 +170,19 @@ namespace LuaSTG::Core::Graphics
 
 		if (!m_window->GetWindow())
 		{
-			spdlog::error("[fancy2d] 无法创建 SwapChain，窗口为空");
+			spdlog::error("[core] 无法创建 SwapChain，窗口为空");
 			assert(false); return false;
 		}
 		auto* dxgi_factory = m_device->GetDXGIFactory1();
 		if (!dxgi_factory)
 		{
-			spdlog::error("[fancy2d] 无法创建 SwapChain，DXGI 组件为空");
+			spdlog::error("[core] 无法创建 SwapChain，DXGI 组件为空");
 			assert(false); return false;
 		}
 		auto* d3d11_device = m_device->GetD3D11Device();
 		if (!d3d11_device)
 		{
-			spdlog::error("[fancy2d] 无法创建 SwapChain，图形设备为空");
+			spdlog::error("[core] 无法创建 SwapChain，图形设备为空");
 			assert(false); return false;
 		}
 		
@@ -351,7 +351,7 @@ namespace LuaSTG::Core::Graphics
 			}
 		}
 
-		spdlog::info("[fancy2d] 已创建 SwapChain");
+		spdlog::info("[core] 已创建 SwapChain");
 
 		// 渲染附件
 
@@ -378,17 +378,17 @@ namespace LuaSTG::Core::Graphics
 	{
 		HRESULT hr = 0;
 
-		spdlog::info("[fancy2d] 开始创建 RenderAttachment");
+		spdlog::info("[core] 开始创建 RenderAttachment");
 		if (!dxgi_swapchain)
 		{
-			spdlog::info("[fancy2d] 无法创建 RenderAttachment，交换链为空");
+			spdlog::info("[core] 无法创建 RenderAttachment，交换链为空");
 			return false;
 		}
 		auto* d3d11_device = m_device->GetD3D11Device();
 		assert(d3d11_device);
 		if (!d3d11_device)
 		{
-			spdlog::info("[fancy2d] 无法创建 RenderAttachment，图形设备为空");
+			spdlog::info("[core] 无法创建 RenderAttachment，图形设备为空");
 			return false;
 		}
 
@@ -449,7 +449,7 @@ namespace LuaSTG::Core::Graphics
 			return false;
 		}
 		
-		spdlog::info("[fancy2d] 已创建 RenderAttachment");
+		spdlog::info("[core] 已创建 RenderAttachment");
 
 		return true;
 	}
@@ -873,7 +873,7 @@ namespace LuaSTG::Core::Graphics
 				{
 					if (bFSC)
 					{
-						spdlog::info("[fancy2d] 尝试退出独占全屏");
+						spdlog::info("[core] 尝试退出独占全屏");
 						hr = gHR = dxgi_swapchain->SetFullscreenState(FALSE, NULL);
 						if (FAILED(hr))
 						{
