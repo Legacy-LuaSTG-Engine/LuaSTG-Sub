@@ -208,20 +208,11 @@ static void api_drawSprite4V(char const* name, float const x1, float const y1, f
 
 static void api_drawSpriteSequence(LuaSTGPlus::ResAnimation* pani2dres, int const ani_timer, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {
-    f2dSprite* pimg2d = pani2dres->GetSpriteByTimer(ani_timer);
+    LuaSTG::Core::Graphics::ISprite* p_sprite = pani2dres->GetSpriteByTimer(ani_timer);
     auto* ctx = LR2D();
-
-    float const scale = pimg2d->GetScale();
-    LuaSTGPlus::BlendMode blend = pani2dres->GetBlendMode();
-    translate_blend(ctx, blend);
-
-    f2dTexture2D* const ptex2d = pimg2d->GetTexture();
-    check_rendertarget_usage(ptex2d);
-    ctx->setTexture(ptex2d->GetNativeTexture2D());
-
-    IRenderer::DrawVertex vertex[4];
-    make_sprite_vertex(pimg2d, vertex, x, y, rot, hscale * scale, vscale * scale, z);
-    ctx->drawQuad(vertex[0], vertex[1], vertex[2], vertex[3]);
+    translate_blend(ctx, pani2dres->GetBlendMode());
+    p_sprite->setZ(z);
+    p_sprite->draw(LuaSTG::Core::Vector2F(x, y), LuaSTG::Core::Vector2F(hscale, vscale), rot);
 }
 static void api_drawSpriteSequence(char const* name, int const ani_timer, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {

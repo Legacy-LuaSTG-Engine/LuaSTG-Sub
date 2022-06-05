@@ -117,8 +117,8 @@ namespace LuaSTGPlus
         updateGraph2DBlendMode(p->GetBlendMode());
         
         // 渲染
-        f2dSprite* pSprite = p->GetSpriteByTimer(ani_timer);
-        pSprite->Draw2(m_Graph2D, fcyVec2(x, y), fcyVec2(hscale, vscale), rot, false);
+        LuaSTG::Core::Graphics::ISprite* pSprite = p->GetSpriteByTimer(ani_timer);
+        pSprite->draw(LuaSTG::Core::Vector2F(x, y), LuaSTG::Core::Vector2F(hscale, vscale), rot);
         return true;
     }
     bool AppFrame::RenderAnimation(const char* name, int timer, float x, float y, float rot, float hscale, float vscale) noexcept
