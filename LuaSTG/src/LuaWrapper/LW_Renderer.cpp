@@ -342,11 +342,16 @@ static int lib_setPerspective(lua_State* L)LNOEXCEPT
     headup.x = (float)luaL_checknumber(L, 7);
     headup.y = (float)luaL_checknumber(L, 8);
     headup.z = (float)luaL_checknumber(L, 9);
+    LuaSTG::Core::Vector2F zrange;
+    zrange.x = (float)luaL_checknumber(L, 12);
+    zrange.y = (float)luaL_checknumber(L, 13);
+    if (zrange.x <= 0.0f || zrange.y <= zrange.x)
+        return luaL_error(L, "invalid parameters, require (0 < znear < far), receive (znear = %f, zfar = %f)", zrange.x, zrange.y);
     LR2D()->setPerspective(eye, lookat, headup,
         (float)luaL_checknumber(L, 10),
         (float)luaL_checknumber(L, 11),
-        (float)luaL_checknumber(L, 12),
-        (float)luaL_checknumber(L, 13));
+        zrange.x,
+        zrange.y);
     return 0;
 }
 
