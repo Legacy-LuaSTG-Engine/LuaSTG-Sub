@@ -131,12 +131,37 @@ namespace LuaSTG::Core::Graphics
 		bool createRenderTarget(Vector2U size, IRenderTarget** pp_rt);
 		bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** pp_ds);
 
+		bool createSamplerState(SamplerState const& def, ISamplerState** pp_sampler);
+
 	public:
 		Device_D3D11(std::string_view const& prefered_gpu = "");
 		~Device_D3D11();
 
 	public:
 		static bool create(StringView prefered_gpu, Device_D3D11** p_device);
+	};
+
+	class SamplerState_D3D11
+		: public Object<ISamplerState>
+		, public IDeviceEventListener
+	{
+	private:
+		ScopeObject<Device_D3D11> m_device;
+		SamplerState m_info;
+		Microsoft::WRL::ComPtr<ID3D11SamplerState> d3d11_sampler;
+
+	public:
+		void onDeviceCreate();
+		void onDeviceDestroy();
+
+		bool createResource();
+
+	public:
+		ID3D11SamplerState* GetState() { return d3d11_sampler.Get(); }
+
+	public:
+		SamplerState_D3D11(Device_D3D11* p_device, SamplerState const& def);
+		~SamplerState_D3D11();
 	};
 
 	class Texture2D_D3D11
@@ -169,9 +194,7 @@ namespace LuaSTG::Core::Graphics
 
 		bool isDynamic() { return m_dynamic; }
 		bool isPremultipliedAlpha() { return m_premul; }
-
 		void setPremultipliedAlpha(bool v) { m_premul = v; }
-
 		Vector2U getSize() { return m_size; }
 
 		bool uploadPixelData(RectU rc, void const* data, uint32_t pitch);

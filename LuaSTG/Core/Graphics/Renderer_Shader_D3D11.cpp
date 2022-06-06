@@ -219,6 +219,7 @@ namespace LuaSTG::Core::Graphics
 		HRESULT hr = gHR = m_device->GetD3D11Device()->CreatePixelShader(d3d_ps_blob->GetBufferPointer(), d3d_ps_blob->GetBufferSize(), NULL, &d3d11_ps);
 		if (FAILED(hr))
 			return false;
+		M_D3D_SET_DEBUG_NAME_SIMPLE(d3d11_ps.Get());
 		return true;
 	}
 
@@ -243,6 +244,7 @@ namespace LuaSTG::Core::Graphics
 					&_vertex_shader[IDX(f)]);
 				if (FAILED(hr))
 					return false;
+				M_D3D_SET_DEBUG_NAME_SIMPLE(_vertex_shader[IDX(f)].Get());
 				return true;
 			};
 
@@ -293,6 +295,7 @@ namespace LuaSTG::Core::Graphics
 					&_pixel_shader[IDX(v)][IDX(f)][IDX(t)]);
 				if (FAILED(hr))
 					return false;
+				M_D3D_SET_DEBUG_NAME_SIMPLE(_pixel_shader[IDX(v)][IDX(f)][IDX(t)].Get());
 				return true;
 			};
 
@@ -427,6 +430,7 @@ namespace LuaSTG::Core::Graphics
 					&_pixel_shader[IDX(v)][IDX(f)][IDX(t)]);
 				if (FAILED(hr))
 					return false;
+				M_D3D_SET_DEBUG_NAME_SIMPLE(_pixel_shader[IDX(v)][IDX(f)][IDX(t)].Get());
 				return true;
 			};
 

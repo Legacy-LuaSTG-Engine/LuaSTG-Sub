@@ -39,15 +39,6 @@ private:
 	
 	f2dGraphics* m_pCurGraphics = nullptr; // 当前的绘图对象，只记录指针
 	
-	Microsoft::WRL::ComPtr<IDXGIFactory1> dxgi_factory;
-	Microsoft::WRL::ComPtr<IDXGIAdapter1> dxgi_adapter;
-
-	Microsoft::WRL::ComPtr<ID3D11Device> d3d11_device;
-	Microsoft::WRL::ComPtr<ID3D11DeviceContext> d3d11_devctx;
-	
-	fcyRefPointer<f2dTexture2D> m_RenderTarget;
-	fcyRefPointer<f2dDepthStencilSurface> m_DepthStencil;
-
 public:
 	// 事件监听
 

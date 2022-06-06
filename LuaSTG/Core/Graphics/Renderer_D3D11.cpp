@@ -128,6 +128,7 @@ namespace LuaSTG::Core::Graphics
 				hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, &vi_.vertex_buffer);
 				if (FAILED(hr))
 					return false;
+				M_D3D_SET_DEBUG_NAME_SIMPLE(vi_.vertex_buffer.Get());
 			}
 
 			{
@@ -142,6 +143,7 @@ namespace LuaSTG::Core::Graphics
 				hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, &vi_.index_buffer);
 				if (FAILED(hr))
 					return false;
+				M_D3D_SET_DEBUG_NAME_SIMPLE(vi_.index_buffer.Get());
 			}
 		}
 
@@ -157,25 +159,30 @@ namespace LuaSTG::Core::Graphics
 			hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, &_vp_matrix_buffer);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_vp_matrix_buffer.Get());
 
 			hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, &_world_matrix_buffer);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_world_matrix_buffer.Get());
 
 			desc_.ByteWidth = 2 * sizeof(DirectX::XMFLOAT4);
 			hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, &_camera_pos_buffer);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_camera_pos_buffer.Get());
 
 			desc_.ByteWidth = 2 * sizeof(DirectX::XMFLOAT4);
 			hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, &_fog_data_buffer);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_fog_data_buffer.Get());
 
 			desc_.ByteWidth = 8 * sizeof(DirectX::XMFLOAT4); // 用户最多可用 8 个 float4
 			hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, &_user_float_buffer);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_user_float_buffer.Get());
 		}
 
 		return true;
@@ -202,6 +209,7 @@ namespace LuaSTG::Core::Graphics
 			hr = gHR = m_device->GetD3D11Device()->CreateRasterizerState(&desc_, &_raster_state);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_raster_state.Get());
 		}
 
 		{
@@ -237,6 +245,7 @@ namespace LuaSTG::Core::Graphics
 			hr = gHR = m_device->GetD3D11Device()->CreateSamplerState(&black_border_, &_sampler_state[IDX(SamplerState::PointWrap)]);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_sampler_state[IDX(SamplerState::PointWrap)].Get());
 
 			black_border_.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
 			black_border_.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
@@ -245,6 +254,7 @@ namespace LuaSTG::Core::Graphics
 			hr = gHR = m_device->GetD3D11Device()->CreateSamplerState(&black_border_, &_sampler_state[IDX(SamplerState::PointClamp)]);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_sampler_state[IDX(SamplerState::PointClamp)].Get());
 
 			black_border_.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
 			black_border_.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
@@ -253,6 +263,7 @@ namespace LuaSTG::Core::Graphics
 			hr = gHR = m_device->GetD3D11Device()->CreateSamplerState(&black_border_, &_sampler_state[IDX(SamplerState::PointBorderBlack)]);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_sampler_state[IDX(SamplerState::PointBorderBlack)].Get());
 
 			white_border_.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
 			white_border_.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
@@ -261,6 +272,7 @@ namespace LuaSTG::Core::Graphics
 			hr = gHR = m_device->GetD3D11Device()->CreateSamplerState(&white_border_, &_sampler_state[IDX(SamplerState::PointBorderWhite)]);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_sampler_state[IDX(SamplerState::PointBorderWhite)].Get());
 
 			black_border_.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 			black_border_.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -269,6 +281,7 @@ namespace LuaSTG::Core::Graphics
 			hr = gHR = m_device->GetD3D11Device()->CreateSamplerState(&black_border_, &_sampler_state[IDX(SamplerState::LinearWrap)]);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_sampler_state[IDX(SamplerState::LinearWrap)].Get());
 
 			black_border_.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 			black_border_.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
@@ -277,6 +290,7 @@ namespace LuaSTG::Core::Graphics
 			hr = gHR = m_device->GetD3D11Device()->CreateSamplerState(&black_border_, &_sampler_state[IDX(SamplerState::LinearClamp)]);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_sampler_state[IDX(SamplerState::LinearClamp)].Get());
 
 			black_border_.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 			black_border_.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
@@ -285,6 +299,7 @@ namespace LuaSTG::Core::Graphics
 			hr = gHR = m_device->GetD3D11Device()->CreateSamplerState(&black_border_, &_sampler_state[IDX(SamplerState::LinearBorderBlack)]);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_sampler_state[IDX(SamplerState::LinearBorderBlack)].Get());
 
 			white_border_.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 			white_border_.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
@@ -293,6 +308,7 @@ namespace LuaSTG::Core::Graphics
 			hr = gHR = m_device->GetD3D11Device()->CreateSamplerState(&white_border_, &_sampler_state[IDX(SamplerState::LinearBorderWhite)]);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_sampler_state[IDX(SamplerState::LinearBorderWhite)].Get());
 		}
 
 		{
@@ -319,11 +335,13 @@ namespace LuaSTG::Core::Graphics
 			hr = gHR = m_device->GetD3D11Device()->CreateDepthStencilState(&desc_, &_depth_state[IDX(DepthState::Disable)]);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_depth_state[IDX(DepthState::Disable)].Get());
 
 			desc_.DepthEnable = TRUE;
 			hr = gHR = m_device->GetD3D11Device()->CreateDepthStencilState(&desc_, &_depth_state[IDX(DepthState::Enable)]);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_depth_state[IDX(DepthState::Enable)].Get());
 		}
 
 		{
@@ -354,6 +372,7 @@ namespace LuaSTG::Core::Graphics
 			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, &_blend_state[IDX(BlendState::Disable)]);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Disable)].Get());
 
 			blendt_.BlendEnable = TRUE;
 
@@ -367,6 +386,7 @@ namespace LuaSTG::Core::Graphics
 			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, &_blend_state[IDX(BlendState::Alpha)]);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Alpha)].Get());
 
 			blendt_.BlendOp = D3D11_BLEND_OP_ADD;
 			blendt_.SrcBlend = D3D11_BLEND_ONE;
@@ -378,6 +398,7 @@ namespace LuaSTG::Core::Graphics
 			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, &_blend_state[IDX(BlendState::One)]);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::One)].Get());
 
 			blendt_.BlendOp = D3D11_BLEND_OP_MIN;
 			blendt_.SrcBlend = D3D11_BLEND_ONE;
@@ -389,6 +410,7 @@ namespace LuaSTG::Core::Graphics
 			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, &_blend_state[IDX(BlendState::Min)]);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Min)].Get());
 
 			blendt_.BlendOp = D3D11_BLEND_OP_MAX;
 			blendt_.SrcBlend = D3D11_BLEND_ONE;
@@ -400,6 +422,7 @@ namespace LuaSTG::Core::Graphics
 			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, &_blend_state[IDX(BlendState::Max)]);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Max)].Get());
 
 			blendt_.BlendOp = D3D11_BLEND_OP_ADD;
 			blendt_.SrcBlend = D3D11_BLEND_DEST_COLOR;
@@ -411,6 +434,7 @@ namespace LuaSTG::Core::Graphics
 			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, &_blend_state[IDX(BlendState::Mul)]);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Mul)].Get());
 
 			blendt_.BlendOp = D3D11_BLEND_OP_ADD;
 			blendt_.SrcBlend = D3D11_BLEND_ONE;
@@ -422,6 +446,7 @@ namespace LuaSTG::Core::Graphics
 			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, &_blend_state[IDX(BlendState::Screen)]);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Screen)].Get());
 
 			blendt_.BlendOp = D3D11_BLEND_OP_ADD;
 			blendt_.SrcBlend = D3D11_BLEND_ONE;
@@ -433,6 +458,7 @@ namespace LuaSTG::Core::Graphics
 			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, &_blend_state[IDX(BlendState::Add)]);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Add)].Get());
 
 			blendt_.BlendOp = D3D11_BLEND_OP_SUBTRACT;
 			blendt_.SrcBlend = D3D11_BLEND_ONE;
@@ -444,6 +470,7 @@ namespace LuaSTG::Core::Graphics
 			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, &_blend_state[IDX(BlendState::Sub)]);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Sub)].Get());
 
 			blendt_.BlendOp = D3D11_BLEND_OP_REV_SUBTRACT;
 			blendt_.SrcBlend = D3D11_BLEND_ONE;
@@ -455,6 +482,7 @@ namespace LuaSTG::Core::Graphics
 			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, &_blend_state[IDX(BlendState::RevSub)]);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::RevSub)].Get());
 
 			blendt_.BlendOp = D3D11_BLEND_OP_REV_SUBTRACT;
 			blendt_.SrcBlend = D3D11_BLEND_INV_DEST_COLOR;
@@ -466,6 +494,7 @@ namespace LuaSTG::Core::Graphics
 			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, &_blend_state[IDX(BlendState::Inv)]);
 			if (FAILED(hr))
 				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Inv)].Get());
 		}
 
 		return true;
