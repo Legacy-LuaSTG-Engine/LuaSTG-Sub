@@ -984,6 +984,8 @@ namespace LuaSTG::Core::Graphics
 		m_window->removeEventListener(this);
 		m_device->removeEventListener(this);
 		destroySwapChain();
+		assert(m_eventobj.size() == 0);
+		assert(m_eventobj_late.size() == 0);
 	}
 
 	bool SwapChain_D3D11::create(Window_Win32* p_window, Device_D3D11* p_device, SwapChain_D3D11** pp_swapchain)

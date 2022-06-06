@@ -425,6 +425,7 @@ namespace LuaSTG::Core
 	}
 	ApplicationModel_Win32::~ApplicationModel_Win32()
 	{
+		std::ignore = 0;
 	}
 
 	bool IApplicationModel::create(IApplicationEventListener* p_app, IApplicationModel** pp_model)

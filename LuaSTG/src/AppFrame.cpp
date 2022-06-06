@@ -576,6 +576,14 @@ void AppFrame::Shutdown()LNOEXCEPT
 	m_GameObjectPool = nullptr;
 	spdlog::info("[luastg] 清空对象池");
 
+	if (L)
+	{
+		lua_close(L);
+		L = nullptr;
+		spdlog::info("[luastg] 关闭luajit引擎");
+	}
+
+	m_stRenderTargetStack.clear();
 	m_ResourceMgr.ClearAllResource();
 	spdlog::info("[luastg] 清空所有游戏资源");
 	
@@ -594,18 +602,10 @@ void AppFrame::Shutdown()LNOEXCEPT
 	m_pRenderer = nullptr;
 	spdlog::info("[fancy2d] 卸载所有组件");
 	
-	if (L)
-	{
-		lua_close(L);
-		L = nullptr;
-		spdlog::info("[luastg] 关闭luajit引擎");
-	}
-	
 	GFileManager().unloadAllFileArchive();
 	spdlog::info("[luastg] 卸载所有资源包");
 	
 	m_pEngine = nullptr;
-
 	m_pAppModel = nullptr;
 
 	m_iStatus = AppStatus::Destroyed;

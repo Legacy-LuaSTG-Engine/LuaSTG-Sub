@@ -222,6 +222,8 @@ namespace LuaSTG::Core::Graphics
 		destroyWIC(); // 长生存期
 		destroyD3D11();
 		destroyDXGI();
+		assert(m_eventobj.size() == 0);
+		assert(m_eventobj_late.size() == 0);
 		unloadDLL();
 	}
 
@@ -551,6 +553,7 @@ namespace LuaSTG::Core::Graphics
 
 		if (dxgi_adapter)
 		{
+			M_D3D_SET_DEBUG_NAME(dxgi_adapter.Get(), "Device_D3D11::dxgi_adapter");
 			i18n_log_info_fmt("[core].Device_D3D11.select_DXGI_adapter_fmt", dxgi_adapter_name);
 			if (!link_to_output)
 			{
@@ -586,6 +589,7 @@ namespace LuaSTG::Core::Graphics
 				i18n_log_error_fmt("[core].system_call_failed_f", "CreateDXGIFactory2 -> IDXGIFactory2");
 				assert(false); return false;
 			}
+			M_D3D_SET_DEBUG_NAME(dxgi_factory2.Get(), "Device_D3D11::dxgi_factory2");
 			// 获得 1.1 的组件
 			hr = gHR = dxgi_factory2.As(&dxgi_factory);
 			if (FAILED(hr))
@@ -603,6 +607,7 @@ namespace LuaSTG::Core::Graphics
 				i18n_log_error_fmt("[core].system_call_failed_f", "CreateDXGIFactory1 -> IDXGIFactory1");
 				assert(false); return false;
 			}
+			M_D3D_SET_DEBUG_NAME(dxgi_factory.Get(), "Device_D3D11::dxgi_factory");
 			// 获得 1.2 的组件（Windows 7 平台更新）
 			hr = gHR = dxgi_factory.As(&dxgi_factory2);
 			if (FAILED(hr))
@@ -799,6 +804,8 @@ namespace LuaSTG::Core::Graphics
 			i18n_log_error_fmt("[core].system_call_failed_f", "D3D11CreateDevice");
 			return false;
 		}
+		M_D3D_SET_DEBUG_NAME(d3d11_device.Get(), "Device_D3D11::d3d11_device");
+		M_D3D_SET_DEBUG_NAME(d3d11_devctx.Get(), "Device_D3D11::d3d11_devctx");
 
 		// 特性检查
 
@@ -1031,7 +1038,7 @@ namespace LuaSTG::Core::Graphics
 		if (FAILED(hr))
 		{
 			i18n_log_error_fmt("[core].system_call_failed_f", "D2D1CreateFactory");
-			return false;
+			assert(false); return false;
 		}
 
 		// 下面就是 Windows 7 无法到达的领域啦
@@ -1050,7 +1057,7 @@ namespace LuaSTG::Core::Graphics
 			if (FAILED(hr))
 			{
 				i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::QueryInterface -> IDXGIDevice");
-				// 不是严重错误
+				assert(false); return false;
 			}
 			if (dxgi_device)
 			{
@@ -1058,7 +1065,7 @@ namespace LuaSTG::Core::Graphics
 				if (FAILED(hr))
 				{
 					i18n_log_error_fmt("[core].system_call_failed_f", "ID2D1Factory1::CreateDevice");
-					// 不是严重错误
+					assert(false); return false;
 				}
 			}
 		}
@@ -1069,7 +1076,7 @@ namespace LuaSTG::Core::Graphics
 			if (FAILED(hr))
 			{
 				i18n_log_error_fmt("[core].system_call_failed_f", "ID2D1Device::CreateDeviceContext");
-				// 不是严重错误
+				assert(false); return false;
 			}
 		}
 
@@ -1366,6 +1373,20 @@ namespace LuaSTG::Core::Graphics
 		}
 	}
 
+	bool Device_D3D11::createSamplerState(SamplerState const& def, ISamplerState** pp_sampler)
+	{
+		try
+		{
+			*pp_sampler = new SamplerState_D3D11(this, def);
+			return true;
+		}
+		catch (...)
+		{
+			*pp_sampler = nullptr;
+			return false;
+		}
+	}
+
 	bool Device_D3D11::create(StringView prefered_gpu, Device_D3D11** p_device)
 	{
 		try
@@ -1397,6 +1418,118 @@ namespace LuaSTG::Core::Graphics
 
 namespace LuaSTG::Core::Graphics
 {
+	// SamplerState
+
+	void SamplerState_D3D11::onDeviceCreate()
+	{
+		createResource();
+	}
+	void SamplerState_D3D11::onDeviceDestroy()
+	{
+		d3d11_sampler.Reset();
+	}
+
+	bool SamplerState_D3D11::createResource()
+	{
+		HRESULT hr = S_OK;
+
+		D3D11_SAMPLER_DESC desc = {};
+
+		switch (m_info.filer)
+		{
+		default: assert(false); return false;
+		case Filter::Point: desc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT; break;
+		case Filter::PointMinLinear: desc.Filter = D3D11_FILTER_MIN_LINEAR_MAG_MIP_POINT; break;
+		case Filter::PointMagLinear: desc.Filter = D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT; break;
+		case Filter::PointMipLinear: desc.Filter = D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR; break;
+		case Filter::LinearMinPoint: desc.Filter = D3D11_FILTER_MIN_POINT_MAG_MIP_LINEAR; break;
+		case Filter::LinearMagPoint: desc.Filter = D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR; break;
+		case Filter::LinearMipPoint: desc.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT; break;
+		case Filter::Linear: desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR; break;
+		case Filter::Anisotropic: desc.Filter = D3D11_FILTER_ANISOTROPIC; break;
+		}
+		
+		auto mapAddressMode_ = [](TextureAddressMode mode) -> D3D11_TEXTURE_ADDRESS_MODE
+		{
+			switch (mode)
+			{
+			default: return (D3D11_TEXTURE_ADDRESS_MODE)0;
+			case TextureAddressMode::Wrap: return D3D11_TEXTURE_ADDRESS_WRAP;
+			case TextureAddressMode::Mirror: return D3D11_TEXTURE_ADDRESS_MIRROR;
+			case TextureAddressMode::Clamp: return D3D11_TEXTURE_ADDRESS_CLAMP;
+			case TextureAddressMode::Border: return D3D11_TEXTURE_ADDRESS_BORDER;
+			case TextureAddressMode::MirrorOnce: return D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
+			}
+		};
+
+	#define mapAddressMode(_X, _Y) \
+		desc._Y = mapAddressMode_(m_info._X);\
+		if (desc._Y == (D3D11_TEXTURE_ADDRESS_MODE)0) { assert(false); return false; }
+
+		mapAddressMode(address_u, AddressU);
+		mapAddressMode(address_v, AddressV);
+		mapAddressMode(address_w, AddressW);
+
+	#undef mapAddressMode
+
+		desc.MipLODBias = m_info.mip_lod_bias;
+
+		desc.MaxAnisotropy = m_info.max_anisotropy;
+
+		desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+
+		desc.MinLOD = m_info.min_lod;
+		desc.MaxLOD = m_info.max_lod;
+
+	#define makeColor(r, g, b, a) \
+		desc.BorderColor[0] = r;\
+		desc.BorderColor[1] = g;\
+		desc.BorderColor[2] = b;\
+		desc.BorderColor[3] = a;
+
+		switch (m_info.border_color)
+		{
+		default: assert(false); return false;
+		case BorderColor::Black:
+			makeColor(0.0f, 0.0f, 0.0f, 0.0f);
+			break;
+		case BorderColor::OpaqueBlack:
+			makeColor(0.0f, 0.0f, 0.0f, 1.0f);
+			break;
+		case BorderColor::TransparentWhite:
+			makeColor(1.0f, 1.0f, 1.0f, 0.0f);
+			break;
+		case BorderColor::White:
+			makeColor(1.0f, 1.0f, 1.0f, 1.0f);
+			break;
+		}
+
+	#undef makeColor
+
+		hr = gHR = m_device->GetD3D11Device()->CreateSamplerState(&desc, &d3d11_sampler);
+		if (FAILED(hr))
+		{
+			i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CreateSamplerState");
+			return false;
+		}
+		M_D3D_SET_DEBUG_NAME(d3d11_sampler.Get(), "SamplerState_D3D11::d3d11_sampler");
+
+		return true;
+	}
+
+	SamplerState_D3D11::SamplerState_D3D11(Device_D3D11* p_device, SamplerState const& def)
+		: m_device(p_device)
+		, m_info(def)
+	{
+		if (!createResource())
+			throw std::runtime_error("SamplerState_D3D11::SamplerState_D3D11");
+		m_device->addEventListener(this);
+	}
+	SamplerState_D3D11::~SamplerState_D3D11()
+	{
+		m_device->removeEventListener(this);
+	}
+
 	// Texture2D
 
 	bool Texture2D_D3D11::uploadPixelData(RectU rc, void const* data, uint32_t pitch)
@@ -1477,6 +1610,7 @@ namespace LuaSTG::Core::Graphics
 				i18n_log_error_fmt("[core].system_call_failed_f", "DirectX::CreateWICTextureFromMemoryEx");
 				return false;
 			}
+			M_D3D_SET_DEBUG_NAME(d3d11_srv.Get(), "Texture2D_D3D11::d3d11_srv");
 
 			// 转换类型
 			hr = gHR = res.As(&d3d11_texture2d);
@@ -1485,6 +1619,7 @@ namespace LuaSTG::Core::Graphics
 				i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Resource::QueryInterface -> ID3D11Texture2D");
 				return false;
 			}
+			M_D3D_SET_DEBUG_NAME(d3d11_texture2d.Get(), "Texture2D_D3D11::d3d11_texture2d");
 
 			// 获取图片尺寸
 			D3D11_TEXTURE2D_DESC t2dinfo = {};
@@ -1512,6 +1647,7 @@ namespace LuaSTG::Core::Graphics
 				i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CreateTexture2D");
 				return false;
 			}
+			M_D3D_SET_DEBUG_NAME(d3d11_texture2d.Get(), "Texture2D_D3D11::d3d11_texture2d");
 
 			D3D11_SHADER_RESOURCE_VIEW_DESC viewdef = {
 				.Format = texdef.Format,
@@ -1524,6 +1660,7 @@ namespace LuaSTG::Core::Graphics
 				i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CreateShaderResourceView");
 				return false;
 			}
+			M_D3D_SET_DEBUG_NAME(d3d11_srv.Get(), "Texture2D_D3D11::d3d11_srv");
 		}
 
 		return true;
@@ -1596,6 +1733,7 @@ namespace LuaSTG::Core::Graphics
 			i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CreateRenderTargetView");
 			return false;
 		}
+		M_D3D_SET_DEBUG_NAME(d3d11_rtv.Get(), "RenderTarget_D3D11::d3d11_rtv");
 
 		return true;
 	}
@@ -1652,6 +1790,7 @@ namespace LuaSTG::Core::Graphics
 			i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CreateTexture2D");
 			return false;
 		}
+		M_D3D_SET_DEBUG_NAME(d3d11_texture2d.Get(), "DepthStencilBuffer_D3D11::d3d11_texture2d");
 
 		D3D11_DEPTH_STENCIL_VIEW_DESC dsvdef = {
 			.Format = tex2ddef.Format,
@@ -1664,6 +1803,7 @@ namespace LuaSTG::Core::Graphics
 			i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CreateDepthStencilView");
 			return false;
 		}
+		M_D3D_SET_DEBUG_NAME(d3d11_dsv.Get(), "DepthStencilBuffer_D3D11::d3d11_dsv");
 
 		return true;
 	}

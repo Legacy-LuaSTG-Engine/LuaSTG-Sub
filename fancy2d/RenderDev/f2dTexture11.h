@@ -36,7 +36,7 @@ public: // 接口实现
 protected:
 	f2dTexture2D11(f2dRenderDevice* pDev, fuInt Width, fuInt Height);
 	f2dTexture2D11(f2dRenderDevice* pDev, fcStr path, fBool bMipmap);
-	~f2dTexture2D11() {}
+	~f2dTexture2D11();
 };
 
 /*

@@ -38,12 +38,6 @@ f2dRenderDevice11::f2dRenderDevice11(f2dEngineImpl* pEngine, f2dEngineRenderWind
 
 	m_pGraphicsDevice = dynamic_cast<LuaSTG::Core::Graphics::Device_D3D11*>(pEngine->GGetAppModel()->getDevice());
 
-	dxgi_factory = m_pGraphicsDevice->GetDXGIFactory1();
-	dxgi_adapter = m_pGraphicsDevice->GetDXGIAdapter1();
-
-	d3d11_device = m_pGraphicsDevice->GetD3D11Device();
-	d3d11_devctx = m_pGraphicsDevice->GetD3D11DeviceContext();
-	
 	// 交换链
 
 	m_pSwapChain = dynamic_cast<LuaSTG::Core::Graphics::SwapChain_D3D11*>(pEngine->GGetAppModel()->getSwapChain());
@@ -57,7 +51,7 @@ f2dRenderDevice11::~f2dRenderDevice11()
 	m_pSwapChain->removeEventListener(this);
 }
 
-void* f2dRenderDevice11::GetHandle() { return d3d11_device.Get(); }
+void* f2dRenderDevice11::GetHandle() { return m_pGraphicsDevice->GetD3D11Device(); }
 fuInt f2dRenderDevice11::GetSupportedDeviceCount() { return m_pGraphicsDevice->GetAdapterNameArray().size(); }
 fcStr f2dRenderDevice11::GetSupportedDeviceName(fuInt Index) { return m_pGraphicsDevice->GetAdapterNameArray()[Index].c_str(); }
 

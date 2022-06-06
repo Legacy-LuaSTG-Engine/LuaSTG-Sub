@@ -19,6 +19,7 @@ f2dTexture2D11::f2dTexture2D11(f2dRenderDevice* pDev, fcStr path, fBool bMipmap)
 	else
 		throw std::runtime_error("f2dTexture2D11 (2)");
 }
+f2dTexture2D11::~f2dTexture2D11() {}
 
 /*
 
