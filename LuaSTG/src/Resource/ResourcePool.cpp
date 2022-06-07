@@ -218,11 +218,6 @@ int ResourcePool::ExportResourceList(lua_State* L, ResourceType t) const noexcep
 // 加载纹理
 
 bool ResourcePool::LoadTexture(const char* name, const char* path, bool mipmaps) noexcept {
-    if (!LAPP.GetRenderDev()) {
-        spdlog::error("[luastg] LoadTexture: 无法加载纹理'{}'，f2dRenderDevice未准备好", name);
-        return false;
-    }
-    
     if (m_TexturePool.find(name) != m_TexturePool.end()) {
         if (ResourceMgr::GetResourceLoadingLog()) {
             spdlog::warn("[luastg] LoadTexture: 纹理'{}'已存在，加载操作已取消", name);
@@ -257,11 +252,6 @@ bool ResourcePool::LoadTexture(const char* name, const char* path, bool mipmaps)
 // 创建渲染目标
 
 bool ResourcePool::CreateRenderTarget(const char* name, int width, int height) noexcept {
-    if (!LAPP.GetRenderDev()) {
-        spdlog::error("[luastg] CreateRenderTarget: 无法创建渲染目标'{}'，f2dRenderDevice未准备好", name);
-        return false;
-    }
-    
     if (m_TexturePool.find(name) != m_TexturePool.end()) {
         if (ResourceMgr::GetResourceLoadingLog()) {
             spdlog::warn("[luastg] CreateRenderTarget: 渲染目标'{}'已存在，创建操作已取消", name);
@@ -358,11 +348,6 @@ bool ResourcePool::CreateSprite(const char* name, const char* texname,
 bool ResourcePool::CreateAnimation(const char* name, const char* texname,
                                    double x, double y, double w, double h, int n, int m, int intv,
                                    double a, double b, bool rect) noexcept {
-    if (!LAPP.GetRenderer()) {
-        spdlog::error("[luastg] CreateAnimation: 无法创建动画精灵'{}'，f2dRenderer未准备好", name);
-        return false;
-    }
-    
     if (m_AnimationPool.find(name) != m_AnimationPool.end()) {
         if (ResourceMgr::GetResourceLoadingLog()) {
             spdlog::warn("[luastg] CreateAnimation: 动画精灵'{}'已存在，创建操作已取消", name);
@@ -401,11 +386,6 @@ bool ResourcePool::CreateAnimation(const char* name, const char* texname,
 // 加载音乐
 
 bool ResourcePool::LoadMusic(const char* name, const char* path, double start, double end) noexcept {
-    if (!LAPP.GetRenderer()) {
-        spdlog::error("[luastg] LoadMusic: 无法加载音乐'{}'，f2dSoundSys未准备好", name);
-        return false;
-    }
-    
     fcyRefPointer<fcyMemStream> tDataBuf(_load_file("LoadMusic", "音乐", path, name));
     if (!tDataBuf) return false;
     
@@ -456,11 +436,6 @@ bool ResourcePool::LoadMusic(const char* name, const char* path, double start, d
 // 加载音效
 
 bool ResourcePool::LoadSoundEffect(const char* name, const char* path) noexcept {
-    if (!LAPP.GetRenderer()) {
-        spdlog::error("[luastg] LoadSoundEffect: 无法加载音效'{}'，f2dSoundSys未准备好", name);
-        return false;
-    }
-    
     fcyRefPointer<fcyMemStream> tDataBuf(_load_file("LoadSoundEffect", "音效", path, name));
     if (!tDataBuf) return false;
     
@@ -505,11 +480,6 @@ bool ResourcePool::LoadSoundEffect(const char* name, const char* path) noexcept 
 
 bool ResourcePool::LoadParticle(const char* name, const ResParticle::hgeParticleSystemInfo& info, const char* img_name,
                                 double a,double b, bool rect, bool _nolog) noexcept {
-    if (!LAPP.GetRenderer()) {
-        spdlog::error("[luastg] LoadParticle: 无法创建粒子特效'{}'，f2dRenderer未准备好", name);
-        return false;
-    }
-    
     if (m_ParticlePool.find(name) != m_ParticlePool.end()) {
         if (ResourceMgr::GetResourceLoadingLog()) {
             spdlog::warn("[luastg] LoadParticle: 粒子特效'{}'已存在，创建操作已取消", name);
@@ -573,11 +543,6 @@ bool ResourcePool::LoadParticle(const char* name, const char* path, const char* 
 // 加载纹理字体（HGE）
 
 bool ResourcePool::LoadSpriteFont(const char* name, const char* path, bool mipmaps) noexcept {
-    if (!LAPP.GetRenderer()) {
-        spdlog::error("[luastg] LoadSpriteFont: 无法加载纹理字体'{}'，f2dRenderer未准备好", name);
-        return false;
-    }
-    
     if (m_SpriteFontPool.find(name) != m_SpriteFontPool.end()) {
         if (ResourceMgr::GetResourceLoadingLog()) {
             spdlog::warn("[luastg] LoadSpriteFont: 纹理字体'{}'已存在，加载操作已取消", name);
@@ -623,11 +588,6 @@ bool ResourcePool::LoadSpriteFont(const char* name, const char* path, bool mipma
 // 加载纹理字体（fancy2d）
 
 bool ResourcePool::LoadSpriteFont(const char* name, const char* path, const char* tex_path, bool mipmaps) noexcept {
-    if (!LAPP.GetRenderer()) {
-        spdlog::error("[luastg] LoadSpriteFont: 无法加载纹理字体'{}'，f2dRenderer未准备好", name);
-        return false;
-    }
-    
     if (m_SpriteFontPool.find(name) != m_SpriteFontPool.end()) {
         if (ResourceMgr::GetResourceLoadingLog()) {
             spdlog::warn("[luastg] LoadSpriteFont: 纹理字体'{}'已存在，加载操作已取消", name);
@@ -716,11 +676,6 @@ bool ResourcePool::LoadTTFFont(const char* name, const char* path, float width, 
 }
 
 bool ResourcePool::LoadTrueTypeFont(const char* name, LuaSTG::Core::Graphics::TrueTypeFontInfo* fonts, size_t count) noexcept {
-    if (!LAPP.GetRenderer()) {
-        spdlog::error("[luastg] LoadTrueTypeFont: 无法加载矢量字体组'{}'，f2dRenderer未准备好", name);
-        return false;
-    }
-    
     if (m_TTFFontPool.find(name) != m_TTFFontPool.end()) {
         if (ResourceMgr::GetResourceLoadingLog()) {
             spdlog::warn("[luastg] LoadTrueTypeFont: 矢量字体组'{}'已存在，加载操作已取消", name);
@@ -759,11 +714,6 @@ bool ResourcePool::LoadTrueTypeFont(const char* name, LuaSTG::Core::Graphics::Tr
 // 加载后处理特效
 
 bool ResourcePool::LoadFX(const char* name, const char* path, bool is_effect) noexcept {
-    if (!LAPP.GetRenderDev()) {
-        spdlog::error("[luastg] LoadFX: 无法加载后处理特效'{}'，f2dRenderDevice未准备好", name);
-        return false;
-    }
-    
     if (m_FXPool.find(name) != m_FXPool.end()) {
         if (ResourceMgr::GetResourceLoadingLog()) {
             spdlog::warn("[luastg] LoadFX: 后处理特效'{}'已存在，加载操作已取消", name);
@@ -794,12 +744,6 @@ bool ResourcePool::LoadFX(const char* name, const char* path, bool is_effect) no
 
 bool ResourcePool::LoadModel(const char* name, const char* path) noexcept
 {
-    if (!LAPP.GetRenderDev())
-    {
-        spdlog::error("[luastg] LoadModel: 无法加载模型'{}'，f2dRenderDevice 未初始化", name);
-        return false;
-    }
-
     if (m_ModelPool.find(name) != m_ModelPool.end()) {
         if (ResourceMgr::GetResourceLoadingLog()) {
             spdlog::warn("[luastg] LoadModel: 模型'{}'已存在，加载操作已取消", name);

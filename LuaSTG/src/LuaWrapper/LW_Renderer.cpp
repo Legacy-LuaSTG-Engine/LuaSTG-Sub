@@ -10,7 +10,6 @@ using namespace LuaSTG::Core::Graphics;
 
 inline IRenderer* LR2D() { return LAPP.GetAppModel()->getRenderer(); }
 inline LuaSTGPlus::ResourceMgr& LRESMGR() { return LAPP.GetResourceMgr(); }
-inline f2dRenderDevice* LRDEV() { return LAPP.GetRenderDev(); }
 
 #ifdef _DEBUG
 #define check_rendertarget_usage(PTEXTURE) assert(!LuaSTGPlus::AppFrame::GetInstance().CheckRenderTargetInUse(PTEXTURE));

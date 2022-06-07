@@ -124,6 +124,11 @@ namespace LuaSTG::Core::Graphics
 
 		DeviceMemoryUsageStatistics getMemoryUsageStatistics();
 
+		uint32_t getGpuCount() { return (uint32_t)dxgi_adapter_names.size(); }
+		StringView getGpuName(uint32_t index) { return dxgi_adapter_names[index]; }
+
+		void* getNativeHandle() { return d3d11_device.Get(); }
+
 		bool createTextureFromFile(StringView path, bool mipmap, ITexture2D** pp_texutre);
 		//bool createTextureFromMemory(void const* data, size_t size, bool mipmap, ITexture2D** pp_texutre);
 		bool createTexture(Vector2U size, ITexture2D** pp_texutre);

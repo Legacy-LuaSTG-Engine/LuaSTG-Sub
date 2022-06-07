@@ -500,19 +500,19 @@ namespace imgui
     static bool g_ImGuiTexIDValid = false;
 
     class ImGuiBackendEventListener
-        : public f2dRenderDeviceEventListener
+        : public LuaSTG::Core::Graphics::IDeviceEventListener
         , public LuaSTG::Core::Graphics::IWindowEventListener
     {
     public:
-        void OnRenderDeviceLost()
+        void onDeviceDestroy()
         {
             g_ImGuiTexIDValid = false;
             ImGui_ImplDX11_Shutdown();
         }
-        void OnRenderDeviceReset()
+        void onDeviceCreate()
         {
             g_ImGuiTexIDValid = false;
-            ID3D11Device* device = (ID3D11Device*)APP.GetRenderDev()->GetHandle();
+            ID3D11Device* device = (ID3D11Device*)APP.GetAppModel()->getDevice()->getNativeHandle();
             ID3D11DeviceContext* context = NULL;
             device->GetImmediateContext(&context);
             ImGui_ImplDX11_Init(device, context);
@@ -528,7 +528,7 @@ namespace imgui
         }
     };
     static ImGuiBackendEventListener g_ImGuiRenderDeviceEventListener;
-    
+
     void loadConfig()
     {
         if (ImGui::GetCurrentContext())
@@ -641,7 +641,7 @@ namespace imgui
     void bindEngine()
     {
         auto* window = APP.GetAppModel()->getWindow();
-        auto* device = APP.GetRenderDev();
+        auto* device = APP.GetAppModel()->getDevice();
         auto* L = APP.GetLuaEngine();
         
         IMGUI_CHECKVERSION();
@@ -654,8 +654,8 @@ namespace imgui
         ImGui_ImplWin32Ex_Init((void*)window->getNativeHandle());
         window->addEventListener(&g_ImGuiRenderDeviceEventListener);
         
-        g_ImGuiRenderDeviceEventListener.OnRenderDeviceReset();
-        device->AttachListener(&g_ImGuiRenderDeviceEventListener);
+        g_ImGuiRenderDeviceEventListener.onDeviceCreate();
+        device->addEventListener(&g_ImGuiRenderDeviceEventListener);
         
         luaopen_imgui(L);
         imgui_binding_lua_register_backend(L);
@@ -676,10 +676,10 @@ namespace imgui
         g_ImGuiTexIDValid = false;
         
         auto* window = APP.GetAppModel()->getWindow();
-        auto* device = APP.GetRenderDev();
+        auto* device = APP.GetAppModel()->getDevice();
         
-        device->RemoveListener(&g_ImGuiRenderDeviceEventListener);
-        g_ImGuiRenderDeviceEventListener.OnRenderDeviceLost();
+        device->removeEventListener(&g_ImGuiRenderDeviceEventListener);
+        g_ImGuiRenderDeviceEventListener.onDeviceDestroy();
         
         window->removeEventListener(&g_ImGuiRenderDeviceEventListener);
         ImGui_ImplWin32Ex_Shutdown();
@@ -717,21 +717,13 @@ namespace imgui
             auto& engine = APP;
             
             // 终止渲染过程
-            bool bRestartRenderPeriod = false;
-            if (engine.GetGraphics2D()->IsInRender())
-            {
-                bRestartRenderPeriod = true;
-                engine.GetGraphics2D()->End();
-            }
+            engine.GetAppModel()->getRenderer()->endBatch();
             
             // 绘制GUI数据
             ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
             
             // 重启渲染过程
-            if (bRestartRenderPeriod)
-            {
-                engine.GetGraphics2D()->Begin();
-            }
+            engine.GetAppModel()->getRenderer()->beginBatch();
         }
     }
 

@@ -14,14 +14,14 @@ void LuaSTGPlus::LuaWrapper::RenderWrapper::Register(lua_State* L) LNOEXCEPT
             //    if (strcmp(s, "address") == 0) {
             //        // "address" string
             //        fcyColor color(0,0,0,0);
-            //        ret = (FCYERR_OK == LAPP.GetRenderDev()->SetTextureAddress(TranslateTextureSamplerAddress(L, 2), color));
+            //        ret = (FCYERR_OK == LAPP.__GetRenderDev()->SetTextureAddress(TranslateTextureSamplerAddress(L, 2), color));
             //        if (!ret) {
             //            return luaL_error(L, "Failed to set texture sampler address mode.");
             //        }
             //    }
             //    else if (strcmp(s, "filter") == 0) {
             //        // "filter" string
-            //        ret = (FCYERR_OK == LAPP.GetRenderDev()->SetTextureFilter(TranslateTextureSamplerFilter(L, 2)));
+            //        ret = (FCYERR_OK == LAPP.__GetRenderDev()->SetTextureFilter(TranslateTextureSamplerFilter(L, 2)));
             //        if (!ret) {
             //            return luaL_error(L, "Failed to set texture sampler filter type.");
             //        }
@@ -33,7 +33,7 @@ void LuaSTGPlus::LuaWrapper::RenderWrapper::Register(lua_State* L) LNOEXCEPT
             //else if (lua_gettop(L) == 3) {
             //    // "address" string color
             //    fcyColor* p = static_cast<fcyColor*>(luaL_checkudata(L, 3, LUASTG_LUA_TYPENAME_COLOR));
-            //    ret = (FCYERR_OK == LAPP.GetRenderDev()->SetTextureAddress(TranslateTextureSamplerAddress(L, 2), *p));
+            //    ret = (FCYERR_OK == LAPP.__GetRenderDev()->SetTextureAddress(TranslateTextureSamplerAddress(L, 2), *p));
             //    if (!ret) {
             //        return luaL_error(L, "Failed to set texture sampler address mode.");
             //    }
@@ -108,42 +108,6 @@ void LuaSTGPlus::LuaWrapper::RenderWrapper::Register(lua_State* L) LNOEXCEPT
             );
             return 0;
         }
-        static int RenderTextureSector(lua_State* L)LNOEXCEPT
-        {
-            lua_pushboolean(L, LAPP.RenderSector(
-                luaL_checkstring(L, 1),
-                fcyRect(luaL_checknumber(L, 2), luaL_checknumber(L, 3), luaL_checknumber(L, 4), luaL_checknumber(L, 5)),
-                lua_toboolean(L, 6),
-                TranslateBlendMode(L, 7),
-                *static_cast<fcyColor*>(luaL_checkudata(L, 8, LUASTG_LUA_TYPENAME_COLOR)),
-                *static_cast<fcyColor*>(luaL_checkudata(L, 9, LUASTG_LUA_TYPENAME_COLOR)),
-                fcyVec2(luaL_checknumber(L, 10), luaL_checknumber(L, 11)),
-                luaL_checknumber(L, 12) * LDEGREE2RAD,
-                luaL_checknumber(L, 13) * LDEGREE2RAD,
-                luaL_checknumber(L, 14),
-                luaL_checknumber(L, 15),
-                luaL_checkinteger(L, 16)
-            ));
-            return 1;
-        }
-        static int RenderTextureAnnulus(lua_State* L)LNOEXCEPT
-        {
-            lua_pushboolean(L, LAPP.RenderAnnulus(
-                luaL_checkstring(L, 1),
-                fcyRect(luaL_checknumber(L, 2), luaL_checknumber(L, 3), luaL_checknumber(L, 4), luaL_checknumber(L, 5)),
-                lua_toboolean(L, 6),
-                TranslateBlendMode(L, 7),
-                *static_cast<fcyColor*>(luaL_checkudata(L, 8, LUASTG_LUA_TYPENAME_COLOR)),
-                *static_cast<fcyColor*>(luaL_checkudata(L, 9, LUASTG_LUA_TYPENAME_COLOR)),
-                fcyVec2(luaL_checknumber(L, 10), luaL_checknumber(L, 11)),
-                luaL_checknumber(L, 12) * LDEGREE2RAD,
-                luaL_checknumber(L, 13),
-                luaL_checknumber(L, 14),
-                luaL_checkinteger(L, 15),
-                luaL_checkinteger(L, 16)
-            ));
-            return 1;
-        }
     };
     
     luaL_Reg lib[] = {
@@ -152,9 +116,7 @@ void LuaSTGPlus::LuaWrapper::RenderWrapper::Register(lua_State* L) LNOEXCEPT
         { "DrawCollider", &Wrapper::DrawCollider },
         ////ETC
         { "RenderGroupCollider", &Wrapper::RenderGroupCollider },
-        //{ "RenderTextureSector", &Wrapper::RenderTextureSector },
-        //{ "RenderTextureAnnulus", &Wrapper::RenderTextureAnnulus },
-
+        
         { "RenderText", &Wrapper::RenderText },
         { "RenderTTF", &Wrapper::RenderTTF },
         //EX
