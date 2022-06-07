@@ -1,133 +1,446 @@
 ﻿#include "ResourceFont.hpp"
 #include "AppFrame.h"
+#include "Core/Object.hpp"
+#include "Core/FileManager.hpp"
+#include "utility/utf.hpp"
+#include "utility/encoding.hpp"
 #include "fcyMisc/fcyStringHelper.h"
+#include "fcyParser/fcyXml.h"
+#include <unordered_map>
+#include <filesystem>
 
 namespace LuaSTGPlus
 {
-	void ResFont::HGEFont::ReadDefine(const std::wstring& data, std::unordered_map<wchar_t, f2dGlyphInfo>& out, std::wstring& tex)
+	class hgeFont
+		: public LuaSTG::Core::Object<LuaSTG::Core::Graphics::IGlyphManager>
 	{
-		out.clear();
-		tex.clear();
-
-		std::vector<std::wstring> tLines;
-		fcyStringHelper::StringSplit(data, L"\n", true, tLines);
-		for (auto& i : tLines)
+	private:
+		LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::ITexture2D> m_texture;
+		std::unordered_map<uint32_t, LuaSTG::Core::Graphics::GlyphInfo> m_map;
+		float m_line_height;
+		
+	private:
+		void readDefine(const std::wstring& data, std::wstring& tex)
 		{
-			i = fcyStringHelper::Trim(i);
+			std::vector<std::wstring> tLines;
+			fcyStringHelper::StringSplit(data, L"\n", true, tLines);
+			for (auto& i : tLines)
+			{
+				i = fcyStringHelper::Trim(i);
+			}
+
+			// 第一行必须是HGEFONT
+			if (tLines.size() <= 1 || tLines[0] != L"[HGEFONT]")
+				throw fcyException("ResFont::HGEFont::readDefine", "Bad file format.");
+
+			for (size_t i = 1; i < tLines.size(); ++i)
+			{
+				std::wstring& tLine = tLines[i];
+				if (tLine.size() == 0)
+					continue;
+
+				std::wstring::size_type tPos;
+				if (std::string::npos == (tPos = tLine.find_first_of(L"=")))
+					throw fcyException("ResFont::HGEFont::readDefine", "Bad file format.");
+				std::wstring tKey = tLine.substr(0, tPos);
+				std::wstring tValue = tLine.substr(tPos + 1, tLine.size() - tPos - 1);
+				if (tKey == L"Bitmap")
+					tex = tValue;
+				else if (tKey == L"Char")
+				{
+					wchar_t c;
+					int c_hex;
+					float x, y, w, h, left_offset, right_offset;
+					if (7 != swscanf(tValue.c_str(), L"\"%c\",%f,%f,%f,%f,%f,%f", &c, &x, &y, &w, &h, &left_offset, &right_offset))
+					{
+						if (7 != swscanf(tValue.c_str(), L"%X,%f,%f,%f,%f,%f,%f", &c_hex, &x, &y, &w, &h, &left_offset, &right_offset))
+							throw fcyException("ResFont::HGEFont::readDefine", "Bad file format.");
+						c = static_cast<wchar_t>(c_hex);
+					}
+
+					// 计算到f2d字体偏移量
+					LuaSTG::Core::Graphics::GlyphInfo const tInfo = {
+						.texture_index = 0,
+						.texture_rect = LuaSTG::Core::RectF(x, y, x + w, y + h),
+						.size = LuaSTG::Core::Vector2F(w, h),
+						.position = LuaSTG::Core::Vector2F(left_offset, h),
+						.advance = LuaSTG::Core::Vector2F(w + left_offset + right_offset, 0),
+					};
+					if (m_map.find(c) != m_map.end())
+						throw fcyException("ResFont::HGEFont::readDefine", "Duplicated character defination.");
+					m_map.emplace(c, tInfo);
+				}
+				else
+					throw fcyException("ResFont::HGEFont::readDefine", "Bad file format.");
+			}
+
+			if (tex.empty())
+				throw fcyException("ResFont::HGEFont::readDefine", "Bad file format.");
 		}
 
-		// 第一行必须是HGEFONT
-		if (tLines.size() <= 1 || tLines[0] != L"[HGEFONT]")
-			throw fcyException("ResFont::HGEFont::readDefine", "Bad file format.");
+	public:
+		float getLineHeight() { return m_line_height + 1.0f; } // ?
+		float getAscender() { return m_line_height; }
+		float getDescender() { return 0.0f; }
 
-		for (size_t i = 1; i < tLines.size(); ++i)
+		uint32_t getTextureCount() { return 1; }
+		LuaSTG::Core::Graphics::ITexture2D* getTexture(uint32_t index)
 		{
-			std::wstring& tLine = tLines[i];
-			if (tLine.size() == 0)
-				continue;
-
-			std::wstring::size_type tPos;
-			if (std::string::npos == (tPos = tLine.find_first_of(L"=")))
-				throw fcyException("ResFont::HGEFont::readDefine", "Bad file format.");
-			std::wstring tKey = tLine.substr(0, tPos);
-			std::wstring tValue = tLine.substr(tPos + 1, tLine.size() - tPos - 1);
-			if (tKey == L"Bitmap")
-				tex = tValue;
-			else if (tKey == L"Char")
+			if (index == 0)
 			{
-				wchar_t c;
-				int c_hex;
-				float x, y, w, h, left_offset, right_offset;
-				if (7 != swscanf(tValue.c_str(), L"\"%c\",%f,%f,%f,%f,%f,%f", &c, &x, &y, &w, &h, &left_offset, &right_offset))
-				{
-					if (7 != swscanf(tValue.c_str(), L"%X,%f,%f,%f,%f,%f,%f", &c_hex, &x, &y, &w, &h, &left_offset, &right_offset))
-						throw fcyException("ResFont::HGEFont::readDefine", "Bad file format.");
-					c = static_cast<wchar_t>(c_hex);
-				}
+				return m_texture.get();
+			}
+			assert(false); return nullptr;
+		}
 
-				// 计算到f2d字体偏移量
-				f2dGlyphInfo tInfo = {
-					0,
-					fcyRect(x, y, x + w, y + h),
-					fcyVec2(w, h),
-					fcyVec2(left_offset, h),
-					fcyVec2(w + left_offset + right_offset, 0)
-				};
-				if (out.find(c) != out.end())
-					throw fcyException("ResFont::HGEFont::readDefine", "Duplicated character defination.");
-				out.emplace(c, tInfo);
+		bool cacheGlyph(uint32_t) { return true; }
+		bool cacheString(LuaSTG::Core::StringView) { return true; }
+		bool flush() { return true; }
+
+		bool getGlyph(uint32_t codepoint, LuaSTG::Core::Graphics::GlyphInfo* p_ref_info, bool)
+		{
+			auto it = m_map.find(codepoint);
+			if (it != m_map.end())
+			{
+				*p_ref_info = it->second;
+				return true;
+			}
+			return false;
+		}
+
+	public:
+		hgeFont(std::string_view path, bool mipmap)
+			: m_line_height(0.0f)
+		{
+			// 打开 HGE 字体定义文件
+			std::vector<uint8_t> src;
+			if (!GFileManager().loadEx(path, src))
+			{
+				spdlog::error("[luastg] 加载 HGE 纹理字体失败，无法加载字体定义文件 '{}'", path);
+				throw std::runtime_error("hgeFont::hgeFont");
+			}
+			
+
+			std::wstring tex_wpath;
+			readDefine(
+				utility::encoding::to_wide(
+					std::string_view((char*)src.data(), src.size())
+				),
+				tex_wpath);
+
+			/*
+			std::string_view font_define((char*)src.data(), src.size());
+			if (font_define.empty())
+			{
+				spdlog::error("[luastg] 加载 HGE 纹理字体失败，字体定义文件 '{}' 格式无效", path);
+				throw std::runtime_error("hgeFont::hgeFont");
+			}
+
+			// 切成行
+			std::vector<std::string_view> lines;
+			{
+				size_t offset = 0;
+				auto pos = font_define.find_first_of("\n", offset);
+				while (pos != std::string_view::npos)
+				{
+					lines.push_back(std::string_view(
+						font_define.data() + offset,
+						pos - offset));
+					offset = pos + 1;
+				}
+				lines.push_back(font_define.substr(offset));
+			}
+			if (lines.size() < 1)
+			{
+				spdlog::error("[luastg] 加载 HGE 纹理字体失败，字体定义文件 '{}' 格式无效", path);
+				throw std::runtime_error("hgeFont::hgeFont");
+			}
+
+			// 检查第一行
+			if (lines[0] != "[HGEFONT]")
+			{
+				spdlog::error("[luastg] 加载 HGE 纹理字体失败，字体定义文件 '{}' 格式无效", path);
+				throw std::runtime_error("hgeFont::hgeFont");
+			}
+
+			// 解析每一行
+			std::string_view texture;
+			for (size_t i = 1; i < lines.size(); i += 1)
+			{
+				std::string_view line = lines[i];
+				if (line.empty())
+				{
+					continue; // 跳过空白行
+				}
+				if (line.starts_with("Bitmap="))
+				{
+					texture = line.substr(7);
+				}
+				else if (line.starts_with("Char="))
+				{
+					std::string_view data = line.substr(5);
+					char buffer[8]{}; // UTF-8 真的会有这么长的吗
+					int c_hex = 0;
+					float x = 0.0f, y = 0.0f, w = 0.0f, h = 0.0f;
+					float left_offset = 0.0f, right_offset = 0.0f;
+					if (7 != std::sscanf(data.data(), "\"%7s\",%f,%f,%f,%f,%f,%f", buffer, &x, &y, &w, &h, &left_offset, &right_offset))
+					{
+						if (7 != std::sscanf(data.data(), "%X,%f,%f,%f,%f,%f,%f", &c_hex, &x, &y, &w, &h, &left_offset, &right_offset))
+						{
+							spdlog::warn("[luastg] 加载 HGE 纹理字体出错，在字体定义文件 '{}' 中发现无法解析的行：{}", path, line);
+							continue; // 润
+						}
+					}
+					uint32_t codepoint = 0;
+					if (c_hex)
+					{
+						codepoint = (uint32_t)c_hex;
+					}
+					else
+					{
+						char32_t c = 0;
+						utf::utf8reader reader(buffer);
+						if (!reader(c))
+						{
+							spdlog::warn("[luastg] 加载 HGE 纹理字体出错，在字体定义文件 '{}' 中发现无法识别的字符：{}", path, line);
+							continue; // 润
+						}
+						codepoint = (uint32_t)c;
+					}
+					if (m_map.find(codepoint) != m_map.end())
+					{
+						spdlog::warn("[luastg] 加载 HGE 纹理字体出错，在字体定义文件 '{}' 中发现重复的字符：{}", path, line);
+						continue; // 润
+					}
+					// 计算字体数据
+					LuaSTG::Core::Graphics::GlyphInfo const glyph_info = {
+						.texture_index = 0,
+						.texture_rect = LuaSTG::Core::RectF(x, y, x + w, y + h),
+						.size = LuaSTG::Core::Vector2F(w, h),
+						.position = LuaSTG::Core::Vector2F(left_offset, h),
+						.advance = LuaSTG::Core::Vector2F(w + left_offset + right_offset, 0),
+					};
+					m_map.emplace(codepoint, glyph_info);
+				}
+				else
+				{
+					spdlog::warn("[luastg] 加载 HGE 纹理字体出错，在字体定义文件 '{}' 中发现无法识别的行格式：{}", path, line);
+				}
+			}
+			//*/
+
+			// 加载纹理
+			std::string texture(utility::encoding::to_utf8(tex_wpath));
+			if (GFileManager().containEx(texture))
+			{
+				if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(texture, mipmap, ~m_texture))
+				{
+					spdlog::error("[luastg] 加载 HGE 纹理字体失败，无法加载纹理 '{}'", texture);
+					throw std::runtime_error("hgeFont::hgeFont");
+				}
 			}
 			else
-				throw fcyException("ResFont::HGEFont::readDefine", "Bad file format.");
+			{
+				// 切换到同级文件夹
+				std::filesystem::path wide_path(utility::encoding::to_wide(path));
+				wide_path.remove_filename();
+				wide_path /= utility::encoding::to_wide(texture);
+				std::string texture_path(std::move(utility::encoding::to_utf8(wide_path.wstring())));
+				if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(texture_path, mipmap, ~m_texture))
+				{
+					spdlog::error("[luastg] 加载 HGE 纹理字体失败，无法加载纹理 '{}'", texture_path);
+					throw std::runtime_error("hgeFont::hgeFont");
+				}
+			}
+
+			// 进一步处理
+			for (auto& v : m_map)
+			{
+				// 计算最高行作为LineHeight
+				m_line_height = std::max(m_line_height, v.second.size.y);
+				// 修正纹理坐标
+				v.second.texture_rect.a.x /= (float)m_texture->getSize().x;
+				v.second.texture_rect.b.x /= (float)m_texture->getSize().x;
+				v.second.texture_rect.a.y /= (float)m_texture->getSize().y;
+				v.second.texture_rect.b.y /= (float)m_texture->getSize().y;
+			}
+		}
+		~hgeFont()
+		{
+		}
+	};
+
+	class f2dFont
+		: public LuaSTG::Core::Object<LuaSTG::Core::Graphics::IGlyphManager>
+	{
+	private:
+		LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::ITexture2D> m_texture;
+		std::unordered_map<uint32_t, LuaSTG::Core::Graphics::GlyphInfo> m_map;
+		float m_line_height;
+		float m_ascender;
+		float m_descender;
+
+	private:
+		fcyVec2 readVec2Str(const std::wstring& Str)
+		{
+			fcyVec2 tRet;
+			if (2 != swscanf_s(Str.c_str(), L"%f,%f", &tRet.x, &tRet.y))
+				throw fcyException("f2dFontTexProvider::readVec2Str", "String format error.");
+			return tRet;
+		}
+		void loadDefine(fcyXmlDocument& Xml)
+		{
+			float const tXScale = 1.0f / (float)m_texture->getSize().x;
+			float const tYScale = 1.0f / (float)m_texture->getSize().y;
+
+			fcyXmlElement* pRoot = Xml.GetRootElement();
+
+			if (pRoot->GetName() != L"f2dTexturedFont")
+				throw fcyException("f2dFontTexProvider::loadDefine", "Invalid file, root node name not match.");
+
+			fcyXmlElement* pMeasureNode = pRoot->GetFirstNode(L"Measure");
+			if (!pMeasureNode)
+				throw fcyException("f2dFontTexProvider::loadDefine", "Invalid file, node 'Measure' not found.");
+
+			fcyXmlElement* pCharList = pRoot->GetFirstNode(L"CharList");
+
+			// 读取度量值
+			m_line_height = (float)_wtof(pMeasureNode->GetAttribute(L"LineHeight").c_str());
+			m_ascender = (float)_wtof(pMeasureNode->GetAttribute(L"Ascender").c_str());
+			m_descender = (float)_wtof(pMeasureNode->GetAttribute(L"Descender").c_str());
+
+			// 读取字符表
+			fcyXmlElementList tNodeList = pCharList->GetNodeByName(L"Item");
+			fuInt tSubNodeCount = tNodeList.GetCount();
+			for (fuInt i = 0; i < tSubNodeCount; ++i)
+			{
+				fcyXmlElement* pSub = tNodeList[i];
+
+				const std::wstring& tChar = pSub->GetAttribute(L"Char");
+				if (tChar.length() != 1)
+					throw fcyException("f2dFontTexProvider::loadDefine", "Invalid file, invalid character in CharList.");
+
+				fcyVec2 const Advance = readVec2Str(pSub->GetAttribute(L"Advance"));
+				fcyVec2 const BrushPos = readVec2Str(pSub->GetAttribute(L"BrushPos"));
+				fcyVec2 const GlyphSize = readVec2Str(pSub->GetAttribute(L"Size"));
+				fcyVec2 GlyphPosA = readVec2Str(pSub->GetAttribute(L"Pos"));
+				fcyVec2 GlyphPosB = GlyphPosA + readVec2Str(pSub->GetAttribute(L"Size"));
+				GlyphPosA.x *= tXScale;
+				GlyphPosA.y *= tYScale;
+				GlyphPosB.x *= tXScale;
+				GlyphPosB.y *= tYScale;
+
+				LuaSTG::Core::Graphics::GlyphInfo const glyph_info = {
+						.texture_index = 0,
+						.texture_rect = LuaSTG::Core::RectF(GlyphPosA.x, GlyphPosA.y, GlyphPosB.x, GlyphPosB.y),
+						.size = LuaSTG::Core::Vector2F(GlyphSize.x, GlyphSize.y),
+						.position = LuaSTG::Core::Vector2F(BrushPos.x, BrushPos.y),
+						.advance = LuaSTG::Core::Vector2F(Advance.x, Advance.y),
+				};
+				m_map[(uint32_t)tChar[0]] = glyph_info;
+			}
 		}
 
-		if (tex.empty())
-			throw fcyException("ResFont::HGEFont::readDefine", "Bad file format.");
-	}
-	
-	ResFont::HGEFont::HGEFont(std::unordered_map<wchar_t, f2dGlyphInfo>&& org, fcyRefPointer<f2dTexture2D> pTex)
-		: m_Charset(std::move(org)), m_pTex(pTex)
-	{
-		// 计算最高行作为LineHeight
-		m_fLineHeight = 0;
-		for (auto i = m_Charset.begin(); i != m_Charset.end(); ++i)
-			m_fLineHeight = std::max(m_fLineHeight, i->second.GlyphSize.y);
-		
-		// 修正纹理坐标
-		for (auto& i : m_Charset)
+	public:
+		float getLineHeight() { return m_line_height; }
+		float getAscender() { return m_ascender; }
+		float getDescender() { return m_descender; }
+
+		uint32_t getTextureCount() { return 1; }
+		LuaSTG::Core::Graphics::ITexture2D* getTexture(uint32_t index)
 		{
-			i.second.GlyphPos.a.x /= pTex->GetWidth();
-			i.second.GlyphPos.b.x /= pTex->GetWidth();
-			i.second.GlyphPos.a.y /= pTex->GetHeight();
-			i.second.GlyphPos.b.y /= pTex->GetHeight();
+			if (index == 0)
+			{
+				return m_texture.get();
+			}
+			assert(false); return nullptr;
 		}
-	}
-	
-	fFloat ResFont::HGEFont::GetLineHeight()
+
+		bool cacheGlyph(uint32_t) { return true; }
+		bool cacheString(LuaSTG::Core::StringView) { return true; }
+		bool flush() { return true; }
+
+		bool getGlyph(uint32_t codepoint, LuaSTG::Core::Graphics::GlyphInfo* p_ref_info, bool)
+		{
+			auto it = m_map.find(codepoint);
+			if (it != m_map.end())
+			{
+				*p_ref_info = it->second;
+				return true;
+			}
+			return false;
+		}
+
+	public:
+		f2dFont(std::string_view path, std::string_view raw_texture_path, bool mipmap)
+			: m_line_height(0.0f)
+			, m_ascender(0.0f)
+			, m_descender(0.0f)
+		{
+			// 打开 fancy2d 字体定义文件
+			std::vector<uint8_t> src;
+			if (!GFileManager().loadEx(path, src))
+			{
+				spdlog::error("[luastg] 加载 fancy2d 纹理字体失败，无法加载字体定义文件 '{}'", path);
+				throw std::runtime_error("f2dFont::f2dFont");
+			}
+
+			// 解析
+			fcyXmlDocument tXml(utility::encoding::to_wide(
+				std::string_view((char*)src.data(), src.size())
+			));
+			loadDefine(tXml);
+
+			// 加载纹理
+			if (GFileManager().containEx(raw_texture_path))
+			{
+				if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(raw_texture_path, mipmap, ~m_texture))
+				{
+					spdlog::error("[luastg] 加载 fancy2d 纹理字体失败，无法加载纹理 '{}'", raw_texture_path);
+					throw std::runtime_error("f2dFont::f2dFont");
+				}
+			}
+			else
+			{
+				// 切换到同级文件夹
+				std::filesystem::path wide_path(utility::encoding::to_wide(path));
+				wide_path.remove_filename();
+				wide_path /= utility::encoding::to_wide(raw_texture_path);
+				std::string texture_path(std::move(utility::encoding::to_utf8(wide_path.wstring())));
+				if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(texture_path, mipmap, ~m_texture))
+				{
+					spdlog::error("[luastg] 加载 fancy2d 纹理字体失败，无法加载纹理 '{}'", texture_path);
+					throw std::runtime_error("f2dFont::f2dFont");
+				}
+			}
+		}
+		~f2dFont()
+		{
+		}
+	};
+
+	ResFont::ResFont(const char* name, std::string_view hge_path, bool mipmap)
+		: Resource(ResourceType::SpriteFont, name)
+		, m_BlendMode(BlendMode::MulAlpha)
+		, m_BlendColor(fcyColor(0xFFFFFFFFu))
 	{
-		return m_fLineHeight + 1.f;
+		m_glyphmgr.attach(new hgeFont(hge_path, mipmap));
 	}
-	
-	fFloat ResFont::HGEFont::GetAscender()
+	ResFont::ResFont(const char* name, std::string_view f2d_path, std::string_view tex_path, bool mipmap)
+		: Resource(ResourceType::SpriteFont, name)
+		, m_BlendMode(BlendMode::MulAlpha)
+		, m_BlendColor(fcyColor(0xFFFFFFFFu))
 	{
-		return m_fLineHeight;
+		m_glyphmgr.attach(new f2dFont(f2d_path, tex_path, mipmap));
 	}
-	
-	fFloat ResFont::HGEFont::GetDescender()
+	ResFont::ResFont(const char* name, LuaSTG::Core::Graphics::IGlyphManager* p_mgr)
+		: Resource(ResourceType::SpriteFont, name)
+		, m_glyphmgr(p_mgr)
+		, m_BlendMode(BlendMode::MulAlpha)
+		, m_BlendColor(fcyColor(0xFFFFFFFFu))
 	{
-		return 0.f;
 	}
-	
-	fuInt ResFont::HGEFont::GetCacheTextureCount()
-	{
-		return 1;
-	}
-	
-	f2dTexture2D* ResFont::HGEFont::GetCacheTexture(fuInt index)
-	{
-		return m_pTex;
-	}
-	
-	fResult ResFont::HGEFont::CacheString(fcStrW String)
-	{
-		return FCYERR_OK;  // 纹理字体不需要实现CacheString
-	}
-	fResult ResFont::HGEFont::CacheStringU8(fcStr Text, fuInt Count)
-	{
-		return FCYERR_OK;  // 纹理字体不需要实现CacheString
-	}
-	
-	fResult ResFont::HGEFont::QueryGlyph(f2dGraphics* pGraph, fCharU Character, f2dGlyphInfo* InfoOut)
-	{
-		auto it = m_Charset.find((fCharW)Character);
-		if (it == m_Charset.end())
-			return FCYERR_OBJNOTEXSIT;
-		*InfoOut = it->second;
-		return FCYERR_OK;
-	}
-	
-	ResFont::ResFont(const char* name, fcyRefPointer<f2dFontProvider> pFont)
-		: Resource(ResourceType::SpriteFont, name), m_pFontProvider(pFont)
+	ResFont::~ResFont()
 	{
 	}
 }

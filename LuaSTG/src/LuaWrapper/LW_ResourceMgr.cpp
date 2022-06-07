@@ -1,5 +1,6 @@
 #include "Core/FileManager.hpp"
 #include "LuaWrapper/LuaWrapper.hpp"
+#include "LuaWrapper/lua_utility.hpp"
 #include "AppFrame.h"
 #include "utility/encoding.hpp"
 
@@ -229,156 +230,79 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			if (!pActivedPool) {
 				return luaL_error(L, "can't load resource at this time.");
 			}
-
 			const char* name = luaL_checkstring(L, 1);
-			int t = lua_type(L, 2);
-			if (LUA_TSTRING == t) {
-				const char* path = luaL_checkstring(L, 2);
-				bool result = pActivedPool->LoadTTFFont(name, path, (float)luaL_checknumber(L, 3), (float)luaL_checknumber(L, 4), (float)luaL_optnumber(L, 5, 0.0), (float)luaL_optnumber(L, 6, 0.0));
-				lua_pushboolean(L, result);
-			}
-			else {
-				using sw = LuaSTGPlus::LuaWrapper::IO::StreamWrapper::Wrapper;
-				sw* data = (sw*)luaL_checkudata(L, 2, LUASTG_LUA_TYPENAME_IO_STREAM);
-				bool result = pActivedPool->LoadTTFFont(name, data->handle, (float)luaL_checknumber(L, 3), (float)luaL_checknumber(L, 4), (float)luaL_optnumber(L, 5, 0.0), (float)luaL_optnumber(L, 6, 0.0));
-				lua_pushboolean(L, result);
-			}
+			const char* path = luaL_checkstring(L, 2);
+			bool result = pActivedPool->LoadTTFFont(name, path, (float)luaL_checknumber(L, 3), (float)luaL_checknumber(L, 4));
+			lua_pushboolean(L, result);
 			return 1;
 		}
 		static int LoadTrueTypeFont(lua_State* L) noexcept
 		{
 			// 先检查有没有资源池
 			ResourcePool* pActivedPool = LRES.GetActivedPool();
-			if (!pActivedPool) {
+			if (!pActivedPool)
+			{
 				return luaL_error(L, "can't load resource at this time.");
 			}
 			
 			// 第一个参数，资源名
-			const char* name = luaL_checkstring(L, 1);
+			std::string_view const name = luaL_check_string_view(L, 1);
 			
-			// 第二个参数，字体加载配置
-			f2dFontProviderParam param;
+			// 第二个参数，字体组
+			if (!lua_istable(L, 2))
 			{
-				param.font_bbox = fcyVec2(0.0f, 0.0f);
-				param.glyph_count = 1024;
-				param.texture_size = 2048;
+				return luaL_error(L, "invalid parameter #2, required table");
 			}
-			if (lua_istable(L, 2))
+			int const cnt = (int)lua_objlen(L, 2);
+			std::vector<LuaSTG::Core::Graphics::TrueTypeFontInfo> fonts(cnt);
+			for (int i = 1; i <= cnt; i += 1)
 			{
-				lua_getfield(L, 2, "glyph_bbox_x");
-				if (lua_type(L, -1) == LUA_TNUMBER) {
-					param.font_bbox.x = (fFloat)luaL_checknumber(L, -1);
+				auto& font = fonts[i];
+				font.source = "";
+				font.font_face = 0;
+				font.font_size = LuaSTG::Core::Vector2F(0.0f, 0.0f);
+				font.is_force_to_file = false;
+				font.is_buffer = false;
+
+				lua_pushinteger(L, i);		// name param fonts i
+				lua_gettable(L, 2);			// name param fonts font
+				if (!lua_istable(L, -1))
+				{
+					return luaL_error(L, "invalid value #%d in parameter #2, required table", i);
 				}
-				lua_pop(L, 1);
-				
-				lua_getfield(L, 2, "glyph_bbox_y");
-				if (lua_type(L, -1) == LUA_TNUMBER) {
-					param.font_bbox.y = (fFloat)luaL_checknumber(L, -1);
+
+				lua_getfield(L, -1, "source"); // name param fonts font ?
+				if (lua_type(L, -1) == LUA_TSTRING) // name param fonts font v
+				{
+					font.source = luaL_check_string_view(L, -1);
 				}
-				lua_pop(L, 1);
-				
-				lua_getfield(L, 2, "glyph_count");
-				if (lua_type(L, -1) == LUA_TNUMBER) {
-					param.glyph_count = (fuInt)std::max<fInt>(0, luaL_checkinteger(L, -1));
+				lua_pop(L, 1);				// name param fonts font
+
+				lua_getfield(L, -1, "font_face"); // name param fonts font ?
+				if (lua_type(L, -1) == LUA_TNUMBER) // name param fonts font v
+				{
+					font.font_face = (uint32_t)luaL_checkinteger(L, -1);
 				}
-				lua_pop(L, 1);
-				
-				lua_getfield(L, 2, "texture_size");
-				if (lua_type(L, -1) == LUA_TNUMBER) {
-					param.texture_size = (fuInt)std::max<fInt>(0, luaL_checkinteger(L, -1));
+				lua_pop(L, 1);				// name param fonts font
+
+				lua_getfield(L, -1, "width"); // name param fonts font ?
+				if (lua_type(L, -1) == LUA_TNUMBER) // name param fonts font v
+				{
+					font.font_size.x = (float)luaL_checknumber(L, -1);
 				}
-				lua_pop(L, 1);
+				lua_pop(L, 1);				// name param fonts font
+
+				lua_getfield(L, -1, "height"); // name param fonts font ?
+				if (lua_type(L, -1) == LUA_TNUMBER) // name param fonts font v
+				{
+					font.font_size.y = (float)luaL_checknumber(L, -1);
+				}
+				lua_pop(L, 1);				// name param fonts font
+
+				lua_pop(L, 1);				// name param fonts
 			}
-			
-			// 第三个参数，字体
-			std::vector<f2dTrueTypeFontParam> fonts;
-			std::vector<fcyRefPointer<fcyStream>> streams;
-			if (lua_istable(L, 3))
-			{
-				using sw = LuaSTGPlus::LuaWrapper::IO::StreamWrapper::Wrapper;
-				int cnt = (int)lua_objlen(L, 3);
-												// name param fonts
-				for (int i = 1; i <= cnt; i += 1) {
-					f2dTrueTypeFontParam font;
-					{
-						font.font_file = nullptr; // 不会用上
-						font.font_source = nullptr;
-						font.font_face = 0;
-						font.font_size = fcyVec2(0.0f, 0.0f);
-					}
-					
-					lua_pushinteger(L, i);		// name param fonts i
-					lua_gettable(L, 3);			// name param fonts font
-					
-					lua_getfield(L, -1, "face_index"); // name param fonts font ?
-					if (lua_type(L, -1) == LUA_TNUMBER) // name param fonts font v
-					{
-						font.font_face = (fInt)luaL_checkinteger(L, -1);
-					}
-					lua_pop(L, 1);				// name param fonts font
-					
-					lua_getfield(L, -1, "width"); // name param fonts font ?
-					if (lua_type(L, -1) == LUA_TNUMBER) // name param fonts font v
-					{
-						font.font_size.x = (fFloat)luaL_checknumber(L, -1);
-					}
-					lua_pop(L, 1);				// name param fonts font
-					
-					lua_getfield(L, -1, "height"); // name param fonts font ?
-					if (lua_type(L, -1) == LUA_TNUMBER) // name param fonts font v
-					{
-						font.font_size.y = (fFloat)luaL_checknumber(L, -1);
-					}
-					lua_pop(L, 1);				// name param fonts font
-					
-					lua_getfield(L, -1, "source"); // name param fonts font ?
-					if (lua_type(L, -1) == LUA_TUSERDATA) // name param fonts font v
-					{
-						sw* data = (sw*)luaL_checkudata(L, -1, LUASTG_LUA_TYPENAME_IO_STREAM);
-						font.font_source = (fcyMemStream*)data->handle;
-					}
-					lua_pop(L, 1);				// name param fonts font
-					
-					lua_getfield(L, -1, "file"); // name param fonts font ?
-					if (lua_type(L, -1) == LUA_TSTRING) // name param fonts font v
-					{
-						const char* filename = luaL_checkstring(L, -1);
-						bool loaded = false;
-						// 先从文件加载试试看
-						try {
-							std::wstring wfilename = std::move(utility::encoding::to_wide(filename));
-							try {
-								fcyFileStream* stream = new fcyFileStream(wfilename.c_str(), false);
-								
-								streams.push_back(fcyRefPointer<fcyStream>());
-								streams.back().DirectSet(stream);
-								loaded = true;
-								
-								font.font_source = nullptr; // 这个不要
-								font.font_file = (f2dStream*)stream;
-							}
-							catch (...) {}
-						}
-						catch (...) {}
-						// 没有……那只能从FMGR加载了
-						if (!loaded) {
-							std::vector<uint8_t> src;
-							if (!GFileManager().loadEx(filename, src)) {
-								streams.push_back(fcyRefPointer<fcyStream>());
-								streams.back().DirectSet(new fcyMemStream(std::move(src)));
-								loaded = true;
-								font.font_source = (fcyMemStream*)(*streams.back());
-							}
-						}
-					}
-					lua_pop(L, 1);				// name param fonts font
-					
-					lua_pop(L, 1);				// name param fonts
-					fonts.emplace_back(std::move(font));
-				}
-			}
-			
-			bool result = pActivedPool->LoadTrueTypeFont(name, param, fonts.data(), fonts.size());
+
+			bool result = pActivedPool->LoadTrueTypeFont(name.data(), fonts.data(), fonts.size());
 			lua_pushboolean(L, result);
 			
 			return 1;

@@ -399,7 +399,9 @@ bool AppFrame::Init()LNOEXCEPT
 
 	if (!LuaSTG::Core::IApplicationModel::create(this, ~m_pAppModel))
 		return false;
-	
+	if (!LuaSTG::Core::Graphics::ITextRenderer::create(m_pAppModel->getRenderer(), ~m_pTextRenderer))
+		return false;
+
 	//////////////////////////////////////// Lua初始化部分
 	
 	spdlog::info("[luastg] 初始化luajit引擎");
@@ -597,6 +599,7 @@ void AppFrame::Shutdown()LNOEXCEPT
 	spdlog::info("[luastg] 卸载所有资源包");
 	
 	m_pEngine = nullptr;
+	m_pTextRenderer = nullptr;
 	m_pAppModel = nullptr;
 
 	m_iStatus = AppStatus::Destroyed;

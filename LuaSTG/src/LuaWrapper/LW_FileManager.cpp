@@ -589,34 +589,6 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)LNOEXCEPT
 			LAPP.FontRenderer_SetScale(fcyVec2(a, b));
 			return 0;
 		}
-		static int MeasureString(lua_State* L) {
-			const fcyRect v = LAPP.FontRenderer_MeasureString(luaL_checkstring(L, 1), lua_toboolean(L, 2));
-			lua_pushnumber(L, v.a.x);
-			lua_pushnumber(L, v.b.x);
-			lua_pushnumber(L, v.b.y);
-			lua_pushnumber(L, v.a.y);
-			return 4;
-		}
-		static int MeasureStringWidth(lua_State* L) {
-			const float v = LAPP.FontRenderer_MeasureStringWidth(luaL_checkstring(L, 1));
-			lua_pushnumber(L, v);
-			return 1;
-		}
-		static int DrawText(lua_State* L) {
-			fcyColor color = *static_cast<fcyColor*>(luaL_checkudata(L, 6, LUASTG_LUA_TYPENAME_COLOR));
-			fcyVec2 pos = fcyVec2((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3));
-			const bool ret = LAPP.FontRenderer_DrawTextW2(
-				luaL_checkstring(L, 1),
-				pos,
-				(float)luaL_checknumber(L, 4),
-				TranslateBlendMode(L, 5),
-				color);
-			lua_pushboolean(L, ret);
-			lua_pushnumber(L, (lua_Number)pos.x);
-			lua_pushnumber(L, (lua_Number)pos.y);
-			return 3;
-		}
-		
 		static int MeasureTextBoundary(lua_State* L) {
 			size_t len = 0;
 			const char* str = luaL_checklstring(L, 1, &len);
@@ -689,10 +661,6 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)LNOEXCEPT
 	luaL_Reg FR_Method[] = {
 		{ "SetFontProvider", &FR_Wrapper::SetFontProvider },
 		{ "SetScale", &FR_Wrapper::SetScale },
-		
-		{ "MeasureString", &FR_Wrapper::MeasureString }, // 应该弃用
-		{ "MeasureStringWidth", &FR_Wrapper::MeasureStringWidth }, // 应该弃用
-		{ "DrawText", &FR_Wrapper::DrawText }, // 应该弃用
 		
 		{ "MeasureTextBoundary", &FR_Wrapper::MeasureTextBoundary },
 		{ "MeasureTextAdvance", &FR_Wrapper::MeasureTextAdvance },
