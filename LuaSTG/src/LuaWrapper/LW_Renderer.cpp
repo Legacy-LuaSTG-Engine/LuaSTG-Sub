@@ -1,4 +1,5 @@
 ﻿#include "LuaWrapper\LuaWrapper.hpp"
+#include "LuaWrapper\lua_utility.hpp"
 #include "AppFrame.h"
 #include "LMathConstant.hpp"
 
@@ -101,49 +102,6 @@ static IRenderer::BlendState translate_blend_3d(const LuaSTGPlus::BlendMode blen
     case LuaSTGPlus::BlendMode::One:
         return IRenderer::BlendState::One;
     }
-}
-
-static void make_sprite_vertex(f2dSprite* pimg2d, IRenderer::DrawVertex* vertex, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
-{
-    fcyRect const img_rect = pimg2d->GetTexRect();
-    // XY
-    fcyVec2 const center_p = pimg2d->GetHotSpot() - img_rect.a;
-    fFloat const img_w = img_rect.GetWidth();
-    fFloat const img_h = img_rect.GetHeight();
-    vertex[0].x = hscale * (l___l - center_p.x); vertex[0].y = vscale * (center_p.y l_____l);
-    vertex[1].x = hscale * (img_w - center_p.x); vertex[1].y = vscale * (center_p.y l_____l);
-    vertex[2].x = hscale * (img_w - center_p.x); vertex[2].y = vscale * (center_p.y - img_h);
-    vertex[3].x = hscale * (l___l - center_p.x); vertex[3].y = vscale * (center_p.y - img_h);
-    rotate_float2x4(
-        vertex[0].x, vertex[0].y,
-        vertex[1].x, vertex[1].y,
-        vertex[2].x, vertex[2].y,
-        vertex[3].x, vertex[3].y,
-        rot);
-    vertex[0].x += x; vertex[0].y += y;
-    vertex[1].x += x; vertex[1].y += y;
-    vertex[2].x += x; vertex[2].y += y;
-    vertex[3].x += x; vertex[3].y += y;
-    // Z
-    vertex[0].z = z;
-    vertex[1].z = z;
-    vertex[2].z = z;
-    vertex[3].z = z;
-    // UV
-    f2dTexture2D* const ptex2d = pimg2d->GetTexture();
-    fFloat const tex_w = (fFloat)ptex2d->GetWidth();
-    fFloat const tex_h = (fFloat)ptex2d->GetHeight();
-    vertex[0].u = img_rect.a.x / tex_w; vertex[0].v = img_rect.a.y / tex_h; 
-    vertex[1].u = img_rect.b.x / tex_w; vertex[1].v = img_rect.a.y / tex_h; 
-    vertex[2].u = img_rect.b.x / tex_w; vertex[2].v = img_rect.b.y / tex_h; 
-    vertex[3].u = img_rect.a.x / tex_w; vertex[3].v = img_rect.b.y / tex_h; 
-    // color
-    fcyColor color_ls[4];
-    pimg2d->GetColor(color_ls);
-    vertex[0].color = color_ls[0].argb;
-    vertex[1].color = color_ls[1].argb;
-    vertex[2].color = color_ls[2].argb;
-    vertex[3].color = color_ls[3].argb;
 }
 
 static void api_drawSprite(LuaSTGPlus::ResSprite* pimg2dres, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
@@ -898,18 +856,15 @@ static int compat_PostEffect(lua_State* L)
 // 应该要废弃掉的方法
 static int compat_SetTextureSamplerState(lua_State* L)LNOEXCEPT
 {
-    static F2DTEXFILTERTYPE last_filter = F2DTEXFILTER_LINEAR;
-    static F2DTEXTUREADDRESS last_addr = F2DTEXTUREADDRESS_CLAMP;
-    size_t arg1_l;
-    const char* arg1_s = luaL_checklstring(L, 1, &arg1_l);
-    std::string_view arg1(arg1_s, arg1_l);
+    static int last_filter = 2; // 1 point 2 linear
+    static int last_addr = 2; // 1 wrap 2 clamp
+    std::string_view arg1 = luaL_check_string_view(L, 1);
     if (arg1 == "address")
     {
-        F2DTEXTUREADDRESS arg2 = LuaSTGPlus::TranslateTextureSamplerAddress(L, 2);
-        switch (arg2)
+        std::string_view arg2 = luaL_check_string_view(L, 2);
+        if (arg2 == "wrap")
         {
-        case F2DTEXTUREADDRESS_WRAP:
-            if (last_filter == F2DTEXFILTER_LINEAR)
+            if (last_filter == 2)
             {
                 LR2D()->setSamplerState(IRenderer::SamplerState::LinearWrap);
             }
@@ -917,9 +872,11 @@ static int compat_SetTextureSamplerState(lua_State* L)LNOEXCEPT
             {
                 LR2D()->setSamplerState(IRenderer::SamplerState::PointWrap);
             }
-            break;
-        case F2DTEXTUREADDRESS_CLAMP:
-            if (last_filter == F2DTEXFILTER_LINEAR)
+            last_addr = 1;
+        }
+        else if (arg2 == "clamp" || arg2 == "")
+        {
+            if (last_filter == 2)
             {
                 LR2D()->setSamplerState(IRenderer::SamplerState::LinearClamp);
             }
@@ -927,19 +884,19 @@ static int compat_SetTextureSamplerState(lua_State* L)LNOEXCEPT
             {
                 LR2D()->setSamplerState(IRenderer::SamplerState::PointClamp);
             }
-            break;
-        default:
-            return luaL_error(L, "invalid argument address mode.");
+            last_addr = 2;
         }
-        last_addr = arg2;
+        else
+        {
+            return luaL_error(L, "invalid address mode.");
+        }
     }
     else if (arg1 == "filter")
     {
-        F2DTEXFILTERTYPE arg2 = LuaSTGPlus::TranslateTextureSamplerFilter(L, 2);
-        switch (arg2)
+        std::string_view arg2 = luaL_check_string_view(L, 2);
+        if (arg2 == "point")
         {
-        case F2DTEXFILTER_POINT:
-            if (last_addr == F2DTEXTUREADDRESS_CLAMP)
+            if (last_addr == 2)
             {
                 LR2D()->setSamplerState(IRenderer::SamplerState::PointClamp);
             }
@@ -947,9 +904,11 @@ static int compat_SetTextureSamplerState(lua_State* L)LNOEXCEPT
             {
                 LR2D()->setSamplerState(IRenderer::SamplerState::PointWrap);
             }
-            break;
-        case F2DTEXFILTER_LINEAR:
-            if (last_addr == F2DTEXTUREADDRESS_CLAMP)
+            last_filter = 1;
+        }
+        else if (arg2 == "linear" || arg2 == "")
+        {
+            if (last_addr == 2)
             {
                 LR2D()->setSamplerState(IRenderer::SamplerState::LinearClamp);
             }
@@ -957,11 +916,12 @@ static int compat_SetTextureSamplerState(lua_State* L)LNOEXCEPT
             {
                 LR2D()->setSamplerState(IRenderer::SamplerState::LinearWrap);
             }
-            break;
-        default:
-            return luaL_error(L, "invalid argument address mode.");
+            last_filter = 2;
         }
-        last_filter = arg2;
+        else
+        {
+            return luaL_error(L, "invalid filter mode.");
+        }
     }
     else
     {
@@ -997,11 +957,6 @@ static luaL_Reg const lib_compat[] = {
     { "PostEffect", &compat_PostEffect },
     // 应该要废弃掉的方法
     { "SetTextureSamplerState", &compat_SetTextureSamplerState },
-    // 置为空方法
-    //{ "DrawCollider", &compat_Noop },
-    //{ "RenderGroupCollider", &compat_Noop },
-    { "RenderTextureSector", &compat_Noop },
-    { "RenderTextureAnnulus", &compat_Noop },
     { NULL, NULL },
 };
 

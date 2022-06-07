@@ -236,6 +236,9 @@ void GameObjectBentLaser::SetAllWidth(float width)  noexcept
 
 bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, fcyColor c, float tex_left, float tex_top, float tex_width, float tex_height, float scale) noexcept
 {
+	using namespace LuaSTG::Core;
+	using namespace LuaSTG::Core::Graphics;
+
 	// 忽略只有一个节点的情况
 	if (m_Queue.Size() <= 1)
 		return true;
@@ -247,11 +250,11 @@ bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, fcyColor
 		return false;
 	}
 
-	f2dGraphics2DVertex renderVertex[4] = {
-		{ 0, 0, 0.5f, c.argb, 0, tex_top },
-		{ 0, 0, 0.5f, c.argb, 0, tex_top },
-		{ 0, 0, 0.5f, c.argb, 0, tex_top + tex_height },
-		{ 0, 0, 0.5f, c.argb, 0, tex_top + tex_height }
+	IRenderer::DrawVertex renderVertex[4] = {
+		IRenderer::DrawVertex(0.0f, 0.0f, 0.5f, 0.0f, tex_top             , c.argb),
+		IRenderer::DrawVertex(0.0f, 0.0f, 0.5f, 0.0f, tex_top             , c.argb),
+		IRenderer::DrawVertex(0.0f, 0.0f, 0.5f, 0.0f, tex_top + tex_height, c.argb),
+		IRenderer::DrawVertex(0.0f, 0.0f, 0.5f, 0.0f, tex_top + tex_height, c.argb),
 	};
 	fuInt org_c = c.argb;
 	c.a = 0;

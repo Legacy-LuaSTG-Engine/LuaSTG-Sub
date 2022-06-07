@@ -5,8 +5,8 @@ set(FANCY2D_SOURCE
 
     f2dEngine.h
     f2dSoundSys.h
-    f2dRenderDevice.h
-    f2dRenderer.h
+    #f2dRenderDevice.h
+    #f2dRenderer.h
 
     #Build/fancy2d.manifest
     Build/pch.h
@@ -15,13 +15,13 @@ set(FANCY2D_SOURCE
     Engine/f2dEngineImpl.h
     Engine/f2dEngineImpl.cpp
 
-    RenderDev/f2dRenderDevice11.h
-    RenderDev/f2dRenderDevice11.cpp
-    RenderDev/f2dTexture11.h
-    RenderDev/f2dTexture11.cpp
+    #RenderDev/f2dRenderDevice11.h
+    #RenderDev/f2dRenderDevice11.cpp
+    #RenderDev/f2dTexture11.h
+    #RenderDev/f2dTexture11.cpp
 
-    Renderer/f2dRendererImpl.h
-    Renderer/f2dRendererImpl.cpp
+    #Renderer/f2dRendererImpl.h
+    #Renderer/f2dRendererImpl.cpp
     #Renderer/f2dGeometryRendererImpl.h
     #Renderer/f2dGeometryRendererImpl.cpp
     #Renderer/f2dSpriteImpl.h
@@ -30,12 +30,12 @@ set(FANCY2D_SOURCE
     #Renderer/f2dSpriteAnimationImpl.cpp
     #Renderer/f2dParticle.h
     #Renderer/f2dParticle.cpp
-    Renderer/f2dFontRendererImpl.h
-    Renderer/f2dFontRendererImpl.cpp
-    Renderer/f2dFontTexProvider.h
-    Renderer/f2dFontTexProvider.cpp
-    Renderer/f2dTrueTypeFontProvider.h
-    Renderer/f2dTrueTypeFontProvider.cpp
+    #Renderer/f2dFontRendererImpl.h
+    #Renderer/f2dFontRendererImpl.cpp
+    #Renderer/f2dFontTexProvider.h
+    #Renderer/f2dFontTexProvider.cpp
+    #Renderer/f2dTrueTypeFontProvider.h
+    #Renderer/f2dTrueTypeFontProvider.cpp
 
     Sound/f2dSoundSysImpl.h
     Sound/f2dSoundSysImpl.cpp
