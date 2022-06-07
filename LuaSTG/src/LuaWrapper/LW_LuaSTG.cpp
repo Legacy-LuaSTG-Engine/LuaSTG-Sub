@@ -1,4 +1,5 @@
 ﻿#include "LuaWrapper/LuaWrapper.hpp"
+#include "LuaWrapper/lua_utility.hpp"
 #include "AppFrame.h"
 #include "LConfig.h"
 
@@ -142,54 +143,8 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			}
 			return 1;
 		}
-		static int SetSwapChainSize(lua_State* L)LNOEXCEPT
-		{
-			const fuInt width = (fuInt)luaL_checkinteger(L, 1);
-			const fuInt height = (fuInt)luaL_checkinteger(L, 2);
-			const fBool windowed = lua_toboolean(L, 3);
-			const fBool vsync = lua_toboolean(L, 4);
-			const fBool flip = lua_toboolean(L, 5);
-			fResult result = LAPP.GetRenderDev()->SetBufferSize(width, height, windowed, vsync, flip, F2DAALEVEL_NONE);
-			if (result == FCYERR_OK)
-			{
-				spdlog::info("[fancy2d] 交换链更新成功 Size:({}x{}) Windowed:{} Vsync:{} Flip:{}",
-					width, height, windowed, vsync, flip);
-			}
-			else
-			{
-				spdlog::error("[fancy2d] [f2dRenderDevice::SetBufferSize] 交换链更新失败(fResult={})，参数为 Size:({}x{}) Windowed:{} Vsync:{} Flip:{}",
-					result,
-					width, height, windowed, vsync, flip);
-			}
-			lua_pushboolean(L, result == FCYERR_OK);
-			return 1;
-		}
-		static int SetDisplayMode(lua_State* L)LNOEXCEPT
-		{
-			const fuInt width = (fuInt)luaL_checkinteger(L, 1);
-			const fuInt height = (fuInt)luaL_checkinteger(L, 2);
-			const fuInt refreshrate = (fuInt)luaL_checkinteger(L, 3);
-			const fBool windowed = lua_toboolean(L, 4);
-			const fBool vsync = lua_toboolean(L, 5);
-			const fBool flip = lua_toboolean(L, 6);
-			const fuInt refreshrateb = (fuInt)luaL_optinteger(L, 7, 1);
-			fResult result = LAPP.GetRenderDev()->SetDisplayMode(width, height, refreshrate, refreshrateb, windowed, vsync, flip);
-			if (result == FCYERR_OK)
-			{
-				spdlog::info("[fancy2d] 交换链更新成功 Size:({}x{}) RefreshRate:{} Windowed:{} Vsync:{} Flip:{}",
-					width, height, (float)refreshrate / (float)refreshrateb, windowed, vsync, flip);
-			}
-			else
-			{
-				spdlog::error("[fancy2d] [f2dRenderDevice::SetDisplayMode] 交换链更新失败(fResult={})，参数为 Size:({}x{}) RefreshRate:{} Windowed:{} Vsync:{} Flip:{}",
-					result,
-					width, height, (float)refreshrate / (float)refreshrateb, windowed, vsync, flip);
-			}
-			lua_pushboolean(L, result == FCYERR_OK);
-			return 1;
-		}
 		static int EnumResolutions(lua_State* L) {
-			if (LAPP.GetRenderDev())
+			if (LAPP.GetAppModel())
 			{
 				auto* p_swapchain = LAPP.GetAppModel()->getSwapChain();
 				p_swapchain->refreshDisplayMode();
@@ -232,13 +187,14 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			}
 		}
 		static int EnumGPUs(lua_State* L) {
-			if (LAPP.GetRenderDev())
+			if (LAPP.GetAppModel())
 			{
-				auto count = LAPP.GetRenderDev()->GetSupportedDeviceCount();
+				auto* p_device = LAPP.GetAppModel()->getDevice();
+				auto count = p_device->getGpuCount();
 				lua_createtable(L, count, 0);		// t
 				for (auto index = 0; index < count; index++)
 				{
-					lua_pushstring(L, LAPP.GetRenderDev()->GetSupportedDeviceName(index)); // t name
+					lua_push_string_view(L, p_device->getGpuName(index)); // t name
 					lua_rawseti(L, -2, index + 1);	// t
 				}
 				return 1;
@@ -313,8 +269,6 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		
 		#pragma region 窗口与交换链控制函数
 		{ "ChangeVideoMode", &WrapperImplement::ChangeVideoMode },
-		{ "SetSwapChainSize", &WrapperImplement::SetSwapChainSize },
-		{ "SetDisplayMode", &WrapperImplement::SetDisplayMode },
 		{ "EnumResolutions", &WrapperImplement::EnumResolutions },
 		{ "EnumGPUs", &WrapperImplement::EnumGPUs },
 		#pragma endregion

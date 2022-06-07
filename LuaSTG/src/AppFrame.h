@@ -68,16 +68,10 @@ namespace LuaSTGPlus
 
 		// 引擎
 		fcyRefPointer<f2dEngine> m_pEngine;
-		f2dRenderer* m_pRenderer = nullptr;
-		f2dRenderDevice* m_pRenderDev = nullptr;
 		f2dSoundSys* m_pSoundSys = nullptr;
 		
 		//渲染状态
 		bool m_bRenderStarted = false;
-		
-		//渲染器
-		fcyRefPointer<f2dFontRenderer> m_FontRenderer;//2D
-		fcyRefPointer<f2dGraphics2D> m_Graph2D;//2D
 		
 		// 渲染目标栈
 		std::vector<fcyRefPointer<ResTexture>> m_stRenderTargetStack;
@@ -163,12 +157,6 @@ namespace LuaSTGPlus
 	public:  // 渲染器接口
 		void updateGraph2DBlendMode(BlendMode m);
 
-		/// @brief 通知开始渲染
-		bool BeginScene() LNOEXCEPT;
-		
-		/// @brief 通知结束渲染
-		bool EndScene() LNOEXCEPT;
-		
 		/// @brief 渲染图像
 		bool Render(ResSprite* p, float x, float y, float rot = 0, float hscale = 1, float vscale = 1, float z = 0.5) LNOEXCEPT;
 		
@@ -213,14 +201,6 @@ namespace LuaSTGPlus
 		bool PopRenderTarget()LNOEXCEPT;
 		fcyVec2 GetCurrentRenderTargetSize();
 
-		// 渲染扇形，通过纹理+uv范围渲染
-		bool RenderSector(const char* name, fcyRect uv, bool tran, BlendMode blend, fcyColor color1, fcyColor color2,
-			fcyVec2 pos, float rot, float exp, float r1, float r2, int div);
-		
-		// 渲染环，通过纹理+uv范围渲染
-		bool RenderAnnulus(const char* name, fcyRect uv, bool tran, BlendMode blend, fcyColor color1, fcyColor color2,
-			fcyVec2 pos, float rot, float r1, float r2, int div, int rep);
-		
 		void DebugSetGeometryRenderState();
 		void DebugDrawCircle(float const x, float const y, float const r, fcyColor const color);
 		void DebugDrawRect(float const x, float const y, float const a, float const b, float const rot, fcyColor const color);
@@ -248,10 +228,7 @@ namespace LuaSTGPlus
 
 		GameObjectPool& GetGameObjectPool() LNOEXCEPT{ return *m_GameObjectPool.get(); }
 
-		f2dRenderer* GetRenderer() LNOEXCEPT { return m_pRenderer; }
-		f2dRenderDevice* GetRenderDev() LNOEXCEPT { return m_pRenderDev; }
 		f2dSoundSys* GetSoundSys() LNOEXCEPT { return m_pSoundSys; }
-		fcyRefPointer<f2dGraphics2D> GetGraphics2D() LNOEXCEPT { return m_Graph2D; }
 
 		platform::DirectInput* GetDInput() LNOEXCEPT { return m_DirectInput.get(); }
 		

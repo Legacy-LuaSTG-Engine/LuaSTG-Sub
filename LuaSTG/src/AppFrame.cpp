@@ -11,102 +11,6 @@
 #include "utility/encoding.hpp"
 #include "platform/XInput.hpp"
 
-class f2dGraphic2dAdapter : public f2dGraphics2D
-{
-private:
-	fcyMatrix4 m_tMat;
-	f2dBlendState m_tState = {};
-	LuaSTG::Core::Graphics::IRenderer* m_Renderer = nullptr;
-	inline void applyTexure(f2dTexture2D* pTex)
-	{
-		if (pTex)
-		{
-			m_Renderer->setTexture(pTex->GetNativeTexture2D());
-		}
-		else
-		{
-			m_Renderer->setTexture(nullptr);
-		}
-	}
-public:
-	// 用不上
-	void AddRef() {}
-	void Release() {}
-
-	fBool IsGraphics3D() { return false; }
-
-	fBool IsInRender() { return true; }
-	fResult Begin() { return FCYERR_OK; }
-	fResult Flush()
-	{
-		return m_Renderer->flush() ? FCYERR_OK : FCYERR_INTERNALERR;
-	}
-	fResult End()
-	{
-		return Flush();
-	}
-
-	// 用不上
-	const fcyMatrix4& GetWorldTransform() { return m_tMat; }
-	const fcyMatrix4& GetViewTransform() { return m_tMat; }
-	const fcyMatrix4& GetProjTransform() { return m_tMat; }
-
-	// 用不上
-	void SetWorldTransform(const fcyMatrix4& Mat) {}
-	void SetViewTransform(const fcyMatrix4& Mat) {}
-	void SetProjTransform(const fcyMatrix4& Mat) { m_tMat = Mat; }
-
-	// 用不上
-	const f2dBlendState& GetBlendState() { return m_tState; }
-	void SetBlendState(const f2dBlendState& State) { m_tState = State; }
-
-	// 用不上
-	F2DGRAPH2DBLENDTYPE GetColorBlendType()
-	{
-		return F2DGRAPH2DBLENDTYPE_MODULATE;
-	}
-	fResult SetColorBlendType(F2DGRAPH2DBLENDTYPE Type)
-	{
-		return FCYERR_OK;
-	}
-
-	fResult DrawQuad(f2dTexture2D* pTex, const f2dGraphics2DVertex& v1, const f2dGraphics2DVertex& v2, const f2dGraphics2DVertex& v3, const f2dGraphics2DVertex& v4, fBool bAutoFixCoord = true)
-	{
-		applyTexure(pTex);
-		m_Renderer->drawQuad(
-			(LuaSTG::Core::Graphics::IRenderer::DrawVertex const&)(v1),
-			(LuaSTG::Core::Graphics::IRenderer::DrawVertex const&)(v2),
-			(LuaSTG::Core::Graphics::IRenderer::DrawVertex const&)(v3),
-			(LuaSTG::Core::Graphics::IRenderer::DrawVertex const&)(v4));
-		return FCYERR_OK;
-	}
-	fResult DrawQuad(f2dTexture2D* pTex, const f2dGraphics2DVertex* arr, fBool bAutoFixCoord = true)
-	{
-		applyTexure(pTex);
-		m_Renderer->drawQuad((LuaSTG::Core::Graphics::IRenderer::DrawVertex*)arr);
-		return FCYERR_OK;
-	}
-	fResult DrawRaw(f2dTexture2D* pTex, fuInt VertCount, fuInt IndexCount, const f2dGraphics2DVertex* VertArr, const fuShort* IndexArr, fBool bAutoFixCoord = true)
-	{
-		applyTexure(pTex);
-		m_Renderer->drawRaw(
-			(LuaSTG::Core::Graphics::IRenderer::DrawVertex*)VertArr,
-			(uint16_t)VertCount,
-			(LuaSTG::Core::Graphics::IRenderer::DrawIndex*)IndexArr,
-			(uint16_t)IndexCount);
-		return FCYERR_OK;
-	}
-	
-	f2dGraphic2dAdapter() : m_Renderer(nullptr) {}
-	f2dGraphic2dAdapter(LuaSTG::Core::Graphics::IRenderer* r2d) : m_Renderer(r2d) {}
-public:
-	static f2dGraphic2dAdapter& get()
-	{
-		static f2dGraphic2dAdapter i;
-		return i;
-	}
-};
-
 using namespace LuaSTGPlus;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -254,20 +158,49 @@ LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, 
 				(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
 				width, height, vsync, windowed);
 		};
-
+		auto setWindowedMode = [&]() -> bool
+		{
+			using namespace LuaSTG::Core;
+			using namespace LuaSTG::Core::Graphics;
+			auto* swapchain = m_pAppModel->getSwapChain();
+			swapchain->setVSync(vsync);
+			return swapchain->setWindowMode((uint32_t)width, (uint32_t)height, flip);
+		};
+		auto setFullscreenMode = [&]() -> bool
+		{
+			using namespace LuaSTG::Core;
+			using namespace LuaSTG::Core::Graphics;
+			auto* swapchain = m_pAppModel->getSwapChain();
+			swapchain->setVSync(vsync);
+			DisplayMode mode = {
+				.width = (uint32_t)width,
+				.height = (uint32_t)height,
+				.refresh_rate = {
+					.numerator = (uint32_t)hza,
+					.denominator = (uint32_t)hzb,
+				},
+				.format = Format::B8G8R8A8_UNORM,
+			};
+			if (hza == 0 || hzb == 0)
+			{
+				mode.refresh_rate.numerator = m_OptionFPSLimit;
+				mode.refresh_rate.denominator = 1;
+				if (!swapchain->findBestMatchDisplayMode(mode)) return false;
+			}
+			return swapchain->setExclusiveFullscreenMode(mode);
+		};
 		if (hza == 0 || hzb == 0)
 		{
 			if (windowed)
 			{
-				bool bResult = true;
-				if (FCYOK(m_pRenderDev->SetBufferSize((fuInt)width, (fuInt)height, windowed, vsync, false, F2DAALEVEL_NONE)))
+				bool bResult = setWindowedMode();
+				if (bResult)
 				{
 					logInfo();
 				}
 				else
 				{
 					logError();
-					bResult = false;
 				}
 				applyWindowedStyle();
 				storeNewOption();
@@ -276,7 +209,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, 
 			else
 			{
 				applyFullscreenStyle();
-				if (FCYOK(m_pRenderDev->SetBufferSize((fuInt)width, (fuInt)height, windowed, vsync, false, F2DAALEVEL_NONE)))
+				if (setFullscreenMode())
 				{
 					logInfo();
 					storeNewOption();
@@ -286,7 +219,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, 
 				{
 					logError();
 					windowed = true; // 强制窗口化
-					m_pRenderDev->SetBufferSize((fuInt)width, (fuInt)height, true, vsync, false, F2DAALEVEL_NONE); // 出错也不用管了
+					setWindowedMode(); // 出错也不用管了
 					applyWindowedStyle();
 					storeNewOption();
 					return false;
@@ -302,15 +235,14 @@ LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, 
 					// 窗口模式下，先改变窗口设置再修改交换链
 					applyWindowedStyle();
 				}
-				bool bResult = true;
-				if (FCYOK(m_pRenderDev->SetDisplayMode((fuInt)width, (fuInt)height, (fuInt)hza, (fuInt)hzb, windowed, vsync, flip)))
+				bool bResult = setWindowedMode();
+				if (bResult)
 				{
 					logInfo();
 				}
 				else
 				{
 					logInfo();
-					bResult = false;
 				}
 				if (!m_OptionWindowed)
 				{
@@ -323,8 +255,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, 
 			else
 			{
 				applyFullscreenStyle();
-				
-				if (FCYOK(m_pRenderDev->SetDisplayMode((fuInt)width, (fuInt)height, (fuInt)hza, (fuInt)hzb, windowed, vsync, flip)))
+				if (setFullscreenMode())
 				{
 					spdlog::info("[luastg] 显示模式切换成功 ({}x{} Vsync:{} Windowed:{}) -> ({}x{}@{} Vsync:{} Windowed:{})",
 						(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
@@ -338,7 +269,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, 
 						(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
 						width, height, (float)hza / (float)hzb, vsync, windowed);
 					windowed = true; // 强制窗口化
-					m_pRenderDev->SetDisplayMode((fuInt)width, (fuInt)height, (fuInt)hza, (fuInt)hzb, windowed, vsync, flip); // 出错也不用管了
+					setWindowedMode(); // 出错也不用管了
 					applyWindowedStyle();
 					storeNewOption();
 					return false;
@@ -458,8 +389,6 @@ bool AppFrame::Init()LNOEXCEPT
 		}
 		
 		// 获取组件
-		m_pRenderer = m_pEngine->GetRenderer();
-		m_pRenderDev = m_pRenderer->GetDevice();
 		m_pSoundSys = m_pEngine->GetSoundSys();
 		
 		// 配置音量
@@ -467,19 +396,7 @@ bool AppFrame::Init()LNOEXCEPT
 		m_pSoundSys->SetMusicChannelVolume(m_gBGMVol);
 
 		// 渲染器适配器
-		spdlog::info("[luastg] 创建2D渲染器适配器");
-		f2dGraphic2dAdapter::get() = f2dGraphic2dAdapter(m_pAppModel->getRenderer());
-		m_Graph2D = &f2dGraphic2dAdapter::get();
 		m_bRenderStarted = false;
-		
-		// 创建文字渲染器
-		spdlog::info("[fancy2d] 创建文本渲染器");
-		if (FCYFAILED(m_pRenderer->CreateFontRenderer(nullptr, ~m_FontRenderer)))
-		{
-			spdlog::error("[fancy2d] [fcyRenderer::CreateFontRenderer] 创建文本渲染器失败");
-			return false;
-		}
-		m_FontRenderer->SetZ(0.5f);
 		
 		OpenInput();
 
@@ -586,19 +503,15 @@ void AppFrame::Shutdown()LNOEXCEPT
 		imgui::unbindEngine();
 	#endif
 	
-	CloseInput();
-	m_DirectInput = nullptr;
-	m_FontRenderer = nullptr;
-	m_Graph2D = nullptr;
 	m_pSoundSys = nullptr;
-	m_pRenderDev = nullptr;
-	m_pRenderer = nullptr;
+	m_pEngine = nullptr;
 	spdlog::info("[fancy2d] 卸载所有组件");
 	
 	GFileManager().unloadAllFileArchive();
 	spdlog::info("[luastg] 卸载所有资源包");
 	
-	m_pEngine = nullptr;
+	CloseInput();
+	m_DirectInput = nullptr;
 	m_pTextRenderer = nullptr;
 	m_pAppModel = nullptr;
 

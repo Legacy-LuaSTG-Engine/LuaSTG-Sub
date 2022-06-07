@@ -126,6 +126,11 @@ namespace LuaSTG::Core::Graphics
 
 		virtual DeviceMemoryUsageStatistics getMemoryUsageStatistics() = 0;
 
+		virtual uint32_t getGpuCount() = 0;
+		virtual StringView getGpuName(uint32_t index) = 0;
+
+		virtual void* getNativeHandle() = 0;
+
 		virtual bool createTextureFromFile(StringView path, bool mipmap, ITexture2D** pp_texutre) = 0;
 		//virtual bool createTextureFromMemory(void const* data, size_t size, bool mipmap, ITexture2D** pp_texutre) = 0;
 		virtual bool createTexture(Vector2U size, ITexture2D** pp_texutre) = 0;

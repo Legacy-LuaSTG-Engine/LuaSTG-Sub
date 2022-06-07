@@ -220,40 +220,4 @@ namespace LuaSTGPlus
             return;
         }
     }
-
-    // 废弃
-    bool AppFrame::BeginScene() noexcept
-    {
-        if (!m_bRenderStarted)
-        {
-            spdlog::error("[luastg] 不能在RenderFunc以外的地方执行渲染");
-            return false;
-        }
-
-        fResult fr = m_Graph2D->Begin();
-        if (FCYFAILED(fr))
-        {
-            spdlog::error("[fancy2d] [f2dGraphics2D::Begin] 失败(fResult={})", fr);
-            return false;
-        }
-        
-        return true;
-    }
-    bool AppFrame::EndScene() noexcept
-    {
-        if (!m_bRenderStarted)
-        {
-            spdlog::error("[luastg] 不能在RenderFunc以外的地方执行渲染");
-            return false;
-        }
-
-        fResult fr = m_Graph2D->End();
-        if (FCYFAILED(fr))
-        {
-            spdlog::error("[fancy2d] [f2dGraphics2D::End] 失败(fResult={})", fr);
-            return false;
-        }
-
-        return true;
-    }
 };
