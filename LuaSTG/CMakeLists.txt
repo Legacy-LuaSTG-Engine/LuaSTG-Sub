@@ -57,6 +57,9 @@ set(LuaSTGCore_SRC
     Core/Graphics/Sprite.hpp
     Core/Graphics/Sprite_D3D11.hpp
     Core/Graphics/Sprite_D3D11.cpp
+    Core/Graphics/Font.hpp
+    Core/Graphics/Font_D3D11.hpp
+    Core/Graphics/Font_D3D11.cpp
     Core/Graphics/DearImGui_Win32_D3D11.hpp
     Core/Graphics/DearImGui_Win32_D3D11.cpp
     Core/ApplicationModel.hpp

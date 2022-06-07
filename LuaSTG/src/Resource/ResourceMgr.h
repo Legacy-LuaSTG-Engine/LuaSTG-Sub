@@ -74,9 +74,8 @@ namespace LuaSTGPlus
         // 装载纹理字体(fancy2d)
         bool LoadSpriteFont(const char* name, const char* path, const char* tex_path, bool mipmaps = true) noexcept;
         // 加载矢量字体
-        bool LoadTTFFont(const char* name, const char* path, float width, float height, float bboxwidth, float bboxheight) noexcept;
-        bool LoadTTFFont(const char* name, fcyStream* stream, float width, float height, float bboxwidth, float bboxheight) noexcept;
-        bool LoadTrueTypeFont(const char* name, f2dFontProviderParam param, f2dTrueTypeFontParam* fonts, fuInt count) noexcept;
+        bool LoadTTFFont(const char* name, const char* path, float width, float height) noexcept;
+        bool LoadTrueTypeFont(const char* name, LuaSTG::Core::Graphics::TrueTypeFontInfo* fonts, size_t count) noexcept;
         // 特效
         bool LoadFX(const char* name, const char* path, bool is_effect = true) noexcept;
         // 模型

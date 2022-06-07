@@ -585,65 +585,36 @@ bool ResourcePool::LoadSpriteFont(const char* name, const char* path, bool mipma
         return true;
     }
     
-    fcyRefPointer<fcyMemStream> tDataBuf(_load_file("LoadSpriteFont", "纹理字体", path, name));
-    if (!tDataBuf) return false;
-
-    // 转换编码
-    std::wstring tFileData;
-    try {
-        if (tDataBuf->GetLength() > 0) {
-            // stupid
-            tFileData = std::move(utility::encoding::to_wide(
-                std::string_view((const char*)tDataBuf->GetInternalBuffer(), (size_t)tDataBuf->GetLength())
-            ));
-        }
-    }
-    catch (const std::bad_alloc&) {
-        spdlog::error("[luastg] LoadSpriteFont: 内存不足");
-        return false;
-    }
-    
-    // 读取HGE字体定义
-    std::unordered_map<wchar_t, f2dGlyphInfo> tOutputCharset;
-    std::string texpath;
-    try {
-        std::wstring tOutputTextureName;
-        ResFont::HGEFont::ReadDefine(tFileData, tOutputCharset, tOutputTextureName);
-        texpath = fcyPathParser::GetPath(path) + utility::encoding::to_utf8(tOutputTextureName);
-    }
-    catch (const fcyException& e) {
-        spdlog::error("[luastg] [{}] 无法从'{}'加载纹理字体'{}'：{}", e.GetSrc(), path, name, e.GetDesc());
-        return false;
-    }
-    catch (const std::bad_alloc&) {
-        spdlog::error("[luastg] LoadSpriteFont: 内存不足");
-        return false;
-    }
-    
-    // 装载纹理
-    fcyRefPointer<f2dTexture2D> tTexture;
-    fResult fr = LAPP.GetRenderDev()->CreateTextureFromFile(texpath.c_str(), mipmaps, ~tTexture);
-    if (FCYFAILED(fr)) {
-        spdlog::error("[fancy2d] [f2dRenderDevice::CreateTextureFromFile] 从'{}'创建纹理'{}'失败(fResult={})", texpath, name, fr);
-        return false;
-    }
-    
     // 创建定义
-    try {
-        fcyRefPointer<f2dFontProvider> tFontProvider;
-        tFontProvider.DirectSet(new ResFont::HGEFont(std::move(tOutputCharset), tTexture));
-        
+    try
+    {
         fcyRefPointer<ResFont> tRes;
-        tRes.DirectSet(new ResFont(name, tFontProvider));
+        tRes.DirectSet(new ResFont(name, path, mipmaps));
         m_SpriteFontPool.emplace(name, tRes);
     }
-    catch (const std::bad_alloc&) {
+    catch (const std::runtime_error& e)
+    {
+        spdlog::error("[luastg] LoadSpriteFont: 加载 HGE 纹理字体失败 ({})", e.what());
+        return false;
+    }
+    catch (const fcyException& e)
+    {
+        spdlog::error("[luastg] LoadSpriteFont: 加载 HGE 纹理字体失败 [{}] ({})", e.GetSrc(), e.GetDesc());
+        return false;
+    }
+    catch (const std::bad_alloc&)
+    {
         spdlog::error("[luastg] LoadSpriteFont: 内存不足");
+        return false;
+    }
+    catch (...)
+    {
+        spdlog::error("[luastg] LoadSpriteFont: 加载 HGE 纹理字体失败");
         return false;
     }
     
     if (ResourceMgr::GetResourceLoadingLog()) {
-        spdlog::info("[luastg] LoadSpriteFont: 已从'{}'和'{}'加载纹理字体'{}' ({})", path, texpath, name, getResourcePoolTypeName());
+        spdlog::info("[luastg] LoadSpriteFont: 已从'{}'加载 HGE 纹理字体'{}' ({})", path, name, getResourcePoolTypeName());
     }
     
     return true;
@@ -664,58 +635,36 @@ bool ResourcePool::LoadSpriteFont(const char* name, const char* path, const char
         return true;
     }
     
-    // 加载字体定义文件
-    fcyRefPointer<fcyMemStream> tDataBuf(_load_file("LoadSpriteFont", "纹理字体", path, name));
-    if (!tDataBuf) return false;
-    
-    // 转换编码
-    std::wstring tFileData;
-    try {
-        if (tDataBuf->GetLength() > 0) {
-            // stupid
-            tFileData = std::move(utility::encoding::to_wide(
-                std::string_view((const char*)tDataBuf->GetInternalBuffer(), (size_t)tDataBuf->GetLength())
-            ));
-        }
+    // 创建定义
+    try
+    {
+        fcyRefPointer<ResFont> tRes;
+        tRes.DirectSet(new ResFont(name, path, tex_path, mipmaps));
+        m_SpriteFontPool.emplace(name, tRes);
     }
-    catch (const std::bad_alloc&) {
+    catch (const std::runtime_error& e)
+    {
+        spdlog::error("[luastg] LoadSpriteFont: 加载 fancy2d 纹理字体失败 ({})", e.what());
+        return false;
+    }
+    catch (const fcyException& e)
+    {
+        spdlog::error("[luastg] LoadSpriteFont: 加载 fancy2d 纹理字体失败 [{}] ({})", e.GetSrc(), e.GetDesc());
+        return false;
+    }
+    catch (const std::bad_alloc&)
+    {
         spdlog::error("[luastg] LoadSpriteFont: 内存不足");
         return false;
     }
-    
-    // 加载纹理文件
-    const std::string fulltexpath = fcyPathParser::GetPath(path) + tex_path;
-    fResult fr = 0;
-    fcyRefPointer<f2dTexture2D> tTexture;
-    fr = LAPP.GetRenderDev()->CreateTextureFromFile(fulltexpath.c_str(), mipmaps, ~tTexture);
-    if (FCYFAILED(fr)) {
-        fr = LAPP.GetRenderDev()->CreateTextureFromFile(tex_path, mipmaps, ~tTexture);
-        if (FCYFAILED(fr)) {
-            spdlog::error("[fancy2d] [f2dRenderDevice::CreateTextureFromFile] 从'{}'创建纹理'{}'失败(fResult={})", tex_path, name, fr);
-            return false;
-        }
-    }
-    
-    // 创建定义
-    try {
-        fcyRefPointer<f2dFontProvider> tFontProvider;
-        fr = LAPP.GetRenderer()->CreateFontFromTex(tFileData.c_str(), tTexture, ~tFontProvider);
-        if (FCYFAILED(fr)) {
-            spdlog::error("[fancy2d] [f2dRenderer::CreateFontFromTex] 创建纹理字体'{}'失败(fResult={})", name, fr);
-            return false;
-        }
-        
-        fcyRefPointer<ResFont> tRes;
-        tRes.DirectSet(new ResFont(name, tFontProvider));
-        m_SpriteFontPool.emplace(name, tRes);
-    }
-    catch (const std::bad_alloc&) {
-        spdlog::error("[luastg] LoadSpriteFont: 内存不足");
+    catch (...)
+    {
+        spdlog::error("[luastg] LoadSpriteFont: 加载 fancy2d 纹理字体失败");
         return false;
     }
     
     if (ResourceMgr::GetResourceLoadingLog()) {
-        spdlog::info("[luastg] LoadSpriteFont: 已从'{}'和'{}'加载纹理字体'{}' ({})", path, tex_path, name, getResourcePoolTypeName());
+        spdlog::info("[luastg] LoadSpriteFont: 已从'{}'和'{}'加载 fancy2d 纹理字体'{}' ({})", path, tex_path, name, getResourcePoolTypeName());
     }
     
     return true;
@@ -723,13 +672,7 @@ bool ResourcePool::LoadSpriteFont(const char* name, const char* path, const char
 
 // 加载TrueType字体
 
-bool ResourcePool::LoadTTFFont(const char* name, const char* path,
-                               float width, float height, float bboxwidth,float bboxheight) noexcept {
-    if (!LAPP.GetRenderer()) {
-        spdlog::error("[luastg] LoadTTFFont: 无法加载矢量字体'{}'，f2dRenderer未准备好", name);
-        return false;
-    }
-    
+bool ResourcePool::LoadTTFFont(const char* name, const char* path, float width, float height) noexcept {
     if (m_TTFFontPool.find(name) != m_TTFFontPool.end()) {
         if (ResourceMgr::GetResourceLoadingLog()) {
             spdlog::warn("[luastg] LoadTTFFont: 矢量字体'{}'已存在，加载操作已取消", name);
@@ -737,109 +680,42 @@ bool ResourcePool::LoadTTFFont(const char* name, const char* path,
         return true;
     }
     
-    fcyRefPointer<f2dFontProvider> tFontProvider;
-    
-    // 读取文件
-    fcyRefPointer<fcyMemStream> tDataBuf(_load_file("LoadTTFFont", "矢量字体", path, name));
-    if (!tDataBuf) {
-        spdlog::info("[luastg] LoadTTFFont: 尝试从系统字体库加载字体");
-        try {
-            const std::wstring wpath = std::move(utility::encoding::to_wide(path));
-            if (FCYFAILED(LAPP.GetRenderer()->CreateSystemFont(
-                wpath.c_str(), 0, fcyVec2(width, height), F2DFONTFLAG_NONE, ~tFontProvider))) {
-                spdlog::error("[luastg] LoadTTFFont: 尝试失败，无法从系统字体库加载字体'{}'", path);//向lua层返回错误，而不是直接崩游戏
-                return false;
-            }
-        }
-        catch (const std::bad_alloc&) {
-            spdlog::error("[luastg] LoadTTFFont: 内存不足");
-            return false;
-        }
+    LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::IGlyphManager> p_glyphmgr;
+    LuaSTG::Core::Graphics::TrueTypeFontInfo create_info = {
+        .source = path,
+        .font_face = 0,
+        .font_size = LuaSTG::Core::Vector2F(width, height),
+        .is_force_to_file = false,
+        .is_buffer = false,
+    };
+    if (!LuaSTG::Core::Graphics::IGlyphManager::create(LAPP.GetAppModel()->getDevice(), &create_info, 1, ~p_glyphmgr))
+    {
+        spdlog::error("[luastg] LoadTTFFont: 加载矢量字体'{}'失败", name);
+        return false;
     }
-    
+
     // 创建定义
-    try {
-        if (!tFontProvider) {
-            fResult fr = LAPP.GetRenderer()->CreateFontFromMemory(tDataBuf, 0, fcyVec2(width, height),
-                                                                  fcyVec2(bboxwidth, bboxheight), F2DFONTFLAG_NONE,
-                                                                  ~tFontProvider);
-            if (FCYFAILED(fr)) {
-                spdlog::error("[fancy2d] [f2dRenderer::CreateFontFromMemory] 从'{}'创建矢量字体'{}'失败(fResult={})", path, name, fr);
-                return false;
-            }
-        }
-        
+    try
+    {
         fcyRefPointer<ResFont> tRes;
-        tRes.DirectSet(new ResFont(name, tFontProvider));
-        tRes->SetBlendMode(BlendMode::MulAlpha);
+        tRes.DirectSet(new ResFont(name, p_glyphmgr.get()));
         m_TTFFontPool.emplace(name, tRes);
     }
-    catch (const std::bad_alloc&) {
+    catch (const std::bad_alloc&)
+    {
         spdlog::error("[luastg] LoadTTFFont: 内存不足");
         return false;
     }
     
-    if (ResourceMgr::GetResourceLoadingLog()) {
-        spdlog::info("[luastg] LoadTTFFont: 字形缓存数量：{}，字形缓存贴图大小：({}x{})",
-            tFontProvider->GetCacheCount(),
-            tFontProvider->GetCacheTexSize(),
-            tFontProvider->GetCacheTexSize()
-        );
+    if (ResourceMgr::GetResourceLoadingLog())
+    {
         spdlog::info("[luastg] LoadTTFFont: 已从'{}'加载矢量字体'{}' ({})", path, name, getResourcePoolTypeName());
     }
     
     return true;
 }
 
-bool ResourcePool::LoadTTFFont(const char* name, fcyStream* stream, float width, float height,
-                               float bboxwidth,float bboxheight) noexcept {
-    if (!LAPP.GetRenderer()) {
-        spdlog::error("[luastg] LoadTTFFont: 无法加载矢量字体'{}'，f2dRenderer未准备好", name);
-        return false;
-    }
-    
-    if (m_TTFFontPool.find(name) != m_TTFFontPool.end()) {
-        if (ResourceMgr::GetResourceLoadingLog()) {
-            spdlog::warn("[luastg] LoadTTFFont: 矢量字体'{}'已存在，加载操作已取消", name);
-        }
-        return true;
-    }
-    
-    // 创建定义
-    fcyRefPointer<f2dFontProvider> tFontProvider;
-    try {
-        fResult fr = LAPP.GetRenderer()->CreateFontFromMemory((fcyMemStream*) stream, 0, fcyVec2(width, height),
-                                                            fcyVec2(bboxwidth, bboxheight), F2DFONTFLAG_NONE,
-                                                            ~tFontProvider);
-        if (FCYFAILED(fr)) {
-            spdlog::error("[fancy2d] [f2dRenderer::CreateFontFromMemory] 创建矢量字体'{}'失败(fResult={})", name, fr);
-            return false;
-        }
-        
-        fcyRefPointer<ResFont> tRes;
-        tRes.DirectSet(new ResFont(name, tFontProvider));
-        tRes->SetBlendMode(BlendMode::MulAlpha);
-        m_TTFFontPool.emplace(name, tRes);
-    }
-    catch (const std::bad_alloc&) {
-        spdlog::error("[luastg] LoadTTFFont: 内存不足");
-        return false;
-    }
-    
-    if (ResourceMgr::GetResourceLoadingLog()) {
-        spdlog::info("[luastg] LoadTTFFont: 字形缓存数量：{}，字形缓存贴图大小：({}x{})",
-            tFontProvider->GetCacheCount(),
-            tFontProvider->GetCacheTexSize(),
-            tFontProvider->GetCacheTexSize()
-        );
-        spdlog::info("[luastg] LoadTTFFont: 已加载矢量字体'{}' ({})", name, getResourcePoolTypeName());
-    }
-    
-    return true;
-}
-
-bool ResourcePool::LoadTrueTypeFont(const char* name,
-                                    f2dFontProviderParam param, f2dTrueTypeFontParam* fonts,fuInt count) noexcept {
+bool ResourcePool::LoadTrueTypeFont(const char* name, LuaSTG::Core::Graphics::TrueTypeFontInfo* fonts, size_t count) noexcept {
     if (!LAPP.GetRenderer()) {
         spdlog::error("[luastg] LoadTrueTypeFont: 无法加载矢量字体组'{}'，f2dRenderer未准备好", name);
         return false;
@@ -852,31 +728,28 @@ bool ResourcePool::LoadTrueTypeFont(const char* name,
         return true;
     }
     
+    LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::IGlyphManager> p_glyphmgr;
+    if (!LuaSTG::Core::Graphics::IGlyphManager::create(LAPP.GetAppModel()->getDevice(), fonts, count, ~p_glyphmgr))
+    {
+        spdlog::error("[luastg] LoadTrueTypeFont: 加载矢量字体组'{}'失败", name);
+        return false;
+    }
+
     // 创建定义
-    fcyRefPointer<f2dFontProvider> tFontProvider;
-    try {
-        fResult fr = LAPP.GetRenderer()->CreateFontFromMemory(param, fonts, count, ~tFontProvider);
-        if (FCYFAILED(fr)) {
-            spdlog::error("[fancy2d] [f2dRenderer::CreateFontFromMemory] 创建矢量字体组'{}'失败(fResult={})", name, fr);
-            return false;
-        }
-        
+    try
+    {
         fcyRefPointer<ResFont> tRes;
-        tRes.DirectSet(new ResFont(name, tFontProvider));
-        tRes->SetBlendMode(BlendMode::MulAlpha);
+        tRes.DirectSet(new ResFont(name, p_glyphmgr.get()));
         m_TTFFontPool.emplace(name, tRes);
     }
-    catch (const std::bad_alloc&) {
-        spdlog::error("[luastg] LoadTTFFont: 内存不足");
+    catch (const std::bad_alloc&)
+    {
+        spdlog::error("[luastg] LoadTrueTypeFont: 内存不足");
         return false;
     }
     
-    if (ResourceMgr::GetResourceLoadingLog()) {
-        spdlog::info("[luastg] LoadTrueTypeFont: 字形缓存数量：{}，字形缓存贴图大小：({}x{})",
-            tFontProvider->GetCacheCount(),
-            tFontProvider->GetCacheTexSize(),
-            tFontProvider->GetCacheTexSize()
-        );
+    if (ResourceMgr::GetResourceLoadingLog())
+    {
         spdlog::info("[luastg] LoadTrueTypeFont: 已加载矢量字体组'{}' ({})", name, getResourcePoolTypeName());
     }
     

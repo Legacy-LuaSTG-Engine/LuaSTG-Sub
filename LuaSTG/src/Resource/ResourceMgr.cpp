@@ -128,7 +128,7 @@ namespace LuaSTGPlus
 	void ResourceMgr::CacheTTFFontString(const char* name, const char* text, size_t len) noexcept {
 		fcyRefPointer<ResFont> f = FindTTFFont(name);
 		if (f)
-			f->GetFontProvider()->CacheStringU8(text, len);
+			f->GetGlyphManager()->cacheString(LuaSTG::Core::StringView(text, len));
 		else
 			spdlog::error("[luastg] CacheTTFFontString: 缓存字形时未找到指定字体'{}'", name);
 	}

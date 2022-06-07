@@ -6,6 +6,7 @@
 #include "GameObjectPool.h"
 #include "platform/DirectInput.hpp"
 #include "Core/ApplicationModel.hpp"
+#include "Core/Graphics/Font.hpp"
 #include "LConfig.h"
 
 namespace LuaSTGPlus
@@ -38,6 +39,7 @@ namespace LuaSTGPlus
 		
 		// 应用程序框架
 		LuaSTG::Core::ScopeObject<LuaSTG::Core::IApplicationModel> m_pAppModel;
+		LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::ITextRenderer> m_pTextRenderer;
 
 		// 资源管理器
 		ResourceMgr m_ResourceMgr;
@@ -227,11 +229,7 @@ namespace LuaSTGPlus
 	public:
 		// 文字渲染器包装
 		bool FontRenderer_SetFontProvider(const char* name);
-		void FontRenderer_SetFlipType(const F2DSPRITEFLIP t);
 		void FontRenderer_SetScale(const fcyVec2& s);
-		fcyRect FontRenderer_MeasureString(const char* str, bool strict = true);
-		float FontRenderer_MeasureStringWidth(const char* str);
-		bool FontRenderer_DrawTextW2(const char* str, fcyVec2& pos, const float z, const BlendMode blend, const fcyColor& color);
 		
 		fcyRect FontRenderer_MeasureTextBoundary(const char* str, size_t len);
 		fcyVec2 FontRenderer_MeasureTextAdvance(const char* str, size_t len);

@@ -20,10 +20,10 @@ namespace LuaSTG::Core
 		inline Vector2 operator*(T const r) const noexcept { return Vector2(x * r, y * r); }
 		inline Vector2 operator/(T const r) const noexcept { return Vector2(x / r, y / r); }
 
-		inline Vector2 operator+=(Vector2 const& r) noexcept { x += r.x; y += r.y; }
-		inline Vector2 operator-=(Vector2 const& r) noexcept { x -= r.x; y -= r.y; }
-		inline Vector2 operator*=(T const r) noexcept { x *= r; y *= r; }
-		inline Vector2 operator/=(T const r) noexcept { x /= r; y /= r; }
+		inline Vector2& operator+=(Vector2 const& r) noexcept { x += r.x; y += r.y; return *this; }
+		inline Vector2& operator-=(Vector2 const& r) noexcept { x -= r.x; y -= r.y; return *this; }
+		inline Vector2& operator*=(T const r) noexcept { x *= r; y *= r; return *this; }
+		inline Vector2& operator/=(T const r) noexcept { x /= r; y /= r; return *this; }
 
 		inline bool operator==(Vector2 const& r) const noexcept { return x == r.x && y == r.y; }
 		inline bool operator!=(Vector2 const& r) const noexcept { return x != r.x || y != r.y; }
@@ -77,10 +77,10 @@ namespace LuaSTG::Core
 		inline Vector3 operator*(T const r) const noexcept { return Vector3(x * r, y * r, z * r); }
 		inline Vector3 operator/(T const r) const noexcept { return Vector3(x / r, y / r, z / r); }
 
-		inline Vector3 operator+=(Vector3 const& r) noexcept { x += r.x; y += r.y; z += r.z; }
-		inline Vector3 operator-=(Vector3 const& r) noexcept { x -= r.x; y -= r.y; z -= r.z; }
-		inline Vector3 operator*=(T const r) noexcept { x *= r; y *= r; z *= r; }
-		inline Vector3 operator/=(T const r) noexcept { x /= r; y /= r; z /= r; }
+		inline Vector3& operator+=(Vector3 const& r) noexcept { x += r.x; y += r.y; z += r.z; return *this; }
+		inline Vector3& operator-=(Vector3 const& r) noexcept { x -= r.x; y -= r.y; z -= r.z; return *this; }
+		inline Vector3& operator*=(T const r) noexcept { x *= r; y *= r; z *= r; return *this; }
+		inline Vector3& operator/=(T const r) noexcept { x /= r; y /= r; z /= r; return *this; }
 
 		inline bool operator==(Vector3 const& r) const noexcept { return x == r.x && y == r.y && z == r.z; }
 		inline bool operator!=(Vector3 const& r) const noexcept { return x != r.x || y != r.y || z != r.z; }
