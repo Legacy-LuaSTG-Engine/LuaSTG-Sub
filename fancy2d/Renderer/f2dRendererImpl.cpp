@@ -3,7 +3,7 @@
 #include "RenderDev/f2dRenderDevice11.h"
 
 //#include "Renderer/f2dSpriteImpl.h"
-#include "Renderer/f2dGeometryRendererImpl.h"
+//#include "Renderer/f2dGeometryRendererImpl.h"
 #include "Renderer/f2dFontRendererImpl.h"
 #include "Renderer/f2dFontTexProvider.h"
 #include "Renderer/f2dTrueTypeFontProvider.h"
@@ -116,8 +116,6 @@ fResult f2dRendererImpl::CreateSprite2D(f2dTexture2D* pTex, const fcyRect& Org, 
 	return FCYERR_OK;
 }
 
-//*/
-
 fResult f2dRendererImpl::CreateGeometryRenderer(f2dGeometryRenderer** pOut)
 {
 	if(pOut)
@@ -136,6 +134,8 @@ fResult f2dRendererImpl::CreateGeometryRenderer(f2dGeometryRenderer** pOut)
 
 	return FCYERR_OK;
 }
+
+//*/
 
 fResult f2dRendererImpl::CreateFontRenderer(f2dFontProvider* pProvider, f2dFontRenderer** pOut)
 {

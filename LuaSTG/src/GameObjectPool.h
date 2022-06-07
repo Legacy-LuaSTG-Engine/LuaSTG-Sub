@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include "cpp/fixed_object_pool.hpp"
 #include "GameObject.hpp"
-#include "f2dRenderer.h"
 #include <array>
 #include <set>
 
@@ -227,7 +226,7 @@ namespace LuaSTGPlus
 		// 内部使用
 		
 		void DrawCollider();
-		void DrawGroupCollider(f2dGraphics2D* graph, f2dGeometryRenderer* grender, int groupId, fcyColor fillColor);
+		void DrawGroupCollider(int groupId, fcyColor fillColor);
 		void DrawGroupCollider2(int groupId, fcyColor fillColor);
 	public:
 		// lua api

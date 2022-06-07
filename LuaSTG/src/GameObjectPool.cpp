@@ -693,22 +693,15 @@ namespace LuaSTGPlus
 	
 		if (f8)
 		{
-			using namespace LuaSTG::Core::Graphics;
-			fcyRefPointer<f2dGeometryRenderer> grender = LAPP.GetGeometryRenderer();
-			fcyRefPointer<f2dGraphics2D> graph = LAPP.GetGraphics2D();
-			auto* r2d = LAPP.GetRenderer2D();
-			r2d->setBlendState(IRenderer::BlendState::Alpha);
-			r2d->setDepthState(IRenderer::DepthState::Disable);
-			r2d->setFogState(IRenderer::FogState::Disable, {}, 0.0f, 0.0f);
-			r2d->setVertexColorBlendState(IRenderer::VertexColorBlendState::One);
+			LAPP.DebugSetGeometryRenderState();
 			for (ColliderDisplayConfig cfg : m_collidercfg)
 			{
-				DrawGroupCollider(*graph, *grender, cfg.group, fcyColor(cfg.color.argb));
+				DrawGroupCollider(cfg.group, fcyColor(cfg.color.argb));
 			}
 		}
 	#endif
 	}
-	void GameObjectPool::DrawGroupCollider(f2dGraphics2D* graph, f2dGeometryRenderer* grender, int groupId, fcyColor fillColor)
+	void GameObjectPool::DrawGroupCollider(int groupId, fcyColor fillColor)
 	{
 	#ifdef USING_MULTI_GAME_WORLD
 		lua_Integer world = GetWorldFlag();
@@ -723,83 +716,15 @@ namespace LuaSTGPlus
 			{
 				if (p->rect)
 				{
-					// 计算出矩形的4个顶点
-					fcyVec2 tHalfSize((float)p->a, (float)p->b);
-					f2dGraphics2DVertex tFinalPos[4] = {
-						{ -tHalfSize.x, -tHalfSize.y, 0.5f, fillColor.argb, 0.0f, 0.0f },
-						{  tHalfSize.x, -tHalfSize.y, 0.5f, fillColor.argb, 0.0f, 1.0f },
-						{  tHalfSize.x,  tHalfSize.y, 0.5f, fillColor.argb, 1.0f, 1.0f },
-						{ -tHalfSize.x,  tHalfSize.y, 0.5f, fillColor.argb, 1.0f, 0.0f },
-					};
-					// 变换
-					float tCos = std::cosf((float)p->rot);
-					float tSin = std::sinf((float)p->rot);
-					for (int i = 0; i < 4; i += 1)
-					{
-						fFloat tx = tFinalPos[i].x * tCos - tFinalPos[i].y * tSin;
-						fFloat ty = tFinalPos[i].x * tSin + tFinalPos[i].y * tCos;
-						tFinalPos[i].x = tx + (float)p->x;
-						tFinalPos[i].y = ty + (float)p->y;
-					}
-					//绘制
-					graph->DrawQuad(nullptr, tFinalPos);
+					LAPP.DebugDrawRect((float)p->x, (float)p->y, (float)p->a, (float)p->b, (float)p->rot, fillColor);
 				}
 				else if (!p->rect && p->a == p->b)
 				{
-					//绘制
-					grender->FillCircle(graph, fcyVec2((float)p->x, (float)p->y), (float)p->a, fillColor, fillColor,
-						p->a < 10 ? 4 : (p->a < 20 ? 8 : 16));
+					LAPP.DebugDrawCircle((float)p->x, (float)p->y, (float)p->a, fillColor);
 				}
 				else if (!p->rect && p->a != p->b)
 				{
-					const int vertcount = 37;//分割36份，还要中心一个点
-					const int indexcount = 111;//37*3加一个组成封闭图形
-					//准备顶点索引
-					fuShort index[indexcount] = {};
-					{
-						for (int i = 0; i < (vertcount - 1); i++) {
-							index[i * 3] = 0;//中心点
-							index[i * 3 + 1] = (fuShort)i;//1
-							index[i * 3 + 2] = (fuShort)(i + 1);//2
-							//index[i * 3 + 3] = i + 1;//2 //fancy2d貌似不是以三角形为单位……
-						}
-						index[108] = 0;//中心点
-						index[109] = 36;//1
-						index[110] = 1;//2
-					}
-					//准备顶点
-					f2dGraphics2DVertex vert[vertcount] = {};
-					{
-						vert[0].x = 0.0f;
-						vert[0].y = 0.0f;
-						vert[0].z = 0.5f;//2D下固定z0.5
-						vert[0].color = fillColor.argb;
-						vert[0].u = 0.0f; vert[0].v = 0.0f;//没有使用到贴图，uv是多少无所谓
-						float angle;
-						for (int i = 1; i < vertcount; i++) {
-							//椭圆参方
-							angle = 10.0f * (float)(i - 1) * (float)LDEGREE2RAD;
-							vert[i].x = (float)p->a * std::cosf(angle);
-							vert[i].y = (float)p->b * std::sinf(angle);
-							vert[i].z = 0.5f;//2D下固定z0.5
-							vert[i].color = fillColor.argb;
-							vert[i].u = 0.0f; vert[i].v = 0.0f;//没有使用到贴图，uv是多少无所谓
-						}
-					}
-					// 变换
-					{
-						float tCos = std::cosf((float)p->rot);
-						float tSin = std::sinf((float)p->rot);
-						for (int i = 0; i < vertcount; i++)
-						{
-							fFloat tx = vert[i].x * tCos - vert[i].y * tSin,
-								ty = vert[i].x * tSin + vert[i].y * tCos;
-							vert[i].x = tx + (float)p->x;
-							vert[i].y = ty + (float)p->y;
-						}
-					}
-					//绘制
-					graph->DrawRaw(nullptr, vertcount, indexcount, vert, index, false);
+					LAPP.DebugDrawEllipse((float)p->x, (float)p->y, (float)p->a, (float)p->b, (float)p->rot, fillColor);
 				}
 				else {
 					//备份，为以后做准备
@@ -855,7 +780,7 @@ namespace LuaSTGPlus
 					case _::Point:
 					{
 						//点使用直径1的圆来替代
-						grender->FillCircle(graph, fcyVec2(cc.absx, cc.absy), 0.5f, fillColor, fillColor, 3);
+						grender->____FillCircle(graph, fcyVec2(cc.absx, cc.absy), 0.5f, fillColor, fillColor, 3);
 						break;
 					}
 					//*/
@@ -865,15 +790,8 @@ namespace LuaSTGPlus
 	}
 	void GameObjectPool::DrawGroupCollider2(int groupId, fcyColor fillColor)
 	{
-		using namespace LuaSTG::Core::Graphics;
-		fcyRefPointer<f2dGeometryRenderer> grender = LAPP.GetGeometryRenderer();
-		fcyRefPointer<f2dGraphics2D> graph = LAPP.GetGraphics2D();
-		auto* r2d = LAPP.GetRenderer2D();
-		r2d->setBlendState(IRenderer::BlendState::Alpha);
-		r2d->setDepthState(IRenderer::DepthState::Disable);
-		r2d->setFogState(IRenderer::FogState::Disable, {}, 0.0f, 0.0f);
-		r2d->setVertexColorBlendState(IRenderer::VertexColorBlendState::One);
-		DrawGroupCollider(*graph, *grender, groupId, fillColor);
+		LAPP.DebugSetGeometryRenderState();
+		DrawGroupCollider(groupId, fillColor);
 	}
 
 	// --------------------------------------------------------------------------------
