@@ -172,17 +172,11 @@ namespace LuaSTGPlus
 		/// @brief 渲染动画
 		bool RenderAnimation(const char* name, int timer, float x, float y, float rot = 0, float hscale = 1, float vscale = 1) LNOEXCEPT;
 		
-		/// @brief 渲染纹理
-		bool RenderTexture(ResTexture* tex, BlendMode blend, const f2dGraphics2DVertex vertex[]) LNOEXCEPT;
+		/// @brief 渲染纹理（注：UV 坐标会被归一化）
+		bool RenderTexture(ResTexture* tex, BlendMode blend, const LuaSTG::Core::Graphics::IRenderer::DrawVertex vertex[]) LNOEXCEPT;
 		
-		/// @brief 渲染纹理
-		bool RenderTexture(const char* name, BlendMode blend, f2dGraphics2DVertex vertex[]) LNOEXCEPT;
-		
-		// 渲染纹理，多顶点，不修正uv坐标
-		bool RenderTexture(
-			const char* name, BlendMode blend,
-			int vcount, const f2dGraphics2DVertex vertex[],
-			int icount, const unsigned short indexs[]) LNOEXCEPT;
+		/// @brief 渲染纹理（注：UV 坐标会被归一化）
+		bool RenderTexture(const char* name, BlendMode blend, LuaSTG::Core::Graphics::IRenderer::DrawVertex vertex[]) LNOEXCEPT;
 		
 		/// @brief 渲染文字
 		bool RenderText(ResFont* p, wchar_t* strBuf, fcyRect rect, fcyVec2 scale, ResFont::FontAlignHorizontal halign, ResFont::FontAlignVertical valign, bool bWordBreak)LNOEXCEPT;

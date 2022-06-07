@@ -381,8 +381,7 @@ bool AppFrame::Init()LNOEXCEPT
 		spdlog::info("[core] 初始化，窗口分辨率：{}x{}，垂直同步：{}，窗口化：{}",
 			(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed);
 		
-		f2dEngineRenderWindowParam render_window_def = { .appmodel = *m_pAppModel };
-		if (FCYFAILED(CreateF2DEngineAndInit(&render_window_def, ~m_pEngine)))
+		if (FCYFAILED(CreateF2DEngineAndInit(~m_pEngine)))
 		{
 			spdlog::error("[fancy2d] CreateF2DEngineAndInit failed");
 			return false;

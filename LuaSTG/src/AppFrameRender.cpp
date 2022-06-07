@@ -142,7 +142,7 @@ namespace LuaSTGPlus
         p->Render(hscale, vscale);
         return true;
     }
-    bool AppFrame::RenderTexture(ResTexture* tex, BlendMode blend, const f2dGraphics2DVertex vertex[]) noexcept
+    bool AppFrame::RenderTexture(ResTexture* tex, BlendMode blend, const LuaSTG::Core::Graphics::IRenderer::DrawVertex vertex[]) noexcept
     {
         // 设置混合
         updateGraph2DBlendMode(blend);
@@ -163,7 +163,7 @@ namespace LuaSTGPlus
         GetRenderer2D()->drawQuad(tVertex);
         return true;
     }
-    bool AppFrame::RenderTexture(const char* name, BlendMode blend, f2dGraphics2DVertex vertex[]) noexcept
+    bool AppFrame::RenderTexture(const char* name, BlendMode blend, LuaSTG::Core::Graphics::IRenderer::DrawVertex vertex[]) noexcept
     {
         fcyRefPointer<ResTexture> p = m_ResourceMgr.FindTexture(name);
         if (!p)
@@ -172,30 +172,6 @@ namespace LuaSTGPlus
             return false;
         }
         return RenderTexture(*p, blend, vertex);
-    }
-    bool AppFrame::RenderTexture(
-        const char* name, BlendMode blend,
-        int vcount, const f2dGraphics2DVertex vertex[],
-        int icount, const unsigned short indexs[]) noexcept
-    {
-        fcyRefPointer<ResTexture> p = m_ResourceMgr.FindTexture(name);
-        if (!p)
-        {
-            spdlog::error("[luastg] RenderTexture: 找不到纹理'{}'", name);
-            return false;
-        }
-        
-        // 设置混合
-        updateGraph2DBlendMode(blend);
-        
-        using namespace LuaSTG::Core::Graphics;
-        GetRenderer2D()->setTexture(p->GetTexture());
-        GetRenderer2D()->drawRaw(
-            (IRenderer::DrawVertex*)vertex,
-            (uint16_t)vcount,
-            indexs,
-            (uint16_t)icount);
-        return true;
     }
     
     void AppFrame::SnapShot(const char* path) noexcept

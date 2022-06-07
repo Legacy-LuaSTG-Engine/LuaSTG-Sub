@@ -134,6 +134,7 @@ namespace LuaSTGPlus
 		}
 	}
 
+	/*
 	static inline F2DTEXTUREADDRESS TranslateTextureSamplerAddress(lua_State* L, int argnum) {
 		const char* s = luaL_checkstring(L, argnum);
 		if (strcmp(s, "wrap") == 0)
@@ -161,6 +162,7 @@ namespace LuaSTGPlus
 			luaL_error(L, "Invalid texture sampler filter type '%s'.", s);
 		return F2DTEXFILTER_LINEAR;
 	}
+	//*/
 
 	inline bool TranslateTableToParticleInfo(lua_State* L, int argnum, ResParticle::hgeParticleSystemInfo& info) {
 		if (lua_istable(L, argnum)) {
