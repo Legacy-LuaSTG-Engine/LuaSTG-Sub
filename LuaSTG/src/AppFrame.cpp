@@ -479,14 +479,6 @@ bool AppFrame::Init()LNOEXCEPT
 		}
 		m_FontRenderer->SetZ(0.5f);
 		
-		// 创建图元渲染器
-		spdlog::info("[fancy2d] 创建平面几何渲染器");
-		if (FCYFAILED(m_pRenderer->CreateGeometryRenderer(~m_GRenderer)))
-		{
-			spdlog::error("[fancy2d] [fcyRenderer::CreateGeometryRenderer] 创建平面几何渲染器失败");
-			return false;
-		}
-		
 		OpenInput();
 
 		// 创建手柄输入
@@ -594,7 +586,6 @@ void AppFrame::Shutdown()LNOEXCEPT
 	
 	CloseInput();
 	m_DirectInput = nullptr;
-	m_GRenderer = nullptr;
 	m_FontRenderer = nullptr;
 	m_Graph2D = nullptr;
 	m_pSoundSys = nullptr;

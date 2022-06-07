@@ -1,50 +1,10 @@
 ﻿#include "AppFrame.h"
 #include "utility/encoding.hpp"
 
-//#define LSHOWFONTBASELINE // 显示文字基线
-
 #define NOMINMAX
 #include <Windows.h>
 
 namespace LuaSTGPlus {
-	// deug
-	
-	class FontBaseLineDebugHelper :
-		public f2dFontRendererListener
-	{
-	private:
-		f2dGraphics2D* m_pGraph2D;
-		f2dGeometryRenderer* m_pGRenderer;
-	protected:
-		fBool OnGlyphBeginDraw(fuInt Index, fCharW Character, fcyVec2& DrawPos, fcyVec2& Adv)
-		{
-			m_pGRenderer->SetPenColor(0, fcyColor(0xFF00FFFF));
-			m_pGRenderer->SetPenColor(1, fcyColor(0xFF00FFFF));
-			m_pGRenderer->SetPenColor(2, fcyColor(0xFF00FFFF));
-			m_pGRenderer->SetPenColor(3, fcyColor(0xFF00FFFF));
-			m_pGRenderer->SetPenSize(3.f);
-			m_pGRenderer->DrawCircle(m_pGraph2D, DrawPos, 2.f, 12);
-			m_pGRenderer->SetPenColor(0, fcyColor(0xFF00FF00));
-			m_pGRenderer->SetPenColor(1, fcyColor(0xFF00FF00));
-			m_pGRenderer->SetPenColor(2, fcyColor(0xFF00FF00));
-			m_pGRenderer->SetPenColor(3, fcyColor(0xFF00FF00));
-			m_pGRenderer->DrawLine(m_pGraph2D, DrawPos, DrawPos + Adv);
-			return true;
-		}
-		void OnGlyphCalcuCoord(f2dGraphics2DVertex pVerts[]) { }
-	public:
-		FontBaseLineDebugHelper(f2dGraphics2D* G, f2dGeometryRenderer* GR, fcyRect BaseRect)
-			: m_pGraph2D(G), m_pGRenderer(GR)
-		{
-			m_pGRenderer->SetPenColor(0, fcyColor(0xFFFF0000));
-			m_pGRenderer->SetPenColor(1, fcyColor(0xFFFF0000));
-			m_pGRenderer->SetPenColor(2, fcyColor(0xFFFF0000));
-			m_pGRenderer->SetPenColor(3, fcyColor(0xFFFF0000));
-			m_pGRenderer->SetPenSize(2.f);
-			m_pGRenderer->DrawRectangle(G, BaseRect);
-		}
-	};
-	
 	// luastg plus interface
 	
 	bool AppFrame::RenderText(ResFont* p, wchar_t* strBuf, fcyRect rect, fcyVec2 scale, ResFont::FontAlignHorizontal halign, ResFont::FontAlignVertical valign, bool bWordBreak)LNOEXCEPT
@@ -54,11 +14,7 @@ namespace LuaSTGPlus {
 		// 准备渲染字体
 		m_FontRenderer->SetFontProvider(pFontProvider);
 		m_FontRenderer->SetScale(scale);
-	#ifdef LSHOWFONTBASELINE
-		FontBaseLineDebugHelper tDebugger(m_Graph2D, m_GRenderer, rect);
-		m_FontRenderer->SetListener(&tDebugger);
-	#endif
-		
+
 		// 设置混合和颜色
 		updateGraph2DBlendMode(p->GetBlendMode());
 		m_FontRenderer->SetColor(p->GetBlendColor());
@@ -183,11 +139,7 @@ namespace LuaSTGPlus {
 			// 移动y轴
 			vRenderPos.y -= p->GetFontProvider()->GetLineHeight() * scale.y;
 		}
-		
-		#ifdef LSHOWFONTBASELINE
-		m_FontRenderer->SetListener(nullptr);
-		#endif
-		
+
 		return true;
 	}
 	

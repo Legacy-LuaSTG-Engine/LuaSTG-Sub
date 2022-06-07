@@ -322,17 +322,7 @@ void GameObjectBentLaser::RenderCollider(fcyColor fillColor) noexcept {
 	if (sn <= 1)
 		return;
 	
-	fcyRefPointer<f2dGeometryRenderer> grender = LAPP.GetGeometryRenderer();
-	fcyRefPointer<f2dGraphics2D> graph = LAPP.GetGraphics2D();
-
-	f2dBlendState stState = graph->GetBlendState();
-	f2dBlendState stStateClone = stState;
-	stStateClone.SrcBlend = F2DBLENDFACTOR_SRCALPHA;
-	stStateClone.DestBlend = F2DBLENDFACTOR_INVSRCALPHA;
-	stStateClone.BlendOp = F2DBLENDOPERATOR_ADD;
-	graph->SetBlendState(stStateClone);
-	F2DGRAPH2DBLENDTYPE txState = graph->GetColorBlendType();
-	graph->SetColorBlendType(F2DGRAPH2DBLENDTYPE_ADD);//修复反色混合模式的时候会出现颜色异常的问题
+	LAPP.DebugSetGeometryRenderState();
 
 	GameObject testObjA;
 	testObjA.Reset();
@@ -355,30 +345,8 @@ void GameObjectBentLaser::RenderCollider(fcyColor fillColor) noexcept {
 					testObjA.rot = n.rot;
 					testObjA.a = df / 2;
 					testObjA.b = n.half_width;
-					//testObjA.UpdateCollisionCirclrRadius()
-					//渲染部分
-					{
-						fcyVec2 tHalfSize(testObjA.a, testObjA.b);
-						// 计算出矩形的4个顶点
-						f2dGraphics2DVertex tFinalPos[4] =
-						{
-							{ -tHalfSize.x, -tHalfSize.y, 0.5f, fillColor.argb, 0.0f, 0.0f },
-							{ tHalfSize.x, -tHalfSize.y, 0.5f, fillColor.argb, 0.0f, 1.0f },
-							{ tHalfSize.x, tHalfSize.y, 0.5f, fillColor.argb, 1.0f, 1.0f },
-							{ -tHalfSize.x, tHalfSize.y, 0.5f, fillColor.argb, 1.0f, 0.0f }
-						};
-						float tSin = std::sinf(testObjA.rot);
-						float tCos = std::cosf(testObjA.rot);
-						// 变换
-						for (int i = 0; i < 4; i++)
-						{
-							fFloat tx = tFinalPos[i].x * tCos - tFinalPos[i].y * tSin;
-							fFloat ty = tFinalPos[i].x * tSin + tFinalPos[i].y * tCos;
-							tFinalPos[i].x = tx + testObjA.x;
-							tFinalPos[i].y = ty + testObjA.y;
-						}
-						graph->DrawQuad(nullptr, tFinalPos);
-					}
+					//testObjA.UpdateCollisionCirclrRadius();
+					LAPP.DebugDrawRect((float)testObjA.x, (float)testObjA.y, (float)testObjA.a, (float)testObjA.b, (float)testObjA.rot, fillColor);
 				}
 			}
 		}
@@ -392,12 +360,8 @@ void GameObjectBentLaser::RenderCollider(fcyColor fillColor) noexcept {
 			= n.half_width * _GetEnvelope((float)i / (float)(sn - 1u));
 		//testObjA.UpdateCollisionCirclrRadius();
 		//渲染
-		grender->FillCircle(graph, fcyVec2((float)testObjA.x, (float)testObjA.y), (float)testObjA.a, fillColor, fillColor,
-			testObjA.a < 10.0 ? 4 : (testObjA.a < 20.0 ? 8 : 16));
+		LAPP.DebugDrawCircle((float)testObjA.x, (float)testObjA.y, (float)testObjA.a, fillColor);
 	}
-
-	graph->SetBlendState(stState);
-	graph->SetColorBlendType(txState);
 }
 
 void GameObjectBentLaser::SetEnvelope(float height, float base, float rate, float power) noexcept {

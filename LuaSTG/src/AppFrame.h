@@ -74,7 +74,6 @@ namespace LuaSTGPlus
 		bool m_bRenderStarted = false;
 		
 		//渲染器
-		fcyRefPointer<f2dGeometryRenderer> m_GRenderer;//2D
 		fcyRefPointer<f2dFontRenderer> m_FontRenderer;//2D
 		fcyRefPointer<f2dGraphics2D> m_Graph2D;//2D
 		
@@ -220,6 +219,11 @@ namespace LuaSTGPlus
 		bool RenderAnnulus(const char* name, fcyRect uv, bool tran, BlendMode blend, fcyColor color1, fcyColor color2,
 			fcyVec2 pos, float rot, float r1, float r2, int div, int rep);
 		
+		void DebugSetGeometryRenderState();
+		void DebugDrawCircle(float const x, float const y, float const r, fcyColor const color);
+		void DebugDrawRect(float const x, float const y, float const a, float const b, float const rot, fcyColor const color);
+		void DebugDrawEllipse(float const x, float const y, float const a, float const b, float const rot, fcyColor const color);
+
 	public:
 		// 文字渲染器包装
 		bool FontRenderer_SetFontProvider(const char* name);
@@ -249,7 +253,6 @@ namespace LuaSTGPlus
 		f2dRenderer* GetRenderer() LNOEXCEPT { return m_pRenderer; }
 		f2dRenderDevice* GetRenderDev() LNOEXCEPT { return m_pRenderDev; }
 		f2dSoundSys* GetSoundSys() LNOEXCEPT { return m_pSoundSys; }
-		fcyRefPointer<f2dGeometryRenderer> GetGeometryRenderer() LNOEXCEPT { return m_GRenderer; }
 		fcyRefPointer<f2dGraphics2D> GetGraphics2D() LNOEXCEPT { return m_Graph2D; }
 
 		platform::DirectInput* GetDInput() LNOEXCEPT { return m_DirectInput.get(); }

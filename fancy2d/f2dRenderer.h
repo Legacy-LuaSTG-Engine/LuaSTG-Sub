@@ -706,7 +706,7 @@ struct f2dRenderer
 
 	/// @brief      创建几何体渲染器
 	/// @param[out] pOut 输出的渲染器对象
-	virtual fResult CreateGeometryRenderer(f2dGeometryRenderer** pOut)=0;
+	//virtual fResult CreateGeometryRenderer(f2dGeometryRenderer** pOut)=0;
 
 	/// @brief      创建文字渲染器
 	/// @param[in]  pProvider 字体源

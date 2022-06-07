@@ -41,7 +41,7 @@ public: // 接口实现
 	//fResult CreateSprite2D(f2dTexture2D* pTex, const fcyRect& Org, f2dSprite** pOut);
 	//fResult CreateSprite2D(f2dTexture2D* pTex, const fcyRect& Org, const fcyVec2& HotSopt, f2dSprite** pOut);
 
-	fResult CreateGeometryRenderer(f2dGeometryRenderer** pOut);
+	//fResult CreateGeometryRenderer(f2dGeometryRenderer** pOut);
 
 	fResult CreateFontRenderer(f2dFontProvider* pProvider, f2dFontRenderer** pOut);
 	fResult CreateFontFromFile(
