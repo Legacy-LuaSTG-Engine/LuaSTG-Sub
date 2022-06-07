@@ -242,11 +242,11 @@ static int lib_clearRenderTarget(lua_State* L)LNOEXCEPT
     LuaSTG::Core::Color4B color;
     if (lua_isnumber(L, 1))
     {
-        color.u.color = (uint32_t)lua_tonumber(L, 1);
+        color = LuaSTG::Core::Color4B((uint32_t)lua_tonumber(L, 1));
     }
     else
     {
-        color.u.color = static_cast<fcyColor*>(luaL_checkudata(L, 1, LUASTG_LUA_TYPENAME_COLOR))->argb;
+        color = LuaSTG::Core::Color4B(LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(L, 1)->argb);
     }
     LR2D()->clearRenderTarget(color);
     return 0;
@@ -366,11 +366,11 @@ static int lib_setFogState(lua_State* L)LNOEXCEPT
     LuaSTG::Core::Color4B color;
     if (lua_isnumber(L, 2))
     {
-        color.u.color = (uint32_t)lua_tonumber(L, 2);
+        color = LuaSTG::Core::Color4B((uint32_t)lua_tonumber(L, 2));
     }
     else
     {
-        color.u.color = static_cast<fcyColor*>(luaL_checkudata(L, 2, LUASTG_LUA_TYPENAME_COLOR))->argb;
+        color = LuaSTG::Core::Color4B(LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(L, 2)->argb);
     }
     LR2D()->setFogState(
         (IRenderer::FogState)luaL_checkinteger(L, 1),
