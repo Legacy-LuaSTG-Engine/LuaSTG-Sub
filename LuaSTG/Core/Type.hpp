@@ -130,10 +130,10 @@ namespace LuaSTG::Core
 		inline Vector4 operator*(T const r) const noexcept { return Vector4(x * r, y * r, z * r, w * r); }
 		inline Vector4 operator/(T const r) const noexcept { return Vector4(x / r, y / r, z / r, w / r); }
 
-		inline Vector4 operator+=(Vector4 const& r) noexcept { x += r.x; y += r.y; z += r.z; w += r.w; }
-		inline Vector4 operator-=(Vector4 const& r) noexcept { x -= r.x; y -= r.y; z -= r.z; w -= r.w; }
-		inline Vector4 operator*=(T const r) noexcept { x *= r; y *= r; z *= z; w *= r; }
-		inline Vector4 operator/=(T const r) noexcept { x /= r; y /= r; z /= z; w /= r; }
+		inline Vector4& operator+=(Vector4 const& r) noexcept { x += r.x; y += r.y; z += r.z; w += r.w; return *this; }
+		inline Vector4& operator-=(Vector4 const& r) noexcept { x -= r.x; y -= r.y; z -= r.z; w -= r.w; return *this; }
+		inline Vector4& operator*=(T const r) noexcept { x *= r; y *= r; z *= z; w *= r; return *this; }
+		inline Vector4& operator/=(T const r) noexcept { x /= r; y /= r; z /= z; w /= r; return *this; }
 
 		inline bool operator==(Vector4 const& r) const noexcept { return x == r.x && y == r.y && z == r.z && w == r.w; }
 		inline bool operator!=(Vector4 const& r) const noexcept { return x != r.x || y != r.y || z != r.z || w != r.w; }
@@ -145,53 +145,49 @@ namespace LuaSTG::Core
 	using Vector4U = Vector4<uint32_t>;
 	using Vector4F = Vector4<float>;
 
-	// 颜色
+	// 颜色（有黑魔法）
 
-	struct Color4B
+	struct alignas(uint32_t) Color4B
 	{
-		union Color4B_byte4_uint_union
+		uint8_t b;
+		uint8_t g;
+		uint8_t r;
+		uint8_t a;
+
+		Color4B() : b(0), g(0), r(0), a(0) {}
+		Color4B(uint32_t ARGB) : b(0), g(0), r(0), a(0) { color(ARGB); }
+		Color4B(uint8_t const r_, uint8_t const g_, uint8_t const b_, uint8_t const a_) : b(b_), g(g_), r(r_), a(a_) {}
+
+		inline void color(uint32_t ARGB) noexcept { *((uint32_t*)(&b)) = ARGB; }
+		inline uint32_t color() const noexcept { return *((uint32_t*)(&b)); }
+
+		bool operator==(Color4B const& right) const noexcept
 		{
-			struct Color4B_byte4
-			{
-				uint8_t b;
-				uint8_t g;
-				uint8_t r;
-				uint8_t a;
-			} s;
-			uint32_t color;
-		} u;
-		bool operator==(Color4B const& right) const
-		{
-			return u.color == right.u.color;
+			return color() == right.color();
 		}
-		bool operator!=(Color4B const& right) const
+		bool operator!=(Color4B const& right) const noexcept
 		{
-			return u.color != right.u.color;
-		}
-		Color4B()
-		{
-			u.color = 0x00000000u;
-		}
-		Color4B(uint32_t color_ARGB)
-		{
-			u.color = color_ARGB;
-		}
-		Color4B(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
-		{
-			u.s.b = b;
-			u.s.g = g;
-			u.s.r = r;
-			u.s.a = a;
+			return color() != right.color();
 		}
 	};
+
+	// 分数
 
 	struct Rational
 	{
-		uint32_t numerator{ 0 }; // 分子
-		uint32_t denominator{ 0 }; // 分母
+		uint32_t numerator; // 分子
+		uint32_t denominator; // 分母
+
+		Rational() : numerator(0), denominator(0) {}
+		Rational(uint32_t const numerator_) : numerator(numerator_), denominator(1) {}
+		Rational(uint32_t const numerator_, uint32_t const denominator_) : numerator(numerator_), denominator(denominator_) {}
 	};
 
+	// 字符串
+
 	using StringView = std::string_view;
+
+	// 引用计数
 
 	struct IObject
 	{

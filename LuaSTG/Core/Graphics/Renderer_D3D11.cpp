@@ -752,10 +752,10 @@ namespace LuaSTG::Core::Graphics
 		if (rtv)
 		{
 			FLOAT const clear_color[4] = {
-				(float)color.u.s.r / 255.0f,
-				(float)color.u.s.g / 255.0f,
-				(float)color.u.s.b / 255.0f,
-				(float)color.u.s.a / 255.0f,
+				(float)color.r / 255.0f,
+				(float)color.g / 255.0f,
+				(float)color.b / 255.0f,
+				(float)color.a / 255.0f,
 			};
 			ctx->ClearRenderTargetView(rtv, clear_color);
 			rtv->Release();
@@ -943,10 +943,10 @@ namespace LuaSTG::Core::Graphics
 			assert(ctx);
 			ctx->VSSetShader(_vertex_shader[IDX(state)].Get(), NULL, 0);
 			float const fog_color_and_range[8] = {
-				(float)color.u.s.r / 255.0f,
-				(float)color.u.s.g / 255.0f,
-				(float)color.u.s.b / 255.0f,
-				(float)color.u.s.a / 255.0f,
+				(float)color.r / 255.0f,
+				(float)color.g / 255.0f,
+				(float)color.b / 255.0f,
+				(float)color.a / 255.0f,
 				density_or_znear, zfar, 0.0f, zfar - density_or_znear,
 			};
 			/* upload */ {

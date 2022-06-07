@@ -598,10 +598,10 @@ namespace LuaSTG::Core::Graphics
 		Vector2F start_pos = start; // 笔触位置
 		float const line_height = m_glyphmgr->getLineHeight() * m_scale.y; // 行高
 		IRenderer::DrawVertex vert[4] = {
-			IRenderer::DrawVertex(0.0f, 0.0f, m_z, 0.0f, 0.0f, m_color.u.color),
-			IRenderer::DrawVertex(0.0f, 0.0f, m_z, 0.0f, 0.0f, m_color.u.color),
-			IRenderer::DrawVertex(0.0f, 0.0f, m_z, 0.0f, 0.0f, m_color.u.color),
-			IRenderer::DrawVertex(0.0f, 0.0f, m_z, 0.0f, 0.0f, m_color.u.color),
+			IRenderer::DrawVertex(0.0f, 0.0f, m_z, 0.0f, 0.0f, m_color.color()),
+			IRenderer::DrawVertex(0.0f, 0.0f, m_z, 0.0f, 0.0f, m_color.color()),
+			IRenderer::DrawVertex(0.0f, 0.0f, m_z, 0.0f, 0.0f, m_color.color()),
+			IRenderer::DrawVertex(0.0f, 0.0f, m_z, 0.0f, 0.0f, m_color.color()),
 		};
 
 		// 迭代绘制所有文字
@@ -712,10 +712,10 @@ namespace LuaSTG::Core::Graphics
 		Vector3F start_pos = start; // 笔触位置
 		float const line_height = m_glyphmgr->getLineHeight() * m_scale.y; // 行高
 		IRenderer::DrawVertex vert[4] = {
-			IRenderer::DrawVertex(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, m_color.u.color),
-			IRenderer::DrawVertex(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, m_color.u.color),
-			IRenderer::DrawVertex(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, m_color.u.color),
-			IRenderer::DrawVertex(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, m_color.u.color),
+			IRenderer::DrawVertex(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, m_color.color()),
+			IRenderer::DrawVertex(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, m_color.color()),
+			IRenderer::DrawVertex(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, m_color.color()),
+			IRenderer::DrawVertex(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, m_color.color()),
 		};
 
 		// 迭代绘制所有文字

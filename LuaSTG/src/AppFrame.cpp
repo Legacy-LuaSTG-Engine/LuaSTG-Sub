@@ -175,10 +175,7 @@ LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, 
 			DisplayMode mode = {
 				.width = (uint32_t)width,
 				.height = (uint32_t)height,
-				.refresh_rate = {
-					.numerator = (uint32_t)hza,
-					.denominator = (uint32_t)hzb,
-				},
+				.refresh_rate = Rational((uint32_t)hza, (uint32_t)hzb),
 				.format = Format::B8G8R8A8_UNORM,
 			};
 			if (hza == 0 || hzb == 0)
@@ -449,10 +446,7 @@ bool AppFrame::Init()LNOEXCEPT
 				Graphics::DisplayMode mode = {
 					.width = (uint32_t)m_OptionResolution.x,
 					.height = (uint32_t)m_OptionResolution.y,
-					.refresh_rate = Rational{
-						.numerator = m_OptionRefreshRateA,
-						.denominator = m_OptionRefreshRateB,
-					},
+					.refresh_rate = Rational(m_OptionRefreshRateA, m_OptionRefreshRateB),
 					.format = Graphics::Format::B8G8R8A8_UNORM, // 未使用
 				};
 				p_swapchain->findBestMatchDisplayMode(mode);

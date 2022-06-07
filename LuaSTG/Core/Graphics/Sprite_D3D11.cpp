@@ -45,10 +45,10 @@ namespace LuaSTG::Core::Graphics
 		m_renderer->setTexture(m_texture.get());
 
 		IRenderer::DrawVertex const vert[4] = {
-			IRenderer::DrawVertex(rc.a.x, rc.a.y, m_z, m_uv.a.x, m_uv.a.y, m_color[0].u.color),
-			IRenderer::DrawVertex(rc.b.x, rc.a.y, m_z, m_uv.b.x, m_uv.a.y, m_color[1].u.color),
-			IRenderer::DrawVertex(rc.b.x, rc.b.y, m_z, m_uv.b.x, m_uv.b.y, m_color[2].u.color),
-			IRenderer::DrawVertex(rc.a.x, rc.b.y, m_z, m_uv.a.x, m_uv.b.y, m_color[3].u.color),
+			IRenderer::DrawVertex(rc.a.x, rc.a.y, m_z, m_uv.a.x, m_uv.a.y, m_color[0].color()),
+			IRenderer::DrawVertex(rc.b.x, rc.a.y, m_z, m_uv.b.x, m_uv.a.y, m_color[1].color()),
+			IRenderer::DrawVertex(rc.b.x, rc.b.y, m_z, m_uv.b.x, m_uv.b.y, m_color[2].color()),
+			IRenderer::DrawVertex(rc.a.x, rc.b.y, m_z, m_uv.a.x, m_uv.b.y, m_color[3].color()),
 		};
 
 		m_renderer->drawQuad(vert);
@@ -58,10 +58,10 @@ namespace LuaSTG::Core::Graphics
 		m_renderer->setTexture(m_texture.get());
 
 		IRenderer::DrawVertex const vert[4] = {
-			IRenderer::DrawVertex(p1.x, p1.y, p1.z, m_uv.a.x, m_uv.a.y, m_color[0].u.color),
-			IRenderer::DrawVertex(p2.x, p2.y, p2.z, m_uv.b.x, m_uv.a.y, m_color[1].u.color),
-			IRenderer::DrawVertex(p3.x, p3.y, p3.z, m_uv.b.x, m_uv.b.y, m_color[2].u.color),
-			IRenderer::DrawVertex(p4.x, p4.y, p4.z, m_uv.a.x, m_uv.b.y, m_color[3].u.color),
+			IRenderer::DrawVertex(p1.x, p1.y, p1.z, m_uv.a.x, m_uv.a.y, m_color[0].color()),
+			IRenderer::DrawVertex(p2.x, p2.y, p2.z, m_uv.b.x, m_uv.a.y, m_color[1].color()),
+			IRenderer::DrawVertex(p3.x, p3.y, p3.z, m_uv.b.x, m_uv.b.y, m_color[2].color()),
+			IRenderer::DrawVertex(p4.x, p4.y, p4.z, m_uv.a.x, m_uv.b.y, m_color[3].color()),
 		};
 
 		m_renderer->drawQuad(vert);
@@ -96,10 +96,10 @@ namespace LuaSTG::Core::Graphics
 		);
 		
 		IRenderer::DrawVertex const vert[4] = {
-			IRenderer::DrawVertex(pos.x + rect.a.x, pos.y + rect.a.y, m_z, m_uv.a.x, m_uv.a.y, m_color[0].u.color),
-			IRenderer::DrawVertex(pos.x + rect.b.x, pos.y + rect.a.y, m_z, m_uv.b.x, m_uv.a.y, m_color[1].u.color),
-			IRenderer::DrawVertex(pos.x + rect.b.x, pos.y + rect.b.y, m_z, m_uv.b.x, m_uv.b.y, m_color[2].u.color),
-			IRenderer::DrawVertex(pos.x + rect.a.x, pos.y + rect.b.y, m_z, m_uv.a.x, m_uv.b.y, m_color[3].u.color),
+			IRenderer::DrawVertex(pos.x + rect.a.x, pos.y + rect.a.y, m_z, m_uv.a.x, m_uv.a.y, m_color[0].color()),
+			IRenderer::DrawVertex(pos.x + rect.b.x, pos.y + rect.a.y, m_z, m_uv.b.x, m_uv.a.y, m_color[1].color()),
+			IRenderer::DrawVertex(pos.x + rect.b.x, pos.y + rect.b.y, m_z, m_uv.b.x, m_uv.b.y, m_color[2].color()),
+			IRenderer::DrawVertex(pos.x + rect.a.x, pos.y + rect.b.y, m_z, m_uv.a.x, m_uv.b.y, m_color[3].color()),
 		};
 
 		m_renderer->drawQuad(vert);
@@ -122,10 +122,10 @@ namespace LuaSTG::Core::Graphics
 		);
 
 		IRenderer::DrawVertex vert[4] = {
-			IRenderer::DrawVertex(rect.a.x, rect.a.y, m_z, m_uv.a.x, m_uv.a.y, m_color[0].u.color),
-			IRenderer::DrawVertex(rect.b.x, rect.a.y, m_z, m_uv.b.x, m_uv.a.y, m_color[1].u.color),
-			IRenderer::DrawVertex(rect.b.x, rect.b.y, m_z, m_uv.b.x, m_uv.b.y, m_color[2].u.color),
-			IRenderer::DrawVertex(rect.a.x, rect.b.y, m_z, m_uv.a.x, m_uv.b.y, m_color[3].u.color),
+			IRenderer::DrawVertex(rect.a.x, rect.a.y, m_z, m_uv.a.x, m_uv.a.y, m_color[0].color()),
+			IRenderer::DrawVertex(rect.b.x, rect.a.y, m_z, m_uv.b.x, m_uv.a.y, m_color[1].color()),
+			IRenderer::DrawVertex(rect.b.x, rect.b.y, m_z, m_uv.b.x, m_uv.b.y, m_color[2].color()),
+			IRenderer::DrawVertex(rect.a.x, rect.b.y, m_z, m_uv.a.x, m_uv.b.y, m_color[3].color()),
 		};
 
 		float const sinv = std::sinf(rotation);

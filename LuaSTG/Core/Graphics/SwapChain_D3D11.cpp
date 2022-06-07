@@ -607,10 +607,7 @@ namespace LuaSTG::Core::Graphics
 			m_displaymode.emplace_back(DisplayMode{
 				.width = v.Width,
 				.height = v.Height,
-				.refresh_rate = Rational{
-					.numerator = v.RefreshRate.Numerator,
-					.denominator = v.RefreshRate.Denominator,
-				},
+				.refresh_rate = Rational(v.RefreshRate.Numerator, v.RefreshRate.Denominator),
 				.format = convert_DXGI_FORMAT_to_Format(v.Format),
 			});
 		}
@@ -731,10 +728,7 @@ namespace LuaSTG::Core::Graphics
 		DisplayMode mode = {
 			.width = width,
 			.height = height,
-			.refresh_rate = Rational{
-				.numerator = 0,
-				.denominator = 0,
-			},
+			.refresh_rate = Rational(),
 			.format = Format::B8G8R8A8_UNORM,
 		};
 		if (!createSwapChain(true, flip_model, mode, false)) // 让它创建渲染附件
