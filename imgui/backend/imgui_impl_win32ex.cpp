@@ -109,6 +109,7 @@ struct Win32MessageQueueSafe
 };
 struct Win32MessageQueue
 {
+    size_t const size = 0x100;
     Win32Message data[0x100] {};
     volatile int cave[0x100] {};
     size_t writer_index { 0 };
@@ -571,11 +572,18 @@ static void ImGui_ImplWin32Ex_ProcessMessage()
         return false;
     };
 
-    while (bd->MessageQueue.read(msg))
+    for (size_t i = 0; i < bd->MessageQueue.size; i += 1)
     {
-        if (!processInputEvent())
+        if (bd->MessageQueue.read(msg))
         {
-            processOtherEvent();
+            if (!processInputEvent())
+            {
+                processOtherEvent();
+            }
+        }
+        else
+        {
+            break;
         }
     }
 }
