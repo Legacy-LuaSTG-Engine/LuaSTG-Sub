@@ -9,6 +9,8 @@
 
 #define LUASTG_INFO LUASTG_NAME " " LUASTG_BRANCH " " LUASTG_VERSION_NAME "-beta"
 
+// WARNING: see write-version.lua
+
 //#define LuaSTG_enable_GameObjectManager_Debug 1
 
 //#define LDEVVERSION 1
