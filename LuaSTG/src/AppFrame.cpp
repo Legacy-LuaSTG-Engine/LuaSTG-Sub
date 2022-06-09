@@ -599,6 +599,7 @@ void AppFrame::onUpdate()
 
 	// 执行帧函数
 	imgui::cancelSetCursor();
+	m_GameObjectPool->DebugNextFrame();
 	if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineUpdate, 1))
 		m_pAppModel->requestExit();
 	bool tAbort = lua_toboolean(L, -1) == 0 ? false : true;
