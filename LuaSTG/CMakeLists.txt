@@ -11,6 +11,8 @@ else()
     message("LuaSTG will using custom config, built-in resources and source codes: " ${LUASTG_RESDIR})
 endif()
 
+include(Sources.cmake)
+
 # LuaSTG Core && Backend
 
 add_library(LuaSTGCore STATIC)
@@ -27,44 +29,7 @@ target_include_directories(LuaSTGCore PUBLIC
 )
 
 set(LuaSTGCore_SRC
-    Core/Type.hpp
-    Core/i18n.hpp
-    Core/i18n.cpp
-    Core/framework.hpp
-    Core/framework.cpp
-
-    Core/FileManager.hpp
-    Core/FileManager.cpp
-    Core/Object.hpp
-    Core/Graphics/Window.hpp
-    Core/Graphics/Window_Win32.hpp
-    Core/Graphics/Window_Win32.cpp
-    Core/Graphics/Format.hpp
-    Core/Graphics/Format_D3D11.hpp
-    Core/Graphics/Device.hpp
-    Core/Graphics/Device_D3D11.hpp
-    Core/Graphics/Device_D3D11.cpp
-    Core/Graphics/SwapChain.hpp
-    Core/Graphics/SwapChain_D3D11.hpp
-    Core/Graphics/SwapChain_D3D11.cpp
-    Core/Graphics/Renderer.hpp
-    Core/Graphics/Renderer_D3D11.hpp
-    Core/Graphics/Renderer_D3D11.cpp
-    Core/Graphics/Renderer_Shader_D3D11.cpp
-    Core/Graphics/Model_D3D11.hpp
-    Core/Graphics/Model_D3D11.cpp
-    Core/Graphics/Model_Shader_D3D11.cpp
-    Core/Graphics/Sprite.hpp
-    Core/Graphics/Sprite_D3D11.hpp
-    Core/Graphics/Sprite_D3D11.cpp
-    Core/Graphics/Font.hpp
-    Core/Graphics/Font_D3D11.hpp
-    Core/Graphics/Font_D3D11.cpp
-    Core/Graphics/DearImGui_Win32_D3D11.hpp
-    Core/Graphics/DearImGui_Win32_D3D11.cpp
-    Core/ApplicationModel.hpp
-    Core/ApplicationModel_Win32.hpp
-    Core/ApplicationModel_Win32.cpp
+    ${LUASTG_ENGINE_CORE_SOURCES}
 )
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${LuaSTGCore_SRC})
 target_sources(LuaSTGCore PRIVATE
@@ -108,7 +73,6 @@ target_include_directories(LuaSTG PRIVATE
 
 target_compile_definitions(LuaSTG PRIVATE LDEVVERSION)
 
-include(Sources.cmake)
 target_sources(LuaSTG PRIVATE
     ${LUASTG_ENGINE_SOURCES}
 )
