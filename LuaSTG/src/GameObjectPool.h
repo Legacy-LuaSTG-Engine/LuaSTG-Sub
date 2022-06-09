@@ -13,6 +13,16 @@ namespace LuaSTGPlus
 	//游戏对象池
 	class GameObjectPool
 	{
+	public:
+		struct FrameStatistics
+		{
+			uint64_t object_alloc{ 0 };
+			uint64_t object_free{ 0 };
+			uint64_t object_alive{ 0 };
+			uint64_t object_colli_check{ 0 };
+			uint64_t object_colli_callback{ 0 };
+		};
+
 	private:
 		cpp::fixed_object_pool<GameObject, LOBJPOOL_SIZE> m_ObjectPool;
 		uint64_t m_iUid = 0;
@@ -41,6 +51,10 @@ namespace LuaSTGPlus
 		lua_Number m_BoundBottom = -100.f;
 
 		bool m_IsRendering = false;
+
+		FrameStatistics m_DbgData[2]{};
+		size_t m_DbgIdx{ 0 };
+
 	private:
 		void _ClearLinkList();
 		void _InsertToUpdateLinkList(GameObject* p);
@@ -81,6 +95,11 @@ namespace LuaSTGPlus
 		GameObject* _TableToGameObject(lua_State* L, int idx);
 
 		void _GameObjectCallback(lua_State* L, int otidx, GameObject* p, int cbidx);
+
+	public:
+		void DebugNextFrame();
+		FrameStatistics DebugGetFrameStatistics();
+
 	public:
 		int PushCurrentObject(lua_State* L) noexcept;
 		

@@ -159,10 +159,12 @@ namespace LuaSTGPlus
 		_InsertToUpdateLinkList(p);
 		_InsertToRenderList(p);
 		_InsertToColliLinkList(p, (size_t)p->group);
+		m_DbgData[m_DbgIdx].object_alloc += 1;
 		return p;
 	}
 	GameObject* GameObjectPool::_ReleaseObject(GameObject* object)
 	{
+		m_DbgData[m_DbgIdx].object_free += 1;
 		GameObject* ret = object->pUpdateNext;
 		_RemoveFromUpdateLinkList(object);
 		_RemoveFromRenderList(object);
@@ -247,6 +249,22 @@ namespace LuaSTGPlus
 	}
 
 	// --------------------------------------------------------------------------------
+
+	void GameObjectPool::DebugNextFrame()
+	{
+		m_DbgIdx = (m_DbgIdx + 1) % std::size(m_DbgData);
+		m_DbgData[m_DbgIdx].object_alloc = 0;
+		m_DbgData[m_DbgIdx].object_free = 0;
+		m_DbgData[m_DbgIdx].object_alive = m_ObjectPool.size();
+		m_DbgData[m_DbgIdx].object_colli_check = 0;
+		m_DbgData[m_DbgIdx].object_colli_callback = 0;
+	}
+	GameObjectPool::FrameStatistics GameObjectPool::DebugGetFrameStatistics()
+	{
+		size_t const n = std::size(m_DbgData);
+		size_t const i = (m_DbgIdx + n - 1) % n;
+		return m_DbgData[i];
+	}
 
 	int GameObjectPool::GetObjectTable(lua_State* L) noexcept
 	{
@@ -414,8 +432,10 @@ namespace LuaSTGPlus
 				if (CheckWorlds(pA->world, pB->world))
 				{
 			#endif // USING_MULTI_GAME_WORLD
+					m_DbgData[m_DbgIdx].object_colli_check += 1;
 					if (LuaSTGPlus::CollisionCheck(pA, pB))
 					{
+						m_DbgData[m_DbgIdx].object_colli_callback += 1;
 						m_pCurrentObject = pA;
 						// 根据id获取对象的lua绑定table、拿到class再拿到collifunc
 						lua_rawgeti(G_L, -1, pA->id + 1);		// ot t(object)

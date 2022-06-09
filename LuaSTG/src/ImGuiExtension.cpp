@@ -346,6 +346,11 @@ static int lib_ShowFrameStatistics(lua_State* L)
     static std::vector<double> arr_render_time(arr_size);
     static std::vector<double> arr_present_time(arr_size);
     static std::vector<double> arr_total_time(arr_size);
+    static std::vector<double> arr_obj_alloc(arr_size);
+    static std::vector<double> arr_obj_free(arr_size);
+    static std::vector<double> arr_obj_alive(arr_size);
+    static std::vector<double> arr_obj_colli(arr_size);
+    static std::vector<double> arr_obj_colli_cb(arr_size);
     static size_t arr_index = 0;
     static size_t record_range = 240;
     constexpr size_t record_range_min = 60;
@@ -367,67 +372,131 @@ static int lib_ShowFrameStatistics(lua_State* L)
     {
         if (ImGui::Begin("Frame Statistics", &v))
         {
-            // TODO:
-
-            auto info = LAPP.GetAppModel()->getFrameStatistics();
-            
-            ImGui::Text("Update : %.3fms", info.update_time  * 1000.0);
-            ImGui::Text("Render : %.3fms", info.render_time  * 1000.0);
-            ImGui::Text("Present: %.3fms", info.present_time * 1000.0);
-            ImGui::Text("Total  : %.3fms", info.total_time   * 1000.0);
-            
             ImGui::SliderScalar("Record Range", sizeof(size_t) == 8 ? ImGuiDataType_U64 : ImGuiDataType_U32, &record_range, &record_range_min, &record_range_max);
             record_range = std::clamp<size_t>(record_range, 2, record_range_max);
-            ImGui::SliderFloat("Timeline Height", &height, 256.0f, 512.0f);
-            ImGui::Checkbox("Auto-Fit Y Axis", &auto_fit);
 
-            arr_update_time[arr_index] = 1000.0 * (info.update_time);
-            arr_render_time[arr_index] = 1000.0 * (info.update_time + info.render_time);
-            arr_present_time[arr_index] = 1000.0 * (info.update_time + info.render_time + info.present_time);
-            arr_total_time[arr_index] = 1000.0 * (info.total_time);
-            arr_index = (arr_index + 1) % record_range;
+            // frame time
 
-            if (ImPlot::BeginPlot("##Frame Statistics", ImVec2(-1, height), 0))
+            if (ImGui::CollapsingHeader("Frame Time"))
             {
-                //ImPlot::SetupAxes("Frame", "Time", flags, flags);
-                ImPlot::SetupAxisLimits(ImAxis_X1, 0.0, (double)(record_range - 1), ImGuiCond_Always);
-                //ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0, 1000.0 / 18.0, ImGuiCond_Always);
-                if (auto_fit)
-                    ImPlot::SetupAxes(NULL, NULL, ImPlotAxisFlags_None, ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_RangeFit);
-                else
-                    ImPlot::SetupAxes(NULL, NULL);
+                auto info = LAPP.GetAppModel()->getFrameStatistics();
+            
+                ImGui::Text("Update : %.3fms", info.update_time  * 1000.0);
+                ImGui::Text("Render : %.3fms", info.render_time  * 1000.0);
+                ImGui::Text("Present: %.3fms", info.present_time * 1000.0);
+                ImGui::Text("Total  : %.3fms", info.total_time   * 1000.0);
+            
+            
+                ImGui::SliderFloat("Timeline Height", &height, 256.0f, 512.0f);
+                ImGui::Checkbox("Auto-Fit Y Axis", &auto_fit);
 
-                ImPlot::SetupLegend(ImPlotLocation_North, ImPlotLegendFlags_Horizontal | ImPlotLegendFlags_Outside);
+                arr_update_time[arr_index] = 1000.0 * (info.update_time);
+                arr_render_time[arr_index] = 1000.0 * (info.update_time + info.render_time);
+                arr_present_time[arr_index] = 1000.0 * (info.update_time + info.render_time + info.present_time);
+                arr_total_time[arr_index] = 1000.0 * (info.total_time);
+           
+                if (ImPlot::BeginPlot("##Frame Statistics", ImVec2(-1, height), 0))
+                {
+                    //ImPlot::SetupAxes("Frame", "Time", flags, flags);
+                    ImPlot::SetupAxisLimits(ImAxis_X1, 0.0, (double)(record_range - 1), ImGuiCond_Always);
+                    //ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0, 1000.0 / 18.0, ImGuiCond_Always);
+                    if (auto_fit)
+                        ImPlot::SetupAxes(NULL, NULL, ImPlotAxisFlags_None, ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_RangeFit);
+                    else
+                        ImPlot::SetupAxes(NULL, NULL);
 
-                static double arr_ms[] = {
-                    1000.0 / 60.0,
-                    1000.0 / 30.0,
-                    1000.0 / 20.0,
-                };
-                ImPlot::SetNextLineStyle(ImVec4(0.2f, 1.0f, 0.2f, 1.0f));
-                ImPlot::PlotHLines("##60 FPS", arr_ms, 1);
-                //ImPlot::SetNextLineStyle(ImVec4(1.0f, 1.2f, 0.2f, 1.0f));
-                //ImPlot::PlotHLines("##30 FPS", arr_ms + 1, 1);
-                //ImPlot::SetNextLineStyle(ImVec4(1.0f, 0.2f, 0.2f, 1.0f));
-                //ImPlot::PlotHLines("##20 FPS", arr_ms + 2, 1);
+                    ImPlot::SetupLegend(ImPlotLocation_North, ImPlotLegendFlags_Horizontal | ImPlotLegendFlags_Outside);
 
-                ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.5f);
-                ImPlot::PlotShaded("Total", arr_x.data(), arr_present_time.data(), arr_total_time.data(), (int)record_range);
-                ImPlot::PlotShaded("Present", arr_x.data(), arr_render_time.data(), arr_present_time.data(), (int)record_range);
-                ImPlot::PlotShaded("Render", arr_x.data(), arr_update_time.data(), arr_render_time.data(), (int)record_range);
-                ImPlot::PlotShaded("Update", arr_x.data(), arr_update_time.data(), (int)record_range);
-                ImPlot::PopStyleVar();
+                    static double arr_ms[] = {
+                        1000.0 / 60.0,
+                        1000.0 / 30.0,
+                        1000.0 / 20.0,
+                    };
+                    ImPlot::SetNextLineStyle(ImVec4(0.2f, 1.0f, 0.2f, 1.0f));
+                    ImPlot::PlotHLines("##60 FPS", arr_ms, 1);
+                    //ImPlot::SetNextLineStyle(ImVec4(1.0f, 1.2f, 0.2f, 1.0f));
+                    //ImPlot::PlotHLines("##30 FPS", arr_ms + 1, 1);
+                    //ImPlot::SetNextLineStyle(ImVec4(1.0f, 0.2f, 0.2f, 1.0f));
+                    //ImPlot::PlotHLines("##20 FPS", arr_ms + 2, 1);
 
-                ImPlot::PlotLine("Total", arr_total_time.data(), (int)record_range);
-                ImPlot::PlotLine("Present", arr_present_time.data(), (int)record_range);
-                ImPlot::PlotLine("Render", arr_render_time.data(), (int)record_range);
-                ImPlot::PlotLine("Update", arr_update_time.data(), (int)record_range);
+                    ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.5f);
+                    ImPlot::PlotShaded("Total", arr_x.data(), arr_present_time.data(), arr_total_time.data(), (int)record_range);
+                    ImPlot::PlotShaded("Present", arr_x.data(), arr_render_time.data(), arr_present_time.data(), (int)record_range);
+                    ImPlot::PlotShaded("Render", arr_x.data(), arr_update_time.data(), arr_render_time.data(), (int)record_range);
+                    ImPlot::PlotShaded("Update", arr_x.data(), arr_update_time.data(), (int)record_range);
+                    ImPlot::PopStyleVar();
+
+                    ImPlot::PlotLine("Total", arr_total_time.data(), (int)record_range);
+                    ImPlot::PlotLine("Present", arr_present_time.data(), (int)record_range);
+                    ImPlot::PlotLine("Render", arr_render_time.data(), (int)record_range);
+                    ImPlot::PlotLine("Update", arr_update_time.data(), (int)record_range);
                 
-                ImPlot::SetNextLineStyle(ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-                ImPlot::PlotVLines("##Current Time", &arr_index, 1);
+                    ImPlot::SetNextLineStyle(ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+                    ImPlot::PlotVLines("##Current Time", &arr_index, 1);
 
-                ImPlot::EndPlot();
+                    ImPlot::EndPlot();
+                }
             }
+
+            // object
+
+            if (ImGui::CollapsingHeader("GameObject"))
+            {
+                auto obj_info = LAPP.GetGameObjectPool().DebugGetFrameStatistics();
+
+                ImGui::Text("Create : %llu", obj_info.object_alloc);
+                ImGui::Text("Return : %llu", obj_info.object_free);
+                ImGui::Text("Active : %llu", obj_info.object_alive);
+                ImGui::Text("Colli Check : %llu", obj_info.object_colli_check);
+                ImGui::Text("Colli Callback : %llu", obj_info.object_colli_callback);
+
+                arr_obj_alloc[arr_index] = (double)obj_info.object_alloc;
+                arr_obj_free[arr_index] = (double)obj_info.object_free;
+                arr_obj_alive[arr_index] = (double)obj_info.object_alive;
+                arr_obj_colli[arr_index] = (double)obj_info.object_colli_check;
+                arr_obj_colli_cb[arr_index] = (double)obj_info.object_colli_callback;
+
+                if (ImPlot::BeginPlot("##GameObject Statistics", ImVec2(-1, height), 0))
+                {
+                    //ImPlot::SetupAxes("Frame", "Time", flags, flags);
+                    ImPlot::SetupAxisLimits(ImAxis_X1, 0.0, (double)(record_range - 1), ImGuiCond_Always);
+                    //ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0, 1000.0 / 18.0, ImGuiCond_Always);
+                    if (auto_fit)
+                        ImPlot::SetupAxes(NULL, NULL, ImPlotAxisFlags_None, ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_RangeFit);
+                    else
+                        ImPlot::SetupAxes(NULL, NULL);
+
+                    ImPlot::SetupLegend(ImPlotLocation_North, ImPlotLegendFlags_Horizontal | ImPlotLegendFlags_Outside);
+
+                    static double arr_ms[] = {
+                        1000.0 / 60.0,
+                        1000.0 / 30.0,
+                        1000.0 / 20.0,
+                    };
+                    //ImPlot::SetNextLineStyle(ImVec4(0.2f, 1.0f, 0.2f, 1.0f));
+                    //ImPlot::PlotHLines("##60 FPS", arr_ms, 1);
+                    //ImPlot::SetNextLineStyle(ImVec4(1.0f, 1.2f, 0.2f, 1.0f));
+                    //ImPlot::PlotHLines("##30 FPS", arr_ms + 1, 1);
+                    //ImPlot::SetNextLineStyle(ImVec4(1.0f, 0.2f, 0.2f, 1.0f));
+                    //ImPlot::PlotHLines("##20 FPS", arr_ms + 2, 1);
+
+                    ImPlot::PlotLine("Create", arr_obj_alloc.data(), (int)record_range);
+                    ImPlot::PlotLine("Return", arr_obj_free.data(), (int)record_range);
+                    ImPlot::PlotLine("Active", arr_obj_alive.data(), (int)record_range);
+                    ImPlot::PlotLine("Colli Check", arr_obj_colli.data(), (int)record_range);
+                    ImPlot::PlotLine("Colli Callback", arr_obj_colli_cb.data(), (int)record_range);
+
+                    ImPlot::SetNextLineStyle(ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+                    ImPlot::PlotVLines("##Current Time", &arr_index, 1);
+
+                    ImPlot::EndPlot();
+                }
+
+            }
+
+            // move next
+
+            arr_index = (arr_index + 1) % record_range;
         }
         ImGui::End();
     }
