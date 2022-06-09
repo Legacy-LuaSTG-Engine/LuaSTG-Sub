@@ -16,9 +16,13 @@ namespace LuaSTGPlus
 		Killed = 4, // 生命周期结束
 	};
 	
+#pragma warning(push)
+#pragma warning(disable:26495)
+
 	// 游戏对象
 	struct GameObject
 	{
+
 		// 链表部分
 		GameObject* pUpdatePrev;		// [P] [不可见]
 		GameObject* pUpdateNext;		// [P] [不可见]
@@ -28,9 +32,9 @@ namespace LuaSTGPlus
 		// 基本信息
 
 		GameObjectStatus status;		// [4] 对象状态
-#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+	#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 		GameObjectClass luaclass;		// [4] [不可见] 对象类的一些特性
-#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+	#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 		uint64_t uid;					// [8] [不可见] 对象全局唯一标识符
 		size_t id;						// [P] [不可见] 对象在对象池中的索引
 
@@ -96,6 +100,8 @@ namespace LuaSTGPlus
 		uint8_t resolve_move;			// [1] 是否为计算速度而非计算位置
 		uint8_t ignore_superpause;		// [1] 是否无视超级暂停。 超级暂停时，timer不会增加，frame不会调用，但render会调用。
 		
+	
+
 		// 成员方法
 
 		void Reset();
@@ -114,9 +120,9 @@ namespace LuaSTGPlus
 		int GetAttr(lua_State* L) noexcept;
 		int SetAttr(lua_State* L) noexcept;
 	};
+
+#pragma warning(pop)
 	
 	// 对两个游戏对象进行碰撞检测
 	bool CollisionCheck(GameObject* p1, GameObject* p2) noexcept;
-
-	inline size_t _Size() { return sizeof(GameObject); }
 }
