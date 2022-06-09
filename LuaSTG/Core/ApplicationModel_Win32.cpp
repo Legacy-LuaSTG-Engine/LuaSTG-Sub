@@ -271,7 +271,7 @@ namespace LuaSTG::Core
 			
 			// 呈现
 			{
-				ScopeTimer t(d.render_time);
+				ScopeTimer t(d.present_time);
 				m_swapchain->present();
 			}
 			
