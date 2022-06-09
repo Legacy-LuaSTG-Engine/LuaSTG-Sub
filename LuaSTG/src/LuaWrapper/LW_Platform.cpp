@@ -110,7 +110,7 @@ void LuaSTGPlus::LuaWrapper::PlatformWrapper::Register(lua_State* L) noexcept
 			char const* text = luaL_checkstring(L, 2);
 			UINT flags = (UINT)luaL_checkinteger(L, 3);
 			int result = MessageBoxW(
-				NULL,
+				(LAPP.GetAppModel() && LAPP.GetAppModel()->getWindow()) ? (HWND)LAPP.GetAppModel()->getWindow()->getNativeHandle() : NULL,
 				utility::encoding::to_wide(text).c_str(),
 				utility::encoding::to_wide(title).c_str(),
 				flags);
