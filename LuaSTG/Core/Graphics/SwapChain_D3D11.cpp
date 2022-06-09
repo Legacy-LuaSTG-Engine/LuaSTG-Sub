@@ -718,6 +718,11 @@ namespace LuaSTG::Core::Graphics
 
 	bool SwapChain_D3D11::setWindowMode(uint32_t width, uint32_t height, bool flip_model)
 	{
+		// TODO: 也许，是时候该自动开启 flip 交换链模型了？
+		//if (m_device->IsFrameLatencySupport() && m_device->IsFlipDiscardSupport() && m_device->IsTearingSupport())
+		//{
+		//	flip_model = true;
+		//}
 		if (width < 1 || height < 1)
 		{
 			spdlog::error("[core] 无法创建 SwapChain，大小不能为 ({}x{})", width, height);
