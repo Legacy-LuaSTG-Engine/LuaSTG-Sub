@@ -48,6 +48,7 @@ target_link_libraries(LuaSTGCore PUBLIC
     tracy
     imgui
     MINIZIP::minizip
+    dr_libs
 )
 
 target_link_libraries(fancy2dlib PUBLIC
