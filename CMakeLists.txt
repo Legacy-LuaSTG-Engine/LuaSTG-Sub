@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.23)
 project(LuaSTGSub)
 
 #option(LINK_STEAM_API "Enable Steam API" OFF)
@@ -20,5 +20,4 @@ add_subdirectory(steam)
 add_subdirectory(utility)
 add_subdirectory(platform)
 add_subdirectory(fancylib)
-add_subdirectory(fancy2d)
 add_subdirectory(LuaSTG)
