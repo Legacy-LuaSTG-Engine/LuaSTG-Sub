@@ -37,22 +37,34 @@ target_sources(LuaSTGCore PRIVATE
 )
 
 target_link_libraries(LuaSTGCore PUBLIC
+    # debug
     spdlog::spdlog
-    fancylib
-    fancy2dlib
-    d3dcompiler.lib
+    tracy
+    imgui
+    # util
+    utility
+    platform
+    # win32
+    winmm.lib
+    imm32.lib
+    # dx
     dxguid.lib
     dxgi.lib
     d3d11.lib
-    tinygltf
-    tracy
-    imgui
+    d3dcompiler.lib
+    DirectX::XAudio2Redist
+    DirectXTexMini
+    # math
+    xmath
+    # file
     MINIZIP::minizip
+    # text
+    freetype
+    # model
+    tinygltf
+    # audio
     dr_libs
-)
-
-target_link_libraries(fancy2dlib PUBLIC
-    LuaSTGCore
+    vorbisfile
 )
 
 # LuaSTG Engine
@@ -100,7 +112,6 @@ target_link_libraries(LuaSTG PRIVATE
     utility
     platform
     fancylib
-    fancy2dlib
     DirectXTexMini
     DirectX::ToolKitMini
     LuaSTGCore
