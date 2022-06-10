@@ -226,6 +226,7 @@ namespace LuaSTG::Core::Audio
 			destroyResources();
 			throw std::runtime_error("Decoder_VorbisOGG::Decoder_VorbisOGG (2)");
 		}
+		m_init = true; // 标记为需要清理
 
 		// 一些断言
 		vorbis_info* p_info = ov_info(&m_ogg, -1);
