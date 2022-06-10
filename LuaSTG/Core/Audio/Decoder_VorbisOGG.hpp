@@ -27,6 +27,9 @@ namespace LuaSTG::Core::Audio
 		OggVorbis_File m_ogg;
 		bool m_init;
 
+	private:
+		void destroyResources();
+
 	public:
 		uint16_t getSampleSize() { return 2; } // OGG 永远是 16bits
 		uint16_t getChannelCount();

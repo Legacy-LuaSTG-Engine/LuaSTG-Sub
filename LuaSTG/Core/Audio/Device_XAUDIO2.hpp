@@ -49,6 +49,9 @@ namespace LuaSTG::Core::Audio
 	{
 	private:
 		ScopeObject<Device_XAUDIO2> m_device;
+	#ifdef _DEBUG
+		ScopeObject<IDecoder> m_decoder;
+	#endif
 		IXAudio2SourceVoice* xa2_source;
 		XAUDIO2_BUFFER xa2_buffer = {};
 		Microsoft::WRL::Wrappers::Event event_end;

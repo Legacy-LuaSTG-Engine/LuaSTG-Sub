@@ -98,6 +98,16 @@ namespace LuaSTG::Core::Audio
 		return self->ptr - self->data;
 	}
 	
+	void Decoder_VorbisOGG::destroyResources()
+	{
+		if (m_init)
+		{
+			m_init = false;
+			ov_clear(&m_ogg);
+		}
+		m_data.clear();
+	}
+
 	uint16_t Decoder_VorbisOGG::getChannelCount()
 	{
 		vorbis_info* p_info = ov_info(&m_ogg, -1);
@@ -195,7 +205,10 @@ namespace LuaSTG::Core::Audio
 	{
 		// OGG 直接读取进内存，加快解码
 		if (!GFileManager().loadEx(path, m_data))
+		{
+			destroyResources();
 			throw std::runtime_error("Decoder_VorbisOGG::Decoder_VorbisOGG (1)");
+		}
 
 		m_stream.data = m_data.data();
 		m_stream.size = m_data.size();
@@ -209,25 +222,33 @@ namespace LuaSTG::Core::Audio
 		};
 		int const result = ov_open_callbacks(&m_stream, &m_ogg, NULL, 0, callbacks);
 		if (result != 0)
+		{
+			destroyResources();
 			throw std::runtime_error("Decoder_VorbisOGG::Decoder_VorbisOGG (2)");
+		}
 
 		// 一些断言
 		vorbis_info* p_info = ov_info(&m_ogg, -1);
 		if (!p_info)
+		{
+			destroyResources();
 			throw std::runtime_error("Decoder_VorbisOGG::Decoder_VorbisOGG (3)");
+		}
 		if (!(p_info->channels == 1 || p_info->channels == 2))
+		{
+			destroyResources();
 			throw std::runtime_error("Decoder_VorbisOGG::Decoder_VorbisOGG (4)");
+		}
 
 		// 先逝一下
 		if (!seek(0))
+		{
+			destroyResources();
 			throw std::runtime_error("Decoder_VorbisOGG::Decoder_VorbisOGG (5)");
+		}
 	}
 	Decoder_VorbisOGG::~Decoder_VorbisOGG()
 	{
-		if (m_init)
-		{
-			m_init = false;
-			ov_clear(&m_ogg);
-		}
+		destroyResources();
 	}
 }

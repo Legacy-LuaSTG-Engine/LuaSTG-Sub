@@ -82,5 +82,6 @@ namespace LuaSTGPlus
 
 	public:
 		ResMusic(const char* name, LoopDecoder* p_decoder, LuaSTG::Core::Audio::IAudioPlayer* p_player);
+		~ResMusic();
 	};
 }
