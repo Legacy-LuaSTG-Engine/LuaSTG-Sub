@@ -47,6 +47,9 @@ set(LUASTG_ENGINE_CORE_SOURCES
     Core/Audio/Decoder_WAV.cpp
     Core/Audio/Decoder_WAV.hpp
     Core/Audio/Decoder_ALL.cpp
+    Core/Audio/Device.hpp
+    Core/Audio/Device_XAUDIO2.cpp
+    Core/Audio/Device_XAUDIO2.hpp
 )
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${LUASTG_ENGINE_CORE_SOURCES})
 

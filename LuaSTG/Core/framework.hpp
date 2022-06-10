@@ -12,6 +12,7 @@
 #include <string_view>
 #include <atomic>
 #include <algorithm>
+#include <array>
 #include <vector>
 #include <unordered_map>
 #include <thread>
