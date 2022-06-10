@@ -52,3 +52,6 @@
 [submodule "external/dr_libs"]
 	path = external/dr_libs
 	url = https://github.com/mackron/dr_libs.git
+[submodule "external/libflac"]
+	path = external/libflac
+	url = https://github.com/xiph/flac.git
