@@ -211,9 +211,16 @@ namespace LuaSTG::Core::Audio
 		if (result != 0)
 			throw std::runtime_error("Decoder_VorbisOGG::Decoder_VorbisOGG (2)");
 
+		// 一些断言
+		vorbis_info* p_info = ov_info(&m_ogg, -1);
+		if (!p_info)
+			throw std::runtime_error("Decoder_VorbisOGG::Decoder_VorbisOGG (3)");
+		if (!(p_info->channels == 1 || p_info->channels == 2))
+			throw std::runtime_error("Decoder_VorbisOGG::Decoder_VorbisOGG (4)");
+
 		// 先逝一下
 		if (!seek(0))
-			throw std::runtime_error("Decoder_VorbisOGG::Decoder_VorbisOGG (3)");
+			throw std::runtime_error("Decoder_VorbisOGG::Decoder_VorbisOGG (5)");
 	}
 	Decoder_VorbisOGG::~Decoder_VorbisOGG()
 	{
