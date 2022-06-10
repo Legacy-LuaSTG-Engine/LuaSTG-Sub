@@ -94,7 +94,7 @@ namespace LuaSTG::Core::Audio
 			destroyResources();
 			throw std::runtime_error("Decoder_WAV::Decoder_WAV (4)");
 		}
-		m_init = true;
+		m_init = true; // 标记为需要清理
 		// 一些断言
 		if ((m_wav.bitsPerSample % 8) != 0 || !(m_wav.channels == 1 || m_wav.channels == 2))
 		{
