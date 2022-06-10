@@ -1,185 +1,86 @@
 ﻿#pragma once
 #include "ResourceBase.hpp"
-#include "f2dSoundSys.h"
+#include "Core/Object.hpp"
+#include "Core/Audio/Device.hpp"
 
-namespace LuaSTGPlus {
+namespace LuaSTGPlus
+{
 	// 音效
-	class ResSound :
-		public Resource
+	class ResSound : public Resource
 	{
 	private:
-		fcyRefPointer<f2dSoundBuffer> m_pBuffer;
-		int m_status;//0停止1暂停2播放
+		LuaSTG::Core::ScopeObject<LuaSTG::Core::Audio::IAudioPlayer> m_player;
+		int m_status = 0; // 0停止 1暂停 2播放
+
 	public:
-		void Play(float vol, float pan)
-		{
-			m_pBuffer->Stop();
-			
-			m_pBuffer->SetVolume(vol);
-			m_pBuffer->SetPan(pan);
+		void Play(float vol, float pan);
+		void Resume();
+		void Pause();
+		void Stop();
+		bool IsPlaying();
+		bool IsStopped();
+		bool SetSpeed(float speed);
+		float GetSpeed();
 
-			m_pBuffer->Play();
-			m_status = 2;
-		}
-
-		void Resume()
-		{
-			m_pBuffer->Play();
-			m_status = 2;
-		}
-
-		void Pause()
-		{
-			m_pBuffer->Pause();
-			m_status = 1;
-		}
-
-		void Stop()
-		{
-			m_pBuffer->Stop();
-			m_status = 0;
-		}
-
-		bool IsPlaying()
-		{
-			return m_pBuffer->IsPlaying();
-		}
-
-		bool IsStopped()
-		{
-			return !IsPlaying() && m_status != 1;
-		}
-
-		bool SetSpeed(float speed) {
-			return m_pBuffer->SetFrequency(speed) == FCYERR_OK;
-		}
-
-		float GetSpeed() {
-			return m_pBuffer->GetFrequency();
-		}
 	public:
-		ResSound(const char* name, fcyRefPointer<f2dSoundBuffer> buffer) : Resource(ResourceType::SoundEffect, name) {
-			m_pBuffer = buffer;
-		}
+		ResSound(const char* name, LuaSTG::Core::Audio::IAudioPlayer* p_player);
+		~ResSound();
 	};
 
 	// 背景音乐
-	class ResMusic :
-		public Resource
+	class ResMusic : public Resource
 	{
 	public:
-		// 对SoundDecoder作一个包装来保持BGM循环
-		// 使用该Wrapper之后SoundBuffer的播放参数（位置）将没有意义
-		// ! 从fancystg（已坑）中抽取的上古时期代码
-		class BGMWrapper :
-			public fcyRefObjImpl<f2dSoundDecoder>
+		class LoopDecoder : public LuaSTG::Core::Object<LuaSTG::Core::Audio::IDecoder>
 		{
 		protected:
-			fcyRefPointer<f2dSoundDecoder> m_pDecoder;
-			bool m_bIsLoop = true;
-			// 转到采样为单位
-			fuInt m_TotalSample;
-			fuInt m_pLoopStartSample;
-			fuInt m_pLoopEndSample; // 监视哨，=EndSample+1
+			LuaSTG::Core::ScopeObject<LuaSTG::Core::Audio::IDecoder> m_decoder;
+			uint32_t m_total_sample = 0;
+			uint32_t m_start_sample = 0;
+			uint32_t m_end_sample = 0;
+			bool m_is_loop = true;
 		public:
-			// 直接返回原始参数
-			fuInt GetBufferSize() { return m_pDecoder->GetBufferSize(); }
-			fuInt GetAvgBytesPerSec() { return m_pDecoder->GetAvgBytesPerSec(); }
-			fuShort GetBlockAlign() { return m_pDecoder->GetBlockAlign(); }
-			fuShort GetChannelCount() { return m_pDecoder->GetChannelCount(); }
-			fuInt GetSamplesPerSec() { return m_pDecoder->GetSamplesPerSec(); }
-			fuShort GetFormatTag() { return m_pDecoder->GetFormatTag(); }
-			fuShort GetBitsPerSample() { return m_pDecoder->GetBitsPerSample(); }
+			uint16_t getSampleSize() { return m_decoder->getSampleSize(); }
+			uint16_t getChannelCount() { return m_decoder->getChannelCount(); }
+			uint16_t getFrameSize() { return m_decoder->getFrameSize(); }
+			uint32_t getSampleRate() { return m_decoder->getSampleRate(); }
+			uint32_t getByteRate() { return m_decoder->getByteRate(); }
+			uint32_t getFrameCount() { return m_decoder->getFrameCount(); }
 
-			// 不作任何处理
-			fLen GetPosition() { return m_pDecoder->GetPosition(); }
-			fResult SetPosition(F2DSEEKORIGIN Origin, fInt Offset) { return m_pDecoder->SetPosition(Origin, Offset); }
+			bool seek(uint32_t pcm_frame) { return m_decoder->seek(pcm_frame); }
+			bool seekByTime(double sec) { return m_decoder->seekByTime(sec); }
+			bool tell(uint32_t* pcm_frame) { return m_decoder->tell(pcm_frame); }
+			bool tellAsTime(double* sec) { return m_decoder->tellAsTime(sec); }
 
-			// 对Read作处理
-			fResult Read(fData pBuffer, fuInt SizeToRead, fuInt* pSizeRead);
+			bool read(uint32_t pcm_frame, void* buffer, uint32_t* read_pcm_frame);
 			
-			void SetLoop(bool v) { m_bIsLoop = v ;}
+			void setLoop(bool v) { m_is_loop = v ;}
 		public:
-			BGMWrapper(fcyRefPointer<f2dSoundDecoder> pOrg, fDouble LoopStart, fDouble LoopEnd);
+			LoopDecoder(LuaSTG::Core::Audio::IDecoder* p_decoder, double LoopStart, double LoopEnd);
 		};
+
 	private:
-		fcyRefPointer<BGMWrapper> m_pDecoder;
-		fcyRefPointer<f2dSoundBuffer> m_pBuffer;
-		int m_status;//0停止1暂停2播放
+		LuaSTG::Core::ScopeObject<LoopDecoder> m_decoder;
+		LuaSTG::Core::ScopeObject<LuaSTG::Core::Audio::IAudioPlayer> m_player;
+		int m_status = 0; // 0停止 1暂停 2播放
+
 	public:
-		f2dSoundBuffer* GetAudioSource() { return *m_pBuffer; }
+		LuaSTG::Core::Audio::IAudioPlayer* GetAudioPlayer() { return m_player.get(); }
 
-		void Play(float vol, double position)
-		{
-			m_pBuffer->Stop();
-			m_pBuffer->SetTime(position);
+		void Play(float vol, double position);
+		void Stop();
+		void Pause();
+		void Resume();
+		bool IsPlaying();
+		bool IsPaused();
+		bool IsStopped();
+		void SetVolume(float v);
+		float GetVolume();
+		bool SetSpeed(float speed);
+		float GetSpeed();
+		void SetLoop(bool v);
 
-			m_pBuffer->SetVolume(vol);
-
-			m_pBuffer->Play();
-			m_status = 2;
-		}
-
-		void Stop()
-		{
-			m_pBuffer->Stop();
-			m_status = 0;
-		}
-
-		void Pause()
-		{
-			m_pBuffer->Pause();
-			m_status = 1;
-		}
-
-		void Resume()
-		{
-			m_pBuffer->Play();
-			m_status = 2;
-		}
-
-		bool IsPlaying()
-		{
-			return m_pBuffer->IsPlaying();
-		}
-
-		bool IsPaused()
-		{
-			return m_status == 1;
-		}
-
-		bool IsStopped()
-		{
-			return !IsPlaying() && m_pBuffer->GetTotalTime() == 0.0;
-		}
-
-		void SetVolume(float v)
-		{
-			m_pBuffer->SetVolume(v);
-		}
-
-		float GetVolume()
-		{
-			return m_pBuffer->GetVolume();
-		}
-
-		bool SetSpeed(float speed) {
-			return m_pBuffer->SetFrequency(speed) == FCYERR_OK;
-		}
-
-		float GetSpeed() {
-			return m_pBuffer->GetFrequency();
-		}
-		
-		void SetLoop(bool v)
-		{
-			m_pDecoder->SetLoop(v);
-		}
 	public:
-		ResMusic(const char* name, fcyRefPointer<BGMWrapper> decoder, fcyRefPointer<f2dSoundBuffer> buffer) : Resource(ResourceType::Music, name) {
-			m_pDecoder = decoder;
-			m_pBuffer = buffer;
-			m_status = 0;
-		}
+		ResMusic(const char* name, LoopDecoder* p_decoder, LuaSTG::Core::Audio::IAudioPlayer* p_player);
 	};
 }

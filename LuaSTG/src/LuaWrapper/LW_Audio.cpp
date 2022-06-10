@@ -68,7 +68,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L) LNOEXCEPT
 		}
 		static int GetSEVolume(lua_State* L)
 		{
-			lua_pushnumber(L, LAPP.GetSoundSys()->GetSoundEffectChannelVolume());
+			lua_pushnumber(L, LAPP.GetSEVolume());
 			return 1;
 		}
 		static int SetSESpeed(lua_State* L) {
@@ -154,9 +154,9 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L) LNOEXCEPT
 			ResMusic* p = LRES.FindMusic(s);
 			if (!p)
 				return luaL_error(L, "music '%s' not found.", s);
-			p->GetAudioSource()->UpdateFFT();
-			size_t sz = p->GetAudioSource()->GetFFTSize();
-			float* fdata = p->GetAudioSource()->GetFFTData();
+			p->GetAudioPlayer()->updateFFT();
+			size_t sz = p->GetAudioPlayer()->getFFTSize();
+			float* fdata = p->GetAudioPlayer()->getFFT();
 			if (!lua_istable(L, 2))
 			{
 				lua_createtable(L, (int)sz, 0);
@@ -190,7 +190,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L) LNOEXCEPT
 		{
 			if (lua_gettop(L) == 0)
 			{
-				lua_pushnumber(L, LAPP.GetSoundSys()->GetMusicChannelVolume());
+				lua_pushnumber(L, LAPP.GetBGMVolume());
 			}
 			else if (lua_gettop(L) == 1)
 			{

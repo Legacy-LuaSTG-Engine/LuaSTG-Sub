@@ -66,10 +66,6 @@ namespace LuaSTGPlus
 		fFloat m_gSEVol = 1.0f;
 		fFloat m_gBGMVol = 1.0f;
 
-		// 引擎
-		fcyRefPointer<f2dEngine> m_pEngine;
-		f2dSoundSys* m_pSoundSys = nullptr;
-		
 		//渲染状态
 		bool m_bRenderStarted = false;
 		
@@ -136,6 +132,8 @@ namespace LuaSTGPlus
 		void SetSplash(bool v)LNOEXCEPT;
 		void SetSEVolume(float v);
 		void SetBGMVolume(float v);
+		float GetSEVolume() { return m_gSEVol; }
+		float GetBGMVolume() { return m_gBGMVol; }
 		
 	public:
 		/// @brief 使用新的视频参数更新显示模式
@@ -221,8 +219,6 @@ namespace LuaSTGPlus
 		ResourceMgr& GetResourceMgr() LNOEXCEPT { return m_ResourceMgr; }
 
 		GameObjectPool& GetGameObjectPool() LNOEXCEPT{ return *m_GameObjectPool.get(); }
-
-		f2dSoundSys* GetSoundSys() LNOEXCEPT { return m_pSoundSys; }
 
 		platform::DirectInput* GetDInput() LNOEXCEPT { return m_DirectInput.get(); }
 		

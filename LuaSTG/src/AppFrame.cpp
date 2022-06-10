@@ -67,17 +67,15 @@ void AppFrame::SetResolution(fuInt width, fuInt height, fuInt A, fuInt B)LNOEXCE
 }
 void AppFrame::SetSEVolume(float v)
 {
-	if (m_pSoundSys)
-		m_pSoundSys->SetSoundEffectChannelVolume(v);
-	else
-		m_gSEVol = v;
+	m_gSEVol = v;
+	if (GetAppModel())
+		GetAppModel()->getAudioDevice()->setMixChannelVolume(LuaSTG::Core::Audio::MixChannel::SoundEffect, v);
 }
 void AppFrame::SetBGMVolume(float v)
 {
-	if (m_pSoundSys)
-		m_pSoundSys->SetMusicChannelVolume(v);
-	else
-		m_gBGMVol = v;
+	m_gBGMVol = v;
+	if (GetAppModel())
+		GetAppModel()->getAudioDevice()->setMixChannelVolume(LuaSTG::Core::Audio::MixChannel::Music, v);
 }
 void AppFrame::SetTitle(const char* v)LNOEXCEPT
 {
@@ -349,6 +347,9 @@ bool AppFrame::Init()LNOEXCEPT
 	
 	//////////////////////////////////////// 初始化引擎
 	{
+		spdlog::info("[core] 初始化，窗口分辨率：{}x{}，垂直同步：{}，窗口化：{}",
+			(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed);
+		
 		// 配置窗口
 		{
 			using namespace LuaSTG::Core;
@@ -361,6 +362,13 @@ bool AppFrame::Init()LNOEXCEPT
 			p_window->setTitleText(m_OptionTitle);
 			p_window->setNativeIcon((void*)(ptrdiff_t)IDI_APPICON);
 			p_window->setCursor(m_OptionCursor ? Graphics::WindowCursor::Arrow : Graphics::WindowCursor::None);
+		}
+		// 配置音量
+		{
+			using namespace LuaSTG::Core::Audio;
+			auto* p_audio = GetAppModel()->getAudioDevice();
+			p_audio->setMixChannelVolume(MixChannel::SoundEffect, m_gSEVol);
+			p_audio->setMixChannelVolume(MixChannel::Music, m_gBGMVol);
 		}
 
 		// 为对象池分配空间
@@ -375,22 +383,6 @@ bool AppFrame::Init()LNOEXCEPT
 			return false;
 		}
 		
-		spdlog::info("[core] 初始化，窗口分辨率：{}x{}，垂直同步：{}，窗口化：{}",
-			(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed);
-		
-		if (FCYFAILED(CreateF2DEngineAndInit(~m_pEngine)))
-		{
-			spdlog::error("[fancy2d] CreateF2DEngineAndInit failed");
-			return false;
-		}
-		
-		// 获取组件
-		m_pSoundSys = m_pEngine->GetSoundSys();
-		
-		// 配置音量
-		m_pSoundSys->SetSoundEffectChannelVolume(m_gSEVol);
-		m_pSoundSys->SetMusicChannelVolume(m_gBGMVol);
-
 		// 渲染器适配器
 		m_bRenderStarted = false;
 		
@@ -495,11 +487,7 @@ void AppFrame::Shutdown()LNOEXCEPT
 	#ifdef USING_DEAR_IMGUI
 		imgui::unbindEngine();
 	#endif
-	
-	m_pSoundSys = nullptr;
-	m_pEngine = nullptr;
-	spdlog::info("[fancy2d] 卸载所有组件");
-	
+
 	GFileManager().unloadAllFileArchive();
 	spdlog::info("[luastg] 卸载所有资源包");
 	
