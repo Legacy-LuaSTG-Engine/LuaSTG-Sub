@@ -75,9 +75,12 @@ namespace LuaSTG::Core::Audio
 			throw std::runtime_error("Decoder_WAV::Decoder_WAV (4)");
 		}
 		m_init = true;
+		// 一些断言
+		if ((m_wav.bitsPerSample % 8) != 0 || !(m_wav.channels == 1 || m_wav.channels == 2))
+			throw std::runtime_error("Decoder_WAV::Decoder_WAV (5)");
 		// 先逝一逝
 		if (!seek(0))
-			throw std::runtime_error("Decoder_WAV::Decoder_WAV (5)");
+			throw std::runtime_error("Decoder_WAV::Decoder_WAV (6)");
 	}
 	Decoder_WAV::~Decoder_WAV()
 	{
