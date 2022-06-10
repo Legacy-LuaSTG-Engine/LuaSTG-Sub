@@ -62,12 +62,12 @@ namespace LuaSTG::Core::Audio
 	FLAC__bool Decoder_FLAC::onCheckEOF(FLAC__StreamDecoder const*, void* client_data)
 	{
 		Decoder_FLAC& self = cast(client_data);
-		return (self.m_ptr - self.m_data.data()) >= self.m_data.size();
+		return (self.m_ptr - self.m_data.data()) >= (ptrdiff_t)self.m_data.size();
 	}
 
 	// 公共回调
 
-	FLAC__StreamDecoderWriteStatus Decoder_FLAC::onWrite(FLAC__StreamDecoder const* decoder, FLAC__Frame const* frame, const FLAC__int32* const buffer[], void* client_data)
+	FLAC__StreamDecoderWriteStatus Decoder_FLAC::onWrite(FLAC__StreamDecoder const*, FLAC__Frame const* frame, const FLAC__int32* const buffer[], void* client_data)
 	{
 		Decoder_FLAC& self = cast(client_data);
 
@@ -235,10 +235,10 @@ namespace LuaSTG::Core::Audio
 							// 拆数据
 							int32_t const sample = m_flac_frame_data.data[chs][pcm_frame_offset + idx];
 							uint8_t const bytes[4] = {
-								sample & 0x000000FF,
-								(sample & 0x0000FF00) >> 8,
-								(sample & 0x00FF0000) >> 16,
-								(sample & 0xFF000000) >> 24,
+								(uint8_t)((sample & 0x000000FF)      ),
+								(uint8_t)((sample & 0x0000FF00) >> 8 ),
+								(uint8_t)((sample & 0x00FF0000) >> 16),
+								(uint8_t)((sample & 0xFF000000) >> 24),
 							};
 							// 看位深来写入数据，Windows 一般是小端，如果是大端平台需要把上面的 bytes 数组颠倒
 							for (uint16_t bid = 0; bid < (m_flac_frame_data.bits_per_sample / 8); bid += 1)
@@ -290,8 +290,8 @@ namespace LuaSTG::Core::Audio
 		if (GFileManager().contain(path))
 		{
 			// 存在于文件系统，直接以文件的形式打开，flac 文件的大小也是有点离谱的
-			m_file = _wfopen(utility::encoding::to_wide(path).c_str(), L"rb");
-			if (NULL == m_file)
+			errno_t const result = _wfopen_s(&m_file, utility::encoding::to_wide(path).c_str(), L"rb");
+			if (0 != result)
 			{
 				destroyResources();
 				throw std::runtime_error("Decoder_FLAC::Decoder_FLAC (1.1)");
