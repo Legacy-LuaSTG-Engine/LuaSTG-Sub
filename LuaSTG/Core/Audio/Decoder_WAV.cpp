@@ -19,6 +19,7 @@ namespace LuaSTG::Core::Audio
 		drwav_uint64 dr_frame_count = 0;
 		drwav_result const result = drwav_get_length_in_pcm_frames(&m_wav, &dr_frame_count);
 		assert(DRWAV_SUCCESS == result);
+		if (DRWAV_SUCCESS != result) return 0;
 		return (uint32_t)dr_frame_count;
 	}
 
