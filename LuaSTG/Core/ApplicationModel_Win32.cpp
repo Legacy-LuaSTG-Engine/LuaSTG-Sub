@@ -422,6 +422,8 @@ namespace LuaSTG::Core
 			throw std::runtime_error("Graphics::SwapChain_D3D11::create");
 		if (!Graphics::Renderer_D3D11::create(*m_device, ~m_renderer))
 			throw std::runtime_error("Graphics::Renderer_D3D11::create");
+		if (!Audio::Device_XAUDIO2::create(~m_audiosys))
+			throw std::runtime_error("Audio::Device_XAUDIO2::create");
 	}
 	ApplicationModel_Win32::~ApplicationModel_Win32()
 	{

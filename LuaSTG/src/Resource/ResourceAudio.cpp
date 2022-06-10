@@ -1,53 +1,82 @@
 ﻿#include "ResourceAudio.hpp"
 #include <cassert>
 
-namespace LuaSTGPlus {
-	fResult ResMusic::BGMWrapper::Read(fData pBuffer, fuInt SizeToRead, fuInt* pSizeRead)
+namespace LuaSTGPlus
+{
+	void ResSound::Play(float vol, float pan)
 	{
-		fResult tFR;
-		
-		// 获得单个采样大小
-		fuInt tBlockAlign = GetBlockAlign();
-		
-		// 计算需要读取的采样个数
-		fuInt tSampleToRead = SizeToRead / tBlockAlign;
-		
+		m_player->reset();
+
+		m_player->setVolume(vol);
+		m_player->setBalance(pan);
+
+		m_player->start();
+		m_status = 2;
+	}
+	void ResSound::Resume()
+	{
+		m_player->start();
+		m_status = 2;
+	}
+	void ResSound::Pause()
+	{
+		m_player->stop();
+		m_status = 1;
+	}
+	void ResSound::Stop()
+	{
+		m_player->reset();
+		m_status = 0;
+	}
+	bool ResSound::IsPlaying() { return m_player->isPlaying(); }
+	bool ResSound::IsStopped() { return !IsPlaying() && m_status != 1; }
+	bool ResSound::SetSpeed(float speed) { return m_player->setSpeed(speed); }
+	float ResSound::GetSpeed() { return m_player->getSpeed(); }
+
+	ResSound::ResSound(const char* name, LuaSTG::Core::Audio::IAudioPlayer* p_player)
+		: Resource(ResourceType::SoundEffect, name)
+		, m_player(p_player)
+	{
+	}
+	ResSound::~ResSound() {}
+
+	bool ResMusic::LoopDecoder::read(uint32_t pcm_frame, void* buffer, uint32_t* read_pcm_frame)
+	{
+		uint8_t* p_buffer = (uint8_t*)buffer;
+
 		// 填充音频数据
-		if (m_bIsLoop)
+		if (m_is_loop)
 		{
-			while (tSampleToRead)
+			while (pcm_frame)
 			{
 				// 获得当前解码器位置(采样)
-				fuInt tCurSample = (fuInt)GetPosition() / tBlockAlign;
+				uint32_t current_frame = 0;
+				if (!tell(&current_frame)) { assert(false); return false; }
 
 				// 检查读取位置是否超出循环节
-				if (tCurSample + tSampleToRead > m_pLoopEndSample)
+				if ((current_frame + pcm_frame) > m_end_sample)
 				{
 					// 填充尚未填充数据
-					if (tCurSample < m_pLoopEndSample)
+					if (current_frame < m_end_sample)
 					{
-						fuInt tVaildSample = m_pLoopEndSample - tCurSample;
-						fuInt tVaildSize = tVaildSample * tBlockAlign;
-
-						if (FCYFAILED(tFR = m_pDecoder->Read(pBuffer, tVaildSize, pSizeRead)))
-							return tFR;
-
-						// 指针后移
-						pBuffer += tVaildSize;
-
-						// 减少采样
-						tSampleToRead -= tVaildSample;
+						uint32_t const vaild_frame = m_end_sample - current_frame;
+						uint32_t const should_read_size = vaild_frame * getFrameSize();
+						uint32_t read_frame = 0; // 这个会被忽略
+						if (!m_decoder->read(vaild_frame, p_buffer, &read_frame)) { assert(false); return false; }
+						
+						// 即使实际上没有读取出来这么多内容，也要如此
+						p_buffer += should_read_size;
+						pcm_frame -= vaild_frame;
 					}
 
 					// 跳到循环头
-					SetPosition(FCYSEEKORIGIN_BEG, m_pLoopStartSample * tBlockAlign);
+					if (!seek(m_start_sample)) { assert(false); return false; }
 				}
 				else
 				{
 					// 直接填充数据
-					if (FCYFAILED(tFR = m_pDecoder->Read(pBuffer, tSampleToRead * tBlockAlign, pSizeRead)))
-						return tFR;
-
+					uint32_t read_frame = 0; // 这个会被忽略
+					if (!m_decoder->read(pcm_frame, p_buffer, &read_frame)) { assert(false); return false; }
 					break;
 				}
 			}
@@ -55,48 +84,88 @@ namespace LuaSTGPlus {
 		else
 		{
 			// 直接填充数据
-			fuInt size_read_ = 0;
-			if (FCYFAILED(tFR = m_pDecoder->Read(pBuffer, SizeToRead, &size_read_)))
-				return tFR;
-			pBuffer += size_read_;
-			
+			uint32_t read_frame = 0;
+			if (!m_decoder->read(pcm_frame, p_buffer, &read_frame)) { assert(false); return false; }
+			p_buffer += read_frame * getFrameSize();
+
 			// 剩下的数据全部置为0
-			fuInt size_to_write_ = SizeToRead - size_read_;
-			for (fuInt i = 0; i < size_to_write_; i += 1)
+			uint32_t const fill_size = (pcm_frame - read_frame) * getFrameSize();
+			if (fill_size > 0)
 			{
-				pBuffer[i] = 0;
+				std::memset(p_buffer, 0, fill_size);
 			}
 		}
-		
-		if (pSizeRead)
+
+		if (read_pcm_frame)
 		{
-			*pSizeRead = SizeToRead;
+			// 即使实际上没有读取出来这么多内容，也要如此
+			*read_pcm_frame = pcm_frame;
 		}
-		
-		return FCYERR_OK;
+
+		return true;
 	}
-	
-	ResMusic::BGMWrapper::BGMWrapper(fcyRefPointer<f2dSoundDecoder> pOrg, fDouble LoopStart, fDouble LoopEnd)
-		: m_pDecoder(pOrg)
+
+	ResMusic::LoopDecoder::LoopDecoder(LuaSTG::Core::Audio::IDecoder* p_decoder, double LoopStart, double LoopEnd)
+		: m_decoder(p_decoder)
 	{
-		assert(pOrg);
-
 		// 计算参数
-		m_TotalSample = m_pDecoder->GetBufferSize() / m_pDecoder->GetBlockAlign();
+		m_total_sample = getFrameCount();
 
-		if (LoopStart < 0)
-			LoopStart = 0;
-		m_pLoopStartSample = (fuInt)(LoopStart * m_pDecoder->GetSamplesPerSec());
+		if (LoopStart <= 0)
+			m_start_sample = 0;
+		else
+			m_start_sample = (uint32_t)(LoopStart * getSampleRate());
 
 		if (LoopEnd <= 0)
-			m_pLoopEndSample = m_TotalSample;
+			m_end_sample = m_total_sample;
 		else
-			m_pLoopEndSample = std::min(m_TotalSample, (fuInt)(LoopEnd * m_pDecoder->GetSamplesPerSec()));
+			m_end_sample = std::min(m_total_sample, (uint32_t)(LoopEnd * getSampleRate()));
 
-		if (m_pLoopEndSample < m_pLoopStartSample)
-			std::swap(m_pLoopStartSample, m_pLoopEndSample);
+		if (m_end_sample < m_start_sample)
+			std::swap(m_start_sample, m_end_sample);
 
-		if (m_pLoopEndSample == m_pLoopStartSample)
-			throw fcyException("ResMusic::BGMWrapper::BGMWrapper", "Invalid loop period.");
+		if (m_start_sample == m_end_sample)
+			throw std::runtime_error("ResMusic::LoopDecoder::LoopDecoder (1)");
+	}
+
+	void ResMusic::Play(float vol, double position)
+	{
+		m_player->reset();
+
+		m_player->setTime(position);
+		m_player->setVolume(vol);
+
+		m_player->start();
+		m_status = 2;
+	}
+	void ResMusic::Stop()
+	{
+		m_player->reset();
+		m_status = 0;
+	}
+	void ResMusic::Pause()
+	{
+		m_player->stop();
+		m_status = 1;
+	}
+	void ResMusic::Resume()
+	{
+		m_player->start();
+		m_status = 2;
+	}
+	bool ResMusic::IsPlaying() { return m_player->isPlaying(); }
+	bool ResMusic::IsPaused() { return m_status == 1; }
+	bool ResMusic::IsStopped() { return !IsPlaying() && m_player->getTotalTime() == 0.0; }
+	void ResMusic::SetVolume(float v) { m_player->setVolume(v); }
+	float ResMusic::GetVolume() { return m_player->getVolume(); }
+	bool ResMusic::SetSpeed(float speed) { return m_player->setSpeed(speed); }
+	float ResMusic::GetSpeed() { return m_player->getSpeed(); }
+	void ResMusic::SetLoop(bool v) { m_decoder->setLoop(v); }
+
+	ResMusic::ResMusic(const char* name, LoopDecoder* p_decoder, LuaSTG::Core::Audio::IAudioPlayer* p_player)
+		: Resource(ResourceType::Music, name)
+		, m_decoder(p_decoder)
+		, m_player(p_player)
+	{
 	}
 }

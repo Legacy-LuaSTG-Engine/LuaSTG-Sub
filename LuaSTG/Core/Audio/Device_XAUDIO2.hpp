@@ -38,6 +38,9 @@ namespace LuaSTG::Core::Audio
 	public:
 		Device_XAUDIO2();
 		~Device_XAUDIO2();
+
+	public:
+		static bool create(Device_XAUDIO2** pp_audio);
 	};
 
 	class AudioPlayer_XAUDIO2

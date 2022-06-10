@@ -3,13 +3,6 @@
 #include "Core/FileManager.hpp"
 #include "utility/encoding.hpp"
 
-#ifdef max
-#undef max
-#endif
-#ifdef min
-#undef min
-#endif
-
 inline fcyRefPointer<fcyMemStream> _load_file(std::string_view method, std::string_view restype, std::string_view path, std::string_view resname)
 {
     std::vector<uint8_t> src;
@@ -385,48 +378,56 @@ bool ResourcePool::CreateAnimation(const char* name, const char* texname,
 
 // 加载音乐
 
-bool ResourcePool::LoadMusic(const char* name, const char* path, double start, double end) noexcept {
-    fcyRefPointer<fcyMemStream> tDataBuf(_load_file("LoadMusic", "音乐", path, name));
-    if (!tDataBuf) return false;
+bool ResourcePool::LoadMusic(const char* name, const char* path, double start, double end) noexcept
+{
+    // TODO: 为什么呢？
+    //if (m_MusicPool.find(name) != m_MusicPool.end())
+    //{
+    //    if (ResourceMgr::GetResourceLoadingLog())
+    //    {
+    //        spdlog::warn("[luastg] LoadMusic: 音乐'{}'已存在，创建操作已取消", name);
+    //    }
+    //    return true;
+    //}
     
-    try {
-        //加载解码器，优先OGG解码器，加载失败则使用WAV解码器，都失败则error糊脸
-        fcyRefPointer<f2dSoundDecoder> tDecoder;
-        if (FCYFAILED(LAPP.GetSoundSys()->CreateOGGVorbisDecoder(tDataBuf, ~tDecoder))) {
-            tDataBuf->SetPosition(FCYSEEKORIGIN_BEG, 0);
-            if (FCYFAILED(LAPP.GetSoundSys()->CreateWaveDecoder(tDataBuf, ~tDecoder))) {
-                spdlog::error("[luastg] LoadMusic: 无法解码文件'{}'，要求文件格式为WAV或OGG", path);
-                return false;
-            }
-        }
-        
-        //配置循环解码器
-        fcyRefPointer<ResMusic::BGMWrapper> tWrapperedBuffer;
-        tWrapperedBuffer.DirectSet(new ResMusic::BGMWrapper(tDecoder, start, end));
-        
-        //加载音频缓冲曲，动态缓冲区
-        fcyRefPointer<f2dSoundBuffer> tBuffer;
-        fResult fr = LAPP.GetSoundSys()->CreateDynamicBuffer(tWrapperedBuffer, LSOUNDGLOBALFOCUS, ~tBuffer);
-        if (FCYFAILED(fr)) {
-            spdlog::error("[fancy2d] [f2dSoundSys::CreateDynamicBuffer] 无法从'{}'创建音频流'{}'(fResult={})", path, name, fr);
+    try
+    {
+        using namespace LuaSTG::Core;
+        using namespace LuaSTG::Core::Audio;
+
+        // 创建解码器
+        ScopeObject<IDecoder> p_decoder;
+        if (!IDecoder::create(path, ~p_decoder))
+        {
+            spdlog::error("[luastg] LoadMusic: 无法解码文件'{}'，要求文件格式为 WAV 或 OGG", path);
             return false;
         }
-        
+
+        // 配置循环解码器
+        ScopeObject<ResMusic::LoopDecoder> p_loop_decoder;
+        p_loop_decoder.attach(new ResMusic::LoopDecoder(p_decoder.get(), start, end));
+
+        // 创建播放器
+        ScopeObject<IAudioPlayer> p_player;
+        if (!LAPP.GetAppModel()->getAudioDevice()->createStreamAudioPlayer(p_loop_decoder.get(), ~p_player))
+        {
+            spdlog::error("[luastg] LoadMusic: 无法创建音频播放器");
+            return false;
+        }
+
         //存入资源池
         fcyRefPointer<ResMusic> tRes;
-        tRes.DirectSet(new ResMusic(name, tWrapperedBuffer, tBuffer));
+        tRes.DirectSet(new ResMusic(name, p_loop_decoder.get(), p_player.get()));
         m_MusicPool.emplace(name, tRes);
     }
-    catch (const fcyException& e) {
-        spdlog::error("[fancy2d] [{}] 无法从'{}'创建音频流'{}'：{}", e.GetSrc(), path, name, e.GetDesc());
-        return false;
-    }
-    catch (const std::bad_alloc&) {
-        spdlog::error("[luastg] LoadMusic: 内存不足");
+    catch ( std::exception const& e)
+    {
+        spdlog::error("[luastg] LoadMusic: {}", e.what());
         return false;
     }
     
-    if (ResourceMgr::GetResourceLoadingLog()) {
+    if (ResourceMgr::GetResourceLoadingLog())
+    {
         spdlog::info("[luastg] LoadMusic: 已从'{}'加载音乐'{}' ({})", path, name, getResourcePoolTypeName());
     }
     
@@ -435,41 +436,49 @@ bool ResourcePool::LoadMusic(const char* name, const char* path, double start, d
 
 // 加载音效
 
-bool ResourcePool::LoadSoundEffect(const char* name, const char* path) noexcept {
-    fcyRefPointer<fcyMemStream> tDataBuf(_load_file("LoadSoundEffect", "音效", path, name));
-    if (!tDataBuf) return false;
-    
+bool ResourcePool::LoadSoundEffect(const char* name, const char* path) noexcept
+{
+    if (m_SoundSpritePool.find(name) != m_SoundSpritePool.end())
+    {
+        if (ResourceMgr::GetResourceLoadingLog())
+        {
+            spdlog::warn("[luastg] LoadSoundEffect: 音效'{}'已存在，创建操作已取消", name);
+        }
+        return true;
+    }
+
     try {
-        fcyRefPointer<f2dSoundDecoder> tDecoder;
-        if (FCYFAILED(LAPP.GetSoundSys()->CreateWaveDecoder(tDataBuf, ~tDecoder))) {
-            tDataBuf->SetPosition(FCYSEEKORIGIN_BEG, 0);
-            if (FCYFAILED(LAPP.GetSoundSys()->CreateOGGVorbisDecoder(tDataBuf, ~tDecoder))) {
-                spdlog::error("[luastg] LoadSoundEffect: 无法解码文件'{}'，要求文件格式为WAV或OGG", path);
-                return false;
-            }
+        using namespace LuaSTG::Core;
+        using namespace LuaSTG::Core::Audio;
+
+        // 创建解码器
+        ScopeObject<IDecoder> p_decoder;
+        if (!IDecoder::create(path, ~p_decoder))
+        {
+            spdlog::error("[luastg] LoadMusic: 无法解码文件'{}'，要求文件格式为 WAV 或 OGG", path);
+            return false;
         }
         
-        fcyRefPointer<f2dSoundBuffer> tBuffer;
-        fResult fr = LAPP.GetSoundSys()->CreateStaticBuffer(tDecoder, LSOUNDGLOBALFOCUS, ~tBuffer);
-        if (FCYFAILED(fr)) {
-            spdlog::error("[fancy2d] [f2dSoundSys::CreateStaticBuffer] 无法从'{}'创建音频流'{}'(fResult={})", path, name, fr);
+        // 创建播放器
+        ScopeObject<IAudioPlayer> p_player;
+        if (!LAPP.GetAppModel()->getAudioDevice()->createAudioPlayer(p_decoder.get(), ~p_player))
+        {
+            spdlog::error("[luastg] LoadMusic: 无法创建音频播放器");
             return false;
         }
         
         fcyRefPointer<ResSound> tRes;
-        tRes.DirectSet(new ResSound(name, tBuffer));
+        tRes.DirectSet(new ResSound(name, p_player.get()));
         m_SoundSpritePool.emplace(name, tRes);
     }
-    catch (const fcyException& e) {
-        spdlog::error("[fancy2d] [{}] 无法从'{}'创建音频流'{}'：{}", e.GetSrc(), path, name, e.GetDesc());
-        return false;
-    }
-    catch (const std::bad_alloc&) {
-        spdlog::error("[luastg] LoadSoundEffect: 内存不足");
+    catch (std::exception const& e)
+    {
+        spdlog::error("[luastg] LoadSoundEffect: {}", e.what());
         return false;
     }
     
-    if (ResourceMgr::GetResourceLoadingLog()) {
+    if (ResourceMgr::GetResourceLoadingLog())
+    {
         spdlog::info("[luastg] LoadSoundEffect: 已从'{}'加载音效'{}' ({})", path, name, getResourcePoolTypeName());
     }
     

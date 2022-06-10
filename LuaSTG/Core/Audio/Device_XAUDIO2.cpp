@@ -216,6 +216,21 @@ namespace LuaSTG::Core::Audio
 	Device_XAUDIO2::~Device_XAUDIO2()
 	{
 	}
+
+	bool Device_XAUDIO2::create(Device_XAUDIO2** pp_audio)
+	{
+		try
+		{
+			*pp_audio = new Device_XAUDIO2;
+			return true;
+		}
+		catch (std::exception const& e)
+		{
+			spdlog::error("[core] {}", e.what());
+			*pp_audio = nullptr;
+			return false;
+		}
+	}
 }
 
 namespace LuaSTG::Core::Audio
