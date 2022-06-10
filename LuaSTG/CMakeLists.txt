@@ -64,7 +64,10 @@ target_link_libraries(LuaSTGCore PUBLIC
     tinygltf
     # audio
     dr_libs
-    vorbisfile
+    Ogg::ogg
+    Vorbis::vorbis
+    Vorbis::vorbisfile
+    FLAC::FLAC
 )
 
 # LuaSTG Engine

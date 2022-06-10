@@ -44,6 +44,8 @@ set(LUASTG_ENGINE_CORE_SOURCES
     Core/Audio/Decoder.hpp
     Core/Audio/Decoder_VorbisOGG.cpp
     Core/Audio/Decoder_VorbisOGG.hpp
+    Core/Audio/Decoder_FLAC.hpp
+    Core/Audio/Decoder_FLAC.cpp
     Core/Audio/Decoder_WAV.cpp
     Core/Audio/Decoder_WAV.hpp
     Core/Audio/Decoder_ALL.cpp
