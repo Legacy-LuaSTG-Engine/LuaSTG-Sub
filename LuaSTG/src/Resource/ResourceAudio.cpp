@@ -61,8 +61,16 @@ namespace LuaSTGPlus
 					{
 						uint32_t const vaild_frame = m_end_sample - current_frame;
 						uint32_t const should_read_size = vaild_frame * getFrameSize();
-						uint32_t read_frame = 0; // 这个会被忽略
+						uint32_t read_frame = 0;
 						if (!m_decoder->read(vaild_frame, p_buffer, &read_frame)) { assert(false); return false; }
+						
+						// 剩下的数据全部置为0
+						uint8_t* ptr = p_buffer + (read_frame * getFrameSize());
+						uint32_t const fill_size = (vaild_frame - read_frame) * getFrameSize();
+						if (fill_size > 0)
+						{
+							std::memset(ptr, 0, fill_size);
+						}
 						
 						// 即使实际上没有读取出来这么多内容，也要如此
 						p_buffer += should_read_size;
@@ -75,8 +83,17 @@ namespace LuaSTGPlus
 				else
 				{
 					// 直接填充数据
-					uint32_t read_frame = 0; // 这个会被忽略
+					uint32_t read_frame = 0;
 					if (!m_decoder->read(pcm_frame, p_buffer, &read_frame)) { assert(false); return false; }
+					p_buffer += read_frame * getFrameSize();
+
+					// 剩下的数据全部置为0
+					uint32_t const fill_size = (pcm_frame - read_frame) * getFrameSize();
+					if (fill_size > 0)
+					{
+						std::memset(p_buffer, 0, fill_size);
+					}
+
 					break;
 				}
 			}
@@ -168,4 +185,5 @@ namespace LuaSTGPlus
 		, m_player(p_player)
 	{
 	}
+	ResMusic::~ResMusic() {}
 }

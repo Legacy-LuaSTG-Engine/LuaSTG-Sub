@@ -4,6 +4,16 @@
 
 namespace LuaSTG::Core::Audio
 {
+	void Decoder_WAV::destroyResources()
+	{
+		if (m_init)
+		{
+			m_init = false;
+			drwav_uninit(&m_wav);
+		}
+		m_data.clear();
+	}
+
 	uint32_t Decoder_WAV::getFrameCount()
 	{
 		drwav_uint64 dr_frame_count = 0;
@@ -59,35 +69,47 @@ namespace LuaSTG::Core::Audio
 			// 存在于文件系统，直接以文件的形式打开，一般 wav 都贼 TM 大
 			drwav_bool32 const result = drwav_init_file_w(&m_wav, utility::encoding::to_wide(path).c_str(), NULL);
 			if (DRWAV_TRUE != result)
+			{
+				destroyResources();
 				throw std::runtime_error("Decoder_WAV::Decoder_WAV (1)");
+			}
 		}
 		else if (GFileManager().containEx(path))
 		{
 			// 在压缩包里的文件，只能读取到内存了
 			if (!GFileManager().loadEx(path, m_data))
+			{
+				destroyResources();
 				throw std::runtime_error("Decoder_WAV::Decoder_WAV (2)");
+			}
 			drwav_bool32 const result = drwav_init_memory(&m_wav, m_data.data(), m_data.size(), NULL);
 			if (DRWAV_TRUE != result)
+			{
+				destroyResources();
 				throw std::runtime_error("Decoder_WAV::Decoder_WAV (3)");
+			}
 		}
 		else
 		{
+			destroyResources();
 			throw std::runtime_error("Decoder_WAV::Decoder_WAV (4)");
 		}
 		m_init = true;
 		// 一些断言
 		if ((m_wav.bitsPerSample % 8) != 0 || !(m_wav.channels == 1 || m_wav.channels == 2))
+		{
+			destroyResources();
 			throw std::runtime_error("Decoder_WAV::Decoder_WAV (5)");
+		}
 		// 先逝一逝
 		if (!seek(0))
+		{
+			destroyResources();
 			throw std::runtime_error("Decoder_WAV::Decoder_WAV (6)");
+		}
 	}
 	Decoder_WAV::~Decoder_WAV()
 	{
-		if (m_init)
-		{
-			m_init = false;
-			drwav_uninit(&m_wav);
-		}
+		destroyResources();
 	}
 }

@@ -320,6 +320,9 @@ namespace LuaSTG::Core::Audio
 
 	AudioPlayer_XAUDIO2::AudioPlayer_XAUDIO2(Device_XAUDIO2* p_device, IDecoder* p_decoder)
 		: m_device(p_device)
+	#ifdef _DEBUG
+		, m_decoder(p_decoder)
+	#endif
 		, xa2_source(NULL)
 	{
 		auto* p_shared = m_device->GetShared();
@@ -380,7 +383,7 @@ namespace LuaSTG::Core::Audio
 			i18n_log_error_fmt("[core].system_call_failed_f", "IDecoder::read -> #ALL");
 			throw std::runtime_error("AudioPlayer_XAUDIO2::AudioPlayer_XAUDIO2 (4)");
 		}
-
+		
 		// 填写缓冲区描述符
 
 		xa2_buffer = XAUDIO2_BUFFER{

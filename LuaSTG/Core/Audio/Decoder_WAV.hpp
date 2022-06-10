@@ -13,8 +13,11 @@ namespace LuaSTG::Core::Audio
 		drwav m_wav;
 		bool m_init;
 
+	private:
+		void destroyResources();
+
 	public:
-		uint16_t getSampleSize() { return m_wav.bitsPerSample / uint16_t(8); } // TODO: 你妈的，怎么还有 4bits/sample 的 wav？？？
+		uint16_t getSampleSize() { return 2; } // 固定为 16bits
 		uint16_t getChannelCount() { return m_wav.channels; }
 		uint16_t getFrameSize() { return getChannelCount() * getSampleSize(); }
 		uint32_t getSampleRate() { return m_wav.sampleRate; }

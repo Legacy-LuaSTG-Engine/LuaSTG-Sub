@@ -390,31 +390,47 @@ bool ResourcePool::LoadMusic(const char* name, const char* path, double start, d
     //    return true;
     //}
     
+    using namespace LuaSTG::Core;
+    using namespace LuaSTG::Core::Audio;
+
+    // 创建解码器
+    ScopeObject<IDecoder> p_decoder;
+    if (!IDecoder::create(path, ~p_decoder))
+    {
+        spdlog::error("[luastg] LoadMusic: 无法解码文件'{}'，要求文件格式为 WAV 或 OGG", path);
+        return false;
+    }
+    auto to_sample = [&](double t) -> uint32_t
+    {
+        return (uint32_t)(t * (double)p_decoder->getSampleRate());
+    };
+
+    // 检查循环节
+    if (start > end)
+    {
+        spdlog::error("[luastg] LoadMusic: 循环节范围格式错误，结束位置不能先于开始位置 (start = {}, end = {})", start, end);
+        return false;
+    }
+    if (to_sample(start) == to_sample(end))
+    {
+        spdlog::error("[luastg] LoadMusic: 循环节范围格式错误，长度不能为 0 (start = {}, end = {})", start, end);
+        return false;
+    }
+
+    // 配置循环解码器（这里不用担心出现 exception，因为上面已经处理了）
+    ScopeObject<ResMusic::LoopDecoder> p_loop_decoder;
+    p_loop_decoder.attach(new ResMusic::LoopDecoder(p_decoder.get(), start, end));
+
+    // 创建播放器
+    ScopeObject<IAudioPlayer> p_player;
+    if (!LAPP.GetAppModel()->getAudioDevice()->createStreamAudioPlayer(p_loop_decoder.get(), ~p_player))
+    {
+        spdlog::error("[luastg] LoadMusic: 无法创建音频播放器");
+        return false;
+    }
+
     try
     {
-        using namespace LuaSTG::Core;
-        using namespace LuaSTG::Core::Audio;
-
-        // 创建解码器
-        ScopeObject<IDecoder> p_decoder;
-        if (!IDecoder::create(path, ~p_decoder))
-        {
-            spdlog::error("[luastg] LoadMusic: 无法解码文件'{}'，要求文件格式为 WAV 或 OGG", path);
-            return false;
-        }
-
-        // 配置循环解码器
-        ScopeObject<ResMusic::LoopDecoder> p_loop_decoder;
-        p_loop_decoder.attach(new ResMusic::LoopDecoder(p_decoder.get(), start, end));
-
-        // 创建播放器
-        ScopeObject<IAudioPlayer> p_player;
-        if (!LAPP.GetAppModel()->getAudioDevice()->createStreamAudioPlayer(p_loop_decoder.get(), ~p_player))
-        {
-            spdlog::error("[luastg] LoadMusic: 无法创建音频播放器");
-            return false;
-        }
-
         //存入资源池
         fcyRefPointer<ResMusic> tRes;
         tRes.DirectSet(new ResMusic(name, p_loop_decoder.get(), p_player.get()));
@@ -447,26 +463,27 @@ bool ResourcePool::LoadSoundEffect(const char* name, const char* path) noexcept
         return true;
     }
 
-    try {
-        using namespace LuaSTG::Core;
-        using namespace LuaSTG::Core::Audio;
+    using namespace LuaSTG::Core;
+    using namespace LuaSTG::Core::Audio;
 
-        // 创建解码器
-        ScopeObject<IDecoder> p_decoder;
-        if (!IDecoder::create(path, ~p_decoder))
-        {
-            spdlog::error("[luastg] LoadMusic: 无法解码文件'{}'，要求文件格式为 WAV 或 OGG", path);
-            return false;
-        }
-        
-        // 创建播放器
-        ScopeObject<IAudioPlayer> p_player;
-        if (!LAPP.GetAppModel()->getAudioDevice()->createAudioPlayer(p_decoder.get(), ~p_player))
-        {
-            spdlog::error("[luastg] LoadMusic: 无法创建音频播放器");
-            return false;
-        }
-        
+    // 创建解码器
+    ScopeObject<IDecoder> p_decoder;
+    if (!IDecoder::create(path, ~p_decoder))
+    {
+        spdlog::error("[luastg] LoadSoundEffect: 无法解码文件'{}'，要求文件格式为 WAV 或 OGG", path);
+        return false;
+    }
+
+    // 创建播放器
+    ScopeObject<IAudioPlayer> p_player;
+    if (!LAPP.GetAppModel()->getAudioDevice()->createAudioPlayer(p_decoder.get(), ~p_player))
+    {
+        spdlog::error("[luastg] LoadSoundEffect: 无法创建音频播放器");
+        return false;
+    }
+
+    try
+    {
         fcyRefPointer<ResSound> tRes;
         tRes.DirectSet(new ResSound(name, p_player.get()));
         m_SoundSpritePool.emplace(name, tRes);
