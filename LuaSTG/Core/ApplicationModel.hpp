@@ -4,6 +4,7 @@
 #include "Core/Graphics/Device.hpp"
 #include "Core/Graphics/SwapChain.hpp"
 #include "Core/Graphics/Renderer.hpp"
+#include "Core/Audio/Device.hpp"
 
 namespace LuaSTG::Core
 {
@@ -48,6 +49,8 @@ namespace LuaSTG::Core
         virtual Graphics::ISwapChain* getSwapChain() = 0;
         // [工作线程]
         virtual Graphics::IRenderer* getRenderer() = 0;
+        // [工作线程]
+        virtual Audio::IAudioDevice* getAudioDevice() = 0;
         // [工作线程]
         virtual FrameStatistics getFrameStatistics() = 0;
 
