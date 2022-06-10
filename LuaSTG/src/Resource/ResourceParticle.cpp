@@ -269,19 +269,19 @@ namespace LuaSTGPlus
 			if (pInfo.colColorStart[0] < 0) // r < 0
 			{
 				pSprite->setColor(LuaSTG::Core::Color4B(
-					(fByte)std::clamp(pInst.colColor[3] * (float)tVertexColor.a, 0.0f, 255.0f),
 					tVertexColor.r,
 					tVertexColor.g,
-					tVertexColor.b
+					tVertexColor.b,
+					(fByte)std::clamp(pInst.colColor[3] * (float)tVertexColor.a, 0.0f, 255.0f)
 				));
 			}
 			else
 			{
 				pSprite->setColor(LuaSTG::Core::Color4B(
-					(uint8_t)std::clamp(pInst.colColor[3] * (float)tVertexColor.a, 0.0f, 255.0f),
 					(uint8_t)std::clamp(pInst.colColor[0] * (float)tVertexColor.r, 0.0f, 255.0f),
 					(uint8_t)std::clamp(pInst.colColor[1] * (float)tVertexColor.g, 0.0f, 255.0f),
-					(uint8_t)std::clamp(pInst.colColor[2] * (float)tVertexColor.b, 0.0f, 255.0f)
+					(uint8_t)std::clamp(pInst.colColor[2] * (float)tVertexColor.b, 0.0f, 255.0f),
+					(uint8_t)std::clamp(pInst.colColor[3] * (float)tVertexColor.a, 0.0f, 255.0f)
 				));
 			}
 			pSprite->draw(
