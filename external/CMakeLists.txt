@@ -79,6 +79,23 @@ else()
 endif()
 add_library(DirectX::XAudio2Redist ALIAS XAudio2Redist)
 
+# ==================== dr libs ====================
+
+add_library(dr_libs STATIC)
+luastg_target_common_options(dr_libs)
+target_compile_definitions(dr_libs PUBLIC
+    ____DR_WAV_NO_STDIO
+)
+target_include_directories(dr_libs PUBLIC
+    dr_libs
+)
+target_sources(dr_libs PRIVATE
+    dr_libs/dr_wav.h
+    dr_libs-patch/dr_wav.cpp
+)
+
+set_target_properties(dr_libs PROPERTIES FOLDER external)
+
 # ==================== luajit ====================
 
 add_subdirectory(luajit)
