@@ -3,19 +3,6 @@
 #include "Core/FileManager.hpp"
 #include "utility/encoding.hpp"
 
-inline fcyRefPointer<fcyMemStream> _load_file(std::string_view method, std::string_view restype, std::string_view path, std::string_view resname)
-{
-    std::vector<uint8_t> src;
-    if (!GFileManager().loadEx(path, src))
-    {
-        spdlog::error("[luastg] {}：无法从 '{}' 加载{} '{}'，读取文件失败", method, path, restype, resname);
-        return fcyRefPointer<fcyMemStream>();
-    }
-    fcyRefPointer<fcyMemStream> tDataBuf;
-    tDataBuf.DirectSet(new fcyMemStream(std::move(src)));
-    return std::move(tDataBuf);
-}
-
 #define LSOUNDGLOBALFOCUS true // 谁会希望窗口失去焦点就没声音呢？
 
 using namespace LuaSTGPlus;
@@ -505,9 +492,12 @@ bool ResourcePool::LoadSoundEffect(const char* name, const char* path) noexcept
 // 创建粒子特效
 
 bool ResourcePool::LoadParticle(const char* name, const ResParticle::hgeParticleSystemInfo& info, const char* img_name,
-                                double a,double b, bool rect, bool _nolog) noexcept {
-    if (m_ParticlePool.find(name) != m_ParticlePool.end()) {
-        if (ResourceMgr::GetResourceLoadingLog()) {
+                                double a,double b, bool rect, bool _nolog) noexcept
+{
+    if (m_ParticlePool.find(name) != m_ParticlePool.end())
+    {
+        if (ResourceMgr::GetResourceLoadingLog())
+        {
             spdlog::warn("[luastg] LoadParticle: 粒子特效'{}'已存在，创建操作已取消", name);
         }
         return true;
@@ -544,22 +534,30 @@ bool ResourcePool::LoadParticle(const char* name, const ResParticle::hgeParticle
 }
 
 bool ResourcePool::LoadParticle(const char* name, const char* path, const char* img_name,
-                                double a, double b,bool rect) noexcept {
-    fcyRefPointer<fcyMemStream> outBuf(_load_file("LoadParticle", "粒子特效", path, name));
-    if (!outBuf) return false;
+                                double a, double b,bool rect) noexcept
+{
+    std::vector<uint8_t> src;
+    if (!GFileManager().loadEx(path, src))
+    {
+        spdlog::error("[luastg] LoadParticle：无法从 '{}' 加载粒子特效 '{}'，读取文件失败", path, name);
+        return false;
+    }
     
-    if (outBuf->GetLength() != sizeof(ResParticle::hgeParticleSystemInfo)) {
+    if (src.size() != sizeof(ResParticle::hgeParticleSystemInfo))
+    {
         spdlog::error("[luastg] LoadParticle: 粒子特效定义文件'{}'格式不正确", path);
         return false;
     }
     ResParticle::hgeParticleSystemInfo tInfo;
-    memcpy(&tInfo, outBuf->GetInternalBuffer(), sizeof(ResParticle::hgeParticleSystemInfo));
+    std::memcpy(&tInfo, src.data(), sizeof(ResParticle::hgeParticleSystemInfo));
     
-    if (!LoadParticle(name, tInfo, img_name, a, b, rect, /* _nolog */ true)) {
+    if (!LoadParticle(name, tInfo, img_name, a, b, rect, /* _nolog */ true))
+    {
         return false;
     }
     
-    if (ResourceMgr::GetResourceLoadingLog()) {
+    if (ResourceMgr::GetResourceLoadingLog())
+    {
         spdlog::info("[luastg] LoadParticle: 已从'{}'创建粒子特效'{}' ({})", path, name, getResourcePoolTypeName());
     }
     
