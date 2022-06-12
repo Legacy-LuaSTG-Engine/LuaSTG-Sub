@@ -322,13 +322,14 @@ namespace LuaSTG::Core::Audio
 			throw std::runtime_error("Decoder_FLAC::Decoder_FLAC (2.1)");
 		}
 
-		FLAC__stream_decoder_set_md5_checking(m_flac, true); // TODO: 应该开启 md5 验证？还是关掉比较好？
+		FLAC__stream_decoder_set_metadata_respond(m_flac, FLAC__METADATA_TYPE_STREAMINFO);
+		FLAC__stream_decoder_set_md5_checking(m_flac, true);
 
 		if (m_file)
 		{
 			// 以文件的方式解码
 			FLAC__StreamDecoderInitStatus flac_init = FLAC__STREAM_DECODER_INIT_STATUS_OK;
-			flac_init = FLAC__stream_decoder_init_FILE(m_flac, m_file, &onWrite, NULL, &onError, this);
+			flac_init = FLAC__stream_decoder_init_FILE(m_flac, m_file, &onWrite, &onMetadata, &onError, this);
 			if (FLAC__STREAM_DECODER_INIT_STATUS_OK != flac_init)
 			{
 				// 容器或者格式不对？
@@ -338,7 +339,7 @@ namespace LuaSTG::Core::Audio
 					destroyResources();
 					throw std::runtime_error("Decoder_FLAC::Decoder_FLAC (2.2)");
 				}
-				flac_init = FLAC__stream_decoder_init_ogg_FILE(m_flac, m_file, &onWrite, NULL, &onError, this);
+				flac_init = FLAC__stream_decoder_init_ogg_FILE(m_flac, m_file, &onWrite, &onMetadata, &onError, this);
 			}
 			if (FLAC__STREAM_DECODER_INIT_STATUS_OK != flac_init)
 			{
@@ -351,12 +352,12 @@ namespace LuaSTG::Core::Audio
 		{
 			// 以内存流的方式打开
 			FLAC__StreamDecoderInitStatus flac_init = FLAC__STREAM_DECODER_INIT_STATUS_OK;
-			flac_init = FLAC__stream_decoder_init_stream(m_flac, &onRead, &onSeek, &onTell, &onGetLength, onCheckEOF, &onWrite, NULL, &onError, this);
+			flac_init = FLAC__stream_decoder_init_stream(m_flac, &onRead, &onSeek, &onTell, &onGetLength, onCheckEOF, &onWrite, &onMetadata, &onError, this);
 			if (FLAC__STREAM_DECODER_INIT_STATUS_OK != flac_init)
 			{
 				// 容器或者格式不对？
 				m_ptr = m_data.data(); // 先回到文件头
-				flac_init = FLAC__stream_decoder_init_ogg_stream(m_flac, &onRead, &onSeek, &onTell, &onGetLength, onCheckEOF, &onWrite, NULL, &onError, this);
+				flac_init = FLAC__stream_decoder_init_ogg_stream(m_flac, &onRead, &onSeek, &onTell, &onGetLength, onCheckEOF, &onWrite, &onMetadata, &onError, this);
 			}
 			if (FLAC__STREAM_DECODER_INIT_STATUS_OK != flac_init)
 			{
@@ -377,44 +378,8 @@ namespace LuaSTG::Core::Audio
 		if (!m_has_info)
 		{
 			// 暂时不支持没有 info 的格式
-			//destroyResources();
-			//throw std::runtime_error("Decoder_FLAC::Decoder_FLAC (3.2)");
-
-			// 或者，让我们变通一点，先解码一波
-			if (!FLAC__stream_decoder_process_single(m_flac))
-			{
-				destroyResources();
-				throw std::runtime_error("Decoder_FLAC::Decoder_FLAC (3.2.1)");
-			}
-
-			if (m_flac_frame_data.empty())
-			{
-				destroyResources();
-				throw std::runtime_error("Decoder_FLAC::Decoder_FLAC (3.2.2)");
-			}
-			m_info.bits_per_sample = m_flac_frame_data.bits_per_sample;
-			m_info.channels = m_flac_frame_data.channels;
-			m_info.sample_rate = m_flac_frame_data.sample_rate;
-			m_info.total_samples = m_flac_frame_data.sample_count; // 起始
-
-			m_flac_frame_data.clear();
-			while (FLAC__stream_decoder_process_single(m_flac))
-			{
-				if (m_flac_frame_data.empty())
-					break;
-				if (m_info.bits_per_sample != m_flac_frame_data.bits_per_sample
-					|| m_info.channels != m_flac_frame_data.channels
-					|| m_info.sample_rate != m_flac_frame_data.sample_rate)
-				{
-					// 真可惜，你没能一直保持自我
-					destroyResources();
-					throw std::runtime_error("Decoder_FLAC::Decoder_FLAC (3.2.3)");
-				}
-				m_info.total_samples += m_flac_frame_data.sample_count; // 增加
-				m_flac_frame_data.clear();
-			}
-
-			m_has_info = true;
+			destroyResources();
+			throw std::runtime_error("Decoder_FLAC::Decoder_FLAC (3.2)");
 		}
 		if ((m_info.bits_per_sample % 8) != 0 || !(m_info.channels == 1 || m_info.channels == 2))
 		{
