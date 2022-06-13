@@ -122,6 +122,13 @@ function M.refresh() end
 --- 获取手柄输入，每帧需要且只需调用一次
 function M.update() end
 
+--- [LuaSTG Sub v0.17.2 新增]  
+--- 判断手柄是否已经连接  
+--- 索引从 1 开始  
+---@param index number
+---@return boolean
+function M.isConnected(index) end
+
 --- 根据索引获取手柄按键状态  
 --- 索引从 1 开始  
 --- 只传递一个 keycode 参数时，自动选择可用的手柄获取按键状态

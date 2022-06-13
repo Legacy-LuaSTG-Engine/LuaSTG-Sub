@@ -8,7 +8,7 @@ namespace xinput = platform::XInput;
 static int xinput_isConnected(lua_State* L)
 {
     const int idx = luaL_checkinteger(L, 1);
-    const bool ret = xinput::isConnected(idx);
+    const bool ret = xinput::isConnected(idx - 1);
     lua_pushboolean(L, ret);
     return 1;
 }
