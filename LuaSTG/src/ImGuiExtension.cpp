@@ -341,16 +341,16 @@ static int lib_ShowFrameStatistics(lua_State* L)
 {
     constexpr size_t arr_size = 3600;
     static bool is_init = false;
-    static std::vector<double> arr_x(arr_size);
-    static std::vector<double> arr_update_time(arr_size);
-    static std::vector<double> arr_render_time(arr_size);
-    static std::vector<double> arr_present_time(arr_size);
-    static std::vector<double> arr_total_time(arr_size);
-    static std::vector<double> arr_obj_alloc(arr_size);
-    static std::vector<double> arr_obj_free(arr_size);
-    static std::vector<double> arr_obj_alive(arr_size);
-    static std::vector<double> arr_obj_colli(arr_size);
-    static std::vector<double> arr_obj_colli_cb(arr_size);
+    static std::vector<double> arr_x;
+    static std::vector<double> arr_update_time;
+    static std::vector<double> arr_render_time;
+    static std::vector<double> arr_present_time;
+    static std::vector<double> arr_total_time;
+    static std::vector<double> arr_obj_alloc;
+    static std::vector<double> arr_obj_free;
+    static std::vector<double> arr_obj_alive;
+    static std::vector<double> arr_obj_colli;
+    static std::vector<double> arr_obj_colli_cb;
     static size_t arr_index = 0;
     static size_t record_range = 240;
     constexpr size_t record_range_min = 60;
@@ -358,20 +358,30 @@ static int lib_ShowFrameStatistics(lua_State* L)
     static float height = 384.0f;
     static bool auto_fit = true;
     
-    if (!is_init)
-    {
-        is_init = true;
-        for (size_t x = 0; x < arr_size; x += 1)
-        {
-            arr_x[x] = (double)x;
-        }
-    }
-    
     bool v = (lua_gettop(L) >= 1) ? lua_toboolean(L, 1) : true;
     if (v)
     {
         if (ImGui::Begin("Frame Statistics", &v))
         {
+            if (!is_init)
+            {
+                is_init = true;
+                arr_x.resize(arr_size);
+                arr_update_time.resize(arr_size);
+                arr_render_time.resize(arr_size);
+                arr_present_time.resize(arr_size);
+                arr_total_time.resize(arr_size);
+                arr_obj_alloc.resize(arr_size);
+                arr_obj_free.resize(arr_size);
+                arr_obj_alive.resize(arr_size);
+                arr_obj_colli.resize(arr_size);
+                arr_obj_colli_cb.resize(arr_size);
+                for (size_t x = 0; x < arr_size; x += 1)
+                {
+                    arr_x[x] = (double)x;
+                }
+            }
+
             ImGui::SliderScalar("Record Range", sizeof(size_t) == 8 ? ImGuiDataType_U64 : ImGuiDataType_U32, &record_range, &record_range_min, &record_range_max);
             record_range = std::clamp<size_t>(record_range, 2, record_range_max);
 
