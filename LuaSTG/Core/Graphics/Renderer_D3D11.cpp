@@ -1088,7 +1088,7 @@ namespace LuaSTG::Core::Graphics
 	}
 	bool Renderer_D3D11::drawRaw(DrawVertex const* pvert, uint16_t nvert, DrawIndex const* pidx, uint16_t nidx)
 	{
-		if (nvert > 0xFFFEu || nidx > 0xFFFEu)
+		if (nvert > _draw_list.vertex.capacity || nidx > _draw_list.index.capacity)
 		{
 			assert(false); return false;
 		}
@@ -1119,7 +1119,7 @@ namespace LuaSTG::Core::Graphics
 	}
 	bool Renderer_D3D11::drawRequest(uint16_t nvert, uint16_t nidx, DrawVertex** ppvert, DrawIndex** ppidx, uint16_t* idxoffset)
 	{
-		if (nvert > 0xFFFEu || nidx > 0xFFFEu)
+		if (nvert > _draw_list.vertex.capacity || nidx > _draw_list.index.capacity)
 		{
 			assert(false); return false;
 		}
