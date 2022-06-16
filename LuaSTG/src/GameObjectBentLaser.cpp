@@ -243,6 +243,7 @@ bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, fcyColor
 	if (m_Queue.Size() <= 1)
 		return true;
 
+	// 首先拿到纹理
 	fcyRefPointer<ResTexture> pTex = LRES.FindTexture(tex_name);
 	if (!pTex)
 	{
@@ -250,72 +251,118 @@ bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, fcyColor
 		return false;
 	}
 
-	IRenderer::DrawVertex renderVertex[4] = {
-		IRenderer::DrawVertex(0.0f, 0.0f, 0.5f, 0.0f, tex_top             , c.argb),
-		IRenderer::DrawVertex(0.0f, 0.0f, 0.5f, 0.0f, tex_top             , c.argb),
-		IRenderer::DrawVertex(0.0f, 0.0f, 0.5f, 0.0f, tex_top + tex_height, c.argb),
-		IRenderer::DrawVertex(0.0f, 0.0f, 0.5f, 0.0f, tex_top + tex_height, c.argb),
-	};
-	fuInt org_c = c.argb;
-	c.a = 0;
-	fuInt trans_c = c.argb;
+	// 设置纹理、混合模式等
+	auto* p_renderer = LAPP.GetAppModel()->getRenderer();
+	LAPP.updateGraph2DBlendMode(blend);
+	p_renderer->setTexture(pTex->GetTexture());
 
-	float tVecLength = 0;
+	// 分配顶点和索引
+	// 顶点总共需要：节点数 * 2
+	// 索引总共需要：(节点数 - 1) * 3 * 2
+	// 两个节点之间组成一个四边形
+	uint16_t const node_count = (uint16_t)m_Queue.Size();
+	IRenderer::DrawVertex* p_vertex = nullptr;
+	IRenderer::DrawIndex* p_index = nullptr;
+	uint16_t index_offset = 0;
+	if (!p_renderer->drawRequest(
+		node_count * 2,
+		(node_count - 1) * 6,
+		&p_vertex,
+		&p_index,
+		&index_offset)) return false; // 分配空间失败了
+
+	// 归一化 uv 坐标
+	float const u_scale = 1.0f / (float)pTex->GetTexture()->getSize().x;
+	float const v_scale = 1.0f / (float)pTex->GetTexture()->getSize().y;
+
+	// TODO: 原 Ex Plus 的逻辑里还有跳过连续的非 active 的节点的优化
+	// if (!cur.active || !next.active) continue;
+	// 得思考一下如何加进去
+
+	// 第一部分：填充顶点
+	// 0---2---4---6
+	// |\  |\  |\  |
+	// | \ | \ | \ |
+	// |  \|  \|  \|
+	// 1---3---5---7
+	float total_length = 0.0f;
 	bool flip = false;
-	for (size_t i = 0; i < m_Queue.Size() - 1; ++i)
+	uint32_t const vertex_color = c.argb;
+	c.a = 0;
+	uint32_t const vertex_color_alpha = c.argb;
+	IRenderer::DrawVertex* p_vert = p_vertex;
+	for (size_t i = 0; i < node_count; i += 1)
 	{
-		LaserNode& cur = m_Queue[i];
-		LaserNode& next = m_Queue[i + 1];
+		LaserNode& node_cur = m_Queue[i];
 
-		if (!cur.active || !next.active) {
-			continue;
-		}
-
-		if (cur.sharp) {
+		// 拐成钝角，需要翻转一下延展方向
+		if (node_cur.sharp)
+		{
 			flip = !flip;
 		}
 
-		// 计算延展方向1
-		float expX1 = cur.x_dir * scale * cur.half_width;
-		float expY1 = cur.y_dir * scale * cur.half_width;
-		if (flip) {
-			expX1 = -expX1;
-			expY1 = -expY1;
-		}
-		// 计算U坐标1
-		float u = tex_left + tVecLength / m_fLength * tex_width;
-		renderVertex[0].x = cur.pos.x + expX1;
-		renderVertex[0].y = cur.pos.y + expY1;
-		renderVertex[0].u = u;
-		renderVertex[0].color = cur.active ? org_c : trans_c;
-		renderVertex[3].x = cur.pos.x - expX1;
-		renderVertex[3].y = cur.pos.y - expY1;
-		renderVertex[3].u = u;
-		renderVertex[3].color = cur.active ? org_c : trans_c;
+		// 计算总长度，尾部节点到上一个节点的距离固定为 0
+		total_length += node_cur.dis;
 
-		// 计算延展方向2
-		float expX2 = next.x_dir * scale * cur.half_width;
-		float expY2 = next.y_dir * scale * cur.half_width;
-		if (flip) {
-			expX2 = -expX2;
-			expY2 = -expY2;
-		}
-		// 计算U坐标2
-		float lenOffsetA = next.dis;
-		tVecLength += lenOffsetA;
-		u = tex_left + tVecLength / m_fLength * tex_width;
-		renderVertex[1].x = next.pos.x + expX2;
-		renderVertex[1].y = next.pos.y + expY2;
-		renderVertex[1].u = u;
-		renderVertex[1].color = next.active ? org_c : trans_c;
-		renderVertex[2].x = next.pos.x - expX2;
-		renderVertex[2].y = next.pos.y - expY2;
-		renderVertex[2].u = u;
-		renderVertex[2].color = next.active ? org_c : trans_c;
+		// 计算 u 坐标（像素坐标）
+		float tex_u = tex_left + (total_length / m_fLength) * tex_width;
 
-		if (!LAPP.RenderTexture(pTex, blend, renderVertex))
-			return false;
+		// 计算延展方向
+		float pos_x = node_cur.x_dir * scale * node_cur.half_width;
+		float pos_y = node_cur.y_dir * scale * node_cur.half_width;
+		if (flip)
+		{
+			pos_x = -pos_x;
+			pos_y = -pos_y;
+		}
+
+		// 填充顶点，顶点沿着节点向两侧延展
+		p_vert[0] = IRenderer::DrawVertex(
+			node_cur.pos.x + pos_x,
+			node_cur.pos.y + pos_y,
+			0.5f,
+			tex_u * u_scale,
+			tex_top * v_scale,
+			node_cur.active ? vertex_color : vertex_color_alpha
+		);
+		p_vert[1] = IRenderer::DrawVertex(
+			node_cur.pos.x - pos_x,
+			node_cur.pos.y - pos_y,
+			0.5f,
+			tex_u * u_scale,
+			(tex_top + tex_height) * v_scale,
+			node_cur.active ? vertex_color : vertex_color_alpha
+		);
+
+		// 已使用 2 个顶点，接下来不要再修改这些顶点
+		p_vert += 2;
 	}
+
+	// 第二部分：填充索引
+	// 0 0-->2 2 2-->4 4 4-->6
+	// |\ \  | |\ \  | |\ \  |
+	// | \ \ | | \ \ | | \ \ |
+	// |  \ \| |  \ \| |  \ \|
+	// 1<--3 3 3<--5 5 5<--7 7
+	IRenderer::DrawIndex* p_vidx = p_index;
+	uint16_t quad_offset = 0;
+	for (size_t i = 0; i < (node_count - 1); i += 1)
+	{
+		// 0-2-3
+		p_vidx[0] = index_offset + quad_offset; // + 0
+		p_vidx[1] = index_offset + quad_offset + 2;
+		p_vidx[2] = index_offset + quad_offset + 3;
+
+		// 3-1-0
+		p_vidx[3] = index_offset + quad_offset + 3;
+		p_vidx[4] = index_offset + quad_offset + 1;
+		p_vidx[5] = index_offset + quad_offset; // + 0
+
+		// 已使用 6 个索引，接下来不要再修改这些索引
+		p_vidx += 6;
+		quad_offset += 2;
+	}
+
 	return true;
 }
 
