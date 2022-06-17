@@ -65,10 +65,4 @@ end
 function FocusGainFunc()
 end
 
---------------------------------------------------------------------------------
---- 引擎组件
---- Engine components
-
-M.Input = require("lstg.Input")
-
 return M

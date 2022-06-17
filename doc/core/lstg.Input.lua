@@ -88,6 +88,7 @@ end
 
 ---@class lstg.Input
 local M = {}
+lstg.Input = M
 
 M.Keyboard = require("lstg.Input.Keyboard")
 M.Mouse = require("lstg.Input.Mouse")
