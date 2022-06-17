@@ -1,10 +1,9 @@
 ﻿#include "GameObjectBentLaser.hpp"
 #include "AppFrame.h"
 
-using namespace std;
 using namespace LuaSTGPlus;
 
-//======================================
+//------------------------------------------------------------------------------
 
 static fcyMemPool<sizeof(GameObjectBentLaser)> s_GameObjectBentLaserPool(1024);
 
@@ -28,8 +27,6 @@ GameObjectBentLaser::GameObjectBentLaser() noexcept
 GameObjectBentLaser::~GameObjectBentLaser() noexcept
 {
 }
-
-//======================================
 
 void GameObjectBentLaser::_UpdateNodeVertexExtend(size_t i) noexcept
 {
@@ -251,6 +248,8 @@ void GameObjectBentLaser::_PopHead() noexcept
 		}
 	}
 }
+
+//------------------------------------------------------------------------------
 
 int GameObjectBentLaser::GetSize() noexcept
 {
@@ -722,6 +721,8 @@ bool GameObjectBentLaser::BoundCheck() noexcept
 	return false;
 }
 
+//------------------------------------------------------------------------------
+
 bool GameObjectBentLaser::UpdateByNode(size_t id, int node, int length, float width, bool active) noexcept
 {
 	GameObject* p = LPOOL.GetPooledObject(id);
@@ -882,4 +883,136 @@ int GameObjectBentLaser::SampleT(lua_State * L, float delay) noexcept
 		fLeft = fLeft - 1;
 	}
 	return true;
+}
+
+//------------------------------------------------------------------------------
+
+inline bool luaL_isnumber(lua_State* L, int idx) { return LUA_TNUMBER == lua_type(L, idx); }
+
+int GameObjectBentLaser::api_UpdateAllNodeByList(lua_State* L, bool legacy_mode)
+{
+	if (!legacy_mode)
+	{
+		// self, size, x[], y[], width?
+		assert(lua_gettop(L) == 5);
+
+		// 检查参数
+		if (!lua_istable(L, 3))
+		{
+			return luaL_error(L, "invalid parameter #2, required number list");
+		}
+		if (!lua_istable(L, 4))
+		{
+			return luaL_error(L, "invalid parameter #3, required number list");
+		}
+		bool read_width = false;
+		float half_width = 0.0f;
+		if (!lua_istable(L, 5))
+		{
+			read_width = true;
+			half_width = (float)(0.5 * luaL_checknumber(L, 5));
+		}
+
+		// 重新分配空间
+		m_Queue.Clear();
+		size_t const node_count = (size_t)luaL_checkinteger(L, 2);
+		if (node_count > m_Queue.Capacity())
+		{
+			return luaL_error(L, "invalid parameter #1, number of nodes should <= %d", (int)m_Queue.Capacity());
+		}
+		m_Queue.PlacementResize(node_count);
+
+		// 设置所有节点的坐标和宽度
+		if (read_width)
+		{
+			// 宽度是固定值
+			for (size_t i = 0; i < node_count; i += 1)
+			{
+				LaserNode& node = m_Queue[i];
+				int const luai = (int)i + 1;
+				lua_rawgeti(L, 3, luai); // self, size, x[], y[], width, x
+				lua_rawgeti(L, 4, luai); // self, size, x[], y[], width, x, y
+				if (!luaL_isnumber(L, 6)) return luaL_error(L, "invalid number at [%d] in parameter #2", luai);
+				if (!luaL_isnumber(L, 7)) return luaL_error(L, "invalid number at [%d] in parameter #3", luai);
+				node.pos.x = (float)lua_tonumber(L, 6);
+				node.pos.y = (float)lua_tonumber(L, 7);
+				lua_pop(L, 2);           // self, size, x[], y[], width
+				node.half_width = half_width;
+				node.active = true;
+			}
+		}
+		else
+		{
+			// 宽度是列表
+			for (size_t i = 0; i < node_count; i += 1)
+			{
+				LaserNode& node = m_Queue[i];
+				int const luai = (int)i + 1;
+				lua_rawgeti(L, 3, luai); // self, size, x[], y[], width[], x
+				lua_rawgeti(L, 4, luai); // self, size, x[], y[], width[], x, y
+				lua_rawgeti(L, 5, luai); // self, size, x[], y[], width[], x, y, width
+				if (!luaL_isnumber(L, 6)) return luaL_error(L, "invalid number at [%d] in parameter #2", luai);
+				if (!luaL_isnumber(L, 7)) return luaL_error(L, "invalid number at [%d] in parameter #3", luai);
+				if (!luaL_isnumber(L, 8)) return luaL_error(L, "invalid number at [%d] in parameter #4", luai);
+				node.pos.x = (float)lua_tonumber(L, 6);
+				node.pos.y = (float)lua_tonumber(L, 7);
+				node.half_width = (float)(0.5 * lua_tonumber(L, 8));
+				lua_pop(L, 3);           // self, size, x[], y[], width[]
+				node.active = true;
+			}
+		}
+		
+		// 更新所有节点
+		_UpdateAllNode();
+
+		return 0;
+	}
+	else
+	{
+		// self, pos[], size, width
+		assert(lua_gettop(L) == 4);
+
+		// 重新分配空间
+		m_Queue.Clear();
+		size_t const node_count = (size_t)luaL_checkinteger(L, 3);
+		if (node_count > m_Queue.Capacity())
+		{
+			return luaL_error(L, "invalid parameter #3, number of nodes should <= %d", (int)m_Queue.Capacity());
+		}
+		m_Queue.PlacementResize(node_count);
+
+		// 拿到宽度
+		float const width = (float)luaL_checknumber(L, 4);
+		float const half_width = width * 0.5f;
+
+		// 检查点表
+		if (!lua_istable(L, 2))
+		{
+			return luaL_error(L, "invalid parameter #1, required position list");
+		}
+
+		// 设置所有节点的坐标和宽度
+		for (size_t i = 0; i < node_count; i += 1)
+		{
+			LaserNode& node = m_Queue[(node_count - 1) - i]; // 这里要反着来，很傻逼
+			int const luai = (int)i + 1;
+			lua_rawgeti(L, 2, luai); // self, pos[], size, width, pos
+			if (!lua_istable(L, 5))
+			{
+				return luaL_error(L, "invalid position at [%d] in parameter #1, required object", luai);
+			}
+			lua_getfield(L, 5, "x"); // self, pos[], size, width, pos, x
+			lua_getfield(L, 5, "y"); // self, pos[], size, width, pos, x, y
+			node.pos.x = (float)luaL_checknumber(L, 6);
+			node.pos.y = (float)luaL_checknumber(L, 7);
+			lua_pop(L, 3);
+			node.half_width = half_width;
+			node.active = true;
+		}
+
+		// 更新所有节点
+		_UpdateAllNode();
+
+		return 0;
+	}
 }

@@ -53,9 +53,15 @@ namespace LuaSTGPlus
 					int i5 = luaL_optinteger(L, 5, 1);
 					bool i6 = (bool)luaL_optinteger(L, 6, 0) != 0;
 					lua_settop(L, 2); // udata t
-					if (!p->handle->UpdatePositionByList(L, i3, f4, i5, i6 ))
+					if (!p->handle->UpdatePositionByList(L, i3, f4, i5, i6))
 						return luaL_error(L, "Update laser data failed.");
 					return 0;
+				}
+				static int UpdateAllNodeByList(lua_State* L) LNOEXCEPT
+				{
+					GETUDATA(p, 1);
+					CHECKUDATA(p);
+					return p->handle->api_UpdateAllNodeByList(L, false);
 				}
 				static int SampleByLength(lua_State* L)LNOEXCEPT // t(self) <length>
 				{
@@ -215,6 +221,7 @@ namespace LuaSTGPlus
 				{ "SampleByLength", &Function::SampleByLength },
 				{ "SampleByTime", &Function::SampleByTime },
 				{ "UpdatePositionByList", &Function::UpdatePositionByList },
+				{ "UpdateAllNode", &Function::UpdateAllNodeByList },
 				{ "SetAllWidth", &Function::SetAllWidth },
 				{ "SetEnvelope", &Function::SetEnvelope },
 				{ "GetEnvelope", &Function::GetEnvelope },
