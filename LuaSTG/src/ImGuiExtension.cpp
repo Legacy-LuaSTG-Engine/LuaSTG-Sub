@@ -506,18 +506,6 @@ static int lib_ShowFrameStatistics(lua_State* L)
 
                     ImPlot::SetupLegend(ImPlotLocation_North, ImPlotLegendFlags_Horizontal | ImPlotLegendFlags_Outside);
 
-                    static double arr_ms[] = {
-                        1000.0 / 60.0,
-                        1000.0 / 30.0,
-                        1000.0 / 20.0,
-                    };
-                    //ImPlot::SetNextLineStyle(ImVec4(0.2f, 1.0f, 0.2f, 1.0f));
-                    //ImPlot::PlotHLines("##60 FPS", arr_ms, 1);
-                    //ImPlot::SetNextLineStyle(ImVec4(1.0f, 1.2f, 0.2f, 1.0f));
-                    //ImPlot::PlotHLines("##30 FPS", arr_ms + 1, 1);
-                    //ImPlot::SetNextLineStyle(ImVec4(1.0f, 0.2f, 0.2f, 1.0f));
-                    //ImPlot::PlotHLines("##20 FPS", arr_ms + 2, 1);
-
                     ImPlot::PlotLine("Memory (MiB)", arr_mem_mem.data(), (int)record_range);
                     ImPlot::PlotLine("GPU (MiB)", arr_mem_gpu.data(), (int)record_range);
                     ImPlot::PlotLine("Lua (MiB)", arr_mem_lua.data(), (int)record_range);
