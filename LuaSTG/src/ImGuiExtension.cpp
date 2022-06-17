@@ -300,6 +300,11 @@ static int lib_ShowMemoryUsageWindow(lua_State* L)
                 ImGui::Text("Avalid User Mode Memory Space: %s", bytes_count_to_string(info.ullAvailVirtual).c_str());
                 ImGui::Text("Alloc* User Mode Memory Space: %s", bytes_count_to_string(info.ullTotalVirtual - info.ullAvailVirtual).c_str());
 
+                lua_State* L = LAPP.GetLuaEngine();
+                int lvm_kb = lua_gc(L, LUA_GCCOUNT, 0);
+                int lvm_b = lua_gc(L, LUA_GCCOUNTB, 0);
+                ImGui::Text("Alloc* Lua Runtime Memory: %s", bytes_count_to_string((DWORDLONG)lvm_kb * (DWORDLONG)1024 + (DWORDLONG)lvm_b).c_str());
+
                 if (more_info) ImGui::Text("Adapter Local Budget: %s", bytes_count_to_string(gmuinfo.local.budget).c_str());
                 ImGui::Text("Adapter Local Usage: %s", bytes_count_to_string(gmuinfo.local.current_usage).c_str());
                 if (more_info) ImGui::Text("Adapter Local Available For Reservation: %s", bytes_count_to_string(gmuinfo.local.available_for_reservation).c_str());
@@ -346,6 +351,9 @@ static int lib_ShowFrameStatistics(lua_State* L)
     static std::vector<double> arr_render_time;
     static std::vector<double> arr_present_time;
     static std::vector<double> arr_total_time;
+    static std::vector<double> arr_mem_mem;
+    static std::vector<double> arr_mem_gpu;
+    static std::vector<double> arr_mem_lua;
     static std::vector<double> arr_obj_alloc;
     static std::vector<double> arr_obj_free;
     static std::vector<double> arr_obj_alive;
@@ -356,30 +364,41 @@ static int lib_ShowFrameStatistics(lua_State* L)
     constexpr size_t record_range_min = 60;
     constexpr size_t record_range_max = 3600;
     static float height = 384.0f;
+    static float height_2 = 384.0f;
     static bool auto_fit = true;
+    static bool auto_fit_2 = true;
     
     bool v = (lua_gettop(L) >= 1) ? lua_toboolean(L, 1) : true;
     if (v)
     {
         if (ImGui::Begin("Frame Statistics", &v))
         {
+            // data buffer
+
             if (!is_init)
             {
                 is_init = true;
+
                 arr_x.resize(arr_size);
+                for (size_t x = 0; x < arr_size; x += 1)
+                {
+                    arr_x[x] = (double)x;
+                }
+
                 arr_update_time.resize(arr_size);
                 arr_render_time.resize(arr_size);
                 arr_present_time.resize(arr_size);
                 arr_total_time.resize(arr_size);
+
+                arr_mem_mem.resize(arr_size);
+                arr_mem_gpu.resize(arr_size);
+                arr_mem_lua.resize(arr_size);
+
                 arr_obj_alloc.resize(arr_size);
                 arr_obj_free.resize(arr_size);
                 arr_obj_alive.resize(arr_size);
                 arr_obj_colli.resize(arr_size);
                 arr_obj_colli_cb.resize(arr_size);
-                for (size_t x = 0; x < arr_size; x += 1)
-                {
-                    arr_x[x] = (double)x;
-                }
             }
 
             ImGui::SliderScalar("Record Range", sizeof(size_t) == 8 ? ImGuiDataType_U64 : ImGuiDataType_U32, &record_range, &record_range_min, &record_range_max);
@@ -395,7 +414,6 @@ static int lib_ShowFrameStatistics(lua_State* L)
                 ImGui::Text("Render : %.3fms", info.render_time  * 1000.0);
                 ImGui::Text("Present: %.3fms", info.present_time * 1000.0);
                 ImGui::Text("Total  : %.3fms", info.total_time   * 1000.0);
-            
             
                 ImGui::SliderFloat("Timeline Height", &height, 256.0f, 512.0f);
                 ImGui::Checkbox("Auto-Fit Y Axis", &auto_fit);
@@ -448,6 +466,69 @@ static int lib_ShowFrameStatistics(lua_State* L)
                 }
             }
 
+            // memory
+
+            if (ImGui::CollapsingHeader("Memory Usage"))
+            {
+                MEMORYSTATUSEX mem_info = { sizeof(MEMORYSTATUSEX) };
+                GlobalMemoryStatusEx(&mem_info);
+                auto gpu_info = LAPP.GetAppModel()->getDevice()->getMemoryUsageStatistics();
+                lua_State* L_ = LAPP.GetLuaEngine();
+                int lua_infokb = lua_gc(L_, LUA_GCCOUNT, 0);
+                int lua_infob = lua_gc(L_, LUA_GCCOUNTB, 0);
+                DWORDLONG lua_info = (DWORDLONG)lua_infokb * (DWORDLONG)1024 + (DWORDLONG)lua_infob;
+
+                ImGui::Text("Avalid User Mode Memory Space: %s", bytes_count_to_string(mem_info.ullAvailVirtual).c_str());
+                ImGui::Text("User Mode Memory Space Usage: %s", bytes_count_to_string(mem_info.ullTotalVirtual - mem_info.ullAvailVirtual).c_str());
+                ImGui::Text("Lua Runtime Memory Usage: %s", bytes_count_to_string(lua_info).c_str());
+                ImGui::Text("Adapter Local Usage: %s", bytes_count_to_string(gpu_info.local.current_usage).c_str());
+                ImGui::Text("Adapter Non-Local Usage: %s", bytes_count_to_string(gpu_info.non_local.current_usage).c_str());
+
+                static float time_line_height = 384.0f;
+                static bool time_line_auto_fit = true;
+                ImGui::SliderFloat("Timeline Height##Memory Usage", &time_line_height, 256.0f, 512.0f);
+                ImGui::Checkbox("Auto-Fit Y Axis##Memory Usage", &time_line_auto_fit);
+
+                constexpr double const byte_to_MiB = 1.0 / (1024.0 * 1024.0);
+                arr_mem_mem[arr_index] = (double)(mem_info.ullTotalVirtual - mem_info.ullAvailVirtual) * byte_to_MiB;
+                arr_mem_gpu[arr_index] = (double)(gpu_info.local.current_usage + gpu_info.non_local.current_usage) * byte_to_MiB;
+                arr_mem_lua[arr_index] = (double)lua_info * byte_to_MiB;
+
+                if (ImPlot::BeginPlot("##Memory Usage Statistics", ImVec2(-1, time_line_height), 0))
+                {
+                    //ImPlot::SetupAxes("Frame", "Time", flags, flags);
+                    ImPlot::SetupAxisLimits(ImAxis_X1, 0.0, (double)(record_range - 1), ImGuiCond_Always);
+                    //ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0, 1000.0 / 18.0, ImGuiCond_Always);
+                    if (time_line_auto_fit)
+                        ImPlot::SetupAxes(NULL, NULL, ImPlotAxisFlags_None, ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_RangeFit);
+                    else
+                        ImPlot::SetupAxes(NULL, NULL);
+
+                    ImPlot::SetupLegend(ImPlotLocation_North, ImPlotLegendFlags_Horizontal | ImPlotLegendFlags_Outside);
+
+                    static double arr_ms[] = {
+                        1000.0 / 60.0,
+                        1000.0 / 30.0,
+                        1000.0 / 20.0,
+                    };
+                    //ImPlot::SetNextLineStyle(ImVec4(0.2f, 1.0f, 0.2f, 1.0f));
+                    //ImPlot::PlotHLines("##60 FPS", arr_ms, 1);
+                    //ImPlot::SetNextLineStyle(ImVec4(1.0f, 1.2f, 0.2f, 1.0f));
+                    //ImPlot::PlotHLines("##30 FPS", arr_ms + 1, 1);
+                    //ImPlot::SetNextLineStyle(ImVec4(1.0f, 0.2f, 0.2f, 1.0f));
+                    //ImPlot::PlotHLines("##20 FPS", arr_ms + 2, 1);
+
+                    ImPlot::PlotLine("Memory (MiB)", arr_mem_mem.data(), (int)record_range);
+                    ImPlot::PlotLine("GPU (MiB)", arr_mem_gpu.data(), (int)record_range);
+                    ImPlot::PlotLine("Lua (MiB)", arr_mem_lua.data(), (int)record_range);
+
+                    ImPlot::SetNextLineStyle(ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+                    ImPlot::PlotVLines("##Current Time", &arr_index, 1);
+
+                    ImPlot::EndPlot();
+                }
+            }
+
             // object
 
             if (ImGui::CollapsingHeader("GameObject"))
@@ -460,18 +541,21 @@ static int lib_ShowFrameStatistics(lua_State* L)
                 ImGui::Text("Colli Check : %llu", obj_info.object_colli_check);
                 ImGui::Text("Colli Callback : %llu", obj_info.object_colli_callback);
 
+                ImGui::SliderFloat("Timeline Height##GameObject", &height_2, 256.0f, 512.0f);
+                ImGui::Checkbox("Auto-Fit Y Axis##GameObject", &auto_fit_2);
+
                 arr_obj_alloc[arr_index] = (double)obj_info.object_alloc;
                 arr_obj_free[arr_index] = (double)obj_info.object_free;
                 arr_obj_alive[arr_index] = (double)obj_info.object_alive;
                 arr_obj_colli[arr_index] = (double)obj_info.object_colli_check;
                 arr_obj_colli_cb[arr_index] = (double)obj_info.object_colli_callback;
 
-                if (ImPlot::BeginPlot("##GameObject Statistics", ImVec2(-1, height), 0))
+                if (ImPlot::BeginPlot("##GameObject Statistics", ImVec2(-1, height_2), 0))
                 {
                     //ImPlot::SetupAxes("Frame", "Time", flags, flags);
                     ImPlot::SetupAxisLimits(ImAxis_X1, 0.0, (double)(record_range - 1), ImGuiCond_Always);
                     //ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0, 1000.0 / 18.0, ImGuiCond_Always);
-                    if (auto_fit)
+                    if (auto_fit_2)
                         ImPlot::SetupAxes(NULL, NULL, ImPlotAxisFlags_None, ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_RangeFit);
                     else
                         ImPlot::SetupAxes(NULL, NULL);
