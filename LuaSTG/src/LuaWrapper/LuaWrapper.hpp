@@ -9,7 +9,7 @@
 #define LUASTG_LUA_TYPENAME_COLOR "lstg.Color"
 #define LUASTG_LUA_TYPENAME_STOPWATCH "lstg.StopWatch"
 #define LUASTG_LUA_TYPENAME_RANDGEN "lstg.Rand"
-#define LUASTG_LUA_TYPENAME_BENTLASER "lstg.BentLaser"
+#define LUASTG_LUA_TYPENAME_BENTLASER "lstg.CurveLaser"
 
 #define LUASTG_LUA_LIBNAME_IO "IO"
 #define LUASTG_LUA_TYPENAME_IO_STREAM "lstg.IO.Stream"

@@ -256,7 +256,7 @@ namespace LuaSTGPlus
 				{ NULL, NULL }
 			};
 			
-			RegisterClassIntoTable(L, ".BentLaser", tMethods, LUASTG_LUA_TYPENAME_BENTLASER, tMetaTable);
+			RegisterClassIntoTable(L, ".CurveLaser", tMethods, LUASTG_LUA_TYPENAME_BENTLASER, tMetaTable);
 		}
 
 		void BentLaserWrapper::CreateAndPush(lua_State* L)

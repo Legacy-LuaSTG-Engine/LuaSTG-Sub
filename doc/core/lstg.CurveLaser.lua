@@ -1,13 +1,14 @@
 --------------------------------------------------------------------------------
---- LuaSTG Sub 曲线激光对象包装
+--- LuaSTG Sub 曲线激光对象
 --- 璀境石
 --------------------------------------------------------------------------------
 
----@class lstg.BentLaser @曲线激光
-local bentlaser = {}
+---@class lstg.CurveLaser
+local M = {}
 
---- 创建曲线激光对象
----@return lstg.BentLaser
+--- 创建曲线激光对象  
+--- 不要在意函数名称，这里有着很长的故事  
+---@return lstg.CurveLaser
 function lstg.BentLaserData()
 end
 
@@ -25,8 +26,8 @@ end
 ---@param rot number
 ---@param node_count number
 ---@param width number
----@overload fun(self:lstg.BentLaser, unit:lstg.GameObject, node_count:number, width:number)
-function bentlaser:Update(x, y, rot, node_count, width)
+---@overload fun(self:lstg.CurveLaser, unit:lstg.GameObject, node_count:number, width:number)
+function M:Update(x, y, rot, node_count, width)
 end
 
 --- [LuaSTG Ex Plus 新增]  
@@ -38,7 +39,7 @@ end
 ---@param x number
 ---@param y number
 ---@param width number
-function bentlaser:UpdateNode(node_index, x, y, width)
+function M:UpdateNode(node_index, x, y, width)
 end
 
 --- [LuaSTG Sub v0.17.4 新增]  
@@ -51,12 +52,12 @@ end
 ---@param x number[]
 ---@param y number[]
 ---@param width number|number[]
-function bentlaser:UpdateAllNode(node_count, x, y, width)
+function M:UpdateAllNode(node_count, x, y, width)
 end
 
 --- 检查曲线激光是否还有节点处于场景范围内
 ---@return boolean
-function bentlaser:BoundCheck()
+function M:BoundCheck()
 end
 
 --- 将曲线激光与给定数据的碰撞体进行碰撞检测
@@ -67,7 +68,7 @@ end
 ---@param b number
 ---@param rect boolean
 ---@return boolean
-function bentlaser:CollisionCheck(x, y, rot, a, b, rect)
+function M:CollisionCheck(x, y, rot, a, b, rect)
 end
 
 --- [LuaSTG Ex Plus 新增]  
@@ -80,17 +81,17 @@ end
 ---@param rect boolean
 ---@param width number
 ---@return boolean
-function bentlaser:CollisionCheckWidth(x, y, rot, a, b, rect, width)
+function M:CollisionCheckWidth(x, y, rot, a, b, rect, width)
 end
 
 --- [LuaSTG Ex Plus 新增]  
 --- 更改曲线激光所有节点的宽度
 ---@param width number
-function bentlaser:SetAllWidth(width)
+function M:SetAllWidth(width)
 end
 
 --- 释放曲线激光对象，这将导致对象不再有效
-function bentlaser:Release()
+function M:Release()
 end
 
 --------------------------------------------------------------------------------
@@ -105,7 +106,7 @@ end
 ---@param uv_width number
 ---@param uv_height number
 ---@param scale number
-function bentlaser:Render(texture, blendmode, color, uv_left, uv_top, uv_width, uv_height, scale)
+function M:Render(texture, blendmode, color, uv_left, uv_top, uv_width, uv_height, scale)
 end
 
 --- [LuaSTG Ex Plus 新增]  
@@ -113,7 +114,7 @@ end
 --- [LuaSTG Sub v0.17.4 重新添加]  
 --- 渲染曲线激光的碰撞体（一般仅用于调试）  
 ---@param color lstg.Color
-function bentlaser:RenderCollider(color)
+function M:RenderCollider(color)
 end
 
 --------------------------------------------------------------------------------
@@ -124,14 +125,14 @@ end
 ---对曲线激光进行等长采样，返回采样数据
 ---@param length number
 ---@return table[] @带有x、y、rot成员的table
-function bentlaser:SampleByLength(length)
+function M:SampleByLength(length)
 	return { { x = 0, y = 0, rot = 0 }, }
 end
 
 ---对曲线激光进行等长时间采样（单位为帧），返回采样数据
 ---@param time number @整数
 ---@return table[] @带有x、y、rot成员的table
-function bentlaser:SampleByTime(time)
+function M:SampleByTime(time)
 	return { { x = 0, y = 0, rot = 0 }, }
 end
 
@@ -141,7 +142,7 @@ end
 ---@param length number @未使用的参数，但是需要填写大于1的整数
 ---@param width number @未使用的参数
 ---@param active boolean @该节点是否是激活的
-function bentlaser:UpdateNode(unit, index, length, width, active)
+function M:UpdateNode(unit, index, length, width, active)
 end
 
 ---根据一个对象表更新曲线激光的位置
@@ -150,7 +151,7 @@ end
 ---@param width number @宽度，不是半宽
 ---@param index number @索引初始位置
 ---@param revert boolean @反向索引
-function bentlaser:UpdatePositionByList(units, length, width, index, revert)
+function M:UpdatePositionByList(units, length, width, index, revert)
 end
 
 --]==]
