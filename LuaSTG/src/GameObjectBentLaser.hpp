@@ -61,6 +61,11 @@ namespace LuaSTGPlus
 		bool CollisionCheckW(float x, float y, float rot, float a, float b, bool rect, float width) noexcept;
 		int SampleL(lua_State* L, float length) noexcept;
 		int SampleT(lua_State* L, float delay)  noexcept;
+
+		// Lua API
+
+		int api_UpdateAllNodeByList(lua_State* L, bool legacy_mode);
+
 	protected:
 		GameObjectBentLaser() noexcept;
 		~GameObjectBentLaser() noexcept;
