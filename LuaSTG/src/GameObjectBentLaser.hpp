@@ -36,7 +36,7 @@ namespace LuaSTGPlus
 			float ret = m_fEnvelopeHeight + (m_fEnvelopeBase * (1.0f - m_fEnvelopeRate * std::powf(2.0f * (t - 0.5f), m_fEnvelopePower)));
 			return (std::max)(0.0f, ret);
 		}
-		void _UpdateNode(size_t i) noexcept; // 计算节点的渲染顶点
+		void _UpdateNodeVertexExtend(size_t i) noexcept; // 计算节点的渲染顶点
 		void _UpdateAllNode() noexcept; // 重新计算所有节点的朝向和距离
 		void _PopHead() noexcept; // 弹出头部节点，较早的节点
 	public:

@@ -31,7 +31,7 @@ GameObjectBentLaser::~GameObjectBentLaser() noexcept
 
 //======================================
 
-void GameObjectBentLaser::_UpdateNode(size_t i) noexcept
+void GameObjectBentLaser::_UpdateNodeVertexExtend(size_t i) noexcept
 {
 	// 当前节点，先去掉大转角标记
 	LaserNode& node = m_Queue[i];
@@ -228,7 +228,7 @@ void GameObjectBentLaser::_UpdateAllNode() noexcept
 	// 更新所有节点的延展向量
 	for (size_t i = 0u; i < node_count; i += 1)
 	{
-		_UpdateNode(i);
+		_UpdateNodeVertexExtend(i);
 	}
 }
 
@@ -302,73 +302,104 @@ bool GameObjectBentLaser::Update(size_t id, int length, float width, bool active
 	// ！循环队列的头部是最早创建的，尾部才是最新放入的！
 	
 	// 准备插入的新节点
-	LaserNode tNode;
-	tNode.pos.Set((float)p->x, (float)p->y);
-	tNode.half_width = width * 0.5f;
-	tNode.active = active;
+	LaserNode node{};
+	node.pos.x = (float)p->x;
+	node.pos.y = (float)p->y;
+	node.half_width = width * 0.5f;
+	node.active = active;
 	
-	// 检查是否有必要更新节点
-	bool lvalid = false;
-	fcyVec2 dpos;
-	fFloat len = 0.0f;
-	bool lactive = false;
-	if (m_Queue.Size() > 0)
+	// 变化几乎可以忽略不计，我们可以直接修改最新的节点
+	if (!m_Queue.IsEmpty() && (node.pos - m_Queue.Back().pos).Length() <= std::numeric_limits<fFloat>::min())
 	{
-		lvalid = true;
-		LaserNode& tNodeLast = m_Queue.Back();
-		dpos = tNode.pos - tNodeLast.pos;
-		len = dpos.Length();
-		lactive = tNodeLast.active;
-		if (len <= std::numeric_limits<fFloat>::min())
+		// 移除多余的节点，保证长度在 length 范围内
+		while (m_Queue.Size() >= (size_t)length)
 		{
-			// 仍然需要更新节点数量
-			// 移除多余的节点，保证长度在 length 范围内
-			while (m_Queue.Size() >= (size_t)length)
-			{
-				_PopHead();
-			}
-			return true; // 变化几乎可以忽略不计，不插入该节点
+			_PopHead();
 		}
-	}
-	
-	// 移除多余的节点，保证长度在 length - 1 范围内
-	while (m_Queue.IsFull() || m_Queue.Size() >= (size_t)length)
-	{
-		_PopHead();
-	}
-	
-	// 计算
-	if (lvalid && m_Queue.Size() > 0)
-	{
-		tNode.dis = len; // 距离
-		if (active && lactive)
+
+		// 修改最新的节点
+		if (m_Queue.Size() >= 2)
 		{
-			m_fLength += len;// 增加总长度
-		}
-		tNode.rot = dpos.CalcuAngle(); // 【即将废弃】计算节点朝向
-	}
-	else
-	{
-		tNode.dis = 0.0f;
-		fcyVec2 speed((fFloat)p->vy, (fFloat)p->vx);
-		if (speed.Length() > std::numeric_limits<float>::min())
-		{
-			tNode.rot = speed.CalcuAngle(); // 【即将废弃】使用速度方向作为节点朝向
+			LaserNode& prev = m_Queue[m_Queue.Size() - 2];
+			LaserNode& last = m_Queue[m_Queue.Size() - 1];
+			// 修改坐标
+			last.pos = node.pos;
+			//last.half_width = node.half_width; // 保留宽度
+			// 修改到上一个节点的距离和重新计算总长度
+			m_fLength -= last.dis;
+			fFloat const len_ = (last.pos - prev.pos).Length();
+			last.dis = len_;
+			m_fLength += len_;
+			// 修改激活状态
+			//last.active = node.active; // 保留激活状态
+			// 更新节点
+			_UpdateNodeVertexExtend(m_Queue.Size() - 1);
+			_UpdateNodeVertexExtend(m_Queue.Size() - 2);
 		}
 		else
 		{
-			tNode.rot = (float)p->rot; // 【即将废弃】使用游戏对象朝向作为节点朝向
+			LaserNode& last = m_Queue[m_Queue.Size() - 1];
+			// 修改坐标和宽度
+			last.pos = node.pos;
+			last.half_width = node.half_width;
+			// 到上一个节点的距离和总长度直接归 0
+			last.dis = 0.0f;
+			m_fLength = 0.0f;
+			// 修改激活状态
+			last.active = node.active;
+			// 不更新节点，等节点数量超过 1 再更新
 		}
+		return true;
 	}
-
-	// 插入并更新最新的两个节点
-	m_Queue.Push(tNode);
-	_UpdateNode(m_Queue.Size() - 1);
-	if (m_Queue.Size() >= 2)
+	
+	// 否则，插入新节点
+	else
 	{
-		_UpdateNode(m_Queue.Size() - 2);
+		// 移除多余的节点，保证长度在 length 范围内，并空出一个位置插入节点
+		while (m_Queue.IsFull() || m_Queue.Size() >= (size_t)length)
+		{
+			_PopHead();
+		}
+		
+		// 插入新节点
+		if (m_Queue.Size() > 0)
+		{
+			LaserNode& last = m_Queue[m_Queue.Size() - 1];
+			fcyVec2 const vec_ = node.pos - last.pos;
+			// 计算到上一个节点的距离和重新计算总长度
+			fFloat const len_ = vec_.Length();
+			node.dis = len_;
+			if (active && last.active)
+			{
+				m_fLength += len_;
+			}
+			// 【即将废弃】计算朝向
+			node.rot = vec_.CalcuAngle();
+			// 插入并更新节点
+			m_Queue.Push(node);
+			_UpdateNodeVertexExtend(m_Queue.Size() - 1);
+			_UpdateNodeVertexExtend(m_Queue.Size() - 2);
+		}
+		else
+		{
+			// 到上一个节点的距离和总长度直接归 0
+			node.dis = 0.0f;
+			m_fLength = 0.0f;
+			// 【即将废弃】计算朝向
+			fcyVec2 const vec_((fFloat)p->vy, (fFloat)p->vx);
+			if (vec_.Length() > std::numeric_limits<float>::min())
+			{
+				node.rot = vec_.CalcuAngle(); // 使用速度方向作为节点朝向
+			}
+			else
+			{
+				node.rot = (float)p->rot; // 使用游戏对象朝向作为节点朝向
+			}
+			// 插入但不更新节点，等节点数量超过 1 再更新
+			m_Queue.Push(node);
+		}
+		return true;
 	}
-	return true;
 }
 
 void GameObjectBentLaser::SetAllWidth(float width)  noexcept
