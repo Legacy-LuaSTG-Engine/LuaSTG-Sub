@@ -20,9 +20,9 @@ namespace LuaSTGPlus
 		}
 	public:
 		//队列是否为空
-		bool IsEmpty() { return m_Front == m_Rear; }
+		bool IsEmpty() { return m_Count == 0; }
 		//队列是否已满
-		bool IsFull() { return (m_Front == (m_Rear + 1) % MaxSize); }
+		bool IsFull() { return m_Count >= MaxSize; }
 		//返回已经使用的空间
 		size_t Size() { return m_Count; }
 		//返回最大索引
