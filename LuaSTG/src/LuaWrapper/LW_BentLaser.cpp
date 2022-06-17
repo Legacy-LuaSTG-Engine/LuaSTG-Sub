@@ -20,26 +20,46 @@ namespace LuaSTGPlus
 				{
 					GETUDATA(p, 1);
 					CHECKUDATA(p);
-					if (!lua_istable(L, 2))
-						return luaL_error(L, "invalid lstg object for 'Update'.");
-					lua_rawgeti(L, 2, 2);  // self t(object) ??? id
-					size_t id = (size_t)luaL_checkinteger(L, -1);
-					lua_pop(L, 1);
-					if (!p->handle->Update(id, luaL_checkinteger(L, 3), (float)luaL_checknumber(L, 4), luaL_optnumber(L, 5, 0) == 0))
-						return luaL_error(L, "invalid lstg object for 'Update'.");
+					if (lua_isnumber(L, 2))
+					{
+						float const x = (float)luaL_checknumber(L, 2);
+						float const y = (float)luaL_checknumber(L, 3);
+						float const rot = (float)luaL_checknumber(L, 4);
+						int const node_count = (float)luaL_checkinteger(L, 5);
+						float const width = (float)luaL_checknumber(L, 6);
+						if (!p->handle->Update(x, y, rot, node_count, width, true))
+							return luaL_error(L, "'Update' failed.");
+					}
+					else
+					{
+						if (!lua_istable(L, 2))
+							return luaL_error(L, "invalid lstg object for 'Update'.");
+						lua_rawgeti(L, 2, 2);  // self t(object) ??? id
+						size_t id = (size_t)luaL_checkinteger(L, -1);
+						lua_pop(L, 1);
+						if (!p->handle->Update(id, luaL_checkinteger(L, 3), (float)luaL_checknumber(L, 4), luaL_optnumber(L, 5, 0) == 0))
+							return luaL_error(L, "invalid lstg object for 'Update'.");
+					}
 					return 0;
 				}
 				static int UpdateNode(lua_State* L)LNOEXCEPT
 				{
 					GETUDATA(p, 1);
 					CHECKUDATA(p);
-					if (!lua_istable(L, 2))
-						return luaL_error(L, "invalid lstg object for 'UpdateNode'.");
-					lua_rawgeti(L, 2, 2);  // self t(object) ??? id
-					size_t id = (size_t)luaL_checkinteger(L, -1);
-					lua_pop(L, 1);
-					if (!p->handle->UpdateByNode(id, luaL_checkinteger(L, 3), luaL_checkinteger(L, 4), (float)luaL_checknumber(L, 5), luaL_optnumber(L, 6, 0) == 0))
-						return luaL_error(L, "invalid lstg object for 'UpdateNode'.");
+					if (LUA_TNUMBER == lua_type(L, 2))
+					{
+						return p->handle->api_UpdateSingleNode(L);
+					}
+					else
+					{
+						if (!lua_istable(L, 2))
+							return luaL_error(L, "invalid lstg object for 'UpdateNode'.");
+						lua_rawgeti(L, 2, 2);  // self t(object) ??? id
+						size_t id = (size_t)luaL_checkinteger(L, -1);
+						lua_pop(L, 1);
+						if (!p->handle->UpdateByNode(id, luaL_checkinteger(L, 3), luaL_checkinteger(L, 4), (float)luaL_checknumber(L, 5), luaL_optnumber(L, 6, 0) == 0))
+							return luaL_error(L, "invalid lstg object for 'UpdateNode'.");
+					}
 					return 0;
 				}
 				static int UpdatePositionByList(lua_State* L)LNOEXCEPT // u(laser) t(list) length width index revert 
@@ -61,7 +81,7 @@ namespace LuaSTGPlus
 				{
 					GETUDATA(p, 1);
 					CHECKUDATA(p);
-					return p->handle->api_UpdateAllNodeByList(L, false);
+					return p->handle->api_UpdateAllNodeByList(L);
 				}
 				static int SampleByLength(lua_State* L)LNOEXCEPT // t(self) <length>
 				{
