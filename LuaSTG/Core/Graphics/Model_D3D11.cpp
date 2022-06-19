@@ -602,6 +602,13 @@ namespace LuaSTG::Core::Graphics
         {
             tinygltf::Image& img = model.images[idx];
 
+            if (img.width <= 0 || img.height <= 0)
+            {
+                image[idx] = shared_->default_image; // 兄啊，你这纹理好怪哦
+                spdlog::error("[core] 加载纹理 '{}' 失败", img.name);
+                continue;
+            }
+
             bool mipmap = true;
             D3D11_TEXTURE2D_DESC tex_def = {
                 .Width = (UINT)img.width,

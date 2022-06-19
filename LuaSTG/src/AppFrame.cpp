@@ -429,11 +429,8 @@ bool AppFrame::Init()LNOEXCEPT
 			using namespace LuaSTG::Core;
 			auto* p_swapchain = m_pAppModel->getSwapChain();
 			p_swapchain->setVSync(m_OptionVsync);
-			if (m_OptionWindowed)
-			{
-				p_swapchain->setWindowMode(m_OptionResolution.x, m_OptionResolution.y, false);
-			}
-			else
+			p_swapchain->setWindowMode(m_OptionResolution.x, m_OptionResolution.y, false); // 无论如何，首先窗口化
+			if (!m_OptionWindowed)
 			{
 				Graphics::DisplayMode mode = {
 					.width = (uint32_t)m_OptionResolution.x,
