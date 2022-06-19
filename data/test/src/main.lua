@@ -39,6 +39,7 @@ local function get_touhou_world_cursor()
     local yv = -224 + 448 * (y / height)
     return xv, yv
 end
+
 local function Camera3D()
     ---@class kuanlan.Camera3D
     local M = {
@@ -55,10 +56,14 @@ local function Camera3D()
         last_dir = 90,
         last_upd = 0,
         aspeed = 0.1,
+
+        fog_near = 5,
+        for_far = 20,
     }
     function M:update()
         local speed = self.speed
-        if lstg.GetKeyState(Key.CTRL) then
+        local Key = lstg.Input.Keyboard
+        if lstg.GetKeyState(Key.LeftControl) then
             speed = speed * 10.0
         end
         if lstg.GetKeyState(Key.W) then
@@ -75,17 +80,17 @@ local function Camera3D()
             self.x = self.x + speed * math.cos(math.rad(self.dir + 90))
             self.z = self.z + speed * math.sin(math.rad(self.dir + 90))
         end
-        if lstg.GetKeyState(Key.SPACE) then
+        if lstg.GetKeyState(Key.Space) then
             self.y = self.y + speed
-        elseif lstg.GetKeyState(Key.SHIFT) then
+        elseif lstg.GetKeyState(Key.LeftShift) then
             self.y = self.y - speed
         end
-        if not self.rbtn and lstg.GetMouseState(MKey.RBUTTON) then
+        if not self.rbtn and lstg.GetMouseState(2) then
             self.rbtn = true
             self.mx, self.my = lstg.GetMousePosition()
             self.last_dir = self.dir
             self.last_upd = self.upd
-        elseif self.rbtn and not lstg.GetMouseState(MKey.RBUTTON) then
+        elseif self.rbtn and not lstg.GetMouseState(2) then
             self.rbtn = false
         end
         if self.rbtn then
@@ -118,10 +123,14 @@ local function Camera3D()
             0.01, 1000.0
         )
         lstg.SetImageScale(1)
-        lstg.SetFog(5, 20, lstg.Color(255, 255, 255, 255))
+        lstg.SetFog()
+        --lstg.SetFog(self.fog_near, self.for_far, lstg.Color(255, 255, 255, 255))
     end
     return M
 end
+
+local camera3d = Camera3D()
+
 ---@type lstg.ParticleSystem
 local ps = nil
 function GameInit()
@@ -148,6 +157,9 @@ function GameInit()
     lstg.FileManager.RemoveDirectory("测试test3/")
     lstg.FileManager.RemoveDirectory("第一层")
     lstg.FileManager.RemoveDirectory("第1层/")
+
+    lstg.LoadModel("model:test", "E:/Project/glTF-work/model/2.0/Sponza/glTF/Sponza.gltf")
+    --lstg.LoadModel("model:test", "res/Tree/Tree.gltf")
 end
 function GameExit()
 end
@@ -159,17 +171,18 @@ function FrameFunc()
     imgui.backend.ShowTestInputWindow()
     imgui.backend.ShowMemoryUsageWindow()
     imgui.backend.ShowFrameStatistics()
-    imgui.backend.ShowParticleSystemEditor(ps)
+    --imgui.backend.ShowParticleSystemEditor(ps)
     imgui.ImGui.EndFrame()
-    if lstg.GetMouseState(2) or lstg.GetMouseState(0) then
-        local mx, my = get_touhou_world_cursor()
-        if lstg.GetMouseState(0) then
-            ps:setActive(true)
-        end
-        ps:Update(1 / 60, mx, my, timer % 360)
-    else
-        ps:Update(1 / 60, 0, 0, timer % 360)
-    end
+    --if lstg.GetMouseState(2) or lstg.GetMouseState(0) then
+    --    local mx, my = get_touhou_world_cursor()
+    --    if lstg.GetMouseState(0) then
+    --        ps:setActive(true)
+    --    end
+    --    ps:Update(1 / 60, mx, my, timer % 360)
+    --else
+    --    ps:Update(1 / 60, 0, 0, timer % 360)
+    --end
+    camera3d:update()
     if lstg.GetKeyState(Key.ESCAPE) then
         return true
     end
@@ -177,37 +190,41 @@ function FrameFunc()
 end
 function RenderFunc()
     lstg.BeginScene()
-    lstg.RenderClear(lstg.Color(255, 0, 0, 0))
+    lstg.RenderClear(lstg.Color(255, 255, 255, 255))
     lstg.ClearZBuffer(1.0)
 
-    set_camera()
+    camera3d:apply()
+    local scale = 0.01
+    lstg.RenderModel("model:test", 0, 0, 0, 0, 0, 0, scale, scale, scale)
+
+    --set_camera()
 
     local k = lstg.Input.Keyboard
     local m = lstg.Input.Mouse
     
-    local kk1 = k.GetKeyState(k.X)
-    local mk1, mk2, mk3, mk4, mk5 = m.GetKeyState(m.Left), m.GetKeyState(m.Middle), m.GetKeyState(m.Right), m.GetKeyState(m.X1), m.GetKeyState(m.X2)
-    local mx1, my1 = lstg.Input.Mouse.GetPosition()
-    local mx2, my2 = lstg.Input.Mouse.GetPosition(true)
-    local mz = lstg.Input.Mouse.GetWheelDelta()
+    --local kk1 = k.GetKeyState(k.X)
+    --local mk1, mk2, mk3, mk4, mk5 = m.GetKeyState(m.Left), m.GetKeyState(m.Middle), m.GetKeyState(m.Right), m.GetKeyState(m.X1), m.GetKeyState(m.X2)
+    --local mx1, my1 = lstg.Input.Mouse.GetPosition()
+    --local mx2, my2 = lstg.Input.Mouse.GetPosition(true)
+    --local mz = lstg.Input.Mouse.GetWheelDelta()
+    --
+    --local st = string.format("%s\n%s, %s, %s, %s, %s\n%.2f, %.2f\n%.2f, %.2f\n%.2f",
+    --    kk1,
+    --    mk1, mk2, mk3, mk4, mk5,
+    --    mx1, my1,
+    --    mx2, my2,
+    --    mz
+    --)
 
-    local st = string.format("%s\n%s, %s, %s, %s, %s\n%.2f, %.2f\n%.2f, %.2f\n%.2f",
-        kk1,
-        mk1, mk2, mk3, mk4, mk5,
-        mx1, my1,
-        mx2, my2,
-        mz
-    )
+    --local c_white = lstg.Color(255, 255, 255, 255)
 
-    local c_white = lstg.Color(255, 255, 255, 255)
+    --lstg.RenderTTF("Sans", st, 0, 0, 720, 720, 0 + 0, c_white, 2)
 
-    lstg.RenderTTF("Sans", st, 0, 0, 720, 720, 0 + 0, c_white, 2)
+    --local va, vb, vc = lstg.GetVersionNumber()
 
-    local va, vb, vc = lstg.GetVersionNumber()
-
-    lstg.RenderTTF("Sans", string.format("版本号 %d.%d.%d", va, vb, vc), 0, 0, 64, 64, 0 + 8, c_white, 2)
-    lstg.RenderTTF("Sans", lstg.GetVersionName(), 0, 0, 0, 0, 0 + 8, c_white, 2)
-    lstg.RenderTTF("Sans", string.format("timer: %d", timer), 0, 0, 32, 32, 0 + 8, c_white, 2)
+    --lstg.RenderTTF("Sans", string.format("版本号 %d.%d.%d", va, vb, vc), 0, 0, 64, 64, 0 + 8, c_white, 2)
+    --lstg.RenderTTF("Sans", lstg.GetVersionName(), 0, 0, 0, 0, 0 + 8, c_white, 2)
+    --lstg.RenderTTF("Sans", string.format("timer: %d", timer), 0, 0, 32, 32, 0 + 8, c_white, 2)
 
     --lstg.RenderTTF("Sans", "您好，别来无恙啊！", 0, 0, 720, 720, 0 + 0, lstg.Color(255, 0, 0, 0), 2)
 
@@ -219,10 +236,10 @@ function RenderFunc()
     --    "", lstg.Color(255, 0, 0, 0),
     --    "center", "vcenter")
 
-    set_touhou_world()
-    ps:Render(1)
+    --set_touhou_world()
+    --ps:Render(1)
 
-    set_camera()
+    --set_camera()
 
     imgui.ImGui.Render()
     imgui.backend.RenderDrawData()
