@@ -73,7 +73,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L) LNOEXCEPT
 		}
 		static int SetSESpeed(lua_State* L) {
 			const char* s = luaL_checkstring(L, 1);
-			float speed = luaL_checknumber(L, 2);
+			float speed = (float)luaL_checknumber(L, 2);
 			ResSound* p = LRES.FindSound(s);
 			if (!p)
 				return luaL_error(L, "sound '%s' not found.", s);
@@ -89,7 +89,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L) LNOEXCEPT
 			lua_pushnumber(L, p->GetSpeed());
 			return 1;
 		}
-		static int UpdateSound(lua_State* L)LNOEXCEPT
+		static int UpdateSound(lua_State*)LNOEXCEPT
 		{
 			// 否决的方法
 			return 0;
@@ -161,7 +161,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L) LNOEXCEPT
 			{
 				lua_createtable(L, (int)sz, 0);
 			}
-			for (int i = 0; i < sz; i += 1)
+			for (int i = 0; i < (int)sz; i += 1)
 			{
 				lua_pushnumber(L, (lua_Number)fdata[i]);
 				lua_rawseti(L, 2, i + 1);
@@ -204,7 +204,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L) LNOEXCEPT
 		}
 		static int SetBGMSpeed(lua_State* L) {
 			const char* s = luaL_checkstring(L, 1);
-			float speed = luaL_checknumber(L, 2);
+			float speed = (float)luaL_checknumber(L, 2);
 			ResMusic* p = LRES.FindMusic(s);
 			if (!p)
 				return luaL_error(L, "music '%s' not found.", s);

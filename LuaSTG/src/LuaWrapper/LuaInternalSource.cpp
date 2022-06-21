@@ -71,7 +71,7 @@ end
 
 namespace LuaSTGPlus {
 	std::string LuaInternalSource_1() {
-		if (sizeof(void*) >= 8)
+		if constexpr (sizeof(void*) >= 8)
 		{
 			return _InternalSource_amd64 + _InternalSource_Main;
 		}

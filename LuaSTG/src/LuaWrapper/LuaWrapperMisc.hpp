@@ -178,8 +178,8 @@ namespace LuaSTGPlus
 			GET_ATTR("direction", fDirection, float, number);
 			GET_ATTR("spread", fSpread, float, number);
 
-			info.fDirection *= L_DEG_TO_RAD;
-			info.fSpread *= L_DEG_TO_RAD;
+			info.fDirection *= (float)L_DEG_TO_RAD;
+			info.fSpread *= (float)L_DEG_TO_RAD;
 
 			GET_ATTR("lifetime_min", fParticleLifeMin, float, number);
 			GET_ATTR("lifetime_max", fParticleLifeMax, float, number);
@@ -201,8 +201,8 @@ namespace LuaSTGPlus
 			GET_ATTR("angle_end", fSpinEnd, float, number);
 			GET_ATTR("angle_var", fSpinVar, float, number);
 
-			info.fSpinStart *= L_DEG_TO_RAD;
-			info.fSpinEnd *= L_DEG_TO_RAD;
+			info.fSpinStart *= (float)L_DEG_TO_RAD;
+			info.fSpinEnd *= (float)L_DEG_TO_RAD;
 
 			GET_ATTR("color_var", fColorVar, float, number);
 			GET_ATTR("alpha_var", fAlphaVar, float, number);
