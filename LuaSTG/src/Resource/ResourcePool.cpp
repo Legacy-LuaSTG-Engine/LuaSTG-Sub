@@ -303,8 +303,8 @@ bool ResourcePool::CreateSprite(const char* name, const char* texname,
         spdlog::error("[luastg] 从'{}'创建图片精灵'{}'失败", texname, name);
         return false;
     }
-    p_sprite->setTextureRect(LuaSTG::Core::RectF(x, y, x + w, y + h));
-    p_sprite->setTextureCenter(LuaSTG::Core::Vector2F(x + w * 0.5f, y + h * 0.5f));
+    p_sprite->setTextureRect(LuaSTG::Core::RectF((float)x, (float)y, (float)(x + w), (float)(y + h)));
+    p_sprite->setTextureCenter(LuaSTG::Core::Vector2F((float)(x + w * 0.5), (float)(y + h * 0.5)));
     
     try {
         fcyRefPointer<ResSprite> tRes;
@@ -737,7 +737,7 @@ bool ResourcePool::LoadTrueTypeFont(const char* name, LuaSTG::Core::Graphics::Tr
 
 // 加载后处理特效
 
-bool ResourcePool::LoadFX(const char* name, const char* path, bool is_effect) noexcept {
+bool ResourcePool::LoadFX(const char* name, const char* path) noexcept {
     if (m_FXPool.find(name) != m_FXPool.end()) {
         if (ResourceMgr::GetResourceLoadingLog()) {
             spdlog::warn("[luastg] LoadFX: 后处理特效'{}'已存在，加载操作已取消", name);
