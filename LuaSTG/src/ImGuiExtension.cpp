@@ -822,7 +822,7 @@ namespace imgui
             if (io.WantSaveIniSettings)
                 saveConfig();
         }
-        
+
         g_ImGuiBindEngine = false;
         g_ImGuiTexIDValid = false;
         
@@ -849,15 +849,20 @@ namespace imgui
     }
     void updateEngine()
     {
+        ZoneScopedN("imgui.backend.NewFrame");
         if (g_ImGuiBindEngine)
         {
             constexpr int const mask = (~((int)ImGuiConfigFlags_NoMouseCursorChange));
             auto& io = ImGui::GetIO();
             io.ConfigFlags &= mask;
-            if (io.WantSaveIniSettings)
-                saveConfig();
-            ImGui_ImplDX11_NewFrame();
-            ImGui_ImplWin32Ex_NewFrame();
+            {
+                ZoneScopedN("imgui.backend.NewFrame-D3D11");
+                ImGui_ImplDX11_NewFrame();
+            }
+            {
+                ZoneScopedN("imgui.backend.NewFrame-WIN32");
+                ImGui_ImplWin32Ex_NewFrame();
+            }
             g_ImGuiTexIDValid = true;
         }
     }
