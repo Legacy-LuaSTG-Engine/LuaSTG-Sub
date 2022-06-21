@@ -316,16 +316,9 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			if (!pActivedPool)
 				return luaL_error(L, "can't load resource at this time.");
 
-			if (lua_gettop(L) < 3)
-			{
-				if (!pActivedPool->LoadFX(name, path))
-					return luaL_error(L, "load fx failed (name=%s, path=%s)", name, path);
-			}
-			else
-			{
-				if (!pActivedPool->LoadFX(name, path, lua_toboolean(L, 3)))
-					return luaL_error(L, "load fx failed (name=%s, path=%s)", name, path);
-			}
+			if (!pActivedPool->LoadFX(name, path))
+				return luaL_error(L, "load fx failed (name=%s, path=%s)", name, path);
+
 			return 0;
 		}
 		static int LoadModel(lua_State* L) noexcept

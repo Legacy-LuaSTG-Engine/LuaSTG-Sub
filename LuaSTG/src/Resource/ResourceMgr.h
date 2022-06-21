@@ -77,7 +77,7 @@ namespace LuaSTGPlus
         bool LoadTTFFont(const char* name, const char* path, float width, float height) noexcept;
         bool LoadTrueTypeFont(const char* name, LuaSTG::Core::Graphics::TrueTypeFontInfo* fonts, size_t count) noexcept;
         // 特效
-        bool LoadFX(const char* name, const char* path, bool is_effect = true) noexcept;
+        bool LoadFX(const char* name, const char* path) noexcept;
         // 模型
         bool LoadModel(const char* name, const char* path) noexcept;
         
