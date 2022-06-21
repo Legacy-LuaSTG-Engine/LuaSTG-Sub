@@ -5,6 +5,8 @@
 #include "platform/HighDPI.hpp"
 #include "platform/WindowTheme.hpp"
 
+constexpr int const LUASTG_WM_UPDAE_TITLE = WM_USER + 64;
+
 namespace LuaSTG::Core::Graphics
 {
 	LRESULT CALLBACK Window_Win32::win32_window_callback(HWND window, UINT message, WPARAM arg1, LPARAM arg2)
@@ -124,6 +126,9 @@ namespace LuaSTG::Core::Graphics
 			dispatchEvent(EventType::WindowClose);
 			PostQuitMessage(EXIT_SUCCESS);
 			return 0;
+		case LUASTG_WM_UPDAE_TITLE:
+			SetWindowTextW(window, win32_window_text_w.data());
+			return 0;
 		}
 		return DefWindowProcW(window, message, arg1, arg2);
 	}
@@ -168,10 +173,11 @@ namespace LuaSTG::Core::Graphics
 
 		// 直接创建窗口
 
+		convertTitleText();
 		win32_window = CreateWindowExW(
 			win32_window_style_ex,
 			win32_window_class.lpszClassName,
-			utility::encoding::to_wide(win32_window_text).c_str(),
+			win32_window_text_w.data(),
 			win32_window_style,
 			0, 0, (int)win32_window_width, (int)win32_window_height,
 			NULL, NULL, win32_window_class.hInstance, this);
@@ -217,6 +223,23 @@ namespace LuaSTG::Core::Graphics
 		if (!createWindow()) return false;
 		dispatchEvent(EventType::WindowCreate);
 		return true;
+	}
+
+	void Window_Win32::convertTitleText()
+	{
+		win32_window_text_w[0] = L'\0';
+		int const size = MultiByteToWideChar(CP_UTF8, 0, win32_window_text.data(), (int)win32_window_text.size(), NULL, 0);
+		if (size <= 0 || size > (int)(win32_window_text_w.size() - 1))
+		{
+			assert(false); return;
+		}
+		win32_window_text_w[size] = L'\0';
+		int const result = MultiByteToWideChar(CP_UTF8, 0, win32_window_text.data(), (int)win32_window_text.size(), win32_window_text_w.data(), win32_window_text_w.size());
+		if (result <= 0 || result != size)
+		{
+			assert(false); return;
+		}
+		win32_window_text_w[result] = L'\0';
 	}
 
 	RectI Window_Win32::getRect()
@@ -396,7 +419,8 @@ namespace LuaSTG::Core::Graphics
 	void Window_Win32::setTitleText(StringView str)
 	{
 		win32_window_text = str;
-		SetWindowTextW(win32_window, utility::encoding::to_wide(str).c_str());
+		convertTitleText();
+		PostMessageW(win32_window, LUASTG_WM_UPDAE_TITLE, 0, 0);
 	}
 	StringView Window_Win32::getTitleText()
 	{
@@ -635,6 +659,7 @@ namespace LuaSTG::Core::Graphics
 
 	Window_Win32::Window_Win32()
 	{
+		win32_window_text_w.fill(L'\0');
 		if (!createWindowClass())
 			throw std::runtime_error("createWindowClass failed");
 		if (!createWindow())
