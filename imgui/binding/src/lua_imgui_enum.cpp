@@ -251,6 +251,7 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"AllowWhenBlockedByActiveItem", ImGuiHoveredFlags_AllowWhenBlockedByActiveItem},
     {"AllowWhenOverlapped"         , ImGuiHoveredFlags_AllowWhenOverlapped         },
     {"AllowWhenDisabled"           , ImGuiHoveredFlags_AllowWhenDisabled           },
+    {"NoNavOverride"               , ImGuiHoveredFlags_NoNavOverride               },
     {"RectOnly"                    , ImGuiHoveredFlags_RectOnly                    },
     {"RootAndChildWindows"         , ImGuiHoveredFlags_RootAndChildWindows         },
 }},
@@ -430,12 +431,12 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"ModAlt"  , ImGuiKey_ModAlt  },
     {"ModSuper", ImGuiKey_ModSuper},
 }},
-{"ImGuiKeyModFlags", {
-    {"None" , ImGuiKeyModFlags_None },
-    {"Ctrl" , ImGuiKeyModFlags_Ctrl },
-    {"Shift", ImGuiKeyModFlags_Shift},
-    {"Alt"  , ImGuiKeyModFlags_Alt  },
-    {"Super", ImGuiKeyModFlags_Super},
+{"ImGuiModFlags", {
+    {"None" , ImGuiModFlags_None },
+    {"Ctrl" , ImGuiModFlags_Ctrl },
+    {"Shift", ImGuiModFlags_Shift},
+    {"Alt"  , ImGuiModFlags_Alt  },
+    {"Super", ImGuiModFlags_Super},
 }},
 {"ImGuiNavInput", {
     {"Activate"   , ImGuiNavInput_Activate   },

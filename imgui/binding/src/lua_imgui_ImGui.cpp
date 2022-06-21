@@ -126,6 +126,21 @@ static int lib_ShowMetricsWindow(lua_State* L)
         return 0;
     }
 }
+static int lib_ShowDebugLogWindow(lua_State* L)
+{
+    if (lua_gettop(L) >= 1)
+    {
+        bool p_open = lua_toboolean(L, 1);
+        ImGui::ShowDebugLogWindow(&p_open);
+        lua_pushboolean(L, p_open);
+        return 1;
+    }
+    else
+    {
+        ImGui::ShowDebugLogWindow();
+        return 0;
+    }
+}
 static int lib_ShowStackToolWindow(lua_State* L)
 {
     if(lua_gettop(L) >= 1)
@@ -2378,12 +2393,11 @@ static int lib_TableHeader(lua_State* L)
     ImGui::TableHeader(label);
     return 0;
 }
-//////// Tables: Sorting
+//////// Tables: Sorting & Miscellaneous functions
 static /* !!!! */ int lib_TableGetSortSpecs(lua_State* L)
 {
     LUA_IMGUI_NOT_SUPPORT;
 }
-//////// Tables: Miscellaneous functions
 static int lib_TableGetColumnCount(lua_State* L)
 {
     const int ret = ImGui::TableGetColumnCount();
@@ -2843,6 +2857,17 @@ static int lib_SetItemAllowOverlap(lua_State* L)
     return 0;
 }
 
+//////// Background/Foreground Draw Lists
+
+static /* !!!! */ int lib_GetBackgroundDrawList(lua_State* L)
+{
+    LUA_IMGUI_NOT_SUPPORT;
+}
+static /* !!!! */ int lib_GetForegroundDrawList(lua_State* L)
+{
+    LUA_IMGUI_NOT_SUPPORT;
+}
+
 //////// Miscellaneous Utilities
 
 static int lib_IsRectVisible(lua_State* L)
@@ -2872,14 +2897,6 @@ static int lib_GetFrameCount(lua_State* L)
     const int ret = ImGui::GetFrameCount();
     lua_pushinteger(L, (lua_Integer)ret);
     return 1;
-}
-static /* !!!! */ int lib_GetBackgroundDrawList(lua_State* L)
-{
-    LUA_IMGUI_NOT_SUPPORT;
-}
-static /* !!!! */ int lib_GetForegroundDrawList(lua_State* L)
-{
-    LUA_IMGUI_NOT_SUPPORT;
 }
 static /* !!!! */ int lib_GetDrawListSharedData(lua_State* L)
 {
@@ -3026,11 +3043,10 @@ static int lib_GetKeyName(lua_State* L)
     lua_pushstring(L, name);
     return 1;
 }
-static int lib_CaptureKeyboardFromApp(lua_State* L)
+static int lib_SetNextFrameWantCaptureKeyboard(lua_State* L)
 {
-    const int argc = lua_gettop(L);
-    const bool want_capture_keyboard_value = (argc >= 1) ? lua_toboolean(L, 1) : true;
-    ImGui::CaptureKeyboardFromApp(want_capture_keyboard_value);
+    const bool want_capture_keyboard = lua_toboolean(L, 1);
+    ImGui::SetNextFrameWantCaptureKeyboard(want_capture_keyboard);
     return 0;
 }
 
@@ -3143,11 +3159,10 @@ static int lib_SetMouseCursor(lua_State* L)
     ImGui::SetMouseCursor(cursor_type);
     return 0;
 }
-static int lib_CaptureMouseFromApp(lua_State* L)
+static int lib_SetNextFrameWantCaptureMouse(lua_State* L)
 {
-    const int argc = lua_gettop(L);
-    const bool want_capture_mouse_value = (argc >= 1) ? lua_toboolean(L, 1) : true;
-    ImGui::CaptureMouseFromApp(want_capture_mouse_value);
+    const bool want_capture_mouse = lua_toboolean(L, 1);
+    ImGui::SetNextFrameWantCaptureMouse(want_capture_mouse);
     return 0;
 }
 
@@ -3206,6 +3221,12 @@ static int lib_SaveIniSettingsToMemory(lua_State* L)
 
 //////// Debug Utilities
 
+static int lib_DebugTextEncoding(lua_State* L)
+{
+    const char* text = luaL_checkstring(L, 1);
+    ImGui::DebugTextEncoding(text);
+    return 0;
+}
 static int lib_DebugCheckVersionAndDataLayout(lua_State* L)
 {
     const bool ret = IMGUI_CHECKVERSION();

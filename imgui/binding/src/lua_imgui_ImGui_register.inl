@@ -20,6 +20,7 @@ static const luaL_Reg lib_fun[] = {
     // Demo, Debug, Information
     MAKEF(ShowDemoWindow),
     MAKEF(ShowMetricsWindow),
+    MAKEF(ShowDebugLogWindow),
     MAKEF(ShowStackToolWindow),
     MAKEF(ShowAboutWindow),
     MAKEF(ShowStyleEditor),
@@ -298,9 +299,8 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(TableSetupScrollFreeze),
     MAKEF(TableHeadersRow),
     MAKEF(TableHeader),
-    // Tables: Sorting
+    // Tables: Sorting & Miscellaneous functions
     MAKEF(TableGetSortSpecs),
-    // Tables: Miscellaneous functions
     MAKEF(TableGetColumnCount),
     MAKEF(TableGetColumnIndex),
     MAKEF(TableGetRowIndex),
@@ -375,12 +375,14 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(GetItemRectSize),
     MAKEF(SetItemAllowOverlap),
     
+    // Background/Foreground Draw Lists
+    MAKEF(GetBackgroundDrawList),
+    MAKEF(GetForegroundDrawList),
+
     // Miscellaneous Utilities
     MAKEF(IsRectVisible),
     MAKEF(GetTime),
     MAKEF(GetFrameCount),
-    MAKEF(GetBackgroundDrawList),
-    MAKEF(GetForegroundDrawList),
     MAKEF(GetDrawListSharedData),
     MAKEF(GetStyleColorName),
     MAKEF(SetStateStorage),
@@ -403,7 +405,7 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(IsKeyReleased),
     MAKEF(GetKeyPressedAmount),
     MAKEF(GetKeyName),
-    MAKEF(CaptureKeyboardFromApp),
+    MAKEF(SetNextFrameWantCaptureKeyboard),
     
     // Inputs Utilities: Mouse
     MAKEF(IsMouseDown),
@@ -421,7 +423,7 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(ResetMouseDragDelta),
     MAKEF(GetMouseCursor),
     MAKEF(SetMouseCursor),
-    MAKEF(CaptureMouseFromApp),
+    MAKEF(SetNextFrameWantCaptureMouse),
     
     // Clipboard Utilities
     MAKEF(GetClipboardText),
@@ -434,6 +436,7 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(SaveIniSettingsToMemory),
     
     // Debug Utilities
+    MAKEF(DebugTextEncoding),
     MAKEF(DebugCheckVersionAndDataLayout),
     
     // Memory Allocators
