@@ -24,6 +24,7 @@ namespace LuaSTG::Core::Graphics
 		UINT win32_window_dpi{ USER_DEFAULT_SCREEN_DPI };
 
 		std::string win32_window_text{ "Window" };
+		std::array<wchar_t, 512> win32_window_text_w;
 
 		WindowCursor m_cursor{ WindowCursor::Arrow };
 		HCURSOR win32_window_cursor{ NULL };
@@ -50,6 +51,8 @@ namespace LuaSTG::Core::Graphics
 		// 内部方法
 
 		HWND GetWindow() { return win32_window; }
+
+		void convertTitleText();
 
 		RectI getRect();
 		bool setRect(RectI v);
