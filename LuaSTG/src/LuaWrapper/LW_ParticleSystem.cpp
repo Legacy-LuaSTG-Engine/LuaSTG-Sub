@@ -223,7 +223,7 @@ namespace LuaSTGPlus::LuaWrapper
 						{
 							self->ptr->SetCenter(fcyVec2(x, y));
 						}
-						self->ptr->Update(1.0f / 60.0f);
+						self->ptr->Update(delta);
 					}
 					else
 					{
