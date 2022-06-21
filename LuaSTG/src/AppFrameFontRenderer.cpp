@@ -339,7 +339,7 @@ namespace LuaSTGPlus {
 		const bool result = m_pTextRenderer->drawText(LuaSTG::Core::StringView(str, len), LuaSTG::Core::Vector2F(pos.x, pos.y), &endpos);
 		pos = fcyVec2(endpos.x, endpos.y);
 
-		m_pTextRenderer->setZ(z);
+		m_pTextRenderer->setZ(last_z);
 		return result;
 	}
 	
