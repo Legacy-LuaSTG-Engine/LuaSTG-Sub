@@ -393,17 +393,17 @@ bool ResourcePool::LoadMusic(const char* name, const char* path, double start, d
     };
 
     // 检查循环节
-    if (start > end)
+    if (0 == to_sample(start) && to_sample(start) == to_sample(end))
     {
-        spdlog::error("[luastg] LoadMusic: 循环节范围格式错误，结束位置不能先于开始位置 (start = {}, end = {})", start, end);
+        end = (double)p_decoder->getFrameCount() / (double)p_decoder->getSampleRate();
+        spdlog::info("[luastg] LoadMusic: 循环节范围设置为整首背景音乐 (start = {}, end = {})", start, end);
+    }
+    if (to_sample(start) >= to_sample(end))
+    {
+        spdlog::error("[luastg] LoadMusic: 循环节范围格式错误，结束位置不能等于或先于开始位置 (start = {}, end = {})", start, end);
         return false;
     }
-    if (to_sample(start) == to_sample(end))
-    {
-        spdlog::error("[luastg] LoadMusic: 循环节范围格式错误，长度不能为 0 (start = {}, end = {})", start, end);
-        return false;
-    }
-
+    
     // 配置循环解码器（这里不用担心出现 exception，因为上面已经处理了）
     ScopeObject<ResMusic::LoopDecoder> p_loop_decoder;
     p_loop_decoder.attach(new ResMusic::LoopDecoder(p_decoder.get(), start, end));
