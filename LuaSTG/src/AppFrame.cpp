@@ -276,10 +276,10 @@ LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, 
 }
 LNOINLINE bool AppFrame::UpdateVideoMode()LNOEXCEPT
 {
-	return ChangeVideoMode(m_OptionResolution.x, m_OptionResolution.y, m_OptionWindowed, m_OptionVsync);
+	return ChangeVideoMode((int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionWindowed, m_OptionVsync);
 }
 
-LNOINLINE int AppFrame::LoadTextFile(lua_State* L, const char* path, const char *packname)LNOEXCEPT
+LNOINLINE int AppFrame::LoadTextFile(lua_State* L_, const char* path, const char *packname)LNOEXCEPT
 {
 	if (ResourceMgr::GetResourceLoadingLog()) {
 		if (packname)
@@ -305,7 +305,7 @@ LNOINLINE int AppFrame::LoadTextFile(lua_State* L, const char* path, const char 
 		spdlog::error("[luastg] 无法加载文件'{}'", path);
 		return 0;
 	}
-	lua_pushlstring(L, (char*)src.data(), src.size());
+	lua_pushlstring(L_, (char*)src.data(), src.size());
 	return 1;
 }
 
@@ -354,7 +354,7 @@ bool AppFrame::Init()LNOEXCEPT
 		{
 			using namespace LuaSTG::Core;
 			auto* p_window = m_pAppModel->getWindow();
-			p_window->setSize(Vector2I(m_OptionResolution.x, m_OptionResolution.y));
+			p_window->setSize(Vector2I((int32_t)m_OptionResolution.x, (int32_t)m_OptionResolution.y));
 			if (m_OptionWindowed)
 				p_window->setFrameStyle(Graphics::WindowFrameStyle::Fixed);
 			else
@@ -429,7 +429,7 @@ bool AppFrame::Init()LNOEXCEPT
 			using namespace LuaSTG::Core;
 			auto* p_swapchain = m_pAppModel->getSwapChain();
 			p_swapchain->setVSync(m_OptionVsync);
-			p_swapchain->setWindowMode(m_OptionResolution.x, m_OptionResolution.y, false); // 无论如何，首先窗口化
+			p_swapchain->setWindowMode((uint32_t)m_OptionResolution.x, (uint32_t)m_OptionResolution.y, false); // 无论如何，首先窗口化
 			if (!m_OptionWindowed)
 			{
 				Graphics::DisplayMode mode = {

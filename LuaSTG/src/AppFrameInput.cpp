@@ -141,11 +141,11 @@ namespace LuaSTGPlus
     {
         if (no_flip)
         {
-            return fcyVec2(MouseState.x, MouseState.y);
+            return fcyVec2((fFloat)MouseState.x, (fFloat)MouseState.y);
         }
         else
         {
-            return fcyVec2(MouseState.x, m_OptionResolution.y - (fFloat)MouseState.y);
+            return fcyVec2((fFloat)MouseState.x, m_OptionResolution.y - (fFloat)MouseState.y);
         }
     }
     fInt AppFrame::GetMouseWheelDelta()LNOEXCEPT

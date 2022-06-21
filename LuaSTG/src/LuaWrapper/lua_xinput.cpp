@@ -18,7 +18,7 @@ static int xinput_refresh(lua_State* L)
     lua_pushinteger(L, (lua_Integer)ret);
     return 1;
 }
-static int xinput_update(lua_State* L)
+static int xinput_update(lua_State*)
 {
     xinput::update();
     return 0;
