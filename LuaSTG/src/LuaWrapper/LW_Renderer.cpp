@@ -6,9 +6,6 @@
 using namespace LuaSTG::Core;
 using namespace LuaSTG::Core::Graphics;
 
-#define l___l
-#define l_____l
-
 inline IRenderer* LR2D() { return LAPP.GetAppModel()->getRenderer(); }
 inline LuaSTGPlus::ResourceMgr& LRESMGR() { return LAPP.GetResourceMgr(); }
 
@@ -180,24 +177,6 @@ static void api_drawSpriteSequence(char const* name, int const ani_timer, float 
         return;
     }
     api_drawSpriteSequence(*pani2dres, ani_timer, x, y, rot, hscale, vscale, z);
-}
-
-// 下面 api_GameObject_ 系列是要废弃的
-static void api_GameObject_updateBlendMode(LuaSTGPlus::BlendMode blend)
-{
-    translate_blend(LR2D(), blend);
-}
-static void api_GameObject_drawSprite(LuaSTGPlus::ResSprite* pimg2dres, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
-{
-    api_drawSprite(pimg2dres, x, y, rot, hscale, vscale, z);
-}
-static void api_GameObject_drawSpriteSequence(LuaSTGPlus::ResAnimation* pani2dres, int const ani_timer, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
-{
-    api_drawSpriteSequence(pani2dres, ani_timer, x, y, rot, hscale, vscale, z);
-}
-static void api_GameObject_drawParticle(LuaSTGPlus::ResParticle::ParticlePool* p, float hscale, float vscale)
-{
-    p->Render(hscale, vscale);
 }
 
 static void api_setFogState(float start, float end, fcyColor color)
@@ -927,11 +906,6 @@ static int compat_SetTextureSamplerState(lua_State* L)LNOEXCEPT
     {
         return luaL_error(L, "invalid argument '%s'.", arg1.data());
     }
-    return 0;
-}
-
-static int compat_Noop(lua_State* L)
-{
     return 0;
 }
 
