@@ -236,6 +236,8 @@ namespace LuaSTG::Core
 		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
 
 		// 更新、渲染循环
+		TracyD3D11Collect(tracy::xTracyD3D11Ctx());
+		FrameMark;
 		while (true)
 		{
 			size_t const i = (m_framestate_index + 1) % 2;
@@ -244,6 +246,7 @@ namespace LuaSTG::Core
 
 			// 等待下一帧
 			{
+				ZoneScopedN("OnWait");
 				ScopeTimer t(d.wait_time);
 				// 如果需要退出
 				if (WAIT_OBJECT_0 == WaitForSingleObjectEx(win32_event_exit.Get(), 0, TRUE))
@@ -256,6 +259,7 @@ namespace LuaSTG::Core
 
 			// 更新
 			{
+				ZoneScopedN("OnUpdate");
 				ScopeTimer t(d.update_time);
 				m_listener->onUpdate();
 				m_swapchain->syncWindowActive();
@@ -263,6 +267,8 @@ namespace LuaSTG::Core
 			
 			// 渲染
 			{
+				ZoneScopedN("OnRender");
+				TracyD3D11Zone(tracy::xTracyD3D11Ctx(), "OnRender");
 				ScopeTimer t(d.render_time);
 				m_swapchain->applyRenderAttachment();
 				m_swapchain->clearRenderAttachment();
@@ -271,11 +277,14 @@ namespace LuaSTG::Core
 			
 			// 呈现
 			{
+				ZoneScopedN("OnPresent");
 				ScopeTimer t(d.present_time);
 				m_swapchain->present();
+				TracyD3D11Collect(tracy::xTracyD3D11Ctx());
 			}
 			
 			m_framestate_index = i;
+			FrameMark;
 		}
 	}
 	

@@ -6,6 +6,9 @@
 // 日志系统
 #include "spdlog/spdlog.h"
 
+#include "Tracy.hpp"
+//#include "TracyD3D11.hpp"
+
 // 编译配置
 #include "Config.h"  // 不同需求的定制配置
 #include "LConfig.h" // 引擎配置
