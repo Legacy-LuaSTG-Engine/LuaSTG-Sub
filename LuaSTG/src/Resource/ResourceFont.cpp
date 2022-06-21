@@ -51,9 +51,9 @@ namespace LuaSTGPlus
 					wchar_t c;
 					int c_hex;
 					float x, y, w, h, left_offset, right_offset;
-					if (7 != swscanf(tValue.c_str(), L"\"%c\",%f,%f,%f,%f,%f,%f", &c, &x, &y, &w, &h, &left_offset, &right_offset))
+					if (7 != swscanf_s(tValue.c_str(), L"\"%c\",%f,%f,%f,%f,%f,%f", &c, 1, &x, &y, &w, &h, &left_offset, &right_offset))
 					{
-						if (7 != swscanf(tValue.c_str(), L"%X,%f,%f,%f,%f,%f,%f", &c_hex, &x, &y, &w, &h, &left_offset, &right_offset))
+						if (7 != swscanf_s(tValue.c_str(), L"%X,%f,%f,%f,%f,%f,%f", &c_hex, &x, &y, &w, &h, &left_offset, &right_offset))
 							throw fcyException("ResFont::HGEFont::readDefine", "Bad file format.");
 						c = static_cast<wchar_t>(c_hex);
 					}
