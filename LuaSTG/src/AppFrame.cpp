@@ -536,45 +536,49 @@ void AppFrame::onUpdate()
 	m_fAvgFPS = m_pAppModel->getFrameRateController()->getAvgFPS();
 	m_pAppModel->getFrameRateController()->setTargetFPS(m_OptionFPSLimit);
 
-	int window_active_changed = m_window_active_changed.exchange(0);
-	if (window_active_changed & 0x2)
 	{
-		if (m_DirectInput)
-			m_DirectInput->reset();
+		ZoneScopedN("OnUpdate-Event");
 
-		lua_pushinteger(L, (lua_Integer)LuaSTG::LuaEngine::EngineEvent::WindowActive);
-		lua_pushboolean(L, false);
-		SafeCallGlobalFunctionB(LuaSTG::LuaEngine::G_CALLBACK_EngineEvent, 2, 0);
+		int window_active_changed = m_window_active_changed.exchange(0);
+		if (window_active_changed & 0x2)
+		{
+			if (m_DirectInput)
+				m_DirectInput->reset();
 
-		if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_FocusLoseFunc))
-			m_pAppModel->requestExit();
-	}
-	if (window_active_changed & 0x1)
-	{
-		if (m_DirectInput)
-			m_DirectInput->reset();
+			lua_pushinteger(L, (lua_Integer)LuaSTG::LuaEngine::EngineEvent::WindowActive);
+			lua_pushboolean(L, false);
+			SafeCallGlobalFunctionB(LuaSTG::LuaEngine::G_CALLBACK_EngineEvent, 2, 0);
 
-		lua_pushinteger(L, (lua_Integer)LuaSTG::LuaEngine::EngineEvent::WindowActive);
-		lua_pushboolean(L, true);
-		SafeCallGlobalFunctionB(LuaSTG::LuaEngine::G_CALLBACK_EngineEvent, 2, 0);
+			if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_FocusLoseFunc))
+				m_pAppModel->requestExit();
+		}
+		if (window_active_changed & 0x1)
+		{
+			if (m_DirectInput)
+				m_DirectInput->reset();
 
-		if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_FocusGainFunc))
-			m_pAppModel->requestExit();
-	}
-	if (window_active_changed & 0x4)
-	{
-		if (m_DirectInput)
-			m_DirectInput->refresh();
-	}
+			lua_pushinteger(L, (lua_Integer)LuaSTG::LuaEngine::EngineEvent::WindowActive);
+			lua_pushboolean(L, true);
+			SafeCallGlobalFunctionB(LuaSTG::LuaEngine::G_CALLBACK_EngineEvent, 2, 0);
 
-	UpdateInput();
+			if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_FocusGainFunc))
+				m_pAppModel->requestExit();
+		}
+		if (window_active_changed & 0x4)
+		{
+			if (m_DirectInput)
+				m_DirectInput->refresh();
+		}
+
+		UpdateInput();
 	
-#ifdef USING_CTRL_ENTER_SWITCH
-	if (WantSwitchFullScreenMode())
-	{
-		ChangeVideoMode((int)m_OptionResolution.x, (int)m_OptionResolution.y, !m_OptionWindowed, m_OptionVsync);
+	#ifdef USING_CTRL_ENTER_SWITCH
+		if (WantSwitchFullScreenMode())
+		{
+			ChangeVideoMode((int)m_OptionResolution.x, (int)m_OptionResolution.y, !m_OptionWindowed, m_OptionVsync);
+		}
+	#endif
 	}
-#endif
 
 #if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
 	static uint64_t _frame_count = 0;
@@ -582,15 +586,18 @@ void AppFrame::onUpdate()
 	_frame_count += 1;
 #endif
 
-	// 执行帧函数
-	imgui::cancelSetCursor();
-	m_GameObjectPool->DebugNextFrame();
-	if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineUpdate, 1))
-		m_pAppModel->requestExit();
-	bool tAbort = lua_toboolean(L, -1) == 0 ? false : true;
-	lua_pop(L, 1);
-	if (tAbort)
-		m_pAppModel->requestExit();
+	{
+		ZoneScopedN("OnUpdate-LuaCallback");
+		// 执行帧函数
+		imgui::cancelSetCursor();
+		m_GameObjectPool->DebugNextFrame();
+		if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineUpdate, 1))
+			m_pAppModel->requestExit();
+		bool tAbort = lua_toboolean(L, -1) == 0 ? false : true;
+		lua_pop(L, 1);
+		if (tAbort)
+			m_pAppModel->requestExit();
+	}
 }
 void AppFrame::onRender()
 {

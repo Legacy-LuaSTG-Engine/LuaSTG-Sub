@@ -317,6 +317,8 @@ namespace LuaSTGPlus
 	}
 	void GameObjectPool::DoFrame() noexcept
 	{
+		ZoneScopedN("LOBJMGR.ObjFrame");
+
 		//处理超级暂停
 		GetObjectTable(G_L);  // ot
 		int const ot_idx = lua_gettop(G_L);
@@ -383,6 +385,8 @@ namespace LuaSTGPlus
 	}
 	void GameObjectPool::BoundCheck() noexcept
 	{
+		ZoneScopedN("LOBJMGR.BoundCheck");
+
 		GetObjectTable(G_L); // ot
 		int const ot_idx = lua_gettop(G_L);
 		
@@ -414,6 +418,8 @@ namespace LuaSTGPlus
 	}
 	void GameObjectPool::CollisionCheck(size_t groupA, size_t groupB) noexcept
 	{
+		ZoneScopedN("LOBJMGR.CollisionCheck");
+
 		if (groupA < 0 || groupA >= LOBJPOOL_SIZE || groupB < 0 || groupB >= LOBJPOOL_SIZE)
 			luaL_error(G_L, "Invalid collision group.");
 
@@ -457,6 +463,8 @@ namespace LuaSTGPlus
 	}
 	void GameObjectPool::UpdateXY() noexcept
 	{
+		ZoneScopedN("LOBJMGR.UpdateXY");
+
 		int superpause = GetSuperPauseTime();
 		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second; p = p->pUpdateNext)
 		{
@@ -468,6 +476,8 @@ namespace LuaSTGPlus
 	}
 	void GameObjectPool::AfterFrame() noexcept
 	{
+		ZoneScopedN("LOBJMGR.AfterFrame");
+
 		GetObjectTable(G_L);
 		int const ot_at = lua_gettop(G_L);
 
