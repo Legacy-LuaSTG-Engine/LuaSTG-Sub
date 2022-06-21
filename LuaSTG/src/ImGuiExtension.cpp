@@ -300,9 +300,9 @@ static int lib_ShowMemoryUsageWindow(lua_State* L)
                 ImGui::Text("Avalid User Mode Memory Space: %s", bytes_count_to_string(info.ullAvailVirtual).c_str());
                 ImGui::Text("Alloc* User Mode Memory Space: %s", bytes_count_to_string(info.ullTotalVirtual - info.ullAvailVirtual).c_str());
 
-                lua_State* L = LAPP.GetLuaEngine();
-                int lvm_kb = lua_gc(L, LUA_GCCOUNT, 0);
-                int lvm_b = lua_gc(L, LUA_GCCOUNTB, 0);
+                lua_State* G_L = LAPP.GetLuaEngine();
+                int lvm_kb = lua_gc(G_L, LUA_GCCOUNT, 0);
+                int lvm_b = lua_gc(G_L, LUA_GCCOUNTB, 0);
                 ImGui::Text("Alloc* Lua Runtime Memory: %s", bytes_count_to_string((DWORDLONG)lvm_kb * (DWORDLONG)1024 + (DWORDLONG)lvm_b).c_str());
 
                 if (more_info) ImGui::Text("Adapter Local Budget: %s", bytes_count_to_string(gmuinfo.local.budget).c_str());
@@ -441,7 +441,7 @@ static int lib_ShowFrameStatistics(lua_State* L)
                         1000.0 / 20.0,
                     };
                     ImPlot::SetNextLineStyle(ImVec4(0.2f, 1.0f, 0.2f, 1.0f));
-                    ImPlot::PlotHLines("##60 FPS", arr_ms, 1);
+                    ImPlot::PlotInfLines("##60 FPS", arr_ms, 1, ImPlotInfLinesFlags_Horizontal);
                     //ImPlot::SetNextLineStyle(ImVec4(1.0f, 1.2f, 0.2f, 1.0f));
                     //ImPlot::PlotHLines("##30 FPS", arr_ms + 1, 1);
                     //ImPlot::SetNextLineStyle(ImVec4(1.0f, 0.2f, 0.2f, 1.0f));
@@ -460,7 +460,7 @@ static int lib_ShowFrameStatistics(lua_State* L)
                     ImPlot::PlotLine("Update", arr_update_time.data(), (int)record_range);
                 
                     ImPlot::SetNextLineStyle(ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-                    ImPlot::PlotVLines("##Current Time", &arr_index, 1);
+                    ImPlot::PlotInfLines("##Current Time", &arr_index, 1, ImPlotInfLinesFlags_None);
 
                     ImPlot::EndPlot();
                 }
@@ -511,7 +511,7 @@ static int lib_ShowFrameStatistics(lua_State* L)
                     ImPlot::PlotLine("Lua (MiB)", arr_mem_lua.data(), (int)record_range);
 
                     ImPlot::SetNextLineStyle(ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-                    ImPlot::PlotVLines("##Current Time", &arr_index, 1);
+                    ImPlot::PlotInfLines("##Current Time", &arr_index, 1, ImPlotInfLinesFlags_None);
 
                     ImPlot::EndPlot();
                 }
@@ -569,7 +569,7 @@ static int lib_ShowFrameStatistics(lua_State* L)
                     ImPlot::PlotLine("Colli Callback", arr_obj_colli_cb.data(), (int)record_range);
 
                     ImPlot::SetNextLineStyle(ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-                    ImPlot::PlotVLines("##Current Time", &arr_index, 1);
+                    ImPlot::PlotInfLines("##Current Time", &arr_index, 1, ImPlotInfLinesFlags_None);
 
                     ImPlot::EndPlot();
                 }
