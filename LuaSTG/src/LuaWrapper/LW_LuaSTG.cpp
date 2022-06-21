@@ -97,7 +97,7 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 				lua_pushvalue(L, -2); // ... f s f
 				lua_pushvalue(L, i); // ... f s f arg[i]
 				lua_call(L, 1, 1); // ... f s ret
-				const char* x = luaL_checkstring(L, -1);
+				//const char* x = luaL_checkstring(L, -1); // 这是什么？？？
 				lua_concat(L, 2); // ... f s
 			}
 			const char* msg = luaL_checkstring(L, -1);
@@ -150,9 +150,9 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 				p_swapchain->refreshDisplayMode();
 				auto count = p_swapchain->getDisplayModeCount();
 				lua_createtable(L, count, 0);		// t
-				for (auto index = 0; index < count; index++)
+				for (int index = 0; index < (int)count; index += 1)
 				{
-					auto mode = p_swapchain->getDisplayMode(index);
+					auto mode = p_swapchain->getDisplayMode((uint32_t)index);
 
 					lua_createtable(L, 7, 0);		// t t
 
@@ -192,9 +192,9 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 				auto* p_device = LAPP.GetAppModel()->getDevice();
 				auto count = p_device->getGpuCount();
 				lua_createtable(L, count, 0);		// t
-				for (auto index = 0; index < count; index++)
+				for (int index = 0; index < (int)count; index += 1)
 				{
-					lua_push_string_view(L, p_device->getGpuName(index)); // t name
+					lua_push_string_view(L, p_device->getGpuName((uint32_t)index)); // t name
 					lua_rawseti(L, -2, index + 1);	// t
 				}
 				return 1;
@@ -243,10 +243,6 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 			return 1;
 		}
 		#pragma endregion
-		
-		static int _Empty(lua_State* L) noexcept {
-			return 0;
-		}
 	};
 	
 	luaL_Reg tFunctions[] = {
@@ -259,7 +255,6 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)LNOEXCEPT
 		{ "SetVsync", &WrapperImplement::SetVsync },
 		{ "SetPreferenceGPU", &WrapperImplement::SetPreferenceGPU },
 		{ "SetResolution", &WrapperImplement::SetResolution },
-		{ "ShowSplashWindow", &WrapperImplement::_Empty },
 		{ "Log", &WrapperImplement::Log },
 		{ "SystemLog", &WrapperImplement::SystemLog },
 		{ "Print", &WrapperImplement::Print },
