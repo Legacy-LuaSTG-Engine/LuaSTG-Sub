@@ -13,63 +13,6 @@ endif()
 
 include(Sources.cmake)
 
-# LuaSTG Core && Backend
-
-add_library(LuaSTGCore STATIC)
-luastg_target_common_options(LuaSTGCore)
-luastg_target_more_warning(LuaSTGCore)
-target_compile_definitions(LuaSTGCore PRIVATE
-    LUASTG_CORE_USING_IMGUI
-)
-target_precompile_headers(LuaSTGCore PRIVATE
-    Core/framework.hpp
-)
-target_include_directories(LuaSTGCore PUBLIC
-    .
-)
-
-set(LuaSTGCore_SRC
-    ${LUASTG_ENGINE_CORE_SOURCES}
-)
-source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${LuaSTGCore_SRC})
-target_sources(LuaSTGCore PRIVATE
-    ${LuaSTGCore_SRC}
-)
-
-target_link_libraries(LuaSTGCore PUBLIC
-    # debug
-    spdlog::spdlog
-    tracy
-    imgui
-    # util
-    utility
-    platform
-    # win32
-    winmm.lib
-    imm32.lib
-    # dx
-    dxguid.lib
-    dxgi.lib
-    d3d11.lib
-    d3dcompiler.lib
-    DirectX::XAudio2Redist
-    DirectXTexMini
-    # math
-    xmath
-    # file
-    MINIZIP::minizip
-    # text
-    freetype
-    # model
-    tinygltf
-    # audio
-    dr_libs
-    Ogg::ogg
-    Vorbis::vorbis
-    Vorbis::vorbisfile
-    FLAC::FLAC
-)
-
 # LuaSTG Engine
 
 add_executable(LuaSTG WIN32)
@@ -117,7 +60,7 @@ target_link_libraries(LuaSTG PRIVATE
     fancylib
     DirectXTexMini
     DirectX::ToolKitMini
-    LuaSTGCore
+    Core
     xmath
     lua51static
     imgui
@@ -129,7 +72,6 @@ target_link_libraries(LuaSTG PRIVATE
     imgui_impl_win32ex
     imgui_impl_dx11
     lua_steam_api
-    nlohmann_json
     tracy
 )
 

@@ -80,7 +80,7 @@ namespace LuaSTGPlus
 
     void AppFrame::DebugSetGeometryRenderState()
     {
-        using namespace LuaSTG::Core::Graphics;
+        using namespace Core::Graphics;
         auto* r2d = GetRenderer2D();
         r2d->setBlendState(IRenderer::BlendState::Alpha);
         r2d->setDepthState(IRenderer::DepthState::Disable);
@@ -92,8 +92,8 @@ namespace LuaSTGPlus
     {
         if (std::abs(r) >= std::numeric_limits<float>::min())
         {
-            using namespace LuaSTG::Core;
-            using namespace LuaSTG::Core::Graphics;
+            using namespace Core;
+            using namespace Core::Graphics;
             auto* r2d = GetRenderer2D();
             // 分割 32 份，圆周上 32 个点以及中心点，共 32 个三角形，需要 32 * 3 个索引
             IRenderer::DrawVertex* vert = nullptr;
@@ -127,8 +127,8 @@ namespace LuaSTGPlus
     {
         if (std::abs(a) >= std::numeric_limits<float>::min() && std::abs(b) >= std::numeric_limits<float>::min())
         {
-            using namespace LuaSTG::Core;
-            using namespace LuaSTG::Core::Graphics;
+            using namespace Core;
+            using namespace Core::Graphics;
             auto* r2d = GetRenderer2D();
             // 计算出矩形的4个顶点
             IRenderer::DrawVertex vert[4] = {
@@ -155,8 +155,8 @@ namespace LuaSTGPlus
     {
         if (std::abs(a) >= std::numeric_limits<float>::min() && std::abs(b) >= std::numeric_limits<float>::min())
         {
-            using namespace LuaSTG::Core;
-            using namespace LuaSTG::Core::Graphics;
+            using namespace Core;
+            using namespace Core::Graphics;
             auto* r2d = GetRenderer2D();
             // 分割 36 份，椭圆周上 36 个点以及中心点，共 36 个三角形，需要 36 * 3 个索引
             IRenderer::DrawVertex* vert = nullptr;

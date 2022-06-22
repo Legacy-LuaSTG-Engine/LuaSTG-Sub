@@ -119,7 +119,7 @@ namespace LuaSTGPlus
 		fcyRefPointer<ResTexture> tRet = FindTexture(name);
 		if (!tRet)
 			return false;
-		LuaSTG::Core::Vector2U const size = tRet->GetTexture()->getSize();
+		Core::Vector2U const size = tRet->GetTexture()->getSize();
 		out.x = static_cast<float>(size.x);
 		out.y = static_cast<float>(size.y);
 		return true;
@@ -128,7 +128,7 @@ namespace LuaSTGPlus
 	void ResourceMgr::CacheTTFFontString(const char* name, const char* text, size_t len) noexcept {
 		fcyRefPointer<ResFont> f = FindTTFFont(name);
 		if (f)
-			f->GetGlyphManager()->cacheString(LuaSTG::Core::StringView(text, len));
+			f->GetGlyphManager()->cacheString(Core::StringView(text, len));
 		else
 			spdlog::error("[luastg] CacheTTFFontString: 缓存字形时未找到指定字体'{}'", name);
 	}

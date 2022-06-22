@@ -11,7 +11,7 @@ namespace LuaSTGPlus
     static platform::Keyboard::State g_KeyboardState;
 }
 
-static struct InputEventListener : public LuaSTG::Core::Graphics::IWindowEventListener
+static struct InputEventListener : public Core::Graphics::IWindowEventListener
 {
     NativeWindowMessageResult onNativeWindowMessage(void* window, uint32_t message, uintptr_t arg1, intptr_t arg2)
     {

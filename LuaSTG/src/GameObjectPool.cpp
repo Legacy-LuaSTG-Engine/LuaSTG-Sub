@@ -615,14 +615,14 @@ namespace LuaSTGPlus
 			{
 			case ResourceType::Sprite:
 				static_cast<ResSprite*>(p->res)->SetBlendMode(m);
-				static_cast<ResSprite*>(p->res)->GetSprite()->setColor(LuaSTG::Core::Color4B(c.argb));
+				static_cast<ResSprite*>(p->res)->GetSprite()->setColor(Core::Color4B(c.argb));
 				break;
 			case ResourceType::Animation:
 				do {
 					ResAnimation* ani = static_cast<ResAnimation*>(p->res);
 					ani->SetBlendMode(m);
 					for (size_t i = 0; i < ani->GetCount(); ++i)
-						ani->GetSprite(i)->setColor(LuaSTG::Core::Color4B(c.argb));
+						ani->GetSprite(i)->setColor(Core::Color4B(c.argb));
 				} while (false);
 				break;
 			default:

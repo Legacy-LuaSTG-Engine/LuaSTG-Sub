@@ -6,7 +6,7 @@ namespace LuaSTGPlus
 {
     void AppFrame::updateGraph2DBlendMode(BlendMode blend)
     {
-        using namespace LuaSTG::Core::Graphics;
+        using namespace Core::Graphics;
         auto* ctx = m_pAppModel->getRenderer();
         switch (blend)
         {
@@ -94,9 +94,9 @@ namespace LuaSTGPlus
         updateGraph2DBlendMode(p->GetBlendMode());
         
         // 渲染
-        LuaSTG::Core::Graphics::ISprite* pSprite = p->GetSprite();
+        Core::Graphics::ISprite* pSprite = p->GetSprite();
         pSprite->setZ(z);
-        pSprite->draw(LuaSTG::Core::Vector2F(x, y), LuaSTG::Core::Vector2F(hscale, vscale), rot);
+        pSprite->draw(Core::Vector2F(x, y), Core::Vector2F(hscale, vscale), rot);
         return true;
     }
     bool AppFrame::Render(const char* name, float x, float y, float rot, float hscale, float vscale, float z) noexcept
@@ -117,8 +117,8 @@ namespace LuaSTGPlus
         updateGraph2DBlendMode(p->GetBlendMode());
         
         // 渲染
-        LuaSTG::Core::Graphics::ISprite* pSprite = p->GetSpriteByTimer(ani_timer);
-        pSprite->draw(LuaSTG::Core::Vector2F(x, y), LuaSTG::Core::Vector2F(hscale, vscale), rot);
+        Core::Graphics::ISprite* pSprite = p->GetSpriteByTimer(ani_timer);
+        pSprite->draw(Core::Vector2F(x, y), Core::Vector2F(hscale, vscale), rot);
         return true;
     }
     bool AppFrame::RenderAnimation(const char* name, int timer, float x, float y, float rot, float hscale, float vscale) noexcept
@@ -142,16 +142,16 @@ namespace LuaSTGPlus
         p->Render(hscale, vscale);
         return true;
     }
-    bool AppFrame::RenderTexture(ResTexture* tex, BlendMode blend, const LuaSTG::Core::Graphics::IRenderer::DrawVertex vertex[]) noexcept
+    bool AppFrame::RenderTexture(ResTexture* tex, BlendMode blend, const Core::Graphics::IRenderer::DrawVertex vertex[]) noexcept
     {
         // 设置混合
         updateGraph2DBlendMode(blend);
         
         // 复制坐标，修正UV到[0,1]区间
-        LuaSTG::Core::Vector2U const tSize = tex->GetTexture()->getSize();
+        Core::Vector2U const tSize = tex->GetTexture()->getSize();
         float const us = 1.0f / (float)tSize.x;
         float const vs = 1.0f / (float)tSize.y;
-        using VTX = LuaSTG::Core::Graphics::IRenderer::DrawVertex;
+        using VTX = Core::Graphics::IRenderer::DrawVertex;
         VTX tVertex[4] = {
             VTX(vertex[0].x, vertex[0].y, vertex[0].z, vertex[0].u * us, vertex[0].v * vs, vertex[0].color),
             VTX(vertex[1].x, vertex[1].y, vertex[1].z, vertex[1].u * us, vertex[1].v * vs, vertex[1].color),
@@ -163,7 +163,7 @@ namespace LuaSTGPlus
         GetRenderer2D()->drawQuad(tVertex);
         return true;
     }
-    bool AppFrame::RenderTexture(const char* name, BlendMode blend, LuaSTG::Core::Graphics::IRenderer::DrawVertex vertex[]) noexcept
+    bool AppFrame::RenderTexture(const char* name, BlendMode blend, Core::Graphics::IRenderer::DrawVertex vertex[]) noexcept
     {
         fcyRefPointer<ResTexture> p = m_ResourceMgr.FindTexture(name);
         if (!p)

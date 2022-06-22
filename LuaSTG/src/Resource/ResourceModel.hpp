@@ -8,9 +8,9 @@ namespace LuaSTGPlus
 	class ResModel : public Resource
 	{
 	private:
-		LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::IModel> model_;
+		Core::ScopeObject<Core::Graphics::IModel> model_;
 	public:
-		LuaSTG::Core::Graphics::IModel* GetModel() { return *model_; }
+		Core::Graphics::IModel* GetModel() { return *model_; }
 	public:
 		ResModel(const char* name, const char* path);
 		virtual ~ResModel();

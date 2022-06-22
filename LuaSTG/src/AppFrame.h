@@ -31,15 +31,15 @@ namespace LuaSTGPlus
 
 	/// @brief 应用程序框架
 	class AppFrame
-		: public LuaSTG::Core::IApplicationEventListener
-		, public LuaSTG::Core::Graphics::IWindowEventListener
+		: public Core::IApplicationEventListener
+		, public Core::Graphics::IWindowEventListener
 	{
 	private:
 		AppStatus m_iStatus = AppStatus::NotInitialized;
 		
 		// 应用程序框架
-		LuaSTG::Core::ScopeObject<LuaSTG::Core::IApplicationModel> m_pAppModel;
-		LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::ITextRenderer> m_pTextRenderer;
+		Core::ScopeObject<Core::IApplicationModel> m_pAppModel;
+		Core::ScopeObject<Core::Graphics::ITextRenderer> m_pTextRenderer;
 
 		// 资源管理器
 		ResourceMgr m_ResourceMgr;
@@ -52,7 +52,7 @@ namespace LuaSTGPlus
 		
 		// 选项与值
 		bool m_OptionWindowed = true;
-		LuaSTG::Core::Graphics::WindowFrameStyle m_OptionWindowStyle = LuaSTG::Core::Graphics::WindowFrameStyle::Fixed;
+		Core::Graphics::WindowFrameStyle m_OptionWindowStyle = Core::Graphics::WindowFrameStyle::Fixed;
 		fuInt m_OptionFPSLimit = 60;
 		bool m_OptionVsync = false;
 		fcyVec2 m_OptionResolution = fcyVec2(640.f, 480.f);
@@ -124,7 +124,7 @@ namespace LuaSTGPlus
 		
 	public: // 脚本调用接口，含义参见API文档
 		void SetWindowed(bool v)LNOEXCEPT;
-		void SetDefaultWindowStyle(LuaSTG::Core::Graphics::WindowFrameStyle v) { m_OptionWindowStyle = v; };
+		void SetDefaultWindowStyle(Core::Graphics::WindowFrameStyle v) { m_OptionWindowStyle = v; };
 		void SetVsync(bool v)LNOEXCEPT;
 		void SetResolution(fuInt width, fuInt height, fuInt A = 0, fuInt B = 0)LNOEXCEPT;
 		void SetTitle(const char* v)LNOEXCEPT;
@@ -171,10 +171,10 @@ namespace LuaSTGPlus
 		bool RenderAnimation(const char* name, int timer, float x, float y, float rot = 0, float hscale = 1, float vscale = 1) LNOEXCEPT;
 		
 		/// @brief 渲染纹理（注：UV 坐标会被归一化）
-		bool RenderTexture(ResTexture* tex, BlendMode blend, const LuaSTG::Core::Graphics::IRenderer::DrawVertex vertex[]) LNOEXCEPT;
+		bool RenderTexture(ResTexture* tex, BlendMode blend, const Core::Graphics::IRenderer::DrawVertex vertex[]) LNOEXCEPT;
 		
 		/// @brief 渲染纹理（注：UV 坐标会被归一化）
-		bool RenderTexture(const char* name, BlendMode blend, LuaSTG::Core::Graphics::IRenderer::DrawVertex vertex[]) LNOEXCEPT;
+		bool RenderTexture(const char* name, BlendMode blend, Core::Graphics::IRenderer::DrawVertex vertex[]) LNOEXCEPT;
 		
 		/// @brief 渲染文字
 		bool RenderText(ResFont* p, wchar_t* strBuf, fcyRect rect, fcyVec2 scale, ResFont::FontAlignHorizontal halign, ResFont::FontAlignVertical valign, bool bWordBreak)LNOEXCEPT;
@@ -222,9 +222,8 @@ namespace LuaSTGPlus
 
 		platform::DirectInput* GetDInput() LNOEXCEPT { return m_DirectInput.get(); }
 		
-		LuaSTG::Core::Graphics::IRenderer* GetRenderer2D() { return m_pAppModel->getRenderer(); }
-
-		LuaSTG::Core::IApplicationModel* GetAppModel() { return *m_pAppModel; }
+		Core::IApplicationModel* GetAppModel() { return *m_pAppModel; }
+		Core::Graphics::IRenderer* GetRenderer2D() { return m_pAppModel->getRenderer(); }
 
 	public:
 		/// @brief 初始化框架

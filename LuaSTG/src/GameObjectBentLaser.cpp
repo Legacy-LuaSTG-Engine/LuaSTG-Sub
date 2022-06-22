@@ -416,8 +416,8 @@ void GameObjectBentLaser::SetAllWidth(float width)  noexcept
 
 bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, fcyColor c, float tex_left, float tex_top, float tex_width, float tex_height, float scale) noexcept
 {
-	using namespace LuaSTG::Core;
-	using namespace LuaSTG::Core::Graphics;
+	using namespace Core;
+	using namespace Core::Graphics;
 
 	// 忽略只有一个节点的情况
 	if (m_Queue.Size() <= 1)

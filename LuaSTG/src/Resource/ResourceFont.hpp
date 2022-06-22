@@ -23,12 +23,12 @@ namespace LuaSTGPlus
 		};
 		
 	private:
-		LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::IGlyphManager> m_glyphmgr;
+		Core::ScopeObject<Core::Graphics::IGlyphManager> m_glyphmgr;
 		BlendMode m_BlendMode;
 		fcyColor m_BlendColor;
 
 	public:
-		LuaSTG::Core::Graphics::IGlyphManager* GetGlyphManager() { return m_glyphmgr.get(); }
+		Core::Graphics::IGlyphManager* GetGlyphManager() { return m_glyphmgr.get(); }
 		BlendMode GetBlendMode() const noexcept { return m_BlendMode; }
 		void SetBlendMode(BlendMode m) noexcept { m_BlendMode = m; }
 		fcyColor GetBlendColor() const noexcept { return m_BlendColor; }
@@ -37,7 +37,7 @@ namespace LuaSTGPlus
 	public:
 		ResFont(const char* name, std::string_view hge_path, bool mipmap);
 		ResFont(const char* name, std::string_view f2d_path, std::string_view tex_path, bool mipmap);
-		ResFont(const char* name, LuaSTG::Core::Graphics::IGlyphManager* p_mgr);
+		ResFont(const char* name, Core::Graphics::IGlyphManager* p_mgr);
 		~ResFont();
 	};
 }

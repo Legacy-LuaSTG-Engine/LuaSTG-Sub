@@ -10,7 +10,7 @@ namespace LuaSTGPlus
 	class ResAnimation : public Resource
 	{
 	private:
-		std::vector<LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::ISprite>> m_sprites;
+		std::vector<Core::ScopeObject<Core::Graphics::ISprite>> m_sprites;
 		fuInt m_Interval = 1;
 		BlendMode m_BlendMode = BlendMode::MulAlpha;
 		double m_HalfSizeX = 0.;
@@ -18,9 +18,9 @@ namespace LuaSTGPlus
 		bool m_bRectangle = false;
 	public:
 		size_t GetCount() const noexcept { return m_sprites.size(); }
-		LuaSTG::Core::Graphics::ISprite* GetSprite(fuInt index);
+		Core::Graphics::ISprite* GetSprite(fuInt index);
 		fuInt GetSpriteIndexByTimer(int ani_timer);
-		LuaSTG::Core::Graphics::ISprite* GetSpriteByTimer(int ani_timer);
+		Core::Graphics::ISprite* GetSpriteByTimer(int ani_timer);
 		fuInt GetInterval() const noexcept { return m_Interval; }
 		BlendMode GetBlendMode() const noexcept { return m_BlendMode; }
 		void SetBlendMode(BlendMode m) noexcept { m_BlendMode = m; }

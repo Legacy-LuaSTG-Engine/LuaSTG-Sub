@@ -651,8 +651,8 @@ namespace imgui
     static bool g_ImGuiTexIDValid = false;
 
     class ImGuiBackendEventListener
-        : public LuaSTG::Core::Graphics::IDeviceEventListener
-        , public LuaSTG::Core::Graphics::IWindowEventListener
+        : public Core::Graphics::IDeviceEventListener
+        , public Core::Graphics::IWindowEventListener
     {
     public:
         void onDeviceDestroy()

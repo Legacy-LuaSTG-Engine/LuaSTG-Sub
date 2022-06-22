@@ -254,13 +254,13 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 				return luaL_error(L, "invalid parameter #2, required table");
 			}
 			int const cnt = (int)lua_objlen(L, 2);
-			std::vector<LuaSTG::Core::Graphics::TrueTypeFontInfo> fonts(cnt);
+			std::vector<Core::Graphics::TrueTypeFontInfo> fonts(cnt);
 			for (int i = 1; i <= cnt; i += 1)
 			{
 				auto& font = fonts[i];
 				font.source = "";
 				font.font_face = 0;
-				font.font_size = LuaSTG::Core::Vector2F(0.0f, 0.0f);
+				font.font_size = Core::Vector2F(0.0f, 0.0f);
 				font.is_force_to_file = false;
 				font.is_buffer = false;
 
@@ -505,7 +505,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 				p->GetSprite()->setColor(ColorWrapper::Cast(L, 3)->argb);
 			else if (lua_gettop(L) == 6)
 			{
-				LuaSTG::Core::Color4B tColors[] = {
+				Core::Color4B tColors[] = {
 					ColorWrapper::Cast(L, 3)->argb,
 					ColorWrapper::Cast(L, 4)->argb,
 					ColorWrapper::Cast(L, 5)->argb,
@@ -520,9 +520,10 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			ResSprite* p = LRES.FindSprite(luaL_checkstring(L, 1));
 			if (!p)
 				return luaL_error(L, "image '%s' not found.", luaL_checkstring(L, 1));
-			p->GetSprite()->setTextureCenter(LuaSTG::Core::Vector2F(
+			p->GetSprite()->setTextureCenter(Core::Vector2F(
 				static_cast<float>(luaL_checknumber(L, 2) + p->GetSprite()->getTextureRect().a.x),
-				static_cast<float>(luaL_checknumber(L, 3) + p->GetSprite()->getTextureRect().a.y)));
+				static_cast<float>(luaL_checknumber(L, 3) + p->GetSprite()->getTextureRect().a.y))
+			);
 			return 0;
 		}
 
@@ -558,7 +559,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			}
 			else if (lua_gettop(L) == 6)
 			{
-				LuaSTG::Core::Color4B tColors[] = {
+				Core::Color4B tColors[] = {
 					ColorWrapper::Cast(L, 3)->argb,
 					ColorWrapper::Cast(L, 4)->argb,
 					ColorWrapper::Cast(L, 5)->argb,
@@ -576,7 +577,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 				return luaL_error(L, "animation '%s' not found.", luaL_checkstring(L, 1));
 			for (size_t i = 0; i < p->GetCount(); ++i)
 			{
-				p->GetSprite(i)->setTextureCenter(LuaSTG::Core::Vector2F(
+				p->GetSprite(i)->setTextureCenter(Core::Vector2F(
 					static_cast<float>(luaL_checknumber(L, 2) + p->GetSprite(i)->getTextureRect().a.x),
 					static_cast<float>(luaL_checknumber(L, 3) + p->GetSprite(i)->getTextureRect().a.y)
 				));
