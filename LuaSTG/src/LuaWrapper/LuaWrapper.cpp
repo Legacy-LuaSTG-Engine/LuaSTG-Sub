@@ -7,33 +7,6 @@ namespace LuaSTGPlus
 		void Register(lua_State* L)LNOEXCEPT {
 			struct Function
 			{
-				static int Color(lua_State* L)LNOEXCEPT
-				{
-					if (lua_gettop(L) == 1) {
-						ColorWrapper::CreateAndPush(L, fcyColor((fuInt)luaL_checknumber(L, 1)));
-					}
-					else {
-						ColorWrapper::CreateAndPush(L, fcyColor(
-							(fInt)luaL_checkinteger(L, 1),
-							(fInt)luaL_checkinteger(L, 2),
-							(fInt)luaL_checkinteger(L, 3),
-							(fInt)luaL_checkinteger(L, 4)
-						));
-					}
-					return 1;
-				}
-				static int HSVColor(lua_State* L)LNOEXCEPT
-				{
-					ColorWrapper::HSVColor hsv = {
-						(float)luaL_checknumber(L, 2),
-						(float)luaL_checknumber(L, 3),
-						(float)luaL_checknumber(L, 4),
-					};
-					fcyColor rgb = ColorWrapper::HSV2RGB(hsv);
-					rgb.a = (fByte)(std::clamp(luaL_checknumber(L, 1) / 100.0, 0.0, 1.0) * 255.0);
-					ColorWrapper::CreateAndPush(L, rgb);
-					return 1;
-				}
 				static int StopWatch(lua_State* L)LNOEXCEPT
 				{
 					StopWatchWrapper::CreateAndPush(L);
@@ -53,8 +26,6 @@ namespace LuaSTGPlus
 			
 			luaL_Reg tMethod[] =
 			{
-				{ "Color", &Function::Color },
-				{ "HSVColor", &Function::HSVColor },
 				{ "StopWatch", &Function::StopWatch },
 				{ "Rand", &Function::Rand },
 				{ "BentLaserData", &Function::BentLaser },

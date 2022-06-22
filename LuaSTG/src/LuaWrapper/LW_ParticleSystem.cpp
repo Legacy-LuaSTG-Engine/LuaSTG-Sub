@@ -30,20 +30,21 @@ inline fcyVec2 luaL_check_vec2(lua_State* L, int idx)
 	lua_pop(L, 1);
 	return ret;
 }
-inline fcyColor Color4f_to_Color4B(float c[4])
+inline Core::Color4B Color4f_to_Color4B(float c[4])
 {
-	return fcyColor(
-		(fInt)std::clamp(c[3] * 255.0f, 0.0f, 255.0f),
-		(fInt)std::clamp(c[0] * 255.0f, 0.0f, 255.0f),
-		(fInt)std::clamp(c[1] * 255.0f, 0.0f, 255.0f),
-		(fInt)std::clamp(c[2] * 255.0f, 0.0f, 255.0f));
+	return Core::Color4B(
+		(uint8_t)std::clamp(c[0] * 255.0f, 0.0f, 255.0f),
+		(uint8_t)std::clamp(c[1] * 255.0f, 0.0f, 255.0f),
+		(uint8_t)std::clamp(c[2] * 255.0f, 0.0f, 255.0f),
+		(uint8_t)std::clamp(c[3] * 255.0f, 0.0f, 255.0f)
+	);
 }
-inline void Color4B_to_Color4f(fcyColor c, float d[4])
+inline void Color4B_to_Color4f(Core::Color4B c, float d[4])
 {
-	d[3] = (float)c.a / 255.0f;
 	d[0] = (float)c.r / 255.0f;
 	d[1] = (float)c.g / 255.0f;
 	d[2] = (float)c.b / 255.0f;
+	d[3] = (float)c.a / 255.0f;
 }
 inline void lua_push_color4f(lua_State* L, float c[4])
 {
@@ -739,7 +740,7 @@ namespace LuaSTGPlus::LuaWrapper
 				{
 					if (lua_isuserdata(L, 2))
 					{
-						fcyColor* col = ColorWrapper::Cast(L, 2);
+						Core::Color4B* col = ColorWrapper::Cast(L, 2);
 						Color4B_to_Color4f(*col, self->ptr->GetParticleSystemInfo().colColorEnd);
 					}
 					else
@@ -760,7 +761,7 @@ namespace LuaSTGPlus::LuaWrapper
 				{
 					if (lua_isuserdata(L, 2))
 					{
-						fcyColor* col = ColorWrapper::Cast(L, 2);
+						Core::Color4B* col = ColorWrapper::Cast(L, 2);
 						Color4B_to_Color4f(*col, self->ptr->GetParticleSystemInfo().colColorStart);
 					}
 					else

@@ -491,7 +491,7 @@ namespace LuaSTGPlus
 					if (ps)
 					{
 						ps->SetBlendMode(blendmode);
-						ps->SetVertexColor(fcyColor(vertexcolor));
+						ps->SetVertexColor(vertexcolor);
 						LAPP.Render(
 							ps,
 							static_cast<float>(hscale) * gscale,
@@ -647,7 +647,7 @@ namespace LuaSTGPlus
 			return 1;
 		case LuaSTG::GameObjectMember::_COLOR:
 			if (luaclass.IsRenderClass)
-				LuaWrapper::ColorWrapper::CreateAndPush(L, fcyColor(vertexcolor));
+				LuaWrapper::ColorWrapper::CreateAndPush(L, Core::Color4B(vertexcolor));
 			else
 				lua_pushnil(L);
 			return 1;
@@ -905,7 +905,7 @@ namespace LuaSTGPlus
 			return 0;
 		case LuaSTG::GameObjectMember::_COLOR:
 			if (luaclass.IsRenderClass)
-				vertexcolor = LuaWrapper::ColorWrapper::Cast(L, 3)->argb;
+				vertexcolor = LuaWrapper::ColorWrapper::Cast(L, 3)->color();
 			else
 				lua_rawset(L, 1);
 			return 0;

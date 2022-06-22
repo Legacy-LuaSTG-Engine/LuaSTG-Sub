@@ -160,10 +160,10 @@ namespace LuaSTGPlus
 		void DirtResetObject(GameObject* p) noexcept;
 		
 		/// @brief 设置元素的图像状态
-		bool SetImgState(GameObject* p, BlendMode m, fcyColor c) noexcept;
+		bool SetImgState(GameObject* p, BlendMode m, Core::Color4B c) noexcept;
 		
 		/// @brief 特化设置HGE粒子的渲染状态
-		bool SetParState(GameObject* p, BlendMode m, fcyColor c) noexcept;
+		bool SetParState(GameObject* p, BlendMode m, Core::Color4B c) noexcept;
 		
 		/// @brief 清空对象池
 		void ResetPool() noexcept;
@@ -245,8 +245,8 @@ namespace LuaSTGPlus
 		// 内部使用
 		
 		void DrawCollider();
-		void DrawGroupCollider(int groupId, fcyColor fillColor);
-		void DrawGroupCollider2(int groupId, fcyColor fillColor);
+		void DrawGroupCollider(int groupId, Core::Color4B fillColor);
+		void DrawGroupCollider2(int groupId, Core::Color4B fillColor);
 	public:
 		// lua api
 

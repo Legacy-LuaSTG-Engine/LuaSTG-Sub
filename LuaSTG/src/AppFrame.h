@@ -183,7 +183,7 @@ namespace LuaSTGPlus
 		
 		bool RenderText(const char* name, const char* str, float x, float y, float scale, ResFont::FontAlignHorizontal halign, ResFont::FontAlignVertical valign)LNOEXCEPT;
 		
-		bool RenderTTF(const char* name, const char* str, float left, float right, float bottom, float top, float scale, int format, fcyColor c)LNOEXCEPT;
+		bool RenderTTF(const char* name, const char* str, float left, float right, float bottom, float top, float scale, int format, Core::Color4B c)LNOEXCEPT;
 
 		void SnapShot(const char* path)LNOEXCEPT;
 		void SaveTexture(const char* tex_name, const char* path)LNOEXCEPT;
@@ -194,9 +194,9 @@ namespace LuaSTGPlus
 		fcyVec2 GetCurrentRenderTargetSize();
 
 		void DebugSetGeometryRenderState();
-		void DebugDrawCircle(float const x, float const y, float const r, fcyColor const color);
-		void DebugDrawRect(float const x, float const y, float const a, float const b, float const rot, fcyColor const color);
-		void DebugDrawEllipse(float const x, float const y, float const a, float const b, float const rot, fcyColor const color);
+		void DebugDrawCircle(float const x, float const y, float const r, Core::Color4B const color);
+		void DebugDrawRect(float const x, float const y, float const a, float const b, float const rot, Core::Color4B const color);
+		void DebugDrawEllipse(float const x, float const y, float const a, float const b, float const rot, Core::Color4B const color);
 
 	public:
 		// 文字渲染器包装
@@ -205,8 +205,8 @@ namespace LuaSTGPlus
 		
 		fcyRect FontRenderer_MeasureTextBoundary(const char* str, size_t len);
 		fcyVec2 FontRenderer_MeasureTextAdvance(const char* str, size_t len);
-		bool FontRenderer_RenderText(const char* str, size_t len, fcyVec2& pos, const float z, const BlendMode blend, const fcyColor& color);
-		bool FontRenderer_RenderTextInSpace(const char* str, size_t len, fcyVec3& pos, const fcyVec3& rvec, const fcyVec3& dvec, const BlendMode blend, const fcyColor& color);
+		bool FontRenderer_RenderText(const char* str, size_t len, fcyVec2& pos, const float z, const BlendMode blend, Core::Color4B const& color);
+		bool FontRenderer_RenderTextInSpace(const char* str, size_t len, fcyVec3& pos, const fcyVec3& rvec, const fcyVec3& dvec, const BlendMode blend, Core::Color4B const& color);
 		
 		float FontRenderer_GetFontLineHeight();
 		float FontRenderer_GetFontAscender();

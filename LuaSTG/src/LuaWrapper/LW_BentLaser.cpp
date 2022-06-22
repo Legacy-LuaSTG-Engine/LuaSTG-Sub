@@ -112,7 +112,7 @@ namespace LuaSTGPlus
 					if (!p->handle->Render(
 						luaL_checkstring(L, 2),
 						TranslateBlendMode(L, 3),
-						*static_cast<fcyColor*>(luaL_checkudata(L, 4, LUASTG_LUA_TYPENAME_COLOR)),
+						*LuaWrapper::ColorWrapper::Cast(L, 4),
 						(float)luaL_checknumber(L, 5),
 						(float)luaL_checknumber(L, 6),
 						(float)luaL_checknumber(L, 7),
@@ -146,7 +146,7 @@ namespace LuaSTGPlus
 				static int RenderCollider(lua_State* L) {
 					GETUDATA(p, 1);
 					CHECKUDATA(p);
-					p->handle->RenderCollider(*static_cast<fcyColor*>(luaL_checkudata(L, 2, LUASTG_LUA_TYPENAME_COLOR)));
+					p->handle->RenderCollider(*LuaWrapper::ColorWrapper::Cast(L, 2));
 					return 0;
 				}
 				static int CollisionCheckWidth(lua_State* L)LNOEXCEPT

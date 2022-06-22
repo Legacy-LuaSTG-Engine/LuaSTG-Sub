@@ -611,12 +611,11 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)LNOEXCEPT
 			size_t len = 0;
 			const char* str = luaL_checklstring(L, 1, &len);
 			fcyVec2 pos = fcyVec2((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3));
-			fcyColor color = *static_cast<fcyColor*>(luaL_checkudata(L, 6, LUASTG_LUA_TYPENAME_COLOR));
 			const bool ret = LAPP.FontRenderer_RenderText(
 				str, len,
 				pos, (float)luaL_checknumber(L, 4),
 				TranslateBlendMode(L, 5),
-				color);
+				*LuaWrapper::ColorWrapper::Cast(L, 6));
 			lua_pushboolean(L, ret);
 			lua_pushnumber(L, (lua_Number)pos.x);
 			lua_pushnumber(L, (lua_Number)pos.y);
@@ -631,12 +630,11 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)LNOEXCEPT
 			fcyVec3 dvec = fcyVec3((float)luaL_checknumber(L, 8), (float)luaL_checknumber(L, 9), (float)luaL_checknumber(L, 10));
 
 			BlendMode blend = TranslateBlendMode(L, 11);
-			fcyColor color = *static_cast<fcyColor*>(luaL_checkudata(L, 12, LUASTG_LUA_TYPENAME_COLOR));
 			const bool ret = LAPP.FontRenderer_RenderTextInSpace(
 				str, len,
 				pos, rvec, dvec,
 				blend,
-				color);
+				*LuaWrapper::ColorWrapper::Cast(L, 12));
 			lua_pushboolean(L, ret);
 			lua_pushnumber(L, (lua_Number)pos.x);
 			lua_pushnumber(L, (lua_Number)pos.y);

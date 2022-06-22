@@ -502,14 +502,14 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 
 			p->SetBlendMode(TranslateBlendMode(L, 2));
 			if (lua_gettop(L) == 3)
-				p->GetSprite()->setColor(ColorWrapper::Cast(L, 3)->argb);
+				p->GetSprite()->setColor(*ColorWrapper::Cast(L, 3));
 			else if (lua_gettop(L) == 6)
 			{
 				Core::Color4B tColors[] = {
-					ColorWrapper::Cast(L, 3)->argb,
-					ColorWrapper::Cast(L, 4)->argb,
-					ColorWrapper::Cast(L, 5)->argb,
-					ColorWrapper::Cast(L, 6)->argb
+					*ColorWrapper::Cast(L, 3),
+					*ColorWrapper::Cast(L, 4),
+					*ColorWrapper::Cast(L, 5),
+					*ColorWrapper::Cast(L, 6)
 				};
 				p->GetSprite()->setColor(tColors);
 			}
@@ -555,15 +555,15 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			if (lua_gettop(L) == 3)
 			{
 				for (size_t i = 0; i < p->GetCount(); ++i)
-					p->GetSprite(i)->setColor(ColorWrapper::Cast(L, 3)->argb);
+					p->GetSprite(i)->setColor(*ColorWrapper::Cast(L, 3));
 			}
 			else if (lua_gettop(L) == 6)
 			{
 				Core::Color4B tColors[] = {
-					ColorWrapper::Cast(L, 3)->argb,
-					ColorWrapper::Cast(L, 4)->argb,
-					ColorWrapper::Cast(L, 5)->argb,
-					ColorWrapper::Cast(L, 6)->argb
+					*ColorWrapper::Cast(L, 3),
+					*ColorWrapper::Cast(L, 4),
+					*ColorWrapper::Cast(L, 5),
+					*ColorWrapper::Cast(L, 6)
 				};
 				for (size_t i = 0; i < p->GetCount(); ++i)
 					p->GetSprite(i)->setColor(tColors);
@@ -594,8 +594,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			p->SetBlendMode(TranslateBlendMode(L, 2));
 			if (lua_gettop(L) == 3)
 			{
-				fcyColor c = *static_cast<fcyColor*>(luaL_checkudata(L, 3, LUASTG_LUA_TYPENAME_COLOR));
-				p->SetBlendColor(c);
+				p->SetBlendColor(*LuaWrapper::ColorWrapper::Cast(L, 3));
 			}
 			return 0;
 		}

@@ -25,14 +25,14 @@ namespace LuaSTGPlus
 	private:
 		Core::ScopeObject<Core::Graphics::IGlyphManager> m_glyphmgr;
 		BlendMode m_BlendMode;
-		fcyColor m_BlendColor;
+		Core::Color4B m_BlendColor;
 
 	public:
 		Core::Graphics::IGlyphManager* GetGlyphManager() { return m_glyphmgr.get(); }
 		BlendMode GetBlendMode() const noexcept { return m_BlendMode; }
 		void SetBlendMode(BlendMode m) noexcept { m_BlendMode = m; }
-		fcyColor GetBlendColor() const noexcept { return m_BlendColor; }
-		void SetBlendColor(fcyColor c) noexcept { m_BlendColor = c; }
+		Core::Color4B GetBlendColor() const noexcept { return m_BlendColor; }
+		void SetBlendColor(Core::Color4B c) noexcept { m_BlendColor = c; }
 
 	public:
 		ResFont(const char* name, std::string_view hge_path, bool mipmap);

@@ -607,7 +607,7 @@ namespace LuaSTGPlus
 		return 1;
 	}
 
-	bool GameObjectPool::SetImgState(GameObject* p, BlendMode m, fcyColor c) noexcept
+	bool GameObjectPool::SetImgState(GameObject* p, BlendMode m, Core::Color4B c) noexcept
 	{
 		if (p->res)
 		{
@@ -615,14 +615,14 @@ namespace LuaSTGPlus
 			{
 			case ResourceType::Sprite:
 				static_cast<ResSprite*>(p->res)->SetBlendMode(m);
-				static_cast<ResSprite*>(p->res)->GetSprite()->setColor(Core::Color4B(c.argb));
+				static_cast<ResSprite*>(p->res)->GetSprite()->setColor(c);
 				break;
 			case ResourceType::Animation:
 				do {
 					ResAnimation* ani = static_cast<ResAnimation*>(p->res);
 					ani->SetBlendMode(m);
 					for (size_t i = 0; i < ani->GetCount(); ++i)
-						ani->GetSprite(i)->setColor(Core::Color4B(c.argb));
+						ani->GetSprite(i)->setColor(c);
 				} while (false);
 				break;
 			default:
@@ -631,7 +631,7 @@ namespace LuaSTGPlus
 		}
 		return true;
 	}
-	bool GameObjectPool::SetParState(GameObject* p, BlendMode m, fcyColor c) noexcept
+	bool GameObjectPool::SetParState(GameObject* p, BlendMode m, Core::Color4B c) noexcept
 	{
 		if (p->res)
 		{
@@ -697,23 +697,18 @@ namespace LuaSTGPlus
 	void GameObjectPool::DrawCollider()
 	{
 	#if (defined LDEVVERSION) || (defined LDEBUG)
-		struct ColliderDisplayConfig {
+		struct ColliderDisplayConfig
+		{
 			int group;
-			fcyColor color;
-			ColliderDisplayConfig() {
-				group = 0;
-				color.argb = 0x00000000;
-			}
-			ColliderDisplayConfig(int g, fcyColor c) {
-				group = g;
-				color.argb = c.argb;
-			}
+			Core::Color4B color;
+			ColliderDisplayConfig() { group = 0; }
+			ColliderDisplayConfig(int g, Core::Color4B c) { group = g; color = c; }
 		};
 		static std::vector<ColliderDisplayConfig> m_collidercfg = {
-			ColliderDisplayConfig(1, fcyColor(150, 163, 73, 164)), // GROUP_ENEMY_
-			ColliderDisplayConfig(2, fcyColor(150, 163, 73, 164)), // GROUP_ENEMY
-			ColliderDisplayConfig(5, fcyColor(150, 163, 73,  20)), // GROUP_INDES
-			ColliderDisplayConfig(4, fcyColor(100, 175, 15,  20)), // GROUP_PLAYER
+			ColliderDisplayConfig(1, Core::Color4B(163, 73, 164, 150)), // GROUP_ENEMY_
+			ColliderDisplayConfig(2, Core::Color4B(163, 73, 164, 150)), // GROUP_ENEMY
+			ColliderDisplayConfig(5, Core::Color4B(163, 73,  20, 150)), // GROUP_INDES
+			ColliderDisplayConfig(4, Core::Color4B(175, 15,  20, 150)), // GROUP_PLAYER
 		};
 		static bool f8 = false;
 		static bool kf8 = false;
@@ -726,12 +721,12 @@ namespace LuaSTGPlus
 			LAPP.DebugSetGeometryRenderState();
 			for (ColliderDisplayConfig cfg : m_collidercfg)
 			{
-				DrawGroupCollider(cfg.group, fcyColor(cfg.color.argb));
+				DrawGroupCollider(cfg.group, cfg.color);
 			}
 		}
 	#endif
 	}
-	void GameObjectPool::DrawGroupCollider(int groupId, fcyColor fillColor)
+	void GameObjectPool::DrawGroupCollider(int groupId, Core::Color4B fillColor)
 	{
 	#ifdef USING_MULTI_GAME_WORLD
 		lua_Integer world = GetWorldFlag();
@@ -818,7 +813,7 @@ namespace LuaSTGPlus
 			}
 		}
 	}
-	void GameObjectPool::DrawGroupCollider2(int groupId, fcyColor fillColor)
+	void GameObjectPool::DrawGroupCollider2(int groupId, Core::Color4B fillColor)
 	{
 		LAPP.DebugSetGeometryRenderState();
 		DrawGroupCollider(groupId, fillColor);
@@ -1014,11 +1009,11 @@ namespace LuaSTGPlus
 	{
 		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
 		BlendMode m = TranslateBlendMode(L, 2);
-		fcyColor c(
-			(fInt)luaL_checkinteger(L, 3),
-			(fInt)luaL_checkinteger(L, 4),
-			(fInt)luaL_checkinteger(L, 5),
-			(fInt)luaL_checkinteger(L, 6)
+		Core::Color4B c = Core::Color4B(
+			(uint8_t)luaL_checkinteger(L, 4),
+			(uint8_t)luaL_checkinteger(L, 5),
+			(uint8_t)luaL_checkinteger(L, 6),
+			(uint8_t)luaL_checkinteger(L, 3) // 这个才是 a 通道
 		);
 		g_GameObjectPool->SetImgState(p, m, c);
 		return 0;
@@ -1027,11 +1022,11 @@ namespace LuaSTGPlus
 	{
 		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
 		BlendMode m = TranslateBlendMode(L, 2);
-		fcyColor c(
-			(fInt)luaL_checkinteger(L, 3),
-			(fInt)luaL_checkinteger(L, 4),
-			(fInt)luaL_checkinteger(L, 5),
-			(fInt)luaL_checkinteger(L, 6)
+		Core::Color4B c = Core::Color4B(
+			(uint8_t)luaL_checkinteger(L, 4),
+			(uint8_t)luaL_checkinteger(L, 5),
+			(uint8_t)luaL_checkinteger(L, 6),
+			(uint8_t)luaL_checkinteger(L, 3) // 这个才是 a 通道
 		);
 		g_GameObjectPool->SetParState(p, m, c);
 		return 0;
