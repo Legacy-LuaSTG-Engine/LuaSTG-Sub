@@ -205,7 +205,7 @@ bool ResourcePool::LoadTexture(const char* name, const char* path, bool mipmaps)
         return true;
     }
     
-    LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::ITexture2D> p_texture;
+    Core::ScopeObject<Core::Graphics::ITexture2D> p_texture;
     if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(path, mipmaps, ~p_texture))
     {
         spdlog::error("[luastg] 从'{}'创建纹理'{}'失败", path, name);
@@ -293,8 +293,8 @@ bool ResourcePool::CreateSprite(const char* name, const char* texname,
         return false;
     }
     
-    LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::ISprite> p_sprite;
-    if (!LuaSTG::Core::Graphics::ISprite::create(
+    Core::ScopeObject<Core::Graphics::ISprite> p_sprite;
+    if (!Core::Graphics::ISprite::create(
         LAPP.GetAppModel()->getRenderer(),
         pTex->GetTexture(),
         ~p_sprite
@@ -303,8 +303,8 @@ bool ResourcePool::CreateSprite(const char* name, const char* texname,
         spdlog::error("[luastg] 从'{}'创建图片精灵'{}'失败", texname, name);
         return false;
     }
-    p_sprite->setTextureRect(LuaSTG::Core::RectF((float)x, (float)y, (float)(x + w), (float)(y + h)));
-    p_sprite->setTextureCenter(LuaSTG::Core::Vector2F((float)(x + w * 0.5), (float)(y + h * 0.5)));
+    p_sprite->setTextureRect(Core::RectF((float)x, (float)y, (float)(x + w), (float)(y + h)));
+    p_sprite->setTextureCenter(Core::Vector2F((float)(x + w * 0.5), (float)(y + h * 0.5)));
     
     try {
         fcyRefPointer<ResSprite> tRes;
@@ -377,8 +377,8 @@ bool ResourcePool::LoadMusic(const char* name, const char* path, double start, d
     //    return true;
     //}
     
-    using namespace LuaSTG::Core;
-    using namespace LuaSTG::Core::Audio;
+    using namespace Core;
+    using namespace Core::Audio;
 
     // 创建解码器
     ScopeObject<IDecoder> p_decoder;
@@ -450,8 +450,8 @@ bool ResourcePool::LoadSoundEffect(const char* name, const char* path) noexcept
         return true;
     }
 
-    using namespace LuaSTG::Core;
-    using namespace LuaSTG::Core::Audio;
+    using namespace Core;
+    using namespace Core::Audio;
 
     // 创建解码器
     ScopeObject<IDecoder> p_decoder;
@@ -509,7 +509,7 @@ bool ResourcePool::LoadParticle(const char* name, const ResParticle::hgeParticle
         return false;
     }
     
-    LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::ISprite> p_sprite;
+    Core::ScopeObject<Core::Graphics::ISprite> p_sprite;
     if (!pSprite->GetSprite()->clone(~p_sprite))
     {
         spdlog::error("[luastg] LoadParticle: 无法创建粒子特效'{}'，复制图片精灵'{}'失败", name, img_name);
@@ -664,15 +664,15 @@ bool ResourcePool::LoadTTFFont(const char* name, const char* path, float width, 
         return true;
     }
     
-    LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::IGlyphManager> p_glyphmgr;
-    LuaSTG::Core::Graphics::TrueTypeFontInfo create_info = {
+    Core::ScopeObject<Core::Graphics::IGlyphManager> p_glyphmgr;
+    Core::Graphics::TrueTypeFontInfo create_info = {
         .source = path,
         .font_face = 0,
-        .font_size = LuaSTG::Core::Vector2F(width, height),
+        .font_size = Core::Vector2F(width, height),
         .is_force_to_file = false,
         .is_buffer = false,
     };
-    if (!LuaSTG::Core::Graphics::IGlyphManager::create(LAPP.GetAppModel()->getDevice(), &create_info, 1, ~p_glyphmgr))
+    if (!Core::Graphics::IGlyphManager::create(LAPP.GetAppModel()->getDevice(), &create_info, 1, ~p_glyphmgr))
     {
         spdlog::error("[luastg] LoadTTFFont: 加载矢量字体'{}'失败", name);
         return false;
@@ -699,7 +699,7 @@ bool ResourcePool::LoadTTFFont(const char* name, const char* path, float width, 
     return true;
 }
 
-bool ResourcePool::LoadTrueTypeFont(const char* name, LuaSTG::Core::Graphics::TrueTypeFontInfo* fonts, size_t count) noexcept {
+bool ResourcePool::LoadTrueTypeFont(const char* name, Core::Graphics::TrueTypeFontInfo* fonts, size_t count) noexcept {
     if (m_TTFFontPool.find(name) != m_TTFFontPool.end()) {
         if (ResourceMgr::GetResourceLoadingLog()) {
             spdlog::warn("[luastg] LoadTrueTypeFont: 矢量字体组'{}'已存在，加载操作已取消", name);
@@ -707,8 +707,8 @@ bool ResourcePool::LoadTrueTypeFont(const char* name, LuaSTG::Core::Graphics::Tr
         return true;
     }
     
-    LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::IGlyphManager> p_glyphmgr;
-    if (!LuaSTG::Core::Graphics::IGlyphManager::create(LAPP.GetAppModel()->getDevice(), fonts, count, ~p_glyphmgr))
+    Core::ScopeObject<Core::Graphics::IGlyphManager> p_glyphmgr;
+    if (!Core::Graphics::IGlyphManager::create(LAPP.GetAppModel()->getDevice(), fonts, count, ~p_glyphmgr))
     {
         spdlog::error("[luastg] LoadTrueTypeFont: 加载矢量字体组'{}'失败", name);
         return false;

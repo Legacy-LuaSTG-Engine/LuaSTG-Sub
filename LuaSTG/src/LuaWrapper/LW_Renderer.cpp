@@ -3,10 +3,7 @@
 #include "AppFrame.h"
 #include "LMathConstant.hpp"
 
-using namespace LuaSTG::Core;
-using namespace LuaSTG::Core::Graphics;
-
-inline IRenderer* LR2D() { return LAPP.GetAppModel()->getRenderer(); }
+inline Core::Graphics::IRenderer* LR2D() { return LAPP.GetAppModel()->getRenderer(); }
 inline LuaSTGPlus::ResourceMgr& LRESMGR() { return LAPP.GetResourceMgr(); }
 
 #ifdef _DEBUG
@@ -53,61 +50,61 @@ inline void rotate_float2x4(float& x1, float& y1, float& x2, float& y2, float& x
         y4 = ty;
     }
 }
-inline void translate_blend(IRenderer* ctx, const LuaSTGPlus::BlendMode blend)
+inline void translate_blend(Core::Graphics::IRenderer* ctx, const LuaSTGPlus::BlendMode blend)
 {
     LAPP.updateGraph2DBlendMode(blend);
 }
-static IRenderer::BlendState translate_blend_3d(const LuaSTGPlus::BlendMode blend)
+static Core::Graphics::IRenderer::BlendState translate_blend_3d(const LuaSTGPlus::BlendMode blend)
 {
     switch (blend)
     {
     default:
     case LuaSTGPlus::BlendMode::MulAlpha:
-        return IRenderer::BlendState::Alpha;
+        return Core::Graphics::IRenderer::BlendState::Alpha;
     case LuaSTGPlus::BlendMode::MulAdd:
-        return IRenderer::BlendState::Add;
+        return Core::Graphics::IRenderer::BlendState::Add;
     case LuaSTGPlus::BlendMode::MulRev:
-        return IRenderer::BlendState::RevSub;
+        return Core::Graphics::IRenderer::BlendState::RevSub;
     case LuaSTGPlus::BlendMode::MulSub:
-        return IRenderer::BlendState::Sub;
+        return Core::Graphics::IRenderer::BlendState::Sub;
     case LuaSTGPlus::BlendMode::AddAlpha:
-        return IRenderer::BlendState::Alpha;
+        return Core::Graphics::IRenderer::BlendState::Alpha;
     case LuaSTGPlus::BlendMode::AddAdd:
-        return IRenderer::BlendState::Add;
+        return Core::Graphics::IRenderer::BlendState::Add;
     case LuaSTGPlus::BlendMode::AddRev:
-        return IRenderer::BlendState::RevSub;
+        return Core::Graphics::IRenderer::BlendState::RevSub;
     case LuaSTGPlus::BlendMode::AddSub:
-        return IRenderer::BlendState::Sub;
+        return Core::Graphics::IRenderer::BlendState::Sub;
     case LuaSTGPlus::BlendMode::AlphaBal:
-        return IRenderer::BlendState::Inv;
+        return Core::Graphics::IRenderer::BlendState::Inv;
     case LuaSTGPlus::BlendMode::MulMin:
-        return IRenderer::BlendState::Min;
+        return Core::Graphics::IRenderer::BlendState::Min;
     case LuaSTGPlus::BlendMode::MulMax:
-        return IRenderer::BlendState::Max;
+        return Core::Graphics::IRenderer::BlendState::Max;
     case LuaSTGPlus::BlendMode::MulMutiply:
-        return IRenderer::BlendState::Mul;
+        return Core::Graphics::IRenderer::BlendState::Mul;
     case LuaSTGPlus::BlendMode::MulScreen:
-        return IRenderer::BlendState::Screen;
+        return Core::Graphics::IRenderer::BlendState::Screen;
     case LuaSTGPlus::BlendMode::AddMin:
-        return IRenderer::BlendState::Min;
+        return Core::Graphics::IRenderer::BlendState::Min;
     case LuaSTGPlus::BlendMode::AddMax:
-        return IRenderer::BlendState::Max;
+        return Core::Graphics::IRenderer::BlendState::Max;
     case LuaSTGPlus::BlendMode::AddMutiply:
-        return IRenderer::BlendState::Mul;
+        return Core::Graphics::IRenderer::BlendState::Mul;
     case LuaSTGPlus::BlendMode::AddScreen:
-        return IRenderer::BlendState::Screen;
+        return Core::Graphics::IRenderer::BlendState::Screen;
     case LuaSTGPlus::BlendMode::One:
-        return IRenderer::BlendState::One;
+        return Core::Graphics::IRenderer::BlendState::One;
     }
 }
 
 static void api_drawSprite(LuaSTGPlus::ResSprite* pimg2dres, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {
-    LuaSTG::Core::Graphics::ISprite* p_sprite = pimg2dres->GetSprite();
+    Core::Graphics::ISprite* p_sprite = pimg2dres->GetSprite();
     auto* ctx = LR2D();
     translate_blend(ctx, pimg2dres->GetBlendMode());
     p_sprite->setZ(z);
-    p_sprite->draw(LuaSTG::Core::Vector2F(x, y), LuaSTG::Core::Vector2F(hscale, vscale), rot);
+    p_sprite->draw(Core::Vector2F(x, y), Core::Vector2F(hscale, vscale), rot);
 }
 static void api_drawSprite(char const* name, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {
@@ -121,11 +118,11 @@ static void api_drawSprite(char const* name, float const x, float const y, float
 }
 static void api_drawSpriteRect(LuaSTGPlus::ResSprite* pimg2dres, float const l, float const r, float const b, float const t, float const z)
 {
-    LuaSTG::Core::Graphics::ISprite* p_sprite = pimg2dres->GetSprite();
+    Core::Graphics::ISprite* p_sprite = pimg2dres->GetSprite();
     auto* ctx = LR2D();
     translate_blend(ctx, pimg2dres->GetBlendMode());
     p_sprite->setZ(z);
-    p_sprite->draw(LuaSTG::Core::RectF(l, t, r, b));
+    p_sprite->draw(Core::RectF(l, t, r, b));
 }
 static void api_drawSpriteRect(char const* name, float const l, float const r, float const b, float const t, float const z)
 {
@@ -139,14 +136,14 @@ static void api_drawSpriteRect(char const* name, float const l, float const r, f
 }
 static void api_drawSprite4V(LuaSTGPlus::ResSprite* pimg2dres, float const x1, float const y1, float const z1, float const x2, float const y2, float const z2, float const x3, float const y3, float const z3, float const x4, float const y4, float const z4)
 {
-    LuaSTG::Core::Graphics::ISprite* p_sprite = pimg2dres->GetSprite();
+    Core::Graphics::ISprite* p_sprite = pimg2dres->GetSprite();
     auto* ctx = LR2D();
     translate_blend(ctx, pimg2dres->GetBlendMode());
     p_sprite->draw(
-        LuaSTG::Core::Vector3F(x1, y1, z1),
-        LuaSTG::Core::Vector3F(x2, y2, z2),
-        LuaSTG::Core::Vector3F(x3, y3, z3),
-        LuaSTG::Core::Vector3F(x4, y4, z4)
+        Core::Vector3F(x1, y1, z1),
+        Core::Vector3F(x2, y2, z2),
+        Core::Vector3F(x3, y3, z3),
+        Core::Vector3F(x4, y4, z4)
     );
 }
 static void api_drawSprite4V(char const* name, float const x1, float const y1, float const z1, float const x2, float const y2, float const z2, float const x3, float const y3, float const z3, float const x4, float const y4, float const z4)
@@ -162,11 +159,11 @@ static void api_drawSprite4V(char const* name, float const x1, float const y1, f
 
 static void api_drawSpriteSequence(LuaSTGPlus::ResAnimation* pani2dres, int const ani_timer, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {
-    LuaSTG::Core::Graphics::ISprite* p_sprite = pani2dres->GetSpriteByTimer(ani_timer);
+    Core::Graphics::ISprite* p_sprite = pani2dres->GetSpriteByTimer(ani_timer);
     auto* ctx = LR2D();
     translate_blend(ctx, pani2dres->GetBlendMode());
     p_sprite->setZ(z);
-    p_sprite->draw(LuaSTG::Core::Vector2F(x, y), LuaSTG::Core::Vector2F(hscale, vscale), rot);
+    p_sprite->draw(Core::Vector2F(x, y), Core::Vector2F(hscale, vscale), rot);
 }
 static void api_drawSpriteSequence(char const* name, int const ani_timer, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {
@@ -186,20 +183,20 @@ static void api_setFogState(float start, float end, fcyColor color)
     {
         if (start == -1.0f)
         {
-            ctx->setFogState(IRenderer::FogState::Exp, LuaSTG::Core::Color4B(color.argb), end, 0.0f);
+            ctx->setFogState(Core::Graphics::IRenderer::FogState::Exp, Core::Color4B(color.argb), end, 0.0f);
         }
         else if (start == -2.0f)
         {
-            ctx->setFogState(IRenderer::FogState::Exp2, LuaSTG::Core::Color4B(color.argb), end, 0.0f);
+            ctx->setFogState(Core::Graphics::IRenderer::FogState::Exp2, Core::Color4B(color.argb), end, 0.0f);
         }
         else
         {
-            ctx->setFogState(IRenderer::FogState::Linear, LuaSTG::Core::Color4B(color.argb), start, end);
+            ctx->setFogState(Core::Graphics::IRenderer::FogState::Linear, Core::Color4B(color.argb), start, end);
         }
     }
     else
     {
-        ctx->setFogState(IRenderer::FogState::Disable, LuaSTG::Core::Color4B(), 0.0f, 0.0f);
+        ctx->setFogState(Core::Graphics::IRenderer::FogState::Disable, Core::Color4B(), 0.0f, 0.0f);
     }
 }
 
@@ -218,14 +215,14 @@ static int lib_endScene(lua_State* L)LNOEXCEPT
 
 static int lib_clearRenderTarget(lua_State* L)LNOEXCEPT
 {
-    LuaSTG::Core::Color4B color;
+    Core::Color4B color;
     if (lua_isnumber(L, 1))
     {
-        color = LuaSTG::Core::Color4B((uint32_t)lua_tonumber(L, 1));
+        color = Core::Color4B((uint32_t)lua_tonumber(L, 1));
     }
     else
     {
-        color = LuaSTG::Core::Color4B(LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(L, 1)->argb);
+        color = Core::Color4B(LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(L, 1)->argb);
     }
     LR2D()->clearRenderTarget(color);
     return 0;
@@ -238,10 +235,10 @@ static int lib_clearDepthBuffer(lua_State* L)LNOEXCEPT
 
 static int lib_setOrtho(lua_State* L)LNOEXCEPT
 {
-    LuaSTG::Core::BoxF box;
+    Core::BoxF box;
     if (lua_gettop(L) < 6)
     {
-        box = LuaSTG::Core::BoxF(
+        box = Core::BoxF(
             (float)luaL_checknumber(L, 1),
             (float)luaL_checknumber(L, 4),
             0.0f,
@@ -252,7 +249,7 @@ static int lib_setOrtho(lua_State* L)LNOEXCEPT
     }
     else
     {
-        box = LuaSTG::Core::BoxF(
+        box = Core::BoxF(
             (float)luaL_checknumber(L, 1),
             (float)luaL_checknumber(L, 4),
             (float)luaL_checknumber(L, 5),
@@ -266,19 +263,19 @@ static int lib_setOrtho(lua_State* L)LNOEXCEPT
 }
 static int lib_setPerspective(lua_State* L)LNOEXCEPT
 {
-    LuaSTG::Core::Vector3F eye;
+    Core::Vector3F eye;
     eye.x = (float)luaL_checknumber(L, 1);
     eye.y = (float)luaL_checknumber(L, 2);
     eye.z = (float)luaL_checknumber(L, 3);
-    LuaSTG::Core::Vector3F lookat;
+    Core::Vector3F lookat;
     lookat.x = (float)luaL_checknumber(L, 4);
     lookat.y = (float)luaL_checknumber(L, 5);
     lookat.z = (float)luaL_checknumber(L, 6);
-    LuaSTG::Core::Vector3F headup;
+    Core::Vector3F headup;
     headup.x = (float)luaL_checknumber(L, 7);
     headup.y = (float)luaL_checknumber(L, 8);
     headup.z = (float)luaL_checknumber(L, 9);
-    LuaSTG::Core::Vector2F zrange;
+    Core::Vector2F zrange;
     zrange.x = (float)luaL_checknumber(L, 12);
     zrange.y = (float)luaL_checknumber(L, 13);
     if (zrange.x <= 0.0f || zrange.y <= zrange.x)
@@ -293,10 +290,10 @@ static int lib_setPerspective(lua_State* L)LNOEXCEPT
 
 static int lib_setViewport(lua_State* L)LNOEXCEPT
 {
-    LuaSTG::Core::BoxF box;
+    Core::BoxF box;
     if (lua_gettop(L) < 6)
     {
-        box = LuaSTG::Core::BoxF(
+        box = Core::BoxF(
             (float)luaL_checknumber(L, 1),
             (float)luaL_checknumber(L, 2),
             0.0f,
@@ -307,7 +304,7 @@ static int lib_setViewport(lua_State* L)LNOEXCEPT
     }
     else
     {
-        box = LuaSTG::Core::BoxF(
+        box = Core::BoxF(
             (float)luaL_checknumber(L, 1),
             (float)luaL_checknumber(L, 2),
             (float)luaL_checknumber(L, 5),
@@ -321,7 +318,7 @@ static int lib_setViewport(lua_State* L)LNOEXCEPT
 }
 static int lib_setScissorRect(lua_State* L)LNOEXCEPT
 {
-    LR2D()->setScissorRect(LuaSTG::Core::RectF(
+    LR2D()->setScissorRect(Core::RectF(
         (float)luaL_checknumber(L, 1),
         (float)luaL_checknumber(L, 2),
         (float)luaL_checknumber(L, 3),
@@ -332,27 +329,27 @@ static int lib_setScissorRect(lua_State* L)LNOEXCEPT
 
 static int lib_setVertexColorBlendState(lua_State* L)LNOEXCEPT
 {
-    LR2D()->setVertexColorBlendState((IRenderer::VertexColorBlendState)luaL_checkinteger(L, 1));
+    LR2D()->setVertexColorBlendState((Core::Graphics::IRenderer::VertexColorBlendState)luaL_checkinteger(L, 1));
     return 0;
 }
 static int lib_setSamplerState(lua_State* L)LNOEXCEPT
 {
-    LR2D()->setSamplerState((IRenderer::SamplerState)luaL_checkinteger(L, 1));
+    LR2D()->setSamplerState((Core::Graphics::IRenderer::SamplerState)luaL_checkinteger(L, 1));
     return 0;
 }
 static int lib_setFogState(lua_State* L)LNOEXCEPT
 {
-    LuaSTG::Core::Color4B color;
+    Core::Color4B color;
     if (lua_isnumber(L, 2))
     {
-        color = LuaSTG::Core::Color4B((uint32_t)lua_tonumber(L, 2));
+        color = Core::Color4B((uint32_t)lua_tonumber(L, 2));
     }
     else
     {
-        color = LuaSTG::Core::Color4B(LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(L, 2)->argb);
+        color = Core::Color4B(LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(L, 2)->argb);
     }
     LR2D()->setFogState(
-        (IRenderer::FogState)luaL_checkinteger(L, 1),
+        (Core::Graphics::IRenderer::FogState)luaL_checkinteger(L, 1),
         color,
         (float)luaL_checknumber(L, 3),
         (float)luaL_optnumber(L, 4, 0.0));
@@ -360,12 +357,12 @@ static int lib_setFogState(lua_State* L)LNOEXCEPT
 }
 static int lib_setDepthState(lua_State* L)LNOEXCEPT
 {
-    LR2D()->setDepthState((IRenderer::DepthState)luaL_checkinteger(L, 1));
+    LR2D()->setDepthState((Core::Graphics::IRenderer::DepthState)luaL_checkinteger(L, 1));
     return 0;
 }
 static int lib_setBlendState(lua_State* L)LNOEXCEPT
 {
-    LR2D()->setBlendState((IRenderer::BlendState)luaL_checkinteger(L, 1));
+    LR2D()->setBlendState((Core::Graphics::IRenderer::BlendState)luaL_checkinteger(L, 1));
     return 0;
 }
 static int lib_setTexture(lua_State* L)LNOEXCEPT
@@ -384,7 +381,7 @@ static int lib_setTexture(lua_State* L)LNOEXCEPT
 
 static int lib_drawTriangle(lua_State* L)
 {
-    IRenderer::DrawVertex vertex[3];
+    Core::Graphics::IRenderer::DrawVertex vertex[3];
 
     lua_rawgeti(L, 1, 1);
     lua_rawgeti(L, 1, 2);
@@ -433,7 +430,7 @@ static int lib_drawTriangle(lua_State* L)
 }
 static int lib_drawQuad(lua_State* L)
 {
-    IRenderer::DrawVertex vertex[4];
+    Core::Graphics::IRenderer::DrawVertex vertex[4];
 
     lua_rawgeti(L, 1, 1);
     lua_rawgeti(L, 1, 2);
@@ -543,7 +540,7 @@ static int lib_drawTexture(lua_State* L)LNOEXCEPT
 {
     const char* name = luaL_checkstring(L, 1);
     LuaSTGPlus::BlendMode blend = LuaSTGPlus::TranslateBlendMode(L, 2);
-    IRenderer::DrawVertex vertex[4];
+    Core::Graphics::IRenderer::DrawVertex vertex[4];
 
     for (int i = 0; i < 4; ++i)
     {
@@ -592,7 +589,7 @@ static int lib_drawTexture(lua_State* L)LNOEXCEPT
         return false;
     }
     check_rendertarget_usage(*ptex2dres);
-    LuaSTG::Core::Graphics::ITexture2D* ptex2d = ptex2dres->GetTexture();
+    Core::Graphics::ITexture2D* ptex2d = ptex2dres->GetTexture();
     float const uscale = 1.0f / (float)ptex2d->getSize().x;
     float const vscale = 1.0f / (float)ptex2d->getSize().y;
     for (int i = 0; i < 4; ++i)
@@ -630,9 +627,9 @@ static int lib_drawModel(lua_State* L)
         return false;
     }
 
-    pmodres->GetModel()->setScaling(LuaSTG::Core::Vector3F(sx, sy, sz));
+    pmodres->GetModel()->setScaling(Core::Vector3F(sx, sy, sz));
     pmodres->GetModel()->setRotationRollPitchYaw(roll, pitch, yaw);
-    pmodres->GetModel()->setPosition(LuaSTG::Core::Vector3F(x, y, z));
+    pmodres->GetModel()->setPosition(Core::Vector3F(x, y, z));
     LR2D()->drawModel(pmodres->GetModel());
 
     return 0;
@@ -676,10 +673,10 @@ static luaL_Reg const lib_func[] = {
 
 static int compat_SetViewport(lua_State* L)LNOEXCEPT
 {
-    LuaSTG::Core::BoxF box;
+    Core::BoxF box;
     if (lua_gettop(L) >= 6)
     {
-        box = LuaSTG::Core::BoxF(
+        box = Core::BoxF(
             (float)luaL_checknumber(L, 1),
             (float)luaL_checknumber(L, 4),
             (float)luaL_checknumber(L, 5),
@@ -690,7 +687,7 @@ static int compat_SetViewport(lua_State* L)LNOEXCEPT
     }
     else
     {
-        box = LuaSTG::Core::BoxF(
+        box = Core::BoxF(
             (float)luaL_checknumber(L, 1),
             (float)luaL_checknumber(L, 4),
             0.0f,
@@ -707,7 +704,7 @@ static int compat_SetViewport(lua_State* L)LNOEXCEPT
 }
 static int compat_SetScissorRect(lua_State* L)LNOEXCEPT
 {
-    LuaSTG::Core::RectF rect(
+    Core::RectF rect(
         (float)luaL_checknumber(L, 1),
         (float)luaL_checknumber(L, 4),
         (float)luaL_checknumber(L, 2),
@@ -746,7 +743,7 @@ static int compat_SetFog(lua_State* L)LNOEXCEPT
 }
 static int compat_SetZBufferEnable(lua_State* L)LNOEXCEPT
 {
-    LR2D()->setDepthState((IRenderer::DepthState)luaL_checkinteger(L, 1));
+    LR2D()->setDepthState((Core::Graphics::IRenderer::DepthState)luaL_checkinteger(L, 1));
     return 0;
 }
 static int compat_ClearZBuffer(lua_State* L)LNOEXCEPT
@@ -780,8 +777,8 @@ static int compat_PostEffect(lua_State* L)
 {
     const char* ps_name = luaL_checkstring(L, 1);
     const char* rt_name = luaL_checkstring(L, 2);
-    const IRenderer::SamplerState rtsv = (IRenderer::SamplerState)luaL_checkinteger(L, 3);
-    const IRenderer::BlendState blend = translate_blend_3d(LuaSTGPlus::TranslateBlendMode(L, 4));
+    const Core::Graphics::IRenderer::SamplerState rtsv = (Core::Graphics::IRenderer::SamplerState)luaL_checkinteger(L, 3);
+    const Core::Graphics::IRenderer::BlendState blend = translate_blend_3d(LuaSTGPlus::TranslateBlendMode(L, 4));
 
     LuaSTGPlus::ResFX* pfx = LRES.FindFX(ps_name);
     if (!pfx)
@@ -792,9 +789,9 @@ static int compat_PostEffect(lua_State* L)
         return luaL_error(L, "texture '%s' not found.", rt_name);
     check_rendertarget_usage(prt);
     
-    LuaSTG::Core::Vector4F cbdata[8] = {};
-    ITexture2D* tdata[4] = {};
-    IRenderer::SamplerState tsdata[4] = {};
+    Core::Vector4F cbdata[8] = {};
+    Core::Graphics::ITexture2D* tdata[4] = {};
+    Core::Graphics::IRenderer::SamplerState tsdata[4] = {};
     
     size_t cbdata_n = lua_objlen(L, 5);
     cbdata_n = (cbdata_n <= 8) ? cbdata_n : 8;
@@ -824,7 +821,7 @@ static int compat_PostEffect(lua_State* L)
             return luaL_error(L, "texture '%s' not found.", tx_name);
         check_rendertarget_usage(ptex);
         tdata[i - 1] = ptex->GetTexture();
-        tsdata[i - 1] = (IRenderer::SamplerState)luaL_checkinteger(L, -1);
+        tsdata[i - 1] = (Core::Graphics::IRenderer::SamplerState)luaL_checkinteger(L, -1);
     }
 
     LR2D()->drawPostEffect(pfx->GetPostEffectShader(), blend, prt->GetTexture(), rtsv, cbdata, cbdata_n, tdata, tsdata, tdata_n);
@@ -845,11 +842,11 @@ static int compat_SetTextureSamplerState(lua_State* L)LNOEXCEPT
         {
             if (last_filter == 2)
             {
-                LR2D()->setSamplerState(IRenderer::SamplerState::LinearWrap);
+                LR2D()->setSamplerState(Core::Graphics::IRenderer::SamplerState::LinearWrap);
             }
             else
             {
-                LR2D()->setSamplerState(IRenderer::SamplerState::PointWrap);
+                LR2D()->setSamplerState(Core::Graphics::IRenderer::SamplerState::PointWrap);
             }
             last_addr = 1;
         }
@@ -857,11 +854,11 @@ static int compat_SetTextureSamplerState(lua_State* L)LNOEXCEPT
         {
             if (last_filter == 2)
             {
-                LR2D()->setSamplerState(IRenderer::SamplerState::LinearClamp);
+                LR2D()->setSamplerState(Core::Graphics::IRenderer::SamplerState::LinearClamp);
             }
             else
             {
-                LR2D()->setSamplerState(IRenderer::SamplerState::PointClamp);
+                LR2D()->setSamplerState(Core::Graphics::IRenderer::SamplerState::PointClamp);
             }
             last_addr = 2;
         }
@@ -877,11 +874,11 @@ static int compat_SetTextureSamplerState(lua_State* L)LNOEXCEPT
         {
             if (last_addr == 2)
             {
-                LR2D()->setSamplerState(IRenderer::SamplerState::PointClamp);
+                LR2D()->setSamplerState(Core::Graphics::IRenderer::SamplerState::PointClamp);
             }
             else
             {
-                LR2D()->setSamplerState(IRenderer::SamplerState::PointWrap);
+                LR2D()->setSamplerState(Core::Graphics::IRenderer::SamplerState::PointWrap);
             }
             last_filter = 1;
         }
@@ -889,11 +886,11 @@ static int compat_SetTextureSamplerState(lua_State* L)LNOEXCEPT
         {
             if (last_addr == 2)
             {
-                LR2D()->setSamplerState(IRenderer::SamplerState::LinearClamp);
+                LR2D()->setSamplerState(Core::Graphics::IRenderer::SamplerState::LinearClamp);
             }
             else
             {
-                LR2D()->setSamplerState(IRenderer::SamplerState::LinearWrap);
+                LR2D()->setSamplerState(Core::Graphics::IRenderer::SamplerState::LinearWrap);
             }
             last_filter = 2;
         }

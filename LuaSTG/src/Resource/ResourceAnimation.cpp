@@ -19,8 +19,8 @@ namespace LuaSTGPlus
 		{
 			for (int i = 0; i < n; ++i)  // 列
 			{
-				LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::ISprite> p_sprite;
-				if (!LuaSTG::Core::Graphics::ISprite::create(
+				Core::ScopeObject<Core::Graphics::ISprite> p_sprite;
+				if (!Core::Graphics::ISprite::create(
 					LAPP.GetAppModel()->getRenderer(),
 					tex->GetTexture(),
 					~p_sprite
@@ -28,14 +28,14 @@ namespace LuaSTGPlus
 				{
 					throw std::runtime_error("ResAnimation::ResAnimation");
 				}
-				LuaSTG::Core::RectF rc = LuaSTG::Core::RectF(
+				Core::RectF rc = Core::RectF(
 					x + w * i,
 					y + h * j,
 					x + w * (i + 1),
 					y + h * (j + 1)
 				);
 				p_sprite->setTextureRect(rc);
-				p_sprite->setTextureCenter(LuaSTG::Core::Vector2F(
+				p_sprite->setTextureCenter(Core::Vector2F(
 					(rc.a.x + rc.b.x) * 0.5f,
 					(rc.a.y + rc.b.y) * 0.5f
 				));
@@ -45,7 +45,7 @@ namespace LuaSTGPlus
 	}
 	ResAnimation::~ResAnimation() {}
 
-	LuaSTG::Core::Graphics::ISprite* ResAnimation::GetSprite(fuInt index)
+	Core::Graphics::ISprite* ResAnimation::GetSprite(fuInt index)
 	{
 		if (index >= GetCount())
 		{
@@ -57,7 +57,7 @@ namespace LuaSTGPlus
 	{
 		return ((fuInt)ani_timer / m_Interval) % GetCount();
 	}
-	LuaSTG::Core::Graphics::ISprite* ResAnimation::GetSpriteByTimer(int ani_timer)
+	Core::Graphics::ISprite* ResAnimation::GetSpriteByTimer(int ani_timer)
 	{
 		return m_sprites[GetSpriteIndexByTimer(ani_timer)].get();
 	}

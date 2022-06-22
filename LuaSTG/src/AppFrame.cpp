@@ -69,13 +69,13 @@ void AppFrame::SetSEVolume(float v)
 {
 	m_gSEVol = v;
 	if (GetAppModel())
-		GetAppModel()->getAudioDevice()->setMixChannelVolume(LuaSTG::Core::Audio::MixChannel::SoundEffect, v);
+		GetAppModel()->getAudioDevice()->setMixChannelVolume(Core::Audio::MixChannel::SoundEffect, v);
 }
 void AppFrame::SetBGMVolume(float v)
 {
 	m_gBGMVol = v;
 	if (GetAppModel())
-		GetAppModel()->getAudioDevice()->setMixChannelVolume(LuaSTG::Core::Audio::MixChannel::Music, v);
+		GetAppModel()->getAudioDevice()->setMixChannelVolume(Core::Audio::MixChannel::Music, v);
 }
 void AppFrame::SetTitle(const char* v)LNOEXCEPT
 {
@@ -105,9 +105,9 @@ void AppFrame::SetSplash(bool v)LNOEXCEPT
 {
 	m_OptionCursor = v;
 	if (m_OptionCursor)
-		m_pAppModel->getWindow()->setCursor(LuaSTG::Core::Graphics::WindowCursor::Arrow);
+		m_pAppModel->getWindow()->setCursor(Core::Graphics::WindowCursor::Arrow);
 	else
-		m_pAppModel->getWindow()->setCursor(LuaSTG::Core::Graphics::WindowCursor::None);
+		m_pAppModel->getWindow()->setCursor(Core::Graphics::WindowCursor::None);
 }
 
 LNOINLINE bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, bool vsync)LNOEXCEPT
@@ -120,8 +120,8 @@ LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, 
 	{
 		auto applyWindowedStyle = [&]() -> bool
 		{
-			using namespace LuaSTG::Core;
-			using namespace LuaSTG::Core::Graphics;
+			using namespace Core;
+			using namespace Core::Graphics;
 			auto* window = m_pAppModel->getWindow();
 			window->setFrameStyle((WindowFrameStyle)m_OptionWindowStyle);
 			window->setSize(Vector2I(width, height));
@@ -131,8 +131,8 @@ LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, 
 		};
 		auto applyFullscreenStyle = [&]() -> bool
 		{
-			using namespace LuaSTG::Core;
-			using namespace LuaSTG::Core::Graphics;
+			using namespace Core;
+			using namespace Core::Graphics;
 			auto* window = m_pAppModel->getWindow();
 			window->setFrameStyle(WindowFrameStyle::None);
 			window->setSize(Vector2I(width, height));
@@ -158,16 +158,16 @@ LNOINLINE bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, 
 		};
 		auto setWindowedMode = [&]() -> bool
 		{
-			using namespace LuaSTG::Core;
-			using namespace LuaSTG::Core::Graphics;
+			using namespace Core;
+			using namespace Core::Graphics;
 			auto* swapchain = m_pAppModel->getSwapChain();
 			swapchain->setVSync(vsync);
 			return swapchain->setWindowMode((uint32_t)width, (uint32_t)height, flip);
 		};
 		auto setFullscreenMode = [&]() -> bool
 		{
-			using namespace LuaSTG::Core;
-			using namespace LuaSTG::Core::Graphics;
+			using namespace Core;
+			using namespace Core::Graphics;
 			auto* swapchain = m_pAppModel->getSwapChain();
 			swapchain->setVSync(vsync);
 			DisplayMode mode = {
@@ -323,9 +323,9 @@ bool AppFrame::Init()LNOEXCEPT
 	
 	////////////////////////////////////////
 
-	if (!LuaSTG::Core::IApplicationModel::create(this, ~m_pAppModel))
+	if (!Core::IApplicationModel::create(this, ~m_pAppModel))
 		return false;
-	if (!LuaSTG::Core::Graphics::ITextRenderer::create(m_pAppModel->getRenderer(), ~m_pTextRenderer))
+	if (!Core::Graphics::ITextRenderer::create(m_pAppModel->getRenderer(), ~m_pTextRenderer))
 		return false;
 
 	//////////////////////////////////////// Lua初始化部分
@@ -352,7 +352,7 @@ bool AppFrame::Init()LNOEXCEPT
 		
 		// 配置窗口
 		{
-			using namespace LuaSTG::Core;
+			using namespace Core;
 			auto* p_window = m_pAppModel->getWindow();
 			p_window->setSize(Vector2I((int32_t)m_OptionResolution.x, (int32_t)m_OptionResolution.y));
 			if (m_OptionWindowed)
@@ -365,7 +365,7 @@ bool AppFrame::Init()LNOEXCEPT
 		}
 		// 配置音量
 		{
-			using namespace LuaSTG::Core::Audio;
+			using namespace Core::Audio;
 			auto* p_audio = GetAppModel()->getAudioDevice();
 			p_audio->setMixChannelVolume(MixChannel::SoundEffect, m_gSEVol);
 			p_audio->setMixChannelVolume(MixChannel::Music, m_gBGMVol);
@@ -418,7 +418,7 @@ bool AppFrame::Init()LNOEXCEPT
 		
 		// 显示窗口
 		{
-			using namespace LuaSTG::Core;
+			using namespace Core;
 			auto* p_window = m_pAppModel->getWindow();
 			if (m_OptionWindowed)
 				p_window->setCentered();
@@ -426,7 +426,7 @@ bool AppFrame::Init()LNOEXCEPT
 		}
 		// 启动交换链
 		{
-			using namespace LuaSTG::Core;
+			using namespace Core;
 			auto* p_swapchain = m_pAppModel->getSwapChain();
 			p_swapchain->setVSync(m_OptionVsync);
 			p_swapchain->setWindowMode((uint32_t)m_OptionResolution.x, (uint32_t)m_OptionResolution.y, false); // 无论如何，首先窗口化

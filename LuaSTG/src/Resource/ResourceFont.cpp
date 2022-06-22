@@ -12,11 +12,11 @@
 namespace LuaSTGPlus
 {
 	class hgeFont
-		: public LuaSTG::Core::Object<LuaSTG::Core::Graphics::IGlyphManager>
+		: public Core::Object<Core::Graphics::IGlyphManager>
 	{
 	private:
-		LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::ITexture2D> m_texture;
-		std::unordered_map<uint32_t, LuaSTG::Core::Graphics::GlyphInfo> m_map;
+		Core::ScopeObject<Core::Graphics::ITexture2D> m_texture;
+		std::unordered_map<uint32_t, Core::Graphics::GlyphInfo> m_map;
 		float m_line_height;
 		
 	private:
@@ -59,12 +59,12 @@ namespace LuaSTGPlus
 					}
 
 					// 计算到f2d字体偏移量
-					LuaSTG::Core::Graphics::GlyphInfo const tInfo = {
+					Core::Graphics::GlyphInfo const tInfo = {
 						.texture_index = 0,
-						.texture_rect = LuaSTG::Core::RectF(x, y, x + w, y + h),
-						.size = LuaSTG::Core::Vector2F(w, h),
-						.position = LuaSTG::Core::Vector2F(left_offset, h),
-						.advance = LuaSTG::Core::Vector2F(w + left_offset + right_offset, 0),
+						.texture_rect = Core::RectF(x, y, x + w, y + h),
+						.size = Core::Vector2F(w, h),
+						.position = Core::Vector2F(left_offset, h),
+						.advance = Core::Vector2F(w + left_offset + right_offset, 0),
 					};
 					if (m_map.find(c) != m_map.end())
 						throw fcyException("ResFont::HGEFont::readDefine", "Duplicated character defination.");
@@ -84,7 +84,7 @@ namespace LuaSTGPlus
 		float getDescender() { return 0.0f; }
 
 		uint32_t getTextureCount() { return 1; }
-		LuaSTG::Core::Graphics::ITexture2D* getTexture(uint32_t index)
+		Core::Graphics::ITexture2D* getTexture(uint32_t index)
 		{
 			if (index == 0)
 			{
@@ -94,10 +94,10 @@ namespace LuaSTGPlus
 		}
 
 		bool cacheGlyph(uint32_t) { return true; }
-		bool cacheString(LuaSTG::Core::StringView) { return true; }
+		bool cacheString(Core::StringView) { return true; }
 		bool flush() { return true; }
 
-		bool getGlyph(uint32_t codepoint, LuaSTG::Core::Graphics::GlyphInfo* p_ref_info, bool)
+		bool getGlyph(uint32_t codepoint, Core::Graphics::GlyphInfo* p_ref_info, bool)
 		{
 			auto it = m_map.find(codepoint);
 			if (it != m_map.end())
@@ -271,11 +271,11 @@ namespace LuaSTGPlus
 	};
 
 	class f2dFont
-		: public LuaSTG::Core::Object<LuaSTG::Core::Graphics::IGlyphManager>
+		: public Core::Object<Core::Graphics::IGlyphManager>
 	{
 	private:
-		LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::ITexture2D> m_texture;
-		std::unordered_map<uint32_t, LuaSTG::Core::Graphics::GlyphInfo> m_map;
+		Core::ScopeObject<Core::Graphics::ITexture2D> m_texture;
+		std::unordered_map<uint32_t, Core::Graphics::GlyphInfo> m_map;
 		float m_line_height;
 		float m_ascender;
 		float m_descender;
@@ -330,12 +330,12 @@ namespace LuaSTGPlus
 				GlyphPosB.x *= tXScale;
 				GlyphPosB.y *= tYScale;
 
-				LuaSTG::Core::Graphics::GlyphInfo const glyph_info = {
+				Core::Graphics::GlyphInfo const glyph_info = {
 						.texture_index = 0,
-						.texture_rect = LuaSTG::Core::RectF(GlyphPosA.x, GlyphPosA.y, GlyphPosB.x, GlyphPosB.y),
-						.size = LuaSTG::Core::Vector2F(GlyphSize.x, GlyphSize.y),
-						.position = LuaSTG::Core::Vector2F(BrushPos.x, BrushPos.y),
-						.advance = LuaSTG::Core::Vector2F(Advance.x, Advance.y),
+						.texture_rect = Core::RectF(GlyphPosA.x, GlyphPosA.y, GlyphPosB.x, GlyphPosB.y),
+						.size = Core::Vector2F(GlyphSize.x, GlyphSize.y),
+						.position = Core::Vector2F(BrushPos.x, BrushPos.y),
+						.advance = Core::Vector2F(Advance.x, Advance.y),
 				};
 				m_map[(uint32_t)tChar[0]] = glyph_info;
 			}
@@ -347,7 +347,7 @@ namespace LuaSTGPlus
 		float getDescender() { return m_descender; }
 
 		uint32_t getTextureCount() { return 1; }
-		LuaSTG::Core::Graphics::ITexture2D* getTexture(uint32_t index)
+		Core::Graphics::ITexture2D* getTexture(uint32_t index)
 		{
 			if (index == 0)
 			{
@@ -357,10 +357,10 @@ namespace LuaSTGPlus
 		}
 
 		bool cacheGlyph(uint32_t) { return true; }
-		bool cacheString(LuaSTG::Core::StringView) { return true; }
+		bool cacheString(Core::StringView) { return true; }
 		bool flush() { return true; }
 
-		bool getGlyph(uint32_t codepoint, LuaSTG::Core::Graphics::GlyphInfo* p_ref_info, bool)
+		bool getGlyph(uint32_t codepoint, Core::Graphics::GlyphInfo* p_ref_info, bool)
 		{
 			auto it = m_map.find(codepoint);
 			if (it != m_map.end())
@@ -433,7 +433,7 @@ namespace LuaSTGPlus
 	{
 		m_glyphmgr.attach(new f2dFont(f2d_path, tex_path, mipmap));
 	}
-	ResFont::ResFont(const char* name, LuaSTG::Core::Graphics::IGlyphManager* p_mgr)
+	ResFont::ResFont(const char* name, Core::Graphics::IGlyphManager* p_mgr)
 		: Resource(ResourceType::SpriteFont, name)
 		, m_glyphmgr(p_mgr)
 		, m_BlendMode(BlendMode::MulAlpha)

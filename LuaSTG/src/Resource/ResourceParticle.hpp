@@ -85,7 +85,7 @@ namespace LuaSTGPlus
 		struct ParticleSystemResourceInfo
 		{
 			hgeParticleSystemInfo tParticleSystemInfo = {};
-			LuaSTG::Core::ScopeObject<LuaSTG::Core::Graphics::ISprite> pSprite;
+			Core::ScopeObject<Core::Graphics::ISprite> pSprite;
 			BlendMode eBlendMode = BlendMode::MulAlpha;
 			float colVertexColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
@@ -153,6 +153,6 @@ namespace LuaSTGPlus
 		double GetHalfSizeY() const noexcept { return m_HalfSizeY; }
 		bool IsRectangle() const noexcept { return m_bRectangle; }
 	public:
-		ResParticle(const char* name, const hgeParticleSystemInfo& pinfo, LuaSTG::Core::Graphics::ISprite* sprite, double a, double b, bool rect = false);
+		ResParticle(const char* name, const hgeParticleSystemInfo& pinfo, Core::Graphics::ISprite* sprite, double a, double b, bool rect = false);
 	};
 };

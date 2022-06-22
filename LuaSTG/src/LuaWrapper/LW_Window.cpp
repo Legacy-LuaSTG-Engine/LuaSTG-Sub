@@ -3,10 +3,7 @@
 #include "LuaWrapper/lua_utility.hpp"
 #include "utility/encoding.hpp"
 
-using namespace LuaSTG::Core;
-using namespace LuaSTG::Core::Graphics;
-
-inline IWindow* _get_window()
+inline Core::Graphics::IWindow* _get_window()
 {
     return LuaSTGPlus::AppFrame::GetInstance().GetAppModel()->getWindow();
 }
@@ -18,15 +15,15 @@ static int lib_setMouseEnable(lua_State* L)
     getwindow(window);
     bool const enable = lua_toboolean(L, 1);
     if (enable)
-        window->setCursor(WindowCursor::Arrow);
+        window->setCursor(Core::Graphics::WindowCursor::Arrow);
     else
-        window->setCursor(WindowCursor::None);
+        window->setCursor(Core::Graphics::WindowCursor::None);
     return 0;
 }
 static int lib_setCursorStyle(lua_State* L)
 {
     getwindow(window);
-    WindowCursor const style = (WindowCursor)luaL_checkinteger(L, 1);
+    Core::Graphics::WindowCursor const style = (Core::Graphics::WindowCursor)luaL_checkinteger(L, 1);
     window->setCursor(style);
     return 0;
 }
@@ -71,13 +68,13 @@ static int lib_getFullScreenSize(lua_State* L)
     if (lua_gettop(L) > 0)
     {
         uint32_t const index = (uint32_t)luaL_checkinteger(L, 1);
-        RectI const rc = window->getMonitorRect(index);
+        Core::RectI const rc = window->getMonitorRect(index);
         lua_pushnumber(L, rc.b.x - rc.a.x);
         lua_pushnumber(L, rc.b.y - rc.a.y);
     }
     else
     {
-        Vector2I const size = window->getMonitorSize();
+        Core::Vector2I const size = window->getMonitorSize();
         lua_pushnumber(L, size.x);
         lua_pushnumber(L, size.y);
     }
@@ -86,7 +83,7 @@ static int lib_getFullScreenSize(lua_State* L)
 static int lib_setStyle(lua_State* L)
 {
     getwindow(window);
-    WindowFrameStyle style = (WindowFrameStyle)luaL_checkinteger(L, 1);
+    Core::Graphics::WindowFrameStyle style = (Core::Graphics::WindowFrameStyle)luaL_checkinteger(L, 1);
     window->setFrameStyle(style);
     LAPP.SetDefaultWindowStyle(style); // compat
     return 0;
@@ -96,7 +93,7 @@ static int lib_setSize(lua_State* L)
     getwindow(window);
     int32_t const width = (int32_t)luaL_checkinteger(L, 1);
     int32_t const height = (int32_t)luaL_checkinteger(L, 2);
-    bool const result = window->setSize(Vector2I(width, height));
+    bool const result = window->setSize(Core::Vector2I(width, height));
     lua_pushboolean(L, result);
     return 1;
 }
@@ -105,9 +102,9 @@ static int lib_setTopMost(lua_State* L)
     getwindow(window);
     bool const topmost = lua_toboolean(L, 1);
     if (topmost)
-        window->setLayer(WindowLayer::TopMost);
+        window->setLayer(Core::Graphics::WindowLayer::TopMost);
     else
-        window->setLayer(WindowLayer::Normal);
+        window->setLayer(Core::Graphics::WindowLayer::Normal);
     return 0;
 }
 static int lib_setIMEEnable(lua_State* L)
@@ -149,7 +146,7 @@ static int lib_setCustomMoveSizeEnable(lua_State* L)
 static int lib_setCustomMinimizeButtonRect(lua_State* L)
 {
     getwindow(window);
-    window->setCustomMinimizeButtonRect(RectI(
+    window->setCustomMinimizeButtonRect(Core::RectI(
         luaL_checkinteger(L, 1),
         luaL_checkinteger(L, 2),
         luaL_checkinteger(L, 3),
@@ -160,7 +157,7 @@ static int lib_setCustomMinimizeButtonRect(lua_State* L)
 static int lib_setCustomCloseButtonRect(lua_State* L)
 {
     getwindow(window);
-    window->setCustomCloseButtonRect(RectI(
+    window->setCustomCloseButtonRect(Core::RectI(
         luaL_checkinteger(L, 1),
         luaL_checkinteger(L, 2),
         luaL_checkinteger(L, 3),
@@ -171,7 +168,7 @@ static int lib_setCustomCloseButtonRect(lua_State* L)
 static int lib_setCustomMoveButtonRect(lua_State* L)
 {
     getwindow(window);
-    window->setCustomMoveButtonRect(RectI(
+    window->setCustomMoveButtonRect(Core::RectI(
         luaL_checkinteger(L, 1),
         luaL_checkinteger(L, 2),
         luaL_checkinteger(L, 3),
@@ -182,7 +179,7 @@ static int lib_setCustomMoveButtonRect(lua_State* L)
 
 static int compat_SetDefaultWindowStyle(lua_State* L)
 {
-    LAPP.SetDefaultWindowStyle((LuaSTG::Core::Graphics::WindowFrameStyle)luaL_checkinteger(L, 1));
+    LAPP.SetDefaultWindowStyle((Core::Graphics::WindowFrameStyle)luaL_checkinteger(L, 1));
     return 0;
 }
 static int compat_SetSplash(lua_State* L)
@@ -240,7 +237,7 @@ static int molib_getPos(lua_State* L)
 {
     getwindow(window);
     uint32_t const index = (uint32_t)luaL_checkinteger(L, 1);
-    RectI const rc = window->getMonitorRect(index);
+    Core::RectI const rc = window->getMonitorRect(index);
     lua_pushinteger(L, rc.a.x);
     lua_pushinteger(L, rc.a.y);
     return 2;
@@ -249,7 +246,7 @@ static int molib_getSize(lua_State* L)
 {
     getwindow(window);
     uint32_t const index = (uint32_t)luaL_checkinteger(L, 1);
-    RectI const rc = window->getMonitorRect(index);
+    Core::RectI const rc = window->getMonitorRect(index);
     lua_pushinteger(L, rc.b.x - rc.a.x);
     lua_pushinteger(L, rc.b.y - rc.a.y);
     return 2;

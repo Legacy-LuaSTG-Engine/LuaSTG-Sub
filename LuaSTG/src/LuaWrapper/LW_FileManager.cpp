@@ -285,8 +285,8 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)LNOEXCEPT
 					std::string_view frompath = cfg.searchpath2; // 目标路径
 					for (size_t f = 0; f < zip.getCount(); f += 1)
 					{
-						bool is_dir = zip.getType(f) == LuaSTG::Core::FileType::Directory;
-						if ((cfg.checkext || cfg.findfiles) && zip.getType(f) != LuaSTG::Core::FileType::File)
+						bool is_dir = zip.getType(f) == Core::FileType::Directory;
+						if ((cfg.checkext || cfg.findfiles) && zip.getType(f) != Core::FileType::File)
 						{
 							continue; // 需要检查拓展名，那就不可能是文件夹了，或者为 FindFiles 模式（忽略文件夹）
 						}
@@ -514,7 +514,7 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)LNOEXCEPT
 				return 1;
 			}
 			bool const respack = lua_toboolean(L, 2);
-			if (GFileManager().getType(path) == LuaSTG::Core::FileType::Directory)
+			if (GFileManager().getType(path) == Core::FileType::Directory)
 			{
 				lua_pushboolean(L, true);
 				return 1;
@@ -526,7 +526,7 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)LNOEXCEPT
 					for (size_t idx = 0; idx < GFileManager().getFileArchiveCount(); idx += 1)
 					{
 						auto& zip = GFileManager().getFileArchive(idx);
-						if (zip.getType(p) == LuaSTG::Core::FileType::Directory)
+						if (zip.getType(p) == Core::FileType::Directory)
 						{
 							return true;
 						}

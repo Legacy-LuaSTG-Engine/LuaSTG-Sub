@@ -33,7 +33,7 @@ namespace LuaSTGPlus
 	bool ResSound::SetSpeed(float speed) { return m_player->setSpeed(speed); }
 	float ResSound::GetSpeed() { return m_player->getSpeed(); }
 
-	ResSound::ResSound(const char* name, LuaSTG::Core::Audio::IAudioPlayer* p_player)
+	ResSound::ResSound(const char* name, Core::Audio::IAudioPlayer* p_player)
 		: Resource(ResourceType::SoundEffect, name)
 		, m_player(p_player)
 	{
@@ -122,7 +122,7 @@ namespace LuaSTGPlus
 		return true;
 	}
 
-	ResMusic::LoopDecoder::LoopDecoder(LuaSTG::Core::Audio::IDecoder* p_decoder, double LoopStart, double LoopEnd)
+	ResMusic::LoopDecoder::LoopDecoder(Core::Audio::IDecoder* p_decoder, double LoopStart, double LoopEnd)
 		: m_decoder(p_decoder)
 	{
 		// 计算参数
@@ -179,7 +179,7 @@ namespace LuaSTGPlus
 	float ResMusic::GetSpeed() { return m_player->getSpeed(); }
 	void ResMusic::SetLoop(bool v) { m_decoder->setLoop(v); }
 
-	ResMusic::ResMusic(const char* name, LoopDecoder* p_decoder, LuaSTG::Core::Audio::IAudioPlayer* p_player)
+	ResMusic::ResMusic(const char* name, LoopDecoder* p_decoder, Core::Audio::IAudioPlayer* p_player)
 		: Resource(ResourceType::Music, name)
 		, m_decoder(p_decoder)
 		, m_player(p_player)

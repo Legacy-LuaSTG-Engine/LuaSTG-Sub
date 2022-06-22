@@ -443,11 +443,11 @@ namespace LuaSTGPlus
 					do {
 						ResSprite* img = static_cast<ResSprite*>(res);
 						// backup
-						LuaSTG::Core::Color4B color[4] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+						Core::Color4B color[4] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
 						img->GetSprite()->getColor(color);
 						BlendMode blend = img->GetBlendMode();
 						// setup
-						img->GetSprite()->setColor(LuaSTG::Core::Color4B(vertexcolor));
+						img->GetSprite()->setColor(Core::Color4B(vertexcolor));
 						img->SetBlendMode(blendmode);
 						LAPP.Render(
 							img,
@@ -467,11 +467,11 @@ namespace LuaSTGPlus
 						ResAnimation* ani = static_cast<ResAnimation*>(res);
 						fuInt const idx = ani->GetSpriteIndexByTimer(ani_timer);
 						// backup
-						LuaSTG::Core::Color4B color[4] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+						Core::Color4B color[4] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
 						ani->GetSprite(idx)->getColor(color);
 						BlendMode blend = ani->GetBlendMode();
 						// setup
-						ani->GetSprite(idx)->setColor(LuaSTG::Core::Color4B(vertexcolor));
+						ani->GetSprite(idx)->setColor(Core::Color4B(vertexcolor));
 						ani->SetBlendMode(blend);
 						LAPP.Render(
 							ani,

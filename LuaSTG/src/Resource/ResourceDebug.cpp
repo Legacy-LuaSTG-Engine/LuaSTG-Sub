@@ -87,7 +87,7 @@ namespace LuaSTGPlus
 					ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
 					ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
 			};
-			auto draw_sprite = [](LuaSTG::Core::Graphics::ISprite* p_res, bool show_info, bool focus, float scale) -> void {
+			auto draw_sprite = [](Core::Graphics::ISprite* p_res, bool show_info, bool focus, float scale) -> void {
 				auto color = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
 				if (focus)
 				{

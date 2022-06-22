@@ -75,7 +75,7 @@ namespace LuaSTGPlus
         bool LoadSpriteFont(const char* name, const char* path, const char* tex_path, bool mipmaps = true) noexcept;
         // 加载矢量字体
         bool LoadTTFFont(const char* name, const char* path, float width, float height) noexcept;
-        bool LoadTrueTypeFont(const char* name, LuaSTG::Core::Graphics::TrueTypeFontInfo* fonts, size_t count) noexcept;
+        bool LoadTrueTypeFont(const char* name, Core::Graphics::TrueTypeFontInfo* fonts, size_t count) noexcept;
         // 特效
         bool LoadFX(const char* name, const char* path) noexcept;
         // 模型

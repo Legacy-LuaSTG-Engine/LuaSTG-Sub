@@ -10,7 +10,7 @@ namespace LuaSTGPlus
 		m_rt = nullptr;
 		m_ds = nullptr;
 
-		auto const size = LuaSTG::Core::Vector2U(m_swapchain->getWidth(), m_swapchain->getHeight());
+		auto const size = Core::Vector2U(m_swapchain->getWidth(), m_swapchain->getHeight());
 		if (!LAPP.GetAppModel()->getDevice()->createRenderTarget(size, ~m_rt))
 		{
 			return false;
@@ -34,7 +34,7 @@ namespace LuaSTGPlus
 	{
 	}
 
-	ResTexture::ResTexture(const char* name, LuaSTG::Core::Graphics::ITexture2D* p_texture)
+	ResTexture::ResTexture(const char* name, Core::Graphics::ITexture2D* p_texture)
 		: Resource(ResourceType::Texture, name)
 		, m_texture(p_texture)
 		, m_is_rendertarget(false)
@@ -49,7 +49,7 @@ namespace LuaSTGPlus
 		, m_is_auto_resize(false)
 		, m_enable_depthbuffer(ds)
 	{
-		auto const size = LuaSTG::Core::Vector2U((uint32_t)w, (uint32_t)h);
+		auto const size = Core::Vector2U((uint32_t)w, (uint32_t)h);
 		if (!LAPP.GetAppModel()->getDevice()->createRenderTarget(size, ~m_rt))
 		{
 			throw std::runtime_error("ResTexture::ResTexture createRenderTarget");

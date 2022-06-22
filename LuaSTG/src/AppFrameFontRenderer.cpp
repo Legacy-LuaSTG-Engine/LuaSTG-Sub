@@ -1,7 +1,8 @@
 ﻿#include "AppFrame.h"
 #include "utility/encoding.hpp"
 
-namespace LuaSTGPlus {
+namespace LuaSTGPlus
+{
 	// luastg plus interface
 	
 	constexpr int const TEXT_ALIGN_LEFT = 0x00;
@@ -16,8 +17,8 @@ namespace LuaSTGPlus {
 
 	bool AppFrame::RenderText(ResFont* p, wchar_t* strBuf, fcyRect rect, fcyVec2 scale, ResFont::FontAlignHorizontal halign, ResFont::FontAlignVertical valign, bool bWordBreak)LNOEXCEPT
 	{
-		using namespace LuaSTG::Core;
-		using namespace LuaSTG::Core::Graphics;
+		using namespace Core;
+		using namespace Core::Graphics;
 
 		IGlyphManager* pGlyphManager = p->GetGlyphManager();
 		
@@ -161,8 +162,8 @@ namespace LuaSTGPlus {
 	
 	fcyVec2 AppFrame::CalcuTextSize(ResFont* p, const wchar_t* strBuf, fcyVec2 scale)LNOEXCEPT
 	{
-		using namespace LuaSTG::Core;
-		using namespace LuaSTG::Core::Graphics;
+		using namespace Core;
+		using namespace Core::Graphics;
 
 		IGlyphManager* pGlyphManager = p->GetGlyphManager();
 		
@@ -300,7 +301,8 @@ namespace LuaSTGPlus {
 	
 	// native interface
 	
-	bool AppFrame::FontRenderer_SetFontProvider(const char* name) {
+	bool AppFrame::FontRenderer_SetFontProvider(const char* name)
+	{
 		fcyRefPointer<ResFont> p = m_ResourceMgr.FindTTFFont(name);
 		if (!p)
 		{
@@ -311,19 +313,20 @@ namespace LuaSTGPlus {
 		return true;
 	}
 	
-	void AppFrame::FontRenderer_SetScale(const fcyVec2& s) {
-		m_pTextRenderer->setScale(LuaSTG::Core::Vector2F(s.x, s.y));
+	void AppFrame::FontRenderer_SetScale(const fcyVec2& s)
+	{
+		m_pTextRenderer->setScale(Core::Vector2F(s.x, s.y));
 	}
 	
 	fcyRect AppFrame::FontRenderer_MeasureTextBoundary(const char* str, size_t len)
 	{
-		auto rc = m_pTextRenderer->getTextBoundary(LuaSTG::Core::StringView(str, len));
+		auto rc = m_pTextRenderer->getTextBoundary(Core::StringView(str, len));
 		return fcyRect(rc.a.x, rc.a.y, rc.b.x, rc.b.y);
 	}
 	
 	fcyVec2 AppFrame::FontRenderer_MeasureTextAdvance(const char* str, size_t len)
 	{
-		auto pt = m_pTextRenderer->getTextAdvance(LuaSTG::Core::StringView(str, len));
+		auto pt = m_pTextRenderer->getTextAdvance(Core::StringView(str, len));
 		return fcyVec2(pt.x, pt.y);
 	}
 	
@@ -335,8 +338,8 @@ namespace LuaSTGPlus {
 		m_pTextRenderer->setZ(z);
 		m_pTextRenderer->setColor(color.argb);
 		
-		LuaSTG::Core::Vector2F endpos;
-		const bool result = m_pTextRenderer->drawText(LuaSTG::Core::StringView(str, len), LuaSTG::Core::Vector2F(pos.x, pos.y), &endpos);
+		Core::Vector2F endpos;
+		const bool result = m_pTextRenderer->drawText(Core::StringView(str, len), Core::Vector2F(pos.x, pos.y), &endpos);
 		pos = fcyVec2(endpos.x, endpos.y);
 
 		m_pTextRenderer->setZ(last_z);
@@ -348,12 +351,12 @@ namespace LuaSTGPlus {
 		updateGraph2DBlendMode(blend);
 		m_pTextRenderer->setColor(color.argb);
 
-		LuaSTG::Core::Vector3F endpos;
+		Core::Vector3F endpos;
 		const bool result = m_pTextRenderer->drawTextInSpace(
-			LuaSTG::Core::StringView(str, len),
-			LuaSTG::Core::Vector3F(pos.x, pos.y, pos.z),
-			LuaSTG::Core::Vector3F(rvec.x, rvec.y, rvec.z),
-			LuaSTG::Core::Vector3F(dvec.x, dvec.y, dvec.z),
+			Core::StringView(str, len),
+			Core::Vector3F(pos.x, pos.y, pos.z),
+			Core::Vector3F(rvec.x, rvec.y, rvec.z),
+			Core::Vector3F(dvec.x, dvec.y, dvec.z),
 			&endpos);
 		pos = fcyVec3(endpos.x, endpos.y, endpos.z);
 
