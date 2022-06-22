@@ -2,15 +2,6 @@
 #include "ResourceParticle.hpp"
 #include "LConfig.h"
 
-#ifdef max
-#undef max
-#endif
-#ifdef min
-#undef min
-#endif
-
-using namespace std;
-
 namespace LuaSTGPlus
 {
 	fcyMemPool<sizeof(LuaSTGPlus::ResParticle::ParticlePool)> LuaSTGPlus::ResParticle::s_MemoryPool(512);  // 预分配512个对象
@@ -75,16 +66,16 @@ namespace LuaSTGPlus
 	size_t ResParticle::ParticlePool::GetAliveCount() const noexcept { return m_iAlive; }
 	BlendMode ResParticle::ParticlePool::GetBlendMode() const noexcept { return m_Info.eBlendMode; }
 	void ResParticle::ParticlePool::SetBlendMode(BlendMode m) noexcept { m_Info.eBlendMode = m; }
-	fcyColor ResParticle::ParticlePool::GetVertexColor() const noexcept
+	Core::Color4B ResParticle::ParticlePool::GetVertexColor() const noexcept
 	{
-		return fcyColor(
-			(fInt)std::clamp(m_Info.colVertexColor[3] * 255.0f, 0.0f, 255.0f),
-			(fInt)std::clamp(m_Info.colVertexColor[0] * 255.0f, 0.0f, 255.0f),
-			(fInt)std::clamp(m_Info.colVertexColor[1] * 255.0f, 0.0f, 255.0f),
-			(fInt)std::clamp(m_Info.colVertexColor[2] * 255.0f, 0.0f, 255.0f)
+		return Core::Color4B(
+			(uint8_t)std::clamp(m_Info.colVertexColor[0] * 255.0f, 0.0f, 255.0f),
+			(uint8_t)std::clamp(m_Info.colVertexColor[1] * 255.0f, 0.0f, 255.0f),
+			(uint8_t)std::clamp(m_Info.colVertexColor[2] * 255.0f, 0.0f, 255.0f),
+			(uint8_t)std::clamp(m_Info.colVertexColor[3] * 255.0f, 0.0f, 255.0f)
 		);
 	}
-	void ResParticle::ParticlePool::SetVertexColor(fcyColor c) noexcept
+	void ResParticle::ParticlePool::SetVertexColor(Core::Color4B c) noexcept
 	{
 		m_Info.colVertexColor[0] = (float)c.r / 255.0f;
 		m_Info.colVertexColor[1] = (float)c.g / 255.0f;
@@ -262,7 +253,7 @@ namespace LuaSTGPlus
 	{
 		Core::Graphics::ISprite* pSprite = m_Info.pSprite.get();
 		hgeParticleSystemInfo const& pInfo = m_Info.tParticleSystemInfo;
-		fcyColor const tVertexColor = GetVertexColor();
+		Core::Color4B const tVertexColor = GetVertexColor();
 		for (size_t i = 0; i < m_iAlive; i += 1)
 		{
 			hgeParticle const& pInst = m_ParticlePool[i];
@@ -272,7 +263,7 @@ namespace LuaSTGPlus
 					tVertexColor.r,
 					tVertexColor.g,
 					tVertexColor.b,
-					(fByte)std::clamp(pInst.colColor[3] * (float)tVertexColor.a, 0.0f, 255.0f)
+					(uint8_t)std::clamp(pInst.colColor[3] * (float)tVertexColor.a, 0.0f, 255.0f)
 				));
 			}
 			else

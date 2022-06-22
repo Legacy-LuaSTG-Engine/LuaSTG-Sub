@@ -1,5 +1,7 @@
 ﻿#pragma once
 #include <cstdint>
+#include <cmath>
+#include <limits>
 #include <string_view>
 
 namespace Core
@@ -27,6 +29,37 @@ namespace Core
 
 		inline bool operator==(Vector2 const& r) const noexcept { return x == r.x && y == r.y; }
 		inline bool operator!=(Vector2 const& r) const noexcept { return x != r.x || y != r.y; }
+
+		inline float operator*(Vector2 const& r) const noexcept { return x * r.x + y * r.y; }
+		inline Vector2 operator-() const noexcept { return Vector2(-x, -y); }
+
+		inline Vector2& normalize() noexcept
+		{
+			T const l = length();
+			if (l >= std::numeric_limits<T>::min())
+			{
+				x /= l; y /= l;
+			}
+			else
+			{
+				x = T{}; y = T{};
+			}
+			return *this;
+		}
+		inline Vector2 normalized() const noexcept
+		{
+			T const l = length();
+			if (l >= std::numeric_limits<T>::min())
+			{
+				return Vector2(x / l, y / l);
+			}
+			else
+			{
+				return Vector2();
+			}
+		}
+		inline T length() const noexcept { return std::sqrt(x * x + y * y); }
+		inline T angle() const noexcept { return std::atan2(y, x); }
 
 		inline T& operator[](size_t const i) { return (&x)[i]; }
 	};
@@ -156,6 +189,7 @@ namespace Core
 
 		Color4B() : b(0), g(0), r(0), a(0) {}
 		Color4B(uint32_t ARGB) : b(0), g(0), r(0), a(0) { color(ARGB); }
+		Color4B(uint8_t const r_, uint8_t const g_, uint8_t const b_) : b(b_), g(g_), r(r_), a(static_cast<uint8_t>(255u)) {}
 		Color4B(uint8_t const r_, uint8_t const g_, uint8_t const b_, uint8_t const a_) : b(b_), g(g_), r(r_), a(a_) {}
 
 		inline void color(uint32_t ARGB) noexcept { *((uint32_t*)(&b)) = ARGB; }

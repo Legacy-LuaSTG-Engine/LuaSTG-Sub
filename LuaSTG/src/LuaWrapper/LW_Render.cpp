@@ -36,7 +36,7 @@ void LuaSTGPlus::LuaWrapper::RenderWrapper::Register(lua_State* L) LNOEXCEPT
                 (float)luaL_checknumber(L, 6),
                 LRES.GetGlobalImageScaleFactor() * (float)luaL_optnumber(L, 9, 1.0),
                 luaL_checkinteger(L, 7),
-                *static_cast<fcyColor*>(luaL_checkudata(L, 8, LUASTG_LUA_TYPENAME_COLOR))
+                *LuaWrapper::ColorWrapper::Cast(L, 8)
             ))
             {
                 return luaL_error(L, "can't render font '%s'.", luaL_checkstring(L, 1));
@@ -69,7 +69,7 @@ void LuaSTGPlus::LuaWrapper::RenderWrapper::Register(lua_State* L) LNOEXCEPT
             // group color
             LPOOL.DrawGroupCollider2(
                 luaL_checkinteger(L, 1),
-                fcyColor(static_cast<fcyColor*>(luaL_checkudata(L, 2, LUASTG_LUA_TYPENAME_COLOR))->argb)
+                *LuaWrapper::ColorWrapper::Cast(L, 2)
             );
             return 0;
         }

@@ -28,7 +28,7 @@ namespace LuaSTGPlus
 
 		// 设置混合和颜色
 		updateGraph2DBlendMode(p->GetBlendMode());
-		m_pTextRenderer->setColor(p->GetBlendColor().argb);
+		m_pTextRenderer->setColor(p->GetBlendColor());
 		
 		// 第一次遍历计算要渲染多少行
 		const wchar_t* pText = strBuf;
@@ -251,7 +251,7 @@ namespace LuaSTGPlus
 	}
 	
 	bool AppFrame::RenderTTF(const char* name, const char* str,
-		float left, float right, float bottom, float top, float scale, int format, fcyColor c)LNOEXCEPT
+		float left, float right, float bottom, float top, float scale, int format, Core::Color4B c)LNOEXCEPT
 	{
 		fcyRefPointer<ResFont> p = m_ResourceMgr.FindTTFFont(name);
 		if (!p) {
@@ -330,13 +330,13 @@ namespace LuaSTGPlus
 		return fcyVec2(pt.x, pt.y);
 	}
 	
-	bool AppFrame::FontRenderer_RenderText(const char* str, size_t len, fcyVec2& pos, const float z, const BlendMode blend, const fcyColor& color)
+	bool AppFrame::FontRenderer_RenderText(const char* str, size_t len, fcyVec2& pos, const float z, const BlendMode blend, Core::Color4B const& color)
 	{
 		float const last_z = m_pTextRenderer->getZ();
 
 		updateGraph2DBlendMode(blend);
 		m_pTextRenderer->setZ(z);
-		m_pTextRenderer->setColor(color.argb);
+		m_pTextRenderer->setColor(color);
 		
 		Core::Vector2F endpos;
 		const bool result = m_pTextRenderer->drawText(Core::StringView(str, len), Core::Vector2F(pos.x, pos.y), &endpos);
@@ -346,10 +346,10 @@ namespace LuaSTGPlus
 		return result;
 	}
 	
-	bool AppFrame::FontRenderer_RenderTextInSpace(const char* str, size_t len, fcyVec3& pos, const fcyVec3& rvec, const fcyVec3& dvec, const BlendMode blend, const fcyColor& color)
+	bool AppFrame::FontRenderer_RenderTextInSpace(const char* str, size_t len, fcyVec3& pos, const fcyVec3& rvec, const fcyVec3& dvec, const BlendMode blend, Core::Color4B const& color)
 	{
 		updateGraph2DBlendMode(blend);
-		m_pTextRenderer->setColor(color.argb);
+		m_pTextRenderer->setColor(color);
 
 		Core::Vector3F endpos;
 		const bool result = m_pTextRenderer->drawTextInSpace(

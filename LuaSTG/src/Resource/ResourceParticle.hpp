@@ -120,8 +120,8 @@ namespace LuaSTGPlus
 			size_t GetAliveCount() const noexcept;
 			BlendMode GetBlendMode() const noexcept;
 			void SetBlendMode(BlendMode m) noexcept;
-			fcyColor GetVertexColor() const noexcept;
-			void SetVertexColor(fcyColor c) noexcept;
+			Core::Color4B GetVertexColor() const noexcept;
+			void SetVertexColor(Core::Color4B c) noexcept;
 			int GetEmission() const noexcept;
 			void SetEmission(int e) noexcept;
 			fuInt GetSeed() const noexcept;

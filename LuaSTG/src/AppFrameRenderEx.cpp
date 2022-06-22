@@ -88,7 +88,7 @@ namespace LuaSTGPlus
         r2d->setVertexColorBlendState(IRenderer::VertexColorBlendState::One);
         r2d->setTexture(nullptr);
     }
-    void AppFrame::DebugDrawCircle(float const x, float const y, float const r, fcyColor const color)
+    void AppFrame::DebugDrawCircle(float const x, float const y, float const r, Core::Color4B const color)
     {
         if (std::abs(r) >= std::numeric_limits<float>::min())
         {
@@ -101,12 +101,12 @@ namespace LuaSTGPlus
             uint16_t vidx_offset = 0;
             r2d->drawRequest(32 + 1, 32 * 3, &vert, &vidx, &vidx_offset);
             // 计算顶点
-            vert[0] = IRenderer::DrawVertex(x, y, 0.5f, 0.0f, 0.0f, color.argb);
+            vert[0] = IRenderer::DrawVertex(x, y, 0.5f, 0.0f, 0.0f, color.color());
             for (size_t i = 1; i <= 32; i += 1)
             {
                 constexpr float const da = std::numbers::pi_v<float> *2.0f / 32.0f;
                 float const angle = (float)(i - 1) * da;
-                vert[i] = IRenderer::DrawVertex(x + r * std::cosf(angle), y + r * std::sinf(angle), 0.5f, 0.0f, 0.0f, color.argb);
+                vert[i] = IRenderer::DrawVertex(x + r * std::cosf(angle), y + r * std::sinf(angle), 0.5f, 0.0f, 0.0f, color.color());
             }
             // 计算索引
             IRenderer::DrawIndex* p_vidx = vidx;
@@ -123,7 +123,7 @@ namespace LuaSTGPlus
             // p_vidx += 3;
         }
     }
-    void AppFrame::DebugDrawRect(float const x, float const y, float const a, float const b, float const rot, fcyColor const color)
+    void AppFrame::DebugDrawRect(float const x, float const y, float const a, float const b, float const rot, Core::Color4B const color)
     {
         if (std::abs(a) >= std::numeric_limits<float>::min() && std::abs(b) >= std::numeric_limits<float>::min())
         {
@@ -132,10 +132,10 @@ namespace LuaSTGPlus
             auto* r2d = GetRenderer2D();
             // 计算出矩形的4个顶点
             IRenderer::DrawVertex vert[4] = {
-                IRenderer::DrawVertex(-a, -b, 0.5f, 0.0f, 0.0f, color.argb),
-                IRenderer::DrawVertex( a, -b, 0.5f, 0.0f, 1.0f, color.argb),
-                IRenderer::DrawVertex( a,  b, 0.5f, 1.0f, 1.0f, color.argb),
-                IRenderer::DrawVertex(-a,  b, 0.5f, 1.0f, 0.0f, color.argb),
+                IRenderer::DrawVertex(-a, -b, 0.5f, 0.0f, 0.0f, color.color()),
+                IRenderer::DrawVertex( a, -b, 0.5f, 0.0f, 1.0f, color.color()),
+                IRenderer::DrawVertex( a,  b, 0.5f, 1.0f, 1.0f, color.color()),
+                IRenderer::DrawVertex(-a,  b, 0.5f, 1.0f, 0.0f, color.color()),
             };
             // 变换
             float const cos_v = std::cosf(rot);
@@ -151,7 +151,7 @@ namespace LuaSTGPlus
             r2d->drawQuad(vert);
         }
     }
-    void AppFrame::DebugDrawEllipse(float const x, float const y, float const a, float const b, float const rot, fcyColor const color)
+    void AppFrame::DebugDrawEllipse(float const x, float const y, float const a, float const b, float const rot, Core::Color4B const color)
     {
         if (std::abs(a) >= std::numeric_limits<float>::min() && std::abs(b) >= std::numeric_limits<float>::min())
         {
@@ -164,7 +164,7 @@ namespace LuaSTGPlus
             uint16_t vidx_offset = 0;
             r2d->drawRequest(36 + 1, 36 * 3, &vert, &vidx, &vidx_offset);
             // 计算顶点
-            vert[0] = IRenderer::DrawVertex(x, y, 0.5f, 0.0f, 0.0f, color.argb);
+            vert[0] = IRenderer::DrawVertex(x, y, 0.5f, 0.0f, 0.0f, color.color());
             for (size_t i = 1; i <= 36; i += 1)
             {
                 constexpr float const da = std::numbers::pi_v<float> * 2.0f / 36.0f;
@@ -172,7 +172,7 @@ namespace LuaSTGPlus
                 vert[i] = IRenderer::DrawVertex(
                     a * std::cosf(angle),
                     b * std::sinf(angle),
-                    0.5f, 0.0f, 0.0f, color.argb);
+                    0.5f, 0.0f, 0.0f, color.color());
             }
             // 变换
             float const cos_v = std::cosf(rot);

@@ -176,22 +176,22 @@ static void api_drawSpriteSequence(char const* name, int const ani_timer, float 
     api_drawSpriteSequence(*pani2dres, ani_timer, x, y, rot, hscale, vscale, z);
 }
 
-static void api_setFogState(float start, float end, fcyColor color)
+static void api_setFogState(float start, float end, Core::Color4B color)
 {
     auto* ctx = LR2D();
     if (start != end)
     {
         if (start == -1.0f)
         {
-            ctx->setFogState(Core::Graphics::IRenderer::FogState::Exp, Core::Color4B(color.argb), end, 0.0f);
+            ctx->setFogState(Core::Graphics::IRenderer::FogState::Exp, color, end, 0.0f);
         }
         else if (start == -2.0f)
         {
-            ctx->setFogState(Core::Graphics::IRenderer::FogState::Exp2, Core::Color4B(color.argb), end, 0.0f);
+            ctx->setFogState(Core::Graphics::IRenderer::FogState::Exp2, color, end, 0.0f);
         }
         else
         {
-            ctx->setFogState(Core::Graphics::IRenderer::FogState::Linear, Core::Color4B(color.argb), start, end);
+            ctx->setFogState(Core::Graphics::IRenderer::FogState::Linear, color, start, end);
         }
     }
     else
@@ -222,7 +222,7 @@ static int lib_clearRenderTarget(lua_State* L)LNOEXCEPT
     }
     else
     {
-        color = Core::Color4B(LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(L, 1)->argb);
+        color = *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(L, 1);
     }
     LR2D()->clearRenderTarget(color);
     return 0;
@@ -346,7 +346,7 @@ static int lib_setFogState(lua_State* L)LNOEXCEPT
     }
     else
     {
-        color = Core::Color4B(LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(L, 2)->argb);
+        color = *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(L, 2);
     }
     LR2D()->setFogState(
         (Core::Graphics::IRenderer::FogState)luaL_checkinteger(L, 1),
@@ -572,7 +572,7 @@ static int lib_drawTexture(lua_State* L)LNOEXCEPT
         }
         else
         {
-            vertex[i].color = LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(L, -1)->argb;
+            vertex[i].color = LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(L, -1)->color();
         }
 
         lua_pop(L, 6);
@@ -724,7 +724,7 @@ static int compat_SetFog(lua_State* L)LNOEXCEPT
         api_setFogState(
             static_cast<float>(luaL_checknumber(L, 1)),
             static_cast<float>(luaL_checknumber(L, 2)),
-            *(static_cast<fcyColor*>(luaL_checkudata(L, 3, LUASTG_LUA_TYPENAME_COLOR)))
+            *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(L, 3)
         );
     }
     else if (argc == 2)

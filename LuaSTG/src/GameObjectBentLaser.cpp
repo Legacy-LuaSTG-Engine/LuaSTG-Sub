@@ -48,13 +48,13 @@ void GameObjectBentLaser::_UpdateNodeVertexExtend(size_t i) noexcept
 	{
 		// 是首节点（老节点），利用下一个节点的位置来计算节点朝向
 		LaserNode& next = m_Queue[i + 1]; // 下一个节点（相对更新的节点）
-		fcyVec2 const vec = next.pos - node.pos;
+		Core::Vector2F const vec = next.pos - node.pos;
 
 		// 逆时针旋转 90 度
-		fcyVec2 const vecr(vec.y, -vec.x);
+		Core::Vector2F const vecr(vec.y, -vec.x);
 
 		// 归一化向量，保存
-		fcyVec2 const vecn = vecr.GetNormalize();
+		Core::Vector2F const vecn = vecr.normalized();
 		node.x_dir = vecn.x;
 		node.y_dir = vecn.y;
 		return;
@@ -63,13 +63,13 @@ void GameObjectBentLaser::_UpdateNodeVertexExtend(size_t i) noexcept
 	{
 		// 是尾节点（新节点），利用上一个节点的位置来计算节点朝向
 		LaserNode& last = m_Queue[i - 1]; // 上一个节点（相对更老的节点）
-		fcyVec2 const vec = node.pos - last.pos;
+		Core::Vector2F const vec = node.pos - last.pos;
 
 		// 逆时针旋转 90 度
-		fcyVec2 const vecr(vec.y, -vec.x);
+		Core::Vector2F const vecr(vec.y, -vec.x);
 
 		// 归一化向量，保存
-		fcyVec2 const vecn = vecr.GetNormalize();
+		Core::Vector2F const vecn = vecr.normalized();
 		node.x_dir = vecn.x;
 		node.y_dir = vecn.y;
 		return;
@@ -80,9 +80,9 @@ void GameObjectBentLaser::_UpdateNodeVertexExtend(size_t i) noexcept
 	LaserNode& next = m_Queue[i + 1]; // 下一个节点（相对更新的节点）
 
 	// 计算向量以及点积
-	fcyVec2 const vec1 = node.pos - last.pos;
-	fcyVec2 const vec2 = next.pos - node.pos;
-	fFloat const dotv = vec1 * vec2;
+	Core::Vector2F const vec1 = node.pos - last.pos;
+	Core::Vector2F const vec2 = next.pos - node.pos;
+	float const dotv = vec1 * vec2;
 
 	// 转角小于 90 度的情况
 	if (dotv > 0.0f)
@@ -93,14 +93,14 @@ void GameObjectBentLaser::_UpdateNodeVertexExtend(size_t i) noexcept
 		// sinA = -1
 		// x = X * cosA - Y * sinA = Y
 		// y = X * sinA + Y * cosA = -X
-		fcyVec2 const vec1r(vec1.y, -vec1.x);
-		fcyVec2 const vec2r(vec2.y, -vec2.x);
+		Core::Vector2F const vec1r(vec1.y, -vec1.x);
+		Core::Vector2F const vec2r(vec2.y, -vec2.x);
 		
 		// 向量求和，得到延展向量
-		fcyVec2 const vec = vec1r + vec2r;
+		Core::Vector2F const vec = vec1r + vec2r;
 
 		// 归一化向量，保存
-		fcyVec2 const vecn = vec.GetNormalize();
+		Core::Vector2F const vecn = vec.normalized();
 		node.x_dir = vecn.x;
 		node.y_dir = vecn.y;
 		return;
@@ -110,10 +110,10 @@ void GameObjectBentLaser::_UpdateNodeVertexExtend(size_t i) noexcept
 	else
 	{
 		// 向量求和，得到延展向量
-		fcyVec2 const vec = -vec1 + vec2;
+		Core::Vector2F const vec = -vec1 + vec2;
 
 		// 归一化向量，保存
-		fcyVec2 const vecn = vec.GetNormalize();
+		Core::Vector2F const vecn = vec.normalized();
 		node.x_dir = vecn.x;
 		node.y_dir = vecn.y;
 		return;
@@ -202,8 +202,8 @@ void GameObjectBentLaser::_UpdateAllNode() noexcept
 	{
 		LaserNode& last = m_Queue[i];     // 靠近头部（老节点）
 		LaserNode& next = m_Queue[i + 1]; // 靠近尾部（新节点）
-		fcyVec2 const vec = next.pos - last.pos;
-		fFloat const len = vec.Length();
+		Core::Vector2F const vec = next.pos - last.pos;
+		float const len = vec.length();
 		//if (len > std::numeric_limits<float>::min())
 		//{
 		//	next.rot = vec.CalcuAngle(); // 相对上一个节点的角度就是自身的朝向
@@ -313,7 +313,7 @@ bool GameObjectBentLaser::Update(float x, float y, float rot, int length, float 
 	node.active = active;
 
 	// 变化几乎可以忽略不计，我们可以直接修改最新的节点
-	if (!m_Queue.IsEmpty() && (node.pos - m_Queue.Back().pos).Length() <= std::numeric_limits<fFloat>::min())
+	if (!m_Queue.IsEmpty() && (node.pos - m_Queue.Back().pos).length() <= std::numeric_limits<fFloat>::min())
 	{
 		// 移除多余的节点，保证长度在 length 范围内
 		while (m_Queue.Size() >= (size_t)length)
@@ -331,7 +331,7 @@ bool GameObjectBentLaser::Update(float x, float y, float rot, int length, float 
 			//last.half_width = node.half_width; // 保留宽度
 			// 修改到上一个节点的距离和重新计算总长度
 			m_fLength -= last.dis;
-			fFloat const len_ = (last.pos - prev.pos).Length();
+			float const len_ = (last.pos - prev.pos).length();
 			last.dis = len_;
 			m_fLength += len_;
 			// 修改激活状态
@@ -369,9 +369,9 @@ bool GameObjectBentLaser::Update(float x, float y, float rot, int length, float 
 		if (m_Queue.Size() > 0)
 		{
 			LaserNode& last = m_Queue[m_Queue.Size() - 1];
-			fcyVec2 const vec_ = node.pos - last.pos;
+			Core::Vector2F const vec_ = node.pos - last.pos;
 			// 计算到上一个节点的距离和重新计算总长度
-			fFloat const len_ = vec_.Length();
+			float const len_ = vec_.length();
 			node.dis = len_;
 			if (active && last.active)
 			{
@@ -414,7 +414,7 @@ void GameObjectBentLaser::SetAllWidth(float width)  noexcept
 	}
 }
 
-bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, fcyColor c, float tex_left, float tex_top, float tex_width, float tex_height, float scale) noexcept
+bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, Core::Color4B c, float tex_left, float tex_top, float tex_width, float tex_height, float scale) noexcept
 {
 	using namespace Core;
 	using namespace Core::Graphics;
@@ -469,9 +469,9 @@ bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, fcyColor
 	// 1---3---5---7
 	float total_length = 0.0f;
 	bool flip = false;
-	uint32_t const vertex_color = c.argb;
+	uint32_t const vertex_color = c.color();
 	c.a = 0;
-	uint32_t const vertex_color_alpha = c.argb;
+	uint32_t const vertex_color_alpha = c.color();
 	IRenderer::DrawVertex* p_vert = p_vertex;
 	for (size_t i = 0; i < node_count; i += 1)
 	{
@@ -548,7 +548,7 @@ bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, fcyColor
 	return true;
 }
 
-void GameObjectBentLaser::RenderCollider(fcyColor fillColor) noexcept {
+void GameObjectBentLaser::RenderCollider(Core::Color4B fillColor) noexcept {
 	// 忽略只有一个节点的情况
 	int sn = m_Queue.Size();
 	if (sn <= 1)
@@ -805,7 +805,7 @@ bool GameObjectBentLaser::UpdatePositionByList(lua_State * L, int length, float 
 		LaserNode* tNode = &m_Queue[size - cindex - 1];
 		tNode->active = true;
 		tNode->half_width = width / 2;
-		tNode->pos.Set(x, y);
+		tNode->pos = Core::Vector2F(x, y);
 	}
 	_UpdateAllNode();
 	return true;
@@ -828,11 +828,11 @@ int GameObjectBentLaser::SampleL(lua_State * L, float length) noexcept
 		LaserNode& cur = m_Queue[i];
 		LaserNode& next = m_Queue[i - 1];
 
-		fcyVec2 vn = cur.pos;
-		fcyVec2 offsetA = next.pos - cur.pos;
-		float lenOffsetA = offsetA.Length();
-		fcyVec2 expandVec = offsetA.GetNormalize();
-		float angle = expandVec.CalcuAngle() * LRAD2DEGREE + 180;
+		Core::Vector2F vn = cur.pos;
+		Core::Vector2F offsetA = next.pos - cur.pos;
+		float lenOffsetA = offsetA.length();
+		Core::Vector2F expandVec = offsetA.normalized();
+		float angle = expandVec.angle() * LRAD2DEGREE + 180;
 		while (fLeft - lenOffsetA <= 0) {
 			vn = expandVec * fLeft + cur.pos;
 			lua_newtable(L); //... t(list) t(object)
@@ -869,10 +869,10 @@ int GameObjectBentLaser::SampleT(lua_State * L, float delay) noexcept
 		LaserNode& next = m_Queue[i - 1];
 
 
-		fcyVec2 vn = cur.pos;
-		fcyVec2 offsetA = next.pos - cur.pos;
-		float lenOffsetA = offsetA.Length();
-		float angle = offsetA.CalcuAngle() * LRAD2DEGREE + 180;
+		Core::Vector2F vn = cur.pos;
+		Core::Vector2F offsetA = next.pos - cur.pos;
+		float lenOffsetA = offsetA.length();
+		float angle = offsetA.angle() * LRAD2DEGREE + 180;
 		while (fLeft - 1 <= 0) {
 			vn = offsetA * fLeft + cur.pos;
 			lua_newtable(L); //... t(list) t(object)
@@ -920,7 +920,7 @@ int GameObjectBentLaser::api_UpdateSingleNode(lua_State* L)
 	if (node_index > 0)
 	{
 		LaserNode& last = m_Queue[node_index - 1];
-		fFloat const len_ = (node.pos - last.pos).Length();
+		float const len_ = (node.pos - last.pos).length();
 		node.dis = len_;
 		m_fLength += len_; // 现在重新加回来
 	}

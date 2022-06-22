@@ -6,7 +6,6 @@
 
 #define LUASTG_LUA_LIBNAME "lstg"
 
-#define LUASTG_LUA_TYPENAME_COLOR "lstg.Color"
 #define LUASTG_LUA_TYPENAME_STOPWATCH "lstg.StopWatch"
 #define LUASTG_LUA_TYPENAME_RANDGEN "lstg.Rand"
 #define LUASTG_LUA_TYPENAME_BENTLASER "lstg.CurveLaser"
@@ -26,7 +25,7 @@ namespace LuaSTGPlus
 	{
 	public:
 		/// @brief 向lua注册包装类
-		static void Register(lua_State* L)LNOEXCEPT;
+		static void Register(lua_State* L) noexcept;
 	};
 	
 	//压缩包
@@ -34,14 +33,14 @@ namespace LuaSTGPlus
 	private:
 		struct Wrapper;
 	public:
-		static void Register(lua_State* L)LNOEXCEPT;
-		static void CreateAndPush(lua_State* L, uint64_t uuid)LNOEXCEPT;
+		static void Register(lua_State* L) noexcept;
+		static void CreateAndPush(lua_State* L, uint64_t uuid) noexcept;
 	};
 
 	//文件资源管理
 	class FileManagerWrapper {
 	public:
-		static void Register(lua_State* L)LNOEXCEPT;
+		static void Register(lua_State* L) noexcept;
 	};
 
 	namespace LuaWrapper
@@ -49,71 +48,65 @@ namespace LuaSTGPlus
 		class WindowWrapper
 		{
 		public:
-			static void Register(lua_State* L)LNOEXCEPT;
+			static void Register(lua_State* L) noexcept;
 		};
 		class InputWrapper
 		{
 		public:
-			static void Register(lua_State* L)LNOEXCEPT;
+			static void Register(lua_State* L) noexcept;
 		};
 		
 		class RenderWrapper
 		{
 		public:
-			static void Register(lua_State* L)LNOEXCEPT;
+			static void Register(lua_State* L) noexcept;
 		};
 		class RendererWrapper
 		{
 		public:
-			static void Register(lua_State* L)LNOEXCEPT;
+			static void Register(lua_State* L) noexcept;
 		};
 		class GameObjectManagerWrapper
 		{
 		public:
-			static void Register(lua_State* L)LNOEXCEPT;
+			static void Register(lua_State* L) noexcept;
 		};
 		class ResourceMgrWrapper
 		{
 		public:
-			static void Register(lua_State* L)LNOEXCEPT;
+			static void Register(lua_State* L) noexcept;
 		};
 		class AudioWrapper
 		{
 		public:
-			static void Register(lua_State* L)LNOEXCEPT;
+			static void Register(lua_State* L) noexcept;
 		};
 		class PlatformWrapper
 		{
 		public:
-			static void Register(lua_State* L)LNOEXCEPT;
+			static void Register(lua_State* L) noexcept;
 		};
 		
 		class ColorWrapper
 		{
 		public:
-			struct HSVColor {
-				float hue;
-				float saturation;
-				float value;
-			};
-			static HSVColor RGB2HSV(const fcyColor& rgb)LNOEXCEPT;
-			static fcyColor HSV2RGB(const HSVColor& hsv)LNOEXCEPT;
-			static fcyColor* Cast(lua_State* L, int idx);
-			static void Register(lua_State* L)LNOEXCEPT;
-			static void CreateAndPush(lua_State* L, const fcyColor& color);
+			static std::string_view const ClassID;
+			static Core::Color4B* Cast(lua_State* L, int idx);
+			static void Register(lua_State* L) noexcept;
+			static void CreateAndPush(lua_State* L, Core::Color4B const& color);
 		};
 
 		class StopWatchWrapper
 		{
 		public:
-			static void Register(lua_State* L)LNOEXCEPT;
+			static void Register(lua_State* L) noexcept;
 			static void CreateAndPush(lua_State* L);
 		};
 
 		class RandomizerWrapper
 		{
 		public:
-			static void Register(lua_State* L)LNOEXCEPT;
+			static void Register(lua_State* L) noexcept;
 			static void CreateAndPush(lua_State* L);
 		};
 
@@ -122,14 +115,14 @@ namespace LuaSTGPlus
 		private:
 			struct Wrapper;
 		public:
-			static void Register(lua_State* L)LNOEXCEPT;
+			static void Register(lua_State* L) noexcept;
 			static void CreateAndPush(lua_State* L);
 		};
 		
 		class DInputWrapper
 		{
 		public:
-			static void Register(lua_State* L)LNOEXCEPT;
+			static void Register(lua_State* L) noexcept;
 		};
 		
 		class ParticleSystemWrapper
@@ -155,7 +148,7 @@ namespace LuaSTGPlus
 					fcyStream* handle;
 				};
 			public:
-				static void Register(lua_State* L)LNOEXCEPT;
+				static void Register(lua_State* L) noexcept;
 				static void CreateAndPush(lua_State* L, fcyStream* handle);
 			};
 
@@ -166,7 +159,7 @@ namespace LuaSTGPlus
 					fcyBinaryReader* handle;
 				};
 			public:
-				static void Register(lua_State* L)LNOEXCEPT;
+				static void Register(lua_State* L) noexcept;
 				static void CreateAndPush(lua_State* L, fcyStream* handle);
 			};
 
@@ -177,15 +170,15 @@ namespace LuaSTGPlus
 					fcyBinaryWriter* handle;
 				};
 			public:
-				static void Register(lua_State* L)LNOEXCEPT;
+				static void Register(lua_State* L) noexcept;
 				static void CreateAndPush(lua_State* L, fcyStream* handle);
 			};
 
-			void Register(lua_State* L)LNOEXCEPT;
+			void Register(lua_State* L) noexcept;
 		}
 
-		void Register(lua_State* L)LNOEXCEPT;
+		void Register(lua_State* L) noexcept;
 	}
 
-	void RegistBuiltInClassWrapper(lua_State* L)LNOEXCEPT;
+	void RegistBuiltInClassWrapper(lua_State* L) noexcept;
 }
