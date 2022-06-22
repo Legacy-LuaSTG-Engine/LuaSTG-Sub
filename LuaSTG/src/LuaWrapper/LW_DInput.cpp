@@ -39,7 +39,7 @@ namespace LuaSTGPlus
                     }
                     return 1;
                 };
-                static int update(lua_State* L)
+                static int update(lua_State*)
                 {
                     LDI();
                     if (self)
@@ -48,7 +48,7 @@ namespace LuaSTGPlus
                     }
                     return 0;
                 };
-                static int reset(lua_State* L)
+                static int reset(lua_State*)
                 {
                     LDI();
                     if (self)

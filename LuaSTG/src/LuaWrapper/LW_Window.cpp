@@ -122,9 +122,9 @@ static int lib_getDPIScaling(lua_State* L)
     return 1;
 }
 
-static int lib_setTextInputEnable(lua_State* L)
+static int lib_setTextInputEnable(lua_State*)
 {
-    const bool enable = lua_toboolean(L, 1);
+    //const bool enable = lua_toboolean(L, 1);
     return 0;
 }
 static int lib_getTextInput(lua_State* L)
@@ -132,7 +132,7 @@ static int lib_getTextInput(lua_State* L)
     lua_pushstring(L, "");
     return 1;
 }
-static int lib_clearTextInput(lua_State* L)
+static int lib_clearTextInput(lua_State*)
 {
     return 0;
 }

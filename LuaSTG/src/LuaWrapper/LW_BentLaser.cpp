@@ -6,7 +6,8 @@ namespace LuaSTGPlus
 {
 	namespace LuaWrapper
 	{
-		struct BentLaserWrapper::Wrapper {
+		struct BentLaserWrapper::Wrapper
+		{
 			GameObjectBentLaser* handle;
 		};
 
@@ -14,8 +15,9 @@ namespace LuaSTGPlus
 		{
 			struct Function
 			{
-#define GETUDATA(p, i) Wrapper* (p) = static_cast<Wrapper*>(luaL_checkudata(L, (i), LUASTG_LUA_TYPENAME_BENTLASER));
-#define CHECKUDATA(p) if (!(p)->handle) return luaL_error(L, "%s was released.", LUASTG_LUA_TYPENAME_BENTLASER);
+			#define GETUDATA(p, i) Wrapper* (p) = static_cast<Wrapper*>(luaL_checkudata(L, (i), LUASTG_LUA_TYPENAME_BENTLASER));
+			#define CHECKUDATA(p) if (!(p)->handle) return luaL_error(L, "%s was released.", LUASTG_LUA_TYPENAME_BENTLASER);
+
 				static int Update(lua_State* L)LNOEXCEPT
 				{
 					GETUDATA(p, 1);
@@ -25,7 +27,7 @@ namespace LuaSTGPlus
 						float const x = (float)luaL_checknumber(L, 2);
 						float const y = (float)luaL_checknumber(L, 3);
 						float const rot = (float)luaL_checknumber(L, 4);
-						int const node_count = (float)luaL_checkinteger(L, 5);
+						int const node_count = (int)luaL_checkinteger(L, 5);
 						float const width = (float)luaL_checknumber(L, 6);
 						if (!p->handle->Update(x, y, rot, node_count, width, true))
 							return luaL_error(L, "'Update' failed.");
@@ -101,7 +103,7 @@ namespace LuaSTGPlus
 					p->handle->SampleT(L, time / 60.0f); // t(list)
 					return 1;
 				}
-				static int Release(lua_State* L)LNOEXCEPT
+				static int Release(lua_State*)LNOEXCEPT
 				{
 					return 0;
 				}
@@ -224,8 +226,9 @@ namespace LuaSTGPlus
 					}
 					return 0;
 				}
-#undef CHECKUDATA
-#undef GETUDATA
+
+			#undef CHECKUDATA
+			#undef GETUDATA
 			};
 
 			luaL_Reg tMethods[] =
