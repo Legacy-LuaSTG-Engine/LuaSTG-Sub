@@ -58,7 +58,7 @@ void LuaSTGPlus::LuaWrapper::RenderWrapper::Register(lua_State* L) LNOEXCEPT
             return 0;
         }
         //EX+
-        static int DrawCollider(lua_State* L)LNOEXCEPT
+        static int DrawCollider(lua_State*)LNOEXCEPT
         {
             LPOOL.DrawCollider();
             return 1;

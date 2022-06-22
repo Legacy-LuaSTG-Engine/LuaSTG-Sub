@@ -45,7 +45,7 @@ void ArchiveWrapper::Register(lua_State* L)LNOEXCEPT
 				string_view frompath = frompathattr; //目标路径
 				lua_newtable(L);// ??? self searchpath t 
 				int i = 1;
-				for (long long index = 0; index < zip.getCount(); index++) {
+				for (size_t index = 0; index < zip.getCount(); index++) {
 					string topath(zip.getName(index)); //要比较的路径
 					if (frompath.size() >= topath.size()) {
 						continue; // 短的直接pass
@@ -55,8 +55,8 @@ void ArchiveWrapper::Register(lua_State* L)LNOEXCEPT
 						if (path == frompath) {
 							string_view path2(&topath[frompath.size()], topath.size() - frompath.size());//剩余部分
 							int count = 0;
-							for (auto& i : path2) {
-								if (i == '/') {
+							for (auto& c : path2) {
+								if (c == '/') {
 									count++;
 								}
 							}
@@ -97,7 +97,7 @@ void ArchiveWrapper::Register(lua_State* L)LNOEXCEPT
 			if (!zip.empty()) {
 				lua_newtable(L);// ??? self t 
 				int i = 1;
-				for (long long index = 0; index < zip.getCount(); index++) {
+				for (size_t index = 0; index < zip.getCount(); index++) {
 					string topath(zip.getName(index));
 
 					lua_pushinteger(L, i);// ??? self searchpath t i 
@@ -153,7 +153,7 @@ void ArchiveWrapper::Register(lua_State* L)LNOEXCEPT
 			lua_pushinteger(L, 0);
 			return 1;
 		}
-		static int SetPriority(lua_State* L)
+		static int SetPriority(lua_State*)
 		{
 			return 0;
 		}

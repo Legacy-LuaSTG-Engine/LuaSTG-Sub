@@ -309,7 +309,7 @@ fLen fcyPartialStream::GetLength() {
     return m_Len;
 }
 
-fResult fcyPartialStream::SetLength(fLen Length) {
+fResult fcyPartialStream::SetLength(fLen) {
     return FCYERR_ILLEGAL;
 }
 

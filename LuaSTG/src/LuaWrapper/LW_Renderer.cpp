@@ -50,7 +50,7 @@ inline void rotate_float2x4(float& x1, float& y1, float& x2, float& y2, float& x
         y4 = ty;
     }
 }
-inline void translate_blend(Core::Graphics::IRenderer* ctx, const LuaSTGPlus::BlendMode blend)
+inline void translate_blend(Core::Graphics::IRenderer*, const LuaSTGPlus::BlendMode blend)
 {
     LAPP.updateGraph2DBlendMode(blend);
 }
@@ -229,7 +229,7 @@ static int lib_clearRenderTarget(lua_State* L)LNOEXCEPT
 }
 static int lib_clearDepthBuffer(lua_State* L)LNOEXCEPT
 {
-    LR2D()->clearDepthBuffer(luaL_checknumber(L, 1));
+    LR2D()->clearDepthBuffer((float)luaL_checknumber(L, 1));
     return 0;
 }
 
@@ -498,7 +498,7 @@ static int lib_drawSprite(lua_State* L)
     api_drawSprite(
         luaL_checkstring(L, 1),
         (float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3),
-        (float)luaL_optnumber(L, 4, 0.0) * LDEGREE2RAD,
+        (float)(luaL_optnumber(L, 4, 0.0) * LDEGREE2RAD),
         hscale * LRESMGR().GetGlobalImageScaleFactor(), (float)luaL_optnumber(L, 6, hscale) * LRESMGR().GetGlobalImageScaleFactor(),
         (float)luaL_optnumber(L, 7, 0.5));
     return 0;
@@ -530,7 +530,7 @@ static int lib_drawSpriteSequence(lua_State* L)
         luaL_checkstring(L, 1),
         (int)luaL_checkinteger(L, 2),
         (float)luaL_checknumber(L, 3), (float)luaL_checknumber(L, 4),
-        (float)luaL_optnumber(L, 5, 0.0) * LDEGREE2RAD,
+        (float)(luaL_optnumber(L, 5, 0.0) * LDEGREE2RAD),
         hscale * LRESMGR().GetGlobalImageScaleFactor(), (float)luaL_optnumber(L, 7, hscale) * LRESMGR().GetGlobalImageScaleFactor(),
         (float)luaL_optnumber(L, 8, 0.5));
     return 0;
@@ -748,7 +748,7 @@ static int compat_SetZBufferEnable(lua_State* L)LNOEXCEPT
 }
 static int compat_ClearZBuffer(lua_State* L)LNOEXCEPT
 {
-    LR2D()->clearDepthBuffer(luaL_optnumber(L, 1, 1.0));
+    LR2D()->clearDepthBuffer((float)luaL_optnumber(L, 1, 1.0));
     return 0;
 }
 static int compat_PushRenderTarget(lua_State* L)LNOEXCEPT
@@ -795,7 +795,7 @@ static int compat_PostEffect(lua_State* L)
     
     size_t cbdata_n = lua_objlen(L, 5);
     cbdata_n = (cbdata_n <= 8) ? cbdata_n : 8;
-    for (int i = 1; i <= cbdata_n; i += 1)
+    for (int i = 1; i <= (int)cbdata_n; i += 1)
     {
         lua_rawgeti(L, 5, i);  // ??? t
         lua_rawgeti(L, -1, 1); // ??? t f1
@@ -810,7 +810,7 @@ static int compat_PostEffect(lua_State* L)
     }
     size_t tdata_n = lua_objlen(L, 6);
     tdata_n = (tdata_n <= 8) ? tdata_n : 4;
-    for (int i = 1; i <= tdata_n; i += 1)
+    for (int i = 1; i <= (int)tdata_n; i += 1)
     {
         lua_rawgeti(L, 6, i);  // ??? t
         lua_rawgeti(L, -1, 1); // ??? t tex
