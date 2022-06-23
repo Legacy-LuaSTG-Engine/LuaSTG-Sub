@@ -1,6 +1,6 @@
 # LuaSTG configurer
 
-add_subdirectory(configurer)
+add_subdirectory(Configurer)
 
 # LuaSTG Engine
 

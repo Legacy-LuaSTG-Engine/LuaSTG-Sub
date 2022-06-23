@@ -379,12 +379,10 @@ struct Window
         if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&dxgi_factory))))
         {
             throw std::runtime_error("CreateDXGIFactory1 failed.");
-            return false;
         }
         if (FAILED(dxgi_factory->EnumAdapters1(0, &dxgi_adapter)))
         {
             throw std::runtime_error("IDXGIFactory1::EnumAdapters1 failed.");
-            return false;
         }
         
         dxgi_adapter_list.clear();
@@ -592,9 +590,9 @@ struct Window
         bool find_mode = false;
         for (auto& v : dxgi_output_mode_list)
         {
-            if (luastg_config.width == v.mode.Width && luastg_config.height == v.mode.Height
-                && luastg_config.refresh_rate_numerator == v.mode.RefreshRate.Numerator
-                && luastg_config.refresh_rate_denominator == v.mode.RefreshRate.Denominator)
+            if (luastg_config.width == (int)v.mode.Width && luastg_config.height == (int)v.mode.Height
+                && luastg_config.refresh_rate_numerator == (int)v.mode.RefreshRate.Numerator
+                && luastg_config.refresh_rate_denominator == (int)v.mode.RefreshRate.Denominator)
             {
                 luastg_config.select_mode = &v - dxgi_output_mode_list.data();
                 find_mode = true;
@@ -605,7 +603,7 @@ struct Window
         {
             for (auto& v : dxgi_output_mode_list)
             {
-                if (luastg_config.width == v.mode.Width && luastg_config.height == v.mode.Height)
+                if (luastg_config.width == (int)v.mode.Width && luastg_config.height == (int)v.mode.Height)
                 {
                     luastg_config.select_mode = &v - dxgi_output_mode_list.data();
                     find_mode = true;
@@ -617,7 +615,7 @@ struct Window
         {
             for (auto& v : dxgi_output_mode_list)
             {
-                if (luastg_config.width == v.mode.Width || luastg_config.height == v.mode.Height)
+                if (luastg_config.width == (int)v.mode.Width || luastg_config.height == (int)v.mode.Height)
                 {
                     luastg_config.select_mode = &v - dxgi_output_mode_list.data();
                     find_mode = true;
@@ -717,8 +715,7 @@ struct Window
     }
 };
 
-_Use_decl_anno_impl_
-int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
+_Use_decl_annotations_ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 {
     try
     {
