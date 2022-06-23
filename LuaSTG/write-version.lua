@@ -1,8 +1,8 @@
 
 local version = {
     major = 0,
-    minor = 17,
-    patch = 4,
+    minor = 18,
+    patch = 0,
 }
 
 local utf8_bom = "\xEF\xBB\xBF"
@@ -236,7 +236,7 @@ local function write_rc()
     local v_str_2 = string.format("%d.%d.%d.0", version.major, version.minor, version.patch)
     local rc_str = string.format(rc_fmt, v_str_1, v_str_1, v_str_2, v_str_2)
     ---@type file*
-    local f = assert(io.open("res/resource.rc", "wb"))
+    local f = assert(io.open("LuaSTG/Custom/resource.rc", "wb"))
     f:write(utf8_bom)
     f:write(rc_str)
     f:close()
@@ -316,7 +316,7 @@ local function write_manifest()
     local v_str_2 = string.format("%d.%d.%d.0", version.major, version.minor, version.patch)
     local manifest_str = string.format(manifest_fmt, v_str_2)
     ---@type file*
-    local f = assert(io.open("src/LuaSTG.manifest", "wb"))
+    local f = assert(io.open("LuaSTG/LuaSTG.manifest", "wb"))
     f:write(manifest_str)
     f:close()
 end
@@ -366,7 +366,7 @@ local function write_h()
         version.major, version.minor, version.patch,
         version.major, version.minor, version.patch)
     ---@type file*
-    local f = assert(io.open("src/LConfig.h", "wb"))
+    local f = assert(io.open("LuaSTG/LConfig.h", "wb"))
     --f:write(utf8_bom) -- 大概不需要？
     f:write(h_str)
     f:close()
