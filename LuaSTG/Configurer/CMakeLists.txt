@@ -3,15 +3,15 @@ add_executable(LuaSTGConfig WIN32)
 luastg_target_common_options(LuaSTGConfig)
 luastg_target_more_warning(LuaSTGConfig)
 target_precompile_headers(LuaSTGConfig PRIVATE
-    pch.h
+    SharedHeaders.h
 )
 target_include_directories(LuaSTGConfig PRIVATE
     .
 )
 target_sources(LuaSTGConfig PRIVATE
-    LuaSTGConfig.manifest
-    pch.h
+    SharedHeaders.h
     main.cpp
+    Configurer.manifest
 )
 target_link_libraries(LuaSTGConfig PRIVATE
     d3d11.lib
