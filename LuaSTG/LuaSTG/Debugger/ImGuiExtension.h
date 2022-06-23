@@ -8,6 +8,7 @@ namespace imgui
     void bindEngine();
     void unbindEngine();
     
+    void cacheGlyphFromString(std::string_view str);
     void cancelSetCursor();
     void updateEngine();
     void drawEngine();
