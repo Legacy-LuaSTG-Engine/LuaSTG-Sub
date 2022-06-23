@@ -1,10 +1,14 @@
-#include "Utility.h"
-#include <functional>
+#include "Utility/Utility.h"
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <Windows.h>
+#include <combaseapi.h>
 
-namespace LuaSTGPlus {
-    ///离开作用域自动执行委托的函数
-    class Scope {
+namespace LuaSTGPlus
+{
+    // 离开作用域自动执行委托的函数
+    class Scope
+    {
     private:
         std::function<void()> m_WhatToDo;
     public:
@@ -12,12 +16,14 @@ namespace LuaSTGPlus {
         ~Scope() { m_WhatToDo(); }
     };
     
-    float TimerScope::operator()() const {
+    float TimerScope::operator()() const
+    {
         LARGE_INTEGER time = {};
         ::QueryPerformanceCounter(&time);
         return float(double(time.QuadPart - _time) / double(_freq));
     }
-    TimerScope::TimerScope(float& inout) : _freq(0), _time(0), _out(inout) {
+    TimerScope::TimerScope(float& inout) : _freq(0), _time(0), _out(inout)
+    {
         LARGE_INTEGER freq = {};
         ::QueryPerformanceFrequency(&freq);
         _freq = freq.QuadPart;
@@ -26,17 +32,21 @@ namespace LuaSTGPlus {
         _time = time.QuadPart;
         _out = 0.0f; // clean
     }
-    TimerScope::~TimerScope() {
+    TimerScope::~TimerScope()
+    {
         LARGE_INTEGER time = {};
         ::QueryPerformanceCounter(&time);
         _out = float(double(time.QuadPart - _time) / double(_freq));
     }
     
-    CoInitializeScope::CoInitializeScope() {
+    CoInitializeScope::CoInitializeScope()
+    {
         _result = SUCCEEDED(::CoInitializeEx(nullptr, COINIT_MULTITHREADED));
     }
-    CoInitializeScope::~CoInitializeScope() {
-        if (_result) {
+    CoInitializeScope::~CoInitializeScope()
+    {
+        if (_result)
+        {
             ::CoUninitialize();
         }
     }
