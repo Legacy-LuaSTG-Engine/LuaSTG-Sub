@@ -83,6 +83,14 @@ namespace LuaSTGPlus
             ZeroMemory(&MouseState, sizeof(MouseState));
         }
     }
+    void AppFrame::ResetKeyboardInput()
+    {
+        g_KeyboardState.Reset();
+    }
+    void AppFrame::ResetMouseInput()
+    {
+        ZeroMemory(&MouseState, sizeof(MouseState));
+    }
 
     bool AppFrame::WantSwitchFullScreenMode()
     {

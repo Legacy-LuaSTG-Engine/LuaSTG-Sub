@@ -103,6 +103,8 @@ namespace LuaSTGPlus
 		void CloseInput();
 		void UpdateInput();
 		bool WantSwitchFullScreenMode();
+		void ResetKeyboardInput();
+		void ResetMouseInput();
 
 		//检查按键是否按下
 		fBool GetKeyState(int VKCode)noexcept;

@@ -12,6 +12,7 @@ namespace Core::Graphics
 		virtual void onWindowInactive() {};
 
 		virtual void onWindowSizeMovePaint() {};
+		virtual void onWindowDpiChanged() {};
 
 		virtual void onWindowClose() {};
 
