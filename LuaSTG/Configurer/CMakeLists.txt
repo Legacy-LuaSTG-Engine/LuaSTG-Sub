@@ -10,7 +10,7 @@ target_include_directories(LuaSTGConfig PRIVATE
 )
 target_sources(LuaSTGConfig PRIVATE
     SharedHeaders.h
-    main.cpp
+    Main.cpp
     Configurer.manifest
 )
 target_link_libraries(LuaSTGConfig PRIVATE
