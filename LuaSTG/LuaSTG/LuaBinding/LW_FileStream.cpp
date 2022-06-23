@@ -1,5 +1,7 @@
-﻿#include "LuaWrapper\LuaWrapper.hpp"
+﻿#include "LuaWrapper/LuaWrapper.hpp"
 #include "utility/encoding.hpp"
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <Windows.h>
 #include <wrl/wrappers/corewrappers.h>
 
