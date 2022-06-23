@@ -258,6 +258,13 @@ static int lib_RenderDrawData(lua_State* L)
     imgui::drawEngine();
     return 0;
 }
+static int lib_CacheGlyphFromString(lua_State* L)
+{
+    size_t len = 0;
+    char const* str = luaL_checklstring(L, 1, &len);
+    imgui::cacheGlyphFromString(std::string_view(str, len));
+    return 0;
+}
 
 static int lib_ShowTestInputWindow(lua_State* L)
 {
@@ -621,6 +628,7 @@ void imgui_binding_lua_register_backend(lua_State* L)
     const luaL_Reg lib_fun[] = {
         {"NewFrame", &lib_NewFrame},
         {"RenderDrawData", &lib_RenderDrawData},
+        {"CacheGlyphFromString", &lib_CacheGlyphFromString},
         {"ShowTestInputWindow", &lib_ShowTestInputWindow},
         {"ShowMemoryUsageWindow", &lib_ShowMemoryUsageWindow},
         {"ShowFrameStatistics", &lib_ShowFrameStatistics},
@@ -647,7 +655,7 @@ namespace imgui
 {
     static bool g_ImGuiBindEngine = false;
     static bool g_ImGuiTexIDValid = false;
-
+    
     class ImGuiBackendEventListener
         : public Core::Graphics::IDeviceEventListener
         , public Core::Graphics::IWindowEventListener
@@ -682,6 +690,63 @@ namespace imgui
         }
     };
     static ImGuiBackendEventListener g_ImGuiRenderDeviceEventListener;
+
+    class ImGuiGlyphManager
+    {
+    public:
+        ImFontGlyphRangesBuilder glyphRangesBuilder;
+        ImVector<ImWchar> glyphRanges;
+        size_t lastCount{};
+        bool isDirty{};
+    private:
+        inline size_t calGlyphCount(ImVector<ImWchar> const& ranges)
+        {
+            if (ranges.Size == 0) return 0;
+            size_t total = 0;
+            ImWchar* ptr = ranges.Data;
+            while (*ptr)
+            {
+                total += (1 + (int)ptr[1] - (int)ptr[0]);
+                ptr += 2;
+            }
+            return total;
+        }
+    public:
+        bool updateRanges()
+        {
+            if (!isDirty) return false;
+            isDirty = false;
+            glyphRanges.resize(0);
+            glyphRangesBuilder.BuildRanges(&glyphRanges);
+            size_t const newCount = calGlyphCount(glyphRanges);
+            if (lastCount == newCount) return false;
+            lastCount = newCount;
+            return true;
+        }
+        void addText(std::string_view str)
+        {
+            isDirty = true;
+            glyphRangesBuilder.AddText(str.data(), str.data() + str.size());
+        }
+    public:
+        ImGuiGlyphManager()
+        {
+            glyphRangesBuilder.Clear();
+            glyphRanges.clear();
+            ImWchar const default_ranges[] =
+            {
+                0x0020, 0x00FF, // Basic Latin + Latin Supplement
+                0,
+            };
+            glyphRangesBuilder.AddRanges(default_ranges);
+            glyphRangesBuilder.AddText("璀境石"); // TODO: remove test code
+            glyphRangesBuilder.BuildRanges(&glyphRanges);
+            lastCount = calGlyphCount(glyphRanges);
+            isDirty = false;
+        }
+        ~ImGuiGlyphManager() {}
+    };
+    static ImGuiGlyphManager g_ImGuiGlyphManager;
 
     void loadConfig()
     {
@@ -780,8 +845,8 @@ namespace imgui
                 io.Fonts->AddFontFromFileTTF(
                     fontpath.c_str(),
                     16.0f * APP.GetAppModel()->getWindow()->getDPIScaling(),
-                    &cfg
-                    //, io.Fonts->GetGlyphRangesChineseFull()
+                    &cfg,
+                    g_ImGuiGlyphManager.glyphRanges.Data
                 );
             }
         }
@@ -838,6 +903,10 @@ namespace imgui
         ImGui::DestroyContext();
     }
 
+    void cacheGlyphFromString(std::string_view str)
+    {
+        g_ImGuiGlyphManager.addText(str);
+    }
     void cancelSetCursor()
     {
         if (g_ImGuiBindEngine)
@@ -852,9 +921,10 @@ namespace imgui
         if (g_ImGuiBindEngine)
         {
             int const msg_flags = g_ImGuiRenderDeviceEventListener.messageFlags.exchange(0);
-            if (msg_flags & 0x1)
+            bool const ranges_flag = g_ImGuiGlyphManager.updateRanges();
+            if ((msg_flags & 0x1) || ranges_flag)
             {
-                // 窗口 DPI 有变化
+                // 窗口 DPI 有变化或者有新的字形要添加进来
                 auto& io = ImGui::GetIO();
                 io.Fonts->Clear();
                 setConfig();
