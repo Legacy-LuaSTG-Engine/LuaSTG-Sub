@@ -1,10 +1,9 @@
-﻿#define WIN32_LEAN_AND_MEAN
+﻿#include "ImGuiExtension.h"
+
+#define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
-#include "ImGuiExtension.h"
-#include <string>
-#include <fstream>
-#include <filesystem>
-#include <vector>
+#include <d3d11.h>
+#include <Xinput.h>
 
 #include "imgui.h"
 #include "imgui_stdlib.h"
@@ -12,18 +11,16 @@
 #include "imgui_impl_win32ex.h"
 #include "imgui_impl_dx11.h"
 #include "implot.h"
-#include <d3d11.h>
 
 #include "lua.hpp"
 #include "lua_imgui.hpp"
 #include "lua_imgui_type.hpp"
 
 #include "platform/KnownDirectory.hpp"
+#include "platform/XInput.hpp"
+
 #include "AppFrame.h"
 #include "LuaBinding/LuaWrapper.hpp"
-
-#include <Xinput.h>
-#include "platform/XInput.hpp"
 
 // lua imgui backend binding
 
@@ -656,6 +653,7 @@ namespace imgui
         , public Core::Graphics::IWindowEventListener
     {
     public:
+        std::atomic_int messageFlags;
         void onDeviceDestroy()
         {
             g_ImGuiTexIDValid = false;
@@ -669,6 +667,10 @@ namespace imgui
             device->GetImmediateContext(&context);
             ImGui_ImplDX11_Init(device, context);
             context->Release();
+        }
+        void onWindowDpiChanged()
+        {
+            messageFlags.fetch_or(0x1);
         }
         NativeWindowMessageResult onNativeWindowMessage(void* hwnd, uint32_t msg, uintptr_t wparam, intptr_t lparam)
         {
@@ -689,12 +691,12 @@ namespace imgui
             // handle imgui config data
             io.IniFilename = NULL;
             std::wstring path;
-            #ifdef USING_SYSTEM_DIRECTORY
-                if (platform::KnownDirectory::makeAppDataW(APP_COMPANY, APP_PRODUCT, path))
-                {
-                    path.push_back(L'\\');
-                }
-            #endif
+        #ifdef USING_SYSTEM_DIRECTORY
+            if (platform::KnownDirectory::makeAppDataW(APP_COMPANY, APP_PRODUCT, path))
+            {
+                path.push_back(L'\\');
+            }
+        #endif
             path.append(L"imgui.ini");
             std::ifstream file(path, std::ios::in | std::ios::binary);
             if (file.is_open())
@@ -717,12 +719,12 @@ namespace imgui
         if (ImGui::GetCurrentContext())
         {
             std::wstring path;
-            #ifdef USING_SYSTEM_DIRECTORY
-                if (platform::KnownDirectory::makeAppDataW(APP_COMPANY, APP_PRODUCT, path))
-                {
-                    path.push_back(L'\\');
-                }
-            #endif
+        #ifdef USING_SYSTEM_DIRECTORY
+            if (platform::KnownDirectory::makeAppDataW(APP_COMPANY, APP_PRODUCT, path))
+            {
+                path.push_back(L'\\');
+            }
+        #endif
             path.append(L"imgui.ini");
             std::ofstream file(path, std::ios::out | std::ios::binary | std::ios::trunc);
             if (file.is_open())
@@ -763,16 +765,16 @@ namespace imgui
 
         ImGui::GetStyle() = style;
 
-        if (true)
+        if constexpr (true)
         {
             ImFontConfig cfg;
             cfg.OversampleH = 1;
-            //std::string fontpath = "C:\\Windows\\Fonts\\msyh.ttc";
-            //if (!std::filesystem::is_regular_file(fontpath))
-            //{
-            //    fontpath = "C:\\Windows\\Fonts\\msyh.ttf"; // Windows 7
-            //}
-            std::string fontpath = "C:\\Windows\\Fonts\\consola.ttf";
+            std::string fontpath = "C:\\Windows\\Fonts\\msyh.ttc";
+            if (!std::filesystem::is_regular_file(fontpath))
+            {
+                fontpath = "C:\\Windows\\Fonts\\msyh.ttf"; // Windows 7
+            }
+            //std::string fontpath = "C:\\Windows\\Fonts\\consola.ttf";
             if (std::filesystem::is_regular_file(fontpath))
             {
                 io.Fonts->AddFontFromFileTTF(
@@ -781,13 +783,9 @@ namespace imgui
                     &cfg
                     //, io.Fonts->GetGlyphRangesChineseFull()
                 );
-                io.Fonts->AddFontDefault();
-            }
-            else
-            {
-                io.Fonts->AddFontDefault(); // fallback
             }
         }
+        io.Fonts->AddFontDefault(); // always add default font
     }
     
     void bindEngine()
@@ -853,6 +851,15 @@ namespace imgui
         ZoneScopedN("imgui.backend.NewFrame");
         if (g_ImGuiBindEngine)
         {
+            int const msg_flags = g_ImGuiRenderDeviceEventListener.messageFlags.exchange(0);
+            if (msg_flags & 0x1)
+            {
+                // 窗口 DPI 有变化
+                auto& io = ImGui::GetIO();
+                io.Fonts->Clear();
+                setConfig();
+                ImGui_ImplDX11_InvalidateDeviceObjects();
+            }
             constexpr int const mask = (~((int)ImGuiConfigFlags_NoMouseCursorChange));
             auto& io = ImGui::GetIO();
             io.ConfigFlags &= mask;
@@ -865,6 +872,10 @@ namespace imgui
                 ImGui_ImplWin32Ex_NewFrame();
             }
             g_ImGuiTexIDValid = true;
+            if (io.WantCaptureKeyboard)
+                LAPP.ResetKeyboardInput();
+            if (io.WantCaptureMouse)
+                LAPP.ResetMouseInput();
         }
     }
     void drawEngine()

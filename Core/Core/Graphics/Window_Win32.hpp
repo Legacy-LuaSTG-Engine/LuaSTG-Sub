@@ -72,6 +72,7 @@ namespace Core::Graphics
 			WindowClose,
 
 			WindowSizeMovePaint,
+			WindowDpiChanged,
 
 			NativeWindowMessage,
 

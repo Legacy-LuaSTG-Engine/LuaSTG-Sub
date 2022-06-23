@@ -91,8 +91,10 @@ namespace Core::Graphics
 			{
 				setSize(getSize()); // 刷新一次尺寸（因为非客户区可能会变化）
 				setCentered();
+				dispatchEvent(EventType::WindowDpiChanged);
 				return 0;
 			}
+			dispatchEvent(EventType::WindowDpiChanged); // 仍然需要通知
 			break;
 		case WM_SETTINGCHANGE:
 		case WM_THEMECHANGED:
@@ -340,6 +342,12 @@ namespace Core::Graphics
 			for (auto& v : m_eventobj)
 			{
 				if (v) v->onWindowSizeMovePaint();
+			}
+			break;
+		case EventType::WindowDpiChanged:
+			for (auto& v : m_eventobj)
+			{
+				if (v) v->onWindowDpiChanged();
 			}
 			break;
 		case EventType::DeviceChange:
