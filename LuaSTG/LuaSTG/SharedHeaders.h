@@ -1,35 +1,34 @@
 ﻿#pragma once
 
-// 程序运行时调试
+// 调试库
 #include <crtdbg.h>
-
-// 标准库
 #include <cassert>
-#include <cstdlib>
-#include <cstdio>
+
+// 数值与算法库
 #include <cstdint>
 #include <cmath>
-#include <ctime>
-#include <functional>
 #include <algorithm>
-#include <string>
-#include <string_view>
-#include <sstream>
-#include <fstream>
-#include <vector>
-#include <memory>
-#include <map>
-#include <set>
-#include <regex>
-#include <array>
 #include <limits>
-#include <type_traits>
-#include <unordered_map>
-#include <unordered_set>
-#include <filesystem>
 #include <numbers>
 
-// 调试
+// 语言支持库
+#include <memory>
+#include <memory_resource>
+#include <functional>
+
+// 容器库
+#include <array>
+#include <vector>
+#include <string>
+#include <string_view>
+#include <set>
+#include <unordered_map>
+
+// 输入输出、文件系统库
+#include <fstream>
+#include <filesystem>
+
+// 调试工具
 #include "spdlog/spdlog.h"
 #include "Tracy.hpp"
 
