@@ -733,11 +733,7 @@ namespace imgui
         {
             glyphRangesBuilder.Clear();
             glyphRanges.clear();
-            ImWchar const default_ranges[] =
-            {
-                0x0020, 0x00FF, // Basic Latin + Latin Supplement
-                0,
-            };
+            ImWchar const default_ranges[] = { 0x20, 0x7F, 0, }; // ASCII
             glyphRangesBuilder.AddRanges(default_ranges);
             glyphRangesBuilder.AddText("璀境石"); // TODO: remove test code
             glyphRangesBuilder.BuildRanges(&glyphRanges);
@@ -850,7 +846,6 @@ namespace imgui
                 );
             }
         }
-        io.Fonts->AddFontDefault(); // always add default font
     }
     
     void bindEngine()
