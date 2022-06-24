@@ -60,6 +60,20 @@ namespace random
         return (x << k) | (x >> (64 - k));
     }
 
+    // https://github.com/imneme/pcg-cpp/blob/428802d1a5634f96bcd0705fab379ff0113bcf13/include/pcg_extras.hpp#L540
+    template <typename RNG>
+    inline RNG::result_type bounded_rand(RNG& rng, typename RNG::result_type upper_bound)
+    {
+        using rtype = RNG::result_type;
+        rtype threshold = (RNG::max() - RNG::min() + rtype(1) - upper_bound) % upper_bound;
+        for (;;)
+        {
+            rtype r = rng() - RNG::min();
+            if (r >= threshold)
+                return r % upper_bound;
+        }
+    }
+
     inline double to_double(const uint64_t x)
     {
         return (x >> 11) * 0x1.0p-53;
@@ -654,6 +668,7 @@ namespace random
             splitmix64 gn(seedv);
             for (int i = 0; i < 16; i++)
                 s[i] = gn.next();
+            p = 0; // TODO: WTF? How should I init it?
         }
         virtual uint64_t next()
         {
