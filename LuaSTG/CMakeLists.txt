@@ -103,6 +103,7 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/Utility/fixed_object_pool.hpp
     LuaSTG/Utility/Utility.h
     LuaSTG/Utility/ScopeObject.cpp
+    LuaSTG/Utility/xorshift.hpp
     
     LuaSTG/AppFrame.h
     LuaSTG/AppFrame.cpp
