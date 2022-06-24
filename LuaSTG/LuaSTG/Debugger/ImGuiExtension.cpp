@@ -879,7 +879,10 @@ namespace imgui
         {
             auto& io = ImGui::GetIO();
             if (io.WantSaveIniSettings)
+            {
+                io.WantSaveIniSettings = false;
                 saveConfig();
+            }
         }
 
         g_ImGuiBindEngine = false;
