@@ -62,13 +62,12 @@ namespace random
 
     // https://github.com/imneme/pcg-cpp/blob/428802d1a5634f96bcd0705fab379ff0113bcf13/include/pcg_extras.hpp#L540
     template <typename RNG>
-    inline RNG::result_type bounded_rand(RNG& rng, typename RNG::result_type upper_bound)
+    inline uint64_t bounded_rand(RNG &rng, uint64_t upper_bound)
     {
-        using rtype = RNG::result_type;
-        rtype threshold = (RNG::max() - RNG::min() + rtype(1) - upper_bound) % upper_bound;
+        uint64_t const threshold = (RNG::max() - RNG::min() + uint64_t(1) - upper_bound) % upper_bound;
         for (;;)
         {
-            rtype r = rng() - RNG::min();
+            uint64_t const r = rng() - RNG::min();
             if (r >= threshold)
                 return r % upper_bound;
         }
@@ -172,6 +171,7 @@ namespace random
         {
             seed(seedv);
         }
+        ~xoroshiro128p() {}
     };
 
     class xoroshiro128pp : public xoroshiro128_family
@@ -215,6 +215,7 @@ namespace random
         {
             seed(seedv);
         }
+        ~xoroshiro128pp() {}
     };
 
     class xoroshiro128ss : public xoroshiro128_family
@@ -258,6 +259,7 @@ namespace random
         {
             seed(seedv);
         }
+        ~xoroshiro128ss() {}
     };
 
     class xoshiro256_family
@@ -370,6 +372,7 @@ namespace random
         {
             seed(seedv);
         }
+        ~xoshiro256p() {}
     };
 
     class xoshiro256pp : public xoshiro256_family
@@ -402,6 +405,7 @@ namespace random
         {
             seed(seedv);
         }
+        ~xoshiro256pp() {}
     };
 
     class xoshiro256ss : public xoshiro256_family
@@ -434,6 +438,7 @@ namespace random
         {
             seed(seedv);
         }
+        ~xoshiro256ss() {}
     };
 
     class xoshiro512_family
@@ -550,6 +555,7 @@ namespace random
         {
             seed(seedv);
         }
+        ~xoshiro512p() {}
     };
 
     class xoshiro512pp : public xoshiro512_family
@@ -586,6 +592,7 @@ namespace random
         {
             seed(seedv);
         }
+        ~xoshiro512pp() {}
     };
 
     class xoshiro512ss : public xoshiro512_family
@@ -622,6 +629,7 @@ namespace random
         {
             seed(seedv);
         }
+        ~xoshiro512ss() {}
     };
 
     class xoroshiro1024_family
@@ -750,6 +758,7 @@ namespace random
         {
             seed(seedv);
         }
+        ~xoroshiro1024s() {}
     };
 
     class xoroshiro1024pp : public xoroshiro1024_family
@@ -778,6 +787,7 @@ namespace random
         {
             seed(seedv);
         }
+        ~xoroshiro1024pp() {}
     };
 
     class xoroshiro1024ss : public xoroshiro1024_family
@@ -806,5 +816,6 @@ namespace random
         {
             seed(seedv);
         }
+        ~xoroshiro1024ss() {}
     };
 }

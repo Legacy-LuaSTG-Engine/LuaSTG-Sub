@@ -158,7 +158,7 @@ function GameInit()
     lstg.FileManager.RemoveDirectory("第一层")
     lstg.FileManager.RemoveDirectory("第1层/")
 
-    lstg.LoadModel("model:test", "E:/Project/glTF-work/model/2.0/Sponza/glTF/Sponza.gltf")
+    --lstg.LoadModel("model:test", "E:/Project/glTF-work/model/2.0/Sponza/glTF/Sponza.gltf")
     --lstg.LoadModel("model:test", "res/Tree/Tree.gltf")
 end
 function GameExit()
@@ -195,7 +195,7 @@ function RenderFunc()
 
     camera3d:apply()
     local scale = 0.01
-    lstg.RenderModel("model:test", 0, 0, 0, 0, 0, 0, scale, scale, scale)
+    --lstg.RenderModel("model:test", 0, 0, 0, 0, 0, 0, scale, scale, scale)
 
     --set_camera()
 
@@ -365,3 +365,14 @@ if false then
         end
     end
 end
+
+local function test_random()
+    local rng = random.xoshiro256p()
+    rng:seed(114514)
+    for i = 1, 100 do
+        lstg.Print(i, rng:integer(1000, 1000000))
+    end
+    lstg.Print(rng:seed())
+end
+--test_random()
+--test_random()
