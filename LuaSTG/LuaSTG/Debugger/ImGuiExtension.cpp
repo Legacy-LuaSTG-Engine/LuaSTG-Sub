@@ -248,8 +248,8 @@ static void showParticleSystemEditor(bool* p_open, LuaSTGPlus::ResParticle::Part
 
 static int lib_NewFrame(lua_State* L)
 {
-    std::ignore = L;
-    imgui::updateEngine();
+    bool const allow_set_cursor = lua_toboolean(L, 1);
+    imgui::updateEngine(allow_set_cursor);
     return 0;
 }
 static int lib_RenderDrawData(lua_State* L)
@@ -913,7 +913,7 @@ namespace imgui
             io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
         }
     }
-    void updateEngine()
+    void updateEngine(bool allow_set_cursor)
     {
         ZoneScopedN("imgui.backend.NewFrame");
         if (g_ImGuiBindEngine)
@@ -930,7 +930,8 @@ namespace imgui
             }
             constexpr int const mask = (~((int)ImGuiConfigFlags_NoMouseCursorChange));
             auto& io = ImGui::GetIO();
-            io.ConfigFlags &= mask;
+            if (allow_set_cursor)
+                io.ConfigFlags &= mask;
             {
                 ZoneScopedN("imgui.backend.NewFrame-D3D11");
                 ImGui_ImplDX11_NewFrame();
