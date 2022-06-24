@@ -227,6 +227,12 @@ public:
 			{ "integer", &integer },
 			{ "number", &number },
 			{ "sign", &sign },
+			// compatible api
+			{ "Seed", &seed },
+			{ "GetSeed", &seed },
+			{ "Int", &integer },
+			{ "Float", &number },
+			{ "Sign", &sign },
 			{ NULL, NULL }
 		};
 
