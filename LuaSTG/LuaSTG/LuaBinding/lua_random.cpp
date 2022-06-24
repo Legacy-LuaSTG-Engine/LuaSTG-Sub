@@ -57,6 +57,15 @@ private:
 			}
 			return 1;
 		}
+		else if (argc == 2)
+		{
+			lua_Integer b = luaL_checkinteger(L, 2);
+			if (b <= 0)
+				return luaL_error(L, "invalid parameter, required upper_bound > 0");
+			uint64_t const d = random::bounded_rand(self->rng, uint64_t(b));
+			lua_pushinteger(L, lua_Integer(d));
+			return 1;
+		}
 		else if (argc == 3)
 		{
 			lua_Integer a = luaL_checkinteger(L, 2);
@@ -80,6 +89,15 @@ private:
 		{
 			double const d = random::to_double(self->rng());
 			lua_pushnumber(L, d);
+			return 1;
+		}
+		else if (argc == 2)
+		{
+			lua_Number b = luaL_checknumber(L, 2);
+			if (b <= 0.0)
+				return luaL_error(L, "invalid parameter, required upper_bound > 0");
+			double const d = random::to_double(self->rng());
+			lua_pushnumber(L, b * d);
 			return 1;
 		}
 		else if (argc == 3)
