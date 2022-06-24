@@ -57,10 +57,18 @@ namespace LuaSTGPlus
 		s_MemoryPool.Free(p);
 	}
 
+	float ResParticle::ParticlePool::RandomFloat(float a, float b)
+	{
+		if (b > a) std::swap(a, b);
+		float const c = std::nextafterf(b, std::numeric_limits<float>::max()) - a;
+		return a + c * random::to_float(m_Random());
+	}
+
 	ResParticle::ParticlePool::ParticlePool(fcyRefPointer<ResParticle> ref)
 	{
 		m_Res = ref;
 		m_Info = ref->m_Info;
+		SetSeed(fuInt(std::rand()));
 	}
 	size_t ResParticle::ParticlePool::GetAliveCount() const noexcept { return m_iAlive; }
 	BlendMode ResParticle::ParticlePool::GetBlendMode() const noexcept { return m_Info.eBlendMode; }
@@ -85,11 +93,12 @@ namespace LuaSTGPlus
 	void ResParticle::ParticlePool::SetEmission(int e) noexcept { m_Info.tParticleSystemInfo.nEmission = e; }
 	fuInt ResParticle::ParticlePool::GetSeed() const noexcept
 	{
-		return m_Random.GetRandSeed();
+		return m_RandomSeed;
 	}
 	void ResParticle::ParticlePool::SetSeed(fuInt seed) noexcept
 	{
-		m_Random.SetSeed(seed);
+		m_RandomSeed = seed;
+		m_Random.seed(seed);
 	}
 	bool ResParticle::ParticlePool::IsActived() const noexcept { return m_iStatus == Status::Alive; }
 	void ResParticle::ParticlePool::SetActive(bool v) noexcept
@@ -190,24 +199,24 @@ namespace LuaSTGPlus
 				m_iAlive += 1;
 
 				tInst.fAge = 0.0f;
-				tInst.fTerminalAge = m_Random.GetRandFloat(pInfo.fParticleLifeMin, pInfo.fParticleLifeMax);
+				tInst.fTerminalAge = RandomFloat(pInfo.fParticleLifeMin, pInfo.fParticleLifeMax);
 
-				tInst.vecLocation = m_vPrevCenter + (m_vCenter - m_vPrevCenter) * m_Random.GetRandFloat(0.0f, 1.0f);
-				tInst.vecLocation.x += m_Random.GetRandFloat(-2.0f, 2.0f);
-				tInst.vecLocation.y += m_Random.GetRandFloat(-2.0f, 2.0f);
+				tInst.vecLocation = m_vPrevCenter + (m_vCenter - m_vPrevCenter) * RandomFloat(0.0f, 1.0f);
+				tInst.vecLocation.x += RandomFloat(-2.0f, 2.0f);
+				tInst.vecLocation.y += RandomFloat(-2.0f, 2.0f);
 
 				float ang = 0.0f;
 				if (m_bOldBehavior)
 				{
 					// LuaSTG Plus、LuaSTG Ex Plus、LuaSTG-x 的代码
-					ang = /* pInfo.fDirection */ (m_fDirection - L_PI_HALF_F) - L_PI_HALF_F + m_Random.GetRandFloat(0.0f, pInfo.fSpread) - pInfo.fSpread / 2.0f;
+					ang = /* pInfo.fDirection */ (m_fDirection - L_PI_HALF_F) - L_PI_HALF_F + RandomFloat(0.0f, pInfo.fSpread) - pInfo.fSpread / 2.0f;
 				}
 				else
 				{
 					// 来自 HGE 的原始代码，但是似乎 HGE 的坐标系 y 轴是向下的，直接拿来用并不可行
-					//float ang = pInfo.fDirection - L_PI_HALF_F + m_Random.GetRandFloat(0.0f, pInfo.fSpread) - pInfo.fSpread / 2.0f;
+					//float ang = pInfo.fDirection - L_PI_HALF_F + RandomFloat(0.0f, pInfo.fSpread) - pInfo.fSpread / 2.0f;
 					// 修改后的正确的代码应该是这个
-					ang = -pInfo.fDirection + L_PI_HALF_F + m_Random.GetRandFloat(0.0f, pInfo.fSpread) - pInfo.fSpread / 2.0f;
+					ang = -pInfo.fDirection + L_PI_HALF_F + RandomFloat(0.0f, pInfo.fSpread) - pInfo.fSpread / 2.0f;
 					if (pInfo.bRelative)
 					{
 						ang += (m_vPrevCenter - m_vCenter).CalcuAngle() + L_PI_HALF_F;
@@ -218,26 +227,26 @@ namespace LuaSTGPlus
 
 				tInst.vecVelocity.x = std::cos(ang);
 				tInst.vecVelocity.y = std::sin(ang);
-				tInst.vecVelocity *= m_Random.GetRandFloat(pInfo.fSpeedMin, pInfo.fSpeedMax);
+				tInst.vecVelocity *= RandomFloat(pInfo.fSpeedMin, pInfo.fSpeedMax);
 
-				tInst.fGravity = m_Random.GetRandFloat(pInfo.fGravityMin, pInfo.fGravityMax);
-				tInst.fRadialAccel = m_Random.GetRandFloat(pInfo.fRadialAccelMin, pInfo.fRadialAccelMax);
-				tInst.fTangentialAccel = m_Random.GetRandFloat(pInfo.fTangentialAccelMin, pInfo.fTangentialAccelMax);
+				tInst.fGravity = RandomFloat(pInfo.fGravityMin, pInfo.fGravityMax);
+				tInst.fRadialAccel = RandomFloat(pInfo.fRadialAccelMin, pInfo.fRadialAccelMax);
+				tInst.fTangentialAccel = RandomFloat(pInfo.fTangentialAccelMin, pInfo.fTangentialAccelMax);
 
-				tInst.fSize = m_Random.GetRandFloat(pInfo.fSizeStart, pInfo.fSizeStart + (pInfo.fSizeEnd - pInfo.fSizeStart) * pInfo.fSizeVar);
+				tInst.fSize = RandomFloat(pInfo.fSizeStart, pInfo.fSizeStart + (pInfo.fSizeEnd - pInfo.fSizeStart) * pInfo.fSizeVar);
 				tInst.fSizeDelta = (pInfo.fSizeEnd - tInst.fSize) / tInst.fTerminalAge;
 
 				// TODO: 删除
 				//tInst.fSpin = /* pInfo.fSpinStart */ m_fRotation + s_ParticleRandomizer.GetRandFloat(0, pInfo.fSpinEnd) - pInfo.fSpinEnd / 2.0f;
 				//tInst.fSpinDelta = pInfo.fSpinVar;
 
-				tInst.fSpin = m_Random.GetRandFloat(pInfo.fSpinStart, pInfo.fSpinStart + (pInfo.fSpinEnd - pInfo.fSpinStart) * pInfo.fSpinVar);
+				tInst.fSpin = RandomFloat(pInfo.fSpinStart, pInfo.fSpinStart + (pInfo.fSpinEnd - pInfo.fSpinStart) * pInfo.fSpinVar);
 				tInst.fSpinDelta = (pInfo.fSpinEnd - tInst.fSpin) / tInst.fTerminalAge;
 
-				tInst.colColor[0] = m_Random.GetRandFloat(pInfo.colColorStart[0], pInfo.colColorStart[0] + (pInfo.colColorEnd[0] - pInfo.colColorStart[0]) * pInfo.fColorVar);
-				tInst.colColor[1] = m_Random.GetRandFloat(pInfo.colColorStart[1], pInfo.colColorStart[1] + (pInfo.colColorEnd[1] - pInfo.colColorStart[1]) * pInfo.fColorVar);
-				tInst.colColor[2] = m_Random.GetRandFloat(pInfo.colColorStart[2], pInfo.colColorStart[2] + (pInfo.colColorEnd[2] - pInfo.colColorStart[2]) * pInfo.fColorVar);
-				tInst.colColor[3] = m_Random.GetRandFloat(pInfo.colColorStart[3], pInfo.colColorStart[3] + (pInfo.colColorEnd[3] - pInfo.colColorStart[3]) * pInfo.fAlphaVar);
+				tInst.colColor[0] = RandomFloat(pInfo.colColorStart[0], pInfo.colColorStart[0] + (pInfo.colColorEnd[0] - pInfo.colColorStart[0]) * pInfo.fColorVar);
+				tInst.colColor[1] = RandomFloat(pInfo.colColorStart[1], pInfo.colColorStart[1] + (pInfo.colColorEnd[1] - pInfo.colColorStart[1]) * pInfo.fColorVar);
+				tInst.colColor[2] = RandomFloat(pInfo.colColorStart[2], pInfo.colColorStart[2] + (pInfo.colColorEnd[2] - pInfo.colColorStart[2]) * pInfo.fColorVar);
+				tInst.colColor[3] = RandomFloat(pInfo.colColorStart[3], pInfo.colColorStart[3] + (pInfo.colColorEnd[3] - pInfo.colColorStart[3]) * pInfo.fAlphaVar);
 
 				tInst.colColorDelta[0] = (pInfo.colColorEnd[0] - tInst.colColor[0]) / tInst.fTerminalAge;
 				tInst.colColorDelta[1] = (pInfo.colColorEnd[1] - tInst.colColor[1]) / tInst.fTerminalAge;

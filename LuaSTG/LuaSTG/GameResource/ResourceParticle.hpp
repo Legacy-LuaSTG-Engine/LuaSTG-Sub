@@ -1,9 +1,9 @@
 ﻿#pragma once
 #include "GameResource/ResourceBase.hpp"
 #include "Core/Graphics/Sprite.hpp"
+#include "Utility/xorshift.hpp"
 #include "fcyMath.h"
 #include "fcyOS/fcyMemPool.h"
-#include "fcyMisc/fcyRandom.h"
 
 #define LPARTICLE_MAXCNT 500  // 单个粒子池最多有500个粒子，这是HGE粒子特效的实现，不应该修改
 
@@ -105,7 +105,8 @@ namespace LuaSTGPlus
 			fcyRefPointer<ResParticle> m_Res;
 			ParticleSystemResourceInfo m_Info;
 			std::array<hgeParticle, LPARTICLE_MAXCNT> m_ParticlePool;
-			fcyRandomWELL512 m_Random;
+			random::xoshiro128p m_Random;
+			fuInt m_RandomSeed = 0;
 			Status m_iStatus = Status::Alive;  // 状态
 			fcyVec2 m_vCenter;  // 中心
 			fcyVec2 m_vPrevCenter;  // 上一个中心
@@ -114,6 +115,8 @@ namespace LuaSTGPlus
 			float m_fAge = 0.f;  // 已存活时间
 			float m_fEmissionResidue = 0.f;  // 不足的粒子数
 			bool m_bOldBehavior = true; // 使用旧行为
+		private:
+			float RandomFloat(float a, float b);
 		public:
 			hgeParticleSystemInfo& GetParticleSystemInfo() { return m_Info.tParticleSystemInfo; };
 			size_t GetAliveCount() const noexcept;
