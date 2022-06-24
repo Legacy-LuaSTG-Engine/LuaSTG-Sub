@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <limits>
 #include <numbers>
+#include <random>
 
 // 语言支持库
 #include <memory>

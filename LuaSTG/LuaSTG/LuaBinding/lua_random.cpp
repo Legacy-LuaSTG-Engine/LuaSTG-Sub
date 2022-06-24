@@ -11,7 +11,11 @@ public:
 	struct Data
 	{
 		RNG rng;
+		std::uniform_int_distribution<lua_Integer> int_gn;
+		std::uniform_real_distribution<lua_Number> num_gn;
 		lua_Integer seed;
+		Data() : rng(0), seed(0) {  }
+		~Data() {}
 	};
 
 	static std::string_view const ClassID;
@@ -39,7 +43,7 @@ private:
 			return luaL_error(L, "invalid parameter");
 		}
 	}
-	static int integer(lua_State* L)
+	static int _bad_integer(lua_State* L)
 	{
 		Data* self = Cast(L, 1);
 		int const argc = lua_gettop(L);
@@ -81,7 +85,37 @@ private:
 			return luaL_error(L, "invalid parameter");
 		}
 	}
-	static int number(lua_State* L)
+	static int integer(lua_State* L)
+	{
+		Data* self = Cast(L, 1);
+		int const argc = lua_gettop(L);
+		if (argc == 1)
+		{
+			lua_pushinteger(L, self->int_gn(self->rng, std::uniform_int_distribution<lua_Integer>::param_type(
+				0, std::numeric_limits<lua_Integer>::max())));
+			return 1;
+		}
+		else if (argc == 2)
+		{
+			lua_Integer b = luaL_checkinteger(L, 2);
+			if (b < 0) b = -b;
+			lua_pushinteger(L, self->int_gn(self->rng, std::uniform_int_distribution<lua_Integer>::param_type(0, b)));
+			return 1;
+		}
+		else if (argc == 3)
+		{
+			lua_Integer a = luaL_checkinteger(L, 2);
+			lua_Integer b = luaL_checkinteger(L, 3);
+			if (a > b) std::swap(a, b);
+			lua_pushinteger(L, self->int_gn(self->rng, std::uniform_int_distribution<lua_Integer>::param_type(a, b)));
+			return 1;
+		}
+		else
+		{
+			return luaL_error(L, "invalid parameter");
+		}
+	}
+	static int _bad_number(lua_State* L)
 	{
 		Data* self = Cast(L, 1);
 		int const argc = lua_gettop(L);
@@ -115,18 +149,49 @@ private:
 			return luaL_error(L, "invalid parameter");
 		}
 	}
+	static int number(lua_State* L)
+	{
+		Data* self = Cast(L, 1);
+		int const argc = lua_gettop(L);
+		if (argc == 1)
+		{
+			lua_pushnumber(L, self->num_gn(self->rng, std::uniform_real_distribution<lua_Number>::param_type(
+				0.0, std::nextafter(1.0, std::numeric_limits<lua_Number>::max()))));
+			return 1;
+		}
+		else if (argc == 2)
+		{
+			lua_Number b = luaL_checknumber(L, 2);
+			if (b < 0.0) b = -b;
+			lua_pushnumber(L, self->num_gn(self->rng, std::uniform_real_distribution<lua_Number>::param_type(
+				0.0, std::nextafter(b, std::numeric_limits<lua_Number>::max()))));
+			return 1;
+		}
+		else if (argc == 3)
+		{
+			lua_Number a = luaL_checknumber(L, 2);
+			lua_Number b = luaL_checknumber(L, 3);
+			if (a > b) std::swap(a, b);
+			lua_pushnumber(L, self->num_gn(self->rng, std::uniform_real_distribution<lua_Number>::param_type(
+				a, std::nextafter(b, std::numeric_limits<lua_Number>::max()))));
+			return 1;
+		}
+		else
+		{
+			return luaL_error(L, "invalid parameter");
+		}
+	}
 	static int sign(lua_State* L)
 	{
 		Data* self = Cast(L, 1);
-		uint64_t const d = random::bounded_rand(self->rng, 2);
-		lua_pushinteger(L, lua_Integer(d) * 2 - 1);
+		lua_pushinteger(L, self->int_gn(self->rng, std::uniform_int_distribution<lua_Integer>::param_type(0, 1)) * 2 - 1);
 		return 1;
 	}
 
 	static int __gc(lua_State* L)
 	{
 		Data* self = Cast(L, 1);
-		self->rng.~RNG();
+		self->~Data();
 		return 1;
 	}
 	static int __tostring(lua_State* L)
@@ -150,8 +215,7 @@ public:
 	static Data* Create(lua_State* L)
 	{
 		Data* self = static_cast<Data*>(lua_newuserdata(L, sizeof(Data)));
-		new(&self->rng) RNG(0);
-		self->seed = 0;
+		new(self) Data();
 		luaL_getmetatable(L, ClassID.data());
 		lua_setmetatable(L, -2);
 		return self;
