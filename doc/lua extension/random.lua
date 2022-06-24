@@ -56,9 +56,9 @@ local C = {}
 function C:seed(value) end
 
 --- generate integer value  
---- rng:integer() will generate any possible integer value  
---- rng:integer(b) will generate integer value in range [0, b)  
---- rng:integer(a, b) will generate integer value in range [a, b)  
+--- rng:integer() will generate integer value in range [0, max lua_Integer]  
+--- rng:integer(b) will generate integer value in range [0, b]  
+--- rng:integer(a, b) will generate integer value in range [a, b]  
 ---@param min number @integer value
 ---@param max number @integer value
 ---@return number @integer value
@@ -67,9 +67,9 @@ function C:seed(value) end
 function C:integer(min, max) end
 
 --- generate float value  
---- rng:number() will generate float value in range [0.0, 1.0)  
---- rng:number(b) will generate float value in range [0.0, b)  
---- rng:number(a, b) will generate float value in range [a, b)  
+--- rng:number() will generate float value in range [0.0, 1.0]  
+--- rng:number(b) will generate float value in range [0.0, b]  
+--- rng:number(a, b) will generate float value in range [a, b]  
 ---@param min number
 ---@param max number
 ---@return number
