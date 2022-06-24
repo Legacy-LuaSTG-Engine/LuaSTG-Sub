@@ -1,4 +1,5 @@
 ﻿#include "LuaBinding/LuaWrapper.hpp"
+#include "fcyMisc/fcyRandom.h"
 
 namespace LuaSTGPlus::LuaWrapper
 {

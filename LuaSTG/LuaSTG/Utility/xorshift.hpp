@@ -55,6 +55,11 @@ namespace random
         explicit splitmix64(uint64_t s) : x(s) {}
     };
 
+    inline uint32_t rotl(const uint32_t x, const int k)
+    {
+        return (x << k) | (x >> (32 - k));
+    }
+
     inline uint64_t rotl(const uint64_t x, const int k)
     {
         return (x << k) | (x >> (64 - k));
@@ -73,10 +78,195 @@ namespace random
         }
     }
 
-    inline double to_double(const uint64_t x)
+    inline float to_float(const uint32_t x) noexcept
+    {
+        return (x >> 8) * 0x1.0p-24f;
+    }
+
+    inline double to_double(const uint64_t x) noexcept
     {
         return (x >> 11) * 0x1.0p-53;
     }
+
+    class xoshiro128_family
+    {
+    public:
+        using result_type = uint32_t;
+
+    protected:
+        uint32_t s[4] = {};
+        inline void jump_by_table(uint32_t const JUMP_TABLE[4])
+        {
+            uint32_t s0 = 0;
+            uint32_t s1 = 0;
+            uint32_t s2 = 0;
+            uint32_t s3 = 0;
+            for (int i = 0; i < 4; i++)
+            {
+                for (int b = 0; b < 32; b++)
+                {
+                    if (JUMP_TABLE[i] & UINT32_C(1) << b)
+                    {
+                        s0 ^= s[0];
+                        s1 ^= s[1];
+                        s2 ^= s[2];
+                        s3 ^= s[3];
+                    }
+                    next();
+                }
+            }
+
+            s[0] = s0;
+            s[1] = s1;
+            s[2] = s2;
+            s[3] = s3;
+        }
+
+    public:
+        static uint32_t min()
+        {
+            return UINT32_C(0);
+        }
+        static uint32_t max()
+        {
+            return UINT32_MAX;
+        }
+        void seed(uint64_t seedv)
+        {
+            splitmix64 gn(seedv);
+            s[0] = uint32_t(gn.next() >> 32);
+            s[1] = uint32_t(gn.next() >> 32);
+            s[2] = uint32_t(gn.next() >> 32);
+            s[3] = uint32_t(gn.next() >> 32);
+        }
+        virtual uint32_t next()
+        {
+            return 0;
+        }
+        inline uint32_t operator()()
+        {
+            return next();
+        }
+        void jump()
+        {
+            constexpr uint32_t const JUMP[4] = {
+                0x8764000b,
+                0xf542d2d3,
+                0x6fa035c3,
+                0x77f2db5b,
+            };
+            jump_by_table(JUMP);
+        }
+        void long_jump()
+        {
+            constexpr uint32_t const LONG_JUMP[4] = {
+                0xb523952e,
+                0x0b6f099f,
+                0xccf5a0ef,
+                0x1c580662,
+            };
+            jump_by_table(LONG_JUMP);
+        }
+    };
+
+    class xoshiro128p : public xoshiro128_family
+    {
+    public:
+        uint32_t next() override
+        {
+            const uint32_t result = s[0] + s[3];
+
+            const uint32_t t = s[1] << 9;
+
+            s[2] ^= s[0];
+            s[3] ^= s[1];
+            s[1] ^= s[2];
+            s[0] ^= s[3];
+
+            s[2] ^= t;
+
+            s[3] = rotl(s[3], 11);
+
+            return result;
+        }
+
+    public:
+        xoshiro128p()
+        {
+            seed(uint64_t(this));
+        }
+        explicit xoshiro128p(uint64_t seedv)
+        {
+            seed(seedv);
+        }
+        ~xoshiro128p() {}
+    };
+
+    class xoshiro128pp : public xoshiro128_family
+    {
+    public:
+        uint32_t next() override
+        {
+            const uint32_t result = rotl(s[0] + s[3], 7) + s[0];
+
+            const uint32_t t = s[1] << 9;
+
+            s[2] ^= s[0];
+            s[3] ^= s[1];
+            s[1] ^= s[2];
+            s[0] ^= s[3];
+
+            s[2] ^= t;
+
+            s[3] = rotl(s[3], 11);
+
+            return result;
+        }
+
+    public:
+        xoshiro128pp()
+        {
+            seed(uint64_t(this));
+        }
+        explicit xoshiro128pp(uint64_t seedv)
+        {
+            seed(seedv);
+        }
+        ~xoshiro128pp() {}
+    };
+
+    class xoshiro128ss : public xoshiro128_family
+    {
+    public:
+        uint32_t next() override
+        {
+            const uint32_t result = rotl(s[1] * 5, 7) * 9;
+
+            const uint32_t t = s[1] << 9;
+
+            s[2] ^= s[0];
+            s[3] ^= s[1];
+            s[1] ^= s[2];
+            s[0] ^= s[3];
+
+            s[2] ^= t;
+
+            s[3] = rotl(s[3], 11);
+
+            return result;
+        }
+
+    public:
+        xoshiro128ss()
+        {
+            seed(uint64_t(this));
+        }
+        explicit xoshiro128ss(uint64_t seedv)
+        {
+            seed(seedv);
+        }
+        ~xoshiro128ss() {}
+    };
 
     class xoroshiro128_family
     {
