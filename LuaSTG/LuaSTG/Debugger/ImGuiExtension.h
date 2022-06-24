@@ -10,7 +10,7 @@ namespace imgui
     
     void cacheGlyphFromString(std::string_view str);
     void cancelSetCursor();
-    void updateEngine();
+    void updateEngine(bool allow_set_cursor);
     void drawEngine();
 
     void showTestInputWindow(bool* p_open = nullptr);
