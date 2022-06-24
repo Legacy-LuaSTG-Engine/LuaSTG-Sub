@@ -367,12 +367,19 @@ if false then
 end
 
 local function test_random()
+    local random = require("random")
     local rng = random.xoshiro256p()
     rng:seed(114514)
     for i = 1, 100 do
         lstg.Print(i, rng:integer(1000, 1000000))
     end
+    for i = 2, 200 do
+        lstg.Print(i, rng:integer(1000000))
+    end
+    for i = 3, 300 do
+        lstg.Print(i, rng:integer())
+    end
     lstg.Print(rng:seed())
 end
---test_random()
---test_random()
+test_random()
+test_random()

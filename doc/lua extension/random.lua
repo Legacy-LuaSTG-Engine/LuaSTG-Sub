@@ -8,6 +8,43 @@
 --------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
+--- sample code
+
+--[[
+
+local random = require("random")
+local rng = random.xoshiro256p()
+
+rng:seed(0xFF14)
+print(rng:seed())
+
+for _ = 1, 10 do
+    print(rng:integer())
+end
+for _ = 1, 10 do
+    print(rng:integer(100))
+end
+for _ = 1, 10 do
+    print(rng:integer(10, 100))
+end
+
+for _ = 1, 10 do
+    print(rng:number())
+end
+for _ = 1, 10 do
+    print(rng:number(1000.0))
+end
+for _ = 1, 10 do
+    print(rng:integer(100.0, 1000.0))
+end
+
+for _ = 1, 10 do
+    print(rng:sign)
+end
+
+--]]
+
+--------------------------------------------------------------------------------
 --- generator concept
 
 ---@class random.generator
@@ -54,7 +91,8 @@ local M = {}
 
 ---@class random.splitmix64 : random.generator
 
---- random number generator for seeding  
+--- splitmix64  
+--- it is used for seeding by other random number generators  
 --- not recommended for direct use  
 ---@return random.splitmix64
 function M.splitmix64() end
