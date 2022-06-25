@@ -123,7 +123,7 @@ function M.xoroshiro128ss() end
 ---@class random.xoshiro256p : random.generator
 
 --- xoshiro256 family: xoshiro256+  
---- recommended for generating Lua number 
+--- recommended for generating double value 
 ---@return random.xoshiro256p
 function M.xoshiro256p() end
 
@@ -136,6 +136,7 @@ function M.xoshiro256pp() end
 ---@class random.xoshiro256ss : random.generator
 
 --- xoshiro256 family: xoshiro256**  
+--- recommended for Lua 
 ---@return random.xoshiro256ss
 function M.xoshiro256ss() end
 
