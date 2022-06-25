@@ -37,7 +37,13 @@ namespace random
         }
         uint64_t next()
         {
-            uint64_t z = (x += 0x9e3779b97f4a7c15);
+            // original implementation
+            // uint64_t z = (x += 0x9e3779b97f4a7c15);
+
+            // Melissa E. O'Neill version
+            uint64_t z = x;
+            x += 0x9e3779b97f4a7c15;
+
             z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
             z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
             return z ^ (z >> 31);
@@ -48,10 +54,7 @@ namespace random
         }
 
     public:
-        splitmix64()
-        {
-            x = uint64_t(this);
-        }
+        splitmix64() : x(0xbad0ff1ced15ea5e) {}
         explicit splitmix64(uint64_t s) : x(s) {}
     };
 
