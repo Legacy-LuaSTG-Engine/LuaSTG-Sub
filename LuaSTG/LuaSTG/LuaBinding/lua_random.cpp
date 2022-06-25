@@ -38,50 +38,8 @@ private:
 		else if (argc == 2)
 		{
 			self->seed = luaL_checkinteger(L, 2);
-			self->rng.seed(uint64_t(self->seed));
+			self->rng.seed(static_cast<uint64_t>(self->seed));
 			return 0;
-		}
-		else
-		{
-			return luaL_error(L, "invalid parameter");
-		}
-	}
-	static int _bad_integer(lua_State* L)
-	{
-		Data* self = Cast(L, 1);
-		int const argc = lua_gettop(L);
-		if (argc == 1)
-		{
-			uint64_t const d = self->rng();
-			if constexpr (sizeof(lua_Integer) == sizeof(uint64_t))
-			{
-				lua_pushinteger(L, static_cast<lua_Integer>(d));
-			}
-			else
-			{
-				static_assert(sizeof(lua_Integer) == sizeof(uint32_t));
-				lua_pushinteger(L, static_cast<lua_Integer>((d >> 32) & 0xFFFFFFFFu)); // discard low 32bits
-			}
-			return 1;
-		}
-		else if (argc == 2)
-		{
-			lua_Integer b = luaL_checkinteger(L, 2);
-			if (b <= 0)
-				return luaL_error(L, "invalid parameter, required upper_bound > 0");
-			uint64_t const d = random::bounded_rand(self->rng, uint64_t(b));
-			lua_pushinteger(L, lua_Integer(d));
-			return 1;
-		}
-		else if (argc == 3)
-		{
-			lua_Integer a = luaL_checkinteger(L, 2);
-			lua_Integer b = luaL_checkinteger(L, 3);
-			if (a > b) std::swap(a, b);
-			lua_Integer const c = b - a;
-			uint64_t const d = random::bounded_rand(self->rng, uint64_t(c));
-			lua_pushinteger(L, a + lua_Integer(d));
-			return 1;
 		}
 		else
 		{
@@ -111,40 +69,6 @@ private:
 			lua_Integer b = luaL_checkinteger(L, 3);
 			if (a > b) std::swap(a, b);
 			lua_pushinteger(L, self->int_gn(self->rng, std::uniform_int_distribution<lua_Integer>::param_type(a, b)));
-			return 1;
-		}
-		else
-		{
-			return luaL_error(L, "invalid parameter");
-		}
-	}
-	static int _bad_number(lua_State* L)
-	{
-		Data* self = Cast(L, 1);
-		int const argc = lua_gettop(L);
-		if (argc == 1)
-		{
-			double const d = random::to_double(self->rng());
-			lua_pushnumber(L, d);
-			return 1;
-		}
-		else if (argc == 2)
-		{
-			lua_Number b = luaL_checknumber(L, 2);
-			if (b <= 0.0)
-				return luaL_error(L, "invalid parameter, required upper_bound > 0");
-			double const d = random::to_double(self->rng());
-			lua_pushnumber(L, b * d);
-			return 1;
-		}
-		else if (argc == 3)
-		{
-			lua_Number a = luaL_checknumber(L, 2);
-			lua_Number b = luaL_checknumber(L, 3);
-			if (a > b) std::swap(a, b);
-			lua_Number const c = b - a;
-			double const d = random::to_double(self->rng());
-			lua_pushnumber(L, a + c * d);
 			return 1;
 		}
 		else
@@ -270,6 +194,12 @@ public:
 	using lua_##T##_t = RandomBase<random::T>;
 
 MAKE_TYPE(splitmix64);
+
+// xoshiro128 family
+
+MAKE_TYPE(xoshiro128p);
+MAKE_TYPE(xoshiro128pp);
+MAKE_TYPE(xoshiro128ss);
 
 // xoroshiro128 family
 
@@ -732,6 +662,12 @@ int luaopen_random(lua_State* L)
 #define REGISTER_TYPE(T)  lua_##T##_t::Register(L);
 
 	REGISTER_TYPE(splitmix64);
+
+	// xoshiro128 family
+
+	REGISTER_TYPE(xoshiro128p);
+	REGISTER_TYPE(xoshiro128pp);
+	REGISTER_TYPE(xoshiro128ss);
 
 	// xoroshiro128 family
 
