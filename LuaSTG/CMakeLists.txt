@@ -159,6 +159,7 @@ target_link_libraries(LuaSTG PRIVATE
     imgui_impl_dx11
     lua_steam_api
     tracy
+    pcgcpp
 )
 
 add_custom_command(TARGET LuaSTG POST_BUILD

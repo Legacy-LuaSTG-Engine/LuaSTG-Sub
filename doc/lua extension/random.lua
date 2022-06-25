@@ -87,11 +87,13 @@ function C:sign() end
 ---@class random
 local M = {}
 
----------- seeding ----------
+---------- splitmix family ----------
 
 ---@class random.splitmix64 : random.generator
 
 --- splitmix64  
+--- internal state: 64bits  
+--- output result: 64bits  
 --- it is used for seeding by other random number generators  
 --- not recommended for direct use  
 ---@return random.splitmix64
@@ -102,6 +104,8 @@ function M.splitmix64() end
 ---@class random.xoroshiro128p : random.generator
 
 --- xoroshiro128 family: xoroshiro128+  
+--- internal state: 128bits  
+--- output result: 64bits  
 --- not recommended  
 ---@return random.xoroshiro128p
 function M.xoroshiro128p() end
@@ -109,12 +113,16 @@ function M.xoroshiro128p() end
 ---@class random.xoroshiro128pp : random.generator
 
 --- xoroshiro128 family: xoroshiro128++  
+--- internal state: 128bits  
+--- output result: 64bits  
 ---@return random.xoroshiro128pp
 function M.xoroshiro128pp() end
 
 ---@class random.xoroshiro128ss : random.generator
 
 --- xoroshiro128 family: xoroshiro128**  
+--- internal state: 128bits  
+--- output result: 64bits  
 ---@return random.xoroshiro128ss
 function M.xoroshiro128ss() end
 
@@ -123,20 +131,26 @@ function M.xoroshiro128ss() end
 ---@class random.xoshiro256p : random.generator
 
 --- xoshiro256 family: xoshiro256+  
---- recommended for generating double value 
+--- internal state: 256bits  
+--- output result: 64bits  
+--- recommended for generating double value  
 ---@return random.xoshiro256p
 function M.xoshiro256p() end
 
 ---@class random.xoshiro256pp : random.generator
 
 --- xoshiro256 family: xoshiro256++  
+--- internal state: 256bits  
+--- output result: 64bits  
 ---@return random.xoshiro256pp
 function M.xoshiro256pp() end
 
 ---@class random.xoshiro256ss : random.generator
 
 --- xoshiro256 family: xoshiro256**  
---- recommended for Lua 
+--- internal state: 256bits  
+--- output result: 64bits  
+--- recommended for Lua  
 ---@return random.xoshiro256ss
 function M.xoshiro256ss() end
 
@@ -145,18 +159,24 @@ function M.xoshiro256ss() end
 ---@class random.xoshiro512p : random.generator
 
 --- xoshiro512 family: xoshiro512+  
+--- internal state: 512bits  
+--- output result: 64bits  
 ---@return random.xoshiro512p
 function M.xoshiro512p() end
 
 ---@class random.xoshiro512pp : random.generator
 
 --- xoshiro512 family: xoshiro512++  
+--- internal state: 512bits  
+--- output result: 64bits  
 ---@return random.xoshiro512pp
 function M.xoshiro512pp() end
 
 ---@class random.xoshiro512ss : random.generator
 
 --- xoshiro512 family: xoshiro512**  
+--- internal state: 512bits  
+--- output result: 64bits  
 ---@return random.xoshiro512ss
 function M.xoshiro512ss() end
 
@@ -165,19 +185,99 @@ function M.xoshiro512ss() end
 ---@class random.xoroshiro1024s : random.generator
 
 --- xoroshiro1024 family: xoroshiro1024*  
+--- internal state: 1024bits  
+--- output result: 64bits  
 ---@return random.xoroshiro1024s
 function M.xoroshiro1024s() end
 
 ---@class random.xoroshiro1024pp : random.generator
 
 --- xoroshiro1024 family: xoroshiro1024++  
+--- internal state: 1024bits  
+--- output result: 64bits  
 ---@return random.xoroshiro1024pp
 function M.xoroshiro1024pp() end
 
 ---@class random.xoroshiro1024ss : random.generator
 
 --- xoroshiro1024 family: xoroshiro1024**  
+--- internal state: 1024bits  
+--- output result: 64bits  
 ---@return random.xoroshiro1024ss
 function M.xoroshiro1024ss() end
+
+---------- pcg family ----------
+
+---@class random.pcg32_oneseq : random.generator
+
+--- pcg family: pcg32_oneseq  
+--- internal state: 64bits  
+--- output result: 32bits  
+--- period: 2^64  
+---@return random.pcg32_oneseq
+function M.pcg32_oneseq() end
+
+---@class random.pcg32_fast : random.generator
+
+--- pcg family: pcg32_fast  
+--- internal state: 64bits  
+--- output result: 32bits  
+--- period: 2^62  
+---@return random.pcg32_fast
+function M.pcg32_fast() end
+
+---@class random.pcg64_oneseq : random.generator
+
+--- pcg family: pcg64_oneseq  
+--- internal state: 128bits  
+--- output result: 64bits  
+--- period: 2^128  
+---@return random.pcg64_oneseq
+function M.pcg64_oneseq() end
+
+---@class random.pcg64_fast : random.generator
+
+--- pcg family: pcg64_fast  
+--- internal state: 128bits  
+--- output result: 64bits  
+--- period: 2^126  
+---@return random.pcg64_fast
+function M.pcg64_fast() end
+
+---------- sfc family ----------
+
+---@class random.sfc32 : random.generator
+
+--- sfc family: sfc32  
+--- internal state: 128bits  
+--- output result: 32bits  
+---@return random.sfc32
+function M.sfc32() end
+
+---@class random.sfc64 : random.generator
+
+--- sfc family: sfc64  
+--- internal state: 256bits  
+--- output result: 64bits  
+---@return random.sfc64
+function M.sfc64() end
+
+---------- jsf family ----------
+
+---@class random.jsf32 : random.generator
+
+--- jsf family: jsf32  
+--- internal state: 128bits  
+--- output result: 32bits  
+---@return random.jsf32
+function M.jsf32() end
+
+---@class random.jsf64 : random.generator
+
+--- jsf family: jsf64  
+--- internal state: 256bits  
+--- output result: 64bits  
+---@return random.jsf64
+function M.jsf64() end
 
 return M

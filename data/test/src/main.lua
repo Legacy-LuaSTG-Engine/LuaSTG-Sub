@@ -368,7 +368,7 @@ end
 
 local function test_random()
     local random = require("random")
-    local rng = random.xoshiro256p()
+    local rng = random.xoshiro256ss()
     rng:seed(114514)
     lstg.Print("======", rng:seed())
     for i = 1, 100 do
