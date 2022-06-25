@@ -34,7 +34,11 @@ namespace LuaSTGPlus
 		float m_fEnvelopePower = 0.0f;
 		// https://www.desmos.com/calculator/i6r2pw90xw
 		inline float _GetEnvelope(float t) {
-			float ret = m_fEnvelopeHeight + (m_fEnvelopeBase * (1.0f - m_fEnvelopeRate * std::powf(2.0f * (t - 0.5f), m_fEnvelopePower)));
+			float ret = m_fEnvelopeHeight + (m_fEnvelopeBase * 
+				(1.0f - m_fEnvelopeRate * 2.0f * 
+					std::powf((t - 0.5f), m_fEnvelopePower)
+					)
+				);
 			return (std::max)(0.0f, ret);
 		}
 		void _UpdateNodeVertexExtend(size_t i) noexcept; // 计算节点的渲染顶点

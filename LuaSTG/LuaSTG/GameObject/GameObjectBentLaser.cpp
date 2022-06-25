@@ -548,18 +548,21 @@ bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, Core::Co
 	return true;
 }
 
-void GameObjectBentLaser::RenderCollider(Core::Color4B fillColor) noexcept {
+void GameObjectBentLaser::RenderCollider(Core::Color4B fillColor) noexcept
+{
 	// 忽略只有一个节点的情况
-	int sn = m_Queue.Size();
-	if (sn <= 1)
+	if (m_Queue.Size() <= 1)
 		return;
-	
+
 	LAPP.DebugSetGeometryRenderState();
 
 	GameObject testObjA;
 	testObjA.Reset();
+	testObjA.rot = 0.0f;
+	testObjA.rect = false;
 
-	for (size_t i = 0; i < sn; ++i)
+	float const _1_nc = 1.0f / (float)(m_Queue.Size() - 1u);
+	for (size_t i = 0; i < m_Queue.Size(); ++i)
 	{
 		LaserNode& n = m_Queue[i];
 		if (!n.active) continue;
@@ -569,30 +572,25 @@ void GameObjectBentLaser::RenderCollider(Core::Color4B fillColor) noexcept {
 			if (!last.active) {
 				float df = n.dis;
 				if (df > n.half_width) {
-					//计算部分
 					fcyVec2 c = (last.pos + n.pos) * 0.5;
 					testObjA.x = c.x;
 					testObjA.y = c.y;
 					testObjA.rect = true;
-					//testObjA.rot = n.rot;
+					testObjA.rot = n.rot;
 					testObjA.a = df / 2;
 					testObjA.b = n.half_width;
-					//testObjA.UpdateCollisionCirclrRadius();
-					LAPP.DebugDrawRect((float)testObjA.x, (float)testObjA.y, (float)testObjA.a, (float)testObjA.b, (float)testObjA.rot, fillColor);
+					testObjA.UpdateCollisionCirclrRadius();
+					if (LuaSTGPlus::CollisionCheck(&testObjA, &testObjB))
+						return true;
+
 				}
 			}
 		}
 		//*/
-		
-		//计算
 		testObjA.x = n.pos.x;
 		testObjA.y = n.pos.y;
-		testObjA.rect = false;
-		testObjA.a
-			= testObjA.b
-			= n.half_width * _GetEnvelope((float)i / (float)(sn - 1u));
-		//testObjA.UpdateCollisionCirclrRadius();
-		//渲染
+		float const envelope_ = _GetEnvelope((float)i * _1_nc);
+		testObjA.a = testObjA.b = n.half_width * envelope_; //n.half_width;
 		LAPP.DebugDrawCircle((float)testObjA.x, (float)testObjA.y, (float)testObjA.a, fillColor);
 	}
 }
