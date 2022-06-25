@@ -55,3 +55,6 @@
 [submodule "external/libflac"]
 	path = external/libflac
 	url = https://github.com/xiph/flac.git
+[submodule "external/pcg-cpp"]
+	path = external/pcg-cpp
+	url = https://github.com/imneme/pcg-cpp.git
