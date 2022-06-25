@@ -1,11 +1,16 @@
 --------------------------------------------------------------------------------
---- Random number generator based on xoshiro / xoroshiro
---- Original C code written in 2019 by David Blackman and Sebastiano Vigna
---- (vigna@acm.org)
---- Reference https://prng.di.unimi.it/
---- Also reference https://www.pcg-random.org/
+--- Random number generator
+--- xoshiro / xoroshiro https://prng.di.unimi.it/
+--- PCG / jsf / sfc https://www.pcg-random.org/
 --- Lua binding write by 璀境石
 --------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+--- recommended generator
+
+--- 1. pcg64_oneseq
+--- 2. pcg64_fast
+--- 3. xoshiro256ss
 
 --------------------------------------------------------------------------------
 --- sample code
@@ -98,6 +103,36 @@ local M = {}
 --- not recommended for direct use  
 ---@return random.splitmix64
 function M.splitmix64() end
+
+---------- xoshiro128 family ----------
+
+---@class random.xoshiro128p : random.generator
+
+--- xoshiro128 family: xoshiro128+  
+--- internal state: 128bits  
+--- output result: 32bits  
+--- not recommended  
+--- only recommended for generating float value  
+---@return random.xoshiro128p
+function M.xoshiro128p() end
+
+---@class random.xoshiro128pp : random.generator
+
+--- xoshiro128 family: xoshiro128++  
+--- internal state: 128bits  
+--- output result: 32bits  
+--- not recommended  
+---@return random.xoshiro128pp
+function M.xoshiro128pp() end
+
+---@class random.xoshiro128ss : random.generator
+
+--- xoshiro128 family: xoshiro128**  
+--- internal state: 128bits  
+--- output result: 32bits  
+--- not recommended  
+---@return random.xoshiro128ss
+function M.xoshiro128ss() end
 
 ---------- xoroshiro128 family ----------
 

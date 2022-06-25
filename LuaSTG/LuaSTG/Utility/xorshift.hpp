@@ -137,10 +137,10 @@ namespace random
         void seed(uint64_t seedv)
         {
             splitmix64 gn(seedv);
-            s[0] = uint32_t(gn.next() >> 32);
-            s[1] = uint32_t(gn.next() >> 32);
-            s[2] = uint32_t(gn.next() >> 32);
-            s[3] = uint32_t(gn.next() >> 32);
+            s[0] = static_cast<uint32_t>(gn.next());
+            s[1] = static_cast<uint32_t>(gn.next());
+            s[2] = static_cast<uint32_t>(gn.next());
+            s[3] = static_cast<uint32_t>(gn.next());
         }
         virtual uint32_t next()
         {
