@@ -3,6 +3,7 @@
 #include "Core/i18n.hpp"
 #include "utility/encoding.hpp"
 #include "platform/WindowsVersion.hpp"
+#include "platform/CommandLine.hpp"
 
 #include "WICTextureLoader11.h"
 #include "ScreenGrab11.h"
@@ -347,6 +348,16 @@ namespace Core::Graphics
 
 		// 公共参数
 
+		bool allow_soft_adapter = false;
+		std::vector<std::string> args(platform::CommandLine::get());
+		for (auto const& v : args)
+		{
+			if (v == "--allow-soft-adapter")
+			{
+				allow_soft_adapter = true;
+			}
+		}
+
 	#ifdef _DEBUG
 		UINT const d3d11_creation_flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT | D3D11_CREATE_DEVICE_DEBUG;
 	#else
@@ -424,7 +435,7 @@ namespace Core::Graphics
 					, desc_.Revision
 					, static_cast<DWORD>(desc_.AdapterLuid.HighPart), desc_.AdapterLuid.LowPart
 				);
-				if (soft_dev_type)
+				if (!allow_soft_adapter && soft_dev_type)
 				{
 					supported_d3d11 = false; // 排除软件或远程设备
 				}
