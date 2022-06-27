@@ -1140,6 +1140,10 @@ namespace Core::Graphics
 
 	bool Device_D3D11::handleDeviceLost()
 	{
+		if (d3d11_device)
+		{
+			gHR = d3d11_device->GetDeviceRemovedReason();
+		}
 		return doDestroyAndCreate();
 	}
 	bool Device_D3D11::validateDXGIFactory()
