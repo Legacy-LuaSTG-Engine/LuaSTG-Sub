@@ -45,12 +45,15 @@ target_include_directories(DirectXTexMini PUBLIC
     DirectXTex
     DirectXTex/ScreenGrab
     DirectXTex/WICTextureLoader
+    DirectXTex/DDSTextureLoader
 )
 target_sources(DirectXTexMini PRIVATE
     DirectXTex/ScreenGrab/ScreenGrab11.h
     DirectXTex/ScreenGrab/ScreenGrab11.cpp
     DirectXTex/WICTextureLoader/WICTextureLoader11.h
     DirectXTex/WICTextureLoader/WICTextureLoader11.cpp
+    DirectXTex/DDSTextureLoader/DDSTextureLoader11.h
+    DirectXTex/DDSTextureLoader/DDSTextureLoader11.cpp
 )
 target_link_libraries(DirectXTexMini PUBLIC
     dxguid.lib
