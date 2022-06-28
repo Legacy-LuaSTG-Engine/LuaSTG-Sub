@@ -6,6 +6,7 @@
 #include "platform/CommandLine.hpp"
 
 #include "WICTextureLoader11.h"
+#include "DDSTextureLoader11.h"
 #include "ScreenGrab11.h"
 
 namespace Core::Graphics
@@ -1613,17 +1614,39 @@ namespace Core::Graphics
 
 			// 加载图片
 			Microsoft::WRL::ComPtr<ID3D11Resource> res;
-			hr = gHR = DirectX::CreateWICTextureFromMemoryEx(
+			// 先尝试以 DDS 格式加载
+			DirectX::DDS_ALPHA_MODE dds_alpha_mode = DirectX::DDS_ALPHA_MODE_UNKNOWN;
+			HRESULT const hr1 = DirectX::CreateDDSTextureFromMemoryEx(
 				d3d11_device, m_mipmap ? d3d11_devctx : NULL,
 				src.data(), src.size(),
 				0,
 				D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0,
-				DirectX::WIC_LOADER_DEFAULT,
-				&res, &d3d11_srv);
-			if (FAILED(hr))
+				FALSE,
+				&res, &d3d11_srv,
+				&dds_alpha_mode);
+			if (FAILED(hr1))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "DirectX::CreateWICTextureFromMemoryEx");
-				return false;
+				// 尝试以普通图片格式加载
+				HRESULT const hr2 = DirectX::CreateWICTextureFromMemoryEx(
+					d3d11_device, m_mipmap ? d3d11_devctx : NULL,
+					src.data(), src.size(),
+					0,
+					D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0,
+					DirectX::WIC_LOADER_DEFAULT,
+					&res, &d3d11_srv);
+				if (FAILED(hr2))
+				{
+					// 在这里一起报告，不然 log 文件里遍地都是 error
+					gHR = hr1;
+					i18n_log_error_fmt("[core].system_call_failed_f", "DirectX::CreateDDSTextureFromMemoryEx");
+					gHR = hr2;
+					i18n_log_error_fmt("[core].system_call_failed_f", "DirectX::CreateWICTextureFromMemoryEx");
+					return false;
+				}
+			}
+			if (dds_alpha_mode == DirectX::DDS_ALPHA_MODE_PREMULTIPLIED)
+			{
+				m_premul = true; // 您小子预乘了 alpha 通道是吧，行
 			}
 			M_D3D_SET_DEBUG_NAME(d3d11_srv.Get(), "Texture2D_D3D11::d3d11_srv");
 
