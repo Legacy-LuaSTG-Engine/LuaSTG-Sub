@@ -28,7 +28,7 @@ end
 function FrameFunc()
     imgui.backend.NewFrame()
     imgui.ImGui.NewFrame()
-    --imgui.ImGui.ShowDemoWindow()
+    imgui.ImGui.ShowDemoWindow()
     --imgui.backend.ShowTestInputWindow()
     --imgui.backend.ShowMemoryUsageWindow()
     imgui.backend.ShowFrameStatistics()

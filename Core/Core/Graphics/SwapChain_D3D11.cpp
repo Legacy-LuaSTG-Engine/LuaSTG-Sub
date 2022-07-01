@@ -404,6 +404,14 @@ namespace Core::Graphics
 			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::GetBuffer -> 0");
 			return false;
 		}
+		// TODO: 线性颜色空间自动转 sRGB
+		//D3D11_RENDER_TARGET_VIEW_DESC rtv_desc = {
+		//	.Format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,
+		//	.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D,
+		//	.Texture2D = {
+		//		.MipSlice = 0,
+		//	},
+		//};
 		hr = gHR = d3d11_device->CreateRenderTargetView(dxgi_surface.Get(), NULL, &d3d11_rtv);
 		if (FAILED(hr))
 		{
