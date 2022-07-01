@@ -1632,7 +1632,9 @@ namespace Core::Graphics
 					src.data(), src.size(),
 					0,
 					D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0,
-					DirectX::WIC_LOADER_DEFAULT,
+					DirectX::WIC_LOADER_DEFAULT | DirectX::WIC_LOADER_IGNORE_SRGB,
+					// TODO: 渲染管线目前是在 sRGB 下计算的，也就是心理视觉色彩，将错就错吧……
+					//DirectX::WIC_LOADER_DEFAULT | DirectX::WIC_LOADER_SRGB_DEFAULT,
 					&res, &d3d11_srv);
 				if (FAILED(hr2))
 				{
@@ -1762,6 +1764,8 @@ namespace Core::Graphics
 
 		D3D11_RENDER_TARGET_VIEW_DESC rtvdef = {
 			.Format = tex2ddef.Format,
+			// TODO: sRGB
+			//.Format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,
 			.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D,
 			.Texture2D = D3D11_TEX2D_RTV{.MipSlice = 0,},
 		};

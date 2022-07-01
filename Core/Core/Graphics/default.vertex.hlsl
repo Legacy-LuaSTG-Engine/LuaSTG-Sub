@@ -41,6 +41,8 @@ VS_Output main(VS_Input input)
 #endif
     output.uv = input.uv;
     output.col = input.col;
+    // TODO: 顶点颜色转到线性颜色空间
+    //output.col = pow(input.col, 1.0f / 2.2f);
 
     return output;
 };

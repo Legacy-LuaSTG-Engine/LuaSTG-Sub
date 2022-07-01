@@ -17,15 +17,15 @@ function M:onCreate()
     local old_pool = lstg.GetResourceStatus()
     lstg.SetResourceStatus("global")
 
-    load_texture("wrigglewalk")
-    load_texture("xiaosuiguwalk")
+    load_texture("sRGB")
+    load_texture("linear")
 
     lstg.SetResourceStatus(old_pool)
 end
 
 function M:onDestroy()
-    unload_texture("wrigglewalk")
-    unload_texture("xiaosuiguwalk")
+    unload_texture("sRGB")
+    unload_texture("linear")
 end
 
 function M:onUpdate()
@@ -33,8 +33,9 @@ end
 
 function M:onRender()
     window:applyCameraV()
-    lstg.Render("img:wrigglewalk", window.width / 4 * 1, window.height / 2, 0, 2)
-    lstg.Render("img:xiaosuiguwalk", window.width / 4 * 3, window.height / 2, 0, 2)
+    local scale = 0.5
+    lstg.Render("img:sRGB", window.width / 4 * 1, window.height / 2, 0, scale)
+    lstg.Render("img:linear", window.width / 4 * 3, window.height / 2, 0, scale)
 end
 
 test.registerTest("test.Module.Texture", M)
