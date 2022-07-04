@@ -180,6 +180,7 @@ set(LJ_SRC
     ${LJ_ROOT}/src/lib_table.c
     patch/lib_io.c
     patch/lib_os.c
+    patch/lib_utf8.c
     patch/lj_win32.c
 )
 
