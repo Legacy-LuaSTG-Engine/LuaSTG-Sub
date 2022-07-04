@@ -7,7 +7,7 @@
 #define lutf8lib_c
 #define LUA_LIB
 
-#include "lprefix.h"
+//#include "lprefix.h"
 
 
 #include <assert.h>
@@ -149,7 +149,7 @@ static int codepoint (lua_State *L) {
 
 
 static void pushutfchar (lua_State *L, int arg) {
-  lua_Unsigned code = (lua_Unsigned)luaL_checkinteger(L, arg);
+  lua_Integer code = luaL_checkinteger(L, arg);
   luaL_argcheck(L, code <= MAXUTF, arg, "value out of range");
   lua_pushfstring(L, "%U", (long)code);
 }
@@ -224,7 +224,7 @@ static int byteoffset (lua_State *L) {
 static int iter_aux (lua_State *L, int strict) {
   size_t len;
   const char *s = luaL_checklstring(L, 1, &len);
-  lua_Unsigned n = (lua_Unsigned)lua_tointeger(L, 2);
+  lua_Integer n = lua_tointeger(L, 2);
   if (n < len) {
     while (iscont(s + n)) n++;  /* skip continuation bytes */
   }
@@ -277,7 +277,7 @@ static const luaL_Reg funcs[] = {
 };
 
 
-LUAMOD_API int luaopen_utf8 (lua_State *L) {
+LUALIB_API int luaopen_utf8 (lua_State *L) {
   luaL_newlib(L, funcs);
   lua_pushlstring(L, UTF8PATT, sizeof(UTF8PATT)/sizeof(char) - 1);
   lua_setfield(L, -2, "charpattern");
