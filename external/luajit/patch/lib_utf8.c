@@ -103,7 +103,7 @@ static int utflen (lua_State *L) {
   while (posi <= posj) {
     const char *s1 = utf8_decode(s + posi, NULL, !lax);
     if (s1 == NULL) {  /* conversion error? */
-      luaL_pushfail(L);  /* return fail ... */
+      lua_pushnil(L);  /* return fail ... */
       lua_pushinteger(L, posi + 1);  /* ... and current position */
       return 2;
     }
@@ -216,7 +216,7 @@ static int byteoffset (lua_State *L) {
   if (n == 0)  /* did it find given character? */
     lua_pushinteger(L, posi + 1);
   else  /* no such character */
-    luaL_pushfail(L);
+    lua_pushnil(L);
   return 1;
 }
 
@@ -278,7 +278,7 @@ static const luaL_Reg funcs[] = {
 
 
 LUALIB_API int luaopen_utf8 (lua_State *L) {
-  luaL_newlib(L, funcs);
+  luaL_register(L, "utf8", funcs);
   lua_pushlstring(L, UTF8PATT, sizeof(UTF8PATT)/sizeof(char) - 1);
   lua_setfield(L, -2, "charpattern");
   return 1;
