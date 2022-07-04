@@ -7,6 +7,7 @@
 extern "C" {
 #include "lua_cjson.h"
 #include "lfs.h"
+extern int luaopen_utf8(lua_State* L);
 }
 //#include "lua_xlsx_csv.h"
 #include "lua_steam.h"
@@ -284,6 +285,7 @@ namespace LuaSTGPlus
             lua_steam_open(L);
             lua_xinput_open(L);
             luaopen_random(L);
+            luaopen_utf8(L);
             lua_settop(L, 0);
             
             RegistBuiltInClassWrapper(L);  // 注册内建类 (luastg lib)
