@@ -96,6 +96,7 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/LW_ResourceMgr.cpp
     LuaSTG/LuaBinding/LW_Platform.cpp
     LuaSTG/LuaBinding/LW_GameObjectManager.cpp
+    LuaSTG/LuaBinding/LB_Mesh.cpp
 
     LuaSTG/SteamAPI/SteamAPI.cpp
     LuaSTG/SteamAPI/SteamAPI.hpp

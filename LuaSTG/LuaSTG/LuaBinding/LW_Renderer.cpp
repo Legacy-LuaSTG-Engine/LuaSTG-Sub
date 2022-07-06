@@ -535,7 +535,7 @@ static int lib_drawSpriteSequence(lua_State* L)
     return 0;
 }
 
-static int lib_drawTexture(lua_State* L)noexcept
+static int lib_drawTexture(lua_State* L) noexcept
 {
     const char* name = luaL_checkstring(L, 1);
     LuaSTGPlus::BlendMode blend = LuaSTGPlus::TranslateBlendMode(L, 2);
@@ -599,6 +599,29 @@ static int lib_drawTexture(lua_State* L)noexcept
     ctx->setTexture(ptex2d);
 
     ctx->drawQuad(vertex[0], vertex[1], vertex[2], vertex[3]);
+
+    return 0;
+}
+static int lib_drawMesh(lua_State* L) noexcept
+{
+    std::string_view const tex_name = luaL_check_string_view(L, 1);
+    LuaSTGPlus::BlendMode blend = LuaSTGPlus::TranslateBlendMode(L, 2);
+    LuaSTGPlus::Mesh* mesh = LuaSTGPlus::LuaWrapper::MeshBinding::Cast(L, 3);
+
+    auto* ctx = LR2D();
+
+    translate_blend(ctx, blend);
+
+    fcyRefPointer<LuaSTGPlus::ResTexture> ptex2dres = LRESMGR().FindTexture(tex_name.data());
+    if (!ptex2dres)
+    {
+        spdlog::error("[luastg] lstg.Renderer.drawTexture failed: can't find texture '{}'", tex_name);
+        return false;
+    }
+    check_rendertarget_usage(*ptex2dres);
+    ctx->setTexture(ptex2dres->GetTexture());
+
+    mesh->draw(ctx);
 
     return 0;
 }
@@ -918,6 +941,7 @@ static luaL_Reg const lib_compat[] = {
     { "Render4V", &lib_drawSprite4V },
     { "RenderAnimation", &lib_drawSpriteSequence },
     { "RenderTexture", &lib_drawTexture },
+    { "RenderMesh", &lib_drawMesh },
     { "RenderModel", &lib_drawModel },
     { "SetFog", &compat_SetFog },
     { "SetZBufferEnable", &compat_SetZBufferEnable },

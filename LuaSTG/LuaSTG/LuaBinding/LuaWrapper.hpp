@@ -141,6 +141,15 @@ namespace LuaSTGPlus
 			static void Register(lua_State* L);
 		};
 
+		class MeshBinding
+		{
+		public:
+			static std::string_view const ClassID;
+			static Mesh* Cast(lua_State* L, int idx);
+			static Mesh* Create(lua_State* L);
+			static void Register(lua_State* L);
+		};
+
 		namespace IO {
 			class StreamWrapper
 			{
