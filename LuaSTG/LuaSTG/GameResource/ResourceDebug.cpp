@@ -68,6 +68,17 @@ namespace LuaSTGPlus
 				ImGui::Text("Preview Scaling");
 				ImGui::PopID();
 			};
+			auto draw_texture0 = [](Core::Graphics::ITexture2D* p_tex, float scale) -> void
+			{
+				auto const size = p_tex->getSize();
+				ImGui::Image(
+					p_tex->getNativeHandle(),
+					ImVec2(scale * (float)size.x, scale * (float)size.y),
+					ImVec2(0.0f, 0.0f),
+					ImVec2(1.0f, 1.0f),
+					ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
+					ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
+			};
 			auto draw_texture = [](ResTexture* p_res, bool show_info, float scale) -> void
 			{
 				auto const size = p_res->GetTexture()->getSize();
@@ -364,6 +375,22 @@ namespace LuaSTGPlus
 									v.second->GetResName().c_str()
 								))
 								{
+									auto* mgr = v.second->GetGlyphManager();
+									auto* p_tex0 = mgr->getTexture(0);
+
+									ImGui::Text("Size: %u x %u (x %u)", p_tex0->getSize().x, p_tex0->getSize().y, mgr->getTextureCount());
+									ImGui::Text("Dynamic: Yes");
+									unsigned long long mem_usage = p_tex0->getSize().x * p_tex0->getSize().y * 4 * mgr->getTextureCount();
+									ImGui::Text("Memory Usage (Approximate): %s", bytes_count_to_string(mem_usage).c_str());
+									ImGui::Text("Adapter Memory Usage (Approximate): %s", bytes_count_to_string(mem_usage).c_str());
+
+									static float preview_scale = 1.0f;
+									draw_preview_scaling(preview_scale);
+									for (uint32_t tidx = 0; tidx < mgr->getTextureCount(); tidx += 1)
+									{
+										draw_texture0(mgr->getTexture(tidx), preview_scale);
+									}
+
 									ImGui::TreePop();
 								}
 								res_i += 1;
