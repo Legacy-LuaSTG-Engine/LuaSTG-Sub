@@ -17,6 +17,7 @@ local imgui = require("imgui")
 local test = require("test")
 
 require("test_texture")
+require("test_mesh")
 
 function GameInit()
     window:init()
