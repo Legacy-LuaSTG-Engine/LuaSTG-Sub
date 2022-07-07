@@ -1714,8 +1714,10 @@ namespace Core::Graphics
 		, m_mipmap(mipmap)
 		, m_isrt(false)
 	{
+		if (path.empty())
+			throw std::runtime_error("Texture2D::Texture2D(1)");
 		if (!createResource())
-			throw std::runtime_error("Texture2D::Texture2D");
+			throw std::runtime_error("Texture2D::Texture2D(2)");
 		m_device->addEventListener(this);
 	}
 	Texture2D_D3D11::Texture2D_D3D11(Device_D3D11* device, Vector2U size, bool rendertarget)
