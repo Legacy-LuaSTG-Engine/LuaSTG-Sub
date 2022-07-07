@@ -7,8 +7,10 @@ function M:onCreate()
     local old_pool = lstg.GetResourceStatus()
     lstg.SetResourceStatus("global")
     lstg.LoadTexture("tex:linear", "res/linear.png", false)
+    lstg.SetTextureSamplerState("tex:linear", "linear+wrap")
     lstg.SetResourceStatus(old_pool)
 
+    self.timer = -1
     self.mesh = lstg.MeshData(6, 12)
 
     self.mesh:setIndex(0, 0)
@@ -43,6 +45,14 @@ function M:onDestroy()
 end
 
 function M:onUpdate()
+    self.timer = self.timer + 1
+    local w, h = lstg.GetTextureSize("tex:linear")
+    self.mesh:setVertexCoords(0,    0 / w,    0 / h + self.timer / h)
+    self.mesh:setVertexCoords(1,    0 / w,  512 / h + self.timer / h)
+    self.mesh:setVertexCoords(2,  512 / w,  512 / h + self.timer / h)
+    self.mesh:setVertexCoords(3,  512 / w, 1024 / h + self.timer / h)
+    self.mesh:setVertexCoords(4, 1024 / w,    0 / h + self.timer / h)
+    self.mesh:setVertexCoords(5, 1024 / w,  512 / h + self.timer / h)
 end
 
 function M:onRender()
