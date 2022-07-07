@@ -213,102 +213,71 @@ namespace Core::Graphics
 		}
 
 		{
-			D3D11_SAMPLER_DESC black_border_ = {
-				.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT,
-				.AddressU = D3D11_TEXTURE_ADDRESS_WRAP,
-				.AddressV = D3D11_TEXTURE_ADDRESS_WRAP,
-				.AddressW = D3D11_TEXTURE_ADDRESS_WRAP,
-				.MipLODBias = D3D11_DEFAULT_MIP_LOD_BIAS,
-				.MaxAnisotropy = D3D11_DEFAULT_MAX_ANISOTROPY,
-				.ComparisonFunc = D3D11_COMPARISON_ALWAYS,
-				.BorderColor = { 0.0f, 0.0f, 0.0f, 0.0f },
-				.MinLOD = -FLT_MAX,
-				.MaxLOD = FLT_MAX,
-			};
-			D3D11_SAMPLER_DESC white_border_ = {
-				.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT,
-				.AddressU = D3D11_TEXTURE_ADDRESS_WRAP,
-				.AddressV = D3D11_TEXTURE_ADDRESS_WRAP,
-				.AddressW = D3D11_TEXTURE_ADDRESS_WRAP,
-				.MipLODBias = D3D11_DEFAULT_MIP_LOD_BIAS,
-				.MaxAnisotropy = D3D11_DEFAULT_MAX_ANISOTROPY,
-				.ComparisonFunc = D3D11_COMPARISON_ALWAYS,
-				.BorderColor = { 1.0f, 1.0f, 1.0f, 1.0f },
-				.MinLOD = -FLT_MAX,
-				.MaxLOD = FLT_MAX,
-			};
+			Graphics::SamplerState sampler_state;
 
-			black_border_.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-			black_border_.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-			black_border_.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-			black_border_.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-			hr = gHR = m_device->GetD3D11Device()->CreateSamplerState(&black_border_, &_sampler_state[IDX(SamplerState::PointWrap)]);
-			if (FAILED(hr))
-				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_sampler_state[IDX(SamplerState::PointWrap)].Get());
+			// point
 
-			black_border_.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-			black_border_.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-			black_border_.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-			black_border_.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-			hr = gHR = m_device->GetD3D11Device()->CreateSamplerState(&black_border_, &_sampler_state[IDX(SamplerState::PointClamp)]);
-			if (FAILED(hr))
+			sampler_state.filer = Filter::Point;
+			sampler_state.address_u = TextureAddressMode::Wrap;
+			sampler_state.address_v = TextureAddressMode::Wrap;
+			sampler_state.address_w = TextureAddressMode::Wrap;
+			if (!m_device->createSamplerState(sampler_state, ~_sampler_state[IDX(SamplerState::PointWrap)]))
 				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_sampler_state[IDX(SamplerState::PointClamp)].Get());
 
-			black_border_.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-			black_border_.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
-			black_border_.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
-			black_border_.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
-			hr = gHR = m_device->GetD3D11Device()->CreateSamplerState(&black_border_, &_sampler_state[IDX(SamplerState::PointBorderBlack)]);
-			if (FAILED(hr))
+			sampler_state.filer = Filter::Point;
+			sampler_state.address_u = TextureAddressMode::Clamp;
+			sampler_state.address_v = TextureAddressMode::Clamp;
+			sampler_state.address_w = TextureAddressMode::Clamp;
+			if (!m_device->createSamplerState(sampler_state, ~_sampler_state[IDX(SamplerState::PointClamp)]))
 				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_sampler_state[IDX(SamplerState::PointBorderBlack)].Get());
 
-			white_border_.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-			white_border_.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
-			white_border_.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
-			white_border_.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
-			hr = gHR = m_device->GetD3D11Device()->CreateSamplerState(&white_border_, &_sampler_state[IDX(SamplerState::PointBorderWhite)]);
-			if (FAILED(hr))
+			sampler_state.filer = Filter::Point;
+			sampler_state.address_u = TextureAddressMode::Border;
+			sampler_state.address_v = TextureAddressMode::Border;
+			sampler_state.address_w = TextureAddressMode::Border;
+			sampler_state.border_color = BorderColor::Black;
+			if (!m_device->createSamplerState(sampler_state, ~_sampler_state[IDX(SamplerState::PointBorderBlack)]))
 				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_sampler_state[IDX(SamplerState::PointBorderWhite)].Get());
 
-			black_border_.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-			black_border_.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-			black_border_.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-			black_border_.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-			hr = gHR = m_device->GetD3D11Device()->CreateSamplerState(&black_border_, &_sampler_state[IDX(SamplerState::LinearWrap)]);
-			if (FAILED(hr))
+			sampler_state.filer = Filter::Point;
+			sampler_state.address_u = TextureAddressMode::Border;
+			sampler_state.address_v = TextureAddressMode::Border;
+			sampler_state.address_w = TextureAddressMode::Border;
+			sampler_state.border_color = BorderColor::White;
+			if (!m_device->createSamplerState(sampler_state, ~_sampler_state[IDX(SamplerState::PointBorderWhite)]))
 				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_sampler_state[IDX(SamplerState::LinearWrap)].Get());
 
-			black_border_.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-			black_border_.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-			black_border_.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-			black_border_.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-			hr = gHR = m_device->GetD3D11Device()->CreateSamplerState(&black_border_, &_sampler_state[IDX(SamplerState::LinearClamp)]);
-			if (FAILED(hr))
-				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_sampler_state[IDX(SamplerState::LinearClamp)].Get());
+			// linear
 
-			black_border_.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-			black_border_.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
-			black_border_.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
-			black_border_.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
-			hr = gHR = m_device->GetD3D11Device()->CreateSamplerState(&black_border_, &_sampler_state[IDX(SamplerState::LinearBorderBlack)]);
-			if (FAILED(hr))
+			sampler_state.filer = Filter::Linear;
+			sampler_state.address_u = TextureAddressMode::Wrap;
+			sampler_state.address_v = TextureAddressMode::Wrap;
+			sampler_state.address_w = TextureAddressMode::Wrap;
+			if (!m_device->createSamplerState(sampler_state, ~_sampler_state[IDX(SamplerState::LinearWrap)]))
 				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_sampler_state[IDX(SamplerState::LinearBorderBlack)].Get());
 
-			white_border_.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-			white_border_.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
-			white_border_.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
-			white_border_.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
-			hr = gHR = m_device->GetD3D11Device()->CreateSamplerState(&white_border_, &_sampler_state[IDX(SamplerState::LinearBorderWhite)]);
-			if (FAILED(hr))
+			sampler_state.filer = Filter::Linear;
+			sampler_state.address_u = TextureAddressMode::Clamp;
+			sampler_state.address_v = TextureAddressMode::Clamp;
+			sampler_state.address_w = TextureAddressMode::Clamp;
+			if (!m_device->createSamplerState(sampler_state, ~_sampler_state[IDX(SamplerState::LinearClamp)]))
 				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_sampler_state[IDX(SamplerState::LinearBorderWhite)].Get());
+
+			sampler_state.filer = Filter::Linear;
+			sampler_state.address_u = TextureAddressMode::Border;
+			sampler_state.address_v = TextureAddressMode::Border;
+			sampler_state.address_w = TextureAddressMode::Border;
+			sampler_state.border_color = BorderColor::Black;
+			if (!m_device->createSamplerState(sampler_state, ~_sampler_state[IDX(SamplerState::LinearBorderBlack)]))
+				return false;
+
+			sampler_state.filer = Filter::Linear;
+			sampler_state.address_u = TextureAddressMode::Border;
+			sampler_state.address_v = TextureAddressMode::Border;
+			sampler_state.address_w = TextureAddressMode::Border;
+			sampler_state.border_color = BorderColor::White;
+			if (!m_device->createSamplerState(sampler_state, ~_sampler_state[IDX(SamplerState::LinearBorderWhite)]))
+				return false;
 		}
 
 		{
@@ -527,10 +496,14 @@ namespace Core::Graphics
 	}
 	void Renderer_D3D11::setSamplerState(SamplerState state, UINT index)
 	{
-		ID3D11SamplerState* samp_ = _sampler_state[IDX(state)].Get();
-		auto* ctx = m_device->GetD3D11DeviceContext();
-		assert(ctx);
-		ctx->PSSetSamplers(index, 1, &samp_);
+		ID3D11SamplerState* d3d11_sampler = static_cast<SamplerState_D3D11*>(_sampler_state[IDX(state)].get())->GetState();
+		m_device->GetD3D11DeviceContext()->PSSetSamplers(index, 1, &d3d11_sampler);
+	}
+	void Renderer_D3D11::bindTextureSamplerState(ITexture2D* texture)
+	{
+		ISamplerState* sampler = texture->getSamplerState() ? texture->getSamplerState() : _sampler_state[IDX(_state_set.sampler_state)].get();
+		ID3D11SamplerState* d3d11_sampler = static_cast<SamplerState_D3D11*>(sampler)->GetState();
+		m_device->GetD3D11DeviceContext()->PSSetSamplers(0, 1, &d3d11_sampler);
 	}
 	void Renderer_D3D11::bindTextureAlphaType(ITexture2D* texture)
 	{
@@ -591,6 +564,7 @@ namespace Core::Graphics
 					{
 						ID3D11ShaderResourceView* srv[1] = { get_view(cmd_.texture) };
 						ctx->PSSetShaderResources(0, 1, srv);
+						bindTextureSamplerState(cmd_.texture.get());
 						bindTextureAlphaType(cmd_.texture.get());
 						ctx->DrawIndexed(cmd_.index_count, vi_.index_offset, vi_.vertex_offset);
 					}
@@ -677,7 +651,7 @@ namespace Core::Graphics
 		_raster_state.Reset();
 		for (auto& v : _sampler_state)
 		{
-			v.Reset();
+			v.reset();
 		}
 		for (auto& v : _depth_state)
 		{
@@ -1344,6 +1318,11 @@ namespace Core::Graphics
 		}
 
 		return true;
+	}
+
+	ISamplerState* Renderer_D3D11::getKnownSamplerState(SamplerState state)
+	{
+		return _sampler_state[IDX(state)].get();
 	}
 
 	Renderer_D3D11::Renderer_D3D11(Device_D3D11* p_device)

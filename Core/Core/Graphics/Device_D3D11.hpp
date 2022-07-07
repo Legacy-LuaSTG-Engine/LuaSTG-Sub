@@ -175,6 +175,7 @@ namespace Core::Graphics
 	{
 	private:
 		ScopeObject<Device_D3D11> m_device;
+		ScopeObject<ISamplerState> m_sampler;
 		std::string source_path;
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> d3d11_texture2d;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> d3d11_srv;
@@ -205,6 +206,9 @@ namespace Core::Graphics
 		bool uploadPixelData(RectU rc, void const* data, uint32_t pitch);
 
 		bool saveToFile(StringView path);
+
+		void setSamplerState(ISamplerState* p_sampler) { m_sampler = p_sampler; }
+		ISamplerState* getSamplerState() { return m_sampler.get(); }
 
 	public:
 		Texture2D_D3D11(Device_D3D11* device, StringView path, bool mipmap);

@@ -157,6 +157,8 @@ namespace Core::Graphics
 		virtual bool createModel(StringView path, IModel** pp_model) = 0;
 		virtual bool drawModel(IModel* p_model) = 0;
 
+		virtual ISamplerState* getKnownSamplerState(SamplerState state) = 0;
+
 		static bool create(IDevice* p_device, IRenderer** pp_renderer);
 	};
 }

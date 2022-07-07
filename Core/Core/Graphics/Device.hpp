@@ -103,6 +103,10 @@ namespace Core::Graphics
 		virtual bool uploadPixelData(RectU rc, void const* data, uint32_t pitch) = 0;
 
 		virtual bool saveToFile(StringView path) = 0;
+
+		virtual void setSamplerState(ISamplerState* p_sampler) = 0;
+		// Might be nullptr
+		virtual ISamplerState* getSamplerState() = 0;
 	};
 
 	struct IRenderTarget : public IObject

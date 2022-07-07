@@ -585,7 +585,7 @@ static int lib_drawTexture(lua_State* L) noexcept
     if (!ptex2dres)
     {
         spdlog::error("[luastg] lstg.Renderer.drawTexture failed: can't find texture '{}'", name);
-        return false;
+        return luaL_error(L, "can't find texture '%s'", name);
     }
     check_rendertarget_usage(*ptex2dres);
     Core::Graphics::ITexture2D* ptex2d = ptex2dres->GetTexture();
@@ -615,8 +615,8 @@ static int lib_drawMesh(lua_State* L) noexcept
     fcyRefPointer<LuaSTGPlus::ResTexture> ptex2dres = LRESMGR().FindTexture(tex_name.data());
     if (!ptex2dres)
     {
-        spdlog::error("[luastg] lstg.Renderer.drawTexture failed: can't find texture '{}'", tex_name);
-        return false;
+        spdlog::error("[luastg] lstg.Renderer.drawMesh failed: can't find texture '{}'", tex_name);
+        return luaL_error(L, "can't find texture '%s'", tex_name.data());
     }
     check_rendertarget_usage(*ptex2dres);
     ctx->setTexture(ptex2dres->GetTexture());
@@ -850,10 +850,38 @@ static int compat_PostEffect(lua_State* L)
 
     return 0;
 }
-
-// 应该要废弃掉的方法
 static int compat_SetTextureSamplerState(lua_State* L)noexcept
 {
+    // 绑定到纹理的采样器
+
+    std::string_view const sampler_name = luaL_check_string_view(L, 2);
+    if (sampler_name == "" || sampler_name == "point+wrap" || sampler_name == "point+clamp" || sampler_name == "linear+wrap" || sampler_name == "linear+clamp")
+    {
+        // 查找纹理
+        std::string_view const tex_name = luaL_check_string_view(L, 1);
+        fcyRefPointer<LuaSTGPlus::ResTexture> p = LRESMGR().FindTexture(tex_name.data());
+        if (!p)
+        {
+            spdlog::error("[luastg] lstg.SetTextureSamplerState failed: can't find texture '{}'", tex_name);
+            return luaL_error(L, "can't find texture '%s'", tex_name.data());
+        }
+
+        // 映射
+        Core::Graphics::IRenderer::SamplerState state = Core::Graphics::IRenderer::SamplerState::LinearClamp;
+        if (sampler_name == "point+wrap") state = Core::Graphics::IRenderer::SamplerState::PointWrap;
+        if (sampler_name == "point+clamp") state = Core::Graphics::IRenderer::SamplerState::PointClamp;
+        if (sampler_name == "linear+wrap") state = Core::Graphics::IRenderer::SamplerState::LinearWrap;
+        if (sampler_name == "" || sampler_name == "linear+clamp") state = Core::Graphics::IRenderer::SamplerState::LinearClamp;
+
+        // 设置
+        Core::Graphics::ISamplerState* p_sampler = LR2D()->getKnownSamplerState(state);
+        p->GetTexture()->setSamplerState(p_sampler);
+
+        return 0;
+    }
+
+    // 应该要废弃掉的设计
+
     static int last_filter = 2; // 1 point 2 linear
     static int last_addr = 2; // 1 wrap 2 clamp
     std::string_view arg1 = luaL_check_string_view(L, 1);
@@ -949,7 +977,6 @@ static luaL_Reg const lib_compat[] = {
     { "PushRenderTarget", &compat_PushRenderTarget },
     { "PopRenderTarget", &compat_PopRenderTarget },
     { "PostEffect", &compat_PostEffect },
-    // 应该要废弃掉的方法
     { "SetTextureSamplerState", &compat_SetTextureSamplerState },
     { NULL, NULL },
 };
