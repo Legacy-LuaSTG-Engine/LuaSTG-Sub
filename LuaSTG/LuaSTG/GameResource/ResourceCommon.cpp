@@ -26,14 +26,4 @@ namespace LuaSTGPlus
 	ResFX::~ResFX()
 	{
 	}
-
-	ResModel::ResModel(const char* name, const char* path)
-		: Resource(ResourceType::Model, name)
-	{
-		if (!LAPP.GetAppModel()->getRenderer()->createModel(path, ~model_))
-			throw std::runtime_error("ResModel");
-	}
-	ResModel::~ResModel()
-	{
-	}
 }
