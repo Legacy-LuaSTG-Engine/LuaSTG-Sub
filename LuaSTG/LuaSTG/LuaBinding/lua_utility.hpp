@@ -15,7 +15,7 @@ inline void lua_push_string_view(lua_State* L, std::string_view const& str)
 
 inline uint8_t lua_to_uint8_boolean(lua_State* L, int idx)
 {
-	return lua_toboolean(L, idx) == 0 ? false : true;
+	return lua_toboolean(L, idx) != 0;
 }
 
 inline uint32_t luaL_checki_uint32(lua_State* L, int idx)

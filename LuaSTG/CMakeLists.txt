@@ -50,6 +50,7 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/GameResource/ResourceMgr.cpp
     LuaSTG/GameResource/ResourceMgr.h
     LuaSTG/GameResource/ResourceModel.hpp
+    LuaSTG/GameResource/ResourceModel.cpp
     LuaSTG/GameResource/ResourceParticle.cpp
     LuaSTG/GameResource/ResourceParticle.hpp
     LuaSTG/GameResource/ResourcePassword.hpp
@@ -127,9 +128,7 @@ target_sources(LuaSTG PRIVATE
     ${LUASTG_ENGINE_SOURCES}
 )
 
-if(NOT DEFINED LUASTG_RESDIR)
-    option(LUASTG_RESDIR "LuaSTG custom build configuration" LuaSTG/Custom)
-endif()
+set(LUASTG_RESDIR ${CMAKE_CURRENT_LIST_DIR}/LuaSTG/Custom CACHE PATH "LuaSTG custom build configuration")
 if(EXISTS ${LUASTG_RESDIR}/Custom.cmake)
     message("LuaSTG will using custom build configuration: " ${LUASTG_RESDIR}/Custom.cmake)
     include(${LUASTG_RESDIR}/Custom.cmake)

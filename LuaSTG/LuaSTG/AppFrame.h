@@ -56,7 +56,7 @@ namespace LuaSTGPlus
 		fcyVec2 m_OptionResolution = fcyVec2(640.f, 480.f);
 		fuInt m_OptionRefreshRateA = 0;
 		fuInt m_OptionRefreshRateB = 0;
-		std::wstring m_OptionGPU = L"";
+		std::wstring m_OptionGPU;
 		std::string m_OptionTitle = LUASTG_INFO;
 		bool m_OptionCursor = true;
 		fDouble m_fFPS = 0.;

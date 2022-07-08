@@ -589,7 +589,7 @@ void AppFrame::onUpdate()
 		m_GameObjectPool->DebugNextFrame();
 		if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineUpdate, 1))
 			m_pAppModel->requestExit();
-		bool tAbort = lua_toboolean(L, -1) == 0 ? false : true;
+		bool tAbort = lua_toboolean(L, -1) != 0;
 		lua_pop(L, 1);
 		if (tAbort)
 			m_pAppModel->requestExit();
