@@ -501,7 +501,8 @@ namespace Core::Graphics
 	}
 	void Renderer_D3D11::bindTextureSamplerState(ITexture2D* texture)
 	{
-		ISamplerState* sampler = texture->getSamplerState() ? texture->getSamplerState() : _sampler_state[IDX(_state_set.sampler_state)].get();
+		ISamplerState* sampler_from_texture = texture ? texture->getSamplerState() : nullptr;
+		ISamplerState* sampler = sampler_from_texture ? sampler_from_texture : _sampler_state[IDX(_state_set.sampler_state)].get();
 		ID3D11SamplerState* d3d11_sampler = static_cast<SamplerState_D3D11*>(sampler)->GetState();
 		m_device->GetD3D11DeviceContext()->PSSetSamplers(0, 1, &d3d11_sampler);
 	}
