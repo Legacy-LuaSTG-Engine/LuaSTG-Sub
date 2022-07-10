@@ -226,7 +226,7 @@ namespace Core::Graphics
 		// 太大的不要，滚
 		if (bitmap.width > (TEXTURE_SIZE - 2) || bitmap.rows > (TEXTURE_SIZE - 2))
 		{
-			return false;
+			assert(false); return false;
 		}
 		// 搞到一个位置
 		GlyphCache2D* pt = nullptr;
@@ -398,7 +398,7 @@ namespace Core::Graphics
 		utf::utf8reader reader_(str.data(), str.size());
 		while (reader_(code_))
 		{
-			if (!getGlyphCacheInfo(code_))
+			if (!getGlyphCacheInfo(code_) && code_ != U'\n')
 				return false;
 		}
 		return true;
@@ -693,7 +693,7 @@ namespace Core::Graphics
 	{
 		if (!m_glyphmgr)
 		{
-			return false;
+			assert(false); return false;
 		}
 
 		// 首先，缓存所有字形
