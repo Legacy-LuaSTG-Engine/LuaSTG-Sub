@@ -1002,7 +1002,6 @@ namespace Core::Graphics
 		{
 			_state_texture = static_cast<Texture2D_D3D11*>(texture);
 		}
-	#undef is_same
 	}
 
 	bool Renderer_D3D11::drawTriangle(DrawVertex const& v1, DrawVertex const& v2, DrawVertex const& v3)
@@ -1242,7 +1241,7 @@ namespace Core::Graphics
 		}
 		else
 		{
-			setTexture(nullptr);
+			setTexture(tbak.get()); // keep texture alpha type
 		}
 
 		drawQuad(
