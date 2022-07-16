@@ -232,7 +232,7 @@ namespace Core
 	void ApplicationModel_Win32::worker()
 	{
 		// 设置线程优先级为最高，并尽量让它运行在同一个 CPU 核心上，降低切换开销
-		SetThreadAffinityMask(GetCurrentThread(), 1);
+		//SetThreadAffinityMask(GetCurrentThread(), 1);
 		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
 
 		// 更新、渲染循环
@@ -299,6 +299,9 @@ namespace Core
 	}
 	bool ApplicationModel_Win32::run()
 	{
+		// 设置线程优先级为稍高，并尽量让它运行在同一个 CPU 核心上，降低切换开销
+		//SetThreadAffinityMask(GetCurrentThread(), 1);
+		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);
 		// 创建退出用的事件
 		win32_event_exit.Attach(CreateEventExW(NULL, NULL, CREATE_EVENT_MANUAL_RESET, EVENT_ALL_ACCESS));
 		if (!win32_event_exit.IsValid())
@@ -321,7 +324,7 @@ namespace Core
 			if (win32_events[0])
 			{
 				// 监控退出事件和消息队列
-				switch (MsgWaitForMultipleObjectsEx(1, win32_events, 4 * 1000, QS_ALLINPUT, 0))
+				switch (MsgWaitForMultipleObjectsEx(1, win32_events, INFINITE, QS_ALLINPUT, 0))
 				{
 				case (WAIT_OBJECT_0):
 					// 退出信号不是由窗口触发的，而是由工作线程触发的

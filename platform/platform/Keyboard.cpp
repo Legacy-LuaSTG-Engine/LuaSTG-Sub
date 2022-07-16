@@ -207,8 +207,8 @@ namespace platform
             if (!down)
             {
                 // Windows system feature :(
-                AtomicSetKey(KeyState, VK_RSHIFT, down);
-                AtomicSetKey(KeyState, VK_LSHIFT, down);
+                AtomicSetKey(KeyState, VK_RSHIFT, false);
+                AtomicSetKey(KeyState, VK_LSHIFT, false);
             }
             break;
         case VK_CONTROL:
