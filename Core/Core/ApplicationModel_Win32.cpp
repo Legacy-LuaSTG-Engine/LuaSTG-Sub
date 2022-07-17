@@ -232,7 +232,7 @@ namespace Core
 	void ApplicationModel_Win32::worker()
 	{
 		// 设置线程优先级为最高，并尽量让它运行在同一个 CPU 核心上，降低切换开销
-		//SetThreadAffinityMask(GetCurrentThread(), 1);
+		SetThreadAffinityMask(GetCurrentThread(), 1);
 		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
 
 		// 更新、渲染循环
@@ -300,7 +300,7 @@ namespace Core
 	bool ApplicationModel_Win32::run()
 	{
 		// 设置线程优先级为稍高，并尽量让它运行在同一个 CPU 核心上，降低切换开销
-		//SetThreadAffinityMask(GetCurrentThread(), 1);
+		SetThreadAffinityMask(GetCurrentThread(), 1);
 		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);
 		// 创建退出用的事件
 		win32_event_exit.Attach(CreateEventExW(NULL, NULL, CREATE_EVENT_MANUAL_RESET, EVENT_ALL_ACCESS));
@@ -324,7 +324,12 @@ namespace Core
 			if (win32_events[0])
 			{
 				// 监控退出事件和消息队列
-				switch (MsgWaitForMultipleObjectsEx(1, win32_events, INFINITE, QS_ALLINPUT, 0))
+				// MsgWaitForMultipleObjectsEx 在不带 MWMO_INPUTAVAILABLE 调用时，只会注意到“新”消息
+				// 如果某些地方 PeekMessageW 不带 PM_REMOVE 调用，那么这个消息仍然存在于消息队列中，但是已经成为“老”消息
+				// 为了防止这种情况卡住 MsgWaitForMultipleObjectsEx 造成无限等待：
+				//   1、调用 MsgWaitForMultipleObjectsEx 时带上 MWMO_INPUTAVAILABLE
+				//   2、使用 while 循环带 PM_REMOVE 调用 PeekMessageW 直到返回 FALSE
+				switch (MsgWaitForMultipleObjectsEx(1, win32_events, INFINITE, QS_ALLINPUT, MWMO_INPUTAVAILABLE))
 				{
 				case (WAIT_OBJECT_0):
 					// 退出信号不是由窗口触发的，而是由工作线程触发的
@@ -332,7 +337,7 @@ namespace Core
 					win32_events[0] = NULL; // 不再需要监控退出事件
 					break;
 				case (WAIT_OBJECT_0 + 1):
-					if (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
+					while (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
 					{
 						if (msg.message == WM_QUIT)
 						{

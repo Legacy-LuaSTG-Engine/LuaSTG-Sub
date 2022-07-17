@@ -44,15 +44,13 @@ namespace platform
     inline bool GetKey(uint32_t state_[8], uint8_t vk)
     {
         uint32_t const index = (vk & 0x7FFFFFE0u) >> 5u;
-        uint32_t const bitsh = vk & 0x0000001Fu;
-        uint32_t const bitmk = 1u << bitsh;
+        uint32_t const bitmk = 1u << (vk & 0x0000001Fu);
         return (state_[index] & bitmk) == bitmk;
     }
     inline void AtomicSetKey(std::atomic_uint32_t state_[8], uint8_t vk, bool down)
     {
         uint32_t const index = (vk & 0x7FFFFFE0u) >> 5u;
-        uint32_t const bitsh = vk & 0x0000001Fu;
-        uint32_t const bitmk = 1u << bitsh;
+        uint32_t const bitmk = 1u << (vk & 0x0000001Fu);
         if (down)
             state_[index].fetch_or(bitmk);
         else
