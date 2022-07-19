@@ -260,4 +260,13 @@ namespace Core
 		ScopeObject(ScopeObject const&&) = delete;
 		~ScopeObject() { internal_release(); }
 	};
+
+	struct IData : public IObject
+	{
+		virtual void* data() = 0;
+		virtual size_t size() = 0;
+
+		static bool create(size_t size, IData** pp_data);
+		static bool create(size_t size, size_t align, IData** pp_data);
+	};
 }

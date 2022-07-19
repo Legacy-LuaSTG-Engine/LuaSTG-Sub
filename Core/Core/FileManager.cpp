@@ -8,6 +8,38 @@
 #include "mz_zip.h"
 #include "mz_zip_rw.h"
 
+inline bool is_file_path_case_correct(std::wstring_view file_path)
+{
+    if (file_path.empty()) return false;
+
+    DWORD const full_path_size = GetFullPathNameW(file_path.data(), 0, NULL, NULL);
+    if (full_path_size == 0) return false;
+    std::vector<WCHAR> full_path_buffer(full_path_size, L'\0');
+    WCHAR* file_path_ptr = NULL;
+    DWORD const full_path_length = GetFullPathNameW(file_path.data(), full_path_size, full_path_buffer.data(), &file_path_ptr);
+    if (full_path_length == 0) return false;
+    std::wstring_view full_path(full_path_buffer.data(), full_path_length); // GetFullPathNameW 会自动把“/”转“\”
+
+    Microsoft::WRL::Wrappers::FileHandle file;
+    file.Attach(CreateFileW(file_path.data(), FILE_GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL));
+    if (!file.IsValid()) return false;
+
+    DWORD const final_path_size = GetFinalPathNameByHandleW(file.Get(), NULL, 0, FILE_NAME_NORMALIZED | VOLUME_NAME_DOS);
+    if (final_path_size == 0) return false;
+    std::vector<WCHAR> final_path_buffer(final_path_size, L'\0');
+    DWORD const final_path_length = GetFinalPathNameByHandleW(file.Get(), final_path_buffer.data(), final_path_size, FILE_NAME_NORMALIZED | VOLUME_NAME_DOS);
+    if (final_path_length == 0) return false;
+    std::wstring_view final_path(final_path_buffer.data(), final_path_length);
+    if (final_path.starts_with(L"\\\\?\\")) final_path = final_path.substr(4); // GetFinalPathNameByHandleW 一般会带一个“\\?\”开头
+
+    file.Close();
+
+    bool const equal = (full_path == final_path);
+    if (!equal) spdlog::error("[core] 路径 '{}' 和 '{}' 不匹配，存在大小写一致的部分", utility::encoding::to_utf8(full_path), utility::encoding::to_utf8(final_path));
+
+    return equal;
+}
+
 namespace Core
 {
     static uint64_t g_uuid = 0;
@@ -152,7 +184,34 @@ namespace Core
         }
         return MZ_OK == mz_zip_reader_entry_save_buffer(mz_zip_v, buffer.data(), script_size);
     }
-    
+    bool FileArchive::load(std::string_view const& name, IData** pp_data)
+    {
+        if (!mz_zip_v)
+        {
+            return false;
+        }
+        if (MZ_OK != mz_zip_reader_locate_entry(mz_zip_v, name.data(), false))
+        {
+            return false;
+        }
+        int32_t script_size = mz_zip_reader_entry_save_buffer_length(mz_zip_v);
+        if (script_size < 0)
+        {
+            return false;
+        }
+        ScopeObject<IData> p_data;
+        if (!IData::create((size_t)script_size, ~p_data))
+        {
+            return false;
+        }
+        if (MZ_OK != mz_zip_reader_entry_save_buffer(mz_zip_v, p_data->data(), script_size))
+        {
+            return false;
+        }
+        *pp_data = p_data.detach();
+        return true;
+    }
+
     bool FileArchive::empty()
     {
         if (!mz_zip_v)
@@ -214,6 +273,43 @@ namespace Core
             return false;
         }
         return MZ_OK == mz_zip_reader_entry_save_buffer(mz_zip_v, buffer.data(), script_size);
+    }
+    bool FileArchive::loadEncrypted(std::string_view const& name, std::string_view const& password, IData** pp_data)
+    {
+        if (!mz_zip_v)
+        {
+            return false;
+        }
+        mz_zip_scope_password scope_password(mz_zip_v, password_, password);
+        if (MZ_OK != mz_zip_reader_locate_entry(mz_zip_v, name.data(), false))
+        {
+            return false;
+        }
+        mz_zip_file* mz_zip_file_v = nullptr;
+        if (MZ_OK != mz_zip_reader_entry_get_info(mz_zip_v, &mz_zip_file_v))
+        {
+            return false;
+        }
+        if (MZ_ZIP_FLAG_ENCRYPTED != (mz_zip_file_v->flag & MZ_ZIP_FLAG_ENCRYPTED))
+        {
+            return false;
+        }
+        int32_t script_size = mz_zip_reader_entry_save_buffer_length(mz_zip_v);
+        if (script_size < 0)
+        {
+            return false;
+        }
+        ScopeObject<IData> p_data;
+        if (!IData::create((size_t)script_size, ~p_data))
+        {
+            return false;
+        }
+        if (MZ_OK != mz_zip_reader_entry_save_buffer(mz_zip_v, p_data->data(), script_size))
+        {
+            return false;
+        }
+        *pp_data = p_data.detach();
+        return true;
     }
     
     FileArchive::FileArchive(std::string_view const& path) : name_(path), uuid(g_uuid++)
@@ -309,7 +405,17 @@ namespace Core
     }
     bool FileManager::load(std::string_view const& name, std::vector<uint8_t>& buffer)
     {
-        std::ifstream file(utility::encoding::to_wide(name), std::ios::in | std::ios::binary);
+        std::wstring wide_path(std::move(utility::encoding::to_wide(name)));
+        std::error_code ec;
+        if (!std::filesystem::is_regular_file(wide_path, ec))
+        {
+            return false;
+        }
+        if (!is_file_path_case_correct(wide_path))
+        {
+            return false;
+        }
+        std::ifstream file(wide_path, std::ios::in | std::ios::binary);
         if (!file.is_open())
         {
             return false;
@@ -321,13 +427,51 @@ namespace Core
         auto size = end - beg;
         if (!(size >= 0 && size <= INTPTR_MAX))
         {
-            spdlog::error("[luastg] [LuaSTG::Core::FileManager::load] 无法加载文件 '{}'，大小超过 '{}' 字节", name, INTPTR_MAX);
+            spdlog::error("[core] [Core::FileManager::load] 无法加载文件 '{}'，大小超过 '{}' 字节", name, INTPTR_MAX);
             assert(false);
             return false;
         }
         buffer.resize((size_t)size);
         file.read((char*)buffer.data(), size);
         file.close();
+        return true;
+    }
+    bool FileManager::load(std::string_view const& name, IData** pp_data)
+    {
+        std::wstring wide_path(std::move(utility::encoding::to_wide(name)));
+        std::error_code ec;
+        if (!std::filesystem::is_regular_file(wide_path, ec))
+        {
+            return false;
+        }
+        if (!is_file_path_case_correct(wide_path))
+        {
+            return false;
+        }
+        std::ifstream file(wide_path, std::ios::in | std::ios::binary);
+        if (!file.is_open())
+        {
+            return false;
+        }
+        file.seekg(0, std::ios::end);
+        auto end = file.tellg();
+        file.seekg(0, std::ios::beg);
+        auto beg = file.tellg();
+        auto size = end - beg;
+        if (!(size >= 0 && size <= INTPTR_MAX))
+        {
+            spdlog::error("[core] [Core::FileManager::load] 无法加载文件 '{}'，大小超过 '{}' 字节", name, INTPTR_MAX);
+            assert(false);
+            return false;
+        }
+        ScopeObject<IData> p_data;
+        if (!IData::create((size_t)size, ~p_data))
+        {
+            return false;
+        }
+        file.read((char*)p_data->data(), size);
+        file.close();
+        *pp_data = p_data.detach();
         return true;
     }
     
@@ -492,6 +636,37 @@ namespace Core
         {
             std::string path(p); path.append(name);
             if (proc(path, buffer))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    bool FileManager::loadEx(std::string_view const& name, IData** pp_data)
+    {
+        auto proc = [&](std::string_view const& name, IData** pp_data) -> bool
+        {
+            for (auto& arc : archive)
+            {
+                if (arc->load(name, pp_data))
+                {
+                    return true;
+                }
+            }
+            if (load(name, pp_data))
+            {
+                return true;
+            }
+            return false;
+        };
+        if (proc(name, pp_data))
+        {
+            return true;
+        }
+        for (auto& p : search_list)
+        {
+            std::string path(p); path.append(name);
+            if (proc(path, pp_data))
             {
                 return true;
             }

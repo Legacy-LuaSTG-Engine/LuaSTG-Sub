@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/Type.hpp"
 #include <vector>
 #include <string>
 #include <string_view>
@@ -29,6 +30,7 @@ namespace Core
         virtual std::string_view getName(size_t index) = 0;
         virtual bool contain(std::string_view const& name) = 0;
         virtual bool load(std::string_view const& name, std::vector<uint8_t>& buffer) = 0;
+        virtual bool load(std::string_view const& name, IData** pp_data) = 0;
     };
     
     class FileArchive : public FileNodeTree
@@ -48,12 +50,14 @@ namespace Core
         std::string_view getName(size_t index);
         bool contain(std::string_view const& name);
         bool load(std::string_view const& name, std::vector<uint8_t>& buffer);
+        bool load(std::string_view const& name, IData** pp_data);
     public:
         bool empty();
         uint64_t getUUID();
         std::string_view getFileArchiveName();
         bool setPassword(std::string_view const& password);
         bool loadEncrypted(std::string_view const& name, std::string_view const& password, std::vector<uint8_t>& buffer);
+        bool loadEncrypted(std::string_view const& name, std::string_view const& password, IData** pp_data);
     public:
         FileArchive() = default;
         FileArchive(std::string_view const& path);
@@ -76,6 +80,7 @@ namespace Core
         std::string_view getName(size_t index);
         bool contain(std::string_view const& name);
         bool load(std::string_view const& name, std::vector<uint8_t>& buffer);
+        bool load(std::string_view const& name, IData** pp_data);
     public:
         size_t getFileArchiveCount();
         FileArchive& getFileArchiveByUUID(uint64_t uuid);
@@ -93,6 +98,7 @@ namespace Core
     public:
         bool containEx(std::string_view const& name);
         bool loadEx(std::string_view const& name, std::vector<uint8_t>& buffer);
+        bool loadEx(std::string_view const& name, IData** pp_data);
     public:
         FileManager();
         ~FileManager();
