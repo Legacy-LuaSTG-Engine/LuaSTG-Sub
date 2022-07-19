@@ -300,7 +300,7 @@ namespace Core
 	bool ApplicationModel_Win32::run()
 	{
 		// 设置线程优先级为稍高，并尽量让它运行在同一个 CPU 核心上，降低切换开销
-		SetThreadAffinityMask(GetCurrentThread(), 1);
+		//SetThreadAffinityMask(GetCurrentThread(), 1);
 		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);
 		// 创建退出用的事件
 		win32_event_exit.Attach(CreateEventExW(NULL, NULL, CREATE_EVENT_MANUAL_RESET, EVENT_ALL_ACCESS));
