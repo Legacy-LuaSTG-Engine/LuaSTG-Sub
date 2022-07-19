@@ -19,6 +19,7 @@ set(Core_SRC
     Core/framework.hpp
     Core/framework.cpp
     Core/Object.hpp
+    Core/DataObject.cpp
 
     Core/FileManager.hpp
     Core/FileManager.cpp
