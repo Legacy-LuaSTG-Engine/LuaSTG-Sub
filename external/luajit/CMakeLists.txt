@@ -181,6 +181,7 @@ set(LJ_SRC
     patch/lib_io.c
     patch/lib_os.c
     patch/lib_utf8.c
+    patch/lib_strpack.c
     patch/lj_win32.c
 )
 
