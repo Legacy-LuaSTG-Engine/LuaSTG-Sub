@@ -19,6 +19,7 @@ local test = require("test")
 require("test_texture")
 require("test_mesh")
 require("test_stringpack")
+require("test_log")
 
 function GameInit()
     window:init()

@@ -70,44 +70,16 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 		}
 		static int Log(lua_State* L)noexcept
 		{
-			const lua_Integer level = luaL_checkinteger(L, 1);
-			const char* msg = luaL_checkstring(L, 2);
+			lua_Integer const level = luaL_checkinteger(L, 1);
+			std::string_view const msg = luaL_check_string_view(L, 2);
 			spdlog::log((spdlog::level::level_enum)level, "[lua] {}", msg);
-			return 0;
-		}
-		static int SystemLog(lua_State* L)noexcept
-		{
-			const char* msg = luaL_checkstring(L, 1);
-			spdlog::info("[lua] {}", msg);
-			return 0;
-		}
-		static int Print(lua_State* L)noexcept
-		{
-			int n = lua_gettop(L);
-			lua_getglobal(L, "tostring"); // ... f
-			lua_pushstring(L, ""); // ... f s
-			for (int i = 1; i <= n; i++)
-			{
-				if (i > 1)
-				{
-					lua_pushstring(L, "\t"); // ... f s s
-					lua_concat(L, 2); // ... f s
-				}
-				lua_pushvalue(L, -2); // ... f s f
-				lua_pushvalue(L, i); // ... f s f arg[i]
-				lua_call(L, 1, 1); // ... f s ret
-				//const char* x = luaL_checkstring(L, -1); // 这是什么？？？
-				lua_concat(L, 2); // ... f s
-			}
-			const char* msg = luaL_checkstring(L, -1);
-			spdlog::info("[lua] {}", msg);
 			return 0;
 		}
 		static int DoFile(lua_State* L)noexcept
 		{
 			int args = lua_gettop(L);//获取此时栈上的值的数量
-			LAPP.LoadScript(luaL_checkstring(L, 1),luaL_optstring(L,2,NULL));
-			return (lua_gettop(L)- args);
+			LAPP.LoadScript(luaL_checkstring(L, 1), luaL_optstring(L, 2, NULL));
+			return (lua_gettop(L) - args);
 		}
 		static int LoadTextFile(lua_State* L)noexcept
 		{
@@ -290,8 +262,6 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 		{ "SetPreferenceGPU", &WrapperImplement::SetPreferenceGPU },
 		{ "SetResolution", &WrapperImplement::SetResolution },
 		{ "Log", &WrapperImplement::Log },
-		{ "SystemLog", &WrapperImplement::SystemLog },
-		{ "Print", &WrapperImplement::Print },
 		{ "DoFile", &WrapperImplement::DoFile },
 		{ "LoadTextFile", &WrapperImplement::LoadTextFile },
 		#pragma endregion
