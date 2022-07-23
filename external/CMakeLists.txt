@@ -321,7 +321,7 @@ add_library(pcgcpp STATIC)
 target_include_directories(pcgcpp PUBLIC
     pcg-cpp/include
 )
-target_sources(pcgcpp PUBLIC
+target_sources(pcgcpp PRIVATE
     pcg-cpp/include/pcg_extras.hpp
     pcg-cpp/include/pcg_random.hpp
     pcg-cpp/include/pcg_uint128.hpp
