@@ -20,6 +20,7 @@ require("test_texture")
 require("test_mesh")
 require("test_stringpack")
 require("test_log")
+require("test_filesys")
 
 function GameInit()
     window:init()
