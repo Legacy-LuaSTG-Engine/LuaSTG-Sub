@@ -20,8 +20,7 @@ namespace LuaSTGPlus
 	ResFX::ResFX(const char* name, const char* path)
 		: Resource(ResourceType::FX, name)
 	{
-		if (!LAPP.GetAppModel()->getRenderer()->createPostEffectShader(path, ~m_shader))
-			throw std::runtime_error("ResFX");
+		LAPP.GetAppModel()->getRenderer()->createPostEffectShader(path, ~m_shader);
 	}
 	ResFX::~ResFX()
 	{

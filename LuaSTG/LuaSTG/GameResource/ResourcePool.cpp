@@ -748,6 +748,11 @@ namespace LuaSTGPlus
         {
             fcyRefPointer<ResFX> tRes;
             tRes.DirectSet(new ResFX(name, path));
+            if (!tRes->GetPostEffectShader())
+            {
+                spdlog::error("[luastg] LoadFX: 从'{}'加载后处理特效'{}'失败", path, name);
+                return false;
+            }
             m_FXPool.emplace(name, tRes);
         }
         catch (const std::bad_alloc&)
