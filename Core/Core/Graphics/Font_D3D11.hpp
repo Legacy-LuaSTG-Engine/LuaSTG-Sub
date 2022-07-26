@@ -118,6 +118,10 @@ namespace Core::Graphics
 		float m_z{ 0.0f };
 		Color4B m_color;
 
+	private:
+		bool drawGlyph(GlyphInfo const& glyph_info, Vector2F const& start_pos);
+		bool drawGlyphInSpace(GlyphInfo const& glyph_info, Vector3F const& start_pos, Vector3F const& right_vec, Vector3F const& down_vec);
+
 	public:
 		void setScale(Vector2F const& scale) { m_scale = scale; }
 		Vector2F getScale() { return m_scale; }
