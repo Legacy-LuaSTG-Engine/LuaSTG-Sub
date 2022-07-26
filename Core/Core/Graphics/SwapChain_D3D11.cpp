@@ -752,7 +752,7 @@ namespace Core::Graphics
 		m_swapchain_last_windowed = TRUE;
 		m_swapchain_last_flip = flip_model;
 		m_init = TRUE;
-		m_window->setCursorToRightBottom();
+		//m_window->setCursorToRightBottom();
 		dispatchEvent(EventType::SwapChainCreate);
 		return true;
 	}
@@ -793,7 +793,7 @@ namespace Core::Graphics
 		applyRenderAttachment();
 		m_swapchain_last_mode.width = width;
 		m_swapchain_last_mode.height = height;
-		m_window->setCursorToRightBottom();
+		//m_window->setCursorToRightBottom();
 		dispatchEvent(EventType::SwapChainCreate);
 		return true;
 	}
@@ -835,7 +835,7 @@ namespace Core::Graphics
 		m_swapchain_last_windowed = FALSE;
 		m_swapchain_last_flip = FALSE;
 		m_init = TRUE;
-		m_window->setCursorToRightBottom();
+		//m_window->setCursorToRightBottom();
 		dispatchEvent(EventType::SwapChainCreate);
 		return true;
 	}

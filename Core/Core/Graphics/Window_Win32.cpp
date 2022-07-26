@@ -544,7 +544,7 @@ namespace Core::Graphics
 	void Window_Win32::setFullScreen()
 	{
 		platform::MonitorList::ResizeWindowToFullScreen(win32_window);
-		setCursorToRightBottom();
+		//setCursorToRightBottom();
 	}
 
 	uint32_t Window_Win32::getMonitorCount()
@@ -564,7 +564,7 @@ namespace Core::Graphics
 	void Window_Win32::setMonitorFullScreen(uint32_t index)
 	{
 		m_monitors.ResizeWindowToFullScreen(index, win32_window);
-		setCursorToRightBottom();
+		//setCursorToRightBottom();
 	}
 
 	void Window_Win32::setCustomSizeMoveEnable(bool v)
@@ -648,6 +648,9 @@ namespace Core::Graphics
 			win32_window_cursor = LoadCursor(NULL, IDC_WAIT);
 			break;
 		}
+		POINT pt = {};
+		GetCursorPos(&pt);
+		SetCursorPos(pt.x, pt.y);
 		return true;
 	}
 	WindowCursor Window_Win32::getCursor()
