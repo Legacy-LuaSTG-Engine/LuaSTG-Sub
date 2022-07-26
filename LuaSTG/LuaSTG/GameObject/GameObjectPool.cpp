@@ -58,6 +58,7 @@ namespace LuaSTGPlus
 			m_ColliLinkList[i].second.group = (lua_Integer)i;
 		}
 	}
+
 	void GameObjectPool::_InsertToUpdateLinkList(GameObject* p)
 	{
 		GameObject* prev = m_UpdateLinkList.second.pUpdatePrev;
@@ -76,6 +77,7 @@ namespace LuaSTGPlus
 		p->pUpdatePrev = nullptr;
 		p->pUpdateNext = nullptr;
 	}
+
 	void GameObjectPool::_InsertToColliLinkList(GameObject* p, size_t group)
 	{
 		GameObject* prev = m_ColliLinkList[group].second.pColliPrev;
@@ -87,6 +89,7 @@ namespace LuaSTGPlus
 	}
 	void GameObjectPool::_RemoveFromColliLinkList(GameObject* p)
 	{
+		assert(p != m_LockObjectA && p != m_LockObjectB);
 		GameObject* prev = p->pColliPrev;
 		GameObject* next = p->pColliNext;
 		prev->pColliNext = next;
@@ -429,6 +432,9 @@ namespace LuaSTGPlus
 		{
 			GameObject* pA = ptrA;
 			ptrA = ptrA->pColliNext;
+
+			m_LockObjectA = ptrA;
+
 			for (GameObject* ptrB = m_ColliLinkList[groupB].first.pColliNext; ptrB != &m_ColliLinkList[groupB].second;)
 			{
 				GameObject* pB = ptrB;
@@ -442,6 +448,9 @@ namespace LuaSTGPlus
 					{
 						m_DbgData[m_DbgIdx].object_colli_callback += 1;
 						m_pCurrentObject = pA;
+
+						m_LockObjectB = ptrB;
+
 						// 根据id获取对象的lua绑定table、拿到class再拿到collifunc
 						lua_rawgeti(G_L, -1, pA->id + 1);		// ot t(object)
 						lua_rawgeti(G_L, -1, 1);				// ot t(object) t(class)
@@ -450,11 +459,15 @@ namespace LuaSTGPlus
 						lua_rawgeti(G_L, -5, pB->id + 1);		// ot t(object) t(class) f(colli) t(object) t(object)
 						lua_call(G_L, 2, 0);					// ot t(object) t(class)
 						lua_pop(G_L, 2);						// ot
+
+						m_LockObjectB = nullptr;
 					}
 			#ifdef USING_MULTI_GAME_WORLD
 				}
 			#endif // USING_MULTI_GAME_WORLD
 			}
+
+			m_LockObjectA = nullptr;
 		}
 		m_pCurrentObject = nullptr;
 
@@ -1042,7 +1055,8 @@ namespace LuaSTGPlus
 		switch (p->SetAttr(L))
 		{
 		case 1: // group
-			//return luaL_error(L, "illegal operation, lstg object 'group' property should not be modified in 'lstg.CollisionCheck'");
+			if (p == g_GameObjectPool->m_LockObjectA || p == g_GameObjectPool->m_LockObjectB)
+				return luaL_error(L, "illegal operation, lstg object 'group' property should not be modified in 'lstg.CollisionCheck'");
 			g_GameObjectPool->_MoveToColliLinkList(p, (size_t)p->group);
 			break;
 		case 2: // layer

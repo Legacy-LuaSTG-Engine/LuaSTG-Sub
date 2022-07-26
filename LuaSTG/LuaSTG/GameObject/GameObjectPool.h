@@ -54,6 +54,9 @@ namespace LuaSTGPlus
 		size_t m_DbgIdx{ 0 };
 
 	private:
+		GameObject* m_LockObjectA{};
+		GameObject* m_LockObjectB{};
+
 		void _ClearLinkList();
 		void _InsertToUpdateLinkList(GameObject* p);
 		void _RemoveFromUpdateLinkList(GameObject* p);
