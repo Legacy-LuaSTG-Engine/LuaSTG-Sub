@@ -16,6 +16,7 @@ end
 local imgui = require("imgui")
 local test = require("test")
 
+require("test_textrenderer")
 require("test_texture")
 require("test_mesh")
 require("test_stringpack")
@@ -32,10 +33,11 @@ end
 function FrameFunc()
     imgui.backend.NewFrame()
     imgui.ImGui.NewFrame()
-    imgui.ImGui.ShowDemoWindow()
+    --imgui.ImGui.ShowDemoWindow()
     --imgui.backend.ShowTestInputWindow()
     --imgui.backend.ShowMemoryUsageWindow()
     imgui.backend.ShowFrameStatistics()
+    imgui.backend.ShowResourceManagerDebugWindow()
     test.onUpdate()
     imgui.ImGui.EndFrame()
     local Key = lstg.Input.Keyboard
