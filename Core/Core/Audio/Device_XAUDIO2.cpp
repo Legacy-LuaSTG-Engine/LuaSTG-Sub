@@ -126,6 +126,20 @@ namespace Core::Audio
 			return false;
 		}
 	}
+	bool Device_XAUDIO2::createLoopAudioPlayer(IDecoder* p_decoder, IAudioPlayer** pp_player)
+	{
+		try
+		{
+			*pp_player = new LoopAudioPlayer_XAUDIO2(this, p_decoder);
+			return true;
+		}
+		catch (std::exception const& e)
+		{
+			spdlog::error("[core] {}", e.what());
+			*pp_player = nullptr;
+			return false;
+		}
+	}
 	bool Device_XAUDIO2::createStreamAudioPlayer(IDecoder* p_decoder, IAudioPlayer** pp_player)
 	{
 		try
@@ -399,6 +413,292 @@ namespace Core::Audio
 		};
 	}
 	AudioPlayer_XAUDIO2::~AudioPlayer_XAUDIO2()
+	{
+		if (xa2_source) xa2_source->DestroyVoice(); xa2_source = NULL;
+	}
+}
+
+namespace Core::Audio
+{
+	void WINAPI LoopAudioPlayer_XAUDIO2::OnVoiceProcessingPassStart(UINT32) {}
+	void WINAPI LoopAudioPlayer_XAUDIO2::OnVoiceProcessingPassEnd() {}
+	void WINAPI LoopAudioPlayer_XAUDIO2::OnStreamEnd()
+	{
+		SetEvent(event_end.Get());
+	}
+	void WINAPI LoopAudioPlayer_XAUDIO2::OnBufferStart(void*) {}
+	void WINAPI LoopAudioPlayer_XAUDIO2::OnBufferEnd(void*) {}
+	void WINAPI LoopAudioPlayer_XAUDIO2::OnLoopEnd(void*) {}
+	void WINAPI LoopAudioPlayer_XAUDIO2::OnVoiceError(void*, HRESULT Error)
+	{
+		gHR = Error;
+		spdlog::error("[core] @IXAudio2VoiceCallback::OnVoiceError");
+	}
+
+	bool LoopAudioPlayer_XAUDIO2::start()
+	{
+		is_playing = true;
+		ResetEvent(event_end.Get());
+		HRESULT hr = gHR = xa2_source->Start();
+		return SUCCEEDED(hr);
+	}
+	bool LoopAudioPlayer_XAUDIO2::stop()
+	{
+		is_playing = false;
+		HRESULT hr = gHR = xa2_source->Stop();
+		return SUCCEEDED(hr);
+	}
+	bool LoopAudioPlayer_XAUDIO2::reset()
+	{
+		// 重置状态和排队的缓冲区
+
+		is_playing = false;
+		SetEvent(event_end.Get());
+		gHR = xa2_source->Stop();
+		gHR = xa2_source->FlushSourceBuffers();
+		// TODO: 不应该这样做
+		// BEGIN MAGIC
+		XAUDIO2_VOICE_STATE state = {};
+		do
+		{
+			xa2_source->GetState(&state);
+		} while (state.BuffersQueued >= XAUDIO2_MAX_QUEUED_BUFFERS);
+		// END MAGIC
+		
+		// 提交缓冲区
+
+		if (is_loop)
+		{
+			HRESULT hr = S_OK;
+
+			// 开始播放的位置
+			uint32_t const start_sample = (uint32_t)((double)m_sample_rate * m_start_time);
+			// 计算循环区起始位置的采样
+			uint32_t const loop_start_sample = (uint32_t)((double)m_sample_rate * loop_start);
+			// 计算循环区长度
+			uint32_t const loop_range_sample_count = (uint32_t)((double)m_sample_rate * loop_length);
+
+			// 循环节缓冲区
+			XAUDIO2_BUFFER xa2_buffer_loop = {
+				.Flags = XAUDIO2_END_OF_STREAM,
+				.AudioBytes = loop_range_sample_count * (uint32_t)m_frame_size,
+				.pAudioData = pcm_data.data() + loop_start_sample * (uint32_t)m_frame_size,
+				.PlayBegin = 0,
+				.PlayLength = 0,
+				.LoopBegin = 0,
+				.LoopLength = 0,
+				.LoopCount = XAUDIO2_LOOP_INFINITE,
+				.pContext = NULL,
+			};
+
+			// 分情况来提交缓冲区
+			if (start_sample >= m_total_frame)
+			{
+				// 异常情况，回落到循环节内
+				hr = gHR = xa2_source->SubmitSourceBuffer(&xa2_buffer_loop);
+				if (FAILED(hr)) return false;
+			}
+			else if (start_sample >= (loop_start_sample + loop_range_sample_count))
+			{
+				// 开始播放的位置在循环节后面，回落到循环节内
+				hr = gHR = xa2_source->SubmitSourceBuffer(&xa2_buffer_loop);
+				if (FAILED(hr)) return false;
+			}
+			else if (start_sample > loop_start_sample)
+			{
+				// 开启播放的位置已经位于循环节内
+				// 在循环节之内的部分
+				XAUDIO2_BUFFER xa2_buffer_lead = {
+					.Flags = 0,
+					.AudioBytes = (loop_range_sample_count - (start_sample - loop_start_sample)) * (uint32_t)m_frame_size,
+					.pAudioData = pcm_data.data() + start_sample * (uint32_t)m_frame_size,
+					.PlayBegin = 0,
+					.PlayLength = 0,
+					.LoopBegin = 0,
+					.LoopLength = 0,
+					.LoopCount = 0,
+					.pContext = NULL,
+				};
+				hr = gHR = xa2_source->SubmitSourceBuffer(&xa2_buffer_lead);
+				if (FAILED(hr)) return false;
+				hr = gHR = xa2_source->SubmitSourceBuffer(&xa2_buffer_loop);
+				if (FAILED(hr)) return false;
+			}
+			else if (start_sample == loop_start_sample)
+			{
+				// 开启播放的位置刚好在循环节上
+				hr = gHR = xa2_source->SubmitSourceBuffer(&xa2_buffer_loop);
+				if (FAILED(hr)) return false;
+			}
+			else
+			{
+				// 开启播放的位置位于循环节之前
+				// 在循环节之前的部分
+				XAUDIO2_BUFFER xa2_buffer_lead = {
+					.Flags = 0,
+					.AudioBytes = (loop_start_sample - start_sample) * (uint32_t)m_frame_size,
+					.pAudioData = pcm_data.data() + start_sample * (uint32_t)m_frame_size,
+					.PlayBegin = 0,
+					.PlayLength = 0,
+					.LoopBegin = 0,
+					.LoopLength = 0,
+					.LoopCount = 0,
+					.pContext = NULL,
+				};
+				hr = gHR = xa2_source->SubmitSourceBuffer(&xa2_buffer_lead);
+				if (FAILED(hr)) return false;
+				hr = gHR = xa2_source->SubmitSourceBuffer(&xa2_buffer_loop);
+				if (FAILED(hr)) return false;
+			}
+
+			return true;
+		}
+		else
+		{
+			// 开始播放的位置
+			uint32_t const start_sample = (uint32_t)((double)m_sample_rate * m_start_time);
+
+			XAUDIO2_BUFFER xa2_buffer = {
+				.Flags = XAUDIO2_END_OF_STREAM,
+				.AudioBytes = (m_total_frame - start_sample) * (uint32_t)m_frame_size,
+				.pAudioData = pcm_data.data() + start_sample * (uint32_t)m_frame_size,
+				.PlayBegin = 0,
+				.PlayLength = 0,
+				.LoopBegin = 0,
+				.LoopLength = 0,
+				.LoopCount = 0,
+				.pContext = NULL,
+			};
+			HRESULT hr = gHR = xa2_source->SubmitSourceBuffer(&xa2_buffer);
+			return SUCCEEDED(hr);
+		}
+	}
+
+	bool LoopAudioPlayer_XAUDIO2::isPlaying()
+	{
+		DWORD ret = WaitForSingleObjectEx(event_end.Get(), 0, FALSE);
+		return is_playing && ret != WAIT_OBJECT_0;
+	}
+
+	bool LoopAudioPlayer_XAUDIO2::setTime(double t)
+	{
+		m_start_time = t;
+		uint32_t const start_sample = (uint32_t)((double)m_sample_rate * m_start_time);
+		assert(start_sample <= m_total_frame);
+		return start_sample <= m_total_frame;
+	}
+	bool LoopAudioPlayer_XAUDIO2::setLoop(bool enable, double start_pos, double length)
+	{
+		is_loop = enable;
+		loop_start = start_pos;
+		loop_length = length;
+		uint32_t const loop_start_sample = (uint32_t)((double)m_sample_rate * loop_start);
+		uint32_t const loop_range_sample_count = (uint32_t)((double)m_sample_rate * loop_length);
+		assert((loop_start_sample + loop_range_sample_count) <= m_total_frame);
+		return (loop_start_sample + loop_range_sample_count) <= m_total_frame;
+	}
+
+	float LoopAudioPlayer_XAUDIO2::getVolume()
+	{
+		float v = 0.0;
+		xa2_source->GetVolume(&v);
+		return v;
+	}
+	bool LoopAudioPlayer_XAUDIO2::setVolume(float v)
+	{
+		HRESULT hr = gHR = xa2_source->SetVolume(std::clamp(v, 0.0f, 1.0f));
+		return SUCCEEDED(hr);
+	}
+	float LoopAudioPlayer_XAUDIO2::getBalance()
+	{
+		return output_balance;
+	}
+	bool LoopAudioPlayer_XAUDIO2::setBalance(float v)
+	{
+		return setOutputBalance(xa2_source, v);
+	}
+	float LoopAudioPlayer_XAUDIO2::getSpeed()
+	{
+		float v = 0.0f;
+		xa2_source->GetFrequencyRatio(&v);
+		return v;
+	}
+	bool LoopAudioPlayer_XAUDIO2::setSpeed(float v)
+	{
+		HRESULT hr = gHR = xa2_source->SetFrequencyRatio(v);
+		return SUCCEEDED(hr);
+	}
+
+	LoopAudioPlayer_XAUDIO2::LoopAudioPlayer_XAUDIO2(Device_XAUDIO2* p_device, IDecoder* p_decoder)
+		: m_device(p_device)
+	#ifdef _DEBUG
+		, m_decoder(p_decoder)
+	#endif
+		, xa2_source(NULL)
+	{
+		auto* p_shared = m_device->GetShared();
+
+		HRESULT hr = 0;
+
+		// 创建音源
+
+		WAVEFORMATEX fmt = {
+			.wFormatTag = WAVE_FORMAT_PCM,
+			.nChannels = p_decoder->getChannelCount(),
+			.nSamplesPerSec = p_decoder->getSampleRate(),
+			.nAvgBytesPerSec = p_decoder->getByteRate(),
+			.nBlockAlign = p_decoder->getFrameSize(),
+			.wBitsPerSample = WORD(p_decoder->getSampleSize() * 8u),
+			.cbSize = 0, // 我看还有谁TM写错成 sizeof(WAVEFORMATEX)
+		};
+		hr = gHR = p_shared->xa2_xaudio2->CreateSourceVoice(&xa2_source, &fmt, 0, XAUDIO2_DEFAULT_FREQ_RATIO, this);
+		if (FAILED(hr))
+		{
+			i18n_log_error_fmt("[core].system_call_failed_f", "IXAudio2::CreateSourceVoice");
+			throw std::runtime_error("LoopAudioPlayer_XAUDIO2::LoopAudioPlayer_XAUDIO2 (1)");
+		}
+
+		event_end.Attach(CreateEventExW(NULL, NULL, CREATE_EVENT_MANUAL_RESET, EVENT_ALL_ACCESS));
+		if (!event_end.IsValid())
+		{
+			gHRLastError;
+			i18n_log_error_fmt("[core].system_call_failed_f", "CreateEventExW");
+			throw std::runtime_error("LoopAudioPlayer_XAUDIO2::LoopAudioPlayer_XAUDIO2 (2)");
+		}
+		SetEvent(event_end.Get()); // 一开始确实是停止的
+
+		// 绑定
+
+		XAUDIO2_SEND_DESCRIPTOR voice_send_se = {
+			.Flags = 0,
+			.pOutputVoice = p_shared->xa2_music,
+		};
+		XAUDIO2_VOICE_SENDS voice_send_list = {
+			.SendCount = 1,
+			.pSends = &voice_send_se
+		};
+		hr = gHR = xa2_source->SetOutputVoices(&voice_send_list);
+		if (FAILED(hr))
+		{
+			SAFE_RELEASE_VOICE(xa2_source);
+			i18n_log_error_fmt("[core].system_call_failed_f", "IXAudio2SourceVoice::SetOutputVoices -> #soundeffect");
+			throw std::runtime_error("LoopAudioPlayer_XAUDIO2::LoopAudioPlayer_XAUDIO2 (3)");
+		}
+
+		// 全部解码
+
+		pcm_data.resize(p_decoder->getFrameCount() * p_decoder->getFrameSize());
+		uint32_t frames_read = 0;
+		if (!p_decoder->read(p_decoder->getFrameCount(), pcm_data.data(), &frames_read))
+		{
+			i18n_log_error_fmt("[core].system_call_failed_f", "IDecoder::read -> #ALL");
+			throw std::runtime_error("LoopAudioPlayer_XAUDIO2::LoopAudioPlayer_XAUDIO2 (4)");
+		}
+		m_total_frame = frames_read;
+		m_frame_size = p_decoder->getFrameSize();
+		m_sample_rate = p_decoder->getSampleRate();
+	}
+	LoopAudioPlayer_XAUDIO2::~LoopAudioPlayer_XAUDIO2()
 	{
 		if (xa2_source) xa2_source->DestroyVoice(); xa2_source = NULL;
 	}

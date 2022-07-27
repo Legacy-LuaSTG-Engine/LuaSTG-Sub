@@ -180,7 +180,8 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 				name,
 				path,
 				loop_start,
-				loop_end
+				loop_end,
+				(lua_gettop(L) >= 5) ? lua_toboolean(L, 5) : false
 				))
 			{
 				return luaL_error(L, "load music failed (name=%s, path=%s, loop=%f~%f)", name, path, loop_start, loop_end);

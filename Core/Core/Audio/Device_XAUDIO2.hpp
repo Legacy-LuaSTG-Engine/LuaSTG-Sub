@@ -33,6 +33,7 @@ namespace Core::Audio
 		float getMixChannelVolume(MixChannel ch);
 
 		bool createAudioPlayer(IDecoder* p_decoder, IAudioPlayer** pp_player);
+		bool createLoopAudioPlayer(IDecoder* p_decoder, IAudioPlayer** pp_player);
 		bool createStreamAudioPlayer(IDecoder* p_decoder, IAudioPlayer** pp_player);
 
 	public:
@@ -79,6 +80,7 @@ namespace Core::Audio
 		double getTotalTime() { return 0.0; }
 		double getTime() { return 0.0; }
 		bool setTime(double) { return true; }
+		bool setLoop(bool enable, double start_pos, double length) { return true; }
 
 		float getVolume();
 		bool setVolume(float v);
@@ -94,6 +96,66 @@ namespace Core::Audio
 	public:
 		AudioPlayer_XAUDIO2(Device_XAUDIO2* p_device, IDecoder* p_decoder);
 		~AudioPlayer_XAUDIO2();
+	};
+
+	class LoopAudioPlayer_XAUDIO2
+		: public Object<IAudioPlayer>
+		, public IXAudio2VoiceCallback
+	{
+	private:
+		ScopeObject<Device_XAUDIO2> m_device;
+	#ifdef _DEBUG
+		ScopeObject<IDecoder> m_decoder;
+	#endif
+		IXAudio2SourceVoice* xa2_source;
+		Microsoft::WRL::Wrappers::Event event_end;
+		std::vector<BYTE> pcm_data;
+		float output_balance = 0.0f;
+		float empty_fft[1]{};
+		double m_start_time{};
+		double loop_start{};
+		double loop_length{};
+		uint32_t m_total_frame{};
+		uint32_t m_sample_rate{};
+		uint16_t m_frame_size{};
+		bool is_playing = false;
+		bool is_loop = false;
+
+	public:
+		void WINAPI OnVoiceProcessingPassStart(UINT32 BytesRequired);
+		void WINAPI OnVoiceProcessingPassEnd();
+		void WINAPI OnStreamEnd();
+		void WINAPI OnBufferStart(void* pBufferContext);
+		void WINAPI OnBufferEnd(void* pBufferContext);
+		void WINAPI OnLoopEnd(void* pBufferContext);
+		void WINAPI OnVoiceError(void* pBufferContext, HRESULT Error);
+
+	public:
+		bool start();
+		bool stop();
+		bool reset();
+
+		bool isPlaying();
+
+		double getTotalTime() { return 0.0; }
+		double getTime() { return 0.0; }
+		bool setTime(double t);
+		bool setLoop(bool enable, double start_pos, double length);
+
+		float getVolume();
+		bool setVolume(float v);
+		float getBalance();
+		bool setBalance(float v);
+		float getSpeed();
+		bool setSpeed(float v);
+
+		void updateFFT() {}
+		uint32_t getFFTSize() { return 0; }
+		float* getFFT() { return empty_fft; }
+
+	public:
+		LoopAudioPlayer_XAUDIO2(Device_XAUDIO2* p_device, IDecoder* p_decoder);
+		~LoopAudioPlayer_XAUDIO2();
 	};
 
 	class StreamAudioPlayer_XAUDIO2
@@ -220,6 +282,7 @@ namespace Core::Audio
 		double getTotalTime();
 		double getTime();
 		bool setTime(double t);
+		bool setLoop(bool enable, double start_pos, double length) { return true; }
 
 		float getVolume();
 		bool setVolume(float v);

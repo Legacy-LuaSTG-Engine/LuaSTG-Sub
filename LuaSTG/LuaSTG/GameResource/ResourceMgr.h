@@ -60,7 +60,7 @@ namespace LuaSTGPlus
                              double x, double y, double w, double h, int n, int m, int intv,
                              double a, double b, bool rect = false) noexcept;
         // 音乐
-        bool LoadMusic(const char* name, const char* path, double start, double end) noexcept;
+        bool LoadMusic(const char* name, const char* path, double start, double end, bool once_decode) noexcept;
         // 音效
         bool LoadSoundEffect(const char* name, const char* path) noexcept;
         // 粒子特效(HGE)
