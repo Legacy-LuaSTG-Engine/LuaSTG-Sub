@@ -364,7 +364,7 @@ namespace LuaSTGPlus
 
     // 加载音乐
 
-    bool ResourcePool::LoadMusic(const char* name, const char* path, double start, double end) noexcept
+    bool ResourcePool::LoadMusic(const char* name, const char* path, double start, double end, bool once_decode) noexcept
     {
         // TODO: 为什么呢？
         //if (m_MusicPool.find(name) != m_MusicPool.end())
@@ -409,10 +409,24 @@ namespace LuaSTGPlus
 
         // 创建播放器
         ScopeObject<IAudioPlayer> p_player;
-        if (!LAPP.GetAppModel()->getAudioDevice()->createStreamAudioPlayer(p_loop_decoder.get(), ~p_player))
+        if (!once_decode)
         {
-            spdlog::error("[luastg] LoadMusic: 无法创建音频播放器");
-            return false;
+            // 流式播放器
+            if (!LAPP.GetAppModel()->getAudioDevice()->createStreamAudioPlayer(p_loop_decoder.get(), ~p_player))
+            {
+                spdlog::error("[luastg] LoadMusic: 无法创建音频播放器");
+                return false;
+            }
+        }
+        else
+        {
+            // 一次性解码的播放器
+            if (!LAPP.GetAppModel()->getAudioDevice()->createLoopAudioPlayer(p_loop_decoder.get(), ~p_player))
+            {
+                spdlog::error("[luastg] LoadMusic: 无法创建音频播放器");
+                return false;
+            }
+            p_player->setLoop(true, start, end - start);
         }
 
         try

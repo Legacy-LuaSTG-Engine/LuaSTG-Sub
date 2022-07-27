@@ -25,6 +25,7 @@ namespace Core::Audio
 		virtual double getTotalTime() = 0;
 		virtual double getTime() = 0;
 		virtual bool setTime(double t) = 0;
+		virtual bool setLoop(bool enable, double start_pos, double length) = 0;
 		
 		virtual float getVolume() = 0;
 		virtual bool setVolume(float v) = 0;
@@ -46,6 +47,7 @@ namespace Core::Audio
 		virtual float getMixChannelVolume(MixChannel ch) = 0;
 
 		virtual bool createAudioPlayer(IDecoder* p_decoder, IAudioPlayer** pp_player) = 0; // 全部解码到内存中
+		virtual bool createLoopAudioPlayer(IDecoder* p_decoder, IAudioPlayer** pp_player) = 0; // 全部解码到内存中
 		virtual bool createStreamAudioPlayer(IDecoder* p_decoder, IAudioPlayer** pp_player) = 0; // 播放时才逐步解码
 	};
 }

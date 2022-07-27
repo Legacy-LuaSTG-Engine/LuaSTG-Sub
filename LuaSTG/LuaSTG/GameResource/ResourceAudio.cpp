@@ -176,7 +176,7 @@ namespace LuaSTGPlus
 	float ResMusic::GetVolume() { return m_player->getVolume(); }
 	bool ResMusic::SetSpeed(float speed) { return m_player->setSpeed(speed); }
 	float ResMusic::GetSpeed() { return m_player->getSpeed(); }
-	void ResMusic::SetLoop(bool v) { m_decoder->setLoop(v); }
+	void ResMusic::SetLoop(bool v) { if (m_decoder) m_decoder->setLoop(v); }
 
 	ResMusic::ResMusic(const char* name, LoopDecoder* p_decoder, Core::Audio::IAudioPlayer* p_player)
 		: Resource(ResourceType::Music, name)
