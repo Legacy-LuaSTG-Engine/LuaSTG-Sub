@@ -699,7 +699,7 @@ namespace Core::Graphics
 		// 首先，缓存所有字形
 		if (!m_glyphmgr->cacheString(str))
 		{
-			return false;
+			//return false; // 找不到的就忽略
 		}
 		if (!m_glyphmgr->flush())
 		{
@@ -715,7 +715,7 @@ namespace Core::Graphics
 		GlyphInfo space_glyph_info = {};
 		if (!m_glyphmgr->getGlyph(uint32_t(U' '), &space_glyph_info, true))
 		{
-			assert(false); return false;
+			//assert(false); return false; // 没有空格就默认它所有度量值为 0
 		}
 		space_glyph_info.advance.x *= m_scale.x;
 		space_glyph_info.advance.y *= m_scale.y;
@@ -826,7 +826,7 @@ namespace Core::Graphics
 		// 首先，缓存所有字形
 		if (!m_glyphmgr->cacheString(str))
 		{
-			return false;
+			//return false; // 找不到的就忽略
 		}
 		if (!m_glyphmgr->flush())
 		{
@@ -843,7 +843,7 @@ namespace Core::Graphics
 		GlyphInfo space_glyph_info = {};
 		if (!m_glyphmgr->getGlyph(uint32_t(U' '), &space_glyph_info, true))
 		{
-			assert(false); return false;
+			//assert(false); return false; // 没有空格就默认它所有度量值为 0
 		}
 		space_glyph_info.advance.x *= m_scale.x;
 		space_glyph_info.advance.y *= m_scale.y;
