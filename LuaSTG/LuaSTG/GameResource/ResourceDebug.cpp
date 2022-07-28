@@ -348,6 +348,21 @@ namespace LuaSTGPlus
 									v.second->GetResName().c_str()
 								))
 								{
+									auto* mgr = v.second->GetGlyphManager();
+									auto* p_tex0 = mgr->getTexture(0);
+
+									ImGui::Text("Size: %u x %u (x %u)", p_tex0->getSize().x, p_tex0->getSize().y, mgr->getTextureCount());
+									ImGui::Text("Dynamic: No");
+									unsigned long long mem_usage = p_tex0->getSize().x * p_tex0->getSize().y * 4 * mgr->getTextureCount();
+									ImGui::Text("Adapter Memory Usage (Approximate): %s", bytes_count_to_string(mem_usage).c_str());
+
+									static float preview_scale = 1.0f;
+									draw_preview_scaling(preview_scale);
+									for (uint32_t tidx = 0; tidx < mgr->getTextureCount(); tidx += 1)
+									{
+										draw_texture0(mgr->getTexture(tidx), preview_scale);
+									}
+
 									ImGui::TreePop();
 								}
 								res_i += 1;
