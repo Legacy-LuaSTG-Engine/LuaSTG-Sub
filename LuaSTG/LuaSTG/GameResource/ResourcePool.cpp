@@ -421,7 +421,7 @@ namespace LuaSTGPlus
         else
         {
             // 一次性解码的播放器
-            if (!LAPP.GetAppModel()->getAudioDevice()->createLoopAudioPlayer(p_loop_decoder.get(), ~p_player))
+            if (!LAPP.GetAppModel()->getAudioDevice()->createLoopAudioPlayer(p_decoder.get(), ~p_player))
             {
                 spdlog::error("[luastg] LoadMusic: 无法创建音频播放器");
                 return false;

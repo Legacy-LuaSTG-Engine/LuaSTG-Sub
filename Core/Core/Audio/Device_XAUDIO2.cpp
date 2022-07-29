@@ -687,6 +687,11 @@ namespace Core::Audio
 
 		// 全部解码
 
+		if (!p_decoder->seek(0))
+		{
+			i18n_log_error_fmt("[core].system_call_failed_f", "IDecoder::seek -> #0");
+			throw std::runtime_error("LoopAudioPlayer_XAUDIO2::LoopAudioPlayer_XAUDIO2 (5)");
+		}
 		pcm_data.resize(p_decoder->getFrameCount() * p_decoder->getFrameSize());
 		uint32_t frames_read = 0;
 		if (!p_decoder->read(p_decoder->getFrameCount(), pcm_data.data(), &frames_read))
@@ -890,7 +895,7 @@ namespace Core::Audio
 				buffer_set_time[0] = buffer_set_time[1] = start_time;
 				break;
 			case ActionType::BufferAvailable:
-				//spdlog::debug("ActionType::BufferAvailable [{}]", action.action_buffer_available.index);
+				//spdlog::debug("[Player] BufferAvailable [{}]", action.action_buffer_available.index);
 				buffer_index = action.action_buffer_available.index;
 				self->total_time += buffer_add_time[buffer_index];
 				self->current_time = buffer_set_time[buffer_index];
@@ -901,6 +906,7 @@ namespace Core::Audio
 				buffer_add_time[buffer_index] = (double)read_frames / (double)decoder->getSampleRate();
 				buffer_set_time[buffer_index] = time_pos;
 				self->audio_buffer_index = buffer_index;
+				//spdlog::debug("[Player] Commit {} samples", read_frames);
 				break;
 			}
 		}
