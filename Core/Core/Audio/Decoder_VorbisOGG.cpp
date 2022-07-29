@@ -174,7 +174,7 @@ namespace Core::Audio
 			long const result = ov_read(&m_ogg, ptr, (int)(target_read_size - read_size), 0, 2, 1, &current_stream);
 			if (result < 0)
 			{
-				return false; // 失败了
+				assert(false); return false; // 失败了
 			}
 			else if (result == 0)
 			{
@@ -188,7 +188,7 @@ namespace Core::Audio
 		}
 		if (read_pcm_frame)
 		{
-			*read_pcm_frame = read_size / getFrameSize();
+			*read_pcm_frame = read_size / (uint32_t)getFrameSize();
 			return true;
 		}
 		else

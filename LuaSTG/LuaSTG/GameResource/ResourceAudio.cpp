@@ -41,19 +41,20 @@ namespace LuaSTGPlus
 
 	bool ResMusic::LoopDecoder::read(uint32_t pcm_frame, void* buffer, uint32_t* read_pcm_frame)
 	{
+		uint32_t const raw_pcm_frame = pcm_frame;
 		uint8_t* p_buffer = (uint8_t*)buffer;
 
 		// 填充音频数据
 		if (m_is_loop)
 		{
-			while (pcm_frame)
+			while (pcm_frame > 0)
 			{
 				// 获得当前解码器位置(采样)
 				uint32_t current_frame = 0;
 				if (!tell(&current_frame)) { assert(false); return false; }
 
 				// 检查读取位置是否超出循环节
-				if ((current_frame + pcm_frame) > m_end_sample)
+				if ((current_frame + pcm_frame) >= m_end_sample)
 				{
 					// 填充尚未填充数据
 					if (current_frame < m_end_sample)
@@ -62,13 +63,14 @@ namespace LuaSTGPlus
 						uint32_t const should_read_size = vaild_frame * getFrameSize();
 						uint32_t read_frame = 0;
 						if (!m_decoder->read(vaild_frame, p_buffer, &read_frame)) { assert(false); return false; }
-						
+						//spdlog::debug("[Loop] read [{}, {}) total {} samples", current_frame, current_frame + read_frame, read_frame);
+
 						// 剩下的数据全部置为0
 						uint8_t* ptr = p_buffer + (read_frame * getFrameSize());
 						uint32_t const fill_size = (vaild_frame - read_frame) * getFrameSize();
 						if (fill_size > 0)
 						{
-							std::memset(ptr, 0, fill_size);
+							assert(false); std::memset(ptr, 0, fill_size);
 						}
 						
 						// 即使实际上没有读取出来这么多内容，也要如此
@@ -81,19 +83,23 @@ namespace LuaSTGPlus
 				}
 				else
 				{
-					// 直接填充数据
+					uint32_t const vaild_frame = pcm_frame;
+					uint32_t const should_read_size = vaild_frame * getFrameSize();
 					uint32_t read_frame = 0;
-					if (!m_decoder->read(pcm_frame, p_buffer, &read_frame)) { assert(false); return false; }
-					p_buffer += read_frame * getFrameSize();
+					if (!m_decoder->read(vaild_frame, p_buffer, &read_frame)) { assert(false); return false; }
+					//spdlog::debug("[Loop] read [{}, {}) total {} samples", current_frame, current_frame + read_frame, read_frame);
 
 					// 剩下的数据全部置为0
-					uint32_t const fill_size = (pcm_frame - read_frame) * getFrameSize();
+					uint8_t* ptr = p_buffer + (read_frame * getFrameSize());
+					uint32_t const fill_size = (vaild_frame - read_frame) * getFrameSize();
 					if (fill_size > 0)
 					{
-						std::memset(p_buffer, 0, fill_size);
+						assert(false); std::memset(ptr, 0, fill_size);
 					}
 
-					break;
+					// 即使实际上没有读取出来这么多内容，也要如此
+					p_buffer += should_read_size;
+					pcm_frame -= vaild_frame;
 				}
 			}
 		}
@@ -115,7 +121,7 @@ namespace LuaSTGPlus
 		if (read_pcm_frame)
 		{
 			// 即使实际上没有读取出来这么多内容，也要如此
-			*read_pcm_frame = pcm_frame;
+			*read_pcm_frame = raw_pcm_frame;
 		}
 
 		return true;
