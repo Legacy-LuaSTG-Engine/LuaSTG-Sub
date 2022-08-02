@@ -444,7 +444,7 @@ namespace LuaSTGPlus
     
         if (ResourceMgr::GetResourceLoadingLog())
         {
-            spdlog::info("[luastg] LoadMusic: 已从'{}'加载音乐'{}' ({})", path, name, getResourcePoolTypeName());
+            spdlog::info("[luastg] LoadMusic: 已从'{}'加载音乐'{}'{} ({})", path, name, once_decode ? "并一次性解码" : "", getResourcePoolTypeName());
         }
     
         return true;
