@@ -366,15 +366,15 @@ namespace LuaSTGPlus
 
     bool ResourcePool::LoadMusic(const char* name, const char* path, double start, double end, bool once_decode) noexcept
     {
-        // TODO: 为什么呢？
-        //if (m_MusicPool.find(name) != m_MusicPool.end())
-        //{
-        //    if (ResourceMgr::GetResourceLoadingLog())
-        //    {
-        //        spdlog::warn("[luastg] LoadMusic: 音乐'{}'已存在，创建操作已取消", name);
-        //    }
-        //    return true;
-        //}
+        if (m_MusicPool.find(name) != m_MusicPool.end())
+        {
+            if (ResourceMgr::GetResourceLoadingLog())
+            {
+                spdlog::warn("[luastg] LoadMusic: 音乐'{}'已存在，创建操作已取消", name);
+            }
+            m_MusicPool.find(name)->second->Stop();
+            return true;
+        }
     
         using namespace Core;
         using namespace Core::Audio;
