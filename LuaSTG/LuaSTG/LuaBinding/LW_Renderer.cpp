@@ -331,11 +331,6 @@ static int lib_setVertexColorBlendState(lua_State* L)noexcept
     LR2D()->setVertexColorBlendState((Core::Graphics::IRenderer::VertexColorBlendState)luaL_checkinteger(L, 1));
     return 0;
 }
-static int lib_setSamplerState(lua_State* L)noexcept
-{
-    LR2D()->setSamplerState((Core::Graphics::IRenderer::SamplerState)luaL_checkinteger(L, 1));
-    return 0;
-}
 static int lib_setFogState(lua_State* L)noexcept
 {
     Core::Color4B color;
@@ -673,7 +668,6 @@ static luaL_Reg const lib_func[] = {
     MKFUNC(setScissorRect),
 
     MKFUNC(setVertexColorBlendState),
-    MKFUNC(setSamplerState),
     MKFUNC(setFogState),
     MKFUNC(setDepthState),
     MKFUNC(setBlendState),

@@ -178,7 +178,6 @@ namespace Core::Graphics
 		void setViewportAndScissorRect();
 
 		void setVertexColorBlendState(VertexColorBlendState state);
-		void setSamplerState(SamplerState state);
 		void setFogState(FogState state, Color4B const& color, float density_or_znear, float zfar);
 		void setDepthState(DepthState state);
 		void setBlendState(BlendState state);

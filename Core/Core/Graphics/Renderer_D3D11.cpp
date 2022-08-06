@@ -896,15 +896,6 @@ namespace Core::Graphics
 			ctx->PSSetShader(_pixel_shader[IDX(state)][IDX(_state_set.fog_state)][IDX(_state_set.texture_alpha_type)].Get(), NULL, 0);
 		}
 	}
-	void Renderer_D3D11::setSamplerState(SamplerState state)
-	{
-		if (_state_dirty || _state_set.sampler_state != state)
-		{
-			batchFlush();
-			_state_set.sampler_state = state;
-			setSamplerState(state, 0);
-		}
-	}
 	void Renderer_D3D11::setFogState(FogState state, Color4B const& color, float density_or_znear, float zfar)
 	{
 		if (_state_dirty || _state_set.fog_state != state || _state_set.fog_color != color || _state_set.fog_near_or_density != density_or_znear || _state_set.fog_far != zfar)
