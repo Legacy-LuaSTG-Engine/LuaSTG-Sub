@@ -381,6 +381,38 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			}
 			return luaL_error(L, "texture '%s' not found.", luaL_checkstring(L, 1));
 		}
+		static int SetTextureSamplerState(lua_State* L)noexcept
+		{
+			std::string_view const sampler_name = luaL_check_string_view(L, 2);
+			if (sampler_name == "" || sampler_name == "point+wrap" || sampler_name == "point+clamp" || sampler_name == "linear+wrap" || sampler_name == "linear+clamp")
+			{
+				std::string_view const tex_name = luaL_check_string_view(L, 1);
+				fcyRefPointer<LuaSTGPlus::ResTexture> p = LRES.FindTexture(tex_name.data());
+				if (!p)
+				{
+					spdlog::error("[luastg] lstg.SetTextureSamplerState failed: can't find texture '{}'", tex_name);
+					return luaL_error(L, "can't find texture '%s'", tex_name.data());
+				}
+
+				// 映射
+				Core::Graphics::IRenderer::SamplerState state = Core::Graphics::IRenderer::SamplerState::LinearClamp;
+				if (sampler_name == "point+wrap") state = Core::Graphics::IRenderer::SamplerState::PointWrap;
+				else if (sampler_name == "point+clamp") state = Core::Graphics::IRenderer::SamplerState::PointClamp;
+				else if (sampler_name == "linear+wrap") state = Core::Graphics::IRenderer::SamplerState::LinearWrap;
+				else if (sampler_name == "" || sampler_name == "linear+clamp") state = Core::Graphics::IRenderer::SamplerState::LinearClamp;
+				else return luaL_error(L, "unknown sampler state '%s'", sampler_name.data());
+
+				// 设置
+				Core::Graphics::ISamplerState* p_sampler = LAPP.GetRenderer2D()->getKnownSamplerState(state);
+				p->GetTexture()->setSamplerState(p_sampler);
+
+				return 0;
+			}
+			else
+			{
+				return luaL_error(L, "unsupported deprecated usage");
+			}
+		}
 		static int GetTextureSize(lua_State* L) noexcept
 		{
 			const char* name = luaL_checkstring(L, 1);
@@ -626,6 +658,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 		{ "CreateRenderTarget", &Wrapper::CreateRenderTarget },
 		{ "IsRenderTarget", &Wrapper::IsRenderTarget },
 		{ "SetTexturePreMulAlphaState", &Wrapper::SetTexturePreMulAlphaState },
+		{ "SetTextureSamplerState", &Wrapper::SetTextureSamplerState },
 		{ "GetTextureSize", &Wrapper::GetTextureSize },
 		{ "RemoveResource", &Wrapper::RemoveResource },
 		{ "CheckRes", &Wrapper::CheckRes },
