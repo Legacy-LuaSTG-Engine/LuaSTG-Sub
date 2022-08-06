@@ -133,7 +133,6 @@ namespace Core::Graphics
 		virtual void setViewportAndScissorRect() = 0;
 
 		virtual void setVertexColorBlendState(VertexColorBlendState state) = 0;
-		virtual void setSamplerState(SamplerState state) = 0;
 		virtual void setFogState(FogState state, Color4B const& color, float density_or_znear, float zfar) = 0;
 		virtual void setDepthState(DepthState state) = 0;
 		virtual void setBlendState(BlendState state) = 0;
