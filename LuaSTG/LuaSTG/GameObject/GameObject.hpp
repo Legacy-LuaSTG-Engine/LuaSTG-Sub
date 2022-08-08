@@ -105,7 +105,7 @@ namespace LuaSTGPlus
 
 		void Reset();
 		void DirtReset();
-		void UpdateCollisionCirclrRadius();
+		void UpdateCollisionCircleRadius();
 		bool ChangeResource(std::string_view const& res_name);
 		void ChangeLuaRC(lua_State* L, int idx);
 		void ReleaseResource();

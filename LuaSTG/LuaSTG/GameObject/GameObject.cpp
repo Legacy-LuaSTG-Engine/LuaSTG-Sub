@@ -182,7 +182,7 @@ namespace LuaSTGPlus
 #endif // USING_ADVANCE_GAMEOBJECT_CLASS
 	}
 	
-	void GameObject::UpdateCollisionCirclrRadius()
+	void GameObject::UpdateCollisionCircleRadius()
 	{
 		if (rect) {
 			//矩形
@@ -213,7 +213,7 @@ namespace LuaSTGPlus
 			b = tSprite->GetHalfSizeY();
 #endif // GLOBAL_SCALE_COLLI_SHAPE
 			rect = tSprite->IsRectangle();
-			UpdateCollisionCirclrRadius();
+			UpdateCollisionCircleRadius();
 			return true;
 		}
 
@@ -230,7 +230,7 @@ namespace LuaSTGPlus
 			b = tAnimation->GetHalfSizeY();
 #endif // GLOBAL_SCALE_COLLI_SHAPE
 			rect = tAnimation->IsRectangle();
-			UpdateCollisionCirclrRadius();
+			UpdateCollisionCircleRadius();
 			return true;
 		}
 
@@ -260,7 +260,7 @@ namespace LuaSTGPlus
 			b = tParticle->GetHalfSizeY();
 #endif // GLOBAL_SCALE_COLLI_SHAPE
 			rect = tParticle->IsRectangle();
-			UpdateCollisionCirclrRadius();
+			UpdateCollisionCircleRadius();
 			return true;
 		}
 
@@ -854,7 +854,7 @@ namespace LuaSTGPlus
 			return 0;
 		case LuaSTG::GameObjectMember::RECT:
 			rect = lua_to_uint8_boolean(L, 3);
-			UpdateCollisionCirclrRadius();
+			UpdateCollisionCircleRadius();
 			return 0;
 		case LuaSTG::GameObjectMember::A:
 		#ifdef GLOBAL_SCALE_COLLI_SHAPE
@@ -862,7 +862,7 @@ namespace LuaSTGPlus
 		#else
 			a = luaL_checknumber(L, 3);
 		#endif // GLOBAL_SCALE_COLLI_SHAPE
-			UpdateCollisionCirclrRadius();
+			UpdateCollisionCircleRadius();
 			return 0;
 		case LuaSTG::GameObjectMember::B:
 		#ifdef GLOBAL_SCALE_COLLI_SHAPE
@@ -870,7 +870,7 @@ namespace LuaSTGPlus
 		#else
 			b = luaL_checknumber(L, 3);
 		#endif // GLOBAL_SCALE_COLLI_SHAPE
-			UpdateCollisionCirclrRadius();
+			UpdateCollisionCircleRadius();
 			return 0;
 
 			// 渲染
