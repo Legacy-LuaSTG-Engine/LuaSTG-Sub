@@ -85,7 +85,7 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/LW_Input.cpp
     LuaSTG/LuaBinding/LW_IO_BinaryReader.cpp
     LuaSTG/LuaBinding/LW_IO_BinaryWriter.cpp
-    LuaSTG/LuaBinding/LW_IO_Steam.cpp
+    LuaSTG/LuaBinding/LW_IO_Stream.cpp
     LuaSTG/LuaBinding/LW_IO.cpp
     LuaSTG/LuaBinding/LW_LuaSTG.cpp
     LuaSTG/LuaBinding/LW_ParticleSystem.cpp
