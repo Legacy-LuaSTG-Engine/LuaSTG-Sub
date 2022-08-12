@@ -120,6 +120,8 @@ namespace Core::Graphics
 		ScopeObject<Device_D3D11> m_device;
 		ScopeObject<ModelSharedComponent_D3D11> m_model_shared;
 
+		Microsoft::WRL::ComPtr<ID3D11Buffer> _fx_vbuffer;
+		Microsoft::WRL::ComPtr<ID3D11Buffer> _fx_ibuffer;
 		VertexIndexBuffer _vi_buffer[1];
 		size_t _vi_buffer_index = 0;
 		const size_t _vi_buffer_count = 1;
@@ -153,6 +155,7 @@ namespace Core::Graphics
 		bool createShaders();
 		void initState();
 		void setSamplerState(SamplerState state, UINT index);
+		bool uploadVertexIndexBufferFromDrawList();
 		void bindTextureSamplerState(ITexture2D* texture);
 		void bindTextureAlphaType(ITexture2D* texture);
 		bool batchFlush(bool discard = false);
