@@ -80,7 +80,7 @@ namespace Core::Audio
 		double getTotalTime() { return 0.0; }
 		double getTime() { return 0.0; }
 		bool setTime(double) { return true; }
-		bool setLoop(bool enable, double start_pos, double length) { return true; }
+		bool setLoop(bool, double, double) { return true; }
 
 		float getVolume();
 		bool setVolume(float v);
@@ -282,7 +282,7 @@ namespace Core::Audio
 		double getTotalTime();
 		double getTime();
 		bool setTime(double t);
-		bool setLoop(bool enable, double start_pos, double length) { return true; }
+		bool setLoop(bool, double, double) { return true; }
 
 		float getVolume();
 		bool setVolume(float v);
