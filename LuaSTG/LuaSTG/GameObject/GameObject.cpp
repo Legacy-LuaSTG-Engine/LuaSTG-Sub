@@ -653,25 +653,25 @@ namespace LuaSTGPlus
 			return 1;
 		case LuaSTG::GameObjectMember::_A:
 			if (luaclass.IsRenderClass)
-				lua_pushinteger(L, (lua_Integer)((uint8_t*)vertexcolor)[3]);
+				lua_pushinteger(L, (lua_Integer)((uint8_t*)&vertexcolor)[3]);
 			else
 				lua_pushnil(L);
 			return 1;
 		case LuaSTG::GameObjectMember::_R:
 			if (luaclass.IsRenderClass)
-				lua_pushinteger(L, (lua_Integer)((uint8_t*)vertexcolor)[2]);
+				lua_pushinteger(L, (lua_Integer)((uint8_t*)&vertexcolor)[2]);
 			else
 				lua_pushnil(L);
 			return 1;
 		case LuaSTG::GameObjectMember::_G:
 			if (luaclass.IsRenderClass)
-				lua_pushinteger(L, (lua_Integer)((uint8_t*)vertexcolor)[1]);
+				lua_pushinteger(L, (lua_Integer)((uint8_t*)&vertexcolor)[1]);
 			else
 				lua_pushnil(L);
 			return 1;
 		case LuaSTG::GameObjectMember::_B:
 			if (luaclass.IsRenderClass)
-				lua_pushinteger(L, (lua_Integer)((uint8_t*)vertexcolor)[0]);
+				lua_pushinteger(L, (lua_Integer)((uint8_t*)&vertexcolor)[0]);
 			else
 				lua_pushnil(L);
 			return 1;
@@ -911,25 +911,25 @@ namespace LuaSTGPlus
 			return 0;
 		case LuaSTG::GameObjectMember::_A:
 			if (luaclass.IsRenderClass)
-				((uint8_t*)vertexcolor)[3] = (uint8_t)luaL_checkinteger(L, 3);
+				((uint8_t*)&vertexcolor)[3] = (uint8_t)luaL_checkinteger(L, 3);
 			else
 				lua_rawset(L, 1);
 			return 0;
 		case LuaSTG::GameObjectMember::_R:
 			if (luaclass.IsRenderClass)
-				((uint8_t*)vertexcolor)[2] = (uint8_t)luaL_checkinteger(L, 3);
+				((uint8_t*)&vertexcolor)[2] = (uint8_t)luaL_checkinteger(L, 3);
 			else
 				lua_rawset(L, 1);
 			return 0;
 		case LuaSTG::GameObjectMember::_G:
 			if (luaclass.IsRenderClass)
-				((uint8_t*)vertexcolor)[1] = (uint8_t)luaL_checkinteger(L, 3);
+				((uint8_t*)&vertexcolor)[1] = (uint8_t)luaL_checkinteger(L, 3);
 			else
 				lua_rawset(L, 1);
 			return 0;
 		case LuaSTG::GameObjectMember::_B:
 			if (luaclass.IsRenderClass)
-				((uint8_t*)vertexcolor)[0] = (uint8_t)luaL_checkinteger(L, 3);
+				((uint8_t*)&vertexcolor)[0] = (uint8_t)luaL_checkinteger(L, 3);
 			else
 				lua_rawset(L, 1);
 			return 0;
