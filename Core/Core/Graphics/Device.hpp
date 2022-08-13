@@ -99,6 +99,7 @@ namespace Core::Graphics
 		virtual bool isPremultipliedAlpha() = 0;
 		virtual void setPremultipliedAlpha(bool v) = 0;
 		virtual Vector2U getSize() = 0;
+		virtual bool setSize(Vector2U size) = 0;
 
 		virtual bool uploadPixelData(RectU rc, void const* data, uint32_t pitch) = 0;
 
@@ -113,6 +114,7 @@ namespace Core::Graphics
 	{
 		virtual void* getNativeHandle() = 0;
 
+		virtual bool setSize(Vector2U size) = 0;
 		virtual ITexture2D* getTexture() = 0;
 	};
 

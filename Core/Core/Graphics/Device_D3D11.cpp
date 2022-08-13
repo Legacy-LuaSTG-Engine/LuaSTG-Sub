@@ -1548,6 +1548,18 @@ namespace Core::Graphics
 
 	// Texture2D
 
+	bool Texture2D_D3D11::setSize(Vector2U size)
+	{
+		if (!(m_dynamic || m_isrt))
+		{
+			spdlog::error("[core] 不能修改静态纹理的大小");
+			return false;
+		}
+		onDeviceDestroy();
+		m_size = size;
+		return createResource();
+	}
+
 	bool Texture2D_D3D11::uploadPixelData(RectU rc, void const* data, uint32_t pitch)
 	{
 		if (!m_dynamic)
@@ -1740,6 +1752,13 @@ namespace Core::Graphics
 	}
 
 	// RenderTarget
+
+	bool RenderTarget_D3D11::setSize(Vector2U size)
+	{
+		d3d11_rtv.Reset();
+		if (!m_texture->setSize(size)) return false;
+		return createResource();
+	}
 
 	void RenderTarget_D3D11::onDeviceCreate()
 	{

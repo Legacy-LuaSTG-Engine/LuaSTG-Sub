@@ -202,6 +202,7 @@ namespace Core::Graphics
 		bool isPremultipliedAlpha() { return m_premul; }
 		void setPremultipliedAlpha(bool v) { m_premul = v; }
 		Vector2U getSize() { return m_size; }
+		bool setSize(Vector2U size);
 
 		bool uploadPixelData(RectU rc, void const* data, uint32_t pitch);
 
@@ -236,6 +237,7 @@ namespace Core::Graphics
 	public:
 		void* getNativeHandle() { return d3d11_rtv.Get(); }
 
+		bool setSize(Vector2U size);
 		ITexture2D* getTexture() { return *m_texture; }
 
 	public:
