@@ -11,11 +11,21 @@ namespace LuaSTGPlus
 		m_ds = nullptr;
 
 		auto const size = Core::Vector2U(m_swapchain->getWidth(), m_swapchain->getHeight());
-		if (!LAPP.GetAppModel()->getDevice()->createRenderTarget(size, ~m_rt))
+		if (!m_rt)
 		{
-			return false;
+			if (!LAPP.GetAppModel()->getDevice()->createRenderTarget(size, ~m_rt))
+			{
+				return false;
+			}
+			m_texture = m_rt->getTexture();
 		}
-		m_texture = m_rt->getTexture();
+		else
+		{
+			if (!m_rt->setSize(size))
+			{
+				return false;
+			}
+		}
 		if (m_enable_depthbuffer)
 		{
 			if (!LAPP.GetAppModel()->getDevice()->createDepthStencilBuffer(size, ~m_ds))
