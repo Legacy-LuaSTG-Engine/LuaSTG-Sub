@@ -90,7 +90,9 @@ end
 local M = {}
 lstg.Input = M
 
+---@type lstg.Input.Keyboard
 M.Keyboard = require("lstg.Input.Keyboard")
+---@type lstg.Input.Mouse
 M.Mouse = require("lstg.Input.Mouse")
 
 return M

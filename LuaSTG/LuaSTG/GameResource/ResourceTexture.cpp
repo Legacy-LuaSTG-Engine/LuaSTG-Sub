@@ -6,10 +6,7 @@ namespace LuaSTGPlus
 	bool ResTexture::createResources()
 	{
 		assert(m_swapchain);
-		m_texture = nullptr;
-		m_rt = nullptr;
-		m_ds = nullptr;
-
+		
 		auto const size = Core::Vector2U(m_swapchain->getWidth(), m_swapchain->getHeight());
 		if (!m_rt)
 		{
