@@ -17,6 +17,20 @@ namespace LuaSTGPlus::LuaWrapper
 		);
 	}
 
+	// In this case it returns a standard vector of floats, wxyz = ahsv respectively
+	inline Core::Vector4F RGB2HSV(uint8_t const red, uint8_t const green, uint8_t const blue, uint8_t const alpha)
+	{
+		DirectX::XMFLOAT4 const vec(red / 255.0f, green / 255.0f, blue / 255.0f, alpha / 255.0f);
+		DirectX::XMFLOAT4 vec2{};
+		DirectX::XMStoreFloat4(&vec2, DirectX::XMColorRGBToHSV(DirectX::XMLoadFloat4(&vec)));
+		return Core::Vector4(
+			vec2.x * 100.0f,
+			vec2.y * 100.0f,
+			vec2.z * 100.0f,
+			vec2.w * 100.0f
+		);
+	}
+
 	std::string_view const ColorWrapper::ClassID = "lstg.Color";
 
 	Core::Color4B* ColorWrapper::Cast(lua_State* L, int idx)
@@ -30,7 +44,7 @@ namespace LuaSTGPlus::LuaWrapper
 	{
 		struct Function
 		{
-		#define GETUDATA(p, i) Core::Color4B* (p) = Cast(L, i);
+#define GETUDATA(p, i) Core::Color4B* (p) = Cast(L, i);
 
 			static int ARGB(lua_State* L) noexcept
 			{
@@ -66,7 +80,15 @@ namespace LuaSTGPlus::LuaWrapper
 			{
 				GETUDATA(p, 1);
 				int const argc = lua_gettop(L);
-				if (argc == 5)
+				if (argc == 1)
+				{
+					Core::Vector4F const hsva = RGB2HSV(p->r, p->g, p->b, p->a);
+					lua_pushnumber(L, (lua_Number)hsva.w); // alpha
+					lua_pushnumber(L, (lua_Number)hsva.x); // hue
+					lua_pushnumber(L, (lua_Number)hsva.y); // saturation
+					lua_pushnumber(L, (lua_Number)hsva.z); // value
+				}
+				else if (argc == 5)
 				{
 					float const alpha = (float)std::clamp(luaL_checknumber(L, 2), 0.0, 100.0);
 					float const hue = (float)std::clamp(luaL_checknumber(L, 3), 0.0, 100.0);
@@ -99,6 +121,15 @@ namespace LuaSTGPlus::LuaWrapper
 				case LuaSTG::ColorMember::m_b:
 					lua_pushinteger(L, (lua_Integer)p->b);
 					break;
+				case LuaSTG::ColorMember::m_h:
+					lua_pushnumber(L, (lua_Number)RGB2HSV(p->r, p->g, p->b, p->a).x);
+					break;
+				case LuaSTG::ColorMember::m_s:
+					lua_pushnumber(L, (lua_Number)RGB2HSV(p->r, p->g, p->b, p->a).y);
+					break;
+				case LuaSTG::ColorMember::m_v:
+					lua_pushnumber(L, (lua_Number)RGB2HSV(p->r, p->g, p->b, p->a).z);
+					break;
 				case LuaSTG::ColorMember::m_argb:
 					lua_pushnumber(L, (lua_Number)p->color());
 					break;
@@ -130,6 +161,21 @@ namespace LuaSTGPlus::LuaWrapper
 					break;
 				case LuaSTG::ColorMember::m_b:
 					p->b = (fByte)std::clamp<fInt>(luaL_checkinteger(L, 3), 0, 255);
+					break;
+				case LuaSTG::ColorMember::m_h:
+					Core::Vector4F hsva = RGB2HSV(p->r, p->g, p->b, p->a);
+					hsva.x = (float)std::clamp(luaL_checknumber(L, 3), 0.0, 100.0);
+					*p = HSV2RGB(hsva.x, hsva.y, hsva.z, hsva.w);
+					break;
+				case LuaSTG::ColorMember::m_s:
+					Core::Vector4F hsva = RGB2HSV(p->r, p->g, p->b, p->a);
+					hsva.y = (float)std::clamp(luaL_checknumber(L, 3), 0.0, 100.0);
+					*p = HSV2RGB(hsva.x, hsva.y, hsva.z, hsva.w);
+					break;
+				case LuaSTG::ColorMember::m_v:
+					Core::Vector4F hsva = RGB2HSV(p->r, p->g, p->b, p->a);
+					hsva.z = (float)std::clamp(luaL_checknumber(L, 3), 0.0, 100.0);
+					*p = HSV2RGB(hsva.x, hsva.y, hsva.z, hsva.w);
 					break;
 				case LuaSTG::ColorMember::m_argb:
 					p->color((uint32_t)luaL_checknumber(L, 3));
@@ -326,7 +372,7 @@ namespace LuaSTGPlus::LuaWrapper
 				return 1;
 			}
 
-		#undef GETUDATA
+#undef GETUDATA
 		};
 
 		luaL_Reg tMethods[] = {
