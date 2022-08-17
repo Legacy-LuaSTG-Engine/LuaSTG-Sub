@@ -44,7 +44,7 @@ namespace LuaSTGPlus::LuaWrapper
 	{
 		struct Function
 		{
-#define GETUDATA(p, i) Core::Color4B* (p) = Cast(L, i);
+			#define GETUDATA(p, i) Core::Color4B* (p) = Cast(L, i);
 
 			static int ARGB(lua_State* L) noexcept
 			{
@@ -370,7 +370,7 @@ namespace LuaSTGPlus::LuaWrapper
 				return 1;
 			}
 
-#undef GETUDATA
+			#undef GETUDATA
 		};
 
 		luaL_Reg tMethods[] = {
