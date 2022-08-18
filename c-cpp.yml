@@ -1,0 +1,17 @@
+name: C/C++ CI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - name: checkout
+      uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
+    - name: build
+      run: ./build.bat
