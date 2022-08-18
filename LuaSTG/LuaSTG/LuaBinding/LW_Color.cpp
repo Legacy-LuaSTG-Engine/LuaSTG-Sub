@@ -87,6 +87,7 @@ namespace LuaSTGPlus::LuaWrapper
 					lua_pushnumber(L, (lua_Number)hsva.x); // hue
 					lua_pushnumber(L, (lua_Number)hsva.y); // saturation
 					lua_pushnumber(L, (lua_Number)hsva.z); // value
+					return 4;
 				}
 				else if (argc == 5)
 				{
@@ -148,7 +149,6 @@ namespace LuaSTGPlus::LuaWrapper
 			{
 				GETUDATA(p, 1);
 				const char* key = luaL_checkstring(L, 2);
-				Core::Vector4F hsva = RGB2HSV(p->r, p->g, p->b, p->a);
 				switch (LuaSTG::MapColorMember(key))
 				{
 				case LuaSTG::ColorMember::m_a:
@@ -164,16 +164,25 @@ namespace LuaSTGPlus::LuaWrapper
 					p->b = (fByte)std::clamp<fInt>(luaL_checkinteger(L, 3), 0, 255);
 					break;
 				case LuaSTG::ColorMember::m_h:
-					hsva.x = (float)std::clamp(luaL_checknumber(L, 3), 0.0, 100.0);
-					*p = HSV2RGB(hsva.x, hsva.y, hsva.z, hsva.w);
+					{
+						Core::Vector4F hsva = RGB2HSV(p->r, p->g, p->b, p->a);
+						hsva.x = (float)std::clamp(luaL_checknumber(L, 3), 0.0, 100.0);
+						*p = HSV2RGB(hsva.x, hsva.y, hsva.z, hsva.w);
+					}
 					break;
 				case LuaSTG::ColorMember::m_s:
-					hsva.y = (float)std::clamp(luaL_checknumber(L, 3), 0.0, 100.0);
-					*p = HSV2RGB(hsva.x, hsva.y, hsva.z, hsva.w);
+					{
+						Core::Vector4F hsva = RGB2HSV(p->r, p->g, p->b, p->a);
+						hsva.y = (float)std::clamp(luaL_checknumber(L, 3), 0.0, 100.0);
+						*p = HSV2RGB(hsva.x, hsva.y, hsva.z, hsva.w);
+					}
 					break;
 				case LuaSTG::ColorMember::m_v:
-					hsva.z = (float)std::clamp(luaL_checknumber(L, 3), 0.0, 100.0);
-					*p = HSV2RGB(hsva.x, hsva.y, hsva.z, hsva.w);
+					{
+						Core::Vector4F hsva = RGB2HSV(p->r, p->g, p->b, p->a);
+						hsva.z = (float)std::clamp(luaL_checknumber(L, 3), 0.0, 100.0);
+						*p = HSV2RGB(hsva.x, hsva.y, hsva.z, hsva.w);
+					}
 					break;
 				case LuaSTG::ColorMember::m_argb:
 					p->color((uint32_t)luaL_checknumber(L, 3));
