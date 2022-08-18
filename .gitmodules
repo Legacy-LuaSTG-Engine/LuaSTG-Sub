@@ -58,3 +58,6 @@
 [submodule "external/pcg-cpp"]
 	path = external/pcg-cpp
 	url = https://github.com/imneme/pcg-cpp.git
+[submodule "doc"]
+	path = doc
+	url = https://github.com/Legacy-LuaSTG-Engine/LuaSTG-Sub-Documentation.git
