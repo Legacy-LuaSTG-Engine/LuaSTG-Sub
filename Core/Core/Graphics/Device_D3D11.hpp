@@ -82,6 +82,8 @@ namespace Core::Graphics
 		ID3D11DeviceContext* GetD3D11DeviceContext() const noexcept { return d3d11_devctx.Get(); }
 		ID3D11DeviceContext1* GetD3D11DeviceContext1() const noexcept { return d3d11_devctx1.Get(); }
 
+		IWICImagingFactory* GetWICImagingFactory() const noexcept { return wic_factory.Get(); }
+
 		BOOL IsFlipSequentialSupport() const noexcept { return dxgi_support_flip_model; }
 		BOOL IsFrameLatencySupport() const noexcept { return dxgi_support_low_latency; }
 		BOOL IsFlipDiscardSupport() const noexcept { return dxgi_support_flip_model2; }

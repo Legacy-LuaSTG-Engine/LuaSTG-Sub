@@ -357,10 +357,13 @@ target_compile_definitions(libqoi PRIVATE
 )
 target_include_directories(libqoi PUBLIC
     image.qoi
+    image.qoi-patch
 )
 target_sources(libqoi PRIVATE
     image.qoi/qoi.h
     image.qoi-patch/qoi.c
+    image.qoi-patch/QOITextureLoader11.h
+    image.qoi-patch/QOITextureLoader11.cpp
 )
 
 set_target_properties(libqoi PROPERTIES FOLDER external)

@@ -94,6 +94,7 @@ target_link_libraries(Core PUBLIC
     d3dcompiler.lib
     DirectX::XAudio2Redist
     DirectXTexMini
+    libqoi
     # math
     xmath
     # file
