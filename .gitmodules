@@ -61,3 +61,6 @@
 [submodule "doc"]
 	path = doc
 	url = https://github.com/Legacy-LuaSTG-Engine/LuaSTG-Sub-Documentation.git
+[submodule "external/image.qoi"]
+	path = external/image.qoi
+	url = https://github.com/phoboslab/qoi.git
