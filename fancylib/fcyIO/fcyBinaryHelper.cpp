@@ -23,107 +23,107 @@ fcyStream* fcyBinaryReader::GetBaseStream()
 	return m_pStream;
 }
 
-fChar fcyBinaryReader::ReadChar()
+char fcyBinaryReader::ReadChar()
 {
-	fChar tRet = 0;
+	char tRet = 0;
 	if(FCYFAILED(m_pStream->ReadBytes((fData)&tRet, sizeof(tRet), NULL)))
 		throw fcyException("fcyBinaryReader::ReadChar", "ReadBytes Failed.");
 	return tRet;
 }
 
-void fcyBinaryReader::ReadChars(fStr OutBuffer, fLen Length)
+void fcyBinaryReader::ReadChars(char* OutBuffer, uint64_t Length)
 {
 	if(FCYFAILED(m_pStream->ReadBytes((fData)OutBuffer, Length, NULL)))
 		throw fcyException("fcyBinaryReader::ReadChars", "ReadBytes Failed.");
 }
 
-fCharW fcyBinaryReader::ReadCharW()
+wchar_t fcyBinaryReader::ReadCharW()
 {
-	fCharW tRet = 0;
+	wchar_t tRet = 0;
 	if(FCYFAILED(m_pStream->ReadBytes((fData)&tRet, sizeof(tRet), NULL)))
 		throw fcyException("fcyBinaryReader::ReadCharW", "ReadBytes Failed.");
 	return tRet;
 }
 
-void fcyBinaryReader::ReadCharsW(fStrW OutBuffer, fLen Length)
+void fcyBinaryReader::ReadCharsW(fStrW OutBuffer, uint64_t Length)
 {
 	if(FCYFAILED(m_pStream->ReadBytes((fData)OutBuffer, Length*2, NULL)))
 		throw fcyException("fcyBinaryReader::ReadCharsW", "ReadBytes Failed.");
 }
 
-fByte fcyBinaryReader::ReadByte()
+uint8_t fcyBinaryReader::ReadByte()
 {
-	fByte tRet = 0;
+	uint8_t tRet = 0;
 	if(FCYFAILED(m_pStream->ReadBytes((fData)&tRet, sizeof(tRet), NULL)))
 		throw fcyException("fcyBinaryReader::ReadByte", "ReadBytes Failed.");
 	return tRet;
 }
 
-void fcyBinaryReader::ReadBytes(fData OutBuffer, fLen Length)
+void fcyBinaryReader::ReadBytes(fData OutBuffer, uint64_t Length)
 {
 	if(FCYFAILED(m_pStream->ReadBytes((fData)OutBuffer, Length, NULL)))
 		throw fcyException("fcyBinaryReader::ReadBytes", "ReadBytes Failed.");
 }
 
-fShort fcyBinaryReader::ReadInt16()
+int16_t fcyBinaryReader::ReadInt16()
 {
-	fShort tRet = 0;
+	int16_t tRet = 0;
 	if(FCYFAILED(m_pStream->ReadBytes((fData)&tRet, sizeof(tRet), NULL)))
 		throw fcyException("fcyBinaryReader::ReadInt16", "ReadBytes Failed.");
 	return tRet;
 }
 
-fuShort fcyBinaryReader::ReadUInt16()
+uint16_t fcyBinaryReader::ReadUInt16()
 {
-	fuShort tRet = 0;
+	uint16_t tRet = 0;
 	if(FCYFAILED(m_pStream->ReadBytes((fData)&tRet, sizeof(tRet), NULL)))
 		throw fcyException("fcyBinaryReader::ReadUInt16", "ReadBytes Failed.");
 	return tRet;
 }
 
-fInt fcyBinaryReader::ReadInt32()
+int32_t fcyBinaryReader::ReadInt32()
 {
-	fInt tRet = 0;
+	int32_t tRet = 0;
 	if(FCYFAILED(m_pStream->ReadBytes((fData)&tRet, sizeof(tRet), NULL)))
 		throw fcyException("fcyBinaryReader::ReadInt32", "ReadBytes Failed.");
 	return tRet;
 }
 
-fuInt fcyBinaryReader::ReadUInt32()
+uint32_t fcyBinaryReader::ReadUInt32()
 {
-	fuInt tRet = 0;
+	uint32_t tRet = 0;
 	if(FCYFAILED(m_pStream->ReadBytes((fData)&tRet, sizeof(tRet), NULL)))
 		throw fcyException("fcyBinaryReader::ReadUInt32", "ReadBytes Failed.");
 	return tRet;
 }
 
-fLong fcyBinaryReader::ReadInt64()
+int64_t fcyBinaryReader::ReadInt64()
 {
-	fLong tRet = 0;
+	int64_t tRet = 0;
 	if(FCYFAILED(m_pStream->ReadBytes((fData)&tRet, sizeof(tRet), NULL)))
 		throw fcyException("fcyBinaryReader::ReadInt64", "ReadBytes Failed.");
 	return tRet;
 }
 
-fuLong fcyBinaryReader::ReadUInt64()
+uint64_t fcyBinaryReader::ReadUInt64()
 {
-	fuLong tRet = 0;
+	uint64_t tRet = 0;
 	if(FCYFAILED(m_pStream->ReadBytes((fData)&tRet, sizeof(tRet), NULL)))
 		throw fcyException("fcyBinaryReader::ReadUInt64", "ReadBytes Failed.");
 	return tRet;
 }
 
-fFloat fcyBinaryReader::ReadFloat()
+float fcyBinaryReader::ReadFloat()
 {
-	fFloat tRet = 0;
+	float tRet = 0;
 	if(FCYFAILED(m_pStream->ReadBytes((fData)&tRet, sizeof(tRet), NULL)))
 		throw fcyException("fcyBinaryReader::ReadFloat", "ReadBytes Failed.");
 	return tRet;
 }
 
-fDouble fcyBinaryReader::ReadDouble()
+double fcyBinaryReader::ReadDouble()
 {
-	fDouble tRet = 0;
+	double tRet = 0;
 	if(FCYFAILED(m_pStream->ReadBytes((fData)&tRet, sizeof(tRet), NULL)))
 		throw fcyException("fcyBinaryReader::ReadDouble", "ReadBytes Failed.");
 	return tRet;
@@ -152,85 +152,85 @@ fcyStream* fcyBinaryWriter::GetBaseStream()
 	return m_pStream;
 }
 
-void fcyBinaryWriter::Write(fChar Value)
+void fcyBinaryWriter::Write(char Value)
 {
 	if(FCYFAILED(m_pStream->WriteBytes((fData)&Value, sizeof(Value), NULL)))
 		throw fcyException("fcyBinaryWriter::Write", "WriteBytes Failed.");
 }
 
-void fcyBinaryWriter::Write(fcStr Buffer, fLen Length)
+void fcyBinaryWriter::Write(fcStr Buffer, uint64_t Length)
 {
 	if(FCYFAILED(m_pStream->WriteBytes((fData)Buffer, Length, NULL)))
 		throw fcyException("fcyBinaryWriter::Write", "WriteBytes Failed.");
 }
 
-void fcyBinaryWriter::Write(fCharW Value)
+void fcyBinaryWriter::Write(wchar_t Value)
 {
 	if(FCYFAILED(m_pStream->WriteBytes((fData)&Value, sizeof(Value), NULL)))
 		throw fcyException("fcyBinaryWriter::Write", "WriteBytes Failed.");
 }
 
-void fcyBinaryWriter::Write(fcStrW Buffer, fLen Length)
+void fcyBinaryWriter::Write(fcStrW Buffer, uint64_t Length)
 {
 	if(FCYFAILED(m_pStream->WriteBytes((fData)Buffer, Length, NULL)))
 		throw fcyException("fcyBinaryWriter::Write", "WriteBytes Failed.");
 }
 
-void fcyBinaryWriter::Write(fByte Value)
+void fcyBinaryWriter::Write(uint8_t Value)
 {
 	if(FCYFAILED(m_pStream->WriteBytes((fData)&Value, sizeof(Value), NULL)))
 		throw fcyException("fcyBinaryWriter::Write", "WriteBytes Failed.");
 }
 
-void fcyBinaryWriter::Write(fcData Buffer, fLen Length)
+void fcyBinaryWriter::Write(fcData Buffer, uint64_t Length)
 {
 	if(FCYFAILED(m_pStream->WriteBytes((fData)Buffer, Length, NULL)))
 		throw fcyException("fcyBinaryWriter::Write", "WriteBytes Failed.");
 }
 
-void fcyBinaryWriter::Write(fShort Value)
+void fcyBinaryWriter::Write(int16_t Value)
 {
 	if(FCYFAILED(m_pStream->WriteBytes((fData)&Value, sizeof(Value), NULL)))
 		throw fcyException("fcyBinaryWriter::Write", "WriteBytes Failed.");
 }
 
-void fcyBinaryWriter::Write(fuShort Value)
+void fcyBinaryWriter::Write(uint16_t Value)
 {
 	if(FCYFAILED(m_pStream->WriteBytes((fData)&Value, sizeof(Value), NULL)))
 		throw fcyException("fcyBinaryWriter::Write", "WriteBytes Failed.");
 }
 
-void fcyBinaryWriter::Write(fInt Value)
+void fcyBinaryWriter::Write(int32_t Value)
 {
 	if(FCYFAILED(m_pStream->WriteBytes((fData)&Value, sizeof(Value), NULL)))
 		throw fcyException("fcyBinaryWriter::Write", "WriteBytes Failed.");
 }
 
-void fcyBinaryWriter::Write(fuInt Value)
+void fcyBinaryWriter::Write(uint32_t Value)
 {
 	if(FCYFAILED(m_pStream->WriteBytes((fData)&Value, sizeof(Value), NULL)))
 		throw fcyException("fcyBinaryWriter::Write", "WriteBytes Failed.");
 }
 
-void fcyBinaryWriter::Write(fLong Value)
+void fcyBinaryWriter::Write(int64_t Value)
 {
 	if(FCYFAILED(m_pStream->WriteBytes((fData)&Value, sizeof(Value), NULL)))
 		throw fcyException("fcyBinaryWriter::Write", "WriteBytes Failed.");
 }
 
-void fcyBinaryWriter::Write(fuLong Value)
+void fcyBinaryWriter::Write(uint64_t Value)
 {
 	if(FCYFAILED(m_pStream->WriteBytes((fData)&Value, sizeof(Value), NULL)))
 		throw fcyException("fcyBinaryWriter::Write", "WriteBytes Failed.");
 }
 
-void fcyBinaryWriter::Write(fFloat Value)
+void fcyBinaryWriter::Write(float Value)
 {
 	if(FCYFAILED(m_pStream->WriteBytes((fData)&Value, sizeof(Value), NULL)))
 		throw fcyException("fcyBinaryWriter::Write", "WriteBytes Failed.");
 }
 
-void fcyBinaryWriter::Write(fDouble Value)
+void fcyBinaryWriter::Write(double Value)
 {
 	if(FCYFAILED(m_pStream->WriteBytes((fData)&Value, sizeof(Value), NULL)))
 		throw fcyException("fcyBinaryWriter::Write", "WriteBytes Failed.");

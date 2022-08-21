@@ -9,7 +9,7 @@ fcyRandomWELL512::fcyRandomWELL512()
 	SetSeed(GetTickCount());
 }
 
-fcyRandomWELL512::fcyRandomWELL512(fuInt Seed)
+fcyRandomWELL512::fcyRandomWELL512(uint32_t Seed)
 {
 	SetSeed(Seed);
 }
@@ -17,12 +17,12 @@ fcyRandomWELL512::fcyRandomWELL512(fuInt Seed)
 fcyRandomWELL512::~fcyRandomWELL512()
 {}
 
-fuInt fcyRandomWELL512::GetRandSeed() const
+uint32_t fcyRandomWELL512::GetRandSeed() const
 {
 	return m_RSeed;
 }
 
-void fcyRandomWELL512::SetSeed(fuInt Seed)
+void fcyRandomWELL512::SetSeed(uint32_t Seed)
 {
 	m_RSeed = Seed;
 
@@ -37,7 +37,7 @@ void fcyRandomWELL512::SetSeed(fuInt Seed)
 	}
 }
 
-fuInt fcyRandomWELL512::GetRandUInt()
+uint32_t fcyRandomWELL512::GetRandUInt()
 {
 	unsigned int a, b, c, d;
 	a = m_State[m_Index];
@@ -53,17 +53,17 @@ fuInt fcyRandomWELL512::GetRandUInt()
 	return m_State[m_Index];
 }
 
-fuInt fcyRandomWELL512::GetRandUInt(fuInt Max)
+uint32_t fcyRandomWELL512::GetRandUInt(uint32_t Max)
 {
 	return GetRandUInt() % (Max + 1);
 }
 
-fFloat fcyRandomWELL512::GetRandFloat()
+float fcyRandomWELL512::GetRandFloat()
 {
 	return GetRandUInt(1000000)/1000000.f;
 }
 
-fFloat fcyRandomWELL512::GetRandFloat(fFloat MinBound, fFloat MaxBound)
+float fcyRandomWELL512::GetRandFloat(float MinBound, float MaxBound)
 {
 	return GetRandFloat()*(MaxBound-MinBound) + MinBound;
 }

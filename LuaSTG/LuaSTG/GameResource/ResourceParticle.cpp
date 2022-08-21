@@ -68,7 +68,7 @@ namespace LuaSTGPlus
 	{
 		m_Res = ref;
 		m_Info = ref->m_Info;
-		SetSeed(fuInt(std::rand()));
+		SetSeed(uint32_t(std::rand()));
 	}
 	size_t ResParticle::ParticlePool::GetAliveCount() const noexcept { return m_iAlive; }
 	BlendMode ResParticle::ParticlePool::GetBlendMode() const noexcept { return m_Info.eBlendMode; }
@@ -91,11 +91,11 @@ namespace LuaSTGPlus
 	}
 	int ResParticle::ParticlePool::GetEmission() const noexcept { return m_Info.tParticleSystemInfo.nEmission; }
 	void ResParticle::ParticlePool::SetEmission(int e) noexcept { m_Info.tParticleSystemInfo.nEmission = e; }
-	fuInt ResParticle::ParticlePool::GetSeed() const noexcept
+	uint32_t ResParticle::ParticlePool::GetSeed() const noexcept
 	{
 		return m_RandomSeed;
 	}
-	void ResParticle::ParticlePool::SetSeed(fuInt seed) noexcept
+	void ResParticle::ParticlePool::SetSeed(uint32_t seed) noexcept
 	{
 		m_RandomSeed = seed;
 		m_Random.seed(seed);
@@ -187,10 +187,10 @@ namespace LuaSTGPlus
 		if (m_iStatus == Status::Alive)
 		{
 			float const fParticlesNeeded = (float)pInfo.nEmission * delta + m_fEmissionResidue;
-			fuInt const nParticlesCreated = (fuInt)fParticlesNeeded;
+			uint32_t const nParticlesCreated = (uint32_t)fParticlesNeeded;
 			m_fEmissionResidue = fParticlesNeeded - (float)nParticlesCreated;
 
-			for (fuInt i = 0; i < nParticlesCreated; ++i)
+			for (uint32_t i = 0; i < nParticlesCreated; ++i)
 			{
 				if (m_iAlive >= m_ParticlePool.size())
 					break;

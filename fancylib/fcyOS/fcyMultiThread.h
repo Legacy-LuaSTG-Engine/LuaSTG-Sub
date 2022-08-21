@@ -17,15 +17,15 @@
 class fcyBaseThread {
 private:
     fHandle m_hThread = 0;  ///< @brief 内部的线程句柄
-    fuInt m_hThreadID = 0; ///< @brief 线程ID
+    uint32_t m_hThreadID = 0; ///< @brief 线程ID
 private:
-    static fuInt __stdcall ThreadFunction(void* p);
+    static uint32_t __stdcall ThreadFunction(void* p);
 
 protected:
     /// @brief  [保护] 线程工作函数
     /// @note   使用多线程时必须覆写改函数
     /// @return 返回线程执行状态，参见MSDN
-    virtual fuInt ThreadJob() = 0;
+    virtual uint32_t ThreadJob() = 0;
 
 public:
     /// @brief   返回内部线程句柄
@@ -35,29 +35,29 @@ public:
     
     /// @brief  恢复线程执行
     /// @return true=成功，false=失败
-    fBool Resume();
+    bool Resume();
     
     /// @brief  暂停线程执行
     /// @return true=成功，false=失败
-    fBool Suspend();
+    bool Suspend();
     
     /// @brief     等待线程执行完毕
     /// @param[in] TimeLimited 等待时间，置为-1表示无限等待
     /// @return    true=成功，false=超时或其他Win32错误
-    fBool Wait(fInt TimeLimited = -1);
+    bool Wait(int32_t TimeLimited = -1);
     
     /// @brief     终止线程
     /// @param[in] ExitCode 线程返回值，默认为-1
     /// @return    true=成功，false=Win32错误
-    fBool Terminate(fInt ExitCode = -1);
+    bool Terminate(int32_t ExitCode = -1);
     
     /// @brief 获得线程返回值
-    fuInt GetExitCode();
+    uint32_t GetExitCode();
 
 protected:
     /// @brief     构造函数
     /// @param[in] PauseThread 设置为true表示创建后暂停线程执行，否则立即执行线程
-    fcyBaseThread(fBool PauseThread = true);
+    fcyBaseThread(bool PauseThread = true);
     
     ~fcyBaseThread();
 };
@@ -75,7 +75,7 @@ public:
     
     /// @brief  试图锁定临界区
     /// @return true=成功，false=失败
-    fBool TryLock();
+    bool TryLock();
     
     /// @brief 解锁临界区
     /// @note  Lock以及TryLock成功后必须使用该函数标注解锁
@@ -102,24 +102,24 @@ public:
     
     /// @brief  标记事件
     /// @return true=成功，false=Win32错误
-    fBool Set();
+    bool Set();
     
     /// @brief  取消事件标记
     /// @return true=成功，false=Win32错误
-    fBool Reset();
+    bool Reset();
     
     /// @brief  事件脉冲
     /// @return true=成功，flase=Win32错误
-    fBool Pulse();
+    bool Pulse();
     
     /// @brief     等待事件
     /// @param[in] TimeLimited 等待事件，-1表示无限等待
     /// @return    true=成功，flase=超时或Win32错误
-    fBool Wait(fInt TimeLimited = -1);
+    bool Wait(int32_t TimeLimited = -1);
 
 public:
     /// @brief 构造函数
-    fcyEvent(fBool AutoReset = false, fBool InitalState = false);
+    fcyEvent(bool AutoReset = false, bool InitalState = false);
     
     ~fcyEvent();
 };

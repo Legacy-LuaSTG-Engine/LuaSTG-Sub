@@ -309,8 +309,8 @@ namespace LuaSTGPlus
 
 			// 读取字符表
 			fcyXmlElementList tNodeList = pCharList->GetNodeByName(L"Item");
-			fuInt tSubNodeCount = tNodeList.GetCount();
-			for (fuInt i = 0; i < tSubNodeCount; ++i)
+			uint32_t tSubNodeCount = tNodeList.GetCount();
+			for (uint32_t i = 0; i < tSubNodeCount; ++i)
 			{
 				fcyXmlElement* pSub = tNodeList[i];
 

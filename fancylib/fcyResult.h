@@ -16,18 +16,18 @@
 
 /// @brief 生成一个fResult错误
 /// @param[in] code 错误实体部分
-#define FCYMAKEERR(code)           ((fResult) (0x80000000 | ((fuInt)(code))))
+#define FCYMAKEERR(code)           ((fResult) (0x80000000 | ((uint32_t)(code))))
 
 /// @brief          生成一个fResult返回值
 /// @param[in] sev  严重程度，0=成功，1=失败
 /// @param[in] code 错误实体部分
-#define FCYMAKERET(sev,code)       ((fResult) (((fuInt)(sev)<<31) | ((fuInt)(code))))
+#define FCYMAKERET(sev,code)       ((fResult) (((uint32_t)(sev)<<31) | ((uint32_t)(code))))
 
 /// @brief          生成一个fResult返回值
 /// @param[in] sev  严重程度，0=成功，1=失败
 /// @param[in] rsv  保留值，默认取0
 /// @param[in] desc 错误描述
-#define FCYMAKERETEX(sev,rsv,desc) ((fResult) (((fuInt)(sev)<<31) | ((fuInt)(rsv)<<16) | ((fuInt)(desc))))
+#define FCYMAKERETEX(sev,rsv,desc) ((fResult) (((uint32_t)(sev)<<31) | ((uint32_t)(rsv)<<16) | ((uint32_t)(desc))))
 
 /// @brief     返回错误描述
 /// @param[in] fr 要处理的返回值

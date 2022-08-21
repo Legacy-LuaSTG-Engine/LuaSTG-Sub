@@ -37,7 +37,7 @@ void fcyStopWatch::Reset()
 	m_cFixAll = 0;
 }
 
-fDouble fcyStopWatch::GetElapsed()
+double fcyStopWatch::GetElapsed()
 {
 	LARGE_INTEGER t = {};
 	QueryPerformanceCounter(&t);

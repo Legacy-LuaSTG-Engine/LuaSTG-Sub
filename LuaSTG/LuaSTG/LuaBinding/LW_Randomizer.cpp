@@ -11,7 +11,7 @@ namespace LuaSTGPlus::LuaWrapper
 			static int Seed(lua_State* L)noexcept
 			{
 				GETUDATA(p, 1);
-				p->SetSeed((fuInt)luaL_checkinteger(L, 2));
+				p->SetSeed((uint32_t)luaL_checkinteger(L, 2));
 				return 0;
 			}
 			static int GetSeed(lua_State* L)noexcept
@@ -25,7 +25,7 @@ namespace LuaSTGPlus::LuaWrapper
 				GETUDATA(p, 1);
 				lua_Integer a = luaL_checkinteger(L, 2);
 				lua_Integer b = luaL_checkinteger(L, 3);
-				lua_Integer ret = (lua_Integer)p->GetRandUInt((std::max)(static_cast<fuInt>(b - a), 0U));
+				lua_Integer ret = (lua_Integer)p->GetRandUInt((std::max)(static_cast<uint32_t>(b - a), 0U));
 				lua_pushinteger(L, a + ret);
 				return 1;
 			}

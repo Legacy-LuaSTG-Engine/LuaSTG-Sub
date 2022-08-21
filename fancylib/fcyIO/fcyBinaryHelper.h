@@ -21,52 +21,52 @@ public:
 	fcyStream* GetBaseStream();
 
 	/// @brief 读取一个字符
-	fChar ReadChar();
+	char ReadChar();
 	
 	/// @brief      读取多个字符
 	/// @param[out] OutBuffer 输出缓冲区
 	/// @param[in]  Length    要读取的字符个数
-	void ReadChars(fStr OutBuffer, fLen Length);
+	void ReadChars(char* OutBuffer, uint64_t Length);
 	
 	/// @brief 读取一个宽字符
-	fCharW ReadCharW();
+	wchar_t ReadCharW();
 	
 	/// @brief      读取多个宽字符
 	/// @param[out] OutBuffer 输出缓冲区
 	/// @param[in]  Length    要读取的字符个数
-	void ReadCharsW(fStrW OutBuffer, fLen Length);
+	void ReadCharsW(fStrW OutBuffer, uint64_t Length);
 	
 	/// @brief 读取一个字节
-	fByte ReadByte();
+	uint8_t ReadByte();
 
 	/// @brief 读取多个字节数据
 	/// @param[out] OutBuffer 输出缓冲区
 	/// @param[in]  Length    要读取的字节数目
-	void ReadBytes(fData OutBuffer, fLen Length);
+	void ReadBytes(fData OutBuffer, uint64_t Length);
 	
 	/// @brief 读取一个短整数
-	fShort ReadInt16();
+	int16_t ReadInt16();
 	
 	/// @brief 读取一个无符号短整数
-	fuShort ReadUInt16();
+	uint16_t ReadUInt16();
 
 	/// @brief 读取一个整数
-	fInt ReadInt32();
+	int32_t ReadInt32();
 
 	/// @brief 读取一个无符号整数
-	fuInt ReadUInt32();
+	uint32_t ReadUInt32();
 
 	/// @brief 读取一个长整数
-	fLong ReadInt64();
+	int64_t ReadInt64();
 
 	/// @brief 读取一个无符号长整数
-	fuLong ReadUInt64();
+	uint64_t ReadUInt64();
 
 	/// @brief 读取一个浮点数
-	fFloat ReadFloat();
+	float ReadFloat();
 
 	/// @brief 读取一个双精度浮点数
-	fDouble ReadDouble();
+	double ReadDouble();
 public:
 	/// @brief     构造函数
 	/// @param[in] pStream 原始流
@@ -87,46 +87,46 @@ public:
 	fcyStream* GetBaseStream();
 	
 	/// @brief 写出一个字符
-	void Write(fChar Value);
+	void Write(char Value);
 	
 	/// @brief 写出一个字符串
-	void Write(fcStr Buffer, fLen Length);
+	void Write(fcStr Buffer, uint64_t Length);
 	
 	/// @brief 写出一个宽字符
-	void Write(fCharW Value);
+	void Write(wchar_t Value);
 	
 	/// @brief 写出一个宽字符串
-	void Write(fcStrW Buffer, fLen Length);
+	void Write(fcStrW Buffer, uint64_t Length);
 	
 	/// @brief 写出一个字节
-	void Write(fByte Value);
+	void Write(uint8_t Value);
 	
 	/// @brief 写出一个内存缓冲
-	void Write(fcData Buffer, fLen Length);
+	void Write(fcData Buffer, uint64_t Length);
 	
 	/// @brief 写出一个短整数
-	void Write(fShort Value);
+	void Write(int16_t Value);
 	
 	/// @brief 写出一个无符号短整数
-	void Write(fuShort Value);
+	void Write(uint16_t Value);
 	
 	/// @brief 写出一个整数
-	void Write(fInt Value);
+	void Write(int32_t Value);
 	
 	/// @brief 写出一个无符号整数
-	void Write(fuInt Value);
+	void Write(uint32_t Value);
 	
 	/// @brief 写出一个长整数
-	void Write(fLong Value);
+	void Write(int64_t Value);
 	
 	/// @brief 写出一个无符号长整数
-	void Write(fuLong Value);
+	void Write(uint64_t Value);
 	
 	/// @brief 写出一个浮点数
-	void Write(fFloat Value);
+	void Write(float Value);
 	
 	/// @brief 写出一个双精度浮点数
-	void Write(fDouble Value);
+	void Write(double Value);
 public:
 	/// @brief     构造函数
 	/// @param[in] pStream 原始流

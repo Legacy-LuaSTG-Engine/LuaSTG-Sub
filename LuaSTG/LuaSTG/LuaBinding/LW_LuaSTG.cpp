@@ -35,17 +35,17 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 			if (lua_gettop(L) >= 4)
 			{
 				LAPP.SetResolution(
-					(fuInt)luaL_checkinteger(L, 1),
-					(fuInt)luaL_checkinteger(L, 2),
-					(fuInt)luaL_checknumber(L, 3),
-					(fuInt)luaL_checknumber(L, 4)
+					(uint32_t)luaL_checkinteger(L, 1),
+					(uint32_t)luaL_checkinteger(L, 2),
+					(uint32_t)luaL_checknumber(L, 3),
+					(uint32_t)luaL_checknumber(L, 4)
 				);
 			}
 			else
 			{
 				LAPP.SetResolution(
-					(fuInt)luaL_checkinteger(L, 1),
-					(fuInt)luaL_checkinteger(L, 2)
+					(uint32_t)luaL_checkinteger(L, 1),
+					(uint32_t)luaL_checkinteger(L, 2)
 				);
 			}
 			return 0;
@@ -60,7 +60,7 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 			int v = luaL_checkinteger(L, 1);
 			if (v <= 0)
 				v = 60;
-			LAPP.SetFPS(static_cast<fuInt>(v));
+			LAPP.SetFPS((uint32_t)v);
 			return 0;
 		}
 		static int GetFPS(lua_State* L)noexcept

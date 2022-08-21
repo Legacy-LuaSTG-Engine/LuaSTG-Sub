@@ -10,17 +10,17 @@ namespace LuaSTGPlus
 	{
 	private:
 		std::vector<Core::ScopeObject<Core::Graphics::ISprite>> m_sprites;
-		fuInt m_Interval = 1;
+		uint32_t m_Interval = 1;
 		BlendMode m_BlendMode = BlendMode::MulAlpha;
 		double m_HalfSizeX = 0.;
 		double m_HalfSizeY = 0.;
 		bool m_bRectangle = false;
 	public:
 		size_t GetCount() const noexcept { return m_sprites.size(); }
-		Core::Graphics::ISprite* GetSprite(fuInt index);
-		fuInt GetSpriteIndexByTimer(int ani_timer);
+		Core::Graphics::ISprite* GetSprite(uint32_t index);
+		uint32_t GetSpriteIndexByTimer(int ani_timer);
 		Core::Graphics::ISprite* GetSpriteByTimer(int ani_timer);
-		fuInt GetInterval() const noexcept { return m_Interval; }
+		uint32_t GetInterval() const noexcept { return m_Interval; }
 		BlendMode GetBlendMode() const noexcept { return m_BlendMode; }
 		void SetBlendMode(BlendMode m) noexcept { m_BlendMode = m; }
 		double GetHalfSizeX() const noexcept { return m_HalfSizeX; }

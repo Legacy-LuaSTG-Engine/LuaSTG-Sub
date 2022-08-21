@@ -219,11 +219,11 @@ namespace LuaSTGPlus
 									draw_preview_scaling(preview_scale);
 									ImGui::Text("Sprite Count: %u", v.second->GetCount());
 									ImGui::Text("Animation Interval: %u", v.second->GetInterval());
-									fuInt ani_idx = v.second->GetSpriteIndexByTimer(timer);
+									uint32_t ani_idx = v.second->GetSpriteIndexByTimer(timer);
 									draw_sprite(v.second->GetSprite(ani_idx), false, false, preview_scale);
 									static bool same_line = false;
 									ImGui::Checkbox("Same Line Preview", &same_line);
-									for (fuInt img_idx = 0; img_idx < v.second->GetCount(); img_idx += 1)
+									for (uint32_t img_idx = 0; img_idx < v.second->GetCount(); img_idx += 1)
 									{
 										if (same_line)
 										{

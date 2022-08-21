@@ -20,7 +20,7 @@ namespace LuaSTGPlus::LuaWrapper::IO
 			static int WriteChars(lua_State* L)noexcept {
 				GETUDATA(-2);
 				std::string buffer = luaL_checkstring(L, -1);
-				fLen len = (fLen)buffer.size();
+				uint64_t len = (uint64_t)buffer.size();
 				bool ok = false;
 				try {
 					p->handle->Write(buffer.data(), len);
@@ -33,7 +33,7 @@ namespace LuaSTGPlus::LuaWrapper::IO
 			static int WriteByte(lua_State* L)noexcept {
 				GETUDATA(-2);
 				lua_Integer i = luaL_checkinteger(L, -1);
-				fByte b = (fByte)i;
+				uint8_t b = (uint8_t)i;
 				bool ok = false;
 				try {
 					p->handle->Write(b);
@@ -46,7 +46,7 @@ namespace LuaSTGPlus::LuaWrapper::IO
 			static int WriteInt16(lua_State* L)noexcept {
 				GETUDATA(-2);
 				lua_Integer i = luaL_checkinteger(L, -1);
-				fShort b = (fShort)i;
+				int16_t b = (int16_t)i;
 				bool ok = false;
 				try {
 					p->handle->Write(b);
@@ -59,7 +59,7 @@ namespace LuaSTGPlus::LuaWrapper::IO
 			static int WriteUInt16(lua_State* L)noexcept {
 				GETUDATA(-2);
 				lua_Integer i = luaL_checkinteger(L, -1);
-				fuShort b = (fuShort)i;
+				uint16_t b = (uint16_t)i;
 				bool ok = false;
 				try {
 					p->handle->Write(b);
@@ -72,7 +72,7 @@ namespace LuaSTGPlus::LuaWrapper::IO
 			static int WriteInt32(lua_State* L)noexcept {
 				GETUDATA(-2);
 				lua_Integer i = luaL_checkinteger(L, -1);
-				fInt b = (fInt)i;
+				int32_t b = (int32_t)i;
 				bool ok = false;
 				try {
 					p->handle->Write(b);
@@ -85,7 +85,7 @@ namespace LuaSTGPlus::LuaWrapper::IO
 			static int WriteFloat(lua_State* L)noexcept {
 				GETUDATA(-2);
 				lua_Number i = luaL_checknumber(L, -1);
-				fFloat b = (fFloat)i;
+				float b = (float)i;
 				bool ok = false;
 				try {
 					p->handle->Write(b);
@@ -98,7 +98,7 @@ namespace LuaSTGPlus::LuaWrapper::IO
 			static int WriteDouble(lua_State* L)noexcept {
 				GETUDATA(-2);
 				lua_Number i = luaL_checknumber(L, -1);
-				fDouble b = (fDouble)i;
+				double b = (double)i;
 				bool ok = false;
 				try {
 					p->handle->Write(b);

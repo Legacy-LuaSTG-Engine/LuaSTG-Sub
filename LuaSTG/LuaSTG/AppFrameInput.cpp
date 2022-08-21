@@ -100,7 +100,7 @@ namespace LuaSTGPlus
             ;
     }
 
-    fBool AppFrame::GetKeyState(int VKCode)noexcept
+    bool AppFrame::GetKeyState(int VKCode)noexcept
     {
         return g_KeyboardState.IsKeyDown((platform::Keyboard::Key)VKCode);
     }
@@ -110,7 +110,7 @@ namespace LuaSTGPlus
         return (int)g_KeyboardState.LastKeyDown;
     }
     
-    fBool AppFrame::GetMouseState_legacy(int button)noexcept
+    bool AppFrame::GetMouseState_legacy(int button)noexcept
     {
         switch (button)
         {
@@ -128,7 +128,7 @@ namespace LuaSTGPlus
             return false;
         }
     }
-    fBool AppFrame::GetMouseState(int button)noexcept
+    bool AppFrame::GetMouseState(int button)noexcept
     {
         switch (button)
         {
@@ -150,14 +150,14 @@ namespace LuaSTGPlus
     {
         if (no_flip)
         {
-            return fcyVec2((fFloat)MouseState.x, (fFloat)MouseState.y);
+            return fcyVec2((float)MouseState.x, (float)MouseState.y);
         }
         else
         {
-            return fcyVec2((fFloat)MouseState.x, m_OptionResolution.y - (fFloat)MouseState.y);
+            return fcyVec2((float)MouseState.x, m_OptionResolution.y - (float)MouseState.y);
         }
     }
-    fInt AppFrame::GetMouseWheelDelta()noexcept
+    int32_t AppFrame::GetMouseWheelDelta()noexcept
     {
         return MouseState.scrollWheelValue;
     }

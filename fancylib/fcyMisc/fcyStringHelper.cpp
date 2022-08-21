@@ -7,20 +7,20 @@ using namespace std;
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-fuInt fcyStringHelper::StringSplit(const string& Source, const string& SplitStr, fBool AutoTrim, vector<string>& Out)
+uint32_t fcyStringHelper::StringSplit(const string& Source, const string& SplitStr, bool AutoTrim, vector<string>& Out)
 {
 	vector<string>& ret = Out;
 	ret.clear();
 
-	fInt last = 0;
-	fInt pos = (fInt)Source.find(SplitStr);
-	while(pos != (fInt)string::npos)
+	int32_t last = 0;
+	int32_t pos = (int32_t)Source.find(SplitStr);
+	while(pos != (int32_t)string::npos)
 	{
 		string tstr = Source.substr(last, pos-last);
 		if(!(AutoTrim&&tstr.empty()))ret.push_back(tstr);
 
-		last = pos + (fInt)SplitStr.length ();
-		pos = (fInt)Source.find(SplitStr, last);
+		last = pos + (int32_t)SplitStr.length ();
+		pos = (int32_t)Source.find(SplitStr, last);
 	}
 	string tstr = Source.substr(last, pos-last);
 	if(!(AutoTrim&&tstr.empty()))ret.push_back(tstr);
@@ -28,20 +28,20 @@ fuInt fcyStringHelper::StringSplit(const string& Source, const string& SplitStr,
 	return ret.size();
 }
 
-fuInt fcyStringHelper::StringSplit(const wstring& Source, const wstring& SplitStr, fBool AutoTrim, vector<wstring>& Out)
+uint32_t fcyStringHelper::StringSplit(const wstring& Source, const wstring& SplitStr, bool AutoTrim, vector<wstring>& Out)
 {
 	vector<wstring>& ret = Out;
 	ret.clear();
 
-	fInt last = 0;
-	fInt pos = (fInt)Source.find(SplitStr);
-	while(pos != (fInt)wstring::npos)
+	int32_t last = 0;
+	int32_t pos = (int32_t)Source.find(SplitStr);
+	while(pos != (int32_t)wstring::npos)
 	{
 		wstring tstr = Source.substr(last, pos-last);
 		if(!(AutoTrim&&tstr.empty()))ret.push_back(tstr);
 
-		last = pos + (fInt)SplitStr.length ();
-		pos = (fInt)Source.find(SplitStr, last);
+		last = pos + (int32_t)SplitStr.length ();
+		pos = (int32_t)Source.find(SplitStr, last);
 	}
 	wstring tstr = Source.substr(last, pos-last);
 	if(!(AutoTrim&&tstr.empty()))ret.push_back(tstr);
@@ -65,60 +65,60 @@ wstring fcyStringHelper::ToLower(const wstring& Source)
 	return tRet;
 }
 
-string fcyStringHelper::ToStr(fInt Number, fInt Scale)
+string fcyStringHelper::ToStr(int32_t Number, int32_t Scale)
 {
 	char tNumStr[16];
 	_itoa_s(Number, tNumStr, 16, Scale);
 	return string(tNumStr);
 }
 
-string fcyStringHelper::ToStr(fDouble Number)
+string fcyStringHelper::ToStr(double Number)
 {
 	char tNumStr[32];
 	sprintf_s(tNumStr, "%lf", Number);
 	return string(tNumStr);
 }
 
-wstring fcyStringHelper::ToWideStr(fInt Number, fInt Scale)
+wstring fcyStringHelper::ToWideStr(int32_t Number, int32_t Scale)
 {
 	wchar_t tNumStr[16];
 	_itow_s(Number, tNumStr, 16, Scale);
 	return wstring(tNumStr);
 }
 
-wstring fcyStringHelper::ToWideStr(fDouble Number)
+wstring fcyStringHelper::ToWideStr(double Number)
 {
 	wchar_t tNumStr[32];
 	swprintf_s(tNumStr, 32, L"%lf", Number);
 	return wstring(tNumStr);
 }
 
-std::string fcyStringHelper::TimeToStr(fDouble Seconds)
+std::string fcyStringHelper::TimeToStr(double Seconds)
 {
-	fuInt tIntPart = (fInt)Seconds;
-	fuInt ms = (fuInt)((Seconds - tIntPart) * 1000); // 提出毫秒部分
-	fuInt s = tIntPart % 60;    // 提出秒
+	uint32_t tIntPart = (int32_t)Seconds;
+	uint32_t ms = (uint32_t)((Seconds - tIntPart) * 1000); // 提出毫秒部分
+	uint32_t s = tIntPart % 60;    // 提出秒
 	tIntPart /= 60;            // 去掉秒
-	fuInt m = tIntPart % 60;    // 提出分
+	uint32_t m = tIntPart % 60;    // 提出分
 	tIntPart /= 60;            // 去掉分
 
 	char tTime[16];
-	sprintf_s(tTime, 16, "%02d:%02d:%02d.%03d", (fInt)tIntPart, m, s, ms);
+	sprintf_s(tTime, 16, "%02d:%02d:%02d.%03d", (int32_t)tIntPart, m, s, ms);
 
 	return string(tTime);
 }
 
-std::wstring fcyStringHelper::TimeToWideStr(fDouble Seconds)
+std::wstring fcyStringHelper::TimeToWideStr(double Seconds)
 {
-	fuInt tIntPart = (fInt)Seconds;
-	fuInt ms = (fuInt)((Seconds - tIntPart) * 1000); // 提出毫秒部分
-	fuInt s = tIntPart % 60;    // 提出秒
+	uint32_t tIntPart = (int32_t)Seconds;
+	uint32_t ms = (uint32_t)((Seconds - tIntPart) * 1000); // 提出毫秒部分
+	uint32_t s = tIntPart % 60;    // 提出秒
 	tIntPart /= 60;            // 去掉秒
-	fuInt m = tIntPart % 60;    // 提出分
+	uint32_t m = tIntPart % 60;    // 提出分
 	tIntPart /= 60;            // 去掉分
 
 	wchar_t tTime[16];
-	swprintf_s(tTime, 16, L"%02d:%02d:%02d.%03d", (fInt)tIntPart, m, s, ms);
+	swprintf_s(tTime, 16, L"%02d:%02d:%02d.%03d", (int32_t)tIntPart, m, s, ms);
 
 	return wstring(tTime);
 }
@@ -165,9 +165,9 @@ std::string fcyStringHelper::Trim(const std::string &Org)
 	return TrimLeft(TrimRight(Org));
 }
 
-wstring fcyStringHelper::MultiByteToWideChar(const std::string& Org, fuInt CodePage)
+wstring fcyStringHelper::MultiByteToWideChar(const std::string& Org, uint32_t CodePage)
 {
-	fuInt dwNum = ::MultiByteToWideChar(CodePage, 0, Org.c_str(), -1, NULL, 0); // 获得长度
+	uint32_t dwNum = ::MultiByteToWideChar(CodePage, 0, Org.c_str(), -1, NULL, 0); // 获得长度
 	wchar_t *pwText = new wchar_t[dwNum];
 	::MultiByteToWideChar (CodePage, 0, Org.c_str(), -1, pwText, dwNum);		   // 获得数据
 	wstring retStr(pwText);
@@ -175,7 +175,7 @@ wstring fcyStringHelper::MultiByteToWideChar(const std::string& Org, fuInt CodeP
 	return retStr;
 }
 
-string fcyStringHelper::WideCharToMultiByte(const std::wstring& Org, fuInt CodePage)
+string fcyStringHelper::WideCharToMultiByte(const std::wstring& Org, uint32_t CodePage)
 {
 	DWORD tCount = ::WideCharToMultiByte(CodePage, NULL,Org.c_str(), -1, NULL, 0, NULL, FALSE);
 	char *tText=NULL;

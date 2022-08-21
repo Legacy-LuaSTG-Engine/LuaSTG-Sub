@@ -43,7 +43,7 @@ namespace LuaSTGPlus::LuaWrapper::IO
 					lua_Integer len = luaL_checkinteger(L, 1);
 					bool write = 0 != luaL_checkinteger(L, 2);
 					bool resize = 0 != luaL_checkinteger(L, 3);
-					fLen _len = (fLen)len;
+					uint64_t _len = (uint64_t)len;
 					fcyMemStream* _stream = new fcyMemStream(nullptr, _len, write, resize);
 					stream = _stream;
 				}

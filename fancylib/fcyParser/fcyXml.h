@@ -52,7 +52,7 @@ class fcyXmlIndexOutOfRange :
 	public fcyXmlException
 {
 public:
-	fcyXmlIndexOutOfRange(fcStr Src, fcyXmlDocument* pOwner, fuInt Index);
+	fcyXmlIndexOutOfRange(fcStr Src, fcyXmlDocument* pOwner, uint32_t Index);
 };
 
 /// @brief XML异常 - 节点之间有不同的所属文档
@@ -88,8 +88,8 @@ private:
 	std::map<std::wstring, std::wstring>::iterator i;
 public:
 	fcyXmlAttributeIterator& operator=(const fcyXmlAttributeIterator& Right) { i = Right.i; return *this; }
-	fBool operator==(const fcyXmlAttributeIterator& Right)const { return (i == Right.i); }
-	fBool operator!=(const fcyXmlAttributeIterator& Right)const { return (i != Right.i); }
+	bool operator==(const fcyXmlAttributeIterator& Right)const { return (i == Right.i); }
+	bool operator!=(const fcyXmlAttributeIterator& Right)const { return (i != Right.i); }
 	fcyXmlAttributeIterator& operator--() { --i; return *this; }
 	fcyXmlAttributeIterator& operator++() { ++i; return *this; }
 	const std::wstring& operator*()const { return i->second; }
@@ -115,8 +115,8 @@ private:
 	std::map<std::wstring, std::wstring>::const_iterator i;
 public:
 	fcyXmlAttributeConstIterator& operator=(const fcyXmlAttributeConstIterator& Right) { i = Right.i; }
-	fBool operator==(const fcyXmlAttributeConstIterator& Right)const { return (i == Right.i); }
-	fBool operator!=(const fcyXmlAttributeConstIterator& Right)const { return (i != Right.i); }
+	bool operator==(const fcyXmlAttributeConstIterator& Right)const { return (i == Right.i); }
+	bool operator!=(const fcyXmlAttributeConstIterator& Right)const { return (i != Right.i); }
 	fcyXmlAttributeConstIterator& operator--() { --i; return *this; }
 	fcyXmlAttributeConstIterator& operator++() { ++i; return *this; }
 	const std::wstring& operator*()const { return i->second; }
@@ -140,12 +140,12 @@ class fcyXmlElementList
 private:
 	std::vector<fcyXmlElement*> m_List;
 public:
-	fcyXmlElement* operator[](fuInt Index);
+	fcyXmlElement* operator[](uint32_t Index);
 	fcyXmlElementList& operator=(const fcyXmlElementList& Right);
 public:
-	fuInt GetCount() { return m_List.size(); }
+	uint32_t GetCount() { return m_List.size(); }
 	void Append(fcyXmlElement* pObj);
-	void Remove(fuInt Index);
+	void Remove(uint32_t Index);
 	void Clear();
 public:
 	fcyXmlElementList();
@@ -185,20 +185,20 @@ public:
 	void SetContent(const std::wstring& Content) { m_Content = Content; }
 	void SetContent(std::wstring&& Content) { m_Content = Content; }
 
-	fuInt GetNodeCount()const { return m_Subnodes.size(); }
-	fcyXmlElement* GetNode(fuInt Index)const;
+	uint32_t GetNodeCount()const { return m_Subnodes.size(); }
+	fcyXmlElement* GetNode(uint32_t Index)const;
 	fcyXmlElement* GetFirstNode(const std::wstring& Name)const;  // 若未找到返回NULL
 	fcyXmlElementList GetNodeByName(const std::wstring& Name)const;
 	void AppendNode(fcyXmlElement* pNode);
 	void RemoveNode(fcyXmlElement* pNode);
-	void RemoveNodeAt(fuInt Index);
+	void RemoveNodeAt(uint32_t Index);
 	void ClearNodes();
 
-	fuInt GetAttributeCount()const { return m_Attribute.size(); }
+	uint32_t GetAttributeCount()const { return m_Attribute.size(); }
 	const std::wstring& GetAttribute(const std::wstring& Name)const;
 	void SetAttribute(const std::wstring& Name, const std::wstring& Value);
 	void SetAttribute(std::wstring&& Name, std::wstring&& Value);
-	fBool HasAttribute(const std::wstring& Name)const;
+	bool HasAttribute(const std::wstring& Name)const;
 	fcyXmlAttributeIterator GetAttributeIter(const std::wstring& Name);
 	const fcyXmlAttributeConstIterator GetAttributeIter(const std::wstring& Name)const;
 	fcyXmlAttributeIterator GetFirstAttributeIter();
@@ -208,7 +208,7 @@ public:
 	void RemoveAttribute(const std::wstring& Name);
 	fcyXmlAttributeIterator RemoveAttribute(const fcyXmlAttributeIterator& Iter);
 
-	void Save(std::wstring& pOut, fuInt Indentation)const;
+	void Save(std::wstring& pOut, uint32_t Indentation)const;
 
 	fcyXmlElement* Clone(fcyXmlDocument* pDoc)const;
 protected:
@@ -225,14 +225,14 @@ private:
 
 	fcyXmlElement* m_pRootElement;
 private: // 预处理
-	fBool checkUTF8(fcyStream* pStream);
-	fBool checkUTF16LE(fcyStream* pStream);
+	bool checkUTF8(fcyStream* pStream);
+	bool checkUTF16LE(fcyStream* pStream);
 	std::wstring preprocessXml(fcyStream* pStream);                      ///< @brief 预处理并输出宽字符数据
 private: // 解析
-	fBool ignoreComment(fcyLexicalReader& tReader);                      ///< @brief 忽略注释
-	fBool ignorePreprocess(fcyLexicalReader& tReader);                   ///< @brief 忽略预处理指令
-	fBool tryReadCDATA(fcyLexicalReader& tReader, std::wstring& tOut);   ///< @brief 试图读取CDATA
-	fCharW praseEscape(fcyLexicalReader& tReader);                       ///< @brief 解析转义符
+	bool ignoreComment(fcyLexicalReader& tReader);                      ///< @brief 忽略注释
+	bool ignorePreprocess(fcyLexicalReader& tReader);                   ///< @brief 忽略预处理指令
+	bool tryReadCDATA(fcyLexicalReader& tReader, std::wstring& tOut);   ///< @brief 试图读取CDATA
+	wchar_t praseEscape(fcyLexicalReader& tReader);                       ///< @brief 解析转义符
 	std::wstring readName(fcyLexicalReader& tReader);                    ///< @brief 读取键名
 	std::wstring readString(fcyLexicalReader& tReader);                  ///< @brief 读取字符串
 	void readAttribute(fcyLexicalReader& tReader, fcyXmlElement* pNode); ///< @brief 读取属性

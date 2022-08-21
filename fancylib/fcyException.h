@@ -18,11 +18,11 @@
 class fcyException
 {
 protected:
-	fuInt m_Time;            ///< @brief 记录异常时间戳
+	uint32_t m_Time;            ///< @brief 记录异常时间戳
 	std::string m_ExcpSrc;   ///< @brief 记录异常来源
 	std::string m_ExcpDesc;  ///< @brief 记录异常信息
 public:
-	fuInt GetTime()const;    ///< @brief 获得异常时间
+	uint32_t GetTime()const;    ///< @brief 获得异常时间
 	fcStr GetSrc()const;     ///< @brief 获得异常来源
 	fcStr GetDesc()const;    ///< @brief 获得异常信息
 public:
@@ -45,9 +45,9 @@ class fcyWin32Exception :
 	public fcyException
 {
 private:
-	fuInt m_LastError;          ///< @brief 最后一次错误代码
+	uint32_t m_LastError;          ///< @brief 最后一次错误代码
 public:
-	fuInt GetErrorCode()const;  ///< @brief 获得最后一次错误
+	uint32_t GetErrorCode()const;  ///< @brief 获得最后一次错误
 public:
 	/// @brief     构造函数
 	/// @note      异常会自动在Info字段追加LastError值
@@ -65,16 +65,16 @@ class fcyWin32COMException :
 	public fcyException
 {
 private:
-	fInt m_HR;              ///< @brief 保存HResult字段
+	int32_t m_HR;              ///< @brief 保存HResult字段
 public:
-	fInt GetResult()const;  ///< @brief 返回HResult字段
+	int32_t GetResult()const;  ///< @brief 返回HResult字段
 public:
 	/// @brief     构造函数
 	/// @note      异常会自动在Info字段追加HRESULT值
 	/// @param[in] Src  异常源
 	/// @param[in] Info 异常描述
 	/// @param[in] HRet HResult
-	fcyWin32COMException(fcStr Src, fcStr Info, fInt HRet);
+	fcyWin32COMException(fcStr Src, fcStr Info, int32_t HRet);
 	~fcyWin32COMException();
 };
 

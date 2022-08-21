@@ -7,7 +7,7 @@ namespace LuaSTGPlus::LuaWrapper::IO
 		#define GETUDATA(index) BinaryReaderWrapper::Wrapper* p = static_cast<BinaryReaderWrapper::Wrapper*>(luaL_checkudata(L, (index), LUASTG_LUA_TYPENAME_IO_BINARY_READER));
 			static int ReadChar(lua_State* L)noexcept {
 				GETUDATA(-1);
-				fChar ch[2] = { 0,0 };
+				char ch[2] = { 0,0 };
 				bool ok = false;
 				try {
 					ch[0] = p->handle->ReadChar();
@@ -27,7 +27,7 @@ namespace LuaSTGPlus::LuaWrapper::IO
 				buffer.resize(count);
 				bool ok = false;
 				try {
-					p->handle->ReadChars(buffer.data(), (fLen)count);
+					p->handle->ReadChars(buffer.data(), (uint64_t)count);
 					ok = true;
 				}
 				catch (...) {}
@@ -39,7 +39,7 @@ namespace LuaSTGPlus::LuaWrapper::IO
 			}
 			static int ReadByte(lua_State* L)noexcept {
 				GETUDATA(-1);
-				fByte b = 0u;
+				uint8_t b = 0u;
 				bool ok = false;
 				try {
 					b = p->handle->ReadByte();
@@ -56,7 +56,7 @@ namespace LuaSTGPlus::LuaWrapper::IO
 			}
 			static int ReadInt16(lua_State* L)noexcept {
 				GETUDATA(-1);
-				fShort b = 0;
+				int16_t b = 0;
 				bool ok = false;
 				try {
 					b = p->handle->ReadInt16();
@@ -73,7 +73,7 @@ namespace LuaSTGPlus::LuaWrapper::IO
 			}
 			static int ReadUInt16(lua_State* L)noexcept {
 				GETUDATA(-1);
-				fuShort b = 0u;
+				uint16_t b = 0u;
 				bool ok = false;
 				try {
 					b = p->handle->ReadUInt16();
@@ -90,7 +90,7 @@ namespace LuaSTGPlus::LuaWrapper::IO
 			}
 			static int ReadInt32(lua_State* L)noexcept {
 				GETUDATA(-1);
-				fInt b = 0;
+				int32_t b = 0;
 				bool ok = false;
 				try {
 					b = p->handle->ReadInt32();
@@ -107,7 +107,7 @@ namespace LuaSTGPlus::LuaWrapper::IO
 			}
 			static int ReadFloat(lua_State* L)noexcept {
 				GETUDATA(-1);
-				fFloat b = 0;
+				float b = 0;
 				bool ok = false;
 				try {
 					b = p->handle->ReadFloat();
@@ -124,7 +124,7 @@ namespace LuaSTGPlus::LuaWrapper::IO
 			}
 			static int ReadDouble(lua_State* L)noexcept {
 				GETUDATA(-1);
-				fDouble b = 0;
+				double b = 0;
 				bool ok = false;
 				try {
 					b = p->handle->ReadDouble();
