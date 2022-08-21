@@ -1,7 +1,7 @@
 ﻿#include "LuaBinding/LuaWrapper.hpp"
 #include "LuaBinding/lua_utility.hpp"
 
-inline void lua_push_vec2(lua_State* L, fcyVec2 const& v)
+inline void lua_push_vec2(lua_State* L, Core::Vector2F const& v)
 {
 	lua_createtable(L, 0, 2);
 	lua_pushlstring(L, "x", 1);
@@ -11,9 +11,9 @@ inline void lua_push_vec2(lua_State* L, fcyVec2 const& v)
 	lua_pushnumber(L, v.y);
 	lua_rawset(L, -3);
 }
-inline fcyVec2 luaL_check_vec2(lua_State* L, int idx)
+inline Core::Vector2F luaL_check_vec2(lua_State* L, int idx)
 {
-	fcyVec2 ret;
+	Core::Vector2F ret;
 	if (!lua_istable(L, idx))
 	{
 		luaL_typerror(L, idx, "table  (vector2f)");
@@ -199,12 +199,12 @@ namespace LuaSTGPlus::LuaWrapper
 						if (self->ptr->IsActived())  // 兼容性处理
 						{
 							self->ptr->SetActive(false);
-							self->ptr->SetCenter(fcyVec2(x, y));
+							self->ptr->SetCenter(Core::Vector2F(x, y));
 							self->ptr->SetActive(true);
 						}
 						else
 						{
-							self->ptr->SetCenter(fcyVec2(x, y));
+							self->ptr->SetCenter(Core::Vector2F(x, y));
 						}
 						self->ptr->Update(delta);
 					}
@@ -216,12 +216,12 @@ namespace LuaSTGPlus::LuaWrapper
 						if (self->ptr->IsActived())  // 兼容性处理
 						{
 							self->ptr->SetActive(false);
-							self->ptr->SetCenter(fcyVec2(x, y));
+							self->ptr->SetCenter(Core::Vector2F(x, y));
 							self->ptr->SetActive(true);
 						}
 						else
 						{
-							self->ptr->SetCenter(fcyVec2(x, y));
+							self->ptr->SetCenter(Core::Vector2F(x, y));
 						}
 						self->ptr->Update(delta);
 					}
@@ -723,7 +723,7 @@ namespace LuaSTGPlus::LuaWrapper
 				UserData* self = (UserData*)luaL_checkudata(L, 1, ClassID.data());
 				if (self->ptr)
 				{
-					fcyVec2 const vec2 = luaL_check_vec2(L, 2);
+					Core::Vector2F const vec2 = luaL_check_vec2(L, 2);
 					self->ptr->SetCenter(vec2);
 					return 0;
 				}

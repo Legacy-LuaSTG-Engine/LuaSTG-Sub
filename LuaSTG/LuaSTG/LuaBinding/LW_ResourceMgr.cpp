@@ -416,11 +416,11 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 		static int GetTextureSize(lua_State* L) noexcept
 		{
 			const char* name = luaL_checkstring(L, 1);
-			fcyVec2 size;
+			Core::Vector2U size;
 			if (!LRES.GetTextureSize(name, size))
 				return luaL_error(L, "texture '%s' not found.", name);
-			lua_pushnumber(L, size.x);
-			lua_pushnumber(L, size.y);
+			lua_pushinteger(L, (lua_Integer)size.x);
+			lua_pushinteger(L, (lua_Integer)size.y);
 			return 2;
 		}
 		static int RemoveResource(lua_State* L) noexcept

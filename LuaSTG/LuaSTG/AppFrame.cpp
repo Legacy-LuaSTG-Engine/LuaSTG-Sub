@@ -54,7 +54,7 @@ void AppFrame::SetResolution(uint32_t width, uint32_t height, uint32_t A, uint32
 {
 	if (m_iStatus == AppStatus::Initializing)
 	{
-		m_OptionResolution.Set((float)width, (float)height);
+		m_OptionResolution = Core::Vector2F((float)width, (float)height);
 		m_OptionRefreshRateA = A;
 		m_OptionRefreshRateB = B;
 	}
@@ -136,7 +136,7 @@ bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, bool vsync
 		};
 		auto storeNewOption = [&]()
 		{
-			m_OptionResolution.Set((float)width, (float)height);
+			m_OptionResolution = Core::Vector2F((float)width, (float)height);
 			m_OptionWindowed = windowed;
 			m_OptionVsync = vsync;
 		};

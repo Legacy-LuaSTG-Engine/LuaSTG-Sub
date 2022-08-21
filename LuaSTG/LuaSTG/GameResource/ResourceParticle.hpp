@@ -60,8 +60,8 @@ namespace LuaSTGPlus
 		// HGE 粒子实例
 		struct hgeParticle
 		{
-			fcyVec2 vecLocation; // 位置
-			fcyVec2 vecVelocity; // 速度
+			Core::Vector2F vecLocation; // 位置
+			Core::Vector2F vecVelocity; // 速度
 
 			float fGravity;         // 重力
 			float fRadialAccel;     // 径向加速度
@@ -108,8 +108,8 @@ namespace LuaSTGPlus
 			random::xoshiro128p m_Random;
 			uint32_t m_RandomSeed = 0;
 			Status m_iStatus = Status::Alive;  // 状态
-			fcyVec2 m_vCenter;  // 中心
-			fcyVec2 m_vPrevCenter;  // 上一个中心
+			Core::Vector2F m_vCenter;  // 中心
+			Core::Vector2F m_vPrevCenter;  // 上一个中心
 			size_t m_iAlive = 0;  // 存活数
 			float m_fDirection = 0.0f; // 相对发射角度
 			float m_fAge = 0.f;  // 已存活时间
@@ -130,8 +130,8 @@ namespace LuaSTGPlus
 			void SetSeed(uint32_t seed) noexcept;
 			bool IsActived() const noexcept;
 			void SetActive(bool v) noexcept;
-			void SetCenter(fcyVec2 pos) noexcept;
-			fcyVec2 GetCenter() const noexcept;
+			void SetCenter(Core::Vector2F pos) noexcept;
+			Core::Vector2F GetCenter() const noexcept;
 			float GetRotation() const noexcept;
 			void SetRotation(float r) noexcept;
 			void Update(float delta);

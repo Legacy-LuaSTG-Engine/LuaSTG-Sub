@@ -581,13 +581,13 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 		static int SetScale(lua_State* L) {
 			float a = (float)luaL_checknumber(L, 1);
 			float b = (float)luaL_checknumber(L, 2);
-			LAPP.FontRenderer_SetScale(fcyVec2(a, b));
+			LAPP.FontRenderer_SetScale(Core::Vector2F(a, b));
 			return 0;
 		}
 		static int MeasureTextBoundary(lua_State* L) {
 			size_t len = 0;
 			const char* str = luaL_checklstring(L, 1, &len);
-			const fcyRect v = LAPP.FontRenderer_MeasureTextBoundary(str, len);
+			const Core::RectF v = LAPP.FontRenderer_MeasureTextBoundary(str, len);
 			lua_pushnumber(L, v.a.x);
 			lua_pushnumber(L, v.b.x);
 			lua_pushnumber(L, v.b.y);
@@ -597,7 +597,7 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 		static int MeasureTextAdvance(lua_State* L) {
 			size_t len = 0;
 			const char* str = luaL_checklstring(L, 1, &len);
-			const fcyVec2 v = LAPP.FontRenderer_MeasureTextAdvance(str, len);
+			const Core::Vector2F v = LAPP.FontRenderer_MeasureTextAdvance(str, len);
 			lua_pushnumber(L, v.x);
 			lua_pushnumber(L, v.y);
 			return 2;
@@ -605,7 +605,7 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 		static int RenderText(lua_State* L) {
 			size_t len = 0;
 			const char* str = luaL_checklstring(L, 1, &len);
-			fcyVec2 pos = fcyVec2((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3));
+			auto pos = Core::Vector2F((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3));
 			const bool ret = LAPP.FontRenderer_RenderText(
 				str, len,
 				pos, (float)luaL_checknumber(L, 4),
@@ -620,9 +620,9 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 			size_t len = 0;
 			const char* str = luaL_checklstring(L, 1, &len);
 
-			fcyVec3 pos = fcyVec3((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3), (float)luaL_checknumber(L, 4));
-			fcyVec3 rvec = fcyVec3((float)luaL_checknumber(L, 5), (float)luaL_checknumber(L, 6), (float)luaL_checknumber(L, 7));
-			fcyVec3 dvec = fcyVec3((float)luaL_checknumber(L, 8), (float)luaL_checknumber(L, 9), (float)luaL_checknumber(L, 10));
+			auto pos = Core::Vector3F((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3), (float)luaL_checknumber(L, 4));
+			auto const rvec = Core::Vector3F((float)luaL_checknumber(L, 5), (float)luaL_checknumber(L, 6), (float)luaL_checknumber(L, 7));
+			auto const dvec = Core::Vector3F((float)luaL_checknumber(L, 8), (float)luaL_checknumber(L, 9), (float)luaL_checknumber(L, 10));
 
 			BlendMode blend = TranslateBlendMode(L, 11);
 			const bool ret = LAPP.FontRenderer_RenderTextInSpace(

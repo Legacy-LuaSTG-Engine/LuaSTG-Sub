@@ -15,7 +15,7 @@ namespace LuaSTGPlus
 
 	constexpr int const TEXT_FLAG_WORDBREAK = 0x10;
 
-	bool AppFrame::RenderText(ResFont* p, wchar_t* strBuf, fcyRect rect, fcyVec2 scale, ResFont::FontAlignHorizontal halign, ResFont::FontAlignVertical valign, bool bWordBreak)noexcept
+	bool AppFrame::RenderText(ResFont* p, wchar_t* strBuf, Core::RectF rect, Core::Vector2F scale, ResFont::FontAlignHorizontal halign, ResFont::FontAlignVertical valign, bool bWordBreak)noexcept
 	{
 		using namespace Core;
 		using namespace Core::Graphics;
@@ -24,7 +24,7 @@ namespace LuaSTGPlus
 		
 		// 准备渲染字体
 		m_pTextRenderer->setGlyphManager(pGlyphManager);
-		m_pTextRenderer->setScale(Vector2F(scale.x, scale.y));
+		m_pTextRenderer->setScale(scale);
 
 		// 设置混合和颜色
 		updateGraph2DBlendMode(p->GetBlendMode());
@@ -45,7 +45,7 @@ namespace LuaSTGPlus
 				if (pGlyphManager->getGlyph(*pText, &tGlyphInfo, true))
 				{
 					float adv = tGlyphInfo.advance.x * scale.x;
-					if (bWordBreak && fLineWidth + adv > rect.GetWidth())  // 截断模式
+					if (bWordBreak && fLineWidth + adv > std::abs(rect.a.x - rect.b.x))  // 截断模式
 					{
 						if (pText == strBuf || *(pText - 1) == L'\n')
 						{
@@ -70,14 +70,14 @@ namespace LuaSTGPlus
 		
 		// 计算起笔位置
 		float fTotalLineHeight = pGlyphManager->getLineHeight() * iLineCount * scale.y;
-		fcyVec2 vRenderPos;
+		Core::Vector2F vRenderPos;
 		switch (valign)
 		{
 		case ResFont::FontAlignVertical::Bottom:
 			vRenderPos.y = rect.b.y + fTotalLineHeight;
 			break;
 		case ResFont::FontAlignVertical::Middle:
-			vRenderPos.y = rect.a.y - rect.GetHeight() / 2.f + fTotalLineHeight / 2.f;
+			vRenderPos.y = rect.a.y - std::abs(rect.a.y - rect.b.y) / 2.f + fTotalLineHeight / 2.f;
 			break;
 		case ResFont::FontAlignVertical::Top:
 		default:
@@ -104,7 +104,7 @@ namespace LuaSTGPlus
 					float adv = tGlyphInfo.advance.x * scale.x;
 
 					// 检查当前字符渲染后会不会导致行溢出
-					if (bWordBreak && fLineWidth + adv > rect.GetWidth())
+					if (bWordBreak && fLineWidth + adv > std::abs(rect.a.x - rect.b.x))
 					{
 						if (pScanner == pText)  // 防止一个字符都不渲染导致死循环
 							++pScanner;
@@ -129,19 +129,19 @@ namespace LuaSTGPlus
 			{
 			case ResFont::FontAlignHorizontal::Right:
 				m_pTextRenderer->drawText(u8_str, Vector2F(
-					vRenderPos.x + rect.GetWidth() - fLineWidth,
+					vRenderPos.x + std::abs(rect.a.x - rect.b.x) - fLineWidth,
 					vRenderPos.y
 				), &ignore_);
 				break;
 			case ResFont::FontAlignHorizontal::Center:
 				m_pTextRenderer->drawText(u8_str, Vector2F(
-					vRenderPos.x + rect.GetWidth() / 2.f - fLineWidth / 2.f,
+					vRenderPos.x + std::abs(rect.a.x - rect.b.x) / 2.f - fLineWidth / 2.f,
 					vRenderPos.y
 				), &ignore_);
 				break;
 			case ResFont::FontAlignHorizontal::Left:
 			default:
-				m_pTextRenderer->drawText(u8_str, Vector2F(vRenderPos.x, vRenderPos.y), &ignore_);
+				m_pTextRenderer->drawText(u8_str, vRenderPos, &ignore_);
 				break;
 			}
 
@@ -160,7 +160,7 @@ namespace LuaSTGPlus
 		return true;
 	}
 	
-	fcyVec2 AppFrame::CalcuTextSize(ResFont* p, const wchar_t* strBuf, fcyVec2 scale)noexcept
+	Core::Vector2F AppFrame::CalcuTextSize(ResFont* p, const wchar_t* strBuf, Core::Vector2F scale)noexcept
 	{
 		using namespace Core;
 		using namespace Core::Graphics;
@@ -188,7 +188,7 @@ namespace LuaSTGPlus
 		}
 		fMaxLineWidth = std::max(fMaxLineWidth, fLineWidth);
 		
-		return fcyVec2(fMaxLineWidth, iLineCount * pGlyphManager->getLineHeight() * scale.y);
+		return Core::Vector2F(fMaxLineWidth, iLineCount * pGlyphManager->getLineHeight() * scale.y);
 	}
 	
 	bool AppFrame::RenderText(const char* name, const char* str, float x, float y, float scale, ResFont::FontAlignHorizontal halign, ResFont::FontAlignVertical valign)noexcept
@@ -213,7 +213,7 @@ namespace LuaSTGPlus
 		}
 		
 		// 计算渲染位置
-		fcyVec2 tSize = CalcuTextSize(p, s_TempStringBuf.c_str(), fcyVec2(scale, scale));
+		Core::Vector2F tSize = CalcuTextSize(p, s_TempStringBuf.c_str(), Core::Vector2F(scale, scale));
 		switch (halign)
 		{
 		case ResFont::FontAlignHorizontal::Right:
@@ -242,8 +242,8 @@ namespace LuaSTGPlus
 		return RenderText(
 			p,
 			const_cast<wchar_t*>(s_TempStringBuf.data()),
-			fcyRect(x, y, x + tSize.x, y - tSize.y),
-			fcyVec2(scale, scale),
+			Core::RectF(x, y, x + tSize.x, y - tSize.y),
+			Core::Vector2F(scale, scale),
 			halign,
 			valign,
 			false
@@ -291,8 +291,8 @@ namespace LuaSTGPlus
 		return RenderText(
 			p,
 			const_cast<wchar_t*>(s_TempStringBuf.data()),
-			fcyRect(left, top, right, bottom),
-			fcyVec2(scale, scale) * 0.5f,  // 缩放系数=0.5
+			Core::RectF(left, top, right, bottom),
+			Core::Vector2F(scale, scale) * 0.5f,  // TODO: 缩放系数=0.5 ????????????
 			halign,
 			valign,
 			bWordBreak
@@ -313,24 +313,22 @@ namespace LuaSTGPlus
 		return true;
 	}
 	
-	void AppFrame::FontRenderer_SetScale(const fcyVec2& s)
+	void AppFrame::FontRenderer_SetScale(Core::Vector2F const& s)
 	{
-		m_pTextRenderer->setScale(Core::Vector2F(s.x, s.y));
+		m_pTextRenderer->setScale(s);
 	}
 	
-	fcyRect AppFrame::FontRenderer_MeasureTextBoundary(const char* str, size_t len)
+	Core::RectF AppFrame::FontRenderer_MeasureTextBoundary(const char* str, size_t len)
 	{
-		auto rc = m_pTextRenderer->getTextBoundary(Core::StringView(str, len));
-		return fcyRect(rc.a.x, rc.a.y, rc.b.x, rc.b.y);
+		return m_pTextRenderer->getTextBoundary(Core::StringView(str, len));
 	}
 	
-	fcyVec2 AppFrame::FontRenderer_MeasureTextAdvance(const char* str, size_t len)
+	Core::Vector2F AppFrame::FontRenderer_MeasureTextAdvance(const char* str, size_t len)
 	{
-		auto pt = m_pTextRenderer->getTextAdvance(Core::StringView(str, len));
-		return fcyVec2(pt.x, pt.y);
+		return m_pTextRenderer->getTextAdvance(Core::StringView(str, len));
 	}
 	
-	bool AppFrame::FontRenderer_RenderText(const char* str, size_t len, fcyVec2& pos, const float z, const BlendMode blend, Core::Color4B const& color)
+	bool AppFrame::FontRenderer_RenderText(const char* str, size_t len, Core::Vector2F& pos, const float z, const BlendMode blend, Core::Color4B const& color)
 	{
 		float const last_z = m_pTextRenderer->getZ();
 
@@ -339,14 +337,14 @@ namespace LuaSTGPlus
 		m_pTextRenderer->setColor(color);
 		
 		Core::Vector2F endpos;
-		const bool result = m_pTextRenderer->drawText(Core::StringView(str, len), Core::Vector2F(pos.x, pos.y), &endpos);
-		pos = fcyVec2(endpos.x, endpos.y);
+		const bool result = m_pTextRenderer->drawText(Core::StringView(str, len), pos, &endpos);
+		pos = endpos;
 
 		m_pTextRenderer->setZ(last_z);
 		return result;
 	}
 	
-	bool AppFrame::FontRenderer_RenderTextInSpace(const char* str, size_t len, fcyVec3& pos, const fcyVec3& rvec, const fcyVec3& dvec, const BlendMode blend, Core::Color4B const& color)
+	bool AppFrame::FontRenderer_RenderTextInSpace(const char* str, size_t len, Core::Vector3F& pos, Core::Vector3F const& rvec, Core::Vector3F const& dvec, const BlendMode blend, Core::Color4B const& color)
 	{
 		updateGraph2DBlendMode(blend);
 		m_pTextRenderer->setColor(color);
@@ -354,11 +352,11 @@ namespace LuaSTGPlus
 		Core::Vector3F endpos;
 		const bool result = m_pTextRenderer->drawTextInSpace(
 			Core::StringView(str, len),
-			Core::Vector3F(pos.x, pos.y, pos.z),
-			Core::Vector3F(rvec.x, rvec.y, rvec.z),
-			Core::Vector3F(dvec.x, dvec.y, dvec.z),
+			pos,
+			rvec,
+			dvec,
 			&endpos);
-		pos = fcyVec3(endpos.x, endpos.y, endpos.z);
+		pos = endpos;
 
 		return result;
 	}

@@ -712,9 +712,9 @@ static int compat_SetViewport(lua_State* L)noexcept
             1.0f
         );
     }
-    fcyVec2 const backbuf_size = LAPP.GetCurrentRenderTargetSize();
-    box.a.y = backbuf_size.y - box.a.y;
-    box.b.y = backbuf_size.y - box.b.y;
+    Core::Vector2U const backbuf_size = LAPP.GetCurrentRenderTargetSize();
+    box.a.y = (float)backbuf_size.y - box.a.y;
+    box.b.y = (float)backbuf_size.y - box.b.y;
     LR2D()->setViewport(box);
     return 0;
 }
@@ -726,9 +726,9 @@ static int compat_SetScissorRect(lua_State* L)noexcept
         (float)luaL_checknumber(L, 2),
         (float)luaL_checknumber(L, 3)
     );
-    fcyVec2 const backbuf_size = LAPP.GetCurrentRenderTargetSize();
-    rect.a.y = backbuf_size.y - rect.a.y;
-    rect.b.y = backbuf_size.y - rect.b.y;
+    Core::Vector2U const backbuf_size = LAPP.GetCurrentRenderTargetSize();
+    rect.a.y = (float)backbuf_size.y - rect.a.y;
+    rect.b.y = (float)backbuf_size.y - rect.b.y;
     LR2D()->setScissorRect(rect);
     return 0;
 }

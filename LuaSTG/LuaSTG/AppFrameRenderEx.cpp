@@ -63,16 +63,18 @@ namespace LuaSTGPlus
         return true;
     }
     
-    fcyVec2 AppFrame::GetCurrentRenderTargetSize()
+    Core::Vector2U AppFrame::GetCurrentRenderTargetSize()
     {
         if (!m_stRenderTargetStack.empty())
         {
             ResTexture* rt = *(m_stRenderTargetStack.back());
-            return fcyVec2((float)rt->GetTexture()->getSize().x, (float)rt->GetTexture()->getSize().y);
+            return rt->GetTexture()->getSize();
         }
         else
         {
-            return fcyVec2((float)GetAppModel()->getSwapChain()->getWidth(), (float)GetAppModel()->getSwapChain()->getHeight());
+            return Core::Vector2U(
+                GetAppModel()->getSwapChain()->getWidth(),
+                GetAppModel()->getSwapChain()->getHeight());
         }
     }
 

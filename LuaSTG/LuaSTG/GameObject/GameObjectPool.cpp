@@ -768,7 +768,7 @@ namespace LuaSTGPlus
 					/*
 					case _::Diamond:
 					{
-						fcyVec2 tHalfSize(cc.a, cc.b);
+						Core::Vector2F tHalfSize(cc.a, cc.b);
 						// 计算出菱形的4个顶点
 						f2dGraphics2DVertex tFinalPos[4] =
 						{
@@ -792,7 +792,7 @@ namespace LuaSTGPlus
 					}
 					case _::Triangle:
 					{
-						fcyVec2 tHalfSize(cc.a, cc.b);
+						Core::Vector2F tHalfSize(cc.a, cc.b);
 						// 计算出菱形的4个顶点
 						f2dGraphics2DVertex tFinalPos[4] =
 						{
@@ -817,7 +817,7 @@ namespace LuaSTGPlus
 					case _::Point:
 					{
 						//点使用直径1的圆来替代
-						grender->____FillCircle(graph, fcyVec2(cc.absx, cc.absy), 0.5f, fillColor, fillColor, 3);
+						grender->____FillCircle(graph, Core::Vector2F(cc.absx, cc.absy), 0.5f, fillColor, fillColor, 3);
 						break;
 					}
 					//*/

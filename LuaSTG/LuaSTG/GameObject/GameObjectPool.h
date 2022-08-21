@@ -119,10 +119,11 @@ namespace LuaSTGPlus
 		/// @brief 执行对象的Render函数
 		void DoRender() noexcept;
 		
+		// TODO: double -> float ???
 		/// @brief 获取舞台边界
-		fcyRect GetBound() noexcept
+		Core::RectF GetBound() noexcept
 		{
-			return fcyRect((float)m_BoundLeft, (float)m_BoundTop, (float)m_BoundRight, (float)m_BoundBottom);
+			return Core::RectF((float)m_BoundLeft, (float)m_BoundTop, (float)m_BoundRight, (float)m_BoundBottom);
 		}
 		
 		/// @brief 设置舞台边界

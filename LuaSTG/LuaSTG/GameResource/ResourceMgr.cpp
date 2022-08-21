@@ -115,13 +115,11 @@ namespace LuaSTGPlus
 
 	// 其他资源操作
 
-	bool ResourceMgr::GetTextureSize(const char* name, fcyVec2& out) noexcept {
+	bool ResourceMgr::GetTextureSize(const char* name, Core::Vector2U& out) noexcept {
 		fcyRefPointer<ResTexture> tRet = FindTexture(name);
 		if (!tRet)
 			return false;
-		Core::Vector2U const size = tRet->GetTexture()->getSize();
-		out.x = static_cast<float>(size.x);
-		out.y = static_cast<float>(size.y);
+		out = tRet->GetTexture()->getSize();
 		return true;
 	}
 

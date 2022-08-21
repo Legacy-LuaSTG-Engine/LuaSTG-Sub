@@ -279,9 +279,9 @@ namespace LuaSTGPlus
 		float m_descender;
 
 	private:
-		fcyVec2 readVec2Str(const std::wstring& Str)
+		Core::Vector2F readVec2Str(const std::wstring& Str)
 		{
-			fcyVec2 tRet;
+			Core::Vector2F tRet;
 			if (2 != swscanf_s(Str.c_str(), L"%f,%f", &tRet.x, &tRet.y))
 				throw fcyException("f2dFontTexProvider::readVec2Str", "String format error.");
 			return tRet;
@@ -318,11 +318,11 @@ namespace LuaSTGPlus
 				if (tChar.length() != 1)
 					throw fcyException("f2dFontTexProvider::loadDefine", "Invalid file, invalid character in CharList.");
 
-				fcyVec2 const Advance = readVec2Str(pSub->GetAttribute(L"Advance"));
-				fcyVec2 const BrushPos = readVec2Str(pSub->GetAttribute(L"BrushPos"));
-				fcyVec2 const GlyphSize = readVec2Str(pSub->GetAttribute(L"Size"));
-				fcyVec2 GlyphPosA = readVec2Str(pSub->GetAttribute(L"Pos"));
-				fcyVec2 GlyphPosB = GlyphPosA + readVec2Str(pSub->GetAttribute(L"Size"));
+				Core::Vector2F const Advance = readVec2Str(pSub->GetAttribute(L"Advance"));
+				Core::Vector2F const BrushPos = readVec2Str(pSub->GetAttribute(L"BrushPos"));
+				Core::Vector2F const GlyphSize = readVec2Str(pSub->GetAttribute(L"Size"));
+				Core::Vector2F GlyphPosA = readVec2Str(pSub->GetAttribute(L"Pos"));
+				Core::Vector2F GlyphPosB = GlyphPosA + readVec2Str(pSub->GetAttribute(L"Size"));
 				GlyphPosA.x *= tXScale;
 				GlyphPosA.y *= tYScale;
 				GlyphPosB.x *= tXScale;
@@ -331,9 +331,9 @@ namespace LuaSTGPlus
 				Core::Graphics::GlyphInfo const glyph_info = {
 						.texture_index = 0,
 						.texture_rect = Core::RectF(GlyphPosA.x, GlyphPosA.y, GlyphPosB.x, GlyphPosB.y),
-						.size = Core::Vector2F(GlyphSize.x, GlyphSize.y),
-						.position = Core::Vector2F(BrushPos.x, BrushPos.y),
-						.advance = Core::Vector2F(Advance.x, Advance.y),
+						.size = GlyphSize,
+						.position = BrushPos,
+						.advance = Advance,
 				};
 				m_map[(uint32_t)tChar[0]] = glyph_info;
 			}
