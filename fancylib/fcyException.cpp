@@ -33,7 +33,7 @@ fcyException::fcyException(const fcyException& Org)
 fcyException::~fcyException(void)
 {}
 
-fuInt fcyException::GetTime()const
+uint32_t fcyException::GetTime()const
 {
 	return m_Time;
 }
@@ -61,14 +61,14 @@ fcyWin32Exception::fcyWin32Exception(fcStr Src, fcStr Info)
 fcyWin32Exception::~fcyWin32Exception()
 {}
 
-fuInt fcyWin32Exception::GetErrorCode()const
+uint32_t fcyWin32Exception::GetErrorCode()const
 {
 	return m_LastError;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-fcyWin32COMException::fcyWin32COMException(fcStr Src, fcStr Info, fInt HRet)
+fcyWin32COMException::fcyWin32COMException(fcStr Src, fcStr Info, int32_t HRet)
 	: m_HR(HRet), fcyException(Src, Info)
 {
 	char tNumStr[16] = { 0 };
@@ -79,7 +79,7 @@ fcyWin32COMException::fcyWin32COMException(fcStr Src, fcStr Info, fInt HRet)
 fcyWin32COMException::~fcyWin32COMException()
 {}
 
-fInt fcyWin32COMException::GetResult()const
+int32_t fcyWin32COMException::GetResult()const
 {
 	return m_HR;
 }

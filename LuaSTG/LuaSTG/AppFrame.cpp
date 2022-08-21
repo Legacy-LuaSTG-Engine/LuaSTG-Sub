@@ -39,7 +39,7 @@ void AppFrame::SetWindowed(bool v)noexcept
 	else if (m_iStatus == AppStatus::Running)
 		spdlog::warn("[luastg] SetWindowed: 试图在运行时更改窗口化模式");
 }
-void AppFrame::SetFPS(fuInt v)noexcept
+void AppFrame::SetFPS(uint32_t v)noexcept
 {
 	m_OptionFPSLimit = (v > 1u) ? v : 1u; // 最低也得有1FPS每秒
 }
@@ -50,7 +50,7 @@ void AppFrame::SetVsync(bool v)noexcept
 	else if (m_iStatus == AppStatus::Running)
 		spdlog::warn("[luastg] SetVsync: 试图在运行时更改垂直同步模式");
 }
-void AppFrame::SetResolution(fuInt width, fuInt height, fuInt A, fuInt B)noexcept
+void AppFrame::SetResolution(uint32_t width, uint32_t height, uint32_t A, uint32_t B)noexcept
 {
 	if (m_iStatus == AppStatus::Initializing)
 	{
@@ -136,7 +136,7 @@ bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, bool vsync
 		};
 		auto storeNewOption = [&]()
 		{
-			m_OptionResolution.Set((fFloat)width, (fFloat)height);
+			m_OptionResolution.Set((float)width, (float)height);
 			m_OptionWindowed = windowed;
 			m_OptionVsync = vsync;
 		};

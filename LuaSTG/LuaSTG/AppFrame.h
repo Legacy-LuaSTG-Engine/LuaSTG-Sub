@@ -51,18 +51,18 @@ namespace LuaSTGPlus
 		// 选项与值
 		bool m_OptionWindowed = true;
 		Core::Graphics::WindowFrameStyle m_OptionWindowStyle = Core::Graphics::WindowFrameStyle::Fixed;
-		fuInt m_OptionFPSLimit = 60;
+		uint32_t m_OptionFPSLimit = 60;
 		bool m_OptionVsync = false;
 		fcyVec2 m_OptionResolution = fcyVec2(640.f, 480.f);
-		fuInt m_OptionRefreshRateA = 0;
-		fuInt m_OptionRefreshRateB = 0;
+		uint32_t m_OptionRefreshRateA = 0;
+		uint32_t m_OptionRefreshRateB = 0;
 		std::wstring m_OptionGPU;
 		std::string m_OptionTitle = LUASTG_INFO;
 		bool m_OptionCursor = true;
-		fDouble m_fFPS = 0.;
-		fDouble m_fAvgFPS = 0.;
-		fFloat m_gSEVol = 1.0f;
-		fFloat m_gBGMVol = 1.0f;
+		double m_fFPS = 0.;
+		double m_fAvgFPS = 0.;
+		float m_gSEVol = 1.0f;
+		float m_gBGMVol = 1.0f;
 
 		//渲染状态
 		bool m_bRenderStarted = false;
@@ -107,7 +107,7 @@ namespace LuaSTGPlus
 		void ResetMouseInput();
 
 		//检查按键是否按下
-		fBool GetKeyState(int VKCode)noexcept;
+		bool GetKeyState(int VKCode)noexcept;
 		
 		/// @brief 获得最后一次按键输入
 		int GetLastKey()noexcept;
@@ -116,17 +116,17 @@ namespace LuaSTGPlus
 		fcyVec2 GetMousePosition(bool no_flip = false)noexcept;
 		
 		/// @brief 获取鼠标滚轮增量
-		fInt GetMouseWheelDelta()noexcept;
+		int32_t GetMouseWheelDelta()noexcept;
 		
 		/// @brief 检查鼠标是否按下
-		fBool GetMouseState_legacy(int button) noexcept;
-		fBool GetMouseState(int button) noexcept;
+		bool GetMouseState_legacy(int button) noexcept;
+		bool GetMouseState(int button) noexcept;
 		
 	public: // 脚本调用接口，含义参见API文档
 		void SetWindowed(bool v)noexcept;
 		void SetDefaultWindowStyle(Core::Graphics::WindowFrameStyle v) { m_OptionWindowStyle = v; };
 		void SetVsync(bool v)noexcept;
-		void SetResolution(fuInt width, fuInt height, fuInt A = 0, fuInt B = 0)noexcept;
+		void SetResolution(uint32_t width, uint32_t height, uint32_t A = 0, uint32_t B = 0)noexcept;
 		void SetTitle(const char* v)noexcept;
 		void SetPreferenceGPU(const char* v, bool dGPU_trick = false)noexcept;
 		void SetSplash(bool v)noexcept;
@@ -142,7 +142,7 @@ namespace LuaSTGPlus
 		bool ChangeVideoMode2(int width, int height, bool windowed, bool vsync, int hza, int hzb, bool flip)noexcept;
 		bool UpdateVideoMode()noexcept;
 		
-		void SetFPS(fuInt v)noexcept;
+		void SetFPS(uint32_t v)noexcept;
 		
 		/// @brief 获取当前的FPS
 		double GetFPS()noexcept { return m_fAvgFPS; }

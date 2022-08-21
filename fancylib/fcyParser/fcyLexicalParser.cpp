@@ -7,25 +7,25 @@ using namespace std;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-fcyLexicalException::fcyLexicalException(fcStr Src, fcStr Desc, fuInt Line, fuInt Row)
+fcyLexicalException::fcyLexicalException(fcStr Src, fcStr Desc, uint32_t Line, uint32_t Row)
 	: fcyException(Src, Desc), m_Line(Line), m_Row(Row)
 {
 	m_ExcpDesc += (string("(at Line:") + 
-		fcyStringHelper::ToStr((fInt)Line) + 
+		fcyStringHelper::ToStr((int32_t)Line) + 
 		" Row:" +
-		fcyStringHelper::ToStr((fInt)Row) +
+		fcyStringHelper::ToStr((int32_t)Row) +
 		")");
 }
 
 fcyLexicalException::~fcyLexicalException(void)
 {}
 
-fuInt fcyLexicalException::GetLine()
+uint32_t fcyLexicalException::GetLine()
 {
 	return m_Line;
 }
 
-fuInt fcyLexicalException::GetRow()
+uint32_t fcyLexicalException::GetRow()
 {
 	return m_Row;
 }
@@ -35,7 +35,7 @@ fuInt fcyLexicalException::GetRow()
 fcyLexicalReader::fcyLexicalReader(const wstring& SrcText)
 	: m_Str(SrcText), m_Pos(0)
 {
-	if(m_Str.size() && m_Str[0] == (fCharW)0xFEFF)
+	if(m_Str.size() && m_Str[0] == (wchar_t)0xFEFF)
 	{
 		m_Str.erase(0,1);
 	}
@@ -57,15 +57,15 @@ fcyLexicalReader::~fcyLexicalReader(void)
 {
 }
 
-fBool fcyLexicalReader::checkUTF8(fcyStream* pStream)
+bool fcyLexicalReader::checkUTF8(fcyStream* pStream)
 {
-	fLen tPos = pStream->GetPosition();
+	uint64_t tPos = pStream->GetPosition();
 
 	// 尝试读取BOM头
-	fByte tBomCache[3];
+	uint8_t tBomCache[3];
 	if(FCYOK(pStream->ReadBytes(tBomCache, 3, NULL)))
 	{
-		fByte tUTF8[3] = { 0xEF, 0xBB, 0xBF };
+		uint8_t tUTF8[3] = { 0xEF, 0xBB, 0xBF };
 		if(memcmp(tBomCache, tUTF8, 3)==0)
 			return true;
 		else
@@ -77,15 +77,15 @@ fBool fcyLexicalReader::checkUTF8(fcyStream* pStream)
 	return false;
 }
 
-fBool fcyLexicalReader::checkUTF16LE(fcyStream* pStream)
+bool fcyLexicalReader::checkUTF16LE(fcyStream* pStream)
 {
-	fLen tPos = pStream->GetPosition();
+	uint64_t tPos = pStream->GetPosition();
 
 	// 尝试读取BOM头
-	fByte tBomCache[2];
+	uint8_t tBomCache[2];
 	if(FCYOK(pStream->ReadBytes(tBomCache, 2, NULL)))
 	{
-		fByte tUTF16LE[2] = { 0xFF, 0xFE };
+		uint8_t tUTF16LE[2] = { 0xFF, 0xFE };
 		if(memcmp(tBomCache, tUTF16LE, 2)==0)
 			return true;
 		else
@@ -102,7 +102,7 @@ wstring fcyLexicalReader::preprocess(fcyStream* pStream)
 	if(checkUTF16LE(pStream))
 	{
 		wstring tRet;
-		fLen tSize = pStream->GetLength() - pStream->GetPosition();
+		uint64_t tSize = pStream->GetLength() - pStream->GetPosition();
 		tRet.resize((size_t)tSize / sizeof(wchar_t));
 		if(tRet.length())
 			pStream->ReadBytes((fData)tRet.data(), tSize, NULL);
@@ -111,7 +111,7 @@ wstring fcyLexicalReader::preprocess(fcyStream* pStream)
 	else if(checkUTF8(pStream))
 	{
 		string tTemp;
-		fLen tSize = pStream->GetLength() - pStream->GetPosition();
+		uint64_t tSize = pStream->GetLength() - pStream->GetPosition();
 		tTemp.resize((size_t)tSize);
 		if(tTemp.length())
 			pStream->ReadBytes((fData)tTemp.data(), tSize, NULL);
@@ -120,7 +120,7 @@ wstring fcyLexicalReader::preprocess(fcyStream* pStream)
 	else
 	{
 		string tTemp;
-		fLen tSize = pStream->GetLength() - pStream->GetPosition();
+		uint64_t tSize = pStream->GetLength() - pStream->GetPosition();
 		tTemp.resize((size_t)tSize);
 		if(tTemp.length())
 			pStream->ReadBytes((fData)tTemp.data(), tSize, NULL);
@@ -128,12 +128,12 @@ wstring fcyLexicalReader::preprocess(fcyStream* pStream)
 	}
 }
 
-fuInt fcyLexicalReader::GetLine()
+uint32_t fcyLexicalReader::GetLine()
 {
-	fuInt tLine = 0;
+	uint32_t tLine = 0;
 
-	fCharW tLast = L'\0';
-	for(fuInt i = 0; i < m_Pos; ++i)
+	wchar_t tLast = L'\0';
+	for(uint32_t i = 0; i < m_Pos; ++i)
 	{
 		if(tLast == L'\n')
 			tLine++;
@@ -144,12 +144,12 @@ fuInt fcyLexicalReader::GetLine()
 	return tLine;
 }
 
-fuInt fcyLexicalReader::GetRow()
+uint32_t fcyLexicalReader::GetRow()
 {
-	fuInt tRow = 0;
+	uint32_t tRow = 0;
 
-	fCharW tLast = L'\0';
-	for(fuInt i = 0; i < m_Pos; ++i)
+	wchar_t tLast = L'\0';
+	for(uint32_t i = 0; i < m_Pos; ++i)
 	{
 		if(tLast == L'\n')
 			tRow = 0;
@@ -162,42 +162,42 @@ fuInt fcyLexicalReader::GetRow()
 	return tRow;
 }
 
-fBool fcyLexicalReader::IsEOF()
+bool fcyLexicalReader::IsEOF()
 {
 	return (m_Pos >= m_Len);
 }
 
-fCharW fcyLexicalReader::ReadChar()
+wchar_t fcyLexicalReader::ReadChar()
 {
 	if(IsEOF())
 		throw fcyLexicalException("fcyLexicalReader::ReadChar", "EOF.", GetLine(), GetRow());
 
-	fCharW tRet = m_Str[m_Pos];
+	wchar_t tRet = m_Str[m_Pos];
 	m_Pos++;
 
 	return tRet;
 }
 
-fCharW fcyLexicalReader::PeekChar()
+wchar_t fcyLexicalReader::PeekChar()
 {
 	if(IsEOF())
 		throw fcyLexicalException("fcyLexicalReader::PeekChar", "EOF.", GetLine(), GetRow());
 
-	fCharW tRet = m_Str[m_Pos];
+	wchar_t tRet = m_Str[m_Pos];
 
 	return tRet;
 }
 
-void fcyLexicalReader::Match(fCharW Char, fBool bIgnoreSpace)
+void fcyLexicalReader::Match(wchar_t Char, bool bIgnoreSpace)
 {
 	if(bIgnoreSpace)
 		IgnoreSpace();
 
-	fCharW tChar = ReadChar();
+	wchar_t tChar = ReadChar();
 
 	if(tChar != Char)
 	{
-		fCharW tTextBuffer[1024];
+		wchar_t tTextBuffer[1024];
 		swprintf_s(tTextBuffer, L"'%c' expected, but found '%c'.", Char, tChar);
 		
 		throw fcyLexicalException("fcyLexicalReader::Match", 
@@ -206,19 +206,19 @@ void fcyLexicalReader::Match(fCharW Char, fBool bIgnoreSpace)
 	}
 }
 
-void fcyLexicalReader::Match(fcStrW Str, fBool bIgnoreSpace)
+void fcyLexicalReader::Match(fcStrW Str, bool bIgnoreSpace)
 {
 	if(bIgnoreSpace)
 		IgnoreSpace();
 
-	fuInt tLen = wcslen(Str);
+	uint32_t tLen = wcslen(Str);
 
-	for(fuInt i = 0; i<tLen; ++i)
+	for(uint32_t i = 0; i<tLen; ++i)
 	{
-		fCharW tChar = ReadChar();
+		wchar_t tChar = ReadChar();
 		if(tChar != Str[i])
 		{
-			fCharW tTextBuffer[1024];
+			wchar_t tTextBuffer[1024];
 			swprintf_s(tTextBuffer, L"\"%s\" expected, but found '%c'.", Str, tChar);
 
 			throw fcyLexicalException("fcyLexicalReader::Match", 
@@ -228,9 +228,9 @@ void fcyLexicalReader::Match(fcStrW Str, fBool bIgnoreSpace)
 	}
 }
 
-fBool fcyLexicalReader::TryMatch(fCharW Char, fBool bIgnoreSpace, fBool bMatch)
+bool fcyLexicalReader::TryMatch(wchar_t Char, bool bIgnoreSpace, bool bMatch)
 {
-	fuInt tPos = m_Pos;
+	uint32_t tPos = m_Pos;
 
 	if(bIgnoreSpace)
 		IgnoreSpace();
@@ -241,7 +241,7 @@ fBool fcyLexicalReader::TryMatch(fCharW Char, fBool bIgnoreSpace, fBool bMatch)
 		return false;
 	}
 
-	fCharW tChar = ReadChar();
+	wchar_t tChar = ReadChar();
 	if(tChar != Char)
 	{
 		// 不匹配，返回假
@@ -259,11 +259,11 @@ fBool fcyLexicalReader::TryMatch(fCharW Char, fBool bIgnoreSpace, fBool bMatch)
 	}
 }
 
-fBool fcyLexicalReader::TryMatch(fcStrW Str, fBool bIgnoreSpace, fBool bMatch)
+bool fcyLexicalReader::TryMatch(fcStrW Str, bool bIgnoreSpace, bool bMatch)
 {
-	fuInt tPos = m_Pos;
+	uint32_t tPos = m_Pos;
 
-	fuInt tLen = wcslen(Str);
+	uint32_t tLen = wcslen(Str);
 
 	if(bIgnoreSpace)
 		IgnoreSpace();
@@ -275,7 +275,7 @@ fBool fcyLexicalReader::TryMatch(fcStrW Str, fBool bIgnoreSpace, fBool bMatch)
 		return false;
 	}
 
-	for(fuInt i = 0; i<tLen; ++i)
+	for(uint32_t i = 0; i<tLen; ++i)
 	{
 		if(m_Str[m_Pos+i] != Str[i])
 		{
@@ -301,7 +301,7 @@ void fcyLexicalReader::IgnoreSpace()
 {
 	while(!IsEOF())
 	{
-		fCharW tRet = PeekChar();
+		wchar_t tRet = PeekChar();
 		if(iswspace(tRet))
 			ReadChar();
 		else

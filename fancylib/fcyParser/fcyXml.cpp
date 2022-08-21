@@ -28,7 +28,7 @@ fcyXmlNodeNotFount::fcyXmlNodeNotFount(fcStr Src, fcyXmlDocument* pOwner, fcStrW
 	: fcyXmlException(Src, pOwner, "Element node '%s' not found.", fcyStringHelper::WideCharToMultiByte(Name).c_str())
 {}
 
-fcyXmlIndexOutOfRange::fcyXmlIndexOutOfRange(fcStr Src, fcyXmlDocument* pOwner, fuInt Index)
+fcyXmlIndexOutOfRange::fcyXmlIndexOutOfRange(fcStr Src, fcyXmlDocument* pOwner, uint32_t Index)
 	: fcyXmlException(Src, pOwner, "Index %d out of range.", Index)
 {}
 
@@ -59,7 +59,7 @@ fcyXmlElementList::fcyXmlElementList(fcyXmlElementList&& Org)
 	: m_List(std::move(Org.m_List))
 {}
 
-fcyXmlElement* fcyXmlElementList::operator[](fuInt Index)
+fcyXmlElement* fcyXmlElementList::operator[](uint32_t Index)
 {
 	if(Index >= m_List.size())
 		throw fcyXmlIndexOutOfRange("fcyXmlElementList::operator[]", NULL, Index);
@@ -78,7 +78,7 @@ void fcyXmlElementList::Append(fcyXmlElement* pObj)
 	m_List.push_back(pObj);
 }
 
-void fcyXmlElementList::Remove(fuInt Index)
+void fcyXmlElementList::Remove(uint32_t Index)
 {
 	if(Index >= m_List.size())
 		throw fcyXmlIndexOutOfRange("fcyXmlElementList::operator[]", NULL, Index);
@@ -101,7 +101,7 @@ fcyXmlElement::fcyXmlElement(fcyXmlDocument* pParent, const std::wstring& Name)
 fcyXmlElement::~fcyXmlElement()
 {}
 
-fcyXmlElement* fcyXmlElement::GetNode(fuInt Index)const
+fcyXmlElement* fcyXmlElement::GetNode(uint32_t Index)const
 {
 	if(Index >= m_Subnodes.size())
 		throw fcyXmlIndexOutOfRange("fcyXmlElement::GetNode", m_pParent, Index);
@@ -168,7 +168,7 @@ void fcyXmlElement::RemoveNode(fcyXmlElement* pNode)
 	throw fcyXmlNodeNotFount("fcyXmlElement::RemoveNode", m_pParent, pNode->GetName().c_str());
 }
 
-void fcyXmlElement::RemoveNodeAt(fuInt Index)
+void fcyXmlElement::RemoveNodeAt(uint32_t Index)
 {
 	if(Index >= m_Subnodes.size())
 		throw fcyXmlIndexOutOfRange("fcyXmlElement::RemoveNodeAt", m_pParent, Index);
@@ -209,7 +209,7 @@ void fcyXmlElement::SetAttribute(std::wstring&& Name, std::wstring&& Value)
 	m_Attribute.insert(move(pair<wstring, wstring>(Name, Value)));
 }
 
-fBool fcyXmlElement::HasAttribute(const std::wstring& Name)const
+bool fcyXmlElement::HasAttribute(const std::wstring& Name)const
 {
 	AttrConstIter i = m_Attribute.find(Name);
 	return (i != m_Attribute.end());
@@ -259,10 +259,10 @@ fcyXmlAttributeIterator fcyXmlElement::RemoveAttribute(const fcyXmlAttributeIter
 	return m_Attribute.erase(Iter.i);
 }
 
-void fcyXmlElement::Save(std::wstring& pOut, fuInt Indentation)const
+void fcyXmlElement::Save(std::wstring& pOut, uint32_t Indentation)const
 {
 	// 缩进
-	for(fuInt i = 0; i<Indentation; ++i)
+	for(uint32_t i = 0; i<Indentation; ++i)
 	{
 		pOut += L"\t";
 	}
@@ -281,7 +281,7 @@ void fcyXmlElement::Save(std::wstring& pOut, fuInt Indentation)const
 			pOut += i->first + L"=\"";
 			
 			// 写出属性值并转义
-			for(fuInt k = 0; k<i->second.size(); k++)
+			for(uint32_t k = 0; k<i->second.size(); k++)
 			{
 				switch(i->second[k])
 				{
@@ -338,7 +338,7 @@ void fcyXmlElement::Save(std::wstring& pOut, fuInt Indentation)const
 		}
 
 		// 缩进
-		for(fuInt i = 0; i<Indentation; ++i)
+		for(uint32_t i = 0; i<Indentation; ++i)
 		{
 			pOut += L"\t";
 		}
@@ -349,7 +349,7 @@ void fcyXmlElement::Save(std::wstring& pOut, fuInt Indentation)const
 	else if(m_Content.size())
 	{
 		// 写出Content
-		for(fuInt i = 0; i<m_Content.size(); ++i)
+		for(uint32_t i = 0; i<m_Content.size(); ++i)
 		{
 			switch(m_Content[i])
 			{
@@ -398,15 +398,15 @@ fcyXmlElement* fcyXmlElement::Clone(fcyXmlDocument* pDoc)const
 
 ////////////////////////////////////////////////////////////////////////////////
 
-fBool fcyXmlDocument::checkUTF8(fcyStream* pStream)
+bool fcyXmlDocument::checkUTF8(fcyStream* pStream)
 {
-	fLen tPos = pStream->GetPosition();
+	uint64_t tPos = pStream->GetPosition();
 
 	// 尝试读取BOM头
-	fByte tBomCache[3];
+	uint8_t tBomCache[3];
 	if(FCYOK(pStream->ReadBytes(tBomCache, 3, NULL)))
 	{
-		fByte tUTF8[3] = { 0xEF, 0xBB, 0xBF };
+		uint8_t tUTF8[3] = { 0xEF, 0xBB, 0xBF };
 		if(memcmp(tBomCache, tUTF8, 3)==0)
 			return true;
 		else
@@ -418,15 +418,15 @@ fBool fcyXmlDocument::checkUTF8(fcyStream* pStream)
 	return false;
 }
 
-fBool fcyXmlDocument::checkUTF16LE(fcyStream* pStream)
+bool fcyXmlDocument::checkUTF16LE(fcyStream* pStream)
 {
-	fLen tPos = pStream->GetPosition();
+	uint64_t tPos = pStream->GetPosition();
 
 	// 尝试读取BOM头
-	fByte tBomCache[2];
+	uint8_t tBomCache[2];
 	if(FCYOK(pStream->ReadBytes(tBomCache, 2, NULL)))
 	{
-		fByte tUTF16LE[2] = { 0xFF, 0xFE };
+		uint8_t tUTF16LE[2] = { 0xFF, 0xFE };
 		if(memcmp(tBomCache, tUTF16LE, 2)==0)
 			return true;
 		else
@@ -444,7 +444,7 @@ wstring fcyXmlDocument::preprocessXml(fcyStream* pStream)
 	if(checkUTF16LE(pStream))
 	{
 		wstring tRet;
-		fLen tSize = pStream->GetLength() - pStream->GetPosition();
+		uint64_t tSize = pStream->GetLength() - pStream->GetPosition();
 		tRet.resize((size_t)tSize);
 		pStream->ReadBytes((fData)&tRet[0], tSize, NULL);
 		return tRet;
@@ -452,7 +452,7 @@ wstring fcyXmlDocument::preprocessXml(fcyStream* pStream)
 	else if(checkUTF8(pStream))
 	{
 		string tTemp;
-		fLen tSize = pStream->GetLength() - pStream->GetPosition();
+		uint64_t tSize = pStream->GetLength() - pStream->GetPosition();
 		tTemp.resize((size_t)tSize);
 		pStream->ReadBytes((fData)&tTemp[0], tSize, NULL);
 		return fcyStringHelper::MultiByteToWideChar(tTemp, CP_UTF8);
@@ -460,14 +460,14 @@ wstring fcyXmlDocument::preprocessXml(fcyStream* pStream)
 	else
 	{
 		// 依次读取前面的字符，解析预处理指令
-		fInt tCodePage = CP_UTF8;
-		fLen tPos = pStream->GetPosition();
+		int32_t tCodePage = CP_UTF8;
+		uint64_t tPos = pStream->GetPosition();
 
 		fcyBinaryReader tReader(pStream);
 
 		try
 		{
-			fChar tFlag[6] = { 0 };
+			char tFlag[6] = { 0 };
 			tReader.ReadChars(tFlag, 5);
 			if(strcmp(tFlag, "<?xml")==0) // 匹配<?xml
 			{
@@ -477,7 +477,7 @@ wstring fcyXmlDocument::preprocessXml(fcyStream* pStream)
 
 				while(1)
 				{
-					fChar tChar = tReader.ReadChar();
+					char tChar = tReader.ReadChar();
 
 					if(isspace(tChar))
 						continue;
@@ -495,10 +495,10 @@ wstring fcyXmlDocument::preprocessXml(fcyStream* pStream)
 							throw fcyException("fcyXmlDocument::preprocessXml", "expect name but found =");
 						
 						// 读取value
-						fBool tMatch = false;
+						bool tMatch = false;
 						while(1)
 						{
-							fChar tChar = tReader.ReadChar();
+							char tChar = tReader.ReadChar();
 							
 							if(isspace(tChar))
 								continue;
@@ -546,20 +546,20 @@ wstring fcyXmlDocument::preprocessXml(fcyStream* pStream)
 
 		// 读取并转换
 		string tTemp;
-		fLen tSize = pStream->GetLength() - pStream->GetPosition();
+		uint64_t tSize = pStream->GetLength() - pStream->GetPosition();
 		tTemp.resize((size_t)tSize);
 		pStream->ReadBytes((fData)&tTemp[0], tSize, NULL);
 		return fcyStringHelper::MultiByteToWideChar(tTemp, tCodePage);
 	}
 }
 
-fBool fcyXmlDocument::ignoreComment(fcyLexicalReader& tReader)
+bool fcyXmlDocument::ignoreComment(fcyLexicalReader& tReader)
 {
 	if(tReader.TryMatch(L"<!--", true, true))
 	{
 		while(1)
 		{
-			fCharW tChar = tReader.ReadChar();
+			wchar_t tChar = tReader.ReadChar();
 
 			if(tChar == L'-')
 			{
@@ -571,7 +571,7 @@ fBool fcyXmlDocument::ignoreComment(fcyLexicalReader& tReader)
 	return false;
 }
 
-fBool fcyXmlDocument::ignorePreprocess(fcyLexicalReader& tReader)
+bool fcyXmlDocument::ignorePreprocess(fcyLexicalReader& tReader)
 {
 	if(tReader.TryMatch(L"<?xml", true, true))
 	{
@@ -581,7 +581,7 @@ fBool fcyXmlDocument::ignorePreprocess(fcyLexicalReader& tReader)
 
 		while(1)
 		{
-			fCharW tChar = tReader.ReadChar();
+			wchar_t tChar = tReader.ReadChar();
 
 			if(isspace(tChar))
 				continue;
@@ -599,10 +599,10 @@ fBool fcyXmlDocument::ignorePreprocess(fcyLexicalReader& tReader)
 					throw fcyException("fcyXmlDocument::ignorePreprocess", "expect name but found =");
 
 				// 读取value
-				fBool tMatch = false;
+				bool tMatch = false;
 				while(1)
 				{
-					fCharW tChar = tReader.ReadChar();
+					wchar_t tChar = tReader.ReadChar();
 
 					if(isspace(tChar))
 						continue;
@@ -631,7 +631,7 @@ fBool fcyXmlDocument::ignorePreprocess(fcyLexicalReader& tReader)
 	return false;
 }
 
-fBool fcyXmlDocument::tryReadCDATA(fcyLexicalReader& tReader, std::wstring& tOut)
+bool fcyXmlDocument::tryReadCDATA(fcyLexicalReader& tReader, std::wstring& tOut)
 {
 	tOut = L"";
 	if(tReader.TryMatch(L"<![CDATA[", false, true))
@@ -646,17 +646,17 @@ fBool fcyXmlDocument::tryReadCDATA(fcyLexicalReader& tReader, std::wstring& tOut
 	return false;
 }
 
-fCharW fcyXmlDocument::praseEscape(fcyLexicalReader& tReader)
+wchar_t fcyXmlDocument::praseEscape(fcyLexicalReader& tReader)
 {
 	if(tReader.TryMatch(L"&#", false, true))
 	{
 		wstring tNum;
-		fCharW tChar;
+		wchar_t tChar;
 		while((tChar = tReader.ReadChar())!=L';')
 		{
 			tNum += tChar;
 		}
-		return (fCharW)_wtoi(tNum.c_str());
+		return (wchar_t)_wtoi(tNum.c_str());
 	}
 	if(tReader.TryMatch(L"&lt;", false, true))
 		return L'<';
@@ -675,7 +675,7 @@ std::wstring fcyXmlDocument::readName(fcyLexicalReader& tReader)
 {
 	wstring tRet;
 	       
-	fCharW tChar = tReader.PeekChar();
+	wchar_t tChar = tReader.PeekChar();
 	if(tChar == L'/')  // 不能以'/'开头
 		throw fcyLexicalException("fcyXmlDocument::readName", "Name can't begin with '/'.", tReader.GetLine(), tReader.GetRow());
 	if(tChar == L'_')  // 不能以下划线开头
@@ -704,7 +704,7 @@ std::wstring fcyXmlDocument::readString(fcyLexicalReader& tReader)
 
 	while(1)
 	{
-		fCharW tChar = tReader.PeekChar();
+		wchar_t tChar = tReader.PeekChar();
 
 		if(tChar == L'"')
 		{
@@ -767,10 +767,10 @@ void fcyXmlDocument::readNodes(fcyLexicalReader& tReader, fcyXmlElement* pNode)
 	else
 	{
 		// 作为文本节点
-		fCharW tChar = tReader.PeekChar();
+		wchar_t tChar = tReader.PeekChar();
 		while(true)
 		{
-			fBool tEnd = false;
+			bool tEnd = false;
 
 			// 处理CDATA和注释
 			while(tChar == L'<')
@@ -832,7 +832,7 @@ fcyXmlElement* fcyXmlDocument::parserNode(fcyLexicalReader& tReader)
 	// 读取属性
 	readAttribute(tReader, pElement);
 
-	fCharW tChar = tReader.ReadChar();
+	wchar_t tChar = tReader.ReadChar();
 	if(tChar == L'/')
 	{
 		// 分支 <1> 遇到'/',完成节点解析
@@ -855,7 +855,7 @@ fcyXmlElement* fcyXmlDocument::parserNode(fcyLexicalReader& tReader)
 
 		if(tName != tNodeName)
 		{
-			fCharW tText[512];
+			wchar_t tText[512];
 			swprintf_s(tText, L"Name <%s> not match <%s>.", tName.c_str(), tNodeName.c_str());
 			throw fcyLexicalException("fcyXmlDocument::parserNode", 
 				fcyStringHelper::WideCharToMultiByte(tText).c_str(),
@@ -867,7 +867,7 @@ fcyXmlElement* fcyXmlDocument::parserNode(fcyLexicalReader& tReader)
 	}
 	else
 	{
-		fCharW tText[512];
+		wchar_t tText[512];
 		swprintf_s(tText, L"Unexpected character '%c'.", tChar);
 		throw fcyLexicalException("fcyXmlDocument::parserNode", 
 			fcyStringHelper::WideCharToMultiByte(tText).c_str(),
@@ -991,7 +991,7 @@ void fcyXmlDocument::Save(fcyStream* pOut)const
 		throw fcyException("fcyXmlDocument::Save", "Root element is null.");
 
 	// UTF 16 BOM
-	fByte tUTF16LE[2] = { 0xFF, 0xFE };
+	uint8_t tUTF16LE[2] = { 0xFF, 0xFE };
 	pOut->SetLength(0);
 	pOut->WriteBytes(tUTF16LE, 2, NULL);
 	pOut->WriteBytes((fData)&tOutStr[0], tOutStr.length() * sizeof(wchar_t), NULL);

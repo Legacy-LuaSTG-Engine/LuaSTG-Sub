@@ -950,7 +950,7 @@ namespace LuaSTGPlus::LuaWrapper
 				UserData* self = (UserData*)luaL_checkudata(L, 1, ClassID.data());
 				if (self->ptr)
 				{
-					fuInt const seed = (fuInt)luaL_checknumber(L, 2);
+					uint32_t const seed = (uint32_t)luaL_checknumber(L, 2);
 					self->ptr->SetSeed(seed);
 					return 0;
 				}

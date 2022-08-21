@@ -152,16 +152,16 @@ namespace LuaSTGPlus::LuaWrapper
 				switch (LuaSTG::MapColorMember(key))
 				{
 				case LuaSTG::ColorMember::m_a:
-					p->a = (fByte)std::clamp<fInt>(luaL_checkinteger(L, 3), 0, 255);
+					p->a = (uint8_t)std::clamp<lua_Integer>(luaL_checkinteger(L, 3), 0, 255);
 					break;
 				case LuaSTG::ColorMember::m_r:
-					p->r = (fByte)std::clamp<fInt>(luaL_checkinteger(L, 3), 0, 255);
+					p->r = (uint8_t)std::clamp<lua_Integer>(luaL_checkinteger(L, 3), 0, 255);
 					break;
 				case LuaSTG::ColorMember::m_g:
-					p->g = (fByte)std::clamp<fInt>(luaL_checkinteger(L, 3), 0, 255);
+					p->g = (uint8_t)std::clamp<lua_Integer>(luaL_checkinteger(L, 3), 0, 255);
 					break;
 				case LuaSTG::ColorMember::m_b:
-					p->b = (fByte)std::clamp<fInt>(luaL_checkinteger(L, 3), 0, 255);
+					p->b = (uint8_t)std::clamp<lua_Integer>(luaL_checkinteger(L, 3), 0, 255);
 					break;
 				case LuaSTG::ColorMember::m_h:
 					{

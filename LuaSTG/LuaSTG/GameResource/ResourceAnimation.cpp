@@ -47,7 +47,7 @@ namespace LuaSTGPlus
 	}
 	ResAnimation::~ResAnimation() {}
 
-	Core::Graphics::ISprite* ResAnimation::GetSprite(fuInt index)
+	Core::Graphics::ISprite* ResAnimation::GetSprite(uint32_t index)
 	{
 		if (index >= GetCount())
 		{
@@ -55,9 +55,9 @@ namespace LuaSTGPlus
 		}
 		return m_sprites[index].get();
 	}
-	fuInt ResAnimation::GetSpriteIndexByTimer(int ani_timer)
+	uint32_t ResAnimation::GetSpriteIndexByTimer(int ani_timer)
 	{
-		return ((fuInt)ani_timer / m_Interval) % GetCount();
+		return ((uint32_t)ani_timer / m_Interval) % GetCount();
 	}
 	Core::Graphics::ISprite* ResAnimation::GetSpriteByTimer(int ani_timer)
 	{

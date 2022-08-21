@@ -13,7 +13,7 @@ namespace LuaSTGPlus
         std::vector<uint8_t> src;
         if (GFileManager().loadEx("launch", src))
         {
-            if (SafeCallScript((fcStr)src.data(), src.size(), "launch"))
+            if (SafeCallScript((char const*)src.data(), src.size(), "launch"))
             {
                 is_launch_loaded = true;
                 spdlog::info("[luastg] 加载脚本'launch'");
@@ -65,7 +65,7 @@ namespace LuaSTGPlus
         {
             if (GFileManager().loadEx(v, src))
             {
-                if (SafeCallScript((fcStr)src.data(), src.size(), v.data()))
+                if (SafeCallScript((char const*)src.data(), src.size(), v.data()))
                 {
                     spdlog::info("[luastg] 加载脚本'{}'", v);
                     is_load = true;

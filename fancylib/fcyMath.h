@@ -21,29 +21,29 @@
 class fcyVec2
 {
 public:
-	fFloat x; ///< @brief x坐标
-	fFloat y; ///< @brief y坐标
+	float x; ///< @brief x坐标
+	float y; ///< @brief y坐标
 public: // 构造函数
 	fcyVec2()
 		: x(0.f), y(0.f) {}
 	/// @brief     构造函数
 	/// @param[in] X x坐标
 	/// @param[in] Y y坐标
-	fcyVec2(fFloat X, fFloat Y)
+	fcyVec2(float X, float Y)
 		: x(X), y(Y) {}
 	/// @brief     构造函数，从data[0]~data[1]取出浮点值
 	/// @warning   不安全的函数
 	/// @param[in] data 浮点数组指针
-	fcyVec2(fFloat *data)
+	fcyVec2(float *data)
 		: x(data[0]), y(data[1]) {}
 public: // 运算符重载
 	/// @brief 2D向量相等
-	fBool operator==(const fcyVec2& right)const
+	bool operator==(const fcyVec2& right)const
 	{
 		return (x == right.x && y == right.y);
 	}
 	/// @brief 2D向量不等
-	fBool operator!=(const fcyVec2& right)const
+	bool operator!=(const fcyVec2& right)const
 	{
 		return (x != right.x || y != right.y);
 	}
@@ -72,31 +72,31 @@ public: // 运算符重载
 		return *this;
 	};
 	/// @brief 2D向量数乘
-	fcyVec2 operator*(fFloat right)const
+	fcyVec2 operator*(float right)const
 	{
 		return fcyVec2(x * right, y * right);
 	};
 	/// @brief 2D向量数乘（除法）
-	fcyVec2 operator/(fFloat right)const
+	fcyVec2 operator/(float right)const
 	{
 		return fcyVec2(x / right, y / right);
 	};
 	/// @brief 2D向量自数乘
-	fcyVec2& operator*=(fFloat right)
+	fcyVec2& operator*=(float right)
 	{
 		x = x * right;
 		y = y * right;
 		return *this;
 	};
 	/// @brief 2D向量自数乘（除法）
-	fcyVec2& operator/=(fFloat right)
+	fcyVec2& operator/=(float right)
 	{
 		x = x / right;
 		y = y / right;
 		return *this;
 	};
 	/// @brief 2D向量点积
-	fFloat operator*(const fcyVec2& right)const
+	float operator*(const fcyVec2& right)const
 	{
 		return x * right.x + y * right.y;
 	}
@@ -108,19 +108,19 @@ public: // 运算符重载
 public: // 函数
 	// 设置
 	/// @brief 设置新值
-	void Set(fFloat X,fFloat Y)
+	void Set(float X,float Y)
 	{
 		x = X; y = Y;
 	}
 	/// @brief 平面叉积
-	fFloat Cross(const fcyVec2& right)const
+	float Cross(const fcyVec2& right)const
 	{
 		return  x * right.y - right.x * y;
 	};
 	/// @brief 规范化向量
 	void Normalize()
 	{
-		fFloat mode = sqrt( x * x +  y * y );
+		float mode = sqrt( x * x +  y * y );
 		if(mode != 0)
 		{
 			x /= mode;
@@ -130,29 +130,29 @@ public: // 函数
 	/// @brief 返回规范化向量
 	fcyVec2 GetNormalize()const
 	{
-		fFloat mode=sqrt( x *  x +  y *  y);
+		float mode=sqrt( x *  x +  y *  y);
 		if(mode != 0)
 			return fcyVec2(x / mode, y / mode);
 		else
 			return fcyVec2();
 	};
 	/// @brief 求模
-	fFloat Length()const
+	float Length()const
 	{
 		return sqrt( x*x + y*y );
 	}
 	/// @brief 求模的平方
-	fFloat Length2()const
+	float Length2()const
 	{
 		return ( x*x + y*y );
 	}
 	/// @brief     逆时针旋转
 	/// @param[in] angle 旋转角度
-	void Rotation(fFloat angle)
+	void Rotation(float angle)
 	{
-		fFloat s = sin(angle),
+		float s = sin(angle),
 		       c = cos(angle);
-		fFloat tx = x*c - y*s,
+		float tx = x*c - y*s,
 		       ty = x*s + y*c;
 		x = tx;
 		y = ty;
@@ -161,20 +161,20 @@ public: // 函数
 	/// @note      用于批量旋转，减少三角函数运算
 	/// @param[in] s Sin值(=sin(angle))
 	/// @param[in] c Cos值(=cos(angle))
-	void RotationSC(fFloat s, fFloat c)
+	void RotationSC(float s, float c)
 	{
-		fFloat tx = x*c - y*s,
+		float tx = x*c - y*s,
 			ty = x*s + y*c;
 		x = tx; y = ty;
 	}
 	/// @brief 计算与x轴的夹角
-	fFloat CalcuAngle() const
+	float CalcuAngle() const
 	{
 		return atan2(y,x);
 	}
 	/// @brief     逆时针旋转
 	/// @param[in] angle 旋转角度
-	void Set2(fFloat len,fFloat angle)
+	void Set2(float len,float angle)
 	{
 		x = len*cos(angle);
 		y = len*sin(angle);
@@ -187,9 +187,9 @@ public: // 函数
 class fcyVec3
 {
 public:
-	fFloat x; ///< @brief x坐标
-	fFloat y; ///< @brief y坐标
-	fFloat z; ///< @brief z坐标
+	float x; ///< @brief x坐标
+	float y; ///< @brief y坐标
+	float z; ///< @brief z坐标
 public: // 构造函数
 	fcyVec3()
 		: x(0.f), y(0.f), z(0.f) {}
@@ -197,21 +197,21 @@ public: // 构造函数
 	/// @param[in] X x坐标
 	/// @param[in] Y y坐标
 	/// @param[in] Z z坐标
-	fcyVec3(fFloat X, fFloat Y, fFloat Z)
+	fcyVec3(float X, float Y, float Z)
 		: x(X), y(Y), z(Z) {}
 	/// @brief     构造函数，从data[0]~data[2]取出浮点值
 	/// @warning   不安全的函数
 	/// @param[in] data 浮点数组指针
-	fcyVec3(fFloat *data)
+	fcyVec3(float *data)
 		: x(data[0]), y(data[1]), z(data[2]) {}
 public: // 运算符重载
 	/// @brief 3D向量相等
-	fBool operator==(const fcyVec3& right)const
+	bool operator==(const fcyVec3& right)const
 	{
 		return (x == right.x && y == right.y && z == right.z);
 	}
 	/// @brief 3D向量不等
-	fBool operator!=(const fcyVec3& right)const
+	bool operator!=(const fcyVec3& right)const
 	{
 		return (x != right.x || y != right.y || z != right.z);
 	}
@@ -250,7 +250,7 @@ public: // 运算符重载
 		return *this;
 	};
 	/// @brief 3D向量数乘
-	fcyVec3 operator*(fFloat right)const
+	fcyVec3 operator*(float right)const
 	{
 		return fcyVec3(
 			x * right,
@@ -259,7 +259,7 @@ public: // 运算符重载
 			);
 	};
 	/// @brief 3D向量数乘（除法）
-	fcyVec3 operator/(fFloat right)const
+	fcyVec3 operator/(float right)const
 	{
 		return fcyVec3(
 			x / right,
@@ -268,7 +268,7 @@ public: // 运算符重载
 			);
 	};
 	/// @brief 3D向量自数乘
-	fcyVec3& operator*=(fFloat right)
+	fcyVec3& operator*=(float right)
 	{
 		x = x * right;
 		y = y * right;
@@ -276,7 +276,7 @@ public: // 运算符重载
 		return *this;
 	};
 	/// @brief 3D向量自数乘（除法）
-	fcyVec3& operator/=(fFloat right)
+	fcyVec3& operator/=(float right)
 	{
 		x = x / right;
 		y = y / right;
@@ -284,7 +284,7 @@ public: // 运算符重载
 		return *this;
 	};
 	/// @brief 3D向量点积
-	fFloat operator*(const fcyVec3& right)const
+	float operator*(const fcyVec3& right)const
 	{
 		return x * right.x + y * right.y + z * right.z;
 	};
@@ -296,7 +296,7 @@ public: // 运算符重载
 public: // 函数
 	// 设置
 	/// @brief 设值新值
-	void Set(fFloat X, fFloat Y, fFloat Z)
+	void Set(float X, float Y, float Z)
 	{
 		x = X; y = Y; z = Z;
 	}
@@ -311,7 +311,7 @@ public: // 函数
 	/// @brief 规范化向量
 	void Normalize()
 	{
-		fFloat mode = sqrt( x*x +  y*y +  z*z );
+		float mode = sqrt( x*x +  y*y +  z*z );
 		if(mode != 0)
 		{
 			x/=mode;
@@ -322,19 +322,19 @@ public: // 函数
 	/// @brief 返回规范化向量
 	fcyVec3 GetNormalize()const
 	{
-		fFloat mode = sqrt( x*x + y*y + z*z );
+		float mode = sqrt( x*x + y*y + z*z );
 		if(mode != 0)
 			return fcyVec3( x / mode, y / mode, z / mode);
 		else
 			return fcyVec3();
 	};
 	/// @brief 取模
-	fFloat Length()const
+	float Length()const
 	{
 		return sqrt( x*x + y*y + z*z );
 	};
 	/// @brief 取模的平方
-	fFloat Length2()const
+	float Length2()const
 	{
 		return x*x + y*y + z*z;
 	}
@@ -346,10 +346,10 @@ public: // 函数
 class fcyVec4
 {
 public:
-	fFloat x; ///< @brief x坐标
-	fFloat y; ///< @brief y坐标
-	fFloat z; ///< @brief z坐标
-	fFloat w; ///< @brief w坐标
+	float x; ///< @brief x坐标
+	float y; ///< @brief y坐标
+	float z; ///< @brief z坐标
+	float w; ///< @brief w坐标
 public: // 构造函数
 	fcyVec4()
 		: x(0.f), y(0.f), z(0.f), w(0.f) 
@@ -361,21 +361,21 @@ public: // 构造函数
 	/// @param[in] Y y坐标
 	/// @param[in] Z z坐标
 	/// @param[in] W w坐标
-	fcyVec4(fFloat X, fFloat Y, fFloat Z, fFloat W)
+	fcyVec4(float X, float Y, float Z, float W)
 		: x(X), y(Y), z(Z), w(W) {}
 	/// @brief     构造函数，从data[0]~data[3]取出浮点值
 	/// @warning   不安全的函数
 	/// @param[in] data 浮点数组指针
-	fcyVec4(fFloat *data)
+	fcyVec4(float *data)
 		: x(data[0]), y(data[1]), z(data[2]), w(data[3]) {}
 public: // 运算符重载
 	/// @brief 4D向量相等
-	fBool operator==(const fcyVec4& right)const
+	bool operator==(const fcyVec4& right)const
 	{
 		return (x == right.x && y == right.y && z == right.z && w == right.w);
 	}
 	/// @brief 4D向量不等
-	fBool operator!=(const fcyVec4& right)const
+	bool operator!=(const fcyVec4& right)const
 	{
 		return (x != right.x || y != right.y || z != right.z || w != right.w);
 	}
@@ -418,7 +418,7 @@ public: // 运算符重载
 		return *this;
 	};
 	/// @brief 4D向量数乘
-	fcyVec4 operator*(fFloat right)const
+	fcyVec4 operator*(float right)const
 	{
 		return fcyVec4(
 			x * right,
@@ -428,7 +428,7 @@ public: // 运算符重载
 			);
 	};
 	/// @brief 4D向量数乘（除法）
-	fcyVec4 operator/(fFloat right)const
+	fcyVec4 operator/(float right)const
 	{
 		return fcyVec4(
 			x / right,
@@ -438,7 +438,7 @@ public: // 运算符重载
 			);
 	};
 	/// @brief 4D向量自数乘
-	fcyVec4& operator*=(fFloat right)
+	fcyVec4& operator*=(float right)
 	{
 		x = x * right;
 		y = y * right;
@@ -447,7 +447,7 @@ public: // 运算符重载
 		return *this;
 	};
 	/// @brief 4D向量自数乘（除法）
-	fcyVec4& operator/=(fFloat right)
+	fcyVec4& operator/=(float right)
 	{
 		x = x / right;
 		y = y / right;
@@ -462,19 +462,19 @@ public: // 运算符重载
 	};
 public: // 函数
 	/// @brief 设值新值
-	void Set(fFloat X, fFloat Y, fFloat Z)
+	void Set(float X, float Y, float Z)
 	{
 		x = X; y = Y; z = Z;
 	}
 	/// @brief 设值新值
-	void Set(fFloat X, fFloat Y, fFloat Z, fFloat W)
+	void Set(float X, float Y, float Z, float W)
 	{
 		x = X; y = Y; z = Z; w = W;
 	}
 	/// @brief 规范化向量
 	void Normalize()
 	{
-		fFloat mode = sqrt( x*x +  y*y +  z*z + w*w );
+		float mode = sqrt( x*x +  y*y +  z*z + w*w );
 		if(mode != 0)
 		{
 			x/=mode;
@@ -486,19 +486,19 @@ public: // 函数
 	/// @brief 返回规范化向量
 	fcyVec4 GetNormalize()const
 	{
-		fFloat mode = sqrt( x*x + y*y + z*z + w*w );
+		float mode = sqrt( x*x + y*y + z*z + w*w );
 		if(mode != 0)
 			return fcyVec4( x / mode, y / mode, z / mode, w / mode );
 		else
 			return fcyVec4();
 	};
 	/// @brief 取模
-	fFloat Length()const
+	float Length()const
 	{
 		return sqrt( x*x + y*y + z*z + w*w );
 	};
 	/// @brief 取模的平方
-	fFloat Length2()const
+	float Length2()const
 	{
 		return x*x + y*y + z*z + w*w;
 	}
@@ -515,12 +515,12 @@ public:
 	{
 		struct
 		{
-			fFloat _11, _12, _13, _14;
-			fFloat _21, _22, _23, _24;
-			fFloat _31, _32, _33, _34;
-			fFloat _41, _42, _43, _44;
+			float _11, _12, _13, _14;
+			float _21, _22, _23, _24;
+			float _31, _32, _33, _34;
+			float _41, _42, _43, _44;
 		} m;
-		fFloat arr[4][4];  /// @brief 矩阵数据域
+		float arr[4][4];  /// @brief 矩阵数据域
 	};
 public:
 	/// @brief 初始化为单位矩阵
@@ -532,10 +532,10 @@ public:
 		m._41 = 0.f;  m._42 = 0.f;  m._43 = 0.f;  m._44 = 1.f;
 	};
 	/// @brief 使用自定义初值初始化矩阵
-	fcyMatrix4(fFloat m11,fFloat m12,fFloat m13,fFloat m14,
-		fFloat m21,fFloat m22,fFloat m23,fFloat m24,
-		fFloat m31,fFloat m32,fFloat m33,fFloat m34,
-		fFloat m41,fFloat m42,fFloat m43,fFloat m44)
+	fcyMatrix4(float m11,float m12,float m13,float m14,
+		float m21,float m22,float m23,float m24,
+		float m31,float m32,float m33,float m34,
+		float m41,float m42,float m43,float m44)
 	{
 		m._11 = m11;  m._12 = m12;  m._13 = m13;  m._14 = m14;
 		m._21 = m21;  m._22 = m22;  m._23 = m23;  m._24 = m24;
@@ -544,10 +544,10 @@ public:
 	};
 public:
 	/// @brief 设置新值
-	void Set(fFloat m11,fFloat m12,fFloat m13,fFloat m14,
-		fFloat m21,fFloat m22,fFloat m23,fFloat m24,
-		fFloat m31,fFloat m32,fFloat m33,fFloat m34,
-		fFloat m41,fFloat m42,fFloat m43,fFloat m44)
+	void Set(float m11,float m12,float m13,float m14,
+		float m21,float m22,float m23,float m24,
+		float m31,float m32,float m33,float m34,
+		float m41,float m42,float m43,float m44)
 	{
 		m._11 = m11;  m._12 = m12;  m._13 = m13;  m._14 = m14;
 		m._21 = m21;  m._22 = m22;  m._23 = m23;  m._24 = m24;
@@ -621,7 +621,7 @@ public:
 			);
 	};
 	/// @brief 矩阵数乘
-	fcyMatrix4 operator*(const fFloat& right)const
+	fcyMatrix4 operator*(const float& right)const
 	{
 		return fcyMatrix4(m._11 * right, m._12 * right, m._13 * right, m._14 * right,
 			m._21 * right, m._22 * right, m._23 * right, m._24 * right,
@@ -700,7 +700,7 @@ public:
 	};
 	/// @brief     返回缩放矩阵
 	/// @param[in] value 统一缩放量
-	static fcyMatrix4 GetScaleMatrix(const fFloat value)
+	static fcyMatrix4 GetScaleMatrix(const float value)
 	{
 		return fcyMatrix4(
 			value, 0.f, 0.f, 0.f,
@@ -722,9 +722,9 @@ public:
 	}
 	/// @brief     返回绕X轴旋转矩阵
 	/// @param[in] angle 旋转角度
-	static fcyMatrix4 GetRotateX(const fFloat angle)
+	static fcyMatrix4 GetRotateX(const float angle)
 	{
-		fFloat angle_sin = sin(angle),
+		float angle_sin = sin(angle),
 			angle_cos = cos(angle);
 
 		return fcyMatrix4(
@@ -736,9 +736,9 @@ public:
 	};
 	/// @brief     返回绕Y轴旋转矩阵
 	/// @param[in] angle 旋转角度
-	static fcyMatrix4 GetRotateY(const fFloat angle)
+	static fcyMatrix4 GetRotateY(const float angle)
 	{
-		fFloat angle_sin = sin(angle),
+		float angle_sin = sin(angle),
 			angle_cos = cos(angle);
 
 		return fcyMatrix4(
@@ -750,9 +750,9 @@ public:
 	};
 	/// @brief     返回绕Z轴旋转矩阵
 	/// @param[in] angle 旋转角度
-	static fcyMatrix4 GetRotateZ(const fFloat angle)
+	static fcyMatrix4 GetRotateZ(const float angle)
 	{
-		fFloat angle_sin = sin(angle),
+		float angle_sin = sin(angle),
 			angle_cos = cos(angle);
 
 		return fcyMatrix4(
@@ -767,16 +767,16 @@ public:
 	/// @param[in] pitch 纵倾是绕 x 轴旋转的角度
 	/// @param[in] roll  横摆是绕 z 轴旋转的角度
 	static fcyMatrix4 GetRotationYawPitchRoll(
-		const fFloat yaw,
-		const fFloat pitch,
-		const fFloat roll)
+		const float yaw,
+		const float pitch,
+		const float roll)
 	{
-		fFloat sin_x = sin(pitch);
-		fFloat cos_x = cos(pitch);
-		fFloat sin_y = sin(yaw);
-		fFloat cos_y = cos(yaw);
-		fFloat sin_z = sin(roll);
-		fFloat cos_z = cos(roll);
+		float sin_x = sin(pitch);
+		float cos_x = cos(pitch);
+		float sin_y = sin(yaw);
+		float cos_y = cos(yaw);
+		float sin_z = sin(roll);
+		float cos_z = cos(roll);
 
 		return fcyMatrix4(
 			cos_y*cos_z, cos_y*sin_z, -sin_y, 0.f,
@@ -790,9 +790,9 @@ public:
 	/// @param[in] angle        角度
 	static fcyMatrix4 GetRotationAxisRH(
 		const fcyVec3& axisRotation,  
-		const fFloat angle)
+		const float angle)
 	{
-		fFloat angle_sin = sin(angle),
+		float angle_sin = sin(angle),
 			angle_cos = cos(angle);
 
 		return fcyMatrix4(
@@ -819,9 +819,9 @@ public:
 	/// @param[in] angle        角度
 	static fcyMatrix4 GetRotationAxisLH(
 		const fcyVec3& axisRotation,
-		const fFloat angle)
+		const float angle)
 	{
-		fFloat angle_sin = sin(angle),
+		float angle_sin = sin(angle),
 			angle_cos = cos(angle);
 
 		return fcyMatrix4(
@@ -888,10 +888,10 @@ public:
 	/// @param[in] nearPlane 最近距离
 	/// @param[in] farPlane  最远距离
 	static fcyMatrix4 GetOrthoLH(
-		const fuInt w,
-		const fuInt h,
-		const fFloat nearPlane,
-		const fFloat farPlane)
+		const uint32_t w,
+		const uint32_t h,
+		const float nearPlane,
+		const float farPlane)
 	{
 		return fcyMatrix4(
 			2.0f/w, 0.f, 0.f, 0.f,
@@ -906,10 +906,10 @@ public:
 	/// @param[in] nearPlane 最近距离
 	/// @param[in] farPlane  最远距离
 	static fcyMatrix4 GetOrthoRH(
-		const fuInt w,
-		const fuInt h,
-		const fFloat nearPlane,
-		const fFloat farPlane)
+		const uint32_t w,
+		const uint32_t h,
+		const float nearPlane,
+		const float farPlane)
 	{
 		return fcyMatrix4(
 			2.0f/w, 0.f, 0.f, 0.f,
@@ -924,12 +924,12 @@ public:
 	/// @param[in] nearPlane 最近距离
 	/// @param[in] farPlane  最远距离
 	static fcyMatrix4 GetPespctiveLH(
-		const fFloat ration,
-		const fFloat fovY,
-		const fFloat nearPlane,
-		const fFloat farPlane)
+		const float ration,
+		const float fovY,
+		const float nearPlane,
+		const float farPlane)
 	{
-		fFloat t = 1.f / tan(fovY*0.5f);
+		float t = 1.f / tan(fovY*0.5f);
 
 		return fcyMatrix4(
 			t/ration, 0.f, 0.f, 0.f,
@@ -944,12 +944,12 @@ public:
 	/// @param[in] nearPlane 最近距离
 	/// @param[in] farPlane  最远距离
 	static fcyMatrix4 GetPespctiveRH(
-		const fFloat ration,
-		const fFloat fovY,
-		const fFloat nearPlane,
-		const fFloat farPlane)
+		const float ration,
+		const float fovY,
+		const float nearPlane,
+		const float farPlane)
 	{
-		fFloat t = 1.f / tan(fovY*0.5f);
+		float t = 1.f / tan(fovY*0.5f);
 
 		return fcyMatrix4(
 			t/ration, 0.f, 0.f, 0.f,
@@ -966,12 +966,12 @@ public:
 	/// @param[in] zn 最近距离
 	/// @param[in] zf 最远距离
 	static fcyMatrix4 GetOrthoOffCenterLH(
-		const fFloat l,
-		const fFloat r,
-		const fFloat b,
-		const fFloat t,
-		const fFloat zn,
-		const fFloat zf)
+		const float l,
+		const float r,
+		const float b,
+		const float t,
+		const float zn,
+		const float zf)
 	{
 		return fcyMatrix4(
 			2.f/(r-l)  , 0.f        , 0.f        , 0.f,
@@ -988,12 +988,12 @@ public:
 	/// @param[in] zn 最近距离
 	/// @param[in] zf 最远距离
 	static fcyMatrix4 GetOrthoOffCenterRH(
-		const fFloat l,
-		const fFloat r,
-		const fFloat b,
-		const fFloat t,
-		const fFloat zn,
-		const fFloat zf)
+		const float l,
+		const float r,
+		const float b,
+		const float t,
+		const float zn,
+		const float zf)
 	{
 		return fcyMatrix4(
 			2.f/(r-l)  , 0.f        , 0.f        , 0.f,
@@ -1012,13 +1012,13 @@ class fcyColor
 {
 public:
 	union{
-		fuInt argb;   ///< @brief 颜色值
+		uint32_t argb;   ///< @brief 颜色值
 		struct
 		{
-			fByte b;
-			fByte g;
-			fByte r;
-			fByte a;
+			uint8_t b;
+			uint8_t g;
+			uint8_t r;
+			uint8_t a;
 		};
 	};
 public: // 构造函数
@@ -1026,37 +1026,37 @@ public: // 构造函数
 	fcyColor()
 		: argb(0xFF000000) {}
 	/// @brief 使用颜色值产生颜色
-	fcyColor(fuInt ARGB)
+	fcyColor(uint32_t ARGB)
 		: argb(ARGB) {}
 	/// @brief 使用RGB值产生颜色，A=255
 	/// @param[in] R 取值为[0,255]
 	/// @param[in] G 取值为[0,255]
 	/// @param[in] B 取值为[0,255]
-	fcyColor(fInt R, fInt G, fInt B)
-		: a(255), r((fByte)R), g((fByte)G), b((fByte)B) {}
+	fcyColor(int32_t R, int32_t G, int32_t B)
+		: a(255), r((uint8_t)R), g((uint8_t)G), b((uint8_t)B) {}
 	/// @brief 使用ARGB值产生颜色
 	/// @param[in] A 取值为[0,255]
 	/// @param[in] R 取值为[0,255]
 	/// @param[in] G 取值为[0,255]
 	/// @param[in] B 取值为[0,255]
-	fcyColor(fInt A, fInt R, fInt G, fInt B)
-		: a((fByte)A), r((fByte)R), g((fByte)G), b((fByte)B) {}
+	fcyColor(int32_t A, int32_t R, int32_t G, int32_t B)
+		: a((uint8_t)A), r((uint8_t)R), g((uint8_t)G), b((uint8_t)B) {}
 	/// @brief     使用RGB浮点值产生颜色
 	/// @param[in] R 取值为[0,1]
 	/// @param[in] G 取值为[0,1]
 	/// @param[in] B 取值为[0,1]
-	fcyColor(fDouble R, fDouble G, fDouble B)
-		: a((fByte)255), r((fByte)(R * 255)), g((fByte)(G * 255)), b((fByte)(B * 255)) {}
+	fcyColor(double R, double G, double B)
+		: a((uint8_t)255), r((uint8_t)(R * 255)), g((uint8_t)(G * 255)), b((uint8_t)(B * 255)) {}
 	/// @brief     使用RGB浮点值产生颜色
 	/// @param[in] A 取值为[0,1]
 	/// @param[in] R 取值为[0,1]
 	/// @param[in] G 取值为[0,1]
 	/// @param[in] B 取值为[0,1]
-	fcyColor(fDouble A, fDouble R, fDouble G, fDouble B)
-		: a((fByte)(A * 255)), r((fByte)(R * 255)), g((fByte)(G * 255)), b((fByte)(B * 255)) {}
+	fcyColor(double A, double R, double G, double B)
+		: a((uint8_t)(A * 255)), r((uint8_t)(R * 255)), g((uint8_t)(G * 255)), b((uint8_t)(B * 255)) {}
 public: // 函数
 	/// @brief 设置新值
-	void Set(fByte A, fByte R, fByte G, fByte B)
+	void Set(uint8_t A, uint8_t R, uint8_t G, uint8_t B)
 	{
 		a = A;
 		r = R;
@@ -1086,28 +1086,28 @@ public:
 	/// @param[in] y1 顶边
 	/// @param[in] x2 底边
 	/// @param[in] y2 右边
-	fcyRect(fFloat x1, fFloat y1, fFloat x2, fFloat y2)
+	fcyRect(float x1, float y1, float x2, float y2)
 		: a(x1,y1), b(x2,y2) {}
 public:
 	/// @brief 取宽度
-	fFloat GetWidth()const
+	float GetWidth()const
 	{
 		return fabs(a.x - b.x);
 	}
 	/// @brief 取高度
-	fFloat GetHeight()const
+	float GetHeight()const
 	{
 		return fabs(a.y - b.y);
 	}
 	/// @brief 是否包含点
 	/// @note  含边界
-	fBool Contain(const fcyVec2& x)const
+	bool Contain(const fcyVec2& x)const
 	{
 		return (x.x>=a.x && x.x<=b.x && x.y>=a.y && x.y<=b.y);
 	}
 	/// @brief 是否与圆相交
 	/// @note  含相切
-	fBool Contain(const fcyVec2& x, fFloat R)const
+	bool Contain(const fcyVec2& x, float R)const
 	{
 		return (x.x + R >= a.x && x.x - R <=b.x && x.y + R >=a.y && x.y - R <=b.y);
 	}
@@ -1119,7 +1119,7 @@ public:
 	/// @brief      求是否相交，若相交返回公共部分
 	/// @param[in]  Rect 待判断的矩形
 	/// @param[out] pOut 输出的相交部分
-	fBool Intersect(const fcyRect& Rect, fcyRect* pOut)const
+	bool Intersect(const fcyRect& Rect, fcyRect* pOut)const
 	{
 		fcyRect tRet(
 			FCYMAX(a.x, Rect.a.x),

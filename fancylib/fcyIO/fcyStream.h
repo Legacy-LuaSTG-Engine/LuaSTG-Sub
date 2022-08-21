@@ -29,37 +29,37 @@ enum FCYSEEKORIGIN {
 ////////////////////////////////////////////////////////////////////////////////
 struct fcyStream : fcyRefObj {
     //返回流是否可写
-    virtual fBool CanWrite() = 0;
+    virtual bool CanWrite() = 0;
     
     //返回流是否可变长
-    virtual fBool CanResize() = 0;
+    virtual bool CanResize() = 0;
     
     //返回流长度
-    virtual fLen GetLength() = 0;
+    virtual uint64_t GetLength() = 0;
     
     //设置新长度
     //param[in] Length 流的新长度
-    virtual fResult SetLength(fLen Length) = 0;
+    virtual fResult SetLength(uint64_t Length) = 0;
     
     //获得读写指针的位置
-    virtual fLen GetPosition() = 0;
+    virtual uint64_t GetPosition() = 0;
     
     //设置读写位置
     //param[in] Origin 寻址参考位置
     //param[in] Offset 位移
-    virtual fResult SetPosition(FCYSEEKORIGIN Origin, fLong Offset) = 0;
+    virtual fResult SetPosition(FCYSEEKORIGIN Origin, int64_t Offset) = 0;
     
     //从流中读取字节数据
     //@param[in]  pData      目的缓冲区
     //@param[in]  Length     数据长度
     //@param[out] pBytesRead 真实读写长度，可置为NULL
-    virtual fResult ReadBytes(fData pData, fLen Length, fLen* pBytesRead = NULL) = 0;
+    virtual fResult ReadBytes(fData pData, uint64_t Length, uint64_t* pBytesRead = NULL) = 0;
     
     //向流中写入字节数据
     //param[in]  pSrc        原始缓冲区
     //param[in]  Length      数据长度
     //param[out] pBytesWrite 真实读写长度，可置为NULL
-    virtual fResult WriteBytes(fcData pSrc, fLen Length, fLen* pBytesWrite = NULL) = 0;
+    virtual fResult WriteBytes(fcData pSrc, uint64_t Length, uint64_t* pBytesWrite = NULL) = 0;
     
     //锁定流
     //note    该函数可能会造成阻塞
@@ -83,25 +83,25 @@ struct fcyStream : fcyRefObj {
 class fcyFileStream : public fcyRefObjImpl<fcyStream> {
 private:
     fHandle m_hFile;       ///< @brief 内部文件句柄
-    fBool m_bWritable;    ///< @brief 是否可写
+    bool m_bWritable;    ///< @brief 是否可写
     std::wstring m_sPath; ///< @brief 文件路径
     fcyCriticalSection m_CriticalSec; ///< @brief 临界区
 public: // 接口实现
-    fBool CanWrite();
+    bool CanWrite();
     
-    fBool CanResize();
+    bool CanResize();
     
-    fLen GetLength();
+    uint64_t GetLength();
     
-    fResult SetLength(fLen Length);
+    fResult SetLength(uint64_t Length);
     
-    fLen GetPosition();
+    uint64_t GetPosition();
     
-    fResult SetPosition(FCYSEEKORIGIN Origin, fLong Offset);
+    fResult SetPosition(FCYSEEKORIGIN Origin, int64_t Offset);
     
-    fResult ReadBytes(fData pData, fLen Length, fLen* pBytesRead);
+    fResult ReadBytes(fData pData, uint64_t Length, uint64_t* pBytesRead);
     
-    fResult WriteBytes(fcData pSrc, fLen Length, fLen* pBytesWrite);
+    fResult WriteBytes(fcData pSrc, uint64_t Length, uint64_t* pBytesWrite);
     
     void Lock();
     
@@ -113,7 +113,7 @@ public:
     /// @brief     构造函数
     /// @param[in] Path     文件路径
     /// @param[in] Writable 可写
-    fcyFileStream(fcStrW Path, fBool Writable);
+    fcyFileStream(fcStrW Path, bool Writable);
 
 protected:
     ~fcyFileStream();
@@ -124,27 +124,27 @@ protected:
 ////////////////////////////////////////////////////////////////////////////////
 class fcyMemStream : public fcyRefObjImpl<fcyStream> {
 private:
-    std::vector<fByte> m_Data;        ///< @brief 内部数组
-    fBool m_bResizable;               ///< @brief 可变长
-    fBool m_bWritable;                ///< @brief 可写
-    fLen m_cPointer;                  ///< @brief 读写位置
+    std::vector<uint8_t> m_Data;        ///< @brief 内部数组
+    bool m_bResizable;               ///< @brief 可变长
+    bool m_bWritable;                ///< @brief 可写
+    uint64_t m_cPointer;                  ///< @brief 读写位置
     fcyCriticalSection m_CriticalSec; ///< @brief 临界区
 public: // 接口实现
-    fBool CanWrite();
+    bool CanWrite();
     
-    fBool CanResize();
+    bool CanResize();
     
-    fLen GetLength();
+    uint64_t GetLength();
     
-    fResult SetLength(fLen Length);
+    fResult SetLength(uint64_t Length);
     
-    fLen GetPosition();
+    uint64_t GetPosition();
     
-    fResult SetPosition(FCYSEEKORIGIN Origin, fLong Offset);
+    fResult SetPosition(FCYSEEKORIGIN Origin, int64_t Offset);
     
-    fResult ReadBytes(fData pData, fLen Length, fLen* pBytesRead);
+    fResult ReadBytes(fData pData, uint64_t Length, uint64_t* pBytesRead);
     
-    fResult WriteBytes(fcData pSrc, fLen Length, fLen* pBytesWrite);
+    fResult WriteBytes(fcData pSrc, uint64_t Length, uint64_t* pBytesWrite);
     
     void Lock();
     
@@ -161,7 +161,7 @@ public:
     /// @param[in] Length    数据长度
     /// @param[in] Writable  可写
     /// @param[in] Resizable 可变长
-    fcyMemStream(fcData Src, fLen Length, fBool Writable, fBool Resizable);
+    fcyMemStream(fcData Src, uint64_t Length, bool Writable, bool Resizable);
 
     fcyMemStream(std::vector<uint8_t>&& rvData);
 
@@ -176,25 +176,25 @@ protected:
 class fcyPartialStream : public fcyRefObjImpl<fcyStream> {
 private:
     fcyStream* m_pOrgStream; ///< @brief 原始流
-    fLen m_Offset;           ///< @brief 在原始流中的偏移量
-    fLen m_pPos;             ///< @brief 当前读写位置
-    fLen m_Len;              ///< @brief 原始流长度
+    uint64_t m_Offset;           ///< @brief 在原始流中的偏移量
+    uint64_t m_pPos;             ///< @brief 当前读写位置
+    uint64_t m_Len;              ///< @brief 原始流长度
 public: // 接口实现
-    fBool CanWrite();
+    bool CanWrite();
     
-    fBool CanResize();
+    bool CanResize();
     
-    fLen GetLength();
+    uint64_t GetLength();
     
-    fResult SetLength(fLen Length);
+    fResult SetLength(uint64_t Length);
     
-    fLen GetPosition();
+    uint64_t GetPosition();
     
-    fResult SetPosition(FCYSEEKORIGIN Origin, fLong Offset);
+    fResult SetPosition(FCYSEEKORIGIN Origin, int64_t Offset);
     
-    fResult ReadBytes(fData pData, fLen Length, fLen* pBytesRead);
+    fResult ReadBytes(fData pData, uint64_t Length, uint64_t* pBytesRead);
     
-    fResult WriteBytes(fcData pSrc, fLen Length, fLen* pBytesWrite);
+    fResult WriteBytes(fcData pSrc, uint64_t Length, uint64_t* pBytesWrite);
     
     void Lock();
     
@@ -207,7 +207,7 @@ public:
     /// @param[in] OrgStream 原始流指针
     /// @param[in] Offset    部分流在原始流中的位移
     /// @param[in] Size      部分流大小
-    fcyPartialStream(fcyStream* OrgStream, fLen Offset, fLen Size);
+    fcyPartialStream(fcyStream* OrgStream, uint64_t Offset, uint64_t Size);
 
 protected:
     ~fcyPartialStream();
@@ -223,5 +223,5 @@ namespace fcyStreamHelper {
     /// @param[in] Dest 目的流
     /// @param[in] DataLength 数据长度
     /// @return    FCYERR_OK：操作成功完成，FCYERR_INTERNALERR：读取时错误
-    fResult FillStream(fcyStream* Src, fcyStream* Dest, fLen DataLength);
+    fResult FillStream(fcyStream* Src, fcyStream* Dest, uint64_t DataLength);
 };

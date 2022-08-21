@@ -3,7 +3,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-fcyFileStream::fcyFileStream(fcStrW Path, fBool Writable)
+fcyFileStream::fcyFileStream(fcStrW Path, bool Writable)
     : m_sPath(Path), m_bWritable(Writable) {
     m_hFile = (fHandle) ::CreateFileW(
         m_sPath.c_str(),
@@ -22,22 +22,22 @@ fcyFileStream::~fcyFileStream() {
     ::CloseHandle((HANDLE) m_hFile);
 }
 
-fBool fcyFileStream::CanWrite() {
+bool fcyFileStream::CanWrite() {
     return m_bWritable;
 }
 
-fBool fcyFileStream::CanResize() {
+bool fcyFileStream::CanResize() {
     return m_bWritable;
 }
 
-fLen fcyFileStream::GetLength() {
+uint64_t fcyFileStream::GetLength() {
     LARGE_INTEGER tValue = {};
     if (FALSE == ::GetFileSizeEx((HANDLE) m_hFile, &tValue))
         return 0;
-    return (fLen) tValue.QuadPart;
+    return (uint64_t) tValue.QuadPart;
 }
 
-fResult fcyFileStream::SetLength(fLen Length) {
+fResult fcyFileStream::SetLength(uint64_t Length) {
     LARGE_INTEGER tValue = {};
     tValue.QuadPart = Length;
     if (INVALID_SET_FILE_POINTER == ::SetFilePointer((HANDLE) m_hFile, tValue.LowPart, &tValue.HighPart, FILE_BEGIN))
@@ -47,14 +47,14 @@ fResult fcyFileStream::SetLength(fLen Length) {
     return FCYERR_OK;
 }
 
-fLen fcyFileStream::GetPosition() {
+uint64_t fcyFileStream::GetPosition() {
     LARGE_INTEGER tValue = {};
     tValue.LowPart = ::SetFilePointer((HANDLE) m_hFile, tValue.LowPart, &tValue.HighPart, FILE_CURRENT);
     return tValue.QuadPart;
 }
 
-fResult fcyFileStream::SetPosition(FCYSEEKORIGIN Origin, fLong Offset) {
-    fuInt tOrigin;
+fResult fcyFileStream::SetPosition(FCYSEEKORIGIN Origin, int64_t Offset) {
+    uint32_t tOrigin;
     switch (Origin) {
         case FCYSEEKORIGIN_CUR:
             tOrigin = FILE_CURRENT;
@@ -76,7 +76,7 @@ fResult fcyFileStream::SetPosition(FCYSEEKORIGIN Origin, fLong Offset) {
         return FCYERR_OK;
 }
 
-fResult fcyFileStream::ReadBytes(fData pData, fLen Length, fLen* pBytesRead) {
+fResult fcyFileStream::ReadBytes(fData pData, uint64_t Length, uint64_t* pBytesRead) {
     DWORD tRealReaded = 0;
     
     if (pBytesRead)
@@ -95,7 +95,7 @@ fResult fcyFileStream::ReadBytes(fData pData, fLen Length, fLen* pBytesRead) {
         return FCYERR_OK;
 }
 
-fResult fcyFileStream::WriteBytes(fcData pSrc, fLen Length, fLen* pBytesWrite) {
+fResult fcyFileStream::WriteBytes(fcData pSrc, uint64_t Length, uint64_t* pBytesWrite) {
     if (!m_bWritable)
         return FCYERR_ILLEGAL;
     
@@ -129,7 +129,7 @@ void fcyFileStream::Unlock() {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-fcyMemStream::fcyMemStream(fcData Src, fLen Length, fBool Writable, fBool Resizable)
+fcyMemStream::fcyMemStream(fcData Src, uint64_t Length, bool Writable, bool Resizable)
     : m_bResizable(Resizable)
     , m_bWritable(Writable)
     , m_cPointer(0)
@@ -153,19 +153,19 @@ fData fcyMemStream::GetInternalBuffer() {
     return (fData) m_Data.data();
 }
 
-fBool fcyMemStream::CanWrite() {
+bool fcyMemStream::CanWrite() {
     return m_bWritable;
 }
 
-fBool fcyMemStream::CanResize() {
+bool fcyMemStream::CanResize() {
     return m_bResizable;
 }
 
-fLen fcyMemStream::GetLength() {
+uint64_t fcyMemStream::GetLength() {
     return m_Data.size();
 }
 
-fResult fcyMemStream::SetLength(fLen Length) {
+fResult fcyMemStream::SetLength(uint64_t Length) {
     if (m_bResizable) {
         m_Data.resize((size_t) Length);
         if (m_cPointer > m_Data.size())
@@ -176,11 +176,11 @@ fResult fcyMemStream::SetLength(fLen Length) {
         return FCYERR_ILLEGAL;
 }
 
-fLen fcyMemStream::GetPosition() {
+uint64_t fcyMemStream::GetPosition() {
     return m_cPointer;
 }
 
-fResult fcyMemStream::SetPosition(FCYSEEKORIGIN Origin, fLong Offset) {
+fResult fcyMemStream::SetPosition(FCYSEEKORIGIN Origin, int64_t Offset) {
     switch (Origin) {
         case FCYSEEKORIGIN_CUR:
             break;
@@ -193,7 +193,7 @@ fResult fcyMemStream::SetPosition(FCYSEEKORIGIN Origin, fLong Offset) {
         default:
             return FCYERR_INVAILDPARAM;
     }
-    if (Offset < 0 && ((fuInt) (-Offset)) > m_cPointer) {
+    if (Offset < 0 && ((uint32_t) (-Offset)) > m_cPointer) {
         m_cPointer = 0;
         return FCYERR_OUTOFRANGE;
     }
@@ -205,7 +205,7 @@ fResult fcyMemStream::SetPosition(FCYSEEKORIGIN Origin, fLong Offset) {
     return FCYERR_OK;
 }
 
-fResult fcyMemStream::ReadBytes(fData pData, fLen Length, fLen* pBytesRead) {
+fResult fcyMemStream::ReadBytes(fData pData, uint64_t Length, uint64_t* pBytesRead) {
     if (pBytesRead)
         *pBytesRead = 0;
     if (Length == 0)
@@ -213,7 +213,7 @@ fResult fcyMemStream::ReadBytes(fData pData, fLen Length, fLen* pBytesRead) {
     if (!pData)
         return FCYERR_INVAILDPARAM;
     
-    fLen tRestSize = m_Data.size() - m_cPointer;
+    uint64_t tRestSize = m_Data.size() - m_cPointer;
     
     if (tRestSize == 0)
         return FCYERR_OUTOFRANGE;
@@ -234,7 +234,7 @@ fResult fcyMemStream::ReadBytes(fData pData, fLen Length, fLen* pBytesRead) {
     }
 }
 
-fResult fcyMemStream::WriteBytes(fcData pSrc, fLen Length, fLen* pBytesWrite) {
+fResult fcyMemStream::WriteBytes(fcData pSrc, uint64_t Length, uint64_t* pBytesWrite) {
     if (!m_bWritable)
         return FCYERR_ILLEGAL;
     
@@ -245,7 +245,7 @@ fResult fcyMemStream::WriteBytes(fcData pSrc, fLen Length, fLen* pBytesWrite) {
     if (!pSrc)
         return FCYERR_INVAILDPARAM;
     
-    fLen tRestSize = m_Data.size() - m_cPointer;
+    uint64_t tRestSize = m_Data.size() - m_cPointer;
     
     if (tRestSize < Length) {
         if (!m_bResizable) {
@@ -284,7 +284,7 @@ void fcyMemStream::Unlock() {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-fcyPartialStream::fcyPartialStream(fcyStream* OrgStream, fLen Offset, fLen Size)
+fcyPartialStream::fcyPartialStream(fcyStream* OrgStream, uint64_t Offset, uint64_t Size)
     : m_Offset(Offset), m_Len(Size), m_pPos(0), m_pOrgStream(OrgStream) {
     if (OrgStream == NULL)
         throw fcyWin32Exception("fcyPartialStream::fcyPartialStream", "Invalid Pointer.");
@@ -297,27 +297,27 @@ fcyPartialStream::~fcyPartialStream() {
     FCYSAFEKILL(m_pOrgStream);
 }
 
-fBool fcyPartialStream::CanWrite() {
+bool fcyPartialStream::CanWrite() {
     return m_pOrgStream->CanWrite();
 }
 
-fBool fcyPartialStream::CanResize() {
+bool fcyPartialStream::CanResize() {
     return m_pOrgStream->CanResize();
 }
 
-fLen fcyPartialStream::GetLength() {
+uint64_t fcyPartialStream::GetLength() {
     return m_Len;
 }
 
-fResult fcyPartialStream::SetLength(fLen) {
+fResult fcyPartialStream::SetLength(uint64_t) {
     return FCYERR_ILLEGAL;
 }
 
-fLen fcyPartialStream::GetPosition() {
+uint64_t fcyPartialStream::GetPosition() {
     return m_pPos;
 }
 
-fResult fcyPartialStream::SetPosition(FCYSEEKORIGIN Origin, fLong Offset) {
+fResult fcyPartialStream::SetPosition(FCYSEEKORIGIN Origin, int64_t Offset) {
     switch (Origin) {
         case FCYSEEKORIGIN_CUR:
             break;
@@ -330,7 +330,7 @@ fResult fcyPartialStream::SetPosition(FCYSEEKORIGIN Origin, fLong Offset) {
         default:
             return FCYERR_INVAILDPARAM;
     }
-    if (Offset < 0 && ((fuInt) (-Offset)) > m_pPos) {
+    if (Offset < 0 && ((uint32_t) (-Offset)) > m_pPos) {
         m_pPos = 0;
         return FCYERR_OUTOFRANGE;
     }
@@ -342,7 +342,7 @@ fResult fcyPartialStream::SetPosition(FCYSEEKORIGIN Origin, fLong Offset) {
     return FCYERR_OK;
 }
 
-fResult fcyPartialStream::ReadBytes(fData pData, fLen Length, fLen* pBytesRead) {
+fResult fcyPartialStream::ReadBytes(fData pData, uint64_t Length, uint64_t* pBytesRead) {
     if (pBytesRead)
         *pBytesRead = 0;
     if (Length == 0)
@@ -350,13 +350,13 @@ fResult fcyPartialStream::ReadBytes(fData pData, fLen Length, fLen* pBytesRead) 
     if (!pData)
         return FCYERR_INVAILDPARAM;
     
-    fLen tRestSize = m_Len - m_pPos;
+    uint64_t tRestSize = m_Len - m_pPos;
     
     if (tRestSize == 0)
         return FCYERR_OUTOFRANGE;
     
     if (tRestSize < Length) {
-        fLen tTempPos = m_pOrgStream->GetPosition();
+        uint64_t tTempPos = m_pOrgStream->GetPosition();
         m_pOrgStream->SetPosition(FCYSEEKORIGIN_BEG, m_Offset + m_pPos);
         m_pOrgStream->ReadBytes(pData, tRestSize, pBytesRead);
         m_pOrgStream->SetPosition(FCYSEEKORIGIN_BEG, tTempPos);
@@ -365,7 +365,7 @@ fResult fcyPartialStream::ReadBytes(fData pData, fLen Length, fLen* pBytesRead) 
         return FCYERR_OUTOFRANGE;
     }
     else {
-        fLen tTempPos = m_pOrgStream->GetPosition();
+        uint64_t tTempPos = m_pOrgStream->GetPosition();
         m_pOrgStream->SetPosition(FCYSEEKORIGIN_BEG, m_Offset + m_pPos);
         m_pOrgStream->ReadBytes(pData, Length, pBytesRead);
         m_pOrgStream->SetPosition(FCYSEEKORIGIN_BEG, tTempPos);
@@ -377,7 +377,7 @@ fResult fcyPartialStream::ReadBytes(fData pData, fLen Length, fLen* pBytesRead) 
     }
 }
 
-fResult fcyPartialStream::WriteBytes(fcData pSrc, fLen Length, fLen* pBytesWrite) {
+fResult fcyPartialStream::WriteBytes(fcData pSrc, uint64_t Length, uint64_t* pBytesWrite) {
     if (!CanWrite())
         return FCYERR_ILLEGAL;
     
@@ -388,13 +388,13 @@ fResult fcyPartialStream::WriteBytes(fcData pSrc, fLen Length, fLen* pBytesWrite
     if (!pSrc)
         return FCYERR_INVAILDPARAM;
     
-    fLen tRestSize = m_Len - m_pPos;
+    uint64_t tRestSize = m_Len - m_pPos;
     
     if (tRestSize < Length) {
         if (tRestSize == 0)
             return FCYERR_OUTOFRANGE;
         else {
-            fLen tTempPos = m_pOrgStream->GetPosition();
+            uint64_t tTempPos = m_pOrgStream->GetPosition();
             m_pOrgStream->SetPosition(FCYSEEKORIGIN_BEG, m_Offset + m_pPos);
             m_pOrgStream->WriteBytes(pSrc, tRestSize, pBytesWrite);
             m_pOrgStream->SetPosition(FCYSEEKORIGIN_BEG, tTempPos);
@@ -404,7 +404,7 @@ fResult fcyPartialStream::WriteBytes(fcData pSrc, fLen Length, fLen* pBytesWrite
         }
     }
     
-    fLen tTempPos = m_pOrgStream->GetPosition();
+    uint64_t tTempPos = m_pOrgStream->GetPosition();
     m_pOrgStream->SetPosition(FCYSEEKORIGIN_BEG, m_Offset + m_pPos);
     m_pOrgStream->WriteBytes(pSrc, Length, pBytesWrite);
     m_pOrgStream->SetPosition(FCYSEEKORIGIN_BEG, tTempPos);
@@ -429,10 +429,10 @@ void fcyPartialStream::Unlock() {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-fResult fcyStreamHelper::FillStream(fcyStream* Src, fcyStream* Dest, fLen DataLength) {
-    fByte tBuffer[8192];
-    fLen tDataReaded = 0;
-    fLen tTotalReaded = 0;
+fResult fcyStreamHelper::FillStream(fcyStream* Src, fcyStream* Dest, uint64_t DataLength) {
+    uint8_t tBuffer[8192];
+    uint64_t tDataReaded = 0;
+    uint64_t tTotalReaded = 0;
     
     while (tTotalReaded != DataLength && FCYOK(
         Src->ReadBytes(tBuffer, (DataLength - tTotalReaded > 8192) ? 8192 : DataLength - tTotalReaded, &tDataReaded))) {

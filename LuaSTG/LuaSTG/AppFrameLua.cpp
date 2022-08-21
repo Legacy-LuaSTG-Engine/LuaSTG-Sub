@@ -244,7 +244,7 @@ namespace LuaSTGPlus
             luaL_error(L, "can't load file '%s'", path);
             return;
         }
-        if (0 != luaL_loadbuffer(L, (fcStr)src.data(), (size_t)src.size(), luaL_checkstring(L, 1)))
+        if (0 != luaL_loadbuffer(L, (char const*)src.data(), (size_t)src.size(), luaL_checkstring(L, 1)))
         {
             const char* tDetail = lua_tostring(L, -1);
             spdlog::error("[luajit] 编译'{}'失败：{}", path, tDetail);

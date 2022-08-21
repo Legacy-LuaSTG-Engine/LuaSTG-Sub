@@ -29,7 +29,7 @@ namespace LuaSTGPlus::LuaWrapper::IO
 			{
 				GETUDATA(-2);
 				if (p->handle->CanResize()) {
-					fLen len = (fLen)luaL_checkinteger(L, -1);
+					uint64_t len = (uint64_t)luaL_checkinteger(L, -1);
 					lua_pushboolean(L, FCYERR_OK == p->handle->SetLength(len));
 					return 1;
 				}
@@ -48,7 +48,7 @@ namespace LuaSTGPlus::LuaWrapper::IO
 			{
 				GETUDATA(-3);
 				std::string base = luaL_checkstring(L, -2);
-				fLong offset = (fLong)luaL_checkinteger(L, -1);
+				int64_t offset = (int64_t)luaL_checkinteger(L, -1);
 				FCYSEEKORIGIN org = FCYSEEKORIGIN_BEG;
 				if (base == "set") {
 					org = FCYSEEKORIGIN_BEG;
@@ -71,9 +71,9 @@ namespace LuaSTGPlus::LuaWrapper::IO
 				size_t count = (size_t)luaL_checkinteger(L, -1);
 				std::string buffer;
 				buffer.resize(count);
-				fLen cc = (fLen)count;
-				fLen realread = 0u;
-				bool ok = FCYERR_OK == p->handle->ReadBytes((fData)buffer.data(), cc, &realread);
+				uint64_t cc = (uint64_t)count;
+				uint64_t realread = 0u;
+				bool ok = FCYERR_OK == p->handle->ReadBytes((uint8_t*)buffer.data(), cc, &realread);
 				if (ok) {
 					lua_pushstring(L, buffer.c_str());
 				}
@@ -89,9 +89,9 @@ namespace LuaSTGPlus::LuaWrapper::IO
 				GETUDATA(-2);
 				if (p->handle->CanWrite()) {
 					std::string buffer = luaL_checkstring(L, -1);
-					fLen len = (fLen)buffer.size();
-					fLen realwirte = 0u;
-					lua_pushboolean(L, FCYERR_OK == p->handle->WriteBytes((fData)buffer.data(), len, &realwirte));
+					uint64_t len = (uint64_t)buffer.size();
+					uint64_t realwirte = 0u;
+					lua_pushboolean(L, FCYERR_OK == p->handle->WriteBytes((uint8_t*)buffer.data(), len, &realwirte));
 					lua_Integer rwrite = (lua_Integer)realwirte;
 					lua_pushinteger(L, rwrite);
 					return 2;

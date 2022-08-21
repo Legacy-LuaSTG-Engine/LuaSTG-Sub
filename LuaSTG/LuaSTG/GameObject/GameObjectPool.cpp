@@ -782,7 +782,7 @@ namespace LuaSTGPlus
 						// 变换
 						for (int i = 0; i < 4; i++)
 						{
-							fFloat tx = tFinalPos[i].x * tCos - tFinalPos[i].y * tSin,
+							float tx = tFinalPos[i].x * tCos - tFinalPos[i].y * tSin,
 								ty = tFinalPos[i].x * tSin + tFinalPos[i].y * tCos;
 							tFinalPos[i].x = tx + cc.absx;
 							tFinalPos[i].y = ty + cc.absy;
@@ -806,7 +806,7 @@ namespace LuaSTGPlus
 						// 变换
 						for (int i = 0; i < 4; i++)
 						{
-							fFloat tx = tFinalPos[i].x * tCos - tFinalPos[i].y * tSin,
+							float tx = tFinalPos[i].x * tCos - tFinalPos[i].y * tSin,
 								ty = tFinalPos[i].x * tSin + tFinalPos[i].y * tCos;
 							tFinalPos[i].x = tx + cc.absx;
 							tFinalPos[i].y = ty + cc.absy;

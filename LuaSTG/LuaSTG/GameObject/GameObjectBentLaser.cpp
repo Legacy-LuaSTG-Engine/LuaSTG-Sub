@@ -313,7 +313,7 @@ bool GameObjectBentLaser::Update(float x, float y, float rot, int length, float 
 	node.active = active;
 
 	// 变化几乎可以忽略不计，我们可以直接修改最新的节点
-	if (!m_Queue.IsEmpty() && (node.pos - m_Queue.Back().pos).length() <= std::numeric_limits<fFloat>::min())
+	if (!m_Queue.IsEmpty() && (node.pos - m_Queue.Back().pos).length() <= std::numeric_limits<float>::min())
 	{
 		// 移除多余的节点，保证长度在 length 范围内
 		while (m_Queue.Size() >= (size_t)length)
@@ -390,7 +390,7 @@ bool GameObjectBentLaser::Update(float x, float y, float rot, int length, float 
 			node.dis = 0.0f;
 			m_fLength = 0.0f;
 			// 【即将废弃】计算朝向
-			//fcyVec2 const vec_((fFloat)p->vy, (fFloat)p->vx);
+			//fcyVec2 const vec_((float)p->vy, (float)p->vx);
 			//if (vec_.Length() > std::numeric_limits<float>::min())
 			//{
 			//	node.rot = vec_.CalcuAngle(); // 使用速度方向作为节点朝向

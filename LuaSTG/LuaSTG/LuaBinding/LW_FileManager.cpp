@@ -20,7 +20,7 @@ static bool extractRes(const char* path, const char* target) noexcept
 				return false;
 			}
 			if (src.size() > 0) {
-				if (FCYFAILED(pFile->WriteBytes((fcData)src.data(), src.size(), nullptr))) {
+				if (FCYFAILED(pFile->WriteBytes((uint8_t*)src.data(), src.size(), nullptr))) {
 					spdlog::error("[luastg] ExtractRes: 无法向文件'{}'写出数据", target);
 					return false;
 				}

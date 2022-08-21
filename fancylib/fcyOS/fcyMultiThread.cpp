@@ -3,7 +3,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-fcyBaseThread::fcyBaseThread(fBool PauseThread) {
+fcyBaseThread::fcyBaseThread(bool PauseThread) {
     m_hThread = (fHandle) ::CreateThread(0, 0,
                                          (PTHREAD_START_ROUTINE) &ThreadFunction, (void*) this,
                                          PauseThread ? CREATE_SUSPENDED : 0, (DWORD*) &m_hThreadID);
@@ -15,7 +15,7 @@ fcyBaseThread::~fcyBaseThread() {
     ::CloseHandle((HANDLE) m_hThread);
 }
 
-fuInt __stdcall fcyBaseThread::ThreadFunction(void* p) {
+uint32_t __stdcall fcyBaseThread::ThreadFunction(void* p) {
     return ((fcyBaseThread*) p)->ThreadJob();
 }
 
@@ -23,27 +23,27 @@ fHandle fcyBaseThread::GetHandle() {
     return m_hThread;
 }
 
-fBool fcyBaseThread::Resume() {
+bool fcyBaseThread::Resume() {
     // 失败返回-1
     return ::ResumeThread((HANDLE) m_hThread) != DWORD(-1);
 }
 
-fBool fcyBaseThread::Suspend() {
+bool fcyBaseThread::Suspend() {
     // 失败返回-1
     return ::SuspendThread((HANDLE) m_hThread) != DWORD(-1);
 }
 
-fBool fcyBaseThread::Wait(fInt TimeLimited) {
+bool fcyBaseThread::Wait(int32_t TimeLimited) {
     // 失败返回-1
     return ::WaitForSingleObject((HANDLE) m_hThread, TimeLimited) != DWORD(-1);
 }
 
-fBool fcyBaseThread::Terminate(fInt ExitCode) {
+bool fcyBaseThread::Terminate(int32_t ExitCode) {
     // 失败返回0
     return ::TerminateThread((HANDLE) m_hThread, ExitCode) != FALSE;
 }
 
-fuInt fcyBaseThread::GetExitCode() {
+uint32_t fcyBaseThread::GetExitCode() {
     DWORD code = DWORD(-1);
     ::GetExitCodeThread((HANDLE) m_hThread, &code);
     return code;
@@ -60,7 +60,7 @@ fcyCriticalSection::~fcyCriticalSection() {
     DeleteCriticalSection((CRITICAL_SECTION*) &m_Section);
 }
 
-fBool fcyCriticalSection::TryLock() {
+bool fcyCriticalSection::TryLock() {
     return TryEnterCriticalSection((CRITICAL_SECTION*) &m_Section) != FALSE;
 }
 
@@ -74,7 +74,7 @@ void fcyCriticalSection::UnLock() {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-fcyEvent::fcyEvent(fBool AutoReset, fBool InitalState) {
+fcyEvent::fcyEvent(bool AutoReset, bool InitalState) {
     m_hEvent = (fHandle) ::CreateEventW(NULL, AutoReset, InitalState, NULL);
     if (m_hEvent == NULL)
         throw fcyWin32Exception("fcyEvent::fcyEvent", "CreateEvent Failed.");
@@ -88,18 +88,18 @@ fHandle fcyEvent::GetHandle() {
     return m_hEvent;
 }
 
-fBool fcyEvent::Set() {
+bool fcyEvent::Set() {
     return ::SetEvent((HANDLE) m_hEvent) != FALSE;
 }
 
-fBool fcyEvent::Reset() {
+bool fcyEvent::Reset() {
     return ::ResetEvent((HANDLE) m_hEvent) != FALSE;
 }
 
-fBool fcyEvent::Pulse() {
+bool fcyEvent::Pulse() {
     return ::PulseEvent((HANDLE) m_hEvent) != FALSE;
 }
 
-fBool fcyEvent::Wait(fInt TimeLimited) {
+bool fcyEvent::Wait(int32_t TimeLimited) {
     return ::WaitForSingleObject((HANDLE) m_hEvent, TimeLimited) != WAIT_FAILED;
 }

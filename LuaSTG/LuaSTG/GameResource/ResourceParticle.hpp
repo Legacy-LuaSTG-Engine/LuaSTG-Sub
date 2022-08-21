@@ -20,7 +20,7 @@ namespace LuaSTGPlus
 		// HGE 粒子效果定义
 		struct hgeParticleSystemInfo
 		{
-			fuInt iBlendInfo;
+			uint32_t iBlendInfo;
 
 			int nEmission;   // 每秒发射个数
 			float fLifetime; // 生命期
@@ -106,7 +106,7 @@ namespace LuaSTGPlus
 			ParticleSystemResourceInfo m_Info;
 			std::array<hgeParticle, LPARTICLE_MAXCNT> m_ParticlePool;
 			random::xoshiro128p m_Random;
-			fuInt m_RandomSeed = 0;
+			uint32_t m_RandomSeed = 0;
 			Status m_iStatus = Status::Alive;  // 状态
 			fcyVec2 m_vCenter;  // 中心
 			fcyVec2 m_vPrevCenter;  // 上一个中心
@@ -126,8 +126,8 @@ namespace LuaSTGPlus
 			void SetVertexColor(Core::Color4B c) noexcept;
 			int GetEmission() const noexcept;
 			void SetEmission(int e) noexcept;
-			fuInt GetSeed() const noexcept;
-			void SetSeed(fuInt seed) noexcept;
+			uint32_t GetSeed() const noexcept;
+			void SetSeed(uint32_t seed) noexcept;
 			bool IsActived() const noexcept;
 			void SetActive(bool v) noexcept;
 			void SetCenter(fcyVec2 pos) noexcept;
