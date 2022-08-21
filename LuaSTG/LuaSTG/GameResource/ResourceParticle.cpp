@@ -113,7 +113,7 @@ namespace LuaSTGPlus
 			m_iStatus = Status::Sleep;
 		}
 	}
-	void ResParticle::ParticlePool::SetCenter(fcyVec2 pos) noexcept
+	void ResParticle::ParticlePool::SetCenter(Core::Vector2F pos) noexcept
 	{
 		if (m_iStatus == Status::Alive)
 			m_vPrevCenter = m_vCenter;
@@ -121,7 +121,7 @@ namespace LuaSTGPlus
 			m_vPrevCenter = pos;
 		m_vCenter = pos;
 	}
-	fcyVec2 ResParticle::ParticlePool::GetCenter() const noexcept
+	Core::Vector2F ResParticle::ParticlePool::GetCenter() const noexcept
 	{
 		return m_vCenter;
 	}
@@ -159,8 +159,8 @@ namespace LuaSTGPlus
 			}
 
 			// 计算线加速度和切向加速度
-			fcyVec2 vecAccel = (tInst.vecLocation - m_vCenter).GetNormalize();
-			fcyVec2 vecAccel2 = vecAccel;
+			Core::Vector2F vecAccel = (tInst.vecLocation - m_vCenter).normalized();
+			Core::Vector2F vecAccel2 = vecAccel;
 			vecAccel *= tInst.fRadialAccel;
 			// 相当于旋转向量 vecAccel2.Rotate(M_PI_2);
 			std::swap(vecAccel2.x, vecAccel2.y);
@@ -219,7 +219,7 @@ namespace LuaSTGPlus
 					ang = -pInfo.fDirection + L_PI_HALF_F + RandomFloat(0.0f, pInfo.fSpread) - pInfo.fSpread / 2.0f;
 					if (pInfo.bRelative)
 					{
-						ang += (m_vPrevCenter - m_vCenter).CalcuAngle() + L_PI_HALF_F;
+						ang += (m_vPrevCenter - m_vCenter).angle() + L_PI_HALF_F;
 					}
 					// 此外，我们还有自己的旋转量
 					ang += m_fDirection;

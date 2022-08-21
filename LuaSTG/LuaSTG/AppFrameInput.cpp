@@ -146,15 +146,15 @@ namespace LuaSTGPlus
             return false;
         }
     }
-    fcyVec2 AppFrame::GetMousePosition(bool no_flip)noexcept
+    Core::Vector2F AppFrame::GetMousePosition(bool no_flip)noexcept
     {
         if (no_flip)
         {
-            return fcyVec2((float)MouseState.x, (float)MouseState.y);
+            return Core::Vector2F((float)MouseState.x, (float)MouseState.y);
         }
         else
         {
-            return fcyVec2((float)MouseState.x, m_OptionResolution.y - (float)MouseState.y);
+            return Core::Vector2F((float)MouseState.x, m_OptionResolution.y - (float)MouseState.y);
         }
     }
     int32_t AppFrame::GetMouseWheelDelta()noexcept

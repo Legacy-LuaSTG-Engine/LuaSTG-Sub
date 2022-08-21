@@ -53,7 +53,7 @@ namespace LuaSTGPlus
 		Core::Graphics::WindowFrameStyle m_OptionWindowStyle = Core::Graphics::WindowFrameStyle::Fixed;
 		uint32_t m_OptionFPSLimit = 60;
 		bool m_OptionVsync = false;
-		fcyVec2 m_OptionResolution = fcyVec2(640.f, 480.f);
+		Core::Vector2F m_OptionResolution = Core::Vector2F(640.f, 480.f);
 		uint32_t m_OptionRefreshRateA = 0;
 		uint32_t m_OptionRefreshRateB = 0;
 		std::wstring m_OptionGPU;
@@ -113,7 +113,7 @@ namespace LuaSTGPlus
 		int GetLastKey()noexcept;
 		
 		/// @brief 获取鼠标位置（以窗口左下角为原点）
-		fcyVec2 GetMousePosition(bool no_flip = false)noexcept;
+		Core::Vector2F GetMousePosition(bool no_flip = false)noexcept;
 		
 		/// @brief 获取鼠标滚轮增量
 		int32_t GetMouseWheelDelta()noexcept;
@@ -176,9 +176,9 @@ namespace LuaSTGPlus
 		bool RenderTexture(const char* name, BlendMode blend, Core::Graphics::IRenderer::DrawVertex vertex[])noexcept;
 		
 		/// @brief 渲染文字
-		bool RenderText(ResFont* p, wchar_t* strBuf, fcyRect rect, fcyVec2 scale, ResFont::FontAlignHorizontal halign, ResFont::FontAlignVertical valign, bool bWordBreak)noexcept;
+		bool RenderText(ResFont* p, wchar_t* strBuf, Core::RectF rect, Core::Vector2F scale, ResFont::FontAlignHorizontal halign, ResFont::FontAlignVertical valign, bool bWordBreak)noexcept;
 		
-		fcyVec2 CalcuTextSize(ResFont* p, const wchar_t* strBuf, fcyVec2 scale)noexcept;
+		Core::Vector2F CalcuTextSize(ResFont* p, const wchar_t* strBuf, Core::Vector2F scale)noexcept;
 		
 		bool RenderText(const char* name, const char* str, float x, float y, float scale, ResFont::FontAlignHorizontal halign, ResFont::FontAlignVertical valign)noexcept;
 		
@@ -190,7 +190,7 @@ namespace LuaSTGPlus
 		bool CheckRenderTargetInUse(ResTexture* rt)noexcept;
 		bool PushRenderTarget(ResTexture* rt)noexcept;
 		bool PopRenderTarget()noexcept;
-		fcyVec2 GetCurrentRenderTargetSize();
+		Core::Vector2U GetCurrentRenderTargetSize();
 
 		void DebugSetGeometryRenderState();
 		void DebugDrawCircle(float const x, float const y, float const r, Core::Color4B const color);
@@ -200,12 +200,12 @@ namespace LuaSTGPlus
 	public:
 		// 文字渲染器包装
 		bool FontRenderer_SetFontProvider(const char* name);
-		void FontRenderer_SetScale(const fcyVec2& s);
+		void FontRenderer_SetScale(const Core::Vector2F& s);
 		
-		fcyRect FontRenderer_MeasureTextBoundary(const char* str, size_t len);
-		fcyVec2 FontRenderer_MeasureTextAdvance(const char* str, size_t len);
-		bool FontRenderer_RenderText(const char* str, size_t len, fcyVec2& pos, const float z, const BlendMode blend, Core::Color4B const& color);
-		bool FontRenderer_RenderTextInSpace(const char* str, size_t len, fcyVec3& pos, const fcyVec3& rvec, const fcyVec3& dvec, const BlendMode blend, Core::Color4B const& color);
+		Core::RectF FontRenderer_MeasureTextBoundary(const char* str, size_t len);
+		Core::Vector2F FontRenderer_MeasureTextAdvance(const char* str, size_t len);
+		bool FontRenderer_RenderText(const char* str, size_t len, Core::Vector2F& pos, const float z, const BlendMode blend, Core::Color4B const& color);
+		bool FontRenderer_RenderTextInSpace(const char* str, size_t len, Core::Vector3F& pos, Core::Vector3F const& rvec, Core::Vector3F const& dvec, const BlendMode blend, Core::Color4B const& color);
 		
 		float FontRenderer_GetFontLineHeight();
 		float FontRenderer_GetFontAscender();

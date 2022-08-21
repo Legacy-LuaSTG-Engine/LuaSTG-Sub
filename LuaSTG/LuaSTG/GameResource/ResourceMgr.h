@@ -121,7 +121,7 @@ namespace LuaSTGPlus
         fcyRefPointer<ResFX> FindFX(const char* name) noexcept;
         fcyRefPointer<ResModel> FindModel(const char* name) noexcept;
         
-        bool GetTextureSize(const char* name, fcyVec2& out) noexcept;
+        bool GetTextureSize(const char* name, Core::Vector2U& out) noexcept;
         void CacheTTFFontString(const char* name, const char* text, size_t len) noexcept;
     private:
         static bool g_ResourceLoadingLog;
