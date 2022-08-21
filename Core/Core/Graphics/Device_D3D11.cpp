@@ -7,6 +7,7 @@
 
 #include "WICTextureLoader11.h"
 #include "DDSTextureLoader11.h"
+#include "QOITextureLoader11.h"
 #include "ScreenGrab11.h"
 
 namespace Core::Graphics
@@ -1650,12 +1651,27 @@ namespace Core::Graphics
 					&res, &d3d11_srv);
 				if (FAILED(hr2))
 				{
-					// 在这里一起报告，不然 log 文件里遍地都是 error
-					gHR = hr1;
-					i18n_log_error_fmt("[core].system_call_failed_f", "DirectX::CreateDDSTextureFromMemoryEx");
-					gHR = hr2;
-					i18n_log_error_fmt("[core].system_call_failed_f", "DirectX::CreateWICTextureFromMemoryEx");
-					return false;
+					// 尝试以 QOI 图片格式加载
+					HRESULT const hr3 = DirectX::CreateQOITextureFromMemoryEx(
+						d3d11_device, m_mipmap ? d3d11_devctx : NULL, m_device->GetWICImagingFactory(),
+						src.data(), src.size(),
+						0,
+						D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0,
+						DirectX::QOI_LOADER_DEFAULT | DirectX::QOI_LOADER_IGNORE_SRGB,
+						// TODO: 渲染管线目前是在 sRGB 下计算的，也就是心理视觉色彩，将错就错吧……
+						//DirectX::QOI_LOADER_DEFAULT | DirectX::QOI_LOADER_SRGB_DEFAULT,
+						&res, &d3d11_srv);
+					if (FAILED(hr3))
+					{
+						// 在这里一起报告，不然 log 文件里遍地都是 error
+						gHR = hr1;
+						i18n_log_error_fmt("[core].system_call_failed_f", "DirectX::CreateDDSTextureFromMemoryEx");
+						gHR = hr2;
+						i18n_log_error_fmt("[core].system_call_failed_f", "DirectX::CreateWICTextureFromMemoryEx");
+						gHR = hr3;
+						i18n_log_error_fmt("[core].system_call_failed_f", "DirectX::CreateQOITextureFromMemoryEx");
+						return false;
+					}
 				}
 			}
 			if (dds_alpha_mode == DirectX::DDS_ALPHA_MODE_PREMULTIPLIED)
