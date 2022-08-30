@@ -23,6 +23,7 @@ require("test_mesh")
 require("test_stringpack")
 require("test_log")
 require("test_filesys")
+require("test_dwrite")
 
 function GameInit()
     window:init()
