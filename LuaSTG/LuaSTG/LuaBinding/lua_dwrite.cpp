@@ -59,6 +59,10 @@ namespace DirectWrite
 
 	// lua helper
 
+	inline void lua_push_string_view(lua_State* L, std::string_view sv)
+	{
+		lua_pushlstring(L, sv.data(), sv.size());
+	}
 	inline std::string_view luaL_check_string_view(lua_State* L, int idx)
 	{
 		size_t len = 0;
@@ -93,6 +97,179 @@ namespace DirectWrite
 	}
 
 	// DirectWrite helper
+
+	void printFontCollectionInfo(IDWriteFontCollection* dwrite_font_collection, std::stringstream& string_buffer)
+	{
+		for (UINT32 ff_idx = 0; ff_idx < dwrite_font_collection->GetFontFamilyCount(); ff_idx += 1)
+		{
+			string_buffer << '[' << ff_idx << "] Font Family\n";
+
+			Microsoft::WRL::ComPtr<IDWriteFontFamily> dwrite_font_family;
+			gHR = dwrite_font_collection->GetFontFamily(ff_idx, &dwrite_font_family);
+
+			string_buffer << "    Name:\n";
+			Microsoft::WRL::ComPtr<IDWriteLocalizedStrings> dwrite_font_family_names;
+			gHR = dwrite_font_family->GetFamilyNames(&dwrite_font_family_names);
+			for (UINT32 name_idx = 0; name_idx < dwrite_font_family_names->GetCount(); name_idx += 1)
+			{
+				UINT32 str_len = 0;
+
+				gHR = dwrite_font_family_names->GetStringLength(name_idx, &str_len);
+				std::wstring name(str_len + 1, L'\0');
+				gHR = dwrite_font_family_names->GetString(name_idx, name.data(), str_len + 1);
+				if (name.back() == L'\0') name.pop_back();
+
+				gHR = dwrite_font_family_names->GetLocaleNameLength(name_idx, &str_len);
+				std::wstring locale_name(str_len + 1, L'\0');
+				gHR = dwrite_font_family_names->GetLocaleName(name_idx, locale_name.data(), str_len + 1);
+				if (locale_name.back() == L'\0') locale_name.pop_back();
+
+				string_buffer << "        [" << name_idx << "] (" << utility::encoding::to_utf8(locale_name) << ") " << utility::encoding::to_utf8(name) << '\n';
+			}
+
+			string_buffer << "    Font:\n";
+			for (UINT32 font_idx = 0; font_idx < dwrite_font_family->GetFontCount(); font_idx += 1)
+			{
+				string_buffer << "        [" << font_idx << "] Font\n";
+
+				Microsoft::WRL::ComPtr<IDWriteFont> dwrite_font;
+				gHR = dwrite_font_family->GetFont(font_idx, &dwrite_font);
+
+				string_buffer << "            Name:\n";
+				Microsoft::WRL::ComPtr<IDWriteLocalizedStrings> dwrite_font_face_names;
+				gHR = dwrite_font->GetFaceNames(&dwrite_font_face_names);
+				for (UINT32 name_idx = 0; name_idx < dwrite_font_face_names->GetCount(); name_idx += 1)
+				{
+					UINT32 str_len = 0;
+
+					gHR = dwrite_font_face_names->GetStringLength(name_idx, &str_len);
+					std::wstring name(str_len + 1, L'\0');
+					gHR = dwrite_font_face_names->GetString(name_idx, name.data(), str_len + 1);
+					if (name.back() == L'\0') name.pop_back();
+
+					gHR = dwrite_font_face_names->GetLocaleNameLength(name_idx, &str_len);
+					std::wstring locale_name(str_len + 1, L'\0');
+					gHR = dwrite_font_face_names->GetLocaleName(name_idx, locale_name.data(), str_len + 1);
+					if (locale_name.back() == L'\0') locale_name.pop_back();
+
+					string_buffer << "                [" << name_idx << "] (" << utility::encoding::to_utf8(locale_name) << ") " << utility::encoding::to_utf8(name) << '\n';
+				}
+
+				/*
+				string_buffer << "            Information:\n";
+				struct InfoStringCollection
+				{
+					DWRITE_INFORMATIONAL_STRING_ID id;
+					std::string_view name;
+				};
+				std::array<InfoStringCollection, 21> const info_string_collections = {
+					InfoStringCollection{ DWRITE_INFORMATIONAL_STRING_COPYRIGHT_NOTICE, "Copyright" },
+					InfoStringCollection{ DWRITE_INFORMATIONAL_STRING_VERSION_STRINGS, "Version" },
+					InfoStringCollection{ DWRITE_INFORMATIONAL_STRING_TRADEMARK, "Trademark" },
+					InfoStringCollection{ DWRITE_INFORMATIONAL_STRING_MANUFACTURER, "Manufacturer" },
+					InfoStringCollection{ DWRITE_INFORMATIONAL_STRING_DESIGNER, "Designer" },
+					InfoStringCollection{ DWRITE_INFORMATIONAL_STRING_DESIGNER_URL, "Designer (URL)" },
+					InfoStringCollection{ DWRITE_INFORMATIONAL_STRING_DESCRIPTION, "Description" },
+					InfoStringCollection{ DWRITE_INFORMATIONAL_STRING_FONT_VENDOR_URL, "Vendor (URL)" },
+					InfoStringCollection{ DWRITE_INFORMATIONAL_STRING_LICENSE_DESCRIPTION, "License" },
+					InfoStringCollection{ DWRITE_INFORMATIONAL_STRING_LICENSE_INFO_URL, "License (URL)" },
+
+					InfoStringCollection{ DWRITE_INFORMATIONAL_STRING_WIN32_FAMILY_NAMES, "Family Names (GDI)" },
+					InfoStringCollection{ DWRITE_INFORMATIONAL_STRING_WIN32_SUBFAMILY_NAMES, "SubFamily Names (GDI)" },
+					InfoStringCollection{ DWRITE_INFORMATIONAL_STRING_TYPOGRAPHIC_FAMILY_NAMES, "Typographic Family Names (GDI)" },
+					InfoStringCollection{ DWRITE_INFORMATIONAL_STRING_TYPOGRAPHIC_SUBFAMILY_NAMES, "Typographic SubFamily Names (GDI)" },
+
+					InfoStringCollection{ DWRITE_INFORMATIONAL_STRING_SAMPLE_TEXT, "Sample Text" },
+
+					InfoStringCollection{ DWRITE_INFORMATIONAL_STRING_FULL_NAME, "Full Name" },
+					InfoStringCollection{ DWRITE_INFORMATIONAL_STRING_POSTSCRIPT_NAME, "Postscript Name" },
+					InfoStringCollection{ DWRITE_INFORMATIONAL_STRING_POSTSCRIPT_CID_NAME, "Postscript CID Findfont Name" },
+					InfoStringCollection{ DWRITE_INFORMATIONAL_STRING_WEIGHT_STRETCH_STYLE_FAMILY_NAME, "Weight-stretch-style Family Name" },
+
+					InfoStringCollection{ DWRITE_INFORMATIONAL_STRING_DESIGN_SCRIPT_LANGUAGE_TAG, "Design Script/Language Tag" },
+					InfoStringCollection{ DWRITE_INFORMATIONAL_STRING_SUPPORTED_SCRIPT_LANGUAGE_TAG, "Support Script/Language Tag" },
+				};
+				for (uint32_t info_idx = 0; info_idx < info_string_collections.size(); info_idx += 1)
+				{
+					string_buffer << "                " << info_string_collections[info_idx].name << ":\n";
+
+					Microsoft::WRL::ComPtr<IDWriteLocalizedStrings> info_text;
+					BOOL is_exist = FALSE;
+					HR = dwrite_font->GetInformationalStrings(info_string_collections[info_idx].id, &info_text, &is_exist);
+					if (is_exist)
+					{
+						for (UINT32 name_idx = 0; name_idx < info_text->GetCount(); name_idx += 1)
+						{
+							UINT32 str_len = 0;
+
+							HR = info_text->GetStringLength(name_idx, &str_len);
+							std::wstring name(str_len + 1, L'\0');
+							HR = info_text->GetString(name_idx, name.data(), str_len + 1);
+							if (name.back() == L'\0') name.pop_back();
+
+							HR = info_text->GetLocaleNameLength(name_idx, &str_len);
+							std::wstring locale_name(str_len + 1, L'\0');
+							HR = info_text->GetLocaleName(name_idx, locale_name.data(), str_len + 1);
+							if (locale_name.back() == L'\0') locale_name.pop_back();
+
+							string_buffer << "                    [" << name_idx << "] (" << to_utf8(locale_name) << ") " << to_utf8(name) << '\n';
+						}
+					}
+				}
+				//*/
+
+				string_buffer << "            Simulations: ";
+				auto const font_sim = dwrite_font->GetSimulations();
+				if (font_sim == DWRITE_FONT_SIMULATIONS_NONE) string_buffer << "None";
+				if (font_sim & DWRITE_FONT_SIMULATIONS_BOLD) string_buffer << "Algorithmic Emboldening";
+				if ((font_sim & DWRITE_FONT_SIMULATIONS_BOLD) && (font_sim & DWRITE_FONT_SIMULATIONS_OBLIQUE)) string_buffer << ", ";
+				if (font_sim & DWRITE_FONT_SIMULATIONS_OBLIQUE) string_buffer << "Algorithmic Italicization";
+				string_buffer << "\n";
+
+				switch (dwrite_font->GetStretch())
+				{
+				case DWRITE_FONT_STRETCH_UNDEFINED:       string_buffer << "            Stretch: Not known (0)\n";       break;
+				case DWRITE_FONT_STRETCH_ULTRA_CONDENSED: string_buffer << "            Stretch: Ultra-condensed (1)\n"; break;
+				case DWRITE_FONT_STRETCH_EXTRA_CONDENSED: string_buffer << "            Stretch: Extra-condensed (2)\n"; break;
+				case DWRITE_FONT_STRETCH_CONDENSED:       string_buffer << "            Stretch: Condensed (3)\n";       break;
+				case DWRITE_FONT_STRETCH_SEMI_CONDENSED:  string_buffer << "            Stretch: Semi-condensed (4)\n";  break;
+				case DWRITE_FONT_STRETCH_NORMAL:          string_buffer << "            Stretch: Normal/Medium (5)\n";   break;
+				case DWRITE_FONT_STRETCH_SEMI_EXPANDED:   string_buffer << "            Stretch: Semi-expanded (6)\n";   break;
+				case DWRITE_FONT_STRETCH_EXPANDED:        string_buffer << "            Stretch: Expanded (7)\n";        break;
+				case DWRITE_FONT_STRETCH_EXTRA_EXPANDED:  string_buffer << "            Stretch: Extra-expanded (8)\n";  break;
+				case DWRITE_FONT_STRETCH_ULTRA_EXPANDED:  string_buffer << "            Stretch: Ultra-expanded (9)\n";  break;
+				default: assert(false); break;
+				}
+
+				switch (dwrite_font->GetStyle())
+				{
+				case DWRITE_FONT_STYLE_NORMAL:  string_buffer << "            Slope Style: Normal\n";  break;
+				case DWRITE_FONT_STYLE_OBLIQUE: string_buffer << "            Slope Style: Oblique\n"; break;
+				case DWRITE_FONT_STYLE_ITALIC:  string_buffer << "            Slope Style: Italic\n";  break;
+				default: assert(false); break;
+				}
+
+				auto const font_weight = dwrite_font->GetWeight();
+				switch (font_weight)
+				{
+				case DWRITE_FONT_WEIGHT_THIN:        string_buffer << "            Weight: Thin (100)\n";                    break;
+				case DWRITE_FONT_WEIGHT_EXTRA_LIGHT: string_buffer << "            Weight: Extra-light/Ultra-light (200)\n"; break;
+				case DWRITE_FONT_WEIGHT_LIGHT:       string_buffer << "            Weight: Light (300)\n";                   break;
+				case DWRITE_FONT_WEIGHT_SEMI_LIGHT:  string_buffer << "            Weight: Semi-light (350)\n";              break;
+				case DWRITE_FONT_WEIGHT_NORMAL:      string_buffer << "            Weight: Normal/Regular (400)\n";          break;
+				case DWRITE_FONT_WEIGHT_MEDIUM:      string_buffer << "            Weight: Medium (500)\n";                  break;
+				case DWRITE_FONT_WEIGHT_DEMI_BOLD:   string_buffer << "            Weight: Demi-bold/Semi-bold (600)\n";     break;
+				case DWRITE_FONT_WEIGHT_BOLD:        string_buffer << "            Weight: Bold (700)\n";                    break;
+				case DWRITE_FONT_WEIGHT_EXTRA_BOLD:  string_buffer << "            Weight: Extra-bold/Ultra-bold (800)\n";   break;
+				case DWRITE_FONT_WEIGHT_BLACK:       string_buffer << "            Weight: Black/Heavy (900)\n";             break;
+				case DWRITE_FONT_WEIGHT_EXTRA_BLACK: string_buffer << "            Weight: Extra-black/Ultra-black (950)\n"; break;
+				default: string_buffer << "            Weight: " << (int)font_weight << "\n"; break;
+				}
+
+				string_buffer << "            Symbol Font: " << (dwrite_font->IsSymbolFont() ? "Yes" : "No") << "\n";
+			}
+		}
+	}
 
 	template<typename T>
 	class UnknownImplement : public T
@@ -641,6 +818,16 @@ namespace DirectWrite
 			}
 		}
 
+		static int api_GetDebugInformation(lua_State* L)
+		{
+			FontCollection* self = Cast(L, 1);
+			std::stringstream ss;
+			printFontCollectionInfo(self->dwrite_font_collection.Get(), ss);
+			std::string buf(ss.str());
+			lua_push_string_view(L, buf);
+			return 1;
+		}
+
 		static int api___tostring(lua_State* L)
 		{
 			Cast(L, 1);
@@ -673,8 +860,15 @@ namespace DirectWrite
 				{ "__gc", &api___gc },
 				{ NULL, NULL },
 			};
-			luaL_newmetatable(L, ClassID.data());
+			luaL_Reg const lib[] = {
+				{ "GetDebugInformation", &api_GetDebugInformation },
+				{ NULL, NULL },
+			};
+			luaL_newmetatable(L, ClassID.data()); // mt
 			luaL_register(L, NULL, mt);
+			lua_createtable(L, 0, 1);             // mt lib
+			luaL_register(L, NULL, lib);
+			lua_setfield(L, -2, "__index");       // mt
 			lua_pop(L, 1);
 		}
 	};
