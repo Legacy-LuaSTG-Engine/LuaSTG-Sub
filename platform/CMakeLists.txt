@@ -38,6 +38,8 @@ set(platform_sources
     platform/DetectCPU.cpp
     platform/XInput.hpp
     platform/XInput.cpp
+    platform/DirectWriteAuxiliary.hpp
+    platform/DirectWriteAuxiliary.cpp
 )
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${platform_sources})
 target_sources(platform PRIVATE ${platform_sources})
