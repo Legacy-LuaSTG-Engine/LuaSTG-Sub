@@ -59,6 +59,8 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/GameResource/ResourceTexture.hpp
     LuaSTG/GameResource/ResourceTexture.cpp
 
+    LuaSTG/LuaBinding/lua_dwrite.hpp
+    LuaSTG/LuaBinding/lua_dwrite.cpp
     LuaSTG/LuaBinding/lua_random.hpp
     LuaSTG/LuaBinding/lua_random.cpp
     LuaSTG/LuaBinding/lua_xinput.hpp
