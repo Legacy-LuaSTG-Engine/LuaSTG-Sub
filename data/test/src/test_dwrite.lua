@@ -14,6 +14,7 @@ function M:onCreate()
         --"C:/Windows/Fonts/SourceHanSansCN-Bold.otf",
         --"C:/Windows/Fonts/SourceHanSerifCN-Bold.otf",
     })
+    lstg.Log(2, string.format("DirectWriteFontCollection:\n%s", font_collection:GetDebugInformation()))
     local text_format = DirectWrite.CreateTextFormat(
         "微软雅黑",
         font_collection,
