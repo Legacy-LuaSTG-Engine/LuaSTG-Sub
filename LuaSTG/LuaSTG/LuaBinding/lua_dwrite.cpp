@@ -1582,6 +1582,8 @@ namespace DirectWrite
 
 		// upload data
 
+		// TODO: 这样创建的纹理有个问题，一旦设备丢失重新创建资源，这个纹理上的数据会全部丢失
+		// TODO: 将 WICBitmap 也保存下来
 		p_texture->setPremultipliedAlpha(true);
 		if (!p_texture->uploadPixelData(
 			Core::RectU(0, 0, (uint32_t)texture_width, (uint32_t)texture_height),
