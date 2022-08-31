@@ -1,8 +1,8 @@
 
 local version = {
     major = 0,
-    minor = 18,
-    patch = 12,
+    minor = 19,
+    patch = 0,
 }
 
 local utf8_bom = "\xEF\xBB\xBF"
@@ -334,7 +334,7 @@ end
 #define LUASTG_VERSION_MINOR 0
 #define LUASTG_VERSION_PATCH 1
 
-#define LUASTG_INFO LUASTG_NAME " " LUASTG_BRANCH " " LUASTG_VERSION_NAME "-beta"
+#define LUASTG_INFO LUASTG_NAME " " LUASTG_BRANCH " " LUASTG_VERSION_NAME
 
 // WARNING: see write-version.lua
 
@@ -352,7 +352,7 @@ local h_fmt = [[#pragma once
 #define LUASTG_VERSION_MINOR %d
 #define LUASTG_VERSION_PATCH %d
 
-#define LUASTG_INFO LUASTG_NAME " " LUASTG_BRANCH " " LUASTG_VERSION_NAME "-beta"
+#define LUASTG_INFO LUASTG_NAME " " LUASTG_BRANCH " " LUASTG_VERSION_NAME
 
 // WARNING: see write-version.lua
 
