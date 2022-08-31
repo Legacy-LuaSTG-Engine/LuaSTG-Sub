@@ -8,19 +8,19 @@ local text = [[People communicate with text all the time in their daily lives. I
 function M:onCreate()
     local DirectWrite = require("DirectWrite")
     local font_collection = DirectWrite.CreateFontCollection({
-        "C:/Windows/Fonts/msyh.ttc",
-        "C:/Windows/Fonts/msyhbd.ttc",
-        "C:/Windows/Fonts/msyhl.ttc",
-        --"C:/Windows/Fonts/SourceHanSansCN-Bold.otf",
-        --"C:/Windows/Fonts/SourceHanSerifCN-Bold.otf",
+        --"C:/Windows/Fonts/msyh.ttc",
+        --"C:/Windows/Fonts/msyhbd.ttc",
+        --"C:/Windows/Fonts/msyhl.ttc",
+        "C:/Windows/Fonts/SourceHanSansCN-Bold.otf",
+        "C:/Windows/Fonts/SourceHanSerifCN-Bold.otf",
     })
     lstg.Log(2, string.format("DirectWriteFontCollection:\n%s", font_collection:GetDebugInformation()))
     local text_format = DirectWrite.CreateTextFormat(
-        "微软雅黑",
+        "思源黑体 CN",
         font_collection,
-        400, -- regular
-        0, -- style normal
-        5, -- stretch normal
+        DirectWrite.FontWeight.Regular,
+        DirectWrite.FontStyle.Normal,
+        DirectWrite.FontStretch.Normal,
         24.0,
         ""
     )
@@ -30,6 +30,11 @@ function M:onCreate()
         1024, -- width
         640 -- height
     )
+    text_layout:SetFontFamilyName("思源宋体 CN", 0, 5)
+    text_layout:SetFontSize(48, 0, 5)
+    text_layout:SetFontStyle(DirectWrite.FontStyle.Oblique, 30, 4)
+    text_layout:SetFontFamilyName("思源宋体 CN", 57, 5)
+    text_layout:SetFontFamilyName("思源宋体 CN", 63, 5)
     DirectWrite.CreateTextureFromTextLayout(text_layout, "global", "text-texture", 4)
 
     local old_pool = lstg.GetResourceStatus()
