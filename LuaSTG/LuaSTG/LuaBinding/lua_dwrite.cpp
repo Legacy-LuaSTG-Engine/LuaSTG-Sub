@@ -76,6 +76,10 @@ namespace DirectWrite
 		return static_cast<E>(luaL_checkinteger(L, idx));
 	}
 
+	inline void lua_push_float(lua_State* L, float v)
+	{
+		lua_pushnumber(L, v);
+	}
 	inline float luaL_check_float(lua_State* L, int idx)
 	{
 		return (float)luaL_checknumber(L, idx);
@@ -931,13 +935,262 @@ namespace DirectWrite
 		static std::string_view const ClassID;
 
 		Microsoft::WRL::ComPtr<IDWriteTextLayout> dwrite_text_layout;
+		std::wstring text;
 
 		void _test()
 		{
+			
 		}
 
 		TextLayout() {}
 		~TextLayout() {}
+
+		static int api_SetFontCollection(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto* font_collection = FontCollection::Cast(L, 2);
+			auto const position = luaL_check_uint32(L, 3);
+			auto const length = luaL_check_uint32(L, 4);
+
+			HRESULT hr = gHR = self->dwrite_text_layout->SetFontCollection(
+				font_collection->dwrite_font_collection.Get(),
+				DWRITE_TEXT_RANGE{
+					.startPosition = position,
+					.length = length,
+				});
+			if (FAILED(hr))
+				return luaL_error(L, "SetFontCollection failed");
+
+			return 0;
+		}
+		static int api_SetFontFamilyName(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const font_family_name = luaL_check_string_view(L, 2);
+			auto const position = luaL_check_uint32(L, 3);
+			auto const length = luaL_check_uint32(L, 4);
+
+			std::wstring wide_font_family_name(utility::encoding::to_wide(font_family_name));
+
+			HRESULT hr = gHR = self->dwrite_text_layout->SetFontFamilyName(
+				wide_font_family_name.c_str(),
+				DWRITE_TEXT_RANGE{
+					.startPosition = position,
+					.length = length,
+				});
+			if (FAILED(hr))
+				return luaL_error(L, "SetFontFamilyName failed");
+
+			return 0;
+		}
+		static int api_SetLocaleName(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const locale_name = luaL_check_string_view(L, 2);
+			auto const position = luaL_check_uint32(L, 3);
+			auto const length = luaL_check_uint32(L, 4);
+
+			std::wstring wide_locale_name(utility::encoding::to_wide(locale_name));
+
+			HRESULT hr = gHR = self->dwrite_text_layout->SetLocaleName(
+				wide_locale_name.c_str(),
+				DWRITE_TEXT_RANGE{
+					.startPosition = position,
+					.length = length,
+				});
+			if (FAILED(hr))
+				return luaL_error(L, "SetLocaleName failed");
+
+			return 0;
+		}
+		static int api_SetFontSize(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const font_size = luaL_check_float(L, 2);
+			auto const position = luaL_check_uint32(L, 3);
+			auto const length = luaL_check_uint32(L, 4);
+
+			HRESULT hr = gHR = self->dwrite_text_layout->SetFontSize(
+				font_size,
+				DWRITE_TEXT_RANGE{
+					.startPosition = position,
+					.length = length,
+				});
+			if (FAILED(hr))
+				return luaL_error(L, "SetFontSize failed");
+
+			return 0;
+		}
+		static int api_SetFontStyle(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const font_style = luaL_check_C_enum<DWRITE_FONT_STYLE>(L, 2);
+			auto const position = luaL_check_uint32(L, 3);
+			auto const length = luaL_check_uint32(L, 4);
+
+			HRESULT hr = gHR = self->dwrite_text_layout->SetFontStyle(
+				font_style,
+				DWRITE_TEXT_RANGE{
+					.startPosition = position,
+					.length = length,
+				});
+			if (FAILED(hr))
+				return luaL_error(L, "SetFontStyle failed");
+
+			return 0;
+		}
+		static int api_SetFontWeight(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const font_weight = luaL_check_C_enum<DWRITE_FONT_WEIGHT>(L, 2);
+			auto const position = luaL_check_uint32(L, 3);
+			auto const length = luaL_check_uint32(L, 4);
+
+			HRESULT hr = gHR = self->dwrite_text_layout->SetFontWeight(
+				font_weight,
+				DWRITE_TEXT_RANGE{
+					.startPosition = position,
+					.length = length,
+				});
+			if (FAILED(hr))
+				return luaL_error(L, "SetFontWeight failed");
+
+			return 0;
+		}
+		static int api_SetFontStretch(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const font_stretch = luaL_check_C_enum<DWRITE_FONT_STRETCH>(L, 2);
+			auto const position = luaL_check_uint32(L, 3);
+			auto const length = luaL_check_uint32(L, 4);
+
+			HRESULT hr = gHR = self->dwrite_text_layout->SetFontStretch(
+				font_stretch,
+				DWRITE_TEXT_RANGE{
+					.startPosition = position,
+					.length = length,
+				});
+			if (FAILED(hr))
+				return luaL_error(L, "SetFontStretch failed");
+
+			return 0;
+		}
+
+		static int api_SetIncrementalTabStop(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const tab_size = luaL_check_float(L, 2);
+
+			HRESULT hr = gHR = self->dwrite_text_layout->SetIncrementalTabStop(tab_size);
+			if (FAILED(hr))
+				return luaL_error(L, "SetIncrementalTabStop failed");
+
+			return 0;
+		}
+		static int api_SetLineSpacing(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const line_spacing_method = luaL_check_C_enum<DWRITE_LINE_SPACING_METHOD>(L, 2);
+			auto const line_spacing = luaL_check_float(L, 3);
+			auto const baseline = luaL_check_float(L, 4);
+
+			HRESULT hr = gHR = self->dwrite_text_layout->SetLineSpacing(line_spacing_method, line_spacing, baseline);
+			if (FAILED(hr))
+				return luaL_error(L, "SetLineSpacing failed");
+
+			return 0;
+		}
+		static int api_SetTextAlignment(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const align = luaL_check_C_enum<DWRITE_TEXT_ALIGNMENT>(L, 2);
+
+			HRESULT hr = gHR = self->dwrite_text_layout->SetTextAlignment(align);
+			if (FAILED(hr))
+				return luaL_error(L, "SetTextAlignment failed");
+
+			return 0;
+		}
+		static int api_SetParagraphAlignment(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const align = luaL_check_C_enum<DWRITE_PARAGRAPH_ALIGNMENT>(L, 2);
+
+			HRESULT hr = gHR = self->dwrite_text_layout->SetParagraphAlignment(align);
+			if (FAILED(hr))
+				return luaL_error(L, "SetParagraphAlignment failed");
+
+			return 0;
+		}
+		static int api_SetFlowDirection(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const dir = luaL_check_C_enum<DWRITE_FLOW_DIRECTION>(L, 2);
+
+			HRESULT hr = gHR = self->dwrite_text_layout->SetFlowDirection(dir);
+			if (FAILED(hr))
+				return luaL_error(L, "SetFlowDirection failed");
+
+			return 0;
+		}
+		static int api_SetReadingDirection(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const dir = luaL_check_C_enum<DWRITE_READING_DIRECTION>(L, 2);
+
+			HRESULT hr = gHR = self->dwrite_text_layout->SetReadingDirection(dir);
+			if (FAILED(hr))
+				return luaL_error(L, "SetReadingDirection failed");
+
+			return 0;
+		}
+		static int api_SetWordWrapping(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const wrap = luaL_check_C_enum<DWRITE_WORD_WRAPPING>(L, 2);
+
+			HRESULT hr = gHR = self->dwrite_text_layout->SetWordWrapping(wrap);
+			if (FAILED(hr))
+				return luaL_error(L, "SetWordWrapping failed");
+
+			return 0;
+		}
+
+		static int api_SetMaxWidth(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const max_width = luaL_check_float(L, 2);
+
+			HRESULT hr = gHR = self->dwrite_text_layout->SetMaxWidth(max_width);
+			if (FAILED(hr))
+				return luaL_error(L, "SetMaxWidth failed");
+
+			return 0;
+		}
+		static int api_SetMaxHeight(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const max_height = luaL_check_float(L, 2);
+
+			HRESULT hr = gHR = self->dwrite_text_layout->SetMaxHeight(max_height);
+			if (FAILED(hr))
+				return luaL_error(L, "SetMaxHeight failed");
+
+			return 0;
+		}
+
+		static int api_DetermineMinWidth(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			FLOAT min_width = 0.0f;
+
+			HRESULT hr = gHR = self->dwrite_text_layout->DetermineMinWidth(&min_width);
+			if (FAILED(hr))
+				return luaL_error(L, "DetermineMinWidth failed");
+
+			lua_push_float(L, min_width);
+			return 1;
+		}
 
 		static int api___tostring(lua_State* L)
 		{
@@ -971,8 +1224,35 @@ namespace DirectWrite
 				{ "__gc", &api___gc },
 				{ NULL, NULL },
 			};
-			luaL_newmetatable(L, ClassID.data());
+			luaL_Reg const lib[] = {
+				{ "SetFontCollection", &api_SetFontCollection },
+				{ "SetFontFamilyName", &api_SetFontFamilyName },
+				{ "SetLocaleName", &api_SetLocaleName },
+				{ "SetFontSize", &api_SetFontSize },
+				{ "SetFontStyle", &api_SetFontStyle },
+				{ "SetFontWeight", &api_SetFontWeight },
+				{ "SetFontStretch", &api_SetFontStretch },
+
+				{ "SetIncrementalTabStop", &api_SetIncrementalTabStop },
+				{ "SetLineSpacing", &api_SetLineSpacing },
+				{ "SetTextAlignment", &api_SetTextAlignment },
+				{ "SetParagraphAlignment", &api_SetParagraphAlignment },
+				{ "SetFlowDirection", &api_SetFlowDirection },
+				{ "SetReadingDirection", &api_SetReadingDirection },
+				{ "SetWordWrapping", &api_SetWordWrapping },
+
+				{ "SetMaxWidth", &api_SetMaxWidth },
+				{ "SetMaxHeight", &api_SetMaxHeight },
+
+				{ "DetermineMinWidth", &api_DetermineMinWidth },
+
+				{ NULL, NULL },
+			};
+			luaL_newmetatable(L, ClassID.data()); // mt
 			luaL_register(L, NULL, mt);
+			lua_createtable(L, 0, 1);             // mt lib
+			luaL_register(L, NULL, lib);
+			lua_setfield(L, -2, "__index");       // mt
 			lua_pop(L, 1);
 		}
 	};
@@ -1175,6 +1455,8 @@ namespace DirectWrite
 			return luaL_error(L, "[DirectWrite.CreateTextLayout] IDWriteFactory::CreateTextLayout failed");
 		}
 
+		text_layout->text = std::move(wide_string);
+
 		return 1;
 	}
 
@@ -1308,6 +1590,129 @@ namespace DirectWrite
 
 		return 0;
 	}
+
+	template<typename T>
+	struct CEnumEntry
+	{
+		std::string_view name;
+		T value;
+	};
+
+	template<typename T, size_t N>
+	struct CEnum
+	{
+		std::string_view name;
+		std::array<CEnumEntry<T>, N> entry;
+	};
+
+	static void register_C_enum(lua_State* L)
+	{
+		auto regf = [&L](auto data) -> void {
+			lua_push_string_view(L, data.name);
+			lua_createtable(L, 0, (int)data.entry.size());
+			//spdlog::info("---@class DirectWrite.{}", data.name);
+			//spdlog::info("local {} = {{}}", data.name);
+			//spdlog::info("M.{} = {}", data.name, data.name);
+			for (auto const& v : data.entry)
+			{
+				//spdlog::info("{}.{} = {}", data.name, v.name, (int)v.value);
+				lua_push_string_view(L, v.name);
+				lua_pushinteger(L, (lua_Integer)v.value);
+				lua_settable(L, -3);
+			}
+			lua_settable(L, -3);
+		};
+
+		CEnum<DWRITE_FONT_STRETCH, 11> const C_enum_FontStretch = {"FontStretch",{
+			"Undefined"     , DWRITE_FONT_STRETCH_UNDEFINED      ,
+			"UltraCondensed", DWRITE_FONT_STRETCH_ULTRA_CONDENSED,
+			"ExtraCondensed", DWRITE_FONT_STRETCH_EXTRA_CONDENSED,
+			"Condensed"     , DWRITE_FONT_STRETCH_CONDENSED      ,
+			"SemiCondensed" , DWRITE_FONT_STRETCH_SEMI_CONDENSED ,
+			"Normal"        , DWRITE_FONT_STRETCH_NORMAL         ,
+			"Medium"        , DWRITE_FONT_STRETCH_MEDIUM         ,
+			"SemiExpanded"  , DWRITE_FONT_STRETCH_SEMI_EXPANDED  ,
+			"Expanded"      , DWRITE_FONT_STRETCH_EXPANDED       ,
+			"ExtraExpanded" , DWRITE_FONT_STRETCH_EXTRA_EXPANDED ,
+			"UltraExpanded" , DWRITE_FONT_STRETCH_ULTRA_EXPANDED ,
+		}};
+		regf(C_enum_FontStretch);
+
+		CEnum<DWRITE_FONT_STYLE, 3> const C_enum_FontStyle = {"FontStyle",{
+			"Normal"  , DWRITE_FONT_STYLE_NORMAL ,
+			"Oblique" , DWRITE_FONT_STYLE_OBLIQUE,
+			"Italic"  , DWRITE_FONT_STYLE_ITALIC ,
+		}};
+		regf(C_enum_FontStyle);
+
+		CEnum<DWRITE_FONT_WEIGHT, 17> const C_enum_FontWeight = {"FontWeight",{
+			"Thin"       , DWRITE_FONT_WEIGHT_THIN       ,
+			"ExtraLight" , DWRITE_FONT_WEIGHT_EXTRA_LIGHT,
+			"UltraLight" , DWRITE_FONT_WEIGHT_ULTRA_LIGHT,
+			"Light"      , DWRITE_FONT_WEIGHT_LIGHT      ,
+			"SemiLight"  , DWRITE_FONT_WEIGHT_SEMI_LIGHT ,
+			"Normal"     , DWRITE_FONT_WEIGHT_NORMAL     ,
+			"Regular"    , DWRITE_FONT_WEIGHT_REGULAR    ,
+			"Medium"     , DWRITE_FONT_WEIGHT_MEDIUM     ,
+			"DemiBold"   , DWRITE_FONT_WEIGHT_DEMI_BOLD  ,
+			"SemiBold"   , DWRITE_FONT_WEIGHT_SEMI_BOLD  ,
+			"Bold"       , DWRITE_FONT_WEIGHT_BOLD       ,
+			"ExtraBold"  , DWRITE_FONT_WEIGHT_EXTRA_BOLD ,
+			"UltraBold"  , DWRITE_FONT_WEIGHT_ULTRA_BOLD ,
+			"Black"      , DWRITE_FONT_WEIGHT_BLACK      ,
+			"Heacy"      , DWRITE_FONT_WEIGHT_HEAVY      ,
+			"ExtraBlack" , DWRITE_FONT_WEIGHT_EXTRA_BLACK,
+			"UltraBlack" , DWRITE_FONT_WEIGHT_ULTRA_BLACK,
+		}};
+		regf(C_enum_FontWeight);
+
+		CEnum<DWRITE_LINE_SPACING_METHOD, 2> const C_enum_LineSpacingMethod = {"LineSpacingMethod",{
+			"Default", DWRITE_LINE_SPACING_METHOD_DEFAULT,
+			"Uniform", DWRITE_LINE_SPACING_METHOD_UNIFORM,
+			//"Proportional", DWRITE_LINE_SPACING_METHOD_PROPORTIONAL, // Windows 10
+		}};
+		regf(C_enum_LineSpacingMethod);
+
+		CEnum<DWRITE_TEXT_ALIGNMENT, 4> const C_enum_TextAlignment = {"TextAlignment",{
+			"Leading"  , DWRITE_TEXT_ALIGNMENT_LEADING  ,
+			"Trailing" , DWRITE_TEXT_ALIGNMENT_TRAILING ,
+			"Center"   , DWRITE_TEXT_ALIGNMENT_CENTER   ,
+			"Justified", DWRITE_TEXT_ALIGNMENT_JUSTIFIED,
+		}};
+		regf(C_enum_TextAlignment);
+
+		CEnum<DWRITE_PARAGRAPH_ALIGNMENT, 3> const C_enum_ParagraphAlignment = {"ParagraphAlignment",{
+			"Near"  , DWRITE_PARAGRAPH_ALIGNMENT_NEAR  ,
+			"Far"   , DWRITE_PARAGRAPH_ALIGNMENT_FAR   ,
+			"Center", DWRITE_PARAGRAPH_ALIGNMENT_CENTER,
+		}};
+		regf(C_enum_ParagraphAlignment);
+
+		CEnum<DWRITE_FLOW_DIRECTION, 4> const C_enum_FlowDirection = {"FlowDirection",{
+			"TopToBottom", DWRITE_FLOW_DIRECTION_TOP_TO_BOTTOM,
+			"BottomToTop", DWRITE_FLOW_DIRECTION_BOTTOM_TO_TOP,
+			"LeftToRight", DWRITE_FLOW_DIRECTION_LEFT_TO_RIGHT,
+			"RightToLeft", DWRITE_FLOW_DIRECTION_RIGHT_TO_LEFT,
+		}};
+		regf(C_enum_FlowDirection);
+
+		CEnum<DWRITE_READING_DIRECTION, 2> const C_enum_ReadingDirection = {"ReadingDirection",{
+			"TopToBottom", DWRITE_READING_DIRECTION_LEFT_TO_RIGHT,
+			"BottomToTop", DWRITE_READING_DIRECTION_RIGHT_TO_LEFT,
+			//"LeftToRight", DWRITE_READING_DIRECTION_TOP_TO_BOTTOM, // Windows 8.1
+			//"RightToLeft", DWRITE_READING_DIRECTION_BOTTOM_TO_TOP, // Windows 8.1
+		}};
+		regf(C_enum_ReadingDirection);
+
+		CEnum<DWRITE_WORD_WRAPPING, 2> const C_enum_WordWrapping = {"WordWrapping",{
+			"Wrap"          , DWRITE_WORD_WRAPPING_WRAP           ,
+			"NoWrap"        , DWRITE_WORD_WRAPPING_NO_WRAP        ,
+			//"EmergencyBreak", DWRITE_WORD_WRAPPING_EMERGENCY_BREAK, // Windows 8.1
+			//"WholeWord"     , DWRITE_WORD_WRAPPING_WHOLE_WORD     , // Windows 8.1
+			//"Character"     , DWRITE_WORD_WRAPPING_CHARACTER      , // Windows 8.1
+		}};
+		regf(C_enum_WordWrapping);
+	}
 }
 
 int luaopen_dwrite(lua_State* L)
@@ -1322,6 +1727,7 @@ int luaopen_dwrite(lua_State* L)
 		{ NULL, NULL },
 	};
 	luaL_register(L, "DirectWrite", lib);
+	DirectWrite::register_C_enum(L);
 	DirectWrite::Factory::Register(L);
 	DirectWrite::FontCollection::Register(L);
 	DirectWrite::TextFormat::Register(L);
