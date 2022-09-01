@@ -610,19 +610,19 @@ namespace DirectWrite
 			if (riid == __uuidof(IUnknown))
 			{
 				AddRef();
-				*ppvObject = this;
+				*ppvObject = static_cast<IUnknown*>(this);
 				return S_OK;
 			}
 			else if (riid == __uuidof(IDWritePixelSnapping))
 			{
 				AddRef();
-				*ppvObject = this;
+				*ppvObject = static_cast<IDWritePixelSnapping*>(this);
 				return S_OK;
 			}
 			else if (riid == __uuidof(IDWriteTextRenderer))
 			{
 				AddRef();
-				*ppvObject = this;
+				*ppvObject = static_cast<IDWriteTextRenderer*>(this);
 				return S_OK;
 			}
 			else
@@ -1791,10 +1791,10 @@ namespace DirectWrite
 		regf(C_enum_FlowDirection);
 
 		CEnum<DWRITE_READING_DIRECTION, 2> const C_enum_ReadingDirection = {"ReadingDirection",{
-			"TopToBottom", DWRITE_READING_DIRECTION_LEFT_TO_RIGHT,
-			"BottomToTop", DWRITE_READING_DIRECTION_RIGHT_TO_LEFT,
-			//"LeftToRight", DWRITE_READING_DIRECTION_TOP_TO_BOTTOM, // Windows 8.1
-			//"RightToLeft", DWRITE_READING_DIRECTION_BOTTOM_TO_TOP, // Windows 8.1
+			"LeftToRight", DWRITE_READING_DIRECTION_LEFT_TO_RIGHT,
+			"RightToLeft", DWRITE_READING_DIRECTION_RIGHT_TO_LEFT,
+			//"TopToBottom", DWRITE_READING_DIRECTION_TOP_TO_BOTTOM, // Windows 8.1
+			//"BottomToTop", DWRITE_READING_DIRECTION_BOTTOM_TO_TOP, // Windows 8.1
 		}};
 		regf(C_enum_ReadingDirection);
 
