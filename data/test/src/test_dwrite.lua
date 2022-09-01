@@ -41,17 +41,19 @@ function M:onCreate()
     text_layout:SetFontFamilyName("思源宋体 CN", 57, 5)
     text_layout:SetFontFamilyName("思源宋体 CN", 63, 5)
     text_layout:SetTextAlignment(DirectWrite.TextAlignment.Justified)
-    DirectWrite.CreateTextureFromTextLayout(text_layout, "global", "text-texture")
+    DirectWrite.CreateTextureFromTextLayout(text_layout, "global", "text-texture", 2)
 
     local text_layout_2 = DirectWrite.CreateTextLayout(
-        "城阙辅三秦，风烟望五津。\n与君离别意，同是宦游人。\n海内存知己，天涯若比邻。\n无为在歧路，儿女共沾巾。",
+        "城阙辅三秦，风烟望五津。\n与君离别意，同是宦游人。\n海内存知己，天涯若比邻。\n无为在歧路，儿女共沾巾。\nLet life be beautiful like summer flowers and death like autumn leaves.\nThe world has kissed my soul with its pain, asking for its return in songs.\nあなたが帰ってきたのは詩です。\n立ち去るのは言葉です。\n風塵を見ても、次を作ることはできません。",
         text_format,
         512, -- width
         512 -- height
     )
     text_layout_2:SetFlowDirection(DirectWrite.FlowDirection.RightToLeft)
     text_layout_2:SetReadingDirection(2)
-    DirectWrite.CreateTextureFromTextLayout(text_layout_2, "global", "text-texture-2")
+    --text_layout_2:SetStrikethrough(true, 0, 5)
+    --text_layout_2:SetUnderline(true, 0, 5)
+    DirectWrite.CreateTextureFromTextLayout(text_layout_2, "global", "text-texture-2", 2)
 
     local old_pool = lstg.GetResourceStatus()
     lstg.SetResourceStatus("global")

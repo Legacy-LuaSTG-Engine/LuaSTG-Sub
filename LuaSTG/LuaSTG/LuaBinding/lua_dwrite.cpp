@@ -567,21 +567,27 @@ namespace DirectWrite
 		HMODULE dll_dwrite;
 		HRESULT(WINAPI* api_D2D1CreateFactory)(D2D1_FACTORY_TYPE, REFIID, CONST D2D1_FACTORY_OPTIONS*, void**);
 		HRESULT(WINAPI* api_DWriteCreateFactory)(DWRITE_FACTORY_TYPE, REFIID, IUnknown**);
+		void(WINAPI* api_D2D1MakeRotateMatrix)(FLOAT, D2D1_POINT_2F, D2D1_MATRIX_3X2_F*);
 
 		ModuleLoader()
 			: dll_d2d1(NULL)
 			, dll_dwrite(NULL)
 			, api_D2D1CreateFactory(NULL)
 			, api_DWriteCreateFactory(NULL)
+			, api_D2D1MakeRotateMatrix(NULL)
 		{
 			dll_d2d1 = LoadLibraryW(L"d2d1.dll");
 			dll_dwrite = LoadLibraryW(L"dwrite.dll");
 			if (dll_d2d1)
+			{
 				api_D2D1CreateFactory = (decltype(api_D2D1CreateFactory))GetProcAddress(dll_d2d1, "D2D1CreateFactory");
+				api_D2D1MakeRotateMatrix = (decltype(api_D2D1MakeRotateMatrix))GetProcAddress(dll_d2d1, "D2D1MakeRotateMatrix");
+			}
 			if (dll_dwrite)
 				api_DWriteCreateFactory = (decltype(api_DWriteCreateFactory))GetProcAddress(dll_dwrite, "DWriteCreateFactory");
 			assert(api_D2D1CreateFactory);
 			assert(api_DWriteCreateFactory);
+			assert(api_D2D1MakeRotateMatrix);
 		}
 		~ModuleLoader()
 		{
@@ -591,16 +597,18 @@ namespace DirectWrite
 			dll_dwrite = NULL;
 			api_D2D1CreateFactory = NULL;
 			api_DWriteCreateFactory = NULL;
+			api_D2D1MakeRotateMatrix = NULL;
 		}
 	} DLL;
 
 	// DirectWrite renderer
 
-	class DWriteTextRendererImplement : public IDWriteTextRenderer
+	class DWriteTextRendererImplement : public IDWriteTextRenderer1
 	{
 	private:
 		Microsoft::WRL::ComPtr<ID2D1Factory> d2d1_factory;
 		Microsoft::WRL::ComPtr<ID2D1RenderTarget> d2d1_rt;
+		Microsoft::WRL::ComPtr<IDWriteTextLayout> dwrite_text_layout;
 		Microsoft::WRL::ComPtr<ID2D1Brush> d2d1_brush_outline;
 		Microsoft::WRL::ComPtr<ID2D1Brush> d2d1_brush_fill;
 		FLOAT outline_width;
@@ -623,6 +631,12 @@ namespace DirectWrite
 			{
 				AddRef();
 				*ppvObject = static_cast<IDWriteTextRenderer*>(this);
+				return S_OK;
+			}
+			else if (riid == __uuidof(IDWriteTextRenderer1))
+			{
+				AddRef();
+				*ppvObject = static_cast<IDWriteTextRenderer1*>(this);
 				return S_OK;
 			}
 			else
@@ -820,8 +834,237 @@ namespace DirectWrite
 			return E_NOTIMPL;
 		}
 	public:
-		DWriteTextRendererImplement(ID2D1Factory* factory, ID2D1RenderTarget* target, ID2D1Brush* outline, ID2D1Brush* fill, FLOAT width)
-			: d2d1_factory(factory), d2d1_rt(target), d2d1_brush_outline(outline), d2d1_brush_fill(fill), outline_width(width) {}
+		HRESULT WINAPI DrawGlyphRun(
+			void* clientDrawingContext,
+			FLOAT baselineOriginX,
+			FLOAT baselineOriginY,
+			DWRITE_GLYPH_ORIENTATION_ANGLE orientationAngle,
+			DWRITE_MEASURING_MODE measuringMode,
+			DWRITE_GLYPH_RUN const* glyphRun,
+			DWRITE_GLYPH_RUN_DESCRIPTION const* glyphRunDescription,
+			IUnknown* clientDrawingEffect)
+		{
+			UNREFERENCED_PARAMETER(clientDrawingContext);
+			UNREFERENCED_PARAMETER(measuringMode);
+			UNREFERENCED_PARAMETER(glyphRunDescription);
+			UNREFERENCED_PARAMETER(clientDrawingEffect);
+
+			HRESULT hr = S_OK;
+
+			// Create the path geometry.
+
+			Microsoft::WRL::ComPtr<ID2D1PathGeometry> d2d1_path_geometry;
+			hr = gHR = d2d1_factory->CreatePathGeometry(&d2d1_path_geometry);
+			if (FAILED(hr)) return hr;
+
+			// Write to the path geometry using the geometry sink.
+
+			Microsoft::WRL::ComPtr<ID2D1GeometrySink> d2d1_geometry_sink;
+			hr = gHR = d2d1_path_geometry->Open(&d2d1_geometry_sink);
+			if (FAILED(hr)) return hr;
+
+			hr = gHR = glyphRun->fontFace->GetGlyphRunOutline(
+				glyphRun->fontEmSize,
+				glyphRun->glyphIndices,
+				glyphRun->glyphAdvances,
+				glyphRun->glyphOffsets,
+				glyphRun->glyphCount,
+				glyphRun->isSideways,
+				glyphRun->bidiLevel % 2,
+				d2d1_geometry_sink.Get());
+			if (FAILED(hr)) return hr;
+
+			hr = gHR = d2d1_geometry_sink->Close();
+			if (FAILED(hr)) return hr;
+
+			// TODO: 为什么旋转方向是这样判断的？
+			FLOAT rotate_angle = 0.0f;
+			//switch (orientationAngle)
+			//{
+			//case DWRITE_GLYPH_ORIENTATION_ANGLE_0_DEGREES: rotate_angle = 0.0f; break;
+			//case DWRITE_GLYPH_ORIENTATION_ANGLE_90_DEGREES: rotate_angle = 90.0f; break;
+			//case DWRITE_GLYPH_ORIENTATION_ANGLE_180_DEGREES: rotate_angle = 180.0f; break;
+			//case DWRITE_GLYPH_ORIENTATION_ANGLE_270_DEGREES: rotate_angle = 270.0f; break;
+			//default: assert(false); break;
+			//}
+			switch (dwrite_text_layout->GetReadingDirection())
+			{
+			case DWRITE_READING_DIRECTION_LEFT_TO_RIGHT: rotate_angle = 0.0f; break;
+			//case DWRITE_READING_DIRECTION_RIGHT_TO_LEFT: rotate_angle = 0.0f; break;
+			case DWRITE_READING_DIRECTION_TOP_TO_BOTTOM: rotate_angle = 90.0f; break;
+			//case DWRITE_READING_DIRECTION_BOTTOM_TO_TOP: rotate_angle = 90.0f; break;
+			default: assert(false); break;
+			}
+			D2D1::Matrix3x2F matrix;
+			DLL.api_D2D1MakeRotateMatrix(rotate_angle, D2D1::Point2F(), &matrix);
+			matrix.dx = baselineOriginX;
+			matrix.dy = baselineOriginY;
+			Microsoft::WRL::ComPtr<ID2D1TransformedGeometry> d2d1_transformed_geometry;
+			hr = gHR = d2d1_factory->CreateTransformedGeometry(
+				d2d1_path_geometry.Get(),
+				&matrix,
+				&d2d1_transformed_geometry);
+			if (FAILED(hr)) return hr;
+
+			// Draw the outline of the glyph run
+
+			d2d1_rt->DrawGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_outline.Get(), outline_width);
+
+			// Fill in the glyph run
+
+			d2d1_rt->FillGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_fill.Get());
+
+			return S_OK;
+		}
+		HRESULT WINAPI DrawUnderline(
+			void* clientDrawingContext,
+			FLOAT baselineOriginX,
+			FLOAT baselineOriginY,
+			DWRITE_GLYPH_ORIENTATION_ANGLE orientationAngle,
+			DWRITE_UNDERLINE const* underline,
+			IUnknown* clientDrawingEffect)
+		{
+			UNREFERENCED_PARAMETER(clientDrawingContext);
+			UNREFERENCED_PARAMETER(clientDrawingEffect);
+
+			HRESULT hr = S_OK;
+
+			D2D1_RECT_F rect = D2D1::RectF(
+				0,
+				underline->offset,
+				underline->width,
+				underline->offset + underline->thickness
+			);
+
+			Microsoft::WRL::ComPtr<ID2D1RectangleGeometry> d2d1_rect_geometry;
+			hr = gHR = d2d1_factory->CreateRectangleGeometry(&rect, &d2d1_rect_geometry);
+			if (FAILED(hr)) return hr;
+
+			// TODO: 为什么旋转方向是这样判断的？
+			FLOAT rotate_angle = 0.0f;
+			//switch (orientationAngle)
+			//{
+			//case DWRITE_GLYPH_ORIENTATION_ANGLE_0_DEGREES: rotate_angle = 0.0f; break;
+			//case DWRITE_GLYPH_ORIENTATION_ANGLE_90_DEGREES: rotate_angle = 90.0f; break;
+			//case DWRITE_GLYPH_ORIENTATION_ANGLE_180_DEGREES: rotate_angle = 180.0f; break;
+			//case DWRITE_GLYPH_ORIENTATION_ANGLE_270_DEGREES: rotate_angle = 270.0f; break;
+			//default: assert(false); break;
+			//}
+			switch (dwrite_text_layout->GetReadingDirection())
+			{
+			case DWRITE_READING_DIRECTION_LEFT_TO_RIGHT: rotate_angle = 0.0f; break;
+				//case DWRITE_READING_DIRECTION_RIGHT_TO_LEFT: rotate_angle = 0.0f; break;
+			case DWRITE_READING_DIRECTION_TOP_TO_BOTTOM: rotate_angle = 90.0f; break;
+				//case DWRITE_READING_DIRECTION_BOTTOM_TO_TOP: rotate_angle = 90.0f; break;
+			default: assert(false); break;
+			}
+			D2D1::Matrix3x2F matrix;
+			DLL.api_D2D1MakeRotateMatrix(rotate_angle, D2D1::Point2F(), &matrix);
+			matrix.dx = baselineOriginX;
+			matrix.dy = baselineOriginY;
+			Microsoft::WRL::ComPtr<ID2D1TransformedGeometry> d2d1_transformed_geometry;
+			hr = gHR = d2d1_factory->CreateTransformedGeometry(
+				d2d1_rect_geometry.Get(),
+				&matrix,
+				&d2d1_transformed_geometry);
+			if (FAILED(hr)) return hr;
+
+			d2d1_rt->DrawGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_outline.Get(), outline_width);
+			d2d1_rt->FillGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_fill.Get());
+
+			return S_OK;
+		}
+		HRESULT WINAPI DrawStrikethrough(
+			void* clientDrawingContext,
+			FLOAT baselineOriginX,
+			FLOAT baselineOriginY,
+			DWRITE_GLYPH_ORIENTATION_ANGLE orientationAngle,
+			DWRITE_STRIKETHROUGH const* strikethrough,
+			IUnknown* clientDrawingEffect)
+		{
+			UNREFERENCED_PARAMETER(clientDrawingContext);
+			UNREFERENCED_PARAMETER(clientDrawingEffect);
+
+			HRESULT hr = S_OK;
+
+			D2D1_RECT_F rect = D2D1::RectF(
+				0,
+				strikethrough->offset,
+				strikethrough->width,
+				strikethrough->offset + strikethrough->thickness
+			);
+
+			Microsoft::WRL::ComPtr<ID2D1RectangleGeometry> d2d1_rect_geometry;
+			hr = gHR = d2d1_factory->CreateRectangleGeometry(&rect, &d2d1_rect_geometry);
+			if (FAILED(hr)) return hr;
+
+			// TODO: 为什么旋转方向是这样判断的？
+			FLOAT rotate_angle = 0.0f;
+			//switch (orientationAngle)
+			//{
+			//case DWRITE_GLYPH_ORIENTATION_ANGLE_0_DEGREES: rotate_angle = 0.0f; break;
+			//case DWRITE_GLYPH_ORIENTATION_ANGLE_90_DEGREES: rotate_angle = 90.0f; break;
+			//case DWRITE_GLYPH_ORIENTATION_ANGLE_180_DEGREES: rotate_angle = 180.0f; break;
+			//case DWRITE_GLYPH_ORIENTATION_ANGLE_270_DEGREES: rotate_angle = 270.0f; break;
+			//default: assert(false); break;
+			//}
+			switch (dwrite_text_layout->GetReadingDirection())
+			{
+			case DWRITE_READING_DIRECTION_LEFT_TO_RIGHT: rotate_angle = 0.0f; break;
+				//case DWRITE_READING_DIRECTION_RIGHT_TO_LEFT: rotate_angle = 0.0f; break;
+			case DWRITE_READING_DIRECTION_TOP_TO_BOTTOM: rotate_angle = 90.0f; break;
+				//case DWRITE_READING_DIRECTION_BOTTOM_TO_TOP: rotate_angle = 90.0f; break;
+			default: assert(false); break;
+			}
+			D2D1::Matrix3x2F matrix;
+			DLL.api_D2D1MakeRotateMatrix(rotate_angle, D2D1::Point2F(), &matrix);
+			matrix.dx = baselineOriginX;
+			matrix.dy = baselineOriginY;
+			Microsoft::WRL::ComPtr<ID2D1TransformedGeometry> d2d1_transformed_geometry;
+			hr = gHR = d2d1_factory->CreateTransformedGeometry(
+				d2d1_rect_geometry.Get(),
+				&matrix,
+				&d2d1_transformed_geometry);
+			if (FAILED(hr)) return hr;
+
+			d2d1_rt->DrawGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_outline.Get(), outline_width);
+			d2d1_rt->FillGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_fill.Get());
+
+			return S_OK;
+		}
+		HRESULT WINAPI DrawInlineObject(
+			void* clientDrawingContext,
+			FLOAT originX,
+			FLOAT originY,
+			DWRITE_GLYPH_ORIENTATION_ANGLE orientationAngle,
+			IDWriteInlineObject* inlineObject,
+			BOOL isSideways,
+			BOOL isRightToLeft,
+			IUnknown* clientDrawingEffect)
+		{
+			UNREFERENCED_PARAMETER(clientDrawingContext);
+			UNREFERENCED_PARAMETER(originX);
+			UNREFERENCED_PARAMETER(originY);
+			UNREFERENCED_PARAMETER(inlineObject);
+			UNREFERENCED_PARAMETER(isSideways);
+			UNREFERENCED_PARAMETER(isRightToLeft);
+			UNREFERENCED_PARAMETER(clientDrawingEffect);
+			return E_NOTIMPL;
+		}
+	public:
+		DWriteTextRendererImplement(
+			ID2D1Factory* factory,
+			ID2D1RenderTarget* target,
+			IDWriteTextLayout* layout,
+			ID2D1Brush* outline,
+			ID2D1Brush* fill,
+			FLOAT width)
+			: d2d1_factory(factory)
+			, d2d1_rt(target)
+			, dwrite_text_layout(layout)
+			, d2d1_brush_outline(outline)
+			, d2d1_brush_fill(fill)
+			, outline_width(width) {}
 		~DWriteTextRendererImplement() {}
 	};
 
@@ -1612,6 +1855,7 @@ namespace DirectWrite
 			DWriteTextRendererImplement renderer(
 				core->d2d1_factory.Get(),
 				d2d1_rt.Get(),
+				text_layout->dwrite_text_layout.Get(),
 				d2d1_pen2.Get(),
 				d2d1_pen.Get(),
 				outline_width);
