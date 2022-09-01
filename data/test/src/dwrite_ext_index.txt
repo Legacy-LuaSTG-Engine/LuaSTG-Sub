@@ -52,13 +52,13 @@
 ----- extend format
 
     IDWriteTextLayout::GetStrikethrough
-    IDWriteTextLayout::SetStrikethrough
+    +IDWriteTextLayout::SetStrikethrough
+
+    IDWriteTextLayout::GetUnderline
+    +IDWriteTextLayout::SetUnderline
 
     IDWriteTextLayout::GetTypography
     IDWriteTextLayout::SetTypography
-
-    IDWriteTextLayout::GetUnderline
-    IDWriteTextLayout::SetUnderline
 
 ----- custom format
 
