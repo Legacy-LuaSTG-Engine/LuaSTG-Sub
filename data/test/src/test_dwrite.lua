@@ -8,6 +8,7 @@ local text = [[People communicate with text all the time in their daily lives. I
 统一的 App Store 让你的应用在 Windows 设备（如电脑、平板电脑、Xbox、HoloLens、Surface Hub 和物联网 (IoT) 设备）上可用。 可以向 Microsoft Store 提交应用，并使其对所有类型的设备或仅对所选设备类型可用。 你将在一个位置上提交和管理适用于 Windows 设备的所有应用。 想要使用 UWP 功能实现 C++ 桌面应用的现代化并将其在 Microsoft store 内出售？ 这同样可以实现。]]
 
 function M:onCreate()
+    ---@type DirectWrite
     local DirectWrite = require("DirectWrite")
     local font_collection = DirectWrite.CreateFontCollection({
         --"C:/Windows/Fonts/msyh.ttc",
@@ -39,13 +40,26 @@ function M:onCreate()
     text_layout:SetFontStyle(DirectWrite.FontStyle.Oblique, 30, 4)
     text_layout:SetFontFamilyName("思源宋体 CN", 57, 5)
     text_layout:SetFontFamilyName("思源宋体 CN", 63, 5)
-    DirectWrite.CreateTextureFromTextLayout(text_layout, "global", "text-texture", 4)
+    text_layout:SetTextAlignment(DirectWrite.TextAlignment.Justified)
+    DirectWrite.CreateTextureFromTextLayout(text_layout, "global", "text-texture")
+
+    local text_layout_2 = DirectWrite.CreateTextLayout(
+        "城阙辅三秦，风烟望五津。\n与君离别意，同是宦游人。\n海内存知己，天涯若比邻。\n无为在歧路，儿女共沾巾。",
+        text_format,
+        512, -- width
+        512 -- height
+    )
+    text_layout_2:SetFlowDirection(DirectWrite.FlowDirection.RightToLeft)
+    text_layout_2:SetReadingDirection(2)
+    DirectWrite.CreateTextureFromTextLayout(text_layout_2, "global", "text-texture-2")
 
     local old_pool = lstg.GetResourceStatus()
     lstg.SetResourceStatus("global")
 
     local w, h = lstg.GetTextureSize("text-texture")
     lstg.LoadImage("text-image", "text-texture", 0, 0, w, h)
+    local w, h = lstg.GetTextureSize("text-texture-2")
+    lstg.LoadImage("text-image-2", "text-texture-2", 0, 0, w, h)
 
     lstg.SetResourceStatus(old_pool)
 end
@@ -53,6 +67,8 @@ end
 function M:onDestroy()
     lstg.RemoveResource("global", 2, "text-image")
     lstg.RemoveResource("global", 1, "text-texture")
+    lstg.RemoveResource("global", 2, "text-image-2")
+    lstg.RemoveResource("global", 1, "text-texture-2")
 end
 
 function M:onUpdate()
@@ -60,7 +76,8 @@ end
 
 function M:onRender()
     window:applyCameraV()
-    lstg.Render("text-image", window.width / 2, window.height / 2, 0, 1)
+    lstg.Render("text-image", 64 + 512, window.height / 2, 0, 1)
+    lstg.Render("text-image-2", 64 + 1024 + 256, window.height / 2, 0, 1)
 end
 
 test.registerTest("test.Module.DirectWrite", M)
