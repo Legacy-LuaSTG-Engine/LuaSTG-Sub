@@ -76,6 +76,10 @@ namespace DirectWrite
 		return static_cast<E>(luaL_checkinteger(L, idx));
 	}
 
+	inline bool lua_to_boolean(lua_State* L, int idx)
+	{
+		return lua_toboolean(L, idx);
+	}
 	inline void lua_push_float(lua_State* L, float v)
 	{
 		lua_pushnumber(L, v);
@@ -723,11 +727,38 @@ namespace DirectWrite
 			IUnknown* clientDrawingEffect)
 		{
 			UNREFERENCED_PARAMETER(clientDrawingContext);
-			UNREFERENCED_PARAMETER(baselineOriginX);
-			UNREFERENCED_PARAMETER(baselineOriginY);
-			UNREFERENCED_PARAMETER(underline);
 			UNREFERENCED_PARAMETER(clientDrawingEffect);
-			return E_NOTIMPL;
+
+			HRESULT hr = S_OK;
+
+			D2D1_RECT_F rect = D2D1::RectF(
+				0,
+				underline->offset,
+				underline->width,
+				underline->offset + underline->thickness
+			);
+
+			Microsoft::WRL::ComPtr<ID2D1RectangleGeometry> d2d1_rect_geometry;
+			hr = gHR = d2d1_factory->CreateRectangleGeometry(&rect, &d2d1_rect_geometry);
+			if (FAILED(hr)) return hr;
+
+			D2D1::Matrix3x2F const matrix = D2D1::Matrix3x2F(
+				1.0f, 0.0f,
+				0.0f, 1.0f,
+				baselineOriginX, baselineOriginY
+			);
+
+			Microsoft::WRL::ComPtr<ID2D1TransformedGeometry> d2d1_transformed_geometry;
+			hr = gHR = d2d1_factory->CreateTransformedGeometry(
+				d2d1_rect_geometry.Get(),
+				&matrix,
+				&d2d1_transformed_geometry);
+			if (FAILED(hr)) return hr;
+
+			d2d1_rt->DrawGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_outline.Get(), outline_width);
+			d2d1_rt->FillGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_fill.Get());
+
+			return S_OK;
 		}
 		HRESULT WINAPI DrawStrikethrough(
 			void* clientDrawingContext,
@@ -737,11 +768,38 @@ namespace DirectWrite
 			IUnknown* clientDrawingEffect)
 		{
 			UNREFERENCED_PARAMETER(clientDrawingContext);
-			UNREFERENCED_PARAMETER(baselineOriginX);
-			UNREFERENCED_PARAMETER(baselineOriginY);
-			UNREFERENCED_PARAMETER(strikethrough);
 			UNREFERENCED_PARAMETER(clientDrawingEffect);
-			return E_NOTIMPL;
+
+			HRESULT hr = S_OK;
+
+			D2D1_RECT_F rect = D2D1::RectF(
+				0,
+				strikethrough->offset,
+				strikethrough->width,
+				strikethrough->offset + strikethrough->thickness
+			);
+
+			Microsoft::WRL::ComPtr<ID2D1RectangleGeometry> d2d1_rect_geometry;
+			hr = gHR = d2d1_factory->CreateRectangleGeometry(&rect, &d2d1_rect_geometry);
+			if (FAILED(hr)) return hr;
+
+			D2D1::Matrix3x2F const matrix = D2D1::Matrix3x2F(
+				1.0f, 0.0f,
+				0.0f, 1.0f,
+				baselineOriginX, baselineOriginY
+			);
+
+			Microsoft::WRL::ComPtr<ID2D1TransformedGeometry> d2d1_transformed_geometry;
+			hr = gHR = d2d1_factory->CreateTransformedGeometry(
+				d2d1_rect_geometry.Get(),
+				&matrix,
+				&d2d1_transformed_geometry);
+			if (FAILED(hr)) return hr;
+
+			d2d1_rt->DrawGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_outline.Get(), outline_width);
+			d2d1_rt->FillGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_fill.Get());
+
+			return S_OK;
 		}
 		HRESULT WINAPI DrawInlineObject(
 			void* clientDrawingContext,
@@ -1076,6 +1134,43 @@ namespace DirectWrite
 			return 0;
 		}
 
+		static int api_SetStrikethrough(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const enable = lua_to_boolean(L, 2);
+			auto const position = luaL_check_uint32(L, 3);
+			auto const length = luaL_check_uint32(L, 4);
+
+			HRESULT hr = gHR = self->dwrite_text_layout->SetStrikethrough(
+				enable,
+				DWRITE_TEXT_RANGE{
+					.startPosition = position,
+					.length = length,
+				});
+			if (FAILED(hr))
+				return luaL_error(L, "SetStrikethrough failed");
+
+			return 0;
+		}
+		static int api_SetUnderline(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const enable = lua_to_boolean(L, 2);
+			auto const position = luaL_check_uint32(L, 3);
+			auto const length = luaL_check_uint32(L, 4);
+
+			HRESULT hr = gHR = self->dwrite_text_layout->SetUnderline(
+				enable,
+				DWRITE_TEXT_RANGE{
+					.startPosition = position,
+					.length = length,
+				});
+			if (FAILED(hr))
+				return luaL_error(L, "SetUnderline failed");
+
+			return 0;
+		}
+
 		static int api_SetIncrementalTabStop(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
@@ -1232,6 +1327,9 @@ namespace DirectWrite
 				{ "SetFontStyle", &api_SetFontStyle },
 				{ "SetFontWeight", &api_SetFontWeight },
 				{ "SetFontStretch", &api_SetFontStretch },
+
+				{ "SetStrikethrough", &api_SetStrikethrough },
+				{ "SetUnderline", &api_SetUnderline },
 
 				{ "SetIncrementalTabStop", &api_SetIncrementalTabStop },
 				{ "SetLineSpacing", &api_SetLineSpacing },
