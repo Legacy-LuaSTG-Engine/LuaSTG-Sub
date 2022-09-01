@@ -1570,21 +1570,15 @@ namespace DirectWrite
 
 		// bitmap
 
-		auto const layout_width = text_layout->dwrite_text_layout->GetMaxWidth();
-		auto const texture_width = std::ceil(layout_width);
-		auto const texture_height = std::ceil(text_layout->dwrite_text_layout->GetMaxHeight());
-
-		hr = gHR = text_layout->dwrite_text_layout->SetMaxWidth(layout_width - 2.0f * outline_width);
-		if (FAILED(hr))
-			return luaL_error(L, "update layout failed");
-		ScopeFunction rec([&]() -> void {
-			text_layout->dwrite_text_layout->SetMaxWidth(layout_width);
-		});
+		//auto const texture_width = std::ceil(text_layout->dwrite_text_layout->GetMaxWidth());
+		//auto const texture_height = std::ceil(text_layout->dwrite_text_layout->GetMaxHeight());
+		auto const texture_canvas_width = std::ceil(text_layout->dwrite_text_layout->GetMaxWidth() + 2.0f * outline_width);
+		auto const texture_canvas_height = std::ceil(text_layout->dwrite_text_layout->GetMaxHeight() + 2.0f * outline_width);
 
 		Microsoft::WRL::ComPtr<IWICBitmap> wic_bitmap;
 		hr = gHR = core->wic_factory->CreateBitmap(
-			(UINT)texture_width,
-			(UINT)texture_height,
+			(UINT)texture_canvas_width,
+			(UINT)texture_canvas_height,
 			GUID_WICPixelFormat32bppPBGRA,
 			WICBitmapCacheOnDemand,
 			&wic_bitmap);
@@ -1648,8 +1642,8 @@ namespace DirectWrite
 		WICRect lock_rect = {
 			.X = 0,
 			.Y = 0,
-			.Width = (INT)texture_width,
-			.Height = (INT)texture_height,
+			.Width = (INT)texture_canvas_width,
+			.Height = (INT)texture_canvas_height,
 		};
 		Microsoft::WRL::ComPtr<IWICBitmapLock> wic_bitmap_lock;
 		hr = gHR = wic_bitmap->Lock(&lock_rect, WICBitmapLockRead, &wic_bitmap_lock);
@@ -1672,7 +1666,7 @@ namespace DirectWrite
 		else
 			return luaL_error(L, "invalid resource pool type");
 
-		if (!pool->CreateTexture(texture_name.data(), (int)texture_width, (int)texture_height))
+		if (!pool->CreateTexture(texture_name.data(), (int)texture_canvas_width, (int)texture_canvas_height))
 			return luaL_error(L, "create texture failed");
 
 		auto p_texres = pool->GetTexture(texture_name.data());
@@ -1684,7 +1678,7 @@ namespace DirectWrite
 		// TODO: 将 WICBitmap 也保存下来
 		p_texture->setPremultipliedAlpha(true);
 		if (!p_texture->uploadPixelData(
-			Core::RectU(0, 0, (uint32_t)texture_width, (uint32_t)texture_height),
+			Core::RectU(0, 0, (uint32_t)texture_canvas_width, (uint32_t)texture_canvas_height),
 			buffer, buffer_stride))
 			return luaL_error(L, "upload texture data failed");
 
