@@ -887,6 +887,7 @@ namespace DirectWrite
 			//case DWRITE_GLYPH_ORIENTATION_ANGLE_270_DEGREES: rotate_angle = 270.0f; break;
 			//default: assert(false); break;
 			//}
+			UNREFERENCED_PARAMETER(orientationAngle);
 			switch (dwrite_text_layout->GetReadingDirection())
 			{
 			case DWRITE_READING_DIRECTION_LEFT_TO_RIGHT: rotate_angle = 0.0f; break;
@@ -950,6 +951,7 @@ namespace DirectWrite
 			//case DWRITE_GLYPH_ORIENTATION_ANGLE_270_DEGREES: rotate_angle = 270.0f; break;
 			//default: assert(false); break;
 			//}
+			UNREFERENCED_PARAMETER(orientationAngle);
 			switch (dwrite_text_layout->GetReadingDirection())
 			{
 			case DWRITE_READING_DIRECTION_LEFT_TO_RIGHT: rotate_angle = 0.0f; break;
@@ -1008,6 +1010,7 @@ namespace DirectWrite
 			//case DWRITE_GLYPH_ORIENTATION_ANGLE_270_DEGREES: rotate_angle = 270.0f; break;
 			//default: assert(false); break;
 			//}
+			UNREFERENCED_PARAMETER(orientationAngle);
 			switch (dwrite_text_layout->GetReadingDirection())
 			{
 			case DWRITE_READING_DIRECTION_LEFT_TO_RIGHT: rotate_angle = 0.0f; break;
@@ -1045,6 +1048,7 @@ namespace DirectWrite
 			UNREFERENCED_PARAMETER(clientDrawingContext);
 			UNREFERENCED_PARAMETER(originX);
 			UNREFERENCED_PARAMETER(originY);
+			UNREFERENCED_PARAMETER(orientationAngle);
 			UNREFERENCED_PARAMETER(inlineObject);
 			UNREFERENCED_PARAMETER(isSideways);
 			UNREFERENCED_PARAMETER(isRightToLeft);
@@ -1811,6 +1815,18 @@ namespace DirectWrite
 		auto const texture_name = luaL_check_string_view(L, 3);
 		auto const outline_width = luaL_optional_float(L, 4, 0.0f);
 
+		// pre check
+
+		LuaSTGPlus::ResourcePool* pool{};
+		if (pool_type == "global")
+			pool = LRES.GetResourcePool(LuaSTGPlus::ResourcePoolType::Global);
+		else if (pool_type == "stage")
+			pool = LRES.GetResourcePool(LuaSTGPlus::ResourcePoolType::Stage);
+		else
+			return luaL_error(L, "invalid resource pool type");
+		if (pool->GetTexture(texture_name.data()))
+			return luaL_error(L, "texture '%s' already exists", texture_name.data());
+
 		// bitmap
 
 		//auto const texture_width = std::ceil(text_layout->dwrite_text_layout->GetMaxWidth());
@@ -1901,14 +1917,6 @@ namespace DirectWrite
 		if (FAILED(hr)) return luaL_error(L, "read rasterize result failed");
 
 		// create texture
-
-		LuaSTGPlus::ResourcePool* pool{};
-		if (pool_type == "global")
-			pool = LRES.GetResourcePool(LuaSTGPlus::ResourcePoolType::Global);
-		else if (pool_type == "stage")
-			pool = LRES.GetResourcePool(LuaSTGPlus::ResourcePoolType::Stage);
-		else
-			return luaL_error(L, "invalid resource pool type");
 
 		if (!pool->CreateTexture(texture_name.data(), (int)texture_canvas_width, (int)texture_canvas_height))
 			return luaL_error(L, "create texture failed");
