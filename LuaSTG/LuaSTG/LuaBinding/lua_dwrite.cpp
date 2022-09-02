@@ -57,6 +57,35 @@ namespace DirectWrite
 		~ScopeFunction() { f(); }
 	};
 
+	// wic helper
+
+	class AutoDeleteFileWIC
+	{
+	public:
+		AutoDeleteFileWIC(Microsoft::WRL::ComPtr<IWICStream>& hFile, std::wstring_view szFile) noexcept
+			: m_filename(szFile), m_handle(hFile) {}
+		~AutoDeleteFileWIC()
+		{
+			if (!m_filename.empty())
+			{
+				m_handle.Reset();
+				DeleteFileW(m_filename.data());
+			}
+		}
+
+		AutoDeleteFileWIC(const AutoDeleteFileWIC&) = delete;
+		AutoDeleteFileWIC& operator=(const AutoDeleteFileWIC&) = delete;
+
+		AutoDeleteFileWIC(const AutoDeleteFileWIC&&) = delete;
+		AutoDeleteFileWIC& operator=(const AutoDeleteFileWIC&&) = delete;
+
+		void clear() noexcept { m_filename = m_filename.substr(0, 0); }
+
+	private:
+		std::wstring_view m_filename;
+		Microsoft::WRL::ComPtr<IWICStream>& m_handle;
+	};
+
 	// lua helper
 
 	inline void lua_push_string_view(lua_State* L, std::string_view sv)
@@ -1936,6 +1965,177 @@ namespace DirectWrite
 
 		return 0;
 	}
+	static int api_SaveTextLayoutToFile(lua_State* L)
+	{
+		HRESULT hr = S_OK;
+
+		Factory* core = Factory::Get(L);
+		auto* text_layout = TextLayout::Cast(L, 1);
+		auto const file_path = luaL_check_string_view(L, 2);
+		auto const outline_width = luaL_optional_float(L, 3, 0.0f);
+
+		// bitmap
+
+		//auto const texture_width = std::ceil(text_layout->dwrite_text_layout->GetMaxWidth());
+		//auto const texture_height = std::ceil(text_layout->dwrite_text_layout->GetMaxHeight());
+		auto const texture_canvas_width = std::ceil(text_layout->dwrite_text_layout->GetMaxWidth() + 2.0f * outline_width);
+		auto const texture_canvas_height = std::ceil(text_layout->dwrite_text_layout->GetMaxHeight() + 2.0f * outline_width);
+
+		Microsoft::WRL::ComPtr<IWICBitmap> wic_bitmap;
+		hr = gHR = core->wic_factory->CreateBitmap(
+			(UINT)texture_canvas_width,
+			(UINT)texture_canvas_height,
+			GUID_WICPixelFormat32bppPBGRA,
+			WICBitmapCacheOnDemand,
+			&wic_bitmap);
+		if (FAILED(hr))
+			return luaL_error(L, "create bitmap failed");
+
+		// d2d1 rasterizer
+
+		Microsoft::WRL::ComPtr<ID2D1RenderTarget> d2d1_rt;
+		hr = gHR = core->d2d1_factory->CreateWicBitmapRenderTarget(
+			wic_bitmap.Get(),
+			D2D1::RenderTargetProperties(),
+			&d2d1_rt);
+		if (FAILED(hr))
+			return luaL_error(L, "create rasterizer failed");
+
+		Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> d2d1_pen;
+		hr = gHR = d2d1_rt->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f), &d2d1_pen);
+		if (FAILED(hr))
+			return luaL_error(L, "create rasterizer color failed");
+
+		// rasterize
+
+		if (lua_gettop(L) >= 3)
+		{
+			Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> d2d1_pen2;
+			hr = gHR = d2d1_rt->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f), &d2d1_pen2);
+			if (FAILED(hr))
+				return luaL_error(L, "create rasterizer color failed");
+
+			DWriteTextRendererImplement renderer(
+				core->d2d1_factory.Get(),
+				d2d1_rt.Get(),
+				text_layout->dwrite_text_layout.Get(),
+				d2d1_pen2.Get(),
+				d2d1_pen.Get(),
+				outline_width);
+
+			d2d1_rt->BeginDraw();
+			d2d1_rt->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
+			hr = gHR = text_layout->dwrite_text_layout->Draw(NULL, &renderer, outline_width, outline_width);
+			if (FAILED(hr))
+				return luaL_error(L, "render failed");
+			hr = gHR = d2d1_rt->EndDraw();
+			if (FAILED(hr))
+				return luaL_error(L, "rasterize failed");
+		}
+		else
+		{
+			d2d1_rt->BeginDraw();
+			d2d1_rt->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
+			d2d1_rt->DrawTextLayout(D2D1::Point2F(0.0f, 0.0f), text_layout->dwrite_text_layout.Get(), d2d1_pen.Get());
+			if (FAILED(hr))
+				return luaL_error(L, "render failed");
+			hr = gHR = d2d1_rt->EndDraw();
+			if (FAILED(hr))
+				return luaL_error(L, "rasterize failed");
+		}
+
+		// save
+
+		Microsoft::WRL::ComPtr<IWICStream> wic_stream;
+		hr = gHR = core->wic_factory->CreateStream(&wic_stream);
+		if (FAILED(hr))
+			return luaL_error(L, "create stream failed");
+
+		std::wstring wide_file_path(utility::encoding::to_wide(file_path));
+		hr = gHR = wic_stream->InitializeFromFilename(wide_file_path.c_str(), GENERIC_WRITE);
+		if (FAILED(hr))
+			return luaL_error(L, "initialize stream failed");
+
+		AutoDeleteFileWIC auto_delete(wic_stream, wide_file_path);
+
+		Microsoft::WRL::ComPtr<IWICBitmapEncoder> wic_bitmap_encoder;
+		hr = gHR = core->wic_factory->CreateEncoder(GUID_ContainerFormatPng, NULL, &wic_bitmap_encoder);
+		if (FAILED(hr))
+			return luaL_error(L, "create encoder failed");
+
+		hr = gHR = wic_bitmap_encoder->Initialize(wic_stream.Get(), WICBitmapEncoderNoCache);
+		if (FAILED(hr))
+			return luaL_error(L, "initialize encoder failed");
+
+		Microsoft::WRL::ComPtr<IWICBitmapFrameEncode> wic_bitmap_frame_encode;
+		Microsoft::WRL::ComPtr<IPropertyBag2> property_bag;
+		hr = gHR = wic_bitmap_encoder->CreateNewFrame(&wic_bitmap_frame_encode, &property_bag);
+		if (FAILED(hr))
+			return luaL_error(L, "create frame encode failed");
+
+		hr = gHR = wic_bitmap_frame_encode->Initialize(property_bag.Get());
+		if (FAILED(hr))
+			return luaL_error(L, "initialize frame encode failed");
+
+		hr = gHR = wic_bitmap_frame_encode->SetSize((UINT)texture_canvas_width, (UINT)texture_canvas_height);
+		if (FAILED(hr))
+			return luaL_error(L, "create frame encode failed");
+
+		hr = gHR = wic_bitmap_frame_encode->SetResolution(72, 72);
+		if (FAILED(hr))
+			return luaL_error(L, "create frame encode failed");
+
+		WICPixelFormatGUID wic_pixel_format = GUID_WICPixelFormat32bppBGRA;
+		hr = gHR = wic_bitmap_frame_encode->SetPixelFormat(&wic_pixel_format);
+		if (FAILED(hr))
+			return luaL_error(L, "create frame encode failed");
+
+		Microsoft::WRL::ComPtr<IWICMetadataQueryWriter> metawriter;
+		if (SUCCEEDED(wic_bitmap_frame_encode->GetMetadataQueryWriter(&metawriter)))
+		{
+			PROPVARIANT value;
+			PropVariantInit(&value);
+			
+			// Set Software name
+			value.vt = VT_LPSTR;
+			value.pszVal = const_cast<char*>("DirectXTK");
+			std::ignore = metawriter->SetMetadataByName(L"/tEXt/{str=Software}", &value);
+
+			// Set sRGB chunk
+			if constexpr (false) // sRGB
+			{
+				value.vt = VT_UI1;
+				value.bVal = 0;
+				std::ignore = metawriter->SetMetadataByName(L"/sRGB/RenderingIntent", &value);
+			}
+			else
+			{
+				// add gAMA chunk with gamma 1.0
+				value.vt = VT_UI4;
+				value.uintVal = 100000; // gama value * 100,000 -- i.e. gamma 1.0
+				std::ignore = metawriter->SetMetadataByName(L"/gAMA/ImageGamma", &value);
+
+				// remove sRGB chunk which is added by default.
+				std::ignore = metawriter->RemoveMetadataByName(L"/sRGB/RenderingIntent");
+			}
+		}
+
+		hr = gHR = wic_bitmap_frame_encode->WriteSource(wic_bitmap.Get(), NULL);
+		if (FAILED(hr))
+			return luaL_error(L, "encode frame failed");
+
+		hr = gHR = wic_bitmap_frame_encode->Commit();
+		if (FAILED(hr))
+			return luaL_error(L, "encode frame failed");
+
+		hr = gHR = wic_bitmap_encoder->Commit();
+		if (FAILED(hr))
+			return luaL_error(L, "encode failed");
+
+		auto_delete.clear();
+
+		return 0;
+	}
 
 	template<typename T>
 	struct CEnumEntry
@@ -2070,6 +2270,7 @@ int luaopen_dwrite(lua_State* L)
 		{ "CreateTextFormat", &DirectWrite::api_CreateTextFormat },
 		{ "CreateTextLayout", &DirectWrite::api_CreateTextLayout },
 		{ "CreateTextureFromTextLayout", &DirectWrite::api_CreateTextureFromTextLayout },
+		{ "SaveTextLayoutToFile", &DirectWrite::api_SaveTextLayoutToFile },
 		{ NULL, NULL },
 	};
 	luaL_register(L, "DirectWrite", lib);

@@ -54,6 +54,7 @@ function M:onCreate()
     --text_layout_2:SetStrikethrough(true, 0, 5)
     --text_layout_2:SetUnderline(true, 0, 5)
     DirectWrite.CreateTextureFromTextLayout(text_layout_2, "global", "text-texture-2", 2)
+    --DirectWrite.SaveTextLayoutToFile(text_layout_2, "res/text-texture-2.png")
 
     local old_pool = lstg.GetResourceStatus()
     lstg.SetResourceStatus("global")
