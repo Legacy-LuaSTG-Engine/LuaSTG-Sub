@@ -131,6 +131,18 @@ namespace LuaSTGPlus
 			spdlog::error("[luastg] CacheTTFFontString: 缓存字形时未找到指定字体'{}'", name);
 	}
 
+	void ResourceMgr::UpdateSound()
+	{
+		for (auto& snd : m_GlobalResourcePool.m_SoundSpritePool)
+		{
+			snd.second->FlushCommand();
+		}
+		for (auto& snd : m_StageResourcePool.m_SoundSpritePool)
+		{
+			snd.second->FlushCommand();
+		}
+	}
+
 	// 其他
 
 	#ifdef LDEVVERSION

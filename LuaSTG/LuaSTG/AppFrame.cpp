@@ -593,6 +593,7 @@ void AppFrame::onUpdate()
 		lua_pop(L, 1);
 		if (tAbort)
 			m_pAppModel->requestExit();
+		m_ResourceMgr.UpdateSound();
 	}
 }
 void AppFrame::onRender()
