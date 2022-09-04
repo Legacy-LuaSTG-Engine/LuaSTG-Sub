@@ -124,6 +124,7 @@ namespace LuaSTGPlus
         
         bool GetTextureSize(const char* name, Core::Vector2U& out) noexcept;
         void CacheTTFFontString(const char* name, const char* text, size_t len) noexcept;
+        void UpdateSound();
     private:
         static bool g_ResourceLoadingLog;
         float m_GlobalImageScaleFactor = 1.0f;

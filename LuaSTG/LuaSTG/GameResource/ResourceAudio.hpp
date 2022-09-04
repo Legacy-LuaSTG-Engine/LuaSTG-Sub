@@ -8,11 +8,27 @@ namespace LuaSTGPlus
 	// 音效
 	class ResSound : public Resource
 	{
+	public:
+		enum class CommandType : uint32_t
+		{
+			None,
+			Play,
+			Stop,
+			Reset,
+			ResetAndStop,
+		};
+		struct Command
+		{
+			CommandType type = CommandType::None;
+			float vol = 0.0f;
+			float pan = 0.0f;
+		};
 	private:
 		Core::ScopeObject<Core::Audio::IAudioPlayer> m_player;
 		int m_status = 0; // 0停止 1暂停 2播放
-
+		Command m_last_command;
 	public:
+		void FlushCommand();
 		void Play(float vol, float pan);
 		void Resume();
 		void Pause();
