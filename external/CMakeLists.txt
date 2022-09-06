@@ -274,6 +274,9 @@ set_target_properties(FLAC PROPERTIES FOLDER external/flac)
 set_target_properties(replaygain_analysis PROPERTIES FOLDER external/flac)
 set_target_properties(replaygain_synthesis PROPERTIES FOLDER external/flac)
 set_target_properties(utf8 PROPERTIES FOLDER external/flac)
+if(TARGET FLAC-asm)
+    set_target_properties(FLAC-asm PROPERTIES FOLDER external/flac)
+endif()
 
 # ==================== zlib-ng ====================
 
