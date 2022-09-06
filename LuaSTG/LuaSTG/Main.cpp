@@ -19,8 +19,9 @@ _Use_decl_annotations_ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 	{
 		MessageBoxW(
 			NULL,
+			L"引擎初始化失败。\n"
 			L"未能正常初始化COM组件库，请尝试重新启动此应用程序。",
-			L"引擎初始化失败",
+			L"" LUASTG_INFO,
 			MB_ICONERROR | MB_OK);
 		return EXIT_FAILURE;
 	}
@@ -40,10 +41,10 @@ _Use_decl_annotations_ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 		{
 			MessageBoxW(
 				NULL,
-				L"引擎未能成功初始化：\n"
+				L"引擎初始化失败。\n"
 				L"请尝试重新启动此应用程序，或者联系开发人员。\n"
 				L"在日志文件（engine.log，可以用记事本打开）中可以获得更多信息。",
-				L"引擎初始化失败",
+				L"" LUASTG_INFO,
 				MB_ICONERROR | MB_OK);
 			result = EXIT_FAILURE;
 		}
