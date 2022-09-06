@@ -1,31 +1,46 @@
+# wrapper
+
+function(utility_download_package dir url filename sha256)
+    # create download cache directory
+    set(_DOWNLOAD_CACHE_DIR ${CMAKE_CURRENT_LIST_DIR}/.download)
+    file(MAKE_DIRECTORY ${_DOWNLOAD_CACHE_DIR})
+    # check package hash
+    if(EXISTS ${_DOWNLOAD_CACHE_DIR}/${filename})
+        file(SHA256 ${_DOWNLOAD_CACHE_DIR}/${filename} _CURRENT_FILE_SHA256)
+        string(TOUPPER ${_CURRENT_FILE_SHA256} _CURRENT_FILE_SHA256)
+        string(TOUPPER ${sha256} _FILE_SHA256)
+        if(NOT (${_CURRENT_FILE_SHA256} STREQUAL ${_FILE_SHA256}))
+            file(REMOVE ${_DOWNLOAD_CACHE_DIR}/${filename})
+            message(WARNING "file is outdated/corrupted:" ${_DOWNLOAD_CACHE_DIR}/${filename})
+        endif()
+        unset(_CURRENT_FILE_SHA256)
+        unset(_FILE_SHA256)
+    endif()
+    # fetch package
+    if(NOT EXISTS ${_DOWNLOAD_CACHE_DIR}/${filename})
+        # download package
+        file(DOWNLOAD
+            ${url}
+            ${_DOWNLOAD_CACHE_DIR}/${filename}
+            EXPECTED_HASH SHA256=${sha256}
+            SHOW_PROGRESS
+        )
+    endif()
+    # extract package
+    if(EXISTS ${_DOWNLOAD_CACHE_DIR}/${filename})
+        file(REMOVE_RECURSE ${CMAKE_CURRENT_LIST_DIR}/${dir})
+        file(MAKE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/${dir})
+        file(ARCHIVE_EXTRACT
+            INPUT ${_DOWNLOAD_CACHE_DIR}/${filename}
+            DESTINATION ${CMAKE_CURRENT_LIST_DIR}/${dir}
+        )
+    endif()
+endfunction()
+
 # download xaudio2.redist nuget package
 
-set(_XAUDIO2_RESIST_NUPKG_URL  https://www.nuget.org/api/v2/package/Microsoft.XAudio2.Redist/1.2.9)
-set(_XAUDIO2_RESIST_NUPKG      ${CMAKE_BINARY_DIR}/XAudio2Redist/microsoft.xaudio2.redist.1.2.9.nupkg)
-set(_XAUDIO2_RESIST_NUPKG_HASH A02332CB8D4096C29430BE0FDB6A079E8F4A29781623AE362A811FD5DC015BB5)
-set(_XAUDIO2_RESIST_DIR        ${CMAKE_SOURCE_DIR}/external/XAudio2Redist)
-
-if(EXISTS ${_XAUDIO2_RESIST_NUPKG})
-    file(SHA256 ${_XAUDIO2_RESIST_NUPKG} _CUR_XAUDIO2_RESIST_NUPKG_HASH)
-    string(TOUPPER ${_CUR_XAUDIO2_RESIST_NUPKG_HASH} _CUR_XAUDIO2_RESIST_NUPKG_HASH)
-    if(NOT (${_CUR_XAUDIO2_RESIST_NUPKG_HASH} STREQUAL ${_XAUDIO2_RESIST_NUPKG_HASH}))
-        file(REMOVE ${_XAUDIO2_RESIST_NUPKG})
-        message(WARNING "corrupt file:" ${_XAUDIO2_RESIST_NUPKG})
-    endif()
-endif()
-
-if(NOT EXISTS ${_XAUDIO2_RESIST_NUPKG})
-    file(DOWNLOAD
-        ${_XAUDIO2_RESIST_NUPKG_URL}
-        ${_XAUDIO2_RESIST_NUPKG}
-        EXPECTED_HASH SHA256=${_XAUDIO2_RESIST_NUPKG_HASH}
-        SHOW_PROGRESS
-    )
-endif()
-
-if(NOT EXISTS ${_XAUDIO2_RESIST_DIR}/Microsoft.XAudio2.Redist.nuspec)
-    file(ARCHIVE_EXTRACT
-        INPUT ${_XAUDIO2_RESIST_NUPKG}
-        DESTINATION ${_XAUDIO2_RESIST_DIR}
-    )
-endif()
+utility_download_package(XAudio2Redist
+    https://www.nuget.org/api/v2/package/Microsoft.XAudio2.Redist/1.2.9
+    microsoft.xaudio2.redist.1.2.9.nupkg
+    A02332CB8D4096C29430BE0FDB6A079E8F4A29781623AE362A811FD5DC015BB5
+)
