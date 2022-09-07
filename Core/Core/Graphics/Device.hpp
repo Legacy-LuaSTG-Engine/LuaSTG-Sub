@@ -102,6 +102,7 @@ namespace Core::Graphics
 		virtual bool setSize(Vector2U size) = 0;
 
 		virtual bool uploadPixelData(RectU rc, void const* data, uint32_t pitch) = 0;
+		virtual void setPixelData(IData* p_data) = 0;
 
 		virtual bool saveToFile(StringView path) = 0;
 

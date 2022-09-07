@@ -178,6 +178,7 @@ namespace Core::Graphics
 	private:
 		ScopeObject<Device_D3D11> m_device;
 		ScopeObject<ISamplerState> m_sampler;
+		ScopeObject<IData> m_data;
 		std::string source_path;
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> d3d11_texture2d;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> d3d11_srv;
@@ -207,6 +208,7 @@ namespace Core::Graphics
 		bool setSize(Vector2U size);
 
 		bool uploadPixelData(RectU rc, void const* data, uint32_t pitch);
+		void setPixelData(IData* p_data) { m_data = p_data; }
 
 		bool saveToFile(StringView path);
 
