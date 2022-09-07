@@ -2,7 +2,7 @@
 local version = {
     major = 0,
     minor = 19,
-    patch = 1,
+    patch = 2,
 }
 
 local utf8_bom = "\xEF\xBB\xBF"
@@ -256,6 +256,18 @@ end
             </requestedPrivileges>
         </security>
     </trustInfo>
+    <dependency>
+        <dependentAssembly>
+            <assemblyIdentity
+                type="win32"
+                name="Microsoft.Windows.Common-Controls"
+                version="6.0.0.0"
+                processorArchitecture="*"
+                publicKeyToken="6595b64144ccf1df"
+                language="*"
+            />
+        </dependentAssembly>
+    </dependency>
     <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
         <application>
             <!-- Windows 10/11 -->
@@ -289,6 +301,18 @@ local manifest_fmt = [[<?xml version="1.0" encoding="utf-8"?>
             </requestedPrivileges>
         </security>
     </trustInfo>
+    <dependency>
+        <dependentAssembly>
+            <assemblyIdentity
+                type="win32"
+                name="Microsoft.Windows.Common-Controls"
+                version="6.0.0.0"
+                processorArchitecture="*"
+                publicKeyToken="6595b64144ccf1df"
+                language="*"
+            />
+        </dependentAssembly>
+    </dependency>
     <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
         <application>
             <!-- Windows 10/11 -->
