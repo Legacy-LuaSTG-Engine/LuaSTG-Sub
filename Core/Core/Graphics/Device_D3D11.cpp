@@ -1616,7 +1616,53 @@ namespace Core::Graphics
 		if (!d3d11_device || !d3d11_devctx)
 			return false;
 
-		if (!source_path.empty())
+		if (m_data)
+		{
+			D3D11_TEXTURE2D_DESC tex2d_desc = {
+				.Width = m_size.x,
+				.Height = m_size.y,
+				.MipLevels = 1,
+				.ArraySize = 1,
+				.Format = DXGI_FORMAT_B8G8R8A8_UNORM,
+				.SampleDesc = {
+					.Count = 1,
+					.Quality = 0,
+				},
+				.Usage = D3D11_USAGE_DEFAULT,
+				.BindFlags = D3D11_BIND_SHADER_RESOURCE,
+				.CPUAccessFlags = 0,
+				.MiscFlags = 0,
+			};
+			D3D11_SUBRESOURCE_DATA subres_data = {
+				.pSysMem = m_data->data(),
+				.SysMemPitch = 4 * m_size.x, // BGRA
+				.SysMemSlicePitch = 4 * m_size.x * m_size.y,
+			};
+			hr = gHR = d3d11_device->CreateTexture2D(&tex2d_desc, &subres_data, &d3d11_texture2d);
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CreateTexture2D");
+				return false;
+			}
+			M_D3D_SET_DEBUG_NAME(d3d11_texture2d.Get(), "Texture2D_D3D11::d3d11_texture2d");
+
+			D3D11_SHADER_RESOURCE_VIEW_DESC view_desc = {
+				.Format = tex2d_desc.Format,
+				.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D,
+				.Texture2D = {
+					.MostDetailedMip = 0,
+					.MipLevels = 1,
+				},
+			};
+			hr = gHR = d3d11_device->CreateShaderResourceView(d3d11_texture2d.Get(), &view_desc, &d3d11_srv);
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CreateShaderResourceView");
+				return false;
+			}
+			M_D3D_SET_DEBUG_NAME(d3d11_srv.Get(), "Texture2D_D3D11::d3d11_srv");
+		}
+		else if (!source_path.empty())
 		{
 			std::vector<uint8_t> src;
 			if (!GFileManager().loadEx(source_path, src))

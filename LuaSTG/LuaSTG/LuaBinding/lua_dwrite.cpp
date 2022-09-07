@@ -1955,13 +1955,26 @@ namespace DirectWrite
 
 		// upload data
 
-		// TODO: 这样创建的纹理有个问题，一旦设备丢失重新创建资源，这个纹理上的数据会全部丢失
-		// TODO: 将 WICBitmap 也保存下来
 		p_texture->setPremultipliedAlpha(true);
 		if (!p_texture->uploadPixelData(
 			Core::RectU(0, 0, (uint32_t)texture_canvas_width, (uint32_t)texture_canvas_height),
 			buffer, buffer_stride))
 			return luaL_error(L, "upload texture data failed");
+
+		// copy and store pixel data
+
+		Core::ScopeObject<Core::IData> p_pixel_data;
+		if (!Core::IData::create(4 * (uint32_t)texture_canvas_width * (uint32_t)texture_canvas_height, ~p_pixel_data))
+			return luaL_error(L, "copy texture data failed");
+		uint8_t* dst_ptr = (uint8_t*)p_pixel_data->data();
+		uint8_t* src_ptr = buffer;
+		for (uint32_t y = 0; y < (uint32_t)texture_canvas_height; y += 1)
+		{
+			std::memcpy(dst_ptr, src_ptr, 4 * (uint32_t)texture_canvas_width);
+			src_ptr += buffer_stride;
+			dst_ptr += 4 * (uint32_t)texture_canvas_width;
+		}
+		p_texture->setPixelData(p_pixel_data.get());
 
 		return 0;
 	}
