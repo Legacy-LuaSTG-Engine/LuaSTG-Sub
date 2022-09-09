@@ -744,7 +744,7 @@ namespace Core::Graphics
                         return false;
                     }
 
-                    mblock.draw_count = accessor.count;
+                    mblock.draw_count = (UINT)accessor.count;
                 }
                 if (prim.attributes.contains("NORMAL"))
                 {
@@ -868,7 +868,7 @@ namespace Core::Graphics
                         return false;
                     }
 
-                    mblock.draw_count = accessor.count;
+                    mblock.draw_count = (UINT)accessor.count;
                 }
                 if (prim.material >= 0)
                 {

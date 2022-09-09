@@ -105,7 +105,7 @@ namespace LuaSTGPlus
 
 	static inline void TranslateAlignMode(lua_State* L, int argnum, ResFont::FontAlignHorizontal& halign, ResFont::FontAlignVertical& valign)
 	{
-		int e = luaL_checkinteger(L, argnum);
+		int e = (int)luaL_checkinteger(L, argnum);
 		switch (e & 0x03)  // HGETEXT_HORZMASK
 		{
 		case 0:  // HGETEXT_LEFT

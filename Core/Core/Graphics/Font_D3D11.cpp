@@ -273,7 +273,7 @@ namespace Core::Graphics
 		} while (!pt);
 		GlyphCache2D& t = *pt;
 		// 写入字形数据
-		info.texture_index = pt - m_tex.data();
+		info.texture_index = (uint32_t)(pt - m_tex.data());
 		info.texture_rect.a.x = (float)t.pen_x / (float)t.image.width;
 		info.texture_rect.a.y = (float)t.pen_y / (float)t.image.height;
 		info.texture_rect.b.x = (float)(t.pen_x + bitmap.width) / (float)t.image.width;

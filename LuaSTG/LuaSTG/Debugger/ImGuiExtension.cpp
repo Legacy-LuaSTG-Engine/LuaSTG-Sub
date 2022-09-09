@@ -993,7 +993,7 @@ namespace imgui
             DWORD xdevice = 0;
             for (size_t i = 0; i < 4; i += 1)
             {
-                auto hr = platform::XInput::getState(i, xstate);
+                auto hr = platform::XInput::getState((DWORD)i, xstate);
                 if (hr == ERROR_SUCCESS)
                 {
                     bxstate[i] = true;
@@ -1027,7 +1027,7 @@ namespace imgui
                         }
                         
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
-                        ImGui::Combo("Devices", &current_didx, combo_data.data(), combo_data.size());
+                        ImGui::Combo("Devices", &current_didx, combo_data.data(), (int)combo_data.size());
                         ImGui::SameLine();
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.2f);
                         if (ImGui::Button("Refresh"))
@@ -1128,7 +1128,7 @@ namespace imgui
                         }
                         
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
-                        ImGui::Combo("Devices", &current_didx, combo_data.data(), combo_data.size());
+                        ImGui::Combo("Devices", &current_didx, combo_data.data(), (int)combo_data.size());
                         ImGui::SameLine();
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.2f);
                         if (ImGui::Button("Refresh"))
@@ -1204,7 +1204,7 @@ namespace imgui
                         }
                         
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.8f);
-                        ImGui::Combo("Devices", &current_xidx, combo_data.data(), combo_data.size());
+                        ImGui::Combo("Devices", &current_xidx, combo_data.data(), (int)combo_data.size());
                         
                         if (current_xidx < (int)xdevice)
                         {

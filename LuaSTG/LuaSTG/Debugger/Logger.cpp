@@ -130,7 +130,7 @@ namespace LuaSTG::Debugger
             if (wait_console)
             {
                 std::wstring_view const exit_msg(L"按 ESC 关闭引擎日志窗口 | Press ESC to close the engine log window\n");
-                WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), exit_msg.data(), exit_msg.length(), NULL, NULL);
+                WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), exit_msg.data(), (DWORD)exit_msg.length(), NULL, NULL);
                 while ((GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0x8000)
                 {
                     Sleep(1);

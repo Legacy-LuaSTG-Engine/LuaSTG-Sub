@@ -236,7 +236,7 @@ namespace Core::Graphics
 			assert(false); return;
 		}
 		win32_window_text_w[size] = L'\0';
-		int const result = MultiByteToWideChar(CP_UTF8, 0, win32_window_text.data(), (int)win32_window_text.size(), win32_window_text_w.data(), win32_window_text_w.size());
+		int const result = MultiByteToWideChar(CP_UTF8, 0, win32_window_text.data(), (int)win32_window_text.size(), win32_window_text_w.data(), size);
 		if (result <= 0 || result != size)
 		{
 			assert(false); return;
@@ -405,7 +405,7 @@ namespace Core::Graphics
 	void* Window_Win32::getNativeHandle() { return win32_window; }
 	void Window_Win32::setNativeIcon(void* id)
 	{
-		HICON hIcon = LoadIcon(win32_window_class.hInstance, MAKEINTRESOURCE((int)id));
+		HICON hIcon = LoadIcon(win32_window_class.hInstance, MAKEINTRESOURCE((intptr_t)id));
 		SendMessageW(win32_window, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hIcon);
 		SendMessageW(win32_window, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)hIcon);
 		DestroyIcon(hIcon);
@@ -550,7 +550,7 @@ namespace Core::Graphics
 	uint32_t Window_Win32::getMonitorCount()
 	{
 		m_monitors.Refresh();
-		return m_monitors.GetCount();
+		return (uint32_t)m_monitors.GetCount();
 	}
 	RectI Window_Win32::getMonitorRect(uint32_t index)
 	{

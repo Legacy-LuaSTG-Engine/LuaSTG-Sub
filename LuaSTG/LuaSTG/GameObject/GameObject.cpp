@@ -465,7 +465,7 @@ namespace LuaSTGPlus
 				case ResourceType::Animation:
 					do {
 						ResAnimation* ani = static_cast<ResAnimation*>(res);
-						uint32_t const idx = ani->GetSpriteIndexByTimer(ani_timer);
+						uint32_t const idx = ani->GetSpriteIndexByTimer((int)ani_timer);
 						// backup
 						Core::Color4B color[4] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
 						ani->GetSprite(idx)->getColor(color);

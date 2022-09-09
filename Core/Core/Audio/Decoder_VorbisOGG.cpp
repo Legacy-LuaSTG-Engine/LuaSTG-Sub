@@ -95,7 +95,7 @@ namespace Core::Audio
 	long Decoder_VorbisOGG::OggVorbis_Stream::tell(void* datasource)
 	{
 		OggVorbis_Stream* self = _cast(datasource);
-		return self->ptr - self->data;
+		return (long)(self->ptr - self->data);
 	}
 	
 	void Decoder_VorbisOGG::destroyResources()
