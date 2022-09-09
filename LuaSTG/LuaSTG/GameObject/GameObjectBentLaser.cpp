@@ -297,6 +297,8 @@ bool GameObjectBentLaser::Update(size_t id, int length, float width, bool active
 
 bool GameObjectBentLaser::Update(float x, float y, float rot, int length, float width, bool active) noexcept
 {
+	std::ignore = rot; // 不再使用到
+
 	if (length <= 1)
 	{
 		spdlog::error("[luastg] [GameObjectBentLaser::Update] 无效的参数length={}", length);
@@ -528,7 +530,7 @@ bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, Core::Co
 	// 1<--3 3 3<--5 5 5<--7 7
 	IRenderer::DrawIndex* p_vidx = p_index;
 	uint16_t quad_offset = 0;
-	for (size_t i = 0; i < (node_count - 1); i += 1)
+	for (size_t i = 0; i < (node_count - 1u); i += 1)
 	{
 		// 0-2-3
 		p_vidx[0] = index_offset + quad_offset; // + 0
@@ -615,7 +617,7 @@ bool GameObjectBentLaser::CollisionCheck(float x, float y, float rot, float a, f
 	testObjB.b = b;
 	testObjB.rect = rect;
 	testObjB.UpdateCollisionCircleRadius();
-	int sn = m_Queue.Size();
+	size_t sn = m_Queue.Size();
 	for (size_t i = 0; i < sn; ++i)
 	{
 		LaserNode& n = m_Queue[i];
@@ -673,7 +675,7 @@ bool GameObjectBentLaser::CollisionCheckW(float x, float y, float rot, float a, 
 	testObjB.b = b;
 	testObjB.rect = rect;
 	testObjB.UpdateCollisionCircleRadius();
-	int sn = m_Queue.Size();
+	size_t sn = m_Queue.Size();
 	for (size_t i = 0; i < sn; ++i)
 	{
 		LaserNode& n = m_Queue[i];
@@ -729,6 +731,8 @@ bool GameObjectBentLaser::BoundCheck() noexcept
 
 bool GameObjectBentLaser::UpdateByNode(size_t id, int node, int length, float width, bool active) noexcept
 {
+	std::ignore = width; // TODO: ESC，你这个宽度怎么没有用上???
+
 	GameObject* p = LPOOL.GetPooledObject(id);
 	if (!p) {
 		spdlog::error("[luastg] [GameObjectBentLaser::UpdateByNode] 无效的lstg.GameObject");
@@ -745,7 +749,7 @@ bool GameObjectBentLaser::UpdateByNode(size_t id, int node, int length, float wi
 	}
 
 	// 添加新节点
-	if (node < m_Queue.Size() && node >= 0)
+	if (node < (int)m_Queue.Size() && node >= 0)
 	{
 		LaserNode& tNode = m_Queue[node];
 		tNode.active = active;
@@ -766,11 +770,11 @@ bool GameObjectBentLaser::UpdatePositionByList(lua_State * L, int length, float 
 		lua_rawgeti(L, -1, i + 1);// ... t(list) t(object)
 		lua_pushstring(L, "x");// ... t(list) t(object) 'x'
 		lua_gettable(L, -2);// ... t(list) t(object) x
-		float x = luaL_optnumber(L, -1, 0.0);
+		float x = (float)luaL_optnumber(L, -1, 0.0);
 		lua_pop(L, 1);
 		lua_pushstring(L, "y");// ... t(list) t(object) 'y'
 		lua_gettable(L, -2);// ... t(list) t(object) y
-		float y = luaL_optnumber(L, -1, 0.0);// ... t(list) t(object) y
+		float y = (float)luaL_optnumber(L, -1, 0.0);// ... t(list) t(object) y
 		lua_pop(L, 2);// ... t(list)
 
 		//得到index
@@ -820,7 +824,7 @@ int GameObjectBentLaser::SampleL(lua_State * L, float length) noexcept
 	float fLeft = 0;// 剩余长度
 	int count = 0;
 
-	float tVecLength = 0;
+	//float tVecLength = 0;
 	for (size_t i = m_Queue.Size() - 1; i > 0; --i)
 	{
 		LaserNode& cur = m_Queue[i];
@@ -860,7 +864,7 @@ int GameObjectBentLaser::SampleT(lua_State * L, float delay) noexcept
 	float fLeft = 0;// 剩余长度
 	int count = 0;
 
-	float tVecLength = 0;
+	//float tVecLength = 0;
 	for (size_t i = m_Queue.Size() - 1; i > 0; --i)
 	{
 		LaserNode& cur = m_Queue[i];
@@ -869,7 +873,7 @@ int GameObjectBentLaser::SampleT(lua_State * L, float delay) noexcept
 
 		Core::Vector2F vn = cur.pos;
 		Core::Vector2F offsetA = next.pos - cur.pos;
-		float lenOffsetA = offsetA.length();
+		//float lenOffsetA = offsetA.length();
 		float angle = offsetA.angle() * L_RAD_TO_DEG_F + 180.0f;
 		while (fLeft - 1 <= 0) {
 			vn = offsetA * fLeft + cur.pos;
