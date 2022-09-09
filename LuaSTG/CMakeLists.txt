@@ -118,7 +118,6 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/AppFrameLua.cpp
     LuaSTG/AppFrameRender.cpp
     LuaSTG/AppFrameRenderEx.cpp
-    LuaSTG/AppFrameAdapterPolicy.cpp
     LuaSTG/LConfig.h
     LuaSTG/LMathConstant.hpp
     LuaSTG/Main.cpp

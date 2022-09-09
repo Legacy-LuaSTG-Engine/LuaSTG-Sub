@@ -8,4 +8,4 @@ namespace LuaSTG::Debugger
         static void create();
         static void destroy();
     };
-};
+}
