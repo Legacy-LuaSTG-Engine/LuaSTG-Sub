@@ -9,7 +9,7 @@ using namespace std;
 ////////////////////////////////////////////////////////////////////////////////
 
 fcyXmlException::fcyXmlException(fcStr Src, fcyXmlDocument* pOwner, fcStr Desc, ...)
-	: fcyException(Src, "fancyXmlException : ")
+	: fcyException(Src, "fancyXmlException : "), m_pOwner(pOwner)
 {
 	char szText[512];
 	va_list marker;
@@ -35,7 +35,7 @@ fcyXmlIndexOutOfRange::fcyXmlIndexOutOfRange(fcStr Src, fcyXmlDocument* pOwner, 
 fcyXmlNodeHasDifferentOwner::fcyXmlNodeHasDifferentOwner(fcStr Src, fcyXmlDocument* pOwner, fcStrW NodeA, fcStrW NodeB)
 	: fcyXmlException(Src, pOwner, "Owner between '%s' and '%s' is different.", 
 		fcyStringHelper::WideCharToMultiByte(NodeA).c_str(),
-		fcyStringHelper::WideCharToMultiByte(NodeA).c_str())
+		fcyStringHelper::WideCharToMultiByte(NodeB).c_str())
 {}
 
 fcyXmlNodeHasParent::fcyXmlNodeHasParent(fcStr Src, fcyXmlDocument* pOwner, fcStrW Name)
@@ -338,7 +338,7 @@ void fcyXmlElement::Save(std::wstring& pOut, uint32_t Indentation)const
 		}
 
 		// 缩进
-		for(uint32_t i = 0; i<Indentation; ++i)
+		for(uint32_t ii = 0; ii<Indentation; ++ii)
 		{
 			pOut += L"\t";
 		}
@@ -498,11 +498,11 @@ wstring fcyXmlDocument::preprocessXml(fcyStream* pStream)
 						bool tMatch = false;
 						while(1)
 						{
-							char tChar = tReader.ReadChar();
+							char tChar2 = tReader.ReadChar();
 							
-							if(isspace(tChar))
+							if(isspace(tChar2))
 								continue;
-							else if(tChar == '"')
+							else if(tChar2 == '"')
 							{
 								if(tMatch == true)
 									break;
@@ -511,7 +511,7 @@ wstring fcyXmlDocument::preprocessXml(fcyStream* pStream)
 							}
 							else
 							{
-								tValue += tChar;
+								tValue += tChar2;
 							}
 						}
 						tAttrib[tKey] = tValue;
@@ -602,11 +602,11 @@ bool fcyXmlDocument::ignorePreprocess(fcyLexicalReader& tReader)
 				bool tMatch = false;
 				while(1)
 				{
-					wchar_t tChar = tReader.ReadChar();
+					wchar_t tChar2 = tReader.ReadChar();
 
-					if(isspace(tChar))
+					if(isspace(tChar2))
 						continue;
-					else if(tChar == L'"')
+					else if(tChar2 == L'"')
 					{
 						if(tMatch == true)
 							break;
@@ -615,7 +615,7 @@ bool fcyXmlDocument::ignorePreprocess(fcyLexicalReader& tReader)
 					}
 					else
 					{
-						tValue += tChar;
+						tValue += tChar2;
 					}
 				}
 				tAttrib[tKey] = tValue;
