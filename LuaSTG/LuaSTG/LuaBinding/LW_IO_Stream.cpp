@@ -122,6 +122,7 @@ namespace LuaSTGPlus::LuaWrapper::IO
 			static int Meta_ToString(lua_State* L)noexcept
 			{
 				GETUDATA(-1);
+				std::ignore = p;
 				::lua_pushstring(L, LUASTG_LUA_TYPENAME_IO_STREAM);
 				return 1;
 			}
