@@ -1,6 +1,4 @@
-﻿/// @file AppFrame.h
-/// @brief 定义应用程序框架
-#pragma once
+﻿#pragma once
 #include "Core/ApplicationModel.hpp"
 #include "Core/Graphics/Font.hpp"
 #include "GameResource/ResourceMgr.h"
@@ -17,14 +15,7 @@ namespace LuaSTGPlus
 		Initialized,
 		Running,
 		Aborted,
-		Destroyed
-	};
-
-	/// @brief 当前激活的渲染器
-	enum class GraphicsType
-	{
-		Graph2D,
-		Graph3D
+		Destroyed,
 	};
 
 	/// @brief 应用程序框架
@@ -123,33 +114,31 @@ namespace LuaSTGPlus
 		bool GetMouseState(int button) noexcept;
 		
 	public: // 脚本调用接口，含义参见API文档
-		void SetWindowed(bool v)noexcept;
+		void SetWindowed(bool v) noexcept;
 		void SetDefaultWindowStyle(Core::Graphics::WindowFrameStyle v) { m_OptionWindowStyle = v; };
-		void SetVsync(bool v)noexcept;
-		void SetResolution(uint32_t width, uint32_t height, uint32_t A = 0, uint32_t B = 0)noexcept;
-		void SetTitle(const char* v)noexcept;
-		void SetPreferenceGPU(const char* v, bool dGPU_trick = false)noexcept;
-		void SetSplash(bool v)noexcept;
+		void SetVsync(bool v) noexcept;
+		void SetResolution(uint32_t width, uint32_t height, uint32_t A = 0, uint32_t B = 0) noexcept;
+		void SetTitle(const char* v) noexcept;
+		void SetPreferenceGPU(const char* v, bool dGPU_trick = false) noexcept;
+		void SetSplash(bool v) noexcept;
 		void SetSEVolume(float v);
 		void SetBGMVolume(float v);
-		float GetSEVolume() { return m_gSEVol; }
-		float GetBGMVolume() { return m_gBGMVol; }
+		float GetSEVolume() const { return m_gSEVol; }
+		float GetBGMVolume() const { return m_gBGMVol; }
 		
 	public:
-		void SetAdapterPolicy(bool enable);
-
-		bool ChangeVideoMode(int width, int height, bool windowed, bool vsync)noexcept;
-		bool ChangeVideoMode2(int width, int height, bool windowed, bool vsync, int hza, int hzb, bool flip)noexcept;
-		bool UpdateVideoMode()noexcept;
+		bool ChangeVideoMode(int width, int height, bool windowed, bool vsync) noexcept;
+		bool ChangeVideoMode2(int width, int height, bool windowed, bool vsync, int hza, int hzb, bool flip) noexcept;
+		bool UpdateVideoMode() noexcept;
 		
-		void SetFPS(uint32_t v)noexcept;
+		void SetFPS(uint32_t v) noexcept;
 		
 		/// @brief 获取当前的FPS
-		double GetFPS()noexcept { return m_fAvgFPS; }
+		double GetFPS() const noexcept { return m_fAvgFPS; }
 		
 		//读取资源包中的文本文件
 		//也能读取其他类型的文件，但是会得到无意义的结果
-		int LoadTextFile(lua_State* L, const char* path, const char *packname)noexcept;
+		int LoadTextFile(lua_State* L, const char* path, const char *packname) noexcept;
 		
 	public:  // 渲染器接口
 		void updateGraph2DBlendMode(BlendMode m);
@@ -193,9 +182,9 @@ namespace LuaSTGPlus
 		Core::Vector2U GetCurrentRenderTargetSize();
 
 		void DebugSetGeometryRenderState();
-		void DebugDrawCircle(float const x, float const y, float const r, Core::Color4B const color);
-		void DebugDrawRect(float const x, float const y, float const a, float const b, float const rot, Core::Color4B const color);
-		void DebugDrawEllipse(float const x, float const y, float const a, float const b, float const rot, Core::Color4B const color);
+		void DebugDrawCircle(float x, float y, float r, Core::Color4B color);
+		void DebugDrawRect(float x, float y, float a, float b, float rot, Core::Color4B color);
+		void DebugDrawEllipse(float x, float y, float a, float b, float rot, Core::Color4B color);
 
 	public:
 		// 文字渲染器包装
@@ -204,8 +193,8 @@ namespace LuaSTGPlus
 		
 		Core::RectF FontRenderer_MeasureTextBoundary(const char* str, size_t len);
 		Core::Vector2F FontRenderer_MeasureTextAdvance(const char* str, size_t len);
-		bool FontRenderer_RenderText(const char* str, size_t len, Core::Vector2F& pos, const float z, const BlendMode blend, Core::Color4B const& color);
-		bool FontRenderer_RenderTextInSpace(const char* str, size_t len, Core::Vector3F& pos, Core::Vector3F const& rvec, Core::Vector3F const& dvec, const BlendMode blend, Core::Color4B const& color);
+		bool FontRenderer_RenderText(const char* str, size_t len, Core::Vector2F& pos, float z, BlendMode blend, Core::Color4B const& color);
+		bool FontRenderer_RenderTextInSpace(const char* str, size_t len, Core::Vector3F& pos, Core::Vector3F const& rvec, Core::Vector3F const& dvec, BlendMode blend, Core::Color4B const& color);
 		
 		float FontRenderer_GetFontLineHeight();
 		float FontRenderer_GetFontAscender();
@@ -217,11 +206,11 @@ namespace LuaSTGPlus
 
 		ResourceMgr& GetResourceMgr()noexcept { return m_ResourceMgr; }
 
-		GameObjectPool& GetGameObjectPool()noexcept{ return *m_GameObjectPool.get(); }
+		GameObjectPool& GetGameObjectPool()noexcept{ return *m_GameObjectPool; }
 
 		platform::DirectInput* GetDInput()noexcept { return m_DirectInput.get(); }
 		
-		Core::IApplicationModel* GetAppModel() { return *m_pAppModel; }
+		Core::IApplicationModel* GetAppModel() { return m_pAppModel.get(); }
 		Core::Graphics::IRenderer* GetRenderer2D() { return m_pAppModel->getRenderer(); }
 
 	public:
@@ -239,12 +228,12 @@ namespace LuaSTGPlus
 	protected:
 		std::atomic_int m_window_active_changed{ 0 };
 
-		void onWindowActive();
-		void onWindowInactive();
-		void onDeviceChange();
+		void onWindowActive() override;
+		void onWindowInactive() override;
+		void onDeviceChange() override;
 
-		void onUpdate();
-		void onRender();
+		void onUpdate() override;
+		void onRender() override;
 	public:
 		AppFrame()noexcept;
 		~AppFrame()noexcept;
