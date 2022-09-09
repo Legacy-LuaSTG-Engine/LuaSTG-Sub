@@ -282,7 +282,7 @@ namespace LuaSTGPlus
 			return 1;
 		}
 		GetObjectTable(L);
-		lua_rawgeti(L, -1, m_pCurrentObject->id + 1);  // ot t(object)
+		lua_rawgeti(L, -1, (int)m_pCurrentObject->id + 1);  // ot t(object)
 		return 1;
 	}
 

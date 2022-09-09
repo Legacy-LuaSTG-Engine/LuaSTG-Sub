@@ -390,7 +390,7 @@ namespace Core::Audio
 
 		// 全部解码
 
-		pcm_data.resize(p_decoder->getFrameCount() * p_decoder->getFrameSize());
+		pcm_data.resize(p_decoder->getFrameCount() * (uint32_t)p_decoder->getFrameSize());
 		uint32_t frames_read = 0;
 		if (!p_decoder->read(p_decoder->getFrameCount(), pcm_data.data(), &frames_read))
 		{
@@ -813,7 +813,7 @@ namespace Core::Audio
 		StreamAudioPlayer_XAUDIO2* self = (StreamAudioPlayer_XAUDIO2*)lpThreadParameter;
 
 		IDecoder* decoder = self->m_decoder.get();
-		uint32_t const buffer_bytes = self->raw_buffer.size() / 2;
+		uint32_t const buffer_bytes = (uint32_t)self->raw_buffer.size() / 2;
 		uint32_t const buffer_frames = buffer_bytes / decoder->getFrameSize();
 		uint8_t* buffer[2] = { self->raw_buffer.data(), self->raw_buffer.data() + buffer_bytes };
 

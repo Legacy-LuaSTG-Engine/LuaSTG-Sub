@@ -69,14 +69,14 @@ static int lib_getFullScreenSize(lua_State* L)
     {
         uint32_t const index = (uint32_t)luaL_checkinteger(L, 1);
         Core::RectI const rc = window->getMonitorRect(index);
-        lua_pushnumber(L, rc.b.x - rc.a.x);
-        lua_pushnumber(L, rc.b.y - rc.a.y);
+        lua_pushinteger(L, rc.b.x - rc.a.x);
+        lua_pushinteger(L, rc.b.y - rc.a.y);
     }
     else
     {
         Core::Vector2I const size = window->getMonitorSize();
-        lua_pushnumber(L, size.x);
-        lua_pushnumber(L, size.y);
+        lua_pushinteger(L, size.x);
+        lua_pushinteger(L, size.y);
     }
     return 2;
 }
@@ -147,10 +147,10 @@ static int lib_setCustomMinimizeButtonRect(lua_State* L)
 {
     getwindow(window);
     window->setCustomMinimizeButtonRect(Core::RectI(
-        luaL_checkinteger(L, 1),
-        luaL_checkinteger(L, 2),
-        luaL_checkinteger(L, 3),
-        luaL_checkinteger(L, 4)
+        (int32_t)luaL_checkinteger(L, 1),
+        (int32_t)luaL_checkinteger(L, 2),
+        (int32_t)luaL_checkinteger(L, 3),
+        (int32_t)luaL_checkinteger(L, 4)
     ));
     return 0;
 }
@@ -158,10 +158,10 @@ static int lib_setCustomCloseButtonRect(lua_State* L)
 {
     getwindow(window);
     window->setCustomCloseButtonRect(Core::RectI(
-        luaL_checkinteger(L, 1),
-        luaL_checkinteger(L, 2),
-        luaL_checkinteger(L, 3),
-        luaL_checkinteger(L, 4)
+        (int32_t)luaL_checkinteger(L, 1),
+        (int32_t)luaL_checkinteger(L, 2),
+        (int32_t)luaL_checkinteger(L, 3),
+        (int32_t)luaL_checkinteger(L, 4)
     ));
     return 0;
 }
@@ -169,10 +169,10 @@ static int lib_setCustomMoveButtonRect(lua_State* L)
 {
     getwindow(window);
     window->setCustomMoveButtonRect(Core::RectI(
-        luaL_checkinteger(L, 1),
-        luaL_checkinteger(L, 2),
-        luaL_checkinteger(L, 3),
-        luaL_checkinteger(L, 4)
+        (int32_t)luaL_checkinteger(L, 1),
+        (int32_t)luaL_checkinteger(L, 2),
+        (int32_t)luaL_checkinteger(L, 3),
+        (int32_t)luaL_checkinteger(L, 4)
     ));
     return 0;
 }
