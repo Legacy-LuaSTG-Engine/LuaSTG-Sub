@@ -52,7 +52,9 @@ uint32_t fcyStringHelper::StringSplit(const wstring& Source, const wstring& Spli
 string fcyStringHelper::ToLower(const string& Source)
 {
 	string tRet = Source;
-	transform(tRet.begin(), tRet.end(), tRet.begin(), ::tolower);
+	transform(tRet.begin(), tRet.end(), tRet.begin(), [](char ch) -> char {
+		return (char)::tolower(ch);
+	});
 	
 	return tRet;
 }
