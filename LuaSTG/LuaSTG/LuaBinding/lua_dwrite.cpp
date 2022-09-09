@@ -551,6 +551,9 @@ namespace DirectWrite
 	public:
 		HRESULT WINAPI CreateEnumeratorFromKey(IDWriteFactory* factory, void const* collectionKey, UINT32 collectionKeySize, IDWriteFontFileEnumerator** fontFileEnumerator)
 		{
+			UNREFERENCED_PARAMETER(factory);
+			UNREFERENCED_PARAMETER(collectionKey);
+			UNREFERENCED_PARAMETER(collectionKeySize);
 			assert(m_dwrite_factory);
 			assert(m_dwrite_font_file_loader);
 			assert(m_font_file_name_list);
