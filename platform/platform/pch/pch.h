@@ -19,10 +19,6 @@
 #include <vector>
 #include <string>
 #include <string_view>
-#include <sstream>
-#include <stdexcept>
-#include <filesystem>
-#include <unordered_map>
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -37,7 +33,6 @@
 #include <Knownfolders.h>
 #include <VersionHelpers.h>
 #include <dxgi1_2.h>
-#include <dwrite_3.h>
 
 VERSIONHELPERAPI
 IsWindows10BuildOrGreater(DWORD build)
