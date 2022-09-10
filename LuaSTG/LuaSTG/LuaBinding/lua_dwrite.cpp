@@ -13,6 +13,7 @@
 #include "platform/HResultChecker.hpp"
 #include "Core/FileManager.hpp"
 #include "AppFrame.h"
+#include "LuaBinding/LuaWrapper.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -632,6 +633,11 @@ namespace DirectWrite
 			api_D2D1MakeRotateMatrix = NULL;
 		}
 	} DLL;
+
+	inline D2D1::ColorF Color4BToColorF(Core::Color4B c)
+	{
+		return D2D1::ColorF((FLOAT)c.r / 255.0f, (FLOAT)c.g / 255.0f, (FLOAT)c.b / 255.0f, (FLOAT)c.a / 255.0f);
+	}
 
 	// DirectWrite renderer
 
@@ -1766,7 +1772,7 @@ namespace DirectWrite
 		font_collection->font_file_name_list->reserve(file_count);
 		for (size_t i = 0; i < file_count; i += 1)
 		{
-			lua_rawgeti(L, 1, i + 1);
+			lua_rawgeti(L, 1, (int)i + 1);
 			auto const file_path = luaL_check_string_view(L, -1);
 			font_collection->font_file_name_list->emplace_back(file_path);
 			lua_pop(L, 1);
@@ -1846,6 +1852,12 @@ namespace DirectWrite
 		auto const pool_type = luaL_check_string_view(L, 2);
 		auto const texture_name = luaL_check_string_view(L, 3);
 		auto const outline_width = luaL_optional_float(L, 4, 0.0f);
+		Core::Color4B font_color = Core::Color4B(255, 255, 255, 255);
+		Core::Color4B outline_color = Core::Color4B(0, 0, 0, 255);
+		if (lua_gettop(L) >= 5)
+			font_color = *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(L, 5);
+		if (lua_gettop(L) >= 6)
+			outline_color = *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(L, 6);
 
 		// pre check
 
@@ -1887,7 +1899,7 @@ namespace DirectWrite
 			return luaL_error(L, "create rasterizer failed");
 
 		Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> d2d1_pen;
-		hr = gHR = d2d1_rt->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f), &d2d1_pen);
+		hr = gHR = d2d1_rt->CreateSolidColorBrush(Color4BToColorF(font_color), &d2d1_pen);
 		if (FAILED(hr))
 			return luaL_error(L, "create rasterizer color failed");
 
@@ -1896,7 +1908,7 @@ namespace DirectWrite
 		if (lua_gettop(L) >= 4)
 		{
 			Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> d2d1_pen2;
-			hr = gHR = d2d1_rt->CreateSolidColorBrush(D2D1::ColorF(0.0f, 0.0f, 0.0f), &d2d1_pen2);
+			hr = gHR = d2d1_rt->CreateSolidColorBrush(Color4BToColorF(outline_color), &d2d1_pen2);
 			if (FAILED(hr))
 				return luaL_error(L, "create rasterizer color failed");
 
