@@ -405,7 +405,7 @@ namespace LuaSTGPlus
             {
                 spdlog::warn("[luastg] LoadMusic: 音乐'{}'已存在，创建操作已取消", name);
             }
-            m_MusicPool.find(name)->second->Stop();
+            //m_MusicPool.find(name)->second->Stop(); // 注：以前确实不判断同名资源是否存在，但是 emplace 失败了，所以没有打断旧 BGM
             return true;
         }
     
