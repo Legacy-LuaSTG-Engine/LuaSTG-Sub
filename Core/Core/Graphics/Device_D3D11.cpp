@@ -397,7 +397,7 @@ namespace Core::Graphics
 			D3D_FEATURE_LEVEL level_info = D3D_FEATURE_LEVEL_10_0;
 			for (UINT offset = 0; offset < 4; offset += 1)
 			{
-				hr = gHR = D3D11CreateDevice(
+				hr = gHR = d3d11_api_D3D11CreateDevice(
 					dxgi_adapter_temp.Get(),
 					D3D_DRIVER_TYPE_UNKNOWN,
 					NULL,
@@ -796,7 +796,7 @@ namespace Core::Graphics
 
 		for (UINT offset = 0; offset < 4; offset += 1)
 		{
-			hr = gHR = D3D11CreateDevice(
+			hr = gHR = d3d11_api_D3D11CreateDevice(
 				dxgi_adapter.Get(),
 				D3D_DRIVER_TYPE_UNKNOWN,
 				NULL,
