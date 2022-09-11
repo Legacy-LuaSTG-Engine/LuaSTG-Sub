@@ -322,6 +322,18 @@ namespace Core::Graphics
 
 		// 设置最大帧延迟为 1
 
+		Microsoft::WRL::ComPtr<IDXGIDevice1> dxgi_device1;
+		hr = gHR = d3d11_device->QueryInterface(IID_PPV_ARGS(&dxgi_device1));
+		if (SUCCEEDED(hr))
+		{
+			hr = gHR = dxgi_device1->SetMaximumFrameLatency(1);
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIDevice1::SetMaximumFrameLatency -> 1");
+				assert(false); return false;
+			}
+		}
+
 		Microsoft::WRL::ComPtr<IDXGISwapChain2> dxgi_swapchain2;
 		hr = gHR = dxgi_swapchain.As(&dxgi_swapchain2);
 		if (SUCCEEDED(hr) && (m_swapchain_flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT))
@@ -337,20 +349,6 @@ namespace Core::Graphics
 			{
 				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain2::GetFrameLatencyWaitableObject");
 				assert(false); return false;
-			}
-		}
-		else
-		{
-			Microsoft::WRL::ComPtr<IDXGIDevice1> dxgi_device1;
-			hr = gHR = d3d11_device->QueryInterface(IID_PPV_ARGS(&dxgi_device1));
-			if (SUCCEEDED(hr))
-			{
-				hr = gHR = dxgi_device1->SetMaximumFrameLatency(1);
-				if (FAILED(hr))
-				{
-					i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIDevice1::SetMaximumFrameLatency -> 1");
-					assert(false); return false;
-				}
 			}
 		}
 
