@@ -814,6 +814,7 @@ static int compat_PostEffect(lua_State* L)
     for (int i = 1; i <= (int)cbdata_n; i += 1)
     {
         lua_rawgeti(L, 5, i);  // ??? t
+        luaL_argcheck(L, lua_istable(L, -1), 5, "shader constant values must be an array of lua table, each table contains 4 lua numbers");
         lua_rawgeti(L, -1, 1); // ??? t f1
         lua_rawgeti(L, -2, 2); // ??? t f1 f2
         lua_rawgeti(L, -3, 3); // ??? t f1 f2 f3
@@ -829,6 +830,7 @@ static int compat_PostEffect(lua_State* L)
     for (int i = 1; i <= (int)tdata_n; i += 1)
     {
         lua_rawgeti(L, 6, i);  // ??? t
+        luaL_argcheck(L, lua_istable(L, -1), 6, "shader resources must be an array of lua table, each table contains the name of texture and sampler type");
         lua_rawgeti(L, -1, 1); // ??? t tex
         lua_rawgeti(L, -2, 2); // ??? t tex sampler
         const char* tx_name = luaL_checkstring(L, -2);
