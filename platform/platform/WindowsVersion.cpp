@@ -48,7 +48,7 @@ namespace platform
 			}
 			if (WindowsVersion::Is10Build19042())
 			{
-				MAKE("Windows 10 20H2", false);
+				MAKE("Windows 10 20H2", true);
 			}
 			if (WindowsVersion::Is10Build19041())
 			{
