@@ -1658,7 +1658,7 @@ namespace DirectWrite
 			HRESULT hr = S_OK;
 
 			hr = gHR = CoCreateInstance(
-				CLSID_WICImagingFactory,
+				CLSID_WICImagingFactory1,
 				NULL,
 				CLSCTX_INPROC_SERVER,
 				IID_PPV_ARGS(&wic_factory)
