@@ -25,6 +25,7 @@ require("test_log")
 require("test_filesys")
 require("test_dwrite")
 require("test_colli")
+require("test_posteffect")
 
 function GameInit()
     window:init()

@@ -17,7 +17,7 @@ local M = {}
 
 ---@type table<string, test.Base>
 local tests = {
-    ["empty"] = T,
+    { "test.Module.Empty", T },
 }
 
 ---@type test.Base
@@ -26,7 +26,14 @@ local current_test = T
 ---@param name string
 ---@param cls test.Base
 function M.registerTest(name, cls)
-    tests[name] = cls
+    for _, v in ipairs(tests) do
+        if v[1] == name then
+            assert(false)
+            v[2] = cls
+            return
+        end
+    end
+    table.insert(tests, { name, cls })
 end
 
 function M.onCreate()
@@ -43,11 +50,11 @@ function M.onUpdate()
     if imgui_exist then
         local ImGui = imgui.ImGui
         if ImGui.Begin("Select Test") then
-            for k, v in pairs(tests) do
-                if ImGui.Button(k) then
+            for _, v in ipairs(tests) do
+                if ImGui.Button(v[1]) then
                     current_test:onDestroy()
                     current_test = {}
-                    setmetatable(current_test, { __index = v })
+                    setmetatable(current_test, { __index = v[2] })
                     current_test:onCreate()
                 end
             end
