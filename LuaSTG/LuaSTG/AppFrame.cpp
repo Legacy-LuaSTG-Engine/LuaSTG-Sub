@@ -2,7 +2,6 @@
 #include "Core/FileManager.hpp"
 #include "utility/encoding.hpp"
 #include "platform/XInput.hpp"
-#include "platform/AdapterPolicy.hpp"
 #include "Utility/Utility.h"
 #include "Debugger/ImGuiExtension.h"
 #include "LuaBinding/LuaAppFrame.hpp"
@@ -84,12 +83,11 @@ void AppFrame::SetTitle(const char* v)noexcept
 		spdlog::error("[luastg] SetTitle: 内存不足");
 	}
 }
-void AppFrame::SetPreferenceGPU(const char* v, bool dGPU_trick)noexcept
+void AppFrame::SetPreferenceGPU(const char* v) noexcept
 {
 	try
 	{
 		m_OptionGPU = v;
-		platform::AdapterPolicy::setAll(dGPU_trick);
 	}
 	catch (const std::bad_alloc&)
 	{

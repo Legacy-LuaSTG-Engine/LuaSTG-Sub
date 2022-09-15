@@ -52,7 +52,7 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 		}
 		static int SetPreferenceGPU(lua_State* L)noexcept
 		{
-			LAPP.SetPreferenceGPU(luaL_checkstring(L, 1), lua_toboolean(L, 2));
+			LAPP.SetPreferenceGPU(luaL_checkstring(L, 1));
 			return 0;
 		}
 		static int SetFPS(lua_State* L)noexcept

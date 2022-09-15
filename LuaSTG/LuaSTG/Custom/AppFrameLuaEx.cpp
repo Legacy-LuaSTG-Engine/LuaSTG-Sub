@@ -36,7 +36,7 @@ namespace LuaSTGPlus
                 LAPP.SetResolution(config.width, config.height, config.refresh_rate_numerator, config.refresh_rate_denominator);
                 if (!config.gpu.empty())
                 {
-                    LAPP.SetPreferenceGPU(config.gpu.c_str(), config.dgpu_trick);
+                    LAPP.SetPreferenceGPU(config.gpu.c_str());
                 }
                 is_launch_loaded = true;
             }
