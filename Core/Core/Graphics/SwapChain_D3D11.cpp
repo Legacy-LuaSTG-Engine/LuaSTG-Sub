@@ -997,7 +997,7 @@ namespace Core::Graphics
 	{
 		try
 		{
-			*pp_swapchain = new SwapChain_D3D11(dynamic_cast<Window_Win32*>(p_window), dynamic_cast<Device_D3D11*>(p_device));
+			*pp_swapchain = new SwapChain_D3D11(p_window, p_device);
 			return true;
 		}
 		catch (...)
