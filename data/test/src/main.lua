@@ -21,6 +21,7 @@ local select_gpu = ""
 local function changeGpu()
     if string.len(select_gpu) > 0 then
         lstg.ChangeGPU(select_gpu)
+        gpu_list = lstg.EnumGPUs() -- update
         select_gpu = ""
     end
 end

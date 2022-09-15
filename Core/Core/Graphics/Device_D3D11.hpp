@@ -91,6 +91,8 @@ namespace Core::Graphics
 	private:
 		bool loadDLL();
 		void unloadDLL();
+		bool createDXGIFactory();
+		void destroyDXGIFactory();
 		bool selectAdapter();
 		bool createDXGI();
 		void destroyDXGI();
@@ -103,6 +105,7 @@ namespace Core::Graphics
 		bool createDWrite();
 		void destroyDWrite();
 		bool doDestroyAndCreate();
+		bool testAdapterPolicy();
 
 	public:
 		bool handleDeviceLost();

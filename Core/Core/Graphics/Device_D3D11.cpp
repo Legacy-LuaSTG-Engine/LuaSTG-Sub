@@ -4,6 +4,7 @@
 #include "utility/encoding.hpp"
 #include "platform/WindowsVersion.hpp"
 #include "platform/CommandLine.hpp"
+#include "platform/AdapterPolicy.hpp"
 
 #include "WICTextureLoader11.h"
 #include "DDSTextureLoader11.h"
@@ -344,6 +345,64 @@ namespace Core::Graphics
 		if (dwrite_dll) FreeLibrary(dwrite_dll); dwrite_dll = NULL;
 		dwrite_api_DWriteCreateFactory = NULL;
 	}
+	bool Device_D3D11::createDXGIFactory()
+	{
+		HRESULT hr = S_OK;
+
+		if (dxgi_api_CreateDXGIFactory2)
+		{
+			// 创建 1.2 的组件
+			UINT dxgi_flags = 0;
+#ifdef _DEBUG
+			dxgi_flags |= DXGI_CREATE_FACTORY_DEBUG;
+#endif
+			hr = gHR = dxgi_api_CreateDXGIFactory2(dxgi_flags, IID_PPV_ARGS(&dxgi_factory2));
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "CreateDXGIFactory2 -> IDXGIFactory2");
+				assert(false); return false;
+			}
+			M_D3D_SET_DEBUG_NAME(dxgi_factory2.Get(), "Device_D3D11::dxgi_factory2");
+			// 获得 1.1 的组件
+			hr = gHR = dxgi_factory2.As(&dxgi_factory);
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory2::QueryInterface -> IDXGIFactory1");
+				assert(false); return false;
+			}
+		}
+		else if (dxgi_api_CreateDXGIFactory1)
+		{
+			// 创建 1.1 的组件
+			hr = gHR = dxgi_api_CreateDXGIFactory1(IID_PPV_ARGS(&dxgi_factory));
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "CreateDXGIFactory1 -> IDXGIFactory1");
+				assert(false); return false;
+			}
+			M_D3D_SET_DEBUG_NAME(dxgi_factory.Get(), "Device_D3D11::dxgi_factory");
+			// 获得 1.2 的组件（Windows 7 平台更新）
+			hr = gHR = dxgi_factory.As(&dxgi_factory2);
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory1::QueryInterface -> IDXGIFactory2");
+				// 不是严重错误
+			}
+		}
+		else
+		{
+			// 不应该出现这种情况
+			i18n_log_error_fmt("[core].system_call_failed_f", "CreateDXGIFactory");
+			assert(false); return false;
+		}
+
+		return true;
+	}
+	void Device_D3D11::destroyDXGIFactory()
+	{
+		dxgi_factory.Reset();
+		dxgi_factory2.Reset();
+	}
 	bool Device_D3D11::selectAdapter()
 	{
 		HRESULT hr = S_OK;
@@ -589,52 +648,7 @@ namespace Core::Graphics
 
 		// 创建工厂
 
-		if (dxgi_api_CreateDXGIFactory2)
-		{
-			// 创建 1.2 的组件
-			UINT dxgi_flags = 0;
-		#ifdef _DEBUG
-			dxgi_flags |= DXGI_CREATE_FACTORY_DEBUG;
-		#endif
-			hr = gHR = dxgi_api_CreateDXGIFactory2(dxgi_flags, IID_PPV_ARGS(&dxgi_factory2));
-			if (FAILED(hr))
-			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "CreateDXGIFactory2 -> IDXGIFactory2");
-				assert(false); return false;
-			}
-			M_D3D_SET_DEBUG_NAME(dxgi_factory2.Get(), "Device_D3D11::dxgi_factory2");
-			// 获得 1.1 的组件
-			hr = gHR = dxgi_factory2.As(&dxgi_factory);
-			if (FAILED(hr))
-			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory2::QueryInterface -> IDXGIFactory1");
-				assert(false); return false;
-			}
-		}
-		else if (dxgi_api_CreateDXGIFactory1)
-		{
-			// 创建 1.1 的组件
-			hr = gHR = dxgi_api_CreateDXGIFactory1(IID_PPV_ARGS(&dxgi_factory));
-			if (FAILED(hr))
-			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "CreateDXGIFactory1 -> IDXGIFactory1");
-				assert(false); return false;
-			}
-			M_D3D_SET_DEBUG_NAME(dxgi_factory.Get(), "Device_D3D11::dxgi_factory");
-			// 获得 1.2 的组件（Windows 7 平台更新）
-			hr = gHR = dxgi_factory.As(&dxgi_factory2);
-			if (FAILED(hr))
-			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory1::QueryInterface -> IDXGIFactory2");
-				// 不是严重错误
-			}
-		}
-		else
-		{
-			// 不应该出现这种情况
-			i18n_log_error_fmt("[core].system_call_failed_f", "CreateDXGIFactory");
-			assert(false); return false;
-		}
+		if (!createDXGIFactory()) return false;
 		
 		// 检测特性支持情况
 
@@ -756,8 +770,7 @@ namespace Core::Graphics
 	}
 	void Device_D3D11::destroyDXGI()
 	{
-		dxgi_factory.Reset();
-		dxgi_factory2.Reset();
+		destroyDXGIFactory();
 		dxgi_adapter.Reset();
 
 		dxgi_adapter_name.clear();
@@ -1129,6 +1142,8 @@ namespace Core::Graphics
 		destroyD3D11();
 		destroyDXGI();
 
+		testAdapterPolicy();
+
 		if (!createDXGI()) return false;
 		if (!createD3D11()) return false;
 		//if (!createWIC()) return false; // 长生存期
@@ -1138,6 +1153,84 @@ namespace Core::Graphics
 		dispatchEvent(EventType::DeviceCreate);
 
 		return true;
+	}
+	bool Device_D3D11::testAdapterPolicy()
+	{
+		auto testAdapterName = [&]() -> bool
+		{
+			HRESULT hr = S_OK;
+			Microsoft::WRL::ComPtr<IDXGIAdapter1> dxgi_adapter;
+			hr = gHR = dxgi_factory->EnumAdapters1(0, &dxgi_adapter);
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory1::EnumAdapters1 -> #0");
+				assert(false); return false;
+			}
+			DXGI_ADAPTER_DESC1 desc = {};
+			hr = gHR = dxgi_adapter->GetDesc1(&desc);
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIAdapter1::GetDesc1");
+				assert(false); return false;
+			}
+			return preferred_adapter_name == utility::encoding::to_utf8(desc.Description);
+		};
+		bool result = false;
+
+		// Stage 1 - Disable and test
+
+		platform::AdapterPolicy::setAll(false);
+
+		if (!createDXGIFactory()) return false;
+
+		result = testAdapterName();
+
+		destroyDXGIFactory();
+
+		if (result) return true;
+
+		// Stage 2 - Enable and test
+
+		platform::AdapterPolicy::setAll(true);
+
+		if (!createDXGIFactory()) return false;
+
+		result = testAdapterName();
+
+		destroyDXGIFactory();
+
+		if (result) return true;
+
+		// Stage 3 - NVIDIA and test
+
+		platform::AdapterPolicy::setAMD(false);
+		platform::AdapterPolicy::setNVIDIA(true);
+
+		if (!createDXGIFactory()) return false;
+
+		result = testAdapterName();
+
+		destroyDXGIFactory();
+
+		if (result) return true;
+
+		// Stage 4 - AMD and test
+
+		platform::AdapterPolicy::setNVIDIA(false);
+		platform::AdapterPolicy::setAMD(true);
+
+		if (!createDXGIFactory()) return false;
+
+		result = testAdapterName();
+
+		destroyDXGIFactory();
+
+		if (result) return true;
+
+		// Stage 5 - Disable and failed
+
+		platform::AdapterPolicy::setAll(false);
+		return false;
 	}
 
 	bool Device_D3D11::handleDeviceLost()
