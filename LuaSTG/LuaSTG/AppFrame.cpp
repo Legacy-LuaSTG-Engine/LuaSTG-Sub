@@ -76,7 +76,8 @@ void AppFrame::SetTitle(const char* v)noexcept
 	try
 	{
 		m_OptionTitle = v;
-		m_pAppModel->getWindow()->setTitleText(v);
+		if (m_pAppModel)
+			m_pAppModel->getWindow()->setTitleText(v);
 	}
 	catch (const std::bad_alloc&)
 	{
@@ -97,10 +98,10 @@ void AppFrame::SetPreferenceGPU(const char* v) noexcept
 void AppFrame::SetSplash(bool v)noexcept
 {
 	m_OptionCursor = v;
-	if (m_OptionCursor)
-		m_pAppModel->getWindow()->setCursor(Core::Graphics::WindowCursor::Arrow);
-	else
-		m_pAppModel->getWindow()->setCursor(Core::Graphics::WindowCursor::None);
+	if (m_pAppModel)
+	{
+		m_pAppModel->getWindow()->setCursor(m_OptionCursor ? Core::Graphics::WindowCursor::Arrow : Core::Graphics::WindowCursor::None);
+	}
 }
 
 bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, bool vsync)noexcept
