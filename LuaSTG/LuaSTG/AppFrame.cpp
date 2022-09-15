@@ -425,7 +425,8 @@ bool AppFrame::Init()noexcept
 			using namespace Core;
 			auto* p_swapchain = m_pAppModel->getSwapChain();
 			p_swapchain->setVSync(m_OptionVsync);
-			p_swapchain->setWindowMode((uint32_t)m_OptionResolution.x, (uint32_t)m_OptionResolution.y, false); // 无论如何，首先窗口化
+			if (!p_swapchain->setWindowMode((uint32_t)m_OptionResolution.x, (uint32_t)m_OptionResolution.y, false)) // 无论如何，首先窗口化
+				return false;
 			if (!m_OptionWindowed)
 			{
 				Graphics::DisplayMode mode = {
@@ -438,6 +439,8 @@ bool AppFrame::Init()noexcept
 				p_swapchain->setExclusiveFullscreenMode(mode);
 			}
 			p_swapchain->refreshDisplayMode();
+			p_swapchain->clearRenderAttachment();
+			p_swapchain->present(); // 先刷新一下画面，避免白屏
 		}
 	}
 	
