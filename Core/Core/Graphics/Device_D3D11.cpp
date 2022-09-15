@@ -1335,6 +1335,11 @@ namespace Core::Graphics
 		return data;
 	}
 
+	bool Device_D3D11::recreate()
+	{
+		return doDestroyAndCreate();
+	}
+
 	bool Device_D3D11::createTextureFromFile(StringView path, bool mipmap, ITexture2D** pp_texutre)
 	{
 		try

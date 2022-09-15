@@ -210,6 +210,21 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 				return luaL_error(L, "render device is not avilable.");
 			}
 		}
+		static int ChangeGPU(lua_State* L) {
+			if (LAPP.GetAppModel())
+			{
+				auto const gpu = luaL_check_string_view(L, 1);
+				auto* p_device = LAPP.GetAppModel()->getDevice();
+				p_device->setPreferenceGpu(gpu);
+				if (!p_device->recreate())
+					return luaL_error(L, "ChangeGPU failed.");
+				return 0;
+			}
+			else
+			{
+				return luaL_error(L, "render device is not avilable.");
+			}
+		}
 		#pragma endregion
 		
 		#pragma region 内置数学库
@@ -271,6 +286,7 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 		{ "SetDisplayMode", &WrapperImplement::SetDisplayMode },
 		{ "EnumResolutions", &WrapperImplement::EnumResolutions },
 		{ "EnumGPUs", &WrapperImplement::EnumGPUs },
+		{ "ChangeGPU", &WrapperImplement::ChangeGPU },
 		#pragma endregion
 		
 		#pragma region 内置数学函数

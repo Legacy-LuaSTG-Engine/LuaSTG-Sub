@@ -71,7 +71,6 @@ namespace Core::Graphics
 		IDXGIFactory2* GetDXGIFactory2() const noexcept { return dxgi_factory2.Get(); }
 		IDXGIAdapter1* GetDXGIAdapter1() const noexcept { return dxgi_adapter.Get(); }
 
-		void SetPreferredAdapter(std::string_view name) { preferred_adapter_name = name; }
 		std::string_view GetAdapterName() const noexcept { return dxgi_adapter_name; }
 		std::vector<std::string>& GetAdapterNameArray() { return dxgi_adapter_names; }
 
@@ -126,6 +125,8 @@ namespace Core::Graphics
 
 		DeviceMemoryUsageStatistics getMemoryUsageStatistics();
 
+		bool recreate();
+		void setPreferenceGpu(StringView prefered_gpu) { preferred_adapter_name = prefered_gpu; }
 		uint32_t getGpuCount() { return (uint32_t)dxgi_adapter_names.size(); }
 		StringView getGpuName(uint32_t index) { return dxgi_adapter_names[index]; }
 

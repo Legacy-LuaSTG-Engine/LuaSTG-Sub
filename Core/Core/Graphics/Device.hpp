@@ -133,6 +133,8 @@ namespace Core::Graphics
 
 		virtual DeviceMemoryUsageStatistics getMemoryUsageStatistics() = 0;
 
+		virtual bool recreate() = 0;
+		virtual void setPreferenceGpu(StringView prefered_gpu) = 0;
 		virtual uint32_t getGpuCount() = 0;
 		virtual StringView getGpuName(uint32_t index) = 0;
 
