@@ -392,15 +392,8 @@ namespace Core
 				{
 				case WAIT_OBJECT_0:
 					return; // ok
-				case WAIT_ABANDONED:
-					spdlog::warn("[core] (File: {} Line: {}) WaitForSingleObjectEx: WAIT_ABANDONED", __FILE__, __LINE__);
-					break;
 				case WAIT_TIMEOUT:
-					spdlog::warn("[core] (File: {} Line: {}) WaitForSingleObjectEx: WAIT_TIMEOUT", __FILE__, __LINE__);
-					break;
-				case WAIT_IO_COMPLETION:
-					spdlog::info("[core] (File: {} Line: {}) WaitForSingleObjectEx: WAIT_IO_COMPLETION", __FILE__, __LINE__);
-					break;
+					break; // msg
 				case WAIT_FAILED:
 					gHRLastError;
 					return; // failed
@@ -410,7 +403,7 @@ namespace Core
 				{
 					if (msg.message == WM_QUIT)
 					{
-						// 没事了
+						// NOOP
 					}
 					else
 					{
