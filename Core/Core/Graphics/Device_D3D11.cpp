@@ -1157,6 +1157,8 @@ namespace Core::Graphics
 	}
 	bool Device_D3D11::testAdapterPolicy()
 	{
+		if (preferred_adapter_name.empty()) return true; // default GPU
+
 		auto testAdapterName = [&]() -> bool
 		{
 			HRESULT hr = S_OK;
