@@ -1176,7 +1176,8 @@ namespace Core::Graphics
 				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIAdapter1::GetDesc1");
 				assert(false); return false;
 			}
-			return preferred_adapter_name == utility::encoding::to_utf8(desc.Description);
+			std::string gpu_name(std::move(utility::encoding::to_utf8(desc.Description)));
+			return preferred_adapter_name == gpu_name;
 		};
 		bool result = false;
 
