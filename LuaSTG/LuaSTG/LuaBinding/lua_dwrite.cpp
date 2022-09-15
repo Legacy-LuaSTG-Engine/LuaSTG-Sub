@@ -1658,14 +1658,23 @@ namespace DirectWrite
 			HRESULT hr = S_OK;
 
 			hr = gHR = CoCreateInstance(
-				CLSID_WICImagingFactory1,
+				CLSID_WICImagingFactory2,
 				NULL,
 				CLSCTX_INPROC_SERVER,
 				IID_PPV_ARGS(&wic_factory)
 			);
 			if (FAILED(hr))
-				return false;
-
+			{
+				hr = gHR = CoCreateInstance(
+					CLSID_WICImagingFactory1,
+					NULL,
+					CLSCTX_INPROC_SERVER,
+					IID_PPV_ARGS(&wic_factory)
+				);
+				if (FAILED(hr))
+					return false;
+			}
+			
 			hr = gHR = DLL.api_DWriteCreateFactory(
 				DWRITE_FACTORY_TYPE_SHARED,
 				__uuidof(IDWriteFactory),
