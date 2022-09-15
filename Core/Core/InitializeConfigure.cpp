@@ -15,7 +15,6 @@ namespace Core
         refresh_rate_denominator = 0;
         windowed = true;
         vsync = false;
-        dgpu_trick = false;
     }
     bool InitializeConfigure::load(std::string_view const& source) noexcept
     {
@@ -29,7 +28,6 @@ namespace Core
             refresh_rate_denominator = json["refresh_rate_denominator"].get<int>();
             windowed = json["windowed"].get<bool>();
             vsync = json["vsync"].get<bool>();
-            dgpu_trick = json["dgpu_trick"].get<bool>();
             return true;
         }
         catch (...)
@@ -50,7 +48,6 @@ namespace Core
             json["refresh_rate_denominator"] = refresh_rate_denominator;
             json["windowed"] = windowed;
             json["vsync"] = vsync;
-            json["dgpu_trick"] = dgpu_trick;
             buffer = std::move(json.dump());
             return true;
         }
@@ -82,7 +79,6 @@ namespace Core
             refresh_rate_denominator = json["refresh_rate_denominator"].get<int>();
             windowed = json["windowed"].get<bool>();
             vsync = json["vsync"].get<bool>();
-            dgpu_trick = json["dgpu_trick"].get<bool>();
             return true;
         }
         catch (...)
@@ -103,7 +99,6 @@ namespace Core
             json["refresh_rate_denominator"] = refresh_rate_denominator;
             json["windowed"] = windowed;
             json["vsync"] = vsync;
-            json["dgpu_trick"] = dgpu_trick;
             std::wstring wpath(utility::encoding::to_wide(path));
             std::ofstream file(wpath, std::ios::out | std::ios::binary | std::ios::trunc);
             if (!file.is_open())
