@@ -205,6 +205,7 @@ namespace Core::Graphics
 
 		if (!loadDLL())
 			throw std::runtime_error("load DLL failed");
+		testAdapterPolicy();
 		if (!createDXGI())
 			throw std::runtime_error("create basic DXGI components failed");
 		if (!createD3D11())
