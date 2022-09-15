@@ -313,15 +313,6 @@ bool AppFrame::Init()noexcept
 	spdlog::info(LUASTG_INFO);
 	spdlog::info("[luastg] 初始化引擎");
 	m_iStatus = AppStatus::Initializing;
-	
-	////////////////////////////////////////
-
-	Core::ApplicationModelCreationParameters app_param = {};
-	app_param.gpu = m_OptionGPU;
-	if (!Core::IApplicationModel::create(app_param, this, ~m_pAppModel))
-		return false;
-	if (!Core::Graphics::ITextRenderer::create(m_pAppModel->getRenderer(), ~m_pTextRenderer))
-		return false;
 
 	//////////////////////////////////////// Lua初始化部分
 	
@@ -345,6 +336,15 @@ bool AppFrame::Init()noexcept
 		spdlog::info("[core] 初始化，窗口分辨率：{}x{}，垂直同步：{}，窗口化：{}",
 			(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed);
 		
+		////////////////////////////////////////
+
+		Core::ApplicationModelCreationParameters app_param = {};
+		app_param.gpu = m_OptionGPU;
+		if (!Core::IApplicationModel::create(app_param, this, ~m_pAppModel))
+			return false;
+		if (!Core::Graphics::ITextRenderer::create(m_pAppModel->getRenderer(), ~m_pTextRenderer))
+			return false;
+
 		// 配置窗口
 		{
 			using namespace Core;
