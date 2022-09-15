@@ -417,7 +417,7 @@ namespace Core
 		return true;
 	}
 
-	ApplicationModel_Win32::ApplicationModel_Win32(IApplicationEventListener* p_listener)
+	ApplicationModel_Win32::ApplicationModel_Win32(ApplicationModelCreationParameters param, IApplicationEventListener* p_listener)
 		: m_listener(p_listener)
 	{
 		assert(m_listener);
@@ -426,7 +426,7 @@ namespace Core
 		get_system_memory_status();
 		if (!Graphics::Window_Win32::create(~m_window))
 			throw std::runtime_error("Graphics::Window_Win32::create");
-		if (!Graphics::Device_D3D11::create("", ~m_device))
+		if (!Graphics::Device_D3D11::create(param.gpu, ~m_device))
 			throw std::runtime_error("Graphics::Device_D3D11::create");
 		if (!Graphics::SwapChain_D3D11::create(*m_window, *m_device, ~m_swapchain))
 			throw std::runtime_error("Graphics::SwapChain_D3D11::create");
@@ -440,11 +440,11 @@ namespace Core
 		std::ignore = 0;
 	}
 
-	bool IApplicationModel::create(IApplicationEventListener* p_app, IApplicationModel** pp_model)
+	bool IApplicationModel::create(ApplicationModelCreationParameters param, IApplicationEventListener* p_app, IApplicationModel** pp_model)
 	{
 		try
 		{
-			*pp_model = new ApplicationModel_Win32(p_app);
+			*pp_model = new ApplicationModel_Win32(param, p_app);
 			return true;
 		}
 		catch (...)

@@ -47,7 +47,7 @@ namespace LuaSTGPlus
 		Core::Vector2F m_OptionResolution = Core::Vector2F(640.f, 480.f);
 		uint32_t m_OptionRefreshRateA = 0;
 		uint32_t m_OptionRefreshRateB = 0;
-		std::wstring m_OptionGPU;
+		std::string m_OptionGPU;
 		std::string m_OptionTitle = LUASTG_INFO;
 		bool m_OptionCursor = true;
 		double m_fFPS = 0.;
