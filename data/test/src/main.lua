@@ -16,6 +16,29 @@ end
 local imgui = require("imgui")
 local test = require("test")
 
+local gpu_list = {}
+local select_gpu = ""
+local function changeGpu()
+    if string.len(select_gpu) > 0 then
+        lstg.ChangeGPU(select_gpu)
+        select_gpu = ""
+    end
+end
+local function showSelectGpuWindow()
+    local ImGui = imgui.ImGui
+    if #gpu_list < 1 then
+        gpu_list = lstg.EnumGPUs()
+    end
+    if ImGui.Begin("Select GPU") then
+        for _, v in ipairs(gpu_list) do
+            if ImGui.Button(v) then
+                select_gpu = v
+            end
+        end
+    end
+    ImGui.End()
+end
+
 require("test_textrenderer")
 require("test_texture")
 require("test_sampler")
@@ -35,6 +58,7 @@ function GameExit()
     test.onDestroy()
 end
 function FrameFunc()
+    changeGpu()
     imgui.backend.NewFrame()
     imgui.ImGui.NewFrame()
     --imgui.ImGui.ShowDemoWindow()
@@ -42,6 +66,7 @@ function FrameFunc()
     --imgui.backend.ShowMemoryUsageWindow()
     imgui.backend.ShowFrameStatistics()
     imgui.backend.ShowResourceManagerDebugWindow()
+    showSelectGpuWindow()
     test.onUpdate()
     imgui.ImGui.EndFrame()
     local Key = lstg.Input.Keyboard
