@@ -86,7 +86,7 @@ namespace Core
 		bool run();
 
 	public:
-		ApplicationModel_Win32(IApplicationEventListener* p_listener);
+		ApplicationModel_Win32(ApplicationModelCreationParameters param, IApplicationEventListener* p_listener);
 		~ApplicationModel_Win32();
 	};
 }

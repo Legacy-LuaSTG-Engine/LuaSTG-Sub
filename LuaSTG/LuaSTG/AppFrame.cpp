@@ -88,7 +88,7 @@ void AppFrame::SetPreferenceGPU(const char* v, bool dGPU_trick)noexcept
 {
 	try
 	{
-		m_OptionGPU = std::move(utility::encoding::to_wide(v));
+		m_OptionGPU = v;
 		platform::AdapterPolicy::setAll(dGPU_trick);
 	}
 	catch (const std::bad_alloc&)
@@ -318,7 +318,9 @@ bool AppFrame::Init()noexcept
 	
 	////////////////////////////////////////
 
-	if (!Core::IApplicationModel::create(this, ~m_pAppModel))
+	Core::ApplicationModelCreationParameters app_param = {};
+	app_param.gpu = m_OptionGPU;
+	if (!Core::IApplicationModel::create(app_param, this, ~m_pAppModel))
 		return false;
 	if (!Core::Graphics::ITextRenderer::create(m_pAppModel->getRenderer(), ~m_pTextRenderer))
 		return false;
