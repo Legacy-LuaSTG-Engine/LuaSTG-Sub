@@ -1,5 +1,6 @@
 ﻿#include "platform/HighDPI.hpp"
 #include "imgui.h"
+#include "imgui_freetype.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
 
@@ -359,10 +360,12 @@ struct Window
         builder.BuildRanges(&ranges);
         
         io.Fonts->Clear();
-        ImFont* font = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\msyh.ttc", 16.0f * scaling, NULL, ranges.Data);
+        ImFontConfig font_cfg;
+        font_cfg.FontBuilderFlags = ImGuiFreeTypeBuilderFlags_NoHinting;
+        ImFont* font = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\msyh.ttc", 16.0f * scaling, &font_cfg, ranges.Data);
         if (!font)
         {
-            font = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\msyh.ttf", 16.0f * scaling, NULL, ranges.Data);
+            font = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\msyh.ttf", 16.0f * scaling, &font_cfg, ranges.Data);
         }
         if (!font)
         {
