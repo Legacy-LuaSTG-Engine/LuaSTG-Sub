@@ -63,7 +63,6 @@ struct Config
     int refresh_rate_denominator = 0;
     bool windowed = true;
     bool vsync = false;
-    bool dgpu_trick = false;
 
     int select_adapter = 0;
     int select_mode = 0;
@@ -572,7 +571,6 @@ struct Window
                 luastg_config.refresh_rate_denominator = json["refresh_rate_denominator"].get<int>();
                 luastg_config.windowed = json["windowed"].get<bool>();
                 luastg_config.vsync = json["vsync"].get<bool>();
-                luastg_config.dgpu_trick = json["dgpu_trick"].get<bool>();
             }
         }
 
@@ -632,7 +630,6 @@ struct Window
         luastg_config.height = mode.Height;
         luastg_config.refresh_rate_numerator = mode.RefreshRate.Numerator;
         luastg_config.refresh_rate_denominator = mode.RefreshRate.Denominator;
-        luastg_config.dgpu_trick = luastg_config.select_adapter > 0;
 
         std::ofstream file(L"config.json", std::ios::out | std::ios::binary | std::ios::trunc);
         if (file.is_open())
@@ -645,7 +642,6 @@ struct Window
             json["refresh_rate_denominator"] = luastg_config.refresh_rate_denominator;
             json["windowed"] = luastg_config.windowed;
             json["vsync"] = luastg_config.vsync;
-            json["dgpu_trick"] = luastg_config.dgpu_trick;
             file << json;
         }
     }
