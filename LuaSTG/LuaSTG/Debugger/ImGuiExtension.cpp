@@ -829,7 +829,7 @@ namespace imgui
         if constexpr (true)
         {
             ImFontConfig cfg;
-            cfg.OversampleH = 1;
+            cfg.FontBuilderFlags = ImGuiFreeTypeBuilderFlags_NoHinting;
             std::string fontpath = "C:\\Windows\\Fonts\\msyh.ttc";
             if (!std::filesystem::is_regular_file(fontpath))
             {
