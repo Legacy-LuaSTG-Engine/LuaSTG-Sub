@@ -388,9 +388,12 @@ struct Window
         }
         
         dxgi_adapter_list.clear();
+        Microsoft::WRL::ComPtr<IDXGIFactory6> dxgi_factory6;
+        dxgi_factory.As(&dxgi_factory6);
         Microsoft::WRL::ComPtr<IDXGIAdapter1> dxgi_adapter1;
         DXGI_ADAPTER_DESC1 adapter_info = {};
         for (UINT index = 0; SUCCEEDED(dxgi_factory->EnumAdapters1(index, &dxgi_adapter1)); index += 1)
+        //for (UINT index = 0; SUCCEEDED(dxgi_factory6->EnumAdapterByGpuPreference(index, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(&dxgi_adapter1))); index += 1)
         {
             hr = dxgi_adapter1->GetDesc1(&adapter_info);
             if (FAILED(hr))
