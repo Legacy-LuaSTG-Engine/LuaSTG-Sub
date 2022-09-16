@@ -1179,61 +1179,31 @@ namespace Core::Graphics
 			std::string gpu_name(std::move(utility::encoding::to_utf8(desc.Description)));
 			return preferred_adapter_name == gpu_name;
 		};
-		bool result = false;
+		auto testStage = [&](bool nv, bool amd) -> bool
+		{
+			platform::AdapterPolicy::setNVIDIA(nv);
+			platform::AdapterPolicy::setAMD(amd);
+
+			if (!createDXGIFactory()) return false;
+
+			bool const result = testAdapterName();
+
+			destroyDXGIFactory();
+
+			return result;
+		};
 
 		// Stage 1 - Disable and test
-
-		platform::AdapterPolicy::setAll(false);
-
-		if (!createDXGIFactory()) return false;
-
-		result = testAdapterName();
-
-		destroyDXGIFactory();
-
-		if (result) return true;
-
+		if (testStage(false, false)) return true;
 		// Stage 2 - Enable and test
-
-		platform::AdapterPolicy::setAll(true);
-
-		if (!createDXGIFactory()) return false;
-
-		result = testAdapterName();
-
-		destroyDXGIFactory();
-
-		if (result) return true;
-
+		if (testStage(true, true)) return true;
 		// Stage 3 - NVIDIA and test
-
-		platform::AdapterPolicy::setAMD(false);
-		platform::AdapterPolicy::setNVIDIA(true);
-
-		if (!createDXGIFactory()) return false;
-
-		result = testAdapterName();
-
-		destroyDXGIFactory();
-
-		if (result) return true;
-
+		if (testStage(true, false)) return true;
 		// Stage 4 - AMD and test
-
-		platform::AdapterPolicy::setNVIDIA(false);
-		platform::AdapterPolicy::setAMD(true);
-
-		if (!createDXGIFactory()) return false;
-
-		result = testAdapterName();
-
-		destroyDXGIFactory();
-
-		if (result) return true;
-
+		if (testStage(false, true)) return true;
 		// Stage 5 - Disable and failed
-
 		platform::AdapterPolicy::setAll(false);
+
 		return false;
 	}
 
