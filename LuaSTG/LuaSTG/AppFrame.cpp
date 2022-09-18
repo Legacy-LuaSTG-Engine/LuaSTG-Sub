@@ -106,9 +106,9 @@ void AppFrame::SetSplash(bool v)noexcept
 
 bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, bool vsync)noexcept
 {
-	return ChangeVideoMode2(width, height, windowed, vsync, 0, 0, false);
+	return ChangeVideoMode2(width, height, windowed, vsync, 0, 0, false, false);
 }
-bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, bool vsync, int hza, int hzb, bool flip)noexcept
+bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, bool vsync, int hza, int hzb, bool flip, bool latency_event)noexcept
 {
 	if (m_iStatus == AppStatus::Initialized)
 	{
@@ -156,7 +156,7 @@ bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, bool vsync
 			using namespace Core::Graphics;
 			auto* swapchain = m_pAppModel->getSwapChain();
 			swapchain->setVSync(vsync);
-			return swapchain->setWindowMode((uint32_t)width, (uint32_t)height, flip);
+			return swapchain->setWindowMode((uint32_t)width, (uint32_t)height, flip, latency_event);
 		};
 		auto setFullscreenMode = [&]() -> bool
 		{
@@ -270,7 +270,8 @@ bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, bool vsync
 }
 bool AppFrame::UpdateVideoMode()noexcept
 {
-	return ChangeVideoMode((int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionWindowed, m_OptionVsync);
+	return ChangeVideoMode2((int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionWindowed, m_OptionVsync,
+		m_OptionRefreshRateA, m_OptionRefreshRateB, m_OptionFlip, m_OptionLatencyEvent);
 }
 
 int AppFrame::LoadTextFile(lua_State* L_, const char* path, const char *packname)noexcept
@@ -425,7 +426,8 @@ bool AppFrame::Init()noexcept
 			using namespace Core;
 			auto* p_swapchain = m_pAppModel->getSwapChain();
 			p_swapchain->setVSync(m_OptionVsync);
-			if (!p_swapchain->setWindowMode((uint32_t)m_OptionResolution.x, (uint32_t)m_OptionResolution.y, false)) // 无论如何，首先窗口化
+			if (!p_swapchain->setWindowMode((uint32_t)m_OptionResolution.x, (uint32_t)m_OptionResolution.y,
+				m_OptionFlip, m_OptionLatencyEvent)) // 无论如何，首先窗口化
 				return false;
 			if (!m_OptionWindowed)
 			{
@@ -574,7 +576,8 @@ void AppFrame::onUpdate()
 	#ifdef USING_CTRL_ENTER_SWITCH
 		if (WantSwitchFullScreenMode())
 		{
-			ChangeVideoMode((int)m_OptionResolution.x, (int)m_OptionResolution.y, !m_OptionWindowed, m_OptionVsync);
+			m_OptionWindowed = !m_OptionWindowed;
+			UpdateVideoMode();
 		}
 	#endif
 	}

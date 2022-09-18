@@ -40,13 +40,15 @@ namespace LuaSTGPlus
 		lua_State* L = nullptr;
 		
 		// 选项与值
-		bool m_OptionWindowed = true;
 		Core::Graphics::WindowFrameStyle m_OptionWindowStyle = Core::Graphics::WindowFrameStyle::Fixed;
-		uint32_t m_OptionFPSLimit = 60;
-		bool m_OptionVsync = false;
+		bool m_OptionWindowed = true;
 		Core::Vector2F m_OptionResolution = Core::Vector2F(640.f, 480.f);
+		bool m_OptionVsync = false;
 		uint32_t m_OptionRefreshRateA = 0;
 		uint32_t m_OptionRefreshRateB = 0;
+		bool m_OptionFlip = false;
+		bool m_OptionLatencyEvent = false;
+		uint32_t m_OptionFPSLimit = 60;
 		std::string m_OptionGPU;
 		std::string m_OptionTitle = LUASTG_INFO;
 		bool m_OptionCursor = true;
@@ -128,7 +130,7 @@ namespace LuaSTGPlus
 		
 	public:
 		bool ChangeVideoMode(int width, int height, bool windowed, bool vsync) noexcept;
-		bool ChangeVideoMode2(int width, int height, bool windowed, bool vsync, int hza, int hzb, bool flip) noexcept;
+		bool ChangeVideoMode2(int width, int height, bool windowed, bool vsync, int hza, int hzb, bool flip, bool latency_event) noexcept;
 		bool UpdateVideoMode() noexcept;
 		
 		void SetFPS(uint32_t v) noexcept;

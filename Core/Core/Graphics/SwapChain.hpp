@@ -30,7 +30,7 @@ namespace Core::Graphics
 		virtual DisplayMode getDisplayMode(uint32_t index) = 0;
 		virtual bool findBestMatchDisplayMode(DisplayMode& mode) = 0; // 匹配最佳刷新率
 
-		virtual bool setWindowMode(uint32_t width, uint32_t height, bool flip_model) = 0;
+		virtual bool setWindowMode(uint32_t width, uint32_t height, bool flip_model, bool latency_event) = 0;
 		virtual bool setSize(uint32_t width, uint32_t height) = 0; // 仅限窗口模式下
 		virtual bool setExclusiveFullscreenMode(DisplayMode const& mode) = 0;
 		virtual bool isWindowMode() = 0;

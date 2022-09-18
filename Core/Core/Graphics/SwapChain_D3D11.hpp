@@ -31,6 +31,7 @@ namespace Core::Graphics
 		DisplayMode m_swapchain_last_mode{ 640, 480 };
 		BOOL m_swapchain_last_windowed{ TRUE };
 		BOOL m_swapchain_last_flip{ FALSE };
+		BOOL m_swapchain_last_latency_event{ FALSE };
 
 		BOOL m_init{ FALSE };
 		std::atomic_int m_window_active_changed{ 0 };
@@ -51,9 +52,10 @@ namespace Core::Graphics
 
 	private:
 		void destroySwapChain();
-		bool createSwapChain(bool windowed, bool flip, DisplayMode const& mode, bool no_attachment);
+		bool createSwapChain(bool windowed, bool flip, bool latency_event, DisplayMode const& mode, bool no_attachment);
 		void destroyRenderAttachment();
 		bool createRenderAttachment();
+		void waitFrameLatency(uint32_t timeout);
 
 	private:
 		enum class EventType
@@ -74,7 +76,7 @@ namespace Core::Graphics
 		DisplayMode getDisplayMode(uint32_t index);
 		bool findBestMatchDisplayMode(DisplayMode& mode);
 
-		bool setWindowMode(uint32_t width, uint32_t height, bool flip_model);
+		bool setWindowMode(uint32_t width, uint32_t height, bool flip_model, bool latency_event);
 		bool setSize(uint32_t width, uint32_t height);
 		bool setExclusiveFullscreenMode(DisplayMode const& mode);
 		bool isWindowMode() { return m_swapchain_last_windowed; }

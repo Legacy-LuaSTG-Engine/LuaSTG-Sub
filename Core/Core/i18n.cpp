@@ -21,6 +21,14 @@ static std::unordered_map<std::string_view, i18n_entry_t> const g_i18n_map = {
 		.en_us = "[core] load interface {1} from module {0} failed",
 	}},
 
+	{"Enable",{
+		.zh_cn = "启用",
+		.en_us = "Enable",
+	}},
+	{"Disable",{
+		.zh_cn = "禁用",
+		.en_us = "Disable",
+	}},
 	{"unknown",{
 		.zh_cn = "未知",
 		.en_us = "unknown",
@@ -207,6 +215,23 @@ static std::unordered_map<std::string_view, i18n_entry_t> const g_i18n_map = {
 #pragma warning(disable:4002)
 #define ADD(KEY, V1, V2) {KEY,{V1,V2}}
 
+	// Swapchain DXGI
+	ADD("DXGI.SwapChain.SwapEffect.Discard",
+		.zh_cn = "位块传输模式",
+		.en_us = "Discard",
+	),
+	ADD("DXGI.SwapChain.SwapEffect.FlipSequential",
+		.zh_cn = "序列交换模式",
+		.en_us = "Flip Sequential",
+	),
+	ADD("DXGI.SwapChain.SwapEffect.FlipDiscard",
+		.zh_cn = "快速交换模式",
+		.en_us = "Flip Discard",
+	),
+	ADD("DXGI.DisplayMode.RefreshRate.Desktop",
+		.zh_cn = "桌面刷新率",
+		.en_us = "Desktop",
+	),
 	// Swapchain
 	ADD("[core].SwapChain_D3D11.start_creating_swapchain",
 		.zh_cn = "[core] 开始创建 SwapChain",
@@ -215,6 +240,20 @@ static std::unordered_map<std::string_view, i18n_entry_t> const g_i18n_map = {
 	ADD("[core].SwapChain_D3D11.created_swapchain",
 		.zh_cn = "[core] 已创建 SwapChain",
 		.en_us = "[core] SwapChain created",
+	),
+	ADD("[core].SwapChain_D3D11.created_swapchain_info_fmt",
+		.zh_cn = "[core] 已创建 SwapChain：\n"
+			"    显示模式：{}x{}@{}\n"
+			"    独占全屏：{}\n"
+			"    交换链模式：{}\n"
+			"    立即刷新：{}\n"
+			"    低延迟呈现：{}",
+		.en_us = "[core] SwapChain created:\n"
+			"    Display Mode: {}x{}@{}\n"
+			"    Exclusive Fullscreen：{}\n"
+			"    SwapChain swap effect: {}\n"
+			"    Present Allow Tearing: {}\n"
+			"    Frame Latency Waitable Object: {}",
 	),
 	ADD("[core].SwapChain_D3D11.create_swapchain_failed_null_window",
 		.zh_cn = "[core] 无法创建 SwapChain，窗口为空",
