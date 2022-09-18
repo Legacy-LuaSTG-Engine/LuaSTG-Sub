@@ -117,7 +117,7 @@ bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, bool vsync
 			using namespace Core;
 			using namespace Core::Graphics;
 			auto* window = m_pAppModel->getWindow();
-			window->setFrameStyle((WindowFrameStyle)m_OptionWindowStyle);
+			window->setFrameStyle(m_OptionWindowStyle);
 			window->setSize(Vector2I(width, height));
 			window->setLayer(WindowLayer::Normal); // 强制取消窗口置顶
 			window->setCentered();
@@ -351,11 +351,11 @@ bool AppFrame::Init()noexcept
 		{
 			using namespace Core;
 			auto* p_window = m_pAppModel->getWindow();
-			p_window->setSize(Vector2I((int32_t)m_OptionResolution.x, (int32_t)m_OptionResolution.y));
 			if (m_OptionWindowed)
-				p_window->setFrameStyle(Graphics::WindowFrameStyle::Fixed);
+				p_window->setFrameStyle(m_OptionWindowStyle);
 			else
 				p_window->setFrameStyle(Graphics::WindowFrameStyle::None);
+			p_window->setSize(Vector2I((int32_t)m_OptionResolution.x, (int32_t)m_OptionResolution.y));
 			p_window->setTitleText(m_OptionTitle);
 			p_window->setNativeIcon((void*)(ptrdiff_t)IDI_APPICON);
 			p_window->setCursor(m_OptionCursor ? Graphics::WindowCursor::Arrow : Graphics::WindowCursor::None);
@@ -516,6 +516,29 @@ void AppFrame::Run()noexcept
 
 #pragma region 游戏循环
 
+void AppFrame::onWindowCreate()
+{
+	OpenInput();
+	m_DirectInput = std::make_unique<platform::DirectInput>((ptrdiff_t)m_pAppModel->getWindow()->getNativeHandle());
+	{
+		m_DirectInput->refresh(); // 这里因为窗口还没显示，所以应该会出现一个Aquire设备失败的错误信息，忽略即可
+		uint32_t cnt = m_DirectInput->count();
+		for (uint32_t i = 0; i < cnt; i += 1)
+		{
+			spdlog::info("[luastg] 检测到 {} 控制器 产品名称：{} 设备名称：{}",
+				m_DirectInput->isXInputDevice(i) ? "XInput" : "DirectInput",
+				utility::encoding::to_utf8(m_DirectInput->getProductName(i)),
+				utility::encoding::to_utf8(m_DirectInput->getDeviceName(i))
+			);
+		}
+		spdlog::info("[luastg] 成功创建了 {} 个控制器", cnt);
+	}
+}
+void AppFrame::onWindowDestroy()
+{
+	m_DirectInput = nullptr;
+	CloseInput();
+}
 void AppFrame::onWindowActive()
 {
 	platform::XInput::setEnable(true);

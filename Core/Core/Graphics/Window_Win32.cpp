@@ -6,6 +6,7 @@
 #include "platform/WindowTheme.hpp"
 
 constexpr int const LUASTG_WM_UPDAE_TITLE = WM_USER + 64;
+constexpr int const LUASTG_WM_RECREATE = WM_USER + 64 + 1;
 
 namespace Core::Graphics
 {
@@ -150,6 +151,15 @@ namespace Core::Graphics
 		case LUASTG_WM_UPDAE_TITLE:
 			SetWindowTextW(window, win32_window_text_w.data());
 			return 0;
+		case LUASTG_WM_RECREATE:
+			{
+				RectI const last_rect = getRect();
+				destroyWindow();
+				if (!createWindow()) return false;
+				applyWindowData();
+				setRect(last_rect);
+			}
+			return 0;
 		}
 		return DefWindowProcW(window, message, arg1, arg2);
 	}
@@ -240,10 +250,28 @@ namespace Core::Graphics
 	bool Window_Win32::recreateWindow()
 	{
 		dispatchEvent(EventType::WindowDestroy);
-		destroyWindow();
-		if (!createWindow()) return false;
+		SendMessageW(win32_window, LUASTG_WM_RECREATE, 0, 0);
 		dispatchEvent(EventType::WindowCreate);
 		return true;
+	}
+	bool Window_Win32::applyWindowData()
+	{
+		setWindowIcon(win32_window_icon);
+		return true;
+	}
+	void Window_Win32::setWindowIcon(HICON icon)
+	{
+		if (win32_window_icon != icon)
+		{
+			if (win32_window_icon)
+			{
+				DestroyIcon(win32_window_icon);
+			}
+			win32_window_icon = NULL;
+		}
+		win32_window_icon = icon;
+		SendMessageW(win32_window, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)win32_window_icon);
+		SendMessageW(win32_window, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)win32_window_icon);
 	}
 
 	void Window_Win32::convertTitleText()
@@ -425,9 +453,7 @@ namespace Core::Graphics
 	void Window_Win32::setNativeIcon(void* id)
 	{
 		HICON hIcon = LoadIcon(win32_window_class.hInstance, MAKEINTRESOURCE((intptr_t)id));
-		SendMessageW(win32_window, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hIcon);
-		SendMessageW(win32_window, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)hIcon);
-		DestroyIcon(hIcon);
+		setWindowIcon(hIcon);
 	}
 
 	void Window_Win32::setIMEState(bool enable)
