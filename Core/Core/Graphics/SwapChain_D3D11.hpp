@@ -33,6 +33,8 @@ namespace Core::Graphics
 		BOOL m_swapchain_last_flip{ FALSE };
 		BOOL m_swapchain_last_latency_event{ FALSE };
 
+		BOOL m_swapchain_flip_enabled{ FALSE };
+
 		BOOL m_init{ FALSE };
 		std::atomic_int m_window_active_changed{ 0 };
 

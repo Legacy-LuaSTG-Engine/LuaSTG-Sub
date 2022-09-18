@@ -662,6 +662,14 @@ namespace imgui
     {
     public:
         std::atomic_int messageFlags;
+        void onWindowCreate()
+        {
+            ImGui_ImplWin32Ex_Init((void*)APP.GetAppModel()->getWindow()->getNativeHandle());
+        }
+        void onWindowDestroy()
+        {
+            ImGui_ImplWin32Ex_Shutdown();
+        }
         void onDeviceDestroy()
         {
             g_ImGuiTexIDValid = false;
@@ -861,7 +869,7 @@ namespace imgui
         setConfig();
         loadConfig();
         
-        ImGui_ImplWin32Ex_Init((void*)window->getNativeHandle());
+        g_ImGuiRenderDeviceEventListener.onWindowCreate();
         window->addEventListener(&g_ImGuiRenderDeviceEventListener);
         
         g_ImGuiRenderDeviceEventListener.onDeviceCreate();
@@ -895,7 +903,7 @@ namespace imgui
         g_ImGuiRenderDeviceEventListener.onDeviceDestroy();
         
         window->removeEventListener(&g_ImGuiRenderDeviceEventListener);
-        ImGui_ImplWin32Ex_Shutdown();
+        g_ImGuiRenderDeviceEventListener.onWindowDestroy();
         
         ImPlot::DestroyContext();
         ImGui::DestroyContext();

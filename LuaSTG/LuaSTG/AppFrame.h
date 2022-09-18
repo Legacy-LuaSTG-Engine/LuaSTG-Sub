@@ -230,6 +230,8 @@ namespace LuaSTGPlus
 	protected:
 		std::atomic_int m_window_active_changed{ 0 };
 
+		void onWindowCreate() override;
+		void onWindowDestroy() override;
 		void onWindowActive() override;
 		void onWindowInactive() override;
 		void onDeviceChange() override;

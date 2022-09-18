@@ -23,6 +23,8 @@ namespace Core::Graphics
 		UINT win32_window_height{ 480 };
 		UINT win32_window_dpi{ USER_DEFAULT_SCREEN_DPI };
 
+		HICON win32_window_icon{ NULL };
+
 		std::string win32_window_text{ "Window" };
 		std::array<wchar_t, 512> win32_window_text_w;
 
@@ -46,7 +48,8 @@ namespace Core::Graphics
 		void destroyWindowClass();
 		bool createWindow();
 		void destroyWindow();
-		bool recreateWindow();
+		bool applyWindowData();
+		void setWindowIcon(HICON icon);
 
 	public:
 		// 内部方法
@@ -60,6 +63,7 @@ namespace Core::Graphics
 		RectI getClientRect();
 		bool setClientRect(RectI v);
 		uint32_t getDPI();
+		bool recreateWindow();
 		
 	private:
 		enum class EventType

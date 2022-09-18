@@ -150,6 +150,7 @@ namespace Core::Graphics
 		destroyRenderAttachment();
 		if (dxgi_swapchain)
 		{
+			// 退出独占全屏
 			BOOL bFullscreen = FALSE;
 			Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output;
 			HRESULT hr = gHR = dxgi_swapchain->GetFullscreenState(&bFullscreen, &dxgi_output);
@@ -759,11 +760,11 @@ namespace Core::Graphics
 	bool SwapChain_D3D11::setWindowMode(uint32_t width, uint32_t height, bool flip_model, bool latency_event)
 	{
 		// TODO: 也许，是时候该自动开启 flip 交换链模型了？
-		//if (m_device->IsFlipDiscardSupport() && m_device->IsTearingSupport())
-		//{
-		//	flip_model = true;
-		//	//latency_event = true;
-		//}
+		if (m_device->IsFlipDiscardSupport() && m_device->IsTearingSupport())
+		{
+			flip_model = true;
+			//latency_event = true;
+		}
 		if (width < 1 || height < 1)
 		{
 			i18n_log_error_fmt("[core].SwapChain_D3D11.create_swapchain_failed_invalid_size_fmt", width, height);
@@ -771,6 +772,13 @@ namespace Core::Graphics
 		}
 		dispatchEvent(EventType::SwapChainDestroy);
 		destroySwapChain();
+
+		if (!flip_model && m_swapchain_flip_enabled)
+		{
+			if (!m_window->recreateWindow()) return false;
+			m_swapchain_flip_enabled = FALSE;
+		}
+
 		DisplayMode mode = {
 			.width = width,
 			.height = height,
@@ -786,6 +794,7 @@ namespace Core::Graphics
 		m_swapchain_last_flip = flip_model;
 		m_swapchain_last_latency_event = latency_event;
 		m_init = TRUE;
+		if (flip_model) m_swapchain_flip_enabled = TRUE;
 		//m_window->setCursorToRightBottom();
 		dispatchEvent(EventType::SwapChainCreate);
 		return true;
@@ -840,6 +849,13 @@ namespace Core::Graphics
 		}
 		dispatchEvent(EventType::SwapChainDestroy);
 		destroySwapChain();
+
+		if (m_swapchain_flip_enabled)
+		{
+			if (!m_window->recreateWindow()) return false;
+			m_swapchain_flip_enabled = FALSE;
+		}
+
 		if (!createSwapChain(false, false, false, mode, true)) // 稍后创建渲染附件
 		{
 			return false;
