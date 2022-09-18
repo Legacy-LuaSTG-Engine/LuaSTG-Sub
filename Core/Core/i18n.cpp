@@ -204,14 +204,99 @@ static std::unordered_map<std::string_view, i18n_entry_t> const g_i18n_map = {
 		.en_us = "[core] Basic Direct3D 11 components created",
 	}},
 
-	{"[core].SwapChain_D3D11.enter_exclusive_fullscreen",{
+#pragma warning(disable:4002)
+#define ADD(KEY, V1, V2) {KEY,{V1,V2}}
+
+	// Swapchain
+	ADD("[core].SwapChain_D3D11.start_creating_swapchain",
+		.zh_cn = "[core] 开始创建 SwapChain",
+		.en_us = "[core] Start creating SwapChain",
+	),
+	ADD("[core].SwapChain_D3D11.created_swapchain",
+		.zh_cn = "[core] 已创建 SwapChain",
+		.en_us = "[core] SwapChain created",
+	),
+	ADD("[core].SwapChain_D3D11.create_swapchain_failed_null_window",
+		.zh_cn = "[core] 无法创建 SwapChain，窗口为空",
+		.en_us = "[core] Failed to create SwapChain, Window is null",
+	),
+	ADD("[core].SwapChain_D3D11.create_swapchain_failed_null_DXGI",
+		.zh_cn = "[core] 无法创建 SwapChain，DXGI 组件为空",
+		.en_us = "[core] Failed to create SwapChain, DXGI components are null",
+	),
+	ADD("[core].SwapChain_D3D11.create_swapchain_failed_null_device",
+		.zh_cn = "[core] 无法创建 SwapChain，图形设备为空",
+		.en_us = "[core] Failed to create SwapChain, Device is null",
+	),
+	ADD("[core].SwapChain_D3D11.create_swapchain_failed_invalid_size_fmt",
+		.zh_cn = "[core] 无法创建大小为 ({}x{}) 的 SwapChain",
+		.en_us = "[core] Cannot create SwapChain with size ({}x{})",
+	),
+	ADD("[core].SwapChain_D3D11.resize_swapchain_failed_invalid_size_fmt",
+		.zh_cn = "[core] 无法更改 SwapChain 的大小为 ({}x{})",
+		.en_us = "[core] Cannot resize SwapChain with size ({}x{})",
+	),
+	ADD("[core].SwapChain_D3D11.resize_swapchain_failed_null_SwapChain",
+		.zh_cn = "[core] 无法更改 SwapChain 的大小，交换链为空",
+		.en_us = "[core] Failed to resize SwapChain, SwapChain is null",
+	),
+	// Swapchain Exclusive Fullscreen
+	ADD("[core].SwapChain_D3D11.enter_exclusive_fullscreen",
 		.zh_cn = "[core] 尝试进入独占全屏",
 		.en_us = "[core] Try to enter exclusive fullscreen",
-	}},
-	{"[core].SwapChain_D3D11.leave_exclusive_fullscreen",{
+	),
+	ADD("[core].SwapChain_D3D11.leave_exclusive_fullscreen",
 		.zh_cn = "[core] 尝试退出独占全屏",
 		.en_us = "[core] Try to leave exclusive fullscreen",
-	}},
+	),
+	ADD("[core].SwapChain_D3D11.exclusive_fullscreen_unavailable",
+		.zh_cn = "[core] 独占全屏不可用",
+		.en_us = "[core] Exclusive fullscreen unavailable",
+	),
+	// Swapchain DisplayMode
+	ADD("[core].SwapChain_D3D11.start_enumerating_DisplayMode",
+		.zh_cn = "[core] 开始枚举显示模式",
+		.en_us = "[core] Start enumerating DisplayMode",
+	),
+	ADD("[core].SwapChain_D3D11.found_N_DisplayMode_fmt",
+		.zh_cn = "[core] 共找到 {} 个支持的显示模式：",
+		.en_us = "[core] Found {} supported DisplayMode:",
+	),
+	ADD("[core].SwapChain_D3D11.enumerating_DisplayMode_failed",
+		.zh_cn = "[core] 找不到可用的显示模式",
+		.en_us = "[core] No DisplayMode available",
+	),
+	ADD("[core].SwapChain_D3D11.match_DisplayMode_failed_invalid_size_fmt",
+		.zh_cn = "[core] 无法匹配大小为 ({}x{}) 的显示模式",
+		.en_us = "[core] Cannot match DisplayMode with size ({}x{})",
+	),
+	ADD("[core].SwapChain_D3D11.match_DisplayMode_failed_null_SwapChain",
+		.zh_cn = "[core] 无法匹配显示模式，交换链为空",
+		.en_us = "[core] Failed to match DisplayMode, SwapChain is null"
+	),
+	ADD("[core].SwapChain_D3D11.match_DisplayMode_failed_null_Device",
+		.zh_cn = "[core] 无法匹配显示模式，图形设备为空",
+		.en_us = "[core] Failed to match DisplayMode, Device is null"
+	),
+	// Swapchain RenderAttachment
+	ADD("[core].SwapChain_D3D11.start_creating_RenderAttachment",
+		.zh_cn = "[core] 开始创建 RenderAttachment",
+		.en_us = "[core] Start creating RenderAttachment"
+	),
+	ADD("[core].SwapChain_D3D11.created_RenderAttachment",
+		.zh_cn = "[core] 已创建 RenderAttachment",
+		.en_us = "[core] RenderAttachment created"
+	),
+	ADD("[core].SwapChain_D3D11.create_RenderAttachment_failed_null_SwapChain",
+		.zh_cn = "[core] 无法创建 RenderAttachment，交换链为空",
+		.en_us = "[core] Failed to create RenderAttachment, SwapChain is null"
+	),
+	ADD("[core].SwapChain_D3D11.create_RenderAttachment_failed_null_Device",
+		.zh_cn = "[core] 无法创建 RenderAttachment，图形设备为空",
+		.en_us = "[core] Failed to create RenderAttachment, Device is null"
+	),
+
+#pragma warning(default:4002)
 };
 
 void i18n_set_lang(i18n_lang_t lang)
@@ -220,9 +305,13 @@ void i18n_set_lang(i18n_lang_t lang)
 }
 std::string_view i18n(std::string_view const& key)
 {
+	assert(!key.empty());
 	auto it = g_i18n_map.find(key);
+	assert(it != g_i18n_map.end());
 	if (it != g_i18n_map.end())
 	{
+		assert(!it->second.zh_cn.empty());
+		assert(!it->second.en_us.empty());
 		switch (g_i18n_lang)
 		{
 		default:
@@ -232,6 +321,5 @@ std::string_view i18n(std::string_view const& key)
 			return it->second.en_us;
 		}
 	}
-	assert(false);
 	return key;
 }
