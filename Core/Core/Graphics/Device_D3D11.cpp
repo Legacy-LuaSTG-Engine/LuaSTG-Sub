@@ -870,15 +870,30 @@ namespace Core::Graphics
 
 			return D3DX11_FEATURE_DATA_FORMAT_SUPPORT{ .InFormat = format, .OutFormatSupport = data1.OutFormatSupport, .OutFormatSupport2 = data2.OutFormatSupport2 };
 		};
+		auto check_format_support_1 = [&](DXGI_FORMAT const format, std::string_view const& name) ->D3DX11_FEATURE_DATA_FORMAT_SUPPORT
+		{
+			std::string name1("ID3D11Device::CheckFeatureSupport -> D3D11_FEATURE_FORMAT_SUPPORT ("); name1.append(name); name1.append(")");
+
+			D3D11_FEATURE_DATA_FORMAT_SUPPORT data1 = { .InFormat = format };
+			HRESULT const hr1 = gHR = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_FORMAT_SUPPORT, &data1, sizeof(D3D11_FEATURE_DATA_FORMAT_SUPPORT));
+			if (FAILED(hr1)) i18n_log_error_fmt("[core].system_call_failed_f", name1);
+
+			D3D11_FEATURE_DATA_FORMAT_SUPPORT2 data2 = { .InFormat = format };
+			d3d11_device->CheckFeatureSupport(D3D11_FEATURE_FORMAT_SUPPORT2, &data2, sizeof(D3D11_FEATURE_DATA_FORMAT_SUPPORT2));
+
+			return D3DX11_FEATURE_DATA_FORMAT_SUPPORT{ .InFormat = format, .OutFormatSupport = data1.OutFormatSupport, .OutFormatSupport2 = data2.OutFormatSupport2 };
+		};
 
 	#define _CHECK_FORMAT_SUPPORT(_NAME, _FORMAT) \
 		D3DX11_FEATURE_DATA_FORMAT_SUPPORT d3d11_feature_format_##_NAME = check_format_support(_FORMAT, #_FORMAT);
+	#define _CHECK_FORMAT_SUPPORT_1(_NAME, _FORMAT) \
+		D3DX11_FEATURE_DATA_FORMAT_SUPPORT d3d11_feature_format_##_NAME = check_format_support_1(_FORMAT, #_FORMAT);
 
 		_CHECK_FORMAT_SUPPORT(rgba32     , DXGI_FORMAT_R8G8B8A8_UNORM     );
 		_CHECK_FORMAT_SUPPORT(rgba32_srgb, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB);
 		_CHECK_FORMAT_SUPPORT(bgra32     , DXGI_FORMAT_B8G8R8A8_UNORM     );
 		_CHECK_FORMAT_SUPPORT(bgra32_srgb, DXGI_FORMAT_B8G8R8A8_UNORM_SRGB);
-		_CHECK_FORMAT_SUPPORT(d24_s8     , DXGI_FORMAT_D24_UNORM_S8_UINT  );
+		_CHECK_FORMAT_SUPPORT_1(d24_s8   , DXGI_FORMAT_D24_UNORM_S8_UINT  );
 
 	#undef _CHECK_FORMAT_SUPPORT
 
