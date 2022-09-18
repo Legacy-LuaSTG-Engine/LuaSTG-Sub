@@ -921,20 +921,15 @@ namespace Core::Graphics
 	{
 		HRESULT hr = S_OK;
 
-		// 恢复默认
-
-		applyRenderAttachment();
-
 		// 呈现
 
 		UINT const interval = m_swapchain_vsync ? 1 : 0;
 		UINT const flags = (!m_swapchain_vsync && (m_swapchain_flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING)) ? DXGI_PRESENT_ALLOW_TEARING : 0;
 		hr = gHR = dxgi_swapchain->Present(interval, flags);
 
-		// 取消绑定并丢弃内容
+		// 清空渲染状态并丢弃内容
 
-		ID3D11RenderTargetView* rtvs[1] = { NULL };
-		m_device->GetD3D11DeviceContext()->OMSetRenderTargets(1, rtvs, NULL);
+		m_device->GetD3D11DeviceContext()->ClearState();
 		if (auto* ctx1 = m_device->GetD3D11DeviceContext1())
 		{
 			ctx1->DiscardView(d3d11_rtv.Get());
