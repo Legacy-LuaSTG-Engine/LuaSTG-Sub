@@ -1,3 +1,7 @@
+#pragma warning(disable:4310) // cast truncates constant value
+#pragma warning(disable:4127) // conditional expression is constant
+#pragma warning(disable:4244) // 'argument': conversion from 'unsigned int' to 'const pcg_extras::bitcount_t', possible loss of data
+
 #include "lua_random.hpp"
 #include "LuaBinding/lua_utility.hpp"
 #include "Utility/xorshift.hpp"
