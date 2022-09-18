@@ -36,23 +36,21 @@ namespace Core::Graphics
 
 	LRESULT Window_Win32::onMessage(HWND window, UINT message, WPARAM arg1, LPARAM arg2)
 	{
-		HWND focus_window = GetForegroundWindow();
-		if (win32_window_is_focus && focus_window && focus_window != window)
+		if (win32_window_want_track_focus)
 		{
-			win32_window_is_focus = FALSE;
-			std::array<WCHAR, 256> buffer1{};
-			std::array<WCHAR, 256> buffer2{};
-			LRESULT const length1 = SendMessageW(focus_window, WM_GETTEXT, 256, (LPARAM)buffer1.data());
-			int const length2 = GetClassNameW(focus_window, buffer2.data(), 256);
-			spdlog::info("[core] 窗口焦点已改变，新的焦点窗口为：[{}] ({}) {}", (void*)focus_window,
-				utility::encoding::to_utf8(std::wstring_view(buffer2.data(), (size_t)length2)),
-				utility::encoding::to_utf8(std::wstring_view(buffer1.data(), (size_t)length1))
-			);
-		}
-		else if (!win32_window_is_focus && focus_window == window)
-		{
-			win32_window_is_focus = TRUE;
-			spdlog::info("[core] 窗口焦点已归还");
+			HWND focus_window = GetForegroundWindow();
+			if (focus_window && focus_window != window)
+			{
+				win32_window_want_track_focus = FALSE;
+				std::array<WCHAR, 256> buffer1{};
+				std::array<WCHAR, 256> buffer2{};
+				LRESULT const length1 = SendMessageW(focus_window, WM_GETTEXT, 256, (LPARAM)buffer1.data());
+				int const length2 = GetClassNameW(focus_window, buffer2.data(), 256);
+				spdlog::info("[core] 窗口焦点已改变，新的焦点窗口为：[{}] ({}) {}", (void*)focus_window,
+					utility::encoding::to_utf8(std::wstring_view(buffer2.data(), (size_t)length2)),
+					utility::encoding::to_utf8(std::wstring_view(buffer1.data(), (size_t)length1))
+				);
+			}
 		}
 
 		// 窗口挪动器
@@ -77,11 +75,13 @@ namespace Core::Graphics
 		case WM_ACTIVATEAPP:
 			if (arg1 /* == TRUE */)
 			{
+				win32_window_want_track_focus = FALSE;
 				platform::WindowTheme::UpdateColorMode(window, TRUE);
 				dispatchEvent(EventType::WindowActive);
 			}
 			else
 			{
+				win32_window_want_track_focus = TRUE; // 要开始抓内鬼了
 				platform::WindowTheme::UpdateColorMode(window, FALSE);
 				dispatchEvent(EventType::WindowInactive);
 			}
