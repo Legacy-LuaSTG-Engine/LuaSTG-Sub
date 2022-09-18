@@ -37,7 +37,7 @@ namespace Core::Graphics
 		BOOL m_hidewindow{ TRUE };
 
 		BOOL win32_window_is_sizemove{ FALSE };
-		BOOL win32_window_is_focus{ TRUE };
+		BOOL win32_window_want_track_focus{ FALSE };
 
 		platform::WindowSizeMoveController m_sizemove;
 		platform::MonitorList m_monitors;
