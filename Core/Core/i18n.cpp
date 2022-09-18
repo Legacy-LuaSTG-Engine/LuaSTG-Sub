@@ -203,6 +203,15 @@ static std::unordered_map<std::string_view, i18n_entry_t> const g_i18n_map = {
 		.zh_cn = "[core] 已创建基本 Direct3D 11 组件",
 		.en_us = "[core] Basic Direct3D 11 components created",
 	}},
+
+	{"[core].SwapChain_D3D11.enter_exclusive_fullscreen",{
+		.zh_cn = "[core] 尝试进入独占全屏",
+		.en_us = "[core] Try to enter exclusive fullscreen",
+	}},
+	{"[core].SwapChain_D3D11.leave_exclusive_fullscreen",{
+		.zh_cn = "[core] 尝试退出独占全屏",
+		.en_us = "[core] Try to leave exclusive fullscreen",
+	}},
 };
 
 void i18n_set_lang(i18n_lang_t lang)
