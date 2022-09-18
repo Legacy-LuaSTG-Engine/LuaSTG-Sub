@@ -77,12 +77,12 @@ namespace Core::Graphics
 		case WM_ACTIVATEAPP:
 			if (arg1 /* == TRUE */)
 			{
-				platform::WindowTheme::UpdateColorMode(window, FALSE);
+				platform::WindowTheme::UpdateColorMode(window, TRUE);
 				dispatchEvent(EventType::WindowActive);
 			}
 			else
 			{
-				platform::WindowTheme::UpdateColorMode(window, TRUE);
+				platform::WindowTheme::UpdateColorMode(window, FALSE);
 				dispatchEvent(EventType::WindowInactive);
 			}
 			break;
