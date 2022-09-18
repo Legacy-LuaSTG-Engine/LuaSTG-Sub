@@ -154,7 +154,7 @@ namespace Core::Graphics
 			HRESULT hr = gHR = dxgi_swapchain->GetFullscreenState(&bFullscreen, &dxgi_output);
 			if (bFullscreen)
 			{
-				spdlog::info("[core] 尝试退出独占全屏");
+				i18n_log_info("[core].SwapChain_D3D11.leave_exclusive_fullscreen");
 				hr = gHR = dxgi_swapchain->SetFullscreenState(FALSE, NULL);
 				if (FAILED(hr))
 				{
@@ -809,7 +809,7 @@ namespace Core::Graphics
 			return false;
 		}
 		// 进入全屏
-		spdlog::info("[core] 尝试切换到独占全屏");
+		i18n_log_info("[core].SwapChain_D3D11.enter_exclusive_fullscreen");
 		HRESULT hr = gHR = dxgi_swapchain->SetFullscreenState(TRUE, NULL);
 		if (FAILED(hr))
 		{
@@ -852,7 +852,7 @@ namespace Core::Graphics
 				{
 					if (!bFSC)
 					{
-						spdlog::info("[core] 尝试切换到独占全屏");
+						i18n_log_info("[core].SwapChain_D3D11.enter_exclusive_fullscreen");
 						hr = gHR = dxgi_swapchain->SetFullscreenState(TRUE, NULL);
 						if (FAILED(hr))
 						{
@@ -881,7 +881,7 @@ namespace Core::Graphics
 				{
 					if (bFSC)
 					{
-						spdlog::info("[core] 尝试退出独占全屏");
+						i18n_log_info("[core].SwapChain_D3D11.leave_exclusive_fullscreen");
 						hr = gHR = dxgi_swapchain->SetFullscreenState(FALSE, NULL);
 						if (FAILED(hr))
 						{
