@@ -158,7 +158,7 @@ namespace Core::Graphics
 				hr = gHR = dxgi_swapchain->SetFullscreenState(FALSE, NULL);
 				if (FAILED(hr))
 				{
-					spdlog::error("[core] IDXGISwapChain::SetFullscreenState -> #FALSE 调用失败");
+					i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::SetFullscreenState -> FALSE");
 				}
 			}
 		}
@@ -169,23 +169,23 @@ namespace Core::Graphics
 	{
 		HRESULT hr = 0;
 
-		spdlog::info("[core] 开始创建 SwapChain");
+		i18n_log_info("[core].SwapChain_D3D11.start_creating_swapchain");
 
 		if (!m_window->GetWindow())
 		{
-			spdlog::error("[core] 无法创建 SwapChain，窗口为空");
+			i18n_log_error("[core].SwapChain_D3D11.create_swapchain_failed_null_window");
 			assert(false); return false;
 		}
 		auto* dxgi_factory = m_device->GetDXGIFactory1();
 		if (!dxgi_factory)
 		{
-			spdlog::error("[core] 无法创建 SwapChain，DXGI 组件为空");
+			i18n_log_error("[core].SwapChain_D3D11.create_swapchain_failed_null_DXGI");
 			assert(false); return false;
 		}
 		auto* d3d11_device = m_device->GetD3D11Device();
 		if (!d3d11_device)
 		{
-			spdlog::error("[core] 无法创建 SwapChain，图形设备为空");
+			i18n_log_error("[core].SwapChain_D3D11.create_swapchain_failed_null_device");
 			assert(false); return false;
 		}
 		
@@ -352,7 +352,7 @@ namespace Core::Graphics
 			}
 		}
 
-		spdlog::info("[core] 已创建 SwapChain");
+		i18n_log_info("[core].SwapChain_D3D11.created_swapchain");
 
 		// 渲染附件
 
@@ -379,17 +379,18 @@ namespace Core::Graphics
 	{
 		HRESULT hr = 0;
 
-		spdlog::info("[core] 开始创建 RenderAttachment");
+		i18n_log_info("[core].SwapChain_D3D11.start_creating_RenderAttachment");
+
 		if (!dxgi_swapchain)
 		{
-			spdlog::info("[core] 无法创建 RenderAttachment，交换链为空");
+			i18n_log_error("[core].SwapChain_D3D11.create_RenderAttachment_failed_null_SwapChain");
 			return false;
 		}
 		auto* d3d11_device = m_device->GetD3D11Device();
 		assert(d3d11_device);
 		if (!d3d11_device)
 		{
-			spdlog::info("[core] 无法创建 RenderAttachment，图形设备为空");
+			i18n_log_error("[core].SwapChain_D3D11.create_RenderAttachment_failed_null_Device");
 			return false;
 		}
 
@@ -458,7 +459,7 @@ namespace Core::Graphics
 			return false;
 		}
 		
-		spdlog::info("[core] 已创建 RenderAttachment");
+		i18n_log_info("[core].SwapChain_D3D11.created_RenderAttachment");
 
 		return true;
 	}
@@ -492,7 +493,7 @@ namespace Core::Graphics
 
 		HRESULT hr = S_OK;
 
-		spdlog::info("[core] 开始枚举支持的显示模式");
+		i18n_log_info("[core].SwapChain_D3D11.start_enumerating_DisplayMode");
 
 		// 获取关联的显示输出
 
@@ -621,7 +622,7 @@ namespace Core::Graphics
 		// 打印结果
 		if (!m_displaymode.empty())
 		{
-			spdlog::info("[core] 共找到 {} 个支持的显示模式：", m_displaymode.size());
+			i18n_log_info_fmt("[core].SwapChain_D3D11.found_N_DisplayMode_fmt", m_displaymode.size());
 			for (size_t i = 0; i < m_displaymode.size(); i += 1)
 			{
 				spdlog::info("{: >4d}: ({: >5d} x {: >5d}) {:.2f}Hz"
@@ -633,7 +634,7 @@ namespace Core::Graphics
 		}
 		else
 		{
-			spdlog::error("[core] 找不到可用的显示模式");
+			i18n_log_error("[core].SwapChain_D3D11.enumerating_DisplayMode_failed");
 			return false;
 		}
 
@@ -652,19 +653,19 @@ namespace Core::Graphics
 	{
 		if (mode.width < 1 || mode.height < 1)
 		{
-			spdlog::error("[core] 无法匹配大小为 ({}x{}) 的显示模式", mode.width, mode.height);
+			i18n_log_error_fmt("[core].SwapChain_D3D11.match_DisplayMode_failed_invalid_size_fmt", mode.width, mode.height);
 			return false;
 		}
 
 		auto* d3d11_device = m_device->GetD3D11Device();
 		if (!d3d11_device)
 		{
-			spdlog::error("[core] 无法匹配显示模式，图形设备为空");
+			i18n_log_error("[core].SwapChain_D3D11.match_DisplayMode_failed_null_Device");
 			assert(false); return false;
 		}
 		if (!dxgi_swapchain)
 		{
-			spdlog::error("[core] 无法匹配显示模式，交换链为空");
+			i18n_log_error("[core].SwapChain_D3D11.match_DisplayMode_failed_null_SwapChain");
 			assert(false); return false;
 		}
 
@@ -675,7 +676,7 @@ namespace Core::Graphics
 		if (FAILED(hr))
 		{
 			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::GetContainingOutput");
-			spdlog::error("[core] 独占全屏不可用");
+			i18n_log_error("[core].SwapChain_D3D11.exclusive_fullscreen_unavailable");
 			return false;
 		}
 
@@ -731,7 +732,7 @@ namespace Core::Graphics
 		//}
 		if (width < 1 || height < 1)
 		{
-			spdlog::error("[core] 无法创建 SwapChain，大小不能为 ({}x{})", width, height);
+			i18n_log_error_fmt("[core].SwapChain_D3D11.create_swapchain_failed_invalid_size_fmt", width, height);
 			return false;
 		}
 		dispatchEvent(EventType::SwapChainDestroy);
@@ -763,14 +764,14 @@ namespace Core::Graphics
 		//}
 		if (width < 1 || height < 1)
 		{
-			spdlog::error("[core] 无法更改 SwapChain 的大小，大小不能为 ({}x{})", width, height);
+			i18n_log_error_fmt("[core].SwapChain_D3D11.resize_swapchain_failed_invalid_size_fmt", width, height);
 			return false;
 		}
 		if (width == uint32_t(-1)) width = m_swapchain_last_mode.width;
 		if (height == uint32_t(-1)) height = m_swapchain_last_mode.height;
 		if (!dxgi_swapchain)
 		{
-			spdlog::error("[core] 无法更改 SwapChain 的大小，交换链为空");
+			i18n_log_error("[core].SwapChain_D3D11.resize_swapchain_failed_null_SwapChain");
 			assert(false); return false;
 		}
 		dispatchEvent(EventType::SwapChainDestroy);
@@ -799,7 +800,7 @@ namespace Core::Graphics
 	{
 		if (mode.width < 1 || mode.height < 1)
 		{
-			spdlog::error("[core] 无法创建 SwapChain，大小不能为 ({}x{})", mode.width, mode.height);
+			i18n_log_error_fmt("[core].SwapChain_D3D11.create_swapchain_failed_invalid_size_fmt", mode.width, mode.height);
 			return false;
 		}
 		dispatchEvent(EventType::SwapChainDestroy);
@@ -960,16 +961,25 @@ namespace Core::Graphics
 	bool SwapChain_D3D11::saveSnapshotToFile(StringView path)
 	{
 		std::wstring wpath(utility::encoding::to_wide(path));
+
 		HRESULT hr = S_OK;
+
 		Microsoft::WRL::ComPtr<ID3D11Resource> d3d11_resource;
 		d3d11_rtv->GetResource(&d3d11_resource);
+
 		hr = gHR = DirectX::SaveWICTextureToFile(
 			m_device->GetD3D11DeviceContext(),
 			d3d11_resource.Get(),
 			GUID_ContainerFormatJpeg,
 			wpath.c_str(),
 			&GUID_WICPixelFormat24bppBGR);
-		return SUCCEEDED(hr);
+		if (FAILED(hr))
+		{
+			i18n_log_error_fmt("[core].system_call_failed_f", "DirectX::SaveWICTextureToFile");
+			return false;
+		}
+
+		return true;
 	}
 
 	SwapChain_D3D11::SwapChain_D3D11(Window_Win32* p_window, Device_D3D11* p_device)
