@@ -116,7 +116,7 @@ namespace Core::Graphics
 		if (m_init) // 曾经设置过
 		{
 			if (m_swapchain_last_windowed)
-				setWindowMode(m_swapchain_last_mode.width, m_swapchain_last_mode.height, m_swapchain_last_flip);
+				setWindowMode(m_swapchain_last_mode.width, m_swapchain_last_mode.height, m_swapchain_last_flip, m_swapchain_last_latency_event);
 			else
 				setExclusiveFullscreenMode(m_swapchain_last_mode);
 		}
@@ -146,6 +146,7 @@ namespace Core::Graphics
 
 	void SwapChain_D3D11::destroySwapChain()
 	{
+		//waitFrameLatency(INFINITE);
 		destroyRenderAttachment();
 		if (dxgi_swapchain)
 		{
@@ -165,7 +166,7 @@ namespace Core::Graphics
 		dxgi_swapchain_event.Close();
 		dxgi_swapchain.Reset();
 	}
-	bool SwapChain_D3D11::createSwapChain(bool windowed, bool flip, DisplayMode const& mode, bool no_attachment)
+	bool SwapChain_D3D11::createSwapChain(bool windowed, bool flip, bool latency_event, DisplayMode const& mode, bool no_attachment)
 	{
 		HRESULT hr = 0;
 
@@ -189,6 +190,8 @@ namespace Core::Graphics
 			assert(false); return false;
 		}
 		
+		DXGI_SWAP_EFFECT swap_effect = DXGI_SWAP_EFFECT_DISCARD;
+
 		// Windows 7 平台更新已安装，或者 Windows 8 及以上
 		
 		if (auto* dxgi_factory2 = m_device->GetDXGIFactory2())
@@ -219,34 +222,37 @@ namespace Core::Graphics
 				descf.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 				descf.Windowed = TRUE; // 创建交换链后暂时保持在窗口化状态
 			}
-			if (windowed && flip)
+			if (windowed)
 			{
 				// 仅限窗口模式
-				if (m_device->IsTearingSupport()) // Windows 10 + 系统支持
+				if (flip)
 				{
-					desc1.BufferCount = 2;
-					desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-					desc1.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
-					desc1.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+					if (m_device->IsTearingSupport()) // Windows 10 且要求系统支持
+					{
+						desc1.BufferCount = 2;
+						desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+						desc1.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+					}
+					else if (m_device->IsFlipDiscardSupport()) // Windows 10
+					{
+						desc1.BufferCount = 2;
+						desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+					}
+					else if (m_device->IsFlipSequentialSupport()) // Windows 8
+					{
+						desc1.BufferCount = 2;
+						desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+					}
 				}
-				else if (m_device->IsFlipDiscardSupport()) // Windows 10
+				if (latency_event)
 				{
-					desc1.BufferCount = 2;
-					desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-					desc1.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
-				}
-				else if (m_device->IsFrameLatencySupport()) // Windows 8.1
-				{
-					desc1.BufferCount = 2;
-					desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
-					desc1.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
-				}
-				else if (m_device->IsFlipSequentialSupport()) // Windows 8
-				{
-					desc1.BufferCount = 2;
-					desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+					if (m_device->IsFrameLatencySupport()) // Windows 8.1
+					{
+						desc1.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+					}
 				}
 			}
+			swap_effect = desc1.SwapEffect;
 			m_swapchain_buffer_count = desc1.BufferCount;
 			m_swapchain_flags = desc1.Flags;
 			Microsoft::WRL::ComPtr<IDXGISwapChain1> dxgi_swapchain1;
@@ -294,6 +300,7 @@ namespace Core::Graphics
 				.SwapEffect = DXGI_SWAP_EFFECT_DISCARD,
 				.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH,
 			};
+			swap_effect = desc.SwapEffect;
 			m_swapchain_buffer_count = desc.BufferCount;
 			m_swapchain_flags = desc.Flags;
 			hr = gHR = dxgi_factory->CreateSwapChain(d3d11_device, &desc, &dxgi_swapchain);
@@ -352,7 +359,21 @@ namespace Core::Graphics
 			}
 		}
 
-		i18n_log_info("[core].SwapChain_D3D11.created_swapchain");
+		//i18n_log_info("[core].SwapChain_D3D11.created_swapchain");
+
+		auto refresh_rate_string = fmt::format("{:.2f}Hz", (double)mode.refresh_rate.numerator / (double)mode.refresh_rate.denominator);
+		if (windowed) refresh_rate_string = i18n("DXGI.DisplayMode.RefreshRate.Desktop");
+		std::string_view swapchain_model = i18n("DXGI.SwapChain.SwapEffect.Discard");
+		if (swap_effect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL) swapchain_model = i18n("DXGI.SwapChain.SwapEffect.FlipSequential");
+		if (swap_effect == DXGI_SWAP_EFFECT_FLIP_DISCARD) swapchain_model = i18n("DXGI.SwapChain.SwapEffect.FlipDiscard");
+		auto enable_or_disable = [](bool v) -> std::string_view { return v ? i18n("Enable") : i18n("Disable"); };
+		i18n_log_info_fmt("[core].SwapChain_D3D11.created_swapchain_info_fmt"
+			, mode.width, mode.height , refresh_rate_string
+			, enable_or_disable(!windowed)
+			, swapchain_model
+			, enable_or_disable(m_swapchain_flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING)
+			, enable_or_disable(m_swapchain_flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
+		);
 
 		// 渲染附件
 
@@ -483,6 +504,18 @@ namespace Core::Graphics
 			if (d3d11_dsv)
 			{
 				ctx->ClearDepthStencilView(d3d11_dsv.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0u);
+			}
+		}
+	}
+	void SwapChain_D3D11::waitFrameLatency(uint32_t timeout)
+	{
+		if (dxgi_swapchain_event.IsValid() && (m_swapchain_flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT))
+		{
+			DWORD const result = WaitForSingleObjectEx(dxgi_swapchain_event.Get(), timeout, TRUE);
+			if (!(result == WAIT_OBJECT_0 || result == WAIT_TIMEOUT))
+			{
+				gHRLastError;
+				i18n_log_error_fmt("[core].system_call_failed_f", "WaitForSingleObjectEx");
 			}
 		}
 	}
@@ -723,12 +756,13 @@ namespace Core::Graphics
 		return true;
 	}
 
-	bool SwapChain_D3D11::setWindowMode(uint32_t width, uint32_t height, bool flip_model)
+	bool SwapChain_D3D11::setWindowMode(uint32_t width, uint32_t height, bool flip_model, bool latency_event)
 	{
 		// TODO: 也许，是时候该自动开启 flip 交换链模型了？
-		//if (m_device->IsFrameLatencySupport() && m_device->IsFlipDiscardSupport() && m_device->IsTearingSupport())
+		//if (m_device->IsFlipDiscardSupport() && m_device->IsTearingSupport())
 		//{
 		//	flip_model = true;
+		//	//latency_event = true;
 		//}
 		if (width < 1 || height < 1)
 		{
@@ -743,13 +777,14 @@ namespace Core::Graphics
 			.refresh_rate = Rational(),
 			.format = Format::B8G8R8A8_UNORM,
 		};
-		if (!createSwapChain(true, flip_model, mode, false)) // 让它创建渲染附件
+		if (!createSwapChain(true, flip_model, latency_event, mode, false)) // 让它创建渲染附件
 		{
 			return false;
 		}
 		m_swapchain_last_mode = mode;
 		m_swapchain_last_windowed = TRUE;
 		m_swapchain_last_flip = flip_model;
+		m_swapchain_last_latency_event = latency_event;
 		m_init = TRUE;
 		//m_window->setCursorToRightBottom();
 		dispatchEvent(EventType::SwapChainCreate);
@@ -805,7 +840,7 @@ namespace Core::Graphics
 		}
 		dispatchEvent(EventType::SwapChainDestroy);
 		destroySwapChain();
-		if (!createSwapChain(false, false, mode, true)) // 稍后创建渲染附件
+		if (!createSwapChain(false, false, false, mode, true)) // 稍后创建渲染附件
 		{
 			return false;
 		}
@@ -833,6 +868,7 @@ namespace Core::Graphics
 		m_swapchain_last_mode = mode;
 		m_swapchain_last_windowed = FALSE;
 		m_swapchain_last_flip = FALSE;
+		m_swapchain_last_latency_event = FALSE;
 		m_init = TRUE;
 		//m_window->setCursorToRightBottom();
 		dispatchEvent(EventType::SwapChainCreate);
@@ -904,15 +940,7 @@ namespace Core::Graphics
 	}
 	void SwapChain_D3D11::waitFrameLatency()
 	{
-		if (dxgi_swapchain_event.IsValid() && (m_swapchain_flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT))
-		{
-			DWORD const result = WaitForSingleObjectEx(dxgi_swapchain_event.Get(), 1000, TRUE);
-			if (!(result == WAIT_OBJECT_0 || result == WAIT_TIMEOUT))
-			{
-				gHRLastError;
-				i18n_log_error_fmt("[core].system_call_failed_f", "WaitForSingleObjectEx");
-			}
-		}
+		waitFrameLatency(1000);
 	}
 	void SwapChain_D3D11::setVSync(bool enable)
 	{

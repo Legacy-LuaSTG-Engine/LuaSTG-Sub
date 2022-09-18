@@ -109,7 +109,8 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 					lua_toboolean(L, 4) == 0 ? false : true,
 					luaL_checkinteger(L, 5),
 					luaL_optinteger(L, 6, 1),
-					lua_toboolean(L, 7)
+					lua_toboolean(L, 7),
+					lua_toboolean(L, 8)
 				));
 			}
 			return 1;
@@ -129,7 +130,8 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 			if (windowed)
 			{
 				bool const flip = lua_toboolean(L, 5);
-				result = LAPP.GetAppModel()->getSwapChain()->setWindowMode((uint32_t)width, (uint32_t)height, flip);
+				bool const latency_event = lua_toboolean(L, 6);
+				result = LAPP.GetAppModel()->getSwapChain()->setWindowMode((uint32_t)width, (uint32_t)height, flip, latency_event);
 			}
 			else
 			{
