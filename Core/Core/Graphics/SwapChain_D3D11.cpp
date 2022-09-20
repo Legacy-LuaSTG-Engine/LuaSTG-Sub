@@ -151,7 +151,7 @@ namespace Core::Graphics
 
 	void SwapChain_D3D11::destroySwapChain()
 	{
-		waitFrameLatency(INFINITE, true);
+		//waitFrameLatency(INFINITE, true);
 		destroyRenderAttachment();
 		if (dxgi_swapchain)
 		{
