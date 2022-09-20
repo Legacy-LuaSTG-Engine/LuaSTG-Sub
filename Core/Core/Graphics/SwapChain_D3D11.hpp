@@ -57,7 +57,7 @@ namespace Core::Graphics
 		bool createSwapChain(bool windowed, bool flip, bool latency_event, DisplayMode const& mode, bool no_attachment);
 		void destroyRenderAttachment();
 		bool createRenderAttachment();
-		void waitFrameLatency(uint32_t timeout);
+		void waitFrameLatency(uint32_t timeout, bool reset);
 
 	private:
 		enum class EventType

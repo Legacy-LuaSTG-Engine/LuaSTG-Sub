@@ -5,6 +5,9 @@
 
 #include "ScreenGrab11.h"
 
+//#define _log(x) OutputDebugStringA(x "\n")
+#define _log
+
 namespace Core::Graphics
 {
 	inline bool compare_DXGI_MODE_DESC_main(DXGI_MODE_DESC const& a, DXGI_MODE_DESC const& b)
@@ -138,15 +141,17 @@ namespace Core::Graphics
 	void SwapChain_D3D11::onWindowActive()
 	{
 		m_window_active_changed.store(0x1);
+		_log("onWindowActive");
 	}
 	void SwapChain_D3D11::onWindowInactive()
 	{
 		m_window_active_changed.store(0x2);
+		_log("onWindowInactive");
 	}
 
 	void SwapChain_D3D11::destroySwapChain()
 	{
-		//waitFrameLatency(INFINITE);
+		waitFrameLatency(INFINITE, true);
 		destroyRenderAttachment();
 		if (dxgi_swapchain)
 		{
@@ -508,15 +513,23 @@ namespace Core::Graphics
 			}
 		}
 	}
-	void SwapChain_D3D11::waitFrameLatency(uint32_t timeout)
+	void SwapChain_D3D11::waitFrameLatency(uint32_t timeout, bool reset)
 	{
+		if (reset && dxgi_swapchain && m_swapchain_last_flip)
+		{
+			HRESULT hr = gHR = dxgi_swapchain->Present(1, DXGI_PRESENT_RESTART);
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::Present -> (1, DXGI_PRESENT_RESTART)");
+			}
+		}
 		if (dxgi_swapchain_event.IsValid() && (m_swapchain_flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT))
 		{
-			DWORD const result = WaitForSingleObjectEx(dxgi_swapchain_event.Get(), timeout, TRUE);
+			DWORD const result = WaitForSingleObject(dxgi_swapchain_event.Get(), timeout);
 			if (!(result == WAIT_OBJECT_0 || result == WAIT_TIMEOUT))
 			{
 				gHRLastError;
-				i18n_log_error_fmt("[core].system_call_failed_f", "WaitForSingleObjectEx");
+				i18n_log_error_fmt("[core].system_call_failed_f", "WaitForSingleObject");
 			}
 		}
 	}
@@ -763,7 +776,7 @@ namespace Core::Graphics
 		if (m_device->IsFlipDiscardSupport() && m_device->IsTearingSupport())
 		{
 			flip_model = true;
-			//latency_event = true;
+			latency_event = true;
 		}
 		if (width < 1 || height < 1)
 		{
@@ -797,6 +810,9 @@ namespace Core::Graphics
 		if (flip_model) m_swapchain_flip_enabled = TRUE;
 		//m_window->setCursorToRightBottom();
 		dispatchEvent(EventType::SwapChainCreate);
+
+		m_window_active_changed.exchange(0x0); // 清空消息
+
 		return true;
 	}
 	bool SwapChain_D3D11::setSize(uint32_t width, uint32_t height)
@@ -888,6 +904,9 @@ namespace Core::Graphics
 		m_init = TRUE;
 		//m_window->setCursorToRightBottom();
 		dispatchEvent(EventType::SwapChainCreate);
+
+		m_window_active_changed.exchange(0x0); // 清空消息
+
 		return true;
 	}
 	
@@ -905,6 +924,7 @@ namespace Core::Graphics
 				{
 					if (!bFSC)
 					{
+						_log("IDXGISwapChain::SetFullscreenState -> TRUE\n");
 						i18n_log_info("[core].SwapChain_D3D11.enter_exclusive_fullscreen");
 						hr = gHR = dxgi_swapchain->SetFullscreenState(TRUE, NULL);
 						if (FAILED(hr))
@@ -934,6 +954,7 @@ namespace Core::Graphics
 				{
 					if (bFSC)
 					{
+						_log("IDXGISwapChain::SetFullscreenState -> FALSE\n");
 						i18n_log_info("[core].SwapChain_D3D11.leave_exclusive_fullscreen");
 						hr = gHR = dxgi_swapchain->SetFullscreenState(FALSE, NULL);
 						if (FAILED(hr))
@@ -956,7 +977,7 @@ namespace Core::Graphics
 	}
 	void SwapChain_D3D11::waitFrameLatency()
 	{
-		waitFrameLatency(1000);
+		waitFrameLatency(1000, false);
 	}
 	void SwapChain_D3D11::setVSync(bool enable)
 	{
