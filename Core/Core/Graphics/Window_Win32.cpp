@@ -251,6 +251,7 @@ namespace Core::Graphics
 	{
 		dispatchEvent(EventType::WindowDestroy);
 		SendMessageW(win32_window, LUASTG_WM_RECREATE, 0, 0);
+		ShowWindow(win32_window, SW_SHOWDEFAULT);
 		dispatchEvent(EventType::WindowCreate);
 		return true;
 	}
