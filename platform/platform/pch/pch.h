@@ -17,6 +17,7 @@
 #include <cassert>
 #include <tuple>
 #include <vector>
+#include <array>
 #include <string>
 #include <string_view>
 

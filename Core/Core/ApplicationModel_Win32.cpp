@@ -421,7 +421,8 @@ namespace Core
 		: m_listener(p_listener)
 	{
 		assert(m_listener);
-		spdlog::info("[core] OS {}", platform::WindowsVersion::GetName());
+		spdlog::info("[core] System {}", platform::WindowsVersion::GetName());
+		spdlog::info("[core] Kernel {}", platform::WindowsVersion::GetKernelVersionString());
 		spdlog::info("[core] CPU {} {}", InstructionSet::Vendor(), InstructionSet::Brand());
 		get_system_memory_status();
 		if (!Graphics::Window_Win32::create(~m_window))

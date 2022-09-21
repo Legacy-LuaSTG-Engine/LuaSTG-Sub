@@ -1,5 +1,7 @@
 #include "WindowsVersion.hpp"
 
+#pragma comment(lib, "Version.lib")
+
 namespace platform
 {
 	namespace detail
@@ -19,9 +21,13 @@ namespace platform
 
 			// Windows 11
 
-			if (IsWindows10BuildOrGreater(22001))
+			if (IsWindows10BuildOrGreater(22622))
 			{
-				MAKE("Windows 11 21H2+", false);
+				MAKE("Windows 11 22H2+", false);
+			}
+			if (WindowsVersion::Is11Build22621())
+			{
+				MAKE("Windows 11 22H2", false);
 			}
 			if (WindowsVersion::Is11Build22000())
 			{
@@ -230,4 +236,42 @@ namespace platform
 
 	bool WindowsVersion::Is11() { return IsWindows11OrGreater(); }
 	bool WindowsVersion::Is11Build22000() { return IsWindows10BuildOrGreater(22000); }
+	bool WindowsVersion::Is11Build22621() { return IsWindows10BuildOrGreater(22621); }
+
+	std::string_view WindowsVersion::GetKernelVersionString()
+	{
+		static std::array<char, 32> buffer{};
+		static std::string_view view;
+		static bool is_read = false;
+		if (!is_read)
+		{
+			// full path to ntoskrnl.exe
+			std::array<WCHAR, (MAX_PATH + 1)> windir{};
+			UINT const windir_len = GetWindowsDirectoryW(windir.data(), MAX_PATH);
+			std::wstring sys32dir;
+			sys32dir.append(windir.data(), windir_len);
+			sys32dir.append(std::wstring_view(L"\\System32\\ntoskrnl.exe"));
+
+			// get file metadata
+			DWORD const size = GetFileVersionInfoSizeW(sys32dir.c_str(), NULL);
+			assert(size > 0);
+			std::vector<BYTE> data(size);
+			BOOL const status = GetFileVersionInfoW(sys32dir.c_str(), 0, size, data.data());
+			assert(status);
+			VS_FIXEDFILEINFO* info = NULL;
+			UINT read = 0;
+			VerQueryValueW(data.data(), L"\\", (LPVOID*)&info, &read);
+			
+			// format version
+			int length = std::snprintf(buffer.data(), 32, "%d.%d.%d.%d",
+				(info->dwProductVersionMS >> 16) & 0xFFFF,
+				info->dwProductVersionMS & 0xFFFF,
+				(info->dwProductVersionLS >> 16) & 0xFFFF,
+				info->dwProductVersionLS & 0xFFFF);
+			view = std::string_view(buffer.data(), (size_t)length);
+
+			is_read = true;
+		}
+		return view;
+	}
 }
