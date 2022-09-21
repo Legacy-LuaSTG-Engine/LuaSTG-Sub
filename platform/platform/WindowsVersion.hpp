@@ -34,5 +34,8 @@ namespace platform
 
 		static bool Is11(); // Windows 11
 		static bool Is11Build22000(); // Windows 11 21H2
+		static bool Is11Build22621(); // Windows 11 22H2
+
+		static std::string_view GetKernelVersionString();
 	};
 }
