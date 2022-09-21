@@ -248,29 +248,43 @@ namespace platform
 			// full path to ntoskrnl.exe
 			std::array<WCHAR, (MAX_PATH + 1)> windir{};
 			UINT const windir_len = GetWindowsDirectoryW(windir.data(), MAX_PATH);
-			std::wstring sys32dir;
-			sys32dir.append(windir.data(), windir_len);
-			sys32dir.append(std::wstring_view(L"\\System32\\ntoskrnl.exe"));
+			assert(windir_len > 0);
+			if (windir_len > 0)
+			{
+				std::wstring sys32dir;
+				sys32dir.append(windir.data(), windir_len);
+				sys32dir.append(std::wstring_view(L"\\System32\\ntoskrnl.exe"));
 
-			// get file metadata
-			DWORD const size = GetFileVersionInfoSizeW(sys32dir.c_str(), NULL);
-			assert(size > 0);
-			std::vector<BYTE> data(size);
-			BOOL const status = GetFileVersionInfoW(sys32dir.c_str(), 0, size, data.data());
-			assert(status);
-			VS_FIXEDFILEINFO* info = NULL;
-			UINT read = 0;
-			VerQueryValueW(data.data(), L"\\", (LPVOID*)&info, &read);
-			
-			// format version
-			int length = std::snprintf(buffer.data(), 32, "%d.%d.%d.%d",
-				(info->dwProductVersionMS >> 16) & 0xFFFF,
-				info->dwProductVersionMS & 0xFFFF,
-				(info->dwProductVersionLS >> 16) & 0xFFFF,
-				info->dwProductVersionLS & 0xFFFF);
-			view = std::string_view(buffer.data(), (size_t)length);
-
-			is_read = true;
+				// get file metadata size
+				DWORD const metadata_size = GetFileVersionInfoSizeW(sys32dir.c_str(), NULL);
+				assert(metadata_size > 0);
+				if (metadata_size > 0)
+				{
+					// get file metadata
+					std::vector<BYTE> metadata(metadata_size);
+					BOOL const status = GetFileVersionInfoW(sys32dir.c_str(), 0, metadata_size, metadata.data());
+					assert(status);
+					if (status)
+					{
+						// parser file metadata
+						VS_FIXEDFILEINFO* info = NULL;
+						UINT read = 0;
+						BOOL const query_status = VerQueryValueW(metadata.data(), L"\\", (LPVOID*)&info, &read);
+						assert(query_status);
+						if (query_status)
+						{
+							// format version
+							int length = std::snprintf(buffer.data(), 32, "%d.%d.%d.%d",
+								(info->dwProductVersionMS >> 16) & 0xFFFF,
+								info->dwProductVersionMS & 0xFFFF,
+								(info->dwProductVersionLS >> 16) & 0xFFFF,
+								info->dwProductVersionLS & 0xFFFF);
+							view = std::string_view(buffer.data(), (size_t)length);
+							is_read = true;
+						}
+					}
+				}
+			}
 		}
 		return view;
 	}
