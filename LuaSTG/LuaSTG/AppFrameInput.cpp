@@ -154,7 +154,8 @@ namespace LuaSTGPlus
         }
         else
         {
-            return Core::Vector2F((float)MouseState.x, m_OptionResolution.y - (float)MouseState.y);
+            Core::Vector2I const size = GetCurrentWindowSize();
+            return Core::Vector2F((float)MouseState.x, (float)size.y - (float)MouseState.y);
         }
     }
     int32_t AppFrame::GetMouseWheelDelta()noexcept

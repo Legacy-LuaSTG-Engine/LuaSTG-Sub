@@ -30,44 +30,19 @@ AppFrame::~AppFrame() noexcept
 
 #pragma region 脚本接口
 
-void AppFrame::SetWindowed(bool v)noexcept
-{
-	if (m_iStatus == AppStatus::Initializing)
-		m_OptionWindowed = v;
-	else if (m_iStatus == AppStatus::Running)
-		spdlog::warn("[luastg] SetWindowed: 试图在运行时更改窗口化模式");
-}
 void AppFrame::SetFPS(uint32_t v)noexcept
 {
-	m_OptionFPSLimit = (v > 1u) ? v : 1u; // 最低也得有1FPS每秒
-}
-void AppFrame::SetVsync(bool v)noexcept
-{
-	if (m_iStatus == AppStatus::Initializing)
-		m_OptionVsync = v;
-	else if (m_iStatus == AppStatus::Running)
-		spdlog::warn("[luastg] SetVsync: 试图在运行时更改垂直同步模式");
-}
-void AppFrame::SetResolution(uint32_t width, uint32_t height, uint32_t A, uint32_t B)noexcept
-{
-	if (m_iStatus == AppStatus::Initializing)
-	{
-		m_OptionResolution = Core::Vector2F((float)width, (float)height);
-		m_OptionRefreshRateA = A;
-		m_OptionRefreshRateB = B;
-	}
-	else if (m_iStatus == AppStatus::Running)
-		spdlog::warn("[luastg] SetResolution: 试图在运行时更改分辨率");
+	m_Setting.target_fps = (v > 1u) ? v : 1u; // 最低也得有1FPS每秒
 }
 void AppFrame::SetSEVolume(float v)
 {
-	m_gSEVol = v;
+	m_Setting.volume_sound_effect = v;
 	if (GetAppModel())
 		GetAppModel()->getAudioDevice()->setMixChannelVolume(Core::Audio::MixChannel::SoundEffect, v);
 }
 void AppFrame::SetBGMVolume(float v)
 {
-	m_gBGMVol = v;
+	m_Setting.volume_music = v;
 	if (GetAppModel())
 		GetAppModel()->getAudioDevice()->setMixChannelVolume(Core::Audio::MixChannel::Music, v);
 }
@@ -75,7 +50,7 @@ void AppFrame::SetTitle(const char* v)noexcept
 {
 	try
 	{
-		m_OptionTitle = v;
+		m_Setting.window_title = v;
 		if (m_pAppModel)
 			m_pAppModel->getWindow()->setTitleText(v);
 	}
@@ -88,7 +63,7 @@ void AppFrame::SetPreferenceGPU(const char* v) noexcept
 {
 	try
 	{
-		m_OptionGPU = v;
+		m_Setting.preferred_gpu = v;
 	}
 	catch (const std::bad_alloc&)
 	{
@@ -97,181 +72,11 @@ void AppFrame::SetPreferenceGPU(const char* v) noexcept
 }
 void AppFrame::SetSplash(bool v)noexcept
 {
-	m_OptionCursor = v;
+	m_Setting.show_cursor = v;
 	if (m_pAppModel)
 	{
-		m_pAppModel->getWindow()->setCursor(m_OptionCursor ? Core::Graphics::WindowCursor::Arrow : Core::Graphics::WindowCursor::None);
+		m_pAppModel->getWindow()->setCursor(m_Setting.show_cursor ? Core::Graphics::WindowCursor::Arrow : Core::Graphics::WindowCursor::None);
 	}
-}
-
-bool AppFrame::ChangeVideoMode(int width, int height, bool windowed, bool vsync)noexcept
-{
-	return ChangeVideoMode2(width, height, windowed, vsync, 0, 0, false, false);
-}
-bool AppFrame::ChangeVideoMode2(int width, int height, bool windowed, bool vsync, int hza, int hzb, bool flip, bool latency_event)noexcept
-{
-	if (m_iStatus == AppStatus::Initialized)
-	{
-		auto applyWindowedStyle = [&]() -> bool
-		{
-			using namespace Core;
-			using namespace Core::Graphics;
-			auto* window = m_pAppModel->getWindow();
-			window->setFrameStyle(m_OptionWindowStyle);
-			window->setSize(Vector2I(width, height));
-			window->setLayer(WindowLayer::Normal); // 强制取消窗口置顶
-			window->setCentered();
-			return true;
-		};
-		auto applyFullscreenStyle = [&]() -> bool
-		{
-			using namespace Core;
-			using namespace Core::Graphics;
-			auto* window = m_pAppModel->getWindow();
-			window->setFrameStyle(WindowFrameStyle::None);
-			window->setSize(Vector2I(width, height));
-			return true;
-		};
-		auto storeNewOption = [&]()
-		{
-			m_OptionResolution = Core::Vector2F((float)width, (float)height);
-			m_OptionWindowed = windowed;
-			m_OptionVsync = vsync;
-		};
-		auto logInfo = [&]()
-		{
-			spdlog::info("[luastg] 显示模式切换成功 ({}x{} Vsync:{} Windowed:{}) -> ({}x{} Vsync:{} Windowed:{})",
-				(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
-				width, height, vsync, windowed);
-		};
-		auto logError = [&]()
-		{
-			spdlog::error("[luastg] 显示模式切换失败 ({}x{} Vsync:{} Windowed:{}) -> ({}x{} Vsync:{} Windowed:{})",
-				(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
-				width, height, vsync, windowed);
-		};
-		auto setWindowedMode = [&]() -> bool
-		{
-			using namespace Core;
-			using namespace Core::Graphics;
-			auto* swapchain = m_pAppModel->getSwapChain();
-			swapchain->setVSync(vsync);
-			return swapchain->setWindowMode((uint32_t)width, (uint32_t)height, flip, latency_event);
-		};
-		auto setFullscreenMode = [&]() -> bool
-		{
-			using namespace Core;
-			using namespace Core::Graphics;
-			auto* swapchain = m_pAppModel->getSwapChain();
-			swapchain->setVSync(vsync);
-			DisplayMode mode = {
-				.width = (uint32_t)width,
-				.height = (uint32_t)height,
-				.refresh_rate = Rational((uint32_t)hza, (uint32_t)hzb),
-				.format = Format::B8G8R8A8_UNORM,
-			};
-			if (hza == 0 || hzb == 0)
-			{
-				mode.refresh_rate.numerator = m_OptionFPSLimit;
-				mode.refresh_rate.denominator = 1;
-				if (!swapchain->findBestMatchDisplayMode(mode)) return false;
-			}
-			return swapchain->setExclusiveFullscreenMode(mode);
-		};
-		if (hza == 0 || hzb == 0)
-		{
-			if (windowed)
-			{
-				bool bResult = setWindowedMode();
-				if (bResult)
-				{
-					logInfo();
-				}
-				else
-				{
-					logError();
-				}
-				applyWindowedStyle();
-				storeNewOption();
-				return bResult;
-			}
-			else
-			{
-				applyFullscreenStyle();
-				if (setFullscreenMode())
-				{
-					logInfo();
-					storeNewOption();
-					return true;
-				}
-				else
-				{
-					logError();
-					windowed = true; // 强制窗口化
-					setWindowedMode(); // 出错也不用管了
-					applyWindowedStyle();
-					storeNewOption();
-					return false;
-				}
-			}
-		}
-		else
-		{
-			if (windowed)
-			{
-				if (m_OptionWindowed)
-				{
-					// 窗口模式下，先改变窗口设置再修改交换链
-					applyWindowedStyle();
-				}
-				bool bResult = setWindowedMode();
-				if (bResult)
-				{
-					logInfo();
-				}
-				else
-				{
-					logError();
-				}
-				if (!m_OptionWindowed)
-				{
-					// 全屏模式切回窗口模式，先修改交换链再更新窗口，避免出现winxp、win7风格窗口
-					applyWindowedStyle();
-				}
-				storeNewOption();
-				return bResult;
-			}
-			else
-			{
-				applyFullscreenStyle();
-				if (setFullscreenMode())
-				{
-					spdlog::info("[luastg] 显示模式切换成功 ({}x{} Vsync:{} Windowed:{}) -> ({}x{}@{} Vsync:{} Windowed:{})",
-						(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
-						width, height, (float)hza / (float)hzb, vsync, windowed);
-					storeNewOption();
-					return true;
-				}
-				else
-				{
-					spdlog::error("[luastg] 显示模式切换失败 ({}x{} Vsync:{} Windowed:{}) -> ({}x{}@{} Vsync:{} Windowed:{})",
-						(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed,
-						width, height, (float)hza / (float)hzb, vsync, windowed);
-					windowed = true; // 强制窗口化
-					setWindowedMode(); // 出错也不用管了
-					applyWindowedStyle();
-					storeNewOption();
-					return false;
-				}
-			}
-		}
-	}
-	return false;
-}
-bool AppFrame::UpdateVideoMode()noexcept
-{
-	return ChangeVideoMode2((int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionWindowed, m_OptionVsync,
-		m_OptionRefreshRateA, m_OptionRefreshRateB, m_OptionFlip, m_OptionLatencyEvent);
 }
 
 int AppFrame::LoadTextFile(lua_State* L_, const char* path, const char *packname)noexcept
@@ -335,38 +140,14 @@ bool AppFrame::Init()noexcept
 	
 	//////////////////////////////////////// 初始化引擎
 	{
-		spdlog::info("[core] 初始化，窗口分辨率：{}x{}，垂直同步：{}，窗口化：{}",
-			(int)m_OptionResolution.x, (int)m_OptionResolution.y, m_OptionVsync, m_OptionWindowed);
-		
-		////////////////////////////////////////
-
 		Core::ApplicationModelCreationParameters app_param = {};
-		app_param.gpu = m_OptionGPU;
+		app_param.gpu = m_Setting.preferred_gpu;
 		if (!Core::IApplicationModel::create(app_param, this, ~m_pAppModel))
 			return false;
 		if (!Core::Graphics::ITextRenderer::create(m_pAppModel->getRenderer(), ~m_pTextRenderer))
 			return false;
-
-		// 配置窗口
-		{
-			using namespace Core;
-			auto* p_window = m_pAppModel->getWindow();
-			if (m_OptionWindowed)
-				p_window->setFrameStyle(m_OptionWindowStyle);
-			else
-				p_window->setFrameStyle(Graphics::WindowFrameStyle::None);
-			p_window->setSize(Vector2I((int32_t)m_OptionResolution.x, (int32_t)m_OptionResolution.y));
-			p_window->setTitleText(m_OptionTitle);
-			p_window->setNativeIcon((void*)(ptrdiff_t)IDI_APPICON);
-			p_window->setCursor(m_OptionCursor ? Graphics::WindowCursor::Arrow : Graphics::WindowCursor::None);
-		}
-		// 配置音量
-		{
-			using namespace Core::Audio;
-			auto* p_audio = GetAppModel()->getAudioDevice();
-			p_audio->setMixChannelVolume(MixChannel::SoundEffect, m_gSEVol);
-			p_audio->setMixChannelVolume(MixChannel::Music, m_gBGMVol);
-		}
+		if (!InitializationApplySettingStage1())
+			return false;
 
 		// 为对象池分配空间
 		spdlog::info("[luastg] 初始化对象池，容量{}", LOBJPOOL_SIZE);
@@ -413,37 +194,8 @@ bool AppFrame::Init()noexcept
 			imgui::bindEngine();
 		#endif
 		
-		// 显示窗口
-		{
-			using namespace Core;
-			auto* p_window = m_pAppModel->getWindow();
-			if (m_OptionWindowed)
-				p_window->setCentered();
-			p_window->setLayer(Graphics::WindowLayer::Normal);
-		}
-		// 启动交换链
-		{
-			using namespace Core;
-			auto* p_swapchain = m_pAppModel->getSwapChain();
-			p_swapchain->setVSync(m_OptionVsync);
-			if (!p_swapchain->setWindowMode((uint32_t)m_OptionResolution.x, (uint32_t)m_OptionResolution.y,
-				m_OptionFlip, m_OptionLatencyEvent)) // 无论如何，首先窗口化
-				return false;
-			if (!m_OptionWindowed)
-			{
-				Graphics::DisplayMode mode = {
-					.width = (uint32_t)m_OptionResolution.x,
-					.height = (uint32_t)m_OptionResolution.y,
-					.refresh_rate = Rational(m_OptionRefreshRateA, m_OptionRefreshRateB),
-					.format = Graphics::Format::B8G8R8A8_UNORM, // 未使用
-				};
-				p_swapchain->findBestMatchDisplayMode(mode);
-				p_swapchain->setExclusiveFullscreenMode(mode);
-			}
-			p_swapchain->refreshDisplayMode();
-			p_swapchain->clearRenderAttachment();
-			p_swapchain->present(); // 先刷新一下画面，避免白屏
-		}
+		if (!InitializationApplySettingStage2())
+			return false;
 	}
 	
 	// 装载main脚本
@@ -504,7 +256,7 @@ void AppFrame::Run()noexcept
 	
 	m_pAppModel->getWindow()->addEventListener(this);
 
-	m_pAppModel->getFrameRateController()->setTargetFPS(m_OptionFPSLimit);
+	m_pAppModel->getFrameRateController()->setTargetFPS(m_Setting.target_fps);
 	m_pAppModel->run();
 	
 	m_pAppModel->getWindow()->removeEventListener(this);
@@ -558,7 +310,7 @@ void AppFrame::onUpdate()
 {
 	m_fFPS = m_pAppModel->getFrameRateController()->getFPS();
 	m_fAvgFPS = m_pAppModel->getFrameRateController()->getAvgFPS();
-	m_pAppModel->getFrameRateController()->setTargetFPS(m_OptionFPSLimit);
+	m_pAppModel->getFrameRateController()->setTargetFPS(m_Setting.target_fps);
 
 	{
 		ZoneScopedN("OnUpdate-Event");
@@ -599,8 +351,7 @@ void AppFrame::onUpdate()
 	#ifdef USING_CTRL_ENTER_SWITCH
 		if (WantSwitchFullScreenMode())
 		{
-			m_OptionWindowed = !m_OptionWindowed;
-			UpdateVideoMode();
+			ToggleBetweenFullscreen();
 		}
 	#endif
 	}
