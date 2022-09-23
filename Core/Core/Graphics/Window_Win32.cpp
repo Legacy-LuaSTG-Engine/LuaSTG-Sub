@@ -7,6 +7,7 @@
 
 constexpr int const LUASTG_WM_UPDAE_TITLE = WM_USER + 64;
 constexpr int const LUASTG_WM_RECREATE = WM_USER + 64 + 1;
+constexpr int const LUASTG_WM_SETICON = WM_USER + 64 + 2;
 
 namespace Core::Graphics
 {
@@ -156,8 +157,15 @@ namespace Core::Graphics
 				RectI const last_rect = getRect();
 				destroyWindow();
 				if (!createWindow()) return false;
-				applyWindowData();
 				setRect(last_rect);
+			}
+			return 0;
+		case LUASTG_WM_SETICON:
+			{
+				HICON hIcon = LoadIcon(win32_window_class.hInstance, MAKEINTRESOURCE(win32_window_icon_id));
+				SendMessageW(win32_window, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hIcon);
+				SendMessageW(win32_window, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)hIcon);
+				DestroyIcon(hIcon);
 			}
 			return 0;
 		}
@@ -255,26 +263,7 @@ namespace Core::Graphics
 		dispatchEvent(EventType::WindowCreate);
 		return true;
 	}
-	bool Window_Win32::applyWindowData()
-	{
-		setWindowIcon(win32_window_icon);
-		return true;
-	}
-	void Window_Win32::setWindowIcon(HICON icon)
-	{
-		if (win32_window_icon != icon)
-		{
-			if (win32_window_icon)
-			{
-				DestroyIcon(win32_window_icon);
-			}
-			win32_window_icon = NULL;
-		}
-		win32_window_icon = icon;
-		SendMessageW(win32_window, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)win32_window_icon);
-		SendMessageW(win32_window, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)win32_window_icon);
-	}
-
+	
 	void Window_Win32::convertTitleText()
 	{
 		win32_window_text_w[0] = L'\0';
@@ -453,8 +442,8 @@ namespace Core::Graphics
 	void* Window_Win32::getNativeHandle() { return win32_window; }
 	void Window_Win32::setNativeIcon(void* id)
 	{
-		HICON hIcon = LoadIcon(win32_window_class.hInstance, MAKEINTRESOURCE((intptr_t)id));
-		setWindowIcon(hIcon);
+		win32_window_icon_id = (INT_PTR)id;
+		SendMessageW(win32_window, LUASTG_WM_SETICON, 0, 0);
 	}
 
 	void Window_Win32::setIMEState(bool enable)
@@ -590,6 +579,9 @@ namespace Core::Graphics
 	void Window_Win32::setFullScreen()
 	{
 		platform::MonitorList::ResizeWindowToFullScreen(win32_window);
+		auto const size = getMonitorSize();
+		win32_window_width = size.x;
+		win32_window_height = size.y;
 		//setCursorToRightBottom();
 	}
 
@@ -609,6 +601,9 @@ namespace Core::Graphics
 	}
 	void Window_Win32::setMonitorFullScreen(uint32_t index)
 	{
+		auto const rect = getMonitorRect(index);
+		win32_window_width = rect.b.x - rect.a.x;
+		win32_window_height = rect.b.y - rect.a.y;
 		m_monitors.ResizeWindowToFullScreen(index, win32_window);
 		//setCursorToRightBottom();
 	}

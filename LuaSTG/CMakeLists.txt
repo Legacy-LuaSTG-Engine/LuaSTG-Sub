@@ -114,6 +114,7 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/AppFrame.h
     LuaSTG/AppFrame.cpp
     LuaSTG/AppFrameFontRenderer.cpp
+    LuaSTG/AppFrameDisplayMode.cpp
     LuaSTG/AppFrameInput.cpp
     LuaSTG/AppFrameLua.cpp
     LuaSTG/AppFrameRender.cpp

@@ -18,6 +18,85 @@ namespace LuaSTGPlus
 		Destroyed,
 	};
 
+	enum class DisplaySettingType
+	{
+		Window, // 窗口
+		Fullscreen, // 全屏无边框窗口
+		ExclusiveFullscreen, // ExclusiveFullscreen
+	};
+
+	struct WindowSetting
+	{
+		// 窗口、交换链大小
+		Core::Vector2I window_size{ 640, 480 };
+		// 所在显示器矩形
+		Core::RectI monitor_rect{};
+		// 垂直同步
+		bool vsync{ false };
+		// 无边框模式
+		bool borderless{ false };
+		// 交换链快速交换模式
+		bool swapchain_flip{ false };
+		// 低延迟呈现
+		bool swapchain_low_latency{ false };
+	};
+
+	struct FullscreenSetting
+	{
+		// 窗口大小，一定等于 monitor_rect 的大小
+		Core::Vector2I window_size{ 640, 480 };
+		// 所在显示器矩形
+		Core::RectI monitor_rect{};
+		// 垂直同步
+		bool vsync{ false };
+		// 交换链快速交换模式
+		bool swapchain_flip{ false };
+		// 低延迟呈现
+		bool swapchain_low_latency{ false };
+	};
+
+	struct ExclusiveFullscreenSetting
+	{
+		// 窗口、交换链大小
+		Core::Vector2I window_size{ 640, 480 };
+		// 刷新率
+		Core::Rational refresh_rate{};
+		// 垂直同步
+		bool vsync{ false };
+	};
+
+	struct ApplicationSetting
+	{
+		// 图形设备
+		std::string preferred_gpu;
+
+		// 显示模式
+		DisplaySettingType display_setting_type{ DisplaySettingType::Window };
+		// 显示模式 - 窗口
+		WindowSetting window;
+		// 显示模式 - 全屏无边框窗口
+		FullscreenSetting fullscreen;
+		// 显示模式 - 独占全屏
+		ExclusiveFullscreenSetting exclusive_fullscreen;
+
+		// 鼠标指针
+		bool show_cursor{ true };
+
+		// 目标帧率
+		uint32_t target_fps{ 60 };
+
+		// 窗口标题
+		std::string window_title{ LUASTG_INFO };
+
+		// 音量：音效
+		float volume_sound_effect{ 1.0f };
+		// 音量：背景音乐
+		float volume_music{ 1.0f };
+
+		// 内部状态
+		DisplaySettingType toggle_between_fullscreen_type{ DisplaySettingType::Window };
+	};
+
 	/// @brief 应用程序框架
 	class AppFrame
 		: public Core::IApplicationEventListener
@@ -39,23 +118,12 @@ namespace LuaSTGPlus
 		// Lua虚拟机
 		lua_State* L = nullptr;
 		
-		// 选项与值
-		Core::Graphics::WindowFrameStyle m_OptionWindowStyle = Core::Graphics::WindowFrameStyle::Fixed;
-		bool m_OptionWindowed = true;
-		Core::Vector2F m_OptionResolution = Core::Vector2F(640.f, 480.f);
-		bool m_OptionVsync = false;
-		uint32_t m_OptionRefreshRateA = 0;
-		uint32_t m_OptionRefreshRateB = 0;
-		bool m_OptionFlip = false;
-		bool m_OptionLatencyEvent = false;
-		uint32_t m_OptionFPSLimit = 60;
-		std::string m_OptionGPU;
-		std::string m_OptionTitle = LUASTG_INFO;
-		bool m_OptionCursor = true;
+		// 选项
+		ApplicationSetting m_Setting;
+
+		// 测量值
 		double m_fFPS = 0.;
 		double m_fAvgFPS = 0.;
-		float m_gSEVol = 1.0f;
-		float m_gBGMVol = 1.0f;
 
 		//渲染状态
 		bool m_bRenderStarted = false;
@@ -92,6 +160,7 @@ namespace LuaSTGPlus
 		bool OnLoadMainScriptAndFiles();
 		
 	public:  // 输入系统接口
+
 		void OpenInput();
 		void CloseInput();
 		void UpdateInput();
@@ -116,33 +185,62 @@ namespace LuaSTGPlus
 		bool GetMouseState(int button) noexcept;
 		
 	public: // 脚本调用接口，含义参见API文档
-		void SetWindowed(bool v) noexcept;
-		void SetDefaultWindowStyle(Core::Graphics::WindowFrameStyle v) { m_OptionWindowStyle = v; };
-		void SetVsync(bool v) noexcept;
-		void SetResolution(uint32_t width, uint32_t height, uint32_t A = 0, uint32_t B = 0) noexcept;
+
 		void SetTitle(const char* v) noexcept;
 		void SetPreferenceGPU(const char* v) noexcept;
 		void SetSplash(bool v) noexcept;
 		void SetSEVolume(float v);
 		void SetBGMVolume(float v);
-		float GetSEVolume() const { return m_gSEVol; }
-		float GetBGMVolume() const { return m_gBGMVol; }
+		float GetSEVolume() const noexcept { return m_Setting.volume_sound_effect; }
+		float GetBGMVolume() const noexcept { return m_Setting.volume_music; }
 		
-	public:
-		bool ChangeVideoMode(int width, int height, bool windowed, bool vsync) noexcept;
-		bool ChangeVideoMode2(int width, int height, bool windowed, bool vsync, int hza, int hzb, bool flip, bool latency_event) noexcept;
-		bool UpdateVideoMode() noexcept;
+	public: // 窗口和交换链
+
+		// 以窗口模式显示  
+		// 当 monitor_rect 为空矩形时，窗口自动挑选最近的显示器来居中，否则根据显示器矩形选择匹配的显示器居中  
+		bool SetDisplayModeWindow(Core::Vector2I window_size, bool vsync, Core::RectI monitor_rect, bool borderless, bool swapchain_flip, bool swapchain_low_latency);
+
+		// 以全屏无边框窗口显示  
+		bool SetDisplayModeFullscreen(Core::RectI monitor_rect, bool vsync, bool swapchain_flip, bool swapchain_low_latency);
+
+		// 以独占全屏显示  
+		// 当 refresh_rate 为全 0 时，自动选择合适的匹配的刷新率  
+		bool SetDisplayModeExclusiveFullscreen(Core::Vector2I window_size, bool vsync, Core::Rational refresh_rate);
+
+		// 获取当前的窗口大小
+		Core::Vector2I GetCurrentWindowSize();
+
+		// 更新显示模式
+		bool UpdateDisplayMode();
+
+		// 根据上一次设置的显示模式，通过 Ctrl+Enter 快捷键切换独占全屏
+		bool ToggleBetweenFullscreen();
+
+		bool InitializationApplySettingStage1();
+
+		bool InitializationApplySettingStage2();
+
+		void SetWindowed(bool v);
+
+		void SetVsync(bool v);
+
+		void SetResolution(uint32_t width, uint32_t height, uint32_t A = 0, uint32_t B = 0);
+
+	public: // 其他框架方法
 		
+		// 设置目标 FPS
 		void SetFPS(uint32_t v) noexcept;
 		
-		/// @brief 获取当前的FPS
+		// 获取当前平均 FPS
 		double GetFPS() const noexcept { return m_fAvgFPS; }
 		
-		//读取资源包中的文本文件
-		//也能读取其他类型的文件，但是会得到无意义的结果
+		// 读取资源包中的文本文件
+		// 也能读取其他类型的文件，但是会得到无意义的结果
 		int LoadTextFile(lua_State* L, const char* path, const char *packname) noexcept;
 		
-	public:  // 渲染器接口
+	public: // 渲染器接口
+		
+		// 应用混合模式
 		void updateGraph2DBlendMode(BlendMode m);
 
 		/// @brief 渲染图像

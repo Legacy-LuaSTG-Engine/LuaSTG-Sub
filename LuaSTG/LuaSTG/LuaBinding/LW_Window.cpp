@@ -85,7 +85,6 @@ static int lib_setStyle(lua_State* L)
     getwindow(window);
     Core::Graphics::WindowFrameStyle style = (Core::Graphics::WindowFrameStyle)luaL_checkinteger(L, 1);
     window->setFrameStyle(style);
-    LAPP.SetDefaultWindowStyle(style); // compat
     return 0;
 }
 static int lib_setSize(lua_State* L)
@@ -177,11 +176,6 @@ static int lib_setCustomMoveButtonRect(lua_State* L)
     return 0;
 }
 
-static int compat_SetDefaultWindowStyle(lua_State* L)
-{
-    LAPP.SetDefaultWindowStyle((Core::Graphics::WindowFrameStyle)luaL_checkinteger(L, 1));
-    return 0;
-}
 static int compat_SetSplash(lua_State* L)
 {
     LAPP.SetSplash(lua_toboolean(L, 1));
@@ -192,13 +186,34 @@ static int compat_SetTitle(lua_State* L)
     LAPP.SetTitle(luaL_checkstring(L, 1));
     return 0;
 }
+static int compat_ListMonitor(lua_State* L)
+{
+    getwindow(window);
+    uint32_t const count = window->getMonitorCount();
+    lua_createtable(L, (int)count, 0);           // t
+    for (uint32_t i = 0; i < count; i += 1)
+    {
+        Core::RectI const rect = window->getMonitorRect(i);
+        lua_createtable(L, 0, 4);                // t t
+        lua_pushinteger(L, rect.a.x);            // t t x
+        lua_setfield(L, -2, "x");                // t t
+        lua_pushinteger(L, rect.a.y);            // t t y
+        lua_setfield(L, -2, "y");                // t t
+        lua_pushinteger(L, rect.b.x - rect.a.x); // t t w
+        lua_setfield(L, -2, "width");            // t t
+        lua_pushinteger(L, rect.b.y - rect.a.y); // t t h
+        lua_setfield(L, -2, "height");           // t t
+        lua_rawseti(L, -2, (int)i + 1);          // t
+    }
+    return 1;
+}
 
 #define makefname(__X__) { #__X__ , &lib_##__X__ }
 
 static const luaL_Reg compat[] = {
-    { "SetDefaultWindowStyle", &compat_SetDefaultWindowStyle },
     { "SetSplash", &compat_SetSplash },
     { "SetTitle" , &compat_SetTitle  },
+    { "ListMonitor" , &compat_ListMonitor  },
     {NULL, NULL},
 };
 

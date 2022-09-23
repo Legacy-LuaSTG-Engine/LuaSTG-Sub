@@ -31,7 +31,6 @@ namespace LuaSTGPlus
             {
                 spdlog::info("[luastg] 发现配置文件'config.json'");
                 LAPP.SetWindowed(config.windowed);
-                LAPP.SetDefaultWindowStyle(config.windowed ? Core::Graphics::WindowFrameStyle::Fixed : Core::Graphics::WindowFrameStyle::None);
                 LAPP.SetVsync(config.vsync);
                 LAPP.SetResolution(config.width, config.height, config.refresh_rate_numerator, config.refresh_rate_denominator);
                 if (!config.gpu.empty())
