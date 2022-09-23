@@ -50,6 +50,7 @@ require("test_filesys")
 require("test_dwrite")
 require("test_colli")
 require("test_posteffect")
+require("test_monitor")
 
 function GameInit()
     window:init()
