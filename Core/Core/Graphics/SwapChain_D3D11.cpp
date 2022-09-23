@@ -2,6 +2,7 @@
 #include "Core/Graphics/Format_D3D11.hpp"
 #include "Core/i18n.hpp"
 #include "utility/encoding.hpp"
+#include "platform/WindowsVersion.hpp"
 
 #include "ScreenGrab11.h"
 
@@ -772,8 +773,15 @@ namespace Core::Graphics
 
 	bool SwapChain_D3D11::setWindowMode(uint32_t width, uint32_t height, bool flip_model, bool latency_event)
 	{
-		// TODO: 也许，是时候该自动开启 flip 交换链模型了？
-		if (m_device->IsFlipDiscardSupport() && m_device->IsTearingSupport())
+		// 开启条件：
+		// 1、交换链快速交换模式（DXGI_SWAP_EFFECT_FLIP_DISCARD）从 Windows 10 开始支持
+		// 2、允许画面撕裂（立即刷新）从 Windows 10 开始支持，但是也需要硬件、驱动、系统更新等才能支持
+		// 2、在 Windows 10 1709 (16299) Fall Creators Update 中
+		// 修复了 Frame Latency Waitable Object 和 SetMaximumFrameLatency 实际上至少有 2 帧的问题
+		if (m_device->IsFlipDiscardSupport()
+			&& m_device->IsTearingSupport()
+			&& m_device->IsFrameLatencySupport()
+			&& platform::WindowsVersion::Is10Build16299())
 		{
 			flip_model = true;
 			latency_event = true;
