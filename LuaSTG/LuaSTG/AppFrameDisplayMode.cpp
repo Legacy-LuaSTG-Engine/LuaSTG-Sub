@@ -371,27 +371,13 @@ namespace LuaSTGPlus
 		{
 			using namespace Core::Graphics;
 			auto* p_swapchain = m_pAppModel->getSwapChain();
-			// 无论如何，首先初始化交换链，这样下面 findBestMatchDisplayMode 的时候才有有效的交换链对象
-			Core::Vector2I window_size;
-			switch (m_Setting.display_setting_type)
+			// 对于独占全屏启动的情况，首先初始化交换链，这样下面 findBestMatchDisplayMode 的时候才有有效的交换链对象
+			if (m_Setting.display_setting_type == DisplaySettingType::ExclusiveFullscreen)
 			{
-			case DisplaySettingType::Window:
-				window_size = m_Setting.window.window_size;
-				p_swapchain->setVSync(m_Setting.window.vsync);
-				break;
-			case DisplaySettingType::Fullscreen:
-				window_size = m_Setting.fullscreen.window_size;
-				p_swapchain->setVSync(m_Setting.fullscreen.vsync);
-				break;
-			case DisplaySettingType::ExclusiveFullscreen:
-				window_size = m_Setting.exclusive_fullscreen.window_size;
-				p_swapchain->setVSync(m_Setting.exclusive_fullscreen.vsync);
-				break;
-			default:
-				assert(false); return false;
+				Core::Vector2I const window_size = m_Setting.exclusive_fullscreen.window_size;
+				if (!p_swapchain->setWindowMode(window_size.x, window_size.y, false, false))
+					return false;
 			}
-			if (!p_swapchain->setWindowMode(window_size.x, window_size.y, false, false))
-				return false;
 			// 正式应用显示模式
 			UpdateDisplayMode();
 			p_swapchain->refreshDisplayMode();
