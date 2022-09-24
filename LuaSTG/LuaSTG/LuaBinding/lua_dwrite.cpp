@@ -649,7 +649,10 @@ namespace DirectWrite
 		Microsoft::WRL::ComPtr<IDWriteTextLayout> dwrite_text_layout;
 		Microsoft::WRL::ComPtr<ID2D1Brush> d2d1_brush_outline;
 		Microsoft::WRL::ComPtr<ID2D1Brush> d2d1_brush_fill;
+		Microsoft::WRL::ComPtr<ID2D1StrokeStyle> d2d1_stroke_style;
 		FLOAT outline_width;
+		BOOL layer_text{ TRUE };
+		BOOL layer_stroke{ TRUE };
 	public:
 		HRESULT WINAPI QueryInterface(IID const& riid, void** ppvObject)
 		{
@@ -763,11 +766,11 @@ namespace DirectWrite
 
 			// Draw the outline of the glyph run
 
-			d2d1_rt->DrawGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_outline.Get(), outline_width);
+			if (layer_stroke) d2d1_rt->DrawGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_outline.Get(), outline_width, d2d1_stroke_style.Get());
 
 			// Fill in the glyph run
 
-			d2d1_rt->FillGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_fill.Get());
+			if (layer_text) d2d1_rt->FillGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_fill.Get());
 
 			return S_OK;
 		}
@@ -807,8 +810,8 @@ namespace DirectWrite
 				&d2d1_transformed_geometry);
 			if (FAILED(hr)) return hr;
 
-			d2d1_rt->DrawGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_outline.Get(), outline_width);
-			d2d1_rt->FillGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_fill.Get());
+			if (layer_stroke) d2d1_rt->DrawGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_outline.Get(), outline_width);
+			if (layer_text) d2d1_rt->FillGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_fill.Get());
 
 			return S_OK;
 		}
@@ -848,8 +851,8 @@ namespace DirectWrite
 				&d2d1_transformed_geometry);
 			if (FAILED(hr)) return hr;
 
-			d2d1_rt->DrawGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_outline.Get(), outline_width);
-			d2d1_rt->FillGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_fill.Get());
+			if (layer_stroke) d2d1_rt->DrawGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_outline.Get(), outline_width);
+			if (layer_text) d2d1_rt->FillGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_fill.Get());
 
 			return S_OK;
 		}
@@ -947,11 +950,11 @@ namespace DirectWrite
 
 			// Draw the outline of the glyph run
 
-			d2d1_rt->DrawGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_outline.Get(), outline_width);
+			if (layer_stroke) d2d1_rt->DrawGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_outline.Get(), outline_width, d2d1_stroke_style.Get());
 
 			// Fill in the glyph run
 
-			d2d1_rt->FillGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_fill.Get());
+			if (layer_text) d2d1_rt->FillGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_fill.Get());
 
 			return S_OK;
 		}
@@ -1009,8 +1012,8 @@ namespace DirectWrite
 				&d2d1_transformed_geometry);
 			if (FAILED(hr)) return hr;
 
-			d2d1_rt->DrawGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_outline.Get(), outline_width);
-			d2d1_rt->FillGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_fill.Get());
+			if (layer_stroke) d2d1_rt->DrawGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_outline.Get(), outline_width);
+			if (layer_text) d2d1_rt->FillGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_fill.Get());
 
 			return S_OK;
 		}
@@ -1068,8 +1071,8 @@ namespace DirectWrite
 				&d2d1_transformed_geometry);
 			if (FAILED(hr)) return hr;
 
-			d2d1_rt->DrawGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_outline.Get(), outline_width);
-			d2d1_rt->FillGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_fill.Get());
+			if (layer_stroke) d2d1_rt->DrawGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_outline.Get(), outline_width);
+			if (layer_text) d2d1_rt->FillGeometry(d2d1_transformed_geometry.Get(), d2d1_brush_fill.Get());
 
 			return S_OK;
 		}
@@ -1094,18 +1097,26 @@ namespace DirectWrite
 			return E_NOTIMPL;
 		}
 	public:
+		void WINAPI SetLayerEnable(BOOL text, BOOL stroke)
+		{
+			layer_text = text;
+			layer_stroke = stroke;
+		}
+	public:
 		DWriteTextRendererImplement(
 			ID2D1Factory* factory,
 			ID2D1RenderTarget* target,
 			IDWriteTextLayout* layout,
 			ID2D1Brush* outline,
 			ID2D1Brush* fill,
+			ID2D1StrokeStyle* stroke_style,
 			FLOAT width)
 			: d2d1_factory(factory)
 			, d2d1_rt(target)
 			, dwrite_text_layout(layout)
 			, d2d1_brush_outline(outline)
 			, d2d1_brush_fill(fill)
+			, d2d1_stroke_style(stroke_style)
 			, outline_width(width) {}
 		~DWriteTextRendererImplement() {}
 	};
@@ -1914,6 +1925,9 @@ namespace DirectWrite
 
 		// rasterize
 
+		d2d1_rt->BeginDraw();
+		d2d1_rt->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
+		d2d1_rt->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_GRAYSCALE);
 		if (lua_gettop(L) >= 4)
 		{
 			Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> d2d1_pen2;
@@ -1921,34 +1935,40 @@ namespace DirectWrite
 			if (FAILED(hr))
 				return luaL_error(L, "create rasterizer color failed");
 
+			Microsoft::WRL::ComPtr<ID2D1StrokeStyle> d2d1_stroke_style;
+			hr = gHR = core->d2d1_factory->CreateStrokeStyle(D2D1::StrokeStyleProperties(
+				D2D1_CAP_STYLE_ROUND,
+				D2D1_CAP_STYLE_ROUND,
+				D2D1_CAP_STYLE_ROUND,
+				D2D1_LINE_JOIN_ROUND), NULL, 0, &d2d1_stroke_style);
+			if (FAILED(hr))
+				return luaL_error(L, "create stroke style failed");
+
 			DWriteTextRendererImplement renderer(
 				core->d2d1_factory.Get(),
 				d2d1_rt.Get(),
 				text_layout->dwrite_text_layout.Get(),
 				d2d1_pen2.Get(),
 				d2d1_pen.Get(),
+				d2d1_stroke_style.Get(),
 				outline_width);
 
-			d2d1_rt->BeginDraw();
-			d2d1_rt->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
+			renderer.SetLayerEnable(FALSE, TRUE);
 			hr = gHR = text_layout->dwrite_text_layout->Draw(NULL, &renderer, outline_width, outline_width);
 			if (FAILED(hr))
 				return luaL_error(L, "render failed");
-			hr = gHR = d2d1_rt->EndDraw();
+			renderer.SetLayerEnable(TRUE, FALSE);
+			hr = gHR = text_layout->dwrite_text_layout->Draw(NULL, &renderer, outline_width, outline_width);
 			if (FAILED(hr))
-				return luaL_error(L, "rasterize failed");
+				return luaL_error(L, "render failed");
 		}
 		else
 		{
-			d2d1_rt->BeginDraw();
-			d2d1_rt->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
 			d2d1_rt->DrawTextLayout(D2D1::Point2F(0.0f, 0.0f), text_layout->dwrite_text_layout.Get(), d2d1_pen.Get());
-			if (FAILED(hr))
-				return luaL_error(L, "render failed");
-			hr = gHR = d2d1_rt->EndDraw();
-			if (FAILED(hr))
-				return luaL_error(L, "rasterize failed");
 		}
+		hr = gHR = d2d1_rt->EndDraw();
+		if (FAILED(hr))
+			return luaL_error(L, "rasterize failed");
 
 		// lock result
 
@@ -2045,6 +2065,9 @@ namespace DirectWrite
 
 		// rasterize
 
+		d2d1_rt->BeginDraw();
+		d2d1_rt->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
+		d2d1_rt->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_GRAYSCALE);
 		if (lua_gettop(L) >= 3)
 		{
 			Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> d2d1_pen2;
@@ -2052,34 +2075,40 @@ namespace DirectWrite
 			if (FAILED(hr))
 				return luaL_error(L, "create rasterizer color failed");
 
+			Microsoft::WRL::ComPtr<ID2D1StrokeStyle> d2d1_stroke_style;
+			hr = gHR = core->d2d1_factory->CreateStrokeStyle(D2D1::StrokeStyleProperties(
+				D2D1_CAP_STYLE_ROUND,
+				D2D1_CAP_STYLE_ROUND,
+				D2D1_CAP_STYLE_ROUND,
+				D2D1_LINE_JOIN_ROUND), NULL, 0, &d2d1_stroke_style);
+			if (FAILED(hr))
+				return luaL_error(L, "create stroke style failed");
+
 			DWriteTextRendererImplement renderer(
 				core->d2d1_factory.Get(),
 				d2d1_rt.Get(),
 				text_layout->dwrite_text_layout.Get(),
 				d2d1_pen2.Get(),
 				d2d1_pen.Get(),
+				d2d1_stroke_style.Get(),
 				outline_width);
 
-			d2d1_rt->BeginDraw();
-			d2d1_rt->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
+			renderer.SetLayerEnable(FALSE, TRUE);
 			hr = gHR = text_layout->dwrite_text_layout->Draw(NULL, &renderer, outline_width, outline_width);
 			if (FAILED(hr))
 				return luaL_error(L, "render failed");
-			hr = gHR = d2d1_rt->EndDraw();
+			renderer.SetLayerEnable(TRUE, FALSE);
+			hr = gHR = text_layout->dwrite_text_layout->Draw(NULL, &renderer, outline_width, outline_width);
 			if (FAILED(hr))
-				return luaL_error(L, "rasterize failed");
+				return luaL_error(L, "render failed");
 		}
 		else
 		{
-			d2d1_rt->BeginDraw();
-			d2d1_rt->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
 			d2d1_rt->DrawTextLayout(D2D1::Point2F(0.0f, 0.0f), text_layout->dwrite_text_layout.Get(), d2d1_pen.Get());
-			if (FAILED(hr))
-				return luaL_error(L, "render failed");
-			hr = gHR = d2d1_rt->EndDraw();
-			if (FAILED(hr))
-				return luaL_error(L, "rasterize failed");
 		}
+		hr = gHR = d2d1_rt->EndDraw();
+		if (FAILED(hr))
+			return luaL_error(L, "rasterize failed");
 
 		// save
 
