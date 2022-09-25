@@ -29,7 +29,7 @@ int main()
 					"    N/A\n"
 					"Not Satisfied:\n"
 					"    Windows 7\n"
-					"    Windows 7 Service Pack 1\n"
+					"    Windows 7 Service Pack 1 (KB976932)\n"
 					"    Platform Update for Windows 7 (KB2670838)\n"
 					"\n"
 					"未达到最低系统要求。\n"
@@ -37,7 +37,7 @@ int main()
 					"    N/A\n"
 					"未满足的条件：\n"
 					"    Windows 7\n"
-					"    Windows 7 Service Pack 1\n"
+					"    Windows 7 Service Pack 1 (KB976932)\n"
 					"    Platform Update for Windows 7 (KB2670838)");
 			}
 			else
@@ -48,7 +48,7 @@ int main()
 					"Satisfied:\n"
 					"    Windows 7\n"
 					"Not Satisfied:\n"
-					"    Windows 7 Service Pack 1\n"
+					"    Windows 7 Service Pack 1 (KB976932)\n"
 					"    Platform Update for Windows 7 (KB2670838)\n"
 					"Click the \"OK\" button to open Microsoft's official website to download the update.\n"
 					"Click the \"Cancel\" button to exit.\n"
@@ -57,7 +57,7 @@ int main()
 					"已满足的条件：\n"
 					"    Windows 7\n"
 					"未满足的条件：\n"
-					"    Windows 7 Service Pack 1\n"
+					"    Windows 7 Service Pack 1 (KB976932)\n"
 					"    Platform Update for Windows 7 (KB2670838)\n"
 					"点击“确定”打开微软官方网站下载更新。\n"
 					"点击“取消”关闭程序。");
@@ -75,7 +75,7 @@ int main()
 				"Minimum system requirements are not met.\n"
 				"Satisfied:\n"
 				"    Windows 7\n"
-				"    Windows 7 Service Pack 1\n"
+				"    Windows 7 Service Pack 1 (KB976932)\n"
 				"Not Satisfied:\n"
 				"    Platform Update for Windows 7 (KB2670838)\n"
 				"Click the \"OK\" button to open Microsoft's official website to download the update.\n"
@@ -84,7 +84,7 @@ int main()
 				"未达到最低系统要求。\n"
 				"已满足的条件：\n"
 				"    Windows 7\n"
-				"    Windows 7 Service Pack 1\n"
+				"    Windows 7 Service Pack 1 (KB976932)\n"
 				"未满足的条件：\n"
 				"    Platform Update for Windows 7 (KB2670838)\n"
 				"点击“确定”打开微软官方网站下载更新。\n"
