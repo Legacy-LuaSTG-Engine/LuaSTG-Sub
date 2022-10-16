@@ -357,7 +357,7 @@ struct lfs_api
 			}
 			else
 			{
-				std::string const path = from_path(self->iter->path());
+				std::string const path = from_path(self->iter->path().filename());
 				self->iter.increment(self->ec);
 				lua_pushlstring(L, path.c_str(), path.length());
 			}

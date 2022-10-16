@@ -51,6 +51,8 @@ require("test_dwrite")
 require("test_colli")
 require("test_posteffect")
 require("test_monitor")
+require("test_utf8api")
+require("test_lfs")
 
 function GameInit()
     window:init()
