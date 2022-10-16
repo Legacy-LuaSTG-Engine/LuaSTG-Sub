@@ -106,6 +106,7 @@ namespace Core::Graphics
 		void destroyDWrite();
 		bool doDestroyAndCreate();
 		bool testAdapterPolicy();
+		bool testMultiPlaneOverlay();
 
 	public:
 		bool handleDeviceLost();
