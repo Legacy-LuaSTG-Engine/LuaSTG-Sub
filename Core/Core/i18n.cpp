@@ -198,6 +198,22 @@ static std::unordered_map<std::string_view, i18n_entry_t> const g_i18n_map = {
 			"    Hardware Composition: {}"
 			,
 	}},
+	{"[core].Device_D3D11.DXGI_output_detail_fmt2",{
+		.zh_cn = "[core] 图形设备[{}] - 显示输出设备[{}]：\n"
+			"    连接状态：{}\n"
+			"    显示区域：({}, {}) ({} x {})\n"
+			"    旋转：{}\n"
+			"    多平面叠加：{}\n"
+			"    硬件表面合成：{}"
+			,
+		.en_us = "[core] Graphics Device[{}] - Display Output[{}]:\n"
+			"    Attached To Desktop: {}\n"
+			"    Desktop Coordinates: ({}, {}) ({} x {})\n"
+			"    Rotation: {}\n"
+			"    Multi-Plane Overlay: {}\n"
+			"    Hardware Composition: {}"
+			,
+	}},
 	{"[core].Device_D3D11.DXGI_output_detail_error_fmt",{
 		.zh_cn = "[core] 图形设备[{}] - 显示输出设备[{}]：<无法读取信息>",
 		.en_us = "[core] Graphics Device[{}] - Display Output[{}]: <Unable to read information>",

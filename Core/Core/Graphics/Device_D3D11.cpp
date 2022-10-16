@@ -77,58 +77,46 @@ namespace Core::Graphics
 		default: return i18n("unknown");
 		}
 	}
-	inline std::string_view hardware_composition_flags_to_string(UINT const flags)
+	inline std::string multi_plane_overlay_flags_to_string(UINT const flags)
 	{
+		std::string buffer;
+		if (flags & DXGI_OVERLAY_SUPPORT_FLAG_DIRECT)
+		{
+			buffer.append("直接呈现");
+		}
+		if (flags & DXGI_OVERLAY_SUPPORT_FLAG_SCALING)
+		{
+			if (!buffer.empty()) buffer.append("、");
+			buffer.append("缩放呈现");
+		}
+		if (buffer.empty())
+		{
+			buffer.append("无");
+		}
+		return buffer;
+	};
+	inline std::string hardware_composition_flags_to_string(UINT const flags)
+	{
+		std::string buffer;
 		if (flags & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_FULLSCREEN)
 		{
-			if (flags & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_WINDOWED)
-			{
-				if (flags & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_CURSOR_STRETCHED)
-				{
-					return "全屏、窗口、鼠标指针缩放";
-				}
-				else
-				{
-					return "全屏、窗口";
-				}
-			}
-			else
-			{
-				if (flags & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_CURSOR_STRETCHED)
-				{
-					return "全屏、鼠标指针缩放";
-				}
-				else
-				{
-					return "全屏";
-				}
-			}
+			buffer.append("全屏");
 		}
-		else
+		if (flags & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_WINDOWED)
 		{
-			if (flags & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_WINDOWED)
-			{
-				if (flags & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_CURSOR_STRETCHED)
-				{
-					return "窗口、鼠标指针缩放";
-				}
-				else
-				{
-					return "窗口";
-				}
-			}
-			else
-			{
-				if (flags & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_CURSOR_STRETCHED)
-				{
-					return "鼠标指针缩放";
-				}
-				else
-				{
-					return "不支持";
-				}
-			}
+			if (!buffer.empty()) buffer.append("、");
+			buffer.append("窗口");
 		}
+		if (flags & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_CURSOR_STRETCHED)
+		{
+			if (!buffer.empty()) buffer.append("、");
+			buffer.append("鼠标指针缩放");
+		}
+		if (buffer.empty())
+		{
+			buffer.append("无");
+		}
+		return buffer;
 	};
 	inline std::string_view rotation_to_string(DXGI_MODE_ROTATION const rot)
 	{
@@ -1009,6 +997,8 @@ namespace Core::Graphics
 			spdlog::warn("[core] 此设备没有完整的 B8G8R8A8 格式支持，程序可能无法正常运行");
 		}
 
+		testMultiPlaneOverlay();
+
 		i18n_log_info("[core].Device_D3D11.created_basic_D3D11_components");
 
 		tracy::xTracyD3D11Context(d3d11_device.Get(), d3d11_devctx.Get());
@@ -1220,6 +1210,65 @@ namespace Core::Graphics
 		platform::AdapterPolicy::setAll(false);
 
 		return false;
+	}
+	bool Device_D3D11::testMultiPlaneOverlay()
+	{
+		HRESULT hr = S_OK;
+
+		Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter_;
+		for (UINT i = 0; bHR = dxgi_factory->EnumAdapters1(i, &adapter_); i += 1)
+		{
+			Microsoft::WRL::ComPtr<IDXGIOutput> output_;
+			for (UINT j = 0; bHR = adapter_->EnumOutputs(j, &output_); j += 1)
+			{
+				DXGI_OUTPUT_DESC desc = {};
+				hr = gHR = output_->GetDesc(&desc);
+				if (FAILED(hr))
+				{
+					i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIOutput3::CheckOverlaySupport -> DXGI_FORMAT_B8G8R8A8_UNORM");
+					assert(false); return false;
+				}
+
+				UINT overlay_flags = 0;
+				Microsoft::WRL::ComPtr<IDXGIOutput3> output3_;
+				if (bHR = output_.As(&output3_))
+				{
+					hr = gHR = output3_->CheckOverlaySupport(
+						DXGI_FORMAT_B8G8R8A8_UNORM,
+						d3d11_device.Get(),
+						&overlay_flags);
+					if (FAILED(hr))
+					{
+						i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIOutput3::CheckOverlaySupport -> DXGI_FORMAT_B8G8R8A8_UNORM");
+					}
+				}
+
+				UINT composition_flags = 0;
+				Microsoft::WRL::ComPtr<IDXGIOutput6> output6_;
+				if (bHR = output_.As(&output6_))
+				{
+					hr = gHR = output6_->CheckHardwareCompositionSupport(&composition_flags);
+					if (FAILED(hr))
+					{
+						i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIOutput6::CheckHardwareCompositionSupport");
+					}
+				}
+
+				i18n_log_info_fmt("[core].Device_D3D11.DXGI_output_detail_fmt2"
+					, i, j
+					, desc.AttachedToDesktop ? i18n("DXGI_output_connected") : i18n("DXGI_output_not_connect")
+					, desc.DesktopCoordinates.left
+					, desc.DesktopCoordinates.top
+					, desc.DesktopCoordinates.right - desc.DesktopCoordinates.left
+					, desc.DesktopCoordinates.bottom - desc.DesktopCoordinates.top
+					, rotation_to_string(desc.Rotation)
+					, multi_plane_overlay_flags_to_string(overlay_flags)
+					, hardware_composition_flags_to_string(composition_flags)
+				);
+			}
+		}
+
+		return true;
 	}
 
 	bool Device_D3D11::handleDeviceLost()
