@@ -44,6 +44,34 @@ namespace Core
 		~FrameRateController();
 	};
 
+	class TimeStampFrameRateController : public IFrameRateController
+	{
+	private:
+		double target_fps_{ 0.0 };
+		double target_spf_{ 0.0 };
+		int64_t clock_freq_{ 0 };
+		int64_t clock_pcpf_{ 0 };
+		double delta_time_{ 0.0 };
+		int64_t begin_pc_{ 0 };
+		int64_t last_pc_{ 0 };
+		int64_t frame_count_{ 0 };
+	public:
+		bool arrive();
+		double update();
+	public:
+		uint32_t getTargetFPS();
+		void setTargetFPS(uint32_t target_FPS);
+		double getFPS();
+		uint64_t getTotalFrame();
+		double getTotalTime();
+		double getAvgFPS();
+		double getMinFPS();
+		double getMaxFPS();
+	public:
+		TimeStampFrameRateController(uint32_t target_FPS = 60);
+		~TimeStampFrameRateController();
+	};
+
 	class ApplicationModel_Win32 : public Object<IApplicationModel>
 	{
 	private:
