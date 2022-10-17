@@ -142,6 +142,7 @@ namespace Core::Graphics
 	void SwapChain_D3D11::onWindowActive()
 	{
 		m_window_active_changed.store(0x1);
+		m_swapchain_want_present_reset = TRUE;
 		_log("onWindowActive");
 	}
 	void SwapChain_D3D11::onWindowInactive()
@@ -390,6 +391,10 @@ namespace Core::Graphics
 				return false;
 			applyRenderAttachment();
 		}
+
+		// 标记
+
+		m_swapchain_want_present_reset = TRUE;
 		
 		return true;
 	}
@@ -516,7 +521,7 @@ namespace Core::Graphics
 	}
 	void SwapChain_D3D11::waitFrameLatency(uint32_t timeout, bool reset)
 	{
-		if (reset && dxgi_swapchain && m_swapchain_last_flip)
+		if (reset && dxgi_swapchain && (m_swapchain_flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT))
 		{
 			HRESULT hr = gHR = dxgi_swapchain->Present(1, DXGI_PRESENT_RESTART);
 			if (FAILED(hr))
@@ -985,7 +990,15 @@ namespace Core::Graphics
 	}
 	void SwapChain_D3D11::waitFrameLatency()
 	{
-		waitFrameLatency(1000, false);
+		if (m_swapchain_want_present_reset)
+		{
+			m_swapchain_want_present_reset = FALSE;
+			waitFrameLatency(1000, true);
+		}
+		else
+		{
+			waitFrameLatency(1000, false);
+		}
 	}
 	void SwapChain_D3D11::setVSync(bool enable)
 	{
@@ -998,7 +1011,11 @@ namespace Core::Graphics
 		// 呈现
 
 		UINT const interval = m_swapchain_vsync ? 1 : 0;
-		UINT const flags = (!m_swapchain_vsync && (m_swapchain_flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING)) ? DXGI_PRESENT_ALLOW_TEARING : 0;
+		UINT flags = 0;
+		if (!m_swapchain_vsync && (m_swapchain_flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING))
+		{
+			flags |= DXGI_PRESENT_ALLOW_TEARING;
+		}
 		hr = gHR = dxgi_swapchain->Present(interval, flags);
 
 		// 清空渲染状态并丢弃内容
