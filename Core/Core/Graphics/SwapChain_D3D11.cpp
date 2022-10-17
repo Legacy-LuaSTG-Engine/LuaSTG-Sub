@@ -237,18 +237,18 @@ namespace Core::Graphics
 				{
 					if (m_device->IsTearingSupport()) // Windows 10 且要求系统支持
 					{
-						desc1.BufferCount = 2;
+						desc1.BufferCount = 3;
 						desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 						desc1.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
 					}
 					else if (m_device->IsFlipDiscardSupport()) // Windows 10
 					{
-						desc1.BufferCount = 2;
+						desc1.BufferCount = 3;
 						desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 					}
 					else if (m_device->IsFlipSequentialSupport()) // Windows 8
 					{
-						desc1.BufferCount = 2;
+						desc1.BufferCount = 3;
 						desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 					}
 				}
