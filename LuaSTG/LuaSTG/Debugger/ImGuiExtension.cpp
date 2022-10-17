@@ -352,6 +352,7 @@ static int lib_ShowFrameStatistics(lua_State* L)
     constexpr size_t arr_size = 3600;
     static bool is_init = false;
     static std::vector<double> arr_x;
+    static std::vector<double> arr_wait_time;
     static std::vector<double> arr_update_time;
     static std::vector<double> arr_render_time;
     static std::vector<double> arr_present_time;
@@ -390,6 +391,7 @@ static int lib_ShowFrameStatistics(lua_State* L)
                     arr_x[x] = (double)x;
                 }
 
+                arr_wait_time.resize(arr_size);
                 arr_update_time.resize(arr_size);
                 arr_render_time.resize(arr_size);
                 arr_present_time.resize(arr_size);
@@ -415,6 +417,7 @@ static int lib_ShowFrameStatistics(lua_State* L)
             {
                 auto info = LAPP.GetAppModel()->getFrameStatistics();
             
+                ImGui::Text("Wait   : %.3fms", info.wait_time    * 1000.0);
                 ImGui::Text("Update : %.3fms", info.update_time  * 1000.0);
                 ImGui::Text("Render : %.3fms", info.render_time  * 1000.0);
                 ImGui::Text("Present: %.3fms", info.present_time * 1000.0);
@@ -426,6 +429,7 @@ static int lib_ShowFrameStatistics(lua_State* L)
                 arr_update_time[arr_index] = 1000.0 * (info.update_time);
                 arr_render_time[arr_index] = 1000.0 * (info.update_time + info.render_time);
                 arr_present_time[arr_index] = 1000.0 * (info.update_time + info.render_time + info.present_time);
+                arr_wait_time[arr_index] = 1000.0 * (info.update_time + info.render_time + info.present_time + info.wait_time);
                 arr_total_time[arr_index] = 1000.0 * (info.total_time);
            
                 if (ImPlot::BeginPlot("##Frame Statistics", ImVec2(-1, height), 0))
@@ -452,14 +456,18 @@ static int lib_ShowFrameStatistics(lua_State* L)
                     //ImPlot::SetNextLineStyle(ImVec4(1.0f, 0.2f, 0.2f, 1.0f));
                     //ImPlot::PlotHLines("##20 FPS", arr_ms + 2, 1);
 
+                    ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.25f);
+                    ImPlot::PlotShaded("Total", arr_x.data(), arr_wait_time.data(), arr_total_time.data(), (int)record_range);
+                    ImPlot::PlotShaded("Wait", arr_x.data(), arr_present_time.data(), arr_wait_time.data(), (int)record_range);
+                    ImPlot::PopStyleVar();
                     ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.5f);
-                    ImPlot::PlotShaded("Total", arr_x.data(), arr_present_time.data(), arr_total_time.data(), (int)record_range);
                     ImPlot::PlotShaded("Present", arr_x.data(), arr_render_time.data(), arr_present_time.data(), (int)record_range);
                     ImPlot::PlotShaded("Render", arr_x.data(), arr_update_time.data(), arr_render_time.data(), (int)record_range);
                     ImPlot::PlotShaded("Update", arr_x.data(), arr_update_time.data(), (int)record_range);
                     ImPlot::PopStyleVar();
 
                     ImPlot::PlotLine("Total", arr_total_time.data(), (int)record_range);
+                    ImPlot::PlotLine("Wait", arr_wait_time.data(), (int)record_range);
                     ImPlot::PlotLine("Present", arr_present_time.data(), (int)record_range);
                     ImPlot::PlotLine("Render", arr_render_time.data(), (int)record_range);
                     ImPlot::PlotLine("Update", arr_update_time.data(), (int)record_range);
