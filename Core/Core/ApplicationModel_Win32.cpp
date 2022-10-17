@@ -155,6 +155,119 @@ namespace Core
 
 namespace Core
 {
+	// 基于时间戳的帧率控制器
+	// 当帧率有波动时，追赶或者等待更长时间
+
+	inline int64_t winQPC()
+	{
+		LARGE_INTEGER ll = {};
+		QueryPerformanceCounter(&ll);
+		return ll.QuadPart;
+	}
+	inline int64_t winQPF()
+	{
+		LARGE_INTEGER ll = {};
+		QueryPerformanceFrequency(&ll);
+		return ll.QuadPart;
+	}
+
+	bool TimeStampFrameRateController::arrive()
+	{
+		// 计算下一个要到达的时间戳
+		int64_t const target_pc_ = begin_pc_ + (frame_count_ + 1) * clock_pcpf_;
+		int64_t cur_pc_ = winQPC();
+		return cur_pc_ >= target_pc_;
+	}
+	double TimeStampFrameRateController::update()
+	{
+		// 计算下一个要到达的时间戳
+		int64_t const target_pc_ = begin_pc_ + (frame_count_ + 1) * clock_pcpf_;
+		int64_t cur_pc_ = winQPC();
+		if (cur_pc_ > target_pc_)
+		{
+			// 已经超过
+			if ((cur_pc_ - target_pc_) >= (clock_pcpf_ * 10))
+			{
+				// 落后超过 10 帧，放弃追赶，并设置新的基准点
+				begin_pc_ = cur_pc_;
+				frame_count_ = 0;
+			}
+			else
+			{
+				// 立即推进 1 帧
+				frame_count_ += 1;
+			}
+		}
+		else
+		{
+			// 当需要等待的时间 Tms 大于 2ms 时，用Sleep 等待 (T - 2)ms
+			int64_t const err_pc_ = clock_freq_ * 2 / 1000;
+			int64_t const ddt_pc_ = target_pc_ - cur_pc_;
+			if (ddt_pc_ > err_pc_)
+			{
+				DWORD const ms_ = (DWORD)((ddt_pc_ - err_pc_) / (err_pc_ / 2));
+				Sleep(ms_);
+			}
+			// 精确的轮询等待
+			for (;;)
+			{
+				cur_pc_ = winQPC();
+				if (cur_pc_ >= target_pc_)
+				{
+					break;
+				}
+			}
+			// 推进 1 帧
+			frame_count_ += 1;
+		}
+		// 刷新数值
+		int64_t const delta_pc_ = cur_pc_ - last_pc_;
+		delta_time_ = (double)delta_pc_ / (double)clock_freq_;
+		last_pc_ = cur_pc_;
+		return delta_time_;
+	}
+
+	uint32_t TimeStampFrameRateController::getTargetFPS()
+	{
+		return (uint32_t)target_fps_;
+	}
+	void TimeStampFrameRateController::setTargetFPS(uint32_t target_FPS)
+	{
+		if (std::abs(target_fps_ - (double)target_FPS) < 0.01)
+		{
+			return;
+		}
+
+		target_fps_ = (double)target_FPS;
+		target_spf_ = 1.0 / target_fps_;
+
+		clock_freq_ = winQPF();
+		clock_pcpf_ = (int64_t)(target_spf_ * (double)clock_freq_);
+
+		begin_pc_ = winQPC();
+		last_pc_ = begin_pc_;
+		frame_count_ = 0;
+	}
+	double TimeStampFrameRateController::getFPS() { return 1.0 / delta_time_; }
+	uint64_t TimeStampFrameRateController::getTotalFrame() { return 0; }
+	double TimeStampFrameRateController::getTotalTime() { return 0.0; }
+	double TimeStampFrameRateController::getAvgFPS() { return getFPS(); }
+	double TimeStampFrameRateController::getMinFPS() { return getFPS(); }
+	double TimeStampFrameRateController::getMaxFPS() { return getFPS(); }
+
+	TimeStampFrameRateController::TimeStampFrameRateController(uint32_t target_FPS)
+	{
+		timeBeginPeriod(1);
+		setTargetFPS(target_FPS);
+	}
+	TimeStampFrameRateController::~TimeStampFrameRateController()
+	{
+		timeEndPeriod(1);
+	}
+}
+
+namespace Core
+{
 	static std::string bytes_count_to_string(DWORDLONG size)
 	{
 		int count = 0;
@@ -238,29 +351,26 @@ namespace Core
 		// 更新、渲染循环
 		TracyD3D11Collect(tracy::xTracyD3D11Ctx());
 		FrameMark;
+		{
+			ZoneScopedN("OnInitWait");
+			m_swapchain->waitFrameLatency();
+			m_ratelimit.update();
+		}
 		while (true)
 		{
 			size_t const i = (m_framestate_index + 1) % 2;
 			FrameStatistics& d = m_framestate[i];
 			ScopeTimer gt(d.total_time);
 
-			// 等待下一帧
+			// 更新
 			{
-				ZoneScopedN("OnWait");
-				ScopeTimer t(d.wait_time);
+				ZoneScopedN("OnUpdate");
+				ScopeTimer t(d.update_time);
 				// 如果需要退出
 				if (WAIT_OBJECT_0 == WaitForSingleObjectEx(win32_event_exit.Get(), 0, TRUE))
 				{
 					break;
 				}
-				m_swapchain->waitFrameLatency();
-				m_ratelimit.update();
-			}
-
-			// 更新
-			{
-				ZoneScopedN("OnUpdate");
-				ScopeTimer t(d.update_time);
 				m_listener->onUpdate();
 				m_swapchain->syncWindowActive();
 			}
@@ -283,6 +393,14 @@ namespace Core
 				TracyD3D11Collect(tracy::xTracyD3D11Ctx());
 			}
 			
+			// 等待下一帧
+			{
+				ZoneScopedN("OnWait");
+				ScopeTimer t(d.wait_time);
+				m_swapchain->waitFrameLatency();
+				m_ratelimit.update();
+			}
+
 			m_framestate_index = i;
 			FrameMark;
 		}
