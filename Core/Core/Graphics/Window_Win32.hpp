@@ -35,6 +35,7 @@ namespace Core::Graphics
 		DWORD win32_window_style{ WS_OVERLAPPEDWINDOW ^ (WS_THICKFRAME | WS_MAXIMIZEBOX) };
 		DWORD win32_window_style_ex{ 0 };
 		BOOL m_hidewindow{ TRUE };
+		BOOL m_redirect_bitmap{ TRUE };
 
 		BOOL win32_window_is_sizemove{ FALSE };
 		BOOL win32_window_want_track_focus{ FALSE };
@@ -61,6 +62,8 @@ namespace Core::Graphics
 		RectI getClientRect();
 		bool setClientRect(RectI v);
 		uint32_t getDPI();
+		void setRedirectBitmapEnable(bool enable);
+		bool getRedirectBitmapEnable();
 		bool recreateWindow();
 		
 	private:
