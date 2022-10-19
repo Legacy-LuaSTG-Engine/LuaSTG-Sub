@@ -40,9 +40,13 @@ namespace platform
 
 			// Windows 10
 
-			if (IsWindows10BuildOrGreater(19045))
+			if (IsWindows10BuildOrGreater(19046))
 			{
-				MAKE("Windows 10 21H2+", false);
+				MAKE("Windows 10 22H2+", false);
+			}
+			if (WindowsVersion::Is10Build19045())
+			{
+				MAKE("Windows 10 22H2", false);
 			}
 			if (WindowsVersion::Is10Build19044())
 			{
@@ -233,59 +237,81 @@ namespace platform
 	bool WindowsVersion::Is10Build19042() { return IsWindows10BuildOrGreater(19042); }
 	bool WindowsVersion::Is10Build19043() { return IsWindows10BuildOrGreater(19043); }
 	bool WindowsVersion::Is10Build19044() { return IsWindows10BuildOrGreater(19044); }
+	bool WindowsVersion::Is10Build19045() { return IsWindows10BuildOrGreater(19045); }
 
 	bool WindowsVersion::Is11() { return IsWindows11OrGreater(); }
 	bool WindowsVersion::Is11Build22000() { return IsWindows10BuildOrGreater(22000); }
 	bool WindowsVersion::Is11Build22621() { return IsWindows10BuildOrGreater(22621); }
 
-	std::string_view WindowsVersion::GetKernelVersionString()
+	struct VersionStringBuffer
 	{
-		static std::array<char, 32> buffer{};
-		static std::string_view view;
-		static bool is_read = false;
-		if (!is_read)
-		{
-			// full path to ntoskrnl.exe
-			std::array<WCHAR, (MAX_PATH + 1)> windir{};
-			UINT const windir_len = GetWindowsDirectoryW(windir.data(), MAX_PATH);
-			assert(windir_len > 0);
-			if (windir_len > 0)
-			{
-				std::wstring sys32dir;
-				sys32dir.append(windir.data(), windir_len);
-				sys32dir.append(std::wstring_view(L"\\System32\\ntoskrnl.exe"));
+		std::array<char, 32> buffer{};
+		std::string_view view{ "0.0.0.0" };
+	};
 
-				// get file metadata size
-				DWORD const metadata_size = GetFileVersionInfoSizeW(sys32dir.c_str(), NULL);
-				assert(metadata_size > 0);
-				if (metadata_size > 0)
+	static bool GetFileVersionString(std::wstring_view file, VersionStringBuffer& sbuffer)
+	{
+		std::array<WCHAR, (MAX_PATH + 1)> windir{};
+		UINT const windir_len = GetWindowsDirectoryW(windir.data(), MAX_PATH);
+		assert(windir_len > 0);
+		if (windir_len > 0)
+		{
+			std::wstring sys32dir;
+			sys32dir.append(windir.data(), windir_len);
+			sys32dir.append(std::wstring_view(L"\\System32\\"));
+			sys32dir.append(file);
+
+			// get file metadata size
+			DWORD const metadata_size = GetFileVersionInfoSizeW(sys32dir.c_str(), NULL);
+			assert(metadata_size > 0);
+			if (metadata_size > 0)
+			{
+				// get file metadata
+				std::vector<BYTE> metadata(metadata_size);
+				BOOL const status = GetFileVersionInfoW(sys32dir.c_str(), 0, metadata_size, metadata.data());
+				assert(status);
+				if (status)
 				{
-					// get file metadata
-					std::vector<BYTE> metadata(metadata_size);
-					BOOL const status = GetFileVersionInfoW(sys32dir.c_str(), 0, metadata_size, metadata.data());
-					assert(status);
-					if (status)
+					// parser file metadata
+					VS_FIXEDFILEINFO* info = NULL;
+					UINT read = 0;
+					BOOL const query_status = VerQueryValueW(metadata.data(), L"\\", (LPVOID*)&info, &read);
+					assert(query_status);
+					if (query_status)
 					{
-						// parser file metadata
-						VS_FIXEDFILEINFO* info = NULL;
-						UINT read = 0;
-						BOOL const query_status = VerQueryValueW(metadata.data(), L"\\", (LPVOID*)&info, &read);
-						assert(query_status);
-						if (query_status)
-						{
-							// format version
-							int length = std::snprintf(buffer.data(), 32, "%d.%d.%d.%d",
-								(info->dwProductVersionMS >> 16) & 0xFFFF,
-								info->dwProductVersionMS & 0xFFFF,
-								(info->dwProductVersionLS >> 16) & 0xFFFF,
-								info->dwProductVersionLS & 0xFFFF);
-							view = std::string_view(buffer.data(), (size_t)length);
-							is_read = true;
-						}
+						// format version
+						int length = std::snprintf(
+							sbuffer.buffer.data(),
+							sbuffer.buffer.size(),
+							"%d.%d.%d.%d",
+							(info->dwProductVersionMS >> 16) & 0xFFFF,
+							info->dwProductVersionMS & 0xFFFF,
+							(info->dwProductVersionLS >> 16) & 0xFFFF,
+							info->dwProductVersionLS & 0xFFFF);
+						sbuffer.view = std::string_view(
+							sbuffer.buffer.data(),
+							(size_t)length);
+						return true;
 					}
 				}
 			}
 		}
-		return view;
+		return false;
+	}
+
+	std::string_view WindowsVersion::GetKernelVersionString()
+	{
+		VersionStringBuffer version_ntoskrnl_exe;
+		VersionStringBuffer version_kernel32_dll;
+		GetFileVersionString(L"ntoskrnl.exe", version_ntoskrnl_exe);
+		GetFileVersionString(L"kernel32.dll", version_kernel32_dll);
+		static std::string buf;
+		buf.reserve(13 + 23 + 10 + 23);
+		buf.clear();
+		buf.append("NT OS Kernel ");
+		buf.append(version_ntoskrnl_exe.view);
+		buf.append(" Kernel32 ");
+		buf.append(version_kernel32_dll.view);
+		return buf;
 	}
 }

@@ -31,6 +31,7 @@ namespace platform
 		static bool Is10Build19042(); // Windows 10 20H2
 		static bool Is10Build19043(); // Windows 10 21H1
 		static bool Is10Build19044(); // Windows 10 21H2
+		static bool Is10Build19045(); // Windows 10 22H2
 
 		static bool Is11(); // Windows 11
 		static bool Is11Build22000(); // Windows 11 21H2
