@@ -22,6 +22,7 @@ namespace Core::Graphics
 		{
 			intptr_t result;
 			bool should_return;
+
 			NativeWindowMessageResult() : result(0), should_return(false) {}
 			NativeWindowMessageResult(intptr_t v, bool b) : result(v), should_return(b) {}
 		};
