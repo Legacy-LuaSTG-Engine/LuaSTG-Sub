@@ -204,6 +204,7 @@ static std::unordered_map<std::string_view, i18n_entry_t> const g_i18n_map = {
 			"    显示区域：({}, {}) ({} x {})\n"
 			"    旋转：{}\n"
 			"    多平面叠加：{}\n"
+			"    多平面叠加功能：{}\n"
 			"    硬件表面合成：{}"
 			,
 		.en_us = "[core] Graphics Device[{}] - Display Output[{}]:\n"
@@ -211,6 +212,7 @@ static std::unordered_map<std::string_view, i18n_entry_t> const g_i18n_map = {
 			"    Desktop Coordinates: ({}, {}) ({} x {})\n"
 			"    Rotation: {}\n"
 			"    Multi-Plane Overlay: {}\n"
+			"    Multi-Plane Overlay Feature: {}\n"
 			"    Hardware Composition: {}"
 			,
 	}},
