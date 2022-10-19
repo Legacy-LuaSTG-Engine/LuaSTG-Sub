@@ -3,6 +3,7 @@
 #include "Core/Graphics/SwapChain.hpp"
 #include "Core/Graphics/Window_Win32.hpp"
 #include "Core/Graphics/Device_D3D11.hpp"
+#include "Core/Graphics/DCompositionLoader.hpp"
 
 namespace Core::Graphics
 {
@@ -19,6 +20,14 @@ namespace Core::Graphics
 		Microsoft::WRL::ComPtr<IDXGISwapChain> dxgi_swapchain;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> d3d11_rtv;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> d3d11_dsv;
+
+		DCompositionLoader dcomp_loader;
+		Microsoft::WRL::ComPtr<IDCompositionDevice> dcomp_device;
+		Microsoft::WRL::ComPtr<IDCompositionDesktopDevice> dcomp_desktop_device;
+		Microsoft::WRL::ComPtr<IDCompositionTarget> dcomp_target;
+		Microsoft::WRL::ComPtr<IDCompositionVisual> dcomp_visual_root;
+		Microsoft::WRL::ComPtr<IDCompositionVisual2> dcomp_visual_root2;
+		Microsoft::WRL::ComPtr<IDCompositionMatrixTransform> dcomp_transform;
 
 		std::vector<DisplayMode> m_displaymode;
 
@@ -56,10 +65,13 @@ namespace Core::Graphics
 	private:
 		void destroySwapChain();
 		bool createSwapChain(bool windowed, bool flip, bool latency_event, DisplayMode const& mode, bool no_attachment);
+		bool createCompositionSwapChain(Vector2U size, bool latency_event);
+		bool createDirectCompositionResources();
+		void destroyDirectCompositionResources();
 		void destroyRenderAttachment();
 		bool createRenderAttachment();
 		void waitFrameLatency(uint32_t timeout, bool reset);
-
+		
 	private:
 		enum class EventType
 		{
@@ -80,6 +92,7 @@ namespace Core::Graphics
 		bool findBestMatchDisplayMode(DisplayMode& mode);
 
 		bool setWindowMode(uint32_t width, uint32_t height, bool flip_model, bool latency_event);
+		bool setCompositionWindowMode(Vector2U size, bool latency_event);
 		bool setSize(uint32_t width, uint32_t height);
 		bool setExclusiveFullscreenMode(DisplayMode const& mode);
 		bool isWindowMode() { return m_swapchain_last_windowed; }
