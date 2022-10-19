@@ -52,6 +52,7 @@ set(Core_SRC
     Core/Graphics/Font_D3D11.cpp
     Core/Graphics/DearImGui_Win32_D3D11.hpp
     Core/Graphics/DearImGui_Win32_D3D11.cpp
+    Core/Graphics/DCompositionLoader.hpp
     Core/ApplicationModel.hpp
     Core/ApplicationModel_Win32.hpp
     Core/ApplicationModel_Win32.cpp
