@@ -50,6 +50,29 @@ namespace Core::Graphics
 		}
 		return false; // 没有更好的点
 	}
+	inline bool makeLetterboxing(Vector2U rect, Vector2U inner_rect, DXGI_MATRIX_3X2_F& mat)
+	{
+		if (rect == inner_rect)
+		{
+			return false; // 不需要
+		}
+		else
+		{
+			double const hscale = (double)rect.x / (double)inner_rect.x;
+			double const vscale = (double)rect.y / (double)inner_rect.y;
+			double const scale = std::min(hscale, vscale);
+			double const width = scale * (double)inner_rect.x;
+			double const height = scale * (double)inner_rect.y;
+			double const x = ((double)rect.x - width) * 0.5;
+			double const y = ((double)rect.y - height) * 0.5;
+			mat = DXGI_MATRIX_3X2_F{
+				FLOAT(scale), 0.0f,
+				0.0f, FLOAT(scale),
+				FLOAT(x), FLOAT(y),
+			};
+			return true;
+		}
+	}
 
 	void SwapChain_D3D11::dispatchEvent(EventType t)
 	{
@@ -154,6 +177,7 @@ namespace Core::Graphics
 	void SwapChain_D3D11::destroySwapChain()
 	{
 		//waitFrameLatency(INFINITE, true);
+		destroyDirectCompositionResources();
 		destroyRenderAttachment();
 		if (dxgi_swapchain)
 		{
@@ -398,6 +422,376 @@ namespace Core::Graphics
 		
 		return true;
 	}
+	bool SwapChain_D3D11::createDirectCompositionResources()
+	{
+		HRESULT hr = S_OK;
+
+		// 创建基本组件
+
+		hr = gHR = dcomp_loader.CreateDevice(NULL, IID_PPV_ARGS(&dcomp_desktop_device));
+		if (FAILED(hr))
+		{
+			// fallback
+			i18n_log_error_fmt("[core].system_call_failed_f", "DCompositionCreateDevice2");
+			hr = gHR = dcomp_loader.CreateDevice(NULL, IID_PPV_ARGS(&dcomp_device));
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "DCompositionCreateDevice");
+				assert(false); return false;
+			}
+		}
+
+		if (dcomp_desktop_device)
+			hr = gHR = dcomp_desktop_device->CreateTargetForHwnd(m_window->GetWindow(), TRUE, &dcomp_target);
+		else
+			hr = gHR = dcomp_device->CreateTargetForHwnd(m_window->GetWindow(), TRUE, &dcomp_target);
+		if (FAILED(hr))
+		{
+			if (dcomp_desktop_device)
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDesktopDevice::CreateTargetForHwnd");
+			else
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDevice::CreateTargetForHwnd");
+			assert(false); return false;
+		}
+
+		if (dcomp_desktop_device)
+			hr = gHR = dcomp_desktop_device->CreateVisual(&dcomp_visual_root2);
+		else
+			hr = gHR = dcomp_device->CreateVisual(&dcomp_visual_root);
+		if (FAILED(hr))
+		{
+			if (dcomp_desktop_device)
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDesktopDevice::CreateVisual");
+			else
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDevice::CreateVisual");
+			assert(false); return false;
+		}
+
+		if (dcomp_visual_root2)
+		{
+			hr = gHR = dcomp_visual_root2.As(&dcomp_visual_root);
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionVisual2::QueryInterface -> IDCompositionVisual");
+				assert(false); return false;
+			}
+		}
+
+		// 把交换链塞进可视物
+
+		Microsoft::WRL::ComPtr<IDXGISwapChain1> dxgi_swapchain1;
+		hr = gHR = dxgi_swapchain.As(&dxgi_swapchain1);
+		if (FAILED(hr))
+		{
+			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::QueryInterface -> IDXGISwapChain1");
+			assert(false); return false;
+		}
+
+		auto const wsz = m_window->getSize();
+
+		DXGI_SWAP_CHAIN_DESC1 desc1 = {};
+		hr = gHR = dxgi_swapchain1->GetDesc1(&desc1);
+		if (FAILED(hr))
+		{
+			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain1::GetDesc1");
+			assert(false); return false;
+		}
+
+		DXGI_MATRIX_3X2_F mat{};
+		if (makeLetterboxing(Vector2U((uint32_t)wsz.x, (uint32_t)wsz.y), Vector2U(desc1.Width, desc1.Height), mat))
+		{
+			Microsoft::WRL::ComPtr<IDXGISwapChain2> dxgi_swapchain2;
+			hr = gHR = dxgi_swapchain.As(&dxgi_swapchain2);
+			if (SUCCEEDED(hr))
+			{
+				hr = gHR = dxgi_swapchain2->SetMatrixTransform(&mat);
+				if (FAILED(hr))
+				{
+					i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain2::SetMatrixTransform");
+					assert(false); return false;
+				}
+			}
+			else
+			{
+				// fallback
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::QueryInterface -> IDXGISwapChain2");
+
+				if (dcomp_desktop_device)
+					hr = gHR = dcomp_desktop_device->CreateMatrixTransform(&dcomp_transform);
+				else
+					hr = gHR = dcomp_device->CreateMatrixTransform(&dcomp_transform);
+				if (FAILED(hr))
+				{
+					if (dcomp_desktop_device)
+						i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDesktopDevice::CreateMatrixTransform");
+					else
+						i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDevice::CreateMatrixTransform");
+					assert(false); return false;
+				}
+
+				D2D_MATRIX_3X2_F const mat_d2d = {
+					mat._11, mat._12,
+					mat._21, mat._22,
+					mat._31, mat._32,
+				};
+				hr = gHR = dcomp_transform->SetMatrix(mat_d2d);
+				if (FAILED(hr))
+				{
+					i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionMatrixTransform::SetMatrix");
+					assert(false); return false;
+				}
+
+				hr = gHR = dcomp_visual_root->SetTransform(dcomp_transform.Get());
+				if (FAILED(hr))
+				{
+					i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionVisual2::SetTransform");
+					assert(false); return false;
+				}
+			}
+		}
+
+		hr = gHR = dcomp_visual_root->SetContent(dxgi_swapchain1.Get());
+		if (FAILED(hr))
+		{
+			i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionVisual2::SetContent");
+			assert(false); return false;
+		}
+
+		// 组合视觉树并提交
+
+		hr = gHR = dcomp_target->SetRoot(dcomp_visual_root.Get());
+		if (FAILED(hr))
+		{
+			i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionTarget::SetRoot");
+			assert(false); return false;
+		}
+
+		if (dcomp_desktop_device)
+			hr = gHR = dcomp_desktop_device->Commit();
+		else
+			hr = gHR = dcomp_device->Commit();
+		if (FAILED(hr))
+		{
+			if (dcomp_desktop_device)
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDesktopDevice::Commit");
+			else
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDevice::Commit");
+			assert(false); return false;
+		}
+
+		if (dcomp_desktop_device)
+			hr = gHR = dcomp_desktop_device->WaitForCommitCompletion();
+		else
+			hr = gHR = dcomp_device->WaitForCommitCompletion();
+		if (FAILED(hr))
+		{
+			if (dcomp_desktop_device)
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDesktopDevice::WaitForCommitCompletion");
+			else
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDevice::WaitForCommitCompletion");
+			assert(false); return false;
+		}
+
+		return true;
+	}
+	void SwapChain_D3D11::destroyDirectCompositionResources()
+	{
+		HRESULT hr = S_OK;
+		if (dcomp_target)
+		{
+			hr = gHR = dcomp_target->SetRoot(NULL);
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionTarget::SetRoot -> NULL");
+			}
+		}
+		if (dcomp_visual_root)
+		{
+
+			hr = gHR = dcomp_visual_root->SetContent(NULL);
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionVisual2::SetContent -> NULL");
+			}
+		}
+		if (dcomp_desktop_device)
+		{
+			hr = gHR = dcomp_desktop_device->Commit();
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDesktopDevice::Commit");
+			}
+			hr = gHR = dcomp_desktop_device->WaitForCommitCompletion();
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDesktopDevice::WaitForCommitCompletion");
+			}
+		}
+		else if (dcomp_device)
+		{
+			hr = gHR = dcomp_device->Commit();
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDevice::Commit");
+			}
+			hr = gHR = dcomp_device->WaitForCommitCompletion();
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDevice::WaitForCommitCompletion");
+			}
+		}
+		dcomp_device.Reset();
+		dcomp_desktop_device.Reset();
+		dcomp_target.Reset();
+		dcomp_visual_root.Reset();
+		dcomp_visual_root2.Reset();
+		dcomp_transform.Reset();
+	}
+	bool SwapChain_D3D11::createCompositionSwapChain(Vector2U size, bool latency_event)
+	{
+		HRESULT hr = 0;
+
+		i18n_log_info("[core].SwapChain_D3D11.start_creating_swapchain");
+
+		// 检查组件
+
+		if (!m_window->GetWindow())
+		{
+			i18n_log_error("[core].SwapChain_D3D11.create_swapchain_failed_null_window");
+			assert(false); return false;
+		}
+		auto* dxgi_factory2 = m_device->GetDXGIFactory2(); // 这里强制要求平台更新
+		if (!dxgi_factory2)
+		{
+			i18n_log_error("[core].SwapChain_D3D11.create_swapchain_failed_null_DXGI");
+			assert(false); return false;
+		}
+		auto* d3d11_device = m_device->GetD3D11Device();
+		if (!d3d11_device)
+		{
+			i18n_log_error("[core].SwapChain_D3D11.create_swapchain_failed_null_device");
+			assert(false); return false;
+		}
+
+		// 填充交换链描述
+
+		DXGI_SWAP_CHAIN_DESC1 desc = {
+			.Width = size.x,
+			.Height = size.y,
+			.Format = m_swapchain_format,
+			.Stereo = FALSE,
+			.SampleDesc = DXGI_SAMPLE_DESC{
+				.Count = 1,
+				.Quality = 0,
+			},
+			.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
+			.BufferCount = 2,
+			.Scaling = DXGI_SCALING_STRETCH,
+			.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL,
+			.AlphaMode = DXGI_ALPHA_MODE_IGNORE,
+			.Flags = 0,
+		};
+		if (m_device->IsTearingSupport()) // Windows 10 且要求系统支持
+		{
+			desc.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING; // 允许撕裂
+		}
+		if (m_device->IsFlipDiscardSupport()) // Windows 10
+		{
+			desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; // 更快速的交换链模型
+		}
+		if (latency_event && m_device->IsFrameLatencySupport()) // Windows 8.1
+		{
+			desc.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT; // 低延迟渲染
+		}
+
+		DXGI_SWAP_EFFECT swap_effect = desc.SwapEffect;
+		m_swapchain_buffer_count = desc.BufferCount;
+		m_swapchain_flags = desc.Flags;
+
+		// 创建交换链
+		// 由于合成交换链不会和任何窗口关联，所以不需要处理傻逼快捷键
+
+		Microsoft::WRL::ComPtr<IDXGISwapChain1> dxgi_swapchain1;
+		hr = gHR = dxgi_factory2->CreateSwapChainForComposition(d3d11_device, &desc, NULL, &dxgi_swapchain1);
+		if (SUCCEEDED(hr))
+		{
+			hr = gHR = dxgi_swapchain1.As(&dxgi_swapchain);
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain1::QueryInterface -> IDXGISwapChain");
+				assert(false); return false;
+			}
+		}
+		else
+		{
+			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory2::CreateSwapChainForComposition");
+		}
+
+		// 创建合成器
+
+		if (!createDirectCompositionResources())
+		{
+			return false;
+		}
+
+		// 设置最大帧延迟为 1
+
+		Microsoft::WRL::ComPtr<IDXGIDevice1> dxgi_device1;
+		hr = gHR = d3d11_device->QueryInterface(IID_PPV_ARGS(&dxgi_device1));
+		if (SUCCEEDED(hr))
+		{
+			hr = gHR = dxgi_device1->SetMaximumFrameLatency(1);
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIDevice1::SetMaximumFrameLatency -> 1");
+				assert(false); return false;
+			}
+		}
+
+		Microsoft::WRL::ComPtr<IDXGISwapChain2> dxgi_swapchain2;
+		hr = gHR = dxgi_swapchain.As(&dxgi_swapchain2);
+		if (SUCCEEDED(hr) && (m_swapchain_flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT))
+		{
+			hr = gHR = dxgi_swapchain2->SetMaximumFrameLatency(1);
+			if (FAILED(hr))
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain2::SetMaximumFrameLatency -> 1");
+				assert(false); return false;
+			}
+			dxgi_swapchain_event.Attach(dxgi_swapchain2->GetFrameLatencyWaitableObject());
+			if (!dxgi_swapchain_event.IsValid())
+			{
+				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain2::GetFrameLatencyWaitableObject");
+				assert(false); return false;
+			}
+		}
+
+		// 打印信息
+
+		auto refresh_rate_string = i18n("DXGI.DisplayMode.RefreshRate.Desktop");
+		std::string_view swapchain_model = i18n("DXGI.SwapChain.SwapEffect.FlipSequential");
+		if (swap_effect == DXGI_SWAP_EFFECT_FLIP_DISCARD) swapchain_model = i18n("DXGI.SwapChain.SwapEffect.FlipDiscard");
+		auto enable_or_disable = [](bool v) -> std::string_view { return v ? i18n("Enable") : i18n("Disable"); };
+		i18n_log_info_fmt("[core].SwapChain_D3D11.created_swapchain_info_fmt"
+			, size.x, size.y, refresh_rate_string
+			, i18n("Disable") // 没有独占全屏
+			, swapchain_model
+			, enable_or_disable(m_swapchain_flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING)
+			, enable_or_disable(m_swapchain_flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
+		);
+
+		// 渲染附件
+
+		if (!createRenderAttachment())
+			return false;
+		applyRenderAttachment();
+
+		// 标记
+
+		m_swapchain_want_present_reset = TRUE;
+
+		return true;
+	}
 	void SwapChain_D3D11::destroyRenderAttachment()
 	{
 		if (auto* ctx = m_device->GetD3D11DeviceContext())
@@ -539,7 +933,7 @@ namespace Core::Graphics
 			}
 		}
 	}
-
+	
 	bool SwapChain_D3D11::refreshDisplayMode()
 	{
 		m_displaymode.clear();
@@ -804,6 +1198,15 @@ namespace Core::Graphics
 			if (!m_window->recreateWindow()) return false;
 			m_swapchain_flip_enabled = FALSE;
 		}
+		if (!m_window->getRedirectBitmapEnable())
+		{
+			m_window->setRedirectBitmapEnable(true);
+			if (!m_window->recreateWindow()) return false;
+			if (!flip_model && m_swapchain_flip_enabled)
+			{
+				m_swapchain_flip_enabled = FALSE;
+			}
+		}
 
 		DisplayMode mode = {
 			.width = width,
@@ -825,6 +1228,61 @@ namespace Core::Graphics
 		dispatchEvent(EventType::SwapChainCreate);
 
 		m_window_active_changed.exchange(0x0); // 清空消息
+
+		return true;
+	}
+	bool SwapChain_D3D11::setCompositionWindowMode(Vector2U size, bool latency_event)
+	{
+		// 检查参数
+
+		if (size.x < 1 || size.y < 1)
+		{
+			i18n_log_error_fmt("[core].SwapChain_D3D11.create_swapchain_failed_invalid_size_fmt", size.x, size.y);
+			return false;
+		}
+
+		// 销毁旧交换链
+
+		dispatchEvent(EventType::SwapChainDestroy);
+		destroySwapChain();
+
+		// 如果有重定向表面，则去除
+
+		if (m_window->getRedirectBitmapEnable())
+		{
+			m_window->setRedirectBitmapEnable(false);
+			if (!m_window->recreateWindow())
+				return false;
+		}
+
+		// 创建交换链
+
+		if (!createCompositionSwapChain(size, latency_event))
+		{
+			return false;
+		}
+
+		// 更新数据
+
+		m_swapchain_last_mode = DisplayMode{
+			.width = size.x,
+			.height = size.y,
+			.refresh_rate = Rational(),
+			.format = Format::B8G8R8A8_UNORM,
+		};
+		m_swapchain_last_windowed = TRUE;
+		m_swapchain_last_flip = TRUE;
+		m_swapchain_last_latency_event = latency_event;
+		m_init = TRUE;
+		m_swapchain_flip_enabled = TRUE; // 固定是开启过的
+
+		// 通知各个组件交换链已重新创建
+
+		dispatchEvent(EventType::SwapChainCreate);
+
+		// 清空窗口焦点事件
+
+		m_window_active_changed.exchange(0x0); 
 
 		return true;
 	}
@@ -883,6 +1341,15 @@ namespace Core::Graphics
 		{
 			if (!m_window->recreateWindow()) return false;
 			m_swapchain_flip_enabled = FALSE;
+		}
+		if (!m_window->getRedirectBitmapEnable())
+		{
+			m_window->setRedirectBitmapEnable(true);
+			if (!m_window->recreateWindow()) return false;
+			if (m_swapchain_flip_enabled)
+			{
+				m_swapchain_flip_enabled = FALSE;
+			}
 		}
 
 		if (!createSwapChain(false, false, false, mode, true)) // 稍后创建渲染附件
