@@ -1229,6 +1229,13 @@ namespace Core::Graphics
 					assert(false); return false;
 				}
 
+				BOOL overlay_ = FALSE;
+				Microsoft::WRL::ComPtr<IDXGIOutput2> output2_;
+				if (bHR = output_.As(&output2_))
+				{
+					overlay_ = output2_->SupportsOverlays();
+				}
+
 				UINT overlay_flags = 0;
 				Microsoft::WRL::ComPtr<IDXGIOutput3> output3_;
 				if (bHR = output_.As(&output3_))
@@ -1262,6 +1269,7 @@ namespace Core::Graphics
 					, desc.DesktopCoordinates.right - desc.DesktopCoordinates.left
 					, desc.DesktopCoordinates.bottom - desc.DesktopCoordinates.top
 					, rotation_to_string(desc.Rotation)
+					, overlay_ ? i18n("support") : i18n("not_support")
 					, multi_plane_overlay_flags_to_string(overlay_flags)
 					, hardware_composition_flags_to_string(composition_flags)
 				);
