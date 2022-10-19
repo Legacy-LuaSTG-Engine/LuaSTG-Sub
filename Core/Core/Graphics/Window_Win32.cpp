@@ -225,6 +225,14 @@ namespace Core::Graphics
 		// 直接创建窗口
 
 		convertTitleText();
+		if (m_redirect_bitmap)
+		{
+			win32_window_style_ex |= WS_EX_NOREDIRECTIONBITMAP;
+		}
+		else
+		{
+			win32_window_style_ex &= ~DWORD(WS_EX_NOREDIRECTIONBITMAP);
+		}
 		win32_window = CreateWindowExW(
 			win32_window_style_ex,
 			win32_window_class.lpszClassName,
@@ -251,6 +259,7 @@ namespace Core::Graphics
 		m_sizemove.setWindow(win32_window);
 
 		// 暗色模式
+
 		platform::WindowTheme::UpdateColorMode(win32_window, TRUE);
 
 		return true;
@@ -349,6 +358,14 @@ namespace Core::Graphics
 	{
 		win32_window_dpi = platform::HighDPI::GetDpiForWindow(win32_window);
 		return win32_window_dpi;
+	}
+	void Window_Win32::setRedirectBitmapEnable(bool enable)
+	{
+		m_redirect_bitmap = enable ? TRUE : FALSE;
+	}
+	bool Window_Win32::getRedirectBitmapEnable()
+	{
+		return m_redirect_bitmap;
 	}
 
 	void Window_Win32::dispatchEvent(EventType t)
