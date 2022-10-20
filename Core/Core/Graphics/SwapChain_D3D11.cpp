@@ -261,18 +261,18 @@ namespace Core::Graphics
 				{
 					if (m_device->IsTearingSupport()) // Windows 10 且要求系统支持
 					{
-						desc1.BufferCount = 3;
+						desc1.BufferCount = 2;
 						desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 						desc1.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
 					}
 					else if (m_device->IsFlipDiscardSupport()) // Windows 10
 					{
-						desc1.BufferCount = 3;
+						desc1.BufferCount = 2;
 						desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 					}
 					else if (m_device->IsFlipSequentialSupport()) // Windows 8
 					{
-						desc1.BufferCount = 3;
+						desc1.BufferCount = 2;
 						desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 					}
 				}
@@ -280,6 +280,7 @@ namespace Core::Graphics
 				{
 					if (m_device->IsFrameLatencySupport()) // Windows 8.1
 					{
+						desc1.BufferCount = 3;
 						desc1.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 					}
 				}
@@ -701,6 +702,7 @@ namespace Core::Graphics
 		}
 		if (latency_event && m_device->IsFrameLatencySupport()) // Windows 8.1
 		{
+			desc.BufferCount = 3;
 			desc.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT; // 低延迟渲染
 		}
 
