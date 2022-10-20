@@ -125,13 +125,13 @@ namespace LuaSTGPlus
 		double m_fFPS = 0.;
 		double m_fAvgFPS = 0.;
 
-		//渲染状态
+		// 渲染状态
 		bool m_bRenderStarted = false;
 		
 		// 渲染目标栈
 		std::vector<fcyRefPointer<ResTexture>> m_stRenderTargetStack;
 		
-		//输入设备
+		// 输入设备
 		std::unique_ptr<platform::DirectInput> m_DirectInput;
 		
 	public:
