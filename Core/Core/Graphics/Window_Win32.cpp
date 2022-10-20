@@ -225,7 +225,7 @@ namespace Core::Graphics
 		// 直接创建窗口
 
 		convertTitleText();
-		if (m_redirect_bitmap)
+		if (!m_redirect_bitmap)
 		{
 			win32_window_style_ex |= WS_EX_NOREDIRECTIONBITMAP;
 		}
