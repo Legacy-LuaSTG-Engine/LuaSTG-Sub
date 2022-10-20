@@ -1193,11 +1193,6 @@ namespace Core::Graphics
 		dispatchEvent(EventType::SwapChainDestroy);
 		destroySwapChain();
 
-		if (!flip_model && m_swapchain_flip_enabled)
-		{
-			if (!m_window->recreateWindow()) return false;
-			m_swapchain_flip_enabled = FALSE;
-		}
 		if (!m_window->getRedirectBitmapEnable())
 		{
 			m_window->setRedirectBitmapEnable(true);
@@ -1206,6 +1201,11 @@ namespace Core::Graphics
 			{
 				m_swapchain_flip_enabled = FALSE;
 			}
+		}
+		else if (!flip_model && m_swapchain_flip_enabled)
+		{
+			if (!m_window->recreateWindow()) return false;
+			m_swapchain_flip_enabled = FALSE;
 		}
 
 		DisplayMode mode = {
@@ -1337,11 +1337,6 @@ namespace Core::Graphics
 		dispatchEvent(EventType::SwapChainDestroy);
 		destroySwapChain();
 
-		if (m_swapchain_flip_enabled)
-		{
-			if (!m_window->recreateWindow()) return false;
-			m_swapchain_flip_enabled = FALSE;
-		}
 		if (!m_window->getRedirectBitmapEnable())
 		{
 			m_window->setRedirectBitmapEnable(true);
@@ -1351,7 +1346,12 @@ namespace Core::Graphics
 				m_swapchain_flip_enabled = FALSE;
 			}
 		}
-
+		else if (m_swapchain_flip_enabled)
+		{
+			if (!m_window->recreateWindow()) return false;
+			m_swapchain_flip_enabled = FALSE;
+		}
+		
 		if (!createSwapChain(false, false, false, mode, true)) // 稍后创建渲染附件
 		{
 			return false;
