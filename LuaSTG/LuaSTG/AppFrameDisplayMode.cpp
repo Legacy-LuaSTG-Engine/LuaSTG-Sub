@@ -170,6 +170,51 @@ namespace LuaSTGPlus
 		return result;
 	}
 
+	bool AppFrame::SetDisplayModeCompositionFullscreen(
+		Core::Vector2I rendering_size, Core::RectI monitor_rect, bool vsync, bool swapchain_low_latency)
+	{
+		auto* window = GetAppModel()->getWindow();
+		auto* swapchain = GetAppModel()->getSwapChain();
+
+		if (isRectEmpty(monitor_rect))
+		{
+			// 对于全屏无边框窗口模式，显示器矩形为空，将会失败
+			logResult(false, m_Setting, MODE_NAME_FULLSCREEN);
+			return false;
+		}
+
+		bool find_result = false;
+		uint32_t const index = matchMonitorIndex(window, monitor_rect, find_result);
+		if (!find_result)
+		{
+			// 对于全屏无边框窗口模式，如果找不到对应的显示器，将会失败
+			logResult(find_result, m_Setting, MODE_NAME_FULLSCREEN);
+			return false;
+		}
+		Core::Vector2I const window_size = getMonitorSize(window, index);
+
+		swapchain->setVSync(vsync);
+		bool const result = swapchain->setWindowMode(rendering_size.x, rendering_size.y, true, swapchain_low_latency);
+
+		window->setLayer(Core::Graphics::WindowLayer::Normal); // 强制取消窗口置顶
+		window->setFrameStyle(Core::Graphics::WindowFrameStyle::None);
+		//window->setSize(size); // 这个其实没必要调用……
+		window->setMonitorFullScreen(index);
+
+		logResult(result, m_Setting, MODE_NAME_FULLSCREEN);
+
+		m_Setting.display_setting_type = DisplaySettingType::Fullscreen;
+		m_Setting.fullscreen.window_size = window_size;
+		m_Setting.fullscreen.monitor_rect = monitor_rect;
+		m_Setting.fullscreen.vsync = vsync;
+		m_Setting.fullscreen.swapchain_flip = true;
+		m_Setting.fullscreen.swapchain_low_latency = swapchain_low_latency;
+
+		m_Setting.toggle_between_fullscreen_type = DisplaySettingType::Fullscreen;
+
+		return result;
+	}
+
 	bool AppFrame::SetDisplayModeExclusiveFullscreen(Core::Vector2I window_size, bool vsync, Core::Rational refresh_rate)
 	{
 		auto* window = GetAppModel()->getWindow();
