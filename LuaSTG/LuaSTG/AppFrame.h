@@ -203,6 +203,9 @@ namespace LuaSTGPlus
 		// 以全屏无边框窗口显示  
 		bool SetDisplayModeFullscreen(Core::RectI monitor_rect, bool vsync, bool swapchain_flip, bool swapchain_low_latency);
 
+		// 以全屏无边框窗口显示，通过合成交换链来缩放内容  
+		bool SetDisplayModeCompositionFullscreen(Core::Vector2I rendering_size, Core::RectI monitor_rect, bool vsync, bool swapchain_low_latency);
+
 		// 以独占全屏显示  
 		// 当 refresh_rate 为全 0 时，自动选择合适的匹配的刷新率  
 		bool SetDisplayModeExclusiveFullscreen(Core::Vector2I window_size, bool vsync, Core::Rational refresh_rate);
