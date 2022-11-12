@@ -306,11 +306,13 @@ void AppFrame::onDeviceChange()
 	m_window_active_changed.fetch_or(0x4);
 }
 
-void AppFrame::onUpdate()
+bool AppFrame::onUpdate()
 {
 	m_fFPS = m_pAppModel->getFrameRateController()->getFPS();
 	m_fAvgFPS = m_pAppModel->getFrameRateController()->getAvgFPS();
 	m_pAppModel->getFrameRateController()->setTargetFPS(m_Setting.target_fps);
+
+	bool result = true;
 
 	{
 		ZoneScopedN("OnUpdate-Event");
@@ -326,7 +328,10 @@ void AppFrame::onUpdate()
 			SafeCallGlobalFunctionB(LuaSTG::LuaEngine::G_CALLBACK_EngineEvent, 2, 0);
 
 			if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_FocusLoseFunc))
+			{
+				result = false;
 				m_pAppModel->requestExit();
+			}
 		}
 		if (window_active_changed & 0x1)
 		{
@@ -338,7 +343,10 @@ void AppFrame::onUpdate()
 			SafeCallGlobalFunctionB(LuaSTG::LuaEngine::G_CALLBACK_EngineEvent, 2, 0);
 
 			if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_FocusGainFunc))
+			{
+				result = false;
 				m_pAppModel->requestExit();
+			}
 		}
 		if (window_active_changed & 0x4)
 		{
@@ -362,25 +370,32 @@ void AppFrame::onUpdate()
 	_frame_count += 1;
 #endif
 
+	if (result)
 	{
 		ZoneScopedN("OnUpdate-LuaCallback");
 		// 执行帧函数
 		imgui::cancelSetCursor();
 		m_GameObjectPool->DebugNextFrame();
 		if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineUpdate, 1))
+		{
+			result = false;
 			m_pAppModel->requestExit();
+		}
 		bool tAbort = lua_toboolean(L, -1) != 0;
 		lua_pop(L, 1);
 		if (tAbort)
 			m_pAppModel->requestExit();
 		m_ResourceMgr.UpdateSound();
 	}
+
+	return result;
 }
-void AppFrame::onRender()
+bool AppFrame::onRender()
 {
 	m_bRenderStarted = true;
 	// 执行渲染函数
-	if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineDraw))
+	bool result = SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineDraw);
+	if (!result)
 		m_pAppModel->requestExit();
 	// 发出警告
 	if (!m_stRenderTargetStack.empty())
@@ -390,6 +405,7 @@ void AppFrame::onRender()
 			PopRenderTarget();
 	}
 	m_bRenderStarted = false;
+	return result;
 }
 
 #pragma endregion

@@ -156,6 +156,7 @@ namespace LuaSTGPlus
         if (lua_type(L, lua_gettop(L)) != LUA_TFUNCTION)
         {
             //															// ? ... trace nil
+        #ifdef _DEBUG
             try
             {
                 spdlog::error("[luajit] 调用全局函数'{}'时出错：全局函数'{}'不存在", name, name);
@@ -171,6 +172,7 @@ namespace LuaSTGPlus
             {
                 spdlog::error("[luastg] 记录日志时出错");
             }
+        #endif
             lua_pop(L, argc + 2); 										// ?
             return false;
         }
