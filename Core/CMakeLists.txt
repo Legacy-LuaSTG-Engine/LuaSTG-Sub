@@ -53,6 +53,8 @@ set(Core_SRC
     Core/Graphics/DearImGui_Win32_D3D11.hpp
     Core/Graphics/DearImGui_Win32_D3D11.cpp
     Core/Graphics/DCompositionLoader.hpp
+    Core/PresentationModel.hpp
+    Core/PresentationModel.cpp
     Core/ApplicationModel.hpp
     Core/ApplicationModel_Win32.hpp
     Core/ApplicationModel_Win32.cpp

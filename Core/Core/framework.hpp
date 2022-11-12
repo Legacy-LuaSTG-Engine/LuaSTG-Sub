@@ -19,6 +19,7 @@
 
 #define NOMINMAX
 #include <Windows.h>
+#include <VersionHelpers.h>
 #include <wrl/client.h>
 #include <wrl/wrappers/corewrappers.h>
 #include <dxgi1_6.h>
