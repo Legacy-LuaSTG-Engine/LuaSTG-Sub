@@ -362,6 +362,8 @@ namespace Core
 			FrameStatistics& d = m_framestate[i];
 			ScopeTimer gt(d.total_time);
 
+			bool update_result = false;
+
 			// 更新
 			{
 				ZoneScopedN("OnUpdate");
@@ -371,21 +373,25 @@ namespace Core
 				{
 					break;
 				}
-				m_listener->onUpdate();
+				update_result = m_listener->onUpdate();
 				m_swapchain->syncWindowActive();
 			}
 			
+			bool render_result = false;
+
 			// 渲染
+			if (update_result)
 			{
 				ZoneScopedN("OnRender");
 				TracyD3D11Zone(tracy::xTracyD3D11Ctx(), "OnRender");
 				ScopeTimer t(d.render_time);
 				m_swapchain->applyRenderAttachment();
 				m_swapchain->clearRenderAttachment();
-				m_listener->onRender();
+				render_result = m_listener->onRender();
 			}
 			
 			// 呈现
+			if (render_result)
 			{
 				ZoneScopedN("OnPresent");
 				ScopeTimer t(d.present_time);

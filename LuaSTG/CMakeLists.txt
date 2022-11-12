@@ -121,6 +121,8 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/AppFrameRenderEx.cpp
     LuaSTG/LConfig.h
     LuaSTG/LMathConstant.hpp
+    LuaSTG/RuntimeCheck.hpp
+    LuaSTG/RuntimeCheck.cpp
     LuaSTG/Main.cpp
 
     LuaSTG/LuaSTG.manifest

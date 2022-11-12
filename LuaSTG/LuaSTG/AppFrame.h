@@ -337,8 +337,8 @@ namespace LuaSTGPlus
 		void onWindowInactive() override;
 		void onDeviceChange() override;
 
-		void onUpdate() override;
-		void onRender() override;
+		bool onUpdate() override;
+		bool onRender() override;
 	public:
 		AppFrame()noexcept;
 		~AppFrame()noexcept;

@@ -16,6 +16,7 @@ set(platform_sources
     platform/pch/pch.cpp
     platform/HighDPI.hpp
     platform/HighDPI.cpp
+    platform/CleanWindows.hpp
     platform/KnownDirectory.hpp
     platform/KnownDirectory.cpp
     platform/CommandLine.hpp

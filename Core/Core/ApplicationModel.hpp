@@ -23,9 +23,9 @@ namespace Core
     struct IApplicationEventListener
     {
         // [工作线程]
-        virtual void onUpdate() {}
+        virtual bool onUpdate() { return true; }
         // [工作线程]
-        virtual void onRender() {}
+        virtual bool onRender() { return true; }
     };
 
     struct FrameStatistics
