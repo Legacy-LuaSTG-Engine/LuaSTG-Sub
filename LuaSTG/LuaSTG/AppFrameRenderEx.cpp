@@ -2,14 +2,24 @@
 
 namespace LuaSTGPlus
 {
-    bool AppFrame::CheckRenderTargetInUse(ResTexture* rt)noexcept
+    bool AppFrame::BeginRenderTargetStack()
     {
-        if (!rt || !rt->IsRenderTarget() || m_stRenderTargetStack.empty())
-            return false;
-        return rt == *(m_stRenderTargetStack.back());
+        m_stRenderTargetStack.clear();
+        GetAppModel()->getSwapChain()->applyRenderAttachment();
+        return true;
     }
-    
-    bool AppFrame::PushRenderTarget(ResTexture* rt)noexcept
+    bool AppFrame::EndRenderTargetStack()
+    {
+        // 发出警告
+        if (!m_stRenderTargetStack.empty())
+        {
+            spdlog::error("[luastg] 渲染结束时 RenderTarget 栈不为空，可能缺少对 lstg.PopRenderTarget 的调用");
+            m_stRenderTargetStack.clear();
+            GetAppModel()->getSwapChain()->applyRenderAttachment();
+        }
+        return true;
+    }
+    bool AppFrame::PushRenderTarget(ResTexture* rt)
     {
         if (!rt || !rt->IsRenderTarget())
         {
@@ -21,7 +31,7 @@ namespace LuaSTGPlus
             spdlog::error("[luastg] PushRenderTarget: 无效调用");
             return false;
         }
-        
+
         GetRenderer2D()->setRenderAttachment(
             rt->GetRenderTarget(),
             rt->GetDepthStencilBuffer()
@@ -31,20 +41,20 @@ namespace LuaSTGPlus
 
         return true;
     }
-    bool AppFrame::PopRenderTarget()noexcept
+    bool AppFrame::PopRenderTarget()
     {
         if (!m_bRenderStarted)
         {
             spdlog::error("[luastg] PopRenderTarget: 无效调用");
             return false;
         }
-        
+
         if (m_stRenderTargetStack.empty())
         {
             spdlog::error("[luastg] PopRenderTarget: RenderTarget 栈已为空");
             return false;
         }
-        
+
         m_stRenderTargetStack.pop_back();
 
         if (!m_stRenderTargetStack.empty())
@@ -62,8 +72,13 @@ namespace LuaSTGPlus
 
         return true;
     }
-    
-    Core::Vector2U AppFrame::GetCurrentRenderTargetSize()
+    bool AppFrame::CheckRenderTargetInUse(ResTexture* rt)
+    {
+        if (!rt || !rt->IsRenderTarget() || m_stRenderTargetStack.empty())
+            return false;
+        return rt == *(m_stRenderTargetStack.back());
+    }
+    Core::Vector2U AppFrame::GetTopRenderTargetSize()
     {
         if (!m_stRenderTargetStack.empty())
         {
@@ -78,6 +93,61 @@ namespace LuaSTGPlus
         }
     }
 
+    void AppFrame::AddAutoSizeRenderTarget(ResTexture* rt)
+    {
+        assert(rt);
+        if (!m_AutoSizeRenderTarget.contains(rt))
+            m_AutoSizeRenderTarget.insert(rt);
+    }
+    void AppFrame::RemoveAutoSizeRenderTarget(ResTexture* rt)
+    {
+        assert(rt);
+        if (m_AutoSizeRenderTarget.contains(rt))
+            m_AutoSizeRenderTarget.erase(rt);
+    }
+    Core::Vector2U AppFrame::GetAutoSizeRenderTargetSize()
+    {
+        if (m_AutoSizeRenderTargetSize.x == 0 || m_AutoSizeRenderTargetSize.y == 0)
+        {
+            // 初始化
+            m_AutoSizeRenderTargetSize = Core::Vector2U(
+                GetAppModel()->getSwapChain()->getWidth(),
+                GetAppModel()->getSwapChain()->getHeight()
+            );
+        }
+        return m_AutoSizeRenderTargetSize;
+    }
+    bool AppFrame::ResizeAutoSizeRenderTarget(Core::Vector2U size)
+    {
+        m_AutoSizeRenderTargetSize = size;
+        int failed_count = 0;
+        for (auto* rt : m_AutoSizeRenderTarget)
+        {
+            if (!rt->ResizeRenderTarget(size))
+            {
+                failed_count += 1;
+            }
+        }
+        return failed_count == 0;
+    }
+
+    void AppFrame::onSwapChainCreate()
+    {
+        ResizeAutoSizeRenderTarget(Core::Vector2U(
+            GetAppModel()->getSwapChain()->getWidth(),
+            GetAppModel()->getSwapChain()->getHeight()
+        ));
+    }
+    void AppFrame::onSwapChainDestroy() {}
+
+    IRenderTargetManager* AppFrame::GetRenderTargetManager()
+    {
+        return dynamic_cast<IRenderTargetManager*>(this);
+    }
+}
+
+namespace LuaSTGPlus
+{
     void AppFrame::DebugSetGeometryRenderState()
     {
         using namespace Core::Graphics;

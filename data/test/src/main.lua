@@ -12,6 +12,13 @@ function window:applyCameraV()
     lstg.SetImageScale(1)
     lstg.SetFog()
 end
+---@param width number
+---@param height number
+function window:setSize(width, height)
+    window.width = width
+    window.height = height
+    lstg.ChangeVideoMode(self.width, self.height, true, true)
+end
 
 local imgui = require("imgui")
 local test = require("test")
@@ -40,6 +47,7 @@ local function showSelectGpuWindow()
     ImGui.End()
 end
 
+require("test_rendertarget")
 require("test_textrenderer")
 require("test_texture")
 require("test_sampler")

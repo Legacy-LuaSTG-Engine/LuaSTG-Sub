@@ -2022,6 +2022,14 @@ namespace Core::Graphics
 
 	// DepthStencil
 
+	bool DepthStencilBuffer_D3D11::setSize(Vector2U size)
+	{
+		d3d11_texture2d.Reset();
+		d3d11_dsv.Reset();
+		m_size = size;
+		return createResource();
+	}
+
 	void DepthStencilBuffer_D3D11::onDeviceCreate()
 	{
 		createResource();
