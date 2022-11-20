@@ -168,10 +168,10 @@ namespace Core::Graphics
 	static void updateKeyModifiers()
 	{
 		ImGuiIO& io = ImGui::GetIO();
-		io.AddKeyEvent(ImGuiKey_ModCtrl, isVkDown(VK_CONTROL));
-		io.AddKeyEvent(ImGuiKey_ModShift, isVkDown(VK_SHIFT));
-		io.AddKeyEvent(ImGuiKey_ModAlt, isVkDown(VK_MENU));
-		io.AddKeyEvent(ImGuiKey_ModSuper, isVkDown(VK_APPS));
+		io.AddKeyEvent(ImGuiMod_Ctrl, isVkDown(VK_CONTROL));
+		io.AddKeyEvent(ImGuiMod_Shift, isVkDown(VK_SHIFT));
+		io.AddKeyEvent(ImGuiMod_Alt, isVkDown(VK_MENU));
+		io.AddKeyEvent(ImGuiMod_Super, isVkDown(VK_APPS));
 	}
 	
 	inline WPARAM convertImVec2ToWPARAM(ImVec2 const& v)
