@@ -97,10 +97,31 @@ namespace LuaSTGPlus
 		DisplaySettingType toggle_between_fullscreen_type{ DisplaySettingType::Window };
 	};
 
+	struct IRenderTargetManager
+	{
+		// 渲染目标栈
+
+		virtual bool BeginRenderTargetStack() = 0;
+		virtual bool EndRenderTargetStack() = 0;
+		virtual bool PushRenderTarget(ResTexture* rt) = 0;
+		virtual bool PopRenderTarget() = 0;
+		virtual bool CheckRenderTargetInUse(ResTexture* rt) = 0;
+		virtual Core::Vector2U GetTopRenderTargetSize() = 0;
+
+		// 维护自动大小的渲染目标
+
+		virtual void AddAutoSizeRenderTarget(ResTexture* rt) = 0;
+		virtual void RemoveAutoSizeRenderTarget(ResTexture* rt) = 0;
+		virtual Core::Vector2U GetAutoSizeRenderTargetSize() = 0;
+		virtual bool ResizeAutoSizeRenderTarget(Core::Vector2U size) = 0;
+	};
+
 	/// @brief 应用程序框架
 	class AppFrame
 		: public Core::IApplicationEventListener
 		, public Core::Graphics::IWindowEventListener
+		, public Core::Graphics::ISwapChainEventListener
+		, public IRenderTargetManager
 	{
 	private:
 		AppStatus m_iStatus = AppStatus::NotInitialized;
@@ -127,9 +148,6 @@ namespace LuaSTGPlus
 
 		// 渲染状态
 		bool m_bRenderStarted = false;
-		
-		// 渲染目标栈
-		std::vector<fcyRefPointer<ResTexture>> m_stRenderTargetStack;
 		
 		// 输入设备
 		std::unique_ptr<platform::DirectInput> m_DirectInput;
@@ -279,15 +297,46 @@ namespace LuaSTGPlus
 		void SnapShot(const char* path)noexcept;
 		void SaveTexture(const char* tex_name, const char* path)noexcept;
 
-		bool CheckRenderTargetInUse(ResTexture* rt)noexcept;
-		bool PushRenderTarget(ResTexture* rt)noexcept;
-		bool PopRenderTarget()noexcept;
-		Core::Vector2U GetCurrentRenderTargetSize();
+		// ---------- 绘制常用形状 ----------
 
+	public:
 		void DebugSetGeometryRenderState();
 		void DebugDrawCircle(float x, float y, float r, Core::Color4B color);
 		void DebugDrawRect(float x, float y, float a, float b, float rot, Core::Color4B color);
 		void DebugDrawEllipse(float x, float y, float a, float b, float rot, Core::Color4B color);
+
+		// ---------- 渲染目标管理 ----------
+
+	private:
+		std::vector<fcyRefPointer<ResTexture>> m_stRenderTargetStack;
+		std::set<ResTexture*> m_AutoSizeRenderTarget;
+		Core::Vector2U m_AutoSizeRenderTargetSize;
+	private:
+		// 渲染目标栈
+
+		bool BeginRenderTargetStack();
+		bool EndRenderTargetStack();
+		bool PushRenderTarget(ResTexture* rt);
+		bool PopRenderTarget();
+		bool CheckRenderTargetInUse(ResTexture* rt);
+		Core::Vector2U GetTopRenderTargetSize();
+
+		// 维护自动大小的渲染目标
+
+		void AddAutoSizeRenderTarget(ResTexture* rt);
+		void RemoveAutoSizeRenderTarget(ResTexture* rt);
+		Core::Vector2U GetAutoSizeRenderTargetSize();
+		bool ResizeAutoSizeRenderTarget(Core::Vector2U size);
+
+	public:
+		// 事件监听
+
+		void onSwapChainCreate() override;
+		void onSwapChainDestroy() override;
+
+		// 接口
+
+		IRenderTargetManager* GetRenderTargetManager();
 
 	public:
 		// 文字渲染器包装

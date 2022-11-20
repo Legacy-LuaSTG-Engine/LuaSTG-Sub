@@ -8,10 +8,8 @@ namespace LuaSTGPlus
 	// 纹理资源
 	class ResTexture
 		: public Resource
-		, public Core::Graphics::ISwapChainEventListener
 	{
 	private:
-		Core::ScopeObject<Core::Graphics::ISwapChain> m_swapchain; // 用于自动调整渲染目标大小的
 		Core::ScopeObject<Core::Graphics::ITexture2D> m_texture;
 		Core::ScopeObject<Core::Graphics::IRenderTarget> m_rt;
 		Core::ScopeObject<Core::Graphics::IDepthStencilBuffer> m_ds;
@@ -19,9 +17,7 @@ namespace LuaSTGPlus
 		bool m_is_auto_resize{ false };
 		bool m_enable_depthbuffer{ false };
 	public:
-		bool createResources();
-		void onSwapChainCreate();
-		void onSwapChainDestroy();
+		bool ResizeRenderTarget(Core::Vector2U size);
 	public:
 		Core::Graphics::ITexture2D* GetTexture() { return m_texture.get(); }
 		Core::Graphics::IRenderTarget* GetRenderTarget() { return m_rt.get(); }

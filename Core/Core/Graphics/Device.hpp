@@ -123,6 +123,7 @@ namespace Core::Graphics
 	{
 		virtual void* getNativeHandle() = 0;
 
+		virtual bool setSize(Vector2U size) = 0;
 		virtual Vector2U getSize() = 0;
 	};
 

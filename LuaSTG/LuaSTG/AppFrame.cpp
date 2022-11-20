@@ -255,10 +255,12 @@ void AppFrame::Run()noexcept
 	spdlog::info("[luastg] 开始更新&渲染循环");
 	
 	m_pAppModel->getWindow()->addEventListener(this);
+	m_pAppModel->getSwapChain()->addEventListener(this);
 
 	m_pAppModel->getFrameRateController()->setTargetFPS(m_Setting.target_fps);
 	m_pAppModel->run();
 	
+	m_pAppModel->getSwapChain()->removeEventListener(this);
 	m_pAppModel->getWindow()->removeEventListener(this);
 
 	spdlog::info("[luastg] 结束更新&渲染循环");
@@ -393,17 +395,16 @@ bool AppFrame::onUpdate()
 bool AppFrame::onRender()
 {
 	m_bRenderStarted = true;
+
+	GetRenderTargetManager()->BeginRenderTargetStack();
+
 	// 执行渲染函数
 	bool result = SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineDraw);
 	if (!result)
 		m_pAppModel->requestExit();
-	// 发出警告
-	if (!m_stRenderTargetStack.empty())
-	{
-		spdlog::error("[luastg] [AppFrame::OnRender] 渲染结束时 RenderTarget 栈不为空，可能缺少对 lstg.PopRenderTarget 的调用");
-		while (!m_stRenderTargetStack.empty())
-			PopRenderTarget();
-	}
+
+	GetRenderTargetManager()->EndRenderTargetStack();
+
 	m_bRenderStarted = false;
 	return result;
 }

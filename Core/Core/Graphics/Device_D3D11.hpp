@@ -277,6 +277,7 @@ namespace Core::Graphics
 	public:
 		void* getNativeHandle() { return d3d11_dsv.Get(); }
 
+		bool setSize(Vector2U size);
 		Vector2U getSize() { return m_size; }
 
 	public:

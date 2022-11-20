@@ -6,7 +6,7 @@ inline Core::Graphics::IRenderer* LR2D() { return LAPP.GetAppModel()->getRendere
 inline LuaSTGPlus::ResourceMgr& LRESMGR() { return LAPP.GetResourceMgr(); }
 
 #ifdef _DEBUG
-#define check_rendertarget_usage(PTEXTURE) assert(!LuaSTGPlus::AppFrame::GetInstance().CheckRenderTargetInUse(PTEXTURE));
+#define check_rendertarget_usage(PTEXTURE) assert(!LuaSTGPlus::AppFrame::GetInstance().GetRenderTargetManager()->CheckRenderTargetInUse(PTEXTURE));
 #else
 #define check_rendertarget_usage(PTEXTURE)
 #endif // _DEBUG
@@ -712,7 +712,7 @@ static int compat_SetViewport(lua_State* L)noexcept
             1.0f
         );
     }
-    Core::Vector2U const backbuf_size = LAPP.GetCurrentRenderTargetSize();
+    Core::Vector2U const backbuf_size = LAPP.GetRenderTargetManager()->GetTopRenderTargetSize();
     box.a.y = (float)backbuf_size.y - box.a.y;
     box.b.y = (float)backbuf_size.y - box.b.y;
     LR2D()->setViewport(box);
@@ -726,7 +726,7 @@ static int compat_SetScissorRect(lua_State* L)noexcept
         (float)luaL_checknumber(L, 2),
         (float)luaL_checknumber(L, 3)
     );
-    Core::Vector2U const backbuf_size = LAPP.GetCurrentRenderTargetSize();
+    Core::Vector2U const backbuf_size = LAPP.GetRenderTargetManager()->GetTopRenderTargetSize();
     rect.a.y = (float)backbuf_size.y - rect.a.y;
     rect.b.y = (float)backbuf_size.y - rect.b.y;
     LR2D()->setScissorRect(rect);
@@ -776,7 +776,7 @@ static int compat_PushRenderTarget(lua_State* L)noexcept
     if (!p->IsRenderTarget())
         return luaL_error(L, "'%s' is a texture.", luaL_checkstring(L, 1));
 
-    if (!LAPP.PushRenderTarget(p))
+    if (!LAPP.GetRenderTargetManager()->PushRenderTarget(p))
         return luaL_error(L, "push rendertarget '%s' failed.", luaL_checkstring(L, 1));
     LR2D()->setViewportAndScissorRect();
     return 0;
@@ -784,7 +784,7 @@ static int compat_PushRenderTarget(lua_State* L)noexcept
 static int compat_PopRenderTarget(lua_State* L)noexcept
 {
     LR2D()->flush();
-    if (!LAPP.PopRenderTarget())
+    if (!LAPP.GetRenderTargetManager()->PopRenderTarget())
         return luaL_error(L, "pop rendertarget failed.");
     LR2D()->setViewportAndScissorRect();
     return 0;
