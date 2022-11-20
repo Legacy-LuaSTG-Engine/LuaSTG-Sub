@@ -162,15 +162,17 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(SmallButton),
     MAKEF(InvisibleButton),
     MAKEF(ArrowButton),
-    MAKEF(Image),
-    MAKEF(ImageButton),
     MAKEF(Checkbox),
     MAKEF(CheckboxFlags),
     MAKEF(RadioButton),
     MAKEF(ProgressBar),
     MAKEF(Bullet),
     
-    // Widgets: Combo Box
+    // Widgets: Images
+    MAKEF(Image),
+    MAKEF(ImageButton),
+
+    // Widgets: Combo Box (Dropdown)
     MAKEF(BeginCombo),
     MAKEF(EndCombo),
     MAKEF(Combo),
