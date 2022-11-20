@@ -1366,14 +1366,6 @@ static int lib_ArrowButton(lua_State* L)
     lua_pushboolean(L, ret);
     return 1;
 }
-static /* !!!! */ int lib_Image(lua_State* L)
-{
-    LUA_IMGUI_NOT_SUPPORT;
-}
-static /* !!!! */ int lib_ImageButton(lua_State* L)
-{
-    LUA_IMGUI_NOT_SUPPORT;
-}
 static int lib_Checkbox(lua_State* L)
 {
     const char* label = luaL_checkstring(L, 1);
@@ -1443,7 +1435,18 @@ static int lib_Bullet(lua_State* L)
     return 0;
 }
 
-//////// Widgets: Combo Box
+//////// Widgets: Images
+
+static /* !!!! */ int lib_Image(lua_State* L)
+{
+    LUA_IMGUI_NOT_SUPPORT;
+}
+static /* !!!! */ int lib_ImageButton(lua_State* L)
+{
+    LUA_IMGUI_NOT_SUPPORT;
+}
+
+//////// Widgets: Combo Box (Dropdown)
 
 static int lib_BeginCombo(lua_State* L)
 {
@@ -1683,12 +1686,6 @@ static int lib_TreePush(lua_State* L)
 {
     switch (lua_type(L, 1))
     {
-    case LUA_TNONE:
-    case LUA_TNIL:
-        {
-            ImGui::TreePush();
-            break;
-        }
     case LUA_TUSERDATA:
     case LUA_TLIGHTUSERDATA:
         {
