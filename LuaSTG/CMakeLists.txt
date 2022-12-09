@@ -1,5 +1,6 @@
 # LuaSTG configurer
 
+include(Platform.cmake)
 include(Core.cmake)
 add_subdirectory(Configurer)
 

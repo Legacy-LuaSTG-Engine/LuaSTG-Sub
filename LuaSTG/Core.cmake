@@ -52,7 +52,6 @@ set(Core_SRC
     Core/Graphics/Font_D3D11.cpp
     Core/Graphics/DearImGui_Win32_D3D11.hpp
     Core/Graphics/DearImGui_Win32_D3D11.cpp
-    Core/Graphics/DCompositionLoader.hpp
     Core/PresentationModel.hpp
     Core/PresentationModel.cpp
     Core/ApplicationModel.hpp
@@ -87,6 +86,7 @@ target_link_libraries(Core PUBLIC
     # util
     utility
     platform
+    PlatformAPI
     # win32
     winmm.lib
     imm32.lib

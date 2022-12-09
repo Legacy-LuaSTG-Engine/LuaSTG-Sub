@@ -3,7 +3,7 @@
 #include "Core/Graphics/SwapChain.hpp"
 #include "Core/Graphics/Window_Win32.hpp"
 #include "Core/Graphics/Device_D3D11.hpp"
-#include "Core/Graphics/DCompositionLoader.hpp"
+#include "Platform/RuntimeLoader/DirectComposition.hpp"
 
 namespace Core::Graphics
 {
@@ -21,7 +21,7 @@ namespace Core::Graphics
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> d3d11_rtv;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> d3d11_dsv;
 
-		DCompositionLoader dcomp_loader;
+		Platform::RuntimeLoader::DirectComposition dcomp_loader;
 		Microsoft::WRL::ComPtr<IDCompositionDevice> dcomp_device;
 		Microsoft::WRL::ComPtr<IDCompositionDesktopDevice> dcomp_desktop_device;
 		Microsoft::WRL::ComPtr<IDCompositionTarget> dcomp_target;
