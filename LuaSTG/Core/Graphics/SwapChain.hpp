@@ -35,8 +35,7 @@ namespace Core::Graphics
 		virtual bool setSize(uint32_t width, uint32_t height) = 0; // 仅限窗口模式下
 		virtual bool setExclusiveFullscreenMode(DisplayMode const& mode) = 0;
 		virtual bool isWindowMode() = 0;
-		virtual uint32_t getWidth() = 0;
-		virtual uint32_t getHeight() = 0;
+		virtual Vector2U getSize() = 0;
 
 		virtual void clearRenderAttachment() = 0;
 		virtual void applyRenderAttachment() = 0;
