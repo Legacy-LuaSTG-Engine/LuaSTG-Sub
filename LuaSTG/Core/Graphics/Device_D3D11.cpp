@@ -191,8 +191,6 @@ namespace Core::Graphics
 
 		i18n_log_info("[core].Device_D3D11.start_creating_graphic_components");
 
-		if (!loadDLL())
-			throw std::runtime_error("load DLL failed");
 		testAdapterPolicy();
 		if (!createDXGI())
 			throw std::runtime_error("create basic DXGI components failed");
@@ -217,67 +215,8 @@ namespace Core::Graphics
 		destroyDXGI();
 		assert(m_eventobj.size() == 0);
 		assert(m_eventobj_late.size() == 0);
-		unloadDLL();
 	}
 
-	bool Device_D3D11::loadDLL()
-	{
-		HRESULT hr = S_OK;
-
-		// 加载 Direct2D 1 模块
-
-		d2d1_dll = LoadLibraryW(L"d2d1.dll");
-		assert(d2d1_dll);
-		if (d2d1_dll == NULL)
-		{
-			// 不应该出现这种情况
-			hr = gHRLastError;
-			i18n_log_error_fmt("[core].system_dll_load_failed_f", "d2d1.dll");
-			return false;
-		}
-		d2d1_api_D2D1CreateFactory = (decltype(d2d1_api_D2D1CreateFactory))GetProcAddress(d2d1_dll, "D2D1CreateFactory");
-		assert(d2d1_api_D2D1CreateFactory);
-		if (d2d1_api_D2D1CreateFactory == NULL)
-		{
-			// 不应该出现这种情况
-			i18n_log_error_fmt("[core].system_dll_load_func_failed_f", "d2d1.dll", "D2D1CreateFactory");
-			return false;
-		}
-
-		// 加载 DirectWrite 模块
-
-		dwrite_dll = LoadLibraryW(L"dwrite.dll");
-		assert(dwrite_dll);
-		if (dwrite_dll == NULL)
-		{
-			// 不应该出现这种情况
-			hr = gHRLastError;
-			i18n_log_error_fmt("[core].system_dll_load_failed_f", "dwrite.dll");
-			return false;
-		}
-		dwrite_api_DWriteCreateFactory = (decltype(dwrite_api_DWriteCreateFactory))GetProcAddress(dwrite_dll, "DWriteCreateFactory");
-		assert(dwrite_api_DWriteCreateFactory);
-		if (dwrite_api_DWriteCreateFactory == NULL)
-		{
-			// 不应该出现这种情况
-			i18n_log_error_fmt("[core].system_dll_load_func_failed_f", "dwrite.dll", "DWriteCreateFactory");
-			return false;
-		}
-
-		return true;
-	}
-	void Device_D3D11::unloadDLL()
-	{
-		// 卸载 Direct2D 1 模块
-
-		if (d2d1_dll) FreeLibrary(d2d1_dll); d2d1_dll = NULL;
-		d2d1_api_D2D1CreateFactory = NULL;
-
-		// 卸载 DirectWrite 模块
-
-		if (dwrite_dll) FreeLibrary(dwrite_dll); dwrite_dll = NULL;
-		dwrite_api_DWriteCreateFactory = NULL;
-	}
 	bool Device_D3D11::createDXGIFactory()
 	{
 		HRESULT hr = S_OK;
@@ -916,18 +855,9 @@ namespace Core::Graphics
 	{
 		HRESULT hr = S_OK;
 
-		D2D1_FACTORY_OPTIONS d2d1_creation_option = {
-		#ifdef _DEBUG
-			.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION,
-		#else
-			.debugLevel = D2D1_DEBUG_LEVEL_NONE,
-		#endif
-		};
-		hr = gHR = d2d1_api_D2D1CreateFactory(
+		hr = gHR = d2d1_loader.CreateFactory(
 			D2D1_FACTORY_TYPE_MULTI_THREADED,
-			__uuidof(ID2D1Factory),
-			&d2d1_creation_option,
-			&d2d1_factory);
+			IID_PPV_ARGS(&d2d1_factory));
 		if (FAILED(hr))
 		{
 			i18n_log_error_fmt("[core].system_call_failed_f", "D2D1CreateFactory");
@@ -986,7 +916,7 @@ namespace Core::Graphics
 	{
 		HRESULT hr = S_OK;
 
-		hr = gHR = dwrite_api_DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), &dwrite_factory);
+		hr = gHR = dwrite_loader.CreateFactory(DWRITE_FACTORY_TYPE_SHARED, IID_PPV_ARGS(&dwrite_factory));
 		if (FAILED(hr))
 		{
 			i18n_log_error_fmt("[core].system_call_failed_f", "DWriteCreateFactory -> DWRITE_FACTORY_TYPE_SHARED");

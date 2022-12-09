@@ -1,7 +1,9 @@
 #include "Platform/Shared.hpp"
 #include "Platform/RuntimeLoader/DXGI.hpp"
 #include "Platform/RuntimeLoader/Direct3D11.hpp"
+#include "Platform/RuntimeLoader/Direct2D1.hpp"
 #include "Platform/RuntimeLoader/DirectComposition.hpp"
+#include "Platform/RuntimeLoader/DirectWrite.hpp"
 
 namespace Platform::RuntimeLoader
 {
@@ -373,5 +375,145 @@ namespace Platform::RuntimeLoader
 		api_DCompositionCreateDevice = NULL;
 		api_DCompositionCreateDevice2 = NULL;
 		api_DCompositionCreateDevice3 = NULL;
+	}
+}
+
+namespace Platform::RuntimeLoader
+{
+	HRESULT Direct2D1::CreateFactory(
+		D2D1_FACTORY_TYPE factoryType,
+		REFIID riid,
+		void** ppIFactory)
+	{
+		if (api_D2D1CreateFactory)
+		{
+			D2D1_FACTORY_OPTIONS options = {
+			#ifdef _DEBUG
+				.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION
+			#else
+				.debugLevel = D2D1_DEBUG_LEVEL_NONE
+			#endif
+			};
+			return api_D2D1CreateFactory(
+				factoryType,
+				riid,
+				&options,
+				ppIFactory);
+		}
+		return E_NOTIMPL;
+	}
+	HRESULT Direct2D1::CreateDevice(
+		IDXGIDevice* dxgiDevice,
+		BOOL multiThread,
+		ID2D1Device** d2dDevice)
+	{
+		if (api_D2D1CreateDevice)
+		{
+			D2D1_CREATION_PROPERTIES prop = {
+				.threadingMode = multiThread
+					? D2D1_THREADING_MODE_MULTI_THREADED
+					: D2D1_THREADING_MODE_SINGLE_THREADED,
+			#ifdef _DEBUG
+				.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION,
+			#else
+				.debugLevel = D2D1_DEBUG_LEVEL_NONE,
+			#endif
+				.options = multiThread
+					? D2D1_DEVICE_CONTEXT_OPTIONS_ENABLE_MULTITHREADED_OPTIMIZATIONS
+					: D2D1_DEVICE_CONTEXT_OPTIONS_NONE,
+			};
+			return api_D2D1CreateDevice(dxgiDevice, &prop, d2dDevice);
+		}
+		return E_NOTIMPL;
+	}
+	HRESULT Direct2D1::CreateDevice(
+		IDXGIDevice* dxgiDevice,
+		BOOL multiThread,
+		ID2D1Device** d2dDevice,
+		ID2D1DeviceContext** d2dDeviceContext)
+	{
+		if (api_D2D1CreateDevice)
+		{
+			D2D1_CREATION_PROPERTIES prop = {
+				.threadingMode = multiThread
+					? D2D1_THREADING_MODE_MULTI_THREADED
+					: D2D1_THREADING_MODE_SINGLE_THREADED,
+			#ifdef _DEBUG
+				.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION,
+			#else
+				.debugLevel = D2D1_DEBUG_LEVEL_NONE,
+			#endif
+				.options = multiThread
+					? D2D1_DEVICE_CONTEXT_OPTIONS_ENABLE_MULTITHREADED_OPTIMIZATIONS
+					: D2D1_DEVICE_CONTEXT_OPTIONS_NONE,
+			};
+			HRESULT hr = api_D2D1CreateDevice(dxgiDevice, &prop, d2dDevice);
+			if (FAILED(hr)) return hr;
+			return (*d2dDevice)->CreateDeviceContext(
+				multiThread
+				? D2D1_DEVICE_CONTEXT_OPTIONS_ENABLE_MULTITHREADED_OPTIMIZATIONS
+				: D2D1_DEVICE_CONTEXT_OPTIONS_NONE,
+				d2dDeviceContext);
+		}
+		return E_NOTIMPL;
+	}
+
+	Direct2D1::Direct2D1()
+	{
+		dll_d2d1 = LoadLibraryW(L"d2d1.dll");
+		if (dll_d2d1)
+		{
+			api_D2D1CreateFactory = (decltype(api_D2D1CreateFactory))
+				GetProcAddress(dll_d2d1, "D2D1CreateFactory");
+			api_D2D1CreateDevice = (decltype(api_D2D1CreateDevice))
+				GetProcAddress(dll_d2d1, "D2D1CreateDevice");
+		}
+	}
+	Direct2D1::~Direct2D1()
+	{
+		if (dll_d2d1)
+		{
+			FreeLibrary(dll_d2d1);
+		}
+		dll_d2d1 = NULL;
+		api_D2D1CreateFactory = NULL;
+		api_D2D1CreateDevice = NULL;
+	}
+}
+
+namespace Platform::RuntimeLoader
+{
+	HRESULT DirectWrite::CreateFactory(
+		DWRITE_FACTORY_TYPE factoryType,
+		REFIID iid,
+		void** factory)
+	{
+		if (api_DWriteCreateFactory)
+		{
+			return api_DWriteCreateFactory(
+				factoryType,
+				iid,
+				(IUnknown**)factory);
+		}
+		return E_NOTIMPL;
+	}
+
+	DirectWrite::DirectWrite()
+	{
+		dll_dwrite = LoadLibraryW(L"dwrite.dll");
+		if (dll_dwrite)
+		{
+			api_DWriteCreateFactory = (decltype(api_DWriteCreateFactory))
+				GetProcAddress(dll_dwrite, "DWriteCreateFactory");
+		}
+	}
+	DirectWrite::~DirectWrite()
+	{
+		if (dll_dwrite)
+		{
+			FreeLibrary(dll_dwrite);
+		}
+		dll_dwrite = NULL;
+		api_DWriteCreateFactory = NULL;
 	}
 }

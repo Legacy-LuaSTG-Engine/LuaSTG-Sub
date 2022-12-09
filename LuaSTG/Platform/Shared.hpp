@@ -25,9 +25,11 @@ namespace Microsoft::WRL::Wrappers
 #undef CreateWindow
 #undef DrawText
 
-#include <dcomp.h>
 #include <dxgi1_6.h>
 #include <d3d11_4.h>
+#include <d2d1_3.h>
+#include <dcomp.h>
+#include <dwrite_3.h>
 
 #undef WIN32_LEAN_AND_MEAN
 #undef NOMINMAX

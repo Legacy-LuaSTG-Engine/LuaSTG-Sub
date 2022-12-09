@@ -3,6 +3,8 @@
 #include "Core/Graphics/Device.hpp"
 #include "Platform/RuntimeLoader/DXGI.hpp"
 #include "Platform/RuntimeLoader/Direct3D11.hpp"
+#include "Platform/RuntimeLoader/Direct2D1.hpp"
+#include "Platform/RuntimeLoader/DirectWrite.hpp"
 
 namespace Core::Graphics
 {
@@ -46,9 +48,7 @@ namespace Core::Graphics
 
 		// Direct2D 1
 		
-		HMODULE d2d1_dll{ NULL };
-		HRESULT(WINAPI* d2d1_api_D2D1CreateFactory)(D2D1_FACTORY_TYPE, REFIID, CONST D2D1_FACTORY_OPTIONS*, void**) { NULL };
-
+		Platform::RuntimeLoader::Direct2D1 d2d1_loader;
 		Microsoft::WRL::ComPtr<ID2D1Factory> d2d1_factory;
 		Microsoft::WRL::ComPtr<ID2D1Factory1> d2d1_factory1;
 		Microsoft::WRL::ComPtr<ID2D1Device> d2d1_device;
@@ -56,9 +56,7 @@ namespace Core::Graphics
 
 		// DirectWrite
 
-		HMODULE dwrite_dll{ NULL };
-		decltype(DWriteCreateFactory)* dwrite_api_DWriteCreateFactory{ NULL };
-
+		Platform::RuntimeLoader::DirectWrite dwrite_loader;
 		Microsoft::WRL::ComPtr<IDWriteFactory> dwrite_factory;
 
 	public:
@@ -86,8 +84,6 @@ namespace Core::Graphics
 		BOOL IsTearingSupport() const noexcept { return dxgi_support_tearing; }
 
 	private:
-		bool loadDLL();
-		void unloadDLL();
 		bool createDXGIFactory();
 		void destroyDXGIFactory();
 		bool selectAdapter();
