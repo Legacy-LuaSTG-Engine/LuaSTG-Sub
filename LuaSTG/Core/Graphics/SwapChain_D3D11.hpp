@@ -96,8 +96,7 @@ namespace Core::Graphics
 		bool setSize(uint32_t width, uint32_t height);
 		bool setExclusiveFullscreenMode(DisplayMode const& mode);
 		bool isWindowMode() { return m_swapchain_last_windowed; }
-		uint32_t getWidth() { return m_swapchain_last_mode.width; }
-		uint32_t getHeight() { return m_swapchain_last_mode.height; }
+		Vector2U getSize() { return Vector2U(m_swapchain_last_mode.width, m_swapchain_last_mode.height); }
 
 		void clearRenderAttachment();
 		void applyRenderAttachment();

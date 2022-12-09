@@ -87,9 +87,7 @@ namespace LuaSTGPlus
         }
         else
         {
-            return Core::Vector2U(
-                GetAppModel()->getSwapChain()->getWidth(),
-                GetAppModel()->getSwapChain()->getHeight());
+            return GetAppModel()->getSwapChain()->getSize();
         }
     }
 
@@ -110,10 +108,7 @@ namespace LuaSTGPlus
         if (m_AutoSizeRenderTargetSize.x == 0 || m_AutoSizeRenderTargetSize.y == 0)
         {
             // 初始化
-            m_AutoSizeRenderTargetSize = Core::Vector2U(
-                GetAppModel()->getSwapChain()->getWidth(),
-                GetAppModel()->getSwapChain()->getHeight()
-            );
+            m_AutoSizeRenderTargetSize = GetAppModel()->getSwapChain()->getSize();
         }
         return m_AutoSizeRenderTargetSize;
     }
@@ -133,10 +128,7 @@ namespace LuaSTGPlus
 
     void AppFrame::onSwapChainCreate()
     {
-        ResizeAutoSizeRenderTarget(Core::Vector2U(
-            GetAppModel()->getSwapChain()->getWidth(),
-            GetAppModel()->getSwapChain()->getHeight()
-        ));
+        ResizeAutoSizeRenderTarget(GetAppModel()->getSwapChain()->getSize());
     }
     void AppFrame::onSwapChainDestroy() {}
 
