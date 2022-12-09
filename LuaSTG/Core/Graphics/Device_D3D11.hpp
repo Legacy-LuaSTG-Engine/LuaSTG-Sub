@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include "Core/Object.hpp"
 #include "Core/Graphics/Device.hpp"
+#include "Platform/RuntimeLoader/DXGI.hpp"
+#include "Platform/RuntimeLoader/Direct3D11.hpp"
 
 namespace Core::Graphics
 {
@@ -9,10 +11,7 @@ namespace Core::Graphics
 	private:
 		// DXGI
 
-		HMODULE dxgi_dll{ NULL };
-		decltype(::CreateDXGIFactory1)* dxgi_api_CreateDXGIFactory1{ NULL };
-		decltype(::CreateDXGIFactory2)* dxgi_api_CreateDXGIFactory2{ NULL };
-
+		Platform::RuntimeLoader::DXGI dxgi_loader;
 		Microsoft::WRL::ComPtr<IDXGIFactory1> dxgi_factory;
 		Microsoft::WRL::ComPtr<IDXGIFactory2> dxgi_factory2;
 		Microsoft::WRL::ComPtr<IDXGIAdapter1> dxgi_adapter;
@@ -34,9 +33,7 @@ namespace Core::Graphics
 
 		// Direct3D 11
 
-		HMODULE d3d11_dll{ NULL };
-		decltype(::D3D11CreateDevice)* d3d11_api_D3D11CreateDevice{ NULL };
-
+		Platform::RuntimeLoader::Direct3D11 d3d11_loader;
 		Microsoft::WRL::ComPtr<ID3D11Device> d3d11_device;
 		Microsoft::WRL::ComPtr<ID3D11Device1> d3d11_device1;
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> d3d11_devctx;

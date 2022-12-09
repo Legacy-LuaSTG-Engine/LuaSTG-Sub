@@ -2,9 +2,9 @@
 #include "framework.hpp"
 #include "i18n.hpp"
 #include "Core/Object.hpp"
-#include "Core/Graphics/DCompositionLoader.hpp"
-#include "Core/Graphics/DXGILoader.hpp"
-#include "Core/Graphics/D3D11Loader.hpp"
+#include "Platform/RuntimeLoader/DirectComposition.hpp"
+#include "Platform/RuntimeLoader/DXGI.hpp"
+#include "Platform/RuntimeLoader/Direct3D11.hpp"
 
 #ifndef HRNew
 #define HRNew HRESULT hr = S_OK;
@@ -323,7 +323,7 @@ namespace Core
 			HRGet = d3d11_device_context.As(&d3d11_device_context1);
 			HRCheckCallReport("ID3D11DeviceContext::QueryInterface -> ID3D11DeviceContext1");
 
-			HRGet = RuntimeLoader::Direct3D11::GetDeviceFactory(d3d11_device.Get(), &dxgi_factory);
+			HRGet = Platform::RuntimeLoader::Direct3D11::GetFactory(d3d11_device.Get(), &dxgi_factory);
 			HRCheckCallReturnBool("ID3D11Device::GetParent -> IDXGIFactory2");
 
 			d2d1_device_context = renderer; // might be NULL
@@ -1163,10 +1163,10 @@ namespace Core
 
 			LOG_INFO("Create DXGI SwapChain");
 
-			HRGet = RuntimeLoader::DXGI::MakeSwapChainWindowAssociation(dxgi_swapchain.Get(), DXGI_MWA_NO_ALT_ENTER);
+			HRGet = Platform::RuntimeLoader::DXGI::MakeSwapChainWindowAssociation(dxgi_swapchain.Get(), DXGI_MWA_NO_ALT_ENTER);
 			HRCheckCallReturnBool("IDXGIFactory::MakeWindowAssociation -> DXGI_MWA_NO_ALT_ENTER");
 
-			HRGet = RuntimeLoader::DXGI::SetDeviceMaximumFrameLatency(dxgi_swapchain.Get(), 1);
+			HRGet = Platform::RuntimeLoader::DXGI::SetDeviceMaximumFrameLatency(dxgi_swapchain.Get(), 1);
 			HRCheckCallReport("IDXGIDevice1::SetMaximumFrameLatency -> 1");
 
 			if (!CreateSwapChainRenderAttachment()) return false;
@@ -1427,10 +1427,10 @@ namespace Core
 			dxgi_swapchain_present_allow_tearing = FALSE;
 			allow_mode_switch = TRUE;
 
-			HRGet = RuntimeLoader::DXGI::MakeSwapChainWindowAssociation(dxgi_swapchain.Get(), DXGI_MWA_NO_ALT_ENTER);
+			HRGet = Platform::RuntimeLoader::DXGI::MakeSwapChainWindowAssociation(dxgi_swapchain.Get(), DXGI_MWA_NO_ALT_ENTER);
 			HRCheckCallReturnBool("IDXGIFactory::MakeWindowAssociation -> DXGI_MWA_NO_ALT_ENTER");
 
-			HRGet = RuntimeLoader::DXGI::SetDeviceMaximumFrameLatency(dxgi_swapchain.Get(), 1);
+			HRGet = Platform::RuntimeLoader::DXGI::SetDeviceMaximumFrameLatency(dxgi_swapchain.Get(), 1);
 			HRCheckCallReport("IDXGIDevice1::SetMaximumFrameLatency -> 1");
 
 			if (!CreateSwapChainRenderAttachment()) return false;
@@ -1729,10 +1729,10 @@ namespace Core
 
 			LOG_INFO("Create DXGI SwapChain");
 
-			HRGet = RuntimeLoader::DXGI::MakeSwapChainWindowAssociation(dxgi_swapchain.Get(), DXGI_MWA_NO_ALT_ENTER);
+			HRGet = Platform::RuntimeLoader::DXGI::MakeSwapChainWindowAssociation(dxgi_swapchain.Get(), DXGI_MWA_NO_ALT_ENTER);
 			HRCheckCallReturnBool("IDXGIFactory::MakeWindowAssociation -> DXGI_MWA_NO_ALT_ENTER");
 
-			HRGet = RuntimeLoader::DXGI::SetDeviceMaximumFrameLatency(dxgi_swapchain.Get(), 1);
+			HRGet = Platform::RuntimeLoader::DXGI::SetDeviceMaximumFrameLatency(dxgi_swapchain.Get(), 1);
 			HRCheckCallReport("IDXGIDevice1::SetMaximumFrameLatency -> 1");
 
 			if (!CreateSwapChainRenderAttachment()) return false;
@@ -1809,10 +1809,10 @@ namespace Core
 
 			LOG_INFO("Create DXGI SwapChain");
 
-			HRGet = RuntimeLoader::DXGI::MakeSwapChainWindowAssociation(dxgi_swapchain.Get(), DXGI_MWA_NO_ALT_ENTER);
+			HRGet = Platform::RuntimeLoader::DXGI::MakeSwapChainWindowAssociation(dxgi_swapchain.Get(), DXGI_MWA_NO_ALT_ENTER);
 			HRCheckCallReturnBool("IDXGIFactory::MakeWindowAssociation -> DXGI_MWA_NO_ALT_ENTER");
 
-			HRGet = RuntimeLoader::DXGI::SetDeviceMaximumFrameLatency(dxgi_swapchain.Get(), 1);
+			HRGet = Platform::RuntimeLoader::DXGI::SetDeviceMaximumFrameLatency(dxgi_swapchain.Get(), 1);
 			HRCheckCallReport("IDXGIDevice1::SetMaximumFrameLatency -> 1");
 
 			if (!CreateSwapChainRenderAttachment()) return false;
@@ -1845,10 +1845,10 @@ namespace Core
 			Microsoft::WRL::ComPtr<IDXGIFactory2> v_dxgi_factory;
 			Microsoft::WRL::ComPtr<ID3D11Device> v_d3d11_device = device;
 
-			HRGet = RuntimeLoader::Direct3D11::GetDeviceFactory(v_d3d11_device.Get(), &v_dxgi_factory);
+			HRGet = Platform::RuntimeLoader::Direct3D11::GetFactory(v_d3d11_device.Get(), &v_dxgi_factory);
 			HRCheckCallReturnBool("ID3D11Device::GetParent -> IDXGIFactory2");
 
-			if (!RuntimeLoader::DXGI::CheckFeatureSupportPresentAllowTearing(v_dxgi_factory.Get()))
+			if (!Platform::RuntimeLoader::DXGI::CheckFeatureSupportPresentAllowTearing(v_dxgi_factory.Get()))
 			{
 				LOG_ERROR("PresentationModel (Window) requires DXGI_FEATURE_PRESENT_ALLOW_TEARING");
 				return false;
@@ -1865,7 +1865,7 @@ namespace Core
 	class DirectCompositionPresentationModel : public PresentationModelBase
 	{
 	protected:
-		RuntimeLoader::DirectComposition DC;
+		Platform::RuntimeLoader::DirectComposition DC;
 		Microsoft::WRL::ComPtr<IDCompositionDesktopDevice> dc_desktop_device;
 		Microsoft::WRL::ComPtr<IDCompositionTarget> dc_target;
 		Microsoft::WRL::ComPtr<IDCompositionVisual2> dc_visual_root;
@@ -1987,7 +1987,7 @@ namespace Core
 
 			LOG_INFO("Create DXGI SwapChain");
 
-			HRGet = RuntimeLoader::DXGI::SetDeviceMaximumFrameLatency(dxgi_swapchain.Get(), 1);
+			HRGet = Platform::RuntimeLoader::DXGI::SetDeviceMaximumFrameLatency(dxgi_swapchain.Get(), 1);
 			HRCheckCallReport("IDXGIDevice1::SetMaximumFrameLatency -> 1");
 
 			if (!CreateBothRenderAttachment()) return false;
@@ -2113,10 +2113,10 @@ namespace Core
 			Microsoft::WRL::ComPtr<IDXGIFactory2> v_dxgi_factory;
 			Microsoft::WRL::ComPtr<ID3D11Device> v_d3d11_device = device;
 
-			HRGet = RuntimeLoader::Direct3D11::GetDeviceFactory(v_d3d11_device.Get(), &v_dxgi_factory);
+			HRGet = Platform::RuntimeLoader::Direct3D11::GetFactory(v_d3d11_device.Get(), &v_dxgi_factory);
 			HRCheckCallReturnBool("ID3D11Device::GetParent -> IDXGIFactory2");
 
-			if (!RuntimeLoader::DXGI::CheckFeatureSupportPresentAllowTearing(v_dxgi_factory.Get()))
+			if (!Platform::RuntimeLoader::DXGI::CheckFeatureSupportPresentAllowTearing(v_dxgi_factory.Get()))
 			{
 				LOG_ERROR("PresentationModel (DirectComposition) requires DXGI_FEATURE_PRESENT_ALLOW_TEARING");
 				return false;
