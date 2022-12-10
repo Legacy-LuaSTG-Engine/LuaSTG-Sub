@@ -221,19 +221,12 @@ namespace Core::Graphics
 	{
 		HRESULT hr = S_OK;
 
-		// 创建 1.1 的组件
+		// 创建 1.2 的组件，强制要求平台更新
 		hr = gHR = dxgi_loader.CreateFactory(IID_PPV_ARGS(&dxgi_factory));
 		if (FAILED(hr))
 		{
-			i18n_core_system_call_report_error("CreateDXGIFactory2 -> IDXGIFactory1");
+			i18n_core_system_call_report_error("CreateDXGIFactory2 -> IDXGIFactory2");
 			assert(false); return false;
-		}
-
-		// 获得 1.2 的组件（Windows 7 平台更新）
-		hr = gHR = dxgi_factory.As(&dxgi_factory2);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDXGIFactory1::QueryInterface -> IDXGIFactory2");
 		}
 
 		return true;
@@ -241,7 +234,6 @@ namespace Core::Graphics
 	void Device_D3D11::destroyDXGIFactory()
 	{
 		dxgi_factory.Reset();
-		dxgi_factory2.Reset();
 	}
 	bool Device_D3D11::selectAdapter()
 	{
@@ -860,47 +852,30 @@ namespace Core::Graphics
 			IID_PPV_ARGS(&d2d1_factory));
 		if (FAILED(hr))
 		{
-			i18n_core_system_call_report_error("D2D1CreateFactory");
+			i18n_core_system_call_report_error("D2D1CreateFactory -> ID2D1Factory1");
 			assert(false); return false;
 		}
 
-		// 下面就是 Windows 7 无法到达的领域啦
-
-		hr = gHR = d2d1_factory.As(&d2d1_factory1);
+		Microsoft::WRL::ComPtr<IDXGIDevice> dxgi_device;
+		hr = gHR = d3d11_device.As(&dxgi_device);
 		if (FAILED(hr))
 		{
-			i18n_core_system_call_report_error("ID2D1Factory::QueryInterface -> ID2D1Factory1");
-			// 不是严重错误
-		}
-		
-		if (d2d1_factory1)
-		{
-			Microsoft::WRL::ComPtr<IDXGIDevice> dxgi_device;
-			hr = gHR = d3d11_device.As(&dxgi_device);
-			if (FAILED(hr))
-			{
-				i18n_core_system_call_report_error("ID3D11Device::QueryInterface -> IDXGIDevice");
-				assert(false); return false;
-			}
-			if (dxgi_device)
-			{
-				hr = gHR = d2d1_factory1->CreateDevice(dxgi_device.Get(), &d2d1_device);
-				if (FAILED(hr))
-				{
-					i18n_core_system_call_report_error("ID2D1Factory1::CreateDevice");
-					assert(false); return false;
-				}
-			}
+			i18n_core_system_call_report_error("ID3D11Device::QueryInterface -> IDXGIDevice");
+			assert(false); return false;
 		}
 
-		if (d2d1_device)
+		hr = gHR = d2d1_factory->CreateDevice(dxgi_device.Get(), &d2d1_device);
+		if (FAILED(hr))
 		{
-			hr = gHR = d2d1_device->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, &d2d1_devctx);
-			if (FAILED(hr))
-			{
-				i18n_core_system_call_report_error("ID2D1Device::CreateDeviceContext");
-				assert(false); return false;
-			}
+			i18n_core_system_call_report_error("ID2D1Factory1::CreateDevice");
+			assert(false); return false;
+		}
+
+		hr = gHR = d2d1_device->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, &d2d1_devctx);
+		if (FAILED(hr))
+		{
+			i18n_core_system_call_report_error("ID2D1Device::CreateDeviceContext");
+			assert(false); return false;
 		}
 
 		return true;
@@ -908,7 +883,6 @@ namespace Core::Graphics
 	void Device_D3D11::destroyD2D1()
 	{
 		d2d1_factory.Reset();
-		d2d1_factory1.Reset();
 		d2d1_device.Reset();
 		d2d1_devctx.Reset();
 	}
@@ -1085,7 +1059,6 @@ namespace Core::Graphics
 			HRESULT hr = S_OK;
 
 			dxgi_factory.Reset();
-			dxgi_factory2.Reset();
 			dxgi_adapter.Reset();
 
 			Microsoft::WRL::ComPtr<IDXGIDevice> dxgi_device;
@@ -1114,30 +1087,16 @@ namespace Core::Graphics
 			//hr = gHR = dxgi_adapter->GetParent(IID_PPV_ARGS(&dxgi_factory));
 			//if (FAILED(hr))
 			//{
-			//	i18n_core_system_call_report_error("IDXGIAdapter1::GetParent -> IDXGIFactory1");
+			//	i18n_core_system_call_report_error("IDXGIAdapter1::GetParent -> IDXGIFactory2");
 			//	return false;
 			//}
-			//
-			//hr = gHR = dxgi_factory.As(&dxgi_factory2);
-			//if (FAILED(hr))
-			//{
-			//	i18n_core_system_call_report_error("IDXGIFactory1::QueryInterface -> IDXGIFactory2");
-			//	// 不是大问题
-			//}
 
-			// 创建 1.1 的组件
+			// 创建 1.2 的组件，强制要求平台更新
 			hr = gHR = dxgi_loader.CreateFactory(IID_PPV_ARGS(&dxgi_factory));
 			if (FAILED(hr))
 			{
-				i18n_core_system_call_report_error("CreateDXGIFactory2 -> IDXGIFactory1");
+				i18n_core_system_call_report_error("CreateDXGIFactory2 -> IDXGIFactory2");
 				assert(false); return false;
-			}
-
-			// 获得 1.2 的组件（Windows 7 平台更新）
-			hr = gHR = dxgi_factory.As(&dxgi_factory2);
-			if (FAILED(hr))
-			{
-				i18n_core_system_call_report_error("IDXGIFactory1::QueryInterface -> IDXGIFactory2");
 			}
 
 			assert(dxgi_factory->IsCurrent());

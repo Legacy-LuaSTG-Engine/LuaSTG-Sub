@@ -14,8 +14,7 @@ namespace Core::Graphics
 		// DXGI
 
 		Platform::RuntimeLoader::DXGI dxgi_loader;
-		Microsoft::WRL::ComPtr<IDXGIFactory1> dxgi_factory;
-		Microsoft::WRL::ComPtr<IDXGIFactory2> dxgi_factory2;
+		Microsoft::WRL::ComPtr<IDXGIFactory2> dxgi_factory;
 		Microsoft::WRL::ComPtr<IDXGIAdapter1> dxgi_adapter;
 
 		std::string preferred_adapter_name;
@@ -49,8 +48,7 @@ namespace Core::Graphics
 		// Direct2D 1
 		
 		Platform::RuntimeLoader::Direct2D1 d2d1_loader;
-		Microsoft::WRL::ComPtr<ID2D1Factory> d2d1_factory;
-		Microsoft::WRL::ComPtr<ID2D1Factory1> d2d1_factory1;
+		Microsoft::WRL::ComPtr<ID2D1Factory1> d2d1_factory;
 		Microsoft::WRL::ComPtr<ID2D1Device> d2d1_device;
 		Microsoft::WRL::ComPtr<ID2D1DeviceContext> d2d1_devctx;
 
@@ -62,8 +60,7 @@ namespace Core::Graphics
 	public:
 		// Get API
 
-		IDXGIFactory1* GetDXGIFactory1() const noexcept { return dxgi_factory.Get(); }
-		IDXGIFactory2* GetDXGIFactory2() const noexcept { return dxgi_factory2.Get(); }
+		IDXGIFactory2* GetDXGIFactory2() const noexcept { return dxgi_factory.Get(); }
 		IDXGIAdapter1* GetDXGIAdapter1() const noexcept { return dxgi_adapter.Get(); }
 
 		std::string_view GetAdapterName() const noexcept { return dxgi_adapter_name; }
