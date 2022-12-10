@@ -191,7 +191,7 @@ namespace Core::Graphics
 				hr = gHR = dxgi_swapchain->SetFullscreenState(FALSE, NULL);
 				if (FAILED(hr))
 				{
-					i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::SetFullscreenState -> FALSE");
+					i18n_core_system_call_report_error"IDXGISwapChain::SetFullscreenState -> FALSE");
 				}
 			}
 		}
@@ -295,13 +295,13 @@ namespace Core::Graphics
 				hr = gHR = dxgi_swapchain1.As(&dxgi_swapchain);
 				if (FAILED(hr))
 				{
-					i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain1::QueryInterface -> IDXGISwapChain");
+					i18n_core_system_call_report_error"IDXGISwapChain1::QueryInterface -> IDXGISwapChain");
 					assert(false); return false;
 				}
 			}
 			else
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory2::CreateSwapChainForHwnd");
+				i18n_core_system_call_report_error"IDXGIFactory2::CreateSwapChainForHwnd");
 			}
 		}
 
@@ -339,7 +339,7 @@ namespace Core::Graphics
 			hr = gHR = dxgi_factory->CreateSwapChain(d3d11_device, &desc, &dxgi_swapchain);
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory1::CreateSwapChain");
+				i18n_core_system_call_report_error"IDXGIFactory1::CreateSwapChain");
 				assert(false); return false;
 			}
 		}
@@ -350,13 +350,13 @@ namespace Core::Graphics
 		hr = gHR = dxgi_swapchain->GetParent(IID_PPV_ARGS(&dxgi_factory_sw));
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::GetParent -> IDXGIFactory1");
+			i18n_core_system_call_report_error"IDXGISwapChain::GetParent -> IDXGIFactory1");
 			assert(false); return false;
 		}
 		hr = gHR = dxgi_factory_sw->MakeWindowAssociation(m_window->GetWindow(), DXGI_MWA_NO_ALT_ENTER); // 别他妈乱切换了
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory1::MakeWindowAssociation -> DXGI_MWA_NO_ALT_ENTER");
+			i18n_core_system_call_report_error"IDXGIFactory1::MakeWindowAssociation -> DXGI_MWA_NO_ALT_ENTER");
 			assert(false); return false;
 		}
 
@@ -369,7 +369,7 @@ namespace Core::Graphics
 			hr = gHR = dxgi_device1->SetMaximumFrameLatency(1);
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIDevice1::SetMaximumFrameLatency -> 1");
+				i18n_core_system_call_report_error"IDXGIDevice1::SetMaximumFrameLatency -> 1");
 				assert(false); return false;
 			}
 		}
@@ -381,13 +381,13 @@ namespace Core::Graphics
 			hr = gHR = dxgi_swapchain2->SetMaximumFrameLatency(1);
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain2::SetMaximumFrameLatency -> 1");
+				i18n_core_system_call_report_error"IDXGISwapChain2::SetMaximumFrameLatency -> 1");
 				assert(false); return false;
 			}
 			dxgi_swapchain_event.Attach(dxgi_swapchain2->GetFrameLatencyWaitableObject());
 			if (!dxgi_swapchain_event.IsValid())
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain2::GetFrameLatencyWaitableObject");
+				i18n_core_system_call_report_error"IDXGISwapChain2::GetFrameLatencyWaitableObject");
 				assert(false); return false;
 			}
 		}
@@ -433,11 +433,11 @@ namespace Core::Graphics
 		if (FAILED(hr))
 		{
 			// fallback
-			i18n_log_error_fmt("[core].system_call_failed_f", "DCompositionCreateDevice2");
+			i18n_core_system_call_report_error"DCompositionCreateDevice2");
 			hr = gHR = dcomp_loader.CreateDevice(NULL, IID_PPV_ARGS(&dcomp_device));
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "DCompositionCreateDevice");
+				i18n_core_system_call_report_error"DCompositionCreateDevice");
 				assert(false); return false;
 			}
 		}
@@ -449,9 +449,9 @@ namespace Core::Graphics
 		if (FAILED(hr))
 		{
 			if (dcomp_desktop_device)
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDesktopDevice::CreateTargetForHwnd");
+				i18n_core_system_call_report_error"IDCompositionDesktopDevice::CreateTargetForHwnd");
 			else
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDevice::CreateTargetForHwnd");
+				i18n_core_system_call_report_error"IDCompositionDevice::CreateTargetForHwnd");
 			assert(false); return false;
 		}
 
@@ -462,9 +462,9 @@ namespace Core::Graphics
 		if (FAILED(hr))
 		{
 			if (dcomp_desktop_device)
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDesktopDevice::CreateVisual");
+				i18n_core_system_call_report_error"IDCompositionDesktopDevice::CreateVisual");
 			else
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDevice::CreateVisual");
+				i18n_core_system_call_report_error"IDCompositionDevice::CreateVisual");
 			assert(false); return false;
 		}
 
@@ -473,7 +473,7 @@ namespace Core::Graphics
 			hr = gHR = dcomp_visual_root2.As(&dcomp_visual_root);
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionVisual2::QueryInterface -> IDCompositionVisual");
+				i18n_core_system_call_report_error"IDCompositionVisual2::QueryInterface -> IDCompositionVisual");
 				assert(false); return false;
 			}
 		}
@@ -484,7 +484,7 @@ namespace Core::Graphics
 		hr = gHR = dxgi_swapchain.As(&dxgi_swapchain1);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::QueryInterface -> IDXGISwapChain1");
+			i18n_core_system_call_report_error"IDXGISwapChain::QueryInterface -> IDXGISwapChain1");
 			assert(false); return false;
 		}
 
@@ -494,7 +494,7 @@ namespace Core::Graphics
 		hr = gHR = dxgi_swapchain1->GetDesc1(&desc1);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain1::GetDesc1");
+			i18n_core_system_call_report_error"IDXGISwapChain1::GetDesc1");
 			assert(false); return false;
 		}
 
@@ -508,14 +508,14 @@ namespace Core::Graphics
 				hr = gHR = dxgi_swapchain2->SetMatrixTransform(&mat);
 				if (FAILED(hr))
 				{
-					i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain2::SetMatrixTransform");
+					i18n_core_system_call_report_error"IDXGISwapChain2::SetMatrixTransform");
 					assert(false); return false;
 				}
 			}
 			else
 			{
 				// fallback
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::QueryInterface -> IDXGISwapChain2");
+				i18n_core_system_call_report_error"IDXGISwapChain::QueryInterface -> IDXGISwapChain2");
 
 				if (dcomp_desktop_device)
 					hr = gHR = dcomp_desktop_device->CreateMatrixTransform(&dcomp_transform);
@@ -524,9 +524,9 @@ namespace Core::Graphics
 				if (FAILED(hr))
 				{
 					if (dcomp_desktop_device)
-						i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDesktopDevice::CreateMatrixTransform");
+						i18n_core_system_call_report_error"IDCompositionDesktopDevice::CreateMatrixTransform");
 					else
-						i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDevice::CreateMatrixTransform");
+						i18n_core_system_call_report_error"IDCompositionDevice::CreateMatrixTransform");
 					assert(false); return false;
 				}
 
@@ -538,14 +538,14 @@ namespace Core::Graphics
 				hr = gHR = dcomp_transform->SetMatrix(mat_d2d);
 				if (FAILED(hr))
 				{
-					i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionMatrixTransform::SetMatrix");
+					i18n_core_system_call_report_error"IDCompositionMatrixTransform::SetMatrix");
 					assert(false); return false;
 				}
 
 				hr = gHR = dcomp_visual_root->SetTransform(dcomp_transform.Get());
 				if (FAILED(hr))
 				{
-					i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionVisual2::SetTransform");
+					i18n_core_system_call_report_error"IDCompositionVisual2::SetTransform");
 					assert(false); return false;
 				}
 			}
@@ -554,7 +554,7 @@ namespace Core::Graphics
 		hr = gHR = dcomp_visual_root->SetContent(dxgi_swapchain1.Get());
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionVisual2::SetContent");
+			i18n_core_system_call_report_error"IDCompositionVisual2::SetContent");
 			assert(false); return false;
 		}
 
@@ -563,7 +563,7 @@ namespace Core::Graphics
 		hr = gHR = dcomp_target->SetRoot(dcomp_visual_root.Get());
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionTarget::SetRoot");
+			i18n_core_system_call_report_error"IDCompositionTarget::SetRoot");
 			assert(false); return false;
 		}
 
@@ -574,9 +574,9 @@ namespace Core::Graphics
 		if (FAILED(hr))
 		{
 			if (dcomp_desktop_device)
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDesktopDevice::Commit");
+				i18n_core_system_call_report_error"IDCompositionDesktopDevice::Commit");
 			else
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDevice::Commit");
+				i18n_core_system_call_report_error"IDCompositionDevice::Commit");
 			assert(false); return false;
 		}
 
@@ -587,9 +587,9 @@ namespace Core::Graphics
 		if (FAILED(hr))
 		{
 			if (dcomp_desktop_device)
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDesktopDevice::WaitForCommitCompletion");
+				i18n_core_system_call_report_error"IDCompositionDesktopDevice::WaitForCommitCompletion");
 			else
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDevice::WaitForCommitCompletion");
+				i18n_core_system_call_report_error"IDCompositionDevice::WaitForCommitCompletion");
 			assert(false); return false;
 		}
 
@@ -603,7 +603,7 @@ namespace Core::Graphics
 			hr = gHR = dcomp_target->SetRoot(NULL);
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionTarget::SetRoot -> NULL");
+				i18n_core_system_call_report_error"IDCompositionTarget::SetRoot -> NULL");
 			}
 		}
 		if (dcomp_visual_root)
@@ -612,7 +612,7 @@ namespace Core::Graphics
 			hr = gHR = dcomp_visual_root->SetContent(NULL);
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionVisual2::SetContent -> NULL");
+				i18n_core_system_call_report_error"IDCompositionVisual2::SetContent -> NULL");
 			}
 		}
 		if (dcomp_desktop_device)
@@ -620,12 +620,12 @@ namespace Core::Graphics
 			hr = gHR = dcomp_desktop_device->Commit();
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDesktopDevice::Commit");
+				i18n_core_system_call_report_error"IDCompositionDesktopDevice::Commit");
 			}
 			hr = gHR = dcomp_desktop_device->WaitForCommitCompletion();
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDesktopDevice::WaitForCommitCompletion");
+				i18n_core_system_call_report_error"IDCompositionDesktopDevice::WaitForCommitCompletion");
 			}
 		}
 		else if (dcomp_device)
@@ -633,12 +633,12 @@ namespace Core::Graphics
 			hr = gHR = dcomp_device->Commit();
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDevice::Commit");
+				i18n_core_system_call_report_error"IDCompositionDevice::Commit");
 			}
 			hr = gHR = dcomp_device->WaitForCommitCompletion();
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDCompositionDevice::WaitForCommitCompletion");
+				i18n_core_system_call_report_error"IDCompositionDevice::WaitForCommitCompletion");
 			}
 		}
 		dcomp_device.Reset();
@@ -720,13 +720,13 @@ namespace Core::Graphics
 			hr = gHR = dxgi_swapchain1.As(&dxgi_swapchain);
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain1::QueryInterface -> IDXGISwapChain");
+				i18n_core_system_call_report_error"IDXGISwapChain1::QueryInterface -> IDXGISwapChain");
 				assert(false); return false;
 			}
 		}
 		else
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory2::CreateSwapChainForComposition");
+			i18n_core_system_call_report_error"IDXGIFactory2::CreateSwapChainForComposition");
 		}
 
 		// 创建合成器
@@ -745,7 +745,7 @@ namespace Core::Graphics
 			hr = gHR = dxgi_device1->SetMaximumFrameLatency(1);
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIDevice1::SetMaximumFrameLatency -> 1");
+				i18n_core_system_call_report_error"IDXGIDevice1::SetMaximumFrameLatency -> 1");
 				assert(false); return false;
 			}
 		}
@@ -757,13 +757,13 @@ namespace Core::Graphics
 			hr = gHR = dxgi_swapchain2->SetMaximumFrameLatency(1);
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain2::SetMaximumFrameLatency -> 1");
+				i18n_core_system_call_report_error"IDXGISwapChain2::SetMaximumFrameLatency -> 1");
 				assert(false); return false;
 			}
 			dxgi_swapchain_event.Attach(dxgi_swapchain2->GetFrameLatencyWaitableObject());
 			if (!dxgi_swapchain_event.IsValid())
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain2::GetFrameLatencyWaitableObject");
+				i18n_core_system_call_report_error"IDXGISwapChain2::GetFrameLatencyWaitableObject");
 				assert(false); return false;
 			}
 		}
@@ -829,7 +829,7 @@ namespace Core::Graphics
 		hr = gHR = dxgi_swapchain->GetBuffer(0, IID_ID3D11Texture2D, &dxgi_surface);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::GetBuffer -> 0");
+			i18n_core_system_call_report_error"IDXGISwapChain::GetBuffer -> 0");
 			return false;
 		}
 		// TODO: 线性颜色空间自动转 sRGB
@@ -843,7 +843,7 @@ namespace Core::Graphics
 		hr = gHR = d3d11_device->CreateRenderTargetView(dxgi_surface.Get(), NULL, &d3d11_rtv);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CreateRenderTargetView");
+			i18n_core_system_call_report_error"ID3D11Device::CreateRenderTargetView");
 			return false;
 		}
 
@@ -870,7 +870,7 @@ namespace Core::Graphics
 		hr = gHR = d3d11_device->CreateTexture2D(&dsbuf_info, NULL, &d3d11_texture2d);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CreateTexture2D");
+			i18n_core_system_call_report_error"ID3D11Device::CreateTexture2D");
 			return false;
 		}
 		D3D11_DEPTH_STENCIL_VIEW_DESC dsv_info = {
@@ -884,7 +884,7 @@ namespace Core::Graphics
 		hr = gHR = d3d11_device->CreateDepthStencilView(d3d11_texture2d.Get(), &dsv_info, &d3d11_dsv);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CreateDepthStencilView");
+			i18n_core_system_call_report_error"ID3D11Device::CreateDepthStencilView");
 			return false;
 		}
 		
@@ -922,7 +922,7 @@ namespace Core::Graphics
 			HRESULT hr = gHR = dxgi_swapchain->Present(1, DXGI_PRESENT_RESTART);
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::Present -> (1, DXGI_PRESENT_RESTART)");
+				i18n_core_system_call_report_error"IDXGISwapChain::Present -> (1, DXGI_PRESENT_RESTART)");
 			}
 		}
 		if (dxgi_swapchain_event.IsValid() && (m_swapchain_flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT))
@@ -931,7 +931,7 @@ namespace Core::Graphics
 			if (!(result == WAIT_OBJECT_0 || result == WAIT_TIMEOUT))
 			{
 				gHRLastError;
-				i18n_log_error_fmt("[core].system_call_failed_f", "WaitForSingleObject");
+				i18n_core_system_call_report_error"WaitForSingleObject");
 			}
 		}
 	}
@@ -950,7 +950,7 @@ namespace Core::Graphics
 		hr = gHR = dxgi_swapchain->GetContainingOutput(&dxgi_output);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::GetContainingOutput");
+			i18n_core_system_call_report_error"IDXGISwapChain::GetContainingOutput");
 			return false;
 		}
 
@@ -960,7 +960,7 @@ namespace Core::Graphics
 		hr = gHR = dxgi_output->GetDisplayModeList(m_swapchain_format, 0, &mode_count, NULL);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIOutput::GetDisplayModeList -> N");
+			i18n_core_system_call_report_error"IDXGIOutput::GetDisplayModeList -> N");
 			return false;
 		}
 
@@ -968,7 +968,7 @@ namespace Core::Graphics
 		hr = gHR = dxgi_output->GetDisplayModeList(m_swapchain_format, 0, &mode_count, modes.data());
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIOutput::GetDisplayModeList");
+			i18n_core_system_call_report_error"IDXGIOutput::GetDisplayModeList");
 			return false;
 		}
 
@@ -1124,7 +1124,7 @@ namespace Core::Graphics
 		hr = gHR = dxgi_swapchain->GetContainingOutput(&dxgi_output);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::GetContainingOutput");
+			i18n_core_system_call_report_error"IDXGISwapChain::GetContainingOutput");
 			i18n_log_error("[core].SwapChain_D3D11.exclusive_fullscreen_unavailable");
 			return false;
 		}
@@ -1145,7 +1145,7 @@ namespace Core::Graphics
 		hr = gHR = dxgi_output->FindClosestMatchingMode(&target_mode, &dxgi_mode, d3d11_device);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIOutput::FindClosestMatchingMode");
+			i18n_core_system_call_report_error"IDXGIOutput::FindClosestMatchingMode");
 			return false;
 		}
 
@@ -1161,7 +1161,7 @@ namespace Core::Graphics
 			hr = gHR = dxgi_output->FindClosestMatchingMode(&target_mode, &dxgi_mode, d3d11_device);
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIOutput::FindClosestMatchingMode");
+				i18n_core_system_call_report_error"IDXGIOutput::FindClosestMatchingMode");
 				return false;
 			}
 		}
@@ -1314,7 +1314,7 @@ namespace Core::Graphics
 		hr = gHR = dxgi_swapchain->ResizeBuffers(m_swapchain_buffer_count, width, height, m_swapchain_format, m_swapchain_flags);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::ResizeBuffers");
+			i18n_core_system_call_report_error"IDXGISwapChain::ResizeBuffers");
 			assert(false); return false;
 		}
 
@@ -1363,14 +1363,14 @@ namespace Core::Graphics
 		HRESULT hr = gHR = dxgi_swapchain->SetFullscreenState(TRUE, NULL);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::SetFullscreenState -> TRUE");
+			i18n_core_system_call_report_error"IDXGISwapChain::SetFullscreenState -> TRUE");
 			return false;
 		}
 		// 需要重设交换链大小（特别是 Flip 交换链模型）
 		hr = gHR = dxgi_swapchain->ResizeBuffers(m_swapchain_buffer_count, mode.width, mode.height, m_swapchain_format, m_swapchain_flags);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::ResizeBuffers");
+			i18n_core_system_call_report_error"IDXGISwapChain::ResizeBuffers");
 			assert(false); return false;
 		}
 		// 创建渲染附件
@@ -1411,7 +1411,7 @@ namespace Core::Graphics
 						hr = gHR = dxgi_swapchain->SetFullscreenState(TRUE, NULL);
 						if (FAILED(hr))
 						{
-							i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::SetFullscreenState -> TRUE");
+							i18n_core_system_call_report_error"IDXGISwapChain::SetFullscreenState -> TRUE");
 						}
 						else
 						{
@@ -1421,7 +1421,7 @@ namespace Core::Graphics
 				}
 				else
 				{
-					i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::GetFullscreenState");
+					i18n_core_system_call_report_error"IDXGISwapChain::GetFullscreenState");
 				}
 			}
 		}
@@ -1441,7 +1441,7 @@ namespace Core::Graphics
 						hr = gHR = dxgi_swapchain->SetFullscreenState(FALSE, NULL);
 						if (FAILED(hr))
 						{
-							i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::SetFullscreenState -> FALSE");
+							i18n_core_system_call_report_error"IDXGISwapChain::SetFullscreenState -> FALSE");
 						}
 						else
 						{
@@ -1451,7 +1451,7 @@ namespace Core::Graphics
 				}
 				else
 				{
-					i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::GetFullscreenState");
+					i18n_core_system_call_report_error"IDXGISwapChain::GetFullscreenState");
 				}
 			}
 			m_window->setLayer(WindowLayer::Normal);
@@ -1505,7 +1505,7 @@ namespace Core::Graphics
 		}
 		else if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGISwapChain::Present");
+			i18n_core_system_call_report_error"IDXGISwapChain::Present");
 			return false;
 		}
 
@@ -1534,7 +1534,7 @@ namespace Core::Graphics
 			&GUID_WICPixelFormat24bppBGR);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "DirectX::SaveWICTextureToFile");
+			i18n_core_system_call_report_error"DirectX::SaveWICTextureToFile");
 			return false;
 		}
 

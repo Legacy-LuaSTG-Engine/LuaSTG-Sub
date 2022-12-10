@@ -10,8 +10,8 @@
 #define HRNew HRESULT hr = S_OK;
 #define HRGet hr = gHR
 #define BHR bHR
-#define HRCheckCallReturnBool(x) if (FAILED(hr)) { i18n_log_error_fmt("[core].system_call_failed_f", x); return false; }
-#define HRCheckCallReport(x) if (FAILED(hr)) { i18n_log_error_fmt("[core].system_call_failed_f", x); }
+#define HRCheckCallReturnBool(x) if (FAILED(hr)) { i18n_core_system_call_report_error(x); return false; }
+#define HRCheckCallReport(x) if (FAILED(hr)) { i18n_core_system_call_report_error(x); }
 #define LOG_INFO(x, ...)
 #define LOG_ERROR(x, ...)
 #endif

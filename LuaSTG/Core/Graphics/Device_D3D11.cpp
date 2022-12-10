@@ -225,7 +225,7 @@ namespace Core::Graphics
 		hr = gHR = dxgi_loader.CreateFactory(IID_PPV_ARGS(&dxgi_factory));
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "CreateDXGIFactory2 -> IDXGIFactory1");
+			i18n_core_system_call_report_error("CreateDXGIFactory2 -> IDXGIFactory1");
 			assert(false); return false;
 		}
 
@@ -233,7 +233,7 @@ namespace Core::Graphics
 		hr = gHR = dxgi_factory.As(&dxgi_factory2);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory1::QueryInterface -> IDXGIFactory2");
+			i18n_core_system_call_report_error("IDXGIFactory1::QueryInterface -> IDXGIFactory2");
 		}
 
 		return true;
@@ -320,7 +320,7 @@ namespace Core::Graphics
 			}
 			else
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIAdapter1::GetDesc1");
+				i18n_core_system_call_report_error("IDXGIAdapter1::GetDesc1");
 				i18n_log_error_fmt("[core].Device_D3D11.DXGI_adapter_detail_error_fmt", idx);
 				supported_d3d11 = false; // 排除未知错误
 			}
@@ -334,7 +334,7 @@ namespace Core::Graphics
 				hr = gHR = dxgi_output_temp.As(&dxgi_output_temp6);
 				if (FAILED(hr))
 				{
-					i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIOutput::QueryInterface -> IDXGIOutput6");
+					i18n_core_system_call_report_error("IDXGIOutput::QueryInterface -> IDXGIOutput6");
 					// 不是严重错误
 				}
 
@@ -347,7 +347,7 @@ namespace Core::Graphics
 					if (!(bHR = gHR = dxgi_output_temp6->CheckHardwareCompositionSupport(&comp_sp_flags)))
 					{
 						comp_sp_flags = 0;
-						i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIOutput6::CheckHardwareCompositionSupport");
+						i18n_core_system_call_report_error("IDXGIOutput6::CheckHardwareCompositionSupport");
 					}
 					if (bHR = gHR = dxgi_output_temp6->GetDesc1(&o_desc))
 					{
@@ -355,7 +355,7 @@ namespace Core::Graphics
 					}
 					else
 					{
-						i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIOutput6::GetDesc1");
+						i18n_core_system_call_report_error("IDXGIOutput6::GetDesc1");
 					}
 				}
 				if (!read_o_desc)
@@ -372,7 +372,7 @@ namespace Core::Graphics
 					}
 					else
 					{
-						i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIOutput::GetDesc");
+						i18n_core_system_call_report_error("IDXGIOutput::GetDesc");
 					}
 				}
 
@@ -473,7 +473,7 @@ namespace Core::Graphics
 		hr = gHR = dxgi_factory.As(&dxgi_factory3);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory1::QueryInterface -> IDXGIFactory3");
+			i18n_core_system_call_report_error("IDXGIFactory1::QueryInterface -> IDXGIFactory3");
 			// 不是严重错误
 		}
 
@@ -481,7 +481,7 @@ namespace Core::Graphics
 		hr = gHR = dxgi_factory.As(&dxgi_factory4);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory1::QueryInterface -> IDXGIFactory4");
+			i18n_core_system_call_report_error("IDXGIFactory1::QueryInterface -> IDXGIFactory4");
 			// 不是严重错误
 		}
 
@@ -489,7 +489,7 @@ namespace Core::Graphics
 		hr = gHR = dxgi_factory.As(&dxgi_factory5);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory1::QueryInterface -> IDXGIFactory5");
+			i18n_core_system_call_report_error("IDXGIFactory1::QueryInterface -> IDXGIFactory5");
 			// 不是严重错误
 		}
 
@@ -497,7 +497,7 @@ namespace Core::Graphics
 		hr = gHR = dxgi_factory.As(&dxgi_factory6);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory1::QueryInterface -> IDXGIFactory6");
+			i18n_core_system_call_report_error("IDXGIFactory1::QueryInterface -> IDXGIFactory6");
 			// 不是严重错误
 		}
 
@@ -505,7 +505,7 @@ namespace Core::Graphics
 		hr = gHR = dxgi_factory.As(&dxgi_factory7);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory1::QueryInterface -> IDXGIFactory7");
+			i18n_core_system_call_report_error("IDXGIFactory1::QueryInterface -> IDXGIFactory7");
 			// 不是严重错误
 		}
 
@@ -531,7 +531,7 @@ namespace Core::Graphics
 			}
 			else
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory5::CheckFeatureSupport -> DXGI_FEATURE_PRESENT_ALLOW_TEARING");
+				i18n_core_system_call_report_error("IDXGIFactory5::CheckFeatureSupport -> DXGI_FEATURE_PRESENT_ALLOW_TEARING");
 				// 不是严重错误
 			}
 		}
@@ -561,7 +561,7 @@ namespace Core::Graphics
 		hr = gHR = dxgi_adapter.As(&dxgi_adapter2);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIAdapter1::QueryInterface -> IDXGIAdapter2");
+			i18n_core_system_call_report_error("IDXGIAdapter1::QueryInterface -> IDXGIAdapter2");
 			// 不是严重错误
 		}
 
@@ -569,7 +569,7 @@ namespace Core::Graphics
 		hr = gHR = dxgi_adapter.As(&dxgi_adapter3);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIAdapter1::QueryInterface -> IDXGIAdapter3");
+			i18n_core_system_call_report_error("IDXGIAdapter1::QueryInterface -> IDXGIAdapter3");
 			// 不是严重错误
 		}
 
@@ -577,7 +577,7 @@ namespace Core::Graphics
 		hr = gHR = dxgi_adapter.As(&dxgi_adapter4);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIAdapter1::QueryInterface -> IDXGIAdapter4");
+			i18n_core_system_call_report_error("IDXGIAdapter1::QueryInterface -> IDXGIAdapter4");
 			// 不是严重错误
 		}
 
@@ -616,7 +616,7 @@ namespace Core::Graphics
 			&d3d11_devctx);
 		if (!d3d11_device)
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "D3D11CreateDevice");
+			i18n_core_system_call_report_error("D3D11CreateDevice");
 			return false;
 		}
 		M_D3D_SET_DEBUG_NAME(d3d11_device.Get(), "Device_D3D11::d3d11_device");
@@ -627,13 +627,13 @@ namespace Core::Graphics
 		hr = gHR = d3d11_device.As(&d3d11_device1);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::QueryInterface -> ID3D11Device1");
+			i18n_core_system_call_report_error("ID3D11Device::QueryInterface -> ID3D11Device1");
 			// 不是严重错误
 		}
 		hr = gHR = d3d11_devctx.As(&d3d11_devctx1);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11DeviceContext::QueryInterface -> ID3D11DeviceContext1");
+			i18n_core_system_call_report_error("ID3D11DeviceContext::QueryInterface -> ID3D11DeviceContext1");
 			// 不是严重错误
 		}
 		
@@ -650,11 +650,11 @@ namespace Core::Graphics
 
 			D3D11_FEATURE_DATA_FORMAT_SUPPORT data1 = { .InFormat = format };
 			HRESULT const hr1 = gHR = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_FORMAT_SUPPORT, &data1, sizeof(D3D11_FEATURE_DATA_FORMAT_SUPPORT));
-			if (FAILED(hr1)) i18n_log_error_fmt("[core].system_call_failed_f", name1);
+			if (FAILED(hr1)) i18n_core_system_call_report_error(name1);
 
 			D3D11_FEATURE_DATA_FORMAT_SUPPORT2 data2 = { .InFormat = format };
 			HRESULT const hr2 = gHR = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_FORMAT_SUPPORT2, &data2, sizeof(D3D11_FEATURE_DATA_FORMAT_SUPPORT2));
-			if (FAILED(hr2)) i18n_log_error_fmt("[core].system_call_failed_f", name2);
+			if (FAILED(hr2)) i18n_core_system_call_report_error(name2);
 
 			return D3DX11_FEATURE_DATA_FORMAT_SUPPORT{ .InFormat = format, .OutFormatSupport = data1.OutFormatSupport, .OutFormatSupport2 = data2.OutFormatSupport2 };
 		};
@@ -664,7 +664,7 @@ namespace Core::Graphics
 
 			D3D11_FEATURE_DATA_FORMAT_SUPPORT data1 = { .InFormat = format };
 			HRESULT const hr1 = gHR = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_FORMAT_SUPPORT, &data1, sizeof(D3D11_FEATURE_DATA_FORMAT_SUPPORT));
-			if (FAILED(hr1)) i18n_log_error_fmt("[core].system_call_failed_f", name1);
+			if (FAILED(hr1)) i18n_core_system_call_report_error(name1);
 
 			D3D11_FEATURE_DATA_FORMAT_SUPPORT2 data2 = { .InFormat = format };
 			d3d11_device->CheckFeatureSupport(D3D11_FEATURE_FORMAT_SUPPORT2, &data2, sizeof(D3D11_FEATURE_DATA_FORMAT_SUPPORT2));
@@ -689,7 +689,7 @@ namespace Core::Graphics
 		HRESULT hr_mt = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_THREADING, &d3d11_feature_mt, sizeof(d3d11_feature_mt));
 		if (FAILED(hr_mt))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CheckFeatureSupport -> D3D11_FEATURE_THREADING");
+			i18n_core_system_call_report_error("ID3D11Device::CheckFeatureSupport -> D3D11_FEATURE_THREADING");
 			// 不是严重错误
 		}
 
@@ -697,7 +697,7 @@ namespace Core::Graphics
 		HRESULT hr_arch = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_ARCHITECTURE_INFO, &d3d11_feature_arch, sizeof(d3d11_feature_arch));
 		if (FAILED(hr_arch))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CheckFeatureSupport -> D3D11_FEATURE_ARCHITECTURE_INFO");
+			i18n_core_system_call_report_error("ID3D11Device::CheckFeatureSupport -> D3D11_FEATURE_ARCHITECTURE_INFO");
 			// 不是严重错误
 		}
 
@@ -705,7 +705,7 @@ namespace Core::Graphics
 		HRESULT hr_o2 = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_D3D11_OPTIONS2, &d3d11_feature_o2, sizeof(d3d11_feature_o2));
 		if (FAILED(hr_o2))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CheckFeatureSupport -> D3D11_FEATURE_D3D11_OPTIONS2");
+			i18n_core_system_call_report_error("ID3D11Device::CheckFeatureSupport -> D3D11_FEATURE_D3D11_OPTIONS2");
 			// 不是严重错误
 		}
 
@@ -827,19 +827,19 @@ namespace Core::Graphics
 			assert(SUCCEEDED(hr));
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IWICImagingFactory2::QueryInterface -> IWICImagingFactory");
+				i18n_core_system_call_report_error("IWICImagingFactory2::QueryInterface -> IWICImagingFactory");
 				return false;
 			}
 		}
 		else
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "CoCreateInstance -> IWICImagingFactory2");
+			i18n_core_system_call_report_error("CoCreateInstance -> IWICImagingFactory2");
 			// 没有那么严重，来再一次
 			hr = gHR = CoCreateInstance(CLSID_WICImagingFactory1, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&wic_factory));
 			assert(SUCCEEDED(hr));
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "CoCreateInstance -> IWICImagingFactory");
+				i18n_core_system_call_report_error("CoCreateInstance -> IWICImagingFactory");
 				return false;
 			}
 		}
@@ -860,7 +860,7 @@ namespace Core::Graphics
 			IID_PPV_ARGS(&d2d1_factory));
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "D2D1CreateFactory");
+			i18n_core_system_call_report_error("D2D1CreateFactory");
 			assert(false); return false;
 		}
 
@@ -869,7 +869,7 @@ namespace Core::Graphics
 		hr = gHR = d2d1_factory.As(&d2d1_factory1);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "ID2D1Factory::QueryInterface -> ID2D1Factory1");
+			i18n_core_system_call_report_error("ID2D1Factory::QueryInterface -> ID2D1Factory1");
 			// 不是严重错误
 		}
 		
@@ -879,7 +879,7 @@ namespace Core::Graphics
 			hr = gHR = d3d11_device.As(&dxgi_device);
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::QueryInterface -> IDXGIDevice");
+				i18n_core_system_call_report_error("ID3D11Device::QueryInterface -> IDXGIDevice");
 				assert(false); return false;
 			}
 			if (dxgi_device)
@@ -887,7 +887,7 @@ namespace Core::Graphics
 				hr = gHR = d2d1_factory1->CreateDevice(dxgi_device.Get(), &d2d1_device);
 				if (FAILED(hr))
 				{
-					i18n_log_error_fmt("[core].system_call_failed_f", "ID2D1Factory1::CreateDevice");
+					i18n_core_system_call_report_error("ID2D1Factory1::CreateDevice");
 					assert(false); return false;
 				}
 			}
@@ -898,7 +898,7 @@ namespace Core::Graphics
 			hr = gHR = d2d1_device->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, &d2d1_devctx);
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "ID2D1Device::CreateDeviceContext");
+				i18n_core_system_call_report_error("ID2D1Device::CreateDeviceContext");
 				assert(false); return false;
 			}
 		}
@@ -919,7 +919,7 @@ namespace Core::Graphics
 		hr = gHR = dwrite_loader.CreateFactory(DWRITE_FACTORY_TYPE_SHARED, IID_PPV_ARGS(&dwrite_factory));
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "DWriteCreateFactory -> DWRITE_FACTORY_TYPE_SHARED");
+			i18n_core_system_call_report_error("DWriteCreateFactory -> DWRITE_FACTORY_TYPE_SHARED");
 			return false;
 		}
 
@@ -962,14 +962,14 @@ namespace Core::Graphics
 			hr = gHR = dxgi_factory->EnumAdapters1(0, &dxgi_adapter);
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory1::EnumAdapters1 -> #0");
+				i18n_core_system_call_report_error("IDXGIFactory1::EnumAdapters1 -> #0");
 				assert(false); return false;
 			}
 			DXGI_ADAPTER_DESC1 desc = {};
 			hr = gHR = dxgi_adapter->GetDesc1(&desc);
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIAdapter1::GetDesc1");
+				i18n_core_system_call_report_error("IDXGIAdapter1::GetDesc1");
 				assert(false); return false;
 			}
 			std::string gpu_name(std::move(utility::encoding::to_utf8(desc.Description)));
@@ -1016,7 +1016,7 @@ namespace Core::Graphics
 				hr = gHR = output_->GetDesc(&desc);
 				if (FAILED(hr))
 				{
-					i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIOutput3::CheckOverlaySupport -> DXGI_FORMAT_B8G8R8A8_UNORM");
+					i18n_core_system_call_report_error("IDXGIOutput3::CheckOverlaySupport -> DXGI_FORMAT_B8G8R8A8_UNORM");
 					assert(false); return false;
 				}
 
@@ -1037,7 +1037,7 @@ namespace Core::Graphics
 						&overlay_flags);
 					if (FAILED(hr))
 					{
-						i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIOutput3::CheckOverlaySupport -> DXGI_FORMAT_B8G8R8A8_UNORM");
+						i18n_core_system_call_report_error("IDXGIOutput3::CheckOverlaySupport -> DXGI_FORMAT_B8G8R8A8_UNORM");
 					}
 				}
 
@@ -1048,7 +1048,7 @@ namespace Core::Graphics
 					hr = gHR = output6_->CheckHardwareCompositionSupport(&composition_flags);
 					if (FAILED(hr))
 					{
-						i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIOutput6::CheckHardwareCompositionSupport");
+						i18n_core_system_call_report_error("IDXGIOutput6::CheckHardwareCompositionSupport");
 					}
 				}
 
@@ -1092,7 +1092,7 @@ namespace Core::Graphics
 			hr = gHR = d3d11_device.As(&dxgi_device);
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::QueryInterface -> IDXGIDevice");
+				i18n_core_system_call_report_error("ID3D11Device::QueryInterface -> IDXGIDevice");
 				return false;
 			}
 
@@ -1100,28 +1100,28 @@ namespace Core::Graphics
 			hr = gHR = dxgi_device->GetAdapter(&dxgi_adapter_tmp);
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIDevice::GetAdapter");
+				i18n_core_system_call_report_error("IDXGIDevice::GetAdapter");
 				return false;
 			}
 
 			hr = gHR = dxgi_adapter_tmp.As(&dxgi_adapter);
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIAdapter::QueryInterface -> IDXGIAdapter1");
+				i18n_core_system_call_report_error("IDXGIAdapter::QueryInterface -> IDXGIAdapter1");
 				return false;
 			}
 			
 			//hr = gHR = dxgi_adapter->GetParent(IID_PPV_ARGS(&dxgi_factory));
 			//if (FAILED(hr))
 			//{
-			//	i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIAdapter1::GetParent -> IDXGIFactory1");
+			//	i18n_core_system_call_report_error("IDXGIAdapter1::GetParent -> IDXGIFactory1");
 			//	return false;
 			//}
 			//
 			//hr = gHR = dxgi_factory.As(&dxgi_factory2);
 			//if (FAILED(hr))
 			//{
-			//	i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory1::QueryInterface -> IDXGIFactory2");
+			//	i18n_core_system_call_report_error("IDXGIFactory1::QueryInterface -> IDXGIFactory2");
 			//	// 不是大问题
 			//}
 
@@ -1129,7 +1129,7 @@ namespace Core::Graphics
 			hr = gHR = dxgi_loader.CreateFactory(IID_PPV_ARGS(&dxgi_factory));
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "CreateDXGIFactory2 -> IDXGIFactory1");
+				i18n_core_system_call_report_error("CreateDXGIFactory2 -> IDXGIFactory1");
 				assert(false); return false;
 			}
 
@@ -1137,7 +1137,7 @@ namespace Core::Graphics
 			hr = gHR = dxgi_factory.As(&dxgi_factory2);
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "IDXGIFactory1::QueryInterface -> IDXGIFactory2");
+				i18n_core_system_call_report_error("IDXGIFactory1::QueryInterface -> IDXGIFactory2");
 			}
 
 			assert(dxgi_factory->IsCurrent());
@@ -1431,7 +1431,7 @@ namespace Core::Graphics
 		hr = gHR = m_device->GetD3D11Device()->CreateSamplerState(&desc, &d3d11_sampler);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CreateSamplerState");
+			i18n_core_system_call_report_error("ID3D11Device::CreateSamplerState");
 			return false;
 		}
 		M_D3D_SET_DEBUG_NAME(d3d11_sampler.Get(), "SamplerState_D3D11::d3d11_sampler");
@@ -1546,7 +1546,7 @@ namespace Core::Graphics
 			hr = gHR = d3d11_device->CreateTexture2D(&tex2d_desc, &subres_data, &d3d11_texture2d);
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CreateTexture2D");
+				i18n_core_system_call_report_error("ID3D11Device::CreateTexture2D");
 				return false;
 			}
 			M_D3D_SET_DEBUG_NAME(d3d11_texture2d.Get(), "Texture2D_D3D11::d3d11_texture2d");
@@ -1562,7 +1562,7 @@ namespace Core::Graphics
 			hr = gHR = d3d11_device->CreateShaderResourceView(d3d11_texture2d.Get(), &view_desc, &d3d11_srv);
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CreateShaderResourceView");
+				i18n_core_system_call_report_error("ID3D11Device::CreateShaderResourceView");
 				return false;
 			}
 			M_D3D_SET_DEBUG_NAME(d3d11_srv.Get(), "Texture2D_D3D11::d3d11_srv");
@@ -1616,11 +1616,11 @@ namespace Core::Graphics
 					{
 						// 在这里一起报告，不然 log 文件里遍地都是 error
 						gHR = hr1;
-						i18n_log_error_fmt("[core].system_call_failed_f", "DirectX::CreateDDSTextureFromMemoryEx");
+						i18n_core_system_call_report_error("DirectX::CreateDDSTextureFromMemoryEx");
 						gHR = hr2;
-						i18n_log_error_fmt("[core].system_call_failed_f", "DirectX::CreateWICTextureFromMemoryEx");
+						i18n_core_system_call_report_error("DirectX::CreateWICTextureFromMemoryEx");
 						gHR = hr3;
-						i18n_log_error_fmt("[core].system_call_failed_f", "DirectX::CreateQOITextureFromMemoryEx");
+						i18n_core_system_call_report_error("DirectX::CreateQOITextureFromMemoryEx");
 						return false;
 					}
 				}
@@ -1635,7 +1635,7 @@ namespace Core::Graphics
 			hr = gHR = res.As(&d3d11_texture2d);
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Resource::QueryInterface -> ID3D11Texture2D");
+				i18n_core_system_call_report_error("ID3D11Resource::QueryInterface -> ID3D11Texture2D");
 				return false;
 			}
 			M_D3D_SET_DEBUG_NAME(d3d11_texture2d.Get(), "Texture2D_D3D11::d3d11_texture2d");
@@ -1663,7 +1663,7 @@ namespace Core::Graphics
 			hr = gHR = d3d11_device->CreateTexture2D(&texdef, NULL, &d3d11_texture2d);
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CreateTexture2D");
+				i18n_core_system_call_report_error("ID3D11Device::CreateTexture2D");
 				return false;
 			}
 			M_D3D_SET_DEBUG_NAME(d3d11_texture2d.Get(), "Texture2D_D3D11::d3d11_texture2d");
@@ -1676,7 +1676,7 @@ namespace Core::Graphics
 			hr = gHR = d3d11_device->CreateShaderResourceView(d3d11_texture2d.Get(), &viewdef, &d3d11_srv);
 			if (FAILED(hr))
 			{
-				i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CreateShaderResourceView");
+				i18n_core_system_call_report_error("ID3D11Device::CreateShaderResourceView");
 				return false;
 			}
 			M_D3D_SET_DEBUG_NAME(d3d11_srv.Get(), "Texture2D_D3D11::d3d11_srv");
@@ -1760,7 +1760,7 @@ namespace Core::Graphics
 		hr = gHR = d3d11_device->CreateRenderTargetView(m_texture->GetResource(), &rtvdef, &d3d11_rtv);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CreateRenderTargetView");
+			i18n_core_system_call_report_error("ID3D11Device::CreateRenderTargetView");
 			return false;
 		}
 		M_D3D_SET_DEBUG_NAME(d3d11_rtv.Get(), "RenderTarget_D3D11::d3d11_rtv");
@@ -1825,7 +1825,7 @@ namespace Core::Graphics
 		hr = gHR = d3d11_device->CreateTexture2D(&tex2ddef, NULL, &d3d11_texture2d);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CreateTexture2D");
+			i18n_core_system_call_report_error("ID3D11Device::CreateTexture2D");
 			return false;
 		}
 		M_D3D_SET_DEBUG_NAME(d3d11_texture2d.Get(), "DepthStencilBuffer_D3D11::d3d11_texture2d");
@@ -1838,7 +1838,7 @@ namespace Core::Graphics
 		hr = gHR = d3d11_device->CreateDepthStencilView(d3d11_texture2d.Get(), &dsvdef, &d3d11_dsv);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "ID3D11Device::CreateDepthStencilView");
+			i18n_core_system_call_report_error("ID3D11Device::CreateDepthStencilView");
 			return false;
 		}
 		M_D3D_SET_DEBUG_NAME(d3d11_dsv.Get(), "DepthStencilBuffer_D3D11::d3d11_dsv");

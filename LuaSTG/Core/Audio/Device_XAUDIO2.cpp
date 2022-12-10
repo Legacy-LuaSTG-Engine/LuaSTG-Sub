@@ -45,7 +45,7 @@ namespace Core::Audio
 		HRESULT hr = gHR = p->SetOutputMatrix(NULL, detail.InputChannels, 2, output_matrix_2x2);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IXAudio2SourceVoice::SetOutputMatrix ");
+			i18n_core_system_call_report_error("IXAudio2SourceVoice::SetOutputMatrix ");
 			return false;
 		}
 		return true;
@@ -90,7 +90,7 @@ namespace Core::Audio
 		{
 			HRESULT hr = gHR = p_voice->SetVolume(v);
 			if (FAILED(hr))
-				i18n_log_error_fmt("[core].system_call_failed_f", "IXAudio2Voice::SetVolume");
+				i18n_core_system_call_report_error("IXAudio2Voice::SetVolume");
 		}
 	}
 	float Device_XAUDIO2::getMixChannelVolume(MixChannel ch)
@@ -166,7 +166,7 @@ namespace Core::Audio
 		hr = gHR = XAudio2Create(&m_shared->xa2_xaudio2);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "XAudio2Create");
+			i18n_core_system_call_report_error("XAudio2Create");
 			throw std::runtime_error("Device_XAUDIO2::Device_XAUDIO2 (1)");
 		}
 	#ifdef _DEBUG
@@ -179,7 +179,7 @@ namespace Core::Audio
 		hr = gHR = m_shared->xa2_xaudio2->CreateMasteringVoice(&m_shared->xa2_master);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IXAudio2::CreateMasteringVoice");
+			i18n_core_system_call_report_error("IXAudio2::CreateMasteringVoice");
 			throw std::runtime_error("Device_XAUDIO2::Device_XAUDIO2 (2)");
 		}
 
@@ -191,14 +191,14 @@ namespace Core::Audio
 		hr = gHR = m_shared->xa2_xaudio2->CreateSubmixVoice(&m_shared->xa2_soundeffect, 2, voice_info.InputSampleRate); // 固定2声道
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IXAudio2::CreateSubmixVoice -> #soundeffect");
+			i18n_core_system_call_report_error("IXAudio2::CreateSubmixVoice -> #soundeffect");
 			throw std::runtime_error("Device_XAUDIO2::Device_XAUDIO2 (3)");
 		}
 
 		hr = gHR = m_shared->xa2_xaudio2->CreateSubmixVoice(&m_shared->xa2_music, 2, voice_info.InputSampleRate); // 固定2声道
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IXAudio2::CreateSubmixVoice -> #music");
+			i18n_core_system_call_report_error("IXAudio2::CreateSubmixVoice -> #music");
 			throw std::runtime_error("Device_XAUDIO2::Device_XAUDIO2 (4)");
 		}
 
@@ -216,14 +216,14 @@ namespace Core::Audio
 		hr = gHR = m_shared->xa2_soundeffect->SetOutputVoices(&voice_send_list);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IXAudio2SubmixVoice::SetOutputVoices #soundeffect -> #master");
+			i18n_core_system_call_report_error("IXAudio2SubmixVoice::SetOutputVoices #soundeffect -> #master");
 			throw std::runtime_error("Device_XAUDIO2::Device_XAUDIO2 (5)");
 		}
 
 		hr = gHR = m_shared->xa2_music->SetOutputVoices(&voice_send_list);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IXAudio2SubmixVoice::SetOutputVoices #music -> #master");
+			i18n_core_system_call_report_error("IXAudio2SubmixVoice::SetOutputVoices #music -> #master");
 			throw std::runtime_error("Device_XAUDIO2::Device_XAUDIO2 (6)");
 		}
 	}
@@ -357,7 +357,7 @@ namespace Core::Audio
 		hr = gHR = p_shared->xa2_xaudio2->CreateSourceVoice(&xa2_source, &fmt, 0, XAUDIO2_DEFAULT_FREQ_RATIO, this);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IXAudio2::CreateSourceVoice");
+			i18n_core_system_call_report_error("IXAudio2::CreateSourceVoice");
 			throw std::runtime_error("AudioPlayer_XAUDIO2::AudioPlayer_XAUDIO2 (1)");
 		}
 
@@ -365,7 +365,7 @@ namespace Core::Audio
 		if (!event_end.IsValid())
 		{
 			gHRLastError;
-			i18n_log_error_fmt("[core].system_call_failed_f", "CreateEventExW");
+			i18n_core_system_call_report_error("CreateEventExW");
 			throw std::runtime_error("AudioPlayer_XAUDIO2::AudioPlayer_XAUDIO2 (2)");
 		}
 		SetEvent(event_end.Get()); // 一开始确实是停止的
@@ -384,7 +384,7 @@ namespace Core::Audio
 		if (FAILED(hr))
 		{
 			SAFE_RELEASE_VOICE(xa2_source);
-			i18n_log_error_fmt("[core].system_call_failed_f", "IXAudio2SourceVoice::SetOutputVoices -> #soundeffect");
+			i18n_core_system_call_report_error("IXAudio2SourceVoice::SetOutputVoices -> #soundeffect");
 			throw std::runtime_error("AudioPlayer_XAUDIO2::AudioPlayer_XAUDIO2 (3)");
 		}
 
@@ -394,7 +394,7 @@ namespace Core::Audio
 		uint32_t frames_read = 0;
 		if (!p_decoder->read(p_decoder->getFrameCount(), pcm_data.data(), &frames_read))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDecoder::read -> #ALL");
+			i18n_core_system_call_report_error("IDecoder::read -> #ALL");
 			throw std::runtime_error("AudioPlayer_XAUDIO2::AudioPlayer_XAUDIO2 (4)");
 		}
 		
@@ -654,7 +654,7 @@ namespace Core::Audio
 		hr = gHR = p_shared->xa2_xaudio2->CreateSourceVoice(&xa2_source, &fmt, 0, XAUDIO2_DEFAULT_FREQ_RATIO, this);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IXAudio2::CreateSourceVoice");
+			i18n_core_system_call_report_error("IXAudio2::CreateSourceVoice");
 			throw std::runtime_error("LoopAudioPlayer_XAUDIO2::LoopAudioPlayer_XAUDIO2 (1)");
 		}
 
@@ -662,7 +662,7 @@ namespace Core::Audio
 		if (!event_end.IsValid())
 		{
 			gHRLastError;
-			i18n_log_error_fmt("[core].system_call_failed_f", "CreateEventExW");
+			i18n_core_system_call_report_error("CreateEventExW");
 			throw std::runtime_error("LoopAudioPlayer_XAUDIO2::LoopAudioPlayer_XAUDIO2 (2)");
 		}
 		SetEvent(event_end.Get()); // 一开始确实是停止的
@@ -681,7 +681,7 @@ namespace Core::Audio
 		if (FAILED(hr))
 		{
 			SAFE_RELEASE_VOICE(xa2_source);
-			i18n_log_error_fmt("[core].system_call_failed_f", "IXAudio2SourceVoice::SetOutputVoices -> #soundeffect");
+			i18n_core_system_call_report_error("IXAudio2SourceVoice::SetOutputVoices -> #soundeffect");
 			throw std::runtime_error("LoopAudioPlayer_XAUDIO2::LoopAudioPlayer_XAUDIO2 (3)");
 		}
 
@@ -689,14 +689,14 @@ namespace Core::Audio
 
 		if (!p_decoder->seek(0))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDecoder::seek -> #0");
+			i18n_core_system_call_report_error("IDecoder::seek -> #0");
 			throw std::runtime_error("LoopAudioPlayer_XAUDIO2::LoopAudioPlayer_XAUDIO2 (5)");
 		}
 		pcm_data.resize(p_decoder->getFrameCount() * p_decoder->getFrameSize());
 		uint32_t frames_read = 0;
 		if (!p_decoder->read(p_decoder->getFrameCount(), pcm_data.data(), &frames_read))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IDecoder::read -> #ALL");
+			i18n_core_system_call_report_error("IDecoder::read -> #ALL");
 			throw std::runtime_error("LoopAudioPlayer_XAUDIO2::LoopAudioPlayer_XAUDIO2 (4)");
 		}
 		m_total_frame = frames_read;
@@ -1016,7 +1016,7 @@ namespace Core::Audio
 		hr = gHR = p_shared->xa2_xaudio2->CreateSourceVoice(&xa2_source, &fmt, 0, XAUDIO2_DEFAULT_FREQ_RATIO, this);
 		if (FAILED(hr))
 		{
-			i18n_log_error_fmt("[core].system_call_failed_f", "IXAudio2::CreateSourceVoice");
+			i18n_core_system_call_report_error("IXAudio2::CreateSourceVoice");
 			throw std::runtime_error("StreamAudioPlayer_XAUDIO2::StreamAudioPlayer_XAUDIO2 (1)");
 		}
 
@@ -1040,7 +1040,7 @@ namespace Core::Audio
 		if (FAILED(hr))
 		{
 			SAFE_RELEASE_VOICE(xa2_source);
-			i18n_log_error_fmt("[core].system_call_failed_f", "IXAudio2SourceVoice::SetOutputVoices -> #soundeffect");
+			i18n_core_system_call_report_error("IXAudio2SourceVoice::SetOutputVoices -> #soundeffect");
 			throw std::runtime_error("StreamAudioPlayer_XAUDIO2::StreamAudioPlayer_XAUDIO2 (3)");
 		}
 
@@ -1054,7 +1054,7 @@ namespace Core::Audio
 		if (!working_thread.IsValid())
 		{
 			gHRLastError;
-			i18n_log_error_fmt("[core].system_call_failed_f", "CreateThread");
+			i18n_core_system_call_report_error("CreateThread");
 			throw std::runtime_error("StreamAudioPlayer_XAUDIO2::StreamAudioPlayer_XAUDIO2 (4)");
 		}
 
