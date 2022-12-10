@@ -17,13 +17,11 @@ namespace Core::Graphics
 		ScopeObject<Device_D3D11> m_device;
 		
 		Microsoft::WRL::Wrappers::Event dxgi_swapchain_event;
-		Microsoft::WRL::ComPtr<IDXGISwapChain> dxgi_swapchain;
+		Microsoft::WRL::ComPtr<IDXGISwapChain1> dxgi_swapchain;
 		
 		std::vector<DisplayMode> m_displaymode;
 
 		DXGI_FORMAT m_swapchain_format{ DXGI_FORMAT_B8G8R8A8_UNORM };
-		DXGI_FORMAT m_ds_format{ DXGI_FORMAT_D24_UNORM_S8_UINT };
-		UINT m_swapchain_buffer_count{ 0 };
 		UINT m_swapchain_flags{ 0 };
 		BOOL m_swapchain_vsync{ FALSE };
 

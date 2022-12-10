@@ -1,9 +1,6 @@
 #include "Platform/Shared.hpp"
+
 #include "Platform/RuntimeLoader/DXGI.hpp"
-#include "Platform/RuntimeLoader/Direct3D11.hpp"
-#include "Platform/RuntimeLoader/Direct2D1.hpp"
-#include "Platform/RuntimeLoader/DirectComposition.hpp"
-#include "Platform/RuntimeLoader/DirectWrite.hpp"
 
 namespace Platform::RuntimeLoader
 {
@@ -107,6 +104,24 @@ namespace Platform::RuntimeLoader
 		hr = pDxgiFactory->MakeWindowAssociation(hwnd, flags);
 		return hr;
 	}
+	HRESULT DXGI::SetSwapChainMaximumFrameLatency(IDXGISwapChain* pSwapChain, UINT MaxLatency, HANDLE* pEvent)
+	{
+		assert(pSwapChain);
+		assert(pEvent);
+
+		HRESULT hr = S_OK;
+
+		Microsoft::WRL::ComPtr<IDXGISwapChain2> dxgi_swapchain2;
+		hr = pSwapChain->QueryInterface(IID_PPV_ARGS(&dxgi_swapchain2));
+		if (FAILED(hr)) return hr;
+
+		hr = dxgi_swapchain2->SetMaximumFrameLatency(MaxLatency);
+		if (FAILED(hr)) return hr;
+
+		*pEvent = dxgi_swapchain2->GetFrameLatencyWaitableObject();
+
+		return hr;
+	}
 	HRESULT DXGI::SetDeviceMaximumFrameLatency(IDXGISwapChain* pSwapChain, UINT MaxLatency)
 	{
 		assert(pSwapChain);
@@ -123,6 +138,8 @@ namespace Platform::RuntimeLoader
 		return hr;
 	}
 }
+
+#include "Platform/RuntimeLoader/Direct3D11.hpp"
 
 namespace Platform::RuntimeLoader
 {
@@ -324,6 +341,8 @@ namespace Platform::RuntimeLoader
 	}
 }
 
+#include "Platform/RuntimeLoader/DirectComposition.hpp"
+
 namespace Platform::RuntimeLoader
 {
 	HRESULT DirectComposition::CreateDevice(IUnknown* renderingDevice, REFIID iid, void** dcompositionDevice)
@@ -377,6 +396,8 @@ namespace Platform::RuntimeLoader
 		api_DCompositionCreateDevice3 = NULL;
 	}
 }
+
+#include "Platform/RuntimeLoader/Direct2D1.hpp"
 
 namespace Platform::RuntimeLoader
 {
@@ -480,6 +501,8 @@ namespace Platform::RuntimeLoader
 		api_D2D1CreateDevice = NULL;
 	}
 }
+
+#include "Platform/RuntimeLoader/DirectWrite.hpp"
 
 namespace Platform::RuntimeLoader
 {
