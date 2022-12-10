@@ -210,6 +210,30 @@ namespace Core::Graphics::Direct3D11
 		d3d11_blend_state.Reset();
 	}
 
+	inline bool IsSizeEqual(ID3D11ShaderResourceView* srv, ID3D11RenderTargetView* rtv)
+	{
+		HRNew;
+
+		Microsoft::WRL::ComPtr<ID3D11Resource> srv_res;
+		srv->GetResource(&srv_res);
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> srv_res_tex;
+		HRGet = srv_res->QueryInterface(IID_PPV_ARGS(&srv_res_tex));
+		HRCheckCallReturnBool("ID3D11Resource::QueryInterface -> ID3D11Texture2D");
+		D3D11_TEXTURE2D_DESC srv_res_tex_info = {};
+		srv_res_tex->GetDesc(&srv_res_tex_info);
+
+		Microsoft::WRL::ComPtr<ID3D11Resource> rtv_res;
+		rtv->GetResource(&rtv_res);
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> rtv_res_tex;
+		HRGet = rtv_res->QueryInterface(IID_PPV_ARGS(&rtv_res_tex));
+		HRCheckCallReturnBool("ID3D11Resource::QueryInterface -> ID3D11Texture2D");
+		D3D11_TEXTURE2D_DESC rtv_res_tex_info = {};
+		rtv_res_tex->GetDesc(&rtv_res_tex_info);
+
+		return srv_res_tex_info.Width == rtv_res_tex_info.Width
+			&& srv_res_tex_info.Height == rtv_res_tex_info.Height;
+	}
+
 	bool LetterBoxingRenderer::AttachDevice(ID3D11Device* device)
 	{
 		assert(device);
@@ -309,6 +333,18 @@ namespace Core::Graphics::Direct3D11
 	bool LetterBoxingRenderer::Draw(ID3D11ShaderResourceView* srv, ID3D11RenderTargetView* rtv, bool clear_rtv)
 	{
 		assert(d3d11_device_context);
+
+		if (IsSizeEqual(srv, rtv))
+		{
+			Microsoft::WRL::ComPtr<ID3D11Resource> srv_res;
+			Microsoft::WRL::ComPtr<ID3D11Resource> rtv_res;
+			srv->GetResource(&srv_res);
+			rtv->GetResource(&rtv_res);
+			d3d11_device_context->CopySubresourceRegion(
+				rtv_res.Get(), 0, 0, 0, 0,
+				srv_res.Get(), 0, NULL);
+			return true;
+		}
 
 		assert(d3d11_input_layout);
 		assert(d3d11_vertex_buffer);
