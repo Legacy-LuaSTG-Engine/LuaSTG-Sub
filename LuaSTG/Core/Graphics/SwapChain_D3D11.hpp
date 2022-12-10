@@ -68,11 +68,11 @@ namespace Core::Graphics
 		Microsoft::WRL::ComPtr<IDCompositionVisual2> dcomp_visual_swap_chain;
 		Microsoft::WRL::ComPtr<IDCompositionSurface> dcomp_surface_background;
 	private:
-		bool createCompositionSwapChain(Vector2U size, bool latency_event);
 		bool createDirectCompositionResources();
 		void destroyDirectCompositionResources();
 		bool updateDirectCompositionTransform();
 		bool commitDirectComposition();
+		bool createCompositionSwapChain(Vector2U size, bool latency_event);
 
 		// RenderAttachment
 

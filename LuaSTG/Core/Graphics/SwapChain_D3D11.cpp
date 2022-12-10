@@ -73,6 +73,25 @@ namespace Core::Graphics
 			return true;
 		}
 	}
+	inline DXGI_SWAP_CHAIN_DESC1 getDefaultSwapChainInfo10()
+	{
+		return DXGI_SWAP_CHAIN_DESC1{
+			.Width = 0,
+			.Height = 0,
+			.Format = DXGI_FORMAT_B8G8R8A8_UNORM,
+			.Stereo = FALSE,
+			.SampleDesc = DXGI_SAMPLE_DESC{
+				.Count = 1,
+				.Quality = 0,
+			},
+			.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
+			.BufferCount = 2,
+			.Scaling = DXGI_SCALING_NONE,
+			.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD,
+			.AlphaMode = DXGI_ALPHA_MODE_IGNORE,
+			.Flags = 0,
+		};
+	}
 
 	void SwapChain_D3D11::dispatchEvent(EventType t)
 	{
@@ -734,6 +753,8 @@ namespace Core::Graphics
 	}
 	bool SwapChain_D3D11::createCompositionSwapChain(Vector2U size, bool latency_event)
 	{
+		// 我们限制 DirectComposition 仅在 Windows 10+ 使用
+
 		HRESULT hr = 0;
 
 		i18n_log_info("[core].SwapChain_D3D11.start_creating_swapchain");
@@ -760,31 +781,14 @@ namespace Core::Graphics
 
 		// 填充交换链描述
 
-		DXGI_SWAP_CHAIN_DESC1 desc = {
-			.Width = size.x,
-			.Height = size.y,
-			.Format = m_swapchain_format,
-			.Stereo = FALSE,
-			.SampleDesc = DXGI_SAMPLE_DESC{
-				.Count = 1,
-				.Quality = 0,
-			},
-			.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
-			.BufferCount = 2,
-			.Scaling = DXGI_SCALING_STRETCH,
-			.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL,
-			.AlphaMode = DXGI_ALPHA_MODE_IGNORE,
-			.Flags = 0,
-		};
-		if (m_device->IsTearingSupport()) // Windows 10 且要求系统支持
+		DXGI_SWAP_CHAIN_DESC1 desc = getDefaultSwapChainInfo10();
+		desc.Width = size.x;
+		desc.Height = size.y;
+		if (m_device->IsTearingSupport()) // Windows 10+ 且要求系统支持
 		{
 			desc.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING; // 允许撕裂
 		}
-		if (m_device->IsFlipDiscardSupport()) // Windows 10
-		{
-			desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; // 更快速的交换链模型
-		}
-		if (latency_event && m_device->IsFrameLatencySupport()) // Windows 8.1
+		if (latency_event)
 		{
 			desc.BufferCount = 3;
 			desc.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT; // 低延迟渲染
@@ -813,25 +817,13 @@ namespace Core::Graphics
 			i18n_core_system_call_report_error("IDXGIFactory2::CreateSwapChainForComposition");
 		}
 
-		// 创建合成器
-
-		if (!createDirectCompositionResources())
-		{
-			return false;
-		}
-
 		// 设置最大帧延迟为 1
 
-		Microsoft::WRL::ComPtr<IDXGIDevice1> dxgi_device1;
-		hr = gHR = d3d11_device->QueryInterface(IID_PPV_ARGS(&dxgi_device1));
-		if (SUCCEEDED(hr))
+		hr = gHR = Platform::RuntimeLoader::DXGI::SetDeviceMaximumFrameLatency(dxgi_swapchain.Get(), 1);
+		if (FAILED(hr))
 		{
-			hr = gHR = dxgi_device1->SetMaximumFrameLatency(1);
-			if (FAILED(hr))
-			{
-				i18n_core_system_call_report_error("IDXGIDevice1::SetMaximumFrameLatency -> 1");
-				assert(false); return false;
-			}
+			i18n_core_system_call_report_error("IDXGIDevice1::SetMaximumFrameLatency -> 1");
+			assert(false); return false;
 		}
 
 		Microsoft::WRL::ComPtr<IDXGISwapChain2> dxgi_swapchain2;
@@ -868,9 +860,13 @@ namespace Core::Graphics
 
 		// 渲染附件
 
-		if (!createRenderAttachment())
-			return false;
+		if (!createRenderAttachment()) return false;
+
 		applyRenderAttachment();
+
+		// 创建合成器
+
+		if (!createDirectCompositionResources()) return false;
 
 		// 标记
 
