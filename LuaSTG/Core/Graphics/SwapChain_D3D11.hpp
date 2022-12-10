@@ -3,6 +3,7 @@
 #include "Core/Graphics/SwapChain.hpp"
 #include "Core/Graphics/Window_Win32.hpp"
 #include "Core/Graphics/Device_D3D11.hpp"
+#include "Core/Graphics/Direct3D11/LetterBoxingRenderer.hpp"
 #include "Platform/RuntimeLoader/DirectComposition.hpp"
 
 namespace Core::Graphics
@@ -16,6 +17,7 @@ namespace Core::Graphics
 		ScopeObject<Window_Win32> m_window;
 		ScopeObject<Device_D3D11> m_device;
 		
+		Direct3D11::LetterBoxingRenderer m_scaling_renderer;
 		Microsoft::WRL::Wrappers::Event dxgi_swapchain_event;
 		Microsoft::WRL::ComPtr<IDXGISwapChain1> dxgi_swapchain;
 		
@@ -35,28 +37,21 @@ namespace Core::Graphics
 
 		BOOL m_init{ FALSE };
 		std::atomic_int m_window_active_changed{ 0 };
+		bool m_is_composition_mode{ false };
 
 	private:
 		void onDeviceCreate();
 		void onDeviceDestroy();
-
 		void onWindowCreate();
 		void onWindowDestroy();
-
 		void onWindowActive();
 		void onWindowInactive();
-
-	public:
-		ID3D11RenderTargetView* GetRTV() { return d3d11_rtv.Get(); }
-		ID3D11DepthStencilView* GetDSV() { return d3d11_dsv.Get(); }
 
 	private:
 		void destroySwapChain();
 		bool createSwapChain(bool windowed, bool flip, bool latency_event, DisplayMode const& mode, bool no_attachment);
 		void waitFrameLatency(uint32_t timeout, bool reset);
 		
-		// DirectComposition
-
 	private:
 		Platform::RuntimeLoader::DirectComposition dcomp_loader;
 		Microsoft::WRL::ComPtr<IDCompositionDesktopDevice> dcomp_desktop_device;
@@ -72,14 +67,26 @@ namespace Core::Graphics
 		bool commitDirectComposition();
 		bool createCompositionSwapChain(Vector2U size, bool latency_event);
 
-		// RenderAttachment
+	private:
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_swap_chain_d3d11_rtv;
+		Vector2U m_canvas_size;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_canvas_d3d11_srv;
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_canvas_d3d11_rtv;
+		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_canvas_d3d11_dsv;
+	private:
+		bool createSwapChainRenderTarget();
+		void destroySwapChainRenderTarget();
+		bool createCanvasColorBuffer();
+		void destroyCanvasColorBuffer();
+		bool createCanvasDepthStencilBuffer();
+		void destroyCanvasDepthStencilBuffer();
+		bool createRenderAttachment();
+		void destroyRenderAttachment();
 
 	private:
-		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> d3d11_rtv;
-		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> d3d11_dsv;
-	private:
-		void destroyRenderAttachment();
-		bool createRenderAttachment();
+		bool setSwapChainSize();
+		bool setSwapChainSize(Vector2U size);
+		bool setCanvasSize(Vector2U size);
 
 	private:
 		enum class EventType

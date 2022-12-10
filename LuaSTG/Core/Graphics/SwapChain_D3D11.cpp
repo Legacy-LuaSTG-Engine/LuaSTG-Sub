@@ -9,6 +9,10 @@
 //#define _log(x) OutputDebugStringA(x "\n")
 #define _log
 
+#define HRNew HRESULT hr = S_OK;
+#define HRGet hr = gHR
+#define HRCheckCallReturnBool(x) if (FAILED(hr)) { i18n_core_system_call_report_error(x); assert(false); return false; }
+
 namespace Core::Graphics
 {
 	inline bool compare_DXGI_MODE_DESC_main(DXGI_MODE_DESC const& a, DXGI_MODE_DESC const& b)
@@ -178,6 +182,7 @@ namespace Core::Graphics
 
 	void SwapChain_D3D11::onDeviceCreate()
 	{
+		m_scaling_renderer.AttachDevice(m_device->GetD3D11Device());
 		if (m_init) // 曾经设置过
 		{
 			if (m_swapchain_last_windowed)
@@ -189,6 +194,7 @@ namespace Core::Graphics
 	void SwapChain_D3D11::onDeviceDestroy()
 	{
 		destroySwapChain();
+		m_scaling_renderer.DetachDevice();
 	}
 
 	void SwapChain_D3D11::onWindowCreate()
@@ -405,22 +411,22 @@ namespace Core::Graphics
 	{
 		if (auto* ctx = m_device->GetD3D11DeviceContext())
 		{
-			ID3D11RenderTargetView* rtvs[1] = { d3d11_rtv.Get() };
-			ctx->OMSetRenderTargets(1, rtvs, d3d11_dsv.Get());
+			ID3D11RenderTargetView* rtvs[1] = { m_canvas_d3d11_rtv.Get() };
+			ctx->OMSetRenderTargets(1, rtvs, m_canvas_d3d11_dsv.Get());
 		}
 	}
 	void SwapChain_D3D11::clearRenderAttachment()
 	{
 		if (auto* ctx = m_device->GetD3D11DeviceContext())
 		{
-			if (d3d11_rtv)
+			if (m_canvas_d3d11_rtv)
 			{
 				FLOAT const clear_color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-				ctx->ClearRenderTargetView(d3d11_rtv.Get(), clear_color);
+				ctx->ClearRenderTargetView(m_canvas_d3d11_rtv.Get(), clear_color);
 			}
-			if (d3d11_dsv)
+			if (m_canvas_d3d11_dsv)
 			{
-				ctx->ClearDepthStencilView(d3d11_dsv.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0u);
+				ctx->ClearDepthStencilView(m_canvas_d3d11_dsv.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0u);
 			}
 		}
 	}
@@ -829,103 +835,218 @@ namespace Core::Graphics
 		return true;
 	}
 
-	// RenderAttachment
-
-	void SwapChain_D3D11::destroyRenderAttachment()
+	bool SwapChain_D3D11::createSwapChainRenderTarget()
 	{
-		if (auto* ctx = m_device->GetD3D11DeviceContext())
+		if (!dxgi_swapchain)
 		{
-			ctx->ClearState();
-			ctx->Flush();
+			assert(false); return false;
 		}
-		d3d11_rtv.Reset();
-		d3d11_dsv.Reset();
+
+		if (!m_device->GetD3D11Device())
+		{
+			assert(false); return false;
+		}
+
+		HRNew;
+
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> dxgi_surface;
+		HRGet = dxgi_swapchain->GetBuffer(0, IID_PPV_ARGS(&dxgi_surface));
+		HRCheckCallReturnBool("IDXGISwapChain::GetBuffer -> 0");
+		
+		// TODO: 线性颜色空间
+		HRGet = m_device->GetD3D11Device()->CreateRenderTargetView(dxgi_surface.Get(), NULL, &m_swap_chain_d3d11_rtv);
+		HRCheckCallReturnBool("ID3D11Device::CreateRenderTargetView");
+
+		return true;
+	}
+	void SwapChain_D3D11::destroySwapChainRenderTarget()
+	{
+		if (m_device->GetD3D11DeviceContext())
+		{
+			m_device->GetD3D11DeviceContext()->ClearState();
+			m_device->GetD3D11DeviceContext()->Flush();
+		}
+		m_swap_chain_d3d11_rtv.Reset();
+	}
+	bool SwapChain_D3D11::createCanvasColorBuffer()
+	{
+		if (m_canvas_size.x == 0 || m_canvas_size.y == 0)
+		{
+			assert(false); return false;
+		}
+
+		if (!m_device->GetD3D11Device())
+		{
+			assert(false); return false;
+		}
+
+		HRNew;
+
+		// Color Buffer
+
+		D3D11_TEXTURE2D_DESC cb_info = {};
+		cb_info.Width = m_canvas_size.x;
+		cb_info.Height = m_canvas_size.y;
+		cb_info.MipLevels = 1;
+		cb_info.ArraySize = 1;
+		cb_info.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+		cb_info.SampleDesc.Count = 1;
+		cb_info.Usage = D3D11_USAGE_DEFAULT;
+		cb_info.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> cb_texture;
+		HRGet = m_device->GetD3D11Device()->CreateTexture2D(&cb_info, NULL, &cb_texture);
+		HRCheckCallReturnBool("ID3D11Device::CreateTexture2D");
+
+		// Shader Resource
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC srv_info = {};
+		srv_info.Format = cb_info.Format; // TODO: 线性颜色空间
+		srv_info.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		srv_info.Texture2D.MipLevels = cb_info.MipLevels;
+
+		HRGet = m_device->GetD3D11Device()->CreateShaderResourceView(cb_texture.Get(), &srv_info, &m_canvas_d3d11_srv);
+		HRCheckCallReturnBool("ID3D11Device::CreateShaderResourceView");
+
+		// Render Target
+
+		D3D11_RENDER_TARGET_VIEW_DESC rtv_info = {};
+		rtv_info.Format = cb_info.Format; // TODO: 线性颜色空间
+		rtv_info.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+
+		HRGet = m_device->GetD3D11Device()->CreateRenderTargetView(cb_texture.Get(), &rtv_info, &m_canvas_d3d11_rtv);
+		HRCheckCallReturnBool("ID3D11Device::CreateRenderTargetView");
+
+		return true;
+	}
+	void SwapChain_D3D11::destroyCanvasColorBuffer()
+	{
+		m_canvas_d3d11_srv.Reset();
+		m_canvas_d3d11_rtv.Reset();
+	}
+	bool SwapChain_D3D11::createCanvasDepthStencilBuffer()
+	{
+		if (m_canvas_size.x == 0 || m_canvas_size.y == 0)
+		{
+			assert(false); return false;
+		}
+
+		if (!m_device->GetD3D11Device())
+		{
+			assert(false); return false;
+		}
+
+		HRNew;
+
+		// Depth Stencil
+
+		D3D11_TEXTURE2D_DESC ds_info = {};
+		ds_info.Width = m_canvas_size.x;
+		ds_info.Height = m_canvas_size.y;
+		ds_info.MipLevels = 1;
+		ds_info.ArraySize = 1;
+		ds_info.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		ds_info.SampleDesc.Count = 1;
+		ds_info.Usage = D3D11_USAGE_DEFAULT;
+		ds_info.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> ds_texture;
+		HRGet = m_device->GetD3D11Device()->CreateTexture2D(&ds_info, NULL, &ds_texture);
+		HRCheckCallReturnBool("ID3D11Device::CreateTexture2D");
+
+		D3D11_DEPTH_STENCIL_VIEW_DESC dsv_info = {};
+		dsv_info.Format = ds_info.Format;
+		dsv_info.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+
+		HRGet = m_device->GetD3D11Device()->CreateDepthStencilView(ds_texture.Get(), &dsv_info, &m_canvas_d3d11_dsv);
+		HRCheckCallReturnBool("ID3D11Device::CreateDepthStencilView");
+
+		return true;
+	}
+	void SwapChain_D3D11::destroyCanvasDepthStencilBuffer()
+	{
+		m_canvas_d3d11_dsv.Reset();
 	}
 	bool SwapChain_D3D11::createRenderAttachment()
 	{
-		HRESULT hr = 0;
+		if (!createSwapChainRenderTarget()) return false;
+		if (m_is_composition_mode)
+		{
+			// 此时画布颜色缓冲区就是交换链的后台缓冲区
+			m_canvas_d3d11_srv.Reset(); // 不使用
+			m_canvas_d3d11_rtv = m_swap_chain_d3d11_rtv;
+		}
+		else
+		{
+			if (!createCanvasColorBuffer()) return false;
+		}
+		if (!createCanvasDepthStencilBuffer()) return false;
+		return true;
+	}
+	void SwapChain_D3D11::destroyRenderAttachment()
+	{
+		destroySwapChainRenderTarget();
+		destroyCanvasColorBuffer();
+		destroyCanvasDepthStencilBuffer();
+	}
 
-		i18n_log_info("[core].SwapChain_D3D11.start_creating_RenderAttachment");
-
+	bool SwapChain_D3D11::setSwapChainSize()
+	{
+		return setSwapChainSize(Vector2U(
+			m_swapchain_last_mode.width,
+			m_swapchain_last_mode.height
+		));
+	}
+	bool SwapChain_D3D11::setSwapChainSize(Vector2U size)
+	{
+		if (size.x == 0 || size.y == 0)
+		{
+			assert(false); return false;
+		}
+		
 		if (!dxgi_swapchain)
 		{
-			i18n_log_error("[core].SwapChain_D3D11.create_RenderAttachment_failed_null_SwapChain");
-			return false;
-		}
-		auto* d3d11_device = m_device->GetD3D11Device();
-		assert(d3d11_device);
-		if (!d3d11_device)
-		{
-			i18n_log_error("[core].SwapChain_D3D11.create_RenderAttachment_failed_null_Device");
-			return false;
+			assert(false); return false;
 		}
 
-		// 渲染目标
+		HRNew;
 
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> dxgi_surface;
-		hr = gHR = dxgi_swapchain->GetBuffer(0, IID_ID3D11Texture2D, &dxgi_surface);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDXGISwapChain::GetBuffer -> 0");
-			return false;
-		}
-		// TODO: 线性颜色空间自动转 sRGB
-		//D3D11_RENDER_TARGET_VIEW_DESC rtv_desc = {
-		//	.Format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,
-		//	.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D,
-		//	.Texture2D = {
-		//		.MipSlice = 0,
-		//	},
-		//};
-		hr = gHR = d3d11_device->CreateRenderTargetView(dxgi_surface.Get(), NULL, &d3d11_rtv);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("ID3D11Device::CreateRenderTargetView");
-			return false;
-		}
+		dispatchEvent(EventType::SwapChainDestroy);
+		if (m_is_composition_mode) m_canvas_d3d11_rtv.Reset();
+		destroySwapChainRenderTarget();
 
-		// 深度、模板缓冲区
+		HRGet = dxgi_swapchain->ResizeBuffers(0, size.x, size.y, DXGI_FORMAT_UNKNOWN, m_swapchain_flags);
+		HRCheckCallReturnBool("IDXGISwapChain::ResizeBuffers");
+		
+		if (!createSwapChainRenderTarget()) return false;
+		if (m_is_composition_mode) m_canvas_d3d11_rtv = m_swap_chain_d3d11_rtv;
+		m_swapchain_last_mode.width = size.x;
+		m_swapchain_last_mode.height = size.y;
+		dispatchEvent(EventType::SwapChainCreate);
 
-		D3D11_TEXTURE2D_DESC bkbuf_info = {};
-		dxgi_surface->GetDesc(&bkbuf_info);
-		D3D11_TEXTURE2D_DESC dsbuf_info = {
-			.Width = bkbuf_info.Width,
-			.Height = bkbuf_info.Height,
-			.MipLevels = 1,
-			.ArraySize = 1,
-			.Format = DXGI_FORMAT_D24_UNORM_S8_UINT,
-			.SampleDesc = DXGI_SAMPLE_DESC{
-				.Count = 1,
-				.Quality = 0,
-			},
-			.Usage = D3D11_USAGE_DEFAULT,
-			.BindFlags = D3D11_BIND_DEPTH_STENCIL,
-			.CPUAccessFlags = 0,
-			.MiscFlags = 0,
-		};
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> d3d11_texture2d;
-		hr = gHR = d3d11_device->CreateTexture2D(&dsbuf_info, NULL, &d3d11_texture2d);
-		if (FAILED(hr))
+		return true;
+	}
+	bool SwapChain_D3D11::setCanvasSize(Vector2U size)
+	{
+		if (size.x == 0 || size.y == 0)
 		{
-			i18n_core_system_call_report_error("ID3D11Device::CreateTexture2D");
-			return false;
-		}
-		D3D11_DEPTH_STENCIL_VIEW_DESC dsv_info = {
-			.Format = dsbuf_info.Format,
-			.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D,
-			.Flags = 0,
-			.Texture2D = D3D11_TEX2D_DSV{
-				.MipSlice = 0,
-			},
-		};
-		hr = gHR = d3d11_device->CreateDepthStencilView(d3d11_texture2d.Get(), &dsv_info, &d3d11_dsv);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("ID3D11Device::CreateDepthStencilView");
-			return false;
+			assert(false); return false;
 		}
 
-		i18n_log_info("[core].SwapChain_D3D11.created_RenderAttachment");
+		m_canvas_size = size;
+
+		if (m_is_composition_mode)
+		{
+			if (!setSwapChainSize(size)) return false;
+		}
+		else
+		{
+			destroyCanvasColorBuffer();
+			if (!createCanvasColorBuffer()) return false;
+		}
+
+		destroyCanvasDepthStencilBuffer();
+		if (!createCanvasDepthStencilBuffer()) return false;
 
 		return true;
 	}
@@ -1210,6 +1331,7 @@ namespace Core::Graphics
 			.refresh_rate = Rational(),
 			.format = Format::B8G8R8A8_UNORM,
 		};
+		m_canvas_size = Vector2U(mode.width, mode.height);
 		if (!createSwapChain(true, flip_model, latency_event, mode, false)) // 让它创建渲染附件
 		{
 			return false;
@@ -1253,6 +1375,7 @@ namespace Core::Graphics
 
 		// 创建交换链
 
+		m_canvas_size = size;
 		if (!createCompositionSwapChain(size, latency_event))
 		{
 			return false;
@@ -1284,44 +1407,7 @@ namespace Core::Graphics
 	}
 	bool SwapChain_D3D11::setSize(uint32_t width, uint32_t height)
 	{
-		//if (!m_swapchain_last_windowed)
-		//{
-		//	spdlog::error("[core] 无法直接更改独占全屏 SwapChain 的大小");
-		//	return false;
-		//}
-		if (width < 1 || height < 1)
-		{
-			i18n_log_error_fmt("[core].SwapChain_D3D11.resize_swapchain_failed_invalid_size_fmt", width, height);
-			return false;
-		}
-		if (width == uint32_t(-1)) width = m_swapchain_last_mode.width;
-		if (height == uint32_t(-1)) height = m_swapchain_last_mode.height;
-		if (!dxgi_swapchain)
-		{
-			i18n_log_error("[core].SwapChain_D3D11.resize_swapchain_failed_null_SwapChain");
-			assert(false); return false;
-		}
-		dispatchEvent(EventType::SwapChainDestroy);
-		destroyRenderAttachment();
-
-		HRESULT hr = S_OK;
-		hr = gHR = dxgi_swapchain->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, m_swapchain_flags);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDXGISwapChain::ResizeBuffers");
-			assert(false); return false;
-		}
-
-		if (!createRenderAttachment())
-		{
-			return false;
-		}
-		applyRenderAttachment();
-		m_swapchain_last_mode.width = width;
-		m_swapchain_last_mode.height = height;
-		//m_window->setCursorToRightBottom();
-		dispatchEvent(EventType::SwapChainCreate);
-		return true;
+		return setCanvasSize(Vector2U(width, height));
 	}
 	bool SwapChain_D3D11::setExclusiveFullscreenMode(DisplayMode const& mode)
 	{
@@ -1368,11 +1454,11 @@ namespace Core::Graphics
 			assert(false); return false;
 		}
 		// 创建渲染附件
+		m_canvas_size = Vector2U(mode.width, mode.height);
 		if (!createRenderAttachment())
 		{
 			return false;
 		}
-		applyRenderAttachment();
 		m_swapchain_last_mode = mode;
 		m_swapchain_last_windowed = FALSE;
 		m_swapchain_last_flip = FALSE;
@@ -1409,7 +1495,7 @@ namespace Core::Graphics
 						}
 						else
 						{
-							setSize(uint32_t(-1), uint32_t(-1));
+							setSwapChainSize();
 						}
 					}
 				}
@@ -1439,7 +1525,7 @@ namespace Core::Graphics
 						}
 						else
 						{
-							setSize(uint32_t(-1), uint32_t(-1));
+							setSwapChainSize();
 						}
 					}
 				}
@@ -1471,6 +1557,25 @@ namespace Core::Graphics
 	{
 		HRESULT hr = S_OK;
 
+		// 缩放显示
+
+		if (m_is_composition_mode)
+		{
+			if (!updateDirectCompositionTransform()) return false;
+		}
+		else
+		{
+			if (!m_scaling_renderer.UpdateTransform(
+				m_canvas_d3d11_srv.Get(),
+				m_swap_chain_d3d11_rtv.Get()
+			)) return false;
+			if (!m_scaling_renderer.Draw(
+				m_canvas_d3d11_srv.Get(),
+				m_swap_chain_d3d11_rtv.Get(),
+				true
+			)) return false;
+		}
+
 		// 呈现
 
 		UINT const interval = m_swapchain_vsync ? 1 : 0;
@@ -1484,12 +1589,8 @@ namespace Core::Graphics
 		// 清空渲染状态并丢弃内容
 
 		m_device->GetD3D11DeviceContext()->ClearState();
-		if (auto* ctx1 = m_device->GetD3D11DeviceContext1())
-		{
-			ctx1->DiscardView(d3d11_rtv.Get());
-			ctx1->DiscardView(d3d11_dsv.Get());
-		}
-
+		m_device->GetD3D11DeviceContext1()->DiscardView(m_swap_chain_d3d11_rtv.Get());
+		
 		// 检查结果
 
 		if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
@@ -1518,7 +1619,7 @@ namespace Core::Graphics
 		HRESULT hr = S_OK;
 
 		Microsoft::WRL::ComPtr<ID3D11Resource> d3d11_resource;
-		d3d11_rtv->GetResource(&d3d11_resource);
+		m_canvas_d3d11_rtv->GetResource(&d3d11_resource);
 
 		hr = gHR = DirectX::SaveWICTextureToFile(
 			m_device->GetD3D11DeviceContext(),
@@ -1539,6 +1640,7 @@ namespace Core::Graphics
 		: m_window(p_window)
 		, m_device(p_device)
 	{
+		m_scaling_renderer.AttachDevice(m_device->GetD3D11Device());
 		m_window->addEventListener(this);
 		m_device->addEventListener(this);
 	}
@@ -1547,6 +1649,7 @@ namespace Core::Graphics
 		m_window->removeEventListener(this);
 		m_device->removeEventListener(this);
 		destroySwapChain();
+		m_scaling_renderer.DetachDevice();
 		assert(m_eventobj.size() == 0);
 		assert(m_eventobj_late.size() == 0);
 	}
