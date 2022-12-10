@@ -18,17 +18,7 @@ namespace Core::Graphics
 		
 		Microsoft::WRL::Wrappers::Event dxgi_swapchain_event;
 		Microsoft::WRL::ComPtr<IDXGISwapChain> dxgi_swapchain;
-		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> d3d11_rtv;
-		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> d3d11_dsv;
-
-		Platform::RuntimeLoader::DirectComposition dcomp_loader;
-		Microsoft::WRL::ComPtr<IDCompositionDevice> dcomp_device;
-		Microsoft::WRL::ComPtr<IDCompositionDesktopDevice> dcomp_desktop_device;
-		Microsoft::WRL::ComPtr<IDCompositionTarget> dcomp_target;
-		Microsoft::WRL::ComPtr<IDCompositionVisual> dcomp_visual_root;
-		Microsoft::WRL::ComPtr<IDCompositionVisual2> dcomp_visual_root2;
-		Microsoft::WRL::ComPtr<IDCompositionMatrixTransform> dcomp_transform;
-
+		
 		std::vector<DisplayMode> m_displaymode;
 
 		DXGI_FORMAT m_swapchain_format{ DXGI_FORMAT_B8G8R8A8_UNORM };
@@ -65,13 +55,34 @@ namespace Core::Graphics
 	private:
 		void destroySwapChain();
 		bool createSwapChain(bool windowed, bool flip, bool latency_event, DisplayMode const& mode, bool no_attachment);
+		void waitFrameLatency(uint32_t timeout, bool reset);
+		
+		// DirectComposition
+
+	private:
+		Platform::RuntimeLoader::DirectComposition dcomp_loader;
+		Microsoft::WRL::ComPtr<IDCompositionDesktopDevice> dcomp_desktop_device;
+		Microsoft::WRL::ComPtr<IDCompositionTarget> dcomp_target;
+		Microsoft::WRL::ComPtr<IDCompositionVisual2> dcomp_visual_root;
+		Microsoft::WRL::ComPtr<IDCompositionVisual2> dcomp_visual_background;
+		Microsoft::WRL::ComPtr<IDCompositionVisual2> dcomp_visual_swap_chain;
+		Microsoft::WRL::ComPtr<IDCompositionSurface> dcomp_surface_background;
+	private:
 		bool createCompositionSwapChain(Vector2U size, bool latency_event);
 		bool createDirectCompositionResources();
 		void destroyDirectCompositionResources();
+		bool updateDirectCompositionTransform();
+		bool commitDirectComposition();
+
+		// RenderAttachment
+
+	private:
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> d3d11_rtv;
+		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> d3d11_dsv;
+	private:
 		void destroyRenderAttachment();
 		bool createRenderAttachment();
-		void waitFrameLatency(uint32_t timeout, bool reset);
-		
+
 	private:
 		enum class EventType
 		{
