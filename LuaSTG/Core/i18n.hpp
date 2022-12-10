@@ -1,5 +1,7 @@
 ﻿#pragma once
+#include <string>
 #include <string_view>
+#include <format>
 
 enum class i18n_lang_t
 {
@@ -21,3 +23,8 @@ std::string_view i18n(std::string_view const& key);
 
 #define i18n_log_critical(STR)          spdlog::critical(i18n(STR))
 #define i18n_log_critical_fmt(FMT, ...) spdlog::critical(fmt::runtime(i18n(FMT)), __VA_ARGS__)
+
+inline void i18n_core_system_call_report_error(std::string_view message)
+{
+	spdlog::error(fmt::runtime(i18n("[core].system_call_failed_f")), message);
+}

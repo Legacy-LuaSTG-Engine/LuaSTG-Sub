@@ -475,11 +475,11 @@ namespace Core
 					}
 					break;
 				case WAIT_TIMEOUT:
-					i18n_log_error_fmt("[core].system_call_failed_f", "MsgWaitForMultipleObjectsEx => WAIT_TIMEOUT");
+					i18n_core_system_call_report_error("MsgWaitForMultipleObjectsEx => WAIT_TIMEOUT");
 					break;
 				case WAIT_FAILED:
 					gHRLastError;
-					i18n_log_error_fmt("[core].system_call_failed_f", "MsgWaitForMultipleObjectsEx");
+					i18n_core_system_call_report_error("MsgWaitForMultipleObjectsEx");
 					running = FALSE; // 应该结束循环
 					break;
 				}
@@ -500,7 +500,7 @@ namespace Core
 				else
 				{
 					gHRLastError;
-					i18n_log_error_fmt("[core].system_call_failed_f", "GetMessageW");
+					i18n_core_system_call_report_error("GetMessageW");
 					running = FALSE; // 应该结束循环
 				}
 			}
