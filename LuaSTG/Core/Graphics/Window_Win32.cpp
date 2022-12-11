@@ -112,6 +112,39 @@ namespace Core::Graphics
 		//		ValidateRect(window, NULL); // 正常情况下，WM_PAINT 忽略掉
 		//	}
 		//	return 0;
+		case WM_SYSKEYDOWN:
+		case WM_KEYDOWN:
+			if (arg1 == VK_MENU)
+			{
+				m_alt_down = TRUE;
+				return 0;
+			}
+			if (m_alt_down && arg1 == VK_RETURN)
+			{
+				if (!m_fullscreen_mode)
+				{
+					GetWindowPlacement(win32_window, &m_last_window_placement);
+					setFrameStyle(WindowFrameStyle::None);
+					m_fullscreen_mode = true;
+					setFullScreen();
+				}
+				else
+				{
+					m_fullscreen_mode = false;
+					setFrameStyle(WindowFrameStyle::Normal);
+					SetWindowPlacement(win32_window, &m_last_window_placement);
+				}
+				return 0;
+			}
+			break;
+		case WM_SYSKEYUP:
+		case WM_KEYUP:
+			if (arg1 == VK_MENU)
+			{
+				m_alt_down = FALSE;
+				return 0;
+			}
+			break;
 		case WM_GETMINMAXINFO:
 			{
 				MINMAXINFO* info = (MINMAXINFO*)arg2;

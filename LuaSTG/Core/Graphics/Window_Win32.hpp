@@ -36,6 +36,9 @@ namespace Core::Graphics
 		DWORD win32_window_style_ex{ 0 };
 		BOOL m_hidewindow{ TRUE };
 		BOOL m_redirect_bitmap{ TRUE };
+		WINDOWPLACEMENT m_last_window_placement{};
+		BOOL m_alt_down{ FALSE };
+		BOOL m_fullscreen_mode{ FALSE };
 
 		BOOL win32_window_is_sizemove{ FALSE };
 		BOOL win32_window_want_track_focus{ FALSE };
