@@ -93,7 +93,7 @@ namespace LuaSTGPlus
 		bool const result = swapchain->setWindowMode(window_size.x, window_size.y, swapchain_flip, swapchain_low_latency);
 
 		window->setLayer(Core::Graphics::WindowLayer::Normal); // 强制取消窗口置顶
-		window->setFrameStyle(borderless ? Core::Graphics::WindowFrameStyle::None : Core::Graphics::WindowFrameStyle::Fixed);
+		window->setFrameStyle(borderless ? Core::Graphics::WindowFrameStyle::None : Core::Graphics::WindowFrameStyle::Normal);
 		window->setSize(window_size);
 		if (isRectEmpty(monitor_rect))
 		{
@@ -379,7 +379,7 @@ namespace LuaSTGPlus
 			switch (m_Setting.display_setting_type)
 			{
 			case DisplaySettingType::Window:
-				p_window->setFrameStyle(m_Setting.window.borderless ? WindowFrameStyle::None : WindowFrameStyle::Fixed);
+				p_window->setFrameStyle(m_Setting.window.borderless ? WindowFrameStyle::None : WindowFrameStyle::Normal);
 				p_window->setSize(m_Setting.window.window_size);
 				break;
 			case DisplaySettingType::Fullscreen:

@@ -87,8 +87,13 @@ namespace Core::Graphics
 				dispatchEvent(EventType::WindowInactive);
 			}
 			break;
-		//case WM_SIZE:
-		//	break;
+		case WM_SIZE:
+			do {
+				EventData d = {};
+				d.window_size = Vector2I(LOWORD(arg2), HIWORD(arg2));
+				dispatchEvent(EventType::WindowSize, d);
+			} while (false);
+			break;
 		//case WM_ENTERSIZEMOVE:
 		//	win32_window_is_sizemove = TRUE;
 		//	InvalidateRect(window, NULL, FALSE); // 标记窗口区域为需要重新绘制，以便产生 WM_PAINT 消息
@@ -107,18 +112,18 @@ namespace Core::Graphics
 		//		ValidateRect(window, NULL); // 正常情况下，WM_PAINT 忽略掉
 		//	}
 		//	return 0;
-		case WM_GETMINMAXINFO:
-			{
-				MINMAXINFO* info = (MINMAXINFO*)arg2;
-				RECT rect = { 0, 0, (LONG)win32_window_width, (LONG)win32_window_height };
-				UINT dpi = platform::HighDPI::GetDpiForWindow(win32_window);
-				if (platform::HighDPI::AdjustWindowRectExForDpi(&rect, win32_window_style, FALSE, win32_window_style_ex, dpi))
-				{
-					info->ptMaxTrackSize.x = rect.right - rect.left;
-					info->ptMaxTrackSize.y = rect.bottom - rect.top;
-				}
-			}
-			return 0;
+		//case WM_GETMINMAXINFO:
+		//	{
+		//		MINMAXINFO* info = (MINMAXINFO*)arg2;
+		//		RECT rect = { 0, 0, (LONG)win32_window_width, (LONG)win32_window_height };
+		//		UINT dpi = platform::HighDPI::GetDpiForWindow(win32_window);
+		//		if (platform::HighDPI::AdjustWindowRectExForDpi(&rect, win32_window_style, FALSE, win32_window_style_ex, dpi))
+		//		{
+		//			info->ptMaxTrackSize.x = rect.right - rect.left;
+		//			info->ptMaxTrackSize.y = rect.bottom - rect.top;
+		//		}
+		//	}
+		//	return 0;
 		case WM_DPICHANGED:
 			if (getFrameStyle() != WindowFrameStyle::None)
 			{
@@ -368,7 +373,7 @@ namespace Core::Graphics
 		return m_redirect_bitmap;
 	}
 
-	void Window_Win32::dispatchEvent(EventType t)
+	void Window_Win32::dispatchEvent(EventType t, EventData d)
 	{
 		// 回调
 		m_is_dispatch_event = true;
@@ -402,6 +407,12 @@ namespace Core::Graphics
 			for (auto& v : m_eventobj)
 			{
 				if (v) v->onWindowClose();
+			}
+			break;
+		case EventType::WindowSize:
+			for (auto& v : m_eventobj)
+			{
+				if (v) v->onWindowSize(d.window_size);
 			}
 			break;
 		case EventType::WindowSizeMovePaint:

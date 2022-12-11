@@ -39,6 +39,10 @@ namespace Core::Graphics
 		std::atomic_int m_window_active_changed{ 0 };
 		bool m_is_composition_mode{ false };
 
+		std::recursive_mutex m_next_window_size_lock;
+		bool m_want_update_window_size{ false };
+		Core::Vector2U m_next_window_size;
+
 	private:
 		void onDeviceCreate();
 		void onDeviceDestroy();
@@ -46,10 +50,12 @@ namespace Core::Graphics
 		void onWindowDestroy();
 		void onWindowActive();
 		void onWindowInactive();
+		void onWindowSize(Core::Vector2I size);
 
 	private:
 		void destroySwapChain();
 		bool createSwapChain(bool windowed, bool flip, bool latency_event, DisplayMode const& mode, bool no_attachment);
+		bool updateLetterBoxingRendererTransform();
 		void waitFrameLatency(uint32_t timeout, bool reset);
 		
 	private:
@@ -84,9 +90,9 @@ namespace Core::Graphics
 		void destroyRenderAttachment();
 
 	private:
-		bool setSwapChainSize();
-		bool setSwapChainSize(Vector2U size);
-		bool setCanvasSize(Vector2U size);
+		bool _setSwapChainSize();
+		bool _setSwapChainSize(Vector2U size);
+		bool _setCanvasSize(Vector2U size);
 
 	private:
 		enum class EventType
@@ -109,13 +115,19 @@ namespace Core::Graphics
 
 		bool setWindowMode(uint32_t width, uint32_t height, bool flip_model, bool latency_event);
 		bool setCompositionWindowMode(Vector2U size, bool latency_event);
-		bool setSize(uint32_t width, uint32_t height);
 		bool setExclusiveFullscreenMode(DisplayMode const& mode);
 		bool isWindowMode() { return m_swapchain_last_windowed; }
-		Vector2U getSize() { return Vector2U(m_swapchain_last_mode.width, m_swapchain_last_mode.height); }
+		bool setSwapChainSize(Vector2U size);
+		Vector2U getSwapChainSize() { return Vector2U(m_swapchain_last_mode.width, m_swapchain_last_mode.height); }
+
+		bool setCanvasSize(Vector2U size);
+		Vector2U getCanvasSize() { return m_canvas_size; }
+
+		bool setSwapChainAndCanvasSize(Vector2U size);
 
 		void clearRenderAttachment();
 		void applyRenderAttachment();
+		void syncWindowSize();
 		void syncWindowActive();
 		void waitFrameLatency();
 		void setVSync(bool enable);
