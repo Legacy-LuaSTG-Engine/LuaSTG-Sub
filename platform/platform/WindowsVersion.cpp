@@ -54,11 +54,11 @@ namespace platform
 			}
 			if (WindowsVersion::Is10Build19043())
 			{
-				MAKE("Windows 10 21H1", false);
+				MAKE("Windows 10 21H1", true);
 			}
 			if (WindowsVersion::Is10Build19042())
 			{
-				MAKE("Windows 10 20H2", true);
+				MAKE("Windows 10 20H2", false);
 			}
 			if (WindowsVersion::Is10Build19041())
 			{
