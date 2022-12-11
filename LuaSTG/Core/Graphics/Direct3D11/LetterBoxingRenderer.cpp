@@ -350,6 +350,8 @@ namespace Core::Graphics::Direct3D11
 		assert(d3d11_vertex_buffer);
 		assert(d3d11_index_buffer);
 
+		d3d11_device_context->ClearState();
+
 		d3d11_device_context->IASetInputLayout(d3d11_input_layout.Get());
 		d3d11_device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		ID3D11Buffer* vertex_buffer_list[1] = { d3d11_vertex_buffer.Get() };
