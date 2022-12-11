@@ -110,6 +110,22 @@ namespace LuaSTGPlus
         return (int)g_KeyboardState.LastKeyDown;
     }
     
+    inline Core::Vector2F MapLetterBoxingPosition(Core::Vector2U isize, Core::Vector2U osize, Core::Vector2I pos)
+    {
+        float const hscale = (float)osize.x / (float)isize.x;
+        float const vscale = (float)osize.y / (float)isize.y;
+        float const scale = std::min(hscale, vscale);
+        float const sizew = scale * (float)isize.x;
+        float const sizeh = scale * (float)isize.y;
+        float const dx = ((float)osize.x - sizew) * 0.5f;
+        float const dy = ((float)osize.y - sizeh) * 0.5f;
+        float const x1 = (float)pos.x - dx;
+        float const y1 = (float)pos.y - dy;
+        float const x2 = x1 / scale;
+        float const y2 = y1 / scale;
+        return Core::Vector2F(x2, y2);
+    }
+
     bool AppFrame::GetMouseState_legacy(int button)noexcept
     {
         switch (button)
@@ -148,14 +164,16 @@ namespace LuaSTGPlus
     }
     Core::Vector2F AppFrame::GetMousePosition(bool no_flip)noexcept
     {
+        auto const w_size = m_win32_window_size;
+        auto const c_size = GetAppModel()->getSwapChain()->getCanvasSize();
+        auto const m_p = MapLetterBoxingPosition(c_size, w_size, Core::Vector2I(MouseState.x, MouseState.y));
         if (no_flip)
         {
-            return Core::Vector2F((float)MouseState.x, (float)MouseState.y);
+            return m_p;
         }
         else
         {
-            Core::Vector2I const size = GetCurrentWindowSize();
-            return Core::Vector2F((float)MouseState.x, (float)size.y - (float)MouseState.y);
+            return Core::Vector2F(m_p.x, (float)c_size.y - m_p.y);
         }
     }
     int32_t AppFrame::GetMouseWheelDelta()noexcept
