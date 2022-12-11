@@ -196,7 +196,6 @@ namespace Core::Graphics
 		destroySwapChain();
 		m_scaling_renderer.DetachDevice();
 	}
-
 	void SwapChain_D3D11::onWindowCreate()
 	{
 		//onDeviceCreate();
@@ -205,7 +204,6 @@ namespace Core::Graphics
 	{
 		//onDeviceDestroy();
 	}
-
 	void SwapChain_D3D11::onWindowActive()
 	{
 		m_window_active_changed.store(0x1);
@@ -216,6 +214,14 @@ namespace Core::Graphics
 	{
 		m_window_active_changed.store(0x2);
 		_log("onWindowInactive");
+	}
+	void SwapChain_D3D11::onWindowSize(Core::Vector2I size)
+	{
+		m_next_window_size_lock.lock();
+		m_want_update_window_size = true;
+		m_next_window_size.x = (uint32_t)size.x;
+		m_next_window_size.y = (uint32_t)size.y;
+		m_next_window_size_lock.unlock();
 	}
 
 	bool SwapChain_D3D11::createSwapChain(bool windowed, bool flip, bool latency_event, DisplayMode const& mode, bool no_attachment)
@@ -373,8 +379,6 @@ namespace Core::Graphics
 		if (!no_attachment)
 		{
 			if (!createRenderAttachment()) return false;
-
-			applyRenderAttachment();
 		}
 
 		// 标记
@@ -406,6 +410,13 @@ namespace Core::Graphics
 		}
 		dxgi_swapchain_event.Close();
 		dxgi_swapchain.Reset();
+	}
+	bool SwapChain_D3D11::updateLetterBoxingRendererTransform()
+	{
+		return m_scaling_renderer.UpdateTransform(
+			m_canvas_d3d11_srv.Get(),
+			m_swap_chain_d3d11_rtv.Get()
+		);
 	}
 	void SwapChain_D3D11::applyRenderAttachment()
 	{
@@ -453,8 +464,6 @@ namespace Core::Graphics
 			}
 		}
 	}
-
-	// DirectComposition
 
 	constexpr uint32_t const BACKGROUND_W = 512; // 512 * 16 = 8192 一般显示器大概也超不过这个分辨率？
 	constexpr uint32_t const BACKGROUND_H = 512; // 16x 是硬件支持的最大放大级别 0.25x 是最小缩小级别，128 ~ 8192
@@ -990,14 +999,14 @@ namespace Core::Graphics
 		destroyCanvasDepthStencilBuffer();
 	}
 
-	bool SwapChain_D3D11::setSwapChainSize()
+	bool SwapChain_D3D11::_setSwapChainSize()
 	{
-		return setSwapChainSize(Vector2U(
+		return _setSwapChainSize(Vector2U(
 			m_swapchain_last_mode.width,
 			m_swapchain_last_mode.height
 		));
 	}
-	bool SwapChain_D3D11::setSwapChainSize(Vector2U size)
+	bool SwapChain_D3D11::_setSwapChainSize(Vector2U size)
 	{
 		if (size.x == 0 || size.y == 0)
 		{
@@ -1011,22 +1020,29 @@ namespace Core::Graphics
 
 		HRNew;
 
-		dispatchEvent(EventType::SwapChainDestroy);
-		if (m_is_composition_mode) m_canvas_d3d11_rtv.Reset();
-		destroySwapChainRenderTarget();
+		if (m_is_composition_mode)
+		{
+			// 此时交换链和画布一致，不应该修改交换链本身，而是修改合成变换
+		}
+		else
+		{
+			dispatchEvent(EventType::SwapChainDestroy);
+			if (m_is_composition_mode) m_canvas_d3d11_rtv.Reset();
+			destroySwapChainRenderTarget();
 
-		HRGet = dxgi_swapchain->ResizeBuffers(0, size.x, size.y, DXGI_FORMAT_UNKNOWN, m_swapchain_flags);
-		HRCheckCallReturnBool("IDXGISwapChain::ResizeBuffers");
+			HRGet = dxgi_swapchain->ResizeBuffers(0, size.x, size.y, DXGI_FORMAT_UNKNOWN, m_swapchain_flags);
+			HRCheckCallReturnBool("IDXGISwapChain::ResizeBuffers");
+
+			if (!createSwapChainRenderTarget()) return false;
+			if (m_is_composition_mode) m_canvas_d3d11_rtv = m_swap_chain_d3d11_rtv;
+			m_swapchain_last_mode.width = size.x;
+			m_swapchain_last_mode.height = size.y;
+			dispatchEvent(EventType::SwapChainCreate);
+		}
 		
-		if (!createSwapChainRenderTarget()) return false;
-		if (m_is_composition_mode) m_canvas_d3d11_rtv = m_swap_chain_d3d11_rtv;
-		m_swapchain_last_mode.width = size.x;
-		m_swapchain_last_mode.height = size.y;
-		dispatchEvent(EventType::SwapChainCreate);
-
 		return true;
 	}
-	bool SwapChain_D3D11::setCanvasSize(Vector2U size)
+	bool SwapChain_D3D11::_setCanvasSize(Vector2U size)
 	{
 		if (size.x == 0 || size.y == 0)
 		{
@@ -1037,7 +1053,7 @@ namespace Core::Graphics
 
 		if (m_is_composition_mode)
 		{
-			if (!setSwapChainSize(size)) return false;
+			if (!_setSwapChainSize(size)) return false;
 		}
 		else
 		{
@@ -1342,10 +1358,11 @@ namespace Core::Graphics
 		m_swapchain_last_latency_event = latency_event;
 		m_init = TRUE;
 		if (flip_model) m_swapchain_flip_enabled = TRUE;
-		//m_window->setCursorToRightBottom();
 		dispatchEvent(EventType::SwapChainCreate);
 
 		m_window_active_changed.exchange(0x0); // 清空消息
+
+		if (!updateLetterBoxingRendererTransform()) return false;
 
 		return true;
 	}
@@ -1404,10 +1421,6 @@ namespace Core::Graphics
 		m_window_active_changed.exchange(0x0);
 
 		return true;
-	}
-	bool SwapChain_D3D11::setSize(uint32_t width, uint32_t height)
-	{
-		return setCanvasSize(Vector2U(width, height));
 	}
 	bool SwapChain_D3D11::setExclusiveFullscreenMode(DisplayMode const& mode)
 	{
@@ -1469,9 +1482,61 @@ namespace Core::Graphics
 
 		m_window_active_changed.exchange(0x0); // 清空消息
 
+		if (!updateLetterBoxingRendererTransform()) return false;
+
+		return true;
+	}
+	bool SwapChain_D3D11::setSwapChainSize(Vector2U size)
+	{
+		if (!_setSwapChainSize(size)) return false;
+		if (!updateLetterBoxingRendererTransform()) return false;
+		if (!updateDirectCompositionTransform()) return false;
 		return true;
 	}
 
+	bool SwapChain_D3D11::setCanvasSize(Vector2U size)
+	{
+		if (!dxgi_swapchain)
+		{
+			m_canvas_size = size;
+			return true; // 当交换链还未初始化时，仅保存画布尺寸
+		}
+		if (!_setCanvasSize(size)) return false;
+		if (!updateLetterBoxingRendererTransform()) return false;
+		if (!updateDirectCompositionTransform()) return false;
+		return true;
+	}
+
+	bool SwapChain_D3D11::setSwapChainAndCanvasSize(Vector2U size)
+	{
+		if (!_setSwapChainSize(size)) return false;
+		if (!_setCanvasSize(size)) return false;
+		if (!updateLetterBoxingRendererTransform()) return false;
+		if (!updateDirectCompositionTransform()) return false;
+		return true;
+	}
+
+	void SwapChain_D3D11::syncWindowSize()
+	{
+		m_next_window_size_lock.lock();
+		bool flag = m_want_update_window_size;
+		m_want_update_window_size = false;
+		Vector2U size = m_next_window_size;
+		m_next_window_size_lock.unlock();
+
+		if (flag)
+		{
+			_setSwapChainSize(size);
+			if (m_is_composition_mode)
+			{
+				updateDirectCompositionTransform();
+			}
+			else
+			{
+				updateLetterBoxingRendererTransform();
+			}
+		}
+	}
 	void SwapChain_D3D11::syncWindowActive()
 	{
 		int window_active_changed = m_window_active_changed.exchange(0);
@@ -1495,7 +1560,7 @@ namespace Core::Graphics
 						}
 						else
 						{
-							setSwapChainSize();
+							_setSwapChainSize();
 						}
 					}
 				}
@@ -1525,7 +1590,7 @@ namespace Core::Graphics
 						}
 						else
 						{
-							setSwapChainSize();
+							_setSwapChainSize();
 						}
 					}
 				}
@@ -1561,14 +1626,9 @@ namespace Core::Graphics
 
 		if (m_is_composition_mode)
 		{
-			if (!updateDirectCompositionTransform()) return false;
 		}
 		else
 		{
-			if (!m_scaling_renderer.UpdateTransform(
-				m_canvas_d3d11_srv.Get(),
-				m_swap_chain_d3d11_rtv.Get()
-			)) return false;
 			if (!m_scaling_renderer.Draw(
 				m_canvas_d3d11_srv.Get(),
 				m_swap_chain_d3d11_rtv.Get(),

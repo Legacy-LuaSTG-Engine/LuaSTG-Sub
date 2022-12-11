@@ -87,7 +87,7 @@ namespace LuaSTGPlus
         }
         else
         {
-            return GetAppModel()->getSwapChain()->getSize();
+            return GetAppModel()->getSwapChain()->getCanvasSize();
         }
     }
 
@@ -108,7 +108,7 @@ namespace LuaSTGPlus
         if (m_AutoSizeRenderTargetSize.x == 0 || m_AutoSizeRenderTargetSize.y == 0)
         {
             // 初始化
-            m_AutoSizeRenderTargetSize = GetAppModel()->getSwapChain()->getSize();
+            m_AutoSizeRenderTargetSize = GetAppModel()->getSwapChain()->getCanvasSize();
         }
         return m_AutoSizeRenderTargetSize;
     }
@@ -128,7 +128,7 @@ namespace LuaSTGPlus
 
     void AppFrame::onSwapChainCreate()
     {
-        ResizeAutoSizeRenderTarget(GetAppModel()->getSwapChain()->getSize());
+        ResizeAutoSizeRenderTarget(GetAppModel()->getSwapChain()->getCanvasSize());
     }
     void AppFrame::onSwapChainDestroy() {}
 

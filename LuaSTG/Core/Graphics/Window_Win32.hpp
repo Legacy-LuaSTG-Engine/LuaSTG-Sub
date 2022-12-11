@@ -77,6 +77,7 @@ namespace Core::Graphics
 
 			WindowClose,
 
+			WindowSize,
 			WindowSizeMovePaint,
 			WindowDpiChanged,
 
@@ -84,10 +85,14 @@ namespace Core::Graphics
 
 			DeviceChange,
 		};
+		union EventData
+		{
+			Vector2I window_size;
+		};
 		bool m_is_dispatch_event{ false };
 		std::vector<IWindowEventListener*> m_eventobj;
 		std::vector<IWindowEventListener*> m_eventobj_late;
-		void dispatchEvent(EventType t);
+		void dispatchEvent(EventType t, EventData d = {});
 
 	public:
 		void addEventListener(IWindowEventListener* e);

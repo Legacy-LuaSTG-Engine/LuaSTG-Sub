@@ -32,14 +32,20 @@ namespace Core::Graphics
 
 		virtual bool setWindowMode(uint32_t width, uint32_t height, bool flip_model, bool latency_event) = 0;
 		virtual bool setCompositionWindowMode(Vector2U size, bool latency_event) = 0;
-		virtual bool setSize(uint32_t width, uint32_t height) = 0; // 仅限窗口模式下
 		virtual bool setExclusiveFullscreenMode(DisplayMode const& mode) = 0;
 		virtual bool isWindowMode() = 0;
-		virtual Vector2U getSize() = 0;
+		virtual bool setSwapChainSize(Vector2U size) = 0; // 仅限窗口模式下
+		virtual Vector2U getSwapChainSize() = 0;
+
+		virtual bool setCanvasSize(Vector2U size) = 0;
+		virtual Vector2U getCanvasSize() = 0;
+
+		virtual bool setSwapChainAndCanvasSize(Vector2U size) = 0;
 
 		virtual void clearRenderAttachment() = 0;
 		virtual void applyRenderAttachment() = 0;
 		virtual void waitFrameLatency() = 0;
+		virtual void syncWindowSize() = 0;
 		virtual void syncWindowActive() = 0;
 		virtual void setVSync(bool enable) = 0;
 		virtual bool present() = 0;

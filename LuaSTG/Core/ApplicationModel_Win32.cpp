@@ -373,6 +373,7 @@ namespace Core
 				{
 					break;
 				}
+				m_swapchain->syncWindowSize();
 				update_result = m_listener->onUpdate();
 				m_swapchain->syncWindowActive();
 			}
