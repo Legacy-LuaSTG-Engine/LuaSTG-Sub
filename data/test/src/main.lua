@@ -46,6 +46,22 @@ local function showSelectGpuWindow()
     end
     ImGui.End()
 end
+local function showSelectResolutionWindow()
+    local ImGui = imgui.ImGui
+    local list = {
+        {1280,720,"1280x720"},
+        {1600,900,"1600x900"},
+        {1920,1080,"1920x1080"},
+    }
+    if ImGui.Begin("Select Resolution") then
+        for _, v in ipairs(list) do
+            if ImGui.Button(v[3]) then
+                window:setSize(v[1], v[2])
+            end
+        end
+    end
+    ImGui.End()
+end
 
 require("test_rendertarget")
 require("test_textrenderer")
@@ -79,6 +95,7 @@ function FrameFunc()
     imgui.backend.ShowFrameStatistics()
     imgui.backend.ShowResourceManagerDebugWindow()
     showSelectGpuWindow()
+    showSelectResolutionWindow()
     test.onUpdate()
     imgui.ImGui.EndFrame()
     local Key = lstg.Input.Keyboard
