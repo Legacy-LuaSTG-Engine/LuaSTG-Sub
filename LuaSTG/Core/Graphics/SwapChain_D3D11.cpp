@@ -7,7 +7,7 @@
 #include "ScreenGrab11.h"
 
 //#define _log(x) OutputDebugStringA(x "\n")
-#define _log
+#define _log(x)
 
 #define HRNew HRESULT hr = S_OK;
 #define HRGet hr = gHR
@@ -226,6 +226,8 @@ namespace Core::Graphics
 
 	bool SwapChain_D3D11::createSwapChain(bool windowed, bool flip, bool latency_event, DisplayMode const& mode, bool no_attachment)
 	{
+		_log("createSwapChain");
+
 		HRESULT hr = 0;
 
 		i18n_log_info("[core].SwapChain_D3D11.start_creating_swapchain");
@@ -389,6 +391,8 @@ namespace Core::Graphics
 	}
 	void SwapChain_D3D11::destroySwapChain()
 	{
+		_log("destroySwapChain");
+
 		//waitFrameLatency(INFINITE, true);
 		destroyDirectCompositionResources();
 		destroyRenderAttachment();
@@ -413,6 +417,8 @@ namespace Core::Graphics
 	}
 	bool SwapChain_D3D11::updateLetterBoxingRendererTransform()
 	{
+		_log("updateLetterBoxingRendererTransform");
+
 		return m_scaling_renderer.UpdateTransform(
 			m_canvas_d3d11_srv.Get(),
 			m_swap_chain_d3d11_rtv.Get()
@@ -420,6 +426,8 @@ namespace Core::Graphics
 	}
 	void SwapChain_D3D11::applyRenderAttachment()
 	{
+		//_log("applyRenderAttachment");
+
 		if (auto* ctx = m_device->GetD3D11DeviceContext())
 		{
 			ID3D11RenderTargetView* rtvs[1] = { m_canvas_d3d11_rtv.Get() };
@@ -428,6 +436,8 @@ namespace Core::Graphics
 	}
 	void SwapChain_D3D11::clearRenderAttachment()
 	{
+		//_log("clearRenderAttachment");
+
 		if (auto* ctx = m_device->GetD3D11DeviceContext())
 		{
 			if (m_canvas_d3d11_rtv)
@@ -443,6 +453,8 @@ namespace Core::Graphics
 	}
 	void SwapChain_D3D11::waitFrameLatency(uint32_t timeout, bool reset)
 	{
+		//_log("waitFrameLatency");
+
 		if (m_swapchain_flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
 		{
 			if (reset && dxgi_swapchain)
@@ -470,6 +482,8 @@ namespace Core::Graphics
 
 	bool SwapChain_D3D11::createDirectCompositionResources()
 	{
+		_log("createDirectCompositionResources");
+
 		// 我们限制 DirectComposition 仅在 Windows 10+ 使用
 
 		HRESULT hr = S_OK;
@@ -492,6 +506,15 @@ namespace Core::Graphics
 			i18n_core_system_call_report_error("DCompositionCreateDevice");
 			assert(false); return false;
 		}
+
+	#ifdef _DEBUG
+		Microsoft::WRL::ComPtr<IDCompositionDeviceDebug> dcomp_device_debug;
+		HRGet = dcomp_desktop_device.As(&dcomp_device_debug);
+		if (SUCCEEDED(hr))
+		{
+			HRGet = dcomp_device_debug->EnableDebugCounters();
+		}
+	#endif
 
 		hr = gHR = dcomp_desktop_device->CreateTargetForHwnd(m_window->GetWindow(), TRUE, &dcomp_target);
 		if (FAILED(hr))
@@ -518,29 +541,6 @@ namespace Core::Graphics
 		if (FAILED(hr))
 		{
 			i18n_core_system_call_report_error("IDCompositionDesktopDevice::CreateVisual");
-			assert(false); return false;
-		}
-
-		// 构建视觉树
-
-		hr = gHR = dcomp_visual_root->AddVisual(dcomp_visual_background.Get(), FALSE, NULL);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDCompositionVisual2::AddVisual");
-			assert(false); return false;
-		}
-
-		hr = gHR = dcomp_visual_root->AddVisual(dcomp_visual_swap_chain.Get(), TRUE, NULL);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDCompositionVisual2::AddVisual");
-			assert(false); return false;
-		}
-
-		hr = gHR = dcomp_target->SetRoot(dcomp_visual_root.Get());
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDCompositionTarget::SetRoot");
 			assert(false); return false;
 		}
 
@@ -604,18 +604,33 @@ namespace Core::Graphics
 
 		// 把交换链塞进可视物
 
-		Microsoft::WRL::ComPtr<IDXGISwapChain1> dxgi_swapchain1;
-		hr = gHR = dxgi_swapchain.As(&dxgi_swapchain1);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDXGISwapChain::QueryInterface -> IDXGISwapChain1");
-			assert(false); return false;
-		}
-
-		hr = gHR = dcomp_visual_swap_chain->SetContent(dxgi_swapchain1.Get());
+		hr = gHR = dcomp_visual_swap_chain->SetContent(dxgi_swapchain.Get());
 		if (FAILED(hr))
 		{
 			i18n_core_system_call_report_error("IDCompositionVisual2::SetContent");
+			assert(false); return false;
+		}
+
+		// 构建视觉树
+
+		hr = gHR = dcomp_visual_root->AddVisual(dcomp_visual_background.Get(), TRUE, NULL);
+		if (FAILED(hr))
+		{
+			i18n_core_system_call_report_error("IDCompositionVisual2::AddVisual");
+			assert(false); return false;
+		}
+
+		hr = gHR = dcomp_visual_root->AddVisual(dcomp_visual_swap_chain.Get(), FALSE, NULL);
+		if (FAILED(hr))
+		{
+			i18n_core_system_call_report_error("IDCompositionVisual2::AddVisual");
+			assert(false); return false;
+		}
+
+		hr = gHR = dcomp_target->SetRoot(dcomp_visual_root.Get());
+		if (FAILED(hr))
+		{
+			i18n_core_system_call_report_error("IDCompositionTarget::SetRoot");
 			assert(false); return false;
 		}
 
@@ -623,49 +638,72 @@ namespace Core::Graphics
 
 		if (!updateDirectCompositionTransform()) return false;
 
-		if (!commitDirectComposition()) return false;
-
 		return true;
 	}
 	void SwapChain_D3D11::destroyDirectCompositionResources()
 	{
-		dcomp_desktop_device.Reset();
+		_log("destroyDirectCompositionResources");
+
+		// 我也不知道为什么要这样清理，但是不这么做的话会出现内存不足，后续创建设备和资源的操作会失败
+
+		HRNew;
+
+		if (dcomp_target)
+		{
+			HRGet = dcomp_target->SetRoot(NULL);
+		}
+		if (dcomp_visual_root)
+		{
+			HRGet = dcomp_visual_root->RemoveAllVisuals();
+		}
+		if (dcomp_visual_background)
+		{
+			HRGet = dcomp_visual_background->SetContent(NULL);
+		}
+		if (dcomp_visual_swap_chain)
+		{
+			HRGet = dcomp_visual_swap_chain->SetContent(NULL);
+		}
+
 		dcomp_target.Reset();
 		dcomp_visual_root.Reset();
 		dcomp_visual_background.Reset();
 		dcomp_visual_swap_chain.Reset();
 		dcomp_surface_background.Reset();
+
+		if (dcomp_desktop_device)
+		{
+			HRGet = dcomp_desktop_device->Commit();
+			HRGet = dcomp_desktop_device->WaitForCommitCompletion();
+		}
+
+		dcomp_desktop_device.Reset();
 	}
 	bool SwapChain_D3D11::updateDirectCompositionTransform()
 	{
+		_log("updateDirectCompositionTransform");
+
 		HRESULT hr = S_OK;
 
 		// 必须成功的操作
 
-		Microsoft::WRL::ComPtr<IDXGISwapChain1> dxgi_swapchain1;
-		hr = gHR = dxgi_swapchain.As(&dxgi_swapchain1);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDXGISwapChain::QueryInterface -> IDXGISwapChain1");
-			assert(false); return false;
-		}
-
 		DXGI_SWAP_CHAIN_DESC1 desc1 = {};
-		hr = gHR = dxgi_swapchain1->GetDesc1(&desc1);
+		hr = gHR = dxgi_swapchain->GetDesc1(&desc1);
 		if (FAILED(hr))
 		{
 			i18n_core_system_call_report_error("IDXGISwapChain1::GetDesc1");
 			assert(false); return false;
 		}
 
-		auto const window_size_i = m_window->getSize();
-		auto const window_size_u = Vector2U((uint32_t)window_size_i.x, (uint32_t)window_size_i.y);
+		RECT rc = {};
+		GetClientRect(m_window->GetWindow(), &rc);
+		auto const window_size_u = Vector2U((uint32_t)(rc.right - rc.left), (uint32_t)(rc.bottom - rc.top));
 
 		// 让背景铺满整个画面
 
 		auto const background_mat = D2D1::Matrix3x2F::Scale(
-			(float)window_size_i.x / (float)BACKGROUND_W,
-			(float)window_size_i.y / (float)BACKGROUND_H
+			(float)window_size_u.x / (float)BACKGROUND_W,
+			(float)window_size_u.y / (float)BACKGROUND_H
 		);
 		hr = gHR = dcomp_visual_background->SetTransform(background_mat);
 		if (FAILED(hr))
@@ -710,26 +748,22 @@ namespace Core::Graphics
 	}
 	bool SwapChain_D3D11::commitDirectComposition()
 	{
-		HRESULT hr = S_OK;
+		_log("commitDirectComposition");
 
-		hr = gHR = dcomp_desktop_device->Commit();
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDCompositionDesktopDevice::Commit");
-			assert(false); return false;
-		}
+		HRNew;
 
-		hr = gHR = dcomp_desktop_device->WaitForCommitCompletion();
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDCompositionDesktopDevice::WaitForCommitCompletion");
-			assert(false); return false;
-		}
-
+		HRGet = dcomp_desktop_device->Commit();
+		HRCheckCallReturnBool("IDCompositionDesktopDevice::Commit");
+		
+		HRGet = dcomp_desktop_device->WaitForCommitCompletion();
+		HRCheckCallReturnBool("IDCompositionDesktopDevice::WaitForCommitCompletion");
+		
 		return true;
 	}
 	bool SwapChain_D3D11::createCompositionSwapChain(Vector2U size, bool latency_event)
 	{
+		_log("createCompositionSwapChain");
+
 		// 我们限制 DirectComposition 仅在 Windows 10+ 使用
 
 		HRESULT hr = 0;
@@ -831,8 +865,6 @@ namespace Core::Graphics
 
 		if (!createRenderAttachment()) return false;
 
-		applyRenderAttachment();
-
 		// 创建合成器
 
 		if (!createDirectCompositionResources()) return false;
@@ -846,6 +878,8 @@ namespace Core::Graphics
 
 	bool SwapChain_D3D11::createSwapChainRenderTarget()
 	{
+		_log("createSwapChainRenderTarget");
+
 		if (!dxgi_swapchain)
 		{
 			assert(false); return false;
@@ -870,6 +904,8 @@ namespace Core::Graphics
 	}
 	void SwapChain_D3D11::destroySwapChainRenderTarget()
 	{
+		_log("destroySwapChainRenderTarget");
+
 		if (m_device->GetD3D11DeviceContext())
 		{
 			m_device->GetD3D11DeviceContext()->ClearState();
@@ -879,6 +915,8 @@ namespace Core::Graphics
 	}
 	bool SwapChain_D3D11::createCanvasColorBuffer()
 	{
+		_log("createCanvasColorBuffer");
+
 		if (m_canvas_size.x == 0 || m_canvas_size.y == 0)
 		{
 			assert(false); return false;
@@ -930,11 +968,15 @@ namespace Core::Graphics
 	}
 	void SwapChain_D3D11::destroyCanvasColorBuffer()
 	{
+		_log("destroyCanvasColorBuffer");
+
 		m_canvas_d3d11_srv.Reset();
 		m_canvas_d3d11_rtv.Reset();
 	}
 	bool SwapChain_D3D11::createCanvasDepthStencilBuffer()
 	{
+		_log("createCanvasDepthStencilBuffer");
+
 		if (m_canvas_size.x == 0 || m_canvas_size.y == 0)
 		{
 			assert(false); return false;
@@ -974,10 +1016,14 @@ namespace Core::Graphics
 	}
 	void SwapChain_D3D11::destroyCanvasDepthStencilBuffer()
 	{
+		_log("destroyCanvasDepthStencilBuffer");
+
 		m_canvas_d3d11_dsv.Reset();
 	}
 	bool SwapChain_D3D11::createRenderAttachment()
 	{
+		_log("createRenderAttachment");
+
 		if (!createSwapChainRenderTarget()) return false;
 		if (m_is_composition_mode)
 		{
@@ -994,13 +1040,17 @@ namespace Core::Graphics
 	}
 	void SwapChain_D3D11::destroyRenderAttachment()
 	{
-		destroySwapChainRenderTarget();
-		destroyCanvasColorBuffer();
+		_log("destroyRenderAttachment");
+
 		destroyCanvasDepthStencilBuffer();
+		destroyCanvasColorBuffer();
+		destroySwapChainRenderTarget();
 	}
 
 	bool SwapChain_D3D11::_setSwapChainSize()
 	{
+		// _log("_setSwapChainSize");
+
 		return _setSwapChainSize(Vector2U(
 			m_swapchain_last_mode.width,
 			m_swapchain_last_mode.height
@@ -1008,6 +1058,8 @@ namespace Core::Graphics
 	}
 	bool SwapChain_D3D11::_setSwapChainSize(Vector2U size)
 	{
+		_log("_setSwapChainSize");
+
 		if (size.x == 0 || size.y == 0)
 		{
 			assert(false); return false;
@@ -1023,6 +1075,15 @@ namespace Core::Graphics
 		if (m_is_composition_mode)
 		{
 			// 此时交换链和画布一致，不应该修改交换链本身，而是修改合成变换
+			//
+			//m_canvas_d3d11_rtv.Reset();
+			//destroySwapChainRenderTarget();
+			//
+			//HRGet = dxgi_swapchain->ResizeBuffers(0, m_canvas_size.x, m_canvas_size.y, DXGI_FORMAT_UNKNOWN, m_swapchain_flags);
+			//HRCheckCallReturnBool("IDXGISwapChain::ResizeBuffers");
+			//
+			//if (!createSwapChainRenderTarget()) return false;
+			//m_canvas_d3d11_rtv = m_swap_chain_d3d11_rtv;
 		}
 		else
 		{
@@ -1044,6 +1105,8 @@ namespace Core::Graphics
 	}
 	bool SwapChain_D3D11::_setCanvasSize(Vector2U size)
 	{
+		_log("_setCanvasSize");
+
 		if (size.x == 0 || size.y == 0)
 		{
 			assert(false); return false;
@@ -1305,6 +1368,18 @@ namespace Core::Graphics
 
 	bool SwapChain_D3D11::setWindowMode(uint32_t width, uint32_t height, bool flip_model, bool latency_event)
 	{
+		_log("setWindowMode");
+
+		if (m_device->IsTearingSupport() && platform::WindowsVersion::Is10Build17763())
+		{
+			m_is_composition_mode = true;
+			return setCompositionWindowMode({ width , height }, false);
+		}
+		else
+		{
+			m_is_composition_mode = false;
+		}
+
 		// 开启条件：
 		// 1、交换链快速交换模式（DXGI_SWAP_EFFECT_FLIP_DISCARD）从 Windows 10 开始支持
 		// 2、允许画面撕裂（立即刷新）从 Windows 10 开始支持，但是也需要硬件、驱动、系统更新等才能支持
@@ -1368,6 +1443,8 @@ namespace Core::Graphics
 	}
 	bool SwapChain_D3D11::setCompositionWindowMode(Vector2U size, bool latency_event)
 	{
+		_log("setCompositionWindowMode");
+
 		// 检查参数
 
 		if (size.x < 1 || size.y < 1)
@@ -1424,6 +1501,8 @@ namespace Core::Graphics
 	}
 	bool SwapChain_D3D11::setExclusiveFullscreenMode(DisplayMode const& mode)
 	{
+		_log("setExclusiveFullscreenMode");
+
 		if (mode.width < 1 || mode.height < 1)
 		{
 			i18n_log_error_fmt("[core].SwapChain_D3D11.create_swapchain_failed_invalid_size_fmt", mode.width, mode.height);
@@ -1488,6 +1567,8 @@ namespace Core::Graphics
 	}
 	bool SwapChain_D3D11::setSwapChainSize(Vector2U size)
 	{
+		_log("setSwapChainSize");
+
 		if (!_setSwapChainSize(size)) return false;
 		if (!updateLetterBoxingRendererTransform()) return false;
 		if (!updateDirectCompositionTransform()) return false;
@@ -1496,6 +1577,8 @@ namespace Core::Graphics
 
 	bool SwapChain_D3D11::setCanvasSize(Vector2U size)
 	{
+		_log("setCanvasSize");
+
 		if (!dxgi_swapchain)
 		{
 			m_canvas_size = size;
@@ -1509,6 +1592,8 @@ namespace Core::Graphics
 
 	bool SwapChain_D3D11::setSwapChainAndCanvasSize(Vector2U size)
 	{
+		_log("setSwapChainAndCanvasSize");
+
 		if (!_setSwapChainSize(size)) return false;
 		if (!_setCanvasSize(size)) return false;
 		if (!updateLetterBoxingRendererTransform()) return false;
@@ -1518,6 +1603,8 @@ namespace Core::Graphics
 
 	void SwapChain_D3D11::syncWindowSize()
 	{
+		// _log("syncWindowSize");
+
 		m_next_window_size_lock.lock();
 		bool flag = m_want_update_window_size;
 		m_want_update_window_size = false;
@@ -1626,6 +1713,7 @@ namespace Core::Graphics
 
 		if (m_is_composition_mode)
 		{
+			updateDirectCompositionTransform();
 		}
 		else
 		{
