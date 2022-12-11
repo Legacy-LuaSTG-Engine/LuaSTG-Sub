@@ -112,18 +112,24 @@ namespace Core::Graphics
 		//		ValidateRect(window, NULL); // 正常情况下，WM_PAINT 忽略掉
 		//	}
 		//	return 0;
-		//case WM_GETMINMAXINFO:
-		//	{
-		//		MINMAXINFO* info = (MINMAXINFO*)arg2;
-		//		RECT rect = { 0, 0, (LONG)win32_window_width, (LONG)win32_window_height };
-		//		UINT dpi = platform::HighDPI::GetDpiForWindow(win32_window);
-		//		if (platform::HighDPI::AdjustWindowRectExForDpi(&rect, win32_window_style, FALSE, win32_window_style_ex, dpi))
-		//		{
-		//			info->ptMaxTrackSize.x = rect.right - rect.left;
-		//			info->ptMaxTrackSize.y = rect.bottom - rect.top;
-		//		}
-		//	}
-		//	return 0;
+		case WM_GETMINMAXINFO:
+			{
+				MINMAXINFO* info = (MINMAXINFO*)arg2;
+				RECT rect_min = { 0, 0, 320, 240 };
+				//RECT rect = { 0, 0, (LONG)win32_window_width, (LONG)win32_window_height };
+				UINT dpi = platform::HighDPI::GetDpiForWindow(win32_window);
+				if (platform::HighDPI::AdjustWindowRectExForDpi(&rect_min, win32_window_style, FALSE, win32_window_style_ex, dpi))
+				{
+					info->ptMinTrackSize.x = rect_min.right - rect_min.left;
+					info->ptMinTrackSize.y = rect_min.bottom - rect_min.top;
+				}
+				//if (platform::HighDPI::AdjustWindowRectExForDpi(&rect, win32_window_style, FALSE, win32_window_style_ex, dpi))
+				//{
+				//	info->ptMaxTrackSize.x = rect.right - rect.left;
+				//	info->ptMaxTrackSize.y = rect.bottom - rect.top;
+				//}
+			}
+			return 0;
 		case WM_DPICHANGED:
 			if (getFrameStyle() != WindowFrameStyle::None)
 			{
