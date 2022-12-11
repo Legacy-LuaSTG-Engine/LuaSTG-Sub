@@ -164,6 +164,12 @@ namespace LuaSTGPlus
     }
     Core::Vector2F AppFrame::GetMousePosition(bool no_flip)noexcept
     {
+        if (m_win32_window_size.x == 0 || m_win32_window_size.y == 0)
+        {
+            RECT rc = {};
+            GetClientRect((HWND)GetAppModel()->getWindow()->getNativeHandle(), &rc);
+            m_win32_window_size = Core::Vector2U((uint32_t)(rc.right - rc.left), (uint32_t)(rc.bottom - rc.top));
+        }
         auto const w_size = m_win32_window_size;
         auto const c_size = GetAppModel()->getSwapChain()->getCanvasSize();
         auto const m_p = MapLetterBoxingPosition(c_size, w_size, Core::Vector2I(MouseState.x, MouseState.y));
