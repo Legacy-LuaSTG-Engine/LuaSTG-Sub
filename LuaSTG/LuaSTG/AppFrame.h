@@ -379,11 +379,13 @@ namespace LuaSTGPlus
 		
 	protected:
 		std::atomic_int m_window_active_changed{ 0 };
+		Core::Vector2U m_win32_window_size;
 
 		void onWindowCreate() override;
 		void onWindowDestroy() override;
 		void onWindowActive() override;
 		void onWindowInactive() override;
+		void onWindowSize(Core::Vector2I size) override;
 		void onDeviceChange() override;
 
 		bool onUpdate() override;
