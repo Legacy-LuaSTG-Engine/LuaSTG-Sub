@@ -171,7 +171,7 @@ namespace LuaSTGPlus
 		swapchain->setVSync(vsync);
 		bool const result = swapchain->setWindowMode(window_size.x, window_size.y, false, false);
 
-		//window->setWindowMode(Core::Vector2U(uint32_t(window_size.x), uint32_t(window_size.y)));
+		window->setWindowMode(Core::Vector2U(uint32_t(window_size.x), uint32_t(window_size.y)));
 		window->setFullScreenMode();
 
 		logResult(result, m_Setting, MODE_NAME_EX_FULLSCREEN);
@@ -241,16 +241,15 @@ namespace LuaSTGPlus
 			switch (m_Setting.display_setting_type)
 			{
 			case DisplaySettingType::Window:
-				p_window->setFrameStyle(m_Setting.window.borderless ? WindowFrameStyle::None : WindowFrameStyle::Normal);
-				p_window->setSize(m_Setting.window.window_size);
+				p_window->setWindowMode(Core::Vector2U(
+					uint32_t(m_Setting.window.window_size.x),
+					uint32_t(m_Setting.window.window_size.y)));
 				break;
 			case DisplaySettingType::Fullscreen:
-				p_window->setFrameStyle(WindowFrameStyle::None);
-				p_window->setSize(m_Setting.fullscreen.window_size);
+				p_window->setFullScreenMode();
 				break;
 			case DisplaySettingType::ExclusiveFullscreen:
-				p_window->setFrameStyle(WindowFrameStyle::None);
-				p_window->setSize(m_Setting.exclusive_fullscreen.window_size);
+				p_window->setFullScreenMode();
 				break;
 			default:
 				assert(false); return false;
