@@ -362,13 +362,6 @@ bool AppFrame::onUpdate()
 		}
 
 		UpdateInput();
-	
-	#ifdef USING_CTRL_ENTER_SWITCH
-		if (WantSwitchFullScreenMode())
-		{
-			ToggleBetweenFullscreen();
-		}
-	#endif
 	}
 
 #if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
