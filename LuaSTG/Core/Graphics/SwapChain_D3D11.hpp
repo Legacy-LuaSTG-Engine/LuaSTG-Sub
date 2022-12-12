@@ -39,9 +39,7 @@ namespace Core::Graphics
 		std::atomic_int m_window_active_changed{ 0 };
 		bool m_is_composition_mode{ false };
 
-		std::recursive_mutex m_next_window_size_lock;
-		bool m_want_update_window_size{ false };
-		Core::Vector2U m_next_window_size;
+		std::atomic_uint32_t m_next_window_size_data;
 
 	private:
 		void onDeviceCreate();
