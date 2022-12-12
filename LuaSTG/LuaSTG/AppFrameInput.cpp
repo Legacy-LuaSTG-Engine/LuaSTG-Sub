@@ -92,14 +92,6 @@ namespace LuaSTGPlus
         ZeroMemory(&MouseState, sizeof(MouseState));
     }
 
-    bool AppFrame::WantSwitchFullScreenMode()
-    {
-        return
-            (g_KeyboardState.IsKeyDown(platform::Keyboard::Key::LeftControl) || g_KeyboardState.IsKeyDown(platform::Keyboard::Key::RightControl))
-            && g_KeyboardState.IsKeyDown(platform::Keyboard::Key::Enter, true)
-            ;
-    }
-
     bool AppFrame::GetKeyState(int VKCode)noexcept
     {
         return g_KeyboardState.IsKeyDown((platform::Keyboard::Key)VKCode);
