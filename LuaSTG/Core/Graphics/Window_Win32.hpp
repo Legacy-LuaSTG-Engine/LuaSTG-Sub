@@ -39,6 +39,7 @@ namespace Core::Graphics
 		WINDOWPLACEMENT m_last_window_placement{};
 		BOOL m_alt_down{ FALSE };
 		BOOL m_fullscreen_mode{ FALSE };
+		BOOL m_ignore_size_message{ FALSE }; // 在 SetWindowLongPtr 修改窗口样式时，可以忽略 WM_SIZE
 
 		BOOL win32_window_is_sizemove{ FALSE };
 		BOOL win32_window_want_track_focus{ FALSE };
@@ -68,7 +69,10 @@ namespace Core::Graphics
 		void setRedirectBitmapEnable(bool enable);
 		bool getRedirectBitmapEnable();
 		bool recreateWindow();
-		
+		void _toggleFullScreenMode();
+		void _setWindowMode(Vector2U size, bool ignore_size);
+		void _setFullScreenMode();
+
 	private:
 		enum class EventType
 		{
@@ -124,6 +128,9 @@ namespace Core::Graphics
 		Vector2I getMonitorSize();
 		void setCentered();
 		void setFullScreen();
+
+		void setWindowMode(Vector2U size);
+		void setFullScreenMode();
 
 		uint32_t getMonitorCount();
 		RectI getMonitorRect(uint32_t index);
