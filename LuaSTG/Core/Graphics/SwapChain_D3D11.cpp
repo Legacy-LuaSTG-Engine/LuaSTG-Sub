@@ -610,6 +610,9 @@ namespace Core::Graphics
 			assert(false); return false;
 		}
 
+		HRGet = dcomp_visual_swap_chain->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+		HRCheckCallReturnBool("IDCompositionVisual2::SetBitmapInterpolationMode -> DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR");
+
 		// 构建视觉树
 
 		hr = gHR = dcomp_visual_root->AddVisual(dcomp_visual_background.Get(), TRUE, NULL);
@@ -1372,7 +1375,7 @@ namespace Core::Graphics
 		if (m_device->IsTearingSupport() && platform::WindowsVersion::Is10Build17763())
 		{
 			m_is_composition_mode = true;
-			return setCompositionWindowMode({ width , height }, false);
+			return setCompositionWindowMode({ width , height }, true);
 		}
 		else
 		{
