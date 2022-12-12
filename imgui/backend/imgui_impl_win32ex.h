@@ -34,9 +34,16 @@
 #pragma once
 #include "imgui.h"      // IMGUI_IMPL_API
 
+struct ImGui_ImplWin32Ex_FrameData
+{
+	ImVec2 view_size;
+	ImVec2 mouse_offset;
+	ImVec2 mouse_scale;
+};
+
 IMGUI_IMPL_API bool ImGui_ImplWin32Ex_Init(void* window);
 IMGUI_IMPL_API void ImGui_ImplWin32Ex_Shutdown();
-IMGUI_IMPL_API void ImGui_ImplWin32Ex_NewFrame();
+IMGUI_IMPL_API void ImGui_ImplWin32Ex_NewFrame(ImGui_ImplWin32Ex_FrameData* frame_data = nullptr);
 
 // Win32 user define message
 //  - If it conflicts with yours, define a new one to override it.

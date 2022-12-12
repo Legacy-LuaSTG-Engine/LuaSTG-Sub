@@ -436,11 +436,23 @@ static void ImGui_ImplWin32Ex_UpdateIME(ImGuiViewport* viewport, ImGuiPlatformIm
     ImGui_ImplWin32Ex_Data* bd = ImGui_ImplWin32Ex_GetBackendData();
     ::PostMessageW(bd->hWnd, MSG_SET_IME_POS, (WPARAM)(LONG)data->InputPos.x, (LPARAM)(LONG)data->InputPos.y);
 }
-static void ImGui_ImplWin32Ex_ProcessMessage()
+static void ImGui_ImplWin32Ex_ProcessMessage(ImGui_ImplWin32Ex_FrameData* frame_data)
 {
     ImGui_ImplWin32Ex_Data* bd = ImGui_ImplWin32Ex_GetBackendData();
     ImGuiIO& io = ImGui::GetIO();
     Win32Message msg = {};
+
+    auto addMouseMoveEvent = [&](float x, float y) -> void
+    {
+        if (frame_data)
+        {
+            x += frame_data->mouse_offset.x;
+            y += frame_data->mouse_offset.y;
+            x *= frame_data->mouse_scale.x;
+            y *= frame_data->mouse_scale.y;
+        }
+        io.AddMousePosEvent(x, y);
+    };
 
     auto processInputEvent = [&]() -> bool
     {
@@ -448,7 +460,7 @@ static void ImGui_ImplWin32Ex_ProcessMessage()
         switch (msg.uMsg)
         {
         case WM_MOUSEMOVE:
-            io.AddMousePosEvent((float)GET_X_LPARAM(msg.lParam), (float)GET_Y_LPARAM(msg.lParam));
+            addMouseMoveEvent((float)GET_X_LPARAM(msg.lParam), (float)GET_Y_LPARAM(msg.lParam));
             return true;
         case WM_MOUSELEAVE:
             io.AddMousePosEvent(-FLT_MAX, -FLT_MAX);
@@ -653,20 +665,27 @@ void ImGui_ImplWin32Ex_Shutdown()
     io.BackendPlatformUserData = NULL;
     IM_DELETE(bd);
 }
-void ImGui_ImplWin32Ex_NewFrame()
+void ImGui_ImplWin32Ex_NewFrame(ImGui_ImplWin32Ex_FrameData* frame_data)
 {
     ImGuiIO& io = ImGui::GetIO();
     ImGui_ImplWin32Ex_Data* bd = ImGui_ImplWin32Ex_GetBackendData();
     IM_ASSERT(bd != NULL && "Did you call ImGui_ImplWin32Ex_Init()?");
 
     // message
-    ImGui_ImplWin32Ex_ProcessMessage();
+    ImGui_ImplWin32Ex_ProcessMessage(frame_data);
 
     // Setup display size (every frame to accommodate for window resizing)
-    RECT rect = { 0, 0, 0, 0 };
-    ::GetClientRect(bd->hWnd, &rect);
-    io.DisplaySize = ImVec2((float)(rect.right - rect.left), (float)(rect.bottom - rect.top));
-
+    if (frame_data)
+    {
+        io.DisplaySize = frame_data->view_size;
+    }
+    else
+    {
+        RECT rect = { 0, 0, 0, 0 };
+        ::GetClientRect(bd->hWnd, &rect);
+        io.DisplaySize = ImVec2((float)(rect.right - rect.left), (float)(rect.bottom - rect.top));
+    }
+    
     // Setup time step
     LARGE_INTEGER current_time = {};
     ::QueryPerformanceCounter(&current_time);
