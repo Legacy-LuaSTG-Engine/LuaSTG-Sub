@@ -957,8 +957,8 @@ namespace imgui
                 auto const ws = LAPP.GetAppModel()->getSwapChain()->getCanvasSize();
                 auto const mt = LAPP.GetMousePositionTransformF();
                 ImGui_ImplWin32Ex_FrameData dt;
-                dt.view_size.x = ws.x;
-                dt.view_size.y = ws.y;
+                dt.view_size.x = (float)ws.x;
+                dt.view_size.y = (float)ws.y;
                 dt.mouse_offset.x = mt.x;
                 dt.mouse_offset.y = mt.y;
                 dt.mouse_scale.x = mt.z;
