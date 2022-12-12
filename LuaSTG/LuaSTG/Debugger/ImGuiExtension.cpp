@@ -954,7 +954,16 @@ namespace imgui
             }
             {
                 ZoneScopedN("imgui.backend.NewFrame-WIN32");
-                ImGui_ImplWin32Ex_NewFrame();
+                auto const ws = LAPP.GetCurrentWindowSizeF();
+                auto const mt = LAPP.GetMousePositionTransformF();
+                ImGui_ImplWin32Ex_FrameData dt;
+                dt.view_size.x = ws.x;
+                dt.view_size.y = ws.y;
+                dt.mouse_offset.x = mt.x;
+                dt.mouse_offset.y = mt.y;
+                dt.mouse_scale.x = mt.z;
+                dt.mouse_scale.y = mt.w;
+                ImGui_ImplWin32Ex_NewFrame(&dt);
             }
             g_ImGuiTexIDValid = true;
             if (io.WantCaptureKeyboard)
