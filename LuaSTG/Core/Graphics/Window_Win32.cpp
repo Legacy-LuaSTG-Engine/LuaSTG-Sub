@@ -6,8 +6,10 @@
 #include "platform/WindowTheme.hpp"
 
 constexpr int const LUASTG_WM_UPDAE_TITLE = WM_USER + 64;
-constexpr int const LUASTG_WM_RECREATE = WM_USER + 64 + 1;
-constexpr int const LUASTG_WM_SETICON = WM_USER + 64 + 2;
+constexpr int const LUASTG_WM_RECREATE = LUASTG_WM_UPDAE_TITLE + 1;
+constexpr int const LUASTG_WM_SETICON = LUASTG_WM_RECREATE + 1;
+constexpr int const LUASTG_WM_SET_WINDOW_MODE = LUASTG_WM_SETICON + 1;
+constexpr int const LUASTG_WM_SET_FULLSCREEN_MODE = LUASTG_WM_SET_WINDOW_MODE + 1;
 
 namespace Core::Graphics
 {
@@ -88,11 +90,12 @@ namespace Core::Graphics
 			}
 			break;
 		case WM_SIZE:
-			do {
+			if (!m_ignore_size_message)
+			{
 				EventData d = {};
 				d.window_size = Vector2I(LOWORD(arg2), HIWORD(arg2));
 				dispatchEvent(EventType::WindowSize, d);
-			} while (false);
+			}
 			break;
 		//case WM_ENTERSIZEMOVE:
 		//	win32_window_is_sizemove = TRUE;
@@ -121,19 +124,7 @@ namespace Core::Graphics
 			}
 			if (m_alt_down && arg1 == VK_RETURN)
 			{
-				if (!m_fullscreen_mode)
-				{
-					GetWindowPlacement(win32_window, &m_last_window_placement);
-					setFrameStyle(WindowFrameStyle::None);
-					m_fullscreen_mode = true;
-					setFullScreen();
-				}
-				else
-				{
-					m_fullscreen_mode = false;
-					setFrameStyle(WindowFrameStyle::Normal);
-					SetWindowPlacement(win32_window, &m_last_window_placement);
-				}
+				_toggleFullScreenMode();
 				return 0;
 			}
 			break;
@@ -223,6 +214,12 @@ namespace Core::Graphics
 				SendMessageW(win32_window, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)hIcon);
 				DestroyIcon(hIcon);
 			}
+			return 0;
+		case LUASTG_WM_SET_WINDOW_MODE:
+			_setWindowMode(Vector2U(LOWORD(arg1), HIWORD(arg1)), arg2);
+			return 0;
+		case LUASTG_WM_SET_FULLSCREEN_MODE:
+			_setFullScreenMode();
 			return 0;
 		}
 		return DefWindowProcW(window, message, arg1, arg2);
@@ -328,7 +325,115 @@ namespace Core::Graphics
 		dispatchEvent(EventType::WindowCreate);
 		return true;
 	}
-	
+	void Window_Win32::_toggleFullScreenMode()
+	{
+		if (m_fullscreen_mode)
+			_setWindowMode(Vector2U(win32_window_width, win32_window_height), true);
+		else
+			_setFullScreenMode();
+	}
+	void Window_Win32::_setWindowMode(Vector2U size, bool ignore_size)
+	{
+		HMONITOR win32_monitor = MonitorFromWindow(win32_window, MONITOR_DEFAULTTONEAREST);
+		assert(win32_monitor);
+		MONITORINFO monitor_info = {};
+		monitor_info.cbSize = sizeof(monitor_info);
+		BOOL const get_monitor_info_result = GetMonitorInfoW(win32_monitor, &monitor_info);
+		assert(get_monitor_info_result); (void)get_monitor_info_result;
+		assert(monitor_info.rcMonitor.right > monitor_info.rcMonitor.left);
+		assert(monitor_info.rcMonitor.bottom > monitor_info.rcMonitor.top);
+
+		RECT rect = { 0, 0, (int32_t)size.x, (int32_t)size.y };
+		platform::HighDPI::AdjustWindowRectExForDpi(
+			&rect, WS_OVERLAPPEDWINDOW, FALSE, 0,
+			platform::HighDPI::GetDpiForWindow(win32_window));
+
+		//m_ignore_size_message = TRUE;
+		SetLastError(0);
+		SetWindowLongPtrW(win32_window, GWL_STYLE, WS_OVERLAPPEDWINDOW);
+		DWORD const set_style_result = GetLastError();
+		assert(set_style_result == 0); (void)set_style_result;
+		//SetLastError(0);
+		//SetWindowLongPtrW(win32_window, GWL_EXSTYLE, 0);
+		//DWORD const set_style_ex_result = GetLastError();
+		//assert(set_style_ex_result == 0); (void)set_style_ex_result;
+		//m_ignore_size_message = FALSE;
+
+		if (m_fullscreen_mode && ignore_size)
+		{
+			BOOL const set_placement_result = SetWindowPlacement(win32_window, &m_last_window_placement);
+			assert(set_placement_result); (void)set_placement_result;
+		}
+		else
+		{
+			BOOL const set_window_pos_result = SetWindowPos(
+				win32_window,
+				HWND_NOTOPMOST,
+				(monitor_info.rcMonitor.right + monitor_info.rcMonitor.left) / 2 - (int32_t)size.x / 2,
+				(monitor_info.rcMonitor.bottom + monitor_info.rcMonitor.top) / 2 - (int32_t)size.y / 2,
+				rect.right - rect.left,
+				rect.bottom - rect.top,
+				SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+			assert(set_window_pos_result); (void)set_window_pos_result;
+		}
+
+		RECT client_rect = {};
+		BOOL get_client_rect_result = GetClientRect(win32_window, &client_rect);
+		assert(get_client_rect_result); (void)get_client_rect_result;
+
+		m_framestyle = WindowFrameStyle::Normal;
+		m_fullscreen_mode = false;
+		win32_window_style = WS_OVERLAPPEDWINDOW;
+		win32_window_style_ex = 0;
+		win32_window_width = UINT(client_rect.right - client_rect.left);
+		win32_window_height = UINT(client_rect.bottom - client_rect.top);
+	}
+	void Window_Win32::_setFullScreenMode()
+	{
+		if (!m_fullscreen_mode)
+		{
+			BOOL const get_placement_result = GetWindowPlacement(win32_window, &m_last_window_placement);
+			assert(get_placement_result); (void)get_placement_result;
+		}
+
+		HMONITOR win32_monitor = MonitorFromWindow(win32_window, MONITOR_DEFAULTTONEAREST);
+		assert(win32_monitor);
+		MONITORINFO monitor_info = {};
+		monitor_info.cbSize = sizeof(monitor_info);
+		BOOL const get_monitor_info_result = GetMonitorInfoW(win32_monitor, &monitor_info);
+		assert(get_monitor_info_result); (void)get_monitor_info_result;
+		assert(monitor_info.rcMonitor.right > monitor_info.rcMonitor.left);
+		assert(monitor_info.rcMonitor.bottom > monitor_info.rcMonitor.top);
+
+		//m_ignore_size_message = TRUE;
+		SetLastError(0);
+		SetWindowLongPtrW(win32_window, GWL_STYLE, WS_POPUP);
+		DWORD const set_style_result = GetLastError();
+		assert(set_style_result == 0); (void)set_style_result;
+		//SetLastError(0);
+		//SetWindowLongPtrW(win32_window, GWL_EXSTYLE, 0);
+		//DWORD const set_style_ex_result = GetLastError();
+		//assert(set_style_ex_result == 0); (void)set_style_ex_result;
+		//m_ignore_size_message = FALSE;
+
+		BOOL const set_window_pos_result = SetWindowPos(
+			win32_window,
+			HWND_NOTOPMOST,
+			monitor_info.rcMonitor.left,
+			monitor_info.rcMonitor.top,
+			monitor_info.rcMonitor.right - monitor_info.rcMonitor.left,
+			monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top,
+			SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+		assert(set_window_pos_result); (void)set_window_pos_result;
+
+		m_framestyle = WindowFrameStyle::None;
+		m_fullscreen_mode = true;
+		win32_window_style = WS_POPUP;
+		win32_window_style_ex = 0;
+		win32_window_width = UINT(monitor_info.rcMonitor.right - monitor_info.rcMonitor.left);
+		win32_window_height = UINT(monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top);
+	}
+
 	void Window_Win32::convertTitleText()
 	{
 		win32_window_text_w[0] = L'\0';
@@ -664,6 +769,15 @@ namespace Core::Graphics
 		//setCursorToRightBottom();
 	}
 
+	void Window_Win32::setWindowMode(Vector2U size)
+	{
+		SendMessageW(win32_window, LUASTG_WM_SET_WINDOW_MODE, MAKEWPARAM(size.x, size.y), FALSE);
+	}
+	void Window_Win32::setFullScreenMode()
+	{
+		SendMessageW(win32_window, LUASTG_WM_SET_FULLSCREEN_MODE, 0, 0);
+	}
+	
 	uint32_t Window_Win32::getMonitorCount()
 	{
 		m_monitors.Refresh();

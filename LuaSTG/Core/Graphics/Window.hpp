@@ -98,6 +98,9 @@ namespace Core::Graphics
 		virtual void setCentered() = 0;
 		virtual void setFullScreen() = 0;
 
+		virtual void setWindowMode(Vector2U size) = 0;
+		virtual void setFullScreenMode() = 0;
+
 		virtual uint32_t getMonitorCount() = 0;
 		virtual RectI getMonitorRect(uint32_t index) = 0;
 		virtual void setMonitorCentered(uint32_t index) = 0;
