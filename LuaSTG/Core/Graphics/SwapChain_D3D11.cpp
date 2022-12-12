@@ -217,11 +217,10 @@ namespace Core::Graphics
 	}
 	void SwapChain_D3D11::onWindowSize(Core::Vector2I size)
 	{
-		m_next_window_size_lock.lock();
-		m_want_update_window_size = true;
-		m_next_window_size.x = (uint32_t)size.x;
-		m_next_window_size.y = (uint32_t)size.y;
-		m_next_window_size_lock.unlock();
+		assert(size.x >= 0 && size.x <= 0xFFFF);
+		assert(size.y >= 0 && size.y <= 0xFFFF);
+		uint32_t const value = ((size.x & 0xFFFF) << 16) | (size.y & 0xFFFF);
+		m_next_window_size_data.exchange(value);
 	}
 
 	bool SwapChain_D3D11::createSwapChain(bool windowed, bool flip, bool latency_event, DisplayMode const& mode, bool no_attachment)
@@ -1605,23 +1604,19 @@ namespace Core::Graphics
 	{
 		// _log("syncWindowSize");
 
-		m_next_window_size_lock.lock();
-		bool flag = m_want_update_window_size;
-		m_want_update_window_size = false;
-		Vector2U size = m_next_window_size;
-		m_next_window_size_lock.unlock();
-
-		if (flag)
+		uint32_t const value = m_next_window_size_data.exchange(0);
+		if (!value) return;
+		uint32_t width = (value & 0xFFFF0000) >> 16;
+		uint32_t height = value & 0xFFFF;
+		
+		_setSwapChainSize(Vector2U(width, height));
+		if (m_is_composition_mode)
 		{
-			_setSwapChainSize(size);
-			if (m_is_composition_mode)
-			{
-				updateDirectCompositionTransform();
-			}
-			else
-			{
-				updateLetterBoxingRendererTransform();
-			}
+			updateDirectCompositionTransform();
+		}
+		else
+		{
+			updateLetterBoxingRendererTransform();
 		}
 	}
 	void SwapChain_D3D11::syncWindowActive()
@@ -1713,7 +1708,6 @@ namespace Core::Graphics
 
 		if (m_is_composition_mode)
 		{
-			updateDirectCompositionTransform();
 		}
 		else
 		{
