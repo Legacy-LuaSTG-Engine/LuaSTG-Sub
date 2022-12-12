@@ -92,14 +92,8 @@ namespace LuaSTGPlus
 		swapchain->setVSync(vsync);
 		bool const result = swapchain->setWindowMode(window_size.x, window_size.y, swapchain_flip, swapchain_low_latency);
 
-		window->setLayer(Core::Graphics::WindowLayer::Normal); // 强制取消窗口置顶
-		window->setFrameStyle(borderless ? Core::Graphics::WindowFrameStyle::None : Core::Graphics::WindowFrameStyle::Normal);
-		window->setSize(window_size);
-		if (isRectEmpty(monitor_rect))
-		{
-			window->setCentered();
-		}
-		else
+		window->setWindowMode(Core::Vector2U(uint32_t(window_size.x), uint32_t(window_size.y)));
+		if (!isRectEmpty(monitor_rect))
 		{
 			bool find_result = false;
 			uint32_t const index = matchMonitorIndex(window, monitor_rect, find_result);
@@ -151,9 +145,7 @@ namespace LuaSTGPlus
 		swapchain->setVSync(vsync);
 		bool const result = swapchain->setWindowMode(window_size.x, window_size.y, swapchain_flip, swapchain_low_latency);
 
-		window->setLayer(Core::Graphics::WindowLayer::Normal); // 强制取消窗口置顶
-		window->setFrameStyle(Core::Graphics::WindowFrameStyle::None);
-		//window->setSize(size); // 这个其实没必要调用……
+		window->setFullScreenMode();
 		window->setMonitorFullScreen(index);
 
 		logResult(result, m_Setting, MODE_NAME_FULLSCREEN);
@@ -170,37 +162,17 @@ namespace LuaSTGPlus
 		return result;
 	}
 
+	// TODO: 废弃
 	bool AppFrame::SetDisplayModeExclusiveFullscreen(Core::Vector2I window_size, bool vsync, Core::Rational refresh_rate)
 	{
 		auto* window = GetAppModel()->getWindow();
-
-		//window->setLayer(Core::Graphics::WindowLayer::Normal); // 不需要调用
-		window->setFrameStyle(Core::Graphics::WindowFrameStyle::None);
-		window->setSize(window_size);
-		//window->setCentered(); // 不需要调用
-
 		auto* swapchain = GetAppModel()->getSwapChain();
 
-		Core::Graphics::DisplayMode display_mode = {
-			.width = (uint32_t)window_size.x,
-			.height = (uint32_t)window_size.y,
-			.refresh_rate = refresh_rate,
-			.format = Core::Graphics::Format::B8G8R8A8_UNORM, // TODO: 未使用
-		};
-		if (isRationalEmpty(display_mode.refresh_rate))
-		{
-			display_mode.refresh_rate.numerator = m_Setting.target_fps;
-			display_mode.refresh_rate.denominator = 1;
-			if (!swapchain->findBestMatchDisplayMode(display_mode))
-			{
-				// 无法找到可用的独占全屏显示模式
-				logResult(false, m_Setting, MODE_NAME_EX_FULLSCREEN);
-				return false;
-			}
-		}
-
 		swapchain->setVSync(vsync);
-		bool const result = swapchain->setExclusiveFullscreenMode(display_mode);
+		bool const result = swapchain->setWindowMode(window_size.x, window_size.y, false, false);
+
+		//window->setWindowMode(Core::Vector2U(uint32_t(window_size.x), uint32_t(window_size.y)));
+		window->setFullScreenMode();
 
 		logResult(result, m_Setting, MODE_NAME_EX_FULLSCREEN);
 
