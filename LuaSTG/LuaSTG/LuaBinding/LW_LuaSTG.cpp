@@ -277,6 +277,45 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 
 					lua_rawseti(L, -2, index + 1);	// t
 				}
+				if (count == 0)
+				{
+					Core::Graphics::DisplayMode mode_list[5] = {
+						{ 640, 480, { 60, 1 }, Core::Graphics::Format::B8G8R8A8_UNORM },
+						{ 800, 600, { 60, 1 }, Core::Graphics::Format::B8G8R8A8_UNORM },
+						{ 960, 720, { 60, 1 }, Core::Graphics::Format::B8G8R8A8_UNORM },
+						{ 1024, 768, { 60, 1 }, Core::Graphics::Format::B8G8R8A8_UNORM },
+						{ 1280, 960, { 60, 1 }, Core::Graphics::Format::B8G8R8A8_UNORM },
+					};
+					for (int index = 0; index < 5; index += 1)
+					{
+						auto mode = mode_list[index];
+
+						lua_createtable(L, 7, 0);		// t t
+
+						lua_pushinteger(L, (lua_Integer)mode.width);
+						lua_rawseti(L, -2, 1);
+
+						lua_pushinteger(L, (lua_Integer)mode.height);
+						lua_rawseti(L, -2, 2);
+
+						lua_pushnumber(L, (lua_Number)mode.refresh_rate.numerator); // 有点担心存不下
+						lua_rawseti(L, -2, 3);
+
+						lua_pushnumber(L, (lua_Number)mode.refresh_rate.denominator); // 有点担心存不下
+						lua_rawseti(L, -2, 4);
+
+						lua_pushinteger(L, (lua_Integer)mode.format);
+						lua_rawseti(L, -2, 5);
+
+						lua_pushinteger(L, 0); // legacy
+						lua_rawseti(L, -2, 6);
+
+						lua_pushinteger(L, 0); // legacy
+						lua_rawseti(L, -2, 7);
+
+						lua_rawseti(L, -2, index + 1);	// t
+					}
+				}
 				return 1;
 			}
 			else
