@@ -954,7 +954,7 @@ namespace imgui
             }
             {
                 ZoneScopedN("imgui.backend.NewFrame-WIN32");
-                auto const ws = LAPP.GetCurrentWindowSizeF();
+                auto const ws = LAPP.GetAppModel()->getSwapChain()->getCanvasSize();
                 auto const mt = LAPP.GetMousePositionTransformF();
                 ImGui_ImplWin32Ex_FrameData dt;
                 dt.view_size.x = ws.x;
