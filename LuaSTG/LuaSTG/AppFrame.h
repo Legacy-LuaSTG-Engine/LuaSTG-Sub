@@ -195,6 +195,9 @@ namespace LuaSTGPlus
 		/// @brief 获取鼠标位置（以窗口左下角为原点）
 		Core::Vector2F GetMousePosition(bool no_flip = false)noexcept;
 		
+		Core::Vector2F GetCurrentWindowSizeF();
+		Core::Vector4F GetMousePositionTransformF();
+
 		/// @brief 获取鼠标滚轮增量
 		int32_t GetMouseWheelDelta()noexcept;
 		

@@ -182,6 +182,38 @@ namespace LuaSTGPlus
             return Core::Vector2F(m_p.x, (float)c_size.y - m_p.y);
         }
     }
+    Core::Vector2F AppFrame::GetCurrentWindowSizeF()
+    {
+        if (m_win32_window_size.x == 0 || m_win32_window_size.y == 0)
+        {
+            RECT rc = {};
+            GetClientRect((HWND)GetAppModel()->getWindow()->getNativeHandle(), &rc);
+            m_win32_window_size = Core::Vector2U((uint32_t)(rc.right - rc.left), (uint32_t)(rc.bottom - rc.top));
+        }
+        auto const w_size = m_win32_window_size;
+        return Core::Vector2F((float)w_size.x, (float)w_size.y);
+    }
+    Core::Vector4F AppFrame::GetMousePositionTransformF()
+    {
+        if (m_win32_window_size.x == 0 || m_win32_window_size.y == 0)
+        {
+            RECT rc = {};
+            GetClientRect((HWND)GetAppModel()->getWindow()->getNativeHandle(), &rc);
+            m_win32_window_size = Core::Vector2U((uint32_t)(rc.right - rc.left), (uint32_t)(rc.bottom - rc.top));
+        }
+        auto const w_size = m_win32_window_size;
+        auto const c_size = GetAppModel()->getSwapChain()->getCanvasSize();
+
+        float const hscale = (float)w_size.x / (float)c_size.x;
+        float const vscale = (float)w_size.y / (float)c_size.y;
+        float const scale = std::min(hscale, vscale);
+        float const sizew = scale * (float)c_size.x;
+        float const sizeh = scale * (float)c_size.y;
+        float const dx = ((float)w_size.x - sizew) * 0.5f;
+        float const dy = ((float)w_size.y - sizeh) * 0.5f;
+
+        return Core::Vector4F(-dx, -dy, 1.0f / scale, 1.0f / scale);
+    }
     int32_t AppFrame::GetMouseWheelDelta()noexcept
     {
         return MouseState.scrollWheelValue;
