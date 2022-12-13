@@ -3,6 +3,7 @@
 #include "Core/Graphics/Window.hpp"
 #include "platform/Monitor.hpp"
 #include "platform/WindowSizeMoveController.hpp"
+#include "Platform/RuntimeLoader/DesktopWindowManager.hpp"
 
 namespace Core::Graphics
 {
@@ -40,12 +41,14 @@ namespace Core::Graphics
 		BOOL m_alt_down{ FALSE };
 		BOOL m_fullscreen_mode{ FALSE };
 		BOOL m_ignore_size_message{ FALSE }; // 在 SetWindowLongPtr 修改窗口样式时，可以忽略 WM_SIZE
+		BOOL m_allow_windows_11_window_corner{ TRUE };
 
 		BOOL win32_window_is_sizemove{ FALSE };
 		BOOL win32_window_want_track_focus{ FALSE };
 
 		platform::WindowSizeMoveController m_sizemove;
 		platform::MonitorList m_monitors;
+		Platform::RuntimeLoader::DesktopWindowManager dwmapi_loader;
 
 		LRESULT onMessage(HWND window, UINT message, WPARAM arg1, LPARAM arg2);
 
@@ -145,6 +148,8 @@ namespace Core::Graphics
 		bool setCursor(WindowCursor type);
 		WindowCursor getCursor();
 		void setCursorToRightBottom();
+
+		void setWindowCornerPreference(bool allow);
 
 	public:
 		Window_Win32();
