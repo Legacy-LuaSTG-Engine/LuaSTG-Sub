@@ -7,6 +7,7 @@ set(PLATFORM_SOURCES
     Platform/RuntimeLoader/Direct2D1.hpp
     Platform/RuntimeLoader/DirectComposition.hpp
     Platform/RuntimeLoader/DirectWrite.hpp
+    Platform/RuntimeLoader/DesktopWindowManager.hpp
     Platform/RuntimeLoader/All.cpp
 )
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${PLATFORM_SOURCES})
