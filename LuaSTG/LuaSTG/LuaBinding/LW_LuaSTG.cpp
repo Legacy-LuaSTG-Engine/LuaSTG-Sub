@@ -52,32 +52,20 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 		}
 		static int SetWindowed(lua_State* L)noexcept
 		{
-			LAPP.SetWindowed(lua_toboolean(L, 1) == 0 ? false : true);
+			LAPP.SetWindowed(lua_toboolean(L, 1));
 			return 0;
 		}
 		static int SetVsync(lua_State* L)noexcept
 		{
-			LAPP.SetVsync(lua_toboolean(L, 1) == 0 ? false : true);
+			LAPP.SetVsync(lua_toboolean(L, 1));
 			return 0;
 		}
 		static int SetResolution(lua_State* L)noexcept
 		{
-			if (lua_gettop(L) >= 4)
-			{
-				LAPP.SetResolution(
-					(uint32_t)luaL_checkinteger(L, 1),
-					(uint32_t)luaL_checkinteger(L, 2),
-					(uint32_t)luaL_checknumber(L, 3),
-					(uint32_t)luaL_checknumber(L, 4)
-				);
-			}
-			else
-			{
-				LAPP.SetResolution(
-					(uint32_t)luaL_checkinteger(L, 1),
-					(uint32_t)luaL_checkinteger(L, 2)
-				);
-			}
+			LAPP.SetResolution(
+				(uint32_t)luaL_checkinteger(L, 1),
+				(uint32_t)luaL_checkinteger(L, 2)
+			);
 			return 0;
 		}
 		static int SetPreferenceGPU(lua_State* L)noexcept
