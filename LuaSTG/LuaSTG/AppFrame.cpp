@@ -78,6 +78,12 @@ void AppFrame::SetSplash(bool v)noexcept
 		m_pAppModel->getWindow()->setCursor(m_Setting.show_cursor ? Core::Graphics::WindowCursor::Arrow : Core::Graphics::WindowCursor::None);
 	}
 }
+void AppFrame::SetWindowCornerPreference(bool allow)
+{
+	m_Setting.allow_windows_11_window_corner = allow;
+	if (m_pAppModel)
+		m_pAppModel->getWindow()->setWindowCornerPreference(allow);
+}
 
 int AppFrame::LoadTextFile(lua_State* L_, const char* path, const char *packname)noexcept
 {

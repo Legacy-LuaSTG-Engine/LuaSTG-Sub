@@ -272,6 +272,7 @@ namespace LuaSTGPlus
 			using namespace Core::Graphics;
 			auto* p_window = m_pAppModel->getWindow();
 			p_window->setLayer(WindowLayer::Normal); // 显示窗口
+			p_window->setWindowCornerPreference(m_Setting.allow_windows_11_window_corner);
 		}
 		// 启动交换链
 		{
