@@ -109,88 +109,24 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 		// 窗口与交换链控制函数
 		static int ChangeVideoMode(lua_State* L)noexcept
 		{
-			if (lua_type(L, 1) == LUA_TBOOLEAN)
+			int const width = (int)luaL_checkinteger(L, 1);
+			int const height = (int)luaL_checkinteger(L, 2);
+			bool const windowed = lua_toboolean(L, 3);
+			bool const vsync = lua_toboolean(L, 4);
+
+			auto const size = Core::Vector2I(width, height);
+
+			if (windowed)
 			{
-				// 新参数写法
-				bool const windowed = lua_toboolean(L, 1);
-				if (windowed)
-				{
-					if (lua_type(L, 2) == LUA_TTABLE)
-					{
-						// 全屏无边框窗口
-						Core::RectI const rect = lua_to_Core_RectI(L, 2);
-						bool const vsync = lua_toboolean(L, 3);
-						bool const swapchain_flip = lua_toboolean(L, 4);
-						bool const swapchain_low_latency = lua_toboolean(L, 5);
-						bool const result = LAPP.SetDisplayModeFullscreen(rect, vsync, swapchain_flip, swapchain_low_latency);
-						lua_pushboolean(L, result);
-					}
-					else
-					{
-						// 窗口
-						int const width = (int)luaL_checkinteger(L, 2);
-						int const height = (int)luaL_checkinteger(L, 3);
-						bool const vsync = lua_toboolean(L, 4);
-						Core::RectI const rect = lua_to_Core_RectI(L, 5); // 可能会返回空矩形，但是这是正常的
-						bool const borderless = lua_toboolean(L, 6);
-						bool const swapchain_flip = lua_toboolean(L, 7);
-						bool const swapchain_low_latency = lua_toboolean(L, 8);
-						bool const result = LAPP.SetDisplayModeWindow(
-							Core::Vector2I(width, height), vsync, rect, borderless, swapchain_flip, swapchain_low_latency
-						);
-						lua_pushboolean(L, result);
-					}
-				}
-				else
-				{
-					// 独占全屏
-					int const width = (int)luaL_checkinteger(L, 2);
-					int const height = (int)luaL_checkinteger(L, 3);
-					bool const vsync = lua_toboolean(L, 4);
-					if (lua_gettop(L) > 4)
-					{
-						int const a = (int)luaL_checkinteger(L, 5);
-						int const b = (int)luaL_checkinteger(L, 6);
-						bool const result = LAPP.SetDisplayModeExclusiveFullscreen(Core::Vector2I(width, height), vsync, Core::Rational(a, b));
-						lua_pushboolean(L, result);
-					}
-					else
-					{
-						bool const result = LAPP.SetDisplayModeExclusiveFullscreen(Core::Vector2I(width, height), vsync, Core::Rational());
-						lua_pushboolean(L, result);
-					}
-				}
+				bool const result = LAPP.SetDisplayModeWindow(size, vsync, Core::RectI(), false, false, false);
+				lua_pushboolean(L, result);
 			}
 			else
 			{
-				// 旧参数写法
-				int const width = (int)luaL_checkinteger(L, 1);
-				int const height = (int)luaL_checkinteger(L, 2);
-				bool const windowed = lua_toboolean(L, 3);
-				bool const vsync = lua_toboolean(L, 4);
-				bool const swapchain_flip = lua_toboolean(L, 7);
-				bool const swapchain_low_latency = lua_toboolean(L, 8);
-				if (windowed)
-				{
-					constexpr bool const borderless = false;
-					bool const result = LAPP.SetDisplayModeWindow(
-						Core::Vector2I(width, height), vsync, Core::RectI(), borderless, swapchain_flip, swapchain_low_latency
-					);
-					lua_pushboolean(L, result);
-				}
-				else if (lua_gettop(L) > 4)
-				{
-					int const a = (int)luaL_checkinteger(L, 5);
-					int const b = (int)luaL_checkinteger(L, 6);
-					bool const result = LAPP.SetDisplayModeExclusiveFullscreen(Core::Vector2I(width, height), vsync, Core::Rational(a, b));
-					lua_pushboolean(L, result);
-				}
-				else
-				{
-					bool const result = LAPP.SetDisplayModeExclusiveFullscreen(Core::Vector2I(width, height), vsync, Core::Rational());
-					lua_pushboolean(L, result);
-				}
+				bool const result = LAPP.SetDisplayModeExclusiveFullscreen(size, vsync, Core::Rational());
+				lua_pushboolean(L, result);
 			}
+
 			return 1;
 		}
 		static int EnumResolutions(lua_State* L)
