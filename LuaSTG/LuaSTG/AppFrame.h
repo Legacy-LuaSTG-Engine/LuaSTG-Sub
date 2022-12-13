@@ -87,6 +87,8 @@ namespace LuaSTGPlus
 
 		// 窗口标题
 		std::string window_title{ LUASTG_INFO };
+		// Windows 11 窗口圆角
+		bool allow_windows_11_window_corner{ true };
 
 		// 音量：音效
 		float volume_sound_effect{ 1.0f };
@@ -213,7 +215,8 @@ namespace LuaSTGPlus
 		void SetBGMVolume(float v);
 		float GetSEVolume() const noexcept { return m_Setting.volume_sound_effect; }
 		float GetBGMVolume() const noexcept { return m_Setting.volume_music; }
-		
+		void SetWindowCornerPreference(bool allow);
+
 	public: // 窗口和交换链
 
 		// 以窗口模式显示  
