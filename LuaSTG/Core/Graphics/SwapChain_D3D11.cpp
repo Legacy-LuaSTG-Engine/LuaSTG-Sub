@@ -15,6 +15,9 @@
 
 namespace Core::Graphics
 {
+	constexpr DXGI_FORMAT const COLOR_BUFFER_FORMAT = DXGI_FORMAT_B8G8R8A8_UNORM;
+	constexpr DXGI_FORMAT const DEPTH_BUFFER_FORMAT = DXGI_FORMAT_D24_UNORM_S8_UINT;
+
 	inline bool compare_DXGI_MODE_DESC_main(DXGI_MODE_DESC const& a, DXGI_MODE_DESC const& b)
 	{
 		return a.Width == b.Width
@@ -82,7 +85,7 @@ namespace Core::Graphics
 		return DXGI_SWAP_CHAIN_DESC1{
 			.Width = 0,
 			.Height = 0,
-			.Format = DXGI_FORMAT_B8G8R8A8_UNORM,
+			.Format = COLOR_BUFFER_FORMAT,
 			.Stereo = FALSE,
 			.SampleDesc = DXGI_SAMPLE_DESC{
 				.Count = 1,
@@ -101,7 +104,7 @@ namespace Core::Graphics
 		return DXGI_SWAP_CHAIN_DESC1{
 			.Width = 0,
 			.Height = 0,
-			.Format = DXGI_FORMAT_B8G8R8A8_UNORM,
+			.Format = COLOR_BUFFER_FORMAT,
 			.Stereo = FALSE,
 			.SampleDesc = DXGI_SAMPLE_DESC{
 				.Count = 1,
@@ -114,6 +117,184 @@ namespace Core::Graphics
 			.AlphaMode = DXGI_ALPHA_MODE_IGNORE,
 			.Flags = 0,
 		};
+	}
+	static bool findBestDisplayMode(IDXGISwapChain1* dxgi_swapchain, Vector2U canvas_size, DXGI_MODE_DESC1& mode)
+	{
+		HRNew;
+
+		Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output;
+		HRGet = dxgi_swapchain->GetContainingOutput(&dxgi_output);
+		HRCheckCallReturnBool("IDXGISwapChain1::GetContainingOutput");
+
+		Microsoft::WRL::ComPtr<IDXGIOutput1> dxgi_output_1;
+		HRGet = dxgi_output.As(&dxgi_output_1);
+		HRCheckCallReturnBool("IDXGIOutput::QueryInterface -> IDXGIOutput1");
+
+		DXGI_OUTPUT_DESC dxgi_output_info = {};
+		HRGet = dxgi_output_1->GetDesc(&dxgi_output_info);
+		HRCheckCallReturnBool("IDXGIOutput1::GetDesc");
+		assert(dxgi_output_info.AttachedToDesktop);
+		assert(dxgi_output_info.Monitor);
+		assert(dxgi_output_info.DesktopCoordinates.right > dxgi_output_info.DesktopCoordinates.left);
+		assert(dxgi_output_info.DesktopCoordinates.bottom > dxgi_output_info.DesktopCoordinates.top);
+		UINT const monitor_w = static_cast<UINT>(dxgi_output_info.DesktopCoordinates.right - dxgi_output_info.DesktopCoordinates.left);
+		UINT const monitor_h = static_cast<UINT>(dxgi_output_info.DesktopCoordinates.bottom - dxgi_output_info.DesktopCoordinates.top);
+		
+		UINT dxgi_mode_count = 0;
+		HRGet = dxgi_output_1->GetDisplayModeList1(COLOR_BUFFER_FORMAT, 0, &dxgi_mode_count, NULL);
+		HRCheckCallReturnBool("IDXGIOutput1::GetDisplayModeList1 -> DXGI_FORMAT_B8G8R8A8_UNORM");
+		assert(dxgi_mode_count > 0);
+
+		std::vector<DXGI_MODE_DESC1> mode_list(dxgi_mode_count);
+		HRGet = dxgi_output_1->GetDisplayModeList1(COLOR_BUFFER_FORMAT, 0, &dxgi_mode_count, mode_list.data());
+		HRCheckCallReturnBool("IDXGIOutput1::GetDisplayModeList1 -> DXGI_FORMAT_B8G8R8A8_UNORM");
+
+		// 公共函数
+
+		auto compareRefreshRate = [](DXGI_MODE_DESC1 const& a, DXGI_MODE_DESC1 const& b) -> bool
+		{
+			double const hz_a = (double)a.RefreshRate.Numerator / (double)a.RefreshRate.Denominator;
+			double const hz_b = (double)b.RefreshRate.Numerator / (double)b.RefreshRate.Denominator;
+			return hz_a > hz_b;
+		};
+
+		auto checkRequiredRefreshRate = [](DXGI_MODE_DESC1 const& v) -> bool
+		{
+			return (double)v.RefreshRate.Numerator / (double)v.RefreshRate.Denominator >= 59.5;
+		};
+
+		auto checkRequiredCanvasSize = [&](DXGI_MODE_DESC1 const& v) -> bool
+		{
+			return v.Width >= canvas_size.x && v.Height >= canvas_size.y;
+		};
+
+		auto checkRequiredAspectRatio = [&](DXGI_MODE_DESC1 const& v) -> bool
+		{
+			if (monitor_w > monitor_h)
+			{
+				UINT const width = v.Height * monitor_w / monitor_h;
+				assert(width > 0);
+				if (width == 0) return false;
+				else if (v.Width == width) return true;
+				else if (width > v.Width && (width - v.Width) <= 2) return true;
+				else if (v.Width > width && (v.Width - width) <= 2) return true;
+				else return false;
+			}
+			else
+			{
+				UINT const height = v.Width * monitor_h / monitor_w;
+				assert(height > 0);
+				if (height == 0) return false;
+				else if (v.Height == height) return true;
+				else if (height > v.Height && (height - v.Height) <= 2) return true;
+				else if (v.Height > height && (v.Height - height) <= 2) return true;
+				else return false;
+			}
+		};
+
+		// 默认的桌面分辨率
+
+		std::vector<DXGI_MODE_DESC1> default_mode_list;
+		for (auto const& v : mode_list)
+		{
+			if (v.Width == monitor_w && v.Height == monitor_h)
+			{
+				default_mode_list.emplace_back(v);
+			}
+		}
+
+		assert(!default_mode_list.empty());
+		if (default_mode_list.empty()) return false;
+
+		std::sort(default_mode_list.begin(), default_mode_list.end(), compareRefreshRate);
+		DXGI_MODE_DESC1 default_mode = default_mode_list.at(0);
+		default_mode_list.clear();
+
+		// 剔除刷新率过低的
+
+		for (auto it = mode_list.begin(); it != mode_list.end();)
+		{
+			if (!checkRequiredRefreshRate(*it))
+			{
+				it = mode_list.erase(it);
+			}
+			else
+			{
+				it++;
+			}
+		}
+
+		// 剔除分辨率比画布分辨率低的
+
+		for (auto it = mode_list.begin(); it != mode_list.end();)
+		{
+			if (!checkRequiredCanvasSize(*it))
+			{
+				it = mode_list.erase(it);
+			}
+			else
+			{
+				it++;
+			}
+		}
+
+		// 剔除横纵比不和显示器匹配的
+
+		for (auto it = mode_list.begin(); it != mode_list.end();)
+		{
+			if (!checkRequiredAspectRatio(*it))
+			{
+				it = mode_list.erase(it);
+			}
+			else
+			{
+				it++;
+			}
+		}
+
+		// 根据面积比和刷新率进行排序，优先刷新率，然后是面积比
+
+		auto compareByRefreshRateAndSize = [&](DXGI_MODE_DESC1 const& a, DXGI_MODE_DESC1 const& b) -> bool
+		{
+			double const canvas_sz = (double)(canvas_size.x * canvas_size.y);
+			double const sz_a = canvas_sz / (double)(a.Width * a.Height);
+			double const sz_b = canvas_sz / (double)(b.Width * b.Height);
+			if (sz_a == sz_b)
+			{
+				return compareRefreshRate(a, b);
+			}
+			else
+			{
+				return sz_b > sz_b;
+			}
+		};
+
+		std::sort(mode_list.begin(), mode_list.end(), compareByRefreshRateAndSize);
+
+		// 打印结果
+
+		i18n_log_info_fmt("[core].SwapChain_D3D11.found_N_DisplayMode_fmt", mode_list.size());
+		for (size_t i = 0; i < mode_list.size(); i += 1)
+		{
+			spdlog::info("{: >4d}: ({: >5d} x {: >5d}) {:.2f}Hz"
+				, i
+				, mode_list[i].Width, mode_list[i].Height
+				, (double)mode_list[i].RefreshRate.Numerator / (double)mode_list[i].RefreshRate.Denominator
+			);
+		}
+
+		// 最终，挑选出面积比最大且刷新率最高的
+
+		if (!mode_list.empty())
+		{
+			mode = mode_list.at(0);
+		}
+		else
+		{
+			mode = default_mode;
+		}
+
+		return true;
 	}
 
 	void SwapChain_D3D11::dispatchEvent(EventType t)
@@ -547,7 +728,7 @@ namespace Core::Graphics
 
 		hr = gHR = dcomp_desktop_device->CreateSurface(
 			BACKGROUND_W, BACKGROUND_H,
-			DXGI_FORMAT_B8G8R8A8_UNORM,
+			COLOR_BUFFER_FORMAT,
 			DXGI_ALPHA_MODE_IGNORE,
 			&dcomp_surface_background);
 		if (FAILED(hr))
@@ -938,7 +1119,7 @@ namespace Core::Graphics
 		cb_info.Height = m_canvas_size.y;
 		cb_info.MipLevels = 1;
 		cb_info.ArraySize = 1;
-		cb_info.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+		cb_info.Format = COLOR_BUFFER_FORMAT;
 		cb_info.SampleDesc.Count = 1;
 		cb_info.Usage = D3D11_USAGE_DEFAULT;
 		cb_info.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
@@ -998,7 +1179,7 @@ namespace Core::Graphics
 		ds_info.Height = m_canvas_size.y;
 		ds_info.MipLevels = 1;
 		ds_info.ArraySize = 1;
-		ds_info.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		ds_info.Format = DEPTH_BUFFER_FORMAT;
 		ds_info.SampleDesc.Count = 1;
 		ds_info.Usage = D3D11_USAGE_DEFAULT;
 		ds_info.BindFlags = D3D11_BIND_DEPTH_STENCIL;
@@ -1153,7 +1334,7 @@ namespace Core::Graphics
 		// 获取所有显示模式
 
 		UINT mode_count = 0;
-		hr = gHR = dxgi_output->GetDisplayModeList(m_swapchain_format, 0, &mode_count, NULL);
+		hr = gHR = dxgi_output->GetDisplayModeList(COLOR_BUFFER_FORMAT, 0, &mode_count, NULL);
 		if (FAILED(hr))
 		{
 			i18n_core_system_call_report_error("IDXGIOutput::GetDisplayModeList -> N");
@@ -1161,7 +1342,7 @@ namespace Core::Graphics
 		}
 
 		std::vector<DXGI_MODE_DESC> modes(mode_count);
-		hr = gHR = dxgi_output->GetDisplayModeList(m_swapchain_format, 0, &mode_count, modes.data());
+		hr = gHR = dxgi_output->GetDisplayModeList(COLOR_BUFFER_FORMAT, 0, &mode_count, modes.data());
 		if (FAILED(hr))
 		{
 			i18n_core_system_call_report_error("IDXGIOutput::GetDisplayModeList");
@@ -1333,7 +1514,7 @@ namespace Core::Graphics
 				.Numerator = (mode.refresh_rate.numerator != 0) ? mode.refresh_rate.numerator : 60,
 				.Denominator = (mode.refresh_rate.denominator != 0) ? mode.refresh_rate.denominator : 1,
 			},
-			.Format = m_swapchain_format,
+			.Format = COLOR_BUFFER_FORMAT,
 			.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE,
 			.Scaling = DXGI_MODE_SCALING_UNSPECIFIED,
 		};
