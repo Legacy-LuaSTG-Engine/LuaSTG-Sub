@@ -23,7 +23,6 @@ namespace Core::Graphics
 		
 		std::vector<DisplayMode> m_displaymode;
 
-		DXGI_FORMAT m_swapchain_format{ DXGI_FORMAT_B8G8R8A8_UNORM };
 		UINT m_swapchain_flags{ 0 };
 		BOOL m_swapchain_vsync{ FALSE };
 
