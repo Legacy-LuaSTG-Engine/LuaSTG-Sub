@@ -540,3 +540,174 @@ namespace Platform::RuntimeLoader
 		api_DWriteCreateFactory = NULL;
 	}
 }
+
+#include "Platform/RuntimeLoader/DesktopWindowManager.hpp"
+
+namespace Platform::RuntimeLoader
+{
+	HRESULT DesktopWindowManager::IsCompositionEnabled(BOOL* pfEnabled)
+	{
+		if (api_DwmIsCompositionEnabled)
+		{
+			return api_DwmIsCompositionEnabled(pfEnabled);
+		}
+		return E_NOTIMPL;
+	}
+	HRESULT DesktopWindowManager::EnableBlurBehindWindow(HWND hWnd, const DWM_BLURBEHIND* pBlurBehind)
+	{
+		if (api_DwmEnableBlurBehindWindow)
+		{
+			return api_DwmEnableBlurBehindWindow(hWnd, pBlurBehind);
+		}
+		return E_NOTIMPL;
+	}
+	HRESULT DesktopWindowManager::ExtendFrameIntoClientArea(HWND hWnd, const MARGINS* pMarInset)
+	{
+		if (api_DwmExtendFrameIntoClientArea)
+		{
+			return api_DwmExtendFrameIntoClientArea(hWnd, pMarInset);
+		}
+		return E_NOTIMPL;
+	}
+	HRESULT DesktopWindowManager::GetColorizationColor(DWORD* pcrColorization, BOOL* pfOpaqueBlend)
+	{
+		if (api_DwmGetColorizationColor)
+		{
+			return api_DwmGetColorizationColor(pcrColorization, pfOpaqueBlend);
+		}
+		return E_NOTIMPL;
+	}
+	BOOL DesktopWindowManager::DefWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* plResult)
+	{
+		if (api_DwmDefWindowProc)
+		{
+			return api_DwmDefWindowProc(hWnd, msg, wParam, lParam, plResult);
+		}
+		return FALSE;
+	}
+	HRESULT DesktopWindowManager::SetWindowAttribute(HWND hwnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute)
+	{
+		if (api_DwmSetWindowAttribute)
+		{
+			return api_DwmSetWindowAttribute(hwnd, dwAttribute, pvAttribute, cbAttribute);
+		}
+		return E_NOTIMPL;
+	}
+	HRESULT DesktopWindowManager::Flush()
+	{
+		if (api_DwmFlush)
+		{
+			return api_DwmFlush();
+		}
+		return E_NOTIMPL;
+	}
+
+	BOOL DesktopWindowManager::IsWindowTransparencySupported()
+	{
+		// https://github.com/glfw/glfw/blob/master/src/win32_window.c
+
+		if (!IsWindowsVistaOrGreater())
+			return FALSE;
+
+		BOOL composition = FALSE;
+		if (FAILED(IsCompositionEnabled(&composition)) || !composition)
+			return FALSE;
+
+		if (!IsWindows8OrGreater())
+		{
+			// HACK: Disable framebuffer transparency on Windows 7 when the
+			//       colorization color is opaque, because otherwise the window
+			//       contents is blended additively with the previous frame instead
+			//       of replacing it
+			DWORD color = 0x00000000;
+			BOOL opaque = FALSE;
+			if (FAILED(GetColorizationColor(&color, &opaque)) || opaque)
+				return FALSE;
+		}
+
+		return TRUE;
+	}
+	HRESULT DesktopWindowManager::SetWindowTransparency(HWND hWnd, BOOL bEnable)
+	{
+		if (bEnable && IsWindowTransparencySupported() && api_CreateRectRgn && api_DeleteObject)
+		{
+			HRGN region = api_CreateRectRgn(0, 0, -1, -1);
+			DWM_BLURBEHIND bb = {};
+			bb.dwFlags = DWM_BB_ENABLE | DWM_BB_BLURREGION;
+			bb.fEnable = TRUE;
+			bb.hRgnBlur = region;
+			HRESULT const hr = EnableBlurBehindWindow(hWnd, &bb);
+			api_DeleteObject(region);
+			return hr;
+		}
+		else
+		{
+			DWM_BLURBEHIND bb = {};
+			bb.dwFlags = DWM_BB_ENABLE;
+			return EnableBlurBehindWindow(hWnd, &bb);
+		}
+	}
+
+	DesktopWindowManager::DesktopWindowManager()
+	{
+		dll_dwmapi = LoadLibraryW(L"dwmapi.dll");
+		dll_gdi32 = LoadLibraryW(L"gdi32.dll");
+		assert(dll_dwmapi);
+		assert(dll_gdi32);
+		if (dll_dwmapi)
+		{
+			api_DwmIsCompositionEnabled = (decltype(api_DwmIsCompositionEnabled))
+				GetProcAddress(dll_dwmapi, "DwmIsCompositionEnabled");
+			api_DwmEnableBlurBehindWindow = (decltype(api_DwmEnableBlurBehindWindow))
+				GetProcAddress(dll_dwmapi, "DwmEnableBlurBehindWindow");
+			api_DwmExtendFrameIntoClientArea = (decltype(api_DwmExtendFrameIntoClientArea))
+				GetProcAddress(dll_dwmapi, "DwmExtendFrameIntoClientArea");
+			api_DwmGetColorizationColor = (decltype(api_DwmGetColorizationColor))
+				GetProcAddress(dll_dwmapi, "DwmGetColorizationColor");
+			api_DwmDefWindowProc = (decltype(api_DwmDefWindowProc))
+				GetProcAddress(dll_dwmapi, "DwmDefWindowProc");
+			api_DwmSetWindowAttribute = (decltype(api_DwmSetWindowAttribute))
+				GetProcAddress(dll_dwmapi, "DwmSetWindowAttribute");
+			api_DwmFlush = (decltype(api_DwmFlush))
+				GetProcAddress(dll_dwmapi, "DwmFlush");
+			assert(api_DwmIsCompositionEnabled);
+			assert(api_DwmEnableBlurBehindWindow);
+			assert(api_DwmExtendFrameIntoClientArea);
+			assert(api_DwmGetColorizationColor);
+			assert(api_DwmDefWindowProc);
+			assert(api_DwmSetWindowAttribute);
+			assert(api_DwmFlush);
+		}
+		if (dll_gdi32)
+		{
+			api_CreateRectRgn = (decltype(api_CreateRectRgn))
+				GetProcAddress(dll_gdi32, "CreateRectRgn");
+			api_DeleteObject = (decltype(api_DeleteObject))
+				GetProcAddress(dll_gdi32, "DeleteObject");
+			assert(api_CreateRectRgn);
+			assert(api_DeleteObject);
+		}
+	}
+	DesktopWindowManager::~DesktopWindowManager()
+	{
+		if (dll_dwmapi)
+		{
+			FreeLibrary(dll_dwmapi);
+		}
+		if (dll_gdi32)
+		{
+			FreeLibrary(dll_gdi32);
+		}
+		dll_dwmapi = NULL;
+		dll_gdi32 = NULL;
+		api_DwmIsCompositionEnabled = NULL;
+		api_DwmEnableBlurBehindWindow = NULL;
+		api_DwmExtendFrameIntoClientArea = NULL;
+		api_DwmGetColorizationColor = NULL;
+		api_DwmDefWindowProc = NULL;
+		api_DwmSetWindowAttribute = NULL;
+		api_DwmFlush = NULL;
+		api_CreateRectRgn = NULL;
+		api_DeleteObject = NULL;
+	}
+}
