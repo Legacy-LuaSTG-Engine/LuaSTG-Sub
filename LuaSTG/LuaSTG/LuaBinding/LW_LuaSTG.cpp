@@ -205,42 +205,6 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 			}
 			return 1;
 		}
-		static int SetDisplayMode(lua_State* L) noexcept
-		{
-			bool const windowed = lua_toboolean(L, 1);
-			int const width = (int)luaL_checkinteger(L, 2);
-			int const height = (int)luaL_checkinteger(L, 3);
-			bool const vsync = lua_toboolean(L, 4);
-
-			if (width < 1 || height < 1)
-				return luaL_error(L, "width and height must lager than 0");
-
-			LAPP.GetAppModel()->getSwapChain()->setVSync(vsync);
-			bool result = false;
-			if (windowed)
-			{
-				bool const flip = lua_toboolean(L, 5);
-				bool const latency_event = lua_toboolean(L, 6);
-				result = LAPP.GetAppModel()->getSwapChain()->setWindowMode((uint32_t)width, (uint32_t)height, flip, latency_event);
-			}
-			else
-			{
-				int const a = (int)luaL_checkinteger(L, 5);
-				int const b = (int)luaL_checkinteger(L, 6);
-				Core::Graphics::DisplayMode mode = {
-					.width = (uint32_t)width,
-					.height = (uint32_t)height,
-					.refresh_rate = Core::Rational((uint32_t)a, (uint32_t)b),
-					.format = Core::Graphics::Format::B8G8R8A8_UNORM, // 未使用
-				};
-				if (LAPP.GetAppModel()->getSwapChain()->findBestMatchDisplayMode(mode))
-				{
-					result = LAPP.GetAppModel()->getSwapChain()->setExclusiveFullscreenMode(mode);
-				}
-			}
-			lua_pushboolean(L, result);
-			return 1;
-		}
 		static int EnumResolutions(lua_State* L) {
 			if (LAPP.GetAppModel())
 			{
@@ -414,7 +378,6 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 		
 		#pragma region 窗口与交换链控制函数
 		{ "ChangeVideoMode", &WrapperImplement::ChangeVideoMode },
-		{ "SetDisplayMode", &WrapperImplement::SetDisplayMode },
 		{ "EnumResolutions", &WrapperImplement::EnumResolutions },
 		{ "EnumGPUs", &WrapperImplement::EnumGPUs },
 		{ "ChangeGPU", &WrapperImplement::ChangeGPU },
