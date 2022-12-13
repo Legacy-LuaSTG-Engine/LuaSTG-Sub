@@ -115,6 +115,9 @@ namespace Core::Graphics
 		virtual WindowCursor getCursor() = 0;
 		virtual void setCursorToRightBottom() = 0;
 
+		// Windows 11
+		virtual void setWindowCornerPreference(bool allow) = 0;
+
 		static bool create(IWindow** pp_window);
 		static bool create(Vector2I size, StringView title_text, WindowFrameStyle style, bool show, IWindow** pp_window);
 	};

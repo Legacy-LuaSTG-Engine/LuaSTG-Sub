@@ -30,6 +30,7 @@
 #include <dwrite_3.h>
 #include <d2d1_3.h>
 #include <dcomp.h>
+#include <dwmapi.h>
 #include <DirectXMath.h>
 
 #include "spdlog/spdlog.h"

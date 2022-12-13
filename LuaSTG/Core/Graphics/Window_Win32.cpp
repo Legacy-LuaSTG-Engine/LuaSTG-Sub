@@ -299,9 +299,10 @@ namespace Core::Graphics
 
 		m_sizemove.setWindow(win32_window);
 
-		// 暗色模式
+		// 窗口样式
 
 		platform::WindowTheme::UpdateColorMode(win32_window, TRUE);
+		setWindowCornerPreference(m_allow_windows_11_window_corner);
 
 		return true;
 	}
@@ -900,6 +901,30 @@ namespace Core::Graphics
 		if (!ClientToScreen(win32_window, &pt))
 			return;
 		SetCursorPos(pt.x - 1, pt.y - 1);
+	}
+
+	void Window_Win32::setWindowCornerPreference(bool allow)
+	{
+		m_allow_windows_11_window_corner = allow;
+
+		if (!platform::WindowsVersion::Is11())
+		{
+			return;
+		}
+
+		assert(win32_window);
+
+		DWM_WINDOW_CORNER_PREFERENCE attr = allow ? DWMWCP_DEFAULT : DWMWCP_DONOTROUND;
+		HRESULT hr = gHR = dwmapi_loader.SetWindowAttribute(
+			win32_window, DWMWA_WINDOW_CORNER_PREFERENCE, &attr, sizeof(attr));
+		if (FAILED(hr))
+		{
+			std::string msg;
+			msg.reserve(64);
+			msg.append("DwmSetWindowAttribute -> ");
+			msg.append(allow ? "DWMWCP_DEFAULT" : "DWMWCP_DONOTROUND");
+			i18n_core_system_call_report_error(msg);
+		}
 	}
 
 	Window_Win32::Window_Win32()
