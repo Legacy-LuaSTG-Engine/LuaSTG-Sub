@@ -656,6 +656,48 @@ namespace Core::Graphics
 			}
 		}
 	}
+	bool SwapChain_D3D11::_setFullscreenState(bool enable)
+	{
+		if (m_swapchain_last_windowed)
+		{
+			return true;
+		}
+
+		assert(dxgi_swapchain);
+		if (!dxgi_swapchain)
+		{
+			return false;
+		}
+
+		HRNew;
+
+		BOOL get_state = FALSE;
+		HRGet = dxgi_swapchain->GetFullscreenState(&get_state, NULL);
+		HRCheckCallReturnBool("IDXGISwapChain::GetFullscreenState");
+
+		if (enable)
+		{
+			if (get_state) return true;
+
+			_log("IDXGISwapChain::SetFullscreenState -> TRUE\n");
+			i18n_log_info("[core].SwapChain_D3D11.enter_exclusive_fullscreen");
+			HRGet = dxgi_swapchain->SetFullscreenState(TRUE, NULL);
+			HRCheckCallReturnBool("IDXGISwapChain::SetFullscreenState -> TRUE");
+		}
+		else
+		{
+			if (!get_state) return true;
+
+			_log("IDXGISwapChain::SetFullscreenState -> FALSE\n");
+			i18n_log_info("[core].SwapChain_D3D11.leave_exclusive_fullscreen");
+			HRGet = dxgi_swapchain->SetFullscreenState(FALSE, NULL);
+			HRCheckCallReturnBool("IDXGISwapChain::SetFullscreenState -> FALSE");
+
+			m_window->setLayer(WindowLayer::Normal); // 强制取消窗口置顶
+		}
+
+		return _setSwapChainSize();
+	}
 
 	constexpr uint32_t const BACKGROUND_W = 512; // 512 * 16 = 8192 一般显示器大概也超不过这个分辨率？
 	constexpr uint32_t const BACKGROUND_H = 512; // 16x 是硬件支持的最大放大级别 0.25x 是最小缩小级别，128 ~ 8192
@@ -1808,64 +1850,11 @@ namespace Core::Graphics
 		int window_active_changed = m_window_active_changed.exchange(0);
 		if (window_active_changed & 0x1)
 		{
-			if (!m_swapchain_last_windowed && dxgi_swapchain)
-			{
-				BOOL bFSC = FALSE;
-				Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output;
-				HRESULT hr = gHR = dxgi_swapchain->GetFullscreenState(&bFSC, &dxgi_output);
-				if (SUCCEEDED(hr))
-				{
-					if (!bFSC)
-					{
-						_log("IDXGISwapChain::SetFullscreenState -> TRUE\n");
-						i18n_log_info("[core].SwapChain_D3D11.enter_exclusive_fullscreen");
-						hr = gHR = dxgi_swapchain->SetFullscreenState(TRUE, NULL);
-						if (FAILED(hr))
-						{
-							i18n_core_system_call_report_error("IDXGISwapChain::SetFullscreenState -> TRUE");
-						}
-						else
-						{
-							_setSwapChainSize();
-						}
-					}
-				}
-				else
-				{
-					i18n_core_system_call_report_error("IDXGISwapChain::GetFullscreenState");
-				}
-			}
+			_setFullscreenState(true);
 		}
 		else if (window_active_changed & 0x2)
 		{
-			if (!m_swapchain_last_windowed && dxgi_swapchain)
-			{
-				BOOL bFSC = FALSE;
-				Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output;
-				HRESULT hr = gHR = dxgi_swapchain->GetFullscreenState(&bFSC, &dxgi_output);
-				if (SUCCEEDED(hr))
-				{
-					if (bFSC)
-					{
-						_log("IDXGISwapChain::SetFullscreenState -> FALSE\n");
-						i18n_log_info("[core].SwapChain_D3D11.leave_exclusive_fullscreen");
-						hr = gHR = dxgi_swapchain->SetFullscreenState(FALSE, NULL);
-						if (FAILED(hr))
-						{
-							i18n_core_system_call_report_error("IDXGISwapChain::SetFullscreenState -> FALSE");
-						}
-						else
-						{
-							_setSwapChainSize();
-						}
-					}
-				}
-				else
-				{
-					i18n_core_system_call_report_error("IDXGISwapChain::GetFullscreenState");
-				}
-			}
-			m_window->setLayer(WindowLayer::Normal);
+			_setFullscreenState(false);
 		}
 	}
 	void SwapChain_D3D11::waitFrameLatency()
