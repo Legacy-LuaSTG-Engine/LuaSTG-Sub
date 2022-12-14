@@ -54,7 +54,8 @@ namespace Core::Graphics
 		bool createSwapChain(bool windowed, bool flip, bool latency_event, DisplayMode const& mode, bool no_attachment);
 		bool updateLetterBoxingRendererTransform();
 		void waitFrameLatency(uint32_t timeout, bool reset);
-		
+		bool _setFullscreenState(bool enable);
+
 	private:
 		Platform::RuntimeLoader::DirectComposition dcomp_loader;
 		Microsoft::WRL::ComPtr<IDCompositionDesktopDevice> dcomp_desktop_device;
