@@ -202,10 +202,19 @@ namespace Core::Graphics
 			return 0;
 		case LUASTG_WM_RECREATE:
 			{
-				RectI const last_rect = getRect();
+				BOOL result = FALSE;
+				WINDOWPLACEMENT last_window_placement = {};
+
+				assert(win32_window);
+				result = GetWindowPlacement(win32_window, &last_window_placement);
+				assert(result); (void)result;
+
 				destroyWindow();
 				if (!createWindow()) return false;
-				setRect(last_rect);
+
+				assert(win32_window);
+				result = SetWindowPlacement(win32_window, &last_window_placement);
+				assert(result); (void)result;
 			}
 			return 0;
 		case LUASTG_WM_SETICON:
@@ -389,6 +398,10 @@ namespace Core::Graphics
 		win32_window_style_ex = 0;
 		win32_window_width = UINT(client_rect.right - client_rect.left);
 		win32_window_height = UINT(client_rect.bottom - client_rect.top);
+
+		EventData event_data{};
+		event_data.window_fullscreen_state = false;
+		dispatchEvent(EventType::WindowFullscreenStateChange, event_data);
 	}
 	void Window_Win32::_setFullScreenMode()
 	{
@@ -434,6 +447,10 @@ namespace Core::Graphics
 		win32_window_style_ex = 0;
 		win32_window_width = UINT(monitor_info.rcMonitor.right - monitor_info.rcMonitor.left);
 		win32_window_height = UINT(monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top);
+
+		EventData event_data{};
+		event_data.window_fullscreen_state = true;
+		dispatchEvent(EventType::WindowFullscreenStateChange, event_data);
 	}
 
 	void Window_Win32::convertTitleText()
@@ -561,6 +578,12 @@ namespace Core::Graphics
 				if (v) v->onWindowSize(d.window_size);
 			}
 			break;
+		case EventType::WindowFullscreenStateChange:
+			for (auto& v : m_eventobj)
+			{
+				if (v) v->onWindowFullscreenStateChange(d.window_fullscreen_state);
+			}
+			break;
 		case EventType::WindowSizeMovePaint:
 			for (auto& v : m_eventobj)
 			{
@@ -570,7 +593,7 @@ namespace Core::Graphics
 		case EventType::WindowDpiChanged:
 			for (auto& v : m_eventobj)
 			{
-				if (v) v->onWindowDpiChanged();
+				if (v) v->onWindowDpiChange();
 			}
 			break;
 		case EventType::DeviceChange:
