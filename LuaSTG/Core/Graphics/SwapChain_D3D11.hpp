@@ -39,6 +39,7 @@ namespace Core::Graphics
 		bool m_is_composition_mode{ false };
 
 		std::atomic_uint32_t m_next_window_size_data;
+		std::atomic_int m_next_window_fullscreen_state;
 
 	private:
 		void onDeviceCreate();
@@ -48,13 +49,17 @@ namespace Core::Graphics
 		void onWindowActive();
 		void onWindowInactive();
 		void onWindowSize(Core::Vector2I size);
+		void onWindowFullscreenStateChange(bool state);
 
 	private:
 		void destroySwapChain();
 		bool createSwapChain(bool windowed, bool flip, bool latency_event, DisplayMode const& mode, bool no_attachment);
+		bool createExclusiveFullscreenSwapChain(DXGI_MODE_DESC1 const& mode, bool no_attachment);
 		bool updateLetterBoxingRendererTransform();
 		void waitFrameLatency(uint32_t timeout, bool reset);
 		bool _setFullscreenState(bool enable);
+		bool _enterExclusiveFullscreen();
+		bool _leaveExclusiveFullscreen();
 
 	private:
 		Platform::RuntimeLoader::DirectComposition dcomp_loader;
