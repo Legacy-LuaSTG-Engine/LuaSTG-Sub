@@ -12,6 +12,7 @@
 #define HRNew HRESULT hr = S_OK;
 #define HRGet hr = gHR
 #define HRCheckCallReturnBool(x) if (FAILED(hr)) { i18n_core_system_call_report_error(x); assert(false); return false; }
+#define HRCheckCallNoAssertReturnBool(x) if (FAILED(hr)) { i18n_core_system_call_report_error(x); return false; }
 
 namespace Core::Graphics
 {
@@ -124,7 +125,7 @@ namespace Core::Graphics
 
 		Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output;
 		HRGet = dxgi_swapchain->GetContainingOutput(&dxgi_output);
-		HRCheckCallReturnBool("IDXGISwapChain1::GetContainingOutput");
+		HRCheckCallNoAssertReturnBool("IDXGISwapChain1::GetContainingOutput");
 
 		Microsoft::WRL::ComPtr<IDXGIOutput1> dxgi_output_1;
 		HRGet = dxgi_output.As(&dxgi_output_1);
@@ -139,7 +140,7 @@ namespace Core::Graphics
 		assert(dxgi_output_info.DesktopCoordinates.bottom > dxgi_output_info.DesktopCoordinates.top);
 		UINT const monitor_w = static_cast<UINT>(dxgi_output_info.DesktopCoordinates.right - dxgi_output_info.DesktopCoordinates.left);
 		UINT const monitor_h = static_cast<UINT>(dxgi_output_info.DesktopCoordinates.bottom - dxgi_output_info.DesktopCoordinates.top);
-		
+
 		UINT dxgi_mode_count = 0;
 		HRGet = dxgi_output_1->GetDisplayModeList1(COLOR_BUFFER_FORMAT, 0, &dxgi_mode_count, NULL);
 		HRCheckCallReturnBool("IDXGIOutput1::GetDisplayModeList1 -> DXGI_FORMAT_B8G8R8A8_UNORM");
@@ -296,6 +297,14 @@ namespace Core::Graphics
 
 		return true;
 	}
+	inline int encodeFullscreenState(bool state)
+	{
+		return 0x1 | (state ? 0x2 : 0x0);
+	}
+	inline std::pair<bool, bool> decodeFullscreenState(int v)
+	{
+		return std::make_pair<bool, bool>(v & 0x1, v & 0x2);
+	}
 
 	void SwapChain_D3D11::dispatchEvent(EventType t)
 	{
@@ -402,6 +411,10 @@ namespace Core::Graphics
 		assert(size.y >= 0 && size.y <= 0xFFFF);
 		uint32_t const value = ((size.x & 0xFFFF) << 16) | (size.y & 0xFFFF);
 		m_next_window_size_data.exchange(value);
+	}
+	void SwapChain_D3D11::onWindowFullscreenStateChange(bool state)
+	{
+		m_next_window_fullscreen_state.exchange(encodeFullscreenState(state));
 	}
 
 	bool SwapChain_D3D11::createSwapChain(bool windowed, bool flip, bool latency_event, DisplayMode const& mode, bool no_attachment)
@@ -569,6 +582,93 @@ namespace Core::Graphics
 
 		return true;
 	}
+	bool SwapChain_D3D11::createExclusiveFullscreenSwapChain(DXGI_MODE_DESC1 const& mode, bool no_attachment)
+	{
+		_log("createSwapChain");
+
+		i18n_log_info("[core].SwapChain_D3D11.start_creating_swapchain");
+
+		// 必须成功的操作
+
+		if (!m_window->GetWindow())
+		{
+			i18n_log_error("[core].SwapChain_D3D11.create_swapchain_failed_null_window");
+			assert(false); return false;
+		}
+		if (!m_device->GetDXGIFactory2()) // 强制要求平台更新
+		{
+			i18n_log_error("[core].SwapChain_D3D11.create_swapchain_failed_null_DXGI");
+			assert(false); return false;
+		}
+		if (!m_device->GetD3D11Device())
+		{
+			i18n_log_error("[core].SwapChain_D3D11.create_swapchain_failed_null_device");
+			assert(false); return false;
+		}
+
+		HRNew;
+
+		// 创建交换链
+
+		DXGI_SWAP_CHAIN_DESC1 info = getDefaultSwapChainInfo7();
+		info.Width = mode.Width;
+		info.Height = mode.Height;
+		info.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+
+		DXGI_SWAP_CHAIN_FULLSCREEN_DESC fullscreen_info = {};
+		fullscreen_info.RefreshRate = mode.RefreshRate;
+		fullscreen_info.ScanlineOrdering = mode.ScanlineOrdering;
+		fullscreen_info.Scaling = mode.Scaling;
+		fullscreen_info.Windowed = TRUE; // 初始化为窗口模式，后续再进入全屏
+
+		m_swapchain_flags = info.Flags;
+
+		HRGet = m_device->GetDXGIFactory2()->CreateSwapChainForHwnd(
+			m_device->GetD3D11Device(),
+			m_window->GetWindow(),
+			&info, &fullscreen_info, NULL,
+			&dxgi_swapchain);
+		HRCheckCallReturnBool("IDXGIFactory2::CreateSwapChainForHwnd");
+		
+		// 关闭傻逼快捷键，别他妈乱切换了
+
+		// 注意这里他妈的有坑，新创建的 DXGI 工厂和交换链内部的的不是同一个
+		HRGet = Platform::RuntimeLoader::DXGI::MakeSwapChainWindowAssociation(
+			dxgi_swapchain.Get(), DXGI_MWA_NO_ALT_ENTER);
+		HRCheckCallReturnBool("IDXGIFactory2::MakeWindowAssociation -> DXGI_MWA_NO_ALT_ENTER");
+		
+		// 设置最大帧延迟为 1
+
+		HRGet = Platform::RuntimeLoader::DXGI::SetDeviceMaximumFrameLatency(
+			dxgi_swapchain.Get(), 1);
+		HRCheckCallReturnBool("IDXGIDevice1::SetMaximumFrameLatency -> 1");
+		
+		//i18n_log_info("[core].SwapChain_D3D11.created_swapchain");
+
+		auto refresh_rate_string = fmt::format("{:.2f}Hz", (double)mode.RefreshRate.Numerator / (double)mode.RefreshRate.Denominator);
+		std::string_view swapchain_model = i18n("DXGI.SwapChain.SwapEffect.Discard");
+		auto enable_or_disable = [](bool v) -> std::string_view { return v ? i18n("Enable") : i18n("Disable"); };
+		i18n_log_info_fmt("[core].SwapChain_D3D11.created_swapchain_info_fmt"
+			, mode.Width, mode.Height, refresh_rate_string
+			, enable_or_disable(true)
+			, swapchain_model
+			, enable_or_disable(false) // DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING
+			, enable_or_disable(false) // DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT
+		);
+
+		// 渲染附件
+
+		if (!no_attachment)
+		{
+			if (!createRenderAttachment()) return false;
+		}
+
+		// 标记
+
+		m_swapchain_want_present_reset = TRUE;
+
+		return true;
+	}
 	void SwapChain_D3D11::destroySwapChain()
 	{
 		_log("destroySwapChain");
@@ -697,6 +797,98 @@ namespace Core::Graphics
 		}
 
 		return _setSwapChainSize();
+	}
+	bool SwapChain_D3D11::_enterExclusiveFullscreen()
+	{
+		assert(dxgi_swapchain);
+		if (!dxgi_swapchain) return false;
+
+		assert(m_canvas_size.x > 0 && m_canvas_size.y > 0);
+		if (m_canvas_size.x == 0 || m_canvas_size.y == 0) return false;
+
+		DXGI_MODE_DESC1 display_mode = {};
+		if (!findBestDisplayMode(dxgi_swapchain.Get(), m_canvas_size, display_mode)) return false;
+
+		dispatchEvent(EventType::SwapChainDestroy);
+		destroySwapChain();
+
+		if (!m_window->getRedirectBitmapEnable())
+		{
+			m_window->setRedirectBitmapEnable(true);
+			if (!m_window->recreateWindow()) return false;
+			if (m_swapchain_flip_enabled)
+			{
+				m_swapchain_flip_enabled = FALSE;
+			}
+		}
+		else if (m_swapchain_flip_enabled)
+		{
+			if (!m_window->recreateWindow()) return false;
+			m_swapchain_flip_enabled = FALSE;
+		}
+
+		m_window->setSize(Vector2I((int32_t)display_mode.Width, (int32_t)display_mode.Height));
+
+		DisplayMode mode = {
+			.width = display_mode.Width,
+			.height = display_mode.Height,
+			.refresh_rate = Rational(display_mode.RefreshRate.Numerator, display_mode.RefreshRate.Denominator),
+			.format = Format::B8G8R8A8_UNORM, // 未使用……
+		};
+		if (!createSwapChain(false, false, false, mode, true)) // 稍后创建渲染附件
+		{
+			return false;
+		}
+
+		HRNew;
+
+		// 进入全屏
+		i18n_log_info("[core].SwapChain_D3D11.enter_exclusive_fullscreen");
+		HRGet = dxgi_swapchain->SetFullscreenState(TRUE, NULL);
+		HRCheckCallReturnBool("IDXGISwapChain::SetFullscreenState -> TRUE");
+
+		// 需要重设交换链大小（特别是 Flip 交换链模型）
+		HRGet = dxgi_swapchain->ResizeBuffers(0, mode.width, mode.height, DXGI_FORMAT_UNKNOWN, m_swapchain_flags);
+		HRCheckCallReturnBool("IDXGISwapChain::ResizeBuffers");
+		
+		// 创建渲染附件
+		if (!createRenderAttachment())
+		{
+			return false;
+		}
+		if (!updateLetterBoxingRendererTransform()) return false;
+
+		// 记录状态
+		m_swapchain_last_mode = mode;
+		m_swapchain_last_windowed = FALSE;
+		m_swapchain_last_flip = FALSE;
+		m_swapchain_last_latency_event = FALSE;
+		m_init = TRUE;
+
+		// 广播
+		dispatchEvent(EventType::SwapChainCreate);
+		m_window_active_changed.exchange(0x0); // 清空消息
+
+		return true;
+	}
+	bool SwapChain_D3D11::_leaveExclusiveFullscreen()
+	{
+		HRNew;
+
+		BOOL get_state = FALSE;
+		HRGet = dxgi_swapchain->GetFullscreenState(&get_state, NULL);
+		HRCheckCallReturnBool("IDXGISwapChain::GetFullscreenState");
+
+		if (get_state)
+		{
+			i18n_log_info("[core].SwapChain_D3D11.leave_exclusive_fullscreen");
+			HRGet = dxgi_swapchain->SetFullscreenState(FALSE, NULL);
+			HRCheckCallReturnBool("IDXGISwapChain::SetFullscreenState -> FALSE");
+		}
+		
+		m_swapchain_last_windowed = TRUE;
+
+		return true;
 	}
 
 	constexpr uint32_t const BACKGROUND_W = 512; // 512 * 16 = 8192 一般显示器大概也超不过这个分辨率？
@@ -1597,6 +1789,12 @@ namespace Core::Graphics
 
 		if (m_device->IsTearingSupport() && platform::WindowsVersion::Is10Build17763())
 		{
+			// 开启条件：
+			// 1. 交换链快速交换模式（DXGI_SWAP_EFFECT_FLIP_DISCARD）从 Windows 10 开始支持
+			// 2. 允许画面撕裂（立即刷新）从 Windows 10 开始支持，但是也需要硬件、驱动、系统更新等才能支持
+			// 3. 在 Windows 10 1709 (16299) Fall Creators Update 中
+			//    修复了 Frame Latency Waitable Object 和 SetMaximumFrameLatency 实际上至少有 2 帧的问题
+			// 4. DirectComposition 从 Windows 8 开始支持
 			m_is_composition_mode = true;
 			return setCompositionWindowMode({ width , height }, true);
 		}
@@ -1605,19 +1803,6 @@ namespace Core::Graphics
 			m_is_composition_mode = false;
 		}
 
-		// 开启条件：
-		// 1、交换链快速交换模式（DXGI_SWAP_EFFECT_FLIP_DISCARD）从 Windows 10 开始支持
-		// 2、允许画面撕裂（立即刷新）从 Windows 10 开始支持，但是也需要硬件、驱动、系统更新等才能支持
-		// 2、在 Windows 10 1709 (16299) Fall Creators Update 中
-		// 修复了 Frame Latency Waitable Object 和 SetMaximumFrameLatency 实际上至少有 2 帧的问题
-		if (m_device->IsFlipDiscardSupport()
-			&& m_device->IsTearingSupport()
-			&& m_device->IsFrameLatencySupport()
-			&& platform::WindowsVersion::Is10Build16299())
-		{
-			flip_model = true;
-			latency_event = true;
-		}
 		if (width < 1 || height < 1)
 		{
 			i18n_log_error_fmt("[core].SwapChain_D3D11.create_swapchain_failed_invalid_size_fmt", width, height);
@@ -1830,23 +2015,38 @@ namespace Core::Graphics
 	{
 		// _log("syncWindowSize");
 
+		// part 1
+
+		auto fullscreen_state = decodeFullscreenState(m_next_window_fullscreen_state.exchange(0));
+		if (fullscreen_state.first)
+		{
+			if (fullscreen_state.second)
+				_enterExclusiveFullscreen();
+			else
+				_leaveExclusiveFullscreen();
+		}
+
+		// part 2
+
 		uint32_t const value = m_next_window_size_data.exchange(0);
-		if (!value) return;
-		uint32_t width = (value & 0xFFFF0000) >> 16;
-		uint32_t height = value & 0xFFFF;
-		
-		_setSwapChainSize(Vector2U(width, height));
-		if (m_is_composition_mode)
+		if (value)
 		{
-			updateDirectCompositionTransform();
+			uint32_t width = (value & 0xFFFF0000) >> 16;
+			uint32_t height = value & 0xFFFF;
+
+			_setSwapChainSize(Vector2U(width, height));
+			if (m_is_composition_mode)
+			{
+				updateDirectCompositionTransform();
+			}
+			else
+			{
+				updateLetterBoxingRendererTransform();
+			}
 		}
-		else
-		{
-			updateLetterBoxingRendererTransform();
-		}
-	}
-	void SwapChain_D3D11::syncWindowActive()
-	{
+
+		// part 3
+
 		int window_active_changed = m_window_active_changed.exchange(0);
 		if (window_active_changed & 0x1)
 		{
@@ -1856,6 +2056,9 @@ namespace Core::Graphics
 		{
 			_setFullscreenState(false);
 		}
+	}
+	void SwapChain_D3D11::syncWindowActive()
+	{
 	}
 	void SwapChain_D3D11::waitFrameLatency()
 	{
