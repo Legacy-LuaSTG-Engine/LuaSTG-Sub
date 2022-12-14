@@ -185,11 +185,12 @@ namespace Core::Graphics
 			// 快捷键能不能死全家
 			return MAKELRESULT(0, MNC_CLOSE);
 		case WM_SYSCOMMAND:
-			// 别他妈让 ALT 键卡住消息循环，傻逼
+			// 鼠标左键点击标题栏图标或者 Alt+Space 不会出现菜单
 			switch (arg1 & 0xFFF0)
 			{
-			case SC_KEYMENU: return 0;
-			default: break;
+			case SC_KEYMENU:
+			case SC_MOUSEMENU:
+				return 0;
 			}
 			break;
 		case WM_CLOSE:
