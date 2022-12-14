@@ -88,6 +88,7 @@ namespace Core::Graphics
 			WindowClose,
 
 			WindowSize,
+			WindowFullscreenStateChange,
 			WindowSizeMovePaint,
 			WindowDpiChanged,
 
@@ -98,6 +99,7 @@ namespace Core::Graphics
 		union EventData
 		{
 			Vector2I window_size;
+			bool window_fullscreen_state;
 		};
 		bool m_is_dispatch_event{ false };
 		std::vector<IWindowEventListener*> m_eventobj;

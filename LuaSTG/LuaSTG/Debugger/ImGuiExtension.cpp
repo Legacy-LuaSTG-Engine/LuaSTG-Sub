@@ -692,7 +692,7 @@ namespace imgui
             ImGui_ImplDX11_Init(device, context);
             context->Release();
         }
-        void onWindowDpiChanged()
+        void onWindowDpiChange()
         {
             messageFlags.fetch_or(0x1);
         }
