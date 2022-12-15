@@ -116,8 +116,8 @@ namespace Core::Graphics
 		DisplayMode getDisplayMode(uint32_t index);
 		bool findBestMatchDisplayMode(DisplayMode& mode);
 
-		bool setWindowMode(uint32_t width, uint32_t height, bool flip_model, bool latency_event);
-		bool setCompositionWindowMode(Vector2U size, bool latency_event);
+		bool setWindowMode(Vector2U size);
+		bool setCompositionWindowMode(Vector2U size);
 		bool setExclusiveFullscreenMode(DisplayMode const& mode);
 		bool isWindowMode() { return m_swapchain_last_windowed; }
 		bool setSwapChainSize(Vector2U size);
