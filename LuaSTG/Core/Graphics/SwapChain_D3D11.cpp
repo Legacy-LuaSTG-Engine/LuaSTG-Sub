@@ -12,6 +12,7 @@
 
 #define HRNew HRESULT hr = S_OK;
 #define HRGet hr = gHR
+#define HRCheckCallReport(x) if (FAILED(hr)) { i18n_core_system_call_report_error(x); }
 #define HRCheckCallReturnBool(x) if (FAILED(hr)) { i18n_core_system_call_report_error(x); assert(false); return false; }
 #define HRCheckCallNoAssertReturnBool(x) if (FAILED(hr)) { i18n_core_system_call_report_error(x); return false; }
 
@@ -306,7 +307,80 @@ namespace Core::Graphics
 	{
 		return std::make_pair<bool, bool>(v & 0x1, v & 0x2);
 	}
-	
+	static bool checkHardwareCompositionSupport(ID3D11Device* device)
+	{
+		assert(device);
+
+		if (!IsWindows10OrGreater())
+		{
+			return false;
+		}
+
+		HRNew;
+
+		Microsoft::WRL::ComPtr<IDXGIFactory2> dxgi_factory;
+		Microsoft::WRL::ComPtr<ID3D11Device> d3d11_device = device;
+
+		HRGet = Platform::RuntimeLoader::Direct3D11::GetFactory(d3d11_device.Get(), &dxgi_factory);
+		HRCheckCallReturnBool("ID3D11Device::GetParent -> IDXGIFactory2");
+
+		if (!Platform::RuntimeLoader::DXGI::CheckFeatureSupportPresentAllowTearing(dxgi_factory.Get()))
+		{
+			return false;
+		}
+
+		bool v_support = true;
+
+		Microsoft::WRL::ComPtr<IDXGIAdapter1> v_adapter;
+		for (UINT i_adapter = 0; SUCCEEDED(dxgi_factory->EnumAdapters1(i_adapter, &v_adapter)); i_adapter += 1)
+		{
+			Microsoft::WRL::ComPtr<IDXGIOutput> v_output;
+			for (UINT i_output = 0; SUCCEEDED(v_adapter->EnumOutputs(i_output, &v_output)); i_output += 1)
+			{
+				BOOL overlays = FALSE;
+				UINT overlay_support = 0;
+				UINT hardware_composition_support = 0;
+
+				Microsoft::WRL::ComPtr<IDXGIOutput2> v_output2;
+				HRGet = v_output.As(&v_output2);
+				HRCheckCallReport("IDXGIOutput::QueryInterface -> IDXGIOutput2");
+				if (v_output2)
+				{
+					overlays = v_output2->SupportsOverlays();
+				}
+
+				Microsoft::WRL::ComPtr<IDXGIOutput3> v_output3;
+				HRGet = v_output.As(&v_output3);
+				HRCheckCallReport("IDXGIOutput::QueryInterface -> IDXGIOutput3");
+				if (v_output3)
+				{
+					HRGet = v_output3->CheckOverlaySupport(DXGI_FORMAT_B8G8R8A8_UNORM, d3d11_device.Get(), &overlay_support);
+					HRCheckCallReport("IDXGIOutput3::CheckOverlaySupport -> DXGI_FORMAT_B8G8R8A8_UNORM");
+				}
+
+				Microsoft::WRL::ComPtr<IDXGIOutput6> v_output6;
+				HRGet = v_output.As(&v_output6);
+				HRCheckCallReport("IDXGIOutput::QueryInterface -> IDXGIOutput6");
+				if (v_output6)
+				{
+					HRGet = v_output6->CheckHardwareCompositionSupport(&hardware_composition_support);
+					HRCheckCallReport("IDXGIOutput6::CheckHardwareCompositionSupport");
+				}
+
+				bool const condition1 = (overlays);
+				bool const condition2 = (overlay_support & DXGI_OVERLAY_SUPPORT_FLAG_DIRECT) && (overlay_support & DXGI_OVERLAY_SUPPORT_FLAG_SCALING);
+				bool const condition3 = (hardware_composition_support & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_FULLSCREEN);
+				bool const condition = condition1 || condition2 || condition3;
+				if (!condition)
+				{
+					v_support = false;
+				}
+			}
+		}
+
+		return v_support;
+	}
+
 	void SwapChain_D3D11::dispatchEvent(EventType t)
 	{
 		// 回调
@@ -1790,9 +1864,10 @@ namespace Core::Graphics
 	{
 		_log("setWindowMode");
 
-		if (!Platform::DesktopWindowManager::IsOverlayTestModeExists()
+		if (platform::WindowsVersion::Is10Build17763()
+			&& !Platform::DesktopWindowManager::IsOverlayTestModeExists()
 			&& m_device->IsTearingSupport()
-			&& platform::WindowsVersion::Is10Build17763())
+			&& checkHardwareCompositionSupport(m_device->GetD3D11Device()))
 		{
 			// 开启条件：
 			// 1. 交换链快速交换模式（DXGI_SWAP_EFFECT_FLIP_DISCARD）从 Windows 10 开始支持
