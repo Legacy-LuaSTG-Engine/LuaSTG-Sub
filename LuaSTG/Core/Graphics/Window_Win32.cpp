@@ -114,6 +114,12 @@ namespace Core::Graphics
 		//	{
 		//		ValidateRect(window, NULL); // 正常情况下，WM_PAINT 忽略掉
 		//	}
+		//	{
+		//		PAINTSTRUCT ps{};
+		//		HDC hdc = BeginPaint(window, &ps);
+		//		FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_BACKGROUND + 1));
+		//		EndPaint(window, &ps);
+		//	}
 		//	return 0;
 		case WM_SYSKEYDOWN:
 		case WM_KEYDOWN:
