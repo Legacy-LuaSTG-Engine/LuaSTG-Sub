@@ -3,6 +3,7 @@
 #include "Core/i18n.hpp"
 #include "utility/encoding.hpp"
 #include "platform/WindowsVersion.hpp"
+#include "Platform/DesktopWindowManager.hpp"
 
 #include "ScreenGrab11.h"
 
@@ -305,7 +306,7 @@ namespace Core::Graphics
 	{
 		return std::make_pair<bool, bool>(v & 0x1, v & 0x2);
 	}
-
+	
 	void SwapChain_D3D11::dispatchEvent(EventType t)
 	{
 		// 回调
@@ -800,6 +801,8 @@ namespace Core::Graphics
 	}
 	bool SwapChain_D3D11::_enterExclusiveFullscreen()
 	{
+		//return false;
+
 		assert(dxgi_swapchain);
 		if (!dxgi_swapchain) return false;
 
@@ -1787,7 +1790,9 @@ namespace Core::Graphics
 	{
 		_log("setWindowMode");
 
-		if (m_device->IsTearingSupport() && platform::WindowsVersion::Is10Build17763())
+		if (!Platform::DesktopWindowManager::IsOverlayTestModeExists()
+			&& m_device->IsTearingSupport()
+			&& platform::WindowsVersion::Is10Build17763())
 		{
 			// 开启条件：
 			// 1. 交换链快速交换模式（DXGI_SWAP_EFFECT_FLIP_DISCARD）从 Windows 10 开始支持
@@ -1795,12 +1800,21 @@ namespace Core::Graphics
 			// 3. 在 Windows 10 1709 (16299) Fall Creators Update 中
 			//    修复了 Frame Latency Waitable Object 和 SetMaximumFrameLatency 实际上至少有 2 帧的问题
 			// 4. DirectComposition 从 Windows 8 开始支持
+			// 5. 由于 MPO 存在一些已知的问题，导致很多用户的会选择关闭自己设备的 MPO 功能，
+			//    在关闭 MPO 后，画面呈现方式会变成 Composed: Flip 而不是 Hardware Composed: Independent Flip
+			//    这会导致延迟增加 10 倍以上，因此我们需要回退到正常的铺满窗口的交换链
 			m_is_composition_mode = true;
 			return setCompositionWindowMode({ width , height }, true);
 		}
 		else
 		{
 			m_is_composition_mode = false;
+		}
+
+		if (m_device->IsTearingSupport() && platform::WindowsVersion::Is10Build17763())
+		{
+			flip_model = true;
+			latency_event = true;
 		}
 
 		if (width < 1 || height < 1)
