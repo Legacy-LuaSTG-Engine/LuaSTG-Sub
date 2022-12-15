@@ -9,6 +9,8 @@ set(PLATFORM_SOURCES
     Platform/RuntimeLoader/DirectWrite.hpp
     Platform/RuntimeLoader/DesktopWindowManager.hpp
     Platform/RuntimeLoader/All.cpp
+    Platform/DesktopWindowManager.hpp
+    Platform/All.cpp
 )
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${PLATFORM_SOURCES})
 
