@@ -2,7 +2,7 @@
 local version = {
     major = 0,
     minor = 19,
-    patch = 105,
+    patch = 106,
 }
 
 local utf8_bom = "\xEF\xBB\xBF"
