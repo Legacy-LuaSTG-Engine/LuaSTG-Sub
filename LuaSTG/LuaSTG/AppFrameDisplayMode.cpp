@@ -89,10 +89,12 @@ namespace LuaSTGPlus
 		auto* window = GetAppModel()->getWindow();
 		auto* swapchain = GetAppModel()->getSwapChain();
 
-		swapchain->setVSync(vsync);
-		bool const result = swapchain->setWindowMode(window_size.x, window_size.y, swapchain_flip, swapchain_low_latency);
+		auto const size = Core::Vector2U(uint32_t(window_size.x), uint32_t(window_size.y));
 
-		window->setWindowMode(Core::Vector2U(uint32_t(window_size.x), uint32_t(window_size.y)));
+		swapchain->setVSync(vsync);
+		bool const result = swapchain->setWindowMode(size);
+
+		window->setWindowMode(size);
 		if (!isRectEmpty(monitor_rect))
 		{
 			bool find_result = false;
@@ -142,8 +144,10 @@ namespace LuaSTGPlus
 		}
 		Core::Vector2I const window_size = getMonitorSize(window, index);
 
+		auto const size = Core::Vector2U(uint32_t(window_size.x), uint32_t(window_size.y));
+
 		swapchain->setVSync(vsync);
-		bool const result = swapchain->setWindowMode(window_size.x, window_size.y, swapchain_flip, swapchain_low_latency);
+		bool const result = swapchain->setWindowMode(size);
 
 		window->setFullScreenMode();
 		window->setMonitorFullScreen(index);
@@ -168,10 +172,12 @@ namespace LuaSTGPlus
 		auto* window = GetAppModel()->getWindow();
 		auto* swapchain = GetAppModel()->getSwapChain();
 
-		swapchain->setVSync(vsync);
-		bool const result = swapchain->setWindowMode(window_size.x, window_size.y, false, false);
+		auto const size = Core::Vector2U(uint32_t(window_size.x), uint32_t(window_size.y));
 
-		window->setWindowMode(Core::Vector2U(uint32_t(window_size.x), uint32_t(window_size.y)));
+		swapchain->setVSync(vsync);
+		bool const result = swapchain->setWindowMode(size);
+
+		window->setWindowMode(size);
 		window->setFullScreenMode();
 
 		logResult(result, m_Setting, MODE_NAME_EX_FULLSCREEN);
@@ -282,7 +288,8 @@ namespace LuaSTGPlus
 			if (m_Setting.display_setting_type == DisplaySettingType::ExclusiveFullscreen)
 			{
 				Core::Vector2I const window_size = m_Setting.exclusive_fullscreen.window_size;
-				if (!p_swapchain->setWindowMode(window_size.x, window_size.y, false, false))
+				auto const size = Core::Vector2U(uint32_t(window_size.x), uint32_t(window_size.y));
+				if (!p_swapchain->setWindowMode(size))
 					return false;
 			}
 			// 正式应用显示模式

@@ -450,10 +450,12 @@ namespace Core::Graphics
 		m_scaling_renderer.AttachDevice(m_device->GetD3D11Device());
 		if (m_init) // 曾经设置过
 		{
+			setWindowMode({ m_swapchain_last_mode.width, m_swapchain_last_mode.height });
 			if (m_swapchain_last_windowed)
-				setWindowMode(m_swapchain_last_mode.width, m_swapchain_last_mode.height, m_swapchain_last_flip, m_swapchain_last_latency_event);
-			else
-				setExclusiveFullscreenMode(m_swapchain_last_mode);
+			{
+				m_swapchain_last_windowed = FALSE;
+				onWindowFullscreenStateChange(true);
+			}
 		}
 	}
 	void SwapChain_D3D11::onDeviceDestroy()
@@ -1860,7 +1862,7 @@ namespace Core::Graphics
 		return true;
 	}
 
-	bool SwapChain_D3D11::setWindowMode(uint32_t width, uint32_t height, bool flip_model, bool latency_event)
+	bool SwapChain_D3D11::setWindowMode(Vector2U size)
 	{
 		_log("setWindowMode");
 
@@ -1879,22 +1881,24 @@ namespace Core::Graphics
 			//    在关闭 MPO 后，画面呈现方式会变成 Composed: Flip 而不是 Hardware Composed: Independent Flip
 			//    这会导致延迟增加 10 倍以上，因此我们需要回退到正常的铺满窗口的交换链
 			m_is_composition_mode = true;
-			return setCompositionWindowMode({ width , height }, true);
+			return setCompositionWindowMode(size);
 		}
 		else
 		{
 			m_is_composition_mode = false;
 		}
 
+		bool flip_model = false;
+		bool latency_event = false;
 		if (m_device->IsTearingSupport() && platform::WindowsVersion::Is10Build17763())
 		{
 			flip_model = true;
 			latency_event = true;
 		}
 
-		if (width < 1 || height < 1)
+		if (size.x < 1 || size.y < 1)
 		{
-			i18n_log_error_fmt("[core].SwapChain_D3D11.create_swapchain_failed_invalid_size_fmt", width, height);
+			i18n_log_error_fmt("[core].SwapChain_D3D11.create_swapchain_failed_invalid_size_fmt", size.x, size.y);
 			return false;
 		}
 		dispatchEvent(EventType::SwapChainDestroy);
@@ -1916,8 +1920,8 @@ namespace Core::Graphics
 		}
 
 		DisplayMode mode = {
-			.width = width,
-			.height = height,
+			.width = size.x,
+			.height = size.y,
 			.refresh_rate = Rational(),
 			.format = Format::B8G8R8A8_UNORM,
 		};
@@ -1940,7 +1944,7 @@ namespace Core::Graphics
 
 		return true;
 	}
-	bool SwapChain_D3D11::setCompositionWindowMode(Vector2U size, bool latency_event)
+	bool SwapChain_D3D11::setCompositionWindowMode(Vector2U size)
 	{
 		_log("setCompositionWindowMode");
 
@@ -1968,6 +1972,7 @@ namespace Core::Graphics
 
 		// 创建交换链
 
+		bool latency_event = true;
 		m_canvas_size = size;
 		if (!createCompositionSwapChain(size, latency_event))
 		{
