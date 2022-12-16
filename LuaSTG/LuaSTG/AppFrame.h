@@ -94,9 +94,6 @@ namespace LuaSTGPlus
 		float volume_sound_effect{ 1.0f };
 		// 音量：背景音乐
 		float volume_music{ 1.0f };
-
-		// 内部状态
-		DisplaySettingType toggle_between_fullscreen_type{ DisplaySettingType::Window };
 	};
 
 	struct IRenderTargetManager
