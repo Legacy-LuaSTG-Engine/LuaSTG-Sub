@@ -716,15 +716,15 @@ namespace Core::Graphics
 		return m_framestyle;
 	}
 
-	Vector2I Window_Win32::getSize()
+	Vector2U Window_Win32::getSize()
 	{
-		return Vector2I((int32_t)win32_window_width, (int32_t)win32_window_height);
+		return { win32_window_width, win32_window_height };
 	}
-	bool Window_Win32::setSize(Vector2I v)
+	bool Window_Win32::setSize(Vector2U v)
 	{
-		win32_window_width = (UINT)v.x;
-		win32_window_height = (UINT)v.y;
-		return setClientRect(RectI(0, 0, v.x, v.y));
+		win32_window_width = v.x;
+		win32_window_height = v.y;
+		return setClientRect(RectI(0, 0, (int)v.x, (int)v.y));
 	}
 
 	WindowLayer Window_Win32::getLayer()
@@ -984,7 +984,7 @@ namespace Core::Graphics
 			return false;
 		}
 	}
-	bool Window_Win32::create(Vector2I size, StringView title_text, WindowFrameStyle style, bool show, Window_Win32** pp_window)
+	bool Window_Win32::create(Vector2U size, StringView title_text, WindowFrameStyle style, bool show, Window_Win32** pp_window)
 	{
 		try
 		{
@@ -1017,7 +1017,7 @@ namespace Core::Graphics
 			return false;
 		}
 	}
-	bool IWindow::create(Vector2I size, StringView title_text, WindowFrameStyle style, bool show, IWindow** pp_window)
+	bool IWindow::create(Vector2U size, StringView title_text, WindowFrameStyle style, bool show, IWindow** pp_window)
 	{
 		try
 		{

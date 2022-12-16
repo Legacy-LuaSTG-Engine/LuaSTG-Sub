@@ -4,8 +4,7 @@
 namespace LuaSTGPlus
 {
 	static std::string const MODE_NAME_WINDOW("窗口");
-	static std::string const MODE_NAME_FULLSCREEN("全屏无边框窗口");
-	static std::string const MODE_NAME_EX_FULLSCREEN("独占全屏");
+	static std::string const MODE_NAME_FULLSCREEN("全屏");
 
 	inline bool isRationalEmpty(Core::Rational const& rational)
 	{
@@ -62,18 +61,10 @@ namespace LuaSTGPlus
 
 	inline std::string_view getFullscreenTypeString(ApplicationSetting const& setting)
 	{
-		switch (setting.display_setting_type)
-		{
-		case DisplaySettingType::Window:
-			return MODE_NAME_WINDOW;
-		case DisplaySettingType::Fullscreen:
+		if (setting.fullscreen)
 			return MODE_NAME_FULLSCREEN;
-		case DisplaySettingType::ExclusiveFullscreen:
-			return MODE_NAME_EX_FULLSCREEN;
-		default:
-			assert(false); // 不应该发生
+		else
 			return MODE_NAME_WINDOW;
-		}
 	}
 
 	inline void logResult(bool ok, ApplicationSetting const& from_mode, std::string_view to_mode)
@@ -84,17 +75,15 @@ namespace LuaSTGPlus
 			spdlog::error("[luastg] 显示模式切换失败：{} -> {}", getFullscreenTypeString(from_mode), to_mode);
 	}
 
-	bool AppFrame::SetDisplayModeWindow(Core::Vector2I window_size, bool vsync, Core::RectI monitor_rect, bool borderless)
+	bool AppFrame::SetDisplayModeWindow(Core::Vector2U window_size, bool vsync, Core::RectI monitor_rect, bool borderless)
 	{
 		auto* window = GetAppModel()->getWindow();
 		auto* swapchain = GetAppModel()->getSwapChain();
 
-		auto const size = Core::Vector2U(uint32_t(window_size.x), uint32_t(window_size.y));
-
 		swapchain->setVSync(vsync);
-		bool const result = swapchain->setWindowMode(size);
+		bool const result = swapchain->setWindowMode(window_size);
 
-		window->setWindowMode(size);
+		window->setWindowMode(window_size);
 		if (!isRectEmpty(monitor_rect))
 		{
 			bool find_result = false;
@@ -109,11 +98,9 @@ namespace LuaSTGPlus
 		
 		logResult(result, m_Setting, MODE_NAME_WINDOW);
 
-		m_Setting.display_setting_type = DisplaySettingType::Window;
-		m_Setting.window.window_size = window_size;
-		m_Setting.window.monitor_rect = monitor_rect;
-		m_Setting.window.vsync = vsync;
-		m_Setting.window.borderless = borderless;
+		m_Setting.canvas_size = window_size;
+		m_Setting.fullscreen = false;
+		m_Setting.vsync = vsync;
 		
 		return result;
 	}
@@ -150,75 +137,47 @@ namespace LuaSTGPlus
 
 		logResult(result, m_Setting, MODE_NAME_FULLSCREEN);
 
-		m_Setting.display_setting_type = DisplaySettingType::Fullscreen;
-		m_Setting.fullscreen.window_size = window_size;
-		m_Setting.fullscreen.monitor_rect = monitor_rect;
-		m_Setting.fullscreen.vsync = vsync;
+		m_Setting.canvas_size = size;
+		m_Setting.fullscreen = true;
+		m_Setting.vsync = vsync;
 		
 		return result;
 	}
 
 	// TODO: 废弃
-	bool AppFrame::SetDisplayModeExclusiveFullscreen(Core::Vector2I window_size, bool vsync, Core::Rational refresh_rate)
+	bool AppFrame::SetDisplayModeExclusiveFullscreen(Core::Vector2U window_size, bool vsync, Core::Rational)
 	{
 		auto* window = GetAppModel()->getWindow();
 		auto* swapchain = GetAppModel()->getSwapChain();
 
-		auto const size = Core::Vector2U(uint32_t(window_size.x), uint32_t(window_size.y));
-
 		swapchain->setVSync(vsync);
-		bool const result = swapchain->setWindowMode(size);
+		bool const result = swapchain->setWindowMode(window_size);
 
-		window->setWindowMode(size);
+		window->setWindowMode(window_size);
 		window->setFullScreenMode();
 
-		logResult(result, m_Setting, MODE_NAME_EX_FULLSCREEN);
+		logResult(result, m_Setting, MODE_NAME_FULLSCREEN);
 
-		m_Setting.display_setting_type = DisplaySettingType::ExclusiveFullscreen;
-		m_Setting.exclusive_fullscreen.window_size = window_size;
-		m_Setting.exclusive_fullscreen.refresh_rate = refresh_rate;
-		m_Setting.exclusive_fullscreen.vsync = vsync;
+		m_Setting.canvas_size = window_size;
+		m_Setting.fullscreen = true;
+		m_Setting.vsync = vsync;
 
 		return result;
 	}
 
-	Core::Vector2I AppFrame::GetCurrentWindowSize()
-	{
-		switch (m_Setting.display_setting_type)
-		{
-		case DisplaySettingType::Window:
-			return m_Setting.window.window_size;
-		case DisplaySettingType::Fullscreen:
-			return m_Setting.fullscreen.window_size;
-		case DisplaySettingType::ExclusiveFullscreen:
-			return m_Setting.exclusive_fullscreen.window_size;
-		default:
-			assert(false); return Core::Vector2I(); // 不应该发生
-		}
-	}
-
 	bool AppFrame::UpdateDisplayMode()
 	{
-		switch (m_Setting.display_setting_type)
-		{
-		case DisplaySettingType::Window:
-			return SetDisplayModeWindow(
-				m_Setting.window.window_size,
-				m_Setting.window.vsync,
-				m_Setting.window.monitor_rect,
-				m_Setting.window.borderless);
-		case DisplaySettingType::Fullscreen:
-			return SetDisplayModeFullscreen(
-				m_Setting.fullscreen.monitor_rect,
-				m_Setting.fullscreen.vsync);
-		case DisplaySettingType::ExclusiveFullscreen:
+		if (m_Setting.fullscreen)
 			return SetDisplayModeExclusiveFullscreen(
-				m_Setting.exclusive_fullscreen.window_size,
-				m_Setting.exclusive_fullscreen.vsync,
-				m_Setting.exclusive_fullscreen.vsync);
-		default:
-			assert(false); return false; // 不应该发生
-		}
+				m_Setting.canvas_size,
+				m_Setting.vsync,
+				Core::Rational());
+		else
+			return SetDisplayModeWindow(
+				m_Setting.canvas_size,
+				m_Setting.vsync,
+				Core::RectI(),
+				false);
 	}
 
 	bool AppFrame::InitializationApplySettingStage1()
@@ -230,22 +189,8 @@ namespace LuaSTGPlus
 			p_window->setTitleText(m_Setting.window_title);
 			p_window->setCursor(m_Setting.show_cursor ? WindowCursor::Arrow : WindowCursor::None);
 			p_window->setNativeIcon((void*)(ptrdiff_t)IDI_APPICON);
-			switch (m_Setting.display_setting_type)
-			{
-			case DisplaySettingType::Window:
-				p_window->setWindowMode(Core::Vector2U(
-					uint32_t(m_Setting.window.window_size.x),
-					uint32_t(m_Setting.window.window_size.y)));
-				break;
-			case DisplaySettingType::Fullscreen:
-				p_window->setFullScreenMode();
-				break;
-			case DisplaySettingType::ExclusiveFullscreen:
-				p_window->setFullScreenMode();
-				break;
-			default:
-				assert(false); return false;
-			}
+			p_window->setSize(m_Setting.canvas_size);
+			p_window->setWindowCornerPreference(m_Setting.allow_windows_11_window_corner);
 		}
 		// 配置音量
 		{
@@ -259,32 +204,12 @@ namespace LuaSTGPlus
 
 	bool AppFrame::InitializationApplySettingStage2()
 	{
-		// 显示窗口
-		{
-			using namespace Core::Graphics;
-			auto* p_window = m_pAppModel->getWindow();
-			p_window->setLayer(WindowLayer::Normal); // 显示窗口
-			p_window->setWindowCornerPreference(m_Setting.allow_windows_11_window_corner);
-		}
-		// 启动交换链
-		{
-			using namespace Core::Graphics;
-			auto* p_swapchain = m_pAppModel->getSwapChain();
-			// 对于独占全屏启动的情况，首先初始化交换链，这样下面 findBestMatchDisplayMode 的时候才有有效的交换链对象
-			if (m_Setting.display_setting_type == DisplaySettingType::ExclusiveFullscreen)
-			{
-				Core::Vector2I const window_size = m_Setting.exclusive_fullscreen.window_size;
-				auto const size = Core::Vector2U(uint32_t(window_size.x), uint32_t(window_size.y));
-				if (!p_swapchain->setWindowMode(size))
-					return false;
-			}
-			// 正式应用显示模式
-			UpdateDisplayMode();
-			p_swapchain->refreshDisplayMode();
-			// 先刷新一下画面，避免白屏
-			p_swapchain->clearRenderAttachment();
-			p_swapchain->present();
-		}
+		// 正式应用显示模式
+		UpdateDisplayMode();
+		// 先刷新一下画面，避免白屏
+		auto* p_swapchain = m_pAppModel->getSwapChain();
+		p_swapchain->clearRenderAttachment();
+		p_swapchain->present();
 		return true;
 	}
 
@@ -292,7 +217,7 @@ namespace LuaSTGPlus
 	{
 		if (m_iStatus == AppStatus::Initializing)
 		{
-			m_Setting.display_setting_type = v ? DisplaySettingType::Window : DisplaySettingType::ExclusiveFullscreen;
+			m_Setting.fullscreen = !v;
 		}
 		else if (m_iStatus == AppStatus::Running)
 		{
@@ -304,9 +229,7 @@ namespace LuaSTGPlus
 	{
 		if (m_iStatus == AppStatus::Initializing)
 		{
-			m_Setting.window.vsync = v;
-			m_Setting.fullscreen.vsync = v;
-			m_Setting.exclusive_fullscreen.vsync = v;
+			m_Setting.vsync = v;
 		}
 		else if (m_iStatus == AppStatus::Running)
 		{
@@ -318,10 +241,7 @@ namespace LuaSTGPlus
 	{
 		if (m_iStatus == AppStatus::Initializing)
 		{
-			m_Setting.window.window_size = Core::Vector2I(width, height);
-			m_Setting.fullscreen.window_size = Core::Vector2I(width, height);
-			m_Setting.exclusive_fullscreen.window_size = Core::Vector2I(width, height);
-			m_Setting.exclusive_fullscreen.refresh_rate = Core::Rational(A, B);
+			m_Setting.canvas_size = Core::Vector2U(width, height);
 		}
 		else if (m_iStatus == AppStatus::Running)
 			spdlog::warn("[luastg] SetResolution: 试图在运行时更改分辨率");

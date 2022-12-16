@@ -18,58 +18,17 @@ namespace LuaSTGPlus
 		Destroyed,
 	};
 
-	enum class DisplaySettingType
-	{
-		Window, // 窗口
-		Fullscreen, // 全屏无边框窗口
-		ExclusiveFullscreen, // ExclusiveFullscreen
-	};
-
-	struct WindowSetting
-	{
-		// 窗口、交换链大小
-		Core::Vector2I window_size{ 640, 480 };
-		// 所在显示器矩形
-		Core::RectI monitor_rect{};
-		// 垂直同步
-		bool vsync{ false };
-		// 无边框模式
-		bool borderless{ false };
-	};
-
-	struct FullscreenSetting
-	{
-		// 窗口大小，一定等于 monitor_rect 的大小
-		Core::Vector2I window_size{ 640, 480 };
-		// 所在显示器矩形
-		Core::RectI monitor_rect{};
-		// 垂直同步
-		bool vsync{ false };
-	};
-
-	struct ExclusiveFullscreenSetting
-	{
-		// 窗口、交换链大小
-		Core::Vector2I window_size{ 640, 480 };
-		// 刷新率
-		Core::Rational refresh_rate{};
-		// 垂直同步
-		bool vsync{ false };
-	};
-
 	struct ApplicationSetting
 	{
 		// 图形设备
 		std::string preferred_gpu;
 
-		// 显示模式
-		DisplaySettingType display_setting_type{ DisplaySettingType::Window };
-		// 显示模式 - 窗口
-		WindowSetting window;
-		// 显示模式 - 全屏无边框窗口
-		FullscreenSetting fullscreen;
-		// 显示模式 - 独占全屏
-		ExclusiveFullscreenSetting exclusive_fullscreen;
+		// 显示模式 - 画布尺寸
+		Core::Vector2U canvas_size{ 640,480 };
+		// 显示模式 - 全屏
+		bool fullscreen{ false };
+		// 显示模式 - 垂直同步
+		bool vsync{ false };
 
 		// 鼠标指针
 		bool show_cursor{ true };
@@ -210,17 +169,14 @@ namespace LuaSTGPlus
 
 		// 以窗口模式显示  
 		// 当 monitor_rect 为空矩形时，窗口自动挑选最近的显示器来居中，否则根据显示器矩形选择匹配的显示器居中  
-		bool SetDisplayModeWindow(Core::Vector2I window_size, bool vsync, Core::RectI monitor_rect, bool borderless);
+		bool SetDisplayModeWindow(Core::Vector2U window_size, bool vsync, Core::RectI monitor_rect, bool borderless);
 
 		// 以全屏无边框窗口显示  
 		bool SetDisplayModeFullscreen(Core::RectI monitor_rect, bool vsync);
 
 		// 以独占全屏显示  
 		// 当 refresh_rate 为全 0 时，自动选择合适的匹配的刷新率  
-		bool SetDisplayModeExclusiveFullscreen(Core::Vector2I window_size, bool vsync, Core::Rational refresh_rate);
-
-		// 获取当前的窗口大小
-		Core::Vector2I GetCurrentWindowSize();
+		bool SetDisplayModeExclusiveFullscreen(Core::Vector2U window_size, bool vsync, Core::Rational refresh_rate);
 
 		// 更新显示模式
 		bool UpdateDisplayMode();

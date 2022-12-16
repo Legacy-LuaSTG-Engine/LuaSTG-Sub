@@ -90,9 +90,9 @@ static int lib_setStyle(lua_State* L)
 static int lib_setSize(lua_State* L)
 {
     getwindow(window);
-    int32_t const width = (int32_t)luaL_checkinteger(L, 1);
-    int32_t const height = (int32_t)luaL_checkinteger(L, 2);
-    bool const result = window->setSize(Core::Vector2I(width, height));
+    uint32_t const width = (uint32_t)luaL_checkinteger(L, 1);
+    uint32_t const height = (uint32_t)luaL_checkinteger(L, 2);
+    bool const result = window->setSize(Core::Vector2U(width, height));
     lua_pushboolean(L, result);
     return 1;
 }

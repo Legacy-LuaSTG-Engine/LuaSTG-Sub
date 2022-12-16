@@ -109,12 +109,12 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 		// 窗口与交换链控制函数
 		static int ChangeVideoMode(lua_State* L)noexcept
 		{
-			int const width = (int)luaL_checkinteger(L, 1);
-			int const height = (int)luaL_checkinteger(L, 2);
+			uint32_t const width = (uint32_t)luaL_checkinteger(L, 1);
+			uint32_t const height = (uint32_t)luaL_checkinteger(L, 2);
 			bool const windowed = lua_toboolean(L, 3);
 			bool const vsync = lua_toboolean(L, 4);
 
-			auto const size = Core::Vector2I(width, height);
+			auto const size = Core::Vector2U(width, height);
 
 			if (windowed)
 			{

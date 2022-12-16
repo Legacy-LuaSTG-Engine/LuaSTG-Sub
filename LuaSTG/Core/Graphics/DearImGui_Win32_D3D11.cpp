@@ -206,7 +206,7 @@ namespace Core::Graphics
 
 		ImGui::GetMainViewport()->PlatformHandleRaw = (void*)m_window->GetWindow();
 
-		Vector2I w_size_ =  m_window->getSize();
+		auto w_size_ =  m_window->getSize();
 		io.DisplaySize = ImVec2((float)w_size_.x, (float)w_size_.y);
 
 		return true;
@@ -517,7 +517,7 @@ namespace Core::Graphics
 		io.DeltaTime = (float)(current_time.QuadPart - m_time.QuadPart) / (float)m_freq.QuadPart;
 		m_time = current_time;
 		
-		Vector2I w_size_ = m_window->getSize();
+		auto w_size_ = m_window->getSize();
 		io.DisplaySize = ImVec2((float)w_size_.x, (float)w_size_.y);
 
 		ImGuiMouseCursor mouse_cursor = io.MouseDrawCursor ? ImGuiMouseCursor_None : ImGui::GetMouseCursor();
