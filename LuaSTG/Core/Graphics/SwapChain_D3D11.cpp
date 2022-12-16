@@ -692,6 +692,13 @@ namespace Core::Graphics
 		info.Height = mode.Height;
 		info.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
+		if (m_device->IsTearingSupport() && platform::WindowsVersion::Is10Build17763())
+		{
+			info.BufferCount = 2;
+			info.Scaling = DXGI_SCALING_NONE;
+			info.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+		}
+
 		DXGI_SWAP_CHAIN_FULLSCREEN_DESC fullscreen_info = {};
 		fullscreen_info.RefreshRate = mode.RefreshRate;
 		fullscreen_info.ScanlineOrdering = mode.ScanlineOrdering;
@@ -914,7 +921,7 @@ namespace Core::Graphics
 			.refresh_rate = Rational(display_mode.RefreshRate.Numerator, display_mode.RefreshRate.Denominator),
 			.format = Format::B8G8R8A8_UNORM, // 未使用……
 		};
-		if (!createSwapChain(false, false, false, mode, true)) // 稍后创建渲染附件
+		if (!createExclusiveFullscreenSwapChain(display_mode, true)) // 稍后创建渲染附件
 		{
 			return false;
 		}
@@ -943,6 +950,10 @@ namespace Core::Graphics
 		m_swapchain_last_flip = FALSE;
 		m_swapchain_last_latency_event = FALSE;
 		m_init = TRUE;
+		if (m_device->IsTearingSupport() && platform::WindowsVersion::Is10Build17763())
+		{
+			m_swapchain_last_flip = TRUE;
+		}
 
 		// 广播
 		dispatchEvent(EventType::SwapChainCreate);
