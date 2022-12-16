@@ -117,8 +117,6 @@ namespace LuaSTGPlus
 		m_Setting.window.swapchain_flip = swapchain_flip;
 		m_Setting.window.swapchain_low_latency = swapchain_low_latency;
 
-		m_Setting.toggle_between_fullscreen_type = DisplaySettingType::Window;
-
 		return result;
 	}
 
@@ -161,8 +159,6 @@ namespace LuaSTGPlus
 		m_Setting.fullscreen.swapchain_flip = swapchain_flip;
 		m_Setting.fullscreen.swapchain_low_latency = swapchain_low_latency;
 
-		m_Setting.toggle_between_fullscreen_type = DisplaySettingType::Fullscreen;
-
 		return result;
 	}
 
@@ -186,8 +182,6 @@ namespace LuaSTGPlus
 		m_Setting.exclusive_fullscreen.window_size = window_size;
 		m_Setting.exclusive_fullscreen.refresh_rate = refresh_rate;
 		m_Setting.exclusive_fullscreen.vsync = vsync;
-
-		//m_Setting.toggle_between_fullscreen_type = DisplaySettingType::?; // 不需要改动它
 
 		return result;
 	}
