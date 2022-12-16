@@ -84,7 +84,7 @@ namespace LuaSTGPlus
 			spdlog::error("[luastg] 显示模式切换失败：{} -> {}", getFullscreenTypeString(from_mode), to_mode);
 	}
 
-	bool AppFrame::SetDisplayModeWindow(Core::Vector2I window_size, bool vsync, Core::RectI monitor_rect, bool borderless, bool swapchain_flip, bool swapchain_low_latency)
+	bool AppFrame::SetDisplayModeWindow(Core::Vector2I window_size, bool vsync, Core::RectI monitor_rect, bool borderless)
 	{
 		auto* window = GetAppModel()->getWindow();
 		auto* swapchain = GetAppModel()->getSwapChain();
@@ -114,13 +114,11 @@ namespace LuaSTGPlus
 		m_Setting.window.monitor_rect = monitor_rect;
 		m_Setting.window.vsync = vsync;
 		m_Setting.window.borderless = borderless;
-		m_Setting.window.swapchain_flip = swapchain_flip;
-		m_Setting.window.swapchain_low_latency = swapchain_low_latency;
-
+		
 		return result;
 	}
 
-	bool AppFrame::SetDisplayModeFullscreen(Core::RectI monitor_rect, bool vsync, bool swapchain_flip, bool swapchain_low_latency)
+	bool AppFrame::SetDisplayModeFullscreen(Core::RectI monitor_rect, bool vsync)
 	{
 		auto* window = GetAppModel()->getWindow();
 		auto* swapchain = GetAppModel()->getSwapChain();
@@ -156,9 +154,7 @@ namespace LuaSTGPlus
 		m_Setting.fullscreen.window_size = window_size;
 		m_Setting.fullscreen.monitor_rect = monitor_rect;
 		m_Setting.fullscreen.vsync = vsync;
-		m_Setting.fullscreen.swapchain_flip = swapchain_flip;
-		m_Setting.fullscreen.swapchain_low_latency = swapchain_low_latency;
-
+		
 		return result;
 	}
 
@@ -210,15 +206,11 @@ namespace LuaSTGPlus
 				m_Setting.window.window_size,
 				m_Setting.window.vsync,
 				m_Setting.window.monitor_rect,
-				m_Setting.window.borderless,
-				m_Setting.window.swapchain_flip,
-				m_Setting.window.swapchain_low_latency);
+				m_Setting.window.borderless);
 		case DisplaySettingType::Fullscreen:
 			return SetDisplayModeFullscreen(
 				m_Setting.fullscreen.monitor_rect,
-				m_Setting.fullscreen.vsync,
-				m_Setting.fullscreen.swapchain_flip,
-				m_Setting.fullscreen.swapchain_low_latency);
+				m_Setting.fullscreen.vsync);
 		case DisplaySettingType::ExclusiveFullscreen:
 			return SetDisplayModeExclusiveFullscreen(
 				m_Setting.exclusive_fullscreen.window_size,

@@ -35,10 +35,6 @@ namespace LuaSTGPlus
 		bool vsync{ false };
 		// 无边框模式
 		bool borderless{ false };
-		// 交换链快速交换模式
-		bool swapchain_flip{ false };
-		// 低延迟呈现
-		bool swapchain_low_latency{ false };
 	};
 
 	struct FullscreenSetting
@@ -49,10 +45,6 @@ namespace LuaSTGPlus
 		Core::RectI monitor_rect{};
 		// 垂直同步
 		bool vsync{ false };
-		// 交换链快速交换模式
-		bool swapchain_flip{ false };
-		// 低延迟呈现
-		bool swapchain_low_latency{ false };
 	};
 
 	struct ExclusiveFullscreenSetting
@@ -218,10 +210,10 @@ namespace LuaSTGPlus
 
 		// 以窗口模式显示  
 		// 当 monitor_rect 为空矩形时，窗口自动挑选最近的显示器来居中，否则根据显示器矩形选择匹配的显示器居中  
-		bool SetDisplayModeWindow(Core::Vector2I window_size, bool vsync, Core::RectI monitor_rect, bool borderless, bool swapchain_flip, bool swapchain_low_latency);
+		bool SetDisplayModeWindow(Core::Vector2I window_size, bool vsync, Core::RectI monitor_rect, bool borderless);
 
 		// 以全屏无边框窗口显示  
-		bool SetDisplayModeFullscreen(Core::RectI monitor_rect, bool vsync, bool swapchain_flip, bool swapchain_low_latency);
+		bool SetDisplayModeFullscreen(Core::RectI monitor_rect, bool vsync);
 
 		// 以独占全屏显示  
 		// 当 refresh_rate 为全 0 时，自动选择合适的匹配的刷新率  

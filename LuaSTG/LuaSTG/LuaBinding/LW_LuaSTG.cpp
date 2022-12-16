@@ -118,7 +118,7 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 
 			if (windowed)
 			{
-				bool const result = LAPP.SetDisplayModeWindow(size, vsync, Core::RectI(), false, false, false);
+				bool const result = LAPP.SetDisplayModeWindow(size, vsync, Core::RectI(), false);
 				lua_pushboolean(L, result);
 			}
 			else
