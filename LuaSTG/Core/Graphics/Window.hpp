@@ -86,8 +86,8 @@ namespace Core::Graphics
 		virtual bool setFrameStyle(WindowFrameStyle style) = 0;
 		virtual WindowFrameStyle getFrameStyle() = 0;
 
-		virtual Vector2I getSize() = 0;
-		virtual bool setSize(Vector2I v) = 0;
+		virtual Vector2U getSize() = 0;
+		virtual bool setSize(Vector2U v) = 0;
 
 		virtual WindowLayer getLayer() = 0;
 		virtual bool setLayer(WindowLayer layer) = 0;
@@ -120,6 +120,6 @@ namespace Core::Graphics
 		virtual void setWindowCornerPreference(bool allow) = 0;
 
 		static bool create(IWindow** pp_window);
-		static bool create(Vector2I size, StringView title_text, WindowFrameStyle style, bool show, IWindow** pp_window);
+		static bool create(Vector2U size, StringView title_text, WindowFrameStyle style, bool show, IWindow** pp_window);
 	};
 }

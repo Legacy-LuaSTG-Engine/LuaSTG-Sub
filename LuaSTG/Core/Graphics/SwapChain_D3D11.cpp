@@ -906,7 +906,7 @@ namespace Core::Graphics
 			m_swapchain_flip_enabled = FALSE;
 		}
 
-		m_window->setSize(Vector2I((int32_t)display_mode.Width, (int32_t)display_mode.Height));
+		m_window->setSize({ display_mode.Width, display_mode.Height });
 
 		DisplayMode mode = {
 			.width = display_mode.Width,

@@ -122,8 +122,8 @@ namespace Core::Graphics
 		bool setFrameStyle(WindowFrameStyle style);
 		WindowFrameStyle getFrameStyle();
 
-		Vector2I getSize();
-		bool setSize(Vector2I v);
+		Vector2U getSize();
+		bool setSize(Vector2U v);
 
 		WindowLayer getLayer();
 		bool setLayer(WindowLayer layer);
@@ -159,6 +159,6 @@ namespace Core::Graphics
 
 	public:
 		static bool create(Window_Win32** pp_window);
-		static bool create(Vector2I size, StringView title_text, WindowFrameStyle style, bool show, Window_Win32** pp_window);
+		static bool create(Vector2U size, StringView title_text, WindowFrameStyle style, bool show, Window_Win32** pp_window);
 	};
 }
