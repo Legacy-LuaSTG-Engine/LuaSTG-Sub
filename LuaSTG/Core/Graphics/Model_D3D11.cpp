@@ -933,7 +933,9 @@ namespace Core::Graphics
     };
     bool Model_D3D11::createModelBlock(tinygltf::Model& model)
     {
-        tinygltf::Scene& scene = model.scenes[model.defaultScene];
+        int default_scene = model.defaultScene;
+        if (default_scene < 0) default_scene = 0;
+        tinygltf::Scene& scene = model.scenes[default_scene];
         for (int const& node_idx : scene.nodes)
         {
             tinygltf::Node& node = model.nodes[node_idx];
