@@ -372,6 +372,7 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(IsAnyItemHovered),
     MAKEF(IsAnyItemActive),
     MAKEF(IsAnyItemFocused),
+    MAKEF(GetItemID),
     MAKEF(GetItemRectMin),
     MAKEF(GetItemRectMax),
     MAKEF(GetItemRectSize),

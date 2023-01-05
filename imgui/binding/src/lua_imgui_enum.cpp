@@ -438,6 +438,16 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"MouseWheelX", ImGuiKey_MouseWheelX},
     {"MouseWheelY", ImGuiKey_MouseWheelY},
 }},
+//{"ImGuiInputFlags", {
+//    {"None"                 , ImGuiInputFlags_None                },
+//    {"Repeat"               , ImGuiInputFlags_Repeat              },
+//    {"RouteFocused"         , ImGuiInputFlags_RouteFocused        },
+//    {"RouteGlobalLow"       , ImGuiInputFlags_RouteGlobalLow      },
+//    {"RouteGlobal"          , ImGuiInputFlags_RouteGlobal         },
+//    {"RouteGlobalHigh"      , ImGuiInputFlags_RouteGlobalHigh     },
+//    {"RouteAlways"          , ImGuiInputFlags_RouteAlways         },
+//    {"RouteUnlessBgFocused" , ImGuiInputFlags_RouteUnlessBgFocused},
+//}},
 {"ImGuiMod", {
     {"None"    , ImGuiMod_None    },
     {"Ctrl"    , ImGuiMod_Ctrl    },
