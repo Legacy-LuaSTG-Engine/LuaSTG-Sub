@@ -2829,6 +2829,12 @@ static int lib_IsAnyItemFocused(lua_State* L)
     lua_pushboolean(L, ret);
     return 1;
 }
+static int lib_GetItemID(lua_State* L)
+{
+    const ImGuiID ret = ImGui::GetItemID();
+    lua_pushnumber(L, (lua_Number)ret);
+    return 1;
+}
 static int lib_GetItemRectMin(lua_State* L)
 {
     ImVec2* vec2 = imgui_binding_lua_new_ImVec2(L);
@@ -3046,6 +3052,16 @@ static int lib_SetNextFrameWantCaptureKeyboard(lua_State* L)
     ImGui::SetNextFrameWantCaptureKeyboard(want_capture_keyboard);
     return 0;
 }
+
+//static int lib_Shortcut(lua_State* L)
+//{
+//    int const key_chord = luaL_checkinteger(L, 1);
+//    ImGuiID const owner_id = (ImGuiID)luaL_optnumber(L, 2, 0.0);
+//    ImGuiInputFlags const flags = (ImGuiInputFlags)luaL_optinteger(L, 1, 0);
+//    bool const ret = ImGui::Shortcut(key_chord, owner_id, flags);
+//    lua_pushboolean(L, ret);
+//    return 1;
+//}
 
 //////// Inputs Utilities: Mouse
 
