@@ -311,12 +311,16 @@ namespace Core::Graphics
 	{
 		assert(device);
 
+		HRNew;
+
+		// 不是 Windows 10 则跳过
+
 		if (!IsWindows10OrGreater())
 		{
 			return false;
 		}
 
-		HRNew;
+		// 不支持画面撕裂则跳过
 
 		Microsoft::WRL::ComPtr<IDXGIFactory2> dxgi_factory;
 		Microsoft::WRL::ComPtr<ID3D11Device> d3d11_device = device;
@@ -329,6 +333,8 @@ namespace Core::Graphics
 			return false;
 		}
 
+		// 检查显示输出拓扑
+
 		bool v_support = true;
 
 		Microsoft::WRL::ComPtr<IDXGIAdapter1> v_adapter;
@@ -337,9 +343,31 @@ namespace Core::Graphics
 			Microsoft::WRL::ComPtr<IDXGIOutput> v_output;
 			for (UINT i_output = 0; SUCCEEDED(v_adapter->EnumOutputs(i_output, &v_output)); i_output += 1)
 			{
+				BOOL is_primary = FALSE;
 				BOOL overlays = FALSE;
 				UINT overlay_support = 0;
 				UINT hardware_composition_support = 0;
+
+				DXGI_OUTPUT_DESC v_output_info = {};
+				HRGet = v_output->GetDesc(&v_output_info);
+				HRCheckCallReport("IDXGIOutput::GetDesc");
+				if (SUCCEEDED(hr))
+				{
+					MONITORINFOEXW v_monitor_info = {};
+					v_monitor_info.cbSize = sizeof(v_monitor_info);
+					if (!GetMonitorInfoW(v_output_info.Monitor, &v_monitor_info))
+					{
+						hr = HRESULT_FROM_WIN32(GetLastError());
+						HRCheckCallReport("GetMonitorInfoW");
+					}
+					else
+					{
+						if (v_monitor_info.dwFlags & MONITORINFOF_PRIMARY)
+						{
+							is_primary = TRUE;
+						}
+					}
+				}
 
 				Microsoft::WRL::ComPtr<IDXGIOutput2> v_output2;
 				HRGet = v_output.As(&v_output2);
@@ -371,9 +399,21 @@ namespace Core::Graphics
 				bool const condition2 = (overlay_support & DXGI_OVERLAY_SUPPORT_FLAG_DIRECT) && (overlay_support & DXGI_OVERLAY_SUPPORT_FLAG_SCALING);
 				bool const condition3 = (hardware_composition_support & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_FULLSCREEN);
 				bool const condition = condition1 || condition2 || condition3;
-				if (!condition)
+				bool const conditionb = condition2 || condition3;
+				if (is_primary)
 				{
-					v_support = false;
+					if (!condition)
+					{
+						v_support = false;
+					}
+				}
+				else
+				{
+					// 多显示输出系统上，似乎只有主显示输出会报告多平面叠加支持
+					if (!conditionb)
+					{
+						v_support = false;
+					}
 				}
 			}
 		}
