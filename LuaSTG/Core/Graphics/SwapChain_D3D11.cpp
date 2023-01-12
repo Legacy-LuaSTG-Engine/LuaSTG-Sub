@@ -335,6 +335,7 @@ namespace Core::Graphics
 
 		// 检查显示输出拓扑
 
+		bool v_primary_support = true;
 		bool v_support = true;
 
 		Microsoft::WRL::ComPtr<IDXGIAdapter1> v_adapter;
@@ -398,19 +399,18 @@ namespace Core::Graphics
 				bool const condition1 = (overlays);
 				bool const condition2 = (overlay_support & DXGI_OVERLAY_SUPPORT_FLAG_DIRECT) && (overlay_support & DXGI_OVERLAY_SUPPORT_FLAG_SCALING);
 				bool const condition3 = (hardware_composition_support & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_FULLSCREEN);
-				bool const condition = condition1 || condition2 || condition3;
-				bool const conditionb = condition2 || condition3;
 				if (is_primary)
 				{
-					if (!condition)
+					if (!((condition1 || condition2) && condition3))
 					{
+						v_primary_support = false;
 						v_support = false;
 					}
 				}
 				else
 				{
 					// 多显示输出系统上，似乎只有主显示输出会报告多平面叠加支持
-					if (!conditionb)
+					if (!((condition1 || condition2 || v_primary_support) && condition3))
 					{
 						v_support = false;
 					}
