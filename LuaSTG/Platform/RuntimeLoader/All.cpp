@@ -118,7 +118,11 @@ namespace Platform::RuntimeLoader
 		hr = dxgi_swapchain2->SetMaximumFrameLatency(MaxLatency);
 		if (FAILED(hr)) return hr;
 
-		*pEvent = dxgi_swapchain2->GetFrameLatencyWaitableObject();
+		HANDLE event = dxgi_swapchain2->GetFrameLatencyWaitableObject();
+		assert(event);
+		if (!event) return E_FAIL;
+
+		*pEvent = event;
 
 		return hr;
 	}
