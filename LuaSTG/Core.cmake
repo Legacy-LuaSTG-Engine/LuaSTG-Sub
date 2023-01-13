@@ -56,6 +56,7 @@ set(Core_SRC
     Core/Graphics/Direct3D11/LetterBoxingRenderer.cpp
     Core/PresentationModel.hpp
     Core/PresentationModel.cpp
+    Core/Application.hpp
     Core/ApplicationModel.hpp
     Core/ApplicationModel_Win32.hpp
     Core/ApplicationModel_Win32.cpp
