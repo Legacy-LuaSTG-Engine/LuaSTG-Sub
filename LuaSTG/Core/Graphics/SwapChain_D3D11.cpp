@@ -1535,7 +1535,7 @@ namespace Core::Graphics
 
 		HRNew;
 
-		// Depth Stencil
+		// Depth Stencil Buffer
 
 		D3D11_TEXTURE2D_DESC ds_info = {};
 		ds_info.Width = m_canvas_size.x;
@@ -1550,6 +1550,8 @@ namespace Core::Graphics
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> ds_texture;
 		HRGet = m_device->GetD3D11Device()->CreateTexture2D(&ds_info, NULL, &ds_texture);
 		HRCheckCallReturnBool("ID3D11Device::CreateTexture2D");
+
+		// Depth Stencil View
 
 		D3D11_DEPTH_STENCIL_VIEW_DESC dsv_info = {};
 		dsv_info.Format = ds_info.Format;
@@ -2047,70 +2049,6 @@ namespace Core::Graphics
 
 		return true;
 	}
-	bool SwapChain_D3D11::setExclusiveFullscreenMode(DisplayMode const& mode)
-	{
-		_log("setExclusiveFullscreenMode");
-
-		if (mode.width < 1 || mode.height < 1)
-		{
-			i18n_log_error_fmt("[core].SwapChain_D3D11.create_swapchain_failed_invalid_size_fmt", mode.width, mode.height);
-			return false;
-		}
-		dispatchEvent(EventType::SwapChainDestroy);
-		destroySwapChain();
-
-		if (!m_window->getRedirectBitmapEnable())
-		{
-			m_window->setRedirectBitmapEnable(true);
-			if (!m_window->recreateWindow()) return false;
-			if (m_swapchain_flip_enabled)
-			{
-				m_swapchain_flip_enabled = FALSE;
-			}
-		}
-		else if (m_swapchain_flip_enabled)
-		{
-			if (!m_window->recreateWindow()) return false;
-			m_swapchain_flip_enabled = FALSE;
-		}
-
-		if (!createSwapChain(false, false, false, mode, true)) // 稍后创建渲染附件
-		{
-			return false;
-		}
-		// 进入全屏
-		i18n_log_info("[core].SwapChain_D3D11.enter_exclusive_fullscreen");
-		HRESULT hr = gHR = dxgi_swapchain->SetFullscreenState(TRUE, NULL);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDXGISwapChain::SetFullscreenState -> TRUE");
-			return false;
-		}
-		// 需要重设交换链大小（特别是 Flip 交换链模型）
-		hr = gHR = dxgi_swapchain->ResizeBuffers(0, mode.width, mode.height, DXGI_FORMAT_UNKNOWN, m_swapchain_flags);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDXGISwapChain::ResizeBuffers");
-			assert(false); return false;
-		}
-		// 创建渲染附件
-		m_canvas_size = Vector2U(mode.width, mode.height);
-		if (!createRenderAttachment())
-		{
-			return false;
-		}
-		m_swapchain_last_mode = mode;
-		m_swapchain_last_windowed = FALSE;
-		m_swapchain_last_flip = FALSE;
-		m_swapchain_last_latency_event = FALSE;
-		m_init = TRUE;
-		//m_window->setCursorToRightBottom();
-		dispatchEvent(EventType::SwapChainCreate);
-
-		if (!updateLetterBoxingRendererTransform()) return false;
-
-		return true;
-	}
 	bool SwapChain_D3D11::setSwapChainSize(Vector2U size)
 	{
 		_log("setSwapChainSize");
@@ -2130,17 +2068,6 @@ namespace Core::Graphics
 			m_canvas_size = size;
 			return true; // 当交换链还未初始化时，仅保存画布尺寸
 		}
-		if (!_setCanvasSize(size)) return false;
-		if (!updateLetterBoxingRendererTransform()) return false;
-		if (!updateDirectCompositionTransform()) return false;
-		return true;
-	}
-
-	bool SwapChain_D3D11::setSwapChainAndCanvasSize(Vector2U size)
-	{
-		_log("setSwapChainAndCanvasSize");
-
-		if (!_setSwapChainSize(size)) return false;
 		if (!_setCanvasSize(size)) return false;
 		if (!updateLetterBoxingRendererTransform()) return false;
 		if (!updateDirectCompositionTransform()) return false;
