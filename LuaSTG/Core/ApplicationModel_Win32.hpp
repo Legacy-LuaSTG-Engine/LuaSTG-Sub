@@ -79,6 +79,7 @@ namespace Core
 
 		ScopeObject<Graphics::Window_Win32> m_window;
 		Microsoft::WRL::Wrappers::Event win32_event_exit;
+		bool m_exit_flag{};
 
 		// 仅限工作线程
 
@@ -93,6 +94,14 @@ namespace Core
 
 		static DWORD WINAPI win32_thread_worker_entry(LPVOID lpThreadParameter);
 		void worker();
+
+		bool runSingleThread();
+		bool runDoubleThread();
+
+	public:
+		// 内部公开
+
+		void runFrame();
 
 	public:
 		// 多个线程共享

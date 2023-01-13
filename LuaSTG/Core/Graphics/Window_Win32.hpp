@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Core/Object.hpp"
+#include "Core/ApplicationModel.hpp"
 #include "Core/Graphics/Window.hpp"
 #include "platform/Monitor.hpp"
 #include "platform/WindowSizeMoveController.hpp"
@@ -44,6 +45,7 @@ namespace Core::Graphics
 		BOOL m_allow_windows_11_window_corner{ TRUE };
 
 		BOOL win32_window_is_sizemove{ FALSE };
+		BOOL win32_window_is_menu_loop{ FALSE };
 		BOOL win32_window_want_track_focus{ FALSE };
 
 		platform::WindowSizeMoveController m_sizemove;
@@ -56,6 +58,8 @@ namespace Core::Graphics
 		void destroyWindowClass();
 		bool createWindow();
 		void destroyWindow();
+
+		IApplicationModel* m_framework{};
 
 	public:
 		// 内部方法
@@ -75,6 +79,8 @@ namespace Core::Graphics
 		void _toggleFullScreenMode();
 		void _setWindowMode(Vector2U size, bool ignore_size);
 		void _setFullScreenMode();
+
+		void implSetApplicationModel(IApplicationModel* p_framework) { m_framework = p_framework; }
 
 	private:
 		enum class EventType

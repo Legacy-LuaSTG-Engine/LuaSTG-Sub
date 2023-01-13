@@ -1,4 +1,5 @@
 ﻿#include "Core/Graphics/Window_Win32.hpp"
+#include "Core/ApplicationModel_Win32.hpp"
 #include "Core/i18n.hpp"
 #include "utility/encoding.hpp"
 #include "platform/WindowsVersion.hpp"
@@ -13,6 +14,8 @@ constexpr int const LUASTG_WM_SET_FULLSCREEN_MODE = LUASTG_WM_SET_WINDOW_MODE + 
 
 namespace Core::Graphics
 {
+#define APPMODEL ((ApplicationModel_Win32*)m_framework)
+
 	LRESULT CALLBACK Window_Win32::win32_window_callback(HWND window, UINT message, WPARAM arg1, LPARAM arg2)
 	{
 		if (Window_Win32* self = (Window_Win32*)GetWindowLongPtrW(window, GWLP_USERDATA))
@@ -97,30 +100,31 @@ namespace Core::Graphics
 				dispatchEvent(EventType::WindowSize, d);
 			}
 			break;
-		//case WM_ENTERSIZEMOVE:
-		//	win32_window_is_sizemove = TRUE;
-		//	InvalidateRect(window, NULL, FALSE); // 标记窗口区域为需要重新绘制，以便产生 WM_PAINT 消息
-		//	return 0;
-		//case WM_EXITSIZEMOVE:
-		//	win32_window_is_sizemove = FALSE;
-		//	ValidateRect(window, NULL);
-		//	return 0;
-		//case WM_PAINT:
-		//	if (win32_window_is_sizemove)
-		//	{
-		//		dispatchEvent(EventType::WindowSizeMovePaint);
-		//	}
-		//	else
-		//	{
-		//		ValidateRect(window, NULL); // 正常情况下，WM_PAINT 忽略掉
-		//	}
-		//	{
-		//		PAINTSTRUCT ps{};
-		//		HDC hdc = BeginPaint(window, &ps);
-		//		FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_BACKGROUND + 1));
-		//		EndPaint(window, &ps);
-		//	}
-		//	return 0;
+		case WM_ENTERSIZEMOVE:
+			win32_window_is_sizemove = TRUE;
+			InvalidateRect(window, NULL, FALSE); // 标记窗口区域为需要重新绘制，以便产生 WM_PAINT 消息
+			return 0;
+		case WM_EXITSIZEMOVE:
+			win32_window_is_sizemove = FALSE;
+			return 0;
+		case WM_ENTERMENULOOP:
+			win32_window_is_menu_loop = TRUE;
+			InvalidateRect(window, NULL, FALSE); // 标记窗口区域为需要重新绘制，以便产生 WM_PAINT 消息
+			return 0;
+		case WM_EXITMENULOOP:
+			win32_window_is_menu_loop = FALSE;
+			return 0;
+		case WM_PAINT:
+			if (win32_window_is_sizemove || win32_window_is_menu_loop)
+			{
+				//dispatchEvent(EventType::WindowSizeMovePaint);
+				APPMODEL->runFrame();
+			}
+			else
+			{
+				ValidateRect(window, NULL); // 正常情况下，WM_PAINT 忽略掉
+			}
+			return 0;
 		case WM_SYSKEYDOWN:
 		case WM_KEYDOWN:
 			if (arg1 == VK_MENU)
