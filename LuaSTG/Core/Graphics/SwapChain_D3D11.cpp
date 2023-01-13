@@ -1245,21 +1245,23 @@ namespace Core::Graphics
 	{
 		_log("updateDirectCompositionTransform");
 
-		HRESULT hr = S_OK;
+		HRNew;
 
 		// 必须成功的操作
 
 		DXGI_SWAP_CHAIN_DESC1 desc1 = {};
-		hr = gHR = dxgi_swapchain->GetDesc1(&desc1);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDXGISwapChain1::GetDesc1");
-			assert(false); return false;
-		}
-
+		HRGet = dxgi_swapchain->GetDesc1(&desc1);
+		HRCheckCallReturnBool("IDXGISwapChain1::GetDesc1");
+		
 		RECT rc = {};
-		GetClientRect(m_window->GetWindow(), &rc);
-		auto const window_size_u = Vector2U((uint32_t)(rc.right - rc.left), (uint32_t)(rc.bottom - rc.top));
+		if (!GetClientRect(m_window->GetWindow(), &rc))
+		{
+			HRGet = HRESULT_FROM_WIN32(GetLastError());
+			HRCheckCallReturnBool("GetClientRect");
+		}
+		auto const window_size_u = Vector2U(
+			(uint32_t)(rc.right - rc.left),
+			(uint32_t)(rc.bottom - rc.top));
 
 		// 让背景铺满整个画面
 
@@ -1267,13 +1269,9 @@ namespace Core::Graphics
 			(float)window_size_u.x / (float)BACKGROUND_W,
 			(float)window_size_u.y / (float)BACKGROUND_H
 		);
-		hr = gHR = dcomp_visual_background->SetTransform(background_mat);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDCompositionVisual2::SetTransform");
-			assert(false); return false;
-		}
-
+		HRGet = dcomp_visual_background->SetTransform(background_mat);
+		HRCheckCallReturnBool("IDCompositionVisual2::SetTransform");
+		
 		// 设置交换链内容内接放大
 
 		DXGI_MATRIX_3X2_F mat{};
@@ -1284,22 +1282,14 @@ namespace Core::Graphics
 				mat._21, mat._22,
 				mat._31, mat._32,
 			};
-			hr = gHR = dcomp_visual_swap_chain->SetTransform(mat_d2d);
-			if (FAILED(hr))
-			{
-				i18n_core_system_call_report_error("IDCompositionVisual2::SetTransform");
-				assert(false); return false;
-			}
+			HRGet = dcomp_visual_swap_chain->SetTransform(mat_d2d);
+			HRCheckCallReturnBool("IDCompositionVisual2::SetTransform");
 		}
 		else
 		{
 			auto const mat_d2d = D2D1::Matrix3x2F::Identity();
-			hr = gHR = dcomp_visual_swap_chain->SetTransform(mat_d2d);
-			if (FAILED(hr))
-			{
-				i18n_core_system_call_report_error("IDCompositionVisual2::SetTransform");
-				assert(false); return false;
-			}
+			HRGet = dcomp_visual_swap_chain->SetTransform(mat_d2d);
+			HRCheckCallReturnBool("IDCompositionVisual2::SetTransform");
 		}
 
 		// 提交
@@ -1328,7 +1318,7 @@ namespace Core::Graphics
 
 		// 我们限制 DirectComposition 仅在 Windows 10+ 使用
 
-		HRESULT hr = 0;
+		HRNew;
 
 		i18n_log_info("[core].SwapChain_D3D11.start_creating_swapchain");
 
@@ -1370,42 +1360,24 @@ namespace Core::Graphics
 		m_swapchain_flags = desc.Flags;
 
 		// 创建交换链
-		// 由于合成交换链不会和任何窗口关联，所以不需要处理傻逼快捷键
 
-		hr = gHR = m_device->GetDXGIFactory2()->CreateSwapChainForComposition(
+		HRGet = m_device->GetDXGIFactory2()->CreateSwapChainForComposition(
 			m_device->GetD3D11Device(),
 			&desc, NULL,
 			&dxgi_swapchain);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDXGIFactory2::CreateSwapChainForComposition");
-			assert(false); return false;
-		}
+		HRCheckCallReturnBool("IDXGIFactory2::CreateSwapChainForComposition");
 		
 		// 设置最大帧延迟为 1
 
-		hr = gHR = Platform::RuntimeLoader::DXGI::SetDeviceMaximumFrameLatency(dxgi_swapchain.Get(), 1);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDXGIDevice1::SetMaximumFrameLatency -> 1");
-			assert(false); return false;
-		}
-
+		HRGet = Platform::RuntimeLoader::DXGI::SetDeviceMaximumFrameLatency(dxgi_swapchain.Get(), 1);
+		HRCheckCallReturnBool("IDXGIDevice1::SetMaximumFrameLatency -> 1");
+		
 		if (m_swapchain_flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
 		{
 			HANDLE event_handle{};
-			hr = gHR = Platform::RuntimeLoader::DXGI::SetSwapChainMaximumFrameLatency(
+			HRGet = Platform::RuntimeLoader::DXGI::SetSwapChainMaximumFrameLatency(
 				dxgi_swapchain.Get(), 1, &event_handle);
-			if (FAILED(hr))
-			{
-				i18n_core_system_call_report_error("IDXGISwapChain2::SetMaximumFrameLatency -> 1");
-				assert(false); return false;
-			}
-			if (!event_handle)
-			{
-				i18n_core_system_call_report_error("IDXGISwapChain2::GetFrameLatencyWaitableObject");
-				assert(false); return false;
-			}
+			HRCheckCallReturnBool("IDXGISwapChain2::SetMaximumFrameLatency -> 1");
 			dxgi_swapchain_event.Attach(event_handle);
 		}
 
