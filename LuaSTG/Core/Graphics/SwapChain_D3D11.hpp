@@ -130,8 +130,6 @@ namespace Core::Graphics
 
 		void clearRenderAttachment();
 		void applyRenderAttachment();
-		void syncWindowSize();
-		void syncWindowActive();
 		void waitFrameLatency();
 		void setVSync(bool enable);
 		bool present();

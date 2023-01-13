@@ -505,33 +505,49 @@ namespace Core::Graphics
 	}
 	void SwapChain_D3D11::onWindowCreate()
 	{
-		//onDeviceCreate();
+		// 目前窗口的重新创建只会被交换链触发，所以这里留空
 	}
 	void SwapChain_D3D11::onWindowDestroy()
 	{
-		//onDeviceDestroy();
+		// 目前窗口的重新创建只会被交换链触发，所以这里留空
 	}
 	void SwapChain_D3D11::onWindowActive()
 	{
-		m_window_active_changed.store(0x1);
-		m_swapchain_want_present_reset = TRUE;
+		if (!dxgi_swapchain)
+			return;
 		_log("onWindowActive");
+		m_swapchain_want_present_reset = TRUE;
+		_setFullscreenState(true);
 	}
 	void SwapChain_D3D11::onWindowInactive()
 	{
-		m_window_active_changed.store(0x2);
+		if (!dxgi_swapchain)
+			return;
 		_log("onWindowInactive");
+		_setFullscreenState(false);
 	}
 	void SwapChain_D3D11::onWindowSize(Core::Vector2U size)
 	{
-		assert(size.x >= 0 && size.x <= 0xFFFF);
-		assert(size.y >= 0 && size.y <= 0xFFFF);
-		uint32_t const value = ((size.x & 0xFFFF) << 16) | (size.y & 0xFFFF);
-		m_next_window_size_data.exchange(value);
+		if (!dxgi_swapchain)
+			return;
+		_setSwapChainSize(size);
+		if (m_is_composition_mode)
+		{
+			updateDirectCompositionTransform();
+		}
+		else
+		{
+			updateLetterBoxingRendererTransform();
+		}
 	}
 	void SwapChain_D3D11::onWindowFullscreenStateChange(bool state)
 	{
-		m_next_window_fullscreen_state.exchange(encodeFullscreenState(state));
+		if (!dxgi_swapchain)
+			return;
+		if (state)
+			_enterExclusiveFullscreen();
+		else
+			_leaveExclusiveFullscreen();
 	}
 
 	bool SwapChain_D3D11::createSwapChain(bool windowed, bool flip, bool latency_event, DisplayMode const& mode, bool no_attachment)
@@ -2156,55 +2172,6 @@ namespace Core::Graphics
 		return true;
 	}
 
-	void SwapChain_D3D11::syncWindowSize()
-	{
-		// _log("syncWindowSize");
-
-		// part 1
-
-		auto fullscreen_state = decodeFullscreenState(m_next_window_fullscreen_state.exchange(0));
-		if (fullscreen_state.first)
-		{
-			if (fullscreen_state.second)
-				_enterExclusiveFullscreen();
-			else
-				_leaveExclusiveFullscreen();
-		}
-
-		// part 2
-
-		uint32_t const value = m_next_window_size_data.exchange(0);
-		if (value)
-		{
-			uint32_t width = (value & 0xFFFF0000) >> 16;
-			uint32_t height = value & 0xFFFF;
-
-			_setSwapChainSize(Vector2U(width, height));
-			if (m_is_composition_mode)
-			{
-				updateDirectCompositionTransform();
-			}
-			else
-			{
-				updateLetterBoxingRendererTransform();
-			}
-		}
-
-		// part 3
-
-		int window_active_changed = m_window_active_changed.exchange(0);
-		if (window_active_changed & 0x1)
-		{
-			_setFullscreenState(true);
-		}
-		else if (window_active_changed & 0x2)
-		{
-			_setFullscreenState(false);
-		}
-	}
-	void SwapChain_D3D11::syncWindowActive()
-	{
-	}
 	void SwapChain_D3D11::waitFrameLatency()
 	{
 		if (m_swapchain_want_present_reset)

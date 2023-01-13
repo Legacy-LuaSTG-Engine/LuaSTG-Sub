@@ -373,9 +373,7 @@ namespace Core
 				{
 					break;
 				}
-				m_swapchain->syncWindowSize();
 				update_result = m_listener->onUpdate();
-				m_swapchain->syncWindowActive();
 			}
 			
 			bool render_result = false;
@@ -587,9 +585,7 @@ namespace Core
 		{
 			ZoneScopedN("OnUpdate");
 			ScopeTimer t(d.update_time);
-			m_swapchain->syncWindowSize();
 			update_result = m_listener->onUpdate();
-			m_swapchain->syncWindowActive();
 		}
 
 		bool render_result = false;
