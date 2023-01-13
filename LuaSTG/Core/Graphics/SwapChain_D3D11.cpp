@@ -1013,8 +1013,7 @@ namespace Core::Graphics
 
 		// 广播
 		dispatchEvent(EventType::SwapChainCreate);
-		m_window_active_changed.exchange(0x0); // 清空消息
-
+		
 		return true;
 	}
 	bool SwapChain_D3D11::_leaveExclusiveFullscreen()
@@ -2005,8 +2004,6 @@ namespace Core::Graphics
 		if (flip_model) m_swapchain_flip_enabled = TRUE;
 		dispatchEvent(EventType::SwapChainCreate);
 
-		m_window_active_changed.exchange(0x0); // 清空消息
-
 		if (!updateLetterBoxingRendererTransform()) return false;
 
 		return true;
@@ -2063,10 +2060,6 @@ namespace Core::Graphics
 		// 通知各个组件交换链已重新创建
 
 		dispatchEvent(EventType::SwapChainCreate);
-
-		// 清空窗口焦点事件
-
-		m_window_active_changed.exchange(0x0);
 
 		return true;
 	}
@@ -2129,8 +2122,6 @@ namespace Core::Graphics
 		m_init = TRUE;
 		//m_window->setCursorToRightBottom();
 		dispatchEvent(EventType::SwapChainCreate);
-
-		m_window_active_changed.exchange(0x0); // 清空消息
 
 		if (!updateLetterBoxingRendererTransform()) return false;
 
