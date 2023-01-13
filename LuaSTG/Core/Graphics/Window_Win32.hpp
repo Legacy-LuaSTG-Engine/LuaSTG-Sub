@@ -103,7 +103,7 @@ namespace Core::Graphics
 		};
 		union EventData
 		{
-			Vector2I window_size;
+			Vector2U window_size;
 			bool window_fullscreen_state;
 		};
 		bool m_is_dispatch_event{ false };

@@ -309,10 +309,9 @@ void AppFrame::onWindowInactive()
 	platform::XInput::setEnable(false);
 	m_window_active_changed.fetch_or(0x2);
 }
-void AppFrame::onWindowSize(Core::Vector2I size)
+void AppFrame::onWindowSize(Core::Vector2U size)
 {
-	m_win32_window_size.x = (uint32_t)size.x;
-	m_win32_window_size.y = (uint32_t)size.y;
+	m_win32_window_size = size;
 }
 void AppFrame::onDeviceChange()
 {
