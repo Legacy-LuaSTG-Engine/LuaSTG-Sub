@@ -96,7 +96,7 @@ namespace Core::Graphics
 			if (!m_ignore_size_message)
 			{
 				EventData d = {};
-				d.window_size = Vector2I(LOWORD(arg2), HIWORD(arg2));
+				d.window_size = Vector2U(LOWORD(arg2), HIWORD(arg2));
 				dispatchEvent(EventType::WindowSize, d);
 			}
 			break;

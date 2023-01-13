@@ -522,7 +522,7 @@ namespace Core::Graphics
 		m_window_active_changed.store(0x2);
 		_log("onWindowInactive");
 	}
-	void SwapChain_D3D11::onWindowSize(Core::Vector2I size)
+	void SwapChain_D3D11::onWindowSize(Core::Vector2U size)
 	{
 		assert(size.x >= 0 && size.x <= 0xFFFF);
 		assert(size.y >= 0 && size.y <= 0xFFFF);

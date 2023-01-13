@@ -329,7 +329,7 @@ namespace LuaSTGPlus
 		void onWindowDestroy() override;
 		void onWindowActive() override;
 		void onWindowInactive() override;
-		void onWindowSize(Core::Vector2I size) override;
+		void onWindowSize(Core::Vector2U size) override;
 		void onDeviceChange() override;
 
 		bool onUpdate() override;

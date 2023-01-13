@@ -48,7 +48,7 @@ namespace Core::Graphics
 		void onWindowDestroy();
 		void onWindowActive();
 		void onWindowInactive();
-		void onWindowSize(Core::Vector2I size);
+		void onWindowSize(Core::Vector2U size);
 		void onWindowFullscreenStateChange(bool state);
 
 	private:
