@@ -299,14 +299,6 @@ namespace Core::Graphics
 
 		return true;
 	}
-	inline int encodeFullscreenState(bool state)
-	{
-		return 0x1 | (state ? 0x2 : 0x0);
-	}
-	inline std::pair<bool, bool> decodeFullscreenState(int v)
-	{
-		return std::make_pair<bool, bool>(v & 0x1, v & 0x2);
-	}
 	static bool checkHardwareCompositionSupport(ID3D11Device* device)
 	{
 		assert(device);
