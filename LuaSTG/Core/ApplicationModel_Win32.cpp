@@ -413,16 +413,50 @@ namespace Core
 		}
 	}
 	
-	FrameStatistics ApplicationModel_Win32::getFrameStatistics()
+	bool ApplicationModel_Win32::runSingleThread()
 	{
-		return m_framestate[m_framestate_index];
-	}
+		// 设置线程优先级为高，并尽量让它运行在同一个 CPU 核心上，降低切换开销
+		SetThreadAffinityMask(GetCurrentThread(), 1);
+		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
 
-	void ApplicationModel_Win32::requestExit()
-	{
-		SetEvent(win32_event_exit.Get());
+		// 初次收集诊断信息
+		TracyD3D11Collect(tracy::xTracyD3D11Ctx());
+		FrameMark;
+		{
+			ZoneScopedN("OnInitWait");
+			m_swapchain->waitFrameLatency();
+			m_ratelimit.update();
+		}
+
+		// 游戏循环
+		MSG msg{};
+		while (!m_exit_flag)
+		{
+			// 提取消息
+			while (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
+			{
+				if (msg.message == WM_QUIT)
+				{
+					m_exit_flag = true; // 应该结束循环
+				}
+				else
+				{
+					TranslateMessage(&msg);
+					DispatchMessageW(&msg);
+				}
+			}
+
+			// 更新并渲染
+			if (m_exit_flag)
+			{
+				break;
+			}
+			runFrame();
+		}
+
+		return true;
 	}
-	bool ApplicationModel_Win32::run()
+	bool ApplicationModel_Win32::runDoubleThread()
 	{
 		// 设置线程优先级为稍高，并尽量让它运行在同一个 CPU 核心上，降低切换开销
 		//SetThreadAffinityMask(GetCurrentThread(), 1);
@@ -541,6 +575,72 @@ namespace Core
 		wait_worker();
 		return true;
 	}
+	void ApplicationModel_Win32::runFrame()
+	{
+		size_t const i = (m_framestate_index + 1) % 2;
+		FrameStatistics& d = m_framestate[i];
+		ScopeTimer gt(d.total_time);
+
+		bool update_result = false;
+
+		// 更新
+		{
+			ZoneScopedN("OnUpdate");
+			ScopeTimer t(d.update_time);
+			m_swapchain->syncWindowSize();
+			update_result = m_listener->onUpdate();
+			m_swapchain->syncWindowActive();
+		}
+
+		bool render_result = false;
+
+		// 渲染
+		if (update_result)
+		{
+			ZoneScopedN("OnRender");
+			TracyD3D11Zone(tracy::xTracyD3D11Ctx(), "OnRender");
+			ScopeTimer t(d.render_time);
+			m_swapchain->applyRenderAttachment();
+			m_swapchain->clearRenderAttachment();
+			render_result = m_listener->onRender();
+		}
+
+		// 呈现
+		if (render_result)
+		{
+			ZoneScopedN("OnPresent");
+			TracyD3D11Zone(tracy::xTracyD3D11Ctx(), "OnPresent");
+			ScopeTimer t(d.present_time);
+			m_swapchain->present();
+			TracyD3D11Collect(tracy::xTracyD3D11Ctx());
+		}
+
+		// 等待下一帧
+		{
+			ZoneScopedN("OnWait");
+			ScopeTimer t(d.wait_time);
+			m_swapchain->waitFrameLatency();
+			m_ratelimit.update();
+		}
+
+		m_framestate_index = i;
+		FrameMark;
+	}
+
+	FrameStatistics ApplicationModel_Win32::getFrameStatistics()
+	{
+		return m_framestate[m_framestate_index];
+	}
+
+	void ApplicationModel_Win32::requestExit()
+	{
+		SetEvent(win32_event_exit.Get());
+		m_exit_flag = true;
+	}
+	bool ApplicationModel_Win32::run()
+	{
+		return runSingleThread();
+	}
 
 	ApplicationModel_Win32::ApplicationModel_Win32(ApplicationModelCreationParameters param, IApplicationEventListener* p_listener)
 		: m_listener(p_listener)
@@ -552,6 +652,7 @@ namespace Core
 		get_system_memory_status();
 		if (!Graphics::Window_Win32::create(~m_window))
 			throw std::runtime_error("Graphics::Window_Win32::create");
+		m_window->implSetApplicationModel(this);
 		if (!Graphics::Device_D3D11::create(param.gpu, ~m_device))
 			throw std::runtime_error("Graphics::Device_D3D11::create");
 		if (!Graphics::SwapChain_D3D11::create(*m_window, *m_device, ~m_swapchain))
