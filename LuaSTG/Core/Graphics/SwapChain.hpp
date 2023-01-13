@@ -25,22 +25,13 @@ namespace Core::Graphics
 		virtual void addEventListener(ISwapChainEventListener* e) = 0;
 		virtual void removeEventListener(ISwapChainEventListener* e) = 0;
 
-		virtual bool refreshDisplayMode() = 0;
-		virtual uint32_t getDisplayModeCount() = 0;
-		virtual DisplayMode getDisplayMode(uint32_t index) = 0;
-		virtual bool findBestMatchDisplayMode(DisplayMode& mode) = 0; // 匹配最佳刷新率
-
 		virtual bool setWindowMode(Vector2U size) = 0;
 		virtual bool setCompositionWindowMode(Vector2U size) = 0;
-		virtual bool setExclusiveFullscreenMode(DisplayMode const& mode) = 0;
-		virtual bool isWindowMode() = 0;
 		virtual bool setSwapChainSize(Vector2U size) = 0; // 仅限窗口模式下
 		virtual Vector2U getSwapChainSize() = 0;
 
 		virtual bool setCanvasSize(Vector2U size) = 0;
 		virtual Vector2U getCanvasSize() = 0;
-
-		virtual bool setSwapChainAndCanvasSize(Vector2U size) = 0;
 
 		virtual void clearRenderAttachment() = 0;
 		virtual void applyRenderAttachment() = 0;
