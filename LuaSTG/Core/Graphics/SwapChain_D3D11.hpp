@@ -35,11 +35,7 @@ namespace Core::Graphics
 		BOOL m_swapchain_want_present_reset{ FALSE };
 
 		BOOL m_init{ FALSE };
-		std::atomic_int m_window_active_changed{ 0 };
 		bool m_is_composition_mode{ false };
-
-		std::atomic_uint32_t m_next_window_size_data;
-		std::atomic_int m_next_window_fullscreen_state;
 
 	private:
 		void onDeviceCreate();
