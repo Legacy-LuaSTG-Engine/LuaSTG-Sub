@@ -95,7 +95,6 @@ namespace Core::Graphics
 
 			WindowSize,
 			WindowFullscreenStateChange,
-			WindowSizeMovePaint,
 			WindowDpiChanged,
 
 			NativeWindowMessage,

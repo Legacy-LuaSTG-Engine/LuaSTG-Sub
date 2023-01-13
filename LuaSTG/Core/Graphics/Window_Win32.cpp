@@ -117,7 +117,6 @@ namespace Core::Graphics
 		case WM_PAINT:
 			if (win32_window_is_sizemove || win32_window_is_menu_loop)
 			{
-				//dispatchEvent(EventType::WindowSizeMovePaint);
 				APPMODEL->runFrame();
 			}
 			else
@@ -592,12 +591,6 @@ namespace Core::Graphics
 			for (auto& v : m_eventobj)
 			{
 				if (v) v->onWindowFullscreenStateChange(d.window_fullscreen_state);
-			}
-			break;
-		case EventType::WindowSizeMovePaint:
-			for (auto& v : m_eventobj)
-			{
-				if (v) v->onWindowSizeMovePaint();
 			}
 			break;
 		case EventType::WindowDpiChanged:
