@@ -53,9 +53,10 @@ namespace Core::Graphics
 		bool createExclusiveFullscreenSwapChain(DXGI_MODE_DESC1 const& mode, bool no_attachment);
 		bool updateLetterBoxingRendererTransform();
 		void waitFrameLatency(uint32_t timeout, bool reset);
-		bool _setFullscreenState(bool enable);
-		bool _enterExclusiveFullscreen();
-		bool _leaveExclusiveFullscreen();
+		bool enterExclusiveFullscreenTemporarily();
+		bool leaveExclusiveFullscreenTemporarily();
+		bool enterExclusiveFullscreen();
+		bool leaveExclusiveFullscreen();
 
 	private:
 		Platform::RuntimeLoader::DirectComposition dcomp_loader;

@@ -509,18 +509,20 @@ namespace Core::Graphics
 			return;
 		_log("onWindowActive");
 		m_swapchain_want_present_reset = TRUE;
-		_setFullscreenState(true);
+		enterExclusiveFullscreenTemporarily();
 	}
 	void SwapChain_D3D11::onWindowInactive()
 	{
 		if (!dxgi_swapchain)
 			return;
 		_log("onWindowInactive");
-		_setFullscreenState(false);
+		leaveExclusiveFullscreenTemporarily();
 	}
 	void SwapChain_D3D11::onWindowSize(Core::Vector2U size)
 	{
 		if (!dxgi_swapchain)
+			return;
+		if (size.x == 0 || size.y == 0)
 			return;
 		_setSwapChainSize(size);
 		if (m_is_composition_mode)
@@ -537,9 +539,9 @@ namespace Core::Graphics
 		if (!dxgi_swapchain)
 			return;
 		if (state)
-			_enterExclusiveFullscreen();
+			enterExclusiveFullscreen();
 		else
-			_leaveExclusiveFullscreen();
+			leaveExclusiveFullscreen();
 	}
 
 	bool SwapChain_D3D11::createSwapChain(bool windowed, bool flip, bool latency_event, DisplayMode const& mode, bool no_attachment)
@@ -888,17 +890,15 @@ namespace Core::Graphics
 			}
 		}
 	}
-	bool SwapChain_D3D11::_setFullscreenState(bool enable)
+	bool SwapChain_D3D11::enterExclusiveFullscreenTemporarily()
 	{
 		if (m_swapchain_last_windowed)
 		{
 			return true;
 		}
-
-		assert(dxgi_swapchain);
 		if (!dxgi_swapchain)
 		{
-			return false;
+			assert(false); return false;
 		}
 
 		HRNew;
@@ -907,30 +907,50 @@ namespace Core::Graphics
 		HRGet = dxgi_swapchain->GetFullscreenState(&get_state, NULL);
 		HRCheckCallReturnBool("IDXGISwapChain::GetFullscreenState");
 
-		if (enable)
+		if (get_state)
 		{
-			if (get_state) return true;
-
-			_log("IDXGISwapChain::SetFullscreenState -> TRUE\n");
-			i18n_log_info("[core].SwapChain_D3D11.enter_exclusive_fullscreen");
-			HRGet = dxgi_swapchain->SetFullscreenState(TRUE, NULL);
-			HRCheckCallReturnBool("IDXGISwapChain::SetFullscreenState -> TRUE");
+			return true;
 		}
-		else
-		{
-			if (!get_state) return true;
 
-			_log("IDXGISwapChain::SetFullscreenState -> FALSE\n");
-			i18n_log_info("[core].SwapChain_D3D11.leave_exclusive_fullscreen");
-			HRGet = dxgi_swapchain->SetFullscreenState(FALSE, NULL);
-			HRCheckCallReturnBool("IDXGISwapChain::SetFullscreenState -> FALSE");
-
-			m_window->setLayer(WindowLayer::Normal); // 强制取消窗口置顶
-		}
+		_log("IDXGISwapChain::SetFullscreenState -> TRUE\n");
+		i18n_log_info("[core].SwapChain_D3D11.enter_exclusive_fullscreen");
+		HRGet = dxgi_swapchain->SetFullscreenState(TRUE, NULL);
+		HRCheckCallReturnBool("IDXGISwapChain::SetFullscreenState -> TRUE");
 
 		return _setSwapChainSize();
 	}
-	bool SwapChain_D3D11::_enterExclusiveFullscreen()
+	bool SwapChain_D3D11::leaveExclusiveFullscreenTemporarily()
+	{
+		if (m_swapchain_last_windowed)
+		{
+			return true;
+		}
+		if (!dxgi_swapchain)
+		{
+			assert(false); return false;
+		}
+
+		HRNew;
+
+		BOOL get_state = FALSE;
+		HRGet = dxgi_swapchain->GetFullscreenState(&get_state, NULL);
+		HRCheckCallReturnBool("IDXGISwapChain::GetFullscreenState");
+
+		if (!get_state)
+		{
+			return true;
+		}
+
+		_log("IDXGISwapChain::SetFullscreenState -> FALSE\n");
+		i18n_log_info("[core].SwapChain_D3D11.leave_exclusive_fullscreen");
+		HRGet = dxgi_swapchain->SetFullscreenState(FALSE, NULL);
+		HRCheckCallReturnBool("IDXGISwapChain::SetFullscreenState -> FALSE");
+
+		m_window->setLayer(WindowLayer::Normal); // 强制取消窗口置顶
+
+		return _setSwapChainSize();
+	}
+	bool SwapChain_D3D11::enterExclusiveFullscreen()
 	{
 		//return false;
 
@@ -1008,7 +1028,7 @@ namespace Core::Graphics
 		
 		return true;
 	}
-	bool SwapChain_D3D11::_leaveExclusiveFullscreen()
+	bool SwapChain_D3D11::leaveExclusiveFullscreen()
 	{
 		HRNew;
 
