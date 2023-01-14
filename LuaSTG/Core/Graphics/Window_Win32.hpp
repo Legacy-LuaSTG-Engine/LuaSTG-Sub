@@ -135,7 +135,6 @@ namespace Core::Graphics
 
 		float getDPIScaling();
 
-		Vector2I getMonitorSize();
 		void setCentered();
 
 		void setWindowMode(Vector2U size);

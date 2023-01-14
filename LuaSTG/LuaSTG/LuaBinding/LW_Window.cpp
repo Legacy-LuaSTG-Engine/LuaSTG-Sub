@@ -74,9 +74,9 @@ static int lib_getFullScreenSize(lua_State* L)
     }
     else
     {
-        Core::Vector2I const size = window->getMonitorSize();
-        lua_pushinteger(L, size.x);
-        lua_pushinteger(L, size.y);
+        Core::RectI const rc = window->getMonitorRect(0);
+        lua_pushinteger(L, rc.b.x - rc.a.x);
+        lua_pushinteger(L, rc.b.y - rc.a.y);
     }
     return 2;
 }
