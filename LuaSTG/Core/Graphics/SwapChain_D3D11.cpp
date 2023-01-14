@@ -157,16 +157,57 @@ namespace Core::Graphics
 
 		// 公共函数
 
-		auto compareRefreshRate = [](DXGI_MODE_DESC1 const& a, DXGI_MODE_DESC1 const& b) -> bool
+		auto scoreRefreshRate = [](DXGI_MODE_DESC1 const& v) -> int
 		{
-			double const hz_a = (double)a.RefreshRate.Numerator / (double)a.RefreshRate.Denominator;
-			double const hz_b = (double)b.RefreshRate.Numerator / (double)b.RefreshRate.Denominator;
-			return hz_a > hz_b;
+			int final_score = 0;
+
+			double const refresh_rate_f = (double)v.RefreshRate.Numerator / (double)v.RefreshRate.Denominator;
+			assert(refresh_rate_f >= 1.0); // 理论上不存在刷新率等于或者小于 0 的情况
+			double const multiple_f = refresh_rate_f / 60.0; // 相对 60Hz 的倍数
+			assert(multiple_f > 0.0);
+
+			double const multiple = std::ceil(multiple_f);
+			assert(multiple > 0.0);
+			double const range_low = (60.0 * multiple) - multiple;
+			double const range_high = (60.0 * multiple) + multiple;
+			assert(range_low > 0.0);
+			assert(range_high > 0.0);
+
+			if (refresh_rate_f > range_low && refresh_rate_f < range_high)
+			{
+				// 是 60Hz 或者 60Hz 的倍数的刷新率
+				int multiple_i = std::clamp((int)multiple, 1, 100); // 限制范围防止 int 乘上去后溢出
+				final_score = 10000000 * multiple_i;
+			}
+			else if (refresh_rate_f > 118.0)
+			{
+				// 只要是 120Hz 或以上的刷新率，就已经可以满足游戏需求，无论是 144Hz 还是 165Hz 这种奇异刷新率
+				final_score = 5000000;
+			}
+			else if (refresh_rate_f > 59.0)
+			{
+				// 还能接受的刷新率，比如 75Hz 和 90Hz
+				final_score = 1000000;
+			}
+			else
+			{
+				// 以上要求都达不到，我只能说，你这个显示器就是个几把
+				final_score = 0;
+			}
+
+			final_score += (int)(refresh_rate_f * 100.0); // 后面补上刷新率的 100 倍整数方便一次性比较
+
+			return final_score;
+		};
+
+		auto compareRefreshRate = [=](DXGI_MODE_DESC1 const& a, DXGI_MODE_DESC1 const& b) -> bool
+		{
+			return scoreRefreshRate(a) > scoreRefreshRate(b);
 		};
 
 		auto checkRequiredRefreshRate = [](DXGI_MODE_DESC1 const& v) -> bool
 		{
-			return (double)v.RefreshRate.Numerator / (double)v.RefreshRate.Denominator >= 59.5;
+			return (double)v.RefreshRate.Numerator / (double)v.RefreshRate.Denominator >= 59.0;
 		};
 
 		auto checkRequiredCanvasSize = [&](DXGI_MODE_DESC1 const& v) -> bool
