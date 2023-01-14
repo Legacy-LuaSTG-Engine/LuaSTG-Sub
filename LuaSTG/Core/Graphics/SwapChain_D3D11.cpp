@@ -21,6 +21,9 @@ namespace Core::Graphics
 	constexpr DXGI_FORMAT const COLOR_BUFFER_FORMAT = DXGI_FORMAT_B8G8R8A8_UNORM;
 	constexpr DXGI_FORMAT const DEPTH_BUFFER_FORMAT = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
+	constexpr uint32_t const BACKGROUND_W = 512; // 512 * 16 = 8192 一般显示器大概也超不过这个分辨率？
+	constexpr uint32_t const BACKGROUND_H = 512; // 16x 是硬件支持的最大放大级别 0.25x 是最小缩小级别，128 ~ 8192
+
 	inline bool compare_DXGI_MODE_DESC_main(DXGI_MODE_DESC const& a, DXGI_MODE_DESC const& b)
 	{
 		return a.Width == b.Width
@@ -212,6 +215,16 @@ namespace Core::Graphics
 		std::sort(default_mode_list.begin(), default_mode_list.end(), compareRefreshRate);
 		DXGI_MODE_DESC1 default_mode = default_mode_list.at(0);
 		default_mode_list.clear();
+
+		// 剔除隔行扫描（理论情况下不会出现）
+
+		for (auto it = mode_list.begin(); it != mode_list.end();)
+		{
+			if (!(it->ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED || it->ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE))
+				it = mode_list.erase(it);
+			else
+				it++;
+		}
 
 		// 剔除刷新率过低的
 
@@ -1047,9 +1060,6 @@ namespace Core::Graphics
 		return true;
 	}
 
-	constexpr uint32_t const BACKGROUND_W = 512; // 512 * 16 = 8192 一般显示器大概也超不过这个分辨率？
-	constexpr uint32_t const BACKGROUND_H = 512; // 16x 是硬件支持的最大放大级别 0.25x 是最小缩小级别，128 ~ 8192
-
 	bool SwapChain_D3D11::createDirectCompositionResources()
 	{
 		_log("createDirectCompositionResources");
@@ -1642,242 +1652,6 @@ namespace Core::Graphics
 		m_swapchain_last_mode.height = size.y;
 
 		if (!updateLetterBoxingRendererTransform()) return false;
-
-		return true;
-	}
-
-	bool SwapChain_D3D11::refreshDisplayMode()
-	{
-		m_displaymode.clear();
-
-		HRESULT hr = S_OK;
-
-		i18n_log_info("[core].SwapChain_D3D11.start_enumerating_DisplayMode");
-
-		// 获取关联的显示输出
-
-		Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output;
-		hr = gHR = dxgi_swapchain->GetContainingOutput(&dxgi_output);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDXGISwapChain::GetContainingOutput");
-			return false;
-		}
-
-		// 获取所有显示模式
-
-		UINT mode_count = 0;
-		hr = gHR = dxgi_output->GetDisplayModeList(COLOR_BUFFER_FORMAT, 0, &mode_count, NULL);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDXGIOutput::GetDisplayModeList -> N");
-			return false;
-		}
-
-		std::vector<DXGI_MODE_DESC> modes(mode_count);
-		hr = gHR = dxgi_output->GetDisplayModeList(COLOR_BUFFER_FORMAT, 0, &mode_count, modes.data());
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDXGIOutput::GetDisplayModeList");
-			return false;
-		}
-
-		// 剔除过低的分辨率
-		bool remove_small_size = false;
-		for (auto& v : modes)
-		{
-			if (v.Width >= 640 && v.Height >= 360)
-			{
-				remove_small_size = true;
-				break;
-			}
-		}
-		if (remove_small_size)
-		{
-			for (auto it = modes.begin(); it != modes.end();)
-			{
-				if (!(it->Width >= 640 && it->Height >= 360))
-					it = modes.erase(it);
-				else
-					it++;
-			}
-		}
-
-		// 剔除过低的刷新率
-		bool remove_low_refresh_rate = false;
-		for (auto& v : modes)
-		{
-			if (((double)v.RefreshRate.Numerator / (double)v.RefreshRate.Denominator) >= 58.5)
-			{
-				remove_low_refresh_rate = true;
-				break;
-			}
-		}
-		if (remove_low_refresh_rate)
-		{
-			for (auto it = modes.begin(); it != modes.end();)
-			{
-				if (((double)it->RefreshRate.Numerator / (double)it->RefreshRate.Denominator) < 58.5)
-					it = modes.erase(it);
-				else
-					it++;
-			}
-		}
-
-		// 剔除隔行扫描
-		bool remove_scanline_x_field = false;
-		for (auto& v : modes)
-		{
-			if (v.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED || v.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE)
-			{
-				remove_scanline_x_field = true;
-				break;
-			}
-		}
-		if (remove_scanline_x_field)
-		{
-			for (auto it = modes.begin(); it != modes.end();)
-			{
-				if (!(it->ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED || it->ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE))
-					it = modes.erase(it);
-				else
-					it++;
-			}
-		}
-
-		// 合并扫描、缩放模式，优先选择逐行扫描和自动缩放模式
-		if constexpr (true)
-		{
-			for (size_t i = 0; i < modes.size(); i += 1)
-			{
-				for (auto it = (modes.begin() + i + 1); it != modes.end();)
-				{
-					if (compare_DXGI_MODE_DESC_main(modes[i], *it))
-					{
-						if (is_DXGI_MODE_better(modes[i], *it))
-							modes[i] = *it;
-						it = modes.erase(it);
-					}
-					else
-					{
-						it++;
-					}
-				}
-			}
-		}
-
-		// 生成结果
-		m_displaymode.reserve(modes.size());
-		for (auto& v : modes)
-		{
-			m_displaymode.emplace_back(DisplayMode{
-				.width = v.Width,
-				.height = v.Height,
-				.refresh_rate = Rational(v.RefreshRate.Numerator, v.RefreshRate.Denominator),
-				.format = convert_DXGI_FORMAT_to_Format(v.Format),
-				});
-		}
-
-		// 打印结果
-		if (!m_displaymode.empty())
-		{
-			i18n_log_info_fmt("[core].SwapChain_D3D11.found_N_DisplayMode_fmt", m_displaymode.size());
-			for (size_t i = 0; i < m_displaymode.size(); i += 1)
-			{
-				spdlog::info("{: >4d}: ({: >5d} x {: >5d}) {:.2f}Hz"
-					, i
-					, m_displaymode[i].width, m_displaymode[i].height
-					, (double)m_displaymode[i].refresh_rate.numerator / (double)m_displaymode[i].refresh_rate.denominator
-				);
-			}
-		}
-		else
-		{
-			i18n_log_error("[core].SwapChain_D3D11.enumerating_DisplayMode_failed");
-			return false;
-		}
-
-		return true;
-	}
-	uint32_t SwapChain_D3D11::getDisplayModeCount()
-	{
-		return (uint32_t)m_displaymode.size();
-	}
-	DisplayMode SwapChain_D3D11::getDisplayMode(uint32_t index)
-	{
-		assert(!m_displaymode.empty() && index < m_displaymode.size());
-		return m_displaymode[index];
-	}
-	bool SwapChain_D3D11::findBestMatchDisplayMode(DisplayMode& mode)
-	{
-		if (mode.width < 1 || mode.height < 1)
-		{
-			i18n_log_error_fmt("[core].SwapChain_D3D11.match_DisplayMode_failed_invalid_size_fmt", mode.width, mode.height);
-			return false;
-		}
-
-		auto* d3d11_device = m_device->GetD3D11Device();
-		if (!d3d11_device)
-		{
-			i18n_log_error("[core].SwapChain_D3D11.match_DisplayMode_failed_null_Device");
-			assert(false); return false;
-		}
-		if (!dxgi_swapchain)
-		{
-			i18n_log_error("[core].SwapChain_D3D11.match_DisplayMode_failed_null_SwapChain");
-			assert(false); return false;
-		}
-
-		HRESULT hr = S_OK;
-
-		Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output;
-		hr = gHR = dxgi_swapchain->GetContainingOutput(&dxgi_output);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDXGISwapChain::GetContainingOutput");
-			i18n_log_error("[core].SwapChain_D3D11.exclusive_fullscreen_unavailable");
-			return false;
-		}
-
-		// 初次匹配
-		DXGI_MODE_DESC target_mode = {
-			.Width = mode.width,
-			.Height = mode.height,
-			.RefreshRate = DXGI_RATIONAL{
-				.Numerator = (mode.refresh_rate.numerator != 0) ? mode.refresh_rate.numerator : 60,
-				.Denominator = (mode.refresh_rate.denominator != 0) ? mode.refresh_rate.denominator : 1,
-			},
-			.Format = COLOR_BUFFER_FORMAT,
-			.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE,
-			.Scaling = DXGI_MODE_SCALING_UNSPECIFIED,
-		};
-		DXGI_MODE_DESC dxgi_mode = {};
-		hr = gHR = dxgi_output->FindClosestMatchingMode(&target_mode, &dxgi_mode, d3d11_device);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDXGIOutput::FindClosestMatchingMode");
-			return false;
-		}
-
-		// 检查刷新率，如果太低的话就继续往上匹配
-		UINT const numerator_candidate[] = { 120, 180, 240, 300, 360, 420, 480 };
-		for (auto const& v : numerator_candidate)
-		{
-			if (((double)dxgi_mode.RefreshRate.Numerator / (double)dxgi_mode.RefreshRate.Denominator) > 59.5f)
-			{
-				break;
-			}
-			target_mode.RefreshRate = DXGI_RATIONAL{ .Numerator = v,.Denominator = 1 };
-			hr = gHR = dxgi_output->FindClosestMatchingMode(&target_mode, &dxgi_mode, d3d11_device);
-			if (FAILED(hr))
-			{
-				i18n_core_system_call_report_error("IDXGIOutput::FindClosestMatchingMode");
-				return false;
-			}
-		}
-
-		mode.refresh_rate.numerator = dxgi_mode.RefreshRate.Numerator;
-		mode.refresh_rate.denominator = dxgi_mode.RefreshRate.Denominator;
 
 		return true;
 	}
