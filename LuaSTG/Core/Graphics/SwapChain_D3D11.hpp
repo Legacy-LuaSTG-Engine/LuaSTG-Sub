@@ -116,7 +116,6 @@ namespace Core::Graphics
 		bool setWindowMode(Vector2U size);
 		bool setCompositionWindowMode(Vector2U size);
 		bool setSwapChainSize(Vector2U size);
-		Vector2U getSwapChainSize() { return Vector2U(m_swapchain_last_mode.width, m_swapchain_last_mode.height); }
 
 		bool setCanvasSize(Vector2U size);
 		Vector2U getCanvasSize() { return m_canvas_size; }
