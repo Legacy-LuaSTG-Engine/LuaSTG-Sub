@@ -788,14 +788,6 @@ namespace Core::Graphics
 	{
 		platform::MonitorList::MoveWindowToCenter(win32_window);
 	}
-	void Window_Win32::setFullScreen()
-	{
-		platform::MonitorList::ResizeWindowToFullScreen(win32_window);
-		auto const size = getMonitorSize();
-		win32_window_width = size.x;
-		win32_window_height = size.y;
-		//setCursorToRightBottom();
-	}
 
 	void Window_Win32::setWindowMode(Vector2U size)
 	{

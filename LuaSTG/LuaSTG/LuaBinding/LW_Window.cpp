@@ -58,7 +58,7 @@ static int lib_setFullScreen(lua_State* L)
     }
     else
     {
-        window->setFullScreen();
+        window->setMonitorFullScreen(0);
     }
     return 0;
 }
