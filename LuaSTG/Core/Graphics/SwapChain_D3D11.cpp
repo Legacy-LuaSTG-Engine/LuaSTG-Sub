@@ -536,7 +536,7 @@ namespace Core::Graphics
 		m_scaling_renderer.AttachDevice(m_device->GetD3D11Device());
 		if (m_init) // 曾经设置过
 		{
-			setWindowMode({ m_swapchain_last_mode.width, m_swapchain_last_mode.height });
+			setWindowMode(m_canvas_size);
 			if (m_swapchain_last_windowed)
 			{
 				m_swapchain_last_windowed = FALSE;
