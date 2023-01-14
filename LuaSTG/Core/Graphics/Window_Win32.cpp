@@ -378,10 +378,11 @@ namespace Core::Graphics
 		//assert(set_style_ex_result == 0); (void)set_style_ex_result;
 		//m_ignore_size_message = FALSE;
 
+		bool want_restore_placement = false;
+
 		if (m_fullscreen_mode && ignore_size)
 		{
-			BOOL const set_placement_result = SetWindowPlacement(win32_window, &m_last_window_placement);
-			assert(set_placement_result); (void)set_placement_result;
+			want_restore_placement = true;
 		}
 		else
 		{
@@ -410,6 +411,12 @@ namespace Core::Graphics
 		EventData event_data{};
 		event_data.window_fullscreen_state = false;
 		dispatchEvent(EventType::WindowFullscreenStateChange, event_data);
+
+		if (want_restore_placement)
+		{
+			BOOL const set_placement_result = SetWindowPlacement(win32_window, &m_last_window_placement);
+			assert(set_placement_result); (void)set_placement_result;
+		}
 	}
 	void Window_Win32::_setFullScreenMode()
 	{
