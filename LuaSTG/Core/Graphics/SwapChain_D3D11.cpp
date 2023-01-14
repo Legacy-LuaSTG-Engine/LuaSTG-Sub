@@ -520,18 +520,17 @@ namespace Core::Graphics
 	}
 	void SwapChain_D3D11::onWindowSize(Core::Vector2U size)
 	{
-		if (!dxgi_swapchain)
-			return;
 		if (size.x == 0 || size.y == 0)
-			return;
-		_setSwapChainSize(size);
+			return; // 忽略窗口最小化
+		if (!dxgi_swapchain)
+			return; // 此时交换链还未初始化
 		if (m_is_composition_mode)
 		{
-			updateDirectCompositionTransform();
+			handleDirectCompositionWindowSize(size);
 		}
 		else
 		{
-			updateLetterBoxingRendererTransform();
+			handleSwapChainWindowSize(size);
 		}
 	}
 	void SwapChain_D3D11::onWindowFullscreenStateChange(bool state)
@@ -917,7 +916,7 @@ namespace Core::Graphics
 		HRGet = dxgi_swapchain->SetFullscreenState(TRUE, NULL);
 		HRCheckCallReturnBool("IDXGISwapChain::SetFullscreenState -> TRUE");
 
-		return _setSwapChainSize();
+		return true;
 	}
 	bool SwapChain_D3D11::leaveExclusiveFullscreenTemporarily()
 	{
@@ -948,7 +947,7 @@ namespace Core::Graphics
 
 		m_window->setLayer(WindowLayer::Normal); // 强制取消窗口置顶
 
-		return _setSwapChainSize();
+		return true;
 	}
 	bool SwapChain_D3D11::enterExclusiveFullscreen()
 	{
@@ -1595,85 +1594,54 @@ namespace Core::Graphics
 		destroySwapChainRenderTarget();
 	}
 
-	bool SwapChain_D3D11::_setSwapChainSize()
+	bool SwapChain_D3D11::handleDirectCompositionWindowSize(Vector2U size)
 	{
-		// _log("_setSwapChainSize");
-
-		return _setSwapChainSize(Vector2U(
-			m_swapchain_last_mode.width,
-			m_swapchain_last_mode.height
-		));
-	}
-	bool SwapChain_D3D11::_setSwapChainSize(Vector2U size)
-	{
-		_log("_setSwapChainSize");
+		_log("handleDirectCompositionWindowSize");
 
 		if (size.x == 0 || size.y == 0)
 		{
 			assert(false); return false;
 		}
+
+		if (!dxgi_swapchain)
+		{
+			assert(false); return false;
+		}
 		
+		// 此时交换链和画布一致，不应该修改交换链本身，而是修改合成变换
+
+		if (!updateDirectCompositionTransform()) return false;
+
+		return true;
+	}
+	bool SwapChain_D3D11::handleSwapChainWindowSize(Vector2U size)
+	{
+		_log("handleSwapChainWindowSize");
+
+		if (size.x == 0 || size.y == 0)
+		{
+			assert(false); return false;
+		}
+
 		if (!dxgi_swapchain)
 		{
 			assert(false); return false;
 		}
 
+		// 此时交换链和画布分离，应该重新调整交换链尺寸
+
 		HRNew;
 
-		if (m_is_composition_mode)
-		{
-			// 此时交换链和画布一致，不应该修改交换链本身，而是修改合成变换
-			//
-			//m_canvas_d3d11_rtv.Reset();
-			//destroySwapChainRenderTarget();
-			//
-			//HRGet = dxgi_swapchain->ResizeBuffers(0, m_canvas_size.x, m_canvas_size.y, DXGI_FORMAT_UNKNOWN, m_swapchain_flags);
-			//HRCheckCallReturnBool("IDXGISwapChain::ResizeBuffers");
-			//
-			//if (!createSwapChainRenderTarget()) return false;
-			//m_canvas_d3d11_rtv = m_swap_chain_d3d11_rtv;
-		}
-		else
-		{
-			dispatchEvent(EventType::SwapChainDestroy);
-			if (m_is_composition_mode) m_canvas_d3d11_rtv.Reset();
-			destroySwapChainRenderTarget();
+		destroySwapChainRenderTarget();
 
-			HRGet = dxgi_swapchain->ResizeBuffers(0, size.x, size.y, DXGI_FORMAT_UNKNOWN, m_swapchain_flags);
-			HRCheckCallReturnBool("IDXGISwapChain::ResizeBuffers");
+		HRGet = dxgi_swapchain->ResizeBuffers(0, size.x, size.y, DXGI_FORMAT_UNKNOWN, m_swapchain_flags);
+		HRCheckCallReturnBool("IDXGISwapChain::ResizeBuffers");
 
-			if (!createSwapChainRenderTarget()) return false;
-			if (m_is_composition_mode) m_canvas_d3d11_rtv = m_swap_chain_d3d11_rtv;
-			m_swapchain_last_mode.width = size.x;
-			m_swapchain_last_mode.height = size.y;
-			dispatchEvent(EventType::SwapChainCreate);
-		}
-		
-		return true;
-	}
-	bool SwapChain_D3D11::_setCanvasSize(Vector2U size)
-	{
-		_log("_setCanvasSize");
+		if (!createSwapChainRenderTarget()) return false;
+		m_swapchain_last_mode.width = size.x;
+		m_swapchain_last_mode.height = size.y;
 
-		if (size.x == 0 || size.y == 0)
-		{
-			assert(false); return false;
-		}
-
-		m_canvas_size = size;
-
-		if (m_is_composition_mode)
-		{
-			if (!_setSwapChainSize(size)) return false;
-		}
-		else
-		{
-			destroyCanvasColorBuffer();
-			if (!createCanvasColorBuffer()) return false;
-		}
-
-		destroyCanvasDepthStencilBuffer();
-		if (!createCanvasDepthStencilBuffer()) return false;
+		if (!updateLetterBoxingRendererTransform()) return false;
 
 		return true;
 	}
@@ -2049,28 +2017,49 @@ namespace Core::Graphics
 
 		return true;
 	}
-	bool SwapChain_D3D11::setSwapChainSize(Vector2U size)
-	{
-		_log("setSwapChainSize");
-
-		if (!_setSwapChainSize(size)) return false;
-		if (!updateLetterBoxingRendererTransform()) return false;
-		if (!updateDirectCompositionTransform()) return false;
-		return true;
-	}
 
 	bool SwapChain_D3D11::setCanvasSize(Vector2U size)
 	{
 		_log("setCanvasSize");
 
+		m_canvas_size = size;
+
 		if (!dxgi_swapchain)
 		{
-			m_canvas_size = size;
 			return true; // 当交换链还未初始化时，仅保存画布尺寸
 		}
-		if (!_setCanvasSize(size)) return false;
-		if (!updateLetterBoxingRendererTransform()) return false;
-		if (!updateDirectCompositionTransform()) return false;
+
+		dispatchEvent(EventType::SwapChainDestroy);
+
+		if (m_is_composition_mode)
+		{
+			// 对于合成交换链，由于交换链和画布是一致的，所以要调整交换链尺寸
+
+			destroyRenderAttachment();
+
+			HRNew;
+			HRGet = dxgi_swapchain->ResizeBuffers(0, size.x, size.y, DXGI_FORMAT_UNKNOWN, m_swapchain_flags);
+			HRCheckCallReturnBool("IDXGISwapChain::ResizeBuffers");
+
+			if (!createRenderAttachment()) return false;
+
+			if (!updateDirectCompositionTransform()) return false;
+		}
+		else
+		{
+			// 对于普通交换链，由于画布是独立的，只需重新创建画布
+
+			destroyCanvasDepthStencilBuffer();
+			destroyCanvasColorBuffer();
+
+			if (!createCanvasColorBuffer()) return false;
+			if (!createCanvasDepthStencilBuffer()) return false;
+
+			if (!updateLetterBoxingRendererTransform()) return false;
+		}
+
+		dispatchEvent(EventType::SwapChainCreate);
+
 		return true;
 	}
 
