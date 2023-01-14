@@ -537,9 +537,9 @@ namespace Core::Graphics
 		if (m_init) // 曾经设置过
 		{
 			setWindowMode(m_canvas_size);
-			if (m_swapchain_last_windowed)
+			if (m_swap_chain_fullscreen_mode)
 			{
-				m_swapchain_last_windowed = FALSE;
+				// 重新进入独占全屏
 				onWindowFullscreenStateChange(true);
 			}
 		}
@@ -601,8 +601,6 @@ namespace Core::Graphics
 	{
 		_log("createSwapChain");
 
-		HRESULT hr = 0;
-
 		i18n_log_info("[core].SwapChain_D3D11.start_creating_swapchain");
 
 		// 必须成功的操作
@@ -623,13 +621,13 @@ namespace Core::Graphics
 			assert(false); return false;
 		}
 
-		// 创建交换链
+		// 填写交换链描述
 
-		DXGI_SWAP_CHAIN_DESC1 desc = getDefaultSwapChainInfo7();
-		desc.Width = mode.width;
-		desc.Height = mode.height;
+		m_swap_chain_info = getDefaultSwapChainInfo7();
+		m_swap_chain_info.Width = mode.width;
+		m_swap_chain_info.Height = mode.height;
 
-		DXGI_SWAP_CHAIN_FULLSCREEN_DESC descf = {};
+		m_swap_chain_fullscreen_info = {};
 		
 		if (windowed)
 		{
@@ -639,30 +637,30 @@ namespace Core::Graphics
 				// 配置 FLIP 交换链模型
 				if (m_device->IsTearingSupport()) // Windows 10 且要求系统支持
 				{
-					desc.BufferCount = 2;
-					desc.Scaling = DXGI_SCALING_NONE;
-					desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-					desc.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+					m_swap_chain_info.BufferCount = 2;
+					m_swap_chain_info.Scaling = DXGI_SCALING_NONE;
+					m_swap_chain_info.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+					m_swap_chain_info.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
 				}
 				else if (m_device->IsFlipDiscardSupport()) // Windows 10
 				{
-					desc.BufferCount = 2;
-					desc.Scaling = DXGI_SCALING_NONE;
-					desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+					m_swap_chain_info.BufferCount = 2;
+					m_swap_chain_info.Scaling = DXGI_SCALING_NONE;
+					m_swap_chain_info.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 				}
 				else if (m_device->IsFlipSequentialSupport()) // Windows 8
 				{
-					desc.BufferCount = 2;
-					desc.Scaling = DXGI_SCALING_NONE;
-					desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+					m_swap_chain_info.BufferCount = 2;
+					m_swap_chain_info.Scaling = DXGI_SCALING_NONE;
+					m_swap_chain_info.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 				}
 				// 进一步配置低延迟呈现
 				if (latency_event)
 				{
 					if (m_device->IsFrameLatencySupport()) // Windows 8.1
 					{
-						desc.BufferCount = 3; // 这时候需要三重缓冲
-						desc.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+						m_swap_chain_info.BufferCount = 3; // 这时候需要三重缓冲
+						m_swap_chain_info.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 					}
 				}
 			}
@@ -670,66 +668,49 @@ namespace Core::Graphics
 		else
 		{
 			// 允许修改显示器显示模式
-			desc.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+			m_swap_chain_info.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 			// 配置全屏模式
-			descf.RefreshRate.Numerator = mode.refresh_rate.numerator;
-			descf.RefreshRate.Denominator = mode.refresh_rate.denominator;
-			descf.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE;
-			descf.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-			descf.Windowed = TRUE; // 创建交换链后暂时保持在窗口化状态
+			m_swap_chain_fullscreen_info.RefreshRate.Numerator = mode.refresh_rate.numerator;
+			m_swap_chain_fullscreen_info.RefreshRate.Denominator = mode.refresh_rate.denominator;
+			m_swap_chain_fullscreen_info.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE;
+			m_swap_chain_fullscreen_info.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+			m_swap_chain_fullscreen_info.Windowed = TRUE; // 创建交换链后暂时保持在窗口化状态
 		}
 
-		m_swapchain_flags = desc.Flags;
+		// 创建交换链
 
-		hr = gHR = m_device->GetDXGIFactory2()->CreateSwapChainForHwnd(
+		HRNew;
+
+		HRGet = m_device->GetDXGIFactory2()->CreateSwapChainForHwnd(
 			m_device->GetD3D11Device(),
 			m_window->GetWindow(),
-			&desc,
-			windowed ? NULL : &descf,
+			&m_swap_chain_info,
+			windowed ? NULL : &m_swap_chain_fullscreen_info,
 			NULL,
 			&dxgi_swapchain);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDXGIFactory2::CreateSwapChainForHwnd");
-			assert(false); return false;
-		}
+		HRCheckCallReturnBool("IDXGIFactory2::CreateSwapChainForHwnd");
+		
+		m_swap_chain_fullscreen_mode = windowed ? FALSE : TRUE;
 
 		// 关闭傻逼快捷键，别他妈乱切换了
 
 		// 注意这里他妈的有坑，新创建的 DXGI 工厂和交换链内部的的不是同一个
-		hr = gHR = Platform::RuntimeLoader::DXGI::MakeSwapChainWindowAssociation(
+		HRGet = Platform::RuntimeLoader::DXGI::MakeSwapChainWindowAssociation(
 			dxgi_swapchain.Get(), DXGI_MWA_NO_ALT_ENTER);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDXGIFactory1::MakeWindowAssociation -> DXGI_MWA_NO_ALT_ENTER");
-			assert(false); return false;
-		}
-
+		HRCheckCallReturnBool("IDXGIFactory1::MakeWindowAssociation -> DXGI_MWA_NO_ALT_ENTER");
+		
 		// 设置最大帧延迟为 1
 
-		hr = gHR = Platform::RuntimeLoader::DXGI::SetDeviceMaximumFrameLatency(
+		HRGet = Platform::RuntimeLoader::DXGI::SetDeviceMaximumFrameLatency(
 			dxgi_swapchain.Get(), 1);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDXGIDevice1::SetMaximumFrameLatency -> 1");
-			assert(false); return false;
-		}
-
-		if (m_swapchain_flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
+		HRCheckCallReturnBool("IDXGIDevice1::SetMaximumFrameLatency -> 1");
+		
+		if (m_swap_chain_info.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
 		{
 			HANDLE event_handle{};
-			hr = gHR = Platform::RuntimeLoader::DXGI::SetSwapChainMaximumFrameLatency(
+			HRGet = Platform::RuntimeLoader::DXGI::SetSwapChainMaximumFrameLatency(
 				dxgi_swapchain.Get(), 1, &event_handle);
-			if (FAILED(hr))
-			{
-				i18n_core_system_call_report_error("IDXGISwapChain2::SetMaximumFrameLatency -> 1");
-				assert(false); return false;
-			}
-			if (!event_handle)
-			{
-				i18n_core_system_call_report_error("IDXGISwapChain2::GetFrameLatencyWaitableObject");
-				assert(false); return false;
-			}
+			HRCheckCallReturnBool("IDXGISwapChain2::SetMaximumFrameLatency -> 1");
 			dxgi_swapchain_event.Attach(event_handle);
 		}
 
@@ -738,15 +719,15 @@ namespace Core::Graphics
 		auto refresh_rate_string = fmt::format("{:.2f}Hz", (double)mode.refresh_rate.numerator / (double)mode.refresh_rate.denominator);
 		if (windowed) refresh_rate_string = i18n("DXGI.DisplayMode.RefreshRate.Desktop");
 		std::string_view swapchain_model = i18n("DXGI.SwapChain.SwapEffect.Discard");
-		if (desc.SwapEffect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL) swapchain_model = i18n("DXGI.SwapChain.SwapEffect.FlipSequential");
-		if (desc.SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD) swapchain_model = i18n("DXGI.SwapChain.SwapEffect.FlipDiscard");
+		if (m_swap_chain_info.SwapEffect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL) swapchain_model = i18n("DXGI.SwapChain.SwapEffect.FlipSequential");
+		if (m_swap_chain_info.SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD) swapchain_model = i18n("DXGI.SwapChain.SwapEffect.FlipDiscard");
 		auto enable_or_disable = [](bool v) -> std::string_view { return v ? i18n("Enable") : i18n("Disable"); };
 		i18n_log_info_fmt("[core].SwapChain_D3D11.created_swapchain_info_fmt"
 			, mode.width, mode.height, refresh_rate_string
 			, enable_or_disable(!windowed)
 			, swapchain_model
-			, enable_or_disable(m_swapchain_flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING)
-			, enable_or_disable(m_swapchain_flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
+			, enable_or_disable(m_swap_chain_info.Flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING)
+			, enable_or_disable(m_swap_chain_info.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
 		);
 
 		// 渲染附件
@@ -786,37 +767,39 @@ namespace Core::Graphics
 			assert(false); return false;
 		}
 
-		HRNew;
+		// 填写交换链描述
 
-		// 创建交换链
-
-		DXGI_SWAP_CHAIN_DESC1 info = getDefaultSwapChainInfo7();
-		info.Width = mode.Width;
-		info.Height = mode.Height;
-		info.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+		m_swap_chain_info = getDefaultSwapChainInfo7();
+		m_swap_chain_info.Width = mode.Width;
+		m_swap_chain_info.Height = mode.Height;
+		m_swap_chain_info.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 		if (m_device->IsTearingSupport() && platform::WindowsVersion::Is10Build17763())
 		{
-			info.BufferCount = 2;
-			info.Scaling = DXGI_SCALING_NONE;
-			info.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+			// 对 Windows 10+ 系统的独占全屏使用 FLIP 交换链模型
+			m_swap_chain_info.BufferCount = 2;
+			m_swap_chain_info.Scaling = DXGI_SCALING_NONE;
+			m_swap_chain_info.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 		}
 
-		DXGI_SWAP_CHAIN_FULLSCREEN_DESC fullscreen_info = {};
-		fullscreen_info.RefreshRate = mode.RefreshRate;
-		fullscreen_info.ScanlineOrdering = mode.ScanlineOrdering;
-		fullscreen_info.Scaling = mode.Scaling;
-		fullscreen_info.Windowed = TRUE; // 初始化为窗口模式，后续再进入全屏
+		m_swap_chain_fullscreen_info.RefreshRate = mode.RefreshRate;
+		m_swap_chain_fullscreen_info.ScanlineOrdering = mode.ScanlineOrdering;
+		m_swap_chain_fullscreen_info.Scaling = mode.Scaling;
+		m_swap_chain_fullscreen_info.Windowed = TRUE; // 初始化为窗口模式，后续再进入全屏
 
-		m_swapchain_flags = info.Flags;
+		// 创建交换链
+
+		HRNew;
 
 		HRGet = m_device->GetDXGIFactory2()->CreateSwapChainForHwnd(
 			m_device->GetD3D11Device(),
 			m_window->GetWindow(),
-			&info, &fullscreen_info, NULL,
+			&m_swap_chain_info, &m_swap_chain_fullscreen_info, NULL,
 			&dxgi_swapchain);
 		HRCheckCallReturnBool("IDXGIFactory2::CreateSwapChainForHwnd");
 		
+		m_swap_chain_fullscreen_mode = TRUE;
+
 		// 关闭傻逼快捷键，别他妈乱切换了
 
 		// 注意这里他妈的有坑，新创建的 DXGI 工厂和交换链内部的的不是同一个
@@ -866,17 +849,16 @@ namespace Core::Graphics
 		if (dxgi_swapchain)
 		{
 			// 退出独占全屏
+			HRNew;
 			BOOL bFullscreen = FALSE;
 			Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output;
-			HRESULT hr = gHR = dxgi_swapchain->GetFullscreenState(&bFullscreen, &dxgi_output);
-			if (bFullscreen)
+			HRGet = dxgi_swapchain->GetFullscreenState(&bFullscreen, &dxgi_output);
+			HRCheckCallReport("IDXGISwapChain::GetFullscreenState");
+			if (SUCCEEDED(hr) && bFullscreen)
 			{
 				i18n_log_info("[core].SwapChain_D3D11.leave_exclusive_fullscreen");
-				hr = gHR = dxgi_swapchain->SetFullscreenState(FALSE, NULL);
-				if (FAILED(hr))
-				{
-					i18n_core_system_call_report_error("IDXGISwapChain::SetFullscreenState -> FALSE");
-				}
+				HRGet = dxgi_swapchain->SetFullscreenState(FALSE, NULL);
+				HRCheckCallReport("IDXGISwapChain::SetFullscreenState -> FALSE");
 			}
 		}
 		dxgi_swapchain_event.Close();
@@ -922,7 +904,7 @@ namespace Core::Graphics
 	{
 		//_log("waitFrameLatency");
 
-		if (m_swapchain_flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
+		if (m_swap_chain_info.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
 		{
 			if (reset && dxgi_swapchain)
 			{
@@ -945,7 +927,7 @@ namespace Core::Graphics
 	}
 	bool SwapChain_D3D11::enterExclusiveFullscreenTemporarily()
 	{
-		if (m_swapchain_last_windowed)
+		if (!m_swap_chain_fullscreen_mode)
 		{
 			return true;
 		}
@@ -974,7 +956,7 @@ namespace Core::Graphics
 	}
 	bool SwapChain_D3D11::leaveExclusiveFullscreenTemporarily()
 	{
-		if (m_swapchain_last_windowed)
+		if (!m_swap_chain_fullscreen_mode)
 		{
 			return true;
 		}
@@ -1055,7 +1037,7 @@ namespace Core::Graphics
 		HRCheckCallReturnBool("IDXGISwapChain::SetFullscreenState -> TRUE");
 
 		// 需要重设交换链大小（特别是 Flip 交换链模型）
-		HRGet = dxgi_swapchain->ResizeBuffers(0, mode.width, mode.height, DXGI_FORMAT_UNKNOWN, m_swapchain_flags);
+		HRGet = dxgi_swapchain->ResizeBuffers(0, mode.width, mode.height, DXGI_FORMAT_UNKNOWN, m_swap_chain_info.Flags);
 		HRCheckCallReturnBool("IDXGISwapChain::ResizeBuffers");
 		
 		// 创建渲染附件
@@ -1066,15 +1048,7 @@ namespace Core::Graphics
 		if (!updateLetterBoxingRendererTransform()) return false;
 
 		// 记录状态
-		m_swapchain_last_mode = mode;
-		m_swapchain_last_windowed = FALSE;
-		m_swapchain_last_flip = FALSE;
-		m_swapchain_last_latency_event = FALSE;
 		m_init = TRUE;
-		if (m_device->IsTearingSupport() && platform::WindowsVersion::Is10Build17763())
-		{
-			m_swapchain_last_flip = TRUE;
-		}
 
 		// 广播
 		dispatchEvent(EventType::SwapChainCreate);
@@ -1096,7 +1070,7 @@ namespace Core::Graphics
 			HRCheckCallReturnBool("IDXGISwapChain::SetFullscreenState -> FALSE");
 		}
 		
-		m_swapchain_last_windowed = TRUE;
+		m_swap_chain_fullscreen_mode = FALSE; // 手动离开全屏模式
 
 		return true;
 	}
@@ -1107,157 +1081,96 @@ namespace Core::Graphics
 
 		// 我们限制 DirectComposition 仅在 Windows 10+ 使用
 
-		HRESULT hr = S_OK;
+		HRNew;
 
 		// 必须成功的操作
 
 		Microsoft::WRL::ComPtr<IDXGIDevice> dxgi_device;
-		hr = gHR = m_device->GetD3D11Device()->QueryInterface(IID_PPV_ARGS(&dxgi_device));
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("ID3D11Device::QueryInterface -> IDXGIDevice");
-			assert(false); return false;
-		}
-
+		HRGet = m_device->GetD3D11Device()->QueryInterface(IID_PPV_ARGS(&dxgi_device));
+		HRCheckCallReturnBool("ID3D11Device::QueryInterface -> IDXGIDevice");
+		
 		// 创建基本组件
 
-		hr = gHR = dcomp_loader.CreateDevice(dxgi_device.Get(), IID_PPV_ARGS(&dcomp_desktop_device));
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("DCompositionCreateDevice");
-			assert(false); return false;
-		}
-
+		HRGet = dcomp_loader.CreateDevice(dxgi_device.Get(), IID_PPV_ARGS(&dcomp_desktop_device));
+		HRCheckCallReturnBool("DCompositionCreateDevice");
+		
 	#ifdef _DEBUG
 		Microsoft::WRL::ComPtr<IDCompositionDeviceDebug> dcomp_device_debug;
 		HRGet = dcomp_desktop_device.As(&dcomp_device_debug);
+		HRCheckCallReport("IDCompositionDesktopDevice::QueryInterface -> IDCompositionDeviceDebug");
 		if (SUCCEEDED(hr))
 		{
 			HRGet = dcomp_device_debug->EnableDebugCounters();
+			HRCheckCallReport("IDCompositionDeviceDebug::EnableDebugCounters");
 		}
 	#endif
 
-		hr = gHR = dcomp_desktop_device->CreateTargetForHwnd(m_window->GetWindow(), TRUE, &dcomp_target);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDCompositionDesktopDevice::CreateTargetForHwnd");
-			assert(false); return false;
-		}
+		HRGet = dcomp_desktop_device->CreateTargetForHwnd(m_window->GetWindow(), TRUE, &dcomp_target);
+		HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateTargetForHwnd");
+		
+		HRGet = dcomp_desktop_device->CreateVisual(&dcomp_visual_root);
+		HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateVisual");
+		
+		HRGet = dcomp_desktop_device->CreateVisual(&dcomp_visual_background);
+		HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateVisual");
 
-		hr = gHR = dcomp_desktop_device->CreateVisual(&dcomp_visual_root);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDCompositionDesktopDevice::CreateVisual");
-			assert(false); return false;
-		}
-
-		hr = gHR = dcomp_desktop_device->CreateVisual(&dcomp_visual_background);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDCompositionDesktopDevice::CreateVisual");
-			assert(false); return false;
-		}
-
-		hr = gHR = dcomp_desktop_device->CreateVisual(&dcomp_visual_swap_chain);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDCompositionDesktopDevice::CreateVisual");
-			assert(false); return false;
-		}
+		HRGet = dcomp_desktop_device->CreateVisual(&dcomp_visual_swap_chain);
+		HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateVisual");
 
 		// 初始化背景
 
-		hr = gHR = dcomp_desktop_device->CreateSurface(
+		HRGet = dcomp_desktop_device->CreateSurface(
 			BACKGROUND_W, BACKGROUND_H,
 			COLOR_BUFFER_FORMAT,
 			DXGI_ALPHA_MODE_IGNORE,
 			&dcomp_surface_background);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDCompositionDesktopDevice::CreateSurface");
-			assert(false); return false;
-		}
-		else
+		HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateSurface");
+
+		if (SUCCEEDED(hr))
 		{
 			Microsoft::WRL::ComPtr<IDXGISurface> dxgi_surface;
 			POINT offset = { 0, 0 };
-			hr = gHR = dcomp_surface_background->BeginDraw(NULL, IID_PPV_ARGS(&dxgi_surface), &offset);
-			if (FAILED(hr))
-			{
-				i18n_core_system_call_report_error("IDCompositionSurface::BeginDraw");
-				assert(false); return false;
-			}
-
+			HRGet = dcomp_surface_background->BeginDraw(NULL, IID_PPV_ARGS(&dxgi_surface), &offset);
+			HRCheckCallReturnBool("IDCompositionSurface::BeginDraw");
+			
 			Microsoft::WRL::ComPtr<ID3D11Resource> d3d11_res;
-			hr = gHR = dxgi_surface.As(&d3d11_res);
-			if (FAILED(hr))
-			{
-				i18n_core_system_call_report_error("IDXGISurface::QueryInterface -> ID3D11Resource");
-				assert(false); return false;
-			}
-
+			HRGet = dxgi_surface.As(&d3d11_res);
+			HRCheckCallReturnBool("IDXGISurface::QueryInterface -> ID3D11Resource");
+			
 			Microsoft::WRL::ComPtr<ID3D11RenderTargetView> d3d11_dcomp_bg_rtv;
-			hr = gHR = m_device->GetD3D11Device()->CreateRenderTargetView(d3d11_res.Get(), NULL, &d3d11_dcomp_bg_rtv);
-			if (FAILED(hr))
-			{
-				i18n_core_system_call_report_error("ID3D11Device::CreateRenderTargetView");
-				assert(false); return false;
-			}
-
+			HRGet = m_device->GetD3D11Device()->CreateRenderTargetView(d3d11_res.Get(), NULL, &d3d11_dcomp_bg_rtv);
+			HRCheckCallReturnBool("ID3D11Device::CreateRenderTargetView");
+			
 			FLOAT const clear_color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 			m_device->GetD3D11DeviceContext()->ClearRenderTargetView(d3d11_dcomp_bg_rtv.Get(), clear_color);
 			m_device->GetD3D11DeviceContext()->Flush();
 
-			hr = gHR = dcomp_surface_background->EndDraw();
-			if (FAILED(hr))
-			{
-				i18n_core_system_call_report_error("IDCompositionSurface::EndDraw");
-				assert(false); return false;
-			}
+			HRGet = dcomp_surface_background->EndDraw();
+			HRCheckCallReturnBool("IDCompositionSurface::EndDraw");
 		}
 
-		hr = gHR = dcomp_visual_background->SetContent(dcomp_surface_background.Get());
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDCompositionVisual2::SetContent");
-			assert(false); return false;
-		}
-
+		HRGet = dcomp_visual_background->SetContent(dcomp_surface_background.Get());
+		HRCheckCallReturnBool("IDCompositionVisual2::SetContent");
+		
 		// 把交换链塞进可视物
 
-		hr = gHR = dcomp_visual_swap_chain->SetContent(dxgi_swapchain.Get());
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDCompositionVisual2::SetContent");
-			assert(false); return false;
-		}
-
+		HRGet = dcomp_visual_swap_chain->SetContent(dxgi_swapchain.Get());
+		HRCheckCallReturnBool("IDCompositionVisual2::SetContent");
+		
 		HRGet = dcomp_visual_swap_chain->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
 		HRCheckCallReturnBool("IDCompositionVisual2::SetBitmapInterpolationMode -> DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR");
 
 		// 构建视觉树
 
-		hr = gHR = dcomp_visual_root->AddVisual(dcomp_visual_background.Get(), TRUE, NULL);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDCompositionVisual2::AddVisual");
-			assert(false); return false;
-		}
+		HRGet = dcomp_visual_root->AddVisual(dcomp_visual_background.Get(), TRUE, NULL);
+		HRCheckCallReturnBool("IDCompositionVisual2::AddVisual");
 
-		hr = gHR = dcomp_visual_root->AddVisual(dcomp_visual_swap_chain.Get(), FALSE, NULL);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDCompositionVisual2::AddVisual");
-			assert(false); return false;
-		}
+		HRGet = dcomp_visual_root->AddVisual(dcomp_visual_swap_chain.Get(), FALSE, NULL);
+		HRCheckCallReturnBool("IDCompositionVisual2::AddVisual");
 
-		hr = gHR = dcomp_target->SetRoot(dcomp_visual_root.Get());
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDCompositionTarget::SetRoot");
-			assert(false); return false;
-		}
-
+		HRGet = dcomp_target->SetRoot(dcomp_visual_root.Get());
+		HRCheckCallReturnBool("IDCompositionTarget::SetRoot");
+		
 		// 设置变换并提交
 
 		if (!updateDirectCompositionTransform()) return false;
@@ -1275,18 +1188,22 @@ namespace Core::Graphics
 		if (dcomp_target)
 		{
 			HRGet = dcomp_target->SetRoot(NULL);
+			HRCheckCallReport("IDCompositionTarget::SetRoot -> NULL");
 		}
 		if (dcomp_visual_root)
 		{
 			HRGet = dcomp_visual_root->RemoveAllVisuals();
+			HRCheckCallReport("IDCompositionVisual2::RemoveAllVisuals");
 		}
 		if (dcomp_visual_background)
 		{
 			HRGet = dcomp_visual_background->SetContent(NULL);
+			HRCheckCallReport("IDCompositionVisual2::SetContent -> NULL");
 		}
 		if (dcomp_visual_swap_chain)
 		{
 			HRGet = dcomp_visual_swap_chain->SetContent(NULL);
+			HRCheckCallReport("IDCompositionVisual2::SetContent -> NULL");
 		}
 
 		dcomp_target.Reset();
@@ -1298,9 +1215,11 @@ namespace Core::Graphics
 		if (dcomp_desktop_device)
 		{
 			HRGet = dcomp_desktop_device->Commit();
+			HRCheckCallReport("IDCompositionDesktopDevice::Commit");
 			HRGet = dcomp_desktop_device->WaitForCommitCompletion();
+			HRCheckCallReport("IDCompositionDesktopDevice::WaitForCommitCompletion");
 		}
-
+		
 		dcomp_desktop_device.Reset();
 	}
 	bool SwapChain_D3D11::updateDirectCompositionTransform()
@@ -1404,37 +1323,37 @@ namespace Core::Graphics
 
 		// 填充交换链描述
 
-		DXGI_SWAP_CHAIN_DESC1 desc = getDefaultSwapChainInfo10();
-		desc.Width = size.x;
-		desc.Height = size.y;
-		desc.Scaling = DXGI_SCALING_STRETCH; // DirectComposition 要求这个缩放模式
+		m_swap_chain_info = getDefaultSwapChainInfo10();
+		m_swap_chain_info.Width = size.x;
+		m_swap_chain_info.Height = size.y;
+		m_swap_chain_info.Scaling = DXGI_SCALING_STRETCH; // DirectComposition 要求这个缩放模式
 
 		if (m_device->IsTearingSupport()) // Windows 10+ 且要求系统支持
 		{
-			desc.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING; // 允许撕裂
+			m_swap_chain_info.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING; // 允许撕裂
 		}
 		if (latency_event)
 		{
-			desc.BufferCount = 3;
-			desc.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT; // 低延迟渲染
+			m_swap_chain_info.BufferCount = 3; // 三重缓冲
+			m_swap_chain_info.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT; // 低延迟渲染
 		}
-
-		m_swapchain_flags = desc.Flags;
 
 		// 创建交换链
 
 		HRGet = m_device->GetDXGIFactory2()->CreateSwapChainForComposition(
 			m_device->GetD3D11Device(),
-			&desc, NULL,
+			&m_swap_chain_info, NULL,
 			&dxgi_swapchain);
 		HRCheckCallReturnBool("IDXGIFactory2::CreateSwapChainForComposition");
 		
+		m_swap_chain_fullscreen_mode = FALSE;
+
 		// 设置最大帧延迟为 1
 
 		HRGet = Platform::RuntimeLoader::DXGI::SetDeviceMaximumFrameLatency(dxgi_swapchain.Get(), 1);
 		HRCheckCallReturnBool("IDXGIDevice1::SetMaximumFrameLatency -> 1");
 		
-		if (m_swapchain_flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
+		if (m_swap_chain_info.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
 		{
 			HANDLE event_handle{};
 			HRGet = Platform::RuntimeLoader::DXGI::SetSwapChainMaximumFrameLatency(
@@ -1447,14 +1366,14 @@ namespace Core::Graphics
 
 		auto refresh_rate_string = i18n("DXGI.DisplayMode.RefreshRate.Desktop");
 		std::string_view swapchain_model = i18n("DXGI.SwapChain.SwapEffect.FlipSequential");
-		if (desc.SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD) swapchain_model = i18n("DXGI.SwapChain.SwapEffect.FlipDiscard");
+		if (m_swap_chain_info.SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD) swapchain_model = i18n("DXGI.SwapChain.SwapEffect.FlipDiscard");
 		auto enable_or_disable = [](bool v) -> std::string_view { return v ? i18n("Enable") : i18n("Disable"); };
 		i18n_log_info_fmt("[core].SwapChain_D3D11.created_swapchain_info_fmt"
 			, size.x, size.y, refresh_rate_string
 			, i18n("Disable") // 没有独占全屏
 			, swapchain_model
-			, enable_or_disable(m_swapchain_flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING)
-			, enable_or_disable(m_swapchain_flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
+			, enable_or_disable(m_swap_chain_info.Flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING)
+			, enable_or_disable(m_swap_chain_info.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
 		);
 
 		// 渲染附件
@@ -1685,12 +1604,10 @@ namespace Core::Graphics
 
 		destroySwapChainRenderTarget();
 
-		HRGet = dxgi_swapchain->ResizeBuffers(0, size.x, size.y, DXGI_FORMAT_UNKNOWN, m_swapchain_flags);
+		HRGet = dxgi_swapchain->ResizeBuffers(0, size.x, size.y, DXGI_FORMAT_UNKNOWN, m_swap_chain_info.Flags);
 		HRCheckCallReturnBool("IDXGISwapChain::ResizeBuffers");
 
 		if (!createSwapChainRenderTarget()) return false;
-		m_swapchain_last_mode.width = size.x;
-		m_swapchain_last_mode.height = size.y;
 
 		if (!updateLetterBoxingRendererTransform()) return false;
 
@@ -1734,7 +1651,7 @@ namespace Core::Graphics
 		if (size.x < 1 || size.y < 1)
 		{
 			i18n_log_error_fmt("[core].SwapChain_D3D11.create_swapchain_failed_invalid_size_fmt", size.x, size.y);
-			return false;
+			assert(false); return false;
 		}
 		dispatchEvent(EventType::SwapChainDestroy);
 		destroySwapChain();
@@ -1765,10 +1682,6 @@ namespace Core::Graphics
 		{
 			return false;
 		}
-		m_swapchain_last_mode = mode;
-		m_swapchain_last_windowed = TRUE;
-		m_swapchain_last_flip = flip_model;
-		m_swapchain_last_latency_event = latency_event;
 		m_init = TRUE;
 		if (flip_model) m_swapchain_flip_enabled = TRUE;
 		dispatchEvent(EventType::SwapChainCreate);
@@ -1814,15 +1727,6 @@ namespace Core::Graphics
 
 		// 更新数据
 
-		m_swapchain_last_mode = DisplayMode{
-			.width = size.x,
-			.height = size.y,
-			.refresh_rate = Rational(),
-			.format = Format::B8G8R8A8_UNORM,
-		};
-		m_swapchain_last_windowed = TRUE;
-		m_swapchain_last_flip = TRUE;
-		m_swapchain_last_latency_event = latency_event;
 		m_init = TRUE;
 		m_swapchain_flip_enabled = TRUE; // 固定是开启过的
 
@@ -1853,7 +1757,7 @@ namespace Core::Graphics
 			destroyRenderAttachment();
 
 			HRNew;
-			HRGet = dxgi_swapchain->ResizeBuffers(0, size.x, size.y, DXGI_FORMAT_UNKNOWN, m_swapchain_flags);
+			HRGet = dxgi_swapchain->ResizeBuffers(0, size.x, size.y, DXGI_FORMAT_UNKNOWN, m_swap_chain_info.Flags);
 			HRCheckCallReturnBool("IDXGISwapChain::ResizeBuffers");
 
 			if (!createRenderAttachment()) return false;
@@ -1892,7 +1796,7 @@ namespace Core::Graphics
 	}
 	void SwapChain_D3D11::setVSync(bool enable)
 	{
-		m_swapchain_vsync = enable;
+		m_swap_chain_vsync = enable;
 	}
 	bool SwapChain_D3D11::present()
 	{
@@ -1914,9 +1818,9 @@ namespace Core::Graphics
 
 		// 呈现
 
-		UINT const interval = m_swapchain_vsync ? 1 : 0;
+		UINT const interval = m_swap_chain_vsync ? 1 : 0;
 		UINT flags = 0;
-		if (!m_swapchain_vsync && (m_swapchain_flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING))
+		if (!m_swap_chain_vsync && (m_swap_chain_info.Flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING))
 		{
 			flags |= DXGI_PRESENT_ALLOW_TEARING;
 		}
