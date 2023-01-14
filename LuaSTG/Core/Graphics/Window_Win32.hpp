@@ -150,7 +150,6 @@ namespace Core::Graphics
 
 		bool setCursor(WindowCursor type);
 		WindowCursor getCursor();
-		void setCursorToRightBottom();
 
 		void setWindowCornerPreference(bool allow);
 

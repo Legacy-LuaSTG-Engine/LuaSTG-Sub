@@ -803,7 +803,6 @@ namespace Core::Graphics
 		win32_window_width = rect.b.x - rect.a.x;
 		win32_window_height = rect.b.y - rect.a.y;
 		m_monitors.ResizeWindowToFullScreen(index, win32_window);
-		//setCursorToRightBottom();
 	}
 
 	void Window_Win32::setCustomSizeMoveEnable(bool v)
@@ -895,16 +894,6 @@ namespace Core::Graphics
 	WindowCursor Window_Win32::getCursor()
 	{
 		return m_cursor;
-	}
-	void Window_Win32::setCursorToRightBottom()
-	{
-		RECT rc = {};
-		if (!GetClientRect(win32_window, &rc))
-			return;
-		POINT pt = { rc.right, rc.bottom };
-		if (!ClientToScreen(win32_window, &pt))
-			return;
-		SetCursorPos(pt.x - 1, pt.y - 1);
 	}
 
 	void Window_Win32::setWindowCornerPreference(bool allow)

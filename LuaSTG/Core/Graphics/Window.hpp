@@ -109,7 +109,6 @@ namespace Core::Graphics
 
 		virtual bool setCursor(WindowCursor type) = 0;
 		virtual WindowCursor getCursor() = 0;
-		virtual void setCursorToRightBottom() = 0;
 
 		// Windows 11
 		virtual void setWindowCornerPreference(bool allow) = 0;
