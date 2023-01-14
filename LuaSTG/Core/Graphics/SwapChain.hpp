@@ -26,9 +26,6 @@ namespace Core::Graphics
 		virtual void removeEventListener(ISwapChainEventListener* e) = 0;
 
 		virtual bool setWindowMode(Vector2U size) = 0;
-		virtual bool setSwapChainSize(Vector2U size) = 0; // 仅限窗口模式下
-		virtual Vector2U getSwapChainSize() = 0;
-
 		virtual bool setCanvasSize(Vector2U size) = 0;
 		virtual Vector2U getCanvasSize() = 0;
 
