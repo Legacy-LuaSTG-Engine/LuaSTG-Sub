@@ -137,7 +137,6 @@ namespace Core::Graphics
 
 		Vector2I getMonitorSize();
 		void setCentered();
-		void setFullScreen();
 
 		void setWindowMode(Vector2U size);
 		void setFullScreenMode();
