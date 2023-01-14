@@ -775,15 +775,6 @@ namespace Core::Graphics
 		return (float)getDPI() / (float)USER_DEFAULT_SCREEN_DPI;
 	}
 
-	Vector2I Window_Win32::getMonitorSize()
-	{
-		RECT area = {};
-		if (platform::MonitorList::GetRectFromWindow(win32_window, &area))
-		{
-			return Vector2I(area.right - area.left, area.bottom - area.top);
-		}
-		return Vector2I();
-	}
 	void Window_Win32::setCentered()
 	{
 		platform::MonitorList::MoveWindowToCenter(win32_window);
