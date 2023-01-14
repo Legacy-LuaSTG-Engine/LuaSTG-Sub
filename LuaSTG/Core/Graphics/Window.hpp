@@ -94,8 +94,6 @@ namespace Core::Graphics
 		virtual uint32_t getDPI() = 0;
 		virtual float getDPIScaling() = 0;
 
-		virtual void setCentered() = 0;
-
 		virtual void setWindowMode(Vector2U size) = 0;
 		virtual void setFullScreenMode() = 0;
 

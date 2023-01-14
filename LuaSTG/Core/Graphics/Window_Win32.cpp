@@ -167,7 +167,6 @@ namespace Core::Graphics
 			if (getFrameStyle() != WindowFrameStyle::None)
 			{
 				setSize(getSize()); // 刷新一次尺寸（因为非客户区可能会变化）
-				setCentered();
 				dispatchEvent(EventType::WindowDpiChanged);
 				return 0;
 			}
@@ -773,11 +772,6 @@ namespace Core::Graphics
 	float Window_Win32::getDPIScaling()
 	{
 		return (float)getDPI() / (float)USER_DEFAULT_SCREEN_DPI;
-	}
-
-	void Window_Win32::setCentered()
-	{
-		platform::MonitorList::MoveWindowToCenter(win32_window);
 	}
 
 	void Window_Win32::setWindowMode(Vector2U size)

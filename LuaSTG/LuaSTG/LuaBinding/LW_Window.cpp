@@ -44,7 +44,7 @@ static int lib_setCentered(lua_State* L)
     }
     else
     {
-        window->setCentered();
+        window->setMonitorCentered(0);
     }
     return 0;
 }
