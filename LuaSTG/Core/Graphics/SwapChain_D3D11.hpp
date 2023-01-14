@@ -75,7 +75,7 @@ namespace Core::Graphics
 
 	private:
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_swap_chain_d3d11_rtv;
-		Vector2U m_canvas_size;
+		Vector2U m_canvas_size{ 640,480 };
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_canvas_d3d11_srv;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_canvas_d3d11_rtv;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_canvas_d3d11_dsv;
@@ -90,9 +90,8 @@ namespace Core::Graphics
 		void destroyRenderAttachment();
 
 	private:
-		bool _setSwapChainSize();
-		bool _setSwapChainSize(Vector2U size);
-		bool _setCanvasSize(Vector2U size);
+		bool handleDirectCompositionWindowSize(Vector2U size);
+		bool handleSwapChainWindowSize(Vector2U size);
 
 	private:
 		enum class EventType
@@ -115,7 +114,6 @@ namespace Core::Graphics
 
 		bool setWindowMode(Vector2U size);
 		bool setCompositionWindowMode(Vector2U size);
-		bool setSwapChainSize(Vector2U size);
 
 		bool setCanvasSize(Vector2U size);
 		Vector2U getCanvasSize() { return m_canvas_size; }

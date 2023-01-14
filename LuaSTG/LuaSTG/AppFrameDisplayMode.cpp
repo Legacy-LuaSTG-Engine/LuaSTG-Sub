@@ -81,7 +81,7 @@ namespace LuaSTGPlus
 		auto* swapchain = GetAppModel()->getSwapChain();
 
 		swapchain->setVSync(vsync);
-		bool const result = swapchain->setWindowMode(window_size);
+		bool const result = swapchain->setCanvasSize(window_size);
 
 		window->setWindowMode(window_size);
 		if (!isRectEmpty(monitor_rect))
@@ -130,7 +130,7 @@ namespace LuaSTGPlus
 		auto const size = Core::Vector2U(uint32_t(window_size.x), uint32_t(window_size.y));
 
 		swapchain->setVSync(vsync);
-		bool const result = swapchain->setWindowMode(size);
+		bool const result = swapchain->setCanvasSize(size);
 
 		window->setFullScreenMode();
 		window->setMonitorFullScreen(index);
@@ -151,7 +151,7 @@ namespace LuaSTGPlus
 		auto* swapchain = GetAppModel()->getSwapChain();
 
 		swapchain->setVSync(vsync);
-		bool const result = swapchain->setWindowMode(window_size);
+		bool const result = swapchain->setCanvasSize(window_size);
 
 		window->setWindowMode(window_size);
 		window->setFullScreenMode();
@@ -204,10 +204,13 @@ namespace LuaSTGPlus
 
 	bool AppFrame::InitializationApplySettingStage2()
 	{
+		auto* p_swapchain = GetAppModel()->getSwapChain();
+		// 先初始化交换链
+		bool const result = p_swapchain->setWindowMode(m_Setting.canvas_size);
+		if (!result) return false;
 		// 正式应用显示模式
 		UpdateDisplayMode();
 		// 先刷新一下画面，避免白屏
-		auto* p_swapchain = m_pAppModel->getSwapChain();
 		p_swapchain->clearRenderAttachment();
 		p_swapchain->present();
 		return true;
@@ -237,7 +240,7 @@ namespace LuaSTGPlus
 		}
 	}
 
-	void AppFrame::SetResolution(uint32_t width, uint32_t height, uint32_t A, uint32_t B)
+	void AppFrame::SetResolution(uint32_t width, uint32_t height)
 	{
 		if (m_iStatus == AppStatus::Initializing)
 		{

@@ -189,7 +189,7 @@ namespace LuaSTGPlus
 
 		void SetVsync(bool v);
 
-		void SetResolution(uint32_t width, uint32_t height, uint32_t A = 0, uint32_t B = 0);
+		void SetResolution(uint32_t width, uint32_t height);
 
 	public: // 其他框架方法
 		
