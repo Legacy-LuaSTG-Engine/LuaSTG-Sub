@@ -106,11 +106,6 @@ namespace Core::Graphics
 	public:
 		void addEventListener(ISwapChainEventListener* e);
 		void removeEventListener(ISwapChainEventListener* e);
-		
-		bool refreshDisplayMode();
-		uint32_t getDisplayModeCount();
-		DisplayMode getDisplayMode(uint32_t index);
-		bool findBestMatchDisplayMode(DisplayMode& mode);
 
 		bool setWindowMode(Vector2U size);
 		bool setCompositionWindowMode(Vector2U size);
