@@ -16,20 +16,14 @@ namespace Core::Graphics
 	private:
 		ScopeObject<Window_Win32> m_window;
 		ScopeObject<Device_D3D11> m_device;
-		
 		Direct3D11::LetterBoxingRenderer m_scaling_renderer;
+
 		Microsoft::WRL::Wrappers::Event dxgi_swapchain_event;
 		Microsoft::WRL::ComPtr<IDXGISwapChain1> dxgi_swapchain;
-		
-		std::vector<DisplayMode> m_displaymode;
-
-		UINT m_swapchain_flags{ 0 };
-		BOOL m_swapchain_vsync{ FALSE };
-
-		DisplayMode m_swapchain_last_mode{ 640, 480 };
-		BOOL m_swapchain_last_windowed{ TRUE };
-		BOOL m_swapchain_last_flip{ FALSE };
-		BOOL m_swapchain_last_latency_event{ FALSE };
+		DXGI_SWAP_CHAIN_DESC1 m_swap_chain_info{};
+		DXGI_SWAP_CHAIN_FULLSCREEN_DESC m_swap_chain_fullscreen_info{};
+		BOOL m_swap_chain_fullscreen_mode{ FALSE };
+		BOOL m_swap_chain_vsync{ FALSE };
 
 		BOOL m_swapchain_flip_enabled{ FALSE };
 		BOOL m_swapchain_want_present_reset{ FALSE };
