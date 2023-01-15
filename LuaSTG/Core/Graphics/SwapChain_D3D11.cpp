@@ -1805,6 +1805,8 @@ namespace Core::Graphics
 
 		m_canvas_size = size;
 
+		// TODO: 如果尺寸没变，是不是可以直接返回？
+
 		if (!dxgi_swapchain)
 		{
 			return true; // 当交换链还未初始化时，仅保存画布尺寸
@@ -1840,6 +1842,14 @@ namespace Core::Graphics
 		}
 
 		dispatchEvent(EventType::SwapChainCreate);
+
+		if (!m_is_composition_mode && m_swap_chain_fullscreen_mode)
+		{
+			// TODO: LuaSTG 那边会先调用 setCanvasSize 再调用 setWindowMode 触发两次交换链创建
+			// 重新选择合适的独占全屏模式
+			leaveExclusiveFullscreen();
+			enterExclusiveFullscreen();
+		}
 
 		return true;
 	}
