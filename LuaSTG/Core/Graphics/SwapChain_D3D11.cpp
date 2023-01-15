@@ -379,6 +379,13 @@ namespace Core::Graphics
 			return false;
 		}
 
+		// 用户禁用了 MPO 则跳过
+
+		if (Platform::DesktopWindowManager::IsOverlayTestModeExists())
+		{
+			return false;
+		}
+
 		// 检查显示输出拓扑
 
 		bool v_primary_support = true;
@@ -465,6 +472,54 @@ namespace Core::Graphics
 		}
 
 		return v_support;
+	}
+	static bool checkModernSwapChainModelAvailable()
+	{
+		// 是否需要统一开启 FLIP 交换链模型
+		// 我们划定一个红线，红线以下永远不开启，红线以上永远开启
+		// 这样可以简化逻辑的处理
+
+		// * DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT 从 Windows 8.1 开始支持，我们跳过它
+
+		if (!platform::WindowsVersion::Is10Build17763())
+		{
+			// * DXGI_SWAP_EFFECT_FLIP_DISCARD 从 Windows 10 开始支持
+			// * 在 Windows 10 1709 (16299) Fall Creators Update 中
+			//   修复了 Frame Latency Waitable Object 和 SetMaximumFrameLatency 实际上至少有 2 帧的问题
+			// * Windows 10 1809 (17763) 是目前微软还在主流支持的最早版本
+			return false;
+		}
+
+		HRESULT hr = S_OK;
+
+		Platform::RuntimeLoader::DXGI dxgi_loader;
+		Microsoft::WRL::ComPtr<IDXGIFactory5> dxgi_factory; // 一步到位
+		hr = dxgi_loader.CreateFactory(IID_PPV_ARGS(&dxgi_factory));
+		if (FAILED(hr))
+		{
+			// https://zhuanlan.zhihu.com/p/20892856?refer=highwaytographics
+			// * 系统安装了 KB3156421 更新，也就是 Windows 10 在 2016 年 5 月 10 日的更新
+			return false;
+		}
+
+		BOOL support = FALSE;
+		constexpr UINT const data_size = static_cast<UINT>(sizeof(support));
+		hr = dxgi_factory->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &support, data_size);
+		if (FAILED(hr))
+		{
+			// 理论上不应该发生
+			assert(false); return false;
+		}
+		if (!support)
+		{
+			// * DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING 从 Windows 10 开始支持
+			// * DXGI_PRESENT_ALLOW_TEARING 从 Windows 10 开始支持
+			// * 此外还有别的要求，比如WDDM支持、MPO支持、显卡驱动支持等
+			// * 注意，就算报告支持，实际运行的时候可能仍然不允许撕裂
+			return false;
+		}
+
+		return true;
 	}
 
 	void SwapChain_D3D11::dispatchEvent(EventType t)
@@ -864,42 +919,6 @@ namespace Core::Graphics
 		dxgi_swapchain_event.Close();
 		dxgi_swapchain.Reset();
 	}
-	bool SwapChain_D3D11::updateLetterBoxingRendererTransform()
-	{
-		_log("updateLetterBoxingRendererTransform");
-
-		return m_scaling_renderer.UpdateTransform(
-			m_canvas_d3d11_srv.Get(),
-			m_swap_chain_d3d11_rtv.Get()
-		);
-	}
-	void SwapChain_D3D11::applyRenderAttachment()
-	{
-		//_log("applyRenderAttachment");
-
-		if (auto* ctx = m_device->GetD3D11DeviceContext())
-		{
-			ID3D11RenderTargetView* rtvs[1] = { m_canvas_d3d11_rtv.Get() };
-			ctx->OMSetRenderTargets(1, rtvs, m_canvas_d3d11_dsv.Get());
-		}
-	}
-	void SwapChain_D3D11::clearRenderAttachment()
-	{
-		//_log("clearRenderAttachment");
-
-		if (auto* ctx = m_device->GetD3D11DeviceContext())
-		{
-			if (m_canvas_d3d11_rtv)
-			{
-				FLOAT const clear_color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-				ctx->ClearRenderTargetView(m_canvas_d3d11_rtv.Get(), clear_color);
-			}
-			if (m_canvas_d3d11_dsv)
-			{
-				ctx->ClearDepthStencilView(m_canvas_d3d11_dsv.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0u);
-			}
-		}
-	}
 	void SwapChain_D3D11::waitFrameLatency(uint32_t timeout, bool reset)
 	{
 		//_log("waitFrameLatency");
@@ -1049,6 +1068,7 @@ namespace Core::Graphics
 
 		// 记录状态
 		m_init = TRUE;
+		// m_swapchain_flip_enabled 由 setWindowMode 配置
 
 		// 广播
 		dispatchEvent(EventType::SwapChainCreate);
@@ -1563,6 +1583,57 @@ namespace Core::Graphics
 		destroyCanvasColorBuffer();
 		destroySwapChainRenderTarget();
 	}
+	void SwapChain_D3D11::applyRenderAttachment()
+	{
+		//_log("applyRenderAttachment");
+
+		if (auto* ctx = m_device->GetD3D11DeviceContext())
+		{
+			ID3D11RenderTargetView* rtvs[1] = { m_canvas_d3d11_rtv.Get() };
+			ctx->OMSetRenderTargets(1, rtvs, m_canvas_d3d11_dsv.Get());
+		}
+	}
+	void SwapChain_D3D11::clearRenderAttachment()
+	{
+		//_log("clearRenderAttachment");
+
+		if (auto* ctx = m_device->GetD3D11DeviceContext())
+		{
+			if (m_canvas_d3d11_rtv)
+			{
+				FLOAT const clear_color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+				ctx->ClearRenderTargetView(m_canvas_d3d11_rtv.Get(), clear_color);
+			}
+			if (m_canvas_d3d11_dsv)
+			{
+				ctx->ClearDepthStencilView(m_canvas_d3d11_dsv.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0u);
+			}
+		}
+	}
+
+	bool SwapChain_D3D11::updateLetterBoxingRendererTransform()
+	{
+		_log("updateLetterBoxingRendererTransform");
+		assert(m_canvas_d3d11_srv);
+		assert(m_swap_chain_d3d11_rtv);
+
+		return m_scaling_renderer.UpdateTransform(
+			m_canvas_d3d11_srv.Get(),
+			m_swap_chain_d3d11_rtv.Get()
+		);
+	}
+	bool SwapChain_D3D11::presentLetterBoxingRenderer()
+	{
+		_log("presentLetterBoxingRenderer");
+		assert(m_canvas_d3d11_srv);
+		assert(m_swap_chain_d3d11_rtv);
+
+		return m_scaling_renderer.Draw(
+			m_canvas_d3d11_srv.Get(),
+			m_swap_chain_d3d11_rtv.Get(),
+			true
+		);
+	}
 
 	bool SwapChain_D3D11::handleDirectCompositionWindowSize(Vector2U size)
 	{
@@ -1618,10 +1689,9 @@ namespace Core::Graphics
 	{
 		_log("setWindowMode");
 
-		if (platform::WindowsVersion::Is10Build17763()
-			&& !Platform::DesktopWindowManager::IsOverlayTestModeExists()
-			&& m_device->IsTearingSupport()
-			&& checkHardwareCompositionSupport(m_device->GetD3D11Device()))
+		bool const flip_available = checkModernSwapChainModelAvailable();
+
+		if (flip_available && checkHardwareCompositionSupport(m_device->GetD3D11Device()))
 		{
 			// 开启条件：
 			// 1. 交换链快速交换模式（DXGI_SWAP_EFFECT_FLIP_DISCARD）从 Windows 10 开始支持
@@ -1640,14 +1710,6 @@ namespace Core::Graphics
 			m_is_composition_mode = false;
 		}
 
-		bool flip_model = false;
-		bool latency_event = false;
-		if (m_device->IsTearingSupport() && platform::WindowsVersion::Is10Build17763())
-		{
-			flip_model = true;
-			latency_event = true;
-		}
-
 		if (size.x < 1 || size.y < 1)
 		{
 			i18n_log_error_fmt("[core].SwapChain_D3D11.create_swapchain_failed_invalid_size_fmt", size.x, size.y);
@@ -1660,12 +1722,12 @@ namespace Core::Graphics
 		{
 			m_window->setRedirectBitmapEnable(true);
 			if (!m_window->recreateWindow()) return false;
-			if (!flip_model && m_swapchain_flip_enabled)
+			if (!flip_available && m_swapchain_flip_enabled)
 			{
 				m_swapchain_flip_enabled = FALSE;
 			}
 		}
-		else if (!flip_model && m_swapchain_flip_enabled)
+		else if (!flip_available && m_swapchain_flip_enabled)
 		{
 			if (!m_window->recreateWindow()) return false;
 			m_swapchain_flip_enabled = FALSE;
@@ -1678,12 +1740,12 @@ namespace Core::Graphics
 			.format = Format::B8G8R8A8_UNORM,
 		};
 		m_canvas_size = Vector2U(mode.width, mode.height);
-		if (!createSwapChain(true, flip_model, latency_event, mode, false)) // 让它创建渲染附件
+		if (!createSwapChain(true, flip_available, flip_available, mode, false)) // 让它创建渲染附件
 		{
 			return false;
 		}
 		m_init = TRUE;
-		if (flip_model) m_swapchain_flip_enabled = TRUE;
+		if (flip_available) m_swapchain_flip_enabled = TRUE;
 		dispatchEvent(EventType::SwapChainCreate);
 
 		if (!updateLetterBoxingRendererTransform()) return false;
@@ -1802,20 +1864,13 @@ namespace Core::Graphics
 	{
 		HRESULT hr = S_OK;
 
-		// 缩放显示
+		// 手动合成画面的情况下，通过内接缩放渲染器来缩放显示
 
-		if (m_is_composition_mode)
+		if (!m_is_composition_mode)
 		{
+			if (!presentLetterBoxingRenderer()) return false;
 		}
-		else
-		{
-			if (!m_scaling_renderer.Draw(
-				m_canvas_d3d11_srv.Get(),
-				m_swap_chain_d3d11_rtv.Get(),
-				true
-			)) return false;
-		}
-
+		
 		// 呈现
 
 		UINT const interval = m_swap_chain_vsync ? 1 : 0;

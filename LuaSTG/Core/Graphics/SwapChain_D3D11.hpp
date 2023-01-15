@@ -45,7 +45,6 @@ namespace Core::Graphics
 		void destroySwapChain();
 		bool createSwapChain(bool windowed, bool flip, bool latency_event, DisplayMode const& mode, bool no_attachment);
 		bool createExclusiveFullscreenSwapChain(DXGI_MODE_DESC1 const& mode, bool no_attachment);
-		bool updateLetterBoxingRendererTransform();
 		void waitFrameLatency(uint32_t timeout, bool reset);
 		bool enterExclusiveFullscreenTemporarily();
 		bool leaveExclusiveFullscreenTemporarily();
@@ -82,6 +81,10 @@ namespace Core::Graphics
 		void destroyCanvasDepthStencilBuffer();
 		bool createRenderAttachment();
 		void destroyRenderAttachment();
+
+	private:
+		bool updateLetterBoxingRendererTransform();
+		bool presentLetterBoxingRenderer();
 
 	private:
 		bool handleDirectCompositionWindowSize(Vector2U size);
