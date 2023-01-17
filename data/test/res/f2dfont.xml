@@ -1,0 +1,19 @@
+﻿<f2dTexturedFont>
+  <Measure LineHeight="128" Ascender="128" Descender="0" />
+  <CharList>
+    <Item Char="0" Pos="0,0" Size="67,128" BrushPos="8,120" Advance="52,0" />
+    <Item Char="1" Pos="67,0" Size="67,128" BrushPos="8,120" Advance="52,0" />
+    <Item Char="2" Pos="134,0" Size="67,128" BrushPos="8,120" Advance="52,0" />
+    <Item Char="3" Pos="201,0" Size="67,128" BrushPos="8,120" Advance="52,0" />
+    <Item Char="4" Pos="268,0" Size="67,128" BrushPos="8,120" Advance="52,0" />
+    <Item Char="5" Pos="335,0" Size="67,128" BrushPos="8,120" Advance="52,0" />
+    <Item Char="6" Pos="402,0" Size="67,128" BrushPos="8,120" Advance="52,0" />
+    <Item Char="7" Pos="0,128" Size="67,128" BrushPos="8,120" Advance="52,0" />
+    <Item Char="8" Pos="67,128" Size="67,128" BrushPos="8,120" Advance="52,0" />
+    <Item Char="9" Pos="134,128" Size="67,128" BrushPos="8,120" Advance="52,0" />
+    <Item Char="A" Pos="201,128" Size="75,128" BrushPos="8,120" Advance="60,0" />
+    <Item Char="B" Pos="276,128" Size="71,128" BrushPos="8,120" Advance="56,0" />
+    <Item Char="C" Pos="347,128" Size="76,128" BrushPos="8,120" Advance="61,0" />
+    <Item Char="E" Pos="423,128" Size="70,128" BrushPos="8,120" Advance="55,0" />
+  </CharList>
+</f2dTexturedFont>

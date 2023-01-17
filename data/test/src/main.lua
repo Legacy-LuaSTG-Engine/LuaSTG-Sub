@@ -78,6 +78,7 @@ require("test_posteffect")
 require("test_monitor")
 require("test_utf8api")
 require("test_lfs")
+require("test_f2dfont")
 
 function GameInit()
     window:init()
