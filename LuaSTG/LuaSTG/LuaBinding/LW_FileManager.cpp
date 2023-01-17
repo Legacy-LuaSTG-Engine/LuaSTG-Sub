@@ -8,32 +8,16 @@
 
 static bool extractRes(const char* path, const char* target) noexcept
 {
-	// 读取文件
 	std::vector<uint8_t> src;
-	if (GFileManager().loadEx(path, src)) {
-		// 打开本地文件
-		fcyRefPointer<fcyFileStream> pFile;
-		try {
-			pFile.DirectSet(new fcyFileStream(utility::encoding::to_wide(target).c_str(), true));
-			if (FCYFAILED(pFile->SetLength(0))) {
-				spdlog::error("[luastg] ExtractRes: 无法清空文件'{}' (fcyFileStream::SetLength 失败)", target);
-				return false;
-			}
-			if (src.size() > 0) {
-				if (FCYFAILED(pFile->WriteBytes((uint8_t*)src.data(), src.size(), nullptr))) {
-					spdlog::error("[luastg] ExtractRes: 无法向文件'{}'写出数据", target);
-					return false;
-				}
-			}
-		}
-		catch (const fcyException& e) {
-			spdlog::error("[luastg] ExtractRes: 打开本地文件'{}'失败 (异常信息'{}' 源'{}')", target, e.GetDesc(), e.GetSrc());
-			return false;
-		}
-		catch (const std::bad_alloc&) {
-			spdlog::error("[luastg] ExtractRes: 内存不足");
-			return false;
-		}
+	if (!GFileManager().loadEx(path, src))
+	{
+		spdlog::error("[luastg] ExtractRes: 无法读取文件'{}'", path);
+		return false;
+	}
+	if (!GFileManager().write(target, src))
+	{
+		spdlog::error("[luastg] ExtractRes: 无法写入文件'{}'", target);
+		return false;
 	}
 	return true;
 }
