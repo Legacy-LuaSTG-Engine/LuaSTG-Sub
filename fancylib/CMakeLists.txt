@@ -26,8 +26,6 @@ set(fancylib_src
 
     fcyParser/fcyLexicalParser.h
     fcyParser/fcyLexicalParser.cpp
-    fcyParser/fcyPathParser.h
-    fcyParser/fcyPathParser.cpp
     fcyParser/fcyXml.h
     fcyParser/fcyXml.cpp
 )
