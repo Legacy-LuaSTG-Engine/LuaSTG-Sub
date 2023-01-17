@@ -48,18 +48,6 @@ namespace LuaSTGPlus::LuaWrapper::IO
 				StreamWrapper::CreateAndPush(L, stream);
 				return 1;
 			}
-			static int BinaryReader(lua_State* L)noexcept
-			{
-				GETSTREAM_UDATA(1);
-				BinaryReaderWrapper::CreateAndPush(L, p->handle);
-				return 1;
-			}
-			static int BinaryWriter(lua_State* L)noexcept
-			{
-				GETSTREAM_UDATA(1);
-				BinaryWriterWrapper::CreateAndPush(L, p->handle);
-				return 1;
-			}
 		#undef GETSTREAM_UDATA
 		};
 
@@ -67,16 +55,12 @@ namespace LuaSTGPlus::LuaWrapper::IO
 		{
 			{ "FileStream", &Wrapper::FileStream },
 			{ "MemoryStream", &Wrapper::MemoryStream },
-			{ "BinaryReader", &Wrapper::BinaryReader },
-			{ "BinaryWriter", &Wrapper::BinaryWriter },
 			{ NULL, NULL }
 		};
 
 		lua_pushstring(L, LUASTG_LUA_LIBNAME_IO);	// ... t s
 		lua_newtable(L);							// ... t s t
 		StreamWrapper::Register(L);
-		BinaryReaderWrapper::Register(L);
-		BinaryWriterWrapper::Register(L);
 		luaL_register(L, NULL, Function);
 		lua_settable(L, -3);						// ... t
 	}
