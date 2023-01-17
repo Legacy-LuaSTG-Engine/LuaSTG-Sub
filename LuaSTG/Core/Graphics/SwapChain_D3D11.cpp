@@ -3,6 +3,7 @@
 #include "Core/i18n.hpp"
 #include "utility/encoding.hpp"
 #include "platform/WindowsVersion.hpp"
+#include "Platform/CommandLineArguments.hpp"
 #include "Platform/DesktopWindowManager.hpp"
 
 #include "ScreenGrab11.h"
@@ -921,7 +922,11 @@ namespace Core::Graphics
 	}
 	bool SwapChain_D3D11::enterExclusiveFullscreen()
 	{
-		//return false;
+		bool const disable_efs = Platform::CommandLineArguments::Get().IsOptionExist("--disable-exclusive-fullscreen");
+		if (disable_efs)
+		{
+			return false;
+		}
 
 		assert(dxgi_swapchain);
 		if (!dxgi_swapchain) return false;
@@ -1591,8 +1596,9 @@ namespace Core::Graphics
 		_log("setWindowMode");
 
 		bool const flip_available = checkModernSwapChainModelAvailable();
+		bool const disable_composition = Platform::CommandLineArguments::Get().IsOptionExist("--disable-direct-composition");
 
-		if (flip_available && checkHardwareCompositionSupport(m_device->GetD3D11Device()))
+		if (!disable_composition && flip_available && checkHardwareCompositionSupport(m_device->GetD3D11Device()))
 		{
 			m_is_composition_mode = true;
 			return setCompositionWindowMode(size);

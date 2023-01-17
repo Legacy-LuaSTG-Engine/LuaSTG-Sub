@@ -3,8 +3,8 @@
 #include "Core/i18n.hpp"
 #include "utility/encoding.hpp"
 #include "platform/WindowsVersion.hpp"
-#include "platform/CommandLine.hpp"
 #include "platform/AdapterPolicy.hpp"
+#include "Platform/CommandLineArguments.hpp"
 
 #include "WICTextureLoader11.h"
 #include "DDSTextureLoader11.h"
@@ -241,15 +241,7 @@ namespace Core::Graphics
 
 		// 公共参数
 
-		bool allow_soft_adapter = false;
-		std::vector<std::string> args(platform::CommandLine::get());
-		for (auto const& v : args)
-		{
-			if (v == "--allow-soft-adapter")
-			{
-				allow_soft_adapter = true;
-			}
-		}
+		bool allow_soft_adapter = Platform::CommandLineArguments::Get().IsOptionExist("--allow-soft-adapter");
 
 		// 枚举所有图形设备
 

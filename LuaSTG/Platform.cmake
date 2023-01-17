@@ -9,6 +9,7 @@ set(PLATFORM_SOURCES
     Platform/RuntimeLoader/DirectWrite.hpp
     Platform/RuntimeLoader/DesktopWindowManager.hpp
     Platform/RuntimeLoader/All.cpp
+    Platform/CommandLineArguments.hpp
     Platform/DesktopWindowManager.hpp
     Platform/All.cpp
 )

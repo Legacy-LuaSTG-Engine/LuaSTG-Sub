@@ -15,6 +15,7 @@
 #define NOMCX
 
 #include <Windows.h>
+#include <shellapi.h>
 #include <VersionHelpers.h>
 #include <wrl/client.h>
 #include <wrl/wrappers/corewrappers.h>

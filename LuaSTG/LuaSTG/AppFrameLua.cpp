@@ -307,8 +307,11 @@ namespace LuaSTGPlus
                 for (size_t idx = 0; idx < args.size(); idx += 1)
                 {
                     spdlog::info("[luajit] [{}] {}", idx, args[idx]);
-                    if (args[idx] != "--log-window" &&
-                        args[idx] != "--log-window-wait")
+                    if (args[idx] != "--log-window"
+                        && args[idx] != "--log-window-wait"
+                        && args[idx] != "--allow-soft-adapter"
+                        && args[idx] != "--disable-direct-composition"
+                        && args[idx] != "--disable-exclusive-fullscreen")
                     {
                         args_lua.emplace_back(args[idx]);
                     }
