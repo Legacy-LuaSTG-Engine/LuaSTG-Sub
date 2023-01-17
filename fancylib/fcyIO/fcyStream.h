@@ -6,10 +6,10 @@
 
 #include "fcyRefObj.h"
 #include "fcyException.h"
-#include "fcyOS/fcyMultiThread.h"
 
 #include <string>
 #include <vector>
+#include <mutex>
 
 /// @addtogroup fancy库IO模块
 /// @brief      提供对文件、内存的读写以及额外操作支持
@@ -86,7 +86,7 @@ private:
     bool m_bResizable;               ///< @brief 可变长
     bool m_bWritable;                ///< @brief 可写
     uint64_t m_cPointer;                  ///< @brief 读写位置
-    fcyCriticalSection m_CriticalSec; ///< @brief 临界区
+    std::recursive_mutex m_CriticalSec; ///< @brief 临界区
 public: // 接口实现
     bool CanWrite();
     
