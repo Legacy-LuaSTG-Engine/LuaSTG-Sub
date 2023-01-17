@@ -23,11 +23,6 @@ set(fancylib_src
     fcyMisc/fcyStringHelper.cpp
 
     fcyOS/fcyMemPool.h
-
-    fcyParser/fcyLexicalParser.h
-    fcyParser/fcyLexicalParser.cpp
-    fcyParser/fcyXml.h
-    fcyParser/fcyXml.cpp
 )
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} PREFIX fancylib FILES ${fancylib_src})
 
