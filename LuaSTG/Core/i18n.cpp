@@ -352,6 +352,11 @@ static std::unordered_map<std::string_view, i18n_entry_t> const g_i18n_map = {
 		.zh_cn = "[core] 无法创建 RenderAttachment，图形设备为空",
 		.en_us = "[core] Failed to create RenderAttachment, Device is null"
 	),
+	// Swapchain Canvas
+	ADD("[core].SwapChain_D3D11.resize_canvas_failed_invalid_size_fmt",
+		.zh_cn = "[core] 无法将 Canvas 的尺寸更改为 ({}x{})",
+		.en_us = "[core] Cannot resize SwapChain with size ({}x{})",
+	),
 
 #pragma warning(default:4002)
 };

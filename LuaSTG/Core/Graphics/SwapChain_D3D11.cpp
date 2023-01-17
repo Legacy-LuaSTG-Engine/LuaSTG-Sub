@@ -1702,6 +1702,13 @@ namespace Core::Graphics
 	{
 		_log("setCanvasSize");
 
+		if (size.x == 0 || size.y == 0)
+		{
+			i18n_log_error_fmt("[core].SwapChain_D3D11.resize_canvas_failed_invalid_size_fmt",
+				size.x, size.y);
+			assert(false); return false;
+		}
+
 		m_canvas_size = size;
 
 		// TODO: 如果尺寸没变，是不是可以直接返回？
