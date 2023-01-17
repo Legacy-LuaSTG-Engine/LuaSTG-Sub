@@ -1,5 +1,92 @@
 ﻿#include "Platform/Shared.hpp"
 
+#include "Platform/CommandLineArguments.hpp"
+
+namespace Platform
+{
+	inline void wcstr_to_utf8(WCHAR const* wstr, std::string& u8str)
+	{
+		int const length = static_cast<int>(wcslen(wstr));
+		if (length <= 0)
+		{
+			return; // empty string
+		}
+		int const count = WideCharToMultiByte(CP_UTF8, 0, wstr, length, NULL, 0, NULL, NULL);
+		if (count <= 0)
+		{
+			return; // error
+		}
+		u8str.resize(static_cast<size_t>(count));
+		int const write = WideCharToMultiByte(CP_UTF8, 0, wstr, length, u8str.data(), count, NULL, NULL);
+		if (write != count)
+		{
+			u8str.clear();
+			return; // error
+		}
+	}
+
+	bool CommandLineArguments::Update()
+	{
+		m_args.clear();
+
+		LPWSTR pCmdLine = GetCommandLineW();
+		if (!pCmdLine)
+		{
+			return false;
+		}
+
+		int argc = 0;
+		LPWSTR* argv = CommandLineToArgvW(pCmdLine, &argc);
+		if (!argv)
+		{
+			return false;
+		}
+
+		m_args.resize(static_cast<size_t>(argc));
+		for (int i = 0; i < argc; i += 1)
+		{
+			wcstr_to_utf8(argv[i], m_args[i]);
+		}
+	
+		LocalFree(argv);
+
+		return true;
+	}
+	bool CommandLineArguments::IsOptionExist(std::string_view option)
+	{
+		if (m_args.empty())
+		{
+			if (!Update())
+			{
+				return false;
+			}
+		}
+
+		for (auto const& v : m_args)
+		{
+			if (v == option)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	CommandLineArguments::CommandLineArguments()
+	{
+	}
+	CommandLineArguments::~CommandLineArguments()
+	{
+	}
+
+	CommandLineArguments& CommandLineArguments::Get()
+	{
+		static CommandLineArguments instace;
+		return instace;
+	}
+}
+
 #include "Platform/DesktopWindowManager.hpp"
 
 namespace Platform

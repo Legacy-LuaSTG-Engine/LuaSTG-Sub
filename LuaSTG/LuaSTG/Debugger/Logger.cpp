@@ -4,8 +4,8 @@
 #include "spdlog/sinks/wincolor_sink.h"
 #include "spdlog/sinks/msvc_sink.h"
 #include "platform/KnownDirectory.hpp"
-#include "platform/CommandLine.hpp"
 #include "platform/HResultChecker.hpp"
+#include "Platform/CommandLineArguments.hpp"
 
 namespace LuaSTG::Debugger
 {
@@ -31,18 +31,8 @@ namespace LuaSTG::Debugger
     void Logger::create()
     {
     #ifdef USING_CONSOLE_OUTPUT
-        std::vector<std::string> args(platform::CommandLine::get());
-        for (auto const& v : args)
-        {
-            if (v == "--log-window")
-            {
-                enable_console = true;
-            }
-            if (v == "--log-window-wait")
-            {
-                wait_console = true;
-            }
-        }
+        enable_console = Platform::CommandLineArguments::Get().IsOptionExist("--log-window");
+        wait_console = Platform::CommandLineArguments::Get().IsOptionExist("--log-window-wait");
         openWin32Console();
     #endif
 
