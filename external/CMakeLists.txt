@@ -19,6 +19,23 @@ set_target_properties(spdlog PROPERTIES FOLDER external)
 
 add_subdirectory(json)
 
+# ==================== pugixml ====================
+
+#add_subdirectory(pugixml)
+
+add_library(pugixml-static STATIC)
+add_library(pugixml::pugixml ALIAS pugixml-static)
+target_include_directories(pugixml-static PUBLIC
+    pugixml/src
+)
+target_sources(pugixml-static PRIVATE
+    pugixml/src/pugiconfig.hpp
+    pugixml/src/pugixml.hpp
+    pugixml/src/pugixml.cpp
+)
+
+set_target_properties(pugixml-static PROPERTIES FOLDER external)
+
 # ==================== d3dcompiler ====================#
 
 add_library(D3DCompilerRedist MODULE IMPORTED GLOBAL)
@@ -175,12 +192,6 @@ target_link_libraries(lua_cjson PUBLIC
 )
 
 set_target_properties(lua_cjson PROPERTIES FOLDER lualib)
-
-# ==================== pugixml ====================
-
-#add_subdirectory(pugixml)
-#
-#set_target_properties(pugixml-static PROPERTIES FOLDER external)
 
 # ==================== lua csv ====================
 

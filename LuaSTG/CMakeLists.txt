@@ -164,6 +164,7 @@ target_link_libraries(LuaSTG PRIVATE
     lua_steam_api
     tracy
     pcgcpp
+    pugixml::pugixml
 )
 
 add_custom_command(TARGET LuaSTG POST_BUILD
