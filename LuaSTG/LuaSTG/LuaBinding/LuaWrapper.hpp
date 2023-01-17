@@ -162,28 +162,6 @@ namespace LuaSTGPlus
 				static void CreateAndPush(lua_State* L, fcyStream* handle);
 			};
 
-			class BinaryReaderWrapper
-			{
-			public:
-				struct Wrapper {
-					fcyBinaryReader* handle;
-				};
-			public:
-				static void Register(lua_State* L) noexcept;
-				static void CreateAndPush(lua_State* L, fcyStream* handle);
-			};
-
-			class BinaryWriterWrapper
-			{
-			public:
-				struct Wrapper {
-					fcyBinaryWriter* handle;
-				};
-			public:
-				static void Register(lua_State* L) noexcept;
-				static void CreateAndPush(lua_State* L, fcyStream* handle);
-			};
-
 			void Register(lua_State* L) noexcept;
 		}
 
