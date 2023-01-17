@@ -3,7 +3,7 @@
 #pragma once
 #include "AppFrame.h"
 #include "LuaBinding/LuaWrapperMisc.hpp"
-#include <fcyIO/fcyBinaryHelper.h>
+#include "fcyIO/fcyStream.h"
 
 #define LUASTG_LUA_LIBNAME "lstg"
 

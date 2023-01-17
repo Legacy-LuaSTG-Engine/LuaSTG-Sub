@@ -12,8 +12,6 @@ set(fancylib_src
 
     fcyIO/fcyStream.h
     fcyIO/fcyStream.cpp
-    fcyIO/fcyBinaryHelper.h
-    fcyIO/fcyBinaryHelper.cpp
 
     fcyMisc/fcyRandom.h
     fcyMisc/fcyRandom.cpp
