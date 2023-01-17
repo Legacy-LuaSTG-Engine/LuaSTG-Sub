@@ -19,8 +19,6 @@ set(fancylib_src
     fcyMisc/fcyRandom.cpp
     fcyMisc/fcyStopWatch.h
     fcyMisc/fcyStopWatch.cpp
-    fcyMisc/fcyStringHelper.h
-    fcyMisc/fcyStringHelper.cpp
 
     fcyOS/fcyMemPool.h
 )
