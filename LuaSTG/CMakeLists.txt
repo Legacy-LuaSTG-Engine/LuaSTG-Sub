@@ -14,6 +14,7 @@ target_precompile_headers(LuaSTG PRIVATE
     LuaSTG/SharedHeaders.h
 )
 target_include_directories(LuaSTG PRIVATE
+    fancylib
     LuaSTG
     LuaSTG/LuaBinding
 )
@@ -22,6 +23,18 @@ target_compile_definitions(LuaSTG PRIVATE
 )
 
 set(LUASTG_ENGINE_SOURCES
+    fancylib/fcyType.h
+    fancylib/fcyResult.h
+    fancylib/fcyRefObj.h
+    fancylib/fcyRefObj.cpp
+    fancylib/fcyIO/fcyStream.h
+    fancylib/fcyIO/fcyStream.cpp
+    fancylib/fcyMisc/fcyRandom.h
+    fancylib/fcyMisc/fcyRandom.cpp
+    fancylib/fcyMisc/fcyStopWatch.h
+    fancylib/fcyMisc/fcyStopWatch.cpp
+    fancylib/fcyOS/fcyMemPool.h
+
     LuaSTG/SharedHeaders.h
     LuaSTG/SharedHeaders.cpp
     
@@ -147,7 +160,6 @@ target_link_libraries(LuaSTG PRIVATE
     spdlog::spdlog
     utility
     platform
-    fancylib
     DirectXTexMini
     DirectX::ToolKitMini
     Core

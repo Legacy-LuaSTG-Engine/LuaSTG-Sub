@@ -19,5 +19,4 @@ add_subdirectory(steam)
 
 add_subdirectory(utility)
 add_subdirectory(platform)
-add_subdirectory(fancylib)
 add_subdirectory(LuaSTG)
