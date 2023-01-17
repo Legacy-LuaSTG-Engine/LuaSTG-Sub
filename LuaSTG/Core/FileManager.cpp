@@ -673,7 +673,33 @@ namespace Core
         }
         return false;
     }
-    
+    bool FileManager::write(std::string_view const& name, std::vector<uint8_t> const& buffer)
+    {
+        std::wstring wide_path(std::move(utility::encoding::to_wide(name)));
+        std::error_code ec;
+        std::ofstream file(wide_path, std::ios::out | std::ios::binary | std::ios::trunc);
+        if (!file.is_open())
+        {
+            return false;
+        }
+        file.write((char*)buffer.data(), (std::streamsize)buffer.size());
+        file.close();
+        return true;
+    }
+    bool FileManager::write(std::string_view const& name, IData* p_data)
+    {
+        std::wstring wide_path(std::move(utility::encoding::to_wide(name)));
+        std::error_code ec;
+        std::ofstream file(wide_path, std::ios::out | std::ios::binary | std::ios::trunc);
+        if (!file.is_open())
+        {
+            return false;
+        }
+        file.write((char*)p_data->data(), (std::streamsize)p_data->size());
+        file.close();
+        return true;
+    }
+
     FileManager::FileManager()
     {
     }

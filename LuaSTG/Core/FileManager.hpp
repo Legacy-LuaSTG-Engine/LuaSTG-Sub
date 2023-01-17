@@ -99,6 +99,8 @@ namespace Core
         bool containEx(std::string_view const& name);
         bool loadEx(std::string_view const& name, std::vector<uint8_t>& buffer);
         bool loadEx(std::string_view const& name, IData** pp_data);
+        bool write(std::string_view const& name, std::vector<uint8_t> const& buffer);
+        bool write(std::string_view const& name, IData* p_data);
     public:
         FileManager();
         ~FileManager();
