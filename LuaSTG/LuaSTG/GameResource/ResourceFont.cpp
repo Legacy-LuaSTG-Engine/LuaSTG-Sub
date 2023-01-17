@@ -4,8 +4,6 @@
 #include "utility/utf.hpp"
 #include "utility/encoding.hpp"
 #include "AppFrame.h"
-#include "fcyException.h"
-#include "fcyMisc/fcyStringHelper.h"
 #include "pugixml.hpp"
 
 namespace LuaSTGPlus
@@ -19,64 +17,246 @@ namespace LuaSTGPlus
 		float m_line_height;
 		
 	private:
-		void readDefine(const std::wstring& data, std::wstring& tex)
+		bool readDefine(std::string_view path, std::string_view font_define, std::string_view& texture)
 		{
-			std::vector<std::wstring> tLines;
-			fcyStringHelper::StringSplit(data, L"\n", true, tLines);
-			for (auto& i : tLines)
+			auto errorInvalidFormat = [&path]()
 			{
-				i = fcyStringHelper::Trim(i);
+				spdlog::error("[luastg] 加载 HGE 纹理字体失败，字体定义文件 '{}' 格式无效", path);
+			};
+
+			// 第一次检查
+
+			if (font_define.empty())
+			{
+				errorInvalidFormat();
+				return false;
 			}
 
-			// 第一行必须是HGEFONT
-			if (tLines.size() <= 1 || tLines[0] != L"[HGEFONT]")
-				throw fcyException("ResFont::HGEFont::readDefine", "Bad file format.");
+			// 分割为行方便处理
 
-			for (size_t i = 1; i < tLines.size(); ++i)
+			std::vector<std::string_view> lines;
 			{
-				std::wstring& tLine = tLines[i];
-				if (tLine.size() == 0)
-					continue;
-
-				std::wstring::size_type tPos;
-				if (std::string::npos == (tPos = tLine.find_first_of(L"=")))
-					throw fcyException("ResFont::HGEFont::readDefine", "Bad file format.");
-				std::wstring tKey = tLine.substr(0, tPos);
-				std::wstring tValue = tLine.substr(tPos + 1, tLine.size() - tPos - 1);
-				if (tKey == L"Bitmap")
-					tex = tValue;
-				else if (tKey == L"Char")
+				std::string_view view = font_define;
+				size_t pos = view.find_first_of("\n");
+				while (pos != std::string_view::npos)
 				{
-					wchar_t c;
-					int c_hex;
-					float x, y, w, h, left_offset, right_offset;
-					if (7 != swscanf_s(tValue.c_str(), L"\"%c\",%f,%f,%f,%f,%f,%f", &c, 1, &x, &y, &w, &h, &left_offset, &right_offset))
+					std::string_view line = view.substr(0, pos);
+					if (!line.empty() && line.back() == '\r')
 					{
-						if (7 != swscanf_s(tValue.c_str(), L"%X,%f,%f,%f,%f,%f,%f", &c_hex, &x, &y, &w, &h, &left_offset, &right_offset))
-							throw fcyException("ResFont::HGEFont::readDefine", "Bad file format.");
-						c = static_cast<wchar_t>(c_hex);
+						line = line.substr(0, line.size() - 1);
+					}
+					if (!line.empty())
+					{
+						lines.push_back(line);
+					}
+					view = view.substr(pos + 1);
+					pos = view.find_first_of("\n");
+				}
+				if (!view.empty() && view.back() == '\r')
+				{
+					view = view.substr(0, view.size() - 1);
+				}
+				if (!view.empty())
+				{
+					lines.push_back(view);
+				}
+			}
+
+			// 第二次检查
+
+			if (lines.empty())
+			{
+				errorInvalidFormat();
+				return false;
+			}
+			if (lines[0] != "[HGEFONT]")
+			{
+				errorInvalidFormat();
+				return false;
+			}
+
+			// 逐行解析
+
+			auto errorLineParser = [&path](std::string_view line)
+			{
+				spdlog::error("[luastg] 加载 HGE 纹理字体出错，在字体定义文件 '{}' 中发现无法解析的行：'{}'", path, line);
+			};
+
+			struct CharData
+			{
+				int state;
+				char32_t code;
+				float x;
+				float y;
+				float w;
+				float h;
+				float left_offset;
+				float right_offset;
+			};
+
+			auto readCharData = [&path, &errorLineParser](std::string_view line) -> CharData
+			{
+				// Char="A",0,0,1,1,2,2
+
+				std::string_view data = line.substr(5);
+				CharData cd{};
+
+				size_t qp1 = data.find_first_of('\"');
+				size_t qp2 = data.find_last_of('\"');
+
+				size_t sp1 = std::string_view::npos;
+				size_t sp2 = std::string_view::npos;
+				size_t sp3 = std::string_view::npos;
+				size_t sp4 = std::string_view::npos;
+				size_t sp5 = std::string_view::npos;
+				size_t sp6 = std::string_view::npos;
+
+				if (qp1 != std::string_view::npos && qp2 != std::string_view::npos && (qp2 - qp1) > 1)
+				{
+					/*                              */ sp1 = data.find_first_of(',', qp2 + 1);
+					if (sp1 != std::string_view::npos) sp2 = data.find_first_of(',', sp1 + 1);
+					if (sp2 != std::string_view::npos) sp3 = data.find_first_of(',', sp2 + 1);
+					if (sp3 != std::string_view::npos) sp4 = data.find_first_of(',', sp3 + 1);
+					if (sp4 != std::string_view::npos) sp5 = data.find_first_of(',', sp4 + 1);
+					if (sp5 != std::string_view::npos) sp6 = data.find_first_of(',', sp5 + 1);
+
+					if (sp6 == std::string_view::npos)
+					{
+						errorLineParser(line);
+						return {};
 					}
 
-					// 计算到f2d字体偏移量
-					Core::Graphics::GlyphInfo const tInfo = {
-						.texture_index = 0,
-						.texture_rect = Core::RectF(x, y, x + w, y + h),
-						.size = Core::Vector2F(w, h),
-						.position = Core::Vector2F(left_offset, h),
-						.advance = Core::Vector2F(w + left_offset + right_offset, 0),
-					};
-					if (m_map.find(c) != m_map.end())
-						throw fcyException("ResFont::HGEFont::readDefine", "Duplicated character defination.");
-					m_map.emplace(c, tInfo);
+					std::string_view str(data.substr(qp1 + 1, qp2 - (qp1 + 1)));
+					utf::utf8reader reader(str.data(), str.size());
+					if (!reader.step(cd.code))
+					{
+						spdlog::error("[luastg] 加载 HGE 纹理字体出错，在字体定义文件 '{}' 行 '{}' 中发现无法识别的字符：'{}'", path, line, str);
+						return {};
+					}
+				}
+				else if (qp1 == std::string_view::npos && qp2 == std::string_view::npos)
+				{
+					/*                              */ sp1 = data.find_first_of(',');
+					if (sp1 != std::string_view::npos) sp2 = data.find_first_of(',', sp1 + 1);
+					if (sp2 != std::string_view::npos) sp3 = data.find_first_of(',', sp2 + 1);
+					if (sp3 != std::string_view::npos) sp4 = data.find_first_of(',', sp3 + 1);
+					if (sp4 != std::string_view::npos) sp5 = data.find_first_of(',', sp4 + 1);
+					if (sp5 != std::string_view::npos) sp6 = data.find_first_of(',', sp5 + 1);
+
+					if (sp6 == std::string_view::npos)
+					{
+						errorLineParser(line);
+						return {};
+					}
+
+					std::string hex(data.substr(0, sp1));
+					try
+					{
+						cd.code = (char32_t)std::stoi(hex, nullptr, 16);
+					}
+					catch (std::exception const& e)
+					{
+						spdlog::error("[luastg] 加载 HGE 纹理字体出错，在字体定义文件 '{}' 行 '{}' 中发现无法识别的码点：'{}' ({})", path, line, hex, e.what());
+						return {};
+					}
 				}
 				else
-					throw fcyException("ResFont::HGEFont::readDefine", "Bad file format.");
+				{
+					errorLineParser(line);
+					return {};
+				}
+
+				std::string ce1;
+				std::string ce2;
+				std::string ce3;
+				std::string ce4;
+				std::string ce5;
+				std::string ce6;
+				std::string ce7;
+
+				if (sp1 != std::string_view::npos) ce1 = data.substr(0, sp1);
+				if (sp2 != std::string_view::npos) ce2 = data.substr(sp1 + 1, sp2 - (sp1 + 1));
+				if (sp3 != std::string_view::npos) ce3 = data.substr(sp2 + 1, sp3 - (sp2 + 1));
+				if (sp4 != std::string_view::npos) ce4 = data.substr(sp3 + 1, sp4 - (sp3 + 1));
+				if (sp5 != std::string_view::npos) ce5 = data.substr(sp4 + 1, sp5 - (sp4 + 1));
+				if (sp6 != std::string_view::npos) ce6 = data.substr(sp5 + 1, sp6 - (sp5 + 1));
+				/*                              */ ce7 = data.substr(sp6 + 1);
+
+				if (ce1.empty() || ce2.empty() || ce3.empty() || ce4.empty() || ce5.empty() || ce6.empty() || ce7.empty())
+				{
+					errorLineParser(line);
+					return {};
+				}
+
+				try
+				{
+					cd.x = std::stof(ce2);
+					cd.y = std::stof(ce3);
+					cd.w = std::stof(ce4);
+					cd.h = std::stof(ce5);
+					cd.left_offset = std::stof(ce6);
+					cd.right_offset = std::stof(ce7);
+				}
+				catch (std::exception const& e)
+				{
+					spdlog::error("[luastg] 加载 HGE 纹理字体出错，在字体定义文件 '{}' 中发现无法解析的行：'{}' ({})", path, line, e.what());
+					return {};
+				}
+
+				cd.state = 1; // 成功
+
+				return cd;
+			};
+
+			for (auto& line : lines)
+			{
+				if (line.empty())
+				{
+					// 跳过空白行
+				}
+				else if (line.starts_with("[HGEFONT]"))
+				{
+					// 跳过字体识别符
+				}
+				else if (line.starts_with("Bitmap="))
+				{
+					texture = line.substr(7);
+				}
+				else if (line.starts_with("Char="))
+				{
+					auto char_data = readCharData(line);
+					if (!char_data.state)
+					{
+						continue;
+					}
+					if (m_map.find((uint32_t)char_data.code) != m_map.end())
+					{
+						spdlog::error("[luastg] 加载 HGE 纹理字体出错，在字体定义文件 '{}' 中发现重复的字符定义：{}", path, line);
+						continue;
+					}
+					// 转换为字形数据
+					Core::Graphics::GlyphInfo const glyph_info = {
+						.texture_index = 0,
+						.texture_rect = Core::RectF(
+							char_data.x,
+							char_data.y,
+							char_data.x + char_data.w,
+							char_data.y + char_data.h),
+						.size = Core::Vector2F(char_data.w, char_data.h),
+						.position = Core::Vector2F(char_data.left_offset, char_data.h),
+						.advance = Core::Vector2F(char_data.w + char_data.left_offset + char_data.right_offset, 0),
+					};
+					m_map.emplace((uint32_t)char_data.code, glyph_info);
+				}
+				else
+				{
+					errorLineParser(line);
+				}
 			}
 
-			if (tex.empty())
-				throw fcyException("ResFont::HGEFont::readDefine", "Bad file format.");
+			return true;
 		}
-
+		
 	public:
 		float getLineHeight() { return m_line_height + 1.0f; } // ?
 		float getAscender() { return m_line_height; }
@@ -119,117 +299,15 @@ namespace LuaSTGPlus
 				throw std::runtime_error("hgeFont::hgeFont");
 			}
 			
-
-			std::wstring tex_wpath;
-			readDefine(
-				utility::encoding::to_wide(
-					std::string_view((char*)src.data(), src.size())
-				),
-				tex_wpath);
-
-			/*
+			// 解析
 			std::string_view font_define((char*)src.data(), src.size());
-			if (font_define.empty())
-			{
-				spdlog::error("[luastg] 加载 HGE 纹理字体失败，字体定义文件 '{}' 格式无效", path);
-				throw std::runtime_error("hgeFont::hgeFont");
-			}
-
-			// 切成行
-			std::vector<std::string_view> lines;
-			{
-				size_t offset = 0;
-				auto pos = font_define.find_first_of("\n", offset);
-				while (pos != std::string_view::npos)
-				{
-					lines.push_back(std::string_view(
-						font_define.data() + offset,
-						pos - offset));
-					offset = pos + 1;
-				}
-				lines.push_back(font_define.substr(offset));
-			}
-			if (lines.size() < 1)
-			{
-				spdlog::error("[luastg] 加载 HGE 纹理字体失败，字体定义文件 '{}' 格式无效", path);
-				throw std::runtime_error("hgeFont::hgeFont");
-			}
-
-			// 检查第一行
-			if (lines[0] != "[HGEFONT]")
-			{
-				spdlog::error("[luastg] 加载 HGE 纹理字体失败，字体定义文件 '{}' 格式无效", path);
-				throw std::runtime_error("hgeFont::hgeFont");
-			}
-
-			// 解析每一行
 			std::string_view texture;
-			for (size_t i = 1; i < lines.size(); i += 1)
+			if (!readDefine(path, font_define, texture))
 			{
-				std::string_view line = lines[i];
-				if (line.empty())
-				{
-					continue; // 跳过空白行
-				}
-				if (line.starts_with("Bitmap="))
-				{
-					texture = line.substr(7);
-				}
-				else if (line.starts_with("Char="))
-				{
-					std::string_view data = line.substr(5);
-					char buffer[8]{}; // UTF-8 真的会有这么长的吗
-					int c_hex = 0;
-					float x = 0.0f, y = 0.0f, w = 0.0f, h = 0.0f;
-					float left_offset = 0.0f, right_offset = 0.0f;
-					if (7 != std::sscanf(data.data(), "\"%7s\",%f,%f,%f,%f,%f,%f", buffer, &x, &y, &w, &h, &left_offset, &right_offset))
-					{
-						if (7 != std::sscanf(data.data(), "%X,%f,%f,%f,%f,%f,%f", &c_hex, &x, &y, &w, &h, &left_offset, &right_offset))
-						{
-							spdlog::warn("[luastg] 加载 HGE 纹理字体出错，在字体定义文件 '{}' 中发现无法解析的行：{}", path, line);
-							continue; // 润
-						}
-					}
-					uint32_t codepoint = 0;
-					if (c_hex)
-					{
-						codepoint = (uint32_t)c_hex;
-					}
-					else
-					{
-						char32_t c = 0;
-						utf::utf8reader reader(buffer);
-						if (!reader(c))
-						{
-							spdlog::warn("[luastg] 加载 HGE 纹理字体出错，在字体定义文件 '{}' 中发现无法识别的字符：{}", path, line);
-							continue; // 润
-						}
-						codepoint = (uint32_t)c;
-					}
-					if (m_map.find(codepoint) != m_map.end())
-					{
-						spdlog::warn("[luastg] 加载 HGE 纹理字体出错，在字体定义文件 '{}' 中发现重复的字符：{}", path, line);
-						continue; // 润
-					}
-					// 计算字体数据
-					LuaSTG::Core::Graphics::GlyphInfo const glyph_info = {
-						.texture_index = 0,
-						.texture_rect = LuaSTG::Core::RectF(x, y, x + w, y + h),
-						.size = LuaSTG::Core::Vector2F(w, h),
-						.position = LuaSTG::Core::Vector2F(left_offset, h),
-						.advance = LuaSTG::Core::Vector2F(w + left_offset + right_offset, 0),
-					};
-					m_map.emplace(codepoint, glyph_info);
-				}
-				else
-				{
-					spdlog::warn("[luastg] 加载 HGE 纹理字体出错，在字体定义文件 '{}' 中发现无法识别的行格式：{}", path, line);
-				}
+				throw std::runtime_error("hgeFont::hgeFont");
 			}
-			//*/
 
 			// 加载纹理
-			std::string texture(utility::encoding::to_utf8(tex_wpath));
 			if (GFileManager().containEx(texture))
 			{
 				if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(texture, mipmap, ~m_texture))
@@ -285,7 +363,7 @@ namespace LuaSTGPlus
 			Core::Vector2F tRet;
 			size_t const sep = Str.find_first_of(',');
 			if (Str.empty() || sep == std::string::npos)
-				throw fcyException("f2dFontTexProvider::readVec2Str", "String format error.");
+				throw std::runtime_error("invalid f2dTexturedFont Measure vec2");
 			std::string n1 = Str.substr(0, sep);
 			std::string n2 = Str.substr(sep + 1);
 			tRet.x = std::stof(n1);
