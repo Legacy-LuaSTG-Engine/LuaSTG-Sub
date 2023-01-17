@@ -54,8 +54,6 @@ set(Core_SRC
     Core/Graphics/DearImGui_Win32_D3D11.cpp
     Core/Graphics/Direct3D11/LetterBoxingRenderer.hpp
     Core/Graphics/Direct3D11/LetterBoxingRenderer.cpp
-    Core/PresentationModel.hpp
-    Core/PresentationModel.cpp
     Core/Application.hpp
     Core/ApplicationModel.hpp
     Core/ApplicationModel_Win32.hpp
