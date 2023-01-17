@@ -281,23 +281,3 @@ fResult fcyMemStream::TryLock() {
 void fcyMemStream::Unlock() {
     m_CriticalSec.UnLock();
 }
-
-////////////////////////////////////////////////////////////////////////////////
-
-fResult fcyStreamHelper::FillStream(fcyStream* Src, fcyStream* Dest, uint64_t DataLength) {
-    uint8_t tBuffer[8192];
-    uint64_t tDataReaded = 0;
-    uint64_t tTotalReaded = 0;
-    
-    while (tTotalReaded != DataLength && FCYOK(
-        Src->ReadBytes(tBuffer, (DataLength - tTotalReaded > 8192) ? 8192 : DataLength - tTotalReaded, &tDataReaded))) {
-        tTotalReaded += tDataReaded;
-        
-        Dest->WriteBytes(tBuffer, tDataReaded, NULL);
-    }
-    
-    if (tTotalReaded != DataLength)
-        return FCYERR_INTERNALERR;
-    else
-        return FCYERR_OK;
-}
