@@ -66,7 +66,7 @@ namespace LuaSTGPlus
             {
                 spdlog::error("[luajit] 编译'{}'失败：{}", desc, lua_tostring(L, -1));
                 MessageBoxW(
-                    (HWND)m_pAppModel->getWindow()->getNativeHandle(),
+                    m_pAppModel ? (HWND)m_pAppModel->getWindow()->getNativeHandle() : NULL,
                     utility::encoding::to_wide(
                         fmt::format("编译'{}'失败：{}", desc, lua_tostring(L, -1))
                     ).c_str(),
@@ -87,7 +87,7 @@ namespace LuaSTGPlus
             {
                 spdlog::error("[luajit] 运行'{}'时出错：{}", desc, lua_tostring(L, -1));
                 MessageBoxW(
-                    (HWND)m_pAppModel->getWindow()->getNativeHandle(),
+                    m_pAppModel ? (HWND)m_pAppModel->getWindow()->getNativeHandle() : NULL,
                     utility::encoding::to_wide(
                         fmt::format("运行'{}'时出错：\n{}", desc, lua_tostring(L, -1))
                     ).c_str(),
@@ -128,7 +128,7 @@ namespace LuaSTGPlus
             {
                 spdlog::error("[luajit] 调用全局函数'{}'时出错：{}", name, lua_tostring(L, -1));
                 MessageBoxW(
-                    (HWND)m_pAppModel->getWindow()->getNativeHandle(),
+                    m_pAppModel ? (HWND)m_pAppModel->getWindow()->getNativeHandle() : NULL,
                     utility::encoding::to_wide(
                         fmt::format("调用全局函数'{}'时出错：\n{}", name, lua_tostring(L, -1))
                     ).c_str(),
@@ -162,7 +162,7 @@ namespace LuaSTGPlus
                 spdlog::error("[luajit] 调用全局函数'{}'时出错：全局函数'{}'不存在", name, name);
                 /*
                 MessageBoxW(
-                    (HWND)m_pAppModel->getWindow()->getNativeHandle(),
+                    m_pAppModel ? (HWND)m_pAppModel->getWindow()->getNativeHandle() : NULL,
                     tErrorInfo.c_str(),
                     L"" LUASTG_INFO,
                     MB_ICONERROR | MB_OK);
@@ -188,7 +188,7 @@ namespace LuaSTGPlus
             {
                 spdlog::error("[luajit] 调用全局函数'{}'时出错：{}", name, lua_tostring(L, -1));
                 MessageBoxW(
-                    (HWND)m_pAppModel->getWindow()->getNativeHandle(),
+                    m_pAppModel ? (HWND)m_pAppModel->getWindow()->getNativeHandle() : NULL,
                     utility::encoding::to_wide(
                         fmt::format("调用全局函数'{}'时出错：\n{}", name, lua_tostring(L, -1))
                     ).c_str(),
