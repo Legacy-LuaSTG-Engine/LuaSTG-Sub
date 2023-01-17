@@ -521,7 +521,7 @@ namespace Core::Graphics
 
 		return true;
 	}
-
+	
 	void SwapChain_D3D11::dispatchEvent(EventType t)
 	{
 		// 回调
@@ -927,15 +927,6 @@ namespace Core::Graphics
 		{
 			m_window->setRedirectBitmapEnable(true);
 			if (!m_window->recreateWindow()) return false;
-			if (m_swapchain_flip_enabled)
-			{
-				m_swapchain_flip_enabled = FALSE;
-			}
-		}
-		else if (m_swapchain_flip_enabled)
-		{
-			if (!m_window->recreateWindow()) return false;
-			m_swapchain_flip_enabled = FALSE;
 		}
 
 		m_window->setSize({ display_mode.Width, display_mode.Height });
@@ -965,7 +956,6 @@ namespace Core::Graphics
 
 		// 记录状态
 		m_init = TRUE;
-		// m_swapchain_flip_enabled 由 setWindowMode 配置
 
 		// 广播
 		dispatchEvent(EventType::SwapChainCreate);
@@ -1624,15 +1614,6 @@ namespace Core::Graphics
 		{
 			m_window->setRedirectBitmapEnable(true);
 			if (!m_window->recreateWindow()) return false;
-			if (!flip_available && m_swapchain_flip_enabled)
-			{
-				m_swapchain_flip_enabled = FALSE;
-			}
-		}
-		else if (!flip_available && m_swapchain_flip_enabled)
-		{
-			if (!m_window->recreateWindow()) return false;
-			m_swapchain_flip_enabled = FALSE;
 		}
 
 		m_canvas_size = size;
@@ -1641,7 +1622,6 @@ namespace Core::Graphics
 			return false;
 		}
 		m_init = TRUE;
-		if (flip_available) m_swapchain_flip_enabled = TRUE;
 		dispatchEvent(EventType::SwapChainCreate);
 
 		if (!updateLetterBoxingRendererTransform()) return false;
@@ -1678,7 +1658,6 @@ namespace Core::Graphics
 		// 更新数据
 
 		m_init = TRUE;
-		m_swapchain_flip_enabled = TRUE; // 固定是开启过的
 
 		// 通知各个组件交换链已重新创建
 
