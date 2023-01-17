@@ -168,16 +168,3 @@ public:
 protected:
     ~fcyMemStream();
 };
-
-////////////////////////////////////////////////////////////////////////////////
-/// @brief fcy流辅助
-////////////////////////////////////////////////////////////////////////////////
-namespace fcyStreamHelper {
-    /// @brief     填充流
-    /// @note      在Src的当前位置读取DataLength个长度到Dest流中
-    /// @param[in] Src 原始流
-    /// @param[in] Dest 目的流
-    /// @param[in] DataLength 数据长度
-    /// @return    FCYERR_OK：操作成功完成，FCYERR_INTERNALERR：读取时错误
-    fResult FillStream(fcyStream* Src, fcyStream* Dest, uint64_t DataLength);
-};
