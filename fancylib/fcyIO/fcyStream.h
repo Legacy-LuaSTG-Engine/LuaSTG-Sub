@@ -170,50 +170,6 @@ protected:
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fcy部分流
-/// @note  用来对一个流的一部分进行访问
-////////////////////////////////////////////////////////////////////////////////
-class fcyPartialStream : public fcyRefObjImpl<fcyStream> {
-private:
-    fcyStream* m_pOrgStream; ///< @brief 原始流
-    uint64_t m_Offset;           ///< @brief 在原始流中的偏移量
-    uint64_t m_pPos;             ///< @brief 当前读写位置
-    uint64_t m_Len;              ///< @brief 原始流长度
-public: // 接口实现
-    bool CanWrite();
-    
-    bool CanResize();
-    
-    uint64_t GetLength();
-    
-    fResult SetLength(uint64_t Length);
-    
-    uint64_t GetPosition();
-    
-    fResult SetPosition(FCYSEEKORIGIN Origin, int64_t Offset);
-    
-    fResult ReadBytes(fData pData, uint64_t Length, uint64_t* pBytesRead);
-    
-    fResult WriteBytes(fcData pSrc, uint64_t Length, uint64_t* pBytesWrite);
-    
-    void Lock();
-    
-    fResult TryLock();
-    
-    void Unlock();
-
-public:
-    /// @brief     构造函数
-    /// @param[in] OrgStream 原始流指针
-    /// @param[in] Offset    部分流在原始流中的位移
-    /// @param[in] Size      部分流大小
-    fcyPartialStream(fcyStream* OrgStream, uint64_t Offset, uint64_t Size);
-
-protected:
-    ~fcyPartialStream();
-};
-
-////////////////////////////////////////////////////////////////////////////////
 /// @brief fcy流辅助
 ////////////////////////////////////////////////////////////////////////////////
 namespace fcyStreamHelper {
