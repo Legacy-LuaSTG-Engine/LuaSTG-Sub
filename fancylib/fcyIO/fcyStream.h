@@ -5,7 +5,6 @@
 #pragma once
 
 #include "fcyRefObj.h"
-#include "fcyException.h"
 
 #include <string>
 #include <vector>

@@ -2,7 +2,6 @@
 #include "Core/FileManager.hpp"
 #include "utility/encoding.hpp"
 #include "AppFrame.h"
-#include "fcyException.h"
 
 namespace LuaSTGPlus
 {
@@ -379,12 +378,8 @@ namespace LuaSTGPlus
                 new ResAnimation(name, pTex, (float) x, (float) y, (float) w, (float) h, n, m, intv, a, b, rect));
             m_AnimationPool.emplace(name, tRes);
         }
-        catch (const fcyException&) {
-            spdlog::error("[luastg] CreateAnimation: 无法创建动画精灵'{}'，内部错误", name);
-            return false;
-        }
-        catch (const std::bad_alloc&) {
-            spdlog::error("[luastg] CreateAnimation: 内存不足");
+        catch (std::exception const& e) {
+            spdlog::error("[luastg] CreateAnimation: 无法创建动画精灵 '{}' ({})", name, e.what());
             return false;
         }
     
@@ -627,24 +622,9 @@ namespace LuaSTGPlus
             tRes.DirectSet(new ResFont(name, path, mipmaps));
             m_SpriteFontPool.emplace(name, tRes);
         }
-        catch (const std::runtime_error& e)
+        catch (std::exception const& e)
         {
-            spdlog::error("[luastg] LoadSpriteFont: 加载 HGE 纹理字体失败 ({})", e.what());
-            return false;
-        }
-        catch (const fcyException& e)
-        {
-            spdlog::error("[luastg] LoadSpriteFont: 加载 HGE 纹理字体失败 [{}] ({})", e.GetSrc(), e.GetDesc());
-            return false;
-        }
-        catch (const std::bad_alloc&)
-        {
-            spdlog::error("[luastg] LoadSpriteFont: 内存不足");
-            return false;
-        }
-        catch (...)
-        {
-            spdlog::error("[luastg] LoadSpriteFont: 加载 HGE 纹理字体失败");
+            spdlog::error("[luastg] LoadSpriteFont: 无法加载 HGE 纹理字体 '{}' ({})", name, e.what());
             return false;
         }
     
@@ -672,24 +652,9 @@ namespace LuaSTGPlus
             tRes.DirectSet(new ResFont(name, path, tex_path, mipmaps));
             m_SpriteFontPool.emplace(name, tRes);
         }
-        catch (const std::runtime_error& e)
+        catch (std::exception const& e)
         {
-            spdlog::error("[luastg] LoadSpriteFont: 加载 fancy2d 纹理字体失败 ({})", e.what());
-            return false;
-        }
-        catch (const fcyException& e)
-        {
-            spdlog::error("[luastg] LoadSpriteFont: 加载 fancy2d 纹理字体失败 [{}] ({})", e.GetSrc(), e.GetDesc());
-            return false;
-        }
-        catch (const std::bad_alloc&)
-        {
-            spdlog::error("[luastg] LoadSpriteFont: 内存不足");
-            return false;
-        }
-        catch (...)
-        {
-            spdlog::error("[luastg] LoadSpriteFont: 加载 fancy2d 纹理字体失败");
+            spdlog::error("[luastg] LoadSpriteFont: 无法加载 fancy2d 纹理字体 '{}' ({})", name, e.what());
             return false;
         }
     

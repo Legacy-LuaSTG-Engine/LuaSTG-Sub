@@ -5,11 +5,6 @@ set(fancylib_src
     fcyRefObj.h
     fcyRefObj.cpp
 
-    fcyException.h
-    fcyException.cpp
-
-    fcyMath.h
-
     fcyIO/fcyStream.h
     fcyIO/fcyStream.cpp
 
