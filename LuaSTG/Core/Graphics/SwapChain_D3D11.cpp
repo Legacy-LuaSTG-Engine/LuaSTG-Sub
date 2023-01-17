@@ -773,14 +773,14 @@ namespace Core::Graphics
 
 		//i18n_log_info("[core].SwapChain_D3D11.created_swapchain");
 
-		auto refresh_rate_string = fmt::format("{:.2f}Hz", (double)mode.refresh_rate.numerator / (double)mode.refresh_rate.denominator);
+		auto refresh_rate_string = fmt::format("{:.2f}Hz", (double)mode.RefreshRate.Numerator / (double)mode.RefreshRate.Denominator);
 		if (!fullscreen) refresh_rate_string = i18n("DXGI.DisplayMode.RefreshRate.Desktop");
 		std::string_view swapchain_model = i18n("DXGI.SwapChain.SwapEffect.Discard");
 		if (m_swap_chain_info.SwapEffect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL) swapchain_model = i18n("DXGI.SwapChain.SwapEffect.FlipSequential");
 		if (m_swap_chain_info.SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD) swapchain_model = i18n("DXGI.SwapChain.SwapEffect.FlipDiscard");
 		auto enable_or_disable = [](bool v) -> std::string_view { return v ? i18n("Enable") : i18n("Disable"); };
 		i18n_log_info_fmt("[core].SwapChain_D3D11.created_swapchain_info_fmt"
-			, mode.width, mode.height, refresh_rate_string
+			, mode.Width, mode.Height, refresh_rate_string
 			, enable_or_disable(fullscreen)
 			, swapchain_model
 			, enable_or_disable(m_swap_chain_info.Flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING)
