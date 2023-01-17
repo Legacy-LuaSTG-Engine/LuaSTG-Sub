@@ -995,7 +995,29 @@ namespace Core::Graphics
 		{
 			m_swap_chain_fullscreen_mode = FALSE; // 手动离开全屏模式
 
+			dispatchEvent(EventType::SwapChainDestroy);
+			destroySwapChain();
 
+			if (!m_window->getRedirectBitmapEnable())
+			{
+				m_window->setRedirectBitmapEnable(true);
+				if (!m_window->recreateWindow()) return false;
+			}
+
+			if (!createSwapChain(false, {}, false))
+			{
+				return false;
+			}
+
+			if (!updateLetterBoxingRendererTransform()) return false;
+
+			// 记录状态
+			m_init = TRUE;
+
+			// 广播
+			dispatchEvent(EventType::SwapChainCreate);
+
+			return true;
 		}
 		
 		return true;
