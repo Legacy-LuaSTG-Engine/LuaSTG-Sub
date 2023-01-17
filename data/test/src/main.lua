@@ -79,6 +79,7 @@ require("test_monitor")
 require("test_utf8api")
 require("test_lfs")
 require("test_f2dfont")
+require("test_hgefont")
 
 function GameInit()
     window:init()
