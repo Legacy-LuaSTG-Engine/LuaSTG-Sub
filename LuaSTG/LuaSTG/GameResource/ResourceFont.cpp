@@ -4,8 +4,9 @@
 #include "utility/utf.hpp"
 #include "utility/encoding.hpp"
 #include "AppFrame.h"
+#include "fcyException.h"
 #include "fcyMisc/fcyStringHelper.h"
-#include "fcyParser/fcyXml.h"
+#include "pugixml.hpp"
 
 namespace LuaSTGPlus
 {
@@ -279,63 +280,71 @@ namespace LuaSTGPlus
 		float m_descender;
 
 	private:
-		Core::Vector2F readVec2Str(const std::wstring& Str)
+		Core::Vector2F readVec2Str(std::string const& Str)
 		{
 			Core::Vector2F tRet;
-			if (2 != swscanf_s(Str.c_str(), L"%f,%f", &tRet.x, &tRet.y))
+			size_t const sep = Str.find_first_of(',');
+			if (Str.empty() || sep == std::string::npos)
 				throw fcyException("f2dFontTexProvider::readVec2Str", "String format error.");
+			std::string n1 = Str.substr(0, sep);
+			std::string n2 = Str.substr(sep + 1);
+			tRet.x = std::stof(n1);
+			tRet.y = std::stof(n2);
 			return tRet;
 		}
-		void loadDefine(fcyXmlDocument& Xml)
+		void loadDefine(pugi::xml_document& doc)
 		{
-			float const tXScale = 1.0f / (float)m_texture->getSize().x;
-			float const tYScale = 1.0f / (float)m_texture->getSize().y;
+			float const u_scale = 1.0f / (float)m_texture->getSize().x;
+			float const v_scale = 1.0f / (float)m_texture->getSize().y;
 
-			fcyXmlElement* pRoot = Xml.GetRootElement();
-
-			if (pRoot->GetName() != L"f2dTexturedFont")
-				throw fcyException("f2dFontTexProvider::loadDefine", "Invalid file, root node name not match.");
-
-			fcyXmlElement* pMeasureNode = pRoot->GetFirstNode(L"Measure");
-			if (!pMeasureNode)
-				throw fcyException("f2dFontTexProvider::loadDefine", "Invalid file, node 'Measure' not found.");
-
-			fcyXmlElement* pCharList = pRoot->GetFirstNode(L"CharList");
-
-			// 读取度量值
-			m_line_height = (float)_wtof(pMeasureNode->GetAttribute(L"LineHeight").c_str());
-			m_ascender = (float)_wtof(pMeasureNode->GetAttribute(L"Ascender").c_str());
-			m_descender = (float)_wtof(pMeasureNode->GetAttribute(L"Descender").c_str());
-
-			// 读取字符表
-			fcyXmlElementList tNodeList = pCharList->GetNodeByName(L"Item");
-			uint32_t tSubNodeCount = tNodeList.GetCount();
-			for (uint32_t i = 0; i < tSubNodeCount; ++i)
+			pugi::xml_node root = doc.root().child("f2dTexturedFont");
+			if (!root)
 			{
-				fcyXmlElement* pSub = tNodeList[i];
+				throw std::runtime_error("not a f2dTexturedFont");
+			}
 
-				const std::wstring& tChar = pSub->GetAttribute(L"Char");
-				if (tChar.length() != 1)
-					throw fcyException("f2dFontTexProvider::loadDefine", "Invalid file, invalid character in CharList.");
+			pugi::xml_node measure = root.child("Measure");
+			if (!measure)
+			{
+				throw std::runtime_error("invalid f2dTexturedFont Measure");
+			}
+			m_line_height = measure.attribute("LineHeight").as_float();
+			m_ascender = measure.attribute("Ascender").as_float();
+			m_descender = measure.attribute("Descender").as_float();
 
-				Core::Vector2F const Advance = readVec2Str(pSub->GetAttribute(L"Advance"));
-				Core::Vector2F const BrushPos = readVec2Str(pSub->GetAttribute(L"BrushPos"));
-				Core::Vector2F const GlyphSize = readVec2Str(pSub->GetAttribute(L"Size"));
-				Core::Vector2F GlyphPosA = readVec2Str(pSub->GetAttribute(L"Pos"));
-				Core::Vector2F GlyphPosB = GlyphPosA + readVec2Str(pSub->GetAttribute(L"Size"));
-				GlyphPosA.x *= tXScale;
-				GlyphPosA.y *= tYScale;
-				GlyphPosB.x *= tXScale;
-				GlyphPosB.y *= tYScale;
+			pugi::xml_node char_list = root.child("CharList");
+			if (!char_list)
+			{
+				throw std::runtime_error("invalid f2dTexturedFont CharList");
+			}
+			for (pugi::xml_node item = char_list.child("Item"); item; item = item.next_sibling("Item"))
+			{
+				std::string const c = item.attribute("Char").as_string();
+				utf::utf8reader reader(c.c_str(), c.length());
+				char32_t code = 0;
+				if (!reader.step(code))
+				{
+					throw std::runtime_error("invalid char");
+				}
+
+				Core::Vector2F const Advance = readVec2Str(item.attribute("Advance").as_string());
+				Core::Vector2F const BrushPos = readVec2Str(item.attribute("BrushPos").as_string());
+				Core::Vector2F const GlyphSize = readVec2Str(item.attribute("Size").as_string());
+				Core::Vector2F GlyphPosA = readVec2Str(item.attribute("Pos").as_string());
+				Core::Vector2F GlyphPosB = GlyphPosA + readVec2Str(item.attribute("Size").as_string());
+				GlyphPosA.x *= u_scale;
+				GlyphPosB.x *= u_scale;
+				GlyphPosA.y *= v_scale;
+				GlyphPosB.y *= v_scale;
 
 				Core::Graphics::GlyphInfo const glyph_info = {
-						.texture_index = 0,
-						.texture_rect = Core::RectF(GlyphPosA.x, GlyphPosA.y, GlyphPosB.x, GlyphPosB.y),
-						.size = GlyphSize,
-						.position = BrushPos,
-						.advance = Advance,
+					.texture_index = 0,
+					.texture_rect = Core::RectF(GlyphPosA, GlyphPosB),
+					.size = GlyphSize,
+					.position = BrushPos,
+					.advance = Advance,
 				};
-				m_map[(uint32_t)tChar[0]] = glyph_info;
+				m_map[(uint32_t)code] = glyph_info;
 			}
 		}
 
@@ -383,12 +392,6 @@ namespace LuaSTGPlus
 				throw std::runtime_error("f2dFont::f2dFont");
 			}
 
-			// 解析
-			fcyXmlDocument tXml(utility::encoding::to_wide(
-				std::string_view((char*)src.data(), src.size())
-			));
-			loadDefine(tXml);
-
 			// 加载纹理
 			if (GFileManager().containEx(raw_texture_path))
 			{
@@ -411,6 +414,16 @@ namespace LuaSTGPlus
 					throw std::runtime_error("f2dFont::f2dFont");
 				}
 			}
+
+			// 解析
+			pugi::xml_document doc;
+			pugi::xml_parse_result result = doc.load_buffer(src.data(), src.size());
+			if (!result)
+			{
+				spdlog::error("[luastg] 加载 fancy2d 纹理字体失败，无法解析字体定义文件 '{}' ({})", path, result.description());
+				throw std::runtime_error("f2dFont::f2dFont");
+			}
+			loadDefine(doc);
 		}
 		~f2dFont()
 		{
