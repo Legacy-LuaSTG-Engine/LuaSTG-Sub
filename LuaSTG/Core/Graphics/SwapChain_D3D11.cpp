@@ -24,45 +24,35 @@ namespace Core::Graphics
 	constexpr uint32_t const BACKGROUND_W = 512; // 512 * 16 = 8192 一般显示器大概也超不过这个分辨率？
 	constexpr uint32_t const BACKGROUND_H = 512; // 16x 是硬件支持的最大放大级别 0.25x 是最小缩小级别，128 ~ 8192
 
-	inline bool compare_DXGI_MODE_DESC_main(DXGI_MODE_DESC const& a, DXGI_MODE_DESC const& b)
+	inline std::string_view to_string(DXGI_MODE_SCANLINE_ORDER v)
 	{
-		return a.Width == b.Width
-			&& a.Height == b.Height
-			&& a.RefreshRate.Numerator == b.RefreshRate.Numerator
-			&& a.RefreshRate.Denominator == b.RefreshRate.Denominator
-			&& a.Format == b.Format
-			;
+		switch (v)
+		{
+		default:
+		case DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED:
+			assert(false); return "未知扫描方式";
+		case DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE:
+			return "逐行扫描";
+		case DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST:
+			return "隔行扫描（先奇数行）";
+		case DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST:
+			return "隔行扫描（先偶数行）";
+		}
 	}
-	inline bool is_DXGI_MODE_equal(DXGI_MODE_DESC const& a, DXGI_MODE_DESC const& b)
+	inline std::string_view to_string(DXGI_MODE_SCALING v)
 	{
-		return a.Width == b.Width
-			&& a.Height == b.Height
-			&& a.RefreshRate.Numerator == b.RefreshRate.Numerator
-			&& a.RefreshRate.Denominator == b.RefreshRate.Denominator
-			&& a.Format == b.Format
-			&& a.ScanlineOrdering == b.ScanlineOrdering
-			&& a.Scaling == b.Scaling
-			;
+		switch (v)
+		{
+		default:
+		case DXGI_MODE_SCALING_UNSPECIFIED:
+			return "自动缩放";
+		case DXGI_MODE_SCALING_CENTERED:
+			return "居中显示";
+		case DXGI_MODE_SCALING_STRETCHED:
+			return "拉伸全屏";
+		}
 	}
-	inline bool is_DXGI_MODE_better(DXGI_MODE_DESC const& a, DXGI_MODE_DESC const& b)
-	{
-		if (a.ScanlineOrdering != b.ScanlineOrdering && a.Scaling != b.Scaling)
-		{
-			if (b.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE && b.Scaling == DXGI_MODE_SCALING_UNSPECIFIED)
-				return true; // 逐行扫描 + 自动缩放 更好
-		}
-		else if (a.ScanlineOrdering != b.ScanlineOrdering)
-		{
-			if (b.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE)
-				return true; // 逐行扫描 更好
-		}
-		else if (a.Scaling != b.Scaling)
-		{
-			if (b.Scaling == DXGI_MODE_SCALING_UNSPECIFIED)
-				return true; // 自动缩放 更好
-		}
-		return false; // 没有更好的点
-	}
+
 	inline bool makeLetterboxing(Vector2U rect, Vector2U inner_rect, DXGI_MATRIX_3X2_F& mat)
 	{
 		if (rect == inner_rect)
@@ -195,7 +185,8 @@ namespace Core::Graphics
 				final_score = 0;
 			}
 
-			final_score += (int)(refresh_rate_f * 100.0); // 后面补上刷新率的 100 倍整数方便一次性比较
+			int const refresh_rate_v = std::clamp((int)(refresh_rate_f * 100.0), 0, 999999); // 理论上不会有超过一万刷新率的屏幕？
+			final_score += refresh_rate_v; // 后面补上刷新率的 100 倍整数方便一次性比较
 
 			return final_score;
 		};
@@ -333,10 +324,12 @@ namespace Core::Graphics
 		i18n_log_info_fmt("[core].SwapChain_D3D11.found_N_DisplayMode_fmt", mode_list.size());
 		for (size_t i = 0; i < mode_list.size(); i += 1)
 		{
-			spdlog::info("{: >4d}: ({: >5d} x {: >5d}) {:.2f}Hz"
+			spdlog::info("{: >4d}: ({: >5d} x {: >5d}) {:.2f}Hz {} {}"
 				, i
 				, mode_list[i].Width, mode_list[i].Height
 				, (double)mode_list[i].RefreshRate.Numerator / (double)mode_list[i].RefreshRate.Denominator
+				, to_string(mode_list[i].Scaling)
+				, to_string(mode_list[i].ScanlineOrdering)
 			);
 		}
 
@@ -521,7 +514,23 @@ namespace Core::Graphics
 
 		return true;
 	}
-	
+	inline bool isModernSwapChainModel(DXGI_SWAP_CHAIN_DESC1 const& info)
+	{
+		return info.SwapEffect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL
+			|| info.SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD
+			;
+	}
+	inline bool isModernSwapChainModel(IDXGISwapChain1* dxgi_swapchain)
+	{
+		HRNew;
+
+		DXGI_SWAP_CHAIN_DESC1 info = {};
+		HRGet = dxgi_swapchain->GetDesc1(&info);
+		HRCheckCallReturnBool("IDXGISwapChain1::GetDesc1");
+
+		return isModernSwapChainModel(info);
+	}
+
 	void SwapChain_D3D11::dispatchEvent(EventType t)
 	{
 		// 回调
@@ -1585,15 +1594,6 @@ namespace Core::Graphics
 
 		if (flip_available && checkHardwareCompositionSupport(m_device->GetD3D11Device()))
 		{
-			// 开启条件：
-			// 1. 交换链快速交换模式（DXGI_SWAP_EFFECT_FLIP_DISCARD）从 Windows 10 开始支持
-			// 2. 允许画面撕裂（立即刷新）从 Windows 10 开始支持，但是也需要硬件、驱动、系统更新等才能支持
-			// 3. 在 Windows 10 1709 (16299) Fall Creators Update 中
-			//    修复了 Frame Latency Waitable Object 和 SetMaximumFrameLatency 实际上至少有 2 帧的问题
-			// 4. DirectComposition 从 Windows 8 开始支持
-			// 5. 由于 MPO 存在一些已知的问题，导致很多用户的会选择关闭自己设备的 MPO 功能，
-			//    在关闭 MPO 后，画面呈现方式会变成 Composed: Flip 而不是 Hardware Composed: Independent Flip
-			//    这会导致延迟增加 10 倍以上，因此我们需要回退到正常的铺满窗口的交换链
 			m_is_composition_mode = true;
 			return setCompositionWindowMode(size);
 		}
