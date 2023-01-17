@@ -12,12 +12,6 @@ namespace LuaSTGPlus::LuaWrapper::IO
 			{
 				fcyStream* stream = nullptr;
 				try {
-					//std::string path = luaL_checkstring(L, 1);
-					//bool write = (bool)lua_toboolean(L, 2);
-					//std::wstring wpath = utility::encoding::to_utf8(path);
-					//fcyFileStream* _stream = new fcyFileStream(wpath.c_str(), write);
-					//stream = _stream;
-
 					std::vector<uint8_t> src;
 					if (!GFileManager().loadEx(luaL_checkstring(L, 1), src))
 					{

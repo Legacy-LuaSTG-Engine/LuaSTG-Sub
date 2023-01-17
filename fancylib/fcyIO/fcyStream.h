@@ -78,48 +78,6 @@ struct fcyStream : fcyRefObj {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief fcy文件流实现
-////////////////////////////////////////////////////////////////////////////////
-class fcyFileStream : public fcyRefObjImpl<fcyStream> {
-private:
-    fHandle m_hFile;       ///< @brief 内部文件句柄
-    bool m_bWritable;    ///< @brief 是否可写
-    std::wstring m_sPath; ///< @brief 文件路径
-    fcyCriticalSection m_CriticalSec; ///< @brief 临界区
-public: // 接口实现
-    bool CanWrite();
-    
-    bool CanResize();
-    
-    uint64_t GetLength();
-    
-    fResult SetLength(uint64_t Length);
-    
-    uint64_t GetPosition();
-    
-    fResult SetPosition(FCYSEEKORIGIN Origin, int64_t Offset);
-    
-    fResult ReadBytes(fData pData, uint64_t Length, uint64_t* pBytesRead);
-    
-    fResult WriteBytes(fcData pSrc, uint64_t Length, uint64_t* pBytesWrite);
-    
-    void Lock();
-    
-    fResult TryLock();
-    
-    void Unlock();
-
-public:
-    /// @brief     构造函数
-    /// @param[in] Path     文件路径
-    /// @param[in] Writable 可写
-    fcyFileStream(fcStrW Path, bool Writable);
-
-protected:
-    ~fcyFileStream();
-};
-
-////////////////////////////////////////////////////////////////////////////////
 /// @brief fcy内存流
 ////////////////////////////////////////////////////////////////////////////////
 class fcyMemStream : public fcyRefObjImpl<fcyStream> {
