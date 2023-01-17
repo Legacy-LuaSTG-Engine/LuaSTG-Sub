@@ -145,13 +145,13 @@ fResult fcyMemStream::WriteBytes(fcData pSrc, uint64_t Length, uint64_t* pBytesW
 }
 
 void fcyMemStream::Lock() {
-    m_CriticalSec.Lock();
+    m_CriticalSec.lock();
 }
 
 fResult fcyMemStream::TryLock() {
-    return m_CriticalSec.TryLock() ? FCYERR_OK : FCYERR_ILLEGAL;
+    return m_CriticalSec.try_lock() ? FCYERR_OK : FCYERR_ILLEGAL;
 }
 
 void fcyMemStream::Unlock() {
-    m_CriticalSec.UnLock();
+    m_CriticalSec.unlock();
 }

@@ -23,8 +23,6 @@ set(fancylib_src
     fcyMisc/fcyStringHelper.cpp
 
     fcyOS/fcyMemPool.h
-    fcyOS/fcyMultiThread.h
-    fcyOS/fcyMultiThread.cpp
 
     fcyParser/fcyLexicalParser.h
     fcyParser/fcyLexicalParser.cpp
