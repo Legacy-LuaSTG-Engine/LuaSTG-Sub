@@ -25,7 +25,6 @@ namespace Core::Graphics
 		BOOL m_swap_chain_fullscreen_mode{ FALSE };
 		BOOL m_swap_chain_vsync{ FALSE };
 
-		BOOL m_swapchain_flip_enabled{ FALSE };
 		BOOL m_swapchain_want_present_reset{ FALSE };
 
 		BOOL m_init{ FALSE };
