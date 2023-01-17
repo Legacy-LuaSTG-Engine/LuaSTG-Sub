@@ -917,9 +917,6 @@ namespace Core::Graphics
 		assert(dxgi_swapchain);
 		if (!dxgi_swapchain) return false;
 
-		assert(m_canvas_size.x > 0 && m_canvas_size.y > 0);
-		if (m_canvas_size.x == 0 || m_canvas_size.y == 0) return false;
-
 		DXGI_MODE_DESC1 display_mode = {};
 		if (!findBestDisplayMode(dxgi_swapchain.Get(), m_canvas_size, display_mode)) return false;
 
@@ -1654,14 +1651,6 @@ namespace Core::Graphics
 	bool SwapChain_D3D11::setCompositionWindowMode(Vector2U size)
 	{
 		_log("setCompositionWindowMode");
-
-		// 检查参数
-
-		if (size.x < 1 || size.y < 1)
-		{
-			i18n_log_error_fmt("[core].SwapChain_D3D11.create_swapchain_failed_invalid_size_fmt", size.x, size.y);
-			return false;
-		}
 
 		// 销毁旧交换链
 
