@@ -43,8 +43,7 @@ namespace Core::Graphics
 
 	private:
 		void destroySwapChain();
-		bool createSwapChain(bool windowed, bool flip, bool latency_event, DisplayMode const& mode, bool no_attachment);
-		bool createExclusiveFullscreenSwapChain(DXGI_MODE_DESC1 const& mode, bool no_attachment);
+		bool createSwapChain(bool fullscreen, DXGI_MODE_DESC1 const& mode, bool no_attachment);
 		void waitFrameLatency(uint32_t timeout, bool reset);
 		bool enterExclusiveFullscreenTemporarily();
 		bool leaveExclusiveFullscreenTemporarily();
