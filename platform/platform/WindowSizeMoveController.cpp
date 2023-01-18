@@ -1,6 +1,6 @@
 #include "WindowSizeMoveController.hpp"
 
-namespace platform
+namespace Platform
 {
     void WindowSizeMoveController::enterSizeMove(HWND hWnd, LPARAM lParam)
     {

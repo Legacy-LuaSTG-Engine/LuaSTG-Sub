@@ -1,6 +1,6 @@
 ﻿#include "KnownDirectory.hpp"
 
-namespace platform
+namespace Platform
 {
 	inline bool getDirectory(KNOWNFOLDERID const& id, std::wstring& out)
 	{

@@ -1,5 +1,5 @@
 ﻿#include "LuaBinding/LuaWrapper.hpp"
-#include "platform/KnownDirectory.hpp"
+#include "Platform/KnownDirectory.hpp"
 #include "utility/encoding.hpp"
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -15,7 +15,7 @@ void LuaSTGPlus::LuaWrapper::PlatformWrapper::Register(lua_State* L) noexcept
 			try
 			{
 				std::string path;
-				if (platform::KnownDirectory::getLocalAppData(path))
+				if (Platform::KnownDirectory::getLocalAppData(path))
 				{
 					lua_pushstring(L, path.c_str());
 				}
@@ -35,7 +35,7 @@ void LuaSTGPlus::LuaWrapper::PlatformWrapper::Register(lua_State* L) noexcept
 			try
 			{
 				std::string path;
-				if (platform::KnownDirectory::getRoamingAppData(path))
+				if (Platform::KnownDirectory::getRoamingAppData(path))
 				{
 					lua_pushstring(L, path.c_str());
 				}

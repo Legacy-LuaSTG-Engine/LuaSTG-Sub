@@ -1,7 +1,7 @@
 ﻿#include "Core/ApplicationModel_Win32.hpp"
 #include "Core/i18n.hpp"
-#include "platform/WindowsVersion.hpp"
-#include "platform/DetectCPU.hpp"
+#include "Platform/WindowsVersion.hpp"
+#include "Platform/DetectCPU.hpp"
 
 namespace Core
 {
@@ -642,8 +642,8 @@ namespace Core
 		: m_listener(p_listener)
 	{
 		assert(m_listener);
-		spdlog::info("[core] System {}", platform::WindowsVersion::GetName());
-		spdlog::info("[core] Kernel {}", platform::WindowsVersion::GetKernelVersionString());
+		spdlog::info("[core] System {}", Platform::WindowsVersion::GetName());
+		spdlog::info("[core] Kernel {}", Platform::WindowsVersion::GetKernelVersionString());
 		spdlog::info("[core] CPU {} {}", InstructionSet::Vendor(), InstructionSet::Brand());
 		get_system_memory_status();
 		if (!Graphics::Window_Win32::create(~m_window))

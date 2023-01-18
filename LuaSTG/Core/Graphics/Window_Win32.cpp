@@ -2,9 +2,9 @@
 #include "Core/ApplicationModel_Win32.hpp"
 #include "Core/i18n.hpp"
 #include "utility/encoding.hpp"
-#include "platform/WindowsVersion.hpp"
-#include "platform/HighDPI.hpp"
-#include "platform/WindowTheme.hpp"
+#include "Platform/WindowsVersion.hpp"
+#include "Platform/HighDPI.hpp"
+#include "Platform/WindowTheme.hpp"
 
 constexpr int const LUASTG_WM_UPDAE_TITLE = WM_USER + 64;
 constexpr int const LUASTG_WM_RECREATE = LUASTG_WM_UPDAE_TITLE + 1;
@@ -25,7 +25,7 @@ namespace Core::Graphics
 		switch (message)
 		{
 		case WM_NCCREATE:
-			platform::HighDPI::EnableNonClientDpiScaling(window);
+			Platform::HighDPI::EnableNonClientDpiScaling(window);
 			break;
 		case WM_CREATE:
 			SetLastError(0);
@@ -82,13 +82,13 @@ namespace Core::Graphics
 			if (arg1 /* == TRUE */)
 			{
 				win32_window_want_track_focus = FALSE;
-				platform::WindowTheme::UpdateColorMode(window, TRUE);
+				Platform::WindowTheme::UpdateColorMode(window, TRUE);
 				dispatchEvent(EventType::WindowActive);
 			}
 			else
 			{
 				win32_window_want_track_focus = TRUE; // 要开始抓内鬼了
-				platform::WindowTheme::UpdateColorMode(window, FALSE);
+				Platform::WindowTheme::UpdateColorMode(window, FALSE);
 				dispatchEvent(EventType::WindowInactive);
 			}
 			break;
@@ -150,13 +150,13 @@ namespace Core::Graphics
 				MINMAXINFO* info = (MINMAXINFO*)arg2;
 				RECT rect_min = { 0, 0, 320, 240 };
 				//RECT rect = { 0, 0, (LONG)win32_window_width, (LONG)win32_window_height };
-				UINT dpi = platform::HighDPI::GetDpiForWindow(win32_window);
-				if (platform::HighDPI::AdjustWindowRectExForDpi(&rect_min, win32_window_style, FALSE, win32_window_style_ex, dpi))
+				UINT dpi = Platform::HighDPI::GetDpiForWindow(win32_window);
+				if (Platform::HighDPI::AdjustWindowRectExForDpi(&rect_min, win32_window_style, FALSE, win32_window_style_ex, dpi))
 				{
 					info->ptMinTrackSize.x = rect_min.right - rect_min.left;
 					info->ptMinTrackSize.y = rect_min.bottom - rect_min.top;
 				}
-				//if (platform::HighDPI::AdjustWindowRectExForDpi(&rect, win32_window_style, FALSE, win32_window_style_ex, dpi))
+				//if (Platform::HighDPI::AdjustWindowRectExForDpi(&rect, win32_window_style, FALSE, win32_window_style_ex, dpi))
 				//{
 				//	info->ptMaxTrackSize.x = rect.right - rect.left;
 				//	info->ptMaxTrackSize.y = rect.bottom - rect.top;
@@ -174,7 +174,7 @@ namespace Core::Graphics
 			break;
 		case WM_SETTINGCHANGE:
 		case WM_THEMECHANGED:
-			platform::WindowTheme::UpdateColorMode(window, TRUE);
+			Platform::WindowTheme::UpdateColorMode(window, TRUE);
 			break;
 		case WM_DEVICECHANGE:
 			if (arg1 == 0x0007 /* DBT_DEVNODES_CHANGED */)
@@ -319,7 +319,7 @@ namespace Core::Graphics
 
 		// 窗口样式
 
-		platform::WindowTheme::UpdateColorMode(win32_window, TRUE);
+		Platform::WindowTheme::UpdateColorMode(win32_window, TRUE);
 		setWindowCornerPreference(m_allow_windows_11_window_corner);
 
 		return true;
@@ -363,9 +363,9 @@ namespace Core::Graphics
 		assert(monitor_info.rcMonitor.bottom > monitor_info.rcMonitor.top);
 
 		RECT rect = { 0, 0, (int32_t)size.x, (int32_t)size.y };
-		platform::HighDPI::AdjustWindowRectExForDpi(
+		Platform::HighDPI::AdjustWindowRectExForDpi(
 			&rect, WS_OVERLAPPEDWINDOW, FALSE, 0,
-			platform::HighDPI::GetDpiForWindow(win32_window));
+			Platform::HighDPI::GetDpiForWindow(win32_window));
 
 		//m_ignore_size_message = TRUE;
 		SetLastError(0);
@@ -507,10 +507,10 @@ namespace Core::Graphics
 	bool Window_Win32::setClientRect(RectI v)
 	{
 		// 更新 DPI
-		win32_window_dpi = platform::HighDPI::GetDpiForWindow(win32_window);
+		win32_window_dpi = Platform::HighDPI::GetDpiForWindow(win32_window);
 		// 计算包括窗口框架的尺寸
 		RECT rc = { v.a.x , v.a.y , v.b.x , v.b.y };
-		platform::HighDPI::AdjustWindowRectExForDpi(
+		Platform::HighDPI::AdjustWindowRectExForDpi(
 			&rc,
 			win32_window_style,
 			FALSE,
@@ -539,7 +539,7 @@ namespace Core::Graphics
 	}
 	uint32_t Window_Win32::getDPI()
 	{
-		win32_window_dpi = platform::HighDPI::GetDpiForWindow(win32_window);
+		win32_window_dpi = Platform::HighDPI::GetDpiForWindow(win32_window);
 		return win32_window_dpi;
 	}
 	void Window_Win32::setRedirectBitmapEnable(bool enable)
@@ -907,7 +907,7 @@ namespace Core::Graphics
 	{
 		m_allow_windows_11_window_corner = allow;
 
-		if (!platform::WindowsVersion::Is11())
+		if (!Platform::WindowsVersion::Is11())
 		{
 			return;
 		}

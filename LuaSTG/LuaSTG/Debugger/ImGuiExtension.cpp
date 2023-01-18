@@ -16,8 +16,8 @@
 #include "lua_imgui.hpp"
 #include "lua_imgui_type.hpp"
 
-#include "platform/KnownDirectory.hpp"
-#include "platform/XInput.hpp"
+#include "Platform/KnownDirectory.hpp"
+#include "Platform/XInput.hpp"
 
 #include "AppFrame.h"
 #include "LuaBinding/LuaWrapper.hpp"
@@ -769,7 +769,7 @@ namespace imgui
             io.IniFilename = NULL;
             std::wstring path;
         #ifdef USING_SYSTEM_DIRECTORY
-            if (platform::KnownDirectory::makeAppDataW(APP_COMPANY, APP_PRODUCT, path))
+            if (Platform::KnownDirectory::makeAppDataW(APP_COMPANY, APP_PRODUCT, path))
             {
                 path.push_back(L'\\');
             }
@@ -797,7 +797,7 @@ namespace imgui
         {
             std::wstring path;
         #ifdef USING_SYSTEM_DIRECTORY
-            if (platform::KnownDirectory::makeAppDataW(APP_COMPANY, APP_PRODUCT, path))
+            if (Platform::KnownDirectory::makeAppDataW(APP_COMPANY, APP_PRODUCT, path))
             {
                 path.push_back(L'\\');
             }
@@ -1018,7 +1018,7 @@ namespace imgui
             DWORD xdevice = 0;
             for (size_t i = 0; i < 4; i += 1)
             {
-                auto hr = platform::XInput::getState((DWORD)i, xstate);
+                auto hr = Platform::XInput::getState((DWORD)i, xstate);
                 if (hr == ERROR_SUCCESS)
                 {
                     bxstate[i] = true;
@@ -1060,10 +1060,10 @@ namespace imgui
                             dinput.refresh();
                         }
                         
-                        platform::DirectInput::RawState state;
+                        Platform::DirectInput::RawState state;
                         if (dinput.getRawState(current_didx, &state))
                         {
-                            platform::DirectInput::AxisRange range;
+                            Platform::DirectInput::AxisRange range;
                             dinput.getAxisRange(current_didx, &range);
                             
                             int cache = 0;
@@ -1161,7 +1161,7 @@ namespace imgui
                             dinput.refresh();
                         }
                         
-                        platform::DirectInput::State state;
+                        Platform::DirectInput::State state;
                         if (dinput.getState(current_didx, &state))
                         {
                             SHORT cache[2];

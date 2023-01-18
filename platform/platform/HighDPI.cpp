@@ -1,6 +1,6 @@
 #include "HighDPI.hpp"
 
-namespace platform
+namespace Platform
 {
 	namespace
 	{

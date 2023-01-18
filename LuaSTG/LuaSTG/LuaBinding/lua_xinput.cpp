@@ -1,9 +1,9 @@
 #include "lua_xinput.hpp"
-#include "platform/XInput.hpp"
+#include "Platform/XInput.hpp"
 #include <array>
 #include <string_view>
 
-namespace xinput = platform::XInput;
+namespace xinput = Platform::XInput;
 
 static int xinput_isConnected(lua_State* L)
 {

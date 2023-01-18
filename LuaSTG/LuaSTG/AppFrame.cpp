@@ -1,7 +1,7 @@
 ﻿#include "AppFrame.h"
 #include "Core/FileManager.hpp"
 #include "utility/encoding.hpp"
-#include "platform/XInput.hpp"
+#include "Platform/XInput.hpp"
 #include "Utility/Utility.h"
 #include "Debugger/ImGuiExtension.h"
 #include "LuaBinding/LuaAppFrame.hpp"
@@ -175,7 +175,7 @@ bool AppFrame::Init()noexcept
 		// 创建手柄输入
 		try
 		{
-			m_DirectInput = std::make_unique<platform::DirectInput>((ptrdiff_t)m_pAppModel->getWindow()->getNativeHandle());
+			m_DirectInput = std::make_unique<Platform::DirectInput>((ptrdiff_t)m_pAppModel->getWindow()->getNativeHandle());
 			{
 				m_DirectInput->refresh(); // 这里因为窗口还没显示，所以应该会出现一个Aquire设备失败的错误信息，忽略即可
 				uint32_t cnt = m_DirectInput->count();
@@ -279,7 +279,7 @@ void AppFrame::Run()noexcept
 void AppFrame::onWindowCreate()
 {
 	OpenInput();
-	m_DirectInput = std::make_unique<platform::DirectInput>((ptrdiff_t)m_pAppModel->getWindow()->getNativeHandle());
+	m_DirectInput = std::make_unique<Platform::DirectInput>((ptrdiff_t)m_pAppModel->getWindow()->getNativeHandle());
 	{
 		m_DirectInput->refresh(); // 这里因为窗口还没显示，所以应该会出现一个Aquire设备失败的错误信息，忽略即可
 		uint32_t cnt = m_DirectInput->count();
@@ -301,12 +301,12 @@ void AppFrame::onWindowDestroy()
 }
 void AppFrame::onWindowActive()
 {
-	platform::XInput::setEnable(true);
+	Platform::XInput::setEnable(true);
 	m_window_active_changed.fetch_or(0x1);
 }
 void AppFrame::onWindowInactive()
 {
-	platform::XInput::setEnable(false);
+	Platform::XInput::setEnable(false);
 	m_window_active_changed.fetch_or(0x2);
 }
 void AppFrame::onWindowSize(Core::Vector2U size)

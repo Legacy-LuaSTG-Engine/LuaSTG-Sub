@@ -10,7 +10,7 @@
 #include <functional>
 
 #include "utility/encoding.hpp"
-#include "platform/HResultChecker.hpp"
+#include "Platform/HResultChecker.hpp"
 #include "Core/FileManager.hpp"
 #include "AppFrame.h"
 #include "LuaBinding/LuaWrapper.hpp"

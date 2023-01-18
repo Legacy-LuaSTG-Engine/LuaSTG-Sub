@@ -2,7 +2,7 @@
 
 #pragma comment(lib, "Version.lib")
 
-namespace platform
+namespace Platform
 {
 	namespace detail
 	{

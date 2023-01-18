@@ -10,7 +10,7 @@
 #define _LOGDEBUG(fmt, ...)
 
 // DirectInput Data & Format
-namespace platform
+namespace Platform
 {
     // interface
     static const GUID g_IID_IDirectInput8W = {0xBF798031, 0x483A, 0x4DA2, {0xAA, 0x99, 0x5D, 0x64, 0xED, 0x36, 0x97, 0x00}};
@@ -389,7 +389,7 @@ namespace platform
 };
 
 // DirectInput
-namespace platform
+namespace Platform
 {
     constexpr DWORD g_dwKeyboardBufferSize = 32;
     constexpr DWORD g_dwMouseBufferSize = 64;

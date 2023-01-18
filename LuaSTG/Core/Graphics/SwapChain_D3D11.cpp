@@ -2,7 +2,7 @@
 #include "Core/Graphics/Format_D3D11.hpp"
 #include "Core/i18n.hpp"
 #include "utility/encoding.hpp"
-#include "platform/WindowsVersion.hpp"
+#include "Platform/WindowsVersion.hpp"
 #include "Platform/CommandLineArguments.hpp"
 #include "Platform/DesktopWindowManager.hpp"
 
@@ -475,7 +475,7 @@ namespace Core::Graphics
 
 		// * DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT 从 Windows 8.1 开始支持，我们跳过它
 
-		if (!platform::WindowsVersion::Is10Build17763())
+		if (!Platform::WindowsVersion::Is10Build17763())
 		{
 			// * DXGI_SWAP_EFFECT_FLIP_DISCARD 从 Windows 10 开始支持
 			// * 在 Windows 10 1709 (16299) Fall Creators Update 中

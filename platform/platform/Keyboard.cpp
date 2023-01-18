@@ -29,7 +29,7 @@
                              The value is always 1 for a WM_KEYUP message.
 */
 
-namespace platform
+namespace Platform
 {
     static_assert(sizeof(unsigned int) == 4);
     static_assert(sizeof(Keyboard::State::KeyStateData) == 32);

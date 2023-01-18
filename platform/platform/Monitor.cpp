@@ -1,6 +1,6 @@
 ﻿#include "Monitor.hpp"
 
-namespace platform
+namespace Platform
 {
 	BOOL CALLBACK MonitorList::callback(HMONITOR hMonitor, HDC, LPRECT, LPARAM pPraram)
 	{

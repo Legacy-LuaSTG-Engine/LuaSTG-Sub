@@ -39,7 +39,7 @@
 #include "TracyD3D11.hpp"
 #include "TracyD3D11Ctx.hpp"
 
-#include "platform/HResultChecker.hpp"
+#include "Platform/HResultChecker.hpp"
 
 namespace Microsoft::WRL::Wrappers
 {

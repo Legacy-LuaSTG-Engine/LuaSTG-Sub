@@ -3,7 +3,7 @@
 #include "Core/Graphics/Font.hpp"
 #include "GameResource/ResourceMgr.h"
 #include "GameObject/GameObjectPool.h"
-#include "platform/DirectInput.hpp"
+#include "Platform/DirectInput.hpp"
 
 namespace LuaSTGPlus
 {
@@ -100,7 +100,7 @@ namespace LuaSTGPlus
 		bool m_bRenderStarted = false;
 		
 		// 输入设备
-		std::unique_ptr<platform::DirectInput> m_DirectInput;
+		std::unique_ptr<Platform::DirectInput> m_DirectInput;
 		
 	public:
 		/// @brief 保护模式执行脚本
@@ -304,7 +304,7 @@ namespace LuaSTGPlus
 
 		GameObjectPool& GetGameObjectPool()noexcept{ return *m_GameObjectPool; }
 
-		platform::DirectInput* GetDInput()noexcept { return m_DirectInput.get(); }
+		Platform::DirectInput* GetDInput()noexcept { return m_DirectInput.get(); }
 		
 		Core::IApplicationModel* GetAppModel() { return m_pAppModel.get(); }
 		Core::Graphics::IRenderer* GetRenderer2D() { return m_pAppModel->getRenderer(); }
