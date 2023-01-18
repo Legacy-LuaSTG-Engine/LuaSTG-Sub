@@ -25,8 +25,5 @@ namespace Platform::RuntimeLoader
 	public:
 		Direct3D11();
 		~Direct3D11();
-	public:
-		static HRESULT GetAdater(ID3D11Device* pDevice, IDXGIAdapter1** ppAdapter);
-		static HRESULT GetFactory(ID3D11Device* pDevice, IDXGIFactory2** ppFactory);
 	};
 }
