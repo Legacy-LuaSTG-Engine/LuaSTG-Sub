@@ -1,6 +1,6 @@
 #pragma once
 
-namespace platform
+namespace Platform
 {
 	class AdapterPolicy
 	{

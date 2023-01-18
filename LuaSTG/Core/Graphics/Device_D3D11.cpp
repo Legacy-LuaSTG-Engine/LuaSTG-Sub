@@ -2,8 +2,8 @@
 #include "Core/FileManager.hpp"
 #include "Core/i18n.hpp"
 #include "utility/encoding.hpp"
-#include "platform/WindowsVersion.hpp"
-#include "platform/AdapterPolicy.hpp"
+#include "Platform/WindowsVersion.hpp"
+#include "Platform/AdapterPolicy.hpp"
 #include "Platform/CommandLineArguments.hpp"
 
 #include "WICTextureLoader11.h"
@@ -493,15 +493,15 @@ namespace Core::Graphics
 			// 不是严重错误
 		}
 
-		if (platform::WindowsVersion::Is8())
+		if (Platform::WindowsVersion::Is8())
 		{
 			dxgi_support_flip_model = TRUE;
 		}
-		if (platform::WindowsVersion::Is8Point1())
+		if (Platform::WindowsVersion::Is8Point1())
 		{
 			dxgi_support_low_latency = TRUE;
 		}
-		if (platform::WindowsVersion::Is10())
+		if (Platform::WindowsVersion::Is10())
 		{
 			dxgi_support_flip_model2 = TRUE;
 		}
@@ -943,8 +943,8 @@ namespace Core::Graphics
 		};
 		auto testStage = [&](bool nv, bool amd) -> bool
 		{
-			platform::AdapterPolicy::setNVIDIA(nv);
-			platform::AdapterPolicy::setAMD(amd);
+			Platform::AdapterPolicy::setNVIDIA(nv);
+			Platform::AdapterPolicy::setAMD(amd);
 
 			if (!createDXGIFactory()) return false;
 
@@ -964,7 +964,7 @@ namespace Core::Graphics
 		// Stage 4 - AMD and test
 		if (testStage(false, true)) return true;
 		// Stage 5 - Disable and failed
-		platform::AdapterPolicy::setAll(false);
+		Platform::AdapterPolicy::setAll(false);
 
 		return false;
 	}

@@ -1,6 +1,6 @@
 ﻿#include "WindowTheme.hpp"
 
-namespace platform
+namespace Platform
 {
 	// https://github.com/microsoft/WindowsAppSDK/issues/41#
 

@@ -6,7 +6,7 @@ extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000000;
 // https://gpuopen.com/learn/amdpowerxpressrequesthighperformance/
 extern "C" __declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 0x00000000;
 
-namespace platform
+namespace Platform
 {
 	void AdapterPolicy::setAll(bool active)
 	{

@@ -3,8 +3,8 @@
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/wincolor_sink.h"
 #include "spdlog/sinks/msvc_sink.h"
-#include "platform/KnownDirectory.hpp"
-#include "platform/HResultChecker.hpp"
+#include "Platform/KnownDirectory.hpp"
+#include "Platform/HResultChecker.hpp"
 #include "Platform/CommandLineArguments.hpp"
 
 namespace LuaSTG::Debugger
@@ -13,7 +13,7 @@ namespace LuaSTG::Debugger
     {
         std::wstring path = L"";
     #ifdef USING_SYSTEM_DIRECTORY
-        if (platform::KnownDirectory::makeAppDataW(APP_COMPANY, APP_PRODUCT, path))
+        if (Platform::KnownDirectory::makeAppDataW(APP_COMPANY, APP_PRODUCT, path))
         {
             path.append(L"\\");
         }
@@ -74,7 +74,7 @@ namespace LuaSTG::Debugger
             }
         };
 
-        platform::HResultChecker::SetPrintCallback(&HResultCheckerCallback::WriteError);
+        Platform::HResultChecker::SetPrintCallback(&HResultCheckerCallback::WriteError);
     }
     void Logger::destroy()
     {
@@ -83,7 +83,7 @@ namespace LuaSTG::Debugger
             logger->flush();
         }
         
-        platform::HResultChecker::SetPrintCallback();
+        Platform::HResultChecker::SetPrintCallback();
 
         spdlog::drop_all();
         spdlog::shutdown();

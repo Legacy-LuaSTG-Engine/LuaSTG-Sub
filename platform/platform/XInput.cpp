@@ -7,7 +7,7 @@
 #include <Xinput.h>
 #include "XInput.hpp"
 
-namespace platform::XInput
+namespace Platform::XInput
 {
 	// NOTICE: XInputEnable is deprecated, we should simulate its behavior
 

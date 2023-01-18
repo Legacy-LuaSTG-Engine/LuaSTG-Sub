@@ -1,6 +1,6 @@
 #include "MessageBox.hpp"
 
-namespace platform
+namespace Platform
 {
     static bool Show(int type, std::string_view title, std::string_view message, HWND window = NULL)
     {

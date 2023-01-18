@@ -2,7 +2,7 @@
 #include <string>
 #include <string_view>
 
-namespace platform
+namespace Platform
 {
 	class KnownDirectory
 	{

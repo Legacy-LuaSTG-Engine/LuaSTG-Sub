@@ -4,12 +4,12 @@
 #define NOMINMAX
 #include <Windows.h>
 #include "Mouse.h"
-#include "platform/Keyboard.hpp"
+#include "Platform/Keyboard.hpp"
 
 namespace LuaSTGPlus
 {
-    static platform::Keyboard g_Keyboard;
-    static platform::Keyboard::State g_KeyboardState;
+    static Platform::Keyboard g_Keyboard;
+    static Platform::Keyboard::State g_KeyboardState;
 }
 
 static struct InputEventListener : public Core::Graphics::IWindowEventListener
@@ -94,7 +94,7 @@ namespace LuaSTGPlus
 
     bool AppFrame::GetKeyState(int VKCode)noexcept
     {
-        return g_KeyboardState.IsKeyDown((platform::Keyboard::Key)VKCode);
+        return g_KeyboardState.IsKeyDown((Platform::Keyboard::Key)VKCode);
     }
     
     int AppFrame::GetLastKey()noexcept

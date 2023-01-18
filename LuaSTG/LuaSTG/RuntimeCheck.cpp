@@ -1,7 +1,7 @@
 ﻿#include "RuntimeCheck.hpp"
-#include "platform/MessageBox.hpp"
-#include "platform/WindowsVersion.hpp"
-#include "platform/CleanWindows.hpp"
+#include "Platform/MessageBox.hpp"
+#include "Platform/WindowsVersion.hpp"
+#include "Platform/CleanWindows.hpp"
 #include <shellapi.h>
 
 namespace LuaSTG
@@ -20,14 +20,14 @@ namespace LuaSTG
 	}
 	bool CheckUserRuntime()
 	{
-		if (!platform::WindowsVersion::Is7SP1WithPlatformUpdate())
+		if (!Platform::WindowsVersion::Is7SP1WithPlatformUpdate())
 		{
-			if (!platform::WindowsVersion::Is7SP1())
+			if (!Platform::WindowsVersion::Is7SP1())
 			{
-				if (!platform::WindowsVersion::Is7())
+				if (!Platform::WindowsVersion::Is7())
 				{
 					// 连 Windows 7 都没达到
-					platform::MessageBox::Error(LUASTG_INFO,
+					Platform::MessageBox::Error(LUASTG_INFO,
 						"Minimum system requirements are not met.\n"
 						"Satisfied:\n"
 						"    N/A\n"
@@ -48,7 +48,7 @@ namespace LuaSTG
 				else
 				{
 					// 没装 Windows 7 SP1
-					bool const ok = platform::MessageBox::Warning(LUASTG_INFO,
+					bool const ok = Platform::MessageBox::Warning(LUASTG_INFO,
 						"Minimum system requirements are not met.\n"
 						"Satisfied:\n"
 						"    Windows 7\n"
@@ -77,7 +77,7 @@ namespace LuaSTG
 			else
 			{
 				// 没装平台更新
-				bool const ok = platform::MessageBox::Warning(LUASTG_INFO,
+				bool const ok = Platform::MessageBox::Warning(LUASTG_INFO,
 					"Minimum system requirements are not met.\n"
 					"Satisfied:\n"
 					"    Windows 7\n"

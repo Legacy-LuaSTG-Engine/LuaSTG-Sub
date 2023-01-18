@@ -1,7 +1,7 @@
 #pragma once
 #include <string_view>
 
-namespace platform
+namespace Platform
 {
 #ifdef _HRESULT_DEFINED
 	using HResult = HRESULT;
@@ -43,10 +43,10 @@ namespace platform
 }
 
 #ifdef _DEBUG
-#define gHR platform::HResultChecker(__FILEW__, __LINE__)
+#define gHR Platform::HResultChecker(__FILEW__, __LINE__)
 #else
-#define gHR platform::HResultChecker()
+#define gHR Platform::HResultChecker()
 #endif
 
 #define gHRLastError gHR = HRESULT_FROM_WIN32(GetLastError())
-#define bHR platform::HResultToBool()
+#define bHR Platform::HResultToBool()

@@ -59,7 +59,7 @@ IsWindows11OrGreater()
 	return IsWindows10BuildOrGreater(22000);
 }
 
-namespace platform
+namespace Platform
 {
 	inline std::string to_utf8(std::wstring_view const& src)
 	{

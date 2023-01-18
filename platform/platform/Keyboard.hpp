@@ -1,7 +1,7 @@
 #pragma once
 #include <atomic>
 
-namespace platform
+namespace Platform
 {
 	class Keyboard
 	{

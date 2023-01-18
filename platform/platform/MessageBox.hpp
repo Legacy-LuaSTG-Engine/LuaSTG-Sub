@@ -7,7 +7,7 @@
 #undef MessageBox
 #endif
 
-namespace platform
+namespace Platform
 {
     class MessageBox
     {

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace platform::XInput
+namespace Platform::XInput
 {
     constexpr int Null            = 0x0000;
     constexpr int Up              = 0x0001;

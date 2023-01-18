@@ -2,7 +2,7 @@
 #include <vector>
 #include <string>
 
-namespace platform
+namespace Platform
 {
 	class CommandLine
 	{

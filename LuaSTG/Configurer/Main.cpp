@@ -1,4 +1,4 @@
-﻿#include "platform/HighDPI.hpp"
+﻿#include "Platform/HighDPI.hpp"
 #include "imgui.h"
 #include "imgui_freetype.h"
 #include "imgui_impl_win32.h"
@@ -323,7 +323,7 @@ struct Window
         if (!ImGui::GetCurrentContext()) return;
         
         ImGuiIO& io = ImGui::GetIO();
-        float const scaling = platform::HighDPI::ScalingFromDpi(win32_window_dpi);
+        float const scaling = Platform::HighDPI::ScalingFromDpi(win32_window_dpi);
 
         ImGuiStyle style;
         ImGui::StyleColorsLight(&style);
@@ -542,12 +542,12 @@ struct Window
             .right = 0,
             .bottom = 0,
         };
-        if (!platform::HighDPI::AdjustWindowRectExForDpi(&rc, win32_window_style, FALSE, win32_window_style_ex, win32_window_dpi))
+        if (!Platform::HighDPI::AdjustWindowRectExForDpi(&rc, win32_window_style, FALSE, win32_window_style_ex, win32_window_dpi))
         {
             throw std::runtime_error("AdjustWindowRectExForDpi failed.");
         }
-        win32_window_width = platform::HighDPI::ScalingByDpi<UINT>(WINDOW_SIZE_X, win32_window_dpi);
-        win32_window_height = platform::HighDPI::ScalingByDpi<UINT>(WINDOW_SIZE_Y, win32_window_dpi);
+        win32_window_width = Platform::HighDPI::ScalingByDpi<UINT>(WINDOW_SIZE_X, win32_window_dpi);
+        win32_window_height = Platform::HighDPI::ScalingByDpi<UINT>(WINDOW_SIZE_Y, win32_window_dpi);
         rc.right += win32_window_width;
         rc.bottom += win32_window_height;
         if (!SetWindowPos(win32_window, NULL, 0, 0, rc.right - rc.left, rc.bottom - rc.top, SWP_NOZORDER | SWP_NOMOVE))
@@ -682,7 +682,7 @@ struct Window
         {
             throw std::runtime_error("CreateWindowExW failed."); // 这不应该发生
         }
-        win32_window_dpi = platform::HighDPI::GetDpiForWindow(win32_window);
+        win32_window_dpi = Platform::HighDPI::GetDpiForWindow(win32_window);
         updateWindowSize();
         moveToCenter();
         updateTitle();

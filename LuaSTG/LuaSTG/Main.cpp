@@ -1,4 +1,4 @@
-﻿#include "platform/MessageBox.hpp"
+﻿#include "Platform/MessageBox.hpp"
 #include "Debugger/Logger.hpp"
 #include "SteamAPI/SteamAPI.hpp"
 #include "Utility/Utility.h"
@@ -20,7 +20,7 @@ int main()
 	LuaSTGPlus::CoInitializeScope com_runtime;
 	if (!com_runtime())
 	{
-		platform::MessageBox::Error(LUASTG_INFO,
+		Platform::MessageBox::Error(LUASTG_INFO,
 			"引擎初始化失败。\n"
 			"未能正常初始化COM组件库，请尝试重新启动此应用程序。");
 		return EXIT_FAILURE;
@@ -39,7 +39,7 @@ int main()
 		}
 		else
 		{
-			platform::MessageBox::Error(LUASTG_INFO,
+			Platform::MessageBox::Error(LUASTG_INFO,
 				"引擎初始化失败。\n"
 				"查看日志文件（engine.log，可以用记事本打开）可以获得更多信息。\n"
 				"请尝试重新启动此应用程序，或者联系开发人员。");
@@ -57,7 +57,7 @@ int main()
 	return result;
 }
 
-#include "platform/CleanWindows.hpp"
+#include "Platform/CleanWindows.hpp"
 
 _Use_decl_annotations_ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 {

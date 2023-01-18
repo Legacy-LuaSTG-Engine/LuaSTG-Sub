@@ -1,6 +1,6 @@
 #include "CommandLine.hpp"
 
-namespace platform
+namespace Platform
 {
 	std::vector<std::string> CommandLine::get()
 	{

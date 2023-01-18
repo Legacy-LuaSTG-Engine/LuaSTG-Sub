@@ -2,8 +2,8 @@
 #include "Core/Object.hpp"
 #include "Core/ApplicationModel.hpp"
 #include "Core/Graphics/Window.hpp"
-#include "platform/Monitor.hpp"
-#include "platform/WindowSizeMoveController.hpp"
+#include "Platform/Monitor.hpp"
+#include "Platform/WindowSizeMoveController.hpp"
 #include "Platform/RuntimeLoader/DesktopWindowManager.hpp"
 
 namespace Core::Graphics
@@ -48,8 +48,8 @@ namespace Core::Graphics
 		BOOL win32_window_is_menu_loop{ FALSE };
 		BOOL win32_window_want_track_focus{ FALSE };
 
-		platform::WindowSizeMoveController m_sizemove;
-		platform::MonitorList m_monitors;
+		Platform::WindowSizeMoveController m_sizemove;
+		Platform::MonitorList m_monitors;
 		Platform::RuntimeLoader::DesktopWindowManager dwmapi_loader;
 
 		LRESULT onMessage(HWND window, UINT message, WPARAM arg1, LPARAM arg2);

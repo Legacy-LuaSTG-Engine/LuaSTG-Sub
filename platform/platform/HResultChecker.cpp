@@ -1,6 +1,6 @@
 ﻿#include "HResultChecker.hpp"
 
-namespace platform
+namespace Platform
 {
 	struct Lock
 	{

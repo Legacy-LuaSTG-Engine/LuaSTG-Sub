@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <vector>
 
-namespace platform
+namespace Platform
 {
 	class MonitorList
 	{
