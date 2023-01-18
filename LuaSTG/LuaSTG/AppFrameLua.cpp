@@ -18,7 +18,7 @@ extern int luaopen_string_pack(lua_State* L);
 
 #include "Core/FileManager.hpp"
 #include "utility/encoding.hpp"
-#include "Platform/CommandLine.hpp"
+#include "Platform/CommandLineArguments.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -299,7 +299,8 @@ namespace LuaSTGPlus
             
             // 设置命令行参数
             spdlog::info("[luajit] 储存命令行参数");
-            std::vector<std::string> args(Platform::CommandLine::get());
+            std::vector<std::string_view> args;
+            Platform::CommandLineArguments::Get().GetArguments(args);
             if (!args.empty())
             {
                 // 打印命令行参数，隐藏不需要的命令行参数
