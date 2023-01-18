@@ -11,6 +11,7 @@ set(PLATFORM_SOURCES
     Platform/RuntimeLoader/All.cpp
     Platform/CommandLineArguments.hpp
     Platform/DesktopWindowManager.hpp
+    Platform/DXGI.hpp
     Platform/All.cpp
 
     Platform/HighDPI.hpp

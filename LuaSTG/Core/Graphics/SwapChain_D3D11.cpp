@@ -5,6 +5,7 @@
 #include "Platform/WindowsVersion.hpp"
 #include "Platform/CommandLineArguments.hpp"
 #include "Platform/DesktopWindowManager.hpp"
+#include "Platform/DXGI.hpp"
 
 #include "ScreenGrab11.h"
 
@@ -368,7 +369,7 @@ namespace Core::Graphics
 		HRGet = Platform::RuntimeLoader::Direct3D11::GetFactory(d3d11_device.Get(), &dxgi_factory);
 		HRCheckCallReturnBool("ID3D11Device::GetParent -> IDXGIFactory2");
 
-		if (!Platform::RuntimeLoader::DXGI::CheckFeatureSupportPresentAllowTearing(dxgi_factory.Get()))
+		if (!Platform::DXGI::CheckFeatureSupportPresentAllowTearing(dxgi_factory.Get()))
 		{
 			return false;
 		}
@@ -760,13 +761,13 @@ namespace Core::Graphics
 		// 关闭傻逼快捷键，别他妈乱切换了
 		// 注意这里他妈的有坑，新创建的 DXGI 工厂和交换链内部的的不是同一个
 
-		HRGet = Platform::RuntimeLoader::DXGI::MakeSwapChainWindowAssociation(
+		HRGet = Platform::DXGI::MakeSwapChainWindowAssociation(
 			dxgi_swapchain.Get(), DXGI_MWA_NO_ALT_ENTER);
 		HRCheckCallReturnBool("IDXGIFactory1::MakeWindowAssociation -> DXGI_MWA_NO_ALT_ENTER");
 		
 		// 设置设备最大帧延迟为 1
 
-		HRGet = Platform::RuntimeLoader::DXGI::SetDeviceMaximumFrameLatency(
+		HRGet = Platform::DXGI::SetDeviceMaximumFrameLatency(
 			dxgi_swapchain.Get(), 1);
 		HRCheckCallReturnBool("IDXGIDevice1::SetMaximumFrameLatency -> 1");
 		
@@ -775,7 +776,7 @@ namespace Core::Graphics
 		if (m_swap_chain_info.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
 		{
 			HANDLE event_handle{};
-			HRGet = Platform::RuntimeLoader::DXGI::SetSwapChainMaximumFrameLatency(
+			HRGet = Platform::DXGI::SetSwapChainMaximumFrameLatency(
 				dxgi_swapchain.Get(), 1, &event_handle);
 			HRCheckCallReturnBool("IDXGISwapChain2::SetMaximumFrameLatency -> 1");
 			dxgi_swapchain_event.Attach(event_handle);
@@ -1298,13 +1299,13 @@ namespace Core::Graphics
 
 		// 设置最大帧延迟为 1
 
-		HRGet = Platform::RuntimeLoader::DXGI::SetDeviceMaximumFrameLatency(dxgi_swapchain.Get(), 1);
+		HRGet = Platform::DXGI::SetDeviceMaximumFrameLatency(dxgi_swapchain.Get(), 1);
 		HRCheckCallReturnBool("IDXGIDevice1::SetMaximumFrameLatency -> 1");
 		
 		if (m_swap_chain_info.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
 		{
 			HANDLE event_handle{};
-			HRGet = Platform::RuntimeLoader::DXGI::SetSwapChainMaximumFrameLatency(
+			HRGet = Platform::DXGI::SetSwapChainMaximumFrameLatency(
 				dxgi_swapchain.Get(), 1, &event_handle);
 			HRCheckCallReturnBool("IDXGISwapChain2::SetMaximumFrameLatency -> 1");
 			dxgi_swapchain_event.Attach(event_handle);
