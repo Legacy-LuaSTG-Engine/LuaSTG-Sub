@@ -1,4 +1,5 @@
-﻿#include "HResultChecker.hpp"
+﻿#include "Shared.hpp"
+#include "HResultChecker.hpp"
 
 namespace Platform
 {

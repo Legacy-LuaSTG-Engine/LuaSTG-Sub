@@ -1,3 +1,4 @@
+#include "Shared.hpp"
 #include "HighDPI.hpp"
 
 namespace Platform

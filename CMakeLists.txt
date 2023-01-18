@@ -18,5 +18,4 @@ add_subdirectory(imgui)
 add_subdirectory(steam)
 
 add_subdirectory(utility)
-add_subdirectory(platform)
 add_subdirectory(LuaSTG)

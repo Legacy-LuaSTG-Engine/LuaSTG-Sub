@@ -1,3 +1,4 @@
+#include "Shared.hpp"
 #include "WindowSizeMoveController.hpp"
 
 namespace Platform
@@ -11,10 +12,7 @@ namespace Platform
                 is_size_or_move = TRUE;
                 ::SetCapture(hWnd);
             }
-            POINT pt = {
-                .x = GET_X_LPARAM(lParam),
-                .y = GET_Y_LPARAM(lParam),
-            };
+            POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
             ::MapWindowPoints(hWnd, NULL, &pt, 1);
             last_mouse_pos.x = pt.x;
             last_mouse_pos.y = pt.y;
@@ -30,15 +28,9 @@ namespace Platform
     {
         if (is_size_or_move)
         {
-            POINT pt = {
-                .x = GET_X_LPARAM(lParam),
-                .y = GET_Y_LPARAM(lParam),
-            };
+            POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
             ::MapWindowPoints(hWnd, NULL, &pt, 1);
-            POINT dpt = {
-                .x = pt.x - last_mouse_pos.x,
-                .y = pt.y - last_mouse_pos.y,
-            };
+            POINT dpt = { pt.x - last_mouse_pos.x, pt.y - last_mouse_pos.y };
             if (dpt.x != last_mouse_dpos.x || dpt.y != last_mouse_dpos.y)
             {
                 last_mouse_dpos.x = dpt.x;
@@ -55,15 +47,9 @@ namespace Platform
         if (is_size_or_move)
         {
             is_size_or_move = FALSE;
-            POINT pt = {
-                .x = GET_X_LPARAM(lParam),
-                .y = GET_Y_LPARAM(lParam),
-            };
+            POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
             ::MapWindowPoints(hWnd, NULL, &pt, 1);
-            POINT dpt = {
-                .x = pt.x - last_mouse_pos.x,
-                .y = pt.y - last_mouse_pos.y,
-            };
+            POINT dpt = { pt.x - last_mouse_pos.x, pt.y - last_mouse_pos.y };
             if (dpt.x != last_mouse_dpos.x || dpt.y != last_mouse_dpos.y)
             {
                 last_mouse_dpos.x = dpt.x;
@@ -223,7 +209,7 @@ namespace Platform
                 break;
             }
         }
-        return Result{ .lResult = 0, .bReturn = FALSE };
+        return Result{ 0, FALSE };
     }
     WindowSizeMoveController::Result WindowSizeMoveController::handleSizeMoveStatic(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
@@ -231,7 +217,7 @@ namespace Platform
         {
             return self->handleSizeMove(hWnd, message, wParam, lParam);
         }
-        return Result{ .lResult = 0, .bReturn = FALSE };
+        return Result{ 0, FALSE };
     }
     
     WindowSizeMoveController::WindowSizeMoveController()

@@ -1,3 +1,4 @@
+#include "Shared.hpp"
 #include "MessageBox.hpp"
 
 namespace Platform

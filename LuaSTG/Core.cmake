@@ -86,7 +86,6 @@ target_link_libraries(Core PUBLIC
     imgui
     # util
     utility
-    platform
     PlatformAPI
     # win32
     winmm.lib
