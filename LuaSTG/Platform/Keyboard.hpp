@@ -1,4 +1,5 @@
 #pragma once
+// Single/Multi Thread Model Keyboard Input
 
 #define PLATFORM_KEYBOARD_USING_ATOMIC 0
 
