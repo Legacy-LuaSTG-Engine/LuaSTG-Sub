@@ -666,7 +666,7 @@ struct Window
         win32_wincls.style = CS_HREDRAW | CS_VREDRAW;
         win32_wincls.lpfnWndProc = &win32_window_proc;
         win32_wincls.hInstance = GetModuleHandleW(NULL);
-        win32_wincls.lpszClassName = L"LuaSTGConfig";
+        win32_wincls.lpszClassName = L"SettingWindow";
 
         win32_wincls_atom = RegisterClassExW(&win32_wincls);
         if (win32_wincls_atom == 0)
