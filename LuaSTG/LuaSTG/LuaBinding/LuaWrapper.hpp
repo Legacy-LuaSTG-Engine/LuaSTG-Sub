@@ -3,7 +3,6 @@
 #pragma once
 #include "AppFrame.h"
 #include "LuaBinding/LuaWrapperMisc.hpp"
-#include "fcyIO/fcyStream.h"
 
 #define LUASTG_LUA_LIBNAME "lstg"
 
@@ -149,21 +148,6 @@ namespace LuaSTGPlus
 			static Mesh* Create(lua_State* L);
 			static void Register(lua_State* L);
 		};
-
-		namespace IO {
-			class StreamWrapper
-			{
-			public:
-				struct Wrapper {
-					fcyStream* handle;
-				};
-			public:
-				static void Register(lua_State* L) noexcept;
-				static void CreateAndPush(lua_State* L, fcyStream* handle);
-			};
-
-			void Register(lua_State* L) noexcept;
-		}
 
 		void Register(lua_State* L) noexcept;
 	}
