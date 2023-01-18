@@ -14,7 +14,7 @@ target_precompile_headers(LuaSTG PRIVATE
     LuaSTG/SharedHeaders.h
 )
 target_include_directories(LuaSTG PRIVATE
-    fancylib
+    LuaSTG/Utility/fancylib
     LuaSTG
     LuaSTG/LuaBinding
 )
@@ -23,13 +23,13 @@ target_compile_definitions(LuaSTG PRIVATE
 )
 
 set(LUASTG_ENGINE_SOURCES
-    fancylib/fcyRefObj.h
-    fancylib/fcyRefObj.cpp
-    fancylib/fcyMisc/fcyRandom.h
-    fancylib/fcyMisc/fcyRandom.cpp
-    fancylib/fcyMisc/fcyStopWatch.h
-    fancylib/fcyMisc/fcyStopWatch.cpp
-    fancylib/fcyOS/fcyMemPool.h
+    LuaSTG/Utility/fancylib/fcyRefObj.h
+    LuaSTG/Utility/fancylib/fcyRefObj.cpp
+    LuaSTG/Utility/fancylib/fcyMisc/fcyRandom.h
+    LuaSTG/Utility/fancylib/fcyMisc/fcyRandom.cpp
+    LuaSTG/Utility/fancylib/fcyMisc/fcyStopWatch.h
+    LuaSTG/Utility/fancylib/fcyMisc/fcyStopWatch.cpp
+    LuaSTG/Utility/fancylib/fcyOS/fcyMemPool.h
 
     LuaSTG/SharedHeaders.h
     LuaSTG/SharedHeaders.cpp
