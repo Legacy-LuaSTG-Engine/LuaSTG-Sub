@@ -23,7 +23,6 @@ target_compile_definitions(LuaSTG PRIVATE
 )
 
 set(LUASTG_ENGINE_SOURCES
-    fancylib/fcyType.h
     fancylib/fcyRefObj.h
     fancylib/fcyRefObj.cpp
     fancylib/fcyMisc/fcyRandom.h
