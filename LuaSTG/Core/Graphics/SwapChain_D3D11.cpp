@@ -5,6 +5,7 @@
 #include "Platform/WindowsVersion.hpp"
 #include "Platform/CommandLineArguments.hpp"
 #include "Platform/DesktopWindowManager.hpp"
+#include "Platform/Direct3D11.hpp"
 #include "Platform/DXGI.hpp"
 
 #include "ScreenGrab11.h"
@@ -366,7 +367,7 @@ namespace Core::Graphics
 		Microsoft::WRL::ComPtr<IDXGIFactory2> dxgi_factory;
 		Microsoft::WRL::ComPtr<ID3D11Device> d3d11_device = device;
 
-		HRGet = Platform::RuntimeLoader::Direct3D11::GetFactory(d3d11_device.Get(), &dxgi_factory);
+		HRGet = Platform::Direct3D11::GetDeviceFactory(d3d11_device.Get(), &dxgi_factory);
 		HRCheckCallReturnBool("ID3D11Device::GetParent -> IDXGIFactory2");
 
 		if (!Platform::DXGI::CheckFeatureSupportPresentAllowTearing(dxgi_factory.Get()))

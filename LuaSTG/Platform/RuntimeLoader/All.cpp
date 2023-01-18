@@ -217,43 +217,6 @@ namespace Platform::RuntimeLoader
 		dll_d3d11 = NULL;
 		api_D3D11CreateDevice = NULL;
 	}
-
-	HRESULT Direct3D11::GetAdater(ID3D11Device* pDevice, IDXGIAdapter1** ppAdapter)
-	{
-		assert(pDevice);
-		assert(ppAdapter);
-
-		HRESULT hr = S_OK;
-
-		Microsoft::WRL::ComPtr<IDXGIDevice> dxgi_device;
-		hr = pDevice->QueryInterface(IID_PPV_ARGS(&dxgi_device));
-		if (FAILED(hr)) return hr;
-
-		Microsoft::WRL::ComPtr<IDXGIAdapter> dxgi_adapter;
-		hr = dxgi_device->GetAdapter(&dxgi_adapter);
-		if (FAILED(hr)) return hr;
-
-		hr = dxgi_adapter->QueryInterface(IID_PPV_ARGS(ppAdapter));
-		if (FAILED(hr)) return hr;
-
-		return hr;
-	}
-	HRESULT Direct3D11::GetFactory(ID3D11Device* pDevice, IDXGIFactory2** ppFactory)
-	{
-		assert(pDevice);
-		assert(ppFactory);
-
-		HRESULT hr = S_OK;
-
-		Microsoft::WRL::ComPtr<IDXGIAdapter1> dxgi_adapter;
-		hr = GetAdater(pDevice, &dxgi_adapter);
-		if (FAILED(hr)) return hr;
-
-		hr = dxgi_adapter->GetParent(IID_PPV_ARGS(ppFactory));
-		if (FAILED(hr)) return hr;
-
-		return hr;
-	}
 }
 
 #include "Platform/RuntimeLoader/DirectComposition.hpp"
