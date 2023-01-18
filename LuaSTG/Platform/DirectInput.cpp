@@ -1,3 +1,4 @@
+#include "Shared.hpp"
 #include "DirectInput.hpp"
 
 #include <Xinput.h>

@@ -1,10 +1,14 @@
 #include "AdapterPolicy.hpp"
 
+using uint32 = unsigned int;
+
+static_assert(sizeof(uint32) == 4);
+
 // https://developer.download.nvidia.cn/devzone/devcenter/gamegraphics/files/OptimusRenderingPolicies.pdf
-extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000000;
+extern "C" __declspec(dllexport) uint32 NvOptimusEnablement = 0x00000000;
 
 // https://gpuopen.com/learn/amdpowerxpressrequesthighperformance/
-extern "C" __declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 0x00000000;
+extern "C" __declspec(dllexport) uint32 AmdPowerXpressRequestHighPerformance = 0x00000000;
 
 namespace Platform
 {

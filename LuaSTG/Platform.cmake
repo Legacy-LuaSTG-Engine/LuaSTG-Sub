@@ -12,25 +12,42 @@ set(PLATFORM_SOURCES
     Platform/CommandLineArguments.hpp
     Platform/DesktopWindowManager.hpp
     Platform/All.cpp
+
+    Platform/HighDPI.hpp
+    Platform/HighDPI.cpp
+    Platform/CleanWindows.hpp
+    Platform/KnownDirectory.hpp
+    Platform/KnownDirectory.cpp
+    Platform/CommandLine.hpp
+    Platform/CommandLine.cpp
+    Platform/Monitor.hpp
+    Platform/Monitor.cpp
+    Platform/WindowSizeMoveController.hpp
+    Platform/WindowSizeMoveController.cpp
+    Platform/DirectInput.hpp
+    Platform/DirectInput.cpp
+    Platform/WindowsVersion.hpp
+    Platform/WindowsVersion.cpp
+    Platform/WindowTheme.hpp
+    Platform/WindowTheme.cpp
+    Platform/Keyboard.hpp
+    Platform/Keyboard.cpp
+    Platform/HResultChecker.hpp
+    Platform/HResultChecker.cpp
+    Platform/DetectCPU.hpp
+    Platform/DetectCPU.cpp
+    Platform/XInput.hpp
+    Platform/XInput.cpp
+    Platform/AdapterPolicy.hpp
+    Platform/AdapterPolicy.cpp
+    Platform/MessageBox.hpp
+    Platform/MessageBox.cpp
 )
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${PLATFORM_SOURCES})
 
 add_library(PlatformAPI STATIC)
-target_compile_options(PlatformAPI PRIVATE
-    "/MP"
-    "/utf-8"
-    "/W4"
-)
-set_target_properties(PlatformAPI PROPERTIES
-    C_STANDARD 17
-    C_STANDARD_REQUIRED ON
-    CXX_STANDARD 20
-    CXX_STANDARD_REQUIRED ON
-)
-target_compile_definitions(PlatformAPI PRIVATE
-    _UNICODE
-    UNICODE
-)
+luastg_target_common_options(PlatformAPI)
+luastg_target_more_warning(PlatformAPI)
 target_include_directories(PlatformAPI PUBLIC
     .
 )

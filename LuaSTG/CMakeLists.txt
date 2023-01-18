@@ -153,7 +153,7 @@ endif()
 target_link_libraries(LuaSTG PRIVATE
     spdlog::spdlog
     utility
-    platform
+    PlatformAPI
     DirectXTexMini
     DirectX::ToolKitMini
     Core

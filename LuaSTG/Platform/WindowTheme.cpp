@@ -1,4 +1,5 @@
-﻿#include "WindowTheme.hpp"
+﻿#include "Shared.hpp"
+#include "WindowTheme.hpp"
 
 namespace Platform
 {

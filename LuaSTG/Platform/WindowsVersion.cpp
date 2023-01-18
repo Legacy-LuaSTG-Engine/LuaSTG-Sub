@@ -1,3 +1,4 @@
+#include "Shared.hpp"
 #include "WindowsVersion.hpp"
 
 #pragma comment(lib, "Version.lib")

@@ -22,7 +22,7 @@ target_link_libraries(LuaSTGConfig PRIVATE
     imgui_impl_win32
     imgui_impl_dx11
     nlohmann_json
-    platform
+    PlatformAPI
 )
 
 add_custom_command(TARGET LuaSTGConfig POST_BUILD

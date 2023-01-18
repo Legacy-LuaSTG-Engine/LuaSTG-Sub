@@ -1,4 +1,5 @@
-﻿#include "KnownDirectory.hpp"
+﻿#include "Shared.hpp"
+#include "KnownDirectory.hpp"
 
 namespace Platform
 {
