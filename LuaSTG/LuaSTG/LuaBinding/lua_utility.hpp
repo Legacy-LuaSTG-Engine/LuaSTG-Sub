@@ -39,3 +39,37 @@ inline float luaL_check_float(lua_State* L, int idx)
 {
 	return (float)luaL_checknumber(L, idx);
 }
+
+namespace lua
+{
+	struct stack_t
+	{
+		lua_State*& L;
+
+		inline stack_t(lua_State*& state) : L(state) {}
+
+		// C -> lua
+
+		template<typename T>
+		inline void push_value(T value) { assert(false); }
+
+		template<>
+		inline void push_value(bool value) { lua_pushboolean(L, value); }
+
+		template<>
+		inline void push_value(std::string_view value) { lua_pushlstring(L, value.data(), value.size()); }
+
+		// lua -> C
+
+		template<typename T>
+		inline T get_value(int32_t index) { assert(false); }
+
+		template<>
+		inline float get_value(int32_t index) { return (float)luaL_checknumber(L, index); }
+		template<>
+		inline double get_value(int32_t index) { return luaL_checknumber(L, index); }
+
+		template<>
+		inline std::string_view get_value(int32_t index) { size_t len = 0; char const* str = luaL_checklstring(L, index, &len); return { str, len }; }
+	};
+}

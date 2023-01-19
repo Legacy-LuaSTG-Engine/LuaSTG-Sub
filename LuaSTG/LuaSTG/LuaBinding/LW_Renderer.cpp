@@ -1,5 +1,6 @@
 ﻿#include "LuaBinding/LuaWrapper.hpp"
 #include "LuaBinding/lua_utility.hpp"
+#include "LuaBinding/PostEffectShader.hpp"
 #include "AppFrame.h"
 
 inline Core::Graphics::IRenderer* LR2D() { return LAPP.GetAppModel()->getRenderer(); }
@@ -815,6 +816,15 @@ static int compat_PopRenderTarget(lua_State* L)noexcept
 static int compat_PostEffect(lua_State* L)
 {
     validate_render_scope();
+
+    if (lua_isuserdata(L, 1))
+    {
+        auto* p_effect = LuaSTG::LuaBinding::PostEffectShader::Cast(L, 1);
+        const Core::Graphics::IRenderer::BlendState blend = translate_blend_3d(LuaSTGPlus::TranslateBlendMode(L, 2));
+        LR2D()->drawPostEffect(p_effect, blend);
+        return 0;
+    }
+
     const char* ps_name = luaL_checkstring(L, 1);
     const char* rt_name = luaL_checkstring(L, 2);
     const Core::Graphics::IRenderer::SamplerState rtsv = (Core::Graphics::IRenderer::SamplerState)luaL_checkinteger(L, 3);
