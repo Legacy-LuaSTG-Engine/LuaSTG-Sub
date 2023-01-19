@@ -1,3 +1,5 @@
+#include "res/shared.hlsli"
+
 Texture2D    g_texture : register(t0);
 SamplerState g_texture_sampler : register(s0);
 
@@ -8,18 +10,6 @@ cbuffer g_buffer : register(b0)
 {
     float2 g_render_target_size;
     float4 g_viewport;
-};
-
-struct PS_Input
-{
-    float4 pos : SV_Position;
-    float2 uv  : TEXCOORD0;
-    float4 col : COLOR0;
-};
-
-struct PS_Output
-{
-    float4 col : SV_Target;
 };
 
 PS_Output main(PS_Input input)
