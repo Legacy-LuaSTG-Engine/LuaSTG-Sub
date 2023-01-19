@@ -5,6 +5,35 @@
 
 namespace Core::Graphics
 {
+	inline ID3D11ShaderResourceView* get_view(Texture2D_D3D11* p)
+	{
+		return p ? p->GetView() : NULL;
+	}
+	inline ID3D11ShaderResourceView* get_view(ITexture2D* p)
+	{
+		return get_view(static_cast<Texture2D_D3D11*>(p));
+	}
+	inline ID3D11ShaderResourceView* get_view(ScopeObject<Texture2D_D3D11>& p)
+	{
+		return get_view(p.get());
+	}
+	inline ID3D11ShaderResourceView* get_view(ScopeObject<ITexture2D>& p)
+	{
+		return get_view(static_cast<Texture2D_D3D11*>(p.get()));
+	}
+
+	inline ID3D11SamplerState* get_sampler(ISamplerState* p_sampler)
+	{
+		return static_cast<SamplerState_D3D11*>(p_sampler)->GetState();
+	}
+	inline ID3D11SamplerState* get_sampler(ScopeObject<ISamplerState>& p_sampler)
+	{
+		return static_cast<SamplerState_D3D11*>(p_sampler.get())->GetState();
+	}
+}
+
+namespace Core::Graphics
+{
 	void PostEffectShader_D3D11::onDeviceCreate()
 	{
 		createResources();
@@ -12,6 +41,103 @@ namespace Core::Graphics
 	void PostEffectShader_D3D11::onDeviceDestroy()
 	{
 		d3d11_ps.Reset();
+		for (auto& v : m_buffer_map)
+		{
+			v.second.d3d11_buffer.Reset();
+		}
+	}
+
+	bool PostEffectShader_D3D11::findVariable(StringView name, LocalConstantBuffer*& buf, LocalVariable*& val)
+	{
+		std::string name_s(name);
+		for (auto& b : m_buffer_map)
+		{
+			auto it = b.second.variable.find(name_s);
+			if (it != b.second.variable.end())
+			{
+				buf = &b.second;
+				val = &it->second;
+				return true;
+			}
+		}
+		return false;
+	}
+	bool PostEffectShader_D3D11::setFloat(StringView name, float value)
+	{
+		LocalConstantBuffer* b{};
+		LocalVariable* v{};
+		if (!findVariable(name, b, v)) { assert(false); return false; }
+		if (v->size != sizeof(value)) { assert(false); return false; }
+		memcpy(b->buffer.data() + v->offset, &value, v->size);
+		return true;
+	}
+	bool PostEffectShader_D3D11::setFloat2(StringView name, Vector2F value)
+	{
+		LocalConstantBuffer* b{};
+		LocalVariable* v{};
+		if (!findVariable(name, b, v)) { assert(false); return false; }
+		if (v->size != sizeof(value)) { assert(false); return false; }
+		memcpy(b->buffer.data() + v->offset, &value, v->size);
+		return true;
+	}
+	bool PostEffectShader_D3D11::setFloat3(StringView name, Vector3F value)
+	{
+		LocalConstantBuffer* b{};
+		LocalVariable* v{};
+		if (!findVariable(name, b, v)) { assert(false); return false; }
+		if (v->size != sizeof(value)) { assert(false); return false; }
+		memcpy(b->buffer.data() + v->offset, &value, v->size);
+		return true;
+	}
+	bool PostEffectShader_D3D11::setFloat4(StringView name, Vector4F value)
+	{
+		LocalConstantBuffer* b{};
+		LocalVariable* v{};
+		if (!findVariable(name, b, v)) { assert(false); return false; }
+		if (v->size != sizeof(value)) { assert(false); return false; }
+		memcpy(b->buffer.data() + v->offset, &value, v->size);
+		return true;
+	}
+	bool PostEffectShader_D3D11::setTexture2D(StringView name, ITexture2D* p_texture)
+	{
+		std::string name_s(name);
+		auto it = m_texture2d_map.find(name_s);
+		if (it == m_texture2d_map.end()) { assert(false); return false; }
+		it->second.texture = dynamic_cast<Texture2D_D3D11*>(p_texture);
+		if (!it->second.texture) { assert(false); return false; }
+		return true;
+	}
+	bool PostEffectShader_D3D11::apply(IRenderer* p_renderer)
+	{
+		assert(p_renderer);
+
+		auto* ctx = m_device->GetD3D11DeviceContext();
+		if (!ctx) { assert(false); return false; }
+		
+		auto* p_sampler = p_renderer->getKnownSamplerState(IRenderer::SamplerState::LinearClamp);
+
+		for (auto& v : m_buffer_map)
+		{
+			D3D11_MAPPED_SUBRESOURCE res{};
+			HRESULT hr = gHR = ctx->Map(v.second.d3d11_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
+			if (FAILED(hr)) { assert(false); return false; }
+			memcpy(res.pData, v.second.buffer.data(), v.second.buffer.size());
+			ctx->Unmap(v.second.d3d11_buffer.Get(), 0);
+
+			ID3D11Buffer* b[1] = { v.second.d3d11_buffer.Get() };
+			ctx->PSSetConstantBuffers(v.second.index, 1, b);
+		}
+
+		for (auto& v : m_texture2d_map)
+		{
+			ID3D11ShaderResourceView* t[1] = { get_view(v.second.texture) };
+			ctx->PSSetShaderResources(v.second.index, 1, t);
+			auto* p_custom = v.second.texture->getSamplerState();
+			ID3D11SamplerState* s[1] = { p_custom ? get_sampler(p_custom) : get_sampler(p_sampler) };
+			ctx->PSSetSamplers(v.second.index, 1, s);
+		}
+
+		return true;
 	}
 
 	PostEffectShader_D3D11::PostEffectShader_D3D11(Device_D3D11* p_device, StringView path, bool is_path_)
@@ -31,23 +157,6 @@ namespace Core::Graphics
 
 namespace Core::Graphics
 {
-	inline ID3D11ShaderResourceView* get_view(Texture2D_D3D11* p)
-	{
-		return p ? p->GetView() : NULL;
-	}
-	inline ID3D11ShaderResourceView* get_view(ITexture2D* p)
-	{
-		return get_view(static_cast<Texture2D_D3D11*>(p));
-	}
-	inline ID3D11ShaderResourceView* get_view(ScopeObject<Texture2D_D3D11>& p)
-	{
-		return get_view(p.get());
-	}
-	inline ID3D11ShaderResourceView* get_view(ScopeObject<ITexture2D>& p)
-	{
-		return get_view(static_cast<Texture2D_D3D11*>(p.get()));
-	}
-
 	void Renderer_D3D11::setVertexIndexBuffer(size_t index)
 	{
 		assert(m_device->GetD3D11DeviceContext());
@@ -1157,15 +1266,6 @@ namespace Core::Graphics
 		return true;
 	}
 
-	inline ID3D11SamplerState* get_sampler(ISamplerState* p_sampler)
-	{
-		return static_cast<SamplerState_D3D11*>(p_sampler)->GetState();
-	}
-	inline ID3D11SamplerState* get_sampler(ScopeObject<ISamplerState>& p_sampler)
-	{
-		return static_cast<SamplerState_D3D11*>(p_sampler.get())->GetState();
-	}
-
 	bool Renderer_D3D11::createPostEffectShader(StringView path, IPostEffectShader** pp_effect)
 	{
 		try
@@ -1367,6 +1467,159 @@ namespace Core::Graphics
 
 		ctx->DrawIndexed(6, 0, 0);
 		
+		// CLEAR
+
+		ctx->ClearState();
+		ctx->OMSetRenderTargets(1, p_d3d11_rtvs, p_d3d11_dsv.Get());
+
+		return beginBatch();
+	}
+	bool Renderer_D3D11::drawPostEffect(IPostEffectShader* p_effect, BlendState blend)
+	{
+		assert(p_effect);
+
+		if (!endBatch()) return false;
+
+		// PREPARE
+
+		auto* ctx = m_device->GetD3D11DeviceContext();
+		assert(ctx);
+
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> p_d3d11_rtv;
+		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> p_d3d11_dsv;
+
+		float sw_ = 0.0f;
+		float sh_ = 0.0f;
+		/* get current rendertarget size */ {
+			ID3D11RenderTargetView* rtv_ = NULL;
+			ID3D11DepthStencilView* dsv_ = NULL;
+			ctx->OMGetRenderTargets(1, &rtv_, &dsv_);
+			if (rtv_)
+			{
+				Microsoft::WRL::ComPtr<ID3D11Resource> res_;
+				rtv_->GetResource(&res_);
+				Microsoft::WRL::ComPtr<ID3D11Texture2D> tex2d_;
+				HRESULT hr = gHR = res_.As(&tex2d_);
+				if (SUCCEEDED(hr))
+				{
+					D3D11_TEXTURE2D_DESC desc_ = {};
+					tex2d_->GetDesc(&desc_);
+					sw_ = (float)desc_.Width;
+					sh_ = (float)desc_.Height;
+				}
+				else
+				{
+					spdlog::error("[core] ID3D11Resource::QueryInterface -> #ID3D11Texture2D 调用失败");
+					return false;
+				}
+				p_d3d11_rtv = rtv_;
+				rtv_->Release();
+			}
+			if (dsv_)
+			{
+				p_d3d11_dsv = dsv_;
+				dsv_->Release();
+			}
+		}
+		if (sw_ < 1.0f || sh_ < 1.0f)
+		{
+			spdlog::warn("[core] LuaSTG::Core::Renderer::postEffect 调用提前中止，当前渲染管线未绑定渲染目标");
+			return false;
+		}
+
+		ctx->ClearState();
+
+		// [Stage IA]
+
+		/* upload vertex data */ {
+			D3D11_MAPPED_SUBRESOURCE res_ = {};
+			HRESULT hr = gHR = m_device->GetD3D11DeviceContext()->Map(_fx_vbuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
+			if (FAILED(hr))
+			{
+				spdlog::error("[core] ID3D11DeviceContext::Map -> #_fx_vbuffer 调用失败，无法上传顶点");
+				return false;
+			}
+			DrawVertex const vertex_data[4] = {
+				DrawVertex(0.f, sh_, 0.0f, 0.0f),
+				DrawVertex(sw_, sh_, 1.0f, 0.0f),
+				DrawVertex(sw_, 0.f, 1.0f, 1.0f),
+				DrawVertex(0.f, 0.f, 0.0f, 1.0f),
+			};
+			std::memcpy(res_.pData, vertex_data, sizeof(vertex_data));
+			m_device->GetD3D11DeviceContext()->Unmap(_fx_vbuffer.Get(), 0);
+		}
+
+		ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		ID3D11Buffer* p_d3d11_vbos[1] = { _fx_vbuffer.Get() };
+		UINT const stride = sizeof(DrawVertex);
+		UINT const offset = 0;
+		ctx->IASetVertexBuffers(0, 1, p_d3d11_vbos, &stride, &offset);
+		ctx->IASetIndexBuffer(_fx_ibuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+		ctx->IASetInputLayout(_input_layout.Get());
+
+		// [Stage VS]
+
+		/* upload vp matrix */ {
+			D3D11_MAPPED_SUBRESOURCE res_ = {};
+			HRESULT hr = gHR = ctx->Map(_vp_matrix_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
+			if (SUCCEEDED(hr))
+			{
+				DirectX::XMFLOAT4X4 f4x4;
+				DirectX::XMStoreFloat4x4(&f4x4, DirectX::XMMatrixOrthographicOffCenterLH(0.0f, sw_, 0.0f, sh_, 0.0f, 1.0f));
+				std::memcpy(res_.pData, &f4x4, sizeof(f4x4));
+				ctx->Unmap(_vp_matrix_buffer.Get(), 0);
+			}
+			else
+			{
+				spdlog::error("[core] ID3D11DeviceContext::Map -> #view_projection_matrix_buffer 调用失败，无法上传摄像机变换矩阵");
+			}
+		}
+
+		ctx->VSSetShader(_vertex_shader[IDX(FogState::Disable)].Get(), NULL, 0);
+		ID3D11Buffer* p_mvp[1] = { _vp_matrix_buffer.Get() };
+		ctx->VSSetConstantBuffers(0, 1, p_mvp);
+
+		// [Stage RS]
+
+		ctx->RSSetState(_raster_state.Get());
+		D3D11_VIEWPORT viewport = {
+			.TopLeftX = 0.0f,
+			.TopLeftY = 0.0f,
+			.Width = sw_,
+			.Height = sh_,
+			.MinDepth = 0.0f,
+			.MaxDepth = 1.0f,
+		};
+		ctx->RSSetViewports(1, &viewport);
+		D3D11_RECT scissor = {
+			.left = 0,
+			.top = 0,
+			.right = (LONG)sw_,
+			.bottom = (LONG)sh_,
+		};
+		ctx->RSSetScissorRects(1, &scissor);
+
+		// [Stage PS]
+
+		if (!p_effect->apply(this))
+		{
+			spdlog::error("[core] 无法应用 PostEffectShader 变量");
+			return false;
+		}
+		ctx->PSSetShader(static_cast<PostEffectShader_D3D11*>(p_effect)->GetPS(), NULL, 0);
+		
+		// [Stage OM]
+
+		ctx->OMSetDepthStencilState(_depth_state[IDX(DepthState::Disable)].Get(), D3D11_DEFAULT_STENCIL_REFERENCE);
+		FLOAT blend_factor[4] = {};
+		ctx->OMSetBlendState(_blend_state[IDX(blend)].Get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
+		ID3D11RenderTargetView* p_d3d11_rtvs[1] = { p_d3d11_rtv.Get() };
+		ctx->OMSetRenderTargets(1, p_d3d11_rtvs, p_d3d11_dsv.Get());
+
+		// DRAW
+
+		ctx->DrawIndexed(6, 0, 0);
+
 		// CLEAR
 
 		ctx->ClearState();

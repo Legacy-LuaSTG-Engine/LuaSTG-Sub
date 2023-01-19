@@ -4,8 +4,16 @@
 
 namespace Core::Graphics
 {
+	struct IRenderer;
+
 	struct IPostEffectShader : public IObject
 	{
+		virtual bool setFloat(StringView name, float value) = 0;
+		virtual bool setFloat2(StringView name, Vector2F value) = 0;
+		virtual bool setFloat3(StringView name, Vector3F value) = 0;
+		virtual bool setFloat4(StringView name, Vector4F value) = 0;
+		virtual bool setTexture2D(StringView name, ITexture2D* p_texture) = 0;
+		virtual bool apply(IRenderer* p_renderer) = 0;
 	};
 
 	struct IModel : public IObject
@@ -153,6 +161,7 @@ namespace Core::Graphics
 			ITexture2D* p_tex, SamplerState rtsv,
 			Vector4F const* cv, size_t cv_n,
 			ITexture2D* const* p_tex_arr, SamplerState const* sv, size_t tv_sv_n) = 0;
+		virtual bool drawPostEffect(IPostEffectShader* p_effect, BlendState blend) = 0;
 
 		virtual bool createModel(StringView path, IModel** pp_model) = 0;
 		virtual bool drawModel(IModel* p_model) = 0;

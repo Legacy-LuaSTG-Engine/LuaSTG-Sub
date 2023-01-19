@@ -94,18 +94,48 @@ namespace Core::Graphics
 		, IDeviceEventListener
 	{
 	private:
+		struct LocalVariable
+		{
+			UINT offset{};
+			UINT size{};
+		};
+		struct LocalConstantBuffer
+		{
+			UINT index{};
+			std::vector<uint8_t> buffer;
+			Microsoft::WRL::ComPtr<ID3D11Buffer> d3d11_buffer;
+			std::unordered_map<std::string, LocalVariable> variable;
+		};
+		struct LocalTexture2D
+		{
+			UINT index{};
+			ScopeObject<Texture2D_D3D11> texture;
+		};
+	private:
 		ScopeObject<Device_D3D11> m_device;
 		Microsoft::WRL::ComPtr<ID3DBlob> d3d_ps_blob;
+		Microsoft::WRL::ComPtr<ID3D11ShaderReflection> d3d11_ps_reflect;
 		Microsoft::WRL::ComPtr<ID3D11PixelShader> d3d11_ps;
+		std::unordered_map<std::string, LocalConstantBuffer> m_buffer_map;
+		std::unordered_map<std::string, LocalTexture2D> m_texture2d_map;
 		std::string source;
 		bool is_path{ false };
 
 		bool createResources();
 		void onDeviceCreate();
 		void onDeviceDestroy();
+		bool findVariable(StringView name, LocalConstantBuffer*& buf, LocalVariable*& val);
 
 	public:
 		ID3D11PixelShader* GetPS() const noexcept { return d3d11_ps.Get(); }
+
+	public:
+		bool setFloat(StringView name, float value);
+		bool setFloat2(StringView name, Vector2F value);
+		bool setFloat3(StringView name, Vector3F value);
+		bool setFloat4(StringView name, Vector4F value);
+		bool setTexture2D(StringView name, ITexture2D* p_texture);
+		bool apply(IRenderer* p_renderer);
 
 	public:
 		PostEffectShader_D3D11(Device_D3D11* p_device, StringView path, bool is_path_);
@@ -202,6 +232,7 @@ namespace Core::Graphics
 			ITexture2D* p_tex, SamplerState rtsv,
 			Vector4F const* cv, size_t cv_n,
 			ITexture2D* const* p_tex_arr, SamplerState const* sv, size_t tv_sv_n);
+		bool drawPostEffect(IPostEffectShader* p_effect, BlendState blend);
 
 		bool createModel(StringView path, IModel** pp_model);
 		bool drawModel(IModel* p_model);
