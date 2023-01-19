@@ -119,6 +119,7 @@ namespace Core::Graphics
 
 		virtual bool beginBatch() = 0;
 		virtual bool endBatch() = 0;
+		virtual bool isBatchScope() = 0;
 		virtual bool flush() = 0;
 
 		virtual void clearRenderTarget(Color4B const& color) = 0;

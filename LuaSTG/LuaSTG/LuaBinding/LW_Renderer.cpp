@@ -11,6 +11,8 @@ inline LuaSTGPlus::ResourceMgr& LRESMGR() { return LAPP.GetResourceMgr(); }
 #define check_rendertarget_usage(PTEXTURE)
 #endif // _DEBUG
 
+#define validate_render_scope() if (!LR2D()->isBatchScope()) return luaL_error(L, "invalid render operation");
+
 inline void rotate_float2(float& x, float& y, const float r)
 {
     float const sinv = std::sinf(r);
@@ -328,11 +330,13 @@ static int lib_setScissorRect(lua_State* L)noexcept
 
 static int lib_setVertexColorBlendState(lua_State* L)noexcept
 {
+    validate_render_scope();
     LR2D()->setVertexColorBlendState((Core::Graphics::IRenderer::VertexColorBlendState)luaL_checkinteger(L, 1));
     return 0;
 }
 static int lib_setFogState(lua_State* L)noexcept
 {
+    validate_render_scope();
     Core::Color4B color;
     if (lua_isnumber(L, 2))
     {
@@ -351,16 +355,19 @@ static int lib_setFogState(lua_State* L)noexcept
 }
 static int lib_setDepthState(lua_State* L)noexcept
 {
+    validate_render_scope();
     LR2D()->setDepthState((Core::Graphics::IRenderer::DepthState)luaL_checkinteger(L, 1));
     return 0;
 }
 static int lib_setBlendState(lua_State* L)noexcept
 {
+    validate_render_scope();
     LR2D()->setBlendState((Core::Graphics::IRenderer::BlendState)luaL_checkinteger(L, 1));
     return 0;
 }
 static int lib_setTexture(lua_State* L)noexcept
 {
+    validate_render_scope();
     char const* name = luaL_checkstring(L, 1);
     fcyRefPointer<LuaSTGPlus::ResTexture> p = LRESMGR().FindTexture(name);
     if (!p)
@@ -375,6 +382,8 @@ static int lib_setTexture(lua_State* L)noexcept
 
 static int lib_drawTriangle(lua_State* L)
 {
+    validate_render_scope();
+
     Core::Graphics::IRenderer::DrawVertex vertex[3];
 
     lua_rawgeti(L, 1, 1);
@@ -424,6 +433,8 @@ static int lib_drawTriangle(lua_State* L)
 }
 static int lib_drawQuad(lua_State* L)
 {
+    validate_render_scope();
+
     Core::Graphics::IRenderer::DrawVertex vertex[4];
 
     lua_rawgeti(L, 1, 1);
@@ -488,6 +499,7 @@ static int lib_drawQuad(lua_State* L)
 
 static int lib_drawSprite(lua_State* L)
 {
+    validate_render_scope();
     float const hscale = (float)luaL_optnumber(L, 5, 1.0);
     api_drawSprite(
         luaL_checkstring(L, 1),
@@ -499,6 +511,7 @@ static int lib_drawSprite(lua_State* L)
 }
 static int lib_drawSpriteRect(lua_State* L)
 {
+    validate_render_scope();
     api_drawSpriteRect(
         luaL_checkstring(L, 1),
         (float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3),
@@ -508,6 +521,7 @@ static int lib_drawSpriteRect(lua_State* L)
 }
 static int lib_drawSprite4V(lua_State* L)
 {
+    validate_render_scope();
     api_drawSprite4V(
         luaL_checkstring(L, 1),
         (float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3), (float)luaL_checknumber(L, 4),
@@ -519,6 +533,7 @@ static int lib_drawSprite4V(lua_State* L)
 
 static int lib_drawSpriteSequence(lua_State* L)
 {
+    validate_render_scope();
     float const hscale = (float)luaL_optnumber(L, 6, 1.0);
     api_drawSpriteSequence(
         luaL_checkstring(L, 1),
@@ -532,6 +547,8 @@ static int lib_drawSpriteSequence(lua_State* L)
 
 static int lib_drawTexture(lua_State* L) noexcept
 {
+    validate_render_scope();
+
     const char* name = luaL_checkstring(L, 1);
     LuaSTGPlus::BlendMode blend = LuaSTGPlus::TranslateBlendMode(L, 2);
     Core::Graphics::IRenderer::DrawVertex vertex[4];
@@ -599,6 +616,8 @@ static int lib_drawTexture(lua_State* L) noexcept
 }
 static int lib_drawMesh(lua_State* L) noexcept
 {
+    validate_render_scope();
+
     std::string_view const tex_name = luaL_check_string_view(L, 1);
     LuaSTGPlus::BlendMode blend = LuaSTGPlus::TranslateBlendMode(L, 2);
     LuaSTGPlus::Mesh* mesh = LuaSTGPlus::LuaWrapper::MeshBinding::Cast(L, 3);
@@ -759,16 +778,19 @@ static int compat_SetFog(lua_State* L)noexcept
 }
 static int compat_SetZBufferEnable(lua_State* L)noexcept
 {
+    validate_render_scope();
     LR2D()->setDepthState((Core::Graphics::IRenderer::DepthState)luaL_checkinteger(L, 1));
     return 0;
 }
 static int compat_ClearZBuffer(lua_State* L)noexcept
 {
+    validate_render_scope();
     LR2D()->clearDepthBuffer((float)luaL_optnumber(L, 1, 1.0));
     return 0;
 }
 static int compat_PushRenderTarget(lua_State* L)noexcept
 {
+    validate_render_scope();
     LR2D()->flush();
     LuaSTGPlus::ResTexture* p = LRES.FindTexture(luaL_checkstring(L, 1));
     if (!p)
@@ -783,6 +805,7 @@ static int compat_PushRenderTarget(lua_State* L)noexcept
 }
 static int compat_PopRenderTarget(lua_State* L)noexcept
 {
+    validate_render_scope();
     LR2D()->flush();
     if (!LAPP.GetRenderTargetManager()->PopRenderTarget())
         return luaL_error(L, "pop rendertarget failed.");
@@ -791,6 +814,7 @@ static int compat_PopRenderTarget(lua_State* L)noexcept
 }
 static int compat_PostEffect(lua_State* L)
 {
+    validate_render_scope();
     const char* ps_name = luaL_checkstring(L, 1);
     const char* rt_name = luaL_checkstring(L, 2);
     const Core::Graphics::IRenderer::SamplerState rtsv = (Core::Graphics::IRenderer::SamplerState)luaL_checkinteger(L, 3);

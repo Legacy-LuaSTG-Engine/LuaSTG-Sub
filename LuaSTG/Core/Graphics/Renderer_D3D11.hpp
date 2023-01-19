@@ -149,6 +149,7 @@ namespace Core::Graphics
 		CameraStateSet _camera_state_set;
 		RendererStateSet _state_set;
 		bool _state_dirty = false;
+		bool _batch_scope = false;
 
 		bool createBuffers();
 		bool createStates();
@@ -167,6 +168,7 @@ namespace Core::Graphics
 	public:
 		bool beginBatch();
 		bool endBatch();
+		bool isBatchScope() { return _batch_scope; }
 		bool flush();
 
 		void clearRenderTarget(Color4B const& color);
