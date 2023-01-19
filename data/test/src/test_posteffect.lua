@@ -12,9 +12,24 @@ function M:onCreate()
     lstg.LoadImage("img:block", "tex:block", 0, 0, w, h)
     lstg.CreateRenderTarget("rt:target")
     lstg.LoadFX("fx:rgb_select", "res/rgb_select.hlsl")
+    self.shader = lstg.CreatePostEffectShader("res/shader_mask.hlsl")
+
+    lstg.CreateRenderTarget("rt:background_1")
+    lstg.CreateRenderTarget("rt:mask_1")
+    do
+        lstg.LoadTexture("tex:mask_1", "res/mask_1.png")
+        local ww, hh = lstg.GetTextureSize("tex:mask_1")
+        lstg.LoadImage("img:mask_1", "tex:mask_1", 0, 0, ww, hh)
+    end
+    do
+        lstg.LoadTexture("tex:image_1", "res/image_1.png")
+        local ww, hh = lstg.GetTextureSize("tex:image_1")
+        lstg.LoadImage("img:image_1", "tex:image_1", 0, 0, ww, hh)
+    end
 
     lstg.SetResourceStatus(old_pool)
 
+    self.timer = -1
     self.r = 0.0
     self.g = 0.0
     self.b = 0.0
@@ -67,9 +82,17 @@ function M:onDestroy()
     lstg.RemoveResource("global", 1, "tex:block")
     lstg.RemoveResource("global", 1, "rt:target")
     lstg.RemoveResource("global", 9, "fx:rgb_select")
+
+    lstg.RemoveResource("global", 2, "img:mask_1")
+    lstg.RemoveResource("global", 1, "tex:mask_1")
+    lstg.RemoveResource("global", 2, "img:image_1")
+    lstg.RemoveResource("global", 1, "tex:image_1")
+    lstg.RemoveResource("global", 1, "rt:background_1")
+    lstg.RemoveResource("global", 1, "rt:mask_1")
 end
 
 function M:onUpdate()
+    self.timer = self.timer + 1
     if coroutine.status(self.task) ~= "dead" then
         assert(coroutine.resume(self.task))
     end
@@ -89,6 +112,20 @@ function M:onRender()
         -- 纹理与采样器类型参数
         {}
     )
+
+    lstg.PushRenderTarget("rt:background_1")
+        lstg.RenderClear(lstg.Color(0))
+        lstg.Render("img:image_1", 128, 128, 0, 1)
+    lstg.PopRenderTarget()
+    lstg.PushRenderTarget("rt:mask_1")
+        lstg.RenderClear(lstg.Color(0))
+        lstg.Render("img:mask_1", 128, 128, 0, 1)
+    lstg.PopRenderTarget()
+    self.shader:setTexture("g_texture", "rt:mask_1")
+    self.shader:setTexture("g_render_target", "rt:background_1")
+    self.shader:setFloat2("g_render_target_size", window.width, window.height)
+    self.shader:setFloat4("g_viewport", 128 + 128 * lstg.sin(self.timer), 0, window.width, window.height)
+    lstg.PostEffect(self.shader, "")
 end
 
 test.registerTest("test.Module.PostEffect", M)
