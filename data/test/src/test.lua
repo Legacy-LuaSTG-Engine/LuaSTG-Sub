@@ -52,10 +52,7 @@ function M.onUpdate()
         if ImGui.Begin("Select Test") then
             for _, v in ipairs(tests) do
                 if ImGui.Button(v[1]) then
-                    current_test:onDestroy()
-                    current_test = {}
-                    setmetatable(current_test, { __index = v[2] })
-                    current_test:onCreate()
+                    M.setTest(v[1])
                 end
             end
         end
@@ -66,6 +63,18 @@ end
 
 function M.onRender()
     current_test:onRender()
+end
+
+function M.setTest(name)
+    for _, v in ipairs(tests) do
+        if v[1] == name then
+            current_test:onDestroy()
+            current_test = {}
+            setmetatable(current_test, { __index = v[2] })
+            current_test:onCreate()
+            return
+        end
+    end
 end
 
 return M
