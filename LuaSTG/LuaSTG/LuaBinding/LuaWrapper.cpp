@@ -1,4 +1,5 @@
 ﻿#include "LuaBinding/LuaWrapper.hpp"
+#include "LuaBinding/PostEffectShader.hpp"
 
 namespace LuaSTGPlus
 {
@@ -56,5 +57,6 @@ namespace LuaSTGPlus
 		LuaWrapper::PlatformWrapper::Register(L);
 		FileManagerWrapper::Register(L); //内建函数库，文件资源管理，请确保位于内建函数库后加载
 		ArchiveWrapper::Register(L); //压缩包
+		LuaSTG::LuaBinding::PostEffectShader::Register(L);
 	}
 }
