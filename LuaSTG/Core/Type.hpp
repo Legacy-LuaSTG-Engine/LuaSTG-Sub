@@ -256,7 +256,7 @@ namespace Core
 		ScopeObject(T* ptr) : ptr_(ptr) { internal_retain(); }
 		ScopeObject(ScopeObject& right) : ptr_(right.ptr_) { internal_retain(); }
 		ScopeObject(ScopeObject const& right) : ptr_(right.ptr_) { internal_retain(); }
-		ScopeObject(ScopeObject&& right) : ptr_(right.ptr_) { right.ptr_ = nullptr; }
+		ScopeObject(ScopeObject&& right) noexcept : ptr_(right.ptr_) { right.ptr_ = nullptr; }
 		ScopeObject(ScopeObject const&&) = delete;
 		~ScopeObject() { internal_release(); }
 	};
