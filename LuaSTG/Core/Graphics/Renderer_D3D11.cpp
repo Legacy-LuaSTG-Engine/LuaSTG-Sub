@@ -748,10 +748,12 @@ namespace Core::Graphics
 
 		initState();
 
+		_batch_scope = true;
 		return true;
 	}
 	bool Renderer_D3D11::endBatch()
 	{
+		_batch_scope = false;
 		if (!batchFlush())
 			return false;
 		_state_texture.reset();
