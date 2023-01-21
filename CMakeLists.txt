@@ -15,7 +15,6 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$<$<CONFIG:
 
 add_subdirectory(external)
 add_subdirectory(imgui)
-add_subdirectory(steam)
 
 add_subdirectory(utility)
 add_subdirectory(LuaSTG)
