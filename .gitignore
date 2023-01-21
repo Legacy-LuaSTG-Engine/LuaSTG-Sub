@@ -10,7 +10,7 @@ install/*
 cmake-build-*/*
 
 # publish
-bin/*
+.backup/*
 
 # cache
 LuaSTG/backup/*
