@@ -509,21 +509,21 @@ namespace LuaSTGPlus
 	};
 
 	ResFont::ResFont(const char* name, std::string_view hge_path, bool mipmap)
-		: Resource(ResourceType::SpriteFont, name)
+		: ResourceBase(ResourceType::SpriteFont, name)
 		, m_BlendMode(BlendMode::MulAlpha)
 		, m_BlendColor(Core::Color4B(0xFFFFFFFFu))
 	{
 		m_glyphmgr.attach(new hgeFont(hge_path, mipmap));
 	}
 	ResFont::ResFont(const char* name, std::string_view f2d_path, std::string_view tex_path, bool mipmap)
-		: Resource(ResourceType::SpriteFont, name)
+		: ResourceBase(ResourceType::SpriteFont, name)
 		, m_BlendMode(BlendMode::MulAlpha)
 		, m_BlendColor(Core::Color4B(0xFFFFFFFFu))
 	{
 		m_glyphmgr.attach(new f2dFont(f2d_path, tex_path, mipmap));
 	}
 	ResFont::ResFont(const char* name, Core::Graphics::IGlyphManager* p_mgr)
-		: Resource(ResourceType::SpriteFont, name)
+		: ResourceBase(ResourceType::SpriteFont, name)
 		, m_glyphmgr(p_mgr)
 		, m_BlendMode(BlendMode::MulAlpha)
 		, m_BlendColor(Core::Color4B(0xFFFFFFFFu))

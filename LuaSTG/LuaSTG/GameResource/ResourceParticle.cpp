@@ -36,7 +36,7 @@ namespace LuaSTGPlus
 	}
 
 	ResParticle::ResParticle(const char* name, const hgeParticleSystemInfo& pinfo, Core::Graphics::ISprite* sprite, double a, double b, bool rect)
-		: Resource(ResourceType::Particle, name)
+		: ResourceBase(ResourceType::Particle, name)
 		, m_HalfSizeX(a)
 		, m_HalfSizeY(b)
 		, m_bRectangle(rect)

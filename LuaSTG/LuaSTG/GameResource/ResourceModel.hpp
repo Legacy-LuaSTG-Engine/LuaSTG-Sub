@@ -5,7 +5,7 @@
 namespace LuaSTGPlus
 {
 	// 模型资源
-	class ResModel : public Resource
+	class ResModel : public ResourceBase
 	{
 	private:
 		Core::ScopeObject<Core::Graphics::IModel> model_;

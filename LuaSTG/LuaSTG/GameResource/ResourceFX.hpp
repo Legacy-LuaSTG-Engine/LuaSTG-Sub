@@ -5,7 +5,7 @@
 namespace LuaSTGPlus
 {
     // shader包装
-    class ResFX : public Resource
+    class ResFX : public ResourceBase
     {
     private:
         Core::ScopeObject<Core::Graphics::IPostEffectShader> m_shader;

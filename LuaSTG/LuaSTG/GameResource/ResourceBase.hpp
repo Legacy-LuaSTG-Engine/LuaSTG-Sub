@@ -49,7 +49,7 @@ namespace LuaSTGPlus
 	};
 
 	// 资源接口
-	class Resource : public fcyRefObjImpl<fcyRefObj>
+	class ResourceBase : public fcyRefObjImpl<fcyRefObj>
 	{
 	private:
 		ResourceType m_Type;
@@ -58,8 +58,8 @@ namespace LuaSTGPlus
 		ResourceType GetType() const noexcept { return m_Type; }
 		const std::string& GetResName() const noexcept { return m_ResName; }
 	public:
-		Resource(ResourceType t, const char* name) : m_Type(t), m_ResName(name) {}
-		Resource& operator=(const Resource&) = delete;
-		Resource(const Resource&) = delete;
+		ResourceBase(ResourceType t, const char* name) : m_Type(t), m_ResName(name) {}
+		ResourceBase& operator=(const ResourceBase&) = delete;
+		ResourceBase(const ResourceBase&) = delete;
 	};
 };

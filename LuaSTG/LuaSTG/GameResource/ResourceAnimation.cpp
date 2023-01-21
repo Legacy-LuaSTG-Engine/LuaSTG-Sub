@@ -9,7 +9,7 @@ namespace LuaSTGPlus
 		int n, int m, int intv,
 		double a, double b, bool rect
 	)
-		: Resource(ResourceType::Animation, name)
+		: ResourceBase(ResourceType::Animation, name)
 		, m_Interval(intv)
 		, m_HalfSizeX(a)
 		, m_HalfSizeY(b)

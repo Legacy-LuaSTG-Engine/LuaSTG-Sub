@@ -11,7 +11,7 @@ namespace LuaSTGPlus
 	// 粒子系统
 	// HGE粒子系统的f2d实现
 	class ResParticle :
-		public Resource
+		public ResourceBase
 	{
 	public:
 		// https://github.com/kvakvs/hge/blob/hge1.9/include/hgeparticle.h
