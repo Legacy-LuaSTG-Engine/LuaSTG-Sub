@@ -7,7 +7,7 @@ namespace LuaSTGPlus
 {
 	// 纹理资源
 	class ResTexture
-		: public Resource
+		: public ResourceBase
 	{
 	private:
 		Core::ScopeObject<Core::Graphics::ITexture2D> m_texture;

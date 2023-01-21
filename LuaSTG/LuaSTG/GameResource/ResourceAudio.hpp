@@ -6,7 +6,7 @@
 namespace LuaSTGPlus
 {
 	// 音效
-	class ResSound : public Resource
+	class ResSound : public ResourceBase
 	{
 	public:
 		enum class CommandType : uint32_t
@@ -44,7 +44,7 @@ namespace LuaSTGPlus
 	};
 
 	// 背景音乐
-	class ResMusic : public Resource
+	class ResMusic : public ResourceBase
 	{
 	public:
 		class LoopDecoder : public Core::Object<Core::Audio::IDecoder>

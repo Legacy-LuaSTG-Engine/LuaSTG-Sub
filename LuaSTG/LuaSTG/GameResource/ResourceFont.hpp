@@ -5,7 +5,7 @@
 namespace LuaSTGPlus
 {
 	// 纹理字体
-	class ResFont : public Resource
+	class ResFont : public ResourceBase
 	{
 	public:
 		enum class FontAlignHorizontal  // 水平对齐

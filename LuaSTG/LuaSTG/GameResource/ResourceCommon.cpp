@@ -6,7 +6,7 @@
 namespace LuaSTGPlus
 {
 	ResSprite::ResSprite(const char* name, Core::Graphics::ISprite* sprite, double hx, double hy, bool rect)
-		: Resource(ResourceType::Sprite, name)
+		: ResourceBase(ResourceType::Sprite, name)
 		, m_sprite(sprite)
 		, m_HalfSizeX(hx)
 		, m_HalfSizeY(hy)
@@ -18,7 +18,7 @@ namespace LuaSTGPlus
 	}
 
 	ResFX::ResFX(const char* name, const char* path)
-		: Resource(ResourceType::FX, name)
+		: ResourceBase(ResourceType::FX, name)
 	{
 		LAPP.GetAppModel()->getRenderer()->createPostEffectShader(path, ~m_shader);
 	}

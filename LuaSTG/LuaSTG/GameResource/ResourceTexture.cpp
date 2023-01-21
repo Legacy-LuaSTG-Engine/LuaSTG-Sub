@@ -43,7 +43,7 @@ namespace LuaSTGPlus
 	}
 
 	ResTexture::ResTexture(const char* name, Core::Graphics::ITexture2D* p_texture)
-		: Resource(ResourceType::Texture, name)
+		: ResourceBase(ResourceType::Texture, name)
 		, m_texture(p_texture)
 		, m_is_rendertarget(false)
 		, m_is_auto_resize(false)
@@ -52,7 +52,7 @@ namespace LuaSTGPlus
 	}
 	// 渲染附件容器
 	ResTexture::ResTexture(const char* name, int w, int h, bool ds)
-		: Resource(ResourceType::Texture, name)
+		: ResourceBase(ResourceType::Texture, name)
 		, m_is_rendertarget(true)
 		, m_is_auto_resize(false)
 		, m_enable_depthbuffer(ds)
@@ -65,7 +65,7 @@ namespace LuaSTGPlus
 	}
 	// 自动调整大小的渲染附件容器
 	ResTexture::ResTexture(const char* name, bool ds)
-		: Resource(ResourceType::Texture, name)
+		: ResourceBase(ResourceType::Texture, name)
 		, m_is_rendertarget(true)
 		, m_is_auto_resize(true)
 		, m_enable_depthbuffer(ds)

@@ -4,7 +4,7 @@
 
 namespace LuaSTGPlus
 {
-	class ResSprite : public Resource
+	class ResSprite : public ResourceBase
 	{
 	private:
 		Core::ScopeObject<Core::Graphics::ISprite> m_sprite;

@@ -6,7 +6,7 @@
 namespace LuaSTGPlus
 {
 	// 动画资源
-	class ResAnimation : public Resource
+	class ResAnimation : public ResourceBase
 	{
 	private:
 		std::vector<Core::ScopeObject<Core::Graphics::ISprite>> m_sprites;
