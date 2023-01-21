@@ -2,6 +2,7 @@
 #include "Core/FileManager.hpp"
 #include "utility/encoding.hpp"
 #include "AppFrame.h"
+#include "LuaBinding/lua_utility.hpp"
 
 namespace LuaSTGPlus
 {
@@ -111,84 +112,58 @@ namespace LuaSTGPlus
         return false;
     }
 
-    int ResourcePool::ExportResourceList(lua_State* L, ResourceType t) const noexcept {
-        int cnt = 1;
-        switch (t) {
-            case ResourceType::Texture:
-                lua_createtable(L, (int) m_TexturePool.size(), 0);  // t
-                for (auto& i : m_TexturePool) {
-                    lua_pushstring(L, i.second->GetResName().c_str());  // t s
-                    lua_rawseti(L, -2, cnt++);  // t
-                }
-                break;
-            case ResourceType::Sprite:
-                lua_createtable(L, (int) m_SpritePool.size(), 0);  // t
-                for (auto& i : m_SpritePool) {
-                    lua_pushstring(L, i.second->GetResName().c_str());  // t s
-                    lua_rawseti(L, -2, cnt++);  // t
-                }
-                break;
-            case ResourceType::Animation:
-                lua_createtable(L, (int) m_AnimationPool.size(), 0);  // t
-                for (auto& i : m_AnimationPool) {
-                    lua_pushstring(L, i.second->GetResName().c_str());  // t s
-                    lua_rawseti(L, -2, cnt++);  // t
-                }
-                break;
-            case ResourceType::Music:
-                lua_createtable(L, (int) m_MusicPool.size(), 0);  // t
-                for (auto& i : m_MusicPool) {
-                    lua_pushstring(L, i.second->GetResName().c_str());  // t s
-                    lua_rawseti(L, -2, cnt++);  // t
-                }
-                break;
-            case ResourceType::SoundEffect:
-                lua_createtable(L, (int) m_SoundSpritePool.size(), 0);  // t
-                for (auto& i : m_SoundSpritePool) {
-                    lua_pushstring(L, i.second->GetResName().c_str());  // t s
-                    lua_rawseti(L, -2, cnt++);  // t
-                }
-                break;
-            case ResourceType::Particle:
-                lua_createtable(L, (int) m_ParticlePool.size(), 0);  // t
-                for (auto& i : m_ParticlePool) {
-                    lua_pushstring(L, i.second->GetResName().c_str());  // t s
-                    lua_rawseti(L, -2, cnt++);  // t
-                }
-                break;
-            case ResourceType::SpriteFont:
-                lua_createtable(L, (int) m_SpriteFontPool.size(), 0);  // t
-                for (auto& i : m_SpriteFontPool) {
-                    lua_pushstring(L, i.second->GetResName().c_str());  // t s
-                    lua_rawseti(L, -2, cnt++);  // t
-                }
-                break;
-            case ResourceType::TrueTypeFont:
-                lua_createtable(L, (int) m_TTFFontPool.size(), 0);  // t
-                for (auto& i : m_TTFFontPool) {
-                    lua_pushstring(L, i.second->GetResName().c_str());  // t s
-                    lua_rawseti(L, -2, cnt++);  // t
-                }
-                break;
-            case ResourceType::FX:
-                lua_createtable(L, (int) m_FXPool.size(), 0);  // t
-                for (auto& i : m_FXPool) {
-                    lua_pushstring(L, i.second->GetResName().c_str());  // t s
-                    lua_rawseti(L, -2, cnt++);  // t
-                }
-                break;
-            case ResourceType::Model:
-                lua_createtable(L, (int)m_ModelPool.size(), 0);  // t
-                for (auto& i : m_ModelPool) {
-                    lua_pushstring(L, i.second->GetResName().c_str());  // t s
-                    lua_rawseti(L, -2, cnt++);  // t
-                }
-                break;
-            default:
-                spdlog::warn("[luastg] EnumRes: 试图枚举一个不存在的资源类型({})", (int)t);
-                // lua_pushnil(L);
-                lua_createtable(L, 0, 0);
-                break;
+    template<typename T = LuaSTGPlus::Dictionary<fcyRefPointer<LuaSTGPlus::ResourceBase>>>
+    inline void listResourceName(lua_State* L, T& resource_set)
+    {
+        lua::stack_t S(L);
+        int index = 0;
+        S.create_array(resource_set.size());
+        for (auto& i : resource_set)
+        {
+            index += 1;
+            S.set_array_value<std::string_view>(index, i.second->GetResName());
+        }
+    }
+
+    int ResourcePool::ExportResourceList(lua_State* L, ResourceType t) const noexcept
+    {
+        lua::stack_t S(L);
+        switch (t)
+        {
+        case ResourceType::Texture:
+            listResourceName(L, m_TexturePool);
+            break;
+        case ResourceType::Sprite:
+            listResourceName(L, m_SpritePool);
+            break;
+        case ResourceType::Animation:
+            listResourceName(L, m_AnimationPool);
+            break;
+        case ResourceType::Music:
+            listResourceName(L, m_MusicPool);
+            break;
+        case ResourceType::SoundEffect:
+            listResourceName(L, m_SoundSpritePool);
+            break;
+        case ResourceType::Particle:
+            listResourceName(L, m_ParticlePool);
+            break;
+        case ResourceType::SpriteFont:
+            listResourceName(L, m_SpriteFontPool);
+            break;
+        case ResourceType::TrueTypeFont:
+            listResourceName(L, m_TTFFontPool);
+            break;
+        case ResourceType::FX:
+            listResourceName(L, m_FXPool);
+            break;
+        case ResourceType::Model:
+            listResourceName(L, m_ModelPool);
+            break;
+        default:
+            spdlog::warn("[luastg] EnumRes: 试图枚举一个不存在的资源类型({})", (int)t);
+            S.create_array(0);
+            break;
         }
         return 1;
     }

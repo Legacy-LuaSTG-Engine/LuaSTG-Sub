@@ -143,7 +143,7 @@ namespace LuaSTGPlus
 						int res_i = 0;
 						for (auto& v : p_pool->m_TexturePool)
 						{
-							if (filter.PassFilter(v.second->GetResName().c_str()))
+							if (filter.PassFilter(v.second->GetResName().data()))
 							{
 								auto* p_res = v.second->GetTexture();
 								auto const p_tex_size = p_res->getSize();
@@ -151,7 +151,7 @@ namespace LuaSTGPlus
 								if (ImGui::TreeNode(*v.second,
 									"%d. %s",
 									res_i,
-									v.second->GetResName().c_str()
+									v.second->GetResName().data()
 								))
 								{
 									static float preview_scale = 1.0f;
@@ -177,12 +177,12 @@ namespace LuaSTGPlus
 						int res_i = 0;
 						for (auto& v : p_pool->m_SpritePool)
 						{
-							if (filter.PassFilter(v.second->GetResName().c_str()))
+							if (filter.PassFilter(v.second->GetResName().data()))
 							{
 								if (ImGui::TreeNode(*v.second,
 									"%d. %s",
 									res_i,
-									v.second->GetResName().c_str()
+									v.second->GetResName().data()
 								))
 								{
 									static float preview_scale = 1.0f;
@@ -207,12 +207,12 @@ namespace LuaSTGPlus
 						int res_i = 0;
 						for (auto& v : p_pool->m_AnimationPool)
 						{
-							if (filter.PassFilter(v.second->GetResName().c_str()))
+							if (filter.PassFilter(v.second->GetResName().data()))
 							{
 								if (ImGui::TreeNode(*v.second,
 									"%d. %s",
 									res_i,
-									v.second->GetResName().c_str()
+									v.second->GetResName().data()
 								))
 								{
 									static float preview_scale = 1.0f;
@@ -259,12 +259,12 @@ namespace LuaSTGPlus
 						int res_i = 0;
 						for (auto& v : p_pool->m_MusicPool)
 						{
-							if (filter.PassFilter(v.second->GetResName().c_str()))
+							if (filter.PassFilter(v.second->GetResName().data()))
 							{
 								if (ImGui::TreeNode(*v.second,
 									"%d. %s",
 									res_i,
-									v.second->GetResName().c_str()
+									v.second->GetResName().data()
 								))
 								{
 									ImGui::TreePop();
@@ -286,12 +286,12 @@ namespace LuaSTGPlus
 						int res_i = 0;
 						for (auto& v : p_pool->m_SoundSpritePool)
 						{
-							if (filter.PassFilter(v.second->GetResName().c_str()))
+							if (filter.PassFilter(v.second->GetResName().data()))
 							{
 								if (ImGui::TreeNode(*v.second,
 									"%d. %s",
 									res_i,
-									v.second->GetResName().c_str()
+									v.second->GetResName().data()
 								))
 								{
 									ImGui::TreePop();
@@ -313,12 +313,12 @@ namespace LuaSTGPlus
 						int res_i = 0;
 						for (auto& v : p_pool->m_ParticlePool)
 						{
-							if (filter.PassFilter(v.second->GetResName().c_str()))
+							if (filter.PassFilter(v.second->GetResName().data()))
 							{
 								if (ImGui::TreeNode(*v.second,
 									"%d. %s",
 									res_i,
-									v.second->GetResName().c_str()
+									v.second->GetResName().data()
 								))
 								{
 									ImGui::TreePop();
@@ -340,12 +340,12 @@ namespace LuaSTGPlus
 						int res_i = 0;
 						for (auto& v : p_pool->m_SpriteFontPool)
 						{
-							if (filter.PassFilter(v.second->GetResName().c_str()))
+							if (filter.PassFilter(v.second->GetResName().data()))
 							{
 								if (ImGui::TreeNode(*v.second,
 									"%d. %s",
 									res_i,
-									v.second->GetResName().c_str()
+									v.second->GetResName().data()
 								))
 								{
 									auto* mgr = v.second->GetGlyphManager();
@@ -382,12 +382,12 @@ namespace LuaSTGPlus
 						int res_i = 0;
 						for (auto& v : p_pool->m_TTFFontPool)
 						{
-							if (filter.PassFilter(v.second->GetResName().c_str()))
+							if (filter.PassFilter(v.second->GetResName().data()))
 							{
 								if (ImGui::TreeNode(*v.second,
 									"%d. %s",
 									res_i,
-									v.second->GetResName().c_str()
+									v.second->GetResName().data()
 								))
 								{
 									auto* mgr = v.second->GetGlyphManager();
@@ -425,12 +425,12 @@ namespace LuaSTGPlus
 						int res_i = 0;
 						for (auto& v : p_pool->m_FXPool)
 						{
-							if (filter.PassFilter(v.second->GetResName().c_str()))
+							if (filter.PassFilter(v.second->GetResName().data()))
 							{
 								if (ImGui::TreeNode(*v.second,
 									"%d. %s",
 									res_i,
-									v.second->GetResName().c_str()
+									v.second->GetResName().data()
 								))
 								{
 									ImGui::TreePop();
@@ -452,12 +452,12 @@ namespace LuaSTGPlus
 						int res_i = 0;
 						for (auto& v : p_pool->m_ModelPool)
 						{
-							if (filter.PassFilter(v.second->GetResName().c_str()))
+							if (filter.PassFilter(v.second->GetResName().data()))
 							{
 								if (ImGui::TreeNode(*v.second,
 									"%d. %s",
 									res_i,
-									v.second->GetResName().c_str()
+									v.second->GetResName().data()
 								))
 								{
 									ImGui::TreePop();
