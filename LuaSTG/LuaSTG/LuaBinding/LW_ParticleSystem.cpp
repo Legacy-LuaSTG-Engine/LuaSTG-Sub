@@ -1108,7 +1108,7 @@ namespace LuaSTGPlus::LuaWrapper
 				UserData* self = (UserData*)luaL_checkudata(L, 1, ClassID.data());
 				if (self->res)
 				{
-					lua_pushfstring(L, "lstg.ParticleSystem(\"%s\")", self->res->GetResName().c_str());
+					lua_pushfstring(L, "lstg.ParticleSystem(\"%s\")", self->res->GetResName().data());
 				}
 				else
 				{

@@ -59,6 +59,22 @@ namespace lua
 		template<>
 		inline void push_value(std::string_view value) { lua_pushlstring(L, value.data(), value.size()); }
 
+		// C -> lua array
+
+		inline void create_array(size_t size) { lua_createtable(L, static_cast<int>(size), 0); }
+
+		template<typename T>
+		inline void set_array_value_zero_base(size_t c_index, T value) { assert(false); }
+
+		template<>
+		inline void set_array_value_zero_base(size_t c_index, std::string_view value) { lua_pushlstring(L, value.data(), value.size()); lua_rawseti(L, -2, static_cast<int>(c_index + 1)); }
+
+		template<typename T>
+		inline void set_array_value(int32_t index, T value) { assert(false); }
+
+		template<>
+		inline void set_array_value(int32_t index, std::string_view value) { lua_pushlstring(L, value.data(), value.size()); lua_rawseti(L, -2, index); }
+
 		// lua -> C
 
 		template<typename T>

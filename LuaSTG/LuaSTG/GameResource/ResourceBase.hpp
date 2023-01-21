@@ -52,13 +52,13 @@ namespace LuaSTGPlus
 	class ResourceBase : public fcyRefObjImpl<fcyRefObj>
 	{
 	private:
-		ResourceType m_Type;
-		std::string m_ResName;
+		ResourceType m_resource_type;
+		std::string m_resource_name;
 	public:
-		ResourceType GetType() const noexcept { return m_Type; }
-		const std::string& GetResName() const noexcept { return m_ResName; }
+		ResourceType GetType() const noexcept { return m_resource_type; }
+		std::string_view GetResName() const noexcept { return m_resource_name; }
 	public:
-		ResourceBase(ResourceType t, const char* name) : m_Type(t), m_ResName(name) {}
+		ResourceBase(ResourceType t, std::string_view name) : m_resource_type(t), m_resource_name(name) {}
 		ResourceBase& operator=(const ResourceBase&) = delete;
 		ResourceBase(const ResourceBase&) = delete;
 	};
