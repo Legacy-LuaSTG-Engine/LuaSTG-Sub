@@ -381,3 +381,7 @@ target_sources(libqoi PRIVATE
 )
 
 set_target_properties(libqoi PROPERTIES FOLDER external)
+
+# ==================== steam api ====================
+
+add_subdirectory(steam_api)
