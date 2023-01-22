@@ -117,7 +117,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			const char* name = luaL_checkstring(L, 1);
 			const char* img_name = luaL_checkstring(L, 3);
 			if (lua_type(L, 2) == LUA_TTABLE) {
-				ResParticle::hgeParticleSystemInfo info;
+				hgeParticleSystemInfo info;
 				bool ret = TranslateTableToParticleInfo(L, 2, info);
 				if (!ret) return luaL_error(L, "load particle failed (name='%s', define=?, img='%s').", name, img_name);
 				if (!pActivedPool->LoadParticle(
@@ -365,7 +365,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 		}
 		static int IsRenderTarget(lua_State* L) noexcept
 		{
-			ResTexture* p = LRES.FindTexture(luaL_checkstring(L, 1));
+			Core::ScopeObject<IResourceTexture> p = LRES.FindTexture(luaL_checkstring(L, 1));
 			if (!p)
 				return luaL_error(L, "render target '%s' not found.", luaL_checkstring(L, 1));
 			lua_pushboolean(L, p->IsRenderTarget());
@@ -373,7 +373,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 		}
 		static int SetTexturePreMulAlphaState(lua_State* L) noexcept
 		{
-			ResTexture* p = LRES.FindTexture(luaL_checkstring(L, 1));
+			Core::ScopeObject<IResourceTexture> p = LRES.FindTexture(luaL_checkstring(L, 1));
 			if (p)
 			{
 				p->GetTexture()->setPremultipliedAlpha(lua_toboolean(L, 2));
@@ -387,7 +387,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			if (sampler_name == "" || sampler_name == "point+wrap" || sampler_name == "point+clamp" || sampler_name == "linear+wrap" || sampler_name == "linear+clamp")
 			{
 				std::string_view const tex_name = luaL_check_string_view(L, 1);
-				fcyRefPointer<LuaSTGPlus::ResTexture> p = LRES.FindTexture(tex_name.data());
+				Core::ScopeObject<IResourceTexture> p = LRES.FindTexture(tex_name.data());
 				if (!p)
 				{
 					spdlog::error("[luastg] lstg.SetTextureSamplerState failed: can't find texture '{}'", tex_name);
@@ -502,7 +502,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			}
 			else
 			{
-				ResSprite* p = LRES.FindSprite(luaL_checkstring(L, 1));
+				Core::ScopeObject<IResourceSprite> p = LRES.FindSprite(luaL_checkstring(L, 1));
 				if (!p)
 					return luaL_error(L, "image '%s' not found.", luaL_checkstring(L, 1));
 				float x = (float)luaL_checknumber(L, 2);
@@ -520,7 +520,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			}
 			else
 			{
-				ResSprite* p = LRES.FindSprite(luaL_checkstring(L, 1));
+				Core::ScopeObject<IResourceSprite> p = LRES.FindSprite(luaL_checkstring(L, 1));
 				if (!p)
 					return luaL_error(L, "image '%s' not found.", luaL_checkstring(L, 1));
 				lua_pushnumber(L, p->GetSprite()->getUnitsPerPixel());
@@ -529,7 +529,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 		}
 		static int SetImageState(lua_State* L) noexcept
 		{
-			ResSprite* p = LRES.FindSprite(luaL_checkstring(L, 1));
+			Core::ScopeObject<IResourceSprite> p = LRES.FindSprite(luaL_checkstring(L, 1));
 			if (!p)
 				return luaL_error(L, "image '%s' not found.", luaL_checkstring(L, 1));
 
@@ -550,7 +550,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 		}
 		static int SetImageCenter(lua_State* L) noexcept
 		{
-			ResSprite* p = LRES.FindSprite(luaL_checkstring(L, 1));
+			Core::ScopeObject<IResourceSprite> p = LRES.FindSprite(luaL_checkstring(L, 1));
 			if (!p)
 				return luaL_error(L, "image '%s' not found.", luaL_checkstring(L, 1));
 			p->GetSprite()->setTextureCenter(Core::Vector2F(
@@ -562,7 +562,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 
 		static int SetAnimationScale(lua_State* L) noexcept
 		{
-			ResAnimation* p = LRES.FindAnimation(luaL_checkstring(L, 1));
+			Core::ScopeObject<IResourceAnimation> p = LRES.FindAnimation(luaL_checkstring(L, 1));
 			if (!p)
 				return luaL_error(L, "animation '%s' not found.", luaL_checkstring(L, 1));
 			float x = (float)luaL_checknumber(L, 2);
@@ -572,7 +572,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 		}
 		static int GetAnimationScale(lua_State* L) noexcept
 		{
-			ResAnimation* p = LRES.FindAnimation(luaL_checkstring(L, 1));
+			Core::ScopeObject<IResourceAnimation> p = LRES.FindAnimation(luaL_checkstring(L, 1));
 			if (!p)
 				return luaL_error(L, "animation '%s' not found.", luaL_checkstring(L, 1));
 			lua_pushnumber(L, p->GetSprite(0)->getUnitsPerPixel());
@@ -580,7 +580,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 		}
 		static int SetAnimationState(lua_State* L) noexcept
 		{
-			ResAnimation* p = LRES.FindAnimation(luaL_checkstring(L, 1));
+			Core::ScopeObject<IResourceAnimation> p = LRES.FindAnimation(luaL_checkstring(L, 1));
 			if (!p)
 				return luaL_error(L, "animation '%s' not found.", luaL_checkstring(L, 1));
 
@@ -605,7 +605,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 		}
 		static int SetAnimationCenter(lua_State* L) noexcept
 		{
-			ResAnimation* p = LRES.FindAnimation(luaL_checkstring(L, 1));
+			Core::ScopeObject<IResourceAnimation> p = LRES.FindAnimation(luaL_checkstring(L, 1));
 			if (!p)
 				return luaL_error(L, "animation '%s' not found.", luaL_checkstring(L, 1));
 			for (size_t i = 0; i < p->GetCount(); ++i)
@@ -620,7 +620,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 
 		static int SetFontState(lua_State* L) noexcept
 		{
-			ResFont* p = LRES.FindSpriteFont(luaL_checkstring(L, 1));
+			Core::ScopeObject<IResourceFont> p = LRES.FindSpriteFont(luaL_checkstring(L, 1));
 			if (!p)
 				return luaL_error(L, "sprite font '%s' not found.", luaL_checkstring(L, 1));
 
