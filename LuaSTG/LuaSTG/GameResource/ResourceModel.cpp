@@ -1,16 +1,4 @@
 #include "GameResource/ResourceModel.hpp"
-#include "AppFrame.h"
-
-namespace LuaSTGPlus
-{
-    ResModel::ResModel(const char* name, const char* path)
-            : ResourceBase(ResourceType::Model, name)
-    {
-        if (!LAPP.GetAppModel()->getRenderer()->createModel(path, ~model_))
-            throw std::runtime_error("ResModel");
-    }
-    ResModel::~ResModel() = default;
-}
 
 namespace LuaSTGPlus
 {

@@ -4,19 +4,11 @@
 
 namespace LuaSTGPlus
 {
-	// 模型资源
-	class ResModel : public ResourceBase
+	struct IResourceModel : public IResourceBase
 	{
-	private:
-		Core::ScopeObject<Core::Graphics::IModel> model_;
-	public:
-		Core::Graphics::IModel* GetModel() { return *model_; }
-	public:
-		ResModel(const char* name, const char* path);
-		virtual ~ResModel();
+		virtual Core::Graphics::IModel* GetModel() = 0;
 	};
-
-	// 网格对象
+	
 	class Mesh
 	{
 	private:
