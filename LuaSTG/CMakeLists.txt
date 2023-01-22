@@ -48,27 +48,44 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/GameObject/GameObjectPool.cpp
     LuaSTG/GameObject/GameObjectPool.h
 
-    LuaSTG/GameResource/ResourceDebug.cpp
-    LuaSTG/GameResource/ResourceAnimation.cpp
-    LuaSTG/GameResource/ResourceAnimation.hpp
-    LuaSTG/GameResource/ResourceAudio.cpp
-    LuaSTG/GameResource/ResourceAudio.hpp
     LuaSTG/GameResource/ResourceBase.hpp
-    LuaSTG/GameResource/ResourceFont.cpp
+    LuaSTG/GameResource/ResourceTexture.hpp
+    LuaSTG/GameResource/ResourceSprite.hpp
+    LuaSTG/GameResource/ResourceAnimation.hpp
+    LuaSTG/GameResource/ResourceMusic.hpp
+    LuaSTG/GameResource/ResourceSoundEffect.hpp
+    LuaSTG/GameResource/ResourceParticle.hpp
     LuaSTG/GameResource/ResourceFont.hpp
-    LuaSTG/GameResource/ResourceCommon.cpp
-    LuaSTG/GameResource/ResourceFX.hpp
-    LuaSTG/GameResource/ResourceMgr.cpp
-    LuaSTG/GameResource/ResourceMgr.h
+    LuaSTG/GameResource/ResourcePostEffectShader.hpp
     LuaSTG/GameResource/ResourceModel.hpp
     LuaSTG/GameResource/ResourceModel.cpp
-    LuaSTG/GameResource/ResourceParticle.cpp
-    LuaSTG/GameResource/ResourceParticle.hpp
+
+    LuaSTG/GameResource/ResourceDebug.cpp
+    LuaSTG/GameResource/ResourceManager.cpp
+    LuaSTG/GameResource/ResourceManager.h
     LuaSTG/GameResource/ResourcePassword.hpp
     LuaSTG/GameResource/ResourcePool.cpp
-    LuaSTG/GameResource/ResourceSprite.hpp
-    LuaSTG/GameResource/ResourceTexture.hpp
-    LuaSTG/GameResource/ResourceTexture.cpp
+
+    LuaSTG/GameResource/Implement/ResourceBaseImpl.hpp
+    LuaSTG/GameResource/Implement/ResourceBaseImpl.cpp
+    LuaSTG/GameResource/Implement/ResourceTextureImpl.hpp
+    LuaSTG/GameResource/Implement/ResourceTextureImpl.cpp
+    LuaSTG/GameResource/Implement/ResourceSpriteImpl.hpp
+    LuaSTG/GameResource/Implement/ResourceSpriteImpl.cpp
+    LuaSTG/GameResource/Implement/ResourceAnimationImpl.hpp
+    LuaSTG/GameResource/Implement/ResourceAnimationImpl.cpp
+    LuaSTG/GameResource/Implement/ResourceMusicImpl.hpp
+    LuaSTG/GameResource/Implement/ResourceMusicImpl.cpp
+    LuaSTG/GameResource/Implement/ResourceSoundEffectImpl.hpp
+    LuaSTG/GameResource/Implement/ResourceSoundEffectImpl.cpp
+    LuaSTG/GameResource/Implement/ResourceParticleImpl.hpp
+    LuaSTG/GameResource/Implement/ResourceParticleImpl.cpp
+    LuaSTG/GameResource/Implement/ResourceFontImpl.hpp
+    LuaSTG/GameResource/Implement/ResourceFontImpl.cpp
+    LuaSTG/GameResource/Implement/ResourcePostEffectShaderImpl.hpp
+    LuaSTG/GameResource/Implement/ResourcePostEffectShaderImpl.cpp
+    LuaSTG/GameResource/Implement/ResourceModelImpl.hpp
+    LuaSTG/GameResource/Implement/ResourceModelImpl.cpp
 
     LuaSTG/LuaBinding/lua_dwrite.hpp
     LuaSTG/LuaBinding/lua_dwrite.cpp
