@@ -269,7 +269,6 @@ namespace LuaSTGPlus
 	{
 		if (res)
 		{
-			assert(res->GetType() == ResourceType::Particle);
 			if (res->GetType() == ResourceType::Particle)
 			{
 				assert(ps);
