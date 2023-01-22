@@ -102,11 +102,12 @@ namespace LuaSTGPlus::LuaWrapper
 	{
 		if (res)
 		{
+			assert(ptr);
 			if (ptr)
 			{
-				res->FreeInstance(ptr);
+				res->DestroyInstance(ptr);
 			}
-			res->Release();
+			res->release();
 		}
 		res = nullptr;
 		ptr = nullptr;
@@ -1133,11 +1134,11 @@ namespace LuaSTGPlus::LuaWrapper
 
 				try
 				{
-					auto* p_obj = p_res->AllocInstance();
 					auto* p_lud = Create(L);
 					p_lud->res = *p_res;
-					p_lud->res->AddRef();
-					p_lud->ptr = p_obj;
+					p_lud->res->retain();
+					p_lud->ptr = nullptr;
+					p_res->CreateInstance(&p_lud->ptr);
 				}
 				catch (const std::bad_alloc&)
 				{

@@ -130,8 +130,8 @@ namespace LuaSTGPlus
 		public:
 			struct UserData
 			{
-				ResParticle* res;
-				ResParticle::ParticlePool* ptr;
+				IResourceParticle* res;
+				IParticlePool* ptr;
 				void ReleaseAll();
 			};
 			static std::string_view const ClassID;
