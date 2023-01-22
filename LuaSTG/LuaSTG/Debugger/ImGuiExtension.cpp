@@ -47,7 +47,7 @@ static std::string bytes_count_to_string(DWORDLONG size)
     return std::string(buffer, count);
 }
 
-static void showParticleSystemEditor(bool* p_open, LuaSTGPlus::ResParticle::ParticlePool* sys)
+static void showParticleSystemEditor(bool* p_open, LuaSTGPlus::IParticlePool* sys)
 {
     struct EditorData
     {
