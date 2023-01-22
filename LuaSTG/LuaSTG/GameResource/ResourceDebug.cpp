@@ -1,4 +1,4 @@
-﻿#include "GameResource/ResourceMgr.h"
+﻿#include "GameResource/ResourceManager.h"
 #ifdef USING_DEAR_IMGUI
 #include "imgui.h"
 #endif
@@ -79,7 +79,7 @@ namespace LuaSTGPlus
 					ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
 					ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
 			};
-			auto draw_texture = [](ResTexture* p_res, bool show_info, float scale) -> void
+			auto draw_texture = [](IResourceTexture* p_res, bool show_info, float scale) -> void
 			{
 				auto const size = p_res->GetTexture()->getSize();
 				if (show_info)
