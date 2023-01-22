@@ -41,6 +41,13 @@ namespace LuaSTGPlus
 		*pp_pool = p_pool;
 		return true;
 	}
+	void ResourceParticleImpl::DestroyInstance(IParticlePool* p_pool)
+	{
+		assert(p_pool);
+		auto* p_class = static_cast<ParticlePoolImpl*>(p_pool);
+		p_class->~ParticlePoolImpl();
+		s_particle_pool_res.deallocate(p_class, sizeof(ParticlePoolImpl), alignof(ParticlePoolImpl));
+	}
 
 	ResourceParticleImpl::ResourceParticleImpl(const char* name, const hgeParticleSystemInfo& pinfo, Core::Graphics::ISprite* sprite, double a, double b, bool rect)
 		: ResourceBaseImpl(ResourceType::Particle, name)
@@ -65,10 +72,6 @@ namespace LuaSTGPlus
 		m_Res = ref;
 		m_Info = static_cast<ResourceParticleImpl*>(ref.get())->GetResourceInfo();
 		SetSeed(uint32_t(std::rand()));
-	}
-	ParticlePoolImpl::~ParticlePoolImpl()
-	{
-		s_particle_pool_res.deallocate(this, sizeof(ParticlePoolImpl), alignof(ParticlePoolImpl));
 	}
 	size_t ParticlePoolImpl::GetAliveCount() { return m_iAlive; }
 	BlendMode ParticlePoolImpl::GetBlendMode() { return m_Info.eBlendMode; }

@@ -45,7 +45,7 @@ namespace LuaSTGPlus
 		bool LoadFromInfo();
 	};
 
-	class ParticlePoolImpl : public Core::Object<IParticlePool>
+	class ParticlePoolImpl : public IParticlePool
 	{
 		//friend class ResParticle;
 	private:
@@ -92,7 +92,6 @@ namespace LuaSTGPlus
 		void SetOldBehavior(bool b) { m_bOldBehavior = b; }
 	public:
 		ParticlePoolImpl(Core::ScopeObject<IResourceParticle> ps_ref);
-		virtual ~ParticlePoolImpl();
 	};
 
 	class ResourceParticleImpl : public ResourceBaseImpl<IResourceParticle>
@@ -111,6 +110,7 @@ namespace LuaSTGPlus
 		bool IsRectangle() { return m_bRectangle; }
 	public:
 		bool CreateInstance(IParticlePool** pp_pool);
+		void DestroyInstance(IParticlePool* p_pool);
 	public:
 		ResourceParticleImpl(const char* name, const hgeParticleSystemInfo& pinfo, Core::Graphics::ISprite* sprite, double a, double b, bool rect = false);
 	};
