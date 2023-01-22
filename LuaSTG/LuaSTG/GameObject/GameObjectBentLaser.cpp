@@ -6,9 +6,17 @@ using namespace LuaSTGPlus;
 //------------------------------------------------------------------------------
 
 static std::pmr::unsynchronized_pool_resource s_game_object_curve_laser_pool;
+#ifndef NDEBUG
+static size_t s_game_object_curve_laser_count = 0;
+static size_t s_game_object_curve_laser_memory_usage = 0;
+#endif
 
 GameObjectBentLaser* GameObjectBentLaser::AllocInstance()
 {
+#ifndef NDEBUG
+	s_game_object_curve_laser_count += 1;
+	s_game_object_curve_laser_memory_usage += sizeof(GameObjectBentLaser);
+#endif
 	//潜在bad_alloc已在luawrapper中处理
 	auto* pRet = static_cast<GameObjectBentLaser*>(
 		s_game_object_curve_laser_pool.allocate(
@@ -25,6 +33,11 @@ void GameObjectBentLaser::FreeInstance(GameObjectBentLaser* p)
 	p->~GameObjectBentLaser();
 	s_game_object_curve_laser_pool.deallocate(p,
 		sizeof(GameObjectBentLaser), alignof(GameObjectBentLaser));
+#ifndef NDEBUG
+	s_game_object_curve_laser_count -= 1;
+	s_game_object_curve_laser_memory_usage -= sizeof(GameObjectBentLaser);
+#endif
+	return;
 }
 
 GameObjectBentLaser::GameObjectBentLaser() noexcept
