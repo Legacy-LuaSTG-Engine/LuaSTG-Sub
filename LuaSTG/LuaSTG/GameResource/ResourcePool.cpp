@@ -926,4 +926,21 @@ namespace LuaSTGPlus
 	{
         return findResource(m_ModelPool, name);
 	}
+
+    ResourcePool::ResourcePool(ResourceMgr* mgr, ResourcePoolType t)
+        : m_pMgr(mgr)
+        , m_iType(t)
+        , m_TexturePool(&m_memory_resource)
+        , m_SpritePool(&m_memory_resource)
+        , m_AnimationPool(&m_memory_resource)
+        , m_MusicPool(&m_memory_resource)
+        , m_SoundSpritePool(&m_memory_resource)
+        , m_ParticlePool(&m_memory_resource)
+        , m_SpriteFontPool(&m_memory_resource)
+        , m_TTFFontPool(&m_memory_resource)
+        , m_FXPool(&m_memory_resource)
+        , m_ModelPool(&m_memory_resource)
+    {
+
+    }
 }

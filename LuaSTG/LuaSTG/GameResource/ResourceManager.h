@@ -96,7 +96,7 @@ namespace LuaSTGPlus
         Core::ScopeObject<IResourcePostEffectShader> GetFX(std::string_view name) noexcept;
         Core::ScopeObject<IResourceModel> GetModel(std::string_view name) noexcept;
     public:
-        ResourcePool(ResourceMgr* mgr, ResourcePoolType t) : m_pMgr(mgr), m_iType(t) {}
+        ResourcePool(ResourceMgr* mgr, ResourcePoolType t);
         ResourcePool& operator=(const ResourcePool&) = delete;
         ResourcePool(const ResourcePool&) = delete;
     };
