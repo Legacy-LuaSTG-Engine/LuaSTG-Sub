@@ -19,7 +19,7 @@ namespace LuaSTGPlus
         }
         return true;
     }
-    bool AppFrame::PushRenderTarget(ResTexture* rt)
+    bool AppFrame::PushRenderTarget(IResourceTexture* rt)
     {
         if (!rt || !rt->IsRenderTarget())
         {
@@ -59,7 +59,7 @@ namespace LuaSTGPlus
 
         if (!m_stRenderTargetStack.empty())
         {
-            ResTexture* rt = *(m_stRenderTargetStack.back());
+            IResourceTexture* rt = *(m_stRenderTargetStack.back());
             GetRenderer2D()->setRenderAttachment(
                 rt->GetRenderTarget(),
                 rt->GetDepthStencilBuffer()
@@ -72,17 +72,17 @@ namespace LuaSTGPlus
 
         return true;
     }
-    bool AppFrame::CheckRenderTargetInUse(ResTexture* rt)
+    bool AppFrame::CheckRenderTargetInUse(IResourceTexture* rt)
     {
         if (!rt || !rt->IsRenderTarget() || m_stRenderTargetStack.empty())
             return false;
-        return rt == *(m_stRenderTargetStack.back());
+        return rt == m_stRenderTargetStack.back().get();
     }
     Core::Vector2U AppFrame::GetTopRenderTargetSize()
     {
         if (!m_stRenderTargetStack.empty())
         {
-            ResTexture* rt = *(m_stRenderTargetStack.back());
+            IResourceTexture* rt = m_stRenderTargetStack.back().get();
             return rt->GetTexture()->getSize();
         }
         else
@@ -91,13 +91,13 @@ namespace LuaSTGPlus
         }
     }
 
-    void AppFrame::AddAutoSizeRenderTarget(ResTexture* rt)
+    void AppFrame::AddAutoSizeRenderTarget(IResourceTexture* rt)
     {
         assert(rt);
         if (!m_AutoSizeRenderTarget.contains(rt))
             m_AutoSizeRenderTarget.insert(rt);
     }
-    void AppFrame::RemoveAutoSizeRenderTarget(ResTexture* rt)
+    void AppFrame::RemoveAutoSizeRenderTarget(IResourceTexture* rt)
     {
         assert(rt);
         if (m_AutoSizeRenderTarget.contains(rt))

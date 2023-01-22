@@ -15,7 +15,7 @@ namespace LuaSTGPlus
 
 	constexpr int const TEXT_FLAG_WORDBREAK = 0x10;
 
-	bool AppFrame::RenderText(ResFont* p, wchar_t* strBuf, Core::RectF rect, Core::Vector2F scale, ResFont::FontAlignHorizontal halign, ResFont::FontAlignVertical valign, bool bWordBreak)noexcept
+	bool AppFrame::RenderText(IResourceFont* p, wchar_t* strBuf, Core::RectF rect, Core::Vector2F scale, FontAlignHorizontal halign, FontAlignVertical valign, bool bWordBreak)noexcept
 	{
 		using namespace Core;
 		using namespace Core::Graphics;
@@ -73,13 +73,13 @@ namespace LuaSTGPlus
 		Core::Vector2F vRenderPos;
 		switch (valign)
 		{
-		case ResFont::FontAlignVertical::Bottom:
+		case FontAlignVertical::Bottom:
 			vRenderPos.y = rect.b.y + fTotalLineHeight;
 			break;
-		case ResFont::FontAlignVertical::Middle:
+		case FontAlignVertical::Middle:
 			vRenderPos.y = rect.a.y - std::abs(rect.a.y - rect.b.y) / 2.f + fTotalLineHeight / 2.f;
 			break;
-		case ResFont::FontAlignVertical::Top:
+		case FontAlignVertical::Top:
 		default:
 			vRenderPos.y = rect.a.y;
 			break;
@@ -127,19 +127,19 @@ namespace LuaSTGPlus
 			Vector2F ignore_;
 			switch (halign)
 			{
-			case ResFont::FontAlignHorizontal::Right:
+			case FontAlignHorizontal::Right:
 				m_pTextRenderer->drawText(u8_str, Vector2F(
 					vRenderPos.x + std::abs(rect.a.x - rect.b.x) - fLineWidth,
 					vRenderPos.y
 				), &ignore_);
 				break;
-			case ResFont::FontAlignHorizontal::Center:
+			case FontAlignHorizontal::Center:
 				m_pTextRenderer->drawText(u8_str, Vector2F(
 					vRenderPos.x + std::abs(rect.a.x - rect.b.x) / 2.f - fLineWidth / 2.f,
 					vRenderPos.y
 				), &ignore_);
 				break;
-			case ResFont::FontAlignHorizontal::Left:
+			case FontAlignHorizontal::Left:
 			default:
 				m_pTextRenderer->drawText(u8_str, vRenderPos, &ignore_);
 				break;
@@ -160,7 +160,7 @@ namespace LuaSTGPlus
 		return true;
 	}
 	
-	Core::Vector2F AppFrame::CalcuTextSize(ResFont* p, const wchar_t* strBuf, Core::Vector2F scale)noexcept
+	Core::Vector2F AppFrame::CalcuTextSize(IResourceFont* p, const wchar_t* strBuf, Core::Vector2F scale)noexcept
 	{
 		using namespace Core;
 		using namespace Core::Graphics;
@@ -191,9 +191,9 @@ namespace LuaSTGPlus
 		return Core::Vector2F(fMaxLineWidth, iLineCount * pGlyphManager->getLineHeight() * scale.y);
 	}
 	
-	bool AppFrame::RenderText(const char* name, const char* str, float x, float y, float scale, ResFont::FontAlignHorizontal halign, ResFont::FontAlignVertical valign)noexcept
+	bool AppFrame::RenderText(const char* name, const char* str, float x, float y, float scale, FontAlignHorizontal halign, FontAlignVertical valign)noexcept
 	{
-		fcyRefPointer<ResFont> p = m_ResourceMgr.FindSpriteFont(name);
+		Core::ScopeObject<IResourceFont> p = m_ResourceMgr.FindSpriteFont(name);
 		if (!p)
 		{
 			spdlog::error("[luastg] RenderText: 找不到字体资源'{}'", name);
@@ -213,34 +213,34 @@ namespace LuaSTGPlus
 		}
 		
 		// 计算渲染位置
-		Core::Vector2F tSize = CalcuTextSize(p, s_TempStringBuf.c_str(), Core::Vector2F(scale, scale));
+		Core::Vector2F tSize = CalcuTextSize(p.get(), s_TempStringBuf.c_str(), Core::Vector2F(scale, scale));
 		switch (halign)
 		{
-		case ResFont::FontAlignHorizontal::Right:
+		case FontAlignHorizontal::Right:
 			x -= tSize.x;
 			break;
-		case ResFont::FontAlignHorizontal::Center:
+		case FontAlignHorizontal::Center:
 			x -= tSize.x / 2.f;
 			break;
-		case ResFont::FontAlignHorizontal::Left:
+		case FontAlignHorizontal::Left:
 		default:
 			break;
 		}
 		switch (valign)
 		{
-		case ResFont::FontAlignVertical::Bottom:
+		case FontAlignVertical::Bottom:
 			y += tSize.y;
 			break;
-		case ResFont::FontAlignVertical::Middle:
+		case FontAlignVertical::Middle:
 			y += tSize.y / 2.f;
 			break;
-		case ResFont::FontAlignVertical::Top:
+		case FontAlignVertical::Top:
 		default:
 			break;
 		}
 		
 		return RenderText(
-			p,
+			p.get(),
 			const_cast<wchar_t*>(s_TempStringBuf.data()),
 			Core::RectF(x, y, x + tSize.x, y - tSize.y),
 			Core::Vector2F(scale, scale),
@@ -253,7 +253,7 @@ namespace LuaSTGPlus
 	bool AppFrame::RenderTTF(const char* name, const char* str,
 		float left, float right, float bottom, float top, float scale, int format, Core::Color4B c)noexcept
 	{
-		fcyRefPointer<ResFont> p = m_ResourceMgr.FindTTFFont(name);
+		Core::ScopeObject<IResourceFont> p = m_ResourceMgr.FindTTFFont(name);
 		if (!p) {
 			spdlog::error("[luastg] RenderTTF: 找不到字体资源'%m'", name);
 			return false;
@@ -271,25 +271,25 @@ namespace LuaSTGPlus
 		
 		// 计算格式
 		bool bWordBreak = false;
-		ResFont::FontAlignHorizontal halign = ResFont::FontAlignHorizontal::Left;
-		ResFont::FontAlignVertical valign = ResFont::FontAlignVertical::Top;
+		FontAlignHorizontal halign = FontAlignHorizontal::Left;
+		FontAlignVertical valign = FontAlignVertical::Top;
 		
 		if ((format & TEXT_ALIGN_CENTER) == TEXT_ALIGN_CENTER)
-			halign = ResFont::FontAlignHorizontal::Center;
+			halign = FontAlignHorizontal::Center;
 		else if ((format & TEXT_ALIGN_RIGHT) == TEXT_ALIGN_RIGHT)
-			halign = ResFont::FontAlignHorizontal::Right;
+			halign = FontAlignHorizontal::Right;
 		
 		if ((format & TEXT_ALIGN_VCENTER) == TEXT_ALIGN_VCENTER)
-			valign = ResFont::FontAlignVertical::Middle;
+			valign = FontAlignVertical::Middle;
 		else if ((format & TEXT_ALIGN_BOTTOM) == TEXT_ALIGN_BOTTOM)
-			valign = ResFont::FontAlignVertical::Bottom;
+			valign = FontAlignVertical::Bottom;
 		
 		if ((format & TEXT_FLAG_WORDBREAK) == TEXT_FLAG_WORDBREAK)
 			bWordBreak = true;
 		
 		p->SetBlendColor(c);
 		return RenderText(
-			p,
+			p.get(),
 			const_cast<wchar_t*>(s_TempStringBuf.data()),
 			Core::RectF(left, top, right, bottom),
 			Core::Vector2F(scale, scale) * 0.5f,  // TODO: 缩放系数=0.5 ????????????
@@ -303,7 +303,7 @@ namespace LuaSTGPlus
 	
 	bool AppFrame::FontRenderer_SetFontProvider(const char* name)
 	{
-		fcyRefPointer<ResFont> p = m_ResourceMgr.FindTTFFont(name);
+		Core::ScopeObject<IResourceFont> p = m_ResourceMgr.FindTTFFont(name);
 		if (!p)
 		{
 			spdlog::error("[luastg] SetFontProvider: 找不到字体资源'{}'", name);

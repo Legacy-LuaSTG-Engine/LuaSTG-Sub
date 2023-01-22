@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "Core/ApplicationModel.hpp"
 #include "Core/Graphics/Font.hpp"
-#include "GameResource/ResourceMgr.h"
+#include "GameResource/ResourceManager.h"
 #include "GameObject/GameObjectPool.h"
 #include "Platform/DirectInput.hpp"
 
@@ -53,15 +53,15 @@ namespace LuaSTGPlus
 
 		virtual bool BeginRenderTargetStack() = 0;
 		virtual bool EndRenderTargetStack() = 0;
-		virtual bool PushRenderTarget(ResTexture* rt) = 0;
+		virtual bool PushRenderTarget(IResourceTexture* rt) = 0;
 		virtual bool PopRenderTarget() = 0;
-		virtual bool CheckRenderTargetInUse(ResTexture* rt) = 0;
+		virtual bool CheckRenderTargetInUse(IResourceTexture* rt) = 0;
 		virtual Core::Vector2U GetTopRenderTargetSize() = 0;
 
 		// 维护自动大小的渲染目标
 
-		virtual void AddAutoSizeRenderTarget(ResTexture* rt) = 0;
-		virtual void RemoveAutoSizeRenderTarget(ResTexture* rt) = 0;
+		virtual void AddAutoSizeRenderTarget(IResourceTexture* rt) = 0;
+		virtual void RemoveAutoSizeRenderTarget(IResourceTexture* rt) = 0;
 		virtual Core::Vector2U GetAutoSizeRenderTargetSize() = 0;
 		virtual bool ResizeAutoSizeRenderTarget(Core::Vector2U size) = 0;
 	};
@@ -209,13 +209,13 @@ namespace LuaSTGPlus
 		void updateGraph2DBlendMode(BlendMode m);
 
 		/// @brief 渲染图像
-		bool Render(ResSprite* p, float x, float y, float rot = 0, float hscale = 1, float vscale = 1, float z = 0.5)noexcept;
+		bool Render(IResourceSprite* p, float x, float y, float rot = 0, float hscale = 1, float vscale = 1, float z = 0.5)noexcept;
 		
 		/// @brief 渲染动画
-		bool Render(ResAnimation* p, int ani_timer, float x, float y, float rot = 0, float hscale = 1, float vscale = 1)noexcept;
+		bool Render(IResourceAnimation* p, int ani_timer, float x, float y, float rot = 0, float hscale = 1, float vscale = 1)noexcept;
 		
 		/// @brief 渲染粒子
-		bool Render(ResParticle::ParticlePool* p, float hscale = 1, float vscale = 1)noexcept;
+		bool Render(IParticlePool* p, float hscale = 1, float vscale = 1)noexcept;
 		
 		/// @brief 渲染图像
 		bool Render(const char* name, float x, float y, float rot = 0, float hscale = 1, float vscale = 1, float z = 0.5)noexcept;
@@ -224,17 +224,17 @@ namespace LuaSTGPlus
 		bool RenderAnimation(const char* name, int timer, float x, float y, float rot = 0, float hscale = 1, float vscale = 1)noexcept;
 		
 		/// @brief 渲染纹理（注：UV 坐标会被归一化）
-		bool RenderTexture(ResTexture* tex, BlendMode blend, const Core::Graphics::IRenderer::DrawVertex vertex[])noexcept;
+		bool RenderTexture(IResourceTexture* tex, BlendMode blend, const Core::Graphics::IRenderer::DrawVertex vertex[])noexcept;
 		
 		/// @brief 渲染纹理（注：UV 坐标会被归一化）
 		bool RenderTexture(const char* name, BlendMode blend, Core::Graphics::IRenderer::DrawVertex vertex[])noexcept;
 		
 		/// @brief 渲染文字
-		bool RenderText(ResFont* p, wchar_t* strBuf, Core::RectF rect, Core::Vector2F scale, ResFont::FontAlignHorizontal halign, ResFont::FontAlignVertical valign, bool bWordBreak)noexcept;
+		bool RenderText(IResourceFont* p, wchar_t* strBuf, Core::RectF rect, Core::Vector2F scale, FontAlignHorizontal halign, FontAlignVertical valign, bool bWordBreak)noexcept;
 		
-		Core::Vector2F CalcuTextSize(ResFont* p, const wchar_t* strBuf, Core::Vector2F scale)noexcept;
+		Core::Vector2F CalcuTextSize(IResourceFont* p, const wchar_t* strBuf, Core::Vector2F scale)noexcept;
 		
-		bool RenderText(const char* name, const char* str, float x, float y, float scale, ResFont::FontAlignHorizontal halign, ResFont::FontAlignVertical valign)noexcept;
+		bool RenderText(const char* name, const char* str, float x, float y, float scale, FontAlignHorizontal halign, FontAlignVertical valign)noexcept;
 		
 		bool RenderTTF(const char* name, const char* str, float left, float right, float bottom, float top, float scale, int format, Core::Color4B c)noexcept;
 
@@ -252,23 +252,23 @@ namespace LuaSTGPlus
 		// ---------- 渲染目标管理 ----------
 
 	private:
-		std::vector<fcyRefPointer<ResTexture>> m_stRenderTargetStack;
-		std::set<ResTexture*> m_AutoSizeRenderTarget;
+		std::vector<Core::ScopeObject<IResourceTexture>> m_stRenderTargetStack;
+		std::set<IResourceTexture*> m_AutoSizeRenderTarget;
 		Core::Vector2U m_AutoSizeRenderTargetSize;
 	private:
 		// 渲染目标栈
 
 		bool BeginRenderTargetStack();
 		bool EndRenderTargetStack();
-		bool PushRenderTarget(ResTexture* rt);
+		bool PushRenderTarget(IResourceTexture* rt);
 		bool PopRenderTarget();
-		bool CheckRenderTargetInUse(ResTexture* rt);
+		bool CheckRenderTargetInUse(IResourceTexture* rt);
 		Core::Vector2U GetTopRenderTargetSize();
 
 		// 维护自动大小的渲染目标
 
-		void AddAutoSizeRenderTarget(ResTexture* rt);
-		void RemoveAutoSizeRenderTarget(ResTexture* rt);
+		void AddAutoSizeRenderTarget(IResourceTexture* rt);
+		void RemoveAutoSizeRenderTarget(IResourceTexture* rt);
 		Core::Vector2U GetAutoSizeRenderTargetSize();
 		bool ResizeAutoSizeRenderTarget(Core::Vector2U size);
 
