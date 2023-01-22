@@ -2,12 +2,12 @@
 #include "GameResource/ResourceTexture.hpp"
 #include "GameResource/ResourceSprite.hpp"
 #include "GameResource/ResourceAnimation.hpp"
+#include "GameResource/ResourceMusic.hpp"
+#include "GameResource/ResourceSoundEffect.hpp"
 #include "GameResource/ResourceParticle.hpp"
 #include "GameResource/ResourceFont.hpp"
-#include "GameResource/ResourceFX.hpp"
-#include "GameResource/ResourceAudio.hpp"
+#include "GameResource/ResourcePostEffectShader.hpp"
 #include "GameResource/ResourceModel.hpp"
-#include "Utility/Dictionary.hpp"
 #include "lua.hpp"
 
 namespace LuaSTGPlus
@@ -26,25 +26,29 @@ namespace LuaSTGPlus
     class ResourcePool
     {
         friend class ResourceMgr;
+    public:
+        template<typename T>
+        using dictionary_t = std::pmr::unordered_map<std::pmr::string, T>;
     private:
         ResourceMgr* m_pMgr;
         ResourcePoolType m_iType;
-        Dictionary<fcyRefPointer<ResTexture>> m_TexturePool;
-        Dictionary<fcyRefPointer<ResSprite>> m_SpritePool;
-        Dictionary<fcyRefPointer<ResAnimation>> m_AnimationPool;
-        Dictionary<fcyRefPointer<ResMusic>> m_MusicPool;
-        Dictionary<fcyRefPointer<ResSound>> m_SoundSpritePool;
-        Dictionary<fcyRefPointer<ResParticle>> m_ParticlePool;
-        Dictionary<fcyRefPointer<ResFont>> m_SpriteFontPool;
-        Dictionary<fcyRefPointer<ResFont>> m_TTFFontPool;
-        Dictionary<fcyRefPointer<ResFX>> m_FXPool;
-        Dictionary<fcyRefPointer<ResModel>> m_ModelPool;
+        std::pmr::unsynchronized_pool_resource m_memory_resource;
+        dictionary_t<Core::ScopeObject<IResourceTexture>> m_TexturePool;
+        dictionary_t<Core::ScopeObject<IResourceSprite>> m_SpritePool;
+        dictionary_t<Core::ScopeObject<IResourceAnimation>> m_AnimationPool;
+        dictionary_t<Core::ScopeObject<IResourceMusic>> m_MusicPool;
+        dictionary_t<Core::ScopeObject<IResourceSoundEffect>> m_SoundSpritePool;
+        dictionary_t<Core::ScopeObject<IResourceParticle>> m_ParticlePool;
+        dictionary_t<Core::ScopeObject<IResourceFont>> m_SpriteFontPool;
+        dictionary_t<Core::ScopeObject<IResourceFont>> m_TTFFontPool;
+        dictionary_t<Core::ScopeObject<IResourcePostEffectShader>> m_FXPool;
+        dictionary_t<Core::ScopeObject<IResourceModel>> m_ModelPool;
     private:
         const char* getResourcePoolTypeName();
     public:
         void Clear() noexcept;
         void RemoveResource(ResourceType t, const char* name) noexcept;
-        bool CheckResourceExists(ResourceType t, const std::string& name) const noexcept;
+        bool CheckResourceExists(ResourceType t, std::string_view name) const noexcept;
         int ExportResourceList(lua_State* L, ResourceType t) const  noexcept;
         
         // 纹理
@@ -65,7 +69,7 @@ namespace LuaSTGPlus
         // 音效
         bool LoadSoundEffect(const char* name, const char* path) noexcept;
         // 粒子特效(HGE)
-        bool LoadParticle(const char* name, const ResParticle::hgeParticleSystemInfo& info, const char* img_name,
+        bool LoadParticle(const char* name, const hgeParticleSystemInfo& info, const char* img_name,
                           double a, double b, bool rect = false, bool _nolog = false) noexcept;
         bool LoadParticle(const char* name, const char* path, const char* img_name,
                           double a, double b, bool rect = false) noexcept;
@@ -81,16 +85,16 @@ namespace LuaSTGPlus
         // 模型
         bool LoadModel(const char* name, const char* path) noexcept;
         
-        fcyRefPointer<ResTexture> GetTexture(const char* name) noexcept;
-        fcyRefPointer<ResSprite> GetSprite(const char* name) noexcept;
-        fcyRefPointer<ResAnimation> GetAnimation(const char* name) noexcept;
-        fcyRefPointer<ResMusic> GetMusic(const char* name) noexcept;
-        fcyRefPointer<ResSound> GetSound(const char* name) noexcept;
-        fcyRefPointer<ResParticle> GetParticle(const char* name) noexcept;
-        fcyRefPointer<ResFont> GetSpriteFont(const char* name) noexcept;
-        fcyRefPointer<ResFont> GetTTFFont(const char* name) noexcept;
-        fcyRefPointer<ResFX> GetFX(const char* name) noexcept;
-        fcyRefPointer<ResModel> GetModel(const char* name) noexcept;
+        Core::ScopeObject<IResourceTexture> GetTexture(std::string_view name) noexcept;
+        Core::ScopeObject<IResourceSprite> GetSprite(std::string_view name) noexcept;
+        Core::ScopeObject<IResourceAnimation> GetAnimation(std::string_view name) noexcept;
+        Core::ScopeObject<IResourceMusic> GetMusic(std::string_view name) noexcept;
+        Core::ScopeObject<IResourceSoundEffect> GetSound(std::string_view name) noexcept;
+        Core::ScopeObject<IResourceParticle> GetParticle(std::string_view name) noexcept;
+        Core::ScopeObject<IResourceFont> GetSpriteFont(std::string_view name) noexcept;
+        Core::ScopeObject<IResourceFont> GetTTFFont(std::string_view name) noexcept;
+        Core::ScopeObject<IResourcePostEffectShader> GetFX(std::string_view name) noexcept;
+        Core::ScopeObject<IResourceModel> GetModel(std::string_view name) noexcept;
     public:
         ResourcePool(ResourceMgr* mgr, ResourcePoolType t) : m_pMgr(mgr), m_iType(t) {}
         ResourcePool& operator=(const ResourcePool&) = delete;
@@ -111,16 +115,16 @@ namespace LuaSTGPlus
         ResourcePool* GetResourcePool(ResourcePoolType t) noexcept;
         void ClearAllResource() noexcept;
 
-        fcyRefPointer<ResTexture> FindTexture(const char* name) noexcept;
-        fcyRefPointer<ResSprite> FindSprite(const char* name) noexcept;
-        fcyRefPointer<ResAnimation> FindAnimation(const char* name) noexcept;
-        fcyRefPointer<ResMusic> FindMusic(const char* name) noexcept;
-        fcyRefPointer<ResSound> FindSound(const char* name) noexcept;
-        fcyRefPointer<ResParticle> FindParticle(const char* name) noexcept;
-        fcyRefPointer<ResFont> FindSpriteFont(const char* name) noexcept;
-        fcyRefPointer<ResFont> FindTTFFont(const char* name) noexcept;
-        fcyRefPointer<ResFX> FindFX(const char* name) noexcept;
-        fcyRefPointer<ResModel> FindModel(const char* name) noexcept;
+        Core::ScopeObject<IResourceTexture> FindTexture(const char* name) noexcept;
+        Core::ScopeObject<IResourceSprite> FindSprite(const char* name) noexcept;
+        Core::ScopeObject<IResourceAnimation> FindAnimation(const char* name) noexcept;
+        Core::ScopeObject<IResourceMusic> FindMusic(const char* name) noexcept;
+        Core::ScopeObject<IResourceSoundEffect> FindSound(const char* name) noexcept;
+        Core::ScopeObject<IResourceParticle> FindParticle(const char* name) noexcept;
+        Core::ScopeObject<IResourceFont> FindSpriteFont(const char* name) noexcept;
+        Core::ScopeObject<IResourceFont> FindTTFFont(const char* name) noexcept;
+        Core::ScopeObject<IResourcePostEffectShader> FindFX(const char* name) noexcept;
+        Core::ScopeObject<IResourceModel> FindModel(const char* name) noexcept;
         
         bool GetTextureSize(const char* name, Core::Vector2U& out) noexcept;
         void CacheTTFFontString(const char* name, const char* text, size_t len) noexcept;
