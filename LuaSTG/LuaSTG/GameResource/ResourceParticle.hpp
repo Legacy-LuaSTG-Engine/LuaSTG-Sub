@@ -45,7 +45,7 @@ namespace LuaSTGPlus
 		float fAlphaVar;        // alpha抖动值
 	};
 
-	struct IParticlePool : public Core::IObject
+	struct IParticlePool
 	{
 		virtual hgeParticleSystemInfo& GetParticleSystemInfo() = 0;
 		virtual size_t GetAliveCount() = 0;
@@ -76,5 +76,6 @@ namespace LuaSTGPlus
 		virtual bool IsRectangle() = 0;
 
 		virtual bool CreateInstance(IParticlePool** pp_pool) = 0;
+		virtual void DestroyInstance(IParticlePool* p_pool) = 0;
 	};
 };
