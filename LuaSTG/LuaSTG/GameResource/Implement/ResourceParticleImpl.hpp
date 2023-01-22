@@ -3,7 +3,6 @@
 #include "GameResource/Implement/ResourceBaseImpl.hpp"
 #include "Core/Graphics/Sprite.hpp"
 #include "Utility/xorshift.hpp"
-#include "fcyOS/fcyMemPool.h"
 
 #define LPARTICLE_MAXCNT 500  // 单个粒子池最多有500个粒子，这是HGE粒子特效的实现，不应该修改
 
