@@ -71,7 +71,7 @@ namespace LuaSTG::LuaBinding
 				auto const name = S.get_value<std::string_view>(2);
 				auto const resource_name = S.get_value<std::string_view>(3);
 				
-				fcyRefPointer<LuaSTGPlus::ResTexture> p = LRES.FindTexture(resource_name.data());
+				Core::ScopeObject<LuaSTGPlus::IResourceTexture> p = LRES.FindTexture(resource_name.data());
 				if (!p)
 				{
 					return luaL_error(L, "can't find texture '%s'", resource_name.data());
