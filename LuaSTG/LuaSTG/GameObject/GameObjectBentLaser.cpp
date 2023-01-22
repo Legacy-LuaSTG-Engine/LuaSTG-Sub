@@ -5,19 +5,26 @@ using namespace LuaSTGPlus;
 
 //------------------------------------------------------------------------------
 
-static fcyMemPool<sizeof(GameObjectBentLaser)> s_GameObjectBentLaserPool(1024);
+static std::pmr::unsynchronized_pool_resource s_game_object_curve_laser_pool;
 
 GameObjectBentLaser* GameObjectBentLaser::AllocInstance()
 {
 	//潜在bad_alloc已在luawrapper中处理
-	GameObjectBentLaser* pRet = new(s_GameObjectBentLaserPool.Alloc()) GameObjectBentLaser();
+	auto* pRet = static_cast<GameObjectBentLaser*>(
+		s_game_object_curve_laser_pool.allocate(
+			sizeof(GameObjectBentLaser),
+			alignof(GameObjectBentLaser)
+		)
+	);
+	new(pRet) GameObjectBentLaser();
 	return pRet;
 }
 
 void GameObjectBentLaser::FreeInstance(GameObjectBentLaser* p)
 {
 	p->~GameObjectBentLaser();
-	s_GameObjectBentLaserPool.Free(p);
+	s_game_object_curve_laser_pool.deallocate(p,
+		sizeof(GameObjectBentLaser), alignof(GameObjectBentLaser));
 }
 
 GameObjectBentLaser::GameObjectBentLaser() noexcept
@@ -426,7 +433,7 @@ bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, Core::Co
 		return true;
 
 	// 首先拿到纹理
-	fcyRefPointer<ResTexture> pTex = LRES.FindTexture(tex_name);
+	Core::ScopeObject<IResourceTexture> pTex = LRES.FindTexture(tex_name);
 	if (!pTex)
 	{
 		spdlog::error("[luastg] [GameObjectBentLaser::Render] 找不到纹理'{}'", tex_name);
