@@ -103,19 +103,19 @@ namespace LuaSTGPlus
 		return 1;
 	}
 
-	static inline void TranslateAlignMode(lua_State* L, int argnum, ResFont::FontAlignHorizontal& halign, ResFont::FontAlignVertical& valign)
+	static inline void TranslateAlignMode(lua_State* L, int argnum, FontAlignHorizontal& halign, FontAlignVertical& valign)
 	{
 		int e = (int)luaL_checkinteger(L, argnum);
 		switch (e & 0x03)  // HGETEXT_HORZMASK
 		{
 		case 0:  // HGETEXT_LEFT
-			halign = ResFont::FontAlignHorizontal::Left;
+			halign = FontAlignHorizontal::Left;
 			break;
 		case 1:  // HGETEXT_CENTER
-			halign = ResFont::FontAlignHorizontal::Center;
+			halign = FontAlignHorizontal::Center;
 			break;
 		case 2:  // HGETEXT_RIGHT
-			halign = ResFont::FontAlignHorizontal::Right;
+			halign = FontAlignHorizontal::Right;
 			break;
 		default:
 			luaL_error(L, "invalid align mode.");
@@ -124,13 +124,13 @@ namespace LuaSTGPlus
 		switch (e & 0x0C)  // HGETEXT_VERTMASK
 		{
 		case 0:  // HGETEXT_TOP
-			valign = ResFont::FontAlignVertical::Top;
+			valign = FontAlignVertical::Top;
 			break;
 		case 4:  // HGETEXT_MIDDLE
-			valign = ResFont::FontAlignVertical::Middle;
+			valign = FontAlignVertical::Middle;
 			break;
 		case 8:  // HGETEXT_BOTTOM
-			valign = ResFont::FontAlignVertical::Bottom;
+			valign = FontAlignVertical::Bottom;
 			break;
 		default:
 			luaL_error(L, "invalid align mode.");
@@ -138,37 +138,7 @@ namespace LuaSTGPlus
 		}
 	}
 
-	/*
-	static inline F2DTEXTUREADDRESS TranslateTextureSamplerAddress(lua_State* L, int argnum) {
-		const char* s = luaL_checkstring(L, argnum);
-		if (strcmp(s, "wrap") == 0)
-			return F2DTEXTUREADDRESS_WRAP;
-		else if (strcmp(s, "mirror") == 0)
-			return F2DTEXTUREADDRESS_MIRROR;
-		else if (strcmp(s, "clamp") == 0 || strcmp(s, "") == 0)
-			return F2DTEXTUREADDRESS_CLAMP;
-		else if (strcmp(s, "border") == 0)
-			return F2DTEXTUREADDRESS_BORDER;
-		else if (strcmp(s, "mirroronce") == 0)
-			return F2DTEXTUREADDRESS_MIRRORONCE;
-		else
-			luaL_error(L, "Invalid texture sampler address mode '%s'.", s);
-		return F2DTEXTUREADDRESS_CLAMP;
-	}
-
-	static inline F2DTEXFILTERTYPE TranslateTextureSamplerFilter(lua_State* L, int argnum) {
-		const char* s = luaL_checkstring(L, argnum);
-		if (strcmp(s, "point") == 0)
-			return F2DTEXFILTER_POINT;
-		else if (strcmp(s, "linear") == 0 || strcmp(s, "") == 0)
-			return F2DTEXFILTER_LINEAR;
-		else
-			luaL_error(L, "Invalid texture sampler filter type '%s'.", s);
-		return F2DTEXFILTER_LINEAR;
-	}
-	//*/
-
-	inline bool TranslateTableToParticleInfo(lua_State* L, int argnum, ResParticle::hgeParticleSystemInfo& info)
+	inline bool TranslateTableToParticleInfo(lua_State* L, int argnum, hgeParticleSystemInfo& info)
 	{
 		if (lua_istable(L, argnum)) {
 			#define GET_ATTR(luakey, cppkey, valuetype, valueproc) {\
