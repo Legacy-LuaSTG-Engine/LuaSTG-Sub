@@ -4,39 +4,26 @@
 
 namespace LuaSTGPlus
 {
-	// 纹理字体
-	class ResFont : public ResourceBase
+	enum class FontAlignHorizontal  // 水平对齐
 	{
-	public:
-		enum class FontAlignHorizontal  // 水平对齐
-		{
-			Left,
-			Center,
-			Right
-		};
-		enum class FontAlignVertical  // 垂直对齐
-		{
-			Top,
-			Middle,
-			Bottom
-		};
-		
-	private:
-		Core::ScopeObject<Core::Graphics::IGlyphManager> m_glyphmgr;
-		BlendMode m_BlendMode;
-		Core::Color4B m_BlendColor;
+		Left,
+		Center,
+		Right
+	};
 
-	public:
-		Core::Graphics::IGlyphManager* GetGlyphManager() { return m_glyphmgr.get(); }
-		BlendMode GetBlendMode() const noexcept { return m_BlendMode; }
-		void SetBlendMode(BlendMode m) noexcept { m_BlendMode = m; }
-		Core::Color4B GetBlendColor() const noexcept { return m_BlendColor; }
-		void SetBlendColor(Core::Color4B c) noexcept { m_BlendColor = c; }
+	enum class FontAlignVertical  // 垂直对齐
+	{
+		Top,
+		Middle,
+		Bottom
+	};
 
-	public:
-		ResFont(const char* name, std::string_view hge_path, bool mipmap);
-		ResFont(const char* name, std::string_view f2d_path, std::string_view tex_path, bool mipmap);
-		ResFont(const char* name, Core::Graphics::IGlyphManager* p_mgr);
-		~ResFont();
+	struct IResourceFont : IResourceBase
+	{
+		virtual Core::Graphics::IGlyphManager* GetGlyphManager() = 0;
+		virtual BlendMode GetBlendMode() = 0;
+		virtual void SetBlendMode(BlendMode m) = 0;
+		virtual Core::Color4B GetBlendColor() = 0;
+		virtual void SetBlendColor(Core::Color4B c) = 0;
 	};
 }
