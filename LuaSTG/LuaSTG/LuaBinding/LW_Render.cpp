@@ -7,8 +7,8 @@ void LuaSTGPlus::LuaWrapper::RenderWrapper::Register(lua_State* L) noexcept
     {
         static int RenderText(lua_State* L) noexcept
         {
-            ResFont::FontAlignHorizontal halign = ResFont::FontAlignHorizontal::Center;
-            ResFont::FontAlignVertical valign = ResFont::FontAlignVertical::Middle;
+            FontAlignHorizontal halign = FontAlignHorizontal::Center;
+            FontAlignVertical valign = FontAlignVertical::Middle;
             if (lua_gettop(L) == 6)
                 TranslateAlignMode(L, 6, halign, valign);
             if (!LAPP.RenderText(
