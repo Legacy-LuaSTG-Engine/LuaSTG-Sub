@@ -867,7 +867,8 @@ namespace LuaSTGPlus
     template<typename T>
     inline T::value_type::second_type findResource(T& resource_set, std::string_view name)
     {
-        std::array<char, 256> name_buf{};
+        // 这里没必要初始化，因为一会构造 string 时会覆盖原有内容 (write discard)
+        std::array<char, 256> name_buf;
         std::pmr::monotonic_buffer_resource name_res(name_buf.data(), name_buf.size());
         std::pmr::string name_str(name, &name_res);
         auto i = resource_set.find(name_str);
