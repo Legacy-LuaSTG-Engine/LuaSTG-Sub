@@ -85,7 +85,7 @@ namespace LuaSTGPlus
         }
     }
     
-    bool AppFrame::Render(ResSprite* p, float x, float y, float rot, float hscale, float vscale, float z) noexcept
+    bool AppFrame::Render(IResourceSprite* p, float x, float y, float rot, float hscale, float vscale, float z) noexcept
     {
         assert(p);
 
@@ -100,15 +100,15 @@ namespace LuaSTGPlus
     }
     bool AppFrame::Render(const char* name, float x, float y, float rot, float hscale, float vscale, float z) noexcept
     {
-        fcyRefPointer<ResSprite> p = m_ResourceMgr.FindSprite(name);
+        Core::ScopeObject<IResourceSprite> p = m_ResourceMgr.FindSprite(name);
         if (!p)
         {
             spdlog::error("[luastg] Render: 找不到图片精灵'{}'", name);
             return false;
         }
-        return Render(p, x, y, rot, hscale, vscale, z);
+        return Render(p.get(), x, y, rot, hscale, vscale, z);
     }
-    bool AppFrame::Render(ResAnimation* p, int ani_timer, float x, float y, float rot, float hscale, float vscale) noexcept
+    bool AppFrame::Render(IResourceAnimation* p, int ani_timer, float x, float y, float rot, float hscale, float vscale) noexcept
     {
         assert(p);
 
@@ -122,15 +122,15 @@ namespace LuaSTGPlus
     }
     bool AppFrame::RenderAnimation(const char* name, int timer, float x, float y, float rot, float hscale, float vscale) noexcept
     {
-        fcyRefPointer<ResAnimation> p = m_ResourceMgr.FindAnimation(name);
+        Core::ScopeObject<IResourceAnimation> p = m_ResourceMgr.FindAnimation(name);
         if (!p)
         {
             spdlog::error("[luastg] Render: 找不到动画精灵'{}'", name);
             return false;
         }
-        return Render(p, timer, x, y, rot, hscale, vscale);
+        return Render(p.get(), timer, x, y, rot, hscale, vscale);
     }
-    bool AppFrame::Render(ResParticle::ParticlePool* p, float hscale, float vscale) noexcept
+    bool AppFrame::Render(IParticlePool* p, float hscale, float vscale) noexcept
     {
         assert(p);
 
@@ -141,7 +141,7 @@ namespace LuaSTGPlus
         p->Render(hscale, vscale);
         return true;
     }
-    bool AppFrame::RenderTexture(ResTexture* tex, BlendMode blend, const Core::Graphics::IRenderer::DrawVertex vertex[]) noexcept
+    bool AppFrame::RenderTexture(IResourceTexture* tex, BlendMode blend, const Core::Graphics::IRenderer::DrawVertex vertex[]) noexcept
     {
         // 设置混合
         updateGraph2DBlendMode(blend);
@@ -164,7 +164,7 @@ namespace LuaSTGPlus
     }
     bool AppFrame::RenderTexture(const char* name, BlendMode blend, Core::Graphics::IRenderer::DrawVertex vertex[]) noexcept
     {
-        fcyRefPointer<ResTexture> p = m_ResourceMgr.FindTexture(name);
+        Core::ScopeObject<IResourceTexture> p = m_ResourceMgr.FindTexture(name);
         if (!p)
         {
             spdlog::error("[luastg] RenderTexture: 找不到纹理'{}'", name);
@@ -183,7 +183,7 @@ namespace LuaSTGPlus
     }
     void AppFrame::SaveTexture(const char* tex_name, const char* path) noexcept
     {
-        fcyRefPointer<ResTexture> resTex = LRES.FindTexture(tex_name);
+        Core::ScopeObject<IResourceTexture> resTex = LRES.FindTexture(tex_name);
         if (!resTex)
         {
             spdlog::error("[luastg] SaveTexture: 找不到纹理资源'{}'", tex_name);
