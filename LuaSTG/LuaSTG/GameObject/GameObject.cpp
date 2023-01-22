@@ -200,11 +200,11 @@ namespace LuaSTGPlus
 	
 	bool GameObject::ChangeResource(std::string_view const& res_name)
 	{
-		fcyRefPointer<ResSprite> tSprite = LRES.FindSprite(res_name.data());
+		Core::ScopeObject<IResourceSprite> tSprite = LRES.FindSprite(res_name.data());
 		if (tSprite)
 		{
 			res = *tSprite;
-			res->AddRef();
+			res->retain();
 #ifdef GLOBAL_SCALE_COLLI_SHAPE
 			a = tSprite->GetHalfSizeX() * LRES.GetGlobalImageScaleFactor();
 			b = tSprite->GetHalfSizeY() * LRES.GetGlobalImageScaleFactor();
@@ -217,11 +217,11 @@ namespace LuaSTGPlus
 			return true;
 		}
 
-		fcyRefPointer<ResAnimation> tAnimation = LRES.FindAnimation(res_name.data());
+		Core::ScopeObject<IResourceAnimation> tAnimation = LRES.FindAnimation(res_name.data());
 		if (tAnimation)
 		{
 			res = *tAnimation;
-			res->AddRef();
+			res->retain();
 #ifdef GLOBAL_SCALE_COLLI_SHAPE
 			a = tAnimation->GetHalfSizeX() * LRES.GetGlobalImageScaleFactor();
 			b = tAnimation->GetHalfSizeY() * LRES.GetGlobalImageScaleFactor();
@@ -234,12 +234,11 @@ namespace LuaSTGPlus
 			return true;
 		}
 
-		fcyRefPointer<ResParticle> tParticle = LRES.FindParticle(res_name.data());
+		Core::ScopeObject<IResourceParticle> tParticle = LRES.FindParticle(res_name.data());
 		if (tParticle)
 		{
 			// 分配粒子池
-			ps = tParticle->AllocInstance();
-			if (!ps)
+			if (!tParticle->CreateInstance(&ps))
 			{
 				res = nullptr;
 				spdlog::error("[luastg] ResParticle: 无法分配粒子池，内存不足");
@@ -251,7 +250,7 @@ namespace LuaSTGPlus
 			ps->SetActive(true);
 			// 设置资源
 			res = *tParticle;
-			res->AddRef();
+			res->retain();
 #ifdef GLOBAL_SCALE_COLLI_SHAPE
 			a = tParticle->GetHalfSizeX() * LRES.GetGlobalImageScaleFactor();
 			b = tParticle->GetHalfSizeY() * LRES.GetGlobalImageScaleFactor();
@@ -270,13 +269,14 @@ namespace LuaSTGPlus
 	{
 		if (res)
 		{
+			assert(res->GetType() == ResourceType::Particle);
 			if (res->GetType() == ResourceType::Particle)
 			{
 				assert(ps);
-				static_cast<ResParticle*>(res)->FreeInstance(ps);
+				static_cast<IResourceParticle*>(res)->DestroyInstance(ps);
 				ps = nullptr;
 			}
-			res->Release();
+			res->release();
 			res = nullptr;
 		}
 	}
@@ -285,7 +285,7 @@ namespace LuaSTGPlus
 		if (luaclass.IsRenderClass && res && ps)
 		{
 			auto p = LuaWrapper::ParticleSystemWrapper::Create(L);
-			p->res = dynamic_cast<ResParticle*>(res); res->AddRef();
+			p->res = dynamic_cast<IResourceParticle*>(res); res->retain();
 			p->ptr = ps;
 			lua_rawseti(L, idx, 4);
 		}
@@ -298,7 +298,7 @@ namespace LuaSTGPlus
 		{
 			if (auto p = LuaWrapper::ParticleSystemWrapper::Cast(L, -1))
 			{
-				if (p->res) p->res->Release();
+				if (p->res) p->res->release();
 				p->ptr = nullptr; // 不要释放 ps，因为已经在 ReleaseResource 做过了
 			}
 		}
@@ -403,7 +403,7 @@ namespace LuaSTGPlus
 				{
 				case ResourceType::Sprite:
 					LAPP.Render(
-						static_cast<ResSprite*>(res),
+						static_cast<IResourceSprite*>(res),
 						static_cast<float>(x),
 						static_cast<float>(y),
 						static_cast<float>(rot),
@@ -413,7 +413,7 @@ namespace LuaSTGPlus
 					break;
 				case ResourceType::Animation:
 					LAPP.Render(
-						static_cast<ResAnimation*>(res),
+						static_cast<IResourceAnimation*>(res),
 						static_cast<int>(ani_timer),
 						static_cast<float>(x),
 						static_cast<float>(y),
@@ -441,7 +441,7 @@ namespace LuaSTGPlus
 				{
 				case ResourceType::Sprite:
 					do {
-						ResSprite* img = static_cast<ResSprite*>(res);
+						auto* img = static_cast<IResourceSprite*>(res);
 						// backup
 						Core::Color4B color[4] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
 						img->GetSprite()->getColor(color);
@@ -464,7 +464,7 @@ namespace LuaSTGPlus
 					break;
 				case ResourceType::Animation:
 					do {
-						ResAnimation* ani = static_cast<ResAnimation*>(res);
+						auto* ani = static_cast<IResourceAnimation*>(res);
 						uint32_t const idx = ani->GetSpriteIndexByTimer((int)ani_timer);
 						// backup
 						Core::Color4B color[4] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };

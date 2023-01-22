@@ -626,12 +626,12 @@ namespace LuaSTGPlus
 			switch (p->res->GetType())
 			{
 			case ResourceType::Sprite:
-				static_cast<ResSprite*>(p->res)->SetBlendMode(m);
-				static_cast<ResSprite*>(p->res)->GetSprite()->setColor(c);
+				static_cast<IResourceSprite*>(p->res)->SetBlendMode(m);
+				static_cast<IResourceSprite*>(p->res)->GetSprite()->setColor(c);
 				break;
 			case ResourceType::Animation:
 				do {
-					ResAnimation* ani = static_cast<ResAnimation*>(p->res);
+					auto* ani = static_cast<IResourceAnimation*>(p->res);
 					ani->SetBlendMode(m);
 					for (size_t i = 0; i < ani->GetCount(); ++i)
 						ani->GetSprite(i)->setColor(c);
