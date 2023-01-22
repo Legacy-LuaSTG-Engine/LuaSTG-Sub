@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "fcyRefObj.h"
+#include "Core/Type.hpp"
 
 namespace LuaSTGPlus
 {
@@ -49,17 +49,9 @@ namespace LuaSTGPlus
 	};
 
 	// 资源接口
-	class ResourceBase : public fcyRefObjImpl<fcyRefObj>
+	struct IResourceBase : public Core::IObject
 	{
-	private:
-		ResourceType m_resource_type;
-		std::string m_resource_name;
-	public:
-		ResourceType GetType() const noexcept { return m_resource_type; }
-		std::string_view GetResName() const noexcept { return m_resource_name; }
-	public:
-		ResourceBase(ResourceType t, std::string_view name) : m_resource_type(t), m_resource_name(name) {}
-		ResourceBase& operator=(const ResourceBase&) = delete;
-		ResourceBase(const ResourceBase&) = delete;
+		virtual ResourceType GetType() const noexcept = 0;
+		virtual std::string_view GetResName() const noexcept = 0;
 	};
 };
