@@ -1,4 +1,4 @@
-﻿#include "GameResource/ResourceMgr.h"
+﻿#include "GameResource/ResourceManager.h"
 
 namespace LuaSTGPlus
 {
@@ -42,72 +42,73 @@ namespace LuaSTGPlus
 
 	// 自动查找资源池资源
 
-	fcyRefPointer<ResTexture> ResourceMgr::FindTexture(const char* name) noexcept {
-		fcyRefPointer<ResTexture> tRet;
+	Core::ScopeObject<IResourceTexture> ResourceMgr::FindTexture(const char* name) noexcept {
+
+		Core::ScopeObject<IResourceTexture> tRet;
 		if (!(tRet = m_StageResourcePool.GetTexture(name)))
 			tRet = m_GlobalResourcePool.GetTexture(name);
 		return tRet;
 	}
 
-	fcyRefPointer<ResSprite> ResourceMgr::FindSprite(const char* name) noexcept {
-		fcyRefPointer<ResSprite> tRet;
+	Core::ScopeObject<IResourceSprite> ResourceMgr::FindSprite(const char* name) noexcept {
+		Core::ScopeObject<IResourceSprite> tRet;
 		if (!(tRet = m_StageResourcePool.GetSprite(name)))
 			tRet = m_GlobalResourcePool.GetSprite(name);
 		return tRet;
 	}
 
-	fcyRefPointer<ResAnimation> ResourceMgr::FindAnimation(const char* name) noexcept {
-		fcyRefPointer<ResAnimation> tRet;
+	Core::ScopeObject<IResourceAnimation> ResourceMgr::FindAnimation(const char* name) noexcept {
+		Core::ScopeObject<IResourceAnimation> tRet;
 		if (!(tRet = m_StageResourcePool.GetAnimation(name)))
 			tRet = m_GlobalResourcePool.GetAnimation(name);
 		return tRet;
 	}
 
-	fcyRefPointer<ResMusic> ResourceMgr::FindMusic(const char* name) noexcept {
-		fcyRefPointer<ResMusic> tRet;
+	Core::ScopeObject<IResourceMusic> ResourceMgr::FindMusic(const char* name) noexcept {
+		Core::ScopeObject<IResourceMusic> tRet;
 		if (!(tRet = m_StageResourcePool.GetMusic(name)))
 			tRet = m_GlobalResourcePool.GetMusic(name);
 		return tRet;
 	}
 
-	fcyRefPointer<ResSound> ResourceMgr::FindSound(const char* name) noexcept {
-		fcyRefPointer<ResSound> tRet;
+	Core::ScopeObject<IResourceSoundEffect> ResourceMgr::FindSound(const char* name) noexcept {
+		Core::ScopeObject<IResourceSoundEffect> tRet;
 		if (!(tRet = m_StageResourcePool.GetSound(name)))
 			tRet = m_GlobalResourcePool.GetSound(name);
 		return tRet;
 	}
 
-	fcyRefPointer<ResParticle> ResourceMgr::FindParticle(const char* name) noexcept {
-		fcyRefPointer<ResParticle> tRet;
+	Core::ScopeObject<IResourceParticle> ResourceMgr::FindParticle(const char* name) noexcept {
+		Core::ScopeObject<IResourceParticle> tRet;
 		if (!(tRet = m_StageResourcePool.GetParticle(name)))
 			tRet = m_GlobalResourcePool.GetParticle(name);
 		return tRet;
 	}
 
-	fcyRefPointer<ResFont> ResourceMgr::FindSpriteFont(const char* name) noexcept {
-		fcyRefPointer<ResFont> tRet;
+	Core::ScopeObject<IResourceFont> ResourceMgr::FindSpriteFont(const char* name) noexcept {
+		Core::ScopeObject<IResourceFont> tRet;
 		if (!(tRet = m_StageResourcePool.GetSpriteFont(name)))
 			tRet = m_GlobalResourcePool.GetSpriteFont(name);
 		return tRet;
 	}
 
-	fcyRefPointer<ResFont> ResourceMgr::FindTTFFont(const char* name) noexcept {
-		fcyRefPointer<ResFont> tRet;
+	Core::ScopeObject<IResourceFont> ResourceMgr::FindTTFFont(const char* name) noexcept {
+		Core::ScopeObject<IResourceFont> tRet;
 		if (!(tRet = m_StageResourcePool.GetTTFFont(name)))
 			tRet = m_GlobalResourcePool.GetTTFFont(name);
 		return tRet;
 	}
 
-	fcyRefPointer<ResFX> ResourceMgr::FindFX(const char* name) noexcept {
-		fcyRefPointer<ResFX> tRet;
+	Core::ScopeObject<IResourcePostEffectShader> ResourceMgr::FindFX(const char* name) noexcept {
+		Core::ScopeObject<IResourcePostEffectShader> tRet;
 		if (!(tRet = m_StageResourcePool.GetFX(name)))
 			tRet = m_GlobalResourcePool.GetFX(name);
 		return tRet;
 	}
 
-	fcyRefPointer<ResModel> ResourceMgr::FindModel(const char* name) noexcept
+	Core::ScopeObject<IResourceModel> ResourceMgr::FindModel(const char* name) noexcept
 	{
-		fcyRefPointer<ResModel> tRet;
+		Core::ScopeObject<IResourceModel> tRet;
 		if (!(tRet = m_StageResourcePool.GetModel(name)))
 			tRet = m_GlobalResourcePool.GetModel(name);
 		return tRet;
@@ -116,7 +117,7 @@ namespace LuaSTGPlus
 	// 其他资源操作
 
 	bool ResourceMgr::GetTextureSize(const char* name, Core::Vector2U& out) noexcept {
-		fcyRefPointer<ResTexture> tRet = FindTexture(name);
+		Core::ScopeObject<IResourceTexture> tRet = FindTexture(name);
 		if (!tRet)
 			return false;
 		out = tRet->GetTexture()->getSize();
@@ -124,7 +125,7 @@ namespace LuaSTGPlus
 	}
 
 	void ResourceMgr::CacheTTFFontString(const char* name, const char* text, size_t len) noexcept {
-		fcyRefPointer<ResFont> f = FindTTFFont(name);
+		Core::ScopeObject<IResourceFont> f = FindTTFFont(name);
 		if (f)
 			f->GetGlyphManager()->cacheString(Core::StringView(text, len));
 		else
