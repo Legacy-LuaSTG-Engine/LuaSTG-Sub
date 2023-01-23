@@ -13,6 +13,7 @@ Write-Output ("当前工作目录是：" + $CurrentLocation)
 # 推送
 
 [string] $Git = "git"
+[string] $SSH = "ssh"
 
 Write-Output "---------- push ----------"
 
@@ -21,6 +22,7 @@ Write-Output "git push"
 Write-Output "git push gitlab"
 & $Git push gitlab
 Write-Output "git push gitee"
+& $SSH -T Gitee
 & $Git push gitee
 
 Write-Output "---------- exit ----------"
