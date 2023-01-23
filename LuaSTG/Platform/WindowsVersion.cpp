@@ -185,11 +185,10 @@ namespace Platform
 			bool update_exist = false;
 			if (HMODULE dll_dxgi = LoadLibraryW(L"dxgi.dll"))
 			{
-				if (auto* api_CreateDXGIFactory2 = (decltype(CreateDXGIFactory2)*)GetProcAddress(dll_dxgi, "CreateDXGIFactory2"))
+				if (auto* api_CreateDXGIFactory1 = (decltype(CreateDXGIFactory1)*)GetProcAddress(dll_dxgi, "CreateDXGIFactory1"))
 				{
-					UINT dxgi_factory_flags = 0;
 					Microsoft::WRL::ComPtr<IDXGIFactory2> dxgi_factory;
-					if (SUCCEEDED(api_CreateDXGIFactory2(dxgi_factory_flags, IID_PPV_ARGS(&dxgi_factory))))
+					if (SUCCEEDED(api_CreateDXGIFactory1(IID_PPV_ARGS(&dxgi_factory))))
 					{
 						update_exist = true;
 					}
