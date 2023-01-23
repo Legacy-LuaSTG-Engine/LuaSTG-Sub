@@ -23,11 +23,6 @@ target_compile_definitions(LuaSTG PRIVATE
 )
 
 set(LUASTG_ENGINE_SOURCES
-    LuaSTG/Utility/fancylib/fcyMisc/fcyRandom.h
-    LuaSTG/Utility/fancylib/fcyMisc/fcyRandom.cpp
-    LuaSTG/Utility/fancylib/fcyMisc/fcyStopWatch.h
-    LuaSTG/Utility/fancylib/fcyMisc/fcyStopWatch.cpp
-
     LuaSTG/SharedHeaders.h
     LuaSTG/SharedHeaders.cpp
     

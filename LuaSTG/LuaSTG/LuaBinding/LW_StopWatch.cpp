@@ -1,5 +1,67 @@
 ﻿#include "LuaBinding/LuaWrapper.hpp"
-#include <fcyMisc/fcyStopWatch.h>
+#include "Platform/CleanWindows.hpp"
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief 高精度停表类
+////////////////////////////////////////////////////////////////////////////////
+class fcyStopWatch
+{
+private:
+	int64_t m_cFreq;      ///< @brief CPU频率
+	int64_t m_cLast;      ///< @brief 上一次时间
+	int64_t m_cFixStart;  ///< @brief 暂停时的时间修复参数
+	int64_t m_cFixAll;    ///< @brief 暂停时的时间修复参数
+public:
+	void Pause();        ///< @brief 暂停
+	void Resume();       ///< @brief 继续
+	void Reset();        ///< @brief 归零
+	double GetElapsed(); ///< @brief 获得流逝时间
+	///< @note  以秒为单位
+public:
+	fcyStopWatch();
+	~fcyStopWatch();
+};
+
+fcyStopWatch::fcyStopWatch(void)
+{
+	LARGE_INTEGER freq = {};
+	QueryPerformanceFrequency(&freq); // 初始化
+	m_cFreq = freq.QuadPart;
+	Reset();
+}
+
+fcyStopWatch::~fcyStopWatch(void)
+{
+}
+
+void fcyStopWatch::Pause()
+{
+	LARGE_INTEGER t = {};
+	QueryPerformanceCounter(&t);
+	m_cFixStart = t.QuadPart;
+}
+
+void fcyStopWatch::Resume()
+{
+	LARGE_INTEGER t = {};
+	QueryPerformanceCounter(&t);
+	m_cFixAll += t.QuadPart - m_cFixStart;
+}
+
+void fcyStopWatch::Reset()
+{
+	LARGE_INTEGER t = {};
+	QueryPerformanceCounter(&t);
+	m_cLast = t.QuadPart;
+	m_cFixAll = 0;
+}
+
+double fcyStopWatch::GetElapsed()
+{
+	LARGE_INTEGER t = {};
+	QueryPerformanceCounter(&t);
+	return ((double)(t.QuadPart - m_cLast - m_cFixAll)) / ((double)m_cFreq);
+}
 
 namespace LuaSTGPlus::LuaWrapper
 {
