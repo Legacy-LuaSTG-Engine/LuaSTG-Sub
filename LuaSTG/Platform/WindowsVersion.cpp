@@ -110,7 +110,7 @@ namespace Platform
 
 			if (WindowsVersion::Is8Point1())
 			{
-				MAKE("Windows 8.1", false);
+				MAKE("Windows 8.1", true);
 			}
 			if (WindowsVersion::Is8())
 			{
@@ -182,25 +182,22 @@ namespace Platform
 			{
 				return dxgi_1_2;
 			}
-			BOOL update = FALSE;
+			bool update_exist = false;
 			if (HMODULE dll_dxgi = LoadLibraryW(L"dxgi.dll"))
 			{
-				if (decltype(CreateDXGIFactory1) * api_CreateDXGIFactory1 = (decltype(CreateDXGIFactory1)*)GetProcAddress(dll_dxgi, "CreateDXGIFactory1"))
+				if (auto* api_CreateDXGIFactory2 = (decltype(CreateDXGIFactory2)*)GetProcAddress(dll_dxgi, "CreateDXGIFactory2"))
 				{
-					Microsoft::WRL::ComPtr<IDXGIFactory1> dxgi_factory;
-					if (SUCCEEDED(api_CreateDXGIFactory1(IID_PPV_ARGS(&dxgi_factory))))
+					UINT dxgi_factory_flags = 0;
+					Microsoft::WRL::ComPtr<IDXGIFactory2> dxgi_factory;
+					if (SUCCEEDED(api_CreateDXGIFactory2(dxgi_factory_flags, IID_PPV_ARGS(&dxgi_factory))))
 					{
-						Microsoft::WRL::ComPtr<IDXGIFactory2> dxgi_factory2;
-						if (SUCCEEDED(dxgi_factory.As(&dxgi_factory2)))
-						{
-							update = TRUE;
-						}
+						update_exist = true;
 					}
 				}
 				FreeLibrary(dll_dxgi);
 			}
 			read_dxgi = true;
-			dxgi_1_2 = update;
+			dxgi_1_2 = update_exist;
 			return dxgi_1_2;
 		}
 	}
@@ -246,7 +243,7 @@ namespace Platform
 
 	struct VersionStringBuffer
 	{
-		std::array<char, 32> buffer{};
+		std::array<char, 64> buffer{};
 		std::string_view view{ "0.0.0.0" };
 	};
 
