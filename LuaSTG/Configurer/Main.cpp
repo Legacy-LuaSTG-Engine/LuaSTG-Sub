@@ -1,4 +1,5 @@
 ﻿#include "Platform/HighDPI.hpp"
+#include "Platform/WindowTheme.hpp"
 #include "imgui.h"
 #include "imgui_freetype.h"
 #include "imgui_impl_win32.h"
@@ -18,6 +19,7 @@ static std::unordered_map<std::string_view, std::string_view> i18n_map[2] = {
         {"setting-language", "语言（Language）"},
         {"setting-graphic-card", "显卡"},
         {"setting-display-mode", "显示模式"},
+        {"setting-canvas-size", "分辨率"},
         {"setting-fullscreen", "全屏"},
         {"setting-vsync", "垂直同步"},
         {"setting-cancel", "取消并退出"},
@@ -30,6 +32,7 @@ static std::unordered_map<std::string_view, std::string_view> i18n_map[2] = {
         {"setting-language", "Language (语言)"},
         {"setting-graphic-card", "Graphic Card"},
         {"setting-display-mode", "Display Mode"},
+        {"setting-canvas-size", "Resolution"},
         {"setting-fullscreen", "Fullscreen"},
         {"setting-vsync", "VSync"},
         {"setting-cancel", "Cancel & Exit"},
@@ -54,6 +57,33 @@ struct DisplayMode
 {
     std::string name;
     DXGI_MODE_DESC mode = {};
+
+    DisplayMode() = default;
+    DisplayMode(UINT width, UINT height)
+    {
+        std::array<char, 256> buffer{};
+        std::snprintf(buffer.data(), buffer.size(), "%ux%u", width, height);
+        name = buffer.data();
+        mode.Width = width;
+        mode.Height = height;
+        mode.RefreshRate.Numerator = 0;
+        mode.RefreshRate.Denominator = 0;
+        mode.Format = DXGI_FORMAT_UNKNOWN;
+        mode.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+        mode.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+    }
+    DisplayMode(std::string_view name, UINT width, UINT height)
+    {
+        this->name = name;
+        mode.Width = width;
+        mode.Height = height;
+        mode.RefreshRate.Numerator = 0;
+        mode.RefreshRate.Denominator = 0;
+        mode.Format = DXGI_FORMAT_UNKNOWN;
+        mode.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+        mode.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+    }
+    DisplayMode(std::string_view name_, DXGI_MODE_DESC const& mode_) : name(name_), mode(mode_) {}
 };
 struct Config
 {
@@ -138,6 +168,11 @@ struct Window
         case WM_DPICHANGED:
             OnScaling(LOWORD(arg1));
             return 0;
+        case WM_THEMECHANGED:
+        case WM_SETTINGCHANGE:
+            Platform::WindowTheme::UpdateColorMode(window, TRUE);
+            ApplyStyle();
+            return DefWindowProcW(window, message, arg1, arg2);
         default:
             return DefWindowProcW(window, message, arg1, arg2);
         }
@@ -219,7 +254,7 @@ struct Window
                 ImGui::EndCombo();
             }
 
-            if (ImGui::BeginCombo(i18n_c_str("setting-display-mode"), dxgi_output_mode_list[luastg_config.select_mode].name.c_str()))
+            if (ImGui::BeginCombo(i18n_c_str("setting-canvas-size"), dxgi_output_mode_list[luastg_config.select_mode].name.c_str()))
             {
                 for (auto& entry : dxgi_output_mode_list)
                 {
@@ -263,7 +298,7 @@ struct Window
     {
         win32_window_dpi = dpi;
         updateWindowSize();
-        ApplyStyle();
+        UpdateStyleAndFont();
         ImGui_ImplDX11_InvalidateDeviceObjects();
         ImGui_ImplDX11_CreateDeviceObjects();
     }
@@ -274,8 +309,9 @@ struct Window
     }
     bool refreshOutputModeList()
     {
+        bool const canvas_mode = true;
         dxgi_output_mode_list.clear();
-        if (dxgi_swapchain)
+        if (!canvas_mode && dxgi_swapchain)
         {
             HRESULT hr = S_OK;
 
@@ -315,32 +351,37 @@ struct Window
                 dxgi_output_mode_list.emplace_back(DisplayMode{ buffer, mode });
             }
         }
+        if (canvas_mode)
+        {
+            // 在这里自定义你的画布分辨率
+            // Customize your canvas size here
+            dxgi_output_mode_list.emplace_back(DisplayMode("640x480 (x1)"    ,  640,  480)); // x1
+            dxgi_output_mode_list.emplace_back(DisplayMode("800x600 (x1.25)" ,  800,  600)); // x1.25
+            dxgi_output_mode_list.emplace_back(DisplayMode("960x720 (x1.5)"  ,  960,  720)); // x1.5
+            dxgi_output_mode_list.emplace_back(DisplayMode("1024x768 (x1.6)" , 1024,  768)); // x1.6
+            dxgi_output_mode_list.emplace_back(DisplayMode("1152x864 (x1.8)" , 1152,  864)); // x1.8
+            dxgi_output_mode_list.emplace_back(DisplayMode("1280x960 (x2)"   , 1280,  960)); // x2
+            //dxgi_output_mode_list.emplace_back(DisplayMode("1440x1050"       , 1400, 1050));
+            dxgi_output_mode_list.emplace_back(DisplayMode("1600x1200 (x2.5)", 1600, 1200)); // x2.5
+            //dxgi_output_mode_list.emplace_back(DisplayMode("1792x1344"       , 1792, 1344));
+            //dxgi_output_mode_list.emplace_back(DisplayMode("1856x1392"       , 1856, 1392));
+            dxgi_output_mode_list.emplace_back(DisplayMode("1920x1440 (x3)"  , 1920, 1440)); // x3
+            dxgi_output_mode_list.emplace_back(DisplayMode("2240x1680 (x3.5)", 2240, 1680)); // x3.5
+            dxgi_output_mode_list.emplace_back(DisplayMode("2560x1920 (x4)"  , 2560, 1920)); // x4
+            dxgi_output_mode_list.emplace_back(DisplayMode("2880x2160 (x4.5)", 2880, 2160)); // x4.5
+            dxgi_output_mode_list.emplace_back(DisplayMode("3200x2400 (x5)"  , 2880, 2400)); // x5
+        }
         return true;
     }
     
-    void ApplyStyle()
+    void UpdateStyleAndFont()
     {
         if (!ImGui::GetCurrentContext()) return;
-        
+
         ImGuiIO& io = ImGui::GetIO();
         float const scaling = Platform::HighDPI::ScalingFromDpi(win32_window_dpi);
 
-        ImGuiStyle style;
-        ImGui::StyleColorsLight(&style);
-        style.ChildBorderSize = 1.0f;
-        style.FrameBorderSize = 1.0f;
-        style.PopupBorderSize = 1.0f;
-        style.TabBorderSize = 1.0f;
-        style.WindowBorderSize = 1.0f;
-        style.ChildRounding = 0.0f;
-        style.FrameRounding = 0.0f;
-        style.GrabRounding = 0.0f;
-        style.PopupRounding = 0.0f;
-        style.ScrollbarRounding = 0.0f;
-        style.TabRounding = 0.0f;
-        style.WindowRounding = 0.0f;
-        style.ScaleAllSizes(scaling);
-        ImGui::GetStyle() = style;
+        ApplyStyle();
 
         ImFontGlyphRangesBuilder builder;
         for (ImWchar c = 0x20; c < 0x7F; c += 1)
@@ -358,7 +399,7 @@ struct Window
         static ImVector<ImWchar> ranges;
         ranges.clear();
         builder.BuildRanges(&ranges);
-        
+
         io.Fonts->Clear();
         ImFontConfig font_cfg;
         font_cfg.FontBuilderFlags = ImGuiFreeTypeBuilderFlags_NoHinting;
@@ -372,6 +413,32 @@ struct Window
             throw std::runtime_error("ImFontAtlas::AddFontFromFileTTF failed.");
         }
         io.Fonts->Build();
+    }
+    void ApplyStyle()
+    {
+        if (!ImGui::GetCurrentContext()) return;
+        
+        float const scaling = Platform::HighDPI::ScalingFromDpi(win32_window_dpi);
+
+        ImGuiStyle style;
+        if (Platform::WindowTheme::ShouldApplicationEnableDarkMode())
+            ImGui::StyleColorsDark(&style);
+        else
+            ImGui::StyleColorsLight(&style);
+        style.ChildBorderSize = 1.0f;
+        style.FrameBorderSize = 1.0f;
+        style.PopupBorderSize = 1.0f;
+        style.TabBorderSize = 1.0f;
+        style.WindowBorderSize = 1.0f;
+        style.ChildRounding = 0.0f;
+        style.FrameRounding = 0.0f;
+        style.GrabRounding = 0.0f;
+        style.PopupRounding = 0.0f;
+        style.ScrollbarRounding = 0.0f;
+        style.TabRounding = 0.0f;
+        style.WindowRounding = 0.0f;
+        style.ScaleAllSizes(scaling);
+        ImGui::GetStyle() = style;
     }
 
     bool CreateDirectX()
@@ -682,6 +749,7 @@ struct Window
         {
             throw std::runtime_error("CreateWindowExW failed."); // 这不应该发生
         }
+        Platform::WindowTheme::UpdateColorMode(win32_window, TRUE);
         win32_window_dpi = Platform::HighDPI::GetDpiForWindow(win32_window);
         updateWindowSize();
         moveToCenter();
@@ -696,7 +764,7 @@ struct Window
         ImGui::GetIO().IniFilename = NULL;
         ImGui_ImplWin32_Init(win32_window);
         ImGui_ImplDX11_Init(d3d11_device.Get(), d3d11_devctx.Get());
-        ApplyStyle();
+        UpdateStyleAndFont();
         is_open = TRUE;
 
         loadConfigFromJson();
