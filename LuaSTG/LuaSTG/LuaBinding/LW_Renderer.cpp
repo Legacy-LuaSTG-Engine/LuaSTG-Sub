@@ -6,13 +6,20 @@
 inline Core::Graphics::IRenderer* LR2D() { return LAPP.GetAppModel()->getRenderer(); }
 inline LuaSTGPlus::ResourceMgr& LRESMGR() { return LAPP.GetResourceMgr(); }
 
-#ifdef _DEBUG
+#ifndef NDEBUG
 #define check_rendertarget_usage(PTEXTURE) assert(!LuaSTGPlus::AppFrame::GetInstance().GetRenderTargetManager()->CheckRenderTargetInUse(PTEXTURE.get()));
 #else
 #define check_rendertarget_usage(PTEXTURE)
-#endif // _DEBUG
+#endif
 
 #define validate_render_scope() if (!LR2D()->isBatchScope()) return luaL_error(L, "invalid render operation");
+
+enum class RenderError
+{
+    None,
+    SpriteNotFound,
+    SpriteSequenceNotFound,
+};
 
 inline void rotate_float2(float& x, float& y, const float r)
 {
@@ -100,43 +107,45 @@ static Core::Graphics::IRenderer::BlendState translate_blend_3d(const LuaSTGPlus
     }
 }
 
-static void api_drawSprite(LuaSTGPlus::IResourceSprite* pimg2dres, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
+static RenderError api_drawSprite(LuaSTGPlus::IResourceSprite* pimg2dres, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {
     Core::Graphics::ISprite* p_sprite = pimg2dres->GetSprite();
     auto* ctx = LR2D();
     translate_blend(ctx, pimg2dres->GetBlendMode());
     p_sprite->setZ(z);
     p_sprite->draw(Core::Vector2F(x, y), Core::Vector2F(hscale, vscale), rot);
+    return RenderError::None;
 }
-static void api_drawSprite(char const* name, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
+static RenderError api_drawSprite(char const* name, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {
     Core::ScopeObject<LuaSTGPlus::IResourceSprite> pimg2dres = LRESMGR().FindSprite(name);
     if (!pimg2dres)
     {
         spdlog::error("[luastg] lstg.Renderer.drawSprite failed, can't find sprite '{}'", name);
-        return;
+        return RenderError::SpriteNotFound;
     }
-    api_drawSprite(*pimg2dres, x, y, rot, hscale, vscale, z);
+    return api_drawSprite(*pimg2dres, x, y, rot, hscale, vscale, z);
 }
-static void api_drawSpriteRect(LuaSTGPlus::IResourceSprite* pimg2dres, float const l, float const r, float const b, float const t, float const z)
+static RenderError api_drawSpriteRect(LuaSTGPlus::IResourceSprite* pimg2dres, float const l, float const r, float const b, float const t, float const z)
 {
     Core::Graphics::ISprite* p_sprite = pimg2dres->GetSprite();
     auto* ctx = LR2D();
     translate_blend(ctx, pimg2dres->GetBlendMode());
     p_sprite->setZ(z);
     p_sprite->draw(Core::RectF(l, t, r, b));
+    return RenderError::None;
 }
-static void api_drawSpriteRect(char const* name, float const l, float const r, float const b, float const t, float const z)
+static RenderError api_drawSpriteRect(char const* name, float const l, float const r, float const b, float const t, float const z)
 {
     Core::ScopeObject<LuaSTGPlus::IResourceSprite> pimg2dres = LRESMGR().FindSprite(name);
     if (!pimg2dres)
     {
         spdlog::error("[luastg] lstg.Renderer.drawSpriteRect failed, can't find sprite '{}'", name);
-        return;
+        return RenderError::SpriteNotFound;
     }
-    api_drawSpriteRect(*pimg2dres, l, r, b, t, z);
+    return api_drawSpriteRect(*pimg2dres, l, r, b, t, z);
 }
-static void api_drawSprite4V(LuaSTGPlus::IResourceSprite* pimg2dres, float const x1, float const y1, float const z1, float const x2, float const y2, float const z2, float const x3, float const y3, float const z3, float const x4, float const y4, float const z4)
+static RenderError api_drawSprite4V(LuaSTGPlus::IResourceSprite* pimg2dres, float const x1, float const y1, float const z1, float const x2, float const y2, float const z2, float const x3, float const y3, float const z3, float const x4, float const y4, float const z4)
 {
     Core::Graphics::ISprite* p_sprite = pimg2dres->GetSprite();
     auto* ctx = LR2D();
@@ -147,35 +156,37 @@ static void api_drawSprite4V(LuaSTGPlus::IResourceSprite* pimg2dres, float const
         Core::Vector3F(x3, y3, z3),
         Core::Vector3F(x4, y4, z4)
     );
+    return RenderError::None;
 }
-static void api_drawSprite4V(char const* name, float const x1, float const y1, float const z1, float const x2, float const y2, float const z2, float const x3, float const y3, float const z3, float const x4, float const y4, float const z4)
+static RenderError api_drawSprite4V(char const* name, float const x1, float const y1, float const z1, float const x2, float const y2, float const z2, float const x3, float const y3, float const z3, float const x4, float const y4, float const z4)
 {
     Core::ScopeObject<LuaSTGPlus::IResourceSprite> pimg2dres = LRESMGR().FindSprite(name);
     if (!pimg2dres)
     {
         spdlog::error("[luastg] lstg.Renderer.drawSprite4V failed, can't find sprite '{}'", name);
-        return;
+        return RenderError::SpriteNotFound;
     }
-    api_drawSprite4V(*pimg2dres, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4);
+    return api_drawSprite4V(*pimg2dres, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4);
 }
 
-static void api_drawSpriteSequence(LuaSTGPlus::IResourceAnimation* pani2dres, int const ani_timer, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
+static RenderError api_drawSpriteSequence(LuaSTGPlus::IResourceAnimation* pani2dres, int const ani_timer, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {
     Core::Graphics::ISprite* p_sprite = pani2dres->GetSpriteByTimer(ani_timer);
     auto* ctx = LR2D();
     translate_blend(ctx, pani2dres->GetBlendMode());
     p_sprite->setZ(z);
     p_sprite->draw(Core::Vector2F(x, y), Core::Vector2F(hscale, vscale), rot);
+    return RenderError::None;
 }
-static void api_drawSpriteSequence(char const* name, int const ani_timer, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
+static RenderError api_drawSpriteSequence(char const* name, int const ani_timer, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {
     Core::ScopeObject<LuaSTGPlus::IResourceAnimation> pani2dres = LRESMGR().FindAnimation(name);
     if (!pani2dres)
     {
         spdlog::error("[luastg] lstg.Renderer.drawSpriteSequence failed, can't find sprite sequence '{}'", name);
-        return;
+        return RenderError::SpriteSequenceNotFound;
     }
-    api_drawSpriteSequence(*pani2dres, ani_timer, x, y, rot, hscale, vscale, z);
+    return api_drawSpriteSequence(*pani2dres, ani_timer, x, y, rot, hscale, vscale, z);
 }
 
 static void api_setFogState(float start, float end, Core::Color4B color)
@@ -374,7 +385,7 @@ static int lib_setTexture(lua_State* L)noexcept
     if (!p)
     {
         spdlog::error("[luastg] lstg.Renderer.setTexture failed: can't find texture '{}'", name);
-        return false;
+        return luaL_error(L, "can't find texture '%s'", name);
     }
     check_rendertarget_usage(p);
     LR2D()->setTexture(p->GetTexture());
@@ -502,33 +513,45 @@ static int lib_drawSprite(lua_State* L)
 {
     validate_render_scope();
     float const hscale = (float)luaL_optnumber(L, 5, 1.0);
-    api_drawSprite(
+    RenderError re = api_drawSprite(
         luaL_checkstring(L, 1),
         (float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3),
         (float)(luaL_optnumber(L, 4, 0.0) * L_DEG_TO_RAD),
         hscale * LRESMGR().GetGlobalImageScaleFactor(), (float)luaL_optnumber(L, 6, hscale) * LRESMGR().GetGlobalImageScaleFactor(),
         (float)luaL_optnumber(L, 7, 0.5));
+    if (re == RenderError::SpriteNotFound)
+    {
+        return luaL_error(L, "can't find sprite '%s'", luaL_checkstring(L, 1));
+    }
     return 0;
 }
 static int lib_drawSpriteRect(lua_State* L)
 {
     validate_render_scope();
-    api_drawSpriteRect(
+    RenderError re = api_drawSpriteRect(
         luaL_checkstring(L, 1),
         (float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3),
         (float)luaL_checknumber(L, 4), (float)luaL_checknumber(L, 5),
         (float)luaL_optnumber(L, 6, 0.5));
+    if (re == RenderError::SpriteNotFound)
+    {
+        return luaL_error(L, "can't find sprite '%s'", luaL_checkstring(L, 1));
+    }
     return 0;
 }
 static int lib_drawSprite4V(lua_State* L)
 {
     validate_render_scope();
-    api_drawSprite4V(
+    RenderError re = api_drawSprite4V(
         luaL_checkstring(L, 1),
         (float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3), (float)luaL_checknumber(L, 4),
         (float)luaL_checknumber(L, 5), (float)luaL_checknumber(L, 6), (float)luaL_checknumber(L, 7),
         (float)luaL_checknumber(L, 8), (float)luaL_checknumber(L, 9), (float)luaL_checknumber(L, 10),
         (float)luaL_checknumber(L, 11), (float)luaL_checknumber(L, 12), (float)luaL_checknumber(L, 13));
+    if (re == RenderError::SpriteNotFound)
+    {
+        return luaL_error(L, "can't find sprite '%s'", luaL_checkstring(L, 1));
+    }
     return 0;
 }
 
@@ -536,13 +559,17 @@ static int lib_drawSpriteSequence(lua_State* L)
 {
     validate_render_scope();
     float const hscale = (float)luaL_optnumber(L, 6, 1.0);
-    api_drawSpriteSequence(
+    RenderError re = api_drawSpriteSequence(
         luaL_checkstring(L, 1),
         (int)luaL_checkinteger(L, 2),
         (float)luaL_checknumber(L, 3), (float)luaL_checknumber(L, 4),
         (float)(luaL_optnumber(L, 5, 0.0) * L_DEG_TO_RAD),
         hscale * LRESMGR().GetGlobalImageScaleFactor(), (float)luaL_optnumber(L, 7, hscale) * LRESMGR().GetGlobalImageScaleFactor(),
         (float)luaL_optnumber(L, 8, 0.5));
+    if (re == RenderError::SpriteNotFound)
+    {
+        return luaL_error(L, "can't find animation '%s'", luaL_checkstring(L, 1));
+    }
     return 0;
 }
 
@@ -797,7 +824,7 @@ static int compat_PushRenderTarget(lua_State* L)noexcept
     if (!p)
         return luaL_error(L, "rendertarget '%s' not found.", luaL_checkstring(L, 1));
     if (!p->IsRenderTarget())
-        return luaL_error(L, "'%s' is a texture.", luaL_checkstring(L, 1));
+        return luaL_error(L, "'%s' is not a rendertarget.", luaL_checkstring(L, 1));
 
     if (!LAPP.GetRenderTargetManager()->PushRenderTarget(p.get()))
         return luaL_error(L, "push rendertarget '%s' failed.", luaL_checkstring(L, 1));
@@ -832,7 +859,7 @@ static int compat_PostEffect(lua_State* L)
 
     Core::ScopeObject<LuaSTGPlus::IResourcePostEffectShader> pfx = LRES.FindFX(ps_name);
     if (!pfx)
-        return luaL_error(L, "effect '%s' not found.", ps_name);
+        return luaL_error(L, "posteffect '%s' not found.", ps_name);
     
     Core::ScopeObject<LuaSTGPlus::IResourceTexture> prt = LRES.FindTexture(rt_name);
     if (!prt)
