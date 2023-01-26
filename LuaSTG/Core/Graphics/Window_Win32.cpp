@@ -91,6 +91,7 @@ namespace Core::Graphics
 				Platform::WindowTheme::UpdateColorMode(window, FALSE);
 				dispatchEvent(EventType::WindowInactive);
 			}
+			m_alt_down = FALSE; // 无论如何，清除该按键状态
 			break;
 		case WM_SIZE:
 			if (!m_ignore_size_message)
@@ -192,15 +193,15 @@ namespace Core::Graphics
 		case WM_MENUCHAR:
 			// 快捷键能不能死全家
 			return MAKELRESULT(0, MNC_CLOSE);
-		case WM_SYSCOMMAND:
-			// 鼠标左键点击标题栏图标或者 Alt+Space 不会出现菜单
-			switch (arg1 & 0xFFF0)
-			{
-			case SC_KEYMENU:
-			case SC_MOUSEMENU:
-				return 0;
-			}
-			break;
+		//case WM_SYSCOMMAND:
+		//	// 鼠标左键点击标题栏图标或者 Alt+Space 不会出现菜单
+		//	switch (arg1 & 0xFFF0)
+		//	{
+		//	case SC_KEYMENU:
+		//	case SC_MOUSEMENU:
+		//		return 0;
+		//	}
+		//	break;
 		case WM_CLOSE:
 			dispatchEvent(EventType::WindowClose);
 			PostQuitMessage(EXIT_SUCCESS);
