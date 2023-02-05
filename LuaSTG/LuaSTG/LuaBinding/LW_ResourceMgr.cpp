@@ -346,13 +346,16 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			if (!pActivedPool)
 				return luaL_error(L, "can't load resource at this time.");
 			
-			if (lua_gettop(L) >= 2)
+			if (lua_gettop(L) >= 3)
 			{
 				const int width = (int)luaL_checkinteger(L, 2);
 				const int height = (int)luaL_checkinteger(L, 3);
 				if (width < 1 || height < 1)
 					return luaL_error(L, "invalid render target size (%dx%d).", width, height);
-				if (!pActivedPool->CreateRenderTarget(name, width, height, true))
+				bool depth_buffer = true;
+				if (lua_gettop(L) >= 4)
+					depth_buffer = lua_toboolean(L, 4);
+				if (!pActivedPool->CreateRenderTarget(name, width, height, depth_buffer))
 					return luaL_error(L, "can't create render target with name '%s'.", name);
 			}
 			else
