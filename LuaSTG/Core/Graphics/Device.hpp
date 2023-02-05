@@ -114,6 +114,7 @@ namespace Core::Graphics
 	struct IRenderTarget : public IObject
 	{
 		virtual void* getNativeHandle() = 0;
+		virtual void* getNativeBitmapHandle() = 0;
 
 		virtual bool setSize(Vector2U size) = 0;
 		virtual ITexture2D* getTexture() = 0;
@@ -140,6 +141,7 @@ namespace Core::Graphics
 		virtual StringView getGpuName(uint32_t index) = 0;
 
 		virtual void* getNativeHandle() = 0;
+		virtual void* getNativeRendererHandle() = 0;
 
 		virtual bool createTextureFromFile(StringView path, bool mipmap, ITexture2D** pp_texutre) = 0;
 		//virtual bool createTextureFromMemory(void const* data, size_t size, bool mipmap, ITexture2D** pp_texutre) = 0;

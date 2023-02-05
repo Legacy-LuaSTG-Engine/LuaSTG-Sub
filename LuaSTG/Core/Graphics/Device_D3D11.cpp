@@ -11,6 +11,12 @@
 #include "QOITextureLoader11.h"
 #include "ScreenGrab11.h"
 
+#define HRNew HRESULT hr = S_OK;
+#define HRGet hr = gHR
+#define HRCheckCallReport(x) if (FAILED(hr)) { i18n_core_system_call_report_error(x); }
+#define HRCheckCallReturnBool(x) if (FAILED(hr)) { i18n_core_system_call_report_error(x); assert(false); return false; }
+#define HRCheckCallNoAssertReturnBool(x) if (FAILED(hr)) { i18n_core_system_call_report_error(x); return false; }
+
 namespace Core::Graphics
 {
 	static std::string bytes_count_to_string(DWORDLONG size)
@@ -1674,6 +1680,7 @@ namespace Core::Graphics
 	bool RenderTarget_D3D11::setSize(Vector2U size)
 	{
 		d3d11_rtv.Reset();
+		d2d1_bitmap_target.Reset();
 		if (!m_texture->setSize(size)) return false;
 		return createResource();
 	}
@@ -1686,6 +1693,7 @@ namespace Core::Graphics
 	void RenderTarget_D3D11::onDeviceDestroy()
 	{
 		d3d11_rtv.Reset();
+		d2d1_bitmap_target.Reset();
 		m_texture->onDeviceDestroy();
 	}
 
@@ -1695,11 +1703,16 @@ namespace Core::Graphics
 
 		auto* d3d11_device = m_device->GetD3D11Device();
 		auto* d3d11_devctx = m_device->GetD3D11DeviceContext();
-		if (!d3d11_device || !d3d11_devctx)
+		auto* d2d1_device_context = m_device->GetD2D1DeviceContext();
+		if (!d3d11_device || !d3d11_devctx || !d2d1_device_context)
 			return false;
+
+		// 获取纹理资源信息
 
 		D3D11_TEXTURE2D_DESC tex2ddef = {};
 		m_texture->GetResource()->GetDesc(&tex2ddef);
+
+		// 创建渲染目标视图
 
 		D3D11_RENDER_TARGET_VIEW_DESC rtvdef = {
 			.Format = tex2ddef.Format,
@@ -1715,6 +1728,29 @@ namespace Core::Graphics
 			return false;
 		}
 		M_D3D_SET_DEBUG_NAME(d3d11_rtv.Get(), "RenderTarget_D3D11::d3d11_rtv");
+
+		// 创建D2D1位图
+
+		Microsoft::WRL::ComPtr<IDXGISurface> dxgi_surface;
+		hr = gHR = m_texture->GetResource()->QueryInterface(IID_PPV_ARGS(&dxgi_surface));
+		if (FAILED(hr))
+		{
+			i18n_core_system_call_report_error("ID3D11Texture2D::QueryInterface -> IDXGISurface");
+			return false;
+		}
+		
+		D2D1_BITMAP_PROPERTIES1 bitmap_info = {
+			.pixelFormat = {
+				.format = DXGI_FORMAT_B8G8R8A8_UNORM,
+				.alphaMode = D2D1_ALPHA_MODE_PREMULTIPLIED,
+			},
+			.dpiX = 0.0f,
+			.dpiY = 0.0f,
+			.bitmapOptions = D2D1_BITMAP_OPTIONS_TARGET,
+			.colorContext = NULL,
+		};
+		HRGet = d2d1_device_context->CreateBitmapFromDxgiSurface(dxgi_surface.Get(), &bitmap_info, &d2d1_bitmap_target);
+		HRCheckCallReturnBool("ID3D11DeviceContext::CreateBitmapFromDxgiSurface");
 
 		return true;
 	}

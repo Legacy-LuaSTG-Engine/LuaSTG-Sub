@@ -73,6 +73,9 @@ namespace Core::Graphics
 		ID3D11DeviceContext* GetD3D11DeviceContext() const noexcept { return d3d11_devctx.Get(); }
 		ID3D11DeviceContext1* GetD3D11DeviceContext1() const noexcept { return d3d11_devctx1.Get(); }
 
+		ID2D1Device* GetD2D1Device() const noexcept { return d2d1_device.Get(); }
+		ID2D1DeviceContext* GetD2D1DeviceContext() const noexcept { return d2d1_devctx.Get(); }
+
 		IWICImagingFactory* GetWICImagingFactory() const noexcept { return wic_factory.Get(); }
 
 		BOOL IsFlipSequentialSupport() const noexcept { return dxgi_support_flip_model; }
@@ -125,6 +128,7 @@ namespace Core::Graphics
 		StringView getGpuName(uint32_t index) { return dxgi_adapter_names[index]; }
 
 		void* getNativeHandle() { return d3d11_device.Get(); }
+		void* getNativeRendererHandle() { return d2d1_devctx.Get(); }
 
 		bool createTextureFromFile(StringView path, bool mipmap, ITexture2D** pp_texutre);
 		//bool createTextureFromMemory(void const* data, size_t size, bool mipmap, ITexture2D** pp_texutre);
@@ -223,6 +227,7 @@ namespace Core::Graphics
 		ScopeObject<Device_D3D11> m_device;
 		ScopeObject<Texture2D_D3D11> m_texture;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> d3d11_rtv;
+		Microsoft::WRL::ComPtr<ID2D1Bitmap1> d2d1_bitmap_target;
 
 	public:
 		void onDeviceCreate();
@@ -235,6 +240,7 @@ namespace Core::Graphics
 
 	public:
 		void* getNativeHandle() { return d3d11_rtv.Get(); }
+		void* getNativeBitmapHandle() { return d2d1_bitmap_target.Get(); }
 
 		bool setSize(Vector2U size);
 		ITexture2D* getTexture() { return *m_texture; }
