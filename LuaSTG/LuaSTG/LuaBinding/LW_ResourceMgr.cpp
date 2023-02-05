@@ -352,12 +352,12 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 				const int height = (int)luaL_checkinteger(L, 3);
 				if (width < 1 || height < 1)
 					return luaL_error(L, "invalid render target size (%dx%d).", width, height);
-				if (!pActivedPool->CreateRenderTarget(name, width, height))
+				if (!pActivedPool->CreateRenderTarget(name, width, height, true))
 					return luaL_error(L, "can't create render target with name '%s'.", name);
 			}
 			else
 			{
-				if (!pActivedPool->CreateRenderTarget(name))
+				if (!pActivedPool->CreateRenderTarget(name, 0, 0, true))
 					return luaL_error(L, "can't create render target with name '%s'.", name);
 			}
 			

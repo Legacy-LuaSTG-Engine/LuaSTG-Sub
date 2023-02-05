@@ -270,7 +270,7 @@ namespace LuaSTGPlus
 
     // 创建渲染目标
 
-    bool ResourcePool::CreateRenderTarget(const char* name, int width, int height) noexcept
+    bool ResourcePool::CreateRenderTarget(const char* name, int width, int height, bool depth_buffer) noexcept
     {
         if (m_TexturePool.find(name) != m_TexturePool.end())
         {
@@ -281,16 +281,18 @@ namespace LuaSTGPlus
             return true;
         }
     
+        std::string_view ds_info("和深度缓冲区");
+
         try
         {
             Core::ScopeObject<IResourceTexture> tRes;
             if (width <= 0 || height <= 0)
             {
-                tRes.attach(new ResourceTextureImpl(name, true));
+                tRes.attach(new ResourceTextureImpl(name, depth_buffer));
             }
             else
             {
-                tRes.attach(new ResourceTextureImpl(name, width, height, true));
+                tRes.attach(new ResourceTextureImpl(name, width, height, depth_buffer));
             }
             m_TexturePool.emplace(name, tRes);
         }
@@ -304,11 +306,11 @@ namespace LuaSTGPlus
         {
             if (width <= 0 || height <= 0)
             {
-                spdlog::info("[luastg] CreateRenderTarget: 已创建渲染目标 '{}' ({})", name, getResourcePoolTypeName());
+                spdlog::info("[luastg] CreateRenderTarget: 已创建渲染目标{} '{}' ({})", ds_info, name, getResourcePoolTypeName());
             }
             else
             {
-                spdlog::info("[luastg] CreateRenderTarget: 已创建渲染目标 '{}' ({}x{}) ({})", name, width, height, getResourcePoolTypeName());
+                spdlog::info("[luastg] CreateRenderTarget: 已创建渲染目标{} '{}' ({}x{}) ({})", ds_info, name, width, height, getResourcePoolTypeName());
             }
         }
     
