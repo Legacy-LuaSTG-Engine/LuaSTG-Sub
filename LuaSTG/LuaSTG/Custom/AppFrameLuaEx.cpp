@@ -3,6 +3,8 @@
 #include "Core/FileManager.hpp"
 #include "Core/InitializeConfigure.hpp"
 
+#include "Platform/HResultChecker.hpp"
+
 namespace LuaSTGPlus
 {
     bool AppFrame::OnLoadLaunchScriptAndFiles()
@@ -30,12 +32,12 @@ namespace LuaSTGPlus
             if (config.loadFromFile("config.json"))
             {
                 spdlog::info("[luastg] 发现配置文件'config.json'");
-                LAPP.SetWindowed(config.windowed);
-                LAPP.SetVsync(config.vsync);
-                LAPP.SetResolution(config.width, config.height);
-                if (!config.gpu.empty())
+                LAPP.SetWindowed(!config.fullscreen_enable);
+                LAPP.SetVsync(config.vsync_enable);
+                LAPP.SetResolution(config.canvas_width, config.canvas_height);
+                if (!config.target_graphics_device.empty())
                 {
-                    LAPP.SetPreferenceGPU(config.gpu.c_str());
+                    LAPP.SetPreferenceGPU(config.target_graphics_device.c_str());
                 }
                 is_launch_loaded = true;
             }
@@ -46,7 +48,7 @@ namespace LuaSTGPlus
             spdlog::error("[luastg] 找不到文件'launch'");
         }
         #endif
-        
+
         return true;
     };
     
