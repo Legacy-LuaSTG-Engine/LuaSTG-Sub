@@ -357,7 +357,7 @@ namespace DirectWrite
 	private:
 		std::vector<uint8_t> m_data;
 	public:
-		HRESULT WINAPI ReadFileFragment(void const** fragmentStart, UINT64 fileOffset, UINT64 fragmentSize, void** fragmentContext)
+		HRESULT WINAPI ReadFileFragment(void const** fragmentStart, UINT64 fileOffset, UINT64 fragmentSize, void** fragmentContext) noexcept
 		{
 			assert(fragmentStart);
 			assert(fragmentContext);
@@ -367,18 +367,18 @@ namespace DirectWrite
 			*fragmentContext = m_data.data() + fileOffset; // for identification only
 			return S_OK;
 		}
-		void WINAPI ReleaseFileFragment(void* fragmentContext)
+		void WINAPI ReleaseFileFragment(void* fragmentContext) noexcept
 		{
 			UNREFERENCED_PARAMETER(fragmentContext);
 			// no additional heap memory to free
 		}
-		HRESULT WINAPI GetFileSize(UINT64* fileSize)
+		HRESULT WINAPI GetFileSize(UINT64* fileSize) noexcept
 		{
 			assert(fileSize);
 			*fileSize = m_data.size();
 			return S_OK; // always succeed
 		}
-		HRESULT WINAPI GetLastWriteTime(UINT64* lastWriteTime)
+		HRESULT WINAPI GetLastWriteTime(UINT64* lastWriteTime) noexcept
 		{
 			UNREFERENCED_PARAMETER(lastWriteTime);
 			return E_NOTIMPL; // always failed (not applicable for in-memory font files)
@@ -438,7 +438,7 @@ namespace DirectWrite
 	private:
 		std::unordered_map<std::string, Microsoft::WRL::ComPtr<DWriteFontFileStreamImplement>> m_cache;
 	public:
-		HRESULT WINAPI CreateStreamFromKey(void const* fontFileReferenceKey, UINT32 fontFileReferenceKeySize, IDWriteFontFileStream** fontFileStream)
+		HRESULT WINAPI CreateStreamFromKey(void const* fontFileReferenceKey, UINT32 fontFileReferenceKeySize, IDWriteFontFileStream** fontFileStream) noexcept
 		{
 			assert(fontFileReferenceKey && fontFileReferenceKeySize > 0);
 			assert(fontFileStream);
@@ -484,7 +484,7 @@ namespace DirectWrite
 		shared_string_list m_font_file_name_list;
 		LONG m_index{};
 	public:
-		HRESULT WINAPI MoveNext(BOOL* hasCurrentFile)
+		HRESULT WINAPI MoveNext(BOOL* hasCurrentFile) noexcept
 		{
 			assert(hasCurrentFile);
 			assert(m_font_file_name_list);
@@ -499,7 +499,7 @@ namespace DirectWrite
 			}
 			return S_OK;
 		}
-		HRESULT WINAPI GetCurrentFontFile(IDWriteFontFile** fontFile)
+		HRESULT WINAPI GetCurrentFontFile(IDWriteFontFile** fontFile) noexcept
 		{
 			assert(fontFile);
 			assert(m_font_file_name_list);
@@ -550,7 +550,7 @@ namespace DirectWrite
 		Microsoft::WRL::ComPtr<IDWriteFontFileLoader> m_dwrite_font_file_loader;
 		shared_string_list m_font_file_name_list;
 	public:
-		HRESULT WINAPI CreateEnumeratorFromKey(IDWriteFactory* factory, void const* collectionKey, UINT32 collectionKeySize, IDWriteFontFileEnumerator** fontFileEnumerator)
+		HRESULT WINAPI CreateEnumeratorFromKey(IDWriteFactory* factory, void const* collectionKey, UINT32 collectionKeySize, IDWriteFontFileEnumerator** fontFileEnumerator) noexcept
 		{
 			UNREFERENCED_PARAMETER(factory);
 			UNREFERENCED_PARAMETER(collectionKey);
@@ -688,20 +688,20 @@ namespace DirectWrite
 		ULONG WINAPI AddRef() { return 2; }
 		ULONG WINAPI Release() { return 1; }
 	public:
-		HRESULT WINAPI IsPixelSnappingDisabled(void* clientDrawingContext, BOOL* isDisabled)
+		HRESULT WINAPI IsPixelSnappingDisabled(void* clientDrawingContext, BOOL* isDisabled) noexcept
 		{
 			UNREFERENCED_PARAMETER(clientDrawingContext);
 			*isDisabled = FALSE; // recommended default value
 			return S_OK;
 		}
-		HRESULT WINAPI GetCurrentTransform(void* clientDrawingContext, DWRITE_MATRIX* transform)
+		HRESULT WINAPI GetCurrentTransform(void* clientDrawingContext, DWRITE_MATRIX* transform) noexcept
 		{
 			UNREFERENCED_PARAMETER(clientDrawingContext);
 			// forward the render target's transform
 			d2d1_rt->GetTransform(reinterpret_cast<D2D1_MATRIX_3X2_F*>(transform));
 			return S_OK;
 		}
-		HRESULT WINAPI GetPixelsPerDip(void* clientDrawingContext, FLOAT* pixelsPerDip)
+		HRESULT WINAPI GetPixelsPerDip(void* clientDrawingContext, FLOAT* pixelsPerDip) noexcept
 		{
 			UNREFERENCED_PARAMETER(clientDrawingContext);
 			float x = 0.0f, y = 0.0f;
@@ -717,7 +717,7 @@ namespace DirectWrite
 			DWRITE_MEASURING_MODE measuringMode,
 			DWRITE_GLYPH_RUN const* glyphRun,
 			DWRITE_GLYPH_RUN_DESCRIPTION const* glyphRunDescription,
-			IUnknown* clientDrawingEffect)
+			IUnknown* clientDrawingEffect) noexcept
 		{
 			UNREFERENCED_PARAMETER(clientDrawingContext);
 			UNREFERENCED_PARAMETER(measuringMode);
@@ -779,7 +779,7 @@ namespace DirectWrite
 			FLOAT baselineOriginX,
 			FLOAT baselineOriginY,
 			DWRITE_UNDERLINE const* underline,
-			IUnknown* clientDrawingEffect)
+			IUnknown* clientDrawingEffect) noexcept
 		{
 			UNREFERENCED_PARAMETER(clientDrawingContext);
 			UNREFERENCED_PARAMETER(clientDrawingEffect);
@@ -820,7 +820,7 @@ namespace DirectWrite
 			FLOAT baselineOriginX,
 			FLOAT baselineOriginY,
 			DWRITE_STRIKETHROUGH const* strikethrough,
-			IUnknown* clientDrawingEffect)
+			IUnknown* clientDrawingEffect) noexcept
 		{
 			UNREFERENCED_PARAMETER(clientDrawingContext);
 			UNREFERENCED_PARAMETER(clientDrawingEffect);
@@ -863,7 +863,7 @@ namespace DirectWrite
 			IDWriteInlineObject* inlineObject,
 			BOOL isSideways,
 			BOOL isRightToLeft,
-			IUnknown* clientDrawingEffect)
+			IUnknown* clientDrawingEffect) noexcept
 		{
 			UNREFERENCED_PARAMETER(clientDrawingContext);
 			UNREFERENCED_PARAMETER(originX);
@@ -883,7 +883,7 @@ namespace DirectWrite
 			DWRITE_MEASURING_MODE measuringMode,
 			DWRITE_GLYPH_RUN const* glyphRun,
 			DWRITE_GLYPH_RUN_DESCRIPTION const* glyphRunDescription,
-			IUnknown* clientDrawingEffect)
+			IUnknown* clientDrawingEffect) noexcept
 		{
 			UNREFERENCED_PARAMETER(clientDrawingContext);
 			UNREFERENCED_PARAMETER(measuringMode);
@@ -964,7 +964,7 @@ namespace DirectWrite
 			FLOAT baselineOriginY,
 			DWRITE_GLYPH_ORIENTATION_ANGLE orientationAngle,
 			DWRITE_UNDERLINE const* underline,
-			IUnknown* clientDrawingEffect)
+			IUnknown* clientDrawingEffect) noexcept
 		{
 			UNREFERENCED_PARAMETER(clientDrawingContext);
 			UNREFERENCED_PARAMETER(clientDrawingEffect);
@@ -1023,7 +1023,7 @@ namespace DirectWrite
 			FLOAT baselineOriginY,
 			DWRITE_GLYPH_ORIENTATION_ANGLE orientationAngle,
 			DWRITE_STRIKETHROUGH const* strikethrough,
-			IUnknown* clientDrawingEffect)
+			IUnknown* clientDrawingEffect) noexcept
 		{
 			UNREFERENCED_PARAMETER(clientDrawingContext);
 			UNREFERENCED_PARAMETER(clientDrawingEffect);
@@ -1084,7 +1084,7 @@ namespace DirectWrite
 			IDWriteInlineObject* inlineObject,
 			BOOL isSideways,
 			BOOL isRightToLeft,
-			IUnknown* clientDrawingEffect)
+			IUnknown* clientDrawingEffect) noexcept
 		{
 			UNREFERENCED_PARAMETER(clientDrawingContext);
 			UNREFERENCED_PARAMETER(originX);
@@ -1655,8 +1655,8 @@ namespace DirectWrite
 	struct Factory
 	{
 		Microsoft::WRL::ComPtr<IWICImagingFactory> wic_factory;
-		Microsoft::WRL::ComPtr<IDWriteFactory> dwrite_factory;
 		Microsoft::WRL::ComPtr<ID2D1Factory> d2d1_factory;
+		Microsoft::WRL::ComPtr<IDWriteFactory> dwrite_factory;
 		Microsoft::WRL::ComPtr<DWriteFontFileLoaderImplement> dwrite_font_file_loader;
 
 		void _test()
