@@ -64,6 +64,38 @@ function M:onCreate()
     local w, h = lstg.GetTextureSize("text-texture-2")
     lstg.LoadImage("text-image-2", "text-texture-2", 0, 0, w, h)
 
+    do
+        local dxy = 8
+
+        lstg.CreateRenderTarget("rt:text_target", 256 + 2 * dxy, 64 + 2 * dxy, false)
+        local w, h = lstg.GetTextureSize("rt:text_target")
+
+        lstg.LoadImage("rt-img:text_target", "rt:text_target", 0, 0, w, h)
+
+        local text_format_2 = DirectWrite.CreateTextFormat(
+            "汇文明朝体",
+            nil,
+            DirectWrite.FontWeight.Regular,
+            DirectWrite.FontStyle.Normal,
+            DirectWrite.FontStretch.Normal,
+            24.0,
+            ""
+        )
+
+        local text_layout_3 = DirectWrite.CreateTextLayout(
+            "这是一个带阴影的文本",
+            text_format_2,
+            256, -- width
+            64 -- height
+        )
+        local text_renderer = DirectWrite.CreateTextRenderer()
+        text_renderer:SetTextColor(lstg.Color(255, 113, 208, 204))
+        text_renderer:SetTextOutlineWidth(2)
+        text_renderer:SetTextOutlineColor(lstg.Color(255, 29, 29, 29))
+        text_renderer:SetShadowRadius(dxy)
+        text_renderer:Render("rt:text_target", text_layout_3, dxy, dxy)
+    end
+
     lstg.SetResourceStatus(old_pool)
 end
 
@@ -72,6 +104,8 @@ function M:onDestroy()
     lstg.RemoveResource("global", 1, "text-texture")
     lstg.RemoveResource("global", 2, "text-image-2")
     lstg.RemoveResource("global", 1, "text-texture-2")
+    lstg.RemoveResource("global", 2, "rt-img:text_target")
+    lstg.RemoveResource("global", 1, "rt:text_target")
 end
 
 function M:onUpdate()
@@ -81,6 +115,7 @@ function M:onRender()
     window:applyCameraV()
     lstg.Render("text-image", 64 + 512, window.height / 2, 0, 1)
     lstg.Render("text-image-2", 64 + 1024 + 256, window.height / 2, 0, 1)
+    lstg.Render("rt-img:text_target", 512, 256, 0, 1)
 end
 
 test.registerTest("test.Module.DirectWrite", M)
