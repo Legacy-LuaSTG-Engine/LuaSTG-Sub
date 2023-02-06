@@ -1777,6 +1777,288 @@ namespace DirectWrite
 	};
 	std::string_view const Factory::ClassID("DirectWrite.Factory");
 
+	struct TextRenderer
+	{
+		Microsoft::WRL::ComPtr<ID2D1Bitmap1> d2d1_bitmap_target;
+		Core::Color4B font_color{};
+		float outline_width{};
+		Core::Color4B outline_color{};
+		float shadow_radius{};
+		Core::Color4B shadow_color{};
+
+		TextRenderer()
+			: font_color(Core::Color4B(255, 255, 255, 255))
+			, outline_width(0.0f)
+			, outline_color(Core::Color4B(0, 0, 0, 255))
+			, shadow_radius(0.0f)
+			, shadow_color(Core::Color4B(0, 0, 0, 255))
+		{
+		}
+		~TextRenderer() {}
+
+		static int api_SetTextColor(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const color = *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(L, 2);
+			self->font_color = color;
+			return 0;
+		}
+		static int api_SetTextOutlineColor(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const color = *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(L, 2);
+			self->outline_color = color;
+			return 0;
+		}
+		static int api_SetTextOutlineWidth(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const width = luaL_check_float(L, 2);
+			self->outline_width = width;
+			return 0;
+		}
+		static int api_SetShadowColor(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const color = *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(L, 2);
+			self->shadow_color = color;
+			return 0;
+		}
+		static int api_SetShadowRadius(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const width = luaL_check_float(L, 2);
+			self->shadow_radius = width;
+			return 0;
+		}
+		static int api_Render(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const tex_res = luaL_check_string_view(L, 2);
+			auto tex_ptr = LRES.FindTexture(tex_res.data());
+			if (!tex_ptr)
+			{
+				return luaL_error(L, "can't find texture '%s'", tex_res.data());
+			}
+			if (!tex_ptr->IsRenderTarget())
+			{
+				return luaL_error(L, "'%s' is not rendertarget", tex_res.data());
+			}
+			auto* text_layout = TextLayout::Cast(L, 3);
+			auto const offset_x = luaL_check_float(L, 4);
+			auto const offset_y = luaL_check_float(L, 5);
+
+			// 获取渲染器和渲染目标
+
+			HRESULT hr = S_OK;
+
+			Microsoft::WRL::ComPtr<ID2D1DeviceContext> d2d1_device_context;
+			d2d1_device_context = (ID2D1DeviceContext*)LAPP.GetAppModel()->getDevice()->getNativeRendererHandle();
+			assert(d2d1_device_context);
+			
+			Microsoft::WRL::ComPtr<ID2D1Bitmap1> d2d1_bitmap_target;
+			d2d1_bitmap_target = (ID2D1Bitmap1*)tex_ptr->GetRenderTarget()->getNativeBitmapHandle();
+			assert(d2d1_bitmap_target);
+
+			// 创建画笔
+
+			Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> d2d1_font_color;
+			hr = gHR = d2d1_device_context->CreateSolidColorBrush(Color4BToColorF(self->font_color), &d2d1_font_color);
+			if (FAILED(hr))
+				return luaL_error(L, "create font color failed");
+
+			// 启动渲染，配置初始参数
+
+			d2d1_device_context->BeginDraw();
+			d2d1_device_context->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_GRAYSCALE);
+			d2d1_device_context->SetTarget(d2d1_bitmap_target.Get());
+
+			// 阴影
+
+			Microsoft::WRL::ComPtr<ID2D1Bitmap1> d2d1_bitmap_text;
+			if (self->shadow_radius > 0.0001f)
+			{
+				// 临时的位图
+
+				hr = gHR = d2d1_device_context->CreateBitmap(
+					D2D1::SizeU(
+						(UINT32)std::ceil(text_layout->dwrite_text_layout->GetMaxWidth()),
+						(UINT32)std::ceil(text_layout->dwrite_text_layout->GetMaxHeight())
+					),
+					NULL, 0,
+					D2D1::BitmapProperties1( 
+						D2D1_BITMAP_OPTIONS_TARGET,
+						D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED)
+					),
+					&d2d1_bitmap_text);
+				if (FAILED(hr))
+					return luaL_error(L, "create text bitmap failed");
+
+				// 阴影效果
+
+				Microsoft::WRL::ComPtr<ID2D1Effect> d2d1_effect_shadow;
+				hr = gHR = d2d1_device_context->CreateEffect(CLSID_D2D1Shadow, &d2d1_effect_shadow);
+				if (FAILED(hr))
+					return luaL_error(L, "create shadow effect failed");
+
+				d2d1_effect_shadow->SetValue(D2D1_SHADOW_PROP_BLUR_STANDARD_DEVIATION, self->shadow_radius / 3.0f);
+				d2d1_effect_shadow->SetInput(0, d2d1_bitmap_text.Get());
+
+				// 绘制文本到位图上
+
+				d2d1_device_context->SetTarget(d2d1_bitmap_text.Get());
+				d2d1_device_context->Clear(D2D1::ColorF(D2D1::ColorF::Black, 0.0f));
+				d2d1_device_context->DrawTextLayout(
+					D2D1::Point2F(),
+					text_layout->dwrite_text_layout.Get(),
+					d2d1_font_color.Get());
+
+				// 绘制阴影效果
+
+				d2d1_device_context->SetTarget(d2d1_bitmap_target.Get());
+				d2d1_device_context->DrawImage(
+					d2d1_effect_shadow.Get(),
+					D2D1::Point2F(offset_x, offset_y));
+			}
+
+			// 描边
+
+			if (self->outline_width > 0.0001f)
+			{
+				// 描边颜色
+
+				Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> d2d1_outline_color;
+				hr = gHR = d2d1_device_context->CreateSolidColorBrush(Color4BToColorF(self->outline_color), &d2d1_outline_color);
+				if (FAILED(hr))
+					return luaL_error(L, "create outline color failed");
+
+				// 获取工厂
+
+				Microsoft::WRL::ComPtr<ID2D1Factory> d2d1_factory;
+				d2d1_device_context->GetFactory(&d2d1_factory);
+
+				// 描边样式
+
+				Microsoft::WRL::ComPtr<ID2D1StrokeStyle> d2d1_stroke_style;
+				hr = gHR = d2d1_factory->CreateStrokeStyle(D2D1::StrokeStyleProperties(
+					D2D1_CAP_STYLE_ROUND,
+					D2D1_CAP_STYLE_ROUND,
+					D2D1_CAP_STYLE_ROUND,
+					D2D1_LINE_JOIN_ROUND), NULL, 0, &d2d1_stroke_style);
+				if (FAILED(hr))
+					return luaL_error(L, "create stroke style failed");
+
+				// 配置自定义描边渲染器
+
+				DWriteTextRendererImplement renderer(
+					d2d1_factory.Get(),
+					d2d1_device_context.Get(),
+					text_layout->dwrite_text_layout.Get(),
+					d2d1_outline_color.Get(),
+					d2d1_font_color.Get(),
+					d2d1_stroke_style.Get(),
+					self->outline_width);
+
+				// 绘制描边文本
+
+				renderer.SetLayerEnable(FALSE, TRUE);
+				hr = gHR = text_layout->dwrite_text_layout->Draw(NULL, &renderer, offset_x, offset_y);
+				if (FAILED(hr))
+					return luaL_error(L, "render text layout failed");
+				if (d2d1_bitmap_text)
+				{
+					d2d1_device_context->DrawImage(d2d1_bitmap_text.Get(), D2D1::Point2F(offset_x, offset_y));
+				}
+				else
+				{
+					renderer.SetLayerEnable(TRUE, FALSE);
+					hr = gHR = text_layout->dwrite_text_layout->Draw(NULL, &renderer, offset_x, offset_y);
+					if (FAILED(hr))
+						return luaL_error(L, "render text layout failed");
+				}
+			}
+
+			// 不描边的情况
+
+			else
+			{
+				if (d2d1_bitmap_text)
+				{
+					d2d1_device_context->DrawImage(d2d1_bitmap_text.Get(), D2D1::Point2F(offset_x, offset_y));
+				}
+				else
+				{
+					d2d1_device_context->DrawTextLayout(
+						D2D1::Point2F(offset_x, offset_y),
+						text_layout->dwrite_text_layout.Get(),
+						d2d1_font_color.Get());
+				}
+			}
+
+			// 结束渲染
+
+			d2d1_device_context->SetTarget(NULL);
+			hr = gHR = d2d1_device_context->EndDraw();
+			if (FAILED(hr))
+				return luaL_error(L, "render failed");
+
+			return 0;
+		}
+
+		static int api___tostring(lua_State* L)
+		{
+			Cast(L, 1);
+			lua_push_string_view(L, ClassID);
+			return 1;
+		}
+		static int api___gc(lua_State* L)
+		{
+			TextRenderer* self = Cast(L, 1);
+			self->~TextRenderer();
+			return 0;
+		}
+
+		static std::string_view const ClassID;
+
+		static TextRenderer* Cast(lua_State* L, int idx)
+		{
+			return (TextRenderer*)luaL_checkudata(L, idx, ClassID.data());
+		}
+		static TextRenderer* Create(lua_State* L)
+		{
+			auto* self = (TextRenderer*)lua_newuserdata(L, sizeof(TextRenderer));
+			new(self) TextRenderer();
+			luaL_getmetatable(L, ClassID.data()); // ??? udata mt
+			lua_setmetatable(L, -2);              // ??? udata
+			return self;
+		}
+		static void Register(lua_State* L)
+		{
+			luaL_Reg const mt[] = {
+				{ "__tostring", &api___tostring },
+				{ "__gc", &api___gc },
+				{ NULL, NULL },
+			};
+			luaL_Reg const lib[] = {
+				{ "SetTextColor", &api_SetTextColor },
+				{ "SetTextOutlineColor", &api_SetTextOutlineColor },
+				{ "SetTextOutlineWidth", &api_SetTextOutlineWidth },
+				{ "SetShadowColor", &api_SetShadowColor },
+				{ "SetShadowRadius", &api_SetShadowRadius },
+				{ "Render", &api_Render },
+
+				{ NULL, NULL },
+			};
+			luaL_newmetatable(L, ClassID.data()); // mt
+			luaL_register(L, NULL, mt);
+			lua_createtable(L, 0, 1);             // mt lib
+			luaL_register(L, NULL, lib);
+			lua_setfield(L, -2, "__index");       // mt
+			lua_pop(L, 1);
+		}
+	};
+	std::string_view const TextRenderer::ClassID("DirectWrite.TextRenderer");
+
 	static int api_CreateFontCollection(lua_State* L)
 	{
 		luaL_argcheck(L, lua_istable(L, 1), 1, "");
@@ -1862,6 +2144,11 @@ namespace DirectWrite
 
 		return 1;
 	}
+	static int api_CreateTextRenderer(lua_State* L)
+	{
+		TextRenderer::Create(L);
+		return 1;
+	}
 
 	static int api_CreateTextureFromTextLayout(lua_State* L)
 	{
@@ -1928,7 +2215,7 @@ namespace DirectWrite
 		d2d1_rt->BeginDraw();
 		d2d1_rt->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f));
 		d2d1_rt->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_GRAYSCALE);
-		if (lua_gettop(L) >= 4)
+		if (outline_width > 0.0001f && lua_gettop(L) >= 4)
 		{
 			Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> d2d1_pen2;
 			hr = gHR = d2d1_rt->CreateSolidColorBrush(Color4BToColorF(outline_color), &d2d1_pen2);
@@ -2335,6 +2622,7 @@ int luaopen_dwrite(lua_State* L)
 		{ "CreateFontCollection", &DirectWrite::api_CreateFontCollection },
 		{ "CreateTextFormat", &DirectWrite::api_CreateTextFormat },
 		{ "CreateTextLayout", &DirectWrite::api_CreateTextLayout },
+		{ "CreateTextRenderer", &DirectWrite::api_CreateTextRenderer },
 		{ "CreateTextureFromTextLayout", &DirectWrite::api_CreateTextureFromTextLayout },
 		{ "SaveTextLayoutToFile", &DirectWrite::api_SaveTextLayoutToFile },
 		{ NULL, NULL },
@@ -2345,6 +2633,7 @@ int luaopen_dwrite(lua_State* L)
 	DirectWrite::FontCollection::Register(L);
 	DirectWrite::TextFormat::Register(L);
 	DirectWrite::TextLayout::Register(L);
+	DirectWrite::TextRenderer::Register(L);
 
 	// create core
 
