@@ -65,9 +65,10 @@ function M:onCreate()
     lstg.LoadImage("text-image-2", "text-texture-2", 0, 0, w, h)
 
     do
-        local dxy = 8
+        local ccw, cch = 256, 64
+        local dxy = 32
 
-        lstg.CreateRenderTarget("rt:text_target", 256 + 2 * dxy, 64 + 2 * dxy, false)
+        lstg.CreateRenderTarget("rt:text_target", ccw + 2 * dxy, cch + 2 * dxy, false)
         local w, h = lstg.GetTextureSize("rt:text_target")
 
         lstg.LoadImage("rt-img:text_target", "rt:text_target", 0, 0, w, h)
@@ -78,21 +79,23 @@ function M:onCreate()
             DirectWrite.FontWeight.Regular,
             DirectWrite.FontStyle.Normal,
             DirectWrite.FontStretch.Normal,
-            24.0,
+            32.0,
             ""
         )
 
         local text_layout_3 = DirectWrite.CreateTextLayout(
             "这是一个带阴影的文本",
             text_format_2,
-            256, -- width
-            64 -- height
+            ccw, -- width
+            cch -- height
         )
         local text_renderer = DirectWrite.CreateTextRenderer()
         text_renderer:SetTextColor(lstg.Color(255, 113, 208, 204))
         text_renderer:SetTextOutlineWidth(2)
         text_renderer:SetTextOutlineColor(lstg.Color(255, 29, 29, 29))
         text_renderer:SetShadowRadius(dxy)
+        text_renderer:SetShadowExtend(0.5)
+        text_renderer:SetShadowColor(lstg.Color(255 * 0.6, 0, 0, 0))
         text_renderer:Render("rt:text_target", text_layout_3, dxy, dxy)
     end
 

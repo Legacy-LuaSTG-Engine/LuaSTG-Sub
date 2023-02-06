@@ -1784,6 +1784,7 @@ namespace DirectWrite
 		float outline_width{};
 		Core::Color4B outline_color{};
 		float shadow_radius{};
+		float shadow_extend{};
 		Core::Color4B shadow_color{};
 
 		TextRenderer()
@@ -1829,6 +1830,13 @@ namespace DirectWrite
 			auto* self = Cast(L, 1);
 			auto const width = luaL_check_float(L, 2);
 			self->shadow_radius = width;
+			return 0;
+		}
+		static int api_SetShadowExtend(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const width = luaL_check_float(L, 2);
+			self->shadow_extend = width;
 			return 0;
 		}
 		static int api_Render(lua_State* L)
@@ -1878,22 +1886,6 @@ namespace DirectWrite
 			Microsoft::WRL::ComPtr<ID2D1Bitmap1> d2d1_bitmap_text;
 			if (self->shadow_radius > 0.0001f)
 			{
-				// 临时的位图
-
-				hr = gHR = d2d1_device_context->CreateBitmap(
-					D2D1::SizeU(
-						(UINT32)std::ceil(text_layout->dwrite_text_layout->GetMaxWidth()),
-						(UINT32)std::ceil(text_layout->dwrite_text_layout->GetMaxHeight())
-					),
-					NULL, 0,
-					D2D1::BitmapProperties1( 
-						D2D1_BITMAP_OPTIONS_TARGET,
-						D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED)
-					),
-					&d2d1_bitmap_text);
-				if (FAILED(hr))
-					return luaL_error(L, "create text bitmap failed");
-
 				// 阴影效果
 
 				Microsoft::WRL::ComPtr<ID2D1Effect> d2d1_effect_shadow;
@@ -1901,24 +1893,126 @@ namespace DirectWrite
 				if (FAILED(hr))
 					return luaL_error(L, "create shadow effect failed");
 
-				d2d1_effect_shadow->SetValue(D2D1_SHADOW_PROP_BLUR_STANDARD_DEVIATION, self->shadow_radius / 3.0f);
-				d2d1_effect_shadow->SetInput(0, d2d1_bitmap_text.Get());
+				d2d1_effect_shadow->SetValue(D2D1_SHADOW_PROP_COLOR, Color4BToColorF(self->shadow_color));
 
-				// 绘制文本到位图上
+				if (self->shadow_extend > 0.0001f)
+				{
+					// 临时的位图
 
-				d2d1_device_context->SetTarget(d2d1_bitmap_text.Get());
-				d2d1_device_context->Clear(D2D1::ColorF(D2D1::ColorF::Black, 0.0f));
-				d2d1_device_context->DrawTextLayout(
-					D2D1::Point2F(),
-					text_layout->dwrite_text_layout.Get(),
-					d2d1_font_color.Get());
+					auto const extend_width = self->shadow_radius * self->shadow_extend;
 
-				// 绘制阴影效果
+					hr = gHR = d2d1_device_context->CreateBitmap(
+						D2D1::SizeU(
+							(UINT32)std::ceil(text_layout->dwrite_text_layout->GetMaxWidth() + 2.0f * extend_width),
+							(UINT32)std::ceil(text_layout->dwrite_text_layout->GetMaxHeight() + 2.0f * extend_width)
+						),
+						NULL, 0,
+						D2D1::BitmapProperties1(
+							D2D1_BITMAP_OPTIONS_TARGET,
+							D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED)
+						),
+						&d2d1_bitmap_text);
+					if (FAILED(hr))
+						return luaL_error(L, "create text bitmap failed");
 
-				d2d1_device_context->SetTarget(d2d1_bitmap_target.Get());
-				d2d1_device_context->DrawImage(
-					d2d1_effect_shadow.Get(),
-					D2D1::Point2F(offset_x, offset_y));
+					// 阴影颜色
+
+					Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> d2d1_shadow_color;
+					hr = gHR = d2d1_device_context->CreateSolidColorBrush(Color4BToColorF(self->shadow_color), &d2d1_shadow_color);
+					if (FAILED(hr))
+						return luaL_error(L, "create shadow color failed");
+
+					// 获取工厂
+
+					Microsoft::WRL::ComPtr<ID2D1Factory> d2d1_factory;
+					d2d1_device_context->GetFactory(&d2d1_factory);
+
+					// 描边样式
+
+					Microsoft::WRL::ComPtr<ID2D1StrokeStyle> d2d1_stroke_style;
+					hr = gHR = d2d1_factory->CreateStrokeStyle(D2D1::StrokeStyleProperties(
+						D2D1_CAP_STYLE_ROUND,
+						D2D1_CAP_STYLE_ROUND,
+						D2D1_CAP_STYLE_ROUND,
+						D2D1_LINE_JOIN_ROUND), NULL, 0, &d2d1_stroke_style);
+					if (FAILED(hr))
+						return luaL_error(L, "create stroke style failed");
+
+					// 配置自定义描边渲染器
+
+					DWriteTextRendererImplement renderer(
+						d2d1_factory.Get(),
+						d2d1_device_context.Get(),
+						text_layout->dwrite_text_layout.Get(),
+						d2d1_shadow_color.Get(), // 使用阴影颜色
+						d2d1_shadow_color.Get(), // 使用阴影颜色
+						d2d1_stroke_style.Get(),
+						extend_width * 2.0f); // 使用拓展宽度
+
+					// 绘制描边文本到位图上
+
+					d2d1_device_context->SetTarget(d2d1_bitmap_text.Get());
+					d2d1_device_context->Clear(D2D1::ColorF(D2D1::ColorF::Black, 0.0f));
+					renderer.SetLayerEnable(FALSE, TRUE);
+					hr = gHR = text_layout->dwrite_text_layout->Draw(NULL, &renderer, extend_width, extend_width);
+					if (FAILED(hr))
+						return luaL_error(L, "render text layout failed");
+					renderer.SetLayerEnable(TRUE, FALSE);
+					hr = gHR = text_layout->dwrite_text_layout->Draw(NULL, &renderer, extend_width, extend_width);
+					if (FAILED(hr))
+						return luaL_error(L, "render text layout failed");
+
+					// 绘制阴影效果
+
+					auto const now_shadow_radius = 1.0f * (self->shadow_radius - extend_width);
+
+					d2d1_device_context->SetTarget(d2d1_bitmap_target.Get());
+					d2d1_effect_shadow->SetValue(D2D1_SHADOW_PROP_BLUR_STANDARD_DEVIATION, now_shadow_radius / 3.0f);
+					d2d1_effect_shadow->SetInput(0, d2d1_bitmap_text.Get());
+					d2d1_device_context->DrawImage(
+						d2d1_effect_shadow.Get(),
+						D2D1::Point2F(offset_x - extend_width, offset_y - extend_width));
+
+					// 这个位图不能再使用了，清理掉
+
+					d2d1_bitmap_text.Reset();
+				}
+				else
+				{
+					// 临时的位图
+
+					hr = gHR = d2d1_device_context->CreateBitmap(
+						D2D1::SizeU(
+							(UINT32)std::ceil(text_layout->dwrite_text_layout->GetMaxWidth()),
+							(UINT32)std::ceil(text_layout->dwrite_text_layout->GetMaxHeight())
+						),
+						NULL, 0,
+						D2D1::BitmapProperties1( 
+							D2D1_BITMAP_OPTIONS_TARGET,
+							D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED)
+						),
+						&d2d1_bitmap_text);
+					if (FAILED(hr))
+						return luaL_error(L, "create text bitmap failed");
+
+					// 绘制文本到位图上
+
+					d2d1_device_context->SetTarget(d2d1_bitmap_text.Get());
+					d2d1_device_context->Clear(D2D1::ColorF(D2D1::ColorF::Black, 0.0f));
+					d2d1_device_context->DrawTextLayout(
+						D2D1::Point2F(),
+						text_layout->dwrite_text_layout.Get(),
+						d2d1_font_color.Get());
+
+					// 绘制阴影效果
+
+					d2d1_device_context->SetTarget(d2d1_bitmap_target.Get());
+					d2d1_effect_shadow->SetValue(D2D1_SHADOW_PROP_BLUR_STANDARD_DEVIATION, self->shadow_radius / 3.0f);
+					d2d1_effect_shadow->SetInput(0, d2d1_bitmap_text.Get());
+					d2d1_device_context->DrawImage(
+						d2d1_effect_shadow.Get(),
+						D2D1::Point2F(offset_x, offset_y));
+				}
 			}
 
 			// 描边
@@ -1957,7 +2051,7 @@ namespace DirectWrite
 					d2d1_outline_color.Get(),
 					d2d1_font_color.Get(),
 					d2d1_stroke_style.Get(),
-					self->outline_width);
+					self->outline_width * 2.0f);
 
 				// 绘制描边文本
 
@@ -2045,6 +2139,7 @@ namespace DirectWrite
 				{ "SetTextOutlineWidth", &api_SetTextOutlineWidth },
 				{ "SetShadowColor", &api_SetShadowColor },
 				{ "SetShadowRadius", &api_SetShadowRadius },
+				{ "SetShadowExtend", &api_SetShadowExtend },
 				{ "Render", &api_Render },
 
 				{ NULL, NULL },
