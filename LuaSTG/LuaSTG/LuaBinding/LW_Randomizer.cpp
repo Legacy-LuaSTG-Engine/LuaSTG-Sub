@@ -102,6 +102,15 @@ float fcyRandomWELL512::GetRandFloat(float MinBound, float MaxBound)
 
 namespace LuaSTGPlus::LuaWrapper
 {
+	template<typename T>
+	inline void make_less(T& a, T& b)
+	{
+		if (a > b)
+		{
+			std::swap(a, b);
+		}
+	}
+
 	void RandomizerWrapper::Register(lua_State* L)noexcept
 	{
 		struct Function
@@ -124,6 +133,7 @@ namespace LuaSTGPlus::LuaWrapper
 				GETUDATA(p, 1);
 				lua_Integer a = luaL_checkinteger(L, 2);
 				lua_Integer b = luaL_checkinteger(L, 3);
+				make_less(a, b);
 				lua_Integer ret = (lua_Integer)p->GetRandUInt((std::max)(static_cast<uint32_t>(b - a), 0U));
 				lua_pushinteger(L, a + ret);
 				return 1;
@@ -133,6 +143,7 @@ namespace LuaSTGPlus::LuaWrapper
 				GETUDATA(p, 1);
 				float a = (float)luaL_checknumber(L, 2);
 				float b = (float)luaL_checknumber(L, 3);
+				make_less(a, b);
 				lua_pushnumber(L, (lua_Number)p->GetRandFloat(a, b));
 				return 1;
 			}
