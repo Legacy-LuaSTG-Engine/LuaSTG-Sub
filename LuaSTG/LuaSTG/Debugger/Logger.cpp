@@ -33,7 +33,14 @@ namespace LuaSTG::Debugger
         if (config.log_file_enable)
         {
             std::string parser_path;
-            Core::InitializeConfigure::parserFilePath(config.log_file_path, parser_path, true);
+            if (config.log_file_path.empty())
+            {
+                parser_path = "engine.log";
+            }
+            else
+            {
+                Core::InitializeConfigure::parserFilePath(config.log_file_path, parser_path, true);
+            }
             auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(utility::encoding::to_wide(parser_path), true);
             sink->set_pattern("[%Y-%m-%d %H:%M:%S] [%L] %v");
             sinks.emplace_back(sink);
@@ -41,11 +48,18 @@ namespace LuaSTG::Debugger
         
         if (config.persistent_log_file_enable)
         {
-            std::string parser_path;
-            Core::InitializeConfigure::parserDirectory(config.persistent_log_file_directory, parser_path, true);
-            std::filesystem::path directory(utility::encoding::to_wide(parser_path));
-            std::filesystem::path path = directory / utility::encoding::to_wide(make_time_path());
-
+            std::filesystem::path path;
+            if (config.persistent_log_file_directory.empty())
+            {
+                path = utility::encoding::to_wide(make_time_path());
+            }
+            else
+            {
+                std::string parser_path;
+                Core::InitializeConfigure::parserDirectory(config.persistent_log_file_directory, parser_path, true);
+                std::filesystem::path directory(utility::encoding::to_wide(parser_path));
+                path = directory / utility::encoding::to_wide(make_time_path());
+            }
             auto persistent_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(path.wstring(), true);
             persistent_sink->set_pattern("[%Y-%m-%d %H:%M:%S] [%L] %v");
             sinks.emplace_back(persistent_sink);
