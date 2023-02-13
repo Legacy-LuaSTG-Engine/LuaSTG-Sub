@@ -40,7 +40,7 @@ endfunction()
 # download xaudio2.redist nuget package
 
 utility_download_package(XAudio2Redist
-    https://www.nuget.org/api/v2/package/Microsoft.XAudio2.Redist/1.2.10
-    microsoft.xaudio2.redist.1.2.10.nupkg
-    FE491DA540331D9915CFEF49493269142E60472CD7308D9FC7FF78B2A19F6380
+    https://www.nuget.org/api/v2/package/Microsoft.XAudio2.Redist/1.2.11
+    microsoft.xaudio2.redist.1.2.11.nupkg
+    4552E0B5B59DE0CDBC6C217261C45F5968F7BBF1E8AB5F208E4BCA6FD8FC5780
 )
