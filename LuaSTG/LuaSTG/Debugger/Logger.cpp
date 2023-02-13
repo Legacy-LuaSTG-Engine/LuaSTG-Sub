@@ -3,33 +3,25 @@
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/wincolor_sink.h"
 #include "spdlog/sinks/msvc_sink.h"
-#include "Platform/KnownDirectory.hpp"
 #include "Platform/HResultChecker.hpp"
 #include "Platform/CommandLineArguments.hpp"
+#include "Core/InitializeConfigure.hpp"
+#include "utility/encoding.hpp"
 
 namespace LuaSTG::Debugger
 {
-    inline std::wstring getLogFilePath()
-    {
-        std::wstring path = L"";
-    #ifdef USING_SYSTEM_DIRECTORY
-        if (Platform::KnownDirectory::makeAppDataW(APP_COMPANY, APP_PRODUCT, path))
-        {
-            path.append(L"\\");
-        }
-    #endif
-        path.append(L"engine.log");
-        return std::move(path);
-    }
-
     static bool enable_console = false;
     static bool open_console = false;
     static bool wait_console = false;
     static void openWin32Console();
     static void closeWin32Console();
+    static std::string make_time_path();
 
     void Logger::create()
     {
+        Core::InitializeConfigure config;
+        config.loadFromFile("config.json");
+
     #ifdef USING_CONSOLE_OUTPUT
         enable_console = Platform::CommandLineArguments::Get().IsOptionExist("--log-window");
         wait_console = Platform::CommandLineArguments::Get().IsOptionExist("--log-window-wait");
@@ -38,10 +30,27 @@ namespace LuaSTG::Debugger
 
         std::vector<spdlog::sink_ptr> sinks;
 
-        auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(getLogFilePath(), true);
-        sink->set_pattern("[%Y-%m-%d %H:%M:%S] [%L] %v");
-        sinks.emplace_back(sink);
+        if (config.log_file_enable)
+        {
+            std::string parser_path;
+            Core::InitializeConfigure::parserFilePath(config.log_file_path, parser_path, true);
+            auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(utility::encoding::to_wide(parser_path), true);
+            sink->set_pattern("[%Y-%m-%d %H:%M:%S] [%L] %v");
+            sinks.emplace_back(sink);
+        }
+        
+        if (config.persistent_log_file_enable)
+        {
+            std::string parser_path;
+            Core::InitializeConfigure::parserDirectory(config.persistent_log_file_directory, parser_path, true);
+            std::filesystem::path directory(utility::encoding::to_wide(parser_path));
+            std::filesystem::path path = directory / utility::encoding::to_wide(make_time_path());
 
+            auto persistent_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(path.wstring(), true);
+            persistent_sink->set_pattern("[%Y-%m-%d %H:%M:%S] [%L] %v");
+            sinks.emplace_back(persistent_sink);
+        }
+        
     #if 0
         auto sink_debugger = std::make_shared<spdlog::sinks::windebug_sink_mt>();
         sink_debugger->set_pattern("[%Y-%m-%d %H:%M:%S] [%L] %v");
@@ -94,9 +103,7 @@ namespace LuaSTG::Debugger
     }
 };
 
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <Windows.h>
+#include "Platform/CleanWindows.hpp"
 
 namespace LuaSTG::Debugger
 {
@@ -128,5 +135,29 @@ namespace LuaSTG::Debugger
             }
             FreeConsole();
         }
+    }
+    std::string make_time_path()
+    {
+        SYSTEMTIME current_time{};
+        GetLocalTime(&current_time);
+
+        std::array<char, 32> buffer{};
+        int const length = std::snprintf(
+            buffer.data(), buffer.size(),
+            "%04u-%02u-%02u-%02u-%02u-%02u-%03u",
+            current_time.wYear,
+            current_time.wMonth,
+            current_time.wDay,
+            current_time.wHour,
+            current_time.wMinute,
+            current_time.wSecond,
+            current_time.wMilliseconds);
+        assert(length > 0);
+
+        std::string path;
+        path.append("engine-");
+        path.append(std::string_view(buffer.data(), static_cast<size_t>(length)));
+        path.append(".log");
+        return path;
     }
 }
