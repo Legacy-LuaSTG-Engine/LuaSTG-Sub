@@ -1,10 +1,5 @@
 ﻿#pragma once
 
-// log file
-#define APP_COMPANY L"璀境石"
-#define APP_PRODUCT L"LuaSTG Sub"
-//#define USING_SYSTEM_DIRECTORY
-
 // steam
 #define STEAM_APP_ID 0
 //#define USING_STEAM_API
