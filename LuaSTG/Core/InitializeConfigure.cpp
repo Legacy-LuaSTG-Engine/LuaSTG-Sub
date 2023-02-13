@@ -34,6 +34,7 @@ namespace Core
         SET(log_file_path);
         SET(persistent_log_file_enable);
         SET(persistent_log_file_directory);
+        SET(engine_cache_directory);
 
     #undef SET
     }
@@ -62,6 +63,7 @@ namespace Core
         GET(log_file_path);
         GET(persistent_log_file_enable);
         GET(persistent_log_file_directory);
+        GET(engine_cache_directory);
 
     #undef GET
     }
@@ -117,6 +119,7 @@ namespace Core
         log_file_path = "engine.log";
         persistent_log_file_enable = false;
         persistent_log_file_directory.clear();
+        engine_cache_directory.clear();
     }
     bool InitializeConfigure::load(std::string_view const source) noexcept
     {

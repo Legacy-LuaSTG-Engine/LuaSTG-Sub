@@ -16,8 +16,9 @@
 #include "lua_imgui.hpp"
 #include "lua_imgui_type.hpp"
 
-#include "Platform/KnownDirectory.hpp"
 #include "Platform/XInput.hpp"
+#include "Core/InitializeConfigure.hpp"
+#include "utility/encoding.hpp"
 
 #include "AppFrame.h"
 #include "LuaBinding/LuaWrapper.hpp"
@@ -760,6 +761,33 @@ namespace imgui
     };
     static ImGuiGlyphManager g_ImGuiGlyphManager;
 
+    static bool g_init_path_init = false;
+    static std::wstring g_ini_path;
+    static std::wstring const& getIniPath()
+    {
+        if (!g_init_path_init)
+        {
+            g_init_path_init = true;
+
+            Core::InitializeConfigure config;
+            config.loadFromFile("config.json");
+            
+            if (config.engine_cache_directory.empty())
+            {
+                g_ini_path = L"imgui.ini";
+            }
+            else
+            {
+                std::string parser_path;
+                Core::InitializeConfigure::parserDirectory(config.engine_cache_directory, parser_path, true);
+                std::filesystem::path directory(utility::encoding::to_wide(parser_path));
+                std::filesystem::path path = directory / utility::encoding::to_wide("imgui.ini");
+                g_ini_path = path.wstring();
+            }
+        }
+        return g_ini_path;
+    }
+
     void loadConfig()
     {
         if (ImGui::GetCurrentContext())
@@ -767,15 +795,7 @@ namespace imgui
             ImGuiIO& io = ImGui::GetIO();
             // handle imgui config data
             io.IniFilename = NULL;
-            std::wstring path;
-        #ifdef USING_SYSTEM_DIRECTORY
-            if (Platform::KnownDirectory::makeAppDataW(APP_COMPANY, APP_PRODUCT, path))
-            {
-                path.push_back(L'\\');
-            }
-        #endif
-            path.append(L"imgui.ini");
-            std::ifstream file(path, std::ios::in | std::ios::binary);
+            std::ifstream file(getIniPath(), std::ios::in | std::ios::binary);
             if (file.is_open())
             {
                 file.seekg(0, std::ios::end);
@@ -795,15 +815,7 @@ namespace imgui
     {
         if (ImGui::GetCurrentContext())
         {
-            std::wstring path;
-        #ifdef USING_SYSTEM_DIRECTORY
-            if (Platform::KnownDirectory::makeAppDataW(APP_COMPANY, APP_PRODUCT, path))
-            {
-                path.push_back(L'\\');
-            }
-        #endif
-            path.append(L"imgui.ini");
-            std::ofstream file(path, std::ios::out | std::ios::binary | std::ios::trunc);
+            std::ofstream file(getIniPath(), std::ios::out | std::ios::binary | std::ios::trunc);
             if (file.is_open())
             {
                 size_t length = 0;

@@ -27,6 +27,7 @@ namespace Core
         std::string log_file_path = "engine.log";
         bool persistent_log_file_enable = false;
         std::string persistent_log_file_directory;
+        std::string engine_cache_directory;
 
         void reset();
         bool load(std::string_view const source) noexcept;
