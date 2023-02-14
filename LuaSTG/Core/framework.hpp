@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <array>
 #include <vector>
+#include <unordered_set>
 #include <unordered_map>
 #include <thread>
 
@@ -25,6 +26,7 @@
 #include <wrl/client.h>
 #include <wrl/wrappers/corewrappers.h>
 #include <winrt/base.h>
+#include <wil/resource.h>
 #include <timeapi.h>
 #include <dxgi1_6.h>
 #include <dxgidebug.h>
