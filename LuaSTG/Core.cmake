@@ -68,6 +68,7 @@ set(Core_SRC
     Core/Audio/Decoder_WAV.hpp
     Core/Audio/Decoder_ALL.cpp
     Core/Audio/Device.hpp
+    Core/Audio/Device_MM.cpp
     Core/Audio/Device_XAUDIO2.cpp
     Core/Audio/Device_XAUDIO2.hpp
 )
