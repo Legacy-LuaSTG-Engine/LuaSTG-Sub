@@ -11,7 +11,7 @@ namespace Core::Audio
 
 		try
 		{
-			winrt::com_ptr<IMMDeviceEnumerator> device_enumerator = winrt::create_instance<IMMDeviceEnumerator>(__uuidof(MMDeviceEnumerator), CLSCTX_ALL);
+			winrt::com_ptr<IMMDeviceEnumerator> device_enumerator = winrt::create_instance<IMMDeviceEnumerator>(winrt::guid_of<MMDeviceEnumerator>(), CLSCTX_ALL);
 
 			winrt::com_ptr<IMMDeviceCollection> device_list;
 			winrt::check_hresult(device_enumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, device_list.put()));
