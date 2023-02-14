@@ -62,13 +62,13 @@ namespace Core::Audio
 		bool is_playing = false;
 
 	public:
-		void WINAPI OnVoiceProcessingPassStart(UINT32 BytesRequired);
-		void WINAPI OnVoiceProcessingPassEnd();
-		void WINAPI OnStreamEnd();
-		void WINAPI OnBufferStart(void* pBufferContext);
-		void WINAPI OnBufferEnd(void* pBufferContext);
-		void WINAPI OnLoopEnd(void* pBufferContext);
-		void WINAPI OnVoiceError(void* pBufferContext, HRESULT Error);
+		void WINAPI OnVoiceProcessingPassStart(UINT32 BytesRequired) noexcept;
+		void WINAPI OnVoiceProcessingPassEnd() noexcept;
+		void WINAPI OnStreamEnd() noexcept;
+		void WINAPI OnBufferStart(void* pBufferContext) noexcept;
+		void WINAPI OnBufferEnd(void* pBufferContext) noexcept;
+		void WINAPI OnLoopEnd(void* pBufferContext) noexcept;
+		void WINAPI OnVoiceError(void* pBufferContext, HRESULT Error) noexcept;
 
 	public:
 		bool start();
@@ -122,13 +122,13 @@ namespace Core::Audio
 		bool is_loop = false;
 
 	public:
-		void WINAPI OnVoiceProcessingPassStart(UINT32 BytesRequired);
-		void WINAPI OnVoiceProcessingPassEnd();
-		void WINAPI OnStreamEnd();
-		void WINAPI OnBufferStart(void* pBufferContext);
-		void WINAPI OnBufferEnd(void* pBufferContext);
-		void WINAPI OnLoopEnd(void* pBufferContext);
-		void WINAPI OnVoiceError(void* pBufferContext, HRESULT Error);
+		void WINAPI OnVoiceProcessingPassStart(UINT32 BytesRequired) noexcept;
+		void WINAPI OnVoiceProcessingPassEnd() noexcept;
+		void WINAPI OnStreamEnd() noexcept;
+		void WINAPI OnBufferStart(void* pBufferContext) noexcept;
+		void WINAPI OnBufferEnd(void* pBufferContext) noexcept;
+		void WINAPI OnLoopEnd(void* pBufferContext) noexcept;
+		void WINAPI OnVoiceError(void* pBufferContext, HRESULT Error) noexcept;
 
 	public:
 		bool start();
@@ -260,13 +260,13 @@ namespace Core::Audio
 		std::vector<float> fft_output;
 
 	public:
-		void WINAPI OnVoiceProcessingPassStart(UINT32 BytesRequired);
-		void WINAPI OnVoiceProcessingPassEnd();
-		void WINAPI OnStreamEnd();
-		void WINAPI OnBufferStart(void* pBufferContext);
-		void WINAPI OnBufferEnd(void* pBufferContext);
-		void WINAPI OnLoopEnd(void* pBufferContext);
-		void WINAPI OnVoiceError(void* pBufferContext, HRESULT Error);
+		void WINAPI OnVoiceProcessingPassStart(UINT32 BytesRequired) noexcept;
+		void WINAPI OnVoiceProcessingPassEnd() noexcept;
+		void WINAPI OnStreamEnd() noexcept;
+		void WINAPI OnBufferStart(void* pBufferContext) noexcept;
+		void WINAPI OnBufferEnd(void* pBufferContext) noexcept;
+		void WINAPI OnLoopEnd(void* pBufferContext) noexcept;
+		void WINAPI OnVoiceError(void* pBufferContext, HRESULT Error) noexcept;
 
 	private:
 		static DWORD WINAPI WorkingThread(LPVOID lpThreadParameter);
