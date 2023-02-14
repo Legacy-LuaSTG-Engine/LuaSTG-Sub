@@ -44,9 +44,20 @@ namespace Core::Audio
 		static bool create(Device_XAUDIO2** pp_audio);
 	};
 
+	struct XAudio2VoiceCallbackPlaceholder : public IXAudio2VoiceCallback
+	{
+		virtual void WINAPI OnVoiceProcessingPassStart(UINT32 BytesRequired) noexcept { UNREFERENCED_PARAMETER(BytesRequired); }
+		virtual void WINAPI OnVoiceProcessingPassEnd() noexcept {}
+		virtual void WINAPI OnStreamEnd() noexcept {}
+		virtual void WINAPI OnBufferStart(void* pBufferContext) noexcept { UNREFERENCED_PARAMETER(pBufferContext); }
+		virtual void WINAPI OnBufferEnd(void* pBufferContext) noexcept { UNREFERENCED_PARAMETER(pBufferContext); }
+		virtual void WINAPI OnLoopEnd(void* pBufferContext) noexcept { UNREFERENCED_PARAMETER(pBufferContext); }
+		virtual void WINAPI OnVoiceError(void* pBufferContext, HRESULT Error) noexcept { UNREFERENCED_PARAMETER(pBufferContext); UNREFERENCED_PARAMETER(Error); }
+	};
+
 	class AudioPlayer_XAUDIO2
 		: public Object<IAudioPlayer>
-		, public IXAudio2VoiceCallback
+		, public XAudio2VoiceCallbackPlaceholder
 	{
 	private:
 		ScopeObject<Device_XAUDIO2> m_device;
@@ -62,12 +73,7 @@ namespace Core::Audio
 		bool is_playing = false;
 
 	public:
-		void WINAPI OnVoiceProcessingPassStart(UINT32 BytesRequired) noexcept;
-		void WINAPI OnVoiceProcessingPassEnd() noexcept;
 		void WINAPI OnStreamEnd() noexcept;
-		void WINAPI OnBufferStart(void* pBufferContext) noexcept;
-		void WINAPI OnBufferEnd(void* pBufferContext) noexcept;
-		void WINAPI OnLoopEnd(void* pBufferContext) noexcept;
 		void WINAPI OnVoiceError(void* pBufferContext, HRESULT Error) noexcept;
 
 	public:
@@ -100,7 +106,7 @@ namespace Core::Audio
 
 	class LoopAudioPlayer_XAUDIO2
 		: public Object<IAudioPlayer>
-		, public IXAudio2VoiceCallback
+		, public XAudio2VoiceCallbackPlaceholder
 	{
 	private:
 		ScopeObject<Device_XAUDIO2> m_device;
@@ -122,12 +128,7 @@ namespace Core::Audio
 		bool is_loop = false;
 
 	public:
-		void WINAPI OnVoiceProcessingPassStart(UINT32 BytesRequired) noexcept;
-		void WINAPI OnVoiceProcessingPassEnd() noexcept;
 		void WINAPI OnStreamEnd() noexcept;
-		void WINAPI OnBufferStart(void* pBufferContext) noexcept;
-		void WINAPI OnBufferEnd(void* pBufferContext) noexcept;
-		void WINAPI OnLoopEnd(void* pBufferContext) noexcept;
 		void WINAPI OnVoiceError(void* pBufferContext, HRESULT Error) noexcept;
 
 	public:
@@ -160,7 +161,7 @@ namespace Core::Audio
 
 	class StreamAudioPlayer_XAUDIO2
 		: public Object<IAudioPlayer>
-		, public IXAudio2VoiceCallback
+		, public XAudio2VoiceCallbackPlaceholder
 	{
 	private:
 		enum class ActionType
@@ -260,12 +261,7 @@ namespace Core::Audio
 		std::vector<float> fft_output;
 
 	public:
-		void WINAPI OnVoiceProcessingPassStart(UINT32 BytesRequired) noexcept;
-		void WINAPI OnVoiceProcessingPassEnd() noexcept;
-		void WINAPI OnStreamEnd() noexcept;
-		void WINAPI OnBufferStart(void* pBufferContext) noexcept;
 		void WINAPI OnBufferEnd(void* pBufferContext) noexcept;
-		void WINAPI OnLoopEnd(void* pBufferContext) noexcept;
 		void WINAPI OnVoiceError(void* pBufferContext, HRESULT Error) noexcept;
 
 	private:
