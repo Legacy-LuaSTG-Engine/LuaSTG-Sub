@@ -95,7 +95,8 @@ target_link_libraries(Core PUBLIC
     dxgi.lib
     d3d11.lib
     d3dcompiler.lib
-    DirectX::XAudio2Redist
+    Microsoft.XAudio2.Redist
+    Microsoft.Windows.ImplementationLibrary
     DirectXTexMini
     libqoi
     # math
