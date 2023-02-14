@@ -51,18 +51,13 @@ namespace Core::Audio
 		return true;
 	}
 
-	Shared_XAUDIO2::Shared_XAUDIO2()
-		: xa2_master(NULL)
-		, xa2_soundeffect(NULL)
-		, xa2_music(NULL)
-	{
-	}
+	Shared_XAUDIO2::Shared_XAUDIO2() = default;
 	Shared_XAUDIO2::~Shared_XAUDIO2()
 	{
-		SAFE_RELEASE_VOICE(xa2_music);
-		SAFE_RELEASE_VOICE(xa2_soundeffect);
-		SAFE_RELEASE_VOICE(xa2_master);
-		xa2_xaudio2.Reset();
+		voice_sound_effect = {};
+		voice_music = {};
+		voice_master = {};
+		xaudio2 = {};
 	}
 
 	bool Device_XAUDIO2::createResources()
@@ -71,7 +66,7 @@ namespace Core::Audio
 
 		// 设备
 
-		hr = gHR = XAudio2Create(&m_shared->xa2_xaudio2);
+		hr = gHR = XAudio2Create(m_shared->xaudio2.put());
 		if (FAILED(hr))
 		{
 			i18n_core_system_call_report_error("XAudio2Create");
@@ -84,12 +79,12 @@ namespace Core::Audio
 		xaudio2_debug.BreakMask = XAUDIO2_LOG_ERRORS;
 		xaudio2_debug.LogThreadID = TRUE;
 		xaudio2_debug.LogTiming = TRUE;
-		m_shared->xa2_xaudio2->SetDebugConfiguration(&xaudio2_debug);
+		m_shared->xaudio2->SetDebugConfiguration(&xaudio2_debug);
 	#endif
 
 		// 输出通道
 
-		hr = gHR = m_shared->xa2_xaudio2->CreateMasteringVoice(&m_shared->xa2_master);
+		hr = gHR = m_shared->xaudio2->CreateMasteringVoice(m_shared->voice_master.put());
 		if (FAILED(hr))
 		{
 			i18n_core_system_call_report_error("IXAudio2::CreateMasteringVoice");
@@ -99,16 +94,16 @@ namespace Core::Audio
 		// 混音通道
 
 		XAUDIO2_VOICE_DETAILS voice_info = {};
-		m_shared->xa2_master->GetVoiceDetails(&voice_info);
+		m_shared->voice_master->GetVoiceDetails(&voice_info);
 
-		hr = gHR = m_shared->xa2_xaudio2->CreateSubmixVoice(&m_shared->xa2_soundeffect, 2, voice_info.InputSampleRate); // 固定2声道
+		hr = gHR = m_shared->xaudio2->CreateSubmixVoice(m_shared->voice_sound_effect.put(), 2, voice_info.InputSampleRate); // 固定2声道
 		if (FAILED(hr))
 		{
 			i18n_core_system_call_report_error("IXAudio2::CreateSubmixVoice -> #soundeffect");
 			return false;
 		}
 
-		hr = gHR = m_shared->xa2_xaudio2->CreateSubmixVoice(&m_shared->xa2_music, 2, voice_info.InputSampleRate); // 固定2声道
+		hr = gHR = m_shared->xaudio2->CreateSubmixVoice(m_shared->voice_music.put(), 2, voice_info.InputSampleRate); // 固定2声道
 		if (FAILED(hr))
 		{
 			i18n_core_system_call_report_error("IXAudio2::CreateSubmixVoice -> #music");
@@ -119,21 +114,21 @@ namespace Core::Audio
 
 		XAUDIO2_SEND_DESCRIPTOR voice_send_master = {
 			.Flags = 0,
-			.pOutputVoice = m_shared->xa2_master,
+			.pOutputVoice = m_shared->voice_master.get(),
 		};
 		XAUDIO2_VOICE_SENDS voice_send_list = {
 			.SendCount = 1,
 			.pSends = &voice_send_master
 		};
 
-		hr = gHR = m_shared->xa2_soundeffect->SetOutputVoices(&voice_send_list);
+		hr = gHR = m_shared->voice_sound_effect->SetOutputVoices(&voice_send_list);
 		if (FAILED(hr))
 		{
 			i18n_core_system_call_report_error("IXAudio2SubmixVoice::SetOutputVoices #soundeffect -> #master");
 			return false;
 		}
 
-		hr = gHR = m_shared->xa2_music->SetOutputVoices(&voice_send_list);
+		hr = gHR = m_shared->voice_music->SetOutputVoices(&voice_send_list);
 		if (FAILED(hr))
 		{
 			i18n_core_system_call_report_error("IXAudio2SubmixVoice::SetOutputVoices #music -> #master");
@@ -158,9 +153,9 @@ namespace Core::Audio
 		IXAudio2Voice* p_voice = NULL;
 		switch (ch)
 		{
-		case MixChannel::Direct: p_voice = m_shared->xa2_master; break;
-		case MixChannel::SoundEffect: p_voice = m_shared->xa2_soundeffect; break;
-		case MixChannel::Music: p_voice = m_shared->xa2_music; break;
+		case MixChannel::Direct: p_voice = m_shared->voice_master.get(); break;
+		case MixChannel::SoundEffect: p_voice = m_shared->voice_sound_effect.get(); break;
+		case MixChannel::Music: p_voice = m_shared->voice_music.get(); break;
 		default: break;
 		}
 		assert(p_voice);
@@ -178,9 +173,9 @@ namespace Core::Audio
 		IXAudio2Voice* p_voice = NULL;
 		switch (ch)
 		{
-		case MixChannel::Direct: p_voice = m_shared->xa2_master; break;
-		case MixChannel::SoundEffect: p_voice = m_shared->xa2_soundeffect; break;
-		case MixChannel::Music: p_voice = m_shared->xa2_music; break;
+		case MixChannel::Direct: p_voice = m_shared->voice_master.get(); break;
+		case MixChannel::SoundEffect: p_voice = m_shared->voice_sound_effect.get(); break;
+		case MixChannel::Music: p_voice = m_shared->voice_music.get(); break;
 		default: break;
 		}
 		assert(p_voice);
@@ -363,7 +358,7 @@ namespace Core::Audio
 			.wBitsPerSample = WORD(p_decoder->getSampleSize() * 8u),
 			.cbSize = 0, // 我看还有谁TM写错成 sizeof(WAVEFORMATEX)
 		};
-		hr = gHR = p_shared->xa2_xaudio2->CreateSourceVoice(&xa2_source, &fmt, 0, XAUDIO2_DEFAULT_FREQ_RATIO, this);
+		hr = gHR = p_shared->xaudio2->CreateSourceVoice(&xa2_source, &fmt, 0, XAUDIO2_DEFAULT_FREQ_RATIO, this);
 		if (FAILED(hr))
 		{
 			i18n_core_system_call_report_error("IXAudio2::CreateSourceVoice");
@@ -383,7 +378,7 @@ namespace Core::Audio
 
 		XAUDIO2_SEND_DESCRIPTOR voice_send_se = {
 			.Flags = 0,
-			.pOutputVoice = p_shared->xa2_soundeffect,
+			.pOutputVoice = p_shared->voice_sound_effect.get(),
 		};
 		XAUDIO2_VOICE_SENDS voice_send_list = {
 			.SendCount = 1,
@@ -655,7 +650,7 @@ namespace Core::Audio
 			.wBitsPerSample = WORD(p_decoder->getSampleSize() * 8u),
 			.cbSize = 0, // 我看还有谁TM写错成 sizeof(WAVEFORMATEX)
 		};
-		hr = gHR = p_shared->xa2_xaudio2->CreateSourceVoice(&xa2_source, &fmt, 0, XAUDIO2_DEFAULT_FREQ_RATIO, this);
+		hr = gHR = p_shared->xaudio2->CreateSourceVoice(&xa2_source, &fmt, 0, XAUDIO2_DEFAULT_FREQ_RATIO, this);
 		if (FAILED(hr))
 		{
 			i18n_core_system_call_report_error("IXAudio2::CreateSourceVoice");
@@ -675,7 +670,7 @@ namespace Core::Audio
 
 		XAUDIO2_SEND_DESCRIPTOR voice_send_se = {
 			.Flags = 0,
-			.pOutputVoice = p_shared->xa2_music,
+			.pOutputVoice = p_shared->voice_music.get(),
 		};
 		XAUDIO2_VOICE_SENDS voice_send_list = {
 			.SendCount = 1,
@@ -1002,7 +997,7 @@ namespace Core::Audio
 			.wBitsPerSample = WORD(p_decoder->getSampleSize() * 8u),
 			.cbSize = 0, // 我看还有谁TM写错成 sizeof(WAVEFORMATEX)
 		};
-		hr = gHR = p_shared->xa2_xaudio2->CreateSourceVoice(&xa2_source, &fmt, 0, XAUDIO2_DEFAULT_FREQ_RATIO, this);
+		hr = gHR = p_shared->xaudio2->CreateSourceVoice(&xa2_source, &fmt, 0, XAUDIO2_DEFAULT_FREQ_RATIO, this);
 		if (FAILED(hr))
 		{
 			i18n_core_system_call_report_error("IXAudio2::CreateSourceVoice");
@@ -1019,7 +1014,7 @@ namespace Core::Audio
 
 		XAUDIO2_SEND_DESCRIPTOR voice_send_music = {
 			.Flags = 0,
-			.pOutputVoice = p_shared->xa2_music,
+			.pOutputVoice = p_shared->voice_music.get(),
 		};
 		XAUDIO2_VOICE_SENDS voice_send_list = {
 			.SendCount = 1,
