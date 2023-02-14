@@ -195,44 +195,6 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 			}
 		}
 		#pragma endregion
-		
-		#pragma region 内置数学库
-		static int Sin(lua_State* L)noexcept
-		{
-			lua_pushnumber(L, sin(luaL_checknumber(L, 1) * L_DEG_TO_RAD));
-			return 1;
-		}
-		static int Cos(lua_State* L)noexcept
-		{
-			lua_pushnumber(L, cos(luaL_checknumber(L, 1) * L_DEG_TO_RAD));
-			return 1;
-		}
-		static int ASin(lua_State* L)noexcept
-		{
-			lua_pushnumber(L, asin(luaL_checknumber(L, 1)) * L_RAD_TO_DEG);
-			return 1;
-		}
-		static int ACos(lua_State* L)noexcept
-		{
-			lua_pushnumber(L, acos(luaL_checknumber(L, 1)) * L_RAD_TO_DEG);
-			return 1;
-		}
-		static int Tan(lua_State* L)noexcept
-		{
-			lua_pushnumber(L, tan(luaL_checknumber(L, 1) * L_DEG_TO_RAD));
-			return 1;
-		}
-		static int ATan(lua_State* L)noexcept
-		{
-			lua_pushnumber(L, atan(luaL_checknumber(L, 1)) * L_RAD_TO_DEG);
-			return 1;
-		}
-		static int ATan2(lua_State* L)noexcept
-		{
-			lua_pushnumber(L, atan2(luaL_checknumber(L, 1), luaL_checknumber(L, 2)) * L_RAD_TO_DEG);
-			return 1;
-		}
-		#pragma endregion
 	};
 	
 	luaL_Reg tFunctions[] = {
@@ -255,16 +217,6 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 		{ "EnumResolutions", &WrapperImplement::EnumResolutions },
 		{ "EnumGPUs", &WrapperImplement::EnumGPUs },
 		{ "ChangeGPU", &WrapperImplement::ChangeGPU },
-		#pragma endregion
-		
-		#pragma region 内置数学函数
-		{ "sin", &WrapperImplement::Sin },
-		{ "cos", &WrapperImplement::Cos },
-		{ "asin", &WrapperImplement::ASin },
-		{ "acos", &WrapperImplement::ACos },
-		{ "tan", &WrapperImplement::Tan },
-		{ "atan", &WrapperImplement::ATan },
-		{ "atan2", &WrapperImplement::ATan2 },
 		#pragma endregion
 		
 		{ NULL, NULL },
