@@ -55,10 +55,12 @@ local _ = {
 ---@param enum_id string
 ---@param enum_value number
 ---@return findtable.config.entry
+---@overload fun(lua_id:string):findtable.config.entry
+---@overload fun(lua_id:string, enum_id:string):findtable.config.entry
 function M.makeEntry(lua_id, enum_id, enum_value)
     local ret = {
         lua_id = lua_id,
-        enum_id = enum_id,
+        enum_id = enum_id or lua_id,
         enum_value = false,
     }
     if enum_value then
