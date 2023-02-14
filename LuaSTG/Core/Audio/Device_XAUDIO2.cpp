@@ -1035,6 +1035,10 @@ namespace Core::Audio
 				std::ignore = lock_scope;
 			}
 
+			// 让所有缓冲区可用
+
+			action_queue.notifyBufferAvailable(0);
+			action_queue.notifyBufferAvailable(1);
 			if (source_state == State::Play)
 			{
 				start(); // 恢复播放
@@ -1370,11 +1374,6 @@ namespace Core::Audio
 			i18n_core_system_call_report_error("CreateThread");
 			throw std::runtime_error("StreamAudioPlayer_XAUDIO2::StreamAudioPlayer_XAUDIO2 (4)");
 		}
-
-		// 预先填充
-
-		action_queue.notifyBufferAvailable(0);
-		action_queue.notifyBufferAvailable(1);
 	}
 	StreamAudioPlayer_XAUDIO2::~StreamAudioPlayer_XAUDIO2()
 	{
