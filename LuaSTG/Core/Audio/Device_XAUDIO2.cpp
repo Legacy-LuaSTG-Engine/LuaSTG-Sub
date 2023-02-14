@@ -249,15 +249,10 @@ namespace Core::Audio
 
 namespace Core::Audio
 {
-	void WINAPI AudioPlayer_XAUDIO2::OnVoiceProcessingPassStart(UINT32) noexcept {}
-	void WINAPI AudioPlayer_XAUDIO2::OnVoiceProcessingPassEnd() noexcept {}
 	void WINAPI AudioPlayer_XAUDIO2::OnStreamEnd() noexcept
 	{
 		SetEvent(event_end.Get());
 	}
-	void WINAPI AudioPlayer_XAUDIO2::OnBufferStart(void*) noexcept {}
-	void WINAPI AudioPlayer_XAUDIO2::OnBufferEnd(void*) noexcept {}
-	void WINAPI AudioPlayer_XAUDIO2::OnLoopEnd(void*) noexcept {}
 	void WINAPI AudioPlayer_XAUDIO2::OnVoiceError(void*, HRESULT Error) noexcept
 	{
 		gHR = Error;
@@ -420,15 +415,10 @@ namespace Core::Audio
 
 namespace Core::Audio
 {
-	void WINAPI LoopAudioPlayer_XAUDIO2::OnVoiceProcessingPassStart(UINT32) noexcept {}
-	void WINAPI LoopAudioPlayer_XAUDIO2::OnVoiceProcessingPassEnd() noexcept {}
 	void WINAPI LoopAudioPlayer_XAUDIO2::OnStreamEnd() noexcept
 	{
 		SetEvent(event_end.Get());
 	}
-	void WINAPI LoopAudioPlayer_XAUDIO2::OnBufferStart(void*) noexcept {}
-	void WINAPI LoopAudioPlayer_XAUDIO2::OnBufferEnd(void*) noexcept {}
-	void WINAPI LoopAudioPlayer_XAUDIO2::OnLoopEnd(void*) noexcept {}
 	void WINAPI LoopAudioPlayer_XAUDIO2::OnVoiceError(void*, HRESULT Error) noexcept
 	{
 		gHR = Error;
@@ -782,24 +772,9 @@ namespace Core::Audio
 		if (event_buffer[1]) CloseHandle(event_buffer[1]); event_buffer[1] = NULL;
 	}
 
-	void WINAPI StreamAudioPlayer_XAUDIO2::OnVoiceProcessingPassStart(UINT32) noexcept
-	{
-	}
-	void WINAPI StreamAudioPlayer_XAUDIO2::OnVoiceProcessingPassEnd() noexcept
-	{
-	}
-	void WINAPI StreamAudioPlayer_XAUDIO2::OnStreamEnd() noexcept
-	{
-	}
-	void WINAPI StreamAudioPlayer_XAUDIO2::OnBufferStart(void*) noexcept
-	{
-	}
 	void WINAPI StreamAudioPlayer_XAUDIO2::OnBufferEnd(void* pBufferContext) noexcept
 	{
 		action_queue.notifyBufferAvailable((size_t)pBufferContext);
-	}
-	void WINAPI StreamAudioPlayer_XAUDIO2::OnLoopEnd(void*) noexcept
-	{
 	}
 	void WINAPI StreamAudioPlayer_XAUDIO2::OnVoiceError(void*, HRESULT Error) noexcept
 	{
