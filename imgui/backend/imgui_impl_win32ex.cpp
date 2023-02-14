@@ -501,7 +501,7 @@ static void ImGui_ImplWin32Ex_ProcessMessage(ImGui_ImplWin32Ex_FrameData* frame_
             io.AddMouseWheelEvent(0.0f, (float)GET_WHEEL_DELTA_WPARAM(msg.wParam) / (float)WHEEL_DELTA);
             return true;
         case WM_MOUSEHWHEEL:
-            io.AddMouseWheelEvent((float)GET_WHEEL_DELTA_WPARAM(msg.wParam) / (float)WHEEL_DELTA, 0.0f);
+            io.AddMouseWheelEvent(-(float)GET_WHEEL_DELTA_WPARAM(msg.wParam) / (float)WHEEL_DELTA, 0.0f);
             return true;
         }
 

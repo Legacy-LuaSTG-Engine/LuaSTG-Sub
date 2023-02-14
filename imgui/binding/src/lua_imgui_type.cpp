@@ -497,6 +497,15 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
             case E::SelectableTextAlign:
                 imgui_binding_lua_ref_ImVec2(L, &data->SelectableTextAlign);
                 return 1;
+            case E::SeparatorTextBorderSize:
+                lua_pushnumber(L, (lua_Number)data->SeparatorTextBorderSize);
+                return 1;
+            case E::SeparatorTextAlign:
+                imgui_binding_lua_ref_ImVec2(L, &data->SeparatorTextAlign);
+                return 1;
+            case E::SeparatorTextPadding:
+                imgui_binding_lua_ref_ImVec2(L, &data->SeparatorTextPadding);
+                return 1;
             case E::DisplayWindowPadding:
                 imgui_binding_lua_ref_ImVec2(L, &data->DisplayWindowPadding);
                 return 1;
@@ -630,6 +639,15 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
                 break;
             case E::SelectableTextAlign:
                 data->SelectableTextAlign = *imgui_binding_lua_to_ImVec2(L, 3);
+                break;
+            case E::SeparatorTextBorderSize:
+                data->SeparatorTextBorderSize = (float)luaL_checknumber(L, 3);
+                break;
+            case E::SeparatorTextAlign:
+                data->SeparatorTextAlign = *imgui_binding_lua_to_ImVec2(L, 3);
+                break;
+            case E::SeparatorTextPadding:
+                data->SeparatorTextPadding = *imgui_binding_lua_to_ImVec2(L, 3);
                 break;
             case E::DisplayWindowPadding:
                 data->DisplayWindowPadding = *imgui_binding_lua_to_ImVec2(L, 3);

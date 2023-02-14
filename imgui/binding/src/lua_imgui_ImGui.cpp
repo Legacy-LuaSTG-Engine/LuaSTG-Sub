@@ -1315,6 +1315,12 @@ static /* XXXX */ int lib_BulletTextV(lua_State* L)
 {
     LUA_IMGUI_NOT_SUPPORT;
 }
+static int lib_SeparatorText(lua_State* L)
+{
+    const char* label = luaL_checkstring(L, 1);
+    ImGui::SeparatorText(label);
+    return 0;
+}
 
 //////// Widgets: Main
 
