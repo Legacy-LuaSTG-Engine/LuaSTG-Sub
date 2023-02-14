@@ -6,6 +6,12 @@
 
 namespace Core::Audio
 {
+	struct IAudioDeviceEventListener
+	{
+		virtual void onAudioDeviceCreate() = 0;
+		virtual void onAudioDeviceDestroy() = 0;
+	};
+
 	class Shared_XAUDIO2 : public Object<IObject>
 	{
 	public:
@@ -21,12 +27,36 @@ namespace Core::Audio
 	class Device_XAUDIO2 : public Object<IAudioDevice>
 	{
 	private:
-		ScopeObject<Shared_XAUDIO2> m_shared;
-		
-		bool createResources();
-
+		std::unordered_set<IAudioDeviceEventListener*> m_listener;
+		bool m_dispatch_event{};
+		void dispatchEventAudioDeviceCreate();
+		void dispatchEventAudioDeviceDestroy();
 	public:
-		Shared_XAUDIO2* GetShared() { return m_shared.get(); }
+		void addEventListener(IAudioDeviceEventListener* p_m_listener);
+		void removeEventListener(IAudioDeviceEventListener* p_m_listener);
+
+	private:
+		struct AudioDeviceInfo
+		{
+			std::string id;
+			std::string name;
+		};
+		std::vector<AudioDeviceInfo> m_audio_device_list;
+		std::string m_target_audio_device_name;
+		std::string m_current_audio_device_name;
+		bool refreshAudioDeviceList();
+	public:
+		uint32_t getAudioDeviceCount(bool refresh);
+		std::string_view getAudioDeviceName(uint32_t index) const noexcept;
+		bool setTargetAudioDevice(std::string_view const audio_device_name);
+		std::string_view getCurrentAudioDeviceName() const noexcept { return m_current_audio_device_name; }
+
+	private:
+		ScopeObject<Shared_XAUDIO2> m_shared;
+	public:
+		Shared_XAUDIO2* getShared() { return m_shared.get(); }
+		bool createResources();
+		void destroyResources();
 
 	public:
 		void setVolume(float v);
@@ -60,23 +90,28 @@ namespace Core::Audio
 	class AudioPlayer_XAUDIO2
 		: public Object<IAudioPlayer>
 		, public XAudio2VoiceCallbackPlaceholder
+		, public IAudioDeviceEventListener
 	{
 	private:
 		ScopeObject<Device_XAUDIO2> m_device;
-	#ifdef _DEBUG
+		ScopeObject<Shared_XAUDIO2> m_shared;
+	#ifndef NDEBUG
 		ScopeObject<IDecoder> m_decoder;
 	#endif
-		IXAudio2SourceVoice* xa2_source;
-		XAUDIO2_BUFFER xa2_buffer = {};
-		Microsoft::WRL::Wrappers::Event event_end;
-		std::vector<BYTE> pcm_data;
-		float output_balance = 0.0f;
-		float empty_fft[1]{};
-		bool is_playing = false;
-
+		winrt::xaudio2_voice_ptr<IXAudio2SourceVoice> m_player;
+		WAVEFORMATEX m_format{};
+		XAUDIO2_BUFFER m_player_buffer = {};
+		std::vector<BYTE> m_pcm_data;
+		float m_output_balance = 0.0f;
+		bool m_is_playing{};
 	public:
-		void WINAPI OnStreamEnd() noexcept;
 		void WINAPI OnVoiceError(void* pBufferContext, HRESULT Error) noexcept;
+	public:
+		void onAudioDeviceCreate();
+		void onAudioDeviceDestroy();
+	private:
+		bool createResources();
+		void destoryResources();
 
 	public:
 		bool start();
@@ -85,10 +120,10 @@ namespace Core::Audio
 
 		bool isPlaying();
 
-		double getTotalTime() { return 0.0; }
-		double getTime() { return 0.0; }
-		bool setTime(double) { return true; }
-		bool setLoop(bool, double, double) { return true; }
+		double getTotalTime();
+		double getTime();
+		bool setTime(double time);
+		bool setLoop(bool enable, double start_pos, double length);
 
 		float getVolume();
 		bool setVolume(float v);
@@ -97,9 +132,9 @@ namespace Core::Audio
 		float getSpeed();
 		bool setSpeed(float v);
 
-		void updateFFT() {}
-		uint32_t getFFTSize() { return 0; }
-		float* getFFT() { return empty_fft; }
+		void updateFFT();
+		uint32_t getFFTSize();
+		float* getFFT();
 
 	public:
 		AudioPlayer_XAUDIO2(Device_XAUDIO2* p_device, IDecoder* p_decoder);
@@ -109,29 +144,34 @@ namespace Core::Audio
 	class LoopAudioPlayer_XAUDIO2
 		: public Object<IAudioPlayer>
 		, public XAudio2VoiceCallbackPlaceholder
+		, public IAudioDeviceEventListener
 	{
 	private:
 		ScopeObject<Device_XAUDIO2> m_device;
-	#ifdef _DEBUG
+		ScopeObject<Shared_XAUDIO2> m_shared;
+	#ifndef NDEBUG
 		ScopeObject<IDecoder> m_decoder;
 	#endif
-		IXAudio2SourceVoice* xa2_source;
-		Microsoft::WRL::Wrappers::Event event_end;
-		std::vector<BYTE> pcm_data;
-		float output_balance = 0.0f;
-		float empty_fft[1]{};
+		winrt::xaudio2_voice_ptr<IXAudio2SourceVoice> m_player;
+		WAVEFORMATEX m_format{};
+		std::vector<BYTE> m_pcm_data;
+		float m_output_balance = 0.0f;
+		bool m_is_playing{};
 		double m_start_time{};
-		double loop_start{};
-		double loop_length{};
+		bool m_is_loop{};
+		double m_loop_start{};
+		double m_loop_length{};
 		uint32_t m_total_frame{};
 		uint32_t m_sample_rate{};
 		uint16_t m_frame_size{};
-		bool is_playing = false;
-		bool is_loop = false;
-
 	public:
-		void WINAPI OnStreamEnd() noexcept;
 		void WINAPI OnVoiceError(void* pBufferContext, HRESULT Error) noexcept;
+	public:
+		void onAudioDeviceCreate();
+		void onAudioDeviceDestroy();
+	private:
+		bool createResources();
+		void destoryResources();
 
 	public:
 		bool start();
@@ -140,8 +180,8 @@ namespace Core::Audio
 
 		bool isPlaying();
 
-		double getTotalTime() { return 0.0; }
-		double getTime() { return 0.0; }
+		double getTotalTime();
+		double getTime();
 		bool setTime(double t);
 		bool setLoop(bool enable, double start_pos, double length);
 
@@ -152,9 +192,9 @@ namespace Core::Audio
 		float getSpeed();
 		bool setSpeed(float v);
 
-		void updateFFT() {}
-		uint32_t getFFTSize() { return 0; }
-		float* getFFT() { return empty_fft; }
+		void updateFFT();
+		uint32_t getFFTSize();
+		float* getFFT();
 
 	public:
 		LoopAudioPlayer_XAUDIO2(Device_XAUDIO2* p_device, IDecoder* p_decoder);
@@ -164,6 +204,7 @@ namespace Core::Audio
 	class StreamAudioPlayer_XAUDIO2
 		: public Object<IAudioPlayer>
 		, public XAudio2VoiceCallbackPlaceholder
+		, public IAudioDeviceEventListener
 	{
 	private:
 		enum class ActionType
@@ -243,17 +284,21 @@ namespace Core::Audio
 
 	private:
 		ScopeObject<Device_XAUDIO2> m_device;
+		ScopeObject<Shared_XAUDIO2> m_shared;
 		ScopeObject<IDecoder> m_decoder;
-		IXAudio2SourceVoice* xa2_source;
+		winrt::xaudio2_voice_ptr<IXAudio2SourceVoice> m_player;
+		wil::critical_section m_player_lock;
+		WAVEFORMATEX m_format{};
+		float m_volume = 1.0f;
+		float m_output_balance = 0.0f;
+		float m_speed = 1.0f;
 		State source_state = State::Stop;
 		Microsoft::WRL::Wrappers::ThreadHandle working_thread;
 		double start_time = 0.0;
 		double total_time = 0.0;
 		double current_time = 0.0;
-		float output_balance = 0.0f;
 		ActionQueue action_queue;
 		std::vector<uint8_t> raw_buffer;
-
 		uint8_t* p_audio_buffer[2] = {};
 		size_t audio_buffer_index = 0;
 		std::vector<float> fft_wave_data;
@@ -261,10 +306,15 @@ namespace Core::Audio
 		std::vector<float> fft_data;
 		std::vector<float> fft_complex_output;
 		std::vector<float> fft_output;
-
 	public:
 		void WINAPI OnBufferEnd(void* pBufferContext) noexcept;
 		void WINAPI OnVoiceError(void* pBufferContext, HRESULT Error) noexcept;
+	public:
+		void onAudioDeviceCreate();
+		void onAudioDeviceDestroy();
+	private:
+		bool createResources();
+		void destoryResources();
 
 	private:
 		static DWORD WINAPI WorkingThread(LPVOID lpThreadParameter);
