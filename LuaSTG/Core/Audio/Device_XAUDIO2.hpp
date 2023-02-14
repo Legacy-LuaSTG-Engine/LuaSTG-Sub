@@ -9,10 +9,10 @@ namespace Core::Audio
 	class Shared_XAUDIO2 : public Object<IObject>
 	{
 	public:
-		Microsoft::WRL::ComPtr<IXAudio2> xa2_xaudio2;
-		IXAudio2MasteringVoice* xa2_master;
-		IXAudio2SubmixVoice* xa2_soundeffect;
-		IXAudio2SubmixVoice* xa2_music;
+		winrt::com_ptr<IXAudio2> xaudio2;
+		winrt::xaudio2_voice_ptr<IXAudio2MasteringVoice> voice_master;
+		winrt::xaudio2_voice_ptr<IXAudio2SubmixVoice> voice_sound_effect;
+		winrt::xaudio2_voice_ptr<IXAudio2SubmixVoice> voice_music;
 	public:
 		Shared_XAUDIO2();
 		~Shared_XAUDIO2();
