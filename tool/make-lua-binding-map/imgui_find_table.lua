@@ -1,0 +1,73 @@
+local findtable = require("findtable")
+local E = findtable.makeEntry
+
+---@type findtable.config
+local imgui_find_table = {
+    cpp_namespace = {},
+    func_name = "imgui_binding_lua_ComputePropertiesHash",
+    enum_name = "imgui_binding_lua_PropertiesHash",
+    enum_entry = {
+        -- ImVec2, ImVec3, ImVec4
+        E("w"),
+        E("x"),
+        E("y"),
+        E("z"),
+        -- ImGuiTextBuffer
+        E("append" ),
+        E("c_str"  ),
+        E("clear"  ),
+        E("empty"  ),
+        E("reserve"),
+        E("size"   ),
+        -- ImGuiStyle
+        E("Alpha"),
+        E("AntiAliasedFill"),
+        E("AntiAliasedLines"),
+        E("AntiAliasedLinesUseTex"),
+        E("ButtonTextAlign"),
+        E("CellPadding"),
+        E("ChildBorderSize"),
+        E("ChildRounding"),
+        E("CircleTessellationMaxError"),
+        E("ColorButtonPosition"),
+        E("Colors"),
+        E("ColumnsMinSpacing"),
+        E("CurveTessellationTol"),
+        E("DisabledAlpha"),
+        E("DisplaySafeAreaPadding"),
+        E("DisplayWindowPadding"),
+        E("FrameBorderSize"),
+        E("FramePadding"),
+        E("FrameRounding"),
+        E("GrabMinSize"),
+        E("GrabRounding"),
+        E("IndentSpacing"),
+        E("ItemInnerSpacing"),
+        E("ItemSpacing"),
+        E("LogSliderDeadzone"),
+        E("MouseCursorScale"),
+        E("PopupBorderSize"),
+        E("PopupRounding"),
+        E("ScaleAllSizes"),
+        E("ScrollbarRounding"),
+        E("ScrollbarSize"),
+        E("SelectableTextAlign"),
+        E("TabBorderSize"),
+        E("TabMinWidthForCloseButton"),
+        E("TabRounding"),
+        E("TouchExtraPadding"),
+        E("WindowBorderSize"),
+        E("WindowMenuButtonPosition"),
+        E("WindowMinSize"),
+        E("WindowPadding"),
+        E("WindowRounding"),
+        E("WindowTitleAlign"),
+        E("SeparatorTextBorderSize"),
+        E("SeparatorTextAlign"),
+        E("SeparatorTextPadding"),
+    },
+}
+
+findtable.makeSource("lua_imgui_hash", {
+    imgui_find_table,
+})
