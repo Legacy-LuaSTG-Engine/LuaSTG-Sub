@@ -23,6 +23,8 @@ namespace Core::Audio
 	private:
 		ScopeObject<Shared_XAUDIO2> m_shared;
 		
+		bool createResources();
+
 	public:
 		Shared_XAUDIO2* GetShared() { return m_shared.get(); }
 

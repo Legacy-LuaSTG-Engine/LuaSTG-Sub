@@ -65,6 +65,84 @@ namespace Core::Audio
 		xa2_xaudio2.Reset();
 	}
 
+	bool Device_XAUDIO2::createResources()
+	{
+		HRESULT hr = 0;
+
+		// 设备
+
+		hr = gHR = XAudio2Create(&m_shared->xa2_xaudio2);
+		if (FAILED(hr))
+		{
+			i18n_core_system_call_report_error("XAudio2Create");
+			return false;
+		}
+
+	#ifndef NDEBUG
+		XAUDIO2_DEBUG_CONFIGURATION xaudio2_debug{};
+		xaudio2_debug.TraceMask = XAUDIO2_LOG_ERRORS | XAUDIO2_LOG_WARNINGS | XAUDIO2_LOG_INFO | XAUDIO2_LOG_DETAIL;
+		xaudio2_debug.BreakMask = XAUDIO2_LOG_ERRORS;
+		xaudio2_debug.LogThreadID = TRUE;
+		xaudio2_debug.LogTiming = TRUE;
+		m_shared->xa2_xaudio2->SetDebugConfiguration(&xaudio2_debug);
+	#endif
+
+		// 输出通道
+
+		hr = gHR = m_shared->xa2_xaudio2->CreateMasteringVoice(&m_shared->xa2_master);
+		if (FAILED(hr))
+		{
+			i18n_core_system_call_report_error("IXAudio2::CreateMasteringVoice");
+			return false;
+		}
+
+		// 混音通道
+
+		XAUDIO2_VOICE_DETAILS voice_info = {};
+		m_shared->xa2_master->GetVoiceDetails(&voice_info);
+
+		hr = gHR = m_shared->xa2_xaudio2->CreateSubmixVoice(&m_shared->xa2_soundeffect, 2, voice_info.InputSampleRate); // 固定2声道
+		if (FAILED(hr))
+		{
+			i18n_core_system_call_report_error("IXAudio2::CreateSubmixVoice -> #soundeffect");
+			return false;
+		}
+
+		hr = gHR = m_shared->xa2_xaudio2->CreateSubmixVoice(&m_shared->xa2_music, 2, voice_info.InputSampleRate); // 固定2声道
+		if (FAILED(hr))
+		{
+			i18n_core_system_call_report_error("IXAudio2::CreateSubmixVoice -> #music");
+			return false;
+		}
+
+		// 组装
+
+		XAUDIO2_SEND_DESCRIPTOR voice_send_master = {
+			.Flags = 0,
+			.pOutputVoice = m_shared->xa2_master,
+		};
+		XAUDIO2_VOICE_SENDS voice_send_list = {
+			.SendCount = 1,
+			.pSends = &voice_send_master
+		};
+
+		hr = gHR = m_shared->xa2_soundeffect->SetOutputVoices(&voice_send_list);
+		if (FAILED(hr))
+		{
+			i18n_core_system_call_report_error("IXAudio2SubmixVoice::SetOutputVoices #soundeffect -> #master");
+			return false;
+		}
+
+		hr = gHR = m_shared->xa2_music->SetOutputVoices(&voice_send_list);
+		if (FAILED(hr))
+		{
+			i18n_core_system_call_report_error("IXAudio2SubmixVoice::SetOutputVoices #music -> #master");
+			return false;
+		}
+
+		return true;
+	}
+
 	void Device_XAUDIO2::setVolume(float v)
 	{
 		setMixChannelVolume(MixChannel::Direct, v);
@@ -158,73 +236,9 @@ namespace Core::Audio
 	Device_XAUDIO2::Device_XAUDIO2()
 	{
 		m_shared.attach(new Shared_XAUDIO2);
-
-		HRESULT hr = 0;
-
-		// 设备
-
-		hr = gHR = XAudio2Create(&m_shared->xa2_xaudio2);
-		if (FAILED(hr))
+		if (!createResources())
 		{
-			i18n_core_system_call_report_error("XAudio2Create");
-			throw std::runtime_error("Device_XAUDIO2::Device_XAUDIO2 (1)");
-		}
-	#ifdef _DEBUG
-		XAUDIO2_DEBUG_CONFIGURATION debug_cfg = {
-			.TraceMask = XAUDIO2_LOG_ERRORS | XAUDIO2_LOG_WARNINGS,
-		};
-		m_shared->xa2_xaudio2->SetDebugConfiguration(&debug_cfg);
-	#endif
-
-		hr = gHR = m_shared->xa2_xaudio2->CreateMasteringVoice(&m_shared->xa2_master);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IXAudio2::CreateMasteringVoice");
-			throw std::runtime_error("Device_XAUDIO2::Device_XAUDIO2 (2)");
-		}
-
-		// 混音通道
-
-		XAUDIO2_VOICE_DETAILS voice_info = {};
-		m_shared->xa2_master->GetVoiceDetails(&voice_info);
-
-		hr = gHR = m_shared->xa2_xaudio2->CreateSubmixVoice(&m_shared->xa2_soundeffect, 2, voice_info.InputSampleRate); // 固定2声道
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IXAudio2::CreateSubmixVoice -> #soundeffect");
-			throw std::runtime_error("Device_XAUDIO2::Device_XAUDIO2 (3)");
-		}
-
-		hr = gHR = m_shared->xa2_xaudio2->CreateSubmixVoice(&m_shared->xa2_music, 2, voice_info.InputSampleRate); // 固定2声道
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IXAudio2::CreateSubmixVoice -> #music");
-			throw std::runtime_error("Device_XAUDIO2::Device_XAUDIO2 (4)");
-		}
-
-		// 组装
-
-		XAUDIO2_SEND_DESCRIPTOR voice_send_master = {
-			.Flags = 0,
-			.pOutputVoice = m_shared->xa2_master,
-		};
-		XAUDIO2_VOICE_SENDS voice_send_list = {
-			.SendCount = 1,
-			.pSends = &voice_send_master
-		};
-
-		hr = gHR = m_shared->xa2_soundeffect->SetOutputVoices(&voice_send_list);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IXAudio2SubmixVoice::SetOutputVoices #soundeffect -> #master");
-			throw std::runtime_error("Device_XAUDIO2::Device_XAUDIO2 (5)");
-		}
-
-		hr = gHR = m_shared->xa2_music->SetOutputVoices(&voice_send_list);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IXAudio2SubmixVoice::SetOutputVoices #music -> #master");
-			throw std::runtime_error("Device_XAUDIO2::Device_XAUDIO2 (6)");
+			throw std::runtime_error("Device_XAUDIO2::Device_XAUDIO2");
 		}
 	}
 	Device_XAUDIO2::~Device_XAUDIO2()
