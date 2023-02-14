@@ -53,6 +53,9 @@ namespace Core::Audio
 
 	private:
 		ScopeObject<Shared_XAUDIO2> m_shared;
+		float m_volume_direct = 1.0f;
+		float m_volume_sound_effect = 1.0f;
+		float m_volume_music = 1.0f;
 	public:
 		Shared_XAUDIO2* getShared() { return m_shared.get(); }
 		bool createResources();
@@ -102,7 +105,9 @@ namespace Core::Audio
 		WAVEFORMATEX m_format{};
 		XAUDIO2_BUFFER m_player_buffer = {};
 		std::vector<BYTE> m_pcm_data;
+		float m_volume = 1.0f;
 		float m_output_balance = 0.0f;
+		float m_speed = 1.0f;
 		bool m_is_playing{};
 	public:
 		void WINAPI OnVoiceError(void* pBufferContext, HRESULT Error) noexcept;
@@ -155,7 +160,9 @@ namespace Core::Audio
 		winrt::xaudio2_voice_ptr<IXAudio2SourceVoice> m_player;
 		WAVEFORMATEX m_format{};
 		std::vector<BYTE> m_pcm_data;
+		float m_volume = 1.0f;
 		float m_output_balance = 0.0f;
+		float m_speed = 1.0f;
 		bool m_is_playing{};
 		double m_start_time{};
 		bool m_is_loop{};

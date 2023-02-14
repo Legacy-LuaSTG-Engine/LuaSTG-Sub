@@ -194,6 +194,12 @@ namespace Core::Audio
 				}
 			}
 
+			if (true)
+			{
+				// fake no device
+				//return false;
+			}
+
 			if (device_id.empty())
 			{
 				winrt::check_hresult(m_shared->xaudio2->CreateMasteringVoice(m_shared->voice_master.put()));
@@ -221,6 +227,11 @@ namespace Core::Audio
 
 			winrt::check_hresult(m_shared->voice_sound_effect->SetOutputVoices(&voice_send_list));
 			winrt::check_hresult(m_shared->voice_music->SetOutputVoices(&voice_send_list));
+
+			// update volume
+			winrt::check_hresult(m_shared->voice_master->SetVolume(std::clamp(m_volume_direct, 0.0f, 1.0f)));
+			winrt::check_hresult(m_shared->voice_sound_effect->SetVolume(std::clamp(m_volume_sound_effect, 0.0f, 1.0f)));
+			winrt::check_hresult(m_shared->voice_music->SetVolume(std::clamp(m_volume_music, 0.0f, 1.0f)));
 
 			m_current_audio_device_name = device_name;
 			dispatchEventAudioDeviceCreate();
@@ -255,41 +266,55 @@ namespace Core::Audio
 	}
 	void Device_XAUDIO2::setMixChannelVolume(MixChannel ch, float v)
 	{
-		if (!m_shared)
-			return;
+		switch (ch)
+		{
+		case MixChannel::Direct:
+			m_volume_direct = v;
+			break;
+		case MixChannel::SoundEffect:
+			m_volume_sound_effect = v;
+			break;
+		case MixChannel::Music:
+			m_volume_music = v;
+			break;
+		default:
+			assert(false);
+			break;
+		}
+
+		if (!m_shared) return;
+
 		IXAudio2Voice* p_voice = NULL;
 		switch (ch)
 		{
-		case MixChannel::Direct: p_voice = m_shared->voice_master.get(); break;
-		case MixChannel::SoundEffect: p_voice = m_shared->voice_sound_effect.get(); break;
-		case MixChannel::Music: p_voice = m_shared->voice_music.get(); break;
-		default: break;
+		case MixChannel::Direct:
+			p_voice = m_shared->voice_master.get();
+			break;
+		case MixChannel::SoundEffect:
+			p_voice = m_shared->voice_sound_effect.get();
+			break;
+		case MixChannel::Music:
+			p_voice = m_shared->voice_music.get();
+			break;
+		default:
+			assert(false);
+			break;
 		}
-		assert(p_voice);
-		if (p_voice)
-		{
-			HRESULT hr = gHR = p_voice->SetVolume(v);
-			if (FAILED(hr))
-				i18n_core_system_call_report_error("IXAudio2Voice::SetVolume");
-		}
+		if (!p_voice)  return;
+
+		HRESULT hr = gHR = p_voice->SetVolume(std::clamp(v, 0.0f, 1.0f));
+		if (FAILED(hr))
+			i18n_core_system_call_report_error("IXAudio2Voice::SetVolume");
 	}
 	float Device_XAUDIO2::getMixChannelVolume(MixChannel ch)
 	{
-		if (!m_shared)
-			return 0.0f;
-		IXAudio2Voice* p_voice = NULL;
 		switch (ch)
 		{
-		case MixChannel::Direct: p_voice = m_shared->voice_master.get(); break;
-		case MixChannel::SoundEffect: p_voice = m_shared->voice_sound_effect.get(); break;
-		case MixChannel::Music: p_voice = m_shared->voice_music.get(); break;
-		default: break;
+		case MixChannel::Direct: return m_volume_direct;
+		case MixChannel::SoundEffect: return m_volume_sound_effect;
+		case MixChannel::Music: return m_volume_music;
+		default: assert(false); return 1.0f;
 		}
-		assert(p_voice);
-		float v = 0.0f;
-		if (p_voice)
-			p_voice->GetVolume(&v);
-		return v;
 	}
 
 	bool Device_XAUDIO2::createAudioPlayer(IDecoder* p_decoder, IAudioPlayer** pp_player)
@@ -384,7 +409,9 @@ namespace Core::Audio
 	{
 		try
 		{
+			if (!m_device->getShared()) return false; // 共享组件不存在
 			if (!m_device->getShared()->xaudio2) return false; // 设备不存在
+			if (!m_device->getShared()->voice_master) return false; // 输出设备不存在
 
 			m_shared = m_device->getShared();
 
@@ -397,6 +424,10 @@ namespace Core::Audio
 			voice_send_list.pSends = &voice_send;
 
 			winrt::check_hresult(m_player->SetOutputVoices(&voice_send_list));
+
+			winrt::check_hresult(m_player->SetVolume(std::clamp(m_volume, 0.0f, 1.0f)));
+			winrt::check_hresult(SetOutputBalance(m_player.get(), m_output_balance));
+			winrt::check_hresult(m_player->SetFrequencyRatio(m_speed));
 
 			return true;
 		}
@@ -419,20 +450,24 @@ namespace Core::Audio
 	bool AudioPlayer_XAUDIO2::start()
 	{
 		m_is_playing = true;
+		if (!m_player) return true; // 不可用，但不是错误
 		HRESULT hr = gHR = m_player->Start();
 		return SUCCEEDED(hr);
 	}
 	bool AudioPlayer_XAUDIO2::stop()
 	{
 		m_is_playing = false;
+		if (!m_player) return true; // 不可用，但不是错误
 		HRESULT hr = gHR = m_player->Stop();
 		return SUCCEEDED(hr);
 	}
 	bool AudioPlayer_XAUDIO2::reset()
 	{
+		m_is_playing = false;
+		if (!m_player) return true; // 不可用，但不是错误
+
 		HRESULT hr = S_OK;
 
-		m_is_playing = false;
 		hr = gHR = m_player->Stop();
 		if (FAILED(hr)) return false;
 		hr = gHR = m_player->FlushSourceBuffers();
@@ -457,6 +492,7 @@ namespace Core::Audio
 
 	bool AudioPlayer_XAUDIO2::isPlaying()
 	{
+		if (!m_player) return false; // 不可用，但不是错误
 		XAUDIO2_VOICE_STATE state = {};
 		m_player->GetState(&state, XAUDIO2_VOICE_NOSAMPLESPLAYED);
 		return m_is_playing && state.BuffersQueued > 0;
@@ -469,12 +505,12 @@ namespace Core::Audio
 
 	float AudioPlayer_XAUDIO2::getVolume()
 	{
-		float v = 0.0;
-		m_player->GetVolume(&v);
-		return v;
+		return m_volume;
 	}
 	bool AudioPlayer_XAUDIO2::setVolume(float v)
 	{
+		m_volume = v;
+		if (!m_player) return true; // 不可用，但不是错误
 		HRESULT hr = gHR = m_player->SetVolume(std::clamp(v, 0.0f, 1.0f));
 		return SUCCEEDED(hr);
 	}
@@ -485,16 +521,17 @@ namespace Core::Audio
 	bool AudioPlayer_XAUDIO2::setBalance(float v)
 	{
 		m_output_balance = v;
+		if (!m_player) return true; // 不可用，但不是错误
 		return setOutputBalance(m_player.get(), v);
 	}
 	float AudioPlayer_XAUDIO2::getSpeed()
 	{
-		float v = 0.0f;
-		m_player->GetFrequencyRatio(&v);
-		return v;
+		return m_speed;
 	}
 	bool AudioPlayer_XAUDIO2::setSpeed(float v)
 	{
+		m_speed = v;
+		if (!m_player) return true; // 不可用，但不是错误
 		HRESULT hr = gHR = m_player->SetFrequencyRatio(v);
 		return SUCCEEDED(hr);
 	}
@@ -574,7 +611,9 @@ namespace Core::Audio
 	{
 		try
 		{
+			if (!m_device->getShared()) return false; // 共享组件不存在
 			if (!m_device->getShared()->xaudio2) return false; // 设备不存在
+			if (!m_device->getShared()->voice_master) return false; // 输出设备不存在
 
 			m_shared = m_device->getShared();
 
@@ -587,6 +626,10 @@ namespace Core::Audio
 			voice_send_list.pSends = &voice_send;
 
 			winrt::check_hresult(m_player->SetOutputVoices(&voice_send_list));
+
+			winrt::check_hresult(m_player->SetVolume(std::clamp(m_volume, 0.0f, 1.0f)));
+			winrt::check_hresult(SetOutputBalance(m_player.get(), m_output_balance));
+			winrt::check_hresult(m_player->SetFrequencyRatio(m_speed));
 
 			return true;
 		}
@@ -609,22 +652,26 @@ namespace Core::Audio
 	bool LoopAudioPlayer_XAUDIO2::start()
 	{
 		m_is_playing = true;
+		if (!m_player) return true; // 不可用，但不是错误
 		HRESULT hr = gHR = m_player->Start();
 		return SUCCEEDED(hr);
 	}
 	bool LoopAudioPlayer_XAUDIO2::stop()
 	{
 		m_is_playing = false;
+		if (!m_player) return true; // 不可用，但不是错误
 		HRESULT hr = gHR = m_player->Stop();
 		return SUCCEEDED(hr);
 	}
 	bool LoopAudioPlayer_XAUDIO2::reset()
 	{
+		m_is_playing = false;
+		if (!m_player) return true; // 不可用，但不是错误
+
 		// 重置状态和排队的缓冲区
 
 		HRESULT hr = S_OK;
 
-		m_is_playing = false;
 		hr = gHR = m_player->Stop();
 		if (FAILED(hr)) return false;
 		hr = gHR = m_player->FlushSourceBuffers();
@@ -739,6 +786,7 @@ namespace Core::Audio
 
 	bool LoopAudioPlayer_XAUDIO2::isPlaying()
 	{
+		if (!m_player) return m_is_playing; // 不可用，但不是错误
 		XAUDIO2_VOICE_STATE state = {};
 		m_player->GetState(&state, XAUDIO2_VOICE_NOSAMPLESPLAYED);
 		return m_is_playing && state.BuffersQueued > 0;
@@ -766,12 +814,12 @@ namespace Core::Audio
 
 	float LoopAudioPlayer_XAUDIO2::getVolume()
 	{
-		float v = 0.0;
-		m_player->GetVolume(&v);
-		return v;
+		return m_volume;
 	}
 	bool LoopAudioPlayer_XAUDIO2::setVolume(float v)
 	{
+		m_volume = v;
+		if (!m_player) return true; // 不可用，但不是错误
 		HRESULT hr = gHR = m_player->SetVolume(std::clamp(v, 0.0f, 1.0f));
 		return SUCCEEDED(hr);
 	}
@@ -782,16 +830,17 @@ namespace Core::Audio
 	bool LoopAudioPlayer_XAUDIO2::setBalance(float v)
 	{
 		m_output_balance = v;
+		if (!m_player) return true; // 不可用，但不是错误
 		return setOutputBalance(m_player.get(), v);
 	}
 	float LoopAudioPlayer_XAUDIO2::getSpeed()
 	{
-		float v = 0.0f;
-		m_player->GetFrequencyRatio(&v);
-		return v;
+		return m_speed;
 	}
 	bool LoopAudioPlayer_XAUDIO2::setSpeed(float v)
 	{
+		m_speed = v;
+		if (!m_player) return true; // 不可用，但不是错误
 		HRESULT hr = gHR = m_player->SetFrequencyRatio(v);
 		return SUCCEEDED(hr);
 	}
@@ -960,7 +1009,9 @@ namespace Core::Audio
 	{
 		try
 		{
+			if (!m_device->getShared()) return false; // 共享组件不存在
 			if (!m_device->getShared()->xaudio2) return false; // 设备不存在
+			if (!m_device->getShared()->voice_master) return false; // 输出设备不存在
 
 			m_shared = m_device->getShared();
 
