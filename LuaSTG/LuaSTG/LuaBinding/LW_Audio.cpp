@@ -1,4 +1,5 @@
 #include "LuaBinding/LuaWrapper.hpp"
+#include "LuaBinding/lua_utility.hpp"
 #include "AppFrame.h"
 
 // 微软我日你仙人
@@ -10,6 +11,47 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 {
 	struct Wrapper
 	{
+		static int ListAudioDevice(lua_State* L)
+		{
+			if (!LAPP.GetAppModel()->getAudioDevice())
+			{
+				return luaL_error(L, "engine not initialized");
+			}
+			lua::stack_t S(L);
+			auto const refresh = S.get_value<bool>(1);
+			uint32_t const count = LAPP.GetAppModel()->getAudioDevice()->getAudioDeviceCount(refresh);
+			S.create_array(count);
+			for (uint32_t i = 0; i < count; i += 1)
+			{
+				auto const name = LAPP.GetAppModel()->getAudioDevice()->getAudioDeviceName(i);
+				S.set_array_value_zero_base<std::string_view>(i, name);
+			}
+			return 1;
+		}
+		static int ChangeAudioDevice(lua_State* L)
+		{
+			if (!LAPP.GetAppModel()->getAudioDevice())
+			{
+				return luaL_error(L, "engine not initialized");
+			}
+			lua::stack_t S(L);
+			auto const name = S.get_value<std::string_view>(1);
+			auto const result = LAPP.GetAppModel()->getAudioDevice()->setTargetAudioDevice(name);
+			S.push_value<bool>(result);
+			return 1;
+		}
+		static int GetCurrentAudioDeviceName(lua_State* L)
+		{
+			if (!LAPP.GetAppModel()->getAudioDevice())
+			{
+				return luaL_error(L, "engine not initialized");
+			}
+			lua::stack_t S(L);
+			auto const result = LAPP.GetAppModel()->getAudioDevice()->getCurrentAudioDeviceName();
+			S.push_value<std::string_view>(result);
+			return 1;
+		}
+
 		static int PlaySound(lua_State* L)noexcept
 		{
 			const char* s = luaL_checkstring(L, 1);
@@ -232,6 +274,10 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 	};
 
 	luaL_Reg const lib[] = {
+		{ "ListAudioDevice", &Wrapper::ListAudioDevice },
+		{ "ChangeAudioDevice", &Wrapper::ChangeAudioDevice },
+		{ "GetCurrentAudioDeviceName", &Wrapper::GetCurrentAudioDeviceName },
+
 		{ "PlaySound", &Wrapper::PlaySound },
 		{ "StopSound", &Wrapper::StopSound },
 		{ "PauseSound", &Wrapper::PauseSound },

@@ -194,6 +194,17 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 				return luaL_error(L, "render device is not avilable.");
 			}
 		}
+		static int GetCurrentGpuName(lua_State* L)
+		{
+			if (!LAPP.GetAppModel()->getDevice())
+			{
+				return luaL_error(L, "render device is not avilable.");
+			}
+			lua::stack_t S(L);
+			auto const name = LAPP.GetAppModel()->getDevice()->getCurrentGpuName();
+			S.push_value<std::string_view>(name);
+			return 1;
+		}
 		#pragma endregion
 	};
 	
@@ -217,6 +228,7 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 		{ "EnumResolutions", &WrapperImplement::EnumResolutions },
 		{ "EnumGPUs", &WrapperImplement::EnumGPUs },
 		{ "ChangeGPU", &WrapperImplement::ChangeGPU },
+		{ "GetCurrentGpuName", &WrapperImplement::GetCurrentGpuName },
 		#pragma endregion
 		
 		{ NULL, NULL },

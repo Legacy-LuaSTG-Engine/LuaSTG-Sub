@@ -81,6 +81,9 @@ namespace lua
 		inline T get_value(int32_t index) { assert(false); }
 
 		template<>
+		inline bool get_value(int32_t index) { return lua_toboolean(L, index); }
+
+		template<>
 		inline float get_value(int32_t index) { return (float)luaL_checknumber(L, index); }
 		template<>
 		inline double get_value(int32_t index) { return luaL_checknumber(L, index); }
