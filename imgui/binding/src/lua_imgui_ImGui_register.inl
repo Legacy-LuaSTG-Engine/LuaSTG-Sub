@@ -156,6 +156,7 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(LabelTextV),
     MAKEF(BulletText),
     MAKEF(BulletTextV),
+    MAKEF(SeparatorText),
     
     // Widgets: Main
     MAKEF(Button),

@@ -556,6 +556,9 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"TabRounding"        , ImGuiStyleVar_TabRounding        },
     {"ButtonTextAlign"    , ImGuiStyleVar_ButtonTextAlign    },
     {"SelectableTextAlign", ImGuiStyleVar_SelectableTextAlign},
+    {"SeparatorTextBorderSize", ImGuiStyleVar_SeparatorTextBorderSize},
+    {"SeparatorTextAlign"     , ImGuiStyleVar_SeparatorTextAlign     },
+    {"SeparatorTextPadding"   , ImGuiStyleVar_SeparatorTextPadding   },
 }},
 {"ImGuiButtonFlags", {
     {"None"             , ImGuiButtonFlags_None             },
