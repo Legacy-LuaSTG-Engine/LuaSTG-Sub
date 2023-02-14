@@ -249,16 +249,16 @@ namespace Core::Audio
 
 namespace Core::Audio
 {
-	void WINAPI AudioPlayer_XAUDIO2::OnVoiceProcessingPassStart(UINT32) {}
-	void WINAPI AudioPlayer_XAUDIO2::OnVoiceProcessingPassEnd() {}
-	void WINAPI AudioPlayer_XAUDIO2::OnStreamEnd()
+	void WINAPI AudioPlayer_XAUDIO2::OnVoiceProcessingPassStart(UINT32) noexcept {}
+	void WINAPI AudioPlayer_XAUDIO2::OnVoiceProcessingPassEnd() noexcept {}
+	void WINAPI AudioPlayer_XAUDIO2::OnStreamEnd() noexcept
 	{
 		SetEvent(event_end.Get());
 	}
-	void WINAPI AudioPlayer_XAUDIO2::OnBufferStart(void*) {}
-	void WINAPI AudioPlayer_XAUDIO2::OnBufferEnd(void*) {}
-	void WINAPI AudioPlayer_XAUDIO2::OnLoopEnd(void*) {}
-	void WINAPI AudioPlayer_XAUDIO2::OnVoiceError(void*, HRESULT Error)
+	void WINAPI AudioPlayer_XAUDIO2::OnBufferStart(void*) noexcept {}
+	void WINAPI AudioPlayer_XAUDIO2::OnBufferEnd(void*) noexcept {}
+	void WINAPI AudioPlayer_XAUDIO2::OnLoopEnd(void*) noexcept {}
+	void WINAPI AudioPlayer_XAUDIO2::OnVoiceError(void*, HRESULT Error) noexcept
 	{
 		gHR = Error;
 		spdlog::error("[core] @IXAudio2VoiceCallback::OnVoiceError");
@@ -420,16 +420,16 @@ namespace Core::Audio
 
 namespace Core::Audio
 {
-	void WINAPI LoopAudioPlayer_XAUDIO2::OnVoiceProcessingPassStart(UINT32) {}
-	void WINAPI LoopAudioPlayer_XAUDIO2::OnVoiceProcessingPassEnd() {}
-	void WINAPI LoopAudioPlayer_XAUDIO2::OnStreamEnd()
+	void WINAPI LoopAudioPlayer_XAUDIO2::OnVoiceProcessingPassStart(UINT32) noexcept {}
+	void WINAPI LoopAudioPlayer_XAUDIO2::OnVoiceProcessingPassEnd() noexcept {}
+	void WINAPI LoopAudioPlayer_XAUDIO2::OnStreamEnd() noexcept
 	{
 		SetEvent(event_end.Get());
 	}
-	void WINAPI LoopAudioPlayer_XAUDIO2::OnBufferStart(void*) {}
-	void WINAPI LoopAudioPlayer_XAUDIO2::OnBufferEnd(void*) {}
-	void WINAPI LoopAudioPlayer_XAUDIO2::OnLoopEnd(void*) {}
-	void WINAPI LoopAudioPlayer_XAUDIO2::OnVoiceError(void*, HRESULT Error)
+	void WINAPI LoopAudioPlayer_XAUDIO2::OnBufferStart(void*) noexcept {}
+	void WINAPI LoopAudioPlayer_XAUDIO2::OnBufferEnd(void*) noexcept {}
+	void WINAPI LoopAudioPlayer_XAUDIO2::OnLoopEnd(void*) noexcept {}
+	void WINAPI LoopAudioPlayer_XAUDIO2::OnVoiceError(void*, HRESULT Error) noexcept
 	{
 		gHR = Error;
 		spdlog::error("[core] @IXAudio2VoiceCallback::OnVoiceError");
@@ -782,26 +782,26 @@ namespace Core::Audio
 		if (event_buffer[1]) CloseHandle(event_buffer[1]); event_buffer[1] = NULL;
 	}
 
-	void WINAPI StreamAudioPlayer_XAUDIO2::OnVoiceProcessingPassStart(UINT32)
+	void WINAPI StreamAudioPlayer_XAUDIO2::OnVoiceProcessingPassStart(UINT32) noexcept
 	{
 	}
-	void WINAPI StreamAudioPlayer_XAUDIO2::OnVoiceProcessingPassEnd()
+	void WINAPI StreamAudioPlayer_XAUDIO2::OnVoiceProcessingPassEnd() noexcept
 	{
 	}
-	void WINAPI StreamAudioPlayer_XAUDIO2::OnStreamEnd()
+	void WINAPI StreamAudioPlayer_XAUDIO2::OnStreamEnd() noexcept
 	{
 	}
-	void WINAPI StreamAudioPlayer_XAUDIO2::OnBufferStart(void*)
+	void WINAPI StreamAudioPlayer_XAUDIO2::OnBufferStart(void*) noexcept
 	{
 	}
-	void WINAPI StreamAudioPlayer_XAUDIO2::OnBufferEnd(void* pBufferContext)
+	void WINAPI StreamAudioPlayer_XAUDIO2::OnBufferEnd(void* pBufferContext) noexcept
 	{
 		action_queue.notifyBufferAvailable((size_t)pBufferContext);
 	}
-	void WINAPI StreamAudioPlayer_XAUDIO2::OnLoopEnd(void*)
+	void WINAPI StreamAudioPlayer_XAUDIO2::OnLoopEnd(void*) noexcept
 	{
 	}
-	void WINAPI StreamAudioPlayer_XAUDIO2::OnVoiceError(void*, HRESULT Error)
+	void WINAPI StreamAudioPlayer_XAUDIO2::OnVoiceError(void*, HRESULT Error) noexcept
 	{
 		gHR = Error;
 		spdlog::error("[core] @IXAudio2VoiceCallback::OnVoiceError");
