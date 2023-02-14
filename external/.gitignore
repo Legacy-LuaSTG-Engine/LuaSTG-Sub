@@ -1,2 +1,4 @@
 .download/*
 XAudio2Redist/*
+Microsoft.XAudio2.Redist/*
+Microsoft.Windows.ImplementationLibrary/*

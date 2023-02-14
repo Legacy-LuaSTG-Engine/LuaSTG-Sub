@@ -96,27 +96,6 @@ target_link_libraries(DirectXTexMini PUBLIC
 
 set_target_properties(DirectXTexMini PROPERTIES FOLDER external)
 
-# ==================== XAudio2 ====================
-
-add_library(XAudio2Redist SHARED IMPORTED GLOBAL)
-target_include_directories(XAudio2Redist INTERFACE
-    XAudio2Redist/build/native/include
-)
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set_target_properties(XAudio2Redist PROPERTIES
-        IMPORTED_IMPLIB   ${CMAKE_CURRENT_LIST_DIR}/XAudio2Redist/build/native/release/lib/x64/xaudio2_9redist.lib
-        IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/XAudio2Redist/build/native/release/bin/x64/xaudio2_9redist.dll
-    )
-elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
-    set_target_properties(XAudio2Redist PROPERTIES
-        IMPORTED_IMPLIB   ${CMAKE_CURRENT_LIST_DIR}/XAudio2Redist/build/native/release/lib/x86/xaudio2_9redist.lib
-        IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/XAudio2Redist/build/native/release/bin/x86/xaudio2_9redist.dll
-    )
-else()
-    message(FATAL_ERROR "unknown platform")
-endif()
-add_library(DirectX::XAudio2Redist ALIAS XAudio2Redist)
-
 # ==================== dr libs ====================
 
 add_library(dr_libs STATIC)
