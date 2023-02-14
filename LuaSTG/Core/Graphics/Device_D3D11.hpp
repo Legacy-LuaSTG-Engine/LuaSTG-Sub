@@ -126,6 +126,7 @@ namespace Core::Graphics
 		void setPreferenceGpu(StringView prefered_gpu) { preferred_adapter_name = prefered_gpu; }
 		uint32_t getGpuCount() { return (uint32_t)dxgi_adapter_names.size(); }
 		StringView getGpuName(uint32_t index) { return dxgi_adapter_names[index]; }
+		StringView getCurrentGpuName() const noexcept { return dxgi_adapter_name; }
 
 		void* getNativeHandle() { return d3d11_device.Get(); }
 		void* getNativeRendererHandle() { return d2d1_devctx.Get(); }

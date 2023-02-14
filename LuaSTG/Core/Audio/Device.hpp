@@ -41,6 +41,11 @@ namespace Core::Audio
 
 	struct IAudioDevice : public IObject
 	{
+		virtual uint32_t getAudioDeviceCount(bool refresh) = 0;
+		virtual std::string_view getAudioDeviceName(uint32_t index) const noexcept = 0;
+		virtual bool setTargetAudioDevice(std::string_view const audio_device_name) = 0;
+		virtual std::string_view getCurrentAudioDeviceName() const noexcept = 0;
+
 		virtual void setVolume(float v) = 0;
 		virtual float getVolume() = 0;
 		virtual void setMixChannelVolume(MixChannel ch, float v) = 0;
