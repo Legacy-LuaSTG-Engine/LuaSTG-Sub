@@ -13,5 +13,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         submodules: 'recursive'
+    - name: configure
+      run: ./cmake/configure.ps1
     - name: build
-      run: ./build.bat
+      run: ./cmake/build.ps1
