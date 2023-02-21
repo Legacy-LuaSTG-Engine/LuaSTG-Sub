@@ -302,3 +302,64 @@ namespace Platform
 		return hr;
 	}
 }
+
+#include "Platform/ModuleLoader.hpp"
+
+namespace Platform
+{
+	HRESULT ModuleLoader::Load(std::string_view const name, bool search_only_in_system)
+	{
+		assert(!m_module);
+		if (m_module)
+		{
+			FreeLibrary(m_module);
+			m_module = NULL;
+		}
+		DWORD const flags = search_only_in_system ? LOAD_LIBRARY_SEARCH_SYSTEM32 : 0;
+		m_module = LoadLibraryExW(to_wide(name).c_str(), NULL, flags);
+		if (!m_module)
+		{
+			return HRESULT_FROM_WIN32(GetLastError());
+		}
+		return S_OK;
+	}
+	void* ModuleLoader::GetFunction(std::string_view const name)
+	{
+		assert(m_module);
+		std::array<char, 256> buffer{};
+		std::pmr::monotonic_buffer_resource resource(buffer.data(), buffer.size());
+		std::pmr::string const name_c_str(name, &resource);
+		return static_cast<void*>(GetProcAddress(m_module, name_c_str.c_str()));
+	}
+
+	ModuleLoader::ModuleLoader() = default;
+	ModuleLoader::ModuleLoader(ModuleLoader&& right) noexcept
+		: m_module(std::exchange(right.m_module, m_module))
+	{
+	}
+	ModuleLoader::~ModuleLoader()
+	{
+		if (m_module)
+		{
+			FreeLibrary(m_module);
+			m_module = NULL;
+		}
+	}
+
+	bool ModuleLoader::IsSearchOnlyInSystemSupported()
+	{
+		ModuleLoader kernel32_loader;
+		if (FAILED(kernel32_loader.Load("kernel32.dll", true)))
+		{
+			return false; // 一般到这一步就已经知道支不支持了
+		}
+		auto api_SetDefaultDllDirectories = kernel32_loader.GetFunction<decltype(SetDefaultDllDirectories)>("SetDefaultDllDirectories");
+		auto api_AddDllDirectory = kernel32_loader.GetFunction<decltype(AddDllDirectory)>("AddDllDirectory");
+		auto api_RemoveDllDirectory = kernel32_loader.GetFunction<decltype(RemoveDllDirectory)>("RemoveDllDirectory");
+		if (!api_SetDefaultDllDirectories || !api_AddDllDirectory || !api_RemoveDllDirectory)
+		{
+			return false; // 以防万一，检测这三个函数
+		}
+		return true;
+	}
+}

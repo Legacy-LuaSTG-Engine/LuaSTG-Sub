@@ -13,6 +13,7 @@ set(PLATFORM_SOURCES
     Platform/DesktopWindowManager.hpp
     Platform/Direct3D11.hpp
     Platform/DXGI.hpp
+    Platform/ModuleLoader.hpp
     Platform/All.cpp
 
     Platform/HighDPI.hpp
