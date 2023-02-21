@@ -80,7 +80,7 @@ namespace Microsoft::WRL::Wrappers
 
 // helper
 
-inline std::string to_utf8(std::wstring_view const& src)
+inline std::string to_utf8(std::wstring_view const src)
 {
 	int const size = WideCharToMultiByte(CP_UTF8, 0, src.data(), (int)src.length(), NULL, 0, NULL, NULL);
 	if (size > 0)
@@ -94,7 +94,7 @@ inline std::string to_utf8(std::wstring_view const& src)
 	}
 	return "";
 }
-inline std::wstring to_wide(std::string_view const& src)
+inline std::wstring to_wide(std::string_view const src)
 {
 	int const size = MultiByteToWideChar(CP_UTF8, 0, src.data(), (int)src.length(), NULL, 0);
 	if (size > 0)
