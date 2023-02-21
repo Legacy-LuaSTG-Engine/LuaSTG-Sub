@@ -13,6 +13,7 @@
 #include <vector>
 #include <string>
 #include <string_view>
+#include <memory_resource>
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
