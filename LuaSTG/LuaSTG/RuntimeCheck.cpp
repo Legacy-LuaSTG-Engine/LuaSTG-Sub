@@ -7,29 +7,6 @@
 
 namespace LuaSTG
 {
-	static void OpenWebsiteWindows7EndOfSupport()
-	{
-		ShellExecuteW(NULL, NULL, L"https://www.microsoft.com/en-us/windows/end-of-support", NULL, NULL, SW_SHOWNORMAL);
-	}
-
-	static void OpenWebsiteDownloadWindows7SP1()
-	{
-		ShellExecuteW(NULL, NULL, L"https://www.catalog.update.microsoft.com/Search.aspx?q=KB976932", NULL, NULL, SW_SHOWNORMAL);
-	}
-
-	static void OpenWebsiteDownloadPlatformUpdateForWindows7()
-	{
-		ShellExecuteW(NULL, NULL, L"https://www.catalog.update.microsoft.com/Search.aspx?q=KB2670838", NULL, NULL, SW_SHOWNORMAL);
-		ShellExecuteW(NULL, NULL, L"https://www.catalog.update.microsoft.com/Search.aspx?q=KB2834140", NULL, NULL, SW_SHOWNORMAL);
-	}
-
-	static void OpenWebsiteDownloadSecureLibraryLoadingUpdate(bool zh_cn)
-	{
-		auto link_en_us = L"https://support.microsoft.com/en-us/topic/microsoft-security-advisory-insecure-library-loading-could-allow-remote-code-execution-486ea436-2d47-27e5-6cb9-26ab7230c704";
-		auto link_zh_cn = L"https://support.microsoft.com/zh-cn/topic/microsoft-%E5%AE%89%E5%85%A8%E5%85%AC%E5%91%8A-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%BA%93%E5%8A%A0%E8%BD%BD%E5%8F%AF%E8%83%BD%E5%85%81%E8%AE%B8%E8%BF%9C%E7%A8%8B%E6%89%A7%E8%A1%8C%E4%BB%A3%E7%A0%81-486ea436-2d47-27e5-6cb9-26ab7230c704";
-		ShellExecuteW(NULL, NULL, zh_cn ? link_zh_cn : link_en_us, NULL, NULL, SW_SHOWNORMAL);
-	}
-
 	constexpr std::string_view const indent_string("    ");
 	constexpr std::string_view const windows_7_name("Windows 7");
 	constexpr std::string_view const service_pack_1_name("Windows 7 Service Pack 1 (KB976932)");
@@ -83,6 +60,27 @@ namespace LuaSTG
 				"    3. Please select the corresponding system architecture when downloading, there are 32bit (x86), 64bit (x64), etc."
 				;
 		}
+	}
+
+	inline void open_website_windows_7_end_of_support()
+	{
+		ShellExecuteW(NULL, NULL, L"https://www.microsoft.com/en-us/windows/end-of-support", NULL, NULL, SW_SHOWNORMAL);
+	}
+
+	inline void open_website_download_windows_7_sp1()
+	{
+		ShellExecuteW(NULL, NULL, L"https://www.catalog.update.microsoft.com/Search.aspx?q=KB976932", NULL, NULL, SW_SHOWNORMAL);
+	}
+
+	inline void open_website_download_platform_update_for_windows_7()
+	{
+		ShellExecuteW(NULL, NULL, L"https://www.catalog.update.microsoft.com/Search.aspx?q=KB2670838", NULL, NULL, SW_SHOWNORMAL);
+		ShellExecuteW(NULL, NULL, L"https://www.catalog.update.microsoft.com/Search.aspx?q=KB2834140", NULL, NULL, SW_SHOWNORMAL);
+	}
+
+	inline void open_website_download_secure_library_loading_update()
+	{
+		ShellExecuteW(NULL, NULL, L"https://support.microsoft.com/help/2533623", NULL, NULL, SW_SHOWNORMAL);
 	}
 
 	bool CheckUserRuntime()
@@ -191,7 +189,7 @@ namespace LuaSTG
 			{
 				if (debug_test || !windows_7)
 				{
-					(void)(&OpenWebsiteWindows7EndOfSupport);
+					(void)(&open_website_windows_7_end_of_support);
 				}
 
 				if (debug_test || !service_pack_1)
@@ -213,7 +211,7 @@ namespace LuaSTG
 
 					if (Platform::MessageBox::Warning(title, message.str()))
 					{
-						OpenWebsiteDownloadWindows7SP1();
+						open_website_download_windows_7_sp1();
 					}
 				}
 
@@ -240,7 +238,7 @@ namespace LuaSTG
 
 					if (Platform::MessageBox::Warning(title, message.str()))
 					{
-						OpenWebsiteDownloadPlatformUpdateForWindows7();
+						open_website_download_platform_update_for_windows_7();
 					}
 				}
 
@@ -252,18 +250,18 @@ namespace LuaSTG
 					{
 						message << "下载 " << secure_library_loading_name << " ？\n";
 						message << "将打开以下链接：\n";
-						message << "1、https://support.microsoft.com/zh-cn/topic/microsoft-%E5%AE%89%E5%85%A8%E5%85%AC%E5%91%8A-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E5%BA%93%E5%8A%A0%E8%BD%BD%E5%8F%AF%E8%83%BD%E5%85%81%E8%AE%B8%E8%BF%9C%E7%A8%8B%E6%89%A7%E8%A1%8C%E4%BB%A3%E7%A0%81-486ea436-2d47-27e5-6cb9-26ab7230c704";
+						message << "1、https://support.microsoft.com/help/2533623";
 					}
 					else
 					{
 						message << "Download " << secure_library_loading_name << " ?\n";
 						message << "The following link will open:\n";
-						message << "1. https://support.microsoft.com/en-us/topic/microsoft-security-advisory-insecure-library-loading-could-allow-remote-code-execution-486ea436-2d47-27e5-6cb9-26ab7230c704";
+						message << "1. https://support.microsoft.com/help/2533623";
 					}
 
 					if (Platform::MessageBox::Warning(title, message.str()))
 					{
-						OpenWebsiteDownloadSecureLibraryLoadingUpdate(chinese_simplified);
+						open_website_download_secure_library_loading_update();
 					}
 				}
 			}
