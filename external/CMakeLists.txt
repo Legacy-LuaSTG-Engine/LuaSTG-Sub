@@ -1,41 +1,5 @@
 include(AutoDownload.cmake)
 
-# ==================== spdlog ====================
-
-option(SPDLOG_ENABLE_PCH "Build static or shared library using precompiled header to speed up compilation time" ON)
-option(SPDLOG_BUILD_WARNINGS "Enable compiler warnings" ON)
-option(SPDLOG_SANITIZE_ADDRESS "Enable address sanitizer in tests" ON)
-#option(SPDLOG_WCHAR_SUPPORT "Support wchar api" ON)
-option(SPDLOG_WCHAR_FILENAMES "Support wchar filenames" ON)
-option(SPDLOG_DISABLE_DEFAULT_LOGGER "Disable default logger creation" ON)
-add_subdirectory(spdlog)
-target_compile_options(spdlog PUBLIC
-    "/DSPDLOG_SHORT_LEVEL_NAMES={\"V\",\"D\",\"I\",\"W\",\"E\",\"F\",\"O\"}"
-)
-
-set_target_properties(spdlog PROPERTIES FOLDER external)
-
-# ==================== json ====================
-
-add_subdirectory(json)
-
-# ==================== pugixml ====================
-
-#add_subdirectory(pugixml)
-
-add_library(pugixml-static STATIC)
-add_library(pugixml::pugixml ALIAS pugixml-static)
-target_include_directories(pugixml-static PUBLIC
-    pugixml/src
-)
-target_sources(pugixml-static PRIVATE
-    pugixml/src/pugiconfig.hpp
-    pugixml/src/pugixml.hpp
-    pugixml/src/pugixml.cpp
-)
-
-set_target_properties(pugixml-static PROPERTIES FOLDER external)
-
 # ==================== d3dcompiler ====================#
 
 add_library(D3DCompilerRedist MODULE IMPORTED GLOBAL)
@@ -95,23 +59,6 @@ target_link_libraries(DirectXTexMini PUBLIC
 )
 
 set_target_properties(DirectXTexMini PROPERTIES FOLDER external)
-
-# ==================== dr libs ====================
-
-add_library(dr_libs STATIC)
-luastg_target_common_options(dr_libs)
-target_compile_definitions(dr_libs PUBLIC
-    ____DR_WAV_NO_STDIO
-)
-target_include_directories(dr_libs PUBLIC
-    dr_libs
-)
-target_sources(dr_libs PRIVATE
-    dr_libs/dr_wav.h
-    dr_libs-patch/dr_wav.cpp
-)
-
-set_target_properties(dr_libs PROPERTIES FOLDER external)
 
 # ==================== luajit ====================
 
@@ -293,13 +240,6 @@ option(MZ_FETCH_LIBS "Enables fetching third-party libraries if not found" OFF)
 set(SKIP_INSTALL_ALL ON)
 add_subdirectory(minizip)
 set_target_properties(minizip-ng PROPERTIES FOLDER external)
-
-# ==================== tinygltf ====================
-
-option(TINYGLTF_BUILD_LOADER_EXAMPLE "Build loader_example(load glTF and dump infos)" OFF)
-option(TINYGLTF_INSTALL "Install tinygltf files during install step. Usually set to OFF if you include tinygltf through add_subdirectory()" OFF)
-add_subdirectory(tinygltf)
-set_target_properties(tinygltf PROPERTIES FOLDER external)
 
 # ==================== tracy ====================
 
