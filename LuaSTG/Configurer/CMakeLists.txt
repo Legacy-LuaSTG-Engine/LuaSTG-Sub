@@ -16,7 +16,7 @@ target_sources(Setting PRIVATE
 target_link_libraries(Setting PRIVATE
     d3d11.lib
     dxgi.lib
-    spdlog::spdlog
+    spdlog
     utility
     imgui
     imgui_impl_win32

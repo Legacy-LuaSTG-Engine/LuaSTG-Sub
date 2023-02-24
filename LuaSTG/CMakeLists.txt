@@ -162,7 +162,7 @@ else()
 endif()
 
 target_link_libraries(LuaSTG PRIVATE
-    spdlog::spdlog
+    spdlog
     utility
     PlatformAPI
     DirectXTexMini
@@ -181,7 +181,7 @@ target_link_libraries(LuaSTG PRIVATE
     lua_steam_api
     tracy
     pcgcpp
-    pugixml::pugixml
+    pugixml
 )
 
 set(LUASTG_BUILD_OUTPUT_DIR ${CMAKE_BINARY_DIR}/bin)
