@@ -52,6 +52,7 @@ if(Microsoft.Windows.ImplementationLibrary_ADDED)
     target_sources(${WIL_PACKAGE_NAME} INTERFACE
         ${WIL_PACKAGE_NATVIS}
     )
+    unset(WIL_PACKAGE_NATVIS)
     unset(WIL_PACKAGE_NAME)
     unset(WIL_PACKAGE_PATH)
 endif()
