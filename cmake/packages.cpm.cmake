@@ -54,8 +54,10 @@ if(pugixml_ADDED)
         ${pugixml_SOURCE_DIR}/src/pugixml.hpp
         ${pugixml_SOURCE_DIR}/src/pugixml.cpp
     )
+    set(pugixml_natvis ${pugixml_SOURCE_DIR}/scripts/natvis/pugixml.natvis)
+    source_group(TREE ${pugixml_SOURCE_DIR}/scripts FILES ${pugixml_natvis})
     target_sources(pugixml PUBLIC
-        ${pugixml_SOURCE_DIR}/scripts/natvis/pugixml.natvis
+        ${pugixml_natvis}
     )
     set_target_properties(pugixml PROPERTIES FOLDER external)
 endif()
@@ -159,6 +161,7 @@ if(tinygltf_ADDED)
     # 配置 include 路径，避免使用自带的 json 和 stb 库
     target_include_directories(tinygltf PUBLIC
         ${CMAKE_BINARY_DIR}/tinygltf
+        ${nlohmann_json_SOURCE_DIR}/include/nlohmann # 非常傻逼
     )
     target_sources(tinygltf PRIVATE
         ${CMAKE_BINARY_DIR}/tinygltf/tiny_gltf.h
