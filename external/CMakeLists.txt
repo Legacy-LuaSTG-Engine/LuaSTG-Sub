@@ -1,5 +1,3 @@
-include(AutoDownload.cmake)
-
 # ==================== d3dcompiler ====================#
 
 add_library(D3DCompilerRedist MODULE IMPORTED GLOBAL)

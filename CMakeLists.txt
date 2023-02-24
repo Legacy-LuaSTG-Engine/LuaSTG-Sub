@@ -18,6 +18,7 @@ include(cmake/loader.cpm.cmake)
 CPMInitialize()
 
 include(cmake/packages.cpm.cmake)
+include(cmake/packages.nuget.cmake)
 add_subdirectory(external)
 add_subdirectory(imgui)
 
