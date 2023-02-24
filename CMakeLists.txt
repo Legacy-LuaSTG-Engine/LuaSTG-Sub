@@ -13,6 +13,10 @@ add_compile_definitions(
 )
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Debug>:DLL>")
 
+include(cmake/loader.cpm.cmake)
+
+CPMInitialize()
+
 include(cmake/packages.cpm.cmake)
 add_subdirectory(external)
 add_subdirectory(imgui)
