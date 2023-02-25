@@ -20,6 +20,7 @@ CPMInitialize()
 include(cmake/packages.cpm.cmake)
 include(cmake/packages.nuget.cmake)
 include(cmake/packages.xiph.cmake)
+include(cmake/packages.z.cmake)
 add_subdirectory(external)
 add_subdirectory(imgui)
 
