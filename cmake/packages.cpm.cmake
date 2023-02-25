@@ -236,6 +236,6 @@ CPMAddPackage(
 if(pcg_cpp_ADDED)
     add_library(pcg_cpp INTERFACE)
     target_include_directories(pcg_cpp INTERFACE
-        ${pcg_cpp_SOURCE_DIR}//include
+        ${pcg_cpp_SOURCE_DIR}/include
     )
 endif()
