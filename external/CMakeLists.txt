@@ -175,32 +175,6 @@ target_sources(xmath PRIVATE
 
 set_target_properties(xmath PROPERTIES FOLDER external)
 
-# ==================== zlib-ng ====================
-
-option(ZLIB_ENABLE_TESTS "Build test binaries" OFF)
-option(WITH_AVX2 "Build with AVX2" OFF)
-option(WITH_AVX512 "Build with AVX512" OFF)
-option(WITH_AVX512VNNI "Build with AVX512 VNNI extensions" OFF)
-option(WITH_SSSE3 "Build with SSSE3" OFF)
-option(WITH_SSE41 "Build with SSE41" OFF)
-option(WITH_SSE42 "Build with SSE42" OFF)
-option(WITH_PCLMULQDQ "Build with PCLMULQDQ" OFF)
-option(WITH_VPCLMULQDQ "Build with VPCLMULQDQ" OFF)
-add_subdirectory(zlib)
-if(TARGET zlib-ng)
-    set_target_properties(zlib-ng PROPERTIES FOLDER external)
-else()
-    set_target_properties(zlib PROPERTIES FOLDER external)
-endif()
-
-# ==================== minizip-ng ====================
-
-option(MZ_COMPAT "Enables compatibility layer" OFF)
-option(MZ_FETCH_LIBS "Enables fetching third-party libraries if not found" OFF)
-set(SKIP_INSTALL_ALL ON)
-add_subdirectory(minizip)
-set_target_properties(minizip-ng PROPERTIES FOLDER external)
-
 # ==================== tracy ====================
 
 option(ENABLE_TRACY_CLIENT "" OFF)
