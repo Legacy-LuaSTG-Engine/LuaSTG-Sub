@@ -256,21 +256,6 @@ target_sources(tracy PRIVATE
 
 set_target_properties(tracy PROPERTIES FOLDER external)
 
-# ==================== pcg random ====================
-
-add_library(pcgcpp STATIC)
-target_include_directories(pcgcpp PUBLIC
-    pcg-cpp/include
-)
-target_sources(pcgcpp PRIVATE
-    pcg-cpp/include/pcg_extras.hpp
-    pcg-cpp/include/pcg_random.hpp
-    pcg-cpp/include/pcg_uint128.hpp
-    pcg-cpp-patch/pcg_cpp.cpp
-)
-
-set_target_properties(pcgcpp PROPERTIES FOLDER external)
-
 # ==================== image qoi ====================
 
 add_library(libqoi STATIC)
