@@ -175,36 +175,6 @@ target_sources(xmath PRIVATE
 
 set_target_properties(xmath PROPERTIES FOLDER external)
 
-# ==================== xiph ====================
-
-option(BUILD_TESTING "No Testing!" OFF)
-add_subdirectory(libogg)
-set_target_properties(ogg PROPERTIES FOLDER external)
-add_subdirectory(libvorbis)
-set_target_properties(vorbis PROPERTIES FOLDER external)
-set_target_properties(vorbisfile PROPERTIES FOLDER external)
-set_target_properties(vorbisenc PROPERTIES FOLDER external)
-
-option(BUILD_CXXLIBS "Build libFLAC++" OFF)
-option(BUILD_PROGRAMS "Build and install programs" OFF)
-option(BUILD_EXAMPLES "Build and install examples" OFF)
-option(BUILD_TESTING "Build tests" OFF)
-option(BUILD_DOCS "Build and install doxygen documents" OFF)
-option(INSTALL_MANPAGES "Install MAN pages" OFF)
-option(INSTALL_PKGCONFIG_MODULES "Install PkgConfig modules" OFF)
-option(INSTALL_CMAKE_CONFIG_MODULE "Install CMake package-config module" OFF)
-option(WITH_AVX "Enable AVX, AVX2 optimizations (with runtime detection, resulting binary does not require AVX2)" OFF)
-add_subdirectory(libflac)
-set_target_properties(getopt PROPERTIES FOLDER external/flac)
-set_target_properties(grabbag PROPERTIES FOLDER external/flac)
-set_target_properties(FLAC PROPERTIES FOLDER external/flac)
-set_target_properties(replaygain_analysis PROPERTIES FOLDER external/flac)
-set_target_properties(replaygain_synthesis PROPERTIES FOLDER external/flac)
-set_target_properties(utf8 PROPERTIES FOLDER external/flac)
-if(TARGET FLAC-asm)
-    set_target_properties(FLAC-asm PROPERTIES FOLDER external/flac)
-endif()
-
 # ==================== zlib-ng ====================
 
 option(ZLIB_ENABLE_TESTS "Build test binaries" OFF)
