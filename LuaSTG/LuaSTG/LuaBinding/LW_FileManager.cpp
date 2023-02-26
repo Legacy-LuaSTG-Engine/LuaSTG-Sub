@@ -513,7 +513,7 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 					return false;
 				};
 				bool has_dir = false;
-				if (path.back() != '/' || path.back() != '\\')
+				if (path.back() != '/' && path.back() != '\\')
 				{
 					std::string path_dir(path);
 					path_dir.push_back('/');

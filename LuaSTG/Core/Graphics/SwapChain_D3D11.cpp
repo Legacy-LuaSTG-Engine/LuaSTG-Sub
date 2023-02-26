@@ -307,9 +307,9 @@ namespace Core::Graphics
 
 		auto compareByRefreshRateAndSize = [&](DXGI_MODE_DESC1 const& a, DXGI_MODE_DESC1 const& b) -> bool
 		{
-			double const canvas_sz = (double)(canvas_size.x * canvas_size.y);
-			double const sz_a = canvas_sz / (double)(a.Width * a.Height);
-			double const sz_b = canvas_sz / (double)(b.Width * b.Height);
+			double const canvas_sz = (double)canvas_size.x * (double)canvas_size.y;
+			double const sz_a = canvas_sz / ((double)a.Width * (double)a.Height);
+			double const sz_b = canvas_sz / ((double)b.Width * (double)b.Height);
 			if (sz_a == sz_b)
 			{
 				return compareRefreshRate(a, b);
