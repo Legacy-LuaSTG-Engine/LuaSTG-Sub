@@ -91,8 +91,8 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(PopStyleColor),
     MAKEF(PushStyleVar),
     MAKEF(PopStyleVar),
-    MAKEF(PushAllowKeyboardFocus),
-    MAKEF(PopAllowKeyboardFocus),
+    MAKEF(PushTabStop),
+    MAKEF(PopTabStop),
     MAKEF(PushButtonRepeat),
     MAKEF(PopButtonRepeat),
     
