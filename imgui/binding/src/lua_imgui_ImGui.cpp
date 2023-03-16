@@ -891,16 +891,16 @@ static int lib_PopStyleVar(lua_State* L)
     }
     return 0;
 }
-static int lib_PushAllowKeyboardFocus(lua_State* L)
+static int lib_PushTabStop(lua_State* L)
 {
-    const bool allow_keyboard_focus = lua_toboolean(L, 1);
-    ImGui::PushAllowKeyboardFocus(allow_keyboard_focus);
+    const bool tab_stop = lua_toboolean(L, 1);
+    ImGui::PushTabStop(tab_stop);
     return 0;
 }
-static int lib_PopAllowKeyboardFocus(lua_State* L)
+static int lib_PopTabStop(lua_State* L)
 {
     std::ignore = L;
-    ImGui::PopAllowKeyboardFocus();
+    ImGui::PopTabStop();
     return 0;
 }
 static int lib_PushButtonRepeat(lua_State* L)
@@ -2052,8 +2052,9 @@ static int lib_MenuItem(lua_State* L)
 static int lib_BeginTooltip(lua_State* L)
 {
     std::ignore = L;
-    ImGui::BeginTooltip();
-    return 0;
+    bool const result = ImGui::BeginTooltip();
+    lua_pushboolean(L, result);
+    return 1;
 }
 static int lib_EndTooltip(lua_State* L)
 {
