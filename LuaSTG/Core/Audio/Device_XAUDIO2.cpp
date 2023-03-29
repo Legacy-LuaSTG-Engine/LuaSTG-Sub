@@ -362,7 +362,7 @@ namespace Core::Audio
 
 	Device_XAUDIO2::Device_XAUDIO2()
 	{
-		if (createResources())
+		if (!createResources())
 		{
 			i18n_core_system_call_report_error("Device_XAUDIO2::Device_XAUDIO2 (1)");
 			// 无异常
