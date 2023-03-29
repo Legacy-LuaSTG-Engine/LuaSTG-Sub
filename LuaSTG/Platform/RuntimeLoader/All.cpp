@@ -1,4 +1,5 @@
-#include "Platform/Shared.hpp"
+﻿#include "Platform/Shared.hpp"
+#include "Platform/WindowsVersion.hpp"
 
 #include "Platform/RuntimeLoader/DXGI.hpp"
 
@@ -587,5 +588,125 @@ namespace Platform::RuntimeLoader
 		api_DwmFlush = NULL;
 		api_CreateRectRgn = NULL;
 		api_DeleteObject = NULL;
+	}
+}
+
+#include "Platform/RuntimeLoader/XAudio2.hpp"
+
+namespace Platform::RuntimeLoader
+{
+	HRESULT XAudio2::Create(IXAudio2** ppXAudio2)
+	{
+		// 从 Windows 10 1809 开始出现的魔幻 API
+
+		if (api_XAudio2CreateWithVersionInfo)
+		{
+			// 逻辑核心掩码
+
+			XAUDIO2_PROCESSOR processor = XAUDIO2_DEFAULT_PROCESSOR;
+			if (WindowsVersion::Is10Build18362())
+			{
+				// 从 Windows 10 1903 开始支持
+				processor = XAUDIO2_USE_DEFAULT_PROCESSOR;
+			}
+
+			// Windows NT 版本
+
+			DWORD version = NTDDI_WIN10;
+			// TODO: 等 NI 分支或者之后的分支出来要记得更新一下，也不知道 SB 微软为什么这么设计……
+			if (WindowsVersion::Is11Build22000()) 
+			{
+				// NTDDI_WIN10_MN Windows Server 2022 preview
+				// NTDDI_WIN10_FE Windows Server 2022 (20348/20349)
+				// 所以直接跳到了 Windows 11 21H2
+				version = NTDDI_WIN10_CO;
+			}
+			if (WindowsVersion::Is10Build19041())
+			{
+				// NTDDI_WIN10_VB 难以确定，可能是 Windows 10 1909，也可能 Windows 10 2004/20H1
+				// 考虑到 1903/1909 共用一个内核，2004/20H2/21H1/21H2/22H2 共用一个内核
+				// 为了保险起见，视其为 Windows 10 2004/20H1
+				version = NTDDI_WIN10_VB;
+			}
+			else if (WindowsVersion::Is10Build18362())
+			{
+				// Windows 10 1903/19H1
+				version = NTDDI_WIN10_19H1;
+			}
+			else
+			{
+				// Windows 10 1809
+				version = NTDDI_WIN10_RS5;
+			}
+
+			// 终于开始创建了，好麻烦惹
+
+			HRESULT hr = api_XAudio2CreateWithVersionInfo(ppXAudio2, 0, processor, version);
+			if (SUCCEEDED(hr))
+			{
+				return hr;
+			}
+		}
+
+		// 标准 API
+
+		if (api_XAudio2Create)
+		{
+			// 从 Windows 10 1903/19H1 开始支持
+			// 或者通过 xaudio2_9redist 支持
+			HRESULT hr = api_XAudio2Create(ppXAudio2, 0, XAUDIO2_USE_DEFAULT_PROCESSOR);
+			if (FAILED(hr))
+			{
+				// 回落到老版本的参数
+				hr = api_XAudio2Create(ppXAudio2, 0, XAUDIO2_DEFAULT_PROCESSOR);
+			}
+			assert(SUCCEEDED(hr));
+			return hr;
+		}
+		else
+		{
+			assert(false);
+			return E_NOTIMPL;
+		}
+	}
+
+	XAudio2::XAudio2()
+	{
+		std::array<std::pair<std::wstring_view, bool>, 3> dll_list = {
+			std::make_pair<std::wstring_view, bool>(L"xaudio2_9.dll", true),
+			std::make_pair<std::wstring_view, bool>(L"xaudio2_9redist.dll", false),
+			std::make_pair<std::wstring_view, bool>(L"xaudio2_8.dll", true),
+		};
+		for (auto const& v : dll_list)
+		{
+			DWORD flags = 0;
+			if (v.second)
+			{
+				flags |= LOAD_LIBRARY_SEARCH_SYSTEM32;
+			}
+			if (HMODULE dll = LoadLibraryExW(v.first.data(), NULL, flags))
+			{
+				dll_xaudio2 = dll;
+				break;
+			}
+		}
+		if (dll_xaudio2)
+		{
+			api_XAudio2CreateWithVersionInfo = (decltype(api_XAudio2CreateWithVersionInfo))
+				GetProcAddress(dll_xaudio2, "XAudio2CreateWithVersionInfo");
+			api_XAudio2Create = (decltype(api_XAudio2Create))
+				GetProcAddress(dll_xaudio2, "XAudio2Create");
+			assert(api_XAudio2Create);
+		}
+	}
+	XAudio2::~XAudio2()
+	{
+		if (dll_xaudio2)
+		{
+			FreeLibrary(dll_xaudio2);
+		}
+		dll_xaudio2 = NULL;
+		api_XAudio2CreateWithVersionInfo = NULL;
+		api_XAudio2Create = NULL;
 	}
 }
