@@ -74,6 +74,8 @@ namespace Microsoft::WRL::Wrappers
 #include <dwrite_3.h>
 #include <dwmapi.h>
 
+#include <xaudio2.h>
+
 #undef WIN32_LEAN_AND_MEAN
 #undef NOMINMAX
 #undef NOSERVICE

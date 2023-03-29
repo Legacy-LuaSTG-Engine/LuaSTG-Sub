@@ -8,6 +8,7 @@ set(PLATFORM_SOURCES
     Platform/RuntimeLoader/DirectComposition.hpp
     Platform/RuntimeLoader/DirectWrite.hpp
     Platform/RuntimeLoader/DesktopWindowManager.hpp
+    Platform/RuntimeLoader/XAudio2.hpp
     Platform/RuntimeLoader/All.cpp
     Platform/CommandLineArguments.hpp
     Platform/DesktopWindowManager.hpp

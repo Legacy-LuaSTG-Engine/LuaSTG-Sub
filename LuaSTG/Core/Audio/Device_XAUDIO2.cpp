@@ -169,7 +169,7 @@ namespace Core::Audio
 		{
 			m_shared.attach(new Shared_XAUDIO2);
 
-			winrt::check_hresult(XAudio2Create(m_shared->xaudio2.put()));
+			winrt::check_hresult(m_shared->loader.Create(m_shared->xaudio2.put()));
 
 		#ifndef NDEBUG
 			XAUDIO2_DEBUG_CONFIGURATION xaudio2_debug{};

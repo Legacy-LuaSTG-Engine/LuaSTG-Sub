@@ -1,8 +1,7 @@
 ﻿#pragma once
 #include "Core/Object.hpp"
 #include "Core/Audio/Device.hpp"
-
-#include "xaudio2redist.h"
+#include "Platform/RuntimeLoader/XAudio2.hpp"
 
 namespace Core::Audio
 {
@@ -15,6 +14,7 @@ namespace Core::Audio
 	class Shared_XAUDIO2 : public Object<IObject>
 	{
 	public:
+		Platform::RuntimeLoader::XAudio2 loader;
 		winrt::com_ptr<IXAudio2> xaudio2;
 		winrt::xaudio2_voice_ptr<IXAudio2MasteringVoice> voice_master;
 		winrt::xaudio2_voice_ptr<IXAudio2SubmixVoice> voice_sound_effect;
