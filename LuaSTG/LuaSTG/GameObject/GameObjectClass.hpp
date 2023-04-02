@@ -12,15 +12,27 @@ namespace LuaSTGPlus
 {
 	struct GameObjectClass
 	{
-		uint8_t IsDefaultUpdate = false;
-		uint8_t IsDefaultRender = false;
-		uint8_t IsRenderClass   = false;
-		uint8_t _Padding = 0;
+		union
+		{
+			struct
+			{
+				uint32_t IsDefaultCreate : 1;
+				uint32_t IsDefaultDestroy : 1;
+				uint32_t IsDefaultUpdate : 1;
+				uint32_t IsDefaultRender : 1;
+				uint32_t IsDefaultTrigger : 1;
+				uint32_t IsDefaultLegacyKill : 1;
+				uint32_t IsRenderClass : 1;
+			};
+			uint32_t __Value{};
+		};
 		
-		void Reset();
+		inline void Reset() noexcept { __Value = 0; }
 		bool CheckClassClass(lua_State* L, int index);
 		bool CheckGameObjectClass(lua_State* L, int index);
 		
 		static bool CheckClassValid(lua_State* L, int index);
 	};
+
+	static_assert(sizeof(GameObjectClass) == sizeof(uint32_t));
 };
