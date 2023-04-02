@@ -358,7 +358,8 @@ namespace LuaSTGPlus
 	#ifdef USING_MULTI_GAME_WORLD
 		lua_Integer world = GetWorldFlag();
 	#endif // USING_MULTI_GAME_WORLD
-		for (auto& p : m_RenderList) {
+		for (auto& p : m_RenderList)
+		{
 	#ifdef USING_MULTI_GAME_WORLD
 			if (!p->hide && CheckWorld(p->world, world))  // 只渲染可见对象
 	#else // USING_MULTI_GAME_WORLD
@@ -408,7 +409,14 @@ namespace LuaSTGPlus
 					// 越界设置为 del 状态
 					p->status = GameObjectStatus::Dead;
 					// 调用 del 回调
-					_GameObjectCallback(G_L, ot_idx, p, LGOBJ_CC_DEL);
+				#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+					if (!p->luaclass.IsDefaultDestroy)
+					{
+				#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+						_GameObjectCallback(G_L, ot_idx, p, LGOBJ_CC_DEL);
+				#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+					}
+				#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 				}
 		#ifdef USING_MULTI_GAME_WORLD
 			}
@@ -451,14 +459,22 @@ namespace LuaSTGPlus
 
 						m_LockObjectB = ptrB;
 
-						// 根据id获取对象的lua绑定table、拿到class再拿到collifunc
-						lua_rawgeti(G_L, -1, pA->id + 1);		// ot t(object)
-						lua_rawgeti(G_L, -1, 1);				// ot t(object) t(class)
-						lua_rawgeti(G_L, -1, LGOBJ_CC_COLLI);	// ot t(object) t(class) f(colli)
-						lua_pushvalue(G_L, -3);					// ot t(object) t(class) f(colli) t(object)
-						lua_rawgeti(G_L, -5, pB->id + 1);		// ot t(object) t(class) f(colli) t(object) t(object)
-						lua_call(G_L, 2, 0);					// ot t(object) t(class)
-						lua_pop(G_L, 2);						// ot
+						// TODO: 是否有必要这样？其实相当于关闭了判定吧？
+					#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+						if (!pA->luaclass.IsDefaultTrigger)
+						{
+					#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+							// 根据id获取对象的lua绑定table、拿到class再拿到collifunc
+							lua_rawgeti(G_L, -1, pA->id + 1);		// ot t(object)
+							lua_rawgeti(G_L, -1, 1);				// ot t(object) t(class)
+							lua_rawgeti(G_L, -1, LGOBJ_CC_COLLI);	// ot t(object) t(class) f(colli)
+							lua_pushvalue(G_L, -3);					// ot t(object) t(class) f(colli) t(object)
+							lua_rawgeti(G_L, -5, pB->id + 1);		// ot t(object) t(class) f(colli) t(object) t(object)
+							lua_call(G_L, 2, 0);					// ot t(object) t(class)
+							lua_pop(G_L, 2);						// ot
+					#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+						}
+					#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 
 						m_LockObjectB = nullptr;
 					}
@@ -556,19 +572,27 @@ namespace LuaSTGPlus
 		lua_pushvalue(L, -1);						// class ... ot object object
 		lua_rawseti(L, -3, (int)p->id + 1);			// class ... ot object
 
-		// 调用 init
-		lua_insert(L, 1);							// object class ... ot
-		lua_pop(L, 1);								// object class ...
-		lua_rawgeti(L, 2, LGOBJ_CC_INIT);			// object class ... init
-		lua_insert(L, 3);							// object class init ...
-		lua_pushvalue(L, 1);						// object class init ... object
-		lua_insert(L, 4);							// object class init object ...
-		lua_call(L, lua_gettop(L) - 3, 0);			// object class
-		lua_pop(L, 1);								// object
-	
-		// 更新初始状态
-		p->lastx = p->x;
-		p->lasty = p->y;
+	#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+		if (!p->luaclass.IsDefaultCreate)
+		{
+	#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+			// 调用 init
+			lua_insert(L, 1);							// object class ... ot
+			lua_pop(L, 1);								// object class ...
+			lua_rawgeti(L, 2, LGOBJ_CC_INIT);			// object class ... init
+			lua_insert(L, 3);							// object class init ...
+			lua_pushvalue(L, 1);						// object class init ... object
+			lua_insert(L, 4);							// object class init object ...
+			lua_call(L, lua_gettop(L) - 3, 0);			// object class
+			lua_pop(L, 1);								// object
+
+			// TODO: 潜在的 dx、dy 值问题，可能会导致意外情况
+			// 更新初始状态
+			p->lastx = p->x;
+			p->lasty = p->y;
+	#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+		}
+	#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 
 	#if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
 		static std::string _name("<null>");
@@ -597,11 +621,18 @@ namespace LuaSTGPlus
 			// 标记为即将回收的状态
 			p->status = (!kill_mode) ? GameObjectStatus::Dead : GameObjectStatus::Killed;
 			// 回调
-			lua_rawgeti(L, 1, 1);												// object ... class
-			lua_rawgeti(L, -1, (!kill_mode) ? LGOBJ_CC_DEL : LGOBJ_CC_KILL);	// object ... class callback
-			lua_insert(L, 1);													// callback object ...
-			lua_pop(L, 1);														// callback object ...
-			lua_call(L, lua_gettop(L) - 1, 0);									// 
+		#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+			if (!(!kill_mode && p->luaclass.IsDefaultDestroy) && !(kill_mode && p->luaclass.IsDefaultLegacyKill))
+			{
+		#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+				lua_rawgeti(L, 1, 1);												// object ... class
+				lua_rawgeti(L, -1, (!kill_mode) ? LGOBJ_CC_DEL : LGOBJ_CC_KILL);	// object ... class callback
+				lua_insert(L, 1);													// callback object ...
+				lua_pop(L, 1);														// callback object ...
+				lua_call(L, lua_gettop(L) - 1, 0);									// 
+		#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+			}
+		#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 		}
 		return 0;
 	}
