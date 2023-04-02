@@ -10,6 +10,9 @@
 
 namespace LuaSTGPlus
 {
+#pragma warning(push)
+#pragma warning(disable:4201)
+
 	struct GameObjectClass
 	{
 		union
@@ -33,6 +36,8 @@ namespace LuaSTGPlus
 		
 		static bool CheckClassValid(lua_State* L, int index);
 	};
+
+#pragma warning(pop)
 
 	static_assert(sizeof(GameObjectClass) == sizeof(uint32_t));
 };
