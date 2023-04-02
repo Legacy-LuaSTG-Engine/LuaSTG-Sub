@@ -128,6 +128,7 @@ namespace LuaSTGPlus
 		resolve_move = false;
 		pause = 0;
 		ignore_superpause = false;
+		touch_lastx_lasty = false;
 
 		world = 15;
 
@@ -169,6 +170,7 @@ namespace LuaSTGPlus
 		resolve_move = false;
 		pause = 0;
 		ignore_superpause = false;
+		touch_lastx_lasty = false;
 
 		world = 15;
 
@@ -317,8 +319,16 @@ namespace LuaSTGPlus
 		{
 			if (resolve_move)
 			{
-				vx = x - lastx;
-				vy = y - lasty;
+				if (touch_lastx_lasty)
+				{
+					vx = x - lastx;
+					vy = y - lasty;
+				}
+				else
+				{
+					vx = 0.0;
+					vy = 0.0;
+				}
 			}
 			else
 			{
@@ -374,10 +384,19 @@ namespace LuaSTGPlus
 	}
 	void GameObject::UpdateLast()
 	{
-		dx = x - lastx;
-		dy = y - lasty;
+		if (touch_lastx_lasty)
+		{
+			dx = x - lastx;
+			dy = y - lasty;
+		}
+		else
+		{
+			dx = 0.0;
+			dy = 0.0;
+		}
 		lastx = x;
 		lasty = y;
+		touch_lastx_lasty = true;
 		if (navi && (std::abs(dx) > DBL_MIN || std::abs(dy) > DBL_MIN))
 		{
 			rot = std::atan2(dy, dx);

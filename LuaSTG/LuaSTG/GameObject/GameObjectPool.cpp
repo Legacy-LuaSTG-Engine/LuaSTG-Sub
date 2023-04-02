@@ -588,8 +588,8 @@ namespace LuaSTGPlus
 
 			// TODO: 潜在的 dx、dy 值问题，可能会导致意外情况
 			// 更新初始状态
-			p->lastx = p->x;
-			p->lasty = p->y;
+			//p->lastx = p->x;
+			//p->lasty = p->y;
 	#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 		}
 	#endif // USING_ADVANCE_GAMEOBJECT_CLASS
