@@ -1095,7 +1095,7 @@ namespace Core::Audio
 		stream_buffer[1].info.pAudioData = stream_buffer[1].data;
 		stream_buffer[1].info.pContext = reinterpret_cast<void*>(1);
 
-	#define PLAYER_DECODER_DEBUG
+	//#define PLAYER_DECODER_DEBUG
 
 		double start_time = 0.0; // 用于 on_reset, on_set_time
 
