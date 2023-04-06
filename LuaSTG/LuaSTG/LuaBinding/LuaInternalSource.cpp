@@ -25,8 +25,11 @@ static const std::string _InternalSource_Main = R"(
 
 package.path = ""
 package.path = package.path .. "?.lua;"
+package.path = package.path .. "?/init.lua;"
 package.path = package.path .. "src/?.lua;"
+
 package.path = package.path .. ".\\?.lua;"
+package.path = package.path .. ".\\?\\init.lua;"
 package.path = package.path .. ".\\src\\?.lua;"
 
 function GameInit()
