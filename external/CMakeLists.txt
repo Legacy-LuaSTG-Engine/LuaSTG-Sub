@@ -1,19 +1,3 @@
-# ==================== d3dcompiler ====================#
-
-add_library(D3DCompilerRedist MODULE IMPORTED GLOBAL)
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set_target_properties(D3DCompilerRedist PROPERTIES
-        IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/D3DRedist/amd64/d3dcompiler_47.dll
-    )
-elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
-    set_target_properties(D3DCompilerRedist PROPERTIES
-        IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/D3DRedist/x86/d3dcompiler_47.dll
-    )
-else()
-    message(FATAL_ERROR "unknown platform")
-endif()
-add_library(DirectX::D3DCompilerRedist ALIAS D3DCompilerRedist)
-
 # ==================== DirectXTK ====================#
 
 add_library(DirectXTKMini STATIC)
