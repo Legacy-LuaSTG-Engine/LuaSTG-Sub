@@ -1,4 +1,5 @@
 ﻿#include "Core/Graphics/Model_D3D11.hpp"
+#include "Platform/RuntimeLoader/Direct3DCompiler.hpp"
 
 static std::string_view const built_in_shader(R"(
 // pipeline data flow
@@ -235,6 +236,8 @@ OM_INPUT PS_Main_NoBaseTexture_AlphaMask_VertexColor(PS_S4F_P4F_N4F_C4F_T2F inpu
 
 #define IDX(x) (size_t)static_cast<uint8_t>(x)
 
+static Platform::RuntimeLoader::Direct3DCompiler g_d3dcompiler_loader;
+
 namespace Core::Graphics
 {
     bool ModelSharedComponent_D3D11::createShader()
@@ -256,7 +259,7 @@ namespace Core::Graphics
         #ifdef _DEBUG
             compile_flags |= (D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION);
         #endif
-            hr = gHR = D3DCompile(
+            hr = gHR = g_d3dcompiler_loader.Compile(
                 built_in_shader.data(), built_in_shader.size(), name.data(),
                 macro, NULL, entry.data(), type ? "ps_4_0" : "vs_4_0", compile_flags, 0, blob, &err);
             if (FAILED(hr))

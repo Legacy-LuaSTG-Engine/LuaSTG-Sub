@@ -1,5 +1,6 @@
 ﻿#include "Core/Graphics/Renderer_D3D11.hpp"
 #include "Core/FileManager.hpp"
+#include "Platform/RuntimeLoader/Direct3DCompiler.hpp"
 
 static char const g_VertexShader11[] = R"(
 
@@ -199,6 +200,7 @@ public:
 };
 
 static D3DIncludeImpl g_include_loader;
+static Platform::RuntimeLoader::Direct3DCompiler g_d3dcompiler_loader;
 
 namespace Core::Graphics
 {
@@ -210,7 +212,7 @@ namespace Core::Graphics
 		flag_ |= D3DCOMPILE_SKIP_OPTIMIZATION;
 	#endif
 		Microsoft::WRL::ComPtr<ID3DBlob> errmsg_;
-		HRESULT hr = gHR = D3DCompile(data, size, name, defs, &g_include_loader, "main", target, flag_, 0, ppBlob, &errmsg_);
+		HRESULT hr = gHR = g_d3dcompiler_loader.Compile(data, size, name, defs, &g_include_loader, "main", target, flag_, 0, ppBlob, &errmsg_);
 		if (FAILED(hr))
 		{
 			spdlog::error("[core] D3DCompile 调用失败");
@@ -256,7 +258,7 @@ namespace Core::Graphics
 
 		if (!d3d11_ps_reflect)
 		{
-			hr = gHR = D3DReflect(d3d_ps_blob->GetBufferPointer(), d3d_ps_blob->GetBufferSize(), IID_PPV_ARGS(&d3d11_ps_reflect));
+			hr = gHR = g_d3dcompiler_loader.Reflect(d3d_ps_blob->GetBufferPointer(), d3d_ps_blob->GetBufferSize(), IID_PPV_ARGS(&d3d11_ps_reflect));
 			if (FAILED(hr)) return false;
 
 			// 获得着色器信息
