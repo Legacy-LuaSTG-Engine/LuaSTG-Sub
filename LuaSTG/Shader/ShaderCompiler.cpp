@@ -146,15 +146,15 @@ bool write_blob_to_file(winrt::com_ptr<ID3DBlob> blob, output_config_t& config, 
 	file << "#pragma once\n";
 	file << "namespace " << config.namespace_name << "\n";
 	file << "{\n";
-	file << "    static char const " << config.value_name << "[] = {\n";
-
+	file << "    static unsigned char const " << config.value_name << "[] = {\n";
+	
 	std::span<uint8_t> const bytes(static_cast<uint8_t*>(blob->GetBufferPointer()), blob->GetBufferSize());
 
 	for (size_t index = 0; index < bytes.size(); index += 4)
 	{
 		std::span<uint8_t> const view = bytes.subspan(index, 4);
 		std::format_to(std::back_inserter(file),
-			"        {:#04x}, {:#04x}, {:#04x}, {:#04x}\n",
+			"        {:#04x}, {:#04x}, {:#04x}, {:#04x},\n",
 			view[0], view[1], view[2], view[3]);
 	}
 
