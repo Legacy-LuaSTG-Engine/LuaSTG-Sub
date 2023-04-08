@@ -220,6 +220,80 @@ namespace Platform::RuntimeLoader
 	}
 }
 
+#include "Platform/RuntimeLoader/Direct3DCompiler.hpp"
+
+namespace Platform::RuntimeLoader
+{
+	HRESULT Direct3DCompiler::Compile(LPCVOID pSrcData,
+		SIZE_T SrcDataSize,
+		LPCSTR pSourceName,
+		CONST D3D_SHADER_MACRO* pDefines,
+		ID3DInclude* pInclude,
+		LPCSTR pEntrypoint,
+		LPCSTR pTarget,
+		UINT Flags1,
+		UINT Flags2,
+		ID3DBlob** ppCode,
+		ID3DBlob** ppErrorMsgs)
+	{
+		if (api_D3DCompile)
+		{
+			return api_D3DCompile(
+				pSrcData,
+				SrcDataSize,
+				pSourceName,
+				pDefines,
+				pInclude,
+				pEntrypoint,
+				pTarget,
+				Flags1,
+				Flags2,
+				ppCode,
+				ppErrorMsgs);
+		}
+		return E_NOTIMPL;
+	}
+	HRESULT Direct3DCompiler::Reflect(LPCVOID pSrcData,
+		SIZE_T SrcDataSize,
+		REFIID pInterface,
+		void** ppReflector)
+	{
+		if (api_D3DReflect)
+		{
+			return api_D3DReflect(pSrcData,
+				SrcDataSize,
+				pInterface,
+				ppReflector);
+		}
+		return E_NOTIMPL;
+	}
+
+	Direct3DCompiler::Direct3DCompiler()
+	{
+		dll_d3dcompiler = LoadLibraryW(L"d3dcompiler_47.dll");
+		assert(dll_d3dcompiler);
+		if (dll_d3dcompiler)
+		{
+			api_D3DCompile = (decltype(api_D3DCompile))
+				GetProcAddress(dll_d3dcompiler, "D3DCompile");
+			api_D3DReflect = (decltype(api_D3DReflect))
+				GetProcAddress(dll_d3dcompiler, "D3DReflect");
+			assert(api_D3DCompile);
+			assert(api_D3DReflect);
+		}
+	}
+	Direct3DCompiler::~Direct3DCompiler()
+	{
+		if (dll_d3dcompiler)
+		{
+			FreeLibrary(dll_d3dcompiler);
+		}
+		dll_d3dcompiler = NULL;
+		api_D3DCompile = NULL;
+		api_D3DReflect = NULL;
+	}
+}
+
 #include "Platform/RuntimeLoader/DirectComposition.hpp"
 
 namespace Platform::RuntimeLoader

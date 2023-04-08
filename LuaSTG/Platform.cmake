@@ -5,6 +5,7 @@ set(PLATFORM_SOURCES
     Platform/RuntimeLoader/DXGI.hpp
     Platform/RuntimeLoader/Direct3D11.hpp
     Platform/RuntimeLoader/Direct2D1.hpp
+    Platform/RuntimeLoader/Direct3DCompiler.hpp
     Platform/RuntimeLoader/DirectComposition.hpp
     Platform/RuntimeLoader/DirectWrite.hpp
     Platform/RuntimeLoader/DesktopWindowManager.hpp
