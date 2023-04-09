@@ -86,7 +86,7 @@ struct output_config_t
 	std::string file_path;
 };
 
-bool write_blob_to_file(winrt::com_ptr<ID3DBlob> blob, output_config_t& config, std::ofstream& file)
+bool write_blob_to_file(winrt::com_ptr<ID3DBlob> blob, output_config_t const& config, std::ofstream& file)
 {
 	assert(blob);
 	assert(blob->GetBufferSize() % 4 == 0);
@@ -113,7 +113,7 @@ bool write_blob_to_file(winrt::com_ptr<ID3DBlob> blob, output_config_t& config, 
 	return true;
 }
 
-bool write_blob_to_file(winrt::com_ptr<ID3DBlob> blob, output_config_t& config)
+bool write_blob_to_file(winrt::com_ptr<ID3DBlob> blob, output_config_t const& config)
 {
 	std::filesystem::path path(std::to_wstring(std::string(generated_root) + "/" + config.file_path));
 	std::filesystem::create_directories(path.parent_path());
@@ -177,7 +177,7 @@ struct compile_profile_t
 	// Directs the compiler to use different optimization level.
 	optimization_level optimization_level;
 
-	inline uint32_t to_flags()
+	inline uint32_t to_flags() const
 	{
 		uint32_t flags = 0;
 		if (debug) flags |= D3DCOMPILE_DEBUG;
@@ -240,10 +240,11 @@ struct compile_config_t
 {
 	compile_profile_t compile_profile;
 	shader_type shader_type;
+	std::vector<std::string> definitions;
 	std::string file_path;
 };
 
-bool compile_shader(compile_config_t& config, winrt::com_ptr<ID3DBlob>& blob)
+bool compile_shader(compile_config_t const& config, winrt::com_ptr<ID3DBlob>& blob)
 {
 	std::vector<char> source;
 	if (!std::files::read_file(std::string(source_root) + "/" + config.file_path, source))
@@ -258,11 +259,21 @@ bool compile_shader(compile_config_t& config, winrt::com_ptr<ID3DBlob>& blob)
 	case shader_type::pixel_shader: target_type = "ps_4_0"; break;
 	default: assert(false); return false;
 	}
+	std::vector<D3D_SHADER_MACRO> definitions;
+	for (auto const& v : config.definitions)
+	{
+		D3D_SHADER_MACRO e = {
+			.Name = v.c_str(),
+			.Definition = "1",
+		};
+		definitions.push_back(e);
+	}
+	definitions.push_back({}); // { NULL, NULL }
 	winrt::hresult hr = D3DCompile(
 		source.data(),
 		source.size(),
 		config.file_path.data(),
-		nullptr,
+		definitions.data(),
 		D3D_COMPILE_STANDARD_FILE_INCLUDE,
 		"main",
 		target_type.data(),
@@ -281,7 +292,7 @@ bool compile_shader(compile_config_t& config, winrt::com_ptr<ID3DBlob>& blob)
 	return true;
 }
 
-bool process_shader(compile_config_t& compile_config, output_config_t& output_config)
+bool process_shader(compile_config_t const& compile_config, output_config_t const& output_config)
 {
 	winrt::com_ptr<ID3DBlob> blob;
 	if (!compile_shader(compile_config, blob))
@@ -291,7 +302,7 @@ bool process_shader(compile_config_t& compile_config, output_config_t& output_co
 	return write_blob_to_file(blob, output_config);
 }
 
-int main(int, char**)
+void process_imgui_shader()
 {
 	// imgui::backend::d3d11
 
@@ -308,9 +319,10 @@ int main(int, char**)
 		};
 		if (!process_shader(iconfig, oconfig))
 		{
-			return 1;
+			std::exit(1);
 		}
 	}
+
 	/* pixel shader */ {
 		compile_config_t iconfig = {
 			.compile_profile = compile_profile_t::standard_release(),
@@ -324,9 +336,291 @@ int main(int, char**)
 		};
 		if (!process_shader(iconfig, oconfig))
 		{
-			return 1;
+			std::exit(1);
 		}
 	}
+}
 
+void process_luastg_shader()
+{
+	auto process_vertex_shader_ = [](std::vector<std::string> const& defs, std::string_view name)
+	{
+		compile_config_t iconfig = {
+			.compile_profile = compile_profile_t::standard_release(),
+			.shader_type = shader_type::vertex_shader,
+			.file_path = "luastg/sub/renderer/vertex_shader.hlsl",
+		};
+		iconfig.definitions = defs;
+		std::string value_name = "vertex_shader_" + std::string(name);
+		output_config_t oconfig = {
+			.namespace_name = "luastg::sub::renderer",
+			.value_name = value_name,
+			.file_path = "luastg/sub/renderer/" + value_name + ".hpp",
+		};
+		if (!process_shader(iconfig, oconfig))
+		{
+			std::exit(1);
+		}
+	};
+
+#define process_vertex_shader(X) process_vertex_shader_(X, #X)
+
+	std::vector<std::string> def_none = {
+	};
+	std::vector<std::string> def_fog = {
+		"FOG_ENABLE",
+	};
+
+	process_vertex_shader(def_none);
+	process_vertex_shader(def_fog);
+
+#undef process_vertex_shader
+
+	auto process_pixel_shader_ = [](std::vector<std::string> const& defs, std::string_view name)
+	{
+		compile_config_t iconfig = {
+			.compile_profile = compile_profile_t::standard_release(),
+			.shader_type = shader_type::pixel_shader,
+			.file_path = "luastg/sub/renderer/pixel_shader.hlsl",
+		};
+		iconfig.definitions = defs;
+		std::string value_name = "pixel_shader_" + std::string(name);
+		output_config_t oconfig = {
+			.namespace_name = "luastg::sub::renderer",
+			.value_name = value_name,
+			.file_path = "luastg/sub/renderer/" + value_name + ".hpp",
+		};
+		if (!process_shader(iconfig, oconfig))
+		{
+			std::exit(1);
+		}
+	};
+
+#define process_pixel_shader(X) process_pixel_shader_(X, #X)
+
+	auto pass1 = [&]()
+	{
+		std::vector<std::string> def_zero_none_normal = {
+			"VERTEX_COLOR_BLEND_ZERO",
+		};
+		std::vector<std::string> def_one_none_normal = {
+			"VERTEX_COLOR_BLEND_ONE",
+		};
+		std::vector<std::string> def_add_none_normal = {
+			"VERTEX_COLOR_BLEND_ADD",
+		};
+		std::vector<std::string> def_mul_none_normal = {
+			"VERTEX_COLOR_BLEND_MUL",
+		};
+
+		process_pixel_shader(def_zero_none_normal);
+		process_pixel_shader(def_one_none_normal);
+		process_pixel_shader(def_add_none_normal);
+		process_pixel_shader(def_mul_none_normal);
+
+		std::vector<std::string> def_zero_linear_normal = {
+			"VERTEX_COLOR_BLEND_ZERO",
+			"FOG_ENABLE",
+			"FOG_LINEAR",
+		};
+		std::vector<std::string> def_one_linear_normal = {
+			"VERTEX_COLOR_BLEND_ONE",
+			"FOG_ENABLE",
+			"FOG_LINEAR",
+		};
+		std::vector<std::string> def_add_linear_normal = {
+			"VERTEX_COLOR_BLEND_ADD",
+			"FOG_ENABLE",
+			"FOG_LINEAR",
+		};
+		std::vector<std::string> def_mul_linear_normal = {
+			"VERTEX_COLOR_BLEND_MUL",
+			"FOG_ENABLE",
+			"FOG_LINEAR",
+		};
+
+		process_pixel_shader(def_zero_linear_normal);
+		process_pixel_shader(def_one_linear_normal);
+		process_pixel_shader(def_add_linear_normal);
+		process_pixel_shader(def_mul_linear_normal);
+
+		std::vector<std::string> def_zero_exp_normal = {
+			"VERTEX_COLOR_BLEND_ZERO",
+			"FOG_ENABLE",
+			"FOG_EXP",
+		};
+		std::vector<std::string> def_one_exp_normal = {
+			"VERTEX_COLOR_BLEND_ONE",
+			"FOG_ENABLE",
+			"FOG_EXP",
+		};
+		std::vector<std::string> def_add_exp_normal = {
+			"VERTEX_COLOR_BLEND_ADD",
+			"FOG_ENABLE",
+			"FOG_EXP",
+		};
+		std::vector<std::string> def_mul_exp_normal = {
+			"VERTEX_COLOR_BLEND_MUL",
+			"FOG_ENABLE",
+			"FOG_EXP",
+		};
+
+		process_pixel_shader(def_zero_exp_normal);
+		process_pixel_shader(def_one_exp_normal);
+		process_pixel_shader(def_add_exp_normal);
+		process_pixel_shader(def_mul_exp_normal);
+
+		std::vector<std::string> def_zero_exp2_normal = {
+			"VERTEX_COLOR_BLEND_ZERO",
+			"FOG_ENABLE",
+			"FOG_EXP2",
+		};
+		std::vector<std::string> def_one_exp2_normal = {
+			"VERTEX_COLOR_BLEND_ONE",
+			"FOG_ENABLE",
+			"FOG_EXP2",
+		};
+		std::vector<std::string> def_add_exp2_normal = {
+			"VERTEX_COLOR_BLEND_ADD",
+			"FOG_ENABLE",
+			"FOG_EXP2",
+		};
+		std::vector<std::string> def_mul_exp2_normal = {
+			"VERTEX_COLOR_BLEND_MUL",
+			"FOG_ENABLE",
+			"FOG_EXP2",
+		};
+
+		process_pixel_shader(def_zero_exp2_normal);
+		process_pixel_shader(def_one_exp2_normal);
+		process_pixel_shader(def_add_exp2_normal);
+		process_pixel_shader(def_mul_exp2_normal);
+	};
+
+	auto pass2 = [&]()
+	{
+		std::vector<std::string> def_zero_none_premul = {
+			"VERTEX_COLOR_BLEND_ZERO",
+			"PREMUL_ALPHA",
+		};
+		std::vector<std::string> def_one_none_premul = {
+			"VERTEX_COLOR_BLEND_ONE",
+			"PREMUL_ALPHA",
+		};
+		std::vector<std::string> def_add_none_premul = {
+			"VERTEX_COLOR_BLEND_ADD",
+			"PREMUL_ALPHA",
+		};
+		std::vector<std::string> def_mul_none_premul = {
+			"VERTEX_COLOR_BLEND_MUL",
+			"PREMUL_ALPHA",
+		};
+
+		process_pixel_shader(def_zero_none_premul);
+		process_pixel_shader(def_one_none_premul);
+		process_pixel_shader(def_add_none_premul);
+		process_pixel_shader(def_mul_none_premul);
+
+		std::vector<std::string> def_zero_linear_premul = {
+			"VERTEX_COLOR_BLEND_ZERO",
+			"FOG_ENABLE",
+			"FOG_LINEAR",
+			"PREMUL_ALPHA",
+		};
+		std::vector<std::string> def_one_linear_premul = {
+			"VERTEX_COLOR_BLEND_ONE",
+			"FOG_ENABLE",
+			"FOG_LINEAR",
+			"PREMUL_ALPHA",
+		};
+		std::vector<std::string> def_add_linear_premul = {
+			"VERTEX_COLOR_BLEND_ADD",
+			"FOG_ENABLE",
+			"FOG_LINEAR",
+			"PREMUL_ALPHA",
+		};
+		std::vector<std::string> def_mul_linear_premul = {
+			"VERTEX_COLOR_BLEND_MUL",
+			"FOG_ENABLE",
+			"FOG_LINEAR",
+			"PREMUL_ALPHA",
+		};
+
+		process_pixel_shader(def_zero_linear_premul);
+		process_pixel_shader(def_one_linear_premul);
+		process_pixel_shader(def_add_linear_premul);
+		process_pixel_shader(def_mul_linear_premul);
+
+		std::vector<std::string> def_zero_exp_premul = {
+			"VERTEX_COLOR_BLEND_ZERO",
+			"FOG_ENABLE",
+			"FOG_EXP",
+			"PREMUL_ALPHA",
+		};
+		std::vector<std::string> def_one_exp_premul = {
+			"VERTEX_COLOR_BLEND_ONE",
+			"FOG_ENABLE",
+			"FOG_EXP",
+			"PREMUL_ALPHA",
+		};
+		std::vector<std::string> def_add_exp_premul = {
+			"VERTEX_COLOR_BLEND_ADD",
+			"FOG_ENABLE",
+			"FOG_EXP",
+			"PREMUL_ALPHA",
+		};
+		std::vector<std::string> def_mul_exp_premul = {
+			"VERTEX_COLOR_BLEND_MUL",
+			"FOG_ENABLE",
+			"FOG_EXP",
+			"PREMUL_ALPHA",
+		};
+
+		process_pixel_shader(def_zero_exp_premul);
+		process_pixel_shader(def_one_exp_premul);
+		process_pixel_shader(def_add_exp_premul);
+		process_pixel_shader(def_mul_exp_premul);
+
+		std::vector<std::string> def_zero_exp2_premul = {
+			"VERTEX_COLOR_BLEND_ZERO",
+			"FOG_ENABLE",
+			"FOG_EXP2",
+			"PREMUL_ALPHA",
+		};
+		std::vector<std::string> def_one_exp2_premul = {
+			"VERTEX_COLOR_BLEND_ONE",
+			"FOG_ENABLE",
+			"FOG_EXP2",
+			"PREMUL_ALPHA",
+		};
+		std::vector<std::string> def_add_exp2_premul = {
+			"VERTEX_COLOR_BLEND_ADD",
+			"FOG_ENABLE",
+			"FOG_EXP2",
+			"PREMUL_ALPHA",
+		};
+		std::vector<std::string> def_mul_exp2_premul = {
+			"VERTEX_COLOR_BLEND_MUL",
+			"FOG_ENABLE",
+			"FOG_EXP2",
+			"PREMUL_ALPHA",
+		};
+
+		process_pixel_shader(def_zero_exp2_premul);
+		process_pixel_shader(def_one_exp2_premul);
+		process_pixel_shader(def_add_exp2_premul);
+		process_pixel_shader(def_mul_exp2_premul);
+	};
+
+#undef process_pixel_shader
+
+	pass1();
+	pass2();
+}
+
+int main(int, char**)
+{
+	process_imgui_shader();
+	process_luastg_shader();
 	return 0;
 }
