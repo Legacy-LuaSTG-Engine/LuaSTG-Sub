@@ -88,6 +88,7 @@ target_link_libraries(Core PUBLIC
     # util
     utility
     PlatformAPI
+    GeneratedShaderHeaders
     # win32
     winmm.lib
     imm32.lib
