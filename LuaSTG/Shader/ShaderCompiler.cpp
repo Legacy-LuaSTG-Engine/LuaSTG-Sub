@@ -79,57 +79,6 @@ namespace std
 	}
 }
 
-namespace std
-{
-	template<typename OutputStream>
-		requires derived_from<OutputStream, basic_ostream<char, char_traits<char>>>
-	class basic_ostream_back_insert_iterator
-	{
-	public:
-		using iterator_category = output_iterator_tag;
-		using value_type = void;
-		using pointer = void;
-		using reference = void;
-
-		using container_type = OutputStream;
-		using difference_type = ptrdiff_t;
-
-		constexpr explicit basic_ostream_back_insert_iterator(OutputStream& output_stream) noexcept
-			: container(addressof(output_stream)) {}
-
-		constexpr basic_ostream_back_insert_iterator& operator=(char value)
-		{
-			container->put(value);
-			return *this;
-		}
-
-		[[nodiscard]] constexpr basic_ostream_back_insert_iterator& operator*() noexcept
-		{
-			return *this;
-		}
-
-		constexpr basic_ostream_back_insert_iterator& operator++() noexcept
-		{
-			return *this;
-		}
-
-		constexpr basic_ostream_back_insert_iterator operator++(int) noexcept
-		{
-			return *this;
-		}
-
-	protected:
-		OutputStream* container;
-	};
-
-	template<typename OutputStream>
-		requires derived_from<OutputStream, basic_ostream<char, char_traits<char>>>
-	[[nodiscard]] constexpr basic_ostream_back_insert_iterator<OutputStream> back_inserter(OutputStream& output_stream) noexcept
-	{
-		return basic_ostream_back_insert_iterator<OutputStream>(output_stream);
-	}
-}
-
 struct output_config_t
 {
 	std::string_view namespace_name;
@@ -153,7 +102,7 @@ bool write_blob_to_file(winrt::com_ptr<ID3DBlob> blob, output_config_t& config, 
 	for (size_t index = 0; index < bytes.size(); index += 4)
 	{
 		std::span<uint8_t> const view = bytes.subspan(index, 4);
-		std::format_to(std::back_inserter(file),
+		std::format_to(std::ostreambuf_iterator<char>(file),
 			"        {:#04x}, {:#04x}, {:#04x}, {:#04x},\n",
 			view[0], view[1], view[2], view[3]);
 	}
