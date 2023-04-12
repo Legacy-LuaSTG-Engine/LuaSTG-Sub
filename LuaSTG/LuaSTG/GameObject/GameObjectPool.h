@@ -78,15 +78,11 @@ namespace LuaSTGPlus
 		GameObject* _ReleaseObject(GameObject* object);
 		
 		// 检查指定对象的坐标是否在场景边界内
-		inline bool _ObjectBoundCheck(GameObject* object) {
+		inline bool _ObjectBoundCheck(GameObject* object) const noexcept
+		{
 			if (!object->bound)
 				return true;
-			if (object->x < m_BoundLeft ||
-				object->x > m_BoundRight ||
-				object->y < m_BoundBottom ||
-				object->y > m_BoundTop)
-				return false;
-			return true;
+			return object->IsInRect(m_BoundLeft, m_BoundRight, m_BoundBottom, m_BoundTop);
 		}
 		
 		// 释放一个对象，完全释放，返回下一个可用的对象（可能为nullptr）
