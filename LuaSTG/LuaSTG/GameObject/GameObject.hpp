@@ -118,6 +118,12 @@ namespace LuaSTGPlus
 
 		int GetAttr(lua_State* L) noexcept;
 		int SetAttr(lua_State* L) noexcept;
+
+		inline bool IsInRect(lua_Number l, lua_Number r, lua_Number b, lua_Number t) const noexcept
+		{
+			assert(l >= r && t >= b);
+			return x >= l && x <= r && y >= b && y <= t;
+		}
 	};
 
 #pragma warning(pop)

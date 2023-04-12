@@ -910,18 +910,11 @@ namespace LuaSTGPlus
 	int GameObjectPool::api_BoxCheck(lua_State* L) noexcept
 	{
 		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
-		if (lua_gettop(L) >= 4)
-		{
-			lua_Number const left = luaL_checknumber(L, 2);
-			lua_Number const right = luaL_checknumber(L, 3);
-			lua_Number const bottom = luaL_checknumber(L, 4);
-			lua_Number const top = luaL_checknumber(L, 5);
-			lua_pushboolean(L, (p->x > left) && (p->x < right) && (p->y > bottom) && (p->y < top));
-		}
-		else
-		{
-			lua_pushboolean(L, g_GameObjectPool->_ObjectBoundCheck(p));
-		}
+		lua_Number const left = luaL_checknumber(L, 2);
+		lua_Number const right = luaL_checknumber(L, 3);
+		lua_Number const bottom = luaL_checknumber(L, 4);
+		lua_Number const top = luaL_checknumber(L, 5);
+		lua_pushboolean(L, p->IsInRect(left, right, bottom, top));
 		return 1;
 	}
 	int GameObjectPool::api_ColliCheck(lua_State* L) noexcept
