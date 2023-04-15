@@ -5,6 +5,7 @@
 #include "Platform/WindowsVersion.hpp"
 #include "Platform/AdapterPolicy.hpp"
 #include "Platform/CommandLineArguments.hpp"
+#include "Platform/Direct3D11.hpp"
 
 #include "WICTextureLoader11.h"
 #include "DDSTextureLoader11.h"
@@ -245,10 +246,6 @@ namespace Core::Graphics
 	{
 		HRESULT hr = S_OK;
 
-		// 公共参数
-
-		bool allow_soft_adapter = Platform::CommandLineArguments::Get().IsOptionExist("--allow-soft-adapter");
-
 		// 枚举所有图形设备
 
 		i18n_log_info("[core].Device_D3D11.enum_all_adapters");
@@ -269,7 +266,7 @@ namespace Core::Graphics
 			// 检查此设备是否支持 Direct3D 11 并获取特性级别
 			bool supported_d3d11 = false;
 			D3D_FEATURE_LEVEL level_info = D3D_FEATURE_LEVEL_10_0;
-			hr = gHR = d3d11_loader.CreateDevice(
+			hr = gHR = d3d11_loader.CreateDeviceFromAdapter(
 				dxgi_adapter_temp.Get(),
 				D3D11_CREATE_DEVICE_BGRA_SUPPORT,
 				D3D_FEATURE_LEVEL_10_0,
@@ -303,7 +300,7 @@ namespace Core::Graphics
 					, desc_.Revision
 					, static_cast<DWORD>(desc_.AdapterLuid.HighPart), desc_.AdapterLuid.LowPart
 				);
-				if (!allow_soft_adapter && soft_dev_type)
+				if (soft_dev_type)
 				{
 					supported_d3d11 = false; // 排除软件或远程设备
 				}
@@ -498,7 +495,7 @@ namespace Core::Graphics
 			i18n_core_system_call_report_error("IDXGIFactory1::QueryInterface -> IDXGIFactory7");
 			// 不是严重错误
 		}
-
+		
 		if (Platform::WindowsVersion::Is8())
 		{
 			dxgi_support_flip_model = TRUE;
@@ -543,36 +540,47 @@ namespace Core::Graphics
 
 		// 获取适配器
 
-		if (!selectAdapter()) return false;
+		bool allow_soft_adapter = Platform::CommandLineArguments::Get().IsOptionExist("--allow-soft-adapter");
+
+		if (!selectAdapter())
+		{
+			if (!allow_soft_adapter)
+			{
+				return false;
+			}
+		}
 
 		// 检查适配器支持
 
-		Microsoft::WRL::ComPtr<IDXGIAdapter2> dxgi_adapter2;
-		hr = gHR = dxgi_adapter.As(&dxgi_adapter2);
-		if (FAILED(hr))
+		if (dxgi_adapter)
 		{
-			i18n_core_system_call_report_error("IDXGIAdapter1::QueryInterface -> IDXGIAdapter2");
-			// 不是严重错误
+			Microsoft::WRL::ComPtr<IDXGIAdapter2> dxgi_adapter2;
+			hr = gHR = dxgi_adapter.As(&dxgi_adapter2);
+			if (FAILED(hr))
+			{
+				i18n_core_system_call_report_error("IDXGIAdapter1::QueryInterface -> IDXGIAdapter2");
+				// 不是严重错误
+			}
+
+			Microsoft::WRL::ComPtr<IDXGIAdapter3> dxgi_adapter3;
+			hr = gHR = dxgi_adapter.As(&dxgi_adapter3);
+			if (FAILED(hr))
+			{
+				i18n_core_system_call_report_error("IDXGIAdapter1::QueryInterface -> IDXGIAdapter3");
+				// 不是严重错误
+			}
+
+			Microsoft::WRL::ComPtr<IDXGIAdapter2> dxgi_adapter4;
+			hr = gHR = dxgi_adapter.As(&dxgi_adapter4);
+			if (FAILED(hr))
+			{
+				i18n_core_system_call_report_error("IDXGIAdapter1::QueryInterface -> IDXGIAdapter4");
+				// 不是严重错误
+			}
+
+			i18n_log_info("[core].Device_D3D11.created_basic_DXGI_components");
 		}
-
-		Microsoft::WRL::ComPtr<IDXGIAdapter3> dxgi_adapter3;
-		hr = gHR = dxgi_adapter.As(&dxgi_adapter3);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDXGIAdapter1::QueryInterface -> IDXGIAdapter3");
-			// 不是严重错误
-		}
-
-		Microsoft::WRL::ComPtr<IDXGIAdapter2> dxgi_adapter4;
-		hr = gHR = dxgi_adapter.As(&dxgi_adapter4);
-		if (FAILED(hr))
-		{
-			i18n_core_system_call_report_error("IDXGIAdapter1::QueryInterface -> IDXGIAdapter4");
-			// 不是严重错误
-		}
-
-		i18n_log_info("[core].Device_D3D11.created_basic_DXGI_components");
-
+		
 		return true;
 	}
 	void Device_D3D11::destroyDXGI()
@@ -597,13 +605,43 @@ namespace Core::Graphics
 
 		i18n_log_info("[core].Device_D3D11.start_creating_basic_D3D11_components");
 
-		hr = gHR = d3d11_loader.CreateDevice(
-			dxgi_adapter.Get(),
-			D3D11_CREATE_DEVICE_BGRA_SUPPORT,
-			D3D_FEATURE_LEVEL_10_0,
-			&d3d11_device,
-			&d3d_feature_level,
-			&d3d11_devctx);
+		bool allow_soft_adapter = Platform::CommandLineArguments::Get().IsOptionExist("--allow-soft-adapter");
+		if (dxgi_adapter)
+		{
+			hr = gHR = d3d11_loader.CreateDeviceFromAdapter(
+				dxgi_adapter.Get(),
+				D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+				D3D_FEATURE_LEVEL_10_0,
+				&d3d11_device,
+				&d3d_feature_level,
+				&d3d11_devctx);
+		}
+		else if (allow_soft_adapter)
+		{
+			D3D_DRIVER_TYPE d3d_driver_type = D3D_DRIVER_TYPE_UNKNOWN;
+			hr = gHR = d3d11_loader.CreateDeviceFromSoftAdapter(
+				D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+				D3D_FEATURE_LEVEL_10_0,
+				&d3d11_device,
+				&d3d_feature_level,
+				&d3d11_devctx,
+				&d3d_driver_type);
+			if (SUCCEEDED(hr))
+			{
+				switch (d3d_driver_type)
+				{
+				case D3D_DRIVER_TYPE_REFERENCE:
+					spdlog::info("[core] 设备类型：参考光栅化设备");
+					break;
+				case D3D_DRIVER_TYPE_SOFTWARE:
+					spdlog::info("[core] 设备类型：软件光栅化设备");
+					break;
+				case D3D_DRIVER_TYPE_WARP:
+					spdlog::info("[core] 设备类型：Windows 高级光栅化平台（WARP）");
+					break;
+				}
+			}
+		}
 		if (!d3d11_device)
 		{
 			i18n_core_system_call_report_error("D3D11CreateDevice");
@@ -611,7 +649,16 @@ namespace Core::Graphics
 		}
 		M_D3D_SET_DEBUG_NAME(d3d11_device.Get(), "Device_D3D11::d3d11_device");
 		M_D3D_SET_DEBUG_NAME(d3d11_devctx.Get(), "Device_D3D11::d3d11_devctx");
-
+		if (!dxgi_adapter)
+		{
+			hr = gHR = Platform::Direct3D11::GetDeviceAdater(d3d11_device.Get(), &dxgi_adapter);
+			if (FAILED(hr))
+			{
+				i18n_core_system_call_report_error("Platform::Direct3D11::GetDeviceAdater");
+				return false;
+			}
+		}
+		
 		// 特性检查
 
 		hr = gHR = d3d11_device.As(&d3d11_device1);
