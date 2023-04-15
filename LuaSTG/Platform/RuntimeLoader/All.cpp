@@ -60,7 +60,6 @@ namespace Platform::RuntimeLoader
 namespace Platform::RuntimeLoader
 {
 	HRESULT Direct3D11::CreateDevice(
-		D3D_DRIVER_TYPE DriverType,
 		UINT Flags,
 		D3D_FEATURE_LEVEL TargetFeatureLevel,
 		ID3D11Device** ppDevice,
@@ -91,7 +90,7 @@ namespace Platform::RuntimeLoader
 			{
 				hr = api_D3D11CreateDevice(
 					NULL,
-					DriverType,
+					D3D_DRIVER_TYPE_HARDWARE,
 					NULL,
 					Flags,
 					d3d_feature_level_list + offset,
@@ -106,7 +105,7 @@ namespace Platform::RuntimeLoader
 					{
 						return api_D3D11CreateDevice(
 							NULL,
-							DriverType,
+							D3D_DRIVER_TYPE_HARDWARE,
 							NULL,
 							Flags,
 							d3d_feature_level_list + offset,
@@ -129,7 +128,7 @@ namespace Platform::RuntimeLoader
 			return E_NOTIMPL;
 		}
 	}
-	HRESULT Direct3D11::CreateDevice(
+	HRESULT Direct3D11::CreateDeviceFromAdapter(
 		IDXGIAdapter* pAdapter,
 		UINT Flags,
 		D3D_FEATURE_LEVEL TargetFeatureLevel,
@@ -192,6 +191,95 @@ namespace Platform::RuntimeLoader
 					}
 				}
 			}
+			return hr;
+		}
+		else
+		{
+			return E_NOTIMPL;
+		}
+	}
+	HRESULT Direct3D11::CreateDeviceFromSoftAdapter(
+		UINT Flags,
+		D3D_FEATURE_LEVEL TargetFeatureLevel,
+		ID3D11Device** ppDevice,
+		D3D_FEATURE_LEVEL* pFeatureLevel,
+		ID3D11DeviceContext** ppImmediateContext,
+		D3D_DRIVER_TYPE* pType)
+	{
+		auto try_create = [&](D3D_DRIVER_TYPE type) -> HRESULT
+		{
+			HRESULT hr = S_OK;
+			D3D_FEATURE_LEVEL const d3d_feature_level_list[9] = {
+				//D3D_FEATURE_LEVEL_12_2, // NOTE: d3d11 not support level-12-2
+				D3D_FEATURE_LEVEL_12_1,
+				D3D_FEATURE_LEVEL_12_0,
+				D3D_FEATURE_LEVEL_11_1,
+				D3D_FEATURE_LEVEL_11_0,
+				D3D_FEATURE_LEVEL_10_1,
+				D3D_FEATURE_LEVEL_10_0,
+				D3D_FEATURE_LEVEL_9_3,
+				D3D_FEATURE_LEVEL_9_2,
+				D3D_FEATURE_LEVEL_9_1,
+			};
+			UINT const d3d_feature_level_size = 9;
+			D3D_FEATURE_LEVEL d3d_feature_level = D3D_FEATURE_LEVEL_9_1;
+			for (UINT offset = 0; offset < d3d_feature_level_size; offset += 1)
+			{
+				hr = api_D3D11CreateDevice(
+					NULL,
+					type,
+					NULL,
+					Flags,
+					d3d_feature_level_list + offset,
+					d3d_feature_level_size - offset,
+					D3D11_SDK_VERSION,
+					NULL,
+					&d3d_feature_level,
+					NULL);
+				if (SUCCEEDED(hr))
+				{
+					if ((UINT)d3d_feature_level >= (UINT)TargetFeatureLevel)
+					{
+						if (pType)
+						{
+							*pType = type;
+						}
+						return api_D3D11CreateDevice(
+							NULL,
+							type,
+							NULL,
+							Flags,
+							d3d_feature_level_list + offset,
+							d3d_feature_level_size - offset,
+							D3D11_SDK_VERSION,
+							ppDevice,
+							pFeatureLevel,
+							ppImmediateContext);
+					}
+					else
+					{
+						return E_NOTIMPL;
+					}
+				}
+			}
+			return hr;
+		};
+		if (pType)
+		{
+			*pType = D3D_DRIVER_TYPE_UNKNOWN;
+		}
+		if (api_D3D11CreateDevice)
+		{
+		#ifdef _DEBUG
+			Flags |= D3D11_CREATE_DEVICE_DEBUG;
+		#endif
+			HRESULT hr = S_OK;
+			hr = try_create(D3D_DRIVER_TYPE_WARP);
+			if (SUCCEEDED(hr)) return hr;
+			hr = try_create(D3D_DRIVER_TYPE_SOFTWARE);
+			if (SUCCEEDED(hr)) return hr;
+			hr = try_create(D3D_DRIVER_TYPE_REFERENCE);
+			if (SUCCEEDED(hr)) return hr;
 			return hr;
 		}
 		else
