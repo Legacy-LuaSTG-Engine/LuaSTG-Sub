@@ -1,4 +1,6 @@
 ﻿#include "Platform/Shared.hpp"
+#include "Platform/RuntimeLoader/DXGI.hpp"
+#include "Platform/RuntimeLoader/Direct3D11.hpp"
 
 #include "Platform/CommandLineArguments.hpp"
 
@@ -206,6 +208,31 @@ namespace Platform
 		if (FAILED(hr)) return hr;
 
 		return hr;
+	}
+	BOOL Direct3D11::HasDevice(UINT Flags, D3D_FEATURE_LEVEL TargetFeatureLevel)
+	{
+		HRESULT hr = S_OK;
+		RuntimeLoader::DXGI dxgi;
+		RuntimeLoader::Direct3D11 d3d11;
+		Microsoft::WRL::ComPtr<IDXGIFactory1> dxgi_factory;
+		hr = dxgi.CreateFactory(IID_PPV_ARGS(&dxgi_factory));
+		if (FAILED(hr)) return FALSE;
+		Microsoft::WRL::ComPtr<IDXGIAdapter1> dxgi_adapter;
+		UINT count = 0;
+		for (UINT index = 0; SUCCEEDED(dxgi_factory->EnumAdapters1(index, &dxgi_adapter)); index += 1)
+		{
+			DXGI_ADAPTER_DESC1 dxgi_adapter_info{};
+			hr = dxgi_adapter->GetDesc1(&dxgi_adapter_info);
+			if (FAILED(hr)) continue;
+			// skip software device
+			if (dxgi_adapter_info.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) continue;
+			if (dxgi_adapter_info.Flags & DXGI_ADAPTER_FLAG_REMOTE) continue;
+			// test feature level
+			hr = d3d11.CreateDeviceFromAdapter(dxgi_adapter.Get(), Flags, TargetFeatureLevel,
+				NULL, NULL, NULL);
+			if (SUCCEEDED(hr)) count += 1;
+		}
+		return count > 0 ? TRUE : FALSE;
 	}
 }
 

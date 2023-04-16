@@ -3,6 +3,10 @@
 #include "Platform/WindowsVersion.hpp"
 #include "Platform/CleanWindows.hpp"
 #include "Platform/ModuleLoader.hpp"
+#include "Platform/CommandLineArguments.hpp"
+#include <dxgi1_6.h>
+#include <d3d11_4.h>
+#include "Platform/Direct3D11.hpp"
 #include <shellapi.h>
 
 namespace LuaSTG
@@ -83,7 +87,7 @@ namespace LuaSTG
 		ShellExecuteW(NULL, NULL, L"https://support.microsoft.com/help/2533623", NULL, NULL, SW_SHOWNORMAL);
 	}
 
-	bool CheckUserRuntime()
+	static bool CheckSystem()
 	{
 		bool const windows_7 = Platform::WindowsVersion::Is7();
 		bool const service_pack_1 = Platform::WindowsVersion::Is7SP1();
@@ -268,5 +272,39 @@ namespace LuaSTG
 		}
 
 		return is_all_satisfied;
+	}
+
+	bool CheckUserRuntime()
+	{
+		if (!CheckSystem()) return false;
+		bool const chinese_simplified = is_chinese_simplified();
+		auto const title = make_message_box_title(chinese_simplified);
+		if (!Platform::Direct3D11::HasDevice(D3D11_CREATE_DEVICE_BGRA_SUPPORT, D3D_FEATURE_LEVEL_10_0))
+		{
+			std::string_view text;
+			if (chinese_simplified)
+			{
+				text = "找不到可用的显卡：\n"
+					"1、显卡驱动程序可能未安装或未正确安装\n"
+					"2、显卡驱动程序可能未正常工作\n"
+					"3、显卡可能过于老旧，无法被识别\n"
+					"4、虚拟机或者云电脑可能不支持或未安装显卡\n";
+			}
+			else
+			{
+				text = "No available Graphics Card found: \n"
+					"1. Graphics Driver may not be installed or installed incorrectly\n"
+					"2. Graphics Driver might not working correctly\n"
+					"3. Graphics Card may be too old and can not recognized\n"
+					"4. Virtual Machine or Cloud/Remote Computer may not support or not install a graphics card\n";
+			}
+			Platform::MessageBox::Error(title, text);
+			bool allow_soft_adapter = Platform::CommandLineArguments::Get().IsOptionExist("--allow-soft-adapter");
+			if (!allow_soft_adapter)
+			{
+				return false;
+			}
+		}
+		return true;
 	}
 }
