@@ -119,6 +119,8 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/LB_Mesh.cpp
     LuaSTG/LuaBinding/PostEffectShader.hpp
     LuaSTG/LuaBinding/PostEffectShader.cpp
+    LuaSTG/LuaBinding/Resource.hpp
+    LuaSTG/LuaBinding/Resource.cpp
 
     LuaSTG/SteamAPI/SteamAPI.cpp
     LuaSTG/SteamAPI/SteamAPI.hpp

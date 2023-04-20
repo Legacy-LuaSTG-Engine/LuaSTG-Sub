@@ -15,6 +15,7 @@ extern int luaopen_string_pack(lua_State* L);
 #include "LuaBinding/lua_xinput.hpp"
 #include "LuaBinding/lua_random.hpp"
 #include "LuaBinding/lua_dwrite.hpp"
+#include "LuaBinding/Resource.hpp"
 
 #include "Core/FileManager.hpp"
 #include "utility/encoding.hpp"
@@ -295,6 +296,7 @@ namespace LuaSTGPlus
             lua_settop(L, 0);
             
             RegistBuiltInClassWrapper(L);  // 注册内建类 (luastg lib)
+            luaopen_LuaSTG_Sub(L);
             lua_settop(L, 0);
             
             // 设置命令行参数
