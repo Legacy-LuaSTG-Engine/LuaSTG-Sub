@@ -5,7 +5,6 @@ project(LuaSTGSub)
 #option(LUASTG_RESDIR "Custom configurations" "res")
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-include(cmake/CheckPlatform.cmake)
 include(cmake/TargetCommonOptions.cmake)
 include(cmake/msvc.crt.cmake)
 add_compile_definitions(
