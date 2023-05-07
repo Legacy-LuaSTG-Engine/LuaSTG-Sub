@@ -4,54 +4,18 @@
 [submodule "imgui/implot"]
 	path = imgui/implot
 	url = https://github.com/epezent/implot.git
-[submodule "external/spdlog"]
-	path = external/spdlog
-	url = https://github.com/gabime/spdlog.git
-[submodule "external/pugixml"]
-	path = external/pugixml
-	url = https://github.com/zeux/pugixml.git
 [submodule "external/xmath"]
 	path = external/xmath
 	url = https://github.com/Legacy-LuaSTG-Engine/lstgx_Math.git
-[submodule "external/json"]
-	path = external/json
-	url = https://github.com/nlohmann/json.git
-[submodule "external/freetype"]
-	path = external/freetype
-	url = https://github.com/freetype/freetype.git
-[submodule "external/libogg"]
-	path = external/libogg
-	url = https://github.com/xiph/ogg.git
-[submodule "external/libvorbis"]
-	path = external/libvorbis
-	url = https://github.com/xiph/vorbis.git
-[submodule "external/zlib"]
-	path = external/zlib
-	url = https://github.com/zlib-ng/zlib-ng.git
-[submodule "external/minizip"]
-	path = external/minizip
-	url = https://github.com/Demonese/minizip-ng.git
 [submodule "external/luajit/luajit"]
 	path = external/luajit/luajit
 	url = https://github.com/LuaJIT/LuaJIT.git
-[submodule "external/tinygltf"]
-	path = external/tinygltf
-	url = https://github.com/syoyo/tinygltf.git
 [submodule "external/lua-cjson"]
 	path = external/lua-cjson
 	url = https://github.com/openresty/lua-cjson.git
 [submodule "external/tracy"]
 	path = external/tracy
 	url = https://github.com/wolfpld/tracy.git
-[submodule "external/dr_libs"]
-	path = external/dr_libs
-	url = https://github.com/mackron/dr_libs.git
-[submodule "external/libflac"]
-	path = external/libflac
-	url = https://github.com/xiph/flac.git
-[submodule "external/pcg-cpp"]
-	path = external/pcg-cpp
-	url = https://github.com/imneme/pcg-cpp.git
 [submodule "doc"]
 	path = doc
 	url = https://github.com/Legacy-LuaSTG-Engine/LuaSTG-Sub-Documentation.git
