@@ -4,13 +4,16 @@ project(LuaSTGSub)
 #option(LINK_STEAM_API "Enable Steam API" OFF)
 #option(LUASTG_RESDIR "Custom configurations" "res")
 
+option(LUASTG_SUPPORTS_WINDOWS_7 "LuaSTG Sub Windows compatibility: Windows 7" ON)
+
+if(LUASTG_SUPPORTS_WINDOWS_7)
+    message(STATUS "LuaSTG Sub Windows compatibility: Windows 7")
+    add_compile_definitions(LUASTG_SUPPORTS_WINDOWS_7)
+endif()
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 include(cmake/TargetCommonOptions.cmake)
 include(cmake/msvc.crt.cmake)
-add_compile_definitions(
-    _WIN32_WINNT=0x0601       # _WIN32_WINNT_WIN7
-    NTDDI_VERSION=0x06010000  # NTDDI_WIN7
-)
 #msvc_hybrid_runtime_library()
 msvc_static_runtime_library()
 
