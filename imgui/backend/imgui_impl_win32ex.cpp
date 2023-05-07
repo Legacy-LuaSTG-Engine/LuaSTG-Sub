@@ -41,14 +41,27 @@ typedef DWORD(WINAPI* PFN_XInputGetState)(DWORD, XINPUT_STATE*);
 // There is no distinct VK_xxx for keypad enter, instead it is VK_RETURN + KF_EXTENDED, we assign it an arbitrary value to make code more readable (VK_ codes go up to 255)
 #define IM_VK_KEYPAD_ENTER (VK_RETURN + 256)
 
-constexpr UINT MSG_NONE             = IMGUI_IMPL_WIN32EX_WM_USER;
-constexpr UINT MSG_MOUSE_CAPTURE    = IMGUI_IMPL_WIN32EX_WM_USER + 1;
-constexpr UINT MSG_SET_MOUSE_POS    = IMGUI_IMPL_WIN32EX_WM_USER + 2;
-constexpr UINT MSG_SET_MOUSE_CURSOR = IMGUI_IMPL_WIN32EX_WM_USER + 3;
-constexpr UINT MSG_SET_IME_POS      = IMGUI_IMPL_WIN32EX_WM_USER + 4;
+constexpr UINT MSG_NONE              = IMGUI_IMPL_WIN32EX_WM_USER;
+constexpr UINT MSG_MOUSE_CAPTURE     = IMGUI_IMPL_WIN32EX_WM_USER + 1;
+constexpr UINT MSG_SET_MOUSE_POS     = IMGUI_IMPL_WIN32EX_WM_USER + 2;
+constexpr UINT MSG_SET_MOUSE_CURSOR  = IMGUI_IMPL_WIN32EX_WM_USER + 3;
+constexpr UINT MSG_SET_IME_POS       = IMGUI_IMPL_WIN32EX_WM_USER + 4;
+constexpr UINT MSG_INPUT_SOURCE_TYPE = IMGUI_IMPL_WIN32EX_WM_USER + 5;
 
 constexpr WPARAM MSG_MOUSE_CAPTURE_SET     = 1;
 constexpr WPARAM MSG_MOUSE_CAPTURE_RELEASE = 2;
+
+// See https://learn.microsoft.com/en-us/windows/win32/tablet/system-events-and-mouse-messages
+// Prefer to call this at the top of the message handler to avoid the possibility of other Win32 calls interfering with this.
+static ImGuiMouseSource GetMouseSourceFromMessageExtraInfo()
+{
+    LPARAM extra_info = ::GetMessageExtraInfo();
+    if ((extra_info & 0xFFFFFF80) == 0xFF515700)
+        return ImGuiMouseSource_Pen;
+    if ((extra_info & 0xFFFFFF80) == 0xFF515780)
+        return ImGuiMouseSource_TouchScreen;
+    return ImGuiMouseSource_Mouse;
+}
 
 struct Win32Message
 {
@@ -459,6 +472,9 @@ static void ImGui_ImplWin32Ex_ProcessMessage(ImGui_ImplWin32Ex_FrameData* frame_
         // mouse
         switch (msg.uMsg)
         {
+        case MSG_INPUT_SOURCE_TYPE:
+            io.AddMouseSourceEvent((ImGuiMouseSource)msg.lParam);
+            return true;
         case WM_MOUSEMOVE:
             addMouseMoveEvent((float)GET_X_LPARAM(msg.lParam), (float)GET_Y_LPARAM(msg.lParam));
             return true;
@@ -725,6 +741,10 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32Ex_WndProcHandler(HWND hWnd, UINT uMsg, WP
     
     case WM_MOUSEMOVE:
         // We need to call TrackMouseEvent in order to receive WM_MOUSELEAVE events
+        {
+            ImGuiMouseSource mouse_source = GetMouseSourceFromMessageExtraInfo();
+            bd->MessageQueue.write({ hWnd, MSG_INPUT_SOURCE_TYPE, 0, (LPARAM)mouse_source });
+        }
         bd->MouseHwnd = hWnd;
         if (!bd->MouseTracked)
         {
@@ -755,6 +775,12 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32Ex_WndProcHandler(HWND hWnd, UINT uMsg, WP
     case WM_XBUTTONUP:
     case WM_MOUSEWHEEL:
     case WM_MOUSEHWHEEL:
+        {
+            ImGuiMouseSource mouse_source = GetMouseSourceFromMessageExtraInfo();
+            bd->MessageQueue.write({ hWnd, MSG_INPUT_SOURCE_TYPE, 0, (LPARAM)mouse_source });
+        }
+        bd->MessageQueue.write({ hWnd, uMsg, wParam, lParam });
+        return 0;
     
     case WM_KEYDOWN:
     case WM_SYSKEYDOWN:
