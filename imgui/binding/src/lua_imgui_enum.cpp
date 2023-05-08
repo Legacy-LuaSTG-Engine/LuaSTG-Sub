@@ -617,6 +617,11 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"Hand"      , ImGuiMouseCursor_Hand      },
     {"NotAllowed", ImGuiMouseCursor_NotAllowed},
 }},
+{"ImGuiMouseSource", {
+    {"Mouse"      , ImGuiMouseSource_Mouse      },
+    {"TouchScreen", ImGuiMouseSource_TouchScreen},
+    {"Pen"        , ImGuiMouseSource_Pen        },
+}},
 {"ImGuiCond", {
     {"None"        , ImGuiCond_None        },
     {"Always"      , ImGuiCond_Always      },

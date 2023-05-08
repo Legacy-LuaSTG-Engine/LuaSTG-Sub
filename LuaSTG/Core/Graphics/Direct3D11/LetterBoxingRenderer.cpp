@@ -210,28 +210,17 @@ namespace Core::Graphics::Direct3D11
 		d3d11_blend_state.Reset();
 	}
 
-	inline bool IsSizeEqual(ID3D11ShaderResourceView* srv, ID3D11RenderTargetView* rtv)
+	inline bool GetTexture2DInfoFromView(ID3D11View* view, D3D11_TEXTURE2D_DESC& info)
 	{
+		assert(view);
 		HRNew;
-
-		Microsoft::WRL::ComPtr<ID3D11Resource> srv_res;
-		srv->GetResource(&srv_res);
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> srv_res_tex;
-		HRGet = srv_res->QueryInterface(IID_PPV_ARGS(&srv_res_tex));
+		Microsoft::WRL::ComPtr<ID3D11Resource> resource;
+		view->GetResource(resource.ReleaseAndGetAddressOf());
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
+		HRGet = resource.As(&texture);
 		HRCheckCallReturnBool("ID3D11Resource::QueryInterface -> ID3D11Texture2D");
-		D3D11_TEXTURE2D_DESC srv_res_tex_info = {};
-		srv_res_tex->GetDesc(&srv_res_tex_info);
-
-		Microsoft::WRL::ComPtr<ID3D11Resource> rtv_res;
-		rtv->GetResource(&rtv_res);
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> rtv_res_tex;
-		HRGet = rtv_res->QueryInterface(IID_PPV_ARGS(&rtv_res_tex));
-		HRCheckCallReturnBool("ID3D11Resource::QueryInterface -> ID3D11Texture2D");
-		D3D11_TEXTURE2D_DESC rtv_res_tex_info = {};
-		rtv_res_tex->GetDesc(&rtv_res_tex_info);
-
-		return srv_res_tex_info.Width == rtv_res_tex_info.Width
-			&& srv_res_tex_info.Height == rtv_res_tex_info.Height;
+		texture->GetDesc(&info);
+		return true;
 	}
 
 	bool LetterBoxingRenderer::AttachDevice(ID3D11Device* device)
@@ -259,21 +248,10 @@ namespace Core::Graphics::Direct3D11
 
 		// info
 
-		Microsoft::WRL::ComPtr<ID3D11Resource> srv_res;
-		srv->GetResource(&srv_res);
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> srv_res_tex;
-		HRGet = srv_res->QueryInterface(IID_PPV_ARGS(&srv_res_tex));
-		HRCheckCallReturnBool("ID3D11Resource::QueryInterface -> ID3D11Texture2D");
-		D3D11_TEXTURE2D_DESC srv_res_tex_info = {};
-		srv_res_tex->GetDesc(&srv_res_tex_info);
-
-		Microsoft::WRL::ComPtr<ID3D11Resource> rtv_res;
-		rtv->GetResource(&rtv_res);
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> rtv_res_tex;
-		HRGet = rtv_res->QueryInterface(IID_PPV_ARGS(&rtv_res_tex));
-		HRCheckCallReturnBool("ID3D11Resource::QueryInterface -> ID3D11Texture2D");
+		D3D11_TEXTURE2D_DESC srv_res_tex_info{};
+		if (!GetTexture2DInfoFromView(srv, srv_res_tex_info)) return false;
 		D3D11_TEXTURE2D_DESC rtv_res_tex_info = {};
-		rtv_res_tex->GetDesc(&rtv_res_tex_info);
+		if (!GetTexture2DInfoFromView(rtv, rtv_res_tex_info)) return false;
 
 		// letter boxing
 
@@ -332,16 +310,37 @@ namespace Core::Graphics::Direct3D11
 	}
 	bool LetterBoxingRenderer::Draw(ID3D11ShaderResourceView* srv, ID3D11RenderTargetView* rtv, bool clear_rtv)
 	{
+		assert(srv);
+		assert(rtv);
 		assert(d3d11_device_context);
 
-		if (IsSizeEqual(srv, rtv))
+		D3D11_TEXTURE2D_DESC srv_res_tex_info{};
+		if (!GetTexture2DInfoFromView(srv, srv_res_tex_info)) return false;
+		D3D11_TEXTURE2D_DESC rtv_res_tex_info = {};
+		if (!GetTexture2DInfoFromView(rtv, rtv_res_tex_info)) return false;
+
+		bool const is_width_or_heigth_equal = false
+			|| (srv_res_tex_info.Width == rtv_res_tex_info.Width && srv_res_tex_info.Height <= rtv_res_tex_info.Height)
+			|| (srv_res_tex_info.Width <= rtv_res_tex_info.Width && srv_res_tex_info.Height == rtv_res_tex_info.Height);
+		bool const is_width_or_heigth_not_equal = false
+			|| srv_res_tex_info.Width != rtv_res_tex_info.Width
+			|| srv_res_tex_info.Height != rtv_res_tex_info.Height;
+
+		if (is_width_or_heigth_equal)
 		{
+			if (is_width_or_heigth_not_equal && clear_rtv)
+			{
+				FLOAT const clear_color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+				d3d11_device_context->ClearRenderTargetView(rtv, clear_color);
+			}
 			Microsoft::WRL::ComPtr<ID3D11Resource> srv_res;
 			Microsoft::WRL::ComPtr<ID3D11Resource> rtv_res;
 			srv->GetResource(&srv_res);
 			rtv->GetResource(&rtv_res);
+			UINT const dx = (rtv_res_tex_info.Width - srv_res_tex_info.Width) / 2;
+			UINT const dy = (rtv_res_tex_info.Height - srv_res_tex_info.Height) / 2;
 			d3d11_device_context->CopySubresourceRegion(
-				rtv_res.Get(), 0, 0, 0, 0,
+				rtv_res.Get(), 0, dx, dy, 0,
 				srv_res.Get(), 0, NULL);
 			return true;
 		}

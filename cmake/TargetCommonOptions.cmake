@@ -57,3 +57,11 @@ function(luastg_target_copy_to_output_directory __AFTER_TARGET__ __TARGET__)
         COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE:${__TARGET__}>" ${CMAKE_SOURCE_DIR}/engine
     )
 endfunction()
+
+function(luastg_target_platform_windows_7 __TARGET__)
+    target_compile_definitions(${__TARGET__}
+    PRIVATE
+        _WIN32_WINNT=0x0601       # _WIN32_WINNT_WIN7
+        NTDDI_VERSION=0x06010000  # NTDDI_WIN7
+    )
+endfunction()
