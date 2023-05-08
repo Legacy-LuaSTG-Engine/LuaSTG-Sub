@@ -9,6 +9,8 @@ extern "C" {
 #include "lfs.h"
 extern int luaopen_utf8(lua_State* L);
 extern int luaopen_string_pack(lua_State* L);
+extern int luaopen_mime_core(lua_State* L);
+extern int luaopen_socket_core(lua_State* L);
 }
 //#include "lua_xlsx_csv.h"
 #include "lua_steam.h"
@@ -293,6 +295,16 @@ namespace LuaSTGPlus
             luaopen_random(L);
             luaopen_utf8(L);
             luaopen_string_pack(L);
+            {
+                lua_getfield(L, LUA_REGISTRYINDEX, "_LOADED"); // ... _LOADED
+                {
+                    luaopen_socket_core(L);        // ... _LOADED socket
+                    lua_setfield(L, -2, "socket.core"); // ... _LOADED
+                    luaopen_mime_core(L);          // ... _LOADED mime
+                    lua_setfield(L, -2, "mime.core");   // ... _LOADED
+                }
+                lua_pop(L, 1); // ...
+            }
             lua_settop(L, 0);
             
             RegistBuiltInClassWrapper(L);  // 注册内建类 (luastg lib)

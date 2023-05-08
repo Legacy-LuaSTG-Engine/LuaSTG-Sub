@@ -177,6 +177,7 @@ target_link_libraries(LuaSTG PRIVATE
     implot
     lua_cjson
     lua_filesystem
+    luasocket
     #lua_xlsx_csv
     lua_imgui
     imgui_impl_win32ex
