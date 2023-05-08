@@ -773,6 +773,7 @@ namespace Platform::RuntimeLoader
 			}
 
 			// Windows NT 版本
+			// https://learn.microsoft.com/zh-cn/windows-hardware/drivers/ddi/wdm/nf-wdm-rtlisntddiversionavailable
 
 			DWORD version = NTDDI_WIN10;
 			// TODO: 等 NI 分支或者之后的分支出来要记得更新一下，也不知道 SB 微软为什么这么设计……
