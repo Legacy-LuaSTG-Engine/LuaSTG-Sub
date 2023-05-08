@@ -27,6 +27,7 @@ include(cmake/packages.directx.cmake)
 include(cmake/packages.xiph.cmake)
 include(cmake/packages.z.cmake)
 add_subdirectory(external)
+include(cmake/packages.lua.cmake)
 add_library(GeneratedShaderHeaders INTERFACE)
 target_include_directories(GeneratedShaderHeaders
 INTERFACE
