@@ -131,7 +131,7 @@ struct lfs_api
 					lua_pushlstring(L, mode_directory.data(), mode_directory.length());
 					return 1;
 				}
-				else if (std::filesystem::exists(widepath))
+				else if (std::filesystem::exists(widepath, ec))
 				{
 					std::string_view const mode_other("other");
 					lua_pushlstring(L, mode_other.data(), mode_other.length());
