@@ -2,7 +2,7 @@
 #include <fstream>
 #include <filesystem>
 #include "nlohmann/json.hpp"
-#include "utility/encoding.hpp"
+#include "utf8.hpp"
 #include "Platform/KnownDirectory.hpp"
 
 namespace Core
@@ -70,7 +70,7 @@ namespace Core
 
     inline bool from_file(nlohmann::json& j, std::string_view const path)
     {
-        std::wstring wpath(utility::encoding::to_wide(path));
+        std::wstring wpath(utf8::to_wstring(path));
         std::error_code ec;
         if (!std::filesystem::is_regular_file(wpath, ec))
         {
@@ -86,7 +86,7 @@ namespace Core
     }
     inline bool to_file(nlohmann::json const& j, std::string_view const path)
     {
-        std::wstring wpath(utility::encoding::to_wide(path));
+        std::wstring wpath(utf8::to_wstring(path));
         std::ofstream file(wpath, std::ios::out | std::ios::binary | std::ios::trunc);
         if (!file.is_open())
         {
@@ -216,7 +216,7 @@ namespace Core
             std::array<wchar_t, MAX_PATH + 1> wpath_buffer{};
             DWORD const length = GetTempPathW(MAX_PATH + 1, wpath_buffer.data());
             std::wstring_view const wpath_buffer_view(wpath_buffer.data(), length);
-            std::string path_buffer(utility::encoding::to_utf8(wpath_buffer_view));
+            std::string path_buffer(utf8::to_string(wpath_buffer_view));
             if (path_buffer.empty())
             {
                 path_buffer = "Temp";
@@ -234,7 +234,7 @@ namespace Core
         std::string buffer;
         if (!parser_path(path, buffer)) return false;
 
-        std::filesystem::path fs_path(utility::encoding::to_wide(buffer), std::filesystem::path::generic_format);
+        std::filesystem::path fs_path(utf8::to_wstring(buffer), std::filesystem::path::generic_format);
         if (create_directories)
         {
             std::error_code ec;
@@ -244,7 +244,7 @@ namespace Core
             }
         }
 
-        buffer__ = utility::encoding::to_utf8(fs_path.wstring());
+        buffer__ = utf8::to_string(fs_path.wstring());
         return true;
     }
     bool InitializeConfigure::parserFilePath(std::string_view const path, std::string& buffer__, bool create_parent_directories) noexcept
@@ -252,7 +252,7 @@ namespace Core
         std::string buffer;
         if (!parser_path(path, buffer)) return false;
 
-        std::filesystem::path fs_path(utility::encoding::to_wide(buffer), std::filesystem::path::generic_format);
+        std::filesystem::path fs_path(utf8::to_wstring(buffer), std::filesystem::path::generic_format);
         if (create_parent_directories && fs_path.has_parent_path())
         {
             std::filesystem::path fs_parent_path(fs_path.parent_path());
@@ -263,7 +263,7 @@ namespace Core
             }
         }
 
-        buffer__ = utility::encoding::to_utf8(fs_path.wstring());
+        buffer__ = utf8::to_string(fs_path.wstring());
         return true;
     }
 }

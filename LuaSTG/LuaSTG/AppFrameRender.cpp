@@ -1,5 +1,4 @@
 #include "AppFrame.h"
-#include "utility/encoding.hpp"
 
 namespace LuaSTGPlus
 {

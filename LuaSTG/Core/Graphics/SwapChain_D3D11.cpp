@@ -1,12 +1,12 @@
 ﻿#include "Core/Graphics/SwapChain_D3D11.hpp"
 #include "Core/Graphics/Format_D3D11.hpp"
 #include "Core/i18n.hpp"
-#include "utility/encoding.hpp"
 #include "Platform/WindowsVersion.hpp"
 #include "Platform/CommandLineArguments.hpp"
 #include "Platform/DesktopWindowManager.hpp"
 #include "Platform/Direct3D11.hpp"
 #include "Platform/DXGI.hpp"
+#include "utf8.hpp"
 
 #include "ScreenGrab11.h"
 
@@ -1823,7 +1823,7 @@ namespace Core::Graphics
 
 	bool SwapChain_D3D11::saveSnapshotToFile(StringView path)
 	{
-		std::wstring wpath(utility::encoding::to_wide(path));
+		std::wstring wpath(utf8::to_wstring(path));
 
 		HRESULT hr = S_OK;
 

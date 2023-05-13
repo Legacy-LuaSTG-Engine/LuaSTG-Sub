@@ -9,7 +9,6 @@
 #include "GameResource/Implement/ResourcePostEffectShaderImpl.hpp"
 #include "GameResource/Implement/ResourceModelImpl.hpp"
 #include "Core/FileManager.hpp"
-#include "utility/encoding.hpp"
 #include "AppFrame.h"
 #include "LuaBinding/lua_utility.hpp"
 

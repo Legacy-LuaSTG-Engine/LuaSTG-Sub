@@ -1,5 +1,5 @@
 ﻿#include "AppFrame.h"
-#include "utility/encoding.hpp"
+#include "utf8.hpp"
 
 namespace LuaSTGPlus
 {
@@ -123,7 +123,7 @@ namespace LuaSTGPlus
 				*pScanner = L'\0';
 			
 			// 渲染从pText~pScanner的文字
-			std::string u8_str(std::move(utility::encoding::to_utf8(pText)));
+			std::string u8_str(utf8::to_string(pText));
 			Vector2F ignore_;
 			switch (halign)
 			{
@@ -204,7 +204,7 @@ namespace LuaSTGPlus
 		std::wstring s_TempStringBuf;
 		try
 		{
-			s_TempStringBuf = std::move(utility::encoding::to_wide(str));
+			s_TempStringBuf = utf8::to_wstring(str);
 		}
 		catch (const std::bad_alloc&)
 		{
@@ -262,7 +262,7 @@ namespace LuaSTGPlus
 		// 编码转换
 		std::wstring s_TempStringBuf;
 		try {
-			s_TempStringBuf = std::move(utility::encoding::to_wide(str));
+			s_TempStringBuf = utf8::to_wstring(str);
 		}
 		catch (const std::bad_alloc&) {
 			spdlog::error("[luastg] RenderTTF: 内存不足");

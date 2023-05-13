@@ -1,6 +1,6 @@
 ﻿#include "Core/Audio/Decoder_WAV.hpp"
 #include "Core/FileManager.hpp"
-#include "utility/encoding.hpp"
+#include "utf8.hpp"
 
 namespace Core::Audio
 {
@@ -68,7 +68,7 @@ namespace Core::Audio
 		if (GFileManager().contain(path))
 		{
 			// 存在于文件系统，直接以文件的形式打开，一般 wav 都贼 TM 大
-			drwav_bool32 const result = drwav_init_file_w(&m_wav, utility::encoding::to_wide(path).c_str(), NULL);
+			drwav_bool32 const result = drwav_init_file_w(&m_wav, utf8::to_wstring(path).c_str(), NULL);
 			if (DRWAV_TRUE != result)
 			{
 				destroyResources();

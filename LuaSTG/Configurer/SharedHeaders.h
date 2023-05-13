@@ -17,7 +17,6 @@
 #include <fstream>
 #include <filesystem>
 
-#include "utility/encoding.hpp"
 #include "spdlog/spdlog.h"
 #include "nlohmann/json.hpp"
 
@@ -27,3 +26,5 @@
 #include <wrl/wrappers/corewrappers.h>
 #include <dxgi1_6.h>
 #include <d3d11_4.h>
+
+#include "utf8.hpp"

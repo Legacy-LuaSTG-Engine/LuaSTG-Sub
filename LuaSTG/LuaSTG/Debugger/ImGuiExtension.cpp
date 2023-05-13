@@ -18,7 +18,7 @@
 
 #include "Platform/XInput.hpp"
 #include "Core/InitializeConfigure.hpp"
-#include "utility/encoding.hpp"
+#include "utf8.hpp"
 
 #include "AppFrame.h"
 #include "LuaBinding/LuaWrapper.hpp"
@@ -780,8 +780,8 @@ namespace imgui
             {
                 std::string parser_path;
                 Core::InitializeConfigure::parserDirectory(config.engine_cache_directory, parser_path, true);
-                std::filesystem::path directory(utility::encoding::to_wide(parser_path));
-                std::filesystem::path path = directory / utility::encoding::to_wide("imgui.ini");
+                std::filesystem::path directory(utf8::to_wstring(parser_path));
+                std::filesystem::path path = directory / utf8::to_wstring("imgui.ini");
                 g_ini_path = path.wstring();
             }
         }

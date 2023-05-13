@@ -1,7 +1,6 @@
 #include "LuaBinding/LuaWrapper.hpp"
 #include "LuaBinding/lua_utility.hpp"
 #include "Core/FileManager.hpp"
-#include "utility/encoding.hpp"
 #include "AppFrame.h"
 
 void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept

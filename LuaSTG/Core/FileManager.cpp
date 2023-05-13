@@ -1,7 +1,7 @@
 ﻿#include "Core/FileManager.hpp"
 #include <filesystem>
 #include <fstream>
-#include "utility/encoding.hpp"
+#include "utf8.hpp"
 #include "utility/path.hpp"
 #include "mz.h"
 #include "mz_strm.h"
@@ -35,7 +35,7 @@ inline bool is_file_path_case_correct(std::wstring_view file_path)
     file.Close();
 
     bool const equal = (full_path == final_path);
-    if (!equal) spdlog::error("[core] 路径 '{}' 和 '{}' 不匹配，存在大小写一致的部分", utility::encoding::to_utf8(full_path), utility::encoding::to_utf8(final_path));
+    if (!equal) spdlog::error("[core] 路径 '{}' 和 '{}' 不匹配，存在大小写一致的部分", utf8::to_string(full_path), utf8::to_string(final_path));
 
     return equal;
 }
@@ -344,12 +344,12 @@ namespace Core
             if (entry.is_regular_file())
             {
                 node.type = FileType::File;
-                node.name = utility::encoding::to_utf8(entry.path().generic_wstring()).substr(2);
+                node.name = utf8::to_string(entry.path().generic_wstring()).substr(2);
             }
             else if (entry.is_directory())
             {
                 node.type = FileType::Directory;
-                node.name = utility::encoding::to_utf8(entry.path().generic_wstring()).substr(2);
+                node.name = utf8::to_string(entry.path().generic_wstring()).substr(2);
                 node.name.push_back('/');
             }
             else
@@ -383,7 +383,7 @@ namespace Core
     FileType FileManager::getType(std::string_view const& name)
     {
         std::error_code ec;
-        std::wstring name_str(utility::encoding::to_wide(name));
+        std::wstring name_str(utf8::to_wstring(name));
         if (std::filesystem::is_regular_file(name_str, ec))
         {
             return FileType::File;
@@ -401,11 +401,11 @@ namespace Core
     bool FileManager::contain(std::string_view const& name)
     {
         std::error_code ec;
-        return std::filesystem::is_regular_file(utility::encoding::to_wide(name), ec);
+        return std::filesystem::is_regular_file(utf8::to_wstring(name), ec);
     }
     bool FileManager::load(std::string_view const& name, std::vector<uint8_t>& buffer)
     {
-        std::wstring wide_path(std::move(utility::encoding::to_wide(name)));
+        std::wstring wide_path(utf8::to_wstring(name));
         std::error_code ec;
         if (!std::filesystem::is_regular_file(wide_path, ec))
         {
@@ -438,7 +438,7 @@ namespace Core
     }
     bool FileManager::load(std::string_view const& name, IData** pp_data)
     {
-        std::wstring wide_path(std::move(utility::encoding::to_wide(name)));
+        std::wstring wide_path(utf8::to_wstring(name));
         std::error_code ec;
         if (!std::filesystem::is_regular_file(wide_path, ec))
         {
@@ -675,7 +675,7 @@ namespace Core
     }
     bool FileManager::write(std::string_view const& name, std::vector<uint8_t> const& buffer)
     {
-        std::wstring wide_path(std::move(utility::encoding::to_wide(name)));
+        std::wstring wide_path(utf8::to_wstring(name));
         std::error_code ec;
         std::ofstream file(wide_path, std::ios::out | std::ios::binary | std::ios::trunc);
         if (!file.is_open())
@@ -688,7 +688,7 @@ namespace Core
     }
     bool FileManager::write(std::string_view const& name, IData* p_data)
     {
-        std::wstring wide_path(std::move(utility::encoding::to_wide(name)));
+        std::wstring wide_path(utf8::to_wstring(name));
         std::error_code ec;
         std::ofstream file(wide_path, std::ios::out | std::ios::binary | std::ios::trunc);
         if (!file.is_open())

@@ -9,10 +9,10 @@
 #include <memory>
 #include <functional>
 
-#include "utility/encoding.hpp"
 #include "Platform/HResultChecker.hpp"
 #include "Core/FileManager.hpp"
 #include "AppFrame.h"
+#include "utf8.hpp"
 #include "LuaBinding/LuaWrapper.hpp"
 
 #define WIN32_LEAN_AND_MEAN
@@ -162,7 +162,7 @@ namespace DirectWrite
 				gHR = dwrite_font_family_names->GetLocaleName(name_idx, locale_name.data(), str_len + 1);
 				if (locale_name.back() == L'\0') locale_name.pop_back();
 
-				string_buffer << "        [" << name_idx << "] (" << utility::encoding::to_utf8(locale_name) << ") " << utility::encoding::to_utf8(name) << '\n';
+				string_buffer << "        [" << name_idx << "] (" << utf8::to_string(locale_name) << ") " << utf8::to_string(name) << '\n';
 			}
 
 			string_buffer << "    Font:\n";
@@ -190,7 +190,7 @@ namespace DirectWrite
 					gHR = dwrite_font_face_names->GetLocaleName(name_idx, locale_name.data(), str_len + 1);
 					if (locale_name.back() == L'\0') locale_name.pop_back();
 
-					string_buffer << "                [" << name_idx << "] (" << utility::encoding::to_utf8(locale_name) << ") " << utility::encoding::to_utf8(name) << '\n';
+					string_buffer << "                [" << name_idx << "] (" << utf8::to_string(locale_name) << ") " << utf8::to_string(name) << '\n';
 				}
 
 				/*
@@ -386,7 +386,7 @@ namespace DirectWrite
 	public:
 		bool loadFromFile(std::string_view const path)
 		{
-			std::wstring wide_path(utility::encoding::to_wide(path)); // OOM catch by factory
+			std::wstring wide_path(utf8::to_wstring(path)); // OOM catch by factory
 			Microsoft::WRL::Wrappers::FileHandle file;
 			file.Attach(CreateFileW(
 				wide_path.c_str(),
@@ -520,7 +520,7 @@ namespace DirectWrite
 			}
 			else
 			{
-				std::wstring wide_path(utility::encoding::to_wide(path));
+				std::wstring wide_path(utf8::to_wstring(path));
 				return m_dwrite_factory->CreateFontFileReference(
 					wide_path.c_str(),
 					NULL,
@@ -1324,7 +1324,7 @@ namespace DirectWrite
 			auto const position = luaL_check_uint32(L, 3);
 			auto const length = luaL_check_uint32(L, 4);
 
-			std::wstring wide_font_family_name(utility::encoding::to_wide(font_family_name));
+			std::wstring wide_font_family_name(utf8::to_wstring(font_family_name));
 
 			HRESULT hr = gHR = self->dwrite_text_layout->SetFontFamilyName(
 				wide_font_family_name.c_str(),
@@ -1344,7 +1344,7 @@ namespace DirectWrite
 			auto const position = luaL_check_uint32(L, 3);
 			auto const length = luaL_check_uint32(L, 4);
 
-			std::wstring wide_locale_name(utility::encoding::to_wide(locale_name));
+			std::wstring wide_locale_name(utf8::to_wstring(locale_name));
 
 			HRESULT hr = gHR = self->dwrite_text_layout->SetLocaleName(
 				wide_locale_name.c_str(),
@@ -2189,8 +2189,8 @@ namespace DirectWrite
 		auto const font_size = luaL_check_float(L, 6);
 		auto const locale_name = luaL_check_string_view(L, 7);
 
-		std::wstring wide_font_family_name(utility::encoding::to_wide(font_family_name));
-		std::wstring wide_locale_name(utility::encoding::to_wide(locale_name));
+		std::wstring wide_font_family_name(utf8::to_wstring(font_family_name));
+		std::wstring wide_locale_name(utf8::to_wstring(locale_name));
 
 		Factory* core = Factory::Get(L);
 		TextFormat* text_format = TextFormat::Create(L);
@@ -2218,7 +2218,7 @@ namespace DirectWrite
 		auto const max_width = luaL_check_float(L, 3);
 		auto const max_height = luaL_check_float(L, 4);
 
-		std::wstring wide_string(utility::encoding::to_wide(string));
+		std::wstring wide_string(utf8::to_wstring(string));
 
 		Factory* core = Factory::Get(L);
 		TextLayout* text_layout = TextLayout::Create(L);
@@ -2499,7 +2499,7 @@ namespace DirectWrite
 		if (FAILED(hr))
 			return luaL_error(L, "create stream failed");
 
-		std::wstring wide_file_path(utility::encoding::to_wide(file_path));
+		std::wstring wide_file_path(utf8::to_wstring(file_path));
 		hr = gHR = wic_stream->InitializeFromFilename(wide_file_path.c_str(), GENERIC_WRITE);
 		if (FAILED(hr))
 			return luaL_error(L, "initialize stream failed");

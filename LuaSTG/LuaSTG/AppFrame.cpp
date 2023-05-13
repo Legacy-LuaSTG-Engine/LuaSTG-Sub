@@ -1,10 +1,10 @@
 ﻿#include "AppFrame.h"
 #include "Core/FileManager.hpp"
-#include "utility/encoding.hpp"
 #include "Platform/XInput.hpp"
 #include "Utility/Utility.h"
 #include "Debugger/ImGuiExtension.h"
 #include "LuaBinding/LuaAppFrame.hpp"
+#include "utf8.hpp"
 #include "resource.h"
 
 using namespace LuaSTGPlus;
@@ -183,8 +183,8 @@ bool AppFrame::Init()noexcept
 				{
 					spdlog::info("[luastg] 检测到 {} 控制器 产品名称：{} 设备名称：{}",
 						m_DirectInput->isXInputDevice(i) ? "XInput" : "DirectInput",
-						utility::encoding::to_utf8(m_DirectInput->getProductName(i)),
-						utility::encoding::to_utf8(m_DirectInput->getDeviceName(i))
+						utf8::to_string(m_DirectInput->getProductName(i)),
+						utf8::to_string(m_DirectInput->getDeviceName(i))
 					);
 				}
 				spdlog::info("[luastg] 成功创建了 {} 个控制器", cnt);
@@ -287,8 +287,8 @@ void AppFrame::onWindowCreate()
 		{
 			spdlog::info("[luastg] 检测到 {} 控制器 产品名称：{} 设备名称：{}",
 				m_DirectInput->isXInputDevice(i) ? "XInput" : "DirectInput",
-				utility::encoding::to_utf8(m_DirectInput->getProductName(i)),
-				utility::encoding::to_utf8(m_DirectInput->getDeviceName(i))
+				utf8::to_string(m_DirectInput->getProductName(i)),
+				utf8::to_string(m_DirectInput->getDeviceName(i))
 			);
 		}
 		spdlog::info("[luastg] 成功创建了 {} 个控制器", cnt);
