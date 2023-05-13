@@ -1,16 +1,42 @@
 ﻿#pragma once
 
-// steam
-#define STEAM_APP_ID 0
-//#define USING_STEAM_API
-//#define KEEP_LAUNCH_BY_STEAM
+// ---------- ---------- framework ---------- ---------- //
 
-// feature
-#define USING_LAUNCH_FILE // launch file
+// launch file
+#define USING_LAUNCH_FILE
+
 //#define USING_ENCRYPTION
-#define USER_SYSTEM_OPERATION // add gravity (self.ag), speed limit (self.maxv, self.maxvx, self.maxvy)
-#define GLOBAL_SCALE_COLLI_SHAPE // BAKACHU
-#define USING_MULTI_GAME_WORLD // BAKAESC
-#define USING_ADVANCE_GAMEOBJECT_CLASS // aloow render a object directly (no render callback)
+
 #define USING_DEAR_IMGUI
+
 #define USING_CONSOLE_OUTPUT
+
+// ---------- ---------- game play ---------- ---------- //
+
+// Sakuya: THE WORLD!
+#define LUASTG_ENABLE_THE_WORLD
+
+// !!!deprecated
+// lstg.GameObject.pause
+//#define LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
+
+// add gravity (self.ag), speed limit (self.maxv, self.maxvx, self.maxvy)
+#define USER_SYSTEM_OPERATION
+
+// !!!deprecated
+// BAKACHU
+#define GLOBAL_SCALE_COLLI_SHAPE
+
+// BAKAESC
+#define USING_MULTI_GAME_WORLD
+
+// allow render a object directly (no render callback)
+#define USING_ADVANCE_GAMEOBJECT_CLASS
+
+// ---------- ---------- steam api ---------- ---------- //
+
+#define STEAM_APP_ID 0
+
+//#define USING_STEAM_API
+
+//#define KEEP_LAUNCH_BY_STEAM

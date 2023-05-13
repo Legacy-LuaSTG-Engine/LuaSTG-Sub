@@ -125,8 +125,10 @@ namespace LuaSTGPlus
 		res = nullptr;
 		ps = nullptr;
 
+	#ifdef	LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 		resolve_move = false;
 		pause = 0;
+	#endif
 		ignore_superpause = false;
 		touch_lastx_lasty = false;
 
@@ -167,8 +169,10 @@ namespace LuaSTGPlus
 
 		ReleaseResource();
 
+	#ifdef	LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 		resolve_move = false;
 		pause = 0;
+	#endif
 		ignore_superpause = false;
 		touch_lastx_lasty = false;
 
@@ -311,6 +315,7 @@ namespace LuaSTGPlus
 	
 	void GameObject::Update()
 	{
+	#ifdef	LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 		if (pause > 0)
 		{
 			pause -= 1;
@@ -331,6 +336,7 @@ namespace LuaSTGPlus
 				}
 			}
 			else
+	#endif
 			{
 				// 更新速度
 				vx += ax;
@@ -380,7 +386,9 @@ namespace LuaSTGPlus
 				}
 				ps->Update(1.0f / 60.f);
 			}
+	#ifdef	LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 		}
+	#endif
 	}
 	void GameObject::UpdateLast()
 	{
@@ -723,12 +731,14 @@ namespace LuaSTGPlus
 		case LuaSTG::GameObjectMember::TIMER:
 			lua_pushinteger(L, timer);
 			return 1;
+		#ifdef	LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 		case LuaSTG::GameObjectMember::PAUSE:
 			lua_pushinteger(L, pause);
 			return 1;
 		case LuaSTG::GameObjectMember::RESOLVEMOVE:
 			lua_pushboolean(L, resolve_move);
 			return 1;
+		#endif
 		case LuaSTG::GameObjectMember::IGNORESUPERPAUSE:
 			lua_pushboolean(L, ignore_superpause);
 			return 1;
@@ -995,12 +1005,14 @@ namespace LuaSTGPlus
 		case LuaSTG::GameObjectMember::TIMER:
 			timer = luaL_checkinteger(L, 3);
 			return 0;
+		#ifdef	LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 		case LuaSTG::GameObjectMember::PAUSE:
 			pause = luaL_checkinteger(L, 3);
 			return 0;
 		case LuaSTG::GameObjectMember::RESOLVEMOVE:
 			resolve_move = lua_to_uint8_boolean(L, 3);
 			return 0;
+		#endif
 		case LuaSTG::GameObjectMember::IGNORESUPERPAUSE:
 			ignore_superpause = lua_to_uint8_boolean(L, 3);
 			return 0;
