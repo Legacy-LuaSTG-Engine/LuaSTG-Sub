@@ -95,8 +95,10 @@ namespace LuaSTGPlus
 		// 更新控制
 
 		lua_Integer timer;				// [P] 自增计数器
+	#ifdef LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 		lua_Integer pause;				// [P] 对象被暂停的时间(帧) 对象被暂停时，将跳过速度计算，但是timer会增加，frame仍会调用
 		uint8_t resolve_move;			// [1] 是否为计算速度而非计算位置
+	#endif
 		uint8_t ignore_superpause;		// [1] 是否无视超级暂停。 超级暂停时，timer不会增加，frame不会调用，但render会调用。
 		uint8_t touch_lastx_lasty;		// [1] 是否已经更新过 lastx 和 lasty 值，如果未更新过，表明对象刚生成，获取 dx 和 dy 时应当返回 0
 	
