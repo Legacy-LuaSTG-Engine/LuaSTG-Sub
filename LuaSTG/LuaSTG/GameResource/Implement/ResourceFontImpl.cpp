@@ -1,9 +1,9 @@
 #include "GameResource/Implement/ResourceFontImpl.hpp"
 #include "Core/FileManager.hpp"
 #include "utility/utf.hpp"
-#include "utility/encoding.hpp"
 #include "pugixml.hpp"
 #include "AppFrame.h"
+#include "utf8.hpp"
 
 namespace LuaSTGPlus
 {
@@ -318,10 +318,10 @@ namespace LuaSTGPlus
 			else
 			{
 				// 切换到同级文件夹
-				std::filesystem::path wide_path(utility::encoding::to_wide(path));
+				std::filesystem::path wide_path(utf8::to_wstring(path));
 				wide_path.remove_filename();
-				wide_path /= utility::encoding::to_wide(texture);
-				std::string texture_path(std::move(utility::encoding::to_utf8(wide_path.wstring())));
+				wide_path /= utf8::to_wstring(texture);
+				std::string texture_path(utf8::to_string(wide_path.wstring()));
 				if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(texture_path, mipmap, ~m_texture))
 				{
 					spdlog::error("[luastg] 加载 HGE 纹理字体失败，无法加载纹理 '{}'", texture_path);
@@ -481,10 +481,10 @@ namespace LuaSTGPlus
 			else
 			{
 				// 切换到同级文件夹
-				std::filesystem::path wide_path(utility::encoding::to_wide(path));
+				std::filesystem::path wide_path(utf8::to_wstring(path));
 				wide_path.remove_filename();
-				wide_path /= utility::encoding::to_wide(raw_texture_path);
-				std::string texture_path(std::move(utility::encoding::to_utf8(wide_path.wstring())));
+				wide_path /= utf8::to_wstring(raw_texture_path);
+				std::string texture_path(utf8::to_string(wide_path.wstring()));
 				if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(texture_path, mipmap, ~m_texture))
 				{
 					spdlog::error("[luastg] 加载 fancy2d 纹理字体失败，无法加载纹理 '{}'", texture_path);

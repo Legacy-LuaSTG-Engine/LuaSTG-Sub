@@ -1,10 +1,10 @@
 ﻿#include "Core/Graphics/Window_Win32.hpp"
 #include "Core/ApplicationModel_Win32.hpp"
 #include "Core/i18n.hpp"
-#include "utility/encoding.hpp"
 #include "Platform/WindowsVersion.hpp"
 #include "Platform/HighDPI.hpp"
 #include "Platform/WindowTheme.hpp"
+#include "utf8.hpp"
 
 constexpr int const LUASTG_WM_UPDAE_TITLE = WM_USER + 64;
 constexpr int const LUASTG_WM_RECREATE = LUASTG_WM_UPDAE_TITLE + 1;
@@ -53,8 +53,8 @@ namespace Core::Graphics
 				LRESULT const length1 = SendMessageW(focus_window, WM_GETTEXT, 256, (LPARAM)buffer1.data());
 				int const length2 = GetClassNameW(focus_window, buffer2.data(), 256);
 				spdlog::info("[core] 窗口焦点已改变，新的焦点窗口为：[{}] ({}) {}", (void*)focus_window,
-					utility::encoding::to_utf8(std::wstring_view(buffer2.data(), (size_t)length2)),
-					utility::encoding::to_utf8(std::wstring_view(buffer1.data(), (size_t)length1))
+					utf8::to_string(std::wstring_view(buffer2.data(), (size_t)length2)),
+					utf8::to_string(std::wstring_view(buffer1.data(), (size_t)length1))
 				);
 			}
 		}

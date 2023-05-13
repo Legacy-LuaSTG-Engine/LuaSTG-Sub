@@ -1,10 +1,10 @@
 ﻿#include "LuaBinding/LuaWrapper.hpp"
 #include "Platform/KnownDirectory.hpp"
-#include "utility/encoding.hpp"
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <Windows.h>
 #include <shellapi.h>
+#include "utf8.hpp"
 
 void LuaSTGPlus::LuaWrapper::PlatformWrapper::Register(lua_State* L) noexcept
 {
@@ -60,10 +60,10 @@ void LuaSTGPlus::LuaWrapper::PlatformWrapper::Register(lua_State* L) noexcept
 
 					try
 					{
-						tPath = std::move(utility::encoding::to_wide(path));
-						tArgs = std::move(utility::encoding::to_wide(args));
+						tPath = utf8::to_wstring(path);
+						tArgs = utf8::to_wstring(args);
 						if (directory)
-							tDirectory = std::move(utility::encoding::to_wide(directory));
+							tDirectory = utf8::to_wstring(directory);
 
 						SHELLEXECUTEINFO tShellExecuteInfo;
 						memset(&tShellExecuteInfo, 0, sizeof(SHELLEXECUTEINFO));
@@ -119,8 +119,8 @@ void LuaSTGPlus::LuaWrapper::PlatformWrapper::Register(lua_State* L) noexcept
 			UINT flags = (UINT)luaL_checkinteger(L, 3);
 			int result = MessageBoxW(
 				(LAPP.GetAppModel() && LAPP.GetAppModel()->getWindow()) ? (HWND)LAPP.GetAppModel()->getWindow()->getNativeHandle() : NULL,
-				utility::encoding::to_wide(text).c_str(),
-				utility::encoding::to_wide(title).c_str(),
+				utf8::to_wstring(text).c_str(),
+				utf8::to_wstring(title).c_str(),
 				flags);
 			lua_pushinteger(L, result);
 			return 1;

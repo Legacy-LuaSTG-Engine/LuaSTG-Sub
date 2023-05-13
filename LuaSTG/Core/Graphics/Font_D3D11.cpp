@@ -1,7 +1,7 @@
 ﻿#include "Core/Graphics/Font_D3D11.hpp"
 #include "Core/FileManager.hpp"
 #include "utility/utf.hpp"
-#include "utility/encoding.hpp"
+#include "utf8.hpp"
 
 static bool findSystemFont(std::string_view name, std::string& u8_path);
 
@@ -974,7 +974,7 @@ namespace Core::Graphics
 
 bool findSystemFont(std::string_view name, std::string& u8_path)
 {
-	std::wstring wide_name(std::move(utility::encoding::to_wide(name)));
+	std::wstring wide_name(utf8::to_wstring(name));
 
 	// 打开注册表 HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts
 	// 枚举符合要求的字体
@@ -1020,7 +1020,7 @@ bool findSystemFont(std::string_view name, std::string& u8_path)
 						tPath += (WCHAR*)tKeyData;
 
 						// 返回路径
-						u8_path = std::move(utility::encoding::to_utf8(tPath));
+						u8_path = utf8::to_string(tPath);
 						return true;
 					}
 				}

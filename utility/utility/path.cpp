@@ -1,5 +1,5 @@
 ﻿#include "utility/path.hpp"
-#include "utility/encoding.hpp"
+#include "utf8.hpp"
 
 namespace utility::path
 {
@@ -143,7 +143,7 @@ namespace utility::path
     }
     bool compare(std::string_view utf8_path, std::wstring_view wide_path)
     {
-        std::wstring p1(std::move(encoding::to_wide(utf8_path)));
+        std::wstring p1(utf8::to_wstring(utf8_path));
         return compare(p1, wide_path);
     }
 }

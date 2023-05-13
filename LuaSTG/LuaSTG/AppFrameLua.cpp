@@ -20,7 +20,7 @@ extern int luaopen_socket_core(lua_State* L);
 #include "LuaBinding/Resource.hpp"
 
 #include "Core/FileManager.hpp"
-#include "utility/encoding.hpp"
+#include "utf8.hpp"
 #include "Platform/CommandLineArguments.hpp"
 
 #define WIN32_LEAN_AND_MEAN
@@ -70,7 +70,7 @@ namespace LuaSTGPlus
                 spdlog::error("[luajit] 编译'{}'失败：{}", desc, lua_tostring(L, -1));
                 MessageBoxW(
                     m_pAppModel ? (HWND)m_pAppModel->getWindow()->getNativeHandle() : NULL,
-                    utility::encoding::to_wide(
+                    utf8::to_wstring(
                         fmt::format("编译'{}'失败：{}", desc, lua_tostring(L, -1))
                     ).c_str(),
                     L"" LUASTG_INFO,
@@ -91,7 +91,7 @@ namespace LuaSTGPlus
                 spdlog::error("[luajit] 运行'{}'时出错：{}", desc, lua_tostring(L, -1));
                 MessageBoxW(
                     m_pAppModel ? (HWND)m_pAppModel->getWindow()->getNativeHandle() : NULL,
-                    utility::encoding::to_wide(
+                    utf8::to_wstring(
                         fmt::format("运行'{}'时出错：\n{}", desc, lua_tostring(L, -1))
                     ).c_str(),
                     L"" LUASTG_INFO,
@@ -132,7 +132,7 @@ namespace LuaSTGPlus
                 spdlog::error("[luajit] 调用全局函数'{}'时出错：{}", name, lua_tostring(L, -1));
                 MessageBoxW(
                     m_pAppModel ? (HWND)m_pAppModel->getWindow()->getNativeHandle() : NULL,
-                    utility::encoding::to_wide(
+                    utf8::to_wstring(
                         fmt::format("调用全局函数'{}'时出错：\n{}", name, lua_tostring(L, -1))
                     ).c_str(),
                     L"" LUASTG_INFO,
@@ -192,7 +192,7 @@ namespace LuaSTGPlus
                 spdlog::error("[luajit] 调用全局函数'{}'时出错：{}", name, lua_tostring(L, -1));
                 MessageBoxW(
                     m_pAppModel ? (HWND)m_pAppModel->getWindow()->getNativeHandle() : NULL,
-                    utility::encoding::to_wide(
+                    utf8::to_wstring(
                         fmt::format("调用全局函数'{}'时出错：\n{}", name, lua_tostring(L, -1))
                     ).c_str(),
                     L"" LUASTG_INFO,

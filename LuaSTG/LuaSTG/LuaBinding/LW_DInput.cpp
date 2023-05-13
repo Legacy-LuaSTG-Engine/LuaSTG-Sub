@@ -1,6 +1,6 @@
 #include "LuaBinding/LuaWrapper.hpp"
-#include "utility/encoding.hpp"
 #include "AppFrame.h"
+#include "utf8.hpp"
 
 namespace LuaSTGPlus
 {
@@ -171,7 +171,7 @@ namespace LuaSTGPlus
                         {
                             try
                             {
-                                std::string utf8name = std::move(utility::encoding::to_utf8(name));
+                                std::string utf8name(utf8::to_string(name));
                                 lua_pushstring(L, utf8name.c_str());
                                 return 1;
                             }
@@ -191,7 +191,7 @@ namespace LuaSTGPlus
                         {
                             try
                             {
-                                std::string utf8name = std::move(utility::encoding::to_utf8(name));
+                                std::string utf8name(utf8::to_string(name));
                                 lua_pushstring(L, utf8name.c_str());
                                 return 1;
                             }

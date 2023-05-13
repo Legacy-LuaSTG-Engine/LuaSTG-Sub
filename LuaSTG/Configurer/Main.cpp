@@ -470,7 +470,7 @@ struct Window
             }
             bool soft_dev_type = (adapter_info.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) || (adapter_info.Flags & DXGI_ADAPTER_FLAG_REMOTE);
             if (!soft_dev_type)
-                dxgi_adapter_list.emplace_back(utility::encoding::to_utf8(adapter_info.Description));
+                dxgi_adapter_list.emplace_back(utf8::to_string(adapter_info.Description));
         }
         if (dxgi_adapter_list.empty())
         {
@@ -624,7 +624,7 @@ struct Window
     }
     void updateTitle()
     {
-        std::wstring str(utility::encoding::to_wide(i18n("window-title")));
+        std::wstring str(utf8::to_wstring(i18n("window-title")));
         SetWindowTextW(win32_window, str.c_str());
     }
 
@@ -794,7 +794,7 @@ _Use_decl_annotations_ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
     }
     catch (std::runtime_error const& e)
     {
-        std::wstring err(utility::encoding::to_wide(e.what()));
+        std::wstring err(utf8::to_wstring(e.what()));
         MessageBoxW(NULL, err.c_str(), L"Error", MB_OK | MB_ICONERROR);
     }
     return 0;

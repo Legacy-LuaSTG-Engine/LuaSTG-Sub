@@ -1,9 +1,9 @@
 ﻿#include "LuaBinding/LuaWrapper.hpp"
 #include "LuaBinding/lua_utility.hpp"
 #include "Core/FileManager.hpp"
-#include "utility/encoding.hpp"
 #include "utility/path.hpp"
 #include "AppFrame.h"
+#include "utf8.hpp"
 #include "GameResource/ResourcePassword.hpp"
 
 static bool extractRes(const char* path, const char* target) noexcept
@@ -217,9 +217,9 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 		static void _EnumFilesSystem(lua_State* L, _EnumFilesConfig& cfg)
 		{
 			// path ? t 
-			std::wstring wextpath(utility::encoding::to_wide(cfg.extpath));
+			std::wstring wextpath(utf8::to_wstring(cfg.extpath));
 			std::error_code ec;
-			for (auto& p : std::filesystem::directory_iterator(utility::encoding::to_wide(cfg.searchpath), ec))
+			for (auto& p : std::filesystem::directory_iterator(utf8::to_wstring(cfg.searchpath), ec))
 			{
 				bool is_dir = p.is_directory();
 				if ((cfg.checkext || cfg.findfiles) && is_dir)
@@ -235,7 +235,7 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 					lua_pushinteger(L, cfg.index);		// path ? t index 
 					lua_createtable(L, 2, 0);			// path ? t index tt 
 					lua_pushinteger(L, 1);				// path ? t index tt 1 
-					std::string u8path(utility::encoding::to_utf8(p.path().generic_wstring()));
+					std::string u8path(utf8::to_string(p.path().generic_wstring()));
 					if (cfg.headlen) u8path = u8path.substr(cfg.headlen);
 					if (is_dir) u8path.push_back('/');
 					lua_push_string_view(L, u8path);	// path ? t index tt 1 fpath 
@@ -251,7 +251,7 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 		static void _EnumFilesArchive(lua_State* L, _EnumFilesConfig& cfg)
 		{
 			// path ? t 
-			std::wstring wextpath(utility::encoding::to_wide(cfg.extpath));
+			std::wstring wextpath(utf8::to_wstring(cfg.extpath));
 			for (size_t z = 0; z < GFileManager().getFileArchiveCount(); z += 1)
 			{
 				auto& zip = GFileManager().getFileArchive(z);
@@ -295,7 +295,7 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 						}
 						if (cfg.checkext)
 						{
-							std::filesystem::path checkpath(utility::encoding::to_wide(topath));
+							std::filesystem::path checkpath(utf8::to_wstring(topath));
 							if (checkpath.extension().wstring() != wextpath)
 							{
 								continue; // 拓展名不匹配
@@ -417,7 +417,7 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 		{
 			std::string_view const path = luaL_check_string_view(L, 1);
 			std::error_code ec;
-			std::filesystem::current_path(utility::encoding::to_wide(path), ec);
+			std::filesystem::current_path(utf8::to_wstring(path), ec);
 			if (ec)
 			{
 				lua_pushboolean(L, false);
@@ -444,7 +444,7 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 			}
 			else
 			{
-				std::string str = utility::encoding::to_utf8(path.wstring());
+				std::string str = utf8::to_string(path.wstring());
 				utility::path::to_slash(str);
 				lua_push_string_view(L, str);
 				return 1;
@@ -454,7 +454,7 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 		{
 			std::string_view const path = luaL_check_string_view(L, 1);
 			std::error_code ec;
-			bool result = std::filesystem::create_directories(utility::encoding::to_wide(path), ec);
+			bool result = std::filesystem::create_directories(utf8::to_wstring(path), ec);
 			lua_pushboolean(L, result);
 			if (ec)
 			{
@@ -471,7 +471,7 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 		{
 			std::string_view const path = luaL_check_string_view(L, 1);
 			std::error_code ec;
-			uintmax_t result = std::filesystem::remove_all(utility::encoding::to_wide(path), ec);
+			uintmax_t result = std::filesystem::remove_all(utf8::to_wstring(path), ec);
 			lua_pushboolean(L, result != static_cast<std::uintmax_t>(-1));
 			if (ec)
 			{

@@ -1,6 +1,6 @@
 ﻿#include "Core/Audio/Decoder_FLAC.hpp"
 #include "Core/FileManager.hpp"
-#include "utility/encoding.hpp"
+#include "utf8.hpp"
 
 namespace Core::Audio
 {
@@ -290,7 +290,7 @@ namespace Core::Audio
 		if (GFileManager().contain(path))
 		{
 			// 存在于文件系统，直接以文件的形式打开，flac 文件的大小也是有点离谱的
-			errno_t const result = _wfopen_s(&m_file, utility::encoding::to_wide(path).c_str(), L"rb");
+			errno_t const result = _wfopen_s(&m_file, utf8::to_wstring(path).c_str(), L"rb");
 			if (0 != result)
 			{
 				destroyResources();

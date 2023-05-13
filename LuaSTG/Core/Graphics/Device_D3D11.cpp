@@ -1,11 +1,11 @@
 ﻿#include "Core/Graphics/Device_D3D11.hpp"
 #include "Core/FileManager.hpp"
 #include "Core/i18n.hpp"
-#include "utility/encoding.hpp"
 #include "Platform/WindowsVersion.hpp"
 #include "Platform/AdapterPolicy.hpp"
 #include "Platform/CommandLineArguments.hpp"
 #include "Platform/Direct3D11.hpp"
+#include "utf8.hpp"
 
 #include "WICTextureLoader11.h"
 #include "DDSTextureLoader11.h"
@@ -284,7 +284,7 @@ namespace Core::Graphics
 			if (bHR = gHR = dxgi_adapter_temp->GetDesc1(&desc_))
 			{
 				bool soft_dev_type = (desc_.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) || (desc_.Flags & DXGI_ADAPTER_FLAG_REMOTE);
-				dev_name = std::move(utility::encoding::to_utf8(desc_.Description));
+				dev_name = utf8::to_string(desc_.Description);
 				i18n_log_info_fmt("[core].Device_D3D11.DXGI_adapter_detail_fmt"
 					, idx
 					, dev_name
@@ -991,7 +991,7 @@ namespace Core::Graphics
 				i18n_core_system_call_report_error("IDXGIAdapter1::GetDesc1");
 				assert(false); return false;
 			}
-			std::string gpu_name(std::move(utility::encoding::to_utf8(desc.Description)));
+			std::string gpu_name(utf8::to_string(desc.Description));
 			return preferred_adapter_name == gpu_name;
 		};
 		auto testStage = [&](bool nv, bool amd) -> bool
@@ -1495,7 +1495,7 @@ namespace Core::Graphics
 
 	bool Texture2D_D3D11::saveToFile(StringView path)
 	{
-		std::wstring wpath(utility::encoding::to_wide(path));
+		std::wstring wpath(utf8::to_wstring(path));
 		HRESULT hr = S_OK;
 		hr = gHR = DirectX::SaveWICTextureToFile(
 			m_device->GetD3D11DeviceContext(),

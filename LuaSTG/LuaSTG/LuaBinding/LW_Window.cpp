@@ -1,6 +1,5 @@
 #include "LuaBinding/LuaWrapper.hpp"
 #include "LuaBinding/lua_utility.hpp"
-#include "utility/encoding.hpp"
 #include "AppFrame.h"
 
 inline Core::Graphics::IWindow* _get_window()
