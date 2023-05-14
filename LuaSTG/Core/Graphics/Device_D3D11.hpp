@@ -20,7 +20,7 @@ namespace Core::Graphics
 		std::string preferred_adapter_name;
 
 		std::string dxgi_adapter_name;
-		std::vector<std::string> dxgi_adapter_names;
+		std::vector<std::string> dxgi_adapter_name_list;
 
 		DWORD dwm_acceleration_level{ 0 };
 		BOOL dxgi_support_flip_model{ FALSE };
@@ -64,7 +64,7 @@ namespace Core::Graphics
 		IDXGIAdapter1* GetDXGIAdapter1() const noexcept { return dxgi_adapter.Get(); }
 
 		std::string_view GetAdapterName() const noexcept { return dxgi_adapter_name; }
-		std::vector<std::string>& GetAdapterNameArray() { return dxgi_adapter_names; }
+		std::vector<std::string>& GetAdapterNameArray() { return dxgi_adapter_name_list; }
 
 		D3D_FEATURE_LEVEL GetD3DFeatureLevel() const noexcept { return d3d_feature_level; }
 
@@ -124,8 +124,8 @@ namespace Core::Graphics
 
 		bool recreate();
 		void setPreferenceGpu(StringView prefered_gpu) { preferred_adapter_name = prefered_gpu; }
-		uint32_t getGpuCount() { return (uint32_t)dxgi_adapter_names.size(); }
-		StringView getGpuName(uint32_t index) { return dxgi_adapter_names[index]; }
+		uint32_t getGpuCount() { return static_cast<uint32_t>(dxgi_adapter_name_list.size()); }
+		StringView getGpuName(uint32_t index) { return dxgi_adapter_name_list[index]; }
 		StringView getCurrentGpuName() const noexcept { return dxgi_adapter_name; }
 
 		void* getNativeHandle() { return d3d11_device.Get(); }
