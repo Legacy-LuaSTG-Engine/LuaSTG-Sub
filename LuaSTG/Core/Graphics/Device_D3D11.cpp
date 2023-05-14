@@ -418,10 +418,10 @@ namespace Core::Graphics
 			dxgi_adapter_name = v.adapter_name;
 			link_to_output = v.link_to_output;
 		}
-		dxgi_adapter_names.clear();
+		dxgi_adapter_name_list.clear();
 		for (auto& v : adapter_candidate)
 		{
-			dxgi_adapter_names.emplace_back(std::move(v.adapter_name));
+			dxgi_adapter_name_list.emplace_back(std::move(v.adapter_name));
 		}
 		adapter_candidate.clear();
 
@@ -589,7 +589,7 @@ namespace Core::Graphics
 		dxgi_adapter.Reset();
 
 		dxgi_adapter_name.clear();
-		dxgi_adapter_names.clear();
+		dxgi_adapter_name_list.clear();
 
 		dwm_acceleration_level = 0;
 		dxgi_support_flip_model = FALSE;
