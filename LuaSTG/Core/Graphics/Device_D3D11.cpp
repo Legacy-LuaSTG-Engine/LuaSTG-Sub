@@ -496,18 +496,6 @@ namespace Core::Graphics
 			// 不是严重错误
 		}
 		
-		if (Platform::WindowsVersion::Is8())
-		{
-			dxgi_support_flip_model = TRUE;
-		}
-		if (Platform::WindowsVersion::Is8Point1())
-		{
-			dxgi_support_low_latency = TRUE;
-		}
-		if (Platform::WindowsVersion::Is10())
-		{
-			dxgi_support_flip_model2 = TRUE;
-		}
 		if (dxgi_factory5)
 		{
 			BOOL value = FALSE;
@@ -522,19 +510,9 @@ namespace Core::Graphics
 				// 不是严重错误
 			}
 		}
-		dwm_acceleration_level = 0;
-		if (dxgi_support_flip_model) dwm_acceleration_level = 1;
-		if (dxgi_support_low_latency) dwm_acceleration_level = 2;
-		if (dxgi_support_flip_model2) dwm_acceleration_level = 3;
-		if (dxgi_support_tearing) dwm_acceleration_level = 4;
 
 		// 打印特性支持情况
-
 		i18n_log_info_fmt("[core].Device_D3D11.DXGI_detail_fmt"
-			, dwm_acceleration_level
-			, dxgi_support_flip_model  ? i18n("support") : i18n("not_support.requires_Windows_8")
-			, dxgi_support_flip_model2 ? i18n("support") : i18n("not_support.requires_Windows_10")
-			, dxgi_support_low_latency ? i18n("support") : i18n("not_support.requires_Windows_8_point_1")
 			, dxgi_support_tearing     ? i18n("support") : i18n("not_support.requires_Windows_10_and_hardware")
 		);
 
@@ -591,10 +569,6 @@ namespace Core::Graphics
 		dxgi_adapter_name.clear();
 		dxgi_adapter_name_list.clear();
 
-		dwm_acceleration_level = 0;
-		dxgi_support_flip_model = FALSE;
-		dxgi_support_low_latency = FALSE;
-		dxgi_support_flip_model2 = FALSE;
 		dxgi_support_tearing = FALSE;
 	}
 	bool Device_D3D11::createD3D11()

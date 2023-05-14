@@ -22,10 +22,6 @@ namespace Core::Graphics
 		std::string dxgi_adapter_name;
 		std::vector<std::string> dxgi_adapter_name_list;
 
-		DWORD dwm_acceleration_level{ 0 };
-		BOOL dxgi_support_flip_model{ FALSE };
-		BOOL dxgi_support_low_latency{ FALSE };
-		BOOL dxgi_support_flip_model2{ FALSE };
 		BOOL dxgi_support_tearing{ FALSE };
 
 		// Direct3D
@@ -78,9 +74,6 @@ namespace Core::Graphics
 
 		IWICImagingFactory* GetWICImagingFactory() const noexcept { return wic_factory.Get(); }
 
-		BOOL IsFlipSequentialSupport() const noexcept { return dxgi_support_flip_model; }
-		BOOL IsFrameLatencySupport() const noexcept { return dxgi_support_low_latency; }
-		BOOL IsFlipDiscardSupport() const noexcept { return dxgi_support_flip_model2; }
 		BOOL IsTearingSupport() const noexcept { return dxgi_support_tearing; }
 
 	private:
@@ -225,6 +218,7 @@ namespace Core::Graphics
 		: public Object<IRenderTarget>
 		, public IDeviceEventListener
 	{
+	private:
 		ScopeObject<Device_D3D11> m_device;
 		ScopeObject<Texture2D_D3D11> m_texture;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> d3d11_rtv;
