@@ -81,21 +81,9 @@ static std::unordered_map<std::string_view, i18n_entry_t> const g_i18n_map = {
 	}},
 	{"[core].Device_D3D11.DXGI_detail_fmt",{
 		.zh_cn = "[core] DXGI 组件功能支持：\n"
-			"    桌面窗口管理器优化级别：{}\n"
-			"    交换链模式：\n"
-			"        位块传输模式：支持\n"
-			"        序列交换模式：{}\n"
-			"        快速交换模式：{}\n"
-			"    低延迟呈现：{}\n"
 			"    立即刷新：{}"
 			,
 		.en_us = "[core] DXGI components feature support:\n"
-			"    Desktop Window Manager optimization level: {}\n"
-			"    SwapChain swap effect:\n"
-			"        Discard: support\n"
-			"        Flip Sequential: {}\n"
-			"        Flip Discard: {}\n"
-			"    Frame Latency Waitable Object: {}\n"
 			"    Present Allow Tearing: {}"
 			,
 	}},
