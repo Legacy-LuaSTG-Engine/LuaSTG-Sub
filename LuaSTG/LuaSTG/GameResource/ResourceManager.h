@@ -9,6 +9,7 @@
 #include "GameResource/ResourcePostEffectShader.hpp"
 #include "GameResource/ResourceModel.hpp"
 #include "lua.hpp"
+#include "xxhash.h"
 
 namespace LuaSTGPlus
 {
@@ -27,8 +28,50 @@ namespace LuaSTGPlus
     {
         friend class ResourceMgr;
     public:
+        struct dictionary_key_t
+        {
+        #if (SIZE_MAX == UINT32_MAX)
+            XXH32_hash_t const hash{};
+            XXH32_hash_t const check{};
+        #elif (SIZE_MAX == UINT64_MAX)
+            XXH64_hash_t const hash{};
+        #else
+            static_assert(false, "unsupported platform");
+        #endif
+
+            inline dictionary_key_t(std::string_view key) noexcept
+            #if (SIZE_MAX == UINT32_MAX)
+                : hash(XXH32(key.data(), key.size(), 0))
+                , check(XXH32(key.data(), key.size(), 0x65766F6C))
+            #elif (SIZE_MAX == UINT64_MAX)
+                : hash(XXH3_64bits(key.data(), key.size()))
+            #else
+                : __invalid_member()
+            #endif
+            {
+            }
+
+            inline bool operator==(dictionary_key_t const& right) const noexcept
+            {
+            #if (SIZE_MAX == UINT32_MAX)
+                return hash == right.hash && check == right.check;
+            #elif (SIZE_MAX == UINT64_MAX)
+                return hash == right.hash;
+            #else
+                static_assert(false, "unsupported platform");
+            #endif
+            }
+        };
+        struct dictionary_key_hash_t
+        {
+            inline size_t operator()(dictionary_key_t const& key) const noexcept
+            {
+                static_assert(sizeof(size_t) == sizeof(decltype(dictionary_key_t::hash)));
+                return key.hash;
+            }
+        };
         template<typename T>
-        using dictionary_t = std::pmr::unordered_map<std::pmr::string, T>;
+        using dictionary_t = std::pmr::unordered_map<dictionary_key_t, T, dictionary_key_hash_t>;
     private:
         ResourceMgr* m_pMgr;
         ResourcePoolType m_iType;

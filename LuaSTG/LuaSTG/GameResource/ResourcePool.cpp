@@ -32,9 +32,9 @@ namespace LuaSTGPlus
     }
 
     template<typename T>
-    void removeResource(T& pool, const char* name)
+    inline void removeResource(T& pool, const char* name)
     {
-        auto i = pool.find(name);
+        auto i = pool.find(std::string_view(name));
         if (i == pool.end())
         {
             spdlog::warn("[luastg] RemoveResource: 试图卸载一个不存在的资源 '{}'", name);
@@ -101,31 +101,28 @@ namespace LuaSTGPlus
 
     bool ResourcePool::CheckResourceExists(ResourceType t, std::string_view name) const noexcept
     {
-        std::array<char, 256> name_buf{};
-        std::pmr::monotonic_buffer_resource name_res(name_buf.data(), name_buf.size());
-        std::pmr::string name_str(name, &name_res);
         switch (t)
         {
         case ResourceType::Texture:
-            return m_TexturePool.find(name_str) != m_TexturePool.end();
+            return m_TexturePool.find(name) != m_TexturePool.end();
         case ResourceType::Sprite:
-            return m_SpritePool.find(name_str) != m_SpritePool.end();
+            return m_SpritePool.find(name) != m_SpritePool.end();
         case ResourceType::Animation:
-            return m_AnimationPool.find(name_str) != m_AnimationPool.end();
+            return m_AnimationPool.find(name) != m_AnimationPool.end();
         case ResourceType::Music:
-            return m_MusicPool.find(name_str) != m_MusicPool.end();
+            return m_MusicPool.find(name) != m_MusicPool.end();
         case ResourceType::SoundEffect:
-            return m_SoundSpritePool.find(name_str) != m_SoundSpritePool.end();
+            return m_SoundSpritePool.find(name) != m_SoundSpritePool.end();
         case ResourceType::Particle:
-            return m_ParticlePool.find(name_str) != m_ParticlePool.end();
+            return m_ParticlePool.find(name) != m_ParticlePool.end();
         case ResourceType::SpriteFont:
-            return m_SpriteFontPool.find(name_str) != m_SpriteFontPool.end();
+            return m_SpriteFontPool.find(name) != m_SpriteFontPool.end();
         case ResourceType::TrueTypeFont:
-            return m_TTFFontPool.find(name_str) != m_TTFFontPool.end();
+            return m_TTFFontPool.find(name) != m_TTFFontPool.end();
         case ResourceType::FX:
-            return m_FXPool.find(name_str) != m_FXPool.end();
+            return m_FXPool.find(name) != m_FXPool.end();
         case ResourceType::Model:
-            return m_ModelPool.find(name_str) != m_ModelPool.end();
+            return m_ModelPool.find(name) != m_ModelPool.end();
         default:
             spdlog::warn("[luastg] CheckRes: 试图检索一个不存在的资源类型({})", (int)t);
             break;
@@ -194,7 +191,7 @@ namespace LuaSTGPlus
 
     bool ResourcePool::LoadTexture(const char* name, const char* path, bool mipmaps) noexcept
     {
-        if (m_TexturePool.find(name) != m_TexturePool.end())
+        if (m_TexturePool.find(std::string_view(name)) != m_TexturePool.end())
         {
             if (ResourceMgr::GetResourceLoadingLog())
             {
@@ -232,7 +229,7 @@ namespace LuaSTGPlus
 
     bool ResourcePool::CreateTexture(const char* name, int width, int height) noexcept
     {
-        if (m_TexturePool.find(name) != m_TexturePool.end())
+        if (m_TexturePool.find(std::string_view(name)) != m_TexturePool.end())
         {
             if (ResourceMgr::GetResourceLoadingLog())
             {
@@ -271,7 +268,7 @@ namespace LuaSTGPlus
 
     bool ResourcePool::CreateRenderTarget(const char* name, int width, int height, bool depth_buffer) noexcept
     {
-        if (m_TexturePool.find(name) != m_TexturePool.end())
+        if (m_TexturePool.find(std::string_view(name)) != m_TexturePool.end())
         {
             if (ResourceMgr::GetResourceLoadingLog())
             {
@@ -322,7 +319,7 @@ namespace LuaSTGPlus
                                     double x, double y, double w, double h,
                                     double a, double b, bool rect) noexcept
     {
-        if (m_SpritePool.find(name) != m_SpritePool.end())
+        if (m_SpritePool.find(std::string_view(name)) != m_SpritePool.end())
         {
             if (ResourceMgr::GetResourceLoadingLog())
             {
@@ -377,7 +374,7 @@ namespace LuaSTGPlus
                                        double x, double y, double w, double h, int n, int m, int intv,
                                        double a, double b, bool rect) noexcept
     {
-        if (m_AnimationPool.find(name) != m_AnimationPool.end())
+        if (m_AnimationPool.find(std::string_view(name)) != m_AnimationPool.end())
         {
             if (ResourceMgr::GetResourceLoadingLog())
             {
@@ -422,7 +419,7 @@ namespace LuaSTGPlus
 
     bool ResourcePool::LoadMusic(const char* name, const char* path, double start, double end, bool once_decode) noexcept
     {
-        if (m_MusicPool.find(name) != m_MusicPool.end())
+        if (m_MusicPool.find(std::string_view(name)) != m_MusicPool.end())
         {
             if (ResourceMgr::GetResourceLoadingLog())
             {
@@ -510,7 +507,7 @@ namespace LuaSTGPlus
 
     bool ResourcePool::LoadSoundEffect(const char* name, const char* path) noexcept
     {
-        if (m_SoundSpritePool.find(name) != m_SoundSpritePool.end())
+        if (m_SoundSpritePool.find(std::string_view(name)) != m_SoundSpritePool.end())
         {
             if (ResourceMgr::GetResourceLoadingLog())
             {
@@ -563,7 +560,7 @@ namespace LuaSTGPlus
     bool ResourcePool::LoadParticle(const char* name, const hgeParticleSystemInfo& info, const char* img_name,
                                     double a,double b, bool rect, bool _nolog) noexcept
     {
-        if (m_ParticlePool.find(name) != m_ParticlePool.end())
+        if (m_ParticlePool.find(std::string_view(name)) != m_ParticlePool.end())
         {
             if (ResourceMgr::GetResourceLoadingLog())
             {
@@ -641,7 +638,7 @@ namespace LuaSTGPlus
 
     bool ResourcePool::LoadSpriteFont(const char* name, const char* path, bool mipmaps) noexcept
     {
-        if (m_SpriteFontPool.find(name) != m_SpriteFontPool.end())
+        if (m_SpriteFontPool.find(std::string_view(name)) != m_SpriteFontPool.end())
         {
             if (ResourceMgr::GetResourceLoadingLog())
             {
@@ -675,7 +672,7 @@ namespace LuaSTGPlus
 
     bool ResourcePool::LoadSpriteFont(const char* name, const char* path, const char* tex_path, bool mipmaps) noexcept
     {
-        if (m_SpriteFontPool.find(name) != m_SpriteFontPool.end())
+        if (m_SpriteFontPool.find(std::string_view(name)) != m_SpriteFontPool.end())
         {
             if (ResourceMgr::GetResourceLoadingLog())
             {
@@ -709,7 +706,7 @@ namespace LuaSTGPlus
 
     bool ResourcePool::LoadTTFFont(const char* name, const char* path, float width, float height) noexcept
     {
-        if (m_TTFFontPool.find(name) != m_TTFFontPool.end())
+        if (m_TTFFontPool.find(std::string_view(name)) != m_TTFFontPool.end())
         {
             if (ResourceMgr::GetResourceLoadingLog())
             {
@@ -755,7 +752,7 @@ namespace LuaSTGPlus
 
     bool ResourcePool::LoadTrueTypeFont(const char* name, Core::Graphics::TrueTypeFontInfo* fonts, size_t count) noexcept
     {
-        if (m_TTFFontPool.find(name) != m_TTFFontPool.end())
+        if (m_TTFFontPool.find(std::string_view(name)) != m_TTFFontPool.end())
         {
             if (ResourceMgr::GetResourceLoadingLog())
             {
@@ -796,7 +793,7 @@ namespace LuaSTGPlus
 
     bool ResourcePool::LoadFX(const char* name, const char* path) noexcept
     {
-        if (m_FXPool.find(name) != m_FXPool.end())
+        if (m_FXPool.find(std::string_view(name)) != m_FXPool.end())
         {
             if (ResourceMgr::GetResourceLoadingLog())
             {
@@ -834,7 +831,7 @@ namespace LuaSTGPlus
 
     bool ResourcePool::LoadModel(const char* name, const char* path) noexcept
     {
-        if (m_ModelPool.find(name) != m_ModelPool.end())
+        if (m_ModelPool.find(std::string_view(name)) != m_ModelPool.end())
         {
             if (ResourceMgr::GetResourceLoadingLog())
             {
@@ -868,11 +865,7 @@ namespace LuaSTGPlus
     template<typename T>
     inline T::value_type::second_type findResource(T& resource_set, std::string_view name)
     {
-        // 这里没必要初始化，因为一会构造 string 时会覆盖原有内容 (write discard)
-        std::array<char, 256> name_buf;
-        std::pmr::monotonic_buffer_resource name_res(name_buf.data(), name_buf.size());
-        std::pmr::string name_str(name, &name_res);
-        auto i = resource_set.find(name_str);
+        auto i = resource_set.find(name);
         if (i == resource_set.end())
             return nullptr;
         else
