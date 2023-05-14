@@ -126,7 +126,6 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/SteamAPI/SteamAPI.hpp
 
     LuaSTG/Utility/CircularQueue.hpp
-    LuaSTG/Utility/Dictionary.hpp
     LuaSTG/Utility/fixed_object_pool.hpp
     LuaSTG/Utility/Utility.h
     LuaSTG/Utility/ScopeObject.cpp
