@@ -845,11 +845,13 @@ namespace Core::Graphics
 		{
 			if (reset && dxgi_swapchain)
 			{
-				HRESULT hr = gHR = dxgi_swapchain->Present(1, DXGI_PRESENT_RESTART);
-				if (FAILED(hr))
-				{
-					i18n_core_system_call_report_error("IDXGISwapChain::Present -> (1, DXGI_PRESENT_RESTART)");
-				}
+				// 微软不知道写了什么狗屎bug，有时候dwm临时接管桌面合成后会导致上屏延迟多一倍
+				// 重新设置最大帧延迟并创建延迟等待对象似乎能解决该问题
+				dxgi_swapchain_event.Close();
+				Microsoft::WRL::ComPtr<IDXGISwapChain2> dxgi_swapchain2;
+				winrt::check_hresult(dxgi_swapchain.As(&dxgi_swapchain2));
+				winrt::check_hresult(dxgi_swapchain2->SetMaximumFrameLatency(1));
+				dxgi_swapchain_event.Attach(dxgi_swapchain2->GetFrameLatencyWaitableObject());
 			}
 			if (dxgi_swapchain_event.IsValid())
 			{
@@ -1538,6 +1540,7 @@ namespace Core::Graphics
 			{
 				ctx->ClearDepthStencilView(m_canvas_d3d11_dsv.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0u);
 			}
+			ctx->Flush(); // 让命令立即提交到 GPU
 		}
 	}
 
@@ -1784,12 +1787,19 @@ namespace Core::Graphics
 		{
 			if (!presentLetterBoxingRenderer()) return false;
 		}
+		m_device->GetD3D11DeviceContext()->Flush(); // 立即提交命令到 GPU
 		
 		// 呈现
 
-		UINT const interval = m_swap_chain_vsync ? 1 : 0;
+		// TODO: 这里应该使用FLIP交换链的立即丢弃机制吗
+		// 对于 FLIP 交换链来说，呈现间隔为 0 代表的是丢弃旧帧，而不是取消垂直同步，所以可以利用其来实现较低延迟的三重缓冲机制
+		UINT interval = 0;
+		if (m_swap_chain_info.SwapEffect != DXGI_SWAP_EFFECT_FLIP_DISCARD && m_swap_chain_info.SwapEffect != DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL && m_swap_chain_vsync)
+		{
+			interval = 1;
+		}
 		UINT flags = 0;
-		if (!m_swap_chain_vsync && (m_swap_chain_info.Flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING))
+		if (interval == 0 && !m_swap_chain_vsync && (m_swap_chain_info.Flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING))
 		{
 			flags |= DXGI_PRESENT_ALLOW_TEARING;
 		}
