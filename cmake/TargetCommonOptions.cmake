@@ -2,6 +2,7 @@ function(luastg_target_common_options __TARGET__)
     target_compile_options(${__TARGET__} PRIVATE
         "/MP"
         "/utf-8"
+        "$<$<CONFIG:Debug>:/ZI>"
     )
     target_link_options(${__TARGET__} PRIVATE
         "/DEPENDENTLOADFLAG:0x800" # Windows 10 1607+ 强制 DLL 搜索目录为系统目录
@@ -9,6 +10,7 @@ function(luastg_target_common_options __TARGET__)
     if(CMAKE_SIZEOF_VOID_P EQUAL 4)
         target_compile_options(${__TARGET__} PRIVATE
             "/arch:SSE2"
+            "$<$<CONFIG:Debug>:/SAFESEH:NO>"
         )
     endif()
     set_target_properties(${__TARGET__} PROPERTIES
@@ -27,6 +29,7 @@ function(luastg_target_common_options2 __TARGET__)
     target_compile_options(${__TARGET__} PRIVATE
         "/MP"
         "/utf-8"
+        "$<$<CONFIG:Debug>:/ZI>"
     )
     target_link_options(${__TARGET__} PRIVATE
         "/DEPENDENTLOADFLAG:0x800" # Windows 10 1607+ 强制 DLL 搜索目录为系统目录
@@ -34,6 +37,7 @@ function(luastg_target_common_options2 __TARGET__)
     if(CMAKE_SIZEOF_VOID_P EQUAL 4)
         target_compile_options(${__TARGET__} PRIVATE
             "/arch:SSE2"
+            "$<$<CONFIG:Debug>:/SAFESEH:NO>"
         )
     endif()
     set_target_properties(${__TARGET__} PROPERTIES
