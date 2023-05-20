@@ -354,7 +354,7 @@ namespace Core
 		{
 			ZoneScopedN("OnInitWait");
 			m_swapchain->waitFrameLatency();
-			m_ratelimit.update();
+			m_p_frame_rate_controller->update();
 		}
 		while (true)
 		{
@@ -403,7 +403,7 @@ namespace Core
 				ZoneScopedN("OnWait");
 				ScopeTimer t(d.wait_time);
 				m_swapchain->waitFrameLatency();
-				m_ratelimit.update();
+				m_p_frame_rate_controller->update();
 			}
 
 			m_framestate_index = i;
@@ -423,7 +423,7 @@ namespace Core
 		{
 			ZoneScopedN("OnInitWait");
 			m_swapchain->waitFrameLatency();
-			m_ratelimit.update();
+			m_p_frame_rate_controller->update();
 		}
 
 		// 游戏循环
@@ -616,7 +616,7 @@ namespace Core
 			ZoneScopedN("OnWait");
 			ScopeTimer t(d.wait_time);
 			m_swapchain->waitFrameLatency();
-			m_ratelimit.update();
+			m_p_frame_rate_controller->update();
 		}
 
 		m_framestate_index = i;
@@ -645,6 +645,13 @@ namespace Core
 		spdlog::info("[core] System {}", Platform::WindowsVersion::GetName());
 		spdlog::info("[core] Kernel {}", Platform::WindowsVersion::GetKernelVersionString());
 		spdlog::info("[core] CPU {} {}", InstructionSet::Vendor(), InstructionSet::Brand());
+		if (m_steady_frame_rate_controller.available()) {
+			spdlog::info("[core] High Resolution Waitable Timer available, enable SteadyFrameRateController");
+			m_p_frame_rate_controller = &m_steady_frame_rate_controller;
+		}
+		else {
+			m_p_frame_rate_controller = &m_frame_rate_controller;
+		}
 		get_system_memory_status();
 		if (!Graphics::Window_Win32::create(~m_window))
 			throw std::runtime_error("Graphics::Window_Win32::create");

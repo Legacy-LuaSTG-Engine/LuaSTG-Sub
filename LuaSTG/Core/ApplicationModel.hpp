@@ -10,6 +10,7 @@ namespace Core
 {
     struct IFrameRateController
     {
+        virtual double update() = 0;
         virtual uint32_t getTargetFPS() = 0;
         virtual void setTargetFPS(uint32_t target_FPS) = 0;
         virtual double getFPS() = 0;
