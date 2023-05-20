@@ -10,6 +10,8 @@ function(luastg_target_common_options __TARGET__)
     if(CMAKE_SIZEOF_VOID_P EQUAL 4)
         target_compile_options(${__TARGET__} PRIVATE
             "/arch:SSE2"
+        )
+        target_link_options(${__TARGET__} PRIVATE
             "$<$<CONFIG:Debug>:/SAFESEH:NO>"
         )
     endif()
@@ -37,6 +39,8 @@ function(luastg_target_common_options2 __TARGET__)
     if(CMAKE_SIZEOF_VOID_P EQUAL 4)
         target_compile_options(${__TARGET__} PRIVATE
             "/arch:SSE2"
+        )
+        target_link_options(${__TARGET__} PRIVATE
             "$<$<CONFIG:Debug>:/SAFESEH:NO>"
         )
     endif()
