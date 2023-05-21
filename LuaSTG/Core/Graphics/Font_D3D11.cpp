@@ -40,6 +40,34 @@ namespace Core::Graphics
 		}
 	};
 
+	class FT_Bitmap_Accessor
+	{
+	private:
+		FT_Bitmap const& m_bitmap;
+	public:
+		uint32_t width() const noexcept { return m_bitmap.width; }
+		uint32_t height() const noexcept { return m_bitmap.rows; }
+		uint32_t pixel(uint32_t x, uint32_t y) const noexcept
+		{
+			if (m_bitmap.pixel_mode == FT_PIXEL_MODE_MONO)
+			{
+				auto const line = (uint8_t*)m_bitmap.buffer + (y * m_bitmap.pitch);
+				auto const block = line[x / 8];
+				auto const flag = (1 << (7 - (x % 8))) & block; // 最左边的像素在最高位
+				return flag ? 0xFFFFFFFF : 0x00FFFFFF;
+			}
+			else if (m_bitmap.pixel_mode == FT_PIXEL_MODE_GRAY)
+			{
+				auto const line = (uint8_t*)m_bitmap.buffer + (y * m_bitmap.pitch);
+				return (line[x] << 24) | 0x00FFFFFF;
+			}
+			return 0;
+		}
+	public:
+		FT_Bitmap_Accessor(FT_Bitmap const& bitmap) noexcept : m_bitmap(bitmap) {}
+		~FT_Bitmap_Accessor() noexcept = default;
+	};
+
 #define G_FT_Library (SharedFreeTypeLibrary::get().lib)
 
 	// 宽度单位到像素
@@ -175,9 +203,16 @@ namespace Core::Graphics
 		}
 
 		// 检查结果
-		if (m_font.size() > 0)
+		bool is_all_open = true;
+		for (auto const& f : m_font) {
+			if (f.ft_face == nullptr) {
+				is_all_open = false;
+				break;
+			}
+		}
+		if (is_all_open)
 		{
-			// 至少找到一个fallback字体
+			// 设置最后一个字体为回落字体
 			m_font.back().is_fallback = true;
 			// 计算公共参数
 			for (auto& f : m_font)
@@ -202,6 +237,7 @@ namespace Core::Graphics
 		{
 			return false;
 		}
+		//t.texture->setPremultipliedAlpha(true); // 为了支持彩色文本，需要使用预乘 alpha 模式
 		return true;
 	}
 	bool TrueTypeGlyphManager_D3D11::findGlyph(FT_ULong code, FT_Face& face, FT_UInt& index)
@@ -279,23 +315,23 @@ namespace Core::Graphics
 		info.texture_rect.b.x = (float)(t.pen_x + bitmap.width) / (float)t.image.width;
 		info.texture_rect.b.y = (float)(t.pen_y + bitmap.rows) / (float)t.image.height;
 		// 写入 bitmap 数据，同时写入 1 像素宽的透明边缘，写的有点乱，主要是为了最大化减少 CPU Cache Miss
-		for (int x = 0; x < (int)(bitmap.width + 2); x += 1) // 上 1 像素宽的边，宽度是 bitmap 的宽度再加 2 像素
+		FT_Bitmap_Accessor accessor(bitmap);
+		for (int x = 0; x < (int)(accessor.width() + 2); x += 1) // 上 1 像素宽的边，宽度是 bitmap 的宽度再加 2 像素
 		{
 			t.image.pixel(t.pen_x - 1 + x, t.pen_y - 1) = Color4B(0x00FFFFFF);
 		}
-		for (int y = 0; y < (int)bitmap.rows; y += 1)
+		for (int y = 0; y < (int)accessor.height(); y += 1)
 		{
 			t.image.pixel(t.pen_x - 1, t.pen_y + y) = Color4B(0x00FFFFFF); // 左 1 像素宽的边
-			for (int x = 0; x < (int)bitmap.width; x += 1)
+			for (int x = 0; x < (int)accessor.width(); x += 1)
 			{
-				uint32_t const alpha = (uint32_t)bitmap.buffer[y * bitmap.pitch + x] << 24;
-				t.image.pixel(t.pen_x + x, t.pen_y + y) = Color4B(alpha | 0x00FFFFFF);
+				t.image.pixel(t.pen_x + x, t.pen_y + y) = accessor.pixel(x, y);
 			}
-			t.image.pixel(t.pen_x + bitmap.width, t.pen_y + y) = Color4B(0x00FFFFFF); // 右 1 像素宽的边
+			t.image.pixel(t.pen_x + accessor.width(), t.pen_y + y) = Color4B(0x00FFFFFF); // 右 1 像素宽的边
 		}
-		for (int x = 0; x < (int)(bitmap.width + 2); x += 1) // 下 1 像素宽的边，宽度是 bitmap 的宽度再加 2 像素
+		for (int x = 0; x < (int)(accessor.width() + 2); x += 1) // 下 1 像素宽的边，宽度是 bitmap 的宽度再加 2 像素
 		{
-			t.image.pixel(t.pen_x - 1 + x, t.pen_y + bitmap.rows) = Color4B(0x00FFFFFF);
+			t.image.pixel(t.pen_x - 1 + x, t.pen_y + accessor.height()) = Color4B(0x00FFFFFF);
 		}
 		// 更新脏区域
 		if (t.dirty_l == INVALID_RECT)
