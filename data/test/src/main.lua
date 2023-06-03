@@ -116,7 +116,7 @@ function GameExit()
 end
 function FrameFunc()
     changeGpu()
-    imgui.backend.NewFrame()
+    imgui.backend.NewFrame(true)
     imgui.ImGui.NewFrame()
     --imgui.ImGui.ShowDemoWindow()
     --imgui.backend.ShowTestInputWindow()
