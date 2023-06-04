@@ -476,67 +476,34 @@ namespace Core::Graphics
 
 		return v_support;
 	}
-	static bool checkModernSwapChainModelAvailable_()
+	static bool checkModernSwapChainModelAvailable(ID3D11Device* device)
 	{
-		// 是否需要统一开启 FLIP 交换链模型
+		// 是否需要统一开启现代交换链模型
 		// 我们划定一个红线，红线以下永远不开启，红线以上永远开启
 		// 这样可以简化逻辑的处理
 
-		// * DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT 从 Windows 8.1 开始支持，我们跳过它
-
-		if (!Platform::WindowsVersion::Is10Build17763())
-		{
-			// * DXGI_SWAP_EFFECT_FLIP_DISCARD 从 Windows 10 开始支持
-			// * 在 Windows 10 1709 (16299) Fall Creators Update 中
-			//   修复了 Frame Latency Waitable Object 和 SetMaximumFrameLatency 实际上至少有 2 帧的问题
-			// * Windows 10 1809 (17763) 是目前微软还在主流支持的最早版本
-			return false;
-		}
-
-		HRESULT hr = S_OK;
-
-		Platform::RuntimeLoader::DXGI dxgi_loader;
-		Microsoft::WRL::ComPtr<IDXGIFactory5> dxgi_factory; // 一步到位
-		hr = dxgi_loader.CreateFactory(IID_PPV_ARGS(&dxgi_factory));
-		if (FAILED(hr))
-		{
-			// https://zhuanlan.zhihu.com/p/20892856?refer=highwaytographics
-			// * 系统安装了 KB3156421 更新，也就是 Windows 10 在 2016 年 5 月 10 日的更新
-			return false;
-		}
-
-		BOOL support = FALSE;
-		constexpr UINT const data_size = static_cast<UINT>(sizeof(support));
-		hr = dxgi_factory->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &support, data_size);
-		if (FAILED(hr))
-		{
-			// 理论上不应该发生
-			assert(false); return false;
-		}
-		if (!support)
-		{
-			// * DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING 从 Windows 10 开始支持
-			// * DXGI_PRESENT_ALLOW_TEARING 从 Windows 10 开始支持
-			// * 此外还有别的要求，比如WDDM支持、MPO支持、显卡驱动支持等
-			// * 注意，就算报告支持，实际运行的时候可能仍然不允许撕裂
-			return false;
-		}
-
-		return true;
-	}
-	static bool checkModernSwapChainModelAvailable(ID3D11Device* device)
-	{
 		assert(device);
 		HRNew;
 		NTNew;
 
 		// 预检系统版本 Windows 10 1809
+		// * DXGI_SWAP_EFFECT_FLIP_DISCARD 从 Windows 10 开始支持
+		// * 在 Windows 10 1709 (16299) Fall Creators Update 中
+		//   修复了 Frame Latency Waitable Object 和 SetMaximumFrameLatency 实际上至少有 2 帧的问题
+		// * Windows 10 1809 (17763) 是目前微软还在主流支持的最早版本
+		// * DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT 从 Windows 8.1 开始支持，我们跳过它
 
 		if (!Platform::WindowsVersion::Is10Build17763()) {
 			return false;
 		}
 
 		// 检查 PresentAllowTearing
+		// * DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING 从 Windows 10 开始支持
+		// * DXGI_PRESENT_ALLOW_TEARING 从 Windows 10 开始支持
+		// * 此外还有别的要求，比如WDDM支持、MPO支持、显卡驱动支持等
+		// * 注意，就算报告支持，实际运行的时候可能仍然不允许撕裂
+		// * 系统安装了 KB3156421 更新，也就是 Windows 10 在 2016 年 5 月 10 日的更新
+		//   https://zhuanlan.zhihu.com/p/20892856?refer=highwaytographics
 
 		Microsoft::WRL::ComPtr<IDXGIFactory2> dxgi_factory;
 		HRGet = Platform::Direct3D11::GetDeviceFactory(device, &dxgi_factory);
@@ -686,6 +653,7 @@ namespace Core::Graphics
 
 	void SwapChain_D3D11::onDeviceCreate()
 	{
+		m_modern_swap_chain_available = checkModernSwapChainModelAvailable(m_device->GetD3D11Device());
 		m_scaling_renderer.AttachDevice(m_device->GetD3D11Device());
 		if (m_init) // 曾经设置过
 		{
@@ -701,6 +669,7 @@ namespace Core::Graphics
 	{
 		destroySwapChain();
 		m_scaling_renderer.DetachDevice();
+		m_modern_swap_chain_available = false;
 	}
 	void SwapChain_D3D11::onWindowCreate()
 	{
@@ -773,7 +742,7 @@ namespace Core::Graphics
 
 		// 填写交换链描述
 
-		bool const flip_available = checkModernSwapChainModelAvailable(m_device->GetD3D11Device());
+		bool const flip_available = m_modern_swap_chain_available;
 
 		m_swap_chain_info = getDefaultSwapChainInfo7();
 		m_swap_chain_fullscreen_info = {};
@@ -1703,7 +1672,7 @@ namespace Core::Graphics
 	{
 		_log("setWindowMode");
 
-		bool const flip_available = checkModernSwapChainModelAvailable(m_device->GetD3D11Device());
+		bool const flip_available = m_modern_swap_chain_available;
 		bool const disable_composition = Platform::CommandLineArguments::Get().IsOptionExist("--disable-direct-composition");
 
 		if (!disable_composition && flip_available && checkHardwareCompositionSupport(m_device->GetD3D11Device()))
@@ -1940,6 +1909,9 @@ namespace Core::Graphics
 		: m_window(p_window)
 		, m_device(p_device)
 	{
+		assert(p_window);
+		assert(p_device);
+		m_modern_swap_chain_available = checkModernSwapChainModelAvailable(m_device->GetD3D11Device());
 		m_scaling_renderer.AttachDevice(m_device->GetD3D11Device());
 		m_window->addEventListener(this);
 		m_device->addEventListener(this);
@@ -1950,6 +1922,7 @@ namespace Core::Graphics
 		m_device->removeEventListener(this);
 		destroySwapChain();
 		m_scaling_renderer.DetachDevice();
+		m_modern_swap_chain_available = false;
 		assert(m_eventobj.size() == 0);
 		assert(m_eventobj_late.size() == 0);
 	}
