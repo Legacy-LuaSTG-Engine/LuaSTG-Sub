@@ -3,6 +3,8 @@
 set(PLATFORM_SOURCES
     Platform/Shared.hpp
     Platform/RuntimeLoader/DXGI.hpp
+    Platform/RuntimeLoader/D3DKMT.hpp
+    Platform/RuntimeLoader/D3DKMT.cpp
     Platform/RuntimeLoader/Direct3D11.hpp
     Platform/RuntimeLoader/Direct2D1.hpp
     Platform/RuntimeLoader/Direct3DCompiler.hpp
