@@ -58,6 +58,7 @@ set(Core_SRC
     Core/ApplicationModel.hpp
     Core/ApplicationModel_Win32.hpp
     Core/ApplicationModel_Win32.cpp
+    Core/EventDispatcherImpl.hpp
 
     Core/Audio/Decoder.hpp
     Core/Audio/Decoder_VorbisOGG.cpp
