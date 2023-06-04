@@ -1673,7 +1673,7 @@ namespace Core::Graphics
 		_log("setWindowMode");
 
 		bool const flip_available = m_modern_swap_chain_available;
-		bool const disable_composition = Platform::CommandLineArguments::Get().IsOptionExist("--disable-direct-composition");
+		bool const disable_composition = m_disable_composition;
 
 		if (!disable_composition && flip_available && checkHardwareCompositionSupport(m_device->GetD3D11Device()))
 		{
@@ -1912,6 +1912,7 @@ namespace Core::Graphics
 		assert(p_window);
 		assert(p_device);
 		m_modern_swap_chain_available = checkModernSwapChainModelAvailable(m_device->GetD3D11Device());
+		m_disable_composition = Platform::CommandLineArguments::Get().IsOptionExist("--disable-direct-composition");
 		m_scaling_renderer.AttachDevice(m_device->GetD3D11Device());
 		m_window->addEventListener(this);
 		m_device->addEventListener(this);
