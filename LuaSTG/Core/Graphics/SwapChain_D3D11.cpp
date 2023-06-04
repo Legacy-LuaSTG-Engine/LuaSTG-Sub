@@ -6,6 +6,7 @@
 #include "Platform/DesktopWindowManager.hpp"
 #include "Platform/Direct3D11.hpp"
 #include "Platform/DXGI.hpp"
+#include "Platform/RuntimeLoader/D3DKMT.hpp"
 #include "utf8.hpp"
 
 #include "ScreenGrab11.h"
@@ -18,6 +19,12 @@
 #define HRCheckCallReport(x) if (FAILED(hr)) { i18n_core_system_call_report_error(x); }
 #define HRCheckCallReturnBool(x) if (FAILED(hr)) { i18n_core_system_call_report_error(x); assert(false); return false; }
 #define HRCheckCallNoAssertReturnBool(x) if (FAILED(hr)) { i18n_core_system_call_report_error(x); return false; }
+
+#define NTNew NTSTATUS nt{};
+#define NTGet nt
+#define NTCheckCallReport(x) if (nt != STATUS_SUCCESS) { i18n_core_system_call_report_error(x); }
+#define NTCheckCallReturnBool(x) if (nt != STATUS_SUCCESS) { i18n_core_system_call_report_error(x); assert(false); return false; }
+#define NTCheckCallNoAssertReturnBool(x) if (nt != STATUS_SUCCESS) { i18n_core_system_call_report_error(x); return false; }
 
 namespace Core::Graphics
 {
@@ -469,7 +476,7 @@ namespace Core::Graphics
 
 		return v_support;
 	}
-	static bool checkModernSwapChainModelAvailable()
+	static bool checkModernSwapChainModelAvailable_()
 	{
 		// 是否需要统一开启 FLIP 交换链模型
 		// 我们划定一个红线，红线以下永远不开启，红线以上永远开启
@@ -516,6 +523,85 @@ namespace Core::Graphics
 		}
 
 		return true;
+	}
+	static bool checkModernSwapChainModelAvailable(ID3D11Device* device)
+	{
+		assert(device);
+		HRNew;
+		NTNew;
+
+		// 预检系统版本 Windows 10 1809
+
+		if (!Platform::WindowsVersion::Is10Build17763()) {
+			return false;
+		}
+
+		// 检查 PresentAllowTearing
+
+		Microsoft::WRL::ComPtr<IDXGIFactory2> dxgi_factory;
+		HRGet = Platform::Direct3D11::GetDeviceFactory(device, &dxgi_factory);
+		HRCheckCallReturnBool("Platform::Direct3D11::GetDeviceFactory");
+		if (!Platform::DXGI::CheckFeatureSupportPresentAllowTearing(dxgi_factory.Get()))
+		{
+			return false;
+		}
+
+		// 检查 DirectFlip
+
+		Microsoft::WRL::ComPtr<IDXGIAdapter1> dxgi_adapter;
+		HRGet = Platform::Direct3D11::GetDeviceAdater(device, &dxgi_adapter);
+		HRCheckCallReturnBool("Platform::Direct3D11::GetDeviceAdater");
+		DXGI_ADAPTER_DESC1 dxgi_adapter_info{};
+		HRGet = dxgi_adapter->GetDesc1(&dxgi_adapter_info);
+		HRCheckCallReturnBool("IDXGIAdapter1::GetDesc1");
+
+		Platform::RuntimeLoader::D3DKMT d3dkmt;
+
+		D3DKMT_OPENADAPTERFROMLUID open_adapter_from_luid{};
+		open_adapter_from_luid.AdapterLuid = dxgi_adapter_info.AdapterLuid;
+		NTGet = d3dkmt.OpenAdapterFromLuid(&open_adapter_from_luid);
+		NTCheckCallReturnBool("D3DKMTOpenAdapterFromLuid");
+
+		auto auto_close_adapter = wil::scope_exit([&open_adapter_from_luid, &d3dkmt]
+			{
+				D3DKMT_CLOSEADAPTER close_adapter{};
+				close_adapter.hAdapter = open_adapter_from_luid.hAdapter;
+				NTNew;
+				NTGet = d3dkmt.CloseAdapter(&close_adapter);
+				NTCheckCallReport("D3DKMTCloseAdapter");
+			});
+		
+		D3DKMT_CREATEDEVICE create_device{};
+		create_device.hAdapter = open_adapter_from_luid.hAdapter;
+		NTGet = d3dkmt.CreateDevice(&create_device);
+		NTCheckCallReturnBool("D3DKMTCreateDevice");
+		
+		auto auto_close_device = wil::scope_exit([&create_device, &d3dkmt]
+			{
+				D3DKMT_DESTROYDEVICE destroy_device{};
+				destroy_device.hDevice = create_device.hDevice;
+				NTNew;
+				NTGet = d3dkmt.DestroyDevice(&destroy_device);
+				NTCheckCallReport("D3DKMTDestroyDevice");
+			});
+
+		auto query_adapter_info = [&open_adapter_from_luid, &d3dkmt]<typename T>(KMTQUERYADAPTERINFOTYPE type, T, std::string_view type_name) -> T {
+			T data{};
+			D3DKMT_QUERYADAPTERINFO query{};
+			query.hAdapter = open_adapter_from_luid.hAdapter;
+			query.Type = type;
+			query.pPrivateDriverData = &data;
+			query.PrivateDriverDataSize = sizeof(data);
+			NTNew;
+			NTGet = d3dkmt.QueryAdapterInfo(&query);
+			NTCheckCallReport(std::string("D3DKMTQueryAdapterInfo -> ").append(type_name));
+			return data;
+		};
+
+		// wddm 1.2
+		auto const direct_flip_caps = query_adapter_info(KMTQAITYPE_DIRECTFLIP_SUPPORT, D3DKMT_DIRECTFLIP_SUPPORT{}, "D3DKMT_DIRECTFLIP_SUPPORT");
+
+		return direct_flip_caps.Supported;
 	}
 	inline bool isModernSwapChainModel(DXGI_SWAP_CHAIN_DESC1 const& info)
 	{
@@ -677,11 +763,6 @@ namespace Core::Graphics
 			i18n_log_error("[core].SwapChain_D3D11.create_swapchain_failed_null_window");
 			assert(false); return false;
 		}
-		if (!m_device->GetDXGIFactory2()) // 强制要求平台更新
-		{
-			i18n_log_error("[core].SwapChain_D3D11.create_swapchain_failed_null_DXGI");
-			assert(false); return false;
-		}
 		if (!m_device->GetD3D11Device())
 		{
 			i18n_log_error("[core].SwapChain_D3D11.create_swapchain_failed_null_device");
@@ -692,7 +773,7 @@ namespace Core::Graphics
 
 		// 填写交换链描述
 
-		bool const flip_available = checkModernSwapChainModelAvailable();
+		bool const flip_available = checkModernSwapChainModelAvailable(m_device->GetD3D11Device());
 
 		m_swap_chain_info = getDefaultSwapChainInfo7();
 		m_swap_chain_fullscreen_info = {};
@@ -1622,7 +1703,7 @@ namespace Core::Graphics
 	{
 		_log("setWindowMode");
 
-		bool const flip_available = checkModernSwapChainModelAvailable();
+		bool const flip_available = checkModernSwapChainModelAvailable(m_device->GetD3D11Device());
 		bool const disable_composition = Platform::CommandLineArguments::Get().IsOptionExist("--disable-direct-composition");
 
 		if (!disable_composition && flip_available && checkHardwareCompositionSupport(m_device->GetD3D11Device()))

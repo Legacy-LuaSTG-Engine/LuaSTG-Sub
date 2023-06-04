@@ -29,6 +29,7 @@ namespace Core::Graphics
 
 		BOOL m_init{ FALSE };
 		bool m_is_composition_mode{ false };
+		bool m_modern_swap_chain_available{ false };
 
 	private:
 		void onDeviceCreate();
