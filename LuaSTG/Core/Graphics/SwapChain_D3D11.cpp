@@ -742,13 +742,11 @@ namespace Core::Graphics
 
 		// 填写交换链描述
 
-		bool const flip_available = m_modern_swap_chain_available;
-
 		m_swap_chain_info = getDefaultSwapChainInfo7();
 		m_swap_chain_fullscreen_info = {};
 		
 		// 切换为 FLIP 交换链模型，独占全屏也支持
-		if (flip_available)
+		if (m_modern_swap_chain_available)
 		{
 			m_swap_chain_info.BufferCount = 2;
 			m_swap_chain_info.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
@@ -774,7 +772,7 @@ namespace Core::Graphics
 			m_swap_chain_info.Width = static_cast<UINT>(rc.right - rc.left);
 			m_swap_chain_info.Height = static_cast<UINT>(rc.bottom - rc.top);
 			// 进一步配置 FLIP 交换链模型
-			if (flip_available)
+			if (m_modern_swap_chain_available)
 			{
 				m_swap_chain_info.BufferCount = 3; // 三个缓冲区能带来更平稳的性能
 				m_swap_chain_info.Scaling = DXGI_SCALING_NONE; // 禁用 DWM 对交换链的缩放
@@ -866,7 +864,6 @@ namespace Core::Graphics
 	{
 		_log("destroySwapChain");
 
-		//waitFrameLatency(INFINITE, true);
 		destroyDirectCompositionResources();
 		destroyRenderAttachment();
 		if (dxgi_swapchain)
@@ -976,8 +973,7 @@ namespace Core::Graphics
 	}
 	bool SwapChain_D3D11::enterExclusiveFullscreen()
 	{
-		bool const disable_efs = Platform::CommandLineArguments::Get().IsOptionExist("--disable-exclusive-fullscreen");
-		if (disable_efs)
+		if (m_disable_exclusive_fullscreen)
 		{
 			return false;
 		}
@@ -1079,6 +1075,7 @@ namespace Core::Graphics
 
 	bool SwapChain_D3D11::createDirectCompositionResources()
 	{
+		assert(m_modern_swap_chain_available);
 		_log("createDirectCompositionResources");
 
 		// 我们限制 DirectComposition 仅在 Windows 10+ 使用
@@ -1110,49 +1107,55 @@ namespace Core::Graphics
 		HRGet = dcomp_desktop_device->CreateTargetForHwnd(m_window->GetWindow(), TRUE, &dcomp_target);
 		HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateTargetForHwnd");
 		
-		HRGet = dcomp_desktop_device->CreateVisual(&dcomp_visual_root);
-		HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateVisual");
 		
-		HRGet = dcomp_desktop_device->CreateVisual(&dcomp_visual_background);
-		HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateVisual");
-
 		HRGet = dcomp_desktop_device->CreateVisual(&dcomp_visual_swap_chain);
 		HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateVisual");
+		
+		// 桌面合成引擎模式，创建背景平面+交换链平面
 
-		// 初始化背景
-
-		HRGet = dcomp_desktop_device->CreateSurface(
-			BACKGROUND_W, BACKGROUND_H,
-			COLOR_BUFFER_FORMAT,
-			DXGI_ALPHA_MODE_IGNORE,
-			&dcomp_surface_background);
-		HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateSurface");
-
-		if (SUCCEEDED(hr))
+		if (m_is_composition_mode)
 		{
-			Microsoft::WRL::ComPtr<IDXGISurface> dxgi_surface;
-			POINT offset = { 0, 0 };
-			HRGet = dcomp_surface_background->BeginDraw(NULL, IID_PPV_ARGS(&dxgi_surface), &offset);
-			HRCheckCallReturnBool("IDCompositionSurface::BeginDraw");
-			
-			Microsoft::WRL::ComPtr<ID3D11Resource> d3d11_res;
-			HRGet = dxgi_surface.As(&d3d11_res);
-			HRCheckCallReturnBool("IDXGISurface::QueryInterface -> ID3D11Resource");
-			
-			Microsoft::WRL::ComPtr<ID3D11RenderTargetView> d3d11_dcomp_bg_rtv;
-			HRGet = m_device->GetD3D11Device()->CreateRenderTargetView(d3d11_res.Get(), NULL, &d3d11_dcomp_bg_rtv);
-			HRCheckCallReturnBool("ID3D11Device::CreateRenderTargetView");
-			
-			FLOAT const clear_color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-			m_device->GetD3D11DeviceContext()->ClearRenderTargetView(d3d11_dcomp_bg_rtv.Get(), clear_color);
-			m_device->GetD3D11DeviceContext()->Flush();
+			HRGet = dcomp_desktop_device->CreateVisual(&dcomp_visual_root);
+			HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateVisual");
 
-			HRGet = dcomp_surface_background->EndDraw();
-			HRCheckCallReturnBool("IDCompositionSurface::EndDraw");
+			HRGet = dcomp_desktop_device->CreateVisual(&dcomp_visual_background);
+			HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateVisual");
+
+			// 初始化背景
+
+			HRGet = dcomp_desktop_device->CreateSurface(
+				BACKGROUND_W, BACKGROUND_H,
+				COLOR_BUFFER_FORMAT,
+				DXGI_ALPHA_MODE_IGNORE,
+				&dcomp_surface_background);
+			HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateSurface");
+
+			if (SUCCEEDED(hr))
+			{
+				Microsoft::WRL::ComPtr<IDXGISurface> dxgi_surface;
+				POINT offset = { 0, 0 };
+				HRGet = dcomp_surface_background->BeginDraw(NULL, IID_PPV_ARGS(&dxgi_surface), &offset);
+				HRCheckCallReturnBool("IDCompositionSurface::BeginDraw");
+
+				Microsoft::WRL::ComPtr<ID3D11Resource> d3d11_res;
+				HRGet = dxgi_surface.As(&d3d11_res);
+				HRCheckCallReturnBool("IDXGISurface::QueryInterface -> ID3D11Resource");
+
+				Microsoft::WRL::ComPtr<ID3D11RenderTargetView> d3d11_dcomp_bg_rtv;
+				HRGet = m_device->GetD3D11Device()->CreateRenderTargetView(d3d11_res.Get(), NULL, &d3d11_dcomp_bg_rtv);
+				HRCheckCallReturnBool("ID3D11Device::CreateRenderTargetView");
+
+				FLOAT const clear_color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+				m_device->GetD3D11DeviceContext()->ClearRenderTargetView(d3d11_dcomp_bg_rtv.Get(), clear_color);
+				m_device->GetD3D11DeviceContext()->Flush();
+
+				HRGet = dcomp_surface_background->EndDraw();
+				HRCheckCallReturnBool("IDCompositionSurface::EndDraw");
+			}
+
+			HRGet = dcomp_visual_background->SetContent(dcomp_surface_background.Get());
+			HRCheckCallReturnBool("IDCompositionVisual2::SetContent");
 		}
-
-		HRGet = dcomp_visual_background->SetContent(dcomp_surface_background.Get());
-		HRCheckCallReturnBool("IDCompositionVisual2::SetContent");
 		
 		// 把交换链塞进可视物
 
@@ -1164,19 +1167,30 @@ namespace Core::Graphics
 
 		// 构建视觉树
 
-		HRGet = dcomp_visual_root->AddVisual(dcomp_visual_background.Get(), TRUE, NULL);
-		HRCheckCallReturnBool("IDCompositionVisual2::AddVisual");
+		if (m_is_composition_mode)
+		{
+			HRGet = dcomp_visual_root->AddVisual(dcomp_visual_background.Get(), TRUE, NULL);
+			HRCheckCallReturnBool("IDCompositionVisual2::AddVisual");
 
-		HRGet = dcomp_visual_root->AddVisual(dcomp_visual_swap_chain.Get(), FALSE, NULL);
-		HRCheckCallReturnBool("IDCompositionVisual2::AddVisual");
+			HRGet = dcomp_visual_root->AddVisual(dcomp_visual_swap_chain.Get(), FALSE, NULL);
+			HRCheckCallReturnBool("IDCompositionVisual2::AddVisual");
 
-		HRGet = dcomp_target->SetRoot(dcomp_visual_root.Get());
-		HRCheckCallReturnBool("IDCompositionTarget::SetRoot");
+			HRGet = dcomp_target->SetRoot(dcomp_visual_root.Get());
+			HRCheckCallReturnBool("IDCompositionTarget::SetRoot");
+
+			// 设置变换并提交
+
+			if (!updateDirectCompositionTransform()) return false;
+		}
+		else
+		{
+			HRGet = dcomp_target->SetRoot(dcomp_visual_swap_chain.Get());
+			HRCheckCallReturnBool("IDCompositionTarget::SetRoot");
+
+			// 直接提交
+			if (!commitDirectComposition()) return false;
+		}
 		
-		// 设置变换并提交
-
-		if (!updateDirectCompositionTransform()) return false;
-
 		return true;
 	}
 	void SwapChain_D3D11::destroyDirectCompositionResources()
@@ -1226,6 +1240,7 @@ namespace Core::Graphics
 	}
 	bool SwapChain_D3D11::updateDirectCompositionTransform()
 	{
+		assert(m_is_composition_mode);
 		_log("updateDirectCompositionTransform");
 
 		HRNew;
@@ -1310,11 +1325,6 @@ namespace Core::Graphics
 		if (!m_window->GetWindow())
 		{
 			i18n_log_error("[core].SwapChain_D3D11.create_swapchain_failed_null_window");
-			assert(false); return false;
-		}
-		if (!m_device->GetDXGIFactory2()) // 要求平台更新
-		{
-			i18n_log_error("[core].SwapChain_D3D11.create_swapchain_failed_null_DXGI");
 			assert(false); return false;
 		}
 		if (!m_device->GetD3D11Device())
@@ -1665,6 +1675,8 @@ namespace Core::Graphics
 
 		if (!updateLetterBoxingRendererTransform()) return false;
 
+		// TODO: 对于现代交换链模型，由于使用了 DirectComposition，还需要重新设置一次 Content
+
 		return true;
 	}
 
@@ -1672,10 +1684,13 @@ namespace Core::Graphics
 	{
 		_log("setWindowMode");
 
-		bool const flip_available = m_modern_swap_chain_available;
-		bool const disable_composition = m_disable_composition;
+		if (size.x < 1 || size.y < 1)
+		{
+			i18n_log_error_fmt("[core].SwapChain_D3D11.create_swapchain_failed_invalid_size_fmt", size.x, size.y);
+			assert(false); return false;
+		}
 
-		if (!disable_composition && flip_available && checkHardwareCompositionSupport(m_device->GetD3D11Device()))
+		if (m_enable_composition || (!m_disable_composition && m_modern_swap_chain_available && checkHardwareCompositionSupport(m_device->GetD3D11Device())))
 		{
 			m_is_composition_mode = true;
 			return setCompositionWindowMode(size);
@@ -1685,29 +1700,50 @@ namespace Core::Graphics
 			m_is_composition_mode = false;
 		}
 
-		if (size.x < 1 || size.y < 1)
-		{
-			i18n_log_error_fmt("[core].SwapChain_D3D11.create_swapchain_failed_invalid_size_fmt", size.x, size.y);
-			assert(false); return false;
-		}
 		dispatchEvent(EventType::SwapChainDestroy);
 		destroySwapChain();
 
-		if (!m_window->getRedirectBitmapEnable())
+		if (m_modern_swap_chain_available)
 		{
-			m_window->setRedirectBitmapEnable(true);
-			if (!m_window->recreateWindow()) return false;
-		}
+			// 如果有重定向表面，则去除
 
-		m_canvas_size = size;
-		if (!createSwapChain(false, {}, false)) // 让它创建渲染附件
-		{
-			return false;
+			if (m_window->getRedirectBitmapEnable())
+			{
+				m_window->setRedirectBitmapEnable(false);
+				if (!m_window->recreateWindow()) return false;
+			}
+
+			m_canvas_size = size;
+			if (!createCompositionSwapChain(size, /* latency event */ true)) // 让它创建渲染附件
+			{
+				return false;
+			}
 		}
+		else
+		{
+			// 如果没有重定向表面，还得加回来
+
+			if (!m_window->getRedirectBitmapEnable())
+			{
+				m_window->setRedirectBitmapEnable(true);
+				if (!m_window->recreateWindow()) return false;
+			}
+
+			m_canvas_size = size;
+			if (!createSwapChain(false, {}, false)) // 让它创建渲染附件
+			{
+				return false;
+			}
+		}
+		
+		// 更新数据
+
 		m_init = TRUE;
-		dispatchEvent(EventType::SwapChainCreate);
-
 		if (!updateLetterBoxingRendererTransform()) return false;
+
+		// 通知各个组件交换链已重新创建
+
+		dispatchEvent(EventType::SwapChainCreate);
 
 		return true;
 	}
@@ -1833,24 +1869,23 @@ namespace Core::Graphics
 
 		// 手动合成画面的情况下，通过内接缩放渲染器来缩放显示
 
-		if (!m_is_composition_mode)
-		{
-			if (!presentLetterBoxingRenderer()) return false;
+		if (!m_is_composition_mode) {
+			if (!presentLetterBoxingRenderer()) {
+				return false;
+			}
+			m_device->GetD3D11DeviceContext()->Flush(); // 立即提交命令到 GPU
 		}
-		m_device->GetD3D11DeviceContext()->Flush(); // 立即提交命令到 GPU
 		
 		// 呈现
 
 		// TODO: 这里应该使用FLIP交换链的立即丢弃机制吗
 		// 对于 FLIP 交换链来说，呈现间隔为 0 代表的是丢弃旧帧，而不是取消垂直同步，所以可以利用其来实现较低延迟的三重缓冲机制
 		UINT interval = 0;
-		if (m_swap_chain_info.SwapEffect != DXGI_SWAP_EFFECT_FLIP_DISCARD && m_swap_chain_info.SwapEffect != DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL && m_swap_chain_vsync)
-		{
+		if (!isModernSwapChainModel(m_swap_chain_info) && m_swap_chain_vsync) {
 			interval = 1;
 		}
 		UINT flags = 0;
-		if (interval == 0 && !m_swap_chain_vsync && (m_swap_chain_info.Flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING))
-		{
+		if (interval == 0 && !m_swap_chain_vsync && (m_swap_chain_info.Flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING)) {
 			flags |= DXGI_PRESENT_ALLOW_TEARING;
 		}
 		hr = gHR = dxgi_swapchain->Present(interval, flags);
@@ -1912,6 +1947,8 @@ namespace Core::Graphics
 		assert(p_window);
 		assert(p_device);
 		m_modern_swap_chain_available = checkModernSwapChainModelAvailable(m_device->GetD3D11Device());
+		m_disable_exclusive_fullscreen = Platform::CommandLineArguments::Get().IsOptionExist("--disable-exclusive-fullscreen");
+		m_enable_composition = Platform::CommandLineArguments::Get().IsOptionExist("--enable-direct-composition");
 		m_disable_composition = Platform::CommandLineArguments::Get().IsOptionExist("--disable-direct-composition");
 		m_scaling_renderer.AttachDevice(m_device->GetD3D11Device());
 		m_window->addEventListener(this);

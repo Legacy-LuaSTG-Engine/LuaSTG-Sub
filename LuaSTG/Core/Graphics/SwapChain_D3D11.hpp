@@ -28,10 +28,11 @@ namespace Core::Graphics
 		BOOL m_swapchain_want_present_reset{ FALSE };
 
 		BOOL m_init{ FALSE };
-		bool m_is_composition_mode{ false };
 
 		bool m_modern_swap_chain_available{ false };
+		bool m_disable_exclusive_fullscreen{ false };
 		bool m_disable_composition{ false };
+		bool m_enable_composition{ false };
 
 	private:
 		void onDeviceCreate();
@@ -53,6 +54,7 @@ namespace Core::Graphics
 		bool leaveExclusiveFullscreen();
 
 	private:
+		bool m_is_composition_mode{ false };
 		Platform::RuntimeLoader::DirectComposition dcomp_loader;
 		Microsoft::WRL::ComPtr<IDCompositionDesktopDevice> dcomp_desktop_device;
 		Microsoft::WRL::ComPtr<IDCompositionTarget> dcomp_target;
