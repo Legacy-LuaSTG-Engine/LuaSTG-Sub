@@ -1705,6 +1705,7 @@ namespace Core::Graphics
 
 		if (m_modern_swap_chain_available)
 		{
+			// TODO: 这样就没法独占全屏了，因为拿不到包含的Output
 			// 如果有重定向表面，则去除
 
 			if (m_window->getRedirectBitmapEnable())
