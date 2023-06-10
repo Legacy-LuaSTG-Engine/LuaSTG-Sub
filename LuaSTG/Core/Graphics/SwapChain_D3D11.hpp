@@ -15,7 +15,7 @@ namespace Core::Graphics
 		DEVMODEW last_mode{};
 		bool is_scope{ false };
 	public:
-		void Enter(HWND window, UINT width, UINT height);
+		bool Enter(HWND window, UINT width, UINT height);
 		void Leave();
 	public:
 		inline DisplayModeUpdater() = default;
