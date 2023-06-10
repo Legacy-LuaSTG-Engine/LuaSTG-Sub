@@ -711,7 +711,7 @@ namespace Core::Graphics
 		}
 		assert(last_device.cb > 0);
 		if (last_device.cb == 0) {
-			ReportError(std::format("EnumDisplayDevicesW ({})", monitor_info.szDevice));
+			ReportError(std::format("EnumDisplayDevicesW ({})", utf8::to_string(monitor_info.szDevice)));
 			return false;
 		}
 
