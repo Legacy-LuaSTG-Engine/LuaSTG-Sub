@@ -356,126 +356,6 @@ namespace Core::Graphics
 
 		return true;
 	}
-	static bool checkHardwareCompositionSupport(ID3D11Device* device)
-	{
-		assert(device);
-
-		HRNew;
-
-		// 不是 Windows 10 则跳过
-
-		if (!IsWindows10OrGreater())
-		{
-			return false;
-		}
-
-		// 不支持画面撕裂则跳过
-
-		Microsoft::WRL::ComPtr<IDXGIFactory2> dxgi_factory;
-		Microsoft::WRL::ComPtr<ID3D11Device> d3d11_device = device;
-
-		HRGet = Platform::Direct3D11::GetDeviceFactory(d3d11_device.Get(), &dxgi_factory);
-		HRCheckCallReturnBool("ID3D11Device::GetParent -> IDXGIFactory2");
-
-		if (!Platform::DXGI::CheckFeatureSupportPresentAllowTearing(dxgi_factory.Get()))
-		{
-			return false;
-		}
-
-		// 用户禁用了 MPO 则跳过
-
-		if (Platform::DesktopWindowManager::IsOverlayTestModeExists())
-		{
-			return false;
-		}
-
-		// 检查显示输出拓扑
-
-		bool v_primary_support = true;
-		bool v_support = true;
-
-		Microsoft::WRL::ComPtr<IDXGIAdapter1> v_adapter;
-		for (UINT i_adapter = 0; SUCCEEDED(dxgi_factory->EnumAdapters1(i_adapter, &v_adapter)); i_adapter += 1)
-		{
-			Microsoft::WRL::ComPtr<IDXGIOutput> v_output;
-			for (UINT i_output = 0; SUCCEEDED(v_adapter->EnumOutputs(i_output, &v_output)); i_output += 1)
-			{
-				BOOL is_primary = FALSE;
-				BOOL overlays = FALSE;
-				UINT overlay_support = 0;
-				UINT hardware_composition_support = 0;
-
-				DXGI_OUTPUT_DESC v_output_info = {};
-				HRGet = v_output->GetDesc(&v_output_info);
-				HRCheckCallReport("IDXGIOutput::GetDesc");
-				if (SUCCEEDED(hr))
-				{
-					MONITORINFOEXW v_monitor_info = {};
-					v_monitor_info.cbSize = sizeof(v_monitor_info);
-					if (!GetMonitorInfoW(v_output_info.Monitor, &v_monitor_info))
-					{
-						hr = HRESULT_FROM_WIN32(GetLastError());
-						HRCheckCallReport("GetMonitorInfoW");
-					}
-					else
-					{
-						if (v_monitor_info.dwFlags & MONITORINFOF_PRIMARY)
-						{
-							is_primary = TRUE;
-						}
-					}
-				}
-
-				Microsoft::WRL::ComPtr<IDXGIOutput2> v_output2;
-				HRGet = v_output.As(&v_output2);
-				HRCheckCallReport("IDXGIOutput::QueryInterface -> IDXGIOutput2");
-				if (v_output2)
-				{
-					overlays = v_output2->SupportsOverlays();
-				}
-
-				Microsoft::WRL::ComPtr<IDXGIOutput3> v_output3;
-				HRGet = v_output.As(&v_output3);
-				HRCheckCallReport("IDXGIOutput::QueryInterface -> IDXGIOutput3");
-				if (v_output3)
-				{
-					HRGet = v_output3->CheckOverlaySupport(DXGI_FORMAT_B8G8R8A8_UNORM, d3d11_device.Get(), &overlay_support);
-					HRCheckCallReport("IDXGIOutput3::CheckOverlaySupport -> DXGI_FORMAT_B8G8R8A8_UNORM");
-				}
-
-				Microsoft::WRL::ComPtr<IDXGIOutput6> v_output6;
-				HRGet = v_output.As(&v_output6);
-				HRCheckCallReport("IDXGIOutput::QueryInterface -> IDXGIOutput6");
-				if (v_output6)
-				{
-					HRGet = v_output6->CheckHardwareCompositionSupport(&hardware_composition_support);
-					HRCheckCallReport("IDXGIOutput6::CheckHardwareCompositionSupport");
-				}
-
-				bool const condition1 = (overlays);
-				bool const condition2 = (overlay_support & DXGI_OVERLAY_SUPPORT_FLAG_DIRECT) && (overlay_support & DXGI_OVERLAY_SUPPORT_FLAG_SCALING);
-				bool const condition3 = (hardware_composition_support & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_FULLSCREEN);
-				if (is_primary)
-				{
-					if (!((condition1 || condition2) && condition3))
-					{
-						v_primary_support = false;
-						v_support = false;
-					}
-				}
-				else
-				{
-					// 多显示输出系统上，似乎只有主显示输出会报告多平面叠加支持
-					if (!((condition1 || condition2 || v_primary_support) && condition3))
-					{
-						v_support = false;
-					}
-				}
-			}
-		}
-
-		return v_support;
-	}
 	static bool checkModernSwapChainModelAvailable(ID3D11Device* device)
 	{
 		// 是否需要统一开启现代交换链模型
@@ -508,10 +388,7 @@ namespace Core::Graphics
 		Microsoft::WRL::ComPtr<IDXGIFactory2> dxgi_factory;
 		HRGet = Platform::Direct3D11::GetDeviceFactory(device, &dxgi_factory);
 		HRCheckCallReturnBool("Platform::Direct3D11::GetDeviceFactory");
-		if (!Platform::DXGI::CheckFeatureSupportPresentAllowTearing(dxgi_factory.Get()))
-		{
-			return false;
-		}
+		BOOL present_allow_tearing = Platform::DXGI::CheckFeatureSupportPresentAllowTearing(dxgi_factory.Get());
 
 		// 检查 DirectFlip
 
@@ -567,8 +444,223 @@ namespace Core::Graphics
 
 		// wddm 1.2
 		auto const direct_flip_caps = query_adapter_info(KMTQAITYPE_DIRECTFLIP_SUPPORT, D3DKMT_DIRECTFLIP_SUPPORT{}, "D3DKMT_DIRECTFLIP_SUPPORT");
+		// wddm 2.0
+		auto const independent_flip_support = query_adapter_info(KMTQAITYPE_INDEPENDENTFLIP_SUPPORT, D3DKMT_INDEPENDENTFLIP_SUPPORT{}, "D3DKMT_INDEPENDENTFLIP_SUPPORT");
 
-		return direct_flip_caps.Supported;
+		// 打印信息
+
+		auto bool_to_string = [](bool v) { return v ? "true" : "false"; };
+
+		spdlog::info(
+			"[core] Graphics Device: {}\n"
+			"    Direct Flip Support: {}\n"
+			"    Independent Flip Support: {}\n"
+			"    Present Allow Tearing: {}"
+			, utf8::to_string(dxgi_adapter_info.Description)
+			, bool_to_string(direct_flip_caps.Supported)
+			, bool_to_string(independent_flip_support.Supported)
+			, bool_to_string(present_allow_tearing)
+		);
+
+		return present_allow_tearing && direct_flip_caps.Supported && independent_flip_support.Supported;
+	}
+	static bool checkMultiPlaneOverlaySupport(ID3D11Device* device)
+	{
+		// 是否有多平面叠加支持，如果有，就可以提供更好的性能
+
+		assert(device);
+		HRNew;
+		NTNew;
+
+		// 用户禁用了 MPO 则跳过
+
+		if (Platform::DesktopWindowManager::IsOverlayTestModeExists()) {
+			spdlog::warn("[core] Multi Plane Overlay is disabled by user");
+			return false;
+		}
+
+		// 检查各个显示输出的支持情况
+
+		Microsoft::WRL::ComPtr<IDXGIFactory2> dxgi_factory;
+		HRGet = Platform::Direct3D11::GetDeviceFactory(device, &dxgi_factory);
+		HRCheckCallReturnBool("Platform::Direct3D11::GetDeviceFactory");
+
+		Platform::RuntimeLoader::D3DKMT d3dkmt;
+
+		Microsoft::WRL::ComPtr<IDXGIAdapter1> dxgi_adapter;
+		for (UINT adapter_index = 0; SUCCEEDED(dxgi_factory->EnumAdapters1(adapter_index, &dxgi_adapter)); adapter_index += 1) {
+			DXGI_ADAPTER_DESC1 dxgi_adapter_info{};
+			HRGet = dxgi_adapter->GetDesc1(&dxgi_adapter_info);
+			HRCheckCallReturnBool("IDXGIAdapter1::GetDesc1");
+
+			Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output;
+			for (UINT output_index = 0; SUCCEEDED(dxgi_adapter->EnumOutputs(output_index, &dxgi_output)); output_index += 1) {
+				DXGI_OUTPUT_DESC dxgi_output_info{};
+				HRGet =  dxgi_output->GetDesc(&dxgi_output_info);
+				HRCheckCallReturnBool("IDXGIOutput::GetDesc");
+
+				D3DKMT_OPENADAPTERFROMGDIDISPLAYNAME open_adapter_from_gdi{};
+				std::memcpy(open_adapter_from_gdi.DeviceName, dxgi_output_info.DeviceName, sizeof(dxgi_output_info.DeviceName));
+				NTGet = d3dkmt.OpenAdapterFromGdiDisplayName(&open_adapter_from_gdi);
+				NTCheckCallReturnBool("D3DKMTOpenAdapterFromGdiDisplayName");
+
+				auto auto_close_adapter = wil::scope_exit([&open_adapter_from_gdi, &d3dkmt]
+					{
+						D3DKMT_CLOSEADAPTER close_adapter{};
+						close_adapter.hAdapter = open_adapter_from_gdi.hAdapter;
+						NTNew;
+						NTGet = d3dkmt.CloseAdapter(&close_adapter);
+						NTCheckCallReport("D3DKMTCloseAdapter");
+					});
+
+				D3DKMT_CREATEDEVICE create_device{};
+				create_device.hAdapter = open_adapter_from_gdi.hAdapter;
+				NTGet = d3dkmt.CreateDevice(&create_device);
+				NTCheckCallReturnBool("D3DKMTCreateDevice");
+
+				auto auto_close_device = wil::scope_exit([&create_device, &d3dkmt]
+					{
+						D3DKMT_DESTROYDEVICE destroy_device{};
+						destroy_device.hDevice = create_device.hDevice;
+						NTNew;
+						NTGet = d3dkmt.DestroyDevice(&destroy_device);
+						NTCheckCallReport("D3DKMTDestroyDevice");
+					});
+
+				auto query_adapter_info = [&open_adapter_from_gdi, &d3dkmt]<typename T>(KMTQUERYADAPTERINFOTYPE type, T, std::string_view type_name) -> T {
+					T data{};
+					D3DKMT_QUERYADAPTERINFO query{};
+					query.hAdapter = open_adapter_from_gdi.hAdapter;
+					query.Type = type;
+					query.pPrivateDriverData = &data;
+					query.PrivateDriverDataSize = sizeof(data);
+					NTNew;
+					NTGet = d3dkmt.QueryAdapterInfo(&query);
+					NTCheckCallReport(std::string("D3DKMTQueryAdapterInfo -> ").append(type_name));
+					return data;
+				};
+
+				// 检查多平面叠加支持
+
+				auto mpo_support = query_adapter_info(KMTQAITYPE_MULTIPLANEOVERLAY_SUPPORT, D3DKMT_MULTIPLANEOVERLAY_SUPPORT{}, "D3DKMT_MULTIPLANEOVERLAY_SUPPORT");
+
+				// 进一步检查多平面叠加功能支持
+
+				D3DKMT_GET_MULTIPLANE_OVERLAY_CAPS get_mpo_caps{};
+				get_mpo_caps.hAdapter = open_adapter_from_gdi.hAdapter;
+				get_mpo_caps.VidPnSourceId = open_adapter_from_gdi.VidPnSourceId;
+				NTGet = d3dkmt.GetMultiPlaneOverlayCaps(&get_mpo_caps);
+				NTCheckCallReturnBool("D3DKMTGetMultiPlaneOverlayCaps");
+
+				// 检查额外的功能
+				
+				BOOL overlays = FALSE; // 我们只打印信息，但不使用这个值，因为它代表的含义并不清晰
+				Microsoft::WRL::ComPtr<IDXGIOutput2> dxgi_output2;
+				HRGet = dxgi_output.As(&dxgi_output2);
+				HRCheckCallReport("IDXGIOutput::QueryInterface -> IDXGIOutput2");
+				if (dxgi_output2)
+				{
+					overlays = dxgi_output2->SupportsOverlays();
+				}
+
+				UINT hardware_composition_support{};
+				Microsoft::WRL::ComPtr<IDXGIOutput6> dxgi_output6;
+				HRGet = dxgi_output.As(&dxgi_output6);
+				HRCheckCallReport("IDXGIOutput::QueryInterface -> IDXGIOutput6");
+				if (dxgi_output6)
+				{
+					HRGet = dxgi_output6->CheckHardwareCompositionSupport(&hardware_composition_support);
+					HRCheckCallReport("IDXGIOutput6::CheckHardwareCompositionSupport");
+				}
+
+				// 打印信息
+
+				auto bool_to_string = [](bool v) { return v ? "true" : "false"; };
+
+				spdlog::info(
+					"[core] Display Output: {} -> {}\n"
+					"    Overlays Support: {}\n"
+					"    Multi Plane Overlay:\n"
+					"        Support: {}\n"
+					"        Max Planes: {}\n"
+					"        Max RGB Planes: {}\n"
+					"        Max YUV Planes: {}\n"
+					"        Overlay Capabilities:\n"
+					"            Rotation: {}\n"
+					"            Rotation Without Independent Flip: {}\n"
+					"            Vertical Flip: {}\n"
+					"            Horizontal Flip: {}\n"
+					"            Stretch RGB: {}\n"
+					"            Stretch YUV: {}\n"
+					"            Bilinear Filter: {}\n"
+					"            High Filter: {}\n"
+					"            Shared: {}\n"
+					"            Immediate: {}\n"
+					"            Plane 0 For Virtual Mode Only: {}\n"
+					"            Version 3 DDI Support: {}\n"
+					"        Max Stretch Factor: {:.2f}x\n"
+					"        Max Shrink Factor: {:.2f}x\n"
+					"    Hardware Composition:\n"
+					"        Fullscreen: {}\n"
+					"        Windowed: {}\n"
+					"        Cursor Stretched: {}"
+					, utf8::to_string(dxgi_adapter_info.Description)
+					, utf8::to_string(dxgi_output_info.DeviceName)
+					, bool_to_string(overlays)
+					, bool_to_string(mpo_support.Supported)
+					, get_mpo_caps.MaxPlanes
+					, get_mpo_caps.MaxRGBPlanes
+					, get_mpo_caps.MaxYUVPlanes
+					, bool_to_string(get_mpo_caps.OverlayCaps.Rotation)
+					, bool_to_string(get_mpo_caps.OverlayCaps.RotationWithoutIndependentFlip)
+					, bool_to_string(get_mpo_caps.OverlayCaps.VerticalFlip)
+					, bool_to_string(get_mpo_caps.OverlayCaps.HorizontalFlip)
+					, bool_to_string(get_mpo_caps.OverlayCaps.StretchRGB)
+					, bool_to_string(get_mpo_caps.OverlayCaps.StretchYUV)
+					, bool_to_string(get_mpo_caps.OverlayCaps.BilinearFilter)
+					, bool_to_string(get_mpo_caps.OverlayCaps.HighFilter)
+					, bool_to_string(get_mpo_caps.OverlayCaps.Shared)
+					, bool_to_string(get_mpo_caps.OverlayCaps.Immediate)
+					, bool_to_string(get_mpo_caps.OverlayCaps.Plane0ForVirtualModeOnly)
+					, bool_to_string(get_mpo_caps.OverlayCaps.Version3DDISupport)
+					, get_mpo_caps.MaxStretchFactor
+					, get_mpo_caps.MaxShrinkFactor
+					, bool_to_string(hardware_composition_support & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_FULLSCREEN)
+					, bool_to_string(hardware_composition_support & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_WINDOWED)
+					, bool_to_string(hardware_composition_support & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_CURSOR_STRETCHED)
+				);
+
+				// 多平面叠加不支持
+
+				if (!mpo_support.Supported) {
+					return false;
+				}
+
+				// 平面数量少于 2（特别是 RGB 平面），那肯定是不支持了
+
+				if (get_mpo_caps.MaxPlanes < 2 || get_mpo_caps.MaxRGBPlanes < 2) {
+					return false;
+				}
+
+				// 看起来似乎不支持缩放
+
+				if (!get_mpo_caps.OverlayCaps.StretchRGB || std::abs(get_mpo_caps.MaxStretchFactor - 1.0f) < 0.1f || std::abs(get_mpo_caps.MaxShrinkFactor - 1.0f) < 0.1f) {
+					return false;
+				}
+
+				// TODO: 检测 get_mpo_caps.OverlayCaps.Immediate 的作用
+
+				// 全屏模式的合成不支持
+
+				if (!(hardware_composition_support & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_FULLSCREEN)) {
+					return false;
+				}
+			}
+		}
+
+		// 大概是支持的吧……
+
+		return true;
 	}
 	inline bool isModernSwapChainModel(DXGI_SWAP_CHAIN_DESC1 const& info)
 	{
@@ -1723,7 +1815,7 @@ namespace Core::Graphics
 			assert(false); return false;
 		}
 
-		if (m_enable_composition || (!m_disable_composition && m_modern_swap_chain_available && checkHardwareCompositionSupport(m_device->GetD3D11Device())))
+		if (m_enable_composition || (!m_disable_composition && m_modern_swap_chain_available && checkMultiPlaneOverlaySupport(m_device->GetD3D11Device())))
 		{
 			m_is_composition_mode = true;
 			return setCompositionWindowMode(size);
