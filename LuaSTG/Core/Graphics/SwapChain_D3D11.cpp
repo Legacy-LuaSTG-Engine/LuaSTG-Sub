@@ -26,6 +26,8 @@
 #define NTCheckCallReturnBool(x) if (nt != STATUS_SUCCESS) { i18n_core_system_call_report_error(x); assert(false); return false; }
 #define NTCheckCallNoAssertReturnBool(x) if (nt != STATUS_SUCCESS) { i18n_core_system_call_report_error(x); return false; }
 
+#define ReportError(x) i18n_core_system_call_report_error(x)
+
 namespace Core::Graphics
 {
 	constexpr DXGI_FORMAT const COLOR_BUFFER_FORMAT = DXGI_FORMAT_B8G8R8A8_UNORM;
@@ -679,7 +681,7 @@ namespace Core::Graphics
 		return isModernSwapChainModel(info);
 	}
 
-	void DisplayModeUpdater::Enter(HWND window, UINT width, UINT height)
+	bool DisplayModeUpdater::Enter(HWND window, UINT width, UINT height)
 	{
 		Leave();
 
@@ -691,7 +693,10 @@ namespace Core::Graphics
 
 		MONITORINFOEXW monitor_info{};
 		monitor_info.cbSize = sizeof(monitor_info);
-		GetMonitorInfoW(monitor, &monitor_info);
+		if (!GetMonitorInfoW(monitor, &monitor_info)) {
+			ReportError("GetMonitorInfoW");
+			return false;
+		}
 
 		DISPLAY_DEVICEW temp_device{};
 		temp_device.cb = sizeof(temp_device);
@@ -705,10 +710,17 @@ namespace Core::Graphics
 			temp_device.cb = sizeof(temp_device);
 		}
 		assert(last_device.cb > 0);
+		if (last_device.cb == 0) {
+			ReportError(std::format("EnumDisplayDevicesW ({})", monitor_info.szDevice));
+			return false;
+		}
 
 		last_mode = {};
 		last_mode.dmSize = sizeof(last_mode);
-		EnumDisplaySettingsExW(last_device.DeviceName, ENUM_CURRENT_SETTINGS, &last_mode, 0);
+		if (!EnumDisplaySettingsExW(last_device.DeviceName, ENUM_CURRENT_SETTINGS, &last_mode, 0)) {
+			ReportError("EnumDisplaySettingsExW");
+			return false;
+		}
 
 		std::vector<DEVMODEW> modes;
 		DEVMODEW temp_mode{};
@@ -807,10 +819,17 @@ namespace Core::Graphics
 				}
 			});
 
-		if (!modes.empty()) {
-			ChangeDisplaySettingsExW(last_device.DeviceName, &modes.at(0), nullptr, 0, nullptr);
-			is_scope = true;
+		if (modes.empty()) {
+			return false;
 		}
+
+		if (DISP_CHANGE_SUCCESSFUL != ChangeDisplaySettingsExW(last_device.DeviceName, &modes.at(0), nullptr, 0, nullptr)) {
+			ReportError("ChangeDisplaySettingsExW");
+			return false;
+		}
+
+		is_scope = true;
+		return true;
 	}
 	void DisplayModeUpdater::Leave()
 	{
@@ -1156,10 +1175,14 @@ namespace Core::Graphics
 		}
 
 		if (m_modern_swap_chain_available) {
-			m_display_mode_updater.Enter(m_window->GetWindow(), m_canvas_size.x, m_canvas_size.y);
-			m_window->setLayer(WindowLayer::TopMost);
-			Platform::MonitorList::ResizeWindowToFullScreen(m_window->GetWindow());
-			return true;
+			if (m_display_mode_updater.Enter(m_window->GetWindow(), m_canvas_size.x, m_canvas_size.y)) {
+				m_window->setLayer(WindowLayer::TopMost);
+				Platform::MonitorList::ResizeWindowToFullScreen(m_window->GetWindow());
+				return true;
+			}
+			else {
+				return false;
+			}
 		}
 
 		HRNew;
@@ -1222,12 +1245,13 @@ namespace Core::Graphics
 	{
 		if (m_modern_swap_chain_available) {
 			if (!m_swap_chain_fullscreen_mode) {
-				m_display_mode_updater.Enter(m_window->GetWindow(), m_canvas_size.x, m_canvas_size.y);
-				m_window->setLayer(WindowLayer::TopMost);
-				Platform::MonitorList::ResizeWindowToFullScreen(m_window->GetWindow());
-				m_swap_chain_fullscreen_mode = true;
+				if (m_display_mode_updater.Enter(m_window->GetWindow(), m_canvas_size.x, m_canvas_size.y)) {
+					m_swap_chain_fullscreen_mode = true;
+					m_window->setLayer(WindowLayer::TopMost);
+					Platform::MonitorList::ResizeWindowToFullScreen(m_window->GetWindow());
+					return true;
+				}
 			}
-			return true;
 		}
 
 		if (m_disable_exclusive_fullscreen)
@@ -1287,9 +1311,9 @@ namespace Core::Graphics
 	{
 		if (m_modern_swap_chain_available) {
 			if (m_swap_chain_fullscreen_mode) {
-				m_swap_chain_fullscreen_mode = false;
 				m_display_mode_updater.Leave();
 				m_window->setLayer(WindowLayer::Normal);
+				m_swap_chain_fullscreen_mode = false;
 			}
 			return true;
 		}
