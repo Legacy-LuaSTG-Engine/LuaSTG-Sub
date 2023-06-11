@@ -66,7 +66,7 @@ namespace Core::Graphics
 	{
 		LocalConstantBuffer* b{};
 		LocalVariable* v{};
-		if (!findVariable(name, b, v)) { assert(false); return false; }
+		if (!findVariable(name, b, v)) { return false; }
 		if (v->size != sizeof(value)) { assert(false); return false; }
 		memcpy(b->buffer.data() + v->offset, &value, v->size);
 		return true;
@@ -75,7 +75,7 @@ namespace Core::Graphics
 	{
 		LocalConstantBuffer* b{};
 		LocalVariable* v{};
-		if (!findVariable(name, b, v)) { assert(false); return false; }
+		if (!findVariable(name, b, v)) { return false; }
 		if (v->size != sizeof(value)) { assert(false); return false; }
 		memcpy(b->buffer.data() + v->offset, &value, v->size);
 		return true;
@@ -84,7 +84,7 @@ namespace Core::Graphics
 	{
 		LocalConstantBuffer* b{};
 		LocalVariable* v{};
-		if (!findVariable(name, b, v)) { assert(false); return false; }
+		if (!findVariable(name, b, v)) { return false; }
 		if (v->size != sizeof(value)) { assert(false); return false; }
 		memcpy(b->buffer.data() + v->offset, &value, v->size);
 		return true;
@@ -93,7 +93,7 @@ namespace Core::Graphics
 	{
 		LocalConstantBuffer* b{};
 		LocalVariable* v{};
-		if (!findVariable(name, b, v)) { assert(false); return false; }
+		if (!findVariable(name, b, v)) { return false; }
 		if (v->size != sizeof(value)) { assert(false); return false; }
 		memcpy(b->buffer.data() + v->offset, &value, v->size);
 		return true;
@@ -102,7 +102,7 @@ namespace Core::Graphics
 	{
 		std::string name_s(name);
 		auto it = m_texture2d_map.find(name_s);
-		if (it == m_texture2d_map.end()) { assert(false); return false; }
+		if (it == m_texture2d_map.end()) { return false; }
 		it->second.texture = dynamic_cast<Texture2D_D3D11*>(p_texture);
 		if (!it->second.texture) { assert(false); return false; }
 		return true;
