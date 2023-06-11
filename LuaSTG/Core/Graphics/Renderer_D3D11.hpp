@@ -208,6 +208,7 @@ namespace Core::Graphics
 		void setOrtho(BoxF const& box);
 		void setPerspective(Vector3F const& eye, Vector3F const& lookat, Vector3F const& headup, float fov, float aspect, float znear, float zfar);
 
+		inline BoxF getViewport() { return _state_set.viewport; }
 		void setViewport(BoxF const& box);
 		void setScissorRect(RectF const& rect);
 		void setViewportAndScissorRect();

@@ -137,6 +137,7 @@ namespace Core::Graphics
 		virtual void setOrtho(BoxF const& box) = 0;
 		virtual void setPerspective(Vector3F const& eye, Vector3F const& lookat, Vector3F const& headup, float fov, float aspect, float znear, float zfar) = 0;
 
+		virtual BoxF getViewport() = 0; // 应该严格限制该方法的用途
 		virtual void setViewport(BoxF const& box) = 0;
 		virtual void setScissorRect(RectF const& rect) = 0;
 		virtual void setViewportAndScissorRect() = 0;
