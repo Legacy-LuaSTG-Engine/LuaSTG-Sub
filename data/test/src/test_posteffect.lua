@@ -12,6 +12,7 @@ function M:onCreate()
     lstg.LoadImage("img:block", "tex:block", 0, 0, w, h)
     lstg.CreateRenderTarget("rt:target")
     lstg.LoadFX("fx:rgb_select", "res/rgb_select.hlsl")
+    lstg.LoadFX("fx:rgb_select_new", "res/rgb_select_new.hlsl")
     self.shader = lstg.CreatePostEffectShader("res/shader_mask.hlsl")
 
     lstg.CreateRenderTarget("rt:background_1")
@@ -82,6 +83,7 @@ function M:onDestroy()
     lstg.RemoveResource("global", 1, "tex:block")
     lstg.RemoveResource("global", 1, "rt:target")
     lstg.RemoveResource("global", 9, "fx:rgb_select")
+    lstg.RemoveResource("global", 9, "fx:rgb_select_new")
 
     lstg.RemoveResource("global", 2, "img:mask_1")
     lstg.RemoveResource("global", 1, "tex:mask_1")
@@ -101,7 +103,7 @@ end
 function M:onRender()
     lstg.PushRenderTarget("rt:target")
     window:applyCameraV()
-    lstg.Render("img:block", window.width / 2, window.height / 2, 0, 1)
+    lstg.Render("img:block", window.width * 1 / 4, window.height / 2, 0, 1)
     lstg.PopRenderTarget() -- "rt:target"
     lstg.PostEffect("fx:rgb_select", "rt:target", 6, "mul+alpha", -- 着色器名称，屏幕渲染目标，采样器类型，（最终绘制出来的）混合模式
         -- 浮点参数
@@ -111,6 +113,17 @@ function M:onRender()
         },
         -- 纹理与采样器类型参数
         {}
+    )
+
+    lstg.PushRenderTarget("rt:target")
+    window:applyCameraV()
+    lstg.Render("img:block", window.width * 3 / 4, window.height / 2, 0, 1)
+    lstg.PopRenderTarget() -- "rt:target"
+    lstg.PostEffect("rt:target", "fx:rgb_select_new", "mul+alpha", -- 屏幕渲染目标，着色器名称，（最终绘制出来的）混合模式
+        -- 其他参数
+        {
+            channel_factor = lstg.Color(255, 255 * self.r, 255 * self.g, 255 * self.b),
+        }
     )
 
     lstg.PushRenderTarget("rt:background_1")
