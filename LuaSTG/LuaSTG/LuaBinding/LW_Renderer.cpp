@@ -844,6 +844,7 @@ static int compat_PostEffect(lua_State* L)
 {
     validate_render_scope();
 
+    // PostEffectShader 对象风格
     if (lua_isuserdata(L, 1))
     {
         auto* p_effect = LuaSTG::LuaBinding::PostEffectShader::Cast(L, 1);
@@ -851,6 +852,76 @@ static int compat_PostEffect(lua_State* L)
         LR2D()->drawPostEffect(p_effect, blend);
         return 0;
     }
+
+    // 传统风格
+    if (lua_type(L, 1) == LUA_TSTRING && lua_type(L, 2) == LUA_TSTRING && lua_type(L, 3) == LUA_TSTRING && lua_type(L, 3) != LUA_TNUMBER)
+    {
+        const char* rt_name = luaL_checkstring(L, 1);
+        const char* ps_name = luaL_checkstring(L, 2);
+        const Core::Graphics::IRenderer::BlendState blend = translate_blend_3d(LuaSTGPlus::TranslateBlendMode(L, 3));
+
+        Core::ScopeObject<LuaSTGPlus::IResourceTexture> prt = LRES.FindTexture(rt_name);
+        if (!prt)
+            return luaL_error(L, "texture '%s' not found.", rt_name);
+        check_rendertarget_usage(prt);
+
+        Core::ScopeObject<LuaSTGPlus::IResourcePostEffectShader> pfx = LRES.FindFX(ps_name);
+        if (!pfx)
+            return luaL_error(L, "posteffect '%s' not found.", ps_name);
+
+        Core::Graphics::IPostEffectShader* p_effect = pfx->GetPostEffectShader();
+
+        p_effect->setTexture2D("screen_texture", prt->GetTexture());
+
+        auto const rt_size = prt->GetTexture()->getSize();
+        p_effect->setFloat4("screen_texture_size", Core::Vector4F(float(rt_size.x), float(rt_size.y), 0.0f, 0.0f));
+
+        auto const vp = LR2D()->getViewport();
+        p_effect->setFloat4("viewport", Core::Vector4F(vp.a.x, vp.a.y, vp.b.x, vp.b.y));
+
+        if (lua_istable(L, 4))
+        {
+            lua_pushnil(L);  // ... t ... nil
+            while (0 != lua_next(L, 4))
+            {
+                // ... t ... key value
+                const char* key = luaL_checkstring(L, -2);
+                if (lua_isnumber(L, -1))
+                {
+                    p_effect->setFloat(key, (float)lua_tonumber(L, -1));
+                }
+                else if (lua_isstring(L, -1))
+                {
+                    Core::ScopeObject<LuaSTGPlus::IResourceTexture> ptex = LRES.FindTexture(lua_tostring(L, -1));
+                    if (!ptex)
+                        return luaL_error(L, "texture '%s' not found.", rt_name);
+                    check_rendertarget_usage(ptex);
+                    p_effect->setTexture2D(key, ptex->GetTexture());
+                }
+                else if (lua_isuserdata(L, -1))
+                {
+                    Core::Color4B color = *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(L, -1);
+                    p_effect->setFloat4(key, Core::Vector4F(
+                        float(color.r) / 255.0f,
+                        float(color.g) / 255.0f,
+                        float(color.b) / 255.0f,
+                        float(color.a) / 255.0f
+                    ));
+                }
+                else
+                {
+                    return luaL_error(L, "PostEffect: invalid data type.");
+                }
+                lua_pop(L, 1);  // ... t ... key
+            }
+        }
+
+        LR2D()->drawPostEffect(pfx->GetPostEffectShader(), blend);
+
+        return 0;
+    }
+
+    // 下面是傻逼风格
 
     const char* ps_name = luaL_checkstring(L, 1);
     const char* rt_name = luaL_checkstring(L, 2);
