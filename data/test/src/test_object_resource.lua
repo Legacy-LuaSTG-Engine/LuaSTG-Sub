@@ -17,12 +17,22 @@ function M:onCreate()
     self.img3 = resource_set:createRectSprite("test:img:3", self.texture,   0, 128, 128, 128)
     self.img4 = resource_set:createRectSprite("test:img:4", self.texture, 128, 128, 128, 128)
 
-    self.ani1 = resource_set:createSpriteSequence("test:ani:1", {
+    local sequence = {
         self.img1,
+        self.img1,
+        self.img1,
+        --
         self.img2,
+        self.img2,
+        self.img2,
+        --
         self.img3,
+        self.img3,
+        --
         self.img4,
-    }, 8)
+    }
+
+    self.ani1 = resource_set:createSpriteSequence("test:ani:1", sequence, 8)
 
     lstg.Print(tostring(resource_set:getTexture("test:tex:1")))
     lstg.Print(tostring(resource_set:getSprite("test:img:1")))
