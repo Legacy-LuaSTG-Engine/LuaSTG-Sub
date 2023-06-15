@@ -107,6 +107,7 @@ require("test_f2dfont")
 require("test_hgefont")
 require("test_ttf")
 require("test_object_resource")
+require("test_random")
 
 function GameInit()
     window:init()
