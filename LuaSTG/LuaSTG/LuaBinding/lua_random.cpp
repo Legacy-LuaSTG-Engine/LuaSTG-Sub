@@ -118,6 +118,16 @@ private:
 		lua_pushinteger(L, self->int_gn(self->rng, std::uniform_int_distribution<lua_Integer>::param_type(0, 1)) * 2 - 1);
 		return 1;
 	}
+	static int clone(lua_State* L)
+	{
+		auto* self = Cast(L, 1);
+		auto* other = Create(L);
+		other->rng = self->rng;
+		other->int_gn = self->int_gn;
+		other->num_gn = self->num_gn;
+		other->seed = self->seed;
+		return 1;
+	}
 
 	static int __gc(lua_State* L)
 	{
@@ -158,12 +168,14 @@ public:
 			{ "integer", &integer },
 			{ "number", &number },
 			{ "sign", &sign },
+			{ "clone", &clone },
 			// compatible api
 			{ "Seed", &seed },
 			{ "GetSeed", &seed },
 			{ "Int", &integer },
 			{ "Float", &number },
 			{ "Sign", &sign },
+			{ "Clone", &clone },
 			{ NULL, NULL }
 		};
 
@@ -348,6 +360,16 @@ private:
 		lua_pushinteger(L, self->int_gn(self->rng, std::uniform_int_distribution<lua_Integer>::param_type(0, 1)) * 2 - 1);
 		return 1;
 	}
+	static int clone(lua_State* L)
+	{
+		auto* self = Cast(L, 1);
+		auto* other = Create(L);
+		other->rng = self->rng;
+		other->int_gn = self->int_gn;
+		other->num_gn = self->num_gn;
+		other->seed = self->seed;
+		return 1;
+	}
 
 	static int __gc(lua_State* L)
 	{
@@ -388,12 +410,14 @@ public:
 			{ "integer", &integer },
 			{ "number", &number },
 			{ "sign", &sign },
+			{ "clone", &clone },
 			// compatible api
 			{ "Seed", &seed },
 			{ "GetSeed", &seed },
 			{ "Int", &integer },
 			{ "Float", &number },
 			{ "Sign", &sign },
+			{ "Clone", &clone },
 			{ NULL, NULL }
 		};
 
@@ -565,6 +589,16 @@ private:
 		lua_pushinteger(L, self->int_gn(self->rng, std::uniform_int_distribution<lua_Integer>::param_type(0, 1)) * 2 - 1);
 		return 1;
 	}
+	static int clone(lua_State* L)
+	{
+		auto* self = Cast(L, 1);
+		auto* other = Create(L);
+		other->rng = self->rng;
+		other->int_gn = self->int_gn;
+		other->num_gn = self->num_gn;
+		other->seed = self->seed;
+		return 1;
+	}
 
 	static int __gc(lua_State* L)
 	{
@@ -605,12 +639,14 @@ public:
 			{ "integer", &integer },
 			{ "number", &number },
 			{ "sign", &sign },
+			{ "clone", &clone },
 			// compatible api
 			{ "Seed", &seed },
 			{ "GetSeed", &seed },
 			{ "Int", &integer },
 			{ "Float", &number },
 			{ "Sign", &sign },
+			{ "Clone", &clone },
 			{ NULL, NULL }
 		};
 
