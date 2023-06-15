@@ -33,6 +33,7 @@ public:
 	fcyRandomWELL512();
 	/// @brief 指定种子初始化随机数发生器
 	fcyRandomWELL512(uint32_t Seed);
+	fcyRandomWELL512(fcyRandomWELL512 const&) = default;
 	~fcyRandomWELL512();
 };
 
@@ -153,6 +154,14 @@ namespace LuaSTGPlus::LuaWrapper
 				lua_pushinteger(L, (lua_Integer)p->GetRandUInt(1) * 2 - 1);
 				return 1;
 			}
+			static int Clone(lua_State* L)noexcept
+			{
+				GETUDATA(self, 1);
+				RandomizerWrapper::CreateAndPush(L);
+				GETUDATA(other, -1);
+				*other = *self;
+				return 1;
+			}
 			static int Meta_ToString(lua_State* L)noexcept
 			{
 				lua_pushfstring(L, LUASTG_LUA_TYPENAME_RANDGEN);
@@ -168,6 +177,7 @@ namespace LuaSTGPlus::LuaWrapper
 			{ "Int", &Function::Int },
 			{ "Float", &Function::Float },
 			{ "Sign", &Function::Sign },
+			{ "Clone", &Function::Clone },
 			{ NULL, NULL }
 		};
 
