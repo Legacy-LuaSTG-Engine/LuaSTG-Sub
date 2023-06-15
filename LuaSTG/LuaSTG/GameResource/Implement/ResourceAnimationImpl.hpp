@@ -1,5 +1,6 @@
 #pragma once
 #include "GameResource/ResourceTexture.hpp"
+#include "GameResource/ResourceSprite.hpp"
 #include "GameResource/ResourceAnimation.hpp"
 #include "GameResource/Implement/ResourceBaseImpl.hpp"
 
@@ -29,6 +30,10 @@ namespace LuaSTGPlus
 		ResourceAnimationImpl(const char* name, Core::ScopeObject<IResourceTexture> tex,
 			float x, float y, float w, float h,
 			int n, int m, int intv,
+			double a, double b, bool rect = false);
+		ResourceAnimationImpl(const char* name,
+			std::vector<Core::ScopeObject<IResourceSprite>> const& sprite_list,
+			int intv,
 			double a, double b, bool rect = false);
 	};
 }
