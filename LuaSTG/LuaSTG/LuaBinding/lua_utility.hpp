@@ -69,6 +69,8 @@ namespace lua
 
 		inline stack_index_t index_of_top() { return lua_gettop(L); }
 
+		inline void pop_value() { lua_pop(L, 1); }
+
 		// C -> lua
 
 		template<typename T>
@@ -161,6 +163,10 @@ namespace lua
 		template<>
 		inline void set_array_value(stack_index_t index, std::string_view value) { lua_pushlstring(L, value.data(), value.size()); lua_rawseti(L, -2, index.value); }
 
+		inline size_t get_array_size(stack_index_t index) { return lua_objlen(L, index.value); }
+
+		inline void push_array_value_zero_base(stack_index_t array_index, size_t c_index) { lua_rawgeti(L, array_index.value, static_cast<int>(c_index + 1)); }
+
 		// C -> lua map
 
 		inline stack_index_t create_map(size_t reserve = 0u) { lua_createtable(L, 0, static_cast<int>(reserve)); return index_of_top(); }
@@ -225,12 +231,29 @@ namespace lua
 		inline bool get_value(stack_index_t index) { return lua_toboolean(L, index.value); }
 
 		template<>
+		inline int32_t get_value(stack_index_t index) { return (int32_t)luaL_checkinteger(L, index.value); }
+
+		template<>
 		inline float get_value(stack_index_t index) { return (float)luaL_checknumber(L, index.value); }
 		template<>
 		inline double get_value(stack_index_t index) { return luaL_checknumber(L, index.value); }
 
 		template<>
 		inline std::string_view get_value(stack_index_t index) { size_t len = 0; char const* str = luaL_checklstring(L, index.value, &len); return { str, len }; }
+
+		// lua -> C (with default value)
+
+		template<typename T>
+		inline T get_value(stack_index_t index, T default_value) { typename T::__invalid_type__ _{}; }
+
+		template<>
+		inline bool get_value(stack_index_t index, bool default_value) { if (is_value(index)) return lua_toboolean(L, index.value); else return default_value; }
+
+		template<>
+		inline float get_value(stack_index_t index, float default_value) { if (is_value(index)) return (float)luaL_checknumber(L, index.value); else return default_value; }
+
+		template<>
+		inline double get_value(stack_index_t index, double default_value) { if (is_value(index)) return luaL_checknumber(L, index.value); else return default_value; }
 
 		// userdata
 
@@ -239,6 +262,18 @@ namespace lua
 		{
 			return static_cast<T*>(lua_newuserdata(L, sizeof(T)));
 		}
+
+		// type
+
+		inline bool is_value(stack_index_t index) { return lua_type(L, index.value) != LUA_TNONE; }
+		inline bool is_nil(stack_index_t index) { return lua_type(L, index.value) != LUA_TNIL; }
+		inline bool is_boolean(stack_index_t index) { return lua_type(L, index.value) == LUA_TBOOLEAN; }
+		inline bool is_number(stack_index_t index) { return lua_type(L, index.value) == LUA_TNUMBER; }
+		inline bool is_string(stack_index_t index) { return lua_type(L, index.value) == LUA_TSTRING; }
+		inline bool is_table(stack_index_t index) { return lua_type(L, index.value) == LUA_TTABLE; }
+		inline bool is_function(stack_index_t index) { return lua_type(L, index.value) == LUA_TFUNCTION; }
+		inline bool is_userdata(stack_index_t index) { return lua_type(L, index.value) == LUA_TUSERDATA; }
+		inline bool is_light_userdata(stack_index_t index) { return lua_type(L, index.value) == LUA_TLIGHTUSERDATA; }
 
 		// package system
 
