@@ -415,6 +415,41 @@ namespace LuaSTGPlus
         return true;
     }
 
+    bool ResourcePool::CreateAnimation(const char* name,
+        std::vector<Core::ScopeObject<IResourceSprite>> const& sprite_list,
+        int intv,
+        double a, double b, bool rect) noexcept
+    {
+        if (m_AnimationPool.find(std::string_view(name)) != m_AnimationPool.end())
+        {
+            if (ResourceMgr::GetResourceLoadingLog())
+            {
+                spdlog::warn("[luastg] CreateAnimation: 动画精灵 '{}' 已存在，创建操作已取消", name);
+            }
+            return true;
+        }
+
+        try {
+            Core::ScopeObject<IResourceAnimation> tRes;
+            tRes.attach(
+                new ResourceAnimationImpl(name, sprite_list, intv, a, b, rect)
+            );
+            m_AnimationPool.emplace(name, tRes);
+        }
+        catch (std::exception const& e)
+        {
+            spdlog::error("[luastg] CreateAnimation: 创建动画精灵 '{}' 失败 ({})", name, e.what());
+            return false;
+        }
+
+        if (ResourceMgr::GetResourceLoadingLog())
+        {
+            spdlog::info("[luastg] CreateAnimation: 已创建动画精灵 '{}' ({})", name, getResourcePoolTypeName());
+        }
+
+        return true;
+    }
+
     // 加载音乐
 
     bool ResourcePool::LoadMusic(const char* name, const char* path, double start, double end, bool once_decode) noexcept

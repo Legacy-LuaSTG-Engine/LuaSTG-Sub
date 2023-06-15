@@ -107,6 +107,10 @@ namespace LuaSTGPlus
         bool CreateAnimation(const char* name, const char* texname,
                              double x, double y, double w, double h, int n, int m, int intv,
                              double a, double b, bool rect = false) noexcept;
+        bool CreateAnimation(const char* name,
+            std::vector<Core::ScopeObject<IResourceSprite>> const& sprite_list,
+            int intv,
+            double a, double b, bool rect = false) noexcept;
         // 音乐
         bool LoadMusic(const char* name, const char* path, double start, double end, bool once_decode) noexcept;
         // 音效

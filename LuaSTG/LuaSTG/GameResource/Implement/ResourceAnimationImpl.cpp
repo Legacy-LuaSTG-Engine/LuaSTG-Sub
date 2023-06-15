@@ -44,6 +44,23 @@ namespace LuaSTGPlus
 			}
 		}
 	}
+	ResourceAnimationImpl::ResourceAnimationImpl(
+		const char* name,
+		std::vector<Core::ScopeObject<IResourceSprite>> const& sprite_list,
+		int intv,
+		double a, double b, bool rect)
+		: ResourceBaseImpl(ResourceType::Animation, name)
+		, m_Interval(intv)
+		, m_HalfSizeX(a)
+		, m_HalfSizeY(b)
+		, m_bRectangle(rect)
+	{
+		m_sprites.reserve(sprite_list.size());
+		for (auto v : sprite_list)
+		{
+			m_sprites.push_back(v->GetSprite());
+		}
+	}
 
 	Core::Graphics::ISprite* ResourceAnimationImpl::GetSprite(uint32_t index)
 	{
