@@ -409,9 +409,9 @@ namespace LuaSTG::Sub::LuaBinding
 		}
 	};
 
-	struct ResourceSet
+	struct ResourceCollection
 	{
-		static constexpr std::string_view const ClassID{ "LuaSTG.Sub.ResourceSet" };
+		static constexpr std::string_view const ClassID{ "LuaSTG.Sub.ResourceCollection" };
 
 		LuaSTGPlus::ResourcePool* data;
 
@@ -634,20 +634,20 @@ namespace LuaSTG::Sub::LuaBinding
 			return 1;
 		}
 
-		static ResourceSet* create(lua_State* L)
+		static ResourceCollection* create(lua_State* L)
 		{
 			lua::stack_t S(L);
 
-			auto* self = S.create_userdata<ResourceSet>();
+			auto* self = S.create_userdata<ResourceCollection>();
 			auto const self_index = S.index_of_top();
 			S.set_metatable(self_index, ClassID);
 
 			self->data = nullptr;
 			return self;
 		}
-		static ResourceSet* cast(lua_State* L, int idx)
+		static ResourceCollection* cast(lua_State* L, int idx)
 		{
-			return static_cast<ResourceSet*>(luaL_checkudata(L, idx, ClassID.data()));
+			return static_cast<ResourceCollection*>(luaL_checkudata(L, idx, ClassID.data()));
 		}
 		static void registerClass(lua_State* L)
 		{
@@ -678,7 +678,7 @@ namespace LuaSTG::Sub::LuaBinding
 
 			// 暂时不暴露出创建接口
 			//auto const M = S.push_module("lstg");
-			//S.set_map_value(M, "ResourceSet", class_table);
+			//S.set_map_value(M, "ResourceCollection", class_table);
 		}
 	};
 
@@ -686,11 +686,11 @@ namespace LuaSTG::Sub::LuaBinding
 	{
 		static constexpr std::string_view const ClassID{ "LuaSTG.Sub.ResourceManager" };
 
-		static int api_getResourceSet(lua_State* L)
+		static int api_getResourceCollection(lua_State* L)
 		{
 			lua::stack_t S(L);
 			auto const name = S.get_value<std::string_view>(1);
-			auto* set = ResourceSet::create(L);
+			auto* set = ResourceCollection::create(L);
 			if (name == "global") {
 				set->data = LRES.GetResourcePool(LuaSTGPlus::ResourcePoolType::Global);
 			}
@@ -711,7 +711,7 @@ namespace LuaSTG::Sub::LuaBinding
 			// class
 
 			auto const class_table = S.create_map();
-			S.set_map_value(class_table, "getResourceSet", &api_getResourceSet);
+			S.set_map_value(class_table, "getResourceCollection", &api_getResourceCollection);
 
 			// register
 
@@ -727,7 +727,7 @@ int luaopen_LuaSTG_Sub(lua_State* L)
 	LuaSTG::Sub::LuaBinding::ResourceTexture::registerClass(L);
 	LuaSTG::Sub::LuaBinding::ResourceRectSprite::registerClass(L);
 	LuaSTG::Sub::LuaBinding::ResourceSpriteSequence::registerClass(L);
-	LuaSTG::Sub::LuaBinding::ResourceSet::registerClass(L);
+	LuaSTG::Sub::LuaBinding::ResourceCollection::registerClass(L);
 	LuaSTG::Sub::LuaBinding::ResourceManager::registerClass(L);
 	//S.push_module("LuaSTG.Sub");
 	//lua_pushnil(L);
