@@ -12,10 +12,10 @@ function M:onCreate()
     local texture_size = self.texture:getSize()
     lstg.Print(string.format("texture size: %dx%d", texture_size.x, texture_size.y))
 
-    self.img1 = resource_collection:createRectSprite("test:img:1", self.texture,   0,   0, 128, 128)
-    self.img2 = resource_collection:createRectSprite("test:img:2", self.texture, 128,   0, 128, 128)
-    self.img3 = resource_collection:createRectSprite("test:img:3", self.texture,   0, 128, 128, 128)
-    self.img4 = resource_collection:createRectSprite("test:img:4", self.texture, 128, 128, 128, 128)
+    self.img1 = resource_collection:createSprite("test:img:1", self.texture,   0,   0, 128, 128)
+    self.img2 = resource_collection:createSprite("test:img:2", self.texture, 128,   0, 128, 128)
+    self.img3 = resource_collection:createSprite("test:img:3", self.texture,   0, 128, 128, 128)
+    self.img4 = resource_collection:createSprite("test:img:4", self.texture, 128, 128, 128, 128)
 
     local sequence = {
         self.img1,
