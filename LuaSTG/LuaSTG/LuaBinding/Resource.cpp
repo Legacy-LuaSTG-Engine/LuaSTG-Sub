@@ -237,9 +237,9 @@ namespace LuaSTG::Sub::LuaBinding
 		}
 	};
 
-	struct ResourceRectSprite
+	struct ResourceSprite
 	{
-		static constexpr std::string_view const ClassID{ "LuaSTG.Sub.ResourceRectSprite" };
+		static constexpr std::string_view const ClassID{ "LuaSTG.Sub.ResourceSprite" };
 
 		LuaSTGPlus::IResourceSprite* data;
 
@@ -276,20 +276,20 @@ namespace LuaSTG::Sub::LuaBinding
 			return 1;
 		}
 
-		static ResourceRectSprite* create(lua_State* L)
+		static ResourceSprite* create(lua_State* L)
 		{
 			lua::stack_t S(L);
 
-			auto* self = S.create_userdata<ResourceRectSprite>();
+			auto* self = S.create_userdata<ResourceSprite>();
 			auto const self_index = S.index_of_top();
 			S.set_metatable(self_index, ClassID);
 
 			self->data = nullptr;
 			return self;
 		}
-		static ResourceRectSprite* cast(lua_State* L, int idx)
+		static ResourceSprite* cast(lua_State* L, int idx)
 		{
-			return static_cast<ResourceRectSprite*>(luaL_checkudata(L, idx, ClassID.data()));
+			return static_cast<ResourceSprite*>(luaL_checkudata(L, idx, ClassID.data()));
 		}
 		static void registerClass(lua_State* L)
 		{
@@ -430,7 +430,7 @@ namespace LuaSTG::Sub::LuaBinding
 			tex->data = res.detach(); // 转移所有权
 			return 1;
 		}
-		static int api_createRectSprite(lua_State* L)
+		static int api_createSprite(lua_State* L)
 		{
 			lua::stack_t S(L);
 			auto* self = cast(L, 1);
@@ -459,7 +459,7 @@ namespace LuaSTG::Sub::LuaBinding
 				return luaL_error(L, "load image failed (name='%s', tex='%s').", sprite_name.data(), texture->GetResName().data());
 			}
 			auto res = self->data->GetSprite(sprite_name);
-			auto* sprite = ResourceRectSprite::create(L);
+			auto* sprite = ResourceSprite::create(L);
 			sprite->data = res.detach(); // 转移所有权
 			return 1;
 		}
@@ -508,7 +508,7 @@ namespace LuaSTG::Sub::LuaBinding
 				for (size_t index = 0; index < sprite_count; index += 1)
 				{
 					S.push_array_value_zero_base(3, index);
-					auto* p_sprite = ResourceRectSprite::cast(L, -1);
+					auto* p_sprite = ResourceSprite::cast(L, -1);
 					S.pop_value();
 					sprite_list.push_back(p_sprite->data);
 				}
@@ -554,7 +554,7 @@ namespace LuaSTG::Sub::LuaBinding
 				sprite = self->data->GetSprite(sprite_name);
 			}
 			else {
-				auto* p_sprite = ResourceRectSprite::cast(L, 2);
+				auto* p_sprite = ResourceSprite::cast(L, 2);
 				sprite = p_sprite->data;
 			}
 			if (sprite) {
@@ -602,7 +602,7 @@ namespace LuaSTG::Sub::LuaBinding
 			if (!res) {
 				return luaL_error(L, "can't find sprite '%s'.", sprite_name.data());
 			}
-			auto* sprite = ResourceRectSprite::create(L);
+			auto* sprite = ResourceSprite::create(L);
 			sprite->data = res.detach(); // 转移所有权
 			return 1;
 		}
@@ -658,7 +658,7 @@ namespace LuaSTG::Sub::LuaBinding
 
 			auto const method_table = S.create_map();
 			S.set_map_value(method_table, "createTextureFromFile", &api_createTextureFromFile);
-			S.set_map_value(method_table, "createRectSprite", &api_createRectSprite);
+			S.set_map_value(method_table, "createSprite", &api_createSprite);
 			S.set_map_value(method_table, "createSpriteSequence", &api_createSpriteSequence);
 			S.set_map_value(method_table, "removeTexture", &api_removeTexture);
 			S.set_map_value(method_table, "removeSprite", &api_removeSprite);
@@ -725,7 +725,7 @@ int luaopen_LuaSTG_Sub(lua_State* L)
 {
 	lua::stack_t S(L);
 	LuaSTG::Sub::LuaBinding::ResourceTexture::registerClass(L);
-	LuaSTG::Sub::LuaBinding::ResourceRectSprite::registerClass(L);
+	LuaSTG::Sub::LuaBinding::ResourceSprite::registerClass(L);
 	LuaSTG::Sub::LuaBinding::ResourceSpriteSequence::registerClass(L);
 	LuaSTG::Sub::LuaBinding::ResourceCollection::registerClass(L);
 	LuaSTG::Sub::LuaBinding::ResourceManager::registerClass(L);
