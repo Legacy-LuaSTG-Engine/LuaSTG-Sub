@@ -383,6 +383,18 @@ private:
 		other->seed = self->seed;
 		return 1;
 	}
+	static int serialize(lua_State* L)noexcept
+	{
+		Data* self = Cast(L, 1);
+		lua_pushstring(L, self->rng.serialize().c_str());
+		return 1;
+	}
+	static int deserialize(lua_State* L)noexcept
+	{
+		Data* self = Cast(L, 1);
+		lua_pushboolean(L, self->rng.deserialize(luaL_checkstring(L, 2)));
+		return 1;
+	}
 
 	static int __gc(lua_State* L)
 	{
@@ -424,6 +436,8 @@ public:
 			{ "number", &number },
 			{ "sign", &sign },
 			{ "clone", &clone },
+			{ "serialize", &serialize },
+			{ "deserialize", &deserialize },
 			// compatible api
 			{ "Seed", &seed },
 			{ "GetSeed", &seed },
@@ -457,11 +471,238 @@ public:
 	}
 };
 
+namespace random
+{
+	class pcg32_oneseq_ex : public pcg32_oneseq
+	{
+	protected:
+		std::string_view name() { return "pcg32-oneseq"; }
+	public:
+		template<typename... Args>
+		pcg32_oneseq_ex(Args&&... args) : pcg32_oneseq(std::forward<Args>(args)...) {}
+
+		std::string serialize()
+		{
+			std::ostringstream ss;
+			ss << name()
+				<< "-" << multiplier()
+				<< "-" << increment()
+				<< "-" << state_;
+			return ss.str();
+		}
+		bool deserialize(std::string const& data)
+		{
+			if (!data.starts_with(name())) {
+				return false;
+			}
+			std::string tail = data.substr(name().size() + 1);
+			for (auto& c : tail) {
+				if (c == '-') {
+					c = ' ';
+				}
+			}
+			std::istringstream ss(tail);
+			try {
+				state_type v_multiplier{};
+				state_type v_increment{};
+				state_type v_state{};
+				ss >> v_multiplier >> v_increment >> v_state;
+				bool good = true;
+				if (v_multiplier != multiplier()) {
+					good = false;
+				}
+				else if (can_specify_stream) {
+					set_stream(v_increment >> 1);
+				}
+				else if (v_increment != increment()) {
+					good = false;
+				}
+				if (good) {
+					state_ = v_state;
+				}
+				return good;
+			}
+			catch (std::exception const& e) {
+				std::ignore = e;
+			}
+			return false;
+		}
+	};
+
+	class pcg32_fast_ex : public pcg32_fast
+	{
+	protected:
+		std::string_view name() { return "pcg32-fast"; }
+	public:
+		template<typename... Args>
+		pcg32_fast_ex(Args&&... args) : pcg32_fast(std::forward<Args>(args)...) {}
+
+		std::string serialize()
+		{
+			std::ostringstream ss;
+			ss << name()
+				<< "-" << multiplier()
+				<< "-" << increment()
+				<< "-" << state_;
+			return ss.str();
+		}
+		bool deserialize(std::string const& data)
+		{
+			if (!data.starts_with(name())) {
+				return false;
+			}
+			std::string tail = data.substr(name().size() + 1);
+			for (auto& c : tail) {
+				if (c == '-') {
+					c = ' ';
+				}
+			}
+			std::istringstream ss(tail);
+			try {
+				state_type v_multiplier{};
+				state_type v_increment{};
+				state_type v_state{};
+				ss >> v_multiplier >> v_increment >> v_state;
+				bool good = true;
+				if (v_multiplier != multiplier()) {
+					good = false;
+				}
+				else if (can_specify_stream) {
+					set_stream(v_increment >> 1);
+				}
+				else if (v_increment != increment()) {
+					good = false;
+				}
+				if (good) {
+					state_ = v_state;
+				}
+				return good;
+			}
+			catch (std::exception const& e) {
+				std::ignore = e;
+			}
+			return false;
+		}
+	};
+
+	class pcg64_oneseq_ex : public pcg64_oneseq
+	{
+	protected:
+		std::string_view name() { return "pcg64-oneseq"; }
+	public:
+		template<typename... Args>
+		pcg64_oneseq_ex(Args&&... args) : pcg64_oneseq(std::forward<Args>(args)...) {}
+
+		std::string serialize()
+		{
+			std::ostringstream ss;
+			ss << name()
+				<< "-" << multiplier()
+				<< "-" << increment()
+				<< "-" << state_;
+			return ss.str();
+		}
+		bool deserialize(std::string const& data)
+		{
+			if (!data.starts_with(name())) {
+				return false;
+			}
+			std::string tail = data.substr(name().size() + 1);
+			for (auto& c : tail) {
+				if (c == '-') {
+					c = ' ';
+				}
+			}
+			std::istringstream ss(tail);
+			try {
+				state_type v_multiplier{};
+				state_type v_increment{};
+				state_type v_state{};
+				ss >> v_multiplier >> v_increment >> v_state;
+				bool good = true;
+				if (v_multiplier != multiplier()) {
+					good = false;
+				}
+				else if (can_specify_stream) {
+					set_stream(v_increment >> 1);
+				}
+				else if (v_increment != increment()) {
+					good = false;
+				}
+				if (good) {
+					state_ = v_state;
+				}
+				return good;
+			}
+			catch (std::exception const& e) {
+				std::ignore = e;
+			}
+			return false;
+		}
+	};
+
+	class pcg64_fast_ex : public pcg64_fast
+	{
+	protected:
+		std::string_view name() { return "pcg64-fast"; }
+	public:
+		template<typename... Args>
+		pcg64_fast_ex(Args&&... args) : pcg64_fast(std::forward<Args>(args)...) {}
+
+		std::string serialize()
+		{
+			std::ostringstream ss;
+			ss << name()
+				<< "-" << multiplier()
+				<< "-" << increment()
+				<< "-" << state_;
+			return ss.str();
+		}
+		bool deserialize(std::string const& data)
+		{
+			if (!data.starts_with(name())) {
+				return false;
+			}
+			std::string tail = data.substr(name().size() + 1);
+			for (auto& c : tail) {
+				if (c == '-') {
+					c = ' ';
+				}
+			}
+			std::istringstream ss(tail);
+			try {
+				state_type v_multiplier{};
+				state_type v_increment{};
+				state_type v_state{};
+				ss >> v_multiplier >> v_increment >> v_state;
+				bool good = true;
+				if (v_multiplier != multiplier()) {
+					good = false;
+				}
+				else if (can_specify_stream) {
+					set_stream(v_increment >> 1);
+				}
+				else if (v_increment != increment()) {
+					good = false;
+				}
+				if (good) {
+					state_ = v_state;
+				}
+				return good;
+			}
+			catch (std::exception const& e) {
+				std::ignore = e;
+			}
+			return false;
+		}
+	};
+}
+
 #define MAKE_TYPE(T) \
-	template class RandomBasePCG<T>;\
-	std::string_view const RandomBasePCG<T>::ClassID("random." #T);\
-	std::string_view const RandomBasePCG<T>::CreateID(#T);\
-	using lua_##T##_t = RandomBasePCG<T>;
+	template class RandomBasePCG<random::T##_ex>;\
+	std::string_view const RandomBasePCG<random::T##_ex>::ClassID("random." #T);\
+	std::string_view const RandomBasePCG<random::T##_ex>::CreateID(#T);\
+	using lua_##T##_t = RandomBasePCG<random::T##_ex>;
 
 // pcg family
 
