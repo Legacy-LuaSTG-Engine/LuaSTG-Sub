@@ -30,7 +30,24 @@ namespace LuaSTG::Sub::LuaBinding
 			lua::stack_t S(L);
 			auto* self = cast(L, 1);
 			auto const result = self->data->GetTexture()->getSize();
-			S.push_vector2(result);
+			S.push_value(result.x);
+			S.push_value(result.y);
+			return 2;
+		}
+		static int api_getWidth(lua_State* L)
+		{
+			lua::stack_t S(L);
+			auto* self = cast(L, 1);
+			auto const result = self->data->GetTexture()->getSize();
+			S.push_value(result.x);
+			return 1;
+		}
+		static int api_getHeight(lua_State* L)
+		{
+			lua::stack_t S(L);
+			auto* self = cast(L, 1);
+			auto const result = self->data->GetTexture()->getSize();
+			S.push_value(result.y);
 			return 1;
 		}
 
@@ -94,7 +111,9 @@ namespace LuaSTG::Sub::LuaBinding
 			auto const method_table = S.create_map();
 			S.set_map_value(method_table, "getResourceType", &api_getResourceType);
 			S.set_map_value(method_table, "getResourceName", &api_getResourceName);
-			S.set_map_value(method_table, "getSize", &api_getSize);
+			//S.set_map_value(method_table, "getSize", &api_getSize);
+			S.set_map_value(method_table, "getWidth", &api_getWidth);
+			S.set_map_value(method_table, "getHeight", &api_getHeight);
 
 			// metatable
 
