@@ -123,7 +123,7 @@ std::string fcyRandomWELL512::Serialize()
 bool fcyRandomWELL512::Deserialize(std::string const& data)
 {
 	constexpr std::string_view head("well512-");
-	if (data.starts_with(head)) {
+	if (!data.starts_with(head)) {
 		return false;
 	}
 	std::string tail = data.substr(head.size());
