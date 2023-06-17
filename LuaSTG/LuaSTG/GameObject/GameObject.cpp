@@ -498,7 +498,7 @@ namespace LuaSTGPlus
 						BlendMode blend = ani->GetBlendMode();
 						// setup
 						ani->GetSprite(idx)->GetSprite()->setColor(Core::Color4B(vertexcolor));
-						ani->SetBlendMode(blend);
+						ani->SetBlendMode(blendmode);
 						LAPP.Render(
 							ani,
 							static_cast<int>(ani_timer),
