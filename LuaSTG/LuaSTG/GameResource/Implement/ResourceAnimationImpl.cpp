@@ -83,4 +83,36 @@ namespace LuaSTGPlus
 	{
 		return m_sprites[GetSpriteIndexByTimer(ani_timer)].get();
 	}
+	void ResourceAnimationImpl::Render(int timer, float x, float y, float rot, float hscale, float vscale, float z)
+	{
+		Core::Graphics::ISprite* pSprite = GetSpriteByTimer(timer)->GetSprite();
+		// 备份状态
+		Core::Color4B color_backup[4] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+		pSprite->getColor(color_backup);
+		float const z_backup = pSprite->getZ();
+		// 设置状态
+		pSprite->setColor(m_vertex_color);
+		pSprite->setZ(z);
+		// 渲染
+		LAPP.updateGraph2DBlendMode(GetBlendMode());
+		pSprite->draw(Core::Vector2F(x, y), Core::Vector2F(hscale, vscale), rot);
+		// 还原状态
+		pSprite->setColor(color_backup);
+		pSprite->setZ(z_backup);
+	}
+	void ResourceAnimationImpl::Render(int timer, float x, float y, float rot, float hscale, float vscale, BlendMode blend, Core::Color4B color, float z)
+	{
+		// 备份状态
+		BlendMode blend_backup = GetBlendMode();
+		Core::Color4B color_backup[4] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+		GetVertexColor(color_backup);
+		// 设置状态
+		SetBlendMode(blend);
+		SetVertexColor(color);
+		// 渲染
+		Render(timer, x, y, rot, hscale, vscale, z);
+		// 还原状态
+		SetBlendMode(blend_backup);
+		SetVertexColor(color_backup);
+	}
 }

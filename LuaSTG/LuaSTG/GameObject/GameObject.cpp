@@ -438,8 +438,7 @@ namespace LuaSTGPlus
 					);
 					break;
 				case ResourceType::Animation:
-					LAPP.Render(
-						static_cast<IResourceAnimation*>(res),
+					static_cast<IResourceAnimation*>(res)->Render(
 						static_cast<int>(ani_timer),
 						static_cast<float>(x),
 						static_cast<float>(y),
@@ -489,29 +488,16 @@ namespace LuaSTGPlus
 					} while (false);
 					break;
 				case ResourceType::Animation:
-					do {
-						auto* ani = static_cast<IResourceAnimation*>(res);
-						uint32_t const idx = ani->GetSpriteIndexByTimer((int)ani_timer);
-						// backup
-						Core::Color4B color[4] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
-						ani->GetSprite(idx)->GetSprite()->getColor(color);
-						BlendMode blend = ani->GetBlendMode();
-						// setup
-						ani->GetSprite(idx)->GetSprite()->setColor(Core::Color4B(vertexcolor));
-						ani->SetBlendMode(blendmode);
-						LAPP.Render(
-							ani,
-							static_cast<int>(ani_timer),
-							static_cast<float>(x),
-							static_cast<float>(y),
-							static_cast<float>(rot),
-							static_cast<float>(hscale) * gscale,
-							static_cast<float>(vscale) * gscale
-						);
-						// restore
-						ani->GetSprite(idx)->GetSprite()->setColor(color);
-						ani->SetBlendMode(blend);
-					} while (false);
+					static_cast<IResourceAnimation*>(res)->Render(
+						static_cast<int>(ani_timer),
+						static_cast<float>(x),
+						static_cast<float>(y),
+						static_cast<float>(rot),
+						static_cast<float>(hscale) * gscale,
+						static_cast<float>(vscale) * gscale,
+						blendmode,
+						Core::Color4B(vertexcolor)
+					);
 					break;
 				case ResourceType::Particle:
 					if (ps)

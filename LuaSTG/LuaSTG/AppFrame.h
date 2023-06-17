@@ -211,9 +211,6 @@ namespace LuaSTGPlus
 		/// @brief 渲染图像
 		bool Render(IResourceSprite* p, float x, float y, float rot = 0, float hscale = 1, float vscale = 1, float z = 0.5)noexcept;
 		
-		/// @brief 渲染动画
-		bool Render(IResourceAnimation* p, int ani_timer, float x, float y, float rot = 0, float hscale = 1, float vscale = 1)noexcept;
-		
 		/// @brief 渲染粒子
 		bool Render(IParticlePool* p, float hscale = 1, float vscale = 1)noexcept;
 		
