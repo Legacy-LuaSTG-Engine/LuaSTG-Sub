@@ -404,10 +404,11 @@ namespace LuaSTG::Sub::LuaBinding
 				auto* p_tex = ResourceTexture::cast(L, 3);
 				texture = p_tex->data;
 			}
-			auto const x = S.get_value<float>(4);
-			auto const y = S.get_value<float>(5);
-			auto const width = S.get_value<float>(6);
-			auto const height = S.get_value<float>(7);
+			auto const x = S.get_value<float>(4, 0.0f);
+			auto const y = S.get_value<float>(5, 0.0f);
+			auto const texture_size = texture->GetTexture()->getSize();
+			auto const width = S.get_value<float>(6, float(texture_size.x));
+			auto const height = S.get_value<float>(7, float(texture_size.y));
 			auto const a = S.get_value<float>(8, 0.0f);
 			auto const b = S.get_value<float>(9, 0.0f);
 			auto const rect = S.get_value<bool>(10, false);
