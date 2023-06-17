@@ -33,8 +33,8 @@ function M:onCreate()
             lstg.Print(i, rng:sign())
         end
     end
-    test_random()
-    test_random()
+    --test_random()
+    --test_random()
 
     local function test_clone1()
         local rnd = lstg.Rand()
@@ -92,6 +92,49 @@ function M:onCreate()
         end
     end
     test_serialize()
+
+    local function test_random_case(name)
+        local random = require("random")
+        ---@class random.generator
+        local rng = random[name]()
+
+        for _ = 1, 1000 do
+            rng:integer(11, 20)
+            rng:number(114.514, 1919.810)
+        end
+
+        local state = rng:serialize()
+        lstg.Print(state)
+
+        ---@class random.generator
+        local rng2 = random[name]()
+        assert(rng2:deserialize(state))
+
+        for _ = 1, 1000 do
+            local v1 = rng:integer(11, 20)
+            local v2 = rng2:integer(11, 20)
+            local f1 = rng:number(114.514, 1919.810)
+            local f2 = rng2:number(114.514, 1919.810)
+            assert(v1 == v2)
+            assert(f1 == f2)
+        end
+    end
+    test_random_case("splitmix64")
+    test_random_case("xoshiro128p")
+    test_random_case("xoshiro128pp")
+    test_random_case("xoshiro128ss")
+    test_random_case("xoroshiro128p")
+    test_random_case("xoroshiro128pp")
+    test_random_case("xoroshiro128ss")
+    test_random_case("xoshiro256p")
+    test_random_case("xoshiro256pp")
+    test_random_case("xoshiro256ss")
+    test_random_case("xoshiro512p")
+    test_random_case("xoshiro512pp")
+    test_random_case("xoshiro512ss")
+    test_random_case("xoroshiro1024s")
+    test_random_case("xoroshiro1024pp")
+    test_random_case("xoroshiro1024ss")
 end
 
 function M:onDestroy()
