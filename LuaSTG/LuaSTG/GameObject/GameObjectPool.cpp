@@ -665,7 +665,7 @@ namespace LuaSTGPlus
 					auto* ani = static_cast<IResourceAnimation*>(p->res);
 					ani->SetBlendMode(m);
 					for (size_t i = 0; i < ani->GetCount(); ++i)
-						ani->GetSprite(i)->setColor(c);
+						ani->GetSprite(i)->GetSprite()->setColor(c);
 				} while (false);
 				break;
 			default:

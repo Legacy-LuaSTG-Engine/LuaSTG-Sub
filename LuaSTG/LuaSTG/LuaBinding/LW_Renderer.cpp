@@ -171,7 +171,7 @@ static RenderError api_drawSprite4V(char const* name, float const x1, float cons
 
 static RenderError api_drawSpriteSequence(LuaSTGPlus::IResourceAnimation* pani2dres, int const ani_timer, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {
-    Core::Graphics::ISprite* p_sprite = pani2dres->GetSpriteByTimer(ani_timer);
+    Core::Graphics::ISprite* p_sprite = pani2dres->GetSpriteByTimer(ani_timer)->GetSprite();
     auto* ctx = LR2D();
     translate_blend(ctx, pani2dres->GetBlendMode());
     p_sprite->setZ(z);

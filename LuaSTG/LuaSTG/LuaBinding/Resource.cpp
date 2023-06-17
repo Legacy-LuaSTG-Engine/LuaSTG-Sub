@@ -3,10 +3,6 @@
 
 namespace LuaSTG::Sub::LuaBinding
 {
-#define check_self_data() if (self->data == nullptr) return luaL_error(L, "null pointer exception");
-#define get_self() auto* self = cast(L, 1);
-#define API(x) static int api_##x##(lua_State* L)
-
 	static constexpr std::string_view const ModuleID{ "LuaSTG.Sub" };
 
 	struct ResourceTexture
@@ -17,22 +13,22 @@ namespace LuaSTG::Sub::LuaBinding
 
 		static int api_getResourceType(lua_State* L)
 		{
-			get_self();
 			lua::stack_t S(L);
+			auto* self = cast(L, 1);
 			S.push_value(static_cast<int32_t>(self->data->GetType()));
 			return 1;
 		}
 		static int api_getResourceName(lua_State* L)
 		{
-			get_self();
 			lua::stack_t S(L);
+			auto* self = cast(L, 1);
 			S.push_value(self->data->GetResName());
 			return 1;
 		}
 		static int api_getSize(lua_State* L)
 		{
-			get_self();
 			lua::stack_t S(L);
+			auto* self = cast(L, 1);
 			auto const result = self->data->GetTexture()->getSize();
 			S.push_vector2(result);
 			return 1;
@@ -110,19 +106,38 @@ namespace LuaSTG::Sub::LuaBinding
 
 		LuaSTGPlus::IResourceSprite* data;
 
+		// IResource
 		static int api_getResourceType(lua_State* L)
 		{
-			get_self();
 			lua::stack_t S(L);
+			auto* self = cast(L, 1);
 			S.push_value(static_cast<int32_t>(self->data->GetType()));
 			return 1;
 		}
 		static int api_getResourceName(lua_State* L)
 		{
-			get_self();
 			lua::stack_t S(L);
+			auto* self = cast(L, 1);
 			S.push_value(self->data->GetResName());
 			return 1;
+		}
+		// IResourceSprite
+		static int api_setCenter(lua_State* L)
+		{
+			lua::stack_t S(L);
+			auto* self = cast(L, 1);
+			auto const x = S.get_value<float>(2);
+			auto const y = S.get_value<float>(3);
+			self->data->GetSprite()->setTextureCenter(Core::Vector2F(x, y));
+			return 0;
+		}
+		static int api_setUnitsPerPixel(lua_State* L)
+		{
+			lua::stack_t S(L);
+			auto* self = cast(L, 1);
+			auto const v = S.get_value<float>(2);
+			self->data->GetSprite()->setUnitsPerPixel(v);
+			return 0;
 		}
 
 		static int api___gc(lua_State* L)
@@ -168,6 +183,8 @@ namespace LuaSTG::Sub::LuaBinding
 			auto const method_table = S.create_map();
 			S.set_map_value(method_table, "getResourceType", &api_getResourceType);
 			S.set_map_value(method_table, "getResourceName", &api_getResourceName);
+			S.set_map_value(method_table, "setCenter", &api_setCenter);
+			S.set_map_value(method_table, "setUnitsPerPixel", &api_setUnitsPerPixel);
 
 			// metatable
 
@@ -198,15 +215,15 @@ namespace LuaSTG::Sub::LuaBinding
 
 		static int api_getResourceType(lua_State* L)
 		{
-			get_self();
 			lua::stack_t S(L);
+			auto* self = cast(L, 1);
 			S.push_value(static_cast<int32_t>(self->data->GetType()));
 			return 1;
 		}
 		static int api_getResourceName(lua_State* L)
 		{
-			get_self();
 			lua::stack_t S(L);
+			auto* self = cast(L, 1);
 			S.push_value(self->data->GetResName());
 			return 1;
 		}
