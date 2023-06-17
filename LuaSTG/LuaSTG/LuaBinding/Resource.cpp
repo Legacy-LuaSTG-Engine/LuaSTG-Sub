@@ -51,6 +51,19 @@ namespace LuaSTG::Sub::LuaBinding
 			S.push_value<std::string_view>(ClassID);
 			return 1;
 		}
+		static int api___eq(lua_State* L)
+		{
+			lua::stack_t S(L);
+			auto* self = cast(L, 1);
+			if (S.is_userdata(2)) {
+				auto* other = cast(L, 2);
+				S.push_value(self->data == other->data);
+			}
+			else {
+				S.push_value(false);
+			}
+			return 1;
+		}
 
 		static ResourceTexture* create(lua_State* L)
 		{
@@ -84,6 +97,7 @@ namespace LuaSTG::Sub::LuaBinding
 			auto const metatable = S.create_metatable(ClassID);
 			S.set_map_value(metatable, "__gc", &api___gc);
 			S.set_map_value(metatable, "__tostring", &api___tostring);
+			S.set_map_value(metatable, "__eq", &api___eq);
 			S.set_map_value(metatable, "__index", method_table);
 
 			// factory
@@ -157,6 +171,19 @@ namespace LuaSTG::Sub::LuaBinding
 			S.push_value<std::string_view>(ClassID);
 			return 1;
 		}
+		static int api___eq(lua_State* L)
+		{
+			lua::stack_t S(L);
+			auto* self = cast(L, 1);
+			if (S.is_userdata(2)) {
+				auto* other = cast(L, 2);
+				S.push_value(self->data == other->data);
+			}
+			else {
+				S.push_value(false);
+			}
+			return 1;
+		}
 
 		static ResourceSprite* create(lua_State* L)
 		{
@@ -191,6 +218,7 @@ namespace LuaSTG::Sub::LuaBinding
 			auto const metatable = S.create_metatable(ClassID);
 			S.set_map_value(metatable, "__gc", &api___gc);
 			S.set_map_value(metatable, "__tostring", &api___tostring);
+			S.set_map_value(metatable, "__eq", &api___eq);
 			S.set_map_value(metatable, "__index", method_table);
 
 			// factory
@@ -245,6 +273,19 @@ namespace LuaSTG::Sub::LuaBinding
 			S.push_value<std::string_view>(ClassID);
 			return 1;
 		}
+		static int api___eq(lua_State* L)
+		{
+			lua::stack_t S(L);
+			auto* self = cast(L, 1);
+			if (S.is_userdata(2)) {
+				auto* other = cast(L, 2);
+				S.push_value(self->data == other->data);
+			}
+			else {
+				S.push_value(false);
+			}
+			return 1;
+		}
 
 		static ResourceSpriteSequence* create(lua_State* L)
 		{
@@ -277,6 +318,7 @@ namespace LuaSTG::Sub::LuaBinding
 			auto const metatable = S.create_metatable(ClassID);
 			S.set_map_value(metatable, "__gc", &api___gc);
 			S.set_map_value(metatable, "__tostring", &api___tostring);
+			S.set_map_value(metatable, "__eq", &api___eq);
 			S.set_map_value(metatable, "__index", method_table);
 
 			// factory
@@ -517,6 +559,19 @@ namespace LuaSTG::Sub::LuaBinding
 			S.push_value<std::string_view>(ClassID);
 			return 1;
 		}
+		static int api___eq(lua_State* L)
+		{
+			lua::stack_t S(L);
+			auto* self = cast(L, 1);
+			if (S.is_userdata(2)) {
+				auto* other = cast(L, 2);
+				S.push_value(self->data == other->data);
+			}
+			else {
+				S.push_value(false);
+			}
+			return 1;
+		}
 
 		static ResourceCollection* create(lua_State* L)
 		{
@@ -556,6 +611,7 @@ namespace LuaSTG::Sub::LuaBinding
 			auto const metatable = S.create_metatable(ClassID);
 			S.set_map_value(metatable, "__gc", &api___gc);
 			S.set_map_value(metatable, "__tostring", &api___tostring);
+			S.set_map_value(metatable, "__eq", &api___eq);
 			S.set_map_value(metatable, "__index", method_table);
 
 			// register
