@@ -55,7 +55,7 @@ namespace LuaSTG::Sub::LuaBinding
 		{
 			lua::stack_t S(L);
 			auto* self = cast(L, 1);
-			if (S.is_userdata(2)) {
+			if (test(L, 2)) {
 				auto* other = cast(L, 2);
 				S.push_value(self->data == other->data);
 			}
@@ -79,6 +79,10 @@ namespace LuaSTG::Sub::LuaBinding
 		static ResourceTexture* cast(lua_State* L, int idx)
 		{
 			return static_cast<ResourceTexture*>(luaL_checkudata(L, idx, ClassID.data()));
+		}
+		static bool test(lua_State* L, int idx)
+		{
+			return nullptr != luaL_testudata(L, idx, ClassID.data());
 		}
 		static void registerClass(lua_State* L)
 		{
@@ -175,7 +179,7 @@ namespace LuaSTG::Sub::LuaBinding
 		{
 			lua::stack_t S(L);
 			auto* self = cast(L, 1);
-			if (S.is_userdata(2)) {
+			if (test(L, 2)) {
 				auto* other = cast(L, 2);
 				S.push_value(self->data == other->data);
 			}
@@ -199,6 +203,10 @@ namespace LuaSTG::Sub::LuaBinding
 		static ResourceSprite* cast(lua_State* L, int idx)
 		{
 			return static_cast<ResourceSprite*>(luaL_checkudata(L, idx, ClassID.data()));
+		}
+		static bool test(lua_State* L, int idx)
+		{
+			return nullptr != luaL_testudata(L, idx, ClassID.data());
 		}
 		static void registerClass(lua_State* L)
 		{
@@ -277,7 +285,7 @@ namespace LuaSTG::Sub::LuaBinding
 		{
 			lua::stack_t S(L);
 			auto* self = cast(L, 1);
-			if (S.is_userdata(2)) {
+			if (test(L, 2)) {
 				auto* other = cast(L, 2);
 				S.push_value(self->data == other->data);
 			}
@@ -301,6 +309,10 @@ namespace LuaSTG::Sub::LuaBinding
 		static ResourceSpriteSequence* cast(lua_State* L, int idx)
 		{
 			return static_cast<ResourceSpriteSequence*>(luaL_checkudata(L, idx, ClassID.data()));
+		}
+		static bool test(lua_State* L, int idx)
+		{
+			return nullptr != luaL_testudata(L, idx, ClassID.data());
 		}
 		static void registerClass(lua_State* L)
 		{
@@ -563,7 +575,7 @@ namespace LuaSTG::Sub::LuaBinding
 		{
 			lua::stack_t S(L);
 			auto* self = cast(L, 1);
-			if (S.is_userdata(2)) {
+			if (test(L, 2)) {
 				auto* other = cast(L, 2);
 				S.push_value(self->data == other->data);
 			}
@@ -587,6 +599,10 @@ namespace LuaSTG::Sub::LuaBinding
 		static ResourceCollection* cast(lua_State* L, int idx)
 		{
 			return static_cast<ResourceCollection*>(luaL_checkudata(L, idx, ClassID.data()));
+		}
+		static bool test(lua_State* L, int idx)
+		{
+			return nullptr != luaL_testudata(L, idx, ClassID.data());
 		}
 		static void registerClass(lua_State* L)
 		{
