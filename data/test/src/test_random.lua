@@ -40,7 +40,7 @@ function M:onCreate()
         local rnd = lstg.Rand()
         rnd:Seed(114514)
 
-        local rnd2 = rnd:Clone()
+        local rnd2 = rnd:clone()
 
         for _ = 1, 1000 do
             local v1 = rnd:Int(11, 20)
@@ -68,6 +68,30 @@ function M:onCreate()
     end
     test_clone1()
     test_clone2()
+
+    local function test_serialize()
+        local rnd = lstg.Rand()
+        rnd:Seed(math.random())
+
+        for _ = 1, 1000 do
+            rnd:Int(11, 20)
+            rnd:Float(114.514, 1919.810)
+        end
+
+        local state = rnd:serialize()
+        local rnd2 = lstg.Rand()
+        assert(rnd2:deserialize(state))
+
+        for _ = 1, 1000 do
+            local v1 = rnd:Int(11, 20)
+            local v2 = rnd2:Int(11, 20)
+            local f1 = rnd:Float(114.514, 1919.810)
+            local f2 = rnd2:Float(114.514, 1919.810)
+            assert(v1 == v2)
+            assert(f1 == f2)
+        end
+    end
+    test_serialize()
 end
 
 function M:onDestroy()
