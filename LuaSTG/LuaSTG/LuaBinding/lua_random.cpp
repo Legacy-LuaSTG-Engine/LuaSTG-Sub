@@ -175,7 +175,6 @@ public:
 			{ "Int", &integer },
 			{ "Float", &number },
 			{ "Sign", &sign },
-			{ "Clone", &clone },
 			{ NULL, NULL }
 		};
 
@@ -417,7 +416,6 @@ public:
 			{ "Int", &integer },
 			{ "Float", &number },
 			{ "Sign", &sign },
-			{ "Clone", &clone },
 			{ NULL, NULL }
 		};
 
@@ -646,7 +644,6 @@ public:
 			{ "Int", &integer },
 			{ "Float", &number },
 			{ "Sign", &sign },
-			{ "Clone", &clone },
 			{ NULL, NULL }
 		};
 
