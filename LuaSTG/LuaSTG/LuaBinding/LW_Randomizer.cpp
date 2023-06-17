@@ -27,6 +27,10 @@ public:
 	/// @param[in] MinBound 下界
 	/// @param[in] MaxBound 上界
 	float GetRandFloat(float MinBound, float MaxBound);
+
+	std::string Serialize();
+
+	bool Deserialize(std::string const& data);
 public:
 	/// @brief 默认构造函数
 	/// @note  调用GetTickCount()进行初始化
@@ -101,6 +105,52 @@ float fcyRandomWELL512::GetRandFloat(float MinBound, float MaxBound)
 	return GetRandFloat() * (MaxBound - MinBound) + MinBound;
 }
 
+std::string fcyRandomWELL512::Serialize()
+{
+	return std::format("well512-"
+		"{}-"
+		"{}-{}-{}-{}-"
+		"{}-{}-{}-{}-"
+		"{}-{}-{}-{}-"
+		"{}-{}-{}-{}-",
+		m_Index,
+		m_State[0], m_State[1], m_State[2], m_State[3],
+		m_State[4], m_State[5], m_State[6], m_State[7],
+		m_State[8], m_State[9], m_State[10], m_State[11],
+		m_State[12], m_State[13], m_State[14], m_State[15]);
+}
+
+bool fcyRandomWELL512::Deserialize(std::string const& data)
+{
+	constexpr std::string_view head("well512-");
+	if (data.starts_with(head)) {
+		return false;
+	}
+	std::string tail = data.substr(head.size());
+	for (auto& c : tail) {
+		if (c == '-') {
+			c = ' ';
+		}
+	}
+	std::stringstream iss(tail);
+	try {
+		uint32_t v_Index{};
+		uint32_t v_State[16]{};
+		iss >> v_Index
+			>> v_State[0] >> v_State[1] >> v_State[2] >> v_State[3]
+			>> v_State[4] >> v_State[5] >> v_State[6] >> v_State[7]
+			>> v_State[8] >> v_State[9] >> v_State[10] >> v_State[11]
+			>> v_State[12] >> v_State[13] >> v_State[14] >> v_State[15];
+		m_Index = v_Index;
+		std::memcpy(m_State, v_State, sizeof(m_State));
+		return true;
+	}
+	catch (std::exception const& e) {
+		std::ignore = e;
+	}
+	return false;
+}
+
 namespace LuaSTGPlus::LuaWrapper
 {
 	template<typename T>
@@ -154,12 +204,24 @@ namespace LuaSTGPlus::LuaWrapper
 				lua_pushinteger(L, (lua_Integer)p->GetRandUInt(1) * 2 - 1);
 				return 1;
 			}
-			static int Clone(lua_State* L)noexcept
+			static int clone(lua_State* L)noexcept
 			{
 				GETUDATA(self, 1);
 				RandomizerWrapper::CreateAndPush(L);
 				GETUDATA(other, -1);
 				*other = *self;
+				return 1;
+			}
+			static int serialize(lua_State* L)noexcept
+			{
+				GETUDATA(self, 1);
+				lua_pushstring(L, self->Serialize().c_str());
+				return 1;
+			}
+			static int deserialize(lua_State* L)noexcept
+			{
+				GETUDATA(self, 1);
+				lua_pushboolean(L, self->Deserialize(luaL_checkstring(L, 2)));
 				return 1;
 			}
 			static int Meta_ToString(lua_State* L)noexcept
@@ -177,7 +239,9 @@ namespace LuaSTGPlus::LuaWrapper
 			{ "Int", &Function::Int },
 			{ "Float", &Function::Float },
 			{ "Sign", &Function::Sign },
-			{ "Clone", &Function::Clone },
+			{ "clone", &Function::clone },
+			{ "serialize", &Function::serialize },
+			{ "deserialize", &Function::deserialize },
 			{ NULL, NULL }
 		};
 
