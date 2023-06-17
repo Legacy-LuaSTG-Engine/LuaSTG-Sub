@@ -107,18 +107,6 @@ namespace LuaSTGPlus
         }
         return Render(p.get(), x, y, rot, hscale, vscale, z);
     }
-    bool AppFrame::Render(IResourceAnimation* p, int ani_timer, float x, float y, float rot, float hscale, float vscale) noexcept
-    {
-        assert(p);
-
-        // 设置混合
-        updateGraph2DBlendMode(p->GetBlendMode());
-        
-        // 渲染
-        Core::Graphics::ISprite* pSprite = p->GetSpriteByTimer(ani_timer)->GetSprite();
-        pSprite->draw(Core::Vector2F(x, y), Core::Vector2F(hscale, vscale), rot);
-        return true;
-    }
     bool AppFrame::RenderAnimation(const char* name, int timer, float x, float y, float rot, float hscale, float vscale) noexcept
     {
         Core::ScopeObject<IResourceAnimation> p = m_ResourceMgr.FindAnimation(name);
@@ -127,7 +115,8 @@ namespace LuaSTGPlus
             spdlog::error("[luastg] Render: 找不到动画精灵'{}'", name);
             return false;
         }
-        return Render(p.get(), timer, x, y, rot, hscale, vscale);
+        p->Render(timer, x, y, rot, hscale, vscale);
+        return true;
     }
     bool AppFrame::Render(IParticlePool* p, float hscale, float vscale) noexcept
     {

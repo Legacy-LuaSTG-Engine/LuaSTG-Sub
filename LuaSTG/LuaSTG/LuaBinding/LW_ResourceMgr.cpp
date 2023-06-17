@@ -567,6 +567,8 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			Core::ScopeObject<IResourceAnimation> p = LRES.FindAnimation(luaL_checkstring(L, 1));
 			if (!p)
 				return luaL_error(L, "animation '%s' not found.", luaL_checkstring(L, 1));
+			if (!p->IsSpriteCloned())
+				return luaL_error(L, "SetAnimationScale on animation '%s' is invalid, please set each sprite separately.");
 			float x = (float)luaL_checknumber(L, 2);
 			for (size_t i = 0; i < p->GetCount(); ++i)
 				p->GetSprite((uint32_t)i)->GetSprite()->setUnitsPerPixel(x);
@@ -577,6 +579,8 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			Core::ScopeObject<IResourceAnimation> p = LRES.FindAnimation(luaL_checkstring(L, 1));
 			if (!p)
 				return luaL_error(L, "animation '%s' not found.", luaL_checkstring(L, 1));
+			if (!p->IsSpriteCloned())
+				return luaL_error(L, "GetAnimationScale on animation '%s' is invalid, please get from each sprite separately.");
 			lua_pushnumber(L, p->GetSprite(0)->GetSprite()->getUnitsPerPixel());
 			return 1;
 		}
@@ -589,8 +593,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			p->SetBlendMode(TranslateBlendMode(L, 2));
 			if (lua_gettop(L) == 3)
 			{
-				for (size_t i = 0; i < p->GetCount(); ++i)
-					p->GetSprite((uint32_t)i)->GetSprite()->setColor(*ColorWrapper::Cast(L, 3));
+				p->SetVertexColor(*ColorWrapper::Cast(L, 3));
 			}
 			else if (lua_gettop(L) == 6)
 			{
@@ -600,8 +603,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 					*ColorWrapper::Cast(L, 5),
 					*ColorWrapper::Cast(L, 6)
 				};
-				for (size_t i = 0; i < p->GetCount(); ++i)
-					p->GetSprite((uint32_t)i)->GetSprite()->setColor(tColors);
+				p->SetVertexColor(tColors);
 			}
 			return 0;
 		}
@@ -610,6 +612,8 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			Core::ScopeObject<IResourceAnimation> p = LRES.FindAnimation(luaL_checkstring(L, 1));
 			if (!p)
 				return luaL_error(L, "animation '%s' not found.", luaL_checkstring(L, 1));
+			if (!p->IsSpriteCloned())
+				return luaL_error(L, "SetAnimationCenter on animation '%s' is invalid, please set each sprite separately.");
 			for (size_t i = 0; i < p->GetCount(); ++i)
 			{
 				p->GetSprite((uint32_t)i)->GetSprite()->setTextureCenter(Core::Vector2F(

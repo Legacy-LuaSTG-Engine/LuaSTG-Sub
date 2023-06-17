@@ -169,13 +169,9 @@ static RenderError api_drawSprite4V(char const* name, float const x1, float cons
     return api_drawSprite4V(*pimg2dres, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4);
 }
 
-static RenderError api_drawSpriteSequence(LuaSTGPlus::IResourceAnimation* pani2dres, int const ani_timer, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
+inline RenderError api_drawSpriteSequence(LuaSTGPlus::IResourceAnimation* pani2dres, int const ani_timer, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {
-    Core::Graphics::ISprite* p_sprite = pani2dres->GetSpriteByTimer(ani_timer)->GetSprite();
-    auto* ctx = LR2D();
-    translate_blend(ctx, pani2dres->GetBlendMode());
-    p_sprite->setZ(z);
-    p_sprite->draw(Core::Vector2F(x, y), Core::Vector2F(hscale, vscale), rot);
+    pani2dres->Render(ani_timer, x, y, rot, hscale, vscale, z);
     return RenderError::None;
 }
 static RenderError api_drawSpriteSequence(char const* name, int const ani_timer, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
