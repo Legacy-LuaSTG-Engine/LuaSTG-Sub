@@ -9,8 +9,8 @@ function M:onCreate()
     local resource_collection = lstg.ResourceManager.getResourceCollection("global")
 
     self.texture = resource_collection:createTextureFromFile("test:tex:1", "res/block.png")
-    local texture_size = self.texture:getSize()
-    lstg.Print(string.format("texture size: %dx%d", texture_size.x, texture_size.y))
+    local texture_w, texture_h = self.texture:getWidth(), self.texture:getHeight()
+    lstg.Print(string.format("texture size: %dx%d", texture_w, texture_h))
 
     self.img1 = resource_collection:createSprite("test:img:1", self.texture,   0,   0, 128, 128)
     self.img2 = resource_collection:createSprite("test:img:2", self.texture, 128,   0, 128, 128)
