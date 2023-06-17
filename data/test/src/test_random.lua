@@ -71,7 +71,7 @@ function M:onCreate()
 
     local function test_serialize()
         local rnd = lstg.Rand()
-        rnd:Seed(math.random())
+        rnd:Seed(math.random(0, 65535))
 
         for _ = 1, 1000 do
             rnd:Int(11, 20)
@@ -97,6 +97,8 @@ function M:onCreate()
         local random = require("random")
         ---@class random.generator
         local rng = random[name]()
+        local seed = math.random(0, 65535)
+        rng:seed(seed)
 
         for _ = 1, 1000 do
             rng:integer(11, 20)
@@ -104,7 +106,7 @@ function M:onCreate()
         end
 
         local state = rng:serialize()
-        lstg.Print(state)
+        lstg.Print(seed .. " | " .. state)
 
         ---@class random.generator
         local rng2 = random[name]()
@@ -135,6 +137,10 @@ function M:onCreate()
     test_random_case("xoroshiro1024s")
     test_random_case("xoroshiro1024pp")
     test_random_case("xoroshiro1024ss")
+    test_random_case("pcg32_oneseq")
+    test_random_case("pcg32_fast")
+    test_random_case("pcg64_oneseq")
+    test_random_case("pcg64_fast")
 end
 
 function M:onDestroy()
