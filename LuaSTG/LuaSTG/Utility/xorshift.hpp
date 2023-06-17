@@ -11,16 +11,30 @@
 
 #pragma once
 #include <cstdint>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <string_view>
+#include <exception>
 
 namespace random
 {
-    class splitmix64
+    class base
+    {
+    protected:
+        virtual std::string_view name() = 0;
+    };
+
+    class splitmix64 : public base
     {
     public:
         using result_type = uint64_t;
 
     private:
         uint64_t x = 0;
+
+    protected:
+        virtual std::string_view name() { return "splitmix64"; }
 
     public:
         static uint64_t min()
@@ -53,6 +67,36 @@ namespace random
             return next();
         }
 
+        std::string serialize()
+        {
+            std::ostringstream ss;
+            ss << name() << "-" << x;
+            return ss.str();
+        }
+        bool deserialize(std::string const& data)
+        {
+            if (!data.starts_with(name())) {
+                return false;
+            }
+            std::string tail = data.substr(name().size() + 1);
+            for (auto& c : tail) {
+                if (c == '-') {
+                    c = ' ';
+                }
+            }
+            std::istringstream ss(tail);
+            try {
+                uint64_t v_x{};
+                ss >> v_x;
+                x = v_x;
+                return true;
+            }
+            catch (std::exception const& e) {
+                std::ignore = e;
+            }
+            return false;
+        }
+    
     public:
         splitmix64() : x(0xbad0ff1ced15ea5e) {}
         explicit splitmix64(uint64_t s) : x(s) {}
@@ -91,7 +135,7 @@ namespace random
         return (x >> 11) * 0x1.0p-53;
     }
 
-    class xoshiro128_family
+    class xoshiro128_family : public base
     {
     public:
         using result_type = uint32_t;
@@ -124,6 +168,7 @@ namespace random
             s[2] = s2;
             s[3] = s3;
         }
+        virtual std::string_view name() { return "xoshiro128"; }
 
     public:
         static uint32_t min()
@@ -170,10 +215,48 @@ namespace random
             };
             jump_by_table(LONG_JUMP);
         }
+
+        std::string serialize()
+        {
+			std::ostringstream ss;
+			ss << name()
+				<< "-" << s[0]
+				<< "-" << s[1]
+				<< "-" << s[2]
+				<< "-" << s[3];
+			return ss.str();
+        }
+        bool deserialize(std::string const& data)
+        {
+            if (!data.starts_with(name())) {
+                return false;
+            }
+            std::string tail = data.substr(name().size() + 1);
+            for (auto& c : tail) {
+                if (c == '-') {
+                    c = ' ';
+                }
+            }
+            std::istringstream ss(tail);
+            try {
+                uint32_t v_s[4]{};
+                ss >> v_s[0] >> v_s[1] >> v_s[2] >> v_s[3];
+                static_assert(sizeof(s) == sizeof(v_s));
+                std::memcpy(s, v_s, sizeof(s));
+                return true;
+            }
+            catch (std::exception const& e) {
+                std::ignore = e;
+            }
+            return false;
+        }
     };
 
     class xoshiro128p : public xoshiro128_family
     {
+    protected:
+        virtual std::string_view name() { return "xoshiro128p"; }
+
     public:
         uint32_t next() override
         {
@@ -207,6 +290,9 @@ namespace random
 
     class xoshiro128pp : public xoshiro128_family
     {
+    protected:
+        virtual std::string_view name() { return "xoshiro128pp"; }
+
     public:
         uint32_t next() override
         {
@@ -240,6 +326,9 @@ namespace random
 
     class xoshiro128ss : public xoshiro128_family
     {
+    protected:
+        virtual std::string_view name() { return "xoshiro128ss"; }
+
     public:
         uint32_t next() override
         {
@@ -271,7 +360,7 @@ namespace random
         ~xoshiro128ss() {}
     };
 
-    class xoroshiro128_family
+    class xoroshiro128_family : public base
     {
     public:
         using result_type = uint64_t;
@@ -297,6 +386,7 @@ namespace random
             s[0] = s0;
             s[1] = s1;
         }
+        virtual std::string_view name() { return "xoroshiro128"; }
 
     public:
         static uint64_t min()
@@ -321,10 +411,46 @@ namespace random
         {
             return next();
         }
+
+        std::string serialize()
+        {
+            std::ostringstream ss;
+            ss << name()
+                << "-" << s[0]
+                << "-" << s[1];
+            return ss.str();
+        }
+        bool deserialize(std::string const& data)
+        {
+            if (!data.starts_with(name())) {
+                return false;
+            }
+            std::string tail = data.substr(name().size() + 1);
+            for (auto& c : tail) {
+                if (c == '-') {
+                    c = ' ';
+                }
+            }
+            std::istringstream ss(tail);
+            try {
+                uint64_t v_s[2]{};
+                ss >> v_s[0] >> v_s[1];
+                static_assert(sizeof(s) == sizeof(v_s));
+                std::memcpy(s, v_s, sizeof(s));
+                return true;
+            }
+            catch (std::exception const& e) {
+                std::ignore = e;
+            }
+            return false;
+        }
     };
 
     class xoroshiro128p : public xoroshiro128_family
     {
+    protected:
+        virtual std::string_view name() { return "xoroshiro128p"; }
+
     public:
         uint64_t next() override
         {
@@ -369,6 +495,9 @@ namespace random
 
     class xoroshiro128pp : public xoroshiro128_family
     {
+    protected:
+        virtual std::string_view name() { return "xoroshiro128pp"; }
+
     public:
         uint64_t next() override
         {
@@ -413,6 +542,9 @@ namespace random
 
     class xoroshiro128ss : public xoroshiro128_family
     {
+    protected:
+        virtual std::string_view name() { return "xoroshiro128ss"; }
+
     public:
         uint64_t next() override
         {
@@ -455,7 +587,7 @@ namespace random
         ~xoroshiro128ss() {}
     };
 
-    class xoshiro256_family
+    class xoshiro256_family : public base
     {
     public:
         using result_type = uint64_t;
@@ -487,6 +619,7 @@ namespace random
             s[2] = s2;
             s[3] = s3;
         }
+        virtual std::string_view name() { return "xoshiro256"; }
 
     public:
         static uint64_t min()
@@ -533,10 +666,48 @@ namespace random
             };
             jump_by_table(LONG_JUMP);
         }
+
+        std::string serialize()
+        {
+            std::ostringstream ss;
+            ss << name()
+                << "-" << s[0]
+                << "-" << s[1]
+                << "-" << s[2]
+                << "-" << s[3];
+            return ss.str();
+        }
+        bool deserialize(std::string const& data)
+        {
+            if (!data.starts_with(name())) {
+                return false;
+            }
+            std::string tail = data.substr(name().size() + 1);
+            for (auto& c : tail) {
+                if (c == '-') {
+                    c = ' ';
+                }
+            }
+            std::istringstream ss(tail);
+            try {
+                uint64_t v_s[4]{};
+                ss >> v_s[0] >> v_s[1] >> v_s[2] >> v_s[3];
+                static_assert(sizeof(s) == sizeof(v_s));
+                std::memcpy(s, v_s, sizeof(s));
+                return true;
+            }
+            catch (std::exception const& e) {
+                std::ignore = e;
+            }
+            return false;
+        }
     };
 
     class xoshiro256p : public xoshiro256_family
     {
+    protected:
+        virtual std::string_view name() { return "xoshiro256p"; }
+
     public:
         uint64_t next() override
         {
@@ -570,6 +741,9 @@ namespace random
 
     class xoshiro256pp : public xoshiro256_family
     {
+    protected:
+        virtual std::string_view name() { return "xoshiro256pp"; }
+
     public:
         uint64_t next() override
         {
@@ -603,6 +777,9 @@ namespace random
 
     class xoshiro256ss : public xoshiro256_family
     {
+    protected:
+        virtual std::string_view name() { return "xoshiro256ss"; }
+
     public:
         uint64_t next() override
         {
@@ -634,7 +811,7 @@ namespace random
         ~xoshiro256ss() {}
     };
 
-    class xoshiro512_family
+    class xoshiro512_family : public base
     {
     public:
         using result_type = uint64_t;
@@ -660,6 +837,7 @@ namespace random
             for (int i = 0; i < 8; i++)
                 s[i] = t[i];
         }
+        virtual std::string_view name() { return "xoshiro512"; }
 
     public:
         static uint64_t min()
@@ -712,10 +890,52 @@ namespace random
             };
             jump_by_table(LONG_JUMP);
         }
+
+        std::string serialize()
+        {
+            std::ostringstream ss;
+            ss << name()
+                << "-" << s[0]
+                << "-" << s[1]
+                << "-" << s[2]
+                << "-" << s[3]
+                << "-" << s[4]
+                << "-" << s[5]
+                << "-" << s[6]
+                << "-" << s[7];
+            return ss.str();
+        }
+        bool deserialize(std::string const& data)
+        {
+            if (!data.starts_with(name())) {
+                return false;
+            }
+            std::string tail = data.substr(name().size() + 1);
+            for (auto& c : tail) {
+                if (c == '-') {
+                    c = ' ';
+                }
+            }
+            std::istringstream ss(tail);
+            try {
+                uint64_t v_s[8]{};
+                ss >> v_s[0] >> v_s[1] >> v_s[2] >> v_s[3] >> v_s[4] >> v_s[5] >> v_s[6] >> v_s[7];
+                static_assert(sizeof(s) == sizeof(v_s));
+                std::memcpy(s, v_s, sizeof(s));
+                return true;
+            }
+            catch (std::exception const& e) {
+                std::ignore = e;
+            }
+            return false;
+        }
     };
 
     class xoshiro512p : public xoshiro512_family
     {
+    protected:
+        virtual std::string_view name() { return "xoshiro512p"; }
+
     public:
         uint64_t next() override
         {
@@ -753,6 +973,9 @@ namespace random
 
     class xoshiro512pp : public xoshiro512_family
     {
+    protected:
+        virtual std::string_view name() { return "xoshiro512pp"; }
+
     public:
         uint64_t next() override
         {
@@ -790,6 +1013,9 @@ namespace random
 
     class xoshiro512ss : public xoshiro512_family
     {
+    protected:
+        virtual std::string_view name() { return "xoshiro512ss"; }
+
     public:
         uint64_t next() override
         {
@@ -825,7 +1051,7 @@ namespace random
         ~xoshiro512ss() {}
     };
 
-    class xoroshiro1024_family
+    class xoroshiro1024_family : public base
     {
     public:
         using result_type = uint64_t;
@@ -854,6 +1080,7 @@ namespace random
                 s[(i + p) & 16 - 1] = t[i];
             }
         }
+        virtual std::string_view name() { return "xoroshiro1024"; }
 
     public:
         static uint64_t min()
@@ -923,10 +1150,54 @@ namespace random
             };
             jump_by_table(LONG_JUMP);
         }
+
+        std::string serialize()
+        {
+            std::ostringstream ss;
+            ss << name() << "-" << p
+                << "-" << s[0] << "-" << s[1] << "-" << s[2] << "-" << s[3]
+                << "-" << s[4] << "-" << s[5] << "-" << s[6] << "-" << s[7]
+                << "-" << s[8] << "-" << s[9] << "-" << s[10] << "-" << s[11]
+                << "-" << s[12] << "-" << s[13] << "-" << s[14] << "-" << s[15];
+            return ss.str();
+        }
+        bool deserialize(std::string const& data)
+        {
+            if (!data.starts_with(name())) {
+                return false;
+            }
+            std::string tail = data.substr(name().size() + 1);
+            for (auto& c : tail) {
+                if (c == '-') {
+                    c = ' ';
+                }
+            }
+            std::istringstream ss(tail);
+            try {
+                uint64_t v_s[16]{};
+                int v_p{};
+                ss >> v_p
+                    >> v_s[0] >> v_s[1] >> v_s[2] >> v_s[3]
+                    >> v_s[4] >> v_s[5] >> v_s[6] >> v_s[7]
+                    >> v_s[8] >> v_s[9] >> v_s[10] >> v_s[11]
+                    >> v_s[12] >> v_s[13] >> v_s[14] >> v_s[15];
+                static_assert(sizeof(s) == sizeof(v_s));
+                std::memcpy(s, v_s, sizeof(s));
+                p = v_p;
+                return true;
+            }
+            catch (std::exception const& e) {
+                std::ignore = e;
+            }
+            return false;
+        }
     };
 
     class xoroshiro1024s : public xoroshiro1024_family
     {
+    protected:
+        virtual std::string_view name() { return "xoroshiro1024s"; }
+
     public:
         uint64_t next() override
         {
@@ -956,6 +1227,9 @@ namespace random
 
     class xoroshiro1024pp : public xoroshiro1024_family
     {
+    protected:
+        virtual std::string_view name() { return "xoroshiro1024pp"; }
+
     public:
         uint64_t next() override
         {
@@ -985,6 +1259,9 @@ namespace random
 
     class xoroshiro1024ss : public xoroshiro1024_family
     {
+    protected:
+        virtual std::string_view name() { return "xoroshiro1024ss"; }
+
     public:
         uint64_t next() override
         {

@@ -128,6 +128,18 @@ private:
 		other->seed = self->seed;
 		return 1;
 	}
+	static int serialize(lua_State* L)noexcept
+	{
+		Data* self = Cast(L, 1);
+		lua_pushstring(L, self->rng.serialize().c_str());
+		return 1;
+	}
+	static int deserialize(lua_State* L)noexcept
+	{
+		Data* self = Cast(L, 1);
+		lua_pushboolean(L, self->rng.deserialize(luaL_checkstring(L, 2)));
+		return 1;
+	}
 
 	static int __gc(lua_State* L)
 	{
@@ -169,6 +181,8 @@ public:
 			{ "number", &number },
 			{ "sign", &sign },
 			{ "clone", &clone },
+			{ "serialize", &serialize },
+			{ "deserialize", &deserialize },
 			// compatible api
 			{ "Seed", &seed },
 			{ "GetSeed", &seed },
