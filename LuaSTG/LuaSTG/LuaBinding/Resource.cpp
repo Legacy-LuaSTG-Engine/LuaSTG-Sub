@@ -576,6 +576,33 @@ namespace LuaSTG::Sub::LuaBinding
 			sprite_sequence->data = res.detach(); // 转移所有权
 			return 1;
 		}
+		static int api_isTextureExist(lua_State* L)
+		{
+			lua::stack_t S(L);
+			auto* self = cast(L, 1);
+			auto const texture_name = S.get_value<std::string_view>(2);
+			auto res = self->data->GetTexture(texture_name);
+			S.push_value<bool>(res);
+			return 1;
+		}
+		static int api_isSpriteExist(lua_State* L)
+		{
+			lua::stack_t S(L);
+			auto* self = cast(L, 1);
+			auto const sprite_name = S.get_value<std::string_view>(2);
+			auto res = self->data->GetSprite(sprite_name);
+			S.push_value<bool>(res);
+			return 1;
+		}
+		static int api_isSpriteSequenceExist(lua_State* L)
+		{
+			lua::stack_t S(L);
+			auto* self = cast(L, 1);
+			auto const sprite_sequence_name = S.get_value<std::string_view>(2);
+			auto res = self->data->GetAnimation(sprite_sequence_name);
+			S.push_value<bool>(res);
+			return 1;
+		}
 
 		static int api___gc(lua_State* L)
 		{
@@ -640,6 +667,9 @@ namespace LuaSTG::Sub::LuaBinding
 			S.set_map_value(method_table, "getTexture", &api_getTexture);
 			S.set_map_value(method_table, "getSprite", &api_getSprite);
 			S.set_map_value(method_table, "getSpriteSequence", &api_getSpriteSequence);
+			S.set_map_value(method_table, "isTextureExist", &api_isTextureExist);
+			S.set_map_value(method_table, "isSpriteExist", &api_isSpriteExist);
+			S.set_map_value(method_table, "isSpriteSequenceExist", &api_isSpriteSequenceExist);
 
 			// metatable
 
@@ -677,6 +707,36 @@ namespace LuaSTG::Sub::LuaBinding
 			}
 			return 1;
 		}
+		static int api_setCurrentResourceCollection(lua_State* L)
+		{
+			lua::stack_t S(L);
+			auto const name = S.get_value<std::string_view>(1);
+			if (name == "global") {
+				LRES.SetActivedPoolType(LuaSTGPlus::ResourcePoolType::Global);
+			}
+			else if (name == "stage") {
+				LRES.SetActivedPoolType(LuaSTGPlus::ResourcePoolType::Stage);
+			}
+			else {
+				return luaL_error(L, "resource set '%s' not found", name.data());
+			}
+			return 0;
+		}
+		static int api_getCurrentResourceCollection(lua_State* L)
+		{
+			lua::stack_t S(L);
+			auto const type = LRES.GetActivedPoolType();
+			if (LuaSTGPlus::ResourcePoolType::Global == type) {
+				S.push_value<std::string_view>("global");
+			}
+			else if (LuaSTGPlus::ResourcePoolType::Stage == type) {
+				S.push_value<std::string_view>("stage");
+			}
+			else if (LuaSTGPlus::ResourcePoolType::None == type) {
+				S.push_value<std::string_view>("none");
+			}
+			return 1;
+		}
 
 		static void registerClass(lua_State* L)
 		{
@@ -687,6 +747,8 @@ namespace LuaSTG::Sub::LuaBinding
 
 			auto const class_table = S.create_map();
 			S.set_map_value(class_table, "getResourceCollection", &api_getResourceCollection);
+			S.set_map_value(class_table, "setCurrentResourceCollection", &api_setCurrentResourceCollection);
+			S.set_map_value(class_table, "getCurrentResourceCollection", &api_getCurrentResourceCollection);
 
 			// register
 
