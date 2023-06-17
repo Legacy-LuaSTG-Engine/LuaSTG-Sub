@@ -494,10 +494,10 @@ namespace LuaSTGPlus
 						uint32_t const idx = ani->GetSpriteIndexByTimer((int)ani_timer);
 						// backup
 						Core::Color4B color[4] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
-						ani->GetSprite(idx)->getColor(color);
+						ani->GetSprite(idx)->GetSprite()->getColor(color);
 						BlendMode blend = ani->GetBlendMode();
 						// setup
-						ani->GetSprite(idx)->setColor(Core::Color4B(vertexcolor));
+						ani->GetSprite(idx)->GetSprite()->setColor(Core::Color4B(vertexcolor));
 						ani->SetBlendMode(blend);
 						LAPP.Render(
 							ani,
@@ -509,7 +509,7 @@ namespace LuaSTGPlus
 							static_cast<float>(vscale) * gscale
 						);
 						// restore
-						ani->GetSprite(idx)->setColor(color);
+						ani->GetSprite(idx)->GetSprite()->setColor(color);
 						ani->SetBlendMode(blend);
 					} while (false);
 					break;

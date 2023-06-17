@@ -115,7 +115,7 @@ namespace LuaSTGPlus
         updateGraph2DBlendMode(p->GetBlendMode());
         
         // 渲染
-        Core::Graphics::ISprite* pSprite = p->GetSpriteByTimer(ani_timer);
+        Core::Graphics::ISprite* pSprite = p->GetSpriteByTimer(ani_timer)->GetSprite();
         pSprite->draw(Core::Vector2F(x, y), Core::Vector2F(hscale, vscale), rot);
         return true;
     }

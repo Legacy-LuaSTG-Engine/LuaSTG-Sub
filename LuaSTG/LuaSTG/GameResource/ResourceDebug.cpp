@@ -220,14 +220,14 @@ namespace LuaSTGPlus
 									ImGui::Text("Sprite Count: %u", v.second->GetCount());
 									ImGui::Text("Animation Interval: %u", v.second->GetInterval());
 									uint32_t ani_idx = v.second->GetSpriteIndexByTimer(timer);
-									draw_sprite(v.second->GetSprite(ani_idx), false, false, preview_scale);
+									draw_sprite(v.second->GetSprite(ani_idx)->GetSprite(), false, false, preview_scale);
 									static bool same_line = false;
 									ImGui::Checkbox("Same Line Preview", &same_line);
 									for (uint32_t img_idx = 0; img_idx < v.second->GetCount(); img_idx += 1)
 									{
 										if (same_line)
 										{
-											draw_sprite(v.second->GetSprite(img_idx), false, img_idx == ani_idx, preview_scale);
+											draw_sprite(v.second->GetSprite(img_idx)->GetSprite(), false, img_idx == ani_idx, preview_scale);
 											if (img_idx < (v.second->GetCount() - 1))
 												ImGui::SameLine();
 										}
@@ -235,7 +235,7 @@ namespace LuaSTGPlus
 										{
 											if (ImGui::TreeNode(v.second->GetSprite(img_idx), "Sprite %u", img_idx))
 											{
-												draw_sprite(v.second->GetSprite(img_idx), true, false, preview_scale);
+												draw_sprite(v.second->GetSprite(img_idx)->GetSprite(), true, false, preview_scale);
 												ImGui::TreePop();
 											}
 										}

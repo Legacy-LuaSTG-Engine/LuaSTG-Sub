@@ -569,7 +569,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 				return luaL_error(L, "animation '%s' not found.", luaL_checkstring(L, 1));
 			float x = (float)luaL_checknumber(L, 2);
 			for (size_t i = 0; i < p->GetCount(); ++i)
-				p->GetSprite((uint32_t)i)->setUnitsPerPixel(x);
+				p->GetSprite((uint32_t)i)->GetSprite()->setUnitsPerPixel(x);
 			return 0;
 		}
 		static int GetAnimationScale(lua_State* L) noexcept
@@ -577,7 +577,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			Core::ScopeObject<IResourceAnimation> p = LRES.FindAnimation(luaL_checkstring(L, 1));
 			if (!p)
 				return luaL_error(L, "animation '%s' not found.", luaL_checkstring(L, 1));
-			lua_pushnumber(L, p->GetSprite(0)->getUnitsPerPixel());
+			lua_pushnumber(L, p->GetSprite(0)->GetSprite()->getUnitsPerPixel());
 			return 1;
 		}
 		static int SetAnimationState(lua_State* L) noexcept
@@ -590,7 +590,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			if (lua_gettop(L) == 3)
 			{
 				for (size_t i = 0; i < p->GetCount(); ++i)
-					p->GetSprite((uint32_t)i)->setColor(*ColorWrapper::Cast(L, 3));
+					p->GetSprite((uint32_t)i)->GetSprite()->setColor(*ColorWrapper::Cast(L, 3));
 			}
 			else if (lua_gettop(L) == 6)
 			{
@@ -601,7 +601,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 					*ColorWrapper::Cast(L, 6)
 				};
 				for (size_t i = 0; i < p->GetCount(); ++i)
-					p->GetSprite((uint32_t)i)->setColor(tColors);
+					p->GetSprite((uint32_t)i)->GetSprite()->setColor(tColors);
 			}
 			return 0;
 		}
@@ -612,9 +612,9 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 				return luaL_error(L, "animation '%s' not found.", luaL_checkstring(L, 1));
 			for (size_t i = 0; i < p->GetCount(); ++i)
 			{
-				p->GetSprite((uint32_t)i)->setTextureCenter(Core::Vector2F(
-					static_cast<float>(luaL_checknumber(L, 2) + p->GetSprite((uint32_t)i)->getTextureRect().a.x),
-					static_cast<float>(luaL_checknumber(L, 3) + p->GetSprite((uint32_t)i)->getTextureRect().a.y)
+				p->GetSprite((uint32_t)i)->GetSprite()->setTextureCenter(Core::Vector2F(
+					static_cast<float>(luaL_checknumber(L, 2) + p->GetSprite((uint32_t)i)->GetSprite()->getTextureRect().a.x),
+					static_cast<float>(luaL_checknumber(L, 3) + p->GetSprite((uint32_t)i)->GetSprite()->getTextureRect().a.y)
 				));
 			}
 			return 0;
