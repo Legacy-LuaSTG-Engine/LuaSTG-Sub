@@ -34,7 +34,7 @@ namespace random
         uint64_t x = 0;
 
     protected:
-        virtual std::string_view name() { return "splitmix64"; }
+        std::string_view name() override { return "splitmix64"; }
 
     public:
         static uint64_t min()
@@ -255,7 +255,7 @@ namespace random
     class xoshiro128p : public xoshiro128_family
     {
     protected:
-        virtual std::string_view name() { return "xoshiro128p"; }
+        std::string_view name() override { return "xoshiro128p"; }
 
     public:
         uint32_t next() override
@@ -291,7 +291,7 @@ namespace random
     class xoshiro128pp : public xoshiro128_family
     {
     protected:
-        virtual std::string_view name() { return "xoshiro128pp"; }
+        std::string_view name() override { return "xoshiro128pp"; }
 
     public:
         uint32_t next() override
@@ -327,7 +327,7 @@ namespace random
     class xoshiro128ss : public xoshiro128_family
     {
     protected:
-        virtual std::string_view name() { return "xoshiro128ss"; }
+        std::string_view name() override { return "xoshiro128ss"; }
 
     public:
         uint32_t next() override
@@ -449,7 +449,7 @@ namespace random
     class xoroshiro128p : public xoroshiro128_family
     {
     protected:
-        virtual std::string_view name() { return "xoroshiro128p"; }
+        std::string_view name() override { return "xoroshiro128p"; }
 
     public:
         uint64_t next() override
@@ -496,7 +496,7 @@ namespace random
     class xoroshiro128pp : public xoroshiro128_family
     {
     protected:
-        virtual std::string_view name() { return "xoroshiro128pp"; }
+        std::string_view name() override { return "xoroshiro128pp"; }
 
     public:
         uint64_t next() override
@@ -543,7 +543,7 @@ namespace random
     class xoroshiro128ss : public xoroshiro128_family
     {
     protected:
-        virtual std::string_view name() { return "xoroshiro128ss"; }
+        std::string_view name() override { return "xoroshiro128ss"; }
 
     public:
         uint64_t next() override
@@ -706,7 +706,7 @@ namespace random
     class xoshiro256p : public xoshiro256_family
     {
     protected:
-        virtual std::string_view name() { return "xoshiro256p"; }
+        std::string_view name() override { return "xoshiro256p"; }
 
     public:
         uint64_t next() override
@@ -742,7 +742,7 @@ namespace random
     class xoshiro256pp : public xoshiro256_family
     {
     protected:
-        virtual std::string_view name() { return "xoshiro256pp"; }
+        std::string_view name() override { return "xoshiro256pp"; }
 
     public:
         uint64_t next() override
@@ -778,7 +778,7 @@ namespace random
     class xoshiro256ss : public xoshiro256_family
     {
     protected:
-        virtual std::string_view name() { return "xoshiro256ss"; }
+        std::string_view name() override { return "xoshiro256ss"; }
 
     public:
         uint64_t next() override
@@ -934,7 +934,7 @@ namespace random
     class xoshiro512p : public xoshiro512_family
     {
     protected:
-        virtual std::string_view name() { return "xoshiro512p"; }
+        std::string_view name() override { return "xoshiro512p"; }
 
     public:
         uint64_t next() override
@@ -974,7 +974,7 @@ namespace random
     class xoshiro512pp : public xoshiro512_family
     {
     protected:
-        virtual std::string_view name() { return "xoshiro512pp"; }
+        std::string_view name() override { return "xoshiro512pp"; }
 
     public:
         uint64_t next() override
@@ -1014,7 +1014,7 @@ namespace random
     class xoshiro512ss : public xoshiro512_family
     {
     protected:
-        virtual std::string_view name() { return "xoshiro512ss"; }
+        std::string_view name() override { return "xoshiro512ss"; }
 
     public:
         uint64_t next() override
@@ -1196,7 +1196,7 @@ namespace random
     class xoroshiro1024s : public xoroshiro1024_family
     {
     protected:
-        virtual std::string_view name() { return "xoroshiro1024s"; }
+        std::string_view name() override { return "xoroshiro1024s"; }
 
     public:
         uint64_t next() override
@@ -1228,7 +1228,7 @@ namespace random
     class xoroshiro1024pp : public xoroshiro1024_family
     {
     protected:
-        virtual std::string_view name() { return "xoroshiro1024pp"; }
+        std::string_view name() override { return "xoroshiro1024pp"; }
 
     public:
         uint64_t next() override
@@ -1260,7 +1260,7 @@ namespace random
     class xoroshiro1024ss : public xoroshiro1024_family
     {
     protected:
-        virtual std::string_view name() { return "xoroshiro1024ss"; }
+        std::string_view name() override { return "xoroshiro1024ss"; }
 
     public:
         uint64_t next() override
