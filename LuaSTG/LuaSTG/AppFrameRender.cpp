@@ -84,28 +84,6 @@ namespace LuaSTGPlus
         }
     }
     
-    bool AppFrame::Render(const char* name, float x, float y, float rot, float hscale, float vscale, float z) noexcept
-    {
-        Core::ScopeObject<IResourceSprite> p = m_ResourceMgr.FindSprite(name);
-        if (!p)
-        {
-            spdlog::error("[luastg] Render: 找不到图片精灵'{}'", name);
-            return false;
-        }
-        p->Render(x, y, rot, hscale, vscale, z);
-        return true;
-    }
-    bool AppFrame::RenderAnimation(const char* name, int timer, float x, float y, float rot, float hscale, float vscale) noexcept
-    {
-        Core::ScopeObject<IResourceAnimation> p = m_ResourceMgr.FindAnimation(name);
-        if (!p)
-        {
-            spdlog::error("[luastg] Render: 找不到动画精灵'{}'", name);
-            return false;
-        }
-        p->Render(timer, x, y, rot, hscale, vscale);
-        return true;
-    }
     bool AppFrame::Render(IParticlePool* p, float hscale, float vscale) noexcept
     {
         assert(p);
@@ -117,38 +95,7 @@ namespace LuaSTGPlus
         p->Render(hscale, vscale);
         return true;
     }
-    bool AppFrame::RenderTexture(IResourceTexture* tex, BlendMode blend, const Core::Graphics::IRenderer::DrawVertex vertex[]) noexcept
-    {
-        // 设置混合
-        updateGraph2DBlendMode(blend);
-        
-        // 复制坐标，修正UV到[0,1]区间
-        Core::Vector2U const tSize = tex->GetTexture()->getSize();
-        float const us = 1.0f / (float)tSize.x;
-        float const vs = 1.0f / (float)tSize.y;
-        using VTX = Core::Graphics::IRenderer::DrawVertex;
-        VTX tVertex[4] = {
-            VTX(vertex[0].x, vertex[0].y, vertex[0].z, vertex[0].u * us, vertex[0].v * vs, vertex[0].color),
-            VTX(vertex[1].x, vertex[1].y, vertex[1].z, vertex[1].u * us, vertex[1].v * vs, vertex[1].color),
-            VTX(vertex[2].x, vertex[2].y, vertex[2].z, vertex[2].u * us, vertex[2].v * vs, vertex[2].color),
-            VTX(vertex[3].x, vertex[3].y, vertex[3].z, vertex[3].u * us, vertex[3].v * vs, vertex[3].color),
-        };
-        
-        GetRenderer2D()->setTexture(tex->GetTexture());
-        GetRenderer2D()->drawQuad(tVertex);
-        return true;
-    }
-    bool AppFrame::RenderTexture(const char* name, BlendMode blend, Core::Graphics::IRenderer::DrawVertex vertex[]) noexcept
-    {
-        Core::ScopeObject<IResourceTexture> p = m_ResourceMgr.FindTexture(name);
-        if (!p)
-        {
-            spdlog::error("[luastg] RenderTexture: 找不到纹理'{}'", name);
-            return false;
-        }
-        return RenderTexture(*p, blend, vertex);
-    }
-    
+
     void AppFrame::SnapShot(const char* path) noexcept
     {
         if (!GetAppModel()->getSwapChain()->saveSnapshotToFile(path))

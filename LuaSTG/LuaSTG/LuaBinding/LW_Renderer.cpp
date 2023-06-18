@@ -122,16 +122,12 @@ inline RenderError api_drawSprite(char const* name, float const x, float const y
     }
     return api_drawSprite(*pimg2dres, x, y, rot, hscale, vscale, z);
 }
-static RenderError api_drawSpriteRect(LuaSTGPlus::IResourceSprite* pimg2dres, float const l, float const r, float const b, float const t, float const z)
+inline RenderError api_drawSpriteRect(LuaSTGPlus::IResourceSprite* pimg2dres, float const l, float const r, float const b, float const t, float const z)
 {
-    Core::Graphics::ISprite* p_sprite = pimg2dres->GetSprite();
-    auto* ctx = LR2D();
-    translate_blend(ctx, pimg2dres->GetBlendMode());
-    p_sprite->setZ(z);
-    p_sprite->draw(Core::RectF(l, t, r, b));
+    pimg2dres->RenderRect(l, r, b, t, z);
     return RenderError::None;
 }
-static RenderError api_drawSpriteRect(char const* name, float const l, float const r, float const b, float const t, float const z)
+inline RenderError api_drawSpriteRect(char const* name, float const l, float const r, float const b, float const t, float const z)
 {
     Core::ScopeObject<LuaSTGPlus::IResourceSprite> pimg2dres = LRESMGR().FindSprite(name);
     if (!pimg2dres)
@@ -141,20 +137,12 @@ static RenderError api_drawSpriteRect(char const* name, float const l, float con
     }
     return api_drawSpriteRect(*pimg2dres, l, r, b, t, z);
 }
-static RenderError api_drawSprite4V(LuaSTGPlus::IResourceSprite* pimg2dres, float const x1, float const y1, float const z1, float const x2, float const y2, float const z2, float const x3, float const y3, float const z3, float const x4, float const y4, float const z4)
+inline RenderError api_drawSprite4V(LuaSTGPlus::IResourceSprite* pimg2dres, float const x1, float const y1, float const z1, float const x2, float const y2, float const z2, float const x3, float const y3, float const z3, float const x4, float const y4, float const z4)
 {
-    Core::Graphics::ISprite* p_sprite = pimg2dres->GetSprite();
-    auto* ctx = LR2D();
-    translate_blend(ctx, pimg2dres->GetBlendMode());
-    p_sprite->draw(
-        Core::Vector3F(x1, y1, z1),
-        Core::Vector3F(x2, y2, z2),
-        Core::Vector3F(x3, y3, z3),
-        Core::Vector3F(x4, y4, z4)
-    );
+    pimg2dres->Render4V(x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4);
     return RenderError::None;
 }
-static RenderError api_drawSprite4V(char const* name, float const x1, float const y1, float const z1, float const x2, float const y2, float const z2, float const x3, float const y3, float const z3, float const x4, float const y4, float const z4)
+inline RenderError api_drawSprite4V(char const* name, float const x1, float const y1, float const z1, float const x2, float const y2, float const z2, float const x3, float const y3, float const z3, float const x4, float const y4, float const z4)
 {
     Core::ScopeObject<LuaSTGPlus::IResourceSprite> pimg2dres = LRESMGR().FindSprite(name);
     if (!pimg2dres)
@@ -170,7 +158,7 @@ inline RenderError api_drawSpriteSequence(LuaSTGPlus::IResourceAnimation* pani2d
     pani2dres->Render(ani_timer, x, y, rot, hscale, vscale, z);
     return RenderError::None;
 }
-static RenderError api_drawSpriteSequence(char const* name, int const ani_timer, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
+inline RenderError api_drawSpriteSequence(char const* name, int const ani_timer, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {
     Core::ScopeObject<LuaSTGPlus::IResourceAnimation> pani2dres = LRESMGR().FindAnimation(name);
     if (!pani2dres)
