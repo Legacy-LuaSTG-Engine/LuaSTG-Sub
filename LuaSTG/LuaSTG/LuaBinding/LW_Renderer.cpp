@@ -63,7 +63,7 @@ inline void translate_blend(Core::Graphics::IRenderer*, const LuaSTGPlus::BlendM
 {
     LAPP.updateGraph2DBlendMode(blend);
 }
-static Core::Graphics::IRenderer::BlendState translate_blend_3d(const LuaSTGPlus::BlendMode blend)
+inline Core::Graphics::IRenderer::BlendState translate_blend_3d(const LuaSTGPlus::BlendMode blend)
 {
     switch (blend)
     {
@@ -107,16 +107,12 @@ static Core::Graphics::IRenderer::BlendState translate_blend_3d(const LuaSTGPlus
     }
 }
 
-static RenderError api_drawSprite(LuaSTGPlus::IResourceSprite* pimg2dres, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
+inline RenderError api_drawSprite(LuaSTGPlus::IResourceSprite* pimg2dres, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {
-    Core::Graphics::ISprite* p_sprite = pimg2dres->GetSprite();
-    auto* ctx = LR2D();
-    translate_blend(ctx, pimg2dres->GetBlendMode());
-    p_sprite->setZ(z);
-    p_sprite->draw(Core::Vector2F(x, y), Core::Vector2F(hscale, vscale), rot);
+    pimg2dres->Render(x, y, rot, hscale, vscale, z);
     return RenderError::None;
 }
-static RenderError api_drawSprite(char const* name, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
+inline RenderError api_drawSprite(char const* name, float const x, float const y, float const rot, float const hscale, float const vscale, float const z)
 {
     Core::ScopeObject<LuaSTGPlus::IResourceSprite> pimg2dres = LRESMGR().FindSprite(name);
     if (!pimg2dres)
