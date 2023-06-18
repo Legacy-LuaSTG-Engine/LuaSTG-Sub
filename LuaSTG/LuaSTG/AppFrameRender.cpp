@@ -84,19 +84,6 @@ namespace LuaSTGPlus
         }
     }
     
-    bool AppFrame::Render(IResourceSprite* p, float x, float y, float rot, float hscale, float vscale, float z) noexcept
-    {
-        assert(p);
-
-        // 设置混合
-        updateGraph2DBlendMode(p->GetBlendMode());
-        
-        // 渲染
-        Core::Graphics::ISprite* pSprite = p->GetSprite();
-        pSprite->setZ(z);
-        pSprite->draw(Core::Vector2F(x, y), Core::Vector2F(hscale, vscale), rot);
-        return true;
-    }
     bool AppFrame::Render(const char* name, float x, float y, float rot, float hscale, float vscale, float z) noexcept
     {
         Core::ScopeObject<IResourceSprite> p = m_ResourceMgr.FindSprite(name);
@@ -105,7 +92,8 @@ namespace LuaSTGPlus
             spdlog::error("[luastg] Render: 找不到图片精灵'{}'", name);
             return false;
         }
-        return Render(p.get(), x, y, rot, hscale, vscale, z);
+        p->Render(x, y, rot, hscale, vscale, z);
+        return true;
     }
     bool AppFrame::RenderAnimation(const char* name, int timer, float x, float y, float rot, float hscale, float vscale) noexcept
     {

@@ -428,8 +428,7 @@ namespace LuaSTGPlus
 				switch (res->GetType())
 				{
 				case ResourceType::Sprite:
-					LAPP.Render(
-						static_cast<IResourceSprite*>(res),
+					static_cast<IResourceSprite*>(res)->Render(
 						static_cast<float>(x),
 						static_cast<float>(y),
 						static_cast<float>(rot),
@@ -465,28 +464,15 @@ namespace LuaSTGPlus
 				switch (res->GetType())
 				{
 				case ResourceType::Sprite:
-					do {
-						auto* img = static_cast<IResourceSprite*>(res);
-						// backup
-						Core::Color4B color[4] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
-						img->GetSprite()->getColor(color);
-						BlendMode blend = img->GetBlendMode();
-						// setup
-						img->GetSprite()->setColor(Core::Color4B(vertexcolor));
-						img->SetBlendMode(blendmode);
-						LAPP.Render(
-							img,
+					static_cast<IResourceSprite*>(res)->Render(
 							static_cast<float>(x),
 							static_cast<float>(y),
 							static_cast<float>(rot),
 							static_cast<float>(hscale) * gscale,
-							static_cast<float>(vscale) * gscale
+						static_cast<float>(vscale) * gscale,
+						blendmode,
+						Core::Color4B(vertexcolor)
 						);
-						// restore
-						img->GetSprite()->setColor(color);
-						img->SetBlendMode(blend);
-					} while (false);
-					break;
 				case ResourceType::Animation:
 					static_cast<IResourceAnimation*>(res)->Render(
 						static_cast<int>(ani_timer),

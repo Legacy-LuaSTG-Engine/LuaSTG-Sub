@@ -19,6 +19,8 @@ namespace LuaSTGPlus
 		double GetHalfSizeX() { return m_HalfSizeX; }
 		double GetHalfSizeY() { return m_HalfSizeY; }
 		bool IsRectangle() { return m_bRectangle; }
+		void Render(float x, float y, float rot, float hscale, float vscale, float z);
+		void Render(float x, float y, float rot, float hscale, float vscale, BlendMode blend, Core::Color4B color, float z);
 	public:
 		ResourceSpriteImpl(const char* name, Core::Graphics::ISprite* sprite, double hx, double hy, bool rect);
 	};

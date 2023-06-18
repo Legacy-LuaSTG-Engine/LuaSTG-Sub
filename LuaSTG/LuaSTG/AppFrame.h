@@ -208,9 +208,6 @@ namespace LuaSTGPlus
 		// 应用混合模式
 		void updateGraph2DBlendMode(BlendMode m);
 
-		/// @brief 渲染图像
-		bool Render(IResourceSprite* p, float x, float y, float rot = 0, float hscale = 1, float vscale = 1, float z = 0.5)noexcept;
-		
 		/// @brief 渲染粒子
 		bool Render(IParticlePool* p, float hscale = 1, float vscale = 1)noexcept;
 		
