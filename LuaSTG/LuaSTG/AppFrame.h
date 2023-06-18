@@ -211,18 +211,6 @@ namespace LuaSTGPlus
 		/// @brief 渲染粒子
 		bool Render(IParticlePool* p, float hscale = 1, float vscale = 1)noexcept;
 		
-		/// @brief 渲染图像
-		bool Render(const char* name, float x, float y, float rot = 0, float hscale = 1, float vscale = 1, float z = 0.5)noexcept;
-		
-		/// @brief 渲染动画
-		bool RenderAnimation(const char* name, int timer, float x, float y, float rot = 0, float hscale = 1, float vscale = 1)noexcept;
-		
-		/// @brief 渲染纹理（注：UV 坐标会被归一化）
-		bool RenderTexture(IResourceTexture* tex, BlendMode blend, const Core::Graphics::IRenderer::DrawVertex vertex[])noexcept;
-		
-		/// @brief 渲染纹理（注：UV 坐标会被归一化）
-		bool RenderTexture(const char* name, BlendMode blend, Core::Graphics::IRenderer::DrawVertex vertex[])noexcept;
-		
 		/// @brief 渲染文字
 		bool RenderText(IResourceFont* p, wchar_t* strBuf, Core::RectF rect, Core::Vector2F scale, FontAlignHorizontal halign, FontAlignVertical valign, bool bWordBreak)noexcept;
 		
