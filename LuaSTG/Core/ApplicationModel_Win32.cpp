@@ -578,7 +578,9 @@ namespace Core
 		size_t const i = (m_framestate_index + 1) % 2;
 		FrameStatistics& d = m_framestate[i];
 		ScopeTimer gt(d.total_time);
-
+		size_t const next_frame_query_index = (m_frame_query_index + 1) % m_frame_query_list.size();
+		FrameQuery& frame_query = m_frame_query_list[next_frame_query_index];
+		
 		bool update_result = false;
 
 		// 更新
@@ -590,15 +592,19 @@ namespace Core
 
 		bool render_result = false;
 
+		
+
 		// 渲染
 		if (update_result)
 		{
 			ZoneScopedN("OnRender");
 			TracyD3D11Zone(tracy::xTracyD3D11Ctx(), "OnRender");
 			ScopeTimer t(d.render_time);
+			frame_query.begin();
 			m_swapchain->applyRenderAttachment();
 			m_swapchain->clearRenderAttachment();
 			render_result = m_listener->onRender();
+			frame_query.end();
 		}
 
 		// 呈现
@@ -620,12 +626,20 @@ namespace Core
 		}
 
 		m_framestate_index = i;
+		m_frame_query_index = next_frame_query_index;
 		FrameMark;
 	}
 
 	FrameStatistics ApplicationModel_Win32::getFrameStatistics()
 	{
 		return m_framestate[m_framestate_index];
+	}
+	FrameRenderStatistics ApplicationModel_Win32::getFrameRenderStatistics()
+	{
+		FrameQuery& frame_query = m_frame_query_list[m_frame_query_index];
+		FrameRenderStatistics statistics{};
+		statistics.render_time = frame_query.getTime();
+		return statistics;
 	}
 
 	void ApplicationModel_Win32::requestExit()
@@ -664,6 +678,10 @@ namespace Core
 			throw std::runtime_error("Graphics::Renderer_D3D11::create");
 		if (!Audio::Device_XAUDIO2::create(~m_audiosys))
 			throw std::runtime_error("Audio::Device_XAUDIO2::create");
+		m_frame_query_list.reserve(2);
+		for (int i = 0; i < 2; i += 1) {
+			m_frame_query_list.emplace_back(m_device.get());
+		}
 	}
 	ApplicationModel_Win32::~ApplicationModel_Win32()
 	{

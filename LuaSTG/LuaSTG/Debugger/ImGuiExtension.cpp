@@ -366,13 +366,16 @@ static int lib_ShowFrameStatistics(lua_State* L)
     static std::vector<double> arr_obj_alive;
     static std::vector<double> arr_obj_colli;
     static std::vector<double> arr_obj_colli_cb;
+    static std::vector<double> arr_gpu_render_time;
     static size_t arr_index = 0;
     static size_t record_range = 240;
     constexpr size_t record_range_min = 60;
     constexpr size_t record_range_max = 3600;
     static float height = 384.0f;
+    static float height_gpu = 384.0f;
     static float height_2 = 384.0f;
     static bool auto_fit = true;
+    static bool auto_fit_gpu = true;
     static bool auto_fit_2 = true;
     
     bool v = (lua_gettop(L) >= 1) ? lua_toboolean(L, 1) : true;
@@ -407,6 +410,8 @@ static int lib_ShowFrameStatistics(lua_State* L)
                 arr_obj_alive.resize(arr_size);
                 arr_obj_colli.resize(arr_size);
                 arr_obj_colli_cb.resize(arr_size);
+
+                arr_gpu_render_time.resize(arr_size);
             }
 
             ImGui::SliderScalar("Record Range", sizeof(size_t) == 8 ? ImGuiDataType_U64 : ImGuiDataType_U32, &record_range, &record_range_min, &record_range_max);
@@ -473,6 +478,57 @@ static int lib_ShowFrameStatistics(lua_State* L)
                     ImPlot::PlotLine("Render", arr_render_time.data(), (int)record_range);
                     ImPlot::PlotLine("Update", arr_update_time.data(), (int)record_range);
                 
+                    ImPlot::SetNextLineStyle(ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+                    ImPlot::PlotInfLines("##Current Time", &arr_index, 1, ImPlotInfLinesFlags_None);
+
+                    ImPlot::EndPlot();
+                }
+            }
+
+            // gpu time
+
+            if (ImGui::CollapsingHeader("GPU Time"))
+            {
+                auto info = LAPP.GetAppModel()->getFrameRenderStatistics();
+
+                ImGui::Text("Render : %.3fms", info.render_time * 1000.0);
+
+                ImGui::SliderFloat("Timeline Height##GPU Time", &height_gpu, 256.0f, 512.0f);
+                ImGui::Checkbox("Auto-Fit Y Axis##GPU Time", &auto_fit_gpu);
+
+                // 还得再往前一帧
+                arr_gpu_render_time[(arr_index + record_range - 1) % record_range] = 1000.0 * (info.render_time);
+
+                if (ImPlot::BeginPlot("##Frame Render Statistics", ImVec2(-1, height_gpu), 0))
+                {
+                    //ImPlot::SetupAxes("Frame", "Time", flags, flags);
+                    ImPlot::SetupAxisLimits(ImAxis_X1, 0.0, (double)(record_range - 1), ImGuiCond_Always);
+                    //ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0, 1000.0 / 18.0, ImGuiCond_Always);
+                    if (auto_fit_gpu)
+                        ImPlot::SetupAxes(NULL, NULL, ImPlotAxisFlags_None, ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_RangeFit);
+                    else
+                        ImPlot::SetupAxes(NULL, NULL);
+
+                    ImPlot::SetupLegend(ImPlotLocation_North, ImPlotLegendFlags_Horizontal | ImPlotLegendFlags_Outside);
+
+                    static double arr_ms[] = {
+                        1000.0 / 60.0,
+                        1000.0 / 30.0,
+                        1000.0 / 20.0,
+                    };
+                    ImPlot::SetNextLineStyle(ImVec4(0.2f, 1.0f, 0.2f, 1.0f));
+                    ImPlot::PlotInfLines("##60 FPS", arr_ms, 1, ImPlotInfLinesFlags_Horizontal);
+                    //ImPlot::SetNextLineStyle(ImVec4(1.0f, 1.2f, 0.2f, 1.0f));
+                    //ImPlot::PlotHLines("##30 FPS", arr_ms + 1, 1);
+                    //ImPlot::SetNextLineStyle(ImVec4(1.0f, 0.2f, 0.2f, 1.0f));
+                    //ImPlot::PlotHLines("##20 FPS", arr_ms + 2, 1);
+
+                    ImPlot::PushStyleVar(ImPlotStyleVar_FillAlpha, 0.5f);
+                    ImPlot::PlotShaded("Render", arr_x.data(), arr_gpu_render_time.data(), arr_gpu_render_time.data(), (int)record_range);
+                    ImPlot::PopStyleVar();
+
+                    ImPlot::PlotLine("Render", arr_gpu_render_time.data(), (int)record_range);
+
                     ImPlot::SetNextLineStyle(ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
                     ImPlot::PlotInfLines("##Current Time", &arr_index, 1, ImPlotInfLinesFlags_None);
 

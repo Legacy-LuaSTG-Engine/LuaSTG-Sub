@@ -38,6 +38,11 @@ namespace Core
         double present_time{};
     };
 
+    struct FrameRenderStatistics
+    {
+        double render_time{};
+    };
+
     struct ApplicationModelCreationParameters
     {
         StringView gpu;
@@ -59,6 +64,8 @@ namespace Core
         virtual Audio::IAudioDevice* getAudioDevice() = 0;
         // [工作线程]
         virtual FrameStatistics getFrameStatistics() = 0;
+        // [工作线程]
+        virtual FrameRenderStatistics getFrameRenderStatistics() = 0;
 
         // [主线程|工作线程]
         virtual void requestExit() = 0;
