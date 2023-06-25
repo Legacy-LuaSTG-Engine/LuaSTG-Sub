@@ -19,6 +19,7 @@ set(PLATFORM_SOURCES
     Platform/DXGI.hpp
     Platform/ModuleLoader.hpp
     Platform/All.cpp
+    Platform/ApplicationSingleInstance.hpp
 
     Platform/HighDPI.hpp
     Platform/HighDPI.cpp
