@@ -285,6 +285,10 @@ namespace LuaSTGPlus
 		lua_rawgeti(L, -1, (int)m_pCurrentObject->id + 1);  // ot t(object)
 		return 1;
 	}
+	GameObject* GameObjectPool::CastGameObject(lua_State* L, int idx)
+	{
+		return _ToGameObject(L, idx);
+	}
 
 	void GameObjectPool::ResetPool() noexcept
 	{

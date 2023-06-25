@@ -99,6 +99,8 @@ namespace LuaSTGPlus
 
 	public:
 		int PushCurrentObject(lua_State* L) noexcept;
+
+		GameObject* CastGameObject(lua_State* L, int idx);
 		
 		/// @brief 检查是否为主线程
 		bool CheckIsMainThread(lua_State* pL) noexcept { return pL == G_L; }
