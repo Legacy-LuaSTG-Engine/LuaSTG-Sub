@@ -36,6 +36,9 @@ namespace Core
         SET(persistent_log_file_directory);
         SET(engine_cache_directory);
 
+        SET(single_application_instance);
+        SET(application_instance_id);
+
     #undef SET
     }
     inline void from_json(nlohmann::json const& j, InitializeConfigure& p)
@@ -64,6 +67,9 @@ namespace Core
         GET(persistent_log_file_enable);
         GET(persistent_log_file_directory);
         GET(engine_cache_directory);
+
+        GET(single_application_instance);
+        GET(application_instance_id);
 
     #undef GET
     }
@@ -120,6 +126,9 @@ namespace Core
         persistent_log_file_enable = false;
         persistent_log_file_directory.clear();
         engine_cache_directory.clear();
+
+        single_application_instance = false;
+        application_instance_id.clear();
     }
     bool InitializeConfigure::load(std::string_view const source) noexcept
     {

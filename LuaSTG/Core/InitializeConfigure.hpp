@@ -29,6 +29,9 @@ namespace Core
         std::string persistent_log_file_directory;
         std::string engine_cache_directory;
 
+        bool single_application_instance = false;
+        std::string application_instance_id;
+
         void reset();
         bool load(std::string_view const source) noexcept;
         bool save(std::string_view const source, std::string& buffer) noexcept;
