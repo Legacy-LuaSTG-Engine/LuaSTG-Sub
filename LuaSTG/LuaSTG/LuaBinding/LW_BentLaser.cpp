@@ -167,6 +167,37 @@ namespace LuaSTGPlus
 					lua_pushboolean(L, r);
 					return 1;
 				}
+				static int CollisionCheckWithWidth(lua_State* L)noexcept
+				{
+					GETUDATA(p, 1);
+					CHECKUDATA(p);
+					if (lua_istable(L, 3)) {
+						auto const* obj = LPOOL.CastGameObject(L, 3);
+						bool const r = p->handle->CollisionCheckW(
+							(float)obj->x,
+							(float)obj->y,
+							(float)obj->rot,
+							(float)obj->a,
+							(float)obj->b,
+							obj->rect,
+							(float)luaL_checknumber(L, 2)
+						);
+						lua_pushboolean(L, r);
+					}
+					else {
+						bool const r = p->handle->CollisionCheckW(
+							(float)luaL_checknumber(L, 3),
+							(float)luaL_checknumber(L, 4),
+							(float)luaL_optnumber(L, 5, 0),
+							(float)luaL_optnumber(L, 6, 0),
+							(float)luaL_optnumber(L, 7, 0),
+							lua_toboolean(L, 8) == 0 ? false : true,
+							(float)luaL_checknumber(L, 2)
+						);
+						lua_pushboolean(L, r);
+					}
+					return 1;
+				}
 				static int BoundCheck(lua_State* L)noexcept
 				{
 					GETUDATA(p, 1);
@@ -240,6 +271,7 @@ namespace LuaSTGPlus
 				{ "CollisionCheck", &Function::CollisionCheck },
 				{ "RenderCollider", &Function::RenderCollider },
 				{ "CollisionCheckWidth", &Function::CollisionCheckWidth },
+				{ "CollisionCheckWithWidth", &Function::CollisionCheckWithWidth },
 				{ "BoundCheck", &Function::BoundCheck },
 				{ "SampleByLength", &Function::SampleByLength },
 				{ "SampleByTime", &Function::SampleByTime },
