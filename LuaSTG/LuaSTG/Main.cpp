@@ -1,4 +1,6 @@
 ﻿#include "Platform/MessageBox.hpp"
+#include "Platform/ApplicationSingleInstance.hpp"
+#include "Core/InitializeConfigure.hpp"
 #include "Debugger/Logger.hpp"
 #include "SteamAPI/SteamAPI.hpp"
 #include "Utility/Utility.h"
@@ -11,6 +13,14 @@ int main()
 	_CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG) | _CRTDBG_LEAK_CHECK_DF);
 	// _CrtSetBreakAlloc(5351);
 #endif
+
+	[[maybe_unused]] Platform::ApplicationSingleInstance single_instance(LUASTG_INFO);
+	Core::InitializeConfigure cfg;
+	if (cfg.loadFromFile("config.json")) {
+		if (cfg.single_application_instance && !cfg.application_instance_id.empty()) {
+			single_instance.Initialize(cfg.application_instance_id);
+		}
+	}
 
 	if (!LuaSTG::CheckUserRuntime())
 	{
