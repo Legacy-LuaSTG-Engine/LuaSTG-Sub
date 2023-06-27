@@ -52,8 +52,12 @@ namespace LuaSTGPlus
         ret = lua_pcall(L, 2, 1, 0); // ??? errmsg t msg
         if (0 != ret)
         {
-            spdlog::error("[luajit] StackTraceback时发生错误：{}", lua_tostring(L, -1)); // ??? errmsg t errmsg
-            lua_pop(L, 2);                                                               // ??? errmsg
+            char const* errmsg = lua_tostring(L, -1);
+            if (errmsg == nullptr) {
+                errmsg = "(error object is a nil value)";
+            }
+            spdlog::error("[luajit] StackTraceback时发生错误：{}", errmsg); // ??? errmsg t errmsg
+            lua_pop(L, 2);                                                // ??? errmsg
             return 1;
         }
         
@@ -63,6 +67,7 @@ namespace LuaSTGPlus
     bool AppFrame::SafeCallScript(const char* source, size_t len, const char* desc) noexcept
     {
         lua_pushcfunction(L, &StackTraceback);          // ??? f
+        int tStacktraceIndex = lua_gettop(L);
         if (0 != luaL_loadbuffer(L, source, len, desc)) // ??? f f/s
         {
             try
@@ -84,15 +89,19 @@ namespace LuaSTGPlus
             lua_pop(L, 2);
             return false;
         }
-        if (0 != lua_pcall(L, 0, 0, lua_gettop(L) - 1)) // ??? f _/e
+        if (0 != lua_pcall(L, 0, 0, tStacktraceIndex)) // ??? f _/e
         {
             try
             {
-                spdlog::error("[luajit] 运行'{}'时出错：{}", desc, lua_tostring(L, -1));
+                char const* errmsg = lua_tostring(L, -1);
+                if (errmsg == nullptr) {
+                    errmsg = "(error object is a nil value)";
+                }
+                spdlog::error("[luajit] 运行'{}'时出错：{}", desc, errmsg);
                 MessageBoxW(
                     m_pAppModel ? (HWND)m_pAppModel->getWindow()->getNativeHandle() : NULL,
                     utf8::to_wstring(
-                        fmt::format("运行'{}'时出错：\n{}", desc, lua_tostring(L, -1))
+                        fmt::format("运行'{}'时出错：\n{}", desc, errmsg)
                     ).c_str(),
                     L"" LUASTG_INFO,
                     MB_ICONERROR | MB_OK
@@ -129,11 +138,15 @@ namespace LuaSTGPlus
         {
             try
             {
-                spdlog::error("[luajit] 调用全局函数'{}'时出错：{}", name, lua_tostring(L, -1));
+                char const* errmsg = lua_tostring(L, -1);
+                if (errmsg == nullptr) {
+                    errmsg = "(error object is a nil value)";
+                }
+                spdlog::error("[luajit] 调用全局函数'{}'时出错：{}", name, errmsg);
                 MessageBoxW(
                     m_pAppModel ? (HWND)m_pAppModel->getWindow()->getNativeHandle() : NULL,
                     utf8::to_wstring(
-                        fmt::format("调用全局函数'{}'时出错：\n{}", name, lua_tostring(L, -1))
+                        fmt::format("调用全局函数'{}'时出错：\n{}", name, errmsg)
                     ).c_str(),
                     L"" LUASTG_INFO,
                     MB_ICONERROR | MB_OK
@@ -150,6 +163,7 @@ namespace LuaSTGPlus
         return true;
     }
     
+    // TODO: 废弃
     bool AppFrame::SafeCallGlobalFunctionB(const char* name, int argc, int retc) noexcept
     {
         const int base_stack = lua_gettop(L) - argc;
