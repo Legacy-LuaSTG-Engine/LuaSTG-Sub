@@ -223,7 +223,9 @@ bool AppFrame::Init()noexcept
 }
 void AppFrame::Shutdown()noexcept
 {
-	SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineStop);
+	if (L) {
+		SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineStop);
+	}
 	
 	m_GameObjectPool = nullptr;
 	spdlog::info("[luastg] 清空对象池");
