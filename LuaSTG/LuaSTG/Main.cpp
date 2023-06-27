@@ -44,7 +44,6 @@ int main()
 		if (LAPP.Init())
 		{
 			LAPP.Run();
-			LAPP.Shutdown();
 			result = EXIT_SUCCESS;
 		}
 		else
@@ -55,6 +54,7 @@ int main()
 				"请尝试重新启动此应用程序，或者联系开发人员。");
 			result = EXIT_FAILURE;
 		}
+		LAPP.Shutdown();
 		LuaSTG::SteamAPI::Shutdown();
 	}
 	else
