@@ -34,6 +34,7 @@ namespace Core
         SET(log_file_path);
         SET(persistent_log_file_enable);
         SET(persistent_log_file_directory);
+        SET(persistent_log_file_max_count);
         SET(engine_cache_directory);
 
         SET(single_application_instance);
@@ -66,6 +67,7 @@ namespace Core
         GET(log_file_path);
         GET(persistent_log_file_enable);
         GET(persistent_log_file_directory);
+        GET(persistent_log_file_max_count);
         GET(engine_cache_directory);
 
         GET(single_application_instance);
@@ -124,7 +126,8 @@ namespace Core
         log_file_enable = true;
         log_file_path = "engine.log";
         persistent_log_file_enable = false;
-        persistent_log_file_directory.clear();
+        persistent_log_file_directory = "logs/";
+        persistent_log_file_max_count = 100;
         engine_cache_directory.clear();
 
         single_application_instance = false;

@@ -26,7 +26,8 @@ namespace Core
         bool log_file_enable = true;
         std::string log_file_path = "engine.log";
         bool persistent_log_file_enable = false;
-        std::string persistent_log_file_directory;
+        std::string persistent_log_file_directory = "logs/";
+        int persistent_log_file_max_count = 100;
         std::string engine_cache_directory;
 
         bool single_application_instance = false;

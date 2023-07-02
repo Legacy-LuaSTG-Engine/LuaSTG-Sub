@@ -51,7 +51,8 @@ namespace LuaSTG::Debugger
             std::filesystem::path path;
             if (config.persistent_log_file_directory.empty())
             {
-                path = utf8::to_wstring(make_time_path());
+                std::filesystem::path directory(utf8::to_wstring("logs/")); // TODO: 这里写死了
+                path = directory / utf8::to_wstring(make_time_path());
             }
             else
             {
@@ -114,6 +115,46 @@ namespace LuaSTG::Debugger
     #ifdef USING_CONSOLE_OUTPUT
         closeWin32Console();
     #endif
+
+        // 清理 log 文件
+
+        Core::InitializeConfigure config;
+        config.loadFromFile("config.json");
+
+        if (config.persistent_log_file_enable)
+        {
+            std::filesystem::path path;
+            if (config.persistent_log_file_directory.empty())
+            {
+                std::filesystem::path directory(utf8::to_wstring("logs/")); // TODO: 这里写死了
+                path = directory;
+            }
+            else
+            {
+                std::string parser_path;
+                Core::InitializeConfigure::parserDirectory(config.persistent_log_file_directory, parser_path, false);
+                std::filesystem::path directory(utf8::to_wstring(parser_path));
+                path = directory;
+            }
+            // 下面就全都用宽字符了吧，省心
+            std::error_code ec;
+            std::vector<std::filesystem::path> logs;
+            for (auto& it : std::filesystem::directory_iterator(path, ec)) {
+                if (it.is_regular_file(ec) && it.path().extension() == L".log") {
+                    logs.push_back(it.path());
+                }
+            }
+            if (logs.size() > static_cast<size_t>(config.persistent_log_file_max_count)) {
+                std::sort(logs.begin(), logs.end(), [](std::filesystem::path const& a, std::filesystem::path const& b) -> bool
+                    {
+                        return a.filename().generic_wstring() < b.filename().generic_wstring();
+                    });
+                size_t const remove_count = logs.size() - static_cast<size_t>(config.persistent_log_file_max_count);
+                for (size_t idx = 0; idx < remove_count; idx += 1) {
+                    std::filesystem::remove(logs[idx], ec);
+                }
+            }
+        }
     }
 };
 
