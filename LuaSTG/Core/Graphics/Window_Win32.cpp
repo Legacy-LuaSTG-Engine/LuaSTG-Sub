@@ -1,5 +1,6 @@
 ﻿#include "Core/Graphics/Window_Win32.hpp"
 #include "Core/ApplicationModel_Win32.hpp"
+#include "Core/InitializeConfigure.hpp"
 #include "Core/i18n.hpp"
 #include "Platform/WindowsVersion.hpp"
 #include "Platform/HighDPI.hpp"
@@ -42,7 +43,7 @@ namespace Core::Graphics
 
 	LRESULT Window_Win32::onMessage(HWND window, UINT message, WPARAM arg1, LPARAM arg2)
 	{
-		if (win32_window_want_track_focus)
+		if (enable_track_window_focus && win32_window_want_track_focus)
 		{
 			HWND focus_window = GetForegroundWindow();
 			if (focus_window && focus_window != window)
@@ -930,6 +931,11 @@ namespace Core::Graphics
 
 	Window_Win32::Window_Win32()
 	{
+		InitializeConfigure config;
+		config.loadFromFile("config.json");
+		if (config.debug_track_window_focus) {
+			enable_track_window_focus = true;
+		}
 		win32_window_text_w.fill(L'\0');
 		if (!createWindowClass())
 			throw std::runtime_error("createWindowClass failed");

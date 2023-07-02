@@ -40,6 +40,8 @@ namespace Core
         SET(single_application_instance);
         SET(application_instance_id);
 
+        SET(debug_track_window_focus);
+
     #undef SET
     }
     inline void from_json(nlohmann::json const& j, InitializeConfigure& p)
@@ -72,6 +74,8 @@ namespace Core
 
         GET(single_application_instance);
         GET(application_instance_id);
+
+        GET(debug_track_window_focus);
 
     #undef GET
     }
@@ -132,6 +136,8 @@ namespace Core
 
         single_application_instance = false;
         application_instance_id.clear();
+
+        debug_track_window_focus = false;
     }
     bool InitializeConfigure::load(std::string_view const source) noexcept
     {

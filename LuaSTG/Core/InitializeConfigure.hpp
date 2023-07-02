@@ -33,6 +33,8 @@ namespace Core
         bool single_application_instance = false;
         std::string application_instance_id;
 
+        bool debug_track_window_focus = false;
+
         void reset();
         bool load(std::string_view const source) noexcept;
         bool save(std::string_view const source, std::string& buffer) noexcept;

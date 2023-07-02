@@ -47,6 +47,7 @@ namespace Core::Graphics
 		BOOL win32_window_is_sizemove{ FALSE };
 		BOOL win32_window_is_menu_loop{ FALSE };
 		BOOL win32_window_want_track_focus{ FALSE };
+		bool enable_track_window_focus{ false };
 
 		Platform::WindowSizeMoveController m_sizemove;
 		Platform::MonitorList m_monitors;
