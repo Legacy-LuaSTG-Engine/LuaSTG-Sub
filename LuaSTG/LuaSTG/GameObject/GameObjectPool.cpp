@@ -1107,7 +1107,9 @@ namespace LuaSTGPlus
 		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
 		if (!p->res || p->res->GetType() != ResourceType::Particle)
 		{
+		#if !defined(NDEBUG)
 			spdlog::warn("[luastg] ParticleStop: 试图停止一个不带有粒子发射器的对象的粒子发射过程 (uid={})", p->uid);
+		#endif
 			return 0;
 		}
 		p->ps->SetActive(false);
@@ -1118,7 +1120,9 @@ namespace LuaSTGPlus
 		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
 		if (!p->res || p->res->GetType() != ResourceType::Particle)
 		{
+		#if !defined(NDEBUG)
 			spdlog::warn("[luastg] ParticleFire: 试图启动一个不带有粒子发射器的对象的粒子发射过程 (uid={})", p->uid);
+		#endif
 			return 0;
 		}
 		p->ps->SetActive(true);
@@ -1129,7 +1133,9 @@ namespace LuaSTGPlus
 		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
 		if (!p->res || p->res->GetType() != ResourceType::Particle)
 		{
+		#if !defined(NDEBUG)
 			spdlog::warn("[luastg] ParticleGetn: 试图获取一个不带有粒子发射器的对象的粒子数量 (uid={})", p->uid);
+		#endif
 			lua_pushinteger(L, 0);
 			return 1;
 		}
@@ -1141,7 +1147,9 @@ namespace LuaSTGPlus
 		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
 		if (!p->res || p->res->GetType() != ResourceType::Particle)
 		{
+		#if !defined(NDEBUG)
 			spdlog::warn("[luastg] ParticleGetEmission: 试图获取一个不带有粒子发射器的对象的粒子发射密度 (uid={})", p->uid);
+		#endif
 			lua_pushinteger(L, 0);
 			return 1;
 		}
@@ -1153,7 +1161,9 @@ namespace LuaSTGPlus
 		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
 		if (!p->res || p->res->GetType() != ResourceType::Particle)
 		{
+		#if !defined(NDEBUG)
 			spdlog::warn("[luastg] ParticleSetEmission: 试图设置一个不带有粒子发射器的对象的粒子发射密度 (uid={})", p->uid);
+		#endif
 			return 0;
 		}
 		p->ps->SetEmission((int)std::max<lua_Integer>(0, luaL_checkinteger(L, 2)));
