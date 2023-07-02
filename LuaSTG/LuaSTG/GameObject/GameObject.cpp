@@ -505,6 +505,8 @@ namespace LuaSTGPlus
 	
 	int GameObject::GetAttr(lua_State* L) noexcept
 	{
+	#define return_default(L) lua_rawget(L, 1)
+		
 		// self k
 		std::string_view const key = luaL_check_string_view(L, 2);
 		switch (LuaSTG::MapGameObjectMember(key.data()))
@@ -641,37 +643,37 @@ namespace LuaSTGPlus
 			if (luaclass.IsRenderClass)
 				TranslateBlendModeToString(L, blendmode);
 			else
-				lua_pushnil(L);
+				return_default(L);
 			return 1;
 		case LuaSTG::GameObjectMember::_COLOR:
 			if (luaclass.IsRenderClass)
 				LuaWrapper::ColorWrapper::CreateAndPush(L, Core::Color4B(vertexcolor));
 			else
-				lua_pushnil(L);
+				return_default(L);
 			return 1;
 		case LuaSTG::GameObjectMember::_A:
 			if (luaclass.IsRenderClass)
 				lua_pushinteger(L, (lua_Integer)((uint8_t*)&vertexcolor)[3]);
 			else
-				lua_pushnil(L);
+				return_default(L);
 			return 1;
 		case LuaSTG::GameObjectMember::_R:
 			if (luaclass.IsRenderClass)
 				lua_pushinteger(L, (lua_Integer)((uint8_t*)&vertexcolor)[2]);
 			else
-				lua_pushnil(L);
+				return_default(L);
 			return 1;
 		case LuaSTG::GameObjectMember::_G:
 			if (luaclass.IsRenderClass)
 				lua_pushinteger(L, (lua_Integer)((uint8_t*)&vertexcolor)[1]);
 			else
-				lua_pushnil(L);
+				return_default(L);
 			return 1;
 		case LuaSTG::GameObjectMember::_B:
 			if (luaclass.IsRenderClass)
 				lua_pushinteger(L, (lua_Integer)((uint8_t*)&vertexcolor)[0]);
 			else
-				lua_pushnil(L);
+				return_default(L);
 			return 1;
 		#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 		case LuaSTG::GameObjectMember::ANI:
@@ -687,14 +689,14 @@ namespace LuaSTGPlus
 			if (res)
 				lua_push_string_view(L, res->GetResName());
 			else
-				lua_pushnil(L);
+				return_default(L);
 			return 1;
 		#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 		case LuaSTG::GameObjectMember::RES_RC:
 			if (luaclass.IsRenderClass)
 				lua_rawgeti(L, 1, 4);
 			else
-				lua_pushnil(L);
+				return_default(L);
 			return 1;
 		#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 
@@ -716,9 +718,11 @@ namespace LuaSTGPlus
 			return 1;
 		
 		default:
-			lua_pushnil(L);
+			return_default(L);
 			return 1;
 		}
+
+	#undef return_default
 	}
 	int GameObject::SetAttr(lua_State* L) noexcept
 	{
