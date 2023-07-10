@@ -3,7 +3,7 @@
 # 可以让多个项目共享包缓存
 
 function(CPMInitialize)
-    set(CPM_DOWNLOAD_VERSION 0.38.0)
+    set(CPM_DOWNLOAD_VERSION 0.38.1)
 
     if(CPM_SOURCE_CACHE)
         set(CPM_DOWNLOAD_LOCATION "${CPM_SOURCE_CACHE}/cpm/CPM_${CPM_DOWNLOAD_VERSION}.cmake")

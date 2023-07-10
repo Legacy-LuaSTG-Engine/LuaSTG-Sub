@@ -66,7 +66,7 @@ namespace LuaSTG::Debugger
             sinks.emplace_back(persistent_sink);
         }
         
-    #if 0
+    #ifndef NDEBUG
         auto sink_debugger = std::make_shared<spdlog::sinks::windebug_sink_mt>();
         sink_debugger->set_pattern("[%Y-%m-%d %H:%M:%S] [%L] %v");
         sinks.emplace_back(sink_debugger);
