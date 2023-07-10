@@ -27,13 +27,14 @@ CPMAddPackage(
     NAME minizip_ng
     VERSION 3.0.8
     GITHUB_REPOSITORY Demonese/minizip-ng # FUCK YOU minizip-ng
-    GIT_TAG be71a37ad7223180a75d4920cf7dd6c56ea55a3c # FUCK YOU minizip-ng
+    GIT_TAG 02464dda961457768cee6c08ab966375fb7afc81 # FUCK YOU minizip-ng
     OPTIONS
     "MZ_COMPAT OFF"
     "MZ_FETCH_LIBS OFF"
-    "SKIP_INSTALL_ALL ON"
+    "SKIP_INSTALL_ALL ON" # FUCK YOU minizip-ng
 )
 
 if(minizip_ng_ADDED)
     set_target_properties(minizip-ng PROPERTIES FOLDER external)
+    luastg_target_platform_windows_7(minizip-ng) # FUCK YOU minizip-ng
 endif()
