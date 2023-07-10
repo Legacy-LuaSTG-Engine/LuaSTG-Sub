@@ -314,7 +314,8 @@ namespace Core
     
     FileArchive::FileArchive(std::string_view const& path) : name_(path), uuid(g_uuid++)
     {
-        if (mz_zip_reader_create(&mz_zip_v))
+        mz_zip_v = mz_zip_reader_create();
+        if (mz_zip_v)
         {
             if (MZ_OK == mz_zip_reader_open_file(mz_zip_v, path.data()))
             {
