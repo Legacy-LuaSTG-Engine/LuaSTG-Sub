@@ -37,9 +37,9 @@ endif()
 
 CPMAddPackage(
     NAME libflac
-    VERSION 1.4.2
+    VERSION 1.4.3
     GITHUB_REPOSITORY xiph/flac
-    GIT_TAG 1.4.2
+    GIT_TAG 1.4.3
     OPTIONS
     "BUILD_CXXLIBS OFF"
     "BUILD_PROGRAMS OFF"
