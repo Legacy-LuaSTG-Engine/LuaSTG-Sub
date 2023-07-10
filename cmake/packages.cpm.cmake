@@ -101,7 +101,7 @@ endif()
 CPMAddPackage(
     NAME dr_libs
     GITHUB_REPOSITORY mackron/dr_libs
-    GIT_TAG dd762b861ecadf5ddd5fb03e9ca1db6707b54fbb
+    GIT_TAG e07e2b8264da5fa1331a0ca3d30a3606084c311f
     DOWNLOAD_ONLY YES
 )
 
