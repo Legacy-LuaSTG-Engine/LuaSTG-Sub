@@ -5,44 +5,19 @@ CPMAddPackage(
     VERSION 2.1.3
     GITHUB_REPOSITORY zlib-ng/zlib-ng
     GIT_TAG 2.1.3
-    #OPTIONS
-    #"ZLIB_ENABLE_TESTS OFF"
-    #"ZLIB_COMPAT OFF"
     DOWNLOAD_ONLY YES
 )
-
-#if(zlib_ng_ADDED)
-#    if(TARGET zlib-ng)
-#        set_target_properties(zlib-ng PROPERTIES FOLDER external)
-#    else()
-#        set_target_properties(zlib PROPERTIES FOLDER external)
-#    endif()
-#endif()
 
 # minizip
 # 读取 zip 文件
-# 另外，操你妈的 minizip-ng 开发团队，
-# 不打算支持同 project 内的 zlib-ng 目标是吧？老子不会自己弄一个分支吗？
 
 CPMAddPackage(
     NAME minizip_ng
-    #VERSION 3.0.8
-    #GITHUB_REPOSITORY Demonese/minizip-ng # FUCK YOU minizip-ng
-    #GIT_TAG 02464dda961457768cee6c08ab966375fb7afc81 # FUCK YOU minizip-ng
     VERSION 4.0.0
     GITHUB_REPOSITORY zlib-ng/minizip-ng
     GIT_TAG 4.0.0
-    #OPTIONS
-    #"MZ_COMPAT OFF"
-    #"MZ_FETCH_LIBS OFF"
-    #"SKIP_INSTALL_ALL ON" # FUCK YOU minizip-ng
     DOWNLOAD_ONLY YES
 )
-
-#if(minizip_ng_ADDED)
-#    set_target_properties(minizip-ng PROPERTIES FOLDER external)
-#    luastg_target_platform_windows_7(minizip-ng) # FUCK YOU minizip-ng
-#endif()
 
 # FUCK ZLIB-NG AND MINIZIP-NG
 # FUCK ZLIB-NG AND MINIZIP-NG
@@ -75,6 +50,8 @@ if(zlib_ng_ADDED AND minizip_ng_ADDED)
         COMMAND cmake --build   ${CMAKE_BINARY_DIR}/minizip-ng/${CMAKE_GENERATOR_PLATFORM} --config $<CONFIG> --target ALL_BUILD
         COMMAND cmake --install ${CMAKE_BINARY_DIR}/minizip-ng/${CMAKE_GENERATOR_PLATFORM} --config $<CONFIG> --prefix ${CMAKE_BINARY_DIR}/install
     )
+
+    set_target_properties(fuck_zlib_ng_and_minizip_ng PROPERTIES FOLDER external)
     
     add_library(zlib-ng STATIC IMPORTED GLOBAL)
     target_include_directories(zlib-ng INTERFACE
