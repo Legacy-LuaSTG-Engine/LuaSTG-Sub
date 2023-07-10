@@ -35,9 +35,9 @@ endif()
 
 CPMAddPackage(
     NAME Microsoft.Windows.ImplementationLibrary
-    VERSION 1.0.230202.1
-    URL https://www.nuget.org/api/v2/package/Microsoft.Windows.ImplementationLibrary/1.0.230202.1
-    URL_HASH SHA256=81E65673A427A2079F97EA6436A888A8F5E8E243F438C76B148BF98C7496A15C
+    VERSION 1.0.230629.1
+    URL https://www.nuget.org/api/v2/package/Microsoft.Windows.ImplementationLibrary/1.0.230629.1
+    URL_HASH SHA256=3C995F4474053F5762EAB4FE9BCA398193DF4F510FE328A438BE1916F3785754
 )
 
 if(Microsoft.Windows.ImplementationLibrary_ADDED)
