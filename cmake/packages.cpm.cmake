@@ -133,7 +133,7 @@ endif()
 
 CPMAddPackage(
     NAME tinygltf
-    VERSION 2.8.3
+    VERSION 2.8.13
     GITHUB_REPOSITORY syoyo/tinygltf
     #OPTIONS
     #"TINYGLTF_BUILD_LOADER_EXAMPLE OFF"
@@ -201,9 +201,10 @@ endif()
 
 CPMAddPackage(
     NAME freetype
-    VERSION 2.13.0
-    GITHUB_REPOSITORY freetype/freetype
-    GIT_TAG VER-2-13-0
+    VERSION 2.13.1
+    #GITHUB_REPOSITORY freetype/freetype
+    #GIT_TAG VER-2-13-1
+    URL https://gitlab.freedesktop.org/freetype/freetype/-/archive/VER-2-13-1/freetype-VER-2-13-1.zip
     OPTIONS
     "FT_DISABLE_ZLIB ON"
     "FT_DISABLE_BZIP2 ON"
