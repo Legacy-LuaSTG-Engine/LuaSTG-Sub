@@ -5,6 +5,7 @@ CPMAddPackage(
     VERSION 1.2.11
     URL https://www.nuget.org/api/v2/package/Microsoft.XAudio2.Redist/1.2.11
     URL_HASH SHA256=4552E0B5B59DE0CDBC6C217261C45F5968F7BBF1E8AB5F208E4BCA6FD8FC5780
+    DOWNLOAD_ONLY YES
 )
 
 if(Microsoft.XAudio2.Redist_ADDED)
@@ -38,6 +39,7 @@ CPMAddPackage(
     VERSION 1.0.230629.1
     URL https://www.nuget.org/api/v2/package/Microsoft.Windows.ImplementationLibrary/1.0.230629.1
     URL_HASH SHA256=3C995F4474053F5762EAB4FE9BCA398193DF4F510FE328A438BE1916F3785754
+    DOWNLOAD_ONLY YES
 )
 
 if(Microsoft.Windows.ImplementationLibrary_ADDED)
