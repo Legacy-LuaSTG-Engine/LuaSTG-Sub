@@ -18,7 +18,7 @@ static wchar_t* win32_to_wide(char const* str)
     if (buf == NULL) return NULL;
     memset(buf, 0, sz);
     int const result = MultiByteToWideChar(CP_UTF8, 0, str, (int)len, buf, required);
-    if (result <= 0 || result != required) return NULL;
+    if (result <= 0 || result != required) { free(buf); return NULL; }
     return buf;
 }
 static void win32_to_wide_free(wchar_t** p)
@@ -37,7 +37,7 @@ static char* win32_to_utf8(wchar_t const* str)
     if (buf == NULL) return NULL;
     memset(buf, 0, sz);
     int const result = WideCharToMultiByte(CP_UTF8, 0, str, (int)len, buf, required, NULL, NULL);
-    if (result <= 0 || result != required) return NULL;
+    if (result <= 0 || result != required) { free(buf); return NULL; }
     return buf;
 }
 static char* win32_to_utf8_buf(wchar_t const* str, char* buf, size_t bufsz)
