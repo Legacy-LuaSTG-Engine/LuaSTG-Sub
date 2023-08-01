@@ -121,7 +121,7 @@ namespace LuaSTGPlus
 		
 		/// @brief 执行资源包中的文件
 		/// @note 该函数为脚本系统使用
-		void LoadScript(const char* path,const char *packname)noexcept;
+		void LoadScript(lua_State* L, const char* path, const char* packname);
 		
 		bool OnOpenLuaEngine();
 		bool OnLoadLaunchScriptAndFiles();

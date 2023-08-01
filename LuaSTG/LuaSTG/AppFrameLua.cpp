@@ -235,8 +235,9 @@ namespace LuaSTGPlus
         }
     }
     
-    void AppFrame::LoadScript(const char* path, const char* packname) noexcept
+    void AppFrame::LoadScript(lua_State* SL, const char* path, const char* packname)
     {
+#define L (fuck) // 这里不能使用全局的 lua_State，必须使用传入的
         if (ResourceMgr::GetResourceLoadingLog())
         {
             if (packname)
@@ -261,17 +262,18 @@ namespace LuaSTGPlus
         if (!loaded)
         {
             spdlog::error("[luastg] 无法加载文件'{}'", path);
-            luaL_error(L, "can't load file '%s'", path);
+            luaL_error(SL, "can't load file '%s'", path);
             return;
         }
-        if (0 != luaL_loadbuffer(L, (char const*)src.data(), (size_t)src.size(), luaL_checkstring(L, 1)))
+        if (0 != luaL_loadbuffer(SL, (char const*)src.data(), (size_t)src.size(), luaL_checkstring(SL, 1)))
         {
-            const char* tDetail = lua_tostring(L, -1);
+            const char* tDetail = lua_tostring(SL, -1);
             spdlog::error("[luajit] 编译'{}'失败：{}", path, tDetail);
-            luaL_error(L, "failed to compile '%s': %s", path, tDetail);
+            luaL_error(SL, "failed to compile '%s': %s", path, tDetail);
             return;
         }
-        lua_call(L, 0, LUA_MULTRET);//这个一般只会在lua代码调用，外层已经有pcall了
+        lua_call(SL, 0, LUA_MULTRET);//这个一般只会在lua代码调用，外层已经有pcall了
+#undef L
     }
     
     bool AppFrame::OnOpenLuaEngine()

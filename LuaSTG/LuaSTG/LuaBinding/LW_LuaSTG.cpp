@@ -96,7 +96,7 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 		static int DoFile(lua_State* L)noexcept
 		{
 			int args = lua_gettop(L);//获取此时栈上的值的数量
-			LAPP.LoadScript(luaL_checkstring(L, 1), luaL_optstring(L, 2, NULL));
+			LAPP.LoadScript(L, luaL_checkstring(L, 1), luaL_optstring(L, 2, NULL));
 			return (lua_gettop(L) - args);
 		}
 		static int LoadTextFile(lua_State* L)noexcept
