@@ -782,6 +782,9 @@ namespace Platform::RuntimeLoader
 				// NTDDI_WIN10_MN Windows Server 2022 preview
 				// NTDDI_WIN10_FE Windows Server 2022 (20348/20349)
 				// 所以直接跳到了 Windows 11 21H2
+#ifndef NTDDI_WIN10_CO // TODO: 什么时候 GitHub 上面更新了 Windows SDK 什么时候移除掉
+#define NTDDI_WIN10_CO 0x0A00000B
+#endif
 				version = NTDDI_WIN10_CO;
 			}
 			if (WindowsVersion::Is10Build19041())
