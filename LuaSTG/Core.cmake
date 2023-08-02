@@ -117,6 +117,7 @@ target_link_libraries(Core PUBLIC
     FLAC::FLAC
     # database
     nlohmann_json
+    cppwinrt
 )
 
 add_dependencies(Core fuck_zlib_ng_and_minizip_ng)
