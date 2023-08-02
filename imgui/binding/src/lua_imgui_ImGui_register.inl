@@ -275,6 +275,10 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(EndTooltip),
     MAKEF(SetTooltip),
     MAKEF(SetTooltipV),
+
+    MAKEF(BeginItemTooltip),
+    MAKEF(SetItemTooltip),
+    MAKEF(SetItemTooltipV),
     
     // Popups, Modals
     MAKEF(BeginPopup),
@@ -359,6 +363,9 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(SetItemDefaultFocus),
     MAKEF(SetKeyboardFocusHere),
     
+    // Overlapping mode
+    MAKEF(SetNextItemAllowOverlap),
+
     // Item/Widgets Utilities
     MAKEF(IsItemHovered),
     MAKEF(IsItemActive),
@@ -377,7 +384,6 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(GetItemRectMin),
     MAKEF(GetItemRectMax),
     MAKEF(GetItemRectSize),
-    MAKEF(SetItemAllowOverlap),
     
     // Background/Foreground Draw Lists
     MAKEF(GetBackgroundDrawList),

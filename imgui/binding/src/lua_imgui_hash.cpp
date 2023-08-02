@@ -1045,6 +1045,252 @@ imgui_binding_lua_PropertiesHash imgui_binding_lua_ComputePropertiesHash(const c
           break;
       }
       break;
+    case 'H':
+      switch(key[1]) {
+        case 'o':
+          switch(key[2]) {
+            case 'v':
+              switch(key[3]) {
+                case 'e':
+                  switch(key[4]) {
+                    case 'r':
+                      switch(key[5]) {
+                        case 'D':
+                          switch(key[6]) {
+                            case 'e':
+                              switch(key[7]) {
+                                case 'l':
+                                  switch(key[8]) {
+                                    case 'a':
+                                      switch(key[9]) {
+                                        case 'y':
+                                          switch(key[10]) {
+                                            case 'N':
+                                              switch(key[11]) {
+                                                case 'o':
+                                                  switch(key[12]) {
+                                                    case 'r':
+                                                      switch(key[13]) {
+                                                        case 'm':
+                                                          switch(key[14]) {
+                                                            case 'a':
+                                                              switch(key[15]) {
+                                                                case 'l':
+                                                                  switch(key[16]) {
+                                                                    case '\0':
+                                                                      return imgui_binding_lua_PropertiesHash::HoverDelayNormal;
+                                                                  }
+                                                                  break;
+                                                              }
+                                                              break;
+                                                          }
+                                                          break;
+                                                      }
+                                                      break;
+                                                  }
+                                                  break;
+                                              }
+                                              break;
+                                            case 'S':
+                                              switch(key[11]) {
+                                                case 'h':
+                                                  switch(key[12]) {
+                                                    case 'o':
+                                                      switch(key[13]) {
+                                                        case 'r':
+                                                          switch(key[14]) {
+                                                            case 't':
+                                                              switch(key[15]) {
+                                                                case '\0':
+                                                                  return imgui_binding_lua_PropertiesHash::HoverDelayShort;
+                                                              }
+                                                              break;
+                                                          }
+                                                          break;
+                                                      }
+                                                      break;
+                                                  }
+                                                  break;
+                                              }
+                                              break;
+                                          }
+                                          break;
+                                      }
+                                      break;
+                                  }
+                                  break;
+                              }
+                              break;
+                          }
+                          break;
+                        case 'F':
+                          switch(key[6]) {
+                            case 'l':
+                              switch(key[7]) {
+                                case 'a':
+                                  switch(key[8]) {
+                                    case 'g':
+                                      switch(key[9]) {
+                                        case 's':
+                                          switch(key[10]) {
+                                            case 'F':
+                                              switch(key[11]) {
+                                                case 'o':
+                                                  switch(key[12]) {
+                                                    case 'r':
+                                                      switch(key[13]) {
+                                                        case 'T':
+                                                          switch(key[14]) {
+                                                            case 'o':
+                                                              switch(key[15]) {
+                                                                case 'o':
+                                                                  switch(key[16]) {
+                                                                    case 'l':
+                                                                      switch(key[17]) {
+                                                                        case 't':
+                                                                          switch(key[18]) {
+                                                                            case 'i':
+                                                                              switch(key[19]) {
+                                                                                case 'p':
+                                                                                  switch(key[20]) {
+                                                                                    case 'M':
+                                                                                      switch(key[21]) {
+                                                                                        case 'o':
+                                                                                          switch(key[22]) {
+                                                                                            case 'u':
+                                                                                              switch(key[23]) {
+                                                                                                case 's':
+                                                                                                  switch(key[24]) {
+                                                                                                    case 'e':
+                                                                                                      switch(key[25]) {
+                                                                                                        case '\0':
+                                                                                                          return imgui_binding_lua_PropertiesHash::HoverFlagsForTooltipMouse;
+                                                                                                      }
+                                                                                                      break;
+                                                                                                  }
+                                                                                                  break;
+                                                                                              }
+                                                                                              break;
+                                                                                          }
+                                                                                          break;
+                                                                                      }
+                                                                                      break;
+                                                                                    case 'N':
+                                                                                      switch(key[21]) {
+                                                                                        case 'a':
+                                                                                          switch(key[22]) {
+                                                                                            case 'v':
+                                                                                              switch(key[23]) {
+                                                                                                case '\0':
+                                                                                                  return imgui_binding_lua_PropertiesHash::HoverFlagsForTooltipNav;
+                                                                                              }
+                                                                                              break;
+                                                                                          }
+                                                                                          break;
+                                                                                      }
+                                                                                      break;
+                                                                                  }
+                                                                                  break;
+                                                                              }
+                                                                              break;
+                                                                          }
+                                                                          break;
+                                                                      }
+                                                                      break;
+                                                                  }
+                                                                  break;
+                                                              }
+                                                              break;
+                                                          }
+                                                          break;
+                                                      }
+                                                      break;
+                                                  }
+                                                  break;
+                                              }
+                                              break;
+                                          }
+                                          break;
+                                      }
+                                      break;
+                                  }
+                                  break;
+                              }
+                              break;
+                          }
+                          break;
+                        case 'S':
+                          switch(key[6]) {
+                            case 't':
+                              switch(key[7]) {
+                                case 'a':
+                                  switch(key[8]) {
+                                    case 't':
+                                      switch(key[9]) {
+                                        case 'i':
+                                          switch(key[10]) {
+                                            case 'o':
+                                              switch(key[11]) {
+                                                case 'n':
+                                                  switch(key[12]) {
+                                                    case 'a':
+                                                      switch(key[13]) {
+                                                        case 'r':
+                                                          switch(key[14]) {
+                                                            case 'y':
+                                                              switch(key[15]) {
+                                                                case 'D':
+                                                                  switch(key[16]) {
+                                                                    case 'e':
+                                                                      switch(key[17]) {
+                                                                        case 'l':
+                                                                          switch(key[18]) {
+                                                                            case 'a':
+                                                                              switch(key[19]) {
+                                                                                case 'y':
+                                                                                  switch(key[20]) {
+                                                                                    case '\0':
+                                                                                      return imgui_binding_lua_PropertiesHash::HoverStationaryDelay;
+                                                                                  }
+                                                                                  break;
+                                                                              }
+                                                                              break;
+                                                                          }
+                                                                          break;
+                                                                      }
+                                                                      break;
+                                                                  }
+                                                                  break;
+                                                              }
+                                                              break;
+                                                          }
+                                                          break;
+                                                      }
+                                                      break;
+                                                  }
+                                                  break;
+                                              }
+                                              break;
+                                          }
+                                          break;
+                                      }
+                                      break;
+                                  }
+                                  break;
+                              }
+                              break;
+                          }
+                          break;
+                      }
+                      break;
+                  }
+                  break;
+              }
+              break;
+          }
+          break;
+      }
+      break;
     case 'I':
       switch(key[1]) {
         case 'n':

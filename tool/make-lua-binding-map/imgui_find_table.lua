@@ -65,6 +65,12 @@ local imgui_find_table = {
         E("SeparatorTextBorderSize"),
         E("SeparatorTextAlign"),
         E("SeparatorTextPadding"),
+        -- ImGuiStyle Behaviors
+        E("HoverStationaryDelay"),
+        E("HoverDelayShort"),
+        E("HoverDelayNormal"),
+        E("HoverFlagsForTooltipMouse"),
+        E("HoverFlagsForTooltipNav"),
     },
 }
 

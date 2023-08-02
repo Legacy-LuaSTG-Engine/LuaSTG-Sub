@@ -533,6 +533,21 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
             case E::Colors:
                 imgui_binding_lua_ref_array_ImVec4(L, data->Colors, ImGuiCol_COUNT);
                 return 1;
+            case E::HoverStationaryDelay:
+                lua_pushnumber(L, (lua_Number)data->HoverStationaryDelay);
+                return 1;
+            case E::HoverDelayShort:
+                lua_pushnumber(L, (lua_Number)data->HoverDelayShort);
+                return 1;
+            case E::HoverDelayNormal:
+                lua_pushnumber(L, (lua_Number)data->HoverDelayNormal);
+                return 1;
+            case E::HoverFlagsForTooltipMouse:
+                lua_pushinteger(L, (lua_Integer)data->HoverFlagsForTooltipMouse);
+                return 1;
+            case E::HoverFlagsForTooltipNav:
+                lua_pushinteger(L, (lua_Integer)data->HoverFlagsForTooltipNav);
+                return 1;
             case E::ScaleAllSizes:
                 lua_pushcfunction(L, &ScaleAllSizes);
                 return 1;
@@ -676,6 +691,21 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
             case E::Colors:
                 imgui_binding_lua_ref_array_ImVec4(L, data->Colors, ImGuiCol_COUNT);
                 return 1;
+            case E::HoverStationaryDelay:
+                data->HoverStationaryDelay = (float)luaL_checknumber(L, 3);
+                break;
+            case E::HoverDelayShort:
+                data->HoverDelayShort = (float)luaL_checknumber(L, 3);
+                break;
+            case E::HoverDelayNormal:
+                data->HoverDelayNormal = (float)luaL_checknumber(L, 3);
+                break;
+            case E::HoverFlagsForTooltipMouse:
+                data->HoverFlagsForTooltipMouse = (int)luaL_checkinteger(L, 3);
+                break;
+            case E::HoverFlagsForTooltipNav:
+                data->HoverFlagsForTooltipNav = (float)luaL_checkinteger(L, 3);
+                break;
             case E::ScaleAllSizes:
             case E::__NOT_FOUND:
                 return luaL_error(L, "attempt to index a nil value '%s'", key);

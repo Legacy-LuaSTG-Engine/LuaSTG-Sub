@@ -2073,6 +2073,24 @@ static /* XXXX */ int lib_SetTooltipV(lua_State* L)
     LUA_IMGUI_NOT_SUPPORT;
 }
 
+static int lib_BeginItemTooltip(lua_State* L)
+{
+    std::ignore = L;
+    bool const result = ImGui::BeginItemTooltip();
+    lua_pushboolean(L, result);
+    return 1;
+}
+static int lib_SetItemTooltip(lua_State* L)
+{
+    const char* text = luaL_checkstring(L, 1);
+    ImGui::SetItemTooltip(text);
+    return 0;
+}
+static /* XXXX */ int lib_SetItemTooltipV(lua_State* L)
+{
+    LUA_IMGUI_NOT_SUPPORT;
+}
+
 //////// Popups, Modals
 
 static int lib_BeginPopup(lua_State* L)
@@ -2754,6 +2772,15 @@ static int lib_SetKeyboardFocusHere(lua_State* L)
     return 0;
 }
 
+//////// Overlapping mode
+
+static int lib_SetNextItemAllowOverlap(lua_State* L)
+{
+    std::ignore = L;
+    ImGui::SetNextItemAllowOverlap();
+    return 0;
+}
+
 //////// Item/Widgets Utilities
 
 static int lib_IsItemHovered(lua_State* L)
@@ -2859,12 +2886,6 @@ static int lib_GetItemRectSize(lua_State* L)
     ImVec2* vec2 = imgui_binding_lua_new_ImVec2(L);
     *vec2 = ImGui::GetItemRectSize();
     return 1;
-}
-static int lib_SetItemAllowOverlap(lua_State* L)
-{
-    std::ignore = L;
-    ImGui::SetItemAllowOverlap();
-    return 0;
 }
 
 //////// Background/Foreground Draw Lists
