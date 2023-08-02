@@ -704,7 +704,7 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
                 data->HoverFlagsForTooltipMouse = (int)luaL_checkinteger(L, 3);
                 break;
             case E::HoverFlagsForTooltipNav:
-                data->HoverFlagsForTooltipNav = (float)luaL_checkinteger(L, 3);
+                data->HoverFlagsForTooltipNav = (int)luaL_checkinteger(L, 3);
                 break;
             case E::ScaleAllSizes:
             case E::__NOT_FOUND:
