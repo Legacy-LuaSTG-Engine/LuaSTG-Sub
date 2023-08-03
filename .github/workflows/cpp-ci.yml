@@ -53,7 +53,7 @@ jobs:
       #    echo test, and deploy your project.
       
       - name: CMake configure
-        run: cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -DCPM_SOURCE_CACHE=build/packages
+        run: cmake -S . -B build -G "Visual Studio 17 2022" -A Win32,version=10.0.22621.0 -DCPM_SOURCE_CACHE=build/packages
       
       - name: CMake build
         run: cmake --build build --target LuaSTG --config Release
