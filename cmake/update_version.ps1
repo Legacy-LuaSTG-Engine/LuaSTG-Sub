@@ -3,7 +3,7 @@
 Set-Location -Path ($PSScriptRoot + "/..")
 [string] $CurrentLocation = Get-Location
 [string] $EngineLocation  = $CurrentLocation + "/LuaSTG"
-[string] $Lua             = $CurrentLocation + "/tool/lua54.exe"
+[string] $Lua             = $CurrentLocation + "/scripts/lua54.exe"
 Write-Output ("当前工作目录是：" + $CurrentLocation)
 
 # 运行
