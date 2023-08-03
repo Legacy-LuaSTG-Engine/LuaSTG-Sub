@@ -6,6 +6,8 @@
 
 ## Introduce
 
+[![C++ CI](https://github.com/Legacy-LuaSTG-Engine/LuaSTG-Sub/actions/workflows/cpp-ci.yml/badge.svg)](https://github.com/Legacy-LuaSTG-Engine/LuaSTG-Sub/actions/workflows/cpp-ci.yml)
+
 LuaSTG Sub, is a branch that the basic functions migrated to the new system API, target to replace the legacy [LuaSTG Plus](https://github.com/9chu/LuaSTGPlus) and [LuaSTG Ex Plus](https://github.com/Legacy-LuaSTG-Engine/Legacy-LuaSTG-Ex-Plus) branch. If you need a cross-platform or a more powerful branch of the LuaSTG engine, try [LuaSTG-x](https://github.com/Xrysnow/LuaSTG-x).
 
 ## Download
