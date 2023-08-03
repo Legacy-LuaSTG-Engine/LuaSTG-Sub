@@ -133,7 +133,7 @@ endif()
 
 CPMAddPackage(
     NAME tinygltf
-    VERSION 2.8.13
+    VERSION 2.8.14
     GITHUB_REPOSITORY syoyo/tinygltf
     #OPTIONS
     #"TINYGLTF_BUILD_LOADER_EXAMPLE OFF"
