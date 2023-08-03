@@ -28,7 +28,7 @@ jobs:
       # Runs a single command using the runners shell
       - name: Run a one-line script
         run: |
-          cd /d "C:\Program Files (x86)\Windows Kits\10\bin"
+          cd "C:\Program Files (x86)\Windows Kits\10\bin"
           dir
 
       # Runs a set of commands using the runners shell
