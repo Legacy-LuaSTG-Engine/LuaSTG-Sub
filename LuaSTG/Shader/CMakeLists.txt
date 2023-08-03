@@ -34,5 +34,4 @@ PRIVATE
 target_link_libraries(ShaderCompiler
 PRIVATE
     d3dcompiler.lib
-    cppwinrt
 )

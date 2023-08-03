@@ -11,7 +11,7 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <Windows.h>
-#include "winrt/base.h" // TODO: New Windows SDK
+#include <winrt/base.h>
 #include <d3dcompiler.h>
 
 static const std::string_view source_root(HREADER_INPUT_DIRECTORY);

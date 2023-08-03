@@ -1,11 +1,3 @@
-# ==================== cppwinrt ====================
-
-add_library(cppwinrt INTERFACE)
-target_include_directories(cppwinrt
-INTERFACE
-    cppwinrt
-)
-
 # ==================== luajit ====================
 
 add_subdirectory(luajit)
