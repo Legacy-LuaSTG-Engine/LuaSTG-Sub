@@ -13,8 +13,8 @@ namespace LuaSTGPlus
 
 	inline bool isRectEmpty(Core::RectI const& rect)
 	{
-		return (rect.b.x - rect.a.x) > 0
-			&& (rect.b.y - rect.a.y) > 0
+		return (rect.b.x - rect.a.x) == 0
+			|| (rect.b.y - rect.a.y) == 0
 			;
 	}
 
