@@ -168,7 +168,10 @@ namespace Core::Graphics
 		case WM_DPICHANGED:
 			if (getFrameStyle() != WindowFrameStyle::None)
 			{
+				RECT rc{};
+				GetWindowRect(window, &rc);
 				setSize(getSize()); // 刷新一次尺寸（因为非客户区可能会变化）
+				SetWindowPos(window, NULL, rc.left, rc.top, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
 				dispatchEvent(EventType::WindowDpiChanged);
 				return 0;
 			}
