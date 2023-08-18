@@ -573,7 +573,7 @@ namespace Core::Audio
 
 		// 创建音频
 
-		if (createResources())
+		if (!createResources())
 		{
 			i18n_core_system_call_report_error("AudioPlayer_XAUDIO2::AudioPlayer_XAUDIO2 (5)");
 			// 无异常
@@ -884,7 +884,7 @@ namespace Core::Audio
 
 		// 创建音频
 
-		if (createResources())
+		if (!createResources())
 		{
 			i18n_core_system_call_report_error("LoopAudioPlayer_XAUDIO2::LoopAudioPlayer_XAUDIO2 (5)");
 			// 无异常
@@ -1355,7 +1355,7 @@ namespace Core::Audio
 
 		// 创建音频
 
-		if (createResources())
+		if (!createResources())
 		{
 			i18n_core_system_call_report_error("LoopAudioPlayer_XAUDIO2::LoopAudioPlayer_XAUDIO2 (5)");
 			// 无异常
