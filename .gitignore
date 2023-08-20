@@ -8,6 +8,7 @@ build/*
 out/*
 install/*
 cmake-build-*/*
+packages/*
 
 # publish
 .backup/*
