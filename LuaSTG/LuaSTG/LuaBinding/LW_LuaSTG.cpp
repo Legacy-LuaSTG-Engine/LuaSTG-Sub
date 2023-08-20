@@ -205,6 +205,12 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 			S.push_value<std::string_view>(name);
 			return 1;
 		}
+		static int SetSwapChainScalingMode(lua_State* L)noexcept
+		{
+			LAPP.GetAppModel()->getSwapChain()->setScalingMode(
+				(Core::Graphics::SwapChainScalingMode)luaL_checkinteger(L, 1));
+			return 0;
+		}
 		#pragma endregion
 	};
 	
@@ -229,6 +235,7 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 		{ "EnumGPUs", &WrapperImplement::EnumGPUs },
 		{ "ChangeGPU", &WrapperImplement::ChangeGPU },
 		{ "GetCurrentGpuName", &WrapperImplement::GetCurrentGpuName },
+		{ "SetSwapChainScalingMode", &WrapperImplement::SetSwapChainScalingMode },
 		#pragma endregion
 		
 		{ NULL, NULL },
