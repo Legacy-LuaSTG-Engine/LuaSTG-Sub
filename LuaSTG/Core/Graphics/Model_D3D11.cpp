@@ -623,7 +623,7 @@ namespace Core::Graphics
                 .Usage = D3D11_USAGE_DEFAULT,
                 .BindFlags = D3D11_BIND_SHADER_RESOURCE | (mipmap ? D3D11_BIND_RENDER_TARGET : (UINT)0),
                 .CPUAccessFlags = 0,
-                .MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS,
+                .MiscFlags = mipmap ? D3D11_RESOURCE_MISC_GENERATE_MIPS : (UINT)0,
             };
             D3D11_SUBRESOURCE_DATA dat_def = {
                 .pSysMem = img.image.data(),
