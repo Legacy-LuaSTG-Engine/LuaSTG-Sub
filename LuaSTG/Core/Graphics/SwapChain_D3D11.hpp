@@ -52,6 +52,8 @@ namespace Core::Graphics
 		bool m_disable_composition{ false };
 		bool m_enable_composition{ false };
 
+		SwapChainScalingMode m_scaling_mode{ SwapChainScalingMode::AspectRatio };
+
 	private:
 		void onDeviceCreate();
 		void onDeviceDestroy();
@@ -130,6 +132,9 @@ namespace Core::Graphics
 
 		bool setCanvasSize(Vector2U size);
 		Vector2U getCanvasSize() { return m_canvas_size; }
+
+		void setScalingMode(SwapChainScalingMode mode);
+		SwapChainScalingMode getScalingMode() { return m_scaling_mode; }
 
 		void clearRenderAttachment();
 		void applyRenderAttachment();

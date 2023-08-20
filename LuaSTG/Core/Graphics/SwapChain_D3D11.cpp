@@ -1562,24 +1562,35 @@ namespace Core::Graphics
 		
 		// 设置交换链内容内接放大
 
-		DXGI_MATRIX_3X2_F mat{};
-		if (makeLetterboxing(window_size_u, Vector2U(desc1.Width, desc1.Height), mat))
+		if (m_scaling_mode == SwapChainScalingMode::Stretch)
 		{
-			D2D_MATRIX_3X2_F const mat_d2d = {
-				mat._11, mat._12,
-				mat._21, mat._22,
-				mat._31, mat._32,
-			};
+			auto const mat_d2d = D2D1::Matrix3x2F::Scale(
+				(float)window_size_u.x / (float)desc1.Width,
+				(float)window_size_u.y / (float)desc1.Height);
 			HRGet = dcomp_visual_swap_chain->SetTransform(mat_d2d);
 			HRCheckCallReturnBool("IDCompositionVisual2::SetTransform");
 		}
 		else
 		{
-			auto const mat_d2d = D2D1::Matrix3x2F::Identity();
-			HRGet = dcomp_visual_swap_chain->SetTransform(mat_d2d);
-			HRCheckCallReturnBool("IDCompositionVisual2::SetTransform");
+			DXGI_MATRIX_3X2_F mat{};
+			if (makeLetterboxing(window_size_u, Vector2U(desc1.Width, desc1.Height), mat))
+			{
+				D2D_MATRIX_3X2_F const mat_d2d = {
+					mat._11, mat._12,
+					mat._21, mat._22,
+					mat._31, mat._32,
+				};
+				HRGet = dcomp_visual_swap_chain->SetTransform(mat_d2d);
+				HRCheckCallReturnBool("IDCompositionVisual2::SetTransform");
+			}
+			else
+			{
+				auto const mat_d2d = D2D1::Matrix3x2F::Identity();
+				HRGet = dcomp_visual_swap_chain->SetTransform(mat_d2d);
+				HRCheckCallReturnBool("IDCompositionVisual2::SetTransform");
+			}
 		}
-
+		
 		// 提交
 
 		if (!commitDirectComposition()) return false;
@@ -1902,7 +1913,8 @@ namespace Core::Graphics
 
 		return m_scaling_renderer.UpdateTransform(
 			m_canvas_d3d11_srv.Get(),
-			m_swap_chain_d3d11_rtv.Get()
+			m_swap_chain_d3d11_rtv.Get(),
+			m_scaling_mode == SwapChainScalingMode::Stretch
 		);
 	}
 	bool SwapChain_D3D11::presentLetterBoxingRenderer()
@@ -2136,6 +2148,15 @@ namespace Core::Graphics
 		}
 
 		return true;
+	}
+
+	void SwapChain_D3D11::setScalingMode(SwapChainScalingMode mode)
+	{
+		m_scaling_mode = mode;
+		if (m_is_composition_mode)
+			updateDirectCompositionTransform();
+		else
+			updateLetterBoxingRendererTransform();
 	}
 
 	void SwapChain_D3D11::waitFrameLatency()

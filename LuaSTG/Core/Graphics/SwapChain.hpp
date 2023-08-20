@@ -14,6 +14,12 @@ namespace Core::Graphics
 		Format format{ Format::B8G8R8A8_UNORM };
 	};
 
+	enum class SwapChainScalingMode
+	{
+		Stretch,
+		AspectRatio,
+	};
+
 	struct ISwapChainEventListener
 	{
 		virtual void onSwapChainCreate() = 0;
@@ -28,6 +34,9 @@ namespace Core::Graphics
 		virtual bool setWindowMode(Vector2U size) = 0;
 		virtual bool setCanvasSize(Vector2U size) = 0;
 		virtual Vector2U getCanvasSize() = 0;
+
+		virtual void setScalingMode(SwapChainScalingMode mode) = 0;
+		virtual SwapChainScalingMode getScalingMode() = 0;
 
 		virtual void clearRenderAttachment() = 0;
 		virtual void applyRenderAttachment() = 0;
