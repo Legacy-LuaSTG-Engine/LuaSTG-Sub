@@ -22,10 +22,10 @@ namespace Core::Graphics::Direct3D11
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> d3d11_device_context;
 	private:
 		Microsoft::WRL::ComPtr<ID3D11InputLayout> d3d11_input_layout;
-		Vertex vertex_buffer[4];
+		Vertex vertex_buffer[4]{};
 		Microsoft::WRL::ComPtr<ID3D11Buffer> d3d11_vertex_buffer;
 		Microsoft::WRL::ComPtr<ID3D11Buffer> d3d11_index_buffer;
-		TransformBuffer transform_buffer;
+		TransformBuffer transform_buffer{};
 		Microsoft::WRL::ComPtr<ID3D11Buffer> d3d11_constant_buffer;
 		Microsoft::WRL::ComPtr<ID3D11VertexShader> d3d11_vertex_shader;
 		D3D11_VIEWPORT d3d11_viewport{};
@@ -42,7 +42,7 @@ namespace Core::Graphics::Direct3D11
 	public:
 		bool AttachDevice(ID3D11Device* device);
 		void DetachDevice();
-		bool UpdateTransform(ID3D11ShaderResourceView* srv, ID3D11RenderTargetView* rtv);
+		bool UpdateTransform(ID3D11ShaderResourceView* srv, ID3D11RenderTargetView* rtv, bool stretch = false);
 		bool Draw(ID3D11ShaderResourceView* srv, ID3D11RenderTargetView* rtv, bool clear_rtv);
 	public:
 		LetterBoxingRenderer();
