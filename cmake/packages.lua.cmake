@@ -77,7 +77,7 @@ if(luasocket_ADDED)
     )
     target_link_libraries(luasocket
     PUBLIC
-        lua51static
+        lua51_static
         ws2_32.lib
     )
     set_target_properties(luasocket PROPERTIES FOLDER lualib)

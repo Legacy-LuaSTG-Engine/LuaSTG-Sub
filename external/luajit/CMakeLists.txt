@@ -1,183 +1,253 @@
-cmake_minimum_required(VERSION 3.20)
-project(luajit)
+cmake_minimum_required(VERSION 3.26)
+project(LuaJIT)
 
-#set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Debug>:DLL>")
+# common
 
-# build contorller
+set(LUAJIT_ROOT ${CMAKE_CURRENT_LIST_DIR}/luajit)
+set(LUAJIT_TEMP ${CMAKE_CURRENT_BINARY_DIR}/luajit/$<CONFIG>)
 
-set(LJ_ROOT ${CMAKE_CURRENT_LIST_DIR}/luajit)
-set(LJ_PATCH_ROOT ${CMAKE_CURRENT_LIST_DIR}/patch)
-
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    message("64 bits platform")
-    set(LJ_AMD64 ON)
-elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
-    message("32 bits platform")
-    set(LJ_AMD64 OFF)
-else()
-    message(FATAL_ERROR "unknown platform")
-endif()
-
-set(LJ_TEMP ${CMAKE_BINARY_DIR}/lj_h_)
-
-function(luajit_target_common_setup __TARGET__)
-    target_compile_options(${__TARGET__} PRIVATE
+function(luajit_target_setup target)
+    set_target_properties(${target} PROPERTIES
+        C_STANDARD 17
+        C_STANDARD_REQUIRED ON
+    )
+    target_compile_definitions(${target}
+    PRIVATE
+        _CRT_SECURE_NO_WARNINGS
+    )
+    target_compile_options(${target}
+    PRIVATE
+        "/W4"
+        "/wd4127" # conditional expression is constant
+        "/wd4702" # unreachable code
+        "/wd4706" # assignment within conditional expression (note: update value in while/for loop)
+        "/sdl"
+        "/permissive-"
         "/D_CRT_STDIO_INLINE=__declspec(dllexport)__inline"
     )
-    if(NOT LJ_AMD64)
-        target_compile_options(${__TARGET__} PRIVATE
+    if (CMAKE_SIZEOF_VOID_P EQUAL 4)
+        target_compile_options(${target}
+        PRIVATE
             "/arch:SSE2"
         )
     endif()
-    target_compile_definitions(${__TARGET__} PRIVATE
-        _CRT_SECURE_NO_DEPRECATE
-    )
 endfunction()
 
 # minilua
 
 add_executable(minilua)
-luajit_target_common_setup(minilua)
-target_sources(minilua PRIVATE
-    ${LJ_ROOT}/src/host/minilua.c
+luajit_target_setup(minilua)
+target_sources(minilua
+PRIVATE
+    ${LUAJIT_ROOT}/src/host/minilua.c
 )
 
-set(LJ_DASMDIR   ${LJ_ROOT}/dynasm)
-set(LJ_DASM      ${LJ_DASMDIR}/dynasm.lua)
-set(LJ_DASMFLAGS -D WIN -D JIT -D FFI)
-set(LJ_DASC      ${LJ_ROOT}/src/vm_x86.dasc)
+# buildvm_arch
 
-if(LJ_AMD64)
-    set(LJ_DASMFLAGS ${LJ_DASMFLAGS} -D P64) # add P64 option
-    set(LJ_DASC      ${LJ_ROOT}/src/vm_x64.dasc) # x64
+set(LUAJIT_DASM ${LUAJIT_ROOT}/dynasm/dynasm.lua)
+set(LUAJIT_DASM_FLAGS)
+set(LUAJIT_BUILDVM_ARCH_H_DIR ${LUAJIT_TEMP}/host)
+set(LUAJIT_BUILDVM_ARCH_H ${LUAJIT_BUILDVM_ARCH_H_DIR}/buildvm_arch.h)
+set(LUAJIT_DASC)
+
+if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+    message(STATUS "luajit amd64")
+    set(LUAJIT_DASM_FLAGS -D WIN -D JIT -D FFI -D P64)
+    set(LUAJIT_DASC ${LUAJIT_ROOT}/src/vm_x64.dasc)
+else()
+    message(STATUS "luajit x86")
+    set(LUAJIT_DASM_FLAGS -D WIN -D JIT -D FFI)
+    set(LUAJIT_DASC ${LUAJIT_ROOT}/src/vm_x86.dasc)
 endif()
 
-add_custom_command(TARGET minilua POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${LJ_TEMP}$<CONFIG>
-    COMMAND $<TARGET_FILE:minilua> ${LJ_DASM} -LN ${LJ_DASMFLAGS} -o ${LJ_TEMP}$<CONFIG>/buildvm_arch.h ${LJ_DASC}
+add_custom_command(
+    OUTPUT ${LUAJIT_BUILDVM_ARCH_H}
+    COMMAND cmake -E make_directory ${LUAJIT_BUILDVM_ARCH_H_DIR}
+    COMMAND $<TARGET_FILE:minilua> ${LUAJIT_DASM} -LN ${LUAJIT_DASM_FLAGS} -o ${LUAJIT_BUILDVM_ARCH_H} ${LUAJIT_DASC}
+    DEPENDS minilua
+    VERBATIM
 )
 
 # buildvm
 
 add_executable(buildvm)
-luajit_target_common_setup(buildvm)
-target_include_directories(buildvm PRIVATE
-    ${LJ_TEMP}$<CONFIG> # before src
-    ${LJ_ROOT}/src
-    ${LJ_ROOT}/dynasm
+luajit_target_setup(buildvm)
+target_include_directories(buildvm
+PRIVATE
+    ${LUAJIT_BUILDVM_ARCH_H_DIR}
+    ${LUAJIT_ROOT}/dynasm
+    ${LUAJIT_ROOT}/src
 )
-target_sources(buildvm PRIVATE
-    ${LJ_ROOT}/src/host/buildvm_asm.c
-    ${LJ_ROOT}/src/host/buildvm_fold.c
-    ${LJ_ROOT}/src/host/buildvm_lib.c
-    ${LJ_ROOT}/src/host/buildvm_peobj.c
-    ${LJ_ROOT}/src/host/buildvm.c
-)
-
-add_dependencies(buildvm minilua)
-
-set(LJ_ALL_LIB
-    ${LJ_ROOT}/src/lib_base.c
-    ${LJ_ROOT}/src/lib_math.c
-    ${LJ_ROOT}/src/lib_bit.c
-    ${LJ_ROOT}/src/lib_string.c
-    ${LJ_ROOT}/src/lib_table.c
-    #${LJ_ROOT}/src/lib_io.c
-    #${LJ_ROOT}/src/lib_os.c
-    ${LJ_ROOT}/src/lib_package.c
-    ${LJ_ROOT}/src/lib_debug.c
-    ${LJ_ROOT}/src/lib_jit.c
-    ${LJ_ROOT}/src/lib_ffi.c
-    ${LJ_ROOT}/src/lib_buffer.c
-    ${LJ_PATCH_ROOT}/lib_io.c
-    ${LJ_PATCH_ROOT}/lib_os.c
-)
-add_custom_command(TARGET buildvm POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${LJ_TEMP}$<CONFIG>
-    
-    COMMAND $<TARGET_FILE:buildvm> -m peobj   -o ${LJ_TEMP}$<CONFIG>/lj_vm.obj
-    
-    COMMAND $<TARGET_FILE:buildvm> -m bcdef   -o ${LJ_TEMP}$<CONFIG>/lj_bcdef.h    ${LJ_ALL_LIB}
-    COMMAND $<TARGET_FILE:buildvm> -m ffdef   -o ${LJ_TEMP}$<CONFIG>/lj_ffdef.h    ${LJ_ALL_LIB}
-    COMMAND $<TARGET_FILE:buildvm> -m libdef  -o ${LJ_TEMP}$<CONFIG>/lj_libdef.h   ${LJ_ALL_LIB}
-    COMMAND $<TARGET_FILE:buildvm> -m recdef  -o ${LJ_TEMP}$<CONFIG>/lj_recdef.h   ${LJ_ALL_LIB}
-    COMMAND $<TARGET_FILE:buildvm> -m folddef -o ${LJ_TEMP}$<CONFIG>/lj_folddef.h  ${LJ_ROOT}/src/lj_opt_fold.c
-    
-    COMMAND $<TARGET_FILE:buildvm> -m vmdef   -o ${LJ_ROOT}/src/jit/vmdef.lua ${LJ_ALL_LIB}
+target_sources(buildvm
+PRIVATE
+    ${LUAJIT_BUILDVM_ARCH_H}
+    ${LUAJIT_ROOT}/src/host/buildvm_asm.c
+    ${LUAJIT_ROOT}/src/host/buildvm_fold.c
+    ${LUAJIT_ROOT}/src/host/buildvm_lib.c
+    ${LUAJIT_ROOT}/src/host/buildvm_peobj.c
+    ${LUAJIT_ROOT}/src/host/buildvm.c
 )
 
-# lua51 (luajit) common
+# vm object
 
-set(LJ_SRC
-    ${LJ_ROOT}/src/lj_alloc.c
-    ${LJ_ROOT}/src/lj_api.c
-    ${LJ_ROOT}/src/lj_asm.c
-    ${LJ_ROOT}/src/lj_assert.c
-    ${LJ_ROOT}/src/lj_bc.c
-    ${LJ_ROOT}/src/lj_bcread.c
-    ${LJ_ROOT}/src/lj_bcwrite.c
-    ${LJ_ROOT}/src/lj_buf.c
-    ${LJ_ROOT}/src/lj_carith.c
-    ${LJ_ROOT}/src/lj_ccall.c
-    ${LJ_ROOT}/src/lj_ccallback.c
-    ${LJ_ROOT}/src/lj_cconv.c
-    ${LJ_ROOT}/src/lj_cdata.c
-    ${LJ_ROOT}/src/lj_char.c
-    ${LJ_ROOT}/src/lj_clib.c
-    ${LJ_ROOT}/src/lj_cparse.c
-    ${LJ_ROOT}/src/lj_crecord.c
-    ${LJ_ROOT}/src/lj_ctype.c
-    ${LJ_ROOT}/src/lj_debug.c
-    ${LJ_ROOT}/src/lj_dispatch.c
-    ${LJ_ROOT}/src/lj_err.c
-    ${LJ_ROOT}/src/lj_ffrecord.c
-    ${LJ_ROOT}/src/lj_func.c
-    ${LJ_ROOT}/src/lj_gc.c
-    ${LJ_ROOT}/src/lj_gdbjit.c
-    ${LJ_ROOT}/src/lj_ir.c
-    ${LJ_ROOT}/src/lj_lex.c
-    ${LJ_ROOT}/src/lj_lib.c
-    ${LJ_ROOT}/src/lj_load.c
-    ${LJ_ROOT}/src/lj_mcode.c
-    ${LJ_ROOT}/src/lj_meta.c
-    ${LJ_ROOT}/src/lj_obj.c
-    ${LJ_ROOT}/src/lj_opt_dce.c
-    ${LJ_ROOT}/src/lj_opt_fold.c
-    ${LJ_ROOT}/src/lj_opt_loop.c
-    ${LJ_ROOT}/src/lj_opt_mem.c
-    ${LJ_ROOT}/src/lj_opt_narrow.c
-    ${LJ_ROOT}/src/lj_opt_sink.c
-    ${LJ_ROOT}/src/lj_opt_split.c
-    ${LJ_ROOT}/src/lj_parse.c
-    ${LJ_ROOT}/src/lj_prng.c
-    ${LJ_ROOT}/src/lj_profile.c
-    ${LJ_ROOT}/src/lj_record.c
-    ${LJ_ROOT}/src/lj_serialize.c
-    ${LJ_ROOT}/src/lj_snap.c
-    ${LJ_ROOT}/src/lj_state.c
-    ${LJ_ROOT}/src/lj_str.c
-    ${LJ_ROOT}/src/lj_strfmt_num.c
-    ${LJ_ROOT}/src/lj_strfmt.c
-    ${LJ_ROOT}/src/lj_strscan.c
-    ${LJ_ROOT}/src/lj_tab.c
-    ${LJ_ROOT}/src/lj_trace.c
-    ${LJ_ROOT}/src/lj_udata.c
-    ${LJ_ROOT}/src/lj_vmevent.c
-    ${LJ_ROOT}/src/lj_vmmath.c
-    ${LJ_ROOT}/src/lib_aux.c
-    ${LJ_ROOT}/src/lib_base.c
-    ${LJ_ROOT}/src/lib_bit.c
-    ${LJ_ROOT}/src/lib_buffer.c
-    ${LJ_ROOT}/src/lib_debug.c
-    ${LJ_ROOT}/src/lib_ffi.c
-    ${LJ_ROOT}/src/lib_init.c
-    #${LJ_ROOT}/src/lib_io.c
-    ${LJ_ROOT}/src/lib_jit.c
-    ${LJ_ROOT}/src/lib_math.c
-    #${LJ_ROOT}/src/lib_os.c
-    ${LJ_ROOT}/src/lib_package.c
-    ${LJ_ROOT}/src/lib_string.c
-    ${LJ_ROOT}/src/lib_table.c
+set(LUAJIT_BUILDVM_OBJ_DIR ${LUAJIT_TEMP})
+set(LUAJIT_BUILDVM_VMDEF_DIR ${LUAJIT_BUILDVM_OBJ_DIR}/jit)
+set(LUAJIT_ALL_LIB
+    ${LUAJIT_ROOT}/src/lib_base.c
+    ${LUAJIT_ROOT}/src/lib_math.c
+    ${LUAJIT_ROOT}/src/lib_bit.c
+    ${LUAJIT_ROOT}/src/lib_string.c
+    ${LUAJIT_ROOT}/src/lib_table.c
+    #${LUAJIT_ROOT}/src/lib_io.c
+    #${LUAJIT_ROOT}/src/lib_os.c
+    ${LUAJIT_ROOT}/src/lib_package.c
+    ${LUAJIT_ROOT}/src/lib_debug.c
+    ${LUAJIT_ROOT}/src/lib_jit.c
+    ${LUAJIT_ROOT}/src/lib_ffi.c
+    ${LUAJIT_ROOT}/src/lib_buffer.c
+    # custom
+    ${CMAKE_CURRENT_LIST_DIR}/patch/lib_io.c
+    ${CMAKE_CURRENT_LIST_DIR}/patch/lib_os.c
+)
+
+add_custom_command(
+    OUTPUT ${LUAJIT_BUILDVM_OBJ_DIR}/lj_vm.obj
+    COMMAND cmake -E make_directory ${LUAJIT_BUILDVM_OBJ_DIR}
+    COMMAND $<TARGET_FILE:buildvm> -m peobj -o ${LUAJIT_BUILDVM_OBJ_DIR}/lj_vm.obj
+    DEPENDS buildvm
+    VERBATIM
+)
+
+add_custom_command(
+    OUTPUT ${LUAJIT_BUILDVM_OBJ_DIR}/lj_bcdef.h
+    COMMAND cmake -E make_directory ${LUAJIT_BUILDVM_OBJ_DIR}
+    COMMAND $<TARGET_FILE:buildvm> -m bcdef -o ${LUAJIT_BUILDVM_OBJ_DIR}/lj_bcdef.h ${LUAJIT_ALL_LIB}
+    DEPENDS buildvm
+    VERBATIM
+)
+
+add_custom_command(
+    OUTPUT ${LUAJIT_BUILDVM_OBJ_DIR}/lj_ffdef.h
+    COMMAND cmake -E make_directory ${LUAJIT_BUILDVM_OBJ_DIR}
+    COMMAND $<TARGET_FILE:buildvm> -m ffdef -o ${LUAJIT_BUILDVM_OBJ_DIR}/lj_ffdef.h ${LUAJIT_ALL_LIB}
+    DEPENDS buildvm
+    VERBATIM
+)
+
+add_custom_command(
+    OUTPUT ${LUAJIT_BUILDVM_OBJ_DIR}/lj_libdef.h
+    COMMAND cmake -E make_directory ${LUAJIT_BUILDVM_OBJ_DIR}
+    COMMAND $<TARGET_FILE:buildvm> -m libdef -o ${LUAJIT_BUILDVM_OBJ_DIR}/lj_libdef.h ${LUAJIT_ALL_LIB}
+    DEPENDS buildvm
+    VERBATIM
+)
+
+add_custom_command(
+    OUTPUT ${LUAJIT_BUILDVM_OBJ_DIR}/lj_recdef.h
+    COMMAND cmake -E make_directory ${LUAJIT_BUILDVM_OBJ_DIR}
+    COMMAND $<TARGET_FILE:buildvm> -m recdef -o ${LUAJIT_BUILDVM_OBJ_DIR}/lj_recdef.h ${LUAJIT_ALL_LIB}
+    DEPENDS buildvm
+    VERBATIM
+)
+
+add_custom_command(
+    OUTPUT ${LUAJIT_BUILDVM_VMDEF_DIR}/vmdef.lua
+    COMMAND cmake -E make_directory ${LUAJIT_BUILDVM_VMDEF_DIR}
+    COMMAND $<TARGET_FILE:buildvm> -m vmdef -o ${LUAJIT_BUILDVM_VMDEF_DIR}/vmdef.lua ${LUAJIT_ALL_LIB}
+    DEPENDS buildvm
+    VERBATIM
+)
+
+add_custom_command(
+    OUTPUT ${LUAJIT_BUILDVM_OBJ_DIR}/lj_folddef.h
+    COMMAND cmake -E make_directory ${LUAJIT_BUILDVM_OBJ_DIR}
+    COMMAND $<TARGET_FILE:buildvm> -m folddef -o ${LUAJIT_BUILDVM_OBJ_DIR}/lj_folddef.h ${LUAJIT_ROOT}/src/lj_opt_fold.c
+    DEPENDS buildvm
+    VERBATIM
+)
+
+# lib
+
+set(LUAJIT_LIB_GEN
+    ${LUAJIT_BUILDVM_OBJ_DIR}/lj_vm.obj
+    ${LUAJIT_BUILDVM_OBJ_DIR}/lj_bcdef.h
+    ${LUAJIT_BUILDVM_OBJ_DIR}/lj_ffdef.h
+    ${LUAJIT_BUILDVM_OBJ_DIR}/lj_libdef.h
+    ${LUAJIT_BUILDVM_OBJ_DIR}/lj_recdef.h
+    ${LUAJIT_BUILDVM_OBJ_DIR}/lj_folddef.h
+)
+
+set(LUAJIT_LIB_SRC
+    ${LUAJIT_ROOT}/src/lj_alloc.c
+    ${LUAJIT_ROOT}/src/lj_api.c
+    ${LUAJIT_ROOT}/src/lj_asm.c
+    ${LUAJIT_ROOT}/src/lj_assert.c
+    ${LUAJIT_ROOT}/src/lj_bc.c
+    ${LUAJIT_ROOT}/src/lj_bcread.c
+    ${LUAJIT_ROOT}/src/lj_bcwrite.c
+    ${LUAJIT_ROOT}/src/lj_buf.c
+    ${LUAJIT_ROOT}/src/lj_carith.c
+    ${LUAJIT_ROOT}/src/lj_ccall.c
+    ${LUAJIT_ROOT}/src/lj_ccallback.c
+    ${LUAJIT_ROOT}/src/lj_cconv.c
+    ${LUAJIT_ROOT}/src/lj_cdata.c
+    ${LUAJIT_ROOT}/src/lj_char.c
+    ${LUAJIT_ROOT}/src/lj_clib.c
+    ${LUAJIT_ROOT}/src/lj_cparse.c
+    ${LUAJIT_ROOT}/src/lj_crecord.c
+    ${LUAJIT_ROOT}/src/lj_ctype.c
+    ${LUAJIT_ROOT}/src/lj_debug.c
+    ${LUAJIT_ROOT}/src/lj_dispatch.c
+    ${LUAJIT_ROOT}/src/lj_err.c
+    ${LUAJIT_ROOT}/src/lj_ffrecord.c
+    ${LUAJIT_ROOT}/src/lj_func.c
+    ${LUAJIT_ROOT}/src/lj_gc.c
+    ${LUAJIT_ROOT}/src/lj_gdbjit.c
+    ${LUAJIT_ROOT}/src/lj_ir.c
+    ${LUAJIT_ROOT}/src/lj_lex.c
+    ${LUAJIT_ROOT}/src/lj_lib.c
+    ${LUAJIT_ROOT}/src/lj_load.c
+    ${LUAJIT_ROOT}/src/lj_mcode.c
+    ${LUAJIT_ROOT}/src/lj_meta.c
+    ${LUAJIT_ROOT}/src/lj_obj.c
+    ${LUAJIT_ROOT}/src/lj_opt_dce.c
+    ${LUAJIT_ROOT}/src/lj_opt_fold.c
+    ${LUAJIT_ROOT}/src/lj_opt_loop.c
+    ${LUAJIT_ROOT}/src/lj_opt_mem.c
+    ${LUAJIT_ROOT}/src/lj_opt_narrow.c
+    ${LUAJIT_ROOT}/src/lj_opt_sink.c
+    ${LUAJIT_ROOT}/src/lj_opt_split.c
+    ${LUAJIT_ROOT}/src/lj_parse.c
+    ${LUAJIT_ROOT}/src/lj_prng.c
+    ${LUAJIT_ROOT}/src/lj_profile.c
+    ${LUAJIT_ROOT}/src/lj_record.c
+    ${LUAJIT_ROOT}/src/lj_serialize.c
+    ${LUAJIT_ROOT}/src/lj_snap.c
+    ${LUAJIT_ROOT}/src/lj_state.c
+    ${LUAJIT_ROOT}/src/lj_str.c
+    ${LUAJIT_ROOT}/src/lj_strfmt.c
+    ${LUAJIT_ROOT}/src/lj_strfmt_num.c
+    ${LUAJIT_ROOT}/src/lj_strscan.c
+    ${LUAJIT_ROOT}/src/lj_tab.c
+    ${LUAJIT_ROOT}/src/lj_trace.c
+    ${LUAJIT_ROOT}/src/lj_udata.c
+    ${LUAJIT_ROOT}/src/lj_vmevent.c
+    ${LUAJIT_ROOT}/src/lj_vmmath.c
+    ${LUAJIT_ROOT}/src/lib_aux.c
+    ${LUAJIT_ROOT}/src/lib_base.c
+    ${LUAJIT_ROOT}/src/lib_bit.c
+    ${LUAJIT_ROOT}/src/lib_buffer.c
+    ${LUAJIT_ROOT}/src/lib_debug.c
+    ${LUAJIT_ROOT}/src/lib_ffi.c
+    ${LUAJIT_ROOT}/src/lib_init.c
+    #${LUAJIT_ROOT}/src/lib_io.c
+    ${LUAJIT_ROOT}/src/lib_jit.c
+    ${LUAJIT_ROOT}/src/lib_math.c
+    #${LUAJIT_ROOT}/src/lib_os.c
+    ${LUAJIT_ROOT}/src/lib_package.c
+    ${LUAJIT_ROOT}/src/lib_string.c
+    ${LUAJIT_ROOT}/src/lib_table.c
+    # custom
     patch/lib_io.c
     patch/lib_os.c
     patch/lib_utf8.c
@@ -185,89 +255,65 @@ set(LJ_SRC
     patch/lj_win32.c
 )
 
-# lua51 (luajit) lib
-
-add_library(lua51static STATIC)
-luajit_target_common_setup(lua51static)
-target_include_directories(lua51static PRIVATE
-    ${LJ_TEMP}$<CONFIG> # before src
+add_library(lua51_static STATIC)
+luajit_target_setup(lua51_static)
+target_include_directories(lua51_static
+PRIVATE
+    ${LUAJIT_BUILDVM_OBJ_DIR}
+PUBLIC
+    ${LUAJIT_ROOT}/src
 )
-target_include_directories(lua51static PUBLIC
-    ${LJ_ROOT}/src
-    patch
-)
-target_sources(lua51static PRIVATE
-    ${LJ_SRC}
-)
-target_link_libraries(lua51static PRIVATE
-    ${LJ_TEMP}$<CONFIG>/lj_vm.obj
+target_sources(lua51_static
+PRIVATE
+    ${LUAJIT_LIB_GEN}
+    ${LUAJIT_LIB_SRC}
 )
 
-add_dependencies(lua51static buildvm)
-
-# lua51 (luajit) dll
+# dll
 
 add_library(lua51 SHARED)
-luajit_target_common_setup(lua51)
-target_compile_definitions(lua51 PUBLIC
+luajit_target_setup(lua51)
+target_compile_definitions(lua51
+PUBLIC
     LUA_BUILD_AS_DLL
 )
-target_include_directories(lua51 PRIVATE
-    ${LJ_TEMP}$<CONFIG> # before src
-    ${LJ_ROOT}/src
-    patch
+target_include_directories(lua51
+PRIVATE
+    ${LUAJIT_BUILDVM_OBJ_DIR}
+PUBLIC
+    ${LUAJIT_ROOT}/src
 )
-target_sources(lua51 PRIVATE
-    ${LJ_SRC}
+target_sources(lua51
+PRIVATE
+    ${LUAJIT_LIB_GEN}
+    ${LUAJIT_LIB_SRC}
 )
-target_link_libraries(lua51 PRIVATE
-    ${LJ_TEMP}$<CONFIG>/lj_vm.obj
-)
-
-add_dependencies(lua51 buildvm)
 
 # luajit
 
 add_executable(luajit)
-luajit_target_common_setup(luajit)
-target_compile_definitions(luajit PRIVATE
-    LUA_BUILD_AS_DLL
+luajit_target_setup(luajit)
+target_sources(luajit
+PRIVATE
+    ${LUAJIT_ROOT}/src/luajit.c
 )
-target_include_directories(luajit PRIVATE
-    ${LJ_TEMP}$<CONFIG> # before src
-    ${LJ_ROOT}/src
-)
-target_sources(luajit PRIVATE
-    ${LJ_ROOT}/src/luajit.c
-)
-target_link_libraries(luajit PRIVATE
+target_link_libraries(luajit
+PRIVATE
     lua51
 )
 
 # install
 
 include(GNUInstallDirs)
-install(TARGETS lua51static
-    RUNTIME DESTINATION "${CMAKE_INSTALL_FULL_BINDIR}"
-    ARCHIVE DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}"
-    LIBRARY DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}"
+
+install(TARGETS lua51 luajit)
+
+install(FILES
+    ${LUAJIT_ROOT}/src/lua.h
+    ${LUAJIT_ROOT}/src/lualib.h
+    ${LUAJIT_ROOT}/src/lauxlib.h
+    ${LUAJIT_ROOT}/src/luaconf.h
+    ${LUAJIT_ROOT}/src/lua.hpp
+    ${LUAJIT_ROOT}/src/luajit.h
+    TYPE INCLUDE
 )
-install(TARGETS lua51
-    RUNTIME DESTINATION "${CMAKE_INSTALL_FULL_BINDIR}"
-    ARCHIVE DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}"
-    LIBRARY DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}"
-)
-install(TARGETS luajit
-    RUNTIME DESTINATION "${CMAKE_INSTALL_FULL_BINDIR}"
-    ARCHIVE DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}"
-    LIBRARY DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}"
-)
-set(LJ_PUBLIC_H
-    ${LJ_ROOT}/src/luaconf.h
-    ${LJ_ROOT}/src/lua.h
-    ${LJ_ROOT}/src/lauxlib.h
-    ${LJ_ROOT}/src/lualib.h
-    ${LJ_ROOT}/src/lua.hpp
-    ${LJ_ROOT}/src/luajit.h
-)
-install(FILES ${LJ_PUBLIC_H} DESTINATION ${CMAKE_INSTALL_FULL_INCLUDEDIR})

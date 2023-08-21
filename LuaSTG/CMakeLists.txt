@@ -171,7 +171,7 @@ target_link_libraries(LuaSTG PRIVATE
     DirectX::ToolKitMini
     Core
     xmath
-    lua51static
+    lua51_static
     imgui
     implot
     lua_cjson

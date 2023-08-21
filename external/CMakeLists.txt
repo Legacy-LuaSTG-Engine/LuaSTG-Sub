@@ -3,7 +3,7 @@
 add_subdirectory(luajit)
 set_target_properties(minilua PROPERTIES FOLDER luajit)
 set_target_properties(buildvm PROPERTIES FOLDER luajit)
-set_target_properties(lua51static PROPERTIES FOLDER luajit)
+set_target_properties(lua51_static PROPERTIES FOLDER luajit)
 set_target_properties(lua51 PROPERTIES FOLDER luajit)
 set_target_properties(luajit PROPERTIES FOLDER luajit)
 
@@ -20,7 +20,7 @@ target_sources(lua_filesystem PRIVATE
     lua-filesystem-lite/lfs.cpp
 )
 target_link_libraries(lua_filesystem PUBLIC
-    lua51static
+    lua51_static
 )
 
 set_target_properties(lua_filesystem PROPERTIES FOLDER lualib)
@@ -52,7 +52,7 @@ target_sources(lua_cjson PRIVATE
     lua-cjson/fpconv.c
 )
 target_link_libraries(lua_cjson PUBLIC
-    lua51static
+    lua51_static
 )
 
 set_target_properties(lua_cjson PROPERTIES FOLDER lualib)
