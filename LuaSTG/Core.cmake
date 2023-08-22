@@ -104,7 +104,7 @@ target_link_libraries(Core PUBLIC
     # math
     xmath
     # file
-    minizip-ng
+    minizip_ng
     # text
     freetype
     # model
@@ -118,5 +118,3 @@ target_link_libraries(Core PUBLIC
     # database
     nlohmann_json
 )
-
-add_dependencies(Core fuck_zlib_ng_and_minizip_ng)
