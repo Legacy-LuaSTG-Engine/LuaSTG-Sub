@@ -1174,16 +1174,16 @@ namespace Core::Graphics
 			assert(false); return false;
 		}
 
-		if (m_modern_swap_chain_available) {
-			if (m_display_mode_updater.Enter(m_window->GetWindow(), m_canvas_size.x, m_canvas_size.y)) {
-				m_window->setLayer(WindowLayer::TopMost);
-				Platform::MonitorList::ResizeWindowToFullScreen(m_window->GetWindow());
-				return true;
-			}
-			else {
-				return false;
-			}
-		}
+		//if (m_modern_swap_chain_available) {
+		//	if (m_display_mode_updater.Enter(m_window->GetWindow(), m_canvas_size.x, m_canvas_size.y)) {
+		//		m_window->setLayer(WindowLayer::TopMost);
+		//		Platform::MonitorList::ResizeWindowToFullScreen(m_window->GetWindow());
+		//		return true;
+		//	}
+		//	else {
+		//		return false;
+		//	}
+		//}
 
 		HRNew;
 
@@ -1214,12 +1214,12 @@ namespace Core::Graphics
 			assert(false); return false;
 		}
 
-		if (m_modern_swap_chain_available) {
-			m_display_mode_updater.Leave();
-			m_window->setLayer(WindowLayer::Normal);
-			ShowWindow(m_window->GetWindow(), SW_MINIMIZE);
-			return true;
-		}
+		//if (m_modern_swap_chain_available) {
+		//	m_display_mode_updater.Leave();
+		//	m_window->setLayer(WindowLayer::Normal);
+		//	ShowWindow(m_window->GetWindow(), SW_MINIMIZE);
+		//	return true;
+		//}
 
 		HRNew;
 
@@ -1243,16 +1243,16 @@ namespace Core::Graphics
 	}
 	bool SwapChain_D3D11::enterExclusiveFullscreen()
 	{
-		if (m_modern_swap_chain_available) {
-			if (!m_swap_chain_fullscreen_mode) {
-				if (m_display_mode_updater.Enter(m_window->GetWindow(), m_canvas_size.x, m_canvas_size.y)) {
-					m_swap_chain_fullscreen_mode = true;
-					m_window->setLayer(WindowLayer::TopMost);
-					Platform::MonitorList::ResizeWindowToFullScreen(m_window->GetWindow());
-					return true;
-				}
-			}
-		}
+		//if (m_modern_swap_chain_available) {
+		//	if (!m_swap_chain_fullscreen_mode) {
+		//		if (m_display_mode_updater.Enter(m_window->GetWindow(), m_canvas_size.x, m_canvas_size.y)) {
+		//			m_swap_chain_fullscreen_mode = true;
+		//			m_window->setLayer(WindowLayer::TopMost);
+		//			Platform::MonitorList::ResizeWindowToFullScreen(m_window->GetWindow());
+		//			return true;
+		//		}
+		//	}
+		//}
 
 		if (m_disable_exclusive_fullscreen)
 		{
@@ -1309,14 +1309,14 @@ namespace Core::Graphics
 	}
 	bool SwapChain_D3D11::leaveExclusiveFullscreen()
 	{
-		if (m_modern_swap_chain_available) {
-			if (m_swap_chain_fullscreen_mode) {
-				m_display_mode_updater.Leave();
-				m_window->setLayer(WindowLayer::Normal);
-				m_swap_chain_fullscreen_mode = false;
-			}
-			return true;
-		}
+		//if (m_modern_swap_chain_available) {
+		//	if (m_swap_chain_fullscreen_mode) {
+		//		m_display_mode_updater.Leave();
+		//		m_window->setLayer(WindowLayer::Normal);
+		//		m_swap_chain_fullscreen_mode = false;
+		//	}
+		//	return true;
+		//}
 
 		HRNew;
 
