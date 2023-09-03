@@ -186,6 +186,7 @@ target_link_libraries(LuaSTG PRIVATE
     pcg_cpp
     pugixml
     xxhash
+    YY_Thunks
 )
 
 set(LUASTG_BUILD_OUTPUT_DIR ${CMAKE_BINARY_DIR}/bin)
