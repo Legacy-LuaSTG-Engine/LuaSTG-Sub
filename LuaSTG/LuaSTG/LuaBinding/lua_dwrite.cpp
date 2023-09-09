@@ -37,6 +37,8 @@
 #include <wrl/client.h>
 #include <wrl/wrappers/corewrappers.h>
 
+#undef GetTextMetrics
+
 #include <wincodec.h>
 #include <d2d1_3.h>
 #include <dwrite_3.h>
@@ -132,6 +134,13 @@ namespace DirectWrite
 		{
 			return (uint32_t)luaL_checknumber(L, idx);
 		}
+	}
+	inline void lua_push_uint32(lua_State* L, uint32_t v)
+	{
+		if (v <= 0x7FFFFFFFu)
+			lua_pushinteger(L, static_cast<lua_Integer>(v));
+		else
+			lua_pushnumber(L, (lua_Number)v);
 	}
 
 	// DirectWrite helper
@@ -1284,6 +1293,247 @@ namespace DirectWrite
 	};
 	std::string_view const TextFormat::ClassID("DirectWrite.TextFormat");
 
+	struct TextMetrics : public DWRITE_TEXT_METRICS
+	{
+		static std::string_view const ClassID;
+
+		TextMetrics() = default;
+		~TextMetrics() = default;
+
+		static int api___index(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const key = luaL_check_string_view(L, 2);
+			if (key == "left")
+			{
+				lua_push_float(L, self->left);
+			}
+			else if (key == "top")
+			{
+				lua_push_float(L, self->top);
+			}
+			else if (key == "width")
+			{
+				lua_push_float(L, self->width);
+			}
+			else if (key == "widthIncludingTrailingWhitespace")
+			{
+				lua_push_float(L, self->widthIncludingTrailingWhitespace);
+			}
+			else if (key == "height")
+			{
+				lua_push_float(L, self->height);
+			}
+			else if (key == "layoutWidth")
+			{
+				lua_push_float(L, self->layoutWidth);
+			}
+			else if (key == "layoutHeight")
+			{
+				lua_push_float(L, self->layoutHeight);
+			}
+			else if (key == "maxBidiReorderingDepth")
+			{
+				lua_push_uint32(L, self->maxBidiReorderingDepth);
+			}
+			else if (key == "lineCount")
+			{
+				lua_push_uint32(L, self->lineCount);
+			}
+			else
+			{
+				luaL_error(L, "attempt to index a nil value '%s'", key.data());
+			}
+			return 1;
+		}
+		static int api___newindex(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const key = luaL_check_string_view(L, 2);
+			if (key == "left")
+			{
+				self->left = luaL_check_float(L, 3);
+			}
+			else if (key == "top")
+			{
+				self->top = luaL_check_float(L, 3);
+			}
+			else if (key == "width")
+			{
+				self->width = luaL_check_float(L, 3);
+			}
+			else if (key == "widthIncludingTrailingWhitespace")
+			{
+				self->widthIncludingTrailingWhitespace = luaL_check_float(L, 3);
+			}
+			else if (key == "height")
+			{
+				self->height = luaL_check_float(L, 3);
+			}
+			else if (key == "layoutWidth")
+			{
+				self->layoutWidth = luaL_check_float(L, 3);
+			}
+			else if (key == "layoutHeight")
+			{
+				self->layoutHeight = luaL_check_float(L, 3);
+			}
+			else if (key == "maxBidiReorderingDepth")
+			{
+				self->maxBidiReorderingDepth = luaL_check_uint32(L, 3);
+			}
+			else if (key == "lineCount")
+			{
+				self->lineCount = luaL_check_uint32(L, 3);
+			}
+			else
+			{
+				luaL_error(L, "attempt to index a nil value '%s'", key.data());
+			}
+			return 0;
+		}
+		static int api___tostring(lua_State* L)
+		{
+			Cast(L, 1);
+			lua_pushlstring(L, ClassID.data(), ClassID.size());
+			return 1;
+		}
+		static int api___gc(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			self->~TextMetrics();
+			return 0;
+		}
+
+		static TextMetrics* Cast(lua_State* L, int idx)
+		{
+			return (TextMetrics*)luaL_checkudata(L, idx, ClassID.data());
+		}
+		static TextMetrics* Create(lua_State* L)
+		{
+			auto* self = (TextMetrics*)lua_newuserdata(L, sizeof(TextMetrics));
+			new(self) TextMetrics();
+			luaL_getmetatable(L, ClassID.data()); // ??? udata mt
+			lua_setmetatable(L, -2);              // ??? udata
+			return self;
+		}
+		static void Register(lua_State* L)
+		{
+			luaL_Reg const mt[] = {
+				{ "__index", &api___index },
+				{ "__newindex", &api___newindex },
+				{ "__tostring", &api___tostring },
+				{ "__gc", &api___gc },
+				{ NULL, NULL },
+			};
+			luaL_newmetatable(L, ClassID.data()); // mt
+			luaL_register(L, NULL, mt);
+			lua_pop(L, 1);
+		}
+	};
+	std::string_view const TextMetrics::ClassID("DirectWrite.TextMetrics");
+
+	struct OverhangMetrics : public DWRITE_OVERHANG_METRICS
+	{
+		static std::string_view const ClassID;
+
+		OverhangMetrics() = default;
+		~OverhangMetrics() = default;
+
+		static int api___index(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const key = luaL_check_string_view(L, 2);
+			if (key == "left")
+			{
+				lua_push_float(L, self->left);
+			}
+			else if (key == "top")
+			{
+				lua_push_float(L, self->top);
+			}
+			else if (key == "right")
+			{
+				lua_push_float(L, self->right);
+			}
+			else if (key == "bottom")
+			{
+				lua_push_float(L, self->bottom);
+			}
+			else
+			{
+				luaL_error(L, "attempt to index a nil value '%s'", key.data());
+			}
+			return 1;
+		}
+		static int api___newindex(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto const key = luaL_check_string_view(L, 2);
+			auto const value = luaL_check_float(L, 3);
+			if (key == "left")
+			{
+				self->left = value;
+			}
+			else if (key == "top")
+			{
+				self->top = value;
+			}
+			else if (key == "right")
+			{
+				self->right = value;
+			}
+			else if (key == "bottom")
+			{
+				self->bottom = value;
+			}
+			else
+			{
+				luaL_error(L, "attempt to index a nil value '%s'", key.data());
+			}
+			return 0;
+		}
+		static int api___tostring(lua_State* L)
+		{
+			Cast(L, 1);
+			lua_pushlstring(L, ClassID.data(), ClassID.size());
+			return 1;
+		}
+		static int api___gc(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			self->~OverhangMetrics();
+			return 0;
+		}
+
+		static OverhangMetrics* Cast(lua_State* L, int idx)
+		{
+			return (OverhangMetrics*)luaL_checkudata(L, idx, ClassID.data());
+		}
+		static OverhangMetrics* Create(lua_State* L)
+		{
+			auto* self = (OverhangMetrics*)lua_newuserdata(L, sizeof(OverhangMetrics));
+			new(self) OverhangMetrics();
+			luaL_getmetatable(L, ClassID.data()); // ??? udata mt
+			lua_setmetatable(L, -2);              // ??? udata
+			return self;
+		}
+		static void Register(lua_State* L)
+		{
+			luaL_Reg const mt[] = {
+				{ "__index", &api___index },
+				{ "__newindex", &api___newindex },
+				{ "__tostring", &api___tostring },
+				{ "__gc", &api___gc },
+				{ NULL, NULL },
+			};
+			luaL_newmetatable(L, ClassID.data()); // mt
+			luaL_register(L, NULL, mt);
+			lua_pop(L, 1);
+		}
+	};
+	std::string_view const OverhangMetrics::ClassID("DirectWrite.OverhangMetrics");
+
 	struct TextLayout
 	{
 		static std::string_view const ClassID;
@@ -1583,6 +1833,48 @@ namespace DirectWrite
 			return 1;
 		}
 
+		static int api_GetMetrics(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto* arg1 = TextMetrics::Cast(L, 2);
+
+			HRESULT hr = gHR = self->dwrite_text_layout->GetMetrics(arg1);
+			if (FAILED(hr))
+				return luaL_error(L, "GetMetrics failed");
+
+			return 1;
+		}
+		static int api_GetOverhangMetrics(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+			auto* arg1 = OverhangMetrics::Cast(L, 2);
+
+			HRESULT hr = gHR = self->dwrite_text_layout->GetOverhangMetrics(arg1);
+			if (FAILED(hr))
+				return luaL_error(L, "GetOverhangMetrics failed");
+
+			return 1;
+		}
+
+		static int api_GetMaxHeight(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+
+			auto const r = self->dwrite_text_layout->GetMaxHeight();
+			lua_push_float(L, r);
+
+			return 1;
+		}
+		static int api_GetMaxWidth(lua_State* L)
+		{
+			auto* self = Cast(L, 1);
+
+			auto const r = self->dwrite_text_layout->GetMaxWidth();
+			lua_push_float(L, r);
+
+			return 1;
+		}
+
 		static int api___tostring(lua_State* L)
 		{
 			Cast(L, 1);
@@ -1639,6 +1931,12 @@ namespace DirectWrite
 				{ "SetMaxHeight", &api_SetMaxHeight },
 
 				{ "DetermineMinWidth", &api_DetermineMinWidth },
+
+				{ "GetMetrics", &api_GetMetrics },
+				{ "GetOverhangMetrics", &api_GetOverhangMetrics },
+
+				{ "GetMaxHeight", &api_GetMaxHeight },
+				{ "GetMaxWidth", &api_GetMaxWidth },
 
 				{ NULL, NULL },
 			};
@@ -2211,6 +2509,16 @@ namespace DirectWrite
 
 		return 1;
 	}
+	static int api_CreateTextMetrics(lua_State* L)
+	{
+		TextMetrics::Create(L);
+		return 1;
+	}
+	static int api_CreateOverhangMetrics(lua_State* L)
+	{
+		OverhangMetrics::Create(L);
+		return 1;
+	}
 	static int api_CreateTextLayout(lua_State* L)
 	{
 		auto const string = luaL_check_string_view(L, 1);
@@ -2716,6 +3024,8 @@ int luaopen_dwrite(lua_State* L)
 	luaL_Reg const lib[] = {
 		{ "CreateFontCollection", &DirectWrite::api_CreateFontCollection },
 		{ "CreateTextFormat", &DirectWrite::api_CreateTextFormat },
+		{ "CreateTextMetrics", &DirectWrite::api_CreateTextMetrics },
+		{ "CreateOverhangMetrics", &DirectWrite::api_CreateOverhangMetrics },
 		{ "CreateTextLayout", &DirectWrite::api_CreateTextLayout },
 		{ "CreateTextRenderer", &DirectWrite::api_CreateTextRenderer },
 		{ "CreateTextureFromTextLayout", &DirectWrite::api_CreateTextureFromTextLayout },
@@ -2727,6 +3037,8 @@ int luaopen_dwrite(lua_State* L)
 	DirectWrite::Factory::Register(L);
 	DirectWrite::FontCollection::Register(L);
 	DirectWrite::TextFormat::Register(L);
+	DirectWrite::TextMetrics::Register(L);
+	DirectWrite::OverhangMetrics::Register(L);
 	DirectWrite::TextLayout::Register(L);
 	DirectWrite::TextRenderer::Register(L);
 
