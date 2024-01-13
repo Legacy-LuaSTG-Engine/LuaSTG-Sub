@@ -2,9 +2,9 @@
 
 CPMAddPackage(
     NAME zlib_ng # 必须用这个名称，用来适配一些SB库
-    VERSION 2.1.3
+    VERSION 2.1.6
     GITHUB_REPOSITORY zlib-ng/zlib-ng
-    GIT_TAG 2.1.3
+    GIT_TAG 2.1.6
     DOWNLOAD_ONLY YES
 )
 
@@ -13,9 +13,9 @@ CPMAddPackage(
 
 CPMAddPackage(
     NAME minizip_ng
-    VERSION 4.0.0
+    VERSION 4.0.4
     GITHUB_REPOSITORY zlib-ng/minizip-ng
-    GIT_TAG 4.0.0
+    GIT_TAG 4.0.4
     DOWNLOAD_ONLY YES
 )
 

@@ -2,9 +2,9 @@
 
 CPMAddPackage(
     NAME Microsoft.DirectXTK
-    VERSION 2023.6.15
+    VERSION 2024.1.1
     GITHUB_REPOSITORY microsoft/DirectXTK
-    GIT_TAG jun2023
+    GIT_TAG dec2023
     DOWNLOAD_ONLY YES
 )
 
@@ -36,9 +36,9 @@ endif()
 
 CPMAddPackage(
     NAME Microsoft.DirectXTex
-    VERSION 2023.6.14
+    VERSION 2024.1.1
     GITHUB_REPOSITORY microsoft/DirectXTex
-    GIT_TAG jun2023
+    GIT_TAG dec2023
     DOWNLOAD_ONLY YES
 )
 
