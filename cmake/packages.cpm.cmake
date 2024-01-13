@@ -3,7 +3,7 @@
 
 CPMAddPackage(
     NAME nlohmann_json
-    VERSION 3.11.2
+    VERSION 3.11.3
     GITHUB_REPOSITORY nlohmann/json
     OPTIONS
     "JSON_BuildTests OFF"
@@ -14,7 +14,7 @@ CPMAddPackage(
 
 CPMAddPackage(
     NAME spdlog
-    VERSION 1.12.0
+    VERSION 1.13.0
     GITHUB_REPOSITORY gabime/spdlog
     OPTIONS
     "SPDLOG_WCHAR_FILENAMES ON"
@@ -36,7 +36,7 @@ endif()
 
 CPMAddPackage(
     NAME pugixml
-    VERSION 1.13
+    VERSION 1.14
     GITHUB_REPOSITORY zeux/pugixml
     DOWNLOAD_ONLY YES
 )
@@ -66,7 +66,7 @@ endif()
 CPMAddPackage(
     NAME nothings_stb
     GITHUB_REPOSITORY nothings/stb
-    GIT_TAG 5736b15f7ea0ffb08dd38af21067c314d6a3aae9
+    GIT_TAG f4a71b13373436a2866c5d68f8f80ac6f0bc1ffe
     DOWNLOAD_ONLY YES
 )
 
@@ -101,7 +101,7 @@ endif()
 CPMAddPackage(
     NAME dr_libs
     GITHUB_REPOSITORY mackron/dr_libs
-    GIT_TAG e07e2b8264da5fa1331a0ca3d30a3606084c311f
+    GIT_TAG a4b73d3d423e1cea0652b76d0806e7620337a40f
     DOWNLOAD_ONLY YES
 )
 
@@ -133,7 +133,7 @@ endif()
 
 CPMAddPackage(
     NAME tinygltf
-    VERSION 2.8.14
+    VERSION 2.8.19
     GITHUB_REPOSITORY syoyo/tinygltf
     #OPTIONS
     #"TINYGLTF_BUILD_LOADER_EXAMPLE OFF"
@@ -201,10 +201,10 @@ endif()
 
 CPMAddPackage(
     NAME freetype
-    VERSION 2.13.1
+    VERSION 2.13.2
     #GITHUB_REPOSITORY freetype/freetype
-    #GIT_TAG VER-2-13-1
-    URL https://gitlab.freedesktop.org/freetype/freetype/-/archive/VER-2-13-1/freetype-VER-2-13-1.zip
+    #GIT_TAG VER-2-13-2
+    URL https://gitlab.freedesktop.org/freetype/freetype/-/archive/VER-2-13-2/freetype-VER-2-13-2.zip
     OPTIONS
     "FT_DISABLE_ZLIB ON"
     "FT_DISABLE_BZIP2 ON"
@@ -244,7 +244,7 @@ endif()
 
 CPMAddPackage(
     NAME xxhash
-    VERSION 0.8.1
+    VERSION 0.8.2
     GITHUB_REPOSITORY Cyan4973/xxHash
     DOWNLOAD_ONLY YES
 )
@@ -272,9 +272,9 @@ endif()
 
 CPMAddPackage(
     NAME YY_Thunks
-    VERSION 1.0.8
+    VERSION 1.0.9
     #GITHUB_REPOSITORY Chuyu-Team/YY-Thunks
-    URL https://github.com/Chuyu-Team/YY-Thunks/releases/download/v1.0.8/YY-Thunks-1.0.8-Binary.zip
+    URL https://github.com/Chuyu-Team/YY-Thunks/releases/download/v1.0.9/YY-Thunks-1.0.9-Binary.zip
     DOWNLOAD_ONLY YES
 )
 
