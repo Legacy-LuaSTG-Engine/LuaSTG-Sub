@@ -12,6 +12,7 @@ constexpr int const LUASTG_WM_RECREATE = LUASTG_WM_UPDAE_TITLE + 1;
 constexpr int const LUASTG_WM_SETICON = LUASTG_WM_RECREATE + 1;
 constexpr int const LUASTG_WM_SET_WINDOW_MODE = LUASTG_WM_SETICON + 1;
 constexpr int const LUASTG_WM_SET_FULLSCREEN_MODE = LUASTG_WM_SET_WINDOW_MODE + 1;
+constexpr int const LUASTG_WM_SET_BORDERLESS_FULLSCREEN_MODE = LUASTG_WM_SET_FULLSCREEN_MODE + 1;
 
 namespace Core::Graphics
 {
@@ -238,6 +239,9 @@ namespace Core::Graphics
 		case LUASTG_WM_SET_WINDOW_MODE:
 			_setWindowMode(Vector2U(LOWORD(arg1), HIWORD(arg1)), arg2);
 			return 0;
+		case LUASTG_WM_SET_BORDERLESS_FULLSCREEN_MODE:
+			_setBorderlessFullscreenMode();
+			return 0;
 		case LUASTG_WM_SET_FULLSCREEN_MODE:
 			_setFullScreenMode();
 			return 0;
@@ -419,6 +423,58 @@ namespace Core::Graphics
 			BOOL const set_placement_result = SetWindowPlacement(win32_window, &m_last_window_placement);
 			assert(set_placement_result); (void)set_placement_result;
 		}
+	}
+	void Window_Win32::_setBorderlessFullscreenMode()
+	{
+		HMONITOR win32_monitor = MonitorFromWindow(win32_window, MONITOR_DEFAULTTONEAREST);
+		assert(win32_monitor);
+		MONITORINFO monitor_info = {};
+		monitor_info.cbSize = sizeof(monitor_info);
+		BOOL const get_monitor_info_result = GetMonitorInfoW(win32_monitor, &monitor_info);
+		assert(get_monitor_info_result); (void)get_monitor_info_result;
+		assert(monitor_info.rcMonitor.right > monitor_info.rcMonitor.left);
+		assert(monitor_info.rcMonitor.bottom > monitor_info.rcMonitor.top);
+
+		// RECT rect = { 0, 0, (int32_t)size.x, (int32_t)size.y };
+		// Platform::HighDPI::AdjustWindowRectExForDpi(
+		// 	&rect, WS_OVERLAPPEDWINDOW, FALSE, 0,
+		// 	Platform::HighDPI::GetDpiForWindow(win32_window));
+
+		//m_ignore_size_message = TRUE;
+		SetLastError(0);
+		SetWindowLongPtrW(win32_window, GWL_STYLE, WS_POPUP);
+		DWORD const set_style_result = GetLastError();
+		assert(set_style_result == 0); (void)set_style_result;
+		//SetLastError(0);
+		//SetWindowLongPtrW(win32_window, GWL_EXSTYLE, 0);
+		//DWORD const set_style_ex_result = GetLastError();
+		//assert(set_style_ex_result == 0); (void)set_style_ex_result;
+		//m_ignore_size_message = FALSE;
+
+		BOOL const set_window_pos_result = SetWindowPos(
+			win32_window,
+			HWND_NOTOPMOST,
+			monitor_info.rcMonitor.left,
+			monitor_info.rcMonitor.top,
+			monitor_info.rcMonitor.right - monitor_info.rcMonitor.left,
+			monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top,
+			SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+		assert(set_window_pos_result); (void)set_window_pos_result;
+
+		RECT client_rect = {};
+		BOOL get_client_rect_result = GetClientRect(win32_window, &client_rect);
+		assert(get_client_rect_result); (void)get_client_rect_result;
+
+		m_framestyle = WindowFrameStyle::None;
+		m_fullscreen_mode = false;
+		win32_window_style = WS_POPUP;
+		win32_window_style_ex = 0;
+		win32_window_width = UINT(monitor_info.rcMonitor.right - monitor_info.rcMonitor.left);
+		win32_window_height = UINT(monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top);
+
+		EventData event_data{};
+		event_data.window_fullscreen_state = false;
+		dispatchEvent(EventType::WindowFullscreenStateChange, event_data);
 	}
 	void Window_Win32::_setFullScreenMode()
 	{
@@ -787,9 +843,13 @@ namespace Core::Graphics
 	{
 		SendMessageW(win32_window, LUASTG_WM_SET_WINDOW_MODE, MAKEWPARAM(size.x, size.y), FALSE);
 	}
-	void Window_Win32::setFullScreenMode()
+	void Window_Win32::setExclusiveFullScreenMode()
 	{
 		SendMessageW(win32_window, LUASTG_WM_SET_FULLSCREEN_MODE, 0, 0);
+	}
+	void Window_Win32::setBorderlessFullScreenMode()
+	{
+		SendMessageW(win32_window, LUASTG_WM_SET_BORDERLESS_FULLSCREEN_MODE, 0, 0);
 	}
 	
 	uint32_t Window_Win32::getMonitorCount()
