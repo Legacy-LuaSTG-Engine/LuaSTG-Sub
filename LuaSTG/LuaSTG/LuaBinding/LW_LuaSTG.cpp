@@ -118,7 +118,7 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 
 			if (windowed)
 			{
-				bool const result = LAPP.SetDisplayModeWindow(size, vsync, Core::RectI(), false);
+				bool const result = LAPP.SetDisplayModeWindow(size, vsync, 0, false);
 				lua_pushboolean(L, result);
 			}
 			else
@@ -126,6 +126,47 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 				bool const result = LAPP.SetDisplayModeExclusiveFullscreen(size, vsync, Core::Rational());
 				lua_pushboolean(L, result);
 			}
+
+			return 1;
+		}
+		static int VideoModeWindowed(lua_State* L)noexcept
+		{
+			uint32_t const width = (uint32_t)luaL_checkinteger(L, 1);
+			uint32_t const height = (uint32_t)luaL_checkinteger(L, 2);
+			bool const vsync = lua_toboolean(L, 3);
+			uint32_t const monitor = (uint32_t)luaL_optinteger(L, 4, 0);
+
+			auto const size = Core::Vector2U(width, height);
+
+			bool const result = LAPP.SetDisplayModeWindow(size, vsync, monitor, false);
+			lua_pushboolean(L, result);
+
+			return 1;
+		}
+		static int VideoModeFSExclusive(lua_State* L)noexcept
+		{
+			uint32_t const width = (uint32_t)luaL_checkinteger(L, 1);
+			uint32_t const height = (uint32_t)luaL_checkinteger(L, 2);
+			bool const vsync = lua_toboolean(L, 3);
+
+			auto const size = Core::Vector2U(width, height);
+
+			bool const result = LAPP.SetDisplayModeExclusiveFullscreen(size, vsync, 60);
+			lua_pushboolean(L, result);
+
+			return 1;
+		}
+		static int VideoModeFSBorderless(lua_State* L)noexcept
+		{
+			uint32_t const width = (uint32_t)luaL_checkinteger(L, 1);
+			uint32_t const height = (uint32_t)luaL_checkinteger(L, 2);
+			bool const vsync = lua_toboolean(L, 3);
+			uint32_t const monitor = (uint32_t)luaL_optinteger(L, 4, 0);
+
+			auto const size = Core::Vector2U(width, height);
+
+			bool const result = LAPP.SetDisplayModeBorderlessFullscreen(size, monitor, vsync);
+			lua_pushboolean(L, result);
 
 			return 1;
 		}
@@ -225,6 +266,9 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 		
 		#pragma region 窗口与交换链控制函数
 		{ "ChangeVideoMode", &WrapperImplement::ChangeVideoMode },
+		{ "VideoModeWindowed", &WrapperImplement::VideoModeWindowed },
+		{ "VideoModeFSExclusive", &WrapperImplement::VideoModeFSExclusive },
+		{ "VideoModeFSBorderless", &WrapperImplement::VideoModeFSBorderless },
 		{ "EnumResolutions", &WrapperImplement::EnumResolutions },
 		{ "EnumGPUs", &WrapperImplement::EnumGPUs },
 		{ "ChangeGPU", &WrapperImplement::ChangeGPU },

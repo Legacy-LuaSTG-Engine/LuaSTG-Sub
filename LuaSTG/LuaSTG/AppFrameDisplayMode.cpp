@@ -75,7 +75,37 @@ namespace LuaSTGPlus
 			spdlog::error("[luastg] 显示模式切换失败：{} -> {}", getFullscreenTypeString(from_mode), to_mode);
 	}
 
-	bool AppFrame::SetDisplayModeWindow(Core::Vector2U window_size, bool vsync, Core::RectI monitor_rect, bool borderless)
+	// bool AppFrame::SetDisplayModeWindow(Core::Vector2U window_size, bool vsync, Core::RectI monitor_rect, bool borderless)
+	// {
+	// 	auto* window = GetAppModel()->getWindow();
+	// 	auto* swapchain = GetAppModel()->getSwapChain();
+
+	// 	swapchain->setVSync(vsync);
+	// 	bool const result = swapchain->setCanvasSize(window_size);
+
+	// 	window->setWindowMode(window_size);
+	// 	if (!isRectEmpty(monitor_rect))
+	// 	{
+	// 		bool find_result = false;
+	// 		uint32_t const index = matchMonitorIndex(window, monitor_rect, find_result);
+	// 		std::ignore = find_result; // 对于窗口模式，即使找不到对应的显示器用于居中也无所谓
+	// 		window->setMonitorCentered(index);
+	// 	}
+	// 	if (!borderless)
+	// 	{
+	// 		window->setNativeIcon((void*)(ptrdiff_t)IDI_APPICON);
+	// 	}
+		
+	// 	logResult(result, m_Setting, MODE_NAME_WINDOW);
+
+	// 	m_Setting.canvas_size = window_size;
+	// 	m_Setting.fullscreen = false;
+	// 	m_Setting.vsync = vsync;
+		
+	// 	return result;
+	// }
+
+	bool AppFrame::SetDisplayModeWindow(Core::Vector2U window_size, bool vsync, uint32_t monitor_idx, bool borderless)
 	{
 		auto* window = GetAppModel()->getWindow();
 		auto* swapchain = GetAppModel()->getSwapChain();
@@ -84,13 +114,14 @@ namespace LuaSTGPlus
 		bool const result = swapchain->setCanvasSize(window_size);
 
 		window->setWindowMode(window_size);
-		if (!isRectEmpty(monitor_rect))
-		{
-			bool find_result = false;
-			uint32_t const index = matchMonitorIndex(window, monitor_rect, find_result);
-			std::ignore = find_result; // 对于窗口模式，即使找不到对应的显示器用于居中也无所谓
-			window->setMonitorCentered(index);
-		}
+		// if (!isRectEmpty(monitor_rect))
+		// {
+		// 	bool find_result = false;
+		// 	uint32_t const index = matchMonitorIndex(window, monitor_rect, find_result);
+		// 	std::ignore = find_result; // 对于窗口模式，即使找不到对应的显示器用于居中也无所谓
+		// 	window->setMonitorCentered(index);
+		// }
+		window->setMonitorCentered(monitor_idx);
 		if (!borderless)
 		{
 			window->setNativeIcon((void*)(ptrdiff_t)IDI_APPICON);
@@ -105,39 +136,78 @@ namespace LuaSTGPlus
 		return result;
 	}
 
-	bool AppFrame::SetDisplayModeFullscreen(Core::RectI monitor_rect, bool vsync)
+	// bool AppFrame::SetDisplayModeFullscreen(Core::RectI monitor_rect, bool vsync)
+	// {
+	// 	auto* window = GetAppModel()->getWindow();
+	// 	auto* swapchain = GetAppModel()->getSwapChain();
+
+	// 	if (isRectEmpty(monitor_rect))
+	// 	{
+	// 		// 对于全屏无边框窗口模式，显示器矩形为空，将会失败
+	// 		logResult(false, m_Setting, MODE_NAME_FULLSCREEN);
+	// 		return false;
+	// 	}
+
+	// 	bool find_result = false;
+	// 	uint32_t const index = matchMonitorIndex(window, monitor_rect, find_result);
+	// 	if (!find_result)
+	// 	{
+	// 		// 对于全屏无边框窗口模式，如果找不到对应的显示器，将会失败
+	// 		logResult(find_result, m_Setting, MODE_NAME_FULLSCREEN);
+	// 		return false;
+	// 	}
+	// 	Core::Vector2I const window_size = getMonitorSize(window, index);
+
+	// 	auto const size = Core::Vector2U(uint32_t(window_size.x), uint32_t(window_size.y));
+
+	// 	swapchain->setVSync(vsync);
+	// 	bool const result = swapchain->setCanvasSize(size);
+
+	// 	window->setFullScreenMode();
+	// 	window->setMonitorFullScreen(index);
+
+	// 	logResult(result, m_Setting, MODE_NAME_FULLSCREEN);
+
+	// 	m_Setting.canvas_size = size;
+	// 	m_Setting.fullscreen = true;
+	// 	m_Setting.vsync = vsync;
+		
+	// 	return result;
+	// }
+
+	bool AppFrame::SetDisplayModeBorderlessFullscreen(Core::Vector2U window_size, uint32_t monitor_idx, bool vsync)
 	{
 		auto* window = GetAppModel()->getWindow();
 		auto* swapchain = GetAppModel()->getSwapChain();
 
-		if (isRectEmpty(monitor_rect))
-		{
-			// 对于全屏无边框窗口模式，显示器矩形为空，将会失败
-			logResult(false, m_Setting, MODE_NAME_FULLSCREEN);
-			return false;
-		}
+		// if (isRectEmpty(monitor_rect))
+		// {
+		// 	// 对于全屏无边框窗口模式，显示器矩形为空，将会失败
+		// 	logResult(false, m_Setting, MODE_NAME_FULLSCREEN);
+		// 	return false;
+		// }
 
-		bool find_result = false;
-		uint32_t const index = matchMonitorIndex(window, monitor_rect, find_result);
-		if (!find_result)
-		{
-			// 对于全屏无边框窗口模式，如果找不到对应的显示器，将会失败
-			logResult(find_result, m_Setting, MODE_NAME_FULLSCREEN);
-			return false;
-		}
-		Core::Vector2I const window_size = getMonitorSize(window, index);
+		// bool find_result = false;
+		// uint32_t const index = matchMonitorIndex(window, monitor_rect, find_result);
+		// if (!find_result)
+		// {
+		// 	// 对于全屏无边框窗口模式，如果找不到对应的显示器，将会失败
+		// 	logResult(find_result, m_Setting, MODE_NAME_FULLSCREEN);
+		// 	return false;
+		// }
+		Core::Vector2I const monitor_size = getMonitorSize(window, monitor_idx);
 
-		auto const size = Core::Vector2U(uint32_t(window_size.x), uint32_t(window_size.y));
+		// auto const size = Core::Vector2U(uint32_t(window_size.x), uint32_t(window_size.y));
 
 		swapchain->setVSync(vsync);
-		bool const result = swapchain->setCanvasSize(size);
+		bool const result = swapchain->setCanvasSize(window_size);
 
-		window->setFullScreenMode();
-		window->setMonitorFullScreen(index);
+		window->setBorderlessFullScreenMode();
+		window->setMonitorFullScreen(monitor_idx);
 
 		logResult(result, m_Setting, MODE_NAME_FULLSCREEN);
 
-		m_Setting.canvas_size = size;
+		m_Setting.canvas_size = window_size;
 		m_Setting.fullscreen = true;
 		m_Setting.vsync = vsync;
 		
@@ -154,7 +224,7 @@ namespace LuaSTGPlus
 		bool const result = swapchain->setCanvasSize(window_size);
 
 		window->setWindowMode(window_size);
-		window->setFullScreenMode();
+		window->setExclusiveFullScreenMode();
 
 		logResult(result, m_Setting, MODE_NAME_FULLSCREEN);
 
@@ -176,7 +246,8 @@ namespace LuaSTGPlus
 			return SetDisplayModeWindow(
 				m_Setting.canvas_size,
 				m_Setting.vsync,
-				Core::RectI(),
+				// Core::RectI(),
+				0,
 				false);
 	}
 
