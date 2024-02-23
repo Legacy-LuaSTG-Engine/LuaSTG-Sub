@@ -210,6 +210,111 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 			}
 			return 1;
 		}
+		static int SetMusicLoopRange(lua_State* L) {
+			lua::stack_t S(L);
+
+			auto const music_name = S.get_value<std::string_view>(1);
+			Core::ScopeObject<IResourceMusic> p = LRES.FindMusic(music_name.data());
+			if (!p)
+				return luaL_error(L, "music '%s' not found.", music_name.data());
+
+			// 没有第二个参数，禁用循环
+
+			if (S.index_of_top().value <= 1)
+			{
+				MusicRoopRange range{};
+				range.type = MusicRoopRangeType::Disable;
+				p->SetLoopRange(range);
+				return 0;
+			}
+
+			lua::stack_index_t a_range(2);
+			MusicRoopRange range{};
+			if (!S.is_table(a_range))
+				return luaL_error(L, "invalid parameter #2, required table");
+
+			// 按采样
+
+			if (S.has_map_value(a_range, "start_in_samples") && S.has_map_value(a_range, "end_in_samples"))
+			{
+				range.type = MusicRoopRangeType::StartPointAndEndPoint;
+				range.unit = MusicRoopRangeUnit::Sample;
+				range.start_in_samples = S.get_map_value<uint32_t>(a_range, "start_in_samples");
+				range.end_in_samples = S.get_map_value<uint32_t>(a_range, "end_in_samples");
+			}
+			else if(S.has_map_value(a_range, "start_in_samples") && S.has_map_value(a_range, "length_in_samples"))
+			{
+				range.type = MusicRoopRangeType::StartPointAndLength;
+				range.unit = MusicRoopRangeUnit::Sample;
+				range.start_in_samples = S.get_map_value<uint32_t>(a_range, "start_in_samples");
+				range.length_in_samples = S.get_map_value<uint32_t>(a_range, "length_in_samples");
+			}
+			else if (S.has_map_value(a_range, "length_in_samples") && S.has_map_value(a_range, "end_in_samples"))
+			{
+				range.type = MusicRoopRangeType::LengthAndEndPoint;
+				range.unit = MusicRoopRangeUnit::Sample;
+				range.length_in_samples = S.get_map_value<uint32_t>(a_range, "length_in_samples");
+				range.end_in_samples = S.get_map_value<uint32_t>(a_range, "end_in_samples");
+			}
+			else if (S.has_map_value(a_range, "start_in_samples"))
+			{
+				range.type = MusicRoopRangeType::StartPointToEnd;
+				range.unit = MusicRoopRangeUnit::Sample;
+				range.start_in_samples = S.get_map_value<uint32_t>(a_range, "start_in_samples");
+			}
+			else if (S.has_map_value(a_range, "end_in_samples"))
+			{
+				range.type = MusicRoopRangeType::StartToEndPoint;
+				range.unit = MusicRoopRangeUnit::Sample;
+				range.end_in_samples = S.get_map_value<uint32_t>(a_range, "end_in_samples");
+			}
+
+			// 按秒
+
+			else if (S.has_map_value(a_range, "start_in_seconds") && S.has_map_value(a_range, "end_in_seconds"))
+			{
+				range.type = MusicRoopRangeType::StartPointAndEndPoint;
+				range.unit = MusicRoopRangeUnit::Second;
+				range.start_in_seconds = S.get_map_value<uint32_t>(a_range, "start_in_seconds");
+				range.end_in_seconds = S.get_map_value<uint32_t>(a_range, "end_in_seconds");
+			}
+			else if (S.has_map_value(a_range, "start_in_seconds") && S.has_map_value(a_range, "length_in_seconds"))
+			{
+				range.type = MusicRoopRangeType::StartPointAndLength;
+				range.unit = MusicRoopRangeUnit::Second;
+				range.start_in_seconds = S.get_map_value<uint32_t>(a_range, "start_in_seconds");
+				range.length_in_seconds = S.get_map_value<uint32_t>(a_range, "length_in_seconds");
+			}
+			else if (S.has_map_value(a_range, "length_in_seconds") && S.has_map_value(a_range, "end_in_seconds"))
+			{
+				range.type = MusicRoopRangeType::LengthAndEndPoint;
+				range.unit = MusicRoopRangeUnit::Second;
+				range.length_in_seconds = S.get_map_value<uint32_t>(a_range, "length_in_seconds");
+				range.end_in_seconds = S.get_map_value<uint32_t>(a_range, "end_in_seconds");
+			}
+			else if (S.has_map_value(a_range, "start_in_seconds"))
+			{
+				range.type = MusicRoopRangeType::StartPointToEnd;
+				range.unit = MusicRoopRangeUnit::Second;
+				range.start_in_seconds = S.get_map_value<uint32_t>(a_range, "start_in_seconds");
+			}
+			else if (S.has_map_value(a_range, "end_in_seconds"))
+			{
+				range.type = MusicRoopRangeType::StartToEndPoint;
+				range.unit = MusicRoopRangeUnit::Second;
+				range.end_in_seconds = S.get_map_value<uint32_t>(a_range, "end_in_seconds");
+			}
+
+			// 全曲循环
+
+			else
+			{
+				range.type = MusicRoopRangeType::All;
+			}
+
+			p->SetLoopRange(range);
+			return 0;
+		}
 		static int SetBGMVolume(lua_State* L)noexcept
 		{
 			if (lua_gettop(L) <= 1)
