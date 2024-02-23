@@ -153,9 +153,9 @@ namespace LuaSTGPlus
 		if (m_decoder)
 		{
 			// 转换单位
+			auto const sample_rate = double(m_decoder->getSampleRate());
 			if (range.unit == MusicRoopRangeUnit::Second)
 			{
-				auto const sample_rate = double(m_decoder->getSampleRate());
 				range.start_in_samples = uint32_t(range.start_in_seconds * sample_rate);
 				range.end_in_samples = uint32_t(range.end_in_seconds * sample_rate);
 				range.length_in_samples = uint32_t(range.length_in_seconds * sample_rate);
