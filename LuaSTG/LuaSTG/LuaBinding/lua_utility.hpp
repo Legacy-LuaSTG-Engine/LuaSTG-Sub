@@ -301,7 +301,7 @@ namespace lua
 		// type
 
 		inline bool is_value(stack_index_t index) { return lua_type(L, index.value) != LUA_TNONE; }
-		inline bool is_nil(stack_index_t index) { return lua_type(L, index.value) != LUA_TNIL; }
+		inline bool is_nil(stack_index_t index) { return lua_type(L, index.value) == LUA_TNIL; }
 		inline bool is_boolean(stack_index_t index) { return lua_type(L, index.value) == LUA_TBOOLEAN; }
 		inline bool is_number(stack_index_t index) { return lua_type(L, index.value) == LUA_TNUMBER; }
 		inline bool is_string(stack_index_t index) { return lua_type(L, index.value) == LUA_TSTRING; }
