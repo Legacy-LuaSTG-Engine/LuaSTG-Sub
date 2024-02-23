@@ -197,6 +197,57 @@ namespace LuaSTGPlus
 				m_decoder->setLoopRange(range.start_in_samples, range.end_in_samples);
 				break;
 			}
+			// 打印日志
+			switch (range.type)
+			{
+			case MusicRoopRangeType::Disable:
+				spdlog::info("[luastg] SetMusicLoopRange '{}' : Disable", GetResName());
+				break;
+			case MusicRoopRangeType::All:
+				spdlog::info("[luastg] SetMusicLoopRange '{}' : All", GetResName());
+				break;
+			case MusicRoopRangeType::StartPointToEnd:
+				spdlog::info("[luastg] SetMusicLoopRange '{}' : StartPointToEnd ({} ({}s) -> end)"
+					, GetResName()
+					, range.start_in_samples
+					, double(range.start_in_samples) / sample_rate
+				);
+				break;
+			case MusicRoopRangeType::StartPointAndLength:
+				spdlog::info("[luastg] SetMusicLoopRange '{}' : StartPointAndLength ({} ({}s) + {} ({}s))"
+					, GetResName()
+					, range.start_in_samples
+					, double(range.start_in_samples) / sample_rate
+					, range.length_in_samples
+					, double(range.length_in_samples) / sample_rate
+				);
+				break;
+			case MusicRoopRangeType::LengthAndEndPoint:
+				spdlog::info("[luastg] SetMusicLoopRange '{}' : LengthAndEndPoint ({} ({}s) - {} ({}s))"
+					, GetResName()
+					, range.length_in_samples
+					, double(range.length_in_samples) / sample_rate
+					, range.end_in_samples
+					, double(range.end_in_samples) / sample_rate
+				);
+				break;
+			case MusicRoopRangeType::StartToEndPoint:
+				spdlog::info("[luastg] SetMusicLoopRange '{}' : StartToEndPoint (start -> {} ({}s))"
+					, GetResName()
+					, range.end_in_samples
+					, double(range.end_in_samples) / sample_rate
+				);
+				break;
+			case MusicRoopRangeType::StartPointAndEndPoint:
+				spdlog::info("[luastg] SetMusicLoopRange '{}' : StartPointAndEndPoint ({} ({}s) -> {} ({}s))"
+					, GetResName()
+					, range.start_in_samples
+					, double(range.start_in_samples) / sample_rate
+					, range.end_in_samples
+					, double(range.end_in_samples) / sample_rate
+				);
+				break;
+			}
 		}
 	}
 
