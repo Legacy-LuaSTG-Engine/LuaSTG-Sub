@@ -220,7 +220,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 
 			// 没有第二个参数，禁用循环
 
-			if (S.index_of_top().value <= 1)
+			if (S.index_of_top().value <= 1 || S.is_nil(2))
 			{
 				MusicRoopRange range{};
 				range.type = MusicRoopRangeType::Disable;
@@ -275,34 +275,34 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 			{
 				range.type = MusicRoopRangeType::StartPointAndEndPoint;
 				range.unit = MusicRoopRangeUnit::Second;
-				range.start_in_seconds = S.get_map_value<uint32_t>(a_range, "start_in_seconds");
-				range.end_in_seconds = S.get_map_value<uint32_t>(a_range, "end_in_seconds");
+				range.start_in_seconds = S.get_map_value<double>(a_range, "start_in_seconds");
+				range.end_in_seconds = S.get_map_value<double>(a_range, "end_in_seconds");
 			}
 			else if (S.has_map_value(a_range, "start_in_seconds") && S.has_map_value(a_range, "length_in_seconds"))
 			{
 				range.type = MusicRoopRangeType::StartPointAndLength;
 				range.unit = MusicRoopRangeUnit::Second;
-				range.start_in_seconds = S.get_map_value<uint32_t>(a_range, "start_in_seconds");
-				range.length_in_seconds = S.get_map_value<uint32_t>(a_range, "length_in_seconds");
+				range.start_in_seconds = S.get_map_value<double>(a_range, "start_in_seconds");
+				range.length_in_seconds = S.get_map_value<double>(a_range, "length_in_seconds");
 			}
 			else if (S.has_map_value(a_range, "length_in_seconds") && S.has_map_value(a_range, "end_in_seconds"))
 			{
 				range.type = MusicRoopRangeType::LengthAndEndPoint;
 				range.unit = MusicRoopRangeUnit::Second;
-				range.length_in_seconds = S.get_map_value<uint32_t>(a_range, "length_in_seconds");
-				range.end_in_seconds = S.get_map_value<uint32_t>(a_range, "end_in_seconds");
+				range.length_in_seconds = S.get_map_value<double>(a_range, "length_in_seconds");
+				range.end_in_seconds = S.get_map_value<double>(a_range, "end_in_seconds");
 			}
 			else if (S.has_map_value(a_range, "start_in_seconds"))
 			{
 				range.type = MusicRoopRangeType::StartPointToEnd;
 				range.unit = MusicRoopRangeUnit::Second;
-				range.start_in_seconds = S.get_map_value<uint32_t>(a_range, "start_in_seconds");
+				range.start_in_seconds = S.get_map_value<double>(a_range, "start_in_seconds");
 			}
 			else if (S.has_map_value(a_range, "end_in_seconds"))
 			{
 				range.type = MusicRoopRangeType::StartToEndPoint;
 				range.unit = MusicRoopRangeUnit::Second;
-				range.end_in_seconds = S.get_map_value<uint32_t>(a_range, "end_in_seconds");
+				range.end_in_seconds = S.get_map_value<double>(a_range, "end_in_seconds");
 			}
 
 			// 全曲循环
@@ -400,6 +400,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 		{ "ResumeMusic", &Wrapper::ResumeMusic },
 		{ "GetMusicState", &Wrapper::GetMusicState },
 		{ "GetMusicFFT", &Wrapper::GetMusicFFT },
+		{ "SetMusicLoopRange", &Wrapper::SetMusicLoopRange },
 		{ "SetBGMVolume", &Wrapper::SetBGMVolume },
 		{ "GetBGMVolume", &Wrapper::GetBGMVolume },
 		{ "SetBGMSpeed", &Wrapper::SetBGMSpeed },
