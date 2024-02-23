@@ -234,12 +234,47 @@ namespace lua
 		inline int32_t get_value(stack_index_t index) { return (int32_t)luaL_checkinteger(L, index.value); }
 
 		template<>
+		inline uint32_t get_value(stack_index_t index) { return (uint32_t)luaL_checknumber(L, index.value); }
+
+		template<>
 		inline float get_value(stack_index_t index) { return (float)luaL_checknumber(L, index.value); }
 		template<>
 		inline double get_value(stack_index_t index) { return luaL_checknumber(L, index.value); }
 
 		template<>
 		inline std::string_view get_value(stack_index_t index) { size_t len = 0; char const* str = luaL_checklstring(L, index.value, &len); return { str, len }; }
+
+		template<typename T>
+		inline T get_map_value(stack_index_t index, std::string_view key) { return typename T::__invalid_type__{}; }
+
+		template<>
+		inline uint32_t get_map_value(stack_index_t index, std::string_view key)
+		{
+			push_value(key);
+			lua_gettable(L, index.value);
+			auto const s = get_value<uint32_t>(-1);
+			pop_value();
+			return s;
+		}
+
+		template<>
+		inline std::string_view get_map_value(stack_index_t index, std::string_view key)
+		{
+			push_value(key);
+			lua_gettable(L, index.value);
+			auto const s = get_value<std::string_view>(-1);
+			pop_value();
+			return s;
+		}
+
+		inline bool has_map_value(stack_index_t index, std::string_view key)
+		{
+			push_value(key);
+			lua_gettable(L, index.value);
+			auto const has_value = is_value(-1) && !is_nil(-1);
+			pop_value();
+			return has_value;
+		}
 
 		// lua -> C (with default value)
 
