@@ -258,6 +258,16 @@ namespace lua
 		}
 
 		template<>
+		inline double get_map_value(stack_index_t index, std::string_view key)
+		{
+			push_value(key);
+			lua_gettable(L, index.value);
+			auto const s = get_value<double>(-1);
+			pop_value();
+			return s;
+		}
+
+		template<>
 		inline std::string_view get_map_value(stack_index_t index, std::string_view key)
 		{
 			push_value(key);
