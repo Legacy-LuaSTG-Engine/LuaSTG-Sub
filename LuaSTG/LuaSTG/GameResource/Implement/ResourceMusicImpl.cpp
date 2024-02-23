@@ -146,6 +146,59 @@ namespace LuaSTGPlus
 	bool ResourceMusicImpl::SetSpeed(float speed) { return m_player->setSpeed(speed); }
 	float ResourceMusicImpl::GetSpeed() { return m_player->getSpeed(); }
 	void ResourceMusicImpl::SetLoop(bool v) { if (m_decoder) m_decoder->setLoop(v); }
+	void ResourceMusicImpl::SetLoopRange(MusicRoopRange range)
+	{
+		// 修改循环范围必须停止BGM
+		Stop();
+		if (m_decoder)
+		{
+			// 转换单位
+			if (range.unit == MusicRoopRangeUnit::Second)
+			{
+				auto const sample_rate = double(m_decoder->getSampleRate());
+				range.start_in_samples = uint32_t(range.start_in_seconds * sample_rate);
+				range.end_in_samples = uint32_t(range.end_in_seconds * sample_rate);
+				range.length_in_samples = uint32_t(range.length_in_seconds * sample_rate);
+			}
+			// 循环开关
+			m_decoder->setLoop(range.type != MusicRoopRangeType::Disable);
+			// 限制范围
+			auto const total_samples = m_decoder->getFrameCount();
+			range.start_in_samples = std::min(range.start_in_samples, total_samples);
+			range.end_in_samples = std::min(range.end_in_samples, total_samples);
+			if (range.type == MusicRoopRangeType::StartPointAndLength)
+			{
+				range.length_in_samples = std::min(range.length_in_samples, total_samples - range.start_in_samples);
+			}
+			else if (range.type == MusicRoopRangeType::LengthAndEndPoint)
+			{
+				range.length_in_samples = std::min(range.length_in_samples, range.end_in_samples);
+			}
+			// 转换范围
+			switch (range.type)
+			{
+			case MusicRoopRangeType::Disable:
+			case MusicRoopRangeType::All:
+				m_decoder->setLoopRange(0, total_samples);
+				break;
+			case MusicRoopRangeType::StartPointToEnd:
+				m_decoder->setLoopRange(range.start_in_samples, total_samples);
+				break;
+			case MusicRoopRangeType::StartPointAndLength:
+				m_decoder->setLoopRange(range.start_in_samples, range.start_in_samples + range.length_in_samples);
+				break;
+			case MusicRoopRangeType::LengthAndEndPoint:
+				m_decoder->setLoopRange(range.end_in_samples - range.length_in_samples, range.end_in_samples);
+				break;
+			case MusicRoopRangeType::StartToEndPoint:
+				m_decoder->setLoopRange(0, range.end_in_samples);
+				break;
+			case MusicRoopRangeType::StartPointAndEndPoint:
+				m_decoder->setLoopRange(range.start_in_samples, range.end_in_samples);
+				break;
+			}
+		}
+	}
 
 	ResourceMusicImpl::ResourceMusicImpl(const char* name, LoopDecoder* p_decoder, Core::Audio::IAudioPlayer* p_player)
 		: ResourceBaseImpl(ResourceType::Music, name)

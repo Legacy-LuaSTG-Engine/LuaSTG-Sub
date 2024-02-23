@@ -31,6 +31,7 @@ namespace LuaSTGPlus
 			bool read(uint32_t pcm_frame, void* buffer, uint32_t* read_pcm_frame);
 
 			void setLoop(bool v) { m_is_loop = v; }
+			void setLoopRange(uint32_t start_samples, uint32_t end_samples) { m_start_sample = start_samples; m_end_sample = end_samples; }
 		public:
 			LoopDecoder(Core::Audio::IDecoder* p_decoder, double LoopStart, double LoopEnd);
 		};
@@ -55,6 +56,7 @@ namespace LuaSTGPlus
 		bool SetSpeed(float speed);
 		float GetSpeed();
 		void SetLoop(bool v);
+		void SetLoopRange(MusicRoopRange range);
 
 	public:
 		ResourceMusicImpl(const char* name, LoopDecoder* p_decoder, Core::Audio::IAudioPlayer* p_player);

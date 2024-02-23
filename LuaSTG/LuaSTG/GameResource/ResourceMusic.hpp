@@ -4,6 +4,35 @@
 
 namespace LuaSTGPlus
 {
+	enum class MusicRoopRangeType : int32_t
+	{
+		Disable,
+		All,
+		StartPointToEnd,
+		StartPointAndLength,
+		LengthAndEndPoint,
+		StartToEndPoint,
+		StartPointAndEndPoint,
+	};
+
+	enum class MusicRoopRangeUnit : int32_t
+	{
+		Sample,
+		Second,
+	};
+
+	struct MusicRoopRange
+	{
+		MusicRoopRangeType type{ MusicRoopRangeType::All };
+		MusicRoopRangeUnit unit{ MusicRoopRangeUnit::Sample };
+		uint32_t start_in_samples{};
+		uint32_t end_in_samples{};
+		uint32_t length_in_samples{};
+		double start_in_seconds{};
+		double end_in_seconds{};
+		double length_in_seconds{};
+	};
+
 	struct IResourceMusic : public IResourceBase
 	{
 		virtual Core::Audio::IAudioPlayer* GetAudioPlayer() = 0;
@@ -20,5 +49,6 @@ namespace LuaSTGPlus
 		virtual bool SetSpeed(float speed) = 0;
 		virtual float GetSpeed() = 0;
 		virtual void SetLoop(bool v) = 0;
+		virtual void SetLoopRange(MusicRoopRange range) = 0;
 	};
 }
