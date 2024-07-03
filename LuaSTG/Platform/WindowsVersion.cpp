@@ -24,7 +24,11 @@ namespace Platform
 
 			if (IsWindows10BuildOrGreater(22622))
 			{
-				MAKE("Windows 11 22H2+", false);
+				MAKE("Windows 11 23H2+", false);
+			}
+			if (WindowsVersion::Is11Build22631())
+			{
+				MAKE("Windows 11 23H2", false);
 			}
 			if (WindowsVersion::Is11Build22621())
 			{
@@ -51,7 +55,7 @@ namespace Platform
 			}
 			if (WindowsVersion::Is10Build19044())
 			{
-				MAKE("Windows 10 21H2", false);
+				MAKE("Windows 10 21H2", true);
 			}
 			if (WindowsVersion::Is10Build19043())
 			{
@@ -59,7 +63,7 @@ namespace Platform
 			}
 			if (WindowsVersion::Is10Build19042())
 			{
-				MAKE("Windows 10 20H2", false);
+				MAKE("Windows 10 20H2", true);
 			}
 			if (WindowsVersion::Is10Build19041())
 			{
@@ -239,6 +243,7 @@ namespace Platform
 	bool WindowsVersion::Is11() { return IsWindows11OrGreater(); }
 	bool WindowsVersion::Is11Build22000() { return IsWindows10BuildOrGreater(22000); }
 	bool WindowsVersion::Is11Build22621() { return IsWindows10BuildOrGreater(22621); }
+	bool WindowsVersion::Is11Build22631() { return IsWindows10BuildOrGreater(22631); }
 
 	struct VersionStringBuffer
 	{
