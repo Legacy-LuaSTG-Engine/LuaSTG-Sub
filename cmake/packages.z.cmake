@@ -2,9 +2,9 @@
 
 CPMAddPackage(
     NAME zlib_ng # 必须用这个名称，用来适配一些SB库
-    VERSION 2.1.7
+    VERSION 2.2.1
     GITHUB_REPOSITORY zlib-ng/zlib-ng
-    GIT_TAG 2.1.7
+    GIT_TAG 2.2.1
     DOWNLOAD_ONLY YES
 )
 
@@ -41,6 +41,9 @@ if(zlib_ng_ADDED AND minizip_ng_ADDED)
         -DWITH_GTEST=OFF
         -DCMAKE_POLICY_DEFAULT_CMP0091=NEW # CMAKE_MSVC_RUNTIME_LIBRARY
         -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>
+        # force utf-8
+        -DCMAKE_C_FLAGS=/utf-8
+        -DCMAKE_CXX_FLAGS=/utf-8
     )
     add_custom_command(
         OUTPUT ${zlib_ng_lib_file}
@@ -76,6 +79,9 @@ if(zlib_ng_ADDED AND minizip_ng_ADDED)
         -DZLIBNG_LIBRARY=${zlib_ng_lib_file}               # stupid mechanism
         -DCMAKE_POLICY_DEFAULT_CMP0091=NEW # CMAKE_MSVC_RUNTIME_LIBRARY
         -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>
+        # force utf-8
+        -DCMAKE_C_FLAGS=/utf-8
+        -DCMAKE_CXX_FLAGS=/utf-8
     )
     add_custom_command(
         OUTPUT ${minizip_ng_lib_file}
