@@ -148,24 +148,27 @@ if(tinygltf_ADDED)
         TINYGLTF_NO_STB_IMAGE_WRITE
     )
     # 为了避免其使用自带的 json 和 stb 库，首先得把头文件拉到一个单独的文件夹
-    file(WRITE ${CMAKE_BINARY_DIR}/tinygltf/tiny_gltf.h "PLACEHOLD")
-    file(REMOVE
-        ${CMAKE_BINARY_DIR}/tinygltf/tiny_gltf.h
-    )
+    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/tinygltf)
     file(COPY_FILE
         ${tinygltf_SOURCE_DIR}/tiny_gltf.h
         ${CMAKE_BINARY_DIR}/tinygltf/tiny_gltf.h
+        ONLY_IF_DIFFERENT
     )
     # 配置 include 路径，避免使用自带的 json 和 stb 库
     target_include_directories(tinygltf PUBLIC
         ${CMAKE_BINARY_DIR}/tinygltf
         ${nlohmann_json_SOURCE_DIR}/include/nlohmann # 非常傻逼
     )
+    # 避免再来一坨 stb 实现
+    file(WRITE ${CMAKE_BINARY_DIR}/tinygltf/tiny_gltf.cpp
+        "#define TINYGLTF_IMPLEMENTATION\n"
+        "#include \"tiny_gltf.h\"\n"
+    )
     target_sources(tinygltf PRIVATE
         ${CMAKE_BINARY_DIR}/tinygltf/tiny_gltf.h
-        ${tinygltf_SOURCE_DIR}/tiny_gltf.cc
+        ${CMAKE_BINARY_DIR}/tinygltf/tiny_gltf.cpp
     )
-    target_link_libraries(tinygltf PRIVATE
+    target_link_libraries(tinygltf PUBLIC
         nlohmann_json
         nothings_stb
     )
