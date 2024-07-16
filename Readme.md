@@ -13,7 +13,7 @@ LuaSTG Sub, is a branch that the basic functions migrated to the new system API,
 ## Download
 
 You can download from [Releases Page](https://github.com/Legacy-LuaSTG-Engine/LuaSTG-Sub/releases). Usually displayed on the right or bottom (mobile GitHub page).  
-In addition, there are development tools and libraries such as THlib, LuaSTG Sharp Editor (GUI Editor) available for download: [LuaSTG aex+](https://1drv.ms/u/s!ArZp3hbkNGe2jT1fdXNIlSUzhLaV?e=jIaz4p)
+In addition, there are development tools and libraries such as THlib, LuaSTG Sharp Editor (GUI Editor) available for download: [LuaSTG aex+](https://files.luastg-sub.com)
 
 > THlib: A set of official Touhou Project games style scripts and resources libraries, including stage backgrounds library, player library, bullet library, SpellCard system, stage group, replay system, etc., which may be more familiar to more people is "东方弹幕祀典"
 
@@ -52,7 +52,7 @@ LuaSTG Sub 分支的基础功能被迁移到新的系统 API，用于替代老�
 ## 下载  
 
 你可以从 [Releases 页面](https://github.com/Legacy-LuaSTG-Engine/LuaSTG-Sub/releases) 下载，一般显示在右侧或者底部（手机版页面）。  
-此外，还有配套的 THlib、弹幕编辑器等开发工具可供下载：[LuaSTG aex+](https://1drv.ms/u/s!ArZp3hbkNGe2jT1fdXNIlSUzhLaV?e=jIaz4p)  
+此外，还有配套的 THlib、弹幕编辑器等开发工具可供下载：[LuaSTG aex+](https://files.luastg-sub.com)  
 
 > THlib：一套东方原作风格的脚本和素材库，包含关卡背景库、自机库、子弹库、符卡系统、关卡组、replay 系统等，可能被更多人更熟悉的是“东方弹幕祀典”  
 
