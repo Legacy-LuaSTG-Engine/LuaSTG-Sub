@@ -1,4 +1,4 @@
-﻿#include "Core/Graphics/Model_D3D11.hpp"
+#include "Core/Graphics/Model_D3D11.hpp"
 #include "Core/FileManager.hpp"
 
 #define IDX(x) (size_t)static_cast<uint8_t>(x)
@@ -400,7 +400,7 @@ namespace Core::Graphics
 
 namespace Core::Graphics
 {
-    void map_sampler_to_d3d11(tinygltf::Sampler& samp, D3D11_SAMPLER_DESC& desc)
+    static void map_sampler_to_d3d11(tinygltf::Sampler& samp, D3D11_SAMPLER_DESC& desc)
     {
     #define MAKE_FILTER(MIN, MAG_MIP) ((MAG_MIP << 16) | (MIN))
         switch (MAKE_FILTER(samp.minFilter, samp.magFilter))
@@ -486,7 +486,7 @@ namespace Core::Graphics
             break;
         }
     }
-    void map_primitive_topology_to_d3d11(tinygltf::Primitive& prim, D3D11_PRIMITIVE_TOPOLOGY& topo)
+    static void map_primitive_topology_to_d3d11(tinygltf::Primitive& prim, D3D11_PRIMITIVE_TOPOLOGY& topo)
     {
         switch (prim.mode)
         {
@@ -516,7 +516,7 @@ namespace Core::Graphics
             break;
         }
     }
-    DirectX::XMMATRIX XM_CALLCONV get_local_transfrom_from_node(tinygltf::Node& node)
+    static DirectX::XMMATRIX XM_CALLCONV get_local_transfrom_from_node(tinygltf::Node& node)
     {
         if (!node.matrix.empty())
         {
