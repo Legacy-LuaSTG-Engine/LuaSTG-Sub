@@ -88,7 +88,7 @@ namespace Core::Graphics
             DirectX::XMFLOAT4 base_color;
             BOOL double_side = FALSE;
             BOOL alpha_blend = FALSE;
-            BOOL alpha_cull = FALSE;
+            BOOL alpha_mask = FALSE;
             FLOAT alpha = 0.5f;
             UINT draw_count = 0;
             DXGI_FORMAT index_format = DXGI_FORMAT_R16_UINT;

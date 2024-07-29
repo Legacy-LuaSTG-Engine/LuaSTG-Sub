@@ -980,7 +980,7 @@ namespace Core::Graphics
                     }
                     if (material.alphaMode == "MASK")
                     {
-                        mblock.alpha_cull = TRUE;
+                        mblock.alpha_mask = TRUE;
                     }
                     else if (material.alphaMode == "BLEND")
                     {
@@ -1138,7 +1138,7 @@ namespace Core::Graphics
 
             // PS
 
-            if (!mblock.alpha_cull)
+            if (!mblock.alpha_mask)
             {
                 if (mblock.image)
                 {
@@ -1224,7 +1224,7 @@ namespace Core::Graphics
             context->PSSetSamplers(0, 1, ps_samp);
             ID3D11ShaderResourceView* ps_srv[1] = { mblock.image.Get() };
             context->PSSetShaderResources(0, 1, ps_srv);
-            if (!mblock.alpha_cull)
+            if (!mblock.alpha_mask)
             {
                 FLOAT const alpha[8] = {
                     mblock.base_color.x, mblock.base_color.y, mblock.base_color.z, mblock.base_color.w,
@@ -1296,7 +1296,7 @@ namespace Core::Graphics
 
         for (auto& mblock : model_block)
         {
-            if (!mblock.alpha_cull && !mblock.alpha_blend)
+            if (!mblock.alpha_mask && !mblock.alpha_blend)
             {
                 set_state_from_block(mblock);
                 draw_block(mblock);
@@ -1307,7 +1307,7 @@ namespace Core::Graphics
 
         for (auto& mblock : model_block)
         {
-            if (mblock.alpha_cull)
+            if (mblock.alpha_mask)
             {
                 set_state_from_block(mblock);
                 draw_block(mblock);
