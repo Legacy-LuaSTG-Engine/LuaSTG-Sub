@@ -1,4 +1,4 @@
-#include "Core/Graphics/Model_D3D11.hpp"
+﻿#include "Core/Graphics/Model_D3D11.hpp"
 #include "Core/FileManager.hpp"
 
 #define IDX(x) (size_t)static_cast<uint8_t>(x)
@@ -560,6 +560,72 @@ namespace Core::Graphics
             return DirectX::XMMatrixMultiply(DirectX::XMMatrixMultiply(mS, mR), mT);
         }
     }
+    static bool getBufferFromAccessor(
+        tinygltf::Model const& model,
+        tinygltf::Accessor const& accessor,
+        uint8_t*& output,
+        size_t& total_size_in_bytes,
+        std::vector<uint8_t>& intermediate_buffer
+    ) {
+        // buffer view
+        if (accessor.bufferView < 0 || accessor.bufferView >= model.bufferViews.size()) {
+            spdlog::error(
+                "[core] gltf 2.0 loader -- accessor (index = {}) buffer view index out of bound (value = {})",
+                &accessor - model.accessors.data(),
+                accessor.bufferView
+            );
+        }
+        const auto& buffer_view = model.bufferViews[accessor.bufferView];
+        // buffer
+        if (buffer_view.buffer < 0 || buffer_view.buffer >= model.buffers.size()) {
+            spdlog::error(
+                "[core] gltf 2.0 loader -- buffer view (index = {}) buffer index out of bound (value = {})",
+                &buffer_view - model.bufferViews.data(),
+                buffer_view.buffer
+            );
+        }
+        const auto& buffer = model.buffers[buffer_view.buffer];
+        // total size
+        if (tinygltf::GetComponentSizeInBytes(accessor.componentType) < 0) {
+            spdlog::error(
+                "[core] gltf 2.0 loader -- unknown accessor (index = {}) component type (value = {})",
+                &accessor - model.accessors.data(),
+                accessor.componentType
+            );
+            return false;
+        }
+        if (tinygltf::GetNumComponentsInType(accessor.type) < 0) {
+            spdlog::error(
+                "[core] gltf 2.0 loader -- unknown accessor (index = {}) type (value = {})",
+                &accessor - model.accessors.data(),
+                accessor.type
+            );
+            return false;
+        }
+        total_size_in_bytes = static_cast<size_t>(tinygltf::GetComponentSizeInBytes(accessor.componentType))
+            * static_cast<size_t>(tinygltf::GetNumComponentsInType(accessor.type))
+            * accessor.count;
+        // no stride
+        if (buffer_view.byteStride == 0) {
+            output = const_cast<uint8_t*>(buffer.data.data()) + buffer_view.byteOffset + accessor.byteOffset;
+            return true;
+        }
+        // prepare intermediate buffer
+        intermediate_buffer.resize(total_size_in_bytes);
+        // copy data
+        const auto size = static_cast<size_t>(tinygltf::GetComponentSizeInBytes(accessor.componentType))
+            * static_cast<size_t>(tinygltf::GetNumComponentsInType(accessor.type));
+        auto source = buffer.data.data() + buffer_view.byteOffset + accessor.byteOffset;
+        auto target = intermediate_buffer.data();
+        for (size_t i = 0; i < accessor.count; i += 1) {
+            std::memcpy(target, source, size);
+            source += buffer_view.byteStride;
+            target += size;
+        }
+        // using intermediate buffer
+        output = intermediate_buffer.data();
+        return true;
+    }
 
     void Model_D3D11::setAmbient(Vector3F const& color, float brightness)
     {
@@ -721,11 +787,14 @@ namespace Core::Graphics
                 if (prim.attributes.contains("POSITION"))
                 {
                     tinygltf::Accessor& accessor = model.accessors[prim.attributes["POSITION"]];
-                    tinygltf::BufferView& bufferview = model.bufferViews[accessor.bufferView];
-                    tinygltf::Buffer& buffer = model.buffers[bufferview.buffer];
+                    uint8_t* buffer_ptr{};
+                    size_t total_size_in_bytes{};
+                    std::vector<uint8_t> intermediate_buffer;
+                    if (!getBufferFromAccessor(model, accessor, buffer_ptr, total_size_in_bytes, intermediate_buffer))
+                        return false;
 
                     D3D11_BUFFER_DESC vbo_def = {
-                        .ByteWidth = (UINT)tinygltf::GetComponentSizeInBytes(accessor.componentType) * (UINT)tinygltf::GetNumComponentsInType(accessor.type) * (UINT)accessor.count,
+                        .ByteWidth = static_cast<UINT>(total_size_in_bytes),
                         .Usage = D3D11_USAGE_DEFAULT,
                         .BindFlags = D3D11_BIND_VERTEX_BUFFER,
                         .CPUAccessFlags = 0,
@@ -733,7 +802,7 @@ namespace Core::Graphics
                         .StructureByteStride = 0,
                     };
                     D3D11_SUBRESOURCE_DATA dat_def = {
-                        .pSysMem = buffer.data.data() + bufferview.byteOffset + accessor.byteOffset,
+                        .pSysMem = buffer_ptr,
                         .SysMemPitch = 0,
                         .SysMemSlicePitch = 0,
                     };
@@ -749,11 +818,14 @@ namespace Core::Graphics
                 if (prim.attributes.contains("NORMAL"))
                 {
                     tinygltf::Accessor& accessor = model.accessors[prim.attributes["NORMAL"]];
-                    tinygltf::BufferView& bufferview = model.bufferViews[accessor.bufferView];
-                    tinygltf::Buffer& buffer = model.buffers[bufferview.buffer];
+                    uint8_t* buffer_ptr{};
+                    size_t total_size_in_bytes{};
+                    std::vector<uint8_t> intermediate_buffer;
+                    if (!getBufferFromAccessor(model, accessor, buffer_ptr, total_size_in_bytes, intermediate_buffer))
+                        return false;
 
                     D3D11_BUFFER_DESC vbo_def = {
-                        .ByteWidth = (UINT)tinygltf::GetComponentSizeInBytes(accessor.componentType) * (UINT)tinygltf::GetNumComponentsInType(accessor.type) * (UINT)accessor.count,
+                        .ByteWidth = static_cast<UINT>(total_size_in_bytes),
                         .Usage = D3D11_USAGE_DEFAULT,
                         .BindFlags = D3D11_BIND_VERTEX_BUFFER,
                         .CPUAccessFlags = 0,
@@ -761,7 +833,7 @@ namespace Core::Graphics
                         .StructureByteStride = 0,
                     };
                     D3D11_SUBRESOURCE_DATA dat_def = {
-                        .pSysMem = buffer.data.data() + bufferview.byteOffset + accessor.byteOffset,
+                        .pSysMem = buffer_ptr,
                         .SysMemPitch = 0,
                         .SysMemSlicePitch = 0,
                     };
@@ -775,11 +847,14 @@ namespace Core::Graphics
                 if (prim.attributes.contains("COLOR_0"))
                 {
                     tinygltf::Accessor& accessor = model.accessors[prim.attributes["COLOR_0"]];
-                    tinygltf::BufferView& bufferview = model.bufferViews[accessor.bufferView];
-                    tinygltf::Buffer& buffer = model.buffers[bufferview.buffer];
+                    uint8_t* buffer_ptr{};
+                    size_t total_size_in_bytes{};
+                    std::vector<uint8_t> intermediate_buffer;
+                    if (!getBufferFromAccessor(model, accessor, buffer_ptr, total_size_in_bytes, intermediate_buffer))
+                        return false;
 
                     D3D11_BUFFER_DESC vbo_def = {
-                        .ByteWidth = (UINT)tinygltf::GetComponentSizeInBytes(accessor.componentType) * (UINT)tinygltf::GetNumComponentsInType(accessor.type) * (UINT)accessor.count,
+                        .ByteWidth = static_cast<UINT>(total_size_in_bytes),
                         .Usage = D3D11_USAGE_DEFAULT,
                         .BindFlags = D3D11_BIND_VERTEX_BUFFER,
                         .CPUAccessFlags = 0,
@@ -787,7 +862,7 @@ namespace Core::Graphics
                         .StructureByteStride = 0,
                     };
                     D3D11_SUBRESOURCE_DATA dat_def = {
-                        .pSysMem = buffer.data.data() + bufferview.byteOffset + accessor.byteOffset,
+                        .pSysMem = buffer_ptr,
                         .SysMemPitch = 0,
                         .SysMemSlicePitch = 0,
                     };
@@ -801,11 +876,14 @@ namespace Core::Graphics
                 if (prim.attributes.contains("TEXCOORD_0"))
                 {
                     tinygltf::Accessor& accessor = model.accessors[prim.attributes["TEXCOORD_0"]];
-                    tinygltf::BufferView& bufferview = model.bufferViews[accessor.bufferView];
-                    tinygltf::Buffer& buffer = model.buffers[bufferview.buffer];
+                    uint8_t* buffer_ptr{};
+                    size_t total_size_in_bytes{};
+                    std::vector<uint8_t> intermediate_buffer;
+                    if (!getBufferFromAccessor(model, accessor, buffer_ptr, total_size_in_bytes, intermediate_buffer))
+                        return false;
 
                     D3D11_BUFFER_DESC vbo_def = {
-                        .ByteWidth = (UINT)tinygltf::GetComponentSizeInBytes(accessor.componentType) * (UINT)tinygltf::GetNumComponentsInType(accessor.type) * (UINT)accessor.count,
+                        .ByteWidth = static_cast<UINT>(total_size_in_bytes),
                         .Usage = D3D11_USAGE_DEFAULT,
                         .BindFlags = D3D11_BIND_VERTEX_BUFFER,
                         .CPUAccessFlags = 0,
@@ -813,7 +891,7 @@ namespace Core::Graphics
                         .StructureByteStride = 0,
                     };
                     D3D11_SUBRESOURCE_DATA dat_def = {
-                        .pSysMem = buffer.data.data() + bufferview.byteOffset + accessor.byteOffset,
+                        .pSysMem = buffer_ptr,
                         .SysMemPitch = 0,
                         .SysMemSlicePitch = 0,
                     };
@@ -829,6 +907,9 @@ namespace Core::Graphics
                     tinygltf::Accessor& accessor = model.accessors[prim.indices];
                     tinygltf::BufferView& bufferview = model.bufferViews[accessor.bufferView];
                     tinygltf::Buffer& buffer = model.buffers[bufferview.buffer];
+                    if (bufferview.byteStride > 0) {
+                        std::ignore = nullptr;
+                    }
 
                     D3D11_BUFFER_DESC ibo_def = {
                         .ByteWidth = (UINT)tinygltf::GetComponentSizeInBytes(accessor.componentType) * (UINT)tinygltf::GetNumComponentsInType(accessor.type) * (UINT)accessor.count,
