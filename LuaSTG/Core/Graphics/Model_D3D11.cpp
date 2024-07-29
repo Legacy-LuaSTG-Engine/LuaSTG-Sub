@@ -278,6 +278,40 @@ namespace Core::Graphics
             return false;
         }
 
+        // built-in: depth-test less only
+
+        ds_def.DepthFunc = D3D11_COMPARISON_LESS;
+
+        hr = device->CreateDepthStencilState(&ds_def, &state_ds_dl);
+        if (FAILED(hr))
+        {
+            assert(false);
+            return false;
+        }
+
+        // built-in: depth-test less only, no write
+
+        ds_def.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+
+        hr = device->CreateDepthStencilState(&ds_def, &state_ds_no_write);
+        if (FAILED(hr))
+        {
+            assert(false);
+            return false;
+        }
+
+        // built-in: depth-test disable
+
+        ds_def.DepthEnable = FALSE;
+        ds_def.DepthFunc = D3D11_COMPARISON_ALWAYS;
+
+        hr = device->CreateDepthStencilState(&ds_def, &state_ds_disable);
+        if (FAILED(hr))
+        {
+            assert(false);
+            return false;
+        }
+
         //// BLEND \\\\
 
         // built-in: disable
@@ -1185,6 +1219,135 @@ namespace Core::Graphics
             DirectX::XMStoreFloat4x4(&v.v2, DirectX::XMMatrixInverseTranspose(t_total_));
             context->UpdateSubresource(shared_->cbo_mlw.Get(), 0, NULL, &v, 0, 0);
         };
+        auto set_alpha_mode_opaque = [&](ModelBlock& mblock)
+        {
+            // PS
+
+            FLOAT const alpha[8] = {
+                    mblock.base_color.x, mblock.base_color.y, mblock.base_color.z, mblock.base_color.w,
+                    0.5f, 0.0f, 0.0f, 0.0f,
+            };
+            context->UpdateSubresource(shared_->cbo_alpha.Get(), 0, NULL, alpha, 0, 0);
+            ID3D11Buffer* ps_cbo[2] = {
+                // camera position and look to vector are setup by Renderer at register(b0)
+                shared_->cbo_alpha.Get(),
+                shared_->cbo_light.Get(),
+            };
+            context->PSSetConstantBuffers(2, 2, ps_cbo);
+
+            // OM
+            FLOAT const blend_factor[4]{};
+            context->OMSetBlendState(shared_->state_blend.Get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
+        };
+        auto set_alpha_mode_mask = [&](ModelBlock& mblock)
+        {
+            // PS
+
+            FLOAT const alpha[8] = {
+                    mblock.base_color.x, mblock.base_color.y, mblock.base_color.z, mblock.base_color.w,
+                    mblock.alpha, 0.0f, 0.0f, 0.0f,
+            };
+            context->UpdateSubresource(shared_->cbo_alpha.Get(), 0, NULL, alpha, 0, 0);
+            ID3D11Buffer* ps_cbo[2] = {
+                // camera position and look to vector are setup by Renderer at register(b0)
+                shared_->cbo_alpha.Get(),
+                shared_->cbo_light.Get(),
+            };
+            context->PSSetConstantBuffers(2, 2, ps_cbo);
+
+            // OM
+            FLOAT const blend_factor[4]{};
+            context->OMSetBlendState(shared_->state_blend.Get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
+        };
+        auto set_alpha_mode_mask_custom = [&](ModelBlock& mblock, float const value)
+        {
+            // PS
+
+            FLOAT const alpha[8] = {
+                    mblock.base_color.x, mblock.base_color.y, mblock.base_color.z, mblock.base_color.w,
+                    value, 0.0f, 0.0f, 0.0f,
+            };
+            context->UpdateSubresource(shared_->cbo_alpha.Get(), 0, NULL, alpha, 0, 0);
+            ID3D11Buffer* ps_cbo[2] = {
+                // camera position and look to vector are setup by Renderer at register(b0)
+                shared_->cbo_alpha.Get(),
+                shared_->cbo_light.Get(),
+            };
+            context->PSSetConstantBuffers(2, 2, ps_cbo);
+            if (mblock.image)
+            {
+                if (mblock.color_buffer)
+                    context->PSSetShader(shared_->shader_pixel_alpha_vc[IDX(fog)].Get(), NULL, 0);
+                else
+                    context->PSSetShader(shared_->shader_pixel_alpha[IDX(fog)].Get(), NULL, 0);
+            }
+            else
+            {
+                if (mblock.color_buffer)
+                    context->PSSetShader(shared_->shader_pixel_alpha_nt_vc[IDX(fog)].Get(), NULL, 0);
+                else
+                    context->PSSetShader(shared_->shader_pixel_alpha_nt[IDX(fog)].Get(), NULL, 0);
+            }
+
+            // OM
+            FLOAT const blend_factor[4]{};
+            context->OMSetBlendState(shared_->state_blend.Get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
+        };
+        auto set_alpha_mode_blend = [&](ModelBlock& mblock)
+        {
+            // PS
+
+            FLOAT const alpha[8] = {
+                    mblock.base_color.x, mblock.base_color.y, mblock.base_color.z, mblock.base_color.w,
+                    0.5f, 0.0f, 0.0f, 0.0f,
+            };
+            context->UpdateSubresource(shared_->cbo_alpha.Get(), 0, NULL, alpha, 0, 0);
+            ID3D11Buffer* ps_cbo[2] = {
+                // camera position and look to vector are setup by Renderer at register(b0)
+                shared_->cbo_alpha.Get(),
+                shared_->cbo_light.Get(),
+            };
+            context->PSSetConstantBuffers(2, 2, ps_cbo);
+
+            // OM
+            FLOAT const blend_factor[4]{};
+            context->OMSetBlendState(shared_->state_blend_alpha.Get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
+        };
+        auto set_alpha_mode_blend_overlay = [&](ModelBlock& mblock, float const exclude_value)
+        {
+            // PS
+
+            FLOAT const alpha[8] = {
+                    mblock.base_color.x, mblock.base_color.y, mblock.base_color.z, mblock.base_color.w,
+                    exclude_value, 0.0f, 0.0f, 0.0f,
+            };
+            context->UpdateSubresource(shared_->cbo_alpha.Get(), 0, NULL, alpha, 0, 0);
+            ID3D11Buffer* ps_cbo[2] = {
+                // camera position and look to vector are setup by Renderer at register(b0)
+                shared_->cbo_alpha.Get(),
+                shared_->cbo_light.Get(),
+            };
+            context->PSSetConstantBuffers(2, 2, ps_cbo);
+            if (mblock.image)
+            {
+                if (mblock.color_buffer)
+                    context->PSSetShader(shared_->shader_pixel_inv_alpha_vc[IDX(fog)].Get(), NULL, 0);
+                else
+                    context->PSSetShader(shared_->shader_pixel_inv_alpha[IDX(fog)].Get(), NULL, 0);
+            }
+            else
+            {
+                if (mblock.color_buffer)
+                    context->PSSetShader(shared_->shader_pixel_inv_alpha_nt_vc[IDX(fog)].Get(), NULL, 0);
+                else
+                    context->PSSetShader(shared_->shader_pixel_inv_alpha_nt[IDX(fog)].Get(), NULL, 0);
+            }
+
+            // OM
+            context->OMSetDepthStencilState(shared_->state_ds.Get(), D3D11_DEFAULT_STENCIL_REFERENCE);
+            FLOAT const blend_factor[4]{};
+            context->OMSetBlendState(shared_->state_blend_alpha.Get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
+        };
         auto set_state_from_block = [&](ModelBlock& mblock)
         {
             set_state_matrix_from_block(mblock);
@@ -1224,40 +1387,20 @@ namespace Core::Graphics
             context->PSSetSamplers(0, 1, ps_samp);
             ID3D11ShaderResourceView* ps_srv[1] = { mblock.image.Get() };
             context->PSSetShaderResources(0, 1, ps_srv);
-            if (!mblock.alpha_mask)
-            {
-                FLOAT const alpha[8] = {
-                    mblock.base_color.x, mblock.base_color.y, mblock.base_color.z, mblock.base_color.w,
-                    0.5f, 0.0f, 0.0f, 0.0f,
-                };
-                context->UpdateSubresource(shared_->cbo_alpha.Get(), 0, NULL, alpha, 0, 0);
-            }
-            else
-            {
-                FLOAT const alpha[8] = {
-                    mblock.base_color.x, mblock.base_color.y, mblock.base_color.z, mblock.base_color.w,
-                    mblock.alpha, 0.0f, 0.0f, 0.0f,
-                };
-                context->UpdateSubresource(shared_->cbo_alpha.Get(), 0, NULL, alpha, 0, 0);
-            }
-            ID3D11Buffer* ps_cbo[2] = {
-                // camera position and look to vector are setup by Renderer at register(b0)
-                shared_->cbo_alpha.Get(),
-                shared_->cbo_light.Get(),
-            };
-            context->PSSetConstantBuffers(2, 2, ps_cbo);
 
             // OM
 
             context->OMSetDepthStencilState(shared_->state_ds.Get(), D3D11_DEFAULT_STENCIL_REFERENCE);
-            FLOAT const blend_factor[4] = {};
-            if (mblock.alpha_blend)
-            {
-                context->OMSetBlendState(shared_->state_blend_alpha.Get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
+
+            // other
+            if (mblock.alpha_blend) {
+                set_alpha_mode_blend(mblock);
             }
-            else
-            {
-                context->OMSetBlendState(shared_->state_blend.Get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
+            else if (mblock.alpha_mask) {
+                set_alpha_mode_mask(mblock);
+            }
+            else {
+                set_alpha_mode_opaque(mblock);
             }
         };
         auto draw_block = [&](ModelBlock& mblock)
@@ -1321,6 +1464,16 @@ namespace Core::Graphics
             if (mblock.alpha_blend)
             {
                 set_state_from_block(mblock);
+                set_alpha_mode_mask_custom(mblock, 1.0f);
+                draw_block(mblock);
+            }
+        }
+        for (auto& mblock : model_block)
+        {
+            if (mblock.alpha_blend)
+            {
+                set_state_from_block(mblock);
+                set_alpha_mode_blend_overlay(mblock, 1.0f);
                 draw_block(mblock);
             }
         }

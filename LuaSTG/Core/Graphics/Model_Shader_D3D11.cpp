@@ -232,6 +232,66 @@ OM_INPUT PS_Main_NoBaseTexture_AlphaMask_VertexColor(PS_S4F_P4F_N4F_C4F_T2F inpu
     return output; 
 }
 
+// inv alpha mask
+
+OM_INPUT PS_Main_InvAlphaMask(PS_INPUT input)
+{
+    float4 tex_color = texture0.Sample(sampler0, input.uv);
+    float4 solid_color = base_color * float4(pow(tex_color.rgb, 2.2f), tex_color.a);
+    if (solid_color.a >= alpha.x)
+    {
+        discard;
+    }
+    solid_color = ApplySimpleLight(input.norm, input.wpos, solid_color);
+    solid_color = ApplyFog(input.wpos, solid_color);
+    OM_INPUT output;
+    output.col = pow(solid_color, 1.0f / 2.2f);
+    return output; 
+}
+
+OM_INPUT PS_Main_NoBaseTexture_InvAlphaMask(PS_INPUT input)
+{
+    float4 solid_color = base_color;
+    if (solid_color.a >= alpha.x)
+    {
+        discard;
+    }
+    solid_color = ApplySimpleLight(input.norm, input.wpos, solid_color);
+    solid_color = ApplyFog(input.wpos, solid_color);
+    OM_INPUT output;
+    output.col = pow(solid_color, 1.0f / 2.2f);
+    return output; 
+}
+
+OM_INPUT PS_Main_InvAlphaMask_VertexColor(PS_S4F_P4F_N4F_C4F_T2F input)
+{
+    float4 tex_color = texture0.Sample(sampler0, input.uv);
+    float4 solid_color = base_color * input.col * float4(pow(tex_color.rgb, 2.2f), tex_color.a);
+    if (solid_color.a >= alpha.x)
+    {
+        discard;
+    }
+    solid_color = ApplySimpleLight(input.norm, input.wpos, solid_color);
+    solid_color = ApplyFog(input.wpos, solid_color);
+    OM_INPUT output;
+    output.col = pow(solid_color, 1.0f / 2.2f);
+    return output; 
+}
+
+OM_INPUT PS_Main_NoBaseTexture_InvAlphaMask_VertexColor(PS_S4F_P4F_N4F_C4F_T2F input)
+{
+    float4 solid_color = base_color * input.col;
+    if (solid_color.a >= alpha.x)
+    {
+        discard;
+    }
+    solid_color = ApplySimpleLight(input.norm, input.wpos, solid_color);
+    solid_color = ApplyFog(input.wpos, solid_color);
+    OM_INPUT output;
+    output.col = pow(solid_color, 1.0f / 2.2f);
+    return output; 
+}
+
 )");
 
 #define IDX(x) (size_t)static_cast<uint8_t>(x)
@@ -331,6 +391,11 @@ namespace Core::Graphics
         if (!fxc_ps("model-ps-alpha-vertex-color", "PS_Main_AlphaMask_VertexColor", shader_pixel_alpha_vc)) return false;
         if (!fxc_ps("model-ps-no-texture-vertex-color", "PS_Main_NoBaseTexture_VertexColor", shader_pixel_nt_vc)) return false;
         if (!fxc_ps("model-ps-alpha-no-texture-vertex-color", "PS_Main_NoBaseTexture_AlphaMask_VertexColor", shader_pixel_alpha_nt_vc)) return false;
+
+        if (!fxc_ps("model-ps-inv-alpha", "PS_Main_InvAlphaMask", shader_pixel_inv_alpha)) return false;
+        if (!fxc_ps("model-ps-inv-alpha-no-texture", "PS_Main_NoBaseTexture_InvAlphaMask", shader_pixel_inv_alpha_nt)) return false;
+        if (!fxc_ps("model-ps-inv-alpha-vertex-color", "PS_Main_InvAlphaMask_VertexColor", shader_pixel_inv_alpha_vc)) return false;
+        if (!fxc_ps("model-ps-inv-alpha-no-texture-vertex-color", "PS_Main_NoBaseTexture_InvAlphaMask_VertexColor", shader_pixel_inv_alpha_nt_vc)) return false;
 
         // built-in: input layout
 

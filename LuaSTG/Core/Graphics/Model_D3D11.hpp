@@ -25,16 +25,23 @@ namespace Core::Graphics
         Microsoft::WRL::ComPtr<ID3D11VertexShader> shader_vertex_vc;
         Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel[IDX(IRenderer::FogState::MAX_COUNT)];
         Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_alpha[IDX(IRenderer::FogState::MAX_COUNT)];
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_inv_alpha[IDX(IRenderer::FogState::MAX_COUNT)];
         Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_nt[IDX(IRenderer::FogState::MAX_COUNT)];
         Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_alpha_nt[IDX(IRenderer::FogState::MAX_COUNT)];
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_inv_alpha_nt[IDX(IRenderer::FogState::MAX_COUNT)];
         Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_vc[IDX(IRenderer::FogState::MAX_COUNT)];
         Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_alpha_vc[IDX(IRenderer::FogState::MAX_COUNT)];
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_inv_alpha_vc[IDX(IRenderer::FogState::MAX_COUNT)];
         Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_nt_vc[IDX(IRenderer::FogState::MAX_COUNT)];
         Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_alpha_nt_vc[IDX(IRenderer::FogState::MAX_COUNT)];
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_inv_alpha_nt_vc[IDX(IRenderer::FogState::MAX_COUNT)];
 
         Microsoft::WRL::ComPtr<ID3D11RasterizerState> state_rs_cull_none;
         Microsoft::WRL::ComPtr<ID3D11RasterizerState> state_rs_cull_back;
+        Microsoft::WRL::ComPtr<ID3D11DepthStencilState> state_ds_disable;
         Microsoft::WRL::ComPtr<ID3D11DepthStencilState> state_ds;
+        Microsoft::WRL::ComPtr<ID3D11DepthStencilState> state_ds_no_write;
+        Microsoft::WRL::ComPtr<ID3D11DepthStencilState> state_ds_dl;
         Microsoft::WRL::ComPtr<ID3D11BlendState> state_blend;
         Microsoft::WRL::ComPtr<ID3D11BlendState> state_blend_alpha;
 
