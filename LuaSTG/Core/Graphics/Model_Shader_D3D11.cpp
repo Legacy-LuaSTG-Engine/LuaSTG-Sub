@@ -1,4 +1,4 @@
-﻿#include "Core/Graphics/Model_D3D11.hpp"
+#include "Core/Graphics/Model_D3D11.hpp"
 #include "Platform/RuntimeLoader/Direct3DCompiler.hpp"
 
 static std::string_view const built_in_shader(R"(
@@ -324,9 +324,9 @@ namespace Core::Graphics
                 macro, NULL, entry.data(), type ? "ps_4_0" : "vs_4_0", compile_flags, 0, blob, &err);
             if (FAILED(hr))
             {
-                assert(false);
                 spdlog::error("[core] D3DCompile 调用失败");
                 spdlog::error("[core] 编译着色器 '{}' 失败：{}", name, (char*)err->GetBufferPointer());
+                assert(false);
                 return false;
             }
             return true;
