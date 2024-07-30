@@ -36,6 +36,11 @@ namespace Core::Graphics
         Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_alpha_nt_vc[IDX(IRenderer::FogState::MAX_COUNT)];
         Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_inv_alpha_nt_vc[IDX(IRenderer::FogState::MAX_COUNT)];
 
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_sd[IDX(IRenderer::FogState::MAX_COUNT)];
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_sd_nt[IDX(IRenderer::FogState::MAX_COUNT)];
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_sd_vc[IDX(IRenderer::FogState::MAX_COUNT)];
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_sd_nt_vc[IDX(IRenderer::FogState::MAX_COUNT)];
+
         Microsoft::WRL::ComPtr<ID3D11RasterizerState> state_rs_cull_none;
         Microsoft::WRL::ComPtr<ID3D11RasterizerState> state_rs_cull_back;
         Microsoft::WRL::ComPtr<ID3D11DepthStencilState> state_ds_disable;

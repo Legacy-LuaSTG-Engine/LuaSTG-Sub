@@ -1348,6 +1348,41 @@ namespace Core::Graphics
             FLOAT const blend_factor[4]{};
             context->OMSetBlendState(shared_->state_blend_alpha.Get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
         };
+        auto set_alpha_mode_screen_door = [&](ModelBlock& mblock)
+        {
+            // PS
+
+            FLOAT const alpha[8] = {
+                    mblock.base_color.x, mblock.base_color.y, mblock.base_color.z, mblock.base_color.w,
+                    0.5f, 0.0f, 0.0f, 0.0f,
+            };
+            context->UpdateSubresource(shared_->cbo_alpha.Get(), 0, NULL, alpha, 0, 0);
+            ID3D11Buffer* ps_cbo[2] = {
+                // camera position and look to vector are setup by Renderer at register(b0)
+                shared_->cbo_alpha.Get(),
+                shared_->cbo_light.Get(),
+            };
+            context->PSSetConstantBuffers(2, 2, ps_cbo);
+            if (mblock.image)
+            {
+                if (mblock.color_buffer)
+                    context->PSSetShader(shared_->shader_pixel_sd_vc[IDX(fog)].Get(), NULL, 0);
+                else
+                    context->PSSetShader(shared_->shader_pixel_sd[IDX(fog)].Get(), NULL, 0);
+            }
+            else
+            {
+                if (mblock.color_buffer)
+                    context->PSSetShader(shared_->shader_pixel_sd_nt_vc[IDX(fog)].Get(), NULL, 0);
+                else
+                    context->PSSetShader(shared_->shader_pixel_sd_nt[IDX(fog)].Get(), NULL, 0);
+            }
+
+            // OM
+            context->OMSetDepthStencilState(shared_->state_ds.Get(), D3D11_DEFAULT_STENCIL_REFERENCE);
+            FLOAT const blend_factor[4]{};
+            context->OMSetBlendState(shared_->state_blend.Get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
+        };
         auto set_state_from_block = [&](ModelBlock& mblock)
         {
             set_state_matrix_from_block(mblock);
@@ -1394,7 +1429,8 @@ namespace Core::Graphics
 
             // other
             if (mblock.alpha_blend) {
-                set_alpha_mode_blend(mblock);
+                //set_alpha_mode_blend(mblock);
+                set_alpha_mode_screen_door(mblock);
             }
             else if (mblock.alpha_mask) {
                 set_alpha_mode_mask(mblock);
@@ -1464,20 +1500,10 @@ namespace Core::Graphics
             if (mblock.alpha_blend)
             {
                 set_state_from_block(mblock);
-                set_alpha_mode_mask_custom(mblock, 1.0f);
                 draw_block(mblock);
             }
         }
-        for (auto& mblock : model_block)
-        {
-            if (mblock.alpha_blend)
-            {
-                set_state_from_block(mblock);
-                set_alpha_mode_blend_overlay(mblock, 1.0f);
-                draw_block(mblock);
-            }
-        }
-
+        
         // unbind
 
         clear_state();

@@ -1,4 +1,4 @@
-#include "Core/Graphics/Model_D3D11.hpp"
+﻿#include "Core/Graphics/Model_D3D11.hpp"
 #include "Platform/RuntimeLoader/Direct3DCompiler.hpp"
 
 static std::string_view const built_in_shader(R"(
@@ -292,6 +292,161 @@ OM_INPUT PS_Main_NoBaseTexture_InvAlphaMask_VertexColor(PS_S4F_P4F_N4F_C4F_T2F i
     return output; 
 }
 
+// screen door effect
+
+static const int screenDoorMask[16 * 17] = {
+    // 0%
+    0,0,0,0,
+    0,0,0,0,
+    0,0,0,0,
+    0,0,0,0,
+    // 1/16
+    1,0,0,0,
+    0,0,0,0,
+    0,0,0,0,
+    0,0,0,0,
+    // 2/16
+    1,0,0,0,
+    0,0,0,0,
+    0,0,1,0,
+    0,0,0,0,
+    // 3/16
+    1,0,0,0,
+    0,0,0,0,
+    1,0,1,0,
+    0,0,0,0,
+    // 25%
+    1,0,1,0,
+    0,0,0,0,
+    1,0,1,0,
+    0,0,0,0,
+    // 5/16
+    1,0,1,0,
+    0,1,0,0,
+    1,0,1,0,
+    0,0,0,0,
+    // 6/16
+    1,0,1,0,
+    0,1,0,0,
+    1,0,1,0,
+    0,0,0,1,
+    // 7/16
+    1,0,1,0,
+    0,1,0,0,
+    1,0,1,0,
+    0,1,0,1,
+    // 50%
+    1,0,1,0,
+    0,1,0,1,
+    1,0,1,0,
+    0,1,0,1,
+    // 9/16
+    1,0,1,0,
+    0,1,1,1,
+    1,0,1,0,
+    0,1,0,1,
+    // 10/16
+    1,0,1,0,
+    0,1,1,1,
+    1,0,1,0,
+    1,1,0,1,
+    // 11/16
+    1,0,1,0,
+    0,1,1,1,
+    1,0,1,0,
+    1,1,1,1,
+    // 75%
+    1,0,1,0,
+    1,1,1,1,
+    1,0,1,0,
+    1,1,1,1,
+    // 13/16
+    1,1,1,0,
+    1,1,1,1,
+    1,0,1,0,
+    1,1,1,1,
+    // 14/16
+    1,1,1,0,
+    1,1,1,1,
+    1,0,1,1,
+    1,1,1,1,
+    // 15/16
+    1,1,1,0,
+    1,1,1,1,
+    1,1,1,1,
+    1,1,1,1,
+    // 100%
+    1,1,1,1,
+    1,1,1,1,
+    1,1,1,1,
+    1,1,1,1,
+};
+
+int ScreenDoorMaskFromPosition(float4 pos, float a) {
+    int offset = int(floor(a * 16.0f + 0.5f));
+    int x = int(floor(pos.x));
+    int y = int(floor(pos.y));
+    return screenDoorMask[16 * offset + 4 * (y % 4) + (x % 4)];
+}
+
+OM_INPUT PS_Main_ScreenDoor(PS_INPUT input)
+{
+    float4 tex_color = texture0.Sample(sampler0, input.uv);
+    float4 solid_color = base_color * float4(pow(tex_color.rgb, 2.2f), tex_color.a);
+    if (ScreenDoorMaskFromPosition(input.pos, solid_color.a) == 0)
+    {
+        discard;
+    }
+    solid_color = ApplySimpleLight(input.norm, input.wpos, solid_color);
+    solid_color = ApplyFog(input.wpos, solid_color);
+    OM_INPUT output;
+    output.col = pow(solid_color, 1.0f / 2.2f);
+    return output; 
+}
+
+OM_INPUT PS_Main_NoBaseTexture_ScreenDoor(PS_INPUT input)
+{
+    float4 solid_color = base_color;
+    if (ScreenDoorMaskFromPosition(input.pos, solid_color.a) == 0)
+    {
+        discard;
+    }
+    solid_color = ApplySimpleLight(input.norm, input.wpos, solid_color);
+    solid_color = ApplyFog(input.wpos, solid_color);
+    OM_INPUT output;
+    output.col = pow(solid_color, 1.0f / 2.2f);
+    return output; 
+}
+
+OM_INPUT PS_Main_ScreenDoor_VertexColor(PS_S4F_P4F_N4F_C4F_T2F input)
+{
+    float4 tex_color = texture0.Sample(sampler0, input.uv);
+    float4 solid_color = base_color * input.col * float4(pow(tex_color.rgb, 2.2f), tex_color.a);
+    if (ScreenDoorMaskFromPosition(input.pos, solid_color.a) == 0)
+    {
+        discard;
+    }
+    solid_color = ApplySimpleLight(input.norm, input.wpos, solid_color);
+    solid_color = ApplyFog(input.wpos, solid_color);
+    OM_INPUT output;
+    output.col = pow(solid_color, 1.0f / 2.2f);
+    return output; 
+}
+
+OM_INPUT PS_Main_NoBaseTexture_ScreenDoor_VertexColor(PS_S4F_P4F_N4F_C4F_T2F input)
+{
+    float4 solid_color = base_color * input.col;
+    if (ScreenDoorMaskFromPosition(input.pos, solid_color.a) == 0)
+    {
+        discard;
+    }
+    solid_color = ApplySimpleLight(input.norm, input.wpos, solid_color);
+    solid_color = ApplyFog(input.wpos, solid_color);
+    OM_INPUT output;
+    output.col = pow(solid_color, 1.0f / 2.2f);
+    return output; 
+}
+
 )");
 
 #define IDX(x) (size_t)static_cast<uint8_t>(x)
@@ -396,6 +551,11 @@ namespace Core::Graphics
         if (!fxc_ps("model-ps-inv-alpha-no-texture", "PS_Main_NoBaseTexture_InvAlphaMask", shader_pixel_inv_alpha_nt)) return false;
         if (!fxc_ps("model-ps-inv-alpha-vertex-color", "PS_Main_InvAlphaMask_VertexColor", shader_pixel_inv_alpha_vc)) return false;
         if (!fxc_ps("model-ps-inv-alpha-no-texture-vertex-color", "PS_Main_NoBaseTexture_InvAlphaMask_VertexColor", shader_pixel_inv_alpha_nt_vc)) return false;
+
+        if (!fxc_ps("model-ps-screen-door", "PS_Main_ScreenDoor", shader_pixel_sd)) return false;
+        if (!fxc_ps("model-ps-screen-door-no-texture", "PS_Main_NoBaseTexture_ScreenDoor", shader_pixel_sd_nt)) return false;
+        if (!fxc_ps("model-ps-screen-door-vertex-color", "PS_Main_ScreenDoor_VertexColor", shader_pixel_sd_vc)) return false;
+        if (!fxc_ps("model-ps-screen-door-no-texture-vertex-color", "PS_Main_NoBaseTexture_ScreenDoor_VertexColor", shader_pixel_sd_nt_vc)) return false;
 
         // built-in: input layout
 
