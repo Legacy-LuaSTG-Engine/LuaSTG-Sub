@@ -1,0 +1,1 @@
+git config --global --unset http.proxy "socks5://127.0.0.1:7897"
