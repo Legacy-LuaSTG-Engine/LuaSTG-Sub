@@ -70,7 +70,7 @@ BEGIN
             VALUE "FileDescription", "LuaSTG Sub"
             VALUE "FileVersion", "0.21.0.0"
             VALUE "InternalName", "LuaSTG Sub"
-            VALUE "LegalCopyright", "Copyright 2020-2023 璀境石"
+            VALUE "LegalCopyright", "Copyright 2020-2024 璀境石"
             VALUE "OriginalFilename", "LuaSTGSub.exe"
             VALUE "ProductName", "LuaSTG Sub"
             VALUE "ProductVersion", "0.21.0.0"
