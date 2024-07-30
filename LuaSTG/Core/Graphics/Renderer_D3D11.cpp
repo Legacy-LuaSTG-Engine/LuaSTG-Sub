@@ -599,7 +599,7 @@ namespace Core::Graphics
 				return false;
 			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::RevSub)].Get());
 
-			blendt_.BlendOp = D3D11_BLEND_OP_REV_SUBTRACT;
+			blendt_.BlendOp = D3D11_BLEND_OP_ADD;
 			blendt_.SrcBlend = D3D11_BLEND_INV_DEST_COLOR;
 			blendt_.DestBlend = D3D11_BLEND_INV_SRC_COLOR;
 			blendt_.BlendOpAlpha = D3D11_BLEND_OP_ADD;
