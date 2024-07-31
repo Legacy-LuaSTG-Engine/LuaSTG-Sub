@@ -448,7 +448,7 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
         };
         static int __gc(lua_State* L)
         {
-            __ImVec4* p = (__ImVec4*)luaL_checkudata(L, 1, lua_class_imgui_ImGuiStyle);
+            __ImGuiStyle* p = (__ImGuiStyle*)luaL_checkudata(L, 1, lua_class_imgui_ImGuiStyle);
             if (!p->reft)
             {
                 delete p->data;
