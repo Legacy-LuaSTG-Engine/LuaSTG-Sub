@@ -1391,7 +1391,7 @@ namespace Core::Graphics
 
             context->IASetPrimitiveTopology(mblock.primitive_topology);
             ID3D11Buffer* vbo[4] = { mblock.vertex_buffer.Get(), mblock.normal_buffer.Get(), mblock.uv_buffer.Get(), mblock.color_buffer.Get() };
-            UINT stride[4] = { 3 * sizeof(float), 3 * sizeof(float), 2 * sizeof(float), 4 * sizeof(float) };
+            UINT stride[4] = { 3 * sizeof(float), 3 * sizeof(float), 2 * sizeof(float), 3 * sizeof(float) };
             UINT offset[4] = { 0, 0, 0, 0 };
             context->IASetVertexBuffers(0, 4, vbo, stride, offset);
             context->IASetIndexBuffer(mblock.index_buffer.Get(), mblock.index_format, 0);
