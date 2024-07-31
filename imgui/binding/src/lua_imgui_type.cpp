@@ -3,147 +3,6 @@
 #include "lua_imgui_hash.hpp"
 #include <tuple>
 
-struct __ImVec4
-{
-    ImVec4* data = nullptr;
-    ptrdiff_t reft = false;
-};
-
-void imgui_binding_lua_register_ImVec4(lua_State* L)
-{
-    struct Binding
-    {
-        static int __index(lua_State* L)
-        {
-            ImVec4* data = imgui_binding_lua_to_ImVec4(L, 1);
-            const char* key = luaL_checkstring(L, 2);
-            if (key[1] == 0)
-            {
-                switch(key[0])
-                {
-                case 'x':
-                    lua_pushnumber(L, (lua_Number)data->x);
-                    return 1;
-                case 'y':
-                    lua_pushnumber(L, (lua_Number)data->y);
-                    return 1;
-                case 'z':
-                    lua_pushnumber(L, (lua_Number)data->z);
-                    return 1;
-                case 'w':
-                    lua_pushnumber(L, (lua_Number)data->w);
-                    return 1;
-                }
-            }
-            return 0;
-        };
-        static int __newindex(lua_State* L)
-        {
-            ImVec4* data = imgui_binding_lua_to_ImVec4(L, 1);
-            const char* key = luaL_checkstring(L, 2);
-            if (key[1] == 0)
-            {
-                switch(key[0])
-                {
-                case 'x':
-                    data->x = (float)luaL_checknumber(L, 3);
-                    return 0;
-                case 'y':
-                    data->y = (float)luaL_checknumber(L, 3);
-                    return 0;
-                case 'z':
-                    data->z = (float)luaL_checknumber(L, 3);
-                    return 0;
-                case 'w':
-                    data->w = (float)luaL_checknumber(L, 3);
-                    return 0;
-                }
-            }
-            return 0;
-        };
-        static int __gc(lua_State* L)
-        {
-            __ImVec4* p = (__ImVec4*)luaL_checkudata(L, 1, lua_class_imgui_ImVec4);
-            if (!p->reft)
-            {
-                delete p->data;
-                p->data = nullptr;
-            }
-            p->reft = false;
-            return 0;
-        };
-        static int __tostring(lua_State* L)
-        {
-            lua_pushstring(L, lua_class_imgui_ImVec4);
-            return 1;
-        };
-        
-        static int create(lua_State* L)
-        {
-            const int args = lua_gettop(L);
-            ImVec4* data = imgui_binding_lua_new_ImVec4(L);
-            switch(args)
-            {
-            case 0:
-                data->x = 0.0f;
-                data->y = 0.0f;
-                data->z = 0.0f;
-                data->w = 0.0f;
-                break;
-            case 4:
-                data->x = (float)luaL_checknumber(L, 1);
-                data->y = (float)luaL_checknumber(L, 2);
-                data->z = (float)luaL_checknumber(L, 3);
-                data->w = (float)luaL_checknumber(L, 4);
-                break;
-            }
-            return 1;
-        };
-    };
-    
-    const luaL_Reg mt_lib[] = {
-        {"__index", &Binding::__index},
-        {"__newindex", &Binding::__newindex},
-        {"__gc", &Binding::__gc},
-        {"__tostring", &Binding::__tostring},
-        {NULL, NULL},
-    };
-    
-    luaL_newmetatable(L, lua_class_imgui_ImVec4);
-    _luaL_setfuncs(L, mt_lib);
-    lua_pop(L, 1);
-    
-    const luaL_Reg cls_lib[] = {
-        {"ImVec4", &Binding::create},
-        {NULL, NULL},
-    };
-    
-    _luaL_setfuncs(L, cls_lib);
-}
-ImVec4* imgui_binding_lua_new_ImVec4(lua_State* L)
-{
-    __ImVec4* p = (__ImVec4*)lua_newuserdata(L, sizeof(__ImVec4));
-    p->data = new ImVec4;
-    p->reft = false;
-    luaL_getmetatable(L, lua_class_imgui_ImVec4);
-    lua_setmetatable(L, -2);
-    return p->data;
-}
-ImVec4* imgui_binding_lua_ref_ImVec4(lua_State* L, ImVec4* v)
-{
-    __ImVec4* p = (__ImVec4*)lua_newuserdata(L, sizeof(__ImVec4));
-    p->data = v;
-    p->reft = true;
-    luaL_getmetatable(L, lua_class_imgui_ImVec4);
-    lua_setmetatable(L, -2);
-    return p->data;
-}
-ImVec4* imgui_binding_lua_to_ImVec4(lua_State* L, int idx)
-{
-    __ImVec4* p = (__ImVec4*)luaL_checkudata(L, idx, lua_class_imgui_ImVec4);
-    return p->data;
-}
-
 constexpr auto imgui_binding_lua_class_array_ImVec4 = "imgui.ImVec4[]";
 struct __array_ImVec4
 {
@@ -162,7 +21,7 @@ void imgui_binding_lua_register_array_ImVec4(lua_State* L)
             const auto idx = luaL_checkinteger(L, 2);
             if(idx >= 0 && (size_t)idx < p->size)
             {
-                imgui_binding_lua_ref_ImVec4(L, &p->data[idx]);
+                lua::create_type_instance<ImVec4>(L, p->data[idx]);
                 return 1;
             }
             else
@@ -176,7 +35,7 @@ void imgui_binding_lua_register_array_ImVec4(lua_State* L)
             const auto idx = luaL_checkinteger(L, 2);
             if(idx >= 0 && (size_t)idx < p->size)
             {
-                p->data[idx] = *imgui_binding_lua_to_ImVec4(L, 3);
+                p->data[idx] = *lua::as_type_instance<ImVec4>(L, 3);
                 return 0;
             }
             else

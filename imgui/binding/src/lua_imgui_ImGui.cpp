@@ -832,7 +832,7 @@ static int lib_PushStyleColor(lua_State* L)
     {
     case LUA_TUSERDATA:
         {
-            ImVec4* col = imgui_binding_lua_to_ImVec4(L, 2);
+            ImVec4* col = lua::as_type_instance<ImVec4>(L, 2);
             ImGui::PushStyleColor(idx, *col);
         }
         return 0;
@@ -986,7 +986,7 @@ static /* !!!! */ int lib_GetColorU32(lua_State* L)
     {
     case LUA_TUSERDATA:
         {
-            ImVec4* col = imgui_binding_lua_to_ImVec4(L, 1);
+            ImVec4* col = lua::as_type_instance<ImVec4>(L, 1);
             const ImU32 ret = ImGui::GetColorU32(*col);
             lua_pushnumber(L, (lua_Number)ret);
             return 1;
@@ -1013,7 +1013,7 @@ static /* !!!! */ int lib_GetColorU32(lua_State* L)
 static int lib_GetStyleColorVec4(lua_State* L)
 {
     const ImGuiCol idx = (ImGuiCol)luaL_checkinteger(L, 1);
-    ImVec4* vec4 = imgui_binding_lua_new_ImVec4(L);
+    ImVec4* vec4 = lua::create_type_instance<ImVec4>(L);
     *vec4 = ImGui::GetStyleColorVec4(idx);
     return 1;
 }
@@ -1265,7 +1265,7 @@ static /* XXXX */ int lib_TextV(lua_State* L)
 }
 static int lib_TextColored(lua_State* L)
 {
-    ImVec4* col = imgui_binding_lua_to_ImVec4(L, 1);
+    ImVec4* col = lua::as_type_instance<ImVec4>(L, 1);
     const char* fmt = luaL_checkstring(L, 2);
     ImGui::TextColored(*col, fmt);
     return 0;
@@ -2997,13 +2997,13 @@ static int lib_CalcTextSize(lua_State* L)
 static int lib_ColorConvertU32ToFloat4(lua_State* L)
 {
     const ImU32 in_ = (ImU32)luaL_checkinteger(L, 1);
-    ImVec4* ret = imgui_binding_lua_new_ImVec4(L);
+    ImVec4* ret = lua::create_type_instance<ImVec4>(L);
     *ret = ImGui::ColorConvertU32ToFloat4(in_);
     return 1;
 }
 static int lib_ColorConvertFloat4ToU32(lua_State* L)
 {
-    ImVec4* in_ = imgui_binding_lua_to_ImVec4(L, 1);
+    ImVec4* in_ = lua::as_type_instance<ImVec4>(L, 1);
     const ImU32 ret = ImGui::ColorConvertFloat4ToU32(*in_);
     lua_pushinteger(L, (lua_Integer)ret);
     return 1;

@@ -185,7 +185,7 @@ static int lib_ColorButton(lua_State* L)
 {
     const int argc = lua_gettop(L);
     const char* desc_id = luaL_checkstring(L, 1);
-    ImVec4* col = imgui_binding_lua_to_ImVec4(L, 2);
+    ImVec4* col = lua::as_type_instance<ImVec4>(L, 2);
     bool ret = false;
     if (argc <= 2)
     {

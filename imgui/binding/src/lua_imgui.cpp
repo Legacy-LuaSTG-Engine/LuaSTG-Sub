@@ -18,7 +18,7 @@ int luaopen_imgui(lua_State* L)
     
     imgui_binding_lua_register_enum(L);
     lua::register_type<ImVec2>(L);
-    imgui_binding_lua_register_ImVec4(L);
+    lua::register_type<ImVec4>(L);
     imgui_binding_lua_register_ImGuiStyle(L);
     imgui_binding_lua_register_ImGuiTextBuffer(L);
     imgui_binding_lua_register_ImGui(L);

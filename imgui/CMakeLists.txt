@@ -146,6 +146,7 @@ target_sources(lua_imgui PRIVATE
     binding/src/lua_imgui_type.cpp
     binding/src/lua_imgui.cpp
     binding/src/ImVec2.cpp
+    binding/src/ImVec4.cpp
 )
 target_link_libraries(lua_imgui PUBLIC
     imgui
