@@ -2,7 +2,7 @@
 local version = {
     major = 0,
     minor = 21,
-    patch = 0,
+    patch = 1,
 }
 
 local utf8_bom = "\xEF\xBB\xBF"
@@ -248,7 +248,7 @@ end
 --[[
 <?xml version="1.0" encoding="utf-8"?>
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0" xmlns:asmv3="urn:schemas-microsoft-com:asm.v3">
-    <assemblyIdentity type="win32" name="CeoiGingSek.LuaSTG.Sub" version="1.0.0.0"/>
+    <assemblyIdentity type="win32" name="ChuiKingShek.LuaSTG.Sub" version="1.0.0.0"/>
     <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
         <security>
             <requestedPrivileges>
@@ -293,7 +293,7 @@ end
 
 local manifest_fmt = [[<?xml version="1.0" encoding="utf-8"?>
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0" xmlns:asmv3="urn:schemas-microsoft-com:asm.v3">
-    <assemblyIdentity type="win32" name="CeoiGingSek.LuaSTG.Sub" version="%s"/>
+    <assemblyIdentity type="win32" name="ChuiKingShek.LuaSTG.Sub" version="%s"/>
     <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
         <security>
             <requestedPrivileges>
