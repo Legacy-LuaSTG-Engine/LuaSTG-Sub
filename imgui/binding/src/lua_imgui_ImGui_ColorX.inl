@@ -199,7 +199,7 @@ static int lib_ColorButton(lua_State* L)
     else
     {
         const ImGuiColorEditFlags flags = (ImGuiColorEditFlags)luaL_checkinteger(L, 3);
-        ImVec2* size = imgui_binding_lua_to_ImVec2(L, 4);
+        ImVec2* size = lua::as_type_instance<ImVec2>(L, 4);
         ret = ImGui::ColorButton(desc_id, *col, flags, *size);
     }
     lua_pushboolean(L, ret);

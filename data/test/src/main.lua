@@ -111,6 +111,8 @@ require("test_object_resource")
 require("test_random")
 require("test_se")
 
+require("test.imgui.all")
+
 function GameInit()
     window:init()
     test.onCreate()

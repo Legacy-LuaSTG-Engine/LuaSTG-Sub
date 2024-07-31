@@ -22,7 +22,7 @@ static /* !!!! */ int lib_InputTextMultiline(lua_State* L)
     }
     else
     {
-        ImVec2* size = imgui_binding_lua_to_ImVec2(L, 2);
+        ImVec2* size = lua::as_type_instance<ImVec2>(L, 2);
         const ImGuiInputTextFlags flags = (ImGuiInputTextFlags)luaL_optinteger(L, 5, 0);
         const bool r = ImGui::InputTextMultiline(label, buf->Buf.Data, buf_size, *size, flags);
         lua_pushboolean(L, r);

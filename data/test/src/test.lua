@@ -1,4 +1,4 @@
-
+---@type boolean, imgui
 local imgui_exist, imgui = pcall(require, "imgui")
 
 ---@class test.Base

@@ -65,7 +65,7 @@ static int lib_PlotLines(lua_State* L)
             const char* overlay_text = luaL_checkstring(L, 5);
             const float scale_min = (float)luaL_checknumber(L, 6);
             const float scale_max = (float)luaL_checknumber(L, 7);
-            ImVec2* graph_size = imgui_binding_lua_to_ImVec2(L, 8);
+            ImVec2* graph_size = lua::as_type_instance<ImVec2>(L, 8);
             ImGui::PlotLines(label, &Wrapper::Getter, L, values_count, values_offset,
                 overlay_text, scale_min, scale_max, *graph_size);
         }
@@ -118,7 +118,7 @@ static int lib_PlotLines(lua_State* L)
             const char* overlay_text = luaL_checkstring(L, 5);
             const float scale_min = (float)luaL_checknumber(L, 6);
             const float scale_max = (float)luaL_checknumber(L, 7);
-            ImVec2* graph_size = imgui_binding_lua_to_ImVec2(L, 8);
+            ImVec2* graph_size = lua::as_type_instance<ImVec2>(L, 8);
             ImGui::PlotLines(label, values.data, values_count, values_offset,
                 overlay_text, scale_min, scale_max, *graph_size);
         }
@@ -128,7 +128,7 @@ static int lib_PlotLines(lua_State* L)
             const char* overlay_text = luaL_checkstring(L, 5);
             const float scale_min = (float)luaL_checknumber(L, 6);
             const float scale_max = (float)luaL_checknumber(L, 7);
-            ImVec2* graph_size = imgui_binding_lua_to_ImVec2(L, 8);
+            ImVec2* graph_size = lua::as_type_instance<ImVec2>(L, 8);
             const int stride = (int)luaL_checkinteger(L, 9);
             ImGui::PlotLines(label, values.data, values_count, values_offset,
                 overlay_text, scale_min, scale_max, *graph_size, stride * sizeof(float));
@@ -201,7 +201,7 @@ static int lib_PlotHistogram(lua_State* L)
             const char* overlay_text = luaL_checkstring(L, 5);
             const float scale_min = (float)luaL_checknumber(L, 6);
             const float scale_max = (float)luaL_checknumber(L, 7);
-            ImVec2* graph_size = imgui_binding_lua_to_ImVec2(L, 8);
+            ImVec2* graph_size = lua::as_type_instance<ImVec2>(L, 8);
             ImGui::PlotHistogram(label, &Wrapper::Getter, L, values_count, values_offset,
                 overlay_text, scale_min, scale_max, *graph_size);
         }
@@ -254,7 +254,7 @@ static int lib_PlotHistogram(lua_State* L)
             const char* overlay_text = luaL_checkstring(L, 5);
             const float scale_min = (float)luaL_checknumber(L, 6);
             const float scale_max = (float)luaL_checknumber(L, 7);
-            ImVec2* graph_size = imgui_binding_lua_to_ImVec2(L, 8);
+            ImVec2* graph_size = lua::as_type_instance<ImVec2>(L, 8);
             ImGui::PlotHistogram(label, values.data, values_count, values_offset,
                 overlay_text, scale_min, scale_max, *graph_size);
         }
@@ -264,7 +264,7 @@ static int lib_PlotHistogram(lua_State* L)
             const char* overlay_text = luaL_checkstring(L, 5);
             const float scale_min = (float)luaL_checknumber(L, 6);
             const float scale_max = (float)luaL_checknumber(L, 7);
-            ImVec2* graph_size = imgui_binding_lua_to_ImVec2(L, 8);
+            ImVec2* graph_size = lua::as_type_instance<ImVec2>(L, 8);
             const int stride = (int)luaL_checkinteger(L, 9);
             ImGui::PlotHistogram(label, values.data, values_count, values_offset,
                 overlay_text, scale_min, scale_max, *graph_size, stride * sizeof(float));

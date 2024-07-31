@@ -3,131 +3,6 @@
 #include "lua_imgui_hash.hpp"
 #include <tuple>
 
-struct __ImVec2
-{
-    ImVec2* data = nullptr;
-    ptrdiff_t reft = false;
-};
-
-void imgui_binding_lua_register_ImVec2(lua_State* L)
-{
-    struct Binding
-    {
-        static int __index(lua_State* L)
-        {
-            ImVec2* data = imgui_binding_lua_to_ImVec2(L, 1);
-            const char* key = luaL_checkstring(L, 2);
-            if (key[1] == 0)
-            {
-                switch(key[0])
-                {
-                case 'x':
-                    lua_pushnumber(L, (lua_Number)data->x);
-                    return 1;
-                case 'y':
-                    lua_pushnumber(L, (lua_Number)data->y);
-                    return 1;
-                }
-            }
-            return 0;
-        };
-        static int __newindex(lua_State* L)
-        {
-            ImVec2* data = imgui_binding_lua_to_ImVec2(L, 1);
-            const char* key = luaL_checkstring(L, 2);
-            if (key[1] == 0)
-            {
-                switch(key[0])
-                {
-                case 'x':
-                    data->x = (float)luaL_checknumber(L, 3);
-                    return 0;
-                case 'y':
-                    data->y = (float)luaL_checknumber(L, 3);
-                    return 0;
-                }
-            }
-            return 0;
-        };
-        static int __gc(lua_State* L)
-        {
-            __ImVec2* p = (__ImVec2*)luaL_checkudata(L, 1, lua_class_imgui_ImVec2);
-            if (!p->reft)
-            {
-                delete p->data;
-                p->data = nullptr;
-            }
-            p->reft = false;
-            return 0;
-        };
-        static int __tostring(lua_State* L)
-        {
-            lua_pushstring(L, lua_class_imgui_ImVec2);
-            return 1;
-        };
-        
-        static int create(lua_State* L)
-        {
-            const int args = lua_gettop(L);
-            ImVec2* data = imgui_binding_lua_new_ImVec2(L);
-            switch(args)
-            {
-            case 0:
-                data->x = 0.0f;
-                data->y = 0.0f;
-                break;
-            case 2:
-                data->x = (float)luaL_checknumber(L, 1);
-                data->y = (float)luaL_checknumber(L, 2);
-                break;
-            }
-            return 1;
-        };
-    };
-    
-    const luaL_Reg mt_lib[] = {
-        {"__index", &Binding::__index},
-        {"__newindex", &Binding::__newindex},
-        {"__gc", &Binding::__gc},
-        {"__tostring", &Binding::__tostring},
-        {NULL, NULL},
-    };
-    
-    luaL_newmetatable(L, lua_class_imgui_ImVec2);
-    _luaL_setfuncs(L, mt_lib);
-    lua_pop(L, 1);
-    
-    const luaL_Reg cls_lib[] = {
-        {"ImVec2", &Binding::create},
-        {NULL, NULL},
-    };
-    
-    _luaL_setfuncs(L, cls_lib);
-}
-ImVec2* imgui_binding_lua_new_ImVec2(lua_State* L)
-{
-    __ImVec2* p = (__ImVec2*)lua_newuserdata(L, sizeof(__ImVec2));
-    p->data = new ImVec2;
-    p->reft = false;
-    luaL_getmetatable(L, lua_class_imgui_ImVec2);
-    lua_setmetatable(L, -2);
-    return p->data;
-}
-ImVec2* imgui_binding_lua_ref_ImVec2(lua_State* L, ImVec2* v)
-{
-    __ImVec2* p = (__ImVec2*)lua_newuserdata(L, sizeof(__ImVec2));
-    p->data = v;
-    p->reft = true;
-    luaL_getmetatable(L, lua_class_imgui_ImVec2);
-    lua_setmetatable(L, -2);
-    return p->data;
-}
-ImVec2* imgui_binding_lua_to_ImVec2(lua_State* L, int idx)
-{
-    __ImVec2* p = (__ImVec2*)luaL_checkudata(L, idx, lua_class_imgui_ImVec2);
-    return p->data;
-}
-
 struct __ImVec4
 {
     ImVec4* data = nullptr;
@@ -411,7 +286,7 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
                 lua_pushnumber(L, (lua_Number)data->DisabledAlpha);
                 return 1;
             case E::WindowPadding:
-                imgui_binding_lua_ref_ImVec2(L, &data->WindowPadding);
+                lua::create_type_instance<ImVec2>(L, data->WindowPadding);
                 return 1;
             case E::WindowRounding:
                 lua_pushnumber(L, (lua_Number)data->WindowRounding);
@@ -420,10 +295,10 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
                 lua_pushnumber(L, (lua_Number)data->WindowBorderSize);
                 return 1;
             case E::WindowMinSize:
-                imgui_binding_lua_ref_ImVec2(L, &data->WindowMinSize);
+                lua::create_type_instance<ImVec2>(L, data->WindowMinSize);
                 return 1;
             case E::WindowTitleAlign:
-                imgui_binding_lua_ref_ImVec2(L, &data->WindowTitleAlign);
+                lua::create_type_instance<ImVec2>(L, data->WindowTitleAlign);
                 return 1;
             case E::WindowMenuButtonPosition:
                 lua_pushinteger(L, (lua_Integer)data->WindowMenuButtonPosition);
@@ -441,7 +316,7 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
                 lua_pushnumber(L, (lua_Number)data->PopupBorderSize);
                 return 1;
             case E::FramePadding:
-                imgui_binding_lua_ref_ImVec2(L, &data->FramePadding);
+                lua::create_type_instance<ImVec2>(L, data->FramePadding);
                 return 1;
             case E::FrameRounding:
                 lua_pushnumber(L, (lua_Number)data->FrameRounding);
@@ -450,13 +325,13 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
                 lua_pushnumber(L, (lua_Number)data->FrameBorderSize);
                 return 1;
             case E::ItemSpacing:
-                imgui_binding_lua_ref_ImVec2(L, &data->ItemSpacing);
+                lua::create_type_instance<ImVec2>(L, data->ItemSpacing);
                 return 1;
             case E::ItemInnerSpacing:
-                imgui_binding_lua_ref_ImVec2(L, &data->ItemInnerSpacing);
+                lua::create_type_instance<ImVec2>(L, data->ItemInnerSpacing);
                 return 1;
             case E::TouchExtraPadding:
-                imgui_binding_lua_ref_ImVec2(L, &data->TouchExtraPadding);
+                lua::create_type_instance<ImVec2>(L, data->TouchExtraPadding);
                 return 1;
             case E::IndentSpacing:
                 lua_pushnumber(L, (lua_Number)data->IndentSpacing);
@@ -492,25 +367,25 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
                 lua_pushinteger(L, (lua_Integer)data->ColorButtonPosition);
                 return 1;
             case E::ButtonTextAlign:
-                imgui_binding_lua_ref_ImVec2(L, &data->ButtonTextAlign);
+                lua::create_type_instance<ImVec2>(L, data->ButtonTextAlign);
                 return 1;
             case E::SelectableTextAlign:
-                imgui_binding_lua_ref_ImVec2(L, &data->SelectableTextAlign);
+                lua::create_type_instance<ImVec2>(L, data->SelectableTextAlign);
                 return 1;
             case E::SeparatorTextBorderSize:
                 lua_pushnumber(L, (lua_Number)data->SeparatorTextBorderSize);
                 return 1;
             case E::SeparatorTextAlign:
-                imgui_binding_lua_ref_ImVec2(L, &data->SeparatorTextAlign);
+                lua::create_type_instance<ImVec2>(L, data->SeparatorTextAlign);
                 return 1;
             case E::SeparatorTextPadding:
-                imgui_binding_lua_ref_ImVec2(L, &data->SeparatorTextPadding);
+                lua::create_type_instance<ImVec2>(L, data->SeparatorTextPadding);
                 return 1;
             case E::DisplayWindowPadding:
-                imgui_binding_lua_ref_ImVec2(L, &data->DisplayWindowPadding);
+                lua::create_type_instance<ImVec2>(L, data->DisplayWindowPadding);
                 return 1;
             case E::DisplaySafeAreaPadding:
-                imgui_binding_lua_ref_ImVec2(L, &data->DisplaySafeAreaPadding);
+                lua::create_type_instance<ImVec2>(L, data->DisplaySafeAreaPadding);
                 return 1;
             case E::MouseCursorScale:
                 lua_pushnumber(L, (lua_Number)data->MouseCursorScale);
@@ -569,7 +444,7 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
                 data->DisabledAlpha = (float)luaL_checknumber(L, 3);
                 break;
             case E::WindowPadding:
-                data->WindowPadding = *imgui_binding_lua_to_ImVec2(L, 3);
+                data->WindowPadding = *lua::as_type_instance<ImVec2>(L, 3);
                 break;
             case E::WindowRounding:
                 data->WindowRounding = (float)luaL_checknumber(L, 3);
@@ -578,10 +453,10 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
                 data->WindowBorderSize = (float)luaL_checknumber(L, 3);
                 break;
             case E::WindowMinSize:
-                data->WindowMinSize = *imgui_binding_lua_to_ImVec2(L, 3);
+                data->WindowMinSize = *lua::as_type_instance<ImVec2>(L, 3);
                 break;
             case E::WindowTitleAlign:
-                data->WindowTitleAlign = *imgui_binding_lua_to_ImVec2(L, 3);
+                data->WindowTitleAlign = *lua::as_type_instance<ImVec2>(L, 3);
                 break;
             case E::WindowMenuButtonPosition:
                 data->WindowMenuButtonPosition = (int)luaL_checkinteger(L, 3);
@@ -599,7 +474,7 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
                 data->PopupBorderSize = (float)luaL_checknumber(L, 3);
                 break;
             case E::FramePadding:
-                data->FramePadding = *imgui_binding_lua_to_ImVec2(L, 3);
+                data->FramePadding = *lua::as_type_instance<ImVec2>(L, 3);
                 break;
             case E::FrameRounding:
                 data->FrameRounding = (float)luaL_checknumber(L, 3);
@@ -608,13 +483,13 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
                 data->FrameBorderSize = (float)luaL_checknumber(L, 3);
                 break;
             case E::ItemSpacing:
-                data->WindowMinSize = *imgui_binding_lua_to_ImVec2(L, 3);
+                data->WindowMinSize = *lua::as_type_instance<ImVec2>(L, 3);
                 break;
             case E::ItemInnerSpacing:
-                data->ItemInnerSpacing = *imgui_binding_lua_to_ImVec2(L, 3);
+                data->ItemInnerSpacing = *lua::as_type_instance<ImVec2>(L, 3);
                 break;
             case E::TouchExtraPadding:
-                data->TouchExtraPadding = *imgui_binding_lua_to_ImVec2(L, 3);
+                data->TouchExtraPadding = *lua::as_type_instance<ImVec2>(L, 3);
                 break;
             case E::IndentSpacing:
                 data->IndentSpacing = (float)luaL_checknumber(L, 3);
@@ -650,25 +525,25 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
                 data->ColorButtonPosition = (int)luaL_checkinteger(L, 3);
                 break;
             case E::ButtonTextAlign:
-                data->ButtonTextAlign = *imgui_binding_lua_to_ImVec2(L, 3);
+                data->ButtonTextAlign = *lua::as_type_instance<ImVec2>(L, 3);
                 break;
             case E::SelectableTextAlign:
-                data->SelectableTextAlign = *imgui_binding_lua_to_ImVec2(L, 3);
+                data->SelectableTextAlign = *lua::as_type_instance<ImVec2>(L, 3);
                 break;
             case E::SeparatorTextBorderSize:
                 data->SeparatorTextBorderSize = (float)luaL_checknumber(L, 3);
                 break;
             case E::SeparatorTextAlign:
-                data->SeparatorTextAlign = *imgui_binding_lua_to_ImVec2(L, 3);
+                data->SeparatorTextAlign = *lua::as_type_instance<ImVec2>(L, 3);
                 break;
             case E::SeparatorTextPadding:
-                data->SeparatorTextPadding = *imgui_binding_lua_to_ImVec2(L, 3);
+                data->SeparatorTextPadding = *lua::as_type_instance<ImVec2>(L, 3);
                 break;
             case E::DisplayWindowPadding:
-                data->DisplayWindowPadding = *imgui_binding_lua_to_ImVec2(L, 3);
+                data->DisplayWindowPadding = *lua::as_type_instance<ImVec2>(L, 3);
                 break;
             case E::DisplaySafeAreaPadding:
-                data->DisplaySafeAreaPadding = *imgui_binding_lua_to_ImVec2(L, 3);
+                data->DisplaySafeAreaPadding = *lua::as_type_instance<ImVec2>(L, 3);
                 break;
             case E::MouseCursorScale:
                 data->MouseCursorScale = (float)luaL_checknumber(L, 3);

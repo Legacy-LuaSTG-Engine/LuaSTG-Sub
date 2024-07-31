@@ -4,13 +4,6 @@
 
 constexpr const char lua_module_imgui[] = "imgui";
 
-constexpr const char lua_class_imgui_ImVec2[] = "imgui.ImVec2";
-
-void imgui_binding_lua_register_ImVec2(lua_State* L);
-ImVec2* imgui_binding_lua_new_ImVec2(lua_State* L);
-ImVec2* imgui_binding_lua_ref_ImVec2(lua_State* L, ImVec2* v);
-ImVec2* imgui_binding_lua_to_ImVec2(lua_State* L, int idx);
-
 constexpr const char lua_class_imgui_ImVec4[] = "imgui.ImVec4";
 
 void imgui_binding_lua_register_ImVec4(lua_State* L);
@@ -56,3 +49,35 @@ constexpr char const* ImGuiDataTypeName[] = {
     "Float",
     "Double",
 };
+
+namespace lua {
+    template<typename T>
+    void register_type(lua_State* L);
+
+    template<typename T>
+    T* create_type_instance(lua_State* L);
+
+    template<typename T>
+    T* create_type_instance(lua_State* L, const T& init);
+
+    template<typename T>
+    T* as_type_instance(lua_State* L, int index);
+
+    template<typename T>
+    bool is_type_instance(lua_State* L, int index);
+
+    template<>
+    void register_type<ImVec2>(lua_State* L);
+
+    template<>
+    ImVec2* create_type_instance<ImVec2>(lua_State* L);
+
+    template<>
+    ImVec2* create_type_instance<ImVec2>(lua_State* L, const ImVec2& init);
+
+    template<>
+    ImVec2* as_type_instance<ImVec2>(lua_State* L, int index);
+
+    template<>
+    bool is_type_instance<ImVec2>(lua_State* L, int index);
+}
