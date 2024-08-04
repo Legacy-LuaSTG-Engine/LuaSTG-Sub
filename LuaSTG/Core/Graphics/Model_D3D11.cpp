@@ -1081,12 +1081,26 @@ namespace Core::Graphics
                 }
                 return true;
             }
+            static bool GetFileSizeInBytes(size_t* filesize_out, std::string* err, const std::string& abs_filename, void*) {
+                // TODO: avoid read file
+                std::vector<unsigned char> buffer;
+                if (!GFileManager().loadEx(abs_filename, buffer))
+                {
+                    if (err)
+                    {
+                        (*err) += "File load error : " + abs_filename + "\n";
+                    }
+                }
+                *filesize_out = buffer.size();
+                return true;
+            }
         };
         tinygltf::FsCallbacks fs_cb = {
             .FileExists = &FileSystemWrapper::FileExists,
             .ExpandFilePath = &tinygltf::ExpandFilePath,
             .ReadWholeFile = &FileSystemWrapper::ReadWholeFile,
             .WriteWholeFile = &tinygltf::WriteWholeFile,
+            .GetFileSizeInBytes = &FileSystemWrapper::GetFileSizeInBytes,
             .user_data = nullptr,
         };
         tinygltf::TinyGLTF gltf_ctx;
