@@ -90,6 +90,7 @@ local function Camera3D()
 end
 
 local camera3d = Camera3D()
+camera3d.z  = -1
 
 ---@class test.Module.Model : test.Base
 local M = {}
@@ -97,8 +98,14 @@ local M = {}
 function M:onCreate()
     local old_pool = lstg.GetResourceStatus()
     lstg.SetResourceStatus("global")
-    lstg.LoadModel("model:test", "res/example.gltf")
+    --lstg.LoadModel("model:test", "D:\\Project\\th\\thzzs-res\\模型\\007云树（高面数）\\007云树循环（实心）.gltf")
+    --lstg.LoadModel("model:test_top", "D:\\Project\\th\\thzzs-res\\模型\\007云树（高面数）\\007云树顶部（实心）.gltf")
+    --lstg.LoadModel("model:test", "D:\\Project\\khr\\glTF-Sample-Assets\\Models\\AlphaBlendModeTest\\glTF-Embedded\\AlphaBlendModeTest.gltf")
+    --lstg.LoadModel("model:test", "D:\\Project\\khr\\glTF-Sample-Assets\\Models\\CompareAlphaCoverage\\glTF\\CompareAlphaCoverage.gltf")
+    --lstg.LoadModel("model:test", "D:\\Project\\khr\\glTF-Sample-Assets\\Models\\VertexColorTest\\glTF-Embedded\\VertexColorTest.gltf")
+    lstg.LoadModel("model:test", "D:\\Project\\khr\\glTF-Sample-Assets\\Models\\BoxVertexColors\\glTF-Embedded\\BoxVertexColors.gltf")
     lstg.SetResourceStatus(old_pool)
+    self.timer = 0
 end
 
 function M:onDestroy()
@@ -107,12 +114,21 @@ end
 
 function M:onUpdate()
     camera3d:update()
+    self.timer = self.timer + 1
 end
 
 function M:onRender()
     camera3d:apply()
-    local scale = 0.01
+    local r = math.pow(88 / 255, 2.2) * 255
+    local g = math.pow(99 / 255, 2.2) * 255
+    local b = math.pow(123 / 255, 2.2) * 255
+    --lstg.SetFog(-1.0, 10, lstg.Color(255, r, g, b))
+    local scale = 0.1
+    --lstg.RenderClear(lstg.Color(255, 88, 99, 123))
     lstg.ClearZBuffer(1.0)
+    local yaw = -30 * self.timer / 60
+    --lstg.RenderModel("model:test_top", 0, 0, 0, 0, 0, yaw, scale, scale, scale)
+    --lstg.RenderModel("model:test", 0, 0, 0, 0, 0, yaw, scale, scale, scale)
     lstg.RenderModel("model:test", 0, 0, 0, 0, 0, 0, scale, scale, scale)
 end
 
