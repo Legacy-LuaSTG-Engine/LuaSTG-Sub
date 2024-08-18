@@ -23,3 +23,7 @@ New-Build-Directory -Path "build/amd64"
 
 cmake -S "." -B "build/x86"   -G "Visual Studio 17 2022" -A Win32 ("-DCPM_SOURCE_CACHE=" + $CurrentLocation + "/build/packages")
 #cmake -S "." -B "build/amd64" -G "Visual Studio 17 2022" -A x64   ("-DCPM_SOURCE_CACHE=" + $CurrentLocation + "/build/packages")
+
+# 复原
+
+Set-Location $PSScriptRoot

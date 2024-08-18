@@ -8,3 +8,7 @@ Write-Output ("当前工作目录是：" + $CurrentLocation)
 
 cmake --build "build/x86"   --target LuaSTG --config Release --clean-first
 cmake --build "build/amd64" --target LuaSTG --config Release --clean-first
+
+# 复原
+
+Set-Location $PSScriptRoot
