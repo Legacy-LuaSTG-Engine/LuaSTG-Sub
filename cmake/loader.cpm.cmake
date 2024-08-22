@@ -1,4 +1,4 @@
-# CPM.cmake
+# get_cpm.cmake
 # 建议给系统或用户设置一个环境变量 CPM_SOURCE_CACHE 指向一个目录
 # 可以让多个项目共享包缓存
 
@@ -7,8 +7,8 @@ function(CPMInitialize)
     #
     # SPDX-FileCopyrightText: Copyright (c) 2019-2023 Lars Melchior and contributors
 
-    set(CPM_DOWNLOAD_VERSION 0.40.0)
-    set(CPM_HASH_SUM "7B354F3A5976C4626C876850C93944E52C83EC59A159AE5DE5BE7983F0E17A2A")
+    set(CPM_DOWNLOAD_VERSION 0.40.2)
+    set(CPM_HASH_SUM "c8cdc32c03816538ce22781ed72964dc864b2a34a310d3b7104812a5ca2d835d")
 
     if(CPM_SOURCE_CACHE)
     set(CPM_DOWNLOAD_LOCATION "${CPM_SOURCE_CACHE}/cpm/CPM_${CPM_DOWNLOAD_VERSION}.cmake")
