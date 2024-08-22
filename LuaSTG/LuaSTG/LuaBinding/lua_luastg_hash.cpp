@@ -419,7 +419,7 @@ LuaSTG::GameObjectMember LuaSTG::MapGameObjectMember(const char* key) {
       switch(key[1]) {
         case 'm':
           switch(key[2]) {
-            case 'i':
+            case 'e':
               switch(key[3]) {
                 case 'g':
                   switch(key[4]) {
@@ -427,6 +427,20 @@ LuaSTG::GameObjectMember LuaSTG::MapGameObjectMember(const char* key) {
                       switch(key[5]) {
                         case '\0':
                           return LuaSTG::GameObjectMember::OMEGA;
+                      }
+                      break;
+                  }
+                  break;
+              }
+              break;
+            case 'i':
+              switch(key[3]) {
+                case 'g':
+                  switch(key[4]) {
+                    case 'a':
+                      switch(key[5]) {
+                        case '\0':
+                          return LuaSTG::GameObjectMember::OMIGA;
                       }
                       break;
                   }

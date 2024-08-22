@@ -22,7 +22,8 @@ local lstg_GameObject = {
         -- movement
         E("dx"    , "DX"    ),
         E("dy"    , "DY"    ),
-        E("omiga" , "OMEGA" ),
+        E("omiga" , "OMIGA" ),
+	    E("omega" , "OMEGA" ),
         E("ax"    , "AX"    ),
         E("ay"    , "AY"    ),
         E("ag"    , "AG"    ),
