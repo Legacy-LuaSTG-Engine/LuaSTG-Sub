@@ -58,31 +58,42 @@
       "configurePreset": "vs2022-amd64"
     },
     {
+      "name": "target-luastg",
+      "hidden": true,
+      "targets": [
+        "LuaSTG"
+      ]
+    },
+    {
       "name": "windows-x86-debug",
       "inherits": [
         "windows-x86",
-        "debug"
+        "debug",
+        "target-luastg"
       ]
     },
     {
       "name": "windows-x86-release",
       "inherits": [
         "windows-x86",
-        "release"
+        "release",
+        "target-luastg"
       ]
     },
     {
       "name": "windows-amd64-debug",
       "inherits": [
         "windows-amd64",
-        "debug"
+        "debug",
+        "target-luastg"
       ]
     },
     {
       "name": "windows-amd64-release",
       "inherits": [
         "windows-amd64",
-        "release"
+        "release",
+        "target-luastg"
       ]
     }
   ],
