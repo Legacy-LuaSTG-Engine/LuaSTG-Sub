@@ -1,0 +1,117 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "cpm-cache",
+      "hidden": true,
+      "cacheVariables": {
+        "CPM_SOURCE_CACHE": {
+          "type": "PATH",
+          "value": "${sourceDir}/build/packages"
+        }
+      }
+    },
+    {
+      "name": "vs2022",
+      "hidden": true,
+      "inherits": [
+        "cpm-cache"
+      ],
+      "generator": "Visual Studio 17 2022"
+    },
+    {
+      "name": "vs2022-x86",
+      "inherits": [
+        "vs2022"
+      ],
+      "architecture": "Win32",
+      "binaryDir": "${sourceDir}/build/x86"
+    },
+    {
+      "name": "vs2022-amd64",
+      "inherits": [
+        "vs2022"
+      ],
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/build/amd64"
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "debug",
+      "hidden": true,
+      "configuration": "Debug"
+    },
+    {
+      "name": "release",
+      "hidden": true,
+      "configuration": "Release"
+    },
+    {
+      "name": "windows-x86",
+      "hidden": true,
+      "configurePreset": "vs2022-x86"
+    },
+    {
+      "name": "windows-amd64",
+      "hidden": true,
+      "configurePreset": "vs2022-amd64"
+    },
+    {
+      "name": "windows-x86-debug",
+      "inherits": [
+        "windows-x86",
+        "debug"
+      ]
+    },
+    {
+      "name": "windows-x86-release",
+      "inherits": [
+        "windows-x86",
+        "release"
+      ]
+    },
+    {
+      "name": "windows-amd64-debug",
+      "inherits": [
+        "windows-amd64",
+        "debug"
+      ]
+    },
+    {
+      "name": "windows-amd64-release",
+      "inherits": [
+        "windows-amd64",
+        "release"
+      ]
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "windows-x86-release",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "vs2022-x86"
+        },
+        {
+          "type": "build",
+          "name": "windows-x86-release"
+        }
+      ]
+    },
+    {
+      "name": "windows-amd64-release",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "vs2022-amd64"
+        },
+        {
+          "type": "build",
+          "name": "windows-amd64-release"
+        }
+      ]
+    }
+  ]
+}
