@@ -1,6 +1,6 @@
 # LuaSTG Sub
 
-![LuaSTG Sub Imagination](Imagination.png)
+![LuaSTG Sub](artwork/logo.png)
 
 ---
 
