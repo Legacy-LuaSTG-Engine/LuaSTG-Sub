@@ -903,6 +903,9 @@ namespace LuaSTGPlus
 		case LuaSTG::GameObjectMember::OMEGA:
 			omega = luaL_checknumber(L, 3) * L_DEG_TO_RAD;
 			return 0;
+		case LuaSTG::GameObjectMember::OMIGA:
+			omega = luaL_checknumber(L, 3) * L_DEG_TO_RAD;
+			return 0;
 		#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 		case LuaSTG::GameObjectMember::_BLEND:
 			if (luaclass.IsRenderClass)
