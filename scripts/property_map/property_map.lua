@@ -1,5 +1,3 @@
-local math = require("math")
-local io = require("io")
 local logger = require("logger")
 
 ---@class property_map.Configuration.ClassMember
