@@ -14,7 +14,7 @@ CPMAddPackage(
 
 CPMAddPackage(
     NAME spdlog
-    VERSION 1.13.0
+    VERSION 1.14.1
     GITHUB_REPOSITORY gabime/spdlog
     OPTIONS
     "SPDLOG_WCHAR_FILENAMES ON"
