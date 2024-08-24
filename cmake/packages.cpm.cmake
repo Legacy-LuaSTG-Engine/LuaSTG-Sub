@@ -199,32 +199,6 @@ if(tinyobjloader_ADDED)
     set_target_properties(tinyobjloader PROPERTIES FOLDER external)
 endif()
 
-# freetype
-# 字体文件解析和字形光栅化
-
-CPMAddPackage(
-    NAME freetype
-    VERSION 2.13.2
-    #GITHUB_REPOSITORY freetype/freetype
-    #GIT_TAG VER-2-13-2
-    URL https://gitlab.freedesktop.org/freetype/freetype/-/archive/VER-2-13-2/freetype-VER-2-13-2.zip
-    OPTIONS
-    "FT_DISABLE_ZLIB ON"
-    "FT_DISABLE_BZIP2 ON"
-    "FT_DISABLE_PNG ON"
-    "FT_DISABLE_HARFBUZZ ON"
-    "FT_DISABLE_BROTLI ON"
-)
-
-if(freetype_ADDED)
-    if(TARGET freetype)
-        target_compile_options(freetype PRIVATE
-            "/utf-8" # Unicode warning
-        )
-        set_target_properties(freetype PROPERTIES FOLDER external)
-    endif()
-endif()
-
 # pcg random
 # 高质量的随机数发生器
 
