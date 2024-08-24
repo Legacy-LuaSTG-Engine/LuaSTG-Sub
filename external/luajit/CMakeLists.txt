@@ -51,12 +51,17 @@ set(LUAJIT_BUILDVM_ARCH_H ${LUAJIT_BUILDVM_ARCH_H_DIR}/buildvm_arch.h)
 set(LUAJIT_DASC)
 
 if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-    message(STATUS "luajit amd64")
-    set(LUAJIT_DASM_FLAGS -D WIN -D JIT -D FFI -D P64)
-    set(LUAJIT_DASC ${LUAJIT_ROOT}/src/vm_x64.dasc)
+    set(LUAJIT_DASM_FLAGS -D WIN -D JIT -D FFI -D ENDIAN_LE -D FPU -D P64)
+    if (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64")
+        message(STATUS "luajit arm64 (aarch64)")
+        set(LUAJIT_DASC ${LUAJIT_ROOT}/src/vm_arm64.dasc)
+    else()
+        message(STATUS "luajit amd64 (x86_64)")
+        set(LUAJIT_DASC ${LUAJIT_ROOT}/src/vm_x64.dasc)
+    endif()
 else()
+    set(LUAJIT_DASM_FLAGS -D WIN -D JIT -D FFI -D ENDIAN_LE -D FPU)
     message(STATUS "luajit x86")
-    set(LUAJIT_DASM_FLAGS -D WIN -D JIT -D FFI)
     set(LUAJIT_DASC ${LUAJIT_ROOT}/src/vm_x86.dasc)
 endif()
 
@@ -68,6 +73,24 @@ add_custom_command(
     VERBATIM
 )
 
+# version tag
+
+add_custom_command(
+    OUTPUT ${LUAJIT_TEMP}/luajit_relver.txt
+    COMMAND git show -s --format=%ct > ${LUAJIT_TEMP}/luajit_relver.txt
+    WORKING_DIRECTORY ${LUAJIT_ROOT}
+    VERBATIM
+    USES_TERMINAL
+)
+
+add_custom_command(
+    OUTPUT ${LUAJIT_TEMP}/luajit.h
+    COMMAND $<TARGET_FILE:minilua> host/genversion.lua luajit_rolling.h ${LUAJIT_TEMP}/luajit_relver.txt ${LUAJIT_TEMP}/luajit.h
+    DEPENDS ${LUAJIT_TEMP}/luajit_relver.txt
+    WORKING_DIRECTORY ${LUAJIT_ROOT}/src
+    VERBATIM
+)
+
 # buildvm
 
 add_executable(buildvm)
@@ -75,12 +98,14 @@ luajit_target_setup(buildvm)
 target_include_directories(buildvm
 PRIVATE
     ${LUAJIT_BUILDVM_ARCH_H_DIR}
+    ${LUAJIT_TEMP}
     ${LUAJIT_ROOT}/dynasm
     ${LUAJIT_ROOT}/src
 )
 target_sources(buildvm
 PRIVATE
     ${LUAJIT_BUILDVM_ARCH_H}
+    ${LUAJIT_TEMP}/luajit.h
     ${LUAJIT_ROOT}/src/host/buildvm_asm.c
     ${LUAJIT_ROOT}/src/host/buildvm_fold.c
     ${LUAJIT_ROOT}/src/host/buildvm_lib.c
@@ -169,6 +194,7 @@ add_custom_command(
 # lib
 
 set(LUAJIT_LIB_GEN
+    ${LUAJIT_TEMP}/luajit.h
     ${LUAJIT_BUILDVM_OBJ_DIR}/lj_vm.obj
     ${LUAJIT_BUILDVM_OBJ_DIR}/lj_bcdef.h
     ${LUAJIT_BUILDVM_OBJ_DIR}/lj_ffdef.h
@@ -262,6 +288,7 @@ PRIVATE
     ${LUAJIT_BUILDVM_OBJ_DIR}
 PUBLIC
     ${LUAJIT_ROOT}/src
+    ${LUAJIT_TEMP}
 )
 target_sources(lua51_static
 PRIVATE
@@ -282,6 +309,7 @@ PRIVATE
     ${LUAJIT_BUILDVM_OBJ_DIR}
 PUBLIC
     ${LUAJIT_ROOT}/src
+    ${LUAJIT_TEMP}
 )
 target_sources(lua51
 PRIVATE
@@ -314,6 +342,6 @@ install(FILES
     ${LUAJIT_ROOT}/src/lauxlib.h
     ${LUAJIT_ROOT}/src/luaconf.h
     ${LUAJIT_ROOT}/src/lua.hpp
-    ${LUAJIT_ROOT}/src/luajit.h
+    ${LUAJIT_TEMP}/luajit.h
     TYPE INCLUDE
 )
