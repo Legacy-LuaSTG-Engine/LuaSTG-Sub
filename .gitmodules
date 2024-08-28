@@ -7,9 +7,6 @@
 [submodule "external/xmath"]
 	path = external/xmath
 	url = https://github.com/Legacy-LuaSTG-Engine/lstgx_Math.git
-[submodule "external/luajit/luajit"]
-	path = external/luajit/luajit
-	url = https://github.com/LuaJIT/LuaJIT.git
 [submodule "external/lua-cjson"]
 	path = external/lua-cjson
 	url = https://github.com/openresty/lua-cjson.git
