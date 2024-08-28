@@ -19,3 +19,6 @@
 [submodule "external/image.qoi"]
 	path = external/image.qoi
 	url = https://github.com/phoboslab/qoi.git
+[submodule "external/luajit2"]
+	path = external/luajit2
+	url = https://github.com/Legacy-LuaSTG-Engine/LuaSTG-Sub-LuaJIT.git

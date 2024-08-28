@@ -1,6 +1,6 @@
 # ==================== luajit ====================
 
-add_subdirectory(luajit)
+add_subdirectory(luajit2)
 set_target_properties(minilua PROPERTIES FOLDER luajit)
 set_target_properties(buildvm PROPERTIES FOLDER luajit)
 set_target_properties(lua51_static PROPERTIES FOLDER luajit)
