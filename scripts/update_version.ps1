@@ -12,3 +12,7 @@ Set-Location -Path $EngineLocation
 Write-Output ("进入目录是：" + $EngineLocation)
 
 & $Lua "write-version.lua"
+
+# 复原
+
+Set-Location $PSScriptRoot

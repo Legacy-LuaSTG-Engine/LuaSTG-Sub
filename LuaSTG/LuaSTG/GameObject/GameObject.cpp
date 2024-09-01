@@ -509,7 +509,7 @@ namespace LuaSTGPlus
 		
 		// self k
 		std::string_view const key = luaL_check_string_view(L, 2);
-		switch (LuaSTG::MapGameObjectMember(key.data()))
+		switch (LuaSTG::MapGameObjectMember(key.data(), key.size()))
 		{
 			// 基本信息
 
@@ -731,7 +731,7 @@ namespace LuaSTGPlus
 	{
 		// self k v
 		std::string_view const key = luaL_check_string_view(L, 2);
-		switch (LuaSTG::MapGameObjectMember(key.data()))
+		switch (LuaSTG::MapGameObjectMember(key.data(), key.size()))
 		{
 			// 基本信息
 

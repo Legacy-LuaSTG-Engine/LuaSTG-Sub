@@ -79,7 +79,7 @@ namespace LuaSTGPlus
 		if (len == 0 || strcmp(key, "mul+alpha") == 0) {
 			return BlendMode::MulAlpha;
 		}
-		BlendMode mode = static_cast<BlendMode>(LuaSTG::MapBlendModeX(key));
+		BlendMode mode = static_cast<BlendMode>(LuaSTG::MapBlendModeX(key, len));
 		if (mode == BlendMode::_KEY_NOT_FOUND) {
 			luaL_error(L, "invalid blend mode '%s'.", key);
 			return BlendMode::MulAlpha;

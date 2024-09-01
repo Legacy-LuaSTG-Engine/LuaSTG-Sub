@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.0)
-
 add_executable(ShaderCompiler)
 set_target_properties(ShaderCompiler PROPERTIES
     C_STANDARD 17

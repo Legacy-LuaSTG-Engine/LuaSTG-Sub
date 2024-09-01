@@ -179,7 +179,7 @@ struct lfs_api
 			uintmax_t const size = std::filesystem::file_size(widepath, ec);
 			if (size != static_cast<std::uintmax_t>(-1))
 			{
-				sz = (lua_Integer)size;
+				sz = static_cast<int>(size);
 			}
 			if (lua_istable(L, 2))
 			{

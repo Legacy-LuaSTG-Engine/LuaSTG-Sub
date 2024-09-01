@@ -106,7 +106,7 @@ target_link_libraries(Core PUBLIC
     # file
     minizip_ng
     # text
-    freetype
+    Freetype::Freetype
     # model
     tinygltf
     # audio

@@ -107,8 +107,9 @@ namespace LuaSTGPlus::LuaWrapper
 			static int Meta_Index(lua_State* L) noexcept
 			{
 				GETUDATA(p, 1);
-				const char* key = luaL_checkstring(L, 2);
-				switch (LuaSTG::MapColorMember(key))
+				size_t len{};
+				const char* key = luaL_checklstring(L, 2, &len);
+				switch (LuaSTG::MapColorMember(key, len))
 				{
 				case LuaSTG::ColorMember::m_a:
 					lua_pushinteger(L, (lua_Integer)p->a);
@@ -148,8 +149,9 @@ namespace LuaSTGPlus::LuaWrapper
 			static int Meta_NewIndex(lua_State* L) noexcept
 			{
 				GETUDATA(p, 1);
-				const char* key = luaL_checkstring(L, 2);
-				switch (LuaSTG::MapColorMember(key))
+				size_t len{};
+				const char* key = luaL_checklstring(L, 2, &len);
+				switch (LuaSTG::MapColorMember(key, len))
 				{
 				case LuaSTG::ColorMember::m_a:
 					p->a = (uint8_t)std::clamp<lua_Integer>(luaL_checkinteger(L, 3), 0, 255);

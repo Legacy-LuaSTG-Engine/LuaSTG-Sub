@@ -35,7 +35,7 @@ target_sources(imgui PRIVATE
     imgui/misc/freetype/imgui_freetype.h
 )
 target_link_libraries(imgui PUBLIC
-    freetype
+    Freetype::Freetype
 )
 
 set_target_properties(imgui PROPERTIES FOLDER external)
