@@ -48,6 +48,8 @@ set(PLATFORM_SOURCES
     Platform/AdapterPolicy.cpp
     Platform/MessageBox.hpp
     Platform/MessageBox.cpp
+    Platform/ImmersiveTitleBarController.hpp
+    Platform/ImmersiveTitleBarController.cpp
 )
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${PLATFORM_SOURCES})
 
