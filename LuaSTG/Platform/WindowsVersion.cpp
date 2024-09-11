@@ -40,11 +40,11 @@ namespace Platform
 			}
 			if (WindowsVersion::Is11Build22000())
 			{
-				MAKE("Windows 11 21H2", false);
+				MAKE("Windows 11 21H2", true);
 			}
 			if (WindowsVersion::Is11())
 			{
-				MAKE("Windows 11", false);
+				MAKE("Windows 11", true);
 			}
 
 			// Windows 10
