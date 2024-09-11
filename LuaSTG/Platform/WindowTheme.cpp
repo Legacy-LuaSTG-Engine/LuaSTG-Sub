@@ -65,24 +65,24 @@ namespace Platform
 	}
 	BOOL WindowTheme::ShouldApplicationEnableDarkMode()
 	{
-		HKEY hKey = NULL;
-		if (ERROR_SUCCESS == RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", 0, KEY_READ, &hKey))
-		{
-			DWORD dwValue = 0;
-			DWORD dwValueSize = 4;
-			DWORD dwType = 0;
-			if (ERROR_SUCCESS == RegQueryValueExW(hKey, L"AppsUseLightTheme", NULL, &dwType, (BYTE*)&dwValue, &dwValueSize))
-			{
-				RegCloseKey(hKey);
-				return dwValue == 0;
-			}
-			else
-			{
-				RegCloseKey(hKey);
-				return FALSE;
+		auto const key_path{ L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize" };
+		auto const value_name{ L"AppsUseLightTheme" };
+		DWORD type{};
+		DWORD value{};
+		DWORD size{ sizeof(DWORD) };
+		if (ERROR_SUCCESS != RegGetValueW(HKEY_CURRENT_USER, key_path, value_name, RRF_RT_REG_DWORD, &type, &value, &size)) {
+			size = DWORD{ sizeof(DWORD) };
+			if (ERROR_SUCCESS != RegGetValueW(HKEY_CURRENT_USER, key_path, value_name, RRF_RT_REG_DWORD | KEY_WOW64_64KEY, &type, &value, &size)) {
+				size = DWORD{ sizeof(DWORD) };
+				if (ERROR_SUCCESS != RegGetValueW(HKEY_CURRENT_USER, key_path, value_name, RRF_RT_REG_DWORD | KEY_WOW64_32KEY, &type, &value, &size)) {
+					return false;
+				}
 			}
 		}
-		return FALSE;
+		if (type == REG_DWORD && size == sizeof(DWORD)) {
+			return value == 0;
+		}
+		return false;
 	}
 	BOOL WindowTheme::SetDarkMode(HWND hWnd, BOOL bEnable, BOOL bFocus)
 	{
