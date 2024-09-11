@@ -14,6 +14,7 @@ namespace Platform
 		static FLOAT GetDpiScalingForSystem();
 		static FLOAT GetDpiScalingForMonitor(HMONITOR hMonitor);
 		static FLOAT GetDpiScalingForWindow(HWND hWnd);
+		static int GetSystemMetricsForDpi(int index, UINT dpi);
 		template<typename T>
 		static inline T ScalingByDpi(T value, UINT dpi)
 		{

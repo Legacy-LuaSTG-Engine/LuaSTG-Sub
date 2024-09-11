@@ -18,6 +18,7 @@ namespace Platform
 			decltype(::AdjustWindowRectExForDpi)* api_AdjustWindowRectExForDpi; // Windows 10 1607
 			decltype(::GetDpiForWindow)* api_GetDpiForWindow; // Windows 10 1607
 			decltype(::GetDpiForSystem)* api_GetDpiForSystem; // Windows 10 1607
+			decltype(::GetSystemMetricsForDpi)* api_GetSystemMetricsForDpi; // Windows 10 1607
 			Loader()
 				: is_enable(FALSE)
 				, dll_user32(NULL)
@@ -30,6 +31,7 @@ namespace Platform
 				, api_AdjustWindowRectExForDpi(NULL)
 				, api_GetDpiForWindow(NULL)
 				, api_GetDpiForSystem(NULL)
+				, api_GetSystemMetricsForDpi(NULL)
 			{
 				dll_user32 = ::LoadLibraryW(L"user32.dll");
 				dll_shcore = ::LoadLibraryW(L"SHCore.dll");
@@ -41,6 +43,7 @@ namespace Platform
 					api_AdjustWindowRectExForDpi = (decltype(api_AdjustWindowRectExForDpi))::GetProcAddress(dll_user32, "AdjustWindowRectExForDpi");
 					api_GetDpiForWindow = (decltype(api_GetDpiForWindow))::GetProcAddress(dll_user32, "GetDpiForWindow");
 					api_GetDpiForSystem = (decltype(api_GetDpiForSystem))::GetProcAddress(dll_user32, "GetDpiForSystem");
+					api_GetSystemMetricsForDpi = (decltype(api_GetSystemMetricsForDpi))::GetProcAddress(dll_user32, "GetSystemMetricsForDpi");
 				}
 				if (dll_shcore)
 				{
@@ -158,5 +161,11 @@ namespace Platform
 	FLOAT HighDPI::GetDpiScalingForWindow(HWND hWnd)
 	{
 		return (FLOAT)GetDpiForWindow(hWnd) / (FLOAT)USER_DEFAULT_SCREEN_DPI;
+	}
+	int HighDPI::GetSystemMetricsForDpi(int index, UINT dpi) {
+		if (loader().api_GetSystemMetricsForDpi) {
+			return loader().api_GetSystemMetricsForDpi(index, dpi);
+		}
+		return GetSystemMetrics(index);
 	}
 }
