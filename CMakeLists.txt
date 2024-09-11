@@ -13,6 +13,7 @@ endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 include(cmake/TargetCommonOptions.cmake)
+include(cmake/options.cmake)
 include(cmake/msvc.crt.cmake)
 #msvc_hybrid_runtime_library()
 msvc_static_runtime_library()
