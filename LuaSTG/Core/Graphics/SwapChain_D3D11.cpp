@@ -2282,7 +2282,7 @@ namespace Core::Graphics
 		m_modern_swap_chain_available = checkModernSwapChainModelAvailable(m_device->GetD3D11Device());
 		m_disable_exclusive_fullscreen = Platform::CommandLineArguments::Get().IsOptionExist("--disable-exclusive-fullscreen");
 		m_enable_composition = Platform::CommandLineArguments::Get().IsOptionExist("--enable-direct-composition");
-		m_disable_composition = Platform::CommandLineArguments::Get().IsOptionExist("--disable-direct-composition");
+		m_disable_composition = false;//Platform::CommandLineArguments::Get().IsOptionExist("--disable-direct-composition");
 		m_scaling_renderer.AttachDevice(m_device->GetD3D11Device());
 		m_window->addEventListener(this);
 		m_device->addEventListener(this);
