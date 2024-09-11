@@ -22,9 +22,13 @@ namespace Platform
 
 			// Windows 11
 
-			if (IsWindows10BuildOrGreater(22622))
+			if (IsWindows10BuildOrGreater(26101))
 			{
-				MAKE("Windows 11 23H2+", false);
+				MAKE("Windows 11 24H2+", false);
+			}
+			if (WindowsVersion::Is11Build26100())
+			{
+				MAKE("Windows 11 24H2", false);
 			}
 			if (WindowsVersion::Is11Build22631())
 			{
@@ -244,6 +248,7 @@ namespace Platform
 	bool WindowsVersion::Is11Build22000() { return IsWindows10BuildOrGreater(22000); }
 	bool WindowsVersion::Is11Build22621() { return IsWindows10BuildOrGreater(22621); }
 	bool WindowsVersion::Is11Build22631() { return IsWindows10BuildOrGreater(22631); }
+	bool WindowsVersion::Is11Build26100() { return IsWindows10BuildOrGreater(26100); }
 
 	struct VersionStringBuffer
 	{
