@@ -1110,12 +1110,15 @@ namespace Core::Graphics
 
 		m_swapchain_want_present_reset = TRUE;
 
+		m_window->getTitleBarController().createResources(m_window->GetWindow(), m_device->GetD2D1DeviceContext());
+
 		return true;
 	}
 	void SwapChain_D3D11::destroySwapChain()
 	{
 		_log("destroySwapChain");
 
+		m_window->getTitleBarController().destroyResources();
 		destroyDirectCompositionResources();
 		destroyRenderAttachment();
 		if (dxgi_swapchain)
@@ -1701,6 +1704,8 @@ namespace Core::Graphics
 
 		m_swapchain_want_present_reset = TRUE;
 
+		m_window->getTitleBarController().createResources(m_window->GetWindow(), m_device->GetD2D1DeviceContext());
+
 		return true;
 	}
 
@@ -1720,14 +1725,25 @@ namespace Core::Graphics
 
 		HRNew;
 
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> dxgi_surface;
-		HRGet = dxgi_swapchain->GetBuffer(0, IID_PPV_ARGS(&dxgi_surface));
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> d3d11_texture2d;
+		HRGet = dxgi_swapchain->GetBuffer(0, IID_PPV_ARGS(&d3d11_texture2d));
 		HRCheckCallReturnBool("IDXGISwapChain::GetBuffer -> 0");
 		
 		// TODO: 线性颜色空间
-		HRGet = m_device->GetD3D11Device()->CreateRenderTargetView(dxgi_surface.Get(), NULL, &m_swap_chain_d3d11_rtv);
+		HRGet = m_device->GetD3D11Device()->CreateRenderTargetView(d3d11_texture2d.Get(), NULL, &m_swap_chain_d3d11_rtv);
 		HRCheckCallReturnBool("ID3D11Device::CreateRenderTargetView");
 
+		Microsoft::WRL::ComPtr<IDXGISurface> dxgi_surface;
+		HRGet = dxgi_swapchain->GetBuffer(0, IID_PPV_ARGS(&dxgi_surface));
+		HRCheckCallReturnBool("IDXGISwapChain::GetBuffer -> 0");
+
+		D2D1_BITMAP_PROPERTIES1 d2d1_bitmap_info{};
+		d2d1_bitmap_info.pixelFormat.format = COLOR_BUFFER_FORMAT;
+		d2d1_bitmap_info.pixelFormat.alphaMode = D2D1_ALPHA_MODE_IGNORE;
+		d2d1_bitmap_info.bitmapOptions = D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW;
+		HRGet = m_device->GetD2D1DeviceContext()->CreateBitmapFromDxgiSurface(dxgi_surface.Get(), &d2d1_bitmap_info, &m_swap_chain_d2d1_bitmap);
+		HRCheckCallReturnBool("ID2D1DeviceContext::CreateBitmapFromDxgiSurface");
+		
 		return true;
 	}
 	void SwapChain_D3D11::destroySwapChainRenderTarget()
@@ -1740,6 +1756,7 @@ namespace Core::Graphics
 			m_device->GetD3D11DeviceContext()->Flush();
 		}
 		m_swap_chain_d3d11_rtv.Reset();
+		m_swap_chain_d2d1_bitmap.Reset();
 	}
 	bool SwapChain_D3D11::createCanvasColorBuffer()
 	{
@@ -2187,6 +2204,10 @@ namespace Core::Graphics
 			}
 			m_device->GetD3D11DeviceContext()->Flush(); // 立即提交命令到 GPU
 		}
+
+		// 绘制标题栏到交换链上，而不是画布上
+
+		m_window->getTitleBarController().draw(m_swap_chain_d2d1_bitmap.Get());
 		
 		// 呈现
 

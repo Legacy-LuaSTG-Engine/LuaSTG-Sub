@@ -5,6 +5,7 @@
 #include "Platform/Monitor.hpp"
 #include "Platform/WindowSizeMoveController.hpp"
 #include "Platform/RuntimeLoader/DesktopWindowManager.hpp"
+#include "Platform/ImmersiveTitleBarController.hpp"
 
 namespace Core::Graphics
 {
@@ -50,6 +51,7 @@ namespace Core::Graphics
 		bool enable_track_window_focus{ false };
 
 		Platform::WindowSizeMoveController m_sizemove;
+		platform::windows::ImmersiveTitleBarController m_title_bar_controller;
 		Platform::MonitorList m_monitors;
 		Platform::RuntimeLoader::DesktopWindowManager dwmapi_loader;
 
@@ -66,6 +68,7 @@ namespace Core::Graphics
 		// 内部方法
 
 		HWND GetWindow() { return win32_window; }
+		platform::windows::ImmersiveTitleBarController& getTitleBarController() { return m_title_bar_controller; }
 
 		void convertTitleText();
 
