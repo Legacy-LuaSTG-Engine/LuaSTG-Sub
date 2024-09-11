@@ -62,3 +62,4 @@ target_include_directories(PlatformAPI PUBLIC
 target_sources(PlatformAPI PRIVATE
     ${PLATFORM_SOURCES}
 )
+target_link_libraries(PlatformAPI PRIVATE Microsoft.Windows.ImplementationLibrary)
