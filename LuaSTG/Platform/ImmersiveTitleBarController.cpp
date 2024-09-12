@@ -758,7 +758,16 @@ namespace platform::windows {
 				SWP_NOZORDER | SWP_NOMOVE | SWP_FRAMECHANGED
 			);
 		}
-		bool draw(ID2D1Bitmap1* target) {
+		bool isVisible() const noexcept {
+			if (!feature_enable || !system_windows10) {
+				return false;
+			}
+			if (!enter_title_bar || window_minimized) {
+				return false;
+			}
+			return true;
+		}
+		bool draw(ID2D1Bitmap1* target, D2D1_POINT_2F offset) {
 			if (!feature_enable || !system_windows10) {
 				return true; // fail, but success
 			}
@@ -770,8 +779,10 @@ namespace platform::windows {
 			HRESULT hr{};
 			d2d1_device_context->BeginDraw();
 			d2d1_device_context->SetTarget(target);
+			d2d1_device_context->SetTransform(D2D1::Matrix3x2F::Translation(offset.x, offset.y));
 			drawTitleBar();
 			drawButtons();
+			d2d1_device_context->SetTransform(D2D1::Matrix3x2F::Identity());
 			d2d1_device_context->SetTarget(nullptr);
 			hr = d2d1_device_context->EndDraw();
 			if (FAILED(hr)) {
@@ -819,8 +830,11 @@ namespace platform::windows {
 	bool ImmersiveTitleBarController::update() {
 		return true;
 	}
-	bool ImmersiveTitleBarController::draw(ID2D1Bitmap1* target) {
-		return impl->draw(target);
+	bool ImmersiveTitleBarController::isVisible() {
+		return impl->isVisible();
+	}
+	bool ImmersiveTitleBarController::draw(ID2D1Bitmap1* target, D2D1_POINT_2F offset) {
+		return impl->draw(target, offset);
 	}
 
 	ImmersiveTitleBarController::ImmersiveTitleBarController() : impl(new Impl()) {}

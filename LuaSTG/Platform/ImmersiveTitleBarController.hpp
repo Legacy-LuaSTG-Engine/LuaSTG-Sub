@@ -22,7 +22,8 @@ namespace platform::windows {
 		bool setTitle(std::string const& text);
 		bool setClientSize(HWND window, UINT width, UINT height);
 		bool update();
-		bool draw(ID2D1Bitmap1* target);
+		bool isVisible();
+		bool draw(ID2D1Bitmap1* target, D2D1_POINT_2F offset = {});
 
 	public:
 		ImmersiveTitleBarController();
