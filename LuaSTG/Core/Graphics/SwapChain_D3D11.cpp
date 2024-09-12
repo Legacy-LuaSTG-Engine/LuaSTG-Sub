@@ -1737,6 +1737,7 @@ namespace Core::Graphics
 		HRGet = dxgi_swapchain->GetBuffer(0, IID_PPV_ARGS(&dxgi_surface));
 		HRCheckCallReturnBool("IDXGISwapChain::GetBuffer -> 0");
 
+		// TODO: 线性颜色空间
 		D2D1_BITMAP_PROPERTIES1 d2d1_bitmap_info{};
 		d2d1_bitmap_info.pixelFormat.format = COLOR_BUFFER_FORMAT;
 		d2d1_bitmap_info.pixelFormat.alphaMode = D2D1_ALPHA_MODE_IGNORE;
