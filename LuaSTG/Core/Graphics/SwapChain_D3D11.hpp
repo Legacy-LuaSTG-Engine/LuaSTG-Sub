@@ -8,23 +8,6 @@
 
 namespace Core::Graphics
 {
-	class DisplayModeUpdater
-	{
-	private:
-		DISPLAY_DEVICEW last_device{};
-		DEVMODEW last_mode{};
-		bool is_scope{ false };
-	public:
-		bool Enter(HWND window, UINT width, UINT height);
-		void Leave();
-	public:
-		inline DisplayModeUpdater() = default;
-		inline ~DisplayModeUpdater()
-		{
-			Leave();
-		}
-	};
-
 	class SwapChain_D3D11
 		: public Object<ISwapChain>
 		, public IWindowEventListener
@@ -34,7 +17,6 @@ namespace Core::Graphics
 		ScopeObject<Window_Win32> m_window;
 		ScopeObject<Device_D3D11> m_device;
 		Direct3D11::LetterBoxingRenderer m_scaling_renderer;
-		DisplayModeUpdater m_display_mode_updater;
 
 		Microsoft::WRL::Wrappers::Event dxgi_swapchain_event;
 		Microsoft::WRL::ComPtr<IDXGISwapChain1> dxgi_swapchain;

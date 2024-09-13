@@ -50,6 +50,8 @@ set(PLATFORM_SOURCES
     Platform/MessageBox.cpp
     Platform/ImmersiveTitleBarController.hpp
     Platform/ImmersiveTitleBarController.cpp
+    Platform/DisplayModeUpdater.hpp
+    Platform/DisplayModeUpdater.cpp
 )
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${PLATFORM_SOURCES})
 
@@ -62,4 +64,4 @@ target_include_directories(PlatformAPI PUBLIC
 target_sources(PlatformAPI PRIVATE
     ${PLATFORM_SOURCES}
 )
-target_link_libraries(PlatformAPI PRIVATE Microsoft.Windows.ImplementationLibrary)
+target_link_libraries(PlatformAPI PRIVATE Microsoft.Windows.ImplementationLibrary utility)
