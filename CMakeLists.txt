@@ -30,11 +30,7 @@ include(cmake/import-xiph.cmake)
 include(cmake/import-typography.cmake)
 add_subdirectory(external)
 include(cmake/packages.lua.cmake)
-add_library(GeneratedShaderHeaders INTERFACE)
-target_include_directories(GeneratedShaderHeaders
-INTERFACE
-    ${CMAKE_CURRENT_LIST_DIR}/LuaSTG/Shader/generated
-)
+include(LuaSTG/shaders.cmake)
 add_subdirectory(imgui)
 
 add_subdirectory(utility)
