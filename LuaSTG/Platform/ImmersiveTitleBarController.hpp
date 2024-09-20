@@ -23,6 +23,7 @@ namespace platform::windows {
 		bool setClientSize(HWND window, UINT width, UINT height);
 		bool update();
 		bool isVisible();
+		UINT getHeight();
 		bool draw(ID2D1Bitmap1* target, D2D1_POINT_2F offset = {});
 
 	public:

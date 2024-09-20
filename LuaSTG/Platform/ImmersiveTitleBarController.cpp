@@ -1,4 +1,5 @@
 #include <cassert>
+#include <cmath>
 #include <string>
 #include "CleanWindows.hpp"
 #include <windowsx.h>
@@ -134,7 +135,7 @@ namespace platform::windows {
 		Platform::RuntimeLoader::DirectWrite dwrite;
 		UINT win32_window_width{};
 		UINT win32_window_height{};
-		UINT win32_window_dpi{};
+		UINT win32_window_dpi{ USER_DEFAULT_SCREEN_DPI };
 		wil::com_ptr_nothrow<ID2D1DeviceContext> d2d1_device_context;
 		wil::com_ptr_nothrow<IDWriteFactory> dwrite_factory;
 		wil::com_ptr_nothrow<IDWriteTextFormat> dwrite_text_format_title;
@@ -767,6 +768,11 @@ namespace platform::windows {
 			}
 			return true;
 		}
+		UINT getHeight() const {
+			auto const scaling = getScaling();
+			auto const height = title_bar_height * scaling;
+			return static_cast<UINT>(std::ceil(height));
+		}
 		bool draw(ID2D1Bitmap1* target, D2D1_POINT_2F offset) {
 			if (!feature_enable || !system_windows10) {
 				return true; // fail, but success
@@ -832,6 +838,9 @@ namespace platform::windows {
 	}
 	bool ImmersiveTitleBarController::isVisible() {
 		return impl->isVisible();
+	}
+	UINT ImmersiveTitleBarController::getHeight() {
+		return impl->getHeight();
 	}
 	bool ImmersiveTitleBarController::draw(ID2D1Bitmap1* target, D2D1_POINT_2F offset) {
 		return impl->draw(target, offset);
