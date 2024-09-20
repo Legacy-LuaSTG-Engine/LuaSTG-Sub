@@ -8,6 +8,31 @@
 
 namespace Core::Graphics
 {
+	class SecondarySwapChain {
+	private:
+		DXGI_SWAP_CHAIN_DESC1 info{};
+		wil::com_ptr_nothrow<IDXGIFactory2> dxgi_factory;
+		wil::com_ptr_nothrow<ID3D11Device> d3d11_device;
+		wil::com_ptr_nothrow<ID3D11DeviceContext> d3d11_device_context;
+		wil::com_ptr_nothrow<ID2D1DeviceContext> d2d1_device_context;
+		wil::com_ptr_nothrow<IDXGISwapChain1> dxgi_swap_chain;
+		wil::com_ptr_nothrow<ID3D11RenderTargetView> d3d11_rtv;
+		wil::com_ptr_nothrow<ID2D1Bitmap1> d2d1_bitmap;
+	private:
+		bool createRenderAttachment();
+		void destroyRenderAttachment();
+	public:
+		inline IDXGISwapChain1* GetDXGISwapChain1() { return dxgi_swap_chain.get(); }
+		inline ID2D1Bitmap1* GetD2D1Bitmap1() { return d2d1_bitmap.get(); }
+	public:
+		bool create(IDXGIFactory2* factory, ID3D11Device* device, ID2D1DeviceContext* context, Vector2U const& size);
+		void destroy();
+		bool setSize(Vector2U const& size);
+		inline Vector2U getSize() const noexcept { return { info.Width, info.Height }; }
+		void clearRenderTarget();
+		bool present();
+	};
+
 	class SwapChain_D3D11
 		: public Object<ISwapChain>
 		, public IWindowEventListener
@@ -63,7 +88,10 @@ namespace Core::Graphics
 		Microsoft::WRL::ComPtr<IDCompositionVisual2> dcomp_visual_root;
 		Microsoft::WRL::ComPtr<IDCompositionVisual2> dcomp_visual_background;
 		Microsoft::WRL::ComPtr<IDCompositionVisual2> dcomp_visual_swap_chain;
-		Microsoft::WRL::ComPtr<IDCompositionSurface> dcomp_surface_background;
+		Microsoft::WRL::ComPtr<IDCompositionVisual2> dcomp_visual_title_bar;
+		SecondarySwapChain swap_chain_background;
+		SecondarySwapChain swap_chain_title_bar;
+		bool m_title_bar_attached{ false };
 	private:
 		bool createDirectCompositionResources();
 		void destroyDirectCompositionResources();

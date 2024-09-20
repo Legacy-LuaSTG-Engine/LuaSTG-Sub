@@ -27,6 +27,7 @@
 #include <wrl/wrappers/corewrappers.h>
 #include <winrt/base.h>
 #include <wil/resource.h>
+#include <wil/com.h>
 #include <timeapi.h>
 #include <dxgi1_6.h>
 #include <dxgidebug.h>
