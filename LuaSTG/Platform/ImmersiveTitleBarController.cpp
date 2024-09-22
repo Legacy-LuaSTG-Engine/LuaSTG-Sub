@@ -157,9 +157,11 @@ namespace platform::windows {
 		bool pointer_on_minimize_button{ false };
 		bool pointer_on_maximize_button{ false };
 		bool pointer_on_close_button{ false };
+		bool pointer_on_fullscreen_button{ false };
 		bool minimize_button_down{ false };
 		bool maximize_button_down{ false };
 		bool close_button_down{ false };
+		bool fullscreen_button_down{ false };
 		bool title_bar_down{ false };
 
 	private:
@@ -208,7 +210,7 @@ namespace platform::windows {
 			wil::com_ptr_nothrow<ID2D1SolidColorBrush> title_text_color;
 			d2d1_device_context->CreateSolidColorBrush(color_schema.title_text, title_text_color.put());
 
-			auto const title_text_width = (float)win32_window_width - (3.0f * button_width + 2.0f * title_left_padding) * scaling;
+			auto const title_text_width = (float)win32_window_width - (4.0f * button_width + 2.0f * title_left_padding) * scaling;
 			wil::com_ptr_nothrow<IDWriteTextLayout> title_text_layout;
 			dwrite_factory->CreateTextLayout(
 				title_text.c_str(), static_cast<UINT>(title_text.length()),
@@ -270,6 +272,8 @@ namespace platform::windows {
 			float const max_button_left = max_button_right - button_width * scaling;
 			float const min_button_right = max_button_left;
 			float const min_button_left = min_button_right - button_width * scaling;
+			float const fullscreen_button_right = min_button_left;
+			float const fullscreen_button_left = fullscreen_button_right - button_width * scaling;
 
 			wil::com_ptr_nothrow<ID2D1SolidColorBrush> rest_background_color;
 			d2d1_device_context->CreateSolidColorBrush(color_schema.button_rest_background, rest_background_color.put());
@@ -317,6 +321,19 @@ namespace platform::windows {
 				return (pointer_on_maximize_button ? hover_text_color : rest_text_color).get();
 			};
 
+			auto getFullscreenButtonBackgroundBrush = [&]() -> ID2D1SolidColorBrush* {
+				if (fullscreen_button_down) {
+					return press_background_color.get();
+				}
+				return (pointer_on_fullscreen_button ? hover_background_color : rest_background_color).get();
+				};
+			auto getFullscreenButtonTextBrush = [&]() -> ID2D1SolidColorBrush* {
+				if (fullscreen_button_down) {
+					return press_text_color.get();
+				}
+				return (pointer_on_fullscreen_button ? hover_text_color : rest_text_color).get();
+				};
+
 			wil::com_ptr_nothrow<ID2D1SolidColorBrush> close_hover_background_color;
 			d2d1_device_context->CreateSolidColorBrush(color_schema.close_button_hover_background, close_hover_background_color.put());
 			wil::com_ptr_nothrow<ID2D1SolidColorBrush> close_hover_text_color;
@@ -356,6 +373,12 @@ namespace platform::windows {
 				d2d1_device_context->FillRectangle(
 					D2D1::RectF(close_button_left, 0.0f, close_button_right, height),
 					getCloseButtonBackgroundBrush()
+				);
+			}
+			if (pointer_on_fullscreen_button || fullscreen_button_down) {
+				d2d1_device_context->FillRectangle(
+					D2D1::RectF(fullscreen_button_left, 0.0f, fullscreen_button_right, height),
+					getFullscreenButtonBackgroundBrush()
 				);
 			}
 
@@ -410,6 +433,22 @@ namespace platform::windows {
 				D2D1::Point2F(close_button_left + button_icon_padding_left * scaling, button_icon_padding_top * scaling),
 				close_icon_text_layout.get(),
 				getCloseButtonTextBrush()
+			);
+
+			wil::com_ptr_nothrow<IDWriteTextLayout> fullscreen_icon_text_layout;
+			dwrite_factory->CreateTextLayout(
+				icon_schema.chrome_fullScreen, 1,
+				dwrite_text_format_icon.get(),
+				button_icon_width* scaling, button_icon_height* scaling,
+				close_icon_text_layout.put()
+			);
+			close_icon_text_layout->SetFontSize(icon_font_size* scaling, text_range);
+			close_icon_text_layout->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+			close_icon_text_layout->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+			d2d1_device_context->DrawTextLayout(
+				D2D1::Point2F(fullscreen_button_left + button_icon_padding_left * scaling, button_icon_padding_top* scaling),
+				close_icon_text_layout.get(),
+				getFullscreenButtonTextBrush()
 			);
 		}
 
@@ -480,8 +519,11 @@ namespace platform::windows {
 					POINT pt{ screenX, screenY };
 					MapWindowPoints(HWND_DESKTOP, window, &pt, 1);
 					if (pt.y < MulDiv(32, static_cast<int>(win32_window_dpi), USER_DEFAULT_SCREEN_DPI)) {
-						if (pt.x < (static_cast<int>(win32_window_width) - MulDiv(46 * 3, static_cast<int>(win32_window_dpi), USER_DEFAULT_SCREEN_DPI))) {
+						if (pt.x < (static_cast<int>(win32_window_width) - MulDiv(46 * 4, static_cast<int>(win32_window_dpi), USER_DEFAULT_SCREEN_DPI))) {
 							return { true, HTCAPTION };
+						}
+						if (pt.x < (static_cast<int>(win32_window_width) - MulDiv(46 * 3, static_cast<int>(win32_window_dpi), USER_DEFAULT_SCREEN_DPI))) {
+							return { true, HTHELP };
 						}
 						if (pt.x < (static_cast<int>(win32_window_width) - MulDiv(46 * 2, static_cast<int>(win32_window_dpi), USER_DEFAULT_SCREEN_DPI))) {
 							return { true, HTMINBUTTON };
@@ -580,29 +622,41 @@ namespace platform::windows {
 					pointer_on_minimize_button = false;
 					pointer_on_maximize_button = false;
 					pointer_on_close_button = false;
+					pointer_on_fullscreen_button = false;
 					switch (test) {
 					case HTMINBUTTON:
 						pointer_on_minimize_button = true;
 						//minimize_button_down = false;
 						maximize_button_down = false;
 						close_button_down = false;
+						fullscreen_button_down = false;
 						return { true, 0 };
 					case HTMAXBUTTON:
 						pointer_on_maximize_button = true;
 						minimize_button_down = false;
 						//maximize_button_down = false;
 						close_button_down = false;
+						fullscreen_button_down = false;
 						return { true, 0 };
 					case HTCLOSE:
 						pointer_on_close_button = true;
 						minimize_button_down = false;
 						maximize_button_down = false;
 						//close_button_down = false;
+						fullscreen_button_down = false;
+						return { true, 0 };
+					case HTHELP:
+						pointer_on_fullscreen_button = true;
+						minimize_button_down = false;
+						maximize_button_down = false;
+						close_button_down = false;
+						//fullscreen_button_down = false;
 						return { true, 0 };
 					default:
 						minimize_button_down = false;
 						maximize_button_down = false;
 						close_button_down = false;
+						fullscreen_button_down = false;
 						break;
 					}
 				}
@@ -620,6 +674,9 @@ namespace platform::windows {
 						return { true, 0 };
 					case HTCLOSE:
 						close_button_down = true;
+						return { true, 0 };
+					case HTHELP:
+						fullscreen_button_down = true;
 						return { true, 0 };
 					case HTCAPTION:
 						title_bar_down = true;
@@ -649,6 +706,13 @@ namespace platform::windows {
 						if (close_button_down) {
 							close_button_down = false;
 							SendMessageW(window, WM_SYSCOMMAND, SC_CLOSE, arg2);
+							return { true, 0 };
+						}
+						break;
+					case HTHELP:
+						if (fullscreen_button_down) {
+							fullscreen_button_down = false;
+							//SendMessageW(window, WM_SYSCOMMAND, SC_H, arg2);
 							return { true, 0 };
 						}
 						break;
