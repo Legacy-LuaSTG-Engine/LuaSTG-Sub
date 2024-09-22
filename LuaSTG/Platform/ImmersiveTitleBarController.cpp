@@ -100,6 +100,8 @@ namespace platform::windows {
 		wchar_t const chrome_maximize[2];
 		wchar_t const chrome_restore[2];
 		wchar_t const chrome_close[2];
+		wchar_t const chrome_fullScreen[2];
+		wchar_t const chrome_back_to_window[2];
 		// TODO: High Contrast Mode
 	};
 
@@ -109,6 +111,8 @@ namespace platform::windows {
 		.chrome_maximize{L"\uE922"},
 		.chrome_restore{L"\uE923"},
 		.chrome_close{L"\uE8BB"},
+		.chrome_fullScreen{L"\uE92D"},
+		.chrome_back_to_window{L"\uE92C"},
 	};
 	static IconSchema const icon_windows11{
 		.font{L"Segoe Fluent Icons"},
@@ -116,6 +120,8 @@ namespace platform::windows {
 		.chrome_maximize{L"\uE922"},
 		.chrome_restore{L"\uE923"},
 		.chrome_close{L"\uE8BB"},
+		.chrome_fullScreen{L"\uE92D"},
+		.chrome_back_to_window{L"\uE92C"},
 	};
 
 	constexpr float const title_bar_height{ 32.0f };
