@@ -1,4 +1,4 @@
-﻿#include "Platform/Shared.hpp"
+#include "Platform/Shared.hpp"
 #include "Platform/WindowsVersion.hpp"
 
 #include "Platform/RuntimeLoader/DXGI.hpp"
@@ -634,6 +634,14 @@ namespace Platform::RuntimeLoader
 		}
 		return E_NOTIMPL;
 	}
+	HRESULT DesktopWindowManager::GetWindowAttribute(HWND hwnd, DWORD dwAttribute, PVOID pvAttribute, DWORD cbAttribute)
+	{
+		if (api_DwmGetWindowAttribute)
+		{
+			return api_DwmGetWindowAttribute(hwnd, dwAttribute, pvAttribute, cbAttribute);
+		}
+		return E_NOTIMPL;
+	}
 	HRESULT DesktopWindowManager::Flush()
 	{
 		if (api_DwmFlush)
@@ -709,6 +717,8 @@ namespace Platform::RuntimeLoader
 				GetProcAddress(dll_dwmapi, "DwmDefWindowProc");
 			api_DwmSetWindowAttribute = (decltype(api_DwmSetWindowAttribute))
 				GetProcAddress(dll_dwmapi, "DwmSetWindowAttribute");
+			api_DwmGetWindowAttribute = (decltype(api_DwmGetWindowAttribute))
+				GetProcAddress(dll_dwmapi, "DwmGetWindowAttribute");
 			api_DwmFlush = (decltype(api_DwmFlush))
 				GetProcAddress(dll_dwmapi, "DwmFlush");
 			assert(api_DwmIsCompositionEnabled);
@@ -717,6 +727,7 @@ namespace Platform::RuntimeLoader
 			assert(api_DwmGetColorizationColor);
 			assert(api_DwmDefWindowProc);
 			assert(api_DwmSetWindowAttribute);
+			assert(api_DwmGetWindowAttribute);
 			assert(api_DwmFlush);
 		}
 		if (dll_gdi32)
@@ -747,6 +758,7 @@ namespace Platform::RuntimeLoader
 		api_DwmGetColorizationColor = NULL;
 		api_DwmDefWindowProc = NULL;
 		api_DwmSetWindowAttribute = NULL;
+		api_DwmGetWindowAttribute = NULL;
 		api_DwmFlush = NULL;
 		api_CreateRectRgn = NULL;
 		api_DeleteObject = NULL;

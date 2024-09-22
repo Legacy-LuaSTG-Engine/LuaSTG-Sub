@@ -13,6 +13,7 @@ namespace Platform::RuntimeLoader
 		decltype(DwmGetColorizationColor)* api_DwmGetColorizationColor{};
 		decltype(DwmDefWindowProc)* api_DwmDefWindowProc{};
 		decltype(DwmSetWindowAttribute)* api_DwmSetWindowAttribute{};
+		decltype(DwmGetWindowAttribute)* api_DwmGetWindowAttribute{};
 		decltype(DwmFlush)* api_DwmFlush{};
 		decltype(CreateRectRgn)* api_CreateRectRgn{};
 		decltype(DeleteObject)* api_DeleteObject{};
@@ -23,6 +24,7 @@ namespace Platform::RuntimeLoader
 		HRESULT GetColorizationColor(DWORD* pcrColorization, BOOL* pfOpaqueBlend);
 		BOOL DefWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* plResult);
 		HRESULT SetWindowAttribute(HWND hwnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
+		HRESULT GetWindowAttribute(HWND hwnd, DWORD dwAttribute, PVOID pvAttribute, DWORD cbAttribute);
 		HRESULT Flush();
 
 		// NOTE: Update window transparency on message
