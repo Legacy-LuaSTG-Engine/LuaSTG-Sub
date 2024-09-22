@@ -33,9 +33,6 @@ namespace Core::Graphics
 	constexpr DXGI_FORMAT const COLOR_BUFFER_FORMAT = DXGI_FORMAT_B8G8R8A8_UNORM;
 	constexpr DXGI_FORMAT const DEPTH_BUFFER_FORMAT = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
-	constexpr uint32_t const BACKGROUND_W = 512; // 512 * 16 = 8192 一般显示器大概也超不过这个分辨率？
-	constexpr uint32_t const BACKGROUND_H = 512; // 16x 是硬件支持的最大放大级别 0.25x 是最小缩小级别，128 ~ 8192
-
 	inline std::string_view to_string(DXGI_MODE_SCANLINE_ORDER v)
 	{
 		switch (v)
@@ -681,162 +678,107 @@ namespace Core::Graphics
 		return isModernSwapChainModel(info);
 	}
 
-	bool DisplayModeUpdater::Enter(HWND window, UINT width, UINT height)
-	{
-		Leave();
+	bool SecondarySwapChain::createRenderAttachment() {
+		assert(d3d11_device);
+		assert(d2d1_device_context);
+		assert(dxgi_swap_chain);
+		HRNew;
+		
+		wil::com_ptr_nothrow<ID3D11Texture2D> texture;
+		HRGet = dxgi_swap_chain->GetBuffer(0, IID_PPV_ARGS(texture.put()));
+		HRCheckCallReturnBool("IDXGISwapChain::GetBuffer");
 
-		assert(window);
-		assert(width > 0 && height > 0);
+		HRGet = d3d11_device->CreateRenderTargetView(texture.get(), NULL, d3d11_rtv.put());
+		HRCheckCallReturnBool("ID3D11Device::CreateRenderTargetView");
 
-		HMONITOR monitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
-		assert(monitor);
+		wil::com_ptr_nothrow<IDXGISurface> surface;
+		HRGet = dxgi_swap_chain->GetBuffer(0, IID_PPV_ARGS(surface.put()));
+		HRCheckCallReturnBool("IDXGISwapChain::GetBuffer");
 
-		MONITORINFOEXW monitor_info{};
-		monitor_info.cbSize = sizeof(monitor_info);
-		if (!GetMonitorInfoW(monitor, &monitor_info)) {
-			ReportError("GetMonitorInfoW");
-			return false;
-		}
+		D2D1_BITMAP_PROPERTIES1 bitmap_info{};
+		bitmap_info.pixelFormat.format = info.Format;
+		bitmap_info.pixelFormat.alphaMode = D2D1_ALPHA_MODE_IGNORE;
+		bitmap_info.bitmapOptions = D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW;
+		HRGet = d2d1_device_context->CreateBitmapFromDxgiSurface(surface.get(), &bitmap_info, d2d1_bitmap.put());
+		HRCheckCallReturnBool("ID2D1DeviceContext::CreateBitmapFromDxgiSurface");
 
-		DISPLAY_DEVICEW temp_device{};
-		temp_device.cb = sizeof(temp_device);
-		last_device = {};
-		for (DWORD i = 0; EnumDisplayDevicesW(nullptr, i, &temp_device, 0); i += 1) {
-			if (std::wstring_view(temp_device.DeviceName) == std::wstring_view(monitor_info.szDevice)) {
-				last_device = temp_device;
-				break;
-			}
-			temp_device = {};
-			temp_device.cb = sizeof(temp_device);
-		}
-		assert(last_device.cb > 0);
-		if (last_device.cb == 0) {
-			ReportError(std::format("EnumDisplayDevicesW ({})", utf8::to_string(monitor_info.szDevice)));
-			return false;
-		}
-
-		last_mode = {};
-		last_mode.dmSize = sizeof(last_mode);
-		if (!EnumDisplaySettingsExW(last_device.DeviceName, ENUM_CURRENT_SETTINGS, &last_mode, 0)) {
-			ReportError("EnumDisplaySettingsExW");
-			return false;
-		}
-
-		std::vector<DEVMODEW> modes;
-		DEVMODEW temp_mode{};
-		temp_mode.dmSize = sizeof(temp_mode);
-		for (DWORD i = 0; EnumDisplaySettingsExW(last_device.DeviceName, i, &temp_mode, 0); i += 1) {
-			modes.push_back(temp_mode);
-			temp_mode = {};
-			temp_mode.dmSize = sizeof(temp_mode);
-		}
-
-		auto is_same_aspect_ratio = [this](DEVMODEW const& m) -> bool
-		{
-			DWORD const width = m.dmPelsWidth * last_mode.dmPelsHeight / m.dmPelsHeight;
-			return 2 >= std::abs(static_cast<int>(width) - static_cast<int>(last_mode.dmPelsWidth));
-		};
-
-		auto is_size_larger = [&](DEVMODEW const& m) -> bool
-		{
-			return m.dmPelsWidth >= width && m.dmPelsHeight >= height;
-		};
-
-	#define u_s2 .
-
-		auto is_same_mode_basic = [](DEVMODEW const& l, DEVMODEW const& r) -> bool
-		{
-			return l u_s2 dmPosition.x == r u_s2 dmPosition.x
-				&& l u_s2 dmPosition.y == r u_s2 dmPosition.y
-				&& l u_s2 dmDisplayOrientation == r u_s2 dmDisplayOrientation
-				&& l.dmBitsPerPel == r.dmBitsPerPel
-				&& l.dmPelsWidth == r.dmPelsWidth
-				&& l.dmPelsHeight == r.dmPelsHeight
-				&& l.dmDisplayFrequency == r.dmDisplayFrequency
-				;
-		};
-
-		auto is_auto_scaling = [](DEVMODEW const& m) -> bool
-		{
-			return m u_s2 dmDisplayFixedOutput == DMDFO_DEFAULT;
-		};
-
-	#undef u_s2
-
-		auto is_high_refresh_rate = [](DEVMODEW const& m) -> bool
-		{
-			return m.dmDisplayFrequency >= 58;
-		};
-
-		for (auto it = modes.begin(); it != modes.end();) {
-			if (is_same_aspect_ratio(*it)) {
-				it++;
-			}
-			else {
-				it = modes.erase(it);
-			}
-		}
-
-		for (auto it = modes.begin(); it != modes.end();) {
-			if (is_size_larger(*it)) {
-				it++;
-			}
-			else {
-				it = modes.erase(it);
-			}
-		}
-
-		for (auto it = modes.begin(); it != modes.end();) {
-			if (is_auto_scaling(*it)) {
-				it++;
-			}
-			else {
-				it = modes.erase(it);
-			}
-		}
-
-		for (auto it = modes.begin(); it != modes.end();) {
-			if (it->dmBitsPerPel >= 32) {
-				it++;
-			}
-			else {
-				it = modes.erase(it);
-			}
-		}
-
-		std::ranges::sort(modes, [width, height](DEVMODEW const& l, DEVMODEW const& r) -> bool
-			{
-				double const s0 = double(width) * double(height);
-				double const sl = double(l.dmPelsWidth) * double(l.dmPelsHeight);
-				double const sr = double(r.dmPelsWidth) * double(r.dmPelsHeight);
-				double const vl = sl / s0;
-				double const vr = sr / s0;
-				if (vl != vr) {
-					return vl < vr;
-				}
-				else {
-					return l.dmDisplayFrequency > r.dmDisplayFrequency;
-				}
-			});
-
-		if (modes.empty()) {
-			return false;
-		}
-
-		if (DISP_CHANGE_SUCCESSFUL != ChangeDisplaySettingsExW(last_device.DeviceName, &modes.at(0), nullptr, 0, nullptr)) {
-			ReportError("ChangeDisplaySettingsExW");
-			return false;
-		}
-
-		is_scope = true;
 		return true;
 	}
-	void DisplayModeUpdater::Leave()
-	{
-		if (is_scope) {
-			is_scope = false;
-			ChangeDisplaySettingsExW(last_device.DeviceName, &last_mode, nullptr, 0, nullptr);
+	void SecondarySwapChain::destroyRenderAttachment() {
+		if (d3d11_device_context) {
+			d3d11_device_context->ClearState();
+			d3d11_device_context->Flush();
 		}
+		d3d11_rtv.reset();
+		d2d1_bitmap.reset();
+	}
+
+	bool SecondarySwapChain::create(IDXGIFactory2* factory, ID3D11Device* device, ID2D1DeviceContext* context, Vector2U const& size) {
+		assert(factory);
+		assert(device);
+		assert(context);
+		assert(size.x > 0 && size.y > 0);
+		HRNew;
+
+		dxgi_factory = factory;
+		d3d11_device = device;
+		d3d11_device->GetImmediateContext(d3d11_device_context.put());
+		d2d1_device_context = context;
+		
+		info.Width = size.x;
+		info.Height = size.y;
+		info.Format = COLOR_BUFFER_FORMAT;
+		info.SampleDesc.Count = 1;
+		info.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		info.BufferCount = 2;
+		info.Scaling = DXGI_SCALING_STRETCH;
+		info.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+		info.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
+		info.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+
+		HRGet = dxgi_factory->CreateSwapChainForComposition(d3d11_device.get(), &info, NULL, dxgi_swap_chain.put());
+		HRCheckCallReturnBool("IDXGIFactory2::CreateSwapChainForComposition");
+
+		return createRenderAttachment();
+	}
+	void SecondarySwapChain::destroy() {
+		destroyRenderAttachment();
+		dxgi_factory.reset();
+		d3d11_device.reset();
+		d3d11_device_context.reset();
+		d2d1_device_context.reset();
+		dxgi_swap_chain.reset();
+	}
+	bool SecondarySwapChain::setSize(Vector2U const& size) {
+		assert(size.x > 0 && size.y > 0);
+		if (size.x == 0 || size.y == 0) {
+			return false;
+		}
+		HRNew;
+		destroyRenderAttachment();
+		info.Width = size.x;
+		info.Height = size.y;
+		HRGet = dxgi_swap_chain->ResizeBuffers(info.BufferCount, info.Width, info.Height, info.Format, info.Flags);
+		HRCheckCallReturnBool("IDXGISwapChain::ResizeBuffers");
+		return createRenderAttachment();
+	}
+	void SecondarySwapChain::clearRenderTarget() {
+		assert(d3d11_device_context);
+		assert(d3d11_rtv);
+		if (d3d11_device_context && d3d11_rtv) {
+			FLOAT const solid_black[4]{ 0.0f, 0.0f, 0.0f, 1.0f };
+			d3d11_device_context->ClearRenderTargetView(d3d11_rtv.get(), solid_black);
+		}
+	}
+	bool SecondarySwapChain::present() {
+		assert(dxgi_swap_chain);
+		if (!dxgi_swap_chain) {
+			return false;
+		}
+		HRNew;
+		HRGet = dxgi_swap_chain->Present(0, DXGI_PRESENT_ALLOW_TEARING);
+		HRCheckCallReturnBool("IDXGISwapChain::Present");
+		return true;
 	}
 
 	void SwapChain_D3D11::dispatchEvent(EventType t)
@@ -1110,12 +1052,15 @@ namespace Core::Graphics
 
 		m_swapchain_want_present_reset = TRUE;
 
+		m_window->getTitleBarController().createResources(m_window->GetWindow(), m_device->GetD2D1DeviceContext());
+
 		return true;
 	}
 	void SwapChain_D3D11::destroySwapChain()
 	{
 		_log("destroySwapChain");
 
+		m_window->getTitleBarController().destroyResources();
 		destroyDirectCompositionResources();
 		destroyRenderAttachment();
 		if (dxgi_swapchain)
@@ -1174,17 +1119,6 @@ namespace Core::Graphics
 			assert(false); return false;
 		}
 
-		//if (m_modern_swap_chain_available) {
-		//	if (m_display_mode_updater.Enter(m_window->GetWindow(), m_canvas_size.x, m_canvas_size.y)) {
-		//		m_window->setLayer(WindowLayer::TopMost);
-		//		Platform::MonitorList::ResizeWindowToFullScreen(m_window->GetWindow());
-		//		return true;
-		//	}
-		//	else {
-		//		return false;
-		//	}
-		//}
-
 		HRNew;
 
 		BOOL get_state = FALSE;
@@ -1214,13 +1148,6 @@ namespace Core::Graphics
 			assert(false); return false;
 		}
 
-		//if (m_modern_swap_chain_available) {
-		//	m_display_mode_updater.Leave();
-		//	m_window->setLayer(WindowLayer::Normal);
-		//	ShowWindow(m_window->GetWindow(), SW_MINIMIZE);
-		//	return true;
-		//}
-
 		HRNew;
 
 		BOOL get_state = FALSE;
@@ -1243,17 +1170,6 @@ namespace Core::Graphics
 	}
 	bool SwapChain_D3D11::enterExclusiveFullscreen()
 	{
-		//if (m_modern_swap_chain_available) {
-		//	if (!m_swap_chain_fullscreen_mode) {
-		//		if (m_display_mode_updater.Enter(m_window->GetWindow(), m_canvas_size.x, m_canvas_size.y)) {
-		//			m_swap_chain_fullscreen_mode = true;
-		//			m_window->setLayer(WindowLayer::TopMost);
-		//			Platform::MonitorList::ResizeWindowToFullScreen(m_window->GetWindow());
-		//			return true;
-		//		}
-		//	}
-		//}
-
 		if (m_disable_exclusive_fullscreen)
 		{
 			return false;
@@ -1309,15 +1225,6 @@ namespace Core::Graphics
 	}
 	bool SwapChain_D3D11::leaveExclusiveFullscreen()
 	{
-		//if (m_modern_swap_chain_available) {
-		//	if (m_swap_chain_fullscreen_mode) {
-		//		m_display_mode_updater.Leave();
-		//		m_window->setLayer(WindowLayer::Normal);
-		//		m_swap_chain_fullscreen_mode = false;
-		//	}
-		//	return true;
-		//}
-
 		HRNew;
 
 		BOOL get_state = FALSE;
@@ -1411,39 +1318,36 @@ namespace Core::Graphics
 			HRGet = dcomp_desktop_device->CreateVisual(&dcomp_visual_background);
 			HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateVisual");
 
-			// 初始化背景
+			HRGet = dcomp_desktop_device->CreateVisual(&dcomp_visual_title_bar);
+			HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateVisual");
 
-			HRGet = dcomp_desktop_device->CreateSurface(
-				BACKGROUND_W, BACKGROUND_H,
-				COLOR_BUFFER_FORMAT,
-				DXGI_ALPHA_MODE_IGNORE,
-				&dcomp_surface_background);
-			HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateSurface");
-
-			if (SUCCEEDED(hr))
-			{
-				Microsoft::WRL::ComPtr<IDXGISurface> dxgi_surface;
-				POINT offset = { 0, 0 };
-				HRGet = dcomp_surface_background->BeginDraw(NULL, IID_PPV_ARGS(&dxgi_surface), &offset);
-				HRCheckCallReturnBool("IDCompositionSurface::BeginDraw");
-
-				Microsoft::WRL::ComPtr<ID3D11Resource> d3d11_res;
-				HRGet = dxgi_surface.As(&d3d11_res);
-				HRCheckCallReturnBool("IDXGISurface::QueryInterface -> ID3D11Resource");
-
-				Microsoft::WRL::ComPtr<ID3D11RenderTargetView> d3d11_dcomp_bg_rtv;
-				HRGet = m_device->GetD3D11Device()->CreateRenderTargetView(d3d11_res.Get(), NULL, &d3d11_dcomp_bg_rtv);
-				HRCheckCallReturnBool("ID3D11Device::CreateRenderTargetView");
-
-				FLOAT const clear_color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-				m_device->GetD3D11DeviceContext()->ClearRenderTargetView(d3d11_dcomp_bg_rtv.Get(), clear_color);
-				m_device->GetD3D11DeviceContext()->Flush();
-
-				HRGet = dcomp_surface_background->EndDraw();
-				HRCheckCallReturnBool("IDCompositionSurface::EndDraw");
+			if (!swap_chain_background.create(
+				m_device->GetDXGIFactory2(),
+				m_device->GetD3D11Device(),
+				m_device->GetD2D1DeviceContext(),
+				m_window->getSize()
+			)) {
+				return false;
+			}
+			swap_chain_background.clearRenderTarget();
+			if (!swap_chain_background.present()) {
+				return false;
 			}
 
-			HRGet = dcomp_visual_background->SetContent(dcomp_surface_background.Get());
+			if (!swap_chain_title_bar.create(
+				m_device->GetDXGIFactory2(),
+				m_device->GetD3D11Device(),
+				m_device->GetD2D1DeviceContext(),
+				m_window->getSize()
+			)) {
+				return false;
+			}
+			// 标题栏交换链需要的时候再使用
+
+			HRGet = dcomp_visual_background->SetContent(swap_chain_background.GetDXGISwapChain1());
+			HRCheckCallReturnBool("IDCompositionVisual2::SetContent");
+
+			HRGet = dcomp_visual_title_bar->SetContent(swap_chain_title_bar.GetDXGISwapChain1());
 			HRCheckCallReturnBool("IDCompositionVisual2::SetContent");
 		}
 		
@@ -1452,17 +1356,17 @@ namespace Core::Graphics
 		HRGet = dcomp_visual_swap_chain->SetContent(dxgi_swapchain.Get());
 		HRCheckCallReturnBool("IDCompositionVisual2::SetContent");
 		
-		HRGet = dcomp_visual_swap_chain->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR);
+		HRGet = dcomp_visual_swap_chain->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR); // TODO: 支持改为临近缩放
 		HRCheckCallReturnBool("IDCompositionVisual2::SetBitmapInterpolationMode -> DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR");
 
 		// 构建视觉树
 
 		if (m_is_composition_mode)
 		{
-			HRGet = dcomp_visual_root->AddVisual(dcomp_visual_background.Get(), TRUE, NULL);
+			HRGet = dcomp_visual_root->AddVisual(dcomp_visual_background.Get(), FALSE, NULL);
 			HRCheckCallReturnBool("IDCompositionVisual2::AddVisual");
 
-			HRGet = dcomp_visual_root->AddVisual(dcomp_visual_swap_chain.Get(), FALSE, NULL);
+			HRGet = dcomp_visual_root->AddVisual(dcomp_visual_swap_chain.Get(), TRUE, dcomp_visual_background.Get());
 			HRCheckCallReturnBool("IDCompositionVisual2::AddVisual");
 
 			HRGet = dcomp_target->SetRoot(dcomp_visual_root.Get());
@@ -1511,12 +1415,20 @@ namespace Core::Graphics
 			HRGet = dcomp_visual_swap_chain->SetContent(NULL);
 			HRCheckCallReport("IDCompositionVisual2::SetContent -> NULL");
 		}
+		if (dcomp_visual_title_bar)
+		{
+			HRGet = dcomp_visual_title_bar->SetContent(NULL);
+			HRCheckCallReport("IDCompositionVisual2::SetContent -> NULL");
+		}
 
 		dcomp_target.Reset();
 		dcomp_visual_root.Reset();
 		dcomp_visual_background.Reset();
 		dcomp_visual_swap_chain.Reset();
-		dcomp_surface_background.Reset();
+		dcomp_visual_title_bar.Reset();
+		swap_chain_background.destroy();
+		swap_chain_title_bar.destroy();
+		m_title_bar_attached = false;
 
 		if (dcomp_desktop_device)
 		{
@@ -1553,13 +1465,14 @@ namespace Core::Graphics
 
 		// 让背景铺满整个画面
 
-		auto const background_mat = D2D1::Matrix3x2F::Scale(
-			(float)window_size_u.x / (float)BACKGROUND_W,
-			(float)window_size_u.y / (float)BACKGROUND_H
-		);
-		HRGet = dcomp_visual_background->SetTransform(background_mat);
-		HRCheckCallReturnBool("IDCompositionVisual2::SetTransform");
-		
+		if (!swap_chain_background.setSize(window_size_u)) {
+			return false;
+		}
+		swap_chain_background.clearRenderTarget();
+		if (!swap_chain_background.present()) {
+			return false;
+		}
+
 		// 设置交换链内容内接放大
 
 		if (m_scaling_mode == SwapChainScalingMode::Stretch)
@@ -1589,6 +1502,12 @@ namespace Core::Graphics
 				HRGet = dcomp_visual_swap_chain->SetTransform(mat_d2d);
 				HRCheckCallReturnBool("IDCompositionVisual2::SetTransform");
 			}
+		}
+
+		// 同步窗口宽度
+
+		if (!swap_chain_title_bar.setSize(Vector2U(window_size_u.x, swap_chain_title_bar.getSize().y))) {
+			return false;
 		}
 		
 		// 提交
@@ -1701,6 +1620,8 @@ namespace Core::Graphics
 
 		m_swapchain_want_present_reset = TRUE;
 
+		m_window->getTitleBarController().createResources(m_window->GetWindow(), m_device->GetD2D1DeviceContext());
+
 		return true;
 	}
 
@@ -1720,14 +1641,26 @@ namespace Core::Graphics
 
 		HRNew;
 
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> dxgi_surface;
-		HRGet = dxgi_swapchain->GetBuffer(0, IID_PPV_ARGS(&dxgi_surface));
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> d3d11_texture2d;
+		HRGet = dxgi_swapchain->GetBuffer(0, IID_PPV_ARGS(&d3d11_texture2d));
 		HRCheckCallReturnBool("IDXGISwapChain::GetBuffer -> 0");
 		
 		// TODO: 线性颜色空间
-		HRGet = m_device->GetD3D11Device()->CreateRenderTargetView(dxgi_surface.Get(), NULL, &m_swap_chain_d3d11_rtv);
+		HRGet = m_device->GetD3D11Device()->CreateRenderTargetView(d3d11_texture2d.Get(), NULL, &m_swap_chain_d3d11_rtv);
 		HRCheckCallReturnBool("ID3D11Device::CreateRenderTargetView");
 
+		Microsoft::WRL::ComPtr<IDXGISurface> dxgi_surface;
+		HRGet = dxgi_swapchain->GetBuffer(0, IID_PPV_ARGS(&dxgi_surface));
+		HRCheckCallReturnBool("IDXGISwapChain::GetBuffer -> 0");
+
+		// TODO: 线性颜色空间
+		D2D1_BITMAP_PROPERTIES1 d2d1_bitmap_info{};
+		d2d1_bitmap_info.pixelFormat.format = COLOR_BUFFER_FORMAT;
+		d2d1_bitmap_info.pixelFormat.alphaMode = D2D1_ALPHA_MODE_IGNORE;
+		d2d1_bitmap_info.bitmapOptions = D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW;
+		HRGet = m_device->GetD2D1DeviceContext()->CreateBitmapFromDxgiSurface(dxgi_surface.Get(), &d2d1_bitmap_info, &m_swap_chain_d2d1_bitmap);
+		HRCheckCallReturnBool("ID2D1DeviceContext::CreateBitmapFromDxgiSurface");
+		
 		return true;
 	}
 	void SwapChain_D3D11::destroySwapChainRenderTarget()
@@ -1740,6 +1673,7 @@ namespace Core::Graphics
 			m_device->GetD3D11DeviceContext()->Flush();
 		}
 		m_swap_chain_d3d11_rtv.Reset();
+		m_swap_chain_d2d1_bitmap.Reset();
 	}
 	bool SwapChain_D3D11::createCanvasColorBuffer()
 	{
@@ -2186,6 +2120,42 @@ namespace Core::Graphics
 				return false;
 			}
 			m_device->GetD3D11DeviceContext()->Flush(); // 立即提交命令到 GPU
+		}
+
+		// 绘制标题栏
+
+		if (m_is_composition_mode) {
+			// 绘制标题栏到单独的表面
+			if (m_window->getTitleBarController().isVisible()) {
+				if (!m_title_bar_attached) {
+					HRGet = dcomp_visual_root->AddVisual(dcomp_visual_title_bar.Get(), TRUE, dcomp_visual_swap_chain.Get());
+					HRCheckCallReturnBool("IDCompositionVisual2::AddVisual");
+					if (!commitDirectComposition()) return false;
+					m_title_bar_attached = true;
+				}
+				auto const swap_chain_size = swap_chain_title_bar.getSize();
+				auto const title_bar_height = m_window->getTitleBarController().getHeight();
+				if (title_bar_height != swap_chain_size.y) {
+					if (!swap_chain_title_bar.setSize(Vector2U(swap_chain_size.x, title_bar_height))) {
+						return false;
+					}
+				}
+				swap_chain_title_bar.clearRenderTarget();
+				m_window->getTitleBarController().draw(swap_chain_title_bar.GetD2D1Bitmap1());
+				if (!swap_chain_title_bar.present()) {
+					return false;
+				}
+			}
+			else if (m_title_bar_attached) {
+				HRGet = dcomp_visual_root->RemoveVisual(dcomp_visual_title_bar.Get());
+				HRCheckCallReturnBool("IDCompositionVisual2::RemoveVisual");
+				if (!commitDirectComposition()) return false;
+				m_title_bar_attached = false;
+			}
+		}
+		else {
+			// 绘制标题栏到交换链上，而不是画布上
+			m_window->getTitleBarController().draw(m_swap_chain_d2d1_bitmap.Get());
 		}
 		
 		// 呈现

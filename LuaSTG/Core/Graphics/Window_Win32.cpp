@@ -64,6 +64,10 @@ namespace Core::Graphics
 		auto rResult = m_sizemove.handleSizeMove(window, message, arg1, arg2);
 		if (rResult.bReturn)
 			return rResult.lResult;
+		// 标题栏控制器
+		if (auto const result = m_title_bar_controller.handleWindowMessage(window, message, arg1, arg2); result.returnResult) {
+			return result.result;
+		}
 		// 特殊
 		for (auto& v : m_eventobj)
 		{
@@ -153,7 +157,7 @@ namespace Core::Graphics
 				RECT rect_min = { 0, 0, 320, 240 };
 				//RECT rect = { 0, 0, (LONG)win32_window_width, (LONG)win32_window_height };
 				UINT dpi = Platform::HighDPI::GetDpiForWindow(win32_window);
-				if (Platform::HighDPI::AdjustWindowRectExForDpi(&rect_min, win32_window_style, FALSE, win32_window_style_ex, dpi))
+				if (m_title_bar_controller.adjustWindowRectExForDpi(&rect_min, win32_window_style, FALSE, win32_window_style_ex, dpi))
 				{
 					info->ptMinTrackSize.x = rect_min.right - rect_min.left;
 					info->ptMinTrackSize.y = rect_min.bottom - rect_min.top;
@@ -358,6 +362,8 @@ namespace Core::Graphics
 	}
 	void Window_Win32::_setWindowMode(Vector2U size, bool ignore_size)
 	{
+		m_title_bar_controller.setEnable(true);
+
 		HMONITOR win32_monitor = MonitorFromWindow(win32_window, MONITOR_DEFAULTTONEAREST);
 		assert(win32_monitor);
 		MONITORINFO monitor_info = {};
@@ -368,7 +374,7 @@ namespace Core::Graphics
 		assert(monitor_info.rcMonitor.bottom > monitor_info.rcMonitor.top);
 
 		RECT rect = { 0, 0, (int32_t)size.x, (int32_t)size.y };
-		Platform::HighDPI::AdjustWindowRectExForDpi(
+		m_title_bar_controller.adjustWindowRectExForDpi(
 			&rect, WS_OVERLAPPEDWINDOW, FALSE, 0,
 			Platform::HighDPI::GetDpiForWindow(win32_window));
 
@@ -425,6 +431,8 @@ namespace Core::Graphics
 	}
 	void Window_Win32::_setFullScreenMode()
 	{
+		m_title_bar_controller.setEnable(false);
+
 		if (!m_fullscreen_mode)
 		{
 			BOOL const get_placement_result = GetWindowPlacement(win32_window, &m_last_window_placement);
@@ -515,7 +523,7 @@ namespace Core::Graphics
 		win32_window_dpi = Platform::HighDPI::GetDpiForWindow(win32_window);
 		// 计算包括窗口框架的尺寸
 		RECT rc = { v.a.x , v.a.y , v.b.x , v.b.y };
-		Platform::HighDPI::AdjustWindowRectExForDpi(
+		m_title_bar_controller.adjustWindowRectExForDpi(
 			&rc,
 			win32_window_style,
 			FALSE,
@@ -685,6 +693,7 @@ namespace Core::Graphics
 	void Window_Win32::setTitleText(StringView str)
 	{
 		win32_window_text = str;
+		m_title_bar_controller.setTitle(std::string(str));
 		convertTitleText();
 		PostMessageW(win32_window, LUASTG_WM_UPDAE_TITLE, 0, 0);
 	}

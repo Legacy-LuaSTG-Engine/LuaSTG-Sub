@@ -1,4 +1,5 @@
 #include <cassert>
+#include <cmath>
 #include <string>
 #include "CleanWindows.hpp"
 #include <windowsx.h>
@@ -99,6 +100,8 @@ namespace platform::windows {
 		wchar_t const chrome_maximize[2];
 		wchar_t const chrome_restore[2];
 		wchar_t const chrome_close[2];
+		wchar_t const chrome_fullScreen[2];
+		wchar_t const chrome_back_to_window[2];
 		// TODO: High Contrast Mode
 	};
 
@@ -108,6 +111,8 @@ namespace platform::windows {
 		.chrome_maximize{L"\uE922"},
 		.chrome_restore{L"\uE923"},
 		.chrome_close{L"\uE8BB"},
+		.chrome_fullScreen{L"\uE92D"},
+		.chrome_back_to_window{L"\uE92C"},
 	};
 	static IconSchema const icon_windows11{
 		.font{L"Segoe Fluent Icons"},
@@ -115,6 +120,8 @@ namespace platform::windows {
 		.chrome_maximize{L"\uE922"},
 		.chrome_restore{L"\uE923"},
 		.chrome_close{L"\uE8BB"},
+		.chrome_fullScreen{L"\uE92D"},
+		.chrome_back_to_window{L"\uE92C"},
 	};
 
 	constexpr float const title_bar_height{ 32.0f };
@@ -134,7 +141,7 @@ namespace platform::windows {
 		Platform::RuntimeLoader::DirectWrite dwrite;
 		UINT win32_window_width{};
 		UINT win32_window_height{};
-		UINT win32_window_dpi{};
+		UINT win32_window_dpi{ USER_DEFAULT_SCREEN_DPI };
 		wil::com_ptr_nothrow<ID2D1DeviceContext> d2d1_device_context;
 		wil::com_ptr_nothrow<IDWriteFactory> dwrite_factory;
 		wil::com_ptr_nothrow<IDWriteTextFormat> dwrite_text_format_title;
@@ -758,7 +765,21 @@ namespace platform::windows {
 				SWP_NOZORDER | SWP_NOMOVE | SWP_FRAMECHANGED
 			);
 		}
-		bool draw(ID2D1Bitmap1* target) {
+		bool isVisible() const noexcept {
+			if (!feature_enable || !system_windows10) {
+				return false;
+			}
+			if (!enter_title_bar || window_minimized) {
+				return false;
+			}
+			return true;
+		}
+		UINT getHeight() const {
+			auto const scaling = getScaling();
+			auto const height = title_bar_height * scaling;
+			return static_cast<UINT>(std::ceil(height));
+		}
+		bool draw(ID2D1Bitmap1* target, D2D1_POINT_2F offset) {
 			if (!feature_enable || !system_windows10) {
 				return true; // fail, but success
 			}
@@ -770,8 +791,10 @@ namespace platform::windows {
 			HRESULT hr{};
 			d2d1_device_context->BeginDraw();
 			d2d1_device_context->SetTarget(target);
+			d2d1_device_context->SetTransform(D2D1::Matrix3x2F::Translation(offset.x, offset.y));
 			drawTitleBar();
 			drawButtons();
+			d2d1_device_context->SetTransform(D2D1::Matrix3x2F::Identity());
 			d2d1_device_context->SetTarget(nullptr);
 			hr = d2d1_device_context->EndDraw();
 			if (FAILED(hr)) {
@@ -819,8 +842,14 @@ namespace platform::windows {
 	bool ImmersiveTitleBarController::update() {
 		return true;
 	}
-	bool ImmersiveTitleBarController::draw(ID2D1Bitmap1* target) {
-		return impl->draw(target);
+	bool ImmersiveTitleBarController::isVisible() {
+		return impl->isVisible();
+	}
+	UINT ImmersiveTitleBarController::getHeight() {
+		return impl->getHeight();
+	}
+	bool ImmersiveTitleBarController::draw(ID2D1Bitmap1* target, D2D1_POINT_2F offset) {
+		return impl->draw(target, offset);
 	}
 
 	ImmersiveTitleBarController::ImmersiveTitleBarController() : impl(new Impl()) {}

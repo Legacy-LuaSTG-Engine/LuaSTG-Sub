@@ -7,7 +7,6 @@
 extern "C" {
 #include "lua_cjson.h"
 #include "lfs.h"
-extern int luaopen_utf8(lua_State* L);
 extern int luaopen_string_pack(lua_State* L);
 extern int luaopen_mime_core(lua_State* L);
 extern int luaopen_socket_core(lua_State* L);
@@ -309,7 +308,6 @@ namespace LuaSTGPlus
             lua_xinput_open(L);
             luaopen_dwrite(L);
             luaopen_random(L);
-            luaopen_utf8(L);
             luaopen_string_pack(L);
             {
                 lua_getfield(L, LUA_REGISTRYINDEX, "_LOADED"); // ... _LOADED

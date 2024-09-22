@@ -8,21 +8,29 @@
 
 namespace Core::Graphics
 {
-	class DisplayModeUpdater
-	{
+	class SecondarySwapChain {
 	private:
-		DISPLAY_DEVICEW last_device{};
-		DEVMODEW last_mode{};
-		bool is_scope{ false };
+		DXGI_SWAP_CHAIN_DESC1 info{};
+		wil::com_ptr_nothrow<IDXGIFactory2> dxgi_factory;
+		wil::com_ptr_nothrow<ID3D11Device> d3d11_device;
+		wil::com_ptr_nothrow<ID3D11DeviceContext> d3d11_device_context;
+		wil::com_ptr_nothrow<ID2D1DeviceContext> d2d1_device_context;
+		wil::com_ptr_nothrow<IDXGISwapChain1> dxgi_swap_chain;
+		wil::com_ptr_nothrow<ID3D11RenderTargetView> d3d11_rtv;
+		wil::com_ptr_nothrow<ID2D1Bitmap1> d2d1_bitmap;
+	private:
+		bool createRenderAttachment();
+		void destroyRenderAttachment();
 	public:
-		bool Enter(HWND window, UINT width, UINT height);
-		void Leave();
+		inline IDXGISwapChain1* GetDXGISwapChain1() { return dxgi_swap_chain.get(); }
+		inline ID2D1Bitmap1* GetD2D1Bitmap1() { return d2d1_bitmap.get(); }
 	public:
-		inline DisplayModeUpdater() = default;
-		inline ~DisplayModeUpdater()
-		{
-			Leave();
-		}
+		bool create(IDXGIFactory2* factory, ID3D11Device* device, ID2D1DeviceContext* context, Vector2U const& size);
+		void destroy();
+		bool setSize(Vector2U const& size);
+		inline Vector2U getSize() const noexcept { return { info.Width, info.Height }; }
+		void clearRenderTarget();
+		bool present();
 	};
 
 	class SwapChain_D3D11
@@ -34,7 +42,6 @@ namespace Core::Graphics
 		ScopeObject<Window_Win32> m_window;
 		ScopeObject<Device_D3D11> m_device;
 		Direct3D11::LetterBoxingRenderer m_scaling_renderer;
-		DisplayModeUpdater m_display_mode_updater;
 
 		Microsoft::WRL::Wrappers::Event dxgi_swapchain_event;
 		Microsoft::WRL::ComPtr<IDXGISwapChain1> dxgi_swapchain;
@@ -81,7 +88,10 @@ namespace Core::Graphics
 		Microsoft::WRL::ComPtr<IDCompositionVisual2> dcomp_visual_root;
 		Microsoft::WRL::ComPtr<IDCompositionVisual2> dcomp_visual_background;
 		Microsoft::WRL::ComPtr<IDCompositionVisual2> dcomp_visual_swap_chain;
-		Microsoft::WRL::ComPtr<IDCompositionSurface> dcomp_surface_background;
+		Microsoft::WRL::ComPtr<IDCompositionVisual2> dcomp_visual_title_bar;
+		SecondarySwapChain swap_chain_background;
+		SecondarySwapChain swap_chain_title_bar;
+		bool m_title_bar_attached{ false };
 	private:
 		bool createDirectCompositionResources();
 		void destroyDirectCompositionResources();
@@ -91,6 +101,7 @@ namespace Core::Graphics
 
 	private:
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_swap_chain_d3d11_rtv;
+		Microsoft::WRL::ComPtr<ID2D1Bitmap1> m_swap_chain_d2d1_bitmap;
 		Vector2U m_canvas_size{ 640,480 };
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_canvas_d3d11_srv;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_canvas_d3d11_rtv;
