@@ -5,12 +5,14 @@
 #include <windowsx.h>
 #include <d2d1_3.h>
 #include <dwrite_3.h>
+#include <dwmapi.h>
 #include <wil/com.h>
 #include "HighDPI.hpp"
 #include "WindowsVersion.hpp"
 #include "WindowTheme.hpp"
 #include "ImmersiveTitleBarController.hpp"
 #include "RuntimeLoader/DirectWrite.hpp"
+#include "RuntimeLoader/DesktopWindowManager.hpp"
 
 namespace win32 {
 	inline UINT getDpiForWindow(HWND window) {
@@ -139,6 +141,7 @@ namespace platform::windows {
 	class ImmersiveTitleBarController::Impl {
 	private:
 		Platform::RuntimeLoader::DirectWrite dwrite;
+		Platform::RuntimeLoader::DesktopWindowManager dwm;
 		UINT win32_window_width{};
 		UINT win32_window_height{};
 		UINT win32_window_dpi{ USER_DEFAULT_SCREEN_DPI };
@@ -149,7 +152,6 @@ namespace platform::windows {
 		std::wstring title_text{ L"Render Window" };
 		bool feature_enable{ true };
 		bool dark_mode{ false };
-		bool system_windows10{ false };
 		bool system_windows11{ false };
 		bool window_minimized{ false };
 		bool window_maximized{ false };
@@ -209,54 +211,56 @@ namespace platform::windows {
 			d2d1_device_context->CreateSolidColorBrush(color_schema.title_text, title_text_color.put());
 
 			auto const title_text_width = (float)win32_window_width - (3.0f * button_width + 2.0f * title_left_padding) * scaling;
-			wil::com_ptr_nothrow<IDWriteTextLayout> title_text_layout;
-			dwrite_factory->CreateTextLayout(
-				title_text.c_str(), static_cast<UINT>(title_text.length()),
-				dwrite_text_format_title.get(),
-				title_text_width,
-				(title_bar_height - title_bottom_padding) * scaling,
-				title_text_layout.put()
-			);
-			DWRITE_TEXT_RANGE range{
-				.startPosition = 0,
-				.length = static_cast<UINT>(title_text.length()),
-			};
-			title_text_layout->SetFontSize(title_font_size * scaling, range);
-			title_text_layout->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-			title_text_layout->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-			title_text_layout->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
-
-			DWRITE_TEXT_METRICS metrics{};
-			title_text_layout->GetMetrics(&metrics);
-			if (metrics.width > title_text_width) {
-				wil::com_ptr_nothrow<IDWriteTextLayout> title_text_more_layout;
+			if (title_text_width > 0) {
+				wil::com_ptr_nothrow<IDWriteTextLayout> title_text_layout;
 				dwrite_factory->CreateTextLayout(
-					L"...", 3,
+					title_text.c_str(), static_cast<UINT>(title_text.length()),
 					dwrite_text_format_title.get(),
-					100.0f,
+					title_text_width,
 					(title_bar_height - title_bottom_padding) * scaling,
-					title_text_more_layout.put()
+					title_text_layout.put()
 				);
-				title_text_more_layout->SetFontSize(title_font_size * scaling, range);
-				title_text_more_layout->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-				title_text_more_layout->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+				DWRITE_TEXT_RANGE range{
+					.startPosition = 0,
+					.length = static_cast<UINT>(title_text.length()),
+				};
+				title_text_layout->SetFontSize(title_font_size * scaling, range);
+				title_text_layout->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+				title_text_layout->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+				title_text_layout->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
+
+				DWRITE_TEXT_METRICS metrics{};
+				title_text_layout->GetMetrics(&metrics);
+				if (metrics.width > title_text_width) {
+					wil::com_ptr_nothrow<IDWriteTextLayout> title_text_more_layout;
+					dwrite_factory->CreateTextLayout(
+						L"...", 3,
+						dwrite_text_format_title.get(),
+						100.0f,
+						(title_bar_height - title_bottom_padding) * scaling,
+						title_text_more_layout.put()
+					);
+					title_text_more_layout->SetFontSize(title_font_size * scaling, range);
+					title_text_more_layout->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+					title_text_more_layout->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+
+					d2d1_device_context->DrawTextLayout(
+						D2D1::Point2F(title_left_padding * scaling + title_text_width, 0.0f),
+						title_text_more_layout.get(),
+						title_text_color.get()
+					);
+
+					DWRITE_TRIMMING trimming{};
+					trimming.granularity = DWRITE_TRIMMING_GRANULARITY_CHARACTER;
+					title_text_layout->SetTrimming(&trimming, NULL);
+				}
 
 				d2d1_device_context->DrawTextLayout(
-					D2D1::Point2F(title_left_padding * scaling + title_text_width, 0.0f),
-					title_text_more_layout.get(),
+					D2D1::Point2F(title_left_padding * scaling, 0.0f),
+					title_text_layout.get(),
 					title_text_color.get()
 				);
-
-				DWRITE_TRIMMING trimming{};
-				trimming.granularity = DWRITE_TRIMMING_GRANULARITY_CHARACTER;
-				title_text_layout->SetTrimming(&trimming, NULL);
 			}
-
-			d2d1_device_context->DrawTextLayout(
-				D2D1::Point2F(title_left_padding * scaling, 0.0f),
-				title_text_layout.get(),
-				title_text_color.get()
-			);
 		}
 		void drawButtons() {
 			auto const scaling = getScaling();
@@ -412,11 +416,23 @@ namespace platform::windows {
 				getCloseButtonTextBrush()
 			);
 		}
+		UINT getFrameBorderThickness(HWND win32_window) {
+			if (!system_windows11) {
+				return 0;
+			}
+			HRESULT hr{};
+			UINT value{};
+			hr = dwm.GetWindowAttribute(win32_window, DWMWA_VISIBLE_FRAME_BORDER_THICKNESS, &value, sizeof(value));
+			if (SUCCEEDED(hr)) {
+				return value;
+			}
+			return 0;
+		}
 
 	public:
 		void setEnable(bool enable) { feature_enable = enable; }
 		BOOL adjustWindowRectExForDpi(RECT* lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi) {
-			if (!feature_enable || !system_windows10) {
+			if (!feature_enable || !system_windows11) {
 				return win32::adjustWindowRectExForDpi(lpRect, dwStyle, bMenu, dwExStyle, dpi);
 			}
 			auto const old_top = lpRect->top;
@@ -431,7 +447,7 @@ namespace platform::windows {
 			return result;
 		}
 		HandleWindowMessageResult handleWindowMessage(HWND window, UINT message, WPARAM arg1, LPARAM arg2) {
-			if (!feature_enable || !system_windows10) {
+			if (!feature_enable || !system_windows11) {
 				return { false, 0 };
 			}
 			switch (message) {
@@ -523,13 +539,13 @@ namespace platform::windows {
 						old_top = data->rgrc[0].top;
 					}
 					auto const result = DefWindowProcW(window, message, arg1, arg2);
-					auto const outline = MulDiv(1, win32_window_dpi, USER_DEFAULT_SCREEN_DPI); // MAGIC NUMBER: outline width
-					auto h_padded_border = win32::getSystemMetricsForDpi(SM_CXPADDEDBORDER, win32_window_dpi);
-					auto h_border = win32::getSystemMetricsForDpi(SM_CYBORDER, win32_window_dpi);
-					auto h_edge = win32::getSystemMetricsForDpi(SM_CYEDGE, win32_window_dpi);
-					auto h_size_frame = win32::getSystemMetricsForDpi(SM_CYSIZEFRAME, win32_window_dpi);
-					auto h_fixed_frame = win32::getSystemMetricsForDpi(SM_CYFIXEDFRAME, win32_window_dpi);
-					auto const h_caption = win32::getSystemMetricsForDpi(SM_CYCAPTION, win32_window_dpi);
+					auto const outline = getFrameBorderThickness(window);
+					auto const h_padded_border = win32::getSystemMetricsForDpi(SM_CXPADDEDBORDER, win32_window_dpi);
+					//auto const h_border = win32::getSystemMetricsForDpi(SM_CYBORDER, win32_window_dpi);
+					//auto const h_edge = win32::getSystemMetricsForDpi(SM_CYEDGE, win32_window_dpi);
+					auto const h_size_frame = win32::getSystemMetricsForDpi(SM_CYSIZEFRAME, win32_window_dpi);
+					//auto const h_fixed_frame = win32::getSystemMetricsForDpi(SM_CYFIXEDFRAME, win32_window_dpi);
+					//auto const h_caption = win32::getSystemMetricsForDpi(SM_CYCAPTION, win32_window_dpi);
 					if (!arg1 /* == FALSE */) {
 						auto rect = reinterpret_cast<RECT*>(arg2);
 						if (placement.showCmd == SW_MAXIMIZE) {
@@ -672,7 +688,7 @@ namespace platform::windows {
 			return { false, 0 };
 		}
 		bool createResources(HWND window, ID2D1DeviceContext* context) {
-			if (!system_windows10) {
+			if (!system_windows11) {
 				return true; // fail, but success
 			}
 			assert(window);
@@ -742,7 +758,7 @@ namespace platform::windows {
 			exitTitleBar();
 		}
 		bool setTitle(std::string const& text) {
-			if (!system_windows10) {
+			if (!system_windows11) {
 				return true; // fail, but success
 			}
 			title_text = to_wide(text);
@@ -766,7 +782,7 @@ namespace platform::windows {
 			);
 		}
 		bool isVisible() const noexcept {
-			if (!feature_enable || !system_windows10) {
+			if (!feature_enable || !system_windows11) {
 				return false;
 			}
 			if (!enter_title_bar || window_minimized) {
@@ -780,7 +796,7 @@ namespace platform::windows {
 			return static_cast<UINT>(std::ceil(height));
 		}
 		bool draw(ID2D1Bitmap1* target, D2D1_POINT_2F offset) {
-			if (!feature_enable || !system_windows10) {
+			if (!feature_enable || !system_windows11) {
 				return true; // fail, but success
 			}
 			if (!enter_title_bar || window_minimized) {
@@ -806,7 +822,6 @@ namespace platform::windows {
 
 	public:
 		Impl() {
-			system_windows10 = Platform::WindowsVersion::Is10();
 			system_windows11 = Platform::WindowsVersion::Is11();
 		}
 		~Impl() {
