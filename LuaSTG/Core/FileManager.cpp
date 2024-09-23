@@ -44,6 +44,7 @@ namespace Core
 {
     static uint64_t g_uuid = 0;
     constexpr size_t invalid_index = size_t(-1);
+    constexpr size_t invalid_size = size_t(-1);
     
     // FileArchive
 
@@ -117,6 +118,27 @@ namespace Core
             refresh();
         }
         return list.size();
+    }
+    size_t FileArchive::getSize(size_t index)
+    {
+        return getSize(getName(index));
+    }
+    size_t FileArchive::getSize(std::string_view const& name)
+    {
+        if (!mz_zip_v)
+        {
+            return invalid_size;
+        }
+        if (MZ_OK != mz_zip_reader_locate_entry(mz_zip_v, name.data(), false))
+        {
+            return invalid_size;
+        }
+        int32_t file_size = mz_zip_reader_entry_save_buffer_length(mz_zip_v);
+        if (file_size < 0)
+        {
+            return invalid_size;
+        }
+        return file_size;
     }
     FileType FileArchive::getType(size_t index)
     {
@@ -379,6 +401,59 @@ namespace Core
     {
         refresh();
         return list.size();
+    }
+    size_t FileManager::getSize(std::string_view const& name) {
+        std::wstring wide_path(utf8::to_wstring(name));
+        std::error_code ec;
+        if (!std::filesystem::is_regular_file(wide_path, ec))
+        {
+            return invalid_size;
+        }
+        if (!is_file_path_case_correct(wide_path))
+        {
+            return invalid_size;
+        }
+        uintmax_t file_size = std::filesystem::file_size(wide_path, ec);
+        return file_size == static_cast<uintmax_t>(-1) ? invalid_size : static_cast<size_t>(file_size);
+    }
+    size_t FileManager::getSizeEx(std::string_view const& name)
+    {
+        // 优先搜索有无对应文件 没有再搜索压缩包内是否存在对应文件 与loadEx的顺序相反
+        // 先对默认路径运用一遍proc 无结果再对搜索路径应用一编proc
+        auto proc = [&](std::string_view const& name) -> size_t
+            {
+                size_t file_size = getSize(name);
+                if (invalid_size != file_size)
+                {
+                    return file_size;
+                }
+                for (auto& arc : archive)
+                {
+                    file_size = arc->getSize(name);
+                    if (invalid_size != file_size)
+                    {
+                        return file_size;
+                    }
+                }
+
+                return invalid_size;
+            };
+
+        size_t file_size = proc(name);
+        if (invalid_size != file_size)
+        {
+            return file_size;
+        }
+        for (auto& p : search_list)
+        {
+            std::string path(p); path.append(name);
+            file_size = proc(path);
+            if (invalid_size != file_size)
+            {
+                return file_size;
+            }
+        }
+        return invalid_size;
     }
     FileType FileManager::getType(size_t index) { return list[index].type; }
     FileType FileManager::getType(std::string_view const& name)

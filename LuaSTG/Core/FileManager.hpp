@@ -25,6 +25,7 @@ namespace Core
     public:
         virtual size_t findIndex(std::string_view const& name) = 0;
         virtual size_t getCount() = 0;
+        virtual size_t getSize(std::string_view const& path) = 0;
         virtual FileType getType(size_t index) = 0;
         virtual FileType getType(std::string_view const& name) = 0;
         virtual std::string_view getName(size_t index) = 0;
@@ -45,6 +46,8 @@ namespace Core
     public:
         size_t findIndex(std::string_view const& name);
         size_t getCount();
+        size_t getSize(size_t index);
+        size_t getSize(std::string_view const& name);
         FileType getType(size_t index);
         FileType getType(std::string_view const& name);
         std::string_view getName(size_t index);
@@ -75,6 +78,8 @@ namespace Core
     public:
         size_t findIndex(std::string_view const& name);
         size_t getCount();
+        size_t getSize(std::string_view const& name);
+        size_t getSizeEx(std::string_view const& name);
         FileType getType(size_t index);
         FileType getType(std::string_view const& name);
         std::string_view getName(size_t index);
