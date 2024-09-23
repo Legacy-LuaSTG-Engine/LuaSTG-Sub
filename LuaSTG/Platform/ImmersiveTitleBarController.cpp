@@ -538,7 +538,7 @@ namespace platform::windows {
 						auto data = reinterpret_cast<NCCALCSIZE_PARAMS*>(arg2);
 						old_top = data->rgrc[0].top;
 					}
-					auto const result = DefWindowProcW(window, message, arg1, arg2);
+					[[maybe_unused]] auto const result = DefWindowProcW(window, message, arg1, arg2);
 					auto const outline = getFrameBorderThickness(window);
 					auto const h_padded_border = win32::getSystemMetricsForDpi(SM_CXPADDEDBORDER, win32_window_dpi);
 					//auto const h_border = win32::getSystemMetricsForDpi(SM_CYBORDER, win32_window_dpi);
