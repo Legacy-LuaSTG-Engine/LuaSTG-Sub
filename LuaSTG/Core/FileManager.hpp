@@ -18,6 +18,7 @@ namespace Core
     {
         FileType type = FileType::Unknown;
         std::string name;
+        size_t size{};
     };
     
     class FileNodeTree
@@ -25,6 +26,7 @@ namespace Core
     public:
         virtual size_t findIndex(std::string_view const& name) = 0;
         virtual size_t getCount() = 0;
+        virtual size_t getSize(size_t index) = 0;
         virtual size_t getSize(std::string_view const& path) = 0;
         virtual FileType getType(size_t index) = 0;
         virtual FileType getType(std::string_view const& name) = 0;
@@ -78,6 +80,7 @@ namespace Core
     public:
         size_t findIndex(std::string_view const& name);
         size_t getCount();
+        size_t getSize(size_t index);
         size_t getSize(std::string_view const& name);
         size_t getSizeEx(std::string_view const& name);
         FileType getType(size_t index);

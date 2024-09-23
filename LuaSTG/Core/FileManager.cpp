@@ -1,4 +1,4 @@
-﻿#include "Core/FileManager.hpp"
+#include "Core/FileManager.hpp"
 #include <filesystem>
 #include <fstream>
 #include "utf8.hpp"
@@ -8,7 +8,7 @@
 #include "mz_zip.h"
 #include "mz_zip_rw.h"
 
-inline bool is_file_path_case_correct(std::wstring_view file_path)
+static bool is_file_path_case_correct(std::wstring_view file_path)
 {
     if (file_path.empty()) return false;
 
@@ -84,10 +84,11 @@ namespace Core
             mz_zip_file* mz_zip_file_v = nullptr;
             if (MZ_OK == mz_zip_reader_entry_get_info(mz_zip_v, &mz_zip_file_v))
             {
-                bool is_dir = (MZ_OK == mz_zip_reader_entry_is_dir(mz_zip_v));
+                bool const is_dir = (MZ_OK == mz_zip_reader_entry_is_dir(mz_zip_v));
                 list.emplace_back(FileNode{
                     .type = is_dir ? FileType::Directory : FileType::File,
                     .name = mz_zip_file_v->filename,
+                    .size = is_dir ? 0 : static_cast<size_t>(mz_zip_file_v->uncompressed_size),
                 });
             }
         } while (MZ_OK == mz_zip_reader_goto_next_entry(mz_zip_v));
@@ -121,7 +122,11 @@ namespace Core
     }
     size_t FileArchive::getSize(size_t index)
     {
-        return getSize(getName(index));
+        if ((index < 0) || (index >= getCount()))
+        {
+            return invalid_size;
+        }
+        return list[index].size;
     }
     size_t FileArchive::getSize(std::string_view const& name)
     {
@@ -368,12 +373,14 @@ namespace Core
             {
                 node.type = FileType::File;
                 node.name = utf8::to_string(entry.path().generic_wstring()).substr(2);
+                node.size = entry.file_size(ec);
             }
             else if (entry.is_directory())
             {
                 node.type = FileType::Directory;
                 node.name = utf8::to_string(entry.path().generic_wstring()).substr(2);
                 node.name.push_back('/');
+                node.size = 0;
             }
             else
             {
@@ -401,6 +408,14 @@ namespace Core
     {
         refresh();
         return list.size();
+    }
+    size_t FileManager::getSize(size_t index)
+    {
+        if ((index < 0) || (index >= getCount()))
+        {
+            return invalid_size;
+        }
+        return list[index].size;
     }
     size_t FileManager::getSize(std::string_view const& name) {
         std::wstring wide_path(utf8::to_wstring(name));
