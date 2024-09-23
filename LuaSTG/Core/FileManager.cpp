@@ -119,6 +119,10 @@ namespace Core
         }
         return list.size();
     }
+    size_t FileArchive::getSize(size_t index)
+    {
+        return getSize(getName(index));
+    }
     size_t FileArchive::getSize(std::string_view const& name)
     {
         if (!mz_zip_v)

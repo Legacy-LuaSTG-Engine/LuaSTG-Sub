@@ -46,6 +46,7 @@ namespace Core
     public:
         size_t findIndex(std::string_view const& name);
         size_t getCount();
+        size_t getSize(size_t index);
         size_t getSize(std::string_view const& name);
         FileType getType(size_t index);
         FileType getType(std::string_view const& name);
