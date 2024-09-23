@@ -684,6 +684,11 @@ namespace platform::windows {
 					return { true, 0 };
 				}
 				break;
+			case WM_EXITSIZEMOVE:
+				if (title_bar_down) {
+					title_bar_down = false; // some hack, click on caption won't generate WM_NCLBUTTONUP
+				}
+				break;
 			}
 			return { false, 0 };
 		}
