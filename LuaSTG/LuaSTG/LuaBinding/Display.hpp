@@ -1,6 +1,7 @@
 #pragma once
 #include <string_view>
 #include "lua.hpp"
+#include "Core/Graphics/Window.hpp"
 
 namespace LuaSTG::Sub::LuaBinding {
 	
@@ -8,7 +9,7 @@ namespace LuaSTG::Sub::LuaBinding {
 
 		static std::string_view class_name;
 
-		[[maybe_unused]] size_t data{};
+		[[maybe_unused]] Core::Graphics::IDisplay* data{};
 
 		static bool is(lua_State* L, int index);
 

@@ -33,7 +33,11 @@ namespace LuaSTG::Sub::LuaBinding {
 		// meta methods
 
 		static int __gc(lua_State* L) {
-			[[maybe_unused]] auto self = as(L, 1); // TODO
+			auto self = as(L, 1);
+			if (self->data) {
+				self->data->release();
+				self->data = nullptr;
+			}
 			return 0;
 		}
 
@@ -60,44 +64,58 @@ namespace LuaSTG::Sub::LuaBinding {
 		// instance methods
 
 		static int getSize(lua_State* L) {
-			pushSize(L, 0.0, 0.0); // TODO
+			auto self = as(L, 1);
+			auto size = self->data->getSize();
+			pushSize(L, size.x, size.y);
 			return 1;
 		}
 
 		static int getPosition(lua_State* L) {
-			pushPoint(L, 0.0, 0.0); // TODO
+			auto self = as(L, 1);
+			auto position = self->data->getPosition();
+			pushPoint(L, position.x, position.y);
 			return 1;
 		}
 
 		static int getRect(lua_State* L) {
-			pushRect(L, 0.0, 0.0, 0.0, 0.0); // TODO
+			auto self = as(L, 1);
+			auto rect = self->data->getRect();
+			pushRect(L, rect.a.x, rect.a.y, rect.b.x, rect.b.y);
 			return 1;
 		}
 
 		static int getWorkAreaSize(lua_State* L) {
-			pushSize(L, 0.0, 0.0); // TODO
+			auto self = as(L, 1);
+			auto size = self->data->getWorkAreaSize();
+			pushSize(L, size.x, size.y);
 			return 1;
 		}
 
 		static int getWorkAreaPosition(lua_State* L) {
-			pushPoint(L, 0.0, 0.0); // TODO
+			auto self = as(L, 1);
+			auto position = self->data->getWorkAreaPosition();
+			pushPoint(L, position.x, position.y);
 			return 1;
 		}
 
 		static int getWorkAreaRect(lua_State* L) {
-			pushRect(L, 0.0, 0.0, 0.0, 0.0); // TODO
+			auto self = as(L, 1);
+			auto rect = self->data->getWorkAreaRect();
+			pushRect(L, rect.a.x, rect.a.y, rect.b.x, rect.b.y);
 			return 1;
 		}
 
 		static int isPrimary(lua_State* L) {
+			auto self = as(L, 1);
 			lua::stack_t S(L);
-			S.push_value(false); // TODO
+			S.push_value(self->data->isPrimary());
 			return 1;
 		}
 
 		static int getDisplayScale(lua_State* L) {
+			auto self = as(L, 1);
 			lua::stack_t S(L);
-			S.push_value(0.0); // TODO
+			S.push_value(self->data->getDisplayScale());
 			return 1;
 		}
 
@@ -105,20 +123,44 @@ namespace LuaSTG::Sub::LuaBinding {
 
 		static int getAll(lua_State* L) {
 			lua::stack_t S(L);
-			S.create_array(); // TODO
+
+			size_t count{};
+			if (!Core::Graphics::IDisplay::getAll(&count, nullptr)) {
+				return luaL_error(L, "lstg.Display.getAll failed");
+			}
+
+			std::vector<Core::Graphics::IDisplay*> list(count);
+			if (!Core::Graphics::IDisplay::getAll(&count, list.data())) {
+				return luaL_error(L, "lstg.Display.getAll failed");
+			}
+
+			auto const list_index = S.create_array(count);
+			for (size_t i = 0; i < count; i += 1) {
+				auto display = create(L);
+				auto const display_index = S.index_of_top();
+				display->data = list[i];
+				S.set_array_value(list_index, static_cast<int32_t>(i + 1), display_index);
+				S.pop_value();
+			}
+
 			return 1;
 		}
 
 		static int getPrimary(lua_State* L) {
 			lua::stack_t S(L);
-			S.push_value(std::nullopt); // TODO
+			auto self = create(L);
+			if (!Core::Graphics::IDisplay::getPrimary(&self->data)) {
+				return luaL_error(L, "lstg.Display.getPrimary failed");
+			}
 			return 1;
 		}
 
 		static int getNearestFromWindow(lua_State* L) {
-			lua::stack_t S(L);
-			S.push_value(std::nullopt); // TODO
-			return 1;
+			//lua::stack_t S(L);
+			//S.push_value(std::nullopt); // TODO
+			//create(L);
+			//return 1;
+			return luaL_error(L, "not implement");
 		}
 
 	};
@@ -137,6 +179,7 @@ namespace LuaSTG::Sub::LuaBinding {
 		auto self = S.create_userdata<Display>();
 		auto const self_index = S.index_of_top();
 		S.set_metatable(self_index, class_name);
+		self->data = nullptr;
 		return self;
 	}
 
@@ -146,7 +189,7 @@ namespace LuaSTG::Sub::LuaBinding {
 
 		// method
 
-		auto const method_table = S.create_map();
+		auto const method_table = S.push_module(class_name);
 		S.set_map_value(method_table, "getSize", &DisplayBinding::getSize);
 		S.set_map_value(method_table, "getPosition", &DisplayBinding::getPosition);
 		S.set_map_value(method_table, "getRect", &DisplayBinding::getRect);
