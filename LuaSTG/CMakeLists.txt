@@ -123,6 +123,8 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/Resource.cpp
     LuaSTG/LuaBinding/Display.hpp
     LuaSTG/LuaBinding/Display.cpp
+    LuaSTG/LuaBinding/Window.hpp
+    LuaSTG/LuaBinding/Window.cpp
 
     LuaSTG/SteamAPI/SteamAPI.cpp
     LuaSTG/SteamAPI/SteamAPI.hpp
