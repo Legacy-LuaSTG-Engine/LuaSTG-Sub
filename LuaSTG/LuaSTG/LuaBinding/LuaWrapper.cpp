@@ -1,6 +1,7 @@
 #include "LuaBinding/LuaWrapper.hpp"
 #include "LuaBinding/PostEffectShader.hpp"
 #include "LuaBinding/Display.hpp"
+#include "LuaBinding/Window.hpp"
 
 namespace LuaSTGPlus
 {
@@ -60,5 +61,6 @@ namespace LuaSTGPlus
 		ArchiveWrapper::Register(L); //压缩包
 		LuaSTG::LuaBinding::PostEffectShader::Register(L);
 		LuaSTG::Sub::LuaBinding::Display::registerClass(L);
+		LuaSTG::Sub::LuaBinding::Window::registerClass(L);
 	}
 }
