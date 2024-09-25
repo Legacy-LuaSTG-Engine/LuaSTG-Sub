@@ -121,6 +121,8 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/PostEffectShader.cpp
     LuaSTG/LuaBinding/Resource.hpp
     LuaSTG/LuaBinding/Resource.cpp
+    LuaSTG/LuaBinding/Display.hpp
+    LuaSTG/LuaBinding/Display.cpp
 
     LuaSTG/SteamAPI/SteamAPI.cpp
     LuaSTG/SteamAPI/SteamAPI.hpp
