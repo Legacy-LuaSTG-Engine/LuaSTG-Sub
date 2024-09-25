@@ -168,6 +168,8 @@ namespace lua
 		template<>
 		inline void set_array_value(stack_index_t index, std::string_view value) { lua_pushlstring(L, value.data(), value.size()); lua_rawseti(L, -2, index.value); }
 
+		inline void set_array_value(stack_index_t array_index, int32_t index, stack_index_t value_index) { lua_pushvalue(L, value_index.value); lua_rawseti(L, array_index.value, index); }
+
 		inline size_t get_array_size(stack_index_t index) { return lua_objlen(L, index.value); }
 
 		inline void push_array_value_zero_base(stack_index_t array_index, size_t c_index) { lua_rawgeti(L, array_index.value, static_cast<int>(c_index + 1)); }
