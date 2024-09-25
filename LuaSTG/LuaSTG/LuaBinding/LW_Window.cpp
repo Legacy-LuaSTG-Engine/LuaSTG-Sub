@@ -185,34 +185,12 @@ static int compat_SetTitle(lua_State* L)
     LAPP.SetTitle(luaL_checkstring(L, 1));
     return 0;
 }
-static int compat_ListMonitor(lua_State* L)
-{
-    getwindow(window);
-    uint32_t const count = window->getMonitorCount();
-    lua_createtable(L, (int)count, 0);           // t
-    for (uint32_t i = 0; i < count; i += 1)
-    {
-        Core::RectI const rect = window->getMonitorRect(i);
-        lua_createtable(L, 0, 4);                // t t
-        lua_pushinteger(L, rect.a.x);            // t t x
-        lua_setfield(L, -2, "x");                // t t
-        lua_pushinteger(L, rect.a.y);            // t t y
-        lua_setfield(L, -2, "y");                // t t
-        lua_pushinteger(L, rect.b.x - rect.a.x); // t t w
-        lua_setfield(L, -2, "width");            // t t
-        lua_pushinteger(L, rect.b.y - rect.a.y); // t t h
-        lua_setfield(L, -2, "height");           // t t
-        lua_rawseti(L, -2, (int)i + 1);          // t
-    }
-    return 1;
-}
 
 #define makefname(__X__) { #__X__ , &lib_##__X__ }
 
 static const luaL_Reg compat[] = {
     { "SetSplash", &compat_SetSplash },
     { "SetTitle" , &compat_SetTitle  },
-    { "ListMonitor" , &compat_ListMonitor  },
     {NULL, NULL},
 };
 
@@ -241,38 +219,6 @@ static const luaL_Reg lib[] = {
     {NULL, NULL},
 };
 
-static int molib_getCount(lua_State* L)
-{
-    getwindow(window);
-    lua_pushinteger(L, (lua_Integer)window->getMonitorCount());
-    return 1;
-}
-static int molib_getPos(lua_State* L)
-{
-    getwindow(window);
-    uint32_t const index = (uint32_t)luaL_checkinteger(L, 1);
-    Core::RectI const rc = window->getMonitorRect(index);
-    lua_pushinteger(L, rc.a.x);
-    lua_pushinteger(L, rc.a.y);
-    return 2;
-}
-static int molib_getSize(lua_State* L)
-{
-    getwindow(window);
-    uint32_t const index = (uint32_t)luaL_checkinteger(L, 1);
-    Core::RectI const rc = window->getMonitorRect(index);
-    lua_pushinteger(L, rc.b.x - rc.a.x);
-    lua_pushinteger(L, rc.b.y - rc.a.y);
-    return 2;
-}
-
-static const luaL_Reg molib[] = {
-    { "getCount", &molib_getCount },
-    { "getPos"  , &molib_getPos   },
-    { "getSize" , &molib_getSize  },
-    {NULL, NULL},
-};
-
 void LuaSTGPlus::LuaWrapper::WindowWrapper::Register(lua_State* L)noexcept
 {
     luaL_register(L, LUASTG_LUA_LIBNAME, compat); // ? t
@@ -280,11 +226,6 @@ void LuaSTGPlus::LuaWrapper::WindowWrapper::Register(lua_State* L)noexcept
     lua_pushstring(L, "Window");                  // ? t k
     lua_newtable(L);                              // ? t k t
     luaL_register(L, NULL, lib);                  // ? t k t
-    lua_settable(L, -3);                          // ? t
-    // Monitor
-    lua_pushstring(L, "Monitor");                 // ? t k
-    lua_newtable(L);                              // ? t k t
-    luaL_register(L, NULL, molib);                // ? t k t
     lua_settable(L, -3);                          // ? t
     lua_pop(L, 1);                                // ?
 };
