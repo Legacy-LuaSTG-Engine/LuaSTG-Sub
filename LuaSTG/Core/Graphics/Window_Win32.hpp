@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Core/Object.hpp"
 #include "Core/ApplicationModel.hpp"
 #include "Core/Graphics/Window.hpp"
@@ -9,6 +9,24 @@
 
 namespace Core::Graphics
 {
+	class Display_Win32 : public Object<IDisplay> {
+	private:
+		HMONITOR win32_monitor{};
+	public:
+		void* getNativeHandle();
+		Vector2U getSize();
+		Vector2I getPosition();
+		RectI getRect();
+		Vector2U getWorkAreaSize();
+		Vector2I getWorkAreaPosition();
+		RectI getWorkAreaRect();
+		bool isPrimary();
+		float getDisplayScale();
+	public:
+		Display_Win32(HMONITOR monitor);
+		~Display_Win32();
+	};
+
 	class Window_Win32 : public Object<IWindow>
 	{
 	private:

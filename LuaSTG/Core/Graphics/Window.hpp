@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Core/Type.hpp"
 
 namespace Core::Graphics
@@ -66,6 +66,24 @@ namespace Core::Graphics
 
 		NotAllowed,
 		Wait,
+	};
+
+	struct IWindow;
+
+	struct IDisplay : public IObject {
+		virtual void* getNativeHandle() = 0;
+		virtual Vector2U getSize() = 0;
+		virtual Vector2I getPosition() = 0;
+		virtual RectI getRect() = 0;
+		virtual Vector2U getWorkAreaSize() = 0;
+		virtual Vector2I getWorkAreaPosition() = 0;
+		virtual RectI getWorkAreaRect() = 0;
+		virtual bool isPrimary() = 0;
+		virtual float getDisplayScale() = 0;
+
+		static bool getAll(size_t* count, IDisplay** output);
+		static bool getPrimary(IDisplay** output);
+		static bool getNearestFromWindow(IWindow* window, IDisplay** output);
 	};
 
 	struct IWindow : public IObject

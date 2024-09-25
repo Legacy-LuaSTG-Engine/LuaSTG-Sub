@@ -1,4 +1,4 @@
-﻿#include "Core/Graphics/Window_Win32.hpp"
+#include "Core/Graphics/Window_Win32.hpp"
 #include "Core/ApplicationModel_Win32.hpp"
 #include "Core/InitializeConfigure.hpp"
 #include "Core/i18n.hpp"
@@ -12,6 +12,121 @@ constexpr int const LUASTG_WM_RECREATE = LUASTG_WM_UPDAE_TITLE + 1;
 constexpr int const LUASTG_WM_SETICON = LUASTG_WM_RECREATE + 1;
 constexpr int const LUASTG_WM_SET_WINDOW_MODE = LUASTG_WM_SETICON + 1;
 constexpr int const LUASTG_WM_SET_FULLSCREEN_MODE = LUASTG_WM_SET_WINDOW_MODE + 1;
+
+namespace Core::Graphics
+{
+	static MONITORINFO getMonitorInfo(HMONITOR monitor) {
+		assert(monitor);
+		BOOL br{};
+		MONITORINFO info{ .cbSize{sizeof(MONITORINFO)} };
+		br = GetMonitorInfoW(monitor, &info);
+		assert(br);
+		return info;
+	}
+	
+	void* Display_Win32::getNativeHandle() {
+		return win32_monitor;
+	}
+	Vector2U Display_Win32::getSize() {
+		auto const info = getMonitorInfo(win32_monitor);
+		auto const& rc = info.rcMonitor;
+		return Vector2U(static_cast<uint32_t>(rc.right - rc.left), static_cast<uint32_t>(rc.bottom - rc.top));
+	}
+	Vector2I Display_Win32::getPosition() {
+		auto const info = getMonitorInfo(win32_monitor);
+		auto const& rc = info.rcMonitor;
+		return Vector2I(rc.left, rc.top);
+	}
+	RectI Display_Win32::getRect() {
+		auto const info = getMonitorInfo(win32_monitor);
+		auto const& rc = info.rcMonitor;
+		return RectI(rc.left, rc.top, rc.right, rc.bottom);
+	}
+	Vector2U Display_Win32::getWorkAreaSize() {
+		auto const info = getMonitorInfo(win32_monitor);
+		auto const& rc = info.rcWork;
+		return Vector2U(static_cast<uint32_t>(rc.right - rc.left), static_cast<uint32_t>(rc.bottom - rc.top));
+	}
+	Vector2I Display_Win32::getWorkAreaPosition() {
+		auto const info = getMonitorInfo(win32_monitor);
+		auto const& rc = info.rcWork;
+		return Vector2I(rc.left, rc.top);
+	}
+	RectI Display_Win32::getWorkAreaRect() {
+		auto const info = getMonitorInfo(win32_monitor);
+		auto const& rc = info.rcWork;
+		return RectI(rc.left, rc.top, rc.right, rc.bottom);
+	}
+	bool Display_Win32::isPrimary() {
+		auto const info = getMonitorInfo(win32_monitor);
+		return !!(info.dwFlags & MONITORINFOF_PRIMARY);
+	}
+	float Display_Win32::getDisplayScale() {
+		return Platform::HighDPI::GetDpiScalingForMonitor(win32_monitor);
+	}
+
+	Display_Win32::Display_Win32(HMONITOR monitor) : win32_monitor(monitor) {
+	}
+	Display_Win32::~Display_Win32() = default;
+
+	bool IDisplay::getAll(size_t* count, IDisplay** output) {
+		assert(count);
+		std::vector<HMONITOR> list;
+		struct Context {
+			std::vector<HMONITOR> list;
+			static BOOL CALLBACK callback(HMONITOR monitor, HDC, LPRECT, LPARAM data) {
+				auto context = reinterpret_cast<Context*>(data);
+				context->list.emplace_back(monitor);
+				return TRUE;
+			};
+		};
+		Context context{};
+		if (!EnumDisplayMonitors(NULL, NULL, &Context::callback, reinterpret_cast<LPARAM>(&context))) {
+			return false;
+		}
+		*count = context.list.size();
+		if (output) {
+			for (size_t i = 0; i < context.list.size(); i += 1) {
+				auto display = new Display_Win32(context.list.at(i));
+				output[i] = display;
+			}
+		}
+		return true;
+	}
+	bool IDisplay::getPrimary(IDisplay** output) {
+		assert(output);
+		struct Context {
+			HMONITOR primary{};
+			static BOOL CALLBACK callback(HMONITOR monitor, HDC, LPRECT, LPARAM data) {
+				auto context = reinterpret_cast<Context*>(data);
+				auto const info = getMonitorInfo(monitor);
+				if (info.dwFlags & MONITORINFOF_PRIMARY) {
+					context->primary = monitor;
+					return FALSE;
+				}
+				return TRUE;
+			};
+		};
+		Context context{};
+		if (!EnumDisplayMonitors(NULL, NULL, &Context::callback, reinterpret_cast<LPARAM>(&context))) {
+			return false;
+		}
+		auto display = new Display_Win32(context.primary);
+		*output = display;
+		return true;
+	}
+	bool IDisplay::getNearestFromWindow(IWindow* window, IDisplay** output) {
+		assert(window);
+		assert(output);
+		HMONITOR monitor = MonitorFromWindow(static_cast<HWND>(window->getNativeHandle()), MONITOR_DEFAULTTOPRIMARY);
+		if (!monitor) {
+			return false;
+		}
+		auto display = new Display_Win32(monitor);
+		*output = display;
+		return true;
+	}
+}
 
 namespace Core::Graphics
 {
