@@ -120,21 +120,6 @@ static int lib_getDPIScaling(lua_State* L)
     return 1;
 }
 
-static int lib_setTextInputEnable(lua_State*)
-{
-    //const bool enable = lua_toboolean(L, 1);
-    return 0;
-}
-static int lib_getTextInput(lua_State* L)
-{
-    lua_pushstring(L, "");
-    return 1;
-}
-static int lib_clearTextInput(lua_State*)
-{
-    return 0;
-}
-
 static int lib_setCustomMoveSizeEnable(lua_State* L)
 {
     getwindow(window);
@@ -206,10 +191,6 @@ static const luaL_Reg lib[] = {
     makefname(setTopMost),
     makefname(setIMEEnable),
     makefname(getDPIScaling),
-    
-    makefname(setTextInputEnable),
-    makefname(getTextInput),
-    makefname(clearTextInput),
     
     makefname(setCustomMoveSizeEnable),
     makefname(setCustomMinimizeButtonRect),
