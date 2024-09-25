@@ -61,7 +61,8 @@ namespace LuaSTG::Sub::LuaBinding {
 			auto const width = S.get_value<uint32_t>(2);
 			auto const height = S.get_value<uint32_t>(3);
 			S.push_value(self->data->setSize(Core::Vector2U(width, height)));
-			return 1;
+			self->data->setLayer(Core::Graphics::WindowLayer::Normal);
+			return 0;
 		}
 
 		static int setTitle(lua_State* L) {
@@ -77,6 +78,7 @@ namespace LuaSTG::Sub::LuaBinding {
 			lua::stack_t S(L);
 			auto const style_value = S.get_value<int32_t>(2);
 			S.push_value(self->data->setFrameStyle(static_cast<Core::Graphics::WindowFrameStyle>(style_value)));
+			self->data->setLayer(Core::Graphics::WindowLayer::Normal);
 			return 1;
 		}
 
