@@ -1,6 +1,7 @@
 #include "Window.hpp"
 #include "lua_utility.hpp"
 #include "AppFrame.h"
+#include "Platform/WindowsVersion.hpp"
 
 static void pushSize(lua_State* L, lua_Number const width, lua_Number const height) {
 	lua::stack_t S(L);
@@ -101,6 +102,24 @@ namespace LuaSTG::Sub::LuaBinding {
 			return luaL_error(L, "not implement"); // TODO
 		}
 
+		// extension
+
+		static int queryInterface(lua_State* L) {
+			auto self = as(L, 1);
+			lua::stack_t S(L);
+			auto const name = S.get_value<std::string_view>(2);
+			if (name == Window_Windows11Extension::class_name) {
+				if (Platform::WindowsVersion::Is11()) {
+					auto ext = Window_Windows11Extension::create(L);
+					ext->data = self->data;
+					ext->data->retain();
+					return 1;
+				}
+			}
+			S.push_value(std::nullopt);
+			return 1;
+		}
+
 		// static methods
 
 		static int getMain(lua_State* L) {
@@ -121,8 +140,7 @@ namespace LuaSTG::Sub::LuaBinding {
 		return static_cast<Window*>(luaL_checkudata(L, index, class_name.data()));
 	}
 
-	Window* Window::create(lua_State* L)
-	{
+	Window* Window::create(lua_State* L) {
 		lua::stack_t S(L);
 		auto self = S.create_userdata<Window>();
 		auto const self_index = S.index_of_top();
@@ -155,6 +173,7 @@ namespace LuaSTG::Sub::LuaBinding {
 		S.set_map_value(method_table, "centered", &WindowBinding::centered);
 		S.set_map_value(method_table, "setWindowed", &WindowBinding::setWindowed);
 		S.set_map_value(method_table, "setFullscreen", &WindowBinding::setFullscreen);
+		S.set_map_value(method_table, "queryInterface", &WindowBinding::queryInterface);
 		S.set_map_value(method_table, "getMain", &WindowBinding::getMain);
 
 		// metatable
@@ -169,6 +188,92 @@ namespace LuaSTG::Sub::LuaBinding {
 
 		//auto const module_table = S.push_module("lstg");
 		//S.set_map_value(module_table, "Window", method_table);
+	}
+
+}
+
+namespace LuaSTG::Sub::LuaBinding {
+
+	std::string_view Window_Windows11Extension::class_name{ "lstg.Window.Windows11Extension" };
+
+	struct Win11ExtBinding : public Window_Windows11Extension {
+
+		// meta methods
+
+		static int __gc(lua_State* L) {
+			auto self = as(L, 1);
+			if (self->data) {
+				self->data->release();
+				self->data = nullptr;
+			}
+			return 0;
+		}
+
+		static int __tostring(lua_State* L) {
+			lua::stack_t S(L);
+			[[maybe_unused]] auto self = as(L, 1);
+			S.push_value(class_name);
+			return 1;
+		}
+
+		static int __eq(lua_State* L) {
+			lua::stack_t S(L);
+			auto self = as(L, 1);
+			if (is(L, 2)) {
+				auto other = as(L, 2);
+				S.push_value(self->data == other->data);
+			}
+			else {
+				S.push_value(false);
+			}
+			return 1;
+		}
+
+		// instance methods
+
+		static int setWindowCornerPreference(lua_State* L) {
+			auto self = as(L, 1);
+			lua::stack_t S(L);
+			auto const allow = S.get_value<bool>(2);
+			self->data->setWindowCornerPreference(allow);
+			return 0;
+		}
+
+	};
+
+	bool Window_Windows11Extension::is(lua_State* L, int index) {
+		return nullptr != luaL_testudata(L, index, class_name.data());
+	}
+
+	Window_Windows11Extension* Window_Windows11Extension::as(lua_State* L, int index) {
+		return static_cast<Window_Windows11Extension*>(luaL_checkudata(L, index, class_name.data()));
+	}
+
+	Window_Windows11Extension* Window_Windows11Extension::create(lua_State* L) {
+		lua::stack_t S(L);
+		auto self = S.create_userdata<Window_Windows11Extension>();
+		auto const self_index = S.index_of_top();
+		S.set_metatable(self_index, class_name);
+		self->data = nullptr;
+		return self;
+	}
+
+	void Window_Windows11Extension::registerClass(lua_State* L) {
+		[[maybe_unused]] lua::stack_balancer_t SB(L);
+		lua::stack_t S(L);
+
+		// method
+
+		auto const method_table = S.push_module(class_name);
+		S.set_map_value(method_table, "setWindowCornerPreference", &Win11ExtBinding::setWindowCornerPreference);
+
+		// metatable
+
+		auto const metatable = S.create_metatable(class_name);
+		S.set_map_value(metatable, "__gc", &Win11ExtBinding::__gc);
+		S.set_map_value(metatable, "__tostring", &Win11ExtBinding::__tostring);
+		S.set_map_value(metatable, "__eq", &Win11ExtBinding::__eq);
+		S.set_map_value(metatable, "__index", method_table);
 	}
 
 }
