@@ -1,4 +1,6 @@
 local Display = require("lstg.Display")
+local Window = require("lstg.Window")
+local FrameStyle = require("lstg.Window.FrameStyle")
 local test = require("test")
 
 ---@class test.Module.WindowAndDisplay : test.Base
@@ -9,6 +11,8 @@ function M:onCreate()
     lstg.SetResourceStatus("global")
     lstg.LoadTTF("body", "C:/Windows/Fonts/msyh.ttc", 0, 24)
     lstg.SetResourceStatus(last)
+    self.main_window = Window.getMain()
+    self.has_key_down = false
 end
 
 function M:onDestroy()
@@ -16,6 +20,19 @@ function M:onDestroy()
 end
 
 function M:onUpdate()
+    local Keyboard = lstg.Input.Keyboard
+    if Keyboard.GetKeyState(Keyboard.Q) then
+        self.has_key_down = true
+        self.main_window:setStyle(FrameStyle.borderless)
+    elseif Keyboard.GetKeyState(Keyboard.W) then
+        self.has_key_down = true
+        self.main_window:setStyle(FrameStyle.fixed)
+    elseif Keyboard.GetKeyState(Keyboard.E) then
+        self.has_key_down = true
+        self.main_window:setStyle(FrameStyle.normal)
+    else
+        self.has_key_down = false
+    end
 end
 
 function M:onRender()
