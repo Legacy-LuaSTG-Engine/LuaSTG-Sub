@@ -9,24 +9,6 @@ inline Core::Graphics::IWindow* _get_window()
 
 #define getwindow(__NAME__) auto* __NAME__ = _get_window()
 
-static int lib_setMouseEnable(lua_State* L)
-{
-    getwindow(window);
-    bool const enable = lua_toboolean(L, 1);
-    if (enable)
-        window->setCursor(Core::Graphics::WindowCursor::Arrow);
-    else
-        window->setCursor(Core::Graphics::WindowCursor::None);
-    return 0;
-}
-static int lib_setCursorStyle(lua_State* L)
-{
-    getwindow(window);
-    Core::Graphics::WindowCursor const style = (Core::Graphics::WindowCursor)luaL_checkinteger(L, 1);
-    window->setCursor(style);
-    return 0;
-}
-
 static int lib_setCustomMoveSizeEnable(lua_State* L)
 {
     getwindow(window);
@@ -70,14 +52,10 @@ static int lib_setCustomMoveButtonRect(lua_State* L)
 #define makefname(__X__) { #__X__ , &lib_##__X__ }
 
 static const luaL_Reg lib[] = {
-    makefname(setMouseEnable),
-    makefname(setCursorStyle),
-
     makefname(setCustomMoveSizeEnable),
     makefname(setCustomMinimizeButtonRect),
     makefname(setCustomCloseButtonRect),
     makefname(setCustomMoveButtonRect),
-    
     {NULL, NULL},
 };
 
