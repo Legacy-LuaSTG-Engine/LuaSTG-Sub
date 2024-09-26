@@ -538,18 +538,24 @@ namespace platform::windows {
 						auto data = reinterpret_cast<NCCALCSIZE_PARAMS*>(arg2);
 						old_top = data->rgrc[0].top;
 					}
+					HMONITOR monitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
+					assert(monitor);
+					MONITORINFO monitor_info{ .cbSize = sizeof(MONITORINFO) };
+					BOOL const br = GetMonitorInfoW(monitor, &monitor_info);
+					assert(br);
 					[[maybe_unused]] auto const result = DefWindowProcW(window, message, arg1, arg2);
 					auto const outline = getFrameBorderThickness(window);
-					auto const h_padded_border = win32::getSystemMetricsForDpi(SM_CXPADDEDBORDER, win32_window_dpi);
+					//auto const h_padded_border = win32::getSystemMetricsForDpi(SM_CXPADDEDBORDER, win32_window_dpi);
 					//auto const h_border = win32::getSystemMetricsForDpi(SM_CYBORDER, win32_window_dpi);
 					//auto const h_edge = win32::getSystemMetricsForDpi(SM_CYEDGE, win32_window_dpi);
-					auto const h_size_frame = win32::getSystemMetricsForDpi(SM_CYSIZEFRAME, win32_window_dpi);
+					//auto const h_size_frame = win32::getSystemMetricsForDpi(SM_CYSIZEFRAME, win32_window_dpi);
 					//auto const h_fixed_frame = win32::getSystemMetricsForDpi(SM_CYFIXEDFRAME, win32_window_dpi);
 					//auto const h_caption = win32::getSystemMetricsForDpi(SM_CYCAPTION, win32_window_dpi);
 					if (!arg1 /* == FALSE */) {
 						auto rect = reinterpret_cast<RECT*>(arg2);
 						if (placement.showCmd == SW_MAXIMIZE) {
-							rect->top = old_top + h_padded_border + h_size_frame;
+							//rect->top = old_top + h_padded_border + h_size_frame;
+							rect->top = monitor_info.rcWork.top;
 						}
 						else if (system_windows11) {
 							rect->top = old_top + outline;
@@ -561,7 +567,8 @@ namespace platform::windows {
 					else {
 						auto data = reinterpret_cast<NCCALCSIZE_PARAMS*>(arg2);
 						if (placement.showCmd == SW_MAXIMIZE) {
-							data->rgrc[0].top = old_top + h_padded_border + h_size_frame;
+							//data->rgrc[0].top = old_top + h_padded_border + h_size_frame;
+							data->rgrc[0].top = monitor_info.rcWork.top;
 						}
 						else if (system_windows11) {
 							data->rgrc[0].top = old_top + outline;
