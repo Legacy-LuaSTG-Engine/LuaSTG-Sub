@@ -212,8 +212,8 @@ namespace LuaSTG::Sub::LuaBinding {
 
 		// register
 
-		auto const module_table = S.push_module("lstg");
-		S.set_map_value(module_table, "Display", method_table);
+		//auto const module_table = S.push_module("lstg");
+		//S.set_map_value(module_table, "Display", method_table);
 	}
 
 }
