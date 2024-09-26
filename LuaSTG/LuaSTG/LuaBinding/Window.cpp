@@ -26,8 +26,6 @@ namespace LuaSTG::Sub::LuaBinding {
 
 	std::string_view Window::class_name{ "lstg.Window" };
 
-	// TODO: sync settings to AppFrame
-
 	struct WindowBinding : public Window {
 
 		// meta methods

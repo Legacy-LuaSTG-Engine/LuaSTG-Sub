@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Core/Type.hpp"
 #include "Core/Graphics/Window.hpp"
 #include "Core/Graphics/Format.hpp"
@@ -42,6 +42,7 @@ namespace Core::Graphics
 		virtual void applyRenderAttachment() = 0;
 		virtual void waitFrameLatency() = 0;
 		virtual void setVSync(bool enable) = 0;
+		virtual bool getVSync() = 0;
 		virtual bool present() = 0;
 
 		virtual bool saveSnapshotToFile(StringView path) = 0;

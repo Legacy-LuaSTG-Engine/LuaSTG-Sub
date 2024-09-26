@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Core/Object.hpp"
 #include "Core/Graphics/SwapChain.hpp"
 #include "Core/Graphics/Window_Win32.hpp"
@@ -151,6 +151,7 @@ namespace Core::Graphics
 		void applyRenderAttachment();
 		void waitFrameLatency();
 		void setVSync(bool enable);
+		inline bool getVSync() { return m_swap_chain_vsync; }
 		bool present();
 
 		bool saveSnapshotToFile(StringView path);

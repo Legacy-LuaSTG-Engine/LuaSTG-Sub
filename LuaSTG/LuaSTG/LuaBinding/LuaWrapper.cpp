@@ -2,6 +2,7 @@
 #include "LuaBinding/PostEffectShader.hpp"
 #include "LuaBinding/Display.hpp"
 #include "LuaBinding/Window.hpp"
+#include "LuaBinding/SwapChain.hpp"
 
 namespace LuaSTGPlus
 {
@@ -62,5 +63,6 @@ namespace LuaSTGPlus
 		LuaSTG::Sub::LuaBinding::Display::registerClass(L);
 		LuaSTG::Sub::LuaBinding::Window::registerClass(L);
 		LuaSTG::Sub::LuaBinding::Window_Windows11Extension::registerClass(L);
+		LuaSTG::Sub::LuaBinding::SwapChain::registerClass(L);
 	}
 }

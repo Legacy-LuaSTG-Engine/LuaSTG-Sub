@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Core/ApplicationModel.hpp"
 #include "Core/Graphics/Font.hpp"
 #include "GameResource/ResourceManager.h"
@@ -156,13 +156,14 @@ namespace LuaSTGPlus
 		
 	public: // 脚本调用接口，含义参见API文档
 
+		inline ApplicationSetting& GetApplicationSetting() { return m_Setting; }
 		void SetTitle(const char* v) noexcept;
 		void SetPreferenceGPU(const char* v) noexcept;
 		void SetSplash(bool v) noexcept;
 		void SetSEVolume(float v);
 		void SetBGMVolume(float v);
-		float GetSEVolume() const noexcept { return m_Setting.volume_sound_effect; }
-		float GetBGMVolume() const noexcept { return m_Setting.volume_music; }
+		inline float GetSEVolume() const noexcept { return m_Setting.volume_sound_effect; }
+		inline float GetBGMVolume() const noexcept { return m_Setting.volume_music; }
 		void SetWindowCornerPreference(bool allow);
 
 	public: // 窗口和交换链
