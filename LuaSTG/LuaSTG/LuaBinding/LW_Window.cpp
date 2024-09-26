@@ -26,20 +26,6 @@ static int lib_setCursorStyle(lua_State* L)
     window->setCursor(style);
     return 0;
 }
-static int lib_setCentered(lua_State* L)
-{
-    getwindow(window);
-    if (lua_gettop(L) > 0)
-    {
-        uint32_t const index = (uint32_t)luaL_checkinteger(L, 1);
-        window->setMonitorCentered(index);
-    }
-    else
-    {
-        window->setMonitorCentered(0);
-    }
-    return 0;
-}
 
 static int lib_setCustomMoveSizeEnable(lua_State* L)
 {
@@ -103,7 +89,6 @@ static const luaL_Reg compat[] = {
 static const luaL_Reg lib[] = {
     makefname(setMouseEnable),
     makefname(setCursorStyle),
-    makefname(setCentered),
 
     makefname(setCustomMoveSizeEnable),
     makefname(setCustomMinimizeButtonRect),
