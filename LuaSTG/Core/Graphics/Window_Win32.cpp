@@ -458,6 +458,10 @@ namespace Core::Graphics
 
 		m_sizemove.setWindow(win32_window);
 
+		// 标题栏控制器
+
+		m_title_bar_controller.setEnable(!m_fullscreen_mode);
+
 		// 窗口样式
 
 		Platform::WindowTheme::UpdateColorMode(win32_window, TRUE);
@@ -505,14 +509,17 @@ namespace Core::Graphics
 		assert(monitor_info.rcMonitor.right > monitor_info.rcMonitor.left);
 		assert(monitor_info.rcMonitor.bottom > monitor_info.rcMonitor.top);
 
+		bool const new_fullsceen_mode = false;
+		DWORD new_win32_window_style = mapWindowStyle(m_framestyle, new_fullsceen_mode);
+
 		RECT rect = { 0, 0, (int32_t)size.x, (int32_t)size.y };
 		m_title_bar_controller.adjustWindowRectExForDpi(
-			&rect, WS_OVERLAPPEDWINDOW, FALSE, 0,
+			&rect, new_win32_window_style, FALSE, 0,
 			Platform::HighDPI::GetDpiForWindow(win32_window));
 
 		//m_ignore_size_message = TRUE;
 		SetLastError(0);
-		SetWindowLongPtrW(win32_window, GWL_STYLE, WS_OVERLAPPEDWINDOW);
+		SetWindowLongPtrW(win32_window, GWL_STYLE, new_win32_window_style);
 		DWORD const set_style_result = GetLastError();
 		assert(set_style_result == 0); (void)set_style_result;
 		//SetLastError(0);
@@ -544,8 +551,8 @@ namespace Core::Graphics
 		BOOL get_client_rect_result = GetClientRect(win32_window, &client_rect);
 		assert(get_client_rect_result); (void)get_client_rect_result;
 
-		m_fullscreen_mode = false;
-		win32_window_style = mapWindowStyle(m_framestyle, m_fullscreen_mode);
+		m_fullscreen_mode = new_fullsceen_mode;
+		win32_window_style = new_win32_window_style;
 		win32_window_width = UINT(client_rect.right - client_rect.left);
 		win32_window_height = UINT(client_rect.bottom - client_rect.top);
 
@@ -584,9 +591,12 @@ namespace Core::Graphics
 		assert(monitor_info.rcMonitor.right > monitor_info.rcMonitor.left);
 		assert(monitor_info.rcMonitor.bottom > monitor_info.rcMonitor.top);
 
+		bool const new_fullsceen_mode = true;
+		DWORD new_win32_window_style = mapWindowStyle(m_framestyle, new_fullsceen_mode);
+
 		//m_ignore_size_message = TRUE;
 		SetLastError(0);
-		SetWindowLongPtrW(win32_window, GWL_STYLE, WS_POPUP);
+		SetWindowLongPtrW(win32_window, GWL_STYLE, new_win32_window_style);
 		DWORD const set_style_result = GetLastError();
 		assert(set_style_result == 0); (void)set_style_result;
 		//SetLastError(0);
@@ -605,8 +615,8 @@ namespace Core::Graphics
 			SWP_FRAMECHANGED | SWP_SHOWWINDOW);
 		assert(set_window_pos_result); (void)set_window_pos_result;
 
-		m_fullscreen_mode = true;
-		win32_window_style = mapWindowStyle(m_framestyle, m_fullscreen_mode);
+		m_fullscreen_mode = new_fullsceen_mode;
+		win32_window_style = new_win32_window_style;
 		win32_window_width = UINT(monitor_info.rcMonitor.right - monitor_info.rcMonitor.left);
 		win32_window_height = UINT(monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top);
 
