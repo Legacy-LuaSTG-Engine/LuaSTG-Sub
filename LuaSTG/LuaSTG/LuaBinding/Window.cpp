@@ -82,10 +82,6 @@ namespace LuaSTG::Sub::LuaBinding {
 			return 1;
 		}
 
-		static int centered(lua_State* L) {
-			return luaL_error(L, "not implement"); // TODO
-		}
-
 		static int setWindowed(lua_State* L) {
 			auto self = as(L, 1);
 			lua::stack_t S(L);
@@ -186,7 +182,6 @@ namespace LuaSTG::Sub::LuaBinding {
 		S.set_map_value(method_table, "getClientAreaSize", &WindowBinding::getClientAreaSize);
 		S.set_map_value(method_table, "getStyle", &WindowBinding::getStyle);
 		S.set_map_value(method_table, "getDisplayScale", &WindowBinding::getDisplayScale);
-		S.set_map_value(method_table, "centered", &WindowBinding::centered);
 		S.set_map_value(method_table, "setWindowed", &WindowBinding::setWindowed);
 		S.set_map_value(method_table, "setFullscreen", &WindowBinding::setFullscreen);
 		S.set_map_value(method_table, "queryInterface", &WindowBinding::queryInterface);
