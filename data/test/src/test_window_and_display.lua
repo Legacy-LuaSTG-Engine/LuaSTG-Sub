@@ -20,6 +20,7 @@ function M:onDestroy()
 end
 
 function M:onUpdate()
+    local displays = Display.getAll()
     local Keyboard = lstg.Input.Keyboard
     if Keyboard.GetKeyState(Keyboard.Q) then
         self.has_key_down = true
@@ -35,6 +36,14 @@ function M:onUpdate()
         local ext = self.main_window:queryInterface("lstg.Window.Windows11Extension")
         if ext then
             ext:setWindowCornerPreference(false)
+        end
+    elseif Keyboard.GetKeyState(Keyboard.D1) then
+        self.has_key_down = true
+        self.main_window:setWindowed(window.width, window.height, FrameStyle.normal, displays[1])
+    elseif Keyboard.GetKeyState(Keyboard.D2) then
+        self.has_key_down = true
+        if displays[2] then
+            self.main_window:setWindowed(window.width, window.height, FrameStyle.normal, displays[2])
         end
     elseif Keyboard.GetKeyState(Keyboard.P) then
         self.has_key_down = true
