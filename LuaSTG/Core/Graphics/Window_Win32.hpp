@@ -27,6 +27,12 @@ namespace Core::Graphics
 		~Display_Win32();
 	};
 
+	struct SetWindowedModeParameters {
+		Vector2U size;
+		WindowFrameStyle style{ WindowFrameStyle::None };
+		IDisplay* display{};
+	};
+
 	class Window_Win32 : public Object<IWindow>
 	{
 	private:
@@ -99,7 +105,7 @@ namespace Core::Graphics
 		bool getRedirectBitmapEnable();
 		bool recreateWindow();
 		void _toggleFullScreenMode();
-		void _setWindowMode(Vector2U size, bool ignore_size);
+		void _setWindowMode(SetWindowedModeParameters* parameters, bool ignore_size);
 		void _setFullScreenMode(IDisplay* display);
 
 		void implSetApplicationModel(IApplicationModel* p_framework) { m_framework = p_framework; }
@@ -157,7 +163,7 @@ namespace Core::Graphics
 
 		float getDPIScaling();
 
-		void setWindowMode(Vector2U size);
+		void setWindowMode(Vector2U size, WindowFrameStyle style, IDisplay* display);
 		void setFullScreenMode(IDisplay* display);
 
 		uint32_t getMonitorCount();

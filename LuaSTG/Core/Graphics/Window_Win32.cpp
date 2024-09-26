@@ -375,7 +375,7 @@ namespace Core::Graphics
 			}
 			return 0;
 		case LUASTG_WM_SET_WINDOW_MODE:
-			_setWindowMode(Vector2U(LOWORD(arg1), HIWORD(arg1)), arg2);
+			_setWindowMode(reinterpret_cast<SetWindowedModeParameters*>(arg1), arg2);
 			return 0;
 		case LUASTG_WM_SET_FULLSCREEN_MODE:
 			_setFullScreenMode(reinterpret_cast<IDisplay*>(arg2));
@@ -491,16 +491,29 @@ namespace Core::Graphics
 	}
 	void Window_Win32::_toggleFullScreenMode()
 	{
-		if (m_fullscreen_mode)
-			_setWindowMode(Vector2U(win32_window_width, win32_window_height), true);
-		else
+		if (m_fullscreen_mode) {
+			SetWindowedModeParameters parameters{};
+			parameters.size = Vector2U(win32_window_width, win32_window_height);
+			parameters.style = m_framestyle;
+			_setWindowMode(&parameters, true);
+		}
+		else {
 			_setFullScreenMode(nullptr);
+		}
 	}
-	void Window_Win32::_setWindowMode(Vector2U size, bool ignore_size)
+	void Window_Win32::_setWindowMode(SetWindowedModeParameters* parameters, bool ignore_size)
 	{
+		assert(parameters);
+
 		m_title_bar_controller.setEnable(true);
 
-		HMONITOR win32_monitor = MonitorFromWindow(win32_window, MONITOR_DEFAULTTONEAREST);
+		HMONITOR win32_monitor{};
+		if (parameters->display) {
+			win32_monitor = static_cast<HMONITOR>(parameters->display->getNativeHandle());
+		}
+		else {
+			win32_monitor = MonitorFromWindow(win32_window, MONITOR_DEFAULTTONEAREST);
+		}
 		assert(win32_monitor);
 		MONITORINFO monitor_info = {};
 		monitor_info.cbSize = sizeof(monitor_info);
@@ -510,9 +523,10 @@ namespace Core::Graphics
 		assert(monitor_info.rcMonitor.bottom > monitor_info.rcMonitor.top);
 
 		bool const new_fullsceen_mode = false;
+		m_framestyle = parameters->style;
 		DWORD new_win32_window_style = mapWindowStyle(m_framestyle, new_fullsceen_mode);
 
-		RECT rect = { 0, 0, (int32_t)size.x, (int32_t)size.y };
+		RECT rect = { 0, 0, (int32_t)parameters->size.x, (int32_t)parameters->size.y };
 		m_title_bar_controller.adjustWindowRectExForDpi(
 			&rect, new_win32_window_style, FALSE, 0,
 			Platform::HighDPI::GetDpiForWindow(win32_window));
@@ -539,8 +553,8 @@ namespace Core::Graphics
 			BOOL const set_window_pos_result = SetWindowPos(
 				win32_window,
 				HWND_NOTOPMOST,
-				(monitor_info.rcMonitor.right + monitor_info.rcMonitor.left) / 2 - (int32_t)size.x / 2,
-				(monitor_info.rcMonitor.bottom + monitor_info.rcMonitor.top) / 2 - (int32_t)size.y / 2,
+				(monitor_info.rcMonitor.right + monitor_info.rcMonitor.left) / 2 - (int32_t)parameters->size.x / 2,
+				(monitor_info.rcMonitor.bottom + monitor_info.rcMonitor.top) / 2 - (int32_t)parameters->size.y / 2,
 				rect.right - rect.left,
 				rect.bottom - rect.top,
 				SWP_FRAMECHANGED | SWP_SHOWWINDOW);
@@ -923,9 +937,13 @@ namespace Core::Graphics
 		return (float)getDPI() / (float)USER_DEFAULT_SCREEN_DPI;
 	}
 
-	void Window_Win32::setWindowMode(Vector2U size)
+	void Window_Win32::setWindowMode(Vector2U size, WindowFrameStyle style, IDisplay* display)
 	{
-		SendMessageW(win32_window, LUASTG_WM_SET_WINDOW_MODE, MAKEWPARAM(size.x, size.y), FALSE);
+		SetWindowedModeParameters parameters{};
+		parameters.size = size;
+		parameters.style = style;
+		parameters.display = display;
+		SendMessageW(win32_window, LUASTG_WM_SET_WINDOW_MODE, reinterpret_cast<WPARAM>(&parameters), FALSE);
 	}
 	void Window_Win32::setFullScreenMode(IDisplay* display)
 	{
