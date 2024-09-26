@@ -7,11 +7,11 @@
 #include "Platform/WindowTheme.hpp"
 #include "utf8.hpp"
 
-constexpr int const LUASTG_WM_UPDAE_TITLE = WM_USER + 64;
-constexpr int const LUASTG_WM_RECREATE = LUASTG_WM_UPDAE_TITLE + 1;
-constexpr int const LUASTG_WM_SETICON = LUASTG_WM_RECREATE + 1;
-constexpr int const LUASTG_WM_SET_WINDOW_MODE = LUASTG_WM_SETICON + 1;
-constexpr int const LUASTG_WM_SET_FULLSCREEN_MODE = LUASTG_WM_SET_WINDOW_MODE + 1;
+static constexpr int const LUASTG_WM_UPDAE_TITLE = WM_APP + __LINE__;
+static constexpr int const LUASTG_WM_RECREATE = WM_APP + __LINE__;
+static constexpr int const LUASTG_WM_SETICON = WM_APP + __LINE__;
+static constexpr int const LUASTG_WM_SET_WINDOW_MODE = WM_APP + __LINE__;
+static constexpr int const LUASTG_WM_SET_FULLSCREEN_MODE = WM_APP + __LINE__;
 
 namespace Core::Graphics
 {
