@@ -48,6 +48,22 @@ namespace lua
 
 		stack_index_t() = default;
 		stack_index_t(int32_t index) : value(index) {};
+
+		inline bool operator>(int r) {
+			return value > r;
+		}
+		inline bool operator>=(int r) {
+			return value >= r;
+		}
+		inline bool operator<(int r) {
+			return value < r;
+		}
+		inline bool operator<=(int r) {
+			return value <= r;
+		}
+		inline bool operator==(int r) {
+			return value == r;
+		}
 	};
 
 	struct stack_balancer_t
