@@ -52,7 +52,7 @@ namespace Core::Graphics
 		WindowCursor m_cursor{ WindowCursor::Arrow };
 		HCURSOR win32_window_cursor{ NULL };
 
-		WindowFrameStyle m_framestyle{ WindowFrameStyle::Fixed };
+		WindowFrameStyle m_framestyle{ WindowFrameStyle::Normal };
 		DWORD win32_window_style{ WS_OVERLAPPEDWINDOW ^ (WS_THICKFRAME | WS_MAXIMIZEBOX) };
 		DWORD win32_window_style_ex{ 0 };
 		BOOL m_hidewindow{ TRUE };
