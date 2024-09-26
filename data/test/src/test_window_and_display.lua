@@ -23,13 +23,13 @@ function M:onUpdate()
     local Keyboard = lstg.Input.Keyboard
     if Keyboard.GetKeyState(Keyboard.Q) then
         self.has_key_down = true
-        self.main_window:setStyle(FrameStyle.borderless)
+        --self.main_window:setStyle(FrameStyle.borderless)
     elseif Keyboard.GetKeyState(Keyboard.W) then
         self.has_key_down = true
-        self.main_window:setStyle(FrameStyle.fixed)
+        --self.main_window:setStyle(FrameStyle.fixed)
     elseif Keyboard.GetKeyState(Keyboard.E) then
         self.has_key_down = true
-        self.main_window:setStyle(FrameStyle.normal)
+        --self.main_window:setStyle(FrameStyle.normal)
     elseif Keyboard.GetKeyState(Keyboard.O) then
         self.has_key_down = true
         local ext = self.main_window:queryInterface("lstg.Window.Windows11Extension")

@@ -1,3 +1,4 @@
+#include "Display.hpp"
 #include "Window.hpp"
 #include "lua_utility.hpp"
 #include "AppFrame.h"
@@ -13,6 +14,8 @@ static void pushSize(lua_State* L, lua_Number const width, lua_Number const heig
 namespace LuaSTG::Sub::LuaBinding {
 
 	std::string_view Window::class_name{ "lstg.Window" };
+
+	// TODO: sync settings to AppFrame
 
 	struct WindowBinding : public Window {
 
@@ -49,23 +52,6 @@ namespace LuaSTG::Sub::LuaBinding {
 
 		// instance methods
 
-		static int getClientAreaSize(lua_State* L) {
-			auto self = as(L, 1);
-			auto const size = self->data->getSize();
-			pushSize(L, size.x, size.y);
-			return 1;
-		}
-
-		static int setClientAreaSize(lua_State* L) {
-			auto self = as(L, 1);
-			lua::stack_t S(L);
-			auto const width = S.get_value<uint32_t>(2);
-			auto const height = S.get_value<uint32_t>(3);
-			S.push_value(self->data->setSize(Core::Vector2U(width, height)));
-			self->data->setLayer(Core::Graphics::WindowLayer::Normal);
-			return 0;
-		}
-
 		static int setTitle(lua_State* L) {
 			auto self = as(L, 1);
 			lua::stack_t S(L);
@@ -74,12 +60,18 @@ namespace LuaSTG::Sub::LuaBinding {
 			return 0;
 		}
 
-		static int setStyle(lua_State* L) {
+		static int getClientAreaSize(lua_State* L) {
+			auto self = as(L, 1);
+			auto const size = self->data->getSize();
+			pushSize(L, size.x, size.y);
+			return 1;
+		}
+
+		static int getStyle(lua_State* L) {
 			auto self = as(L, 1);
 			lua::stack_t S(L);
-			auto const style_value = S.get_value<int32_t>(2);
-			S.push_value(self->data->setFrameStyle(static_cast<Core::Graphics::WindowFrameStyle>(style_value)));
-			self->data->setLayer(Core::Graphics::WindowLayer::Normal);
+			auto const style = self->data->getFrameStyle();
+			S.push_value(static_cast<int32_t>(style));
 			return 1;
 		}
 
@@ -95,11 +87,35 @@ namespace LuaSTG::Sub::LuaBinding {
 		}
 
 		static int setWindowed(lua_State* L) {
-			return luaL_error(L, "not implement"); // TODO
+			auto self = as(L, 1);
+			lua::stack_t S(L);
+			auto const width = S.get_value<uint32_t>(2);
+			auto const height = S.get_value<uint32_t>(3);
+			auto style = self->data->getFrameStyle();
+			if (S.is_number(4)) {
+				style = static_cast<Core::Graphics::WindowFrameStyle>(S.get_value<int32_t>(4));
+			}
+			if (Display::is(L, 5)) {
+				auto display = Display::as(L, 5);
+				self->data->setFullScreenMode(display->data);
+			}
+			else {
+				self->data->setWindowMode(Core::Vector2U(width, height));
+			}
+			return 0;
 		}
 
 		static int setFullscreen(lua_State* L) {
-			return luaL_error(L, "not implement"); // TODO
+			auto self = as(L, 1);
+			lua::stack_t S(L);
+			if (Display::is(L, 2)) {
+				auto display = Display::as(L, 2);
+				self->data->setFullScreenMode(display->data);
+			}
+			else {
+				self->data->setFullScreenMode();
+			}
+			return 0;
 		}
 
 		// extension
@@ -165,10 +181,9 @@ namespace LuaSTG::Sub::LuaBinding {
 		// method
 
 		auto const method_table = S.push_module(class_name);
-		S.set_map_value(method_table, "getClientAreaSize", &WindowBinding::getClientAreaSize);
-		S.set_map_value(method_table, "setClientAreaSize", &WindowBinding::setClientAreaSize);
 		S.set_map_value(method_table, "setTitle", &WindowBinding::setTitle);
-		S.set_map_value(method_table, "setStyle", &WindowBinding::setStyle);
+		S.set_map_value(method_table, "getClientAreaSize", &WindowBinding::getClientAreaSize);
+		S.set_map_value(method_table, "getStyle", &WindowBinding::getStyle);
 		S.set_map_value(method_table, "getDisplayScale", &WindowBinding::getDisplayScale);
 		S.set_map_value(method_table, "centered", &WindowBinding::centered);
 		S.set_map_value(method_table, "setWindowed", &WindowBinding::setWindowed);
