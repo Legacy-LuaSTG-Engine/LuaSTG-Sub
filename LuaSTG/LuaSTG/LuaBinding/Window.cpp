@@ -11,6 +11,17 @@ static void pushSize(lua_State* L, lua_Number const width, lua_Number const heig
 	S.set_map_value(index, "height", height);
 }
 
+static int compat_SetSplash(lua_State* L)
+{
+	LAPP.SetSplash(lua_toboolean(L, 1));
+	return 0;
+}
+static int compat_SetTitle(lua_State* L)
+{
+	LAPP.SetTitle(luaL_checkstring(L, 1));
+	return 0;
+}
+
 namespace LuaSTG::Sub::LuaBinding {
 
 	std::string_view Window::class_name{ "lstg.Window" };
@@ -197,7 +208,9 @@ namespace LuaSTG::Sub::LuaBinding {
 
 		// register
 
-		//auto const module_table = S.push_module("lstg");
+		auto const module_table = S.push_module("lstg");
+		S.set_map_value(module_table, "SetSplash", &compat_SetSplash);
+		S.set_map_value(module_table, "SetTitle", &compat_SetTitle);
 		//S.set_map_value(module_table, "Window", method_table);
 	}
 

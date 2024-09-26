@@ -67,24 +67,7 @@ static int lib_setCustomMoveButtonRect(lua_State* L)
     return 0;
 }
 
-static int compat_SetSplash(lua_State* L)
-{
-    LAPP.SetSplash(lua_toboolean(L, 1));
-    return 0;
-}
-static int compat_SetTitle(lua_State* L)
-{
-    LAPP.SetTitle(luaL_checkstring(L, 1));
-    return 0;
-}
-
 #define makefname(__X__) { #__X__ , &lib_##__X__ }
-
-static const luaL_Reg compat[] = {
-    { "SetSplash", &compat_SetSplash },
-    { "SetTitle" , &compat_SetTitle  },
-    {NULL, NULL},
-};
 
 static const luaL_Reg lib[] = {
     makefname(setMouseEnable),
@@ -100,7 +83,8 @@ static const luaL_Reg lib[] = {
 
 void LuaSTGPlus::LuaWrapper::WindowWrapper::Register(lua_State* L)noexcept
 {
-    luaL_register(L, LUASTG_LUA_LIBNAME, compat); // ? t
+    luaL_Reg empty_lib[1]{};
+    luaL_register(L, LUASTG_LUA_LIBNAME, empty_lib); // ? t
     // Window
     lua_pushstring(L, "Window");                  // ? t k
     lua_newtable(L);                              // ? t k t
