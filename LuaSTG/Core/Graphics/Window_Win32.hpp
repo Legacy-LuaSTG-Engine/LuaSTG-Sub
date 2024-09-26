@@ -100,7 +100,7 @@ namespace Core::Graphics
 		bool recreateWindow();
 		void _toggleFullScreenMode();
 		void _setWindowMode(Vector2U size, bool ignore_size);
-		void _setFullScreenMode();
+		void _setFullScreenMode(IDisplay* display);
 
 		void implSetApplicationModel(IApplicationModel* p_framework) { m_framework = p_framework; }
 
@@ -158,7 +158,7 @@ namespace Core::Graphics
 		float getDPIScaling();
 
 		void setWindowMode(Vector2U size);
-		void setFullScreenMode();
+		void setFullScreenMode(IDisplay* display);
 
 		uint32_t getMonitorCount();
 		RectI getMonitorRect(uint32_t index);

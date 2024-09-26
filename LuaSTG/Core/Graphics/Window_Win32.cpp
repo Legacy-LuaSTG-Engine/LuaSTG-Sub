@@ -361,7 +361,7 @@ namespace Core::Graphics
 			_setWindowMode(Vector2U(LOWORD(arg1), HIWORD(arg1)), arg2);
 			return 0;
 		case LUASTG_WM_SET_FULLSCREEN_MODE:
-			_setFullScreenMode();
+			_setFullScreenMode(reinterpret_cast<IDisplay*>(arg2));
 			return 0;
 		}
 		return DefWindowProcW(window, message, arg1, arg2);
@@ -473,7 +473,7 @@ namespace Core::Graphics
 		if (m_fullscreen_mode)
 			_setWindowMode(Vector2U(win32_window_width, win32_window_height), true);
 		else
-			_setFullScreenMode();
+			_setFullScreenMode(nullptr);
 	}
 	void Window_Win32::_setWindowMode(Vector2U size, bool ignore_size)
 	{
@@ -544,7 +544,7 @@ namespace Core::Graphics
 			assert(set_placement_result); (void)set_placement_result;
 		}
 	}
-	void Window_Win32::_setFullScreenMode()
+	void Window_Win32::_setFullScreenMode(IDisplay* display)
 	{
 		m_title_bar_controller.setEnable(false);
 
@@ -554,7 +554,13 @@ namespace Core::Graphics
 			assert(get_placement_result); (void)get_placement_result;
 		}
 
-		HMONITOR win32_monitor = MonitorFromWindow(win32_window, MONITOR_DEFAULTTONEAREST);
+		HMONITOR win32_monitor{};
+		if (display) {
+			win32_monitor = static_cast<HMONITOR>(display->getNativeHandle());
+		}
+		else {
+			win32_monitor = MonitorFromWindow(win32_window, MONITOR_DEFAULTTONEAREST);
+		}
 		assert(win32_monitor);
 		MONITORINFO monitor_info = {};
 		monitor_info.cbSize = sizeof(monitor_info);
@@ -914,9 +920,9 @@ namespace Core::Graphics
 	{
 		SendMessageW(win32_window, LUASTG_WM_SET_WINDOW_MODE, MAKEWPARAM(size.x, size.y), FALSE);
 	}
-	void Window_Win32::setFullScreenMode()
+	void Window_Win32::setFullScreenMode(IDisplay* display)
 	{
-		SendMessageW(win32_window, LUASTG_WM_SET_FULLSCREEN_MODE, 0, 0);
+		SendMessageW(win32_window, LUASTG_WM_SET_FULLSCREEN_MODE, 0, reinterpret_cast<LPARAM>(display));
 	}
 	
 	uint32_t Window_Win32::getMonitorCount()

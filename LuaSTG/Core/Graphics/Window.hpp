@@ -113,7 +113,7 @@ namespace Core::Graphics
 		virtual float getDPIScaling() = 0;
 
 		virtual void setWindowMode(Vector2U size) = 0;
-		virtual void setFullScreenMode() = 0;
+		virtual void setFullScreenMode(IDisplay* display = nullptr) = 0;
 
 		virtual uint32_t getMonitorCount() = 0;
 		virtual RectI getMonitorRect(uint32_t index) = 0;
