@@ -126,6 +126,21 @@ namespace LuaSTG::Sub::LuaBinding {
 			return 0;
 		}
 
+		static int getCursorVisibility(lua_State* L) {
+			auto self = as(L, 1);
+			lua::stack_t S(L);
+			S.push_value(self->data->getCursor() != Core::Graphics::WindowCursor::None);
+			return 1;
+		}
+
+		static int setCursorVisibility(lua_State* L) {
+			auto self = as(L, 1);
+			lua::stack_t S(L);
+			auto const visible = S.get_value<bool>(2);
+			self->data->setCursor(visible ? Core::Graphics::WindowCursor::Arrow : Core::Graphics::WindowCursor::None);
+			return 0;
+		}
+
 		// extension
 
 		static int queryInterface(lua_State* L) {
@@ -195,6 +210,8 @@ namespace LuaSTG::Sub::LuaBinding {
 		S.set_map_value(method_table, "getDisplayScale", &WindowBinding::getDisplayScale);
 		S.set_map_value(method_table, "setWindowed", &WindowBinding::setWindowed);
 		S.set_map_value(method_table, "setFullscreen", &WindowBinding::setFullscreen);
+		S.set_map_value(method_table, "getCursorVisibility", &WindowBinding::getCursorVisibility);
+		S.set_map_value(method_table, "setCursorVisibility", &WindowBinding::setCursorVisibility);
 		S.set_map_value(method_table, "queryInterface", &WindowBinding::queryInterface);
 		S.set_map_value(method_table, "getMain", &WindowBinding::getMain);
 

@@ -51,6 +51,12 @@ function M:onUpdate()
         if ext then
             ext:setWindowCornerPreference(true)
         end
+    elseif Keyboard.GetKeyState(Keyboard.N) then
+        self.has_key_down = true
+        self.main_window:setCursorVisibility(true)
+    elseif Keyboard.GetKeyState(Keyboard.M) then
+        self.has_key_down = true
+        self.main_window:setCursorVisibility(false)
     else
         self.has_key_down = false
     end
@@ -62,6 +68,11 @@ function M:onRender()
     local function info(fmt, ...)
         message = message .. string.format(fmt, ...) .. "\n"
     end
+    info("main window:")
+    local wsz = self.main_window:getClientAreaSize()
+    info("    size: [%d x %d]", wsz.width, wsz.height)
+    info("    display scale: %.2f", tostring(self.main_window:getDisplayScale()))
+    info("    cursor visibility: %s", tostring(self.main_window:getCursorVisibility()))
     local list = Display.getAll()
     for i, display in ipairs(list) do
         info("display %d:", i)
