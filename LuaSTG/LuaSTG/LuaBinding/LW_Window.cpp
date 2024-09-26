@@ -26,13 +26,6 @@ static int lib_setCursorStyle(lua_State* L)
     window->setCursor(style);
     return 0;
 }
-static int lib_setTitle(lua_State* L)
-{
-    getwindow(window);
-    std::string_view const text = luaL_check_string_view(L, 1);
-    window->setTitleText(text);
-    return 0;
-}
 static int lib_setCentered(lua_State* L)
 {
     getwindow(window);
@@ -46,78 +39,6 @@ static int lib_setCentered(lua_State* L)
         window->setMonitorCentered(0);
     }
     return 0;
-}
-static int lib_setFullScreen(lua_State* L)
-{
-    getwindow(window);
-    if (lua_gettop(L) > 0)
-    {
-        uint32_t const index = (uint32_t)luaL_checkinteger(L, 1);
-        window->setMonitorFullScreen(index);
-    }
-    else
-    {
-        window->setMonitorFullScreen(0);
-    }
-    return 0;
-}
-static int lib_getFullScreenSize(lua_State* L)
-{
-    getwindow(window);
-    if (lua_gettop(L) > 0)
-    {
-        uint32_t const index = (uint32_t)luaL_checkinteger(L, 1);
-        Core::RectI const rc = window->getMonitorRect(index);
-        lua_pushinteger(L, rc.b.x - rc.a.x);
-        lua_pushinteger(L, rc.b.y - rc.a.y);
-    }
-    else
-    {
-        Core::RectI const rc = window->getMonitorRect(0);
-        lua_pushinteger(L, rc.b.x - rc.a.x);
-        lua_pushinteger(L, rc.b.y - rc.a.y);
-    }
-    return 2;
-}
-static int lib_setStyle(lua_State* L)
-{
-    getwindow(window);
-    Core::Graphics::WindowFrameStyle style = (Core::Graphics::WindowFrameStyle)luaL_checkinteger(L, 1);
-    window->setFrameStyle(style);
-    return 0;
-}
-static int lib_setSize(lua_State* L)
-{
-    getwindow(window);
-    uint32_t const width = (uint32_t)luaL_checkinteger(L, 1);
-    uint32_t const height = (uint32_t)luaL_checkinteger(L, 2);
-    bool const result = window->setSize(Core::Vector2U(width, height));
-    lua_pushboolean(L, result);
-    return 1;
-}
-static int lib_setTopMost(lua_State* L)
-{
-    getwindow(window);
-    bool const topmost = lua_toboolean(L, 1);
-    if (topmost)
-        window->setLayer(Core::Graphics::WindowLayer::TopMost);
-    else
-        window->setLayer(Core::Graphics::WindowLayer::Normal);
-    return 0;
-}
-static int lib_setIMEEnable(lua_State* L)
-{
-    getwindow(window);
-    bool const enable = lua_toboolean(L, 1);
-    window->setIMEState(enable);
-    return 0;
-}
-static int lib_getDPIScaling(lua_State* L)
-{
-    getwindow(window);
-    float const dpi_scale = window->getDPIScaling();
-    lua_pushnumber(L, dpi_scale);
-    return 1;
 }
 
 static int lib_setCustomMoveSizeEnable(lua_State* L)
@@ -182,16 +103,8 @@ static const luaL_Reg compat[] = {
 static const luaL_Reg lib[] = {
     makefname(setMouseEnable),
     makefname(setCursorStyle),
-    makefname(setTitle),
     makefname(setCentered),
-    makefname(setFullScreen),
-    makefname(getFullScreenSize),
-    makefname(setStyle),
-    makefname(setSize),
-    makefname(setTopMost),
-    makefname(setIMEEnable),
-    makefname(getDPIScaling),
-    
+
     makefname(setCustomMoveSizeEnable),
     makefname(setCustomMinimizeButtonRect),
     makefname(setCustomCloseButtonRect),
