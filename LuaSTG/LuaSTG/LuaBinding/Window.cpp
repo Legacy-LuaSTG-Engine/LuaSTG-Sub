@@ -91,16 +91,17 @@ namespace LuaSTG::Sub::LuaBinding {
 			lua::stack_t S(L);
 			auto const width = S.get_value<uint32_t>(2);
 			auto const height = S.get_value<uint32_t>(3);
+			auto const size = Core::Vector2U(width, height);
 			auto style = self->data->getFrameStyle();
 			if (S.is_number(4)) {
 				style = static_cast<Core::Graphics::WindowFrameStyle>(S.get_value<int32_t>(4));
 			}
 			if (Display::is(L, 5)) {
 				auto display = Display::as(L, 5);
-				self->data->setFullScreenMode(display->data);
+				self->data->setWindowMode(size, style, display->data);
 			}
 			else {
-				self->data->setWindowMode(Core::Vector2U(width, height));
+				self->data->setWindowMode(size, style);
 			}
 			return 0;
 		}
