@@ -176,9 +176,9 @@ namespace Core::Graphics
 		}
 
 		// 窗口挪动器
-		auto rResult = m_sizemove.handleSizeMove(window, message, arg1, arg2);
-		if (rResult.bReturn)
-			return rResult.lResult;
+		if (auto const result = m_sizemove.handleSizeMove(window, message, arg1, arg2); result.bReturn) {
+			return result.lResult;
+		}
 		// 标题栏控制器
 		if (auto const result = m_title_bar_controller.handleWindowMessage(window, message, arg1, arg2); result.returnResult) {
 			return result.result;
