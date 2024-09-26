@@ -130,6 +130,23 @@ namespace Core::Graphics
 
 namespace Core::Graphics
 {
+	static DWORD mapWindowStyle(WindowFrameStyle style, bool fullscreen) {
+		if (fullscreen) {
+			return WS_POPUP;
+		}
+		switch (style)
+		{
+		default:
+			assert(false); return WS_POPUP;
+		case WindowFrameStyle::None:
+			return WS_POPUP;
+		case WindowFrameStyle::Fixed:
+			return WS_OVERLAPPEDWINDOW ^ (WS_THICKFRAME | WS_MAXIMIZEBOX);
+		case WindowFrameStyle::Normal:
+			return WS_OVERLAPPEDWINDOW;
+		}
+	}
+
 #define APPMODEL ((ApplicationModel_Win32*)m_framework)
 
 	LRESULT CALLBACK Window_Win32::win32_window_callback(HWND window, UINT message, WPARAM arg1, LPARAM arg2)
@@ -527,10 +544,8 @@ namespace Core::Graphics
 		BOOL get_client_rect_result = GetClientRect(win32_window, &client_rect);
 		assert(get_client_rect_result); (void)get_client_rect_result;
 
-		m_framestyle = WindowFrameStyle::Normal;
 		m_fullscreen_mode = false;
-		win32_window_style = WS_OVERLAPPEDWINDOW;
-		win32_window_style_ex = 0;
+		win32_window_style = mapWindowStyle(m_framestyle, m_fullscreen_mode);
 		win32_window_width = UINT(client_rect.right - client_rect.left);
 		win32_window_height = UINT(client_rect.bottom - client_rect.top);
 
@@ -590,10 +605,8 @@ namespace Core::Graphics
 			SWP_FRAMECHANGED | SWP_SHOWWINDOW);
 		assert(set_window_pos_result); (void)set_window_pos_result;
 
-		m_framestyle = WindowFrameStyle::None;
 		m_fullscreen_mode = true;
-		win32_window_style = WS_POPUP;
-		win32_window_style_ex = 0;
+		win32_window_style = mapWindowStyle(m_framestyle, m_fullscreen_mode);
 		win32_window_width = UINT(monitor_info.rcMonitor.right - monitor_info.rcMonitor.left);
 		win32_window_height = UINT(monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top);
 
@@ -826,23 +839,7 @@ namespace Core::Graphics
 	bool Window_Win32::setFrameStyle(WindowFrameStyle style)
 	{
 		m_framestyle = style;
-		switch (style)
-		{
-		default:
-			assert(false); return false;
-		case WindowFrameStyle::None:
-			win32_window_style = WS_POPUP;
-			win32_window_style_ex = 0;
-			break;
-		case WindowFrameStyle::Fixed:
-			win32_window_style = WS_OVERLAPPEDWINDOW ^ (WS_THICKFRAME | WS_MAXIMIZEBOX);
-			win32_window_style_ex = 0;
-			break;
-		case WindowFrameStyle::Normal:
-			win32_window_style = WS_OVERLAPPEDWINDOW;
-			win32_window_style_ex = 0;
-			break;
-		}
+		win32_window_style = mapWindowStyle(m_framestyle, m_fullscreen_mode);
 		SetWindowLongPtrW(win32_window, GWL_STYLE, win32_window_style);
 		//SetWindowLongPtrW(win32_window, GWL_EXSTYLE, win32_window_style_ex);
 		UINT const flags = (SWP_FRAMECHANGED | SWP_NOZORDER | SWP_NOSIZE | SWP_NOMOVE) | (!m_hidewindow ? SWP_SHOWWINDOW : 0);
