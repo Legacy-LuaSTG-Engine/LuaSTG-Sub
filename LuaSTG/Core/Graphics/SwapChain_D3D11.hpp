@@ -55,6 +55,7 @@ namespace Core::Graphics
 		BOOL m_init{ FALSE };
 
 		bool m_modern_swap_chain_available{ false };
+		bool m_disable_modern_swap_chain{ false };
 		bool m_disable_exclusive_fullscreen{ false };
 		bool m_disable_composition{ false };
 		bool m_enable_composition{ false };
