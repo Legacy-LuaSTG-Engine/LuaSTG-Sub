@@ -35,7 +35,6 @@ namespace LuaSTGPlus
 		};
 
 		luaL_register(L, LUASTG_LUA_LIBNAME, tMethod);	// ? t
-		WindowWrapper::Register(L);
 		ColorWrapper::Register(L);
 		ParticleSystemWrapper::Register(L);
 		StopWatchWrapper::Register(L);

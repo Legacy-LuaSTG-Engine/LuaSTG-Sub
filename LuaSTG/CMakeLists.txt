@@ -112,7 +112,6 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/LW_Render.cpp
     LuaSTG/LuaBinding/LW_Renderer.cpp
     LuaSTG/LuaBinding/LW_StopWatch.cpp
-    LuaSTG/LuaBinding/LW_Window.cpp
     LuaSTG/LuaBinding/LW_ResourceMgr.cpp
     LuaSTG/LuaBinding/LW_Platform.cpp
     LuaSTG/LuaBinding/LW_GameObjectManager.cpp
