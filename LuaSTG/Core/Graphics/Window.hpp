@@ -130,6 +130,7 @@ namespace Core::Graphics
 
 		// Windows 11
 		virtual void setWindowCornerPreference(bool allow) = 0;
+		virtual void setTitleBarAutoHidePreference(bool allow) = 0;
 
 		static bool create(IWindow** pp_window);
 		static bool create(Vector2U size, StringView title_text, WindowFrameStyle style, bool show, IWindow** pp_window);

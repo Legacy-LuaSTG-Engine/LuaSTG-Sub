@@ -460,7 +460,7 @@ namespace Core::Graphics
 
 		// 标题栏控制器
 
-		m_title_bar_controller.setEnable(!m_fullscreen_mode);
+		m_title_bar_controller.setEnable(auto_hide_title_bar && !m_fullscreen_mode);
 
 		// 窗口样式
 
@@ -505,7 +505,7 @@ namespace Core::Graphics
 	{
 		assert(parameters);
 
-		m_title_bar_controller.setEnable(true);
+		m_title_bar_controller.setEnable(auto_hide_title_bar);
 
 		HMONITOR win32_monitor{};
 		if (parameters->display) {
@@ -1084,6 +1084,19 @@ namespace Core::Graphics
 			msg.append("DwmSetWindowAttribute -> ");
 			msg.append(allow ? "DWMWCP_DEFAULT" : "DWMWCP_DONOTROUND");
 			i18n_core_system_call_report_error(msg);
+		}
+	}
+	void Window_Win32::setTitleBarAutoHidePreference(bool allow) {
+		auto_hide_title_bar = allow;
+		m_title_bar_controller.setEnable(auto_hide_title_bar && !m_fullscreen_mode);
+		if (!m_fullscreen_mode) {
+			RECT rc{};
+			GetClientRect(win32_window, &rc);
+			m_title_bar_controller.adjustWindowRectExForDpi(&rc, win32_window_style, FALSE, win32_window_style_ex, getDPI());
+			SetWindowPos(win32_window, NULL, 0, 0, rc.right - rc.left, rc.bottom - rc.top, SWP_NOZORDER | SWP_NOMOVE | SWP_FRAMECHANGED | (m_hidewindow ? 0 : SWP_SHOWWINDOW));
+		}
+		else {
+			SetWindowPos(win32_window, NULL, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED | (m_hidewindow ? 0 : SWP_SHOWWINDOW));
 		}
 	}
 

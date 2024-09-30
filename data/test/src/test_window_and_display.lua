@@ -80,6 +80,18 @@ function M:onUpdate()
     elseif Keyboard.GetKeyState(Keyboard.V) then
         self.has_key_down = true
         self.main_swap_chain:setVSyncPreference(not self.main_swap_chain:getVSyncPreference())
+    elseif Keyboard.GetKeyState(Keyboard.D9) then
+        self.has_key_down = true
+        local ext = self.main_window:queryInterface("lstg.Window.Windows11Extension")
+        if ext then
+            ext:setTitleBarAutoHidePreference(true)
+        end
+    elseif Keyboard.GetKeyState(Keyboard.D8) then
+        self.has_key_down = true
+        local ext = self.main_window:queryInterface("lstg.Window.Windows11Extension")
+        if ext then
+            ext:setTitleBarAutoHidePreference(false)
+        end
     else
         self.has_key_down = false
     end

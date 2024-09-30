@@ -278,6 +278,14 @@ namespace LuaSTG::Sub::LuaBinding {
 			return 0;
 		}
 
+		static int setTitleBarAutoHidePreference(lua_State* L) {
+			auto self = as(L, 1);
+			lua::stack_t S(L);
+			auto const allow = S.get_value<bool>(2);
+			self->data->setTitleBarAutoHidePreference(allow);
+			return 0;
+		}
+
 	};
 
 	bool Window_Windows11Extension::is(lua_State* L, int index) {
@@ -305,6 +313,7 @@ namespace LuaSTG::Sub::LuaBinding {
 
 		auto const method_table = S.push_module(class_name);
 		S.set_map_value(method_table, "setWindowCornerPreference", &Win11ExtBinding::setWindowCornerPreference);
+		S.set_map_value(method_table, "setTitleBarAutoHidePreference", &Win11ExtBinding::setTitleBarAutoHidePreference);
 
 		// metatable
 

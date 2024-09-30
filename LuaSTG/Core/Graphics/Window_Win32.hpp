@@ -73,6 +73,7 @@ namespace Core::Graphics
 		BOOL win32_window_is_menu_loop{ FALSE };
 		BOOL win32_window_want_track_focus{ FALSE };
 		bool enable_track_window_focus{ false };
+		bool auto_hide_title_bar{ false };
 
 		Platform::WindowSizeMoveController m_sizemove;
 		platform::windows::ImmersiveTitleBarController m_title_bar_controller;
@@ -179,7 +180,9 @@ namespace Core::Graphics
 		bool setCursor(WindowCursor type);
 		WindowCursor getCursor();
 
+		// Windows 11
 		void setWindowCornerPreference(bool allow);
+		void setTitleBarAutoHidePreference(bool allow);
 
 	public:
 		Window_Win32();
