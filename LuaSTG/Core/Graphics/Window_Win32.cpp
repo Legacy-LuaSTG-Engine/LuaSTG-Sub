@@ -6,6 +6,7 @@
 #include "Platform/HighDPI.hpp"
 #include "Platform/WindowTheme.hpp"
 #include "utf8.hpp"
+#include <WinUser.h>
 
 static constexpr int const LUASTG_WM_UPDAE_TITLE = WM_APP + __LINE__;
 static constexpr int const LUASTG_WM_RECREATE = WM_APP + __LINE__;
@@ -1095,13 +1096,13 @@ namespace Core::Graphics
 		auto_hide_title_bar = allow;
 		m_title_bar_controller.setEnable(auto_hide_title_bar && !m_fullscreen_mode);
 		if (!m_fullscreen_mode) {
-			RECT rc{};
-			GetClientRect(win32_window, &rc);
-			m_title_bar_controller.adjustWindowRectExForDpi(&rc, win32_window_style, FALSE, win32_window_style_ex, getDPI());
-			SetWindowPos(win32_window, NULL, 0, 0, rc.right - rc.left, rc.bottom - rc.top, SWP_NOZORDER | SWP_NOMOVE | SWP_FRAMECHANGED | (m_hidewindow ? 0 : SWP_SHOWWINDOW));
+			WINDOWPLACEMENT placement{ .length{sizeof(WINDOWPLACEMENT)} };
+			GetWindowPlacement(win32_window, &placement);
+			SetWindowPos(win32_window, NULL, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
+			SetWindowPlacement(win32_window, &placement);
 		}
 		else {
-			SetWindowPos(win32_window, NULL, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED | (m_hidewindow ? 0 : SWP_SHOWWINDOW));
+			SetWindowPos(win32_window, NULL, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
 		}
 	}
 
