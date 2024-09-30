@@ -1325,7 +1325,7 @@ namespace Core::Graphics
 				m_device->GetDXGIFactory2(),
 				m_device->GetD3D11Device(),
 				m_device->GetD2D1DeviceContext(),
-				m_window->getSize()
+				m_window->_getCurrentSize()
 			)) {
 				return false;
 			}
@@ -1338,7 +1338,7 @@ namespace Core::Graphics
 				m_device->GetDXGIFactory2(),
 				m_device->GetD3D11Device(),
 				m_device->GetD2D1DeviceContext(),
-				m_window->getSize()
+				m_window->_getCurrentSize()
 			)) {
 				return false;
 			}

@@ -157,6 +157,7 @@ namespace Core::Graphics
 		WindowFrameStyle getFrameStyle();
 
 		Vector2U getSize();
+		Vector2U _getCurrentSize();
 		bool setSize(Vector2U v);
 
 		WindowLayer getLayer();

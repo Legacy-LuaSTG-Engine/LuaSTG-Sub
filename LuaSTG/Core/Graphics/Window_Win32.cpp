@@ -879,6 +879,11 @@ namespace Core::Graphics
 	{
 		return { win32_window_width, win32_window_height };
 	}
+	Vector2U Window_Win32::_getCurrentSize() {
+		RECT rc{};
+		GetClientRect(win32_window, &rc);
+		return Vector2U(static_cast<uint32_t>(rc.right - rc.left), static_cast<uint32_t>(rc.bottom - rc.top));
+	}
 	bool Window_Win32::setSize(Vector2U v)
 	{
 		win32_window_width = v.x;
