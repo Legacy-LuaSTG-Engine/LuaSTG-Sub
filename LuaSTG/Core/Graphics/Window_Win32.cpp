@@ -553,9 +553,9 @@ namespace Core::Graphics
 		{
 			BOOL const set_window_pos_result = SetWindowPos(
 				win32_window,
-				HWND_NOTOPMOST,
-				(monitor_info.rcMonitor.right + monitor_info.rcMonitor.left) / 2 - (int32_t)parameters->size.x / 2,
-				(monitor_info.rcMonitor.bottom + monitor_info.rcMonitor.top) / 2 - (int32_t)parameters->size.y / 2,
+				HWND_TOP,
+				(monitor_info.rcMonitor.right + monitor_info.rcMonitor.left) / 2 - (rect.right - rect.left) / 2,
+				(monitor_info.rcMonitor.bottom + monitor_info.rcMonitor.top) / 2 - (rect.bottom - rect.top) / 2,
 				rect.right - rect.left,
 				rect.bottom - rect.top,
 				SWP_FRAMECHANGED | SWP_SHOWWINDOW);
@@ -622,7 +622,7 @@ namespace Core::Graphics
 
 		BOOL const set_window_pos_result = SetWindowPos(
 			win32_window,
-			HWND_NOTOPMOST,
+			HWND_TOP,
 			monitor_info.rcMonitor.left,
 			monitor_info.rcMonitor.top,
 			monitor_info.rcMonitor.right - monitor_info.rcMonitor.left,
