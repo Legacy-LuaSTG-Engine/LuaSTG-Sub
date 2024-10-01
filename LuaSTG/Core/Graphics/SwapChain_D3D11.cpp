@@ -1,4 +1,4 @@
-﻿#include "Core/Graphics/SwapChain_D3D11.hpp"
+#include "Core/Graphics/SwapChain_D3D11.hpp"
 #include "Core/Graphics/Format_D3D11.hpp"
 #include "Core/i18n.hpp"
 #include "Platform/WindowsVersion.hpp"
@@ -1325,7 +1325,7 @@ namespace Core::Graphics
 				m_device->GetDXGIFactory2(),
 				m_device->GetD3D11Device(),
 				m_device->GetD2D1DeviceContext(),
-				m_window->getSize()
+				m_window->_getCurrentSize()
 			)) {
 				return false;
 			}
@@ -1338,7 +1338,7 @@ namespace Core::Graphics
 				m_device->GetDXGIFactory2(),
 				m_device->GetD3D11Device(),
 				m_device->GetD2D1DeviceContext(),
-				m_window->getSize()
+				m_window->_getCurrentSize()
 			)) {
 				return false;
 			}
@@ -1939,7 +1939,7 @@ namespace Core::Graphics
 		dispatchEvent(EventType::SwapChainDestroy);
 		destroySwapChain();
 
-		if (m_modern_swap_chain_available)
+		if (!m_disable_modern_swap_chain && m_modern_swap_chain_available)
 		{
 			// TODO: 这样就没法独占全屏了，因为拿不到包含的Output
 			// 如果有重定向表面，则去除
@@ -2230,6 +2230,7 @@ namespace Core::Graphics
 		assert(p_device);
 		m_modern_swap_chain_available = checkModernSwapChainModelAvailable(m_device->GetD3D11Device());
 		m_disable_exclusive_fullscreen = Platform::CommandLineArguments::Get().IsOptionExist("--disable-exclusive-fullscreen");
+		m_disable_modern_swap_chain = Platform::CommandLineArguments::Get().IsOptionExist("--disable-modern-swap-chain");
 		m_enable_composition = Platform::CommandLineArguments::Get().IsOptionExist("--enable-direct-composition");
 		m_disable_composition = Platform::CommandLineArguments::Get().IsOptionExist("--disable-direct-composition");
 		m_scaling_renderer.AttachDevice(m_device->GetD3D11Device());

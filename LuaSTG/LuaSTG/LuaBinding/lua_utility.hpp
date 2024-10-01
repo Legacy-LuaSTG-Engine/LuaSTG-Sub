@@ -48,6 +48,22 @@ namespace lua
 
 		stack_index_t() = default;
 		stack_index_t(int32_t index) : value(index) {};
+
+		inline bool operator>(int r) {
+			return value > r;
+		}
+		inline bool operator>=(int r) {
+			return value >= r;
+		}
+		inline bool operator<(int r) {
+			return value < r;
+		}
+		inline bool operator<=(int r) {
+			return value <= r;
+		}
+		inline bool operator==(int r) {
+			return value == r;
+		}
 	};
 
 	struct stack_balancer_t
@@ -71,10 +87,15 @@ namespace lua
 
 		inline void pop_value() { lua_pop(L, 1); }
 
+		inline void pop_values(int32_t count) { lua_pop(L, count); }
+
 		// C -> lua
 
 		template<typename T>
 		inline void push_value(T value) { typename T::__invalid_type__ _{}; }
+
+		template<>
+		inline void push_value(std::nullopt_t) { lua_pushnil(L); }
 
 		template<>
 		inline void push_value(bool value) { lua_pushboolean(L, value); }
@@ -149,7 +170,7 @@ namespace lua
 
 		// C -> lua array
 
-		inline stack_index_t create_array(size_t size) { lua_createtable(L, static_cast<int>(size), 0); return index_of_top(); }
+		inline stack_index_t create_array(size_t size = 0) { lua_createtable(L, static_cast<int>(size), 0); return index_of_top(); }
 
 		template<typename T>
 		inline void set_array_value_zero_base(size_t c_index, T value) { typename T::__invalid_type__ _{}; }
@@ -162,6 +183,8 @@ namespace lua
 
 		template<>
 		inline void set_array_value(stack_index_t index, std::string_view value) { lua_pushlstring(L, value.data(), value.size()); lua_rawseti(L, -2, index.value); }
+
+		inline void set_array_value(stack_index_t array_index, int32_t index, stack_index_t value_index) { lua_pushvalue(L, value_index.value); lua_rawseti(L, array_index.value, index); }
 
 		inline size_t get_array_size(stack_index_t index) { return lua_objlen(L, index.value); }
 
@@ -350,5 +373,17 @@ namespace lua
 			luaL_getmetatable(L, name_copy.c_str());
 			lua_setmetatable(L, index.value);
 		}
+
+		inline bool is_metatable(stack_index_t index, std::string_view name) {
+			if (!lua_getmetatable(L, index.value)) {
+				return false;
+			}
+			auto const mt_index = index_of_top();
+			auto const ref_index = push_metatable(name);
+			int const result = lua_rawequal(L, mt_index.value, ref_index.value);
+			pop_values(2);
+			return !!result;
+		}
+
 	};
 }

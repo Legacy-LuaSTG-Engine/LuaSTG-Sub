@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Core/Type.hpp"
 
 namespace Core::Graphics
@@ -68,6 +68,24 @@ namespace Core::Graphics
 		Wait,
 	};
 
+	struct IWindow;
+
+	struct IDisplay : public IObject {
+		virtual void* getNativeHandle() = 0;
+		virtual Vector2U getSize() = 0;
+		virtual Vector2I getPosition() = 0;
+		virtual RectI getRect() = 0;
+		virtual Vector2U getWorkAreaSize() = 0;
+		virtual Vector2I getWorkAreaPosition() = 0;
+		virtual RectI getWorkAreaRect() = 0;
+		virtual bool isPrimary() = 0;
+		virtual float getDisplayScale() = 0;
+
+		static bool getAll(size_t* count, IDisplay** output);
+		static bool getPrimary(IDisplay** output);
+		static bool getNearestFromWindow(IWindow* window, IDisplay** output);
+	};
+
 	struct IWindow : public IObject
 	{
 		virtual void addEventListener(IWindowEventListener* e) = 0;
@@ -94,8 +112,8 @@ namespace Core::Graphics
 		virtual uint32_t getDPI() = 0;
 		virtual float getDPIScaling() = 0;
 
-		virtual void setWindowMode(Vector2U size) = 0;
-		virtual void setFullScreenMode() = 0;
+		virtual void setWindowMode(Vector2U size, WindowFrameStyle style = WindowFrameStyle::Normal, IDisplay* display = nullptr) = 0;
+		virtual void setFullScreenMode(IDisplay* display = nullptr) = 0;
 
 		virtual uint32_t getMonitorCount() = 0;
 		virtual RectI getMonitorRect(uint32_t index) = 0;
@@ -112,6 +130,7 @@ namespace Core::Graphics
 
 		// Windows 11
 		virtual void setWindowCornerPreference(bool allow) = 0;
+		virtual void setTitleBarAutoHidePreference(bool allow) = 0;
 
 		static bool create(IWindow** pp_window);
 		static bool create(Vector2U size, StringView title_text, WindowFrameStyle style, bool show, IWindow** pp_window);

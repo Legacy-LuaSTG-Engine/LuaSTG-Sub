@@ -1,5 +1,8 @@
-﻿#include "LuaBinding/LuaWrapper.hpp"
+#include "LuaBinding/LuaWrapper.hpp"
 #include "LuaBinding/PostEffectShader.hpp"
+#include "LuaBinding/Display.hpp"
+#include "LuaBinding/Window.hpp"
+#include "LuaBinding/SwapChain.hpp"
 
 namespace LuaSTGPlus
 {
@@ -33,7 +36,6 @@ namespace LuaSTGPlus
 		};
 
 		luaL_register(L, LUASTG_LUA_LIBNAME, tMethod);	// ? t
-		WindowWrapper::Register(L);
 		ColorWrapper::Register(L);
 		ParticleSystemWrapper::Register(L);
 		StopWatchWrapper::Register(L);
@@ -58,5 +60,9 @@ namespace LuaSTGPlus
 		FileManagerWrapper::Register(L); //内建函数库，文件资源管理，请确保位于内建函数库后加载
 		ArchiveWrapper::Register(L); //压缩包
 		LuaSTG::LuaBinding::PostEffectShader::Register(L);
+		LuaSTG::Sub::LuaBinding::Display::registerClass(L);
+		LuaSTG::Sub::LuaBinding::Window::registerClass(L);
+		LuaSTG::Sub::LuaBinding::Window_Windows11Extension::registerClass(L);
+		LuaSTG::Sub::LuaBinding::SwapChain::registerClass(L);
 	}
 }

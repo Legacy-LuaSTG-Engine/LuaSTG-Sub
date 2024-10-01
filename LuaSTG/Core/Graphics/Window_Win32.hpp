@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Core/Object.hpp"
 #include "Core/ApplicationModel.hpp"
 #include "Core/Graphics/Window.hpp"
@@ -9,6 +9,30 @@
 
 namespace Core::Graphics
 {
+	class Display_Win32 : public Object<IDisplay> {
+	private:
+		HMONITOR win32_monitor{};
+	public:
+		void* getNativeHandle();
+		Vector2U getSize();
+		Vector2I getPosition();
+		RectI getRect();
+		Vector2U getWorkAreaSize();
+		Vector2I getWorkAreaPosition();
+		RectI getWorkAreaRect();
+		bool isPrimary();
+		float getDisplayScale();
+	public:
+		Display_Win32(HMONITOR monitor);
+		~Display_Win32();
+	};
+
+	struct SetWindowedModeParameters {
+		Vector2U size;
+		WindowFrameStyle style{ WindowFrameStyle::None };
+		IDisplay* display{};
+	};
+
 	class Window_Win32 : public Object<IWindow>
 	{
 	private:
@@ -34,7 +58,7 @@ namespace Core::Graphics
 		WindowCursor m_cursor{ WindowCursor::Arrow };
 		HCURSOR win32_window_cursor{ NULL };
 
-		WindowFrameStyle m_framestyle{ WindowFrameStyle::Fixed };
+		WindowFrameStyle m_framestyle{ WindowFrameStyle::Normal };
 		DWORD win32_window_style{ WS_OVERLAPPEDWINDOW ^ (WS_THICKFRAME | WS_MAXIMIZEBOX) };
 		DWORD win32_window_style_ex{ 0 };
 		BOOL m_hidewindow{ TRUE };
@@ -49,6 +73,7 @@ namespace Core::Graphics
 		BOOL win32_window_is_menu_loop{ FALSE };
 		BOOL win32_window_want_track_focus{ FALSE };
 		bool enable_track_window_focus{ false };
+		bool auto_hide_title_bar{ false };
 
 		Platform::WindowSizeMoveController m_sizemove;
 		platform::windows::ImmersiveTitleBarController m_title_bar_controller;
@@ -81,8 +106,8 @@ namespace Core::Graphics
 		bool getRedirectBitmapEnable();
 		bool recreateWindow();
 		void _toggleFullScreenMode();
-		void _setWindowMode(Vector2U size, bool ignore_size);
-		void _setFullScreenMode();
+		void _setWindowMode(SetWindowedModeParameters* parameters, bool ignore_size);
+		void _setFullScreenMode(IDisplay* display);
 
 		void implSetApplicationModel(IApplicationModel* p_framework) { m_framework = p_framework; }
 
@@ -132,6 +157,7 @@ namespace Core::Graphics
 		WindowFrameStyle getFrameStyle();
 
 		Vector2U getSize();
+		Vector2U _getCurrentSize();
 		bool setSize(Vector2U v);
 
 		WindowLayer getLayer();
@@ -139,8 +165,8 @@ namespace Core::Graphics
 
 		float getDPIScaling();
 
-		void setWindowMode(Vector2U size);
-		void setFullScreenMode();
+		void setWindowMode(Vector2U size, WindowFrameStyle style, IDisplay* display);
+		void setFullScreenMode(IDisplay* display);
 
 		uint32_t getMonitorCount();
 		RectI getMonitorRect(uint32_t index);
@@ -155,7 +181,9 @@ namespace Core::Graphics
 		bool setCursor(WindowCursor type);
 		WindowCursor getCursor();
 
+		// Windows 11
 		void setWindowCornerPreference(bool allow);
+		void setTitleBarAutoHidePreference(bool allow);
 
 	public:
 		Window_Win32();

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Core/Object.hpp"
 #include "Core/Graphics/SwapChain.hpp"
 #include "Core/Graphics/Window_Win32.hpp"
@@ -55,6 +55,7 @@ namespace Core::Graphics
 		BOOL m_init{ FALSE };
 
 		bool m_modern_swap_chain_available{ false };
+		bool m_disable_modern_swap_chain{ false };
 		bool m_disable_exclusive_fullscreen{ false };
 		bool m_disable_composition{ false };
 		bool m_enable_composition{ false };
@@ -151,6 +152,7 @@ namespace Core::Graphics
 		void applyRenderAttachment();
 		void waitFrameLatency();
 		void setVSync(bool enable);
+		inline bool getVSync() { return m_swap_chain_vsync; }
 		bool present();
 
 		bool saveSnapshotToFile(StringView path);

@@ -45,11 +45,6 @@ namespace LuaSTGPlus
 
 	namespace LuaWrapper
 	{
-		class WindowWrapper
-		{
-		public:
-			static void Register(lua_State* L) noexcept;
-		};
 		class InputWrapper
 		{
 		public:

@@ -112,7 +112,6 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/LW_Render.cpp
     LuaSTG/LuaBinding/LW_Renderer.cpp
     LuaSTG/LuaBinding/LW_StopWatch.cpp
-    LuaSTG/LuaBinding/LW_Window.cpp
     LuaSTG/LuaBinding/LW_ResourceMgr.cpp
     LuaSTG/LuaBinding/LW_Platform.cpp
     LuaSTG/LuaBinding/LW_GameObjectManager.cpp
@@ -121,6 +120,12 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/PostEffectShader.cpp
     LuaSTG/LuaBinding/Resource.hpp
     LuaSTG/LuaBinding/Resource.cpp
+    LuaSTG/LuaBinding/Display.hpp
+    LuaSTG/LuaBinding/Display.cpp
+    LuaSTG/LuaBinding/Window.hpp
+    LuaSTG/LuaBinding/Window.cpp
+    LuaSTG/LuaBinding/SwapChain.hpp
+    LuaSTG/LuaBinding/SwapChain.cpp
 
     LuaSTG/SteamAPI/SteamAPI.cpp
     LuaSTG/SteamAPI/SteamAPI.hpp
