@@ -1,12 +1,12 @@
-# LuaSTG Sub
+# LuaSTG Sub  
+
+[![C++ CI](https://github.com/Legacy-LuaSTG-Engine/LuaSTG-Sub/actions/workflows/cpp-ci.yml/badge.svg)](https://github.com/Legacy-LuaSTG-Engine/LuaSTG-Sub/actions/workflows/cpp-ci.yml)
 
 ![LuaSTG Sub](artwork/logo.png)
 
 ---
 
 ## Introduce
-
-[![C++ CI](https://github.com/Legacy-LuaSTG-Engine/LuaSTG-Sub/actions/workflows/cpp-ci.yml/badge.svg)](https://github.com/Legacy-LuaSTG-Engine/LuaSTG-Sub/actions/workflows/cpp-ci.yml)
 
 LuaSTG Sub, is a branch that the basic functions migrated to the new system API, target to replace the legacy [LuaSTG Plus](https://github.com/9chu/LuaSTGPlus) and [LuaSTG Ex Plus](https://github.com/Legacy-LuaSTG-Engine/Legacy-LuaSTG-Ex-Plus) branch. If you need a cross-platform or a more powerful branch of the LuaSTG engine, try [LuaSTG-x](https://github.com/Xrysnow/LuaSTG-x).
 
@@ -30,11 +30,9 @@ In addition, there are development tools and libraries such as THlib, LuaSTG Sha
 * Graphics Card: compatible with Direct3D11, Direct3D feature level is D3D_FEATURE_LEVEL_10_0 or above
 * Audio Card: compatible with XAudio2
 
-## Build Requirements
+## Build Projects
 
-* CMake 3.24
-* Visual Studio 2022
-* Windows SDK 10.0.22621.0
+See [Build Projects](./BUILD.md).
 
 ## Contributors
 
@@ -69,11 +67,9 @@ LuaSTG Sub 分支的基础功能被迁移到新的系统 API，用于替代老�
 * 显卡需求：支持 Direct3D 11 且 Direct3D 功能级别至少为 D3D_FEATURE_LEVEL_10_0  
 * 声卡需求：支持 XAudio2  
 
-## 构建要求
+## 编译项目  
 
-* CMake 3.24
-* Visual Studio 2022
-* Windows SDK 10.0.22621.0
+请阅读[编译项目](./BUILD.md)。
 
 ## 贡献者  
 
