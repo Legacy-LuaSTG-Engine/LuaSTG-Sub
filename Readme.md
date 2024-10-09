@@ -34,7 +34,7 @@ In addition, there are development tools and libraries such as THlib, LuaSTG Sha
 
 See [Build Projects](./BUILD.md).
 
-## Contributors
+## Major Contributors
 
 * [9chu](https://github.com/9chu) (developer of LuaSTG Plus)
 * [ESC](https://github.com/ExboCooope) (developer of LuaSTG Ex Plus)
@@ -71,7 +71,7 @@ LuaSTG Sub 分支的基础功能被迁移到新的系统 API，用于替代老�
 
 请阅读[编译项目](./BUILD.md)。
 
-## 贡献者  
+## 主要贡献者  
 
 * [9chu](https://github.com/9chu)（LuaSTG Plus 开发者）  
 * [ESC](https://github.com/ExboCooope)（LuaSTG Ex Plus 开发者）  
