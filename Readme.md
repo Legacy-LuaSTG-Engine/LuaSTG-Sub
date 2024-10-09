@@ -81,10 +81,3 @@ LuaSTG Sub 分支的基础功能被迁移到新的系统 API，用于替代老�
 * [ESC](https://github.com/ExboCooope)（LuaSTG Ex Plus 开发者）  
 * [Xiliusha](https://github.com/Xiliusha)（LuaSTG Ex Plus 开发者）  
 * [璀境石](https://github.com/Demonese)（LuaSTG Sub 开发者）  
-
-
----
-
-## C++ Development Accelerator
-
-![CLion logo](https://resources.jetbrains.com/storage/products/company/brand/logos/CLion.svg)
