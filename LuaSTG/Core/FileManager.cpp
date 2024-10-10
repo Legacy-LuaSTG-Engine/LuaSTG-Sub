@@ -35,7 +35,7 @@ static bool is_file_path_case_correct(std::wstring_view file_path)
     file.Close();
 
     bool const equal = (full_path == final_path);
-    if (!equal) spdlog::error("[core] 路径 '{}' 和 '{}' 不匹配，存在大小写一致的部分", utf8::to_string(full_path), utf8::to_string(final_path));
+    if (!equal) spdlog::error("[core] 路径 '{}' 和 '{}' 不匹配，存在大小写不一致的部分", utf8::to_string(full_path), utf8::to_string(final_path));
 
     return equal;
 }
