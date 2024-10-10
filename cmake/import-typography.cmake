@@ -21,7 +21,7 @@ if(libfreetype_ADDED)
         -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>
         # force utf-8
         -DCMAKE_C_FLAGS=/utf-8
-        -DCMAKE_CXX_FLAGS=/utf-8
+        #-DCMAKE_CXX_FLAGS=/utf-8  # freetype is C lib
         # libfreetype options
         -DFT_DISABLE_ZLIB=ON
         -DFT_DISABLE_BZIP2=ON

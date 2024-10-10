@@ -5,9 +5,10 @@ project(LuaSTGSub)
 #option(LUASTG_RESDIR "Custom configurations" "res")
 
 option(LUASTG_SUPPORTS_WINDOWS_7 "LuaSTG Sub Windows compatibility: Windows 7" ON)
+option(LUASTG_LINK_YY_THUNKS "Link to YY_Thunks for older Windows version" OFF)
 
 if(LUASTG_SUPPORTS_WINDOWS_7)
-    message(STATUS "LuaSTG Sub Windows compatibility: Windows 7")
+    message(STATUS "[LuaSTG] Windows compatibility: Windows 7")
     add_compile_definitions(LUASTG_SUPPORTS_WINDOWS_7)
 endif()
 
@@ -22,6 +23,9 @@ include(cmake/loader.cpm.cmake)
 
 CPMInitialize()
 
+if(LUASTG_LINK_YY_THUNKS)
+    include(cmake/import-yy.cmake)
+endif()
 include(cmake/packages.cpm.cmake)
 include(cmake/packages.nuget.cmake)
 include(cmake/packages.directx.cmake)
