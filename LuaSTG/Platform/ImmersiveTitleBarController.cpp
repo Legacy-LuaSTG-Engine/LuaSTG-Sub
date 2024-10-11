@@ -416,7 +416,7 @@ namespace platform::windows {
 			auto const old_top = lpRect->top;
 			auto const result = win32::adjustWindowRectExForDpi(lpRect, dwStyle, bMenu, dwExStyle, dpi);
 			if (system_windows11) {
-				auto const outline = MulDiv(1, dpi, win32::getUserDefaultScreenDpi()); // MAGIC NUMBER: outline width
+				auto const outline = win32::scaleByDpi(1, dpi); // MAGIC NUMBER: outline width
 				lpRect->top = old_top - outline; // MAGIC NUMBER: outline width
 			}
 			else {
@@ -473,14 +473,14 @@ namespace platform::windows {
 					auto const screenY = GET_Y_LPARAM(arg2);
 					POINT pt{ screenX, screenY };
 					MapWindowPoints(HWND_DESKTOP, window, &pt, 1);
-					if (pt.y < MulDiv(32, static_cast<int>(win32_window_dpi), win32::getUserDefaultScreenDpi())) {
-						if (pt.x < (static_cast<int>(win32_window_width) - MulDiv(46 * 3, static_cast<int>(win32_window_dpi), win32::getUserDefaultScreenDpi()))) {
+					if (pt.y < win32::scaleByDpi(32, win32_window_dpi)) {
+						if (pt.x < (static_cast<int>(win32_window_width) - win32::scaleByDpi(46 * 3, win32_window_dpi))) {
 							return { true, HTCAPTION };
 						}
-						if (pt.x < (static_cast<int>(win32_window_width) - MulDiv(46 * 2, static_cast<int>(win32_window_dpi), win32::getUserDefaultScreenDpi()))) {
+						if (pt.x < (static_cast<int>(win32_window_width) - win32::scaleByDpi(46 * 2, win32_window_dpi))) {
 							return { true, HTMINBUTTON };
 						}
-						if (pt.x < (static_cast<int>(win32_window_width) - MulDiv(46 * 1, static_cast<int>(win32_window_dpi), win32::getUserDefaultScreenDpi()))) {
+						if (pt.x < (static_cast<int>(win32_window_width) - win32::scaleByDpi(46 * 1, win32_window_dpi))) {
 							return { true, HTMAXBUTTON };
 						}
 						return { true, HTCLOSE };
