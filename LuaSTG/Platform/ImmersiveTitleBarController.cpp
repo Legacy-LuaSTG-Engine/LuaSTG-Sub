@@ -473,14 +473,16 @@ namespace platform::windows {
 					auto const screenY = GET_Y_LPARAM(arg2);
 					POINT pt{ screenX, screenY };
 					MapWindowPoints(HWND_DESKTOP, window, &pt, 1);
-					if (pt.y < win32::scaleByDpi(32, win32_window_dpi)) {
-						if (pt.x < (static_cast<int>(win32_window_width) - win32::scaleByDpi(46 * 3, win32_window_dpi))) {
+					int const i_title_height = static_cast<int>(title_bar_height);
+					if (pt.y < win32::scaleByDpi(i_title_height, win32_window_dpi)) {
+						int const i_button_width = static_cast<int>(button_width);
+						if (pt.x < (static_cast<int>(win32_window_width) - win32::scaleByDpi(i_button_width * 3, win32_window_dpi))) {
 							return { true, HTCAPTION };
 						}
-						if (pt.x < (static_cast<int>(win32_window_width) - win32::scaleByDpi(46 * 2, win32_window_dpi))) {
+						if (pt.x < (static_cast<int>(win32_window_width) - win32::scaleByDpi(i_button_width * 2, win32_window_dpi))) {
 							return { true, HTMINBUTTON };
 						}
-						if (pt.x < (static_cast<int>(win32_window_width) - win32::scaleByDpi(46 * 1, win32_window_dpi))) {
+						if (pt.x < (static_cast<int>(win32_window_width) - win32::scaleByDpi(i_button_width * 1, win32_window_dpi))) {
 							return { true, HTMAXBUTTON };
 						}
 						return { true, HTCLOSE };
