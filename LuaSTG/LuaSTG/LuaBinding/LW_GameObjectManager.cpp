@@ -1,4 +1,4 @@
-﻿#include "LuaBinding/LuaWrapper.hpp"
+#include "LuaBinding/LuaWrapper.hpp"
 #include "AppFrame.h"
 
 void LuaSTGPlus::LuaWrapper::GameObjectManagerWrapper::Register(lua_State* L) noexcept
@@ -47,8 +47,8 @@ void LuaSTGPlus::LuaWrapper::GameObjectManagerWrapper::Register(lua_State* L) no
 		static int CollisionCheck(lua_State* L) noexcept
 		{
 			LPOOL.CheckIsMainThread(L);
-			LPOOL.CollisionCheck(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2));
-			return 0;
+			//LPOOL.CollisionCheck(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2));
+			return LPOOL.api_CollisionCheck(L);
 		}
 		static int UpdateXY(lua_State* L) noexcept
 		{

@@ -1,6 +1,8 @@
-﻿#pragma once
+#pragma once
 #include "GameObject/GameObject.hpp"
 #include "Utility/fixed_object_pool.hpp"
+#include <deque>
+#include <memory_resource>
 
 // 对象池信息
 #define LOBJPOOL_SIZE   32768 // 最大对象数 //32768(full) //16384(half)
@@ -19,6 +21,11 @@ namespace LuaSTGPlus
 			uint64_t object_alive{ 0 };
 			uint64_t object_colli_check{ 0 };
 			uint64_t object_colli_callback{ 0 };
+		};
+
+		struct IntersectionDetectionGroupPair {
+			uint32_t group1{};
+			uint32_t group2{};
 		};
 
 	private:
@@ -52,6 +59,15 @@ namespace LuaSTGPlus
 
 		FrameStatistics m_DbgData[2]{};
 		size_t m_DbgIdx{ 0 };
+
+		struct IntersectionDetectionResult {
+			uint64_t id1{};
+			uint64_t id2{};
+			uint32_t index1{};
+			uint32_t index2{};
+		};
+
+		std::pmr::unsynchronized_pool_resource local_memory_resource;
 
 	private:
 		GameObject* m_LockObjectA{};
@@ -141,6 +157,12 @@ namespace LuaSTGPlus
 		/// @param[in] groupB 对象组B
 		void CollisionCheck(size_t groupA, size_t groupB) noexcept;
 		
+		// 【内部使用】相交检测 - 单个组
+		private: void detectIntersection(IntersectionDetectionGroupPair const& group_pair, std::pmr::deque<IntersectionDetectionResult>& cache);
+
+		// 相交检测
+		public: void detectIntersection(std::pmr::vector<IntersectionDetectionGroupPair> const& group_pairs, int32_t objects_index = 0, lua_State* L = nullptr);
+
 		/// @brief 更新对象的XY坐标偏移量
 		void UpdateXY() noexcept;
 		
@@ -260,6 +282,7 @@ namespace LuaSTGPlus
 		static int api_IsValid(lua_State* L) noexcept;
 		static int api_BoxCheck(lua_State* L) noexcept;
 		static int api_ColliCheck(lua_State* L) noexcept;
+		static int api_CollisionCheck(lua_State* L);
 		static int api_Angle(lua_State* L) noexcept;
 		static int api_Dist(lua_State* L) noexcept;
 		static int api_GetV(lua_State* L) noexcept;
