@@ -521,7 +521,7 @@ namespace platform::windows {
 					HMONITOR monitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
 					assert(monitor);
 					MONITORINFO monitor_info{ .cbSize = sizeof(MONITORINFO) };
-					BOOL const br = GetMonitorInfoW(monitor, &monitor_info);
+					[[maybe_unused]] BOOL const br = GetMonitorInfoW(monitor, &monitor_info);
 					assert(br);
 					[[maybe_unused]] auto const result = DefWindowProcW(window, message, arg1, arg2);
 					auto const outline = getFrameBorderThickness(window);
