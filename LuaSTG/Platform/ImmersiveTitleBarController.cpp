@@ -143,7 +143,7 @@ namespace platform::windows {
 		bool title_bar_down{ false };
 
 	private:
-		float getScaling() const noexcept { return (float)win32_window_dpi / (float)win32::getUserDefaultScreenDpi(); }
+		float getScaling() const noexcept { return win32::getScalingFromDpi(win32_window_dpi); }
 		ColorSchema const& getColorSchema() const noexcept { return dark_mode ? dark : light; }
 		IconSchema const& getIconSchema() const noexcept { return system_windows11 ? icon_windows11 : icon_windows10; }
 		void trackMouseLeave(HWND win32_window) {

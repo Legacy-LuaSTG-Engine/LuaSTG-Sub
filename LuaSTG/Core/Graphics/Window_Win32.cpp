@@ -935,7 +935,7 @@ namespace Core::Graphics
 
 	float Window_Win32::getDPIScaling()
 	{
-		return (float)getDPI() / (float)win32::getUserDefaultScreenDpi();
+		return win32::getScalingFromDpi(getDPI());
 	}
 
 	void Window_Win32::setWindowMode(Vector2U size, WindowFrameStyle style, IDisplay* display)

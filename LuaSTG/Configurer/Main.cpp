@@ -1,4 +1,4 @@
-﻿#include "win32/win32.hpp"
+#include "win32/win32.hpp"
 #include "win32/abi.hpp"
 #include "Platform/WindowTheme.hpp"
 #include "imgui.h"
@@ -249,7 +249,7 @@ struct Window
                 {
                     if (ImGui::Selectable(entry.c_str()))
                     {
-                        luastg_config.select_adapter = &entry - dxgi_adapter_list.data();
+                        luastg_config.select_adapter = static_cast<int>(&entry - dxgi_adapter_list.data());
                     }
                 }
                 ImGui::EndCombo();
@@ -261,7 +261,7 @@ struct Window
                 {
                     if (ImGui::Selectable(entry.name.c_str()))
                     {
-                        luastg_config.select_mode = &entry - dxgi_output_mode_list.data();
+                        luastg_config.select_mode = static_cast<int>(&entry - dxgi_output_mode_list.data());
                     }
                 }
                 ImGui::EndCombo();
@@ -310,7 +310,7 @@ struct Window
     }
     bool refreshOutputModeList()
     {
-        bool const canvas_mode = true;
+        bool canvas_mode = true;
         dxgi_output_mode_list.clear();
         if (!canvas_mode && dxgi_swapchain)
         {
@@ -380,7 +380,7 @@ struct Window
         if (!ImGui::GetCurrentContext()) return;
 
         ImGuiIO& io = ImGui::GetIO();
-        float const scaling = Platform::HighDPI::ScalingFromDpi(win32_window_dpi);
+        float const scaling = win32::getScalingFromDpi(win32_window_dpi);
 
         ApplyStyle();
 
@@ -419,7 +419,7 @@ struct Window
     {
         if (!ImGui::GetCurrentContext()) return;
         
-        float const scaling = Platform::HighDPI::ScalingFromDpi(win32_window_dpi);
+        float const scaling = win32::getScalingFromDpi(win32_window_dpi);
 
         ImGuiStyle style;
         if (Platform::WindowTheme::ShouldApplicationEnableDarkMode())
@@ -614,8 +614,8 @@ struct Window
         {
             throw std::runtime_error("AdjustWindowRectExForDpi failed.");
         }
-        win32_window_width = Platform::HighDPI::ScalingByDpi<UINT>(WINDOW_SIZE_X, win32_window_dpi);
-        win32_window_height = Platform::HighDPI::ScalingByDpi<UINT>(WINDOW_SIZE_Y, win32_window_dpi);
+        win32_window_width = win32::scaleByDpi(WINDOW_SIZE_X, win32_window_dpi);
+        win32_window_height = win32::scaleByDpi(WINDOW_SIZE_Y, win32_window_dpi);
         rc.right += win32_window_width;
         rc.bottom += win32_window_height;
         if (!SetWindowPos(win32_window, NULL, 0, 0, rc.right - rc.left, rc.bottom - rc.top, SWP_NOZORDER | SWP_NOMOVE))
@@ -653,7 +653,7 @@ struct Window
         {
             if (luastg_config.adapter == v)
             {
-                luastg_config.select_adapter = &v - dxgi_adapter_list.data();
+                luastg_config.select_adapter = static_cast<int>(&v - dxgi_adapter_list.data());
                 break;
             }
         }
@@ -666,7 +666,7 @@ struct Window
                 && luastg_config.refresh_rate_numerator == (int)v.mode.RefreshRate.Numerator
                 && luastg_config.refresh_rate_denominator == (int)v.mode.RefreshRate.Denominator)
             {
-                luastg_config.select_mode = &v - dxgi_output_mode_list.data();
+                luastg_config.select_mode = static_cast<int>(&v - dxgi_output_mode_list.data());
                 find_mode = true;
                 break;
             }
@@ -677,7 +677,7 @@ struct Window
             {
                 if (luastg_config.width == (int)v.mode.Width && luastg_config.height == (int)v.mode.Height)
                 {
-                    luastg_config.select_mode = &v - dxgi_output_mode_list.data();
+                    luastg_config.select_mode = static_cast<int>(&v - dxgi_output_mode_list.data());
                     find_mode = true;
                     break;
                 }
@@ -689,7 +689,7 @@ struct Window
             {
                 if (luastg_config.width == (int)v.mode.Width || luastg_config.height == (int)v.mode.Height)
                 {
-                    luastg_config.select_mode = &v - dxgi_output_mode_list.data();
+                    luastg_config.select_mode = static_cast<int>(&v - dxgi_output_mode_list.data());
                     find_mode = true;
                     break;
                 }
