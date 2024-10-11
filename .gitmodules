@@ -22,3 +22,6 @@
 [submodule "external/luajit2"]
 	path = external/luajit2
 	url = https://github.com/Legacy-LuaSTG-Engine/LuaSTG-Sub-LuaJIT.git
+[submodule "external/beautiful-win32-api"]
+	path = external/beautiful-win32-api
+	url = https://github.com/Demonese/beautiful-win32-api
