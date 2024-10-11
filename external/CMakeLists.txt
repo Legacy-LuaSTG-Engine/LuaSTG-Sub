@@ -1,3 +1,8 @@
+# ==================== beautiful win32 api ====================
+
+add_subdirectory(beautiful-win32-api)
+set_target_properties(beautiful_win32_api PROPERTIES FOLDER external)
+
 # ==================== luajit ====================
 
 add_subdirectory(luajit2)
