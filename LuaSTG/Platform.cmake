@@ -21,8 +21,6 @@ set(PLATFORM_SOURCES
     Platform/All.cpp
     Platform/ApplicationSingleInstance.hpp
 
-    Platform/HighDPI.hpp
-    Platform/HighDPI.cpp
     Platform/CleanWindows.hpp
     Platform/KnownDirectory.hpp
     Platform/KnownDirectory.cpp
@@ -64,4 +62,8 @@ target_include_directories(PlatformAPI PUBLIC
 target_sources(PlatformAPI PRIVATE
     ${PLATFORM_SOURCES}
 )
-target_link_libraries(PlatformAPI PRIVATE Microsoft.Windows.ImplementationLibrary utility)
+target_link_libraries(PlatformAPI PRIVATE
+    Microsoft.Windows.ImplementationLibrary
+    utility
+    beautiful_win32_api
+)

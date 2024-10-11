@@ -1,45 +1,23 @@
 #include <cassert>
 #include <cmath>
 #include <string>
+
+#include "win32/win32.hpp"
+
 #include "CleanWindows.hpp"
 #include <windowsx.h>
 #include <d2d1_3.h>
 #include <dwrite_3.h>
 #include <dwmapi.h>
 #include <wil/com.h>
-#include "HighDPI.hpp"
+
+#include "win32/abi.hpp"
+
 #include "WindowsVersion.hpp"
 #include "WindowTheme.hpp"
 #include "ImmersiveTitleBarController.hpp"
 #include "RuntimeLoader/DirectWrite.hpp"
 #include "RuntimeLoader/DesktopWindowManager.hpp"
-
-namespace win32 {
-	inline UINT getDpiForWindow(HWND window) {
-		return Platform::HighDPI::GetDpiForWindow(window);
-	}
-	inline int getSystemMetricsForDpi(int index, UINT dpi) {
-		return Platform::HighDPI::GetSystemMetricsForDpi(index, dpi);
-	}
-	inline BOOL adjustWindowRectExForDpi(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi) {
-		return Platform::HighDPI::AdjustWindowRectExForDpi(lpRect, dwStyle, bMenu, dwExStyle, dpi);
-	}
-}
-
-inline std::wstring to_wide(std::string_view const src)
-{
-	int const size = MultiByteToWideChar(CP_UTF8, 0, src.data(), (int)src.length(), NULL, 0);
-	if (size > 0)
-	{
-		std::wstring buf(size, L'\0');
-		int const result = MultiByteToWideChar(CP_UTF8, 0, src.data(), (int)src.length(), buf.data(), size);
-		if (result == size)
-		{
-			return buf;
-		}
-	}
-	return L"";
-}
 
 namespace platform::windows {
 
@@ -773,7 +751,7 @@ namespace platform::windows {
 			if (!system_windows11) {
 				return true; // fail, but success
 			}
-			title_text = to_wide(text);
+			title_text = win32::to_wstring(text);
 			return true;
 		}
 		bool setClientSize(HWND window, UINT width, UINT height) {

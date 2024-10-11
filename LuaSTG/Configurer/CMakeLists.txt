@@ -18,6 +18,7 @@ target_link_libraries(Setting PRIVATE
     dxgi.lib
     spdlog
     utility
+    beautiful_win32_api
     imgui
     imgui_impl_win32
     imgui_impl_dx11

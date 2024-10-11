@@ -2,8 +2,9 @@
 #include "Core/ApplicationModel_Win32.hpp"
 #include "Core/InitializeConfigure.hpp"
 #include "Core/i18n.hpp"
+#include "win32/win32.hpp"
+#include "win32/abi.hpp"
 #include "Platform/WindowsVersion.hpp"
-#include "Platform/HighDPI.hpp"
 #include "Platform/WindowTheme.hpp"
 #include "utf8.hpp"
 #include <WinUser.h>
@@ -63,7 +64,7 @@ namespace Core::Graphics
 		return !!(info.dwFlags & MONITORINFOF_PRIMARY);
 	}
 	float Display_Win32::getDisplayScale() {
-		return Platform::HighDPI::GetDpiScalingForMonitor(win32_monitor);
+		return (float) win32::getDpiForMonitor(win32_monitor) / (float) USER_DEFAULT_SCREEN_DPI;
 	}
 
 	Display_Win32::Display_Win32(HMONITOR monitor) : win32_monitor(monitor) {
@@ -159,7 +160,7 @@ namespace Core::Graphics
 		switch (message)
 		{
 		case WM_NCCREATE:
-			Platform::HighDPI::EnableNonClientDpiScaling(window);
+			win32::enableNonClientDpiScaling(window);
 			break;
 		case WM_CREATE:
 			SetLastError(0);
@@ -288,18 +289,12 @@ namespace Core::Graphics
 			{
 				MINMAXINFO* info = (MINMAXINFO*)arg2;
 				RECT rect_min = { 0, 0, 320, 240 };
-				//RECT rect = { 0, 0, (LONG)win32_window_width, (LONG)win32_window_height };
-				UINT dpi = Platform::HighDPI::GetDpiForWindow(win32_window);
+				UINT const dpi = win32::getDpiForWindow(window);
 				if (m_title_bar_controller.adjustWindowRectExForDpi(&rect_min, win32_window_style, FALSE, win32_window_style_ex, dpi))
 				{
 					info->ptMinTrackSize.x = rect_min.right - rect_min.left;
 					info->ptMinTrackSize.y = rect_min.bottom - rect_min.top;
 				}
-				//if (Platform::HighDPI::AdjustWindowRectExForDpi(&rect, win32_window_style, FALSE, win32_window_style_ex, dpi))
-				//{
-				//	info->ptMaxTrackSize.x = rect.right - rect.left;
-				//	info->ptMaxTrackSize.y = rect.bottom - rect.top;
-				//}
 			}
 			return 0;
 		case WM_DPICHANGED:
@@ -530,7 +525,7 @@ namespace Core::Graphics
 		RECT rect = { 0, 0, (int32_t)parameters->size.x, (int32_t)parameters->size.y };
 		m_title_bar_controller.adjustWindowRectExForDpi(
 			&rect, new_win32_window_style, FALSE, 0,
-			Platform::HighDPI::GetDpiForWindow(win32_window));
+			win32::getDpiForWindow(win32_window));
 
 		//m_ignore_size_message = TRUE;
 		SetLastError(0);
@@ -679,7 +674,7 @@ namespace Core::Graphics
 	bool Window_Win32::setClientRect(RectI v)
 	{
 		// 更新 DPI
-		win32_window_dpi = Platform::HighDPI::GetDpiForWindow(win32_window);
+		win32_window_dpi = win32::getDpiForWindow(win32_window);
 		// 计算包括窗口框架的尺寸
 		RECT rc = { v.a.x , v.a.y , v.b.x , v.b.y };
 		m_title_bar_controller.adjustWindowRectExForDpi(
@@ -711,7 +706,7 @@ namespace Core::Graphics
 	}
 	uint32_t Window_Win32::getDPI()
 	{
-		win32_window_dpi = Platform::HighDPI::GetDpiForWindow(win32_window);
+		win32_window_dpi = win32::getDpiForWindow(win32_window);
 		return win32_window_dpi;
 	}
 	void Window_Win32::setRedirectBitmapEnable(bool enable)

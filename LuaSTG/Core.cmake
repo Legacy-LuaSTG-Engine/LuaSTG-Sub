@@ -89,6 +89,7 @@ target_link_libraries(Core PUBLIC
     # util
     utility
     PlatformAPI
+    beautiful_win32_api
     GeneratedShaderHeaders
     # win32
     winmm.lib

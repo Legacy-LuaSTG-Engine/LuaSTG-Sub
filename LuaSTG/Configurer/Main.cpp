@@ -1,4 +1,5 @@
-﻿#include "Platform/HighDPI.hpp"
+﻿#include "win32/win32.hpp"
+#include "win32/abi.hpp"
 #include "Platform/WindowTheme.hpp"
 #include "imgui.h"
 #include "imgui_freetype.h"
@@ -609,7 +610,7 @@ struct Window
             .right = 0,
             .bottom = 0,
         };
-        if (!Platform::HighDPI::AdjustWindowRectExForDpi(&rc, win32_window_style, FALSE, win32_window_style_ex, win32_window_dpi))
+        if (!win32::adjustWindowRectExForDpi(&rc, win32_window_style, FALSE, win32_window_style_ex, win32_window_dpi))
         {
             throw std::runtime_error("AdjustWindowRectExForDpi failed.");
         }
@@ -750,7 +751,7 @@ struct Window
             throw std::runtime_error("CreateWindowExW failed."); // 这不应该发生
         }
         Platform::WindowTheme::UpdateColorMode(win32_window, TRUE);
-        win32_window_dpi = Platform::HighDPI::GetDpiForWindow(win32_window);
+        win32_window_dpi = win32::getDpiForWindow(win32_window);
         updateWindowSize();
         moveToCenter();
         updateTitle();
