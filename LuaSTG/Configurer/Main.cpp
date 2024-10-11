@@ -728,7 +728,7 @@ struct Window
         , win32_window_style_ex(0)
         , win32_window_width(WINDOW_SIZE_X)
         , win32_window_height(WINDOW_SIZE_Y)
-        , win32_window_dpi(USER_DEFAULT_SCREEN_DPI)
+        , win32_window_dpi(win32::getUserDefaultScreenDpi())
         , is_open(FALSE)
     {
         win32_wincls.style = CS_HREDRAW | CS_VREDRAW;

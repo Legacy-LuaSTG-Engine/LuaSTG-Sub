@@ -48,7 +48,7 @@ namespace Core::Graphics
 
 		UINT win32_window_width{ 640 };
 		UINT win32_window_height{ 480 };
-		UINT win32_window_dpi{ USER_DEFAULT_SCREEN_DPI };
+		UINT win32_window_dpi{};
 
 		INT_PTR win32_window_icon_id{ 0 };
 

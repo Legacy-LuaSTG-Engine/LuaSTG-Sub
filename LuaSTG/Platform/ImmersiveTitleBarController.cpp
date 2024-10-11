@@ -122,7 +122,7 @@ namespace platform::windows {
 		Platform::RuntimeLoader::DesktopWindowManager dwm;
 		UINT win32_window_width{};
 		UINT win32_window_height{};
-		UINT win32_window_dpi{ USER_DEFAULT_SCREEN_DPI };
+		UINT win32_window_dpi{ win32::getUserDefaultScreenDpi() };
 		wil::com_ptr_nothrow<ID2D1DeviceContext> d2d1_device_context;
 		wil::com_ptr_nothrow<IDWriteFactory> dwrite_factory;
 		wil::com_ptr_nothrow<IDWriteTextFormat> dwrite_text_format_title;
@@ -143,7 +143,7 @@ namespace platform::windows {
 		bool title_bar_down{ false };
 
 	private:
-		float getScaling() const noexcept { return (float)win32_window_dpi / (float)USER_DEFAULT_SCREEN_DPI; }
+		float getScaling() const noexcept { return (float)win32_window_dpi / (float)win32::getUserDefaultScreenDpi(); }
 		ColorSchema const& getColorSchema() const noexcept { return dark_mode ? dark : light; }
 		IconSchema const& getIconSchema() const noexcept { return system_windows11 ? icon_windows11 : icon_windows10; }
 		void trackMouseLeave(HWND win32_window) {
@@ -416,7 +416,7 @@ namespace platform::windows {
 			auto const old_top = lpRect->top;
 			auto const result = win32::adjustWindowRectExForDpi(lpRect, dwStyle, bMenu, dwExStyle, dpi);
 			if (system_windows11) {
-				auto const outline = MulDiv(1, dpi, USER_DEFAULT_SCREEN_DPI); // MAGIC NUMBER: outline width
+				auto const outline = MulDiv(1, dpi, win32::getUserDefaultScreenDpi()); // MAGIC NUMBER: outline width
 				lpRect->top = old_top - outline; // MAGIC NUMBER: outline width
 			}
 			else {
@@ -473,14 +473,14 @@ namespace platform::windows {
 					auto const screenY = GET_Y_LPARAM(arg2);
 					POINT pt{ screenX, screenY };
 					MapWindowPoints(HWND_DESKTOP, window, &pt, 1);
-					if (pt.y < MulDiv(32, static_cast<int>(win32_window_dpi), USER_DEFAULT_SCREEN_DPI)) {
-						if (pt.x < (static_cast<int>(win32_window_width) - MulDiv(46 * 3, static_cast<int>(win32_window_dpi), USER_DEFAULT_SCREEN_DPI))) {
+					if (pt.y < MulDiv(32, static_cast<int>(win32_window_dpi), win32::getUserDefaultScreenDpi())) {
+						if (pt.x < (static_cast<int>(win32_window_width) - MulDiv(46 * 3, static_cast<int>(win32_window_dpi), win32::getUserDefaultScreenDpi()))) {
 							return { true, HTCAPTION };
 						}
-						if (pt.x < (static_cast<int>(win32_window_width) - MulDiv(46 * 2, static_cast<int>(win32_window_dpi), USER_DEFAULT_SCREEN_DPI))) {
+						if (pt.x < (static_cast<int>(win32_window_width) - MulDiv(46 * 2, static_cast<int>(win32_window_dpi), win32::getUserDefaultScreenDpi()))) {
 							return { true, HTMINBUTTON };
 						}
-						if (pt.x < (static_cast<int>(win32_window_width) - MulDiv(46 * 1, static_cast<int>(win32_window_dpi), USER_DEFAULT_SCREEN_DPI))) {
+						if (pt.x < (static_cast<int>(win32_window_width) - MulDiv(46 * 1, static_cast<int>(win32_window_dpi), win32::getUserDefaultScreenDpi()))) {
 							return { true, HTMAXBUTTON };
 						}
 						return { true, HTCLOSE };

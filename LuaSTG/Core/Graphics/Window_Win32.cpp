@@ -64,7 +64,7 @@ namespace Core::Graphics
 		return !!(info.dwFlags & MONITORINFOF_PRIMARY);
 	}
 	float Display_Win32::getDisplayScale() {
-		return (float) win32::getDpiForMonitor(win32_monitor) / (float) USER_DEFAULT_SCREEN_DPI;
+		return win32::getDpiScalingForMonitor(win32_monitor);
 	}
 
 	Display_Win32::Display_Win32(HMONITOR monitor) : win32_monitor(monitor) {
@@ -935,7 +935,7 @@ namespace Core::Graphics
 
 	float Window_Win32::getDPIScaling()
 	{
-		return (float)getDPI() / (float)USER_DEFAULT_SCREEN_DPI;
+		return (float)getDPI() / (float)win32::getUserDefaultScreenDpi();
 	}
 
 	void Window_Win32::setWindowMode(Vector2U size, WindowFrameStyle style, IDisplay* display)
@@ -1108,6 +1108,7 @@ namespace Core::Graphics
 		if (config.debug_track_window_focus) {
 			enable_track_window_focus = true;
 		}
+		win32_window_dpi = win32::getUserDefaultScreenDpi();
 		win32_window_text_w.fill(L'\0');
 		if (!createWindowClass())
 			throw std::runtime_error("createWindowClass failed");
