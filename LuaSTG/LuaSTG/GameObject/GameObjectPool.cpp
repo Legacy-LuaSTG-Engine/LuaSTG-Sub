@@ -480,7 +480,6 @@ namespace LuaSTGPlus
 		auto& debug_data = m_DbgData[m_DbgIdx];
 		auto& group1 = m_ColliLinkList[group1_];
 		auto& group2 = m_ColliLinkList[group2_];
-		m_pCurrentObject = nullptr;
 		for (GameObject* ptrA = group1.first.pColliNext; ptrA != &group1.second;) {
 			GameObject* pA = ptrA;
 			ptrA = ptrA->pColliNext;
