@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "GameResource/ResourceBase.hpp"
 #include "GameResource/ResourceParticle.hpp"
 #include "GameObject/GameObjectClass.hpp"
@@ -117,6 +117,9 @@ namespace LuaSTGPlus
 		void UpdateLast();
 		void UpdateTimer();
 		void Render();
+
+		void UpdateV2();
+		void UpdateLastV2();
 
 		int GetAttr(lua_State* L) noexcept;
 		int SetAttr(lua_State* L) noexcept;
