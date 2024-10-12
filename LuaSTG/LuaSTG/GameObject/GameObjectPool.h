@@ -130,6 +130,8 @@ namespace LuaSTGPlus
 		/// @brief 执行对象的Frame函数
 		void DoFrame() noexcept;
 
+		void updateMovements();
+
 		/// @brief 执行对象的Render函数
 		void DoRender() noexcept;
 
