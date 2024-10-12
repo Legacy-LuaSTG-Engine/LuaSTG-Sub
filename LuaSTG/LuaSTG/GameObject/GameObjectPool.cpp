@@ -527,7 +527,6 @@ namespace LuaSTGPlus
 			auto& group2 = m_ColliLinkList[group_pair.group2];
 			for (GameObject* object1 = group1.first.pColliNext; object1 != &group1.second; object1 = object1->pColliNext) {
 				for (GameObject* object2 = group2.first.pColliNext; object2 != &group2.second; object2 = object2->pColliNext) {
-					// TODO: 是否有必要这样？其实相当于关闭了判定吧？
 				#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 					if (object1->luaclass.IsDefaultTrigger) {
 						continue;
