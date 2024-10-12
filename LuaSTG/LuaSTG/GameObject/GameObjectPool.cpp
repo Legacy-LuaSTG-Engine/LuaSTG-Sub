@@ -347,7 +347,7 @@ namespace LuaSTGPlus
 	}
 	void GameObjectPool::updateMovements(int32_t objects_index, lua_State* L) {
 		ZoneScopedN("LOBJMGR.ObjFrame(New)");
-		
+
 		int superpause = UpdateSuperPause(); // 处理超级暂停
 		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second; p = p->pUpdateNext) {
 			if (superpause <= 0 || p->ignore_superpause) {
@@ -393,19 +393,19 @@ namespace LuaSTGPlus
 				#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 					_GameObjectCallback(G_L, ot_idx, p, LGOBJ_CC_RENDER);
 				#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-			}
+				}
 				else
 				{
 					p->Render();
 				}
 			#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+			}
 		}
-	}
 		m_pCurrentObject = nullptr;
 		m_IsRendering = false;
 
 		lua_pop(G_L, 1);
-}
+	}
 	void GameObjectPool::BoundCheck() noexcept
 	{
 		ZoneScopedN("LOBJMGR.BoundCheck");
@@ -1306,7 +1306,7 @@ namespace LuaSTGPlus
 		}
 		lua_pushinteger(L, (lua_Integer)p->ps->GetAliveCount());
 		return 1;
-		}
+	}
 	int GameObjectPool::api_ParticleGetEmission(lua_State* L) noexcept
 	{
 		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
@@ -1320,7 +1320,7 @@ namespace LuaSTGPlus
 		}
 		lua_pushinteger(L, p->ps->GetEmission());
 		return 1;
-		}
+	}
 	int GameObjectPool::api_ParticleSetEmission(lua_State* L) noexcept
 	{
 		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
@@ -1334,4 +1334,4 @@ namespace LuaSTGPlus
 		p->ps->SetEmission((int)std::max<lua_Integer>(0, luaL_checkinteger(L, 2)));
 		return 0;
 	}
-	}
+}
