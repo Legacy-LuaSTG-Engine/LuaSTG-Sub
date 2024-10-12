@@ -364,7 +364,7 @@ namespace LuaSTGPlus
 
 		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second; p = p->pUpdateNext) {
 			if (superpause <= 0 || p->ignore_superpause) {
-				p->Update();
+				p->UpdateV2();
 			}
 		}
 	}
@@ -459,12 +459,9 @@ namespace LuaSTGPlus
 			}
 		}
 	}
-	void GameObjectPool::AfterFrame() noexcept
+	void GameObjectPool::updateNextLegacy(int32_t objects_index, lua_State* L)
 	{
 		ZoneScopedN("LOBJMGR.AfterFrame");
-
-		GetObjectTable(G_L);
-		int const ot_at = lua_gettop(G_L);
 
 		int superpause = GetSuperPauseTime();
 		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second;)
@@ -474,7 +471,7 @@ namespace LuaSTGPlus
 				p->UpdateTimer();
 				if (p->status != GameObjectStatus::Active)
 				{
-					p = _FreeObject(p, ot_at); // 再下一个
+					p = _FreeObject(p, objects_index); // 再下一个
 				}
 				else
 				{
@@ -486,8 +483,30 @@ namespace LuaSTGPlus
 				p = p->pUpdateNext;
 			}
 		}
+	}
+	void GameObjectPool::updateNext(int32_t objects_index, lua_State* L) {
+		ZoneScopedN("LOBJMGR.AfterFrame(New)");
 
-		lua_pop(G_L, 1);
+		int superpause = GetSuperPauseTime();
+		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second;)
+		{
+			if (superpause <= 0 || p->ignore_superpause)
+			{
+				p->UpdateLastV2();
+				if (p->status != GameObjectStatus::Active)
+				{
+					p = _FreeObject(p, objects_index); // 再下一个
+				}
+				else
+				{
+					p = p->pUpdateNext;
+				}
+			}
+			else
+			{
+				p = p->pUpdateNext;
+			}
+		}
 	}
 	void GameObjectPool::detectIntersectionLegacy(uint32_t group1_, uint32_t group2_, int32_t objects_index, lua_State* L) {
 		ZoneScopedN("LOBJMGR.CollisionCheck");
@@ -607,6 +626,25 @@ namespace LuaSTGPlus
 		g_GameObjectPool->GetObjectTable(L);
 		auto const objects = S.index_of_top();
 		g_GameObjectPool->updateMovementsLegacy(objects.value, L);
+		S.pop_value();
+		return 0;
+	}
+	int GameObjectPool::api_AfterFrame(lua_State* L) {
+		lua::stack_t S(L);
+		if (S.is_number(1)) {
+			auto const version = S.get_value<int32_t>(1);
+			if (version == 2) {
+				g_GameObjectPool->GetObjectTable(L);
+				auto const objects = S.index_of_top();
+				g_GameObjectPool->updateNext(objects.value, L);
+				S.pop_value();
+				return 0;
+			}
+		}
+		// version 1
+		g_GameObjectPool->GetObjectTable(L);
+		auto const objects = S.index_of_top();
+		g_GameObjectPool->updateNextLegacy(objects.value, L);
 		S.pop_value();
 		return 0;
 	}

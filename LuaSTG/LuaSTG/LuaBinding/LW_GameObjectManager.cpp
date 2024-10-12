@@ -54,9 +54,7 @@ void LuaSTGPlus::LuaWrapper::GameObjectManagerWrapper::Register(lua_State* L) no
 		}
 		static int AfterFrame(lua_State* L) noexcept
 		{
-			LPOOL.CheckIsMainThread(L);
-			LPOOL.AfterFrame();
-			return 0;
+			return LPOOL.api_AfterFrame(L);
 		}
 		static int ResetPool(lua_State* L) noexcept
 		{
