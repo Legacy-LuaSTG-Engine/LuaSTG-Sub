@@ -319,41 +319,54 @@ namespace LuaSTGPlus
 		m_iWorld = 15;
 		m_Worlds = { 15, 0, 0, 0 };
 		m_pCurrentObject = nullptr;
+		m_LockObjectA = nullptr;
+		m_LockObjectB = nullptr;
 		m_superpause = 0;
 		m_nextsuperpause = 0;
 		// 清理内存
 		local_memory_resource.release();
 	}
-	void GameObjectPool::DoFrame() noexcept
-	{
+	void GameObjectPool::updateMovementsLegacy(int32_t objects_index, lua_State* L) {
 		ZoneScopedN("LOBJMGR.ObjFrame");
 
-		//处理超级暂停
-		GetObjectTable(G_L);  // ot
-		int const ot_idx = lua_gettop(G_L);
-
-		m_pCurrentObject = nullptr;
-		int superpause = UpdateSuperPause();
-		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second; p = p->pUpdateNext)
-		{
-			// 根据id获取对象的lua绑定table、拿到class再拿到framefunc
-			if (superpause <= 0 || p->ignore_superpause)
-			{
-				m_pCurrentObject = p;
+		int superpause = UpdateSuperPause(); // 处理超级暂停
+		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second; p = p->pUpdateNext) {
+			if (superpause <= 0 || p->ignore_superpause) {
 			#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-				if (!p->luaclass.IsDefaultUpdate)
-				{
-				#endif // USING_ADVANCE_GAMEOBJECT_CLASS
-					_GameObjectCallback(G_L, ot_idx, p, LGOBJ_CC_FRAME);
-				#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+				if (p->luaclass.IsDefaultUpdate) {
+					p->Update(); // 默认更新逻辑
+					continue;
 				}
 			#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+				m_pCurrentObject = p;
+				_GameObjectCallback(L, objects_index, p, LGOBJ_CC_FRAME);
+				m_pCurrentObject = nullptr;
 				p->Update();
 			}
 		}
-		m_pCurrentObject = nullptr;
+	}
+	void GameObjectPool::updateMovements(int32_t objects_index, lua_State* L) {
+		ZoneScopedN("LOBJMGR.ObjFrame(New)");
 
-		lua_pop(G_L, 1);
+		int superpause = UpdateSuperPause(); // 处理超级暂停
+		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second; p = p->pUpdateNext) {
+			if (superpause <= 0 || p->ignore_superpause) {
+			#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+				if (p->luaclass.IsDefaultUpdate) {
+					continue;
+				}
+			#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+				m_pCurrentObject = p;
+				_GameObjectCallback(L, objects_index, p, LGOBJ_CC_FRAME);
+				m_pCurrentObject = nullptr;
+			}
+		}
+
+		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second; p = p->pUpdateNext) {
+			if (superpause <= 0 || p->ignore_superpause) {
+				p->UpdateV2();
+			}
+		}
 	}
 	void GameObjectPool::DoRender() noexcept
 	{
@@ -446,12 +459,9 @@ namespace LuaSTGPlus
 			}
 		}
 	}
-	void GameObjectPool::AfterFrame() noexcept
+	void GameObjectPool::updateNextLegacy(int32_t objects_index, lua_State*)
 	{
 		ZoneScopedN("LOBJMGR.AfterFrame");
-
-		GetObjectTable(G_L);
-		int const ot_at = lua_gettop(G_L);
 
 		int superpause = GetSuperPauseTime();
 		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second;)
@@ -461,7 +471,7 @@ namespace LuaSTGPlus
 				p->UpdateTimer();
 				if (p->status != GameObjectStatus::Active)
 				{
-					p = _FreeObject(p, ot_at); // 再下一个
+					p = _FreeObject(p, objects_index); // 再下一个
 				}
 				else
 				{
@@ -473,10 +483,31 @@ namespace LuaSTGPlus
 				p = p->pUpdateNext;
 			}
 		}
-
-		lua_pop(G_L, 1);
 	}
+	void GameObjectPool::updateNext(int32_t objects_index, lua_State*) {
+		ZoneScopedN("LOBJMGR.AfterFrame(New)");
 
+		int superpause = GetSuperPauseTime();
+		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second;)
+		{
+			if (superpause <= 0 || p->ignore_superpause)
+			{
+				p->UpdateLastV2();
+				if (p->status != GameObjectStatus::Active)
+				{
+					p = _FreeObject(p, objects_index); // 再下一个
+				}
+				else
+				{
+					p = p->pUpdateNext;
+				}
+			}
+			else
+			{
+				p = p->pUpdateNext;
+			}
+		}
+	}
 	void GameObjectPool::detectIntersectionLegacy(uint32_t group1_, uint32_t group2_, int32_t objects_index, lua_State* L) {
 		ZoneScopedN("LOBJMGR.CollisionCheck");
 		auto& debug_data = m_DbgData[m_DbgIdx];
@@ -577,6 +608,45 @@ namespace LuaSTGPlus
 			m_LockObjectA = nullptr;
 			m_LockObjectB = nullptr;
 		}
+	}
+
+	int GameObjectPool::api_ObjFrame(lua_State* L) {
+		lua::stack_t S(L);
+		if (S.is_number(1)) {
+			auto const version = S.get_value<int32_t>(1);
+			if (version == 2) {
+				g_GameObjectPool->GetObjectTable(L);
+				auto const objects = S.index_of_top();
+				g_GameObjectPool->updateMovements(objects.value, L);
+				S.pop_value();
+				return 0;
+			}
+		}
+		// version 1
+		g_GameObjectPool->GetObjectTable(L);
+		auto const objects = S.index_of_top();
+		g_GameObjectPool->updateMovementsLegacy(objects.value, L);
+		S.pop_value();
+		return 0;
+	}
+	int GameObjectPool::api_AfterFrame(lua_State* L) {
+		lua::stack_t S(L);
+		if (S.is_number(1)) {
+			auto const version = S.get_value<int32_t>(1);
+			if (version == 2) {
+				g_GameObjectPool->GetObjectTable(L);
+				auto const objects = S.index_of_top();
+				g_GameObjectPool->updateNext(objects.value, L);
+				S.pop_value();
+				return 0;
+			}
+		}
+		// version 1
+		g_GameObjectPool->GetObjectTable(L);
+		auto const objects = S.index_of_top();
+		g_GameObjectPool->updateNextLegacy(objects.value, L);
+		S.pop_value();
+		return 0;
 	}
 	int GameObjectPool::api_CollisionCheck(lua_State* L) {
 		lua::stack_t S(L);

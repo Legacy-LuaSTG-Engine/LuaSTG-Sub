@@ -1,4 +1,4 @@
-﻿#include "GameObject/GameObject.hpp"
+#include "GameObject/GameObject.hpp"
 #include "GameResource/ResourceSprite.hpp"
 #include "GameResource/ResourceAnimation.hpp"
 #include "LuaBinding/lua_luastg_hash.hpp"
@@ -412,6 +412,111 @@ namespace LuaSTGPlus
 	}
 	void GameObject::UpdateTimer()
 	{
+		timer += 1;
+		ani_timer += 1;
+	}
+
+	void GameObject::UpdateV2()
+	{
+	#ifdef	LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
+		if (pause > 0)
+		{
+			pause -= 1;
+		}
+		else
+		{
+			if (resolve_move)
+			{
+				if (touch_lastx_lasty)
+				{
+					vx = x - lastx;
+					vy = y - lasty;
+				}
+				else
+				{
+					vx = 0.0;
+					vy = 0.0;
+				}
+			}
+			else
+			#endif
+			{
+				// 更新速度
+				vx += ax;
+				vy += ay;
+			#ifdef USER_SYSTEM_OPERATION
+				// 单独应用重力加速度
+				vy -= ag;
+				// 速度限制，来自lua层
+				if (maxv <= DBL_MIN)
+				{
+					vx = 0.0;
+					vy = 0.0;
+				}
+				else
+				{
+					lua_Number const speed_ = std::sqrt(vx * vx + vy * vy);
+					if (maxv < speed_ && speed_ > DBL_MIN)
+					{
+						lua_Number const scale_ = maxv / speed_;
+						vx = scale_ * vx;
+						vy = scale_ * vy;
+					}
+				}
+				//针对x、y方向单独限制
+				vx = std::clamp(vx, -maxvx, maxvx);
+				vy = std::clamp(vy, -maxvy, maxvy);
+			#endif
+				x += vx;
+				y += vy;
+			}
+
+			rot += omega;
+
+			// 自动旋转
+
+			if (navi && touch_lastx_lasty) {
+				auto const dx_ = x - lastx;
+				auto const dy_ = y - lasty;
+				if (std::abs(dx_) > DBL_MIN || std::abs(dy_) > DBL_MIN) {
+					rot = std::atan2(dy_, dx_);
+				}
+			}
+			
+			// 更新粒子系统（若有）
+			if (res && res->GetType() == ResourceType::Particle)
+			{
+				ps->SetRotation((float)rot);
+				if (ps->IsActived()) // 兼容性处理
+				{
+					ps->SetActive(false);
+					ps->SetCenter(Core::Vector2F((float)x, (float)y));
+					ps->SetActive(true);
+				}
+				else
+				{
+					ps->SetCenter(Core::Vector2F((float)x, (float)y));
+				}
+				ps->Update(1.0f / 60.f);
+			}
+		#ifdef	LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
+		}
+	#endif
+	}
+	void GameObject::UpdateLastV2() {
+		if (touch_lastx_lasty)
+		{
+			dx = x - lastx;
+			dy = y - lasty;
+		}
+		else
+		{
+			dx = 0.0;
+			dy = 0.0;
+		}
+		lastx = x;
+		lasty = y;
+		touch_lastx_lasty = true;
 		timer += 1;
 		ani_timer += 1;
 	}
