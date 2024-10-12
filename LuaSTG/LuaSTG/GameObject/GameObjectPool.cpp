@@ -321,6 +321,8 @@ namespace LuaSTGPlus
 		m_pCurrentObject = nullptr;
 		m_superpause = 0;
 		m_nextsuperpause = 0;
+		// 清理内存
+		local_memory_resource.release();
 	}
 	void GameObjectPool::DoFrame() noexcept
 	{
