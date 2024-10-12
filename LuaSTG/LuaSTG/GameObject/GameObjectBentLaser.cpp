@@ -734,15 +734,12 @@ bool GameObjectBentLaser::CollisionCheckW(float x, float y, float rot, float a, 
 
 bool GameObjectBentLaser::BoundCheck() noexcept
 {
-	Core::RectF tBound = LPOOL.GetBound();
-	for (size_t i = 0u; i < m_Queue.Size(); i++)
-	{
+	auto& manager = LPOOL;
+	for (size_t i = 0u; i < m_Queue.Size(); i++) {
 		LaserNode& n = m_Queue[i];
-		if (n.pos.x >= tBound.a.x &&
-			n.pos.x <= tBound.b.x &&
-			n.pos.y <= tBound.a.y &&
-			n.pos.y >= tBound.b.y)
+		if (!manager.isPointInBound(n.pos.x, n.pos.y)) {
 			return true;
+		}
 	}
 	return false;
 }

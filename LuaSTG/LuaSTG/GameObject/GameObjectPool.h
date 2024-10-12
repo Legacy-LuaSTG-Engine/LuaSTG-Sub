@@ -133,20 +133,19 @@ namespace LuaSTGPlus
 		/// @brief 执行对象的Render函数
 		void DoRender() noexcept;
 
-		// TODO: double -> float ???
-		/// @brief 获取舞台边界
-		Core::RectF GetBound() noexcept
-		{
-			return Core::RectF((float)m_BoundLeft, (float)m_BoundTop, (float)m_BoundRight, (float)m_BoundBottom);
-		}
-
 		/// @brief 设置舞台边界
-		void SetBound(lua_Number l, lua_Number r, lua_Number b, lua_Number t) noexcept
-		{
+		inline void SetBound(lua_Number l, lua_Number r, lua_Number b, lua_Number t) noexcept {
 			m_BoundLeft = l;
 			m_BoundRight = r;
 			m_BoundTop = t;
 			m_BoundBottom = b;
+		}
+
+		inline bool isPointInBound(lua_Number x, lua_Number y) noexcept {
+			return x >= m_BoundLeft
+				&& x <= m_BoundRight
+				&& y >= m_BoundBottom
+				&& y <= m_BoundTop;
 		}
 
 		/// @brief 执行边界检查
