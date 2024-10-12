@@ -32,7 +32,6 @@ namespace LuaSTGPlus
 		cpp::fixed_object_pool<GameObject, LOBJPOOL_SIZE> m_ObjectPool;
 		uint64_t m_iUid = 0;
 		lua_State* G_L = nullptr;
-		GameObject* m_pCurrentObject = nullptr;
 
 		// GameObject List
 		struct _less_render {
@@ -49,13 +48,17 @@ namespace LuaSTGPlus
 		std::pair<GameObject, GameObject> m_UpdateLinkList;
 		std::array<std::pair<GameObject, GameObject>, LOBJPOOL_GROUPN> m_ColliLinkList = {};
 
+		GameObject* m_pCurrentObject{};
+		GameObject* m_LockObjectA{};
+		GameObject* m_LockObjectB{};
+
 		// 场景边界
 		lua_Number m_BoundLeft = -100.f;
 		lua_Number m_BoundRight = 100.f;
 		lua_Number m_BoundTop = 100.f;
 		lua_Number m_BoundBottom = -100.f;
 
-		bool m_IsRendering = false;
+		bool m_IsRendering{ false };
 
 		FrameStatistics m_DbgData[2]{};
 		size_t m_DbgIdx{ 0 };
@@ -70,9 +73,6 @@ namespace LuaSTGPlus
 		std::pmr::unsynchronized_pool_resource local_memory_resource;
 
 	private:
-		GameObject* m_LockObjectA{};
-		GameObject* m_LockObjectB{};
-
 		void _ClearLinkList();
 		void _InsertToUpdateLinkList(GameObject* p);
 		void _RemoveFromUpdateLinkList(GameObject* p);
