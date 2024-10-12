@@ -431,69 +431,6 @@ namespace LuaSTGPlus
 
 		lua_pop(G_L, 1);
 	}
-	void GameObjectPool::CollisionCheck(size_t groupA, size_t groupB) noexcept
-	{
-		ZoneScopedN("LOBJMGR.CollisionCheck");
-
-		if (groupA < 0 || groupA >= LOBJPOOL_SIZE || groupB < 0 || groupB >= LOBJPOOL_SIZE)
-			luaL_error(G_L, "Invalid collision group.");
-
-		GetObjectTable(G_L); // ot
-
-		m_pCurrentObject = nullptr;
-		for (GameObject* ptrA = m_ColliLinkList[groupA].first.pColliNext; ptrA != &m_ColliLinkList[groupA].second;)
-		{
-			GameObject* pA = ptrA;
-			ptrA = ptrA->pColliNext;
-
-			m_LockObjectA = ptrA;
-
-			for (GameObject* ptrB = m_ColliLinkList[groupB].first.pColliNext; ptrB != &m_ColliLinkList[groupB].second;)
-			{
-				GameObject* pB = ptrB;
-				ptrB = ptrB->pColliNext;
-			#ifdef USING_MULTI_GAME_WORLD
-				if (CheckWorlds(pA->world, pB->world))
-				{
-				#endif // USING_MULTI_GAME_WORLD
-					m_DbgData[m_DbgIdx].object_colli_check += 1;
-					if (LuaSTGPlus::CollisionCheck(pA, pB))
-					{
-						m_DbgData[m_DbgIdx].object_colli_callback += 1;
-						m_pCurrentObject = pA;
-
-						m_LockObjectB = ptrB;
-
-						// TODO: 是否有必要这样？其实相当于关闭了判定吧？
-					#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-						if (!pA->luaclass.IsDefaultTrigger)
-						{
-						#endif // USING_ADVANCE_GAMEOBJECT_CLASS
-							// 根据id获取对象的lua绑定table、拿到class再拿到collifunc
-							lua_rawgeti(G_L, -1, pA->id + 1);		// ot t(object)
-							lua_rawgeti(G_L, -1, 1);				// ot t(object) t(class)
-							lua_rawgeti(G_L, -1, LGOBJ_CC_COLLI);	// ot t(object) t(class) f(colli)
-							lua_pushvalue(G_L, -3);					// ot t(object) t(class) f(colli) t(object)
-							lua_rawgeti(G_L, -5, pB->id + 1);		// ot t(object) t(class) f(colli) t(object) t(object)
-							lua_call(G_L, 2, 0);					// ot t(object) t(class)
-							lua_pop(G_L, 2);						// ot
-						#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-						}
-					#endif // USING_ADVANCE_GAMEOBJECT_CLASS
-
-						m_LockObjectB = nullptr;
-					}
-				#ifdef USING_MULTI_GAME_WORLD
-				}
-			#endif // USING_MULTI_GAME_WORLD
-			}
-
-			m_LockObjectA = nullptr;
-		}
-		m_pCurrentObject = nullptr;
-
-		lua_pop(G_L, 1);
-	}
 	void GameObjectPool::UpdateXY() noexcept
 	{
 		ZoneScopedN("LOBJMGR.UpdateXY");
@@ -550,71 +487,35 @@ namespace LuaSTGPlus
 			for (GameObject* ptrB = group2.first.pColliNext; ptrB != &group2.second;) {
 				GameObject* pB = ptrB;
 				ptrB = ptrB->pColliNext;
+			#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+				if (pA->luaclass.IsDefaultTrigger) {
+					continue;
+				}
+			#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 			#ifdef USING_MULTI_GAME_WORLD
-				if (CheckWorlds(pA->world, pB->world)) {
-				#endif // USING_MULTI_GAME_WORLD
-					debug_data.object_colli_check += 1;
-					if (LuaSTGPlus::CollisionCheck(pA, pB)) {
-						debug_data.object_colli_callback += 1;
-						// TODO: 是否有必要这样？其实相当于关闭了判定吧？
-					#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-						if (!pA->luaclass.IsDefaultTrigger) {
-						#endif // USING_ADVANCE_GAMEOBJECT_CLASS
-							m_pCurrentObject = pA;
-							m_LockObjectA = ptrA;
-							m_LockObjectB = ptrB;
-							// 根据id获取对象的lua绑定table、拿到class再拿到collifunc
-							lua_rawgeti(L, objects_index, pA->id + 1);	// ... object1
-							lua_rawgeti(L, -1, 1);						// ... object1 class1
-							lua_rawgeti(L, -1, LGOBJ_CC_COLLI);			// ... object1 class1 colli1
-							lua_pushvalue(L, -3);						// ... object1 class1 colli1 object1
-							lua_rawgeti(L, objects_index, pB->id + 1);	// ... object1 class1 colli1 object1 object2
-							lua_call(L, 2, 0);							// ... object1 class1
-							lua_pop(L, 2);								// ...
-							m_pCurrentObject = nullptr;
-							m_LockObjectA = nullptr;
-							m_LockObjectB = nullptr;
-						#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-						}
-					#endif // USING_ADVANCE_GAMEOBJECT_CLASS
-					}
-				#ifdef USING_MULTI_GAME_WORLD
+				if (!CheckWorlds(pA->world, pB->world)) {
+					continue;
 				}
 			#endif // USING_MULTI_GAME_WORLD
-			}
-		}
-	}
-	void GameObjectPool::detectIntersection(IntersectionDetectionGroupPair const& group_pair, std::pmr::deque<IntersectionDetectionResult>& cache) {
-		auto& debug_data = m_DbgData[m_DbgIdx];
-		auto& group1 = m_ColliLinkList[group_pair.group1];
-		auto& group2 = m_ColliLinkList[group_pair.group2];
-		for (GameObject* object1 = group1.first.pColliNext; object1 != &group1.second; object1 = object1->pColliNext) {
-			for (GameObject* object2 = group2.first.pColliNext; object2 != &group2.second; object2 = object2->pColliNext) {
-			#ifdef USING_MULTI_GAME_WORLD
-				if (CheckWorlds(object1->world, object2->world))
-				{
-				#endif // USING_MULTI_GAME_WORLD
-					debug_data.object_colli_check += 1;
-					if (LuaSTGPlus::CollisionCheck(object1, object2))
-					{
-						// TODO: 是否有必要这样？其实相当于关闭了判定吧？
-					#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-						if (!object1->luaclass.IsDefaultTrigger) {
-						#endif // USING_ADVANCE_GAMEOBJECT_CLASS
-							debug_data.object_colli_callback += 1;
-							cache.push_back(IntersectionDetectionResult{
-								.id1 = object1->uid,
-								.id2 = object2->uid,
-								.index1 = static_cast<uint32_t>(object1->id),
-								.index2 = static_cast<uint32_t>(object2->id),
-								});
-						#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-						}
-					#endif // USING_ADVANCE_GAMEOBJECT_CLASS
-					}
-				#ifdef USING_MULTI_GAME_WORLD
+				debug_data.object_colli_check += 1;
+				if (!LuaSTGPlus::CollisionCheck(pA, pB)) {
+					continue;
 				}
-			#endif // USING_MULTI_GAME_WORLD
+				debug_data.object_colli_callback += 1;
+				m_pCurrentObject = pA;
+				m_LockObjectA = ptrA;
+				m_LockObjectB = ptrB;
+				// 根据id获取对象的lua绑定table、拿到class再拿到collifunc
+				lua_rawgeti(L, objects_index, pA->id + 1);	// ... object1
+				lua_rawgeti(L, -1, 1);						// ... object1 class1
+				lua_rawgeti(L, -1, LGOBJ_CC_COLLI);			// ... object1 class1 colli1
+				lua_pushvalue(L, -3);						// ... object1 class1 colli1 object1
+				lua_rawgeti(L, objects_index, pB->id + 1);	// ... object1 class1 colli1 object1 object2
+				lua_call(L, 2, 0);							// ... object1 class1
+				lua_pop(L, 2);								// ...
+				m_pCurrentObject = nullptr;
+				m_LockObjectA = nullptr;
+				m_LockObjectB = nullptr;
 			}
 		}
 	}
@@ -622,31 +523,59 @@ namespace LuaSTGPlus
 		ZoneScopedN("LOBJMGR.CollisionCheck(New)");
 		std::pmr::deque<IntersectionDetectionResult> cache{ &local_memory_resource };
 		for (auto const& group_pair : group_pairs) {
-			detectIntersection(group_pair, cache);
-		}
-		if (objects_index > 0) {
-			for (auto const& result : cache) {
-				auto* object1 = m_ObjectPool.object(result.index1);
-				auto* object2 = m_ObjectPool.object(result.index2);
-				if (object1->uid == result.id1 && object2->uid == result.id2) {
-					m_pCurrentObject = object1;
-					m_LockObjectA = object1;
-					m_LockObjectB = object2;
-					lua_rawgeti(L, objects_index, object1->id + 1);	// ... object1
-					lua_rawgeti(L, -1, 1);							// ... object1 class1
-					lua_rawgeti(L, -1, LGOBJ_CC_COLLI);				// ... object1 class1 colli1
-					lua_pushvalue(L, -3);							// ... object1 class1 colli1 object1
-					lua_rawgeti(L, objects_index, object2->id + 1);	// ... object1 class1 colli1 object1 object2
-					lua_call(L, 2, 0);								// ... object1 class1
-					lua_pop(L, 2);									// ...
-					m_pCurrentObject = nullptr;
-					m_LockObjectA = nullptr;
-					m_LockObjectB = nullptr;
-				}
-				else {
-					assert(false);
+			auto& debug_data = m_DbgData[m_DbgIdx];
+			auto& group1 = m_ColliLinkList[group_pair.group1];
+			auto& group2 = m_ColliLinkList[group_pair.group2];
+			for (GameObject* object1 = group1.first.pColliNext; object1 != &group1.second; object1 = object1->pColliNext) {
+				for (GameObject* object2 = group2.first.pColliNext; object2 != &group2.second; object2 = object2->pColliNext) {
+					// TODO: 是否有必要这样？其实相当于关闭了判定吧？
+				#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+					if (object1->luaclass.IsDefaultTrigger) {
+						continue;
+					}
+				#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+				#ifdef USING_MULTI_GAME_WORLD
+					if (!CheckWorlds(object1->world, object2->world)) {
+						continue;
+					}
+				#endif // USING_MULTI_GAME_WORLD
+					debug_data.object_colli_check += 1;
+					if (!LuaSTGPlus::CollisionCheck(object1, object2)) {
+						continue;
+					}
+					cache.push_back(IntersectionDetectionResult{
+						.id1 = object1->uid,
+						.id2 = object2->uid,
+						.index1 = static_cast<uint32_t>(object1->id),
+						.index2 = static_cast<uint32_t>(object2->id),
+						});
 				}
 			}
+		}
+		if (objects_index <= 0 || L == nullptr) {
+			return;
+		}
+		auto& debug_data = m_DbgData[m_DbgIdx];
+		for (auto const& result : cache) {
+			auto* object1 = m_ObjectPool.object(result.index1);
+			auto* object2 = m_ObjectPool.object(result.index2);
+			if (object1->uid != result.id1 || object2->uid != result.id2) {
+				assert(false); continue; // 理论上不太可能发生
+			}
+			debug_data.object_colli_callback += 1;
+			m_pCurrentObject = object1;
+			m_LockObjectA = object1;
+			m_LockObjectB = object2;
+			lua_rawgeti(L, objects_index, object1->id + 1);	// ... object1
+			lua_rawgeti(L, -1, 1);							// ... object1 class1
+			lua_rawgeti(L, -1, LGOBJ_CC_COLLI);				// ... object1 class1 colli1
+			lua_pushvalue(L, -3);							// ... object1 class1 colli1 object1
+			lua_rawgeti(L, objects_index, object2->id + 1);	// ... object1 class1 colli1 object1 object2
+			lua_call(L, 2, 0);								// ... object1 class1
+			lua_pop(L, 2);									// ...
+			m_pCurrentObject = nullptr;
+			m_LockObjectA = nullptr;
+			m_LockObjectB = nullptr;
 		}
 	}
 	int GameObjectPool::api_CollisionCheck(lua_State* L) {
