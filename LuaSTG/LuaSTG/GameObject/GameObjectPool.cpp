@@ -459,7 +459,7 @@ namespace LuaSTGPlus
 			}
 		}
 	}
-	void GameObjectPool::updateNextLegacy(int32_t objects_index, lua_State* L)
+	void GameObjectPool::updateNextLegacy(int32_t objects_index, lua_State*)
 	{
 		ZoneScopedN("LOBJMGR.AfterFrame");
 
@@ -484,7 +484,7 @@ namespace LuaSTGPlus
 			}
 		}
 	}
-	void GameObjectPool::updateNext(int32_t objects_index, lua_State* L) {
+	void GameObjectPool::updateNext(int32_t objects_index, lua_State*) {
 		ZoneScopedN("LOBJMGR.AfterFrame(New)");
 
 		int superpause = GetSuperPauseTime();
