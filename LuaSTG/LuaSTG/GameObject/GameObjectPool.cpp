@@ -326,39 +326,29 @@ namespace LuaSTGPlus
 		// 清理内存
 		local_memory_resource.release();
 	}
-	void GameObjectPool::DoFrame() noexcept
-	{
+	void GameObjectPool::updateMovementsLegacy(int32_t objects_index, lua_State* L) {
 		ZoneScopedN("LOBJMGR.ObjFrame");
 
-		//处理超级暂停
-		GetObjectTable(G_L);  // ot
-		int const ot_idx = lua_gettop(G_L);
-
-		int superpause = UpdateSuperPause();
+		int superpause = UpdateSuperPause(); // 处理超级暂停
 		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second; p = p->pUpdateNext) {
 			if (superpause <= 0 || p->ignore_superpause) {
 			#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 				if (p->luaclass.IsDefaultUpdate) {
+					p->Update(); // 默认更新逻辑
 					continue;
 				}
 			#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 				m_pCurrentObject = p;
-				_GameObjectCallback(G_L, ot_idx, p, LGOBJ_CC_FRAME);
+				_GameObjectCallback(L, objects_index, p, LGOBJ_CC_FRAME);
 				m_pCurrentObject = nullptr;
 				p->Update();
 			}
 		}
-
-		lua_pop(G_L, 1);
 	}
-	void GameObjectPool::updateMovements() {
+	void GameObjectPool::updateMovements(int32_t objects_index, lua_State* L) {
 		ZoneScopedN("LOBJMGR.ObjFrame(New)");
-
-		//处理超级暂停
-		GetObjectTable(G_L);  // ot
-		int const ot_idx = lua_gettop(G_L);
-
-		int superpause = UpdateSuperPause();
+		
+		int superpause = UpdateSuperPause(); // 处理超级暂停
 		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second; p = p->pUpdateNext) {
 			if (superpause <= 0 || p->ignore_superpause) {
 			#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
@@ -367,12 +357,10 @@ namespace LuaSTGPlus
 				}
 			#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 				m_pCurrentObject = p;
-				_GameObjectCallback(G_L, ot_idx, p, LGOBJ_CC_FRAME);
+				_GameObjectCallback(L, objects_index, p, LGOBJ_CC_FRAME);
 				m_pCurrentObject = nullptr;
 			}
 		}
-
-		lua_pop(G_L, 1);
 
 		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second; p = p->pUpdateNext) {
 			if (superpause <= 0 || p->ignore_superpause) {
@@ -501,7 +489,6 @@ namespace LuaSTGPlus
 
 		lua_pop(G_L, 1);
 	}
-
 	void GameObjectPool::detectIntersectionLegacy(uint32_t group1_, uint32_t group2_, int32_t objects_index, lua_State* L) {
 		ZoneScopedN("LOBJMGR.CollisionCheck");
 		auto& debug_data = m_DbgData[m_DbgIdx];
@@ -602,6 +589,26 @@ namespace LuaSTGPlus
 			m_LockObjectA = nullptr;
 			m_LockObjectB = nullptr;
 		}
+	}
+
+	int GameObjectPool::api_ObjFrame(lua_State* L) {
+		lua::stack_t S(L);
+		if (S.is_number(1)) {
+			auto const version = S.get_value<int32_t>(1);
+			if (version == 2) {
+				g_GameObjectPool->GetObjectTable(L);
+				auto const objects = S.index_of_top();
+				g_GameObjectPool->updateMovements(objects.value, L);
+				S.pop_value();
+				return 0;
+			}
+		}
+		// version 1
+		g_GameObjectPool->GetObjectTable(L);
+		auto const objects = S.index_of_top();
+		g_GameObjectPool->updateMovementsLegacy(objects.value, L);
+		S.pop_value();
+		return 0;
 	}
 	int GameObjectPool::api_CollisionCheck(lua_State* L) {
 		lua::stack_t S(L);

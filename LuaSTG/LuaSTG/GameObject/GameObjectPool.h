@@ -127,10 +127,13 @@ namespace LuaSTGPlus
 		/// @brief 获取对象
 		GameObject* GetPooledObject(size_t i) noexcept { return m_ObjectPool.object(i); }
 
-		/// @brief 执行对象的Frame函数
-		void DoFrame() noexcept;
+		// 对象更新：传统模式
+		// 回调 -> 运动更新 -> 回调 -> 运动更新 -> ...
+		void updateMovementsLegacy(int32_t objects_index = 0, lua_State* L = nullptr);
 
-		void updateMovements();
+		// 对象更新：批量模式
+		// 回调所有 -> 更新所有运动
+		void updateMovements(int32_t objects_index = 0, lua_State* L = nullptr);
 
 		/// @brief 执行对象的Render函数
 		void DoRender() noexcept;
@@ -280,11 +283,13 @@ namespace LuaSTGPlus
 		static int api_IsValid(lua_State* L) noexcept;
 		static int api_BoxCheck(lua_State* L) noexcept;
 		static int api_ColliCheck(lua_State* L) noexcept;
-		static int api_CollisionCheck(lua_State* L);
 		static int api_Angle(lua_State* L) noexcept;
 		static int api_Dist(lua_State* L) noexcept;
 		static int api_GetV(lua_State* L) noexcept;
 		static int api_SetV(lua_State* L) noexcept;
+		
+		static int api_ObjFrame(lua_State* L);
+		static int api_CollisionCheck(lua_State* L);
 
 		static int api_SetImgState(lua_State* L) noexcept;
 		static int api_SetParState(lua_State* L) noexcept;
