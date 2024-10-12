@@ -156,11 +156,16 @@ namespace LuaSTGPlus
 		/// @param[in] groupA 对象组A
 		/// @param[in] groupB 对象组B
 		void CollisionCheck(size_t groupA, size_t groupB) noexcept;
+
+		// 相交检测：传统模式
+		// 检测 -> 回调（如果相交） -> 检测 -> 回调（如果相交） -> ...
+		void detectIntersectionLegacy(uint32_t group1, uint32_t group2, int32_t objects_index = 0, lua_State* L = nullptr);
 		
 		// 【内部使用】相交检测 - 单个组
 		private: void detectIntersection(IntersectionDetectionGroupPair const& group_pair, std::pmr::deque<IntersectionDetectionResult>& cache);
 
-		// 相交检测
+		// 相交检测：批量模式
+		// 检测所有 -> 回调所有
 		public: void detectIntersection(std::pmr::vector<IntersectionDetectionGroupPair> const& group_pairs, int32_t objects_index = 0, lua_State* L = nullptr);
 
 		/// @brief 更新对象的XY坐标偏移量

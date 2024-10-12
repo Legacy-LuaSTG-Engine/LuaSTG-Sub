@@ -538,6 +538,52 @@ namespace LuaSTGPlus
 		lua_pop(G_L, 1);
 	}
 
+	void GameObjectPool::detectIntersectionLegacy(uint32_t group1_, uint32_t group2_, int32_t objects_index, lua_State* L) {
+		ZoneScopedN("LOBJMGR.CollisionCheck");
+		auto& debug_data = m_DbgData[m_DbgIdx];
+		auto& group1 = m_ColliLinkList[group1_];
+		auto& group2 = m_ColliLinkList[group2_];
+		m_pCurrentObject = nullptr;
+		for (GameObject* ptrA = group1.first.pColliNext; ptrA != &group1.second;) {
+			GameObject* pA = ptrA;
+			ptrA = ptrA->pColliNext;
+			for (GameObject* ptrB = group2.first.pColliNext; ptrB != &group2.second;) {
+				GameObject* pB = ptrB;
+				ptrB = ptrB->pColliNext;
+			#ifdef USING_MULTI_GAME_WORLD
+				if (CheckWorlds(pA->world, pB->world)) {
+				#endif // USING_MULTI_GAME_WORLD
+					debug_data.object_colli_check += 1;
+					if (LuaSTGPlus::CollisionCheck(pA, pB)) {
+						debug_data.object_colli_callback += 1;
+						// TODO: 是否有必要这样？其实相当于关闭了判定吧？
+					#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+						if (!pA->luaclass.IsDefaultTrigger) {
+						#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+							m_pCurrentObject = pA;
+							m_LockObjectA = ptrA;
+							m_LockObjectB = ptrB;
+							// 根据id获取对象的lua绑定table、拿到class再拿到collifunc
+							lua_rawgeti(L, objects_index, pA->id + 1);	// ... object1
+							lua_rawgeti(L, -1, 1);						// ... object1 class1
+							lua_rawgeti(L, -1, LGOBJ_CC_COLLI);			// ... object1 class1 colli1
+							lua_pushvalue(L, -3);						// ... object1 class1 colli1 object1
+							lua_rawgeti(L, objects_index, pB->id + 1);	// ... object1 class1 colli1 object1 object2
+							lua_call(L, 2, 0);							// ... object1 class1
+							lua_pop(L, 2);								// ...
+							m_pCurrentObject = nullptr;
+							m_LockObjectA = nullptr;
+							m_LockObjectB = nullptr;
+						#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+						}
+					#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+					}
+				#ifdef USING_MULTI_GAME_WORLD
+				}
+			#endif // USING_MULTI_GAME_WORLD
+			}
+		}
+	}
 	void GameObjectPool::detectIntersection(IntersectionDetectionGroupPair const& group_pair, std::pmr::deque<IntersectionDetectionResult>& cache) {
 		auto& debug_data = m_DbgData[m_DbgIdx];
 		auto& group1 = m_ColliLinkList[group_pair.group1];
@@ -573,6 +619,7 @@ namespace LuaSTGPlus
 		}
 	}
 	void GameObjectPool::detectIntersection(std::pmr::vector<IntersectionDetectionGroupPair> const& group_pairs, int32_t objects_index, lua_State* L) {
+		ZoneScopedN("LOBJMGR.CollisionCheck(New)");
 		std::pmr::deque<IntersectionDetectionResult> cache{ &local_memory_resource };
 		for (auto const& group_pair : group_pairs) {
 			detectIntersection(group_pair, cache);
@@ -607,7 +654,16 @@ namespace LuaSTGPlus
 		if (S.is_number(1) && S.is_number(2)) {
 			auto const group1 = S.get_value<uint32_t>(1);
 			auto const group2 = S.get_value<uint32_t>(2);
-			g_GameObjectPool->CollisionCheck(group1, group2);
+			if (group1 < 0 || group1 >= LOBJPOOL_SIZE) {
+				return luaL_error(L, "invalid collision group <%d>", group1);
+			}
+			if (group2 < 0 || group2 >= LOBJPOOL_SIZE) {
+				return luaL_error(L, "invalid collision group <%d>", group1);
+			}
+			g_GameObjectPool->GetObjectTable(L);
+			auto const objects = S.index_of_top();
+			g_GameObjectPool->detectIntersectionLegacy(group1, group2, objects.value, L);
+			S.pop_value();
 			return 0;
 		}
 		else if (S.is_table(1)) {
