@@ -268,6 +268,34 @@ namespace lua
 		inline std::string_view get_value(stack_index_t index) { size_t len = 0; char const* str = luaL_checklstring(L, index.value, &len); return { str, len }; }
 
 		template<typename T>
+		inline T get_array_value(stack_index_t array_index, stack_index_t lua_index) { typename T::__invalid_type__ _{}; }
+
+		template<>
+		inline stack_index_t get_array_value(stack_index_t array_index, stack_index_t lua_index) {
+			lua_pushinteger(L, lua_index.value);
+			lua_gettable(L, array_index.value);
+			return { lua_gettop(L) };
+		}
+
+		template<>
+		inline int32_t get_array_value(stack_index_t array_index, stack_index_t lua_index) {
+			lua_pushinteger(L, lua_index.value);
+			lua_gettable(L, array_index.value);
+			auto const result = static_cast<int32_t>(luaL_checkinteger(L, -1));
+			lua_pop(L, 1);
+			return result;
+		}
+
+		template<>
+		inline uint32_t get_array_value(stack_index_t array_index, stack_index_t lua_index) {
+			lua_pushinteger(L, lua_index.value);
+			lua_gettable(L, array_index.value);
+			auto const result = static_cast<uint32_t>(luaL_checknumber(L, -1));
+			lua_pop(L, 1);
+			return result;
+		}
+
+		template<typename T>
 		inline T get_map_value(stack_index_t index, std::string_view key) { return typename T::__invalid_type__{}; }
 
 		template<>

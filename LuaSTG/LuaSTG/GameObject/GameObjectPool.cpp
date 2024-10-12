@@ -1,6 +1,7 @@
-﻿#include "GameObject/GameObjectPool.h"
+#include "GameObject/GameObjectPool.h"
 #include "LuaBinding/LuaWrapper.hpp"
 #include "LuaBinding/lua_luastg_hash.hpp"
+#include "lua_utility.hpp"
 #include "AppFrame.h"
 
 #define LOBJPOOL_SIZE_INTERNAL (LOBJPOOL_SIZE + 1)
@@ -36,7 +37,7 @@ namespace LuaSTGPlus
 
 	void GameObjectPool::_ClearLinkList()
 	{
-		m_UpdateLinkList.first.pUpdateNext  = &m_UpdateLinkList.second;
+		m_UpdateLinkList.first.pUpdateNext = &m_UpdateLinkList.second;
 		m_UpdateLinkList.first.pColliNext = &m_UpdateLinkList.second;
 		m_UpdateLinkList.second.pUpdatePrev = &m_UpdateLinkList.first;
 		m_UpdateLinkList.second.pColliPrev = &m_UpdateLinkList.first;
@@ -47,7 +48,7 @@ namespace LuaSTGPlus
 		for (size_t i = 0; i < LOBJPOOL_GROUPN; i += 1)
 		{
 			m_ColliLinkList[i].first.pUpdateNext = &m_ColliLinkList[i].second;
-			m_ColliLinkList[i].first.pColliNext  = &m_ColliLinkList[i].second;
+			m_ColliLinkList[i].first.pColliNext = &m_ColliLinkList[i].second;
 			m_ColliLinkList[i].second.pUpdatePrev = &m_ColliLinkList[i].first;
 			m_ColliLinkList[i].second.pColliPrev = &m_ColliLinkList[i].first;
 			m_ColliLinkList[i].first.status = GameObjectStatus::Free;
@@ -340,9 +341,9 @@ namespace LuaSTGPlus
 			#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 				if (!p->luaclass.IsDefaultUpdate)
 				{
-			#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+				#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 					_GameObjectCallback(G_L, ot_idx, p, LGOBJ_CC_FRAME);
-			#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+				#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 				}
 			#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 				p->Update();
@@ -364,25 +365,25 @@ namespace LuaSTGPlus
 	#endif // USING_MULTI_GAME_WORLD
 		for (auto& p : m_RenderList)
 		{
-	#ifdef USING_MULTI_GAME_WORLD
+		#ifdef USING_MULTI_GAME_WORLD
 			if (!p->hide && CheckWorld(p->world, world))  // 只渲染可见对象
-	#else // USING_MULTI_GAME_WORLD
+			#else // USING_MULTI_GAME_WORLD
 			if (!p->hide)  // 只渲染可见对象
-	#endif // USING_MULTI_GAME_WORLD
+			#endif // USING_MULTI_GAME_WORLD
 			{
 				m_pCurrentObject = p;
-	#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+			#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 				if (!p->luaclass.IsDefaultRender)
 				{
-	#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+				#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 					_GameObjectCallback(G_L, ot_idx, p, LGOBJ_CC_RENDER);
-	#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+				#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 				}
 				else
 				{
 					p->Render();
 				}
-	#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+			#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 			}
 		}
 		m_pCurrentObject = nullptr;
@@ -396,7 +397,7 @@ namespace LuaSTGPlus
 
 		GetObjectTable(G_L); // ot
 		int const ot_idx = lua_gettop(G_L);
-		
+
 		m_pCurrentObject = nullptr;
 	#ifdef USING_MULTI_GAME_WORLD
 		lua_Integer world = GetWorldFlag();
@@ -406,7 +407,7 @@ namespace LuaSTGPlus
 		#ifdef USING_MULTI_GAME_WORLD
 			if (CheckWorld(p->world, world))
 			{
-		#endif // USING_MULTI_GAME_WORLD
+			#endif // USING_MULTI_GAME_WORLD
 				if (!_ObjectBoundCheck(p))
 				{
 					m_pCurrentObject = p;
@@ -416,78 +417,15 @@ namespace LuaSTGPlus
 				#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 					if (!p->luaclass.IsDefaultDestroy)
 					{
-				#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+					#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 						_GameObjectCallback(G_L, ot_idx, p, LGOBJ_CC_DEL);
-				#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+					#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 					}
 				#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 				}
-		#ifdef USING_MULTI_GAME_WORLD
+			#ifdef USING_MULTI_GAME_WORLD
 			}
 		#endif // USING_MULTI_GAME_WORLD
-		}
-		m_pCurrentObject = nullptr;
-
-		lua_pop(G_L, 1);
-	}
-	void GameObjectPool::CollisionCheck(size_t groupA, size_t groupB) noexcept
-	{
-		ZoneScopedN("LOBJMGR.CollisionCheck");
-
-		if (groupA < 0 || groupA >= LOBJPOOL_SIZE || groupB < 0 || groupB >= LOBJPOOL_SIZE)
-			luaL_error(G_L, "Invalid collision group.");
-
-		GetObjectTable(G_L); // ot
-
-		m_pCurrentObject = nullptr;
-		for (GameObject* ptrA = m_ColliLinkList[groupA].first.pColliNext; ptrA != &m_ColliLinkList[groupA].second;)
-		{
-			GameObject* pA = ptrA;
-			ptrA = ptrA->pColliNext;
-
-			m_LockObjectA = ptrA;
-
-			for (GameObject* ptrB = m_ColliLinkList[groupB].first.pColliNext; ptrB != &m_ColliLinkList[groupB].second;)
-			{
-				GameObject* pB = ptrB;
-				ptrB = ptrB->pColliNext;
-			#ifdef USING_MULTI_GAME_WORLD
-				if (CheckWorlds(pA->world, pB->world))
-				{
-			#endif // USING_MULTI_GAME_WORLD
-					m_DbgData[m_DbgIdx].object_colli_check += 1;
-					if (LuaSTGPlus::CollisionCheck(pA, pB))
-					{
-						m_DbgData[m_DbgIdx].object_colli_callback += 1;
-						m_pCurrentObject = pA;
-
-						m_LockObjectB = ptrB;
-
-						// TODO: 是否有必要这样？其实相当于关闭了判定吧？
-					#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-						if (!pA->luaclass.IsDefaultTrigger)
-						{
-					#endif // USING_ADVANCE_GAMEOBJECT_CLASS
-							// 根据id获取对象的lua绑定table、拿到class再拿到collifunc
-							lua_rawgeti(G_L, -1, pA->id + 1);		// ot t(object)
-							lua_rawgeti(G_L, -1, 1);				// ot t(object) t(class)
-							lua_rawgeti(G_L, -1, LGOBJ_CC_COLLI);	// ot t(object) t(class) f(colli)
-							lua_pushvalue(G_L, -3);					// ot t(object) t(class) f(colli) t(object)
-							lua_rawgeti(G_L, -5, pB->id + 1);		// ot t(object) t(class) f(colli) t(object) t(object)
-							lua_call(G_L, 2, 0);					// ot t(object) t(class)
-							lua_pop(G_L, 2);						// ot
-					#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-						}
-					#endif // USING_ADVANCE_GAMEOBJECT_CLASS
-
-						m_LockObjectB = nullptr;
-					}
-			#ifdef USING_MULTI_GAME_WORLD
-				}
-			#endif // USING_MULTI_GAME_WORLD
-			}
-
-			m_LockObjectA = nullptr;
 		}
 		m_pCurrentObject = nullptr;
 
@@ -537,6 +475,161 @@ namespace LuaSTGPlus
 		lua_pop(G_L, 1);
 	}
 
+	void GameObjectPool::detectIntersectionLegacy(uint32_t group1_, uint32_t group2_, int32_t objects_index, lua_State* L) {
+		ZoneScopedN("LOBJMGR.CollisionCheck");
+		auto& debug_data = m_DbgData[m_DbgIdx];
+		auto& group1 = m_ColliLinkList[group1_];
+		auto& group2 = m_ColliLinkList[group2_];
+		for (GameObject* ptrA = group1.first.pColliNext; ptrA != &group1.second;) {
+			GameObject* pA = ptrA;
+			ptrA = ptrA->pColliNext;
+			for (GameObject* ptrB = group2.first.pColliNext; ptrB != &group2.second;) {
+				GameObject* pB = ptrB;
+				ptrB = ptrB->pColliNext;
+			#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+				if (pA->luaclass.IsDefaultTrigger) {
+					continue;
+				}
+			#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+			#ifdef USING_MULTI_GAME_WORLD
+				if (!CheckWorlds(pA->world, pB->world)) {
+					continue;
+				}
+			#endif // USING_MULTI_GAME_WORLD
+				debug_data.object_colli_check += 1;
+				if (!LuaSTGPlus::CollisionCheck(pA, pB)) {
+					continue;
+				}
+				debug_data.object_colli_callback += 1;
+				m_pCurrentObject = pA;
+				m_LockObjectA = ptrA;
+				m_LockObjectB = ptrB;
+				// 根据id获取对象的lua绑定table、拿到class再拿到collifunc
+				lua_rawgeti(L, objects_index, pA->id + 1);	// ... object1
+				lua_rawgeti(L, -1, 1);						// ... object1 class1
+				lua_rawgeti(L, -1, LGOBJ_CC_COLLI);			// ... object1 class1 colli1
+				lua_pushvalue(L, -3);						// ... object1 class1 colli1 object1
+				lua_rawgeti(L, objects_index, pB->id + 1);	// ... object1 class1 colli1 object1 object2
+				lua_call(L, 2, 0);							// ... object1 class1
+				lua_pop(L, 2);								// ...
+				m_pCurrentObject = nullptr;
+				m_LockObjectA = nullptr;
+				m_LockObjectB = nullptr;
+			}
+		}
+	}
+	void GameObjectPool::detectIntersection(std::pmr::vector<IntersectionDetectionGroupPair> const& group_pairs, int32_t objects_index, lua_State* L) {
+		ZoneScopedN("LOBJMGR.CollisionCheck(New)");
+		std::pmr::deque<IntersectionDetectionResult> cache{ &local_memory_resource };
+		for (auto const& group_pair : group_pairs) {
+			auto& debug_data = m_DbgData[m_DbgIdx];
+			auto& group1 = m_ColliLinkList[group_pair.group1];
+			auto& group2 = m_ColliLinkList[group_pair.group2];
+			for (GameObject* object1 = group1.first.pColliNext; object1 != &group1.second; object1 = object1->pColliNext) {
+				for (GameObject* object2 = group2.first.pColliNext; object2 != &group2.second; object2 = object2->pColliNext) {
+				#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+					if (object1->luaclass.IsDefaultTrigger) {
+						continue;
+					}
+				#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+				#ifdef USING_MULTI_GAME_WORLD
+					if (!CheckWorlds(object1->world, object2->world)) {
+						continue;
+					}
+				#endif // USING_MULTI_GAME_WORLD
+					debug_data.object_colli_check += 1;
+					if (!LuaSTGPlus::CollisionCheck(object1, object2)) {
+						continue;
+					}
+					cache.push_back(IntersectionDetectionResult{
+						.id1 = object1->uid,
+						.id2 = object2->uid,
+						.index1 = static_cast<uint32_t>(object1->id),
+						.index2 = static_cast<uint32_t>(object2->id),
+						});
+				}
+			}
+		}
+		if (objects_index <= 0 || L == nullptr) {
+			return;
+		}
+		auto& debug_data = m_DbgData[m_DbgIdx];
+		for (auto const& result : cache) {
+			auto* object1 = m_ObjectPool.object(result.index1);
+			auto* object2 = m_ObjectPool.object(result.index2);
+			if (object1->uid != result.id1 || object2->uid != result.id2) {
+				assert(false); continue; // 理论上不太可能发生
+			}
+			debug_data.object_colli_callback += 1;
+			m_pCurrentObject = object1;
+			m_LockObjectA = object1;
+			m_LockObjectB = object2;
+			lua_rawgeti(L, objects_index, object1->id + 1);	// ... object1
+			lua_rawgeti(L, -1, 1);							// ... object1 class1
+			lua_rawgeti(L, -1, LGOBJ_CC_COLLI);				// ... object1 class1 colli1
+			lua_pushvalue(L, -3);							// ... object1 class1 colli1 object1
+			lua_rawgeti(L, objects_index, object2->id + 1);	// ... object1 class1 colli1 object1 object2
+			lua_call(L, 2, 0);								// ... object1 class1
+			lua_pop(L, 2);									// ...
+			m_pCurrentObject = nullptr;
+			m_LockObjectA = nullptr;
+			m_LockObjectB = nullptr;
+		}
+	}
+	int GameObjectPool::api_CollisionCheck(lua_State* L) {
+		lua::stack_t S(L);
+		if (g_GameObjectPool->m_LockObjectA && g_GameObjectPool->m_LockObjectB) {
+			return luaL_error(L, "invalid operation");
+		}
+		if (S.is_number(1) && S.is_number(2)) {
+			auto const group1 = S.get_value<uint32_t>(1);
+			auto const group2 = S.get_value<uint32_t>(2);
+			if (group1 < 0 || group1 >= LOBJPOOL_SIZE) {
+				return luaL_error(L, "invalid collision group <%d>", group1);
+			}
+			if (group2 < 0 || group2 >= LOBJPOOL_SIZE) {
+				return luaL_error(L, "invalid collision group <%d>", group1);
+			}
+			g_GameObjectPool->GetObjectTable(L);
+			auto const objects = S.index_of_top();
+			g_GameObjectPool->detectIntersectionLegacy(group1, group2, objects.value, L);
+			S.pop_value();
+			return 0;
+		}
+		else if (S.is_table(1)) {
+			// Stage 1
+			auto const group_count = S.get_array_size(1);
+			if (group_count == 0) {
+				return 0; // early return
+			}
+			// Stage 2
+			std::pmr::vector<IntersectionDetectionGroupPair> group_pairs{ &g_GameObjectPool->local_memory_resource };
+			group_pairs.reserve(group_count);
+			for (int32_t i = 1; i <= static_cast<int32_t>(group_count); i += 1) {
+				auto const group_pair = S.get_array_value<lua::stack_index_t>(1, i);
+				auto const group1 = S.get_array_value<uint32_t>(group_pair, 1);
+				auto const group2 = S.get_array_value<uint32_t>(group_pair, 2);
+				if (group1 < 0 || group1 >= LOBJPOOL_SIZE) {
+					return luaL_error(L, "invalid collision group <%d>", group1);
+				}
+				if (group2 < 0 || group2 >= LOBJPOOL_SIZE) {
+					return luaL_error(L, "invalid collision group <%d>", group1);
+				}
+				S.pop_value();
+				group_pairs.emplace_back(group1, group2);
+			}
+			// Stage 3
+			g_GameObjectPool->GetObjectTable(L);
+			auto const objects = S.index_of_top();
+			g_GameObjectPool->detectIntersection(group_pairs, objects.value, L);
+			S.pop_value();
+			return 0;
+		}
+		else {
+			return luaL_error(L, "invalid parameters");
+		}
+	}
+
 	int GameObjectPool::New(lua_State* L) noexcept
 	{
 		// 检查参数
@@ -579,7 +672,7 @@ namespace LuaSTGPlus
 	#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 		if (!p->luaclass.IsDefaultCreate)
 		{
-	#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+		#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 			// 调用 init
 			lua_insert(L, 1);							// object class ... ot
 			lua_pop(L, 1);								// object class ...
@@ -594,7 +687,7 @@ namespace LuaSTGPlus
 			// 更新初始状态
 			//p->lastx = p->x;
 			//p->lasty = p->y;
-	#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+		#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 		}
 	#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 
@@ -628,13 +721,13 @@ namespace LuaSTGPlus
 		#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 			if (!(!kill_mode && p->luaclass.IsDefaultDestroy) && !(kill_mode && p->luaclass.IsDefaultLegacyKill))
 			{
-		#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+			#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 				lua_rawgeti(L, 1, 1);												// object ... class
 				lua_rawgeti(L, -1, (!kill_mode) ? LGOBJ_CC_DEL : LGOBJ_CC_KILL);	// object ... class callback
 				lua_insert(L, 1);													// callback object ...
 				lua_pop(L, 1);														// callback object ...
 				lua_call(L, lua_gettop(L) - 1, 0);									// 
-		#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+			#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 			}
 		#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 		}
@@ -739,7 +832,7 @@ namespace LuaSTGPlus
 				return -1;
 		}
 	}
-	
+
 	void GameObjectPool::DrawCollider()
 	{
 	#if (defined LDEVVERSION)
@@ -758,10 +851,10 @@ namespace LuaSTGPlus
 		};
 		static bool f8 = false;
 		static bool kf8 = false;
-	
+
 		if (!kf8 && LAPP.GetKeyState(/* VK_F8 */ 0x77)) { kf8 = true; f8 = !f8; }
 		else if (kf8 && !LAPP.GetKeyState(/* VK_F8 */ 0x77)) { kf8 = false; }
-	
+
 		if (f8)
 		{
 			LAPP.DebugSetGeometryRenderState();
@@ -781,9 +874,9 @@ namespace LuaSTGPlus
 		{
 		#ifdef USING_MULTI_GAME_WORLD
 			if (p->colli && CheckWorld(p->world, world))
-		#else // !USING_MULTI_GAME_WORLD
+			#else // !USING_MULTI_GAME_WORLD
 			if (p->colli)
-		#endif // USING_MULTI_GAME_WORLD
+			#endif // USING_MULTI_GAME_WORLD
 			{
 				if (p->rect)
 				{
@@ -928,9 +1021,9 @@ namespace LuaSTGPlus
 		bool const ignore_world_mask = (lua_gettop(L) >= 3) ? lua_toboolean(L, 3) : false;
 		if (ignore_world_mask)
 		{
-	#endif // USING_MULTI_GAME_WORLD
+		#endif // USING_MULTI_GAME_WORLD
 			lua_pushboolean(L, LuaSTGPlus::CollisionCheck(p1, p2));
-	#ifdef USING_MULTI_GAME_WORLD
+		#ifdef USING_MULTI_GAME_WORLD
 		}
 		else
 		{
