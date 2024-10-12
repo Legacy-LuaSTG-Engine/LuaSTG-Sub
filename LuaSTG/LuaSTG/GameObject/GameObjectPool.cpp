@@ -580,6 +580,9 @@ namespace LuaSTGPlus
 	}
 	int GameObjectPool::api_CollisionCheck(lua_State* L) {
 		lua::stack_t S(L);
+		if (g_GameObjectPool->m_LockObjectA && g_GameObjectPool->m_LockObjectB) {
+			return luaL_error(L, "invalid operation");
+		}
 		if (S.is_number(1) && S.is_number(2)) {
 			auto const group1 = S.get_value<uint32_t>(1);
 			auto const group2 = S.get_value<uint32_t>(2);
