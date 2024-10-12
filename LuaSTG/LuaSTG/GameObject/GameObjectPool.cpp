@@ -319,6 +319,8 @@ namespace LuaSTGPlus
 		m_iWorld = 15;
 		m_Worlds = { 15, 0, 0, 0 };
 		m_pCurrentObject = nullptr;
+		m_LockObjectA = nullptr;
+		m_LockObjectB = nullptr;
 		m_superpause = 0;
 		m_nextsuperpause = 0;
 		// 清理内存
