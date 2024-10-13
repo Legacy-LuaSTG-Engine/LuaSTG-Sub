@@ -44,11 +44,10 @@ function M:onDestroy()
 end
 
 function M:onUpdate()
-    lstg.ObjFrame()
-    lstg.BoundCheck()
+    lstg.AfterFrame(2) -- TODO: remove (2)
+    lstg.ObjFrame(2) -- TODO: remove (2)
     lstg.CollisionCheck(GROUP_PLAYER, GROUP_ENEMY_BULLET)
-    lstg.UpdateXY()
-    lstg.AfterFrame()
+    lstg.BoundCheck(2) -- TODO: remove (2)
 end
 
 function M:onRender()

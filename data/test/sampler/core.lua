@@ -60,11 +60,10 @@ function FrameFunc()
     end
     global_tasks:remove_dead()
     global_tasks:resume_all()
-    lstg.ObjFrame()
-    lstg.BoundCheck()
+    lstg.AfterFrame(2) -- TODO: remove (2)
+    lstg.ObjFrame(2) -- TODO: remove (2)
     lstg.CollisionCheck(1, 2) -- group 1 and group 2
-    lstg.UpdateXY()
-    lstg.AfterFrame()
+    lstg.BoundCheck(2) -- TODO: remove (2)
     timer = timer + 1
     if Keyboard.GetKeyState(Keyboard.Escape) then
         return true -- exit
