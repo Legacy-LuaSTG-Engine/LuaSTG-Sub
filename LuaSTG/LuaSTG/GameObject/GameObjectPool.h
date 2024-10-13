@@ -159,8 +159,11 @@ namespace LuaSTGPlus
 				&& y <= m_BoundTop;
 		}
 
-		/// @brief 执行边界检查
-		void BoundCheck() noexcept;
+		// 脱离世界边界检测：传统模式
+		void detectOutOfWorldBoundLegacy(int32_t objects_index = 0, lua_State* L = nullptr);
+
+		// 脱离世界边界检测：延迟模式
+		void detectOutOfWorldBound(int32_t objects_index = 0, lua_State* L = nullptr);
 
 		// 相交检测：传统模式
 		// 检测 -> 回调（如果相交） -> 检测 -> 回调（如果相交） -> ...
@@ -293,6 +296,7 @@ namespace LuaSTGPlus
 		
 		static int api_ObjFrame(lua_State* L);
 		static int api_AfterFrame(lua_State* L);
+		static int api_BoundCheck(lua_State* L);
 		static int api_CollisionCheck(lua_State* L);
 
 		static int api_SetImgState(lua_State* L) noexcept;
