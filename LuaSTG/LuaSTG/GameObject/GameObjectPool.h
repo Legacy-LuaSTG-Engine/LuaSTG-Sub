@@ -159,9 +159,6 @@ namespace LuaSTGPlus
 				&& y <= m_BoundTop;
 		}
 
-		/// @brief 执行边界检查
-		void BoundCheck() noexcept;
-
 		// 脱离世界边界检测：传统模式
 		void detectOutOfWorldBoundLegacy(int32_t objects_index = 0, lua_State* L = nullptr);
 

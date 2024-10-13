@@ -406,46 +406,6 @@ namespace LuaSTGPlus
 
 		lua_pop(G_L, 1);
 	}
-	void GameObjectPool::BoundCheck() noexcept
-	{
-		ZoneScopedN("LOBJMGR.BoundCheck");
-
-		GetObjectTable(G_L); // ot
-		int const ot_idx = lua_gettop(G_L);
-
-		m_pCurrentObject = nullptr;
-#ifdef USING_MULTI_GAME_WORLD
-		lua_Integer world = GetWorldFlag();
-#endif // USING_MULTI_GAME_WORLD
-		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second; p = p->pUpdateNext)
-		{
-#ifdef USING_MULTI_GAME_WORLD
-			if (CheckWorld(p->world, world))
-			{
-#endif // USING_MULTI_GAME_WORLD
-				if (!_ObjectBoundCheck(p))
-				{
-					m_pCurrentObject = p;
-					// 越界设置为 del 状态
-					p->status = GameObjectStatus::Dead;
-					// 调用 del 回调
-#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-					if (!p->luaclass.IsDefaultDestroy)
-					{
-#endif // USING_ADVANCE_GAMEOBJECT_CLASS
-						_GameObjectCallback(G_L, ot_idx, p, LGOBJ_CC_DEL);
-#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-					}
-#endif // USING_ADVANCE_GAMEOBJECT_CLASS
-				}
-#ifdef USING_MULTI_GAME_WORLD
-			}
-#endif // USING_MULTI_GAME_WORLD
-		}
-		m_pCurrentObject = nullptr;
-
-		lua_pop(G_L, 1);
-	}
 	void GameObjectPool::UpdateXY() noexcept
 	{
 		ZoneScopedN("LOBJMGR.UpdateXY");
