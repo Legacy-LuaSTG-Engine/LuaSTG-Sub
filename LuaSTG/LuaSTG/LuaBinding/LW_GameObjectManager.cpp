@@ -28,9 +28,7 @@ void LuaSTGPlus::LuaWrapper::GameObjectManagerWrapper::Register(lua_State* L) no
 		}
 		static int BoundCheck(lua_State* L) noexcept
 		{
-			LPOOL.CheckIsMainThread(L);
-			LPOOL.BoundCheck();
-			return 0;
+			return LPOOL.api_BoundCheck(L);
 		}
 		static int SetBound(lua_State* L) noexcept
 		{
