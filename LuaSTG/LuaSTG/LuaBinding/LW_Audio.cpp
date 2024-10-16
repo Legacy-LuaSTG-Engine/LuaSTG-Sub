@@ -58,7 +58,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 			Core::ScopeObject<IResourceSoundEffect> p = LRES.FindSound(s);
 			if (!p)
 				return luaL_error(L, "sound '%s' not found.", s);
-			p->Play((float)luaL_checknumber(L, 2), (float)luaL_optnumber(L, 3, 0.0));
+			p->Play((float)luaL_optnumber(L, 2, 1.), (float)luaL_optnumber(L, 3, 0.0));
 			return 0;
 		}
 		static int StopSound(lua_State* L)noexcept
