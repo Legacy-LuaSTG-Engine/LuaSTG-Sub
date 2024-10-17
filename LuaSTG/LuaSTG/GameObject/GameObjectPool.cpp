@@ -329,7 +329,7 @@ namespace LuaSTGPlus
 	void GameObjectPool::updateMovementsLegacy(int32_t objects_index, lua_State* L) {
 		ZoneScopedN("LOBJMGR.ObjFrame");
 
-		int superpause = UpdateSuperPause(); // 处理超级暂停
+		int superpause = UpdateSuperPause(); // 更新超级暂停
 		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second; p = p->pUpdateNext) {
 			if (superpause <= 0 || p->ignore_superpause) {
 #ifdef USING_ADVANCE_GAMEOBJECT_CLASS
@@ -348,7 +348,7 @@ namespace LuaSTGPlus
 	void GameObjectPool::updateMovements(int32_t objects_index, lua_State* L) {
 		ZoneScopedN("LOBJMGR.ObjFrame(New)");
 
-		int superpause = UpdateSuperPause(); // 处理超级暂停
+		int superpause = GetSuperPauseTime();
 		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second; p = p->pUpdateNext) {
 			if (superpause <= 0 || p->ignore_superpause) {
 #ifdef USING_ADVANCE_GAMEOBJECT_CLASS
@@ -447,7 +447,7 @@ namespace LuaSTGPlus
 	void GameObjectPool::updateNext(int32_t objects_index, lua_State*) {
 		ZoneScopedN("LOBJMGR.AfterFrame(New)");
 
-		int superpause = GetSuperPauseTime();
+		int superpause = UpdateSuperPause(); // 更新超级暂停
 		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second;)
 		{
 			if (superpause <= 0 || p->ignore_superpause)
