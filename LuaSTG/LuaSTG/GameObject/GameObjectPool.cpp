@@ -528,7 +528,7 @@ namespace LuaSTGPlus
 #endif // USING_ADVANCE_GAMEOBJECT_CLASS
 			cache.push_back(OutOfWorldBoundDetectionResult{
 				.id = p->uid,
-				.index = p->id,
+				.index = static_cast<uint32_t>(p->id),
 				});
 			
 		}
