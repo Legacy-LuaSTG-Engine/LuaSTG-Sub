@@ -2,7 +2,6 @@
 #include "Core/Object.hpp"
 #include "Core/ApplicationModel.hpp"
 #include "Core/Graphics/Window.hpp"
-#include "Platform/Monitor.hpp"
 #include "Platform/WindowSizeMoveController.hpp"
 #include "Platform/RuntimeLoader/DesktopWindowManager.hpp"
 #include "Platform/ImmersiveTitleBarController.hpp"
@@ -77,7 +76,6 @@ namespace Core::Graphics
 
 		Platform::WindowSizeMoveController m_sizemove;
 		platform::windows::ImmersiveTitleBarController m_title_bar_controller;
-		Platform::MonitorList m_monitors;
 		Platform::RuntimeLoader::DesktopWindowManager dwmapi_loader;
 
 		LRESULT onMessage(HWND window, UINT message, WPARAM arg1, LPARAM arg2);
@@ -167,11 +165,6 @@ namespace Core::Graphics
 
 		void setWindowMode(Vector2U size, WindowFrameStyle style, IDisplay* display);
 		void setFullScreenMode(IDisplay* display);
-
-		uint32_t getMonitorCount();
-		RectI getMonitorRect(uint32_t index);
-		void setMonitorCentered(uint32_t index);
-		void setMonitorFullScreen(uint32_t index);
 
 		void setCustomSizeMoveEnable(bool v);
 		void setCustomMinimizeButtonRect(RectI v);

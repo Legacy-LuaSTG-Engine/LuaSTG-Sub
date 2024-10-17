@@ -115,11 +115,6 @@ namespace Core::Graphics
 		virtual void setWindowMode(Vector2U size, WindowFrameStyle style = WindowFrameStyle::Normal, IDisplay* display = nullptr) = 0;
 		virtual void setFullScreenMode(IDisplay* display = nullptr) = 0;
 
-		virtual uint32_t getMonitorCount() = 0;
-		virtual RectI getMonitorRect(uint32_t index) = 0;
-		virtual void setMonitorCentered(uint32_t index) = 0;
-		virtual void setMonitorFullScreen(uint32_t index) = 0;
-
 		virtual void setCustomSizeMoveEnable(bool v) = 0;
 		virtual void setCustomMinimizeButtonRect(RectI v) = 0;
 		virtual void setCustomCloseButtonRect(RectI v) = 0;
