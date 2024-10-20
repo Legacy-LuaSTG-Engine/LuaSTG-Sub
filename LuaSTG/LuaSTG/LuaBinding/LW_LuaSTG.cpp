@@ -1,4 +1,4 @@
-﻿#include "LuaBinding/LuaWrapper.hpp"
+#include "LuaBinding/LuaWrapper.hpp"
 #include "LuaBinding/lua_utility.hpp"
 #include "AppFrame.h"
 
@@ -118,7 +118,7 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 
 			if (windowed)
 			{
-				bool const result = LAPP.SetDisplayModeWindow(size, vsync, Core::RectI(), false);
+				bool const result = LAPP.SetDisplayModeWindow(size, vsync);
 				lua_pushboolean(L, result);
 			}
 			else

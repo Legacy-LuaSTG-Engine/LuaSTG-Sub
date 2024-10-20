@@ -24,8 +24,6 @@ set(PLATFORM_SOURCES
     Platform/CleanWindows.hpp
     Platform/KnownDirectory.hpp
     Platform/KnownDirectory.cpp
-    Platform/Monitor.hpp
-    Platform/Monitor.cpp
     Platform/WindowSizeMoveController.hpp
     Platform/WindowSizeMoveController.cpp
     Platform/DirectInput.hpp

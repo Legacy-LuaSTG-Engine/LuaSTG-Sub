@@ -6,59 +6,6 @@ namespace LuaSTGPlus
 	static std::string const MODE_NAME_WINDOW("窗口");
 	static std::string const MODE_NAME_FULLSCREEN("全屏");
 
-	inline bool isRationalEmpty(Core::Rational const& rational)
-	{
-		return rational.numerator == 0 || rational.denominator == 0;
-	}
-
-	inline bool isRectEmpty(Core::RectI const& rect)
-	{
-		return (rect.b.x - rect.a.x) == 0
-			|| (rect.b.y - rect.a.y) == 0
-			;
-	}
-
-	inline bool isRectSameSize(Core::RectI const& rect1, Core::RectI const& rect2)
-	{
-		return (rect1.b.x - rect1.a.x) == (rect2.b.x - rect2.a.x)
-			&& (rect1.b.y - rect1.a.y) == (rect2.b.y - rect2.a.y)
-			;
-	}
-
-	inline uint32_t matchMonitorIndex(Core::Graphics::IWindow* window, Core::RectI const& monitor_rect, bool& find)
-	{
-		uint32_t const count = window->getMonitorCount();
-		// Stage 1: Match Same Rect
-		for (uint32_t i = 0; i < count; i += 1)
-		{
-			Core::RectI const rect = window->getMonitorRect(i);
-			if (rect == monitor_rect)
-			{
-				find = true;
-				return i;
-			}
-		}
-		// Stage 2: Match Same Size
-		for (uint32_t i = 0; i < count; i += 1)
-		{
-			Core::RectI const rect = window->getMonitorRect(i);
-			if (isRectSameSize(rect, monitor_rect))
-			{
-				find = true;
-				return i;
-			}
-		}
-		// Stage 3: fallback
-		find = false;
-		return 0;
-	}
-
-	inline Core::Vector2I getMonitorSize(Core::Graphics::IWindow* window, uint32_t index)
-	{
-		Core::RectI const rect = window->getMonitorRect(index);
-		return Core::Vector2I(rect.b.x - rect.a.x, rect.b.y - rect.a.y);
-	}
-
 	inline std::string_view getFullscreenTypeString(ApplicationSetting const& setting)
 	{
 		if (setting.fullscreen)
@@ -75,7 +22,7 @@ namespace LuaSTGPlus
 			spdlog::error("[luastg] 显示模式切换失败：{} -> {}", getFullscreenTypeString(from_mode), to_mode);
 	}
 
-	bool AppFrame::SetDisplayModeWindow(Core::Vector2U window_size, bool vsync, Core::RectI monitor_rect, bool borderless)
+	bool AppFrame::SetDisplayModeWindow(Core::Vector2U window_size, bool vsync)
 	{
 		auto* window = GetAppModel()->getWindow();
 		auto* swapchain = GetAppModel()->getSwapChain();
@@ -84,61 +31,12 @@ namespace LuaSTGPlus
 		bool const result = swapchain->setCanvasSize(window_size);
 
 		window->setWindowMode(window_size);
-		if (!isRectEmpty(monitor_rect))
-		{
-			bool find_result = false;
-			uint32_t const index = matchMonitorIndex(window, monitor_rect, find_result);
-			std::ignore = find_result; // 对于窗口模式，即使找不到对应的显示器用于居中也无所谓
-			window->setMonitorCentered(index);
-		}
-		if (!borderless)
-		{
-			window->setNativeIcon((void*)(ptrdiff_t)IDI_APPICON);
-		}
-		
+		window->setNativeIcon((void*)(ptrdiff_t)IDI_APPICON);
+
 		logResult(result, m_Setting, MODE_NAME_WINDOW);
 
 		m_Setting.canvas_size = window_size;
 		m_Setting.fullscreen = false;
-		m_Setting.vsync = vsync;
-		
-		return result;
-	}
-
-	bool AppFrame::SetDisplayModeFullscreen(Core::RectI monitor_rect, bool vsync)
-	{
-		auto* window = GetAppModel()->getWindow();
-		auto* swapchain = GetAppModel()->getSwapChain();
-
-		if (isRectEmpty(monitor_rect))
-		{
-			// 对于全屏无边框窗口模式，显示器矩形为空，将会失败
-			logResult(false, m_Setting, MODE_NAME_FULLSCREEN);
-			return false;
-		}
-
-		bool find_result = false;
-		uint32_t const index = matchMonitorIndex(window, monitor_rect, find_result);
-		if (!find_result)
-		{
-			// 对于全屏无边框窗口模式，如果找不到对应的显示器，将会失败
-			logResult(find_result, m_Setting, MODE_NAME_FULLSCREEN);
-			return false;
-		}
-		Core::Vector2I const window_size = getMonitorSize(window, index);
-
-		auto const size = Core::Vector2U(uint32_t(window_size.x), uint32_t(window_size.y));
-
-		swapchain->setVSync(vsync);
-		bool const result = swapchain->setCanvasSize(size);
-
-		window->setFullScreenMode();
-		window->setMonitorFullScreen(index);
-
-		logResult(result, m_Setting, MODE_NAME_FULLSCREEN);
-
-		m_Setting.canvas_size = size;
-		m_Setting.fullscreen = true;
 		m_Setting.vsync = vsync;
 		
 		return result;
@@ -175,9 +73,7 @@ namespace LuaSTGPlus
 		else
 			return SetDisplayModeWindow(
 				m_Setting.canvas_size,
-				m_Setting.vsync,
-				Core::RectI(),
-				false);
+				m_Setting.vsync);
 	}
 
 	bool AppFrame::InitializationApplySettingStage1()

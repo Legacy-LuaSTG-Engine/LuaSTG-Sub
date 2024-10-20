@@ -951,28 +951,6 @@ namespace Core::Graphics
 	{
 		SendMessageW(win32_window, LUASTG_WM_SET_FULLSCREEN_MODE, 0, reinterpret_cast<LPARAM>(display));
 	}
-	
-	uint32_t Window_Win32::getMonitorCount()
-	{
-		m_monitors.Refresh();
-		return (uint32_t)m_monitors.GetCount();
-	}
-	RectI Window_Win32::getMonitorRect(uint32_t index)
-	{
-		RECT const rc = m_monitors.GetRect(index);
-		return RectI(rc.left, rc.top, rc.right, rc.bottom);
-	}
-	void Window_Win32::setMonitorCentered(uint32_t index)
-	{
-		m_monitors.MoveWindowToCenter(index, win32_window);
-	}
-	void Window_Win32::setMonitorFullScreen(uint32_t index)
-	{
-		auto const rect = getMonitorRect(index);
-		win32_window_width = rect.b.x - rect.a.x;
-		win32_window_height = rect.b.y - rect.a.y;
-		m_monitors.ResizeWindowToFullScreen(index, win32_window);
-	}
 
 	void Window_Win32::setCustomSizeMoveEnable(bool v)
 	{
