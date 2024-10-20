@@ -1,4 +1,4 @@
-﻿#include "AppFrame.h"
+#include "AppFrame.h"
 #include "resource.h"
 
 namespace LuaSTGPlus
@@ -86,6 +86,7 @@ namespace LuaSTGPlus
 			p_window->setCursor(m_Setting.show_cursor ? WindowCursor::Arrow : WindowCursor::None);
 			p_window->setNativeIcon((void*)(ptrdiff_t)IDI_APPICON);
 			p_window->setSize(m_Setting.canvas_size);
+			p_window->setCentered(false);
 			p_window->setWindowCornerPreference(m_Setting.allow_windows_11_window_corner);
 		}
 		// 配置音量

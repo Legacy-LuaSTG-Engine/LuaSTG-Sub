@@ -165,6 +165,7 @@ namespace Core::Graphics
 
 		void setWindowMode(Vector2U size, WindowFrameStyle style, IDisplay* display);
 		void setFullScreenMode(IDisplay* display);
+		void setCentered(bool show, IDisplay* display);
 
 		void setCustomSizeMoveEnable(bool v);
 		void setCustomMinimizeButtonRect(RectI v);

@@ -25,7 +25,7 @@ namespace Core::Graphics
 		assert(br);
 		return info;
 	}
-	
+
 	void* Display_Win32::getNativeHandle() {
 		return win32_monitor;
 	}
@@ -286,17 +286,17 @@ namespace Core::Graphics
 			}
 			break;
 		case WM_GETMINMAXINFO:
+		{
+			MINMAXINFO* info = (MINMAXINFO*)arg2;
+			RECT rect_min = { 0, 0, 320, 240 };
+			UINT const dpi = win32::getDpiForWindow(window);
+			if (m_title_bar_controller.adjustWindowRectExForDpi(&rect_min, win32_window_style, FALSE, win32_window_style_ex, dpi))
 			{
-				MINMAXINFO* info = (MINMAXINFO*)arg2;
-				RECT rect_min = { 0, 0, 320, 240 };
-				UINT const dpi = win32::getDpiForWindow(window);
-				if (m_title_bar_controller.adjustWindowRectExForDpi(&rect_min, win32_window_style, FALSE, win32_window_style_ex, dpi))
-				{
-					info->ptMinTrackSize.x = rect_min.right - rect_min.left;
-					info->ptMinTrackSize.y = rect_min.bottom - rect_min.top;
-				}
+				info->ptMinTrackSize.x = rect_min.right - rect_min.left;
+				info->ptMinTrackSize.y = rect_min.bottom - rect_min.top;
 			}
-			return 0;
+		}
+		return 0;
 		case WM_DPICHANGED:
 			if (getFrameStyle() != WindowFrameStyle::None)
 			{
@@ -346,31 +346,31 @@ namespace Core::Graphics
 			SetWindowTextW(window, win32_window_text_w.data());
 			return 0;
 		case LUASTG_WM_RECREATE:
-			{
-				BOOL result = FALSE;
-				WINDOWPLACEMENT last_window_placement = {};
-				last_window_placement.length = sizeof(last_window_placement);
+		{
+			BOOL result = FALSE;
+			WINDOWPLACEMENT last_window_placement = {};
+			last_window_placement.length = sizeof(last_window_placement);
 
-				assert(win32_window);
-				result = GetWindowPlacement(win32_window, &last_window_placement);
-				assert(result); (void)result;
+			assert(win32_window);
+			result = GetWindowPlacement(win32_window, &last_window_placement);
+			assert(result); (void)result;
 
-				destroyWindow();
-				if (!createWindow()) return false;
+			destroyWindow();
+			if (!createWindow()) return false;
 
-				assert(win32_window);
-				result = SetWindowPlacement(win32_window, &last_window_placement);
-				assert(result); (void)result;
-			}
-			return 0;
+			assert(win32_window);
+			result = SetWindowPlacement(win32_window, &last_window_placement);
+			assert(result); (void)result;
+		}
+		return 0;
 		case LUASTG_WM_SETICON:
-			{
-				HICON hIcon = LoadIcon(win32_window_class.hInstance, MAKEINTRESOURCE(win32_window_icon_id));
-				SendMessageW(win32_window, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hIcon);
-				SendMessageW(win32_window, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)hIcon);
-				DestroyIcon(hIcon);
-			}
-			return 0;
+		{
+			HICON hIcon = LoadIcon(win32_window_class.hInstance, MAKEINTRESOURCE(win32_window_icon_id));
+			SendMessageW(win32_window, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hIcon);
+			SendMessageW(win32_window, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)hIcon);
+			DestroyIcon(hIcon);
+		}
+		return 0;
 		case LUASTG_WM_SET_WINDOW_MODE:
 			_setWindowMode(reinterpret_cast<SetWindowedModeParameters*>(arg1), arg2);
 			return 0;
@@ -442,6 +442,10 @@ namespace Core::Graphics
 			spdlog::error("[luastg] (LastError = {}) CreateWindowExW failed", GetLastError());
 			return false;
 		}
+
+		// 丢到显示器中间
+
+		setCentered(false, nullptr);
 
 		// 配置输入法
 
@@ -951,6 +955,30 @@ namespace Core::Graphics
 	{
 		SendMessageW(win32_window, LUASTG_WM_SET_FULLSCREEN_MODE, 0, reinterpret_cast<LPARAM>(display));
 	}
+	void Window_Win32::setCentered(bool show, IDisplay* display) {
+		if (!display) {
+			if (!IDisplay::getNearestFromWindow(this, &display)) {
+				return;
+			}
+		}
+		RECT r{};
+		[[maybe_unused]] auto const result1 = GetWindowRect(win32_window, &r);
+		assert(result1);
+		auto const& m = display->getRect();
+		UINT flags = SWP_FRAMECHANGED;
+		if (show) {
+			flags |= SWP_SHOWWINDOW;
+		}
+		[[maybe_unused]] auto const result2 = SetWindowPos(
+			win32_window,
+			HWND_TOP,
+			(m.a.x + m.b.x) / 2 - (r.right - r.left) / 2,
+			(m.a.y + m.b.y) / 2 - (r.bottom - r.top) / 2,
+			r.right - r.left,
+			r.bottom - r.top,
+			flags);
+		assert(result2);
+	}
 
 	void Window_Win32::setCustomSizeMoveEnable(bool v)
 	{
@@ -959,29 +987,29 @@ namespace Core::Graphics
 	void Window_Win32::setCustomMinimizeButtonRect(RectI v)
 	{
 		m_sizemove.setMinimizeButtonRect(RECT{
-			.left   = v.a.x,
-			.top    = v.a.y,
-			.right  = v.b.x,
+			.left = v.a.x,
+			.top = v.a.y,
+			.right = v.b.x,
 			.bottom = v.b.y,
-		});
+			});
 	}
 	void Window_Win32::setCustomCloseButtonRect(RectI v)
 	{
 		m_sizemove.setCloseButtonRect(RECT{
-			.left   = v.a.x,
-			.top    = v.a.y,
-			.right  = v.b.x,
+			.left = v.a.x,
+			.top = v.a.y,
+			.right = v.b.x,
 			.bottom = v.b.y,
-		});
+			});
 	}
 	void Window_Win32::setCustomMoveButtonRect(RectI v)
 	{
 		m_sizemove.setTitleBarRect(RECT{
-			.left   = v.a.x,
-			.top    = v.a.y,
-			.right  = v.b.x,
+			.left = v.a.x,
+			.top = v.a.y,
+			.right = v.b.x,
 			.bottom = v.b.y,
-		});
+			});
 	}
 
 	bool Window_Win32::setCursor(WindowCursor type)
@@ -1009,7 +1037,7 @@ namespace Core::Graphics
 		case WindowCursor::TextInput:
 			win32_window_cursor = LoadCursor(NULL, IDC_IBEAM);
 			break;
-		
+
 		case WindowCursor::Resize:
 			win32_window_cursor = LoadCursor(NULL, IDC_SIZEALL);
 			break;
