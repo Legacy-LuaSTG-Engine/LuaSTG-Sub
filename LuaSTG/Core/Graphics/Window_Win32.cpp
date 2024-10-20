@@ -349,6 +349,7 @@ namespace Core::Graphics
 			{
 				BOOL result = FALSE;
 				WINDOWPLACEMENT last_window_placement = {};
+				last_window_placement.length = sizeof(last_window_placement);
 
 				assert(win32_window);
 				result = GetWindowPlacement(win32_window, &last_window_placement);
