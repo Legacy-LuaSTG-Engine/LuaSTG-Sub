@@ -112,6 +112,7 @@ require("test_se")
 require("test_window_and_display")
 
 require("test.imgui.all")
+require("test.audio.SoundEffect")
 
 function GameInit()
     window:init()

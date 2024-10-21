@@ -15,25 +15,38 @@ function T:onRender() end
 ---@class test
 local M = {}
 
----@type table<string, test.Base>
+---@type table<string, { [1]: string, [2]: test.Base, [3]: string }>
 local tests = {
-    { "test.Module.Empty", T },
+    { "test.Base", T, "test.Base" },
 }
 
 ---@type test.Base
 local current_test = T
 
+---@param text string
+function M.cacheDisplayText(text)
+    assert(type(text) == "string")
+    ---@diagnostic disable-next-line: undefined-field
+    if imgui_exist and imgui and imgui.backend and imgui.backend.CacheGlyphFromString then
+        ---@diagnostic disable-next-line: undefined-field
+        imgui.backend.CacheGlyphFromString(text)
+    end
+end
+
 ---@param name string
----@param cls test.Base
-function M.registerTest(name, cls)
+---@param test_class test.Base
+---@param display_name string?
+function M.registerTest(name, test_class, display_name)
     for _, v in ipairs(tests) do
         if v[1] == name then
             assert(false)
-            v[2] = cls
+            v[2] = test_class
             return
         end
     end
-    table.insert(tests, { name, cls })
+    local entry = { name, test_class, display_name or name }
+    table.insert(tests, entry)
+    M.cacheDisplayText(entry[3])
 end
 
 function M.onCreate()
@@ -48,10 +61,11 @@ end
 
 function M.onUpdate()
     if imgui_exist then
+        ---@diagnostic disable-next-line: undefined-field
         local ImGui = imgui.ImGui
         if ImGui.Begin("Select Test") then
             for _, v in ipairs(tests) do
-                if ImGui.Button(v[1]) then
+                if ImGui.Button(v[3]) then
                     M.setTest(v[1])
                 end
             end
