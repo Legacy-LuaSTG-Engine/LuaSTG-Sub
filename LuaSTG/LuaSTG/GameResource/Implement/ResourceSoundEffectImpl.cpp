@@ -34,6 +34,12 @@ namespace LuaSTGPlus
 		m_last_command.type = CommandType::None;
 		m_last_command.vol = 0.0f;
 		m_last_command.pan = 0.0f;
+		// 刷新状态
+		if (m_status == 2) {
+			if (!m_player->isPlaying()) {
+				m_status = 0; // 已结束播放
+			}
+		}
 	}
 	void ResourceSoundEffectImpl::Play(float vol, float pan)
 	{
