@@ -1,4 +1,4 @@
-#include "AppFrame.h"
+﻿#include "AppFrame.h"
 #include "GameResource/ResourcePassword.hpp"
 #include "LuaBinding/LuaAppFrame.hpp"
 #include "LuaBinding/LuaCustomLoader.hpp"
