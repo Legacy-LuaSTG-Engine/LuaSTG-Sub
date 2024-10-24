@@ -32,40 +32,40 @@ extern "C" {
 
 namespace LuaSTGPlus
 {
-	static int StackTraceback(lua_State* L) noexcept
-	{
-		// errmsg
-		int ret = 0;
-
-		lua_getfield(L, LUA_GLOBALSINDEX, "debug");            // ??? errmsg t
-		if (!lua_istable(L, -1))
-		{
-			lua_pop(L, 1);                                     // ??? errmsg
-			return 1;
-		}
-		lua_getfield(L, -1, "traceback");                      // ??? errmsg t f
-		if (!lua_isfunction(L, -1) && !lua_iscfunction(L, -1))
-		{
-			lua_pop(L, 2);                                     // ??? errmsg
-			return 1;
-		}
-
-		lua_pushvalue(L, 1);         // ??? errmsg t f errmsg
-		lua_pushinteger(L, 2);       // ??? errmsg t f errmsg 2
-		ret = lua_pcall(L, 2, 1, 0); // ??? errmsg t msg
-		if (0 != ret)
-		{
-			char const* errmsg = lua_tostring(L, -1);
-			if (errmsg == nullptr) {
-				errmsg = "(error object is a nil value)";
-			}
-			spdlog::error("[luajit] StackTraceback时发生错误：{}", errmsg); // ??? errmsg t errmsg
-			lua_pop(L, 2);                                                // ??? errmsg
-			return 1;
-		}
-
-		return 1;
-	}
+	static int StackTraceback(lua_State *L) noexcept
+    {
+        // ??? errmsg
+        int ret = 0;
+        
+        lua_getfield(L, LUA_GLOBALSINDEX, "debug");            // ??? errmsg table(debug)
+        if (!lua_istable(L, -1))
+        {
+            lua_pop(L, 1);                                     // ??? errmsg
+            return 1;
+        }
+        lua_getfield(L, -1, "traceback");                      // ??? errmsg table(debug) function(debug.traceback)
+        if (!lua_isfunction(L, -1) && !lua_iscfunction(L, -1))
+        {
+            lua_pop(L, 2);                                     // ??? errmsg
+            return 1;
+        }
+        
+        lua_pushvalue(L, -3);        // ??? errmsg table(debug) function(debug.traceback) errmsg
+        lua_pushinteger(L, 2);       // ??? errmsg table(debug) function(debug.traceback) errmsg 2
+        ret = lua_pcall(L, 2, 1, 0); // ??? errmsg table(debug) tracebackmsg   <==> [lua] debug.traceback(errmsg, 2)
+        if (0 != ret)
+        {
+            char const* errmsg = lua_tostring(L, -1);
+            if (errmsg == nullptr) {
+                errmsg = "(error object is a nil value)";
+            }
+            spdlog::error("[luajit] StackTraceback时发生错误：{}", errmsg);// ??? errmsg t errmsg
+            lua_pop(L, 2);                                                // ??? errmsg
+            return 1;
+        }
+        
+        return 1;
+    }
 
 	bool AppFrame::SafeCallScript(const char* source, size_t len, const char* desc) noexcept
 	{
