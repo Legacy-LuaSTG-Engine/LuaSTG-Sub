@@ -71,7 +71,7 @@ namespace LuaSTG::Sub::LuaBinding {
 
 		static int getClientAreaSize(lua_State* L) {
 			auto self = as(L, 1);
-			auto const size = self->data->getSize();
+			auto const size = self->data->_getCurrentSize();
 			pushSize(L, size.x, size.y);
 			return 1;
 		}

@@ -103,7 +103,8 @@ namespace Core::Graphics
 		virtual bool setFrameStyle(WindowFrameStyle style) = 0;
 		virtual WindowFrameStyle getFrameStyle() = 0;
 
-		virtual Vector2U getSize() = 0;
+		virtual Vector2U getSize() = 0; // TODO: history problem
+		virtual Vector2U _getCurrentSize() = 0; // TODO: history problem
 		virtual bool setSize(Vector2U v) = 0;
 
 		virtual WindowLayer getLayer() = 0;
