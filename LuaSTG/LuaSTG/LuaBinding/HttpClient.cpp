@@ -1,10 +1,15 @@
-#include <cassert>
 #include "HttpClient.hpp"
 
+#include <cassert>
 #include <vector>
+
+#define WIN32_LEAN_AND_MEAN
+#define NOSERVICE
+#define NOMCX
+#define NOIME
 #include <Windows.h>
-#include <winrt/base.h>
 #include <winhttp.h>
+#include <winrt/base.h>
 #include <wil/resource.h>
 #include <wil/result_macros.h>
 
