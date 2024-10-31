@@ -126,6 +126,8 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/Window.cpp
     LuaSTG/LuaBinding/SwapChain.hpp
     LuaSTG/LuaBinding/SwapChain.cpp
+    LuaSTG/LuaBinding/HttpClient.hpp
+    LuaSTG/LuaBinding/HttpClient.cpp
 
     LuaSTG/SteamAPI/SteamAPI.cpp
     LuaSTG/SteamAPI/SteamAPI.hpp

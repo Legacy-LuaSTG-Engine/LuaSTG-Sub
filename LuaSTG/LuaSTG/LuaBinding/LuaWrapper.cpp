@@ -3,6 +3,7 @@
 #include "LuaBinding/Display.hpp"
 #include "LuaBinding/Window.hpp"
 #include "LuaBinding/SwapChain.hpp"
+#include "LuaBinding/HttpClient.hpp"
 
 namespace LuaSTGPlus
 {
@@ -64,5 +65,7 @@ namespace LuaSTGPlus
 		LuaSTG::Sub::LuaBinding::Window::registerClass(L);
 		LuaSTG::Sub::LuaBinding::Window_Windows11Extension::registerClass(L);
 		LuaSTG::Sub::LuaBinding::SwapChain::registerClass(L);
+		http::Request::registerClass(L);
+		http::ResponseEntity::registerClass(L);
 	}
 }
