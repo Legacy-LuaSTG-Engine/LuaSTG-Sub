@@ -116,6 +116,52 @@ static int verifyUrl(lua_State* L, std::string_view const& url) {
 	return 0x0d000721;
 }
 
+static http::RequestMethod verifyRequestMethod(lua_State* L, std::string_view const& request_method_name) {
+	struct RequestMethodMetadata {
+		std::string_view name;
+		http::RequestMethod request_method;
+	};
+	static constexpr std::array<RequestMethodMetadata, 9> metadata{
+		{
+			{"GET", http::RequestMethod::get},
+			{"HEAD", http::RequestMethod::head},
+			{"POST", http::RequestMethod::post},
+			{"PUT", http::RequestMethod::put},
+			{"DELETE", http::RequestMethod::del},
+			{"CONNECT", http::RequestMethod::custom},
+			{"OPTIONS", http::RequestMethod::custom},
+			{"TRACE", http::RequestMethod::custom},
+			{"PATCH", http::RequestMethod::patch},
+		}
+	};
+	for (const auto& [name, request_method] : metadata) {
+		if (request_method_name == name) {
+			return request_method;
+		}
+	}
+	luaL_error(L, "unknown request method '%s'", request_method_name.data());
+	return http::RequestMethod::custom;
+}
+
+static std::string_view getRequestMethodName(http::RequestMethod const request_method) {
+	switch (request_method) {
+	default:
+		return { "UNKNOWN" };
+	case http::RequestMethod::get:
+		return { "GET" };
+	case http::RequestMethod::head:
+		return { "HEAD" };
+	case http::RequestMethod::post:
+		return { "POST" };
+	case http::RequestMethod::put:
+		return { "PUT" };
+	case http::RequestMethod::del:
+		return { "DELETE" };
+	case http::RequestMethod::patch:
+		return { "PATCH" };
+	}
+}
+
 namespace lua {
 	struct StackIndex {
 		int32_t value{};
@@ -320,6 +366,15 @@ namespace http {
 			lua::Stack const S(L);
 			auto const self = as(L, 1);
 			auto const body = S.getValue<std::string_view>(2);
+			switch (self->request_method) {
+			default:
+				return luaL_error(L, "request method '%s' does not support request body",
+					getRequestMethodName(self->request_method).data());
+			case RequestMethod::post:
+			case RequestMethod::put:
+			case RequestMethod::patch:
+				break;
+			}
 			self->body = body;
 			S.pushValue(lua::StackIndex(1)); // return self
 			return 1;
@@ -405,13 +460,14 @@ namespace http {
 
 				setHeaders(request.get(), self->headers);
 
+				auto const body_size = static_cast<DWORD>(self->body.size());
 				br = WinHttpSendRequest(
 					request.get(),
 					// ReSharper disable once CppZeroConstantCanBeReplacedWithNullptr
 					WINHTTP_NO_ADDITIONAL_HEADERS, 0,
 					// ReSharper disable once CppZeroConstantCanBeReplacedWithNullptr
-					WINHTTP_NO_REQUEST_DATA, 0,
-					0, 0
+					body_size > 0 ? self->body.data() : WINHTTP_NO_REQUEST_DATA, body_size,
+					body_size, 0
 				);
 				THROW_IF_WIN32_BOOL_FALSE_MSG(br, "WinHttpSendRequest failed");
 
@@ -507,12 +563,64 @@ namespace http {
 			return 1;
 		}
 
+		static int head(lua_State* L) {
+			lua::Stack const S(L);
+			auto const self = create(L);
+			auto const url = S.getValue<std::string_view>(1);
+			verifyUrl(L, url);
+			self->request_method = RequestMethod::head;
+			self->url = url;
+			return 1;
+		}
+
 		static int post(lua_State* L) {
 			lua::Stack const S(L);
 			auto const self = create(L);
 			auto const url = S.getValue<std::string_view>(1);
 			verifyUrl(L, url);
 			self->request_method = RequestMethod::post;
+			self->url = url;
+			return 1;
+		}
+
+		static int put(lua_State* L) {
+			lua::Stack const S(L);
+			auto const self = create(L);
+			auto const url = S.getValue<std::string_view>(1);
+			verifyUrl(L, url);
+			self->request_method = RequestMethod::put;
+			self->url = url;
+			return 1;
+		}
+
+		static int del(lua_State* L) {
+			lua::Stack const S(L);
+			auto const self = create(L);
+			auto const url = S.getValue<std::string_view>(1);
+			verifyUrl(L, url);
+			self->request_method = RequestMethod::del;
+			self->url = url;
+			return 1;
+		}
+
+		static int patch(lua_State* L) {
+			lua::Stack const S(L);
+			auto const self = create(L);
+			auto const url = S.getValue<std::string_view>(1);
+			verifyUrl(L, url);
+			self->request_method = RequestMethod::patch;
+			self->url = url;
+			return 1;
+		}
+
+		static int request(lua_State* L) {
+			lua::Stack const S(L);
+			auto const self = create(L);
+			auto const request_method = S.getValue<std::string_view>(1);
+			auto const url = S.getValue<std::string_view>(2);
+			verifyUrl(L, url);
+			self->request_method = verifyRequestMethod(L, request_method);
+			self->custom_request_method = request_method;
 			self->url = url;
 			return 1;
 		}
@@ -549,8 +657,6 @@ namespace http {
 		// method
 
 		auto const methods = S.pushModule(class_name);
-		S.setMapValue(methods, "get", &RequestBinding::get);
-		S.setMapValue(methods, "post", &RequestBinding::post);
 		S.setMapValue(methods, "setResolveTimeout", &RequestBinding::setResolveTimeout);
 		S.setMapValue(methods, "setConnectTimeout", &RequestBinding::setConnectTimeout);
 		S.setMapValue(methods, "setSendTimeout", &RequestBinding::setSendTimeout);
@@ -558,6 +664,13 @@ namespace http {
 		S.setMapValue(methods, "addHeader", &RequestBinding::addHeader);
 		S.setMapValue(methods, "body", &RequestBinding::body);
 		S.setMapValue(methods, "execute", &RequestBinding::execute);
+		S.setMapValue(methods, "get", &RequestBinding::get);
+		S.setMapValue(methods, "head", &RequestBinding::head);
+		S.setMapValue(methods, "post", &RequestBinding::post);
+		S.setMapValue(methods, "put", &RequestBinding::put);
+		S.setMapValue(methods, "delete", &RequestBinding::del); // delete is a c/c++ keyword
+		S.setMapValue(methods, "patch", &RequestBinding::patch);
+		S.setMapValue(methods, "request", &RequestBinding::request);
 
 		// meta method
 

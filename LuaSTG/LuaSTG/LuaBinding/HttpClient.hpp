@@ -7,7 +7,8 @@
 
 namespace http {
 	enum class RequestMethod : int32_t {
-		get = 1,
+		custom,
+		get,
 		head,
 		post,
 		put,
@@ -20,6 +21,7 @@ namespace http {
 
 		// MEMBER BEGIN
 		RequestMethod request_method{ RequestMethod::get };
+		std::string custom_request_method;
 		std::string url;
 		std::unordered_map<std::string, std::string> headers;
 		std::string body;
