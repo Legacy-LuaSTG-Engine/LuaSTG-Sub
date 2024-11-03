@@ -6,6 +6,7 @@ project(LuaSTGSub)
 
 option(LUASTG_SUPPORTS_WINDOWS_7 "LuaSTG Sub Windows compatibility: Windows 7" ON)
 option(LUASTG_LINK_YY_THUNKS "Link to YY_Thunks for older Windows version" OFF)
+option(LUASTG_LINK_LUASOCKET "Link to luasocket" OFF)
 
 if(LUASTG_SUPPORTS_WINDOWS_7)
     message(STATUS "[LuaSTG] Windows compatibility: Windows 7")

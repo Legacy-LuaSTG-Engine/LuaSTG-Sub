@@ -1,4 +1,4 @@
-﻿#include "AppFrame.h"
+#include "AppFrame.h"
 #include "GameResource/ResourcePassword.hpp"
 #include "LuaBinding/LuaAppFrame.hpp"
 #include "LuaBinding/LuaCustomLoader.hpp"
@@ -8,9 +8,13 @@ extern "C" {
 #include "lua_cjson.h"
 #include "lfs.h"
 extern int luaopen_string_pack(lua_State* L);
-extern int luaopen_mime_core(lua_State* L);
-extern int luaopen_socket_core(lua_State* L);
 }
+#ifdef LUASTG_LINK_LUASOCKET
+extern "C" {
+    extern int luaopen_mime_core(lua_State* L);
+    extern int luaopen_socket_core(lua_State* L);
+}
+#endif
 //#include "lua_xlsx_csv.h"
 #include "lua_steam.h"
 #include "LuaBinding/lua_xinput.hpp"
@@ -309,6 +313,7 @@ namespace LuaSTGPlus
             luaopen_dwrite(L);
             luaopen_random(L);
             luaopen_string_pack(L);
+#ifdef LUASTG_LINK_LUASOCKET
             {
                 lua_getfield(L, LUA_REGISTRYINDEX, "_LOADED"); // ... _LOADED
                 {
@@ -319,6 +324,7 @@ namespace LuaSTGPlus
                 }
                 lua_pop(L, 1); // ...
             }
+#endif
             lua_settop(L, 0);
             
             RegistBuiltInClassWrapper(L);  // 注册内建类 (luastg lib)

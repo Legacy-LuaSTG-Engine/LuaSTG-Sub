@@ -183,7 +183,6 @@ target_link_libraries(LuaSTG PRIVATE
     implot
     lua_cjson
     lua_filesystem
-    luasocket
     #lua_xlsx_csv
     lua_imgui
     imgui_impl_win32ex
@@ -197,6 +196,11 @@ target_link_libraries(LuaSTG PRIVATE
 if (LUASTG_LINK_YY_THUNKS)
     target_link_libraries(LuaSTG PRIVATE YY_Thunks)
     message(STATUS "[LuaSTG] Link: YY_Thunks")
+endif ()
+if (LUASTG_LINK_LUASOCKET)
+    target_compile_definitions(LuaSTG PRIVATE LUASTG_LINK_LUASOCKET)
+    target_link_libraries(LuaSTG PRIVATE luasocket)
+    message(STATUS "[LuaSTG] Link: luasocket")
 endif ()
 
 set(LUASTG_BUILD_OUTPUT_DIR ${CMAKE_BINARY_DIR}/bin)
