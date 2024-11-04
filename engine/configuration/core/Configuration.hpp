@@ -58,8 +58,12 @@ namespace core {
 	private:
 		std::function<void(std::string_view const&)> error_callback;
 
+		bool allow_include{ false };
+
 	public:
 		void setErrorCallback(std::function<void(std::string_view const&)> const& cb);
+
+		inline void setAllowInclude(bool const v) { allow_include = v; }
 
 		bool loadFromFile(std::string_view const& path);
 

@@ -122,6 +122,10 @@ namespace core {
 		// include
 
 		if (root.contains("include"sv)) {
+			if (!allow_include) {
+				error_callback("include is not allowed"sv);
+				return false;
+			}
 			auto const& root_include = root.at("include"sv);
 			assert_type_is_array(root_include, "/include"sv);
 			include.reserve(root_include.size());
@@ -266,6 +270,7 @@ namespace core {
 		configuration.setErrorCallback([&](std::string_view const& message) {
 			messages.emplace_back(std::format("[{}] {}", path, message));
 		});
+		configuration.setAllowInclude(true); // only allow top level configuration
 		std::vector<Configuration::Include> include;
 		if (!configuration.loadFromFile(path)) {
 			messages.emplace_back(std::format("[{}] load failed", path));
