@@ -1,0 +1,11 @@
+file(GLOB_RECURSE LUASTG_SUB_CFG_SRC RELATIVE ${CMAKE_CURRENT_LIST_DIR} "core/*.hpp" "core/*.cpp")
+source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${LUASTG_SUB_CFG_SRC})
+
+set(LUASTG_SUB_CFG LuaSTG.Sub.Configuration)
+add_library(${LUASTG_SUB_CFG} STATIC)
+luastg_target_common_options(${LUASTG_SUB_CFG})
+luastg_target_more_warning(${LUASTG_SUB_CFG})
+target_compile_features(${LUASTG_SUB_CFG} PRIVATE cxx_std_20)
+target_include_directories(${LUASTG_SUB_CFG} PUBLIC .)
+target_sources(${LUASTG_SUB_CFG} PRIVATE ${LUASTG_SUB_CFG_SRC})
+target_link_libraries(${LUASTG_SUB_CFG} PUBLIC nlohmann_json)
