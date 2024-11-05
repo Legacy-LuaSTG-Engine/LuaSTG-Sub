@@ -115,18 +115,50 @@ namespace core {
 			std::string uuid;
 			bool single_instance{ false };
 		};
+		class AudioSystem {
+		public:
+			inline bool hasPreferredEndpointName() const noexcept { return !preferred_endpoint_name.empty(); }
+			inline std::string const& getPreferredEndpointName() const noexcept { return preferred_endpoint_name; }
+			inline AudioSystem& setPreferredEndpointName(std::string const& preferred_endpoint_name_) {
+				preferred_endpoint_name = preferred_endpoint_name_;
+				return *this;
+			}
+			inline float getSoundEffectVolume() const noexcept { return sound_effect_volume; }
+			inline AudioSystem& setSoundEffectVolume(float const sound_effect_volume_) {
+				sound_effect_volume = sound_effect_volume_;
+				return *this;
+			}
+			inline float getMusicVolume() const noexcept { return sound_effect_volume; }
+			inline AudioSystem& setMusicVolume(float const music_volume_) {
+				music_volume = music_volume_;
+				return *this;
+			}
+		private:
+			std::string preferred_endpoint_name;
+			float sound_effect_volume{ 1.0 };
+			float music_volume{ 1.0f };
+		};
+		class Initialize {
+			friend class ConfigurationLoader;
+		public:
+			inline AudioSystem const& getAudioSystem() const noexcept { return audio_system; }
+		private:
+			AudioSystem audio_system;
+		};
 	public:
 		bool loadFromFile(std::string_view const& path);
 		inline std::vector<std::string> const& getMessages() const noexcept { return messages; }
 		std::string getFormattedMessage();
 		inline Debug const& getDebug() const noexcept { return debug; }
 		inline Application const& getApplication() const noexcept { return application; }
+		inline Initialize const& getInitialize() const noexcept { return initialize; }
 	public:
 		static ConfigurationLoader& getInstance();
 	private:
 		std::vector<std::string> messages;
 		Configuration configuration;
 		Debug debug;
+		Initialize initialize;
 		Application application;
 	};
 }

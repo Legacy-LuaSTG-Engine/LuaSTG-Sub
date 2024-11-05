@@ -155,6 +155,7 @@ namespace core {
 		}
 
 		// legacy: compatible
+		// TODO: remove
 
 		if (root.contains("single_application_instance"sv)) {
 			auto const& v = root.at("single_application_instance"sv);
@@ -172,6 +173,7 @@ namespace core {
 			}
 			application.value().uuid.emplace(v.get_ref<std::string const&>());
 		}
+
 		if (root.contains("debug_track_window_focus"sv)) {
 			auto const& v = root.at("debug_track_window_focus"sv);
 			assert_type_is_boolean(v, "/debug_track_window_focus"sv);
@@ -547,6 +549,22 @@ namespace core {
 			}
 			if (app.single_instance.has_value()) {
 				application.setSingleInstance(app.single_instance.value());
+			}
+		}
+
+		if (configuration.initialize.has_value()) {
+			auto const& init = configuration.initialize.value();
+			if (init.audio_system.has_value()) {
+				auto const& audio_system = init.audio_system.value();
+				if (audio_system.preferred_endpoint_name.has_value()) {
+					initialize.audio_system.setPreferredEndpointName(audio_system.preferred_endpoint_name.value());
+				}
+				if (audio_system.sound_effect_volume.has_value()) {
+					initialize.audio_system.setSoundEffectVolume(audio_system.sound_effect_volume.value());
+				}
+				if (audio_system.music_volume.has_value()) {
+					initialize.audio_system.setMusicVolume(audio_system.music_volume.value());
+				}
 			}
 		}
 
