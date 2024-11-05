@@ -250,6 +250,11 @@ namespace core {
 				assert_type_is_object(root_initialize.at("graphics_system"sv), "/initialize/graphics_system"sv);
 				auto const& init_graphics = root_initialize.at("graphics_system"sv);
 				auto& self_graphics = initialize.value().graphics_system.emplace();
+				if (init_graphics.contains("preferred_device_name"sv)) {
+					auto const& gs_preferred_device_name = init_graphics.at("preferred_device_name"sv);
+					assert_type_is_string(gs_preferred_device_name, "/initialize/graphics_system/preferred_device_name"sv);
+					self_graphics.preferred_device_name.emplace(gs_preferred_device_name.get_ref<std::string const&>());
+				}
 				if (init_graphics.contains("width"sv)) {
 					assert_type_is_unsigned_integer(init_graphics.at("width"sv), "/initialize/graphics_system/width"sv);
 					auto const width = self_graphics.width.emplace(init_graphics.at("width"sv).get<uint32_t>());
@@ -288,6 +293,11 @@ namespace core {
 				assert_type_is_object(root_initialize.at("audio_system"sv), "/initialize/audio_system"sv);
 				auto const& init_audio = root_initialize.at("audio_system"sv);
 				auto& self_audio = initialize.value().audio_system.emplace();
+				if (init_audio.contains("preferred_endpoint_name"sv)) {
+					auto const& as_preferred_endpoint_name = init_audio.at("preferred_endpoint_name"sv);
+					assert_type_is_string(as_preferred_endpoint_name, "/initialize/audio_system/preferred_endpoint_name"sv);
+					self_audio.preferred_endpoint_name.emplace(as_preferred_endpoint_name.get_ref<std::string const&>());
+				}
 				if (init_audio.contains("sound_effect_volume"sv)) {
 					assert_type_is_number(init_audio.at("sound_effect_volume"sv), "/initialize/audio_system/sound_effect_volume"sv);
 					auto const volume = self_audio.sound_effect_volume.emplace(init_audio.at("sound_effect_volume"sv).get<float>());
@@ -411,6 +421,9 @@ namespace core {
 
 					// merge
 
+					if (init_graphics.preferred_device_name.has_value()) {
+						self_graphics.preferred_device_name.emplace(init_graphics.preferred_device_name.value());
+					}
 					if (init_graphics.width.has_value()) {
 						self_graphics.width.emplace(init_graphics.width.value());
 					}
@@ -438,6 +451,9 @@ namespace core {
 
 					// merge
 
+					if (init_audio.preferred_endpoint_name.has_value()) {
+						self_audio.preferred_endpoint_name.emplace(init_audio.preferred_endpoint_name.value());
+					}
 					if (init_audio.sound_effect_volume.has_value()) {
 						self_audio.sound_effect_volume.emplace(init_audio.sound_effect_volume.value());
 					}
@@ -459,7 +475,31 @@ namespace core {
 			}
 		}
 		
+		// apply
+
+		if (configuration.application) {
+			auto const& app = configuration.application.value();
+			if (app.uuid) {
+				application.setUuid(app.uuid.value());
+			}
+			if (app.single_instance) {
+				application.setSingleInstance(app.single_instance.value());
+			}
+		}
+
 		return true;
+	}
+
+	std::string ConfigurationLoader::getFormattedMessage() {
+		std::string message;
+		for (auto const& s : messages) {
+			message.append(s);
+			message.push_back('\n');
+		}
+		if (message.back() == '\n') {
+			message.pop_back();
+		}
+		return message;
 	}
 
 	ConfigurationLoader& ConfigurationLoader::getInstance() {

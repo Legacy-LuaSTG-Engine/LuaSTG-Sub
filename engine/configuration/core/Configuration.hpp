@@ -41,6 +41,7 @@ namespace core {
 		};
 
 		struct GraphicsSystem {
+			std::optional<std::string> preferred_device_name;
 			std::optional<uint32_t> width;
 			std::optional<uint32_t> height;
 			std::optional<bool> fullscreen;
@@ -49,6 +50,7 @@ namespace core {
 		};
 
 		struct AudioSystem {
+			std::optional<std::string> preferred_endpoint_name;
 			std::optional<float> sound_effect_volume;
 			std::optional<float> music_volume;
 		};
@@ -80,12 +82,33 @@ namespace core {
 
 	class ConfigurationLoader {
 	public:
-		inline std::vector<std::string> const& getMessages() const noexcept { return messages; }
+		class Application {
+		public:
+			inline Application& setUuid(std::string const& uuid_) {
+				uuid = uuid_;
+				return *this;
+			}
+			inline Application& setSingleInstance(bool const single_instance_) {
+				single_instance = single_instance_;
+				return *this;
+			}
+			inline bool hasUuid() const noexcept { return !uuid.empty(); }
+			inline std::string const& getUuid() const noexcept { return uuid; }
+			inline bool isSingleInstance() const noexcept { return single_instance; }
+		private:
+			std::string uuid;
+			bool single_instance{ false };
+		};
+	public:
 		bool loadFromFile(std::string_view const& path);
+		inline std::vector<std::string> const& getMessages() const noexcept { return messages; }
+		std::string getFormattedMessage();
+		inline Application const& getApplication() { return application; }
 	public:
 		static ConfigurationLoader& getInstance();
 	private:
 		std::vector<std::string> messages;
 		Configuration configuration;
+		Application application;
 	};
 }
