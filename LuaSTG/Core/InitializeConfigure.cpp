@@ -1,4 +1,4 @@
-﻿#include "Core/InitializeConfigure.hpp"
+#include "Core/InitializeConfigure.hpp"
 #include <fstream>
 #include <filesystem>
 #include "nlohmann/json.hpp"
@@ -37,9 +37,6 @@ namespace Core
         SET(persistent_log_file_max_count);
         SET(engine_cache_directory);
 
-        SET(single_application_instance);
-        SET(application_instance_id);
-
         SET(debug_track_window_focus);
 
     #undef SET
@@ -71,9 +68,6 @@ namespace Core
         GET(persistent_log_file_directory);
         GET(persistent_log_file_max_count);
         GET(engine_cache_directory);
-
-        GET(single_application_instance);
-        GET(application_instance_id);
 
         GET(debug_track_window_focus);
 
@@ -133,9 +127,6 @@ namespace Core
         persistent_log_file_directory = "logs/";
         persistent_log_file_max_count = 100;
         engine_cache_directory.clear();
-
-        single_application_instance = false;
-        application_instance_id.clear();
 
         debug_track_window_focus = false;
     }

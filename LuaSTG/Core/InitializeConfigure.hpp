@@ -30,9 +30,6 @@ namespace Core
         int persistent_log_file_max_count = 100;
         std::string engine_cache_directory;
 
-        bool single_application_instance = false;
-        std::string application_instance_id;
-
         bool debug_track_window_focus = false;
 
         void reset();
