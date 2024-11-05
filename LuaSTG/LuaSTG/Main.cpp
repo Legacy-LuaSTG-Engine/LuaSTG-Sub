@@ -1,31 +1,35 @@
-﻿#include "Platform/MessageBox.hpp"
+#include "Main.h"
+#include "Platform/MessageBox.hpp"
 #include "Platform/ApplicationSingleInstance.hpp"
-#include "Core/InitializeConfigure.hpp"
 #include "Debugger/Logger.hpp"
 #include "SteamAPI/SteamAPI.hpp"
 #include "Utility/Utility.h"
 #include "AppFrame.h"
 #include "RuntimeCheck.hpp"
+#include "core/Configuration.hpp"
 
-int main()
-{
+int luastg::sub::main() {
 #ifdef _DEBUG
 	_CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG) | _CRTDBG_LEAK_CHECK_DF);
 	// _CrtSetBreakAlloc(5351);
 #endif
 
-	[[maybe_unused]] Platform::ApplicationSingleInstance single_instance(LUASTG_INFO);
-	Core::InitializeConfigure cfg;
-	if (cfg.loadFromFile("config.json")) {
-		if (cfg.single_application_instance && !cfg.application_instance_id.empty()) {
-			single_instance.Initialize(cfg.application_instance_id);
-		}
-	}
+	// STAGE 1: load application configurations
 
-	if (!LuaSTG::CheckUserRuntime())
-	{
+	auto& config_loader = core::ConfigurationLoader::getInstance();
+	if (!config_loader.loadFromFile("config.json")) {
+		Platform::MessageBox::Error(LUASTG_INFO, config_loader.getFormattedMessage());
 		return EXIT_FAILURE;
 	}
+
+	// STAGE 2: configure single instance
+
+	Platform::ApplicationSingleInstance single_instance(LUASTG_INFO);
+	if (auto const& config_app = config_loader.getApplication(); config_app.isSingleInstance()) {
+		single_instance.Initialize(config_app.getUuid());
+	}
+
+	// STAGE 3: initialize COM
 
 	LuaSTGPlus::CoInitializeScope com_runtime;
 	if (!com_runtime())
@@ -35,6 +39,14 @@ int main()
 			"未能正常初始化COM组件库，请尝试重新启动此应用程序。");
 		return EXIT_FAILURE;
 	}
+
+	// STAGE 4: check runtime
+
+	if (!LuaSTG::CheckUserRuntime()) {
+		return EXIT_FAILURE;
+	}
+
+	// STAGE 5: start
 
 	LuaSTG::Debugger::Logger::create();
 
@@ -65,11 +77,4 @@ int main()
 	LuaSTG::Debugger::Logger::destroy();
 
 	return result;
-}
-
-#include "Platform/CleanWindows.hpp"
-
-_Use_decl_annotations_ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
-{
-	return main();
 }

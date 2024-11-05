@@ -150,7 +150,9 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LMathConstant.hpp
     LuaSTG/RuntimeCheck.hpp
     LuaSTG/RuntimeCheck.cpp
+    LuaSTG/Main.h
     LuaSTG/Main.cpp
+    LuaSTG/WindowsMain.cpp
 
     LuaSTG/LuaSTG.manifest
 )
