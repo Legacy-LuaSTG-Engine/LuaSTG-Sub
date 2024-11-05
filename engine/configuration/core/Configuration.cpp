@@ -3,6 +3,7 @@
 #include <fstream>
 #include <filesystem>
 #include <format>
+#include <ranges>
 #include "nlohmann/json.hpp"
 
 using namespace std::string_view_literals;
@@ -11,6 +12,40 @@ namespace core {
 	static std::u8string_view to_u8string_view(std::string_view const& sv) {
 		static_assert(CHAR_BIT == 8 && sizeof(char) == 1 && sizeof(char) == sizeof(char8_t));
 		return { reinterpret_cast<char8_t const*>(sv.data()), sv.size() };
+	}
+
+	static bool is_uuid(std::string_view const& uuid) {
+	#define is_uuid_char(c) (((c) >= '0' && (c) <= '9') || ((c) >= 'A' && (c) <= 'Z') || ((c) >= 'a' && (c) <= 'z'))
+	#define is_not_uuid_char(c) (!is_uuid_char(c))
+		constexpr std::string_view format36{ "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"sv };
+		switch (uuid.length()) {
+		case 32:
+			for (auto const c : uuid) {
+				if (is_not_uuid_char(c)) {
+					return false;
+				}
+			}
+			return true;
+		case 36:
+			for (size_t i = 0; i < 36; i += 1) {
+				auto const c = uuid[i];
+				if (format36[i] == '-') {
+					if (c != '-') {
+						return false;
+					}
+				}
+				else {
+					if (is_not_uuid_char(c)) {
+						return false;
+					}
+				}
+			}
+			return true;
+		default:
+			return false;
+		}
+	#undef is_uuid_char
+	#undef is_not_uuid_char
 	}
 
 	static void defaultErrorCallback(std::string_view const& message) {
@@ -144,6 +179,29 @@ namespace core {
 					info.optional = (v_optional.get<bool>());
 				}
 				include.emplace_back(info);
+			}
+		}
+
+		// application
+
+		if (root.contains("application"sv)) {
+			auto const& root_app = root.at("application"sv);
+			assert_type_is_object(root_app, "/application"sv);
+			auto& self_app = application.emplace();
+
+			if (root_app.contains("uuid"sv)) {
+				auto const& app_uuid = root_app.at("uuid"sv);
+				assert_type_is_string(app_uuid, "/application/uuid"sv);
+				auto const& uuid = self_app.uuid.emplace(app_uuid.get_ref<std::string const&>());
+				if (!is_uuid(uuid)) {
+					error_callback(std::format("[/application/uuid] require uuid string, but obtain '{}'"sv, uuid));
+					return false;
+				}
+			}
+			if (root_app.contains("single_instance"sv)) {
+				auto const& app_single_instance = root_app.at("single_instance"sv);
+				assert_type_is_boolean(app_single_instance, "/application/single_instance"sv);
+				[[maybe_unused]] auto const single_instance = self_app.single_instance.emplace(app_single_instance.get<bool>());
 			}
 		}
 
@@ -304,6 +362,25 @@ namespace core {
 				include.emplace_back(it);
 			}
 
+			if (patch.application.has_value()) {
+				// init self
+
+				if (!configuration.application.has_value()) {
+					configuration.application.emplace();
+				}
+				auto const& conf_app = patch.application.value();
+				auto& self_app = configuration.application.value();
+
+				// merge
+
+				if (conf_app.uuid.has_value()) {
+					self_app.uuid.emplace(conf_app.uuid.value());
+				}
+				if (conf_app.single_instance.has_value()) {
+					self_app.single_instance.emplace(conf_app.single_instance.value());
+				}
+			}
+
 			if (patch.initialize.has_value()) {
 				// init self
 
@@ -373,6 +450,15 @@ namespace core {
 			include.erase(include.begin()); // need to remove used element
 		}
 
+		// final check
+
+		if (configuration.application) {
+			auto const& app = configuration.application.value();
+			if (app.single_instance && app.single_instance.value() && !app.uuid) {
+				messages.emplace_back(std::format("[{}] single_instance require uuid string to be set", path));
+			}
+		}
+		
 		return true;
 	}
 

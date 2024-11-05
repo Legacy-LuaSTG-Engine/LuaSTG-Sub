@@ -15,6 +15,13 @@ namespace core {
 
 		std::vector<Include> include;
 
+		struct Application {
+			std::optional<std::string> uuid;
+			std::optional<bool> single_instance;
+		};
+
+		std::optional<Application> application;
+
 		enum class FileSystemType {
 			normal,
 			archive,
@@ -55,6 +62,7 @@ namespace core {
 		};
 
 		std::optional<Initialize> initialize;
+
 	private:
 		std::function<void(std::string_view const&)> error_callback;
 
@@ -72,6 +80,7 @@ namespace core {
 
 	class ConfigurationLoader {
 	public:
+		inline std::vector<std::string> const& getMessages() const noexcept { return messages; }
 		bool loadFromFile(std::string_view const& path);
 	public:
 		static ConfigurationLoader& getInstance();
