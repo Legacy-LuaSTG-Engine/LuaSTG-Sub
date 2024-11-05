@@ -128,7 +128,7 @@ namespace core {
 				sound_effect_volume = sound_effect_volume_;
 				return *this;
 			}
-			inline float getMusicVolume() const noexcept { return sound_effect_volume; }
+			inline float getMusicVolume() const noexcept { return music_volume; }
 			inline AudioSystem& setMusicVolume(float const music_volume_) {
 				music_volume = music_volume_;
 				return *this;
