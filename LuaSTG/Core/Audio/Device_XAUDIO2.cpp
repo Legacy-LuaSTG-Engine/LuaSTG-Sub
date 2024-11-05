@@ -1,5 +1,6 @@
-﻿#include "Core/Audio/Device_XAUDIO2.hpp"
+#include "Core/Audio/Device_XAUDIO2.hpp"
 #include "Core/i18n.hpp"
+#include "core/Configuration.hpp"
 
 static std::array<float, 1> s_empty_fft_data{};
 
@@ -216,7 +217,7 @@ namespace Core::Audio
 
 			winrt::check_hresult(m_shared->xaudio2->CreateSubmixVoice(m_shared->voice_sound_effect.put(), 2, 44100));
 			winrt::check_hresult(m_shared->xaudio2->CreateSubmixVoice(m_shared->voice_music.put(), 2, 44100));
-			
+
 			// build graph
 
 			XAUDIO2_SEND_DESCRIPTOR voice_send_master = {};
@@ -362,6 +363,10 @@ namespace Core::Audio
 
 	Device_XAUDIO2::Device_XAUDIO2()
 	{
+		auto const& conf_audio = core::ConfigurationLoader::getInstance().getInitialize().getAudioSystem();
+		m_target_audio_device_name = conf_audio.getPreferredEndpointName();
+		m_volume_sound_effect = conf_audio.getSoundEffectVolume();
+		m_volume_music = conf_audio.getMusicVolume();
 		if (!createResources())
 		{
 			i18n_core_system_call_report_error("Device_XAUDIO2::Device_XAUDIO2 (1)");
@@ -483,7 +488,7 @@ namespace Core::Audio
 			}
 			spdlog::warn("[core] audio buffer queue is full");
 		}
-		
+
 		hr = gHR = m_player->SubmitSourceBuffer(&m_player_buffer);
 		if (FAILED(hr)) return false;
 
@@ -554,7 +559,7 @@ namespace Core::Audio
 		m_format.nAvgBytesPerSec = p_decoder->getByteRate();
 		m_format.nBlockAlign = p_decoder->getFrameSize();
 		m_format.wBitsPerSample = WORD(p_decoder->getSampleSize() * 8u);
-		
+
 		// 全部解码
 
 		m_pcm_data.resize(p_decoder->getFrameCount() * (uint32_t)p_decoder->getFrameSize());
@@ -564,7 +569,7 @@ namespace Core::Audio
 			i18n_core_system_call_report_error("IDecoder::read -> #ALL");
 			throw std::runtime_error("AudioPlayer_XAUDIO2::AudioPlayer_XAUDIO2 (4)");
 		}
-		
+
 		// 填写缓冲区描述符
 
 		m_player_buffer.Flags = XAUDIO2_END_OF_STREAM;
@@ -687,7 +692,7 @@ namespace Core::Audio
 			}
 			spdlog::warn("[core] audio buffer queue is full");
 		}
-		
+
 		// 提交缓冲区
 
 		if (m_is_loop)
@@ -863,7 +868,7 @@ namespace Core::Audio
 		m_format.nAvgBytesPerSec = p_decoder->getByteRate();
 		m_format.nBlockAlign = p_decoder->getFrameSize();
 		m_format.wBitsPerSample = WORD(p_decoder->getSampleSize() * 8u);
-		
+
 		// 全部解码
 
 		if (!p_decoder->seek(0))
@@ -1095,7 +1100,7 @@ namespace Core::Audio
 		stream_buffer[1].info.pAudioData = stream_buffer[1].data;
 		stream_buffer[1].info.pContext = reinterpret_cast<void*>(1);
 
-	//#define PLAYER_DECODER_DEBUG
+		//#define PLAYER_DECODER_DEBUG
 
 		double start_time = 0.0; // 用于 on_reset, on_set_time
 
@@ -1110,7 +1115,7 @@ namespace Core::Audio
 			std::ignore = lock_scope;
 		};
 
-		auto on_reset = [&] (bool const play)
+		auto on_reset = [&](bool const play)
 		{
 		#ifdef PLAYER_DECODER_DEBUG
 			spdlog::debug("[Player] [ActionType::Reset] ({})", play ? "Start" : "");
@@ -1118,7 +1123,7 @@ namespace Core::Audio
 
 			// 先停下来，改好解码器起始位置再清空队列
 			lock_player_and_do([&self] {
-				self->m_player->Stop(); 
+				self->m_player->Stop();
 			});
 
 			// 配置为上次设置时间的信息
@@ -1136,9 +1141,9 @@ namespace Core::Audio
 					self->m_player->Start();
 				}
 			});
-		};
+	};
 
-		auto on_set_time = [&] (double const time)
+		auto on_set_time = [&](double const time)
 		{
 		#ifdef PLAYER_DECODER_DEBUG
 			spdlog::debug("[Player] [ActionType::SetTime] ({}s)", time);
@@ -1156,9 +1161,9 @@ namespace Core::Audio
 			lock_player_and_do([&self] {
 				self->m_player->FlushSourceBuffers();
 			});
-		};
+};
 
-		auto on_buffer_available = [&] (size_t const index)
+		auto on_buffer_available = [&](size_t const index)
 		{
 		#ifdef PLAYER_DECODER_DEBUG
 			spdlog::debug("[Player] [ActionType::BufferAvailable] ({})", index);
@@ -1191,11 +1196,11 @@ namespace Core::Audio
 			// 这个缓冲区播放完后要更新的数据
 			buffer.add_time = (double)read_frames / (double)self->m_decoder->getSampleRate();
 			buffer.set_time = time_pos;
-		};
+			};
 
 		bool is_running = true;
 		Action action = {};
-		
+
 		while (is_running)
 		{
 			self->action_queue.reciveAction(action);
@@ -1209,7 +1214,7 @@ namespace Core::Audio
 				is_running = false; // 该滚蛋了
 				lock_player_and_do([&self] {
 					// 先停下，然后清空缓冲区队列，防止继续使用上面的局部 buffer 导致内存读取错误
-					self->m_player->Stop(); 
+					self->m_player->Stop();
 					self->m_player->FlushSourceBuffers();
 				});
 				break;
@@ -1242,7 +1247,7 @@ namespace Core::Audio
 		}
 
 		return 0;
-	}
+}
 
 	bool StreamAudioPlayer_XAUDIO2::start()
 	{
@@ -1338,14 +1343,14 @@ namespace Core::Audio
 		}
 
 		// 填写格式
-		
+
 		m_format.wFormatTag = WAVE_FORMAT_PCM;
 		m_format.nChannels = p_decoder->getChannelCount();
 		m_format.nSamplesPerSec = p_decoder->getSampleRate();
 		m_format.nAvgBytesPerSec = p_decoder->getByteRate();
 		m_format.nBlockAlign = p_decoder->getFrameSize();
 		m_format.wBitsPerSample = WORD(p_decoder->getSampleSize() * 8u);
-		
+
 		// 计算解码数据
 
 		size_t buffer_bytes = m_decoder->getFrameSize() * 2048;
