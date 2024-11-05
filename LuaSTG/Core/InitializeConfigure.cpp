@@ -37,8 +37,6 @@ namespace Core
         SET(persistent_log_file_max_count);
         SET(engine_cache_directory);
 
-        SET(debug_track_window_focus);
-
     #undef SET
     }
     inline void from_json(nlohmann::json const& j, InitializeConfigure& p)
@@ -68,8 +66,6 @@ namespace Core
         GET(persistent_log_file_directory);
         GET(persistent_log_file_max_count);
         GET(engine_cache_directory);
-
-        GET(debug_track_window_focus);
 
     #undef GET
     }
@@ -127,8 +123,6 @@ namespace Core
         persistent_log_file_directory = "logs/";
         persistent_log_file_max_count = 100;
         engine_cache_directory.clear();
-
-        debug_track_window_focus = false;
     }
     bool InitializeConfigure::load(std::string_view const source) noexcept
     {

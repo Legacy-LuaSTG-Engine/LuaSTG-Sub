@@ -1,7 +1,7 @@
 #include "Core/Graphics/Window_Win32.hpp"
 #include "Core/ApplicationModel_Win32.hpp"
-#include "Core/InitializeConfigure.hpp"
 #include "Core/i18n.hpp"
+#include "core/Configuration.hpp"
 #include "win32/win32.hpp"
 #include "win32/abi.hpp"
 #include "Platform/WindowsVersion.hpp"
@@ -1110,11 +1110,7 @@ namespace Core::Graphics
 
 	Window_Win32::Window_Win32()
 	{
-		InitializeConfigure config;
-		config.loadFromFile("config.json");
-		if (config.debug_track_window_focus) {
-			enable_track_window_focus = true;
-		}
+		enable_track_window_focus = core::ConfigurationLoader::getInstance().getDebug().isTrackWindowFocus();
 		win32_window_dpi = win32::getUserDefaultScreenDpi();
 		win32_window_text_w.fill(L'\0');
 		if (!createWindowClass())

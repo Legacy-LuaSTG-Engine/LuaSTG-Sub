@@ -172,6 +172,14 @@ namespace core {
 			}
 			application.value().uuid.emplace(v.get_ref<std::string const&>());
 		}
+		if (root.contains("debug_track_window_focus"sv)) {
+			auto const& v = root.at("debug_track_window_focus"sv);
+			assert_type_is_boolean(v, "/debug_track_window_focus"sv);
+			if (!debug.has_value()) {
+				debug.emplace();
+			}
+			debug.value().track_window_focus.emplace(v.get<bool>());
+		}
 
 		// include
 
@@ -198,6 +206,19 @@ namespace core {
 					info.optional = (v_optional.get<bool>());
 				}
 				include.emplace_back(info);
+			}
+		}
+
+		// debug
+
+		if (root.contains("debug"sv)) {
+			auto const& conf_debug = root.at("debug"sv);
+			assert_type_is_object(conf_debug, "/debug"sv);
+			auto& self_debug = debug.emplace();
+			if (conf_debug.contains("track_window_focus"sv)) {
+				auto const& v = conf_debug.at("track_window_focus"sv);
+				assert_type_is_boolean(v, "/debug/track_window_focus"sv);
+				self_debug.track_window_focus.emplace(v.get<bool>());
 			}
 		}
 
@@ -391,6 +412,22 @@ namespace core {
 				include.emplace_back(it);
 			}
 
+			if (patch.debug.has_value()) {
+				// init self
+
+				if (!configuration.debug.has_value()) {
+					configuration.debug.emplace();
+				}
+				auto const& conf_debug = patch.debug.value();
+				auto& self_debug = configuration.debug.value();
+
+				// merge
+
+				if (conf_debug.track_window_focus.has_value()) {
+					self_debug.track_window_focus.emplace(conf_debug.track_window_focus.value());
+				}
+			}
+
 			if (patch.application.has_value()) {
 				// init self
 
@@ -493,15 +530,22 @@ namespace core {
 				messages.emplace_back(std::format("[{}] single_instance require uuid string to be set", path));
 			}
 		}
-		
+
 		// apply
 
-		if (configuration.application) {
+		if (configuration.debug.has_value()) {
+			auto const& dbg = configuration.debug.value();
+			if (dbg.track_window_focus.has_value()) {
+				debug.setTrackWindowFocus(dbg.track_window_focus.value());
+			}
+		}
+
+		if (configuration.application.has_value()) {
 			auto const& app = configuration.application.value();
-			if (app.uuid) {
+			if (app.uuid.has_value()) {
 				application.setUuid(app.uuid.value());
 			}
-			if (app.single_instance) {
+			if (app.single_instance.has_value()) {
 				application.setSingleInstance(app.single_instance.value());
 			}
 		}

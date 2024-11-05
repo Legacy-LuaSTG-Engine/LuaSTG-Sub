@@ -30,8 +30,6 @@ namespace Core
         int persistent_log_file_max_count = 100;
         std::string engine_cache_directory;
 
-        bool debug_track_window_focus = false;
-
         void reset();
         bool load(std::string_view const source) noexcept;
         bool save(std::string_view const source, std::string& buffer) noexcept;

@@ -15,6 +15,12 @@ namespace core {
 
 		std::vector<Include> include;
 
+		struct Debug {
+			std::optional<bool> track_window_focus;
+		};
+
+		std::optional<Debug> debug;
+
 		struct Application {
 			std::optional<std::string> uuid;
 			std::optional<bool> single_instance;
@@ -82,6 +88,16 @@ namespace core {
 
 	class ConfigurationLoader {
 	public:
+		class Debug {
+		public:
+			inline Debug& setTrackWindowFocus(bool const track_window_focus_) {
+				track_window_focus = track_window_focus_;
+				return *this;
+			}
+			inline bool isTrackWindowFocus() const noexcept { return track_window_focus; }
+		private:
+			bool track_window_focus{ false };
+		};
 		class Application {
 		public:
 			inline Application& setUuid(std::string const& uuid_) {
@@ -103,12 +119,14 @@ namespace core {
 		bool loadFromFile(std::string_view const& path);
 		inline std::vector<std::string> const& getMessages() const noexcept { return messages; }
 		std::string getFormattedMessage();
-		inline Application const& getApplication() { return application; }
+		inline Debug const& getDebug() const noexcept { return debug; }
+		inline Application const& getApplication() const noexcept { return application; }
 	public:
 		static ConfigurationLoader& getInstance();
 	private:
 		std::vector<std::string> messages;
 		Configuration configuration;
+		Debug debug;
 		Application application;
 	};
 }
