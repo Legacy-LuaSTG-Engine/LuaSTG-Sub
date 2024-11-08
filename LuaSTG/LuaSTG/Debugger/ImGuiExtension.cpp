@@ -53,8 +53,18 @@ namespace imgui {
 		void show(bool* is_open = nullptr) {
 		#define format_size(x) (bytes_count_to_string(x).c_str())
 			if (is_open == nullptr || (is_open != nullptr && *is_open)) {
-				if (ImGui::Begin("Memory Usage", is_open, ImGuiWindowFlags_AlwaysAutoResize)) {
-					ImGui::Checkbox("More Informations", &more_details);
+				if (want_fit_window_size) {
+					want_fit_window_size = false;
+					ImGui::SetNextWindowSize(ImVec2(), ImGuiCond_Always);
+				}
+				if (ImGui::Begin("Memory Usage", is_open)) {
+					if (ImGui::Checkbox("More Informations", &more_details)) {
+						want_fit_window_size = true;
+					}
+					ImGui::SameLine();
+					if (ImGui::Button("Auto Size")) {
+						want_fit_window_size = true;
+					}
 					if (ImGui::CollapsingHeader("Global", ImGuiTreeNodeFlags_DefaultOpen)) {
 						MEMORYSTATUSEX info = { sizeof(MEMORYSTATUSEX) };
 						if (GlobalMemoryStatusEx(&info)) {
@@ -150,6 +160,7 @@ namespace imgui {
 	protected:
 		MemoryUsageWindow() = default;
 	private:
+		bool want_fit_window_size{ true };
 		bool more_details{ true };
 		bool process_memory_counters_v3{ true };
 		bool process_memory_counters_v2{ true };
