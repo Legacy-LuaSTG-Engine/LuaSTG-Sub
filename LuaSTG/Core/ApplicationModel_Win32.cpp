@@ -315,7 +315,7 @@ namespace Core
 		}
 		else
 		{
-			spdlog::error("[fancy2d] 无法获取系统内存使用情况");
+			spdlog::error("[core] 无法获取系统内存使用情况");
 		}
 	}
 
