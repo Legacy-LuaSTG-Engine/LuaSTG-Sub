@@ -174,8 +174,8 @@ target_link_libraries(LuaSTG PRIVATE
     spdlog
     utility
     PlatformAPI
-    DirectXTexMini
     DirectX::ToolKitMini
+    DirectX::TextureMini
     Core
     xmath
     lua51_static
