@@ -23,7 +23,6 @@ msvc_static_runtime_library()
 
 include(cmake/import/all.cmake)
 include(cmake/build/all.cmake)
-include(cmake/packages.nuget.cmake)
 add_subdirectory(external)
 include(cmake/packages.lua.cmake)
 include(LuaSTG/shaders.cmake)
