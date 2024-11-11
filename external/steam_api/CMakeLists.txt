@@ -47,7 +47,7 @@ target_include_directories(lua_steam_api PUBLIC
 target_sources(lua_steam_api PRIVATE
     binding/lua_steam.h
 )
-if(LINK_STEAM_API AND (TARGET steam_api))
+if((LINK_STEAM_API OR LUASTG_LINK_STEAM_API) AND (TARGET steam_api)) # LINK_STEAM_API for compatibility
     target_compile_definitions(lua_steam_api PUBLIC
         HAVE_STEAM_API
     )

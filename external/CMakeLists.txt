@@ -122,11 +122,9 @@ set_target_properties(xmath PROPERTIES FOLDER external)
 
 # ==================== tracy ====================
 
-option(ENABLE_TRACY_CLIENT "" OFF)
-
 add_library(tracy STATIC)
 luastg_target_common_options(tracy)
-if(ENABLE_TRACY_CLIENT)
+if(LUASTG_LINK_TRACY_CLIENT)
     target_compile_definitions(tracy PUBLIC
         TRACY_ENABLE
     )
