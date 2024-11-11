@@ -812,13 +812,13 @@ namespace Core::Graphics
 
 		i18n_log_info("[core].Device_D3D11.created_basic_D3D11_components");
 
-		tracy_context = TracyD3D11Context(d3d11_device.Get(), d3d11_devctx.Get());
+		tracy_context = tracy_d3d11_context_create(d3d11_device.Get(), d3d11_devctx.Get());
 
 		return true;
 	}
 	void Device_D3D11::destroyD3D11()
 	{
-		TracyD3D11Destroy(tracy_context);
+		tracy_d3d11_context_destroy(tracy_context);
 		tracy_context = nullptr;
 
 		d3d_feature_level = D3D_FEATURE_LEVEL_10_0;

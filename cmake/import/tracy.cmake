@@ -16,9 +16,9 @@ if(tracy_ADDED)
         )
     endif()
     # WTF ???
-    target_compile_definitions(tracy PUBLIC
-        TracyFunction=__FUNCSIG__
-    )
+    #target_compile_definitions(tracy PUBLIC
+    #    TracyFunction=__FUNCSIG__
+    #)
     target_include_directories(tracy PUBLIC
         ${tracy_SOURCE_DIR}/public
     )

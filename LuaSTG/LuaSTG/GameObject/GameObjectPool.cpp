@@ -327,7 +327,7 @@ namespace LuaSTGPlus
 		local_memory_resource.release();
 	}
 	void GameObjectPool::updateMovementsLegacy(int32_t objects_index, lua_State* L) {
-		ZoneScopedN("LOBJMGR.ObjFrame");
+		tracy_zone_scoped_with_name("LOBJMGR.ObjFrame");
 
 		int superpause = UpdateSuperPause(); // 更新超级暂停
 		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second; p = p->pUpdateNext) {
@@ -346,7 +346,7 @@ namespace LuaSTGPlus
 		}
 	}
 	void GameObjectPool::updateMovements(int32_t objects_index, lua_State* L) {
-		ZoneScopedN("LOBJMGR.ObjFrame(New)");
+		tracy_zone_scoped_with_name("LOBJMGR.ObjFrame(New)");
 
 		int superpause = GetSuperPauseTime();
 		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second; p = p->pUpdateNext) {
@@ -408,7 +408,7 @@ namespace LuaSTGPlus
 	}
 	void GameObjectPool::UpdateXY() noexcept
 	{
-		ZoneScopedN("LOBJMGR.UpdateXY");
+		tracy_zone_scoped_with_name("LOBJMGR.UpdateXY");
 
 		int superpause = GetSuperPauseTime();
 		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second; p = p->pUpdateNext)
@@ -421,7 +421,7 @@ namespace LuaSTGPlus
 	}
 	void GameObjectPool::updateNextLegacy(int32_t objects_index, lua_State*)
 	{
-		ZoneScopedN("LOBJMGR.AfterFrame");
+		tracy_zone_scoped_with_name("LOBJMGR.AfterFrame");
 
 		int superpause = GetSuperPauseTime();
 		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second;)
@@ -445,7 +445,7 @@ namespace LuaSTGPlus
 		}
 	}
 	void GameObjectPool::updateNext(int32_t objects_index, lua_State*) {
-		ZoneScopedN("LOBJMGR.AfterFrame(New)");
+		tracy_zone_scoped_with_name("LOBJMGR.AfterFrame(New)");
 
 		int superpause = UpdateSuperPause(); // 更新超级暂停
 		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second;)
@@ -469,7 +469,7 @@ namespace LuaSTGPlus
 		}
 	}
 	void GameObjectPool::detectOutOfWorldBoundLegacy(int32_t objects_index, lua_State* L) {
-		ZoneScopedN("LOBJMGR.BoundCheck");
+		tracy_zone_scoped_with_name("LOBJMGR.BoundCheck");
 
 #ifdef USING_MULTI_GAME_WORLD
 		auto const world = GetWorldFlag();
@@ -497,7 +497,7 @@ namespace LuaSTGPlus
 		}
 	}
 	void GameObjectPool::detectOutOfWorldBound(int32_t objects_index, lua_State* L) {
-		ZoneScopedN("LOBJMGR.BoundCheck(New)");
+		tracy_zone_scoped_with_name("LOBJMGR.BoundCheck(New)");
 
 		struct OutOfWorldBoundDetectionResult {
 			uint64_t id{};
@@ -551,7 +551,7 @@ namespace LuaSTGPlus
 		}
 	}
 	void GameObjectPool::detectIntersectionLegacy(uint32_t group1_, uint32_t group2_, int32_t objects_index, lua_State* L) {
-		ZoneScopedN("LOBJMGR.CollisionCheck");
+		tracy_zone_scoped_with_name("LOBJMGR.CollisionCheck");
 		auto& debug_data = m_DbgData[m_DbgIdx];
 		auto& group1 = m_ColliLinkList[group1_];
 		auto& group2 = m_ColliLinkList[group2_];
@@ -594,7 +594,7 @@ namespace LuaSTGPlus
 		}
 	}
 	void GameObjectPool::detectIntersection(std::pmr::vector<IntersectionDetectionGroupPair> const& group_pairs, int32_t objects_index, lua_State* L) {
-		ZoneScopedN("LOBJMGR.CollisionCheck(New)");
+		tracy_zone_scoped_with_name("LOBJMGR.CollisionCheck(New)");
 		std::pmr::deque<IntersectionDetectionResult> cache{ &local_memory_resource };
 		for (auto const& group_pair : group_pairs) {
 			auto& debug_data = m_DbgData[m_DbgIdx];

@@ -84,7 +84,7 @@ target_sources(Core PRIVATE
 target_link_libraries(Core PUBLIC
     # debug
     spdlog
-    tracy
+    TracyAPI
     imgui
     # util
     utility

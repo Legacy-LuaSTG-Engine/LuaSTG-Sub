@@ -55,7 +55,7 @@ namespace Core::Graphics
 
 		// Debug
 
-		TracyD3D11Ctx tracy_context{};
+		tracy_d3d11_context_t tracy_context{};
 
 	public:
 		// Get API
@@ -80,7 +80,7 @@ namespace Core::Graphics
 
 		inline BOOL IsTearingSupport() const noexcept { return dxgi_support_tearing; }
 
-		inline TracyD3D11Ctx GetTracyContext() const noexcept { return tracy_context; }
+		inline tracy_d3d11_context_t GetTracyContext() const noexcept { return tracy_context; }
 
 	private:
 		bool createDXGIFactory();

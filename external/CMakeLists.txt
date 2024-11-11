@@ -143,3 +143,5 @@ set_target_properties(libqoi PROPERTIES FOLDER external)
 # ==================== steam api ====================
 
 add_subdirectory(steam_api)
+
+add_subdirectory(tracy-patch)

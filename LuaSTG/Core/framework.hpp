@@ -46,6 +46,7 @@
 
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyD3D11.hpp"
+#include "tracy/TracyAPI.hpp"
 
 #include "Platform/HResultChecker.hpp"
 

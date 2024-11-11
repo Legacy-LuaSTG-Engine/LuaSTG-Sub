@@ -1061,7 +1061,7 @@ namespace imgui
 	}
 	void updateEngine(bool allow_set_cursor)
 	{
-		ZoneScopedN("imgui.backend.NewFrame");
+		tracy_zone_scoped_with_name("imgui.backend.NewFrame");
 		if (g_ImGuiBindEngine)
 		{
 			int const msg_flags = g_ImGuiRenderDeviceEventListener.messageFlags.exchange(0);
@@ -1079,11 +1079,11 @@ namespace imgui
 			if (allow_set_cursor)
 				io.ConfigFlags &= mask;
 			{
-				ZoneScopedN("imgui.backend.NewFrame-D3D11");
+				tracy_zone_scoped_with_name("imgui.backend.NewFrame-D3D11");
 				ImGui_ImplDX11_NewFrame();
 			}
 			{
-				ZoneScopedN("imgui.backend.NewFrame-WIN32");
+				tracy_zone_scoped_with_name("imgui.backend.NewFrame-WIN32");
 				auto const ws = LAPP.GetAppModel()->getSwapChain()->getCanvasSize();
 				auto const mt = LAPP.GetMousePositionTransformF();
 				ImGui_ImplWin32Ex_FrameData dt;

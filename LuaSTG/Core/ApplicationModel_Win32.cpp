@@ -352,7 +352,7 @@ namespace Core
 		TracyD3D11Collect(m_device->GetTracyContext());
 		FrameMark;
 		{
-			ZoneScopedN("OnInitWait");
+			tracy_zone_scoped_with_name("OnInitWait");
 			m_swapchain->waitFrameLatency();
 			m_p_frame_rate_controller->update();
 		}
@@ -366,7 +366,7 @@ namespace Core
 
 			// 更新
 			{
-				ZoneScopedN("OnUpdate");
+				tracy_zone_scoped_with_name("OnUpdate");
 				ScopeTimer t(d.update_time);
 				// 如果需要退出
 				if (WAIT_OBJECT_0 == WaitForSingleObjectEx(win32_event_exit.Get(), 0, TRUE))
@@ -381,8 +381,8 @@ namespace Core
 			// 渲染
 			if (update_result)
 			{
-				ZoneScopedN("OnRender");
-				TracyD3D11Zone(m_device->GetTracyContext(), "OnRender");
+				tracy_zone_scoped_with_name("OnRender");
+				tracy_d3d11_context_zone(m_device->GetTracyContext(), "OnRender");
 				ScopeTimer t(d.render_time);
 				m_swapchain->applyRenderAttachment();
 				m_swapchain->clearRenderAttachment();
@@ -392,7 +392,7 @@ namespace Core
 			// 呈现
 			if (render_result)
 			{
-				ZoneScopedN("OnPresent");
+				tracy_zone_scoped_with_name("OnPresent");
 				ScopeTimer t(d.present_time);
 				m_swapchain->present();
 				TracyD3D11Collect(m_device->GetTracyContext());
@@ -400,7 +400,7 @@ namespace Core
 			
 			// 等待下一帧
 			{
-				ZoneScopedN("OnWait");
+				tracy_zone_scoped_with_name("OnWait");
 				ScopeTimer t(d.wait_time);
 				m_swapchain->waitFrameLatency();
 				m_p_frame_rate_controller->update();
@@ -421,7 +421,7 @@ namespace Core
 		TracyD3D11Collect(m_device->GetTracyContext());
 		FrameMark;
 		{
-			ZoneScopedN("OnInitWait");
+			tracy_zone_scoped_with_name("OnInitWait");
 			m_swapchain->waitFrameLatency();
 			m_p_frame_rate_controller->update();
 		}
@@ -585,7 +585,7 @@ namespace Core
 
 		// 更新
 		{
-			ZoneScopedN("OnUpdate");
+			tracy_zone_scoped_with_name("OnUpdate");
 			ScopeTimer t(d.update_time);
 			update_result = m_listener->onUpdate();
 		}
@@ -597,21 +597,21 @@ namespace Core
 		// 渲染
 		if (update_result)
 		{
-			ZoneScopedN("OnRender");
-			TracyD3D11Zone(m_device->GetTracyContext(), "OnRender");
+			tracy_zone_scoped_with_name("OnRender");
+			tracy_d3d11_context_zone(m_device->GetTracyContext(), "OnRender");
 			ScopeTimer t(d.render_time);
-			frame_query.begin();
+			//frame_query.begin();
 			m_swapchain->applyRenderAttachment();
 			m_swapchain->clearRenderAttachment();
 			render_result = m_listener->onRender();
-			frame_query.end();
+			//frame_query.end();
 		}
 
 		// 呈现
 		if (render_result)
 		{
-			ZoneScopedN("OnPresent");
-			TracyD3D11Zone(m_device->GetTracyContext(), "OnPresent");
+			tracy_zone_scoped_with_name("OnPresent");
+			tracy_d3d11_context_zone(m_device->GetTracyContext(), "OnPresent");
 			ScopeTimer t(d.present_time);
 			m_swapchain->present();
 			TracyD3D11Collect(m_device->GetTracyContext());
@@ -619,7 +619,7 @@ namespace Core
 
 		// 等待下一帧
 		{
-			ZoneScopedN("OnWait");
+			tracy_zone_scoped_with_name("OnWait");
 			ScopeTimer t(d.wait_time);
 			m_swapchain->waitFrameLatency();
 			m_p_frame_rate_controller->update();

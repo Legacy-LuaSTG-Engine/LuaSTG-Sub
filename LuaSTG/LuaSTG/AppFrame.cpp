@@ -1,4 +1,4 @@
-﻿#include "AppFrame.h"
+#include "AppFrame.h"
 #include "Core/FileManager.hpp"
 #include "Platform/XInput.hpp"
 #include "Utility/Utility.h"
@@ -329,7 +329,7 @@ bool AppFrame::onUpdate()
 	bool result = true;
 
 	{
-		ZoneScopedN("OnUpdate-Event");
+		tracy_zone_scoped_with_name("OnUpdate-Event");
 
 		int window_active_changed = m_window_active_changed.exchange(0);
 		if (window_active_changed & 0x2)
@@ -379,7 +379,7 @@ bool AppFrame::onUpdate()
 
 	if (result)
 	{
-		ZoneScopedN("OnUpdate-LuaCallback");
+		tracy_zone_scoped_with_name("OnUpdate-LuaCallback");
 		// 执行帧函数
 		imgui::cancelSetCursor();
 		m_GameObjectPool->DebugNextFrame();
