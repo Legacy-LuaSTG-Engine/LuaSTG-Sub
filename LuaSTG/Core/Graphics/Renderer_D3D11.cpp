@@ -1,4 +1,4 @@
-﻿#include "Core/Graphics/Renderer_D3D11.hpp"
+#include "Core/Graphics/Renderer_D3D11.hpp"
 #include "Core/Graphics/Model_D3D11.hpp"
 
 #define IDX(x) (size_t)static_cast<uint8_t>(x)
@@ -174,7 +174,7 @@ namespace Core::Graphics
 	{
 		assert(m_device->GetD3D11DeviceContext());
 		ZoneScoped;
-		TracyD3D11Zone(tracy::xTracyD3D11Ctx(), "UploadVertexIndexBuffer");
+		TracyD3D11Zone(m_device->GetTracyContext(), "UploadVertexIndexBuffer");
 		HRESULT hr = 0;
 		auto& vi_ = _vi_buffer[_vi_buffer_index];
 		const D3D11_MAP map_type_ = discard ? D3D11_MAP_WRITE_DISCARD : D3D11_MAP_WRITE_NO_OVERWRITE;
@@ -701,7 +701,7 @@ namespace Core::Graphics
 		ZoneScoped;
 		if (!discard)
 		{
-			TracyD3D11Zone(tracy::xTracyD3D11Ctx(), "BatchFlush");
+			TracyD3D11Zone(m_device->GetTracyContext(), "BatchFlush");
 			// upload data
 			if (!uploadVertexIndexBufferFromDrawList()) return false;
 			// draw

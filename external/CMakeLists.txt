@@ -120,29 +120,6 @@ target_sources(xmath PRIVATE
 
 set_target_properties(xmath PROPERTIES FOLDER external)
 
-# ==================== tracy ====================
-
-add_library(tracy STATIC)
-luastg_target_common_options(tracy)
-if(LUASTG_LINK_TRACY_CLIENT)
-    target_compile_definitions(tracy PUBLIC
-        TRACY_ENABLE
-    )
-endif()
-target_include_directories(tracy PUBLIC
-    tracy/public/tracy
-    tracy-patch
-)
-target_sources(tracy PRIVATE
-    tracy/public/tracy/Tracy.hpp
-    tracy/public/tracy/TracyD3D11.hpp
-    tracy/public/TracyClient.cpp
-    tracy-patch/TracyD3D11Ctx.hpp
-    tracy-patch/TracyD3D11Ctx.cpp
-)
-
-set_target_properties(tracy PROPERTIES FOLDER external)
-
 # ==================== image qoi ====================
 
 add_library(libqoi STATIC)

@@ -1,4 +1,4 @@
-﻿#include "Core/Graphics/Device_D3D11.hpp"
+#include "Core/Graphics/Device_D3D11.hpp"
 #include "Core/FileManager.hpp"
 #include "Core/i18n.hpp"
 #include "Platform/WindowsVersion.hpp"
@@ -812,13 +812,14 @@ namespace Core::Graphics
 
 		i18n_log_info("[core].Device_D3D11.created_basic_D3D11_components");
 
-		tracy::xTracyD3D11Context(d3d11_device.Get(), d3d11_devctx.Get());
+		tracy_context = TracyD3D11Context(d3d11_device.Get(), d3d11_devctx.Get());
 
 		return true;
 	}
 	void Device_D3D11::destroyD3D11()
 	{
-		tracy::xTracyD3D11Destroy();
+		TracyD3D11Destroy(tracy_context);
+		tracy_context = nullptr;
 
 		d3d_feature_level = D3D_FEATURE_LEVEL_10_0;
 

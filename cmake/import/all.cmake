@@ -7,6 +7,7 @@ if(LUASTG_LINK_YY_THUNKS)
 endif()
 
 include(${CMAKE_CURRENT_LIST_DIR}/spdlog.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/tracy.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/json.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/pugixml.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/stb.cmake)

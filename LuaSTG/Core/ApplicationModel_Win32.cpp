@@ -1,4 +1,4 @@
-﻿#include "Core/ApplicationModel_Win32.hpp"
+#include "Core/ApplicationModel_Win32.hpp"
 #include "Core/i18n.hpp"
 #include "Platform/WindowsVersion.hpp"
 #include "Platform/DetectCPU.hpp"
@@ -349,7 +349,7 @@ namespace Core
 		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
 
 		// 更新、渲染循环
-		TracyD3D11Collect(tracy::xTracyD3D11Ctx());
+		TracyD3D11Collect(m_device->GetTracyContext());
 		FrameMark;
 		{
 			ZoneScopedN("OnInitWait");
@@ -382,7 +382,7 @@ namespace Core
 			if (update_result)
 			{
 				ZoneScopedN("OnRender");
-				TracyD3D11Zone(tracy::xTracyD3D11Ctx(), "OnRender");
+				TracyD3D11Zone(m_device->GetTracyContext(), "OnRender");
 				ScopeTimer t(d.render_time);
 				m_swapchain->applyRenderAttachment();
 				m_swapchain->clearRenderAttachment();
@@ -395,7 +395,7 @@ namespace Core
 				ZoneScopedN("OnPresent");
 				ScopeTimer t(d.present_time);
 				m_swapchain->present();
-				TracyD3D11Collect(tracy::xTracyD3D11Ctx());
+				TracyD3D11Collect(m_device->GetTracyContext());
 			}
 			
 			// 等待下一帧
@@ -418,14 +418,14 @@ namespace Core
 		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
 
 		// 初次收集诊断信息
-		TracyD3D11Collect(tracy::xTracyD3D11Ctx());
+		TracyD3D11Collect(m_device->GetTracyContext());
 		FrameMark;
 		{
 			ZoneScopedN("OnInitWait");
 			m_swapchain->waitFrameLatency();
 			m_p_frame_rate_controller->update();
 		}
-
+		
 		// 游戏循环
 		MSG msg{};
 		while (!m_exit_flag)
@@ -598,7 +598,7 @@ namespace Core
 		if (update_result)
 		{
 			ZoneScopedN("OnRender");
-			TracyD3D11Zone(tracy::xTracyD3D11Ctx(), "OnRender");
+			TracyD3D11Zone(m_device->GetTracyContext(), "OnRender");
 			ScopeTimer t(d.render_time);
 			frame_query.begin();
 			m_swapchain->applyRenderAttachment();
@@ -611,10 +611,10 @@ namespace Core
 		if (render_result)
 		{
 			ZoneScopedN("OnPresent");
-			TracyD3D11Zone(tracy::xTracyD3D11Ctx(), "OnPresent");
+			TracyD3D11Zone(m_device->GetTracyContext(), "OnPresent");
 			ScopeTimer t(d.present_time);
 			m_swapchain->present();
-			TracyD3D11Collect(tracy::xTracyD3D11Ctx());
+			TracyD3D11Collect(m_device->GetTracyContext());
 		}
 
 		// 等待下一帧
