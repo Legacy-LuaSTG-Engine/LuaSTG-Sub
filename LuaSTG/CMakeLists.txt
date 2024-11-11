@@ -176,8 +176,8 @@ target_link_libraries(LuaSTG PRIVATE
     spdlog
     utility
     PlatformAPI
-    DirectXTexMini
     DirectX::ToolKitMini
+    DirectX::TextureMini
     Core
     xmath
     lua51_static
@@ -190,7 +190,7 @@ target_link_libraries(LuaSTG PRIVATE
     imgui_impl_win32ex
     imgui_impl_dx11
     lua_steam_api
-    tracy
+    TracyAPI
     pcg_cpp
     pugixml
     xxhash

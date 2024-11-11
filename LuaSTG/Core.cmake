@@ -84,7 +84,7 @@ target_sources(Core PRIVATE
 target_link_libraries(Core PUBLIC
     # debug
     spdlog
-    tracy
+    TracyAPI
     imgui
     # util
     utility
@@ -100,7 +100,7 @@ target_link_libraries(Core PUBLIC
     d3d11.lib
     #Microsoft.XAudio2.Redist
     Microsoft.Windows.ImplementationLibrary
-    DirectXTexMini
+    DirectX::TextureMini
     libqoi
     # math
     xmath

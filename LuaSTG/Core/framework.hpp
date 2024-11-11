@@ -44,9 +44,9 @@
 
 #include "spdlog/spdlog.h"
 
-#include "Tracy.hpp"
-#include "TracyD3D11.hpp"
-#include "TracyD3D11Ctx.hpp"
+#include "tracy/Tracy.hpp"
+#include "tracy/TracyD3D11.hpp"
+#include "tracy/TracyAPI.hpp"
 
 #include "Platform/HResultChecker.hpp"
 

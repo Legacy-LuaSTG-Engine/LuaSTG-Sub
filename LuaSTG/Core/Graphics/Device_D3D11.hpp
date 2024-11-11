@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Core/Object.hpp"
 #include "Core/Graphics/Device.hpp"
 #include "Platform/RuntimeLoader/DXGI.hpp"
@@ -53,28 +53,34 @@ namespace Core::Graphics
 		Platform::RuntimeLoader::DirectWrite dwrite_loader;
 		Microsoft::WRL::ComPtr<IDWriteFactory> dwrite_factory;
 
+		// Debug
+
+		tracy_d3d11_context_t tracy_context{};
+
 	public:
 		// Get API
 
-		IDXGIFactory2* GetDXGIFactory2() const noexcept { return dxgi_factory.Get(); }
-		IDXGIAdapter1* GetDXGIAdapter1() const noexcept { return dxgi_adapter.Get(); }
+		inline IDXGIFactory2* GetDXGIFactory2() const noexcept { return dxgi_factory.Get(); }
+		inline IDXGIAdapter1* GetDXGIAdapter1() const noexcept { return dxgi_adapter.Get(); }
 
-		std::string_view GetAdapterName() const noexcept { return dxgi_adapter_name; }
-		std::vector<std::string>& GetAdapterNameArray() { return dxgi_adapter_name_list; }
+		inline std::string_view GetAdapterName() const noexcept { return dxgi_adapter_name; }
+		inline std::vector<std::string>& GetAdapterNameArray() { return dxgi_adapter_name_list; }
 
-		D3D_FEATURE_LEVEL GetD3DFeatureLevel() const noexcept { return d3d_feature_level; }
+		inline D3D_FEATURE_LEVEL GetD3DFeatureLevel() const noexcept { return d3d_feature_level; }
 
-		ID3D11Device* GetD3D11Device() const noexcept { return d3d11_device.Get(); }
-		ID3D11Device1* GetD3D11Device1() const noexcept { return d3d11_device1.Get(); }
-		ID3D11DeviceContext* GetD3D11DeviceContext() const noexcept { return d3d11_devctx.Get(); }
-		ID3D11DeviceContext1* GetD3D11DeviceContext1() const noexcept { return d3d11_devctx1.Get(); }
+		inline ID3D11Device* GetD3D11Device() const noexcept { return d3d11_device.Get(); }
+		inline ID3D11Device1* GetD3D11Device1() const noexcept { return d3d11_device1.Get(); }
+		inline ID3D11DeviceContext* GetD3D11DeviceContext() const noexcept { return d3d11_devctx.Get(); }
+		inline ID3D11DeviceContext1* GetD3D11DeviceContext1() const noexcept { return d3d11_devctx1.Get(); }
 
-		ID2D1Device* GetD2D1Device() const noexcept { return d2d1_device.Get(); }
-		ID2D1DeviceContext* GetD2D1DeviceContext() const noexcept { return d2d1_devctx.Get(); }
+		inline ID2D1Device* GetD2D1Device() const noexcept { return d2d1_device.Get(); }
+		inline ID2D1DeviceContext* GetD2D1DeviceContext() const noexcept { return d2d1_devctx.Get(); }
 
-		IWICImagingFactory* GetWICImagingFactory() const noexcept { return wic_factory.Get(); }
+		inline IWICImagingFactory* GetWICImagingFactory() const noexcept { return wic_factory.Get(); }
 
-		BOOL IsTearingSupport() const noexcept { return dxgi_support_tearing; }
+		inline BOOL IsTearingSupport() const noexcept { return dxgi_support_tearing; }
+
+		inline tracy_d3d11_context_t GetTracyContext() const noexcept { return tracy_context; }
 
 	private:
 		bool createDXGIFactory();
