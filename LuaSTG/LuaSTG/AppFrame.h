@@ -20,9 +20,6 @@ namespace LuaSTGPlus
 
 	struct ApplicationSetting
 	{
-		// 图形设备
-		std::string preferred_gpu;
-
 		// 显示模式 - 画布尺寸
 		Core::Vector2U canvas_size{ 640,480 };
 		// 显示模式 - 全屏

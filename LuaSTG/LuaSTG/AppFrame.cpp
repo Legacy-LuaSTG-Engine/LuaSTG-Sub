@@ -78,14 +78,9 @@ void AppFrame::SetTitle(const char* v)noexcept
 }
 void AppFrame::SetPreferenceGPU(const char* v) noexcept
 {
-	try
-	{
-		m_Setting.preferred_gpu = v;
-	}
-	catch (const std::bad_alloc&)
-	{
-		spdlog::error("[luastg] SetPreferenceGPU: 内存不足");
-	}
+	core::Configuration config;
+	config.initialize.emplace().graphics_system.emplace().preferred_device_name.emplace(v);
+	core::ConfigurationLoader::getInstance().merge(config);
 }
 void AppFrame::SetSplash(bool v)noexcept
 {
@@ -180,9 +175,7 @@ bool AppFrame::Init()noexcept
 	
 	//////////////////////////////////////// 初始化引擎
 	{
-		Core::ApplicationModelCreationParameters app_param = {};
-		app_param.gpu = m_Setting.preferred_gpu;
-		if (!Core::IApplicationModel::create(app_param, this, ~m_pAppModel))
+		if (!Core::IApplicationModel::create(this, ~m_pAppModel))
 			return false;
 		if (!Core::Graphics::ITextRenderer::create(m_pAppModel->getRenderer(), ~m_pTextRenderer))
 			return false;

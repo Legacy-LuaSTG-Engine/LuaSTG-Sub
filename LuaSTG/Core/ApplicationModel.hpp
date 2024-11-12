@@ -43,11 +43,6 @@ namespace Core
         double render_time{};
     };
 
-    struct ApplicationModelCreationParameters
-    {
-        StringView gpu;
-    };
-
     struct IApplicationModel : public IObject
     {
         // [工作线程]
@@ -72,6 +67,6 @@ namespace Core
         // [主线程]
         virtual bool run() = 0;
 
-        static bool create(ApplicationModelCreationParameters param, IApplicationEventListener* p_app, IApplicationModel** pp_model);
+        static bool create(IApplicationEventListener* p_app, IApplicationModel** pp_model);
     };
 }
