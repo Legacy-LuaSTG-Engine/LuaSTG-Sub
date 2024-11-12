@@ -18,20 +18,6 @@ namespace LuaSTGPlus
 		Destroyed,
 	};
 
-	struct ApplicationSetting
-	{
-		// 鼠标指针
-		bool show_cursor{ true };
-
-		// 目标帧率
-		uint32_t target_fps{ 60 };
-
-		// 窗口标题
-		std::string window_title{ LUASTG_INFO };
-		// Windows 11 窗口圆角
-		bool allow_windows_11_window_corner{ true };
-	};
-
 	struct IRenderTargetManager
 	{
 		// 渲染目标栈
@@ -73,10 +59,9 @@ namespace LuaSTGPlus
 		
 		// Lua虚拟机
 		lua_State* L = nullptr;
-		
-		// 选项
-		ApplicationSetting m_Setting;
 
+		// 目标帧率
+		uint32_t m_target_fps{ 60 };
 		// 测量值
 		double m_fFPS = 0.;
 		double m_fAvgFPS = 0.;
@@ -141,7 +126,6 @@ namespace LuaSTGPlus
 		
 	public: // 脚本调用接口，含义参见API文档
 
-		inline ApplicationSetting& GetApplicationSetting() { return m_Setting; }
 		void SetTitle(const char* v) noexcept;
 		void SetPreferenceGPU(const char* v) noexcept;
 		void SetSplash(bool v) noexcept;
@@ -149,7 +133,6 @@ namespace LuaSTGPlus
 		void SetBGMVolume(float v);
 		float GetSEVolume();
 		float GetBGMVolume();
-		void SetWindowCornerPreference(bool allow);
 
 	public: // 窗口和交换链
 

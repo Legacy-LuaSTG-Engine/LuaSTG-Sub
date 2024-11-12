@@ -35,17 +35,23 @@ namespace LuaSTGPlus
 
 	bool AppFrame::InitializationApplySettingStage1()
 	{
+		// 配置框架
+		{
+			auto const& app = core::ConfigurationLoader::getInstance().getInitialize().getApplication();
+			m_target_fps = std::max(1u, app.getFrameRate());
+		}
 		// 配置窗口
 		{
 			auto const& gs = core::ConfigurationLoader::getInstance().getInitialize().getGraphicsSystem();
+			auto const& win = core::ConfigurationLoader::getInstance().getInitialize().getWindow();
 			using namespace Core::Graphics;
 			auto* p_window = m_pAppModel->getWindow();
-			p_window->setTitleText(m_Setting.window_title);
-			p_window->setCursor(m_Setting.show_cursor ? WindowCursor::Arrow : WindowCursor::None);
+			p_window->setTitleText(win.hasTitle() ? win.getTitle() : std::string(LUASTG_INFO));
+			p_window->setCursor(win.isCursorVisible() ? WindowCursor::Arrow : WindowCursor::None);
 			p_window->setNativeIcon((void*)(ptrdiff_t)IDI_APPICON);
 			p_window->setSize(Core::Vector2U(gs.getWidth(), gs.getHeight()));
 			p_window->setCentered(false);
-			p_window->setWindowCornerPreference(m_Setting.allow_windows_11_window_corner);
+			p_window->setWindowCornerPreference(win.isAllowWindowCorner());
 		}
 		return true;
 	}

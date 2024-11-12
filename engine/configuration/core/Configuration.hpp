@@ -61,12 +61,26 @@ namespace core {
 			std::optional<float> music_volume;
 		};
 
+		struct InitApplication {
+			std::optional<uint32_t> frame_rate;
+		};
+
+		struct InitWindow {
+			std::optional<std::string> title;
+			std::optional<bool> cursor_visible;
+			std::optional<bool> allow_window_corner;
+		};
+
 		struct Initialize {
 			std::vector<FileSystem> file_systems;
 
 			std::optional<GraphicsSystem> graphics_system;
 
 			std::optional<AudioSystem> audio_system;
+
+			std::optional<InitApplication> application;
+
+			std::optional<InitWindow> window;
 		};
 
 		std::optional<Initialize> initialize;
@@ -85,6 +99,19 @@ namespace core {
 
 		Configuration();
 	};
+
+#define GetterSetterBoolean(_class_, _field_, _method_name_) \
+	inline bool is##_method_name_ () const noexcept { return _field_ ; }; \
+	inline _class_ & set##_method_name_ (bool const _field_##_ ) { _field_ = _field_##_ ; return *this; }
+
+#define GetterSetterString(_class_, _field_, _method_name_) \
+	inline bool has##_method_name_ () const noexcept { return !((_field_).empty()) ; }; \
+	inline std::string const& get##_method_name_ () const noexcept { return _field_ ; }; \
+	inline _class_ & set##_method_name_ (std::string const& _field_##_ ) { _field_ = _field_##_ ; return *this; }
+
+#define GetterSetterPrimitive(_class_, _type_, _field_, _method_name_) \
+	inline _type_ get##_method_name_ () const noexcept { return _field_ ; }; \
+	inline _class_ & set##_method_name_ ( _type_ const _field_##_ ) { _field_ = _field_##_ ; return *this; }
 
 	class ConfigurationLoader {
 	public:
@@ -173,16 +200,36 @@ namespace core {
 			float sound_effect_volume{ 1.0 };
 			float music_volume{ 1.0f };
 		};
+		class InitApplication {
+		public:
+			GetterSetterPrimitive(InitApplication, uint32_t, frame_rate, FrameRate);
+		private:
+			uint32_t frame_rate{ 60 };
+		};
+		class InitWindow {
+		public:
+			GetterSetterString(InitWindow, title, Title);
+			GetterSetterBoolean(InitWindow, cursor_visible, CursorVisible);
+			GetterSetterBoolean(InitWindow, allow_window_corner, AllowWindowCorner);
+		private:
+			std::string title;
+			bool cursor_visible{ true };
+			bool allow_window_corner{ true };
+		};
 		class Initialize {
 			friend class ConfigurationLoader;
 		public:
 			inline std::vector<Configuration::FileSystem> const& getFileSystems() const noexcept { return file_systems; }
 			inline GraphicsSystem const& getGraphicsSystem() const noexcept { return graphics_system; }
 			inline AudioSystem const& getAudioSystem() const noexcept { return audio_system; }
+			inline InitApplication const& getApplication() const noexcept { return application; }
+			inline InitWindow const& getWindow() const noexcept { return window; }
 		private:
 			std::vector<Configuration::FileSystem> file_systems;
 			GraphicsSystem graphics_system;
 			AudioSystem audio_system;
+			InitApplication application;
+			InitWindow window;
 		};
 	public:
 		void merge(Configuration const& config);
@@ -204,4 +251,8 @@ namespace core {
 		Initialize initialize;
 		Application application;
 	};
+
+#undef GetterSetterBoolean
+#undef GetterSetterString
+#undef GetterSetterPrimitive
 }

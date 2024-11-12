@@ -33,7 +33,7 @@ AppFrame::~AppFrame() noexcept
 
 void AppFrame::SetFPS(uint32_t v)noexcept
 {
-	m_Setting.target_fps = (v > 1u) ? v : 1u; // 最低也得有1FPS每秒
+	m_target_fps = std::max(1u, v); // 最低也得有1FPS每秒
 }
 void AppFrame::SetSEVolume(float v)
 {
@@ -67,9 +67,14 @@ void AppFrame::SetTitle(const char* v)noexcept
 {
 	try
 	{
-		m_Setting.window_title = v;
-		if (m_pAppModel)
+		if (m_pAppModel) {
 			m_pAppModel->getWindow()->setTitleText(v);
+		}
+		else {
+			core::Configuration config;
+			config.initialize.emplace().window.emplace().title.emplace(v);
+			core::ConfigurationLoader::getInstance().merge(config);
+		}
 	}
 	catch (const std::bad_alloc&)
 	{
@@ -84,17 +89,14 @@ void AppFrame::SetPreferenceGPU(const char* v) noexcept
 }
 void AppFrame::SetSplash(bool v)noexcept
 {
-	m_Setting.show_cursor = v;
-	if (m_pAppModel)
-	{
-		m_pAppModel->getWindow()->setCursor(m_Setting.show_cursor ? Core::Graphics::WindowCursor::Arrow : Core::Graphics::WindowCursor::None);
+	if (m_pAppModel) {
+		m_pAppModel->getWindow()->setCursor(v ? Core::Graphics::WindowCursor::Arrow : Core::Graphics::WindowCursor::None);
 	}
-}
-void AppFrame::SetWindowCornerPreference(bool allow)
-{
-	m_Setting.allow_windows_11_window_corner = allow;
-	if (m_pAppModel)
-		m_pAppModel->getWindow()->setWindowCornerPreference(allow);
+	else {
+		core::Configuration config;
+		config.initialize.emplace().window.emplace().cursor_visible.emplace(v);
+		core::ConfigurationLoader::getInstance().merge(config);
+	}
 }
 
 int AppFrame::LoadTextFile(lua_State* L_, const char* path, const char *packname)noexcept
@@ -292,7 +294,7 @@ void AppFrame::Run()noexcept
 	m_pAppModel->getWindow()->addEventListener(this);
 	m_pAppModel->getSwapChain()->addEventListener(this);
 
-	m_pAppModel->getFrameRateController()->setTargetFPS(m_Setting.target_fps);
+	m_pAppModel->getFrameRateController()->setTargetFPS(m_target_fps);
 	m_pAppModel->run();
 	
 	m_pAppModel->getSwapChain()->removeEventListener(this);
@@ -351,7 +353,7 @@ bool AppFrame::onUpdate()
 {
 	m_fFPS = m_pAppModel->getFrameRateController()->getFPS();
 	m_fAvgFPS = m_pAppModel->getFrameRateController()->getAvgFPS();
-	m_pAppModel->getFrameRateController()->setTargetFPS(m_Setting.target_fps);
+	m_pAppModel->getFrameRateController()->setTargetFPS(m_target_fps);
 
 	bool result = true;
 

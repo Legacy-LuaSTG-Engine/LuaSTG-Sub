@@ -357,6 +357,42 @@ namespace core {
 					}
 				}
 			}
+
+			// application
+
+			if (root_initialize.contains("application"sv)) {
+				auto const& init_app = root_initialize.at("application"sv);
+				assert_type_is_object(init_app, "/initialize/application"sv);
+				auto& self_app = initialize.value().application.emplace();
+				if (init_app.contains("frame_rate"sv)) {
+					auto const& frame_rate = init_app.at("frame_rate"sv);
+					assert_type_is_unsigned_integer(frame_rate, "/initialize/application/frame_rate"sv);
+					self_app.frame_rate.emplace(frame_rate.get<uint32_t>());
+				}
+			}
+
+			// window
+
+			if (root_initialize.contains("window"sv)) {
+				auto const& init_win = root_initialize.at("window"sv);
+				assert_type_is_object(init_win, "/initialize/window"sv);
+				auto& self_win = initialize.value().window.emplace();
+				if (init_win.contains("title"sv)) {
+					auto const& title = init_win.at("title"sv);
+					assert_type_is_string(title, "/initialize/window/title"sv);
+					self_win.title.emplace(title.get_ref<std::string const&>());
+				}
+				if (init_win.contains("cursor_visible"sv)) {
+					auto const& cursor_visible = init_win.at("cursor_visible"sv);
+					assert_type_is_boolean(cursor_visible, "/initialize/window/cursor_visible"sv);
+					self_win.cursor_visible.emplace(cursor_visible.get<bool>());
+				}
+				if (init_win.contains("allow_window_corner"sv)) {
+					auto const& allow_window_corner = init_win.at("allow_window_corner"sv);
+					assert_type_is_boolean(allow_window_corner, "/initialize/window/allow_window_corner"sv);
+					self_win.allow_window_corner.emplace(allow_window_corner.get<bool>());
+				}
+			}
 		}
 
 	#undef assert_type_is_boolean
@@ -487,6 +523,48 @@ namespace core {
 					self_audio.music_volume.emplace(init_audio.music_volume.value());
 				}
 			}
+
+			// application
+
+			if (init.application.has_value()) {
+				// init self
+
+				if (!self.application.has_value()) {
+					self.application.emplace();
+				}
+				auto const& init_app = init.application.value();
+				auto& self_app = self.application.value();
+
+				// merge
+
+				if (init_app.frame_rate.has_value()) {
+					self_app.frame_rate.emplace(init_app.frame_rate.value());
+				}
+			}
+
+			// window
+
+			if (init.window.has_value()) {
+				// init self
+
+				if (!self.window.has_value()) {
+					self.window.emplace();
+				}
+				auto const& init_win = init.window.value();
+				auto& self_win = self.window.value();
+
+				// merge
+
+				if (init_win.title.has_value()) {
+					self_win.title.emplace(init_win.title.value());
+				}
+				if (init_win.cursor_visible.has_value()) {
+					self_win.cursor_visible.emplace(init_win.cursor_visible.value());
+				}
+				if (init_win.allow_window_corner.has_value()) {
+					self_win.allow_window_corner.emplace(init_win.allow_window_corner.value());
+				}
+			}
 		}
 	}
 
@@ -543,6 +621,24 @@ namespace core {
 				}
 				if (audio_system.music_volume.has_value()) {
 					initialize.audio_system.setMusicVolume(audio_system.music_volume.value());
+				}
+			}
+			if (init.application.has_value()) {
+				auto const& init_app = init.application.value();
+				if (init_app.frame_rate.has_value()) {
+					initialize.application.setFrameRate(init_app.frame_rate.value());
+				}
+			}
+			if (init.window.has_value()) {
+				auto const& init_win = init.window.value();
+				if (init_win.title.has_value()) {
+					initialize.window.setTitle(init_win.title.value());
+				}
+				if (init_win.cursor_visible.has_value()) {
+					initialize.window.setCursorVisible(init_win.cursor_visible.value());
+				}
+				if (init_win.allow_window_corner.has_value()) {
+					initialize.window.setAllowWindowCorner(init_win.allow_window_corner.value());
 				}
 			}
 		}
