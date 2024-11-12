@@ -25,24 +25,6 @@ namespace LuaSTGPlus
                 spdlog::error("[luastg] 加载初始化脚本'launch'失败");
             }
         }
-        #endif
-        if (!is_launch_loaded)
-        {
-            Core::InitializeConfigure config;
-            if (config.loadFromFile("config.json"))
-            {
-                spdlog::info("[luastg] 发现配置文件'config.json'");
-                LAPP.SetWindowed(!config.fullscreen_enable);
-                LAPP.SetVsync(config.vsync_enable);
-                LAPP.SetResolution(config.canvas_width, config.canvas_height);
-                if (!config.target_graphics_device.empty())
-                {
-                    LAPP.SetPreferenceGPU(config.target_graphics_device.c_str());
-                }
-                is_launch_loaded = true;
-            }
-        }
-        #ifdef USING_LAUNCH_FILE
         if (!is_launch_loaded)
         {
             spdlog::error("[luastg] 找不到文件'launch'");
