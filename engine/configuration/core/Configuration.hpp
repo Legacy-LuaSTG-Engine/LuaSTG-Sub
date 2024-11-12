@@ -115,6 +115,41 @@ namespace core {
 			std::string uuid;
 			bool single_instance{ false };
 		};
+		class GraphicsSystem {
+		public:
+			inline bool hasPreferredDeviceName() const noexcept { return !preferred_device_name.empty(); }
+			inline std::string const& getPreferredDeviceName() const noexcept { return preferred_device_name; }
+			inline GraphicsSystem& setPreferredDeviceName(std::string const& preferred_device_name_) {
+				preferred_device_name = preferred_device_name_;
+				return *this;
+			}
+			inline uint32_t getWidth() const noexcept { return width; }
+			inline GraphicsSystem& setWidth(uint32_t const width_) {
+				width = width_;
+				return *this;
+			}
+			inline uint32_t getHeight() const noexcept { return height; }
+			inline GraphicsSystem& setHeight(uint32_t const height_) {
+				height = height_;
+				return *this;
+			}
+			inline bool isFullscreen() const noexcept { return fullscreen; }
+			inline GraphicsSystem& setFullscreen(bool const fullscreen_) {
+				fullscreen = fullscreen_;
+				return *this;
+			}
+			inline bool isVsync() const noexcept { return vsync; }
+			inline GraphicsSystem& setVsync(bool const vsync_) {
+				vsync = vsync_;
+				return *this;
+			}
+		private:
+			std::string preferred_device_name;
+			uint32_t width{ 640 };
+			uint32_t height{ 480 };
+			bool fullscreen{};
+			bool vsync{};
+		};
 		class AudioSystem {
 		public:
 			inline bool hasPreferredEndpointName() const noexcept { return !preferred_endpoint_name.empty(); }
@@ -142,9 +177,11 @@ namespace core {
 			friend class ConfigurationLoader;
 		public:
 			inline std::vector<Configuration::FileSystem> const& getFileSystems() const noexcept { return file_systems; }
+			inline GraphicsSystem const& getGraphicsSystem() const noexcept { return graphics_system; }
 			inline AudioSystem const& getAudioSystem() const noexcept { return audio_system; }
 		private:
 			std::vector<Configuration::FileSystem> file_systems;
+			GraphicsSystem graphics_system;
 			AudioSystem audio_system;
 		};
 	public:

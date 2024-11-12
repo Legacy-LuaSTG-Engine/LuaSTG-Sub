@@ -460,6 +460,8 @@ namespace core {
 				if (init_graphics.vsync.has_value()) {
 					self_graphics.vsync.emplace(init_graphics.vsync.value());
 				}
+
+				// TODO: display
 			}
 
 			// audio system
@@ -512,6 +514,24 @@ namespace core {
 			auto const& init = configuration.initialize.value();
 			if (!init.file_systems.empty()) {
 				initialize.file_systems = init.file_systems;
+			}
+			if (init.graphics_system.has_value()) {
+				auto const& graphics_system = init.graphics_system.value();
+				if (graphics_system.preferred_device_name.has_value()) {
+					initialize.graphics_system.setPreferredDeviceName(graphics_system.preferred_device_name.value());
+				}
+				if (graphics_system.width.has_value()) {
+					initialize.graphics_system.setWidth(graphics_system.width.value());
+				}
+				if (graphics_system.height.has_value()) {
+					initialize.graphics_system.setHeight(graphics_system.height.value());
+				}
+				if (graphics_system.fullscreen.has_value()) {
+					initialize.graphics_system.setFullscreen(graphics_system.fullscreen.value());
+				}
+				if (graphics_system.vsync.has_value()) {
+					initialize.graphics_system.setVsync(graphics_system.vsync.value());
+				}
 			}
 			if (init.audio_system.has_value()) {
 				auto const& audio_system = init.audio_system.value();
