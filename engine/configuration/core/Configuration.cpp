@@ -510,6 +510,9 @@ namespace core {
 
 		if (configuration.initialize.has_value()) {
 			auto const& init = configuration.initialize.value();
+			if (!init.file_systems.empty()) {
+				initialize.file_systems = init.file_systems;
+			}
 			if (init.audio_system.has_value()) {
 				auto const& audio_system = init.audio_system.value();
 				if (audio_system.preferred_endpoint_name.has_value()) {

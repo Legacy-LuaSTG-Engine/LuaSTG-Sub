@@ -155,6 +155,23 @@ bool AppFrame::Init()noexcept
 		return false;
 	}
 	
+	// 配置文件系统
+	// TODO: 这是一个临时方案
+	if (auto const& file_systems = core::ConfigurationLoader::getInstance().getInitialize().getFileSystems(); !file_systems.empty()) {
+		auto& file_manager = GFileManager();
+		for (auto const& file_system : file_systems) {
+			using Type = core::Configuration::FileSystemType;
+			switch (file_system.type) {
+			case Type::normal:
+				file_manager.addSearchPath(file_system.path);
+				break;
+			case Type::archive:
+				file_manager.loadFileArchive(file_system.path);
+				break;
+			}
+		}
+	}
+
 	// 加载初始化脚本（可选）
 	if (!OnLoadLaunchScriptAndFiles())
 	{

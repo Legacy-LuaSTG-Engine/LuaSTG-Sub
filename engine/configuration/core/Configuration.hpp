@@ -141,8 +141,10 @@ namespace core {
 		class Initialize {
 			friend class ConfigurationLoader;
 		public:
+			inline std::vector<Configuration::FileSystem> const& getFileSystems() const noexcept { return file_systems; }
 			inline AudioSystem const& getAudioSystem() const noexcept { return audio_system; }
 		private:
+			std::vector<Configuration::FileSystem> file_systems;
 			AudioSystem audio_system;
 		};
 	public:
