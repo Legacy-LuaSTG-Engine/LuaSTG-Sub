@@ -600,11 +600,11 @@ namespace Core
 			tracy_zone_scoped_with_name("OnRender");
 			tracy_d3d11_context_zone(m_device->GetTracyContext(), "OnRender");
 			ScopeTimer t(d.render_time);
-			//frame_query.begin();
+			frame_query.begin(); // TODO: enable/disable by configuration
 			m_swapchain->applyRenderAttachment();
 			m_swapchain->clearRenderAttachment();
 			render_result = m_listener->onRender();
-			//frame_query.end();
+			frame_query.end();  // TODO: enable/disable by configuration
 		}
 
 		// 呈现
