@@ -94,8 +94,6 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/LuaCustomLoader.hpp
     LuaSTG/LuaBinding/LuaInternalSource.cpp
     LuaSTG/LuaBinding/LuaInternalSource.hpp
-    LuaSTG/LuaBinding/LuaTableToOption.cpp
-    LuaSTG/LuaBinding/LuaTableToOption.hpp
     LuaSTG/LuaBinding/LuaWrapper.cpp
     LuaSTG/LuaBinding/LuaWrapper.hpp
     LuaSTG/LuaBinding/LuaWrapperMisc.hpp
