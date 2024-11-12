@@ -374,6 +374,157 @@ namespace core {
 }
 
 namespace core {
+	void ConfigurationLoader::merge(Configuration const& patch) {
+		mergeOnly(patch);
+		applyOnly();
+	}
+
+	void ConfigurationLoader::mergeOnly(Configuration const& patch) {
+		if (patch.debug.has_value()) {
+			// init self
+
+			if (!configuration.debug.has_value()) {
+				configuration.debug.emplace();
+			}
+			auto const& conf_debug = patch.debug.value();
+			auto& self_debug = configuration.debug.value();
+
+			// merge
+
+			if (conf_debug.track_window_focus.has_value()) {
+				self_debug.track_window_focus.emplace(conf_debug.track_window_focus.value());
+			}
+		}
+
+		if (patch.application.has_value()) {
+			// init self
+
+			if (!configuration.application.has_value()) {
+				configuration.application.emplace();
+			}
+			auto const& conf_app = patch.application.value();
+			auto& self_app = configuration.application.value();
+
+			// merge
+
+			if (conf_app.uuid.has_value()) {
+				self_app.uuid.emplace(conf_app.uuid.value());
+			}
+			if (conf_app.single_instance.has_value()) {
+				self_app.single_instance.emplace(conf_app.single_instance.value());
+			}
+		}
+
+		if (patch.initialize.has_value()) {
+			// init self
+
+			if (!configuration.initialize.has_value()) {
+				configuration.initialize.emplace();
+			}
+			auto const& init = patch.initialize.value();
+			auto& self = configuration.initialize.value();
+
+			// file system
+
+			if (!init.file_systems.empty()) {
+				for (auto const& fs : init.file_systems) {
+					self.file_systems.emplace_back(fs);
+				}
+			}
+
+			// graphics system
+
+			if (init.graphics_system.has_value()) {
+				// init self
+
+				if (!self.graphics_system.has_value()) {
+					self.graphics_system.emplace();
+				}
+				auto const& init_graphics = init.graphics_system.value();
+				auto& self_graphics = self.graphics_system.value();
+
+				// merge
+
+				if (init_graphics.preferred_device_name.has_value()) {
+					self_graphics.preferred_device_name.emplace(init_graphics.preferred_device_name.value());
+				}
+				if (init_graphics.width.has_value()) {
+					self_graphics.width.emplace(init_graphics.width.value());
+				}
+				if (init_graphics.height.has_value()) {
+					self_graphics.height.emplace(init_graphics.height.value());
+				}
+				if (init_graphics.fullscreen.has_value()) {
+					self_graphics.fullscreen.emplace(init_graphics.fullscreen.value());
+				}
+				if (init_graphics.vsync.has_value()) {
+					self_graphics.vsync.emplace(init_graphics.vsync.value());
+				}
+			}
+
+			// audio system
+
+			if (init.audio_system.has_value()) {
+				// init self
+
+				if (!self.audio_system.has_value()) {
+					self.audio_system.emplace();
+				}
+				auto const& init_audio = init.audio_system.value();
+				auto& self_audio = self.audio_system.value();
+
+				// merge
+
+				if (init_audio.preferred_endpoint_name.has_value()) {
+					self_audio.preferred_endpoint_name.emplace(init_audio.preferred_endpoint_name.value());
+				}
+				if (init_audio.sound_effect_volume.has_value()) {
+					self_audio.sound_effect_volume.emplace(init_audio.sound_effect_volume.value());
+				}
+				if (init_audio.music_volume.has_value()) {
+					self_audio.music_volume.emplace(init_audio.music_volume.value());
+				}
+			}
+		}
+	}
+
+	void ConfigurationLoader::applyOnly() {
+		// apply
+
+		if (configuration.debug.has_value()) {
+			auto const& dbg = configuration.debug.value();
+			if (dbg.track_window_focus.has_value()) {
+				debug.setTrackWindowFocus(dbg.track_window_focus.value());
+			}
+		}
+
+		if (configuration.application.has_value()) {
+			auto const& app = configuration.application.value();
+			if (app.uuid.has_value()) {
+				application.setUuid(app.uuid.value());
+			}
+			if (app.single_instance.has_value()) {
+				application.setSingleInstance(app.single_instance.value());
+			}
+		}
+
+		if (configuration.initialize.has_value()) {
+			auto const& init = configuration.initialize.value();
+			if (init.audio_system.has_value()) {
+				auto const& audio_system = init.audio_system.value();
+				if (audio_system.preferred_endpoint_name.has_value()) {
+					initialize.audio_system.setPreferredEndpointName(audio_system.preferred_endpoint_name.value());
+				}
+				if (audio_system.sound_effect_volume.has_value()) {
+					initialize.audio_system.setSoundEffectVolume(audio_system.sound_effect_volume.value());
+				}
+				if (audio_system.music_volume.has_value()) {
+					initialize.audio_system.setMusicVolume(audio_system.music_volume.value());
+				}
+			}
+		}
+	}
+
 	bool ConfigurationLoader::loadFromFile(std::string_view const& path) {
 		// load primary configuration
 
@@ -414,112 +565,7 @@ namespace core {
 				include.emplace_back(it);
 			}
 
-			if (patch.debug.has_value()) {
-				// init self
-
-				if (!configuration.debug.has_value()) {
-					configuration.debug.emplace();
-				}
-				auto const& conf_debug = patch.debug.value();
-				auto& self_debug = configuration.debug.value();
-
-				// merge
-
-				if (conf_debug.track_window_focus.has_value()) {
-					self_debug.track_window_focus.emplace(conf_debug.track_window_focus.value());
-				}
-			}
-
-			if (patch.application.has_value()) {
-				// init self
-
-				if (!configuration.application.has_value()) {
-					configuration.application.emplace();
-				}
-				auto const& conf_app = patch.application.value();
-				auto& self_app = configuration.application.value();
-
-				// merge
-
-				if (conf_app.uuid.has_value()) {
-					self_app.uuid.emplace(conf_app.uuid.value());
-				}
-				if (conf_app.single_instance.has_value()) {
-					self_app.single_instance.emplace(conf_app.single_instance.value());
-				}
-			}
-
-			if (patch.initialize.has_value()) {
-				// init self
-
-				if (!configuration.initialize.has_value()) {
-					configuration.initialize.emplace();
-				}
-				auto const& init = patch.initialize.value();
-				auto& self = configuration.initialize.value();
-
-				// file system
-
-				if (!init.file_systems.empty()) {
-					for (auto const& fs : init.file_systems) {
-						self.file_systems.emplace_back(fs);
-					}
-				}
-
-				// graphics system
-
-				if (init.graphics_system.has_value()) {
-					// init self
-
-					if (!self.graphics_system.has_value()) {
-						self.graphics_system.emplace();
-					}
-					auto const& init_graphics = init.graphics_system.value();
-					auto& self_graphics = self.graphics_system.value();
-
-					// merge
-
-					if (init_graphics.preferred_device_name.has_value()) {
-						self_graphics.preferred_device_name.emplace(init_graphics.preferred_device_name.value());
-					}
-					if (init_graphics.width.has_value()) {
-						self_graphics.width.emplace(init_graphics.width.value());
-					}
-					if (init_graphics.height.has_value()) {
-						self_graphics.height.emplace(init_graphics.height.value());
-					}
-					if (init_graphics.fullscreen.has_value()) {
-						self_graphics.fullscreen.emplace(init_graphics.fullscreen.value());
-					}
-					if (init_graphics.vsync.has_value()) {
-						self_graphics.vsync.emplace(init_graphics.vsync.value());
-					}
-				}
-
-				// audio system
-
-				if (init.audio_system.has_value()) {
-					// init self
-
-					if (!self.audio_system.has_value()) {
-						self.audio_system.emplace();
-					}
-					auto const& init_audio = init.audio_system.value();
-					auto& self_audio = self.audio_system.value();
-
-					// merge
-
-					if (init_audio.preferred_endpoint_name.has_value()) {
-						self_audio.preferred_endpoint_name.emplace(init_audio.preferred_endpoint_name.value());
-					}
-					if (init_audio.sound_effect_volume.has_value()) {
-						self_audio.sound_effect_volume.emplace(init_audio.sound_effect_volume.value());
-					}
-					if (init_audio.music_volume.has_value()) {
-						self_audio.music_volume.emplace(init_audio.music_volume.value());
-					}
-				}
-			}
+			merge(patch);
 
 			include.erase(include.begin()); // need to remove used element
 		}
@@ -535,38 +581,7 @@ namespace core {
 
 		// apply
 
-		if (configuration.debug.has_value()) {
-			auto const& dbg = configuration.debug.value();
-			if (dbg.track_window_focus.has_value()) {
-				debug.setTrackWindowFocus(dbg.track_window_focus.value());
-			}
-		}
-
-		if (configuration.application.has_value()) {
-			auto const& app = configuration.application.value();
-			if (app.uuid.has_value()) {
-				application.setUuid(app.uuid.value());
-			}
-			if (app.single_instance.has_value()) {
-				application.setSingleInstance(app.single_instance.value());
-			}
-		}
-
-		if (configuration.initialize.has_value()) {
-			auto const& init = configuration.initialize.value();
-			if (init.audio_system.has_value()) {
-				auto const& audio_system = init.audio_system.value();
-				if (audio_system.preferred_endpoint_name.has_value()) {
-					initialize.audio_system.setPreferredEndpointName(audio_system.preferred_endpoint_name.value());
-				}
-				if (audio_system.sound_effect_volume.has_value()) {
-					initialize.audio_system.setSoundEffectVolume(audio_system.sound_effect_volume.value());
-				}
-				if (audio_system.music_volume.has_value()) {
-					initialize.audio_system.setMusicVolume(audio_system.music_volume.value());
-				}
-			}
-		}
+		applyOnly();
 
 		return true;
 	}

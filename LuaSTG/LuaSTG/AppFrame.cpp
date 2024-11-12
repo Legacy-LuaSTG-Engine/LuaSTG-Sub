@@ -6,6 +6,7 @@
 #include "LuaBinding/LuaAppFrame.hpp"
 #include "utf8.hpp"
 #include "resource.h"
+#include "core/Configuration.hpp"
 
 using namespace LuaSTGPlus;
 
@@ -36,15 +37,31 @@ void AppFrame::SetFPS(uint32_t v)noexcept
 }
 void AppFrame::SetSEVolume(float v)
 {
-	m_Setting.volume_sound_effect = v;
+	core::Configuration config;
+	config.initialize.emplace().audio_system.emplace().sound_effect_volume.emplace(v);
+	core::ConfigurationLoader::getInstance().merge(config);
 	if (GetAppModel())
 		GetAppModel()->getAudioDevice()->setMixChannelVolume(Core::Audio::MixChannel::SoundEffect, v);
 }
 void AppFrame::SetBGMVolume(float v)
 {
-	m_Setting.volume_music = v;
+	core::Configuration config;
+	config.initialize.emplace().audio_system.emplace().music_volume.emplace(v);
+	core::ConfigurationLoader::getInstance().merge(config);
 	if (GetAppModel())
 		GetAppModel()->getAudioDevice()->setMixChannelVolume(Core::Audio::MixChannel::Music, v);
+}
+float AppFrame::GetSEVolume() {
+	if (GetAppModel()) {
+		return GetAppModel()->getAudioDevice()->getMixChannelVolume(Core::Audio::MixChannel::SoundEffect);
+	}
+	return core::ConfigurationLoader::getInstance().getInitialize().getAudioSystem().getSoundEffectVolume();
+}
+float AppFrame::GetBGMVolume() {
+	if (GetAppModel()) {
+		return GetAppModel()->getAudioDevice()->getMixChannelVolume(Core::Audio::MixChannel::Music);
+	}
+	return core::ConfigurationLoader::getInstance().getInitialize().getAudioSystem().getSoundEffectVolume();
 }
 void AppFrame::SetTitle(const char* v)noexcept
 {

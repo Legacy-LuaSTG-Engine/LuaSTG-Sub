@@ -89,13 +89,6 @@ namespace LuaSTGPlus
 			p_window->setCentered(false);
 			p_window->setWindowCornerPreference(m_Setting.allow_windows_11_window_corner);
 		}
-		// 配置音量
-		{
-			using namespace Core::Audio;
-			auto* p_audio = GetAppModel()->getAudioDevice();
-			p_audio->setMixChannelVolume(MixChannel::SoundEffect, m_Setting.volume_sound_effect);
-			p_audio->setMixChannelVolume(MixChannel::Music, m_Setting.volume_music);
-		}
 		return true;
 	}
 

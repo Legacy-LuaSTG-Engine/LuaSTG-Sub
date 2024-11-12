@@ -146,6 +146,7 @@ namespace core {
 			AudioSystem audio_system;
 		};
 	public:
+		void merge(Configuration const& config);
 		bool loadFromFile(std::string_view const& path);
 		inline std::vector<std::string> const& getMessages() const noexcept { return messages; }
 		std::string getFormattedMessage();
@@ -154,6 +155,9 @@ namespace core {
 		inline Initialize const& getInitialize() const noexcept { return initialize; }
 	public:
 		static ConfigurationLoader& getInstance();
+	private:
+		void mergeOnly(Configuration const& config);
+		void applyOnly();
 	private:
 		std::vector<std::string> messages;
 		Configuration configuration;
