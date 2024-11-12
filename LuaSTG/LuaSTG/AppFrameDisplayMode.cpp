@@ -13,7 +13,6 @@ namespace LuaSTGPlus
 		bool const result = swapchain->setCanvasSize(window_size);
 
 		window->setWindowMode(window_size);
-		window->setNativeIcon((void*)(ptrdiff_t)IDI_APPICON);
 
 		return result;
 	}
