@@ -467,6 +467,9 @@ namespace Core::Graphics
 
 		Platform::WindowTheme::UpdateColorMode(win32_window, TRUE);
 		setWindowCornerPreference(m_allow_windows_11_window_corner);
+		if (win32_window_icon_id) {
+			SendMessageW(win32_window, LUASTG_WM_SETICON, 0, 0);
+		}
 
 		return true;
 	}
