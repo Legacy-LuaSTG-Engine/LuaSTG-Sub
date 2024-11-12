@@ -62,9 +62,6 @@ namespace LuaSTG::Sub::LuaBinding {
 			auto const height = S.get_value<uint32_t>(3);
 			auto const size = Core::Vector2U(width, height);
 			auto const result = self->data->setWindowMode(size);
-			if (result) {
-				LAPP.GetApplicationSetting().canvas_size = size;
-			}
 			S.push_value(result);
 			return 1;
 		}
@@ -82,7 +79,6 @@ namespace LuaSTG::Sub::LuaBinding {
 			lua::stack_t S(L);
 			auto const allow = S.get_value<bool>(2);
 			self->data->setVSync(allow);
-			LAPP.GetApplicationSetting().vsync = allow;
 			return 0;
 		}
 

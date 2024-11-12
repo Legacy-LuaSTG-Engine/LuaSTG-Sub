@@ -20,13 +20,6 @@ namespace LuaSTGPlus
 
 	struct ApplicationSetting
 	{
-		// 显示模式 - 画布尺寸
-		Core::Vector2U canvas_size{ 640,480 };
-		// 显示模式 - 全屏
-		bool fullscreen{ false };
-		// 显示模式 - 垂直同步
-		bool vsync{ false };
-
 		// 鼠标指针
 		bool show_cursor{ true };
 
@@ -167,9 +160,6 @@ namespace LuaSTGPlus
 		// 以独占全屏显示  
 		// 当 refresh_rate 为全 0 时，自动选择合适的匹配的刷新率  
 		bool SetDisplayModeExclusiveFullscreen(Core::Vector2U window_size, bool vsync, Core::Rational refresh_rate);
-
-		// 更新显示模式
-		bool UpdateDisplayMode();
 
 		bool InitializationApplySettingStage1();
 
