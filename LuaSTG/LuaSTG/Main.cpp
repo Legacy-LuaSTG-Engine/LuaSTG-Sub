@@ -1,4 +1,5 @@
 #include "Main.h"
+#include "Core/Object.hpp"
 #include "Platform/MessageBox.hpp"
 #include "Platform/ApplicationSingleInstance.hpp"
 #include "Debugger/Logger.hpp"
@@ -75,6 +76,10 @@ int luastg::sub::main() {
 	}
 
 	LuaSTG::Debugger::Logger::destroy();
+
+#ifndef NDEBUG
+	Core::ObjectDebugger::check();
+#endif
 
 	return result;
 }
