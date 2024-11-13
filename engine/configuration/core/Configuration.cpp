@@ -426,6 +426,21 @@ namespace core {
 
 				auto const& logging = root.at("logging"sv);
 				assert_type_is_object(logging, "/logging"sv);
+				if (logging.contains("debugger"sv)) {
+					auto const& debugger = logging.at("debugger"sv);
+					assert_type_is_object(debugger, "/logging/debugger"sv);
+					if (debugger.contains("enable"sv)) {
+						auto const& enable = debugger.at("enable"sv);
+						assert_type_is_boolean(enable, "/logging/debugger/enable"sv);
+						loader.logging.debugger.setEnable(enable.get<bool>());
+					}
+					if (debugger.contains("threshold"sv)) {
+						auto const& threshold = debugger.at("threshold"sv);
+						assert_type_is_string(threshold, "/logging/debugger/threshold"sv);
+						get_level("/logging/debugger/threshold");
+						loader.logging.debugger.setThreshold(level);
+					}
+				}
 				if (logging.contains("console"sv)) {
 					auto const& console = logging.at("console"sv);
 					assert_type_is_object(console, "/logging/console"sv);
@@ -811,19 +826,8 @@ namespace core {
 
 		// new
 
-		using Level = Logging::Level;
-
-		logging.console.setEnable(false);
-		logging.console.setThreshold(Level::info);
-
+		logging.debugger.setEnable(true);
 		logging.file.setEnable(true);
-		logging.file.setThreshold(Level::info);
-		logging.file.setPath("");
-
-		logging.rolling_file.setEnable(false);
-		logging.rolling_file.setThreshold(Level::info);
-		logging.rolling_file.setPath("");
-		logging.rolling_file.setMaxHistory(10);
 
 		if (!ConfigurationLoaderContext::load(*this, path)) {
 			return false;

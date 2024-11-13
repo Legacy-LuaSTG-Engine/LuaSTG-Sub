@@ -204,11 +204,13 @@ namespace core {
 				bool enable{ false };
 				Level threshold{ Level::info };
 			};
+			class Debugger : public Base {
+			};
 			class Console : public Base {
 			public:
 				GetterSetterBoolean(Console, preserve, Preserve);
 			private:
-				bool preserve{ true };
+				bool preserve{ false };
 			};
 			class File : public Base {
 			public:
@@ -220,13 +222,15 @@ namespace core {
 			public:
 				GetterSetterPrimitive(RollingFile, uint32_t, max_history, MaxHistory);
 			private:
-				uint32_t max_history{ 0 };
+				uint32_t max_history{ 10 };
 			};
 		public:
+			inline Debugger const& getDebugger() const noexcept { return debugger; }
 			inline Console const& getConsole() const noexcept { return console; }
 			inline File const& getFile() const noexcept { return file; }
 			inline RollingFile const& getRollingFile() const noexcept { return rolling_file; }
 		private:
+			Debugger debugger;
 			Console console;
 			File file;
 			RollingFile rolling_file;

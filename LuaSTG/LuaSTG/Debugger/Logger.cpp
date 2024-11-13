@@ -39,10 +39,10 @@ namespace LuaSTG::Debugger {
 		std::vector<spdlog::sink_ptr> sinks;
 
 	#ifndef NDEBUG
-		/* logging_debugger */ {
+		if (auto const& logging_debugger = config.getDebugger(); logging_debugger.isEnable()) {
 			auto sink = std::make_shared<spdlog::sinks::windebug_sink_mt>();
 			sink->set_pattern("[%Y-%m-%d %H:%M:%S] [%L] %v");
-			sink->set_level(spdlog::level::trace);
+			sink->set_level(mapLevel(logging_debugger.getThreshold()));
 			sinks.emplace_back(sink);
 		}
 	#endif
