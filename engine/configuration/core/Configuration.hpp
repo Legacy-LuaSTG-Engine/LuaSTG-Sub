@@ -117,59 +117,25 @@ namespace core {
 	public:
 		class Debug {
 		public:
-			inline Debug& setTrackWindowFocus(bool const track_window_focus_) {
-				track_window_focus = track_window_focus_;
-				return *this;
-			}
-			inline bool isTrackWindowFocus() const noexcept { return track_window_focus; }
+			GetterSetterBoolean(Debug, track_window_focus, TrackWindowFocus);
 		private:
 			bool track_window_focus{ false };
 		};
 		class Application {
 		public:
-			inline Application& setUuid(std::string const& uuid_) {
-				uuid = uuid_;
-				return *this;
-			}
-			inline Application& setSingleInstance(bool const single_instance_) {
-				single_instance = single_instance_;
-				return *this;
-			}
-			inline bool hasUuid() const noexcept { return !uuid.empty(); }
-			inline std::string const& getUuid() const noexcept { return uuid; }
-			inline bool isSingleInstance() const noexcept { return single_instance; }
+			GetterSetterString(Application, uuid, Uuid);
+			GetterSetterBoolean(Application, single_instance, SingleInstance);
 		private:
 			std::string uuid;
 			bool single_instance{ false };
 		};
 		class GraphicsSystem {
 		public:
-			inline bool hasPreferredDeviceName() const noexcept { return !preferred_device_name.empty(); }
-			inline std::string const& getPreferredDeviceName() const noexcept { return preferred_device_name; }
-			inline GraphicsSystem& setPreferredDeviceName(std::string const& preferred_device_name_) {
-				preferred_device_name = preferred_device_name_;
-				return *this;
-			}
-			inline uint32_t getWidth() const noexcept { return width; }
-			inline GraphicsSystem& setWidth(uint32_t const width_) {
-				width = width_;
-				return *this;
-			}
-			inline uint32_t getHeight() const noexcept { return height; }
-			inline GraphicsSystem& setHeight(uint32_t const height_) {
-				height = height_;
-				return *this;
-			}
-			inline bool isFullscreen() const noexcept { return fullscreen; }
-			inline GraphicsSystem& setFullscreen(bool const fullscreen_) {
-				fullscreen = fullscreen_;
-				return *this;
-			}
-			inline bool isVsync() const noexcept { return vsync; }
-			inline GraphicsSystem& setVsync(bool const vsync_) {
-				vsync = vsync_;
-				return *this;
-			}
+			GetterSetterString(GraphicsSystem, preferred_device_name, PreferredDeviceName);
+			GetterSetterPrimitive(GraphicsSystem, uint32_t, width, Width);
+			GetterSetterPrimitive(GraphicsSystem, uint32_t, height, Height);
+			GetterSetterBoolean(GraphicsSystem, fullscreen, Fullscreen);
+			GetterSetterBoolean(GraphicsSystem, vsync, Vsync);
 		private:
 			std::string preferred_device_name;
 			uint32_t width{ 640 };
@@ -179,22 +145,9 @@ namespace core {
 		};
 		class AudioSystem {
 		public:
-			inline bool hasPreferredEndpointName() const noexcept { return !preferred_endpoint_name.empty(); }
-			inline std::string const& getPreferredEndpointName() const noexcept { return preferred_endpoint_name; }
-			inline AudioSystem& setPreferredEndpointName(std::string const& preferred_endpoint_name_) {
-				preferred_endpoint_name = preferred_endpoint_name_;
-				return *this;
-			}
-			inline float getSoundEffectVolume() const noexcept { return sound_effect_volume; }
-			inline AudioSystem& setSoundEffectVolume(float const sound_effect_volume_) {
-				sound_effect_volume = sound_effect_volume_;
-				return *this;
-			}
-			inline float getMusicVolume() const noexcept { return music_volume; }
-			inline AudioSystem& setMusicVolume(float const music_volume_) {
-				music_volume = music_volume_;
-				return *this;
-			}
+			GetterSetterString(AudioSystem, preferred_endpoint_name, PreferredEndpointName);
+			GetterSetterPrimitive(AudioSystem, float, sound_effect_volume, SoundEffectVolume);
+			GetterSetterPrimitive(AudioSystem, float, music_volume, MusicVolume);
 		private:
 			std::string preferred_endpoint_name;
 			float sound_effect_volume{ 1.0 };
