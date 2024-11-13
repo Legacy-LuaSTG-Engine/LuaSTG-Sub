@@ -13,14 +13,6 @@ namespace Core
 	{
 	#define SET(name) j[#name] = p.##name;
 
-		SET(target_graphics_device);
-
-		SET(canvas_width);
-		SET(canvas_height);
-
-		SET(fullscreen_enable);
-		SET(vsync_enable);
-
 		SET(log_file_enable);
 		SET(log_file_path);
 		SET(persistent_log_file_enable);
@@ -33,14 +25,6 @@ namespace Core
 	inline void from_json(nlohmann::json const& j, InitializeConfigure& p)
 	{
 	#define GET(name) if (j.contains(#name)) { j.at(#name).get_to(p.##name); }
-
-		GET(target_graphics_device);
-
-		GET(canvas_width);
-		GET(canvas_height);
-
-		GET(fullscreen_enable);
-		GET(vsync_enable);
 
 		GET(log_file_enable);
 		GET(log_file_path);
@@ -82,14 +66,6 @@ namespace Core
 
 	void InitializeConfigure::reset()
 	{
-		target_graphics_device.clear();
-
-		canvas_width = 640;
-		canvas_height = 480;
-
-		fullscreen_enable = false;
-		vsync_enable = false;
-
 		log_file_enable = true;
 		log_file_path = "engine.log";
 		persistent_log_file_enable = false;
