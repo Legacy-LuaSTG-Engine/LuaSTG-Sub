@@ -114,6 +114,7 @@ namespace core {
 	inline _class_ & set##_method_name_ ( _type_ const _field_##_ ) { _field_ = _field_##_ ; return *this; }
 
 	class ConfigurationLoader {
+		friend class ConfigurationLoaderContext;
 	public:
 		class Debug {
 		public:
@@ -184,6 +185,48 @@ namespace core {
 			InitApplication application;
 			InitWindow window;
 		};
+		class Logging {
+			friend class ConfigurationLoader;
+			friend class ConfigurationLoaderContext;
+		public:
+			enum class Level {
+				debug,
+				info,
+				warn,
+				error,
+				fatal,
+			};
+			class Base {
+			public:
+				GetterSetterBoolean(Base, enable, Enable);
+				GetterSetterPrimitive(Base, Level, threshold, Threshold);
+			private:
+				bool enable{ false };
+				Level threshold{ Level::info };
+			};
+			class Console : public Base {
+			};
+			class File : public Base {
+			public:
+				GetterSetterString(File, path, Path);
+			private:
+				std::string path;
+			};
+			class RollingFile : public File {
+			public:
+				GetterSetterPrimitive(RollingFile, uint32_t, max_history, MaxHistory);
+			private:
+				uint32_t max_history{ 0 };
+			};
+		public:
+			inline Console const& getConsole() const noexcept { return console; }
+			inline File const& getFile() const noexcept { return file; }
+			inline RollingFile const& getRollingFile() const noexcept { return rolling_file; }
+		private:
+			Console console;
+			File file;
+			RollingFile rolling_file;
+		};
 	public:
 		void merge(Configuration const& config);
 		bool loadFromFile(std::string_view const& path);
@@ -192,6 +235,7 @@ namespace core {
 		inline Debug const& getDebug() const noexcept { return debug; }
 		inline Application const& getApplication() const noexcept { return application; }
 		inline Initialize const& getInitialize() const noexcept { return initialize; }
+		inline Logging const& getLogging() const noexcept { return logging; }
 	public:
 		static bool exists(std::string_view const& path);
 		static ConfigurationLoader& getInstance();
@@ -204,6 +248,7 @@ namespace core {
 		Debug debug;
 		Initialize initialize;
 		Application application;
+		Logging logging;
 	};
 
 #undef GetterSetterBoolean

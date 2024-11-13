@@ -6,6 +6,42 @@
 #include <ranges>
 #include "nlohmann/json.hpp"
 
+#define assert_type_is_boolean(JSON, PATH) \
+		if (!((JSON).is_boolean())) { \
+			error_callback(std::format("[{}] require boolean type, but obtain {}"sv, PATH, getTypeName(JSON))); \
+			return false; \
+		}
+
+#define assert_type_is_unsigned_integer(JSON, PATH) \
+		if (!((JSON).is_number_unsigned())) { \
+			error_callback(std::format("[{}] require unsigned integer type, but obtain {}"sv, PATH, getTypeName(JSON))); \
+			return false; \
+		}
+
+#define assert_type_is_number(JSON, PATH) \
+		if (!((JSON).is_number())) { \
+			error_callback(std::format("[{}] require number type, but obtain {}"sv, PATH, getTypeName(JSON))); \
+			return false; \
+		}
+
+#define assert_type_is_string(JSON, PATH) \
+		if (!((JSON).is_string())) { \
+			error_callback(std::format("[{}] require string type, but obtain {}"sv, PATH, getTypeName(JSON))); \
+			return false; \
+		}
+
+#define assert_type_is_array(JSON, PATH) \
+		if (!((JSON).is_array())) { \
+			error_callback(std::format("[{}] require array type, but obtain {}"sv, PATH, getTypeName(JSON))); \
+			return false; \
+		}
+
+#define assert_type_is_object(JSON, PATH) \
+		if (!((JSON).is_object())) { \
+			error_callback(std::format("[{}] require object type, but obtain {}"sv, PATH, getTypeName(JSON))); \
+			return false; \
+		}
+
 using namespace std::string_view_literals;
 
 namespace core {
@@ -115,42 +151,6 @@ namespace core {
 		auto const root = nlohmann::json::parse(json_text, nullptr, false);
 		if (root.is_discarded()) {
 			return false;
-		}
-
-	#define assert_type_is_boolean(JSON, PATH) \
-		if (!((JSON).is_boolean())) { \
-			error_callback(std::format("[{}] require boolean type, but obtain {}"sv, PATH, getTypeName(JSON))); \
-			return false; \
-		}
-
-	#define assert_type_is_unsigned_integer(JSON, PATH) \
-		if (!((JSON).is_number_unsigned())) { \
-			error_callback(std::format("[{}] require unsigned integer type, but obtain {}"sv, PATH, getTypeName(JSON))); \
-			return false; \
-		}
-
-	#define assert_type_is_number(JSON, PATH) \
-		if (!((JSON).is_number())) { \
-			error_callback(std::format("[{}] require number type, but obtain {}"sv, PATH, getTypeName(JSON))); \
-			return false; \
-		}
-
-	#define assert_type_is_string(JSON, PATH) \
-		if (!((JSON).is_string())) { \
-			error_callback(std::format("[{}] require string type, but obtain {}"sv, PATH, getTypeName(JSON))); \
-			return false; \
-		}
-
-	#define assert_type_is_array(JSON, PATH) \
-		if (!((JSON).is_array())) { \
-			error_callback(std::format("[{}] require array type, but obtain {}"sv, PATH, getTypeName(JSON))); \
-			return false; \
-		}
-
-	#define assert_type_is_object(JSON, PATH) \
-		if (!((JSON).is_object())) { \
-			error_callback(std::format("[{}] require object type, but obtain {}"sv, PATH, getTypeName(JSON))); \
-			return false; \
 		}
 
 		// legacy: compatible
@@ -394,13 +394,6 @@ namespace core {
 			}
 		}
 
-	#undef assert_type_is_boolean
-	#undef assert_type_is_unsigned_integer
-	#undef assert_type_is_number
-	#undef assert_type_is_string
-	#undef assert_type_is_array
-	#undef assert_type_is_object
-
 		return true;
 	}
 
@@ -409,6 +402,117 @@ namespace core {
 }
 
 namespace core {
+	class ConfigurationLoaderContext {
+	public:
+		static bool merge(ConfigurationLoader& loader, nlohmann::json const& root) {
+			auto& messages = loader.messages;
+
+			auto error_callback = [&](std::string_view const& message) {
+				messages.emplace_back(message);
+			};
+
+			if (root.contains("logging"sv)) {
+				using Level = ConfigurationLoader::Logging::Level;
+
+			#define get_level(PATH) \
+				auto const& s = threshold.get_ref<std::string const&>(); \
+				Level level{ Level::info }; \
+				if (s == "debug"sv) { level = Level::debug; } \
+				else if (s == "info"sv) { level = Level::info; } \
+				else if (s == "warn"sv) { level = Level::warn; } \
+				else if (s == "error"sv) { level = Level::error; } \
+				else if (s == "fatal"sv) { level = Level::fatal; } \
+				else { error_callback(std::format("[" PATH "] unknown logging level '{}'"sv, s)); return false; }
+
+				auto const& logging = root.at("logging"sv);
+				assert_type_is_object(logging, "/logging"sv);
+				if (logging.contains("console"sv)) {
+					auto const& console = logging.at("console"sv);
+					assert_type_is_object(console, "/logging/console"sv);
+					if (console.contains("enable"sv)) {
+						auto const& enable = console.at("enable"sv);
+						assert_type_is_boolean(enable, "/logging/console/enable"sv);
+						loader.logging.console.setEnable(enable.get<bool>());
+					}
+					if (console.contains("threshold"sv)) {
+						auto const& threshold = console.at("threshold"sv);
+						assert_type_is_string(threshold, "/logging/console/threshold"sv);
+						get_level("/logging/console/threshold");
+						loader.logging.console.setThreshold(level);
+					}
+				}
+				if (logging.contains("file"sv)) {
+					auto const& file = logging.at("file"sv);
+					assert_type_is_object(file, "/logging/file"sv);
+					if (file.contains("enable"sv)) {
+						auto const& enable = file.at("enable"sv);
+						assert_type_is_boolean(enable, "/logging/file/enable"sv);
+						loader.logging.file.setEnable(enable.get<bool>());
+					}
+					if (file.contains("threshold"sv)) {
+						auto const& threshold = file.at("threshold"sv);
+						assert_type_is_string(threshold, "/logging/file/threshold"sv);
+						get_level("/logging/file/threshold");
+						loader.logging.file.setThreshold(level);
+					}
+					if (file.contains("path"sv)) {
+						auto const& path = file.at("path"sv);
+						assert_type_is_string(path, "/logging/file/path"sv);
+						const auto& s = path.get_ref<std::string const&>();
+						// TODO: validate file path format
+						loader.logging.file.setPath(s);
+					}
+				}
+				if (logging.contains("rolling_file"sv)) {
+					auto const& rolling_file = logging.at("rolling_file"sv);
+					assert_type_is_object(rolling_file, "/logging/rolling_file"sv);
+					if (rolling_file.contains("enable"sv)) {
+						auto const& enable = rolling_file.at("enable"sv);
+						assert_type_is_boolean(enable, "/logging/rolling_file/enable"sv);
+						loader.logging.rolling_file.setEnable(enable.get<bool>());
+					}
+					if (rolling_file.contains("threshold"sv)) {
+						auto const& threshold = rolling_file.at("threshold"sv);
+						assert_type_is_string(threshold, "/logging/rolling_file/threshold"sv);
+						get_level("/logging/rolling_file/threshold");
+						loader.logging.rolling_file.setThreshold(level);
+					}
+					if (rolling_file.contains("path"sv)) {
+						auto const& path = rolling_file.at("path"sv);
+						assert_type_is_string(path, "/logging/rolling_file/path"sv);
+						const auto& s = path.get_ref<std::string const&>();
+						// TODO: validate directory path format
+						loader.logging.rolling_file.setPath(s);
+					}
+					if (rolling_file.contains("max_history"sv)) {
+						auto const& max_history = rolling_file.at("max_history"sv);
+						assert_type_is_unsigned_integer(max_history, "/logging/rolling_file/max_history"sv);
+						auto const u32 = max_history.get<uint32_t>();
+						// TODO: validate
+						loader.logging.rolling_file.setMaxHistory(u32);
+					}
+				}
+
+			#undef get_level
+			}
+
+			return true;
+		}
+		static bool load(ConfigurationLoader& loader, std::string_view const& path) {
+			std::string json_text;
+			if (!readTextFile(path, json_text)) {
+				return false;
+			}
+
+			auto const root = nlohmann::json::parse(json_text, nullptr, false);
+			if (root.is_discarded()) {
+				return false;
+			}
+
+			return merge(loader, root);
+		}
+	};
+
 	void ConfigurationLoader::merge(Configuration const& patch) {
 		mergeOnly(patch);
 		applyOnly();
@@ -660,6 +764,8 @@ namespace core {
 		}
 		configuration.include.clear();
 
+		std::vector<std::string> paths;
+
 		// load additional configurations
 
 		while (!include.empty()) {
@@ -685,6 +791,8 @@ namespace core {
 
 			merge(patch);
 
+			paths.emplace_back(first.path);
+
 			include.erase(include.begin()); // need to remove used element
 		}
 
@@ -700,6 +808,31 @@ namespace core {
 		// apply
 
 		applyOnly();
+
+		// new
+
+		using Level = Logging::Level;
+
+		logging.console.setEnable(false);
+		logging.console.setThreshold(Level::info);
+
+		logging.file.setEnable(true);
+		logging.file.setThreshold(Level::info);
+		logging.file.setPath("engine.log");
+
+		logging.rolling_file.setEnable(false);
+		logging.rolling_file.setThreshold(Level::info);
+		logging.rolling_file.setPath("log/");
+		logging.rolling_file.setMaxHistory(10);
+
+		if (!ConfigurationLoaderContext::load(*this, path)) {
+			return false;
+		}
+		for (auto const& v : paths) {
+			if (!ConfigurationLoaderContext::load(*this, v)) {
+				return false;
+			}
+		}
 
 		return true;
 	}
