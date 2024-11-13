@@ -193,6 +193,7 @@ namespace core {
 		inline Application const& getApplication() const noexcept { return application; }
 		inline Initialize const& getInitialize() const noexcept { return initialize; }
 	public:
+		static bool exists(std::string_view const& path);
 		static ConfigurationLoader& getInstance();
 	private:
 		void mergeOnly(Configuration const& config);

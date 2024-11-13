@@ -55,7 +55,6 @@ namespace core {
 	static bool readTextFile(std::string_view const& path, std::string& str) {
 		str.clear();
 		std::error_code ec;
-		static_assert(CHAR_BIT == 8 && sizeof(char) == 1 && sizeof(char) == sizeof(char8_t));
 		std::filesystem::path fs_path(to_u8string_view(path));
 		if (!std::filesystem::is_regular_file(fs_path, ec)) {
 			return false;
@@ -715,6 +714,12 @@ namespace core {
 			message.pop_back();
 		}
 		return message;
+	}
+
+	bool ConfigurationLoader::exists(std::string_view const& path) {
+		std::error_code ec;
+		std::filesystem::path fs_path(to_u8string_view(path));
+		return std::filesystem::is_regular_file(fs_path, ec);
 	}
 
 	ConfigurationLoader& ConfigurationLoader::getInstance() {

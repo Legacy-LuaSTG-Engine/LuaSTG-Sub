@@ -17,7 +17,7 @@ int luastg::sub::main() {
 	// STAGE 1: load application configurations
 
 	auto& config_loader = core::ConfigurationLoader::getInstance();
-	if (!config_loader.loadFromFile("config.json")) {
+	if (core::ConfigurationLoader::exists(LUASTG_CONFIGURATION_FILE) && !config_loader.loadFromFile(LUASTG_CONFIGURATION_FILE)) {
 		Platform::MessageBox::Error(LUASTG_INFO, config_loader.getFormattedMessage());
 		return EXIT_FAILURE;
 	}

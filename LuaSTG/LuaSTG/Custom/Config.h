@@ -1,6 +1,8 @@
-﻿#pragma once
+#pragma once
 
 // ---------- ---------- framework ---------- ---------- //
+
+#define LUASTG_CONFIGURATION_FILE "config.json"
 
 // launch file
 #define USING_LAUNCH_FILE

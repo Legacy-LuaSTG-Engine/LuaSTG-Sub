@@ -1,4 +1,4 @@
-﻿#include "Debugger/Logger.hpp"
+#include "Debugger/Logger.hpp"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/wincolor_sink.h"
@@ -20,7 +20,7 @@ namespace LuaSTG::Debugger
     void Logger::create()
     {
         Core::InitializeConfigure config;
-        config.loadFromFile("config.json");
+        config.loadFromFile(LUASTG_CONFIGURATION_FILE);
 
     #ifdef USING_CONSOLE_OUTPUT
         enable_console = Platform::CommandLineArguments::Get().IsOptionExist("--log-window");
@@ -119,7 +119,7 @@ namespace LuaSTG::Debugger
         // 清理 log 文件
 
         Core::InitializeConfigure config;
-        config.loadFromFile("config.json");
+        config.loadFromFile(LUASTG_CONFIGURATION_FILE);
 
         if (config.persistent_log_file_enable)
         {

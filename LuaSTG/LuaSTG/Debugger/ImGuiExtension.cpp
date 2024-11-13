@@ -888,7 +888,7 @@ namespace imgui
 			g_init_path_init = true;
 
 			Core::InitializeConfigure config;
-			config.loadFromFile("config.json");
+			config.loadFromFile(LUASTG_CONFIGURATION_FILE);
 
 			if (config.engine_cache_directory.empty())
 			{
