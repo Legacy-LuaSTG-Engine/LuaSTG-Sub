@@ -4,7 +4,8 @@
 
 #define LUASTG_CONFIGURATION_FILE "config.json"
 
-// launch file
+#define LUASTG_LAUNCH_SCRIPT "launch"
+
 #define USING_LAUNCH_FILE
 
 //#define USING_ENCRYPTION

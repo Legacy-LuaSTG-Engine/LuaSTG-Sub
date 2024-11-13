@@ -13,21 +13,21 @@ namespace LuaSTGPlus
         #ifdef USING_LAUNCH_FILE
         spdlog::info("[luastg] 加载初始化脚本");
         std::vector<uint8_t> src;
-        if (GFileManager().loadEx("launch", src))
+        if (GFileManager().loadEx(LUASTG_LAUNCH_SCRIPT, src))
         {
-            if (SafeCallScript((char const*)src.data(), src.size(), "launch"))
+            if (SafeCallScript((char const*)src.data(), src.size(), LUASTG_LAUNCH_SCRIPT))
             {
                 is_launch_loaded = true;
-                spdlog::info("[luastg] 加载脚本'launch'");
+                spdlog::info("[luastg] 加载脚本'{}'", LUASTG_LAUNCH_SCRIPT);
             }
             else
             {
-                spdlog::error("[luastg] 加载初始化脚本'launch'失败");
+                spdlog::error("[luastg] 加载初始化脚本'{}'失败", LUASTG_LAUNCH_SCRIPT);
             }
         }
         if (!is_launch_loaded)
         {
-            spdlog::error("[luastg] 找不到文件'launch'");
+            spdlog::error("[luastg] 找不到文件'{}'", LUASTG_LAUNCH_SCRIPT);
         }
         #endif
 
