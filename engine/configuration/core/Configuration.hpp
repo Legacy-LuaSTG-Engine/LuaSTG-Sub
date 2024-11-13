@@ -120,7 +120,7 @@ namespace core {
 		public:
 			GetterSetterBoolean(Debug, track_window_focus, TrackWindowFocus);
 		private:
-			bool track_window_focus{ false };
+			bool track_window_focus{ false }; // TODO: 应该归类到窗口配置中
 		};
 		class Application {
 		public:
