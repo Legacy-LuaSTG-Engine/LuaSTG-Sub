@@ -959,10 +959,12 @@ namespace Core::Graphics
 		SendMessageW(win32_window, LUASTG_WM_SET_FULLSCREEN_MODE, 0, reinterpret_cast<LPARAM>(display));
 	}
 	void Window_Win32::setCentered(bool show, IDisplay* display) {
+		Core::ScopeObject<IDisplay> local_display;
 		if (!display) {
-			if (!IDisplay::getNearestFromWindow(this, &display)) {
+			if (!IDisplay::getNearestFromWindow(this, ~local_display)) {
 				return;
 			}
+			display = local_display.get();
 		}
 		RECT r{};
 		[[maybe_unused]] auto const result1 = GetWindowRect(win32_window, &r);
