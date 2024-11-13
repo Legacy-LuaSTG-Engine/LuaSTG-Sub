@@ -818,11 +818,11 @@ namespace core {
 
 		logging.file.setEnable(true);
 		logging.file.setThreshold(Level::info);
-		logging.file.setPath("engine.log");
+		logging.file.setPath("");
 
 		logging.rolling_file.setEnable(false);
 		logging.rolling_file.setThreshold(Level::info);
-		logging.rolling_file.setPath("log/");
+		logging.rolling_file.setPath("");
 		logging.rolling_file.setMaxHistory(10);
 
 		if (!ConfigurationLoaderContext::load(*this, path)) {

@@ -205,6 +205,10 @@ namespace core {
 				Level threshold{ Level::info };
 			};
 			class Console : public Base {
+			public:
+				GetterSetterBoolean(Console, preserve, Preserve);
+			private:
+				bool preserve{ true };
 			};
 			class File : public Base {
 			public:
