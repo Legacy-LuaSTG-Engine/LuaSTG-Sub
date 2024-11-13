@@ -13,11 +13,6 @@ namespace Core
 	{
 	#define SET(name) j[#name] = p.##name;
 
-		SET(log_file_enable);
-		SET(log_file_path);
-		SET(persistent_log_file_enable);
-		SET(persistent_log_file_directory);
-		SET(persistent_log_file_max_count);
 		SET(engine_cache_directory);
 
 	#undef SET
@@ -26,11 +21,6 @@ namespace Core
 	{
 	#define GET(name) if (j.contains(#name)) { j.at(#name).get_to(p.##name); }
 
-		GET(log_file_enable);
-		GET(log_file_path);
-		GET(persistent_log_file_enable);
-		GET(persistent_log_file_directory);
-		GET(persistent_log_file_max_count);
 		GET(engine_cache_directory);
 
 	#undef GET
@@ -66,11 +56,6 @@ namespace Core
 
 	void InitializeConfigure::reset()
 	{
-		log_file_enable = true;
-		log_file_path = "engine.log";
-		persistent_log_file_enable = false;
-		persistent_log_file_directory = "logs/";
-		persistent_log_file_max_count = 100;
 		engine_cache_directory.clear();
 	}
 	bool InitializeConfigure::load(std::string_view const source) noexcept
