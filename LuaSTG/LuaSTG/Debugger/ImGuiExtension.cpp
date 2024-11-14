@@ -18,7 +18,6 @@
 #include "lua_imgui_type.hpp"
 
 #include "Platform/XInput.hpp"
-#include "Core/InitializeConfigure.hpp"
 #include "core/Configuration.hpp"
 #include "utf8.hpp"
 
@@ -886,11 +885,10 @@ namespace imgui
 		if (!g_init_path_init) {
 			auto const& config = core::ConfigurationLoader::getInstance().getFileSystem();
 			if (config.hasUser()) {
-				std::string parser_path;
-				Core::InitializeConfigure::parserDirectory(config.getUser(), parser_path, true);
-				std::filesystem::path directory(utf8::to_wstring(parser_path));
-				std::filesystem::path path = directory / utf8::to_wstring("imgui.ini");
-				g_ini_path = path.wstring();
+				std::filesystem::path directory;
+				core::ConfigurationLoader::resolvePathWithPredefinedVariables(config.getUser(), directory, true);
+				std::filesystem::path path = directory / L"imgui.ini";
+				g_ini_path = path.generic_wstring();
 			}
 			else {
 				g_ini_path = L"imgui.ini";

@@ -4,6 +4,7 @@
 #include <vector>
 #include <optional>
 #include <functional>
+#include <filesystem>
 
 namespace core {
 #define GetterSetterBoolean(_class_, _field_, _method_name_) \
@@ -177,6 +178,9 @@ namespace core {
 		inline AudioSystem& getAudioSystemRef() { return audio_system; }
 	public:
 		static bool exists(std::string_view const& path);
+		static bool replaceAllPredefinedVariables(std::string_view const& input, std::string& output);
+		static bool resolvePathWithPredefinedVariables(std::string_view const& input, std::filesystem::path& output, bool create_directories = false);
+		static bool resolveFilePathWithPredefinedVariables(std::string_view const& input, std::filesystem::path& output, bool create_parent_directories = false);
 		static ConfigurationLoader& getInstance();
 	private:
 		std::vector<std::string> messages;

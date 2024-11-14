@@ -1,7 +1,6 @@
 #include "AppFrame.h"
 #include "Config.h"
 #include "Core/FileManager.hpp"
-#include "Core/InitializeConfigure.hpp"
 
 #include "Platform/HResultChecker.hpp"
 

@@ -6,7 +6,6 @@
 #include "Platform/HResultChecker.hpp"
 #include "Platform/CommandLineArguments.hpp"
 #include "core/Configuration.hpp"
-#include "Core/InitializeConfigure.hpp"
 #include "utf8.hpp"
 
 namespace LuaSTG::Debugger {
@@ -57,14 +56,14 @@ namespace LuaSTG::Debugger {
 	#endif
 
 		if (auto const& logging_file = config.getFile(); logging_file.isEnable()) {
-			std::string parser_path;
+			std::filesystem::path file_path;
 			if (logging_file.hasPath()) {
-				Core::InitializeConfigure::parserFilePath(logging_file.getPath(), parser_path, true);
+				core::ConfigurationLoader::resolveFilePathWithPredefinedVariables(logging_file.getPath(), file_path, true);
 			}
 			else {
-				parser_path = "engine.log"; // TODO: MAGIC VALUE
+				file_path = L"engine.log"; // TODO: MAGIC VALUE
 			}
-			auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(utf8::to_wstring(parser_path), true);
+			auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(file_path.generic_wstring(), true);
 			sink->set_pattern("[%Y-%m-%d %H:%M:%S] [%L] %v");
 			sink->set_level(mapLevel(logging_file.getThreshold()));
 			sinks.emplace_back(sink);
@@ -73,14 +72,13 @@ namespace LuaSTG::Debugger {
 		if (auto const& logging_rolling_file = config.getRollingFile(); logging_rolling_file.isEnable()) {
 			std::filesystem::path path;
 			if (logging_rolling_file.hasPath()) {
-				std::string parser_path;
-				Core::InitializeConfigure::parserDirectory(logging_rolling_file.getPath(), parser_path, true);
-				std::filesystem::path directory(utf8::to_wstring(parser_path));
+				std::filesystem::path directory;
+				core::ConfigurationLoader::resolvePathWithPredefinedVariables(logging_rolling_file.getPath(), directory, true);
 				path = directory / utf8::to_wstring(generateRollingFileName());
 				rolling_file_root = directory;
 			}
 			else {
-				std::filesystem::path directory(utf8::to_wstring("logs/")); // TODO: MAGIC VALUE
+				std::filesystem::path directory(L"logs/"); // TODO: MAGIC VALUE
 				path = directory / utf8::to_wstring(generateRollingFileName());
 				rolling_file_root = directory;
 			}

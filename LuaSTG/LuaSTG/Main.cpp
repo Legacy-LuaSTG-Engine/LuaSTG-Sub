@@ -33,8 +33,7 @@ int luastg::sub::main() {
 	// STAGE 3: initialize COM
 
 	LuaSTGPlus::CoInitializeScope com_runtime;
-	if (!com_runtime())
-	{
+	if (!com_runtime()) {
 		Platform::MessageBox::Error(LUASTG_INFO,
 			"引擎初始化失败。\n"
 			"未能正常初始化COM组件库，请尝试重新启动此应用程序。");

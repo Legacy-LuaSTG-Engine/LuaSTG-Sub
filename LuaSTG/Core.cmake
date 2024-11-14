@@ -24,8 +24,6 @@ set(Core_SRC
 
     Core/FileManager.hpp
     Core/FileManager.cpp
-    Core/InitializeConfigure.hpp
-    Core/InitializeConfigure.cpp
 
     Core/Graphics/Window.hpp
     Core/Graphics/Window_Win32.hpp
