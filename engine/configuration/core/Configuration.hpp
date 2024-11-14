@@ -28,16 +28,6 @@ namespace core {
 
 		std::optional<Application> application;
 
-		enum class FileSystemType {
-			normal,
-			archive,
-		};
-
-		struct FileSystem {
-			FileSystemType type{ FileSystemType::normal };
-			std::string path;
-		};
-
 		struct Display {
 			std::string device_name;
 			int32_t left{};
@@ -72,14 +62,9 @@ namespace core {
 		};
 
 		struct Initialize {
-			std::vector<FileSystem> file_systems;
-
 			std::optional<GraphicsSystem> graphics_system;
-
 			std::optional<AudioSystem> audio_system;
-
 			std::optional<InitApplication> application;
-
 			std::optional<InitWindow> window;
 		};
 
@@ -173,13 +158,11 @@ namespace core {
 		class Initialize {
 			friend class ConfigurationLoader;
 		public:
-			inline std::vector<Configuration::FileSystem> const& getFileSystems() const noexcept { return file_systems; }
 			inline GraphicsSystem const& getGraphicsSystem() const noexcept { return graphics_system; }
 			inline AudioSystem const& getAudioSystem() const noexcept { return audio_system; }
 			inline InitApplication const& getApplication() const noexcept { return application; }
 			inline InitWindow const& getWindow() const noexcept { return window; }
 		private:
-			std::vector<Configuration::FileSystem> file_systems;
 			GraphicsSystem graphics_system;
 			AudioSystem audio_system;
 			InitApplication application;

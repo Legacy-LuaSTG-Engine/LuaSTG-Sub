@@ -224,38 +224,6 @@ namespace core {
 			auto const& root_initialize = root.at("initialize"sv);
 			initialize.emplace();
 
-			// file system
-
-			if (root_initialize.contains("file_systems"sv)) {
-				assert_type_is_array(root_initialize.at("file_systems"sv), "/initialize/file_systems");
-				auto const& init_fs = root_initialize.at("file_systems");
-				auto& self_fs = initialize.value().file_systems;
-				for (size_t index = 0; index < init_fs.size(); index += 1) {
-					auto const& file_system = init_fs[index];
-					assert_type_is_object(file_system, std::format("/initialize/file_systems/{}"sv, index));
-					FileSystem info;
-					if (file_system.contains("type"sv)) {
-						assert_type_is_string(file_system.at("type"sv), std::format("/initialize/file_systems/{}/type", index));
-						auto const& type = file_system.at("type"sv).get_ref<nlohmann::json::string_t const&>();
-						if (type == "normal"sv) {
-							info.type = FileSystemType::normal;
-						}
-						else if (type == "archive"sv) {
-							info.type = FileSystemType::archive;
-						}
-						else {
-							error_callback(std::format("[/initialize/file_systems/{}/type] unknown file system type '{}'"sv, index, type));
-							return false;
-						}
-					}
-					if (file_system.contains("path"sv) && file_system.at("path"sv).is_string()) {
-						assert_type_is_string(file_system.at("path"sv), std::format("/initialize/file_systems/{}/type", index));
-						info.path = file_system.at("path"sv).get_ref<nlohmann::json::string_t const&>();
-					}
-					self_fs.emplace_back(info);
-				}
-			}
-
 			// graphics system
 
 			if (root_initialize.contains("graphics_system"sv)) {
@@ -590,14 +558,6 @@ namespace core {
 			auto const& init = patch.initialize.value();
 			auto& self = configuration.initialize.value();
 
-			// file system
-
-			if (!init.file_systems.empty()) {
-				for (auto const& fs : init.file_systems) {
-					self.file_systems.emplace_back(fs);
-				}
-			}
-
 			// graphics system
 
 			if (init.graphics_system.has_value()) {
@@ -720,9 +680,6 @@ namespace core {
 
 		if (configuration.initialize.has_value()) {
 			auto const& init = configuration.initialize.value();
-			if (!init.file_systems.empty()) {
-				initialize.file_systems = init.file_systems;
-			}
 			if (init.graphics_system.has_value()) {
 				auto const& graphics_system = init.graphics_system.value();
 				if (graphics_system.preferred_device_name.has_value()) {
