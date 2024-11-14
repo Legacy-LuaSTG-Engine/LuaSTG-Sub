@@ -8,19 +8,6 @@
 namespace core {
 	struct Configuration {
 	public:
-		struct Include {
-			std::string path;
-			bool optional{ false };
-		};
-
-		std::vector<Include> include;
-
-		struct Debug {
-			std::optional<bool> track_window_focus;
-		};
-
-		std::optional<Debug> debug;
-
 		struct Display {
 			std::string device_name;
 			int32_t left{};
@@ -255,7 +242,6 @@ namespace core {
 		void applyOnly();
 	private:
 		std::vector<std::string> messages;
-		Configuration configuration;
 		Debug debug;
 		Initialize initialize;
 		Application application;

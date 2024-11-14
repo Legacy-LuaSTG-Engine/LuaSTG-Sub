@@ -153,47 +153,6 @@ namespace core {
 			return false;
 		}
 
-		// include
-
-		if (root.contains("include"sv)) {
-			if (!allow_include) {
-				error_callback("include is not allowed"sv);
-				return false;
-			}
-			auto const& root_include = root.at("include"sv);
-			assert_type_is_array(root_include, "/include"sv);
-			include.reserve(root_include.size());
-			for (size_t i = 0; i < root_include.size(); i += 1) {
-				auto const& v = root_include[i];
-				assert_type_is_object(v, std::format("/include/{}"sv, i));
-				Include info;
-				if (v.contains("path"sv)) {
-					auto const& v_path = v.at("path"sv);
-					assert_type_is_string(v_path, std::format("/include/{}/path"sv, i));
-					info.path = v_path.get_ref<std::string const&>();
-				}
-				if (v.contains("optional"sv)) {
-					auto const& v_optional = v.at("optional"sv);
-					assert_type_is_boolean(v_optional, std::format("/include/{}/optional"sv, i));
-					info.optional = (v_optional.get<bool>());
-				}
-				include.emplace_back(info);
-			}
-		}
-
-		// debug
-
-		if (root.contains("debug"sv)) {
-			auto const& conf_debug = root.at("debug"sv);
-			assert_type_is_object(conf_debug, "/debug"sv);
-			auto& self_debug = debug.emplace();
-			if (conf_debug.contains("track_window_focus"sv)) {
-				auto const& v = conf_debug.at("track_window_focus"sv);
-				assert_type_is_boolean(v, "/debug/track_window_focus"sv);
-				self_debug.track_window_focus.emplace(v.get<bool>());
-			}
-		}
-
 		// initialize
 
 		if (root.contains("initialize"sv)) {
@@ -320,12 +279,54 @@ namespace core {
 namespace core {
 	class ConfigurationLoaderContext {
 	public:
-		static bool merge(ConfigurationLoader& loader, nlohmann::json const& root) {
+		struct Include {
+			std::string path;
+			bool optional{ false };
+		};
+	public:
+		static bool merge(ConfigurationLoader& loader, std::vector<Include>* include_out, nlohmann::json const& root) {
 			auto& messages = loader.messages;
 
 			auto error_callback = [&](std::string_view const& message) {
 				messages.emplace_back(message);
 			};
+
+			if (root.contains("include"sv)) {
+				auto const& includes = root.at("include"sv);
+				assert_type_is_array(includes, "/include"sv);
+				if (!include_out) {
+					error_callback("[/include] include is not allowed"sv);
+					return false;
+				}
+				for (size_t i = 0; i < includes.size(); i += 1) {
+					auto const& include = includes.at(i);
+					assert_type_is_object(include, std::format("/include/{}"sv, i));
+					Include inc;
+					if (include.contains("path"sv)) {
+						auto const& path = include.at("path"sv);
+						assert_type_is_string(path, std::format("/include/{}/path"sv, i));
+						inc.path = path.get_ref<std::string const&>();
+					}
+					if (include.contains("optional"sv)) {
+						auto const& optional = include.at("optional"sv);
+						assert_type_is_boolean(optional, std::format("/include/{}/optional"sv, i));
+						inc.optional = optional.get<bool>();
+					}
+					if (include_out) {
+						include_out->emplace_back(inc);
+					}
+				}
+			}
+
+			if (root.contains("debug"sv)) {
+				auto const& debug = root.at("debug"sv);
+				assert_type_is_object(debug, "/debug"sv);
+				if (debug.contains("track_window_focus"sv)) {
+					auto const& track_window_focus = debug.at("track_window_focus"sv);
+					assert_type_is_boolean(track_window_focus, "/debug/track_window_focus"sv);
+					loader.debug.setTrackWindowFocus(track_window_focus.get<bool>());
+				}
+			}
 
 			if (root.contains("application"sv)) {
 				auto const& application = root.at("application"sv);
@@ -490,7 +491,7 @@ namespace core {
 
 			return true;
 		}
-		static bool load(ConfigurationLoader& loader, std::string_view const& path) {
+		static bool load(ConfigurationLoader& loader, std::vector<Include>* include_out, std::string_view const& path) {
 			std::string json_text;
 			if (!readTextFile(path, json_text)) {
 				return false;
@@ -501,275 +502,44 @@ namespace core {
 				return false;
 			}
 
-			return merge(loader, root);
+			return merge(loader, include_out, root);
 		}
 	};
 
 	void ConfigurationLoader::merge(Configuration const& patch) {
-		mergeOnly(patch);
-		applyOnly();
-	}
-
-	void ConfigurationLoader::mergeOnly(Configuration const& patch) {
-		if (patch.debug.has_value()) {
-			// init self
-
-			if (!configuration.debug.has_value()) {
-				configuration.debug.emplace();
-			}
-			auto const& conf_debug = patch.debug.value();
-			auto& self_debug = configuration.debug.value();
-
-			// merge
-
-			if (conf_debug.track_window_focus.has_value()) {
-				self_debug.track_window_focus.emplace(conf_debug.track_window_focus.value());
-			}
-		}
-
-		if (patch.initialize.has_value()) {
-			// init self
-
-			if (!configuration.initialize.has_value()) {
-				configuration.initialize.emplace();
-			}
-			auto const& init = patch.initialize.value();
-			auto& self = configuration.initialize.value();
-
-			// graphics system
-
-			if (init.graphics_system.has_value()) {
-				// init self
-
-				if (!self.graphics_system.has_value()) {
-					self.graphics_system.emplace();
-				}
-				auto const& init_graphics = init.graphics_system.value();
-				auto& self_graphics = self.graphics_system.value();
-
-				// merge
-
-				if (init_graphics.preferred_device_name.has_value()) {
-					self_graphics.preferred_device_name.emplace(init_graphics.preferred_device_name.value());
-				}
-				if (init_graphics.width.has_value()) {
-					self_graphics.width.emplace(init_graphics.width.value());
-				}
-				if (init_graphics.height.has_value()) {
-					self_graphics.height.emplace(init_graphics.height.value());
-				}
-				if (init_graphics.fullscreen.has_value()) {
-					self_graphics.fullscreen.emplace(init_graphics.fullscreen.value());
-				}
-				if (init_graphics.vsync.has_value()) {
-					self_graphics.vsync.emplace(init_graphics.vsync.value());
-				}
-
-				// TODO: display
-			}
-
-			// audio system
-
-			if (init.audio_system.has_value()) {
-				// init self
-
-				if (!self.audio_system.has_value()) {
-					self.audio_system.emplace();
-				}
-				auto const& init_audio = init.audio_system.value();
-				auto& self_audio = self.audio_system.value();
-
-				// merge
-
-				if (init_audio.preferred_endpoint_name.has_value()) {
-					self_audio.preferred_endpoint_name.emplace(init_audio.preferred_endpoint_name.value());
-				}
-				if (init_audio.sound_effect_volume.has_value()) {
-					self_audio.sound_effect_volume.emplace(init_audio.sound_effect_volume.value());
-				}
-				if (init_audio.music_volume.has_value()) {
-					self_audio.music_volume.emplace(init_audio.music_volume.value());
-				}
-			}
-
-			// application
-
-			if (init.application.has_value()) {
-				// init self
-
-				if (!self.application.has_value()) {
-					self.application.emplace();
-				}
-				auto const& init_app = init.application.value();
-				auto& self_app = self.application.value();
-
-				// merge
-
-				if (init_app.frame_rate.has_value()) {
-					self_app.frame_rate.emplace(init_app.frame_rate.value());
-				}
-			}
-
-			// window
-
-			if (init.window.has_value()) {
-				// init self
-
-				if (!self.window.has_value()) {
-					self.window.emplace();
-				}
-				auto const& init_win = init.window.value();
-				auto& self_win = self.window.value();
-
-				// merge
-
-				if (init_win.title.has_value()) {
-					self_win.title.emplace(init_win.title.value());
-				}
-				if (init_win.cursor_visible.has_value()) {
-					self_win.cursor_visible.emplace(init_win.cursor_visible.value());
-				}
-				if (init_win.allow_window_corner.has_value()) {
-					self_win.allow_window_corner.emplace(init_win.allow_window_corner.value());
-				}
-			}
-		}
-	}
-
-	void ConfigurationLoader::applyOnly() {
-		// apply
-
-		if (configuration.debug.has_value()) {
-			auto const& dbg = configuration.debug.value();
-			if (dbg.track_window_focus.has_value()) {
-				debug.setTrackWindowFocus(dbg.track_window_focus.value());
-			}
-		}
-
-		if (configuration.initialize.has_value()) {
-			auto const& init = configuration.initialize.value();
-			if (init.graphics_system.has_value()) {
-				auto const& graphics_system = init.graphics_system.value();
-				if (graphics_system.preferred_device_name.has_value()) {
-					initialize.graphics_system.setPreferredDeviceName(graphics_system.preferred_device_name.value());
-				}
-				if (graphics_system.width.has_value()) {
-					initialize.graphics_system.setWidth(graphics_system.width.value());
-				}
-				if (graphics_system.height.has_value()) {
-					initialize.graphics_system.setHeight(graphics_system.height.value());
-				}
-				if (graphics_system.fullscreen.has_value()) {
-					initialize.graphics_system.setFullscreen(graphics_system.fullscreen.value());
-				}
-				if (graphics_system.vsync.has_value()) {
-					initialize.graphics_system.setVsync(graphics_system.vsync.value());
-				}
-			}
-			if (init.audio_system.has_value()) {
-				auto const& audio_system = init.audio_system.value();
-				if (audio_system.preferred_endpoint_name.has_value()) {
-					initialize.audio_system.setPreferredEndpointName(audio_system.preferred_endpoint_name.value());
-				}
-				if (audio_system.sound_effect_volume.has_value()) {
-					initialize.audio_system.setSoundEffectVolume(audio_system.sound_effect_volume.value());
-				}
-				if (audio_system.music_volume.has_value()) {
-					initialize.audio_system.setMusicVolume(audio_system.music_volume.value());
-				}
-			}
-			if (init.application.has_value()) {
-				auto const& init_app = init.application.value();
-				if (init_app.frame_rate.has_value()) {
-					initialize.application.setFrameRate(init_app.frame_rate.value());
-				}
-			}
-			if (init.window.has_value()) {
-				auto const& init_win = init.window.value();
-				if (init_win.title.has_value()) {
-					initialize.window.setTitle(init_win.title.value());
-				}
-				if (init_win.cursor_visible.has_value()) {
-					initialize.window.setCursorVisible(init_win.cursor_visible.value());
-				}
-				if (init_win.allow_window_corner.has_value()) {
-					initialize.window.setAllowWindowCorner(init_win.allow_window_corner.value());
-				}
-			}
-		}
+		// TODO
 	}
 
 	bool ConfigurationLoader::loadFromFile(std::string_view const& path) {
-		// load primary configuration
-
-		configuration.setErrorCallback([&](std::string_view const& message) {
-			messages.emplace_back(std::format("[{}] {}", path, message));
-		});
-		configuration.setAllowInclude(true); // only allow top level configuration
-		std::vector<Configuration::Include> include;
-		if (!configuration.loadFromFile(path)) {
-			messages.emplace_back(std::format("[{}] load failed", path));
-			return false;
-		}
-		for (auto const& it : configuration.include) {
-			include.emplace_back(it);
-		}
-		configuration.include.clear();
-
-		std::vector<std::string> paths;
-
-		// load additional configurations
-
-		while (!include.empty()) {
-			auto const& first = include.front();
-
-			std::error_code ec;
-			if (first.optional && !std::filesystem::is_regular_file(to_u8string_view(first.path), ec)) {
-				include.erase(include.begin()); // need to remove used element
-				continue; // skip optional
-			}
-
-			Configuration patch;
-			patch.setErrorCallback([&](std::string_view const& message) {
-				messages.emplace_back(std::format("[{}] {}", first.path, message));
-			});
-			if (!patch.loadFromFile(first.path)) {
-				messages.emplace_back(std::format("[{}] load failed", first.path));
-				return false;
-			}
-			for (auto const& it : patch.include) {
-				include.emplace_back(it);
-			}
-
-			merge(patch);
-
-			paths.emplace_back(first.path);
-
-			include.erase(include.begin()); // need to remove used element
-		}
-
-		// apply
-
-		applyOnly();
-
-		// new
+		// load
 
 		logging.debugger.setEnable(true);
 		logging.file.setEnable(true);
 
-		if (!ConfigurationLoaderContext::load(*this, path)) {
+		std::vector<ConfigurationLoaderContext::Include> includes;
+		if (!ConfigurationLoaderContext::load(*this, &includes, path)) {
 			return false;
 		}
-		for (auto const& v : paths) {
-			if (!ConfigurationLoaderContext::load(*this, v)) {
+		for (auto const& include : includes) {
+			if (!exists(include.path)) {
+				if (include.optional) {
+					continue;
+				}
+				else {
+					messages.emplace_back(std::format("{} not found", include.path));
+					return false;
+				}
+			}
+			if (!ConfigurationLoaderContext::load(*this, nullptr, include.path)) {
 				return false;
 			}
 		}
 
-		// final check
+		// check
 
 		if (application.isSingleInstance() && !application.hasUuid()) {
 			messages.emplace_back(std::format("[{}] single_instance require uuid string to be set", path));
+			return false;
 		}
 
 		return true;
@@ -777,12 +547,14 @@ namespace core {
 
 	std::string ConfigurationLoader::getFormattedMessage() {
 		std::string message;
-		for (auto const& s : messages) {
-			message.append(s);
-			message.push_back('\n');
-		}
-		if (message.back() == '\n') {
-			message.pop_back();
+		if (!messages.empty()) {
+			for (auto const& s : messages) {
+				message.append(s);
+				message.push_back('\n');
+			}
+			if (!message.empty() && message.back() == '\n') {
+				message.pop_back();
+			}
 		}
 		return message;
 	}
