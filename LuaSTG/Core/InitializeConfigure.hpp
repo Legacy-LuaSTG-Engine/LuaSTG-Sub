@@ -6,8 +6,6 @@ namespace Core
 {
 	struct InitializeConfigure
 	{
-		std::string engine_cache_directory;
-
 		void reset();
 		bool load(std::string_view const source) noexcept;
 		bool save(std::string_view const source, std::string& buffer) noexcept;

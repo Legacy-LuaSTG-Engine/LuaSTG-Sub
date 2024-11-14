@@ -141,7 +141,25 @@ bool AppFrame::Init()noexcept
 	spdlog::info("[luastg] 初始化引擎");
 	m_iStatus = AppStatus::Initializing;
 
-	//////////////////////////////////////// Lua初始化部分
+	//////////////////////////////////////// 基础
+
+	// 初始化文件系统
+	if (auto const& resources = core::ConfigurationLoader::getInstance().getFileSystem().getResources(); !resources.empty()) {
+		auto& file_manager = GFileManager();
+		for (auto const& resource : resources) {
+			using Type = core::ConfigurationLoader::FileSystem::ResourceFileSystem::Type;
+			switch (resource.getType()) {
+			case Type::directory:
+				file_manager.addSearchPath(resource.getPath());
+				break;
+			case Type::archive:
+				file_manager.loadFileArchive(resource.getPath());
+				break;
+			}
+		}
+	}
+
+	//////////////////////////////////////// Lua 引擎
 	
 	spdlog::info("[luastg] 初始化luajit引擎");
 	
@@ -152,30 +170,14 @@ bool AppFrame::Init()noexcept
 		return false;
 	}
 	
-	// 配置文件系统
-	// TODO: 这是一个临时方案
-	if (auto const& file_systems = core::ConfigurationLoader::getInstance().getInitialize().getFileSystems(); !file_systems.empty()) {
-		auto& file_manager = GFileManager();
-		for (auto const& file_system : file_systems) {
-			using Type = core::Configuration::FileSystemType;
-			switch (file_system.type) {
-			case Type::normal:
-				file_manager.addSearchPath(file_system.path);
-				break;
-			case Type::archive:
-				file_manager.loadFileArchive(file_system.path);
-				break;
-			}
-		}
-	}
-
 	// 加载初始化脚本（可选）
 	if (!OnLoadLaunchScriptAndFiles())
 	{
 		return false;
 	}
 	
-	//////////////////////////////////////// 初始化引擎
+	//////////////////////////////////////// 应用程序模型、窗口子系统、图形子系统、音频子系统等
+
 	{
 		if (!Core::IApplicationModel::create(this, ~m_pAppModel))
 			return false;

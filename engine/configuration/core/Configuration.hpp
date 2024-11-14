@@ -235,6 +235,32 @@ namespace core {
 			File file;
 			RollingFile rolling_file;
 		};
+		class FileSystem {
+			friend class ConfigurationLoader;
+			friend class ConfigurationLoaderContext;
+		public:
+			class ResourceFileSystem {
+			public:
+				enum class Type {
+					directory,
+					archive,
+				};
+			public:
+				GetterSetterString(ResourceFileSystem, name, Name);
+				GetterSetterString(ResourceFileSystem, path, Path);
+				GetterSetterPrimitive(ResourceFileSystem, Type, type, Type);
+			private:
+				std::string name;
+				std::string path;
+				Type type{ Type::directory };
+			};
+		public:
+			inline std::vector<ResourceFileSystem> const& getResources() const noexcept { return resources; }
+			GetterSetterString(FileSystem, user, User);
+		private:
+			std::vector<ResourceFileSystem> resources;
+			std::string user;
+		};
 	public:
 		void merge(Configuration const& config);
 		bool loadFromFile(std::string_view const& path);
@@ -244,6 +270,7 @@ namespace core {
 		inline Application const& getApplication() const noexcept { return application; }
 		inline Initialize const& getInitialize() const noexcept { return initialize; }
 		inline Logging const& getLogging() const noexcept { return logging; }
+		inline FileSystem const& getFileSystem() const noexcept { return file_system; }
 	public:
 		static bool exists(std::string_view const& path);
 		static ConfigurationLoader& getInstance();
@@ -257,6 +284,7 @@ namespace core {
 		Initialize initialize;
 		Application application;
 		Logging logging;
+		FileSystem file_system;
 	};
 
 #undef GetterSetterBoolean

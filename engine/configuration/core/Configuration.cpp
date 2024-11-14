@@ -482,6 +482,47 @@ namespace core {
 			#undef get_level
 			}
 
+			if (root.contains("file_system"sv)) {
+				auto const& file_system = root.at("file_system"sv);
+				assert_type_is_object(file_system, "/file_system"sv);
+				if (file_system.contains("resources"sv)) {
+					auto const& resources = file_system.at("resources"sv);
+					assert_type_is_array(resources, "/file_system/resources"sv);
+					for (size_t i = 0; i < resources.size(); i += 1) {
+						auto const& resource = resources.at(i);
+						assert_type_is_object(resource, std::format("/file_system/resources/{}"sv, i));
+						ConfigurationLoader::FileSystem::ResourceFileSystem res;
+						if (resource.contains("name"sv)) {
+							auto const& name = resource.at("name"sv);
+							assert_type_is_string(name, std::format("/file_system/resources/{}/name"sv, i));
+							res.setName(name.get_ref<std::string const&>());
+						}
+						if (resource.contains("path"sv)) {
+							auto const& path = resource.at("path"sv);
+							assert_type_is_string(path, std::format("/file_system/resources/{}/path"sv, i));
+							res.setPath(path.get_ref<std::string const&>());
+						}
+						if (resource.contains("type"sv)) {
+							auto const& type = resource.at("type"sv);
+							assert_type_is_string(type, std::format("/file_system/resources/{}/type"sv, i));
+							auto const& s = type.get_ref<std::string const&>();
+							using Type = ConfigurationLoader::FileSystem::ResourceFileSystem::Type;
+							Type res_type{ Type::directory };
+							if (s == "directory"sv) { res_type = Type::directory; }
+							else if (s == "archive"sv) { res_type = Type::archive; }
+							else { error_callback(std::format("[/file_system/resources/{}/type] unknown resource type '{}'"sv, i, s)); return false; }
+							res.setType(res_type);
+						}
+						loader.file_system.resources.emplace_back(res);
+					}
+				}
+				if (file_system.contains("user"sv)) {
+					auto const& user = file_system.at("user"sv);
+					assert_type_is_string(user, "/file_system/user"sv);
+					loader.file_system.setUser(user.get_ref<std::string const&>());
+				}
+			}
+
 			return true;
 		}
 		static bool load(ConfigurationLoader& loader, std::string_view const& path) {

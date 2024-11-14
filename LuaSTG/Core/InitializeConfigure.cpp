@@ -13,15 +13,11 @@ namespace Core
 	{
 	#define SET(name) j[#name] = p.##name;
 
-		SET(engine_cache_directory);
-
 	#undef SET
 	}
 	inline void from_json(nlohmann::json const& j, InitializeConfigure& p)
 	{
 	#define GET(name) if (j.contains(#name)) { j.at(#name).get_to(p.##name); }
-
-		GET(engine_cache_directory);
 
 	#undef GET
 	}
@@ -56,7 +52,6 @@ namespace Core
 
 	void InitializeConfigure::reset()
 	{
-		engine_cache_directory.clear();
 	}
 	bool InitializeConfigure::load(std::string_view const source) noexcept
 	{
