@@ -780,15 +780,6 @@ namespace core {
 			include.erase(include.begin()); // need to remove used element
 		}
 
-		// final check
-
-		if (configuration.application) {
-			auto const& app = configuration.application.value();
-			if (app.single_instance && app.single_instance.value() && !app.uuid) {
-				messages.emplace_back(std::format("[{}] single_instance require uuid string to be set", path));
-			}
-		}
-
 		// apply
 
 		applyOnly();
@@ -805,6 +796,12 @@ namespace core {
 			if (!ConfigurationLoaderContext::load(*this, v)) {
 				return false;
 			}
+		}
+
+		// final check
+
+		if (application.isSingleInstance() && !application.hasUuid()) {
+			messages.emplace_back(std::format("[{}] single_instance require uuid string to be set", path));
 		}
 
 		return true;
