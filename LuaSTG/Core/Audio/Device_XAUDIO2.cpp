@@ -363,10 +363,10 @@ namespace Core::Audio
 
 	Device_XAUDIO2::Device_XAUDIO2()
 	{
-		auto const& conf_audio = core::ConfigurationLoader::getInstance().getInitialize().getAudioSystem();
-		m_target_audio_device_name = conf_audio.getPreferredEndpointName();
-		m_volume_sound_effect = conf_audio.getSoundEffectVolume();
-		m_volume_music = conf_audio.getMusicVolume();
+		auto const& config = core::ConfigurationLoader::getInstance().getAudioSystem();
+		m_target_audio_device_name = config.getPreferredEndpointName();
+		m_volume_sound_effect = config.getSoundEffectVolume();
+		m_volume_music = config.getMusicVolume();
 		if (!createResources())
 		{
 			i18n_core_system_call_report_error("Device_XAUDIO2::Device_XAUDIO2 (1)");

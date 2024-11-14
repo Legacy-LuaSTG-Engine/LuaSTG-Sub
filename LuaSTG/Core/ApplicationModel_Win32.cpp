@@ -671,7 +671,7 @@ namespace Core
 		if (!Graphics::Window_Win32::create(~m_window))
 			throw std::runtime_error("Graphics::Window_Win32::create");
 		m_window->implSetApplicationModel(this);
-		auto const& gpu = core::ConfigurationLoader::getInstance().getInitialize().getGraphicsSystem().getPreferredDeviceName();
+		auto const& gpu = core::ConfigurationLoader::getInstance().getGraphicsSystem().getPreferredDeviceName();
 		if (!Graphics::Device_D3D11::create(gpu, ~m_device))
 			throw std::runtime_error("Graphics::Device_D3D11::create");
 		if (!Graphics::SwapChain_D3D11::create(*m_window, *m_device, ~m_swapchain))

@@ -6,60 +6,6 @@
 #include <functional>
 
 namespace core {
-	struct Configuration {
-	public:
-		struct Display {
-			std::string device_name;
-			int32_t left{};
-			int32_t top{};
-			int32_t right{};
-			int32_t bottom{};
-		};
-
-		struct GraphicsSystem {
-			std::optional<std::string> preferred_device_name;
-			std::optional<uint32_t> width;
-			std::optional<uint32_t> height;
-			std::optional<bool> fullscreen;
-			std::optional<bool> vsync;
-			std::optional<Display> display;
-		};
-
-		struct AudioSystem {
-			std::optional<std::string> preferred_endpoint_name;
-			std::optional<float> sound_effect_volume;
-			std::optional<float> music_volume;
-		};
-
-		struct InitWindow {
-			std::optional<std::string> title;
-			std::optional<bool> cursor_visible;
-			std::optional<bool> allow_window_corner;
-		};
-
-		struct Initialize {
-			std::optional<GraphicsSystem> graphics_system;
-			std::optional<AudioSystem> audio_system;
-			std::optional<InitWindow> window;
-		};
-
-		std::optional<Initialize> initialize;
-
-	private:
-		std::function<void(std::string_view const&)> error_callback;
-
-		bool allow_include{ false };
-
-	public:
-		void setErrorCallback(std::function<void(std::string_view const&)> const& cb);
-
-		inline void setAllowInclude(bool const v) { allow_include = v; }
-
-		bool loadFromFile(std::string_view const& path);
-
-		Configuration();
-	};
-
 #define GetterSetterBoolean(_class_, _field_, _method_name_) \
 	inline bool is##_method_name_ () const noexcept { return _field_ ; }; \
 	inline _class_ & set##_method_name_ (bool const _field_##_ ) { _field_ = _field_##_ ; return *this; }
@@ -172,7 +118,23 @@ namespace core {
 		private:
 			uint32_t frame_rate{ 60 };
 		};
-
+		/* TODO*/ struct Display {
+			std::string device_name;
+			int32_t left{};
+			int32_t top{};
+			int32_t right{};
+			int32_t bottom{};
+		};
+		class Window {
+		public:
+			GetterSetterString(Window, title, Title);
+			GetterSetterBoolean(Window, cursor_visible, CursorVisible);
+			GetterSetterBoolean(Window, allow_window_corner, AllowWindowCorner);
+		private:
+			std::string title;
+			bool cursor_visible{ true };
+			bool allow_window_corner{ true };
+		};
 		class GraphicsSystem {
 		public:
 			GetterSetterString(GraphicsSystem, preferred_device_name, PreferredDeviceName);
@@ -182,8 +144,8 @@ namespace core {
 			GetterSetterBoolean(GraphicsSystem, vsync, Vsync);
 		private:
 			std::string preferred_device_name;
-			uint32_t width{ 640 };
-			uint32_t height{ 480 };
+			uint32_t width{ 640u };
+			uint32_t height{ 480u };
 			bool fullscreen{};
 			bool vsync{};
 		};
@@ -194,32 +156,10 @@ namespace core {
 			GetterSetterPrimitive(AudioSystem, float, music_volume, MusicVolume);
 		private:
 			std::string preferred_endpoint_name;
-			float sound_effect_volume{ 1.0 };
+			float sound_effect_volume{ 1.0f };
 			float music_volume{ 1.0f };
 		};
-		class InitWindow {
-		public:
-			GetterSetterString(InitWindow, title, Title);
-			GetterSetterBoolean(InitWindow, cursor_visible, CursorVisible);
-			GetterSetterBoolean(InitWindow, allow_window_corner, AllowWindowCorner);
-		private:
-			std::string title;
-			bool cursor_visible{ true };
-			bool allow_window_corner{ true };
-		};
-		class Initialize {
-			friend class ConfigurationLoader;
-		public:
-			inline GraphicsSystem const& getGraphicsSystem() const noexcept { return graphics_system; }
-			inline AudioSystem const& getAudioSystem() const noexcept { return audio_system; }
-			inline InitWindow const& getWindow() const noexcept { return window; }
-		private:
-			GraphicsSystem graphics_system;
-			AudioSystem audio_system;
-			InitWindow window;
-		};
 	public:
-		void merge(Configuration const& config);
 		bool loadFromFile(std::string_view const& path);
 		inline std::vector<std::string> const& getMessages() const noexcept { return messages; }
 		std::string getFormattedMessage();
@@ -228,8 +168,13 @@ namespace core {
 		inline Logging const& getLogging() const noexcept { return logging; }
 		inline FileSystem const& getFileSystem() const noexcept { return file_system; }
 		inline Timing const& getTiming() const noexcept { return timing; }
-
-		inline Initialize const& getInitialize() const noexcept { return initialize; }
+		inline Window const& getWindow() const noexcept { return window; }
+		inline GraphicsSystem const& getGraphicsSystem() const noexcept { return graphics_system; }
+		inline AudioSystem const& getAudioSystem() const noexcept { return audio_system; }
+	public:
+		inline Window& getWindowRef() { return window; }
+		inline GraphicsSystem& getGraphicsSystemRef() { return graphics_system; }
+		inline AudioSystem& getAudioSystemRef() { return audio_system; }
 	public:
 		static bool exists(std::string_view const& path);
 		static ConfigurationLoader& getInstance();
@@ -240,8 +185,9 @@ namespace core {
 		Logging logging;
 		FileSystem file_system;
 		Timing timing;
-
-		Initialize initialize;
+		Window window;
+		GraphicsSystem graphics_system;
+		AudioSystem audio_system;
 	};
 
 #undef GetterSetterBoolean

@@ -84,10 +84,6 @@ namespace core {
 	#undef is_not_uuid_char
 	}
 
-	static void defaultErrorCallback(std::string_view const& message) {
-		std::cout << message << std::endl;
-	}
-
 	static bool readTextFile(std::string_view const& path, std::string& str) {
 		str.clear();
 		std::error_code ec;
@@ -137,130 +133,6 @@ namespace core {
 		}
 		return "unknown"sv;
 	};
-
-	void Configuration::setErrorCallback(std::function<void(std::string_view const&)> const& cb) {
-		error_callback = cb;
-	}
-
-	bool Configuration::loadFromFile(std::string_view const& path) {
-		std::string json_text;
-		if (!readTextFile(path, json_text)) {
-			return false;
-		}
-
-		auto const root = nlohmann::json::parse(json_text, nullptr, false);
-		if (root.is_discarded()) {
-			return false;
-		}
-
-		// initialize
-
-		if (root.contains("initialize"sv)) {
-			assert_type_is_object(root.at("initialize"sv), "/initialize"sv);
-			auto const& root_initialize = root.at("initialize"sv);
-			initialize.emplace();
-
-			// graphics system
-
-			if (root_initialize.contains("graphics_system"sv)) {
-				assert_type_is_object(root_initialize.at("graphics_system"sv), "/initialize/graphics_system"sv);
-				auto const& init_graphics = root_initialize.at("graphics_system"sv);
-				auto& self_graphics = initialize.value().graphics_system.emplace();
-				if (init_graphics.contains("preferred_device_name"sv)) {
-					auto const& gs_preferred_device_name = init_graphics.at("preferred_device_name"sv);
-					assert_type_is_string(gs_preferred_device_name, "/initialize/graphics_system/preferred_device_name"sv);
-					self_graphics.preferred_device_name.emplace(gs_preferred_device_name.get_ref<std::string const&>());
-				}
-				if (init_graphics.contains("width"sv)) {
-					assert_type_is_unsigned_integer(init_graphics.at("width"sv), "/initialize/graphics_system/width"sv);
-					auto const width = self_graphics.width.emplace(init_graphics.at("width"sv).get<uint32_t>());
-					if (width == 0) {
-						error_callback("[/initialize/graphics_system/width] width must be greater than zero"sv);
-						return false;
-					}
-				}
-				if (init_graphics.contains("height"sv)) {
-					assert_type_is_unsigned_integer(init_graphics.at("height"sv), "/initialize/graphics_system/height"sv);
-					auto const height = self_graphics.height.emplace(init_graphics.at("height"sv).get<uint32_t>());
-					if (height == 0) {
-						error_callback("[/initialize/graphics_system/height] height must be greater than zero"sv);
-						return false;
-					}
-				}
-				if (init_graphics.contains("fullscreen"sv)) {
-					assert_type_is_boolean(init_graphics.at("fullscreen"sv), "/initialize/graphics_system/fullscreen"sv);
-					self_graphics.fullscreen.emplace(init_graphics.at("fullscreen"sv).get<bool>());
-				}
-				if (init_graphics.contains("vsync"sv)) {
-					assert_type_is_boolean(init_graphics.at("vsync"sv), "/initialize/graphics_system/vsync"sv);
-					self_graphics.vsync.emplace(init_graphics.at("vsync"sv).get<bool>());
-				}
-				//if (init_graphics.contains("display"sv)) {
-				//	assert_type_is_object(init_graphics.at("display"sv), "/initialize/graphics_system/display"sv);
-				//	auto const& init_graphics_display = init_graphics.at("display"sv);
-				//	auto& self_display = self_graphics.display.emplace();
-				//	// TODO
-				//}
-			}
-
-			// audio system
-
-			if (root_initialize.contains("audio_system"sv)) {
-				assert_type_is_object(root_initialize.at("audio_system"sv), "/initialize/audio_system"sv);
-				auto const& init_audio = root_initialize.at("audio_system"sv);
-				auto& self_audio = initialize.value().audio_system.emplace();
-				if (init_audio.contains("preferred_endpoint_name"sv)) {
-					auto const& as_preferred_endpoint_name = init_audio.at("preferred_endpoint_name"sv);
-					assert_type_is_string(as_preferred_endpoint_name, "/initialize/audio_system/preferred_endpoint_name"sv);
-					self_audio.preferred_endpoint_name.emplace(as_preferred_endpoint_name.get_ref<std::string const&>());
-				}
-				if (init_audio.contains("sound_effect_volume"sv)) {
-					assert_type_is_number(init_audio.at("sound_effect_volume"sv), "/initialize/audio_system/sound_effect_volume"sv);
-					auto const volume = self_audio.sound_effect_volume.emplace(init_audio.at("sound_effect_volume"sv).get<float>());
-					if (volume < 0.0f || volume > 1.0f) {
-						error_callback("[/initialize/audio_system/sound_effect_volume] out of range [0.0, 1.0]"sv);
-						return false;
-					}
-				}
-				if (init_audio.contains("music_volume"sv)) {
-					assert_type_is_number(init_audio.at("music_volume"sv), "/initialize/audio_system/music_volume"sv);
-					auto const volume = self_audio.music_volume.emplace(init_audio.at("music_volume"sv).get<float>());
-					if (volume < 0.0f || volume > 1.0f) {
-						error_callback("[/initialize/audio_system/music_volume] out of range [0.0, 1.0]"sv);
-						return false;
-					}
-				}
-			}
-
-			// window
-
-			if (root_initialize.contains("window"sv)) {
-				auto const& init_win = root_initialize.at("window"sv);
-				assert_type_is_object(init_win, "/initialize/window"sv);
-				auto& self_win = initialize.value().window.emplace();
-				if (init_win.contains("title"sv)) {
-					auto const& title = init_win.at("title"sv);
-					assert_type_is_string(title, "/initialize/window/title"sv);
-					self_win.title.emplace(title.get_ref<std::string const&>());
-				}
-				if (init_win.contains("cursor_visible"sv)) {
-					auto const& cursor_visible = init_win.at("cursor_visible"sv);
-					assert_type_is_boolean(cursor_visible, "/initialize/window/cursor_visible"sv);
-					self_win.cursor_visible.emplace(cursor_visible.get<bool>());
-				}
-				if (init_win.contains("allow_window_corner"sv)) {
-					auto const& allow_window_corner = init_win.at("allow_window_corner"sv);
-					assert_type_is_boolean(allow_window_corner, "/initialize/window/allow_window_corner"sv);
-					self_win.allow_window_corner.emplace(allow_window_corner.get<bool>());
-				}
-			}
-		}
-
-		return true;
-	}
-
-	Configuration::Configuration() : error_callback(defaultErrorCallback) {
-	}
 }
 
 namespace core {
@@ -486,6 +358,97 @@ namespace core {
 				}
 			}
 
+			if (root.contains("window"sv)) {
+				auto const& window = root.at("window"sv);
+				assert_type_is_object(window, "/window"sv);
+				if (window.contains("title"sv)) {
+					auto const& title = window.at("title"sv);
+					assert_type_is_string(title, "/window/title"sv);
+					loader.window.setTitle(title.get_ref<std::string const&>());
+				}
+				if (window.contains("cursor_visible"sv)) {
+					auto const& cursor_visible = window.at("cursor_visible"sv);
+					assert_type_is_boolean(cursor_visible, "/window/cursor_visible"sv);
+					loader.window.setCursorVisible(cursor_visible.get<bool>());
+				}
+				if (window.contains("allow_window_corner"sv)) {
+					auto const& allow_window_corner = window.at("allow_window_corner"sv);
+					assert_type_is_boolean(allow_window_corner, "/window/allow_window_corner"sv);
+					loader.window.setAllowWindowCorner(allow_window_corner.get<bool>());
+				}
+			}
+
+			if (root.contains("graphics_system"sv)) {
+				auto const& graphics_system = root.at("graphics_system"sv);
+				assert_type_is_object(graphics_system, "/graphics_system"sv);
+				if (graphics_system.contains("preferred_device_name"sv)) {
+					auto const& preferred_device_name = graphics_system.at("preferred_device_name"sv);
+					assert_type_is_string(preferred_device_name, "/graphics_system/preferred_device_name"sv);
+					loader.graphics_system.setPreferredDeviceName(preferred_device_name.get_ref<std::string const&>());
+				}
+				if (graphics_system.contains("width"sv)) {
+					auto const& width = graphics_system.at("width"sv);
+					assert_type_is_unsigned_integer(width, "/graphics_system/width"sv);
+					auto const v = width.get<uint32_t>();
+					if (width == 0) {
+						error_callback("[/graphics_system/width] width must be greater than zero"sv);
+						return false;
+					}
+					loader.graphics_system.setWidth(v);
+				}
+				if (graphics_system.contains("height"sv)) {
+					auto const& height = graphics_system.at("height"sv);
+					assert_type_is_unsigned_integer(height, "/graphics_system/height"sv);
+					auto const v = height.get<uint32_t>();
+					if (height == 0) {
+						error_callback("[/graphics_system/height] width must be greater than zero"sv);
+						return false;
+					}
+					loader.graphics_system.setHeight(v);
+				}
+				if (graphics_system.contains("fullscreen"sv)) {
+					auto const& fullscreen = graphics_system.at("fullscreen"sv);
+					assert_type_is_boolean(fullscreen, "/graphics_system/fullscreen"sv);
+					loader.graphics_system.setFullscreen(fullscreen.get<bool>());
+				}
+				if (graphics_system.contains("vsync"sv)) {
+					auto const& vsync = graphics_system.at("vsync"sv);
+					assert_type_is_boolean(vsync, "/graphics_system/vsync"sv);
+					loader.graphics_system.setVsync(vsync.get<bool>());
+				}
+				// TODO: display
+			}
+
+			if (root.contains("audio_system"sv)) {
+				auto const& audio_system = root.at("audio_system"sv);
+				assert_type_is_object(audio_system, "/audio_system"sv);
+				if (audio_system.contains("preferred_endpoint_name"sv)) {
+					auto const& preferred_endpoint_name = audio_system.at("preferred_endpoint_name"sv);
+					assert_type_is_string(preferred_endpoint_name, "/audio_system/preferred_endpoint_name"sv);
+					loader.audio_system.setPreferredEndpointName(preferred_endpoint_name.get_ref<std::string const&>());
+				}
+				if (audio_system.contains("sound_effect_volume"sv)) {
+					auto const& sound_effect_volume = audio_system.at("sound_effect_volume"sv);
+					assert_type_is_number(sound_effect_volume, "/audio_system/sound_effect_volume"sv);
+					auto const v = sound_effect_volume.get<float>();
+					if (v < 0.0f || v > 1.0f) {
+						error_callback("[/audio_system/sound_effect_volume] out of range [0.0, 1.0]"sv);
+						return false;
+					}
+					loader.audio_system.setSoundEffectVolume(v);
+				}
+				if (audio_system.contains("music_volume"sv)) {
+					auto const& music_volume = audio_system.at("music_volume"sv);
+					assert_type_is_number(music_volume, "/audio_system/music_volume"sv);
+					auto const v = music_volume.get<float>();
+					if (v < 0.0f || v > 1.0f) {
+						error_callback("[/audio_system/music_volume] out of range [0.0, 1.0]"sv);
+						return false;
+					}
+					loader.audio_system.setMusicVolume(v);
+				}
+			}
+
 			return true;
 		}
 		static bool load(ConfigurationLoader& loader, std::vector<Include>* include_out, std::string_view const& path) {
@@ -502,10 +465,6 @@ namespace core {
 			return merge(loader, include_out, root);
 		}
 	};
-
-	void ConfigurationLoader::merge(Configuration const& patch) {
-		// TODO
-	}
 
 	bool ConfigurationLoader::loadFromFile(std::string_view const& path) {
 		// load

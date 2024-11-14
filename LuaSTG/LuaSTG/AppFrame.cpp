@@ -35,57 +35,57 @@ void AppFrame::SetFPS(uint32_t v)noexcept
 {
 	m_target_fps = std::max(1u, v); // 最低也得有1FPS每秒
 }
-void AppFrame::SetSEVolume(float v)
-{
-	core::Configuration config;
-	config.initialize.emplace().audio_system.emplace().sound_effect_volume.emplace(v);
-	core::ConfigurationLoader::getInstance().merge(config);
-	if (GetAppModel())
-		GetAppModel()->getAudioDevice()->setMixChannelVolume(Core::Audio::MixChannel::SoundEffect, v);
+void AppFrame::SetSEVolume(float v) {
+	if (m_pAppModel) {
+		m_pAppModel->getAudioDevice()->setMixChannelVolume(Core::Audio::MixChannel::SoundEffect, v);
+	}
+	else {
+		core::ConfigurationLoader::getInstance().getAudioSystemRef().setSoundEffectVolume(v);
+	}
 }
-void AppFrame::SetBGMVolume(float v)
-{
-	core::Configuration config;
-	config.initialize.emplace().audio_system.emplace().music_volume.emplace(v);
-	core::ConfigurationLoader::getInstance().merge(config);
-	if (GetAppModel())
-		GetAppModel()->getAudioDevice()->setMixChannelVolume(Core::Audio::MixChannel::Music, v);
+void AppFrame::SetBGMVolume(float v) {
+	if (m_pAppModel) {
+		m_pAppModel->getAudioDevice()->setMixChannelVolume(Core::Audio::MixChannel::Music, v);
+	}
+	else {
+		core::ConfigurationLoader::getInstance().getAudioSystemRef().setMusicVolume(v);
+	}
 }
 float AppFrame::GetSEVolume() {
-	if (GetAppModel()) {
-		return GetAppModel()->getAudioDevice()->getMixChannelVolume(Core::Audio::MixChannel::SoundEffect);
+	if (m_pAppModel) {
+		return m_pAppModel->getAudioDevice()->getMixChannelVolume(Core::Audio::MixChannel::SoundEffect);
 	}
-	return core::ConfigurationLoader::getInstance().getInitialize().getAudioSystem().getSoundEffectVolume();
+	else {
+		return core::ConfigurationLoader::getInstance().getAudioSystem().getSoundEffectVolume();
+	}
 }
 float AppFrame::GetBGMVolume() {
-	if (GetAppModel()) {
-		return GetAppModel()->getAudioDevice()->getMixChannelVolume(Core::Audio::MixChannel::Music);
+	if (m_pAppModel) {
+		return m_pAppModel->getAudioDevice()->getMixChannelVolume(Core::Audio::MixChannel::Music);
 	}
-	return core::ConfigurationLoader::getInstance().getInitialize().getAudioSystem().getSoundEffectVolume();
+	else {
+		return core::ConfigurationLoader::getInstance().getAudioSystem().getMusicVolume();
+	}
 }
 void AppFrame::SetTitle(const char* v)noexcept
 {
-	try
-	{
-		if (m_pAppModel) {
-			m_pAppModel->getWindow()->setTitleText(v);
-		}
-		else {
-			core::Configuration config;
-			config.initialize.emplace().window.emplace().title.emplace(v);
-			core::ConfigurationLoader::getInstance().merge(config);
-		}
+	if (m_pAppModel) {
+		m_pAppModel->getWindow()->setTitleText(v);
 	}
-	catch (const std::bad_alloc&)
-	{
-		spdlog::error("[luastg] SetTitle: 内存不足");
+	else {
+		auto& win = core::ConfigurationLoader::getInstance().getWindowRef();
+		win.setTitle(v);
 	}
 }
 void AppFrame::SetPreferenceGPU(const char* v) noexcept
 {
-	core::Configuration config;
-	config.initialize.emplace().graphics_system.emplace().preferred_device_name.emplace(v);
-	core::ConfigurationLoader::getInstance().merge(config);
+	if (m_pAppModel) {
+		// TODO
+	}
+	else {
+		auto& gs = core::ConfigurationLoader::getInstance().getGraphicsSystemRef();
+		gs.setPreferredDeviceName(v);
+	}
 }
 void AppFrame::SetSplash(bool v)noexcept
 {
@@ -93,13 +93,12 @@ void AppFrame::SetSplash(bool v)noexcept
 		m_pAppModel->getWindow()->setCursor(v ? Core::Graphics::WindowCursor::Arrow : Core::Graphics::WindowCursor::None);
 	}
 	else {
-		core::Configuration config;
-		config.initialize.emplace().window.emplace().cursor_visible.emplace(v);
-		core::ConfigurationLoader::getInstance().merge(config);
+		auto& win = core::ConfigurationLoader::getInstance().getWindowRef();
+		win.setCursorVisible(v);
 	}
 }
 
-int AppFrame::LoadTextFile(lua_State* L_, const char* path, const char *packname)noexcept
+int AppFrame::LoadTextFile(lua_State* L_, const char* path, const char* packname)noexcept
 {
 	if (ResourceMgr::GetResourceLoadingLog()) {
 		if (packname)
@@ -136,7 +135,7 @@ int AppFrame::LoadTextFile(lua_State* L_, const char* path, const char *packname
 bool AppFrame::Init()noexcept
 {
 	assert(m_iStatus == AppStatus::NotInitialized);
-	
+
 	spdlog::info(LUASTG_INFO);
 	spdlog::info("[luastg] 初始化引擎");
 	m_iStatus = AppStatus::Initializing;
@@ -160,22 +159,22 @@ bool AppFrame::Init()noexcept
 	}
 
 	//////////////////////////////////////// Lua 引擎
-	
+
 	spdlog::info("[luastg] 初始化luajit引擎");
-	
+
 	// 开启Lua引擎
 	if (!OnOpenLuaEngine())
 	{
 		spdlog::info("[luastg] 初始化luajit引擎失败");
 		return false;
 	}
-	
+
 	// 加载初始化脚本（可选）
 	if (!OnLoadLaunchScriptAndFiles())
 	{
 		return false;
 	}
-	
+
 	//////////////////////////////////////// 应用程序模型、窗口子系统、图形子系统、音频子系统等
 
 	{
@@ -197,10 +196,10 @@ bool AppFrame::Init()noexcept
 			spdlog::error("[luastg] 无法为对象池分配内存");
 			return false;
 		}
-		
+
 		// 渲染器适配器
 		m_bRenderStarted = false;
-		
+
 		OpenInput();
 
 		// 创建手柄输入
@@ -225,31 +224,31 @@ bool AppFrame::Init()noexcept
 		{
 			spdlog::error("[luastg] 无法为 DirectInput 分配内存");
 		}
-		
+
 		// 初始化ImGui
-		#ifdef USING_DEAR_IMGUI
-			imgui::bindEngine();
-		#endif
-		
+	#ifdef USING_DEAR_IMGUI
+		imgui::bindEngine();
+	#endif
+
 		if (!InitializationApplySettingStage2())
 			return false;
 	}
-	
+
 	// 装载main脚本
 	if (!OnLoadMainScriptAndFiles())
 	{
 		return false;
 	}
-	
+
 	//////////////////////////////////////// 初始化完成
 	m_iStatus = AppStatus::Initialized;
 	spdlog::info("[luastg] 初始化完成");
-	
+
 	//////////////////////////////////////// 调用GameInit
 	if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineInit)) {
 		return false;
 	}
-	
+
 	return true;
 }
 void AppFrame::Shutdown()noexcept
@@ -257,7 +256,7 @@ void AppFrame::Shutdown()noexcept
 	if (L) {
 		SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineStop);
 	}
-	
+
 	m_GameObjectPool = nullptr;
 	spdlog::info("[luastg] 清空对象池");
 
@@ -271,15 +270,15 @@ void AppFrame::Shutdown()noexcept
 	m_stRenderTargetStack.clear();
 	m_ResourceMgr.ClearAllResource();
 	spdlog::info("[luastg] 清空所有游戏资源");
-	
+
 	// 卸载ImGui
-	#ifdef USING_DEAR_IMGUI
-		imgui::unbindEngine();
-	#endif
+#ifdef USING_DEAR_IMGUI
+	imgui::unbindEngine();
+#endif
 
 	GFileManager().unloadAllFileArchive();
 	spdlog::info("[luastg] 卸载所有资源包");
-	
+
 	CloseInput();
 	m_DirectInput = nullptr;
 	m_pTextRenderer = nullptr;
@@ -292,13 +291,13 @@ void AppFrame::Run()noexcept
 {
 	assert(m_iStatus == AppStatus::Initialized);
 	spdlog::info("[luastg] 开始更新&渲染循环");
-	
+
 	m_pAppModel->getWindow()->addEventListener(this);
 	m_pAppModel->getSwapChain()->addEventListener(this);
 
 	m_pAppModel->getFrameRateController()->setTargetFPS(m_target_fps);
 	m_pAppModel->run();
-	
+
 	m_pAppModel->getSwapChain()->removeEventListener(this);
 	m_pAppModel->getWindow()->removeEventListener(this);
 

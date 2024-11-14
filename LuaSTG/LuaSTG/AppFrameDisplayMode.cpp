@@ -41,8 +41,8 @@ namespace LuaSTGPlus
 		}
 		// 配置窗口
 		{
-			auto const& gs = core::ConfigurationLoader::getInstance().getInitialize().getGraphicsSystem();
-			auto const& win = core::ConfigurationLoader::getInstance().getInitialize().getWindow();
+			auto const& gs = core::ConfigurationLoader::getInstance().getGraphicsSystem();
+			auto const& win = core::ConfigurationLoader::getInstance().getWindow();
 			using namespace Core::Graphics;
 			auto* p_window = m_pAppModel->getWindow();
 			p_window->setTitleText(win.hasTitle() ? win.getTitle() : std::string(LUASTG_INFO));
@@ -58,7 +58,7 @@ namespace LuaSTGPlus
 
 	bool AppFrame::InitializationApplySettingStage2()
 	{
-		auto const& gs = core::ConfigurationLoader::getInstance().getInitialize().getGraphicsSystem();
+		auto const& gs = core::ConfigurationLoader::getInstance().getGraphicsSystem();
 		auto* p_window = m_pAppModel->getWindow();
 		auto* p_swapchain = GetAppModel()->getSwapChain();
 		// 先初始化交换链
@@ -79,9 +79,8 @@ namespace LuaSTGPlus
 	{
 		if (m_iStatus == AppStatus::Initializing)
 		{
-			core::Configuration config;
-			config.initialize.emplace().graphics_system.emplace().fullscreen.emplace(!v);
-			core::ConfigurationLoader::getInstance().merge(config);
+			auto& gs = core::ConfigurationLoader::getInstance().getGraphicsSystemRef();
+			gs.setFullscreen(!v);
 		}
 		else if (m_iStatus == AppStatus::Running)
 		{
@@ -93,9 +92,8 @@ namespace LuaSTGPlus
 	{
 		if (m_iStatus == AppStatus::Initializing)
 		{
-			core::Configuration config;
-			config.initialize.emplace().graphics_system.emplace().vsync.emplace(v);
-			core::ConfigurationLoader::getInstance().merge(config);
+			auto& gs = core::ConfigurationLoader::getInstance().getGraphicsSystemRef();
+			gs.setVsync(v);
 		}
 		else if (m_iStatus == AppStatus::Running)
 		{
@@ -107,11 +105,9 @@ namespace LuaSTGPlus
 	{
 		if (m_iStatus == AppStatus::Initializing)
 		{
-			core::Configuration config;
-			auto& gs = config.initialize.emplace().graphics_system.emplace();
-			gs.width.emplace(width);
-			gs.height.emplace(height);
-			core::ConfigurationLoader::getInstance().merge(config);
+			auto& gs = core::ConfigurationLoader::getInstance().getGraphicsSystemRef();
+			gs.setWidth(width);
+			gs.setHeight(height);
 		}
 		else if (m_iStatus == AppStatus::Running)
 			spdlog::warn("[luastg] SetResolution: 试图在运行时更改分辨率");
