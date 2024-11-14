@@ -194,29 +194,6 @@ namespace core {
 			}
 		}
 
-		// application
-
-		if (root.contains("application"sv)) {
-			auto const& root_app = root.at("application"sv);
-			assert_type_is_object(root_app, "/application"sv);
-			auto& self_app = application.emplace();
-
-			if (root_app.contains("uuid"sv)) {
-				auto const& app_uuid = root_app.at("uuid"sv);
-				assert_type_is_string(app_uuid, "/application/uuid"sv);
-				auto const& uuid = self_app.uuid.emplace(app_uuid.get_ref<std::string const&>());
-				if (!is_uuid(uuid)) {
-					error_callback(std::format("[/application/uuid] require uuid string, but obtain '{}'"sv, uuid));
-					return false;
-				}
-			}
-			if (root_app.contains("single_instance"sv)) {
-				auto const& app_single_instance = root_app.at("single_instance"sv);
-				assert_type_is_boolean(app_single_instance, "/application/single_instance"sv);
-				[[maybe_unused]] auto const single_instance = self_app.single_instance.emplace(app_single_instance.get<bool>());
-			}
-		}
-
 		// initialize
 
 		if (root.contains("initialize"sv)) {
@@ -349,6 +326,26 @@ namespace core {
 			auto error_callback = [&](std::string_view const& message) {
 				messages.emplace_back(message);
 			};
+
+			if (root.contains("application"sv)) {
+				auto const& application = root.at("application"sv);
+				assert_type_is_object(application, "/application"sv);
+				if (application.contains("uuid"sv)) {
+					auto const& uuid = application.at("uuid"sv);
+					assert_type_is_string(uuid, "/application/uuid"sv);
+					auto const& s = uuid.get_ref<std::string const&>();
+					if (!is_uuid(s)) {
+						error_callback(std::format("[/application/uuid] require uuid string, but obtain '{}'"sv, s));
+						return false;
+					}
+					loader.application.setUuid(uuid);
+				}
+				if (application.contains("single_instance"sv)) {
+					auto const& single_instance = application.at("single_instance"sv);
+					assert_type_is_boolean(single_instance, "/application/single_instance"sv);
+					loader.application.setSingleInstance(single_instance.get<bool>());
+				}
+			}
 
 			if (root.contains("logging"sv)) {
 				using Level = ConfigurationLoader::Logging::Level;
@@ -530,25 +527,6 @@ namespace core {
 			}
 		}
 
-		if (patch.application.has_value()) {
-			// init self
-
-			if (!configuration.application.has_value()) {
-				configuration.application.emplace();
-			}
-			auto const& conf_app = patch.application.value();
-			auto& self_app = configuration.application.value();
-
-			// merge
-
-			if (conf_app.uuid.has_value()) {
-				self_app.uuid.emplace(conf_app.uuid.value());
-			}
-			if (conf_app.single_instance.has_value()) {
-				self_app.single_instance.emplace(conf_app.single_instance.value());
-			}
-		}
-
 		if (patch.initialize.has_value()) {
 			// init self
 
@@ -665,16 +643,6 @@ namespace core {
 			auto const& dbg = configuration.debug.value();
 			if (dbg.track_window_focus.has_value()) {
 				debug.setTrackWindowFocus(dbg.track_window_focus.value());
-			}
-		}
-
-		if (configuration.application.has_value()) {
-			auto const& app = configuration.application.value();
-			if (app.uuid.has_value()) {
-				application.setUuid(app.uuid.value());
-			}
-			if (app.single_instance.has_value()) {
-				application.setSingleInstance(app.single_instance.value());
 			}
 		}
 

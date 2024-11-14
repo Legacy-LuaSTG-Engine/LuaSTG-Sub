@@ -21,13 +21,6 @@ namespace core {
 
 		std::optional<Debug> debug;
 
-		struct Application {
-			std::optional<std::string> uuid;
-			std::optional<bool> single_instance;
-		};
-
-		std::optional<Application> application;
-
 		struct Display {
 			std::string device_name;
 			int32_t left{};
