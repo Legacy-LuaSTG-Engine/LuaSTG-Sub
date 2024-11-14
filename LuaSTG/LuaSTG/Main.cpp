@@ -8,12 +8,14 @@
 #include "AppFrame.h"
 #include "RuntimeCheck.hpp"
 #include "core/Configuration.hpp"
+#include <chrono>
 
 int luastg::sub::main() {
 #ifdef _DEBUG
 	_CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG) | _CRTDBG_LEAK_CHECK_DF);
 	// _CrtSetBreakAlloc(5351);
 #endif
+	auto const t1 = std::chrono::high_resolution_clock::now();
 
 	// STAGE 1: load application configurations
 
@@ -50,11 +52,17 @@ int luastg::sub::main() {
 
 	LuaSTG::Debugger::Logger::create();
 
+	auto const t2 = std::chrono::high_resolution_clock::now();
+	spdlog::info("Duration before logging system: {}s", double((t2 - t1).count()) / 1000000000.0);
+
 	int result = EXIT_SUCCESS;
 	if (LuaSTG::SteamAPI::Init())
 	{
 		if (LAPP.Init())
 		{
+			auto const t3 = std::chrono::high_resolution_clock::now();
+			spdlog::info("Duration of initialization: {}s", double((t3 - t2).count()) / 1000000000.0);
+
 			LAPP.Run();
 			result = EXIT_SUCCESS;
 		}
