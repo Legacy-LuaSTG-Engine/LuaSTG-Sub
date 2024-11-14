@@ -232,19 +232,6 @@ namespace core {
 				}
 			}
 
-			// application
-
-			if (root_initialize.contains("application"sv)) {
-				auto const& init_app = root_initialize.at("application"sv);
-				assert_type_is_object(init_app, "/initialize/application"sv);
-				auto& self_app = initialize.value().application.emplace();
-				if (init_app.contains("frame_rate"sv)) {
-					auto const& frame_rate = init_app.at("frame_rate"sv);
-					assert_type_is_unsigned_integer(frame_rate, "/initialize/application/frame_rate"sv);
-					self_app.frame_rate.emplace(frame_rate.get<uint32_t>());
-				}
-			}
-
 			// window
 
 			if (root_initialize.contains("window"sv)) {
@@ -486,6 +473,16 @@ namespace core {
 					auto const& user = file_system.at("user"sv);
 					assert_type_is_string(user, "/file_system/user"sv);
 					loader.file_system.setUser(user.get_ref<std::string const&>());
+				}
+			}
+
+			if (root.contains("timing"sv)) {
+				auto const& timing = root.at("timing"sv);
+				assert_type_is_object(timing, "/timing"sv);
+				if (timing.contains("frame_rate"sv)) {
+					auto const& frame_rate = timing.at("frame_rate"sv);
+					assert_type_is_unsigned_integer(frame_rate, "/timing/frame_rate"sv);
+					loader.timing.setFrameRate(frame_rate.get<uint32_t>());
 				}
 			}
 

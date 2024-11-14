@@ -36,8 +36,8 @@ namespace LuaSTGPlus
 	{
 		// 配置框架
 		{
-			auto const& app = core::ConfigurationLoader::getInstance().getInitialize().getApplication();
-			m_target_fps = std::max(1u, app.getFrameRate());
+			auto const& timing = core::ConfigurationLoader::getInstance().getTiming();
+			m_target_fps = std::max(1u, timing.getFrameRate());
 		}
 		// 配置窗口
 		{

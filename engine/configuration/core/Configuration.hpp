@@ -31,10 +31,6 @@ namespace core {
 			std::optional<float> music_volume;
 		};
 
-		struct InitApplication {
-			std::optional<uint32_t> frame_rate;
-		};
-
 		struct InitWindow {
 			std::optional<std::string> title;
 			std::optional<bool> cursor_visible;
@@ -44,7 +40,6 @@ namespace core {
 		struct Initialize {
 			std::optional<GraphicsSystem> graphics_system;
 			std::optional<AudioSystem> audio_system;
-			std::optional<InitApplication> application;
 			std::optional<InitWindow> window;
 		};
 
@@ -94,59 +89,6 @@ namespace core {
 		private:
 			std::string uuid;
 			bool single_instance{ false };
-		};
-		class GraphicsSystem {
-		public:
-			GetterSetterString(GraphicsSystem, preferred_device_name, PreferredDeviceName);
-			GetterSetterPrimitive(GraphicsSystem, uint32_t, width, Width);
-			GetterSetterPrimitive(GraphicsSystem, uint32_t, height, Height);
-			GetterSetterBoolean(GraphicsSystem, fullscreen, Fullscreen);
-			GetterSetterBoolean(GraphicsSystem, vsync, Vsync);
-		private:
-			std::string preferred_device_name;
-			uint32_t width{ 640 };
-			uint32_t height{ 480 };
-			bool fullscreen{};
-			bool vsync{};
-		};
-		class AudioSystem {
-		public:
-			GetterSetterString(AudioSystem, preferred_endpoint_name, PreferredEndpointName);
-			GetterSetterPrimitive(AudioSystem, float, sound_effect_volume, SoundEffectVolume);
-			GetterSetterPrimitive(AudioSystem, float, music_volume, MusicVolume);
-		private:
-			std::string preferred_endpoint_name;
-			float sound_effect_volume{ 1.0 };
-			float music_volume{ 1.0f };
-		};
-		class InitApplication {
-		public:
-			GetterSetterPrimitive(InitApplication, uint32_t, frame_rate, FrameRate);
-		private:
-			uint32_t frame_rate{ 60 };
-		};
-		class InitWindow {
-		public:
-			GetterSetterString(InitWindow, title, Title);
-			GetterSetterBoolean(InitWindow, cursor_visible, CursorVisible);
-			GetterSetterBoolean(InitWindow, allow_window_corner, AllowWindowCorner);
-		private:
-			std::string title;
-			bool cursor_visible{ true };
-			bool allow_window_corner{ true };
-		};
-		class Initialize {
-			friend class ConfigurationLoader;
-		public:
-			inline GraphicsSystem const& getGraphicsSystem() const noexcept { return graphics_system; }
-			inline AudioSystem const& getAudioSystem() const noexcept { return audio_system; }
-			inline InitApplication const& getApplication() const noexcept { return application; }
-			inline InitWindow const& getWindow() const noexcept { return window; }
-		private:
-			GraphicsSystem graphics_system;
-			AudioSystem audio_system;
-			InitApplication application;
-			InitWindow window;
 		};
 		class Logging {
 			friend class ConfigurationLoader;
@@ -224,6 +166,58 @@ namespace core {
 			std::vector<ResourceFileSystem> resources;
 			std::string user;
 		};
+		class Timing {
+		public:
+			GetterSetterPrimitive(Timing, uint32_t, frame_rate, FrameRate);
+		private:
+			uint32_t frame_rate{ 60 };
+		};
+
+		class GraphicsSystem {
+		public:
+			GetterSetterString(GraphicsSystem, preferred_device_name, PreferredDeviceName);
+			GetterSetterPrimitive(GraphicsSystem, uint32_t, width, Width);
+			GetterSetterPrimitive(GraphicsSystem, uint32_t, height, Height);
+			GetterSetterBoolean(GraphicsSystem, fullscreen, Fullscreen);
+			GetterSetterBoolean(GraphicsSystem, vsync, Vsync);
+		private:
+			std::string preferred_device_name;
+			uint32_t width{ 640 };
+			uint32_t height{ 480 };
+			bool fullscreen{};
+			bool vsync{};
+		};
+		class AudioSystem {
+		public:
+			GetterSetterString(AudioSystem, preferred_endpoint_name, PreferredEndpointName);
+			GetterSetterPrimitive(AudioSystem, float, sound_effect_volume, SoundEffectVolume);
+			GetterSetterPrimitive(AudioSystem, float, music_volume, MusicVolume);
+		private:
+			std::string preferred_endpoint_name;
+			float sound_effect_volume{ 1.0 };
+			float music_volume{ 1.0f };
+		};
+		class InitWindow {
+		public:
+			GetterSetterString(InitWindow, title, Title);
+			GetterSetterBoolean(InitWindow, cursor_visible, CursorVisible);
+			GetterSetterBoolean(InitWindow, allow_window_corner, AllowWindowCorner);
+		private:
+			std::string title;
+			bool cursor_visible{ true };
+			bool allow_window_corner{ true };
+		};
+		class Initialize {
+			friend class ConfigurationLoader;
+		public:
+			inline GraphicsSystem const& getGraphicsSystem() const noexcept { return graphics_system; }
+			inline AudioSystem const& getAudioSystem() const noexcept { return audio_system; }
+			inline InitWindow const& getWindow() const noexcept { return window; }
+		private:
+			GraphicsSystem graphics_system;
+			AudioSystem audio_system;
+			InitWindow window;
+		};
 	public:
 		void merge(Configuration const& config);
 		bool loadFromFile(std::string_view const& path);
@@ -231,19 +225,23 @@ namespace core {
 		std::string getFormattedMessage();
 		inline Debug const& getDebug() const noexcept { return debug; }
 		inline Application const& getApplication() const noexcept { return application; }
-		inline Initialize const& getInitialize() const noexcept { return initialize; }
 		inline Logging const& getLogging() const noexcept { return logging; }
 		inline FileSystem const& getFileSystem() const noexcept { return file_system; }
+		inline Timing const& getTiming() const noexcept { return timing; }
+
+		inline Initialize const& getInitialize() const noexcept { return initialize; }
 	public:
 		static bool exists(std::string_view const& path);
 		static ConfigurationLoader& getInstance();
 	private:
 		std::vector<std::string> messages;
 		Debug debug;
-		Initialize initialize;
 		Application application;
 		Logging logging;
 		FileSystem file_system;
+		Timing timing;
+
+		Initialize initialize;
 	};
 
 #undef GetterSetterBoolean
