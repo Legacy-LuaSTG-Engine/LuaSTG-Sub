@@ -50,6 +50,7 @@ namespace LuaSTGPlus
 			p_window->setNativeIcon((void*)(ptrdiff_t)IDI_APPICON);
 			p_window->setSize(Core::Vector2U(gs.getWidth(), gs.getHeight()));
 			p_window->setCentered(false);
+			p_window->setFrameStyle(Core::Graphics::WindowFrameStyle::Normal);
 			p_window->setWindowCornerPreference(win.isAllowWindowCorner());
 		}
 		return true;
