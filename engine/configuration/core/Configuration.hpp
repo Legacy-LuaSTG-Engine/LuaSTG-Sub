@@ -238,9 +238,6 @@ namespace core {
 		static bool exists(std::string_view const& path);
 		static ConfigurationLoader& getInstance();
 	private:
-		void mergeOnly(Configuration const& config);
-		void applyOnly();
-	private:
 		std::vector<std::string> messages;
 		Debug debug;
 		Initialize initialize;
