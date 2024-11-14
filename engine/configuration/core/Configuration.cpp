@@ -153,35 +153,6 @@ namespace core {
 			return false;
 		}
 
-		// legacy: compatible
-		// TODO: remove
-
-		if (root.contains("single_application_instance"sv)) {
-			auto const& v = root.at("single_application_instance"sv);
-			assert_type_is_boolean(v, "/single_application_instance"sv);
-			if (!application.has_value()) {
-				application.emplace();
-			}
-			application.value().single_instance.emplace(v.get<bool>());
-		}
-		if (root.contains("application_instance_id"sv)) {
-			auto const& v = root.at("application_instance_id"sv);
-			assert_type_is_string(v, "/application_instance_id"sv);
-			if (!application.has_value()) {
-				application.emplace();
-			}
-			application.value().uuid.emplace(v.get_ref<std::string const&>());
-		}
-
-		if (root.contains("debug_track_window_focus"sv)) {
-			auto const& v = root.at("debug_track_window_focus"sv);
-			assert_type_is_boolean(v, "/debug_track_window_focus"sv);
-			if (!debug.has_value()) {
-				debug.emplace();
-			}
-			debug.value().track_window_focus.emplace(v.get<bool>());
-		}
-
 		// include
 
 		if (root.contains("include"sv)) {
