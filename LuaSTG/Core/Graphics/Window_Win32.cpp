@@ -1,7 +1,7 @@
 #include "Core/Graphics/Window_Win32.hpp"
 #include "Core/ApplicationModel_Win32.hpp"
-#include "Core/InitializeConfigure.hpp"
 #include "Core/i18n.hpp"
+#include "core/Configuration.hpp"
 #include "win32/win32.hpp"
 #include "win32/abi.hpp"
 #include "Platform/WindowsVersion.hpp"
@@ -467,6 +467,9 @@ namespace Core::Graphics
 
 		Platform::WindowTheme::UpdateColorMode(win32_window, TRUE);
 		setWindowCornerPreference(m_allow_windows_11_window_corner);
+		if (win32_window_icon_id) {
+			SendMessageW(win32_window, LUASTG_WM_SETICON, 0, 0);
+		}
 
 		return true;
 	}
@@ -553,12 +556,12 @@ namespace Core::Graphics
 		{
 			BOOL const set_window_pos_result = SetWindowPos(
 				win32_window,
-				HWND_TOP,
+				m_hidewindow ? NULL : HWND_TOP,
 				(monitor_info.rcMonitor.right + monitor_info.rcMonitor.left) / 2 - (rect.right - rect.left) / 2,
 				(monitor_info.rcMonitor.bottom + monitor_info.rcMonitor.top) / 2 - (rect.bottom - rect.top) / 2,
 				rect.right - rect.left,
 				rect.bottom - rect.top,
-				SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+				SWP_FRAMECHANGED | (m_hidewindow ? SWP_NOZORDER : SWP_SHOWWINDOW));
 			assert(set_window_pos_result); (void)set_window_pos_result;
 		}
 
@@ -956,10 +959,12 @@ namespace Core::Graphics
 		SendMessageW(win32_window, LUASTG_WM_SET_FULLSCREEN_MODE, 0, reinterpret_cast<LPARAM>(display));
 	}
 	void Window_Win32::setCentered(bool show, IDisplay* display) {
+		Core::ScopeObject<IDisplay> local_display;
 		if (!display) {
-			if (!IDisplay::getNearestFromWindow(this, &display)) {
+			if (!IDisplay::getNearestFromWindow(this, ~local_display)) {
 				return;
 			}
+			display = local_display.get();
 		}
 		RECT r{};
 		[[maybe_unused]] auto const result1 = GetWindowRect(win32_window, &r);
@@ -1110,11 +1115,7 @@ namespace Core::Graphics
 
 	Window_Win32::Window_Win32()
 	{
-		InitializeConfigure config;
-		config.loadFromFile("config.json");
-		if (config.debug_track_window_focus) {
-			enable_track_window_focus = true;
-		}
+		enable_track_window_focus = core::ConfigurationLoader::getInstance().getDebug().isTrackWindowFocus();
 		win32_window_dpi = win32::getUserDefaultScreenDpi();
 		win32_window_text_w.fill(L'\0');
 		if (!createWindowClass())

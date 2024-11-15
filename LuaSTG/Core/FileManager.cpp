@@ -431,40 +431,21 @@ namespace Core
         uintmax_t file_size = std::filesystem::file_size(wide_path, ec);
         return file_size == static_cast<uintmax_t>(-1) ? invalid_size : static_cast<size_t>(file_size);
     }
-    size_t FileManager::getSizeEx(std::string_view const& name)
-    {
-        // 优先搜索有无对应文件 没有再搜索压缩包内是否存在对应文件 与loadEx的顺序相反
-        // 先对默认路径运用一遍proc 无结果再对搜索路径应用一编proc
-        auto proc = [&](std::string_view const& name) -> size_t
-            {
-                size_t file_size = getSize(name);
-                if (invalid_size != file_size)
-                {
+    size_t FileManager::getSizeEx(std::string_view const& name) {
+        auto proc = [&](std::string_view const& name) -> size_t {
+            for (auto& ar : archive) {
+                if (auto const file_size = ar->getSize(name); invalid_size != file_size) {
                     return file_size;
                 }
-                for (auto& arc : archive)
-                {
-                    file_size = arc->getSize(name);
-                    if (invalid_size != file_size)
-                    {
-                        return file_size;
-                    }
-                }
-
-                return invalid_size;
-            };
-
-        size_t file_size = proc(name);
-        if (invalid_size != file_size)
-        {
+            }
+            return getSize(name);
+        };
+        if (auto const file_size = proc(name); invalid_size != file_size) {
             return file_size;
         }
-        for (auto& p : search_list)
-        {
+        for (auto& p : search_list) {
             std::string path(p); path.append(name);
-            file_size = proc(path);
-            if (invalid_size != file_size)
-            {
+            if (auto const file_size = proc(path); invalid_size != file_size) {
                 return file_size;
             }
         }

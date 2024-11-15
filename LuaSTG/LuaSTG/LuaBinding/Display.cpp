@@ -1,5 +1,6 @@
 #include "Display.hpp"
 #include "lua_utility.hpp"
+#include "wil/resource.h"
 
 static void pushSize(lua_State* L, lua_Number const width, lua_Number const height) {
 	lua::stack_t S(L);
@@ -130,6 +131,13 @@ namespace LuaSTG::Sub::LuaBinding {
 			}
 
 			std::vector<Core::Graphics::IDisplay*> list(count);
+			[[maybe_unused]] auto release_list = wil::scope_exit([&]() -> void {
+				for (auto ptr : list) {
+					if (ptr) {
+						ptr->release();
+					}
+				}
+			});
 			if (!Core::Graphics::IDisplay::getAll(&count, list.data())) {
 				return luaL_error(L, "lstg.Display.getAll failed");
 			}
@@ -139,6 +147,7 @@ namespace LuaSTG::Sub::LuaBinding {
 				auto display = create(L);
 				auto const display_index = S.index_of_top();
 				display->data = list[i];
+				list[i] = nullptr; // take ownership
 				S.set_array_value(list_index, static_cast<int32_t>(i + 1), display_index);
 				S.pop_value();
 			}
@@ -173,8 +182,7 @@ namespace LuaSTG::Sub::LuaBinding {
 		return static_cast<Display*>(luaL_checkudata(L, index, class_name.data()));
 	}
 
-	Display* Display::create(lua_State* L)
-	{
+	Display* Display::create(lua_State* L) {
 		lua::stack_t S(L);
 		auto self = S.create_userdata<Display>();
 		auto const self_index = S.index_of_top();

@@ -1082,17 +1082,14 @@ namespace Core::Graphics
                 return true;
             }
             static bool GetFileSizeInBytes(size_t* filesize_out, std::string* err, const std::string& abs_filename, void*) {
-                // TODO: avoid read file
-                std::vector<unsigned char> buffer;
-                if (!GFileManager().loadEx(abs_filename, buffer))
-                {
-                    if (err)
-                    {
-                        (*err) += "File load error : " + abs_filename + "\n";
-                    }
+                auto const file_size = GFileManager().getSizeEx(abs_filename);
+                if (file_size == size_t(-1)) {
+                    *filesize_out = file_size;
+                    return true;
+                } else {
+                    *filesize_out = 0;
+                    return false;
                 }
-                *filesize_out = buffer.size();
-                return true;
             }
         };
         tinygltf::FsCallbacks fs_cb = {
@@ -1101,7 +1098,7 @@ namespace Core::Graphics
             .ReadWholeFile = &FileSystemWrapper::ReadWholeFile,
             .WriteWholeFile = &tinygltf::WriteWholeFile,
             .GetFileSizeInBytes = &FileSystemWrapper::GetFileSizeInBytes,
-            .user_data = nullptr,
+            .user_data = &GFileManager(),
         };
         tinygltf::TinyGLTF gltf_ctx;
         gltf_ctx.SetStoreOriginalJSONForExtrasAndExtensions(true);

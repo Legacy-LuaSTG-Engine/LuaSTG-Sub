@@ -1,9 +1,9 @@
 #include "Core/Graphics/Device_D3D11.hpp"
 #include "Core/FileManager.hpp"
 #include "Core/i18n.hpp"
+#include "core/Configuration.hpp"
 #include "Platform/WindowsVersion.hpp"
 #include "Platform/AdapterPolicy.hpp"
-#include "Platform/CommandLineArguments.hpp"
 #include "Platform/Direct3D11.hpp"
 #include "utf8.hpp"
 
@@ -518,11 +518,9 @@ namespace Core::Graphics
 
 		// 获取适配器
 
-		bool allow_soft_adapter = Platform::CommandLineArguments::Get().IsOptionExist("--allow-soft-adapter");
-
 		if (!selectAdapter())
 		{
-			if (!allow_soft_adapter)
+			if (!core::ConfigurationLoader::getInstance().getGraphicsSystem().isAllowSoftwareDevice())
 			{
 				return false;
 			}
@@ -579,7 +577,6 @@ namespace Core::Graphics
 
 		i18n_log_info("[core].Device_D3D11.start_creating_basic_D3D11_components");
 
-		bool allow_soft_adapter = Platform::CommandLineArguments::Get().IsOptionExist("--allow-soft-adapter");
 		if (dxgi_adapter)
 		{
 			hr = gHR = d3d11_loader.CreateDeviceFromAdapter(
@@ -590,7 +587,7 @@ namespace Core::Graphics
 				&d3d_feature_level,
 				&d3d11_devctx);
 		}
-		else if (allow_soft_adapter)
+		else if (core::ConfigurationLoader::getInstance().getGraphicsSystem().isAllowSoftwareDevice())
 		{
 			D3D_DRIVER_TYPE d3d_driver_type = D3D_DRIVER_TYPE_UNKNOWN;
 			hr = gHR = d3d11_loader.CreateDeviceFromSoftAdapter(

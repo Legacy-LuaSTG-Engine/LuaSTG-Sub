@@ -1,8 +1,8 @@
 #include "Core/Graphics/SwapChain_D3D11.hpp"
 #include "Core/Graphics/Format_D3D11.hpp"
 #include "Core/i18n.hpp"
+#include "core/Configuration.hpp"
 #include "Platform/WindowsVersion.hpp"
-#include "Platform/CommandLineArguments.hpp"
 #include "Platform/DesktopWindowManager.hpp"
 #include "Platform/Direct3D11.hpp"
 #include "Platform/DXGI.hpp"
@@ -2228,11 +2228,12 @@ namespace Core::Graphics
 	{
 		assert(p_window);
 		assert(p_device);
+		auto const& gs = core::ConfigurationLoader::getInstance().getGraphicsSystem();
 		m_modern_swap_chain_available = checkModernSwapChainModelAvailable(m_device->GetD3D11Device());
-		m_disable_exclusive_fullscreen = Platform::CommandLineArguments::Get().IsOptionExist("--disable-exclusive-fullscreen");
-		m_disable_modern_swap_chain = Platform::CommandLineArguments::Get().IsOptionExist("--disable-modern-swap-chain");
-		m_enable_composition = Platform::CommandLineArguments::Get().IsOptionExist("--enable-direct-composition");
-		m_disable_composition = Platform::CommandLineArguments::Get().IsOptionExist("--disable-direct-composition");
+		m_disable_exclusive_fullscreen = !gs.isAllowExclusiveFullscreen();
+		m_disable_modern_swap_chain = !gs.isAllowModernSwapChain();
+		m_enable_composition = false; // TODO
+		m_disable_composition = !gs.isAllowDirectComposition();
 		m_scaling_renderer.AttachDevice(m_device->GetD3D11Device());
 		m_window->addEventListener(this);
 		m_device->addEventListener(this);

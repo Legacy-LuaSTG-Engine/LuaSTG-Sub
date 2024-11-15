@@ -29,4 +29,5 @@ include(LuaSTG/shaders.cmake)
 add_subdirectory(imgui)
 
 add_subdirectory(utility)
+add_subdirectory(engine)
 add_subdirectory(LuaSTG)

@@ -19,12 +19,11 @@ set(Core_SRC
     Core/framework.hpp
     Core/framework.cpp
     Core/Object.hpp
+    Core/Object.cpp
     Core/DataObject.cpp
 
     Core/FileManager.hpp
     Core/FileManager.cpp
-    Core/InitializeConfigure.hpp
-    Core/InitializeConfigure.cpp
 
     Core/Graphics/Window.hpp
     Core/Graphics/Window_Win32.hpp
@@ -118,4 +117,5 @@ target_link_libraries(Core PUBLIC
     FLAC::FLAC
     # database
     nlohmann_json
+    LuaSTG.Sub.Configuration
 )

@@ -18,35 +18,6 @@ namespace LuaSTGPlus
 		Destroyed,
 	};
 
-	struct ApplicationSetting
-	{
-		// 图形设备
-		std::string preferred_gpu;
-
-		// 显示模式 - 画布尺寸
-		Core::Vector2U canvas_size{ 640,480 };
-		// 显示模式 - 全屏
-		bool fullscreen{ false };
-		// 显示模式 - 垂直同步
-		bool vsync{ false };
-
-		// 鼠标指针
-		bool show_cursor{ true };
-
-		// 目标帧率
-		uint32_t target_fps{ 60 };
-
-		// 窗口标题
-		std::string window_title{ LUASTG_INFO };
-		// Windows 11 窗口圆角
-		bool allow_windows_11_window_corner{ true };
-
-		// 音量：音效
-		float volume_sound_effect{ 1.0f };
-		// 音量：背景音乐
-		float volume_music{ 1.0f };
-	};
-
 	struct IRenderTargetManager
 	{
 		// 渲染目标栈
@@ -88,10 +59,9 @@ namespace LuaSTGPlus
 		
 		// Lua虚拟机
 		lua_State* L = nullptr;
-		
-		// 选项
-		ApplicationSetting m_Setting;
 
+		// 目标帧率
+		uint32_t m_target_fps{ 60 };
 		// 测量值
 		double m_fFPS = 0.;
 		double m_fAvgFPS = 0.;
@@ -156,15 +126,13 @@ namespace LuaSTGPlus
 		
 	public: // 脚本调用接口，含义参见API文档
 
-		inline ApplicationSetting& GetApplicationSetting() { return m_Setting; }
 		void SetTitle(const char* v) noexcept;
 		void SetPreferenceGPU(const char* v) noexcept;
 		void SetSplash(bool v) noexcept;
 		void SetSEVolume(float v);
 		void SetBGMVolume(float v);
-		inline float GetSEVolume() const noexcept { return m_Setting.volume_sound_effect; }
-		inline float GetBGMVolume() const noexcept { return m_Setting.volume_music; }
-		void SetWindowCornerPreference(bool allow);
+		float GetSEVolume();
+		float GetBGMVolume();
 
 	public: // 窗口和交换链
 
@@ -175,9 +143,6 @@ namespace LuaSTGPlus
 		// 以独占全屏显示  
 		// 当 refresh_rate 为全 0 时，自动选择合适的匹配的刷新率  
 		bool SetDisplayModeExclusiveFullscreen(Core::Vector2U window_size, bool vsync, Core::Rational refresh_rate);
-
-		// 更新显示模式
-		bool UpdateDisplayMode();
 
 		bool InitializationApplySettingStage1();
 

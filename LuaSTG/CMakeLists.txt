@@ -94,8 +94,6 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/LuaCustomLoader.hpp
     LuaSTG/LuaBinding/LuaInternalSource.cpp
     LuaSTG/LuaBinding/LuaInternalSource.hpp
-    LuaSTG/LuaBinding/LuaTableToOption.cpp
-    LuaSTG/LuaBinding/LuaTableToOption.hpp
     LuaSTG/LuaBinding/LuaWrapper.cpp
     LuaSTG/LuaBinding/LuaWrapper.hpp
     LuaSTG/LuaBinding/LuaWrapperMisc.hpp
@@ -150,7 +148,9 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LMathConstant.hpp
     LuaSTG/RuntimeCheck.hpp
     LuaSTG/RuntimeCheck.cpp
+    LuaSTG/Main.h
     LuaSTG/Main.cpp
+    LuaSTG/WindowsMain.cpp
 
     LuaSTG/LuaSTG.manifest
 )
@@ -192,6 +192,7 @@ target_link_libraries(LuaSTG PRIVATE
     pcg_cpp
     pugixml
     xxhash
+    LuaSTG.Sub.Configuration
 )
 if (LUASTG_LINK_YY_THUNKS)
     target_link_libraries(LuaSTG PRIVATE YY_Thunks)

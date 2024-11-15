@@ -1,48 +1,69 @@
-﻿#include "Platform/MessageBox.hpp"
+#include "Main.h"
+#include "Core/Object.hpp"
+#include "Platform/MessageBox.hpp"
 #include "Platform/ApplicationSingleInstance.hpp"
-#include "Core/InitializeConfigure.hpp"
 #include "Debugger/Logger.hpp"
 #include "SteamAPI/SteamAPI.hpp"
 #include "Utility/Utility.h"
 #include "AppFrame.h"
 #include "RuntimeCheck.hpp"
+#include "core/Configuration.hpp"
+#include <chrono>
 
-int main()
-{
+int luastg::sub::main() {
 #ifdef _DEBUG
 	_CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG) | _CRTDBG_LEAK_CHECK_DF);
 	// _CrtSetBreakAlloc(5351);
 #endif
+	auto const t1 = std::chrono::high_resolution_clock::now();
 
-	[[maybe_unused]] Platform::ApplicationSingleInstance single_instance(LUASTG_INFO);
-	Core::InitializeConfigure cfg;
-	if (cfg.loadFromFile("config.json")) {
-		if (cfg.single_application_instance && !cfg.application_instance_id.empty()) {
-			single_instance.Initialize(cfg.application_instance_id);
-		}
-	}
+	// STAGE 1: load application configurations
 
-	if (!LuaSTG::CheckUserRuntime())
-	{
+	auto& config_loader = core::ConfigurationLoader::getInstance();
+	if (core::ConfigurationLoader::exists(LUASTG_CONFIGURATION_FILE) && !config_loader.loadFromFile(LUASTG_CONFIGURATION_FILE)) {
+		Platform::MessageBox::Error(LUASTG_INFO, config_loader.getFormattedMessage());
 		return EXIT_FAILURE;
 	}
+	config_loader.loadFromCommandLineArguments();
+
+	// STAGE 2: configure single instance
+
+	Platform::ApplicationSingleInstance single_instance(LUASTG_INFO);
+	if (auto const& config_app = config_loader.getApplication(); config_app.isSingleInstance()) {
+		single_instance.Initialize(config_app.getUuid());
+	}
+
+	// STAGE 3: initialize COM
 
 	LuaSTGPlus::CoInitializeScope com_runtime;
-	if (!com_runtime())
-	{
+	if (!com_runtime()) {
 		Platform::MessageBox::Error(LUASTG_INFO,
 			"引擎初始化失败。\n"
 			"未能正常初始化COM组件库，请尝试重新启动此应用程序。");
 		return EXIT_FAILURE;
 	}
 
+	// STAGE 4: check runtime
+
+	if (!LuaSTG::CheckUserRuntime()) {
+		return EXIT_FAILURE;
+	}
+
+	// STAGE 5: start
+
 	LuaSTG::Debugger::Logger::create();
+
+	auto const t2 = std::chrono::high_resolution_clock::now();
+	spdlog::info("Duration before logging system: {}s", double((t2 - t1).count()) / 1000000000.0);
 
 	int result = EXIT_SUCCESS;
 	if (LuaSTG::SteamAPI::Init())
 	{
 		if (LAPP.Init())
 		{
+			auto const t3 = std::chrono::high_resolution_clock::now();
+			spdlog::info("Duration of initialization: {}s", double((t3 - t2).count()) / 1000000000.0);
+
 			LAPP.Run();
 			result = EXIT_SUCCESS;
 		}
@@ -64,12 +85,9 @@ int main()
 
 	LuaSTG::Debugger::Logger::destroy();
 
+#ifndef NDEBUG
+	Core::ObjectDebugger::check();
+#endif
+
 	return result;
-}
-
-#include "Platform/CleanWindows.hpp"
-
-_Use_decl_annotations_ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
-{
-	return main();
 }

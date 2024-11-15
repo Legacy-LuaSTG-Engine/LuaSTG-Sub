@@ -106,12 +106,6 @@ void LuaSTGPlus::LuaWrapper::PlatformWrapper::Register(lua_State* L) noexcept
 			lua_pushboolean(L, Detail_::Execute(path, args, directory, bWait, bShow));
 			return 1;
 		}
-		static int SetWindowCornerPreference(lua_State* L)
-		{
-			bool const allow = lua_toboolean(L, 1);
-			LAPP.SetWindowCornerPreference(allow);
-			return 0;
-		}
 		static int api_MessageBox(lua_State* L)
 		{
 			char const* title = luaL_checkstring(L, 1);
@@ -131,7 +125,6 @@ void LuaSTGPlus::LuaWrapper::PlatformWrapper::Register(lua_State* L) noexcept
 		{ "GetLocalAppDataPath", &Wrapper::GetLocalAppDataPath },
 		{ "GetRoamingAppDataPath", &Wrapper::GetRoamingAppDataPath },
 		{ "Execute", &Wrapper::Execute },
-		{ "SetWindowCornerPreference", &Wrapper::SetWindowCornerPreference },
 		{ "MessageBox", &Wrapper::api_MessageBox },
 		{ NULL, NULL },
 	};

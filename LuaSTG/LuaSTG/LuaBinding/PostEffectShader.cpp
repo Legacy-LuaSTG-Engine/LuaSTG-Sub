@@ -108,7 +108,7 @@ namespace LuaSTG::LuaBinding
 				Core::ScopeObject<Core::Graphics::IPostEffectShader> shader;
 				if (!LAPP.GetRenderer2D()->createPostEffectShader(file_path, ~shader))
 				{
-					return luaL_error(L, "lstg.CreatePostEffectShader failed, see 'engine.log' for more detail");
+					return luaL_error(L, "lstg.CreatePostEffectShader failed, see log file for more detail");
 				}
 				Create(L, shader.get());
 				return 1;

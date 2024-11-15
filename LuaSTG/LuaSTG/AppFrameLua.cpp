@@ -335,27 +335,17 @@ namespace LuaSTGPlus
 			spdlog::info("[luajit] 储存命令行参数");
 			std::vector<std::string_view> args;
 			Platform::CommandLineArguments::Get().GetArguments(args);
-			if (!args.empty())
-			{
-				// 打印命令行参数，隐藏不需要的命令行参数
+			if (!args.empty()) {
+				// 打印命令行参数
 				std::vector<std::string_view> args_lua;
-				for (size_t idx = 0; idx < args.size(); idx += 1)
-				{
+				for (size_t idx = 0; idx < args.size(); idx += 1) {
 					spdlog::info("[luajit] [{}] {}", idx, args[idx]);
-					if (args[idx] != "--log-window"
-						&& args[idx] != "--log-window-wait"
-						&& args[idx] != "--allow-soft-adapter"
-						&& args[idx] != "--disable-direct-composition"
-						&& args[idx] != "--disable-exclusive-fullscreen")
-					{
-						args_lua.emplace_back(args[idx]);
-					}
+					args_lua.emplace_back(args[idx]);
 				}
 				// 储存
 				lua_getglobal(L, "lstg");                       // ? t
 				lua_createtable(L, (int)args_lua.size(), 0);    // ? t t
-				for (int idx = 0; idx < (int)args_lua.size(); idx += 1)
-				{
+				for (int idx = 0; idx < (int)args_lua.size(); idx += 1) {
 					lua_pushstring(L, args_lua[idx].data());    // ? t t s
 					lua_rawseti(L, -2, idx + 1);                // ? t t
 				}
