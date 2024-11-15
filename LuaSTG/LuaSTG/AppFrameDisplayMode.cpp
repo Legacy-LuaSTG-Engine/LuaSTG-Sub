@@ -66,15 +66,15 @@ namespace LuaSTGPlus
 		// 先初始化交换链
 		bool const result = p_swapchain->setWindowMode(Core::Vector2U(gs.getWidth(), gs.getHeight()));
 		if (!result) return false;
+		p_swapchain->setVSync(gs.isVsync());
 		// 先刷新一下画面，避免白屏
 		p_swapchain->clearRenderAttachment();
 		p_swapchain->present();
-		// 正式应用模式
+		// 显示窗口
 		p_window->setLayer(Core::Graphics::WindowLayer::Top);
 		if (gs.isFullscreen()) {
 			p_window->setFullScreenMode();
 		}
-		p_swapchain->setVSync(gs.isVsync());
 		return true;
 	}
 
