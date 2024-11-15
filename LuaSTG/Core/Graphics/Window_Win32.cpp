@@ -556,12 +556,12 @@ namespace Core::Graphics
 		{
 			BOOL const set_window_pos_result = SetWindowPos(
 				win32_window,
-				HWND_TOP,
+				m_hidewindow ? NULL : HWND_TOP,
 				(monitor_info.rcMonitor.right + monitor_info.rcMonitor.left) / 2 - (rect.right - rect.left) / 2,
 				(monitor_info.rcMonitor.bottom + monitor_info.rcMonitor.top) / 2 - (rect.bottom - rect.top) / 2,
 				rect.right - rect.left,
 				rect.bottom - rect.top,
-				SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+				SWP_FRAMECHANGED | (m_hidewindow ? SWP_NOZORDER : SWP_SHOWWINDOW));
 			assert(set_window_pos_result); (void)set_window_pos_result;
 		}
 

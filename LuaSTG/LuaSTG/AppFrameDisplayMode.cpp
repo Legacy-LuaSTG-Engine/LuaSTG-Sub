@@ -48,10 +48,12 @@ namespace LuaSTGPlus
 			p_window->setTitleText(win.hasTitle() ? win.getTitle() : std::string(LUASTG_INFO));
 			p_window->setCursor(win.isCursorVisible() ? WindowCursor::Arrow : WindowCursor::None);
 			p_window->setNativeIcon((void*)(ptrdiff_t)IDI_APPICON);
-			p_window->setSize(Core::Vector2U(gs.getWidth(), gs.getHeight()));
-			p_window->setCentered(false);
-			p_window->setFrameStyle(Core::Graphics::WindowFrameStyle::Normal);
+			//p_window->setSize(Core::Vector2U(gs.getWidth(), gs.getHeight()));
+			//p_window->setCentered(false);
+			//p_window->setFrameStyle(Core::Graphics::WindowFrameStyle::Normal);
 			p_window->setWindowCornerPreference(win.isAllowWindowCorner());
+			p_window->setLayer(Core::Graphics::WindowLayer::Invisible);
+			p_window->setWindowMode(Core::Vector2U(gs.getWidth(), gs.getHeight()));
 		}
 		return true;
 	}
@@ -68,6 +70,7 @@ namespace LuaSTGPlus
 		p_swapchain->clearRenderAttachment();
 		p_swapchain->present();
 		// 正式应用模式
+		p_window->setLayer(Core::Graphics::WindowLayer::Top);
 		if (gs.isFullscreen()) {
 			p_window->setFullScreenMode();
 		}
