@@ -466,11 +466,13 @@ namespace core {
 		}
 	};
 
-	bool ConfigurationLoader::loadFromFile(std::string_view const& path) {
-		// load
-
+	ConfigurationLoader::ConfigurationLoader() {
 		logging.debugger.setEnable(true);
 		logging.file.setEnable(true);
+	}
+
+	bool ConfigurationLoader::loadFromFile(std::string_view const& path) {
+		// load
 
 		std::vector<ConfigurationLoaderContext::Include> includes;
 		if (!ConfigurationLoaderContext::load(*this, &includes, path)) {

@@ -161,6 +161,7 @@ namespace core {
 			float music_volume{ 1.0f };
 		};
 	public:
+		ConfigurationLoader();
 		bool loadFromFile(std::string_view const& path);
 		inline std::vector<std::string> const& getMessages() const noexcept { return messages; }
 		std::string getFormattedMessage();
