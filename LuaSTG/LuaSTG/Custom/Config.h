@@ -4,6 +4,8 @@
 
 #define LUASTG_CONFIGURATION_FILE "config.json"
 
+#define LUASTG_LOG_FILE "engine.log"
+
 #define LUASTG_LAUNCH_SCRIPT "launch"
 
 #define USING_LAUNCH_FILE

@@ -61,7 +61,7 @@ namespace LuaSTG::Debugger {
 				core::ConfigurationLoader::resolveFilePathWithPredefinedVariables(logging_file.getPath(), file_path, true);
 			}
 			else {
-				file_path = L"engine.log"; // TODO: MAGIC VALUE
+				file_path = (L"" LUASTG_LOG_FILE);
 			}
 			auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(file_path.generic_wstring(), true);
 			sink->set_pattern("[%Y-%m-%d %H:%M:%S] [%L] %v");
