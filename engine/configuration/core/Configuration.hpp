@@ -14,7 +14,7 @@ namespace core {
 #define GetterSetterString(_class_, _field_, _method_name_) \
 	inline bool has##_method_name_ () const noexcept { return !((_field_).empty()) ; }; \
 	inline std::string const& get##_method_name_ () const noexcept { return _field_ ; }; \
-	inline _class_ & set##_method_name_ (std::string const& _field_##_ ) { _field_ = _field_##_ ; return *this; }
+	inline _class_ & set##_method_name_ (std::string_view const& _field_##_ ) { _field_ = _field_##_ ; return *this; }
 
 #define GetterSetterPrimitive(_class_, _type_, _field_, _method_name_) \
 	inline _type_ get##_method_name_ () const noexcept { return _field_ ; }; \
@@ -143,12 +143,20 @@ namespace core {
 			GetterSetterPrimitive(GraphicsSystem, uint32_t, height, Height);
 			GetterSetterBoolean(GraphicsSystem, fullscreen, Fullscreen);
 			GetterSetterBoolean(GraphicsSystem, vsync, Vsync);
+			GetterSetterBoolean(GraphicsSystem, allow_software_device, AllowSoftwareDevice);
+			GetterSetterBoolean(GraphicsSystem, allow_exclusive_fullscreen, AllowExclusiveFullscreen);
+			GetterSetterBoolean(GraphicsSystem, allow_modern_swap_chain, AllowModernSwapChain);
+			GetterSetterBoolean(GraphicsSystem, allow_direct_composition, AllowDirectComposition);
 		private:
 			std::string preferred_device_name;
 			uint32_t width{ 640u };
 			uint32_t height{ 480u };
 			bool fullscreen{};
 			bool vsync{};
+			bool allow_software_device{};
+			bool allow_exclusive_fullscreen{ true };
+			bool allow_modern_swap_chain{ true };
+			bool allow_direct_composition{ true };
 		};
 		class AudioSystem {
 		public:
@@ -163,6 +171,7 @@ namespace core {
 	public:
 		ConfigurationLoader();
 		bool loadFromFile(std::string_view const& path);
+		bool loadFromCommandLineArguments();
 		inline std::vector<std::string> const& getMessages() const noexcept { return messages; }
 		std::string getFormattedMessage();
 		inline Debug const& getDebug() const noexcept { return debug; }

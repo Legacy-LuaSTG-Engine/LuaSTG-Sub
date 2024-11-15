@@ -1,8 +1,11 @@
 #include "core/Configuration.hpp"
 #include <array>
+#include <optional>
+#include <format>
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#include <shellapi.h>
 #include <Shobjidl.h>
 #include <Knownfolders.h>
 #include <wrl/client.h>
@@ -25,6 +28,183 @@ namespace core {
 		return { reinterpret_cast<char8_t const*>(sv.c_str()), sv.length() };
 	}
 
+	static std::optional<bool> to_boolean(std::string_view const& s) {
+		if (s == "true"sv) {
+			return { true };
+		}
+		else if (s == "false"sv) {
+			return { false };
+		}
+		else {
+			return std::nullopt;
+		}
+	}
+
+	template<typename T>
+	static std::optional<T> to_unsigned_integer(std::string_view const& s) {
+		static_assert(std::is_unsigned<T>::value);
+		T value{};
+		auto const result = std::from_chars(s.data(), s.data() + s.size(), value);
+		if (result.ec == std::errc{}) {
+			return { value };
+		}
+		else {
+			return std::nullopt;
+		}
+	}
+
+	static bool getCommandLineArguments(std::vector<std::string>& args) {
+		PWSTR command_line = GetCommandLineW();
+		if (!command_line) {
+			return false;
+		}
+
+		int argc = 0;
+		PWSTR* argv = CommandLineToArgvW(command_line, &argc);
+		if (!argv) {
+			return false;
+		}
+
+		args.resize(static_cast<size_t>(argc));
+		for (int i = 0; i < argc; i += 1) {
+			args[i].assign(to_string(argv[i]));
+		}
+
+		LocalFree(argv);
+		return true;
+	}
+
+	bool ConfigurationLoader::loadFromCommandLineArguments() {
+		std::vector<std::string> args;
+		if (!getCommandLineArguments(args)) {
+			return false;
+		}
+		auto write_arg_error = [this](std::string_view const& raw_arg) -> void {
+			messages.emplace_back(std::format("invalid command line argument '{}'", raw_arg));
+		};
+		auto write_message = [this](std::string_view const& raw_arg, std::string_view const& message) -> void {
+			messages.emplace_back(std::format("invalid command line argument '{}': {}", raw_arg, message));
+		};
+		for (size_t i = 0; i < args.size(); i += 1) {
+			std::string_view const raw_arg(args[i]);
+			std::string_view arg(args[i]);
+
+			constexpr auto double_dash = "--"sv;
+			constexpr auto separator = "."sv;
+			constexpr auto assignment = "="sv;
+
+			if (!arg.starts_with(double_dash)) {
+				continue;
+			}
+			arg = arg.substr(double_dash.size());
+
+		#define access_parent_field(VAR, EXP)			\
+			constexpr auto key_##VAR = "" #VAR ""sv;	\
+			if (arg.starts_with(key_##VAR)) {			\
+				arg = arg.substr(key_##VAR.size());		\
+				if (arg.starts_with(separator)) {		\
+					arg = arg.substr(separator.size());	\
+					EXP;								\
+				}										\
+			}
+
+		#define access_field(VAR, EXP)					\
+			constexpr auto key_##VAR = "" #VAR ""sv;	\
+			if (arg.starts_with(key_##VAR)) {			\
+				arg = arg.substr(key_##VAR.size());		\
+				if (arg.starts_with(assignment)) {		\
+					arg = arg.substr(assignment.size());\
+					EXP;								\
+				}										\
+			}
+
+			access_parent_field(graphics_system,
+				{
+					access_field(preferred_device_name,
+						if (!arg.empty()) {
+							graphics_system.setPreferredDeviceName(arg);
+						});
+					access_field(width,
+						if (auto const value = to_unsigned_integer<uint32_t>(arg); value) {
+							if (value.value() == 0) {
+								write_message(raw_arg, "width must greater than 0"sv);
+								return false;
+							}
+							graphics_system.setWidth(value.value());
+						}
+						else {
+							write_arg_error(raw_arg);
+							return false;
+						});
+					access_field(height,
+						if (auto const value = to_unsigned_integer<uint32_t>(arg); value) {
+							if (value.value() == 0) {
+								write_message(raw_arg, "height must greater than 0"sv);
+								return false;
+							}
+							graphics_system.setHeight(value.value());
+						}
+						else {
+							write_arg_error(raw_arg);
+							return false;
+						});
+					access_field(fullscreen,
+						if (auto const value = to_boolean(arg); value) {
+							graphics_system.setFullscreen(value.value());
+						}
+						else {
+							write_arg_error(raw_arg);
+							return false;
+						});
+					access_field(vsync,
+						if (auto const value = to_boolean(arg); value) {
+							graphics_system.setVsync(value.value());
+						}
+						else {
+							write_arg_error(raw_arg);
+							return false;
+						});
+					access_field(allow_software_device,
+						if (auto const value = to_boolean(arg); value) {
+							graphics_system.setAllowSoftwareDevice(value.value());
+						}
+						else {
+							write_arg_error(raw_arg);
+							return false;
+						});
+
+					access_field(allow_exclusive_fullscreen,
+						if (auto const value = to_boolean(arg); value) {
+							graphics_system.setAllowExclusiveFullscreen(value.value());
+						}
+						else {
+							write_arg_error(raw_arg);
+							return false;
+						});
+					access_field(allow_modern_swap_chain,
+						if (auto const value = to_boolean(arg); value) {
+							graphics_system.setAllowModernSwapChain(value.value());
+						}
+						else {
+							write_arg_error(raw_arg);
+							return false;
+						});
+					access_field(allow_direct_composition,
+						if (auto const value = to_boolean(arg); value) {
+							graphics_system.setAllowDirectComposition(value.value());
+						}
+						else {
+							write_arg_error(raw_arg);
+							return false;
+						});
+				});
+
+		#undef access_parent_field
+		#undef access_field
+		}
+		return true;
+	}
+
 	static bool getKnownDirectory(KNOWNFOLDERID const& id, std::string& output) {
 		HRESULT hr{};
 
@@ -40,7 +220,9 @@ namespace core {
 		hr = folder->GetPath(0, &str);
 		if (FAILED(hr)) return false;
 
-		output.assign(to_string(str));
+		if (str) {
+			output.assign(to_string(str));
+		}
 		CoTaskMemFree(str);
 		return true;
 	}

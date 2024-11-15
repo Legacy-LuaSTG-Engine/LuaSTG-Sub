@@ -1,9 +1,9 @@
 ﻿#include "RuntimeCheck.hpp"
+#include "core/Configuration.hpp"
 #include "Platform/MessageBox.hpp"
 #include "Platform/WindowsVersion.hpp"
 #include "Platform/CleanWindows.hpp"
 #include "Platform/ModuleLoader.hpp"
-#include "Platform/CommandLineArguments.hpp"
 #include <dxgi1_6.h>
 #include <d3d11_4.h>
 #include "Platform/Direct3D11.hpp"
@@ -299,9 +299,7 @@ namespace LuaSTG
 					"4. Virtual Machine or Cloud/Remote Computer may not support or not install a graphics card\n";
 			}
 			Platform::MessageBox::Error(title, text);
-			bool allow_soft_adapter = Platform::CommandLineArguments::Get().IsOptionExist("--allow-soft-adapter");
-			if (!allow_soft_adapter)
-			{
+			if (!core::ConfigurationLoader::getInstance().getGraphicsSystem().isAllowSoftwareDevice()) {
 				return false;
 			}
 		}

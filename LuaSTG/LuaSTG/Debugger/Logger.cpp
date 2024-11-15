@@ -4,7 +4,6 @@
 #include "spdlog/sinks/wincolor_sink.h"
 #include "spdlog/sinks/msvc_sink.h"
 #include "Platform/HResultChecker.hpp"
-#include "Platform/CommandLineArguments.hpp"
 #include "core/Configuration.hpp"
 #include "utf8.hpp"
 

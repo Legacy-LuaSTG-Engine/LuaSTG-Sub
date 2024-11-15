@@ -24,6 +24,7 @@ int luastg::sub::main() {
 		Platform::MessageBox::Error(LUASTG_INFO, config_loader.getFormattedMessage());
 		return EXIT_FAILURE;
 	}
+	config_loader.loadFromCommandLineArguments();
 
 	// STAGE 2: configure single instance
 
