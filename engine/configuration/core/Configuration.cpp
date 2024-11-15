@@ -508,7 +508,7 @@ namespace core {
 				message.append(s);
 				message.push_back('\n');
 			}
-			if (!message.empty() && message.back() == '\n') {
+			if (message.ends_with('\n')) {
 				message.pop_back();
 			}
 		}
