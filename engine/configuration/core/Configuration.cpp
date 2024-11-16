@@ -50,6 +50,11 @@ namespace core {
 		return { reinterpret_cast<char8_t const*>(sv.data()), sv.size() };
 	}
 
+	static std::string to_string(std::u8string const& s) {
+		static_assert(CHAR_BIT == 8 && sizeof(char) == 1 && sizeof(char) == sizeof(char8_t));
+		return { reinterpret_cast<char const*>(s.c_str()), s.length() };
+	}
+
 	static bool is_uuid(std::string_view const& uuid) {
 	#define is_uuid_char(c) (((c) >= '0' && (c) <= '9') || ((c) >= 'A' && (c) <= 'Z') || ((c) >= 'a' && (c) <= 'z'))
 	#define is_not_uuid_char(c) (!is_uuid_char(c))
@@ -499,16 +504,27 @@ namespace core {
 			return false;
 		}
 		for (auto const& include : includes) {
-			if (!exists(include.path)) {
+			std::filesystem::path fs_path;
+			if (!resolveFilePathWithPredefinedVariables(include.path, fs_path)) {
 				if (include.optional) {
 					continue;
 				}
 				else {
-					messages.emplace_back(std::format("{} not found", include.path));
+					messages.emplace_back(std::format("resolve '{}' failed", include.path));
 					return false;
 				}
 			}
-			if (!ConfigurationLoaderContext::load(*this, nullptr, include.path)) {
+			auto const resolved_path = to_string(fs_path.lexically_normal().generic_u8string());
+			if (!exists(resolved_path)) {
+				if (include.optional) {
+					continue;
+				}
+				else {
+					messages.emplace_back(std::format("'{}' not found", include.path));
+					return false;
+				}
+			}
+			if (!ConfigurationLoaderContext::load(*this, nullptr, resolved_path)) {
 				return false;
 			}
 		}
@@ -522,7 +538,7 @@ namespace core {
 
 		return true;
 	}
-
+	
 	std::string ConfigurationLoader::getFormattedMessage() {
 		std::string message;
 		if (!messages.empty()) {
