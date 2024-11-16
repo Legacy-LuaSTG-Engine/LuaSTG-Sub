@@ -31,7 +31,8 @@ if (sqlite3_ADDED)
 
     add_custom_command(TARGET sqlite3_cli POST_BUILD
         COMMAND ${CMAKE_COMMAND} ARGS -E make_directory ${CMAKE_BINARY_DIR}/bin
-        COMMAND ${CMAKE_COMMAND} ARGS -E copy $<TARGET_FILE:sqlite3_cli> ${CMAKE_BINARY_DIR}/bin
+        COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different $<TARGET_FILE:sqlite3_cli> ${CMAKE_BINARY_DIR}/bin/$<TARGET_FILE_NAME:sqlite3_cli>
+        VERBATIM
     )
 
     set_target_properties(sqlite3 PROPERTIES FOLDER external)
