@@ -17,7 +17,17 @@ int luastg::sub::main() {
 #endif
 	auto const t1 = std::chrono::high_resolution_clock::now();
 
-	// STAGE 1: load application configurations
+	// STAGE 1: initialize COM
+
+	LuaSTGPlus::CoInitializeScope com_runtime;
+	if (!com_runtime()) {
+		Platform::MessageBox::Error(LUASTG_INFO,
+			"引擎初始化失败。\n"
+			"未能正常初始化COM组件库，请尝试重新启动此应用程序。");
+		return EXIT_FAILURE;
+	}
+
+	// STAGE 2: load application configurations
 
 	auto& config_loader = core::ConfigurationLoader::getInstance();
 	if (core::ConfigurationLoader::exists(LUASTG_CONFIGURATION_FILE) && !config_loader.loadFromFile(LUASTG_CONFIGURATION_FILE)) {
@@ -26,21 +36,11 @@ int luastg::sub::main() {
 	}
 	config_loader.loadFromCommandLineArguments();
 
-	// STAGE 2: configure single instance
+	// STAGE 3: configure single instance
 
 	Platform::ApplicationSingleInstance single_instance(LUASTG_INFO);
 	if (auto const& config_app = config_loader.getApplication(); config_app.isSingleInstance()) {
 		single_instance.Initialize(config_app.getUuid());
-	}
-
-	// STAGE 3: initialize COM
-
-	LuaSTGPlus::CoInitializeScope com_runtime;
-	if (!com_runtime()) {
-		Platform::MessageBox::Error(LUASTG_INFO,
-			"引擎初始化失败。\n"
-			"未能正常初始化COM组件库，请尝试重新启动此应用程序。");
-		return EXIT_FAILURE;
 	}
 
 	// STAGE 4: check runtime
