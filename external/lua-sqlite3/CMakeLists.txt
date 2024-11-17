@@ -1,0 +1,5 @@
+add_library(lua_sqlite3 STATIC)
+target_compile_features(lua_sqlite3 PRIVATE c_std_17 cxx_std_20)
+target_include_directories(lua_sqlite3 PUBLIC .)
+target_sources(lua_sqlite3 PRIVATE lua_sqlite3.h lua_sqlite3.cpp)
+target_link_libraries(lua_sqlite3 PUBLIC lua51_static sqlite3)
