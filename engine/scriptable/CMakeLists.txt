@@ -2,7 +2,12 @@ set(lib_name LuaSTG.Sub.Scriptable)
 
 option(LUASTG_LINK_LUAJIT "LuaSTG: link LuaJIT" ON)
 
-file(GLOB_RECURSE lib_src RELATIVE ${CMAKE_CURRENT_LIST_DIR} "core/*.hpp" "core/*.cpp")
+file(GLOB_RECURSE lib_src RELATIVE ${CMAKE_CURRENT_LIST_DIR}
+    "core/*.hpp"
+    "core/*.cpp"
+    "lua/*.hpp"
+    "lua/*.cpp"
+)
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${lib_src})
 
 add_library(${lib_name} STATIC)
