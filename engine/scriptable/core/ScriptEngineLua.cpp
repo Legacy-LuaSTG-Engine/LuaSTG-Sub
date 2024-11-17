@@ -4,6 +4,9 @@
 #include <array>
 #include <memory_resource>
 #include "lua.hpp"
+#ifdef LUASTG_LINK_LUAJIT
+#include "luajit.h"
+#endif
 
 using namespace std::string_view_literals;
 
@@ -23,7 +26,7 @@ namespace core {
 			msg.append(m, l);
 		}
 		else if (luaL_callmeta(L, 1, "__tostring")) {
-			char const* m = lua_tolstring(L, -1, &l);
+			m = lua_tolstring(L, -1, &l);
 			msg.append("(error object is a '"sv);
 			msg.append(m, l);
 			msg.append("' value)"sv);
@@ -97,10 +100,10 @@ namespace core {
 					lua_pushlightuserdata(L, &stack_trackback_function_name);
 					lua_gettable(L, LUA_REGISTRYINDEX);
 					if (debug.what[0] == 'L' /* "Lua" */ && lua_isstring(L, -1)) {
-						size_t l{};
-						auto const* s = lua_tolstring(L, -1, &l);
+						size_t len{};
+						auto const* str = lua_tolstring(L, -1, &len);
 						msg.append(" in (global) function '"sv);
-						msg.append(s, l);
+						msg.append(str, len);
 						msg.append("'"sv);
 					}
 					else {
@@ -248,16 +251,27 @@ namespace core {
 	}
 
 	bool ScriptEngine::open() {
-		// -------------------- create VM
-
 		handle = static_cast<void*>(luaL_newstate());
 		if (!handle) {
 			return false;
 		}
-
-		// -------------------- register standard libraries
-
+	#ifdef LUASTG_LINK_LUAJIT
+		if (0 == luaJIT_setmode(LVM, 0, LUAJIT_MODE_ENGINE | LUAJIT_MODE_ON)) {
+			// TODO; write log
+		}
+	#endif // LUASTG_LINK_LUAJIT
 		luaL_openlibs(LVM);
+		return registerStackTraceBackHandler();
+	}
+	void ScriptEngine::close() {
+		if (LVM) {
+			lua_close(LVM);
+			handle = nullptr;
+		}
+	}
+
+	bool ScriptEngine::registerStackTraceBackHandler() {
+		assert(handle);
 
 		// -------------------- store debug.traceback
 
@@ -298,11 +312,5 @@ namespace core {
 		// ^stack: ...
 
 		return true;
-	}
-	void ScriptEngine::close() {
-		if (LVM) {
-			lua_close(LVM);
-			handle = nullptr;
-		}
 	}
 }

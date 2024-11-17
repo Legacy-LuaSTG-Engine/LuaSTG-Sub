@@ -28,6 +28,8 @@ namespace core {
 	public:
 		static ScriptEngine& getInstance();
 	private:
+		bool registerStackTraceBackHandler();
+	private:
 		void* handle;
 	};
 }

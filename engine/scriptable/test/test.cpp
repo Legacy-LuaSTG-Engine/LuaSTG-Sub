@@ -1,15 +1,18 @@
 #include "core/ScriptEngine.hpp"
 #include <iostream>
 #include <vector>
+#include <filesystem>
 
 using namespace std::string_view_literals;
 
-int main() {
+int main(int argc, char** argv) {
 	auto& vm = core::ScriptEngine::getInstance();
 	if (!vm.open()) {
 		return 1;
 	}
-	if (auto const load_result = vm.loadFromFile("main.lua"sv); !load_result) {
+	std::filesystem::path const path(argv[0]);
+	auto const test_path = path.parent_path() / "test.lua"sv;
+	if (auto const load_result = vm.loadFromFile(test_path.lexically_normal().generic_string()); !load_result) {
 		std::cout << load_result.getMessage() << std::endl;
 	}
 	std::vector<std::string_view> tests{
