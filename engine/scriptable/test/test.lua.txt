@@ -1,0 +1,188 @@
+local function call_error_with_userdata()
+	local f = io.open("__", "r")
+    error(f)
+end
+
+function test_call_error_with_userdata()
+	call_error_with_userdata()
+end
+
+local function call_error_with_table_x()
+	error(setmetatable({}, { __tostring = function (_)
+        return "super fuck"
+    end}))
+end
+
+function test_call_error_with_table_x()
+	call_error_with_table_x()
+end
+
+local function call_error_with_table()
+	error({})
+end
+
+function test_call_error_with_table()
+	call_error_with_table()
+end
+
+local function call_error_with_hello()
+	error("hello")
+end
+
+function test_call_error_with_hello()
+	call_error_with_hello()
+end
+
+local function call_error_with_pi()
+	error(math.pi)
+end
+
+function test_call_error_with_pi()
+	call_error_with_pi()
+end
+
+local function call_error_with_true()
+	error(true)
+end
+
+function test_call_error_with_true()
+	call_error_with_true()
+end
+
+local function call_error_with_false()
+	error(false)
+end
+
+function test_call_error_with_false()
+	call_error_with_false()
+end
+
+local function call_error_with_nil()
+	error(nil)
+end
+
+function test_call_error_with_nil()
+	call_error_with_nil()
+end
+
+local function call_error()
+	error()
+end
+
+function test_call_error()
+	call_error()
+end
+
+function print_hello_world()
+	print("Hello world!")
+end
+
+local strsB = {}
+local strs = {}
+
+function call_self_B()
+    table.insert(strsB, math.random())
+	return call_self_A()
+end
+
+function call_self_A()
+    table.insert(strs, math.random())
+    if #strs > 1000 and #strsB > 1000 then
+        error("fuck you")
+    end
+	return call_self_B()
+end
+
+function call_self()
+	return call_self_A()
+end
+
+function print_strs()
+    print(strs[1], strsB[2])
+end
+
+
+local function f10()
+    if math.random() > 0.5 then
+        print("f10")
+    end
+	f11()
+    print("--")
+end
+local function f9()
+    if math.random() > 0.5 then
+        print("f9")
+    end
+	f10()
+    print("--")
+end
+local function f8()
+    if math.random() > 0.5 then
+        print("f8")
+    end
+	f9()
+    print("--")
+end
+local function f7()
+    if math.random() > 0.5 then
+        print("f7")
+    end
+	f8()
+    print("--")
+end
+local function f6()
+    if math.random() > 0.5 then
+        print("f6")
+    end
+	f7()
+    print("--")
+end
+local function f5()
+    if math.random() > 0.5 then
+        print("f5")
+    end
+	f6()
+    print("--")
+end
+local function f4()
+    if math.random() > 0.5 then
+        print("f4")
+    end
+	f5()
+    print("--")
+end
+local function f3()
+    if math.random() > 0.5 then
+        print("f3")
+    end
+	f4()
+    print("--")
+end
+local function f2()
+    if math.random() > 0.5 then
+        print("f2")
+    end
+	f3()
+    print("--")
+end
+local function f1()
+    if math.random() > 0.5 then
+        print("f1")
+    end
+	f2()
+    print("--")
+end
+local function f0()
+    if math.random() > 0.5 then
+        print("f0")
+    end
+	f1()
+    print("--")
+end
+function call_f0()
+    print("----")
+    f0()
+    print("----")
+end
+
+call_f0()
