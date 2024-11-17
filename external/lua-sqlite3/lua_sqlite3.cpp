@@ -27,6 +27,16 @@ namespace lua {
 	constexpr auto arg8 = StackIndex(8);
 	constexpr auto arg9 = StackIndex(9);
 
+	constexpr auto arg_r1 = StackIndex(-1);
+	constexpr auto arg_r2 = StackIndex(-2);
+	constexpr auto arg_r3 = StackIndex(-3);
+	constexpr auto arg_r4 = StackIndex(-4);
+	constexpr auto arg_r5 = StackIndex(-5);
+	constexpr auto arg_r6 = StackIndex(-6);
+	constexpr auto arg_r7 = StackIndex(-7);
+	constexpr auto arg_r8 = StackIndex(-8);
+	constexpr auto arg_r9 = StackIndex(-9);
+
 	class StackBalancer {
 	public:
 		inline explicit StackBalancer(lua_State* L_) : L(L_), N(lua_gettop(L_)) {}
@@ -66,7 +76,7 @@ namespace lua {
 			else if constexpr (std::is_same_v<int32_t, T>) {
 				lua_pushinteger(L, value);
 			}
-			else if constexpr (std::is_same_v<char const*, T>) {
+			else if constexpr (std::is_same_v<char*, T> || std::is_same_v<char const*, T>) {
 				lua_pushstring(L, value);
 			}
 			else if constexpr (std::is_same_v<std::string_view, T>) {
@@ -78,6 +88,22 @@ namespace lua {
 			else {
 				static_assert(false, "not implemented");
 			}
+		}
+
+		[[nodiscard]] StackIndex createList(int32_t cap = 0) const {
+			lua_createtable(L, cap, 0);
+			return StackIndex(lua_gettop(L));
+		}
+		[[nodiscard]] StackIndex createList(size_t cap = 0) const {
+			lua_createtable(L, static_cast<int>(cap), 0);
+			return StackIndex(lua_gettop(L));
+		}
+
+		template<typename T>
+		void setListValue(StackIndex const index, size_t key, T const& value) const {
+			pushValue(static_cast<int32_t>(key + 1));
+			pushValue(value);
+			lua_settable(L, index.value());
 		}
 
 		[[nodiscard]] StackIndex createMap(size_t cap = 0) const {
@@ -127,6 +153,8 @@ namespace {
 	const std::string_view Database::class_name{ "sqlite3.Database"sv };
 
 	struct DatabaseBinding : public Database {
+	#define verify if (!self->database) return luaL_error(L, "database is closed");
+
 		// meta methods
 
 		static int __gc(lua_State* L) {
@@ -147,6 +175,66 @@ namespace {
 
 		// instance methods
 
+		static int exec(lua_State* L) {
+			lua::Stack S(L);
+			auto* self = as(L, 1);
+			verify;
+			auto const sql = S.getValue<std::string_view>(lua::arg2);
+			auto const has_callback = lua_isfunction(L, 3);
+
+			struct CallbackContext {
+				sqlite3* database{};
+				lua_State* L{};
+				static int callback(void* userdata, int column_count, char** column_values, char** column_names) {
+					auto& ctx = *static_cast<CallbackContext*>(userdata);
+					[[maybe_unused]] lua::StackBalancer SB(ctx.L);
+					lua::Stack S(ctx.L);
+					S.pushValue(lua::arg3);
+					// ^stack: ... callback
+					S.pushValue(column_count);
+					// ^stack: ... callback column_count
+					auto const value_list = S.createList(column_count);
+					// ^stack: ... callback column_count column_values
+					for (int i = 0; i < column_count; i += 1) {
+						S.setListValue(value_list, i, column_values[i]);
+					}
+					auto const name_list = S.createList(column_count);
+					// ^stack: ... callback column_count column_values column_names
+					for (int i = 0; i < column_count; i += 1) {
+						S.setListValue(name_list, i, column_names[i]);
+					}
+					lua_call(ctx.L, 3, 1);
+					// ^stack: ... code?
+					return S.getValue<int32_t>(lua::arg_r1);
+				}
+			};
+
+			char* error_message{};
+			int result{};
+			if (has_callback) {
+				CallbackContext callback_context{ self->database, L };
+				result = sqlite3_exec(self->database, sql.data(), &CallbackContext::callback, &callback_context, &error_message);
+			}
+			else {
+				result = sqlite3_exec(self->database, sql.data(), nullptr, nullptr, &error_message);
+			}
+			
+			if (result != SQLITE_OK) {
+				S.pushValue(false);
+				if (error_message) {
+					S.pushValue(error_message);
+					sqlite3_free(error_message);
+				}
+				else {
+					S.pushValue("exec error"sv);
+				}
+				S.pushValue(result);
+				return 3;
+			}
+			
+			S.pushValue(true);
+			return 1;
+		}
 		static int close(lua_State* L) {
 			lua::Stack S(L);
 			auto* self = as(L, 1);
@@ -180,6 +268,8 @@ namespace {
 			}
 			return 1;
 		}
+
+	#undef verify
 	};
 
 	void Database::registerClass(lua_State* L) {
@@ -187,6 +277,7 @@ namespace {
 		lua::Stack S(L);
 
 		auto const class_table = S.pushModule(class_name);
+		S.setMapValue(class_table, "exec"sv, &DatabaseBinding::exec);
 		S.setMapValue(class_table, "close"sv, &DatabaseBinding::close);
 		S.setMapValue(class_table, "open"sv, &DatabaseBinding::open);
 
