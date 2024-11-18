@@ -3258,6 +3258,12 @@ static int lib_DebugTextEncoding(lua_State* L)
     ImGui::DebugTextEncoding(text);
     return 0;
 }
+static int lib_DebugFlashStyleColor(lua_State* L)
+{
+    const auto idx = (ImGuiCol)luaL_checkinteger(L, 1);
+    ImGui::DebugFlashStyleColor(idx);
+    return 0;
+}
 static int lib_DebugCheckVersionAndDataLayout(lua_State* L)
 {
     const bool ret = IMGUI_CHECKVERSION();

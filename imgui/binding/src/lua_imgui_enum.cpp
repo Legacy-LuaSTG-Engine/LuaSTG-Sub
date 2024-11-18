@@ -172,6 +172,7 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"NoReorder"                   , ImGuiTabItemFlags_NoReorder                   },
     {"Leading"                     , ImGuiTabItemFlags_Leading                     },
     {"Trailing"                    , ImGuiTabItemFlags_Trailing                    },
+    {"NoAssumedClosure"            , ImGuiTabItemFlags_NoAssumedClosure            },
 }},
 {"ImGuiTableFlags", {
     {"None"                      , ImGuiTableFlags_None                      },
@@ -434,7 +435,7 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"KeypadMultiply", ImGuiKey_KeypadMultiply},
     {"KeypadSubtract", ImGuiKey_KeypadSubtract},
     {"KeypadAdd"     , ImGuiKey_KeypadAdd     },
-    {"KeyPadEnter"   , ImGuiKey_KeypadEnter   },
+    {"KeypadEnter"   , ImGuiKey_KeypadEnter   },
     {"KeypadEqual"   , ImGuiKey_KeypadEqual   },
     {"AppBack"       , ImGuiKey_AppBack       },
     {"AppForward"    , ImGuiKey_AppForward    },
