@@ -994,6 +994,10 @@ static /* !!!! */ int lib_GetColorU32(lua_State* L)
     default:
     case LUA_TNUMBER:
         {
+            // WARNING:
+            // - [x] ImU32 GetColorU32(ImGuiCol idx, float alpha_mul = 1.0f)
+            // - [x] ImU32 GetColorU32(const ImVec4& col)
+            // - [ ] ImU32 GetColorU32(ImU32 col, float alpha_mul = 1.0f) <<<<<<<<<<<< stupid!
             const ImGuiCol idx = (ImGuiCol)luaL_checkinteger(L, 1);
             if (lua_gettop(L) <= 1)
             {
@@ -3262,6 +3266,11 @@ static int lib_DebugFlashStyleColor(lua_State* L)
 {
     const auto idx = (ImGuiCol)luaL_checkinteger(L, 1);
     ImGui::DebugFlashStyleColor(idx);
+    return 0;
+}
+static int lib_DebugStartItemPicker(lua_State* L)
+{
+    ImGui::DebugStartItemPicker();
     return 0;
 }
 static int lib_DebugCheckVersionAndDataLayout(lua_State* L)

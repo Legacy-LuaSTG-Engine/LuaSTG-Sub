@@ -449,6 +449,7 @@ static const luaL_Reg lib_fun[] = {
     // Debug Utilities
     MAKEF(DebugTextEncoding),
     MAKEF(DebugFlashStyleColor),
+    MAKEF(DebugStartItemPicker),
     MAKEF(DebugCheckVersionAndDataLayout),
     
     // Memory Allocators
