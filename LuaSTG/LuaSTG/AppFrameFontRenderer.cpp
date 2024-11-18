@@ -255,7 +255,7 @@ namespace LuaSTGPlus
 	{
 		Core::ScopeObject<IResourceFont> p = m_ResourceMgr.FindTTFFont(name);
 		if (!p) {
-			spdlog::error("[luastg] RenderTTF: 找不到字体资源'%m'", name);
+			spdlog::error("[luastg] RenderTTF: 找不到字体资源'{}'", name);
 			return false;
 		}
 		
