@@ -3286,7 +3286,7 @@ static int lib_DebugFlashStyleColor(lua_State* L)
     ImGui::DebugFlashStyleColor(idx);
     return 0;
 }
-static int lib_DebugStartItemPicker(lua_State* L)
+static int lib_DebugStartItemPicker(lua_State*)
 {
     ImGui::DebugStartItemPicker();
     return 0;
