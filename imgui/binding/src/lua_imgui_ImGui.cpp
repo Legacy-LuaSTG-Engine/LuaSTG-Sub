@@ -70,6 +70,10 @@ static /* !!!! */ int lib_GetIO(lua_State* L)
 {
     LUA_IMGUI_NOT_SUPPORT;
 }
+static /* !!!! */ int lib_GetPlatformIO(lua_State* L)
+{
+    LUA_IMGUI_NOT_SUPPORT;
+}
 static int lib_GetStyle(lua_State* L)
 {
     imgui_binding_lua_ref_ImGuiStyle(L, &ImGui::GetStyle());
@@ -866,6 +870,18 @@ static int lib_PopStyleVar(lua_State* L)
     {
         ImGui::PopStyleVar();
     }
+    return 0;
+}
+static int lib_PushStyleVarX(lua_State* L) {
+    auto const idx = static_cast<ImGuiStyleVar>(luaL_checkinteger(L, 1));
+    auto const val_x = static_cast<float>(luaL_checknumber(L, 2));
+    ImGui::PushStyleVarX(idx, val_x);
+    return 0;
+}
+static int lib_PushStyleVarY(lua_State* L) {
+    auto const idx = static_cast<ImGuiStyleVar>(luaL_checkinteger(L, 1));
+    auto const val_y = static_cast<float>(luaL_checknumber(L, 2));
+    ImGui::PushStyleVarY(idx, val_y);
     return 0;
 }
 static int lib_PushItemFlag(lua_State* L)
@@ -2786,6 +2802,14 @@ static int lib_SetKeyboardFocusHere(lua_State* L)
 {
     const int offset = (int)luaL_optinteger(L, 1, 0);
     ImGui::SetKeyboardFocusHere(offset);
+    return 0;
+}
+
+//////// Keyboard/Gamepad Navigation
+
+static int lib_SetNavCursorVisible(lua_State* L) {
+    auto const visible = lua_toboolean(L, 1);
+    ImGui::SetNavCursorVisible(visible);
     return 0;
 }
 

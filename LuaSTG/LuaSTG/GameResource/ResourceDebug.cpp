@@ -1,4 +1,4 @@
-﻿#include "GameResource/ResourceManager.h"
+#include "GameResource/ResourceManager.h"
 #ifdef USING_DEAR_IMGUI
 #include "imgui.h"
 #endif
@@ -72,7 +72,7 @@ namespace LuaSTGPlus
 			{
 				auto const size = p_tex->getSize();
 				ImGui::Image(
-					p_tex->getNativeHandle(),
+					reinterpret_cast<size_t>(p_tex->getNativeHandle()),
 					ImVec2(scale * (float)size.x, scale * (float)size.y),
 					ImVec2(0.0f, 0.0f),
 					ImVec2(1.0f, 1.0f),
@@ -91,7 +91,7 @@ namespace LuaSTGPlus
 					ImGui::Text("Adapter Memory Usage (Approximate): %s", bytes_count_to_string(mem_usage).c_str());
 				}
 				ImGui::Image(
-					p_res->GetTexture()->getNativeHandle(),
+					reinterpret_cast<size_t>(p_res->GetTexture()->getNativeHandle()),
 					ImVec2(scale * (float)size.x, scale * (float)size.y),
 					ImVec2(0.0f, 0.0f),
 					ImVec2(1.0f, 1.0f),
@@ -116,7 +116,7 @@ namespace LuaSTGPlus
 					ImGui::Text("Units Per Pixel: %.4f", p_res->getUnitsPerPixel());
 				}
 				ImGui::Image(
-					p_tex->getNativeHandle(),
+					reinterpret_cast<size_t>(p_tex->getNativeHandle()),
 					ImVec2(scale * (rc.b.x - rc.a.x), scale * (rc.b.y - rc.a.y)),
 					ImVec2(rc.a.x / (float)tex_size.x, rc.a.y / (float)tex_size.y),
 					ImVec2(rc.b.x / (float)tex_size.x, rc.b.y / (float)tex_size.y),

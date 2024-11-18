@@ -645,7 +645,7 @@ bool ImGui_ImplWin32Ex_Init(void* window)
     ImGui::GetMainViewport()->PlatformHandleRaw = (void*)window;
     
     // Setup backend IME support
-    io.PlatformSetImeDataFn = &ImGui_ImplWin32Ex_UpdateIME;
+    ImGui::GetPlatformIO().Platform_SetImeDataFn = &ImGui_ImplWin32Ex_UpdateIME;
     
     // Gamepad
     wchar_t const* xinput_dll_names[] = {

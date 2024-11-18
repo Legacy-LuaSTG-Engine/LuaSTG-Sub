@@ -202,7 +202,7 @@ namespace Core::Graphics
 		io.BackendPlatformName = "LuaSTG Sub";
 		io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
 		io.BackendPlatformUserData = (void*)this;
-		io.PlatformSetImeDataFn = &updateIME;
+		ImGui::GetPlatformIO().Platform_SetImeDataFn = &updateIME;
 
 		ImGui::GetMainViewport()->PlatformHandleRaw = (void*)m_window->GetWindow();
 

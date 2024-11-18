@@ -65,7 +65,7 @@ void imgui_binding_lua_register_enum(lua_State* L)
 }},
 {"ImGuiChildFlags", {
     {"None"                  , ImGuiChildFlags_None                  },
-    {"Border"                , ImGuiChildFlags_Border                },
+    {"Borders"               , ImGuiChildFlags_Borders               },
     {"AlwaysUseWindowPadding", ImGuiChildFlags_AlwaysUseWindowPadding},
     {"ResizeX"               , ImGuiChildFlags_ResizeX               },
     {"ResizeY"               , ImGuiChildFlags_ResizeY               },
@@ -82,6 +82,7 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"NoNavDefaultFocus", ImGuiItemFlags_NoNavDefaultFocus},
     {"ButtonRepeat"     , ImGuiItemFlags_ButtonRepeat     },
     {"AutoClosePopups"  , ImGuiItemFlags_AutoClosePopups  },
+    {"AllowDuplicateId" , ImGuiItemFlags_AllowDuplicateId },
 }},
 {"ImGuiInputTextFlags", {
     {"None"               , ImGuiInputTextFlags_None               },
@@ -515,8 +516,6 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"None"                , ImGuiConfigFlags_None                },
     {"NavEnableKeyboard"   , ImGuiConfigFlags_NavEnableKeyboard   },
     {"NavEnableGamepad"    , ImGuiConfigFlags_NavEnableGamepad    },
-    {"NavEnableSetMousePos", ImGuiConfigFlags_NavEnableSetMousePos},
-    {"NavNoCaptureKeyboard", ImGuiConfigFlags_NavNoCaptureKeyboard},
     {"NoMouse"             , ImGuiConfigFlags_NoMouse             },
     {"NoMouseCursorChange" , ImGuiConfigFlags_NoMouseCursorChange },
     {"NoKeyboard"          , ImGuiConfigFlags_NoKeyboard          },
@@ -582,7 +581,7 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"TableRowBgAlt"        , ImGuiCol_TableRowBgAlt        },
     {"TextSelectedBg"       , ImGuiCol_TextSelectedBg       },
     {"DragDropTarget"       , ImGuiCol_DragDropTarget       },
-    {"NavHighlight"         , ImGuiCol_NavHighlight         },
+    {"NavCursor"            , ImGuiCol_NavCursor            },
     {"NavWindowingHighlight", ImGuiCol_NavWindowingHighlight},
     {"NavWindowingDimBg"    , ImGuiCol_NavWindowingDimBg    },
     {"ModalWindowDimBg"     , ImGuiCol_ModalWindowDimBg     },
@@ -627,6 +626,7 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"MouseButtonLeft"  , ImGuiButtonFlags_MouseButtonLeft  },
     {"MouseButtonRight" , ImGuiButtonFlags_MouseButtonRight },
     {"MouseButtonMiddle", ImGuiButtonFlags_MouseButtonMiddle},
+    {"EnableNav"        , ImGuiButtonFlags_EnableNav       },
 }},
 {"ImGuiColorEditFlags", {
     {"None"            , ImGuiColorEditFlags_None            },
@@ -657,11 +657,13 @@ void imgui_binding_lua_register_enum(lua_State* L)
 }},
 {"ImGuiSliderFlags", {
     {"None"           , ImGuiSliderFlags_None           },
-    {"AlwaysClamp"    , ImGuiSliderFlags_AlwaysClamp    },
     {"Logarithmic"    , ImGuiSliderFlags_Logarithmic    },
     {"NoRoundToFormat", ImGuiSliderFlags_NoRoundToFormat},
     {"NoInput"        , ImGuiSliderFlags_NoInput        },
     {"WrapAround"     , ImGuiSliderFlags_WrapAround     },
+    {"ClampOnInput"   , ImGuiSliderFlags_ClampOnInput   },
+    {"ClampZeroRange" , ImGuiSliderFlags_ClampZeroRange },
+    {"AlwaysClamp"    , ImGuiSliderFlags_AlwaysClamp    },
 }},
 {"ImGuiMouseButton", {
     {"Left"  , ImGuiMouseButton_Left  },
