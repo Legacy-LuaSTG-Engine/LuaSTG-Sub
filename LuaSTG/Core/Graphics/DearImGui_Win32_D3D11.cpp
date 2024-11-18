@@ -1,4 +1,4 @@
-﻿#include "Core/Graphics/DearImGui_Win32_D3D11.hpp"
+#include "Core/Graphics/DearImGui_Win32_D3D11.hpp"
 #include "imgui.h"
 #include <windowsx.h>
 
@@ -182,7 +182,7 @@ namespace Core::Graphics
 	{
 		return ImVec2((float)(int16_t)(v & 0xFFFFu), (float)(int16_t)((v & 0xFFFF0000u) >> 16));
 	}
-	static void updateIME(ImGuiViewport* viewport, ImGuiPlatformImeData* data)
+	static void updateIME(ImGuiContext*, ImGuiViewport* viewport, ImGuiPlatformImeData* data)
 	{
 		if (viewport->PlatformHandleRaw)
 		{
@@ -202,7 +202,7 @@ namespace Core::Graphics
 		io.BackendPlatformName = "LuaSTG Sub";
 		io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
 		io.BackendPlatformUserData = (void*)this;
-		io.SetPlatformImeDataFn = &updateIME;
+		io.PlatformSetImeDataFn = &updateIME;
 
 		ImGui::GetMainViewport()->PlatformHandleRaw = (void*)m_window->GetWindow();
 
