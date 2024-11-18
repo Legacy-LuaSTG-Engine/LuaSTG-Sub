@@ -409,7 +409,7 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(ColorConvertRGBtoHSV),
     MAKEF(ColorConvertHSVtoRGB),
     
-    // Inputs Utilities: Keyboard
+    // Inputs Utilities: Keyboard/Mouse/Gamepad
     MAKEF(IsKeyDown),
     MAKEF(IsKeyPressed),
     MAKEF(IsKeyReleased),
@@ -418,7 +418,11 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(GetKeyName),
     MAKEF(SetNextFrameWantCaptureKeyboard),
     
-    // Inputs Utilities: Mouse
+    // Inputs Utilities: Shortcut Testing & Routing [BETA]
+    MAKEF(Shortcut),
+    MAKEF(SetNextItemShortcut),
+
+    // Inputs Utilities: Mouse specific
     MAKEF(IsMouseDown),
     MAKEF(IsMouseClicked),
     MAKEF(IsMouseReleased),

@@ -3030,7 +3030,7 @@ static int lib_ColorConvertHSVtoRGB(lua_State* L)
     return 3;
 }
 
-//////// Inputs Utilities: Keyboard
+//////// Inputs Utilities: Keyboard/Mouse/Gamepad
 
 static int lib_IsKeyDown(lua_State* L)
 {
@@ -3085,7 +3085,25 @@ static int lib_SetNextFrameWantCaptureKeyboard(lua_State* L)
     return 0;
 }
 
-//////// Inputs Utilities: Mouse
+//////// Inputs Utilities: Shortcut Testing & Routing [BETA]
+
+static int lib_Shortcut(lua_State* L)
+{
+    const auto key_chord = (ImGuiKeyChord)luaL_checkinteger(L, 1);
+    const auto flags = (ImGuiInputFlags)luaL_optinteger(L, 2, 0);
+    const bool ret = ImGui::Shortcut(key_chord, flags);
+    lua_pushboolean(L, ret);
+    return 1;
+}
+static int lib_SetNextItemShortcut(lua_State* L)
+{
+    const auto key_chord = (ImGuiKeyChord)luaL_checkinteger(L, 1);
+    const auto flags = (ImGuiInputFlags)luaL_optinteger(L, 2, 0);
+    ImGui::SetNextItemShortcut(key_chord, flags);
+    return 0;
+}
+
+//////// Inputs Utilities: Mouse specific
 
 static int lib_IsMouseDown(lua_State* L)
 {
