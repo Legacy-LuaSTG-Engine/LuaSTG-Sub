@@ -658,11 +658,13 @@ void imgui_binding_lua_register_enum(lua_State* L)
 }},
 {"ImGuiSliderFlags", {
     {"None"           , ImGuiSliderFlags_None           },
-    {"AlwaysClamp"    , ImGuiSliderFlags_AlwaysClamp    },
     {"Logarithmic"    , ImGuiSliderFlags_Logarithmic    },
     {"NoRoundToFormat", ImGuiSliderFlags_NoRoundToFormat},
     {"NoInput"        , ImGuiSliderFlags_NoInput        },
     {"WrapAround"     , ImGuiSliderFlags_WrapAround     },
+    {"ClampOnInput"   , ImGuiSliderFlags_ClampOnInput   },
+    {"ClampZeroRange" , ImGuiSliderFlags_ClampZeroRange },
+    {"AlwaysClamp"    , ImGuiSliderFlags_AlwaysClamp    },
 }},
 {"ImGuiMouseButton", {
     {"Left"  , ImGuiMouseButton_Left  },
