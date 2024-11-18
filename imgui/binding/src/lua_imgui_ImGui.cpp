@@ -5,6 +5,10 @@
 #include <tuple>
 #include "imgui.h"
 
+// TODO TODO TODO TODO TODO TODO TODO TODO
+// - [ ] get/push ImGuiID integer (int32 ?) -> number (double)
+// - [ ] multi select feature
+
 template<typename T>
 struct type_array
 {
@@ -141,18 +145,18 @@ static int lib_ShowDebugLogWindow(lua_State* L)
         return 0;
     }
 }
-static int lib_ShowStackToolWindow(lua_State* L)
+static int lib_ShowIDStackToolWindow(lua_State* L)
 {
     if(lua_gettop(L) >= 1)
     {
         bool p_open = lua_toboolean(L, 1);
-        ImGui::ShowStackToolWindow(&p_open);
+        ImGui::ShowIDStackToolWindow(&p_open);
         lua_pushboolean(L, p_open);
         return 1;
     }
     else
     {
-        ImGui::ShowStackToolWindow();
+        ImGui::ShowIDStackToolWindow();
         return 0;
     }
 }
@@ -311,15 +315,15 @@ static int lib_BeginChild(lua_State* L)
             else if (argc == 3)
             {
                 ImVec2* size = lua::as_type_instance<ImVec2>(L, 2);
-                const bool border = lua_toboolean(L, 3);
-                ret = ImGui::BeginChild(id, *size, border);
+                const auto flags = (ImGuiChildFlags)luaL_checkinteger(L, 3);
+                ret = ImGui::BeginChild(id, *size, flags);
             }
             else
             {
                 ImVec2* size = lua::as_type_instance<ImVec2>(L, 2);
-                const bool border = lua_toboolean(L, 3);
-                const ImGuiWindowFlags flags = (ImGuiWindowFlags)luaL_checkinteger(L, 4);
-                ret = ImGui::BeginChild(id, *size, border, flags);
+                const auto flags = (ImGuiChildFlags)luaL_checkinteger(L, 3);
+                const auto window_flags = (ImGuiWindowFlags)luaL_checkinteger(L, 4);
+                ret = ImGui::BeginChild(id, *size, flags, window_flags);
             }
             lua_pushboolean(L, ret);
             return 1;
@@ -341,15 +345,15 @@ static int lib_BeginChild(lua_State* L)
             else if (argc == 3)
             {
                 ImVec2* size = lua::as_type_instance<ImVec2>(L, 2);
-                const bool border = lua_toboolean(L, 3);
-                ret = ImGui::BeginChild(str_id, *size, border);
+                const auto flags = (ImGuiChildFlags)luaL_checkinteger(L, 3);
+                ret = ImGui::BeginChild(str_id, *size, flags);
             }
             else
             {
                 ImVec2* size = lua::as_type_instance<ImVec2>(L, 2);
-                const bool border = lua_toboolean(L, 3);
-                const ImGuiWindowFlags flags = (ImGuiWindowFlags)luaL_checkinteger(L, 4);
-                ret = ImGui::BeginChild(str_id, *size, border, flags);
+                const auto flags = (ImGuiChildFlags)luaL_checkinteger(L, 3);
+                const auto window_flags = (ImGuiWindowFlags)luaL_checkinteger(L, 4);
+                ret = ImGui::BeginChild(str_id, *size, flags, window_flags);
             }
             lua_pushboolean(L, ret);
             return 1;
@@ -693,33 +697,6 @@ static int lib_SetWindowFontScale(lua_State* L)
     return 0;
 }
 
-//////// Content region
-
-static int lib_GetContentRegionMax(lua_State* L)
-{
-    ImVec2* vec2 = lua::create_type_instance<ImVec2>(L);
-    *vec2 = ImGui::GetContentRegionMax();
-    return 1;
-}
-static int lib_GetContentRegionAvail(lua_State* L)
-{
-    ImVec2* vec2 = lua::create_type_instance<ImVec2>(L);
-    *vec2 = ImGui::GetContentRegionAvail();
-    return 1;
-}
-static int lib_GetWindowContentRegionMin(lua_State* L)
-{
-    ImVec2* vec2 = lua::create_type_instance<ImVec2>(L);
-    *vec2 = ImGui::GetWindowContentRegionMin();
-    return 1;
-}
-static int lib_GetWindowContentRegionMax(lua_State* L)
-{
-    ImVec2* vec2 = lua::create_type_instance<ImVec2>(L);
-    *vec2 = ImGui::GetWindowContentRegionMax();
-    return 1;
-}
-
 //////// Windows Scrolling
 
 static int lib_GetScrollX(lua_State* L)
@@ -891,28 +868,16 @@ static int lib_PopStyleVar(lua_State* L)
     }
     return 0;
 }
-static int lib_PushTabStop(lua_State* L)
+static int lib_PushItemFlag(lua_State* L)
 {
-    const bool tab_stop = lua_toboolean(L, 1);
-    ImGui::PushTabStop(tab_stop);
+    auto const flags = (ImGuiItemFlags)luaL_checkinteger(L, 1);
+    auto const enable = lua_toboolean(L, 2);
+    ImGui::PushItemFlag(flags, enable);
     return 0;
 }
-static int lib_PopTabStop(lua_State* L)
+static int lib_PopItemFlag(lua_State*)
 {
-    std::ignore = L;
-    ImGui::PopTabStop();
-    return 0;
-}
-static int lib_PushButtonRepeat(lua_State* L)
-{
-    const bool repeat = lua_toboolean(L, 1);
-    ImGui::PushButtonRepeat(repeat);
-    return 0;
-}
-static int lib_PopButtonRepeat(lua_State* L)
-{
-    std::ignore = L;
-    ImGui::PopButtonRepeat();
+    ImGui::PopItemFlag();
     return 0;
 }
 
@@ -994,6 +959,10 @@ static /* !!!! */ int lib_GetColorU32(lua_State* L)
     default:
     case LUA_TNUMBER:
         {
+            // WARNING:
+            // - [x] ImU32 GetColorU32(ImGuiCol idx, float alpha_mul = 1.0f)
+            // - [x] ImU32 GetColorU32(const ImVec4& col)
+            // - [ ] ImU32 GetColorU32(ImU32 col, float alpha_mul = 1.0f) <<<<<<<<<<<< stupid!
             const ImGuiCol idx = (ImGuiCol)luaL_checkinteger(L, 1);
             if (lua_gettop(L) <= 1)
             {
@@ -1018,7 +987,70 @@ static int lib_GetStyleColorVec4(lua_State* L)
     return 1;
 }
 
-//////// Cursor / Layout
+//////// Layout cursor positioning
+
+static int lib_GetCursorScreenPos(lua_State* L)
+{
+    ImVec2* vec2 = lua::create_type_instance<ImVec2>(L);
+    *vec2 = ImGui::GetCursorScreenPos();
+    return 1;
+}
+static int lib_SetCursorScreenPos(lua_State* L)
+{
+    ImVec2* pos = lua::as_type_instance<ImVec2>(L, 1);
+    ImGui::SetCursorScreenPos(*pos);
+    return 0;
+}
+static int lib_GetContentRegionAvail(lua_State* L)
+{
+    ImVec2* vec2 = lua::create_type_instance<ImVec2>(L);
+    *vec2 = ImGui::GetContentRegionAvail();
+    return 1;
+}
+static int lib_GetCursorPos(lua_State* L)
+{
+    ImVec2* vec2 = lua::create_type_instance<ImVec2>(L);
+    *vec2 = ImGui::GetCursorPos();
+    return 1;
+}
+static int lib_GetCursorPosX(lua_State* L)
+{
+    const float ret = ImGui::GetCursorPosX();
+    lua_pushnumber(L, (lua_Number)ret);
+    return 1;
+}
+static int lib_GetCursorPosY(lua_State* L)
+{
+    const float ret = ImGui::GetCursorPosY();
+    lua_pushnumber(L, (lua_Number)ret);
+    return 1;
+}
+static int lib_SetCursorPos(lua_State* L)
+{
+    ImVec2* local_pos = lua::as_type_instance<ImVec2>(L, 1);
+    ImGui::SetCursorPos(*local_pos);
+    return 0;
+}
+static int lib_SetCursorPosX(lua_State* L)
+{
+    const float local_x = (float)luaL_checknumber(L, 1);
+    ImGui::SetCursorPosX(local_x);
+    return 0;
+}
+static int lib_SetCursorPosY(lua_State* L)
+{
+    const float local_y = (float)luaL_checknumber(L, 1);
+    ImGui::SetCursorPosY(local_y);
+    return 0;
+}
+static int lib_GetCursorStartPos(lua_State* L)
+{
+    ImVec2* vec2 = lua::create_type_instance<ImVec2>(L);
+    *vec2 = ImGui::GetCursorStartPos();
+    return 1;
+}
+
+//////// Other layout functions
 
 static int lib_Separator(lua_State* L)
 {
@@ -1102,60 +1134,6 @@ static int lib_EndGroup(lua_State* L)
     ImGui::EndGroup();
     return 0;
 }
-static int lib_GetCursorPos(lua_State* L)
-{
-    ImVec2* vec2 = lua::create_type_instance<ImVec2>(L);
-    *vec2 = ImGui::GetCursorPos();
-    return 1;
-}
-static int lib_GetCursorPosX(lua_State* L)
-{
-    const float ret = ImGui::GetCursorPosX();
-    lua_pushnumber(L, (lua_Number)ret);
-    return 1;
-}
-static int lib_GetCursorPosY(lua_State* L)
-{
-    const float ret = ImGui::GetCursorPosY();
-    lua_pushnumber(L, (lua_Number)ret);
-    return 1;
-}
-static int lib_SetCursorPos(lua_State* L)
-{
-    ImVec2* local_pos = lua::as_type_instance<ImVec2>(L, 1);
-    ImGui::SetCursorPos(*local_pos);
-    return 0;
-}
-static int lib_SetCursorPosX(lua_State* L)
-{
-    const float local_x = (float)luaL_checknumber(L, 1);
-    ImGui::SetCursorPosX(local_x);
-    return 0;
-}
-static int lib_SetCursorPosY(lua_State* L)
-{
-    const float local_y = (float)luaL_checknumber(L, 1);
-    ImGui::SetCursorPosY(local_y);
-    return 0;
-}
-static int lib_GetCursorStartPos(lua_State* L)
-{
-    ImVec2* vec2 = lua::create_type_instance<ImVec2>(L);
-    *vec2 = ImGui::GetCursorStartPos();
-    return 1;
-}
-static int lib_GetCursorScreenPos(lua_State* L)
-{
-    ImVec2* vec2 = lua::create_type_instance<ImVec2>(L);
-    *vec2 = ImGui::GetCursorScreenPos();
-    return 1;
-}
-static int lib_SetCursorScreenPos(lua_State* L)
-{
-    ImVec2* pos = lua::as_type_instance<ImVec2>(L, 1);
-    ImGui::SetCursorScreenPos(*pos);
-    return 0;
-}
 static int lib_AlignTextToFramePadding(lua_State* L)
 {
     std::ignore = L;
@@ -1196,21 +1174,22 @@ static int lib_PushID(lua_State* L)
     case LUA_TLIGHTUSERDATA:
     case LUA_TUSERDATA:
         {
-            const void* ptr_id = lua_touserdata(L, 1);
+            void const* ptr_id = lua_touserdata(L, 1);
             ImGui::PushID(ptr_id);
             return 0;
         }
-    case LUA_TSTRING:
+    case LUA_TNUMBER:
         {
-            const char* str_id = lua_tostring(L, 1);
-            ImGui::PushID(str_id);
+            auto const int_id = luaL_checkinteger(L, 1);
+            ImGui::PushID(static_cast<int>(int_id));
             return 0;
         }
-    case LUA_TNUMBER:
     default:
+    case LUA_TSTRING:
         {
-            const int int_id = (int)lua_tointeger(L, 1);
-            ImGui::PushID(int_id);
+            size_t len{};
+            char const* str_id = luaL_checklstring(L, 1, &len);
+            ImGui::PushID(str_id, str_id + len);
             return 0;
         }
     }
@@ -1228,17 +1207,25 @@ static int lib_GetID(lua_State* L)
     case LUA_TLIGHTUSERDATA:
     case LUA_TUSERDATA:
         {
-            const void* ptr_id = lua_touserdata(L, 1);
-            const ImGuiID ret = ImGui::GetID(ptr_id);
-            lua_pushinteger(L, (lua_Integer)ret);
+            void const* ptr_id = lua_touserdata(L, 1);
+            auto const imgui_id = ImGui::GetID(ptr_id);
+            lua_pushnumber(L, static_cast<lua_Number>(imgui_id));
+            return 1;
+        }
+    case LUA_TNUMBER:
+        {
+            auto const int_id = luaL_checkinteger(L, 1);
+            auto const imgui_id = ImGui::GetID(static_cast<int>(int_id));
+            lua_pushnumber(L, static_cast<lua_Number>(imgui_id));
             return 1;
         }
     default:
     case LUA_TSTRING:
         {
-            const char* str_id = lua_tostring(L, 1);
-            const ImGuiID ret = ImGui::GetID(str_id);
-            lua_pushinteger(L, (lua_Integer)ret);
+            size_t len{};
+            char const* str_id = luaL_checklstring(L, 1, &len);
+            auto const imgui_id = ImGui::GetID(str_id, str_id + len);
+            lua_pushnumber(L, static_cast<lua_Number>(imgui_id));
             return 1;
         }
     }
@@ -1440,6 +1427,20 @@ static int lib_Bullet(lua_State* L)
     ImGui::Bullet();
     return 0;
 }
+static int lib_TextLink(lua_State* L)
+{
+    char const* label = luaL_checkstring(L, 1);
+    auto const r = ImGui::TextLink(label);
+    lua_pushboolean(L, r);
+    return 1;
+}
+static int lib_TextLinkOpenURL(lua_State* L)
+{
+    char const* label = luaL_checkstring(L, 1);
+    char const* url = luaL_optstring(L, 2, nullptr);
+    ImGui::TextLinkOpenURL(label, url);
+    return 0;
+}
 
 //////// Widgets: Images
 
@@ -1522,7 +1523,7 @@ static int lib_Combo(lua_State* L)
             // so it's easy to handle lua getter callback function (same lua_State)
             struct Wrapper
             {
-                static bool Getter(void* data, int idx, const char** out_text)
+                static char const* Getter(void* data, int idx)
                 {
                     lua_State* L = (lua_State*)data;
                     lua_pushvalue(L, 3);
@@ -1531,14 +1532,14 @@ static int lib_Combo(lua_State* L)
                     lua_call(L, 1, 1);
                     if (lua_type(L, -1) == LUA_TSTRING)
                     {
-                        *out_text = luaL_checkstring(L, -1);
+                        char const *out_text = luaL_checkstring(L, -1);
                         lua_pop(L, 1);
-                        return true;
+                        return out_text;
                     }
                     else
                     {
                         lua_pop(L, 1);
-                        return false;
+                        return "";
                     }
                 };
             };
@@ -1779,6 +1780,11 @@ static int lib_SetNextItemOpen(lua_State* L)
     }
     return 0;
 }
+static int lib_SetNextItemStorageID(lua_State* L) {
+    auto const imgui_id = static_cast<ImGuiID>(luaL_checknumber(L, 1));
+    ImGui::SetNextItemStorageID(imgui_id);
+    return 0;
+}
 
 //////// Widgets: Selectables
 
@@ -1856,7 +1862,7 @@ static int lib_ListBox(lua_State* L)
         const int items_count = (int)luaL_checkinteger(L, 4);
         struct Wrapper
         {
-            static bool Getter(void* data, int idx, const char** out_text)
+            static char const* Getter(void* data, int idx)
             {
                 lua_State* L = (lua_State*)data;
                 lua_pushvalue(L, 3);
@@ -1864,15 +1870,14 @@ static int lib_ListBox(lua_State* L)
                 lua_call(L, 1, 1);
                 if (lua_isstring(L, -1))
                 {
-                    *out_text = lua_tostring(L, -1);
+                    char const *out_text = lua_tostring(L, -1);
                     lua_pop(L, 1);
-                    return true;
+                    return out_text;
                 }
                 else
                 {
                     lua_pop(L, 1);
-                    *out_text = nullptr;
-                    return false;
+                    return "";
                 }
             }
         };
@@ -2403,16 +2408,22 @@ static int lib_TableSetupScrollFreeze(lua_State* L)
     ImGui::TableSetupScrollFreeze(cols, rows);
     return 0;
 }
+static int lib_TableHeader(lua_State* L)
+{
+    const char* label = luaL_checkstring(L, 1);
+    ImGui::TableHeader(label);
+    return 0;
+}
 static int lib_TableHeadersRow(lua_State* L)
 {
     std::ignore = L;
     ImGui::TableHeadersRow();
     return 0;
 }
-static int lib_TableHeader(lua_State* L)
+static int lib_TableAngledHeadersRow(lua_State* L)
 {
-    const char* label = luaL_checkstring(L, 1);
-    ImGui::TableHeader(label);
+    std::ignore = L;
+    ImGui::TableAngledHeadersRow();
     return 0;
 }
 //////// Tables: Sorting & Miscellaneous functions
@@ -2474,6 +2485,12 @@ static int lib_TableSetColumnEnabled(lua_State* L)
     const bool v = lua_toboolean(L, 2);
     ImGui::TableSetColumnEnabled(column_n, v);
     return 0;
+}
+static int lib_TableGetHoveredColumn(lua_State* L)
+{
+    const auto column = ImGui::TableGetHoveredColumn();
+    lua_pushinteger(L, column);
+    return 1;
 }
 static int lib_TableSetBgColor(lua_State* L)
 {
@@ -2948,21 +2965,6 @@ static /* !!!! */ int lib_GetStateStorage(lua_State* L)
 {
     LUA_IMGUI_NOT_SUPPORT;
 }
-static int lib_BeginChildFrame(lua_State* L)
-{
-    const ImGuiID id = (ImGuiID)luaL_checkinteger(L, 1);
-    ImVec2* size = lua::as_type_instance<ImVec2>(L, 2);
-    const ImGuiWindowFlags flag = (ImGuiWindowFlags)luaL_optinteger(L, 3, 0);
-    const bool ret = ImGui::BeginChildFrame(id, *size, flag);
-    lua_pushboolean(L, ret);
-    return 1;
-}
-static int lib_EndChildFrame(lua_State* L)
-{
-    std::ignore = L;
-    ImGui::EndChildFrame();
-    return 0;
-}
 
 //////// Text Utilities
 
@@ -3033,7 +3035,7 @@ static int lib_ColorConvertHSVtoRGB(lua_State* L)
     return 3;
 }
 
-//////// Inputs Utilities: Keyboard
+//////// Inputs Utilities: Keyboard/Mouse/Gamepad
 
 static int lib_IsKeyDown(lua_State* L)
 {
@@ -3055,6 +3057,13 @@ static int lib_IsKeyReleased(lua_State* L)
 {
     const ImGuiKey key = (ImGuiKey)luaL_checkinteger(L, 1);
     const bool ret = ImGui::IsKeyReleased(key);
+    lua_pushboolean(L, ret);
+    return 1;
+}
+static int lib_IsKeyChordPressed(lua_State* L)
+{
+    const auto key = (ImGuiKeyChord)luaL_checkinteger(L, 1);
+    const bool ret = ImGui::IsKeyChordPressed(key);
     lua_pushboolean(L, ret);
     return 1;
 }
@@ -3081,17 +3090,34 @@ static int lib_SetNextFrameWantCaptureKeyboard(lua_State* L)
     return 0;
 }
 
-//static int lib_Shortcut(lua_State* L)
-//{
-//    int const key_chord = luaL_checkinteger(L, 1);
-//    ImGuiID const owner_id = (ImGuiID)luaL_optnumber(L, 2, 0.0);
-//    ImGuiInputFlags const flags = (ImGuiInputFlags)luaL_optinteger(L, 1, 0);
-//    bool const ret = ImGui::Shortcut(key_chord, owner_id, flags);
-//    lua_pushboolean(L, ret);
-//    return 1;
-//}
+//////// Inputs Utilities: Shortcut Testing & Routing [BETA]
 
-//////// Inputs Utilities: Mouse
+static int lib_Shortcut(lua_State* L)
+{
+    const auto key_chord = (ImGuiKeyChord)luaL_checkinteger(L, 1);
+    const auto flags = (ImGuiInputFlags)luaL_optinteger(L, 2, 0);
+    const bool ret = ImGui::Shortcut(key_chord, flags);
+    lua_pushboolean(L, ret);
+    return 1;
+}
+static int lib_SetNextItemShortcut(lua_State* L)
+{
+    const auto key_chord = (ImGuiKeyChord)luaL_checkinteger(L, 1);
+    const auto flags = (ImGuiInputFlags)luaL_optinteger(L, 2, 0);
+    ImGui::SetNextItemShortcut(key_chord, flags);
+    return 0;
+}
+
+//////// Inputs Utilities: Key/Input Ownership [BETA]
+
+static int lib_SetItemKeyOwner(lua_State* L)
+{
+    auto const key = (ImGuiKey)luaL_checkinteger(L, 1);
+    ImGui::SetItemKeyOwner(key);
+    return 0;
+}
+
+//////// Inputs Utilities: Mouse specific
 
 static int lib_IsMouseDown(lua_State* L)
 {
@@ -3268,11 +3294,33 @@ static int lib_DebugTextEncoding(lua_State* L)
     ImGui::DebugTextEncoding(text);
     return 0;
 }
+static int lib_DebugFlashStyleColor(lua_State* L)
+{
+    const auto idx = (ImGuiCol)luaL_checkinteger(L, 1);
+    ImGui::DebugFlashStyleColor(idx);
+    return 0;
+}
+static int lib_DebugStartItemPicker(lua_State*)
+{
+    ImGui::DebugStartItemPicker();
+    return 0;
+}
 static int lib_DebugCheckVersionAndDataLayout(lua_State* L)
 {
     const bool ret = IMGUI_CHECKVERSION();
     lua_pushboolean(L, ret);
     return 1;
+}
+static int lib_DebugLog(lua_State* L)
+{
+    size_t len{};
+    char const* str = luaL_checklstring(L, 1, &len);
+    ImGui::DebugLog("%.*s", static_cast<int>(len), str);
+    return 0;
+}
+static /* XXXX */ int lib_DebugLogV(lua_State* L)
+{
+    LUA_IMGUI_NOT_SUPPORT;
 }
 
 //////// Memory Allocators

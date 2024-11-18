@@ -1,4 +1,4 @@
-﻿#include "Core/Graphics/Model_D3D11.hpp"
+#include "Core/Graphics/Model_D3D11.hpp"
 #include "Core/FileManager.hpp"
 
 #define IDX(x) (size_t)static_cast<uint8_t>(x)
@@ -1081,7 +1081,7 @@ namespace Core::Graphics
                 }
                 return true;
             }
-            static bool GetFileSizeInBytes(size_t* filesize_out, std::string* err, const std::string& abs_filename, void*) {
+            static bool GetFileSizeInBytes(size_t* filesize_out, [[maybe_unused]] std::string* err, const std::string& abs_filename, void*) {
                 auto const file_size = GFileManager().getSizeEx(abs_filename);
                 if (file_size == size_t(-1)) {
                     *filesize_out = file_size;

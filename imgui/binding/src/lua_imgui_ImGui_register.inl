@@ -21,7 +21,7 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(ShowDemoWindow),
     MAKEF(ShowMetricsWindow),
     MAKEF(ShowDebugLogWindow),
-    MAKEF(ShowStackToolWindow),
+    MAKEF(ShowIDStackToolWindow),
     MAKEF(ShowAboutWindow),
     MAKEF(ShowStyleEditor),
     MAKEF(ShowStyleSelector),
@@ -66,12 +66,6 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(SetWindowFocus),
     MAKEF(SetWindowFontScale),
     
-    // Content region
-    MAKEF(GetContentRegionAvail),
-    MAKEF(GetContentRegionMax),
-    MAKEF(GetWindowContentRegionMin),
-    MAKEF(GetWindowContentRegionMax),
-    
     // Windows Scrolling
     MAKEF(GetScrollX),
     MAKEF(GetScrollY),
@@ -91,10 +85,8 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(PopStyleColor),
     MAKEF(PushStyleVar),
     MAKEF(PopStyleVar),
-    MAKEF(PushTabStop),
-    MAKEF(PopTabStop),
-    MAKEF(PushButtonRepeat),
-    MAKEF(PopButtonRepeat),
+    MAKEF(PushItemFlag),
+    MAKEF(PopItemFlag),
     
     // Parameters stacks (current window)
     MAKEF(PushItemWidth),
@@ -112,16 +104,9 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(GetStyleColorVec4),
     
     // Cursor / Layout
-    MAKEF(Separator),
-    MAKEF(SameLine),
-    MAKEF(NewLine),
-    MAKEF(Spacing),
-    MAKEF(Dummy),
-    MAKEF(Indent),
-    MAKEF(Unindent),
-    
-    MAKEF(BeginGroup),
-    MAKEF(EndGroup),
+    MAKEF(GetCursorScreenPos),
+    MAKEF(SetCursorScreenPos),
+    MAKEF(GetContentRegionAvail),
     MAKEF(GetCursorPos),
     MAKEF(GetCursorPosX),
     MAKEF(GetCursorPosY),
@@ -129,8 +114,17 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(SetCursorPosX),
     MAKEF(SetCursorPosY),
     MAKEF(GetCursorStartPos),
-    MAKEF(GetCursorScreenPos),
-    MAKEF(SetCursorScreenPos),
+
+    // Other layout functions
+    MAKEF(Separator),
+    MAKEF(SameLine),
+    MAKEF(NewLine),
+    MAKEF(Spacing),
+    MAKEF(Dummy),
+    MAKEF(Indent),
+    MAKEF(Unindent),
+    MAKEF(BeginGroup),
+    MAKEF(EndGroup),
     MAKEF(AlignTextToFramePadding),
     MAKEF(GetTextLineHeight),
     MAKEF(GetTextLineHeightWithSpacing),
@@ -168,6 +162,8 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(RadioButton),
     MAKEF(ProgressBar),
     MAKEF(Bullet),
+    MAKEF(TextLink),
+    MAKEF(TextLinkOpenURL),
     
     // Widgets: Images
     MAKEF(Image),
@@ -242,6 +238,7 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(GetTreeNodeToLabelSpacing),
     MAKEF(CollapsingHeader),
     MAKEF(SetNextItemOpen),
+    MAKEF(SetNextItemStorageID),
     
     // Widgets: Selectables
     MAKEF(Selectable),
@@ -304,8 +301,9 @@ static const luaL_Reg lib_fun[] = {
     // Tables: Headers & Columns declaration
     MAKEF(TableSetupColumn),
     MAKEF(TableSetupScrollFreeze),
-    MAKEF(TableHeadersRow),
     MAKEF(TableHeader),
+    MAKEF(TableHeadersRow),
+    MAKEF(TableAngledHeadersRow),
     // Tables: Sorting & Miscellaneous functions
     MAKEF(TableGetSortSpecs),
     MAKEF(TableGetColumnCount),
@@ -314,6 +312,7 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(TableGetColumnName),
     MAKEF(TableGetColumnFlags),
     MAKEF(TableSetColumnEnabled),
+    MAKEF(TableGetHoveredColumn),
     MAKEF(TableSetBgColor),
     
     // Legacy Columns API
@@ -397,9 +396,7 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(GetStyleColorName),
     MAKEF(SetStateStorage),
     MAKEF(GetStateStorage),
-    MAKEF(BeginChildFrame),
-    MAKEF(EndChildFrame),
-    
+
     // Text Utilities
     MAKEF(CalcTextSize),
     
@@ -409,15 +406,23 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(ColorConvertRGBtoHSV),
     MAKEF(ColorConvertHSVtoRGB),
     
-    // Inputs Utilities: Keyboard
+    // Inputs Utilities: Keyboard/Mouse/Gamepad
     MAKEF(IsKeyDown),
     MAKEF(IsKeyPressed),
     MAKEF(IsKeyReleased),
+    MAKEF(IsKeyChordPressed),
     MAKEF(GetKeyPressedAmount),
     MAKEF(GetKeyName),
     MAKEF(SetNextFrameWantCaptureKeyboard),
     
-    // Inputs Utilities: Mouse
+    // Inputs Utilities: Shortcut Testing & Routing [BETA]
+    MAKEF(Shortcut),
+    MAKEF(SetNextItemShortcut),
+
+    // Inputs Utilities: Key/Input Ownership [BETA]
+    MAKEF(SetItemKeyOwner),
+
+    // Inputs Utilities: Mouse specific
     MAKEF(IsMouseDown),
     MAKEF(IsMouseClicked),
     MAKEF(IsMouseReleased),
@@ -447,7 +452,11 @@ static const luaL_Reg lib_fun[] = {
     
     // Debug Utilities
     MAKEF(DebugTextEncoding),
+    MAKEF(DebugFlashStyleColor),
+    MAKEF(DebugStartItemPicker),
     MAKEF(DebugCheckVersionAndDataLayout),
+    MAKEF(DebugLog),
+    MAKEF(DebugLogV),
     
     // Memory Allocators
     MAKEF(SetAllocatorFunctions),

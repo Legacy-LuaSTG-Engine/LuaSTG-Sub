@@ -1,6 +1,7 @@
 #include "lua_imgui_common.hpp"
 #include "lua_imgui_type.hpp"
 #include "lua_imgui_hash.hpp"
+#include "generated/ImGuiStyleMember.hpp"
 #include <tuple>
 
 constexpr auto imgui_binding_lua_class_array_ImVec4 = "imgui.ImVec4[]";
@@ -121,7 +122,7 @@ struct __ImGuiStyle
 
 void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
 {
-    using E = imgui_binding_lua_PropertiesHash;
+    using E = imgui_binding_lua::ImGuiStyleMember;
     struct Binding
     {
         static int ScaleAllSizes(lua_State* L)
@@ -135,8 +136,9 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
         static int __index(lua_State* L)
         {
             ImGuiStyle* data = imgui_binding_lua_to_ImGuiStyle(L, 1);
-            const char* key = luaL_checkstring(L, 2);
-            switch(imgui_binding_lua_ComputePropertiesHash(key))
+            size_t len{};
+            const char* key = luaL_checklstring(L, 2, &len);
+            switch(imgui_binding_lua::mapImGuiStyleMember(key, len))
             {
             case E::Alpha:
                 lua_pushnumber(L, (lua_Number)data->Alpha);
@@ -219,6 +221,18 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
             case E::TabBorderSize:
                 lua_pushnumber(L, (lua_Number)data->TabBorderSize);
                 return 1;
+            case E::TabBarBorderSize:
+                lua_pushnumber(L, (lua_Number)data->TabBarBorderSize);
+                return 1;
+            case E::TabBarOverlineSize:
+                lua_pushnumber(L, (lua_Number)data->TabBarOverlineSize);
+                return 1;
+            case E::TableAngledHeadersAngle:
+                lua_pushnumber(L, (lua_Number)data->TableAngledHeadersAngle);
+                return 1;
+            case E::TableAngledHeadersTextAlign:
+                lua::create_type_instance<ImVec2>(L, data->TableAngledHeadersTextAlign);
+                return 1;
             case E::TabMinWidthForCloseButton:
                 lua_pushnumber(L, (lua_Number)data->TabMinWidthForCloseButton);
                 return 1;
@@ -285,16 +299,16 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
             case E::ScaleAllSizes:
                 lua_pushcfunction(L, &ScaleAllSizes);
                 return 1;
-            case E::__NOT_FOUND:
+            default:
                 return luaL_error(L, "attempt to index a nil value '%s'", key);
             }
-            return 0;
         };
         static int __newindex(lua_State* L)
         {
             ImGuiStyle* data = imgui_binding_lua_to_ImGuiStyle(L, 1);
-            const char* key = luaL_checkstring(L, 2);
-            switch(imgui_binding_lua_ComputePropertiesHash(key))
+            size_t len{};
+            const char* key = luaL_checklstring(L, 2, &len);
+            switch (imgui_binding_lua::mapImGuiStyleMember(key, len))
             {
             case E::Alpha:
                 data->Alpha = (float)luaL_checknumber(L, 3);
@@ -318,7 +332,7 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
                 data->WindowTitleAlign = *lua::as_type_instance<ImVec2>(L, 3);
                 break;
             case E::WindowMenuButtonPosition:
-                data->WindowMenuButtonPosition = (int)luaL_checkinteger(L, 3);
+                data->WindowMenuButtonPosition = (ImGuiDir)luaL_checkinteger(L, 3);
                 break;
             case E::ChildRounding:
                 data->ChildRounding = (float)luaL_checknumber(L, 3);
@@ -377,11 +391,23 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
             case E::TabBorderSize:
                 data->TabBorderSize = (float)luaL_checknumber(L, 3);
                 break;
+            case E::TabBarBorderSize:
+                data->TabBarBorderSize = (float)luaL_checknumber(L, 3);
+                break;
+            case E::TabBarOverlineSize:
+                data->TabBarOverlineSize = (float)luaL_checknumber(L, 3);
+                break;
+            case E::TableAngledHeadersAngle:
+                data->TableAngledHeadersAngle = (float)luaL_checknumber(L, 3);
+                break;
+            case E::TableAngledHeadersTextAlign:
+                data->TableAngledHeadersTextAlign = *lua::as_type_instance<ImVec2>(L, 3);
+                break;
             case E::TabMinWidthForCloseButton:
                 data->TabMinWidthForCloseButton = (float)luaL_checknumber(L, 3);
                 break;
             case E::ColorButtonPosition:
-                data->ColorButtonPosition = (int)luaL_checkinteger(L, 3);
+                data->ColorButtonPosition = (ImGuiDir)luaL_checkinteger(L, 3);
                 break;
             case E::ButtonTextAlign:
                 data->ButtonTextAlign = *lua::as_type_instance<ImVec2>(L, 3);
@@ -440,8 +466,7 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
             case E::HoverFlagsForTooltipNav:
                 data->HoverFlagsForTooltipNav = (int)luaL_checkinteger(L, 3);
                 break;
-            case E::ScaleAllSizes:
-            case E::__NOT_FOUND:
+            default:
                 return luaL_error(L, "attempt to index a nil value '%s'", key);
             }
             return 0;

@@ -443,7 +443,7 @@ static void ImGui_ImplWin32Ex_UpdateGamepads()
 #undef MAP_BUTTON
 #undef MAP_ANALOG
 }
-static void ImGui_ImplWin32Ex_UpdateIME(ImGuiViewport* viewport, ImGuiPlatformImeData* data)
+static void ImGui_ImplWin32Ex_UpdateIME(ImGuiContext*, ImGuiViewport* viewport, ImGuiPlatformImeData* data)
 {
     std::ignore = viewport; // We only have one window
     ImGui_ImplWin32Ex_Data* bd = ImGui_ImplWin32Ex_GetBackendData();
@@ -645,7 +645,7 @@ bool ImGui_ImplWin32Ex_Init(void* window)
     ImGui::GetMainViewport()->PlatformHandleRaw = (void*)window;
     
     // Setup backend IME support
-    io.SetPlatformImeDataFn = &ImGui_ImplWin32Ex_UpdateIME;
+    io.PlatformSetImeDataFn = &ImGui_ImplWin32Ex_UpdateIME;
     
     // Gamepad
     wchar_t const* xinput_dll_names[] = {
