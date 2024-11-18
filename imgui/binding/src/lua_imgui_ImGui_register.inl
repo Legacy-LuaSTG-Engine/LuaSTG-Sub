@@ -21,7 +21,7 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(ShowDemoWindow),
     MAKEF(ShowMetricsWindow),
     MAKEF(ShowDebugLogWindow),
-    MAKEF(ShowStackToolWindow),
+    MAKEF(ShowIDStackToolWindow),
     MAKEF(ShowAboutWindow),
     MAKEF(ShowStyleEditor),
     MAKEF(ShowStyleSelector),
@@ -112,16 +112,8 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(GetStyleColorVec4),
     
     // Cursor / Layout
-    MAKEF(Separator),
-    MAKEF(SameLine),
-    MAKEF(NewLine),
-    MAKEF(Spacing),
-    MAKEF(Dummy),
-    MAKEF(Indent),
-    MAKEF(Unindent),
-    
-    MAKEF(BeginGroup),
-    MAKEF(EndGroup),
+    MAKEF(GetCursorScreenPos),
+    MAKEF(SetCursorScreenPos),
     MAKEF(GetCursorPos),
     MAKEF(GetCursorPosX),
     MAKEF(GetCursorPosY),
@@ -129,8 +121,17 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(SetCursorPosX),
     MAKEF(SetCursorPosY),
     MAKEF(GetCursorStartPos),
-    MAKEF(GetCursorScreenPos),
-    MAKEF(SetCursorScreenPos),
+
+    // Other layout functions
+    MAKEF(Separator),
+    MAKEF(SameLine),
+    MAKEF(NewLine),
+    MAKEF(Spacing),
+    MAKEF(Dummy),
+    MAKEF(Indent),
+    MAKEF(Unindent),
+    MAKEF(BeginGroup),
+    MAKEF(EndGroup),
     MAKEF(AlignTextToFramePadding),
     MAKEF(GetTextLineHeight),
     MAKEF(GetTextLineHeightWithSpacing),
@@ -304,8 +305,9 @@ static const luaL_Reg lib_fun[] = {
     // Tables: Headers & Columns declaration
     MAKEF(TableSetupColumn),
     MAKEF(TableSetupScrollFreeze),
-    MAKEF(TableHeadersRow),
     MAKEF(TableHeader),
+    MAKEF(TableHeadersRow),
+    MAKEF(TableAngledHeadersRow),
     // Tables: Sorting & Miscellaneous functions
     MAKEF(TableGetSortSpecs),
     MAKEF(TableGetColumnCount),
@@ -397,9 +399,7 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(GetStyleColorName),
     MAKEF(SetStateStorage),
     MAKEF(GetStateStorage),
-    MAKEF(BeginChildFrame),
-    MAKEF(EndChildFrame),
-    
+
     // Text Utilities
     MAKEF(CalcTextSize),
     
@@ -413,6 +413,7 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(IsKeyDown),
     MAKEF(IsKeyPressed),
     MAKEF(IsKeyReleased),
+    MAKEF(IsKeyChordPressed),
     MAKEF(GetKeyPressedAmount),
     MAKEF(GetKeyName),
     MAKEF(SetNextFrameWantCaptureKeyboard),

@@ -4,7 +4,6 @@ add_library(imgui STATIC)
 luastg_target_common_options(imgui)
 target_compile_definitions(imgui PUBLIC
     IMGUI_DISABLE_OBSOLETE_FUNCTIONS
-    IMGUI_DISABLE_OBSOLETE_KEYIO
     #IMGUI_USE_BGRA_PACKED_COLOR
     IMGUI_USE_WCHAR32
     IMGUI_ENABLE_FREETYPE
