@@ -365,6 +365,9 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(SetItemDefaultFocus),
     MAKEF(SetKeyboardFocusHere),
     
+    // Keyboard/Gamepad Navigation
+    MAKEF(SetNavCursorVisible),
+
     // Overlapping mode
     MAKEF(SetNextItemAllowOverlap),
 

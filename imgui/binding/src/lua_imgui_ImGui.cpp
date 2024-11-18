@@ -2805,6 +2805,14 @@ static int lib_SetKeyboardFocusHere(lua_State* L)
     return 0;
 }
 
+//////// Keyboard/Gamepad Navigation
+
+static int lib_SetNavCursorVisible(lua_State* L) {
+    auto const visible = lua_toboolean(L, 1);
+    ImGui::SetNavCursorVisible(visible);
+    return 0;
+}
+
 //////// Overlapping mode
 
 static int lib_SetNextItemAllowOverlap(lua_State* L)
