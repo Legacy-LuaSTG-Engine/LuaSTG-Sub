@@ -299,7 +299,6 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
             default:
                 return luaL_error(L, "attempt to index a nil value '%s'", key);
             }
-            return 0;
         };
         static int __newindex(lua_State* L)
         {
