@@ -224,6 +224,9 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
             case E::TabBarBorderSize:
                 lua_pushnumber(L, (lua_Number)data->TabBarBorderSize);
                 return 1;
+            case E::TabBarOverlineSize:
+                lua_pushnumber(L, (lua_Number)data->TabBarOverlineSize);
+                return 1;
             case E::TableAngledHeadersAngle:
                 lua_pushnumber(L, (lua_Number)data->TableAngledHeadersAngle);
                 return 1;
@@ -390,6 +393,9 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
                 break;
             case E::TabBarBorderSize:
                 data->TabBarBorderSize = (float)luaL_checknumber(L, 3);
+                break;
+            case E::TabBarOverlineSize:
+                data->TabBarOverlineSize = (float)luaL_checknumber(L, 3);
                 break;
             case E::TableAngledHeadersAngle:
                 data->TableAngledHeadersAngle = (float)luaL_checknumber(L, 3);

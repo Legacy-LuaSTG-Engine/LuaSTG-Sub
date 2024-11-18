@@ -66,12 +66,6 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(SetWindowFocus),
     MAKEF(SetWindowFontScale),
     
-    // Content region
-    MAKEF(GetContentRegionAvail),
-    MAKEF(GetContentRegionMax),
-    MAKEF(GetWindowContentRegionMin),
-    MAKEF(GetWindowContentRegionMax),
-    
     // Windows Scrolling
     MAKEF(GetScrollX),
     MAKEF(GetScrollY),
@@ -91,10 +85,8 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(PopStyleColor),
     MAKEF(PushStyleVar),
     MAKEF(PopStyleVar),
-    MAKEF(PushTabStop),
-    MAKEF(PopTabStop),
-    MAKEF(PushButtonRepeat),
-    MAKEF(PopButtonRepeat),
+    MAKEF(PushItemFlag),
+    MAKEF(PopItemFlag),
     
     // Parameters stacks (current window)
     MAKEF(PushItemWidth),
@@ -114,6 +106,7 @@ static const luaL_Reg lib_fun[] = {
     // Cursor / Layout
     MAKEF(GetCursorScreenPos),
     MAKEF(SetCursorScreenPos),
+    MAKEF(GetContentRegionAvail),
     MAKEF(GetCursorPos),
     MAKEF(GetCursorPosX),
     MAKEF(GetCursorPosY),
@@ -169,6 +162,8 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(RadioButton),
     MAKEF(ProgressBar),
     MAKEF(Bullet),
+    MAKEF(TextLink),
+    MAKEF(TextLinkOpenURL),
     
     // Widgets: Images
     MAKEF(Image),
@@ -243,6 +238,7 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(GetTreeNodeToLabelSpacing),
     MAKEF(CollapsingHeader),
     MAKEF(SetNextItemOpen),
+    MAKEF(SetNextItemStorageID),
     
     // Widgets: Selectables
     MAKEF(Selectable),
@@ -423,6 +419,9 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(Shortcut),
     MAKEF(SetNextItemShortcut),
 
+    // Inputs Utilities: Key/Input Ownership [BETA]
+    MAKEF(SetItemKeyOwner),
+
     // Inputs Utilities: Mouse specific
     MAKEF(IsMouseDown),
     MAKEF(IsMouseClicked),
@@ -456,6 +455,8 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(DebugFlashStyleColor),
     MAKEF(DebugStartItemPicker),
     MAKEF(DebugCheckVersionAndDataLayout),
+    MAKEF(DebugLog),
+    MAKEF(DebugLogV),
     
     // Memory Allocators
     MAKEF(SetAllocatorFunctions),
