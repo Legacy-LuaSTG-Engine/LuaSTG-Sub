@@ -65,7 +65,7 @@ void imgui_binding_lua_register_enum(lua_State* L)
 }},
 {"ImGuiChildFlags", {
     {"None"                  , ImGuiChildFlags_None                  },
-    {"Border"                , ImGuiChildFlags_Border                },
+    {"Borders"               , ImGuiChildFlags_Borders               },
     {"AlwaysUseWindowPadding", ImGuiChildFlags_AlwaysUseWindowPadding},
     {"ResizeX"               , ImGuiChildFlags_ResizeX               },
     {"ResizeY"               , ImGuiChildFlags_ResizeY               },

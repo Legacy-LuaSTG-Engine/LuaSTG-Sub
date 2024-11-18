@@ -11,6 +11,7 @@ static const luaL_Reg lib_fun[] = {
     
     // Main
     MAKEF(GetIO),
+    MAKEF(GetPlatformIO),
     MAKEF(GetStyle),
     MAKEF(NewFrame),
     MAKEF(EndFrame),
@@ -84,6 +85,8 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(PushStyleColor),
     MAKEF(PopStyleColor),
     MAKEF(PushStyleVar),
+    MAKEF(PushStyleVarX),
+    MAKEF(PushStyleVarY),
     MAKEF(PopStyleVar),
     MAKEF(PushItemFlag),
     MAKEF(PopItemFlag),
