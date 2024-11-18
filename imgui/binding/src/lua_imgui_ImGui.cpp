@@ -2487,6 +2487,12 @@ static int lib_TableSetColumnEnabled(lua_State* L)
     ImGui::TableSetColumnEnabled(column_n, v);
     return 0;
 }
+static int lib_TableGetHoveredColumn(lua_State* L)
+{
+    const auto column = ImGui::TableGetHoveredColumn();
+    lua_pushinteger(L, column);
+    return 1;
+}
 static int lib_TableSetBgColor(lua_State* L)
 {
     if (lua_gettop(L) <= 2)

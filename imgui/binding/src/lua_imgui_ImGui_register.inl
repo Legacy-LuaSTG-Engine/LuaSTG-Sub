@@ -316,6 +316,7 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(TableGetColumnName),
     MAKEF(TableGetColumnFlags),
     MAKEF(TableSetColumnEnabled),
+    MAKEF(TableGetHoveredColumn),
     MAKEF(TableSetBgColor),
     
     // Legacy Columns API
