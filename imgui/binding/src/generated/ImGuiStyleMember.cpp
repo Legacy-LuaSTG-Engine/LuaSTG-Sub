@@ -5,7 +5,7 @@
 namespace imgui_binding_lua {
 
 ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) noexcept {
-    if (key == nullptr || len == 0 || len > 26) {
+    if (key == nullptr || len == 0 || len > 27) {
         return ImGuiStyleMember::__unknown__;
     }
     int state{ 0 };
@@ -26,8 +26,8 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(0, 'M'): state = 361; continue; // -> MouseCursorScale
             case make_condition(0, 'P'): state = 377; continue; // -> PopupBorderSize, PopupRounding
             case make_condition(0, 'S'): state = 400; continue; // -> ScaleAllSizes, ScrollbarRounding, ScrollbarSize, SelectableTextAlign, SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
-            case make_condition(0, 'T'): state = 483; continue; // -> TabBarBorderSize, TabBorderSize, TabMinWidthForCloseButton, TabRounding, TableAngledHeadersAngle, TouchExtraPadding
-            case make_condition(0, 'W'): state = 574; continue; // -> WindowBorderSize, WindowMenuButtonPosition, WindowMinSize, WindowPadding, WindowRounding, WindowTitleAlign
+            case make_condition(0, 'T'): state = 483; continue; // -> TabBarBorderSize, TabBorderSize, TabMinWidthForCloseButton, TabRounding, TableAngledHeadersAngle, TableAngledHeadersTextAlign, TouchExtraPadding
+            case make_condition(0, 'W'): state = 583; continue; // -> WindowBorderSize, WindowMenuButtonPosition, WindowMinSize, WindowPadding, WindowRounding, WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 1:
@@ -51,9 +51,9 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(377, 'o'): state = 378; continue; // -> PopupBorderSize, PopupRounding
             case make_condition(400, 'c'): state = 401; continue; // -> ScaleAllSizes, ScrollbarRounding, ScrollbarSize
             case make_condition(400, 'e'): state = 432; continue; // -> SelectableTextAlign, SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
-            case make_condition(483, 'a'): state = 484; continue; // -> TabBarBorderSize, TabBorderSize, TabMinWidthForCloseButton, TabRounding, TableAngledHeadersAngle
-            case make_condition(483, 'o'): state = 558; continue; // -> TouchExtraPadding
-            case make_condition(574, 'i'): state = 575; continue; // -> WindowBorderSize, WindowMenuButtonPosition, WindowMinSize, WindowPadding, WindowRounding, WindowTitleAlign
+            case make_condition(483, 'a'): state = 484; continue; // -> TabBarBorderSize, TabBorderSize, TabMinWidthForCloseButton, TabRounding, TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(483, 'o'): state = 567; continue; // -> TouchExtraPadding
+            case make_condition(583, 'i'): state = 584; continue; // -> WindowBorderSize, WindowMenuButtonPosition, WindowMinSize, WindowPadding, WindowRounding, WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 2:
@@ -79,9 +79,9 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(401, 'r'): state = 413; continue; // -> ScrollbarRounding, ScrollbarSize
             case make_condition(432, 'l'): state = 433; continue; // -> SelectableTextAlign
             case make_condition(432, 'p'): state = 450; continue; // -> SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
-            case make_condition(484, 'b'): state = 485; continue; // -> TabBarBorderSize, TabBorderSize, TabMinWidthForCloseButton, TabRounding, TableAngledHeadersAngle
-            case make_condition(558, 'u'): state = 559; continue; // -> TouchExtraPadding
-            case make_condition(575, 'n'): state = 576; continue; // -> WindowBorderSize, WindowMenuButtonPosition, WindowMinSize, WindowPadding, WindowRounding, WindowTitleAlign
+            case make_condition(484, 'b'): state = 485; continue; // -> TabBarBorderSize, TabBorderSize, TabMinWidthForCloseButton, TabRounding, TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(567, 'u'): state = 568; continue; // -> TouchExtraPadding
+            case make_condition(584, 'n'): state = 585; continue; // -> WindowBorderSize, WindowMenuButtonPosition, WindowMinSize, WindowPadding, WindowRounding, WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 3:
@@ -112,9 +112,9 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(485, 'B'): state = 486; continue; // -> TabBarBorderSize, TabBorderSize
             case make_condition(485, 'M'): state = 508; continue; // -> TabMinWidthForCloseButton
             case make_condition(485, 'R'): state = 530; continue; // -> TabRounding
-            case make_condition(485, 'l'): state = 538; continue; // -> TableAngledHeadersAngle
-            case make_condition(559, 'c'): state = 560; continue; // -> TouchExtraPadding
-            case make_condition(576, 'd'): state = 577; continue; // -> WindowBorderSize, WindowMenuButtonPosition, WindowMinSize, WindowPadding, WindowRounding, WindowTitleAlign
+            case make_condition(485, 'l'): state = 538; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(568, 'c'): state = 569; continue; // -> TouchExtraPadding
+            case make_condition(585, 'd'): state = 586; continue; // -> WindowBorderSize, WindowMenuButtonPosition, WindowMinSize, WindowPadding, WindowRounding, WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 4:
@@ -148,9 +148,9 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(486, 'o'): state = 499; continue; // -> TabBorderSize
             case make_condition(508, 'i'): state = 509; continue; // -> TabMinWidthForCloseButton
             case make_condition(530, 'o'): state = 531; continue; // -> TabRounding
-            case make_condition(538, 'e'): state = 539; continue; // -> TableAngledHeadersAngle
-            case make_condition(560, 'h'): state = 561; continue; // -> TouchExtraPadding
-            case make_condition(577, 'o'): state = 578; continue; // -> WindowBorderSize, WindowMenuButtonPosition, WindowMinSize, WindowPadding, WindowRounding, WindowTitleAlign
+            case make_condition(538, 'e'): state = 539; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(569, 'h'): state = 570; continue; // -> TouchExtraPadding
+            case make_condition(586, 'o'): state = 587; continue; // -> WindowBorderSize, WindowMenuButtonPosition, WindowMinSize, WindowPadding, WindowRounding, WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 5:
@@ -190,9 +190,9 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(499, 'r'): state = 500; continue; // -> TabBorderSize
             case make_condition(509, 'n'): state = 510; continue; // -> TabMinWidthForCloseButton
             case make_condition(531, 'u'): state = 532; continue; // -> TabRounding
-            case make_condition(539, 'A'): state = 540; continue; // -> TableAngledHeadersAngle
-            case make_condition(561, 'E'): state = 562; continue; // -> TouchExtraPadding
-            case make_condition(578, 'w'): state = 579; continue; // -> WindowBorderSize, WindowMenuButtonPosition, WindowMinSize, WindowPadding, WindowRounding, WindowTitleAlign
+            case make_condition(539, 'A'): state = 540; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(570, 'E'): state = 571; continue; // -> TouchExtraPadding
+            case make_condition(587, 'w'): state = 588; continue; // -> WindowBorderSize, WindowMenuButtonPosition, WindowMinSize, WindowPadding, WindowRounding, WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 6:
@@ -231,13 +231,13 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(500, 'd'): state = 501; continue; // -> TabBorderSize
             case make_condition(510, 'W'): state = 511; continue; // -> TabMinWidthForCloseButton
             case make_condition(532, 'n'): state = 533; continue; // -> TabRounding
-            case make_condition(540, 'n'): state = 541; continue; // -> TableAngledHeadersAngle
-            case make_condition(562, 'x'): state = 563; continue; // -> TouchExtraPadding
-            case make_condition(579, 'B'): state = 580; continue; // -> WindowBorderSize
-            case make_condition(579, 'M'): state = 590; continue; // -> WindowMenuButtonPosition, WindowMinSize
-            case make_condition(579, 'P'): state = 614; continue; // -> WindowPadding
-            case make_condition(579, 'R'): state = 621; continue; // -> WindowRounding
-            case make_condition(579, 'T'): state = 629; continue; // -> WindowTitleAlign
+            case make_condition(540, 'n'): state = 541; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(571, 'x'): state = 572; continue; // -> TouchExtraPadding
+            case make_condition(588, 'B'): state = 589; continue; // -> WindowBorderSize
+            case make_condition(588, 'M'): state = 599; continue; // -> WindowMenuButtonPosition, WindowMinSize
+            case make_condition(588, 'P'): state = 623; continue; // -> WindowPadding
+            case make_condition(588, 'R'): state = 630; continue; // -> WindowRounding
+            case make_condition(588, 'T'): state = 638; continue; // -> WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 7:
@@ -277,14 +277,14 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(501, 'e'): state = 502; continue; // -> TabBorderSize
             case make_condition(511, 'i'): state = 512; continue; // -> TabMinWidthForCloseButton
             case make_condition(533, 'd'): state = 534; continue; // -> TabRounding
-            case make_condition(541, 'g'): state = 542; continue; // -> TableAngledHeadersAngle
-            case make_condition(563, 't'): state = 564; continue; // -> TouchExtraPadding
-            case make_condition(580, 'o'): state = 581; continue; // -> WindowBorderSize
-            case make_condition(590, 'e'): state = 591; continue; // -> WindowMenuButtonPosition
-            case make_condition(590, 'i'): state = 608; continue; // -> WindowMinSize
-            case make_condition(614, 'a'): state = 615; continue; // -> WindowPadding
-            case make_condition(621, 'o'): state = 622; continue; // -> WindowRounding
-            case make_condition(629, 'i'): state = 630; continue; // -> WindowTitleAlign
+            case make_condition(541, 'g'): state = 542; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(572, 't'): state = 573; continue; // -> TouchExtraPadding
+            case make_condition(589, 'o'): state = 590; continue; // -> WindowBorderSize
+            case make_condition(599, 'e'): state = 600; continue; // -> WindowMenuButtonPosition
+            case make_condition(599, 'i'): state = 617; continue; // -> WindowMinSize
+            case make_condition(623, 'a'): state = 624; continue; // -> WindowPadding
+            case make_condition(630, 'o'): state = 631; continue; // -> WindowRounding
+            case make_condition(638, 'i'): state = 639; continue; // -> WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 8:
@@ -324,14 +324,14 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(502, 'r'): state = 503; continue; // -> TabBorderSize
             case make_condition(512, 'd'): state = 513; continue; // -> TabMinWidthForCloseButton
             case make_condition(534, 'i'): state = 535; continue; // -> TabRounding
-            case make_condition(542, 'l'): state = 543; continue; // -> TableAngledHeadersAngle
-            case make_condition(564, 'r'): state = 565; continue; // -> TouchExtraPadding
-            case make_condition(581, 'r'): state = 582; continue; // -> WindowBorderSize
-            case make_condition(591, 'n'): state = 592; continue; // -> WindowMenuButtonPosition
-            case make_condition(608, 'n'): state = 609; continue; // -> WindowMinSize
-            case make_condition(615, 'd'): state = 616; continue; // -> WindowPadding
-            case make_condition(622, 'u'): state = 623; continue; // -> WindowRounding
-            case make_condition(630, 't'): state = 631; continue; // -> WindowTitleAlign
+            case make_condition(542, 'l'): state = 543; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(573, 'r'): state = 574; continue; // -> TouchExtraPadding
+            case make_condition(590, 'r'): state = 591; continue; // -> WindowBorderSize
+            case make_condition(600, 'n'): state = 601; continue; // -> WindowMenuButtonPosition
+            case make_condition(617, 'n'): state = 618; continue; // -> WindowMinSize
+            case make_condition(624, 'd'): state = 625; continue; // -> WindowPadding
+            case make_condition(631, 'u'): state = 632; continue; // -> WindowRounding
+            case make_condition(639, 't'): state = 640; continue; // -> WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 9:
@@ -372,14 +372,14 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(503, 'S'): state = 504; continue; // -> TabBorderSize
             case make_condition(513, 't'): state = 514; continue; // -> TabMinWidthForCloseButton
             case make_condition(535, 'n'): state = 536; continue; // -> TabRounding
-            case make_condition(543, 'e'): state = 544; continue; // -> TableAngledHeadersAngle
-            case make_condition(565, 'a'): state = 566; continue; // -> TouchExtraPadding
-            case make_condition(582, 'd'): state = 583; continue; // -> WindowBorderSize
-            case make_condition(592, 'u'): state = 593; continue; // -> WindowMenuButtonPosition
-            case make_condition(609, 'S'): state = 610; continue; // -> WindowMinSize
-            case make_condition(616, 'd'): state = 617; continue; // -> WindowPadding
-            case make_condition(623, 'n'): state = 624; continue; // -> WindowRounding
-            case make_condition(631, 'l'): state = 632; continue; // -> WindowTitleAlign
+            case make_condition(543, 'e'): state = 544; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(574, 'a'): state = 575; continue; // -> TouchExtraPadding
+            case make_condition(591, 'd'): state = 592; continue; // -> WindowBorderSize
+            case make_condition(601, 'u'): state = 602; continue; // -> WindowMenuButtonPosition
+            case make_condition(618, 'S'): state = 619; continue; // -> WindowMinSize
+            case make_condition(625, 'd'): state = 626; continue; // -> WindowPadding
+            case make_condition(632, 'n'): state = 633; continue; // -> WindowRounding
+            case make_condition(640, 'l'): state = 641; continue; // -> WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 10:
@@ -421,14 +421,14 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(504, 'i'): state = 505; continue; // -> TabBorderSize
             case make_condition(514, 'h'): state = 515; continue; // -> TabMinWidthForCloseButton
             case make_condition(536, 'g'): state = 537; continue; // -> TabRounding
-            case make_condition(544, 'd'): state = 545; continue; // -> TableAngledHeadersAngle
-            case make_condition(566, 'P'): state = 567; continue; // -> TouchExtraPadding
-            case make_condition(583, 'e'): state = 584; continue; // -> WindowBorderSize
-            case make_condition(593, 'B'): state = 594; continue; // -> WindowMenuButtonPosition
-            case make_condition(610, 'i'): state = 611; continue; // -> WindowMinSize
-            case make_condition(617, 'i'): state = 618; continue; // -> WindowPadding
-            case make_condition(624, 'd'): state = 625; continue; // -> WindowRounding
-            case make_condition(632, 'e'): state = 633; continue; // -> WindowTitleAlign
+            case make_condition(544, 'd'): state = 545; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(575, 'P'): state = 576; continue; // -> TouchExtraPadding
+            case make_condition(592, 'e'): state = 593; continue; // -> WindowBorderSize
+            case make_condition(602, 'B'): state = 603; continue; // -> WindowMenuButtonPosition
+            case make_condition(619, 'i'): state = 620; continue; // -> WindowMinSize
+            case make_condition(626, 'i'): state = 627; continue; // -> WindowPadding
+            case make_condition(633, 'd'): state = 634; continue; // -> WindowRounding
+            case make_condition(641, 'e'): state = 642; continue; // -> WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 11:
@@ -467,14 +467,14 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(493, 'r'): state = 494; continue; // -> TabBarBorderSize
             case make_condition(505, 'z'): state = 506; continue; // -> TabBorderSize
             case make_condition(515, 'F'): state = 516; continue; // -> TabMinWidthForCloseButton
-            case make_condition(545, 'H'): state = 546; continue; // -> TableAngledHeadersAngle
-            case make_condition(567, 'a'): state = 568; continue; // -> TouchExtraPadding
-            case make_condition(584, 'r'): state = 585; continue; // -> WindowBorderSize
-            case make_condition(594, 'u'): state = 595; continue; // -> WindowMenuButtonPosition
-            case make_condition(611, 'z'): state = 612; continue; // -> WindowMinSize
-            case make_condition(618, 'n'): state = 619; continue; // -> WindowPadding
-            case make_condition(625, 'i'): state = 626; continue; // -> WindowRounding
-            case make_condition(633, 'A'): state = 634; continue; // -> WindowTitleAlign
+            case make_condition(545, 'H'): state = 546; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(576, 'a'): state = 577; continue; // -> TouchExtraPadding
+            case make_condition(593, 'r'): state = 594; continue; // -> WindowBorderSize
+            case make_condition(603, 'u'): state = 604; continue; // -> WindowMenuButtonPosition
+            case make_condition(620, 'z'): state = 621; continue; // -> WindowMinSize
+            case make_condition(627, 'n'): state = 628; continue; // -> WindowPadding
+            case make_condition(634, 'i'): state = 635; continue; // -> WindowRounding
+            case make_condition(642, 'A'): state = 643; continue; // -> WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 12:
@@ -511,14 +511,14 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(494, 'S'): state = 495; continue; // -> TabBarBorderSize
             case make_condition(506, 'e'): state = 507; continue; // -> TabBorderSize
             case make_condition(516, 'o'): state = 517; continue; // -> TabMinWidthForCloseButton
-            case make_condition(546, 'e'): state = 547; continue; // -> TableAngledHeadersAngle
-            case make_condition(568, 'd'): state = 569; continue; // -> TouchExtraPadding
-            case make_condition(585, 'S'): state = 586; continue; // -> WindowBorderSize
-            case make_condition(595, 't'): state = 596; continue; // -> WindowMenuButtonPosition
-            case make_condition(612, 'e'): state = 613; continue; // -> WindowMinSize
-            case make_condition(619, 'g'): state = 620; continue; // -> WindowPadding
-            case make_condition(626, 'n'): state = 627; continue; // -> WindowRounding
-            case make_condition(634, 'l'): state = 635; continue; // -> WindowTitleAlign
+            case make_condition(546, 'e'): state = 547; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(577, 'd'): state = 578; continue; // -> TouchExtraPadding
+            case make_condition(594, 'S'): state = 595; continue; // -> WindowBorderSize
+            case make_condition(604, 't'): state = 605; continue; // -> WindowMenuButtonPosition
+            case make_condition(621, 'e'): state = 622; continue; // -> WindowMinSize
+            case make_condition(628, 'g'): state = 629; continue; // -> WindowPadding
+            case make_condition(635, 'n'): state = 636; continue; // -> WindowRounding
+            case make_condition(643, 'l'): state = 644; continue; // -> WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 13:
@@ -549,12 +549,12 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(460, 'P'): state = 476; continue; // -> SeparatorTextPadding
             case make_condition(495, 'i'): state = 496; continue; // -> TabBarBorderSize
             case make_condition(517, 'r'): state = 518; continue; // -> TabMinWidthForCloseButton
-            case make_condition(547, 'a'): state = 548; continue; // -> TableAngledHeadersAngle
-            case make_condition(569, 'd'): state = 570; continue; // -> TouchExtraPadding
-            case make_condition(586, 'i'): state = 587; continue; // -> WindowBorderSize
-            case make_condition(596, 't'): state = 597; continue; // -> WindowMenuButtonPosition
-            case make_condition(627, 'g'): state = 628; continue; // -> WindowRounding
-            case make_condition(635, 'i'): state = 636; continue; // -> WindowTitleAlign
+            case make_condition(547, 'a'): state = 548; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(578, 'd'): state = 579; continue; // -> TouchExtraPadding
+            case make_condition(595, 'i'): state = 596; continue; // -> WindowBorderSize
+            case make_condition(605, 't'): state = 606; continue; // -> WindowMenuButtonPosition
+            case make_condition(636, 'g'): state = 637; continue; // -> WindowRounding
+            case make_condition(644, 'i'): state = 645; continue; // -> WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 14:
@@ -585,11 +585,11 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(476, 'a'): state = 477; continue; // -> SeparatorTextPadding
             case make_condition(496, 'z'): state = 497; continue; // -> TabBarBorderSize
             case make_condition(518, 'C'): state = 519; continue; // -> TabMinWidthForCloseButton
-            case make_condition(548, 'd'): state = 549; continue; // -> TableAngledHeadersAngle
-            case make_condition(570, 'i'): state = 571; continue; // -> TouchExtraPadding
-            case make_condition(587, 'z'): state = 588; continue; // -> WindowBorderSize
-            case make_condition(597, 'o'): state = 598; continue; // -> WindowMenuButtonPosition
-            case make_condition(636, 'g'): state = 637; continue; // -> WindowTitleAlign
+            case make_condition(548, 'd'): state = 549; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(579, 'i'): state = 580; continue; // -> TouchExtraPadding
+            case make_condition(596, 'z'): state = 597; continue; // -> WindowBorderSize
+            case make_condition(606, 'o'): state = 607; continue; // -> WindowMenuButtonPosition
+            case make_condition(645, 'g'): state = 646; continue; // -> WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 15:
@@ -614,11 +614,11 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(477, 'd'): state = 478; continue; // -> SeparatorTextPadding
             case make_condition(497, 'e'): state = 498; continue; // -> TabBarBorderSize
             case make_condition(519, 'l'): state = 520; continue; // -> TabMinWidthForCloseButton
-            case make_condition(549, 'e'): state = 550; continue; // -> TableAngledHeadersAngle
-            case make_condition(571, 'n'): state = 572; continue; // -> TouchExtraPadding
-            case make_condition(588, 'e'): state = 589; continue; // -> WindowBorderSize
-            case make_condition(598, 'n'): state = 599; continue; // -> WindowMenuButtonPosition
-            case make_condition(637, 'n'): state = 638; continue; // -> WindowTitleAlign
+            case make_condition(549, 'e'): state = 550; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(580, 'n'): state = 581; continue; // -> TouchExtraPadding
+            case make_condition(597, 'e'): state = 598; continue; // -> WindowBorderSize
+            case make_condition(607, 'n'): state = 608; continue; // -> WindowMenuButtonPosition
+            case make_condition(646, 'n'): state = 647; continue; // -> WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 16:
@@ -639,9 +639,9 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(468, 'd'): state = 469; continue; // -> SeparatorTextBorderSize
             case make_condition(478, 'd'): state = 479; continue; // -> SeparatorTextPadding
             case make_condition(520, 'o'): state = 521; continue; // -> TabMinWidthForCloseButton
-            case make_condition(550, 'r'): state = 551; continue; // -> TableAngledHeadersAngle
-            case make_condition(572, 'g'): state = 573; continue; // -> TouchExtraPadding
-            case make_condition(599, 'P'): state = 600; continue; // -> WindowMenuButtonPosition
+            case make_condition(550, 'r'): state = 551; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(581, 'g'): state = 582; continue; // -> TouchExtraPadding
+            case make_condition(608, 'P'): state = 609; continue; // -> WindowMenuButtonPosition
             default: return ImGuiStyleMember::__unknown__;
             }
         case 17:
@@ -659,8 +659,8 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(469, 'e'): state = 470; continue; // -> SeparatorTextBorderSize
             case make_condition(479, 'i'): state = 480; continue; // -> SeparatorTextPadding
             case make_condition(521, 's'): state = 522; continue; // -> TabMinWidthForCloseButton
-            case make_condition(551, 's'): state = 552; continue; // -> TableAngledHeadersAngle
-            case make_condition(600, 'o'): state = 601; continue; // -> WindowMenuButtonPosition
+            case make_condition(551, 's'): state = 552; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(609, 'o'): state = 610; continue; // -> WindowMenuButtonPosition
             default: return ImGuiStyleMember::__unknown__;
             }
         case 18:
@@ -678,7 +678,8 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(480, 'n'): state = 481; continue; // -> SeparatorTextPadding
             case make_condition(522, 'e'): state = 523; continue; // -> TabMinWidthForCloseButton
             case make_condition(552, 'A'): state = 553; continue; // -> TableAngledHeadersAngle
-            case make_condition(601, 's'): state = 602; continue; // -> WindowMenuButtonPosition
+            case make_condition(552, 'T'): state = 558; continue; // -> TableAngledHeadersTextAlign
+            case make_condition(610, 's'): state = 611; continue; // -> WindowMenuButtonPosition
             default: return ImGuiStyleMember::__unknown__;
             }
         case 19:
@@ -694,7 +695,8 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(481, 'g'): state = 482; continue; // -> SeparatorTextPadding
             case make_condition(523, 'B'): state = 524; continue; // -> TabMinWidthForCloseButton
             case make_condition(553, 'n'): state = 554; continue; // -> TableAngledHeadersAngle
-            case make_condition(602, 'i'): state = 603; continue; // -> WindowMenuButtonPosition
+            case make_condition(558, 'e'): state = 559; continue; // -> TableAngledHeadersTextAlign
+            case make_condition(611, 'i'): state = 612; continue; // -> WindowMenuButtonPosition
             default: return ImGuiStyleMember::__unknown__;
             }
         case 20:
@@ -707,7 +709,8 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(472, 'i'): state = 473; continue; // -> SeparatorTextBorderSize
             case make_condition(524, 'u'): state = 525; continue; // -> TabMinWidthForCloseButton
             case make_condition(554, 'g'): state = 555; continue; // -> TableAngledHeadersAngle
-            case make_condition(603, 't'): state = 604; continue; // -> WindowMenuButtonPosition
+            case make_condition(559, 'x'): state = 560; continue; // -> TableAngledHeadersTextAlign
+            case make_condition(612, 't'): state = 613; continue; // -> WindowMenuButtonPosition
             default: return ImGuiStyleMember::__unknown__;
             }
         case 21:
@@ -720,7 +723,8 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(473, 'z'): state = 474; continue; // -> SeparatorTextBorderSize
             case make_condition(525, 't'): state = 526; continue; // -> TabMinWidthForCloseButton
             case make_condition(555, 'l'): state = 556; continue; // -> TableAngledHeadersAngle
-            case make_condition(604, 'i'): state = 605; continue; // -> WindowMenuButtonPosition
+            case make_condition(560, 't'): state = 561; continue; // -> TableAngledHeadersTextAlign
+            case make_condition(613, 'i'): state = 614; continue; // -> WindowMenuButtonPosition
             default: return ImGuiStyleMember::__unknown__;
             }
         case 22:
@@ -731,7 +735,8 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(474, 'e'): state = 475; continue; // -> SeparatorTextBorderSize
             case make_condition(526, 't'): state = 527; continue; // -> TabMinWidthForCloseButton
             case make_condition(556, 'e'): state = 557; continue; // -> TableAngledHeadersAngle
-            case make_condition(605, 'o'): state = 606; continue; // -> WindowMenuButtonPosition
+            case make_condition(561, 'A'): state = 562; continue; // -> TableAngledHeadersTextAlign
+            case make_condition(614, 'o'): state = 615; continue; // -> WindowMenuButtonPosition
             default: return ImGuiStyleMember::__unknown__;
             }
         case 23:
@@ -739,7 +744,8 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(100, 'r'): state = 101; continue; // -> CircleTessellationMaxError
             case make_condition(288, 's'): state = 289; continue; // -> HoverFlagsForTooltipMouse
             case make_condition(527, 'o'): state = 528; continue; // -> TabMinWidthForCloseButton
-            case make_condition(606, 'n'): state = 607; continue; // -> WindowMenuButtonPosition
+            case make_condition(562, 'l'): state = 563; continue; // -> TableAngledHeadersTextAlign
+            case make_condition(615, 'n'): state = 616; continue; // -> WindowMenuButtonPosition
             default: return ImGuiStyleMember::__unknown__;
             }
         case 24:
@@ -747,11 +753,18 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(101, 'o'): state = 102; continue; // -> CircleTessellationMaxError
             case make_condition(289, 'e'): state = 290; continue; // -> HoverFlagsForTooltipMouse
             case make_condition(528, 'n'): state = 529; continue; // -> TabMinWidthForCloseButton
+            case make_condition(563, 'i'): state = 564; continue; // -> TableAngledHeadersTextAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 25:
             switch (make_condition(state, key[i])) {
             case make_condition(102, 'r'): state = 103; continue; // -> CircleTessellationMaxError
+            case make_condition(564, 'g'): state = 565; continue; // -> TableAngledHeadersTextAlign
+            default: return ImGuiStyleMember::__unknown__;
+            }
+        case 26:
+            switch (make_condition(state, key[i])) {
+            case make_condition(565, 'n'): state = 566; continue; // -> TableAngledHeadersTextAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         default: return ImGuiStyleMember::__unknown__;
@@ -804,13 +817,14 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
     case 529: return ImGuiStyleMember::TabMinWidthForCloseButton;
     case 537: return ImGuiStyleMember::TabRounding;
     case 557: return ImGuiStyleMember::TableAngledHeadersAngle;
-    case 573: return ImGuiStyleMember::TouchExtraPadding;
-    case 589: return ImGuiStyleMember::WindowBorderSize;
-    case 607: return ImGuiStyleMember::WindowMenuButtonPosition;
-    case 613: return ImGuiStyleMember::WindowMinSize;
-    case 620: return ImGuiStyleMember::WindowPadding;
-    case 628: return ImGuiStyleMember::WindowRounding;
-    case 638: return ImGuiStyleMember::WindowTitleAlign;
+    case 566: return ImGuiStyleMember::TableAngledHeadersTextAlign;
+    case 582: return ImGuiStyleMember::TouchExtraPadding;
+    case 598: return ImGuiStyleMember::WindowBorderSize;
+    case 616: return ImGuiStyleMember::WindowMenuButtonPosition;
+    case 622: return ImGuiStyleMember::WindowMinSize;
+    case 629: return ImGuiStyleMember::WindowPadding;
+    case 637: return ImGuiStyleMember::WindowRounding;
+    case 647: return ImGuiStyleMember::WindowTitleAlign;
     default: return ImGuiStyleMember::__unknown__;
     }
 }

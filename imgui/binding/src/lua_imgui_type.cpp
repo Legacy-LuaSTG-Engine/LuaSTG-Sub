@@ -227,6 +227,9 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
             case E::TableAngledHeadersAngle:
                 lua_pushnumber(L, (lua_Number)data->TableAngledHeadersAngle);
                 return 1;
+            case E::TableAngledHeadersTextAlign:
+                lua::create_type_instance<ImVec2>(L, data->TableAngledHeadersTextAlign);
+                return 1;
             case E::TabMinWidthForCloseButton:
                 lua_pushnumber(L, (lua_Number)data->TabMinWidthForCloseButton);
                 return 1;
@@ -391,6 +394,9 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
                 break;
             case E::TableAngledHeadersAngle:
                 data->TableAngledHeadersAngle = (float)luaL_checknumber(L, 3);
+                break;
+            case E::TableAngledHeadersTextAlign:
+                data->TableAngledHeadersTextAlign = *lua::as_type_instance<ImVec2>(L, 3);
                 break;
             case E::TabMinWidthForCloseButton:
                 data->TabMinWidthForCloseButton = (float)luaL_checknumber(L, 3);
