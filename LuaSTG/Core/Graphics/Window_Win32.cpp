@@ -8,6 +8,7 @@
 #include "Platform/WindowTheme.hpp"
 #include "utf8.hpp"
 #include <WinUser.h>
+#include <WinNls.h>
 
 static constexpr int const LUASTG_WM_UPDAE_TITLE = WM_APP + __LINE__;
 static constexpr int const LUASTG_WM_RECREATE = WM_APP + __LINE__;
@@ -132,6 +133,120 @@ namespace Core::Graphics
 
 namespace Core::Graphics
 {
+	void       Window_Win32::textInput_updateBuffer() {
+		m_text_input_buffer_u8.clear();
+		for (auto const code : m_text_input_buffer) {
+			if (code <= 0x7f) {
+				m_text_input_buffer_u8.push_back(static_cast<char8_t>(code));
+			}
+			else if (code <= 0x7ff) {
+				m_text_input_buffer_u8.push_back(static_cast<char8_t>(0xc0 | ((code >> 6) & 0x1f)));
+				m_text_input_buffer_u8.push_back(static_cast<char8_t>(0x80 | (code & 0x3f)));
+			}
+			else if (code <= 0xffff) {
+				m_text_input_buffer_u8.push_back(static_cast<char8_t>(0xe0 | ((code >> 12) & 0xf)));
+				m_text_input_buffer_u8.push_back(static_cast<char8_t>(0x80 | ((code >> 6) & 0x3f)));
+				m_text_input_buffer_u8.push_back(static_cast<char8_t>(0x80 | (code & 0x3f)));
+			}
+			else if (code <= 0x10ffff) {
+				m_text_input_buffer_u8.push_back(static_cast<char8_t>(0xf0 | ((code >> 18) & 0x7)));
+				m_text_input_buffer_u8.push_back(static_cast<char8_t>(0x80 | ((code >> 12) & 0x3f)));
+				m_text_input_buffer_u8.push_back(static_cast<char8_t>(0x80 | ((code >> 6) & 0x3f)));
+				m_text_input_buffer_u8.push_back(static_cast<char8_t>(0x80 | (code & 0x3f)));
+			}
+			else {
+				m_text_input_buffer_u8.push_back(u8'?');
+			}
+		}
+	}
+	void       Window_Win32::textInput_addChar32(char32_t const code) {
+		m_text_input_buffer.insert(m_text_input_buffer.begin() + m_text_input_cursor, code);
+		m_text_input_cursor += 1;
+		textInput_updateBuffer();
+	}
+
+	bool       Window_Win32::textInput_isEnabled() {
+		return m_text_input_enabled;
+	}
+	void       Window_Win32::textInput_setEnabled(bool const enabled) {
+		m_text_input_enabled = enabled;
+	}
+	StringView Window_Win32::textInput_getBuffer() {
+		return { reinterpret_cast<char const*>(m_text_input_buffer_u8.data()), m_text_input_buffer_u8.size()};
+	}
+	void       Window_Win32::textInput_clearBuffer() {
+		m_text_input_buffer.clear();
+		m_text_input_buffer_u8.clear();
+		m_text_input_cursor = 0;
+	}
+	uint32_t   Window_Win32::textInput_getCursorPosition() {
+		return m_text_input_cursor;
+	}
+	void       Window_Win32::textInput_setCursorPosition(uint32_t code_point_index) {
+		m_text_input_cursor = std::min(code_point_index, static_cast<uint32_t>(m_text_input_buffer.size()));
+	}
+	void       Window_Win32::textInput_addCursorPosition(int32_t offset_by_code_point) {
+		if (offset_by_code_point == 0) {
+			return;
+		}
+		if (offset_by_code_point > 0) {
+			if ((static_cast<uint64_t>(m_text_input_cursor) + offset_by_code_point) <= m_text_input_buffer.size()) {
+				m_text_input_cursor += offset_by_code_point;
+			}
+			else {
+				m_text_input_cursor = static_cast<uint32_t>(m_text_input_buffer.size());
+			}
+		}
+		else {
+			if ((static_cast<int64_t>(m_text_input_cursor) + offset_by_code_point) >= 0) {
+				m_text_input_cursor += offset_by_code_point;
+			}
+			else {
+				m_text_input_cursor = 0;
+			}
+		}
+	}
+	void       Window_Win32::textInput_removeBufferRange(uint32_t code_point_index, uint32_t code_point_count) {
+		// TODO
+	}
+	void       Window_Win32::textInput_removeBufferRangeFormCurrentCursorPosition(uint32_t code_point_count) {
+		for (uint32_t i = 0; i < code_point_count; i += 1) {
+			if (m_text_input_cursor > 0) {
+				m_text_input_buffer.erase(m_text_input_buffer.begin() + (m_text_input_cursor - 1));
+				m_text_input_cursor -= 1;
+			}
+			else {
+				break;
+			}
+		}
+		textInput_updateBuffer();
+	}
+	void       Window_Win32::textInput_insertBufferRange(uint32_t code_point_index, StringView str) {
+		// TODO
+	}
+
+	void Window_Win32::setInputMethodPosition(Vector2I position) {
+		if (!win32_window) {
+			return;
+		}
+		if (HIMC himc = ImmGetContext(win32_window); win32_window) {
+			COMPOSITIONFORM composition_form = {};
+			composition_form.ptCurrentPos.x = position.x;
+			composition_form.ptCurrentPos.y = position.y;
+			composition_form.dwStyle = CFS_FORCE_POSITION;
+			ImmSetCompositionWindow(himc, &composition_form);
+			CANDIDATEFORM candidate_form = {};
+			candidate_form.dwStyle = CFS_CANDIDATEPOS;
+			candidate_form.ptCurrentPos.x = position.x;
+			candidate_form.ptCurrentPos.y = position.y;
+			ImmSetCandidateWindow(himc, &candidate_form);
+			ImmReleaseContext(win32_window, himc);
+		}
+	}
+}
+
+namespace Core::Graphics
+{
 	static DWORD mapWindowStyle(WindowFrameStyle style, bool fullscreen) {
 		if (fullscreen) {
 			return WS_POPUP;
@@ -194,6 +309,36 @@ namespace Core::Graphics
 			}
 		}
 
+		// 文本输入
+		if (m_text_input_enabled) {
+			switch (message) {
+			case WM_CHAR:
+				if (IS_HIGH_SURROGATE(arg1)) {
+					m_text_input_last_high_surrogate = static_cast<char16_t>(arg1);
+				}
+				else if (IS_LOW_SURROGATE(arg1)) {
+					if (IS_SURROGATE_PAIR(m_text_input_last_high_surrogate, arg1)) {
+						auto const high = m_text_input_last_high_surrogate;
+						auto const low = static_cast<char16_t>(arg1);
+						auto const code = 0x10000 + (((static_cast<char32_t>(high) & 0x3ff) << 10) | (static_cast<char32_t>(low) & 0x3ff));
+						textInput_addChar32(code);
+						textInput_updateBuffer();
+					}
+					m_text_input_last_high_surrogate = {};
+				}
+				else if (arg1 <= 0xFFFF) {
+					auto const code = static_cast<char32_t>(arg1);
+					if (code == U'\b' /* backspace */) {
+						textInput_removeBufferRangeFormCurrentCursorPosition(1);
+					}
+					else {
+						textInput_addChar32(code);
+					}
+					textInput_updateBuffer();
+				}
+				break;
+			}
+		}
 		// 窗口挪动器
 		if (auto const result = m_sizemove.handleSizeMove(window, message, arg1, arg2); result.bReturn) {
 			return result.lResult;

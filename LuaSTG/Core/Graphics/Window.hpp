@@ -97,6 +97,23 @@ namespace Core::Graphics
 		virtual void setIMEState(bool enable) = 0;
 		virtual bool getIMEState() = 0;
 
+		// vvvvvvvv BEGIN WIP
+
+		virtual void setInputMethodPosition(Vector2I position) = 0;
+
+		virtual bool       textInput_isEnabled() = 0;
+		virtual void       textInput_setEnabled(bool enabled) = 0;
+		virtual StringView textInput_getBuffer() = 0;
+		virtual void       textInput_clearBuffer() = 0;
+		virtual uint32_t   textInput_getCursorPosition() = 0;
+		virtual void       textInput_setCursorPosition(uint32_t code_point_index) = 0;
+		virtual void       textInput_addCursorPosition(int32_t offset_by_code_point) = 0;
+		virtual void       textInput_removeBufferRange(uint32_t code_point_index, uint32_t code_point_count) = 0;
+		virtual void       textInput_removeBufferRangeFormCurrentCursorPosition(uint32_t code_point_count) = 0;
+		virtual void       textInput_insertBufferRange(uint32_t code_point_index, StringView str) = 0;
+
+		// ^^^^^^^^ END WIP
+
 		virtual void setTitleText(StringView str) = 0;
 		virtual StringView getTitleText() = 0;
 

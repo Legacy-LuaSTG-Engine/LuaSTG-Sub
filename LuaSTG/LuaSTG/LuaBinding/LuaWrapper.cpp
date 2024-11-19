@@ -64,6 +64,7 @@ namespace LuaSTGPlus
 		LuaSTG::Sub::LuaBinding::Display::registerClass(L);
 		LuaSTG::Sub::LuaBinding::Window::registerClass(L);
 		LuaSTG::Sub::LuaBinding::Window_InputMethodExtension::registerClass(L);
+		LuaSTG::Sub::LuaBinding::Window_TextInputExtension::registerClass(L);
 		LuaSTG::Sub::LuaBinding::Window_Windows11Extension::registerClass(L);
 		LuaSTG::Sub::LuaBinding::SwapChain::registerClass(L);
 		http::Request::registerClass(L);

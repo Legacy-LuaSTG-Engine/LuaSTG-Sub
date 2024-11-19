@@ -109,6 +109,7 @@ namespace Core::Graphics
 		void implSetApplicationModel(IApplicationModel* p_framework) { m_framework = p_framework; }
 
 	private:
+
 		enum class EventType
 		{
 			WindowCreate,
@@ -138,14 +139,44 @@ namespace Core::Graphics
 		void dispatchEvent(EventType t, EventData d = {});
 
 	public:
+
 		void addEventListener(IWindowEventListener* e);
 		void removeEventListener(IWindowEventListener* e);
+
+	private:
+
+		std::u32string m_text_input_buffer;
+		std::u8string m_text_input_buffer_u8;
+		uint32_t m_text_input_cursor{};
+		char16_t m_text_input_last_high_surrogate{};
+		bool m_text_input_enabled{ false };
+
+		void       textInput_updateBuffer();
+		void       textInput_addChar32(char32_t code);
+
+	public:
+
+		// vvvvvvvv BEGIN WIP
+
+		bool       textInput_isEnabled();
+		void       textInput_setEnabled(bool enabled);
+		StringView textInput_getBuffer();
+		void       textInput_clearBuffer();
+		uint32_t   textInput_getCursorPosition();
+		void       textInput_setCursorPosition(uint32_t code_point_index);
+		void       textInput_addCursorPosition(int32_t offset_by_code_point);
+		void       textInput_removeBufferRange(uint32_t code_point_index, uint32_t code_point_count);
+		void       textInput_removeBufferRangeFormCurrentCursorPosition(uint32_t code_point_count);
+		void       textInput_insertBufferRange(uint32_t code_point_index, StringView str);
+
+		// ^^^^^^^^ END WIP
 
 		void* getNativeHandle();
 		void setNativeIcon(void* id);
 
 		void setIMEState(bool enable);
 		bool getIMEState();
+		void setInputMethodPosition(Vector2I position);
 
 		void setTitleText(StringView str);
 		StringView getTitleText();
