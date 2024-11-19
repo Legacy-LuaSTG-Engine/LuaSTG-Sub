@@ -145,6 +145,12 @@ namespace LuaSTG::Sub::LuaBinding {
 			auto self = as(L, 1);
 			lua::stack_t S(L);
 			auto const name = S.get_value<std::string_view>(2);
+			if (name == Window_InputMethodExtension::class_name) {
+				auto ext = Window_InputMethodExtension::create(L);
+				ext->data = self->data;
+				ext->data->retain();
+				return 1;
+			}
 			if (name == Window_Windows11Extension::class_name) {
 				if (Platform::WindowsVersion::Is11()) {
 					auto ext = Window_Windows11Extension::create(L);
@@ -227,6 +233,86 @@ namespace LuaSTG::Sub::LuaBinding {
 		S.set_map_value(module_table, "SetSplash", &compat_SetSplash);
 		S.set_map_value(module_table, "SetTitle", &compat_SetTitle);
 		//S.set_map_value(module_table, "Window", method_table);
+	}
+
+}
+
+namespace LuaSTG::Sub::LuaBinding {
+
+	std::string_view Window_InputMethodExtension::class_name{ "lstg.Window.InputMethodExtension" };
+
+	struct ImeExtBinding : public Window_InputMethodExtension {
+
+		// meta methods
+
+		static int __gc(lua_State* L) {
+			auto self = as(L, 1);
+			if (self->data) {
+				self->data->release();
+				self->data = nullptr;
+			}
+			return 0;
+		}
+
+		static int __tostring(lua_State* L) {
+			lua::stack_t S(L);
+			[[maybe_unused]] auto self = as(L, 1);
+			S.push_value(class_name);
+			return 1;
+		}
+
+		// instance methods
+
+		static int isInputMethodEnabled(lua_State* L) {
+			lua::stack_t S(L);
+			auto self = as(L, 1);
+			S.push_value(self->data->getIMEState());
+			return 1;
+		}
+
+		static int setInputMethodEnabled(lua_State* L) {
+			lua::stack_t S(L);
+			auto self = as(L, 1);
+			auto const enabled = S.get_value<bool>(2);
+			self->data->setIMEState(enabled);
+			return 0;
+		}
+
+	};
+
+	bool Window_InputMethodExtension::is(lua_State* L, int index) {
+		return nullptr != luaL_testudata(L, index, class_name.data());
+	}
+
+	Window_InputMethodExtension* Window_InputMethodExtension::as(lua_State* L, int index) {
+		return static_cast<Window_InputMethodExtension*>(luaL_checkudata(L, index, class_name.data()));
+	}
+
+	Window_InputMethodExtension* Window_InputMethodExtension::create(lua_State* L) {
+		lua::stack_t S(L);
+		auto self = S.create_userdata<Window_InputMethodExtension>();
+		auto const self_index = S.index_of_top();
+		S.set_metatable(self_index, class_name);
+		self->data = nullptr;
+		return self;
+	}
+
+	void Window_InputMethodExtension::registerClass(lua_State* L) {
+		[[maybe_unused]] lua::stack_balancer_t SB(L);
+		lua::stack_t S(L);
+
+		// method
+
+		auto const method_table = S.push_module(class_name);
+		S.set_map_value(method_table, "isInputMethodEnabled", &ImeExtBinding::isInputMethodEnabled);
+		S.set_map_value(method_table, "setInputMethodEnabled", &ImeExtBinding::setInputMethodEnabled);
+
+		// metatable
+
+		auto const metatable = S.create_metatable(class_name);
+		S.set_map_value(metatable, "__gc", &ImeExtBinding::__gc);
+		S.set_map_value(metatable, "__tostring", &ImeExtBinding::__tostring);
+		S.set_map_value(metatable, "__index", method_table);
 	}
 
 }

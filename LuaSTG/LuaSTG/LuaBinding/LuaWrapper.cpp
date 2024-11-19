@@ -63,6 +63,7 @@ namespace LuaSTGPlus
 		LuaSTG::LuaBinding::PostEffectShader::Register(L);
 		LuaSTG::Sub::LuaBinding::Display::registerClass(L);
 		LuaSTG::Sub::LuaBinding::Window::registerClass(L);
+		LuaSTG::Sub::LuaBinding::Window_InputMethodExtension::registerClass(L);
 		LuaSTG::Sub::LuaBinding::Window_Windows11Extension::registerClass(L);
 		LuaSTG::Sub::LuaBinding::SwapChain::registerClass(L);
 		http::Request::registerClass(L);

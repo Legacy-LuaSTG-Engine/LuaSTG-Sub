@@ -449,10 +449,8 @@ namespace Core::Graphics
 
 		// 配置输入法
 
-		win32_window_imc = ImmAssociateContext(win32_window, NULL);
-		if (win32_window_ime_enable)
-		{
-			ImmAssociateContext(win32_window, win32_window_imc);
+		if (!win32_window_ime_enable) {
+			ImmAssociateContext(win32_window, nullptr);
 		}
 
 		// 配置窗口挪动器
@@ -841,11 +839,18 @@ namespace Core::Graphics
 
 	void Window_Win32::setIMEState(bool enable)
 	{
+		if (!win32_window_ime_enable && enable) {
+		#pragma warning(push)
+		#pragma warning(disable: 6387)
+			// See: https://learn.microsoft.com/en-us/windows/win32/api/imm/nf-imm-immassociatecontextex
+			// If the application calls this function with IACE_DEFAULT, the operating system restores the default input method context for the window.
+			ImmAssociateContextEx(win32_window, nullptr /* In this case, the hIMC parameter is ignored. */, IACE_DEFAULT);
+		#pragma warning (pop)
+		}
+		else if (win32_window_ime_enable && !enable) {
+			ImmAssociateContext(win32_window, nullptr);
+		}
 		win32_window_ime_enable = enable;
-		if (win32_window_ime_enable)
-			ImmAssociateContext(win32_window, win32_window_imc);
-		else
-			ImmAssociateContext(win32_window, NULL);
 	}
 	bool Window_Win32::getIMEState()
 	{
