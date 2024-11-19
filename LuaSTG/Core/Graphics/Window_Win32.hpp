@@ -42,7 +42,6 @@ namespace Core::Graphics
 
 		HWND win32_window{ NULL };
 
-		HIMC win32_window_imc{ NULL };
 		BOOL win32_window_ime_enable{ FALSE };
 
 		UINT win32_window_width{ 640 };

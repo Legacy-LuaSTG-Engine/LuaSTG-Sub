@@ -474,14 +474,10 @@ namespace Core::Graphics
 	void Window_Win32::destroyWindow()
 	{
 		m_sizemove.setWindow(NULL);
-		if (win32_window)
-		{
-			if (win32_window_imc)
-				ImmAssociateContext(win32_window, win32_window_imc);
+		if (win32_window) {
 			DestroyWindow(win32_window);
+			win32_window = NULL;
 		}
-		win32_window = NULL;
-		win32_window_imc = NULL;
 	}
 	bool Window_Win32::recreateWindow()
 	{
