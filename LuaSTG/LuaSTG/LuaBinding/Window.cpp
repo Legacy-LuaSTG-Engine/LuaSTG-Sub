@@ -359,14 +359,14 @@ namespace LuaSTG::Sub::LuaBinding {
 
 		// instance methods
 
-		static int isTextInputEnabled(lua_State* L) {
+		static int isEnabled(lua_State* L) {
 			lua::stack_t S(L);
 			auto self = as(L, 1);
 			S.push_value(self->data->textInput_isEnabled());
 			return 1;
 		}
 
-		static int setTextInputEnabled(lua_State* L) {
+		static int setEnabled(lua_State* L) {
 			lua::stack_t S(L);
 			auto self = as(L, 1);
 			auto const enabled = S.get_value<bool>(2);
@@ -374,7 +374,7 @@ namespace LuaSTG::Sub::LuaBinding {
 			return 0;
 		}
 
-		static int getTextInputBuffer(lua_State* L) {
+		static int toString(lua_State* L) {
 			lua::stack_t S(L);
 			auto self = as(L, 1);
 			auto const buffer = self->data->textInput_getBuffer();
@@ -382,13 +382,13 @@ namespace LuaSTG::Sub::LuaBinding {
 			return 1;
 		}
 
-		static int clearTextInputBuffer(lua_State* L) {
+		static int clear(lua_State* L) {
 			auto self = as(L, 1);
 			self->data->textInput_clearBuffer();
 			return 0;
 		}
 
-		static int getTextInputCursorPosition(lua_State* L) {
+		static int getCursorPosition(lua_State* L) {
 			lua::stack_t S(L);
 			auto self = as(L, 1);
 			auto const position = self->data->textInput_getCursorPosition();
@@ -396,7 +396,7 @@ namespace LuaSTG::Sub::LuaBinding {
 			return 1;
 		}
 
-		static int setTextInputCursorPosition(lua_State* L) {
+		static int setCursorPosition(lua_State* L) {
 			lua::stack_t S(L);
 			auto self = as(L, 1);
 			auto const position = S.get_value<uint32_t>(2);
@@ -404,7 +404,7 @@ namespace LuaSTG::Sub::LuaBinding {
 			return 0;
 		}
 
-		static int addTextInputCursorPosition(lua_State* L) {
+		static int addCursorPosition(lua_State* L) {
 			lua::stack_t S(L);
 			auto self = as(L, 1);
 			auto const offset = S.get_value<int32_t>(2);
@@ -412,11 +412,27 @@ namespace LuaSTG::Sub::LuaBinding {
 			return 0;
 		}
 
-		static int removeTextInputBufferFromCurrentCursorPosition(lua_State* L) {
+		static int insert(lua_State* L) {
 			lua::stack_t S(L);
 			auto self = as(L, 1);
-			auto const count = S.get_value_or<uint32_t>(2, 1);
-			self->data->textInput_removeBufferRangeFormCurrentCursorPosition(count);
+			if (S.is_string(3)) {
+				auto const idx = S.get_value<uint32_t>(2);
+				auto const str = S.get_value<std::string_view>(3);
+				self->data->textInput_insertBufferRange(idx, str);
+			}
+			else {
+				auto const str = S.get_value<std::string_view>(2);
+				self->data->textInput_insertBufferRange(self->data->textInput_getCursorPosition(), str);
+			}
+			return 0;
+		}
+
+		static int remove(lua_State* L) {
+			lua::stack_t S(L);
+			auto self = as(L, 1);
+			auto const idx = S.get_value_or<uint32_t>(2, self->data->textInput_getCursorPosition());
+			auto const cnt = S.get_value_or<uint32_t>(3, 1);
+			self->data->textInput_removeBufferRange(idx, cnt);
 			return 0;
 		}
 
@@ -446,14 +462,15 @@ namespace LuaSTG::Sub::LuaBinding {
 		// method
 
 		auto const method_table = S.push_module(class_name);
-		S.set_map_value(method_table, "isEnabled", &TextInputExtBinding::isTextInputEnabled);
-		S.set_map_value(method_table, "setEnabled", &TextInputExtBinding::setTextInputEnabled);
-		S.set_map_value(method_table, "toString", &TextInputExtBinding::getTextInputBuffer);
-		S.set_map_value(method_table, "clear", &TextInputExtBinding::clearTextInputBuffer);
-		S.set_map_value(method_table, "getCursorPosition", &TextInputExtBinding::getTextInputCursorPosition);
-		S.set_map_value(method_table, "setCursorPosition", &TextInputExtBinding::setTextInputCursorPosition);
-		S.set_map_value(method_table, "addCursorPosition", &TextInputExtBinding::addTextInputCursorPosition);
-		S.set_map_value(method_table, "remove", &TextInputExtBinding::removeTextInputBufferFromCurrentCursorPosition);
+		S.set_map_value(method_table, "isEnabled", &TextInputExtBinding::isEnabled);
+		S.set_map_value(method_table, "setEnabled", &TextInputExtBinding::setEnabled);
+		S.set_map_value(method_table, "toString", &TextInputExtBinding::toString);
+		S.set_map_value(method_table, "clear", &TextInputExtBinding::clear);
+		S.set_map_value(method_table, "getCursorPosition", &TextInputExtBinding::getCursorPosition);
+		S.set_map_value(method_table, "setCursorPosition", &TextInputExtBinding::setCursorPosition);
+		S.set_map_value(method_table, "addCursorPosition", &TextInputExtBinding::addCursorPosition);
+		S.set_map_value(method_table, "insert", &TextInputExtBinding::insert);
+		S.set_map_value(method_table, "remove", &TextInputExtBinding::remove);
 
 		// metatable
 

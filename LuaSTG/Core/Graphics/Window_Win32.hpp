@@ -168,7 +168,6 @@ namespace Core::Graphics
 		void       textInput_setCursorPosition(uint32_t code_point_index);
 		void       textInput_addCursorPosition(int32_t offset_by_code_point);
 		void       textInput_removeBufferRange(uint32_t code_point_index, uint32_t code_point_count);
-		void       textInput_removeBufferRangeFormCurrentCursorPosition(uint32_t code_point_count);
 		void       textInput_insertBufferRange(uint32_t code_point_index, StringView str);
 
 		// ^^^^^^^^ END WIP

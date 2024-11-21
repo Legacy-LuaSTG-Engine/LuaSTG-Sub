@@ -7,6 +7,7 @@
 #include "Platform/WindowsVersion.hpp"
 #include "Platform/WindowTheme.hpp"
 #include "utf8.hpp"
+#include "simdutf.h"
 #include <WinUser.h>
 #include <WinNls.h>
 
@@ -134,30 +135,10 @@ namespace Core::Graphics
 namespace Core::Graphics
 {
 	void       Window_Win32::textInput_updateBuffer() {
-		m_text_input_buffer_u8.clear();
-		for (auto const code : m_text_input_buffer) {
-			if (code <= 0x7f) {
-				m_text_input_buffer_u8.push_back(static_cast<char8_t>(code));
-			}
-			else if (code <= 0x7ff) {
-				m_text_input_buffer_u8.push_back(static_cast<char8_t>(0xc0 | ((code >> 6) & 0x1f)));
-				m_text_input_buffer_u8.push_back(static_cast<char8_t>(0x80 | (code & 0x3f)));
-			}
-			else if (code <= 0xffff) {
-				m_text_input_buffer_u8.push_back(static_cast<char8_t>(0xe0 | ((code >> 12) & 0xf)));
-				m_text_input_buffer_u8.push_back(static_cast<char8_t>(0x80 | ((code >> 6) & 0x3f)));
-				m_text_input_buffer_u8.push_back(static_cast<char8_t>(0x80 | (code & 0x3f)));
-			}
-			else if (code <= 0x10ffff) {
-				m_text_input_buffer_u8.push_back(static_cast<char8_t>(0xf0 | ((code >> 18) & 0x7)));
-				m_text_input_buffer_u8.push_back(static_cast<char8_t>(0x80 | ((code >> 12) & 0x3f)));
-				m_text_input_buffer_u8.push_back(static_cast<char8_t>(0x80 | ((code >> 6) & 0x3f)));
-				m_text_input_buffer_u8.push_back(static_cast<char8_t>(0x80 | (code & 0x3f)));
-			}
-			else {
-				m_text_input_buffer_u8.push_back(u8'?');
-			}
-		}
+		auto const& s32 = m_text_input_buffer;
+		auto& s8 = m_text_input_buffer_u8;
+		s8.resize(simdutf::utf8_length_from_utf32(s32.data(), s32.size()));
+		simdutf::convert_valid_utf32_to_utf8(s32.data(), s32.size(), reinterpret_cast<char*>(s8.data()));
 	}
 	void       Window_Win32::textInput_addChar32(char32_t const code) {
 		m_text_input_buffer.insert(m_text_input_buffer.begin() + m_text_input_cursor, code);
@@ -165,16 +146,7 @@ namespace Core::Graphics
 		textInput_updateBuffer();
 	}
 	void       Window_Win32::textInput_handleChar32(char32_t const code) {
-		if (code == U'\b' /* backspace */) {
-			textInput_removeBufferRangeFormCurrentCursorPosition(1);
-		}
-		else if (code == U'\x7f' /* delelet */) {
-			if (m_text_input_buffer.size() > m_text_input_cursor) {
-				textInput_removeBufferRangeFormCurrentCursorPosition(1);
-				textInput_addCursorPosition(1);
-			}
-		}
-		else if (code == U'\t' || code == U'\n' /* || code == U'\r' */ || (code >= 0x20 && code <= 0x7e) || code >= 0x80) {
+		if (code == U'\t' || code == U'\n' /* || code == U'\r' */ || (code >= 0x20 && code <= 0x7e) || code >= 0x80) {
 			textInput_addChar32(code);
 		}
 	}
@@ -184,10 +156,10 @@ namespace Core::Graphics
 		}
 		else if (IS_LOW_SURROGATE(code)) {
 			if (IS_SURROGATE_PAIR(m_text_input_last_high_surrogate, code)) {
-				auto const high = m_text_input_last_high_surrogate;
-				auto const low = code;
-				auto const code = 0x10000 + (((static_cast<char32_t>(high) & 0x3ff) << 10) | (static_cast<char32_t>(low) & 0x3ff));
-				textInput_handleChar32(code);
+				char16_t const str[3]{ m_text_input_last_high_surrogate, code ,0 };
+				char32_t buf[2]{};
+				simdutf::convert_valid_utf16le_to_utf32(str, 2, buf);
+				textInput_handleChar32(buf[0]);
 			}
 			m_text_input_last_high_surrogate = {};
 		}
@@ -213,10 +185,10 @@ namespace Core::Graphics
 	uint32_t   Window_Win32::textInput_getCursorPosition() {
 		return m_text_input_cursor;
 	}
-	void       Window_Win32::textInput_setCursorPosition(uint32_t code_point_index) {
+	void       Window_Win32::textInput_setCursorPosition(uint32_t const code_point_index) {
 		m_text_input_cursor = std::min(code_point_index, static_cast<uint32_t>(m_text_input_buffer.size()));
 	}
-	void       Window_Win32::textInput_addCursorPosition(int32_t offset_by_code_point) {
+	void       Window_Win32::textInput_addCursorPosition(int32_t const offset_by_code_point) {
 		if (offset_by_code_point == 0) {
 			return;
 		}
@@ -237,23 +209,32 @@ namespace Core::Graphics
 			}
 		}
 	}
-	void       Window_Win32::textInput_removeBufferRange(uint32_t code_point_index, uint32_t code_point_count) {
-		// TODO
-	}
-	void       Window_Win32::textInput_removeBufferRangeFormCurrentCursorPosition(uint32_t code_point_count) {
-		for (uint32_t i = 0; i < code_point_count; i += 1) {
-			if (m_text_input_cursor > 0) {
-				m_text_input_buffer.erase(m_text_input_buffer.begin() + (m_text_input_cursor - 1));
-				m_text_input_cursor -= 1;
-			}
-			else {
-				break;
-			}
+	void       Window_Win32::textInput_removeBufferRange(uint32_t const code_point_index, uint32_t const code_point_count) {
+		auto& s32 = m_text_input_buffer;
+		if (code_point_index >= s32.size()) {
+			return;
 		}
+		auto const right = static_cast<uint32_t>(s32.size()) - code_point_index;
+		auto const count = std::min(code_point_count, right);
+		s32.erase(code_point_index, count);
+		m_text_input_cursor -= count;
 		textInput_updateBuffer();
 	}
-	void       Window_Win32::textInput_insertBufferRange(uint32_t code_point_index, StringView str) {
-		// TODO
+	void       Window_Win32::textInput_insertBufferRange(uint32_t const code_point_index, StringView const str) {
+		if (!simdutf::validate_utf8(str.data(), str.size())) {
+			return;
+		}
+		std::u32string buf;
+		buf.resize(simdutf::utf32_length_from_utf8(str.data(), str.size()));
+		simdutf::convert_valid_utf8_to_utf32(str.data(), str.size(), buf.data());
+		if (code_point_index < m_text_input_buffer.size()) {
+			m_text_input_buffer.insert(code_point_index, buf);
+		}
+		else {
+			m_text_input_buffer.append(buf);
+		}
+		m_text_input_cursor += str.size();
+		textInput_updateBuffer();
 	}
 
 	void Window_Win32::setInputMethodPosition(Vector2I position) {

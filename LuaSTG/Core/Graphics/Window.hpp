@@ -109,7 +109,6 @@ namespace Core::Graphics
 		virtual void       textInput_setCursorPosition(uint32_t code_point_index) = 0;
 		virtual void       textInput_addCursorPosition(int32_t offset_by_code_point) = 0;
 		virtual void       textInput_removeBufferRange(uint32_t code_point_index, uint32_t code_point_count) = 0;
-		virtual void       textInput_removeBufferRangeFormCurrentCursorPosition(uint32_t code_point_count) = 0;
 		virtual void       textInput_insertBufferRange(uint32_t code_point_index, StringView str) = 0;
 
 		// ^^^^^^^^ END WIP
