@@ -436,6 +436,14 @@ namespace LuaSTG::Sub::LuaBinding {
 			return 0;
 		}
 
+		static int backspace(lua_State* L) {
+			lua::stack_t S(L);
+			auto self = as(L, 1);
+			auto const count = S.get_value_or<uint32_t>(2, 1);
+			self->data->textInput_backspace(count);
+			return 0;
+		}
+
 	};
 
 	bool Window_TextInputExtension::is(lua_State* L, int index) {
@@ -471,6 +479,7 @@ namespace LuaSTG::Sub::LuaBinding {
 		S.set_map_value(method_table, "addCursorPosition", &TextInputExtBinding::addCursorPosition);
 		S.set_map_value(method_table, "insert", &TextInputExtBinding::insert);
 		S.set_map_value(method_table, "remove", &TextInputExtBinding::remove);
+		S.set_map_value(method_table, "backspace", &TextInputExtBinding::backspace);
 
 		// metatable
 

@@ -72,16 +72,24 @@ function M:onUpdate()
             ImGui.Text(table.concat(second_part))
             ImGui.Text("Text Input Cursor: " .. self.cursor)
             ImGui.SameLine()
-            if ImGui.Button("<##Text Input Cursor") then
+            if ImGui.Button("<<##Text Input Cursor") then
                 self.text_input_ext:addCursorPosition(-1)
             end
             ImGui.SameLine()
-            if ImGui.Button(">##Text Input Cursor") then
+            if ImGui.Button(">>##Text Input Cursor") then
                 self.text_input_ext:addCursorPosition(1)
             end
             ImGui.SameLine()
-            if ImGui.Button("x##Text Input Cursor") then
+            if ImGui.Button("[ Space ]##Text Input Cursor") then
+                self.text_input_ext:insert(" ")
+            end
+            ImGui.SameLine()
+            if ImGui.Button("X Delete##Text Input Cursor") then
                 self.text_input_ext:remove()
+            end
+            ImGui.SameLine()
+            if ImGui.Button("<- Backspace##Text Input Cursor") then
+                self.text_input_ext:backspace()
             end
         end
     end

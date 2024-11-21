@@ -217,7 +217,7 @@ namespace Core::Graphics
 		auto const right = static_cast<uint32_t>(s32.size()) - code_point_index;
 		auto const count = std::min(code_point_count, right);
 		s32.erase(code_point_index, count);
-		m_text_input_cursor -= count;
+		m_text_input_cursor = std::min(m_text_input_cursor, static_cast<uint32_t>(s32.size()));
 		textInput_updateBuffer();
 	}
 	void       Window_Win32::textInput_insertBufferRange(uint32_t const code_point_index, StringView const str) {
@@ -234,6 +234,12 @@ namespace Core::Graphics
 			m_text_input_buffer.append(buf);
 		}
 		m_text_input_cursor += str.size();
+		textInput_updateBuffer();
+	}
+	void       Window_Win32::textInput_backspace(uint32_t const code_point_count) {
+		auto const count = std::min(m_text_input_cursor, code_point_count);
+		m_text_input_cursor -= count;
+		m_text_input_buffer.erase(m_text_input_cursor, count);
 		textInput_updateBuffer();
 	}
 
