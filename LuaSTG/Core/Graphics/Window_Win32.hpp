@@ -153,6 +153,8 @@ namespace Core::Graphics
 
 		void       textInput_updateBuffer();
 		void       textInput_addChar32(char32_t code);
+		void       textInput_handleChar32(char32_t code);
+		void       textInput_handleChar16(char16_t code);
 
 	public:
 

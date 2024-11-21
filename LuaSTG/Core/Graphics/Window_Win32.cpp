@@ -164,6 +164,37 @@ namespace Core::Graphics
 		m_text_input_cursor += 1;
 		textInput_updateBuffer();
 	}
+	void       Window_Win32::textInput_handleChar32(char32_t const code) {
+		if (code == U'\b' /* backspace */) {
+			textInput_removeBufferRangeFormCurrentCursorPosition(1);
+		}
+		else if (code == U'\x7f' /* delelet */) {
+			if (m_text_input_buffer.size() > m_text_input_cursor) {
+				textInput_removeBufferRangeFormCurrentCursorPosition(1);
+				textInput_addCursorPosition(1);
+			}
+		}
+		else if (code == U'\t' || code == U'\n' /* || code == U'\r' */ || (code >= 0x20 && code <= 0x7e) || code >= 0x80) {
+			textInput_addChar32(code);
+		}
+	}
+	void       Window_Win32::textInput_handleChar16(char16_t const code) {
+		if (IS_HIGH_SURROGATE(code)) {
+			m_text_input_last_high_surrogate = code;
+		}
+		else if (IS_LOW_SURROGATE(code)) {
+			if (IS_SURROGATE_PAIR(m_text_input_last_high_surrogate, code)) {
+				auto const high = m_text_input_last_high_surrogate;
+				auto const low = code;
+				auto const code = 0x10000 + (((static_cast<char32_t>(high) & 0x3ff) << 10) | (static_cast<char32_t>(low) & 0x3ff));
+				textInput_handleChar32(code);
+			}
+			m_text_input_last_high_surrogate = {};
+		}
+		else {
+			textInput_handleChar32(static_cast<char32_t>(code));
+		}
+	}
 
 	bool       Window_Win32::textInput_isEnabled() {
 		return m_text_input_enabled;
@@ -172,7 +203,7 @@ namespace Core::Graphics
 		m_text_input_enabled = enabled;
 	}
 	StringView Window_Win32::textInput_getBuffer() {
-		return { reinterpret_cast<char const*>(m_text_input_buffer_u8.data()), m_text_input_buffer_u8.size()};
+		return { reinterpret_cast<char const*>(m_text_input_buffer_u8.data()), m_text_input_buffer_u8.size() };
 	}
 	void       Window_Win32::textInput_clearBuffer() {
 		m_text_input_buffer.clear();
@@ -313,28 +344,8 @@ namespace Core::Graphics
 		if (m_text_input_enabled) {
 			switch (message) {
 			case WM_CHAR:
-				if (IS_HIGH_SURROGATE(arg1)) {
-					m_text_input_last_high_surrogate = static_cast<char16_t>(arg1);
-				}
-				else if (IS_LOW_SURROGATE(arg1)) {
-					if (IS_SURROGATE_PAIR(m_text_input_last_high_surrogate, arg1)) {
-						auto const high = m_text_input_last_high_surrogate;
-						auto const low = static_cast<char16_t>(arg1);
-						auto const code = 0x10000 + (((static_cast<char32_t>(high) & 0x3ff) << 10) | (static_cast<char32_t>(low) & 0x3ff));
-						textInput_addChar32(code);
-						textInput_updateBuffer();
-					}
-					m_text_input_last_high_surrogate = {};
-				}
-				else if (arg1 <= 0xFFFF) {
-					auto const code = static_cast<char32_t>(arg1);
-					if (code == U'\b' /* backspace */) {
-						textInput_removeBufferRangeFormCurrentCursorPosition(1);
-					}
-					else {
-						textInput_addChar32(code);
-					}
-					textInput_updateBuffer();
+				if (arg1 <= 0xFFFF) {
+					textInput_handleChar16(static_cast<char16_t>(arg1));
 				}
 				break;
 			}
