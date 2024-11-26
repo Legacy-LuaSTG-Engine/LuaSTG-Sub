@@ -717,10 +717,10 @@ namespace LuaSTGPlus
 		if (S.is_number(1) && S.is_number(2)) {
 			auto const group1 = S.get_value<uint32_t>(1);
 			auto const group2 = S.get_value<uint32_t>(2);
-			if (group1 < 0 || group1 >= LOBJPOOL_SIZE) {
+			if (group1 < 0 || group1 >= LOBJPOOL_GROUPN) {
 				return luaL_error(L, "invalid collision group <%d>", group1);
 			}
-			if (group2 < 0 || group2 >= LOBJPOOL_SIZE) {
+			if (group2 < 0 || group2 >= LOBJPOOL_GROUPN) {
 				return luaL_error(L, "invalid collision group <%d>", group1);
 			}
 			g_GameObjectPool->GetObjectTable(L);
@@ -742,10 +742,10 @@ namespace LuaSTGPlus
 				auto const group_pair = S.get_array_value<lua::stack_index_t>(1, i);
 				auto const group1 = S.get_array_value<uint32_t>(group_pair, 1);
 				auto const group2 = S.get_array_value<uint32_t>(group_pair, 2);
-				if (group1 < 0 || group1 >= LOBJPOOL_SIZE) {
+				if (group1 < 0 || group1 >= LOBJPOOL_GROUPN) {
 					return luaL_error(L, "invalid collision group <%d>", group1);
 				}
-				if (group2 < 0 || group2 >= LOBJPOOL_SIZE) {
+				if (group2 < 0 || group2 >= LOBJPOOL_GROUPN) {
 					return luaL_error(L, "invalid collision group <%d>", group1);
 				}
 				S.pop_value();
