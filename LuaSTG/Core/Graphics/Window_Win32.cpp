@@ -660,8 +660,8 @@ namespace Core::Graphics
 		monitor_info.cbSize = sizeof(monitor_info);
 		BOOL const get_monitor_info_result = GetMonitorInfoW(win32_monitor, &monitor_info);
 		assert(get_monitor_info_result); (void)get_monitor_info_result;
-		assert(monitor_info.rcMonitor.right > monitor_info.rcMonitor.left);
-		assert(monitor_info.rcMonitor.bottom > monitor_info.rcMonitor.top);
+		assert(monitor_info.rcWork.right > monitor_info.rcWork.left);
+		assert(monitor_info.rcWork.bottom > monitor_info.rcWork.top);
 
 		bool const new_fullsceen_mode = false;
 		m_framestyle = parameters->style;
@@ -694,8 +694,8 @@ namespace Core::Graphics
 			BOOL const set_window_pos_result = SetWindowPos(
 				win32_window,
 				m_hidewindow ? NULL : HWND_TOP,
-				(monitor_info.rcMonitor.right + monitor_info.rcMonitor.left) / 2 - (rect.right - rect.left) / 2,
-				(monitor_info.rcMonitor.bottom + monitor_info.rcMonitor.top) / 2 - (rect.bottom - rect.top) / 2,
+				(monitor_info.rcWork.right + monitor_info.rcWork.left) / 2 - (rect.right - rect.left) / 2,
+				(monitor_info.rcWork.bottom + monitor_info.rcWork.top) / 2 - (rect.bottom - rect.top) / 2,
 				rect.right - rect.left,
 				rect.bottom - rect.top,
 				SWP_FRAMECHANGED | (m_hidewindow ? SWP_NOZORDER : SWP_SHOWWINDOW));
@@ -1113,7 +1113,7 @@ namespace Core::Graphics
 		RECT r{};
 		[[maybe_unused]] auto const result1 = GetWindowRect(win32_window, &r);
 		assert(result1);
-		auto const& m = display->getRect();
+		auto const& m = display->getWorkAreaRect();
 		UINT flags = SWP_FRAMECHANGED;
 		if (show) {
 			flags |= SWP_SHOWWINDOW;
