@@ -248,6 +248,16 @@ namespace lua
 		// lua -> C
 
 		template<typename T>
+		T get_value_or(stack_index_t index, T const default_value) {
+			if constexpr (std::is_same_v<uint32_t, T>) {
+				return static_cast<uint32_t>(luaL_optnumber(L, index.value, static_cast<lua_Number>(default_value)));
+			}
+			else {
+				static_assert(false, "not implemented");
+			}
+		}
+
+		template<typename T>
 		inline T get_value(stack_index_t index) { typename T::__invalid_type__ _{}; }
 
 		template<>

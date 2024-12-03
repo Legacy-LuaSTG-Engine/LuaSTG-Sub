@@ -151,6 +151,12 @@ namespace LuaSTG::Sub::LuaBinding {
 				ext->data->retain();
 				return 1;
 			}
+			if (name == Window_TextInputExtension::class_name) {
+				auto ext = Window_TextInputExtension::create(L);
+				ext->data = self->data;
+				ext->data->retain();
+				return 1;
+			}
 			if (name == Window_Windows11Extension::class_name) {
 				if (Platform::WindowsVersion::Is11()) {
 					auto ext = Window_Windows11Extension::create(L);
@@ -278,6 +284,15 @@ namespace LuaSTG::Sub::LuaBinding {
 			return 0;
 		}
 
+		static int setInputMethodPosition(lua_State* L) {
+			lua::stack_t S(L);
+			auto self = as(L, 1);
+			auto const x = S.get_value<int32_t>(2);
+			auto const y = S.get_value<int32_t>(3);
+			self->data->setInputMethodPosition(Core::Vector2I(x, y));
+			return 0;
+		}
+
 	};
 
 	bool Window_InputMethodExtension::is(lua_State* L, int index) {
@@ -306,12 +321,171 @@ namespace LuaSTG::Sub::LuaBinding {
 		auto const method_table = S.push_module(class_name);
 		S.set_map_value(method_table, "isInputMethodEnabled", &ImeExtBinding::isInputMethodEnabled);
 		S.set_map_value(method_table, "setInputMethodEnabled", &ImeExtBinding::setInputMethodEnabled);
+		S.set_map_value(method_table, "setInputMethodPosition", &ImeExtBinding::setInputMethodPosition);
 
 		// metatable
 
 		auto const metatable = S.create_metatable(class_name);
 		S.set_map_value(metatable, "__gc", &ImeExtBinding::__gc);
 		S.set_map_value(metatable, "__tostring", &ImeExtBinding::__tostring);
+		S.set_map_value(metatable, "__index", method_table);
+	}
+
+}
+
+namespace LuaSTG::Sub::LuaBinding {
+
+	std::string_view Window_TextInputExtension::class_name{ "lstg.Window.TextInputExtension" };
+
+	struct TextInputExtBinding : public Window_TextInputExtension {
+
+		// meta methods
+
+		static int __gc(lua_State* L) {
+			auto self = as(L, 1);
+			if (self->data) {
+				self->data->release();
+				self->data = nullptr;
+			}
+			return 0;
+		}
+
+		static int __tostring(lua_State* L) {
+			lua::stack_t S(L);
+			[[maybe_unused]] auto self = as(L, 1);
+			S.push_value(class_name);
+			return 1;
+		}
+
+		// instance methods
+
+		static int isEnabled(lua_State* L) {
+			lua::stack_t S(L);
+			auto self = as(L, 1);
+			S.push_value(self->data->textInput_isEnabled());
+			return 1;
+		}
+
+		static int setEnabled(lua_State* L) {
+			lua::stack_t S(L);
+			auto self = as(L, 1);
+			auto const enabled = S.get_value<bool>(2);
+			self->data->textInput_setEnabled(enabled);
+			return 0;
+		}
+
+		static int toString(lua_State* L) {
+			lua::stack_t S(L);
+			auto self = as(L, 1);
+			auto const buffer = self->data->textInput_getBuffer();
+			S.push_value(buffer);
+			return 1;
+		}
+
+		static int clear(lua_State* L) {
+			auto self = as(L, 1);
+			self->data->textInput_clearBuffer();
+			return 0;
+		}
+
+		static int getCursorPosition(lua_State* L) {
+			lua::stack_t S(L);
+			auto self = as(L, 1);
+			auto const position = self->data->textInput_getCursorPosition();
+			S.push_value(position);
+			return 1;
+		}
+
+		static int setCursorPosition(lua_State* L) {
+			lua::stack_t S(L);
+			auto self = as(L, 1);
+			auto const position = S.get_value<uint32_t>(2);
+			self->data->textInput_setCursorPosition(position);
+			return 0;
+		}
+
+		static int addCursorPosition(lua_State* L) {
+			lua::stack_t S(L);
+			auto self = as(L, 1);
+			auto const offset = S.get_value<int32_t>(2);
+			self->data->textInput_addCursorPosition(offset);
+			return 0;
+		}
+
+		static int insert(lua_State* L) {
+			lua::stack_t S(L);
+			auto self = as(L, 1);
+			if (S.is_string(3)) {
+				auto const idx = S.get_value<uint32_t>(2);
+				auto const str = S.get_value<std::string_view>(3);
+				self->data->textInput_insertBufferRange(idx, str);
+			}
+			else {
+				auto const str = S.get_value<std::string_view>(2);
+				self->data->textInput_insertBufferRange(self->data->textInput_getCursorPosition(), str);
+			}
+			return 0;
+		}
+
+		static int remove(lua_State* L) {
+			lua::stack_t S(L);
+			auto self = as(L, 1);
+			auto const idx = S.get_value_or<uint32_t>(2, self->data->textInput_getCursorPosition());
+			auto const cnt = S.get_value_or<uint32_t>(3, 1);
+			self->data->textInput_removeBufferRange(idx, cnt);
+			return 0;
+		}
+
+		static int backspace(lua_State* L) {
+			lua::stack_t S(L);
+			auto self = as(L, 1);
+			auto const count = S.get_value_or<uint32_t>(2, 1);
+			self->data->textInput_backspace(count);
+			return 0;
+		}
+
+	};
+
+	bool Window_TextInputExtension::is(lua_State* L, int index) {
+		return nullptr != luaL_testudata(L, index, class_name.data());
+	}
+
+	Window_TextInputExtension* Window_TextInputExtension::as(lua_State* L, int index) {
+		return static_cast<Window_TextInputExtension*>(luaL_checkudata(L, index, class_name.data()));
+	}
+
+	Window_TextInputExtension* Window_TextInputExtension::create(lua_State* L) {
+		lua::stack_t S(L);
+		auto self = S.create_userdata<Window_TextInputExtension>();
+		auto const self_index = S.index_of_top();
+		S.set_metatable(self_index, class_name);
+		self->data = nullptr;
+		return self;
+	}
+
+	void Window_TextInputExtension::registerClass(lua_State* L) {
+		[[maybe_unused]] lua::stack_balancer_t SB(L);
+		lua::stack_t S(L);
+
+		// method
+
+		auto const method_table = S.push_module(class_name);
+		S.set_map_value(method_table, "isEnabled", &TextInputExtBinding::isEnabled);
+		S.set_map_value(method_table, "setEnabled", &TextInputExtBinding::setEnabled);
+		S.set_map_value(method_table, "toString", &TextInputExtBinding::toString);
+		S.set_map_value(method_table, "clear", &TextInputExtBinding::clear);
+		S.set_map_value(method_table, "getCursorPosition", &TextInputExtBinding::getCursorPosition);
+		S.set_map_value(method_table, "setCursorPosition", &TextInputExtBinding::setCursorPosition);
+		S.set_map_value(method_table, "addCursorPosition", &TextInputExtBinding::addCursorPosition);
+		S.set_map_value(method_table, "insert", &TextInputExtBinding::insert);
+		S.set_map_value(method_table, "remove", &TextInputExtBinding::remove);
+		S.set_map_value(method_table, "backspace", &TextInputExtBinding::backspace);
+
+		// metatable
+
+		auto const metatable = S.create_metatable(class_name);
+		S.set_map_value(metatable, "__gc", &TextInputExtBinding::__gc);
+		S.set_map_value(metatable, "__tostring", &TextInputExtBinding::__tostring);
 		S.set_map_value(metatable, "__index", method_table);
 	}
 

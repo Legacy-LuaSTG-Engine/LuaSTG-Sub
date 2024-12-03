@@ -87,6 +87,7 @@ target_link_libraries(Core PUBLIC
     imgui
     # util
     utility
+    simdutf::simdutf
     PlatformAPI
     beautiful_win32_api
     GeneratedShaderHeaders
