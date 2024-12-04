@@ -1,0 +1,34 @@
+《使用说明》
+
+注意：如果不知道这是什么，请下载 LuaSTG After Ex Plus！
+提示：使用 LuaSTG After Ex Plus 开发框架和 LuaSTG Editor Sharp 编辑器制作东方风弹幕作品。
+
+该文件夹中包含以下内容：
+
+1、LuaSTG Sub 引擎程序文件
+2、LuaSTG Sub 引擎 API 文档和更新日志
+3、LuaSTG Sub 引擎以及第三方库的开放源代码协议
+4、示例程序脚本，运行 LuaSTGSub.exe 后可见“海内存知己 天涯若比邻 欢迎来到 LuaSTG Sub”
+
+以上内容均由 LuaSTG Sub 引擎源代码编译得到。
+
+LuaSTG Sub 引擎源代码仓库地址：
+
+1、GitHub（国外平台，可能难以打开）：https://github.com/Legacy-LuaSTG-Engine/LuaSTG-Sub
+2、Gitee（码云）：https://gitee.com/LuaSTG-Community/LuaSTG-Sub
+
+LuaSTG After Ex Plus 开发框架源代码仓库地址：
+
+1、GitHub（国外平台，可能难以打开）：https://github.com/Legacy-LuaSTG-Engine/Bundle-After-Ex-Plus
+
+LuaSTG Editor Sharp 编辑器源代码仓库地址：
+
+1、GitHub（国外平台，可能难以打开）：https://github.com/czh098tom/LuaSTG-Editor-Sharp
+
+LuaSTG Sub 引擎、LuaSTG After Ex Plus 开发框架、LuaSTG Editor Sharp 编辑器下载地址：
+
+1、OneDrive 网盘（国外平台，可能难以打开）：https://files.luastg-sub.com
+2、百度网盘（提取码9961）：https://pan.baidu.com/share/init?surl=usZgDH3k8VBM6KcEkhBFNg&pwd=9961
+3、LuaSTG交流群（QQ群，主群）：230927410
+4、LuaSTG寒流群（QQ群，二群）：563868788
+5、LuaSTG直流群（QQ群，仅存放文件）：673067136
