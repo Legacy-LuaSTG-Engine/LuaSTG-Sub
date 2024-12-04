@@ -82,6 +82,11 @@ set_target_properties(lua_cjson PROPERTIES FOLDER lualib)
 #
 #set_target_properties(lua_xlsx_csv PROPERTIES FOLDER external)
 
+# ==================== lua sqlite3 ====================
+
+add_subdirectory(lua-sqlite3)
+set_target_properties(lua_sqlite3 PROPERTIES FOLDER lualib)
+
 # ==================== xmath ====================
 
 add_library(xmath STATIC)
