@@ -1,4 +1,4 @@
-《使用说明》
+﻿《使用说明》
 
 注意：如果不知道这是什么，请下载 LuaSTG After Ex Plus！
 提示：使用 LuaSTG After Ex Plus 开发框架和 LuaSTG Editor Sharp 编辑器制作东方风弹幕作品。
