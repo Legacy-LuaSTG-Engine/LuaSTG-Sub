@@ -204,14 +204,10 @@ if (LUASTG_LINK_LUASOCKET)
     message(STATUS "[LuaSTG] Link: luasocket")
 endif ()
 
-set(LUASTG_BUILD_OUTPUT_DIR ${CMAKE_BINARY_DIR}/bin)
 add_custom_command(TARGET LuaSTG POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${LUASTG_BUILD_OUTPUT_DIR}
-
-    COMMAND ${CMAKE_COMMAND} -E rm -f ${LUASTG_BUILD_OUTPUT_DIR}/$<TARGET_FILE_NAME:LuaSTG>
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:LuaSTG>         ${LUASTG_BUILD_OUTPUT_DIR}
-
-    #COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:LuaSTG> $<TARGET_FILE_DIR:LuaSTG>
-    #COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:LuaSTG> ${LUASTG_BUILD_OUTPUT_DIR}
-    COMMAND_EXPAND_LISTS
+    COMMAND ${CMAKE_COMMAND} -E make_directory                                                ${CMAKE_BINARY_DIR}/bin
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:LuaSTG>                       ${CMAKE_BINARY_DIR}/bin/$<TARGET_FILE_NAME:LuaSTG>
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:Microsoft.XAudio2.Redist>     ${CMAKE_BINARY_DIR}/bin/$<TARGET_FILE_NAME:Microsoft.XAudio2.Redist>
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:Microsoft.D3DCompiler.Redist> ${CMAKE_BINARY_DIR}/bin/$<TARGET_FILE_NAME:Microsoft.D3DCompiler.Redist>
+    VERBATIM
 )
