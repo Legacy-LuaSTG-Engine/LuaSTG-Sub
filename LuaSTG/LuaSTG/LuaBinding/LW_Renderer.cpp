@@ -1,4 +1,4 @@
-﻿#include "LuaBinding/LuaWrapper.hpp"
+#include "LuaBinding/LuaWrapper.hpp"
 #include "LuaBinding/lua_utility.hpp"
 #include "LuaBinding/PostEffectShader.hpp"
 #include "AppFrame.h"
@@ -216,6 +216,15 @@ static int lib_clearRenderTarget(lua_State* L)noexcept
     else
     {
         color = *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(L, 1);
+    }
+
+    if (!LAPP.GetRenderTargetManager()->IsRenderTargetStackEmpty())
+    {
+        if (color.a != UINT8_MAX) {
+            color.r = (color.a * color.r) >> 8;
+            color.g = (color.a * color.g) >> 8;
+            color.b = (color.a * color.b) >> 8;
+        }
     }
     LR2D()->clearRenderTarget(color);
     return 0;
