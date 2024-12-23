@@ -1,4 +1,4 @@
-﻿#include "AppFrame.h"
+#include "AppFrame.h"
 
 namespace LuaSTGPlus
 {
@@ -71,6 +71,10 @@ namespace LuaSTGPlus
         }
 
         return true;
+    }
+    bool AppFrame::IsRenderTargetStackEmpty()
+    {
+        return m_stRenderTargetStack.empty();
     }
     bool AppFrame::CheckRenderTargetInUse(IResourceTexture* rt)
     {
