@@ -48,6 +48,17 @@ namespace LuaSTG::Sub::LuaBinding {
 
 		// instance methods
 
+		static int setWindowed(lua_State* L) {
+			auto self = as(L, 1);
+			lua::stack_t S(L);
+			auto const width = S.get_value<uint32_t>(2);
+			auto const height = S.get_value<uint32_t>(3);
+			auto const size = Core::Vector2U(width, height);
+			auto const result = self->data->setWindowMode(size);
+			S.push_value(result);
+			return 1;
+		}
+
 		static int getSize(lua_State* L) {
 			auto self = as(L, 1);
 			auto const size = self->data->getCanvasSize();
@@ -61,7 +72,7 @@ namespace LuaSTG::Sub::LuaBinding {
 			auto const width = S.get_value<uint32_t>(2);
 			auto const height = S.get_value<uint32_t>(3);
 			auto const size = Core::Vector2U(width, height);
-			auto const result = self->data->setWindowMode(size);
+			auto const result = self->data->setCanvasSize(size);
 			S.push_value(result);
 			return 1;
 		}
@@ -142,6 +153,7 @@ namespace LuaSTG::Sub::LuaBinding {
 		// method
 
 		auto const method_table = S.push_module(class_name);
+		S.set_map_value(method_table, "setWindowed", &SwapChainBinding::setWindowed);
 		S.set_map_value(method_table, "getSize", &SwapChainBinding::getSize);
 		S.set_map_value(method_table, "setSize", &SwapChainBinding::setSize);
 		S.set_map_value(method_table, "getVSyncPreference", &SwapChainBinding::getVSyncPreference);
