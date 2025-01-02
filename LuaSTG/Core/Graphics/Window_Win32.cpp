@@ -1260,6 +1260,7 @@ namespace Core::Graphics
 	Window_Win32::Window_Win32()
 	{
 		enable_track_window_focus = core::ConfigurationLoader::getInstance().getDebug().isTrackWindowFocus();
+		auto_hide_title_bar = core::ConfigurationLoader::getInstance().getWindow().isAllowTitleBarAutoHide();
 		win32_window_dpi = win32::getUserDefaultScreenDpi();
 		win32_window_text_w.fill(L'\0');
 		if (!createWindowClass())

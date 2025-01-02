@@ -381,6 +381,11 @@ namespace core {
 					assert_type_is_boolean(allow_window_corner, "/window/allow_window_corner"sv);
 					loader.window.setAllowWindowCorner(allow_window_corner.get<bool>());
 				}
+				if (window.contains("allow_title_bar_auto_hide"sv)) {
+					auto const& allow_title_bar_auto_hide = window.at("allow_title_bar_auto_hide"sv);
+					assert_type_is_boolean(allow_title_bar_auto_hide, "/window/allow_title_bar_auto_hide"sv);
+					loader.window.setAllowTitleBarAutoHide(allow_title_bar_auto_hide.get<bool>());
+				}
 			}
 
 			if (root.contains("graphics_system"sv)) {

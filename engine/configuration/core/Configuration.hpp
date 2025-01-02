@@ -131,10 +131,12 @@ namespace core {
 			GetterSetterString(Window, title, Title);
 			GetterSetterBoolean(Window, cursor_visible, CursorVisible);
 			GetterSetterBoolean(Window, allow_window_corner, AllowWindowCorner);
+			GetterSetterBoolean(Window, allow_title_bar_auto_hide, AllowTitleBarAutoHide);
 		private:
 			std::string title;
 			bool cursor_visible{ true };
 			bool allow_window_corner{ true };
+			bool allow_title_bar_auto_hide{ false };
 		};
 		class GraphicsSystem {
 		public:
