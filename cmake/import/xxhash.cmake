@@ -2,7 +2,7 @@
 
 CPMAddPackage(
     NAME xxhash
-    VERSION 0.8.2
+    VERSION 0.8.3
     GITHUB_REPOSITORY Cyan4973/xxHash
     DOWNLOAD_ONLY YES
 )

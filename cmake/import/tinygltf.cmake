@@ -2,7 +2,7 @@
 
 CPMAddPackage(
     NAME tinygltf
-    VERSION 2.9.3
+    VERSION 2.9.4
     GITHUB_REPOSITORY syoyo/tinygltf
     #OPTIONS
     #"TINYGLTF_BUILD_LOADER_EXAMPLE OFF"
