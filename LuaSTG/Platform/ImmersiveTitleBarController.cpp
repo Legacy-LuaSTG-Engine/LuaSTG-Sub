@@ -735,6 +735,8 @@ namespace platform::windows {
 				return false;
 			}
 			dark_mode = Platform::WindowTheme::ShouldApplicationEnableDarkMode();
+			window_minimized = IsMinimized(window) != FALSE;
+			window_maximized = IsMaximized(window) != FALSE;
 			return true;
 		}
 		void destroyResources() {
