@@ -437,14 +437,15 @@ namespace platform::windows {
 				switch (arg1) {
 				case SIZE_MINIMIZED:
 					window_minimized = true;
+					window_maximized = false;
 					break;
 				case SIZE_MAXIMIZED:
+					window_minimized = false;
 					window_maximized = true;
 					break;
 				case SIZE_MAXSHOW:
-					break;
 				case SIZE_MAXHIDE:
-					break;
+					break; // ignore
 				default:
 				case SIZE_RESTORED:
 					window_minimized = false;
