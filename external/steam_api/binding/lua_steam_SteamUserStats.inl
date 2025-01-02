@@ -2,12 +2,6 @@
 
 struct xSteamUserStats
 {
-    static int RequestCurrentStats(lua_State* L) // callback
-    {
-        const bool ret = SteamUserStats()->RequestCurrentStats();
-        lua_pushboolean(L, ret);
-        return 1;
-    };
     static int ResetAllStats      (lua_State* L)  // callback
     {
         const bool bAchievementsToo = lua_toboolean(L, 1);
@@ -253,7 +247,6 @@ struct xSteamUserStats
     static int xRegister(lua_State* L)
     {
         static const luaL_Reg lib[] = {
-            xfbinding(RequestCurrentStats),
             xfbinding(ResetAllStats),
             xfbinding(StoreStats),
             
