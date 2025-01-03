@@ -1,8 +1,9 @@
-﻿#pragma once
+#pragma once
 #include <cstdint>
 #include <cmath>
 #include <limits>
 #include <string_view>
+#include <string>
 
 namespace Core
 {
@@ -219,6 +220,7 @@ namespace Core
 
 	// 字符串
 
+	using String = std::string;
 	using StringView = std::string_view;
 
 	// 引用计数

@@ -104,6 +104,9 @@ namespace lua
 		inline void push_value(std::string_view value) { lua_pushlstring(L, value.data(), value.size()); }
 
 		template<>
+		inline void push_value(std::string value) { lua_pushlstring(L, value.data(), value.size()); }
+
+		template<>
 		inline void push_value(int32_t value) { lua_pushinteger(L, value); }
 
 		template<>

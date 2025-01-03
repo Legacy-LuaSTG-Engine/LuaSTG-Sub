@@ -13,6 +13,7 @@ namespace Core::Graphics
 		HMONITOR win32_monitor{};
 	public:
 		void* getNativeHandle();
+		String getFriendlyName();
 		Vector2U getSize();
 		Vector2I getPosition();
 		RectI getRect();

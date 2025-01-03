@@ -113,6 +113,7 @@ function M:onRender()
     local list = Display.getAll()
     for i, display in ipairs(list) do
         info("display %d:", i)
+        info("    friendly name: %s", display:getFriendlyName())
         local sz1 = display:getSize()
         local pos1 = display:getPosition()
         local rc1 = display:getRect()
