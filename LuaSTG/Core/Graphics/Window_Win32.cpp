@@ -11,11 +11,11 @@
 #include <WinUser.h>
 #include <WinNls.h>
 
-static constexpr int const LUASTG_WM_UPDAE_TITLE = WM_APP + __LINE__;
-static constexpr int const LUASTG_WM_RECREATE = WM_APP + __LINE__;
-static constexpr int const LUASTG_WM_SETICON = WM_APP + __LINE__;
-static constexpr int const LUASTG_WM_SET_WINDOW_MODE = WM_APP + __LINE__;
-static constexpr int const LUASTG_WM_SET_FULLSCREEN_MODE = WM_APP + __LINE__;
+static constexpr int LUASTG_WM_UPDAE_TITLE = WM_APP + __LINE__;
+static constexpr int LUASTG_WM_RECREATE = WM_APP + __LINE__;
+static constexpr int LUASTG_WM_SETICON = WM_APP + __LINE__;
+static constexpr int LUASTG_WM_SET_WINDOW_MODE = WM_APP + __LINE__;
+static constexpr int LUASTG_WM_SET_FULLSCREEN_MODE = WM_APP + __LINE__;
 
 namespace {
 	template<typename T = MONITORINFO>
