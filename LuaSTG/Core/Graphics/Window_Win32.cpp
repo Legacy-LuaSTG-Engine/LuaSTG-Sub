@@ -290,7 +290,7 @@ namespace Core::Graphics
 		else {
 			m_text_input_buffer.append(buf);
 		}
-		m_text_input_cursor += str.size();
+		m_text_input_cursor += static_cast<uint32_t>(str.size());
 		textInput_updateBuffer();
 	}
 	void       Window_Win32::textInput_backspace(uint32_t const code_point_count) {
