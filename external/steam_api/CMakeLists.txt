@@ -56,6 +56,7 @@ if((LINK_STEAM_API OR LUASTG_LINK_STEAM_API) AND (TARGET steam_api)) # LINK_STEA
         binding/lua_steam_SteamAPI.inl
         binding/lua_steam_SteamInput.inl
         binding/lua_steam_SteamUserStats.inl
+        binding/lua_steam_SteamUtils.inl
         binding/lua_steam.cpp
     )
     target_link_libraries(lua_steam_api PUBLIC
