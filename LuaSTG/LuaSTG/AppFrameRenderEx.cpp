@@ -1,4 +1,4 @@
-#include "AppFrame.h"
+﻿#include "AppFrame.h"
 
 namespace LuaSTGPlus
 {
