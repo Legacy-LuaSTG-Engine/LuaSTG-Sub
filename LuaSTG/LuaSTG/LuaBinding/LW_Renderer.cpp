@@ -1,4 +1,4 @@
-#include "LuaBinding/LuaWrapper.hpp"
+﻿#include "LuaBinding/LuaWrapper.hpp"
 #include "LuaBinding/lua_utility.hpp"
 #include "LuaBinding/PostEffectShader.hpp"
 #include "AppFrame.h"
