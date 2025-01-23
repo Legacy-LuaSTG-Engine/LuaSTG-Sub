@@ -86,8 +86,6 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/lua_random.cpp
     LuaSTG/LuaBinding/lua_xinput.hpp
     LuaSTG/LuaBinding/lua_xinput.cpp
-    LuaSTG/LuaBinding/lua_luastg_hash.cpp
-    LuaSTG/LuaBinding/lua_luastg_hash.hpp
     LuaSTG/LuaBinding/LuaAppFrame.hpp
     LuaSTG/LuaBinding/LuaCustomLoader.cpp
     LuaSTG/LuaBinding/LuaCustomLoader.hpp
@@ -125,6 +123,12 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/SwapChain.cpp
     LuaSTG/LuaBinding/HttpClient.hpp
     LuaSTG/LuaBinding/HttpClient.cpp
+    LuaSTG/LuaBinding/generated/BlendModeX.cpp
+    LuaSTG/LuaBinding/generated/BlendModeX.hpp
+    LuaSTG/LuaBinding/generated/ColorMember.cpp
+    LuaSTG/LuaBinding/generated/ColorMember.hpp
+    LuaSTG/LuaBinding/generated/GameObjectMember.cpp
+    LuaSTG/LuaBinding/generated/GameObjectMember.hpp
 
     LuaSTG/SteamAPI/SteamAPI.cpp
     LuaSTG/SteamAPI/SteamAPI.hpp

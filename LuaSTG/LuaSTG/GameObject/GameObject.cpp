@@ -1,7 +1,7 @@
 #include "GameObject/GameObject.hpp"
 #include "GameResource/ResourceSprite.hpp"
 #include "GameResource/ResourceAnimation.hpp"
-#include "LuaBinding/lua_luastg_hash.hpp"
+#include "LuaBinding/generated/GameObjectMember.hpp"
 #include "lua/plus.hpp"
 #include "LuaBinding/LuaWrapperMisc.hpp"
 #include "LuaBinding/LuaWrapper.hpp"
