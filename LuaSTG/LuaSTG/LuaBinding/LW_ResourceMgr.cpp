@@ -1,5 +1,5 @@
 #include "LuaBinding/LuaWrapper.hpp"
-#include "LuaBinding/lua_utility.hpp"
+#include "lua/plus.hpp"
 #include "Core/FileManager.hpp"
 #include "AppFrame.h"
 
@@ -238,6 +238,8 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 		}
 		static int LoadTrueTypeFont(lua_State* L) noexcept
 		{
+			lua::stack_t S(L);
+
 			// 先检查有没有资源池
 			ResourcePool* pActivedPool = LRES.GetActivedPool();
 			if (!pActivedPool)
@@ -246,7 +248,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			}
 			
 			// 第一个参数，资源名
-			std::string_view const name = luaL_check_string_view(L, 1);
+			std::string_view const name = S.get_value<std::string_view>(1);
 			
 			// 第二个参数，字体组
 			if (!lua_istable(L, 2))
@@ -274,7 +276,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 				lua_getfield(L, -1, "source"); // name param fonts font ?
 				if (lua_type(L, -1) == LUA_TSTRING) // name param fonts font v
 				{
-					font.source = luaL_check_string_view(L, -1);
+					font.source = S.get_value<std::string_view>(-1);
 				}
 				lua_pop(L, 1);				// name param fonts font
 
@@ -385,10 +387,11 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 		}
 		static int SetTextureSamplerState(lua_State* L)noexcept
 		{
-			std::string_view const sampler_name = luaL_check_string_view(L, 2);
+			lua::stack_t S(L);
+			std::string_view const sampler_name = S.get_value<std::string_view>(2);
 			if (sampler_name == "" || sampler_name == "point+wrap" || sampler_name == "point+clamp" || sampler_name == "linear+wrap" || sampler_name == "linear+clamp")
 			{
-				std::string_view const tex_name = luaL_check_string_view(L, 1);
+				std::string_view const tex_name = S.get_value<std::string_view>(1);
 				Core::ScopeObject<IResourceTexture> p = LRES.FindTexture(tex_name.data());
 				if (!p)
 				{

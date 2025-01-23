@@ -86,7 +86,6 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/lua_random.cpp
     LuaSTG/LuaBinding/lua_xinput.hpp
     LuaSTG/LuaBinding/lua_xinput.cpp
-    LuaSTG/LuaBinding/lua_utility.hpp
     LuaSTG/LuaBinding/lua_luastg_hash.cpp
     LuaSTG/LuaBinding/lua_luastg_hash.hpp
     LuaSTG/LuaBinding/LuaAppFrame.hpp
@@ -173,12 +172,14 @@ endif()
 target_link_libraries(LuaSTG PRIVATE
     spdlog
     utility
+    utf8
     PlatformAPI
     DirectX::ToolKitMini
     DirectX::TextureMini
     Core
     xmath
     lua51_static
+    lua_plus
     imgui
     implot
     lua_cjson

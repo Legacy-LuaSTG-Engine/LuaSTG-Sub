@@ -1,5 +1,5 @@
 #include "Display.hpp"
-#include "lua_utility.hpp"
+#include "lua/plus.hpp"
 #include "wil/resource.h"
 
 static void pushSize(lua_State* L, lua_Number const width, lua_Number const height) {

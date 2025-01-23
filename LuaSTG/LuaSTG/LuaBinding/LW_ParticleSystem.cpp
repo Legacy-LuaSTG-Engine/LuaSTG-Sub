@@ -1,5 +1,5 @@
 ﻿#include "LuaBinding/LuaWrapper.hpp"
-#include "LuaBinding/lua_utility.hpp"
+#include "lua/plus.hpp"
 
 inline void lua_push_vec2(lua_State* L, Core::Vector2F const& v)
 {
@@ -498,10 +498,11 @@ namespace LuaSTGPlus::LuaWrapper
 			}
 			static int getResource(lua_State* L)
 			{
+				lua::stack_t S(L);
 				UserData* self = (UserData*)luaL_checkudata(L, 1, ClassID.data());
 				if (self->res)
 				{
-					lua_push_string_view(L, self->res->GetResName());
+					S.push_value(self->res->GetResName());
 					return 1;
 				}
 				else

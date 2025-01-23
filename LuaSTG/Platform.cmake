@@ -61,5 +61,6 @@ target_sources(PlatformAPI PRIVATE
 target_link_libraries(PlatformAPI PRIVATE
     Microsoft.Windows.ImplementationLibrary
     utility
+    utf8
     beautiful_win32_api
 )
