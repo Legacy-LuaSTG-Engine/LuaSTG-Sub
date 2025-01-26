@@ -72,6 +72,10 @@ namespace LuaSTGPlus
 
         return true;
     }
+    bool AppFrame::IsRenderTargetStackEmpty()
+    {
+        return m_stRenderTargetStack.empty();
+    }
     bool AppFrame::CheckRenderTargetInUse(IResourceTexture* rt)
     {
         if (!rt || !rt->IsRenderTarget() || m_stRenderTargetStack.empty())
