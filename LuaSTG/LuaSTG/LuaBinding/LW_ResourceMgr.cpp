@@ -259,7 +259,7 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			std::vector<Core::Graphics::TrueTypeFontInfo> fonts(cnt);
 			for (int i = 1; i <= cnt; i += 1)
 			{
-				auto& font = fonts[i];
+				auto& font = fonts[i - 1];
 				font.source = "";
 				font.font_face = 0;
 				font.font_size = Core::Vector2F(0.0f, 0.0f);
