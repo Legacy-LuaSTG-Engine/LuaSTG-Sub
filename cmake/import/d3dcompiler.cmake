@@ -18,7 +18,7 @@ endif ()
 set(d3dcompiler47_dll "${windows_10_sdk_bin}/d3dcompiler_47.dll")
 message(STATUS "-- IMPORTED_LOCATION: ${d3dcompiler47_dll}")
 if (NOT EXISTS ${d3dcompiler47_dll})
-    message(FATAL_ERROR "d3dcompiler_47.dll (amd64) is required")
+    message(FATAL_ERROR "d3dcompiler_47.dll is required")
 endif ()
 set_target_properties(Microsoft.D3DCompiler.Redist PROPERTIES
     IMPORTED_IMPLIB d3dcompiler.lib
