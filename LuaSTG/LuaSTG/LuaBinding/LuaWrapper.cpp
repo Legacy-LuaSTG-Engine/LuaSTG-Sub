@@ -4,6 +4,7 @@
 #include "LuaBinding/Window.hpp"
 #include "LuaBinding/SwapChain.hpp"
 #include "LuaBinding/HttpClient.hpp"
+#include "LuaBinding/Texture2D.hpp"
 
 namespace LuaSTGPlus
 {
@@ -67,6 +68,7 @@ namespace LuaSTGPlus
 		LuaSTG::Sub::LuaBinding::Window_TextInputExtension::registerClass(L);
 		LuaSTG::Sub::LuaBinding::Window_Windows11Extension::registerClass(L);
 		LuaSTG::Sub::LuaBinding::SwapChain::registerClass(L);
+		LuaSTG::Sub::LuaBinding::Texture2D::registerClass(L);
 		http::Request::registerClass(L);
 		http::ResponseEntity::registerClass(L);
 	}

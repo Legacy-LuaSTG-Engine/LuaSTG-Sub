@@ -57,7 +57,7 @@ namespace lua {
 		// C -> lua
 
 		template<size_t N>
-		void push_value(char const (&str)[N]) {
+		void push_value(char const (&str)[N]) const {
 			for (size_t len = N - 1; len > 0; len -= 1) {
 				if (str[len] != '\0') {
 					lua_pushlstring(L, str, len + 1);
@@ -67,7 +67,7 @@ namespace lua {
 		}
 
 		template<typename T>
-		void push_value(T const& value) {
+		void push_value(T const& value) const {
 			if constexpr (std::is_same_v<T, std::nullopt_t>) {
 				lua_pushnil(L);
 			}
@@ -156,45 +156,45 @@ namespace lua {
 		inline stack_index_t create_map(size_t reserve = 0u) { lua_createtable(L, 0, static_cast<int>(reserve)); return index_of_top(); }
 
 		template<typename T>
-		inline void set_map_value(stack_index_t index, std::string_view key, T value) { typename T::__invalid_type__ _{}; }
+		inline void set_map_value(stack_index_t index, std::string_view key, T value) const { typename T::__invalid_type__ _{}; }
 
 		template<>
-		inline void set_map_value(stack_index_t index, std::string_view key, int32_t value) {
+		inline void set_map_value(stack_index_t index, std::string_view key, int32_t value) const {
 			push_value(key);
 			push_value(value);
 			lua_settable(L, index.value);
 		}
 
 		template<>
-		inline void set_map_value(stack_index_t index, std::string_view key, uint32_t value) {
+		inline void set_map_value(stack_index_t index, std::string_view key, uint32_t value) const {
 			push_value(key);
 			push_value(value);
 			lua_settable(L, index.value);
 		}
 
 		template<>
-		inline void set_map_value(stack_index_t index, std::string_view key, float value) {
+		inline void set_map_value(stack_index_t index, std::string_view key, float value) const {
 			push_value(key);
 			push_value(value);
 			lua_settable(L, index.value);
 		}
 
 		template<>
-		inline void set_map_value(stack_index_t index, std::string_view key, double value) {
+		inline void set_map_value(stack_index_t index, std::string_view key, double value) const {
 			push_value(key);
 			push_value(value);
 			lua_settable(L, index.value);
 		}
 
 		template<>
-		inline void set_map_value(stack_index_t index, std::string_view key, stack_index_t value) {
+		inline void set_map_value(stack_index_t index, std::string_view key, stack_index_t value) const {
 			push_value(key);
 			push_value(value);
 			lua_settable(L, index.value);
 		}
 
 		template<>
-		inline void set_map_value(stack_index_t index, std::string_view key, lua_CFunction value) {
+		inline void set_map_value(stack_index_t index, std::string_view key, lua_CFunction value) const {
 			push_value(key);
 			push_value(value);
 			lua_settable(L, index.value);
@@ -203,7 +203,7 @@ namespace lua {
 		// lua -> C
 
 		template<typename T>
-		T get_value(stack_index_t const index) {
+		[[nodiscard]] T get_value(stack_index_t const index) const {
 			if constexpr (std::is_same_v<T, bool>) {
 				return lua_toboolean(L, index.value);
 			}
@@ -238,7 +238,7 @@ namespace lua {
 		// lua -> C (with default value)
 
 		template<typename T>
-		T get_value(stack_index_t const index, T const& default_value) {
+		[[nodiscard]] T get_value(stack_index_t const index, T const& default_value) const {
 			if constexpr (std::is_same_v<T, bool>) {
 				if (has_value(index))
 					return lua_toboolean(L, index.value);
@@ -337,7 +337,10 @@ namespace lua {
 		// userdata
 
 		template<typename T>
-		T* create_userdata() { return static_cast<T*>(lua_newuserdata(L, sizeof(T))); }
+		T* create_userdata() const { return static_cast<T*>(lua_newuserdata(L, sizeof(T))); }
+
+		template<typename T>
+		T* as_userdata(stack_index_t const index) const { return static_cast<T*>(luaL_checkudata(L, index.value, T::class_name.data())); }
 
 		// type
 
