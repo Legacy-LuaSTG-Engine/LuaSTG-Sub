@@ -3,7 +3,7 @@
 CPMAddPackage(
     NAME dr_libs
     GITHUB_REPOSITORY mackron/dr_libs
-    GIT_TAG da35f9d6c7374a95353fd1df1d394d44ab66cf01
+    GIT_TAG 660795b2834aebb2217c9849d668b6e4bd4ef810
     DOWNLOAD_ONLY YES
 )
 
