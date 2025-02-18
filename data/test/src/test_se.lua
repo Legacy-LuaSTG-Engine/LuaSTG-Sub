@@ -8,7 +8,11 @@ lstg.FileManager.AddSearchPath("deep/")
 function M:onCreate()
     local pool = lstg.GetResourceStatus()
     lstg.SetResourceStatus("global")
-    lstg.LoadSound("se:ok00", "res/se_ok00.wav")
+    pcall(function()
+        lstg.LoadSound("se:ok00", "res/se_ok00.wav")
+    end)
+    lstg.LoadSound("se:ok00", "res/se_ok00_fixed.wav")
+    lstg.SetResourceStatus(pool)
     lstg.SetResourceStatus(pool)
 end
 
