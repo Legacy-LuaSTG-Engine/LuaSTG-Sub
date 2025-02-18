@@ -1,6 +1,3 @@
-// ReSharper disable CppClangTidyBugproneReservedIdentifier
-// ReSharper disable CppClangTidyClangDiagnosticReservedIdentifier
-
 #include "Texture2D.hpp"
 #include "lua/plus.hpp"
 #include "AppFrame.h"
@@ -10,6 +7,8 @@ namespace LuaSTG::Sub::LuaBinding {
 
 	struct Texture2DBinding : Texture2D {
 		// meta methods
+
+		// NOLINTBEGIN(*-reserved-identifier)
 
 		static int __gc(lua_State* vm) {
 			if (auto const self = as(vm, 1); self->data) {
@@ -35,6 +34,8 @@ namespace LuaSTG::Sub::LuaBinding {
 			}
 			return 1;
 		}
+
+		// NOLINTEND(*-reserved-identifier)
 
 		// method
 
