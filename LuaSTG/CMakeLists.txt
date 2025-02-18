@@ -121,6 +121,8 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/Window.cpp
     LuaSTG/LuaBinding/SwapChain.hpp
     LuaSTG/LuaBinding/SwapChain.cpp
+    LuaSTG/LuaBinding/Texture2D.hpp
+    LuaSTG/LuaBinding/Texture2D.cpp
     LuaSTG/LuaBinding/HttpClient.hpp
     LuaSTG/LuaBinding/HttpClient.cpp
     LuaSTG/LuaBinding/generated/BlendModeX.cpp
