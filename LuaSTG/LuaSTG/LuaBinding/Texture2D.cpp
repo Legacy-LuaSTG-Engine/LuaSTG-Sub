@@ -6,7 +6,7 @@
 #include "AppFrame.h"
 
 namespace LuaSTG::Sub::LuaBinding {
-	std::string_view Texture2D::class_name{ "lstg.Window" };
+	std::string_view Texture2D::class_name{ "lstg.Texture2D" };
 
 	struct Texture2DBinding : Texture2D {
 		// meta methods
