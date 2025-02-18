@@ -2,9 +2,9 @@
 
 CPMAddPackage(
     NAME zlib_ng # 必须用这个名称，用来适配一些SB库
-    VERSION 2.2.3
+    VERSION 2.2.4
     GITHUB_REPOSITORY zlib-ng/zlib-ng
-    GIT_TAG 2.2.3
+    GIT_TAG 2.2.4
     DOWNLOAD_ONLY YES
 )
 
@@ -39,7 +39,6 @@ if(zlib_ng_ADDED AND minizip_ng_ADDED)
         -DZLIB_ENABLE_TESTS=OFF
         -DZLIBNG_ENABLE_TESTS=OFF
         -DWITH_GTEST=OFF
-        -DCMAKE_POLICY_DEFAULT_CMP0091=NEW # CMAKE_MSVC_RUNTIME_LIBRARY
         -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>
     )
     add_custom_command(
