@@ -2,7 +2,7 @@
 
 CPMAddPackage(
     NAME pugixml
-    VERSION 1.14
+    VERSION 1.15
     GITHUB_REPOSITORY zeux/pugixml
     DOWNLOAD_ONLY YES
 )
