@@ -3,7 +3,7 @@
 
 namespace LuaSTGPlus::LuaWrapper
 {
-	std::string_view const MeshBinding::ClassID = "lstg.Mesh";
+	std::string_view const MeshBinding::ClassID = "lstg.experiment.Mesh";
 
 	Mesh* MeshBinding::Cast(lua_State* L, int idx)
 	{
@@ -146,7 +146,7 @@ namespace LuaSTGPlus::LuaWrapper
 				if (self->resize(vertex_count, index_count))
 					return 1;
 				else
-					return luaL_error(L, "create lstg.Mesh object failed");
+					return luaL_error(L, "create lstg.experiment.Mesh object failed");
 			}
 		};
 
