@@ -191,8 +191,8 @@ namespace Core::Graphics
 			return "Immediate Mode Rendering (IMR)";
 	}
 
-	Device_D3D11::Device_D3D11(std::string_view const& prefered_gpu)
-		: preferred_adapter_name(prefered_gpu)
+	Device_D3D11::Device_D3D11(std::string_view const& preferred_gpu)
+		: preferred_adapter_name(preferred_gpu)
 	{
 		// 创建图形组件
 
@@ -1285,11 +1285,11 @@ namespace Core::Graphics
 		}
 	}
 
-	bool Device_D3D11::create(StringView prefered_gpu, Device_D3D11** p_device)
+	bool Device_D3D11::create(StringView preferred_gpu, Device_D3D11** p_device)
 	{
 		try
 		{
-			*p_device = new Device_D3D11(prefered_gpu);
+			*p_device = new Device_D3D11(preferred_gpu);
 			return true;
 		}
 		catch (...)
@@ -1299,11 +1299,11 @@ namespace Core::Graphics
 		}
 	}
 
-	bool IDevice::create(StringView prefered_gpu, IDevice** p_device)
+	bool IDevice::create(StringView preferred_gpu, IDevice** p_device)
 	{
 		try
 		{
-			*p_device = new Device_D3D11(prefered_gpu);
+			*p_device = new Device_D3D11(preferred_gpu);
 			return true;
 		}
 		catch (...)

@@ -136,7 +136,7 @@ namespace Core::Graphics
 		virtual DeviceMemoryUsageStatistics getMemoryUsageStatistics() = 0;
 
 		virtual bool recreate() = 0;
-		virtual void setPreferenceGpu(StringView prefered_gpu) = 0;
+		virtual void setPreferenceGpu(StringView preferred_gpu) = 0;
 		virtual uint32_t getGpuCount() = 0;
 		virtual StringView getGpuName(uint32_t index) = 0;
 		virtual StringView getCurrentGpuName() const noexcept = 0;
@@ -153,6 +153,6 @@ namespace Core::Graphics
 
 		virtual bool createSamplerState(SamplerState const& def, ISamplerState** pp_sampler) = 0;
 
-		static bool create(StringView prefered_gpu, IDevice** p_device);
+		static bool create(StringView preferred_gpu, IDevice** p_device);
 	};
 }

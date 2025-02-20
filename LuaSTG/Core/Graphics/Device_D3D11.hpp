@@ -122,7 +122,7 @@ namespace Core::Graphics
 		DeviceMemoryUsageStatistics getMemoryUsageStatistics();
 
 		bool recreate();
-		void setPreferenceGpu(StringView prefered_gpu) { preferred_adapter_name = prefered_gpu; }
+		void setPreferenceGpu(StringView preferred_gpu) { preferred_adapter_name = preferred_gpu; }
 		uint32_t getGpuCount() { return static_cast<uint32_t>(dxgi_adapter_name_list.size()); }
 		StringView getGpuName(uint32_t index) { return dxgi_adapter_name_list[index]; }
 		StringView getCurrentGpuName() const noexcept { return dxgi_adapter_name; }
@@ -140,11 +140,11 @@ namespace Core::Graphics
 		bool createSamplerState(SamplerState const& def, ISamplerState** pp_sampler);
 
 	public:
-		Device_D3D11(std::string_view const& prefered_gpu = "");
+		Device_D3D11(std::string_view const& preferred_gpu = "");
 		~Device_D3D11();
 
 	public:
-		static bool create(StringView prefered_gpu, Device_D3D11** p_device);
+		static bool create(StringView preferred_gpu, Device_D3D11** p_device);
 	};
 
 	class SamplerState_D3D11
