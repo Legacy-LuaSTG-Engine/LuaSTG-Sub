@@ -1216,30 +1216,30 @@ namespace Core::Graphics
 		return doDestroyAndCreate();
 	}
 
-	bool Device_D3D11::createTextureFromFile(StringView path, bool mipmap, ITexture2D** pp_texutre)
+	bool Device_D3D11::createTextureFromFile(StringView path, bool mipmap, ITexture2D** pp_texture)
 	{
 		try
 		{
-			*pp_texutre = new Texture2D_D3D11(this, path, mipmap);
+			*pp_texture = new Texture2D_D3D11(this, path, mipmap);
 			return true;
 		}
 		catch (...)
 		{
-			*pp_texutre = nullptr;
+			*pp_texture = nullptr;
 			return false;
 		}
 	}
-	//bool createTextureFromMemory(void const* data, size_t size, bool mipmap, ITexture2D** pp_texutre);
-	bool Device_D3D11::createTexture(Vector2U size, ITexture2D** pp_texutre)
+	//bool createTextureFromMemory(void const* data, size_t size, bool mipmap, ITexture2D** pp_texture);
+	bool Device_D3D11::createTexture(Vector2U size, ITexture2D** pp_texture)
 	{
 		try
 		{
-			*pp_texutre = new Texture2D_D3D11(this, size, false);
+			*pp_texture = new Texture2D_D3D11(this, size, false);
 			return true;
 		}
 		catch (...)
 		{
-			*pp_texutre = nullptr;
+			*pp_texture = nullptr;
 			return false;
 		}
 	}

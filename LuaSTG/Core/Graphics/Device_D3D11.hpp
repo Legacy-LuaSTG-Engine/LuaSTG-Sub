@@ -130,9 +130,9 @@ namespace Core::Graphics
 		void* getNativeHandle() { return d3d11_device.Get(); }
 		void* getNativeRendererHandle() { return d2d1_devctx.Get(); }
 
-		bool createTextureFromFile(StringView path, bool mipmap, ITexture2D** pp_texutre);
-		//bool createTextureFromMemory(void const* data, size_t size, bool mipmap, ITexture2D** pp_texutre);
-		bool createTexture(Vector2U size, ITexture2D** pp_texutre);
+		bool createTextureFromFile(StringView path, bool mipmap, ITexture2D** pp_texture);
+		//bool createTextureFromMemory(void const* data, size_t size, bool mipmap, ITexture2D** pp_texture);
+		bool createTexture(Vector2U size, ITexture2D** pp_texture);
 
 		bool createRenderTarget(Vector2U size, IRenderTarget** pp_rt);
 		bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** pp_ds);
