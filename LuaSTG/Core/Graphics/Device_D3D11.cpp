@@ -1865,3 +1865,45 @@ namespace Core::Graphics
 		m_device->removeEventListener(this);
 	}
 }
+
+// Buffer
+namespace Core::Graphics::Direct3D11 {
+	void Buffer::onDeviceCreate() {
+		
+	}
+	void Buffer::onDeviceDestroy() {
+		m_buffer.reset();
+	}
+
+	bool Buffer::map(size_t const size_in_bytes, bool const discard, void** const out_pointer) {
+		HRNew;
+		auto const ctx = m_device->GetD3D11DeviceContext();
+		assert(ctx);
+		assert(m_buffer);
+		D3D11_MAPPED_SUBRESOURCE mapped{};
+		HRGet = ctx->Map(m_buffer.get(), 0, discard ? D3D11_MAP_WRITE_DISCARD : D3D11_MAP_WRITE_NO_OVERWRITE, 0, &mapped);
+		HRCheckCallReturnBool("ID3D11DeviceContext::Map");
+		*out_pointer = mapped.pData;
+		return true;
+	}
+	bool Buffer::unmap() {
+		auto const ctx = m_device->GetD3D11DeviceContext();
+		assert(ctx);
+		assert(m_buffer);
+		ctx->Unmap(m_buffer.get(), 0);
+		return true;
+	}
+
+	Buffer::Buffer() = default;
+	Buffer::~Buffer() = default;
+
+	bool Buffer::createResources() {
+		HRNew;
+		auto const device = m_device->GetD3D11Device();
+		D3D11_BUFFER_DESC info{};
+		info.ByteWidth = m_size_in_bytes;
+		info.Usage = D3D11_USAGE_DYNAMIC;
+		info.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		return true;
+	}
+}

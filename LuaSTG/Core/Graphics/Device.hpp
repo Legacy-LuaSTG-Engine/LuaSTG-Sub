@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Core/Type.hpp"
 
 namespace Core::Graphics
@@ -128,6 +128,11 @@ namespace Core::Graphics
 		virtual Vector2U getSize() = 0;
 	};
 
+	struct IBuffer : IObject {
+		virtual bool map(size_t size_in_bytes, bool discard, void** out_pointer) = 0;
+		virtual bool unmap() = 0;
+	};
+
 	struct IDevice : public IObject
 	{
 		virtual void addEventListener(IDeviceEventListener* e) = 0;
@@ -143,6 +148,9 @@ namespace Core::Graphics
 
 		virtual void* getNativeHandle() = 0;
 		virtual void* getNativeRendererHandle() = 0;
+
+		virtual bool createVertexBuffer(size_t size_in_bytes, IBuffer** output) = 0;
+		virtual bool createIndexBuffer(size_t size_in_bytes, IBuffer** output) = 0;
 
 		virtual bool createTextureFromFile(StringView path, bool mipmap, ITexture2D** pp_texture) = 0;
 		//virtual bool createTextureFromMemory(void const* data, size_t size, bool mipmap, ITexture2D** pp_texture) = 0;

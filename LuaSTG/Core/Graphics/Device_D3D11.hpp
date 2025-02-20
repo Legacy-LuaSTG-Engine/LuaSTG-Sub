@@ -282,3 +282,34 @@ namespace Core::Graphics
 		~DepthStencilBuffer_D3D11();
 	};
 }
+
+namespace Core::Graphics::Direct3D11 {
+	class Buffer
+		: public Object<IBuffer>
+		, public IDeviceEventListener
+	{
+	public:
+		// IDeviceEventListener
+
+		void onDeviceCreate() override;
+		void onDeviceDestroy() override;
+
+		// IBuffer
+
+		bool map(size_t size_in_bytes, bool discard, void** out_pointer) override;
+		bool unmap() override;
+
+		// Buffer
+
+		Buffer();
+	 	virtual ~Buffer();
+
+		bool createResources();
+
+	private:
+		ScopeObject<Device_D3D11> m_device;
+		wil::com_ptr_nothrow<ID3D11Buffer> m_buffer;
+		uint32_t m_size_in_bytes{};
+		uint32_t m_type{}; // 0-unknown, 1-
+	};
+}
