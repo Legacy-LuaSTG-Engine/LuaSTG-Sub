@@ -13,11 +13,13 @@ namespace Core::Graphics {
 
 		// false: uint32
 		// true : uint16
-		bool vertex_index_compression{};
+		bool vertex_index_compression{ true };
 
 		// false: float4 R32G32B32A32 FLOAT
 		// true : uint32 B8G8R8A8 U NORM
-		bool vertex_color_compression{};
+		bool vertex_color_compression{ true };
+
+		PrimitiveTopology primitive_topology{ PrimitiveTopology::triangle_list };
 	};
 
 	struct IMesh : IObject {
