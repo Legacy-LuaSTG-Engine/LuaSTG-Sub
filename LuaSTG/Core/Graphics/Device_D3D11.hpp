@@ -357,7 +357,7 @@ namespace Core::Graphics::Direct3D11 {
 		Buffer(Buffer&&) = delete;
 		Buffer& operator=(Buffer const&) = delete;
 		Buffer& operator=(Buffer&&) = delete;
-	 	virtual ~Buffer();
+	 	~Buffer();
 
 		bool initialize(Device_D3D11* device, uint8_t type, uint32_t size_in_bytes);
 		bool createResources();
