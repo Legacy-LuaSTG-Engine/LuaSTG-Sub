@@ -122,10 +122,10 @@ namespace Core::Graphics
 
 	struct IDepthStencilBuffer : public IObject
 	{
-		virtual void* getNativeHandle() = 0;
+		virtual void* getNativeHandle() const noexcept = 0;
 
 		virtual bool setSize(Vector2U size) = 0;
-		virtual Vector2U getSize() = 0;
+		virtual Vector2U getSize() const noexcept = 0;
 	};
 
 	struct IBuffer : IObject {

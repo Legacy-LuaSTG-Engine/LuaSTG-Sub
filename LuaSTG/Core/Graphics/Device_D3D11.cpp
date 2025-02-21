@@ -1257,19 +1257,7 @@ namespace Core::Graphics
 			return false;
 		}
 	}
-	bool Device_D3D11::createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** pp_ds)
-	{
-		try
-		{
-			*pp_ds = new DepthStencilBuffer_D3D11(this, size);
-			return true;
-		}
-		catch (...)
-		{
-			*pp_ds = nullptr;
-			return false;
-		}
-	}
+	
 
 	bool Device_D3D11::createSamplerState(SamplerState const& def, ISamplerState** pp_sampler)
 	{
@@ -1786,29 +1774,45 @@ namespace Core::Graphics
 	{
 		m_device->removeEventListener(this);
 	}
+}
 
-	// DepthStencil
+// DepthStencilBuffer
+namespace Core::Graphics::Direct3D11 {
+	void DepthStencilBuffer::onDeviceCreate() {
+		if (m_initialized) {
+			createResource();
+		}
+	}
+	void DepthStencilBuffer::onDeviceDestroy() {
+		m_texture.Reset();
+		m_view.Reset();
+	}
 
-	bool DepthStencilBuffer_D3D11::setSize(Vector2U size)
-	{
-		d3d11_texture2d.Reset();
-		d3d11_dsv.Reset();
+	bool DepthStencilBuffer::setSize(Vector2U const size) {
+		m_texture.Reset();
+		m_view.Reset();
 		m_size = size;
 		return createResource();
 	}
 
-	void DepthStencilBuffer_D3D11::onDeviceCreate()
-	{
-		createResource();
-	}
-	void DepthStencilBuffer_D3D11::onDeviceDestroy()
-	{
-		d3d11_texture2d.Reset();
-		d3d11_dsv.Reset();
+	DepthStencilBuffer::DepthStencilBuffer() = default;
+	DepthStencilBuffer::~DepthStencilBuffer() {
+		m_device->removeEventListener(this);
 	}
 
-	bool DepthStencilBuffer_D3D11::createResource()
-	{
+	bool DepthStencilBuffer::initialize(Device_D3D11* const device, Vector2U const size) {
+		assert(device);
+		assert(size.x > 0 && size.y > 0);
+		m_device = device;
+		m_size = size;
+		if (!createResource()) {
+			return false;
+		}
+		m_initialized = true;
+		m_device->addEventListener(this);
+		return true;
+	}
+	bool DepthStencilBuffer::createResource() {
 		HRESULT hr = S_OK;
 
 		auto* d3d11_device = m_device->GetD3D11Device();
@@ -1828,41 +1832,38 @@ namespace Core::Graphics
 			.CPUAccessFlags = 0,
 			.MiscFlags = 0,
 		};
-		hr = gHR = d3d11_device->CreateTexture2D(&tex2ddef, NULL, &d3d11_texture2d);
-		if (FAILED(hr))
-		{
+		hr = gHR = d3d11_device->CreateTexture2D(&tex2ddef, nullptr, &m_texture);
+		if (FAILED(hr)) {
 			i18n_core_system_call_report_error("ID3D11Device::CreateTexture2D");
 			return false;
 		}
-		M_D3D_SET_DEBUG_NAME(d3d11_texture2d.Get(), "DepthStencilBuffer_D3D11::d3d11_texture2d");
+		M_D3D_SET_DEBUG_NAME(m_texture.Get(), "DepthStencilBuffer_D3D11::d3d11_texture2d");
 
 		D3D11_DEPTH_STENCIL_VIEW_DESC dsvdef = {
 			.Format = tex2ddef.Format,
 			.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D,
 			.Texture2D = D3D11_TEX2D_DSV{.MipSlice = 0,},
 		};
-		hr = gHR = d3d11_device->CreateDepthStencilView(d3d11_texture2d.Get(), &dsvdef, &d3d11_dsv);
-		if (FAILED(hr))
-		{
+		hr = gHR = d3d11_device->CreateDepthStencilView(m_texture.Get(), &dsvdef, &m_view);
+		if (FAILED(hr)) {
 			i18n_core_system_call_report_error("ID3D11Device::CreateDepthStencilView");
 			return false;
 		}
-		M_D3D_SET_DEBUG_NAME(d3d11_dsv.Get(), "DepthStencilBuffer_D3D11::d3d11_dsv");
+		M_D3D_SET_DEBUG_NAME(m_view.Get(), "DepthStencilBuffer_D3D11::d3d11_dsv");
 
 		return true;
 	}
-
-	DepthStencilBuffer_D3D11::DepthStencilBuffer_D3D11(Device_D3D11* device, Vector2U size)
-		: m_device(device)
-		, m_size(size)
-	{
-		if (!createResource())
-			throw std::runtime_error("DepthStencilBuffer::DepthStencilBuffer");
-		m_device->addEventListener(this);
-	}
-	DepthStencilBuffer_D3D11::~DepthStencilBuffer_D3D11()
-	{
-		m_device->removeEventListener(this);
+}
+namespace Core::Graphics {
+	bool Device_D3D11::createDepthStencilBuffer(Vector2U const size, IDepthStencilBuffer** const pp_ds) {
+		*pp_ds = nullptr;
+		ScopeObject<Direct3D11::DepthStencilBuffer> buffer;
+		buffer.attach(new Direct3D11::DepthStencilBuffer);
+		if (!buffer->initialize(this, size)) {
+			return false;
+		}
+		*pp_ds = buffer.detach();
+		return true;
 	}
 }
 
@@ -1934,6 +1935,7 @@ namespace Core::Graphics::Direct3D11 {
 }
 namespace Core::Graphics {
 	bool Device_D3D11::createVertexBuffer(uint32_t const size_in_bytes, IBuffer** const output) {
+		*output = nullptr;
 		ScopeObject<Direct3D11::Buffer> buffer;
 		buffer.attach(new Direct3D11::Buffer);
 		if (!buffer->initialize(this, 1, size_in_bytes)) {
@@ -1943,6 +1945,7 @@ namespace Core::Graphics {
 		return true;
 	}
 	bool Device_D3D11::createIndexBuffer(uint32_t const size_in_bytes, IBuffer** const output) {
+		*output = nullptr;
 		ScopeObject<Direct3D11::Buffer> buffer;
 		buffer.attach(new Direct3D11::Buffer);
 		if (!buffer->initialize(this, 2, size_in_bytes)) {

@@ -253,41 +253,53 @@ namespace Core::Graphics
 		RenderTarget_D3D11(Device_D3D11* device, Vector2U size);
 		~RenderTarget_D3D11();
 	};
+}
 
-	class DepthStencilBuffer_D3D11
+// DepthStencilBuffer
+namespace Core::Graphics::Direct3D11 {
+	class DepthStencilBuffer final
 		: public Object<IDepthStencilBuffer>
 		, public IDeviceEventListener
 	{
-	private:
-		ScopeObject<Device_D3D11> m_device;
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> d3d11_texture2d;
-		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> d3d11_dsv;
-		Vector2U m_size{};
-
 	public:
-		void onDeviceCreate();
-		void onDeviceDestroy();
+		// IDeviceEventListener
 
+		void onDeviceCreate() override;
+		void onDeviceDestroy() override;
+
+		// IDepthStencilBuffer
+
+		[[nodiscard]] void* getNativeHandle() const noexcept override { return m_view.Get(); }
+		bool setSize(Vector2U size) override;
+		[[nodiscard]] Vector2U getSize() const noexcept override { return m_size; }
+
+		// DepthStencilBuffer
+
+		DepthStencilBuffer();
+		DepthStencilBuffer(DepthStencilBuffer const&) = delete;
+		DepthStencilBuffer(DepthStencilBuffer&&) = delete;
+		DepthStencilBuffer& operator=(DepthStencilBuffer const&) = delete;
+		DepthStencilBuffer& operator=(DepthStencilBuffer&&) = delete;
+		~DepthStencilBuffer();
+
+		[[nodiscard]] ID3D11Texture2D* GetResource() const noexcept { return m_texture.Get(); }
+		[[nodiscard]] ID3D11DepthStencilView* GetView() const noexcept { return m_view.Get(); }
+
+		bool initialize(Device_D3D11* device, Vector2U size);
 		bool createResource();
 
-	public:
-		ID3D11Texture2D* GetResource() { return d3d11_texture2d.Get(); }
-		ID3D11DepthStencilView* GetView() { return d3d11_dsv.Get(); }
-
-	public:
-		void* getNativeHandle() { return d3d11_dsv.Get(); }
-
-		bool setSize(Vector2U size);
-		Vector2U getSize() { return m_size; }
-
-	public:
-		DepthStencilBuffer_D3D11(Device_D3D11* device, Vector2U size);
-		~DepthStencilBuffer_D3D11();
+	private:
+		ScopeObject<Device_D3D11> m_device;
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> m_texture;
+		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_view;
+		Vector2U m_size{};
+		bool m_initialized{ false };
 	};
 }
 
+// Buffer
 namespace Core::Graphics::Direct3D11 {
-	class Buffer
+	class Buffer final
 		: public Object<IBuffer>
 		, public IDeviceEventListener
 	{
@@ -305,6 +317,10 @@ namespace Core::Graphics::Direct3D11 {
 		// Buffer
 
 		Buffer();
+		Buffer(Buffer const&) = delete;
+		Buffer(Buffer&&) = delete;
+		Buffer& operator=(Buffer const&) = delete;
+		Buffer& operator=(Buffer&&) = delete;
 	 	virtual ~Buffer();
 
 		bool initialize(Device_D3D11* device, uint8_t type, uint32_t size_in_bytes);
