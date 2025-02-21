@@ -11,6 +11,10 @@ namespace Core::Graphics {
 		uint32_t vertex_count{};
 		uint32_t index_count{};
 
+		// false: position (x, y, z)
+		// true : position (x, y)
+		bool vertex_position_no_z{ false };
+
 		// false: uint32
 		// true : uint16
 		bool vertex_index_compression{ true };
@@ -28,20 +32,20 @@ namespace Core::Graphics {
 		[[nodiscard]] virtual PrimitiveTopology getPrimitiveTopology() const noexcept = 0;
 		[[nodiscard]] virtual bool isReadOnly() const noexcept = 0;
 
-		virtual IMesh* setVertex(uint32_t vertex_index, Vector2F const& position, Vector2F const& uv, Color4B color);
-		virtual IMesh* setVertex(uint32_t vertex_index, Vector2F const& position, Vector2F const& uv, Vector4F const& color);
-		virtual IMesh* setVertex(uint32_t vertex_index, Vector3F const& position, Vector2F const& uv, Color4B color);
-		virtual IMesh* setVertex(uint32_t vertex_index, Vector3F const& position, Vector2F const& uv, Vector4F const& color);
+		virtual void setVertex(uint32_t vertex_index, Vector2F const& position, Vector2F const& uv, Color4B color);
+		virtual void setVertex(uint32_t vertex_index, Vector2F const& position, Vector2F const& uv, Vector4F const& color);
+		virtual void setVertex(uint32_t vertex_index, Vector3F const& position, Vector2F const& uv, Color4B color);
+		virtual void setVertex(uint32_t vertex_index, Vector3F const& position, Vector2F const& uv, Vector4F const& color);
 
-		virtual IMesh* setPosition(uint32_t vertex_index, Vector2F const& position);
-		virtual IMesh* setPosition(uint32_t vertex_index, Vector3F const& position);
+		virtual void setPosition(uint32_t vertex_index, Vector2F const& position);
+		virtual void setPosition(uint32_t vertex_index, Vector3F const& position);
 
-		virtual IMesh* setUv(uint32_t vertex_index, Vector2F const& uv);
+		virtual void setUv(uint32_t vertex_index, Vector2F const& uv);
 
-		virtual IMesh* setColor(uint32_t vertex_index, Color4B color);
-		virtual IMesh* setColor(uint32_t vertex_index, Vector4F const& color);
+		virtual void setColor(uint32_t vertex_index, Color4B color);
+		virtual void setColor(uint32_t vertex_index, Vector4F const& color);
 
-		virtual IMesh* setIndex(uint32_t index_index, uint32_t vertex_index);
+		virtual void setIndex(uint32_t index_index, uint32_t vertex_index);
 
 		virtual bool commit();
 		virtual void setReadOnly();

@@ -61,6 +61,8 @@ set(Core_SRC
     Core/Graphics/Direct3D11/DepthStencilBuffer.cpp
     Core/Graphics/Direct3D11/Device.hpp
     Core/Graphics/Direct3D11/Device.cpp
+    Core/Graphics/Direct3D11/Mesh.hpp
+    Core/Graphics/Direct3D11/Mesh.cpp
     Core/Graphics/Direct3D11/LetterBoxingRenderer.hpp
     Core/Graphics/Direct3D11/LetterBoxingRenderer.cpp
 
