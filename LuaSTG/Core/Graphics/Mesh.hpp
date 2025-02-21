@@ -32,6 +32,8 @@ namespace Core::Graphics {
 		[[nodiscard]] virtual PrimitiveTopology getPrimitiveTopology() const noexcept = 0;
 		[[nodiscard]] virtual bool isReadOnly() const noexcept = 0;
 
+		virtual void setValidationEnable(bool enable) = 0;
+
 		virtual void setVertex(uint32_t vertex_index, Vector2F const& position, Vector2F const& uv, Color4B color);
 		virtual void setVertex(uint32_t vertex_index, Vector2F const& position, Vector2F const& uv, Vector4F const& color);
 		virtual void setVertex(uint32_t vertex_index, Vector3F const& position, Vector2F const& uv, Color4B color);

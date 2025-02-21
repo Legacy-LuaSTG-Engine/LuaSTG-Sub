@@ -20,6 +20,8 @@ namespace Core::Graphics::Direct3D11 {
 		[[nodiscard]] PrimitiveTopology getPrimitiveTopology() const noexcept override { return m_options.primitive_topology; }
 		[[nodiscard]] bool isReadOnly() const noexcept override { return m_read_only; }
 
+		void setValidationEnable(bool const enable) override { m_validation = enable; }
+
 		void setVertex(uint32_t vertex_index, Vector2F const& position, Vector2F const& uv, Color4B color) override;
 		void setVertex(uint32_t vertex_index, Vector2F const& position, Vector2F const& uv, Vector4F const& color) override;
 		void setVertex(uint32_t vertex_index, Vector3F const& position, Vector2F const& uv, Color4B color) override;
@@ -64,6 +66,7 @@ namespace Core::Graphics::Direct3D11 {
 		} m_index_metadata;
 		MeshOptions m_options;
 		bool m_read_only{ false };
+		bool m_validation{ true };
 		bool m_initialized{ false };
 	};
 }

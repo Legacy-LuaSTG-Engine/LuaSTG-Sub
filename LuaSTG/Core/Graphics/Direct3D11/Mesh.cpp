@@ -4,13 +4,20 @@
 
 namespace {
 	void reportReadOnly() {
-		spdlog::error("[core] Mesh is read-only");
+		spdlog::error("[core] Mesh: read-only");
+	}
+	void reportIndexOutOfBounds() {
+		spdlog::error("[core] Mesh: index out of bounds");
 	}
 }
 
-#define REPORT_READ_ONLY_RETURN if (m_read_only) { reportReadOnly(); assert(false); return; }
+#define REPORT_VERTEX_INDEX_OOB_RETURN(v) if (m_validation && ((v) >= m_options.vertex_count)) { reportIndexOutOfBounds(); assert(false); return; }
 
-#define REPORT_READ_ONLY_RETURN_BOOL if (m_read_only) { reportReadOnly(); assert(false); return false; }
+#define REPORT_INDEX_INDEX_OOB_RETURN(v) if (m_validation && ((v) >= m_options.index_count)) { reportIndexOutOfBounds(); assert(false); return; }
+
+#define REPORT_READ_ONLY_RETURN if (m_validation && m_read_only) { reportReadOnly(); assert(false); return; }
+
+#define REPORT_READ_ONLY_RETURN_BOOL if (m_validation && m_read_only) { reportReadOnly(); assert(false); return false; }
 
 namespace Core::Graphics::Direct3D11 {
 	// 警告：这里使用了一些黑科技，因此仅适配小端序平台
@@ -29,24 +36,28 @@ namespace Core::Graphics::Direct3D11 {
 
 	void Mesh::setVertex(uint32_t const vertex_index, Vector2F const& position, Vector2F const& uv, Color4B const color) {
 		REPORT_READ_ONLY_RETURN;
+		REPORT_VERTEX_INDEX_OOB_RETURN(vertex_index);
 		setPosition(vertex_index, position);
 		setUv(vertex_index, uv);
 		setColor(vertex_index, color);
 	}
 	void Mesh::setVertex(uint32_t const vertex_index, Vector2F const& position, Vector2F const& uv, Vector4F const& color) {
 		REPORT_READ_ONLY_RETURN;
+		REPORT_VERTEX_INDEX_OOB_RETURN(vertex_index);
 		setPosition(vertex_index, position);
 		setUv(vertex_index, uv);
 		setColor(vertex_index, color);
 	}
 	void Mesh::setVertex(uint32_t const vertex_index, Vector3F const& position, Vector2F const& uv, Color4B const color) {
 		REPORT_READ_ONLY_RETURN;
+		REPORT_VERTEX_INDEX_OOB_RETURN(vertex_index);
 		setPosition(vertex_index, position);
 		setUv(vertex_index, uv);
 		setColor(vertex_index, color);
 	}
 	void Mesh::setVertex(uint32_t const vertex_index, Vector3F const& position, Vector2F const& uv, Vector4F const& color) {
 		REPORT_READ_ONLY_RETURN;
+		REPORT_VERTEX_INDEX_OOB_RETURN(vertex_index);
 		setPosition(vertex_index, position);
 		setUv(vertex_index, uv);
 		setColor(vertex_index, color);
@@ -54,6 +65,7 @@ namespace Core::Graphics::Direct3D11 {
 
 	void Mesh::setPosition(uint32_t const vertex_index, Vector2F const& position) {
 		REPORT_READ_ONLY_RETURN;
+		REPORT_VERTEX_INDEX_OOB_RETURN(vertex_index);
 		size_t const offset = static_cast<size_t>(vertex_index) * static_cast<size_t>(m_vertex_metadata.stride) + static_cast<size_t>(m_vertex_metadata.position_offset);
 		Vector3F const float3(position.x, position.y, 0.0f);
 		std::memcpy(
@@ -63,6 +75,7 @@ namespace Core::Graphics::Direct3D11 {
 	}
 	void Mesh::setPosition(uint32_t const vertex_index, Vector3F const& position) {
 		REPORT_READ_ONLY_RETURN;
+		REPORT_VERTEX_INDEX_OOB_RETURN(vertex_index);
 		size_t const offset = static_cast<size_t>(vertex_index) * static_cast<size_t>(m_vertex_metadata.stride) + static_cast<size_t>(m_vertex_metadata.position_offset);
 		std::memcpy(
 			m_vertex_data.data() + offset,
@@ -72,6 +85,7 @@ namespace Core::Graphics::Direct3D11 {
 
 	void Mesh::setUv(uint32_t const vertex_index, Vector2F const& uv) {
 		REPORT_READ_ONLY_RETURN;
+		REPORT_VERTEX_INDEX_OOB_RETURN(vertex_index);
 		size_t const offset = static_cast<size_t>(vertex_index) * static_cast<size_t>(m_vertex_metadata.stride) + static_cast<size_t>(m_vertex_metadata.uv_offset);
 		std::memcpy(
 			m_vertex_data.data() + offset,
@@ -81,6 +95,7 @@ namespace Core::Graphics::Direct3D11 {
 
 	void Mesh::setColor(uint32_t const vertex_index, Color4B const color) {
 		REPORT_READ_ONLY_RETURN;
+		REPORT_VERTEX_INDEX_OOB_RETURN(vertex_index);
 		size_t const offset = static_cast<size_t>(vertex_index) * static_cast<size_t>(m_vertex_metadata.stride) + static_cast<size_t>(m_vertex_metadata.color_offset);
 		Vector4F float4;
 		void const* const source = m_options.vertex_color_compression ? &color : &float4;
@@ -97,6 +112,7 @@ namespace Core::Graphics::Direct3D11 {
 	}
 	void Mesh::setColor(uint32_t const vertex_index, Vector4F const& color) {
 		REPORT_READ_ONLY_RETURN;
+		REPORT_VERTEX_INDEX_OOB_RETURN(vertex_index);
 		size_t const offset = static_cast<size_t>(vertex_index) * static_cast<size_t>(m_vertex_metadata.stride) + static_cast<size_t>(m_vertex_metadata.color_offset);
 		Color4B rgba32;
 		void const* const source = m_options.vertex_color_compression ? &rgba32 : &color;
@@ -114,6 +130,7 @@ namespace Core::Graphics::Direct3D11 {
 
 	void Mesh::setIndex(uint32_t const index_index, uint32_t const vertex_index) {
 		REPORT_READ_ONLY_RETURN;
+		REPORT_INDEX_INDEX_OOB_RETURN(index_index);
 		size_t const offset = static_cast<size_t>(index_index) * static_cast<size_t>(m_index_metadata.stride);
 		std::memcpy(
 			m_index_data.data() + offset,
