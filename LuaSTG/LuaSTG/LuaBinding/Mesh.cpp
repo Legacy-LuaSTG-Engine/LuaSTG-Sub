@@ -202,6 +202,7 @@ namespace LuaSTG::Sub::LuaBinding {
 			options.index_count = ctx.get_map_value<uint32_t>(options_table, "index_count", 0);
 			options.vertex_index_compression = ctx.get_map_value<bool>(options_table, "vertex_index_compression", true);
 			options.vertex_color_compression = ctx.get_map_value<bool>(options_table, "vertex_color_compression", true);
+			options.primitive_topology = static_cast<Core::Graphics::PrimitiveTopology>(ctx.get_map_value<int32_t>(options_table, "primitive_topology", static_cast<int32_t>(Core::Graphics::PrimitiveTopology::triangle_list)));
 
 			auto const device = LAPP.GetAppModel()->getDevice();
 			auto const self = Mesh::create(vm);
@@ -232,6 +233,14 @@ namespace LuaSTG::Sub::LuaBinding {
 	void Mesh::registerClass(lua_State* vm) {
 		[[maybe_unused]] lua::stack_balancer_t stack_balancer(vm);
 		lua::stack_t const ctx(vm);
+
+		// lstg.Window.FrameStyle
+
+		{
+			auto const e = ctx.push_module("lstg.PrimitiveTopology");
+			ctx.set_map_value(e, "triangle_list", static_cast<int32_t>(Core::Graphics::PrimitiveTopology::triangle_list));
+			ctx.set_map_value(e, "triangle_strip", static_cast<int32_t>(Core::Graphics::PrimitiveTopology::triangle_strip));
+		}
 
 		// method
 
