@@ -199,10 +199,36 @@ namespace LuaSTG::Sub::LuaBinding {
 			Core::Graphics::MeshOptions options;
 
 			options.vertex_count = ctx.get_map_value<uint32_t>(options_table, "vertex_count");
-			options.index_count = ctx.get_map_value<uint32_t>(options_table, "index_count", 0);
-			options.vertex_index_compression = ctx.get_map_value<bool>(options_table, "vertex_index_compression", true);
-			options.vertex_color_compression = ctx.get_map_value<bool>(options_table, "vertex_color_compression", true);
-			options.primitive_topology = static_cast<Core::Graphics::PrimitiveTopology>(ctx.get_map_value<int32_t>(options_table, "primitive_topology", static_cast<int32_t>(Core::Graphics::PrimitiveTopology::triangle_list)));
+
+			ctx.push_map_value(options_table, "index_count");
+			if (auto const top_index = ctx.index_of_top();  ctx.is_number(top_index)) {
+				options.index_count = ctx.get_value<uint32_t>(top_index);
+			}
+			ctx.pop_value();
+
+			ctx.push_map_value(options_table, "vertex_position_no_z");
+			if (auto const top_index = ctx.index_of_top(); ctx.is_boolean(top_index)) {
+				options.vertex_position_no_z = ctx.get_value<bool>(top_index);
+			}
+			ctx.pop_value();
+
+			ctx.push_map_value(options_table, "vertex_index_compression");
+			if (auto const top_index = ctx.index_of_top(); ctx.is_boolean(top_index)) {
+				options.vertex_index_compression = ctx.get_value<bool>(top_index);
+			}
+			ctx.pop_value();
+
+			ctx.push_map_value(options_table, "vertex_color_compression");
+			if (auto const top_index = ctx.index_of_top(); ctx.is_boolean(top_index)) {
+				options.vertex_color_compression = ctx.get_value<bool>(top_index);
+			}
+			ctx.pop_value();
+
+			ctx.push_map_value(options_table, "primitive_topology");
+			if (auto const top_index = ctx.index_of_top(); ctx.is_number(top_index)) {
+				options.primitive_topology = static_cast<Core::Graphics::PrimitiveTopology>(ctx.get_value<int32_t>(top_index));
+			}
+			ctx.pop_value();
 
 			auto const device = LAPP.GetAppModel()->getDevice();
 			auto const self = Mesh::create(vm);
