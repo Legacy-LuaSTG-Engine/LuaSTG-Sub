@@ -48,10 +48,10 @@ namespace {
 		generated_vertex_shader.append("VS_Output main(VS_Input input) {\n"sv);
 
 		if (options.vertex_position_no_z) {
-			generated_vertex_shader.append("    float4 position_world = float4(input.position, 1.0f);\n"sv);
+			generated_vertex_shader.append("    float4 position_world = float4(input.position, 0.0f, 1.0f);\n"sv);
 		}
 		else {
-			generated_vertex_shader.append("    float4 position_world = float4(input.position, 0.0f, 1.0f);\n"sv);
+			generated_vertex_shader.append("    float4 position_world = float4(input.position, 1.0f);\n"sv);
 		}
 
 		generated_vertex_shader.append("    VS_Output output;\n"sv);
@@ -361,15 +361,15 @@ namespace Core::Graphics::Direct3D11 {
 		elements[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 
 		// ReSharper disable once StringLiteralTypo
-		elements[0].SemanticName = "TEXCOORD";
-		elements[0].Format = DXGI_FORMAT_R32G32_FLOAT;
-		elements[0].AlignedByteOffset = m_vertex_metadata.uv_offset;
-		elements[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+		elements[1].SemanticName = "TEXCOORD";
+		elements[1].Format = DXGI_FORMAT_R32G32_FLOAT;
+		elements[1].AlignedByteOffset = m_vertex_metadata.uv_offset;
+		elements[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 
-		elements[0].SemanticName = "COLOR";
-		elements[0].Format = m_options.vertex_color_compression ? DXGI_FORMAT_B8G8R8A8_UNORM : DXGI_FORMAT_R32G32B32A32_FLOAT;
-		elements[0].AlignedByteOffset = m_vertex_metadata.color_offset;
-		elements[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+		elements[2].SemanticName = "COLOR";
+		elements[2].Format = m_options.vertex_color_compression ? DXGI_FORMAT_B8G8R8A8_UNORM : DXGI_FORMAT_R32G32B32A32_FLOAT;
+		elements[2].AlignedByteOffset = m_vertex_metadata.color_offset;
+		elements[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 
 		auto const vertex_shader_source = generateVertexShader(m_options, false);
 		if (!compileVertexShader(vertex_shader_source, m_vertex_shader_byte_code.put())) {
