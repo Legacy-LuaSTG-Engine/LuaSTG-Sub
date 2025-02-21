@@ -34,24 +34,24 @@ namespace Core::Graphics {
 
 		virtual void setValidationEnable(bool enable) = 0;
 
-		virtual void setVertex(uint32_t vertex_index, Vector2F const& position, Vector2F const& uv, Color4B color);
-		virtual void setVertex(uint32_t vertex_index, Vector2F const& position, Vector2F const& uv, Vector4F const& color);
-		virtual void setVertex(uint32_t vertex_index, Vector3F const& position, Vector2F const& uv, Color4B color);
-		virtual void setVertex(uint32_t vertex_index, Vector3F const& position, Vector2F const& uv, Vector4F const& color);
+		virtual void setVertex(uint32_t vertex_index, Vector2F const& position, Vector2F const& uv, Color4B color) = 0;
+		virtual void setVertex(uint32_t vertex_index, Vector2F const& position, Vector2F const& uv, Vector4F const& color) = 0;
+		virtual void setVertex(uint32_t vertex_index, Vector3F const& position, Vector2F const& uv, Color4B color) = 0;
+		virtual void setVertex(uint32_t vertex_index, Vector3F const& position, Vector2F const& uv, Vector4F const& color) = 0;
 
-		virtual void setPosition(uint32_t vertex_index, Vector2F const& position);
-		virtual void setPosition(uint32_t vertex_index, Vector3F const& position);
+		virtual void setPosition(uint32_t vertex_index, Vector2F const& position) = 0;
+		virtual void setPosition(uint32_t vertex_index, Vector3F const& position) = 0;
 
-		virtual void setUv(uint32_t vertex_index, Vector2F const& uv);
+		virtual void setUv(uint32_t vertex_index, Vector2F const& uv) = 0;
 
-		virtual void setColor(uint32_t vertex_index, Color4B color);
-		virtual void setColor(uint32_t vertex_index, Vector4F const& color);
+		virtual void setColor(uint32_t vertex_index, Color4B color) = 0;
+		virtual void setColor(uint32_t vertex_index, Vector4F const& color) = 0;
 
-		virtual void setIndex(uint32_t index_index, uint32_t vertex_index);
+		virtual void setIndex(uint32_t index_index, uint32_t vertex_index) = 0;
 
-		virtual bool commit();
-		virtual void setReadOnly();
+		virtual bool commit() = 0;
+		virtual void setReadOnly() = 0;
 
-		virtual bool create(MeshOptions const& options, IMesh** output);
+		static bool create(IDevice* device, MeshOptions const& options, IMesh** output);
 	};
 }
