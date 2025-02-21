@@ -42,8 +42,6 @@ set(Core_SRC
     Core/Graphics/Model_Shader_D3D11.cpp
     Core/Graphics/Sprite.hpp
     Core/Graphics/Font.hpp
-    Core/Graphics/DearImGui_Win32_D3D11.hpp
-    Core/Graphics/DearImGui_Win32_D3D11.cpp
     
     Core/Graphics/Common/Sprite.hpp
     Core/Graphics/Common/Sprite.cpp
