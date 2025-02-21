@@ -130,6 +130,9 @@ namespace Core::Graphics
 		void* getNativeHandle() { return d3d11_device.Get(); }
 		void* getNativeRendererHandle() { return d2d1_devctx.Get(); }
 
+		bool createVertexBuffer(uint32_t size_in_bytes, IBuffer** output);
+		bool createIndexBuffer(uint32_t size_in_bytes, IBuffer** output);
+
 		bool createTextureFromFile(StringView path, bool mipmap, ITexture2D** pp_texture);
 		//bool createTextureFromMemory(void const* data, size_t size, bool mipmap, ITexture2D** pp_texture);
 		bool createTexture(Vector2U size, ITexture2D** pp_texture);
@@ -296,7 +299,7 @@ namespace Core::Graphics::Direct3D11 {
 
 		// IBuffer
 
-		bool map(size_t size_in_bytes, bool discard, void** out_pointer) override;
+		bool map(uint32_t size_in_bytes, bool discard, void** out_pointer) override;
 		bool unmap() override;
 
 		// Buffer
@@ -304,12 +307,14 @@ namespace Core::Graphics::Direct3D11 {
 		Buffer();
 	 	virtual ~Buffer();
 
+		bool initialize(Device_D3D11* device, uint8_t type, uint32_t size_in_bytes);
 		bool createResources();
 
 	private:
 		ScopeObject<Device_D3D11> m_device;
 		wil::com_ptr_nothrow<ID3D11Buffer> m_buffer;
 		uint32_t m_size_in_bytes{};
-		uint32_t m_type{}; // 0-unknown, 1-
+		uint8_t m_type{}; // 0-unknown, 1-vertex, 2-index
+		bool m_initialized{ false };
 	};
 }
