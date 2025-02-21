@@ -284,6 +284,15 @@ namespace Core::Graphics::Direct3D11 {
 
 		ctx->VSSetShader(getNativeVertexShader(fog), nullptr, 0);
 	}
+	void Mesh::drawNative(ID3D11DeviceContext* const ctx) const {
+		assert(ctx);
+		if (m_options.index_count > 0) {
+			ctx->DrawIndexed(m_options.index_count, 0, 0);
+		}
+		else {
+			ctx->Draw(m_options.vertex_count, 0);
+		}
+	}
 
 	bool Mesh::initialize(IDevice* const device, MeshOptions const& options) {
 		assert(device);

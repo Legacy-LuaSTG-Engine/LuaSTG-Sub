@@ -52,6 +52,7 @@ namespace Core::Graphics::Direct3D11 {
 		[[nodiscard]] ID3D11VertexShader* getNativeVertexShader(bool const fog = false) const noexcept { return fog ? m_vertex_shader_fog.get() : m_vertex_shader.get(); }
 		[[nodiscard]] ID3D11InputLayout* getNativeInputLayout() const noexcept { return m_input_layout.get(); }
 		void applyNative(ID3D11DeviceContext* ctx, bool fog = false);
+		void drawNative(ID3D11DeviceContext* ctx) const;
 
 		bool initialize(IDevice* device, MeshOptions const& options);
 		bool createResources();

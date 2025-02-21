@@ -2,6 +2,17 @@ local test = require("test")
 local imgui = require("imgui")
 local Mesh = require("lstg.Mesh")
 
+local function load_image(name, path)
+    lstg.LoadTexture(name, path, false)
+    local w, h = lstg.GetTextureSize(name)
+    lstg.LoadImage(name, name, 0, 0, w, h)
+end
+
+local function unload_image(pool, name)
+    lstg.RemoveResource(pool, 2, name)
+    lstg.RemoveResource(pool, 1, name)
+end
+
 ---@class test.graphics.Mesh : test.Base
 local M = {}
 
@@ -11,9 +22,15 @@ function M:onCreate()
         vertex_count = 4,
         index_count = 6,
     })
+
+    local last_pool = lstg.GetResourceStatus()
+    lstg.SetResourceStatus("global")
+    load_image("image_2", "res/image_2.jpg")
+    lstg.SetResourceStatus(last_pool)
 end
 
 function M:onDestroy()
+    unload_image("global", "image_2")
 end
 
 function M:onUpdate()
@@ -58,6 +75,9 @@ function M:onUpdate()
 end
 
 function M:onRender()
+    window:applyCameraV()
+
+    lstg.Render("image_2", window.width / 2, window.height / 2, 0, window.height / 2160)
 end
 
 test.registerTest("test.graphics.Mesh", M, "Graphics: Mesh")
