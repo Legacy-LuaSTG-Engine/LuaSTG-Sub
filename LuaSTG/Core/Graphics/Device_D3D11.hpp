@@ -204,8 +204,8 @@ namespace Core::Graphics::Direct3D11 {
 		[[nodiscard]] void* getNativeHandle() const noexcept override { return m_view.Get(); }
 
 		[[nodiscard]] bool isDynamic() const noexcept override { return m_dynamic; }
-		[[nodiscard]] bool isPremultipliedAlpha() const noexcept override { return m_premul; }
-		void setPremultipliedAlpha(bool const v) override { m_premul = v; }
+		[[nodiscard]] bool isPremultipliedAlpha() const noexcept override { return m_pre_mul_alpha; }
+		void setPremultipliedAlpha(bool const v) override { m_pre_mul_alpha = v; }
 		[[nodiscard]] Vector2U getSize() const noexcept override { return m_size; }
 		bool setSize(Vector2U size) override;
 
@@ -242,7 +242,7 @@ namespace Core::Graphics::Direct3D11 {
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_view;
 		Vector2U m_size{};
 		bool m_dynamic{ false };
-		bool m_premul{ false };
+		bool m_pre_mul_alpha{ false };
 		bool m_mipmap{ false };
 		bool m_is_render_target{ false };
 		bool m_initialized{ false };

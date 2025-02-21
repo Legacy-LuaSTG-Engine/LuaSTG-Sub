@@ -1460,7 +1460,7 @@ namespace Core::Graphics::Direct3D11 {
 		m_device = device;
 		m_size = size;
 		m_dynamic = true;
-		m_premul = is_render_target;  // 默认是预乘 alpha 的
+		m_pre_mul_alpha = is_render_target;  // 默认是预乘 alpha 的
 		m_is_render_target = is_render_target;
 		if (!createResource()) {
 			return false;
@@ -1578,7 +1578,7 @@ namespace Core::Graphics::Direct3D11 {
 				}
 			}
 			if (dds_alpha_mode == DirectX::DDS_ALPHA_MODE_PREMULTIPLIED) {
-				m_premul = true; // 您小子预乘了 alpha 通道是吧，行
+				m_pre_mul_alpha = true; // 您小子预乘了 alpha 通道是吧，行
 			}
 			M_D3D_SET_DEBUG_NAME(m_view.Get(), "Texture2D_D3D11::d3d11_srv");
 
