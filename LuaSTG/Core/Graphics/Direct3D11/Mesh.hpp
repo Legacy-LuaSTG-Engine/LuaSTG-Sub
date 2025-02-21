@@ -42,6 +42,17 @@ namespace Core::Graphics::Direct3D11 {
 
 		// Mesh
 
+		Mesh();
+		Mesh(Mesh const&) = delete;
+		Mesh(Mesh&&) = delete;
+		Mesh& operator=(Mesh const&) = delete;
+		Mesh& operator=(Mesh&&) = delete;
+		~Mesh();
+
+		[[nodiscard]] ID3D11VertexShader* getNativeVertexShader(bool const fog = false) const noexcept { return fog ? m_vertex_shader_fog.get() : m_vertex_shader.get(); }
+		[[nodiscard]] ID3D11InputLayout* getNativeInputLayout() const noexcept { return m_input_layout.get(); }
+		void applyNative(ID3D11DeviceContext* ctx, bool fog = false);
+
 		bool initialize(IDevice* device, MeshOptions const& options);
 		bool createResources();
 
@@ -49,6 +60,11 @@ namespace Core::Graphics::Direct3D11 {
 		ScopeObject<IDevice> m_device;
 		ScopeObject<IBuffer> m_vertex_buffer;
 		ScopeObject<IBuffer> m_index_buffer;
+		wil::com_ptr_nothrow<ID3DBlob> m_vertex_shader_byte_code;
+		wil::com_ptr_nothrow<ID3DBlob> m_vertex_shader_byte_code_fog;
+		wil::com_ptr_nothrow<ID3D11VertexShader> m_vertex_shader;
+		wil::com_ptr_nothrow<ID3D11VertexShader> m_vertex_shader_fog;
+		wil::com_ptr_nothrow<ID3D11InputLayout> m_input_layout;
 		std::vector<uint8_t> m_vertex_data;
 		std::vector<uint8_t> m_index_data;
 		struct VertexMetadata {

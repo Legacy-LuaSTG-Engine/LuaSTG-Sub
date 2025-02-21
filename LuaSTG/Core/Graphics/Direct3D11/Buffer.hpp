@@ -29,6 +29,8 @@ namespace Core::Graphics::Direct3D11 {
 		Buffer& operator=(Buffer&&) = delete;
 		~Buffer();
 
+		[[nodiscard]] ID3D11Buffer* getNativeBuffer() const noexcept { return m_buffer.get(); }
+
 		bool initialize(Device* device, uint8_t type, uint32_t size_in_bytes);
 		bool createResources();
 
