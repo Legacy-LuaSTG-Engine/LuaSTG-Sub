@@ -5,21 +5,21 @@
 
 namespace Core::Graphics
 {
-	inline ID3D11ShaderResourceView* get_view(Texture2D_D3D11* p)
+	inline ID3D11ShaderResourceView* get_view(Direct3D11::Texture2D* p)
 	{
 		return p ? p->GetView() : NULL;
 	}
 	inline ID3D11ShaderResourceView* get_view(ITexture2D* p)
 	{
-		return get_view(static_cast<Texture2D_D3D11*>(p));
+		return get_view(static_cast<Direct3D11::Texture2D*>(p));
 	}
-	inline ID3D11ShaderResourceView* get_view(ScopeObject<Texture2D_D3D11>& p)
+	inline ID3D11ShaderResourceView* get_view(ScopeObject<Direct3D11::Texture2D>& p)
 	{
 		return get_view(p.get());
 	}
 	inline ID3D11ShaderResourceView* get_view(ScopeObject<ITexture2D>& p)
 	{
-		return get_view(static_cast<Texture2D_D3D11*>(p.get()));
+		return get_view(static_cast<Direct3D11::Texture2D*>(p.get()));
 	}
 
 	inline ID3D11SamplerState* get_sampler(ISamplerState* p_sampler)
@@ -103,7 +103,7 @@ namespace Core::Graphics
 		std::string name_s(name);
 		auto it = m_texture2d_map.find(name_s);
 		if (it == m_texture2d_map.end()) { return false; }
-		it->second.texture = dynamic_cast<Texture2D_D3D11*>(p_texture);
+		it->second.texture = dynamic_cast<Direct3D11::Texture2D*>(p_texture);
 		if (!it->second.texture) { assert(false); return false; }
 		return true;
 	}
@@ -1111,16 +1111,16 @@ namespace Core::Graphics
 		}
 	}
 
-	inline bool is_same(Texture2D_D3D11* a, ITexture2D* b)
+	inline bool is_same(Direct3D11::Texture2D* a, ITexture2D* b)
 	{
 		if (a && b)
-			return a->GetView() == static_cast<Texture2D_D3D11*>(b)->GetView();
+			return a->GetView() == static_cast<Direct3D11::Texture2D*>(b)->GetView();
 		else if (!a && !b)
 			return true;
 		else
 			return false;
 	}
-	inline bool is_same(ScopeObject<Texture2D_D3D11>& a, ITexture2D* b)
+	inline bool is_same(ScopeObject<Direct3D11::Texture2D>& a, ITexture2D* b)
 	{
 		return is_same(*a, b);
 	}
@@ -1140,14 +1140,14 @@ namespace Core::Graphics
 			}
 			_draw_list.command.size += 1;
 			DrawCommand& cmd_ = _draw_list.command.data[_draw_list.command.size - 1];
-			cmd_.texture = static_cast<Texture2D_D3D11*>(texture);
+			cmd_.texture = static_cast<Direct3D11::Texture2D*>(texture);
 			cmd_.vertex_count = 0;
 			cmd_.index_count = 0;
 		}
 		// 更新当前状态的纹理
 		if (!is_same(_state_texture, texture))
 		{
-			_state_texture = static_cast<Texture2D_D3D11*>(texture);
+			_state_texture = static_cast<Direct3D11::Texture2D*>(texture);
 		}
 	}
 

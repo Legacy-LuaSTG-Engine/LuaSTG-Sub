@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Core/Object.hpp"
 #include "Core/Graphics/Renderer.hpp"
 #include "Core/Graphics/Device_D3D11.hpp"
@@ -62,7 +62,7 @@ namespace Core::Graphics
 
 	struct DrawCommand
 	{
-		ScopeObject<Texture2D_D3D11> texture;
+		ScopeObject<Direct3D11::Texture2D> texture;
 		uint16_t vertex_count = 0;
 		uint16_t index_count = 0;
 	};
@@ -109,7 +109,7 @@ namespace Core::Graphics
 		struct LocalTexture2D
 		{
 			UINT index{};
-			ScopeObject<Texture2D_D3D11> texture;
+			ScopeObject<Direct3D11::Texture2D> texture;
 		};
 	private:
 		ScopeObject<Device_D3D11> m_device;
@@ -175,7 +175,7 @@ namespace Core::Graphics
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> _depth_state[IDX(DepthState::MAX_COUNT)];
 		Microsoft::WRL::ComPtr<ID3D11BlendState> _blend_state[IDX(BlendState::MAX_COUNT)];
 		
-		ScopeObject<Texture2D_D3D11> _state_texture;
+		ScopeObject<Direct3D11::Texture2D> _state_texture;
 		CameraStateSet _camera_state_set;
 		RendererStateSet _state_set;
 		bool _state_dirty = false;

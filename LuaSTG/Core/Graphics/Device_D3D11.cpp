@@ -1216,34 +1216,6 @@ namespace Core::Graphics
 		return doDestroyAndCreate();
 	}
 
-	bool Device_D3D11::createTextureFromFile(StringView path, bool mipmap, ITexture2D** pp_texture)
-	{
-		try
-		{
-			*pp_texture = new Texture2D_D3D11(this, path, mipmap);
-			return true;
-		}
-		catch (...)
-		{
-			*pp_texture = nullptr;
-			return false;
-		}
-	}
-	//bool createTextureFromMemory(void const* data, size_t size, bool mipmap, ITexture2D** pp_texture);
-	bool Device_D3D11::createTexture(Vector2U size, ITexture2D** pp_texture)
-	{
-		try
-		{
-			*pp_texture = new Texture2D_D3D11(this, size, false);
-			return true;
-		}
-		catch (...)
-		{
-			*pp_texture = nullptr;
-			return false;
-		}
-	}
-
 	bool Device_D3D11::createSamplerState(SamplerState const& def, ISamplerState** pp_sampler)
 	{
 		try
@@ -1400,33 +1372,45 @@ namespace Core::Graphics
 	{
 		m_device->removeEventListener(this);
 	}
+}
 
-	// Texture2D
+// Texture2D
+namespace Core::Graphics::Direct3D11 {
+	void Texture2D::onDeviceCreate() {
+		if (m_initialized) {
+			createResource();
+		}
+	}
+	void Texture2D::onDeviceDestroy() {
+		m_texture.Reset();
+		m_view.Reset();
+	}
 
-	bool Texture2D_D3D11::setSize(Vector2U size)
-	{
-		if (!(m_dynamic || m_isrt))
-		{
+	bool Texture2D::setSize(Vector2U const size) {
+		if (!m_dynamic) {
 			spdlog::error("[core] 不能修改静态纹理的大小");
-			return false;
+			assert(false); return false;
+		}
+		if (!m_is_render_target) {
+			spdlog::error("[core] 此纹理由 RenderTarget 托管，禁止直接 setSize");
+			assert(false); return false;
 		}
 		onDeviceDestroy();
 		m_size = size;
 		return createResource();
 	}
-
-	bool Texture2D_D3D11::uploadPixelData(RectU rc, void const* data, uint32_t pitch)
-	{
-		if (!m_dynamic)
-		{
+	bool Texture2D::uploadPixelData(RectU const rc, void const* const data, uint32_t const pitch) {
+		if (!m_dynamic) {
+			spdlog::error("[core] 不能修改静态纹理的内容");
+			assert(false); return false;
+		}
+		auto const ctx = m_device->GetD3D11DeviceContext();
+		assert(ctx);
+		assert(m_texture);
+		if (!ctx || !m_texture) {
 			return false;
 		}
-		auto* d3d11_devctx = m_device->GetD3D11DeviceContext();
-		if (!d3d11_devctx || !d3d11_texture2d)
-		{
-			return false;
-		}
-		D3D11_BOX box = {
+		D3D11_BOX const box = {
 			.left = rc.a.x,
 			.top = rc.a.y,
 			.front = 0,
@@ -1434,35 +1418,61 @@ namespace Core::Graphics
 			.bottom = rc.b.y,
 			.back = 1,
 		};
-		d3d11_devctx->UpdateSubresource(d3d11_texture2d.Get(), 0, &box, data, pitch, 0);
+		ctx->UpdateSubresource(m_texture.Get(), 0, &box, data, pitch, 0);
 		return true;
 	}
-
-	bool Texture2D_D3D11::saveToFile(StringView path)
-	{
-		std::wstring wpath(utf8::to_wstring(path));
+	bool Texture2D::saveToFile(StringView const path) {
+		std::wstring const wide_path(utf8::to_wstring(path));
 		HRESULT hr = S_OK;
 		hr = gHR = DirectX::SaveWICTextureToFile(
 			m_device->GetD3D11DeviceContext(),
-			d3d11_texture2d.Get(),
+			m_texture.Get(),
 			GUID_ContainerFormatJpeg,
-			wpath.c_str(),
+			wide_path.c_str(),
 			&GUID_WICPixelFormat24bppBGR);
 		return SUCCEEDED(hr);
 	}
 
-	void Texture2D_D3D11::onDeviceCreate()
-	{
-		createResource();
-	}
-	void Texture2D_D3D11::onDeviceDestroy()
-	{
-		d3d11_texture2d.Reset();
-		d3d11_srv.Reset();
+	Texture2D::Texture2D() = default;
+	Texture2D::~Texture2D() {
+		if (m_initialized && m_device) {
+			m_device->removeEventListener(this);
+		}
 	}
 
-	bool Texture2D_D3D11::createResource()
-	{
+	bool Texture2D::initialize(Device_D3D11* const device, StringView const path, bool const mipmap) {
+		assert(device);
+		assert(!path.empty());
+		m_device = device;
+		m_source_path = path;
+		m_mipmap = mipmap;
+		if (!createResource()) {
+			return false;
+		}
+		m_initialized = true;
+		m_device->addEventListener(this);
+		return true;
+	}
+	bool Texture2D::initialize(Device_D3D11* const device, Vector2U const size, bool const is_render_target) {
+		assert(device);
+		assert(size.x > 0 && size.y > 0);
+		m_device = device;
+		m_size = size;
+		m_dynamic = true;
+		m_premul = is_render_target;  // 默认是预乘 alpha 的
+		m_is_render_target = is_render_target;
+		if (!createResource()) {
+			return false;
+		}
+		m_initialized = true;
+		if (!is_render_target) {
+			// 由 RenderTarget 托管时，不注册监听器
+			// 普通的动态纹理需要注册监听器
+			m_device->addEventListener(this);
+		}
+		return true;
+	}
+	bool Texture2D::createResource() {
 		HRESULT hr = S_OK;
 
 		auto* d3d11_device = m_device->GetD3D11Device();
@@ -1470,8 +1480,7 @@ namespace Core::Graphics
 		if (!d3d11_device || !d3d11_devctx)
 			return false;
 
-		if (m_data)
-		{
+		if (m_data) {
 			D3D11_TEXTURE2D_DESC tex2d_desc = {
 				.Width = m_size.x,
 				.Height = m_size.y,
@@ -1492,13 +1501,12 @@ namespace Core::Graphics
 				.SysMemPitch = 4 * m_size.x, // BGRA
 				.SysMemSlicePitch = 4 * m_size.x * m_size.y,
 			};
-			hr = gHR = d3d11_device->CreateTexture2D(&tex2d_desc, &subres_data, &d3d11_texture2d);
-			if (FAILED(hr))
-			{
+			hr = gHR = d3d11_device->CreateTexture2D(&tex2d_desc, &subres_data, &m_texture);
+			if (FAILED(hr)) {
 				i18n_core_system_call_report_error("ID3D11Device::CreateTexture2D");
 				return false;
 			}
-			M_D3D_SET_DEBUG_NAME(d3d11_texture2d.Get(), "Texture2D_D3D11::d3d11_texture2d");
+			M_D3D_SET_DEBUG_NAME(m_texture.Get(), "Texture2D_D3D11::d3d11_texture2d");
 
 			D3D11_SHADER_RESOURCE_VIEW_DESC view_desc = {
 				.Format = tex2d_desc.Format,
@@ -1508,20 +1516,17 @@ namespace Core::Graphics
 					.MipLevels = 1,
 				},
 			};
-			hr = gHR = d3d11_device->CreateShaderResourceView(d3d11_texture2d.Get(), &view_desc, &d3d11_srv);
-			if (FAILED(hr))
-			{
+			hr = gHR = d3d11_device->CreateShaderResourceView(m_texture.Get(), &view_desc, &m_view);
+			if (FAILED(hr)) {
 				i18n_core_system_call_report_error("ID3D11Device::CreateShaderResourceView");
 				return false;
 			}
-			M_D3D_SET_DEBUG_NAME(d3d11_srv.Get(), "Texture2D_D3D11::d3d11_srv");
+			M_D3D_SET_DEBUG_NAME(m_view.Get(), "Texture2D_D3D11::d3d11_srv");
 		}
-		else if (!source_path.empty())
-		{
+		else if (!m_source_path.empty()) {
 			std::vector<uint8_t> src;
-			if (!GFileManager().loadEx(source_path, src))
-			{
-				spdlog::error("[core] 无法加载文件 '{}'", source_path);
+			if (!GFileManager().loadEx(m_source_path, src)) {
+				spdlog::error("[core] 无法加载文件 '{}'", m_source_path);
 				return false;
 			}
 
@@ -1535,10 +1540,9 @@ namespace Core::Graphics
 				0,
 				D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0,
 				DirectX::DDS_LOADER_IGNORE_SRGB, // TODO: 这里也同样忽略了 sRGB，看以后渲染管线颜色空间怎么改
-				&res, &d3d11_srv,
+				&res, &m_view,
 				&dds_alpha_mode);
-			if (FAILED(hr1))
-			{
+			if (FAILED(hr1)) {
 				// 尝试以普通图片格式加载
 				HRESULT const hr2 = DirectX::CreateWICTextureFromMemoryEx(
 					d3d11_device, m_mipmap ? d3d11_devctx : NULL,
@@ -1548,9 +1552,8 @@ namespace Core::Graphics
 					DirectX::WIC_LOADER_DEFAULT | DirectX::WIC_LOADER_IGNORE_SRGB,
 					// TODO: 渲染管线目前是在 sRGB 下计算的，也就是心理视觉色彩，将错就错吧……
 					//DirectX::WIC_LOADER_DEFAULT | DirectX::WIC_LOADER_SRGB_DEFAULT,
-					&res, &d3d11_srv);
-				if (FAILED(hr2))
-				{
+					&res, &m_view);
+				if (FAILED(hr2)) {
 					// 尝试以 QOI 图片格式加载
 					HRESULT const hr3 = DirectX::CreateQOITextureFromMemoryEx(
 						d3d11_device, m_mipmap ? d3d11_devctx : NULL, m_device->GetWICImagingFactory(),
@@ -1560,9 +1563,8 @@ namespace Core::Graphics
 						DirectX::QOI_LOADER_DEFAULT | DirectX::QOI_LOADER_IGNORE_SRGB,
 						// TODO: 渲染管线目前是在 sRGB 下计算的，也就是心理视觉色彩，将错就错吧……
 						//DirectX::QOI_LOADER_DEFAULT | DirectX::QOI_LOADER_SRGB_DEFAULT,
-						&res, &d3d11_srv);
-					if (FAILED(hr3))
-					{
+						&res, &m_view);
+					if (FAILED(hr3)) {
 						// 在这里一起报告，不然 log 文件里遍地都是 error
 						gHR = hr1;
 						i18n_core_system_call_report_error("DirectX::CreateDDSTextureFromMemoryEx");
@@ -1574,29 +1576,26 @@ namespace Core::Graphics
 					}
 				}
 			}
-			if (dds_alpha_mode == DirectX::DDS_ALPHA_MODE_PREMULTIPLIED)
-			{
+			if (dds_alpha_mode == DirectX::DDS_ALPHA_MODE_PREMULTIPLIED) {
 				m_premul = true; // 您小子预乘了 alpha 通道是吧，行
 			}
-			M_D3D_SET_DEBUG_NAME(d3d11_srv.Get(), "Texture2D_D3D11::d3d11_srv");
+			M_D3D_SET_DEBUG_NAME(m_view.Get(), "Texture2D_D3D11::d3d11_srv");
 
 			// 转换类型
-			hr = gHR = res.As(&d3d11_texture2d);
-			if (FAILED(hr))
-			{
+			hr = gHR = res.As(&m_texture);
+			if (FAILED(hr)) {
 				i18n_core_system_call_report_error("ID3D11Resource::QueryInterface -> ID3D11Texture2D");
 				return false;
 			}
-			M_D3D_SET_DEBUG_NAME(d3d11_texture2d.Get(), "Texture2D_D3D11::d3d11_texture2d");
+			M_D3D_SET_DEBUG_NAME(m_texture.Get(), "Texture2D_D3D11::d3d11_texture2d");
 
 			// 获取图片尺寸
-			D3D11_TEXTURE2D_DESC t2dinfo = {};
-			d3d11_texture2d->GetDesc(&t2dinfo);
-			m_size.x = t2dinfo.Width;
-			m_size.y = t2dinfo.Height;
+			D3D11_TEXTURE2D_DESC texture_info{};
+			m_texture->GetDesc(&texture_info);
+			m_size.x = texture_info.Width;
+			m_size.y = texture_info.Height;
 		}
-		else
-		{
+		else {
 			D3D11_TEXTURE2D_DESC texdef = {
 				.Width = m_size.x,
 				.Height = m_size.y,
@@ -1605,66 +1604,54 @@ namespace Core::Graphics
 				.Format = DXGI_FORMAT_B8G8R8A8_UNORM,
 				.SampleDesc = DXGI_SAMPLE_DESC{.Count = 1,.Quality = 0},
 				.Usage = D3D11_USAGE_DEFAULT,
-				.BindFlags = D3D11_BIND_SHADER_RESOURCE | (m_isrt ? D3D11_BIND_RENDER_TARGET : 0u),
+				.BindFlags = D3D11_BIND_SHADER_RESOURCE | (m_is_render_target ? D3D11_BIND_RENDER_TARGET : 0u),
 				.CPUAccessFlags = 0,
 				.MiscFlags = 0,
 			};
-			hr = gHR = d3d11_device->CreateTexture2D(&texdef, NULL, &d3d11_texture2d);
-			if (FAILED(hr))
-			{
+			hr = gHR = d3d11_device->CreateTexture2D(&texdef, nullptr, &m_texture);
+			if (FAILED(hr)) {
 				i18n_core_system_call_report_error("ID3D11Device::CreateTexture2D");
 				return false;
 			}
-			M_D3D_SET_DEBUG_NAME(d3d11_texture2d.Get(), "Texture2D_D3D11::d3d11_texture2d");
+			M_D3D_SET_DEBUG_NAME(m_texture.Get(), "Texture2D_D3D11::d3d11_texture2d");
 
 			D3D11_SHADER_RESOURCE_VIEW_DESC viewdef = {
 				.Format = texdef.Format,
 				.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D,
 				.Texture2D = D3D11_TEX2D_SRV{.MostDetailedMip = 0,.MipLevels = 1,},
 			};
-			hr = gHR = d3d11_device->CreateShaderResourceView(d3d11_texture2d.Get(), &viewdef, &d3d11_srv);
-			if (FAILED(hr))
-			{
+			hr = gHR = d3d11_device->CreateShaderResourceView(m_texture.Get(), &viewdef, &m_view);
+			if (FAILED(hr)) {
 				i18n_core_system_call_report_error("ID3D11Device::CreateShaderResourceView");
 				return false;
 			}
-			M_D3D_SET_DEBUG_NAME(d3d11_srv.Get(), "Texture2D_D3D11::d3d11_srv");
+			M_D3D_SET_DEBUG_NAME(m_view.Get(), "Texture2D_D3D11::d3d11_srv");
 		}
 
 		return true;
 	}
-
-	Texture2D_D3D11::Texture2D_D3D11(Device_D3D11* device, StringView path, bool mipmap)
-		: m_device(device)
-		, source_path(path)
-		, m_dynamic(false)
-		, m_premul(false)
-		, m_mipmap(mipmap)
-		, m_isrt(false)
-	{
-		if (path.empty())
-			throw std::runtime_error("Texture2D::Texture2D(1)");
-		if (!createResource())
-			throw std::runtime_error("Texture2D::Texture2D(2)");
-		m_device->addEventListener(this);
+}
+namespace Core::Graphics {
+	bool Device_D3D11::createTextureFromFile(StringView const path, bool const mipmap, ITexture2D** const pp_texture) {
+		*pp_texture = nullptr;
+		ScopeObject<Direct3D11::Texture2D> buffer;
+		buffer.attach(new Direct3D11::Texture2D);
+		if (!buffer->initialize(this, path, mipmap)) {
+			return false;
+		}
+		*pp_texture = buffer.detach();
+		return true;
 	}
-	Texture2D_D3D11::Texture2D_D3D11(Device_D3D11* device, Vector2U size, bool rendertarget)
-		: m_device(device)
-		, m_size(size)
-		, m_dynamic(true)
-		, m_premul(rendertarget) // 默认是预乘 alpha 的
-		, m_mipmap(false)
-		, m_isrt(rendertarget)
-	{
-		if (!createResource())
-			throw std::runtime_error("Texture2D::Texture2D");
-		if (!m_isrt)
-			m_device->addEventListener(this);
-	}
-	Texture2D_D3D11::~Texture2D_D3D11()
-	{
-		if (!m_isrt)
-			m_device->removeEventListener(this);
+	//bool createTextureFromMemory(void const* data, size_t size, bool mipmap, ITexture2D** pp_texture);
+	bool Device_D3D11::createTexture(Vector2U const size, ITexture2D** const pp_texture) {
+		*pp_texture = nullptr;
+		ScopeObject<Direct3D11::Texture2D> buffer;
+		buffer.attach(new Direct3D11::Texture2D);
+		if (!buffer->initialize(this, size, false)) {
+			return false;
+		}
+		*pp_texture = buffer.detach();
+		return true;
 	}
 }
 
@@ -1704,9 +1691,10 @@ namespace Core::Graphics::Direct3D11 {
 		assert(device);
 		assert(size.x > 0 && size.y > 0);
 		m_device = device;
-
-		m_texture.attach(new Texture2D_D3D11(device, size, true)); // TODO: exception
-
+		m_texture.attach(new Texture2D);
+		if (!m_texture->initialize(device, size, true)) {
+			return false;
+		}
 		if (!createResource()) {
 			return false;
 		}

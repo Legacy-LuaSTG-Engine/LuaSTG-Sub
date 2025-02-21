@@ -91,14 +91,14 @@ namespace Core::Graphics
 	{
 	};
 
-	struct ITexture2D : public IObject
+	struct ITexture2D : IObject
 	{
-		virtual void* getNativeHandle() = 0;
+		virtual void* getNativeHandle() const noexcept = 0;
 
-		virtual bool isDynamic() = 0;
-		virtual bool isPremultipliedAlpha() = 0;
+		virtual bool isDynamic() const noexcept = 0;
+		virtual bool isPremultipliedAlpha() const noexcept = 0;
 		virtual void setPremultipliedAlpha(bool v) = 0;
-		virtual Vector2U getSize() = 0;
+		virtual Vector2U getSize() const noexcept = 0;
 		virtual bool setSize(Vector2U size) = 0;
 
 		virtual bool uploadPixelData(RectU rc, void const* data, uint32_t pitch) = 0;
@@ -108,7 +108,7 @@ namespace Core::Graphics
 
 		virtual void setSamplerState(ISamplerState* p_sampler) = 0;
 		// Might be nullptr
-		virtual ISamplerState* getSamplerState() = 0;
+		virtual ISamplerState* getSamplerState() const noexcept = 0;
 	};
 
 	struct IRenderTarget : IObject

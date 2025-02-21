@@ -172,55 +172,67 @@ namespace Core::Graphics
 		SamplerState_D3D11(Device_D3D11* p_device, SamplerState const& def);
 		~SamplerState_D3D11();
 	};
+}
 
-	class Texture2D_D3D11
+// Texture2D
+namespace Core::Graphics::Direct3D11 {
+	class Texture2D final
 		: public Object<ITexture2D>
 		, public IDeviceEventListener
 	{
+	public:
+		// IDeviceEventListener
+
+		void onDeviceCreate() override;
+		void onDeviceDestroy() override;
+
+		// ITexture2D
+
+		[[nodiscard]] void* getNativeHandle() const noexcept override { return m_view.Get(); }
+
+		[[nodiscard]] bool isDynamic() const noexcept override { return m_dynamic; }
+		[[nodiscard]] bool isPremultipliedAlpha() const noexcept override { return m_premul; }
+		void setPremultipliedAlpha(bool const v) override { m_premul = v; }
+		[[nodiscard]] Vector2U getSize() const noexcept override { return m_size; }
+		bool setSize(Vector2U size) override;
+
+		bool uploadPixelData(RectU rc, void const* data, uint32_t pitch) override;
+		void setPixelData(IData* p_data) override { m_data = p_data; }
+
+		bool saveToFile(StringView path) override;
+
+		void setSamplerState(ISamplerState* p_sampler) override { m_sampler = p_sampler; }
+		[[nodiscard]] ISamplerState* getSamplerState() const noexcept override { return m_sampler.get(); }
+
+		// Texture2D
+
+		Texture2D();
+		Texture2D(Texture2D const&) = delete;
+		Texture2D(Texture2D&&) = delete;
+		Texture2D& operator=(Texture2D const&) = delete;
+		Texture2D& operator=(Texture2D&&) = delete;
+		~Texture2D();
+
+		[[nodiscard]] ID3D11Texture2D* GetResource() const noexcept { return m_texture.Get(); }
+		[[nodiscard]] ID3D11ShaderResourceView* GetView() const noexcept { return m_view.Get(); }
+
+		bool initialize(Device_D3D11* device, StringView path, bool mipmap);
+		bool initialize(Device_D3D11* device, Vector2U size, bool is_render_target);
+		bool createResource();
+
 	private:
 		ScopeObject<Device_D3D11> m_device;
 		ScopeObject<ISamplerState> m_sampler;
 		ScopeObject<IData> m_data;
-		std::string source_path;
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> d3d11_texture2d;
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> d3d11_srv;
+		std::string m_source_path;
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> m_texture;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_view;
 		Vector2U m_size{};
 		bool m_dynamic{ false };
 		bool m_premul{ false };
 		bool m_mipmap{ false };
-		bool m_isrt{ false };
-
-	public:
-		void onDeviceCreate();
-		void onDeviceDestroy();
-
-		bool createResource();
-
-	public:
-		ID3D11Texture2D* GetResource() { return d3d11_texture2d.Get(); }
-		ID3D11ShaderResourceView* GetView() { return d3d11_srv.Get(); }
-
-	public:
-		void* getNativeHandle() { return d3d11_srv.Get(); }
-
-		bool isDynamic() { return m_dynamic; }
-		bool isPremultipliedAlpha() { return m_premul; }
-		void setPremultipliedAlpha(bool v) { m_premul = v; }
-		Vector2U getSize() { return m_size; }
-		bool setSize(Vector2U size);
-
-		bool uploadPixelData(RectU rc, void const* data, uint32_t pitch);
-		void setPixelData(IData* p_data) { m_data = p_data; }
-
-		bool saveToFile(StringView path);
-
-		void setSamplerState(ISamplerState* p_sampler) { m_sampler = p_sampler; }
-		ISamplerState* getSamplerState() { return m_sampler.get(); }
-
-	public:
-		Texture2D_D3D11(Device_D3D11* device, StringView path, bool mipmap);
-		Texture2D_D3D11(Device_D3D11* device, Vector2U size, bool rendertarget); // rendertarget = true 时不注册监听器，交给 RenderTarget_D3D11 控制
-		~Texture2D_D3D11();
+		bool m_is_render_target{ false };
+		bool m_initialized{ false };
 	};
 }
 
@@ -259,7 +271,7 @@ namespace Core::Graphics::Direct3D11 {
 
 	private:
 		ScopeObject<Device_D3D11> m_device;
-		ScopeObject<Texture2D_D3D11> m_texture;
+		ScopeObject<Texture2D> m_texture;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_view;
 		Microsoft::WRL::ComPtr<ID2D1Bitmap1> m_bitmap;
 		bool m_initialized{ false };
