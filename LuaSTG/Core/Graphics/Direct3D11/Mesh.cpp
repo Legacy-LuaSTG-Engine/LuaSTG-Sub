@@ -401,3 +401,15 @@ namespace Core::Graphics::Direct3D11 {
 		return true;
 	}
 }
+namespace Core::Graphics {
+	bool IMesh::create(IDevice* device, MeshOptions const& options, IMesh** output) {
+		*output = nullptr;
+		ScopeObject<Direct3D11::Mesh> buffer;
+		buffer.attach(new Direct3D11::Mesh);
+		if (!buffer->initialize(device, options)) {
+			return false;
+		}
+		*output = buffer.detach();
+		return true;
+	}
+}
