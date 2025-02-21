@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Core/Object.hpp"
 #include "Core/Graphics/Window_Win32.hpp"
 #include "Core/Graphics/Device_D3D11.hpp"
@@ -115,7 +115,7 @@ namespace Core::Graphics
 		};
 	private:
 		ScopeObject<Window_Win32> m_window;
-		ScopeObject<Device_D3D11> m_device;
+		ScopeObject<Direct3D11::Device> m_device;
 		LARGE_INTEGER     m_time = {};
 		LARGE_INTEGER     m_freq = {};
 		HWND              m_mouse_window = NULL;
@@ -134,7 +134,7 @@ namespace Core::Graphics
 	public:
 		void update();
 	public:
-		DearImGui_Backend(Window_Win32* p_window, Device_D3D11* p_device);
+		DearImGui_Backend(Window_Win32* p_window, Direct3D11::Device* p_device);
 		~DearImGui_Backend();
 	};
 }

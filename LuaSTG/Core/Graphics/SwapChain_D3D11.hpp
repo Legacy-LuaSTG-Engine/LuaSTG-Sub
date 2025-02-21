@@ -40,7 +40,7 @@ namespace Core::Graphics
 	{
 	private:
 		ScopeObject<Window_Win32> m_window;
-		ScopeObject<Device_D3D11> m_device;
+		ScopeObject<Direct3D11::Device> m_device;
 		Direct3D11::LetterBoxingRenderer m_scaling_renderer;
 
 		Microsoft::WRL::Wrappers::Event dxgi_swapchain_event;
@@ -158,9 +158,9 @@ namespace Core::Graphics
 		bool saveSnapshotToFile(StringView path);
 
 	public:
-		SwapChain_D3D11(Window_Win32* p_window, Device_D3D11* p_device);
+		SwapChain_D3D11(Window_Win32* p_window, Direct3D11::Device* p_device);
 		~SwapChain_D3D11();
 	public:
-		static bool create(Window_Win32* p_window, Device_D3D11* p_device, SwapChain_D3D11** pp_swapchain);
+		static bool create(Window_Win32* p_window, Direct3D11::Device* p_device, SwapChain_D3D11** pp_swapchain);
 	};
 }

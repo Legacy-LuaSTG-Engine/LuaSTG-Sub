@@ -112,7 +112,7 @@ namespace Core::Graphics
 			ScopeObject<Direct3D11::Texture2D> texture;
 		};
 	private:
-		ScopeObject<Device_D3D11> m_device;
+		ScopeObject<Direct3D11::Device> m_device;
 		Microsoft::WRL::ComPtr<ID3DBlob> d3d_ps_blob;
 		Microsoft::WRL::ComPtr<ID3D11ShaderReflection> d3d11_ps_reflect;
 		Microsoft::WRL::ComPtr<ID3D11PixelShader> d3d11_ps;
@@ -138,7 +138,7 @@ namespace Core::Graphics
 		bool apply(IRenderer* p_renderer);
 
 	public:
-		PostEffectShader_D3D11(Device_D3D11* p_device, StringView path, bool is_path_);
+		PostEffectShader_D3D11(Direct3D11::Device* p_device, StringView path, bool is_path_);
 		~PostEffectShader_D3D11();
 	};
 
@@ -147,7 +147,7 @@ namespace Core::Graphics
 		, IDeviceEventListener
 	{
 	private:
-		ScopeObject<Device_D3D11> m_device;
+		ScopeObject<Direct3D11::Device> m_device;
 		ScopeObject<ModelSharedComponent_D3D11> m_model_shared;
 
 		Microsoft::WRL::ComPtr<ID3D11Buffer> _fx_vbuffer;
@@ -241,11 +241,11 @@ namespace Core::Graphics
 		ISamplerState* getKnownSamplerState(SamplerState state);
 
 	public:
-		Renderer_D3D11(Device_D3D11* p_device);
+		Renderer_D3D11(Direct3D11::Device* p_device);
 		~Renderer_D3D11();
 
 	public:
-		static bool create(Device_D3D11* p_device, Renderer_D3D11** pp_renderer);
+		static bool create(Direct3D11::Device* p_device, Renderer_D3D11** pp_renderer);
 	};
 }
 

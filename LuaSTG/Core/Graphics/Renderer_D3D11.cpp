@@ -140,7 +140,7 @@ namespace Core::Graphics
 		return true;
 	}
 
-	PostEffectShader_D3D11::PostEffectShader_D3D11(Device_D3D11* p_device, StringView path, bool is_path_)
+	PostEffectShader_D3D11::PostEffectShader_D3D11(Direct3D11::Device* p_device, StringView path, bool is_path_)
 		: m_device(p_device)
 		, source(path)
 		, is_path(is_path_)
@@ -1685,7 +1685,7 @@ namespace Core::Graphics
 		return _sampler_state[IDX(state)].get();
 	}
 
-	Renderer_D3D11::Renderer_D3D11(Device_D3D11* p_device)
+	Renderer_D3D11::Renderer_D3D11(Direct3D11::Device* p_device)
 		: m_device(p_device)
 	{
 		if (!createResources())
@@ -1697,7 +1697,7 @@ namespace Core::Graphics
 		m_device->removeEventListener(this);
 	}
 
-	bool Renderer_D3D11::create(Device_D3D11* p_device, Renderer_D3D11** pp_renderer)
+	bool Renderer_D3D11::create(Direct3D11::Device* p_device, Renderer_D3D11** pp_renderer)
 	{
 		try
 		{
@@ -1715,7 +1715,7 @@ namespace Core::Graphics
 	{
 		try
 		{
-			*pp_renderer = new Renderer_D3D11(static_cast<Device_D3D11*>(p_device));
+			*pp_renderer = new Renderer_D3D11(static_cast<Direct3D11::Device*>(p_device));
 			return true;
 		}
 		catch (...)

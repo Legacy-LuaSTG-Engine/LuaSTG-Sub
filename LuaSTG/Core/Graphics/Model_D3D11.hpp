@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Core/Object.hpp"
 #include "Core/Graphics/Renderer.hpp"
 #include "Core/Graphics/Device_D3D11.hpp"
@@ -14,7 +14,7 @@ namespace Core::Graphics
     {
         friend class Model_D3D11;
     private:
-        ScopeObject<Device_D3D11> m_device;
+        ScopeObject<Direct3D11::Device> m_device;
 
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> default_image;
         Microsoft::WRL::ComPtr<ID3D11SamplerState> default_sampler;
@@ -68,7 +68,7 @@ namespace Core::Graphics
         void onDeviceDestroy();
 
     public:
-        ModelSharedComponent_D3D11(Device_D3D11* p_device);
+        ModelSharedComponent_D3D11(Direct3D11::Device* p_device);
         ~ModelSharedComponent_D3D11();
     };
 
@@ -77,7 +77,7 @@ namespace Core::Graphics
         , public IDeviceEventListener
     {
     private:
-        ScopeObject<Device_D3D11> m_device;
+        ScopeObject<Direct3D11::Device> m_device;
         ScopeObject<ModelSharedComponent_D3D11> shared_;
 
         DirectX::XMMATRIX t_scale_;
@@ -181,7 +181,7 @@ namespace Core::Graphics
         void draw(IRenderer::FogState fog);
 
     public:
-        Model_D3D11(Device_D3D11* p_device, ModelSharedComponent_D3D11* p_model_shared, StringView path);
+        Model_D3D11(Direct3D11::Device* p_device, ModelSharedComponent_D3D11* p_model_shared, StringView path);
         ~Model_D3D11();
     };
 }

@@ -18,10 +18,8 @@
 #define HRCheckCallReturnBool(x) if (FAILED(hr)) { i18n_core_system_call_report_error(x); assert(false); return false; }
 #define HRCheckCallNoAssertReturnBool(x) if (FAILED(hr)) { i18n_core_system_call_report_error(x); return false; }
 
-namespace Core::Graphics
-{
-	static std::string bytes_count_to_string(DWORDLONG size)
-	{
+namespace {
+	std::string bytes_count_to_string(DWORDLONG size) {
 		int count = 0;
 		char buffer[64] = {};
 		if (size < 1024llu) // B
@@ -42,35 +40,26 @@ namespace Core::Graphics
 		}
 		return std::string(buffer, count);
 	}
-	inline std::string_view adapter_flags_to_string(UINT const flags)
-	{
-		if ((flags & DXGI_ADAPTER_FLAG_REMOTE))
-		{
-			if (flags & DXGI_ADAPTER_FLAG_SOFTWARE)
-			{
+	std::string_view adapter_flags_to_string(UINT const flags) {
+		if ((flags & DXGI_ADAPTER_FLAG_REMOTE)) {
+			if (flags & DXGI_ADAPTER_FLAG_SOFTWARE) {
 				return i18n("DXGI_adapter_type_software_remote");
 			}
-			else
-			{
+			else {
 				return i18n("DXGI_adapter_type_hardware_remote");
 			}
 		}
-		else
-		{
-			if (flags & DXGI_ADAPTER_FLAG_SOFTWARE)
-			{
+		else {
+			if (flags & DXGI_ADAPTER_FLAG_SOFTWARE) {
 				return i18n("DXGI_adapter_type_software");
 			}
-			else
-			{
+			else {
 				return i18n("DXGI_adapter_type_hardware");
 			}
 		}
 	}
-	inline std::string_view d3d_feature_level_to_string(D3D_FEATURE_LEVEL level)
-	{
-		switch (level)
-		{
+	std::string_view d3d_feature_level_to_string(D3D_FEATURE_LEVEL level) {
+		switch (level) {
 		case D3D_FEATURE_LEVEL_12_2: return "12.2";
 		case D3D_FEATURE_LEVEL_12_1: return "12.1";
 		case D3D_FEATURE_LEVEL_12_0: return "12.0";
@@ -84,51 +73,40 @@ namespace Core::Graphics
 		default: return i18n("unknown");
 		}
 	}
-	inline std::string multi_plane_overlay_flags_to_string(UINT const flags)
-	{
+	std::string multi_plane_overlay_flags_to_string(UINT const flags) {
 		std::string buffer;
-		if (flags & DXGI_OVERLAY_SUPPORT_FLAG_DIRECT)
-		{
+		if (flags & DXGI_OVERLAY_SUPPORT_FLAG_DIRECT) {
 			buffer.append("直接呈现");
 		}
-		if (flags & DXGI_OVERLAY_SUPPORT_FLAG_SCALING)
-		{
+		if (flags & DXGI_OVERLAY_SUPPORT_FLAG_SCALING) {
 			if (!buffer.empty()) buffer.append("、");
 			buffer.append("缩放呈现");
 		}
-		if (buffer.empty())
-		{
+		if (buffer.empty()) {
 			buffer.append("无");
 		}
 		return buffer;
 	};
-	inline std::string hardware_composition_flags_to_string(UINT const flags)
-	{
+	std::string hardware_composition_flags_to_string(UINT const flags) {
 		std::string buffer;
-		if (flags & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_FULLSCREEN)
-		{
+		if (flags & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_FULLSCREEN) {
 			buffer.append("全屏");
 		}
-		if (flags & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_WINDOWED)
-		{
+		if (flags & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_WINDOWED) {
 			if (!buffer.empty()) buffer.append("、");
 			buffer.append("窗口");
 		}
-		if (flags & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_CURSOR_STRETCHED)
-		{
+		if (flags & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_CURSOR_STRETCHED) {
 			if (!buffer.empty()) buffer.append("、");
 			buffer.append("鼠标指针缩放");
 		}
-		if (buffer.empty())
-		{
+		if (buffer.empty()) {
 			buffer.append("无");
 		}
 		return buffer;
 	};
-	inline std::string_view rotation_to_string(DXGI_MODE_ROTATION const rot)
-	{
-		switch (rot)
-		{
+	std::string_view rotation_to_string(DXGI_MODE_ROTATION const rot) {
+		switch (rot) {
 		default:
 		case DXGI_MODE_ROTATION_UNSPECIFIED: return "未知";
 		case DXGI_MODE_ROTATION_IDENTITY: return "无";
@@ -137,35 +115,26 @@ namespace Core::Graphics
 		case DXGI_MODE_ROTATION_ROTATE270: return "270 度";
 		}
 	};
-	inline std::string_view threading_feature_to_string(D3D11_FEATURE_DATA_THREADING const v)
-	{
-		if (v.DriverConcurrentCreates)
-		{
-			if (v.DriverCommandLists)
-			{
+	std::string_view threading_feature_to_string(D3D11_FEATURE_DATA_THREADING const v) {
+		if (v.DriverConcurrentCreates) {
+			if (v.DriverCommandLists) {
 				return "异步资源创建、多线程命令队列";
 			}
-			else
-			{
+			else {
 				return "异步资源创建";
 			}
 		}
-		else
-		{
-			if (v.DriverCommandLists)
-			{
+		else {
+			if (v.DriverCommandLists) {
 				return "多线程命令队列";
 			}
-			else
-			{
+			else {
 				return "不支持";
 			}
 		}
 	};
-	inline std::string_view d3d_feature_level_to_maximum_texture2d_size_string(D3D_FEATURE_LEVEL const level)
-	{
-		switch (level)
-		{
+	std::string_view d3d_feature_level_to_maximum_texture2d_size_string(D3D_FEATURE_LEVEL const level) {
+		switch (level) {
 		case D3D_FEATURE_LEVEL_12_2:
 		case D3D_FEATURE_LEVEL_12_1:
 		case D3D_FEATURE_LEVEL_12_0:
@@ -183,15 +152,18 @@ namespace Core::Graphics
 			return "2048x2048";
 		}
 	}
-	inline std::string_view renderer_architecture_to_string(BOOL const TileBasedDeferredRenderer)
-	{
+	std::string_view renderer_architecture_to_string(BOOL const TileBasedDeferredRenderer) {
 		if (TileBasedDeferredRenderer)
 			return "Tile Based Deferred Renderer (TBDR)";
 		else
 			return "Immediate Mode Rendering (IMR)";
 	}
+}
 
-	Device_D3D11::Device_D3D11(std::string_view const& preferred_gpu)
+// Device
+namespace Core::Graphics::Direct3D11
+{
+	Device::Device(std::string_view const& preferred_gpu)
 		: preferred_adapter_name(preferred_gpu)
 	{
 		// 创建图形组件
@@ -212,7 +184,7 @@ namespace Core::Graphics
 
 		i18n_log_info("[core].Device_D3D11.created_graphic_components");
 	}
-	Device_D3D11::~Device_D3D11()
+	Device::~Device()
 	{
 		// 清理对象
 		destroyDWrite(); // 长生存期
@@ -224,7 +196,7 @@ namespace Core::Graphics
 		assert(m_eventobj_late.size() == 0);
 	}
 
-	bool Device_D3D11::createDXGIFactory()
+	bool Device::createDXGIFactory()
 	{
 		HRESULT hr = S_OK;
 
@@ -238,11 +210,11 @@ namespace Core::Graphics
 
 		return true;
 	}
-	void Device_D3D11::destroyDXGIFactory()
+	void Device::destroyDXGIFactory()
 	{
 		dxgi_factory.Reset();
 	}
-	bool Device_D3D11::selectAdapter()
+	bool Device::selectAdapter()
 	{
 		HRESULT hr = S_OK;
 
@@ -444,7 +416,7 @@ namespace Core::Graphics
 
 		return true;
 	}
-	bool Device_D3D11::createDXGI()
+	bool Device::createDXGI()
 	{
 		HRESULT hr = S_OK;
 
@@ -559,7 +531,7 @@ namespace Core::Graphics
 		
 		return true;
 	}
-	void Device_D3D11::destroyDXGI()
+	void Device::destroyDXGI()
 	{
 		destroyDXGIFactory();
 		dxgi_adapter.Reset();
@@ -569,7 +541,7 @@ namespace Core::Graphics
 
 		dxgi_support_tearing = FALSE;
 	}
-	bool Device_D3D11::createD3D11()
+	bool Device::createD3D11()
 	{
 		HRESULT hr = S_OK;
 
@@ -813,7 +785,7 @@ namespace Core::Graphics
 
 		return true;
 	}
-	void Device_D3D11::destroyD3D11()
+	void Device::destroyD3D11()
 	{
 		tracy_d3d11_context_destroy(tracy_context);
 		tracy_context = nullptr;
@@ -825,7 +797,7 @@ namespace Core::Graphics
 		d3d11_devctx.Reset();
 		d3d11_devctx1.Reset();
 	}
-	bool Device_D3D11::createWIC()
+	bool Device::createWIC()
 	{
 		HRESULT hr = S_OK;
 
@@ -855,12 +827,12 @@ namespace Core::Graphics
 		
 		return true;
 	}
-	void Device_D3D11::destroyWIC()
+	void Device::destroyWIC()
 	{
 		wic_factory.Reset();
 		wic_factory2.Reset();
 	}
-	bool Device_D3D11::createD2D1()
+	bool Device::createD2D1()
 	{
 		HRESULT hr = S_OK;
 
@@ -897,13 +869,13 @@ namespace Core::Graphics
 
 		return true;
 	}
-	void Device_D3D11::destroyD2D1()
+	void Device::destroyD2D1()
 	{
 		d2d1_factory.Reset();
 		d2d1_device.Reset();
 		d2d1_devctx.Reset();
 	}
-	bool Device_D3D11::createDWrite()
+	bool Device::createDWrite()
 	{
 		HRESULT hr = S_OK;
 
@@ -916,11 +888,11 @@ namespace Core::Graphics
 
 		return true;
 	}
-	void Device_D3D11::destroyDWrite()
+	void Device::destroyDWrite()
 	{
 		dwrite_factory.Reset();
 	}
-	bool Device_D3D11::doDestroyAndCreate()
+	bool Device::doDestroyAndCreate()
 	{
 		dispatchEvent(EventType::DeviceDestroy);
 
@@ -942,7 +914,7 @@ namespace Core::Graphics
 
 		return true;
 	}
-	bool Device_D3D11::testAdapterPolicy()
+	bool Device::testAdapterPolicy()
 	{
 		if (preferred_adapter_name.empty()) return true; // default GPU
 
@@ -993,7 +965,7 @@ namespace Core::Graphics
 
 		return false;
 	}
-	bool Device_D3D11::testMultiPlaneOverlay()
+	bool Device::testMultiPlaneOverlay()
 	{
 		HRESULT hr = S_OK;
 
@@ -1061,7 +1033,7 @@ namespace Core::Graphics
 		return true;
 	}
 
-	bool Device_D3D11::handleDeviceLost()
+	bool Device::handleDeviceLost()
 	{
 		if (d3d11_device)
 		{
@@ -1069,7 +1041,7 @@ namespace Core::Graphics
 		}
 		return doDestroyAndCreate();
 	}
-	bool Device_D3D11::validateDXGIFactory()
+	bool Device::validateDXGIFactory()
 	{
 		if (!dxgi_factory->IsCurrent())
 		{
@@ -1121,7 +1093,7 @@ namespace Core::Graphics
 		return true;
 	}
 
-	void Device_D3D11::dispatchEvent(EventType t)
+	void Device::dispatchEvent(EventType t)
 	{
 		// 回调
 		m_is_dispatch_event = true;
@@ -1150,7 +1122,7 @@ namespace Core::Graphics
 		m_eventobj_late.clear();
 	}
 
-	void Device_D3D11::addEventListener(IDeviceEventListener* e)
+	void Device::addEventListener(IDeviceEventListener* e)
 	{
 		removeEventListener(e);
 		if (m_is_dispatch_event)
@@ -1162,7 +1134,7 @@ namespace Core::Graphics
 			m_eventobj.emplace_back(e);
 		}
 	}
-	void Device_D3D11::removeEventListener(IDeviceEventListener* e)
+	void Device::removeEventListener(IDeviceEventListener* e)
 	{
 		if (m_is_dispatch_event)
 		{
@@ -1186,7 +1158,7 @@ namespace Core::Graphics
 		}
 	}
 
-	DeviceMemoryUsageStatistics Device_D3D11::getMemoryUsageStatistics()
+	DeviceMemoryUsageStatistics Device::getMemoryUsageStatistics()
 	{
 		DeviceMemoryUsageStatistics data = {};
 		Microsoft::WRL::ComPtr<IDXGIAdapter3> adapter;
@@ -1211,16 +1183,16 @@ namespace Core::Graphics
 		return data;
 	}
 
-	bool Device_D3D11::recreate()
+	bool Device::recreate()
 	{
 		return doDestroyAndCreate();
 	}
 
-	bool Device_D3D11::create(StringView preferred_gpu, Device_D3D11** p_device)
+	bool Device::create(StringView preferred_gpu, Device** p_device)
 	{
 		try
 		{
-			*p_device = new Device_D3D11(preferred_gpu);
+			*p_device = new Device(preferred_gpu);
 			return true;
 		}
 		catch (...)
@@ -1229,16 +1201,14 @@ namespace Core::Graphics
 			return false;
 		}
 	}
-
-	bool IDevice::create(StringView preferred_gpu, IDevice** p_device)
-	{
-		try
-		{
-			*p_device = new Device_D3D11(preferred_gpu);
+}
+namespace Core::Graphics {
+	bool IDevice::create(StringView preferred_gpu, IDevice** p_device) {
+		try {
+			*p_device = new Direct3D11::Device(preferred_gpu);
 			return true;
 		}
-		catch (...)
-		{
+		catch (...) {
 			*p_device = nullptr;
 			return false;
 		}
@@ -1263,7 +1233,7 @@ namespace Core::Graphics::Direct3D11 {
 		}
 	}
 
-	bool SamplerState::initialize(Device_D3D11* const device, Core::Graphics::SamplerState const& info) {
+	bool SamplerState::initialize(Device* const device, Core::Graphics::SamplerState const& info) {
 		assert(device);
 		m_device = device;
 		m_info = info;
@@ -1362,11 +1332,11 @@ namespace Core::Graphics::Direct3D11 {
 		return true;
 	}
 }
-namespace Core::Graphics {
-	bool Device_D3D11::createSamplerState(SamplerState const& info, ISamplerState** pp_sampler) {
+namespace Core::Graphics::Direct3D11 {
+	bool Device::createSamplerState(Core::Graphics::SamplerState const& info, ISamplerState** pp_sampler) {
 		*pp_sampler = nullptr;
-		ScopeObject<Direct3D11::SamplerState> buffer;
-		buffer.attach(new Direct3D11::SamplerState);
+		ScopeObject<SamplerState> buffer;
+		buffer.attach(new SamplerState);
 		if (!buffer->initialize(this, info)) {
 			return false;
 		}
@@ -1441,7 +1411,7 @@ namespace Core::Graphics::Direct3D11 {
 		}
 	}
 
-	bool Texture2D::initialize(Device_D3D11* const device, StringView const path, bool const mipmap) {
+	bool Texture2D::initialize(Device* const device, StringView const path, bool const mipmap) {
 		assert(device);
 		assert(!path.empty());
 		m_device = device;
@@ -1454,7 +1424,7 @@ namespace Core::Graphics::Direct3D11 {
 		m_device->addEventListener(this);
 		return true;
 	}
-	bool Texture2D::initialize(Device_D3D11* const device, Vector2U const size, bool const is_render_target) {
+	bool Texture2D::initialize(Device* const device, Vector2U const size, bool const is_render_target) {
 		assert(device);
 		assert(size.x > 0 && size.y > 0);
 		m_device = device;
@@ -1632,11 +1602,11 @@ namespace Core::Graphics::Direct3D11 {
 		return true;
 	}
 }
-namespace Core::Graphics {
-	bool Device_D3D11::createTextureFromFile(StringView const path, bool const mipmap, ITexture2D** const pp_texture) {
+namespace Core::Graphics::Direct3D11 {
+	bool Device::createTextureFromFile(StringView const path, bool const mipmap, ITexture2D** const pp_texture) {
 		*pp_texture = nullptr;
-		ScopeObject<Direct3D11::Texture2D> buffer;
-		buffer.attach(new Direct3D11::Texture2D);
+		ScopeObject<Texture2D> buffer;
+		buffer.attach(new Texture2D);
 		if (!buffer->initialize(this, path, mipmap)) {
 			return false;
 		}
@@ -1644,10 +1614,10 @@ namespace Core::Graphics {
 		return true;
 	}
 	//bool createTextureFromMemory(void const* data, size_t size, bool mipmap, ITexture2D** pp_texture);
-	bool Device_D3D11::createTexture(Vector2U const size, ITexture2D** const pp_texture) {
+	bool Device::createTexture(Vector2U const size, ITexture2D** const pp_texture) {
 		*pp_texture = nullptr;
-		ScopeObject<Direct3D11::Texture2D> buffer;
-		buffer.attach(new Direct3D11::Texture2D);
+		ScopeObject<Texture2D> buffer;
+		buffer.attach(new Texture2D);
 		if (!buffer->initialize(this, size, false)) {
 			return false;
 		}
@@ -1688,7 +1658,7 @@ namespace Core::Graphics::Direct3D11 {
 		return createResource();
 	}
 
-	bool RenderTarget::initialize(Device_D3D11* const device, Vector2U const size) {
+	bool RenderTarget::initialize(Device* const device, Vector2U const size) {
 		assert(device);
 		assert(size.x > 0 && size.y > 0);
 		m_device = device;
@@ -1758,11 +1728,11 @@ namespace Core::Graphics::Direct3D11 {
 		return true;
 	}
 }
-namespace Core::Graphics {
-	bool Device_D3D11::createRenderTarget(Vector2U const size, IRenderTarget** const pp_rt) {
+namespace Core::Graphics::Direct3D11 {
+	bool Device::createRenderTarget(Vector2U const size, IRenderTarget** const pp_rt) {
 		*pp_rt = nullptr;
-		ScopeObject<Direct3D11::RenderTarget> buffer;
-		buffer.attach(new Direct3D11::RenderTarget);
+		ScopeObject<RenderTarget> buffer;
+		buffer.attach(new RenderTarget);
 		if (!buffer->initialize(this, size)) {
 			return false;
 		}
@@ -1797,7 +1767,7 @@ namespace Core::Graphics::Direct3D11 {
 		}
 	}
 
-	bool DepthStencilBuffer::initialize(Device_D3D11* const device, Vector2U const size) {
+	bool DepthStencilBuffer::initialize(Device* const device, Vector2U const size) {
 		assert(device);
 		assert(size.x > 0 && size.y > 0);
 		m_device = device;
@@ -1851,11 +1821,11 @@ namespace Core::Graphics::Direct3D11 {
 		return true;
 	}
 }
-namespace Core::Graphics {
-	bool Device_D3D11::createDepthStencilBuffer(Vector2U const size, IDepthStencilBuffer** const pp_ds) {
+namespace Core::Graphics::Direct3D11 {
+	bool Device::createDepthStencilBuffer(Vector2U const size, IDepthStencilBuffer** const pp_ds) {
 		*pp_ds = nullptr;
-		ScopeObject<Direct3D11::DepthStencilBuffer> buffer;
-		buffer.attach(new Direct3D11::DepthStencilBuffer);
+		ScopeObject<DepthStencilBuffer> buffer;
+		buffer.attach(new DepthStencilBuffer);
 		if (!buffer->initialize(this, size)) {
 			return false;
 		}
@@ -1904,7 +1874,7 @@ namespace Core::Graphics::Direct3D11 {
 		}
 	}
 
-	bool Buffer::initialize(Device_D3D11* const device, uint8_t const type, uint32_t const size_in_bytes) {
+	bool Buffer::initialize(Device* const device, uint8_t const type, uint32_t const size_in_bytes) {
 		assert(device);
 		assert(type == 1 || type == 2);
 		assert(size_in_bytes > 0);
@@ -1932,21 +1902,21 @@ namespace Core::Graphics::Direct3D11 {
 		return true;
 	}
 }
-namespace Core::Graphics {
-	bool Device_D3D11::createVertexBuffer(uint32_t const size_in_bytes, IBuffer** const output) {
+namespace Core::Graphics::Direct3D11 {
+	bool Device::createVertexBuffer(uint32_t const size_in_bytes, IBuffer** const output) {
 		*output = nullptr;
-		ScopeObject<Direct3D11::Buffer> buffer;
-		buffer.attach(new Direct3D11::Buffer);
+		ScopeObject<Buffer> buffer;
+		buffer.attach(new Buffer);
 		if (!buffer->initialize(this, 1, size_in_bytes)) {
 			return false;
 		}
 		*output = buffer.detach();
 		return true;
 	}
-	bool Device_D3D11::createIndexBuffer(uint32_t const size_in_bytes, IBuffer** const output) {
+	bool Device::createIndexBuffer(uint32_t const size_in_bytes, IBuffer** const output) {
 		*output = nullptr;
-		ScopeObject<Direct3D11::Buffer> buffer;
-		buffer.attach(new Direct3D11::Buffer);
+		ScopeObject<Buffer> buffer;
+		buffer.attach(new Buffer);
 		if (!buffer->initialize(this, 2, size_in_bytes)) {
 			return false;
 		}

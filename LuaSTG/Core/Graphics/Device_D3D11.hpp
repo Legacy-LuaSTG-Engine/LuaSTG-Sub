@@ -6,9 +6,10 @@
 #include "Platform/RuntimeLoader/Direct2D1.hpp"
 #include "Platform/RuntimeLoader/DirectWrite.hpp"
 
-namespace Core::Graphics
-{
-	class Device_D3D11 : public Object<IDevice>
+// Device
+namespace Core::Graphics::Direct3D11 {
+	class Device final
+		: public Object<IDevice>
 	{
 	private:
 		// DXGI
@@ -42,7 +43,7 @@ namespace Core::Graphics
 		Microsoft::WRL::ComPtr<IWICImagingFactory2> wic_factory2;
 
 		// Direct2D 1
-		
+
 		Platform::RuntimeLoader::Direct2D1 d2d1_loader;
 		Microsoft::WRL::ComPtr<ID2D1Factory1> d2d1_factory;
 		Microsoft::WRL::ComPtr<ID2D1Device> d2d1_device;
@@ -105,8 +106,7 @@ namespace Core::Graphics
 		bool validateDXGIFactory();
 
 	private:
-		enum class EventType
-		{
+		enum class EventType {
 			DeviceCreate,
 			DeviceDestroy,
 		};
@@ -140,14 +140,14 @@ namespace Core::Graphics
 		bool createRenderTarget(Vector2U size, IRenderTarget** pp_rt);
 		bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** pp_ds);
 
-		bool createSamplerState(SamplerState const& info, ISamplerState** pp_sampler);
+		bool createSamplerState(Core::Graphics::SamplerState const& info, ISamplerState** pp_sampler);
 
 	public:
-		Device_D3D11(std::string_view const& preferred_gpu = "");
-		~Device_D3D11();
+		Device(std::string_view const& preferred_gpu = "");
+		~Device();
 
 	public:
-		static bool create(StringView preferred_gpu, Device_D3D11** p_device);
+		static bool create(StringView preferred_gpu, Device** p_device);
 	};
 }
 
@@ -176,11 +176,11 @@ namespace Core::Graphics::Direct3D11 {
 
 		[[nodiscard]] ID3D11SamplerState* GetState() const noexcept { return m_sampler.Get(); }
 
-		bool initialize(Device_D3D11* device, Core::Graphics::SamplerState const& info);
+		bool initialize(Device* device, Core::Graphics::SamplerState const& info);
 		bool createResource();
 
 	private:
-		ScopeObject<Device_D3D11> m_device;
+		ScopeObject<Device> m_device;
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> m_sampler;
 		Core::Graphics::SamplerState m_info{};
 		bool m_initialized{ false };
@@ -229,12 +229,12 @@ namespace Core::Graphics::Direct3D11 {
 		[[nodiscard]] ID3D11Texture2D* GetResource() const noexcept { return m_texture.Get(); }
 		[[nodiscard]] ID3D11ShaderResourceView* GetView() const noexcept { return m_view.Get(); }
 
-		bool initialize(Device_D3D11* device, StringView path, bool mipmap);
-		bool initialize(Device_D3D11* device, Vector2U size, bool is_render_target);
+		bool initialize(Device* device, StringView path, bool mipmap);
+		bool initialize(Device* device, Vector2U size, bool is_render_target);
 		bool createResource();
 
 	private:
-		ScopeObject<Device_D3D11> m_device;
+		ScopeObject<Device> m_device;
 		ScopeObject<ISamplerState> m_sampler;
 		ScopeObject<IData> m_data;
 		std::string m_source_path;
@@ -279,11 +279,11 @@ namespace Core::Graphics::Direct3D11 {
 
 		[[nodiscard]] ID3D11RenderTargetView* GetView() const noexcept { return m_view.Get(); }
 
-		bool initialize(Device_D3D11* device, Vector2U size);
+		bool initialize(Device* device, Vector2U size);
 		bool createResource();
 
 	private:
-		ScopeObject<Device_D3D11> m_device;
+		ScopeObject<Device> m_device;
 		ScopeObject<Texture2D> m_texture;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_view;
 		Microsoft::WRL::ComPtr<ID2D1Bitmap1> m_bitmap;
@@ -321,11 +321,11 @@ namespace Core::Graphics::Direct3D11 {
 		[[nodiscard]] ID3D11Texture2D* GetResource() const noexcept { return m_texture.Get(); }
 		[[nodiscard]] ID3D11DepthStencilView* GetView() const noexcept { return m_view.Get(); }
 
-		bool initialize(Device_D3D11* device, Vector2U size);
+		bool initialize(Device* device, Vector2U size);
 		bool createResource();
 
 	private:
-		ScopeObject<Device_D3D11> m_device;
+		ScopeObject<Device> m_device;
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> m_texture;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_view;
 		Vector2U m_size{};
@@ -359,11 +359,11 @@ namespace Core::Graphics::Direct3D11 {
 		Buffer& operator=(Buffer&&) = delete;
 	 	~Buffer();
 
-		bool initialize(Device_D3D11* device, uint8_t type, uint32_t size_in_bytes);
+		bool initialize(Device* device, uint8_t type, uint32_t size_in_bytes);
 		bool createResources();
 
 	private:
-		ScopeObject<Device_D3D11> m_device;
+		ScopeObject<Device> m_device;
 		wil::com_ptr_nothrow<ID3D11Buffer> m_buffer;
 		uint32_t m_size_in_bytes{};
 		uint8_t m_type{}; // 0-unknown, 1-vertex, 2-index

@@ -528,7 +528,7 @@ namespace Core::Graphics
 		}
 	}
 
-	DearImGui_Backend::DearImGui_Backend(Window_Win32* p_window, Device_D3D11* p_device)
+	DearImGui_Backend::DearImGui_Backend(Window_Win32* p_window, Direct3D11::Device* p_device)
 		: m_window(p_window)
 		, m_device(p_device)
 	{
