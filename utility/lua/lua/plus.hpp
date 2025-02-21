@@ -10,7 +10,7 @@ namespace lua {
 		int32_t value{};
 
 		stack_index_t() = default;
-		stack_index_t(int32_t const index) : value(index) {}
+		constexpr stack_index_t(int32_t const index) : value(index) {}
 
 		bool operator>(int32_t const right) const {
 			return value > right;
@@ -198,6 +198,26 @@ namespace lua {
 			push_value(key);
 			push_value(value);
 			lua_settable(L, index.value);
+		}
+
+		template<typename T>
+		T get_map_value(stack_index_t const map_index, std::string_view const& key) const {
+			constexpr stack_index_t top_index(-1);
+			push_value(key);
+			lua_gettable(L, map_index.value);
+			auto const result = get_value<T>(top_index);
+			pop_value();
+			return result;
+		}
+
+		template<typename T>
+		T get_map_value(stack_index_t const map_index, std::string_view const& key, T const& default_value) const {
+			constexpr stack_index_t top_index(-1);
+			push_value(key);
+			lua_gettable(L, map_index.value);
+			auto const result = get_value<T>(top_index, default_value);
+			pop_value();
+			return result;
 		}
 
 		// lua -> C
