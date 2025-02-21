@@ -1,7 +1,7 @@
 #pragma once
 #include "Core/Object.hpp"
 #include "Core/Graphics/Renderer.hpp"
-#include "Core/Graphics/Device_D3D11.hpp"
+#include "Core/Graphics/Direct3D11/Device.hpp"
 #include "tiny_gltf.h"
 
 #define IDX(x) (size_t)static_cast<uint8_t>(x)

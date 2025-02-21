@@ -1,5 +1,8 @@
 #include "Core/Graphics/Renderer_D3D11.hpp"
 #include "Core/Graphics/Model_D3D11.hpp"
+#include "Core/Graphics/Direct3D11/SamplerState.hpp"
+#include "Core/Graphics/Direct3D11/RenderTarget.hpp"
+#include "Core/Graphics/Direct3D11/DepthStencilBuffer.hpp"
 
 #define IDX(x) (size_t)static_cast<uint8_t>(x)
 

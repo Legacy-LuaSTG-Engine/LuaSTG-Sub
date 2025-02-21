@@ -31,8 +31,6 @@ set(Core_SRC
     Core/Graphics/Format.hpp
     Core/Graphics/Format_D3D11.hpp
     Core/Graphics/Device.hpp
-    Core/Graphics/Device_D3D11.hpp
-    Core/Graphics/Device_D3D11.cpp
     Core/Graphics/SwapChain.hpp
     Core/Graphics/SwapChain_D3D11.hpp
     Core/Graphics/SwapChain_D3D11.cpp
@@ -51,8 +49,22 @@ set(Core_SRC
     Core/Graphics/Font_D3D11.cpp
     Core/Graphics/DearImGui_Win32_D3D11.hpp
     Core/Graphics/DearImGui_Win32_D3D11.cpp
+
+    Core/Graphics/Direct3D11/Buffer.hpp
+    Core/Graphics/Direct3D11/Buffer.cpp
+    Core/Graphics/Direct3D11/Texture2D.hpp
+    Core/Graphics/Direct3D11/Texture2D.cpp
+    Core/Graphics/Direct3D11/SamplerState.hpp
+    Core/Graphics/Direct3D11/SamplerState.cpp
+    Core/Graphics/Direct3D11/RenderTarget.hpp
+    Core/Graphics/Direct3D11/RenderTarget.cpp
+    Core/Graphics/Direct3D11/DepthStencilBuffer.hpp
+    Core/Graphics/Direct3D11/DepthStencilBuffer.cpp
+    Core/Graphics/Direct3D11/Device.hpp
+    Core/Graphics/Direct3D11/Device.cpp
     Core/Graphics/Direct3D11/LetterBoxingRenderer.hpp
     Core/Graphics/Direct3D11/LetterBoxingRenderer.cpp
+
     Core/Application.hpp
     Core/ApplicationModel.hpp
     Core/ApplicationModel_Win32.hpp

@@ -2,7 +2,7 @@
 #include "Core/Object.hpp"
 #include "Core/ApplicationModel.hpp"
 #include "Core/Graphics/Window_Win32.hpp"
-#include "Core/Graphics/Device_D3D11.hpp"
+#include "Core/Graphics/Direct3D11/Device.hpp"
 #include "Core/Graphics/SwapChain_D3D11.hpp"
 #include "Core/Graphics/Renderer_D3D11.hpp"
 #include "Core/Audio/Device_XAUDIO2.hpp"
