@@ -24,11 +24,11 @@ namespace Core::Graphics
 
 	inline ID3D11SamplerState* get_sampler(ISamplerState* p_sampler)
 	{
-		return static_cast<SamplerState_D3D11*>(p_sampler)->GetState();
+		return static_cast<Direct3D11::SamplerState*>(p_sampler)->GetState();
 	}
 	inline ID3D11SamplerState* get_sampler(ScopeObject<ISamplerState>& p_sampler)
 	{
-		return static_cast<SamplerState_D3D11*>(p_sampler.get())->GetState();
+		return static_cast<Direct3D11::SamplerState*>(p_sampler.get())->GetState();
 	}
 }
 
@@ -642,7 +642,7 @@ namespace Core::Graphics
 	}
 	void Renderer_D3D11::setSamplerState(SamplerState state, UINT index)
 	{
-		ID3D11SamplerState* d3d11_sampler = static_cast<SamplerState_D3D11*>(_sampler_state[IDX(state)].get())->GetState();
+		ID3D11SamplerState* d3d11_sampler = static_cast<Direct3D11::SamplerState*>(_sampler_state[IDX(state)].get())->GetState();
 		m_device->GetD3D11DeviceContext()->PSSetSamplers(index, 1, &d3d11_sampler);
 	}
 	bool Renderer_D3D11::uploadVertexIndexBufferFromDrawList()
@@ -682,7 +682,7 @@ namespace Core::Graphics
 	{
 		ISamplerState* sampler_from_texture = texture ? texture->getSamplerState() : nullptr;
 		ISamplerState* sampler = sampler_from_texture ? sampler_from_texture : _sampler_state[IDX(_state_set.sampler_state)].get();
-		ID3D11SamplerState* d3d11_sampler = static_cast<SamplerState_D3D11*>(sampler)->GetState();
+		ID3D11SamplerState* d3d11_sampler = static_cast<Direct3D11::SamplerState*>(sampler)->GetState();
 		m_device->GetD3D11DeviceContext()->PSSetSamplers(0, 1, &d3d11_sampler);
 	}
 	void Renderer_D3D11::bindTextureAlphaType(ITexture2D* texture)

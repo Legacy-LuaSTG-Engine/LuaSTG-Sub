@@ -140,7 +140,7 @@ namespace Core::Graphics
 		bool createRenderTarget(Vector2U size, IRenderTarget** pp_rt);
 		bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** pp_ds);
 
-		bool createSamplerState(SamplerState const& def, ISamplerState** pp_sampler);
+		bool createSamplerState(SamplerState const& info, ISamplerState** pp_sampler);
 
 	public:
 		Device_D3D11(std::string_view const& preferred_gpu = "");
@@ -149,28 +149,41 @@ namespace Core::Graphics
 	public:
 		static bool create(StringView preferred_gpu, Device_D3D11** p_device);
 	};
+}
 
-	class SamplerState_D3D11
+// SamplerState
+namespace Core::Graphics::Direct3D11 {
+	class SamplerState final
 		: public Object<ISamplerState>
-		, public IDeviceEventListener
-	{
-	private:
-		ScopeObject<Device_D3D11> m_device;
-		SamplerState m_info;
-		Microsoft::WRL::ComPtr<ID3D11SamplerState> d3d11_sampler;
+		, public IDeviceEventListener {
 
 	public:
-		void onDeviceCreate();
-		void onDeviceDestroy();
+		// IDeviceEventListener
 
+		void onDeviceCreate() override;
+		void onDeviceDestroy() override;
+
+		// ISamplerState
+
+		// SamplerState
+
+		SamplerState();
+		SamplerState(SamplerState const&) = delete;
+		SamplerState(SamplerState&&) = delete;
+		SamplerState& operator=(SamplerState const&) = delete;
+		SamplerState& operator=(SamplerState&&) = delete;
+		~SamplerState();
+
+		[[nodiscard]] ID3D11SamplerState* GetState() const noexcept { return m_sampler.Get(); }
+
+		bool initialize(Device_D3D11* device, Core::Graphics::SamplerState const& info);
 		bool createResource();
 
-	public:
-		ID3D11SamplerState* GetState() { return d3d11_sampler.Get(); }
-
-	public:
-		SamplerState_D3D11(Device_D3D11* p_device, SamplerState const& def);
-		~SamplerState_D3D11();
+	private:
+		ScopeObject<Device_D3D11> m_device;
+		Microsoft::WRL::ComPtr<ID3D11SamplerState> m_sampler;
+		Core::Graphics::SamplerState m_info{};
+		bool m_initialized{ false };
 	};
 }
 

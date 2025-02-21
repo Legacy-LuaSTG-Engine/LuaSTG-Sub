@@ -87,7 +87,7 @@ namespace Core::Graphics
 		{}
 	};
 
-	struct ISamplerState : public IObject
+	struct ISamplerState : IObject
 	{
 	};
 
@@ -159,7 +159,7 @@ namespace Core::Graphics
 		virtual bool createRenderTarget(Vector2U size, IRenderTarget** pp_rt) = 0;
 		virtual bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** pp_ds) = 0;
 
-		virtual bool createSamplerState(SamplerState const& def, ISamplerState** pp_sampler) = 0;
+		virtual bool createSamplerState(SamplerState const& info, ISamplerState** pp_sampler) = 0;
 
 		static bool create(StringView preferred_gpu, IDevice** p_device);
 	};

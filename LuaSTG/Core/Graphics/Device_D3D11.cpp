@@ -1216,20 +1216,6 @@ namespace Core::Graphics
 		return doDestroyAndCreate();
 	}
 
-	bool Device_D3D11::createSamplerState(SamplerState const& def, ISamplerState** pp_sampler)
-	{
-		try
-		{
-			*pp_sampler = new SamplerState_D3D11(this, def);
-			return true;
-		}
-		catch (...)
-		{
-			*pp_sampler = nullptr;
-			return false;
-		}
-	}
-
 	bool Device_D3D11::create(StringView preferred_gpu, Device_D3D11** p_device)
 	{
 		try
@@ -1259,20 +1245,36 @@ namespace Core::Graphics
 	}
 }
 
-namespace Core::Graphics
-{
-	// SamplerState
-
-	void SamplerState_D3D11::onDeviceCreate()
-	{
-		createResource();
+// SamplerState
+namespace Core::Graphics::Direct3D11 {
+	void SamplerState::onDeviceCreate() {
+		if (m_initialized) {
+			createResource();
+		}
 	}
-	void SamplerState_D3D11::onDeviceDestroy()
-	{
-		d3d11_sampler.Reset();
+	void SamplerState::onDeviceDestroy() {
+		m_sampler.Reset();
 	}
 
-	bool SamplerState_D3D11::createResource()
+	SamplerState::SamplerState() = default;
+	SamplerState::~SamplerState() {
+		if (m_initialized && m_device) {
+			m_device->removeEventListener(this);
+		}
+	}
+
+	bool SamplerState::initialize(Device_D3D11* const device, Core::Graphics::SamplerState const& info) {
+		assert(device);
+		m_device = device;
+		m_info = info;
+		if (!createResource()) {
+			return false;
+		}
+		m_initialized = true;
+		m_device->addEventListener(this);
+		return true;
+	}
+	bool SamplerState::createResource()
 	{
 		HRESULT hr = S_OK;
 
@@ -1349,28 +1351,27 @@ namespace Core::Graphics
 
 	#undef makeColor
 
-		hr = gHR = m_device->GetD3D11Device()->CreateSamplerState(&desc, &d3d11_sampler);
+		hr = gHR = m_device->GetD3D11Device()->CreateSamplerState(&desc, &m_sampler);
 		if (FAILED(hr))
 		{
 			i18n_core_system_call_report_error("ID3D11Device::CreateSamplerState");
 			return false;
 		}
-		M_D3D_SET_DEBUG_NAME(d3d11_sampler.Get(), "SamplerState_D3D11::d3d11_sampler");
+		M_D3D_SET_DEBUG_NAME(m_sampler.Get(), "SamplerState_D3D11::d3d11_sampler");
 
 		return true;
 	}
-
-	SamplerState_D3D11::SamplerState_D3D11(Device_D3D11* p_device, SamplerState const& def)
-		: m_device(p_device)
-		, m_info(def)
-	{
-		if (!createResource())
-			throw std::runtime_error("SamplerState_D3D11::SamplerState_D3D11");
-		m_device->addEventListener(this);
-	}
-	SamplerState_D3D11::~SamplerState_D3D11()
-	{
-		m_device->removeEventListener(this);
+}
+namespace Core::Graphics {
+	bool Device_D3D11::createSamplerState(SamplerState const& info, ISamplerState** pp_sampler) {
+		*pp_sampler = nullptr;
+		ScopeObject<Direct3D11::SamplerState> buffer;
+		buffer.attach(new Direct3D11::SamplerState);
+		if (!buffer->initialize(this, info)) {
+			return false;
+		}
+		*pp_sampler = buffer.detach();
+		return true;
 	}
 }
 
