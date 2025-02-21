@@ -29,7 +29,6 @@ set(Core_SRC
     Core/Graphics/Window_Win32.hpp
     Core/Graphics/Window_Win32.cpp
     Core/Graphics/Format.hpp
-    Core/Graphics/Format_D3D11.hpp
     Core/Graphics/Device.hpp
     Core/Graphics/SwapChain.hpp
     Core/Graphics/SwapChain_D3D11.hpp

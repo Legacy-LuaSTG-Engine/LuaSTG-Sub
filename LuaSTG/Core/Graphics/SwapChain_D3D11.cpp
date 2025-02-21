@@ -1,5 +1,4 @@
 #include "Core/Graphics/SwapChain_D3D11.hpp"
-#include "Core/Graphics/Format_D3D11.hpp"
 #include "Core/i18n.hpp"
 #include "core/Configuration.hpp"
 #include "Platform/WindowsVersion.hpp"
