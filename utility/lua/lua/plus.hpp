@@ -200,6 +200,12 @@ namespace lua {
 			lua_settable(L, index.value);
 		}
 
+		void push_map_value(stack_index_t const map_index, std::string_view const& key) const {
+			constexpr stack_index_t top_index(-1);
+			push_value(key);
+			lua_gettable(L, map_index.value);
+		}
+
 		template<typename T>
 		T get_map_value(stack_index_t const map_index, std::string_view const& key) const {
 			constexpr stack_index_t top_index(-1);
