@@ -111,16 +111,16 @@ namespace Core::Graphics
 		virtual ISamplerState* getSamplerState() = 0;
 	};
 
-	struct IRenderTarget : public IObject
+	struct IRenderTarget : IObject
 	{
-		virtual void* getNativeHandle() = 0;
-		virtual void* getNativeBitmapHandle() = 0;
+		virtual void* getNativeHandle() const noexcept = 0;
+		virtual void* getNativeBitmapHandle() const noexcept = 0;
 
 		virtual bool setSize(Vector2U size) = 0;
-		virtual ITexture2D* getTexture() = 0;
+		virtual ITexture2D* getTexture() const noexcept = 0;
 	};
 
-	struct IDepthStencilBuffer : public IObject
+	struct IDepthStencilBuffer : IObject
 	{
 		virtual void* getNativeHandle() const noexcept = 0;
 
@@ -133,7 +133,7 @@ namespace Core::Graphics
 		virtual bool unmap() = 0;
 	};
 
-	struct IDevice : public IObject
+	struct IDevice : IObject
 	{
 		virtual void addEventListener(IDeviceEventListener* e) = 0;
 		virtual void removeEventListener(IDeviceEventListener* e) = 0;

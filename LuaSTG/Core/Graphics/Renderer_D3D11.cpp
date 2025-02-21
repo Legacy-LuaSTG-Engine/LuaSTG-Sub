@@ -910,7 +910,7 @@ namespace Core::Graphics
 		batchFlush();
 		auto* ctx = m_device->GetD3D11DeviceContext();
 		assert(ctx);
-		ID3D11RenderTargetView* rtv[1] = { p_rt ? static_cast<RenderTarget_D3D11*>(p_rt)->GetView() : nullptr };
+		ID3D11RenderTargetView* rtv[1] = { p_rt ? static_cast<Direct3D11::RenderTarget*>(p_rt)->GetView() : nullptr };
 		ID3D11DepthStencilView* dsv = p_ds ? static_cast<Direct3D11::DepthStencilBuffer*>(p_ds)->GetView() : nullptr;
 		ctx->OMSetRenderTargets(1, rtv, dsv);
 	}

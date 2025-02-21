@@ -222,36 +222,47 @@ namespace Core::Graphics
 		Texture2D_D3D11(Device_D3D11* device, Vector2U size, bool rendertarget); // rendertarget = true 时不注册监听器，交给 RenderTarget_D3D11 控制
 		~Texture2D_D3D11();
 	};
+}
 
-	class RenderTarget_D3D11
+// RenderTarget
+namespace Core::Graphics::Direct3D11 {
+	class RenderTarget final
 		: public Object<IRenderTarget>
 		, public IDeviceEventListener
 	{
+	public:
+		// IDeviceEventListener
+
+		void onDeviceCreate() override;
+		void onDeviceDestroy() override;
+
+		// IRenderTarget
+
+		[[nodiscard]] void* getNativeHandle() const noexcept override { return m_view.Get(); }
+		[[nodiscard]] void* getNativeBitmapHandle() const noexcept override { return m_bitmap.Get(); }
+		bool setSize(Vector2U size) override;
+		[[nodiscard]] ITexture2D* getTexture() const noexcept override { return m_texture.get(); }
+
+		// RenderTarget
+
+		RenderTarget();
+		RenderTarget(RenderTarget const&) = delete;
+		RenderTarget(RenderTarget&&) = delete;
+		RenderTarget& operator=(RenderTarget const&) = delete;
+		RenderTarget& operator=(RenderTarget&&) = delete;
+		~RenderTarget();
+
+		[[nodiscard]] ID3D11RenderTargetView* GetView() const noexcept { return m_view.Get(); }
+
+		bool initialize(Device_D3D11* device, Vector2U size);
+		bool createResource();
+
 	private:
 		ScopeObject<Device_D3D11> m_device;
 		ScopeObject<Texture2D_D3D11> m_texture;
-		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> d3d11_rtv;
-		Microsoft::WRL::ComPtr<ID2D1Bitmap1> d2d1_bitmap_target;
-
-	public:
-		void onDeviceCreate();
-		void onDeviceDestroy();
-
-		bool createResource();
-
-	public:
-		ID3D11RenderTargetView* GetView() { return d3d11_rtv.Get(); }
-
-	public:
-		void* getNativeHandle() { return d3d11_rtv.Get(); }
-		void* getNativeBitmapHandle() { return d2d1_bitmap_target.Get(); }
-
-		bool setSize(Vector2U size);
-		ITexture2D* getTexture() { return *m_texture; }
-
-	public:
-		RenderTarget_D3D11(Device_D3D11* device, Vector2U size);
-		~RenderTarget_D3D11();
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_view;
+		Microsoft::WRL::ComPtr<ID2D1Bitmap1> m_bitmap;
+		bool m_initialized{ false };
 	};
 }
 

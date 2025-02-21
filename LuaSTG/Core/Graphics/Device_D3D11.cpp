@@ -1244,21 +1244,6 @@ namespace Core::Graphics
 		}
 	}
 
-	bool Device_D3D11::createRenderTarget(Vector2U size, IRenderTarget** pp_rt)
-	{
-		try
-		{
-			*pp_rt = new RenderTarget_D3D11(this, size);
-			return true;
-		}
-		catch (...)
-		{
-			*pp_rt = nullptr;
-			return false;
-		}
-	}
-	
-
 	bool Device_D3D11::createSamplerState(SamplerState const& def, ISamplerState** pp_sampler)
 	{
 		try
@@ -1681,31 +1666,55 @@ namespace Core::Graphics
 		if (!m_isrt)
 			m_device->removeEventListener(this);
 	}
+}
 
-	// RenderTarget
-
-	bool RenderTarget_D3D11::setSize(Vector2U size)
-	{
-		d3d11_rtv.Reset();
-		d2d1_bitmap_target.Reset();
-		if (!m_texture->setSize(size)) return false;
-		return createResource();
+// RenderTarget
+namespace Core::Graphics::Direct3D11 {
+	void RenderTarget::onDeviceCreate() {
+		if (m_initialized) {
+			// 这里不能直接调用 texture 的 onDeviceCreate，因为要判断创建是否成功
+			if (m_texture->createResource()) {
+				createResource();
+			}
+		}
 	}
-
-	void RenderTarget_D3D11::onDeviceCreate()
-	{
-		if (m_texture->createResource())
-			createResource();
-	}
-	void RenderTarget_D3D11::onDeviceDestroy()
-	{
-		d3d11_rtv.Reset();
-		d2d1_bitmap_target.Reset();
+	void RenderTarget::onDeviceDestroy() {
+		m_view.Reset();
+		m_bitmap.Reset();
 		m_texture->onDeviceDestroy();
 	}
 
-	bool RenderTarget_D3D11::createResource()
-	{
+	RenderTarget::RenderTarget() = default;
+	RenderTarget::~RenderTarget() {
+		if (m_initialized && m_device) {
+			m_device->removeEventListener(this);
+		}
+	}
+
+	bool RenderTarget::setSize(Vector2U const size) {
+		m_view.Reset();
+		m_bitmap.Reset();
+		if (!m_texture->setSize(size)) {
+			return false;
+		}
+		return createResource();
+	}
+
+	bool RenderTarget::initialize(Device_D3D11* const device, Vector2U const size) {
+		assert(device);
+		assert(size.x > 0 && size.y > 0);
+		m_device = device;
+
+		m_texture.attach(new Texture2D_D3D11(device, size, true)); // TODO: exception
+
+		if (!createResource()) {
+			return false;
+		}
+		m_initialized = true;
+		m_device->addEventListener(this);
+		return true;
+	}
+	bool RenderTarget::createResource() {
 		HRESULT hr = S_OK;
 
 		auto* d3d11_device = m_device->GetD3D11Device();
@@ -1728,24 +1737,22 @@ namespace Core::Graphics
 			.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D,
 			.Texture2D = D3D11_TEX2D_RTV{.MipSlice = 0,},
 		};
-		hr = gHR = d3d11_device->CreateRenderTargetView(m_texture->GetResource(), &rtvdef, &d3d11_rtv);
-		if (FAILED(hr))
-		{
+		hr = gHR = d3d11_device->CreateRenderTargetView(m_texture->GetResource(), &rtvdef, &m_view);
+		if (FAILED(hr)) {
 			i18n_core_system_call_report_error("ID3D11Device::CreateRenderTargetView");
 			return false;
 		}
-		M_D3D_SET_DEBUG_NAME(d3d11_rtv.Get(), "RenderTarget_D3D11::d3d11_rtv");
+		M_D3D_SET_DEBUG_NAME(m_view.Get(), "RenderTarget_D3D11::d3d11_rtv");
 
 		// 创建D2D1位图
 
 		Microsoft::WRL::ComPtr<IDXGISurface> dxgi_surface;
 		hr = gHR = m_texture->GetResource()->QueryInterface(IID_PPV_ARGS(&dxgi_surface));
-		if (FAILED(hr))
-		{
+		if (FAILED(hr)) {
 			i18n_core_system_call_report_error("ID3D11Texture2D::QueryInterface -> IDXGISurface");
 			return false;
 		}
-		
+
 		D2D1_BITMAP_PROPERTIES1 bitmap_info = {
 			.pixelFormat = {
 				.format = DXGI_FORMAT_B8G8R8A8_UNORM,
@@ -1754,25 +1761,24 @@ namespace Core::Graphics
 			.dpiX = 0.0f,
 			.dpiY = 0.0f,
 			.bitmapOptions = D2D1_BITMAP_OPTIONS_TARGET,
-			.colorContext = NULL,
+			.colorContext = nullptr,
 		};
-		HRGet = d2d1_device_context->CreateBitmapFromDxgiSurface(dxgi_surface.Get(), &bitmap_info, &d2d1_bitmap_target);
+		HRGet = d2d1_device_context->CreateBitmapFromDxgiSurface(dxgi_surface.Get(), &bitmap_info, &m_bitmap);
 		HRCheckCallReturnBool("ID3D11DeviceContext::CreateBitmapFromDxgiSurface");
 
 		return true;
 	}
-
-	RenderTarget_D3D11::RenderTarget_D3D11(Device_D3D11* device, Vector2U size)
-		: m_device(device)
-	{
-		m_texture.attach(new Texture2D_D3D11(device, size, true));
-		if (!createResource())
-			throw std::runtime_error("RenderTarget::RenderTarget");
-		m_device->addEventListener(this);
-	}
-	RenderTarget_D3D11::~RenderTarget_D3D11()
-	{
-		m_device->removeEventListener(this);
+}
+namespace Core::Graphics {
+	bool Device_D3D11::createRenderTarget(Vector2U const size, IRenderTarget** const pp_rt) {
+		*pp_rt = nullptr;
+		ScopeObject<Direct3D11::RenderTarget> buffer;
+		buffer.attach(new Direct3D11::RenderTarget);
+		if (!buffer->initialize(this, size)) {
+			return false;
+		}
+		*pp_rt = buffer.detach();
+		return true;
 	}
 }
 
@@ -1797,7 +1803,9 @@ namespace Core::Graphics::Direct3D11 {
 
 	DepthStencilBuffer::DepthStencilBuffer() = default;
 	DepthStencilBuffer::~DepthStencilBuffer() {
-		m_device->removeEventListener(this);
+		if (m_initialized && m_device) {
+			m_device->removeEventListener(this);
+		}
 	}
 
 	bool DepthStencilBuffer::initialize(Device_D3D11* const device, Vector2U const size) {
@@ -1902,7 +1910,9 @@ namespace Core::Graphics::Direct3D11 {
 
 	Buffer::Buffer() = default;
 	Buffer::~Buffer() {
-		m_device->removeEventListener(this);
+		if (m_initialized && m_device) {
+			m_device->removeEventListener(this);
+		}
 	}
 
 	bool Buffer::initialize(Device_D3D11* const device, uint8_t const type, uint32_t const size_in_bytes) {
