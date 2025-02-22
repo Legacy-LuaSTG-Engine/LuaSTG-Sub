@@ -108,9 +108,6 @@ namespace {
 #define REPORT_READ_ONLY_RETURN_BOOL if (m_validation && m_read_only) { reportReadOnly(); assert(false); return false; }
 
 namespace Core::Graphics::Direct3D11 {
-	// 警告：这里使用了一些黑科技，因此仅适配小端序平台
-	// 原因：std::memcpy 复制时，从低字节开始复制，高字节可能会被丢弃
-
 	void Mesh::onDeviceCreate() {
 		if (m_initialized) {
 			createResources();
