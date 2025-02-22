@@ -54,4 +54,12 @@ namespace Core::Graphics {
 
 		static bool create(IDevice* device, MeshOptions const& options, IMesh** output);
 	};
+
+	struct IMeshRenderer : IObject {
+		virtual void setTransform(void* transform) = 0;
+		virtual void setTexture(ITexture2D* texture) = 0;
+		virtual void draw(IMesh* mesh) = 0;
+
+		static bool create(IDevice* device, IMeshRenderer** output);
+	};
 }
