@@ -5,7 +5,7 @@
 #include "ft2build.h"
 #include FT_FREETYPE_H
 
-namespace Core::Graphics {
+namespace Core::Graphics::Common {
 	struct Image2D {
 		static constexpr uint32_t texture_size{ 1024 };
 		uint32_t width{ texture_size };

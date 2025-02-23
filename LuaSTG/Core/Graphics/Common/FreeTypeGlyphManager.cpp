@@ -81,12 +81,12 @@ namespace {
 #define FT_LIBRARY (FreeTypeLibrarySingleton::getInstance().get())
 }
 
-namespace Core::Graphics {
+namespace Core::Graphics::Common {
 	Image2D::Image2D() {
 		std::memset(data, 0, sizeof(data));
 	}
 }
-namespace Core::Graphics {
+namespace Core::Graphics::Common {
 	// IDeviceEventListener
 
 	void FreeTypeGlyphManager::onDeviceCreate() {
@@ -430,7 +430,7 @@ namespace Core::Graphics {
 namespace Core::Graphics {
 	bool IGlyphManager::create(IDevice* const p_device, TrueTypeFontInfo const* const p_arr_info, size_t const info_count, IGlyphManager** const output) {
 		try {
-			*output = new FreeTypeGlyphManager(p_device, p_arr_info, info_count);
+			*output = new Common::FreeTypeGlyphManager(p_device, p_arr_info, info_count);
 			return true;
 		} catch (...) {
 			*output = nullptr;
@@ -444,7 +444,7 @@ namespace Core::Graphics {
 #include <ShlObj.h>
 
 namespace {
-	bool findSystemFont(std::string_view name, std::string& u8_path) {
+	bool findSystemFont(std::string_view const name, std::string& u8_path) {
 		std::wstring wide_name(utf8::to_wstring(name));
 
 		// 打开注册表 HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts
