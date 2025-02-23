@@ -2,7 +2,7 @@
 #include "Core/Object.hpp"
 #include "Core/Graphics/Sprite.hpp"
 
-namespace Core::Graphics {
+namespace Core::Graphics::Common {
 	class Sprite final
 		: public Object<ISprite>
 	{
