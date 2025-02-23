@@ -2,116 +2,7 @@
 #include "utility/utf.hpp"
 
 namespace Core::Graphics::Common {
-	bool TextRenderer::drawGlyph(GlyphInfo const& glyph_info, Vector2F const& start_pos)
-	{
-		// 准备顶点
-		IRenderer::DrawVertex vert[4] = {
-			IRenderer::DrawVertex(0.0f, 0.0f, m_z, 0.0f, 0.0f, m_color.color()),
-			IRenderer::DrawVertex(0.0f, 0.0f, m_z, 0.0f, 0.0f, m_color.color()),
-			IRenderer::DrawVertex(0.0f, 0.0f, m_z, 0.0f, 0.0f, m_color.color()),
-			IRenderer::DrawVertex(0.0f, 0.0f, m_z, 0.0f, 0.0f, m_color.color()),
-		};
-
-		// 计算位置矩形
-		vert[0].x = start_pos.x + glyph_info.position.x;
-		vert[0].y = start_pos.y + glyph_info.position.y;
-		vert[1].x = vert[0].x + glyph_info.size.x;
-		vert[1].y = vert[0].y;
-		vert[2].x = vert[0].x + glyph_info.size.x;
-		vert[2].y = vert[0].y - glyph_info.size.y;
-		vert[3].x = vert[0].x;
-		vert[3].y = vert[2].y;
-
-		// 复制 UV 坐标
-		vert[0].u = glyph_info.texture_rect.a.x;
-		vert[0].v = glyph_info.texture_rect.a.y;
-		vert[1].u = glyph_info.texture_rect.b.x;
-		vert[1].v = glyph_info.texture_rect.a.y;
-		vert[2].u = glyph_info.texture_rect.b.x;
-		vert[2].v = glyph_info.texture_rect.b.y;
-		vert[3].u = glyph_info.texture_rect.a.x;
-		vert[3].v = glyph_info.texture_rect.b.y;
-
-		// 获得纹理
-		ITexture2D* p_texture = m_glyph_mgr->getTexture(glyph_info.texture_index);
-		if (!p_texture)
-		{
-			assert(false); return false;
-		}
-
-		// d3d9特有问题，uv坐标要偏移0.5
-		if constexpr (false)
-		{
-			float const u_offset_ = 0.5f / (float)p_texture->getSize().x;
-			float const v_offset_ = 0.5f / (float)p_texture->getSize().y;
-			vert[0].u += u_offset_;
-			vert[0].v += v_offset_;
-			vert[1].u += u_offset_;
-			vert[1].v += v_offset_;
-			vert[2].u += u_offset_;
-			vert[2].v += v_offset_;
-			vert[3].u += u_offset_;
-			vert[3].v += v_offset_;
-		}
-
-		// 绘图
-		m_renderer->setTexture(p_texture);
-		m_renderer->drawQuad(vert);
-
-		return true;
-	}
-	bool TextRenderer::drawGlyphInSpace(GlyphInfo const& glyph_info, Vector3F const& start_pos, Vector3F const& right_vec, Vector3F const& down_vec)
-	{
-		// 准备顶点
-		IRenderer::DrawVertex vert[4] = {
-			IRenderer::DrawVertex(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, m_color.color()),
-			IRenderer::DrawVertex(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, m_color.color()),
-			IRenderer::DrawVertex(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, m_color.color()),
-			IRenderer::DrawVertex(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, m_color.color()),
-		};
-
-		// 计算位置矩形
-		Vector3F const position = start_pos + (right_vec * glyph_info.position.x) - (down_vec * glyph_info.position.y); // 这里要变成 up_vec
-		Vector3F const right_top = position + (right_vec * glyph_info.size.x); // 向右
-		Vector3F const right_bottom = position + (right_vec * glyph_info.size.x) + (down_vec * glyph_info.size.y); // 字形右下角顶点位置
-		Vector3F const left_bottom = position + (down_vec * glyph_info.size.y); // 向下
-		vert[0].x = position.x;
-		vert[0].y = position.y;
-		vert[0].z = position.z;
-		vert[1].x = right_top.x;
-		vert[1].y = right_top.y;
-		vert[1].z = right_top.z;
-		vert[2].x = right_bottom.x;
-		vert[2].y = right_bottom.y;
-		vert[2].z = right_bottom.z;
-		vert[3].x = left_bottom.x;
-		vert[3].y = left_bottom.y;
-		vert[3].z = left_bottom.z;
-
-		// 复制 UV 坐标
-		vert[0].u = glyph_info.texture_rect.a.x;
-		vert[0].v = glyph_info.texture_rect.a.y;
-		vert[1].u = glyph_info.texture_rect.b.x;
-		vert[1].v = glyph_info.texture_rect.a.y;
-		vert[2].u = glyph_info.texture_rect.b.x;
-		vert[2].v = glyph_info.texture_rect.b.y;
-		vert[3].u = glyph_info.texture_rect.a.x;
-		vert[3].v = glyph_info.texture_rect.b.y;
-
-		// 获得纹理
-		ITexture2D* p_texture = m_glyph_mgr->getTexture(glyph_info.texture_index);
-		if (!p_texture)
-		{
-			assert(false); return false;
-		}
-
-		// 绘图
-		m_renderer->setTexture(p_texture);
-		m_renderer->drawQuad(vert);
-
-		return true;
-	}
-
+	
 	RectF TextRenderer::getTextBoundary(StringView str)
 	{
 		if (!m_glyph_mgr)
@@ -472,6 +363,112 @@ namespace Core::Graphics::Common {
 	{
 	}
 	TextRenderer::~TextRenderer() = default;
+
+	bool TextRenderer::drawGlyph(GlyphInfo const& glyph_info, Vector2F const& start_pos) {
+		// 准备顶点
+		IRenderer::DrawVertex vert[4] = {
+			IRenderer::DrawVertex(0.0f, 0.0f, m_z, 0.0f, 0.0f, m_color.color()),
+			IRenderer::DrawVertex(0.0f, 0.0f, m_z, 0.0f, 0.0f, m_color.color()),
+			IRenderer::DrawVertex(0.0f, 0.0f, m_z, 0.0f, 0.0f, m_color.color()),
+			IRenderer::DrawVertex(0.0f, 0.0f, m_z, 0.0f, 0.0f, m_color.color()),
+		};
+
+		// 计算位置矩形
+		vert[0].x = start_pos.x + glyph_info.position.x;
+		vert[0].y = start_pos.y + glyph_info.position.y;
+		vert[1].x = vert[0].x + glyph_info.size.x;
+		vert[1].y = vert[0].y;
+		vert[2].x = vert[0].x + glyph_info.size.x;
+		vert[2].y = vert[0].y - glyph_info.size.y;
+		vert[3].x = vert[0].x;
+		vert[3].y = vert[2].y;
+
+		// 复制 UV 坐标
+		vert[0].u = glyph_info.texture_rect.a.x;
+		vert[0].v = glyph_info.texture_rect.a.y;
+		vert[1].u = glyph_info.texture_rect.b.x;
+		vert[1].v = glyph_info.texture_rect.a.y;
+		vert[2].u = glyph_info.texture_rect.b.x;
+		vert[2].v = glyph_info.texture_rect.b.y;
+		vert[3].u = glyph_info.texture_rect.a.x;
+		vert[3].v = glyph_info.texture_rect.b.y;
+
+		// 获得纹理
+		auto const p_texture = m_glyph_mgr->getTexture(glyph_info.texture_index);
+		if (!p_texture) {
+			assert(false); return false;
+		}
+
+		// d3d9特有问题，uv坐标要偏移0.5
+		if constexpr (false) {
+			float const u_offset = 0.5f / static_cast<float>(p_texture->getSize().x);
+			float const v_offset = 0.5f / static_cast<float>(p_texture->getSize().y);
+			vert[0].u += u_offset;
+			vert[0].v += v_offset;
+			vert[1].u += u_offset;
+			vert[1].v += v_offset;
+			vert[2].u += u_offset;
+			vert[2].v += v_offset;
+			vert[3].u += u_offset;
+			vert[3].v += v_offset;
+		}
+
+		// 绘图
+		m_renderer->setTexture(p_texture);
+		m_renderer->drawQuad(vert);
+
+		return true;
+	}
+	bool TextRenderer::drawGlyphInSpace(GlyphInfo const& glyph_info, Vector3F const& start_pos, Vector3F const& right_vec, Vector3F const& down_vec) {
+		// 准备顶点
+		IRenderer::DrawVertex vert[4] = {
+			IRenderer::DrawVertex(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, m_color.color()),
+			IRenderer::DrawVertex(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, m_color.color()),
+			IRenderer::DrawVertex(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, m_color.color()),
+			IRenderer::DrawVertex(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, m_color.color()),
+		};
+
+		// 计算位置矩形
+		Vector3F const position = start_pos + (right_vec * glyph_info.position.x) - (down_vec * glyph_info.position.y); // 这里要变成 up_vec
+		Vector3F const right_top = position + (right_vec * glyph_info.size.x); // 向右
+		Vector3F const right_bottom = position + (right_vec * glyph_info.size.x) + (down_vec * glyph_info.size.y); // 字形右下角顶点位置
+		Vector3F const left_bottom = position + (down_vec * glyph_info.size.y); // 向下
+		vert[0].x = position.x;
+		vert[0].y = position.y;
+		vert[0].z = position.z;
+		vert[1].x = right_top.x;
+		vert[1].y = right_top.y;
+		vert[1].z = right_top.z;
+		vert[2].x = right_bottom.x;
+		vert[2].y = right_bottom.y;
+		vert[2].z = right_bottom.z;
+		vert[3].x = left_bottom.x;
+		vert[3].y = left_bottom.y;
+		vert[3].z = left_bottom.z;
+
+		// 复制 UV 坐标
+		vert[0].u = glyph_info.texture_rect.a.x;
+		vert[0].v = glyph_info.texture_rect.a.y;
+		vert[1].u = glyph_info.texture_rect.b.x;
+		vert[1].v = glyph_info.texture_rect.a.y;
+		vert[2].u = glyph_info.texture_rect.b.x;
+		vert[2].v = glyph_info.texture_rect.b.y;
+		vert[3].u = glyph_info.texture_rect.a.x;
+		vert[3].v = glyph_info.texture_rect.b.y;
+
+		// 获得纹理
+		auto const p_texture = m_glyph_mgr->getTexture(glyph_info.texture_index);
+		if (!p_texture) {
+			assert(false); return false;
+		}
+
+		// 绘图
+		m_renderer->setTexture(p_texture);
+		m_renderer->drawQuad(vert);
+
+		return true;
+	}
+
 }
 namespace Core::Graphics {
 	bool ITextRenderer::create(IRenderer* p_renderer, ITextRenderer** pp_textrenderer) {
