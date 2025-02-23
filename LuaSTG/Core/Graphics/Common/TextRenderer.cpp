@@ -399,20 +399,6 @@ namespace Core::Graphics::Common {
 			assert(false); return false;
 		}
 
-		// d3d9特有问题，uv坐标要偏移0.5
-		if constexpr (false) {
-			float const u_offset = 0.5f / static_cast<float>(p_texture->getSize().x);
-			float const v_offset = 0.5f / static_cast<float>(p_texture->getSize().y);
-			vert[0].u += u_offset;
-			vert[0].v += v_offset;
-			vert[1].u += u_offset;
-			vert[1].v += v_offset;
-			vert[2].u += u_offset;
-			vert[2].v += v_offset;
-			vert[3].u += u_offset;
-			vert[3].v += v_offset;
-		}
-
 		// 绘图
 		m_renderer->setTexture(p_texture);
 		m_renderer->drawQuad(vert);
