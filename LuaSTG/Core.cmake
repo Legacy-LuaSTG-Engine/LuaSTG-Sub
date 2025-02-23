@@ -46,6 +46,8 @@ set(Core_SRC
     
     Core/Graphics/Common/Sprite.hpp
     Core/Graphics/Common/Sprite.cpp
+    Core/Graphics/Common/FreeTypeGlyphManager.hpp
+    Core/Graphics/Common/FreeTypeGlyphManager.cpp
     Core/Graphics/Font_D3D11.hpp
     Core/Graphics/Font_D3D11.cpp
 

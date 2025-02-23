@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Core/Graphics/Device.hpp"
 #include "Core/Graphics/Renderer.hpp"
 
@@ -37,7 +37,7 @@ namespace Core::Graphics
 
 		virtual bool getGlyph(uint32_t codepoint, GlyphInfo* p_ref_info, bool no_render) = 0;
 
-		static bool create(IDevice* p_device, TrueTypeFontInfo* p_arr_info, size_t info_count, IGlyphManager** pp_glyphmgr);
+		static bool create(IDevice* p_device, TrueTypeFontInfo const* p_arr_info, size_t info_count, IGlyphManager** output);
 	};
 
 	struct ITextRenderer : public IObject
