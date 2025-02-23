@@ -21,16 +21,21 @@ namespace Core::Graphics::Common
 
 		RectF getTextBoundary(StringView str) override;
 		Vector2F getTextAdvance(StringView str) override;
-		bool drawText(StringView str, Vector2F const& start, Vector2F* endout) override;
+		bool drawText(StringView str, Vector2F const& start, Vector2F* end_output) override;
 		bool drawTextInSpace(
 			StringView str,
 			Vector3F const& start, Vector3F const& right_vec, Vector3F const& down_vec,
-			Vector3F* endout) override;
+			Vector3F* end_output) override;
 
 		// TextRenderer
 
-		TextRenderer(IRenderer* p_renderer);
+		explicit TextRenderer(IRenderer* p_renderer);
+		TextRenderer(TextRenderer const&) = delete;
+		TextRenderer(TextRenderer&&) = delete;
 		~TextRenderer();
+
+		TextRenderer& operator=(TextRenderer const&) = delete;
+		TextRenderer& operator=(TextRenderer&&) = delete;
 
 	private:
 		bool drawGlyph(GlyphInfo const& glyph_info, Vector2F const& start_pos);

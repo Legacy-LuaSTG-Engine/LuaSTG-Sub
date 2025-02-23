@@ -56,12 +56,12 @@ namespace Core::Graphics
 		// 测量一个字符串绘制的前进量（受到 setScale 影响）
 		virtual Vector2F getTextAdvance(StringView str) = 0;
 		// 绘制文字，y 轴朝上（受到 setScale 影响）
-		virtual bool drawText(StringView str, Vector2F const& start, Vector2F* endout) = 0;
+		virtual bool drawText(StringView str, Vector2F const& start, Vector2F* end_output) = 0;
 		// 绘制文字，提供 3D 的移动向量，以便在空间中绘制（受到 setScale 影响）
 		virtual bool drawTextInSpace(StringView str,
 			Vector3F const& start, Vector3F const& right_vec, Vector3F const& down_vec,
-			Vector3F* endout) = 0;
+			Vector3F* end_output) = 0;
 
-		static bool create(IRenderer* p_renderer, ITextRenderer** pp_textrenderer);
+		static bool create(IRenderer* p_renderer, ITextRenderer** output);
 	};
 }

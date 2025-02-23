@@ -3,7 +3,7 @@
 
 namespace Core::Graphics::Common {
 	
-	RectF TextRenderer::getTextBoundary(StringView str)
+	RectF TextRenderer::getTextBoundary(StringView const str)
 	{
 		if (!m_glyph_mgr)
 		{
@@ -59,7 +59,7 @@ namespace Core::Graphics::Common {
 			return RectF();
 		}
 	}
-	Vector2F TextRenderer::getTextAdvance(StringView str)
+	Vector2F TextRenderer::getTextAdvance(StringView const str)
 	{
 		if (!m_glyph_mgr)
 		{
@@ -100,7 +100,7 @@ namespace Core::Graphics::Common {
 			return Vector2F();
 		}
 	}
-	bool TextRenderer::drawText(StringView str, Vector2F const& start, Vector2F* endout)
+	bool TextRenderer::drawText(StringView const str, Vector2F const& start, Vector2F* const end_output)
 	{
 		if (!m_glyph_mgr)
 		{
@@ -218,16 +218,16 @@ namespace Core::Graphics::Common {
 		}
 
 		// 返回新的笔触位置
-		if (endout)
+		if (end_output)
 		{
-			*endout = start_pos;
+			*end_output = start_pos;
 		}
 
 		return true;
 	}
-	bool TextRenderer::drawTextInSpace(StringView str,
+	bool TextRenderer::drawTextInSpace(StringView const str,
 		Vector3F const& start, Vector3F const& right_vec, Vector3F const& down_vec,
-		Vector3F* endout)
+		Vector3F* const end_output)
 	{
 		if (!m_glyph_mgr)
 		{
@@ -347,15 +347,15 @@ namespace Core::Graphics::Common {
 		}
 
 		// 返回新的笔触位置
-		if (endout)
+		if (end_output)
 		{
-			*endout = start_pos;
+			*end_output = start_pos;
 		}
 
 		return true;
 	}
 
-	TextRenderer::TextRenderer(IRenderer* p_renderer)
+	TextRenderer::TextRenderer(IRenderer* const p_renderer)
 		: m_renderer(p_renderer)
 		, m_scale(Vector2F(1.0f, 1.0f))
 		, m_z(0.5f)
@@ -457,12 +457,12 @@ namespace Core::Graphics::Common {
 
 }
 namespace Core::Graphics {
-	bool ITextRenderer::create(IRenderer* p_renderer, ITextRenderer** pp_textrenderer) {
+	bool ITextRenderer::create(IRenderer* const p_renderer, ITextRenderer** const output) {
 		try {
-			*pp_textrenderer = new Common::TextRenderer(p_renderer);
+			*output = new Common::TextRenderer(p_renderer);
 			return true;
 		} catch (...) {
-			*pp_textrenderer = nullptr;
+			*output = nullptr;
 			return false;
 		}
 	}
