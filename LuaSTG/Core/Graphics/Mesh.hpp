@@ -56,7 +56,7 @@ namespace Core::Graphics {
 	};
 
 	struct IMeshRenderer : IObject {
-		virtual void setTransform(void* transform) = 0;
+		virtual void setTransform(Matrix4F const& transform) = 0;
 		virtual void setTexture(ITexture2D* texture) = 0;
 		virtual void draw(IMesh* mesh) = 0;
 

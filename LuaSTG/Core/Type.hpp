@@ -179,6 +179,24 @@ namespace Core
 	using Vector4U = Vector4<uint32_t>;
 	using Vector4F = Vector4<float>;
 
+	// 四阶矩阵，行主序
+
+	template<typename T>
+	struct Matrix4 {
+		union {
+			struct {
+				T m11, m12, m13, m14;
+				T m21, m22, m23, m24;
+				T m31, m32, m33, m34;
+				T m41, m42, m43, m44;
+			} s;
+			Vector4<T> rows[4];
+			T m[4][4];
+		} u;
+	};
+
+	using Matrix4F = Matrix4<float>;
+
 	// 颜色（有黑魔法）
 
 	struct alignas(uint32_t) Color4B
