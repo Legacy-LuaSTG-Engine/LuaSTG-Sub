@@ -48,8 +48,8 @@ set(Core_SRC
     Core/Graphics/Common/Sprite.cpp
     Core/Graphics/Common/FreeTypeGlyphManager.hpp
     Core/Graphics/Common/FreeTypeGlyphManager.cpp
-    Core/Graphics/Font_D3D11.hpp
-    Core/Graphics/Font_D3D11.cpp
+    Core/Graphics/Common/TextRenderer.hpp
+    Core/Graphics/Common/TextRenderer.cpp
 
     Core/Graphics/Direct3D11/Constants.hpp
     Core/Graphics/Direct3D11/Buffer.hpp
