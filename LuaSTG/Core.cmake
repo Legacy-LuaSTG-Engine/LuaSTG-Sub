@@ -49,6 +49,7 @@ set(Core_SRC
     Core/Graphics/Font_D3D11.hpp
     Core/Graphics/Font_D3D11.cpp
 
+    Core/Graphics/Direct3D11/Constants.hpp
     Core/Graphics/Direct3D11/Buffer.hpp
     Core/Graphics/Direct3D11/Buffer.cpp
     Core/Graphics/Direct3D11/Texture2D.hpp

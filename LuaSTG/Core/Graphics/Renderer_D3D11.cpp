@@ -1,5 +1,6 @@
 #include "Core/Graphics/Renderer_D3D11.hpp"
 #include "Core/Graphics/Model_D3D11.hpp"
+#include "Core/Graphics/Direct3D11/Constants.hpp"
 #include "Core/Graphics/Direct3D11/SamplerState.hpp"
 #include "Core/Graphics/Direct3D11/RenderTarget.hpp"
 #include "Core/Graphics/Direct3D11/DepthStencilBuffer.hpp"
@@ -825,7 +826,7 @@ namespace Core::Graphics
 
 	bool Renderer_D3D11::beginBatch()
 	{
-		auto* ctx = m_device->GetD3D11DeviceContext();
+		auto const ctx = m_device->GetD3D11DeviceContext();
 		assert(ctx);
 
 		// [IA Stage]
@@ -836,11 +837,10 @@ namespace Core::Graphics
 
 		// [VS State]
 
-		ID3D11Buffer* mats[2] = {
-			_vp_matrix_buffer.Get(),
-			_world_matrix_buffer.Get(),
-		};
-		ctx->VSSetConstantBuffers(0, 2, mats);
+		ID3D11Buffer* const view_projection_matrix = _vp_matrix_buffer.Get();
+		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, 1, &view_projection_matrix);
+		ID3D11Buffer* const world_matrix = _world_matrix_buffer.Get();
+		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_world_matrix, 1, &world_matrix);
 
 		// [RS Stage]
 
@@ -848,11 +848,10 @@ namespace Core::Graphics
 
 		// [PS State]
 
-		ID3D11Buffer* psdata[2] = {
-			_camera_pos_buffer.Get(),
-			_fog_data_buffer.Get(),
-		};
-		ctx->PSSetConstantBuffers(0, 2, psdata);
+		ID3D11Buffer* const camera_position = _camera_pos_buffer.Get();
+		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_camera_position, 1, &camera_position);
+		ID3D11Buffer* const fog_parameter = _fog_data_buffer.Get();
+		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_fog_parameter, 1, &fog_parameter);
 
 		// [OM Stage]
 
@@ -1391,8 +1390,8 @@ namespace Core::Graphics
 		}
 
 		ctx->VSSetShader(_vertex_shader[IDX(FogState::Disable)].Get(), NULL, 0);
-		ID3D11Buffer* p_mvp[1] = {_vp_matrix_buffer.Get()};
-		ctx->VSSetConstantBuffers(0, 1, p_mvp);
+		ID3D11Buffer* const view_projection_matrix = _vp_matrix_buffer.Get();
+		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, 1, &view_projection_matrix);
 
 		// [Stage RS]
 
@@ -1442,8 +1441,11 @@ namespace Core::Graphics
 			std::memcpy(res_.pData, ps_cbdata, sizeof(ps_cbdata));
 			ctx->Unmap(_fog_data_buffer.Get(), 0);
 		}
-		ID3D11Buffer* p_psdata[2] = { _user_float_buffer.Get(), _fog_data_buffer.Get() };
-		ctx->PSSetConstantBuffers(0, 2, p_psdata);
+		ID3D11Buffer* const user_data = _user_float_buffer.Get();
+		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_user_data, 1, &user_data);
+		ID3D11Buffer* const fog_parameter = _fog_data_buffer.Get();
+		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_fog_parameter, 1, &fog_parameter);
+
 		ctx->PSSetShader(static_cast<PostEffectShader_D3D11*>(p_effect)->GetPS(), NULL, 0);
 
 		ID3D11ShaderResourceView* p_srvs[5] = {};
@@ -1579,8 +1581,8 @@ namespace Core::Graphics
 		}
 
 		ctx->VSSetShader(_vertex_shader[IDX(FogState::Disable)].Get(), NULL, 0);
-		ID3D11Buffer* p_mvp[1] = { _vp_matrix_buffer.Get() };
-		ctx->VSSetConstantBuffers(0, 1, p_mvp);
+		ID3D11Buffer* const view_projection_matrix = _vp_matrix_buffer.Get();
+		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, 1, &view_projection_matrix);
 
 		// [Stage RS]
 
