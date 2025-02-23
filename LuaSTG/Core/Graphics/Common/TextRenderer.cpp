@@ -33,7 +33,7 @@ namespace Core::Graphics::Common {
 		vert[3].v = glyph_info.texture_rect.b.y;
 
 		// 获得纹理
-		ITexture2D* p_texture = m_glyphmgr->getTexture(glyph_info.texture_index);
+		ITexture2D* p_texture = m_glyph_mgr->getTexture(glyph_info.texture_index);
 		if (!p_texture)
 		{
 			assert(false); return false;
@@ -99,7 +99,7 @@ namespace Core::Graphics::Common {
 		vert[3].v = glyph_info.texture_rect.b.y;
 
 		// 获得纹理
-		ITexture2D* p_texture = m_glyphmgr->getTexture(glyph_info.texture_index);
+		ITexture2D* p_texture = m_glyph_mgr->getTexture(glyph_info.texture_index);
 		if (!p_texture)
 		{
 			assert(false); return false;
@@ -114,7 +114,7 @@ namespace Core::Graphics::Common {
 
 	RectF TextRenderer::getTextBoundary(StringView str)
 	{
-		if (!m_glyphmgr)
+		if (!m_glyph_mgr)
 		{
 			return RectF();
 		}
@@ -127,7 +127,7 @@ namespace Core::Graphics::Common {
 			Vector2F(FLT_MAX, -FLT_MAX),
 			Vector2F(-FLT_MAX, FLT_MAX));
 		bool is_updated = false;
-		float const line_height = m_glyphmgr->getLineHeight();
+		float const line_height = m_glyph_mgr->getLineHeight();
 
 		char32_t code_ = 0;
 		while (reader_(code_))
@@ -138,7 +138,7 @@ namespace Core::Graphics::Common {
 				start_pos.y -= line_height;
 				continue;
 			}
-			if (m_glyphmgr->getGlyph(code_, &glyph_info, true))
+			if (m_glyph_mgr->getGlyph(code_, &glyph_info, true))
 			{
 				// 更新包围盒
 				float const left = start_pos.x + glyph_info.position.x;
@@ -170,7 +170,7 @@ namespace Core::Graphics::Common {
 	}
 	Vector2F TextRenderer::getTextAdvance(StringView str)
 	{
-		if (!m_glyphmgr)
+		if (!m_glyph_mgr)
 		{
 			return Vector2F();
 		}
@@ -180,7 +180,7 @@ namespace Core::Graphics::Common {
 		GlyphInfo glyph_info = {};
 		Vector2F start_pos;
 		bool is_updated = false;
-		float const line_height = m_glyphmgr->getLineHeight();
+		float const line_height = m_glyph_mgr->getLineHeight();
 
 		char32_t code_ = 0;
 		while (reader_(code_))
@@ -191,7 +191,7 @@ namespace Core::Graphics::Common {
 				start_pos.y -= line_height;
 				continue;
 			}
-			if (m_glyphmgr->getGlyph(code_, &glyph_info, true))
+			if (m_glyph_mgr->getGlyph(code_, &glyph_info, true))
 			{
 				is_updated = true;
 				start_pos += glyph_info.advance;
@@ -211,17 +211,17 @@ namespace Core::Graphics::Common {
 	}
 	bool TextRenderer::drawText(StringView str, Vector2F const& start, Vector2F* endout)
 	{
-		if (!m_glyphmgr)
+		if (!m_glyph_mgr)
 		{
 			return false;
 		}
 
 		// 首先，缓存所有字形
-		if (!m_glyphmgr->cacheString(str))
+		if (!m_glyph_mgr->cacheString(str))
 		{
 			//return false; // 找不到的就忽略
 		}
-		if (!m_glyphmgr->flush())
+		if (!m_glyph_mgr->flush())
 		{
 			return false;
 		}
@@ -229,11 +229,11 @@ namespace Core::Graphics::Common {
 		// 绘制参数
 		GlyphInfo glyph_info = {};
 		Vector2F start_pos = start; // 笔触位置
-		float const line_height = m_glyphmgr->getLineHeight() * m_scale.y; // 行高
+		float const line_height = m_glyph_mgr->getLineHeight() * m_scale.y; // 行高
 
 		// 比较常用的空格
 		GlyphInfo space_glyph_info = {};
-		if (!m_glyphmgr->getGlyph(uint32_t(U' '), &space_glyph_info, true))
+		if (!m_glyph_mgr->getGlyph(uint32_t(U' '), &space_glyph_info, true))
 		{
 			//assert(false); return false; // 没有空格就默认它所有度量值为 0
 		}
@@ -241,7 +241,7 @@ namespace Core::Graphics::Common {
 		space_glyph_info.advance.y *= m_scale.y;
 
 		// 迭代绘制所有文字
-		if (m_glyphmgr->getTextureCount() <= 1)
+		if (m_glyph_mgr->getTextureCount() <= 1)
 		{
 			char32_t code_ = 0;
 			utf::utf8reader reader_(str.data(), str.size());
@@ -263,7 +263,7 @@ namespace Core::Graphics::Common {
 				}
 
 				// 取出文字
-				if (m_glyphmgr->getGlyph(code_, &glyph_info, true)) // 不要在这里 flush
+				if (m_glyph_mgr->getGlyph(code_, &glyph_info, true)) // 不要在这里 flush
 				{
 					// 绘制字形
 					glyph_info.size.x *= m_scale.x;
@@ -282,7 +282,7 @@ namespace Core::Graphics::Common {
 		else
 		{
 			// 迭代所有纹理
-			for (uint32_t idx = 0; idx < m_glyphmgr->getTextureCount(); idx += 1)
+			for (uint32_t idx = 0; idx < m_glyph_mgr->getTextureCount(); idx += 1)
 			{
 				start_pos = start; // 重置笔触位置
 				char32_t code_ = 0;
@@ -305,7 +305,7 @@ namespace Core::Graphics::Common {
 					}
 
 					// 取出文字
-					if (m_glyphmgr->getGlyph(code_, &glyph_info, true)) // 不要在这里 flush
+					if (m_glyph_mgr->getGlyph(code_, &glyph_info, true)) // 不要在这里 flush
 					{
 						// 绘制字形
 						if (glyph_info.texture_index == idx)
@@ -338,17 +338,17 @@ namespace Core::Graphics::Common {
 		Vector3F const& start, Vector3F const& right_vec, Vector3F const& down_vec,
 		Vector3F* endout)
 	{
-		if (!m_glyphmgr)
+		if (!m_glyph_mgr)
 		{
 			assert(false); return false;
 		}
 
 		// 首先，缓存所有字形
-		if (!m_glyphmgr->cacheString(str))
+		if (!m_glyph_mgr->cacheString(str))
 		{
 			//return false; // 找不到的就忽略
 		}
-		if (!m_glyphmgr->flush())
+		if (!m_glyph_mgr->flush())
 		{
 			return false;
 		}
@@ -357,11 +357,11 @@ namespace Core::Graphics::Common {
 		GlyphInfo glyph_info = {};
 		Vector3F line_pos = start; // 行起始笔触位置
 		Vector3F start_pos = start; // 笔触位置
-		float const line_height = m_glyphmgr->getLineHeight() * m_scale.y; // 行高
+		float const line_height = m_glyph_mgr->getLineHeight() * m_scale.y; // 行高
 
 		// 比较常用的空格
 		GlyphInfo space_glyph_info = {};
-		if (!m_glyphmgr->getGlyph(uint32_t(U' '), &space_glyph_info, true))
+		if (!m_glyph_mgr->getGlyph(uint32_t(U' '), &space_glyph_info, true))
 		{
 			//assert(false); return false; // 没有空格就默认它所有度量值为 0
 		}
@@ -369,7 +369,7 @@ namespace Core::Graphics::Common {
 		space_glyph_info.advance.y *= m_scale.y;
 
 		// 迭代绘制所有文字
-		if (m_glyphmgr->getTextureCount() <= 1)
+		if (m_glyph_mgr->getTextureCount() <= 1)
 		{
 			char32_t code_ = 0;
 			utf::utf8reader reader_(str.data(), str.size());
@@ -391,7 +391,7 @@ namespace Core::Graphics::Common {
 				}
 
 				// 取出文字
-				if (m_glyphmgr->getGlyph(code_, &glyph_info, true)) // 不要在这里 flush
+				if (m_glyph_mgr->getGlyph(code_, &glyph_info, true)) // 不要在这里 flush
 				{
 					// 绘制
 					glyph_info.size.x *= m_scale.x;
@@ -410,7 +410,7 @@ namespace Core::Graphics::Common {
 		else
 		{
 			// 迭代所有纹理
-			for (uint32_t idx = 0; idx < m_glyphmgr->getTextureCount(); idx += 1)
+			for (uint32_t idx = 0; idx < m_glyph_mgr->getTextureCount(); idx += 1)
 			{
 				line_pos = start; // 重置行起始笔触位置
 				start_pos = start; // 重置笔触位置
@@ -434,7 +434,7 @@ namespace Core::Graphics::Common {
 					}
 
 					// 取出文字
-					if (m_glyphmgr->getGlyph(code_, &glyph_info, true)) // 不要在这里 flush
+					if (m_glyph_mgr->getGlyph(code_, &glyph_info, true)) // 不要在这里 flush
 					{
 						// 绘制
 						if (glyph_info.texture_index == idx)
