@@ -138,10 +138,23 @@ namespace LuaSTG::Sub::LuaBinding {
 		// static method
 
 		static int create(lua_State* vm) {
+			lua::stack_t const ctx(vm);
 			auto const device = LAPP.GetAppModel()->getDevice();
-			auto const self = MeshRenderer::create(vm);
-			if (!Core::Graphics::IMeshRenderer::create(device, &self->data)) {
-				return luaL_error(vm, "create MeshRenderer failed.");
+			if (ctx.index_of_top() >= 2) {
+				auto const mesh = Mesh::as(vm, 1);
+				auto const texture = Texture2D::as(vm, 2);
+				auto const self = MeshRenderer::create(vm);
+				if (!Core::Graphics::IMeshRenderer::create(device, &self->data)) {
+					return luaL_error(vm, "create MeshRenderer failed.");
+				}
+				self->data->setMesh(mesh->data);
+				self->data->setTexture(texture->data);
+			}
+			else {
+				auto const self = MeshRenderer::create(vm);
+				if (!Core::Graphics::IMeshRenderer::create(device, &self->data)) {
+					return luaL_error(vm, "create MeshRenderer failed.");
+				}
 			}
 			return 1;
 		}
