@@ -30,6 +30,9 @@ namespace Core::Graphics::Direct3D11 {
 		if (!renderer->flush()) {
 			return;
 		}
+		if (!uploadConstantBuffer()) {
+			return;
+		}
 
 		auto const ctx = static_cast<Device*>(m_device.get())->GetD3D11DeviceContext();
 		assert(ctx);
@@ -56,9 +59,6 @@ namespace Core::Graphics::Direct3D11 {
 
 		ID3D11Buffer* vs_sb_backup[1]{};
 		ctx->VSGetConstantBuffers(Constants::vertex_shader_stage_constant_buffer_slot_world_matrix, 1, vs_sb_backup);
-		if (!uploadConstantBuffer()) {
-			return;
-		}
 		ID3D11Buffer* const world_matrix[1]{ static_cast<Buffer*>(m_constant_buffer.get())->getNativeBuffer() };
 		ctx->VSSetConstantBuffers(Constants::vertex_shader_stage_constant_buffer_slot_world_matrix, 1, world_matrix);
 
@@ -108,6 +108,24 @@ namespace Core::Graphics::Direct3D11 {
 		ctx->VSSetConstantBuffers(Constants::vertex_shader_stage_constant_buffer_slot_world_matrix, 1, vs_sb_backup);
 		ctx->PSSetShaderResources(0, 1, ps_srv_backup);
 		ctx->PSSetSamplers(0, 1, ps_ss_backup);
+
+		// release objects
+
+		for (auto const& ptr : vs_sb_backup) {
+			if (ptr) {
+				ptr->Release();
+			}
+		}
+		for (auto const& ptr : ps_srv_backup) {
+			if (ptr) {
+				ptr->Release();
+			}
+		}
+		for (auto const& ptr : ps_ss_backup) {
+			if (ptr) {
+				ptr->Release();
+			}
+		}
 	}
 
 	MeshRenderer::MeshRenderer() = default;
