@@ -25,6 +25,10 @@ namespace {
 		generated_vertex_shader.append("    float4x4 view_proj;\n"sv);
 		generated_vertex_shader.append("};\n"sv);
 
+		generated_vertex_shader.append("cbuffer world_buffer : register(b1) {\n"sv);
+		generated_vertex_shader.append("    float4x4 world;\n"sv);
+		generated_vertex_shader.append("};\n"sv);
+
 		generated_vertex_shader.append("struct VS_Input {\n"sv);
 		if (options.vertex_position_no_z) {
 			generated_vertex_shader.append("    float2 position: POSITION0;\n"sv);
@@ -53,6 +57,7 @@ namespace {
 		else {
 			generated_vertex_shader.append("    float4 position_world = float4(input.position, 1.0f);\n"sv);
 		}
+		generated_vertex_shader.append("    position_world = mul(world, position_world);\n"sv);
 
 		generated_vertex_shader.append("    VS_Output output;\n"sv);
 		generated_vertex_shader.append("    output.xy = mul(view_proj, position_world);\n"sv);
