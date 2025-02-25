@@ -194,6 +194,43 @@ namespace Core
 			T m[4][4];
 		} u;
 
+		bool operator==(Matrix4 const& other) const noexcept {
+			return u.s.m11 == other.u.s.m11
+				&& u.s.m12 == other.u.s.m12
+				&& u.s.m13 == other.u.s.m13
+				&& u.s.m14 == other.u.s.m14
+				&& u.s.m21 == other.u.s.m21
+				&& u.s.m22 == other.u.s.m22
+				&& u.s.m23 == other.u.s.m23
+				&& u.s.m24 == other.u.s.m24
+				&& u.s.m31 == other.u.s.m31
+				&& u.s.m32 == other.u.s.m32
+				&& u.s.m33 == other.u.s.m33
+				&& u.s.m34 == other.u.s.m34
+				&& u.s.m41 == other.u.s.m41
+				&& u.s.m42 == other.u.s.m42
+				&& u.s.m43 == other.u.s.m43
+				&& u.s.m44 == other.u.s.m44;
+		}
+		bool operator!=(Matrix4 const& other) const noexcept {
+			return u.s.m11 != other.u.s.m11
+				|| u.s.m12 != other.u.s.m12
+				|| u.s.m13 != other.u.s.m13
+				|| u.s.m14 != other.u.s.m14
+				|| u.s.m21 != other.u.s.m21
+				|| u.s.m22 != other.u.s.m22
+				|| u.s.m23 != other.u.s.m23
+				|| u.s.m24 != other.u.s.m24
+				|| u.s.m31 != other.u.s.m31
+				|| u.s.m32 != other.u.s.m32
+				|| u.s.m33 != other.u.s.m33
+				|| u.s.m34 != other.u.s.m34
+				|| u.s.m41 != other.u.s.m41
+				|| u.s.m42 != other.u.s.m42
+				|| u.s.m43 != other.u.s.m43
+				|| u.s.m44 != other.u.s.m44;
+		}
+
 		static Matrix4 identity() noexcept {
 			Matrix4 m{};
 			m.u.s.m11 = static_cast<T>(1);

@@ -66,6 +66,8 @@ set(Core_SRC
     Core/Graphics/Direct3D11/Device.cpp
     Core/Graphics/Direct3D11/Mesh.hpp
     Core/Graphics/Direct3D11/Mesh.cpp
+    Core/Graphics/Direct3D11/MeshRenderer.hpp
+    Core/Graphics/Direct3D11/MeshRenderer.cpp
     Core/Graphics/Direct3D11/LetterBoxingRenderer.hpp
     Core/Graphics/Direct3D11/LetterBoxingRenderer.cpp
 
