@@ -28,10 +28,11 @@ namespace Core::Graphics::Direct3D11 {
 	}
 	void MeshRenderer::draw(IRenderer* const renderer) {
 		assert(renderer);
+
+		renderer->setVertexColorBlendState(IRenderer::VertexColorBlendState::Mul);
 		renderer->setTexture(m_texture.get());
-		if (!renderer->flush()) {
-			return;
-		}
+		renderer->setBlendState(IRenderer::BlendState::Alpha);
+
 		if (!uploadConstantBuffer()) {
 			return;
 		}
@@ -50,7 +51,7 @@ namespace Core::Graphics::Direct3D11 {
 
 		auto const mesh = static_cast<Mesh*>(m_mesh.get());
 		assert(mesh);
-		mesh->applyNative(ctx, false); // TODO: FOG
+		mesh->applyNative(ctx, static_cast<Renderer_D3D11*>(renderer)->isFogEnabled());
 
 		// VS stage constant buffer setup by Renderer
 		// * constant buffer (view projection matrix)

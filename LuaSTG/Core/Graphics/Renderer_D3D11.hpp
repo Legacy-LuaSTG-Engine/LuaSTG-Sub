@@ -196,6 +196,8 @@ namespace Core::Graphics
 
 	public:
 		// public to MeshRenderer
+		[[nodiscard]] bool isFogEnabled() const noexcept { return _state_set.fog_state != FogState::Disable; }
+		// public to MeshRenderer
 		void bindTextureSamplerState(ITexture2D* texture);
 		// public to MeshRenderer
 		void bindTextureAlphaType(ITexture2D* texture);
