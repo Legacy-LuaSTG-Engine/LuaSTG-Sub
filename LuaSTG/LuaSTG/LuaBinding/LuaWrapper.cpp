@@ -6,6 +6,7 @@
 #include "LuaBinding/HttpClient.hpp"
 #include "LuaBinding/Texture2D.hpp"
 #include "LuaBinding/Mesh.hpp"
+#include "LuaBinding/MeshRenderer.hpp"
 
 namespace LuaSTGPlus
 {
@@ -71,6 +72,7 @@ namespace LuaSTGPlus
 		LuaSTG::Sub::LuaBinding::SwapChain::registerClass(L);
 		LuaSTG::Sub::LuaBinding::Texture2D::registerClass(L);
 		LuaSTG::Sub::LuaBinding::Mesh::registerClass(L);
+		LuaSTG::Sub::LuaBinding::MeshRenderer::registerClass(L);
 		http::Request::registerClass(L);
 		http::ResponseEntity::registerClass(L);
 	}
