@@ -193,6 +193,15 @@ namespace Core
 			Vector4<T> rows[4];
 			T m[4][4];
 		} u;
+
+		static Matrix4 identity() noexcept {
+			Matrix4 m{};
+			m.u.s.m11 = static_cast<T>(1);
+			m.u.s.m22 = static_cast<T>(1);
+			m.u.s.m33 = static_cast<T>(1);
+			m.u.s.m44 = static_cast<T>(1);
+			return m;
+		}
 	};
 
 	using Matrix4F = Matrix4<float>;
