@@ -10,7 +10,7 @@
 #include "GameResource/Implement/ResourceModelImpl.hpp"
 #include "Core/FileManager.hpp"
 #include "AppFrame.h"
-#include "LuaBinding/lua_utility.hpp"
+#include "lua/plus.hpp"
 
 namespace LuaSTGPlus
 {

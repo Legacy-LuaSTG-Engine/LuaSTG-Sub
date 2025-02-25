@@ -1,5 +1,5 @@
 ﻿#include "LuaBinding/LuaWrapper.hpp"
-#include "LuaBinding/lua_luastg_hash.hpp"
+#include "LuaBinding/generated/ColorMember.hpp"
 #include <DirectXMath.h>
 
 namespace LuaSTGPlus::LuaWrapper

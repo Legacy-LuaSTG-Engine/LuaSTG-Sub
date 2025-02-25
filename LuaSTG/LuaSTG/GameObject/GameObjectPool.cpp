@@ -1,7 +1,7 @@
 #include "GameObject/GameObjectPool.h"
 #include "LuaBinding/LuaWrapper.hpp"
-#include "LuaBinding/lua_luastg_hash.hpp"
-#include "lua_utility.hpp"
+#include "LuaBinding/generated/GameObjectMember.hpp"
+#include "lua/plus.hpp"
 #include "AppFrame.h"
 
 #define LOBJPOOL_SIZE_INTERNAL (LOBJPOOL_SIZE + 1)

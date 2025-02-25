@@ -17,7 +17,7 @@ target_link_libraries(Setting PRIVATE
     d3d11.lib
     dxgi.lib
     spdlog
-    utility
+    utf8
     beautiful_win32_api
     imgui
     imgui_impl_win32

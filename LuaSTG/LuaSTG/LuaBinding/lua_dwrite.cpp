@@ -1,4 +1,4 @@
-﻿#include "lua_dwrite.hpp"
+#include "lua_dwrite.hpp"
 
 #include <cassert>
 #include <string>
@@ -14,6 +14,7 @@
 #include "AppFrame.h"
 #include "utf8.hpp"
 #include "LuaBinding/LuaWrapper.hpp"
+#include "lua/plus.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -91,56 +92,10 @@ namespace DirectWrite
 
 	// lua helper
 
-	inline void lua_push_string_view(lua_State* L, std::string_view sv)
-	{
-		lua_pushlstring(L, sv.data(), sv.size());
-	}
-	inline std::string_view luaL_check_string_view(lua_State* L, int idx)
-	{
-		size_t len = 0;
-		char const* str = luaL_checklstring(L, idx, &len);
-		return std::string_view(str, len);
-	}
-
 	template<typename E>
-	inline E luaL_check_C_enum(lua_State* L, int idx)
+	E luaL_check_C_enum(lua_State* L, int idx)
 	{
 		return static_cast<E>(luaL_checkinteger(L, idx));
-	}
-
-	inline bool lua_to_boolean(lua_State* L, int idx)
-	{
-		return lua_toboolean(L, idx);
-	}
-	inline void lua_push_float(lua_State* L, float v)
-	{
-		lua_pushnumber(L, v);
-	}
-	inline float luaL_check_float(lua_State* L, int idx)
-	{
-		return (float)luaL_checknumber(L, idx);
-	}
-	inline float luaL_optional_float(lua_State* L, int idx, float v)
-	{
-		return (float)luaL_optnumber(L, idx, v);
-	}
-	inline uint32_t luaL_check_uint32(lua_State* L, int idx)
-	{
-		if constexpr (sizeof(lua_Integer) >= 8)
-		{
-			return 0xFFFFFFFFu & luaL_checkinteger(L, idx);
-		}
-		else
-		{
-			return (uint32_t)luaL_checknumber(L, idx);
-		}
-	}
-	inline void lua_push_uint32(lua_State* L, uint32_t v)
-	{
-		if (v <= 0x7FFFFFFFu)
-			lua_pushinteger(L, static_cast<lua_Integer>(v));
-		else
-			lua_pushnumber(L, (lua_Number)v);
 	}
 
 	// DirectWrite helper
@@ -1188,17 +1143,19 @@ namespace DirectWrite
 		static int api_GetDebugInformation(lua_State* L)
 		{
 			FontCollection* self = Cast(L, 1);
+			lua::stack_t S(L);
 			std::stringstream ss;
 			printFontCollectionInfo(self->dwrite_font_collection.Get(), ss);
 			std::string buf(ss.str());
-			lua_push_string_view(L, buf);
+			S.push_value(buf);
 			return 1;
 		}
 
 		static int api___tostring(lua_State* L)
 		{
 			Cast(L, 1);
-			lua_pushlstring(L, ClassID.data(), ClassID.size());
+			lua::stack_t S(L);
+			S.push_value(ClassID);
 			return 1;
 		}
 		static int api___gc(lua_State* L)
@@ -1303,42 +1260,43 @@ namespace DirectWrite
 		static int api___index(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
-			auto const key = luaL_check_string_view(L, 2);
+			lua::stack_t S(L);
+			auto const key = S.get_value<std::string_view>(2);
 			if (key == "left")
 			{
-				lua_push_float(L, self->left);
+				S.push_value(self->left);
 			}
 			else if (key == "top")
 			{
-				lua_push_float(L, self->top);
+				S.push_value(self->top);
 			}
 			else if (key == "width")
 			{
-				lua_push_float(L, self->width);
+				S.push_value(self->width);
 			}
 			else if (key == "widthIncludingTrailingWhitespace")
 			{
-				lua_push_float(L, self->widthIncludingTrailingWhitespace);
+				S.push_value(self->widthIncludingTrailingWhitespace);
 			}
 			else if (key == "height")
 			{
-				lua_push_float(L, self->height);
+				S.push_value(self->height);
 			}
 			else if (key == "layoutWidth")
 			{
-				lua_push_float(L, self->layoutWidth);
+				S.push_value(self->layoutWidth);
 			}
 			else if (key == "layoutHeight")
 			{
-				lua_push_float(L, self->layoutHeight);
+				S.push_value(self->layoutHeight);
 			}
 			else if (key == "maxBidiReorderingDepth")
 			{
-				lua_push_uint32(L, self->maxBidiReorderingDepth);
+				S.push_value(self->maxBidiReorderingDepth);
 			}
 			else if (key == "lineCount")
 			{
-				lua_push_uint32(L, self->lineCount);
+				S.push_value(self->lineCount);
 			}
 			else
 			{
@@ -1349,42 +1307,43 @@ namespace DirectWrite
 		static int api___newindex(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
-			auto const key = luaL_check_string_view(L, 2);
+			lua::stack_t S(L);
+			auto const key = S.get_value<std::string_view>(2);
 			if (key == "left")
 			{
-				self->left = luaL_check_float(L, 3);
+				self->left = S.get_value<float>(3);
 			}
 			else if (key == "top")
 			{
-				self->top = luaL_check_float(L, 3);
+				self->top = S.get_value<float>(3);
 			}
 			else if (key == "width")
 			{
-				self->width = luaL_check_float(L, 3);
+				self->width = S.get_value<float>(3);
 			}
 			else if (key == "widthIncludingTrailingWhitespace")
 			{
-				self->widthIncludingTrailingWhitespace = luaL_check_float(L, 3);
+				self->widthIncludingTrailingWhitespace = S.get_value<float>(3);
 			}
 			else if (key == "height")
 			{
-				self->height = luaL_check_float(L, 3);
+				self->height = S.get_value<float>(3);
 			}
 			else if (key == "layoutWidth")
 			{
-				self->layoutWidth = luaL_check_float(L, 3);
+				self->layoutWidth = S.get_value<float>(3);
 			}
 			else if (key == "layoutHeight")
 			{
-				self->layoutHeight = luaL_check_float(L, 3);
+				self->layoutHeight = S.get_value<float>(3);
 			}
 			else if (key == "maxBidiReorderingDepth")
 			{
-				self->maxBidiReorderingDepth = luaL_check_uint32(L, 3);
+				self->maxBidiReorderingDepth = S.get_value<uint32_t>(3);
 			}
 			else if (key == "lineCount")
 			{
-				self->lineCount = luaL_check_uint32(L, 3);
+				self->lineCount = S.get_value<uint32_t>(3);
 			}
 			else
 			{
@@ -1443,22 +1402,23 @@ namespace DirectWrite
 		static int api___index(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
-			auto const key = luaL_check_string_view(L, 2);
+			lua::stack_t S(L);
+			auto const key = S.get_value<std::string_view>(2);
 			if (key == "left")
 			{
-				lua_push_float(L, self->left);
+				S.push_value(self->left);
 			}
 			else if (key == "top")
 			{
-				lua_push_float(L, self->top);
+				S.push_value(self->top);
 			}
 			else if (key == "right")
 			{
-				lua_push_float(L, self->right);
+				S.push_value(self->right);
 			}
 			else if (key == "bottom")
 			{
-				lua_push_float(L, self->bottom);
+				S.push_value(self->bottom);
 			}
 			else
 			{
@@ -1469,8 +1429,9 @@ namespace DirectWrite
 		static int api___newindex(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
-			auto const key = luaL_check_string_view(L, 2);
-			auto const value = luaL_check_float(L, 3);
+			lua::stack_t S(L);
+			auto const key = S.get_value<std::string_view>(2);
+			auto const value = S.get_value<float>(3);
 			if (key == "left")
 			{
 				self->left = value;
@@ -1552,9 +1513,10 @@ namespace DirectWrite
 		static int api_SetFontCollection(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
+			lua::stack_t S(L);
 			auto* font_collection = FontCollection::Cast(L, 2);
-			auto const position = luaL_check_uint32(L, 3);
-			auto const length = luaL_check_uint32(L, 4);
+			auto const position = S.get_value<uint32_t>(3);
+			auto const length = S.get_value<uint32_t>(4);
 
 			HRESULT hr = gHR = self->dwrite_text_layout->SetFontCollection(
 				font_collection->dwrite_font_collection.Get(),
@@ -1570,9 +1532,10 @@ namespace DirectWrite
 		static int api_SetFontFamilyName(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
-			auto const font_family_name = luaL_check_string_view(L, 2);
-			auto const position = luaL_check_uint32(L, 3);
-			auto const length = luaL_check_uint32(L, 4);
+			lua::stack_t S(L);
+			auto const font_family_name = S.get_value<std::string_view>(2);
+			auto const position = S.get_value<uint32_t>(3);
+			auto const length = S.get_value<uint32_t>(4);
 
 			std::wstring wide_font_family_name(utf8::to_wstring(font_family_name));
 
@@ -1590,9 +1553,10 @@ namespace DirectWrite
 		static int api_SetLocaleName(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
-			auto const locale_name = luaL_check_string_view(L, 2);
-			auto const position = luaL_check_uint32(L, 3);
-			auto const length = luaL_check_uint32(L, 4);
+			lua::stack_t S(L);
+			auto const locale_name = S.get_value<std::string_view>(2);
+			auto const position = S.get_value<uint32_t>(3);
+			auto const length = S.get_value<uint32_t>(4);
 
 			std::wstring wide_locale_name(utf8::to_wstring(locale_name));
 
@@ -1610,9 +1574,10 @@ namespace DirectWrite
 		static int api_SetFontSize(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
-			auto const font_size = luaL_check_float(L, 2);
-			auto const position = luaL_check_uint32(L, 3);
-			auto const length = luaL_check_uint32(L, 4);
+			lua::stack_t S(L);
+			auto const font_size = S.get_value<float>(2);
+			auto const position = S.get_value<uint32_t>(3);
+			auto const length = S.get_value<uint32_t>(4);
 
 			HRESULT hr = gHR = self->dwrite_text_layout->SetFontSize(
 				font_size,
@@ -1628,9 +1593,10 @@ namespace DirectWrite
 		static int api_SetFontStyle(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
+			lua::stack_t S(L);
 			auto const font_style = luaL_check_C_enum<DWRITE_FONT_STYLE>(L, 2);
-			auto const position = luaL_check_uint32(L, 3);
-			auto const length = luaL_check_uint32(L, 4);
+			auto const position = S.get_value<uint32_t>(3);
+			auto const length = S.get_value<uint32_t>(4);
 
 			HRESULT hr = gHR = self->dwrite_text_layout->SetFontStyle(
 				font_style,
@@ -1646,9 +1612,10 @@ namespace DirectWrite
 		static int api_SetFontWeight(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
+			lua::stack_t S(L);
 			auto const font_weight = luaL_check_C_enum<DWRITE_FONT_WEIGHT>(L, 2);
-			auto const position = luaL_check_uint32(L, 3);
-			auto const length = luaL_check_uint32(L, 4);
+			auto const position = S.get_value<uint32_t>(3);
+			auto const length = S.get_value<uint32_t>(4);
 
 			HRESULT hr = gHR = self->dwrite_text_layout->SetFontWeight(
 				font_weight,
@@ -1664,9 +1631,10 @@ namespace DirectWrite
 		static int api_SetFontStretch(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
+			lua::stack_t S(L);
 			auto const font_stretch = luaL_check_C_enum<DWRITE_FONT_STRETCH>(L, 2);
-			auto const position = luaL_check_uint32(L, 3);
-			auto const length = luaL_check_uint32(L, 4);
+			auto const position = S.get_value<uint32_t>(3);
+			auto const length = S.get_value<uint32_t>(4);
 
 			HRESULT hr = gHR = self->dwrite_text_layout->SetFontStretch(
 				font_stretch,
@@ -1683,9 +1651,10 @@ namespace DirectWrite
 		static int api_SetStrikethrough(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
-			auto const enable = lua_to_boolean(L, 2);
-			auto const position = luaL_check_uint32(L, 3);
-			auto const length = luaL_check_uint32(L, 4);
+			lua::stack_t S(L);
+			auto const enable = S.get_value<bool>(2);
+			auto const position = S.get_value<uint32_t>(3);
+			auto const length = S.get_value<uint32_t>(4);
 
 			HRESULT hr = gHR = self->dwrite_text_layout->SetStrikethrough(
 				enable,
@@ -1701,9 +1670,10 @@ namespace DirectWrite
 		static int api_SetUnderline(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
-			auto const enable = lua_to_boolean(L, 2);
-			auto const position = luaL_check_uint32(L, 3);
-			auto const length = luaL_check_uint32(L, 4);
+			lua::stack_t S(L);
+			auto const enable = S.get_value<bool>(2);
+			auto const position = S.get_value<uint32_t>(3);
+			auto const length = S.get_value<uint32_t>(4);
 
 			HRESULT hr = gHR = self->dwrite_text_layout->SetUnderline(
 				enable,
@@ -1720,7 +1690,8 @@ namespace DirectWrite
 		static int api_SetIncrementalTabStop(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
-			auto const tab_size = luaL_check_float(L, 2);
+			lua::stack_t S(L);
+			auto const tab_size = S.get_value<float>(2);
 
 			HRESULT hr = gHR = self->dwrite_text_layout->SetIncrementalTabStop(tab_size);
 			if (FAILED(hr))
@@ -1731,9 +1702,10 @@ namespace DirectWrite
 		static int api_SetLineSpacing(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
+			lua::stack_t S(L);
 			auto const line_spacing_method = luaL_check_C_enum<DWRITE_LINE_SPACING_METHOD>(L, 2);
-			auto const line_spacing = luaL_check_float(L, 3);
-			auto const baseline = luaL_check_float(L, 4);
+			auto const line_spacing = S.get_value<float>(3);
+			auto const baseline = S.get_value<float>(4);
 
 			HRESULT hr = gHR = self->dwrite_text_layout->SetLineSpacing(line_spacing_method, line_spacing, baseline);
 			if (FAILED(hr))
@@ -1800,7 +1772,8 @@ namespace DirectWrite
 		static int api_SetMaxWidth(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
-			auto const max_width = luaL_check_float(L, 2);
+			lua::stack_t S(L);
+			auto const max_width = S.get_value<float>(2);
 
 			HRESULT hr = gHR = self->dwrite_text_layout->SetMaxWidth(max_width);
 			if (FAILED(hr))
@@ -1811,7 +1784,8 @@ namespace DirectWrite
 		static int api_SetMaxHeight(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
-			auto const max_height = luaL_check_float(L, 2);
+			lua::stack_t S(L);
+			auto const max_height = S.get_value<float>(2);
 
 			HRESULT hr = gHR = self->dwrite_text_layout->SetMaxHeight(max_height);
 			if (FAILED(hr))
@@ -1823,13 +1797,14 @@ namespace DirectWrite
 		static int api_DetermineMinWidth(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
+			lua::stack_t S(L);
 			FLOAT min_width = 0.0f;
 
 			HRESULT hr = gHR = self->dwrite_text_layout->DetermineMinWidth(&min_width);
 			if (FAILED(hr))
 				return luaL_error(L, "DetermineMinWidth failed");
 
-			lua_push_float(L, min_width);
+			S.push_value(min_width);
 			return 1;
 		}
 
@@ -1859,18 +1834,20 @@ namespace DirectWrite
 		static int api_GetMaxHeight(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
+			lua::stack_t S(L);
 
 			auto const r = self->dwrite_text_layout->GetMaxHeight();
-			lua_push_float(L, r);
+			S.push_value(r);
 
 			return 1;
 		}
 		static int api_GetMaxWidth(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
+			lua::stack_t S(L);
 
 			auto const r = self->dwrite_text_layout->GetMaxWidth();
-			lua_push_float(L, r);
+			S.push_value(r);
 
 			return 1;
 		}
@@ -2112,7 +2089,8 @@ namespace DirectWrite
 		static int api_SetTextOutlineWidth(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
-			auto const width = luaL_check_float(L, 2);
+			lua::stack_t S(L);
+			auto const width = S.get_value<float>(2);
 			self->outline_width = width;
 			return 0;
 		}
@@ -2126,21 +2104,24 @@ namespace DirectWrite
 		static int api_SetShadowRadius(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
-			auto const width = luaL_check_float(L, 2);
+			lua::stack_t S(L);
+			auto const width = S.get_value<float>(2);
 			self->shadow_radius = width;
 			return 0;
 		}
 		static int api_SetShadowExtend(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
-			auto const width = luaL_check_float(L, 2);
+			lua::stack_t S(L);
+			auto const width = S.get_value<float>(2);
 			self->shadow_extend = width;
 			return 0;
 		}
 		static int api_Render(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
-			auto const tex_res = luaL_check_string_view(L, 2);
+			lua::stack_t S(L);
+			auto const tex_res = S.get_value<std::string_view>(2);
 			auto tex_ptr = LRES.FindTexture(tex_res.data());
 			if (!tex_ptr)
 			{
@@ -2151,8 +2132,8 @@ namespace DirectWrite
 				return luaL_error(L, "'%s' is not rendertarget", tex_res.data());
 			}
 			auto* text_layout = TextLayout::Cast(L, 3);
-			auto const offset_x = luaL_check_float(L, 4);
-			auto const offset_y = luaL_check_float(L, 5);
+			auto const offset_x = S.get_value<float>(4);
+			auto const offset_y = S.get_value<float>(5);
 
 			// 获取渲染器和渲染目标
 
@@ -2400,7 +2381,8 @@ namespace DirectWrite
 		static int api___tostring(lua_State* L)
 		{
 			Cast(L, 1);
-			lua_push_string_view(L, ClassID);
+			lua::stack_t S(L);
+			S.push_value(ClassID);
 			return 1;
 		}
 		static int api___gc(lua_State* L)
@@ -2454,6 +2436,7 @@ namespace DirectWrite
 
 	static int api_CreateFontCollection(lua_State* L)
 	{
+		lua::stack_t S(L);
 		luaL_argcheck(L, lua_istable(L, 1), 1, "");
 
 		Factory* core = Factory::Get(L);
@@ -2468,7 +2451,7 @@ namespace DirectWrite
 		for (size_t i = 0; i < file_count; i += 1)
 		{
 			lua_rawgeti(L, 1, (int)i + 1);
-			auto const file_path = luaL_check_string_view(L, -1);
+			auto const file_path = S.get_value<std::string_view>(-1);
 			font_collection->font_file_name_list->emplace_back(file_path);
 			lua_pop(L, 1);
 		}
@@ -2479,13 +2462,15 @@ namespace DirectWrite
 	}
 	static int api_CreateTextFormat(lua_State* L)
 	{
-		auto const font_family_name = luaL_check_string_view(L, 1);
+		lua::stack_t S(L);
+
+		auto const font_family_name = S.get_value<std::string_view>(1);
 		FontCollection* font_collection{}; if (lua_isuserdata(L, 2)) font_collection = FontCollection::Cast(L, 2);
 		auto const font_weight = luaL_check_C_enum<DWRITE_FONT_WEIGHT>(L, 3);
 		auto const font_style = luaL_check_C_enum<DWRITE_FONT_STYLE>(L, 4);
 		auto const font_stretch = luaL_check_C_enum<DWRITE_FONT_STRETCH>(L, 5);
-		auto const font_size = luaL_check_float(L, 6);
-		auto const locale_name = luaL_check_string_view(L, 7);
+		auto const font_size = S.get_value<float>(6);
+		auto const locale_name = S.get_value<std::string_view>(7);
 
 		std::wstring wide_font_family_name(utf8::to_wstring(font_family_name));
 		std::wstring wide_locale_name(utf8::to_wstring(locale_name));
@@ -2521,10 +2506,12 @@ namespace DirectWrite
 	}
 	static int api_CreateTextLayout(lua_State* L)
 	{
-		auto const string = luaL_check_string_view(L, 1);
+		lua::stack_t S(L);
+
+		auto const string = S.get_value<std::string_view>(1);
 		auto* text_format = TextFormat::Cast(L, 2);
-		auto const max_width = luaL_check_float(L, 3);
-		auto const max_height = luaL_check_float(L, 4);
+		auto const max_width = S.get_value<float>(3);
+		auto const max_height = S.get_value<float>(4);
 
 		std::wstring wide_string(utf8::to_wstring(string));
 
@@ -2555,13 +2542,15 @@ namespace DirectWrite
 
 	static int api_CreateTextureFromTextLayout(lua_State* L)
 	{
+		lua::stack_t S(L);
+
 		HRESULT hr = S_OK;
 
 		Factory* core = Factory::Get(L);
 		auto* text_layout = TextLayout::Cast(L, 1);
-		auto const pool_type = luaL_check_string_view(L, 2);
-		auto const texture_name = luaL_check_string_view(L, 3);
-		auto const outline_width = luaL_optional_float(L, 4, 0.0f);
+		auto const pool_type = S.get_value<std::string_view>(2);
+		auto const texture_name = S.get_value<std::string_view>(3);
+		auto const outline_width = S.get_value<float>(4, 0.0f);
 		Core::Color4B font_color = Core::Color4B(255, 255, 255, 255);
 		Core::Color4B outline_color = Core::Color4B(0, 0, 0, 255);
 		if (lua_gettop(L) >= 5)
@@ -2714,12 +2703,14 @@ namespace DirectWrite
 	}
 	static int api_SaveTextLayoutToFile(lua_State* L)
 	{
+		lua::stack_t S(L);
+
 		HRESULT hr = S_OK;
 
 		Factory* core = Factory::Get(L);
 		auto* text_layout = TextLayout::Cast(L, 1);
-		auto const file_path = luaL_check_string_view(L, 2);
-		auto const outline_width = luaL_optional_float(L, 3, 0.0f);
+		auto const file_path = S.get_value<std::string_view>(2);
+		auto const outline_width = S.get_value<float>(3, 0.0f);
 
 		// bitmap
 
@@ -2909,8 +2900,10 @@ namespace DirectWrite
 
 	static void register_C_enum(lua_State* L)
 	{
-		auto regf = [&L](auto data) -> void {
-			lua_push_string_view(L, data.name);
+		lua::stack_t S(L);
+
+		auto regf = [&](auto data) -> void {
+			S.push_value(data.name);
 			lua_createtable(L, 0, (int)data.entry.size());
 			//spdlog::info("---@class DirectWrite.{}", data.name);
 			//spdlog::info("local {} = {{}}", data.name);
@@ -2918,7 +2911,7 @@ namespace DirectWrite
 			for (auto const& v : data.entry)
 			{
 				//spdlog::info("{}.{} = {}", data.name, v.name, (int)v.value);
-				lua_push_string_view(L, v.name);
+				S.push_value(v.name);
 				lua_pushinteger(L, (lua_Integer)v.value);
 				lua_settable(L, -3);
 			}

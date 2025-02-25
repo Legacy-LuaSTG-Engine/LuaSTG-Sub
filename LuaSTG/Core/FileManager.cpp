@@ -2,7 +2,6 @@
 #include <filesystem>
 #include <fstream>
 #include "utf8.hpp"
-#include "utility/path.hpp"
 #include "mz.h"
 #include "mz_strm.h"
 #include "mz_zip.h"

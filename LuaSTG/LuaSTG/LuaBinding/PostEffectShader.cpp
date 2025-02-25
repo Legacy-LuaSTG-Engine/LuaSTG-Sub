@@ -1,5 +1,5 @@
 #include "LuaBinding/PostEffectShader.hpp"
-#include "LuaBinding/lua_utility.hpp"
+#include "lua/plus.hpp"
 #include "AppFrame.h"
 #include "LuaBinding/LuaWrapperMisc.hpp"
 

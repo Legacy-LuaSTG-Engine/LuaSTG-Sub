@@ -1,5 +1,5 @@
 #include "GameObject/GameObjectClass.hpp"
-#include "LuaBinding/lua_utility.hpp"
+#include "lua/plus.hpp"
 
 namespace LuaSTGPlus
 {
@@ -46,7 +46,7 @@ namespace LuaSTGPlus
 		
 		// render class
 		lua_getfield(L, index, IS_RENDER_CLASS);			// ??? class ??? ? 
-		IsRenderClass = lua_to_uint8_boolean(L, -1);		// ??? class ??? b 
+		IsRenderClass = lua_toboolean(L, -1);		// ??? class ??? b 
 		lua_pop(L, 1);										// ??? class ??? 
 		
 		return true;

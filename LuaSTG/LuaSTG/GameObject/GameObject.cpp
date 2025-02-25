@@ -1,8 +1,8 @@
 #include "GameObject/GameObject.hpp"
 #include "GameResource/ResourceSprite.hpp"
 #include "GameResource/ResourceAnimation.hpp"
-#include "LuaBinding/lua_luastg_hash.hpp"
-#include "LuaBinding/lua_utility.hpp"
+#include "LuaBinding/generated/GameObjectMember.hpp"
+#include "lua/plus.hpp"
 #include "LuaBinding/LuaWrapperMisc.hpp"
 #include "LuaBinding/LuaWrapper.hpp"
 #include "XCollision.h"
@@ -610,10 +610,11 @@ namespace LuaSTGPlus
 	
 	int GameObject::GetAttr(lua_State* L) noexcept
 	{
+		lua::stack_t S(L);
 	#define return_default(L) lua_rawget(L, 1)
 		
 		// self k
-		std::string_view const key = luaL_check_string_view(L, 2);
+		std::string_view const key = S.get_value<std::string_view>(2);
 		switch (LuaSTG::MapGameObjectMember(key.data(), key.size()))
 		{
 			// 基本信息
@@ -624,13 +625,13 @@ namespace LuaSTGPlus
 			default:
 				return luaL_error(L, "unknown lstg object status.");
 			case GameObjectStatus::Active:
-				lua_push_string_view(L, "normal");
+				S.push_value("normal");
 				break;
 			case GameObjectStatus::Dead:
-				lua_push_string_view(L, "del");
+				S.push_value("del");
 				break;
 			case GameObjectStatus::Killed:
-				lua_push_string_view(L, "kill");
+				S.push_value("kill");
 				break;
 			}
 			return 1;
@@ -795,7 +796,7 @@ namespace LuaSTGPlus
 			return 1;
 		case LuaSTG::GameObjectMember::IMG:
 			if (res)
-				lua_push_string_view(L, res->GetResName());
+				S.push_value(res->GetResName());
 			else
 				return_default(L);
 			return 1;
@@ -834,15 +835,16 @@ namespace LuaSTGPlus
 	}
 	int GameObject::SetAttr(lua_State* L) noexcept
 	{
+		lua::stack_t S(L);
 		// self k v
-		std::string_view const key = luaL_check_string_view(L, 2);
+		std::string_view const key = S.get_value<std::string_view>(2);
 		switch (LuaSTG::MapGameObjectMember(key.data(), key.size()))
 		{
 			// 基本信息
 
 		case LuaSTG::GameObjectMember::STATUS:
 			do {
-				std::string_view const value = luaL_check_string_view(L, 3);
+				std::string_view const value = S.get_value<std::string_view>(3);
 				if (value == "normal")
 					status = GameObjectStatus::Active;
 				else if (value == "del")
@@ -959,13 +961,13 @@ namespace LuaSTGPlus
 			} while (false);
 			return 1;
 		case LuaSTG::GameObjectMember::BOUND:
-			bound = lua_to_uint8_boolean(L, 3);
+			bound = lua_toboolean(L, 3);
 			return 0;
 		case LuaSTG::GameObjectMember::COLLI:
-			colli = lua_to_uint8_boolean(L, 3);
+			colli = lua_toboolean(L, 3);
 			return 0;
 		case LuaSTG::GameObjectMember::RECT:
-			rect = lua_to_uint8_boolean(L, 3);
+			rect = lua_toboolean(L, 3);
 			UpdateCollisionCircleRadius();
 			return 0;
 		case LuaSTG::GameObjectMember::A:
@@ -1052,16 +1054,16 @@ namespace LuaSTGPlus
 		case LuaSTG::GameObjectMember::ANI:
 			return luaL_error(L, "property 'ani' is readonly.");
 		case LuaSTG::GameObjectMember::HIDE:
-			hide = lua_to_uint8_boolean(L, 3);
+			hide = lua_toboolean(L, 3);
 			return 0;
 		case LuaSTG::GameObjectMember::NAVI:
-			navi = lua_to_uint8_boolean(L, 3);
+			navi = lua_toboolean(L, 3);
 			return 0;
 		case LuaSTG::GameObjectMember::IMG:
 			do {
 				if (lua_isstring(L, 3))
 				{
-					std::string_view const value = luaL_check_string_view(L, 3);
+					std::string_view const value = S.get_value<std::string_view>(3);
 					if (!res || value != res->GetResName())
 					{
 						ReleaseLuaRC(L, 1); // TODO: 默认 table 是第一个？
@@ -1097,11 +1099,11 @@ namespace LuaSTGPlus
 			pause = luaL_checkinteger(L, 3);
 			return 0;
 		case LuaSTG::GameObjectMember::RESOLVEMOVE:
-			resolve_move = lua_to_uint8_boolean(L, 3);
+			resolve_move = lua_toboolean(L, 3);
 			return 0;
 		#endif
 		case LuaSTG::GameObjectMember::IGNORESUPERPAUSE:
-			ignore_superpause = lua_to_uint8_boolean(L, 3);
+			ignore_superpause = lua_toboolean(L, 3);
 			return 0;
 		
 			// 默认处理

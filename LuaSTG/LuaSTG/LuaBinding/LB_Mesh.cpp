@@ -1,5 +1,5 @@
 ﻿#include "LuaBinding/LuaWrapper.hpp"
-#include "LuaBinding/lua_utility.hpp"
+#include "lua/plus.hpp"
 
 namespace LuaSTGPlus::LuaWrapper
 {
@@ -21,9 +21,10 @@ namespace LuaSTGPlus::LuaWrapper
 
 	inline uint32_t to_color32(lua_State* L, int idx)
 	{
+		lua::stack_t S(L);
 		if (lua_type(L, idx) == LUA_TNUMBER)
 		{
-			return luaL_checkf_uint32(L, idx); // lua_Number 才能容纳下 32 位无符号整数
+			return S.get_value<uint32_t>(idx);
 		}
 		else
 		{
@@ -37,25 +38,28 @@ namespace LuaSTGPlus::LuaWrapper
 		{
 			static int resize(lua_State* L) noexcept
 			{
+				lua::stack_t S(L);
 				Mesh* self = Cast(L, 1);
-				uint32_t const vertex_count = luaL_checki_uint32(L, 2);
-				uint32_t const index_count = luaL_checki_uint32(L, 3);
+				uint32_t const vertex_count = S.get_value<uint32_t>(2);
+				uint32_t const index_count = S.get_value<uint32_t>(3);
 				bool const result = self->resize(vertex_count, index_count);
 				lua_pushboolean(L, result);
 				return 1;
 			}
 			static int getVertexCount(lua_State* L) noexcept
 			{
+				lua::stack_t S(L);
 				Mesh* self = Cast(L, 1);
 				uint32_t const result = self->getVertexCount();
-				lua_pushi_uint32(L, result);
+				S.push_value(result);
 				return 1;
 			}
 			static int getIndexCount(lua_State* L) noexcept
 			{
+				lua::stack_t S(L);
 				Mesh* self = Cast(L, 1);
 				uint32_t const result = self->getIndexCount();
-				lua_pushi_uint32(L, result);
+				S.push_value(result);
 				return 1;
 			}
 			static int setAllVertexColor(lua_State* L) noexcept
@@ -67,48 +71,53 @@ namespace LuaSTGPlus::LuaWrapper
 			}
 			static int setIndex(lua_State* L) noexcept
 			{
+				lua::stack_t S(L);
 				Mesh* self = Cast(L, 1);
-				uint32_t const index = luaL_checki_uint32(L, 2);
+				uint32_t const index = S.get_value<uint32_t>(2);
 				Core::Graphics::IRenderer::DrawIndex const value = (Core::Graphics::IRenderer::DrawIndex)luaL_checkinteger(L, 3);
 				self->setIndex(index, value);
 				return 0;
 			}
 			static int setVertex(lua_State* L) noexcept
 			{
+				lua::stack_t S(L);
 				Mesh* self = Cast(L, 1);
-				uint32_t const index = luaL_checki_uint32(L, 2);
-				float const x = luaL_check_float(L, 3);
-				float const y = luaL_check_float(L, 4);
-				float const z = luaL_check_float(L, 5);
-				float const u = luaL_check_float(L, 6);
-				float const v = luaL_check_float(L, 7);
+				uint32_t const index = S.get_value<uint32_t>(2);
+				float const x = S.get_value<float>(3);
+				float const y = S.get_value<float>(4);
+				float const z = S.get_value<float>(5);
+				float const u = S.get_value<float>(6);
+				float const v = S.get_value<float>(7);
 				Core::Color4B const color(to_color32(L, 8));
 				self->setVertex(index, x, y, z, u, v, color);
 				return 0;
 			}
 			static int setVertexPosition(lua_State* L) noexcept
 			{
+				lua::stack_t S(L);
 				Mesh* self = Cast(L, 1);
-				uint32_t const index = luaL_checki_uint32(L, 2);
-				float const x = luaL_check_float(L, 3);
-				float const y = luaL_check_float(L, 4);
-				float const z = luaL_check_float(L, 5);
+				uint32_t const index = S.get_value<uint32_t>(2);
+				float const x = S.get_value<float>(3);
+				float const y = S.get_value<float>(4);
+				float const z = S.get_value<float>(5);
 				self->setVertexPosition(index, x, y, z);
 				return 0;
 			}
 			static int setVertexCoords(lua_State* L) noexcept
 			{
+				lua::stack_t S(L);
 				Mesh* self = Cast(L, 1);
-				uint32_t const index = luaL_checki_uint32(L, 2);
-				float const u = luaL_check_float(L, 3);
-				float const v = luaL_check_float(L, 4);
+				uint32_t const index = S.get_value<uint32_t>(2);
+				float const u = S.get_value<float>(3);
+				float const v = S.get_value<float>(4);
 				self->setVertexCoords(index, u, v);
 				return 0;
 			}
 			static int setVertexColor(lua_State* L) noexcept
 			{
+				lua::stack_t S(L);
 				Mesh* self = Cast(L, 1);
-				uint32_t const index = luaL_checki_uint32(L, 2);
+				uint32_t const index = S.get_value<uint32_t>(2);
 				Core::Color4B const color(to_color32(L, 3));
 				self->setVertexColor(index, color);
 				return 0;
@@ -122,16 +131,18 @@ namespace LuaSTGPlus::LuaWrapper
 			}
 			static int __tostring(lua_State* L) noexcept
 			{
+				lua::stack_t S(L);
 				std::ignore = Cast(L, 1);
-				lua_push_string_view(L, "lstg.Mesh");
+				S.push_value(ClassID);
 				return 1;
 			}
 
 			static int create(lua_State* L) noexcept
 			{
+				lua::stack_t S(L);
 				Mesh* self = Create(L);
-				uint32_t const vertex_count = luaL_checki_uint32(L, 1);
-				uint32_t const index_count = luaL_checki_uint32(L, 2);
+				uint32_t const vertex_count = S.get_value<uint32_t>(1);
+				uint32_t const index_count = S.get_value<uint32_t>(2);
 				if (self->resize(vertex_count, index_count))
 					return 1;
 				else
@@ -165,7 +176,7 @@ namespace LuaSTGPlus::LuaWrapper
 
 		luaL_newmetatable(L, ClassID.data()); // ... mt
 		luaL_register(L, NULL, mt);           // ... mt
-		lua_push_string_view(L, "__index");   // ... mt '__index'
+		lua_pushstring(L, "__index");         // ... mt '__index'
 		lua_newtable(L);                      // ... mt '__index' lib
 		luaL_register(L, NULL, lib);          // ... mt '__index' lib
 		lua_rawset(L, -3);                    // ... mt

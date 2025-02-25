@@ -293,6 +293,7 @@ void AppFrame::Run()noexcept
 	spdlog::info("[luastg] 开始更新&渲染循环");
 
 	m_pAppModel->getWindow()->addEventListener(this);
+	onSwapChainCreate(); // 手动触发一次，让自动尺寸的RenderTarget设置为正确的尺寸
 	m_pAppModel->getSwapChain()->addEventListener(this);
 
 	m_pAppModel->getFrameRateController()->setTargetFPS(m_target_fps);

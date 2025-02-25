@@ -2,7 +2,7 @@
 #include "GameResource/ResourceBase.hpp"
 #include "GameResource/ResourceFont.hpp"
 #include "GameResource/ResourceParticle.hpp"
-#include "LuaBinding/lua_luastg_hash.hpp"
+#include "LuaBinding/generated/BlendModeX.hpp"
 
 namespace LuaSTGPlus
 {

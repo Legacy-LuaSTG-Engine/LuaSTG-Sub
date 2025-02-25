@@ -3,7 +3,6 @@
 #pragma warning(disable:4244) // 'argument': conversion from 'unsigned int' to 'const pcg_extras::bitcount_t', possible loss of data
 
 #include "lua_random.hpp"
-#include "LuaBinding/lua_utility.hpp"
 #include "Utility/xorshift.hpp"
 #include "pcg_random.hpp"
 #include "Utility/sfc.hpp"
@@ -150,7 +149,7 @@ private:
 	static int __tostring(lua_State* L)
 	{
 		std::ignore = Cast(L, 1);
-		lua_push_string_view(L, ClassID);
+		lua_pushstring(L, ClassID.data());
 		return 1;
 	}
 
@@ -200,7 +199,7 @@ public:
 
 		luaL_newmetatable(L, ClassID.data()); // ... mt
 		luaL_register(L, NULL, mt);           // ... mt
-		lua_push_string_view(L, "__index");   // ... mt "__index"
+		lua_pushstring(L, "__index");   // ... mt "__index"
 		lua_createtable(L, 0, 4);             // ... mt "__index" lib
 		luaL_register(L, NULL, lib);          // ... mt "__index" lib
 		lua_settable(L, -3);                  // ... mt
@@ -405,7 +404,7 @@ private:
 	static int __tostring(lua_State* L)
 	{
 		std::ignore = Cast(L, 1);
-		lua_push_string_view(L, ClassID);
+		lua_pushstring(L, ClassID.data());
 		return 1;
 	}
 
@@ -455,7 +454,7 @@ public:
 
 		luaL_newmetatable(L, ClassID.data()); // ... mt
 		luaL_register(L, NULL, mt);           // ... mt
-		lua_push_string_view(L, "__index");   // ... mt "__index"
+		lua_pushstring(L, "__index");   // ... mt "__index"
 		lua_createtable(L, 0, 4);             // ... mt "__index" lib
 		luaL_register(L, NULL, lib);          // ... mt "__index" lib
 		lua_settable(L, -3);                  // ... mt
@@ -862,7 +861,7 @@ private:
 	static int __tostring(lua_State* L)
 	{
 		std::ignore = Cast(L, 1);
-		lua_push_string_view(L, ClassID);
+		lua_pushstring(L, ClassID.data());
 		return 1;
 	}
 
@@ -910,7 +909,7 @@ public:
 
 		luaL_newmetatable(L, ClassID.data()); // ... mt
 		luaL_register(L, NULL, mt);           // ... mt
-		lua_push_string_view(L, "__index");   // ... mt "__index"
+		lua_pushstring(L, "__index");   // ... mt "__index"
 		lua_createtable(L, 0, 4);             // ... mt "__index" lib
 		luaL_register(L, NULL, lib);          // ... mt "__index" lib
 		lua_settable(L, -3);                  // ... mt

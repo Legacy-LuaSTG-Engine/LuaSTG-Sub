@@ -176,9 +176,9 @@ endif()
 
 CPMAddPackage(
     NAME libflac
-    VERSION 1.4.3
+    VERSION 1.5.0
     GITHUB_REPOSITORY xiph/flac
-    GIT_TAG 1.4.3
+    GIT_TAG 1.5.0
     DOWNLOAD_ONLY YES
 )
 

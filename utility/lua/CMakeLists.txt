@@ -1,0 +1,6 @@
+add_library(lua_plus STATIC)
+luastg_target_common_options(lua_plus)
+luastg_target_more_warning(lua_plus)
+target_include_directories(lua_plus PUBLIC .)
+target_sources(lua_plus PRIVATE lua/plus.hpp lua/plus.cpp)
+target_link_libraries(lua_plus PUBLIC lua51_static)

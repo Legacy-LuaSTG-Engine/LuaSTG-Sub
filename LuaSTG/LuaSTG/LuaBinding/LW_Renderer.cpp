@@ -1,5 +1,5 @@
 ﻿#include "LuaBinding/LuaWrapper.hpp"
-#include "LuaBinding/lua_utility.hpp"
+#include "lua/plus.hpp"
 #include "LuaBinding/PostEffectShader.hpp"
 #include "AppFrame.h"
 
@@ -624,9 +624,10 @@ static int lib_drawTexture(lua_State* L) noexcept
 }
 static int lib_drawMesh(lua_State* L) noexcept
 {
+    lua::stack_t S(L);
     validate_render_scope();
 
-    std::string_view const tex_name = luaL_check_string_view(L, 1);
+    std::string_view const tex_name = S.get_value<std::string_view>(1);
     LuaSTGPlus::BlendMode blend = LuaSTGPlus::TranslateBlendMode(L, 2);
     LuaSTGPlus::Mesh* mesh = LuaSTGPlus::LuaWrapper::MeshBinding::Cast(L, 3);
 
