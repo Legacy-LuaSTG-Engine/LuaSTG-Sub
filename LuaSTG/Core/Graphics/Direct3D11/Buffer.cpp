@@ -8,6 +8,12 @@
 #define HRCheckCallReturnBool(x) if (FAILED(hr)) { i18n_core_system_call_report_error(x); assert(false); return false; }
 #define HRCheckCallNoAssertReturnBool(x) if (FAILED(hr)) { i18n_core_system_call_report_error(x); return false; }
 
+namespace {
+	uint32_t alignTo16 (uint32_t const size) {
+		return ((size + 15u) / 16u) * 16;
+	}
+}
+
 // Buffer
 namespace Core::Graphics::Direct3D11 {
 	void Buffer::onDeviceCreate() {
@@ -50,7 +56,7 @@ namespace Core::Graphics::Direct3D11 {
 
 	bool Buffer::initialize(Device* const device, uint8_t const type, uint32_t const size_in_bytes) {
 		assert(device);
-		assert(type == 1 || type == 2);
+		assert(type == type_vertex_buffer || type == type_index_buffer || type == type_constant_buffer);
 		assert(size_in_bytes > 0);
 		m_device = device;
 		m_size_in_bytes = size_in_bytes;
@@ -69,7 +75,23 @@ namespace Core::Graphics::Direct3D11 {
 		D3D11_BUFFER_DESC info{};
 		info.ByteWidth = m_size_in_bytes;
 		info.Usage = D3D11_USAGE_DYNAMIC;
-		info.BindFlags = m_type == 1 ? D3D11_BIND_VERTEX_BUFFER : D3D11_BIND_INDEX_BUFFER;
+		switch (m_type) {
+		case type_vertex_buffer:
+			info.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+			break;
+		case type_index_buffer:
+			info.BindFlags = D3D11_BIND_INDEX_BUFFER;
+			break;
+		case type_constant_buffer:
+			// For a constant buffer (BindFlags of D3D11_BUFFER_DESC set to D3D11_BIND_CONSTANT_BUFFER),
+			// you must set the ByteWidth value of D3D11_BUFFER_DESC in multiples of 16, and less than or equal to D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT.
+			// https://learn.microsoft.com/en-us/windows/win32/api/D3D11/nf-d3d11-id3d11device-createbuffer
+			info.ByteWidth = alignTo16(info.ByteWidth);
+			info.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+			break;
+		default:
+			assert(false); return false;
+		}
 		info.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		HRGet = device->CreateBuffer(&info, nullptr, m_buffer.put());
 		HRCheckCallReturnBool("ID3D11Device::CreateBuffer");
@@ -81,7 +103,7 @@ namespace Core::Graphics::Direct3D11 {
 		*output = nullptr;
 		ScopeObject<Buffer> buffer;
 		buffer.attach(new Buffer);
-		if (!buffer->initialize(this, 1, size_in_bytes)) {
+		if (!buffer->initialize(this, Buffer::type_vertex_buffer, size_in_bytes)) {
 			return false;
 		}
 		*output = buffer.detach();
@@ -91,7 +113,17 @@ namespace Core::Graphics::Direct3D11 {
 		*output = nullptr;
 		ScopeObject<Buffer> buffer;
 		buffer.attach(new Buffer);
-		if (!buffer->initialize(this, 2, size_in_bytes)) {
+		if (!buffer->initialize(this, Buffer::type_index_buffer, size_in_bytes)) {
+			return false;
+		}
+		*output = buffer.detach();
+		return true;
+	}
+	bool Device::createConstantBuffer(uint32_t const size_in_bytes, IBuffer** const output) {
+		*output = nullptr;
+		ScopeObject<Buffer> buffer;
+		buffer.attach(new Buffer);
+		if (!buffer->initialize(this, Buffer::type_constant_buffer, size_in_bytes)) {
 			return false;
 		}
 		*output = buffer.detach();
