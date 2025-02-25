@@ -19,12 +19,13 @@ end
 local M = {}
 
 function M:initMesh()
+    local white = lstg.Color(255, 255, 255, 255)
+
     self.mesh = Mesh.create({
         vertex_count = 4,
         index_count = 6,
     })
 
-    local white = lstg.Color(255, 255, 255, 255)
     self.mesh:setVertex(0, -0.5,  0.5, 0.0, 0.0, white)
     self.mesh:setVertex(1,  0.5,  0.5, 1.0, 0.0, white)
     self.mesh:setVertex(2,  0.5, -0.5, 1.0, 1.0, white)
@@ -41,12 +42,81 @@ function M:initMesh()
 
     self.texture = Texture2D.createFromFile("res/block.png", 0)
     self.mesh_renderer = MeshRenderer.create(self.mesh, self.texture)
+
+    self.cube = Mesh.create({
+        vertex_count = 6 * 4, -- 6个面，每个面4个顶点
+        index_count = 6 * 2 * 3, -- 6个面，每个面2个三角形，每个三角形3个顶点（索引）
+    })
+
+    -- 正面
+
+    self.cube:setVertex((4 * 0) + 0, -0.5,  0.5, -0.5, 0.0, 0.0, white)
+    self.cube:setVertex((4 * 0) + 1,  0.5,  0.5, -0.5, 1.0, 0.0, white)
+    self.cube:setVertex((4 * 0) + 2,  0.5, -0.5, -0.5, 1.0, 1.0, white)
+    self.cube:setVertex((4 * 0) + 3, -0.5, -0.5, -0.5, 0.0, 1.0, white)
+
+    self.cube:setIndex((6 * 0) + 0, (4 * 0) + 0)
+    self.cube:setIndex((6 * 0) + 1, (4 * 0) + 1)
+    self.cube:setIndex((6 * 0) + 2, (4 * 0) + 2)
+    self.cube:setIndex((6 * 0) + 3, (4 * 0) + 0)
+    self.cube:setIndex((6 * 0) + 4, (4 * 0) + 2)
+    self.cube:setIndex((6 * 0) + 5, (4 * 0) + 3)
+
+    -- 背面
+
+    self.cube:setVertex((4 * 1) + 0,  0.5,  0.5, 0.5, 0.0, 0.0, white)
+    self.cube:setVertex((4 * 1) + 1, -0.5,  0.5, 0.5, 1.0, 0.0, white)
+    self.cube:setVertex((4 * 1) + 2, -0.5, -0.5, 0.5, 1.0, 1.0, white)
+    self.cube:setVertex((4 * 1) + 3,  0.5, -0.5, 0.5, 0.0, 1.0, white)
+
+    self.cube:setIndex((6 * 1) + 0, (4 * 1) + 0)
+    self.cube:setIndex((6 * 1) + 1, (4 * 1) + 1)
+    self.cube:setIndex((6 * 1) + 2, (4 * 1) + 2)
+    self.cube:setIndex((6 * 1) + 3, (4 * 1) + 0)
+    self.cube:setIndex((6 * 1) + 4, (4 * 1) + 2)
+    self.cube:setIndex((6 * 1) + 5, (4 * 1) + 3)
+
+    -- 左面
+
+    self.cube:setVertex((4 * 2) + 0, -0.5,  0.5,  0.5, 0.0, 0.0, white)
+    self.cube:setVertex((4 * 2) + 1, -0.5,  0.5, -0.5, 1.0, 0.0, white)
+    self.cube:setVertex((4 * 2) + 2, -0.5, -0.5, -0.5, 1.0, 1.0, white)
+    self.cube:setVertex((4 * 2) + 3, -0.5, -0.5,  0.5, 0.0, 1.0, white)
+
+    self.cube:setIndex((6 * 2) + 0, (4 * 2) + 0)
+    self.cube:setIndex((6 * 2) + 1, (4 * 2) + 1)
+    self.cube:setIndex((6 * 2) + 2, (4 * 2) + 2)
+    self.cube:setIndex((6 * 2) + 3, (4 * 2) + 0)
+    self.cube:setIndex((6 * 2) + 4, (4 * 2) + 2)
+    self.cube:setIndex((6 * 2) + 5, (4 * 2) + 3)
+
+    -- 右面
+
+    self.cube:setVertex((4 * 3) + 0, 0.5,  0.5, -0.5, 0.0, 0.0, white)
+    self.cube:setVertex((4 * 3) + 1, 0.5,  0.5,  0.5, 1.0, 0.0, white)
+    self.cube:setVertex((4 * 3) + 2, 0.5, -0.5,  0.5, 1.0, 1.0, white)
+    self.cube:setVertex((4 * 3) + 3, 0.5, -0.5, -0.5, 0.0, 1.0, white)
+
+    self.cube:setIndex((6 * 3) + 0, (4 * 3) + 0)
+    self.cube:setIndex((6 * 3) + 1, (4 * 3) + 1)
+    self.cube:setIndex((6 * 3) + 2, (4 * 3) + 2)
+    self.cube:setIndex((6 * 3) + 3, (4 * 3) + 0)
+    self.cube:setIndex((6 * 3) + 4, (4 * 3) + 2)
+    self.cube:setIndex((6 * 3) + 5, (4 * 3) + 3)
+
+    self.cube:commit()
+
+    self.cube_renderer = MeshRenderer.create(self.cube, self.texture)
 end
 
 function M:updateMesh()
-    self.mesh_renderer:setPosition(window.width / 2, window.height / 2)
+    self.mesh_renderer:setPosition(window.width / 4, window.height / 2)
     self.mesh_renderer:setScale(480, 480, 480)
     self.mesh_renderer:setRotationYawPitchRoll(math.rad((self.timer / 3) % 360), math.rad(self.timer % 360), 0)
+
+    self.cube_renderer:setPosition(window.width * 3 / 4, window.height / 2)
+    self.cube_renderer:setScale(480, 480, 480)
+    self.cube_renderer:setRotationYawPitchRoll(math.rad((self.timer / 3) % 360), math.rad(self.timer % 360), 0)
 end
 
 function M:onCreate()
@@ -77,7 +147,11 @@ end
 function M:onRender()
     window:applyCamera3D()
     lstg.Render("image_2", window.width / 2, window.height / 2, 0, window.height / 2160)
+    lstg.SetZBufferEnable(1)
+    lstg.ClearZBuffer(1)
     self.mesh_renderer:draw()
+    self.cube_renderer:draw()
+    lstg.SetZBufferEnable(0)
 end
 
 test.registerTest("test.graphics.MeshRenderer", M, "Graphics: MeshRenderer")
