@@ -121,7 +121,11 @@ namespace Core::Graphics::Direct3D11 {
 		if (!m_constant_buffer->map(sizeof(m_transform), true, &ptr)) {
 			return false;
 		}
-		std::memcpy(ptr, &m_transform, sizeof(m_transform));
+		auto const original = DirectX::XMLoadFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4 const*>(&m_transform));
+		auto const transposed = DirectX::XMMatrixTranspose(original);
+		DirectX::XMFLOAT4X4A data;
+		DirectX::XMStoreFloat4x4A(&data, transposed);
+		std::memcpy(ptr, &data, sizeof(data));
 		if (!m_constant_buffer->unmap()) {
 			return false;
 		}
