@@ -5,6 +5,7 @@
 #include "Core/Graphics/Direct3D11/SamplerState.hpp"
 #include "Core/Graphics/Direct3D11/Device.hpp"
 #include "Core/Graphics/Direct3D11/Mesh.hpp"
+#include "Core/Graphics/Renderer_D3D11.hpp"
 
 namespace Core::Graphics::Direct3D11 {
 	void MeshRenderer::onDeviceCreate() {
@@ -91,6 +92,9 @@ namespace Core::Graphics::Direct3D11 {
 			sampler_state[0] = static_cast<SamplerState*>(ss)->GetState();
 		}
 		ctx->PSSetSamplers(0, 1, sampler_state);
+
+		static_cast<Renderer_D3D11*>(renderer)->bindTextureAlphaType(m_texture.get());
+		//static_cast<Renderer_D3D11*>(renderer)->bindTextureSamplerState(m_texture.get());
 
 		// OM stage setup by Renderer:
 		// * depth stencil state
