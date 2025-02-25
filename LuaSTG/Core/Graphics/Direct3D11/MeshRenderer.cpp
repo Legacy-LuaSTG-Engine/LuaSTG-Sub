@@ -32,6 +32,9 @@ namespace Core::Graphics::Direct3D11 {
 		renderer->setVertexColorBlendState(IRenderer::VertexColorBlendState::Mul);
 		renderer->setTexture(m_texture.get());
 		renderer->setBlendState(IRenderer::BlendState::Alpha);
+		if (!renderer->flush()) {
+			return;
+		}
 
 		if (!uploadConstantBuffer()) {
 			return;
