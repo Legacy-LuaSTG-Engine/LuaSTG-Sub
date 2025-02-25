@@ -1,7 +1,10 @@
 #pragma once
 
 struct xSteamUtils {
-
+	static int GetAppID(lua_State* L) {
+		lua_pushnumber(L, SteamUtils()->GetAppID());
+		return 1;
+	}
 	static int GetCurrentBatteryPower(lua_State* L)
 	{
 		lua_pushnumber(L, SteamUtils()->GetCurrentBatteryPower());
@@ -50,6 +53,7 @@ struct xSteamUtils {
 	static int xRegister(lua_State* L)
 	{
 		static const luaL_Reg lib[] = {
+			xfbinding(GetAppID),
 			xfbinding(GetCurrentBatteryPower),
 			xfbinding(GetIPCCallCount),
 			xfbinding(GetIPCountry),
@@ -62,7 +66,7 @@ struct xSteamUtils {
 			{NULL, NULL},
 		};
 		lua_pushstring(L, "SteamUtils");
-		lua_createtable(L, 0, 10);
+		lua_createtable(L, 0, 11);
 		luaL_register(L, NULL, lib);
 		lua_settable(L, -3);
 		return 0;
