@@ -188,8 +188,6 @@ namespace Core::Graphics
 		void initState();
 		void setSamplerState(SamplerState state, UINT index);
 		bool uploadVertexIndexBufferFromDrawList();
-		void bindTextureSamplerState(ITexture2D* texture);
-		void bindTextureAlphaType(ITexture2D* texture);
 		bool batchFlush(bool discard = false);
 
 		bool createResources();
@@ -197,6 +195,11 @@ namespace Core::Graphics
 		void onDeviceDestroy();
 
 	public:
+		// public to MeshRenderer
+		void bindTextureSamplerState(ITexture2D* texture);
+		// public to MeshRenderer
+		void bindTextureAlphaType(ITexture2D* texture);
+
 		bool beginBatch();
 		bool endBatch();
 		bool isBatchScope() { return _batch_scope; }
