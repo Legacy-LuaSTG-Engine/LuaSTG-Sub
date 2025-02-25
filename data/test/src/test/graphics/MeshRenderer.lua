@@ -40,17 +40,17 @@ function M:onUpdate()
         , 0.0, 0.0
         , white
     )
-    self.mesh:setVertex(0
+    self.mesh:setVertex(1
         , 0.5, 0.5
         , 1.0, 0.0
         , white
     )
-    self.mesh:setVertex(0
+    self.mesh:setVertex(2
         , 0.5, -0.5
         , 1.0, 1.0
         , white
     )
-    self.mesh:setVertex(0
+    self.mesh:setVertex(3
         , -0.5, -0.5
         , 0.0, 1.0
         , white
