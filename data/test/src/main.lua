@@ -24,7 +24,7 @@ function window:applyCamera3D()
         0, 1, 0, -- up
         math.rad(fov),
         self.width / self.height,
-        math.max(0.01, distance - 4096), distance + 4096
+        math.max(0.01, distance - 600), distance + 600
     )
     lstg.SetImageScale(1)
     lstg.SetFog()
