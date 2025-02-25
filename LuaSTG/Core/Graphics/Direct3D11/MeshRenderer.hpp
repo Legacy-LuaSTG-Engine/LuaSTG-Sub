@@ -17,7 +17,7 @@ namespace Core::Graphics::Direct3D11 {
 		void setTransform(Matrix4F const& transform) override;
 		void setTexture(ITexture2D* texture) override;
 		void setMesh(IMesh* mesh) override;
-		void draw() override;
+		void draw(IRenderer* renderer) override;
 
 		// MeshRenderer
 

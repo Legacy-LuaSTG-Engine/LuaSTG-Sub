@@ -25,7 +25,12 @@ namespace Core::Graphics::Direct3D11 {
 	void MeshRenderer::setMesh(IMesh* const mesh) {
 		m_mesh = mesh;
 	}
-	void MeshRenderer::draw() {
+	void MeshRenderer::draw(IRenderer* const renderer) {
+		assert(renderer);
+		if (!renderer->flush()) {
+			return;
+		}
+
 		auto const ctx = static_cast<Device*>(m_device.get())->GetD3D11DeviceContext();
 		assert(ctx);
 
@@ -81,8 +86,8 @@ namespace Core::Graphics::Direct3D11 {
 		if (m_texture->getSamplerState()) {
 			sampler_state[0] = static_cast<SamplerState*>(m_texture->getSamplerState())->GetState();
 		} else {
-			// TODO: shared sampler state
-			// sampler_state[0] = ???
+			auto const ss = renderer->getKnownSamplerState(IRenderer::SamplerState::LinearWrap);
+			sampler_state[0] = static_cast<SamplerState*>(ss)->GetState();
 		}
 		ctx->PSSetSamplers(0, 1, sampler_state);
 

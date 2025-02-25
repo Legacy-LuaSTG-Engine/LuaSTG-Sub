@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/Graphics/Device.hpp"
+#include "Core/Graphics/Renderer.hpp"
 
 namespace Core::Graphics {
 	enum class PrimitiveTopology : uint8_t {
@@ -59,7 +60,7 @@ namespace Core::Graphics {
 		virtual void setTransform(Matrix4F const& transform) = 0;
 		virtual void setTexture(ITexture2D* texture) = 0;
 		virtual void setMesh(IMesh* mesh) = 0;
-		virtual void draw() = 0;
+		virtual void draw(IRenderer* renderer) = 0;
 
 		static bool create(IDevice* device, IMeshRenderer** output);
 	};
