@@ -27,6 +27,7 @@ namespace Core::Graphics::Direct3D11 {
 	}
 	void MeshRenderer::draw(IRenderer* const renderer) {
 		assert(renderer);
+		renderer->setTexture(m_texture.get());
 		if (!renderer->flush()) {
 			return;
 		}
@@ -139,11 +140,12 @@ namespace Core::Graphics::Direct3D11 {
 		if (!m_constant_buffer->map(sizeof(m_transform), true, &ptr)) {
 			return false;
 		}
-		auto const original = DirectX::XMLoadFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4 const*>(&m_transform));
-		auto const transposed = DirectX::XMMatrixTranspose(original);
-		DirectX::XMFLOAT4X4A data;
-		DirectX::XMStoreFloat4x4A(&data, transposed);
-		std::memcpy(ptr, &data, sizeof(data));
+		//auto const original = DirectX::XMLoadFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4 const*>(&m_transform));
+		//auto const transposed = DirectX::XMMatrixTranspose(original);
+		//DirectX::XMFLOAT4X4A data;
+		//DirectX::XMStoreFloat4x4A(&data, transposed);
+		//std::memcpy(ptr, &data, sizeof(data));
+		std::memcpy(ptr, &m_transform, sizeof(m_transform));
 		if (!m_constant_buffer->unmap()) {
 			return false;
 		}
