@@ -110,7 +110,7 @@ function Mesh:createVertexWriter()
 	function M:seek(vertex_index)
 		assert(vertex_index >= 0 and vertex_index < vertex_count, "vertex out of bounds")
 		p = vertex_index - 1
-		return self
+		return M
 	end
 	function M:vertex(...)
 		p = p + 1
@@ -118,26 +118,53 @@ function Mesh:createVertexWriter()
 		if select("#", ...) > 0 then
 			mesh:setVertex(p, ...)
 		end
-		return self
+		return M
 	end
 	function M:position(...)
 		assert(p >= 0, "forget to call the 'vertex' method?")
 		mesh:setPosition(p, ...)
-		return self
+		return M
 	end
 	function M:uv(...)
 		assert(p >= 0, "forget to call the 'vertex' method?")
 		mesh:setUv(p, ...)
-		return self
+		return M
 	end
 	function M:color(...)
 		assert(p >= 0, "forget to call the 'vertex' method?")
-		mesh:setColor(p, u, v)
-		return self
+		mesh:setColor(p, ...)
+		return M
 	end
 	function M:commit()
 		mesh:commit()
-		return self
+		return M
+	end
+	return M
+end
+function Mesh:createIndexWriter()
+	local assert = assert
+	local ipairs = ipairs
+	local mesh = self
+	local index_count = mesh:getIndexCount()
+	local M = {}
+	local p = -1
+	function M:seek(index_index)
+		assert(index_index >= 0 and index_index < index_count, "index out of bounds")
+		p = index_index - 1
+		return M
+	end
+	function M:index(...)
+		local args = {...}
+		assert(p + #args < index_count, "index out of bounds")
+		for _, i in ipairs(args) do
+			p = p + 1
+			mesh:setIndex(p, i)
+		end
+		return M
+	end
+	function M:commit()
+		mesh:commit()
+		return M
 	end
 	return M
 end
