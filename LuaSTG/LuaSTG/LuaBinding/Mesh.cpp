@@ -155,7 +155,7 @@ namespace LuaSTG::Sub::LuaBinding {
 				self->data->setColor(vertex_index, Core::Vector4F(r, g, b, a));
 			}
 			else {
-				auto const color = LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(vm, 1 + 1);
+				auto const color = LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(vm, 1 + 2);
 				self->data->setColor(vertex_index, *color);
 			}
 
@@ -277,7 +277,7 @@ namespace LuaSTG::Sub::LuaBinding {
 		ctx.set_map_value(method_table, "isReadOnly", &MeshBinding::isReadOnly);
 		ctx.set_map_value(method_table, "setVertex", &MeshBinding::setVertex);
 		ctx.set_map_value(method_table, "setPosition", &MeshBinding::setPosition);
-		ctx.set_map_value(method_table, "setUv", &MeshBinding::setPosition);
+		ctx.set_map_value(method_table, "setUv", &MeshBinding::setUv);
 		ctx.set_map_value(method_table, "setColor", &MeshBinding::setColor);
 		ctx.set_map_value(method_table, "setIndex", &MeshBinding::setIndex);
 		ctx.set_map_value(method_table, "commit", &MeshBinding::commit);
