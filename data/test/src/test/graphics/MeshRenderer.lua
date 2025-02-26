@@ -18,6 +18,133 @@ end
 ---@class test.graphics.MeshRenderer : test.Base
 local M = {}
 
+---@param cube lstg.Mesh
+function M:initCube1(cube)
+    local white = lstg.Color(255, 255, 255, 255)
+
+    -- 正面
+
+    cube:setVertex((4 * 0) + 0, -0.5,  0.5, -0.5, 0.0, 0.0, white)
+    cube:setVertex((4 * 0) + 1,  0.5,  0.5, -0.5, 1.0, 0.0, white)
+    cube:setVertex((4 * 0) + 2,  0.5, -0.5, -0.5, 1.0, 1.0, white)
+    cube:setVertex((4 * 0) + 3, -0.5, -0.5, -0.5, 0.0, 1.0, white)
+
+    cube:setIndex((6 * 0) + 0, (4 * 0) + 0)
+    cube:setIndex((6 * 0) + 1, (4 * 0) + 1)
+    cube:setIndex((6 * 0) + 2, (4 * 0) + 2)
+    cube:setIndex((6 * 0) + 3, (4 * 0) + 0)
+    cube:setIndex((6 * 0) + 4, (4 * 0) + 2)
+    cube:setIndex((6 * 0) + 5, (4 * 0) + 3)
+
+    -- 背面
+
+    cube:setVertex((4 * 1) + 0,  0.5,  0.5, 0.5, 0.0, 0.0, white)
+    cube:setVertex((4 * 1) + 1, -0.5,  0.5, 0.5, 1.0, 0.0, white)
+    cube:setVertex((4 * 1) + 2, -0.5, -0.5, 0.5, 1.0, 1.0, white)
+    cube:setVertex((4 * 1) + 3,  0.5, -0.5, 0.5, 0.0, 1.0, white)
+
+    cube:setIndex((6 * 1) + 0, (4 * 1) + 0)
+    cube:setIndex((6 * 1) + 1, (4 * 1) + 1)
+    cube:setIndex((6 * 1) + 2, (4 * 1) + 2)
+    cube:setIndex((6 * 1) + 3, (4 * 1) + 0)
+    cube:setIndex((6 * 1) + 4, (4 * 1) + 2)
+    cube:setIndex((6 * 1) + 5, (4 * 1) + 3)
+
+    -- 左面
+
+    cube:setVertex((4 * 2) + 0, -0.5,  0.5,  0.5, 0.0, 0.0, white)
+    cube:setVertex((4 * 2) + 1, -0.5,  0.5, -0.5, 1.0, 0.0, white)
+    cube:setVertex((4 * 2) + 2, -0.5, -0.5, -0.5, 1.0, 1.0, white)
+    cube:setVertex((4 * 2) + 3, -0.5, -0.5,  0.5, 0.0, 1.0, white)
+
+    cube:setIndex((6 * 2) + 0, (4 * 2) + 0)
+    cube:setIndex((6 * 2) + 1, (4 * 2) + 1)
+    cube:setIndex((6 * 2) + 2, (4 * 2) + 2)
+    cube:setIndex((6 * 2) + 3, (4 * 2) + 0)
+    cube:setIndex((6 * 2) + 4, (4 * 2) + 2)
+    cube:setIndex((6 * 2) + 5, (4 * 2) + 3)
+
+    -- 右面
+
+    cube:setVertex((4 * 3) + 0, 0.5,  0.5, -0.5, 0.0, 0.0, white)
+    cube:setVertex((4 * 3) + 1, 0.5,  0.5,  0.5, 1.0, 0.0, white)
+    cube:setVertex((4 * 3) + 2, 0.5, -0.5,  0.5, 1.0, 1.0, white)
+    cube:setVertex((4 * 3) + 3, 0.5, -0.5, -0.5, 0.0, 1.0, white)
+
+    cube:setIndex((6 * 3) + 0, (4 * 3) + 0)
+    cube:setIndex((6 * 3) + 1, (4 * 3) + 1)
+    cube:setIndex((6 * 3) + 2, (4 * 3) + 2)
+    cube:setIndex((6 * 3) + 3, (4 * 3) + 0)
+    cube:setIndex((6 * 3) + 4, (4 * 3) + 2)
+    cube:setIndex((6 * 3) + 5, (4 * 3) + 3)
+
+    -- 提交
+
+    self.cube:commit()
+end
+
+---@param cube lstg.Mesh
+function M:initCube2(cube)
+    local white = lstg.Color(255, 255, 255, 255)
+
+    local v = cube:createVertexWriter()
+    local i = cube:createIndexWriter()
+    -- 正面
+    v:vertex():position(-0.5,  0.5, -0.5):uv(0.0, 0.0):color(white)
+    v:vertex():position( 0.5,  0.5, -0.5):uv(1.0, 0.0):color(white)
+    v:vertex():position( 0.5, -0.5, -0.5):uv(1.0, 1.0):color(white)
+    v:vertex():position(-0.5, -0.5, -0.5):uv(0.0, 1.0):color(white)
+    i:index(
+        (4 * 0) + 0,
+        (4 * 0) + 1,
+        (4 * 0) + 2,
+        (4 * 0) + 0,
+        (4 * 0) + 2,
+        (4 * 0) + 3
+    )
+    -- 背面
+    v:vertex():position( 0.5,  0.5, 0.5):uv(0.0, 0.0):color(white)
+    v:vertex():position(-0.5,  0.5, 0.5):uv(1.0, 0.0):color(white)
+    v:vertex():position(-0.5, -0.5, 0.5):uv(1.0, 1.0):color(white)
+    v:vertex():position( 0.5, -0.5, 0.5):uv(0.0, 1.0):color(white)
+    i:index(
+        (4 * 1) + 0,
+        (4 * 1) + 1,
+        (4 * 1) + 2,
+        (4 * 1) + 0,
+        (4 * 1) + 2,
+        (4 * 1) + 3
+    )
+    -- 左面
+    v:vertex():position(-0.5,  0.5,  0.5):uv(0.0, 0.0):color(white)
+    v:vertex():position(-0.5,  0.5, -0.5):uv(1.0, 0.0):color(white)
+    v:vertex():position(-0.5, -0.5, -0.5):uv(1.0, 1.0):color(white)
+    v:vertex():position(-0.5, -0.5,  0.5):uv(0.0, 1.0):color(white)
+    i:index(
+        (4 * 2) + 0,
+        (4 * 2) + 1,
+        (4 * 2) + 2,
+        (4 * 2) + 0,
+        (4 * 2) + 2,
+        (4 * 2) + 3
+    )
+    -- 右面
+    v:vertex():position(0.5,  0.5, -0.5):uv(0.0, 0.0):color(white)
+    v:vertex():position(0.5,  0.5,  0.5):uv(1.0, 0.0):color(white)
+    v:vertex():position(0.5, -0.5,  0.5):uv(1.0, 1.0):color(white)
+    v:vertex():position(0.5, -0.5, -0.5):uv(0.0, 1.0):color(white)
+    i:index(
+        (4 * 3) + 0,
+        (4 * 3) + 1,
+        (4 * 3) + 2,
+        (4 * 3) + 0,
+        (4 * 3) + 2,
+        (4 * 3) + 3
+    )
+    -- 提交
+    cube:commit()
+end
+
 function M:initMesh()
     local white = lstg.Color(255, 255, 255, 255)
 
@@ -47,64 +174,7 @@ function M:initMesh()
         vertex_count = 6 * 4, -- 6个面，每个面4个顶点
         index_count = 6 * 2 * 3, -- 6个面，每个面2个三角形，每个三角形3个顶点（索引）
     })
-
-    -- 正面
-
-    self.cube:setVertex((4 * 0) + 0, -0.5,  0.5, -0.5, 0.0, 0.0, white)
-    self.cube:setVertex((4 * 0) + 1,  0.5,  0.5, -0.5, 1.0, 0.0, white)
-    self.cube:setVertex((4 * 0) + 2,  0.5, -0.5, -0.5, 1.0, 1.0, white)
-    self.cube:setVertex((4 * 0) + 3, -0.5, -0.5, -0.5, 0.0, 1.0, white)
-
-    self.cube:setIndex((6 * 0) + 0, (4 * 0) + 0)
-    self.cube:setIndex((6 * 0) + 1, (4 * 0) + 1)
-    self.cube:setIndex((6 * 0) + 2, (4 * 0) + 2)
-    self.cube:setIndex((6 * 0) + 3, (4 * 0) + 0)
-    self.cube:setIndex((6 * 0) + 4, (4 * 0) + 2)
-    self.cube:setIndex((6 * 0) + 5, (4 * 0) + 3)
-
-    -- 背面
-
-    self.cube:setVertex((4 * 1) + 0,  0.5,  0.5, 0.5, 0.0, 0.0, white)
-    self.cube:setVertex((4 * 1) + 1, -0.5,  0.5, 0.5, 1.0, 0.0, white)
-    self.cube:setVertex((4 * 1) + 2, -0.5, -0.5, 0.5, 1.0, 1.0, white)
-    self.cube:setVertex((4 * 1) + 3,  0.5, -0.5, 0.5, 0.0, 1.0, white)
-
-    self.cube:setIndex((6 * 1) + 0, (4 * 1) + 0)
-    self.cube:setIndex((6 * 1) + 1, (4 * 1) + 1)
-    self.cube:setIndex((6 * 1) + 2, (4 * 1) + 2)
-    self.cube:setIndex((6 * 1) + 3, (4 * 1) + 0)
-    self.cube:setIndex((6 * 1) + 4, (4 * 1) + 2)
-    self.cube:setIndex((6 * 1) + 5, (4 * 1) + 3)
-
-    -- 左面
-
-    self.cube:setVertex((4 * 2) + 0, -0.5,  0.5,  0.5, 0.0, 0.0, white)
-    self.cube:setVertex((4 * 2) + 1, -0.5,  0.5, -0.5, 1.0, 0.0, white)
-    self.cube:setVertex((4 * 2) + 2, -0.5, -0.5, -0.5, 1.0, 1.0, white)
-    self.cube:setVertex((4 * 2) + 3, -0.5, -0.5,  0.5, 0.0, 1.0, white)
-
-    self.cube:setIndex((6 * 2) + 0, (4 * 2) + 0)
-    self.cube:setIndex((6 * 2) + 1, (4 * 2) + 1)
-    self.cube:setIndex((6 * 2) + 2, (4 * 2) + 2)
-    self.cube:setIndex((6 * 2) + 3, (4 * 2) + 0)
-    self.cube:setIndex((6 * 2) + 4, (4 * 2) + 2)
-    self.cube:setIndex((6 * 2) + 5, (4 * 2) + 3)
-
-    -- 右面
-
-    self.cube:setVertex((4 * 3) + 0, 0.5,  0.5, -0.5, 0.0, 0.0, white)
-    self.cube:setVertex((4 * 3) + 1, 0.5,  0.5,  0.5, 1.0, 0.0, white)
-    self.cube:setVertex((4 * 3) + 2, 0.5, -0.5,  0.5, 1.0, 1.0, white)
-    self.cube:setVertex((4 * 3) + 3, 0.5, -0.5, -0.5, 0.0, 1.0, white)
-
-    self.cube:setIndex((6 * 3) + 0, (4 * 3) + 0)
-    self.cube:setIndex((6 * 3) + 1, (4 * 3) + 1)
-    self.cube:setIndex((6 * 3) + 2, (4 * 3) + 2)
-    self.cube:setIndex((6 * 3) + 3, (4 * 3) + 0)
-    self.cube:setIndex((6 * 3) + 4, (4 * 3) + 2)
-    self.cube:setIndex((6 * 3) + 5, (4 * 3) + 3)
-
-    self.cube:commit()
+    self:initCube2(self.cube)
 
     self.cube_renderer = MeshRenderer.create(self.cube, self.texture)
 end
