@@ -99,6 +99,49 @@ function lstg.acos(x) return deg(acos(x)) end
 function lstg.atan(...) return deg(atan(...)) end
 function lstg.atan2(y, x) return deg(atan2(y, x)) end
 
+local Mesh = require("lstg.Mesh")
+function Mesh:createVertexWriter()
+	local assert = assert
+	local select = select
+	local mesh = self
+	local vertex_count = mesh:getVertexCount()
+	local M = {}
+	local p = -1
+	function M:seek(vertex_index)
+		assert(vertex_index >= 0 and vertex_index < vertex_count, "vertex out of bounds")
+		p = vertex_index - 1
+		return self
+	end
+	function M:vertex(...)
+		p = p + 1
+		assert(p < vertex_count, "vertex out of bounds")
+		if select("#", ...) > 0 then
+			mesh:setVertex(p, ...)
+		end
+		return self
+	end
+	function M:position(...)
+		assert(p >= 0, "forget to call the 'vertex' method?")
+		mesh:setPosition(p, ...)
+		return self
+	end
+	function M:uv(...)
+		assert(p >= 0, "forget to call the 'vertex' method?")
+		mesh:setUv(p, ...)
+		return self
+	end
+	function M:color(...)
+		assert(p >= 0, "forget to call the 'vertex' method?")
+		mesh:setColor(p, u, v)
+		return self
+	end
+	function M:commit()
+		mesh:commit()
+		return self
+	end
+	return M
+end
+
 )";
 #pragma endregion
 
