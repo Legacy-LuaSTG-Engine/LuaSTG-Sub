@@ -6,8 +6,9 @@
 using std::string_view_literals::operator ""sv;
 
 namespace {
-	constexpr auto embedded_script = R"(-- LuaSTG Sub built-in script
+	constexpr auto embedded_script = R"(--- LuaSTG Sub built-in script
 local Mesh = require("lstg.Mesh")
+--- High-level Mesh data operation
 function Mesh:createVertexWriter()
 	local assert = assert
 	local select = select
@@ -172,7 +173,49 @@ function Mesh:createPrimitiveWriter()
 	end
 	return M
 end
+--- legacy Mesh object methods
+function Mesh:setAllVertexColor(...)
+	for i = 0, self:getVertexCount() - 1 do
+		self:setColor(i, ...)
+	end
+end
+Mesh.setVertexPosition = Mesh.setPosition
+Mesh.setVertexCoords = Mesh.setUv
+Mesh.setVertexColor = Mesh.setColor
+--- legacy Mesh object constructor
+function lstg.MeshData(vertex_count, index_count)
+	return Mesh.create({
+		vertex_count = vertex_count,
+		index_count = index_count,
+	})
+end
+--- legacy Mesh object renderer
+local global_mesh_renderer = nil
+function lstg.RenderMesh(tex_name, blend, mesh_obj)
+	if not global_mesh_renderer then
+		local MeshRenderer = require("lstg.MeshRenderer")
+		global_mesh_renderer = MeshRenderer.create()
+	end
+	global_mesh_renderer:setMesh(mesh_obj)
+	global_mesh_renderer:setTexture(tex_name)
+	mesh_obj:commit()
+	global_mesh_renderer:draw()
+	global_mesh_renderer:setMesh(nil)
+	global_mesh_renderer:setTexture(nil)
+end
 )"sv;
+}
+
+namespace {
+	// for legacy lstg.Mesh (experiment)
+	Core::Color4B toColor4B(lua_State* vm, int const idx) {
+		// ReSharper disable once CppTooWideScopeInitStatement
+		lua::stack_t const ctx(vm);
+		if (ctx.is_number(idx)) {
+			return {ctx.get_value<uint32_t>(idx)};
+		}
+		return *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(vm, idx);
+	}
 }
 
 namespace LuaSTG::Sub::LuaBinding {
@@ -269,14 +312,14 @@ namespace LuaSTG::Sub::LuaBinding {
 				auto const z = ctx.get_value<float>(1 + 4);
 				auto const u = ctx.get_value<float>(1 + 5);
 				auto const v = ctx.get_value<float>(1 + 6);
-				auto const color = LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(vm, 1 + 7);
-				self->data->setVertex(vertex_index, Core::Vector3F(x, y, z), Core::Vector2F(u, v), *color);
+				auto const color = toColor4B(vm, 1 + 7);
+				self->data->setVertex(vertex_index, Core::Vector3F(x, y, z), Core::Vector2F(u, v), color);
 			}
 			else /* if (ctx.index_of_top() == 1 + 6) */ {
 				auto const u = ctx.get_value<float>(1 + 4);
 				auto const v = ctx.get_value<float>(1 + 5);
-				auto const color = LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(vm, 1 + 6);
-				self->data->setVertex(vertex_index, Core::Vector2F(x, y), Core::Vector2F(u, v), *color);
+				auto const color = toColor4B(vm, 1 + 6);
+				self->data->setVertex(vertex_index, Core::Vector2F(x, y), Core::Vector2F(u, v), color);
 			}
 
 			ctx.push_value(lua::stack_index_t(1)); // return self
@@ -325,8 +368,8 @@ namespace LuaSTG::Sub::LuaBinding {
 				self->data->setColor(vertex_index, Core::Vector4F(r, g, b, a));
 			}
 			else {
-				auto const color = LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(vm, 1 + 2);
-				self->data->setColor(vertex_index, *color);
+				auto const color = toColor4B(vm, 1 + 2);
+				self->data->setColor(vertex_index, color);
 			}
 
 			ctx.push_value(lua::stack_index_t(1)); // return self
