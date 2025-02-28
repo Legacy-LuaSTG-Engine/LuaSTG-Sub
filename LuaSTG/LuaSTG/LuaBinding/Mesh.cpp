@@ -5,6 +5,176 @@
 
 using std::string_view_literals::operator ""sv;
 
+namespace {
+	constexpr auto embedded_script = R"(-- LuaSTG Sub built-in script
+local Mesh = require("lstg.Mesh")
+function Mesh:createVertexWriter()
+	local assert = assert
+	local select = select
+	local mesh = self
+	local vertex_count = mesh:getVertexCount()
+	local M = {}
+	local p = -1
+	function M:seek(vertex_index)
+		assert(vertex_index >= 0 and vertex_index < vertex_count, "vertex out of bounds")
+		p = vertex_index - 1
+		return M
+	end
+	function M:vertex(...)
+		p = p + 1
+		assert(p < vertex_count, "vertex out of bounds")
+		if select("#", ...) > 0 then
+			mesh:setVertex(p, ...)
+		end
+		return M
+	end
+	function M:position(...)
+		assert(p >= 0, "forget to call the 'vertex' method?")
+		mesh:setPosition(p, ...)
+		return M
+	end
+	function M:uv(...)
+		assert(p >= 0, "forget to call the 'vertex' method?")
+		mesh:setUv(p, ...)
+		return M
+	end
+	function M:color(...)
+		assert(p >= 0, "forget to call the 'vertex' method?")
+		mesh:setColor(p, ...)
+		return M
+	end
+	function M:commit()
+		mesh:commit()
+		return M
+	end
+	return M
+end
+function Mesh:createIndexWriter()
+	local assert = assert
+	local ipairs = ipairs
+	local mesh = self
+	local index_count = mesh:getIndexCount()
+	local M = {}
+	local p = -1
+	function M:seek(index_index)
+		assert(index_index >= 0 and index_index < index_count, "index out of bounds")
+		p = index_index - 1
+		return M
+	end
+	function M:index(...)
+		local args = {...}
+		assert(p + #args < index_count, "index out of bounds")
+		for _, i in ipairs(args) do
+			p = p + 1
+			mesh:setIndex(p, i)
+		end
+		return M
+	end
+	function M:commit()
+		mesh:commit()
+		return M
+	end
+	return M
+end
+function Mesh:createPrimitiveWriter()
+	local assert = assert
+	local select = select
+	local mesh = self
+	local vertex_count = mesh:getVertexCount()
+	local index_count = mesh:getIndexCount()
+	local M = {}
+	local vertex_index = -1
+	local index_index = -1
+	local req_vertex_n = 0
+	local cur_vertex_n = 0
+	function M:vertex(...)
+		vertex_index = vertex_index + 1
+		cur_vertex_n = cur_vertex_n + 1
+		assert(vertex_index < vertex_count, "vertex out of bounds")
+		assert(req_vertex_n == 0 or cur_vertex_n <= req_vertex_n, "vertex out of primitive scope")
+		if select("#", ...) > 0 then
+			mesh:setVertex(vertex_index, ...)
+		end
+		return M
+	end
+	function M:position(...)
+		assert(vertex_index >= 0, "forget to call the 'vertex' method?")
+		mesh:setPosition(vertex_index, ...)
+		return M
+	end
+	function M:uv(...)
+		assert(vertex_index >= 0, "forget to call the 'vertex' method?")
+		mesh:setUv(vertex_index, ...)
+		return M
+	end
+	function M:color(...)
+		assert(vertex_index >= 0, "forget to call the 'vertex' method?")
+		mesh:setColor(vertex_index, ...)
+		return M
+	end
+	function M:begin()
+		assert(req_vertex_n == 0 or cur_vertex_n == req_vertex_n, "previous primitive is incomplete")
+		req_vertex_n = 0
+		cur_vertex_n = 0
+		return M
+	end
+	function M:index(...)
+		local args = {...}
+		assert(index_index + #args < index_count, "index out of bounds")
+		local vi = vertex_index + 1
+		local ii = index_index + 1
+		for i, v in ipairs(args) do
+			mesh:setIndex(ii + i - 1, vi + v)
+		end
+		index_index = index_index + #args
+		return M
+	end
+	function M:triangle(a, b, c)
+		return M:index(a, b, c)
+	end
+	function M:quad(a, b, c, d)
+		return M:index(a, b, c, a, c, d)
+	end
+	function M:beginTriangle()
+		assert(req_vertex_n == 0 or cur_vertex_n == req_vertex_n, "previous primitive is incomplete")
+		local vi = vertex_index + 1
+		local ii = index_index + 1
+		mesh:setIndex(ii, vi)
+		mesh:setIndex(ii + 1, vi + 1)
+		mesh:setIndex(ii + 2, vi + 2)
+		index_index = index_index + 3
+		req_vertex_n = 3
+		cur_vertex_n = 0
+		return M
+	end
+	function M:beginQuad()
+		assert(req_vertex_n == 0 or cur_vertex_n == req_vertex_n, "previous primitive is incomplete")
+		local vi = vertex_index + 1
+		local ii = index_index + 1
+		mesh:setIndex(ii, vi)
+		mesh:setIndex(ii + 1, vi + 1)
+		mesh:setIndex(ii + 2, vi + 2)
+		mesh:setIndex(ii + 3, vi)
+		mesh:setIndex(ii + 4, vi + 2)
+		mesh:setIndex(ii + 5, vi + 3)
+		index_index = index_index + 6
+		req_vertex_n = 4
+		cur_vertex_n = 0
+		return M
+	end
+	function M:execute(callback)
+		callback(M)
+		return M
+	end
+	function M:commit()
+		mesh:commit()
+		return M
+	end
+	return M
+end
+)"sv;
+}
+
 namespace LuaSTG::Sub::LuaBinding {
 	std::string_view Mesh::class_name{ "lstg.Mesh" };
 
@@ -291,5 +461,11 @@ namespace LuaSTG::Sub::LuaBinding {
 		ctx.set_map_value(metatable, "__tostring", &MeshBinding::__tostring);
 		ctx.set_map_value(metatable, "__eq", &MeshBinding::__eq);
 		ctx.set_map_value(metatable, "__index", method_table);
+
+		// embedded script
+
+		if (LUA_OK == luaL_loadbuffer(vm, embedded_script.data(), embedded_script.size(), "lstg/Mesh.lua")) {
+			lua_call(vm, 0, 0);
+		}
 	}
 }
