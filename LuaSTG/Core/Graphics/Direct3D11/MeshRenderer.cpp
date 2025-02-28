@@ -26,12 +26,16 @@ namespace Core::Graphics::Direct3D11 {
 	void MeshRenderer::setMesh(IMesh* const mesh) {
 		m_mesh = mesh;
 	}
+	void MeshRenderer::setLegacyBlendState(IRenderer::VertexColorBlendState const vertex_color_blend_state, IRenderer::BlendState const blend_state) {
+		m_vertex_color_blend_state = vertex_color_blend_state;
+		m_blend_state = blend_state;
+	}
 	void MeshRenderer::draw(IRenderer* const renderer) {
 		assert(renderer);
 
-		renderer->setVertexColorBlendState(IRenderer::VertexColorBlendState::Mul);
+		renderer->setVertexColorBlendState(m_vertex_color_blend_state);
 		renderer->setTexture(m_texture.get());
-		renderer->setBlendState(IRenderer::BlendState::Alpha);
+		renderer->setBlendState(m_blend_state);
 		if (!renderer->flush()) {
 			return;
 		}

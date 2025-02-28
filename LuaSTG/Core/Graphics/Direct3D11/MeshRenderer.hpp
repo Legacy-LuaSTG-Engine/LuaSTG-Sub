@@ -17,6 +17,7 @@ namespace Core::Graphics::Direct3D11 {
 		void setTransform(Matrix4F const& transform) override;
 		void setTexture(ITexture2D* texture) override;
 		void setMesh(IMesh* mesh) override;
+		void setLegacyBlendState(IRenderer::VertexColorBlendState vertex_color_blend_state, IRenderer::BlendState blend_state) override;
 		void draw(IRenderer* renderer) override;
 
 		// MeshRenderer
@@ -38,6 +39,8 @@ namespace Core::Graphics::Direct3D11 {
 		ScopeObject<IMesh> m_mesh;
 		ScopeObject<IBuffer> m_constant_buffer;
 		Matrix4F m_transform{ Matrix4F::identity() };
+		IRenderer::VertexColorBlendState m_vertex_color_blend_state{ IRenderer::VertexColorBlendState::Mul };
+		IRenderer::BlendState m_blend_state{ IRenderer::BlendState::Alpha };
 		bool m_transform_dirty{ true };
 	};
 }

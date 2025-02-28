@@ -2,7 +2,7 @@
 #include "Texture2D.hpp"
 #include "MeshRenderer.hpp"
 #include "lua/plus.hpp"
-#include "LuaWrapper.hpp"
+#include "LuaWrapperMisc.hpp"
 #include "AppFrame.h"
 #include <DirectXMath.h>
 
@@ -141,6 +141,74 @@ namespace LuaSTG::Sub::LuaBinding {
 			ctx.push_value(lua::stack_index_t(1)); // return self
 			return 1;
 		}
+		static int setLegacyBlendState(lua_State* vm) {
+			using VertexColorBlendState = Core::Graphics::IRenderer::VertexColorBlendState;
+			using BlendState = Core::Graphics::IRenderer::BlendState;
+
+			lua::stack_t const ctx(vm);
+			auto const self = as(vm, 1);
+
+			switch (auto const blend = LuaSTGPlus::TranslateBlendMode(vm, 1 + 1)) {
+			default:
+			case LuaSTGPlus::BlendMode::MulAlpha:
+				self->data->setLegacyBlendState(VertexColorBlendState::Mul, BlendState::Alpha);
+				break;
+			case LuaSTGPlus::BlendMode::MulAdd:
+				self->data->setLegacyBlendState(VertexColorBlendState::Mul, BlendState::Add);
+				break;
+			case LuaSTGPlus::BlendMode::MulRev:
+				self->data->setLegacyBlendState(VertexColorBlendState::Mul, BlendState::RevSub);
+				break;
+			case LuaSTGPlus::BlendMode::MulSub:
+				self->data->setLegacyBlendState(VertexColorBlendState::Mul, BlendState::Sub);
+				break;
+			case LuaSTGPlus::BlendMode::AddAlpha:
+				self->data->setLegacyBlendState(VertexColorBlendState::Add, BlendState::Alpha);
+				break;
+			case LuaSTGPlus::BlendMode::AddAdd:
+				self->data->setLegacyBlendState(VertexColorBlendState::Add, BlendState::Add);
+				break;
+			case LuaSTGPlus::BlendMode::AddRev:
+				self->data->setLegacyBlendState(VertexColorBlendState::Add, BlendState::RevSub);
+				break;
+			case LuaSTGPlus::BlendMode::AddSub:
+				self->data->setLegacyBlendState(VertexColorBlendState::Add, BlendState::Sub);
+				break;
+			case LuaSTGPlus::BlendMode::AlphaBal:
+				self->data->setLegacyBlendState(VertexColorBlendState::Mul, BlendState::Inv);
+				break;
+			case LuaSTGPlus::BlendMode::MulMin:
+				self->data->setLegacyBlendState(VertexColorBlendState::Mul, BlendState::Min);
+				break;
+			case LuaSTGPlus::BlendMode::MulMax:
+				self->data->setLegacyBlendState(VertexColorBlendState::Mul, BlendState::Max);
+				break;
+			case LuaSTGPlus::BlendMode::MulMutiply:
+				self->data->setLegacyBlendState(VertexColorBlendState::Mul, BlendState::Mul);
+				break;
+			case LuaSTGPlus::BlendMode::MulScreen:
+				self->data->setLegacyBlendState(VertexColorBlendState::Mul, BlendState::Screen);
+				break;
+			case LuaSTGPlus::BlendMode::AddMin:
+				self->data->setLegacyBlendState(VertexColorBlendState::Add, BlendState::Min);
+				break;
+			case LuaSTGPlus::BlendMode::AddMax:
+				self->data->setLegacyBlendState(VertexColorBlendState::Add, BlendState::Max);
+				break;
+			case LuaSTGPlus::BlendMode::AddMutiply:
+				self->data->setLegacyBlendState(VertexColorBlendState::Add, BlendState::Mul);
+				break;
+			case LuaSTGPlus::BlendMode::AddScreen:
+				self->data->setLegacyBlendState(VertexColorBlendState::Add, BlendState::Screen);
+				break;
+			case LuaSTGPlus::BlendMode::One:
+				self->data->setLegacyBlendState(VertexColorBlendState::Mul, BlendState::One);
+				break;
+			}
+
+			ctx.push_value(lua::stack_index_t(1)); // return self
+			return 1;
+		}
 		static int draw(lua_State* vm) {
 			lua::stack_t const ctx(vm);
 			auto const self = as(vm, 1);
@@ -205,6 +273,7 @@ namespace LuaSTG::Sub::LuaBinding {
 		ctx.set_map_value(method_table, "setRotationYawPitchRoll", &MeshRendererBinding::setRotationYawPitchRoll);
 		ctx.set_map_value(method_table, "setMesh", &MeshRendererBinding::setMesh);
 		ctx.set_map_value(method_table, "setTexture", &MeshRendererBinding::setTexture);
+		ctx.set_map_value(method_table, "setLegacyBlendState", &MeshRendererBinding::setLegacyBlendState);
 		ctx.set_map_value(method_table, "draw", &MeshRendererBinding::draw);
 		ctx.set_map_value(method_table, "create", &MeshRendererBinding::create);
 

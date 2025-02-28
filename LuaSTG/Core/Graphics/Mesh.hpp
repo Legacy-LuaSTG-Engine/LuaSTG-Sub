@@ -60,6 +60,7 @@ namespace Core::Graphics {
 		virtual void setTransform(Matrix4F const& transform) = 0;
 		virtual void setTexture(ITexture2D* texture) = 0;
 		virtual void setMesh(IMesh* mesh) = 0;
+		virtual void setLegacyBlendState(IRenderer::VertexColorBlendState vertex_color_blend_state, IRenderer::BlendState blend_state) = 0;
 		virtual void draw(IRenderer* renderer) = 0;
 
 		static bool create(IDevice* device, IMeshRenderer** output);

@@ -198,6 +198,7 @@ function lstg.RenderMesh(tex_name, blend, mesh_obj)
 	end
 	global_mesh_renderer:setMesh(mesh_obj)
 	global_mesh_renderer:setTexture(tex_name)
+	global_mesh_renderer:setLegacyBlendState(blend)
 	mesh_obj:commit()
 	global_mesh_renderer:draw()
 	global_mesh_renderer:setMesh(nil)
