@@ -46,7 +46,6 @@ namespace LuaSTGPlus
 		RandomizerWrapper::Register(L);
 		BentLaserWrapper::Register(L);
 		DInputWrapper::Register(L);
-		//MeshBinding::Register(L);
 		lua_pop(L, 1);									// ?
 	}
 	
