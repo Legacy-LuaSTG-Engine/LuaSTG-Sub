@@ -108,9 +108,14 @@ namespace LuaSTG::Sub::LuaBinding {
 			lua::stack_t const ctx(vm);
 			auto const self = as(vm, 1);
 
-			auto const mesh = Mesh::as(vm, 1 + 1);
-			self->data->setMesh(mesh->data);
-			
+			if (ctx.is_userdata(1 + 1)) {
+				auto const mesh = Mesh::as(vm, 1 + 1);
+				self->data->setMesh(mesh->data);
+			}
+			else {
+				self->data->setMesh(nullptr);
+			}
+
 			ctx.push_value(lua::stack_index_t(1)); // return self
 			return 1;
 		}
@@ -118,8 +123,20 @@ namespace LuaSTG::Sub::LuaBinding {
 			lua::stack_t const ctx(vm);
 			auto const self = as(vm, 1);
 
-			auto const texture = Texture2D::as(vm, 1 + 1);
-			self->data->setTexture(texture->data);
+			if (ctx.is_userdata(1 + 1)) {
+				auto const texture = Texture2D::as(vm, 1 + 1);
+				self->data->setTexture(texture->data);
+			}
+			else if (ctx.is_string(1 + 1)) {
+				// work with resource pool
+				// remove this workaround in the future
+				auto const texture_resource_name = ctx.get_value<std::string_view>(1 + 1);
+				auto texture_resource = LRES.FindTexture(texture_resource_name.data());
+				self->data->setTexture(texture_resource->GetTexture());
+			}
+			else {
+				self->data->setTexture(nullptr);
+			}
 
 			ctx.push_value(lua::stack_index_t(1)); // return self
 			return 1;
