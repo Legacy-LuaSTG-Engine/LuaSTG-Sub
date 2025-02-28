@@ -6,7 +6,7 @@ local M = {}
 function M:onCreate()
     local old_pool = lstg.GetResourceStatus()
     lstg.SetResourceStatus("global")
-    lstg.LoadTexture("tex:linear", "res/linear.png", false)
+    lstg.LoadTexture("tex:linear", "res/block.png", false)
     lstg.SetTextureSamplerState("tex:linear", "linear+wrap")
     lstg.SetResourceStatus(old_pool)
 
