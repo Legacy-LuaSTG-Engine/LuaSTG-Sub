@@ -186,6 +186,8 @@ function M:initMesh()
 
     self.texture = Texture2D.createFromFile("res/block.png", 0)
     self.mesh_renderer = MeshRenderer.create(self.mesh, self.texture)
+    ---@diagnostic disable-next-line: undefined-field
+    self.mesh_renderer:setLegacyBlendState("mul+add")
 
     self.cube = Mesh.create({
         vertex_count = 6 * 4, -- 6个面，每个面4个顶点
