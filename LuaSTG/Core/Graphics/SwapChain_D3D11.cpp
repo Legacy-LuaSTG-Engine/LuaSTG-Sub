@@ -1,5 +1,4 @@
 #include "Core/Graphics/SwapChain_D3D11.hpp"
-#include "Core/Graphics/Format_D3D11.hpp"
 #include "Core/i18n.hpp"
 #include "core/Configuration.hpp"
 #include "Platform/WindowsVersion.hpp"
@@ -2222,7 +2221,7 @@ namespace Core::Graphics
 		return true;
 	}
 
-	SwapChain_D3D11::SwapChain_D3D11(Window_Win32* p_window, Device_D3D11* p_device)
+	SwapChain_D3D11::SwapChain_D3D11(Window_Win32* p_window, Direct3D11::Device* p_device)
 		: m_window(p_window)
 		, m_device(p_device)
 	{
@@ -2249,7 +2248,7 @@ namespace Core::Graphics
 		assert(m_eventobj_late.size() == 0);
 	}
 
-	bool SwapChain_D3D11::create(Window_Win32* p_window, Device_D3D11* p_device, SwapChain_D3D11** pp_swapchain)
+	bool SwapChain_D3D11::create(Window_Win32* p_window, Direct3D11::Device* p_device, SwapChain_D3D11** pp_swapchain)
 	{
 		try
 		{
@@ -2267,7 +2266,7 @@ namespace Core::Graphics
 	{
 		try
 		{
-			*pp_swapchain = new SwapChain_D3D11(dynamic_cast<Window_Win32*>(p_window), dynamic_cast<Device_D3D11*>(p_device));
+			*pp_swapchain = new SwapChain_D3D11(dynamic_cast<Window_Win32*>(p_window), dynamic_cast<Direct3D11::Device*>(p_device));
 			return true;
 		}
 		catch (...)

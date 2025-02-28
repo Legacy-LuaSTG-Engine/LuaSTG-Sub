@@ -4,6 +4,9 @@
 #include "LuaBinding/Window.hpp"
 #include "LuaBinding/SwapChain.hpp"
 #include "LuaBinding/HttpClient.hpp"
+#include "LuaBinding/Texture2D.hpp"
+#include "LuaBinding/Mesh.hpp"
+#include "LuaBinding/MeshRenderer.hpp"
 
 namespace LuaSTGPlus
 {
@@ -43,7 +46,6 @@ namespace LuaSTGPlus
 		RandomizerWrapper::Register(L);
 		BentLaserWrapper::Register(L);
 		DInputWrapper::Register(L);
-		MeshBinding::Register(L);
 		lua_pop(L, 1);									// ?
 	}
 	
@@ -67,6 +69,9 @@ namespace LuaSTGPlus
 		LuaSTG::Sub::LuaBinding::Window_TextInputExtension::registerClass(L);
 		LuaSTG::Sub::LuaBinding::Window_Windows11Extension::registerClass(L);
 		LuaSTG::Sub::LuaBinding::SwapChain::registerClass(L);
+		LuaSTG::Sub::LuaBinding::Texture2D::registerClass(L);
+		LuaSTG::Sub::LuaBinding::Mesh::registerClass(L);
+		LuaSTG::Sub::LuaBinding::MeshRenderer::registerClass(L);
 		http::Request::registerClass(L);
 		http::ResponseEntity::registerClass(L);
 	}

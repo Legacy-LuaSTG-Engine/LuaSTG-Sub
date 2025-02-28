@@ -1,4 +1,4 @@
-﻿/// @file LuaWrapper.h
+/// @file LuaWrapper.h
 /// @brief lua包装层 用于导出C++函数和类
 #pragma once
 #include "AppFrame.h"
@@ -132,15 +132,6 @@ namespace LuaSTGPlus
 			static std::string_view const ClassID;
 			static UserData* Cast(lua_State* L, int idx);
 			static UserData* Create(lua_State* L);
-			static void Register(lua_State* L);
-		};
-
-		class MeshBinding
-		{
-		public:
-			static std::string_view const ClassID;
-			static Mesh* Cast(lua_State* L, int idx);
-			static Mesh* Create(lua_State* L);
 			static void Register(lua_State* L);
 		};
 

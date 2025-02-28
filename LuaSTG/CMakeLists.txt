@@ -110,7 +110,6 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/LW_ResourceMgr.cpp
     LuaSTG/LuaBinding/LW_Platform.cpp
     LuaSTG/LuaBinding/LW_GameObjectManager.cpp
-    LuaSTG/LuaBinding/LB_Mesh.cpp
     LuaSTG/LuaBinding/PostEffectShader.hpp
     LuaSTG/LuaBinding/PostEffectShader.cpp
     LuaSTG/LuaBinding/Resource.hpp
@@ -121,6 +120,12 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/Window.cpp
     LuaSTG/LuaBinding/SwapChain.hpp
     LuaSTG/LuaBinding/SwapChain.cpp
+    LuaSTG/LuaBinding/Texture2D.hpp
+    LuaSTG/LuaBinding/Texture2D.cpp
+    LuaSTG/LuaBinding/Mesh.hpp
+    LuaSTG/LuaBinding/Mesh.cpp
+    LuaSTG/LuaBinding/MeshRenderer.hpp
+    LuaSTG/LuaBinding/MeshRenderer.cpp
     LuaSTG/LuaBinding/HttpClient.hpp
     LuaSTG/LuaBinding/HttpClient.cpp
     LuaSTG/LuaBinding/generated/BlendModeX.cpp
