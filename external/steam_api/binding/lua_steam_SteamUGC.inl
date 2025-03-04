@@ -34,31 +34,21 @@ public:
 struct xSteamUGC {
 
 	static int AddAppDependency(lua_State* L) {
-		PublishedFileId_t nPublishedFileID = luaL_checkinteger(L, 1);
-		AppId_t nAppID = luaL_checkinteger(L, 2);
+		auto const nPublishedFileID = lua_to_PublishedFileId_t(L, 1);
+		auto const nAppID = static_cast<AppId_t>(lua_to_uint32(L, 2));
 
-		luaL_checktype(L, 3, LUA_TFUNCTION);
-
-		lua_pushstring(L, "callback_registry");
-		lua_gettable(L, LUA_REGISTRYINDEX);
-
-		lua_pushvalue(L, 3);  
-		int callbackRef = luaL_ref(L, -2);  
-		lua_pop(L, 1);  
-
-		SteamAPICall_t  apiCall = SteamUGC()->AddAppDependency(nPublishedFileID, nAppID);
-
-		LuaCallback<AddAppDependencyResult_t>* callback = new LuaCallback<AddAppDependencyResult_t>(L, callbackRef);
-		//SteamAPI_RegisterCallback(callback, apiCall);
+		auto const result = SteamUGC()->AddAppDependency(nPublishedFileID, nAppID);
+		lua_push_SteamAPICall_t(L, result);
 
 		return 1;
 	}
 	static int AddDependency(lua_State* L) {
-		const int nParentPublishedFileID = luaL_checkinteger(L, 1);
-		const int nChildPublishedFileID = luaL_checkinteger(L, 2);
-		const int SteamAPICall = SteamUGC()->AddDependency(nParentPublishedFileID, nChildPublishedFileID);
+		auto const nParentPublishedFileID = lua_to_PublishedFileId_t(L, 1);
+		auto const nChildPublishedFileID = lua_to_PublishedFileId_t(L, 2);
 
-		lua_pushinteger(L, SteamAPICall);
+		auto const result = SteamUGC()->AddDependency(nParentPublishedFileID, nChildPublishedFileID);
+		lua_push_SteamAPICall_t(L, result);
+
 		return 1;
 	}
 	static int AddExcludedTag(lua_State* L) {
@@ -519,9 +509,9 @@ struct xSteamUGC {
 		luaL_register(L, NULL, lib);
 		lua_settable(L, -3);
 
-		lua_newtable(L);  // ´´½¨Ò»¸öĞÂµÄ±í
+		lua_newtable(L);  // åˆ›å»ºä¸€ä¸ªæ–°çš„è¡¨
 		lua_pushstring(L, "callback_registry");
-		lua_pushvalue(L, -2);  // ¸´ÖÆ±í
+		lua_pushvalue(L, -2);  // å¤åˆ¶è¡¨
 		lua_settable(L, LUA_REGISTRYINDEX);
 		return 0;
 	};

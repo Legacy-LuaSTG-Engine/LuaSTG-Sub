@@ -68,19 +68,20 @@ uint32_t lua_to_uint32(lua_State* L, const int n)
 }
 int lua_push_uint64(lua_State* L, const uint64_t v)
 {
-    const int a = (0xFFFF000000000000 & v) >> 48;
-    const int b = (0x0000FFFF00000000 & v) >> 32;
-    const int c = (0x00000000FFFF0000 & v) >> 16;
-    const int d = (0x000000000000FFFF & v);
+    auto const a = static_cast<int32_t>((0xFFFF000000000000ui64 & v) >> 48);
+    auto const b = static_cast<int32_t>((0x0000FFFF00000000ui64 & v) >> 32);
+    auto const c = static_cast<int32_t>((0x00000000FFFF0000ui64 & v) >> 16);
+    auto const d = static_cast<int32_t>(0x000000000000FFFFui64 & v);
     lua_createtable(L, 4, 0); // ? t
+    auto const t = lua_gettop(L);
     lua_pushinteger(L, a);    // ? t a
     lua_pushinteger(L, b);    // ? t a b
     lua_pushinteger(L, c);    // ? t a b c
     lua_pushinteger(L, d);    // ? t a b c d
-    lua_rawseti(L, -5, 1);    // ? t a b c
-    lua_rawseti(L, -4, 2);    // ? t a b
-    lua_rawseti(L, -3, 3);    // ? t a
-    lua_rawseti(L, -2, 4);    // ? t
+    lua_rawseti(L, t, 1);     // ? t a b c
+    lua_rawseti(L, t, 2);     // ? t a b
+    lua_rawseti(L, t, 3);     // ? t a
+    lua_rawseti(L, t, 4);     // ? t
     return 1;
 };
 uint64_t lua_to_uint64(lua_State* L, const int n, const char* name)
@@ -100,10 +101,10 @@ uint64_t lua_to_uint64(lua_State* L, const int n, const char* name)
         luaL_typerror(L, n, name);
         return 0;
     }
-    const uint64_t a = (uint64_t)(lua_tointeger(L, -4) & 0xFFFF);
-    const uint64_t b = (uint64_t)(lua_tointeger(L, -3) & 0xFFFF);
-    const uint64_t c = (uint64_t)(lua_tointeger(L, -2) & 0xFFFF);
-    const uint64_t d = (uint64_t)(lua_tointeger(L, -1) & 0xFFFF);
+    auto const a = static_cast<uint64_t>(lua_tointeger(L, -4) & 0xFFFF);
+    auto const b = static_cast<uint64_t>(lua_tointeger(L, -3) & 0xFFFF);
+    auto const c = static_cast<uint64_t>(lua_tointeger(L, -2) & 0xFFFF);
+    auto const d = static_cast<uint64_t>(lua_tointeger(L, -1) & 0xFFFF);
     lua_pop(L, 4);
     return (a << 48) | (b << 32) | (c << 16) | d;
 };
@@ -118,6 +119,8 @@ lua_push_to_uin64_t(InputActionSetHandle_t);
 lua_push_to_uin64_t(InputAnalogActionHandle_t);
 lua_push_to_uin64_t(InputDigitalActionHandle_t);
 lua_push_to_uin64_t(InputHandle_t);
+
+lua_push_to_uin64_t(PublishedFileId_t);
 
 #define xfbinding(_X) { #_X , & _X }
 
