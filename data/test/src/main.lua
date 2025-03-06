@@ -12,6 +12,23 @@ function window:applyCameraV()
     lstg.SetImageScale(1)
     lstg.SetFog()
 end
+function window:applyCamera3D()
+    lstg.SetViewport(0, self.width, 0, self.height)
+    lstg.SetScissorRect(0, self.width, 0, self.height)
+    local x, y = self.width / 2, self.height / 2
+    local fov = 30
+    local distance = ((self.height / 2) / math.tan(math.rad(fov / 2)))
+    lstg.SetPerspective(
+        x, y, -distance, -- center
+        x, y, 0, -- look at
+        0, 1, 0, -- up
+        math.rad(fov),
+        self.width / self.height,
+        math.max(0.01, distance - 600), distance + 600
+    )
+    lstg.SetImageScale(1)
+    lstg.SetFog()
+end
 ---@param width number
 ---@param height number
 function window:setSize(width, height)
@@ -112,6 +129,7 @@ require("test_se")
 require("test_window_and_display")
 
 require("test.imgui.all")
+require("test.graphics.all")
 require("test.audio.SoundEffect")
 require("test.input.InputMethod")
 

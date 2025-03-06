@@ -1,34 +1,38 @@
 #include "Core/Graphics/Renderer_D3D11.hpp"
 #include "Core/Graphics/Model_D3D11.hpp"
+#include "Core/Graphics/Direct3D11/Constants.hpp"
+#include "Core/Graphics/Direct3D11/SamplerState.hpp"
+#include "Core/Graphics/Direct3D11/RenderTarget.hpp"
+#include "Core/Graphics/Direct3D11/DepthStencilBuffer.hpp"
 
 #define IDX(x) (size_t)static_cast<uint8_t>(x)
 
 namespace Core::Graphics
 {
-	inline ID3D11ShaderResourceView* get_view(Texture2D_D3D11* p)
+	inline ID3D11ShaderResourceView* get_view(Direct3D11::Texture2D* p)
 	{
 		return p ? p->GetView() : NULL;
 	}
 	inline ID3D11ShaderResourceView* get_view(ITexture2D* p)
 	{
-		return get_view(static_cast<Texture2D_D3D11*>(p));
+		return get_view(static_cast<Direct3D11::Texture2D*>(p));
 	}
-	inline ID3D11ShaderResourceView* get_view(ScopeObject<Texture2D_D3D11>& p)
+	inline ID3D11ShaderResourceView* get_view(ScopeObject<Direct3D11::Texture2D>& p)
 	{
 		return get_view(p.get());
 	}
 	inline ID3D11ShaderResourceView* get_view(ScopeObject<ITexture2D>& p)
 	{
-		return get_view(static_cast<Texture2D_D3D11*>(p.get()));
+		return get_view(static_cast<Direct3D11::Texture2D*>(p.get()));
 	}
 
 	inline ID3D11SamplerState* get_sampler(ISamplerState* p_sampler)
 	{
-		return static_cast<SamplerState_D3D11*>(p_sampler)->GetState();
+		return static_cast<Direct3D11::SamplerState*>(p_sampler)->GetState();
 	}
 	inline ID3D11SamplerState* get_sampler(ScopeObject<ISamplerState>& p_sampler)
 	{
-		return static_cast<SamplerState_D3D11*>(p_sampler.get())->GetState();
+		return static_cast<Direct3D11::SamplerState*>(p_sampler.get())->GetState();
 	}
 }
 
@@ -103,7 +107,7 @@ namespace Core::Graphics
 		std::string name_s(name);
 		auto it = m_texture2d_map.find(name_s);
 		if (it == m_texture2d_map.end()) { return false; }
-		it->second.texture = dynamic_cast<Texture2D_D3D11*>(p_texture);
+		it->second.texture = dynamic_cast<Direct3D11::Texture2D*>(p_texture);
 		if (!it->second.texture) { assert(false); return false; }
 		return true;
 	}
@@ -140,7 +144,7 @@ namespace Core::Graphics
 		return true;
 	}
 
-	PostEffectShader_D3D11::PostEffectShader_D3D11(Device_D3D11* p_device, StringView path, bool is_path_)
+	PostEffectShader_D3D11::PostEffectShader_D3D11(Direct3D11::Device* p_device, StringView path, bool is_path_)
 		: m_device(p_device)
 		, source(path)
 		, is_path(is_path_)
@@ -642,7 +646,7 @@ namespace Core::Graphics
 	}
 	void Renderer_D3D11::setSamplerState(SamplerState state, UINT index)
 	{
-		ID3D11SamplerState* d3d11_sampler = static_cast<SamplerState_D3D11*>(_sampler_state[IDX(state)].get())->GetState();
+		ID3D11SamplerState* d3d11_sampler = static_cast<Direct3D11::SamplerState*>(_sampler_state[IDX(state)].get())->GetState();
 		m_device->GetD3D11DeviceContext()->PSSetSamplers(index, 1, &d3d11_sampler);
 	}
 	bool Renderer_D3D11::uploadVertexIndexBufferFromDrawList()
@@ -682,7 +686,7 @@ namespace Core::Graphics
 	{
 		ISamplerState* sampler_from_texture = texture ? texture->getSamplerState() : nullptr;
 		ISamplerState* sampler = sampler_from_texture ? sampler_from_texture : _sampler_state[IDX(_state_set.sampler_state)].get();
-		ID3D11SamplerState* d3d11_sampler = static_cast<SamplerState_D3D11*>(sampler)->GetState();
+		ID3D11SamplerState* d3d11_sampler = static_cast<Direct3D11::SamplerState*>(sampler)->GetState();
 		m_device->GetD3D11DeviceContext()->PSSetSamplers(0, 1, &d3d11_sampler);
 	}
 	void Renderer_D3D11::bindTextureAlphaType(ITexture2D* texture)
@@ -822,7 +826,7 @@ namespace Core::Graphics
 
 	bool Renderer_D3D11::beginBatch()
 	{
-		auto* ctx = m_device->GetD3D11DeviceContext();
+		auto const ctx = m_device->GetD3D11DeviceContext();
 		assert(ctx);
 
 		// [IA Stage]
@@ -833,11 +837,10 @@ namespace Core::Graphics
 
 		// [VS State]
 
-		ID3D11Buffer* mats[2] = {
-			_vp_matrix_buffer.Get(),
-			_world_matrix_buffer.Get(),
-		};
-		ctx->VSSetConstantBuffers(0, 2, mats);
+		ID3D11Buffer* const view_projection_matrix = _vp_matrix_buffer.Get();
+		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, 1, &view_projection_matrix);
+		ID3D11Buffer* const world_matrix = _world_matrix_buffer.Get();
+		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_world_matrix, 1, &world_matrix);
 
 		// [RS Stage]
 
@@ -845,11 +848,10 @@ namespace Core::Graphics
 
 		// [PS State]
 
-		ID3D11Buffer* psdata[2] = {
-			_camera_pos_buffer.Get(),
-			_fog_data_buffer.Get(),
-		};
-		ctx->PSSetConstantBuffers(0, 2, psdata);
+		ID3D11Buffer* const camera_position = _camera_pos_buffer.Get();
+		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_camera_position, 1, &camera_position);
+		ID3D11Buffer* const fog_parameter = _fog_data_buffer.Get();
+		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_fog_parameter, 1, &fog_parameter);
 
 		// [OM Stage]
 
@@ -910,8 +912,8 @@ namespace Core::Graphics
 		batchFlush();
 		auto* ctx = m_device->GetD3D11DeviceContext();
 		assert(ctx);
-		ID3D11RenderTargetView* rtv[1] = { p_rt ? static_cast<RenderTarget_D3D11*>(p_rt)->GetView() : NULL };
-		ID3D11DepthStencilView* dsv = p_ds ? static_cast<DepthStencilBuffer_D3D11*>(p_ds)->GetView() : NULL;
+		ID3D11RenderTargetView* rtv[1] = { p_rt ? static_cast<Direct3D11::RenderTarget*>(p_rt)->GetView() : nullptr };
+		ID3D11DepthStencilView* dsv = p_ds ? static_cast<Direct3D11::DepthStencilBuffer*>(p_ds)->GetView() : nullptr;
 		ctx->OMSetRenderTargets(1, rtv, dsv);
 	}
 
@@ -1111,16 +1113,16 @@ namespace Core::Graphics
 		}
 	}
 
-	inline bool is_same(Texture2D_D3D11* a, ITexture2D* b)
+	inline bool is_same(Direct3D11::Texture2D* a, ITexture2D* b)
 	{
 		if (a && b)
-			return a->GetView() == static_cast<Texture2D_D3D11*>(b)->GetView();
+			return a->GetView() == static_cast<Direct3D11::Texture2D*>(b)->GetView();
 		else if (!a && !b)
 			return true;
 		else
 			return false;
 	}
-	inline bool is_same(ScopeObject<Texture2D_D3D11>& a, ITexture2D* b)
+	inline bool is_same(ScopeObject<Direct3D11::Texture2D>& a, ITexture2D* b)
 	{
 		return is_same(*a, b);
 	}
@@ -1140,14 +1142,14 @@ namespace Core::Graphics
 			}
 			_draw_list.command.size += 1;
 			DrawCommand& cmd_ = _draw_list.command.data[_draw_list.command.size - 1];
-			cmd_.texture = static_cast<Texture2D_D3D11*>(texture);
+			cmd_.texture = static_cast<Direct3D11::Texture2D*>(texture);
 			cmd_.vertex_count = 0;
 			cmd_.index_count = 0;
 		}
 		// 更新当前状态的纹理
 		if (!is_same(_state_texture, texture))
 		{
-			_state_texture = static_cast<Texture2D_D3D11*>(texture);
+			_state_texture = static_cast<Direct3D11::Texture2D*>(texture);
 		}
 	}
 
@@ -1388,8 +1390,8 @@ namespace Core::Graphics
 		}
 
 		ctx->VSSetShader(_vertex_shader[IDX(FogState::Disable)].Get(), NULL, 0);
-		ID3D11Buffer* p_mvp[1] = {_vp_matrix_buffer.Get()};
-		ctx->VSSetConstantBuffers(0, 1, p_mvp);
+		ID3D11Buffer* const view_projection_matrix = _vp_matrix_buffer.Get();
+		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, 1, &view_projection_matrix);
 
 		// [Stage RS]
 
@@ -1439,8 +1441,11 @@ namespace Core::Graphics
 			std::memcpy(res_.pData, ps_cbdata, sizeof(ps_cbdata));
 			ctx->Unmap(_fog_data_buffer.Get(), 0);
 		}
-		ID3D11Buffer* p_psdata[2] = { _user_float_buffer.Get(), _fog_data_buffer.Get() };
-		ctx->PSSetConstantBuffers(0, 2, p_psdata);
+		ID3D11Buffer* const user_data = _user_float_buffer.Get();
+		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_user_data, 1, &user_data);
+		ID3D11Buffer* const fog_parameter = _fog_data_buffer.Get();
+		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_fog_parameter, 1, &fog_parameter);
+
 		ctx->PSSetShader(static_cast<PostEffectShader_D3D11*>(p_effect)->GetPS(), NULL, 0);
 
 		ID3D11ShaderResourceView* p_srvs[5] = {};
@@ -1576,8 +1581,8 @@ namespace Core::Graphics
 		}
 
 		ctx->VSSetShader(_vertex_shader[IDX(FogState::Disable)].Get(), NULL, 0);
-		ID3D11Buffer* p_mvp[1] = { _vp_matrix_buffer.Get() };
-		ctx->VSSetConstantBuffers(0, 1, p_mvp);
+		ID3D11Buffer* const view_projection_matrix = _vp_matrix_buffer.Get();
+		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, 1, &view_projection_matrix);
 
 		// [Stage RS]
 
@@ -1685,7 +1690,7 @@ namespace Core::Graphics
 		return _sampler_state[IDX(state)].get();
 	}
 
-	Renderer_D3D11::Renderer_D3D11(Device_D3D11* p_device)
+	Renderer_D3D11::Renderer_D3D11(Direct3D11::Device* p_device)
 		: m_device(p_device)
 	{
 		if (!createResources())
@@ -1697,7 +1702,7 @@ namespace Core::Graphics
 		m_device->removeEventListener(this);
 	}
 
-	bool Renderer_D3D11::create(Device_D3D11* p_device, Renderer_D3D11** pp_renderer)
+	bool Renderer_D3D11::create(Direct3D11::Device* p_device, Renderer_D3D11** pp_renderer)
 	{
 		try
 		{
@@ -1715,7 +1720,7 @@ namespace Core::Graphics
 	{
 		try
 		{
-			*pp_renderer = new Renderer_D3D11(static_cast<Device_D3D11*>(p_device));
+			*pp_renderer = new Renderer_D3D11(static_cast<Direct3D11::Device*>(p_device));
 			return true;
 		}
 		catch (...)

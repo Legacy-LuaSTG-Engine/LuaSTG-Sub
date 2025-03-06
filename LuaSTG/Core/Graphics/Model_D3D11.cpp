@@ -419,7 +419,7 @@ namespace Core::Graphics
         cbo_light.Reset();
     }
 
-    ModelSharedComponent_D3D11::ModelSharedComponent_D3D11(Device_D3D11* p_device)
+    ModelSharedComponent_D3D11::ModelSharedComponent_D3D11(Direct3D11::Device* p_device)
         : m_device(p_device)
     {
         if (!createResources())
@@ -1520,7 +1520,7 @@ namespace Core::Graphics
         clear_state();
     }
 
-    Model_D3D11::Model_D3D11(Device_D3D11* p_device, ModelSharedComponent_D3D11* p_model_shared, StringView path)
+    Model_D3D11::Model_D3D11(Direct3D11::Device* p_device, ModelSharedComponent_D3D11* p_model_shared, StringView path)
         : m_device(p_device)
         , shared_(p_model_shared)
         , gltf_path(path)

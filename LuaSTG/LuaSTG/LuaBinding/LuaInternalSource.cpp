@@ -1,4 +1,4 @@
-﻿#include "LuaBinding/LuaInternalSource.hpp"
+#include "LuaBinding/LuaInternalSource.hpp"
 
 #pragma region x86 lib
 static const std::string _InternalSource_x86 = R"(
@@ -98,7 +98,6 @@ function lstg.asin(x) return deg(asin(x)) end
 function lstg.acos(x) return deg(acos(x)) end
 function lstg.atan(...) return deg(atan(...)) end
 function lstg.atan2(y, x) return deg(atan2(y, x)) end
-
 )";
 #pragma endregion
 

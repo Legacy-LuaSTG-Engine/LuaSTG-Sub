@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Core/Type.hpp"
 
 namespace Core::Graphics
@@ -87,18 +87,18 @@ namespace Core::Graphics
 		{}
 	};
 
-	struct ISamplerState : public IObject
+	struct ISamplerState : IObject
 	{
 	};
 
-	struct ITexture2D : public IObject
+	struct ITexture2D : IObject
 	{
-		virtual void* getNativeHandle() = 0;
+		virtual void* getNativeHandle() const noexcept = 0;
 
-		virtual bool isDynamic() = 0;
-		virtual bool isPremultipliedAlpha() = 0;
+		virtual bool isDynamic() const noexcept = 0;
+		virtual bool isPremultipliedAlpha() const noexcept = 0;
 		virtual void setPremultipliedAlpha(bool v) = 0;
-		virtual Vector2U getSize() = 0;
+		virtual Vector2U getSize() const noexcept = 0;
 		virtual bool setSize(Vector2U size) = 0;
 
 		virtual bool uploadPixelData(RectU rc, void const* data, uint32_t pitch) = 0;
@@ -108,27 +108,32 @@ namespace Core::Graphics
 
 		virtual void setSamplerState(ISamplerState* p_sampler) = 0;
 		// Might be nullptr
-		virtual ISamplerState* getSamplerState() = 0;
+		virtual ISamplerState* getSamplerState() const noexcept = 0;
 	};
 
-	struct IRenderTarget : public IObject
+	struct IRenderTarget : IObject
 	{
-		virtual void* getNativeHandle() = 0;
-		virtual void* getNativeBitmapHandle() = 0;
+		virtual void* getNativeHandle() const noexcept = 0;
+		virtual void* getNativeBitmapHandle() const noexcept = 0;
 
 		virtual bool setSize(Vector2U size) = 0;
-		virtual ITexture2D* getTexture() = 0;
+		virtual ITexture2D* getTexture() const noexcept = 0;
 	};
 
-	struct IDepthStencilBuffer : public IObject
+	struct IDepthStencilBuffer : IObject
 	{
-		virtual void* getNativeHandle() = 0;
+		virtual void* getNativeHandle() const noexcept = 0;
 
 		virtual bool setSize(Vector2U size) = 0;
-		virtual Vector2U getSize() = 0;
+		virtual Vector2U getSize() const noexcept = 0;
 	};
 
-	struct IDevice : public IObject
+	struct IBuffer : IObject {
+		virtual bool map(uint32_t size_in_bytes, bool discard, void** out_pointer) = 0;
+		virtual bool unmap() = 0;
+	};
+
+	struct IDevice : IObject
 	{
 		virtual void addEventListener(IDeviceEventListener* e) = 0;
 		virtual void removeEventListener(IDeviceEventListener* e) = 0;
@@ -136,7 +141,7 @@ namespace Core::Graphics
 		virtual DeviceMemoryUsageStatistics getMemoryUsageStatistics() = 0;
 
 		virtual bool recreate() = 0;
-		virtual void setPreferenceGpu(StringView prefered_gpu) = 0;
+		virtual void setPreferenceGpu(StringView preferred_gpu) = 0;
 		virtual uint32_t getGpuCount() = 0;
 		virtual StringView getGpuName(uint32_t index) = 0;
 		virtual StringView getCurrentGpuName() const noexcept = 0;
@@ -144,15 +149,19 @@ namespace Core::Graphics
 		virtual void* getNativeHandle() = 0;
 		virtual void* getNativeRendererHandle() = 0;
 
-		virtual bool createTextureFromFile(StringView path, bool mipmap, ITexture2D** pp_texutre) = 0;
-		//virtual bool createTextureFromMemory(void const* data, size_t size, bool mipmap, ITexture2D** pp_texutre) = 0;
-		virtual bool createTexture(Vector2U size, ITexture2D** pp_texutre) = 0;
+		virtual bool createVertexBuffer(uint32_t size_in_bytes, IBuffer** output) = 0;
+		virtual bool createIndexBuffer(uint32_t size_in_bytes, IBuffer** output) = 0;
+		virtual bool createConstantBuffer(uint32_t size_in_bytes, IBuffer** output) = 0;
+
+		virtual bool createTextureFromFile(StringView path, bool mipmap, ITexture2D** pp_texture) = 0;
+		//virtual bool createTextureFromMemory(void const* data, size_t size, bool mipmap, ITexture2D** pp_texture) = 0;
+		virtual bool createTexture(Vector2U size, ITexture2D** pp_texture) = 0;
 
 		virtual bool createRenderTarget(Vector2U size, IRenderTarget** pp_rt) = 0;
 		virtual bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** pp_ds) = 0;
 
-		virtual bool createSamplerState(SamplerState const& def, ISamplerState** pp_sampler) = 0;
+		virtual bool createSamplerState(SamplerState const& info, ISamplerState** pp_sampler) = 0;
 
-		static bool create(StringView prefered_gpu, IDevice** p_device);
+		static bool create(StringView preferred_gpu, IDevice** p_device);
 	};
 }

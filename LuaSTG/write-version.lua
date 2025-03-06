@@ -2,7 +2,7 @@
 local version = {
     major = 0,
     minor = 21,
-    patch = 24,
+    patch = 100,
 }
 
 local utf8_bom = "\xEF\xBB\xBF"
@@ -83,7 +83,7 @@ BEGIN
             VALUE "FileDescription", "LuaSTG Sub"
             VALUE "FileVersion", "1.0.0.0"
             VALUE "InternalName", "LuaSTG Sub"
-            VALUE "LegalCopyright", "Copyright 2020-2024 璀境石"
+            VALUE "LegalCopyright", "Copyright 2020-2025 璀境石"
             VALUE "OriginalFilename", "LuaSTGSub.exe"
             VALUE "ProductName", "LuaSTG Sub"
             VALUE "ProductVersion", "1.0.0.0"
@@ -193,7 +193,7 @@ BEGIN
             VALUE "FileDescription", "LuaSTG Sub"
             VALUE "FileVersion", "%s"
             VALUE "InternalName", "LuaSTG Sub"
-            VALUE "LegalCopyright", "Copyright 2020-2024 璀境石"
+            VALUE "LegalCopyright", "Copyright 2020-2025 璀境石"
             VALUE "OriginalFilename", "LuaSTGSub.exe"
             VALUE "ProductName", "LuaSTG Sub"
             VALUE "ProductVersion", "%s"
