@@ -26,6 +26,7 @@ namespace LuaSTGPlus
 		virtual bool EndRenderTargetStack() = 0;
 		virtual bool PushRenderTarget(IResourceTexture* rt) = 0;
 		virtual bool PopRenderTarget() = 0;
+		virtual bool IsRenderTargetStackEmpty() = 0;
 		virtual bool CheckRenderTargetInUse(IResourceTexture* rt) = 0;
 		virtual Core::Vector2U GetTopRenderTargetSize() = 0;
 
@@ -207,6 +208,7 @@ namespace LuaSTGPlus
 		bool EndRenderTargetStack();
 		bool PushRenderTarget(IResourceTexture* rt);
 		bool PopRenderTarget();
+		bool IsRenderTargetStackEmpty();
 		bool CheckRenderTargetInUse(IResourceTexture* rt);
 		Core::Vector2U GetTopRenderTargetSize();
 
