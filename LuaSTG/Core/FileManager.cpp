@@ -189,14 +189,11 @@ namespace Core
         }
         return list[index].name;
     }
-    bool FileArchive::contain(std::string_view const& name)
-    {
-        if (!mz_zip_v)
-        {
+    bool FileArchive::contain(std::string_view const& name) const {
+        if (!mz_zip_v) {
             return false;
         }
-        if (MZ_OK != mz_zip_reader_locate_entry(mz_zip_v, name.data(), false))
-        {
+        if (MZ_OK != mz_zip_reader_locate_entry(mz_zip_v, name.data(), false)) {
             return false;
         }
         return MZ_OK != mz_zip_reader_entry_is_dir(mz_zip_v);
@@ -485,7 +482,7 @@ namespace Core
         }
     }
     std::string_view FileManager::getName(size_t index) { return list[index].name; }
-    bool FileManager::contain(std::string_view const& name) {
+    bool FileManager::contain(std::string_view const& name) const {
         std::error_code ec;
         return std::filesystem::is_regular_file(utf8::to_wstring(name), ec);
     }
