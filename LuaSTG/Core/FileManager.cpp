@@ -1,6 +1,7 @@
 #include "Core/FileManager.hpp"
 #include <filesystem>
 #include <fstream>
+#include <ranges>
 #include "utf8.hpp"
 #include "mz.h"
 #include "mz_strm.h"
@@ -37,6 +38,21 @@ static bool is_file_path_case_correct(std::wstring_view file_path)
     if (!equal) spdlog::error("[core] 路径 '{}' 和 '{}' 不匹配，存在大小写不一致的部分", utf8::to_string(full_path), utf8::to_string(final_path));
 
     return equal;
+}
+
+namespace {
+    constexpr char path_separator = '/';
+
+	std::string withSearchPath(std::string_view const& search_path, std::string_view const& path) {
+        std::string buffer;
+        buffer.reserve(search_path.size() + path.size() + 1);
+        buffer.append(search_path);
+        if (!buffer.empty() && buffer.back() != path_separator) {
+            buffer.push_back(path_separator);
+        }
+        buffer.append(path);
+        return buffer;
+	}
 }
 
 namespace Core
@@ -469,8 +485,7 @@ namespace Core
         }
     }
     std::string_view FileManager::getName(size_t index) { return list[index].name; }
-    bool FileManager::contain(std::string_view const& name)
-    {
+    bool FileManager::contain(std::string_view const& name) {
         std::error_code ec;
         return std::filesystem::is_regular_file(utf8::to_wstring(name), ec);
     }
@@ -627,122 +642,92 @@ namespace Core
         archive.clear();
     }
     
-    void FileManager::addSearchPath(std::string_view const& path)
-    {
-        removeSearchPath(path);
-        search_list.emplace_back(path);
+    void FileManager::addSearchPath(std::string_view const& path) {
+        if (!hasSearchPath(path)) {
+            search_list.emplace_back(path);
+        }
     }
-    void FileManager::removeSearchPath(std::string_view const& path)
-    {
-        for (auto it = search_list.begin(); it != search_list.end();)
-        {
-            if (*it == path)
-            {
+    bool FileManager::hasSearchPath(std::string_view const& path) const {
+        for (auto const& v : search_list) {
+	        if (v == path) {
+                return true;
+	        }
+        }
+        return false;
+    }
+    void FileManager::removeSearchPath(std::string_view const& path) {
+        for (auto it = search_list.begin(); it != search_list.end();) {
+            if (*it == path) {
                 it = search_list.erase(it);
             }
-            else
-            {
-                it++;
+            else {
+                ++it;
             }
         }
     }
-    void FileManager::clearSearchPath()
-    {
+    void FileManager::clearSearchPath() {
         search_list.clear();
     }
-    
-    bool FileManager::containEx(std::string_view const& name)
-    {
-        auto proc = [&](std::string_view const& name) -> bool
-        {
-            if (contain(name))
-            {
-                return true;
-            }
-            for (auto& arc : archive)
-            {
-                if (arc->contain(name))
-                {
-                    return true;
-                }
-            }
-            return false;
-        };
-        if (proc(name))
-        {
+
+    bool FileManager::containsIgnoreSearchPath(std::string_view const& name) const {
+        if (contain(name)) {
             return true;
         }
-        for (auto& p : search_list)
-        {
-            std::string path(p); path.append(name);
-            if (proc(path))
-            {
+        for (auto& arc : archive) {
+            if (arc->contain(name)) {
                 return true;
             }
         }
         return false;
     }
-    bool FileManager::loadEx(std::string_view const& name, std::vector<uint8_t>& buffer)
-    {
-        auto proc = [&](std::string_view const& name, std::vector<uint8_t>& buffer) -> bool
-        {
-            for (auto& arc : archive)
-            {
-                if (arc->load(name, buffer))
-                {
-                    return true;
-                }
-            }
-            if (load(name, buffer))
-            {
+    bool FileManager::containEx(std::string_view const& name) const {
+        for (auto const& p : search_list | std::ranges::views::reverse) {
+            auto const path = withSearchPath(p, name);
+            if (containsIgnoreSearchPath(path)) {
                 return true;
             }
-            return false;
-        };
-        if (proc(name, buffer))
-        {
-            return true;
         }
-        for (auto& p : search_list)
-        {
-            std::string path(p); path.append(name);
-            if (proc(path, buffer))
-            {
+        return containsIgnoreSearchPath(name);
+    }
+    bool FileManager::loadFromFileSystemAndArchiveIgnoreSearchPath(std::string_view const& name, std::vector<uint8_t>& buffer) {
+        for (auto const& arc : archive) {
+            if (arc->load(name, buffer)) {
                 return true;
             }
+        }
+        if (load(name, buffer)) {
+            return true;
         }
         return false;
     }
-    bool FileManager::loadEx(std::string_view const& name, IData** pp_data)
-    {
-        auto proc = [&](std::string_view const& name, IData** pp_data) -> bool
-        {
-            for (auto& arc : archive)
-            {
-                if (arc->load(name, pp_data))
-                {
-                    return true;
-                }
-            }
-            if (load(name, pp_data))
-            {
+    bool FileManager::loadFromFileSystemAndArchiveIgnoreSearchPath(std::string_view const& name, IData** pp_data) {
+        for (auto const& arc : archive) {
+            if (arc->load(name, pp_data)) {
                 return true;
             }
-            return false;
-        };
-        if (proc(name, pp_data))
-        {
+        }
+        if (load(name, pp_data)) {
             return true;
         }
-        for (auto& p : search_list)
-        {
-            std::string path(p); path.append(name);
-            if (proc(path, pp_data))
-            {
+        return false;
+    }
+    bool FileManager::loadEx(std::string_view const& name, std::vector<uint8_t>& buffer) {
+        for (auto const& p : search_list | std::ranges::views::reverse) {
+            auto const path = withSearchPath(p, name);
+            if (loadFromFileSystemAndArchiveIgnoreSearchPath(path, buffer)) {
                 return true;
             }
         }
-        return false;
+        return loadFromFileSystemAndArchiveIgnoreSearchPath(name, buffer);
+    }
+    bool FileManager::loadEx(std::string_view const& name, IData** pp_data) {
+        for (auto const& p : search_list | std::ranges::views::reverse) {
+            auto const path = withSearchPath(p, name);
+            if (loadFromFileSystemAndArchiveIgnoreSearchPath(path, pp_data)) {
+                return true;
+            }
+        }
+        return loadFromFileSystemAndArchiveIgnoreSearchPath(name, pp_data);
     }
     bool FileManager::write(std::string_view const& name, std::vector<uint8_t> const& buffer)
     {
@@ -771,13 +756,9 @@ namespace Core
         return true;
     }
 
-    FileManager::FileManager()
-    {
-    }
-    FileManager::~FileManager()
-    {
-    }
-    
+    FileManager::FileManager() = default;
+    FileManager::~FileManager() = default;
+
     FileManager& FileManager::get()
     {
         static FileManager instance;

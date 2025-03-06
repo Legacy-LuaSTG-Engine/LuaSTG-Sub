@@ -101,10 +101,14 @@ namespace Core
         void unloadAllFileArchive();
     public:
         void addSearchPath(std::string_view const& path);
+        [[nodiscard]] bool hasSearchPath(std::string_view const& path) const;
         void removeSearchPath(std::string_view const& path);
         void clearSearchPath();
     public:
-        bool containEx(std::string_view const& name);
+        [[nodiscard]] bool containsIgnoreSearchPath(std::string_view const& name) const;
+        [[nodiscard]] bool containEx(std::string_view const& name) const;
+        bool loadFromFileSystemAndArchiveIgnoreSearchPath(std::string_view const& name, std::vector<uint8_t>& buffer);
+        bool loadFromFileSystemAndArchiveIgnoreSearchPath(std::string_view const& name, IData** pp_data);
         bool loadEx(std::string_view const& name, std::vector<uint8_t>& buffer);
         bool loadEx(std::string_view const& name, IData** pp_data);
         bool write(std::string_view const& name, std::vector<uint8_t> const& buffer);
