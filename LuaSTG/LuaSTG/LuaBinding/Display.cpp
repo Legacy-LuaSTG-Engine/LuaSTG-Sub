@@ -67,8 +67,9 @@ namespace LuaSTG::Sub::LuaBinding {
 		static int getFriendlyName(lua_State* L) {
 			auto self = as(L, 1);
 			lua::stack_t S(L);
-			auto const friendly_name = self->data->getFriendlyName();
-			S.push_value(friendly_name);
+			Core::ScopeObject<Core::IImmutableString> friendly_name;
+			self->data->getFriendlyName(~friendly_name);
+			S.push_value(friendly_name->view());
 			return 1;
 		}
 

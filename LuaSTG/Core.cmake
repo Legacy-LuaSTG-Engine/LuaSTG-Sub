@@ -20,6 +20,7 @@ set(Core_SRC
     Core/framework.cpp
     Core/Object.hpp
     Core/Object.cpp
+    Core/ImmutableString.cpp
     Core/DataObject.cpp
 
     Core/FileManager.hpp

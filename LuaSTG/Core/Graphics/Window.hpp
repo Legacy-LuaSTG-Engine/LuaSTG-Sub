@@ -72,7 +72,7 @@ namespace Core::Graphics
 
 	struct IDisplay : public IObject {
 		virtual void* getNativeHandle() = 0;
-		virtual String getFriendlyName() = 0;
+		virtual void getFriendlyName(IImmutableString** output) = 0;
 		virtual Vector2U getSize() = 0;
 		virtual Vector2I getPosition() = 0;
 		virtual RectI getRect() = 0;

@@ -347,11 +347,6 @@ namespace Core {
 		Rational(uint32_t const numerator_, uint32_t const denominator_) : numerator(numerator_), denominator(denominator_) {}
 	};
 
-	// 字符串
-
-	using String = std::string;
-	using StringView = std::string_view;
-
 	// 引用计数
 
 	struct IObject {
@@ -397,4 +392,23 @@ namespace Core {
 		static bool create(size_t size, IData** pp_data);
 		static bool create(size_t size, size_t align, IData** pp_data);
 	};
+
+	// 字符串视图
+
+	using StringView = std::string_view; // pointer | size
+
+	// 不可变的空终止字符串
+
+	struct IImmutableString : IObject {
+		[[nodiscard]] virtual bool empty() const noexcept = 0;
+		[[nodiscard]] virtual char const* data() const noexcept = 0;
+		[[nodiscard]] virtual size_t size() const noexcept = 0;
+		[[nodiscard]] virtual char const* c_str() const noexcept = 0;
+		[[nodiscard]] virtual size_t length() const noexcept = 0;
+		[[nodiscard]] virtual StringView view() const noexcept = 0;
+
+		static void create(StringView const& view, IImmutableString** output);
+		static void create(char const* data, size_t size, IImmutableString** output);
+	};
+
 }

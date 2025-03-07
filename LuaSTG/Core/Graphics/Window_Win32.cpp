@@ -35,7 +35,7 @@ namespace Core::Graphics
 	void* Display_Win32::getNativeHandle() {
 		return win32_monitor;
 	}
-	String Display_Win32::getFriendlyName() {
+	void Display_Win32::getFriendlyName(IImmutableString** const output) {
 		auto const info = getMonitorInfo<MONITORINFOEXW>(win32_monitor);
 
 		UINT path_count{};
@@ -78,7 +78,7 @@ namespace Core::Graphics
 								else if (target_device_name.flags.edidIdsValid) {
 									buffer.append(std::format("{:04X}", target_device_name.edidProductCodeId));
 								}
-								return buffer;
+								IImmutableString::create(buffer, output);
 							}
 						}
 					}
@@ -86,7 +86,7 @@ namespace Core::Graphics
 			}
 		}
 
-		return utf8::to_string(info.szDevice);
+		IImmutableString::create(utf8::to_string(info.szDevice), output);
 	}
 	Vector2U Display_Win32::getSize() {
 		auto const info = getMonitorInfo(win32_monitor);
