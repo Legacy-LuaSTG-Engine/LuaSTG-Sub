@@ -5,13 +5,11 @@
 #include <string_view>
 #include <string>
 
-namespace Core
-{
+namespace Core {
 	// 二维向量
 
 	template<typename T>
-	struct Vector2
-	{
+	struct Vector2 {
 		T x{};
 		T y{};
 
@@ -43,28 +41,22 @@ namespace Core
 		inline bool operator==(Vector2 const& r) const noexcept { return x == r.x && y == r.y; }
 		inline bool operator!=(Vector2 const& r) const noexcept { return x != r.x || y != r.y; }
 
-		inline Vector2& normalize() noexcept
-		{
+		inline Vector2& normalize() noexcept {
 			T const l = length();
-			if (l >= std::numeric_limits<T>::min())
-			{
+			if (l >= std::numeric_limits<T>::min()) {
 				x /= l; y /= l;
 			}
-			else
-			{
+			else {
 				x = T{}; y = T{};
 			}
 			return *this;
 		}
-		inline Vector2 normalized() const noexcept
-		{
+		inline Vector2 normalized() const noexcept {
 			T const l = length();
-			if (l >= std::numeric_limits<T>::min())
-			{
+			if (l >= std::numeric_limits<T>::min()) {
 				return Vector2(x / l, y / l);
 			}
-			else
-			{
+			else {
 				return Vector2();
 			}
 		}
@@ -82,8 +74,7 @@ namespace Core
 	// 表示一个长方形区域
 
 	template<typename T>
-	struct Rect
-	{
+	struct Rect {
 		Vector2<T> a;
 		Vector2<T> b;
 
@@ -107,8 +98,7 @@ namespace Core
 	// 三维向量
 
 	template<typename T>
-	struct Vector3
-	{
+	struct Vector3 {
 		T x{};
 		T y{};
 		T z{};
@@ -127,7 +117,7 @@ namespace Core
 		inline Vector3 operator/(T const r) const noexcept { return Vector3(x / r, y / r, z / r); }
 
 		inline Vector3 operator-() const noexcept { return Vector3(-x, -y, -z); }
-		
+
 		inline Vector3& operator+=(Vector3 const& r) noexcept { x += r.x; y += r.y; z += r.z; return *this; }
 		inline Vector3& operator-=(Vector3 const& r) noexcept { x -= r.x; y -= r.y; z -= r.z; return *this; }
 		inline Vector3& operator*=(Vector3 const& r) noexcept { x *= r.x; y *= r.y; z *= r.z; return *this; }
@@ -173,8 +163,7 @@ namespace Core
 	// 表示一个长方体区域
 
 	template<typename T>
-	struct Box
-	{
+	struct Box {
 		Vector3<T> a;
 		Vector3<T> b;
 
@@ -193,8 +182,7 @@ namespace Core
 	// 四维向量
 
 	template<typename T>
-	struct Vector4
-	{
+	struct Vector4 {
 		T x{};
 		T y{};
 		T z{};
@@ -325,8 +313,7 @@ namespace Core
 
 	// 颜色（有黑魔法）
 
-	struct alignas(uint32_t) Color4B
-	{
+	struct alignas(uint32_t) Color4B {
 		uint8_t b;
 		uint8_t g;
 		uint8_t r;
@@ -340,20 +327,17 @@ namespace Core
 		inline void color(uint32_t ARGB) noexcept { *((uint32_t*)(&b)) = ARGB; }
 		inline uint32_t color() const noexcept { return *((uint32_t*)(&b)); }
 
-		bool operator==(Color4B const& right) const noexcept
-		{
+		bool operator==(Color4B const& right) const noexcept {
 			return color() == right.color();
 		}
-		bool operator!=(Color4B const& right) const noexcept
-		{
+		bool operator!=(Color4B const& right) const noexcept {
 			return color() != right.color();
 		}
 	};
 
 	// 分数
 
-	struct Rational
-	{
+	struct Rational {
 		uint32_t numerator; // 分子
 		uint32_t denominator; // 分母
 
@@ -369,16 +353,14 @@ namespace Core
 
 	// 引用计数
 
-	struct IObject
-	{
+	struct IObject {
 		virtual intptr_t retain() = 0;
 		virtual intptr_t release() = 0;
 		virtual ~IObject() {};
 	};
-	
+
 	template<typename T = IObject>
-	class ScopeObject
-	{
+	class ScopeObject {
 	private:
 		T* ptr_;
 	private:
@@ -394,7 +376,7 @@ namespace Core
 		ScopeObject& operator=(ScopeObject const& right) { if (ptr_ != right.ptr_) { internal_release(); ptr_ = right.ptr_; internal_retain(); } return *this; }
 		operator bool() { return ptr_ != nullptr; }
 		ScopeObject& attach(T* ptr) { internal_release(); ptr_ = ptr; return *this; }
-		T* detach()  { T* tmp_ = ptr_; ptr_ = nullptr; return tmp_; }
+		T* detach() { T* tmp_ = ptr_; ptr_ = nullptr; return tmp_; }
 		ScopeObject& reset() { internal_release(); return *this; }
 		T* get() const { return ptr_; }
 	public:
@@ -407,8 +389,7 @@ namespace Core
 		~ScopeObject() { internal_release(); }
 	};
 
-	struct IData : public IObject
-	{
+	struct IData : public IObject {
 		virtual void* data() = 0;
 		virtual size_t size() = 0;
 
