@@ -205,7 +205,7 @@ namespace LuaSTG::Sub::LuaBinding {
 		// lstg.Window.FrameStyle
 
 		{
-			auto const e = S.push_module("lstg.Window.FrameStyle");
+			auto const e = S.create_module("lstg.Window.FrameStyle");
 			S.set_map_value(e, "borderless", static_cast<int32_t>(Core::Graphics::WindowFrameStyle::None));
 			S.set_map_value(e, "fixed", static_cast<int32_t>(Core::Graphics::WindowFrameStyle::Fixed));
 			S.set_map_value(e, "normal", static_cast<int32_t>(Core::Graphics::WindowFrameStyle::Normal));
@@ -213,7 +213,7 @@ namespace LuaSTG::Sub::LuaBinding {
 		
 		// method
 
-		auto const method_table = S.push_module(class_name);
+		auto const method_table = S.create_module(class_name);
 		S.set_map_value(method_table, "setTitle", &WindowBinding::setTitle);
 		S.set_map_value(method_table, "getClientAreaSize", &WindowBinding::getClientAreaSize);
 		S.set_map_value(method_table, "getStyle", &WindowBinding::getStyle);
@@ -318,7 +318,7 @@ namespace LuaSTG::Sub::LuaBinding {
 
 		// method
 
-		auto const method_table = S.push_module(class_name);
+		auto const method_table = S.create_module(class_name);
 		S.set_map_value(method_table, "isInputMethodEnabled", &ImeExtBinding::isInputMethodEnabled);
 		S.set_map_value(method_table, "setInputMethodEnabled", &ImeExtBinding::setInputMethodEnabled);
 		S.set_map_value(method_table, "setInputMethodPosition", &ImeExtBinding::setInputMethodPosition);
@@ -469,7 +469,7 @@ namespace LuaSTG::Sub::LuaBinding {
 
 		// method
 
-		auto const method_table = S.push_module(class_name);
+		auto const method_table = S.create_module(class_name);
 		S.set_map_value(method_table, "isEnabled", &TextInputExtBinding::isEnabled);
 		S.set_map_value(method_table, "setEnabled", &TextInputExtBinding::setEnabled);
 		S.set_map_value(method_table, "toString", &TextInputExtBinding::toString);
@@ -571,7 +571,7 @@ namespace LuaSTG::Sub::LuaBinding {
 
 		// method
 
-		auto const method_table = S.push_module(class_name);
+		auto const method_table = S.create_module(class_name);
 		S.set_map_value(method_table, "setWindowCornerPreference", &Win11ExtBinding::setWindowCornerPreference);
 		S.set_map_value(method_table, "setTitleBarAutoHidePreference", &Win11ExtBinding::setTitleBarAutoHidePreference);
 

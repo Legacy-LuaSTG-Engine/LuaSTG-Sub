@@ -145,14 +145,14 @@ namespace LuaSTG::Sub::LuaBinding {
 		// lstg.Window.FrameStyle
 
 		{
-			auto const e = S.push_module("lstg.SwapChain.ScalingMode");
+			auto const e = S.create_module("lstg.SwapChain.ScalingMode");
 			S.set_map_value(e, "stretch", static_cast<int32_t>(Core::Graphics::SwapChainScalingMode::Stretch));
 			S.set_map_value(e, "aspect_ratio", static_cast<int32_t>(Core::Graphics::SwapChainScalingMode::AspectRatio));
 		}
 
 		// method
 
-		auto const method_table = S.push_module(class_name);
+		auto const method_table = S.create_module(class_name);
 		S.set_map_value(method_table, "setWindowed", &SwapChainBinding::setWindowed);
 		S.set_map_value(method_table, "getSize", &SwapChainBinding::getSize);
 		S.set_map_value(method_table, "setSize", &SwapChainBinding::setSize);

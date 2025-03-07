@@ -92,7 +92,7 @@ namespace LuaSTG::Sub::LuaBinding {
 
 		// method
 
-		auto const method_table = ctx.push_module(class_name);
+		auto const method_table = ctx.create_module(class_name);
 		ctx.set_map_value(method_table, "getWidth", &Texture2DBinding::getWidth);
 		ctx.set_map_value(method_table, "getHeight", &Texture2DBinding::getHeight);
 		ctx.set_map_value(method_table, "createFromFile", &Texture2DBinding::createFromFile);

@@ -477,14 +477,14 @@ namespace LuaSTG::Sub::LuaBinding {
 		// lstg.Window.FrameStyle
 
 		{
-			auto const e = ctx.push_module("lstg.PrimitiveTopology");
+			auto const e = ctx.create_module("lstg.PrimitiveTopology");
 			ctx.set_map_value(e, "triangle_list", static_cast<int32_t>(Core::Graphics::PrimitiveTopology::triangle_list));
 			ctx.set_map_value(e, "triangle_strip", static_cast<int32_t>(Core::Graphics::PrimitiveTopology::triangle_strip));
 		}
 
 		// method
 
-		auto const method_table = ctx.push_module(class_name);
+		auto const method_table = ctx.create_module(class_name);
 		ctx.set_map_value(method_table, "getVertexCount", &MeshBinding::getVertexCount);
 		ctx.set_map_value(method_table, "getIndexCount", &MeshBinding::getIndexCount);
 		ctx.set_map_value(method_table, "getPrimitiveTopology", &MeshBinding::getPrimitiveTopology);

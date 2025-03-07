@@ -267,7 +267,7 @@ namespace LuaSTG::Sub::LuaBinding {
 
 		// method
 
-		auto const method_table = ctx.push_module(class_name);
+		auto const method_table = ctx.create_module(class_name);
 		ctx.set_map_value(method_table, "setPosition", &MeshRendererBinding::setPosition);
 		ctx.set_map_value(method_table, "setScale", &MeshRendererBinding::setScale);
 		ctx.set_map_value(method_table, "setRotationYawPitchRoll", &MeshRendererBinding::setRotationYawPitchRoll);

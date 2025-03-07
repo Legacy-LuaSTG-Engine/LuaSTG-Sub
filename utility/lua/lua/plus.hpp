@@ -201,7 +201,6 @@ namespace lua {
 		}
 
 		void push_map_value(stack_index_t const map_index, std::string_view const& key) const {
-			constexpr stack_index_t top_index(-1);
 			push_value(key);
 			lua_gettable(L, map_index.value);
 		}
@@ -382,11 +381,23 @@ namespace lua {
 
 		// package system
 
-		[[nodiscard]] stack_index_t push_module(std::string_view const name) const {
+		[[nodiscard]] stack_index_t create_module(std::string_view const name) const {
 			std::string const name_copy(name);
 			constexpr luaL_Reg list[] = { {nullptr, nullptr} };
 			luaL_register(L, name_copy.c_str(), list);
 			return index_of_top();
+		}
+
+		[[nodiscard]] stack_index_t push_module(std::string_view const name) const {
+			std::string const name_copy(name);
+			auto const n = lua_gettop(L);                  // 1..n |  n + 1  |  n + 2  |
+			lua_getfield(L, LUA_REGISTRYINDEX, "_LOADED"); // .... | _LOADED |         | from lua 5.1/luajit source code
+			lua_getfield(L, n + 1, name_copy.c_str());     // .... | _LOADED | module  |
+			lua_remove(L, n + 1);                          // .... | module  |         |
+			if (!lua_istable(L, n + 1)) {
+				return { luaL_error(L, "module '%s' not found", name_copy.c_str()) };
+			}
+			return { n + 1 };
 		}
 
 		[[nodiscard]] stack_index_t create_metatable(std::string_view const name) const {

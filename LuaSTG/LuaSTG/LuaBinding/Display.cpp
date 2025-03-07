@@ -205,7 +205,7 @@ namespace LuaSTG::Sub::LuaBinding {
 
 		// method
 
-		auto const method_table = S.push_module(class_name);
+		auto const method_table = S.create_module(class_name);
 		S.set_map_value(method_table, "getFriendlyName", &DisplayBinding::getFriendlyName);
 		S.set_map_value(method_table, "getSize", &DisplayBinding::getSize);
 		S.set_map_value(method_table, "getPosition", &DisplayBinding::getPosition);
