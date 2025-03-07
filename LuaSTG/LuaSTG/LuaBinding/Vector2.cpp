@@ -1,6 +1,6 @@
 // ReSharper disable CppTooWideScopeInitStatement
 
-#include "Vector.hpp"
+#include "Vector2.hpp"
 #include "lua/plus.hpp"
 
 using std::string_view_literals::operator ""sv;

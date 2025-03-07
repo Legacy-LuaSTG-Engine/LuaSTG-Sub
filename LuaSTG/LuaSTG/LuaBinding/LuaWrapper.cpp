@@ -7,7 +7,7 @@
 #include "LuaBinding/Texture2D.hpp"
 #include "LuaBinding/Mesh.hpp"
 #include "LuaBinding/MeshRenderer.hpp"
-#include "LuaBinding/Vector.hpp"
+#include "LuaBinding/Vector2.hpp"
 
 namespace LuaSTGPlus
 {
