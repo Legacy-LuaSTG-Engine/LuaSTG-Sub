@@ -1,4 +1,4 @@
-﻿#include "LuaBinding/LuaWrapper.hpp"
+#include "LuaBinding/LuaWrapper.hpp"
 #include "lua/plus.hpp"
 #include "LuaBinding/PostEffectShader.hpp"
 #include "AppFrame.h"
@@ -750,12 +750,12 @@ static int compat_SetFog(lua_State* L)noexcept
         api_setFogState(
             static_cast<float>(luaL_checknumber(L, 1)),
             static_cast<float>(luaL_checknumber(L, 2)),
-            0xFF000000
+            Core::Color4B(0xFF000000)
         );
     }
     else
     {
-        api_setFogState(0.0f, 0.0f, 0x00000000);
+        api_setFogState(0.0f, 0.0f, Core::Color4B(0x00000000));
     }
     return 0;
 }

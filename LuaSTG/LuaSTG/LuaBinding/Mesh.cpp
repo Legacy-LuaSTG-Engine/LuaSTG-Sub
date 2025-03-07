@@ -213,7 +213,7 @@ namespace {
 		// ReSharper disable once CppTooWideScopeInitStatement
 		lua::stack_t const ctx(vm);
 		if (ctx.is_number(idx)) {
-			return {ctx.get_value<uint32_t>(idx)};
+			return Core::Color4B(ctx.get_value<uint32_t>(idx));
 		}
 		return *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(vm, idx);
 	}

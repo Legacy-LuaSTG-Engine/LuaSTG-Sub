@@ -87,7 +87,12 @@ namespace LuaSTGPlus
 	{
 		Core::Graphics::ISprite* pSprite = GetSpriteByTimer(timer)->GetSprite();
 		// 备份状态
-		Core::Color4B color_backup[4] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+		Core::Color4B color_backup[4] = {
+			Core::Color4B(0xFFFFFFFF),
+			Core::Color4B(0xFFFFFFFF),
+			Core::Color4B(0xFFFFFFFF),
+			Core::Color4B(0xFFFFFFFF),
+		};
 		pSprite->getColor(color_backup);
 		float const z_backup = pSprite->getZ();
 		// 设置状态
@@ -104,7 +109,12 @@ namespace LuaSTGPlus
 	{
 		// 备份状态
 		BlendMode blend_backup = GetBlendMode();
-		Core::Color4B color_backup[4] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+		Core::Color4B color_backup[4] = {
+			Core::Color4B(0xFFFFFFFF),
+			Core::Color4B(0xFFFFFFFF),
+			Core::Color4B(0xFFFFFFFF),
+			Core::Color4B(0xFFFFFFFF),
+		};
 		GetVertexColor(color_backup);
 		// 设置状态
 		SetBlendMode(blend);

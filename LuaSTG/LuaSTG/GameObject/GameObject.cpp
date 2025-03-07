@@ -594,7 +594,7 @@ namespace LuaSTGPlus
 					if (ps)
 					{
 						ps->SetBlendMode(blendmode);
-						ps->SetVertexColor(vertexcolor);
+						ps->SetVertexColor(Core::Color4B(vertexcolor));
 						LAPP.Render(
 							ps,
 							static_cast<float>(hscale) * gscale,

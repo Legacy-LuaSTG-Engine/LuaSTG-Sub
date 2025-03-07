@@ -43,7 +43,12 @@ namespace LuaSTGPlus
 		Core::Graphics::ISprite* pSprite = GetSprite();
 		// 备份状态
 		BlendMode blend_backup = GetBlendMode();
-		Core::Color4B color_backup[4]{ 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+		Core::Color4B color_backup[4] {
+			Core::Color4B(0xFFFFFFFF),
+			Core::Color4B(0xFFFFFFFF),
+			Core::Color4B(0xFFFFFFFF),
+			Core::Color4B(0xFFFFFFFF),
+		};
 		pSprite->getColor(color_backup);
 		// 设置状态
 		SetBlendMode(blend);
