@@ -2,8 +2,12 @@
 
 CPMAddPackage(
     NAME dr_libs
-    GITHUB_REPOSITORY mackron/dr_libs
-    GIT_TAG 660795b2834aebb2217c9849d668b6e4bd4ef810
+    VERSION 2024.12.17
+    # ！！！警告：不要直接使用 mackron dr_libs 的 git 仓库，否则下载耗时++++
+    #GITHUB_REPOSITORY mackron/dr_libs
+    #GIT_TAG 660795b2834aebb2217c9849d668b6e4bd4ef810
+    URL https://github.com/mackron/dr_libs/archive/660795b2834aebb2217c9849d668b6e4bd4ef810.zip
+    URL_HASH SHA256=5AA009A6E5BC35361D4255490C6976560D66B261DF8CD657EB0950A29AC34D15
     DOWNLOAD_ONLY YES
 )
 
