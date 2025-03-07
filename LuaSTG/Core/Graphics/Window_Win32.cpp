@@ -79,6 +79,7 @@ namespace Core::Graphics
 									buffer.append(std::format("{:04X}", target_device_name.edidProductCodeId));
 								}
 								IImmutableString::create(buffer, output);
+								return;
 							}
 						}
 					}
