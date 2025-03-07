@@ -128,6 +128,7 @@ require("test_random")
 require("test_se")
 require("test_window_and_display")
 
+require("test.math.all")
 require("test.imgui.all")
 require("test.graphics.all")
 require("test.audio.SoundEffect")

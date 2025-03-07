@@ -7,6 +7,7 @@
 #include "LuaBinding/Texture2D.hpp"
 #include "LuaBinding/Mesh.hpp"
 #include "LuaBinding/MeshRenderer.hpp"
+#include "LuaBinding/Vector.hpp"
 
 namespace LuaSTGPlus
 {
@@ -72,6 +73,7 @@ namespace LuaSTGPlus
 		LuaSTG::Sub::LuaBinding::Texture2D::registerClass(L);
 		LuaSTG::Sub::LuaBinding::Mesh::registerClass(L);
 		LuaSTG::Sub::LuaBinding::MeshRenderer::registerClass(L);
+		LuaSTG::Sub::LuaBinding::Vector2::registerClass(L);
 		http::Request::registerClass(L);
 		http::ResponseEntity::registerClass(L);
 	}

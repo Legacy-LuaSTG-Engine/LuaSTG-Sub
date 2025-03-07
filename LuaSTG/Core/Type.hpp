@@ -61,6 +61,7 @@ namespace Core
 		}
 		inline T length() const noexcept { return std::sqrt(x * x + y * y); }
 		inline T angle() const noexcept { return std::atan2(y, x); }
+		inline T dot(Vector2 const& r) { return x * r.x + y * r.y; }
 
 		inline T& operator[](size_t const i) { return (&x)[i]; }
 	};
