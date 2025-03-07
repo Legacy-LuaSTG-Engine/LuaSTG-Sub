@@ -16,23 +16,32 @@ namespace Core
 		T y{};
 
 		Vector2() noexcept : x(0), y(0) {}
-		Vector2(T const x_, T const y_) noexcept : x(x_), y(y_) {}
+		Vector2(T const x, T const y) noexcept : x(x), y(y) {}
 
 		inline Vector2 operator+(Vector2 const& r) const noexcept { return Vector2(x + r.x, y + r.y); }
 		inline Vector2 operator-(Vector2 const& r) const noexcept { return Vector2(x - r.x, y - r.y); }
+		inline Vector2 operator*(Vector2 const& r) const noexcept { return Vector2(x * r.x, y * r.y); }
+		inline Vector2 operator/(Vector2 const& r) const noexcept { return Vector2(x / r.x, y / r.y); }
+
+		inline Vector2 operator+(T const r) const noexcept { return Vector2(x + r, y + r); }
+		inline Vector2 operator-(T const r) const noexcept { return Vector2(x - r, y - r); }
 		inline Vector2 operator*(T const r) const noexcept { return Vector2(x * r, y * r); }
 		inline Vector2 operator/(T const r) const noexcept { return Vector2(x / r, y / r); }
 
+		inline Vector2 operator-() const noexcept { return Vector2(-x, -y); }
+
 		inline Vector2& operator+=(Vector2 const& r) noexcept { x += r.x; y += r.y; return *this; }
 		inline Vector2& operator-=(Vector2 const& r) noexcept { x -= r.x; y -= r.y; return *this; }
+		inline Vector2& operator*=(Vector2 const& r) noexcept { x *= r.x; y *= r.y; return *this; }
+		inline Vector2& operator/=(Vector2 const& r) noexcept { x /= r.x; y /= r.y; return *this; }
+
+		inline Vector2& operator+=(T const r) noexcept { x += r; y += r; return *this; }
+		inline Vector2& operator-=(T const r) noexcept { x -= r; y -= r; return *this; }
 		inline Vector2& operator*=(T const r) noexcept { x *= r; y *= r; return *this; }
 		inline Vector2& operator/=(T const r) noexcept { x /= r; y /= r; return *this; }
 
 		inline bool operator==(Vector2 const& r) const noexcept { return x == r.x && y == r.y; }
 		inline bool operator!=(Vector2 const& r) const noexcept { return x != r.x || y != r.y; }
-
-		inline float operator*(Vector2 const& r) const noexcept { return x * r.x + y * r.y; }
-		inline Vector2 operator-() const noexcept { return Vector2(-x, -y); }
 
 		inline Vector2& normalize() noexcept
 		{
@@ -61,7 +70,7 @@ namespace Core
 		}
 		inline T length() const noexcept { return std::sqrt(x * x + y * y); }
 		inline T angle() const noexcept { return std::atan2(y, x); }
-		inline T dot(Vector2 const& r) { return x * r.x + y * r.y; }
+		inline T dot(Vector2 const& r) const noexcept { return x * r.x + y * r.y; }
 
 		inline T& operator[](size_t const i) { return (&x)[i]; }
 	};
@@ -105,15 +114,27 @@ namespace Core
 		T z{};
 
 		Vector3() noexcept : x(0), y(0), z(0) {}
-		Vector3(T const x_, T const y_, T const z_) noexcept : x(x_), y(y_), z(z_) {}
+		Vector3(T const x, T const y, T const z) noexcept : x(x), y(y), z(z) {}
 
 		inline Vector3 operator+(Vector3 const& r) const noexcept { return Vector3(x + r.x, y + r.y, z + r.z); }
 		inline Vector3 operator-(Vector3 const& r) const noexcept { return Vector3(x - r.x, y - r.y, z - r.z); }
+		inline Vector3 operator*(Vector3 const& r) const noexcept { return Vector3(x * r.x, y * r.y, z * r.z); }
+		inline Vector3 operator/(Vector3 const& r) const noexcept { return Vector3(x / r.x, y / r.y, z / r.z); }
+
+		inline Vector3 operator+(T const r) const noexcept { return Vector3(x + r, y + r, z + r); }
+		inline Vector3 operator-(T const r) const noexcept { return Vector3(x - r, y - r, z - r); }
 		inline Vector3 operator*(T const r) const noexcept { return Vector3(x * r, y * r, z * r); }
 		inline Vector3 operator/(T const r) const noexcept { return Vector3(x / r, y / r, z / r); }
 
+		inline Vector3 operator-() const noexcept { return Vector3(-x, -y, -z); }
+		
 		inline Vector3& operator+=(Vector3 const& r) noexcept { x += r.x; y += r.y; z += r.z; return *this; }
 		inline Vector3& operator-=(Vector3 const& r) noexcept { x -= r.x; y -= r.y; z -= r.z; return *this; }
+		inline Vector3& operator*=(Vector3 const& r) noexcept { x *= r.x; y *= r.y; z *= r.z; return *this; }
+		inline Vector3& operator/=(Vector3 const& r) noexcept { x /= r.x; y /= r.y; z /= r.z; return *this; }
+
+		inline Vector3& operator+=(T const r) noexcept { x += r; y += r; z += r; return *this; }
+		inline Vector3& operator-=(T const r) noexcept { x -= r; y -= r; z -= r; return *this; }
 		inline Vector3& operator*=(T const r) noexcept { x *= r; y *= r; z *= r; return *this; }
 		inline Vector3& operator/=(T const r) noexcept { x /= r; y /= r; z /= r; return *this; }
 
@@ -121,6 +142,28 @@ namespace Core
 		inline bool operator!=(Vector3 const& r) const noexcept { return x != r.x || y != r.y || z != r.z; }
 
 		inline T& operator[](size_t const i) { return (&x)[i]; }
+
+		inline Vector3& normalize() noexcept {
+			T const l = length();
+			if (l >= std::numeric_limits<T>::min()) {
+				x /= l; y /= l; z /= l;
+			}
+			else {
+				x = T{}; y = T{}; z = T{};
+			}
+			return *this;
+		}
+		inline Vector3 normalized() const noexcept {
+			T const l = length();
+			if (l >= std::numeric_limits<T>::min()) {
+				return Vector3(x / l, y / l, z / l);
+			}
+			else {
+				return Vector3();
+			}
+		}
+		inline T length() const noexcept { return std::sqrt(x * x + y * y + z * z); }
+		inline T dot(Vector3 const& r) const noexcept { return x * r.x + y * r.y + z * r.z; }
 	};
 
 	using Vector3I = Vector3<int32_t>;
@@ -158,15 +201,29 @@ namespace Core
 		T w{};
 
 		Vector4() noexcept : x(0), y(0), z(0), w(0) {}
-		Vector4(T const x_, T const y_, T const z_, T const w_) noexcept : x(x_), y(y_), z(z_), w(w_) {}
+		Vector4(Vector2<T> const& xy, T const z, T const w) noexcept : x(xy.x), y(xy.y), z(z), w(w) {}
+		Vector4(Vector3<T> const& xyz, T const w) noexcept : x(xyz.x), y(xyz.y), z(xyz.z), w(w) {}
+		Vector4(T const x, T const y, T const z, T const w) noexcept : x(x), y(y), z(z), w(w) {}
 
 		inline Vector4 operator+(Vector4 const& r) const noexcept { return Vector4(x + r.x, y + r.y, z + r.z, w + r.w); }
 		inline Vector4 operator-(Vector4 const& r) const noexcept { return Vector4(x - r.x, y - r.y, z - r.z, w - r.w); }
+		inline Vector4 operator*(Vector4 const& r) const noexcept { return Vector4(x * r.x, y * r.y, z * r.z, w * r.w); }
+		inline Vector4 operator/(Vector4 const& r) const noexcept { return Vector4(x / r.x, y / r.y, z / r.z, w / r.w); }
+
+		inline Vector4 operator+(T const r) const noexcept { return Vector4(x + r, y + r, z + r, w + r); }
+		inline Vector4 operator-(T const r) const noexcept { return Vector4(x - r, y - r, z - r, w - r); }
 		inline Vector4 operator*(T const r) const noexcept { return Vector4(x * r, y * r, z * r, w * r); }
 		inline Vector4 operator/(T const r) const noexcept { return Vector4(x / r, y / r, z / r, w / r); }
 
+		inline Vector4 operator-() const noexcept { return Vector4(-x, -y, -z, -w); }
+
 		inline Vector4& operator+=(Vector4 const& r) noexcept { x += r.x; y += r.y; z += r.z; w += r.w; return *this; }
 		inline Vector4& operator-=(Vector4 const& r) noexcept { x -= r.x; y -= r.y; z -= r.z; w -= r.w; return *this; }
+		inline Vector4& operator*=(Vector4 const& r) noexcept { x *= r.x; y *= r.y; z *= r.z; w *= r.w; return *this; }
+		inline Vector4& operator/=(Vector4 const& r) noexcept { x /= r.x; y /= r.y; z /= r.z; w /= r.w; return *this; }
+
+		inline Vector4& operator+=(T const r) noexcept { x += r; y += r; z += z; w += r; return *this; }
+		inline Vector4& operator-=(T const r) noexcept { x -= r; y -= r; z -= z; w -= r; return *this; }
 		inline Vector4& operator*=(T const r) noexcept { x *= r; y *= r; z *= z; w *= r; return *this; }
 		inline Vector4& operator/=(T const r) noexcept { x /= r; y /= r; z /= z; w /= r; return *this; }
 
@@ -174,6 +231,28 @@ namespace Core
 		inline bool operator!=(Vector4 const& r) const noexcept { return x != r.x || y != r.y || z != r.z || w != r.w; }
 
 		inline T& operator[](size_t const i) { return (&x)[i]; }
+
+		inline Vector4& normalize() noexcept {
+			T const l = length();
+			if (l >= std::numeric_limits<T>::min()) {
+				x /= l; y /= l; z /= l; w /= l;
+			}
+			else {
+				x = T{}; y = T{}; z = T{}; w = T{};
+			}
+			return *this;
+		}
+		inline Vector4 normalized() const noexcept {
+			T const l = length();
+			if (l >= std::numeric_limits<T>::min()) {
+				return Vector4(x / l, y / l, z / l, w / l);
+			}
+			else {
+				return Vector4();
+			}
+		}
+		inline T length() const noexcept { return std::sqrt(x * x + y * y + z * z + w * w); }
+		inline T dot(Vector4 const& r) const noexcept { return x * r.x + y * r.y + z * r.z + w * r.w; }
 	};
 
 	using Vector4I = Vector4<int32_t>;

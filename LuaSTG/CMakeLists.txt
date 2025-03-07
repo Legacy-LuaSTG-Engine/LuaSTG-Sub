@@ -130,6 +130,10 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/HttpClient.cpp
     LuaSTG/LuaBinding/Vector2.hpp
     LuaSTG/LuaBinding/Vector2.cpp
+    LuaSTG/LuaBinding/Vector3.hpp
+    LuaSTG/LuaBinding/Vector3.cpp
+    LuaSTG/LuaBinding/Vector4.hpp
+    LuaSTG/LuaBinding/Vector4.cpp
     LuaSTG/LuaBinding/generated/BlendModeX.cpp
     LuaSTG/LuaBinding/generated/BlendModeX.hpp
     LuaSTG/LuaBinding/generated/ColorMember.cpp

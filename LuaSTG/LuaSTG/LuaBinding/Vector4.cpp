@@ -1,38 +1,19 @@
 // ReSharper disable CppTooWideScopeInitStatement
 
-#include "Vector2.hpp"
+#include "Vector4.hpp"
 #include "lua/plus.hpp"
 
 using std::string_view_literals::operator ""sv;
 
 namespace {
 	constexpr auto embedded_script = R"(--- LuaSTG Sub built-in script
-local math = require("math")
-local Vector2 = require("lstg.Vector2")
---- Additional methods
-local deg = math.deg
-function Vector2:degreeAngle()
-	return deg(self:angle())
-end
---- LuaSTG Evo
-Vector2.Length = Vector2.length
-Vector2.Angle = Vector2.degreeAngle
-function Vector2:Normalize()
-	self:normalize()
-	return Vector2.create(self.x, self.y)
-end
-Vector2.Normalized = Vector2.normalized
-Vector2.Dot = Vector2.dot
-function lstg.Vector2(...)
-	return Vector2.create(...)
-end
 )"sv;
 }
 
 namespace LuaSTG::Sub::LuaBinding {
-	std::string_view Vector2::class_name{ "lstg.Vector2" };
+	std::string_view Vector4::class_name{ "lstg.Vector4" };
 
-	struct Vector2Binding : Vector2 {
+	struct Vector4Binding : Vector4 {
 		// meta methods
 
 		// NOLINTBEGIN(*-reserved-identifier)
@@ -53,6 +34,12 @@ namespace LuaSTG::Sub::LuaBinding {
 			else if (key == "y"sv) {
 				ctx.push_value(self->data.y);
 			}
+			else if (key == "z"sv) {
+				ctx.push_value(self->data.z);
+			}
+			else if (key == "w"sv) {
+				ctx.push_value(self->data.w);
+			}
 			else {
 				auto const method_table = ctx.push_module(class_name);
 				ctx.push_map_value(method_table, key);
@@ -72,6 +59,12 @@ namespace LuaSTG::Sub::LuaBinding {
 			}
 			else if (key == "y"sv) {
 				self->data.y = value;
+			}
+			else if (key == "z"sv) {
+				self->data.z = value;
+			}
+			else if (key == "w"sv) {
+				self->data.w = value;
 			}
 			else {
 				return luaL_error(vm, "field '%s' not exists", key.data());
@@ -97,12 +90,12 @@ namespace LuaSTG::Sub::LuaBinding {
 				auto const left = as(vm, 1);
 				if (is(vm, 2)) {
 					auto const right = as(vm, 2);
-					auto const copy = Vector2::create(vm);
+					auto const copy = Vector4::create(vm);
 					copy->data = left->data + right->data;
 				}
 				else {
 					auto const right = ctx.get_value<lua_Number>(2);
-					auto const copy = Vector2::create(vm);
+					auto const copy = Vector4::create(vm);
 					copy->data = left->data + right;
 				}
 			}
@@ -110,13 +103,13 @@ namespace LuaSTG::Sub::LuaBinding {
 				auto const right = as(vm, 2);
 				if (is(vm, 1)) {
 					auto const left = as(vm, 1);
-					auto const copy = Vector2::create(vm);
+					auto const copy = Vector4::create(vm);
 					copy->data = left->data + right->data;
 				}
 				else {
 					auto const left = ctx.get_value<lua_Number>(1);
-					auto const copy = Vector2::create(vm);
-					copy->data = Core::Vector2(left, left) + right->data;
+					auto const copy = Vector4::create(vm);
+					copy->data = Core::Vector4(left, left, left, left) + right->data;
 				}
 			}
 			return 1;
@@ -127,12 +120,12 @@ namespace LuaSTG::Sub::LuaBinding {
 				auto const left = as(vm, 1);
 				if (is(vm, 2)) {
 					auto const right = as(vm, 2);
-					auto const copy = Vector2::create(vm);
+					auto const copy = Vector4::create(vm);
 					copy->data = left->data - right->data;
 				}
 				else {
 					auto const right = ctx.get_value<lua_Number>(2);
-					auto const copy = Vector2::create(vm);
+					auto const copy = Vector4::create(vm);
 					copy->data = left->data - right;
 				}
 			}
@@ -140,13 +133,13 @@ namespace LuaSTG::Sub::LuaBinding {
 				auto const right = as(vm, 2);
 				if (is(vm, 1)) {
 					auto const left = as(vm, 1);
-					auto const copy = Vector2::create(vm);
+					auto const copy = Vector4::create(vm);
 					copy->data = left->data - right->data;
 				}
 				else {
 					auto const left = ctx.get_value<lua_Number>(1);
-					auto const copy = Vector2::create(vm);
-					copy->data = Core::Vector2(left, left) - right->data;
+					auto const copy = Vector4::create(vm);
+					copy->data = Core::Vector4(left, left, left, left) - right->data;
 				}
 			}
 			return 1;
@@ -157,12 +150,12 @@ namespace LuaSTG::Sub::LuaBinding {
 				auto const left = as(vm, 1);
 				if (is(vm, 2)) {
 					auto const right = as(vm, 2);
-					auto const copy = Vector2::create(vm);
+					auto const copy = Vector4::create(vm);
 					copy->data = left->data * right->data;
 				}
 				else {
 					auto const right = ctx.get_value<lua_Number>(2);
-					auto const copy = Vector2::create(vm);
+					auto const copy = Vector4::create(vm);
 					copy->data = left->data * right;
 				}
 			}
@@ -170,13 +163,13 @@ namespace LuaSTG::Sub::LuaBinding {
 				auto const right = as(vm, 2);
 				if (is(vm, 1)) {
 					auto const left = as(vm, 1);
-					auto const copy = Vector2::create(vm);
+					auto const copy = Vector4::create(vm);
 					copy->data = left->data * right->data;
 				}
 				else {
 					auto const left = ctx.get_value<lua_Number>(1);
-					auto const copy = Vector2::create(vm);
-					copy->data = Core::Vector2(left, left) * right->data;
+					auto const copy = Vector4::create(vm);
+					copy->data = Core::Vector4(left, left, left, left) * right->data;
 				}
 			}
 			return 1;
@@ -187,12 +180,12 @@ namespace LuaSTG::Sub::LuaBinding {
 				auto const left = as(vm, 1);
 				if (is(vm, 2)) {
 					auto const right = as(vm, 2);
-					auto const copy = Vector2::create(vm);
+					auto const copy = Vector4::create(vm);
 					copy->data = left->data / right->data;
 				}
 				else {
 					auto const right = ctx.get_value<lua_Number>(2);
-					auto const copy = Vector2::create(vm);
+					auto const copy = Vector4::create(vm);
 					copy->data = left->data / right;
 				}
 			}
@@ -200,20 +193,21 @@ namespace LuaSTG::Sub::LuaBinding {
 				auto const right = as(vm, 2);
 				if (is(vm, 1)) {
 					auto const left = as(vm, 1);
-					auto const copy = Vector2::create(vm);
+					auto const copy = Vector4::create(vm);
 					copy->data = left->data / right->data;
 				}
 				else {
 					auto const left = ctx.get_value<lua_Number>(1);
-					auto const copy = Vector2::create(vm);
-					copy->data = Core::Vector2(left, left) / right->data;
+					auto const copy = Vector4::create(vm);
+					copy->data = Core::Vector4(left, left, left, left) / right->data;
 				}
 			}
 			return 1;
 		}
 		static int __unm(lua_State* vm) {
+			lua::stack_t const ctx(vm);
 			auto const self = as(vm, 1);
-			auto const copy = Vector2::create(vm);
+			auto const copy = Vector4::create(vm);
 			copy->data = -self->data;
 			return 1;
 		}
@@ -228,12 +222,6 @@ namespace LuaSTG::Sub::LuaBinding {
 			ctx.push_value(self->data.length());
 			return 1;
 		}
-		static int angle(lua_State* vm) {
-			lua::stack_t const ctx(vm);
-			auto const self = as(vm, 1);
-			ctx.push_value(self->data.angle());
-			return 1;
-		}
 		static int normalize(lua_State* vm) {
 			lua::stack_t const ctx(vm);
 			auto const self = as(vm, 1);
@@ -242,8 +230,9 @@ namespace LuaSTG::Sub::LuaBinding {
 			return 1;
 		}
 		static int normalized(lua_State* vm) {
+			lua::stack_t const ctx(vm);
 			auto const self = as(vm, 1);
-			auto const copy = Vector2::create(vm);
+			auto const copy = Vector4::create(vm);
 			copy->data = self->data.normalized();
 			return 1;
 		}
@@ -262,64 +251,64 @@ namespace LuaSTG::Sub::LuaBinding {
 			if (ctx.index_of_top() >= 2) {
 				auto const x = ctx.get_value<lua_Number>(1);
 				auto const y = ctx.get_value<lua_Number>(2);
-				auto const self = Vector2::create(vm);
-				self->data.x = x;
-				self->data.y = y;
+				auto const z = ctx.get_value<lua_Number>(3);
+				auto const w = ctx.get_value<lua_Number>(4);
+				auto const self = Vector4::create(vm);
+				self->data = Core::Vector4(x, y, z, w);
 			}
 			else {
-				std::ignore = Vector2::create(vm);
+				std::ignore = Vector4::create(vm);
 			}
 			return 1;
 		}
 
 	};
 
-	bool Vector2::is(lua_State* vm, int const index) {
+	bool Vector4::is(lua_State* vm, int const index) {
 		lua::stack_t const ctx(vm);
 		return ctx.is_metatable(index, class_name);
 	}
-	Vector2* Vector2::as(lua_State* vm, int const index) {
+	Vector4* Vector4::as(lua_State* vm, int const index) {
 		lua::stack_t const ctx(vm);
-		return ctx.as_userdata<Vector2>(index);
+		return ctx.as_userdata<Vector4>(index);
 	}
-	Vector2* Vector2::create(lua_State* vm) {
+	Vector4* Vector4::create(lua_State* vm) {
 		lua::stack_t const ctx(vm);
-		auto const self = ctx.create_userdata<Vector2>();
+		auto const self = ctx.create_userdata<Vector4>();
 		auto const self_index = ctx.index_of_top();
 		ctx.set_metatable(self_index, class_name);
 		self->data = {};
 		return self;
 	}
-	void Vector2::registerClass(lua_State* vm) {
+	void Vector4::registerClass(lua_State* vm) {
 		[[maybe_unused]] lua::stack_balancer_t stack_balancer(vm);
 		lua::stack_t const ctx(vm);
 
 		// method
 
 		auto const method_table = ctx.create_module(class_name);
-		ctx.set_map_value(method_table, "length", &Vector2Binding::length);
-		ctx.set_map_value(method_table, "angle", &Vector2Binding::angle);
-		ctx.set_map_value(method_table, "normalize", &Vector2Binding::normalize);
-		ctx.set_map_value(method_table, "normalized", &Vector2Binding::normalized);
-		ctx.set_map_value(method_table, "dot", &Vector2Binding::dot);
-		ctx.set_map_value(method_table, "create", &Vector2Binding::create);
+		ctx.set_map_value(method_table, "length", &Vector4Binding::length);
+		ctx.set_map_value(method_table, "normalize", &Vector4Binding::normalize);
+		ctx.set_map_value(method_table, "normalized", &Vector4Binding::normalized);
+		ctx.set_map_value(method_table, "dot", &Vector4Binding::dot);
+		ctx.set_map_value(method_table, "create", &Vector4Binding::create);
 
 		// metatable
 
 		auto const metatable = ctx.create_metatable(class_name);
-		ctx.set_map_value(metatable, "__tostring", &Vector2Binding::__tostring);
-		ctx.set_map_value(metatable, "__index", &Vector2Binding::__index);
-		ctx.set_map_value(metatable, "__newindex", &Vector2Binding::__newindex);
-		ctx.set_map_value(metatable, "__eq", &Vector2Binding::__eq);
-		ctx.set_map_value(metatable, "__add", &Vector2Binding::__add);
-		ctx.set_map_value(metatable, "__sub", &Vector2Binding::__sub);
-		ctx.set_map_value(metatable, "__mul", &Vector2Binding::__mul);
-		ctx.set_map_value(metatable, "__div", &Vector2Binding::__div);
-		ctx.set_map_value(metatable, "__unm", &Vector2Binding::__unm);
+		ctx.set_map_value(metatable, "__tostring", &Vector4Binding::__tostring);
+		ctx.set_map_value(metatable, "__index", &Vector4Binding::__index);
+		ctx.set_map_value(metatable, "__newindex", &Vector4Binding::__newindex);
+		ctx.set_map_value(metatable, "__eq", &Vector4Binding::__eq);
+		ctx.set_map_value(metatable, "__add", &Vector4Binding::__add);
+		ctx.set_map_value(metatable, "__sub", &Vector4Binding::__sub);
+		ctx.set_map_value(metatable, "__mul", &Vector4Binding::__mul);
+		ctx.set_map_value(metatable, "__div", &Vector4Binding::__div);
+		ctx.set_map_value(metatable, "__unm", &Vector4Binding::__unm);
 
 		// embedded script
 
-		if (LUA_OK == luaL_loadbuffer(vm, embedded_script.data(), embedded_script.size(), "lstg/Vector2.lua")) {
+		if (LUA_OK == luaL_loadbuffer(vm, embedded_script.data(), embedded_script.size(), "lstg/Vector4.lua")) {
 			lua_call(vm, 0, 0);
 		}
 	}

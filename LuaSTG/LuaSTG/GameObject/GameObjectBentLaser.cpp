@@ -1,4 +1,4 @@
-﻿#include "GameObject/GameObjectBentLaser.hpp"
+#include "GameObject/GameObjectBentLaser.hpp"
 #include "AppFrame.h"
 
 using namespace LuaSTGPlus;
@@ -102,7 +102,7 @@ void GameObjectBentLaser::_UpdateNodeVertexExtend(size_t i) noexcept
 	// 计算向量以及点积
 	Core::Vector2F const vec1 = node.pos - last.pos;
 	Core::Vector2F const vec2 = next.pos - node.pos;
-	float const dotv = vec1 * vec2;
+	float const dotv = vec1.dot(vec2);
 
 	// 转角小于 90 度的情况
 	if (dotv > 0.0f)
