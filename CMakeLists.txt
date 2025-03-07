@@ -31,3 +31,8 @@ add_subdirectory(imgui)
 add_subdirectory(utility)
 add_subdirectory(engine)
 add_subdirectory(LuaSTG)
+
+if (CMAKE_GENERATOR MATCHES "Visual Studio")
+    message(STATUS "Current CMake generator is Visual Studio, set startup project to LuaSTG")
+    set_directory_properties(PROPERTY VS_STARTUP_PROJECT LuaSTG)
+endif ()
