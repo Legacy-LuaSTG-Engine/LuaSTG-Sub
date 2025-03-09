@@ -72,11 +72,9 @@ set(Core_SRC
     Core/Graphics/Direct3D11/LetterBoxingRenderer.hpp
     Core/Graphics/Direct3D11/LetterBoxingRenderer.cpp
 
-    Core/Application.hpp
     Core/ApplicationModel.hpp
     Core/ApplicationModel_Win32.hpp
     Core/ApplicationModel_Win32.cpp
-    Core/EventDispatcherImpl.hpp
 
     Core/Audio/Decoder.hpp
     Core/Audio/Decoder_VorbisOGG.cpp
