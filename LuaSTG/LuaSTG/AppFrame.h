@@ -4,6 +4,7 @@
 #include "GameResource/ResourceManager.h"
 #include "GameObject/GameObjectPool.h"
 #include "Platform/DirectInput.hpp"
+#include "CLRBinding/CLRHost.hpp"
 
 namespace LuaSTGPlus
 {
@@ -72,6 +73,8 @@ namespace LuaSTGPlus
 		// 输入设备
 		std::unique_ptr<Platform::DirectInput> m_DirectInput;
 		
+		CLRHost* CLR = nullptr;
+
 	public:
 		/// @brief 保护模式执行脚本
 		/// @note 该函数仅限框架调用，为主逻辑最外层调用。若脚本运行时发生错误，该函数负责截获错误发出错误消息。

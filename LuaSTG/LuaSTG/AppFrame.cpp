@@ -169,6 +169,13 @@ bool AppFrame::Init()noexcept
 		return false;
 	}
 
+	CLR = new CLRHost(L".\\Managed\\net8.0\\LuaSTG.runtimeconfig.json");
+	if (!CLR->init()) 
+	{
+		spdlog::info("[luastg] 初始化coreclr失败");
+		return false;
+	}
+
 	// 加载初始化脚本（可选）
 	if (!OnLoadLaunchScriptAndFiles())
 	{
