@@ -126,8 +126,9 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"FramePadding"        , ImGuiTreeNodeFlags_FramePadding        },
     {"SpanAvailWidth"      , ImGuiTreeNodeFlags_SpanAvailWidth      },
     {"SpanFullWidth"       , ImGuiTreeNodeFlags_SpanFullWidth       },
-    {"SpanTextWidth"       , ImGuiTreeNodeFlags_SpanTextWidth       },
+    {"SpanLabelWidth"      , ImGuiTreeNodeFlags_SpanLabelWidth      },
     {"SpanAllColumns"      , ImGuiTreeNodeFlags_SpanAllColumns      },
+    {"LabelSpanAllColumns" , ImGuiTreeNodeFlags_LabelSpanAllColumns },
     {"NavLeftJumpsBackHere", ImGuiTreeNodeFlags_NavLeftJumpsBackHere},
     {"CollapsingHeader"    , ImGuiTreeNodeFlags_CollapsingHeader    },
 }},
@@ -323,6 +324,7 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"Float" , ImGuiDataType_Float },
     {"Double", ImGuiDataType_Double},
     {"Bool"  , ImGuiDataType_Bool  },
+    {"String", ImGuiDataType_String},
     // lua type
     {"Integer", ImGuiDataType_Integer},
     {"Number" , ImGuiDataType_Number },
@@ -664,6 +666,7 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"WrapAround"     , ImGuiSliderFlags_WrapAround     },
     {"ClampOnInput"   , ImGuiSliderFlags_ClampOnInput   },
     {"ClampZeroRange" , ImGuiSliderFlags_ClampZeroRange },
+    {"NoSpeedTweaks"  , ImGuiSliderFlags_NoSpeedTweaks  },
     {"AlwaysClamp"    , ImGuiSliderFlags_AlwaysClamp    },
 }},
 {"ImGuiMouseButton", {
