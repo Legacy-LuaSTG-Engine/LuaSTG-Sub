@@ -81,30 +81,55 @@ void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 		static int LoadAnimation(lua_State* L) noexcept
 		{
 			const char* name = luaL_checkstring(L, 1);
-			const char* texname = luaL_checkstring(L, 2);
-
+			
 			ResourcePool* pActivedPool = LRES.GetActivedPool();
 			if (!pActivedPool)
 				return luaL_error(L, "can't load resource at this time.");
-			
-			if (!pActivedPool->CreateAnimation(
-				name,
-				texname,
-				luaL_checknumber(L, 3),
-				luaL_checknumber(L, 4),
-				luaL_checknumber(L, 5),
-				luaL_checknumber(L, 6),
-				(int)luaL_checkinteger(L, 7),
-				(int)luaL_checkinteger(L, 8),
-				(int)luaL_checkinteger(L, 9),
-				luaL_optnumber(L, 10, 0.0f),
-				luaL_optnumber(L, 11, 0.0f),
-				lua_toboolean(L, 12) == 0 ? false : true
-			))
-			{
-				return luaL_error(L, "load animation failed (name='%s', tex='%s').", name, texname);
-			}
 
+			if (lua_istable(L, 2)) {
+				std::vector<Core::ScopeObject<IResourceSprite>> sprites;
+				sprites.reserve(lua_objlen(L, 2));
+				for (int i = 1; i <= static_cast<int>(lua_objlen(L, 2)); i += 1) {
+					lua_pushinteger(L, i);
+					lua_gettable(L, 2);
+					char const* sprite_name = luaL_checkstring(L, -1);
+					auto sprite = LRES.FindSprite(sprite_name);
+					if (!sprite)
+						return luaL_error(L, "load animation failed (name='%s'), sprite '%s' not found", name, sprite_name);
+					sprites.push_back(sprite);
+					lua_pop(L, 1);
+				}
+				if (!pActivedPool->CreateAnimation(
+					name,
+					sprites,
+					luaL_checkinteger(L, 3),
+					luaL_optnumber(L, 4, 0.0f),
+					luaL_optnumber(L, 5, 0.0f),
+					lua_toboolean(L, 6) != 0
+				)) {
+					return luaL_error(L, "load animation failed (name='%s').", name);
+				}
+			}
+			else {
+				const char* texname = luaL_checkstring(L, 2);
+				if (!pActivedPool->CreateAnimation(
+					name,
+					texname,
+					luaL_checknumber(L, 3),
+					luaL_checknumber(L, 4),
+					luaL_checknumber(L, 5),
+					luaL_checknumber(L, 6),
+					(int)luaL_checkinteger(L, 7),
+					(int)luaL_checkinteger(L, 8),
+					(int)luaL_checkinteger(L, 9),
+					luaL_optnumber(L, 10, 0.0f),
+					luaL_optnumber(L, 11, 0.0f),
+					lua_toboolean(L, 12) != 0
+				)) {
+					return luaL_error(L, "load animation failed (name='%s', tex='%s').", name, texname);
+				}
+			}
+			
 			return 0;
 		}
 		static int LoadPS(lua_State* L) noexcept
