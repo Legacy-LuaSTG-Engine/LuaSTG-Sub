@@ -103,6 +103,7 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"DisplayEmptyRefVal" , ImGuiInputTextFlags_DisplayEmptyRefVal },
     {"NoHorizontalScroll" , ImGuiInputTextFlags_NoHorizontalScroll },
     {"NoUndoRedo"         , ImGuiInputTextFlags_NoUndoRedo         },
+    {"ElideLeft"          , ImGuiInputTextFlags_ElideLeft          },
     {"CallbackCompletion" , ImGuiInputTextFlags_CallbackCompletion },
     {"CallbackHistory"    , ImGuiInputTextFlags_CallbackHistory    },
     {"CallbackAlways"     , ImGuiInputTextFlags_CallbackAlways     },
