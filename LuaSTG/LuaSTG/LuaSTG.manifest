@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0" xmlns:asmv3="urn:schemas-microsoft-com:asm.v3">
-    <assemblyIdentity type="win32" name="ChuiKingShek.LuaSTG.Sub" version="0.21.100.0"/>
+    <assemblyIdentity type="win32" name="ChuiKingShek.LuaSTG.Sub" version="0.21.101.0"/>
     <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
         <security>
             <requestedPrivileges>
