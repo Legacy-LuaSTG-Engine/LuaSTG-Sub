@@ -433,6 +433,7 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(IsMouseClicked),
     MAKEF(IsMouseReleased),
     MAKEF(IsMouseDoubleClicked),
+    MAKEF(IsMouseReleasedWithDelay),
     MAKEF(GetMouseClickedCount),
     MAKEF(IsMouseHoveringRect),
     MAKEF(IsMousePosValid),
