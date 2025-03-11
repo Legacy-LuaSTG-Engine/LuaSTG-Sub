@@ -108,7 +108,7 @@ bool LuaSTGPlus::CLRHost::init()
 	return init_hostfxr() && get_dotnet_load_assembly_config(_config_path);
 }
 
-inline int LuaSTGPlus::CLRHost::load_assembly_and_get_function_pointer(
+int LuaSTGPlus::CLRHost::load_assembly_and_get_function_pointer(
 	const char_t* assembly_path, 
 	const char_t* type_name, 
 	const char_t* method_name, 
@@ -125,7 +125,7 @@ inline int LuaSTGPlus::CLRHost::load_assembly_and_get_function_pointer(
 	);
 }
 
-inline int LuaSTGPlus::CLRHost::load_assembly(const char_t* assembly_path) const
+int LuaSTGPlus::CLRHost::load_assembly(const char_t* assembly_path) const
 {
 	return _load_assembly(
 		assembly_path,
@@ -134,11 +134,11 @@ inline int LuaSTGPlus::CLRHost::load_assembly(const char_t* assembly_path) const
 	);
 }
 
-inline int LuaSTGPlus::CLRHost::get_function_pointer(
+int LuaSTGPlus::CLRHost::get_function_pointer(
 	const char_t* type_name, 
 	const char_t* method_name, 
 	const char_t* delegate_type_name, 
-	/*out*/ void** delegate)
+	/*out*/ void** delegate) const
 {
 	return _get_function_pointer(
 		type_name,

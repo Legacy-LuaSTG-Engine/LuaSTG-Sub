@@ -28,17 +28,17 @@ namespace LuaSTGPlus
 		CLRHost(const char_t* config_path);
 		bool init();
 
-		inline int load_assembly_and_get_function_pointer(
+		int load_assembly_and_get_function_pointer(
 			const char_t* assembly_path, 
 			const char_t* type_name, 
 			const char_t* method_name, 
 			const char_t* delegate_type_name, 
 			/*out*/ void** delegate) const;
-		inline int load_assembly(const char_t* assembly_path) const;
-		inline int get_function_pointer(const char_t* type_name, 
+		int load_assembly(const char_t* assembly_path) const;
+		int get_function_pointer(const char_t* type_name, 
 			const char_t* method_name, 
 			const char_t* delegate_type_name, 
-			/*out*/ void** delegate);
+			/*out*/ void** delegate) const;
 
 		~CLRHost();
 	};

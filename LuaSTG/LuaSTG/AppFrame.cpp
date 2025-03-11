@@ -7,6 +7,7 @@
 #include "utf8.hpp"
 #include "resource.h"
 #include "core/Configuration.hpp"
+#include "CLRBinding/CLRBinding.hpp"
 
 using namespace LuaSTGPlus;
 
@@ -174,6 +175,12 @@ bool AppFrame::Init()noexcept
 	{
 		spdlog::info("[luastg] 初始化coreclr失败");
 		return false;
+	}
+
+	CLRFunctions clr_fn{};
+	if (!InitCLRBinding(CLR, &clr_fn))
+	{
+		spdlog::info("[luastg] 托管程序集LuaSTG.dll加载失败");
 	}
 
 	// 加载初始化脚本（可选）
