@@ -2,30 +2,29 @@
 
 #include "CLRBinding/CLRHost.hpp"
 
+#define CORECLR_BINDING(ret, name, parameter) typedef ret (CORECLR_DELEGATE_CALLTYPE* t_##name)(parameter);\
+t_##name name;
+
 namespace LuaSTGPlus
 {
-	typedef void (CORECLR_DELEGATE_CALLTYPE* Log_fn)();
-	typedef void (CORECLR_DELEGATE_CALLTYPE* game_callback_fn)();
-	typedef bool (CORECLR_DELEGATE_CALLTYPE* game_loop_fn)();
-
 	struct CLRInitPayload
 	{
-		Log_fn log;
+		void (CORECLR_DELEGATE_CALLTYPE* BeginScene)();
+		void (CORECLR_DELEGATE_CALLTYPE* EndScene)();
+		void (CORECLR_DELEGATE_CALLTYPE* RenderClear)(unsigned char, unsigned char, unsigned char, unsigned char);
 	};
 
 	struct CLRFunctions 
 	{
-		game_callback_fn GameInit;
-		game_loop_fn FrameFunc;
-		game_callback_fn RenderFunc;
-		game_callback_fn GameExit;
-		game_callback_fn FocusLoseFunc;
-		game_callback_fn FocusGainFunc;
+		void (CORECLR_DELEGATE_CALLTYPE* GameInit)();
+		bool (CORECLR_DELEGATE_CALLTYPE* FrameFunc)();
+		void (CORECLR_DELEGATE_CALLTYPE* RenderFunc)();
+		void (CORECLR_DELEGATE_CALLTYPE* GameExit)();
+		void (CORECLR_DELEGATE_CALLTYPE* FocusLoseFunc)();
+		void (CORECLR_DELEGATE_CALLTYPE* FocusGainFunc)();
 	};
 
-	typedef void (CORECLR_DELEGATE_CALLTYPE* entry_point_fn)(CLRInitPayload);
-
-	void CallCLRStartUp(const entry_point_fn& entry_point);
+	typedef int (CORECLR_DELEGATE_CALLTYPE* entry_point_fn)(CLRInitPayload*, CLRFunctions*);
 
 	bool InitCLRBinding(const CLRHost* host, CLRFunctions* functions);
 }

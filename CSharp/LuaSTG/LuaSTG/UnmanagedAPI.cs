@@ -8,8 +8,10 @@ using System.Threading.Tasks;
 namespace LuaSTG
 {
     [StructLayout(LayoutKind.Sequential)]
-    public unsafe struct InitPayload
+    public unsafe struct UnmanagedAPI
     {
-        public delegate* unmanaged<void> log;
+        public delegate* unmanaged<void> beginScene;
+        public delegate* unmanaged<void> endScene;
+        public delegate* unmanaged<byte, byte, byte, byte, void> renderClear;
     }
 }

@@ -5,6 +5,7 @@
 #include "GameObject/GameObjectPool.h"
 #include "Platform/DirectInput.hpp"
 #include "CLRBinding/CLRHost.hpp"
+#include "CLRBinding/CLRBinding.hpp"
 
 namespace LuaSTGPlus
 {
@@ -60,6 +61,8 @@ namespace LuaSTGPlus
 		
 		// Lua虚拟机
 		lua_State* L = nullptr;
+
+		CLRFunctions clr_fn;
 
 		// 目标帧率
 		uint32_t m_target_fps{ 60 };

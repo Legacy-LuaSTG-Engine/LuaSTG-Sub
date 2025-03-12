@@ -1,17 +1,23 @@
 #include "CLRBinding.hpp"
+#include "LuaWrapper.hpp"
+#include "AppFrame.h"
 
-void Log()
+inline Core::Graphics::IRenderer* LR2D() { return LAPP.GetAppModel()->getRenderer(); }
+
+void BeginScene()
 {
-	spdlog::level::level_enum const level = spdlog::level::level_enum::debug;
-	std::string_view message = "FromCLR";
-	spdlog::log(level, "[lua] {}", message);
+	LR2D()->beginBatch();
 }
 
-void LuaSTGPlus::CallCLRStartUp(const entry_point_fn& entry_point)
+void EndScene()
 {
-	CLRInitPayload payload{};
-	payload.log = Log;
-	entry_point(payload);
+	LR2D()->endBatch();
+}
+
+void RenderClear(unsigned char a, unsigned char r, unsigned char g, unsigned char b)
+{
+	Core::Color4B color(r, g, b, a);
+	LR2D()->clearRenderTarget(color);
 }
 
 bool LuaSTGPlus::InitCLRBinding(const CLRHost* host, CLRFunctions* functions)
@@ -28,19 +34,13 @@ bool LuaSTGPlus::InitCLRBinding(const CLRHost* host, CLRFunctions* functions)
 	}
 
 	CLRInitPayload payload{};
-	payload.log = Log;
-	((entry_point_fn)fn)(payload);
-
-	fn = nullptr;
-	if (host->get_function_pointer(
-		L"LuaSTG.LuaSTGAPI, LuaSTG",
-		L"GameInit",
-		L"LuaSTG.LuaSTGAPI+GameInit, LuaSTG",
-		&fn) || !fn)
+	payload.BeginScene = BeginScene;
+	payload.EndScene = EndScene;
+	payload.RenderClear = RenderClear;
+	if (((entry_point_fn)fn)(&payload, functions)) 
 	{
 		return false;
 	}
-	functions->GameInit = (game_callback_fn)fn;
 
 	return true;
 }

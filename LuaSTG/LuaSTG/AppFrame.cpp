@@ -177,7 +177,6 @@ bool AppFrame::Init()noexcept
 		return false;
 	}
 
-	CLRFunctions clr_fn{};
 	if (!InitCLRBinding(CLR, &clr_fn))
 	{
 		spdlog::info("[luastg] 托管程序集LuaSTG.dll加载失败");
@@ -262,6 +261,7 @@ bool AppFrame::Init()noexcept
 	if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineInit)) {
 		return false;
 	}
+	clr_fn.GameInit();
 
 	return true;
 }
@@ -270,6 +270,7 @@ void AppFrame::Shutdown()noexcept
 	if (L) {
 		SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineStop);
 	}
+	clr_fn.GameExit();
 
 	m_GameObjectPool = nullptr;
 	spdlog::info("[luastg] 清空对象池");
@@ -391,6 +392,7 @@ bool AppFrame::onUpdate()
 				result = false;
 				m_pAppModel->requestExit();
 			}
+			clr_fn.FocusLoseFunc();
 		}
 		if (window_active_changed & 0x1)
 		{
@@ -406,6 +408,7 @@ bool AppFrame::onUpdate()
 				result = false;
 				m_pAppModel->requestExit();
 			}
+			clr_fn.FocusGainFunc();
 		}
 		if (window_active_changed & 0x4)
 		{
@@ -435,6 +438,7 @@ bool AppFrame::onUpdate()
 		}
 		bool tAbort = lua_toboolean(L, -1) != 0;
 		lua_pop(L, 1);
+		tAbort |= clr_fn.FrameFunc();
 		if (tAbort)
 			m_pAppModel->requestExit();
 		m_ResourceMgr.UpdateSound();
@@ -452,6 +456,7 @@ bool AppFrame::onRender()
 	bool result = SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineDraw);
 	if (!result)
 		m_pAppModel->requestExit();
+	clr_fn.RenderFunc();
 
 	GetRenderTargetManager()->EndRenderTargetStack();
 
