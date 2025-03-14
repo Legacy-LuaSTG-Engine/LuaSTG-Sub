@@ -23,6 +23,7 @@
 #include <cstdint>
 #include <string>
 #include "imgui.h"
+#ifndef IMGUI_DISABLE
 #include "imgui_impl_win32ex.h"
 
 // Windows.h
@@ -38,8 +39,6 @@ typedef DWORD(WINAPI* PFN_XInputGetState)(DWORD, XINPUT_STATE*);
 #ifndef DBT_DEVNODES_CHANGED
 #define DBT_DEVNODES_CHANGED 0x0007
 #endif
-// There is no distinct VK_xxx for keypad enter, instead it is VK_RETURN + KF_EXTENDED, we assign it an arbitrary value to make code more readable (VK_ codes go up to 255)
-#define IM_VK_KEYPAD_ENTER (VK_RETURN + 256)
 
 constexpr UINT MSG_NONE              = IMGUI_IMPL_WIN32EX_WM_USER;
 constexpr UINT MSG_MOUSE_CAPTURE     = IMGUI_IMPL_WIN32EX_WM_USER + 1;
@@ -51,10 +50,10 @@ constexpr UINT MSG_INPUT_SOURCE_TYPE = IMGUI_IMPL_WIN32EX_WM_USER + 5;
 constexpr WPARAM MSG_MOUSE_CAPTURE_SET     = 1;
 constexpr WPARAM MSG_MOUSE_CAPTURE_RELEASE = 2;
 
+// Helper to obtain the source of mouse messages.
 // See https://learn.microsoft.com/en-us/windows/win32/tablet/system-events-and-mouse-messages
 // Prefer to call this at the top of the message handler to avoid the possibility of other Win32 calls interfering with this.
-static ImGuiMouseSource GetMouseSourceFromMessageExtraInfo()
-{
+static ImGuiMouseSource ImGui_ImplWin32Ex_GetMouseSourceFromMessageExtraInfo() {
     LPARAM extra_info = ::GetMessageExtraInfo();
     if ((extra_info & 0xFFFFFF80) == 0xFF515700)
         return ImGuiMouseSource_Pen;
@@ -187,10 +186,17 @@ static void ImGui_ImplWin32Ex_AddKeyEvent(ImGuiKey key, bool down, int native_ke
     io.SetKeyEventNativeData(key, native_keycode, native_scancode); // To support legacy indexing (<1.87 user code)
     IM_UNUSED(native_scancode);
 }
-static ImGuiKey ImGui_ImplWin32Ex_VirtualKeyToImGuiKey(WPARAM wParam)
-{
-    switch (wParam)
-    {
+// Map VK_xxx to ImGuiKey_xxx.
+// Not static to allow third-party code to use that if they want to (but undocumented)
+ImGuiKey ImGui_ImplWin32Ex_KeyEventToImGuiKey(WPARAM wParam, LPARAM lParam);
+ImGuiKey ImGui_ImplWin32Ex_KeyEventToImGuiKey(WPARAM wParam, LPARAM lParam) {
+    // There is no distinct VK_xxx for keypad enter, instead it is VK_RETURN + KF_EXTENDED.
+    if ((wParam == VK_RETURN) && (HIWORD(lParam) & KF_EXTENDED))
+        return ImGuiKey_KeypadEnter;
+
+    const int scancode = (int)LOBYTE(HIWORD(lParam));
+    //IMGUI_DEBUG_LOG("scancode %3d, keycode = 0x%02X\n", scancode, wParam);
+    switch (wParam) {
     case VK_TAB: return ImGuiKey_Tab;
     case VK_LEFT: return ImGuiKey_LeftArrow;
     case VK_RIGHT: return ImGuiKey_RightArrow;
@@ -206,17 +212,17 @@ static ImGuiKey ImGui_ImplWin32Ex_VirtualKeyToImGuiKey(WPARAM wParam)
     case VK_SPACE: return ImGuiKey_Space;
     case VK_RETURN: return ImGuiKey_Enter;
     case VK_ESCAPE: return ImGuiKey_Escape;
-    case VK_OEM_7: return ImGuiKey_Apostrophe;
+        //case VK_OEM_7: return ImGuiKey_Apostrophe;
     case VK_OEM_COMMA: return ImGuiKey_Comma;
-    case VK_OEM_MINUS: return ImGuiKey_Minus;
+        //case VK_OEM_MINUS: return ImGuiKey_Minus;
     case VK_OEM_PERIOD: return ImGuiKey_Period;
-    case VK_OEM_2: return ImGuiKey_Slash;
-    case VK_OEM_1: return ImGuiKey_Semicolon;
-    case VK_OEM_PLUS: return ImGuiKey_Equal;
-    case VK_OEM_4: return ImGuiKey_LeftBracket;
-    case VK_OEM_5: return ImGuiKey_Backslash;
-    case VK_OEM_6: return ImGuiKey_RightBracket;
-    case VK_OEM_3: return ImGuiKey_GraveAccent;
+        //case VK_OEM_2: return ImGuiKey_Slash;
+        //case VK_OEM_1: return ImGuiKey_Semicolon;
+        //case VK_OEM_PLUS: return ImGuiKey_Equal;
+        //case VK_OEM_4: return ImGuiKey_LeftBracket;
+        //case VK_OEM_5: return ImGuiKey_Backslash;
+        //case VK_OEM_6: return ImGuiKey_RightBracket;
+        //case VK_OEM_3: return ImGuiKey_GraveAccent;
     case VK_CAPITAL: return ImGuiKey_CapsLock;
     case VK_SCROLL: return ImGuiKey_ScrollLock;
     case VK_NUMLOCK: return ImGuiKey_NumLock;
@@ -237,7 +243,6 @@ static ImGuiKey ImGui_ImplWin32Ex_VirtualKeyToImGuiKey(WPARAM wParam)
     case VK_MULTIPLY: return ImGuiKey_KeypadMultiply;
     case VK_SUBTRACT: return ImGuiKey_KeypadSubtract;
     case VK_ADD: return ImGuiKey_KeypadAdd;
-    case IM_VK_KEYPAD_ENTER: return ImGuiKey_KeypadEnter;
     case VK_LSHIFT: return ImGuiKey_LeftShift;
     case VK_LCONTROL: return ImGuiKey_LeftCtrl;
     case VK_LMENU: return ImGuiKey_LeftAlt;
@@ -295,8 +300,41 @@ static ImGuiKey ImGui_ImplWin32Ex_VirtualKeyToImGuiKey(WPARAM wParam)
     case VK_F10: return ImGuiKey_F10;
     case VK_F11: return ImGuiKey_F11;
     case VK_F12: return ImGuiKey_F12;
-    default: return ImGuiKey_None;
+    case VK_F13: return ImGuiKey_F13;
+    case VK_F14: return ImGuiKey_F14;
+    case VK_F15: return ImGuiKey_F15;
+    case VK_F16: return ImGuiKey_F16;
+    case VK_F17: return ImGuiKey_F17;
+    case VK_F18: return ImGuiKey_F18;
+    case VK_F19: return ImGuiKey_F19;
+    case VK_F20: return ImGuiKey_F20;
+    case VK_F21: return ImGuiKey_F21;
+    case VK_F22: return ImGuiKey_F22;
+    case VK_F23: return ImGuiKey_F23;
+    case VK_F24: return ImGuiKey_F24;
+    case VK_BROWSER_BACK: return ImGuiKey_AppBack;
+    case VK_BROWSER_FORWARD: return ImGuiKey_AppForward;
+    default: break;
     }
+
+    // Fallback to scancode
+    // https://handmade.network/forums/t/2011-keyboard_inputs_-_scancodes,_raw_input,_text_input,_key_names
+    switch (scancode) {
+    case 41: return ImGuiKey_GraveAccent;  // VK_OEM_8 in EN-UK, VK_OEM_3 in EN-US, VK_OEM_7 in FR, VK_OEM_5 in DE, etc.
+    case 12: return ImGuiKey_Minus;
+    case 13: return ImGuiKey_Equal;
+    case 26: return ImGuiKey_LeftBracket;
+    case 27: return ImGuiKey_RightBracket;
+    case 86: return ImGuiKey_Oem102;
+    case 43: return ImGuiKey_Backslash;
+    case 39: return ImGuiKey_Semicolon;
+    case 40: return ImGuiKey_Apostrophe;
+    case 51: return ImGuiKey_Comma;
+    case 52: return ImGuiKey_Period;
+    case 53: return ImGuiKey_Slash;
+    }
+
+    return ImGuiKey_None;
 }
 static void ImGui_ImplWin32Ex_UpdateKeyModifiers()
 {
@@ -304,7 +342,7 @@ static void ImGui_ImplWin32Ex_UpdateKeyModifiers()
     io.AddKeyEvent(ImGuiMod_Ctrl, IsVkDown(VK_CONTROL));
     io.AddKeyEvent(ImGuiMod_Shift, IsVkDown(VK_SHIFT));
     io.AddKeyEvent(ImGuiMod_Alt, IsVkDown(VK_MENU));
-    io.AddKeyEvent(ImGuiMod_Super, IsVkDown(VK_APPS));
+    io.AddKeyEvent(ImGuiMod_Super, IsVkDown(VK_LWIN) || IsVkDown(VK_RWIN));
 }
 
 static void ImGui_ImplWin32Ex_ProcessKeyEventsWorkarounds()
@@ -336,7 +374,7 @@ static void ImGui_ImplWin32Ex_UpdateMouseData()
             ::PostMessageW(bd->hWnd, MSG_SET_MOUSE_POS, (WPARAM)(LONG)(io.MousePos.x), (LPARAM)(LONG)(io.MousePos.y));
         }
 
-        // (Optional) Fallback to provide mouse position when focused (WM_MOUSEMOVE already provides this when hovered or captured)
+        // (Optional) Set OS mouse position from Dear ImGui if requested (rarely used, only when io.ConfigNavMoveSetMousePos is enabled by user)
         if (!io.WantSetMousePos && !bd->MouseTracked)
         {
             POINT pos = {};
@@ -373,6 +411,8 @@ static bool ImGui_ImplWin32Ex_MapMouseCursor(LPWSTR* outValue)
         case ImGuiMouseCursor_ResizeNESW:   win32_cursor = IDC_SIZENESW; break;
         case ImGuiMouseCursor_ResizeNWSE:   win32_cursor = IDC_SIZENWSE; break;
         case ImGuiMouseCursor_Hand:         win32_cursor = IDC_HAND; break;
+        case ImGuiMouseCursor_Wait:         win32_cursor = IDC_WAIT; break;
+        case ImGuiMouseCursor_Progress:     win32_cursor = IDC_APPSTARTING; break;
         case ImGuiMouseCursor_NotAllowed:   win32_cursor = IDC_NO; break;
         }
         *outValue = win32_cursor;
@@ -535,15 +575,16 @@ static void ImGui_ImplWin32Ex_ProcessMessage(ImGui_ImplWin32Ex_FrameData* frame_
                     // Submit modifiers
                     ImGui_ImplWin32Ex_UpdateKeyModifiers();
 
-                    // Obtain virtual key code
-                    // (keypad enter doesn't have its own... VK_RETURN with KF_EXTENDED flag means keypad enter, see IM_VK_KEYPAD_ENTER definition for details, it is mapped to ImGuiKey_KeyPadEnter.)
-                    int vk = (int)msg.wParam;
-                    if ((msg.wParam == VK_RETURN) && (HIWORD(msg.lParam) & KF_EXTENDED))
-                        vk = IM_VK_KEYPAD_ENTER;
+                    // Obtain virtual key code and convert to ImGuiKey
+                    const ImGuiKey key = ImGui_ImplWin32Ex_KeyEventToImGuiKey(msg.wParam, msg.lParam);
+                    const int vk = (int)msg.wParam;
+                    const int scancode = (int)LOBYTE(HIWORD(msg.lParam));
+
+                    // Special behavior for VK_SNAPSHOT / ImGuiKey_PrintScreen as Windows doesn't emit the key down event.
+                    if (key == ImGuiKey_PrintScreen && !is_key_down)
+                        ImGui_ImplWin32Ex_AddKeyEvent(key, true, vk, scancode);
 
                     // Submit key event
-                    const ImGuiKey key = ImGui_ImplWin32Ex_VirtualKeyToImGuiKey(vk);
-                    const int scancode = (int)LOBYTE(HIWORD(msg.lParam));
                     if (key != ImGuiKey_None)
                         ImGui_ImplWin32Ex_AddKeyEvent(key, is_key_down, vk, scancode);
 
@@ -619,6 +660,7 @@ static void ImGui_ImplWin32Ex_ProcessMessage(ImGui_ImplWin32Ex_FrameData* frame_
 bool ImGui_ImplWin32Ex_Init(void* window)
 {
     ImGuiIO& io = ImGui::GetIO();
+    IMGUI_CHECKVERSION();
     IM_ASSERT(io.BackendPlatformUserData == NULL && "Already initialized a platform backend!");
 
     LARGE_INTEGER perf_frequency = {};
@@ -642,7 +684,8 @@ bool ImGui_ImplWin32Ex_Init(void* window)
     bd->Time = perf_counter;
 
     // Set platform dependent data in viewport
-    ImGui::GetMainViewport()->PlatformHandleRaw = (void*)window;
+    ImGuiViewport* main_viewport = ImGui::GetMainViewport();
+    main_viewport->PlatformHandle = main_viewport->PlatformHandleRaw = (void*)bd->hWnd;
     
     // Setup backend IME support
     ImGui::GetPlatformIO().Platform_SetImeDataFn = &ImGui_ImplWin32Ex_UpdateIME;
@@ -679,13 +722,14 @@ void ImGui_ImplWin32Ex_Shutdown()
 
     io.BackendPlatformName = NULL;
     io.BackendPlatformUserData = NULL;
+    io.BackendFlags &= ~(ImGuiBackendFlags_HasMouseCursors | ImGuiBackendFlags_HasSetMousePos | ImGuiBackendFlags_HasGamepad);
     IM_DELETE(bd);
 }
 void ImGui_ImplWin32Ex_NewFrame(ImGui_ImplWin32Ex_FrameData* frame_data)
 {
-    ImGuiIO& io = ImGui::GetIO();
     ImGui_ImplWin32Ex_Data* bd = ImGui_ImplWin32Ex_GetBackendData();
-    IM_ASSERT(bd != NULL && "Did you call ImGui_ImplWin32Ex_Init()?");
+    IM_ASSERT(bd != nullptr && "Context or backend not initialized? Did you call ImGui_ImplWin32_Init()?");
+    ImGuiIO& io = ImGui::GetIO();
 
     // message
     ImGui_ImplWin32Ex_ProcessMessage(frame_data);
@@ -728,11 +772,10 @@ void ImGui_ImplWin32Ex_NewFrame(ImGui_ImplWin32Ex_FrameData* frame_data)
 
 IMGUI_IMPL_API LRESULT ImGui_ImplWin32Ex_WndProcHandler(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    if (!ImGui::GetCurrentContext())
-        return 0;
-
+    // Most backends don't have silent checks like this one, but we need it because WndProc are called early in CreateWindow().
+    // We silently allow both context or just only backend data to be nullptr.
     ImGui_ImplWin32Ex_Data* bd = ImGui_ImplWin32Ex_GetBackendData();
-    if (!bd || bd->hWnd != hWnd)
+    if (bd == nullptr || bd->hWnd != hWnd)
         return 0;
     
     switch (uMsg)
@@ -742,7 +785,7 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32Ex_WndProcHandler(HWND hWnd, UINT uMsg, WP
     case WM_MOUSEMOVE:
         // We need to call TrackMouseEvent in order to receive WM_MOUSELEAVE events
         {
-            ImGuiMouseSource mouse_source = GetMouseSourceFromMessageExtraInfo();
+            ImGuiMouseSource mouse_source = ImGui_ImplWin32Ex_GetMouseSourceFromMessageExtraInfo();
             bd->MessageQueue.write({ hWnd, MSG_INPUT_SOURCE_TYPE, 0, (LPARAM)mouse_source });
         }
         bd->MouseHwnd = hWnd;
@@ -776,7 +819,7 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32Ex_WndProcHandler(HWND hWnd, UINT uMsg, WP
     case WM_MOUSEWHEEL:
     case WM_MOUSEHWHEEL:
         {
-            ImGuiMouseSource mouse_source = GetMouseSourceFromMessageExtraInfo();
+            ImGuiMouseSource mouse_source = ImGui_ImplWin32Ex_GetMouseSourceFromMessageExtraInfo();
             bd->MessageQueue.write({ hWnd, MSG_INPUT_SOURCE_TYPE, 0, (LPARAM)mouse_source });
         }
         bd->MessageQueue.write({ hWnd, uMsg, wParam, lParam });
@@ -854,3 +897,5 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32Ex_WndProcHandler(HWND hWnd, UINT uMsg, WP
     
     return 0;
 }
+
+#endif // #ifndef IMGUI_DISABLE
