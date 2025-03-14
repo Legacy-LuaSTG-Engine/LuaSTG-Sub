@@ -170,6 +170,7 @@ static const luaL_Reg lib_fun[] = {
     
     // Widgets: Images
     MAKEF(Image),
+    MAKEF(ImageWithBg),
     MAKEF(ImageButton),
 
     // Widgets: Combo Box (Dropdown)

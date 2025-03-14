@@ -1464,6 +1464,9 @@ static /* !!!! */ int lib_Image(lua_State* L)
 {
     LUA_IMGUI_NOT_SUPPORT;
 }
+static /* !!!! */ int lib_ImageWithBg(lua_State* L) {
+    LUA_IMGUI_NOT_SUPPORT;
+}
 static /* !!!! */ int lib_ImageButton(lua_State* L)
 {
     LUA_IMGUI_NOT_SUPPORT;

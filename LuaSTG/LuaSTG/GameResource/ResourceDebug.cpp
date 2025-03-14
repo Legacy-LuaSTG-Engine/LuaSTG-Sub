@@ -71,13 +71,13 @@ namespace LuaSTGPlus
 			auto draw_texture0 = [](Core::Graphics::ITexture2D* p_tex, float scale) -> void
 			{
 				auto const size = p_tex->getSize();
+				ImGui::PushStyleVar(ImGuiStyleVar_ImageBorderSize, 1.0);
 				ImGui::Image(
 					reinterpret_cast<size_t>(p_tex->getNativeHandle()),
 					ImVec2(scale * (float)size.x, scale * (float)size.y),
 					ImVec2(0.0f, 0.0f),
-					ImVec2(1.0f, 1.0f),
-					ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
-					ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
+					ImVec2(1.0f, 1.0f));
+				ImGui::PopStyleVar();
 			};
 			auto draw_texture = [](IResourceTexture* p_res, bool show_info, float scale) -> void
 			{
@@ -90,13 +90,13 @@ namespace LuaSTGPlus
 					unsigned long long mem_usage = size.x * size.y * 4;
 					ImGui::Text("Adapter Memory Usage (Approximate): %s", bytes_count_to_string(mem_usage).c_str());
 				}
+				ImGui::PushStyleVar(ImGuiStyleVar_ImageBorderSize, 1.0);
 				ImGui::Image(
 					reinterpret_cast<size_t>(p_res->GetTexture()->getNativeHandle()),
 					ImVec2(scale * (float)size.x, scale * (float)size.y),
 					ImVec2(0.0f, 0.0f),
-					ImVec2(1.0f, 1.0f),
-					ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
-					ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
+					ImVec2(1.0f, 1.0f));
+				ImGui::PopStyleVar();
 			};
 			auto draw_sprite = [](Core::Graphics::ISprite* p_res, bool show_info, bool focus, float scale) -> void {
 				auto color = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
@@ -115,13 +115,15 @@ namespace LuaSTGPlus
 					ImGui::Text("Center: %.2f x %.2f", cp.x, cp.y);
 					ImGui::Text("Units Per Pixel: %.4f", p_res->getUnitsPerPixel());
 				}
+				ImGui::PushStyleVar(ImGuiStyleVar_ImageBorderSize, 1.0);
+				ImGui::PushStyleColor(ImGuiCol_Border, color);
 				ImGui::Image(
 					reinterpret_cast<size_t>(p_tex->getNativeHandle()),
 					ImVec2(scale * (rc.b.x - rc.a.x), scale * (rc.b.y - rc.a.y)),
 					ImVec2(rc.a.x / (float)tex_size.x, rc.a.y / (float)tex_size.y),
-					ImVec2(rc.b.x / (float)tex_size.x, rc.b.y / (float)tex_size.y),
-					ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
-					color);
+					ImVec2(rc.b.x / (float)tex_size.x, rc.b.y / (float)tex_size.y));
+				ImGui::PopStyleColor();
+				ImGui::PopStyleVar();
 			};
 			
 			if (p_pool)

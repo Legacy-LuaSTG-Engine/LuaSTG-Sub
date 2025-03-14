@@ -5,7 +5,7 @@
 namespace imgui_binding_lua {
 
 ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) noexcept {
-    if (key == nullptr || len == 0 || len > 27) {
+    if (key == nullptr || len == 0 || len > 32) {
         return ImGuiStyleMember::__unknown__;
     }
     int state{ 0 };
@@ -21,13 +21,13 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(0, 'F'): state = 201; continue; // -> FrameBorderSize, FramePadding, FrameRounding
             case make_condition(0, 'G'): state = 231; continue; // -> GrabMinSize, GrabRounding
             case make_condition(0, 'H'): state = 250; continue; // -> HoverDelayNormal, HoverDelayShort, HoverFlagsForTooltipMouse, HoverFlagsForTooltipNav, HoverStationaryDelay
-            case make_condition(0, 'I'): state = 309; continue; // -> IndentSpacing, ItemInnerSpacing, ItemSpacing
-            case make_condition(0, 'L'): state = 344; continue; // -> LogSliderDeadzone
-            case make_condition(0, 'M'): state = 361; continue; // -> MouseCursorScale
-            case make_condition(0, 'P'): state = 377; continue; // -> PopupBorderSize, PopupRounding
-            case make_condition(0, 'S'): state = 400; continue; // -> ScaleAllSizes, ScrollbarRounding, ScrollbarSize, SelectableTextAlign, SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
-            case make_condition(0, 'T'): state = 483; continue; // -> TabBarBorderSize, TabBarOverlineSize, TabBorderSize, TabMinWidthForCloseButton, TabRounding, TableAngledHeadersAngle, TableAngledHeadersTextAlign, TouchExtraPadding
-            case make_condition(0, 'W'): state = 595; continue; // -> WindowBorderSize, WindowMenuButtonPosition, WindowMinSize, WindowPadding, WindowRounding, WindowTitleAlign
+            case make_condition(0, 'I'): state = 309; continue; // -> ImageBorderSize, IndentSpacing, ItemInnerSpacing, ItemSpacing
+            case make_condition(0, 'L'): state = 358; continue; // -> LogSliderDeadzone
+            case make_condition(0, 'M'): state = 375; continue; // -> MouseCursorScale
+            case make_condition(0, 'P'): state = 391; continue; // -> PopupBorderSize, PopupRounding
+            case make_condition(0, 'S'): state = 414; continue; // -> ScaleAllSizes, ScrollbarRounding, ScrollbarSize, SelectableTextAlign, SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
+            case make_condition(0, 'T'): state = 497; continue; // -> TabBarBorderSize, TabBarOverlineSize, TabBorderSize, TabCloseButtonMinWidthSelected, TabCloseButtonMinWidthUnselected, TabRounding, TableAngledHeadersAngle, TableAngledHeadersTextAlign, TouchExtraPadding
+            case make_condition(0, 'W'): state = 624; continue; // -> WindowBorderHoverPadding, WindowBorderSize, WindowMenuButtonPosition, WindowMinSize, WindowPadding, WindowRounding, WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 1:
@@ -44,16 +44,17 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(201, 'r'): state = 202; continue; // -> FrameBorderSize, FramePadding, FrameRounding
             case make_condition(231, 'r'): state = 232; continue; // -> GrabMinSize, GrabRounding
             case make_condition(250, 'o'): state = 251; continue; // -> HoverDelayNormal, HoverDelayShort, HoverFlagsForTooltipMouse, HoverFlagsForTooltipNav, HoverStationaryDelay
-            case make_condition(309, 'n'): state = 310; continue; // -> IndentSpacing
-            case make_condition(309, 't'): state = 322; continue; // -> ItemInnerSpacing, ItemSpacing
-            case make_condition(344, 'o'): state = 345; continue; // -> LogSliderDeadzone
-            case make_condition(361, 'o'): state = 362; continue; // -> MouseCursorScale
-            case make_condition(377, 'o'): state = 378; continue; // -> PopupBorderSize, PopupRounding
-            case make_condition(400, 'c'): state = 401; continue; // -> ScaleAllSizes, ScrollbarRounding, ScrollbarSize
-            case make_condition(400, 'e'): state = 432; continue; // -> SelectableTextAlign, SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
-            case make_condition(483, 'a'): state = 484; continue; // -> TabBarBorderSize, TabBarOverlineSize, TabBorderSize, TabMinWidthForCloseButton, TabRounding, TableAngledHeadersAngle, TableAngledHeadersTextAlign
-            case make_condition(483, 'o'): state = 579; continue; // -> TouchExtraPadding
-            case make_condition(595, 'i'): state = 596; continue; // -> WindowBorderSize, WindowMenuButtonPosition, WindowMinSize, WindowPadding, WindowRounding, WindowTitleAlign
+            case make_condition(309, 'm'): state = 310; continue; // -> ImageBorderSize
+            case make_condition(309, 'n'): state = 324; continue; // -> IndentSpacing
+            case make_condition(309, 't'): state = 336; continue; // -> ItemInnerSpacing, ItemSpacing
+            case make_condition(358, 'o'): state = 359; continue; // -> LogSliderDeadzone
+            case make_condition(375, 'o'): state = 376; continue; // -> MouseCursorScale
+            case make_condition(391, 'o'): state = 392; continue; // -> PopupBorderSize, PopupRounding
+            case make_condition(414, 'c'): state = 415; continue; // -> ScaleAllSizes, ScrollbarRounding, ScrollbarSize
+            case make_condition(414, 'e'): state = 446; continue; // -> SelectableTextAlign, SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
+            case make_condition(497, 'a'): state = 498; continue; // -> TabBarBorderSize, TabBarOverlineSize, TabBorderSize, TabCloseButtonMinWidthSelected, TabCloseButtonMinWidthUnselected, TabRounding, TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(497, 'o'): state = 608; continue; // -> TouchExtraPadding
+            case make_condition(624, 'i'): state = 625; continue; // -> WindowBorderHoverPadding, WindowBorderSize, WindowMenuButtonPosition, WindowMinSize, WindowPadding, WindowRounding, WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 2:
@@ -70,18 +71,19 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(202, 'a'): state = 203; continue; // -> FrameBorderSize, FramePadding, FrameRounding
             case make_condition(232, 'a'): state = 233; continue; // -> GrabMinSize, GrabRounding
             case make_condition(251, 'v'): state = 252; continue; // -> HoverDelayNormal, HoverDelayShort, HoverFlagsForTooltipMouse, HoverFlagsForTooltipNav, HoverStationaryDelay
-            case make_condition(310, 'd'): state = 311; continue; // -> IndentSpacing
-            case make_condition(322, 'e'): state = 323; continue; // -> ItemInnerSpacing, ItemSpacing
-            case make_condition(345, 'g'): state = 346; continue; // -> LogSliderDeadzone
-            case make_condition(362, 'u'): state = 363; continue; // -> MouseCursorScale
-            case make_condition(378, 'p'): state = 379; continue; // -> PopupBorderSize, PopupRounding
-            case make_condition(401, 'a'): state = 402; continue; // -> ScaleAllSizes
-            case make_condition(401, 'r'): state = 413; continue; // -> ScrollbarRounding, ScrollbarSize
-            case make_condition(432, 'l'): state = 433; continue; // -> SelectableTextAlign
-            case make_condition(432, 'p'): state = 450; continue; // -> SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
-            case make_condition(484, 'b'): state = 485; continue; // -> TabBarBorderSize, TabBarOverlineSize, TabBorderSize, TabMinWidthForCloseButton, TabRounding, TableAngledHeadersAngle, TableAngledHeadersTextAlign
-            case make_condition(579, 'u'): state = 580; continue; // -> TouchExtraPadding
-            case make_condition(596, 'n'): state = 597; continue; // -> WindowBorderSize, WindowMenuButtonPosition, WindowMinSize, WindowPadding, WindowRounding, WindowTitleAlign
+            case make_condition(310, 'a'): state = 311; continue; // -> ImageBorderSize
+            case make_condition(324, 'd'): state = 325; continue; // -> IndentSpacing
+            case make_condition(336, 'e'): state = 337; continue; // -> ItemInnerSpacing, ItemSpacing
+            case make_condition(359, 'g'): state = 360; continue; // -> LogSliderDeadzone
+            case make_condition(376, 'u'): state = 377; continue; // -> MouseCursorScale
+            case make_condition(392, 'p'): state = 393; continue; // -> PopupBorderSize, PopupRounding
+            case make_condition(415, 'a'): state = 416; continue; // -> ScaleAllSizes
+            case make_condition(415, 'r'): state = 427; continue; // -> ScrollbarRounding, ScrollbarSize
+            case make_condition(446, 'l'): state = 447; continue; // -> SelectableTextAlign
+            case make_condition(446, 'p'): state = 464; continue; // -> SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
+            case make_condition(498, 'b'): state = 499; continue; // -> TabBarBorderSize, TabBarOverlineSize, TabBorderSize, TabCloseButtonMinWidthSelected, TabCloseButtonMinWidthUnselected, TabRounding, TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(608, 'u'): state = 609; continue; // -> TouchExtraPadding
+            case make_condition(625, 'n'): state = 626; continue; // -> WindowBorderHoverPadding, WindowBorderSize, WindowMenuButtonPosition, WindowMinSize, WindowPadding, WindowRounding, WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 3:
@@ -100,21 +102,22 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(203, 'm'): state = 204; continue; // -> FrameBorderSize, FramePadding, FrameRounding
             case make_condition(233, 'b'): state = 234; continue; // -> GrabMinSize, GrabRounding
             case make_condition(252, 'e'): state = 253; continue; // -> HoverDelayNormal, HoverDelayShort, HoverFlagsForTooltipMouse, HoverFlagsForTooltipNav, HoverStationaryDelay
-            case make_condition(311, 'e'): state = 312; continue; // -> IndentSpacing
-            case make_condition(323, 'm'): state = 324; continue; // -> ItemInnerSpacing, ItemSpacing
-            case make_condition(346, 'S'): state = 347; continue; // -> LogSliderDeadzone
-            case make_condition(363, 's'): state = 364; continue; // -> MouseCursorScale
-            case make_condition(379, 'u'): state = 380; continue; // -> PopupBorderSize, PopupRounding
-            case make_condition(402, 'l'): state = 403; continue; // -> ScaleAllSizes
-            case make_condition(413, 'o'): state = 414; continue; // -> ScrollbarRounding, ScrollbarSize
-            case make_condition(433, 'e'): state = 434; continue; // -> SelectableTextAlign
-            case make_condition(450, 'a'): state = 451; continue; // -> SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
-            case make_condition(485, 'B'): state = 486; continue; // -> TabBarBorderSize, TabBarOverlineSize, TabBorderSize
-            case make_condition(485, 'M'): state = 520; continue; // -> TabMinWidthForCloseButton
-            case make_condition(485, 'R'): state = 542; continue; // -> TabRounding
-            case make_condition(485, 'l'): state = 550; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
-            case make_condition(580, 'c'): state = 581; continue; // -> TouchExtraPadding
-            case make_condition(597, 'd'): state = 598; continue; // -> WindowBorderSize, WindowMenuButtonPosition, WindowMinSize, WindowPadding, WindowRounding, WindowTitleAlign
+            case make_condition(311, 'g'): state = 312; continue; // -> ImageBorderSize
+            case make_condition(325, 'e'): state = 326; continue; // -> IndentSpacing
+            case make_condition(337, 'm'): state = 338; continue; // -> ItemInnerSpacing, ItemSpacing
+            case make_condition(360, 'S'): state = 361; continue; // -> LogSliderDeadzone
+            case make_condition(377, 's'): state = 378; continue; // -> MouseCursorScale
+            case make_condition(393, 'u'): state = 394; continue; // -> PopupBorderSize, PopupRounding
+            case make_condition(416, 'l'): state = 417; continue; // -> ScaleAllSizes
+            case make_condition(427, 'o'): state = 428; continue; // -> ScrollbarRounding, ScrollbarSize
+            case make_condition(447, 'e'): state = 448; continue; // -> SelectableTextAlign
+            case make_condition(464, 'a'): state = 465; continue; // -> SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
+            case make_condition(499, 'B'): state = 500; continue; // -> TabBarBorderSize, TabBarOverlineSize, TabBorderSize
+            case make_condition(499, 'C'): state = 534; continue; // -> TabCloseButtonMinWidthSelected, TabCloseButtonMinWidthUnselected
+            case make_condition(499, 'R'): state = 571; continue; // -> TabRounding
+            case make_condition(499, 'l'): state = 579; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(609, 'c'): state = 610; continue; // -> TouchExtraPadding
+            case make_condition(626, 'd'): state = 627; continue; // -> WindowBorderHoverPadding, WindowBorderSize, WindowMenuButtonPosition, WindowMinSize, WindowPadding, WindowRounding, WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 4:
@@ -134,23 +137,24 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(234, 'M'): state = 235; continue; // -> GrabMinSize
             case make_condition(234, 'R'): state = 242; continue; // -> GrabRounding
             case make_condition(253, 'r'): state = 254; continue; // -> HoverDelayNormal, HoverDelayShort, HoverFlagsForTooltipMouse, HoverFlagsForTooltipNav, HoverStationaryDelay
-            case make_condition(312, 'n'): state = 313; continue; // -> IndentSpacing
-            case make_condition(324, 'I'): state = 325; continue; // -> ItemInnerSpacing
-            case make_condition(324, 'S'): state = 337; continue; // -> ItemSpacing
-            case make_condition(347, 'l'): state = 348; continue; // -> LogSliderDeadzone
-            case make_condition(364, 'e'): state = 365; continue; // -> MouseCursorScale
-            case make_condition(380, 'p'): state = 381; continue; // -> PopupBorderSize, PopupRounding
-            case make_condition(403, 'e'): state = 404; continue; // -> ScaleAllSizes
-            case make_condition(414, 'l'): state = 415; continue; // -> ScrollbarRounding, ScrollbarSize
-            case make_condition(434, 'c'): state = 435; continue; // -> SelectableTextAlign
-            case make_condition(451, 'r'): state = 452; continue; // -> SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
-            case make_condition(486, 'a'): state = 487; continue; // -> TabBarBorderSize, TabBarOverlineSize
-            case make_condition(486, 'o'): state = 511; continue; // -> TabBorderSize
-            case make_condition(520, 'i'): state = 521; continue; // -> TabMinWidthForCloseButton
-            case make_condition(542, 'o'): state = 543; continue; // -> TabRounding
-            case make_condition(550, 'e'): state = 551; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
-            case make_condition(581, 'h'): state = 582; continue; // -> TouchExtraPadding
-            case make_condition(598, 'o'): state = 599; continue; // -> WindowBorderSize, WindowMenuButtonPosition, WindowMinSize, WindowPadding, WindowRounding, WindowTitleAlign
+            case make_condition(312, 'e'): state = 313; continue; // -> ImageBorderSize
+            case make_condition(326, 'n'): state = 327; continue; // -> IndentSpacing
+            case make_condition(338, 'I'): state = 339; continue; // -> ItemInnerSpacing
+            case make_condition(338, 'S'): state = 351; continue; // -> ItemSpacing
+            case make_condition(361, 'l'): state = 362; continue; // -> LogSliderDeadzone
+            case make_condition(378, 'e'): state = 379; continue; // -> MouseCursorScale
+            case make_condition(394, 'p'): state = 395; continue; // -> PopupBorderSize, PopupRounding
+            case make_condition(417, 'e'): state = 418; continue; // -> ScaleAllSizes
+            case make_condition(428, 'l'): state = 429; continue; // -> ScrollbarRounding, ScrollbarSize
+            case make_condition(448, 'c'): state = 449; continue; // -> SelectableTextAlign
+            case make_condition(465, 'r'): state = 466; continue; // -> SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
+            case make_condition(500, 'a'): state = 501; continue; // -> TabBarBorderSize, TabBarOverlineSize
+            case make_condition(500, 'o'): state = 525; continue; // -> TabBorderSize
+            case make_condition(534, 'l'): state = 535; continue; // -> TabCloseButtonMinWidthSelected, TabCloseButtonMinWidthUnselected
+            case make_condition(571, 'o'): state = 572; continue; // -> TabRounding
+            case make_condition(579, 'e'): state = 580; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(610, 'h'): state = 611; continue; // -> TouchExtraPadding
+            case make_condition(627, 'o'): state = 628; continue; // -> WindowBorderHoverPadding, WindowBorderSize, WindowMenuButtonPosition, WindowMinSize, WindowPadding, WindowRounding, WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 5:
@@ -175,24 +179,25 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(254, 'D'): state = 255; continue; // -> HoverDelayNormal, HoverDelayShort
             case make_condition(254, 'F'): state = 271; continue; // -> HoverFlagsForTooltipMouse, HoverFlagsForTooltipNav
             case make_condition(254, 'S'): state = 294; continue; // -> HoverStationaryDelay
-            case make_condition(313, 't'): state = 314; continue; // -> IndentSpacing
-            case make_condition(325, 'n'): state = 326; continue; // -> ItemInnerSpacing
-            case make_condition(337, 'p'): state = 338; continue; // -> ItemSpacing
-            case make_condition(348, 'i'): state = 349; continue; // -> LogSliderDeadzone
-            case make_condition(365, 'C'): state = 366; continue; // -> MouseCursorScale
-            case make_condition(381, 'B'): state = 382; continue; // -> PopupBorderSize
-            case make_condition(381, 'R'): state = 392; continue; // -> PopupRounding
-            case make_condition(404, 'A'): state = 405; continue; // -> ScaleAllSizes
-            case make_condition(415, 'l'): state = 416; continue; // -> ScrollbarRounding, ScrollbarSize
-            case make_condition(435, 't'): state = 436; continue; // -> SelectableTextAlign
-            case make_condition(452, 'a'): state = 453; continue; // -> SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
-            case make_condition(487, 'r'): state = 488; continue; // -> TabBarBorderSize, TabBarOverlineSize
-            case make_condition(511, 'r'): state = 512; continue; // -> TabBorderSize
-            case make_condition(521, 'n'): state = 522; continue; // -> TabMinWidthForCloseButton
-            case make_condition(543, 'u'): state = 544; continue; // -> TabRounding
-            case make_condition(551, 'A'): state = 552; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
-            case make_condition(582, 'E'): state = 583; continue; // -> TouchExtraPadding
-            case make_condition(599, 'w'): state = 600; continue; // -> WindowBorderSize, WindowMenuButtonPosition, WindowMinSize, WindowPadding, WindowRounding, WindowTitleAlign
+            case make_condition(313, 'B'): state = 314; continue; // -> ImageBorderSize
+            case make_condition(327, 't'): state = 328; continue; // -> IndentSpacing
+            case make_condition(339, 'n'): state = 340; continue; // -> ItemInnerSpacing
+            case make_condition(351, 'p'): state = 352; continue; // -> ItemSpacing
+            case make_condition(362, 'i'): state = 363; continue; // -> LogSliderDeadzone
+            case make_condition(379, 'C'): state = 380; continue; // -> MouseCursorScale
+            case make_condition(395, 'B'): state = 396; continue; // -> PopupBorderSize
+            case make_condition(395, 'R'): state = 406; continue; // -> PopupRounding
+            case make_condition(418, 'A'): state = 419; continue; // -> ScaleAllSizes
+            case make_condition(429, 'l'): state = 430; continue; // -> ScrollbarRounding, ScrollbarSize
+            case make_condition(449, 't'): state = 450; continue; // -> SelectableTextAlign
+            case make_condition(466, 'a'): state = 467; continue; // -> SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
+            case make_condition(501, 'r'): state = 502; continue; // -> TabBarBorderSize, TabBarOverlineSize
+            case make_condition(525, 'r'): state = 526; continue; // -> TabBorderSize
+            case make_condition(535, 'o'): state = 536; continue; // -> TabCloseButtonMinWidthSelected, TabCloseButtonMinWidthUnselected
+            case make_condition(572, 'u'): state = 573; continue; // -> TabRounding
+            case make_condition(580, 'A'): state = 581; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(611, 'E'): state = 612; continue; // -> TouchExtraPadding
+            case make_condition(628, 'w'): state = 629; continue; // -> WindowBorderHoverPadding, WindowBorderSize, WindowMenuButtonPosition, WindowMinSize, WindowPadding, WindowRounding, WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 6:
@@ -216,29 +221,30 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(255, 'e'): state = 256; continue; // -> HoverDelayNormal, HoverDelayShort
             case make_condition(271, 'l'): state = 272; continue; // -> HoverFlagsForTooltipMouse, HoverFlagsForTooltipNav
             case make_condition(294, 't'): state = 295; continue; // -> HoverStationaryDelay
-            case make_condition(314, 'S'): state = 315; continue; // -> IndentSpacing
-            case make_condition(326, 'n'): state = 327; continue; // -> ItemInnerSpacing
-            case make_condition(338, 'a'): state = 339; continue; // -> ItemSpacing
-            case make_condition(349, 'd'): state = 350; continue; // -> LogSliderDeadzone
-            case make_condition(366, 'u'): state = 367; continue; // -> MouseCursorScale
-            case make_condition(382, 'o'): state = 383; continue; // -> PopupBorderSize
-            case make_condition(392, 'o'): state = 393; continue; // -> PopupRounding
-            case make_condition(405, 'l'): state = 406; continue; // -> ScaleAllSizes
-            case make_condition(416, 'b'): state = 417; continue; // -> ScrollbarRounding, ScrollbarSize
-            case make_condition(436, 'a'): state = 437; continue; // -> SelectableTextAlign
-            case make_condition(453, 't'): state = 454; continue; // -> SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
-            case make_condition(488, 'B'): state = 489; continue; // -> TabBarBorderSize
-            case make_condition(488, 'O'): state = 499; continue; // -> TabBarOverlineSize
-            case make_condition(512, 'd'): state = 513; continue; // -> TabBorderSize
-            case make_condition(522, 'W'): state = 523; continue; // -> TabMinWidthForCloseButton
-            case make_condition(544, 'n'): state = 545; continue; // -> TabRounding
-            case make_condition(552, 'n'): state = 553; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
-            case make_condition(583, 'x'): state = 584; continue; // -> TouchExtraPadding
-            case make_condition(600, 'B'): state = 601; continue; // -> WindowBorderSize
-            case make_condition(600, 'M'): state = 611; continue; // -> WindowMenuButtonPosition, WindowMinSize
-            case make_condition(600, 'P'): state = 635; continue; // -> WindowPadding
-            case make_condition(600, 'R'): state = 642; continue; // -> WindowRounding
-            case make_condition(600, 'T'): state = 650; continue; // -> WindowTitleAlign
+            case make_condition(314, 'o'): state = 315; continue; // -> ImageBorderSize
+            case make_condition(328, 'S'): state = 329; continue; // -> IndentSpacing
+            case make_condition(340, 'n'): state = 341; continue; // -> ItemInnerSpacing
+            case make_condition(352, 'a'): state = 353; continue; // -> ItemSpacing
+            case make_condition(363, 'd'): state = 364; continue; // -> LogSliderDeadzone
+            case make_condition(380, 'u'): state = 381; continue; // -> MouseCursorScale
+            case make_condition(396, 'o'): state = 397; continue; // -> PopupBorderSize
+            case make_condition(406, 'o'): state = 407; continue; // -> PopupRounding
+            case make_condition(419, 'l'): state = 420; continue; // -> ScaleAllSizes
+            case make_condition(430, 'b'): state = 431; continue; // -> ScrollbarRounding, ScrollbarSize
+            case make_condition(450, 'a'): state = 451; continue; // -> SelectableTextAlign
+            case make_condition(467, 't'): state = 468; continue; // -> SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
+            case make_condition(502, 'B'): state = 503; continue; // -> TabBarBorderSize
+            case make_condition(502, 'O'): state = 513; continue; // -> TabBarOverlineSize
+            case make_condition(526, 'd'): state = 527; continue; // -> TabBorderSize
+            case make_condition(536, 's'): state = 537; continue; // -> TabCloseButtonMinWidthSelected, TabCloseButtonMinWidthUnselected
+            case make_condition(573, 'n'): state = 574; continue; // -> TabRounding
+            case make_condition(581, 'n'): state = 582; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(612, 'x'): state = 613; continue; // -> TouchExtraPadding
+            case make_condition(629, 'B'): state = 630; continue; // -> WindowBorderHoverPadding, WindowBorderSize
+            case make_condition(629, 'M'): state = 652; continue; // -> WindowMenuButtonPosition, WindowMinSize
+            case make_condition(629, 'P'): state = 676; continue; // -> WindowPadding
+            case make_condition(629, 'R'): state = 683; continue; // -> WindowRounding
+            case make_condition(629, 'T'): state = 691; continue; // -> WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 7:
@@ -263,30 +269,31 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(256, 'l'): state = 257; continue; // -> HoverDelayNormal, HoverDelayShort
             case make_condition(272, 'a'): state = 273; continue; // -> HoverFlagsForTooltipMouse, HoverFlagsForTooltipNav
             case make_condition(295, 'a'): state = 296; continue; // -> HoverStationaryDelay
-            case make_condition(315, 'p'): state = 316; continue; // -> IndentSpacing
-            case make_condition(327, 'e'): state = 328; continue; // -> ItemInnerSpacing
-            case make_condition(339, 'c'): state = 340; continue; // -> ItemSpacing
-            case make_condition(350, 'e'): state = 351; continue; // -> LogSliderDeadzone
-            case make_condition(367, 'r'): state = 368; continue; // -> MouseCursorScale
-            case make_condition(383, 'r'): state = 384; continue; // -> PopupBorderSize
-            case make_condition(393, 'u'): state = 394; continue; // -> PopupRounding
-            case make_condition(406, 'l'): state = 407; continue; // -> ScaleAllSizes
-            case make_condition(417, 'a'): state = 418; continue; // -> ScrollbarRounding, ScrollbarSize
-            case make_condition(437, 'b'): state = 438; continue; // -> SelectableTextAlign
-            case make_condition(454, 'o'): state = 455; continue; // -> SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
-            case make_condition(489, 'o'): state = 490; continue; // -> TabBarBorderSize
-            case make_condition(499, 'v'): state = 500; continue; // -> TabBarOverlineSize
-            case make_condition(513, 'e'): state = 514; continue; // -> TabBorderSize
-            case make_condition(523, 'i'): state = 524; continue; // -> TabMinWidthForCloseButton
-            case make_condition(545, 'd'): state = 546; continue; // -> TabRounding
-            case make_condition(553, 'g'): state = 554; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
-            case make_condition(584, 't'): state = 585; continue; // -> TouchExtraPadding
-            case make_condition(601, 'o'): state = 602; continue; // -> WindowBorderSize
-            case make_condition(611, 'e'): state = 612; continue; // -> WindowMenuButtonPosition
-            case make_condition(611, 'i'): state = 629; continue; // -> WindowMinSize
-            case make_condition(635, 'a'): state = 636; continue; // -> WindowPadding
-            case make_condition(642, 'o'): state = 643; continue; // -> WindowRounding
-            case make_condition(650, 'i'): state = 651; continue; // -> WindowTitleAlign
+            case make_condition(315, 'r'): state = 316; continue; // -> ImageBorderSize
+            case make_condition(329, 'p'): state = 330; continue; // -> IndentSpacing
+            case make_condition(341, 'e'): state = 342; continue; // -> ItemInnerSpacing
+            case make_condition(353, 'c'): state = 354; continue; // -> ItemSpacing
+            case make_condition(364, 'e'): state = 365; continue; // -> LogSliderDeadzone
+            case make_condition(381, 'r'): state = 382; continue; // -> MouseCursorScale
+            case make_condition(397, 'r'): state = 398; continue; // -> PopupBorderSize
+            case make_condition(407, 'u'): state = 408; continue; // -> PopupRounding
+            case make_condition(420, 'l'): state = 421; continue; // -> ScaleAllSizes
+            case make_condition(431, 'a'): state = 432; continue; // -> ScrollbarRounding, ScrollbarSize
+            case make_condition(451, 'b'): state = 452; continue; // -> SelectableTextAlign
+            case make_condition(468, 'o'): state = 469; continue; // -> SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
+            case make_condition(503, 'o'): state = 504; continue; // -> TabBarBorderSize
+            case make_condition(513, 'v'): state = 514; continue; // -> TabBarOverlineSize
+            case make_condition(527, 'e'): state = 528; continue; // -> TabBorderSize
+            case make_condition(537, 'e'): state = 538; continue; // -> TabCloseButtonMinWidthSelected, TabCloseButtonMinWidthUnselected
+            case make_condition(574, 'd'): state = 575; continue; // -> TabRounding
+            case make_condition(582, 'g'): state = 583; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(613, 't'): state = 614; continue; // -> TouchExtraPadding
+            case make_condition(630, 'o'): state = 631; continue; // -> WindowBorderHoverPadding, WindowBorderSize
+            case make_condition(652, 'e'): state = 653; continue; // -> WindowMenuButtonPosition
+            case make_condition(652, 'i'): state = 670; continue; // -> WindowMinSize
+            case make_condition(676, 'a'): state = 677; continue; // -> WindowPadding
+            case make_condition(683, 'o'): state = 684; continue; // -> WindowRounding
+            case make_condition(691, 'i'): state = 692; continue; // -> WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 8:
@@ -311,30 +318,31 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(257, 'a'): state = 258; continue; // -> HoverDelayNormal, HoverDelayShort
             case make_condition(273, 'g'): state = 274; continue; // -> HoverFlagsForTooltipMouse, HoverFlagsForTooltipNav
             case make_condition(296, 't'): state = 297; continue; // -> HoverStationaryDelay
-            case make_condition(316, 'a'): state = 317; continue; // -> IndentSpacing
-            case make_condition(328, 'r'): state = 329; continue; // -> ItemInnerSpacing
-            case make_condition(340, 'i'): state = 341; continue; // -> ItemSpacing
-            case make_condition(351, 'r'): state = 352; continue; // -> LogSliderDeadzone
-            case make_condition(368, 's'): state = 369; continue; // -> MouseCursorScale
-            case make_condition(384, 'd'): state = 385; continue; // -> PopupBorderSize
-            case make_condition(394, 'n'): state = 395; continue; // -> PopupRounding
-            case make_condition(407, 'S'): state = 408; continue; // -> ScaleAllSizes
-            case make_condition(418, 'r'): state = 419; continue; // -> ScrollbarRounding, ScrollbarSize
-            case make_condition(438, 'l'): state = 439; continue; // -> SelectableTextAlign
-            case make_condition(455, 'r'): state = 456; continue; // -> SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
-            case make_condition(490, 'r'): state = 491; continue; // -> TabBarBorderSize
-            case make_condition(500, 'e'): state = 501; continue; // -> TabBarOverlineSize
-            case make_condition(514, 'r'): state = 515; continue; // -> TabBorderSize
-            case make_condition(524, 'd'): state = 525; continue; // -> TabMinWidthForCloseButton
-            case make_condition(546, 'i'): state = 547; continue; // -> TabRounding
-            case make_condition(554, 'l'): state = 555; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
-            case make_condition(585, 'r'): state = 586; continue; // -> TouchExtraPadding
-            case make_condition(602, 'r'): state = 603; continue; // -> WindowBorderSize
-            case make_condition(612, 'n'): state = 613; continue; // -> WindowMenuButtonPosition
-            case make_condition(629, 'n'): state = 630; continue; // -> WindowMinSize
-            case make_condition(636, 'd'): state = 637; continue; // -> WindowPadding
-            case make_condition(643, 'u'): state = 644; continue; // -> WindowRounding
-            case make_condition(651, 't'): state = 652; continue; // -> WindowTitleAlign
+            case make_condition(316, 'd'): state = 317; continue; // -> ImageBorderSize
+            case make_condition(330, 'a'): state = 331; continue; // -> IndentSpacing
+            case make_condition(342, 'r'): state = 343; continue; // -> ItemInnerSpacing
+            case make_condition(354, 'i'): state = 355; continue; // -> ItemSpacing
+            case make_condition(365, 'r'): state = 366; continue; // -> LogSliderDeadzone
+            case make_condition(382, 's'): state = 383; continue; // -> MouseCursorScale
+            case make_condition(398, 'd'): state = 399; continue; // -> PopupBorderSize
+            case make_condition(408, 'n'): state = 409; continue; // -> PopupRounding
+            case make_condition(421, 'S'): state = 422; continue; // -> ScaleAllSizes
+            case make_condition(432, 'r'): state = 433; continue; // -> ScrollbarRounding, ScrollbarSize
+            case make_condition(452, 'l'): state = 453; continue; // -> SelectableTextAlign
+            case make_condition(469, 'r'): state = 470; continue; // -> SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
+            case make_condition(504, 'r'): state = 505; continue; // -> TabBarBorderSize
+            case make_condition(514, 'e'): state = 515; continue; // -> TabBarOverlineSize
+            case make_condition(528, 'r'): state = 529; continue; // -> TabBorderSize
+            case make_condition(538, 'B'): state = 539; continue; // -> TabCloseButtonMinWidthSelected, TabCloseButtonMinWidthUnselected
+            case make_condition(575, 'i'): state = 576; continue; // -> TabRounding
+            case make_condition(583, 'l'): state = 584; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(614, 'r'): state = 615; continue; // -> TouchExtraPadding
+            case make_condition(631, 'r'): state = 632; continue; // -> WindowBorderHoverPadding, WindowBorderSize
+            case make_condition(653, 'n'): state = 654; continue; // -> WindowMenuButtonPosition
+            case make_condition(670, 'n'): state = 671; continue; // -> WindowMinSize
+            case make_condition(677, 'd'): state = 678; continue; // -> WindowPadding
+            case make_condition(684, 'u'): state = 685; continue; // -> WindowRounding
+            case make_condition(692, 't'): state = 693; continue; // -> WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 9:
@@ -359,31 +367,32 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(258, 'y'): state = 259; continue; // -> HoverDelayNormal, HoverDelayShort
             case make_condition(274, 's'): state = 275; continue; // -> HoverFlagsForTooltipMouse, HoverFlagsForTooltipNav
             case make_condition(297, 'i'): state = 298; continue; // -> HoverStationaryDelay
-            case make_condition(317, 'c'): state = 318; continue; // -> IndentSpacing
-            case make_condition(329, 'S'): state = 330; continue; // -> ItemInnerSpacing
-            case make_condition(341, 'n'): state = 342; continue; // -> ItemSpacing
-            case make_condition(352, 'D'): state = 353; continue; // -> LogSliderDeadzone
-            case make_condition(369, 'o'): state = 370; continue; // -> MouseCursorScale
-            case make_condition(385, 'e'): state = 386; continue; // -> PopupBorderSize
-            case make_condition(395, 'd'): state = 396; continue; // -> PopupRounding
-            case make_condition(408, 'i'): state = 409; continue; // -> ScaleAllSizes
-            case make_condition(419, 'R'): state = 420; continue; // -> ScrollbarRounding
-            case make_condition(419, 'S'): state = 428; continue; // -> ScrollbarSize
-            case make_condition(439, 'e'): state = 440; continue; // -> SelectableTextAlign
-            case make_condition(456, 'T'): state = 457; continue; // -> SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
-            case make_condition(491, 'd'): state = 492; continue; // -> TabBarBorderSize
-            case make_condition(501, 'r'): state = 502; continue; // -> TabBarOverlineSize
-            case make_condition(515, 'S'): state = 516; continue; // -> TabBorderSize
-            case make_condition(525, 't'): state = 526; continue; // -> TabMinWidthForCloseButton
-            case make_condition(547, 'n'): state = 548; continue; // -> TabRounding
-            case make_condition(555, 'e'): state = 556; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
-            case make_condition(586, 'a'): state = 587; continue; // -> TouchExtraPadding
-            case make_condition(603, 'd'): state = 604; continue; // -> WindowBorderSize
-            case make_condition(613, 'u'): state = 614; continue; // -> WindowMenuButtonPosition
-            case make_condition(630, 'S'): state = 631; continue; // -> WindowMinSize
-            case make_condition(637, 'd'): state = 638; continue; // -> WindowPadding
-            case make_condition(644, 'n'): state = 645; continue; // -> WindowRounding
-            case make_condition(652, 'l'): state = 653; continue; // -> WindowTitleAlign
+            case make_condition(317, 'e'): state = 318; continue; // -> ImageBorderSize
+            case make_condition(331, 'c'): state = 332; continue; // -> IndentSpacing
+            case make_condition(343, 'S'): state = 344; continue; // -> ItemInnerSpacing
+            case make_condition(355, 'n'): state = 356; continue; // -> ItemSpacing
+            case make_condition(366, 'D'): state = 367; continue; // -> LogSliderDeadzone
+            case make_condition(383, 'o'): state = 384; continue; // -> MouseCursorScale
+            case make_condition(399, 'e'): state = 400; continue; // -> PopupBorderSize
+            case make_condition(409, 'd'): state = 410; continue; // -> PopupRounding
+            case make_condition(422, 'i'): state = 423; continue; // -> ScaleAllSizes
+            case make_condition(433, 'R'): state = 434; continue; // -> ScrollbarRounding
+            case make_condition(433, 'S'): state = 442; continue; // -> ScrollbarSize
+            case make_condition(453, 'e'): state = 454; continue; // -> SelectableTextAlign
+            case make_condition(470, 'T'): state = 471; continue; // -> SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
+            case make_condition(505, 'd'): state = 506; continue; // -> TabBarBorderSize
+            case make_condition(515, 'r'): state = 516; continue; // -> TabBarOverlineSize
+            case make_condition(529, 'S'): state = 530; continue; // -> TabBorderSize
+            case make_condition(539, 'u'): state = 540; continue; // -> TabCloseButtonMinWidthSelected, TabCloseButtonMinWidthUnselected
+            case make_condition(576, 'n'): state = 577; continue; // -> TabRounding
+            case make_condition(584, 'e'): state = 585; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(615, 'a'): state = 616; continue; // -> TouchExtraPadding
+            case make_condition(632, 'd'): state = 633; continue; // -> WindowBorderHoverPadding, WindowBorderSize
+            case make_condition(654, 'u'): state = 655; continue; // -> WindowMenuButtonPosition
+            case make_condition(671, 'S'): state = 672; continue; // -> WindowMinSize
+            case make_condition(678, 'd'): state = 679; continue; // -> WindowPadding
+            case make_condition(685, 'n'): state = 686; continue; // -> WindowRounding
+            case make_condition(693, 'l'): state = 694; continue; // -> WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 10:
@@ -409,31 +418,32 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(259, 'S'): state = 266; continue; // -> HoverDelayShort
             case make_condition(275, 'F'): state = 276; continue; // -> HoverFlagsForTooltipMouse, HoverFlagsForTooltipNav
             case make_condition(298, 'o'): state = 299; continue; // -> HoverStationaryDelay
-            case make_condition(318, 'i'): state = 319; continue; // -> IndentSpacing
-            case make_condition(330, 'p'): state = 331; continue; // -> ItemInnerSpacing
-            case make_condition(342, 'g'): state = 343; continue; // -> ItemSpacing
-            case make_condition(353, 'e'): state = 354; continue; // -> LogSliderDeadzone
-            case make_condition(370, 'r'): state = 371; continue; // -> MouseCursorScale
-            case make_condition(386, 'r'): state = 387; continue; // -> PopupBorderSize
-            case make_condition(396, 'i'): state = 397; continue; // -> PopupRounding
-            case make_condition(409, 'z'): state = 410; continue; // -> ScaleAllSizes
-            case make_condition(420, 'o'): state = 421; continue; // -> ScrollbarRounding
-            case make_condition(428, 'i'): state = 429; continue; // -> ScrollbarSize
-            case make_condition(440, 'T'): state = 441; continue; // -> SelectableTextAlign
-            case make_condition(457, 'e'): state = 458; continue; // -> SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
-            case make_condition(492, 'e'): state = 493; continue; // -> TabBarBorderSize
-            case make_condition(502, 'l'): state = 503; continue; // -> TabBarOverlineSize
-            case make_condition(516, 'i'): state = 517; continue; // -> TabBorderSize
-            case make_condition(526, 'h'): state = 527; continue; // -> TabMinWidthForCloseButton
-            case make_condition(548, 'g'): state = 549; continue; // -> TabRounding
-            case make_condition(556, 'd'): state = 557; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
-            case make_condition(587, 'P'): state = 588; continue; // -> TouchExtraPadding
-            case make_condition(604, 'e'): state = 605; continue; // -> WindowBorderSize
-            case make_condition(614, 'B'): state = 615; continue; // -> WindowMenuButtonPosition
-            case make_condition(631, 'i'): state = 632; continue; // -> WindowMinSize
-            case make_condition(638, 'i'): state = 639; continue; // -> WindowPadding
-            case make_condition(645, 'd'): state = 646; continue; // -> WindowRounding
-            case make_condition(653, 'e'): state = 654; continue; // -> WindowTitleAlign
+            case make_condition(318, 'r'): state = 319; continue; // -> ImageBorderSize
+            case make_condition(332, 'i'): state = 333; continue; // -> IndentSpacing
+            case make_condition(344, 'p'): state = 345; continue; // -> ItemInnerSpacing
+            case make_condition(356, 'g'): state = 357; continue; // -> ItemSpacing
+            case make_condition(367, 'e'): state = 368; continue; // -> LogSliderDeadzone
+            case make_condition(384, 'r'): state = 385; continue; // -> MouseCursorScale
+            case make_condition(400, 'r'): state = 401; continue; // -> PopupBorderSize
+            case make_condition(410, 'i'): state = 411; continue; // -> PopupRounding
+            case make_condition(423, 'z'): state = 424; continue; // -> ScaleAllSizes
+            case make_condition(434, 'o'): state = 435; continue; // -> ScrollbarRounding
+            case make_condition(442, 'i'): state = 443; continue; // -> ScrollbarSize
+            case make_condition(454, 'T'): state = 455; continue; // -> SelectableTextAlign
+            case make_condition(471, 'e'): state = 472; continue; // -> SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
+            case make_condition(506, 'e'): state = 507; continue; // -> TabBarBorderSize
+            case make_condition(516, 'l'): state = 517; continue; // -> TabBarOverlineSize
+            case make_condition(530, 'i'): state = 531; continue; // -> TabBorderSize
+            case make_condition(540, 't'): state = 541; continue; // -> TabCloseButtonMinWidthSelected, TabCloseButtonMinWidthUnselected
+            case make_condition(577, 'g'): state = 578; continue; // -> TabRounding
+            case make_condition(585, 'd'): state = 586; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(616, 'P'): state = 617; continue; // -> TouchExtraPadding
+            case make_condition(633, 'e'): state = 634; continue; // -> WindowBorderHoverPadding, WindowBorderSize
+            case make_condition(655, 'B'): state = 656; continue; // -> WindowMenuButtonPosition
+            case make_condition(672, 'i'): state = 673; continue; // -> WindowMinSize
+            case make_condition(679, 'i'): state = 680; continue; // -> WindowPadding
+            case make_condition(686, 'd'): state = 687; continue; // -> WindowRounding
+            case make_condition(694, 'e'): state = 695; continue; // -> WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 11:
@@ -458,29 +468,30 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(266, 'h'): state = 267; continue; // -> HoverDelayShort
             case make_condition(276, 'o'): state = 277; continue; // -> HoverFlagsForTooltipMouse, HoverFlagsForTooltipNav
             case make_condition(299, 'n'): state = 300; continue; // -> HoverStationaryDelay
-            case make_condition(319, 'n'): state = 320; continue; // -> IndentSpacing
-            case make_condition(331, 'a'): state = 332; continue; // -> ItemInnerSpacing
-            case make_condition(354, 'a'): state = 355; continue; // -> LogSliderDeadzone
-            case make_condition(371, 'S'): state = 372; continue; // -> MouseCursorScale
-            case make_condition(387, 'S'): state = 388; continue; // -> PopupBorderSize
-            case make_condition(397, 'n'): state = 398; continue; // -> PopupRounding
-            case make_condition(410, 'e'): state = 411; continue; // -> ScaleAllSizes
-            case make_condition(421, 'u'): state = 422; continue; // -> ScrollbarRounding
-            case make_condition(429, 'z'): state = 430; continue; // -> ScrollbarSize
-            case make_condition(441, 'e'): state = 442; continue; // -> SelectableTextAlign
-            case make_condition(458, 'x'): state = 459; continue; // -> SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
-            case make_condition(493, 'r'): state = 494; continue; // -> TabBarBorderSize
-            case make_condition(503, 'i'): state = 504; continue; // -> TabBarOverlineSize
-            case make_condition(517, 'z'): state = 518; continue; // -> TabBorderSize
-            case make_condition(527, 'F'): state = 528; continue; // -> TabMinWidthForCloseButton
-            case make_condition(557, 'H'): state = 558; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
-            case make_condition(588, 'a'): state = 589; continue; // -> TouchExtraPadding
-            case make_condition(605, 'r'): state = 606; continue; // -> WindowBorderSize
-            case make_condition(615, 'u'): state = 616; continue; // -> WindowMenuButtonPosition
-            case make_condition(632, 'z'): state = 633; continue; // -> WindowMinSize
-            case make_condition(639, 'n'): state = 640; continue; // -> WindowPadding
-            case make_condition(646, 'i'): state = 647; continue; // -> WindowRounding
-            case make_condition(654, 'A'): state = 655; continue; // -> WindowTitleAlign
+            case make_condition(319, 'S'): state = 320; continue; // -> ImageBorderSize
+            case make_condition(333, 'n'): state = 334; continue; // -> IndentSpacing
+            case make_condition(345, 'a'): state = 346; continue; // -> ItemInnerSpacing
+            case make_condition(368, 'a'): state = 369; continue; // -> LogSliderDeadzone
+            case make_condition(385, 'S'): state = 386; continue; // -> MouseCursorScale
+            case make_condition(401, 'S'): state = 402; continue; // -> PopupBorderSize
+            case make_condition(411, 'n'): state = 412; continue; // -> PopupRounding
+            case make_condition(424, 'e'): state = 425; continue; // -> ScaleAllSizes
+            case make_condition(435, 'u'): state = 436; continue; // -> ScrollbarRounding
+            case make_condition(443, 'z'): state = 444; continue; // -> ScrollbarSize
+            case make_condition(455, 'e'): state = 456; continue; // -> SelectableTextAlign
+            case make_condition(472, 'x'): state = 473; continue; // -> SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
+            case make_condition(507, 'r'): state = 508; continue; // -> TabBarBorderSize
+            case make_condition(517, 'i'): state = 518; continue; // -> TabBarOverlineSize
+            case make_condition(531, 'z'): state = 532; continue; // -> TabBorderSize
+            case make_condition(541, 't'): state = 542; continue; // -> TabCloseButtonMinWidthSelected, TabCloseButtonMinWidthUnselected
+            case make_condition(586, 'H'): state = 587; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(617, 'a'): state = 618; continue; // -> TouchExtraPadding
+            case make_condition(634, 'r'): state = 635; continue; // -> WindowBorderHoverPadding, WindowBorderSize
+            case make_condition(656, 'u'): state = 657; continue; // -> WindowMenuButtonPosition
+            case make_condition(673, 'z'): state = 674; continue; // -> WindowMinSize
+            case make_condition(680, 'n'): state = 681; continue; // -> WindowPadding
+            case make_condition(687, 'i'): state = 688; continue; // -> WindowRounding
+            case make_condition(695, 'A'): state = 696; continue; // -> WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 12:
@@ -503,29 +514,31 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(267, 'o'): state = 268; continue; // -> HoverDelayShort
             case make_condition(277, 'r'): state = 278; continue; // -> HoverFlagsForTooltipMouse, HoverFlagsForTooltipNav
             case make_condition(300, 'a'): state = 301; continue; // -> HoverStationaryDelay
-            case make_condition(320, 'g'): state = 321; continue; // -> IndentSpacing
-            case make_condition(332, 'c'): state = 333; continue; // -> ItemInnerSpacing
-            case make_condition(355, 'd'): state = 356; continue; // -> LogSliderDeadzone
-            case make_condition(372, 'c'): state = 373; continue; // -> MouseCursorScale
-            case make_condition(388, 'i'): state = 389; continue; // -> PopupBorderSize
-            case make_condition(398, 'g'): state = 399; continue; // -> PopupRounding
-            case make_condition(411, 's'): state = 412; continue; // -> ScaleAllSizes
-            case make_condition(422, 'n'): state = 423; continue; // -> ScrollbarRounding
-            case make_condition(430, 'e'): state = 431; continue; // -> ScrollbarSize
-            case make_condition(442, 'x'): state = 443; continue; // -> SelectableTextAlign
-            case make_condition(459, 't'): state = 460; continue; // -> SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
-            case make_condition(494, 'S'): state = 495; continue; // -> TabBarBorderSize
-            case make_condition(504, 'n'): state = 505; continue; // -> TabBarOverlineSize
-            case make_condition(518, 'e'): state = 519; continue; // -> TabBorderSize
-            case make_condition(528, 'o'): state = 529; continue; // -> TabMinWidthForCloseButton
-            case make_condition(558, 'e'): state = 559; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
-            case make_condition(589, 'd'): state = 590; continue; // -> TouchExtraPadding
-            case make_condition(606, 'S'): state = 607; continue; // -> WindowBorderSize
-            case make_condition(616, 't'): state = 617; continue; // -> WindowMenuButtonPosition
-            case make_condition(633, 'e'): state = 634; continue; // -> WindowMinSize
-            case make_condition(640, 'g'): state = 641; continue; // -> WindowPadding
-            case make_condition(647, 'n'): state = 648; continue; // -> WindowRounding
-            case make_condition(655, 'l'): state = 656; continue; // -> WindowTitleAlign
+            case make_condition(320, 'i'): state = 321; continue; // -> ImageBorderSize
+            case make_condition(334, 'g'): state = 335; continue; // -> IndentSpacing
+            case make_condition(346, 'c'): state = 347; continue; // -> ItemInnerSpacing
+            case make_condition(369, 'd'): state = 370; continue; // -> LogSliderDeadzone
+            case make_condition(386, 'c'): state = 387; continue; // -> MouseCursorScale
+            case make_condition(402, 'i'): state = 403; continue; // -> PopupBorderSize
+            case make_condition(412, 'g'): state = 413; continue; // -> PopupRounding
+            case make_condition(425, 's'): state = 426; continue; // -> ScaleAllSizes
+            case make_condition(436, 'n'): state = 437; continue; // -> ScrollbarRounding
+            case make_condition(444, 'e'): state = 445; continue; // -> ScrollbarSize
+            case make_condition(456, 'x'): state = 457; continue; // -> SelectableTextAlign
+            case make_condition(473, 't'): state = 474; continue; // -> SeparatorTextAlign, SeparatorTextBorderSize, SeparatorTextPadding
+            case make_condition(508, 'S'): state = 509; continue; // -> TabBarBorderSize
+            case make_condition(518, 'n'): state = 519; continue; // -> TabBarOverlineSize
+            case make_condition(532, 'e'): state = 533; continue; // -> TabBorderSize
+            case make_condition(542, 'o'): state = 543; continue; // -> TabCloseButtonMinWidthSelected, TabCloseButtonMinWidthUnselected
+            case make_condition(587, 'e'): state = 588; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(618, 'd'): state = 619; continue; // -> TouchExtraPadding
+            case make_condition(635, 'H'): state = 636; continue; // -> WindowBorderHoverPadding
+            case make_condition(635, 'S'): state = 648; continue; // -> WindowBorderSize
+            case make_condition(657, 't'): state = 658; continue; // -> WindowMenuButtonPosition
+            case make_condition(674, 'e'): state = 675; continue; // -> WindowMinSize
+            case make_condition(681, 'g'): state = 682; continue; // -> WindowPadding
+            case make_condition(688, 'n'): state = 689; continue; // -> WindowRounding
+            case make_condition(696, 'l'): state = 697; continue; // -> WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 13:
@@ -545,24 +558,26 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(268, 'r'): state = 269; continue; // -> HoverDelayShort
             case make_condition(278, 'T'): state = 279; continue; // -> HoverFlagsForTooltipMouse, HoverFlagsForTooltipNav
             case make_condition(301, 'r'): state = 302; continue; // -> HoverStationaryDelay
-            case make_condition(333, 'i'): state = 334; continue; // -> ItemInnerSpacing
-            case make_condition(356, 'z'): state = 357; continue; // -> LogSliderDeadzone
-            case make_condition(373, 'a'): state = 374; continue; // -> MouseCursorScale
-            case make_condition(389, 'z'): state = 390; continue; // -> PopupBorderSize
-            case make_condition(423, 'd'): state = 424; continue; // -> ScrollbarRounding
-            case make_condition(443, 't'): state = 444; continue; // -> SelectableTextAlign
-            case make_condition(460, 'A'): state = 461; continue; // -> SeparatorTextAlign
-            case make_condition(460, 'B'): state = 466; continue; // -> SeparatorTextBorderSize
-            case make_condition(460, 'P'): state = 476; continue; // -> SeparatorTextPadding
-            case make_condition(495, 'i'): state = 496; continue; // -> TabBarBorderSize
-            case make_condition(505, 'e'): state = 506; continue; // -> TabBarOverlineSize
-            case make_condition(529, 'r'): state = 530; continue; // -> TabMinWidthForCloseButton
-            case make_condition(559, 'a'): state = 560; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
-            case make_condition(590, 'd'): state = 591; continue; // -> TouchExtraPadding
-            case make_condition(607, 'i'): state = 608; continue; // -> WindowBorderSize
-            case make_condition(617, 't'): state = 618; continue; // -> WindowMenuButtonPosition
-            case make_condition(648, 'g'): state = 649; continue; // -> WindowRounding
-            case make_condition(656, 'i'): state = 657; continue; // -> WindowTitleAlign
+            case make_condition(321, 'z'): state = 322; continue; // -> ImageBorderSize
+            case make_condition(347, 'i'): state = 348; continue; // -> ItemInnerSpacing
+            case make_condition(370, 'z'): state = 371; continue; // -> LogSliderDeadzone
+            case make_condition(387, 'a'): state = 388; continue; // -> MouseCursorScale
+            case make_condition(403, 'z'): state = 404; continue; // -> PopupBorderSize
+            case make_condition(437, 'd'): state = 438; continue; // -> ScrollbarRounding
+            case make_condition(457, 't'): state = 458; continue; // -> SelectableTextAlign
+            case make_condition(474, 'A'): state = 475; continue; // -> SeparatorTextAlign
+            case make_condition(474, 'B'): state = 480; continue; // -> SeparatorTextBorderSize
+            case make_condition(474, 'P'): state = 490; continue; // -> SeparatorTextPadding
+            case make_condition(509, 'i'): state = 510; continue; // -> TabBarBorderSize
+            case make_condition(519, 'e'): state = 520; continue; // -> TabBarOverlineSize
+            case make_condition(543, 'n'): state = 544; continue; // -> TabCloseButtonMinWidthSelected, TabCloseButtonMinWidthUnselected
+            case make_condition(588, 'a'): state = 589; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(619, 'd'): state = 620; continue; // -> TouchExtraPadding
+            case make_condition(636, 'o'): state = 637; continue; // -> WindowBorderHoverPadding
+            case make_condition(648, 'i'): state = 649; continue; // -> WindowBorderSize
+            case make_condition(658, 't'): state = 659; continue; // -> WindowMenuButtonPosition
+            case make_condition(689, 'g'): state = 690; continue; // -> WindowRounding
+            case make_condition(697, 'i'): state = 698; continue; // -> WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 14:
@@ -582,23 +597,25 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(269, 't'): state = 270; continue; // -> HoverDelayShort
             case make_condition(279, 'o'): state = 280; continue; // -> HoverFlagsForTooltipMouse, HoverFlagsForTooltipNav
             case make_condition(302, 'y'): state = 303; continue; // -> HoverStationaryDelay
-            case make_condition(334, 'n'): state = 335; continue; // -> ItemInnerSpacing
-            case make_condition(357, 'o'): state = 358; continue; // -> LogSliderDeadzone
-            case make_condition(374, 'l'): state = 375; continue; // -> MouseCursorScale
-            case make_condition(390, 'e'): state = 391; continue; // -> PopupBorderSize
-            case make_condition(424, 'i'): state = 425; continue; // -> ScrollbarRounding
-            case make_condition(444, 'A'): state = 445; continue; // -> SelectableTextAlign
-            case make_condition(461, 'l'): state = 462; continue; // -> SeparatorTextAlign
-            case make_condition(466, 'o'): state = 467; continue; // -> SeparatorTextBorderSize
-            case make_condition(476, 'a'): state = 477; continue; // -> SeparatorTextPadding
-            case make_condition(496, 'z'): state = 497; continue; // -> TabBarBorderSize
-            case make_condition(506, 'S'): state = 507; continue; // -> TabBarOverlineSize
-            case make_condition(530, 'C'): state = 531; continue; // -> TabMinWidthForCloseButton
-            case make_condition(560, 'd'): state = 561; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
-            case make_condition(591, 'i'): state = 592; continue; // -> TouchExtraPadding
-            case make_condition(608, 'z'): state = 609; continue; // -> WindowBorderSize
-            case make_condition(618, 'o'): state = 619; continue; // -> WindowMenuButtonPosition
-            case make_condition(657, 'g'): state = 658; continue; // -> WindowTitleAlign
+            case make_condition(322, 'e'): state = 323; continue; // -> ImageBorderSize
+            case make_condition(348, 'n'): state = 349; continue; // -> ItemInnerSpacing
+            case make_condition(371, 'o'): state = 372; continue; // -> LogSliderDeadzone
+            case make_condition(388, 'l'): state = 389; continue; // -> MouseCursorScale
+            case make_condition(404, 'e'): state = 405; continue; // -> PopupBorderSize
+            case make_condition(438, 'i'): state = 439; continue; // -> ScrollbarRounding
+            case make_condition(458, 'A'): state = 459; continue; // -> SelectableTextAlign
+            case make_condition(475, 'l'): state = 476; continue; // -> SeparatorTextAlign
+            case make_condition(480, 'o'): state = 481; continue; // -> SeparatorTextBorderSize
+            case make_condition(490, 'a'): state = 491; continue; // -> SeparatorTextPadding
+            case make_condition(510, 'z'): state = 511; continue; // -> TabBarBorderSize
+            case make_condition(520, 'S'): state = 521; continue; // -> TabBarOverlineSize
+            case make_condition(544, 'M'): state = 545; continue; // -> TabCloseButtonMinWidthSelected, TabCloseButtonMinWidthUnselected
+            case make_condition(589, 'd'): state = 590; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(620, 'i'): state = 621; continue; // -> TouchExtraPadding
+            case make_condition(637, 'v'): state = 638; continue; // -> WindowBorderHoverPadding
+            case make_condition(649, 'z'): state = 650; continue; // -> WindowBorderSize
+            case make_condition(659, 'o'): state = 660; continue; // -> WindowMenuButtonPosition
+            case make_condition(698, 'g'): state = 699; continue; // -> WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 15:
@@ -613,22 +630,23 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(264, 'l'): state = 265; continue; // -> HoverDelayNormal
             case make_condition(280, 'o'): state = 281; continue; // -> HoverFlagsForTooltipMouse, HoverFlagsForTooltipNav
             case make_condition(303, 'D'): state = 304; continue; // -> HoverStationaryDelay
-            case make_condition(335, 'g'): state = 336; continue; // -> ItemInnerSpacing
-            case make_condition(358, 'n'): state = 359; continue; // -> LogSliderDeadzone
-            case make_condition(375, 'e'): state = 376; continue; // -> MouseCursorScale
-            case make_condition(425, 'n'): state = 426; continue; // -> ScrollbarRounding
-            case make_condition(445, 'l'): state = 446; continue; // -> SelectableTextAlign
-            case make_condition(462, 'i'): state = 463; continue; // -> SeparatorTextAlign
-            case make_condition(467, 'r'): state = 468; continue; // -> SeparatorTextBorderSize
-            case make_condition(477, 'd'): state = 478; continue; // -> SeparatorTextPadding
-            case make_condition(497, 'e'): state = 498; continue; // -> TabBarBorderSize
-            case make_condition(507, 'i'): state = 508; continue; // -> TabBarOverlineSize
-            case make_condition(531, 'l'): state = 532; continue; // -> TabMinWidthForCloseButton
-            case make_condition(561, 'e'): state = 562; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
-            case make_condition(592, 'n'): state = 593; continue; // -> TouchExtraPadding
-            case make_condition(609, 'e'): state = 610; continue; // -> WindowBorderSize
-            case make_condition(619, 'n'): state = 620; continue; // -> WindowMenuButtonPosition
-            case make_condition(658, 'n'): state = 659; continue; // -> WindowTitleAlign
+            case make_condition(349, 'g'): state = 350; continue; // -> ItemInnerSpacing
+            case make_condition(372, 'n'): state = 373; continue; // -> LogSliderDeadzone
+            case make_condition(389, 'e'): state = 390; continue; // -> MouseCursorScale
+            case make_condition(439, 'n'): state = 440; continue; // -> ScrollbarRounding
+            case make_condition(459, 'l'): state = 460; continue; // -> SelectableTextAlign
+            case make_condition(476, 'i'): state = 477; continue; // -> SeparatorTextAlign
+            case make_condition(481, 'r'): state = 482; continue; // -> SeparatorTextBorderSize
+            case make_condition(491, 'd'): state = 492; continue; // -> SeparatorTextPadding
+            case make_condition(511, 'e'): state = 512; continue; // -> TabBarBorderSize
+            case make_condition(521, 'i'): state = 522; continue; // -> TabBarOverlineSize
+            case make_condition(545, 'i'): state = 546; continue; // -> TabCloseButtonMinWidthSelected, TabCloseButtonMinWidthUnselected
+            case make_condition(590, 'e'): state = 591; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(621, 'n'): state = 622; continue; // -> TouchExtraPadding
+            case make_condition(638, 'e'): state = 639; continue; // -> WindowBorderHoverPadding
+            case make_condition(650, 'e'): state = 651; continue; // -> WindowBorderSize
+            case make_condition(660, 'n'): state = 661; continue; // -> WindowMenuButtonPosition
+            case make_condition(699, 'n'): state = 700; continue; // -> WindowTitleAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 16:
@@ -642,17 +660,18 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(196, 'd'): state = 197; continue; // -> DisplayWindowPadding
             case make_condition(281, 'l'): state = 282; continue; // -> HoverFlagsForTooltipMouse, HoverFlagsForTooltipNav
             case make_condition(304, 'e'): state = 305; continue; // -> HoverStationaryDelay
-            case make_condition(359, 'e'): state = 360; continue; // -> LogSliderDeadzone
-            case make_condition(426, 'g'): state = 427; continue; // -> ScrollbarRounding
-            case make_condition(446, 'i'): state = 447; continue; // -> SelectableTextAlign
-            case make_condition(463, 'g'): state = 464; continue; // -> SeparatorTextAlign
-            case make_condition(468, 'd'): state = 469; continue; // -> SeparatorTextBorderSize
-            case make_condition(478, 'd'): state = 479; continue; // -> SeparatorTextPadding
-            case make_condition(508, 'z'): state = 509; continue; // -> TabBarOverlineSize
-            case make_condition(532, 'o'): state = 533; continue; // -> TabMinWidthForCloseButton
-            case make_condition(562, 'r'): state = 563; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
-            case make_condition(593, 'g'): state = 594; continue; // -> TouchExtraPadding
-            case make_condition(620, 'P'): state = 621; continue; // -> WindowMenuButtonPosition
+            case make_condition(373, 'e'): state = 374; continue; // -> LogSliderDeadzone
+            case make_condition(440, 'g'): state = 441; continue; // -> ScrollbarRounding
+            case make_condition(460, 'i'): state = 461; continue; // -> SelectableTextAlign
+            case make_condition(477, 'g'): state = 478; continue; // -> SeparatorTextAlign
+            case make_condition(482, 'd'): state = 483; continue; // -> SeparatorTextBorderSize
+            case make_condition(492, 'd'): state = 493; continue; // -> SeparatorTextPadding
+            case make_condition(522, 'z'): state = 523; continue; // -> TabBarOverlineSize
+            case make_condition(546, 'n'): state = 547; continue; // -> TabCloseButtonMinWidthSelected, TabCloseButtonMinWidthUnselected
+            case make_condition(591, 'r'): state = 592; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(622, 'g'): state = 623; continue; // -> TouchExtraPadding
+            case make_condition(639, 'r'): state = 640; continue; // -> WindowBorderHoverPadding
+            case make_condition(661, 'P'): state = 662; continue; // -> WindowMenuButtonPosition
             default: return ImGuiStyleMember::__unknown__;
             }
         case 17:
@@ -665,14 +684,15 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(197, 'i'): state = 198; continue; // -> DisplayWindowPadding
             case make_condition(282, 't'): state = 283; continue; // -> HoverFlagsForTooltipMouse, HoverFlagsForTooltipNav
             case make_condition(305, 'l'): state = 306; continue; // -> HoverStationaryDelay
-            case make_condition(447, 'g'): state = 448; continue; // -> SelectableTextAlign
-            case make_condition(464, 'n'): state = 465; continue; // -> SeparatorTextAlign
-            case make_condition(469, 'e'): state = 470; continue; // -> SeparatorTextBorderSize
-            case make_condition(479, 'i'): state = 480; continue; // -> SeparatorTextPadding
-            case make_condition(509, 'e'): state = 510; continue; // -> TabBarOverlineSize
-            case make_condition(533, 's'): state = 534; continue; // -> TabMinWidthForCloseButton
-            case make_condition(563, 's'): state = 564; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
-            case make_condition(621, 'o'): state = 622; continue; // -> WindowMenuButtonPosition
+            case make_condition(461, 'g'): state = 462; continue; // -> SelectableTextAlign
+            case make_condition(478, 'n'): state = 479; continue; // -> SeparatorTextAlign
+            case make_condition(483, 'e'): state = 484; continue; // -> SeparatorTextBorderSize
+            case make_condition(493, 'i'): state = 494; continue; // -> SeparatorTextPadding
+            case make_condition(523, 'e'): state = 524; continue; // -> TabBarOverlineSize
+            case make_condition(547, 'W'): state = 548; continue; // -> TabCloseButtonMinWidthSelected, TabCloseButtonMinWidthUnselected
+            case make_condition(592, 's'): state = 593; continue; // -> TableAngledHeadersAngle, TableAngledHeadersTextAlign
+            case make_condition(640, 'P'): state = 641; continue; // -> WindowBorderHoverPadding
+            case make_condition(662, 'o'): state = 663; continue; // -> WindowMenuButtonPosition
             default: return ImGuiStyleMember::__unknown__;
             }
         case 18:
@@ -685,13 +705,14 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(198, 'n'): state = 199; continue; // -> DisplayWindowPadding
             case make_condition(283, 'i'): state = 284; continue; // -> HoverFlagsForTooltipMouse, HoverFlagsForTooltipNav
             case make_condition(306, 'a'): state = 307; continue; // -> HoverStationaryDelay
-            case make_condition(448, 'n'): state = 449; continue; // -> SelectableTextAlign
-            case make_condition(470, 'r'): state = 471; continue; // -> SeparatorTextBorderSize
-            case make_condition(480, 'n'): state = 481; continue; // -> SeparatorTextPadding
-            case make_condition(534, 'e'): state = 535; continue; // -> TabMinWidthForCloseButton
-            case make_condition(564, 'A'): state = 565; continue; // -> TableAngledHeadersAngle
-            case make_condition(564, 'T'): state = 570; continue; // -> TableAngledHeadersTextAlign
-            case make_condition(622, 's'): state = 623; continue; // -> WindowMenuButtonPosition
+            case make_condition(462, 'n'): state = 463; continue; // -> SelectableTextAlign
+            case make_condition(484, 'r'): state = 485; continue; // -> SeparatorTextBorderSize
+            case make_condition(494, 'n'): state = 495; continue; // -> SeparatorTextPadding
+            case make_condition(548, 'i'): state = 549; continue; // -> TabCloseButtonMinWidthSelected, TabCloseButtonMinWidthUnselected
+            case make_condition(593, 'A'): state = 594; continue; // -> TableAngledHeadersAngle
+            case make_condition(593, 'T'): state = 599; continue; // -> TableAngledHeadersTextAlign
+            case make_condition(641, 'a'): state = 642; continue; // -> WindowBorderHoverPadding
+            case make_condition(663, 's'): state = 664; continue; // -> WindowMenuButtonPosition
             default: return ImGuiStyleMember::__unknown__;
             }
         case 19:
@@ -703,12 +724,13 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(199, 'g'): state = 200; continue; // -> DisplayWindowPadding
             case make_condition(284, 'p'): state = 285; continue; // -> HoverFlagsForTooltipMouse, HoverFlagsForTooltipNav
             case make_condition(307, 'y'): state = 308; continue; // -> HoverStationaryDelay
-            case make_condition(471, 'S'): state = 472; continue; // -> SeparatorTextBorderSize
-            case make_condition(481, 'g'): state = 482; continue; // -> SeparatorTextPadding
-            case make_condition(535, 'B'): state = 536; continue; // -> TabMinWidthForCloseButton
-            case make_condition(565, 'n'): state = 566; continue; // -> TableAngledHeadersAngle
-            case make_condition(570, 'e'): state = 571; continue; // -> TableAngledHeadersTextAlign
-            case make_condition(623, 'i'): state = 624; continue; // -> WindowMenuButtonPosition
+            case make_condition(485, 'S'): state = 486; continue; // -> SeparatorTextBorderSize
+            case make_condition(495, 'g'): state = 496; continue; // -> SeparatorTextPadding
+            case make_condition(549, 'd'): state = 550; continue; // -> TabCloseButtonMinWidthSelected, TabCloseButtonMinWidthUnselected
+            case make_condition(594, 'n'): state = 595; continue; // -> TableAngledHeadersAngle
+            case make_condition(599, 'e'): state = 600; continue; // -> TableAngledHeadersTextAlign
+            case make_condition(642, 'd'): state = 643; continue; // -> WindowBorderHoverPadding
+            case make_condition(664, 'i'): state = 665; continue; // -> WindowMenuButtonPosition
             default: return ImGuiStyleMember::__unknown__;
             }
         case 20:
@@ -718,11 +740,12 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(185, 'n'): state = 186; continue; // -> DisplaySafeAreaPadding
             case make_condition(285, 'M'): state = 286; continue; // -> HoverFlagsForTooltipMouse
             case make_condition(285, 'N'): state = 291; continue; // -> HoverFlagsForTooltipNav
-            case make_condition(472, 'i'): state = 473; continue; // -> SeparatorTextBorderSize
-            case make_condition(536, 'u'): state = 537; continue; // -> TabMinWidthForCloseButton
-            case make_condition(566, 'g'): state = 567; continue; // -> TableAngledHeadersAngle
-            case make_condition(571, 'x'): state = 572; continue; // -> TableAngledHeadersTextAlign
-            case make_condition(624, 't'): state = 625; continue; // -> WindowMenuButtonPosition
+            case make_condition(486, 'i'): state = 487; continue; // -> SeparatorTextBorderSize
+            case make_condition(550, 't'): state = 551; continue; // -> TabCloseButtonMinWidthSelected, TabCloseButtonMinWidthUnselected
+            case make_condition(595, 'g'): state = 596; continue; // -> TableAngledHeadersAngle
+            case make_condition(600, 'x'): state = 601; continue; // -> TableAngledHeadersTextAlign
+            case make_condition(643, 'd'): state = 644; continue; // -> WindowBorderHoverPadding
+            case make_condition(665, 't'): state = 666; continue; // -> WindowMenuButtonPosition
             default: return ImGuiStyleMember::__unknown__;
             }
         case 21:
@@ -732,11 +755,12 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(186, 'g'): state = 187; continue; // -> DisplaySafeAreaPadding
             case make_condition(286, 'o'): state = 287; continue; // -> HoverFlagsForTooltipMouse
             case make_condition(291, 'a'): state = 292; continue; // -> HoverFlagsForTooltipNav
-            case make_condition(473, 'z'): state = 474; continue; // -> SeparatorTextBorderSize
-            case make_condition(537, 't'): state = 538; continue; // -> TabMinWidthForCloseButton
-            case make_condition(567, 'l'): state = 568; continue; // -> TableAngledHeadersAngle
-            case make_condition(572, 't'): state = 573; continue; // -> TableAngledHeadersTextAlign
-            case make_condition(625, 'i'): state = 626; continue; // -> WindowMenuButtonPosition
+            case make_condition(487, 'z'): state = 488; continue; // -> SeparatorTextBorderSize
+            case make_condition(551, 'h'): state = 552; continue; // -> TabCloseButtonMinWidthSelected, TabCloseButtonMinWidthUnselected
+            case make_condition(596, 'l'): state = 597; continue; // -> TableAngledHeadersAngle
+            case make_condition(601, 't'): state = 602; continue; // -> TableAngledHeadersTextAlign
+            case make_condition(644, 'i'): state = 645; continue; // -> WindowBorderHoverPadding
+            case make_condition(666, 'i'): state = 667; continue; // -> WindowMenuButtonPosition
             default: return ImGuiStyleMember::__unknown__;
             }
         case 22:
@@ -744,39 +768,76 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
             case make_condition(99, 'r'): state = 100; continue; // -> CircleTessellationMaxError
             case make_condition(287, 'u'): state = 288; continue; // -> HoverFlagsForTooltipMouse
             case make_condition(292, 'v'): state = 293; continue; // -> HoverFlagsForTooltipNav
-            case make_condition(474, 'e'): state = 475; continue; // -> SeparatorTextBorderSize
-            case make_condition(538, 't'): state = 539; continue; // -> TabMinWidthForCloseButton
-            case make_condition(568, 'e'): state = 569; continue; // -> TableAngledHeadersAngle
-            case make_condition(573, 'A'): state = 574; continue; // -> TableAngledHeadersTextAlign
-            case make_condition(626, 'o'): state = 627; continue; // -> WindowMenuButtonPosition
+            case make_condition(488, 'e'): state = 489; continue; // -> SeparatorTextBorderSize
+            case make_condition(552, 'S'): state = 553; continue; // -> TabCloseButtonMinWidthSelected
+            case make_condition(552, 'U'): state = 561; continue; // -> TabCloseButtonMinWidthUnselected
+            case make_condition(597, 'e'): state = 598; continue; // -> TableAngledHeadersAngle
+            case make_condition(602, 'A'): state = 603; continue; // -> TableAngledHeadersTextAlign
+            case make_condition(645, 'n'): state = 646; continue; // -> WindowBorderHoverPadding
+            case make_condition(667, 'o'): state = 668; continue; // -> WindowMenuButtonPosition
             default: return ImGuiStyleMember::__unknown__;
             }
         case 23:
             switch (make_condition(state, key[i])) {
             case make_condition(100, 'r'): state = 101; continue; // -> CircleTessellationMaxError
             case make_condition(288, 's'): state = 289; continue; // -> HoverFlagsForTooltipMouse
-            case make_condition(539, 'o'): state = 540; continue; // -> TabMinWidthForCloseButton
-            case make_condition(574, 'l'): state = 575; continue; // -> TableAngledHeadersTextAlign
-            case make_condition(627, 'n'): state = 628; continue; // -> WindowMenuButtonPosition
+            case make_condition(553, 'e'): state = 554; continue; // -> TabCloseButtonMinWidthSelected
+            case make_condition(561, 'n'): state = 562; continue; // -> TabCloseButtonMinWidthUnselected
+            case make_condition(603, 'l'): state = 604; continue; // -> TableAngledHeadersTextAlign
+            case make_condition(646, 'g'): state = 647; continue; // -> WindowBorderHoverPadding
+            case make_condition(668, 'n'): state = 669; continue; // -> WindowMenuButtonPosition
             default: return ImGuiStyleMember::__unknown__;
             }
         case 24:
             switch (make_condition(state, key[i])) {
             case make_condition(101, 'o'): state = 102; continue; // -> CircleTessellationMaxError
             case make_condition(289, 'e'): state = 290; continue; // -> HoverFlagsForTooltipMouse
-            case make_condition(540, 'n'): state = 541; continue; // -> TabMinWidthForCloseButton
-            case make_condition(575, 'i'): state = 576; continue; // -> TableAngledHeadersTextAlign
+            case make_condition(554, 'l'): state = 555; continue; // -> TabCloseButtonMinWidthSelected
+            case make_condition(562, 's'): state = 563; continue; // -> TabCloseButtonMinWidthUnselected
+            case make_condition(604, 'i'): state = 605; continue; // -> TableAngledHeadersTextAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 25:
             switch (make_condition(state, key[i])) {
             case make_condition(102, 'r'): state = 103; continue; // -> CircleTessellationMaxError
-            case make_condition(576, 'g'): state = 577; continue; // -> TableAngledHeadersTextAlign
+            case make_condition(555, 'e'): state = 556; continue; // -> TabCloseButtonMinWidthSelected
+            case make_condition(563, 'e'): state = 564; continue; // -> TabCloseButtonMinWidthUnselected
+            case make_condition(605, 'g'): state = 606; continue; // -> TableAngledHeadersTextAlign
             default: return ImGuiStyleMember::__unknown__;
             }
         case 26:
             switch (make_condition(state, key[i])) {
-            case make_condition(577, 'n'): state = 578; continue; // -> TableAngledHeadersTextAlign
+            case make_condition(556, 'c'): state = 557; continue; // -> TabCloseButtonMinWidthSelected
+            case make_condition(564, 'l'): state = 565; continue; // -> TabCloseButtonMinWidthUnselected
+            case make_condition(606, 'n'): state = 607; continue; // -> TableAngledHeadersTextAlign
+            default: return ImGuiStyleMember::__unknown__;
+            }
+        case 27:
+            switch (make_condition(state, key[i])) {
+            case make_condition(557, 't'): state = 558; continue; // -> TabCloseButtonMinWidthSelected
+            case make_condition(565, 'e'): state = 566; continue; // -> TabCloseButtonMinWidthUnselected
+            default: return ImGuiStyleMember::__unknown__;
+            }
+        case 28:
+            switch (make_condition(state, key[i])) {
+            case make_condition(558, 'e'): state = 559; continue; // -> TabCloseButtonMinWidthSelected
+            case make_condition(566, 'c'): state = 567; continue; // -> TabCloseButtonMinWidthUnselected
+            default: return ImGuiStyleMember::__unknown__;
+            }
+        case 29:
+            switch (make_condition(state, key[i])) {
+            case make_condition(559, 'd'): state = 560; continue; // -> TabCloseButtonMinWidthSelected
+            case make_condition(567, 't'): state = 568; continue; // -> TabCloseButtonMinWidthUnselected
+            default: return ImGuiStyleMember::__unknown__;
+            }
+        case 30:
+            switch (make_condition(state, key[i])) {
+            case make_condition(568, 'e'): state = 569; continue; // -> TabCloseButtonMinWidthUnselected
+            default: return ImGuiStyleMember::__unknown__;
+            }
+        case 31:
+            switch (make_condition(state, key[i])) {
+            case make_condition(569, 'd'): state = 570; continue; // -> TabCloseButtonMinWidthUnselected
             default: return ImGuiStyleMember::__unknown__;
             }
         default: return ImGuiStyleMember::__unknown__;
@@ -810,34 +871,37 @@ ImGuiStyleMember mapImGuiStyleMember(char const* const key, size_t const len) no
     case 290: return ImGuiStyleMember::HoverFlagsForTooltipMouse;
     case 293: return ImGuiStyleMember::HoverFlagsForTooltipNav;
     case 308: return ImGuiStyleMember::HoverStationaryDelay;
-    case 321: return ImGuiStyleMember::IndentSpacing;
-    case 336: return ImGuiStyleMember::ItemInnerSpacing;
-    case 343: return ImGuiStyleMember::ItemSpacing;
-    case 360: return ImGuiStyleMember::LogSliderDeadzone;
-    case 376: return ImGuiStyleMember::MouseCursorScale;
-    case 391: return ImGuiStyleMember::PopupBorderSize;
-    case 399: return ImGuiStyleMember::PopupRounding;
-    case 412: return ImGuiStyleMember::ScaleAllSizes;
-    case 427: return ImGuiStyleMember::ScrollbarRounding;
-    case 431: return ImGuiStyleMember::ScrollbarSize;
-    case 449: return ImGuiStyleMember::SelectableTextAlign;
-    case 465: return ImGuiStyleMember::SeparatorTextAlign;
-    case 475: return ImGuiStyleMember::SeparatorTextBorderSize;
-    case 482: return ImGuiStyleMember::SeparatorTextPadding;
-    case 498: return ImGuiStyleMember::TabBarBorderSize;
-    case 510: return ImGuiStyleMember::TabBarOverlineSize;
-    case 519: return ImGuiStyleMember::TabBorderSize;
-    case 541: return ImGuiStyleMember::TabMinWidthForCloseButton;
-    case 549: return ImGuiStyleMember::TabRounding;
-    case 569: return ImGuiStyleMember::TableAngledHeadersAngle;
-    case 578: return ImGuiStyleMember::TableAngledHeadersTextAlign;
-    case 594: return ImGuiStyleMember::TouchExtraPadding;
-    case 610: return ImGuiStyleMember::WindowBorderSize;
-    case 628: return ImGuiStyleMember::WindowMenuButtonPosition;
-    case 634: return ImGuiStyleMember::WindowMinSize;
-    case 641: return ImGuiStyleMember::WindowPadding;
-    case 649: return ImGuiStyleMember::WindowRounding;
-    case 659: return ImGuiStyleMember::WindowTitleAlign;
+    case 323: return ImGuiStyleMember::ImageBorderSize;
+    case 335: return ImGuiStyleMember::IndentSpacing;
+    case 350: return ImGuiStyleMember::ItemInnerSpacing;
+    case 357: return ImGuiStyleMember::ItemSpacing;
+    case 374: return ImGuiStyleMember::LogSliderDeadzone;
+    case 390: return ImGuiStyleMember::MouseCursorScale;
+    case 405: return ImGuiStyleMember::PopupBorderSize;
+    case 413: return ImGuiStyleMember::PopupRounding;
+    case 426: return ImGuiStyleMember::ScaleAllSizes;
+    case 441: return ImGuiStyleMember::ScrollbarRounding;
+    case 445: return ImGuiStyleMember::ScrollbarSize;
+    case 463: return ImGuiStyleMember::SelectableTextAlign;
+    case 479: return ImGuiStyleMember::SeparatorTextAlign;
+    case 489: return ImGuiStyleMember::SeparatorTextBorderSize;
+    case 496: return ImGuiStyleMember::SeparatorTextPadding;
+    case 512: return ImGuiStyleMember::TabBarBorderSize;
+    case 524: return ImGuiStyleMember::TabBarOverlineSize;
+    case 533: return ImGuiStyleMember::TabBorderSize;
+    case 560: return ImGuiStyleMember::TabCloseButtonMinWidthSelected;
+    case 570: return ImGuiStyleMember::TabCloseButtonMinWidthUnselected;
+    case 578: return ImGuiStyleMember::TabRounding;
+    case 598: return ImGuiStyleMember::TableAngledHeadersAngle;
+    case 607: return ImGuiStyleMember::TableAngledHeadersTextAlign;
+    case 623: return ImGuiStyleMember::TouchExtraPadding;
+    case 647: return ImGuiStyleMember::WindowBorderHoverPadding;
+    case 651: return ImGuiStyleMember::WindowBorderSize;
+    case 669: return ImGuiStyleMember::WindowMenuButtonPosition;
+    case 675: return ImGuiStyleMember::WindowMinSize;
+    case 682: return ImGuiStyleMember::WindowPadding;
+    case 690: return ImGuiStyleMember::WindowRounding;
+    case 700: return ImGuiStyleMember::WindowTitleAlign;
     default: return ImGuiStyleMember::__unknown__;
     }
 }

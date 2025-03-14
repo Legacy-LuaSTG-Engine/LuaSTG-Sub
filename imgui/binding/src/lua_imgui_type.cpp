@@ -1,6 +1,5 @@
 #include "lua_imgui_common.hpp"
 #include "lua_imgui_type.hpp"
-#include "lua_imgui_hash.hpp"
 #include "generated/ImGuiStyleMember.hpp"
 #include <tuple>
 
@@ -155,6 +154,9 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
             case E::WindowBorderSize:
                 lua_pushnumber(L, (lua_Number)data->WindowBorderSize);
                 return 1;
+            case E::WindowBorderHoverPadding:
+                lua_pushnumber(L, (lua_Number)data->WindowBorderHoverPadding);
+                return 1;
             case E::WindowMinSize:
                 lua::create_type_instance<ImVec2>(L, data->WindowMinSize);
                 return 1;
@@ -212,6 +214,9 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
             case E::GrabRounding:
                 lua_pushnumber(L, (lua_Number)data->GrabRounding);
                 return 1;
+            case E::ImageBorderSize:
+                lua_pushnumber(L, (lua_Number)data->ImageBorderSize);
+                return 1;
             case E::LogSliderDeadzone:
                 lua_pushnumber(L, (lua_Number)data->LogSliderDeadzone);
                 return 1;
@@ -233,8 +238,11 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
             case E::TableAngledHeadersTextAlign:
                 lua::create_type_instance<ImVec2>(L, data->TableAngledHeadersTextAlign);
                 return 1;
-            case E::TabMinWidthForCloseButton:
-                lua_pushnumber(L, (lua_Number)data->TabMinWidthForCloseButton);
+            case E::TabCloseButtonMinWidthSelected:
+                lua_pushnumber(L, (lua_Number)data->TabCloseButtonMinWidthSelected);
+                return 1;
+            case E::TabCloseButtonMinWidthUnselected:
+                lua_pushnumber(L, (lua_Number)data->TabCloseButtonMinWidthUnselected);
                 return 1;
             case E::ColorButtonPosition:
                 lua_pushinteger(L, (lua_Integer)data->ColorButtonPosition);
@@ -325,6 +333,9 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
             case E::WindowBorderSize:
                 data->WindowBorderSize = (float)luaL_checknumber(L, 3);
                 break;
+            case E::WindowBorderHoverPadding:
+                data->WindowBorderHoverPadding = (float)luaL_checknumber(L, 3);
+                break;
             case E::WindowMinSize:
                 data->WindowMinSize = *lua::as_type_instance<ImVec2>(L, 3);
                 break;
@@ -382,6 +393,9 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
             case E::GrabRounding:
                 data->GrabRounding = (float)luaL_checknumber(L, 3);
                 break;
+            case E::ImageBorderSize:
+                data->ImageBorderSize = (float)luaL_checknumber(L, 3);
+                break;
             case E::LogSliderDeadzone:
                 data->LogSliderDeadzone = (float)luaL_checknumber(L, 3);
                 break;
@@ -403,8 +417,11 @@ void imgui_binding_lua_register_ImGuiStyle(lua_State* L)
             case E::TableAngledHeadersTextAlign:
                 data->TableAngledHeadersTextAlign = *lua::as_type_instance<ImVec2>(L, 3);
                 break;
-            case E::TabMinWidthForCloseButton:
-                data->TabMinWidthForCloseButton = (float)luaL_checknumber(L, 3);
+            case E::TabCloseButtonMinWidthSelected:
+                data->TabCloseButtonMinWidthSelected = (float)luaL_checknumber(L, 3);
+                break;
+            case E::TabCloseButtonMinWidthUnselected:
+                data->TabCloseButtonMinWidthUnselected = (float)luaL_checknumber(L, 3);
                 break;
             case E::ColorButtonPosition:
                 data->ColorButtonPosition = (ImGuiDir)luaL_checkinteger(L, 3);

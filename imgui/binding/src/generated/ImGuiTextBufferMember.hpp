@@ -12,7 +12,8 @@ enum class ImGuiTextBufferMember : int {
     clear = 2,
     empty = 3,
     reserve = 4,
-    size = 5,
+    size = 6,
+    resize = 5,
 };
 
 ImGuiTextBufferMember mapImGuiTextBufferMember(char const* const key, size_t const len) noexcept;

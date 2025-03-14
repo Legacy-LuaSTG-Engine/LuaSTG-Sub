@@ -131,8 +131,6 @@ target_sources(lua_imgui PRIVATE
     binding/src/lua_imgui_common.hpp
     binding/src/lua_imgui_enum.hpp
     binding/src/lua_imgui_enum.cpp
-    binding/src/lua_imgui_hash.cpp
-    binding/src/lua_imgui_hash.hpp
     binding/src/lua_imgui_ImGui.hpp
     binding/src/lua_imgui_ImGui_ColorX.inl
     binding/src/lua_imgui_ImGui_DragX.inl
@@ -149,6 +147,8 @@ target_sources(lua_imgui PRIVATE
 
     binding/src/generated/ImGuiStyleMember.hpp
     binding/src/generated/ImGuiStyleMember.cpp
+    binding/src/generated/ImGuiTextBufferMember.hpp
+    binding/src/generated/ImGuiTextBufferMember.cpp
 )
 target_link_libraries(lua_imgui PUBLIC
     imgui
