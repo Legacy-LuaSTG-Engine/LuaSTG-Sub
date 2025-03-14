@@ -19,5 +19,5 @@ namespace core {
 		}
 	};
 
-	template<> constexpr UUID uuid_of<IReferenceCounted>() { return CORE_UUID(3b4b05b7, 0986, 5d2f, 8fce, c8, 0c, 01, 03, 95, 28); }
+	template<> constexpr UUID uuid_of<IReferenceCounted>() { return CORE_UUID_INITIALIZER(3b4b05b7, 0986, 5d2f, 8fce, c8, 0c, 01, 03, 95, 28); }
 }

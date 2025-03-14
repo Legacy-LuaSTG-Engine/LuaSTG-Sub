@@ -9,7 +9,7 @@
 #endif
 // END:   FUCK Microsoft
 
-#define CORE_UUID(a, b, c, d, e0, e1, e2, e3, e4, e5) { 0x##a##u, 0x##b##u, 0x##c##u, 0x##d##u, 0x##e0##u, 0x##e1##u, 0x##e2##u, 0x##e3##u, 0x##e4##u, 0x##e5##u }
+#define CORE_UUID_INITIALIZER(a, b, c, d, e0, e1, e2, e3, e4, e5) { 0x##a##u, 0x##b##u, 0x##c##u, 0x##d##u, 0x##e0##u, 0x##e1##u, 0x##e2##u, 0x##e3##u, 0x##e4##u, 0x##e5##u }
 
 namespace core {
 	// ReSharper disable once CppInconsistentNaming

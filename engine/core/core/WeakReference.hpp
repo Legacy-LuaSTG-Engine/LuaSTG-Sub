@@ -10,5 +10,5 @@ namespace core {
 		}
 	};
 
-	template<> constexpr UUID uuid_of<IWeakReference>() { return CORE_UUID(276a742d, ecc9, 5b57, 998c, f2, 27, 16, 00, d4, 4a); }
+	template<> constexpr UUID uuid_of<IWeakReference>() { return CORE_UUID_INITIALIZER(276a742d, ecc9, 5b57, 998c, f2, 27, 16, 00, d4, 4a); }
 }
