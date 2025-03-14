@@ -1,45 +1,30 @@
 #pragma once
 #include "core/WeakReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
-#include "core/implement/WeakReferenceSource.hpp"
 
 namespace core::implement {
-	template<typename Target>
 	class WeakReference final : public ReferenceCounted<IWeakReference> {
 	public:
-		// IObject
-
-		bool queryInterface(InterfaceId const interface_id, void** output) override {
-			if (interface_id == getInterfaceId<IReferenceCounted>()) {
-				reference();
-				*output = static_cast<IReferenceCounted*>(this);
-				return true;
-			}
-			if (interface_id == getInterfaceId<IObject>()) {
-				reference();
-				*output = static_cast<IObject*>(this);
-				return true;
-			}
-			if (interface_id == getInterfaceId<IWeakReference>()) {
-				reference();
-				*output = static_cast<IWeakReference*>(this);
-				return true;
-			}
-			return false;
-		}
-
 		// IWeakReference
 
-		bool resolve(InterfaceId const interface_id, void** const output) override {
-			if (auto const counter = m_object_counter; counter->strong.load() > 0) {
-				return m_object->queryInterface(interface_id, output);
+		Boolean32 resolve(UUID const& uuid, void** const output) override {
+			assert(output != nullptr);
+			auto const counter = m_object_counter;
+			if (auto const last_strong = counter->strong.fetch_add(1); last_strong > 0) {
+				auto const result = m_object->queryInterface(uuid, output);
+				counter->strong.fetch_sub(1);
+				return result;
 			}
-			return false;
+			counter->strong.fetch_sub(1);
+			*output = nullptr;
+			return Boolean32::of(false);
 		}
 
 		// WeakReference
 
-		explicit WeakReference(IObject* object) : m_object_counter(static_cast<Target*>(object)->m_counter), m_object(object) {
+		explicit WeakReference(ReferenceCounter* const counter, IReferenceCounted* const object) : m_object_counter(counter), m_object(object) {
+			assert(m_object_counter != nullptr);
+			assert(m_object != nullptr);
 			m_object_counter->weak.fetch_add(1);
 		}
 		WeakReference(WeakReference const&) = delete;
@@ -56,6 +41,6 @@ namespace core::implement {
 
 	private:
 		ReferenceCounter* m_object_counter;
-		IObject* m_object;
+		IReferenceCounted* m_object;
 	};
 }

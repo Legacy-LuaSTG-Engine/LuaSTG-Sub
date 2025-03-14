@@ -1,19 +1,42 @@
 #pragma once
 #include "core/ReferenceCounted.hpp"
 #include "core/implement/ReferenceCountedDebugger.hpp"
+#include <cassert>
 #include <atomic>
 
 namespace core::implement {
+	struct ReferenceCounter {
+		std::atomic_int32_t strong{ 1 };
+		std::atomic_int32_t weak{ 1 };
+	};
+
 	template<typename T>
 	class ReferenceCounted : public T {
 	public:
-		void reference() override {
-			m_counter.fetch_add(1);
+		int32_t reference() override {
+			return m_counter.fetch_add(1) + 1;
 		}
-		void release() override {
-			if (auto const last_counter = m_counter.fetch_sub(1); last_counter == 1) {
+		int32_t release() override {
+			auto const last_counter = m_counter.fetch_sub(1);
+			if (last_counter == 1) {
 				delete this;
 			}
+			return last_counter - 1;
+		}
+		Boolean32 queryInterface(UUID const& uuid, void** const output) override {
+			assert(output != nullptr);
+			if (uuid == uuid_of<IReferenceCounted>()) {
+				reference();
+				*output = static_cast<IReferenceCounted*>(this);
+				return Boolean32::of(true);
+			}
+			if (uuid == uuid_of<T>()) {
+				reference();
+				*output = static_cast<T*>(this);
+				return Boolean32::of(true);
+			}
+			*output = nullptr;
+			return Boolean32::of(false);
 		}
 
 		ReferenceCounted() : m_counter{ 1 } {

@@ -1,33 +1,53 @@
 #pragma once
 #include "core/WeakReferenceSource.hpp"
 #include "core/implement/ReferenceCountedDebugger.hpp"
-#include <atomic>
+#include "core/implement/ReferenceCounted.hpp"
+#include "core/implement/WeakReference.hpp"
 
 namespace core::implement {
-	struct ReferenceCounter {
-		std::atomic_int32_t strong{ 1 };
-		std::atomic_int32_t weak{ 1 };
-	};
-
 	template<typename T>
 	class WeakReferenceSource : public T {
-		template<typename Target>
-		friend class WeakReference;
 	public:
-		void reference() override {
-			m_counter->strong.fetch_add(1);
+		int32_t reference() override {
+			return m_counters->strong.fetch_add(1) + 1;
 		}
-		void release() override {
-			auto const counter = m_counter;
-			if (auto const last_strong = counter->strong.fetch_sub(1); last_strong == 1) {
+		int32_t release() override {
+			auto const counters = m_counters;
+			auto const last_strong = counters->strong.fetch_sub(1);
+			if (last_strong == 1) {
 				delete this;
-				if (auto const last_weak = counter->weak.fetch_sub(1); last_weak == 1) {
-					delete counter;
+				if (auto const last_weak = counters->weak.fetch_sub(1); last_weak == 1) {
+					delete counters;
 				}
 			}
+			return last_strong + 1;
+		}
+		Boolean32 queryInterface(UUID const& uuid, void** const output) override {
+			assert(output != nullptr);
+			if (uuid == uuid_of<IReferenceCounted>()) {
+				reference();
+				*output = static_cast<IReferenceCounted*>(this);
+				return Boolean32::of(true);
+			}
+			if (uuid == uuid_of<IWeakReferenceSource>()) {
+				reference();
+				*output = static_cast<IWeakReferenceSource*>(this);
+				return Boolean32::of(true);
+			}
+			if (uuid == uuid_of<T>()) {
+				reference();
+				*output = static_cast<T*>(this);
+				return Boolean32::of(true);
+			}
+			*output = nullptr;
+			return Boolean32::of(false);
+		}
+		void getWeakReference(IWeakReference** const output) override {
+			assert(output != nullptr);
+			*output = new WeakReference(m_counters, this);
 		}
 
-		WeakReferenceSource() : m_counter(new ReferenceCounter()) {
+		WeakReferenceSource() : m_counters(new ReferenceCounter()) {
 		#ifndef NDEBUG
 			ReferenceCountedDebugger::startTracking(this);
 		#endif
@@ -44,6 +64,6 @@ namespace core::implement {
 		WeakReferenceSource& operator=(WeakReferenceSource&&) = delete;
 
 	private:
-		ReferenceCounter* m_counter;
+		ReferenceCounter* m_counters;
 	};
 }
