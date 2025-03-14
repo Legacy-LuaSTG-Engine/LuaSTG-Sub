@@ -219,7 +219,7 @@ namespace LuaSTG::Sub::LuaBinding {
 		static int normalize(lua_State* vm) {
 			lua::stack_t const ctx(vm);
 			auto const self = as(vm, 1);
-			self->data.normalize();
+			std::ignore = self->data.normalize();
 			ctx.push_value(lua::stack_index_t(1));
 			return 1;
 		}
