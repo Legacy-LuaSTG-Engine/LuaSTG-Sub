@@ -44,10 +44,13 @@
 // DirectX
 #include <stdio.h>
 #include <d3d11.h>
-#include <d3dcompiler.h>
-#ifdef _MSC_VER
-#pragma comment(lib, "d3dcompiler") // Automatically link with d3dcompiler.lib as we are using D3DCompile() below.
-#endif
+//#include <d3dcompiler.h>
+//#ifdef _MSC_VER
+//#pragma comment(lib, "d3dcompiler") // Automatically link with d3dcompiler.lib as we are using D3DCompile() below.
+//#endif
+#include "imgui/backend/d3d11/vertex_shader.hpp"
+#include "imgui/backend/d3d11/pixel_shader.hpp"
+namespace hlsl = imgui::backend::d3d11;
 
 // DirectX11 data
 struct ImGui_ImplDX11_Data
@@ -318,7 +321,7 @@ void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data)
     device->IASetInputLayout(old.InputLayout); if (old.InputLayout) old.InputLayout->Release();
 }
 
-static void ImGui_ImplDX11_CreateFontsTexture()
+static bool ImGui_ImplDX11_CreateFontsTexture()
 {
     // Build texture atlas
     ImGuiIO& io = ImGui::GetIO();
@@ -346,7 +349,8 @@ static void ImGui_ImplDX11_CreateFontsTexture()
         subResource.pSysMem = pixels;
         subResource.SysMemPitch = desc.Width * 4;
         subResource.SysMemSlicePitch = 0;
-        bd->pd3dDevice->CreateTexture2D(&desc, &subResource, &pTexture);
+        if (FAILED(bd->pd3dDevice->CreateTexture2D(&desc, &subResource, &pTexture)))
+            return false;
         IM_ASSERT(pTexture != nullptr);
 
         // Create texture view
@@ -356,12 +360,19 @@ static void ImGui_ImplDX11_CreateFontsTexture()
         srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
         srvDesc.Texture2D.MipLevels = desc.MipLevels;
         srvDesc.Texture2D.MostDetailedMip = 0;
-        bd->pd3dDevice->CreateShaderResourceView(pTexture, &srvDesc, &bd->pFontTextureView);
+        if (FAILED(bd->pd3dDevice->CreateShaderResourceView(pTexture, &srvDesc, &bd->pFontTextureView)))
+        {
+            pTexture->Release();
+            return false;
+        }
+
         pTexture->Release();
     }
 
     // Store our identifier
     io.Fonts->SetTexID((ImTextureID)bd->pFontTextureView);
+
+    return true;
 }
 
 static void ImGui_ImplDX11_DestroyFontsTexture()
@@ -419,12 +430,12 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
               return output;\
             }";
 
-        ID3DBlob* vertexShaderBlob;
-        if (FAILED(D3DCompile(vertexShader, strlen(vertexShader), nullptr, nullptr, nullptr, "main", "vs_4_0", 0, 0, &vertexShaderBlob, nullptr)))
-            return false; // NB: Pass ID3DBlob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
-        if (bd->pd3dDevice->CreateVertexShader(vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize(), nullptr, &bd->pVertexShader) != S_OK)
+        //ID3DBlob* vertexShaderBlob;
+        //if (FAILED(D3DCompile(vertexShader, strlen(vertexShader), nullptr, nullptr, nullptr, "main", "vs_4_0", 0, 0, &vertexShaderBlob, nullptr)))
+        //    return false; // NB: Pass ID3DBlob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
+        if (bd->pd3dDevice->CreateVertexShader(hlsl::vertex_shader, sizeof(hlsl::vertex_shader), nullptr, &bd->pVertexShader) != S_OK)
         {
-            vertexShaderBlob->Release();
+            //vertexShaderBlob->Release();
             return false;
         }
 
@@ -435,12 +446,12 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
             { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (UINT)offsetof(ImDrawVert, uv),  D3D11_INPUT_PER_VERTEX_DATA, 0 },
             { "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (UINT)offsetof(ImDrawVert, col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
         };
-        if (bd->pd3dDevice->CreateInputLayout(local_layout, 3, vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize(), &bd->pInputLayout) != S_OK)
+        if (bd->pd3dDevice->CreateInputLayout(local_layout, 3, hlsl::vertex_shader, sizeof(hlsl::vertex_shader), &bd->pInputLayout) != S_OK)
         {
-            vertexShaderBlob->Release();
+            //vertexShaderBlob->Release();
             return false;
         }
-        vertexShaderBlob->Release();
+        //vertexShaderBlob->Release();
 
         // Create the constant buffer
         {
@@ -472,15 +483,15 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
             return out_col; \
             }";
 
-        ID3DBlob* pixelShaderBlob;
-        if (FAILED(D3DCompile(pixelShader, strlen(pixelShader), nullptr, nullptr, nullptr, "main", "ps_4_0", 0, 0, &pixelShaderBlob, nullptr)))
-            return false; // NB: Pass ID3DBlob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
-        if (bd->pd3dDevice->CreatePixelShader(pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize(), nullptr, &bd->pPixelShader) != S_OK)
+        //ID3DBlob* pixelShaderBlob;
+        //if (FAILED(D3DCompile(pixelShader, strlen(pixelShader), nullptr, nullptr, nullptr, "main", "ps_4_0", 0, 0, &pixelShaderBlob, nullptr)))
+        //    return false; // NB: Pass ID3DBlob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
+        if (bd->pd3dDevice->CreatePixelShader(hlsl::pixel_shader, sizeof(hlsl::pixel_shader), nullptr, &bd->pPixelShader) != S_OK)
         {
-            pixelShaderBlob->Release();
+            //pixelShaderBlob->Release();
             return false;
         }
-        pixelShaderBlob->Release();
+        //pixelShaderBlob->Release();
     }
 
     // Create the blending setup
@@ -496,7 +507,8 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
         desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
         desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
         desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-        bd->pd3dDevice->CreateBlendState(&desc, &bd->pBlendState);
+        if (bd->pd3dDevice->CreateBlendState(&desc, &bd->pBlendState) != S_OK)
+            return false;
     }
 
     // Create the rasterizer state
@@ -507,7 +519,8 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
         desc.CullMode = D3D11_CULL_NONE;
         desc.ScissorEnable = true;
         desc.DepthClipEnable = true;
-        bd->pd3dDevice->CreateRasterizerState(&desc, &bd->pRasterizerState);
+        if (bd->pd3dDevice->CreateRasterizerState(&desc, &bd->pRasterizerState) != S_OK)
+            return false;
     }
 
     // Create depth-stencil State
@@ -521,7 +534,8 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
         desc.FrontFace.StencilFailOp = desc.FrontFace.StencilDepthFailOp = desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
         desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
         desc.BackFace = desc.FrontFace;
-        bd->pd3dDevice->CreateDepthStencilState(&desc, &bd->pDepthStencilState);
+        if (bd->pd3dDevice->CreateDepthStencilState(&desc, &bd->pDepthStencilState) != S_OK)
+            return false;
     }
 
     // Create texture sampler
@@ -537,10 +551,12 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
         desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
         desc.MinLOD = 0.f;
         desc.MaxLOD = 0.f;
-        bd->pd3dDevice->CreateSamplerState(&desc, &bd->pFontSampler);
+        if (bd->pd3dDevice->CreateSamplerState(&desc, &bd->pFontSampler) != S_OK)
+            return false;
     }
 
-    ImGui_ImplDX11_CreateFontsTexture();
+    if (!ImGui_ImplDX11_CreateFontsTexture())
+        return false;
 
     return true;
 }
