@@ -10,6 +10,8 @@
 #include "LuaBinding/Vector2.hpp"
 #include "LuaBinding/Vector3.hpp"
 #include "LuaBinding/Vector4.hpp"
+#include "LuaBinding/Sprite.hpp"
+#include "LuaBinding/SpriteRenderer.hpp"
 
 namespace LuaSTGPlus
 {
@@ -78,6 +80,8 @@ namespace LuaSTGPlus
 		LuaSTG::Sub::LuaBinding::Vector2::registerClass(L);
 		LuaSTG::Sub::LuaBinding::Vector3::registerClass(L);
 		LuaSTG::Sub::LuaBinding::Vector4::registerClass(L);
+		LuaSTG::Sub::LuaBinding::Sprite::registerClass(L);
+		LuaSTG::Sub::LuaBinding::SpriteRenderer::registerClass(L);
 		http::Request::registerClass(L);
 		http::ResponseEntity::registerClass(L);
 	}

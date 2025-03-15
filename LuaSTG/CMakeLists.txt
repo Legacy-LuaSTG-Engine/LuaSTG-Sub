@@ -134,6 +134,10 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/Vector3.cpp
     LuaSTG/LuaBinding/Vector4.hpp
     LuaSTG/LuaBinding/Vector4.cpp
+    LuaSTG/LuaBinding/Sprite.hpp
+    LuaSTG/LuaBinding/Sprite.cpp
+    LuaSTG/LuaBinding/SpriteRenderer.hpp
+    LuaSTG/LuaBinding/SpriteRenderer.cpp
     LuaSTG/LuaBinding/generated/BlendModeX.cpp
     LuaSTG/LuaBinding/generated/BlendModeX.hpp
     LuaSTG/LuaBinding/generated/ColorMember.cpp
