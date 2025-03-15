@@ -47,6 +47,8 @@ set(Core_SRC
     
     Core/Graphics/Common/Sprite.hpp
     Core/Graphics/Common/Sprite.cpp
+    Core/Graphics/Common/SpriteRenderer.hpp
+    Core/Graphics/Common/SpriteRenderer.cpp
     Core/Graphics/Common/FreeTypeGlyphManager.hpp
     Core/Graphics/Common/FreeTypeGlyphManager.cpp
     Core/Graphics/Common/TextRenderer.hpp
