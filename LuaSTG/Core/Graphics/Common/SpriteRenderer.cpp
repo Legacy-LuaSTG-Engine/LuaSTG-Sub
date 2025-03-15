@@ -139,7 +139,9 @@ namespace Core::Graphics::Common {
 		renderer->drawQuad(m_vertex);
 	}
 
-	SpriteRenderer::SpriteRenderer() = default;
+	SpriteRenderer::SpriteRenderer() {
+		setColor(Color4B(0xffffffffu));
+	}
 	SpriteRenderer::~SpriteRenderer() = default;
 }
 namespace Core::Graphics {

@@ -55,7 +55,7 @@ namespace LuaSTG::Sub::LuaBinding {
 			lua::stack_t const ctx(vm);
 			auto const self = as(vm, 1);
 			self->scale.x = ctx.get_value<float>(1 + 1);
-			self->scale.y = ctx.get_value<float>(1 + 2, self->scale.y);
+			self->scale.y = ctx.get_value<float>(1 + 2, self->scale.x);
 			ctx.push_value(lua::stack_index_t(1));
 			return 1;
 		}
