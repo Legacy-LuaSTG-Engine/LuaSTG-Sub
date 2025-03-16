@@ -53,13 +53,13 @@ namespace LuaSTG
         [UnmanagedCallersOnly]
         public unsafe static void RenderFunc()
         {
-            var rad = time * DEG2RAD;
-            BeginScene();
-            RenderClear(255,
-                Convert.ToByte(127.0f + 127.0f * Math.Cos(rad)),
-                Convert.ToByte(127.0f + 127.0f * Math.Cos(rad + PI_3_2)),
-                Convert.ToByte(127.0f + 127.0f * Math.Cos(rad + PI_3_2 * 2)));
-            EndScene();
+            //var rad = time * DEG2RAD;
+            //BeginScene();
+            //RenderClear(255,
+            //    Convert.ToByte(127.0f + 127.0f * Math.Cos(rad)),
+            //    Convert.ToByte(127.0f + 127.0f * Math.Cos(rad + PI_3_2)),
+            //    Convert.ToByte(127.0f + 127.0f * Math.Cos(rad + PI_3_2 * 2)));
+            //EndScene();
         }
 
         [UnmanagedCallersOnly]
