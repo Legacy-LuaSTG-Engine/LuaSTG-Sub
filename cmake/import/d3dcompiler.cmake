@@ -20,7 +20,7 @@ set(d3dcompiler47_dll "${windows_10_sdk_bin}/d3dcompiler_47.dll")
 
 # from nuget package Microsoft.Windows.SDK.CPP
 
-if ( EXISTS ${d3dcompiler47_dll})
+if (NOT EXISTS ${d3dcompiler47_dll})
     message(STATUS "-- d3dcompiler_47.dll not exits, download nuget package Microsoft.Windows.SDK.CPP")
     CPMAddPackage(
         NAME Microsoft.Windows.SDK.CPP
