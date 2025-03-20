@@ -190,12 +190,12 @@ static int lib_clearRenderTarget(lua_State* L)noexcept {
 	}
 
 	if (!LAPP.GetRenderTargetManager()->IsRenderTargetStackEmpty()) {
-		uint16_t x = color.a * color.r;
-		color.r = static_cast<uint8_t>((x + ((x + 257) >> 8)) >> 8);
-		x = color.a * color.g;
-		color.g = static_cast<uint8_t>((x + ((x + 257) >> 8)) >> 8);
-		x = color.a * color.b;
-		color.b = static_cast<uint8_t>((x + ((x + 257) >> 8)) >> 8);
+		uint16_t const r = color.a * color.r;
+		color.r = static_cast<uint8_t>((r + ((r + 257) >> 8)) >> 8);
+		uint16_t const g = color.a * color.g;
+		color.g = static_cast<uint8_t>((g + ((g + 257) >> 8)) >> 8);
+		uint16_t const b = color.a * color.b;
+		color.b = static_cast<uint8_t>((b + ((b + 257) >> 8)) >> 8);
 	}
 	LR2D()->clearRenderTarget(color);
 	return 0;
