@@ -1,3 +1,3 @@
 add_subdirectory(configuration)
-add_subdirectory(core)
+add_subdirectory(reference-counted)
 add_subdirectory(backend)
