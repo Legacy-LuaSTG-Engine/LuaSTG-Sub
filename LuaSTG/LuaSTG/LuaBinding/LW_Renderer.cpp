@@ -217,6 +217,16 @@ static int lib_clearRenderTarget(lua_State* L)noexcept
     {
         color = *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(L, 1);
     }
+
+    if (!LAPP.GetRenderTargetManager()->IsRenderTargetStackEmpty())
+    {
+        uint16_t x = color.a * color.r;
+        color.r = static_cast<uint8_t>((x + ((x + 257) >> 8)) >> 8);
+        x = color.a * color.g;
+        color.g = static_cast<uint8_t>((x + ((x + 257) >> 8)) >> 8);
+        x = color.a * color.b;
+        color.b = static_cast<uint8_t>((x + ((x + 257) >> 8)) >> 8);
+    }
     LR2D()->clearRenderTarget(color);
     return 0;
 }
