@@ -3179,7 +3179,7 @@ static int lib_IsMouseDoubleClicked(lua_State* L)
 static int lib_IsMouseReleasedWithDelay(lua_State* L)
 {
     const ImGuiMouseButton button = (ImGuiMouseButton)luaL_checkinteger(L, 1);
-    const ImGuiMouseButton delay = (float)luaL_checknumber(L, 2);
+    const float delay = (float)luaL_checknumber(L, 2);
     const bool ret = ImGui::IsMouseReleasedWithDelay(button, delay);
     lua_pushboolean(L, ret);
     return 1;
