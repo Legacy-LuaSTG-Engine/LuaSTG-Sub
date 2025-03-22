@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "LuaSTGSub": {
+      "commandName": "Executable",
+      "executablePath": "../../../build/amd64/bin/LuaSTG.exe",
+      "workingDirectory": "../../../build/amd64/bin/"
+    }
+  }
+}
