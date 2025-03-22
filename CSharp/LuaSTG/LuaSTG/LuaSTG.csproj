@@ -7,6 +7,9 @@
     <OutputPath>$(MSBuildProjectDirectory)..\..\..\..\build\amd64\bin\Managed</OutputPath>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <OutputType>Library</OutputType>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LuaSTG.Core\LuaSTG.Core.csproj" />
+  </ItemGroup>
 </Project>

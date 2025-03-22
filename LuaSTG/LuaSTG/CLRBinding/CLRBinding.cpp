@@ -25,7 +25,7 @@ bool LuaSTGPlus::InitCLRBinding(const CLRHost* host, CLRFunctions* functions)
 	void* fn = nullptr;
 	if (host->load_assembly_and_get_function_pointer(
 		L".\\Managed\\net8.0\\LuaSTG.dll",
-		L"LuaSTG.LuaSTGAPI, LuaSTG",
+		L"LuaSTG.Core.LuaSTGAPI, LuaSTG.Core",
 		L"StartUp",
 		UNMANAGEDCALLERSONLY_METHOD,
 		&fn) || !fn)
