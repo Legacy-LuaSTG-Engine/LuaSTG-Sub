@@ -42,10 +42,10 @@ namespace LuaSTG.Core
 
             foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
             {
-                var type = asm.GetType("LuaSTG.LuaSTGApp");
+                var type = asm.GetType("LuaSTG.LuaSTGAppFactory");
                 if (type != null)
                 {
-                    app = Activator.CreateInstance(type) as ILuaSTGApp;
+                    app = (Activator.CreateInstance(type) as ILuaSTGAppFactory)?.Create();
                     break;
                 }
             }
