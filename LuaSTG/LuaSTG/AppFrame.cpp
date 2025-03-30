@@ -202,7 +202,7 @@ bool AppFrame::Init()noexcept
 		spdlog::info("[luastg] 初始化对象池，容量{}", LOBJPOOL_SIZE);
 		try
 		{
-			m_GameObjectPool = std::make_unique<GameObjectPool>(L);
+			m_GameObjectPool = std::make_unique<GameObjectPool>(L, &clr_fn);
 		}
 		catch (const std::bad_alloc&)
 		{

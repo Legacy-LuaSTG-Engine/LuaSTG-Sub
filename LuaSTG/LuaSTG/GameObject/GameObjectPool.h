@@ -3,6 +3,7 @@
 #include "Utility/fixed_object_pool.hpp"
 #include <deque>
 #include <memory_resource>
+#include "CLRBinding/CLRBinding.hpp"
 
 // 对象池信息
 #define LOBJPOOL_SIZE   32768 // 最大对象数 //32768(full) //16384(half)
@@ -32,6 +33,7 @@ namespace LuaSTGPlus
 		cpp::fixed_object_pool<GameObject, LOBJPOOL_SIZE> m_ObjectPool;
 		uint64_t m_iUid = 0;
 		lua_State* G_L = nullptr;
+		CLRFunctions* CLR_fn;
 
 		// GameObject List
 		struct _less_render {
@@ -313,7 +315,7 @@ namespace LuaSTGPlus
 		static int api_ParticleSetEmission(lua_State* L) noexcept;
 
 	public:
-		GameObjectPool(lua_State* pL);
+		GameObjectPool(lua_State* pL, CLRFunctions* clr_fn);
 		GameObjectPool& operator=(const GameObjectPool&) = delete;
 		GameObjectPool(const GameObjectPool&) = delete;
 		~GameObjectPool();

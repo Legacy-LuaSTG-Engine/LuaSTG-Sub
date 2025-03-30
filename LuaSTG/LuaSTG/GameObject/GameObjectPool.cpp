@@ -13,12 +13,13 @@ namespace LuaSTGPlus
 
 	static GameObjectPool* g_GameObjectPool = nullptr;
 
-	GameObjectPool::GameObjectPool(lua_State* pL)
+	GameObjectPool::GameObjectPool(lua_State* pL, CLRFunctions* clr_fn)
 	{
 		assert(g_GameObjectPool == nullptr);
 		g_GameObjectPool = this;
 		// Lua_State
 		G_L = pL;
+		CLR_fn = clr_fn;
 		// 初始化对象链表
 		_ClearLinkList();
 		m_RenderList.clear();
