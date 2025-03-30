@@ -27,7 +27,7 @@ namespace LuaSTG.Core
         public static void Log(LogLevel level, string message)
         {
             IntPtr unmanagedString = Marshal.StringToHGlobalAnsi(message);
-            api.log((int) level, unmanagedString);
+            api.log((int)level, unmanagedString);
             Marshal.FreeHGlobal(unmanagedString);
         }
 
