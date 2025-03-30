@@ -8,6 +8,6 @@ namespace LuaSTG.Core
 {
     public interface ILuaSTGAppFactory
     {
-        ILuaSTGApp Create();
+        ILuaSTGApp? GetApplication();
     }
 }

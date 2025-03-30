@@ -45,7 +45,7 @@ namespace LuaSTG.Core
                 var type = asm.GetType("LuaSTG.LuaSTGAppFactory");
                 if (type != null)
                 {
-                    app = (Activator.CreateInstance(type) as ILuaSTGAppFactory)?.Create();
+                    app = (Activator.CreateInstance(type) as ILuaSTGAppFactory)?.GetApplication();
                     break;
                 }
             }

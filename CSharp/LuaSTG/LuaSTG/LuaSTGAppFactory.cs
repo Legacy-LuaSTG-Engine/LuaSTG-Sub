@@ -10,7 +10,7 @@ namespace LuaSTG
 {
     public class LuaSTGAppFactory : ILuaSTGAppFactory
     {
-        public ILuaSTGApp Create()
+        public ILuaSTGApp? GetApplication()
         {
             return new LuaSTGApp();
         }
