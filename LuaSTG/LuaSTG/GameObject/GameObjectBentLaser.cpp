@@ -55,7 +55,7 @@ void GameObjectBentLaser::_UpdateNodeVertexExtend(size_t i) noexcept
 	node.sharp = false;
 
 	// 只有一个节点，也就是自己的情况
-	if (m_Queue.Size() <= 1)
+	if (m_Queue.size() <= 1)
 	{
 		// 不渲染
 		node.x_dir = 0.0f;
@@ -79,7 +79,7 @@ void GameObjectBentLaser::_UpdateNodeVertexExtend(size_t i) noexcept
 		node.y_dir = vecn.y;
 		return;
 	}
-	else if (i == (m_Queue.Size() - 1))
+	else if (i == (m_Queue.size() - 1))
 	{
 		// 是尾节点（新节点），利用上一个节点的位置来计算节点朝向
 		LaserNode& last = m_Queue[i - 1]; // 上一个节点（相对更老的节点）
@@ -143,7 +143,7 @@ void GameObjectBentLaser::_UpdateNodeVertexExtend(size_t i) noexcept
 	/*
 	LaserNode& cur = m_Queue[i];
 	cur.sharp = false;
-	int sz = m_Queue.Size() - 1;
+	int sz = m_Queue.size() - 1;
 	if (sz > 0)
 	{
 		float curcos = 0.0f, cursin = 0.0f;
@@ -200,7 +200,7 @@ void GameObjectBentLaser::_UpdateAllNode() noexcept
 	m_fLength = 0.0f;
 
 	// 检查节点数量
-	size_t const node_count = m_Queue.Size();
+	size_t const node_count = m_Queue.size();
 	if (node_count == 0)
 	{
 		return;
@@ -251,13 +251,12 @@ void GameObjectBentLaser::_UpdateAllNode() noexcept
 
 void GameObjectBentLaser::_PopHead() noexcept
 {
-	if (m_Queue.Size() > 1)
+	if (m_Queue.size() > 1)
 	{
-		LaserNode last; // 最老的节点
-		m_Queue.Pop(last);
-		if (m_Queue.Size() > 1)
+		LaserNode const& last = m_Queue.popHead(); // 最老的节点
+		if (m_Queue.size() > 1)
 		{
-			LaserNode& next = m_Queue.Front(); // 下一个节点
+			LaserNode& next = m_Queue.head(); // 下一个节点
 			// 如果最后两个节点都是激活的，根据节点间的距离减少曲线激光总长度
 			if (last.active && next.active)
 			{
@@ -273,14 +272,14 @@ void GameObjectBentLaser::_PopHead() noexcept
 
 int GameObjectBentLaser::GetSize() noexcept
 {
-	return (int)m_Queue.Size();
+	return (int)m_Queue.size();
 }
 
 GameObjectBentLaser::LaserNode* GameObjectBentLaser::GetNode(size_t i) noexcept
 {
-	if (m_Queue.Size() > 0u)
+	if (m_Queue.size() > 0u)
 	{
-		if (i >= 0u && i < m_Queue.Size())
+		if (i >= 0u && i < m_Queue.size())
 		{
 			return &(m_Queue[i]);
 		}
@@ -335,19 +334,19 @@ bool GameObjectBentLaser::Update(float x, float y, float rot, int length, float 
 	node.active = active;
 
 	// 变化几乎可以忽略不计，我们可以直接修改最新的节点
-	if (!m_Queue.IsEmpty() && (node.pos - m_Queue.Back().pos).length() <= std::numeric_limits<float>::min())
+	if (!m_Queue.empty() && (node.pos - m_Queue.tail().pos).length() <= std::numeric_limits<float>::min())
 	{
 		// 移除多余的节点，保证长度在 length 范围内
-		while (m_Queue.Size() >= (size_t)length)
+		while (m_Queue.size() >= (size_t)length)
 		{
 			_PopHead();
 		}
 
 		// 修改最新的节点
-		if (m_Queue.Size() >= 2)
+		if (m_Queue.size() >= 2)
 		{
-			LaserNode& prev = m_Queue[m_Queue.Size() - 2];
-			LaserNode& last = m_Queue[m_Queue.Size() - 1];
+			LaserNode& prev = m_Queue[m_Queue.size() - 2];
+			LaserNode& last = m_Queue[m_Queue.size() - 1];
 			// 修改坐标
 			last.pos = node.pos;
 			//last.half_width = node.half_width; // 保留宽度
@@ -359,12 +358,12 @@ bool GameObjectBentLaser::Update(float x, float y, float rot, int length, float 
 			// 修改激活状态
 			//last.active = node.active; // 保留激活状态
 			// 更新节点
-			_UpdateNodeVertexExtend(m_Queue.Size() - 1);
-			_UpdateNodeVertexExtend(m_Queue.Size() - 2);
+			_UpdateNodeVertexExtend(m_Queue.size() - 1);
+			_UpdateNodeVertexExtend(m_Queue.size() - 2);
 		}
 		else
 		{
-			LaserNode& last = m_Queue[m_Queue.Size() - 1];
+			LaserNode& last = m_Queue[m_Queue.size() - 1];
 			// 修改坐标和宽度
 			last.pos = node.pos;
 			last.half_width = node.half_width;
@@ -382,15 +381,15 @@ bool GameObjectBentLaser::Update(float x, float y, float rot, int length, float 
 	else
 	{
 		// 移除多余的节点，保证长度在 length 范围内，并空出一个位置插入节点
-		while (m_Queue.IsFull() || m_Queue.Size() >= (size_t)length)
+		while (m_Queue.full() || m_Queue.size() >= (size_t)length)
 		{
 			_PopHead();
 		}
 
 		// 插入新节点
-		if (m_Queue.Size() > 0)
+		if (m_Queue.size() > 0)
 		{
-			LaserNode& last = m_Queue[m_Queue.Size() - 1];
+			LaserNode& last = m_Queue[m_Queue.size() - 1];
 			Core::Vector2F const vec_ = node.pos - last.pos;
 			// 计算到上一个节点的距离和重新计算总长度
 			float const len_ = vec_.length();
@@ -402,9 +401,9 @@ bool GameObjectBentLaser::Update(float x, float y, float rot, int length, float 
 			// 【即将废弃】计算朝向
 			//node.rot = vec_.CalcuAngle();
 			// 插入并更新节点
-			m_Queue.Push(node);
-			_UpdateNodeVertexExtend(m_Queue.Size() - 1);
-			_UpdateNodeVertexExtend(m_Queue.Size() - 2);
+			m_Queue.pushTail(node);
+			_UpdateNodeVertexExtend(m_Queue.size() - 1);
+			_UpdateNodeVertexExtend(m_Queue.size() - 2);
 		}
 		else
 		{
@@ -422,7 +421,7 @@ bool GameObjectBentLaser::Update(float x, float y, float rot, int length, float 
 			//	node.rot = (float)p->rot; // 使用游戏对象朝向作为节点朝向
 			//}
 			// 插入但不更新节点，等节点数量超过 1 再更新
-			m_Queue.Push(node);
+			m_Queue.pushTail(node);
 		}
 		return true;
 	}
@@ -430,7 +429,7 @@ bool GameObjectBentLaser::Update(float x, float y, float rot, int length, float 
 
 void GameObjectBentLaser::SetAllWidth(float width)  noexcept
 {
-	for (size_t i = 0; i < m_Queue.Size(); i += 1)
+	for (size_t i = 0; i < m_Queue.size(); i += 1)
 	{
 		m_Queue[i].half_width = width / 2.0f;
 	}
@@ -442,7 +441,7 @@ bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, Core::Co
 	using namespace Core::Graphics;
 
 	// 忽略只有一个节点的情况
-	if (m_Queue.Size() <= 1)
+	if (m_Queue.size() <= 1)
 		return true;
 
 	// 首先拿到纹理
@@ -462,7 +461,7 @@ bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, Core::Co
 	// 顶点总共需要：节点数 * 2
 	// 索引总共需要：(节点数 - 1) * 3 * 2
 	// 两个节点之间组成一个四边形
-	uint16_t const node_count = (uint16_t)m_Queue.Size();
+	uint16_t const node_count = (uint16_t)m_Queue.size();
 	IRenderer::DrawVertex* p_vertex = nullptr;
 	IRenderer::DrawIndex* p_index = nullptr;
 	uint16_t index_offset = 0;
@@ -573,7 +572,7 @@ bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, Core::Co
 void GameObjectBentLaser::RenderCollider(Core::Color4B fillColor) noexcept
 {
 	// 忽略只有一个节点的情况
-	if (m_Queue.Size() <= 1)
+	if (m_Queue.size() <= 1)
 		return;
 
 	LAPP.DebugSetGeometryRenderState();
@@ -583,8 +582,8 @@ void GameObjectBentLaser::RenderCollider(Core::Color4B fillColor) noexcept
 	testObjA.rot = 0.0f;
 	testObjA.rect = false;
 
-	float const _1_nc = 1.0f / (float)(m_Queue.Size() - 1u);
-	for (size_t i = 0; i < m_Queue.Size(); ++i)
+	float const _1_nc = 1.0f / (float)(m_Queue.size() - 1u);
+	for (size_t i = 0; i < m_Queue.size(); ++i)
 	{
 		LaserNode& n = m_Queue[i];
 		if (!n.active) continue;
@@ -620,7 +619,7 @@ void GameObjectBentLaser::RenderCollider(Core::Color4B fillColor) noexcept
 bool GameObjectBentLaser::CollisionCheck(float x, float y, float rot, float a, float b, bool rect) noexcept
 {
 	// 忽略只有一个节点的情况
-	if (m_Queue.Size() <= 1)
+	if (m_Queue.size() <= 1)
 		return false;
 
 	GameObject testObjA;
@@ -637,7 +636,7 @@ bool GameObjectBentLaser::CollisionCheck(float x, float y, float rot, float a, f
 	testObjB.b = b;
 	testObjB.rect = rect;
 	testObjB.UpdateCollisionCircleRadius();
-	size_t sn = m_Queue.Size();
+	size_t sn = m_Queue.size();
 	for (size_t i = 0; i < sn; ++i)
 	{
 		LaserNode& n = m_Queue[i];
@@ -677,7 +676,7 @@ bool GameObjectBentLaser::CollisionCheck(float x, float y, float rot, float a, f
 bool GameObjectBentLaser::CollisionCheckW(float x, float y, float rot, float a, float b, bool rect, float width) noexcept
 {
 	// 忽略只有一个节点的情况
-	if (m_Queue.Size() <= 1)
+	if (m_Queue.size() <= 1)
 		return false;
 	
 	width = width / 2;
@@ -695,7 +694,7 @@ bool GameObjectBentLaser::CollisionCheckW(float x, float y, float rot, float a, 
 	testObjB.b = b;
 	testObjB.rect = rect;
 	testObjB.UpdateCollisionCircleRadius();
-	size_t sn = m_Queue.Size();
+	size_t sn = m_Queue.size();
 	for (size_t i = 0; i < sn; ++i)
 	{
 		LaserNode& n = m_Queue[i];
@@ -735,7 +734,7 @@ bool GameObjectBentLaser::CollisionCheckW(float x, float y, float rot, float a, 
 bool GameObjectBentLaser::BoundCheck() noexcept
 {
 	auto& manager = LPOOL;
-	for (size_t i = 0u; i < m_Queue.Size(); i++) {
+	for (size_t i = 0u; i < m_Queue.size(); i++) {
 		LaserNode& n = m_Queue[i];
 		if (!manager.isPointInBound(n.pos.x, n.pos.y)) {
 			return true;
@@ -762,11 +761,11 @@ bool GameObjectBentLaser::UpdateByNode(size_t id, int node, int length, float wi
 
 	// 对索引取余
 	if (node < 0) {
-		node = m_Queue.Size() + node;
+		node = m_Queue.size() + node;
 	}
 
 	// 添加新节点
-	if (node < (int)m_Queue.Size() && node >= 0)
+	if (node < (int)m_Queue.size() && node >= 0)
 	{
 		LaserNode& tNode = m_Queue[node];
 		tNode.active = active;
@@ -802,24 +801,24 @@ bool GameObjectBentLaser::UpdatePositionByList(lua_State * L, int length, float 
 			LaserNode np;
 			np.active = false;
 			while (j > 0) {
-				m_Queue.Push(np);
+				m_Queue.pushTail(np);
 				j--;
 				push_count++;
 			}
 		}
 
-		int size = m_Queue.Size();
+		int size = m_Queue.size();
 		//顶点处在队列后边
 		if (cindex >= size) {
 			int j = cindex - size + 1;
 			LaserNode np;
 			np.active = false;
 			while (j > 0) {
-				m_Queue.PushBack(np);
+				m_Queue.pushHead(np);
 				j--;
 			}
 		}
-		size = m_Queue.Size();
+		size = m_Queue.size();
 		//设置顶点
 		LaserNode* tNode = &m_Queue[size - cindex - 1];
 		tNode->active = true;
@@ -835,14 +834,14 @@ int GameObjectBentLaser::SampleL(lua_State * L, float length) noexcept
 	//插入一个数组
 	lua_newtable(L); //... t(list)
 	// 忽略没有节点的情况
-	if (m_Queue.Size() <= 1)
+	if (m_Queue.size() <= 1)
 		return true;
 
 	float fLeft = 0;// 剩余长度
 	int count = 0;
 
 	//float tVecLength = 0;
-	for (size_t i = m_Queue.Size() - 1; i > 0; --i)
+	for (size_t i = m_Queue.size() - 1; i > 0; --i)
 	{
 		LaserNode& cur = m_Queue[i];
 		LaserNode& next = m_Queue[i - 1];
@@ -875,14 +874,14 @@ int GameObjectBentLaser::SampleT(lua_State * L, float delay) noexcept
 	//插入一个数组
 	lua_newtable(L); //... t(list)
 	// 忽略没有节点的情况
-	if (m_Queue.Size() <= 1)
+	if (m_Queue.size() <= 1)
 		return true;
 
 	float fLeft = 0;// 剩余长度
 	int count = 0;
 
 	//float tVecLength = 0;
-	for (size_t i = m_Queue.Size() - 1; i > 0; --i)
+	for (size_t i = m_Queue.size() - 1; i > 0; --i)
 	{
 		LaserNode& cur = m_Queue[i];
 		LaserNode& next = m_Queue[i - 1];
@@ -921,7 +920,7 @@ int GameObjectBentLaser::api_UpdateSingleNode(lua_State* L)
 
 	// 检查参数
 	size_t const node_index = (size_t)(luaL_checkinteger(L, 2) - 1); // 索引从 1 开始
-	if (node_index >= m_Queue.Size())
+	if (node_index >= m_Queue.size())
 	{
 		return luaL_error(L, "invalid parameter #1, node index out of bounds");
 	}
@@ -950,10 +949,10 @@ int GameObjectBentLaser::api_UpdateSingleNode(lua_State* L)
 
 	// 更新修改的节点和相邻的节点
 	_UpdateNodeVertexExtend(node_index);
-	if (m_Queue.Size() > 1)
+	if (m_Queue.size() > 1)
 	{
 		if (node_index > 0) _UpdateNodeVertexExtend(node_index - 1);
-		if (node_index < (m_Queue.Size() - 1)) _UpdateNodeVertexExtend(node_index + 1);
+		if (node_index < (m_Queue.size() - 1)) _UpdateNodeVertexExtend(node_index + 1);
 	}
 
 	return 0;
@@ -982,13 +981,13 @@ int GameObjectBentLaser::api_UpdateAllNodeByList(lua_State* L)
 	}
 
 	// 重新分配空间
-	m_Queue.Clear();
+	m_Queue.clear();
 	size_t const node_count = (size_t)luaL_checkinteger(L, 2);
-	if (node_count > m_Queue.Capacity())
+	if (node_count > m_Queue.capacity())
 	{
-		return luaL_error(L, "invalid parameter #1, number of nodes should <= %d", (int)m_Queue.Capacity());
+		return luaL_error(L, "invalid parameter #1, number of nodes should <= %d", (int)m_Queue.capacity());
 	}
-	m_Queue.PlacementResize(node_count);
+	m_Queue.placementResize(node_count);
 
 	// 设置所有节点的坐标和宽度
 	if (read_width)

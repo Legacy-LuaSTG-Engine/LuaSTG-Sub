@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "Core/Type.hpp"
-#include "Utility/CircularQueue.hpp"
+#include "core/FixedCircularQueue.hpp"
 #include "GameResource/ResourceBase.hpp"
 #include "lua.hpp"
 
@@ -25,7 +25,7 @@ namespace LuaSTGPlus
 			bool sharp = false;		//相对上一个节点的朝向成钝角
 		};
 	private:
-		CircularQueue<LaserNode, LGOBJ_MAXLASERNODE> m_Queue;
+		core::FixedCircularQueue<LaserNode, LGOBJ_MAXLASERNODE> m_Queue;
 		float m_fLength = 0.0f; // 记录激光长度
 	private:
 		float m_fEnvelopeHeight = 0.0f;

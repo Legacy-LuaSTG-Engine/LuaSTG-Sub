@@ -1,6 +1,6 @@
 #pragma once
 #include "GameObject/GameObject.hpp"
-#include "Utility/fixed_object_pool.hpp"
+#include "core/FixedObjectPool.hpp"
 #include <deque>
 #include <memory_resource>
 
@@ -29,7 +29,7 @@ namespace LuaSTGPlus
 		};
 
 	private:
-		cpp::fixed_object_pool<GameObject, LOBJPOOL_SIZE> m_ObjectPool;
+		core::FixedObjectPool<GameObject, LOBJPOOL_SIZE> m_ObjectPool;
 		uint64_t m_iUid = 0;
 		lua_State* G_L = nullptr;
 

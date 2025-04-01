@@ -151,8 +151,6 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/SteamAPI/SteamAPI.cpp
     LuaSTG/SteamAPI/SteamAPI.hpp
 
-    LuaSTG/Utility/CircularQueue.hpp
-    LuaSTG/Utility/fixed_object_pool.hpp
     LuaSTG/Utility/Utility.h
     LuaSTG/Utility/ScopeObject.cpp
     LuaSTG/Utility/xorshift.hpp
@@ -215,6 +213,7 @@ target_link_libraries(LuaSTG PRIVATE
     pcg_cpp
     pugixml
     xxhash
+    LuaSTG.Sub.Collection
     LuaSTG.Sub.Configuration
     LuaSTG.Sub.Clipboard
 )
