@@ -5,11 +5,9 @@
 #include "GameObject/GameObjectPool.h"
 #include "Platform/DirectInput.hpp"
 
-namespace LuaSTGPlus
-{
+namespace LuaSTGPlus {
 	/// @brief 应用程序状态
-	enum class AppStatus
-	{
+	enum class AppStatus {
 		NotInitialized,
 		Initializing,
 		Initialized,
@@ -18,8 +16,7 @@ namespace LuaSTGPlus
 		Destroyed,
 	};
 
-	struct IRenderTargetManager
-	{
+	struct IRenderTargetManager {
 		// 渲染目标栈
 
 		virtual bool BeginRenderTargetStack() = 0;
@@ -47,17 +44,17 @@ namespace LuaSTGPlus
 	{
 	private:
 		AppStatus m_iStatus = AppStatus::NotInitialized;
-		
+
 		// 应用程序框架
 		Core::ScopeObject<Core::IApplicationModel> m_pAppModel;
 		Core::ScopeObject<Core::Graphics::ITextRenderer> m_pTextRenderer;
 
 		// 资源管理器
 		ResourceMgr m_ResourceMgr;
-		
+
 		// 对象池
 		std::unique_ptr<GameObjectPool> m_GameObjectPool;
-		
+
 		// Lua虚拟机
 		lua_State* L = nullptr;
 
@@ -69,35 +66,35 @@ namespace LuaSTGPlus
 
 		// 渲染状态
 		bool m_bRenderStarted = false;
-		
+
 		// 输入设备
 		std::unique_ptr<Platform::DirectInput> m_DirectInput;
-		
+
 	public:
 		/// @brief 保护模式执行脚本
 		/// @note 该函数仅限框架调用，为主逻辑最外层调用。若脚本运行时发生错误，该函数负责截获错误发出错误消息。
 		bool SafeCallScript(const char* source, size_t len, const char* desc)noexcept;
-		
+
 		/// @brief 不保护调用全局函数
 		/// @note 该函数仅限框架调用，为主逻辑最外层调用
 		bool UnsafeCallGlobalFunction(const char* name, int retc = 0)noexcept;
-		
+
 		/// @brief 保护模式调用全局函数
 		/// @note 该函数仅限框架调用，为主逻辑最外层调用。若脚本运行时发生错误，该函数负责截获错误发出错误消息。调用者负责维持栈平衡。
 		bool SafeCallGlobalFunction(const char* name, int retc = 0)noexcept;
-		
+
 		/// @brief 保护模式调用全局函数
 		/// @note 该函数仅限框架调用，为主逻辑最外层调用。若脚本运行时发生错误，该函数负责截获错误发出错误消息。调用者负责维持栈平衡。
 		bool SafeCallGlobalFunctionB(const char* name, int argc = 0, int retc = 0)noexcept;
-		
+
 		/// @brief 执行资源包中的文件
 		/// @note 该函数为脚本系统使用
 		void LoadScript(lua_State* L, const char* path, const char* packname);
-		
+
 		bool OnOpenLuaEngine();
 		bool OnLoadLaunchScriptAndFiles();
 		bool OnLoadMainScriptAndFiles();
-		
+
 	public:  // 输入系统接口
 
 		void OpenInput();
@@ -108,23 +105,23 @@ namespace LuaSTGPlus
 
 		//检查按键是否按下
 		bool GetKeyState(int VKCode)noexcept;
-		
+
 		/// @brief 获得最后一次按键输入
 		int GetLastKey()noexcept;
-		
+
 		/// @brief 获取鼠标位置（以窗口左下角为原点）
 		Core::Vector2F GetMousePosition(bool no_flip = false)noexcept;
-		
+
 		Core::Vector2F GetCurrentWindowSizeF();
 		Core::Vector4F GetMousePositionTransformF();
 
 		/// @brief 获取鼠标滚轮增量
 		int32_t GetMouseWheelDelta()noexcept;
-		
+
 		/// @brief 检查鼠标是否按下
 		bool GetMouseState_legacy(int button) noexcept;
 		bool GetMouseState(int button) noexcept;
-		
+
 	public: // 脚本调用接口，含义参见API文档
 
 		void SetTitle(const char* v) noexcept;
@@ -156,32 +153,32 @@ namespace LuaSTGPlus
 		void SetResolution(uint32_t width, uint32_t height);
 
 	public: // 其他框架方法
-		
+
 		// 设置目标 FPS
 		void SetFPS(uint32_t v) noexcept;
-		
+
 		// 获取当前平均 FPS
 		double GetFPS() const noexcept { return m_fAvgFPS; }
-		
+
 		// 读取资源包中的文本文件
 		// 也能读取其他类型的文件，但是会得到无意义的结果
-		int LoadTextFile(lua_State* L, const char* path, const char *packname) noexcept;
-		
+		int LoadTextFile(lua_State* L, const char* path, const char* packname) noexcept;
+
 	public: // 渲染器接口
-		
+
 		// 应用混合模式
-		void updateGraph2DBlendMode(BlendMode m);
+		void updateGraph2DBlendMode(BlendMode blend);
 
 		/// @brief 渲染粒子
 		bool Render(IParticlePool* p, float hscale = 1, float vscale = 1)noexcept;
-		
+
 		/// @brief 渲染文字
 		bool RenderText(IResourceFont* p, wchar_t* strBuf, Core::RectF rect, Core::Vector2F scale, FontAlignHorizontal halign, FontAlignVertical valign, bool bWordBreak)noexcept;
-		
+
 		Core::Vector2F CalcuTextSize(IResourceFont* p, const wchar_t* strBuf, Core::Vector2F scale)noexcept;
-		
+
 		bool RenderText(const char* name, const char* str, float x, float y, float scale, FontAlignHorizontal halign, FontAlignVertical valign)noexcept;
-		
+
 		bool RenderTTF(const char* name, const char* str, float left, float right, float bottom, float top, float scale, int format, Core::Color4B c)noexcept;
 
 		void SnapShot(const char* path)noexcept;
@@ -233,26 +230,26 @@ namespace LuaSTGPlus
 		// 文字渲染器包装
 		bool FontRenderer_SetFontProvider(const char* name);
 		void FontRenderer_SetScale(const Core::Vector2F& s);
-		
+
 		Core::RectF FontRenderer_MeasureTextBoundary(const char* str, size_t len);
 		Core::Vector2F FontRenderer_MeasureTextAdvance(const char* str, size_t len);
 		bool FontRenderer_RenderText(const char* str, size_t len, Core::Vector2F& pos, float z, BlendMode blend, Core::Color4B const& color);
 		bool FontRenderer_RenderTextInSpace(const char* str, size_t len, Core::Vector3F& pos, Core::Vector3F const& rvec, Core::Vector3F const& dvec, BlendMode blend, Core::Color4B const& color);
-		
+
 		float FontRenderer_GetFontLineHeight();
 		float FontRenderer_GetFontAscender();
 		float FontRenderer_GetFontDescender();
-		
+
 	public:
 		// 获取框架对象
 		lua_State* GetLuaEngine()noexcept { return L; }
 
 		ResourceMgr& GetResourceMgr()noexcept { return m_ResourceMgr; }
 
-		GameObjectPool& GetGameObjectPool()noexcept{ return *m_GameObjectPool; }
+		GameObjectPool& GetGameObjectPool()noexcept { return *m_GameObjectPool; }
 
 		Platform::DirectInput* GetDInput()noexcept { return m_DirectInput.get(); }
-		
+
 		Core::IApplicationModel* GetAppModel() { return m_pAppModel.get(); }
 		Core::Graphics::IRenderer* GetRenderer2D() { return m_pAppModel->getRenderer(); }
 
@@ -264,10 +261,10 @@ namespace LuaSTGPlus
 		/// @brief 终止框架并回收资源
 		/// @note 该函数可以由框架自行调用，且仅能调用一次
 		void Shutdown()noexcept;
-		
+
 		/// @brief 执行框架，进入游戏循环
 		void Run()noexcept;
-		
+
 	protected:
 		std::atomic_int m_window_active_changed{ 0 };
 		Core::Vector2U m_win32_window_size;
