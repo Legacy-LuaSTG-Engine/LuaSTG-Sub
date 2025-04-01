@@ -128,11 +128,13 @@ require("test_random")
 require("test_se")
 require("test_window_and_display")
 
-require("test.math.all")
-require("test.imgui.all")
-require("test.graphics.all")
-require("test.audio.SoundEffect")
-require("test.input.InputMethod")
+print(package.path)
+
+require("test.math.init")
+require("test.imgui.init")
+require("test.graphics.init")
+require("test.audio.init")
+require("test.input.init")
 
 function GameInit()
     window:init()
