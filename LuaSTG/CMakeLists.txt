@@ -213,9 +213,9 @@ target_link_libraries(LuaSTG PRIVATE
     pcg_cpp
     pugixml
     xxhash
-    LuaSTG.Sub.Collection
-    LuaSTG.Sub.Configuration
-    LuaSTG.Sub.Clipboard
+    Core.Collection
+    Core.Configuration
+    Core.Clipboard
 )
 if (LUASTG_LINK_YY_THUNKS)
     target_link_libraries(LuaSTG PRIVATE YY_Thunks)

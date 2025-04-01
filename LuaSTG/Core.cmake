@@ -138,5 +138,5 @@ target_link_libraries(Core PUBLIC
     FLAC::FLAC
     # database
     nlohmann_json
-    LuaSTG.Sub.Configuration
+    Core.Configuration
 )
