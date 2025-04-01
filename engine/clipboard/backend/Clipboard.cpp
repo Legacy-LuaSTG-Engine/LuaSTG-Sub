@@ -79,13 +79,19 @@ namespace core {
             }
             auto const text = static_cast<wchar_t*>(locked.get());
             auto const count = WideCharToMultiByte(CP_UTF8, 0, text, -1, nullptr, 0, nullptr, nullptr);
-            if (count <= 0) {
+            if (count < 0) {
                 return false;
+            }
+            if (count == 0) {
+                return true; // empty string
             }
             buffer.resize(static_cast<size_t>(count));
             auto const result = WideCharToMultiByte(CP_UTF8, 0, text, -1, buffer.data(), count, nullptr, nullptr);
             if (result != count) {
                 return false;
+            }
+            while (!buffer.empty() && buffer.back() == '\0') {
+                buffer.pop_back();
             }
         }
 
