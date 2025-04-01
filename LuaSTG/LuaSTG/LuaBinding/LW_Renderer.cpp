@@ -2,6 +2,7 @@
 #include "lua/plus.hpp"
 #include "LuaBinding/PostEffectShader.hpp"
 #include "AppFrame.h"
+#include "GameResource/LegacyBlendStateHelper.hpp"
 
 inline Core::Graphics::IRenderer* LR2D() { return LAPP.GetAppModel()->getRenderer(); }
 inline LuaSTGPlus::ResourceMgr& LRESMGR() { return LAPP.GetResourceMgr(); }
@@ -60,45 +61,8 @@ inline void translate_blend(Core::Graphics::IRenderer*, const LuaSTGPlus::BlendM
 	LAPP.updateGraph2DBlendMode(blend);
 }
 inline Core::Graphics::IRenderer::BlendState translate_blend_3d(const LuaSTGPlus::BlendMode blend) {
-	switch (blend) {
-	default:
-	case LuaSTGPlus::BlendMode::MulAlpha:
-		return Core::Graphics::IRenderer::BlendState::Alpha;
-	case LuaSTGPlus::BlendMode::MulAdd:
-		return Core::Graphics::IRenderer::BlendState::Add;
-	case LuaSTGPlus::BlendMode::MulRev:
-		return Core::Graphics::IRenderer::BlendState::RevSub;
-	case LuaSTGPlus::BlendMode::MulSub:
-		return Core::Graphics::IRenderer::BlendState::Sub;
-	case LuaSTGPlus::BlendMode::AddAlpha:
-		return Core::Graphics::IRenderer::BlendState::Alpha;
-	case LuaSTGPlus::BlendMode::AddAdd:
-		return Core::Graphics::IRenderer::BlendState::Add;
-	case LuaSTGPlus::BlendMode::AddRev:
-		return Core::Graphics::IRenderer::BlendState::RevSub;
-	case LuaSTGPlus::BlendMode::AddSub:
-		return Core::Graphics::IRenderer::BlendState::Sub;
-	case LuaSTGPlus::BlendMode::AlphaBal:
-		return Core::Graphics::IRenderer::BlendState::Inv;
-	case LuaSTGPlus::BlendMode::MulMin:
-		return Core::Graphics::IRenderer::BlendState::Min;
-	case LuaSTGPlus::BlendMode::MulMax:
-		return Core::Graphics::IRenderer::BlendState::Max;
-	case LuaSTGPlus::BlendMode::MulMutiply:
-		return Core::Graphics::IRenderer::BlendState::Mul;
-	case LuaSTGPlus::BlendMode::MulScreen:
-		return Core::Graphics::IRenderer::BlendState::Screen;
-	case LuaSTGPlus::BlendMode::AddMin:
-		return Core::Graphics::IRenderer::BlendState::Min;
-	case LuaSTGPlus::BlendMode::AddMax:
-		return Core::Graphics::IRenderer::BlendState::Max;
-	case LuaSTGPlus::BlendMode::AddMutiply:
-		return Core::Graphics::IRenderer::BlendState::Mul;
-	case LuaSTGPlus::BlendMode::AddScreen:
-		return Core::Graphics::IRenderer::BlendState::Screen;
-	case LuaSTGPlus::BlendMode::One:
-		return Core::Graphics::IRenderer::BlendState::One;
-	}
+	[[maybe_unused]] auto const [v, b] = LuaSTGPlus::translateLegacyBlendState(blend);
+	return b;
 }
 
 inline RenderError api_drawSprite(LuaSTGPlus::IResourceSprite* pimg2dres, float const x, float const y, float const rot, float const hscale, float const vscale, float const z) {

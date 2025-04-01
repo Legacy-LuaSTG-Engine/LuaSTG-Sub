@@ -4,70 +4,7 @@
 #include "LuaWrapper.hpp"
 #include "LuaWrapperMisc.hpp"
 #include "AppFrame.h"
-
-namespace {
-	void translateLegacyBlendState(Core::Graphics::ISpriteRenderer* const renderer, LuaSTGPlus::BlendMode const blend) {
-		using VertexColorBlendState = Core::Graphics::IRenderer::VertexColorBlendState;
-		using BlendState = Core::Graphics::IRenderer::BlendState;
-		switch (blend) {  // NOLINT(clang-diagnostic-switch-enum)
-		default:
-		case LuaSTGPlus::BlendMode::MulAlpha:
-			renderer->setLegacyBlendState(VertexColorBlendState::Mul, BlendState::Alpha);
-			break;
-		case LuaSTGPlus::BlendMode::MulAdd:
-			renderer->setLegacyBlendState(VertexColorBlendState::Mul, BlendState::Add);
-			break;
-		case LuaSTGPlus::BlendMode::MulRev:
-			renderer->setLegacyBlendState(VertexColorBlendState::Mul, BlendState::RevSub);
-			break;
-		case LuaSTGPlus::BlendMode::MulSub:
-			renderer->setLegacyBlendState(VertexColorBlendState::Mul, BlendState::Sub);
-			break;
-		case LuaSTGPlus::BlendMode::AddAlpha:
-			renderer->setLegacyBlendState(VertexColorBlendState::Add, BlendState::Alpha);
-			break;
-		case LuaSTGPlus::BlendMode::AddAdd:
-			renderer->setLegacyBlendState(VertexColorBlendState::Add, BlendState::Add);
-			break;
-		case LuaSTGPlus::BlendMode::AddRev:
-			renderer->setLegacyBlendState(VertexColorBlendState::Add, BlendState::RevSub);
-			break;
-		case LuaSTGPlus::BlendMode::AddSub:
-			renderer->setLegacyBlendState(VertexColorBlendState::Add, BlendState::Sub);
-			break;
-		case LuaSTGPlus::BlendMode::AlphaBal:
-			renderer->setLegacyBlendState(VertexColorBlendState::Mul, BlendState::Inv);
-			break;
-		case LuaSTGPlus::BlendMode::MulMin:
-			renderer->setLegacyBlendState(VertexColorBlendState::Mul, BlendState::Min);
-			break;
-		case LuaSTGPlus::BlendMode::MulMax:
-			renderer->setLegacyBlendState(VertexColorBlendState::Mul, BlendState::Max);
-			break;
-		case LuaSTGPlus::BlendMode::MulMutiply:
-			renderer->setLegacyBlendState(VertexColorBlendState::Mul, BlendState::Mul);
-			break;
-		case LuaSTGPlus::BlendMode::MulScreen:
-			renderer->setLegacyBlendState(VertexColorBlendState::Mul, BlendState::Screen);
-			break;
-		case LuaSTGPlus::BlendMode::AddMin:
-			renderer->setLegacyBlendState(VertexColorBlendState::Add, BlendState::Min);
-			break;
-		case LuaSTGPlus::BlendMode::AddMax:
-			renderer->setLegacyBlendState(VertexColorBlendState::Add, BlendState::Max);
-			break;
-		case LuaSTGPlus::BlendMode::AddMutiply:
-			renderer->setLegacyBlendState(VertexColorBlendState::Add, BlendState::Mul);
-			break;
-		case LuaSTGPlus::BlendMode::AddScreen:
-			renderer->setLegacyBlendState(VertexColorBlendState::Add, BlendState::Screen);
-			break;
-		case LuaSTGPlus::BlendMode::One:
-			renderer->setLegacyBlendState(VertexColorBlendState::Mul, BlendState::One);
-			break;
-		}
-	}
-}
+#include "GameResource/LegacyBlendStateHelper.hpp"
 
 namespace LuaSTG::Sub::LuaBinding {
 	std::string_view const SpriteRenderer::class_name{ "lstg.SpriteRenderer" };
@@ -175,7 +112,9 @@ namespace LuaSTG::Sub::LuaBinding {
 		static int setLegacyBlendState(lua_State* vm) {
 			lua::stack_t const ctx(vm);
 			auto const self = as(vm, 1);
-			translateLegacyBlendState(self->data, LuaSTGPlus::TranslateBlendMode(vm, 1 + 1));
+			auto const blend = LuaSTGPlus::TranslateBlendMode(vm, 1 + 1);
+			[[maybe_unused]] auto const [v, b] = LuaSTGPlus::translateLegacyBlendState(blend);
+			self->data->setLegacyBlendState(v, b);
 			ctx.push_value(lua::stack_index_t(1));
 			return 1;
 		}
@@ -330,7 +269,9 @@ namespace LuaSTG::Sub::LuaBinding {
 		static int setLegacyBlendState(lua_State* vm) {
 			lua::stack_t const ctx(vm);
 			auto const self = as(vm, 1);
-			translateLegacyBlendState(self->data, LuaSTGPlus::TranslateBlendMode(vm, 1 + 1));
+			auto const blend = LuaSTGPlus::TranslateBlendMode(vm, 1 + 1);
+			[[maybe_unused]] auto const [v, b] = LuaSTGPlus::translateLegacyBlendState(blend);
+			self->data->setLegacyBlendState(v, b);
 			ctx.push_value(lua::stack_index_t(1));
 			return 1;
 		}
@@ -510,7 +451,9 @@ namespace LuaSTG::Sub::LuaBinding {
 		static int setLegacyBlendState(lua_State* vm) {
 			lua::stack_t const ctx(vm);
 			auto const self = as(vm, 1);
-			translateLegacyBlendState(self->data, LuaSTGPlus::TranslateBlendMode(vm, 1 + 1));
+			auto const blend = LuaSTGPlus::TranslateBlendMode(vm, 1 + 1);
+			[[maybe_unused]] auto const [v, b] = LuaSTGPlus::translateLegacyBlendState(blend);
+			self->data->setLegacyBlendState(v, b);
 			ctx.push_value(lua::stack_index_t(1));
 			return 1;
 		}

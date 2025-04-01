@@ -41,6 +41,7 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/GameObject/GameObjectPool.cpp
     LuaSTG/GameObject/GameObjectPool.h
 
+    LuaSTG/GameResource/LegacyBlendStateHelper.hpp
     LuaSTG/GameResource/ResourceBase.hpp
     LuaSTG/GameResource/ResourceTexture.hpp
     LuaSTG/GameResource/ResourceSprite.hpp

@@ -1,84 +1,12 @@
 #include "AppFrame.h"
+#include "GameResource/LegacyBlendStateHelper.hpp"
 
 namespace LuaSTGPlus {
-	void AppFrame::updateGraph2DBlendMode(BlendMode blend) {
-		using namespace Core::Graphics;
-		auto* ctx = m_pAppModel->getRenderer();
-		switch (blend) {
-		default:
-		case LuaSTGPlus::BlendMode::MulAlpha:
-			ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Mul);
-			ctx->setBlendState(IRenderer::BlendState::Alpha);
-			break;
-		case LuaSTGPlus::BlendMode::MulAdd:
-			ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Mul);
-			ctx->setBlendState(IRenderer::BlendState::Add);
-			break;
-		case LuaSTGPlus::BlendMode::MulRev:
-			ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Mul);
-			ctx->setBlendState(IRenderer::BlendState::RevSub);
-			break;
-		case LuaSTGPlus::BlendMode::MulSub:
-			ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Mul);
-			ctx->setBlendState(IRenderer::BlendState::Sub);
-			break;
-		case LuaSTGPlus::BlendMode::AddAlpha:
-			ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Add);
-			ctx->setBlendState(IRenderer::BlendState::Alpha);
-			break;
-		case LuaSTGPlus::BlendMode::AddAdd:
-			ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Add);
-			ctx->setBlendState(IRenderer::BlendState::Add);
-			break;
-		case LuaSTGPlus::BlendMode::AddRev:
-			ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Add);
-			ctx->setBlendState(IRenderer::BlendState::RevSub);
-			break;
-		case LuaSTGPlus::BlendMode::AddSub:
-			ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Add);
-			ctx->setBlendState(IRenderer::BlendState::Sub);
-			break;
-		case LuaSTGPlus::BlendMode::AlphaBal:
-			ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Mul);
-			ctx->setBlendState(IRenderer::BlendState::Inv);
-			break;
-		case LuaSTGPlus::BlendMode::MulMin:
-			ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Mul);
-			ctx->setBlendState(IRenderer::BlendState::Min);
-			break;
-		case LuaSTGPlus::BlendMode::MulMax:
-			ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Mul);
-			ctx->setBlendState(IRenderer::BlendState::Max);
-			break;
-		case LuaSTGPlus::BlendMode::MulMutiply:
-			ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Mul);
-			ctx->setBlendState(IRenderer::BlendState::Mul);
-			break;
-		case LuaSTGPlus::BlendMode::MulScreen:
-			ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Mul);
-			ctx->setBlendState(IRenderer::BlendState::Screen);
-			break;
-		case LuaSTGPlus::BlendMode::AddMin:
-			ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Add);
-			ctx->setBlendState(IRenderer::BlendState::Min);
-			break;
-		case LuaSTGPlus::BlendMode::AddMax:
-			ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Add);
-			ctx->setBlendState(IRenderer::BlendState::Max);
-			break;
-		case LuaSTGPlus::BlendMode::AddMutiply:
-			ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Add);
-			ctx->setBlendState(IRenderer::BlendState::Mul);
-			break;
-		case LuaSTGPlus::BlendMode::AddScreen:
-			ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Add);
-			ctx->setBlendState(IRenderer::BlendState::Screen);
-			break;
-		case LuaSTGPlus::BlendMode::One:
-			ctx->setVertexColorBlendState(IRenderer::VertexColorBlendState::Mul);
-			ctx->setBlendState(IRenderer::BlendState::One);
-			break;
-		}
+	void AppFrame::updateGraph2DBlendMode(BlendMode const blend) {
+		auto const [v, b] = translateLegacyBlendState(blend);
+		auto const renderer = m_pAppModel->getRenderer();
+		renderer->setVertexColorBlendState(v);
+		renderer->setBlendState(b);
 	}
 
 	bool AppFrame::Render(IParticlePool* p, float hscale, float vscale) noexcept {
