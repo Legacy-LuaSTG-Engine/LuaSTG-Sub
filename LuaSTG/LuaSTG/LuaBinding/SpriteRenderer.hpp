@@ -17,4 +17,26 @@ namespace LuaSTG::Sub::LuaBinding {
 		static SpriteRenderer* create(lua_State* vm);
 		static void registerClass(lua_State* vm);
 	};
+
+	struct SpriteRectRenderer {
+		static std::string_view const class_name;
+
+		Core::Graphics::ISpriteRenderer* data{};
+
+		static bool is(lua_State* vm, int index);
+		static SpriteRectRenderer* as(lua_State* vm, int index);
+		static SpriteRectRenderer* create(lua_State* vm);
+		static void registerClass(lua_State* vm);
+	};
+
+	struct SpriteQuadRenderer {
+		static std::string_view const class_name;
+
+		Core::Graphics::ISpriteRenderer* data{};
+
+		static bool is(lua_State* vm, int index);
+		static SpriteQuadRenderer* as(lua_State* vm, int index);
+		static SpriteQuadRenderer* create(lua_State* vm);
+		static void registerClass(lua_State* vm);
+	};
 }

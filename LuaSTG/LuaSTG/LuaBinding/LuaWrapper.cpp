@@ -84,6 +84,8 @@ namespace LuaSTGPlus
 		LuaSTG::Sub::LuaBinding::Vector4::registerClass(L);
 		LuaSTG::Sub::LuaBinding::Sprite::registerClass(L);
 		LuaSTG::Sub::LuaBinding::SpriteRenderer::registerClass(L);
+		LuaSTG::Sub::LuaBinding::SpriteRectRenderer::registerClass(L);
+		LuaSTG::Sub::LuaBinding::SpriteQuadRenderer::registerClass(L);
 		http::Request::registerClass(L);
 		http::ResponseEntity::registerClass(L);
 	}
