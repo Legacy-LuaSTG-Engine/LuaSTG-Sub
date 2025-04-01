@@ -1,11 +1,9 @@
-﻿#pragma once
+#pragma once
 #include "Core/Type.hpp"
 
-namespace LuaSTGPlus
-{
+namespace LuaSTGPlus {
 	// 资源类型
-	enum class ResourceType
-	{
+	enum class ResourceType {
 		Texture = 1,
 		Sprite,
 		Animation,
@@ -19,8 +17,7 @@ namespace LuaSTGPlus
 	};
 
 	// 混合模式
-	enum class BlendMode
-	{
+	enum class BlendMode {
 		__RESERVE__ = 0,
 
 		MulAlpha = 1,		//顶点色和纹理色相乘 混合模式：正常（透明度混合）
@@ -43,14 +40,13 @@ namespace LuaSTGPlus
 		AddMutiply = 16,	//顶点色和纹理色相加 混合模式：正片叠底（相乘）
 		AddScreen = 17,		//顶点色和纹理色相加 混合模式：滤色（相加减去相乘）
 
-		One = 18,           //无混合，直接覆盖
+		One = 18,			//无混合，直接覆盖
 
 		_KEY_NOT_FOUND = -1,
 	};
 
 	// 资源接口
-	struct IResourceBase : public Core::IObject
-	{
+	struct IResourceBase : Core::IObject {
 		virtual ResourceType GetType() const noexcept = 0;
 		virtual std::string_view GetResName() const noexcept = 0;
 	};
