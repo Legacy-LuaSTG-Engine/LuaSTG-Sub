@@ -981,7 +981,6 @@ int GameObjectBentLaser::api_UpdateAllNodeByList(lua_State* L)
 	}
 
 	// 重新分配空间
-	m_Queue.clear();
 	size_t const node_count = (size_t)luaL_checkinteger(L, 2);
 	if (node_count > m_Queue.capacity())
 	{

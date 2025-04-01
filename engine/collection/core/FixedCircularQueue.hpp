@@ -30,7 +30,7 @@ namespace core {
 
 		void clear() noexcept { m_front = 0; m_back = 0; m_size = 0; }
 
-		void placementResize(size_t const size) noexcept { assert(size <= MaxSize); m_back = size; m_size = size; }
+		void placementResize(size_t const size) noexcept { assert(size <= MaxSize); m_front = 0; m_back = size; m_size = size; }
 
 		[[nodiscard]] T& placementPushTail() noexcept {
 			assert(!full());
@@ -78,9 +78,9 @@ namespace core {
 			return data;
 		}
 
-		[[nodiscard]] T& tail() noexcept { assert(!empty()); return m_data[m_back + MaxSize - 1]; }
+		[[nodiscard]] T& tail() noexcept { assert(!empty()); return m_data[(m_back + MaxSize - 1) % MaxSize]; }
 
-		[[nodiscard]] T const& tail() const noexcept { assert(!empty()); return m_data[m_back + MaxSize - 1]; }
+		[[nodiscard]] T const& tail() const noexcept { assert(!empty()); return m_data[(m_back + MaxSize - 1) % MaxSize]; }
 
 		[[nodiscard]] T& head() noexcept { assert(!empty()); return m_data[m_front]; }
 
