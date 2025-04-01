@@ -39,7 +39,7 @@ namespace core {
 			m_size += 1;
 			return data;
 		}
-		
+
 		[[nodiscard]] T& placementPushHead() noexcept {
 			assert(!full());
 			m_front = (m_front + MaxSize - 1) % MaxSize;	// 1. backward
@@ -54,7 +54,7 @@ namespace core {
 			m_back = (m_back + 1) % MaxSize;	// 2. forward
 			m_size += 1;
 		}
-		
+
 		void pushHead(T const& value) noexcept {
 			assert(!full());
 			m_front = (m_front + MaxSize - 1) % MaxSize;	// 1. backward
@@ -85,11 +85,11 @@ namespace core {
 		[[nodiscard]] T& head() noexcept { assert(!empty()); return m_data[m_front]; }
 
 		[[nodiscard]] T const& head() const noexcept { assert(!empty()); return m_data[m_front]; }
-		
+
 	private:
 		std::array<T, MaxSize> m_data;
-		size_t m_front{}; // 头部索引
-		size_t m_back{}; // 下一个可置入的对象的索引 
-		size_t m_size{}; // 已用空间
+		size_t m_front{};
+		size_t m_back{};
+		size_t m_size{};
 	};
 }
