@@ -138,6 +138,8 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/Sprite.cpp
     LuaSTG/LuaBinding/SpriteRenderer.hpp
     LuaSTG/LuaBinding/SpriteRenderer.cpp
+    LuaSTG/LuaBinding/Clipboard.hpp
+    LuaSTG/LuaBinding/Clipboard.cpp
     LuaSTG/LuaBinding/generated/BlendModeX.cpp
     LuaSTG/LuaBinding/generated/BlendModeX.hpp
     LuaSTG/LuaBinding/generated/ColorMember.cpp
@@ -213,6 +215,7 @@ target_link_libraries(LuaSTG PRIVATE
     pugixml
     xxhash
     LuaSTG.Sub.Configuration
+    LuaSTG.Sub.Clipboard
 )
 if (LUASTG_LINK_YY_THUNKS)
     target_link_libraries(LuaSTG PRIVATE YY_Thunks)
