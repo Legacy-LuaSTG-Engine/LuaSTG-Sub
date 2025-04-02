@@ -96,14 +96,14 @@ namespace luastg::binding {
 			lua::stack_t const ctx(vm);
 			auto const self = as(vm, 1);
 			if (ctx.index_of_top() >= 4) {
-				auto const c1 = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 1);
-				auto const c2 = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 2);
-				auto const c3 = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 3);
-				auto const c4 = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 4);
+				auto const c1 = *Color::Cast(vm, 1 + 1);
+				auto const c2 = *Color::Cast(vm, 1 + 2);
+				auto const c3 = *Color::Cast(vm, 1 + 3);
+				auto const c4 = *Color::Cast(vm, 1 + 4);
 				self->data->setColor(c1, c2, c3, c4);
 			}
 			else {
-				auto const color = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 1);
+				auto const color = *Color::Cast(vm, 1 + 1);
 				self->data->setColor(color);
 			}
 			ctx.push_value(lua::stack_index_t(1));
@@ -253,14 +253,14 @@ namespace luastg::binding {
 			lua::stack_t const ctx(vm);
 			auto const self = as(vm, 1);
 			if (ctx.index_of_top() >= 4) {
-				auto const c1 = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 1);
-				auto const c2 = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 2);
-				auto const c3 = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 3);
-				auto const c4 = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 4);
+				auto const c1 = *Color::Cast(vm, 1 + 1);
+				auto const c2 = *Color::Cast(vm, 1 + 2);
+				auto const c3 = *Color::Cast(vm, 1 + 3);
+				auto const c4 = *Color::Cast(vm, 1 + 4);
 				self->data->setColor(c1, c2, c3, c4);
 			}
 			else {
-				auto const color = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 1);
+				auto const color = *Color::Cast(vm, 1 + 1);
 				self->data->setColor(color);
 			}
 			ctx.push_value(lua::stack_index_t(1));
@@ -435,14 +435,14 @@ namespace luastg::binding {
 			lua::stack_t const ctx(vm);
 			auto const self = as(vm, 1);
 			if (ctx.index_of_top() >= 4) {
-				auto const c1 = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 1);
-				auto const c2 = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 2);
-				auto const c3 = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 3);
-				auto const c4 = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 4);
+				auto const c1 = *Color::Cast(vm, 1 + 1);
+				auto const c2 = *Color::Cast(vm, 1 + 2);
+				auto const c3 = *Color::Cast(vm, 1 + 3);
+				auto const c4 = *Color::Cast(vm, 1 + 4);
 				self->data->setColor(c1, c2, c3, c4);
 			}
 			else {
-				auto const color = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 1);
+				auto const color = *Color::Cast(vm, 1 + 1);
 				self->data->setColor(color);
 			}
 			ctx.push_value(lua::stack_index_t(1));

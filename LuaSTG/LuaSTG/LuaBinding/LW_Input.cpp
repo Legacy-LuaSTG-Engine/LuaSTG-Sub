@@ -297,7 +297,7 @@ static int register_mouse(lua_State* L)
 	return 0;
 }
 
-void luastg::LuaWrapper::InputWrapper::Register(lua_State* L) noexcept
+void luastg::binding::Input::Register(lua_State* L) noexcept
 {
 	struct Wrapper
 	{

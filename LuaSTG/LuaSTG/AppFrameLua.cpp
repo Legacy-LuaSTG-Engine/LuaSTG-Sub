@@ -20,7 +20,6 @@ extern "C" {
 #include "LuaBinding/external/lua_xinput.hpp"
 #include "LuaBinding/external/lua_random.hpp"
 #include "LuaBinding/external/lua_dwrite.hpp"
-#include "LuaBinding/Resource.hpp"
 
 #include "Core/FileManager.hpp"
 #include "utf8.hpp"
@@ -327,9 +326,7 @@ namespace luastg
 		#endif
 			lua_settop(L, 0);
 
-			RegistBuiltInClassWrapper(L);  // 注册内建类 (luastg lib)
-			luaopen_LuaSTG_Sub(L);
-			lua_settop(L, 0);
+			binding::RegistBuiltInClassWrapper(L);  // 注册内建类 (luastg lib)
 
 			// 设置命令行参数
 			spdlog::info("[luajit] 储存命令行参数");

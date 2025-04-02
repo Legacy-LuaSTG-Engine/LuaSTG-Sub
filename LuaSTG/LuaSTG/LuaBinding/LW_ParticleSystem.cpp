@@ -94,11 +94,11 @@ inline void luaL_check_color4f(lua_State* L, int idx, float c[4])
 	lua_pop(L, 1);
 }
 
-namespace luastg::LuaWrapper
+namespace luastg::binding
 {
-	std::string_view const ParticleSystemWrapper::ClassID("lstg.ParticleSystemInstance");
+	std::string_view const ParticleSystem::ClassID("lstg.ParticleSystemInstance");
 
-	void ParticleSystemWrapper::UserData::ReleaseAll()
+	void ParticleSystem::UserData::ReleaseAll()
 	{
 		if (res)
 		{
@@ -113,11 +113,11 @@ namespace luastg::LuaWrapper
 		ptr = nullptr;
 	}
 
-	ParticleSystemWrapper::UserData* ParticleSystemWrapper::Cast(lua_State* L, int idx)
+	ParticleSystem::UserData* ParticleSystem::Cast(lua_State* L, int idx)
 	{
 		return (UserData*)luaL_checkudata(L, idx, ClassID.data());
 	}
-	ParticleSystemWrapper::UserData* ParticleSystemWrapper::Create(lua_State* L)
+	ParticleSystem::UserData* ParticleSystem::Create(lua_State* L)
 	{
 		UserData* self = (UserData*)lua_newuserdata(L, sizeof(UserData)); // udata
 		self->res = nullptr;
@@ -126,7 +126,7 @@ namespace luastg::LuaWrapper
 		lua_setmetatable(L, -2); // udata
 		return self;
 	}
-	void ParticleSystemWrapper::Register(lua_State* L)
+	void ParticleSystem::Register(lua_State* L)
 	{
 		struct Wrapper
 		{
@@ -316,7 +316,7 @@ namespace luastg::LuaWrapper
 					if (lua_toboolean(L, 2))
 						lua_push_color4f(L, self->ptr->GetParticleSystemInfo().colColorEnd);
 					else
-						ColorWrapper::CreateAndPush(L, Color4f_to_Color4B(self->ptr->GetParticleSystemInfo().colColorEnd));
+						Color::CreateAndPush(L, Color4f_to_Color4B(self->ptr->GetParticleSystemInfo().colColorEnd));
 					return 1;
 				}
 				else
@@ -332,7 +332,7 @@ namespace luastg::LuaWrapper
 					if (lua_toboolean(L, 2))
 						lua_push_color4f(L, self->ptr->GetParticleSystemInfo().colColorStart);
 					else
-						ColorWrapper::CreateAndPush(L, Color4f_to_Color4B(self->ptr->GetParticleSystemInfo().colColorStart));
+						Color::CreateAndPush(L, Color4f_to_Color4B(self->ptr->GetParticleSystemInfo().colColorStart));
 					return 1;
 				}
 				else
@@ -741,7 +741,7 @@ namespace luastg::LuaWrapper
 				{
 					if (lua_isuserdata(L, 2))
 					{
-						Core::Color4B* col = ColorWrapper::Cast(L, 2);
+						Core::Color4B* col = Color::Cast(L, 2);
 						Color4B_to_Color4f(*col, self->ptr->GetParticleSystemInfo().colColorEnd);
 					}
 					else
@@ -762,7 +762,7 @@ namespace luastg::LuaWrapper
 				{
 					if (lua_isuserdata(L, 2))
 					{
-						Core::Color4B* col = ColorWrapper::Cast(L, 2);
+						Core::Color4B* col = Color::Cast(L, 2);
 						Color4B_to_Color4f(*col, self->ptr->GetParticleSystemInfo().colColorStart);
 					}
 					else

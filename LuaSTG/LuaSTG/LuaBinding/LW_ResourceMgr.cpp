@@ -3,7 +3,7 @@
 #include "Core/FileManager.hpp"
 #include "AppFrame.h"
 
-void luastg::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
+void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 {
 	struct Wrapper
 	{
@@ -565,14 +565,14 @@ void luastg::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 
 			p->SetBlendMode(TranslateBlendMode(L, 2));
 			if (lua_gettop(L) == 3)
-				p->GetSprite()->setColor(*ColorWrapper::Cast(L, 3));
+				p->GetSprite()->setColor(*Color::Cast(L, 3));
 			else if (lua_gettop(L) == 6)
 			{
 				Core::Color4B tColors[] = {
-					*ColorWrapper::Cast(L, 3),
-					*ColorWrapper::Cast(L, 4),
-					*ColorWrapper::Cast(L, 5),
-					*ColorWrapper::Cast(L, 6)
+					*Color::Cast(L, 3),
+					*Color::Cast(L, 4),
+					*Color::Cast(L, 5),
+					*Color::Cast(L, 6)
 				};
 				p->GetSprite()->setColor(tColors);
 			}
@@ -621,15 +621,15 @@ void luastg::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			p->SetBlendMode(TranslateBlendMode(L, 2));
 			if (lua_gettop(L) == 3)
 			{
-				p->SetVertexColor(*ColorWrapper::Cast(L, 3));
+				p->SetVertexColor(*Color::Cast(L, 3));
 			}
 			else if (lua_gettop(L) == 6)
 			{
 				Core::Color4B tColors[] = {
-					*ColorWrapper::Cast(L, 3),
-					*ColorWrapper::Cast(L, 4),
-					*ColorWrapper::Cast(L, 5),
-					*ColorWrapper::Cast(L, 6)
+					*Color::Cast(L, 3),
+					*Color::Cast(L, 4),
+					*Color::Cast(L, 5),
+					*Color::Cast(L, 6)
 				};
 				p->SetVertexColor(tColors);
 			}
@@ -661,7 +661,7 @@ void luastg::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 			p->SetBlendMode(TranslateBlendMode(L, 2));
 			if (lua_gettop(L) == 3)
 			{
-				p->SetBlendColor(*LuaWrapper::ColorWrapper::Cast(L, 3));
+				p->SetBlendColor(*Color::Cast(L, 3));
 			}
 			return 0;
 		}

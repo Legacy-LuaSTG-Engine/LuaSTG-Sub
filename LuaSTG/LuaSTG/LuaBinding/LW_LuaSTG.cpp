@@ -32,9 +32,9 @@ inline Core::RectI lua_to_Core_RectI(lua_State* L, int idx)
 	return Core::RectI(pos, pos + size);
 }
 
-void luastg::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
+void luastg::binding::BuiltInFunction::Register(lua_State* L)noexcept
 {
-	struct WrapperImplement
+	struct Wrapper
 	{
 		#pragma region 框架函数
 		// 框架函数
@@ -219,26 +219,26 @@ void luastg::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 	
 	luaL_Reg tFunctions[] = {
 		#pragma region 框架函数
-		{ "GetVersionNumber", &WrapperImplement::GetVersionNumber },
-		{ "GetVersionName", &WrapperImplement::GetVersionName },
-		{ "SetWindowed", &WrapperImplement::SetWindowed },
-		{ "SetFPS", &WrapperImplement::SetFPS },
-		{ "GetFPS", &WrapperImplement::GetFPS },
-		{ "SetVsync", &WrapperImplement::SetVsync },
-		{ "SetPreferenceGPU", &WrapperImplement::SetPreferenceGPU },
-		{ "SetResolution", &WrapperImplement::SetResolution },
-		{ "Log", &WrapperImplement::Log },
-		{ "DoFile", &WrapperImplement::DoFile },
-		{ "LoadTextFile", &WrapperImplement::LoadTextFile },
+		{ "GetVersionNumber", &Wrapper::GetVersionNumber },
+		{ "GetVersionName", &Wrapper::GetVersionName },
+		{ "SetWindowed", &Wrapper::SetWindowed },
+		{ "SetFPS", &Wrapper::SetFPS },
+		{ "GetFPS", &Wrapper::GetFPS },
+		{ "SetVsync", &Wrapper::SetVsync },
+		{ "SetPreferenceGPU", &Wrapper::SetPreferenceGPU },
+		{ "SetResolution", &Wrapper::SetResolution },
+		{ "Log", &Wrapper::Log },
+		{ "DoFile", &Wrapper::DoFile },
+		{ "LoadTextFile", &Wrapper::LoadTextFile },
 		#pragma endregion
 		
 		#pragma region 窗口与交换链控制函数
-		{ "ChangeVideoMode", &WrapperImplement::ChangeVideoMode },
-		{ "EnumResolutions", &WrapperImplement::EnumResolutions },
-		{ "EnumGPUs", &WrapperImplement::EnumGPUs },
-		{ "ChangeGPU", &WrapperImplement::ChangeGPU },
-		{ "GetCurrentGpuName", &WrapperImplement::GetCurrentGpuName },
-		{ "SetSwapChainScalingMode", &WrapperImplement::SetSwapChainScalingMode },
+		{ "ChangeVideoMode", &Wrapper::ChangeVideoMode },
+		{ "EnumResolutions", &Wrapper::EnumResolutions },
+		{ "EnumGPUs", &Wrapper::EnumGPUs },
+		{ "ChangeGPU", &Wrapper::ChangeGPU },
+		{ "GetCurrentGpuName", &Wrapper::GetCurrentGpuName },
+		{ "SetSwapChainScalingMode", &Wrapper::SetSwapChainScalingMode },
 		#pragma endregion
 		
 		{ NULL, NULL },

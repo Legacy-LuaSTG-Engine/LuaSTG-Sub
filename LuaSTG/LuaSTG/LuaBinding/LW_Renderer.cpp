@@ -151,7 +151,7 @@ namespace luastg {
 			color = Core::Color4B((uint32_t)lua_tonumber(L, 1));
 		}
 		else {
-			color = *LuaWrapper::ColorWrapper::Cast(L, 1);
+			color = *binding::Color::Cast(L, 1);
 		}
 
 		if (!LAPP.GetRenderTargetManager()->IsRenderTargetStackEmpty()) {
@@ -268,7 +268,7 @@ namespace luastg {
 			color = Core::Color4B((uint32_t)lua_tonumber(L, 2));
 		}
 		else {
-			color = *LuaWrapper::ColorWrapper::Cast(L, 2);
+			color = *binding::Color::Cast(L, 2);
 		}
 		LR2D()->setFogState(
 			(Core::Graphics::IRenderer::FogState)luaL_checkinteger(L, 1),
@@ -505,7 +505,7 @@ namespace luastg {
 				vertex[i].color = (uint32_t)lua_tonumber(L, -1);
 			}
 			else {
-				vertex[i].color = LuaWrapper::ColorWrapper::Cast(L, -1)->color();
+				vertex[i].color = binding::Color::Cast(L, -1)->color();
 			}
 
 			lua_pop(L, 6);
@@ -646,7 +646,7 @@ namespace luastg {
 			api_setFogState(
 				static_cast<float>(luaL_checknumber(L, 1)),
 				static_cast<float>(luaL_checknumber(L, 2)),
-				*LuaWrapper::ColorWrapper::Cast(L, 3)
+				*binding::Color::Cast(L, 3)
 			);
 		}
 		else if (argc == 2) {
@@ -745,7 +745,7 @@ namespace luastg {
 						p_effect->setTexture2D(key, ptex->GetTexture());
 					}
 					else if (lua_isuserdata(L, -1)) {
-						Core::Color4B color = *LuaWrapper::ColorWrapper::Cast(L, -1);
+						Core::Color4B color = *binding::Color::Cast(L, -1);
 						p_effect->setFloat4(key, Core::Vector4F(
 							float(color.r) / 255.0f,
 							float(color.g) / 255.0f,
@@ -845,7 +845,7 @@ namespace luastg {
 	};
 }
 
-void luastg::LuaWrapper::RendererWrapper::Register(lua_State* L)noexcept {
+void luastg::binding::Renderer::Register(lua_State* L)noexcept {
 	luaL_register(L, LUASTG_LUA_LIBNAME, lib_compat);           // ??? lstg
 	luaL_register(L, LUASTG_LUA_LIBNAME ".Renderer", lib_func); // ??? lstg lstg.Renderer
 	lua_setfield(L, -1, "Renderer");                            // ??? lstg

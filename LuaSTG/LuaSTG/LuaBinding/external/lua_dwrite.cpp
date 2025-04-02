@@ -2075,14 +2075,14 @@ namespace DirectWrite
 		static int api_SetTextColor(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
-			auto const color = *luastg::LuaWrapper::ColorWrapper::Cast(L, 2);
+			auto const color = *luastg::binding::Color::Cast(L, 2);
 			self->font_color = color;
 			return 0;
 		}
 		static int api_SetTextOutlineColor(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
-			auto const color = *luastg::LuaWrapper::ColorWrapper::Cast(L, 2);
+			auto const color = *luastg::binding::Color::Cast(L, 2);
 			self->outline_color = color;
 			return 0;
 		}
@@ -2097,7 +2097,7 @@ namespace DirectWrite
 		static int api_SetShadowColor(lua_State* L)
 		{
 			auto* self = Cast(L, 1);
-			auto const color = *luastg::LuaWrapper::ColorWrapper::Cast(L, 2);
+			auto const color = *luastg::binding::Color::Cast(L, 2);
 			self->shadow_color = color;
 			return 0;
 		}
@@ -2554,9 +2554,9 @@ namespace DirectWrite
 		Core::Color4B font_color = Core::Color4B(255, 255, 255, 255);
 		Core::Color4B outline_color = Core::Color4B(0, 0, 0, 255);
 		if (lua_gettop(L) >= 5)
-			font_color = *luastg::LuaWrapper::ColorWrapper::Cast(L, 5);
+			font_color = *luastg::binding::Color::Cast(L, 5);
 		if (lua_gettop(L) >= 6)
-			outline_color = *luastg::LuaWrapper::ColorWrapper::Cast(L, 6);
+			outline_color = *luastg::binding::Color::Cast(L, 6);
 
 		// pre check
 

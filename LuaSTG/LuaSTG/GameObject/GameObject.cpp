@@ -289,7 +289,7 @@ namespace luastg
 	{
 		if (luaclass.IsRenderClass && res && ps)
 		{
-			auto p = LuaWrapper::ParticleSystemWrapper::Create(L);
+			auto p = binding::ParticleSystem::Create(L);
 			p->res = dynamic_cast<IResourceParticle*>(res); res->retain();
 			p->ptr = ps;
 			lua_rawseti(L, idx, 4);
@@ -301,7 +301,7 @@ namespace luastg
 		lua_rawgeti(L, idx, 4);
 		if (lua_isuserdata(L, -1))
 		{
-			if (auto p = LuaWrapper::ParticleSystemWrapper::Cast(L, -1))
+			if (auto p = binding::ParticleSystem::Cast(L, -1))
 			{
 				if (p->res) p->res->release();
 				p->ptr = nullptr; // 不要释放 ps，因为已经在 ReleaseResource 做过了
@@ -756,7 +756,7 @@ namespace luastg
 			return 1;
 		case LuaSTG::GameObjectMember::_COLOR:
 			if (luaclass.IsRenderClass)
-				LuaWrapper::ColorWrapper::CreateAndPush(L, Core::Color4B(vertexcolor));
+				binding::Color::CreateAndPush(L, Core::Color4B(vertexcolor));
 			else
 				return_default(L);
 			return 1;
@@ -1022,7 +1022,7 @@ namespace luastg
 			return 0;
 		case LuaSTG::GameObjectMember::_COLOR:
 			if (luaclass.IsRenderClass)
-				vertexcolor = LuaWrapper::ColorWrapper::Cast(L, 3)->color();
+				vertexcolor = binding::Color::Cast(L, 3)->color();
 			else
 				lua_rawset(L, 1);
 			return 0;

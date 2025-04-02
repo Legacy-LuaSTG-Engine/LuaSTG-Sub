@@ -2,14 +2,14 @@
 #include "GameObject/GameObjectBentLaser.hpp"
 #include "AppFrame.h"
 
-namespace luastg::LuaWrapper
+namespace luastg::binding
 {
-	struct BentLaserWrapper::Wrapper
+	struct BentLaser::Wrapper
 	{
 		GameObjectBentLaser* handle;
 	};
 
-	void BentLaserWrapper::Register(lua_State* L)noexcept
+	void BentLaser::Register(lua_State* L)noexcept
 	{
 		struct Function
 		{
@@ -112,7 +112,7 @@ namespace luastg::LuaWrapper
 				if (!p->handle->Render(
 					luaL_checkstring(L, 2),
 					TranslateBlendMode(L, 3),
-					*LuaWrapper::ColorWrapper::Cast(L, 4),
+					*Color::Cast(L, 4),
 					(float)luaL_checknumber(L, 5),
 					(float)luaL_checknumber(L, 6),
 					(float)luaL_checknumber(L, 7),
@@ -146,7 +146,7 @@ namespace luastg::LuaWrapper
 			static int RenderCollider(lua_State* L) {
 				GETUDATA(p, 1);
 				CHECKUDATA(p);
-				p->handle->RenderCollider(*LuaWrapper::ColorWrapper::Cast(L, 2));
+				p->handle->RenderCollider(*Color::Cast(L, 2));
 				return 0;
 			}
 			static int CollisionCheckWidth(lua_State* L)noexcept
@@ -292,7 +292,7 @@ namespace luastg::LuaWrapper
 		RegisterClassIntoTable(L, ".CurveLaser", tMethods, LUASTG_LUA_TYPENAME_BENTLASER, tMetaTable);
 	}
 
-	void BentLaserWrapper::CreateAndPush(lua_State* L)
+	void BentLaser::CreateAndPush(lua_State* L)
 	{
 		Wrapper* p = static_cast<Wrapper*>(lua_newuserdata(L, sizeof(Wrapper))); // udata
 		try {

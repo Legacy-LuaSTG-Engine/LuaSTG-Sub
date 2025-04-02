@@ -737,14 +737,14 @@ static int lib_ShowParticleSystemEditor(lua_State* L)
 	if (lua_gettop(L) >= 2)
 	{
 		bool v = lua_toboolean(L, 1);
-		auto p = luastg::LuaWrapper::ParticleSystemWrapper::Cast(L, 2);
+		auto p = luastg::binding::ParticleSystem::Cast(L, 2);
 		showParticleSystemEditor(&v, p->ptr);
 		lua_pushboolean(L, v);
 		return 1;
 	}
 	else
 	{
-		auto p = luastg::LuaWrapper::ParticleSystemWrapper::Cast(L, 1);
+		auto p = luastg::binding::ParticleSystem::Cast(L, 1);
 		showParticleSystemEditor(nullptr, p->ptr);
 		return 0;
 	}

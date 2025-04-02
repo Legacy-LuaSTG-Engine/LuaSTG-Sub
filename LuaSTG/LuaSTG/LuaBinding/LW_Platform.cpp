@@ -6,7 +6,7 @@
 #include <shellapi.h>
 #include "utf8.hpp"
 
-void luastg::LuaWrapper::PlatformWrapper::Register(lua_State* L) noexcept
+void luastg::binding::Platform::Register(lua_State* L) noexcept
 {
 	struct Wrapper
 	{
@@ -15,7 +15,7 @@ void luastg::LuaWrapper::PlatformWrapper::Register(lua_State* L) noexcept
 			try
 			{
 				std::string path;
-				if (Platform::KnownDirectory::getLocalAppData(path))
+				if (::Platform::KnownDirectory::getLocalAppData(path))
 				{
 					lua_pushstring(L, path.c_str());
 				}
@@ -35,7 +35,7 @@ void luastg::LuaWrapper::PlatformWrapper::Register(lua_State* L) noexcept
 			try
 			{
 				std::string path;
-				if (Platform::KnownDirectory::getRoamingAppData(path))
+				if (::Platform::KnownDirectory::getRoamingAppData(path))
 				{
 					lua_pushstring(L, path.c_str());
 				}
@@ -126,10 +126,6 @@ void luastg::LuaWrapper::PlatformWrapper::Register(lua_State* L) noexcept
 		{ "GetRoamingAppDataPath", &Wrapper::GetRoamingAppDataPath },
 		{ "Execute", &Wrapper::Execute },
 		{ "MessageBox", &Wrapper::api_MessageBox },
-		{ NULL, NULL },
-	};
-
-	luaL_Reg const lib_empty[] = {
 		{ NULL, NULL },
 	};
 

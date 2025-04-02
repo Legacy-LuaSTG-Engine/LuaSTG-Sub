@@ -22,7 +22,7 @@ static bool extractRes(const char* path, const char* target) noexcept
 	return true;
 }
 
-void luastg::FileManagerWrapper::Register(lua_State* L)noexcept
+void luastg::binding::FileManager::Register(lua_State* L)noexcept
 {
 	struct Wrapper
 	{
@@ -62,7 +62,7 @@ void luastg::FileManagerWrapper::Register(lua_State* L)noexcept
 				auto& zip = GFileManager().getFileArchive(path);
 				if (!zip.empty())
 				{
-					ArchiveWrapper::CreateAndPush(L, zip.getUUID());
+					Archive::CreateAndPush(L, zip.getUUID());
 				}
 				else
 				{
@@ -110,7 +110,7 @@ void luastg::FileManagerWrapper::Register(lua_State* L)noexcept
 			auto& zip = GFileManager().getFileArchive(name);
 			if (!zip.empty())
 			{
-				ArchiveWrapper::CreateAndPush(L, zip.getUUID());
+				Archive::CreateAndPush(L, zip.getUUID());
 			}
 			else
 			{
@@ -611,7 +611,7 @@ void luastg::FileManagerWrapper::Register(lua_State* L)noexcept
 				str, len,
 				pos, (float)luaL_checknumber(L, 4),
 				TranslateBlendMode(L, 5),
-				*LuaWrapper::ColorWrapper::Cast(L, 6));
+				*Color::Cast(L, 6));
 			lua_pushboolean(L, ret);
 			lua_pushnumber(L, (lua_Number)pos.x);
 			lua_pushnumber(L, (lua_Number)pos.y);
@@ -630,7 +630,7 @@ void luastg::FileManagerWrapper::Register(lua_State* L)noexcept
 				str, len,
 				pos, rvec, dvec,
 				blend,
-				*LuaWrapper::ColorWrapper::Cast(L, 12));
+				*Color::Cast(L, 12));
 			lua_pushboolean(L, ret);
 			lua_pushnumber(L, (lua_Number)pos.x);
 			lua_pushnumber(L, (lua_Number)pos.y);
