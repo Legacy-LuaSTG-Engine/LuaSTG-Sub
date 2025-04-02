@@ -1,3 +1,6 @@
+add_subdirectory(utf8)
+add_subdirectory(utility)
+add_subdirectory(lua)
 add_subdirectory(collection)
 add_subdirectory(configuration)
 add_subdirectory(clipboard)
