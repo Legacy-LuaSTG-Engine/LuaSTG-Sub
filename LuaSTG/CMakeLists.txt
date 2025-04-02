@@ -81,12 +81,6 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/GameResource/Implement/ResourceModelImpl.hpp
     LuaSTG/GameResource/Implement/ResourceModelImpl.cpp
 
-    LuaSTG/LuaBinding/lua_dwrite.hpp
-    LuaSTG/LuaBinding/lua_dwrite.cpp
-    LuaSTG/LuaBinding/lua_random.hpp
-    LuaSTG/LuaBinding/lua_random.cpp
-    LuaSTG/LuaBinding/lua_xinput.hpp
-    LuaSTG/LuaBinding/lua_xinput.cpp
     LuaSTG/LuaBinding/LuaAppFrame.hpp
     LuaSTG/LuaBinding/LuaCustomLoader.cpp
     LuaSTG/LuaBinding/LuaCustomLoader.hpp
@@ -115,8 +109,16 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/PostEffectShader.cpp
     LuaSTG/LuaBinding/Resource.hpp
     LuaSTG/LuaBinding/Resource.cpp
-    LuaSTG/LuaBinding/HttpClient.hpp
-    LuaSTG/LuaBinding/HttpClient.cpp
+
+    LuaSTG/LuaBinding/external/lua_dwrite.hpp
+    LuaSTG/LuaBinding/external/lua_dwrite.cpp
+    LuaSTG/LuaBinding/external/lua_random.hpp
+    LuaSTG/LuaBinding/external/lua_random.cpp
+    LuaSTG/LuaBinding/external/lua_xinput.hpp
+    LuaSTG/LuaBinding/external/lua_xinput.cpp
+    LuaSTG/LuaBinding/external/HttpClient.hpp
+    LuaSTG/LuaBinding/external/HttpClient.cpp
+
     LuaSTG/LuaBinding/modern/Display.hpp
     LuaSTG/LuaBinding/modern/Display.cpp
     LuaSTG/LuaBinding/modern/Window.hpp
@@ -141,6 +143,7 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/modern/SpriteRenderer.cpp
     LuaSTG/LuaBinding/modern/Clipboard.hpp
     LuaSTG/LuaBinding/modern/Clipboard.cpp
+
     LuaSTG/LuaBinding/generated/BlendModeX.cpp
     LuaSTG/LuaBinding/generated/BlendModeX.hpp
     LuaSTG/LuaBinding/generated/ColorMember.cpp

@@ -17,9 +17,9 @@ extern "C" {
 #endif
 //#include "lua_xlsx_csv.h"
 #include "lua_steam.h"
-#include "LuaBinding/lua_xinput.hpp"
-#include "LuaBinding/lua_random.hpp"
-#include "LuaBinding/lua_dwrite.hpp"
+#include "LuaBinding/external/lua_xinput.hpp"
+#include "LuaBinding/external/lua_random.hpp"
+#include "LuaBinding/external/lua_dwrite.hpp"
 #include "LuaBinding/Resource.hpp"
 
 #include "Core/FileManager.hpp"
@@ -309,7 +309,7 @@ namespace luastg
 			//lua_xlsx_open(L);
 			//lua_csv_open(L);
 			lua_steam_open(L);
-			lua_xinput_open(L);
+			luaopen_xinput(L);
 			luaopen_dwrite(L);
 			luaopen_random(L);
 			luaopen_string_pack(L);
