@@ -3,7 +3,7 @@
 #include "lua.hpp"
 #include "Core/Graphics/Window.hpp"
 
-namespace LuaSTG::Sub::LuaBinding {
+namespace luastg::binding {
 	
 	struct Display {
 

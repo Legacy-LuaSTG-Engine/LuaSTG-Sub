@@ -9,7 +9,7 @@
 
 using std::string_view_literals::operator ""sv;
 
-namespace LuaSTG::Sub::LuaBinding {
+namespace luastg::binding {
 	std::string_view MeshRenderer::class_name{ "lstg.MeshRenderer" };
 
 	struct MeshRendererBinding : MeshRenderer {

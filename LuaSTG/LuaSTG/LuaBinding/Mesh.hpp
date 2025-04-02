@@ -2,7 +2,7 @@
 #include "lua.hpp"
 #include "Core/Graphics/Mesh.hpp"
 
-namespace LuaSTG::Sub::LuaBinding {
+namespace luastg::binding {
 	struct Mesh {
 		static std::string_view class_name;
 

@@ -2,7 +2,7 @@
 #include "lua.hpp"
 #include "Core/Graphics/Device.hpp"
 
-namespace LuaSTG::Sub::LuaBinding {
+namespace luastg::binding {
 	struct Texture2D {
 		static std::string_view class_name;
 

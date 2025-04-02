@@ -22,7 +22,7 @@ static int compat_SetTitle(lua_State* L)
 	return 0;
 }
 
-namespace LuaSTG::Sub::LuaBinding {
+namespace luastg::binding {
 
 	std::string_view Window::class_name{ "lstg.Window" };
 
@@ -243,7 +243,7 @@ namespace LuaSTG::Sub::LuaBinding {
 
 }
 
-namespace LuaSTG::Sub::LuaBinding {
+namespace luastg::binding {
 
 	std::string_view Window_InputMethodExtension::class_name{ "lstg.Window.InputMethodExtension" };
 
@@ -333,7 +333,7 @@ namespace LuaSTG::Sub::LuaBinding {
 
 }
 
-namespace LuaSTG::Sub::LuaBinding {
+namespace luastg::binding {
 
 	std::string_view Window_TextInputExtension::class_name{ "lstg.Window.TextInputExtension" };
 
@@ -491,7 +491,7 @@ namespace LuaSTG::Sub::LuaBinding {
 
 }
 
-namespace LuaSTG::Sub::LuaBinding {
+namespace luastg::binding {
 
 	std::string_view Window_Windows11Extension::class_name{ "lstg.Window.Windows11Extension" };
 

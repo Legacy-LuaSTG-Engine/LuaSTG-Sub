@@ -6,7 +6,7 @@
 #include "AppFrame.h"
 #include "GameResource/LegacyBlendStateHelper.hpp"
 
-namespace LuaSTG::Sub::LuaBinding {
+namespace luastg::binding {
 	std::string_view const SpriteRenderer::class_name{ "lstg.SpriteRenderer" };
 
 	struct SpriteRendererBinding : SpriteRenderer {
@@ -192,7 +192,7 @@ namespace LuaSTG::Sub::LuaBinding {
 	}
 }
 
-namespace LuaSTG::Sub::LuaBinding {
+namespace luastg::binding {
 	std::string_view const SpriteRectRenderer::class_name{ "lstg.SpriteRectRenderer" };
 
 	struct SpriteRectRendererBinding : SpriteRectRenderer {
@@ -342,7 +342,7 @@ namespace LuaSTG::Sub::LuaBinding {
 	}
 }
 
-namespace LuaSTG::Sub::LuaBinding {
+namespace luastg::binding {
 	std::string_view const SpriteQuadRenderer::class_name{ "lstg.SpriteQuadRenderer" };
 
 	struct SpriteQuadRendererBinding : SpriteQuadRenderer {

@@ -10,7 +10,7 @@ namespace {
 )"sv;
 }
 
-namespace LuaSTG::Sub::LuaBinding {
+namespace luastg::binding {
 	std::string_view Vector3::class_name{ "lstg.Vector3" };
 
 	struct Vector3Binding : Vector3 {

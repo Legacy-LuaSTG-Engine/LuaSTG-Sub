@@ -68,24 +68,24 @@ namespace luastg
 		LuaWrapper::PlatformWrapper::Register(L);
 		FileManagerWrapper::Register(L); //内建函数库，文件资源管理，请确保位于内建函数库后加载
 		ArchiveWrapper::Register(L); //压缩包
-		LuaSTG::LuaBinding::PostEffectShader::Register(L);
-		LuaSTG::Sub::LuaBinding::Clipboard::registerClass(L);
-		LuaSTG::Sub::LuaBinding::Display::registerClass(L);
-		LuaSTG::Sub::LuaBinding::Window::registerClass(L);
-		LuaSTG::Sub::LuaBinding::Window_InputMethodExtension::registerClass(L);
-		LuaSTG::Sub::LuaBinding::Window_TextInputExtension::registerClass(L);
-		LuaSTG::Sub::LuaBinding::Window_Windows11Extension::registerClass(L);
-		LuaSTG::Sub::LuaBinding::SwapChain::registerClass(L);
-		LuaSTG::Sub::LuaBinding::Texture2D::registerClass(L);
-		LuaSTG::Sub::LuaBinding::Mesh::registerClass(L);
-		LuaSTG::Sub::LuaBinding::MeshRenderer::registerClass(L);
-		LuaSTG::Sub::LuaBinding::Vector2::registerClass(L);
-		LuaSTG::Sub::LuaBinding::Vector3::registerClass(L);
-		LuaSTG::Sub::LuaBinding::Vector4::registerClass(L);
-		LuaSTG::Sub::LuaBinding::Sprite::registerClass(L);
-		LuaSTG::Sub::LuaBinding::SpriteRenderer::registerClass(L);
-		LuaSTG::Sub::LuaBinding::SpriteRectRenderer::registerClass(L);
-		LuaSTG::Sub::LuaBinding::SpriteQuadRenderer::registerClass(L);
+		binding::PostEffectShader::Register(L);
+		binding::Clipboard::registerClass(L);
+		binding::Display::registerClass(L);
+		binding::Window::registerClass(L);
+		binding::Window_InputMethodExtension::registerClass(L);
+		binding::Window_TextInputExtension::registerClass(L);
+		binding::Window_Windows11Extension::registerClass(L);
+		binding::SwapChain::registerClass(L);
+		binding::Texture2D::registerClass(L);
+		binding::Mesh::registerClass(L);
+		binding::MeshRenderer::registerClass(L);
+		binding::Vector2::registerClass(L);
+		binding::Vector3::registerClass(L);
+		binding::Vector4::registerClass(L);
+		binding::Sprite::registerClass(L);
+		binding::SpriteRenderer::registerClass(L);
+		binding::SpriteRectRenderer::registerClass(L);
+		binding::SpriteQuadRenderer::registerClass(L);
 		http::Request::registerClass(L);
 		http::ResponseEntity::registerClass(L);
 	}

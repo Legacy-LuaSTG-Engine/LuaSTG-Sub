@@ -3,7 +3,7 @@
 #include "lua.hpp"
 #include "Core/Graphics/SwapChain.hpp"
 
-namespace LuaSTG::Sub::LuaBinding {
+namespace luastg::binding {
 
 	struct SwapChain {
 

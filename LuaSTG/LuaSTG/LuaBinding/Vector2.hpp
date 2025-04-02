@@ -2,7 +2,7 @@
 #include "lua.hpp"
 #include "Core/Type.hpp"
 
-namespace LuaSTG::Sub::LuaBinding {
+namespace luastg::binding {
 	struct Vector2 {
 		static std::string_view class_name;
 

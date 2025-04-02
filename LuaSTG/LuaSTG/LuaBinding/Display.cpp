@@ -25,7 +25,7 @@ static void pushRect(lua_State* L, lua_Number const left, lua_Number const top, 
 	S.set_map_value(index, "bottom", bottom);
 }
 
-namespace LuaSTG::Sub::LuaBinding {
+namespace luastg::binding {
 
 	std::string_view Display::class_name{ "lstg.Display" };
 

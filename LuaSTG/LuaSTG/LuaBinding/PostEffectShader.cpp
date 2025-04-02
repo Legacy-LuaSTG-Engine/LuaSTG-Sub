@@ -3,7 +3,7 @@
 #include "AppFrame.h"
 #include "LuaBinding/LuaWrapperMisc.hpp"
 
-namespace LuaSTG::LuaBinding
+namespace luastg::binding
 {
 	namespace
 	{

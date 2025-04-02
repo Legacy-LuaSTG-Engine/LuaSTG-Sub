@@ -2,7 +2,7 @@
 #include "lua.hpp"
 #include "Core/Graphics/Sprite.hpp"
 
-namespace LuaSTG::Sub::LuaBinding {
+namespace luastg::binding {
 	struct SpriteRenderer {
 		static std::string_view const class_name;
 

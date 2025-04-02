@@ -29,7 +29,7 @@ end
 )"sv;
 }
 
-namespace LuaSTG::Sub::LuaBinding {
+namespace luastg::binding {
 	std::string_view Vector2::class_name{ "lstg.Vector2" };
 
 	struct Vector2Binding : Vector2 {

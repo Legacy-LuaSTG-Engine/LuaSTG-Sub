@@ -219,7 +219,7 @@ namespace {
 	}
 }
 
-namespace LuaSTG::Sub::LuaBinding {
+namespace luastg::binding {
 	std::string_view Mesh::class_name{ "lstg.Mesh" };
 
 	struct MeshBinding : Mesh {

@@ -2,7 +2,7 @@
 #include "Core/Graphics/Renderer.hpp"
 #include "lua.hpp"
 
-namespace LuaSTG::LuaBinding
+namespace luastg::binding
 {
 	class PostEffectShader
 	{

@@ -698,7 +698,7 @@ namespace luastg {
 
 		// PostEffectShader 对象风格
 		if (lua_isuserdata(L, 1)) {
-			auto* p_effect = LuaSTG::LuaBinding::PostEffectShader::Cast(L, 1);
+			auto* p_effect = binding::PostEffectShader::Cast(L, 1);
 			const Core::Graphics::IRenderer::BlendState blend = translate_blend_3d(TranslateBlendMode(L, 2));
 			LR2D()->drawPostEffect(p_effect, blend);
 			return 0;

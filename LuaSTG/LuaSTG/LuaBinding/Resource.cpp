@@ -1,7 +1,7 @@
 #include "lua/plus.hpp"
 #include "AppFrame.h"
 
-namespace LuaSTG::Sub::LuaBinding
+namespace luastg::binding
 {
 	static constexpr std::string_view const ModuleID{ "LuaSTG.Sub" };
 
@@ -761,10 +761,10 @@ namespace LuaSTG::Sub::LuaBinding
 
 int luaopen_LuaSTG_Sub(lua_State* L)
 {
-	LuaSTG::Sub::LuaBinding::ResourceTexture::registerClass(L);
-	LuaSTG::Sub::LuaBinding::ResourceSprite::registerClass(L);
-	LuaSTG::Sub::LuaBinding::ResourceSpriteSequence::registerClass(L);
-	LuaSTG::Sub::LuaBinding::ResourceCollection::registerClass(L);
-	LuaSTG::Sub::LuaBinding::ResourceManager::registerClass(L);
+	luastg::binding::ResourceTexture::registerClass(L);
+	luastg::binding::ResourceSprite::registerClass(L);
+	luastg::binding::ResourceSpriteSequence::registerClass(L);
+	luastg::binding::ResourceCollection::registerClass(L);
+	luastg::binding::ResourceManager::registerClass(L);
 	return 1;
 }

@@ -1,7 +1,7 @@
 #pragma once
 #include "lua.hpp"
 
-namespace LuaSTG::Sub::LuaBinding {
+namespace luastg::binding {
 
 	struct Clipboard {
 

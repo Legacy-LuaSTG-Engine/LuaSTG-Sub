@@ -2,7 +2,7 @@
 #include "core/Clipboard.hpp"
 #include "lua/plus.hpp"
 
-namespace LuaSTG::Sub::LuaBinding {
+namespace luastg::binding {
 
 	std::string_view const Clipboard::class_name{ "lstg.Clipboard" };
 

@@ -3,7 +3,7 @@
 #include "lua/plus.hpp"
 #include "AppFrame.h"
 
-namespace LuaSTG::Sub::LuaBinding {
+namespace luastg::binding {
 	std::string_view const Sprite::class_name{ "lstg.Sprite" };
 
 	struct SpriteBinding : Sprite {

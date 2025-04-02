@@ -2,7 +2,7 @@
 #include "lua/plus.hpp"
 #include "AppFrame.h"
 
-namespace LuaSTG::Sub::LuaBinding {
+namespace luastg::binding {
 	std::string_view Texture2D::class_name{ "lstg.Texture2D" };
 
 	struct Texture2DBinding : Texture2D {

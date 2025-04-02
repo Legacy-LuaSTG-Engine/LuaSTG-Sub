@@ -9,7 +9,7 @@ static void pushSize(lua_State* L, lua_Number const width, lua_Number const heig
 	S.set_map_value(index, "height", height);
 }
 
-namespace LuaSTG::Sub::LuaBinding {
+namespace luastg::binding {
 
 	std::string_view SwapChain::class_name{ "lstg.SwapChain" };
 
