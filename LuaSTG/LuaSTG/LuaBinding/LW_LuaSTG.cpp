@@ -32,7 +32,7 @@ inline Core::RectI lua_to_Core_RectI(lua_State* L, int idx)
 	return Core::RectI(pos, pos + size);
 }
 
-void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
+void luastg::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 {
 	struct WrapperImplement
 	{

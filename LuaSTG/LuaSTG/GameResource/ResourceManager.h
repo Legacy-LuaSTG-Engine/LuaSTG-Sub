@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "GameResource/ResourceTexture.hpp"
 #include "GameResource/ResourceSprite.hpp"
 #include "GameResource/ResourceAnimation.hpp"
@@ -11,7 +11,7 @@
 #include "lua.hpp"
 #include "xxhash.h"
 
-namespace LuaSTGPlus
+namespace luastg
 {
     class ResourceMgr;
     

@@ -4,7 +4,7 @@
 #include "GameObject/GameObjectClass.hpp"
 #include "lua.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	// 游戏对象状态
 	enum class GameObjectStatus : uint32_t

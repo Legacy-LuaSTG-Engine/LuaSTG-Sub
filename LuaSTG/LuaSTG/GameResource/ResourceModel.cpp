@@ -1,5 +1,5 @@
 #include "GameResource/ResourceModel.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 }

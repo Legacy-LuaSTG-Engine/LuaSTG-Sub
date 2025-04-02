@@ -2,7 +2,7 @@
 #include "GameResource/ResourceBase.hpp"
 #include "Core/Object.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	template<typename Base>
 	class ResourceBaseImpl : public Core::Object<Base>

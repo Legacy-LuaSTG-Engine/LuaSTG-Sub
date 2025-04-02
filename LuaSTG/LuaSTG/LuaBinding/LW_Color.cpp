@@ -1,8 +1,8 @@
-﻿#include "LuaBinding/LuaWrapper.hpp"
+#include "LuaBinding/LuaWrapper.hpp"
 #include "LuaBinding/generated/ColorMember.hpp"
 #include <DirectXMath.h>
 
-namespace LuaSTGPlus::LuaWrapper
+namespace luastg::LuaWrapper
 {
 	inline Core::Color4B HSV2RGB(float const hue, float const saturation, float const value, float const alpha)
 	{

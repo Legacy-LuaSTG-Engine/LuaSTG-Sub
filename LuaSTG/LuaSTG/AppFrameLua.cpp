@@ -1,4 +1,4 @@
-﻿#include "AppFrame.h"
+#include "AppFrame.h"
 #include "GameResource/ResourcePassword.hpp"
 #include "LuaBinding/LuaAppFrame.hpp"
 #include "LuaBinding/LuaCustomLoader.hpp"
@@ -30,7 +30,7 @@ extern "C" {
 #define NOMINMAX
 #include <Windows.h>
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	static int StackTraceback(lua_State *L) noexcept
     {

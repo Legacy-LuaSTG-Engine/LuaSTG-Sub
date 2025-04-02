@@ -1,7 +1,7 @@
 #include "GameResource/Implement/ResourceSpriteImpl.hpp"
 #include "AppFrame.h"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	ResourceSpriteImpl::ResourceSpriteImpl(const char* name, Core::Graphics::ISprite* sprite, double hx, double hy, bool rect)
 		: ResourceBaseImpl(ResourceType::Sprite, name)

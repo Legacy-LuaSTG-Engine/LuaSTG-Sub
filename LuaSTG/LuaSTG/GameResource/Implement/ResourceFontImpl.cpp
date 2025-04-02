@@ -5,7 +5,7 @@
 #include "AppFrame.h"
 #include "utf8.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	class hgeFont
 		: public Core::Object<Core::Graphics::IGlyphManager>

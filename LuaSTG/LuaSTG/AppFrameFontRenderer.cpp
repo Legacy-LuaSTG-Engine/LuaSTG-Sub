@@ -1,19 +1,19 @@
-﻿#include "AppFrame.h"
+#include "AppFrame.h"
 #include "utf8.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	// luastg plus interface
 	
-	constexpr int const TEXT_ALIGN_LEFT = 0x00;
-	constexpr int const TEXT_ALIGN_CENTER = 0x01;
-	constexpr int const TEXT_ALIGN_RIGHT = 0x02;
+	constexpr int TEXT_ALIGN_LEFT = 0x00;
+	constexpr int TEXT_ALIGN_CENTER = 0x01;
+	constexpr int TEXT_ALIGN_RIGHT = 0x02;
 
-	constexpr int const TEXT_ALIGN_TOP = 0x00;
-	constexpr int const TEXT_ALIGN_VCENTER = 0x04;
-	constexpr int const TEXT_ALIGN_BOTTOM = 0x08;
+	constexpr int TEXT_ALIGN_TOP = 0x00;
+	constexpr int TEXT_ALIGN_VCENTER = 0x04;
+	constexpr int TEXT_ALIGN_BOTTOM = 0x08;
 
-	constexpr int const TEXT_FLAG_WORDBREAK = 0x10;
+	constexpr int TEXT_FLAG_WORDBREAK = 0x10;
 
 	bool AppFrame::RenderText(IResourceFont* p, wchar_t* strBuf, Core::RectF rect, Core::Vector2F scale, FontAlignHorizontal halign, FontAlignVertical valign, bool bWordBreak)noexcept
 	{

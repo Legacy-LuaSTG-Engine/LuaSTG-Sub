@@ -3,7 +3,7 @@
 #include "Core/FileManager.hpp"
 #include "AppFrame.h"
 
-void LuaSTGPlus::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
+void luastg::LuaWrapper::ResourceMgrWrapper::Register(lua_State* L) noexcept
 {
 	struct Wrapper
 	{

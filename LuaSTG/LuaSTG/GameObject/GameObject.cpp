@@ -8,7 +8,7 @@
 #include "XCollision.h"
 #include "AppFrame.h"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	//【弃用】游戏碰撞体类型
 	enum class GameObjectColliderType {

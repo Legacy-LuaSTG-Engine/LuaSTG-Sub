@@ -1,7 +1,7 @@
 #include "LuaBinding/LuaWrapper.hpp"
 #include "AppFrame.h"
 
-void LuaSTGPlus::LuaWrapper::GameObjectManagerWrapper::Register(lua_State* L) noexcept
+void luastg::LuaWrapper::GameObjectManagerWrapper::Register(lua_State* L) noexcept
 {
 	struct Wrapper
 	{

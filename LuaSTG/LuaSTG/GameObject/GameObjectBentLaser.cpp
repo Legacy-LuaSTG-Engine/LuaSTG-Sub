@@ -1,7 +1,7 @@
 #include "GameObject/GameObjectBentLaser.hpp"
 #include "AppFrame.h"
 
-using namespace LuaSTGPlus;
+using namespace luastg;
 
 //------------------------------------------------------------------------------
 
@@ -667,7 +667,7 @@ bool GameObjectBentLaser::CollisionCheck(float x, float y, float rot, float a, f
 		testObjA.a = testObjA.b = n.half_width * _GetEnvelope((float)i / (float)(sn - 1u)); //n.half_width;
 		testObjA.rect = false;
 		testObjA.UpdateCollisionCircleRadius();
-		if (LuaSTGPlus::CollisionCheck(&testObjA, &testObjB))
+		if (luastg::CollisionCheck(&testObjA, &testObjB))
 			return true;
 	}
 	return false;
@@ -725,7 +725,7 @@ bool GameObjectBentLaser::CollisionCheckW(float x, float y, float rot, float a, 
 		testObjA.a = testObjA.b = width;
 		testObjA.rect = false;
 		testObjA.UpdateCollisionCircleRadius();
-		if (LuaSTGPlus::CollisionCheck(&testObjA, &testObjB))
+		if (luastg::CollisionCheck(&testObjA, &testObjB))
 			return true;
 	}
 	return false;

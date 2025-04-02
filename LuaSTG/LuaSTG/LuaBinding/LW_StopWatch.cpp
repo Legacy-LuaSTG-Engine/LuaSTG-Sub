@@ -1,4 +1,4 @@
-﻿#include "LuaBinding/LuaWrapper.hpp"
+#include "LuaBinding/LuaWrapper.hpp"
 #include "Platform/CleanWindows.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -63,7 +63,7 @@ double fcyStopWatch::GetElapsed()
 	return ((double)(t.QuadPart - m_cLast - m_cFixAll)) / ((double)m_cFreq);
 }
 
-namespace LuaSTGPlus::LuaWrapper
+namespace luastg::LuaWrapper
 {
 	void StopWatchWrapper::Register(lua_State* L)noexcept
 	{

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Core/Type.hpp"
 #include "core/FixedCircularQueue.hpp"
 #include "GameResource/ResourceBase.hpp"
@@ -6,7 +6,7 @@
 
 #define LGOBJ_MAXLASERNODE 512  // 曲线激光最大节点数
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	class GameObjectBentLaser
 	{

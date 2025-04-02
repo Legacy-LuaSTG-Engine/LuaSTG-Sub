@@ -2,7 +2,7 @@
 #include "core/Configuration.hpp"
 #include "resource.h"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	bool AppFrame::SetDisplayModeWindow(Core::Vector2U window_size, bool vsync)
 	{

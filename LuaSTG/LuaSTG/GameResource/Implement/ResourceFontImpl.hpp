@@ -2,7 +2,7 @@
 #include "GameResource/ResourceFont.hpp"
 #include "GameResource/Implement/ResourceBaseImpl.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	class ResourceFontImpl : public ResourceBaseImpl<IResourceFont>
 	{

@@ -1,4 +1,4 @@
-﻿#include "LuaBinding/LuaWrapper.hpp"
+#include "LuaBinding/LuaWrapper.hpp"
 #include "lua/plus.hpp"
 
 inline void lua_push_vec2(lua_State* L, Core::Vector2F const& v)
@@ -94,7 +94,7 @@ inline void luaL_check_color4f(lua_State* L, int idx, float c[4])
 	lua_pop(L, 1);
 }
 
-namespace LuaSTGPlus::LuaWrapper
+namespace luastg::LuaWrapper
 {
 	std::string_view const ParticleSystemWrapper::ClassID("lstg.ParticleSystemInstance");
 

@@ -1,10 +1,10 @@
-﻿#pragma once
+#pragma once
 #include "GameResource/ResourceTexture.hpp"
 #include "GameResource/ResourceSprite.hpp"
 #include "GameResource/ResourceAnimation.hpp"
 #include "GameResource/Implement/ResourceBaseImpl.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	class ResourceAnimationImpl : public ResourceBaseImpl<IResourceAnimation>
 	{

@@ -1,6 +1,6 @@
-﻿#include "AppFrame.h"
+#include "AppFrame.h"
 
-namespace LuaSTGPlus
+namespace luastg
 {
     bool AppFrame::BeginRenderTargetStack()
     {
@@ -142,7 +142,7 @@ namespace LuaSTGPlus
     }
 }
 
-namespace LuaSTGPlus
+namespace luastg
 {
     void AppFrame::DebugSetGeometryRenderState()
     {

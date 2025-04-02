@@ -114,7 +114,7 @@ namespace LuaSTG::Sub::LuaBinding {
 		static int getMain(lua_State* L) {
 			lua::stack_t S(L);
 			auto self = create(L);
-			self->data = LuaSTGPlus::AppFrame::GetInstance().GetAppModel()->getSwapChain();
+			self->data = LAPP.GetAppModel()->getSwapChain();
 			self->data->retain();
 			return 1;
 		}

@@ -2,7 +2,7 @@
 #include "GameResource/ResourceModel.hpp"
 #include "GameResource/Implement/ResourceBaseImpl.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	class ResourceModelImpl : public ResourceBaseImpl<IResourceModel>
 	{

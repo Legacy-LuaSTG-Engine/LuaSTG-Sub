@@ -1,7 +1,7 @@
-﻿#pragma once
+#pragma once
 #include "GameResource/ResourceBase.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	// https://github.com/kvakvs/hge/blob/hge1.9/include/hgeparticle.h
 	// HGE 粒子效果定义

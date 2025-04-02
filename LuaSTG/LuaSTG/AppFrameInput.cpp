@@ -6,53 +6,49 @@
 #include "Mouse.h"
 #include "Platform/Keyboard.hpp"
 
-namespace LuaSTGPlus
+namespace
 {
-    static Platform::Keyboard g_Keyboard;
-    static Platform::Keyboard::State g_KeyboardState;
+    Platform::Keyboard g_Keyboard;
+    Platform::Keyboard::State g_KeyboardState;
+
+    struct InputEventListener : public Core::Graphics::IWindowEventListener {
+        NativeWindowMessageResult onNativeWindowMessage(void* window, uint32_t message, uintptr_t arg1, intptr_t arg2) {
+            switch (message) {
+            case WM_ACTIVATE:
+            case WM_ACTIVATEAPP:
+            case WM_KEYDOWN:
+            case WM_SYSKEYDOWN:
+            case WM_KEYUP:
+            case WM_SYSKEYUP:
+                g_Keyboard.ProcessMessage((HWND)window, message, arg1, arg2);
+                break;
+            }
+
+            switch (message) {
+            case WM_ACTIVATE:
+            case WM_ACTIVATEAPP:
+            case WM_INPUT:
+            case WM_MOUSEMOVE:
+            case WM_LBUTTONDOWN:
+            case WM_LBUTTONUP:
+            case WM_RBUTTONDOWN:
+            case WM_RBUTTONUP:
+            case WM_MBUTTONDOWN:
+            case WM_MBUTTONUP:
+            case WM_MOUSEWHEEL:
+            case WM_XBUTTONDOWN:
+            case WM_XBUTTONUP:
+            case WM_MOUSEHOVER:
+                DirectX::Mouse::ProcessMessage(message, arg1, arg2);
+                break;
+            }
+
+            return {};
+        }
+    } g_InputEventListener;
 }
 
-static struct InputEventListener : public Core::Graphics::IWindowEventListener
-{
-    NativeWindowMessageResult onNativeWindowMessage(void* window, uint32_t message, uintptr_t arg1, intptr_t arg2)
-    {
-        switch (message)
-        {
-        case WM_ACTIVATE:
-        case WM_ACTIVATEAPP:
-        case WM_KEYDOWN:
-        case WM_SYSKEYDOWN:
-        case WM_KEYUP:
-        case WM_SYSKEYUP:
-            LuaSTGPlus::g_Keyboard.ProcessMessage((HWND)window, message, arg1, arg2);
-            break;
-        }
-
-        switch (message)
-        {
-        case WM_ACTIVATE:
-        case WM_ACTIVATEAPP:
-        case WM_INPUT:
-        case WM_MOUSEMOVE:
-        case WM_LBUTTONDOWN:
-        case WM_LBUTTONUP:
-        case WM_RBUTTONDOWN:
-        case WM_RBUTTONUP:
-        case WM_MBUTTONDOWN:
-        case WM_MBUTTONUP:
-        case WM_MOUSEWHEEL:
-        case WM_XBUTTONDOWN:
-        case WM_XBUTTONUP:
-        case WM_MOUSEHOVER:
-            DirectX::Mouse::ProcessMessage(message, arg1, arg2);
-            break;
-        }
-
-        return {};
-    }
-} g_InputEventListener;
-
-namespace LuaSTGPlus
+namespace luastg
 {
     static std::unique_ptr<DirectX::Mouse> Mouse;
     static DirectX::Mouse::State MouseState;

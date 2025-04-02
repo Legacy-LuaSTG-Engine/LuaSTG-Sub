@@ -18,7 +18,7 @@
 #define LUASTG_LUA_TYPENAME_RESOURCE "lstgResource"
 #define LUASTG_LUA_TYPENAME_ARCHIVE "lstgArchive"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	//内建函数包装
 	class BuiltInFunctionWrapper

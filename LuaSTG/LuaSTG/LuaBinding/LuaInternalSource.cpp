@@ -101,7 +101,7 @@ function lstg.atan2(y, x) return deg(atan2(y, x)) end
 )";
 #pragma endregion
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	std::string LuaInternalSource_1() {
 		if constexpr (sizeof(void*) >= 8)

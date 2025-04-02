@@ -1,6 +1,6 @@
 #include "GameResource/Implement/ResourceSoundEffectImpl.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	void ResourceSoundEffectImpl::FlushCommand()
 	{

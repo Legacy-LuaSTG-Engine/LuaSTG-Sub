@@ -1,4 +1,4 @@
-﻿#include "LuaBinding/LuaWrapper.hpp"
+#include "LuaBinding/LuaWrapper.hpp"
 #include "Platform/KnownDirectory.hpp"
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -6,7 +6,7 @@
 #include <shellapi.h>
 #include "utf8.hpp"
 
-void LuaSTGPlus::LuaWrapper::PlatformWrapper::Register(lua_State* L) noexcept
+void luastg::LuaWrapper::PlatformWrapper::Register(lua_State* L) noexcept
 {
 	struct Wrapper
 	{

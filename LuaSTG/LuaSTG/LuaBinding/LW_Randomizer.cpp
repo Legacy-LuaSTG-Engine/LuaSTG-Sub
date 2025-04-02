@@ -1,4 +1,4 @@
-﻿#include "LuaBinding/LuaWrapper.hpp"
+#include "LuaBinding/LuaWrapper.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief WELL512随机数算法
@@ -151,7 +151,7 @@ bool fcyRandomWELL512::Deserialize(std::string const& data)
 	return false;
 }
 
-namespace LuaSTGPlus::LuaWrapper
+namespace luastg::LuaWrapper
 {
 	template<typename T>
 	inline void make_less(T& a, T& b)

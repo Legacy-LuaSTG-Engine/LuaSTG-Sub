@@ -2,7 +2,7 @@
 #include "Core/Graphics/Renderer.hpp"
 #include "GameResource/ResourceBase.hpp"
 
-namespace LuaSTGPlus {
+namespace luastg {
 	struct LegacyBlendStateData {
 		Core::Graphics::IRenderer::VertexColorBlendState vertex_color_blend_state{ Core::Graphics::IRenderer::VertexColorBlendState::Mul };
 		Core::Graphics::IRenderer::BlendState blend_state{ Core::Graphics::IRenderer::BlendState::Alpha };

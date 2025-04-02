@@ -145,8 +145,8 @@ namespace LuaSTG::Sub::LuaBinding {
 		static int setLegacyBlendState(lua_State* vm) {
 			lua::stack_t const ctx(vm);
 			auto const self = as(vm, 1);
-			auto const blend = LuaSTGPlus::TranslateBlendMode(vm, 1 + 1);
-			[[maybe_unused]] auto const [v, b] = LuaSTGPlus::translateLegacyBlendState(blend);
+			auto const blend = luastg::TranslateBlendMode(vm, 1 + 1);
+			[[maybe_unused]] auto const [v, b] = luastg::translateLegacyBlendState(blend);
 			self->data->setLegacyBlendState(v, b);
 			ctx.push_value(lua::stack_index_t(1)); // return self
 			return 1;

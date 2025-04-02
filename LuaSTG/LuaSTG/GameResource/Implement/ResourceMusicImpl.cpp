@@ -1,6 +1,6 @@
 #include "GameResource/Implement/ResourceMusicImpl.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	bool ResourceMusicImpl::LoopDecoder::read(uint32_t pcm_frame, void* buffer, uint32_t* read_pcm_frame)
 	{

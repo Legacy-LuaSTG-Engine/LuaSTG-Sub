@@ -1,6 +1,6 @@
 #include "GameResource/Implement/ResourceParticleImpl.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	static std::pmr::unsynchronized_pool_resource s_particle_pool_res;
 	

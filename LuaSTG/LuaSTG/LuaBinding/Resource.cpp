@@ -9,7 +9,7 @@ namespace LuaSTG::Sub::LuaBinding
 	{
 		static constexpr std::string_view const ClassID{ "LuaSTG.Sub.ResourceTexture" };
 
-		LuaSTGPlus::IResourceTexture* data;
+		luastg::IResourceTexture* data;
 
 		static int api_getResourceType(lua_State* L)
 		{
@@ -141,7 +141,7 @@ namespace LuaSTG::Sub::LuaBinding
 	{
 		static constexpr std::string_view const ClassID{ "LuaSTG.Sub.ResourceSprite" };
 
-		LuaSTGPlus::IResourceSprite* data;
+		luastg::IResourceSprite* data;
 
 		// IResource
 		static int api_getResourceType(lua_State* L)
@@ -266,7 +266,7 @@ namespace LuaSTG::Sub::LuaBinding
 	{
 		static constexpr std::string_view const ClassID{ "LuaSTG.Sub.ResourceSpriteSequence" };
 
-		LuaSTGPlus::IResourceAnimation* data;
+		luastg::IResourceAnimation* data;
 
 		static int api_getResourceType(lua_State* L)
 		{
@@ -370,7 +370,7 @@ namespace LuaSTG::Sub::LuaBinding
 	{
 		static constexpr std::string_view const ClassID{ "LuaSTG.Sub.ResourceCollection" };
 
-		LuaSTGPlus::ResourcePool* data;
+		luastg::ResourcePool* data;
 
 		static int api_createTextureFromFile(lua_State* L)
 		{
@@ -392,7 +392,7 @@ namespace LuaSTG::Sub::LuaBinding
 			lua::stack_t S(L);
 			auto* self = cast(L, 1);
 			auto const sprite_name = S.get_value<std::string_view>(2);
-			Core::ScopeObject<LuaSTGPlus::IResourceTexture> texture;
+			Core::ScopeObject<luastg::IResourceTexture> texture;
 			if (S.is_string(3)) {
 				auto const texture_name = S.get_value<std::string_view>(3);
 				texture = self->data->GetTexture(texture_name);
@@ -428,7 +428,7 @@ namespace LuaSTG::Sub::LuaBinding
 
 			auto const sprite_sequence_name = S.get_value<std::string_view>(2);
 			if (S.is_string(3) || S.is_userdata(3)) {
-				Core::ScopeObject<LuaSTGPlus::IResourceTexture> texture;
+				Core::ScopeObject<luastg::IResourceTexture> texture;
 				if (S.is_string(3)) {
 					auto const texture_name = S.get_value<std::string_view>(3);
 					texture = self->data->GetTexture(texture_name);
@@ -462,7 +462,7 @@ namespace LuaSTG::Sub::LuaBinding
 			}
 			else /* (S.is_table(3)) */ {
 				size_t const sprite_count = S.get_array_size(3);
-				std::vector<Core::ScopeObject<LuaSTGPlus::IResourceSprite>> sprite_list;
+				std::vector<Core::ScopeObject<luastg::IResourceSprite>> sprite_list;
 				for (size_t index = 0; index < sprite_count; index += 1)
 				{
 					S.push_array_value_zero_base(3, index);
@@ -488,7 +488,7 @@ namespace LuaSTG::Sub::LuaBinding
 		{
 			lua::stack_t S(L);
 			auto* self = cast(L, 1);
-			Core::ScopeObject<LuaSTGPlus::IResourceTexture> texture;
+			Core::ScopeObject<luastg::IResourceTexture> texture;
 			if (S.is_string(2)) {
 				auto const texture_name = S.get_value<std::string_view>(2);
 				texture = self->data->GetTexture(texture_name);
@@ -498,7 +498,7 @@ namespace LuaSTG::Sub::LuaBinding
 				texture = p_texture->data;
 			}
 			if (texture) {
-				self->data->RemoveResource(LuaSTGPlus::ResourceType::Texture, texture->GetResName().data());
+				self->data->RemoveResource(luastg::ResourceType::Texture, texture->GetResName().data());
 			}
 			return 0;
 		}
@@ -506,7 +506,7 @@ namespace LuaSTG::Sub::LuaBinding
 		{
 			lua::stack_t S(L);
 			auto* self = cast(L, 1);
-			Core::ScopeObject<LuaSTGPlus::IResourceSprite> sprite;
+			Core::ScopeObject<luastg::IResourceSprite> sprite;
 			if (S.is_string(2)) {
 				auto const sprite_name = S.get_value<std::string_view>(2);
 				sprite = self->data->GetSprite(sprite_name);
@@ -516,7 +516,7 @@ namespace LuaSTG::Sub::LuaBinding
 				sprite = p_sprite->data;
 			}
 			if (sprite) {
-				self->data->RemoveResource(LuaSTGPlus::ResourceType::Sprite, sprite->GetResName().data());
+				self->data->RemoveResource(luastg::ResourceType::Sprite, sprite->GetResName().data());
 			}
 			return 0;
 		}
@@ -524,7 +524,7 @@ namespace LuaSTG::Sub::LuaBinding
 		{
 			lua::stack_t S(L);
 			auto* self = cast(L, 1);
-			Core::ScopeObject<LuaSTGPlus::IResourceAnimation> sprite_sequence;
+			Core::ScopeObject<luastg::IResourceAnimation> sprite_sequence;
 			if (S.is_string(2)) {
 				auto const sprite_sequence_name = S.get_value<std::string_view>(2);
 				sprite_sequence = self->data->GetAnimation(sprite_sequence_name);
@@ -534,7 +534,7 @@ namespace LuaSTG::Sub::LuaBinding
 				sprite_sequence = p_sprite_seq->data;
 			}
 			if (sprite_sequence) {
-				self->data->RemoveResource(LuaSTGPlus::ResourceType::Animation, sprite_sequence->GetResName().data());
+				self->data->RemoveResource(luastg::ResourceType::Animation, sprite_sequence->GetResName().data());
 			}
 			return 0;
 		}
@@ -698,10 +698,10 @@ namespace LuaSTG::Sub::LuaBinding
 			auto const name = S.get_value<std::string_view>(1);
 			auto* set = ResourceCollection::create(L);
 			if (name == "global") {
-				set->data = LRES.GetResourcePool(LuaSTGPlus::ResourcePoolType::Global);
+				set->data = LRES.GetResourcePool(luastg::ResourcePoolType::Global);
 			}
 			else if (name == "stage") {
-				set->data = LRES.GetResourcePool(LuaSTGPlus::ResourcePoolType::Stage);
+				set->data = LRES.GetResourcePool(luastg::ResourcePoolType::Stage);
 			}
 			else {
 				return luaL_error(L, "resource set '%s' not found", name.data());
@@ -713,10 +713,10 @@ namespace LuaSTG::Sub::LuaBinding
 			lua::stack_t S(L);
 			auto const name = S.get_value<std::string_view>(1);
 			if (name == "global") {
-				LRES.SetActivedPoolType(LuaSTGPlus::ResourcePoolType::Global);
+				LRES.SetActivedPoolType(luastg::ResourcePoolType::Global);
 			}
 			else if (name == "stage") {
-				LRES.SetActivedPoolType(LuaSTGPlus::ResourcePoolType::Stage);
+				LRES.SetActivedPoolType(luastg::ResourcePoolType::Stage);
 			}
 			else {
 				return luaL_error(L, "resource set '%s' not found", name.data());
@@ -727,13 +727,13 @@ namespace LuaSTG::Sub::LuaBinding
 		{
 			lua::stack_t S(L);
 			auto const type = LRES.GetActivedPoolType();
-			if (LuaSTGPlus::ResourcePoolType::Global == type) {
+			if (luastg::ResourcePoolType::Global == type) {
 				S.push_value<std::string_view>("global");
 			}
-			else if (LuaSTGPlus::ResourcePoolType::Stage == type) {
+			else if (luastg::ResourcePoolType::Stage == type) {
 				S.push_value<std::string_view>("stage");
 			}
-			else if (LuaSTGPlus::ResourcePoolType::None == type) {
+			else if (luastg::ResourcePoolType::None == type) {
 				S.push_value<std::string_view>("none");
 			}
 			return 1;

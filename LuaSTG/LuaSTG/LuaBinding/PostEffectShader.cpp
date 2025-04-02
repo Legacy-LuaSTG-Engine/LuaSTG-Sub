@@ -71,7 +71,7 @@ namespace LuaSTG::LuaBinding
 				auto const name = S.get_value<std::string_view>(2);
 				auto const resource_name = S.get_value<std::string_view>(3);
 				
-				Core::ScopeObject<LuaSTGPlus::IResourceTexture> p = LRES.FindTexture(resource_name.data());
+				Core::ScopeObject<luastg::IResourceTexture> p = LRES.FindTexture(resource_name.data());
 				if (!p)
 				{
 					return luaL_error(L, "can't find texture '%s'", resource_name.data());
@@ -136,7 +136,7 @@ namespace LuaSTG::LuaBinding
 		};
 
 		luaL_register(L, "lstg", fun); // ??? lstg
-		LuaSTGPlus::RegisterClassIntoTable(L, ".PostEffectShader", lib, ClassID.data(), mt);
+		luastg::RegisterClassIntoTable(L, ".PostEffectShader", lib, ClassID.data(), mt);
 		lua_pop(L, 1);
 	}
 	void PostEffectShader::Create(lua_State* L, Core::Graphics::IPostEffectShader* p_shader)

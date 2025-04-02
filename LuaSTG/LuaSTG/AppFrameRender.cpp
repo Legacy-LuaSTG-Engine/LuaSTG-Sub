@@ -1,7 +1,7 @@
 #include "AppFrame.h"
 #include "GameResource/LegacyBlendStateHelper.hpp"
 
-namespace LuaSTGPlus {
+namespace luastg {
 	void AppFrame::updateGraph2DBlendMode(BlendMode const blend) {
 		auto const [v, b] = translateLegacyBlendState(blend);
 		auto const renderer = m_pAppModel->getRenderer();

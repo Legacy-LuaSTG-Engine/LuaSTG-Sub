@@ -3,7 +3,7 @@
 #include "GameResource/Implement/ResourceBaseImpl.hpp"
 #include "Core/Audio/Device.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	class ResourceSoundEffectImpl : public ResourceBaseImpl<IResourceSoundEffect>
 	{

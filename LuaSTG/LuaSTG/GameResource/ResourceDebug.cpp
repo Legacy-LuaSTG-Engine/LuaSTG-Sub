@@ -26,7 +26,7 @@ static std::string bytes_count_to_string(unsigned long long size)
 	return std::string(buffer, count);
 }
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	void ResourceMgr::ShowResourceManagerDebugWindow(bool* p_open)
 	{

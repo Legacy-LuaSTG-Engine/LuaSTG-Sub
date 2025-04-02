@@ -215,7 +215,7 @@ namespace {
 		if (ctx.is_number(idx)) {
 			return Core::Color4B(ctx.get_value<uint32_t>(idx));
 		}
-		return *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(vm, idx);
+		return *luastg::LuaWrapper::ColorWrapper::Cast(vm, idx);
 	}
 }
 

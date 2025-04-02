@@ -8,7 +8,7 @@
 #include "resource.h"
 #include "core/Configuration.hpp"
 
-using namespace LuaSTGPlus;
+using namespace luastg;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// AppFrame
@@ -245,7 +245,7 @@ bool AppFrame::Init()noexcept
 	spdlog::info("[luastg] 初始化完成");
 
 	//////////////////////////////////////// 调用GameInit
-	if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineInit)) {
+	if (!SafeCallGlobalFunction(LuaEngine::G_CALLBACK_EngineInit)) {
 		return false;
 	}
 
@@ -254,7 +254,7 @@ bool AppFrame::Init()noexcept
 void AppFrame::Shutdown()noexcept
 {
 	if (L) {
-		SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineStop);
+		SafeCallGlobalFunction(LuaEngine::G_CALLBACK_EngineStop);
 	}
 
 	m_GameObjectPool = nullptr;
@@ -368,11 +368,11 @@ bool AppFrame::onUpdate()
 			if (m_DirectInput)
 				m_DirectInput->reset();
 
-			lua_pushinteger(L, (lua_Integer)LuaSTG::LuaEngine::EngineEvent::WindowActive);
+			lua_pushinteger(L, (lua_Integer)LuaEngine::EngineEvent::WindowActive);
 			lua_pushboolean(L, false);
-			SafeCallGlobalFunctionB(LuaSTG::LuaEngine::G_CALLBACK_EngineEvent, 2, 0);
+			SafeCallGlobalFunctionB(LuaEngine::G_CALLBACK_EngineEvent, 2, 0);
 
-			if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_FocusLoseFunc))
+			if (!SafeCallGlobalFunction(LuaEngine::G_CALLBACK_FocusLoseFunc))
 			{
 				result = false;
 				m_pAppModel->requestExit();
@@ -383,11 +383,11 @@ bool AppFrame::onUpdate()
 			if (m_DirectInput)
 				m_DirectInput->reset();
 
-			lua_pushinteger(L, (lua_Integer)LuaSTG::LuaEngine::EngineEvent::WindowActive);
+			lua_pushinteger(L, (lua_Integer)LuaEngine::EngineEvent::WindowActive);
 			lua_pushboolean(L, true);
-			SafeCallGlobalFunctionB(LuaSTG::LuaEngine::G_CALLBACK_EngineEvent, 2, 0);
+			SafeCallGlobalFunctionB(LuaEngine::G_CALLBACK_EngineEvent, 2, 0);
 
-			if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_FocusGainFunc))
+			if (!SafeCallGlobalFunction(LuaEngine::G_CALLBACK_FocusGainFunc))
 			{
 				result = false;
 				m_pAppModel->requestExit();
@@ -414,7 +414,7 @@ bool AppFrame::onUpdate()
 		// 执行帧函数
 		imgui::cancelSetCursor();
 		m_GameObjectPool->DebugNextFrame();
-		if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineUpdate, 1))
+		if (!SafeCallGlobalFunction(LuaEngine::G_CALLBACK_EngineUpdate, 1))
 		{
 			result = false;
 			m_pAppModel->requestExit();
@@ -435,7 +435,7 @@ bool AppFrame::onRender()
 	GetRenderTargetManager()->BeginRenderTargetStack();
 
 	// 执行渲染函数
-	bool result = SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineDraw);
+	bool result = SafeCallGlobalFunction(LuaEngine::G_CALLBACK_EngineDraw);
 	if (!result)
 		m_pAppModel->requestExit();
 

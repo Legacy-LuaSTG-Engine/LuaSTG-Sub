@@ -2,7 +2,7 @@
 #include "GameResource/ResourceTexture.hpp"
 #include "GameResource/Implement/ResourceBaseImpl.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	class ResourceTextureImpl : public ResourceBaseImpl<IResourceTexture>
 	{

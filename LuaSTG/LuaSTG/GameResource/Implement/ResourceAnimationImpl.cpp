@@ -2,7 +2,7 @@
 #include "GameResource/Implement/ResourceSpriteImpl.hpp"
 #include "AppFrame.h"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	ResourceAnimationImpl::ResourceAnimationImpl(
 		const char* name, Core::ScopeObject<IResourceTexture> tex,

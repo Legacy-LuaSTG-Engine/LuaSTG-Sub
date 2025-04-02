@@ -1,8 +1,8 @@
-﻿#pragma once
+#pragma once
 #include "GameResource/ResourceBase.hpp"
 #include "Core/Graphics/Renderer.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	struct IResourceModel : public IResourceBase
 	{

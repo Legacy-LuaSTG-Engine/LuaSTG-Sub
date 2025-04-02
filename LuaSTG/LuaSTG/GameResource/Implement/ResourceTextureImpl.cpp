@@ -1,7 +1,7 @@
 #include "GameResource/Implement/ResourceTextureImpl.hpp"
 #include "AppFrame.h"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	bool ResourceTextureImpl::ResizeRenderTarget(Core::Vector2U size)
 	{

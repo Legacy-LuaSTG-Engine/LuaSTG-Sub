@@ -1,7 +1,7 @@
 #include "GameObject/GameObjectClass.hpp"
 #include "lua/plus.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	constexpr char const IS_CLASS[] = "is_class";
 	constexpr char const IS_RENDER_CLASS[] = ".render";

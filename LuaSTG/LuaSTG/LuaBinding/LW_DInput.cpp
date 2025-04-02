@@ -2,11 +2,11 @@
 #include "AppFrame.h"
 #include "utf8.hpp"
 
-namespace LuaSTGPlus::LuaWrapper
+namespace luastg::LuaWrapper
 {
     void DInputWrapper::Register(lua_State* L)noexcept
     {
-        #define LDI() Platform::DirectInput* self = LuaSTGPlus::AppFrame::GetInstance().GetDInput()
+        #define LDI() Platform::DirectInput* self = LAPP.GetDInput()
         
         struct Wrapper
         {

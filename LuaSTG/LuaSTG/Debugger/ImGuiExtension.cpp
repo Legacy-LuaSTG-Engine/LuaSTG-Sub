@@ -169,7 +169,7 @@ namespace imgui {
 
 // lua imgui backend binding
 
-static void showParticleSystemEditor(bool* p_open, LuaSTGPlus::IParticlePool* sys)
+static void showParticleSystemEditor(bool* p_open, luastg::IParticlePool* sys)
 {
 	struct EditorData
 	{
@@ -202,7 +202,7 @@ static void showParticleSystemEditor(bool* p_open, LuaSTGPlus::IParticlePool* sy
 					.bSyncSize = false,
 					.bSyncSpin = false,
 					.bSyncAlpha = false,
-					.nBlendMode = sys->GetBlendMode() == LuaSTGPlus::BlendMode::MulAdd ? 0 : 1,
+					.nBlendMode = sys->GetBlendMode() == luastg::BlendMode::MulAdd ? 0 : 1,
 					});
 			}
 			auto& data = g_EditorData[&info];
@@ -313,7 +313,7 @@ static void showParticleSystemEditor(bool* p_open, LuaSTGPlus::IParticlePool* sy
 				};
 				if (ImGui::Combo("Blend Mode", &data.nBlendMode, chBlendMode, 2))
 				{
-					sys->SetBlendMode(data.nBlendMode == 0 ? LuaSTGPlus::BlendMode::MulAdd : LuaSTGPlus::BlendMode::MulAlpha);
+					sys->SetBlendMode(data.nBlendMode == 0 ? luastg::BlendMode::MulAdd : luastg::BlendMode::MulAlpha);
 				}
 			}
 
@@ -737,14 +737,14 @@ static int lib_ShowParticleSystemEditor(lua_State* L)
 	if (lua_gettop(L) >= 2)
 	{
 		bool v = lua_toboolean(L, 1);
-		auto p = LuaSTGPlus::LuaWrapper::ParticleSystemWrapper::Cast(L, 2);
+		auto p = luastg::LuaWrapper::ParticleSystemWrapper::Cast(L, 2);
 		showParticleSystemEditor(&v, p->ptr);
 		lua_pushboolean(L, v);
 		return 1;
 	}
 	else
 	{
-		auto p = LuaSTGPlus::LuaWrapper::ParticleSystemWrapper::Cast(L, 1);
+		auto p = luastg::LuaWrapper::ParticleSystemWrapper::Cast(L, 1);
 		showParticleSystemEditor(nullptr, p->ptr);
 		return 0;
 	}
@@ -776,7 +776,7 @@ void imgui_binding_lua_register_backend(lua_State* L)
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32Ex_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-#define APP LuaSTGPlus::AppFrame::GetInstance()
+#define APP luastg::AppFrame::GetInstance()
 
 namespace imgui
 {

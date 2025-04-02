@@ -5,7 +5,7 @@
 #include "GameObject/GameObjectPool.h"
 #include "Platform/DirectInput.hpp"
 
-namespace LuaSTGPlus {
+namespace luastg {
 	/// @brief 应用程序状态
 	enum class AppStatus {
 		NotInitialized,
@@ -286,6 +286,6 @@ namespace LuaSTGPlus {
 	};
 }
 
-#define LAPP (LuaSTGPlus::AppFrame::GetInstance())
+#define LAPP (luastg::AppFrame::GetInstance())
 #define LPOOL (LAPP.GetGameObjectPool())
 #define LRES (LAPP.GetResourceMgr())

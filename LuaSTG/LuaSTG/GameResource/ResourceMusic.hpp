@@ -2,7 +2,7 @@
 #include "GameResource/ResourceBase.hpp"
 #include "Core/Audio/Device.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	enum class MusicRoopRangeType : int32_t
 	{

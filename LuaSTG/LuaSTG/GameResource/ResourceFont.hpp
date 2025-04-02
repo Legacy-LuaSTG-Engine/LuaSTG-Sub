@@ -1,8 +1,8 @@
-﻿#pragma once
+#pragma once
 #include "GameResource/ResourceBase.hpp"
 #include "Core/Graphics/Font.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	enum class FontAlignHorizontal  // 水平对齐
 	{

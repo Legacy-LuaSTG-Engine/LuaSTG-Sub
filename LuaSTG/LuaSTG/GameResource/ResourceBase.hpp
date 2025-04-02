@@ -1,7 +1,7 @@
 #pragma once
 #include "Core/Type.hpp"
 
-namespace LuaSTGPlus {
+namespace luastg {
 	// 资源类型
 	enum class ResourceType {
 		Texture = 1,

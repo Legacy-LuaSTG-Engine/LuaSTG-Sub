@@ -1,7 +1,7 @@
 #pragma once
 #include "GameResource/ResourceBase.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	struct IResourceSoundEffect : public IResourceBase
 	{

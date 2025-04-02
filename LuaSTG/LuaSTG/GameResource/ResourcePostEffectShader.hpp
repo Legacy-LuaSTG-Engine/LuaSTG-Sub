@@ -2,7 +2,7 @@
 #include "GameResource/ResourceBase.hpp"
 #include "Core/Graphics/Renderer.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
     struct IResourcePostEffectShader : public IResourceBase
     {

@@ -19,7 +19,7 @@ int luastg::main() {
 
 	// STAGE 1: initialize COM
 
-	LuaSTGPlus::CoInitializeScope com_runtime;
+	CoInitializeScope com_runtime;
 	if (!com_runtime()) {
 		Platform::MessageBox::Error(LUASTG_INFO,
 			"引擎初始化失败。\n"
@@ -57,7 +57,7 @@ int luastg::main() {
 	spdlog::info("Duration before logging system: {}s", double((t2 - t1).count()) / 1000000000.0);
 
 	int result = EXIT_SUCCESS;
-	if (LuaSTG::SteamAPI::Init())
+	if (SteamAPI::Init())
 	{
 		if (LAPP.Init())
 		{
@@ -76,7 +76,7 @@ int luastg::main() {
 			result = EXIT_FAILURE;
 		}
 		LAPP.Shutdown();
-		LuaSTG::SteamAPI::Shutdown();
+		SteamAPI::Shutdown();
 	}
 	else
 	{

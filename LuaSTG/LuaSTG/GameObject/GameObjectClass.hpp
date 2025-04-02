@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "lua.hpp"
 
 #define LGOBJ_CC_INIT 1
@@ -8,7 +8,7 @@
 #define LGOBJ_CC_COLLI 5
 #define LGOBJ_CC_KILL 6
 
-namespace LuaSTGPlus
+namespace luastg
 {
 #pragma warning(push)
 #pragma warning(disable:4201)

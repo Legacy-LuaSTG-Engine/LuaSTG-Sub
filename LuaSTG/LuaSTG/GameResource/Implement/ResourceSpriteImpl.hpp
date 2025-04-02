@@ -2,7 +2,7 @@
 #include "GameResource/ResourceSprite.hpp"
 #include "GameResource/Implement/ResourceBaseImpl.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	class ResourceSpriteImpl : public ResourceBaseImpl<IResourceSprite>
 	{

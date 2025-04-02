@@ -2,7 +2,7 @@
 #include "GameResource/ResourceMusic.hpp"
 #include "GameResource/Implement/ResourceBaseImpl.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	class ResourceMusicImpl : public ResourceBaseImpl<IResourceMusic>
 	{

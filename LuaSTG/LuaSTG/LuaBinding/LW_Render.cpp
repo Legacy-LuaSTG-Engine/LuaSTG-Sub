@@ -1,7 +1,7 @@
 #include "LuaBinding/LuaWrapper.hpp"
 #include "AppFrame.h"
 
-void LuaSTGPlus::LuaWrapper::RenderWrapper::Register(lua_State* L) noexcept
+void luastg::LuaWrapper::RenderWrapper::Register(lua_State* L) noexcept
 {
     struct Wrapper
     {

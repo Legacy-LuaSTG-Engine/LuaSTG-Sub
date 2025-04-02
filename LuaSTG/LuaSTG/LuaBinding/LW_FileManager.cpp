@@ -1,4 +1,4 @@
-﻿#include "LuaBinding/LuaWrapper.hpp"
+#include "LuaBinding/LuaWrapper.hpp"
 #include "lua/plus.hpp"
 #include "Core/FileManager.hpp"
 #include "utility/path.hpp"
@@ -22,7 +22,7 @@ static bool extractRes(const char* path, const char* target) noexcept
 	return true;
 }
 
-void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
+void luastg::FileManagerWrapper::Register(lua_State* L)noexcept
 {
 	struct Wrapper
 	{
@@ -698,7 +698,7 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 		static int LoadPackSub(lua_State* L)noexcept
 		{
 			const char* p = luaL_checkstring(L, 1);
-			if (!GFileManager().loadFileArchive(p, LuaSTGPlus::GetGameName()))
+			if (!GFileManager().loadFileArchive(p, GetGameName()))
 			{
 				spdlog::error("[luastg] LoadPackSub: 无法装载资源包'{}'，文件不存在或不是合法的资源包格式", p);
 				lua_pushboolean(L, false);

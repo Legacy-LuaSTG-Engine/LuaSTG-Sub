@@ -2,7 +2,7 @@
 #include "GameObject/GameObjectBentLaser.hpp"
 #include "AppFrame.h"
 
-namespace LuaSTGPlus::LuaWrapper
+namespace luastg::LuaWrapper
 {
 	struct BentLaserWrapper::Wrapper
 	{

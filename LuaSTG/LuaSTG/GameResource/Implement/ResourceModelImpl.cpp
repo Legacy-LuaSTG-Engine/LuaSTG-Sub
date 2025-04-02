@@ -1,7 +1,7 @@
 #include "GameResource/Implement/ResourceModelImpl.hpp"
 #include "AppFrame.h"
 
-namespace LuaSTGPlus
+namespace luastg
 {
     ResourceModelImpl::ResourceModelImpl(const char* name, const char* path)
         : ResourceBaseImpl(ResourceType::Model, name)

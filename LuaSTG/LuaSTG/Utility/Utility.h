@@ -1,8 +1,8 @@
-﻿#pragma once
+#pragma once
 
 #include <cstdint>
 
-namespace LuaSTGPlus {
+namespace luastg {
     // 计时域，离开作用域自动计算流逝的时间
     class TimerScope {
     private:

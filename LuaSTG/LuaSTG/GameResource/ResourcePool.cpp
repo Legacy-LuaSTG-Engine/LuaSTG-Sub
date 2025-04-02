@@ -1,4 +1,4 @@
-﻿#include "GameResource/ResourceManager.h"
+#include "GameResource/ResourceManager.h"
 #include "GameResource/Implement/ResourceTextureImpl.hpp"
 #include "GameResource/Implement/ResourceSpriteImpl.hpp"
 #include "GameResource/Implement/ResourceAnimationImpl.hpp"
@@ -12,7 +12,7 @@
 #include "AppFrame.h"
 #include "lua/plus.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
     // 总体管理
 

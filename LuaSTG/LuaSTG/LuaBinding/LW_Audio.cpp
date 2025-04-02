@@ -7,7 +7,7 @@
 #undef PlaySound
 #endif
 
-void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
+void luastg::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 {
 	struct Wrapper
 	{

@@ -7,7 +7,7 @@
 #define LOBJPOOL_SIZE_INTERNAL (LOBJPOOL_SIZE + 1)
 #define LOBJPOOL_METATABLE_IDX (LOBJPOOL_SIZE_INTERNAL)
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	// --------------------------------------------------------------------------------
 
@@ -572,7 +572,7 @@ namespace LuaSTGPlus
 				}
 #endif // USING_MULTI_GAME_WORLD
 				debug_data.object_colli_check += 1;
-				if (!LuaSTGPlus::CollisionCheck(pA, pB)) {
+				if (!CollisionCheck(pA, pB)) {
 					continue;
 				}
 				debug_data.object_colli_callback += 1;
@@ -613,7 +613,7 @@ namespace LuaSTGPlus
 					}
 #endif // USING_MULTI_GAME_WORLD
 					debug_data.object_colli_check += 1;
-					if (!LuaSTGPlus::CollisionCheck(object1, object2)) {
+					if (!CollisionCheck(object1, object2)) {
 						continue;
 					}
 					cache.push_back(IntersectionDetectionResult{
@@ -1155,12 +1155,12 @@ namespace LuaSTGPlus
 		if (ignore_world_mask)
 		{
 #endif // USING_MULTI_GAME_WORLD
-			lua_pushboolean(L, LuaSTGPlus::CollisionCheck(p1, p2));
+			lua_pushboolean(L, CollisionCheck(p1, p2));
 #ifdef USING_MULTI_GAME_WORLD
 		}
 		else
 		{
-			lua_pushboolean(L, g_GameObjectPool->CheckWorlds(p1->world, p2->world) && LuaSTGPlus::CollisionCheck(p1, p2));
+			lua_pushboolean(L, g_GameObjectPool->CheckWorlds(p1->world, p2->world) && CollisionCheck(p1, p2));
 		}
 #endif // USING_MULTI_GAME_WORLD
 		return 1;

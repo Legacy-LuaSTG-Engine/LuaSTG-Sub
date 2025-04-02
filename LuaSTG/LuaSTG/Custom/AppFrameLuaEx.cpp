@@ -4,7 +4,7 @@
 
 #include "Platform/HResultChecker.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
     bool AppFrame::OnLoadLaunchScriptAndFiles()
     {

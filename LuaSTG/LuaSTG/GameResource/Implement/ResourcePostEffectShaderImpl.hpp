@@ -2,7 +2,7 @@
 #include "GameResource/ResourcePostEffectShader.hpp"
 #include "GameResource/Implement/ResourceBaseImpl.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
     class ResourcePostEffectShaderImpl : public ResourceBaseImpl<IResourcePostEffectShader>
     {

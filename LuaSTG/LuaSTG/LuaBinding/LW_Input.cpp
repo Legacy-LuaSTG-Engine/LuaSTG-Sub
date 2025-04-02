@@ -1,4 +1,4 @@
-﻿#include "LuaBinding/LuaWrapper.hpp"
+#include "LuaBinding/LuaWrapper.hpp"
 #include "AppFrame.h"
 #include "Keyboard.h"
 #include "Platform/Keyboard.hpp"
@@ -297,7 +297,7 @@ static int register_mouse(lua_State* L)
 	return 0;
 }
 
-void LuaSTGPlus::LuaWrapper::InputWrapper::Register(lua_State* L) noexcept
+void luastg::LuaWrapper::InputWrapper::Register(lua_State* L) noexcept
 {
 	struct Wrapper
 	{

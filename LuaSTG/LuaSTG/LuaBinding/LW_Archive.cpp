@@ -1,10 +1,10 @@
-﻿#include "LuaBinding/LuaWrapper.hpp"
+#include "LuaBinding/LuaWrapper.hpp"
 #include "Core/FileManager.hpp"
 #include "utility/path.hpp"
 #include "AppFrame.h"
 
 using namespace std;
-using namespace LuaSTGPlus;
+using namespace luastg;
 
 struct ArchiveWrapper::Wrapper
 {
@@ -189,7 +189,7 @@ void ArchiveWrapper::Register(lua_State* L)noexcept
 		{ NULL, NULL }
 	};
 	
-	LuaSTGPlus::RegisterMethodD(L, LUASTG_LUA_TYPENAME_ARCHIVE, tMethods, tMetaTable);
+	RegisterMethodD(L, LUASTG_LUA_TYPENAME_ARCHIVE, tMethods, tMetaTable);
 }
 
 void ArchiveWrapper::CreateAndPush(lua_State* L, uint64_t uuid)noexcept {

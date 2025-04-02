@@ -1,6 +1,6 @@
-﻿#include "GameResource/ResourceManager.h"
+#include "GameResource/ResourceManager.h"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	ResourceMgr::ResourceMgr()
 		: m_GlobalResourcePool(this, ResourcePoolType::Global)

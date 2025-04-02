@@ -96,14 +96,14 @@ namespace LuaSTG::Sub::LuaBinding {
 			lua::stack_t const ctx(vm);
 			auto const self = as(vm, 1);
 			if (ctx.index_of_top() >= 4) {
-				auto const c1 = *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(vm, 1 + 1);
-				auto const c2 = *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(vm, 1 + 2);
-				auto const c3 = *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(vm, 1 + 3);
-				auto const c4 = *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(vm, 1 + 4);
+				auto const c1 = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 1);
+				auto const c2 = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 2);
+				auto const c3 = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 3);
+				auto const c4 = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 4);
 				self->data->setColor(c1, c2, c3, c4);
 			}
 			else {
-				auto const color = *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(vm, 1 + 1);
+				auto const color = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 1);
 				self->data->setColor(color);
 			}
 			ctx.push_value(lua::stack_index_t(1));
@@ -112,8 +112,8 @@ namespace LuaSTG::Sub::LuaBinding {
 		static int setLegacyBlendState(lua_State* vm) {
 			lua::stack_t const ctx(vm);
 			auto const self = as(vm, 1);
-			auto const blend = LuaSTGPlus::TranslateBlendMode(vm, 1 + 1);
-			[[maybe_unused]] auto const [v, b] = LuaSTGPlus::translateLegacyBlendState(blend);
+			auto const blend = luastg::TranslateBlendMode(vm, 1 + 1);
+			[[maybe_unused]] auto const [v, b] = luastg::translateLegacyBlendState(blend);
 			self->data->setLegacyBlendState(v, b);
 			ctx.push_value(lua::stack_index_t(1));
 			return 1;
@@ -253,14 +253,14 @@ namespace LuaSTG::Sub::LuaBinding {
 			lua::stack_t const ctx(vm);
 			auto const self = as(vm, 1);
 			if (ctx.index_of_top() >= 4) {
-				auto const c1 = *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(vm, 1 + 1);
-				auto const c2 = *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(vm, 1 + 2);
-				auto const c3 = *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(vm, 1 + 3);
-				auto const c4 = *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(vm, 1 + 4);
+				auto const c1 = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 1);
+				auto const c2 = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 2);
+				auto const c3 = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 3);
+				auto const c4 = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 4);
 				self->data->setColor(c1, c2, c3, c4);
 			}
 			else {
-				auto const color = *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(vm, 1 + 1);
+				auto const color = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 1);
 				self->data->setColor(color);
 			}
 			ctx.push_value(lua::stack_index_t(1));
@@ -269,8 +269,8 @@ namespace LuaSTG::Sub::LuaBinding {
 		static int setLegacyBlendState(lua_State* vm) {
 			lua::stack_t const ctx(vm);
 			auto const self = as(vm, 1);
-			auto const blend = LuaSTGPlus::TranslateBlendMode(vm, 1 + 1);
-			[[maybe_unused]] auto const [v, b] = LuaSTGPlus::translateLegacyBlendState(blend);
+			auto const blend = luastg::TranslateBlendMode(vm, 1 + 1);
+			[[maybe_unused]] auto const [v, b] = luastg::translateLegacyBlendState(blend);
 			self->data->setLegacyBlendState(v, b);
 			ctx.push_value(lua::stack_index_t(1));
 			return 1;
@@ -435,14 +435,14 @@ namespace LuaSTG::Sub::LuaBinding {
 			lua::stack_t const ctx(vm);
 			auto const self = as(vm, 1);
 			if (ctx.index_of_top() >= 4) {
-				auto const c1 = *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(vm, 1 + 1);
-				auto const c2 = *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(vm, 1 + 2);
-				auto const c3 = *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(vm, 1 + 3);
-				auto const c4 = *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(vm, 1 + 4);
+				auto const c1 = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 1);
+				auto const c2 = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 2);
+				auto const c3 = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 3);
+				auto const c4 = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 4);
 				self->data->setColor(c1, c2, c3, c4);
 			}
 			else {
-				auto const color = *LuaSTGPlus::LuaWrapper::ColorWrapper::Cast(vm, 1 + 1);
+				auto const color = *luastg::LuaWrapper::ColorWrapper::Cast(vm, 1 + 1);
 				self->data->setColor(color);
 			}
 			ctx.push_value(lua::stack_index_t(1));
@@ -451,8 +451,8 @@ namespace LuaSTG::Sub::LuaBinding {
 		static int setLegacyBlendState(lua_State* vm) {
 			lua::stack_t const ctx(vm);
 			auto const self = as(vm, 1);
-			auto const blend = LuaSTGPlus::TranslateBlendMode(vm, 1 + 1);
-			[[maybe_unused]] auto const [v, b] = LuaSTGPlus::translateLegacyBlendState(blend);
+			auto const blend = luastg::TranslateBlendMode(vm, 1 + 1);
+			[[maybe_unused]] auto const [v, b] = luastg::translateLegacyBlendState(blend);
 			self->data->setLegacyBlendState(v, b);
 			ctx.push_value(lua::stack_index_t(1));
 			return 1;

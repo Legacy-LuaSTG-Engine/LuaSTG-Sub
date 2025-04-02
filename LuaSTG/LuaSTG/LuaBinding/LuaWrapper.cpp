@@ -14,7 +14,7 @@
 #include "LuaBinding/Sprite.hpp"
 #include "LuaBinding/SpriteRenderer.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	void LuaWrapper::Register(lua_State* L) noexcept
 	{

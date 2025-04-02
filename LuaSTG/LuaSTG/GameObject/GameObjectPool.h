@@ -8,7 +8,7 @@
 #define LOBJPOOL_SIZE   32768 // 最大对象数 //32768(full) //16384(half)
 #define LOBJPOOL_GROUPN 16    // 碰撞组数
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	//游戏对象池
 	class GameObjectPool
