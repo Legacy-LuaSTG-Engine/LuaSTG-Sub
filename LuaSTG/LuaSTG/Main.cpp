@@ -10,7 +10,7 @@
 #include "core/Configuration.hpp"
 #include <chrono>
 
-int luastg::sub::main() {
+int luastg::main() {
 #ifdef _DEBUG
 	_CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG) | _CRTDBG_LEAK_CHECK_DF);
 	// _CrtSetBreakAlloc(5351);
@@ -45,7 +45,7 @@ int luastg::sub::main() {
 
 	// STAGE 4: check runtime
 
-	if (!LuaSTG::CheckUserRuntime()) {
+	if (!checkEngineRuntimeRequirement()) {
 		return EXIT_FAILURE;
 	}
 

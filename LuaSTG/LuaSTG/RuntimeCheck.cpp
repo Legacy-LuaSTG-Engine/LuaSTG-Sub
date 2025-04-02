@@ -9,7 +9,7 @@
 #include "Platform/Direct3D11.hpp"
 #include <shellapi.h>
 
-namespace LuaSTG
+namespace luastg
 {
 	constexpr std::string_view const indent_string("    ");
 	constexpr std::string_view const windows_7_name("Windows 7");
@@ -274,7 +274,7 @@ namespace LuaSTG
 		return is_all_satisfied;
 	}
 
-	bool CheckUserRuntime()
+	bool checkEngineRuntimeRequirement()
 	{
 		if (!CheckSystem()) return false;
 		bool const chinese_simplified = is_chinese_simplified();
