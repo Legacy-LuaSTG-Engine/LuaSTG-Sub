@@ -51,7 +51,7 @@ int luastg::main() {
 
 	// STAGE 5: start
 
-	LuaSTG::Debugger::Logger::create();
+	Logger::create();
 
 	auto const t2 = std::chrono::high_resolution_clock::now();
 	spdlog::info("Duration before logging system: {}s", double((t2 - t1).count()) / 1000000000.0);
@@ -83,7 +83,7 @@ int luastg::main() {
 		result = EXIT_FAILURE;
 	}
 
-	LuaSTG::Debugger::Logger::destroy();
+	Logger::destroy();
 
 #ifndef NDEBUG
 	Core::ObjectDebugger::check();
