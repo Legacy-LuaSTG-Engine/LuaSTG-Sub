@@ -1,6 +1,6 @@
 #include "LuaBinding/LuaWrapper.hpp"
 #include "LuaBinding/PostEffectShader.hpp"
-#include "LuaBinding/HttpClient.hpp"
+#include "LuaBinding/external/HttpClient.hpp"
 #include "LuaBinding/modern/Clipboard.hpp"
 #include "LuaBinding/modern/Display.hpp"
 #include "LuaBinding/modern/Window.hpp"
