@@ -115,32 +115,32 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/PostEffectShader.cpp
     LuaSTG/LuaBinding/Resource.hpp
     LuaSTG/LuaBinding/Resource.cpp
-    LuaSTG/LuaBinding/Display.hpp
-    LuaSTG/LuaBinding/Display.cpp
-    LuaSTG/LuaBinding/Window.hpp
-    LuaSTG/LuaBinding/Window.cpp
-    LuaSTG/LuaBinding/SwapChain.hpp
-    LuaSTG/LuaBinding/SwapChain.cpp
-    LuaSTG/LuaBinding/Texture2D.hpp
-    LuaSTG/LuaBinding/Texture2D.cpp
-    LuaSTG/LuaBinding/Mesh.hpp
-    LuaSTG/LuaBinding/Mesh.cpp
-    LuaSTG/LuaBinding/MeshRenderer.hpp
-    LuaSTG/LuaBinding/MeshRenderer.cpp
     LuaSTG/LuaBinding/HttpClient.hpp
     LuaSTG/LuaBinding/HttpClient.cpp
-    LuaSTG/LuaBinding/Vector2.hpp
-    LuaSTG/LuaBinding/Vector2.cpp
-    LuaSTG/LuaBinding/Vector3.hpp
-    LuaSTG/LuaBinding/Vector3.cpp
-    LuaSTG/LuaBinding/Vector4.hpp
-    LuaSTG/LuaBinding/Vector4.cpp
-    LuaSTG/LuaBinding/Sprite.hpp
-    LuaSTG/LuaBinding/Sprite.cpp
-    LuaSTG/LuaBinding/SpriteRenderer.hpp
-    LuaSTG/LuaBinding/SpriteRenderer.cpp
-    LuaSTG/LuaBinding/Clipboard.hpp
-    LuaSTG/LuaBinding/Clipboard.cpp
+    LuaSTG/LuaBinding/modern/Display.hpp
+    LuaSTG/LuaBinding/modern/Display.cpp
+    LuaSTG/LuaBinding/modern/Window.hpp
+    LuaSTG/LuaBinding/modern/Window.cpp
+    LuaSTG/LuaBinding/modern/SwapChain.hpp
+    LuaSTG/LuaBinding/modern/SwapChain.cpp
+    LuaSTG/LuaBinding/modern/Texture2D.hpp
+    LuaSTG/LuaBinding/modern/Texture2D.cpp
+    LuaSTG/LuaBinding/modern/Mesh.hpp
+    LuaSTG/LuaBinding/modern/Mesh.cpp
+    LuaSTG/LuaBinding/modern/MeshRenderer.hpp
+    LuaSTG/LuaBinding/modern/MeshRenderer.cpp
+    LuaSTG/LuaBinding/modern/Vector2.hpp
+    LuaSTG/LuaBinding/modern/Vector2.cpp
+    LuaSTG/LuaBinding/modern/Vector3.hpp
+    LuaSTG/LuaBinding/modern/Vector3.cpp
+    LuaSTG/LuaBinding/modern/Vector4.hpp
+    LuaSTG/LuaBinding/modern/Vector4.cpp
+    LuaSTG/LuaBinding/modern/Sprite.hpp
+    LuaSTG/LuaBinding/modern/Sprite.cpp
+    LuaSTG/LuaBinding/modern/SpriteRenderer.hpp
+    LuaSTG/LuaBinding/modern/SpriteRenderer.cpp
+    LuaSTG/LuaBinding/modern/Clipboard.hpp
+    LuaSTG/LuaBinding/modern/Clipboard.cpp
     LuaSTG/LuaBinding/generated/BlendModeX.cpp
     LuaSTG/LuaBinding/generated/BlendModeX.hpp
     LuaSTG/LuaBinding/generated/ColorMember.cpp
