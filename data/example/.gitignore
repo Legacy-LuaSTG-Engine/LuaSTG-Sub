@@ -1,4 +1,10 @@
-engine.log
-log.txt
-imgui.ini
-config.json
+# local data
+
+/engine.log
+/imgui.ini
+/userdata/**
+
+# workspace
+
+!/example.code-workspace
+!/.vscode/settings.json

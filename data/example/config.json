@@ -1,0 +1,12 @@
+{
+    "file_system": {
+        "resources": [
+            {
+                "name": "scripts",
+                "type": "directory",
+                "path": "scripts/"
+            }
+        ],
+        "user": "userdata/"
+    }
+}
