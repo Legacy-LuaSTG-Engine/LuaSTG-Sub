@@ -15,6 +15,8 @@ if(libogg_ADDED)
     set(libogg_options
         # install location
         -DCMAKE_INSTALL_PREFIX=${libogg_install_dir}
+        # cmake 4.0 breaking changes
+        -DCMAKE_POLICY_VERSION_MINIMUM=3.5
         # msvc runtime library
         -DCMAKE_POLICY_DEFAULT_CMP0091=NEW
         -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>
@@ -84,6 +86,8 @@ if(libvorbis_ADDED)
     set(libvorbis_options
         # install location
         -DCMAKE_INSTALL_PREFIX=${libvorbis_install_dir}
+        # cmake 4.0 breaking changes
+        -DCMAKE_POLICY_VERSION_MINIMUM=3.5
         # msvc runtime library
         -DCMAKE_POLICY_DEFAULT_CMP0091=NEW
         -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>
