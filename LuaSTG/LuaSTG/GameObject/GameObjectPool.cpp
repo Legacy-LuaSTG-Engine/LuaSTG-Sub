@@ -13,7 +13,7 @@ namespace LuaSTGPlus
 
 	static GameObjectPool* g_GameObjectPool = nullptr;
 
-	GameObjectPool::GameObjectPool(lua_State* pL, CLRFunctions* clr_fn)
+	GameObjectPool::GameObjectPool(lua_State* pL, ManagedAPI* clr_fn)
 	{
 		assert(g_GameObjectPool == nullptr);
 		g_GameObjectPool = this;
@@ -211,6 +211,8 @@ namespace LuaSTGPlus
 
 		// 释放引用的资源
 		p->ReleaseResource();
+
+		CLR_fn->DetachGameObject(p->id);
 
 		GameObject* pRet = _ReleaseObject(p);
 
@@ -829,6 +831,7 @@ namespace LuaSTGPlus
 		static std::string _name("<null>");
 		spdlog::debug("[object] new {}-{} (img = {})", p->id, p->uid, p->res ? p->res->GetResName() : _name);
 #endif
+		CLR_fn->CreateLuaGameObject((intptr_t)p);
 
 		return 1;
 	}
@@ -1395,5 +1398,37 @@ namespace LuaSTGPlus
 		}
 		p->ps->SetEmission((int)std::max<lua_Integer>(0, luaL_checkinteger(L, 2)));
 		return 0;
+	}
+
+	GameObject* GameObjectPool::CLR_New() noexcept 
+	{
+		// 分配一个对象
+		GameObject* p = _AllocObject();
+		if (p == nullptr)
+		{
+			return nullptr;
+		}
+
+#if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
+		static std::string _name("<null>");
+		spdlog::debug("[object] new {}-{} (img = {})", p->id, p->uid, p->res ? p->res->GetResName() : _name);
+#endif
+
+		return p;
+	}
+
+	size_t GameObjectPool::CLR_GetID(GameObject* p) noexcept
+	{
+		return p->id;
+	}
+
+	intptr_t GameObjectPool::CLR_API_New() noexcept
+	{
+		return (intptr_t)(g_GameObjectPool->CLR_New());
+	}
+
+	uint64_t GameObjectPool::CLR_API_GetID(intptr_t p) noexcept
+	{
+		return g_GameObjectPool->CLR_GetID((GameObject*)p);
 	}
 }

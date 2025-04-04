@@ -62,7 +62,7 @@ namespace LuaSTGPlus
 		// Lua虚拟机
 		lua_State* L = nullptr;
 
-		CLRFunctions clr_fn;
+		ManagedAPI clr_fn;
 
 		// 目标帧率
 		uint32_t m_target_fps{ 60 };

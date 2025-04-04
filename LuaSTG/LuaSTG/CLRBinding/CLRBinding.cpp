@@ -25,7 +25,7 @@ void Log(int32_t level, intptr_t str)
 	spdlog::log(static_cast<spdlog::level::level_enum>(level), "[CSharp] {}", std::string_view((char*)str));
 }
 
-bool LuaSTGPlus::InitCLRBinding(const CLRHost* host, CLRFunctions* functions)
+bool LuaSTGPlus::InitCLRBinding(const CLRHost* host, ManagedAPI* functions)
 {
 	void* fn = nullptr;
 	if (host->load_assembly_and_get_function_pointer(
@@ -38,9 +38,12 @@ bool LuaSTGPlus::InitCLRBinding(const CLRHost* host, CLRFunctions* functions)
 		return false;
 	}
 
-	CLRInitPayload payload{};
+	UnmanagedAPI payload{};
 
 	payload.Log = Log;
+
+	payload.GameObject_New = GameObjectPool::CLR_API_New;
+	payload.GameObject_GetID = GameObjectPool::CLR_API_GetID;
 
 	payload.BeginScene = BeginScene;
 	payload.EndScene = EndScene;

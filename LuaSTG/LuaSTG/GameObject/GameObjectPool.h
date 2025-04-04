@@ -33,7 +33,7 @@ namespace LuaSTGPlus
 		cpp::fixed_object_pool<GameObject, LOBJPOOL_SIZE> m_ObjectPool;
 		uint64_t m_iUid = 0;
 		lua_State* G_L = nullptr;
-		CLRFunctions* CLR_fn;
+		ManagedAPI* CLR_fn;
 
 		// GameObject List
 		struct _less_render {
@@ -315,7 +315,18 @@ namespace LuaSTGPlus
 		static int api_ParticleSetEmission(lua_State* L) noexcept;
 
 	public:
-		GameObjectPool(lua_State* pL, CLRFunctions* clr_fn);
+		// CORECLR
+		
+		/// @brief 创建新对象
+		GameObject* CLR_New() noexcept;
+		size_t CLR_GetID(GameObject*) noexcept;
+	public:
+		// CORECLR API
+		static intptr_t CLR_API_New() noexcept;
+		static uint64_t CLR_API_GetID(intptr_t) noexcept;
+
+	public:
+		GameObjectPool(lua_State* pL, ManagedAPI* clr_fn);
 		GameObjectPool& operator=(const GameObjectPool&) = delete;
 		GameObjectPool(const GameObjectPool&) = delete;
 		~GameObjectPool();

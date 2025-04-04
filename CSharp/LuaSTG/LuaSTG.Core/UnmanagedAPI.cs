@@ -12,6 +12,10 @@ namespace LuaSTG.Core
     internal unsafe struct UnmanagedAPI
     {
         public delegate* unmanaged<int, IntPtr, void> log;
+
+        public delegate* unmanaged<IntPtr> gameObject_New;
+        public delegate* unmanaged<IntPtr, ulong> gameObject_GetID;
+
         public delegate* unmanaged<void> beginScene;
         public delegate* unmanaged<void> endScene;
         public delegate* unmanaged<byte, byte, byte, byte, void> renderClear;
