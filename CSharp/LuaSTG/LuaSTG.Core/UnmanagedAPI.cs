@@ -13,8 +13,9 @@ namespace LuaSTG.Core
     {
         public delegate* unmanaged<int, IntPtr, void> log;
 
-        public delegate* unmanaged<IntPtr> gameObject_New;
+        public delegate* unmanaged<uint, IntPtr> gameObject_New;
         public delegate* unmanaged<IntPtr, ulong> gameObject_GetID;
+        public delegate* unmanaged<IntPtr, void> gameObject_DefaultRenderFunc;
 
         public delegate* unmanaged<void> beginScene;
         public delegate* unmanaged<void> endScene;
@@ -28,6 +29,7 @@ namespace LuaSTG.Core
         /// </summary>
         /// <param name="level">Logging level.</param>
         /// <param name="message">Logging message.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Log(LogLevel level, string message)
         {
             IntPtr unmanagedString = Marshal.StringToHGlobalAnsi(message);
@@ -38,11 +40,13 @@ namespace LuaSTG.Core
         /// <summary>
         /// Notify engine to start rendering.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void BeginScene() => api.beginScene();
 
         /// <summary>
         /// Notify engine to finish rendering.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void EndScene() => api.endScene();
 
         /// <summary>
@@ -52,6 +56,7 @@ namespace LuaSTG.Core
         /// <param name="r">Red value.</param>
         /// <param name="g">Green value.</param>
         /// <param name="b">Blue value.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void RenderClear(byte a, byte r, byte g, byte b) => api.renderClear(a, r, g, b);
 
         private static UnmanagedAPI api;

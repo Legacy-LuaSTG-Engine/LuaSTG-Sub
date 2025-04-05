@@ -343,6 +343,7 @@ namespace LuaSTGPlus
 #endif // USING_ADVANCE_GAMEOBJECT_CLASS
 				m_pCurrentObject = p;
 				_GameObjectCallback(L, objects_index, p, LGOBJ_CC_FRAME);
+				CLR_fn->CallOnFrame(p->id);
 				m_pCurrentObject = nullptr;
 				p->Update();
 			}
@@ -361,6 +362,7 @@ namespace LuaSTGPlus
 #endif // USING_ADVANCE_GAMEOBJECT_CLASS
 				m_pCurrentObject = p;
 				_GameObjectCallback(L, objects_index, p, LGOBJ_CC_FRAME);
+				CLR_fn->CallOnFrame(p->id);
 				m_pCurrentObject = nullptr;
 			}
 		}
@@ -395,6 +397,7 @@ namespace LuaSTGPlus
 				{
 #endif // USING_ADVANCE_GAMEOBJECT_CLASS
 					_GameObjectCallback(G_L, ot_idx, p, LGOBJ_CC_RENDER);
+					CLR_fn->CallOnRender(p->id);
 #ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 				}
 				else
@@ -496,6 +499,7 @@ namespace LuaSTGPlus
 #endif // USING_ADVANCE_GAMEOBJECT_CLASS
 			m_pCurrentObject = p;
 			_GameObjectCallback(L, objects_index, p, LGOBJ_CC_DEL);
+			CLR_fn->CallOnDestroy(p->id, CLR_DESTROY_BOUNDS);
 			m_pCurrentObject = nullptr;
 		}
 	}
@@ -550,6 +554,7 @@ namespace LuaSTGPlus
 			lua_pushstring(L, "luastg:leave_world_border");	// ... object class colli object "luastg:leave_world_border"
 			lua_call(L, 2, 0);								// ... object class
 			lua_pop(L, 2);									// ...
+			CLR_fn->CallOnDestroy(object->id, CLR_DESTROY_BOUNDS);
 			m_pCurrentObject = nullptr;
 		}
 	}
@@ -590,6 +595,7 @@ namespace LuaSTGPlus
 				lua_rawgeti(L, objects_index, pB->id + 1);	// ... object1 class1 colli1 object1 object2
 				lua_call(L, 2, 0);							// ... object1 class1
 				lua_pop(L, 2);								// ...
+				CLR_fn->CallOnColli(pA->id, pB->id);
 				m_pCurrentObject = nullptr;
 				m_LockObjectA = nullptr;
 				m_LockObjectB = nullptr;
@@ -649,6 +655,7 @@ namespace LuaSTGPlus
 			lua_rawgeti(L, objects_index, object2->id + 1);	// ... object1 class1 colli1 object1 object2
 			lua_call(L, 2, 0);								// ... object1 class1
 			lua_pop(L, 2);									// ...
+			CLR_fn->CallOnColli(object1->id, object2->id);
 			m_pCurrentObject = nullptr;
 			m_LockObjectA = nullptr;
 			m_LockObjectB = nullptr;
@@ -864,6 +871,7 @@ namespace LuaSTGPlus
 				lua_insert(L, 1);													// callback object ...
 				lua_pop(L, 1);														// callback object ...
 				lua_call(L, lua_gettop(L) - 1, 0);									// 
+				CLR_fn->CallOnDestroy(p->id, (!kill_mode) ? CLR_DESTROY_DEL : CLR_DESTROY_KILL);
 #ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 			}
 #endif // USING_ADVANCE_GAMEOBJECT_CLASS
@@ -1400,7 +1408,7 @@ namespace LuaSTGPlus
 		return 0;
 	}
 
-	GameObject* GameObjectPool::CLR_New() noexcept 
+	GameObject* GameObjectPool::CLR_New(uint32_t callbackMask) noexcept 
 	{
 		// 分配一个对象
 		GameObject* p = _AllocObject();
@@ -1414,21 +1422,53 @@ namespace LuaSTGPlus
 		spdlog::debug("[object] new {}-{} (img = {})", p->id, p->uid, p->res ? p->res->GetResName() : _name);
 #endif
 
+#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+		//TODO: create by arg
+		//p->luaclass.CheckClassClass(G_L, 1);
+#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+
+		lua_getglobal(G_L, "___clr_class");				// class ...
+
+		// 创建对象 table
+		GetObjectTable(G_L);							// class ... ot
+		lua_createtable(G_L, 3, 0);					// class ... ot object
+		lua_pushvalue(G_L, 1);						// class ... ot object class
+		lua_rawseti(G_L, -2, 1);						// class ... ot object
+		lua_pushinteger(G_L, (lua_Integer)p->id);		// class ... ot object id
+		lua_rawseti(G_L, -2, 2);						// class ... ot object
+		lua_pushlightuserdata(G_L, p);				// class ... ot object pGameObject
+		lua_rawseti(G_L, -2, 3);						// class ... ot object
+
+		// 设置对象 metatable
+		lua_rawgeti(G_L, -2, LOBJPOOL_METATABLE_IDX);	// class ... ot object mt
+		lua_setmetatable(G_L, -2);					// class ... ot object
+
+		// 设置到全局表 ot[n]
+		lua_pushvalue(G_L, -1);						// class ... ot object object
+		lua_rawseti(G_L, -3, (int)p->id + 1);			// class ... ot object
+
+		lua_settop(G_L, 0);
+
+#if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
+		static std::string _name("<null>");
+		spdlog::debug("[object] new {}-{} (img = {})", p->id, p->uid, p->res ? p->res->GetResName() : _name);
+#endif
+
 		return p;
 	}
 
-	size_t GameObjectPool::CLR_GetID(GameObject* p) noexcept
+	intptr_t GameObjectPool::CLR_API_New(uint32_t callbackMask) noexcept
 	{
-		return p->id;
-	}
-
-	intptr_t GameObjectPool::CLR_API_New() noexcept
-	{
-		return (intptr_t)(g_GameObjectPool->CLR_New());
+		return (intptr_t)(g_GameObjectPool->CLR_New(callbackMask));
 	}
 
 	uint64_t GameObjectPool::CLR_API_GetID(intptr_t p) noexcept
 	{
-		return g_GameObjectPool->CLR_GetID((GameObject*)p);
+		return ((GameObject*)p)->id;
+	}
+
+	void GameObjectPool::CLR_API_DefaultRenderFunc(intptr_t p) noexcept
+	{
+		return ((GameObject*)p)->Render();
 	}
 }

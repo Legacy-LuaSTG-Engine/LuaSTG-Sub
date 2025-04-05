@@ -318,12 +318,16 @@ namespace LuaSTGPlus
 		// CORECLR
 		
 		/// @brief 创建新对象
-		GameObject* CLR_New() noexcept;
-		size_t CLR_GetID(GameObject*) noexcept;
+		GameObject* CLR_New(uint32_t) noexcept;
+		static void CLR_CallOnFrame(uint64_t) noexcept;
+		static void CLR_CallOnRender(uint64_t) noexcept;
+		static void CLR_CallOnDestroy(uint64_t, int32_t) noexcept;
+		static void CLR_CallOnColli(uint64_t, uint64_t) noexcept;
 	public:
 		// CORECLR API
-		static intptr_t CLR_API_New() noexcept;
+		static intptr_t CLR_API_New(uint32_t) noexcept;
 		static uint64_t CLR_API_GetID(intptr_t) noexcept;
+		static void CLR_API_DefaultRenderFunc(intptr_t) noexcept;
 
 	public:
 		GameObjectPool(lua_State* pL, ManagedAPI* clr_fn);

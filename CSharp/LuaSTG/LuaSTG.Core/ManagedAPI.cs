@@ -16,8 +16,13 @@ namespace LuaSTG.Core
         public delegate* unmanaged<void> GameExit;
         public delegate* unmanaged<void> FocusLoseFunc;
         public delegate* unmanaged<void> FocusGainFunc;
+
         public delegate* unmanaged<ulong, void> DetachGameObject;
         public delegate* unmanaged<IntPtr, void> CreateLuaGameObject;
+        public delegate* unmanaged<ulong, void> CallOnFrame;
+        public delegate* unmanaged<ulong, void> CallOnRender;
+        public delegate* unmanaged<ulong, int, void> CallOnDestroy;
+        public delegate* unmanaged<ulong, ulong, void> CallOnColli;
     }
 
     public static unsafe partial class LuaSTGAPI
@@ -66,8 +71,13 @@ namespace LuaSTG.Core
             managedAPI->GameExit = &GameExit;
             managedAPI->FocusGainFunc = &FocusGainFunc;
             managedAPI->FocusLoseFunc = &FocusLoseFunc;
+
             managedAPI->CreateLuaGameObject = &CreateLuaGameObject;
             managedAPI->DetachGameObject = &DetachGameObject;
+            managedAPI->CallOnFrame = &CallOnFrame;
+            managedAPI->CallOnRender = &CallOnRender;
+            managedAPI->CallOnDestroy = &CallOnDestroy;
+            managedAPI->CallOnColli = &CallOnColli;
         }
     }
 }

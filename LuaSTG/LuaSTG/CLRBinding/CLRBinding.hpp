@@ -8,8 +8,9 @@ namespace LuaSTGPlus
 	{
 		void (CORECLR_DELEGATE_CALLTYPE* Log)(int32_t, intptr_t);
 
-		intptr_t (CORECLR_DELEGATE_CALLTYPE* GameObject_New)();
+		intptr_t (CORECLR_DELEGATE_CALLTYPE* GameObject_New)(uint32_t);
 		uint64_t (CORECLR_DELEGATE_CALLTYPE* GameObject_GetID)(intptr_t);
+		void (CORECLR_DELEGATE_CALLTYPE* GameObject_DefaultRenderFunc)(intptr_t);
 
 		void (CORECLR_DELEGATE_CALLTYPE* BeginScene)();
 		void (CORECLR_DELEGATE_CALLTYPE* EndScene)();
@@ -28,7 +29,15 @@ namespace LuaSTGPlus
 #pragma endregion
 		void (CORECLR_DELEGATE_CALLTYPE* DetachGameObject)(uint64_t);
 		void (CORECLR_DELEGATE_CALLTYPE* CreateLuaGameObject)(intptr_t);
+		void (CORECLR_DELEGATE_CALLTYPE* CallOnFrame)(uint64_t);
+		void (CORECLR_DELEGATE_CALLTYPE* CallOnRender)(uint64_t);
+		void (CORECLR_DELEGATE_CALLTYPE* CallOnDestroy)(uint64_t, int32_t);
+		void (CORECLR_DELEGATE_CALLTYPE* CallOnColli)(uint64_t, uint64_t);
 	};
+
+	const int CLR_DESTROY_BOUNDS = 0;
+	const int CLR_DESTROY_DEL = 1;
+	const int CLR_DESTROY_KILL = 2;
 
 	typedef int (CORECLR_DELEGATE_CALLTYPE* entry_point_fn)(UnmanagedAPI*, ManagedAPI*);
 

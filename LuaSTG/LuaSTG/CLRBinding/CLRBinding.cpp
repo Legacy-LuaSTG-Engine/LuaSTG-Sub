@@ -44,6 +44,7 @@ bool LuaSTGPlus::InitCLRBinding(const CLRHost* host, ManagedAPI* functions)
 
 	payload.GameObject_New = GameObjectPool::CLR_API_New;
 	payload.GameObject_GetID = GameObjectPool::CLR_API_GetID;
+	payload.GameObject_DefaultRenderFunc = GameObjectPool::CLR_API_DefaultRenderFunc;
 
 	payload.BeginScene = BeginScene;
 	payload.EndScene = EndScene;
