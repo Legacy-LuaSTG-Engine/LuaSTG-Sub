@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace LuaSTG.Core
 {
+    /// <summary>
+    /// Gameobject instances created by lua script. This object should not be instantiated by user.
+    /// </summary>
     public sealed class LuaGameObject : GameObjectBase
     {
         internal LuaGameObject(IntPtr nativePtr) : base(nativePtr)
@@ -21,7 +24,7 @@ namespace LuaSTG.Core
         {
         }
 
-        public override sealed void OnDestroy(DeleteEventArgs args)
+        public override sealed void OnDestroy(DestroyEventArgs args)
         {
         }
 

@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace LuaSTG.Core
 {
+    /// <summary>
+    /// Base class for any objects created in CLR.
+    /// </summary>
     public class GameObject : GameObjectBase
     {
         public GameObject() : base()
@@ -21,7 +24,7 @@ namespace LuaSTG.Core
         {
         }
 
-        public override void OnDestroy(DeleteEventArgs args)
+        public override void OnDestroy(DestroyEventArgs args)
         {
         }
     }

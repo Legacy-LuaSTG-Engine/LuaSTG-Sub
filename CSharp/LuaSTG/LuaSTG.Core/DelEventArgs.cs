@@ -6,10 +6,22 @@ using System.Threading.Tasks;
 
 namespace LuaSTG.Core
 {
-    public enum DeleteEventType : int
+    /// <summary>
+    /// Type of the destroy event.
+    /// </summary>
+    public enum DestroyEventType : int
     {
+        /// <summary>
+        /// Destroy by out-of-bounds.
+        /// </summary>
         Bound = 0,
+        /// <summary>
+        /// Destroy by Del method.
+        /// </summary>
         Del = 1,
+        /// <summary>
+        /// Destroy by Kill method.
+        /// </summary>
         Kill = 2,
     }
 }
