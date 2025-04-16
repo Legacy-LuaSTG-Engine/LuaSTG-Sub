@@ -7,3 +7,5 @@ luastg_target_more_warning(Core.ReferenceCounted)
 target_include_directories(Core.ReferenceCounted PUBLIC .)
 target_sources(Core.ReferenceCounted PRIVATE ${src})
 target_link_libraries(Core.ReferenceCounted PRIVATE options_compile_utf8 Core.UUID)
+
+set_target_properties(Core.ReferenceCounted PROPERTIES FOLDER engine)

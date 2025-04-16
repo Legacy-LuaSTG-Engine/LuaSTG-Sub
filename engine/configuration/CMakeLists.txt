@@ -9,3 +9,5 @@ target_compile_features(${lib_name} PRIVATE cxx_std_20)
 target_include_directories(${lib_name} PUBLIC .)
 target_sources(${lib_name} PRIVATE ${lib_src})
 target_link_libraries(${lib_name} PUBLIC nlohmann_json)
+
+set_target_properties(Core.Configuration PROPERTIES FOLDER engine)

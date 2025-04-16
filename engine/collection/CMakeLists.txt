@@ -8,3 +8,5 @@ luastg_target_more_warning(${lib_name})
 target_compile_features(${lib_name} PRIVATE cxx_std_20)
 target_include_directories(${lib_name} PUBLIC .)
 target_sources(${lib_name} PRIVATE ${lib_src})
+
+set_target_properties(Core.Collection PROPERTIES FOLDER engine)
