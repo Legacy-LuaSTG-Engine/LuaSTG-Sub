@@ -23,20 +23,20 @@ namespace core::implement {
 			}
 			return last_counter - 1;
 		}
-		Boolean32 queryInterface(UUID const& uuid, void** const output) override {
+		bool queryInterface(UUID const& uuid, void** const output) override {
 			assert(output != nullptr);
 			if (uuid == uuid_of<IReferenceCounted>()) {
 				reference();
 				*output = static_cast<IReferenceCounted*>(this);
-				return Boolean32::of(true);
+				return true;
 			}
 			if (uuid == uuid_of<T>()) {
 				reference();
 				*output = static_cast<T*>(this);
-				return Boolean32::of(true);
+				return true;
 			}
 			*output = nullptr;
-			return Boolean32::of(false);
+			return false;
 		}
 
 		ReferenceCounted() : m_counter{ 1 } {

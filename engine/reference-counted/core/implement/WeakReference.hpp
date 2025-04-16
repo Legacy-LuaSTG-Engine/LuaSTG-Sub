@@ -7,7 +7,7 @@ namespace core::implement {
 	public:
 		// IWeakReference
 
-		Boolean32 resolve(UUID const& uuid, void** const output) override {
+		bool resolve(UUID const& uuid, void** const output) override {
 			assert(output != nullptr);
 			auto const counter = m_object_counter;
 			if (auto const last_strong = counter->strong.fetch_add(1); last_strong > 0) {
@@ -17,7 +17,7 @@ namespace core::implement {
 			}
 			counter->strong.fetch_sub(1);
 			*output = nullptr;
-			return Boolean32::of(false);
+			return false;
 		}
 
 		// WeakReference

@@ -3,9 +3,9 @@
 
 namespace core {
 	struct CORE_NO_VIRTUAL_TABLE IWeakReference : IReferenceCounted {
-		virtual Boolean32 resolve(UUID const& uuid, void** output) = 0;
+		virtual bool resolve(UUID const& uuid, void** output) = 0;
 
-		template<typename Interface> Boolean32 resolve(Interface** const output) {
+		template<typename Interface> bool resolve(Interface** const output) {
 			return resolve(uuid_of<Interface>(), reinterpret_cast<void**>(output));
 		}
 	};
