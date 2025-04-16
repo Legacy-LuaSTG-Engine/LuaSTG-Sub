@@ -64,7 +64,7 @@ namespace {
 
 		core::SmartReference<core::IReferenceCounted> a;
 		alpha->queryInterface(a.put());
-		alpha->reference();
+		alpha->retain();
 		alpha->release();
 		alpha->print();
 	}
@@ -77,7 +77,7 @@ namespace {
 		resource->queryInterface(a.put());
 		core::SmartReference<core::IReferenceCounted> b;
 		resource->queryInterface(b.put());
-		resource->reference();
+		resource->retain();
 		resource->release();
 		resource->download();
 

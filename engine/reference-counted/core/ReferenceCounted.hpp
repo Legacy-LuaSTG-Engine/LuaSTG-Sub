@@ -12,7 +12,7 @@ namespace core {
 
 	struct CORE_NO_VIRTUAL_TABLE IReferenceCounted {
 		virtual bool queryInterface(InterfaceId const& uuid, void** output) = 0;
-		virtual int32_t reference() = 0;
+		virtual int32_t retain() = 0;
 		virtual int32_t release() = 0;
 
 		template<typename Interface> bool queryInterface(Interface** const output) {

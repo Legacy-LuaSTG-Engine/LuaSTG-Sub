@@ -5,14 +5,14 @@ namespace core {
 	class SmartReference {
 	public:
 		SmartReference() noexcept : m_object() {}
-		explicit SmartReference(T* const object) noexcept : m_object(object) { reference(); }
-		SmartReference(SmartReference const& right) noexcept : m_object(right.m_object) { reference(); }
+		explicit SmartReference(T* const object) noexcept : m_object(object) { retain(); }
+		SmartReference(SmartReference const& right) noexcept : m_object(right.m_object) { retain(); }
 		SmartReference(SmartReference&& right) noexcept : m_object(right.m_object) { right.m_object = nullptr; }
 		~SmartReference() noexcept { release(); }
 
 		SmartReference& operator=(decltype(nullptr)) noexcept { release(); return *this; }
-		SmartReference& operator=(T* const object) noexcept { if (m_object != object) { release(); m_object = object; reference(); } return *this; }
-		SmartReference& operator=(SmartReference const& right) noexcept { if (this != &right && m_object != right.m_object) { release(); m_object = right.m_object; reference(); } return *this; }
+		SmartReference& operator=(T* const object) noexcept { if (m_object != object) { release(); m_object = object; retain(); } return *this; }
+		SmartReference& operator=(SmartReference const& right) noexcept { if (this != &right && m_object != right.m_object) { release(); m_object = right.m_object; retain(); } return *this; }
 		SmartReference& operator=(SmartReference&& right) noexcept { if (this != &right && m_object != right.m_object) { release(); m_object = right.m_object; right.m_object = nullptr; } return *this; }
 
 		[[nodiscard]] bool operator==(SmartReference const& right) const noexcept { return m_object == right.m_object; }
@@ -29,7 +29,7 @@ namespace core {
 		[[nodiscard]] T** put() noexcept { release(); return &m_object; }
 
 	private:
-		void reference() noexcept { if (m_object) m_object->reference(); }
+		void retain() noexcept { if (m_object) m_object->retain(); }
 		void release() noexcept { if (m_object) m_object->release(); m_object = nullptr; }
 
 		T* m_object;
