@@ -15,7 +15,7 @@ namespace DirectX
     }
 }
 
-namespace Core::Graphics
+namespace core::Graphics
 {
     bool ModelSharedComponent_D3D11::createImage()
     {
@@ -432,7 +432,7 @@ namespace Core::Graphics
     }
 }
 
-namespace Core::Graphics
+namespace core::Graphics
 {
     static void map_sampler_to_d3d11(tinygltf::Sampler& samp, D3D11_SAMPLER_DESC& desc)
     {

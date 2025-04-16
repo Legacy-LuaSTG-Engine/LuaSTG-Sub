@@ -2,7 +2,7 @@
 #include "Core/Object.hpp"
 #include "Core/Graphics/Mesh.hpp"
 
-namespace Core::Graphics::Direct3D11 {
+namespace core::Graphics::Direct3D11 {
 	class MeshRenderer final
 		: public Object<IMeshRenderer>
 		, public IDeviceEventListener {

@@ -6,7 +6,7 @@
 #include "Platform/RuntimeLoader/DesktopWindowManager.hpp"
 #include "Platform/ImmersiveTitleBarController.hpp"
 
-namespace Core::Graphics
+namespace core::Graphics
 {
 	class Display_Win32 : public Object<IDisplay> {
 	private:

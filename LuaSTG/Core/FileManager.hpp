@@ -5,7 +5,7 @@
 #include <string_view>
 #include <memory>
 
-namespace Core
+namespace core
 {
     enum class FileType
     {
@@ -119,7 +119,7 @@ namespace Core
     };
 }
 
-inline Core::FileManager& GFileManager()
+inline core::FileManager& GFileManager()
 {
-    return Core::FileManager::get();
+    return core::FileManager::get();
 }

@@ -2,7 +2,7 @@
 #include "Core/Graphics/Device.hpp"
 #include "Core/Graphics/Renderer.hpp"
 
-namespace Core::Graphics {
+namespace core::Graphics {
 	enum class PrimitiveTopology : uint8_t {
 		triangle_list = 4,
 		triangle_strip = 5,

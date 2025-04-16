@@ -37,7 +37,7 @@ void AppFrame::SetFPS(uint32_t v)noexcept
 }
 void AppFrame::SetSEVolume(float v) {
 	if (m_pAppModel) {
-		m_pAppModel->getAudioDevice()->setMixChannelVolume(Core::Audio::MixChannel::SoundEffect, v);
+		m_pAppModel->getAudioDevice()->setMixChannelVolume(core::Audio::MixChannel::SoundEffect, v);
 	}
 	else {
 		core::ConfigurationLoader::getInstance().getAudioSystemRef().setSoundEffectVolume(v);
@@ -45,7 +45,7 @@ void AppFrame::SetSEVolume(float v) {
 }
 void AppFrame::SetBGMVolume(float v) {
 	if (m_pAppModel) {
-		m_pAppModel->getAudioDevice()->setMixChannelVolume(Core::Audio::MixChannel::Music, v);
+		m_pAppModel->getAudioDevice()->setMixChannelVolume(core::Audio::MixChannel::Music, v);
 	}
 	else {
 		core::ConfigurationLoader::getInstance().getAudioSystemRef().setMusicVolume(v);
@@ -53,7 +53,7 @@ void AppFrame::SetBGMVolume(float v) {
 }
 float AppFrame::GetSEVolume() {
 	if (m_pAppModel) {
-		return m_pAppModel->getAudioDevice()->getMixChannelVolume(Core::Audio::MixChannel::SoundEffect);
+		return m_pAppModel->getAudioDevice()->getMixChannelVolume(core::Audio::MixChannel::SoundEffect);
 	}
 	else {
 		return core::ConfigurationLoader::getInstance().getAudioSystem().getSoundEffectVolume();
@@ -61,7 +61,7 @@ float AppFrame::GetSEVolume() {
 }
 float AppFrame::GetBGMVolume() {
 	if (m_pAppModel) {
-		return m_pAppModel->getAudioDevice()->getMixChannelVolume(Core::Audio::MixChannel::Music);
+		return m_pAppModel->getAudioDevice()->getMixChannelVolume(core::Audio::MixChannel::Music);
 	}
 	else {
 		return core::ConfigurationLoader::getInstance().getAudioSystem().getMusicVolume();
@@ -90,7 +90,7 @@ void AppFrame::SetPreferenceGPU(const char* v) noexcept
 void AppFrame::SetSplash(bool v)noexcept
 {
 	if (m_pAppModel) {
-		m_pAppModel->getWindow()->setCursor(v ? Core::Graphics::WindowCursor::Arrow : Core::Graphics::WindowCursor::None);
+		m_pAppModel->getWindow()->setCursor(v ? core::Graphics::WindowCursor::Arrow : core::Graphics::WindowCursor::None);
 	}
 	else {
 		auto& win = core::ConfigurationLoader::getInstance().getWindowRef();
@@ -178,9 +178,9 @@ bool AppFrame::Init()noexcept
 	//////////////////////////////////////// 应用程序模型、窗口子系统、图形子系统、音频子系统等
 
 	{
-		if (!Core::IApplicationModel::create(this, ~m_pAppModel))
+		if (!core::IApplicationModel::create(this, ~m_pAppModel))
 			return false;
-		if (!Core::Graphics::ITextRenderer::create(m_pAppModel->getRenderer(), ~m_pTextRenderer))
+		if (!core::Graphics::ITextRenderer::create(m_pAppModel->getRenderer(), ~m_pTextRenderer))
 			return false;
 		if (!InitializationApplySettingStage1())
 			return false;
@@ -342,7 +342,7 @@ void AppFrame::onWindowInactive()
 	Platform::XInput::setEnable(false);
 	m_window_active_changed.fetch_or(0x2);
 }
-void AppFrame::onWindowSize(Core::Vector2U size)
+void AppFrame::onWindowSize(core::Vector2U size)
 {
 	m_win32_window_size = size;
 }

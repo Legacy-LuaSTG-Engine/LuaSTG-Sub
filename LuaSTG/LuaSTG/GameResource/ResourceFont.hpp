@@ -20,10 +20,10 @@ namespace luastg
 
 	struct IResourceFont : IResourceBase
 	{
-		virtual Core::Graphics::IGlyphManager* GetGlyphManager() = 0;
+		virtual core::Graphics::IGlyphManager* GetGlyphManager() = 0;
 		virtual BlendMode GetBlendMode() = 0;
 		virtual void SetBlendMode(BlendMode m) = 0;
-		virtual Core::Color4B GetBlendColor() = 0;
-		virtual void SetBlendColor(Core::Color4B c) = 0;
+		virtual core::Color4B GetBlendColor() = 0;
+		virtual void SetBlendColor(core::Color4B c) = 0;
 	};
 }

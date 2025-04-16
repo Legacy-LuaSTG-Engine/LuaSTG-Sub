@@ -7,7 +7,7 @@
 #include "Core/Graphics/Direct3D11/Mesh.hpp"
 #include "Core/Graphics/Renderer_D3D11.hpp"
 
-namespace Core::Graphics::Direct3D11 {
+namespace core::Graphics::Direct3D11 {
 	void MeshRenderer::onDeviceCreate() {
 	}
 	void MeshRenderer::onDeviceDestroy() {
@@ -172,7 +172,7 @@ namespace Core::Graphics::Direct3D11 {
 		return true;
 	}
 }
-namespace Core::Graphics {
+namespace core::Graphics {
 	bool IMeshRenderer::create(IDevice* const device, IMeshRenderer** const output) {
 		assert(device);
 		assert(output);

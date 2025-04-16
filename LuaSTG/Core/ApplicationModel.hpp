@@ -6,7 +6,7 @@
 #include "Core/Graphics/Renderer.hpp"
 #include "Core/Audio/Device.hpp"
 
-namespace Core
+namespace core
 {
     struct IFrameRateController
     {

@@ -15,7 +15,7 @@ namespace luastg
 		static void FreeInstance(GameObjectBentLaser* p);
 		struct LaserNode
 		{
-			Core::Vector2F pos;			//节点位置
+			core::Vector2F pos;			//节点位置
 			float half_width = 0.0f;//半宽
 			//float rot = 0.0f;		//节点朝向
 			float dis = 0.0f;		//到上一个节点的距离
@@ -55,8 +55,8 @@ namespace luastg
 		bool Update(float x, float y, float rot, int length, float width, bool active) noexcept;
 		void SetAllWidth(float width) noexcept; // 更改所有节点的碰撞和渲染宽度
 		// 渲染
-		bool Render(const char* tex_name, BlendMode blend, Core::Color4B c, float tex_left, float tex_top, float tex_width, float tex_height, float scale) noexcept;
-		void RenderCollider(Core::Color4B fillColor) noexcept;
+		bool Render(const char* tex_name, BlendMode blend, core::Color4B c, float tex_left, float tex_top, float tex_width, float tex_height, float scale) noexcept;
+		void RenderCollider(core::Color4B fillColor) noexcept;
 		// 碰撞检测
 		void SetEnvelope(float height, float base, float rate, float power) noexcept; // 设置碰撞包络
 		bool BoundCheck() noexcept; // 检查是否离开边界

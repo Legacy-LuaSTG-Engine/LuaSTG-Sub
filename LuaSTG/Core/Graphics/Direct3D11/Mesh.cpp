@@ -16,7 +16,7 @@ namespace {
 	void reportIndexOutOfBounds() {
 		spdlog::error("[core] Mesh: index out of bounds");
 	}
-	std::string generateVertexShader(Core::Graphics::MeshOptions const& options, bool const fog) {
+	std::string generateVertexShader(core::Graphics::MeshOptions const& options, bool const fog) {
 		// ReSharper disable StringLiteralTypo
 		std::string generated_vertex_shader;
 		generated_vertex_shader.reserve(1024);
@@ -112,7 +112,7 @@ namespace {
 
 #define REPORT_READ_ONLY_RETURN_BOOL if (m_validation && m_read_only) { reportReadOnly(); assert(false); return false; }
 
-namespace Core::Graphics::Direct3D11 {
+namespace core::Graphics::Direct3D11 {
 	void Mesh::onDeviceCreate() {
 		if (m_initialized) {
 			createResources();
@@ -412,7 +412,7 @@ namespace Core::Graphics::Direct3D11 {
 		return true;
 	}
 }
-namespace Core::Graphics {
+namespace core::Graphics {
 	bool IMesh::create(IDevice* device, MeshOptions const& options, IMesh** output) {
 		*output = nullptr;
 		ScopeObject<Direct3D11::Mesh> buffer;

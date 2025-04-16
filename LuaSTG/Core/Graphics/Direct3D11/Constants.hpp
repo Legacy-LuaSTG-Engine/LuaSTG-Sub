@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Core::Graphics::Direct3D11 {
+namespace core::Graphics::Direct3D11 {
 	class Constants {
 	public:
 		static constexpr uint32_t vertex_shader_stage_constant_buffer_slot_view_projection_matrix = 0;

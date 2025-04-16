@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Core::Graphics::Direct3D11
+namespace core::Graphics::Direct3D11
 {
 	class LetterBoxingRenderer
 	{

@@ -2,7 +2,7 @@
 #include "Core/Object.hpp"
 #include "Core/Graphics/Font.hpp"
 
-namespace Core::Graphics::Common
+namespace core::Graphics::Common
 {
 	class TextRenderer final
 		: public Object<ITextRenderer>

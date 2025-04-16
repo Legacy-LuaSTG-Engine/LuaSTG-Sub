@@ -8,11 +8,11 @@
 namespace luastg
 {
 	class hgeFont
-		: public Core::Object<Core::Graphics::IGlyphManager>
+		: public core::Object<core::Graphics::IGlyphManager>
 	{
 	private:
-		Core::ScopeObject<Core::Graphics::ITexture2D> m_texture;
-		std::unordered_map<uint32_t, Core::Graphics::GlyphInfo> m_map;
+		core::ScopeObject<core::Graphics::ITexture2D> m_texture;
+		std::unordered_map<uint32_t, core::Graphics::GlyphInfo> m_map;
 		float m_line_height;
 
 	private:
@@ -234,16 +234,16 @@ namespace luastg
 						continue;
 					}
 					// 转换为字形数据
-					Core::Graphics::GlyphInfo const glyph_info = {
+					core::Graphics::GlyphInfo const glyph_info = {
 						.texture_index = 0,
-						.texture_rect = Core::RectF(
+						.texture_rect = core::RectF(
 							char_data.x,
 							char_data.y,
 							char_data.x + char_data.w,
 							char_data.y + char_data.h),
-						.size = Core::Vector2F(char_data.w, char_data.h),
-						.position = Core::Vector2F(char_data.left_offset, char_data.h),
-						.advance = Core::Vector2F(char_data.w + char_data.left_offset + char_data.right_offset, 0),
+						.size = core::Vector2F(char_data.w, char_data.h),
+						.position = core::Vector2F(char_data.left_offset, char_data.h),
+						.advance = core::Vector2F(char_data.w + char_data.left_offset + char_data.right_offset, 0),
 					};
 					m_map.emplace((uint32_t)char_data.code, glyph_info);
 				}
@@ -262,7 +262,7 @@ namespace luastg
 		float getDescender() { return 0.0f; }
 
 		uint32_t getTextureCount() { return 1; }
-		Core::Graphics::ITexture2D* getTexture(uint32_t index)
+		core::Graphics::ITexture2D* getTexture(uint32_t index)
 		{
 			if (index == 0)
 			{
@@ -272,10 +272,10 @@ namespace luastg
 		}
 
 		bool cacheGlyph(uint32_t) { return true; }
-		bool cacheString(Core::StringView) { return true; }
+		bool cacheString(core::StringView) { return true; }
 		bool flush() { return true; }
 
-		bool getGlyph(uint32_t codepoint, Core::Graphics::GlyphInfo* p_ref_info, bool)
+		bool getGlyph(uint32_t codepoint, core::Graphics::GlyphInfo* p_ref_info, bool)
 		{
 			auto it = m_map.find(codepoint);
 			if (it != m_map.end())
@@ -347,19 +347,19 @@ namespace luastg
 	};
 
 	class f2dFont
-		: public Core::Object<Core::Graphics::IGlyphManager>
+		: public core::Object<core::Graphics::IGlyphManager>
 	{
 	private:
-		Core::ScopeObject<Core::Graphics::ITexture2D> m_texture;
-		std::unordered_map<uint32_t, Core::Graphics::GlyphInfo> m_map;
+		core::ScopeObject<core::Graphics::ITexture2D> m_texture;
+		std::unordered_map<uint32_t, core::Graphics::GlyphInfo> m_map;
 		float m_line_height;
 		float m_ascender;
 		float m_descender;
 
 	private:
-		Core::Vector2F readVec2Str(std::string const& Str)
+		core::Vector2F readVec2Str(std::string const& Str)
 		{
-			Core::Vector2F tRet;
+			core::Vector2F tRet;
 			size_t const sep = Str.find_first_of(',');
 			if (Str.empty() || sep == std::string::npos)
 				throw std::runtime_error("invalid f2dTexturedFont Measure vec2");
@@ -404,19 +404,19 @@ namespace luastg
 					throw std::runtime_error("invalid char");
 				}
 
-				Core::Vector2F const Advance = readVec2Str(item.attribute("Advance").as_string());
-				Core::Vector2F const BrushPos = readVec2Str(item.attribute("BrushPos").as_string());
-				Core::Vector2F const GlyphSize = readVec2Str(item.attribute("Size").as_string());
-				Core::Vector2F GlyphPosA = readVec2Str(item.attribute("Pos").as_string());
-				Core::Vector2F GlyphPosB = GlyphPosA + readVec2Str(item.attribute("Size").as_string());
+				core::Vector2F const Advance = readVec2Str(item.attribute("Advance").as_string());
+				core::Vector2F const BrushPos = readVec2Str(item.attribute("BrushPos").as_string());
+				core::Vector2F const GlyphSize = readVec2Str(item.attribute("Size").as_string());
+				core::Vector2F GlyphPosA = readVec2Str(item.attribute("Pos").as_string());
+				core::Vector2F GlyphPosB = GlyphPosA + readVec2Str(item.attribute("Size").as_string());
 				GlyphPosA.x *= u_scale;
 				GlyphPosB.x *= u_scale;
 				GlyphPosA.y *= v_scale;
 				GlyphPosB.y *= v_scale;
 
-				Core::Graphics::GlyphInfo const glyph_info = {
+				core::Graphics::GlyphInfo const glyph_info = {
 					.texture_index = 0,
-					.texture_rect = Core::RectF(GlyphPosA, GlyphPosB),
+					.texture_rect = core::RectF(GlyphPosA, GlyphPosB),
 					.size = GlyphSize,
 					.position = BrushPos,
 					.advance = Advance,
@@ -431,7 +431,7 @@ namespace luastg
 		float getDescender() { return m_descender; }
 
 		uint32_t getTextureCount() { return 1; }
-		Core::Graphics::ITexture2D* getTexture(uint32_t index)
+		core::Graphics::ITexture2D* getTexture(uint32_t index)
 		{
 			if (index == 0)
 			{
@@ -441,10 +441,10 @@ namespace luastg
 		}
 
 		bool cacheGlyph(uint32_t) { return true; }
-		bool cacheString(Core::StringView) { return true; }
+		bool cacheString(core::StringView) { return true; }
 		bool flush() { return true; }
 
-		bool getGlyph(uint32_t codepoint, Core::Graphics::GlyphInfo* p_ref_info, bool)
+		bool getGlyph(uint32_t codepoint, core::Graphics::GlyphInfo* p_ref_info, bool)
 		{
 			auto it = m_map.find(codepoint);
 			if (it != m_map.end())
@@ -510,22 +510,22 @@ namespace luastg
 	ResourceFontImpl::ResourceFontImpl(const char* name, std::string_view hge_path, bool mipmap)
 		: ResourceBaseImpl(ResourceType::SpriteFont, name)
 		, m_BlendMode(BlendMode::MulAlpha)
-		, m_BlendColor(Core::Color4B(0xFFFFFFFFu))
+		, m_BlendColor(core::Color4B(0xFFFFFFFFu))
 	{
 		m_glyphmgr.attach(new hgeFont(hge_path, mipmap));
 	}
 	ResourceFontImpl::ResourceFontImpl(const char* name, std::string_view f2d_path, std::string_view tex_path, bool mipmap)
 		: ResourceBaseImpl(ResourceType::SpriteFont, name)
 		, m_BlendMode(BlendMode::MulAlpha)
-		, m_BlendColor(Core::Color4B(0xFFFFFFFFu))
+		, m_BlendColor(core::Color4B(0xFFFFFFFFu))
 	{
 		m_glyphmgr.attach(new f2dFont(f2d_path, tex_path, mipmap));
 	}
-	ResourceFontImpl::ResourceFontImpl(const char* name, Core::Graphics::IGlyphManager* p_mgr)
+	ResourceFontImpl::ResourceFontImpl(const char* name, core::Graphics::IGlyphManager* p_mgr)
 		: ResourceBaseImpl(ResourceType::SpriteFont, name)
 		, m_glyphmgr(p_mgr)
 		, m_BlendMode(BlendMode::MulAlpha)
-		, m_BlendColor(Core::Color4B(0xFFFFFFFFu))
+		, m_BlendColor(core::Color4B(0xFFFFFFFFu))
 	{
 	}
 }

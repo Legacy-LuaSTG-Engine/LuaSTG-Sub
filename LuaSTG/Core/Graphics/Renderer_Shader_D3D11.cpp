@@ -77,7 +77,7 @@ public:
 static D3DIncludeImpl g_include_loader;
 static Platform::RuntimeLoader::Direct3DCompiler g_d3dcompiler_loader;
 
-namespace Core::Graphics
+namespace core::Graphics
 {
 	static bool compileShaderMacro(char const* name, void const* data, size_t size, char const* target, const D3D_SHADER_MACRO* defs, ID3DBlob** ppBlob)
 	{

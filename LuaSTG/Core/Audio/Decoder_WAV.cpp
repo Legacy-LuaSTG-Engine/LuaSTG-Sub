@@ -2,7 +2,7 @@
 #include "Core/FileManager.hpp"
 #include "utf8.hpp"
 
-namespace Core::Audio
+namespace core::Audio
 {
 	void Decoder_WAV::destroyResources()
 	{

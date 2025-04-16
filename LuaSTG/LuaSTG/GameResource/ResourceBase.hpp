@@ -46,7 +46,7 @@ namespace luastg {
 	};
 
 	// 资源接口
-	struct IResourceBase : Core::IObject {
+	struct IResourceBase : core::IObject {
 		virtual ResourceType GetType() const noexcept = 0;
 		virtual std::string_view GetResName() const noexcept = 0;
 	};

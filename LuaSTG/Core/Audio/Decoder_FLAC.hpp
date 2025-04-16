@@ -4,7 +4,7 @@
 
 #include "FLAC/stream_decoder.h"
 
-namespace Core::Audio
+namespace core::Audio
 {
 	class Decoder_FLAC : public Object<IDecoder>
 	{

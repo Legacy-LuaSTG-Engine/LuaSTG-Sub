@@ -9,7 +9,7 @@ namespace luastg::binding {
 
 		static std::string_view class_name;
 
-		[[maybe_unused]] Core::Graphics::ISwapChain* data{};
+		[[maybe_unused]] core::Graphics::ISwapChain* data{};
 
 		static bool is(lua_State* L, int index);
 

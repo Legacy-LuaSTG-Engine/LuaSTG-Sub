@@ -1,7 +1,7 @@
 ﻿#include "Core/Type.hpp"
 #include "Core/Object.hpp"
 
-namespace Core
+namespace core
 {
 	template<typename I>
 	inline bool is_pow_of_2(I const n)
@@ -14,7 +14,7 @@ namespace Core
 		assert(size > 0);
 		if (size == 0)
 		{
-			spdlog::error("[core] [Core::Data::Data] size is 0");
+			spdlog::error("[core] [core::Data::Data] size is 0");
 			return false;
 		}
 
@@ -22,14 +22,14 @@ namespace Core
 		assert(size <= 0x7fffffffffffffffui64);
 		if (size > 0x7fffffffffffffffui64)
 		{
-			spdlog::error("[core] [Core::Data::Data] size is larger than 0x7FFFFFFFFFFFFFFF");
+			spdlog::error("[core] [core::Data::Data] size is larger than 0x7FFFFFFFFFFFFFFF");
 			return false;
 		}
 	#elif (SIZE_T_MAX == 0xffffffffUL)
 		assert(size <= 0x7fffffffUL);
 		if (size > 0x7fffffffUL)
 		{
-			spdlog::error("[core] [Core::Data::Data] size is larger than 0x7FFFFFFF");
+			spdlog::error("[core] [core::Data::Data] size is larger than 0x7FFFFFFF");
 			return false;
 		}
 	#else
@@ -39,14 +39,14 @@ namespace Core
 		assert(align > 0);
 		if (align == 0)
 		{
-			spdlog::error("[core] [Core::Data::Data] invalid alignment 0");
+			spdlog::error("[core] [core::Data::Data] invalid alignment 0");
 			return false;
 		}
 
 		assert(is_pow_of_2(align));
 		if (!is_pow_of_2(align))
 		{
-			spdlog::error("[core] [Core::Data::Data] invalid alignment {}, required pow of 2", align);
+			spdlog::error("[core] [core::Data::Data] invalid alignment {}, required pow of 2", align);
 			return false;
 		}
 

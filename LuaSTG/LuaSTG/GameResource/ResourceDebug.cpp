@@ -68,7 +68,7 @@ namespace luastg
 				ImGui::Text("Preview Scaling");
 				ImGui::PopID();
 			};
-			auto draw_texture0 = [](Core::Graphics::ITexture2D* p_tex, float scale) -> void
+			auto draw_texture0 = [](core::Graphics::ITexture2D* p_tex, float scale) -> void
 			{
 				auto const size = p_tex->getSize();
 				ImGui::PushStyleVar(ImGuiStyleVar_ImageBorderSize, 1.0);
@@ -98,7 +98,7 @@ namespace luastg
 					ImVec2(1.0f, 1.0f));
 				ImGui::PopStyleVar();
 			};
-			auto draw_sprite = [](Core::Graphics::ISprite* p_res, bool show_info, bool focus, float scale) -> void {
+			auto draw_sprite = [](core::Graphics::ISprite* p_res, bool show_info, bool focus, float scale) -> void {
 				auto color = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
 				if (focus)
 				{

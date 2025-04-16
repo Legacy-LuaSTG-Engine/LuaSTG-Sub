@@ -67,7 +67,7 @@ namespace luastg::binding {
 		static int getFriendlyName(lua_State* L) {
 			auto self = as(L, 1);
 			lua::stack_t S(L);
-			Core::ScopeObject<Core::IImmutableString> friendly_name;
+			core::ScopeObject<core::IImmutableString> friendly_name;
 			self->data->getFriendlyName(~friendly_name);
 			S.push_value(friendly_name->view());
 			return 1;
@@ -135,11 +135,11 @@ namespace luastg::binding {
 			lua::stack_t S(L);
 
 			size_t count{};
-			if (!Core::Graphics::IDisplay::getAll(&count, nullptr)) {
+			if (!core::Graphics::IDisplay::getAll(&count, nullptr)) {
 				return luaL_error(L, "lstg.Display.getAll failed");
 			}
 
-			std::vector<Core::Graphics::IDisplay*> list(count);
+			std::vector<core::Graphics::IDisplay*> list(count);
 			[[maybe_unused]] auto release_list = wil::scope_exit([&]() -> void {
 				for (auto ptr : list) {
 					if (ptr) {
@@ -147,7 +147,7 @@ namespace luastg::binding {
 					}
 				}
 			});
-			if (!Core::Graphics::IDisplay::getAll(&count, list.data())) {
+			if (!core::Graphics::IDisplay::getAll(&count, list.data())) {
 				return luaL_error(L, "lstg.Display.getAll failed");
 			}
 
@@ -167,7 +167,7 @@ namespace luastg::binding {
 		static int getPrimary(lua_State* L) {
 			lua::stack_t S(L);
 			auto self = create(L);
-			if (!Core::Graphics::IDisplay::getPrimary(&self->data)) {
+			if (!core::Graphics::IDisplay::getPrimary(&self->data)) {
 				return luaL_error(L, "lstg.Display.getPrimary failed");
 			}
 			return 1;

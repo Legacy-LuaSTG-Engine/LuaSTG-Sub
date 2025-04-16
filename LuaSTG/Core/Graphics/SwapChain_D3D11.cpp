@@ -27,7 +27,7 @@
 
 #define ReportError(x) i18n_core_system_call_report_error(x)
 
-namespace Core::Graphics
+namespace core::Graphics
 {
 	constexpr DXGI_FORMAT const COLOR_BUFFER_FORMAT = DXGI_FORMAT_B8G8R8A8_UNORM;
 	constexpr DXGI_FORMAT const DEPTH_BUFFER_FORMAT = DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -887,7 +887,7 @@ namespace Core::Graphics
 		_log("onWindowInactive");
 		leaveExclusiveFullscreenTemporarily();
 	}
-	void SwapChain_D3D11::onWindowSize(Core::Vector2U size)
+	void SwapChain_D3D11::onWindowSize(core::Vector2U size)
 	{
 		if (size.x == 0 || size.y == 0)
 			return; // 忽略窗口最小化

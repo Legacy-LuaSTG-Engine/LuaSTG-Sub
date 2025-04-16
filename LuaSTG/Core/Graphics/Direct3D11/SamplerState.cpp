@@ -3,7 +3,7 @@
 #include "Core/i18n.hpp"
 
 // SamplerState
-namespace Core::Graphics::Direct3D11 {
+namespace core::Graphics::Direct3D11 {
 	void SamplerState::onDeviceCreate() {
 		if (m_initialized) {
 			createResource();
@@ -20,7 +20,7 @@ namespace Core::Graphics::Direct3D11 {
 		}
 	}
 
-	bool SamplerState::initialize(Device* const device, Core::Graphics::SamplerState const& info) {
+	bool SamplerState::initialize(Device* const device, core::Graphics::SamplerState const& info) {
 		assert(device);
 		m_device = device;
 		m_info = info;
@@ -113,8 +113,8 @@ namespace Core::Graphics::Direct3D11 {
 		return true;
 	}
 }
-namespace Core::Graphics::Direct3D11 {
-	bool Device::createSamplerState(Core::Graphics::SamplerState const& info, ISamplerState** pp_sampler) {
+namespace core::Graphics::Direct3D11 {
+	bool Device::createSamplerState(core::Graphics::SamplerState const& info, ISamplerState** pp_sampler) {
 		*pp_sampler = nullptr;
 		ScopeObject<SamplerState> buffer;
 		buffer.attach(new SamplerState);

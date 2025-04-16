@@ -4,7 +4,7 @@
 
 #include "dr_wav.h"
 
-namespace Core::Audio
+namespace core::Audio
 {
 	class Decoder_WAV : public Object<IDecoder>
 	{

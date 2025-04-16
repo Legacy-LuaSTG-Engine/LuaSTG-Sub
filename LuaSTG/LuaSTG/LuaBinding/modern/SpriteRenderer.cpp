@@ -134,14 +134,14 @@ namespace luastg::binding {
 			if (lua::stack_t const ctx(vm); ctx.index_of_top() >= 1) {
 				auto const sprite = Sprite::as(vm, 1);
 				auto const self = SpriteRenderer::create(vm);
-				if (!Core::Graphics::ISpriteRenderer::create(&self->data)) {
+				if (!core::Graphics::ISpriteRenderer::create(&self->data)) {
 					return luaL_error(vm, "create SpriteRenderer failed");
 				}
 				self->data->setSprite(sprite->data);
 			}
 			else {
 				auto const self = SpriteRenderer::create(vm);
-				if (!Core::Graphics::ISpriteRenderer::create(&self->data)) {
+				if (!core::Graphics::ISpriteRenderer::create(&self->data)) {
 					return luaL_error(vm, "create SpriteRenderer failed");
 				}
 			}
@@ -237,7 +237,7 @@ namespace luastg::binding {
 			auto const right = ctx.get_value<float>(1 + 2);
 			auto const bottom = ctx.get_value<float>(1 + 3);
 			auto const top = ctx.get_value<float>(1 + 4);
-			self->data->setTransform(Core::RectF(left, top, right, bottom));
+			self->data->setTransform(core::RectF(left, top, right, bottom));
 			ctx.push_value(lua::stack_index_t(1));
 			return 1;
 		}
@@ -287,14 +287,14 @@ namespace luastg::binding {
 			if (lua::stack_t const ctx(vm); ctx.index_of_top() >= 1) {
 				auto const sprite = Sprite::as(vm, 1);
 				auto const self = SpriteRectRenderer::create(vm);
-				if (!Core::Graphics::ISpriteRenderer::create(&self->data)) {
+				if (!core::Graphics::ISpriteRenderer::create(&self->data)) {
 					return luaL_error(vm, "create SpriteRectRenderer failed");
 				}
 				self->data->setSprite(sprite->data);
 			}
 			else {
 				auto const self = SpriteRectRenderer::create(vm);
-				if (!Core::Graphics::ISpriteRenderer::create(&self->data)) {
+				if (!core::Graphics::ISpriteRenderer::create(&self->data)) {
 					return luaL_error(vm, "create SpriteRectRenderer failed");
 				}
 			}
@@ -397,10 +397,10 @@ namespace luastg::binding {
 				auto const y4 = ctx.get_value<float>(1 + 11);
 				auto const z4 = ctx.get_value<float>(1 + 12);
 				self->data->setTransform(
-					Core::Vector3F(x1, y1, z1),
-					Core::Vector3F(x2, y2, z2),
-					Core::Vector3F(x3, y3, z3),
-					Core::Vector3F(x4, y4, z4)
+					core::Vector3F(x1, y1, z1),
+					core::Vector3F(x2, y2, z2),
+					core::Vector3F(x3, y3, z3),
+					core::Vector3F(x4, y4, z4)
 				);
 			}
 			else {
@@ -413,10 +413,10 @@ namespace luastg::binding {
 				auto const x4 = ctx.get_value<float>(1 + 7);
 				auto const y4 = ctx.get_value<float>(1 + 8);
 				self->data->setTransform(
-					Core::Vector2F(x1, y1),
-					Core::Vector2F(x2, y2),
-					Core::Vector2F(x3, y3),
-					Core::Vector2F(x4, y4)
+					core::Vector2F(x1, y1),
+					core::Vector2F(x2, y2),
+					core::Vector2F(x3, y3),
+					core::Vector2F(x4, y4)
 				);
 			}
 			self->data->setZ(0.5); // TODO: allow custom
@@ -469,14 +469,14 @@ namespace luastg::binding {
 			if (lua::stack_t const ctx(vm); ctx.index_of_top() >= 1) {
 				auto const sprite = Sprite::as(vm, 1);
 				auto const self = SpriteQuadRenderer::create(vm);
-				if (!Core::Graphics::ISpriteRenderer::create(&self->data)) {
+				if (!core::Graphics::ISpriteRenderer::create(&self->data)) {
 					return luaL_error(vm, "create SpriteQuadRenderer failed");
 				}
 				self->data->setSprite(sprite->data);
 			}
 			else {
 				auto const self = SpriteQuadRenderer::create(vm);
-				if (!Core::Graphics::ISpriteRenderer::create(&self->data)) {
+				if (!core::Graphics::ISpriteRenderer::create(&self->data)) {
 					return luaL_error(vm, "create SpriteQuadRenderer failed");
 				}
 			}

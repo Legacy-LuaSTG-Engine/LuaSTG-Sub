@@ -1,7 +1,7 @@
 #include "Core/Graphics/Common/TextRenderer.hpp"
 #include "utility/utf.hpp"
 
-namespace Core::Graphics::Common {
+namespace core::Graphics::Common {
 	
 	RectF TextRenderer::getTextBoundary(StringView const str)
 	{
@@ -456,7 +456,7 @@ namespace Core::Graphics::Common {
 	}
 
 }
-namespace Core::Graphics {
+namespace core::Graphics {
 	bool ITextRenderer::create(IRenderer* const p_renderer, ITextRenderer** const output) {
 		try {
 			*output = new Common::TextRenderer(p_renderer);

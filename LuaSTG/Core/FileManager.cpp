@@ -55,7 +55,7 @@ namespace {
 	}
 }
 
-namespace Core
+namespace core
 {
     static uint64_t g_uuid = 0;
     constexpr size_t invalid_index = size_t(-1);
@@ -510,7 +510,7 @@ namespace Core
         auto size = end - beg;
         if (!(size >= 0 && size <= INTPTR_MAX))
         {
-            spdlog::error("[core] [Core::FileManager::load] 无法加载文件 '{}'，大小超过 '{}' 字节", name, INTPTR_MAX);
+            spdlog::error("[core] [core::FileManager::load] 无法加载文件 '{}'，大小超过 '{}' 字节", name, INTPTR_MAX);
             assert(false);
             return false;
         }
@@ -543,7 +543,7 @@ namespace Core
         auto size = end - beg;
         if (!(size >= 0 && size <= INTPTR_MAX))
         {
-            spdlog::error("[core] [Core::FileManager::load] 无法加载文件 '{}'，大小超过 '{}' 字节", name, INTPTR_MAX);
+            spdlog::error("[core] [core::FileManager::load] 无法加载文件 '{}'，大小超过 '{}' 字节", name, INTPTR_MAX);
             assert(false);
             return false;
         }

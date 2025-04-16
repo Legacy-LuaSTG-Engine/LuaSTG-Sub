@@ -6,6 +6,6 @@ namespace luastg
 {
 	struct IResourceModel : public IResourceBase
 	{
-		virtual Core::Graphics::IModel* GetModel() = 0;
+		virtual core::Graphics::IModel* GetModel() = 0;
 	};
 }

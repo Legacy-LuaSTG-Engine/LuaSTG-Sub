@@ -10,7 +10,7 @@ namespace luastg::binding
 		constexpr std::string_view const ClassID("lstg.PostEffectShader");
 		struct Wrapper
 		{
-			Core::Graphics::IPostEffectShader* shader;
+			core::Graphics::IPostEffectShader* shader;
 		};
 	}
 
@@ -71,7 +71,7 @@ namespace luastg::binding
 				auto const name = S.get_value<std::string_view>(2);
 				auto const resource_name = S.get_value<std::string_view>(3);
 				
-				Core::ScopeObject<luastg::IResourceTexture> p = LRES.FindTexture(resource_name.data());
+				core::ScopeObject<luastg::IResourceTexture> p = LRES.FindTexture(resource_name.data());
 				if (!p)
 				{
 					return luaL_error(L, "can't find texture '%s'", resource_name.data());
@@ -105,7 +105,7 @@ namespace luastg::binding
 			{
 				lua::stack_t S(L);
 				auto const file_path = S.get_value<std::string_view>(1);
-				Core::ScopeObject<Core::Graphics::IPostEffectShader> shader;
+				core::ScopeObject<core::Graphics::IPostEffectShader> shader;
 				if (!LAPP.GetRenderer2D()->createPostEffectShader(file_path, ~shader))
 				{
 					return luaL_error(L, "lstg.CreatePostEffectShader failed, see log file for more detail");
@@ -139,7 +139,7 @@ namespace luastg::binding
 		luastg::RegisterClassIntoTable(L, ".PostEffectShader", lib, ClassID.data(), mt);
 		lua_pop(L, 1);
 	}
-	void PostEffectShader::Create(lua_State* L, Core::Graphics::IPostEffectShader* p_shader)
+	void PostEffectShader::Create(lua_State* L, core::Graphics::IPostEffectShader* p_shader)
 	{
 		assert(p_shader);
 		Wrapper* self = (Wrapper*)lua_newuserdata(L, sizeof(Wrapper));
@@ -151,7 +151,7 @@ namespace luastg::binding
 		luaL_getmetatable(L, ClassID.data());
 		lua_setmetatable(L, -2);
 	}
-	Core::Graphics::IPostEffectShader* PostEffectShader::Cast(lua_State* L, int idx)
+	core::Graphics::IPostEffectShader* PostEffectShader::Cast(lua_State* L, int idx)
 	{
 		Wrapper* self = (Wrapper*)luaL_checkudata(L, idx, ClassID.data());
 		return self->shader;

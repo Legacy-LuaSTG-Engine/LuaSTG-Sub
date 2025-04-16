@@ -54,7 +54,7 @@ namespace luastg::binding {
 			auto const transform = DirectX::XMMatrixMultiply(DirectX::XMMatrixMultiply(scale, rotation), position);
 			DirectX::XMFLOAT4X4A matrix;
 			DirectX::XMStoreFloat4x4(&matrix, transform);
-			self->data->setTransform(*reinterpret_cast<Core::Matrix4F*>(&matrix));
+			self->data->setTransform(*reinterpret_cast<core::Matrix4F*>(&matrix));
 		}
 		static int setPosition(lua_State* vm) {
 			lua::stack_t const ctx(vm);
@@ -64,10 +64,10 @@ namespace luastg::binding {
 			auto const y = ctx.get_value<float>(1 + 2);
 			if (ctx.index_of_top() >= 1 + 3) {
 				auto const z = ctx.get_value<float>(1 + 3);
-				self->position = Core::Vector3F(x, y, z);
+				self->position = core::Vector3F(x, y, z);
 			}
 			else {
-				self->position = Core::Vector3F(x, y, 0.0f);
+				self->position = core::Vector3F(x, y, 0.0f);
 			}
 			applyTransform(self);
 
@@ -82,10 +82,10 @@ namespace luastg::binding {
 			auto const y = ctx.get_value<float>(1 + 2);
 			if (ctx.index_of_top() >= 1 + 3) {
 				auto const z = ctx.get_value<float>(1 + 3);
-				self->scale = Core::Vector3F(x, y, z);
+				self->scale = core::Vector3F(x, y, z);
 			}
 			else {
-				self->scale = Core::Vector3F(x, y, 1.0f);
+				self->scale = core::Vector3F(x, y, 1.0f);
 			}
 			applyTransform(self);
 
@@ -99,7 +99,7 @@ namespace luastg::binding {
 			auto const yaw = ctx.get_value<float>(1 + 1);
 			auto const pitch = ctx.get_value<float>(1 + 2);
 			auto const roll = ctx.get_value<float>(1 + 3);
-			self->rotation_yaw_pitch_roll = Core::Vector3F(yaw, pitch, roll);
+			self->rotation_yaw_pitch_roll = core::Vector3F(yaw, pitch, roll);
 			applyTransform(self);
 
 			ctx.push_value(lua::stack_index_t(1)); // return self
@@ -171,7 +171,7 @@ namespace luastg::binding {
 				auto const mesh = Mesh::as(vm, 1);
 				auto const texture = Texture2D::as(vm, 2);
 				auto const self = MeshRenderer::create(vm);
-				if (!Core::Graphics::IMeshRenderer::create(device, &self->data)) {
+				if (!core::Graphics::IMeshRenderer::create(device, &self->data)) {
 					return luaL_error(vm, "create MeshRenderer failed.");
 				}
 				self->data->setMesh(mesh->data);
@@ -179,7 +179,7 @@ namespace luastg::binding {
 			}
 			else {
 				auto const self = MeshRenderer::create(vm);
-				if (!Core::Graphics::IMeshRenderer::create(device, &self->data)) {
+				if (!core::Graphics::IMeshRenderer::create(device, &self->data)) {
 					return luaL_error(vm, "create MeshRenderer failed.");
 				}
 			}

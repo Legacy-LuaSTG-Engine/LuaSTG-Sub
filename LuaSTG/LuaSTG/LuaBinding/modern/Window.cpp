@@ -96,10 +96,10 @@ namespace luastg::binding {
 			lua::stack_t S(L);
 			auto const width = S.get_value<uint32_t>(2);
 			auto const height = S.get_value<uint32_t>(3);
-			auto const size = Core::Vector2U(width, height);
+			auto const size = core::Vector2U(width, height);
 			auto style = self->data->getFrameStyle();
 			if (S.is_number(4)) {
-				style = static_cast<Core::Graphics::WindowFrameStyle>(S.get_value<int32_t>(4));
+				style = static_cast<core::Graphics::WindowFrameStyle>(S.get_value<int32_t>(4));
 			}
 			if (Display::is(L, 5)) {
 				auto display = Display::as(L, 5);
@@ -127,7 +127,7 @@ namespace luastg::binding {
 		static int getCursorVisibility(lua_State* L) {
 			auto self = as(L, 1);
 			lua::stack_t S(L);
-			S.push_value(self->data->getCursor() != Core::Graphics::WindowCursor::None);
+			S.push_value(self->data->getCursor() != core::Graphics::WindowCursor::None);
 			return 1;
 		}
 
@@ -135,7 +135,7 @@ namespace luastg::binding {
 			auto self = as(L, 1);
 			lua::stack_t S(L);
 			auto const visible = S.get_value<bool>(2);
-			self->data->setCursor(visible ? Core::Graphics::WindowCursor::Arrow : Core::Graphics::WindowCursor::None);
+			self->data->setCursor(visible ? core::Graphics::WindowCursor::Arrow : core::Graphics::WindowCursor::None);
 			return 0;
 		}
 
@@ -206,9 +206,9 @@ namespace luastg::binding {
 
 		{
 			auto const e = S.create_module("lstg.Window.FrameStyle");
-			S.set_map_value(e, "borderless", static_cast<int32_t>(Core::Graphics::WindowFrameStyle::None));
-			S.set_map_value(e, "fixed", static_cast<int32_t>(Core::Graphics::WindowFrameStyle::Fixed));
-			S.set_map_value(e, "normal", static_cast<int32_t>(Core::Graphics::WindowFrameStyle::Normal));
+			S.set_map_value(e, "borderless", static_cast<int32_t>(core::Graphics::WindowFrameStyle::None));
+			S.set_map_value(e, "fixed", static_cast<int32_t>(core::Graphics::WindowFrameStyle::Fixed));
+			S.set_map_value(e, "normal", static_cast<int32_t>(core::Graphics::WindowFrameStyle::Normal));
 		}
 		
 		// method
@@ -289,7 +289,7 @@ namespace luastg::binding {
 			auto self = as(L, 1);
 			auto const x = S.get_value<int32_t>(2);
 			auto const y = S.get_value<int32_t>(3);
-			self->data->setInputMethodPosition(Core::Vector2I(x, y));
+			self->data->setInputMethodPosition(core::Vector2I(x, y));
 			return 0;
 		}
 

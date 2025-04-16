@@ -1,7 +1,7 @@
 #pragma once
 #include "Core/Graphics/Renderer.hpp"
 
-namespace Core::Graphics
+namespace core::Graphics
 {
 	struct ISprite : IObject
 	{

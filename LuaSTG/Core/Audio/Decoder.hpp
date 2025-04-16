@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "Core/Type.hpp"
 
-namespace Core::Audio
+namespace core::Audio
 {
 	struct IDecoder : public IObject
 	{

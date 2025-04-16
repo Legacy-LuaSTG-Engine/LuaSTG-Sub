@@ -784,8 +784,8 @@ namespace imgui
 	static bool g_ImGuiTexIDValid = false;
 
 	class ImGuiBackendEventListener
-		: public Core::Graphics::IDeviceEventListener
-		, public Core::Graphics::IWindowEventListener
+		: public core::Graphics::IDeviceEventListener
+		, public core::Graphics::IWindowEventListener
 	{
 	public:
 		std::atomic_int messageFlags;

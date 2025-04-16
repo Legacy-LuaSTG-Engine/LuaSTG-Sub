@@ -35,7 +35,7 @@ namespace luastg
 
 	struct IResourceMusic : public IResourceBase
 	{
-		virtual Core::Audio::IAudioPlayer* GetAudioPlayer() = 0;
+		virtual core::Audio::IAudioPlayer* GetAudioPlayer() = 0;
 
 		virtual void Play(float vol, double position) = 0;
 		virtual void Stop() = 0;

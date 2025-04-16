@@ -3,7 +3,7 @@
 #include "Core/i18n.hpp"
 
 // DepthStencilBuffer
-namespace Core::Graphics::Direct3D11 {
+namespace core::Graphics::Direct3D11 {
 	void DepthStencilBuffer::onDeviceCreate() {
 		if (m_initialized) {
 			createResource();
@@ -82,7 +82,7 @@ namespace Core::Graphics::Direct3D11 {
 		return true;
 	}
 }
-namespace Core::Graphics::Direct3D11 {
+namespace core::Graphics::Direct3D11 {
 	bool Device::createDepthStencilBuffer(Vector2U const size, IDepthStencilBuffer** const pp_ds) {
 		*pp_ds = nullptr;
 		ScopeObject<DepthStencilBuffer> buffer;

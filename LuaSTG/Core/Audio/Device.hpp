@@ -2,7 +2,7 @@
 #include "Core/Type.hpp"
 #include "Core/Audio/Decoder.hpp"
 
-namespace Core::Audio
+namespace core::Audio
 {
 	enum class MixChannel
 	{

@@ -598,7 +598,7 @@ namespace DirectWrite
 		}
 	} DLL;
 
-	inline D2D1::ColorF Color4BToColorF(Core::Color4B c)
+	inline D2D1::ColorF Color4BToColorF(core::Color4B c)
 	{
 		return D2D1::ColorF((FLOAT)c.r / 255.0f, (FLOAT)c.g / 255.0f, (FLOAT)c.b / 255.0f, (FLOAT)c.a / 255.0f);
 	}
@@ -2055,19 +2055,19 @@ namespace DirectWrite
 	struct TextRenderer
 	{
 		Microsoft::WRL::ComPtr<ID2D1Bitmap1> d2d1_bitmap_target;
-		Core::Color4B font_color{};
+		core::Color4B font_color{};
 		float outline_width{};
-		Core::Color4B outline_color{};
+		core::Color4B outline_color{};
 		float shadow_radius{};
 		float shadow_extend{};
-		Core::Color4B shadow_color{};
+		core::Color4B shadow_color{};
 
 		TextRenderer()
-			: font_color(Core::Color4B(255, 255, 255, 255))
+			: font_color(core::Color4B(255, 255, 255, 255))
 			, outline_width(0.0f)
-			, outline_color(Core::Color4B(0, 0, 0, 255))
+			, outline_color(core::Color4B(0, 0, 0, 255))
 			, shadow_radius(0.0f)
-			, shadow_color(Core::Color4B(0, 0, 0, 255))
+			, shadow_color(core::Color4B(0, 0, 0, 255))
 		{
 		}
 		~TextRenderer() {}
@@ -2551,8 +2551,8 @@ namespace DirectWrite
 		auto const pool_type = S.get_value<std::string_view>(2);
 		auto const texture_name = S.get_value<std::string_view>(3);
 		auto const outline_width = S.get_value<float>(4, 0.0f);
-		Core::Color4B font_color = Core::Color4B(255, 255, 255, 255);
-		Core::Color4B outline_color = Core::Color4B(0, 0, 0, 255);
+		core::Color4B font_color = core::Color4B(255, 255, 255, 255);
+		core::Color4B outline_color = core::Color4B(0, 0, 0, 255);
 		if (lua_gettop(L) >= 5)
 			font_color = *luastg::binding::Color::Cast(L, 5);
 		if (lua_gettop(L) >= 6)
@@ -2680,14 +2680,14 @@ namespace DirectWrite
 
 		p_texture->setPremultipliedAlpha(true);
 		if (!p_texture->uploadPixelData(
-			Core::RectU(0, 0, (uint32_t)texture_canvas_width, (uint32_t)texture_canvas_height),
+			core::RectU(0, 0, (uint32_t)texture_canvas_width, (uint32_t)texture_canvas_height),
 			buffer, buffer_stride))
 			return luaL_error(L, "upload texture data failed");
 
 		// copy and store pixel data
 
-		Core::ScopeObject<Core::IData> p_pixel_data;
-		if (!Core::IData::create(4 * (uint32_t)texture_canvas_width * (uint32_t)texture_canvas_height, ~p_pixel_data))
+		core::ScopeObject<core::IData> p_pixel_data;
+		if (!core::IData::create(4 * (uint32_t)texture_canvas_width * (uint32_t)texture_canvas_height, ~p_pixel_data))
 			return luaL_error(L, "copy texture data failed");
 		uint8_t* dst_ptr = (uint8_t*)p_pixel_data->data();
 		uint8_t* src_ptr = buffer;

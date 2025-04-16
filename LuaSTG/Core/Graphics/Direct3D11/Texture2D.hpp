@@ -3,7 +3,7 @@
 #include "Core/Graphics/Device.hpp"
 
 // Texture2D
-namespace Core::Graphics::Direct3D11 {
+namespace core::Graphics::Direct3D11 {
 	class Device;
 
 	class Texture2D final

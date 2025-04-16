@@ -3,7 +3,7 @@
 #include "Core/Audio/Device.hpp"
 #include "Platform/RuntimeLoader/XAudio2.hpp"
 
-namespace Core::Audio
+namespace core::Audio
 {
 	struct IAudioDeviceEventListener
 	{

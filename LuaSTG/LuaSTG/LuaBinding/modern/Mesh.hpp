@@ -6,7 +6,7 @@ namespace luastg::binding {
 	struct Mesh {
 		static std::string_view class_name;
 
-		[[maybe_unused]] Core::Graphics::IMesh* data{};
+		[[maybe_unused]] core::Graphics::IMesh* data{};
 
 		static bool is(lua_State* vm, int index);
 		static Mesh* as(lua_State* vm, int index);

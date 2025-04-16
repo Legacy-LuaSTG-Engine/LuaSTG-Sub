@@ -5,7 +5,7 @@
 #define HRGet hr = gHR
 #define HRCheckCallReturnBool(x) if (FAILED(hr)) { i18n_core_system_call_report_error(x); return false; }
 
-namespace Core::Graphics::Direct3D11
+namespace core::Graphics::Direct3D11
 {
 	bool LetterBoxingRenderer::CreateResource()
 	{

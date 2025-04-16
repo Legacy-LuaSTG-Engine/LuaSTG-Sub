@@ -1,7 +1,7 @@
 ﻿#include "Core/Audio/Decoder_VorbisOGG.hpp"
 #include "Core/FileManager.hpp"
 
-namespace Core::Audio
+namespace core::Audio
 {
 	inline Decoder_VorbisOGG::OggVorbis_Stream* _cast(void* datasource) { return (Decoder_VorbisOGG::OggVorbis_Stream*)datasource; }
 

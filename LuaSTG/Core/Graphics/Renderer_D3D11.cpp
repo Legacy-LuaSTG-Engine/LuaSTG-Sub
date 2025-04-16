@@ -7,7 +7,7 @@
 
 #define IDX(x) (size_t)static_cast<uint8_t>(x)
 
-namespace Core::Graphics
+namespace core::Graphics
 {
 	inline ID3D11ShaderResourceView* get_view(Direct3D11::Texture2D* p)
 	{
@@ -36,7 +36,7 @@ namespace Core::Graphics
 	}
 }
 
-namespace Core::Graphics
+namespace core::Graphics
 {
 	void PostEffectShader_D3D11::onDeviceCreate()
 	{
@@ -159,7 +159,7 @@ namespace Core::Graphics
 	}
 }
 
-namespace Core::Graphics
+namespace core::Graphics
 {
 	void Renderer_D3D11::setVertexIndexBuffer(size_t index)
 	{
@@ -1337,7 +1337,7 @@ namespace Core::Graphics
 		}
 		if (sw_ < 1.0f || sh_ < 1.0f)
 		{
-			spdlog::warn("[core] LuaSTG::Core::Renderer::postEffect 调用提前中止，当前渲染管线未绑定渲染目标");
+			spdlog::warn("[core] LuaSTG::core::Renderer::postEffect 调用提前中止，当前渲染管线未绑定渲染目标");
 			return false;
 		}
 
@@ -1420,7 +1420,7 @@ namespace Core::Graphics
 			HRESULT hr = gHR = ctx->Map(_user_float_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
 			if (FAILED(hr))
 			{
-				spdlog::error("[core] ID3D11DeviceContext::Map -> #user_float_buffer 调用失败，上传数据失败，LuaSTG::Core::Renderer::postEffect 调用提前中止");
+				spdlog::error("[core] ID3D11DeviceContext::Map -> #user_float_buffer 调用失败，上传数据失败，LuaSTG::core::Renderer::postEffect 调用提前中止");
 				return false;
 			}
 			std::memcpy(res_.pData, cv, std::min<UINT>((UINT)cv_n, 8) * sizeof(Vector4F));
@@ -1435,7 +1435,7 @@ namespace Core::Graphics
 			HRESULT hr = gHR = ctx->Map(_fog_data_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
 			if (FAILED(hr))
 			{
-				spdlog::error("[core] ID3D11DeviceContext::Map -> #engine_built_in_value_buffer 调用失败，无法上传渲染目标尺寸和视口信息，LuaSTG::Core::Renderer::postEffect 调用提前中止");
+				spdlog::error("[core] ID3D11DeviceContext::Map -> #engine_built_in_value_buffer 调用失败，无法上传渲染目标尺寸和视口信息，LuaSTG::core::Renderer::postEffect 调用提前中止");
 				return false;
 			}
 			std::memcpy(res_.pData, ps_cbdata, sizeof(ps_cbdata));
@@ -1528,7 +1528,7 @@ namespace Core::Graphics
 		}
 		if (sw_ < 1.0f || sh_ < 1.0f)
 		{
-			spdlog::warn("[core] LuaSTG::Core::Renderer::postEffect 调用提前中止，当前渲染管线未绑定渲染目标");
+			spdlog::warn("[core] LuaSTG::core::Renderer::postEffect 调用提前中止，当前渲染管线未绑定渲染目标");
 			return false;
 		}
 
@@ -1658,7 +1658,7 @@ namespace Core::Graphics
 		catch (const std::exception&)
 		{
 			*pp_model = nullptr;
-			spdlog::error("[luastg] LuaSTG::Core::Renderer::createModel 失败");
+			spdlog::error("[luastg] LuaSTG::core::Renderer::createModel 失败");
 			return false;
 		}
 	}
