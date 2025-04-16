@@ -7,7 +7,7 @@ namespace core::implement {
 	public:
 		// IWeakReference
 
-		bool resolve(UUID const& uuid, void** const output) override {
+		bool resolve(InterfaceId const& uuid, void** const output) override {
 			assert(output != nullptr);
 			auto const counter = m_object_counter;
 			if (auto const last_strong = counter->strong.fetch_add(1); last_strong > 0) {

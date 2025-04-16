@@ -6,5 +6,8 @@ namespace core {
 		virtual void getWeakReference(IWeakReference** output) = 0;
 	};
 
-	template<> constexpr UUID uuid_of<IWeakReferenceSource>() { return CORE_UUID_INITIALIZER(5def4b09, 9a61, 53e5, 9519, 73, da, ff, 8d, 9d, 88); }
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.IWeakReferenceSource
+	template<> constexpr InterfaceId getInterfaceId<IWeakReferenceSource>() { return UUID::parse("beabd630-bc16-5df7-b4f1-595f4c55d1a4"); }
 }

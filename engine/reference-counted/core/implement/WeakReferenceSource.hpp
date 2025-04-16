@@ -22,19 +22,19 @@ namespace core::implement {
 			}
 			return last_strong + 1;
 		}
-		bool queryInterface(UUID const& uuid, void** const output) override {
+		bool queryInterface(InterfaceId const& uuid, void** const output) override {
 			assert(output != nullptr);
-			if (uuid == uuid_of<IReferenceCounted>()) {
+			if (uuid == getInterfaceId<IReferenceCounted>()) {
 				reference();
 				*output = static_cast<IReferenceCounted*>(this);
 				return true;
 			}
-			if (uuid == uuid_of<IWeakReferenceSource>()) {
+			if (uuid == getInterfaceId<IWeakReferenceSource>()) {
 				reference();
 				*output = static_cast<IWeakReferenceSource*>(this);
 				return true;
 			}
-			if (uuid == uuid_of<T>()) {
+			if (uuid == getInterfaceId<T>()) {
 				reference();
 				*output = static_cast<T*>(this);
 				return true;

@@ -5,18 +5,23 @@
 #define CORE_NO_VIRTUAL_TABLE __declspec(novtable)
 
 namespace core {
+	using InterfaceId = UUID;
+
 	template<typename Interface>
-	UUID uuid_of() { return Interface::interface_uuid; }
+	InterfaceId getInterfaceId() { return Interface::interface_uuid; }
 
 	struct CORE_NO_VIRTUAL_TABLE IReferenceCounted {
-		virtual bool queryInterface(UUID const& uuid, void** output) = 0;
+		virtual bool queryInterface(InterfaceId const& uuid, void** output) = 0;
 		virtual int32_t reference() = 0;
 		virtual int32_t release() = 0;
 
 		template<typename Interface> bool queryInterface(Interface** const output) {
-			return queryInterface(uuid_of<Interface>(), reinterpret_cast<void**>(output));
+			return queryInterface(getInterfaceId<Interface>(), reinterpret_cast<void**>(output));
 		}
 	};
 
-	template<> constexpr UUID uuid_of<IReferenceCounted>() { return CORE_UUID_INITIALIZER(3b4b05b7, 0986, 5d2f, 8fce, c8, 0c, 01, 03, 95, 28); }
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.IReferenceCounted
+	template<> constexpr InterfaceId getInterfaceId<IReferenceCounted>() { return UUID::parse("b6a42c9f-376b-57e7-95a0-68b74556d1e4"); }
 }
