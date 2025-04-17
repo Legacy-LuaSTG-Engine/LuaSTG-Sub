@@ -1,3 +1,5 @@
+#include <stdexcept>
+
 #include "core/ReferenceCounted.hpp"
 #include "core/WeakReference.hpp"
 #include "core/WeakReferenceSource.hpp"
@@ -6,6 +8,9 @@
 #include "core/implement/ReferenceCounted.hpp"
 #include "core/implement/WeakReference.hpp"
 #include "core/implement/WeakReferenceSource.hpp"
+#include "core/implement/ReferenceCountedDebugger.hpp"
+
+#include "gtest/gtest.h"
 
 namespace {
 	struct CORE_NO_VIRTUAL_TABLE IAlpha : core::IReferenceCounted {
@@ -57,37 +62,62 @@ namespace {
 	};
 }
 
-namespace {
-	[[maybe_unused]] void testReferenceCounted() {
-		core::SmartReference<IAlpha> alpha;
-		alpha.attach(new Alpha());
+TEST(ReferenceCounted, BasicTests) {
+	core::SmartReference<IAlpha> alpha;
+	alpha.attach(new Alpha());
 
-		core::SmartReference<core::IReferenceCounted> a;
-		alpha->queryInterface(a.put());
-		alpha->retain();
-		alpha->release();
-		alpha->print();
+	EXPECT_EQ(alpha->retain(), 2);
+	EXPECT_EQ(alpha->release(), 1);
+
+	{
+		core::SmartReference<IAlpha> v;
+		EXPECT_TRUE(alpha->queryInterface(v.put()));
+	}
+	{
+		core::SmartReference<core::IReferenceCounted> v;
+		EXPECT_TRUE(alpha->queryInterface(v.put()));
+	}
+	
+	alpha->print();
+}
+
+TEST(WeakReferenceSource, BasicTests) {
+	core::SmartReference<IResource> resource;
+	resource.attach(new Resource());
+
+	EXPECT_EQ(resource->retain(), 2);
+	EXPECT_EQ(resource->release(), 1);
+
+	{
+		core::SmartReference<IResource> v;
+		EXPECT_TRUE(resource->queryInterface(v.put()));
+	}
+	{
+		core::SmartReference<core::IWeakReferenceSource> v;
+		EXPECT_TRUE(resource->queryInterface(v.put()));
+	}
+	{
+		core::SmartReference<core::IReferenceCounted> v;
+		EXPECT_TRUE(resource->queryInterface(v.put()));
 	}
 
-	[[maybe_unused]] void testWeakReferenceSource() {
-		core::SmartReference<IResource> resource;
-		resource.attach(new Resource());
+	resource->download();
 
-		core::SmartReference<core::IWeakReferenceSource> a;
-		resource->queryInterface(a.put());
-		core::SmartReference<core::IReferenceCounted> b;
-		resource->queryInterface(b.put());
-		resource->retain();
-		resource->release();
-		resource->download();
-
-		core::SmartReference<core::IWeakReference> weak;
-		resource->getWeakReference(weak.put());
-
+	core::SmartReference<core::IWeakReference> weak;
+	resource->getWeakReference(weak.put());
+	{
 		core::SmartReference<core::IReferenceCounted> c;
-		weak->queryInterface(c.put());
-
+		EXPECT_TRUE(weak->queryInterface(c.put()));
+	}
+	{
 		core::SmartReference<IResource> strong;
-		weak->resolve(strong.put());
+		EXPECT_TRUE(weak->resolve(strong.put()));
+	}
+
+	resource.reset();
+
+	{
+		core::SmartReference<IResource> strong;
+		EXPECT_FALSE(weak->resolve(strong.put()));
 	}
 }
