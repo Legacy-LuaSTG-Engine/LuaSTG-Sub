@@ -22,6 +22,10 @@ namespace core::implement {
 		[[maybe_unused]] std::scoped_lock lock(object_set_lock);
 		object_set.erase(object);
 	}
+	bool ReferenceCountedDebugger::hasLeak() {
+		[[maybe_unused]] std::scoped_lock lock(object_set_lock);
+		return !object_set.empty();
+	}
 	void ReferenceCountedDebugger::reportLeak() {
 		[[maybe_unused]] std::scoped_lock lock(object_set_lock);
 		if (!object_set.empty()) {

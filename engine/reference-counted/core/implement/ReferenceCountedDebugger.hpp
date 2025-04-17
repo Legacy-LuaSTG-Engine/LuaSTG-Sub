@@ -6,6 +6,7 @@ namespace core::implement {
 	public:
 		static void startTracking(IReferenceCounted* object);
 		static void stopTracking(IReferenceCounted* object);
+		static bool hasLeak();
 		static void reportLeak();
 	};
 }

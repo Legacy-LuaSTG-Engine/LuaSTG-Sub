@@ -77,7 +77,7 @@ TEST(ReferenceCounted, BasicTests) {
 		core::SmartReference<core::IReferenceCounted> v;
 		EXPECT_TRUE(alpha->queryInterface(v.put()));
 	}
-	
+
 	alpha->print();
 }
 
@@ -121,3 +121,10 @@ TEST(WeakReferenceSource, BasicTests) {
 		EXPECT_FALSE(weak->resolve(strong.put()));
 	}
 }
+
+#ifndef NDEBUG
+TEST(ReferenceCountedDebugger, LeakTests) {
+	EXPECT_FALSE(core::implement::ReferenceCountedDebugger::hasLeak());
+	core::implement::ReferenceCountedDebugger::reportLeak();
+}
+#endif
