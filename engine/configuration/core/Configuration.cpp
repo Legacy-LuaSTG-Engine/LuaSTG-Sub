@@ -484,15 +484,18 @@ namespace core {
 		static bool load(ConfigurationLoader& loader, std::vector<Include>* include_out, std::string_view const& path) {
 			std::string json_text;
 			if (!readTextFile(path, json_text)) {
+				loader.messages.emplace_back(std::format("read file '{}' failed"sv, path));
 				return false;
 			}
 
-			auto const root = nlohmann::json::parse(json_text, nullptr, false);
-			if (root.is_discarded()) {
+			try {
+				auto const root = nlohmann::json::parse(json_text);
+				return merge(loader, include_out, root);
+			}
+			catch (std::exception const& e) {
+				loader.messages.emplace_back(std::format("parse config file '{}' failed: {}"sv, path, e.what()));
 				return false;
 			}
-
-			return merge(loader, include_out, root);
 		}
 	};
 
