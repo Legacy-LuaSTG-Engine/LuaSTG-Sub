@@ -8,6 +8,7 @@ add_subdirectory(Configurer)
 # LuaSTG Engine
 
 add_executable(LuaSTG WIN32)
+set_target_properties(LuaSTG PROPERTIES OUTPUT_NAME "LuaSTGSub")
 
 luastg_target_common_options(LuaSTG)
 luastg_target_more_warning(LuaSTG)
