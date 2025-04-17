@@ -468,7 +468,7 @@ namespace luastg::binding
 					S.push_array_value_zero_base(3, index);
 					auto* p_sprite = ResourceSprite::cast(L, -1);
 					S.pop_value();
-					sprite_list.push_back(p_sprite->data);
+					sprite_list.emplace_back(p_sprite->data);
 				}
 				auto const interval = S.get_value<int32_t>(4);
 				auto const a = S.get_value<float>(5, 0.0f);
@@ -583,7 +583,7 @@ namespace luastg::binding
 			auto* self = cast(L, 1);
 			auto const texture_name = S.get_value<std::string_view>(2);
 			auto res = self->data->GetTexture(texture_name);
-			S.push_value<bool>(res);
+			S.push_value(static_cast<bool>(res));
 			return 1;
 		}
 		static int api_isSpriteExist(lua_State* L)
@@ -592,7 +592,7 @@ namespace luastg::binding
 			auto* self = cast(L, 1);
 			auto const sprite_name = S.get_value<std::string_view>(2);
 			auto res = self->data->GetSprite(sprite_name);
-			S.push_value<bool>(res);
+			S.push_value(static_cast<bool>(res));
 			return 1;
 		}
 		static int api_isSpriteSequenceExist(lua_State* L)
@@ -601,7 +601,7 @@ namespace luastg::binding
 			auto* self = cast(L, 1);
 			auto const sprite_sequence_name = S.get_value<std::string_view>(2);
 			auto res = self->data->GetAnimation(sprite_sequence_name);
-			S.push_value<bool>(res);
+			S.push_value(static_cast<bool>(res));
 			return 1;
 		}
 

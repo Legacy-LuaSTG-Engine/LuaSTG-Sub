@@ -37,7 +37,7 @@ namespace luastg
 	bool ResourceParticleImpl::CreateInstance(IParticlePool** pp_pool)
 	{
 		ParticlePoolImpl* p_pool = static_cast<ParticlePoolImpl*>(s_particle_pool_res.allocate(sizeof(ParticlePoolImpl), alignof(ParticlePoolImpl)));
-		new(p_pool) ParticlePoolImpl(this);
+		new(p_pool) ParticlePoolImpl(core::SmartReference<IResourceParticle>(this));
 		*pp_pool = p_pool;
 		return true;
 	}

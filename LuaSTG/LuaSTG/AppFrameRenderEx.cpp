@@ -37,7 +37,7 @@ namespace luastg
             rt->GetDepthStencilBuffer()
         );
 
-        m_stRenderTargetStack.push_back(rt);
+        m_stRenderTargetStack.emplace_back(rt);
 
         return true;
     }

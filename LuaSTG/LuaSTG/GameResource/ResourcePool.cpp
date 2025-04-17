@@ -902,7 +902,7 @@ namespace luastg
     {
         auto i = resource_set.find(name);
         if (i == resource_set.end())
-            return nullptr;
+            return {};
         else
             return i->second;
     }
