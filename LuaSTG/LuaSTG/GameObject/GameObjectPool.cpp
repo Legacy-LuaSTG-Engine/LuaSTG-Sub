@@ -254,6 +254,29 @@ namespace LuaSTGPlus
 		lua_pop(L, 2);							// ??? ot
 	}
 
+	void LuaSTGPlus::GameObjectPool::Del(GameObject* p, bool kill_mode) noexcept
+	{
+		if (p->status == GameObjectStatus::Active)
+		{
+			// 标记为即将回收的状态
+			p->status = (!kill_mode) ? GameObjectStatus::Dead : GameObjectStatus::Killed;
+			// 回调
+#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+			if (!(!kill_mode && p->luaclass.IsDefaultDestroy) && !(kill_mode && p->luaclass.IsDefaultLegacyKill))
+			{
+#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+				lua_rawgeti(G_L, 1, 1);												// object ... class
+				lua_rawgeti(G_L, -1, (!kill_mode) ? LGOBJ_CC_DEL : LGOBJ_CC_KILL);	// object ... class callback
+				lua_insert(G_L, 1);													// callback object ...
+				lua_pop(G_L, 1);														// callback object ...
+				lua_call(G_L, lua_gettop(G_L) - 1, 0);									// 
+				CLR_fn->CallOnDestroy(p->id, (!kill_mode) ? CLR_DESTROY_DEL : CLR_DESTROY_KILL);
+#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+			}
+#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+		}
+	}
+
 	// --------------------------------------------------------------------------------
 
 	void GameObjectPool::DebugNextFrame()
@@ -857,25 +880,7 @@ namespace LuaSTGPlus
 	int GameObjectPool::Del(lua_State* L, bool kill_mode) noexcept
 	{
 		GameObject* p = _ToGameObject(L, 1);
-		if (p->status == GameObjectStatus::Active)
-		{
-			// 标记为即将回收的状态
-			p->status = (!kill_mode) ? GameObjectStatus::Dead : GameObjectStatus::Killed;
-			// 回调
-#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-			if (!(!kill_mode && p->luaclass.IsDefaultDestroy) && !(kill_mode && p->luaclass.IsDefaultLegacyKill))
-			{
-#endif // USING_ADVANCE_GAMEOBJECT_CLASS
-				lua_rawgeti(L, 1, 1);												// object ... class
-				lua_rawgeti(L, -1, (!kill_mode) ? LGOBJ_CC_DEL : LGOBJ_CC_KILL);	// object ... class callback
-				lua_insert(L, 1);													// callback object ...
-				lua_pop(L, 1);														// callback object ...
-				lua_call(L, lua_gettop(L) - 1, 0);									// 
-				CLR_fn->CallOnDestroy(p->id, (!kill_mode) ? CLR_DESTROY_DEL : CLR_DESTROY_KILL);
-#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-			}
-#endif // USING_ADVANCE_GAMEOBJECT_CLASS
-		}
+		Del(p, kill_mode);
 		return 0;
 	}
 	int GameObjectPool::IsValid(lua_State* L) noexcept
@@ -1456,19 +1461,8 @@ namespace LuaSTGPlus
 
 		return p;
 	}
-
-	intptr_t GameObjectPool::CLR_API_New(uint32_t callbackMask) noexcept
+	GameObjectPool* GameObjectPool::GetInstance()
 	{
-		return (intptr_t)(g_GameObjectPool->CLR_New(callbackMask));
-	}
-
-	uint64_t GameObjectPool::CLR_API_GetID(intptr_t p) noexcept
-	{
-		return ((GameObject*)p)->id;
-	}
-
-	void GameObjectPool::CLR_API_DefaultRenderFunc(intptr_t p) noexcept
-	{
-		return ((GameObject*)p)->Render();
+		return g_GameObjectPool;
 	}
 }

@@ -110,12 +110,13 @@ namespace LuaSTGPlus
 		GameObject* _TableToGameObject(lua_State* L, int idx);
 
 		void _GameObjectCallback(lua_State* L, int otidx, GameObject* p, int cbidx);
-
 	public:
 		void DebugNextFrame();
 		FrameStatistics DebugGetFrameStatistics();
 
 	public:
+		void Del(GameObject* p, bool kill_mode = false) noexcept;
+
 		int PushCurrentObject(lua_State* L) noexcept;
 
 		GameObject* CastGameObject(lua_State* L, int idx);
@@ -319,11 +320,8 @@ namespace LuaSTGPlus
 		
 		/// @brief 创建新对象
 		GameObject* CLR_New(uint32_t) noexcept;
-	public:
-		// CORECLR API
-		static intptr_t CLR_API_New(uint32_t) noexcept;
-		static uint64_t CLR_API_GetID(intptr_t) noexcept;
-		static void CLR_API_DefaultRenderFunc(intptr_t) noexcept;
+
+		static GameObjectPool* GetInstance();
 
 	public:
 		GameObjectPool(lua_State* pL, ManagedAPI* clr_fn);

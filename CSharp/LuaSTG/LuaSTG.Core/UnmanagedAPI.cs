@@ -14,8 +14,12 @@ namespace LuaSTG.Core
         public delegate* unmanaged<int, IntPtr, void> log;
 
         public delegate* unmanaged<uint, IntPtr> gameObject_New;
-        public delegate* unmanaged<IntPtr, ulong> gameObject_GetID;
+        public delegate* unmanaged<IntPtr, int> gameObject_GetID;
         public delegate* unmanaged<IntPtr, void> gameObject_DefaultRenderFunc;
+
+        public delegate* unmanaged<IntPtr, byte, void> Del;
+        public delegate* unmanaged<long, int> FirstObject;
+        public delegate* unmanaged<long, int, int> NextObject;
 
         public delegate* unmanaged<void> beginScene;
         public delegate* unmanaged<void> endScene;

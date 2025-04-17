@@ -16,9 +16,9 @@ namespace LuaSTG.Core
     /// </summary>
     public abstract class GameObjectBase
     {
-        internal static Dictionary<ulong, GameObjectBase> _id2Obj = new(65536);
+        internal static GameObjectBase?[] _id2Obj = new GameObjectBase[65536];
 
-        private IntPtr _nativePtr;
+        internal IntPtr _nativePtr;
 
         internal GameObjectBase()
         {
@@ -101,10 +101,27 @@ namespace LuaSTG.Core
         internal static IntPtr GameObject_New() => api.gameObject_New(0);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static ulong GameObject_GetID(IntPtr p) => api.gameObject_GetID(p);
+        internal static int GameObject_GetID(IntPtr p) => api.gameObject_GetID(p);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void GameObject_DefaultRenderFunc(IntPtr nativePtr) => api.gameObject_DefaultRenderFunc(nativePtr);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Del(GameObjectBase gameObject, bool killMode = false)
+        {
+            api.Del(gameObject._nativePtr, (byte)(killMode ? 1 : 0));
+        }
+
+        public static IEnumerable<GameObjectBase> ObjList(long groupID)
+        {
+            for (var id = FirstObject(groupID); id >= 0; id = NextObject(groupID, id))
+            {
+                yield return GameObjectBase._id2Obj[id]!;
+            }
+        }
+
+        private static int FirstObject(long groupID) => api.FirstObject(groupID);
+        private static int NextObject(long groupID, int id) => api.NextObject(groupID, id);
 
         [UnmanagedCallersOnly]
         private static void CreateLuaGameObject(IntPtr p)
@@ -115,33 +132,33 @@ namespace LuaSTG.Core
         [UnmanagedCallersOnly]
         private static void DetachGameObject(ulong id)
         {
-            GameObjectBase._id2Obj[id].Detach();
-            GameObjectBase._id2Obj.Remove(id);
+            GameObjectBase._id2Obj[id]!.Detach();
+            GameObjectBase._id2Obj[id] = null;
         }
 
         [UnmanagedCallersOnly]
         private static void CallOnFrame(ulong id)
         {
-            GameObjectBase._id2Obj[id].OnFrame();
+            GameObjectBase._id2Obj[id]!.OnFrame();
         }
 
         [UnmanagedCallersOnly]
         private static void CallOnRender(ulong id)
         {
-            GameObjectBase._id2Obj[id].OnRender();
+            GameObjectBase._id2Obj[id]!.OnRender();
         }
 
         [UnmanagedCallersOnly]
         private static void CallOnDestroy(ulong id, int reason)
         {
-            GameObjectBase._id2Obj[id].OnDestroy(new((DestroyEventType)reason));
+            GameObjectBase._id2Obj[id]!.OnDestroy(new((DestroyEventType)reason));
         }
 
         [UnmanagedCallersOnly]
         private static void CallOnColli(ulong id, ulong otherID)
         {
-            var self = GameObjectBase._id2Obj[id];
-            self.OnColli(new(self, GameObjectBase._id2Obj[otherID]));
+            var self = GameObjectBase._id2Obj[id]!;
+            self.OnColli(new(self, GameObjectBase._id2Obj[otherID]!));
         }
     }
 }

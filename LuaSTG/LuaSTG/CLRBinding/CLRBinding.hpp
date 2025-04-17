@@ -4,17 +4,39 @@
 
 namespace LuaSTGPlus
 {
-	struct UnmanagedAPI
-	{
-		void (CORECLR_DELEGATE_CALLTYPE* Log)(int32_t, intptr_t);
+#define BINDING_METHODS \
+    DECLARE_CLR_API(void, Log, (int32_t, intptr_t)) \
+	\
+    DECLARE_CLR_API(intptr_t, GameObject_New, (uint32_t)) \
+    DECLARE_CLR_API(int32_t, GameObject_GetID, (intptr_t)) \
+    DECLARE_CLR_API(void, GameObject_DefaultRenderFunc, (intptr_t)) \
+	\
+    DECLARE_CLR_API(void, Del, (intptr_t, bool)) \
+	\
+    DECLARE_CLR_API(int32_t, FirstObject, (int64_t)) \
+    DECLARE_CLR_API(int32_t, NextObject, (int64_t, int32_t)) \
+	\
+    DECLARE_CLR_API(void, BeginScene, ()) \
+    DECLARE_CLR_API(void, EndScene, ()) \
+    DECLARE_CLR_API(void, RenderClear, (uint8_t, uint8_t, uint8_t, uint8_t))
 
-		intptr_t (CORECLR_DELEGATE_CALLTYPE* GameObject_New)(uint32_t);
-		uint64_t (CORECLR_DELEGATE_CALLTYPE* GameObject_GetID)(intptr_t);
-		void (CORECLR_DELEGATE_CALLTYPE* GameObject_DefaultRenderFunc)(intptr_t);
+	class CLRBinding {
+	public:
+#define DECLARE_CLR_API(ReturnType, Name, Params) static ReturnType Name Params;
+		BINDING_METHODS
+#undef DECLARE_CLR_API
+	};
 
-		void (CORECLR_DELEGATE_CALLTYPE* BeginScene)();
-		void (CORECLR_DELEGATE_CALLTYPE* EndScene)();
-		void (CORECLR_DELEGATE_CALLTYPE* RenderClear)(uint8_t, uint8_t, uint8_t, uint8_t);
+	struct UnmanagedAPI {
+#define DECLARE_CLR_API(ReturnType, Name, Params) ReturnType (CORECLR_DELEGATE_CALLTYPE* Name) Params;
+		BINDING_METHODS
+#undef DECLARE_CLR_API
+
+		UnmanagedAPI() {
+#define DECLARE_CLR_API(ReturnType, Name, Params) Name = CLRBinding::Name;
+			BINDING_METHODS
+#undef DECLARE_CLR_API
+		}
 	};
 
 	struct ManagedAPI 
