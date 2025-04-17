@@ -36,8 +36,10 @@ set(PLATFORM_SOURCES
     Platform/Keyboard.cpp
     Platform/HResultChecker.hpp
     Platform/HResultChecker.cpp
-    Platform/DetectCPU.hpp
-    Platform/DetectCPU.cpp
+    #Platform/DetectCPU.hpp
+    #Platform/DetectCPU.cpp
+    Platform/ProcessorInfo.hpp
+    Platform/ProcessorInfo.cpp
     Platform/XInput.hpp
     Platform/XInput.cpp
     Platform/AdapterPolicy.hpp

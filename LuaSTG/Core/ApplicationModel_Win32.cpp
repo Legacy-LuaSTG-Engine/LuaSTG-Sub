@@ -2,7 +2,7 @@
 #include "Core/i18n.hpp"
 #include "core/Configuration.hpp"
 #include "Platform/WindowsVersion.hpp"
-#include "Platform/DetectCPU.hpp"
+#include "Platform/ProcessorInfo.hpp"
 
 namespace core
 {
@@ -657,9 +657,9 @@ namespace core
 		: m_listener(p_listener)
 	{
 		assert(m_listener);
-		spdlog::info("[core] System {}", Platform::WindowsVersion::GetName());
-		spdlog::info("[core] Kernel {}", Platform::WindowsVersion::GetKernelVersionString());
-		spdlog::info("[core] CPU {} {}", InstructionSet::Vendor(), InstructionSet::Brand());
+		spdlog::info("[core] System: {}", Platform::WindowsVersion::GetName());
+		spdlog::info("[core] Kernel: {}", Platform::WindowsVersion::GetKernelVersionString());
+		spdlog::info("[core] CPU: {}", Platform::ProcessorInfo::name());
 		if (m_steady_frame_rate_controller.available()) {
 			spdlog::info("[core] High Resolution Waitable Timer available, enable SteadyFrameRateController");
 			m_p_frame_rate_controller = &m_steady_frame_rate_controller;
