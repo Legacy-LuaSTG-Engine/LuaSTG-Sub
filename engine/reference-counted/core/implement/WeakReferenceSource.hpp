@@ -20,7 +20,7 @@ namespace core::implement {
 					delete counters;
 				}
 			}
-			return last_strong + 1;
+			return last_strong - 1;
 		}
 		bool queryInterface(InterfaceId const& uuid, void** const output) override {
 			assert(output != nullptr);
