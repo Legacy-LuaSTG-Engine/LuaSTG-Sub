@@ -7,7 +7,7 @@ namespace core::Audio
 {
 	bool IDecoder::create(StringView path, IDecoder** pp_decoder)
 	{
-		ScopeObject<IDecoder> p_decoder;
+		SmartReference<IDecoder> p_decoder;
 
 		try
 		{

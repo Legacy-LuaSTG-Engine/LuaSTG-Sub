@@ -76,16 +76,16 @@ namespace luastg
         ResourceMgr* m_pMgr;
         ResourcePoolType m_iType;
         std::pmr::unsynchronized_pool_resource m_memory_resource;
-        dictionary_t<core::ScopeObject<IResourceTexture>> m_TexturePool;
-        dictionary_t<core::ScopeObject<IResourceSprite>> m_SpritePool;
-        dictionary_t<core::ScopeObject<IResourceAnimation>> m_AnimationPool;
-        dictionary_t<core::ScopeObject<IResourceMusic>> m_MusicPool;
-        dictionary_t<core::ScopeObject<IResourceSoundEffect>> m_SoundSpritePool;
-        dictionary_t<core::ScopeObject<IResourceParticle>> m_ParticlePool;
-        dictionary_t<core::ScopeObject<IResourceFont>> m_SpriteFontPool;
-        dictionary_t<core::ScopeObject<IResourceFont>> m_TTFFontPool;
-        dictionary_t<core::ScopeObject<IResourcePostEffectShader>> m_FXPool;
-        dictionary_t<core::ScopeObject<IResourceModel>> m_ModelPool;
+        dictionary_t<core::SmartReference<IResourceTexture>> m_TexturePool;
+        dictionary_t<core::SmartReference<IResourceSprite>> m_SpritePool;
+        dictionary_t<core::SmartReference<IResourceAnimation>> m_AnimationPool;
+        dictionary_t<core::SmartReference<IResourceMusic>> m_MusicPool;
+        dictionary_t<core::SmartReference<IResourceSoundEffect>> m_SoundSpritePool;
+        dictionary_t<core::SmartReference<IResourceParticle>> m_ParticlePool;
+        dictionary_t<core::SmartReference<IResourceFont>> m_SpriteFontPool;
+        dictionary_t<core::SmartReference<IResourceFont>> m_TTFFontPool;
+        dictionary_t<core::SmartReference<IResourcePostEffectShader>> m_FXPool;
+        dictionary_t<core::SmartReference<IResourceModel>> m_ModelPool;
     private:
         const char* getResourcePoolTypeName();
     public:
@@ -108,7 +108,7 @@ namespace luastg
                              double x, double y, double w, double h, int n, int m, int intv,
                              double a, double b, bool rect = false) noexcept;
         bool CreateAnimation(const char* name,
-            std::vector<core::ScopeObject<IResourceSprite>> const& sprite_list,
+            std::vector<core::SmartReference<IResourceSprite>> const& sprite_list,
             int intv,
             double a, double b, bool rect = false) noexcept;
         // 音乐
@@ -132,16 +132,16 @@ namespace luastg
         // 模型
         bool LoadModel(const char* name, const char* path) noexcept;
         
-        core::ScopeObject<IResourceTexture> GetTexture(std::string_view name) noexcept;
-        core::ScopeObject<IResourceSprite> GetSprite(std::string_view name) noexcept;
-        core::ScopeObject<IResourceAnimation> GetAnimation(std::string_view name) noexcept;
-        core::ScopeObject<IResourceMusic> GetMusic(std::string_view name) noexcept;
-        core::ScopeObject<IResourceSoundEffect> GetSound(std::string_view name) noexcept;
-        core::ScopeObject<IResourceParticle> GetParticle(std::string_view name) noexcept;
-        core::ScopeObject<IResourceFont> GetSpriteFont(std::string_view name) noexcept;
-        core::ScopeObject<IResourceFont> GetTTFFont(std::string_view name) noexcept;
-        core::ScopeObject<IResourcePostEffectShader> GetFX(std::string_view name) noexcept;
-        core::ScopeObject<IResourceModel> GetModel(std::string_view name) noexcept;
+        core::SmartReference<IResourceTexture> GetTexture(std::string_view name) noexcept;
+        core::SmartReference<IResourceSprite> GetSprite(std::string_view name) noexcept;
+        core::SmartReference<IResourceAnimation> GetAnimation(std::string_view name) noexcept;
+        core::SmartReference<IResourceMusic> GetMusic(std::string_view name) noexcept;
+        core::SmartReference<IResourceSoundEffect> GetSound(std::string_view name) noexcept;
+        core::SmartReference<IResourceParticle> GetParticle(std::string_view name) noexcept;
+        core::SmartReference<IResourceFont> GetSpriteFont(std::string_view name) noexcept;
+        core::SmartReference<IResourceFont> GetTTFFont(std::string_view name) noexcept;
+        core::SmartReference<IResourcePostEffectShader> GetFX(std::string_view name) noexcept;
+        core::SmartReference<IResourceModel> GetModel(std::string_view name) noexcept;
     public:
         ResourcePool(ResourceMgr* mgr, ResourcePoolType t);
         ResourcePool& operator=(const ResourcePool&) = delete;
@@ -162,16 +162,16 @@ namespace luastg
         ResourcePool* GetResourcePool(ResourcePoolType t) noexcept;
         void ClearAllResource() noexcept;
 
-        core::ScopeObject<IResourceTexture> FindTexture(const char* name) noexcept;
-        core::ScopeObject<IResourceSprite> FindSprite(const char* name) noexcept;
-        core::ScopeObject<IResourceAnimation> FindAnimation(const char* name) noexcept;
-        core::ScopeObject<IResourceMusic> FindMusic(const char* name) noexcept;
-        core::ScopeObject<IResourceSoundEffect> FindSound(const char* name) noexcept;
-        core::ScopeObject<IResourceParticle> FindParticle(const char* name) noexcept;
-        core::ScopeObject<IResourceFont> FindSpriteFont(const char* name) noexcept;
-        core::ScopeObject<IResourceFont> FindTTFFont(const char* name) noexcept;
-        core::ScopeObject<IResourcePostEffectShader> FindFX(const char* name) noexcept;
-        core::ScopeObject<IResourceModel> FindModel(const char* name) noexcept;
+        core::SmartReference<IResourceTexture> FindTexture(const char* name) noexcept;
+        core::SmartReference<IResourceSprite> FindSprite(const char* name) noexcept;
+        core::SmartReference<IResourceAnimation> FindAnimation(const char* name) noexcept;
+        core::SmartReference<IResourceMusic> FindMusic(const char* name) noexcept;
+        core::SmartReference<IResourceSoundEffect> FindSound(const char* name) noexcept;
+        core::SmartReference<IResourceParticle> FindParticle(const char* name) noexcept;
+        core::SmartReference<IResourceFont> FindSpriteFont(const char* name) noexcept;
+        core::SmartReference<IResourceFont> FindTTFFont(const char* name) noexcept;
+        core::SmartReference<IResourcePostEffectShader> FindFX(const char* name) noexcept;
+        core::SmartReference<IResourceModel> FindModel(const char* name) noexcept;
         
         bool GetTextureSize(const char* name, core::Vector2U& out) noexcept;
         void CacheTTFFontString(const char* name, const char* text, size_t len) noexcept;

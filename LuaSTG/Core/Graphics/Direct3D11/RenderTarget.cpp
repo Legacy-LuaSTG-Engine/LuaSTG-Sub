@@ -114,7 +114,7 @@ namespace core::Graphics::Direct3D11 {
 namespace core::Graphics::Direct3D11 {
 	bool Device::createRenderTarget(Vector2U const size, IRenderTarget** const pp_rt) {
 		*pp_rt = nullptr;
-		ScopeObject<RenderTarget> buffer;
+		SmartReference<RenderTarget> buffer;
 		buffer.attach(new RenderTarget);
 		if (!buffer->initialize(this, size)) {
 			return false;

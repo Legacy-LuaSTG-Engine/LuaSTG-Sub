@@ -33,7 +33,7 @@ namespace core::Graphics::Direct3D11 {
 		bool createResource();
 
 	private:
-		ScopeObject<Device> m_device;
+		SmartReference<Device> m_device;
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> m_sampler;
 		core::Graphics::SamplerState m_info{};
 		bool m_initialized{ false };

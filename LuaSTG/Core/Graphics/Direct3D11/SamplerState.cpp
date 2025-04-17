@@ -116,7 +116,7 @@ namespace core::Graphics::Direct3D11 {
 namespace core::Graphics::Direct3D11 {
 	bool Device::createSamplerState(core::Graphics::SamplerState const& info, ISamplerState** pp_sampler) {
 		*pp_sampler = nullptr;
-		ScopeObject<SamplerState> buffer;
+		SmartReference<SamplerState> buffer;
 		buffer.attach(new SamplerState);
 		if (!buffer->initialize(this, info)) {
 			return false;

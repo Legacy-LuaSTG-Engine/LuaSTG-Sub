@@ -9,7 +9,7 @@ namespace luastg
 	class ResourceAnimationImpl : public ResourceBaseImpl<IResourceAnimation>
 	{
 	private:
-		std::vector<core::ScopeObject<IResourceSprite>> m_sprites;
+		std::vector<core::SmartReference<IResourceSprite>> m_sprites;
 		uint32_t m_Interval = 1;
 		core::Color4B m_vertex_color[4]{ core::Color4B(0xFFFFFFFF), core::Color4B(0xFFFFFFFF), core::Color4B(0xFFFFFFFF), core::Color4B(0xFFFFFFFF) };
 		BlendMode m_BlendMode = BlendMode::MulAlpha;
@@ -49,12 +49,12 @@ namespace luastg
 		void Render(int timer, float x, float y, float rot, float hscale, float vscale, float z);
 		void Render(int timer, float x, float y, float rot, float hscale, float vscale, BlendMode blend, core::Color4B color, float z);
 	public:
-		ResourceAnimationImpl(const char* name, core::ScopeObject<IResourceTexture> tex,
+		ResourceAnimationImpl(const char* name, core::SmartReference<IResourceTexture> tex,
 			float x, float y, float w, float h,
 			int n, int m, int intv,
 			double a, double b, bool rect = false);
 		ResourceAnimationImpl(const char* name,
-			std::vector<core::ScopeObject<IResourceSprite>> const& sprite_list,
+			std::vector<core::SmartReference<IResourceSprite>> const& sprite_list,
 			int intv,
 			double a, double b, bool rect = false);
 	};

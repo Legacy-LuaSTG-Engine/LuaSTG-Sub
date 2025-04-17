@@ -7,7 +7,7 @@ namespace luastg
     class ResourcePostEffectShaderImpl : public ResourceBaseImpl<IResourcePostEffectShader>
     {
     private:
-        core::ScopeObject<core::Graphics::IPostEffectShader> m_shader;
+        core::SmartReference<core::Graphics::IPostEffectShader> m_shader;
     public:
         core::Graphics::IPostEffectShader* GetPostEffectShader() noexcept { return *m_shader; }
     public:

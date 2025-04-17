@@ -34,10 +34,10 @@ namespace core::Graphics::Direct3D11 {
 		bool initialize(IDevice* device);
 
 	private:
-		ScopeObject<IDevice> m_device;
-		ScopeObject<ITexture2D> m_texture;
-		ScopeObject<IMesh> m_mesh;
-		ScopeObject<IBuffer> m_constant_buffer;
+		SmartReference<IDevice> m_device;
+		SmartReference<ITexture2D> m_texture;
+		SmartReference<IMesh> m_mesh;
+		SmartReference<IBuffer> m_constant_buffer;
 		Matrix4F m_transform{ Matrix4F::identity() };
 		IRenderer::VertexColorBlendState m_vertex_color_blend_state{ IRenderer::VertexColorBlendState::Mul };
 		IRenderer::BlendState m_blend_state{ IRenderer::BlendState::Alpha };

@@ -39,7 +39,7 @@ namespace core::Graphics::Direct3D11 {
 		bool createResources();
 
 	private:
-		ScopeObject<Device> m_device;
+		SmartReference<Device> m_device;
 		wil::com_ptr_nothrow<ID3D11Buffer> m_buffer;
 		uint32_t m_size_in_bytes{};
 		uint8_t m_type{};

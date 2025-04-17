@@ -46,8 +46,8 @@ namespace luastg {
 		AppStatus m_iStatus = AppStatus::NotInitialized;
 
 		// 应用程序框架
-		core::ScopeObject<core::IApplicationModel> m_pAppModel;
-		core::ScopeObject<core::Graphics::ITextRenderer> m_pTextRenderer;
+		core::SmartReference<core::IApplicationModel> m_pAppModel;
+		core::SmartReference<core::Graphics::ITextRenderer> m_pTextRenderer;
 
 		// 资源管理器
 		ResourceMgr m_ResourceMgr;
@@ -195,7 +195,7 @@ namespace luastg {
 		// ---------- 渲染目标管理 ----------
 
 	private:
-		std::vector<core::ScopeObject<IResourceTexture>> m_stRenderTargetStack;
+		std::vector<core::SmartReference<IResourceTexture>> m_stRenderTargetStack;
 		std::set<IResourceTexture*> m_AutoSizeRenderTarget;
 		core::Vector2U m_AutoSizeRenderTargetSize;
 	private:

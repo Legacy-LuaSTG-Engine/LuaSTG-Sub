@@ -445,7 +445,7 @@ bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, core::Co
 		return true;
 
 	// 首先拿到纹理
-	core::ScopeObject<IResourceTexture> pTex = LRES.FindTexture(tex_name);
+	core::SmartReference<IResourceTexture> pTex = LRES.FindTexture(tex_name);
 	if (!pTex)
 	{
 		spdlog::error("[luastg] [GameObjectBentLaser::Render] 找不到纹理'{}'", tex_name);

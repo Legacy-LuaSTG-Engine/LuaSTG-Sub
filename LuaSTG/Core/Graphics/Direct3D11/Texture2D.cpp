@@ -268,7 +268,7 @@ namespace core::Graphics::Direct3D11 {
 namespace core::Graphics::Direct3D11 {
 	bool Device::createTextureFromFile(StringView const path, bool const mipmap, ITexture2D** const pp_texture) {
 		*pp_texture = nullptr;
-		ScopeObject<Texture2D> buffer;
+		SmartReference<Texture2D> buffer;
 		buffer.attach(new Texture2D);
 		if (!buffer->initialize(this, path, mipmap)) {
 			return false;
@@ -279,7 +279,7 @@ namespace core::Graphics::Direct3D11 {
 	//bool createTextureFromMemory(void const* data, size_t size, bool mipmap, ITexture2D** pp_texture);
 	bool Device::createTexture(Vector2U const size, ITexture2D** const pp_texture) {
 		*pp_texture = nullptr;
-		ScopeObject<Texture2D> buffer;
+		SmartReference<Texture2D> buffer;
 		buffer.attach(new Texture2D);
 		if (!buffer->initialize(this, size, false)) {
 			return false;

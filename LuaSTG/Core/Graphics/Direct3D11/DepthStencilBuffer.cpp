@@ -85,7 +85,7 @@ namespace core::Graphics::Direct3D11 {
 namespace core::Graphics::Direct3D11 {
 	bool Device::createDepthStencilBuffer(Vector2U const size, IDepthStencilBuffer** const pp_ds) {
 		*pp_ds = nullptr;
-		ScopeObject<DepthStencilBuffer> buffer;
+		SmartReference<DepthStencilBuffer> buffer;
 		buffer.attach(new DepthStencilBuffer);
 		if (!buffer->initialize(this, size)) {
 			return false;

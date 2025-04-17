@@ -7,7 +7,7 @@ namespace luastg
 	class ResourceFontImpl : public ResourceBaseImpl<IResourceFont>
 	{
 	private:
-		core::ScopeObject<core::Graphics::IGlyphManager> m_glyphmgr;
+		core::SmartReference<core::Graphics::IGlyphManager> m_glyphmgr;
 		BlendMode m_BlendMode;
 		core::Color4B m_BlendColor;
 

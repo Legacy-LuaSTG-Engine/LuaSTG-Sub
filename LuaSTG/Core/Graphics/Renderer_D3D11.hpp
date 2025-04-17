@@ -63,7 +63,7 @@ namespace core::Graphics
 
 	struct DrawCommand
 	{
-		ScopeObject<Direct3D11::Texture2D> texture;
+		SmartReference<Direct3D11::Texture2D> texture;
 		uint16_t vertex_count = 0;
 		uint16_t index_count = 0;
 	};
@@ -110,10 +110,10 @@ namespace core::Graphics
 		struct LocalTexture2D
 		{
 			UINT index{};
-			ScopeObject<Direct3D11::Texture2D> texture;
+			SmartReference<Direct3D11::Texture2D> texture;
 		};
 	private:
-		ScopeObject<Direct3D11::Device> m_device;
+		SmartReference<Direct3D11::Device> m_device;
 		Microsoft::WRL::ComPtr<ID3DBlob> d3d_ps_blob;
 		Microsoft::WRL::ComPtr<ID3D11ShaderReflection> d3d11_ps_reflect;
 		Microsoft::WRL::ComPtr<ID3D11PixelShader> d3d11_ps;
@@ -148,8 +148,8 @@ namespace core::Graphics
 		, IDeviceEventListener
 	{
 	private:
-		ScopeObject<Direct3D11::Device> m_device;
-		ScopeObject<ModelSharedComponent_D3D11> m_model_shared;
+		SmartReference<Direct3D11::Device> m_device;
+		SmartReference<ModelSharedComponent_D3D11> m_model_shared;
 
 		Microsoft::WRL::ComPtr<ID3D11Buffer> _fx_vbuffer;
 		Microsoft::WRL::ComPtr<ID3D11Buffer> _fx_ibuffer;
@@ -172,11 +172,11 @@ namespace core::Graphics
 		Microsoft::WRL::ComPtr<ID3D11VertexShader> _vertex_shader[IDX(FogState::MAX_COUNT)]; // FogState
 		Microsoft::WRL::ComPtr<ID3D11PixelShader> _pixel_shader[IDX(VertexColorBlendState::MAX_COUNT)][IDX(FogState::MAX_COUNT)][IDX(TextureAlphaType::MAX_COUNT)]; // VertexColorBlendState, FogState, TextureAlphaType
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> _raster_state;
-		ScopeObject<ISamplerState> _sampler_state[IDX(SamplerState::MAX_COUNT)];
+		SmartReference<ISamplerState> _sampler_state[IDX(SamplerState::MAX_COUNT)];
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> _depth_state[IDX(DepthState::MAX_COUNT)];
 		Microsoft::WRL::ComPtr<ID3D11BlendState> _blend_state[IDX(BlendState::MAX_COUNT)];
 		
-		ScopeObject<Direct3D11::Texture2D> _state_texture;
+		SmartReference<Direct3D11::Texture2D> _state_texture;
 		CameraStateSet _camera_state_set;
 		RendererStateSet _state_set;
 		bool _state_dirty = false;

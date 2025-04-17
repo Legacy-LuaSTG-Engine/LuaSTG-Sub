@@ -10,7 +10,7 @@ namespace luastg
 		class LoopDecoder : public core::implement::ReferenceCounted<core::Audio::IDecoder>
 		{
 		protected:
-			core::ScopeObject<core::Audio::IDecoder> m_decoder;
+			core::SmartReference<core::Audio::IDecoder> m_decoder;
 			uint32_t m_total_sample = 0;
 			uint32_t m_start_sample = 0;
 			uint32_t m_end_sample = 0;
@@ -37,8 +37,8 @@ namespace luastg
 		};
 
 	private:
-		core::ScopeObject<LoopDecoder> m_decoder;
-		core::ScopeObject<core::Audio::IAudioPlayer> m_player;
+		core::SmartReference<LoopDecoder> m_decoder;
+		core::SmartReference<core::Audio::IAudioPlayer> m_player;
 		int m_status = 0; // 0停止 1暂停 2播放
 
 	public:

@@ -14,7 +14,7 @@ namespace core::Graphics
     {
         friend class Model_D3D11;
     private:
-        ScopeObject<Direct3D11::Device> m_device;
+        SmartReference<Direct3D11::Device> m_device;
 
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> default_image;
         Microsoft::WRL::ComPtr<ID3D11SamplerState> default_sampler;
@@ -77,8 +77,8 @@ namespace core::Graphics
         , public IDeviceEventListener
     {
     private:
-        ScopeObject<Direct3D11::Device> m_device;
-        ScopeObject<ModelSharedComponent_D3D11> shared_;
+        SmartReference<Direct3D11::Device> m_device;
+        SmartReference<ModelSharedComponent_D3D11> shared_;
 
         DirectX::XMMATRIX t_scale_;
         DirectX::XMMATRIX t_trans_;

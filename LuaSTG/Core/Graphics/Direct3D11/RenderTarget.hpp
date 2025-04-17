@@ -38,8 +38,8 @@ namespace core::Graphics::Direct3D11 {
 		bool createResource();
 
 	private:
-		ScopeObject<Device> m_device;
-		ScopeObject<Texture2D> m_texture;
+		SmartReference<Device> m_device;
+		SmartReference<Texture2D> m_texture;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_view;
 		Microsoft::WRL::ComPtr<ID2D1Bitmap1> m_bitmap;
 		bool m_initialized{ false };

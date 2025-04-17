@@ -37,7 +37,7 @@ namespace core::Graphics::Direct3D11 {
 		bool createResource();
 
 	private:
-		ScopeObject<Device> m_device;
+		SmartReference<Device> m_device;
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> m_texture;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_view;
 		Vector2U m_size{};

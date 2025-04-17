@@ -1161,7 +1161,7 @@ namespace core::Graphics
 		SendMessageW(win32_window, LUASTG_WM_SET_FULLSCREEN_MODE, 0, reinterpret_cast<LPARAM>(display));
 	}
 	void Window_Win32::setCentered(bool show, IDisplay* display) {
-		core::ScopeObject<IDisplay> local_display;
+		core::SmartReference<IDisplay> local_display;
 		if (!display) {
 			if (!IDisplay::getNearestFromWindow(this, ~local_display)) {
 				return;

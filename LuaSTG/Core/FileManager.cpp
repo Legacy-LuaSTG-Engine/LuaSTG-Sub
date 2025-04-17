@@ -238,7 +238,7 @@ namespace core
         {
             return false;
         }
-        ScopeObject<IData> p_data;
+        SmartReference<IData> p_data;
         if (!IData::create((size_t)script_size, ~p_data))
         {
             return false;
@@ -338,7 +338,7 @@ namespace core
         {
             return false;
         }
-        ScopeObject<IData> p_data;
+        SmartReference<IData> p_data;
         if (!IData::create((size_t)script_size, ~p_data))
         {
             return false;
@@ -547,7 +547,7 @@ namespace core
             assert(false);
             return false;
         }
-        ScopeObject<IData> p_data;
+        SmartReference<IData> p_data;
         if (!IData::create((size_t)size, ~p_data))
         {
             return false;

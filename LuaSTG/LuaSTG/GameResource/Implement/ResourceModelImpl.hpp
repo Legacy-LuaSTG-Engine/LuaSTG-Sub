@@ -7,7 +7,7 @@ namespace luastg
 	class ResourceModelImpl : public ResourceBaseImpl<IResourceModel>
 	{
 	private:
-		core::ScopeObject<core::Graphics::IModel> model_;
+		core::SmartReference<core::Graphics::IModel> model_;
 	public:
 		core::Graphics::IModel* GetModel() { return *model_; }
 	public:

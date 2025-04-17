@@ -67,7 +67,7 @@ namespace luastg
 		return a + c * random::to_float(m_Random());
 	}
 
-	ParticlePoolImpl::ParticlePoolImpl(core::ScopeObject<IResourceParticle> ref)
+	ParticlePoolImpl::ParticlePoolImpl(core::SmartReference<IResourceParticle> ref)
 	{
 		m_Res = ref;
 		m_Info = static_cast<ResourceParticleImpl*>(ref.get())->GetResourceInfo();

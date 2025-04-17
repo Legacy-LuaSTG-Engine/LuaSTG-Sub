@@ -39,8 +39,8 @@ namespace core::Graphics
 		, public IDeviceEventListener
 	{
 	private:
-		ScopeObject<Window_Win32> m_window;
-		ScopeObject<Direct3D11::Device> m_device;
+		SmartReference<Window_Win32> m_window;
+		SmartReference<Direct3D11::Device> m_device;
 		Direct3D11::LetterBoxingRenderer m_scaling_renderer;
 
 		Microsoft::WRL::Wrappers::Event dxgi_swapchain_event;

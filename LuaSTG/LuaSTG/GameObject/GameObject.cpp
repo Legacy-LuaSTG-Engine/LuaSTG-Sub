@@ -206,7 +206,7 @@ namespace luastg
 	
 	bool GameObject::ChangeResource(std::string_view const& res_name)
 	{
-		core::ScopeObject<IResourceSprite> tSprite = LRES.FindSprite(res_name.data());
+		core::SmartReference<IResourceSprite> tSprite = LRES.FindSprite(res_name.data());
 		if (tSprite)
 		{
 			res = *tSprite;
@@ -223,7 +223,7 @@ namespace luastg
 			return true;
 		}
 
-		core::ScopeObject<IResourceAnimation> tAnimation = LRES.FindAnimation(res_name.data());
+		core::SmartReference<IResourceAnimation> tAnimation = LRES.FindAnimation(res_name.data());
 		if (tAnimation)
 		{
 			res = *tAnimation;
@@ -240,7 +240,7 @@ namespace luastg
 			return true;
 		}
 
-		core::ScopeObject<IResourceParticle> tParticle = LRES.FindParticle(res_name.data());
+		core::SmartReference<IResourceParticle> tParticle = LRES.FindParticle(res_name.data());
 		if (tParticle)
 		{
 			// 分配粒子池

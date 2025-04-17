@@ -27,7 +27,7 @@ namespace luastg {
 		}
 	}
 	void AppFrame::SaveTexture(const char* tex_name, const char* path) noexcept {
-		core::ScopeObject<IResourceTexture> resTex = LRES.FindTexture(tex_name);
+		core::SmartReference<IResourceTexture> resTex = LRES.FindTexture(tex_name);
 		if (!resTex) {
 			spdlog::error("[luastg] SaveTexture: 找不到纹理资源'{}'", tex_name);
 			return;

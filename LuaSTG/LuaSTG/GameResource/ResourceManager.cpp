@@ -42,73 +42,73 @@ namespace luastg
 
 	// 自动查找资源池资源
 
-	core::ScopeObject<IResourceTexture> ResourceMgr::FindTexture(const char* name) noexcept {
+	core::SmartReference<IResourceTexture> ResourceMgr::FindTexture(const char* name) noexcept {
 
-		core::ScopeObject<IResourceTexture> tRet;
+		core::SmartReference<IResourceTexture> tRet;
 		if (!(tRet = m_StageResourcePool.GetTexture(name)))
 			tRet = m_GlobalResourcePool.GetTexture(name);
 		return tRet;
 	}
 
-	core::ScopeObject<IResourceSprite> ResourceMgr::FindSprite(const char* name) noexcept {
-		core::ScopeObject<IResourceSprite> tRet;
+	core::SmartReference<IResourceSprite> ResourceMgr::FindSprite(const char* name) noexcept {
+		core::SmartReference<IResourceSprite> tRet;
 		if (!(tRet = m_StageResourcePool.GetSprite(name)))
 			tRet = m_GlobalResourcePool.GetSprite(name);
 		return tRet;
 	}
 
-	core::ScopeObject<IResourceAnimation> ResourceMgr::FindAnimation(const char* name) noexcept {
-		core::ScopeObject<IResourceAnimation> tRet;
+	core::SmartReference<IResourceAnimation> ResourceMgr::FindAnimation(const char* name) noexcept {
+		core::SmartReference<IResourceAnimation> tRet;
 		if (!(tRet = m_StageResourcePool.GetAnimation(name)))
 			tRet = m_GlobalResourcePool.GetAnimation(name);
 		return tRet;
 	}
 
-	core::ScopeObject<IResourceMusic> ResourceMgr::FindMusic(const char* name) noexcept {
-		core::ScopeObject<IResourceMusic> tRet;
+	core::SmartReference<IResourceMusic> ResourceMgr::FindMusic(const char* name) noexcept {
+		core::SmartReference<IResourceMusic> tRet;
 		if (!(tRet = m_StageResourcePool.GetMusic(name)))
 			tRet = m_GlobalResourcePool.GetMusic(name);
 		return tRet;
 	}
 
-	core::ScopeObject<IResourceSoundEffect> ResourceMgr::FindSound(const char* name) noexcept {
-		core::ScopeObject<IResourceSoundEffect> tRet;
+	core::SmartReference<IResourceSoundEffect> ResourceMgr::FindSound(const char* name) noexcept {
+		core::SmartReference<IResourceSoundEffect> tRet;
 		if (!(tRet = m_StageResourcePool.GetSound(name)))
 			tRet = m_GlobalResourcePool.GetSound(name);
 		return tRet;
 	}
 
-	core::ScopeObject<IResourceParticle> ResourceMgr::FindParticle(const char* name) noexcept {
-		core::ScopeObject<IResourceParticle> tRet;
+	core::SmartReference<IResourceParticle> ResourceMgr::FindParticle(const char* name) noexcept {
+		core::SmartReference<IResourceParticle> tRet;
 		if (!(tRet = m_StageResourcePool.GetParticle(name)))
 			tRet = m_GlobalResourcePool.GetParticle(name);
 		return tRet;
 	}
 
-	core::ScopeObject<IResourceFont> ResourceMgr::FindSpriteFont(const char* name) noexcept {
-		core::ScopeObject<IResourceFont> tRet;
+	core::SmartReference<IResourceFont> ResourceMgr::FindSpriteFont(const char* name) noexcept {
+		core::SmartReference<IResourceFont> tRet;
 		if (!(tRet = m_StageResourcePool.GetSpriteFont(name)))
 			tRet = m_GlobalResourcePool.GetSpriteFont(name);
 		return tRet;
 	}
 
-	core::ScopeObject<IResourceFont> ResourceMgr::FindTTFFont(const char* name) noexcept {
-		core::ScopeObject<IResourceFont> tRet;
+	core::SmartReference<IResourceFont> ResourceMgr::FindTTFFont(const char* name) noexcept {
+		core::SmartReference<IResourceFont> tRet;
 		if (!(tRet = m_StageResourcePool.GetTTFFont(name)))
 			tRet = m_GlobalResourcePool.GetTTFFont(name);
 		return tRet;
 	}
 
-	core::ScopeObject<IResourcePostEffectShader> ResourceMgr::FindFX(const char* name) noexcept {
-		core::ScopeObject<IResourcePostEffectShader> tRet;
+	core::SmartReference<IResourcePostEffectShader> ResourceMgr::FindFX(const char* name) noexcept {
+		core::SmartReference<IResourcePostEffectShader> tRet;
 		if (!(tRet = m_StageResourcePool.GetFX(name)))
 			tRet = m_GlobalResourcePool.GetFX(name);
 		return tRet;
 	}
 
-	core::ScopeObject<IResourceModel> ResourceMgr::FindModel(const char* name) noexcept
+	core::SmartReference<IResourceModel> ResourceMgr::FindModel(const char* name) noexcept
 	{
-		core::ScopeObject<IResourceModel> tRet;
+		core::SmartReference<IResourceModel> tRet;
 		if (!(tRet = m_StageResourcePool.GetModel(name)))
 			tRet = m_GlobalResourcePool.GetModel(name);
 		return tRet;
@@ -117,7 +117,7 @@ namespace luastg
 	// 其他资源操作
 
 	bool ResourceMgr::GetTextureSize(const char* name, core::Vector2U& out) noexcept {
-		core::ScopeObject<IResourceTexture> tRet = FindTexture(name);
+		core::SmartReference<IResourceTexture> tRet = FindTexture(name);
 		if (!tRet)
 			return false;
 		out = tRet->GetTexture()->getSize();
@@ -125,7 +125,7 @@ namespace luastg
 	}
 
 	void ResourceMgr::CacheTTFFontString(const char* name, const char* text, size_t len) noexcept {
-		core::ScopeObject<IResourceFont> f = FindTTFFont(name);
+		core::SmartReference<IResourceFont> f = FindTTFFont(name);
 		if (f)
 			f->GetGlyphManager()->cacheString(core::StringView(text, len));
 		else

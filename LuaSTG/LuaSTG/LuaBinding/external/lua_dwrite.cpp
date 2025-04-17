@@ -2686,7 +2686,7 @@ namespace DirectWrite
 
 		// copy and store pixel data
 
-		core::ScopeObject<core::IData> p_pixel_data;
+		core::SmartReference<core::IData> p_pixel_data;
 		if (!core::IData::create(4 * (uint32_t)texture_canvas_width * (uint32_t)texture_canvas_height, ~p_pixel_data))
 			return luaL_error(L, "copy texture data failed");
 		uint8_t* dst_ptr = (uint8_t*)p_pixel_data->data();

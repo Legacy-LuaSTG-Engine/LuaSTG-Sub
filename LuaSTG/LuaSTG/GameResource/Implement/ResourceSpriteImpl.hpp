@@ -7,7 +7,7 @@ namespace luastg
 	class ResourceSpriteImpl : public ResourceBaseImpl<IResourceSprite>
 	{
 	private:
-		core::ScopeObject<core::Graphics::ISprite> m_sprite;
+		core::SmartReference<core::Graphics::ISprite> m_sprite;
 		BlendMode m_BlendMode = BlendMode::MulAlpha;
 		double m_HalfSizeX = 0.0;
 		double m_HalfSizeY = 0.0;

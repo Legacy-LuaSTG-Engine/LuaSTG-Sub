@@ -177,7 +177,7 @@ namespace core::Graphics {
 		assert(device);
 		assert(output);
 		*output = nullptr;
-		ScopeObject<Direct3D11::MeshRenderer> mesh_renderer;
+		SmartReference<Direct3D11::MeshRenderer> mesh_renderer;
 		mesh_renderer.attach(new Direct3D11::MeshRenderer);
 		if (!mesh_renderer->initialize(device)) {
 			return false;

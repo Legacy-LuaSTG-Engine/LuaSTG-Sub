@@ -71,7 +71,7 @@ namespace luastg::binding
 				auto const name = S.get_value<std::string_view>(2);
 				auto const resource_name = S.get_value<std::string_view>(3);
 				
-				core::ScopeObject<luastg::IResourceTexture> p = LRES.FindTexture(resource_name.data());
+				core::SmartReference<luastg::IResourceTexture> p = LRES.FindTexture(resource_name.data());
 				if (!p)
 				{
 					return luaL_error(L, "can't find texture '%s'", resource_name.data());
@@ -105,7 +105,7 @@ namespace luastg::binding
 			{
 				lua::stack_t S(L);
 				auto const file_path = S.get_value<std::string_view>(1);
-				core::ScopeObject<core::Graphics::IPostEffectShader> shader;
+				core::SmartReference<core::Graphics::IPostEffectShader> shader;
 				if (!LAPP.GetRenderer2D()->createPostEffectShader(file_path, ~shader))
 				{
 					return luaL_error(L, "lstg.CreatePostEffectShader failed, see log file for more detail");

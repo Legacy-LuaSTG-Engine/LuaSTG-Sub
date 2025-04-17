@@ -17,11 +17,11 @@ namespace core::Graphics
 	{
 		return get_view(static_cast<Direct3D11::Texture2D*>(p));
 	}
-	inline ID3D11ShaderResourceView* get_view(ScopeObject<Direct3D11::Texture2D>& p)
+	inline ID3D11ShaderResourceView* get_view(SmartReference<Direct3D11::Texture2D>& p)
 	{
 		return get_view(p.get());
 	}
-	inline ID3D11ShaderResourceView* get_view(ScopeObject<ITexture2D>& p)
+	inline ID3D11ShaderResourceView* get_view(SmartReference<ITexture2D>& p)
 	{
 		return get_view(static_cast<Direct3D11::Texture2D*>(p.get()));
 	}
@@ -30,7 +30,7 @@ namespace core::Graphics
 	{
 		return static_cast<Direct3D11::SamplerState*>(p_sampler)->GetState();
 	}
-	inline ID3D11SamplerState* get_sampler(ScopeObject<ISamplerState>& p_sampler)
+	inline ID3D11SamplerState* get_sampler(SmartReference<ISamplerState>& p_sampler)
 	{
 		return static_cast<Direct3D11::SamplerState*>(p_sampler.get())->GetState();
 	}
@@ -1122,7 +1122,7 @@ namespace core::Graphics
 		else
 			return false;
 	}
-	inline bool is_same(ScopeObject<Direct3D11::Texture2D>& a, ITexture2D* b)
+	inline bool is_same(SmartReference<Direct3D11::Texture2D>& a, ITexture2D* b)
 	{
 		return is_same(*a, b);
 	}

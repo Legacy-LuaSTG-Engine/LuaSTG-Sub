@@ -415,7 +415,7 @@ namespace core::Graphics::Direct3D11 {
 namespace core::Graphics {
 	bool IMesh::create(IDevice* device, MeshOptions const& options, IMesh** output) {
 		*output = nullptr;
-		ScopeObject<Direct3D11::Mesh> buffer;
+		SmartReference<Direct3D11::Mesh> buffer;
 		buffer.attach(new Direct3D11::Mesh);
 		if (!buffer->initialize(device, options)) {
 			return false;

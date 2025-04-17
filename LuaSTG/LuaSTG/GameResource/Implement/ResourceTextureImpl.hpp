@@ -7,9 +7,9 @@ namespace luastg
 	class ResourceTextureImpl : public ResourceBaseImpl<IResourceTexture>
 	{
 	private:
-		core::ScopeObject<core::Graphics::ITexture2D> m_texture;
-		core::ScopeObject<core::Graphics::IRenderTarget> m_rt;
-		core::ScopeObject<core::Graphics::IDepthStencilBuffer> m_ds;
+		core::SmartReference<core::Graphics::ITexture2D> m_texture;
+		core::SmartReference<core::Graphics::IRenderTarget> m_rt;
+		core::SmartReference<core::Graphics::IDepthStencilBuffer> m_ds;
 		bool m_is_rendertarget{ false };
 		bool m_is_auto_resize{ false };
 		bool m_enable_depthbuffer{ false };

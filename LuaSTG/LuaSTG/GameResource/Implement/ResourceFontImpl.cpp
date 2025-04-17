@@ -11,7 +11,7 @@ namespace luastg
 		: public core::implement::ReferenceCounted<core::Graphics::IGlyphManager>
 	{
 	private:
-		core::ScopeObject<core::Graphics::ITexture2D> m_texture;
+		core::SmartReference<core::Graphics::ITexture2D> m_texture;
 		std::unordered_map<uint32_t, core::Graphics::GlyphInfo> m_map;
 		float m_line_height;
 
@@ -350,7 +350,7 @@ namespace luastg
 		: public core::implement::ReferenceCounted<core::Graphics::IGlyphManager>
 	{
 	private:
-		core::ScopeObject<core::Graphics::ITexture2D> m_texture;
+		core::SmartReference<core::Graphics::ITexture2D> m_texture;
 		std::unordered_map<uint32_t, core::Graphics::GlyphInfo> m_map;
 		float m_line_height;
 		float m_ascender;

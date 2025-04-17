@@ -53,7 +53,7 @@ namespace core::Audio
 		std::string_view getCurrentAudioDeviceName() const noexcept { return m_current_audio_device_name; }
 
 	private:
-		ScopeObject<Shared_XAUDIO2> m_shared;
+		SmartReference<Shared_XAUDIO2> m_shared;
 		float m_volume_direct = 1.0f;
 		float m_volume_sound_effect = 1.0f;
 		float m_volume_music = 1.0f;
@@ -97,10 +97,10 @@ namespace core::Audio
 		, public IAudioDeviceEventListener
 	{
 	private:
-		ScopeObject<Device_XAUDIO2> m_device;
-		ScopeObject<Shared_XAUDIO2> m_shared;
+		SmartReference<Device_XAUDIO2> m_device;
+		SmartReference<Shared_XAUDIO2> m_shared;
 	#ifndef NDEBUG
-		ScopeObject<IDecoder> m_decoder;
+		SmartReference<IDecoder> m_decoder;
 	#endif
 		winrt::xaudio2_voice_ptr<IXAudio2SourceVoice> m_player;
 		WAVEFORMATEX m_format{};
@@ -153,10 +153,10 @@ namespace core::Audio
 		, public IAudioDeviceEventListener
 	{
 	private:
-		ScopeObject<Device_XAUDIO2> m_device;
-		ScopeObject<Shared_XAUDIO2> m_shared;
+		SmartReference<Device_XAUDIO2> m_device;
+		SmartReference<Shared_XAUDIO2> m_shared;
 	#ifndef NDEBUG
-		ScopeObject<IDecoder> m_decoder;
+		SmartReference<IDecoder> m_decoder;
 	#endif
 		winrt::xaudio2_voice_ptr<IXAudio2SourceVoice> m_player;
 		WAVEFORMATEX m_format{};
@@ -291,9 +291,9 @@ namespace core::Audio
 		};
 
 	private:
-		ScopeObject<Device_XAUDIO2> m_device;
-		ScopeObject<Shared_XAUDIO2> m_shared;
-		ScopeObject<IDecoder> m_decoder;
+		SmartReference<Device_XAUDIO2> m_device;
+		SmartReference<Shared_XAUDIO2> m_shared;
+		SmartReference<IDecoder> m_decoder;
 		winrt::xaudio2_voice_ptr<IXAudio2SourceVoice> m_player;
 		wil::critical_section m_player_lock;
 		WAVEFORMATEX m_format{};

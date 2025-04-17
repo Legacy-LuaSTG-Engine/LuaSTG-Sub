@@ -71,7 +71,7 @@ namespace luastg {
 		return RenderError::None;
 	}
 	inline RenderError api_drawSprite(char const* name, float const x, float const y, float const rot, float const hscale, float const vscale, float const z) {
-		core::ScopeObject<IResourceSprite> pimg2dres = LRESMGR().FindSprite(name);
+		core::SmartReference<IResourceSprite> pimg2dres = LRESMGR().FindSprite(name);
 		if (!pimg2dres) {
 			spdlog::error("[luastg] lstg.Renderer.drawSprite failed, can't find sprite '{}'", name);
 			return RenderError::SpriteNotFound;
@@ -83,7 +83,7 @@ namespace luastg {
 		return RenderError::None;
 	}
 	inline RenderError api_drawSpriteRect(char const* name, float const l, float const r, float const b, float const t, float const z) {
-		core::ScopeObject<IResourceSprite> pimg2dres = LRESMGR().FindSprite(name);
+		core::SmartReference<IResourceSprite> pimg2dres = LRESMGR().FindSprite(name);
 		if (!pimg2dres) {
 			spdlog::error("[luastg] lstg.Renderer.drawSpriteRect failed, can't find sprite '{}'", name);
 			return RenderError::SpriteNotFound;
@@ -95,7 +95,7 @@ namespace luastg {
 		return RenderError::None;
 	}
 	inline RenderError api_drawSprite4V(char const* name, float const x1, float const y1, float const z1, float const x2, float const y2, float const z2, float const x3, float const y3, float const z3, float const x4, float const y4, float const z4) {
-		core::ScopeObject<IResourceSprite> pimg2dres = LRESMGR().FindSprite(name);
+		core::SmartReference<IResourceSprite> pimg2dres = LRESMGR().FindSprite(name);
 		if (!pimg2dres) {
 			spdlog::error("[luastg] lstg.Renderer.drawSprite4V failed, can't find sprite '{}'", name);
 			return RenderError::SpriteNotFound;
@@ -108,7 +108,7 @@ namespace luastg {
 		return RenderError::None;
 	}
 	inline RenderError api_drawSpriteSequence(char const* name, int const ani_timer, float const x, float const y, float const rot, float const hscale, float const vscale, float const z) {
-		core::ScopeObject<IResourceAnimation> pani2dres = LRESMGR().FindAnimation(name);
+		core::SmartReference<IResourceAnimation> pani2dres = LRESMGR().FindAnimation(name);
 		if (!pani2dres) {
 			spdlog::error("[luastg] lstg.Renderer.drawSpriteSequence failed, can't find sprite sequence '{}'", name);
 			return RenderError::SpriteSequenceNotFound;
@@ -290,7 +290,7 @@ namespace luastg {
 	static int lib_setTexture(lua_State* L)noexcept {
 		validate_render_scope();
 		char const* name = luaL_checkstring(L, 1);
-		core::ScopeObject<IResourceTexture> p = LRESMGR().FindTexture(name);
+		core::SmartReference<IResourceTexture> p = LRESMGR().FindTexture(name);
 		if (!p) {
 			spdlog::error("[luastg] lstg.Renderer.setTexture failed: can't find texture '{}'", name);
 			return luaL_error(L, "can't find texture '%s'", name);
@@ -515,7 +515,7 @@ namespace luastg {
 
 		translate_blend(ctx, blend);
 
-		core::ScopeObject<IResourceTexture> ptex2dres = LRESMGR().FindTexture(name);
+		core::SmartReference<IResourceTexture> ptex2dres = LRESMGR().FindTexture(name);
 		if (!ptex2dres) {
 			spdlog::error("[luastg] lstg.Renderer.drawTexture failed: can't find texture '{}'", name);
 			return luaL_error(L, "can't find texture '%s'", name);
@@ -550,7 +550,7 @@ namespace luastg {
 		float const sy = (float)luaL_optnumber(L, 9, 1.0);
 		float const sz = (float)luaL_optnumber(L, 10, 1.0);
 
-		core::ScopeObject<IResourceModel> pmodres = LRESMGR().FindModel(name);
+		core::SmartReference<IResourceModel> pmodres = LRESMGR().FindModel(name);
 		if (!pmodres) {
 			spdlog::error("[luastg] lstg.Renderer.drawModel failed: can't find model '{}'", name);
 			return false;
@@ -674,7 +674,7 @@ namespace luastg {
 	static int compat_PushRenderTarget(lua_State* L)noexcept {
 		validate_render_scope();
 		LR2D()->flush();
-		core::ScopeObject<IResourceTexture> p = LRES.FindTexture(luaL_checkstring(L, 1));
+		core::SmartReference<IResourceTexture> p = LRES.FindTexture(luaL_checkstring(L, 1));
 		if (!p)
 			return luaL_error(L, "rendertarget '%s' not found.", luaL_checkstring(L, 1));
 		if (!p->IsRenderTarget())
@@ -710,12 +710,12 @@ namespace luastg {
 			const char* ps_name = luaL_checkstring(L, 2);
 			const core::Graphics::IRenderer::BlendState blend = translate_blend_3d(TranslateBlendMode(L, 3));
 
-			core::ScopeObject<IResourceTexture> prt = LRES.FindTexture(rt_name);
+			core::SmartReference<IResourceTexture> prt = LRES.FindTexture(rt_name);
 			if (!prt)
 				return luaL_error(L, "texture '%s' not found.", rt_name);
 			check_rendertarget_usage(prt);
 
-			core::ScopeObject<IResourcePostEffectShader> pfx = LRES.FindFX(ps_name);
+			core::SmartReference<IResourcePostEffectShader> pfx = LRES.FindFX(ps_name);
 			if (!pfx)
 				return luaL_error(L, "posteffect '%s' not found.", ps_name);
 
@@ -738,7 +738,7 @@ namespace luastg {
 						p_effect->setFloat(key, (float)lua_tonumber(L, -1));
 					}
 					else if (lua_isstring(L, -1)) {
-						core::ScopeObject<IResourceTexture> ptex = LRES.FindTexture(lua_tostring(L, -1));
+						core::SmartReference<IResourceTexture> ptex = LRES.FindTexture(lua_tostring(L, -1));
 						if (!ptex)
 							return luaL_error(L, "texture '%s' not found.", rt_name);
 						check_rendertarget_usage(ptex);
@@ -772,11 +772,11 @@ namespace luastg {
 		const core::Graphics::IRenderer::SamplerState rtsv = (core::Graphics::IRenderer::SamplerState)luaL_checkinteger(L, 3);
 		const core::Graphics::IRenderer::BlendState blend = translate_blend_3d(TranslateBlendMode(L, 4));
 
-		core::ScopeObject<IResourcePostEffectShader> pfx = LRES.FindFX(ps_name);
+		core::SmartReference<IResourcePostEffectShader> pfx = LRES.FindFX(ps_name);
 		if (!pfx)
 			return luaL_error(L, "posteffect '%s' not found.", ps_name);
 
-		core::ScopeObject<IResourceTexture> prt = LRES.FindTexture(rt_name);
+		core::SmartReference<IResourceTexture> prt = LRES.FindTexture(rt_name);
 		if (!prt)
 			return luaL_error(L, "texture '%s' not found.", rt_name);
 		check_rendertarget_usage(prt);
@@ -808,7 +808,7 @@ namespace luastg {
 			lua_rawgeti(L, -1, 1); // ??? t tex
 			lua_rawgeti(L, -2, 2); // ??? t tex sampler
 			const char* tx_name = luaL_checkstring(L, -2);
-			core::ScopeObject<IResourceTexture> ptex = LRES.FindTexture(tx_name);
+			core::SmartReference<IResourceTexture> ptex = LRES.FindTexture(tx_name);
 			if (!ptex)
 				return luaL_error(L, "texture '%s' not found.", tx_name);
 			check_rendertarget_usage(ptex);

@@ -5,7 +5,7 @@
 namespace luastg
 {
 	ResourceAnimationImpl::ResourceAnimationImpl(
-		const char* name, core::ScopeObject<IResourceTexture> tex,
+		const char* name, core::SmartReference<IResourceTexture> tex,
 		float x, float y, float w, float h,
 		int n, int m, int intv,
 		double a, double b, bool rect)
@@ -22,7 +22,7 @@ namespace luastg
 		{
 			for (int i = 0; i < n; ++i)  // 列
 			{
-				core::ScopeObject<core::Graphics::ISprite> p_sprite_core;
+				core::SmartReference<core::Graphics::ISprite> p_sprite_core;
 				if (!core::Graphics::ISprite::create(
 					LAPP.GetAppModel()->getRenderer(),
 					tex->GetTexture(),
@@ -42,7 +42,7 @@ namespace luastg
 					(rc.a.x + rc.b.x) * 0.5f,
 					(rc.a.y + rc.b.y) * 0.5f
 				));
-				core::ScopeObject<IResourceSprite> p_sprite;
+				core::SmartReference<IResourceSprite> p_sprite;
 				p_sprite.attach(new ResourceSpriteImpl("", p_sprite_core.get(), a, b, rect));
 				m_sprites.emplace_back(p_sprite);
 			}
@@ -50,7 +50,7 @@ namespace luastg
 	}
 	ResourceAnimationImpl::ResourceAnimationImpl(
 		const char* name,
-		std::vector<core::ScopeObject<IResourceSprite>> const& sprite_list,
+		std::vector<core::SmartReference<IResourceSprite>> const& sprite_list,
 		int intv,
 		double a, double b, bool rect)
 		: ResourceBaseImpl(ResourceType::Animation, name)

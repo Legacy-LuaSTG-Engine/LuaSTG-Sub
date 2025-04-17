@@ -65,8 +65,8 @@ namespace core::Graphics::Common {
 		void updateRect();
 
 	private:
-		ScopeObject<IRenderer> m_renderer;
-		ScopeObject<ITexture2D> m_texture;
+		SmartReference<IRenderer> m_renderer;
+		SmartReference<ITexture2D> m_texture;
 		RectF m_rect;
 		RectF m_pos_rc;
 		RectF m_uv;

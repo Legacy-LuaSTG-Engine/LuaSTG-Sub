@@ -23,7 +23,7 @@ namespace luastg
 			float pan = 0.0f;
 		};
 	private:
-		core::ScopeObject<core::Audio::IAudioPlayer> m_player;
+		core::SmartReference<core::Audio::IAudioPlayer> m_player;
 		int m_status = 0; // 0停止 1暂停 2播放
 		Command m_last_command;
 	public:

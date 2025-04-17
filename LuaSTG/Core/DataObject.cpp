@@ -104,7 +104,7 @@ namespace core
 
 	bool IData::create(size_t size, IData** pp_data)
 	{
-		ScopeObject<DataObject> p_data;
+		SmartReference<DataObject> p_data;
 		try
 		{
 			p_data.attach(new DataObject(size));
@@ -119,7 +119,7 @@ namespace core
 	}
 	bool IData::create(size_t size, size_t align, IData** pp_data)
 	{
-		ScopeObject<DataObject> p_data;
+		SmartReference<DataObject> p_data;
 		try
 		{
 			p_data.attach(new DataObject(size, align));

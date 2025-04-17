@@ -23,7 +23,7 @@ namespace core::Graphics::Common {
 	struct GlyphCache2D {
 		static constexpr uint32_t invalid_rect_value{ 0x7FFFFFFF };
 		Image2D image;
-		ScopeObject<ITexture2D> texture;
+		SmartReference<ITexture2D> texture;
 		uint32_t pen_x{};
 		uint32_t pen_y{};
 		uint32_t pen_bottom{};
@@ -102,7 +102,7 @@ namespace core::Graphics::Common {
 		GlyphCacheInfo* getGlyphCacheInfo(uint32_t codepoint);
 		bool renderCache(uint32_t codepoint);
 
-		ScopeObject<IDevice> m_device;
+		SmartReference<IDevice> m_device;
 		FreeTypeFontCommonInfo m_common_info;
 		std::vector<FreeTypeFontData> m_font;
 		std::vector<GlyphCache2D> m_tex;

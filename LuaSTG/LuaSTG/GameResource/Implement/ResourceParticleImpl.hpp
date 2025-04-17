@@ -36,7 +36,7 @@ namespace luastg
 	struct ParticleSystemResourceInfo
 	{
 		hgeParticleSystemInfo tParticleSystemInfo = {};
-		core::ScopeObject<core::Graphics::ISprite> pSprite;
+		core::SmartReference<core::Graphics::ISprite> pSprite;
 		BlendMode eBlendMode = BlendMode::MulAlpha;
 		float colVertexColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
@@ -54,7 +54,7 @@ namespace luastg
 			Sleep
 		};
 	private:
-		core::ScopeObject<IResourceParticle> m_Res;
+		core::SmartReference<IResourceParticle> m_Res;
 		ParticleSystemResourceInfo m_Info;
 		std::array<hgeParticle, LPARTICLE_MAXCNT> m_ParticlePool;
 		random::xoshiro128p m_Random;
@@ -90,7 +90,7 @@ namespace luastg
 		void Render(float scaleX, float scaleY);
 		void SetOldBehavior(bool b) { m_bOldBehavior = b; }
 	public:
-		ParticlePoolImpl(core::ScopeObject<IResourceParticle> ps_ref);
+		ParticlePoolImpl(core::SmartReference<IResourceParticle> ps_ref);
 	};
 
 	class ResourceParticleImpl : public ResourceBaseImpl<IResourceParticle>

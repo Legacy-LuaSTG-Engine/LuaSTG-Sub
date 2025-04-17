@@ -32,7 +32,7 @@ namespace core::Graphics::Common {
 		SpriteRenderer& operator=(SpriteRenderer&&) = delete;
 
 	private:
-		ScopeObject<ISprite> m_sprite;
+		SmartReference<ISprite> m_sprite;
 		IRenderer::DrawVertex m_vertex[4]{};
 		IRenderer::VertexColorBlendState m_vertex_color_blend_state{ IRenderer::VertexColorBlendState::Mul };
 		IRenderer::BlendState m_blend_state{ IRenderer::BlendState::Alpha };

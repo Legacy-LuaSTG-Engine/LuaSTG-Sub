@@ -33,13 +33,13 @@ namespace core {
 }
 namespace core {
 	void IImmutableString::create(StringView const& view, IImmutableString** const output) {
-		ScopeObject<ImmutableString> s;
+		SmartReference<ImmutableString> s;
 		s.attach(new ImmutableString);
 		s->assign(view);
 		*output = s.detach();
 	}
 	void IImmutableString::create(char const* const data, size_t const size, IImmutableString** const output) {
-		ScopeObject<ImmutableString> s;
+		SmartReference<ImmutableString> s;
 		s.attach(new ImmutableString);
 		s->assign(data, size);
 		*output = s.detach();

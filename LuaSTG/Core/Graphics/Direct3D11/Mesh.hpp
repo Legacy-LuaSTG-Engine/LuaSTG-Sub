@@ -58,9 +58,9 @@ namespace core::Graphics::Direct3D11 {
 		bool createResources();
 
 	private:
-		ScopeObject<IDevice> m_device;
-		ScopeObject<IBuffer> m_vertex_buffer;
-		ScopeObject<IBuffer> m_index_buffer;
+		SmartReference<IDevice> m_device;
+		SmartReference<IBuffer> m_vertex_buffer;
+		SmartReference<IBuffer> m_index_buffer;
 		wil::com_ptr_nothrow<ID3DBlob> m_vertex_shader_byte_code;
 		wil::com_ptr_nothrow<ID3DBlob> m_vertex_shader_byte_code_fog;
 		wil::com_ptr_nothrow<ID3D11VertexShader> m_vertex_shader;

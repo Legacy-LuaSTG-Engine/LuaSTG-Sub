@@ -193,7 +193,7 @@ namespace luastg
 	
 	bool AppFrame::RenderText(const char* name, const char* str, float x, float y, float scale, FontAlignHorizontal halign, FontAlignVertical valign)noexcept
 	{
-		core::ScopeObject<IResourceFont> p = m_ResourceMgr.FindSpriteFont(name);
+		core::SmartReference<IResourceFont> p = m_ResourceMgr.FindSpriteFont(name);
 		if (!p)
 		{
 			spdlog::error("[luastg] RenderText: 找不到字体资源'{}'", name);
@@ -253,7 +253,7 @@ namespace luastg
 	bool AppFrame::RenderTTF(const char* name, const char* str,
 		float left, float right, float bottom, float top, float scale, int format, core::Color4B c)noexcept
 	{
-		core::ScopeObject<IResourceFont> p = m_ResourceMgr.FindTTFFont(name);
+		core::SmartReference<IResourceFont> p = m_ResourceMgr.FindTTFFont(name);
 		if (!p) {
 			spdlog::error("[luastg] RenderTTF: 找不到字体资源'{}'", name);
 			return false;
@@ -303,7 +303,7 @@ namespace luastg
 	
 	bool AppFrame::FontRenderer_SetFontProvider(const char* name)
 	{
-		core::ScopeObject<IResourceFont> p = m_ResourceMgr.FindTTFFont(name);
+		core::SmartReference<IResourceFont> p = m_ResourceMgr.FindTTFFont(name);
 		if (!p)
 		{
 			spdlog::error("[luastg] SetFontProvider: 找不到字体资源'{}'", name);
