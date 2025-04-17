@@ -184,10 +184,10 @@ target_sources(LuaSTG PRIVATE
 
 set(LUASTG_RESDIR ${CMAKE_CURRENT_LIST_DIR}/LuaSTG/Custom CACHE PATH "LuaSTG custom build configuration")
 if(EXISTS ${LUASTG_RESDIR}/Custom.cmake)
-    message("LuaSTG will using custom build configuration: " ${LUASTG_RESDIR}/Custom.cmake)
+    message(STATUS "LuaSTG will using custom build configuration: " ${LUASTG_RESDIR}/Custom.cmake)
     include(${LUASTG_RESDIR}/Custom.cmake)
 elseif(EXISTS ${CMAKE_CURRENT_LIST_DIR}/${LUASTG_RESDIR}/Custom.cmake)
-    message("LuaSTG will using custom build configuration: " ${CMAKE_CURRENT_LIST_DIR}/${LUASTG_RESDIR}/Custom.cmake)
+    message(STATUS "LuaSTG will using custom build configuration: " ${CMAKE_CURRENT_LIST_DIR}/${LUASTG_RESDIR}/Custom.cmake)
     include(${CMAKE_CURRENT_LIST_DIR}/${LUASTG_RESDIR}/Custom.cmake)
 else()
     message(FATAL_ERROR "LuaSTG can not find custom build configuration")
