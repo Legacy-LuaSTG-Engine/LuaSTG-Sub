@@ -272,8 +272,8 @@ void luastg::binding::FileManager::Register(lua_State* L)noexcept
 					std::string_view frompath = cfg.searchpath2; // 目标路径
 					for (size_t f = 0; f < zip.getCount(); f += 1)
 					{
-						bool is_dir = zip.getType(f) == Core::FileType::Directory;
-						if ((cfg.checkext || cfg.findfiles) && zip.getType(f) != Core::FileType::File)
+						bool is_dir = zip.getType(f) == core::FileType::Directory;
+						if ((cfg.checkext || cfg.findfiles) && zip.getType(f) != core::FileType::File)
 						{
 							continue; // 需要检查拓展名，那就不可能是文件夹了，或者为 FindFiles 模式（忽略文件夹）
 						}
@@ -510,7 +510,7 @@ void luastg::binding::FileManager::Register(lua_State* L)noexcept
 				return 1;
 			}
 			bool const respack = lua_toboolean(L, 2);
-			if (GFileManager().getType(path) == Core::FileType::Directory)
+			if (GFileManager().getType(path) == core::FileType::Directory)
 			{
 				lua_pushboolean(L, true);
 				return 1;
@@ -522,7 +522,7 @@ void luastg::binding::FileManager::Register(lua_State* L)noexcept
 					for (size_t idx = 0; idx < GFileManager().getFileArchiveCount(); idx += 1)
 					{
 						auto& zip = GFileManager().getFileArchive(idx);
-						if (zip.getType(p) == Core::FileType::Directory)
+						if (zip.getType(p) == core::FileType::Directory)
 						{
 							return true;
 						}
@@ -582,13 +582,13 @@ void luastg::binding::FileManager::Register(lua_State* L)noexcept
 		static int SetScale(lua_State* L) {
 			float a = (float)luaL_checknumber(L, 1);
 			float b = (float)luaL_checknumber(L, 2);
-			LAPP.FontRenderer_SetScale(Core::Vector2F(a, b));
+			LAPP.FontRenderer_SetScale(core::Vector2F(a, b));
 			return 0;
 		}
 		static int MeasureTextBoundary(lua_State* L) {
 			size_t len = 0;
 			const char* str = luaL_checklstring(L, 1, &len);
-			const Core::RectF v = LAPP.FontRenderer_MeasureTextBoundary(str, len);
+			const core::RectF v = LAPP.FontRenderer_MeasureTextBoundary(str, len);
 			lua_pushnumber(L, v.a.x);
 			lua_pushnumber(L, v.b.x);
 			lua_pushnumber(L, v.b.y);
@@ -598,7 +598,7 @@ void luastg::binding::FileManager::Register(lua_State* L)noexcept
 		static int MeasureTextAdvance(lua_State* L) {
 			size_t len = 0;
 			const char* str = luaL_checklstring(L, 1, &len);
-			const Core::Vector2F v = LAPP.FontRenderer_MeasureTextAdvance(str, len);
+			const core::Vector2F v = LAPP.FontRenderer_MeasureTextAdvance(str, len);
 			lua_pushnumber(L, v.x);
 			lua_pushnumber(L, v.y);
 			return 2;
@@ -606,7 +606,7 @@ void luastg::binding::FileManager::Register(lua_State* L)noexcept
 		static int RenderText(lua_State* L) {
 			size_t len = 0;
 			const char* str = luaL_checklstring(L, 1, &len);
-			auto pos = Core::Vector2F((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3));
+			auto pos = core::Vector2F((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3));
 			const bool ret = LAPP.FontRenderer_RenderText(
 				str, len,
 				pos, (float)luaL_checknumber(L, 4),
@@ -621,9 +621,9 @@ void luastg::binding::FileManager::Register(lua_State* L)noexcept
 			size_t len = 0;
 			const char* str = luaL_checklstring(L, 1, &len);
 
-			auto pos = Core::Vector3F((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3), (float)luaL_checknumber(L, 4));
-			auto const rvec = Core::Vector3F((float)luaL_checknumber(L, 5), (float)luaL_checknumber(L, 6), (float)luaL_checknumber(L, 7));
-			auto const dvec = Core::Vector3F((float)luaL_checknumber(L, 8), (float)luaL_checknumber(L, 9), (float)luaL_checknumber(L, 10));
+			auto pos = core::Vector3F((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3), (float)luaL_checknumber(L, 4));
+			auto const rvec = core::Vector3F((float)luaL_checknumber(L, 5), (float)luaL_checknumber(L, 6), (float)luaL_checknumber(L, 7));
+			auto const dvec = core::Vector3F((float)luaL_checknumber(L, 8), (float)luaL_checknumber(L, 9), (float)luaL_checknumber(L, 10));
 
 			BlendMode blend = TranslateBlendMode(L, 11);
 			const bool ret = LAPP.FontRenderer_RenderTextInSpace(

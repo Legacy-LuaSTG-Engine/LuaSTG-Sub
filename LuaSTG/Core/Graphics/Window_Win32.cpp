@@ -30,7 +30,7 @@ namespace {
 	}
 }
 
-namespace Core::Graphics
+namespace core::Graphics
 {
 	void* Display_Win32::getNativeHandle() {
 		return win32_monitor;
@@ -190,7 +190,7 @@ namespace Core::Graphics
 	}
 }
 
-namespace Core::Graphics
+namespace core::Graphics
 {
 	void       Window_Win32::textInput_updateBuffer() {
 		auto const& s32 = m_text_input_buffer;
@@ -321,7 +321,7 @@ namespace Core::Graphics
 	}
 }
 
-namespace Core::Graphics
+namespace core::Graphics
 {
 	static DWORD mapWindowStyle(WindowFrameStyle style, bool fullscreen) {
 		if (fullscreen) {
@@ -587,7 +587,7 @@ namespace Core::Graphics
 		assert(hInstance); // 如果 hInstance 为 NULL 那肯定是见鬼了
 
 		std::memset(win32_window_class_name, 0, sizeof(win32_window_class_name));
-		std::swprintf(win32_window_class_name, std::size(win32_window_class_name), L"LuaSTG::Core::Window[%p]", this);
+		std::swprintf(win32_window_class_name, std::size(win32_window_class_name), L"LuaSTG::core::Window[%p]", this);
 
 		auto& cls = win32_window_class;
 		cls.style = CS_HREDRAW | CS_VREDRAW;
@@ -1161,7 +1161,7 @@ namespace Core::Graphics
 		SendMessageW(win32_window, LUASTG_WM_SET_FULLSCREEN_MODE, 0, reinterpret_cast<LPARAM>(display));
 	}
 	void Window_Win32::setCentered(bool show, IDisplay* display) {
-		Core::ScopeObject<IDisplay> local_display;
+		core::ScopeObject<IDisplay> local_display;
 		if (!display) {
 			if (!IDisplay::getNearestFromWindow(this, ~local_display)) {
 				return;

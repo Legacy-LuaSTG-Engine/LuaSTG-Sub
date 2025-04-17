@@ -2,7 +2,7 @@
 #include "Core/FileManager.hpp"
 #include "utf8.hpp"
 
-namespace Core::Audio
+namespace core::Audio
 {
 	inline Decoder_FLAC& cast(void* client_data) { return *(Decoder_FLAC*)client_data; }
 
@@ -118,7 +118,7 @@ namespace Core::Audio
 	}
 }
 
-namespace Core::Audio
+namespace core::Audio
 {
 	void Decoder_FLAC::destroyResources()
 	{

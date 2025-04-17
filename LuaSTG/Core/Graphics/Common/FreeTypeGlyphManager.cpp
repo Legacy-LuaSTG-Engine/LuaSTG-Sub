@@ -81,12 +81,12 @@ namespace {
 #define FT_LIBRARY (FreeTypeLibrarySingleton::getInstance().get())
 }
 
-namespace Core::Graphics::Common {
+namespace core::Graphics::Common {
 	Image2D::Image2D() {
 		std::memset(data, 0, sizeof(data));
 	}
 }
-namespace Core::Graphics::Common {
+namespace core::Graphics::Common {
 	// IDeviceEventListener
 
 	void FreeTypeGlyphManager::onDeviceCreate() {
@@ -427,7 +427,7 @@ namespace Core::Graphics::Common {
 		return false;
 	}
 }
-namespace Core::Graphics {
+namespace core::Graphics {
 	bool IGlyphManager::create(IDevice* const p_device, TrueTypeFontInfo const* const p_arr_info, size_t const info_count, IGlyphManager** const output) {
 		try {
 			*output = new Common::FreeTypeGlyphManager(p_device, p_arr_info, info_count);

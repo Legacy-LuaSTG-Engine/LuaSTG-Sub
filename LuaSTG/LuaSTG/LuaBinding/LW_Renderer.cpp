@@ -5,7 +5,7 @@
 #include "GameResource/LegacyBlendStateHelper.hpp"
 
 namespace luastg {
-	inline Core::Graphics::IRenderer* LR2D() { return LAPP.GetAppModel()->getRenderer(); }
+	inline core::Graphics::IRenderer* LR2D() { return LAPP.GetAppModel()->getRenderer(); }
 	inline ResourceMgr& LRESMGR() { return LAPP.GetResourceMgr(); }
 
 #ifndef NDEBUG
@@ -58,10 +58,10 @@ namespace luastg {
 			y4 = ty;
 		}
 	}
-	inline void translate_blend(Core::Graphics::IRenderer*, const luastg::BlendMode blend) {
+	inline void translate_blend(core::Graphics::IRenderer*, const luastg::BlendMode blend) {
 		LAPP.updateGraph2DBlendMode(blend);
 	}
-	inline Core::Graphics::IRenderer::BlendState translate_blend_3d(const luastg::BlendMode blend) {
+	inline core::Graphics::IRenderer::BlendState translate_blend_3d(const luastg::BlendMode blend) {
 		[[maybe_unused]] auto const [v, b] = translateLegacyBlendState(blend);
 		return b;
 	}
@@ -71,7 +71,7 @@ namespace luastg {
 		return RenderError::None;
 	}
 	inline RenderError api_drawSprite(char const* name, float const x, float const y, float const rot, float const hscale, float const vscale, float const z) {
-		Core::ScopeObject<IResourceSprite> pimg2dres = LRESMGR().FindSprite(name);
+		core::ScopeObject<IResourceSprite> pimg2dres = LRESMGR().FindSprite(name);
 		if (!pimg2dres) {
 			spdlog::error("[luastg] lstg.Renderer.drawSprite failed, can't find sprite '{}'", name);
 			return RenderError::SpriteNotFound;
@@ -83,7 +83,7 @@ namespace luastg {
 		return RenderError::None;
 	}
 	inline RenderError api_drawSpriteRect(char const* name, float const l, float const r, float const b, float const t, float const z) {
-		Core::ScopeObject<IResourceSprite> pimg2dres = LRESMGR().FindSprite(name);
+		core::ScopeObject<IResourceSprite> pimg2dres = LRESMGR().FindSprite(name);
 		if (!pimg2dres) {
 			spdlog::error("[luastg] lstg.Renderer.drawSpriteRect failed, can't find sprite '{}'", name);
 			return RenderError::SpriteNotFound;
@@ -95,7 +95,7 @@ namespace luastg {
 		return RenderError::None;
 	}
 	inline RenderError api_drawSprite4V(char const* name, float const x1, float const y1, float const z1, float const x2, float const y2, float const z2, float const x3, float const y3, float const z3, float const x4, float const y4, float const z4) {
-		Core::ScopeObject<IResourceSprite> pimg2dres = LRESMGR().FindSprite(name);
+		core::ScopeObject<IResourceSprite> pimg2dres = LRESMGR().FindSprite(name);
 		if (!pimg2dres) {
 			spdlog::error("[luastg] lstg.Renderer.drawSprite4V failed, can't find sprite '{}'", name);
 			return RenderError::SpriteNotFound;
@@ -108,7 +108,7 @@ namespace luastg {
 		return RenderError::None;
 	}
 	inline RenderError api_drawSpriteSequence(char const* name, int const ani_timer, float const x, float const y, float const rot, float const hscale, float const vscale, float const z) {
-		Core::ScopeObject<IResourceAnimation> pani2dres = LRESMGR().FindAnimation(name);
+		core::ScopeObject<IResourceAnimation> pani2dres = LRESMGR().FindAnimation(name);
 		if (!pani2dres) {
 			spdlog::error("[luastg] lstg.Renderer.drawSpriteSequence failed, can't find sprite sequence '{}'", name);
 			return RenderError::SpriteSequenceNotFound;
@@ -116,21 +116,21 @@ namespace luastg {
 		return api_drawSpriteSequence(*pani2dres, ani_timer, x, y, rot, hscale, vscale, z);
 	}
 
-	static void api_setFogState(float start, float end, Core::Color4B color) {
+	static void api_setFogState(float start, float end, core::Color4B color) {
 		auto* ctx = LR2D();
 		if (start != end) {
 			if (start == -1.0f) {
-				ctx->setFogState(Core::Graphics::IRenderer::FogState::Exp, color, end, 0.0f);
+				ctx->setFogState(core::Graphics::IRenderer::FogState::Exp, color, end, 0.0f);
 			}
 			else if (start == -2.0f) {
-				ctx->setFogState(Core::Graphics::IRenderer::FogState::Exp2, color, end, 0.0f);
+				ctx->setFogState(core::Graphics::IRenderer::FogState::Exp2, color, end, 0.0f);
 			}
 			else {
-				ctx->setFogState(Core::Graphics::IRenderer::FogState::Linear, color, start, end);
+				ctx->setFogState(core::Graphics::IRenderer::FogState::Linear, color, start, end);
 			}
 		}
 		else {
-			ctx->setFogState(Core::Graphics::IRenderer::FogState::Disable, Core::Color4B(), 0.0f, 0.0f);
+			ctx->setFogState(core::Graphics::IRenderer::FogState::Disable, core::Color4B(), 0.0f, 0.0f);
 		}
 	}
 
@@ -146,9 +146,9 @@ namespace luastg {
 	}
 
 	static int lib_clearRenderTarget(lua_State* L)noexcept {
-		Core::Color4B color;
+		core::Color4B color;
 		if (lua_isnumber(L, 1)) {
-			color = Core::Color4B((uint32_t)lua_tonumber(L, 1));
+			color = core::Color4B((uint32_t)lua_tonumber(L, 1));
 		}
 		else {
 			color = *binding::Color::Cast(L, 1);
@@ -171,9 +171,9 @@ namespace luastg {
 	}
 
 	static int lib_setOrtho(lua_State* L)noexcept {
-		Core::BoxF box;
+		core::BoxF box;
 		if (lua_gettop(L) < 6) {
-			box = Core::BoxF(
+			box = core::BoxF(
 				(float)luaL_checknumber(L, 1),
 				(float)luaL_checknumber(L, 4),
 				0.0f,
@@ -183,7 +183,7 @@ namespace luastg {
 			);
 		}
 		else {
-			box = Core::BoxF(
+			box = core::BoxF(
 				(float)luaL_checknumber(L, 1),
 				(float)luaL_checknumber(L, 4),
 				(float)luaL_checknumber(L, 5),
@@ -196,19 +196,19 @@ namespace luastg {
 		return 0;
 	}
 	static int lib_setPerspective(lua_State* L)noexcept {
-		Core::Vector3F eye;
+		core::Vector3F eye;
 		eye.x = (float)luaL_checknumber(L, 1);
 		eye.y = (float)luaL_checknumber(L, 2);
 		eye.z = (float)luaL_checknumber(L, 3);
-		Core::Vector3F lookat;
+		core::Vector3F lookat;
 		lookat.x = (float)luaL_checknumber(L, 4);
 		lookat.y = (float)luaL_checknumber(L, 5);
 		lookat.z = (float)luaL_checknumber(L, 6);
-		Core::Vector3F headup;
+		core::Vector3F headup;
 		headup.x = (float)luaL_checknumber(L, 7);
 		headup.y = (float)luaL_checknumber(L, 8);
 		headup.z = (float)luaL_checknumber(L, 9);
-		Core::Vector2F zrange;
+		core::Vector2F zrange;
 		zrange.x = (float)luaL_checknumber(L, 12);
 		zrange.y = (float)luaL_checknumber(L, 13);
 		if (zrange.x <= 0.0f || zrange.y <= zrange.x)
@@ -222,9 +222,9 @@ namespace luastg {
 	}
 
 	static int lib_setViewport(lua_State* L)noexcept {
-		Core::BoxF box;
+		core::BoxF box;
 		if (lua_gettop(L) < 6) {
-			box = Core::BoxF(
+			box = core::BoxF(
 				(float)luaL_checknumber(L, 1),
 				(float)luaL_checknumber(L, 2),
 				0.0f,
@@ -234,7 +234,7 @@ namespace luastg {
 			);
 		}
 		else {
-			box = Core::BoxF(
+			box = core::BoxF(
 				(float)luaL_checknumber(L, 1),
 				(float)luaL_checknumber(L, 2),
 				(float)luaL_checknumber(L, 5),
@@ -247,7 +247,7 @@ namespace luastg {
 		return 0;
 	}
 	static int lib_setScissorRect(lua_State* L)noexcept {
-		LR2D()->setScissorRect(Core::RectF(
+		LR2D()->setScissorRect(core::RectF(
 			(float)luaL_checknumber(L, 1),
 			(float)luaL_checknumber(L, 2),
 			(float)luaL_checknumber(L, 3),
@@ -258,20 +258,20 @@ namespace luastg {
 
 	static int lib_setVertexColorBlendState(lua_State* L)noexcept {
 		validate_render_scope();
-		LR2D()->setVertexColorBlendState((Core::Graphics::IRenderer::VertexColorBlendState)luaL_checkinteger(L, 1));
+		LR2D()->setVertexColorBlendState((core::Graphics::IRenderer::VertexColorBlendState)luaL_checkinteger(L, 1));
 		return 0;
 	}
 	static int lib_setFogState(lua_State* L)noexcept {
 		validate_render_scope();
-		Core::Color4B color;
+		core::Color4B color;
 		if (lua_isnumber(L, 2)) {
-			color = Core::Color4B((uint32_t)lua_tonumber(L, 2));
+			color = core::Color4B((uint32_t)lua_tonumber(L, 2));
 		}
 		else {
 			color = *binding::Color::Cast(L, 2);
 		}
 		LR2D()->setFogState(
-			(Core::Graphics::IRenderer::FogState)luaL_checkinteger(L, 1),
+			(core::Graphics::IRenderer::FogState)luaL_checkinteger(L, 1),
 			color,
 			(float)luaL_checknumber(L, 3),
 			(float)luaL_optnumber(L, 4, 0.0));
@@ -279,18 +279,18 @@ namespace luastg {
 	}
 	static int lib_setDepthState(lua_State* L)noexcept {
 		validate_render_scope();
-		LR2D()->setDepthState((Core::Graphics::IRenderer::DepthState)luaL_checkinteger(L, 1));
+		LR2D()->setDepthState((core::Graphics::IRenderer::DepthState)luaL_checkinteger(L, 1));
 		return 0;
 	}
 	static int lib_setBlendState(lua_State* L)noexcept {
 		validate_render_scope();
-		LR2D()->setBlendState((Core::Graphics::IRenderer::BlendState)luaL_checkinteger(L, 1));
+		LR2D()->setBlendState((core::Graphics::IRenderer::BlendState)luaL_checkinteger(L, 1));
 		return 0;
 	}
 	static int lib_setTexture(lua_State* L)noexcept {
 		validate_render_scope();
 		char const* name = luaL_checkstring(L, 1);
-		Core::ScopeObject<IResourceTexture> p = LRESMGR().FindTexture(name);
+		core::ScopeObject<IResourceTexture> p = LRESMGR().FindTexture(name);
 		if (!p) {
 			spdlog::error("[luastg] lstg.Renderer.setTexture failed: can't find texture '{}'", name);
 			return luaL_error(L, "can't find texture '%s'", name);
@@ -303,7 +303,7 @@ namespace luastg {
 	static int lib_drawTriangle(lua_State* L) {
 		validate_render_scope();
 
-		Core::Graphics::IRenderer::DrawVertex vertex[3];
+		core::Graphics::IRenderer::DrawVertex vertex[3];
 
 		lua_rawgeti(L, 1, 1);
 		lua_rawgeti(L, 1, 2);
@@ -353,7 +353,7 @@ namespace luastg {
 	static int lib_drawQuad(lua_State* L) {
 		validate_render_scope();
 
-		Core::Graphics::IRenderer::DrawVertex vertex[4];
+		core::Graphics::IRenderer::DrawVertex vertex[4];
 
 		lua_rawgeti(L, 1, 1);
 		lua_rawgeti(L, 1, 2);
@@ -476,7 +476,7 @@ namespace luastg {
 
 		const char* name = luaL_checkstring(L, 1);
 		auto const blend = TranslateBlendMode(L, 2);
-		Core::Graphics::IRenderer::DrawVertex vertex[4];
+		core::Graphics::IRenderer::DrawVertex vertex[4];
 
 		for (int i = 0; i < 4; ++i) {
 			lua_pushinteger(L, 1);
@@ -515,13 +515,13 @@ namespace luastg {
 
 		translate_blend(ctx, blend);
 
-		Core::ScopeObject<IResourceTexture> ptex2dres = LRESMGR().FindTexture(name);
+		core::ScopeObject<IResourceTexture> ptex2dres = LRESMGR().FindTexture(name);
 		if (!ptex2dres) {
 			spdlog::error("[luastg] lstg.Renderer.drawTexture failed: can't find texture '{}'", name);
 			return luaL_error(L, "can't find texture '%s'", name);
 		}
 		check_rendertarget_usage(ptex2dres);
-		Core::Graphics::ITexture2D* ptex2d = ptex2dres->GetTexture();
+		core::Graphics::ITexture2D* ptex2d = ptex2dres->GetTexture();
 		float const uscale = 1.0f / (float)ptex2d->getSize().x;
 		float const vscale = 1.0f / (float)ptex2d->getSize().y;
 		for (int i = 0; i < 4; ++i) {
@@ -550,15 +550,15 @@ namespace luastg {
 		float const sy = (float)luaL_optnumber(L, 9, 1.0);
 		float const sz = (float)luaL_optnumber(L, 10, 1.0);
 
-		Core::ScopeObject<IResourceModel> pmodres = LRESMGR().FindModel(name);
+		core::ScopeObject<IResourceModel> pmodres = LRESMGR().FindModel(name);
 		if (!pmodres) {
 			spdlog::error("[luastg] lstg.Renderer.drawModel failed: can't find model '{}'", name);
 			return false;
 		}
 
-		pmodres->GetModel()->setScaling(Core::Vector3F(sx, sy, sz));
+		pmodres->GetModel()->setScaling(core::Vector3F(sx, sy, sz));
 		pmodres->GetModel()->setRotationRollPitchYaw(roll, pitch, yaw);
-		pmodres->GetModel()->setPosition(Core::Vector3F(x, y, z));
+		pmodres->GetModel()->setPosition(core::Vector3F(x, y, z));
 		LR2D()->drawModel(pmodres->GetModel());
 
 		return 0;
@@ -600,9 +600,9 @@ namespace luastg {
 	};
 
 	static int compat_SetViewport(lua_State* L)noexcept {
-		Core::BoxF box;
+		core::BoxF box;
 		if (lua_gettop(L) >= 6) {
-			box = Core::BoxF(
+			box = core::BoxF(
 				(float)luaL_checknumber(L, 1),
 				(float)luaL_checknumber(L, 4),
 				(float)luaL_checknumber(L, 5),
@@ -612,7 +612,7 @@ namespace luastg {
 			);
 		}
 		else {
-			box = Core::BoxF(
+			box = core::BoxF(
 				(float)luaL_checknumber(L, 1),
 				(float)luaL_checknumber(L, 4),
 				0.0f,
@@ -621,20 +621,20 @@ namespace luastg {
 				1.0f
 			);
 		}
-		Core::Vector2U const backbuf_size = LAPP.GetRenderTargetManager()->GetTopRenderTargetSize();
+		core::Vector2U const backbuf_size = LAPP.GetRenderTargetManager()->GetTopRenderTargetSize();
 		box.a.y = (float)backbuf_size.y - box.a.y;
 		box.b.y = (float)backbuf_size.y - box.b.y;
 		LR2D()->setViewport(box);
 		return 0;
 	}
 	static int compat_SetScissorRect(lua_State* L)noexcept {
-		Core::RectF rect(
+		core::RectF rect(
 			(float)luaL_checknumber(L, 1),
 			(float)luaL_checknumber(L, 4),
 			(float)luaL_checknumber(L, 2),
 			(float)luaL_checknumber(L, 3)
 		);
-		Core::Vector2U const backbuf_size = LAPP.GetRenderTargetManager()->GetTopRenderTargetSize();
+		core::Vector2U const backbuf_size = LAPP.GetRenderTargetManager()->GetTopRenderTargetSize();
 		rect.a.y = (float)backbuf_size.y - rect.a.y;
 		rect.b.y = (float)backbuf_size.y - rect.b.y;
 		LR2D()->setScissorRect(rect);
@@ -653,17 +653,17 @@ namespace luastg {
 			api_setFogState(
 				static_cast<float>(luaL_checknumber(L, 1)),
 				static_cast<float>(luaL_checknumber(L, 2)),
-				Core::Color4B(0xFF000000)
+				core::Color4B(0xFF000000)
 			);
 		}
 		else {
-			api_setFogState(0.0f, 0.0f, Core::Color4B(0x00000000));
+			api_setFogState(0.0f, 0.0f, core::Color4B(0x00000000));
 		}
 		return 0;
 	}
 	static int compat_SetZBufferEnable(lua_State* L)noexcept {
 		validate_render_scope();
-		LR2D()->setDepthState((Core::Graphics::IRenderer::DepthState)luaL_checkinteger(L, 1));
+		LR2D()->setDepthState((core::Graphics::IRenderer::DepthState)luaL_checkinteger(L, 1));
 		return 0;
 	}
 	static int compat_ClearZBuffer(lua_State* L)noexcept {
@@ -674,7 +674,7 @@ namespace luastg {
 	static int compat_PushRenderTarget(lua_State* L)noexcept {
 		validate_render_scope();
 		LR2D()->flush();
-		Core::ScopeObject<IResourceTexture> p = LRES.FindTexture(luaL_checkstring(L, 1));
+		core::ScopeObject<IResourceTexture> p = LRES.FindTexture(luaL_checkstring(L, 1));
 		if (!p)
 			return luaL_error(L, "rendertarget '%s' not found.", luaL_checkstring(L, 1));
 		if (!p->IsRenderTarget())
@@ -699,7 +699,7 @@ namespace luastg {
 		// PostEffectShader 对象风格
 		if (lua_isuserdata(L, 1)) {
 			auto* p_effect = binding::PostEffectShader::Cast(L, 1);
-			const Core::Graphics::IRenderer::BlendState blend = translate_blend_3d(TranslateBlendMode(L, 2));
+			const core::Graphics::IRenderer::BlendState blend = translate_blend_3d(TranslateBlendMode(L, 2));
 			LR2D()->drawPostEffect(p_effect, blend);
 			return 0;
 		}
@@ -708,26 +708,26 @@ namespace luastg {
 		if (lua_type(L, 1) == LUA_TSTRING && lua_type(L, 2) == LUA_TSTRING && lua_type(L, 3) == LUA_TSTRING && lua_type(L, 3) != LUA_TNUMBER) {
 			const char* rt_name = luaL_checkstring(L, 1);
 			const char* ps_name = luaL_checkstring(L, 2);
-			const Core::Graphics::IRenderer::BlendState blend = translate_blend_3d(TranslateBlendMode(L, 3));
+			const core::Graphics::IRenderer::BlendState blend = translate_blend_3d(TranslateBlendMode(L, 3));
 
-			Core::ScopeObject<IResourceTexture> prt = LRES.FindTexture(rt_name);
+			core::ScopeObject<IResourceTexture> prt = LRES.FindTexture(rt_name);
 			if (!prt)
 				return luaL_error(L, "texture '%s' not found.", rt_name);
 			check_rendertarget_usage(prt);
 
-			Core::ScopeObject<IResourcePostEffectShader> pfx = LRES.FindFX(ps_name);
+			core::ScopeObject<IResourcePostEffectShader> pfx = LRES.FindFX(ps_name);
 			if (!pfx)
 				return luaL_error(L, "posteffect '%s' not found.", ps_name);
 
-			Core::Graphics::IPostEffectShader* p_effect = pfx->GetPostEffectShader();
+			core::Graphics::IPostEffectShader* p_effect = pfx->GetPostEffectShader();
 
 			p_effect->setTexture2D("screen_texture", prt->GetTexture());
 
 			auto const rt_size = prt->GetTexture()->getSize();
-			p_effect->setFloat4("screen_texture_size", Core::Vector4F(float(rt_size.x), float(rt_size.y), 0.0f, 0.0f));
+			p_effect->setFloat4("screen_texture_size", core::Vector4F(float(rt_size.x), float(rt_size.y), 0.0f, 0.0f));
 
 			auto const vp = LR2D()->getViewport();
-			p_effect->setFloat4("viewport", Core::Vector4F(vp.a.x, vp.a.y, vp.b.x, vp.b.y));
+			p_effect->setFloat4("viewport", core::Vector4F(vp.a.x, vp.a.y, vp.b.x, vp.b.y));
 
 			if (lua_istable(L, 4)) {
 				lua_pushnil(L);  // ... t ... nil
@@ -738,15 +738,15 @@ namespace luastg {
 						p_effect->setFloat(key, (float)lua_tonumber(L, -1));
 					}
 					else if (lua_isstring(L, -1)) {
-						Core::ScopeObject<IResourceTexture> ptex = LRES.FindTexture(lua_tostring(L, -1));
+						core::ScopeObject<IResourceTexture> ptex = LRES.FindTexture(lua_tostring(L, -1));
 						if (!ptex)
 							return luaL_error(L, "texture '%s' not found.", rt_name);
 						check_rendertarget_usage(ptex);
 						p_effect->setTexture2D(key, ptex->GetTexture());
 					}
 					else if (lua_isuserdata(L, -1)) {
-						Core::Color4B color = *binding::Color::Cast(L, -1);
-						p_effect->setFloat4(key, Core::Vector4F(
+						core::Color4B color = *binding::Color::Cast(L, -1);
+						p_effect->setFloat4(key, core::Vector4F(
 							float(color.r) / 255.0f,
 							float(color.g) / 255.0f,
 							float(color.b) / 255.0f,
@@ -769,21 +769,21 @@ namespace luastg {
 
 		const char* ps_name = luaL_checkstring(L, 1);
 		const char* rt_name = luaL_checkstring(L, 2);
-		const Core::Graphics::IRenderer::SamplerState rtsv = (Core::Graphics::IRenderer::SamplerState)luaL_checkinteger(L, 3);
-		const Core::Graphics::IRenderer::BlendState blend = translate_blend_3d(TranslateBlendMode(L, 4));
+		const core::Graphics::IRenderer::SamplerState rtsv = (core::Graphics::IRenderer::SamplerState)luaL_checkinteger(L, 3);
+		const core::Graphics::IRenderer::BlendState blend = translate_blend_3d(TranslateBlendMode(L, 4));
 
-		Core::ScopeObject<IResourcePostEffectShader> pfx = LRES.FindFX(ps_name);
+		core::ScopeObject<IResourcePostEffectShader> pfx = LRES.FindFX(ps_name);
 		if (!pfx)
 			return luaL_error(L, "posteffect '%s' not found.", ps_name);
 
-		Core::ScopeObject<IResourceTexture> prt = LRES.FindTexture(rt_name);
+		core::ScopeObject<IResourceTexture> prt = LRES.FindTexture(rt_name);
 		if (!prt)
 			return luaL_error(L, "texture '%s' not found.", rt_name);
 		check_rendertarget_usage(prt);
 
-		Core::Vector4F cbdata[8] = {};
-		Core::Graphics::ITexture2D* tdata[4] = {};
-		Core::Graphics::IRenderer::SamplerState tsdata[4] = {};
+		core::Vector4F cbdata[8] = {};
+		core::Graphics::ITexture2D* tdata[4] = {};
+		core::Graphics::IRenderer::SamplerState tsdata[4] = {};
 
 		size_t cbdata_n = lua_objlen(L, 5);
 		cbdata_n = (cbdata_n <= 8) ? cbdata_n : 8;
@@ -808,12 +808,12 @@ namespace luastg {
 			lua_rawgeti(L, -1, 1); // ??? t tex
 			lua_rawgeti(L, -2, 2); // ??? t tex sampler
 			const char* tx_name = luaL_checkstring(L, -2);
-			Core::ScopeObject<IResourceTexture> ptex = LRES.FindTexture(tx_name);
+			core::ScopeObject<IResourceTexture> ptex = LRES.FindTexture(tx_name);
 			if (!ptex)
 				return luaL_error(L, "texture '%s' not found.", tx_name);
 			check_rendertarget_usage(ptex);
 			tdata[i - 1] = ptex->GetTexture();
-			tsdata[i - 1] = (Core::Graphics::IRenderer::SamplerState)luaL_checkinteger(L, -1);
+			tsdata[i - 1] = (core::Graphics::IRenderer::SamplerState)luaL_checkinteger(L, -1);
 		}
 
 		LR2D()->drawPostEffect(pfx->GetPostEffectShader(), blend, prt->GetTexture(), rtsv, cbdata, cbdata_n, tdata, tsdata, tdata_n);

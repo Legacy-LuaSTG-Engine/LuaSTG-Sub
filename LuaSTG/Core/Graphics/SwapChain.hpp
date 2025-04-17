@@ -4,7 +4,7 @@
 #include "Core/Graphics/Format.hpp"
 #include "Core/Graphics/Device.hpp"
 
-namespace Core::Graphics
+namespace core::Graphics
 {
 	struct DisplayMode
 	{

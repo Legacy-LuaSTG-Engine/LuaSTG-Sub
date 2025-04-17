@@ -9,9 +9,9 @@ namespace luastg
 	class ResourceAnimationImpl : public ResourceBaseImpl<IResourceAnimation>
 	{
 	private:
-		std::vector<Core::ScopeObject<IResourceSprite>> m_sprites;
+		std::vector<core::ScopeObject<IResourceSprite>> m_sprites;
 		uint32_t m_Interval = 1;
-		Core::Color4B m_vertex_color[4]{ Core::Color4B(0xFFFFFFFF), Core::Color4B(0xFFFFFFFF), Core::Color4B(0xFFFFFFFF), Core::Color4B(0xFFFFFFFF) };
+		core::Color4B m_vertex_color[4]{ core::Color4B(0xFFFFFFFF), core::Color4B(0xFFFFFFFF), core::Color4B(0xFFFFFFFF), core::Color4B(0xFFFFFFFF) };
 		BlendMode m_BlendMode = BlendMode::MulAlpha;
 		double m_HalfSizeX = 0.;
 		double m_HalfSizeY = 0.;
@@ -24,15 +24,15 @@ namespace luastg
 		uint32_t GetSpriteIndexByTimer(int ani_timer);
 		IResourceSprite* GetSpriteByTimer(int ani_timer);
 		uint32_t GetInterval() { return m_Interval; }
-		void SetVertexColor(Core::Color4B color) { m_vertex_color[0] = m_vertex_color[1] = m_vertex_color[2]= m_vertex_color[3] = color; }
-		void SetVertexColor(Core::Color4B color[4])
+		void SetVertexColor(core::Color4B color) { m_vertex_color[0] = m_vertex_color[1] = m_vertex_color[2]= m_vertex_color[3] = color; }
+		void SetVertexColor(core::Color4B color[4])
 		{
 			m_vertex_color[0] = color[0];
 			m_vertex_color[1] = color[1];
 			m_vertex_color[2] = color[2];
 			m_vertex_color[3] = color[3];
 		}
-		void GetVertexColor(Core::Color4B color[4])
+		void GetVertexColor(core::Color4B color[4])
 		{
 			color[0] = m_vertex_color[0];
 			color[1] = m_vertex_color[1];
@@ -47,14 +47,14 @@ namespace luastg
 		bool IsSpriteCloned() { return m_is_sprite_cloned; }
 		// 不受全局缩放影响
 		void Render(int timer, float x, float y, float rot, float hscale, float vscale, float z);
-		void Render(int timer, float x, float y, float rot, float hscale, float vscale, BlendMode blend, Core::Color4B color, float z);
+		void Render(int timer, float x, float y, float rot, float hscale, float vscale, BlendMode blend, core::Color4B color, float z);
 	public:
-		ResourceAnimationImpl(const char* name, Core::ScopeObject<IResourceTexture> tex,
+		ResourceAnimationImpl(const char* name, core::ScopeObject<IResourceTexture> tex,
 			float x, float y, float w, float h,
 			int n, int m, int intv,
 			double a, double b, bool rect = false);
 		ResourceAnimationImpl(const char* name,
-			std::vector<Core::ScopeObject<IResourceSprite>> const& sprite_list,
+			std::vector<core::ScopeObject<IResourceSprite>> const& sprite_list,
 			int intv,
 			double a, double b, bool rect = false);
 	};

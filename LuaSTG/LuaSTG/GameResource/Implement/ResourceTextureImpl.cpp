@@ -3,7 +3,7 @@
 
 namespace luastg
 {
-	bool ResourceTextureImpl::ResizeRenderTarget(Core::Vector2U size)
+	bool ResourceTextureImpl::ResizeRenderTarget(core::Vector2U size)
 	{
 		if (!m_rt)
 		{
@@ -42,7 +42,7 @@ namespace luastg
 		return true;
 	}
 
-	ResourceTextureImpl::ResourceTextureImpl(const char* name, Core::Graphics::ITexture2D* p_texture)
+	ResourceTextureImpl::ResourceTextureImpl(const char* name, core::Graphics::ITexture2D* p_texture)
 		: ResourceBaseImpl(ResourceType::Texture, name)
 		, m_texture(p_texture)
 		, m_is_rendertarget(false)
@@ -57,7 +57,7 @@ namespace luastg
 		, m_is_auto_resize(false)
 		, m_enable_depthbuffer(ds)
 	{
-		auto const size = Core::Vector2U((uint32_t)w, (uint32_t)h);
+		auto const size = core::Vector2U((uint32_t)w, (uint32_t)h);
 		if (!ResizeRenderTarget(size))
 		{
 			throw std::runtime_error("ResTexture::ResTexture createRenderTarget");

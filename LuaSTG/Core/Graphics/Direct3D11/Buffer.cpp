@@ -15,7 +15,7 @@ namespace {
 }
 
 // Buffer
-namespace Core::Graphics::Direct3D11 {
+namespace core::Graphics::Direct3D11 {
 	void Buffer::onDeviceCreate() {
 		if (m_initialized) {
 			createResources();
@@ -98,7 +98,7 @@ namespace Core::Graphics::Direct3D11 {
 		return true;
 	}
 }
-namespace Core::Graphics::Direct3D11 {
+namespace core::Graphics::Direct3D11 {
 	bool Device::createVertexBuffer(uint32_t const size_in_bytes, IBuffer** const output) {
 		*output = nullptr;
 		ScopeObject<Buffer> buffer;

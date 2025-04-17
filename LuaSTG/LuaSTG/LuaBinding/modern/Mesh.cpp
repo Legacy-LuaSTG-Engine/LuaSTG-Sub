@@ -209,11 +209,11 @@ end
 
 namespace {
 	// for legacy lstg.Mesh (experiment)
-	Core::Color4B toColor4B(lua_State* vm, int const idx) {
+	core::Color4B toColor4B(lua_State* vm, int const idx) {
 		// ReSharper disable once CppTooWideScopeInitStatement
 		lua::stack_t const ctx(vm);
 		if (ctx.is_number(idx)) {
-			return Core::Color4B(ctx.get_value<uint32_t>(idx));
+			return core::Color4B(ctx.get_value<uint32_t>(idx));
 		}
 		return *luastg::binding::Color::Cast(vm, idx);
 	}
@@ -298,7 +298,7 @@ namespace luastg::binding {
 				auto const g = ctx.get_value<float>(1 + 8);
 				auto const b = ctx.get_value<float>(1 + 9);
 				auto const a = ctx.get_value<float>(1 + 10);
-				self->data->setVertex(vertex_index, Core::Vector3F(x, y, z), Core::Vector2F(u, v), Core::Vector4F(r, g, b, a));
+				self->data->setVertex(vertex_index, core::Vector3F(x, y, z), core::Vector2F(u, v), core::Vector4F(r, g, b, a));
 			}
 			else if (ctx.index_of_top() >= 1 + 9) {
 				auto const u = ctx.get_value<float>(1 + 4);
@@ -307,20 +307,20 @@ namespace luastg::binding {
 				auto const g = ctx.get_value<float>(1 + 7);
 				auto const b = ctx.get_value<float>(1 + 8);
 				auto const a = ctx.get_value<float>(1 + 9);
-				self->data->setVertex(vertex_index, Core::Vector2F(x, y), Core::Vector2F(u, v), Core::Vector4F(r, g, b, a));
+				self->data->setVertex(vertex_index, core::Vector2F(x, y), core::Vector2F(u, v), core::Vector4F(r, g, b, a));
 			}
 			else if (ctx.index_of_top() >= 1 + 7) {
 				auto const z = ctx.get_value<float>(1 + 4);
 				auto const u = ctx.get_value<float>(1 + 5);
 				auto const v = ctx.get_value<float>(1 + 6);
 				auto const color = toColor4B(vm, 1 + 7);
-				self->data->setVertex(vertex_index, Core::Vector3F(x, y, z), Core::Vector2F(u, v), color);
+				self->data->setVertex(vertex_index, core::Vector3F(x, y, z), core::Vector2F(u, v), color);
 			}
 			else /* if (ctx.index_of_top() == 1 + 6) */ {
 				auto const u = ctx.get_value<float>(1 + 4);
 				auto const v = ctx.get_value<float>(1 + 5);
 				auto const color = toColor4B(vm, 1 + 6);
-				self->data->setVertex(vertex_index, Core::Vector2F(x, y), Core::Vector2F(u, v), color);
+				self->data->setVertex(vertex_index, core::Vector2F(x, y), core::Vector2F(u, v), color);
 			}
 
 			ctx.push_value(lua::stack_index_t(1)); // return self
@@ -335,10 +335,10 @@ namespace luastg::binding {
 			auto const y = ctx.get_value<float>(1 + 3);
 			if (ctx.index_of_top() >= 1 + 4) {
 				auto const z = ctx.get_value<float>(1 + 4);
-				self->data->setPosition(vertex_index, Core::Vector3F(x, y, z));
+				self->data->setPosition(vertex_index, core::Vector3F(x, y, z));
 			}
 			else {
-				self->data->setPosition(vertex_index, Core::Vector2F(x, y));
+				self->data->setPosition(vertex_index, core::Vector2F(x, y));
 			}
 
 			ctx.push_value(lua::stack_index_t(1)); // return self
@@ -351,7 +351,7 @@ namespace luastg::binding {
 			auto const vertex_index = ctx.get_value<uint32_t>(1 + 1);
 			auto const u = ctx.get_value<float>(1 + 2);
 			auto const v = ctx.get_value<float>(1 + 3);
-			self->data->setUv(vertex_index, Core::Vector2F(u, v));
+			self->data->setUv(vertex_index, core::Vector2F(u, v));
 
 			ctx.push_value(lua::stack_index_t(1)); // return self
 			return 1;
@@ -366,7 +366,7 @@ namespace luastg::binding {
 				auto const g = ctx.get_value<float>(1 + 3);
 				auto const b = ctx.get_value<float>(1 + 4);
 				auto const a = ctx.get_value<float>(1 + 5);
-				self->data->setColor(vertex_index, Core::Vector4F(r, g, b, a));
+				self->data->setColor(vertex_index, core::Vector4F(r, g, b, a));
 			}
 			else {
 				auto const color = toColor4B(vm, 1 + 2);
@@ -410,7 +410,7 @@ namespace luastg::binding {
 			lua::stack_t const ctx(vm);
 
 			constexpr lua::stack_index_t options_table(1);
-			Core::Graphics::MeshOptions options;
+			core::Graphics::MeshOptions options;
 
 			options.vertex_count = ctx.get_map_value<uint32_t>(options_table, "vertex_count");
 
@@ -440,13 +440,13 @@ namespace luastg::binding {
 
 			ctx.push_map_value(options_table, "primitive_topology");
 			if (auto const top_index = ctx.index_of_top(); ctx.is_number(top_index)) {
-				options.primitive_topology = static_cast<Core::Graphics::PrimitiveTopology>(ctx.get_value<int32_t>(top_index));
+				options.primitive_topology = static_cast<core::Graphics::PrimitiveTopology>(ctx.get_value<int32_t>(top_index));
 			}
 			ctx.pop_value();
 
 			auto const device = LAPP.GetAppModel()->getDevice();
 			auto const self = Mesh::create(vm);
-			if (!Core::Graphics::IMesh::create(device, options, &self->data)) {
+			if (!core::Graphics::IMesh::create(device, options, &self->data)) {
 				return luaL_error(vm, "create Mesh failed.");
 			}
 
@@ -478,8 +478,8 @@ namespace luastg::binding {
 
 		{
 			auto const e = ctx.create_module("lstg.PrimitiveTopology");
-			ctx.set_map_value(e, "triangle_list", static_cast<int32_t>(Core::Graphics::PrimitiveTopology::triangle_list));
-			ctx.set_map_value(e, "triangle_strip", static_cast<int32_t>(Core::Graphics::PrimitiveTopology::triangle_strip));
+			ctx.set_map_value(e, "triangle_list", static_cast<int32_t>(core::Graphics::PrimitiveTopology::triangle_list));
+			ctx.set_map_value(e, "triangle_strip", static_cast<int32_t>(core::Graphics::PrimitiveTopology::triangle_strip));
 		}
 
 		// method

@@ -90,7 +90,7 @@ namespace luastg::binding {
 				else {
 					auto const right = ctx.get_value<lua_Number>(2);
 					auto const copy = Vector3::create(vm);
-					copy->data = left->data + Core::Vector3(right, right, right);
+					copy->data = left->data + core::Vector3(right, right, right);
 				}
 			}
 			else {
@@ -103,7 +103,7 @@ namespace luastg::binding {
 				else {
 					auto const left = ctx.get_value<lua_Number>(1);
 					auto const copy = Vector3::create(vm);
-					copy->data = Core::Vector3(left, left, left) + right->data;
+					copy->data = core::Vector3(left, left, left) + right->data;
 				}
 			}
 			return 1;
@@ -120,7 +120,7 @@ namespace luastg::binding {
 				else {
 					auto const right = ctx.get_value<lua_Number>(2);
 					auto const copy = Vector3::create(vm);
-					copy->data = left->data - Core::Vector3(right, right, right);
+					copy->data = left->data - core::Vector3(right, right, right);
 				}
 			}
 			else {
@@ -133,7 +133,7 @@ namespace luastg::binding {
 				else {
 					auto const left = ctx.get_value<lua_Number>(1);
 					auto const copy = Vector3::create(vm);
-					copy->data = Core::Vector3(left, left, left) - right->data;
+					copy->data = core::Vector3(left, left, left) - right->data;
 				}
 			}
 			return 1;
@@ -150,7 +150,7 @@ namespace luastg::binding {
 				else {
 					auto const right = ctx.get_value<lua_Number>(2);
 					auto const copy = Vector3::create(vm);
-					copy->data = left->data * Core::Vector3(right, right, right);
+					copy->data = left->data * core::Vector3(right, right, right);
 				}
 			}
 			else {
@@ -163,7 +163,7 @@ namespace luastg::binding {
 				else {
 					auto const left = ctx.get_value<lua_Number>(1);
 					auto const copy = Vector3::create(vm);
-					copy->data = Core::Vector3(left, left, left) * right->data;
+					copy->data = core::Vector3(left, left, left) * right->data;
 				}
 			}
 			return 1;
@@ -180,7 +180,7 @@ namespace luastg::binding {
 				else {
 					auto const right = ctx.get_value<lua_Number>(2);
 					auto const copy = Vector3::create(vm);
-					copy->data = left->data / Core::Vector3(right, right, right);
+					copy->data = left->data / core::Vector3(right, right, right);
 				}
 			}
 			else {
@@ -193,7 +193,7 @@ namespace luastg::binding {
 				else {
 					auto const left = ctx.get_value<lua_Number>(1);
 					auto const copy = Vector3::create(vm);
-					copy->data = Core::Vector3(left, left, left) / right->data;
+					copy->data = core::Vector3(left, left, left) / right->data;
 				}
 			}
 			return 1;
@@ -247,7 +247,7 @@ namespace luastg::binding {
 				auto const y = ctx.get_value<lua_Number>(2);
 				auto const z = ctx.get_value<lua_Number>(3);
 				auto const self = Vector3::create(vm);
-				self->data = Core::Vector3(x, y, z);
+				self->data = core::Vector3(x, y, z);
 			}
 			else {
 				std::ignore = Vector3::create(vm);

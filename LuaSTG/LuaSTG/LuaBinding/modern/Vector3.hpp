@@ -6,7 +6,7 @@ namespace luastg::binding {
 	struct Vector3 {
 		static std::string_view class_name;
 
-		Core::Vector3<lua_Number> data;
+		core::Vector3<lua_Number> data;
 
 		static bool is(lua_State* vm, int index);
 		static Vector3* as(lua_State* vm, int index);

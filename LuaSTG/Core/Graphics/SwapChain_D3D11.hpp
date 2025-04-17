@@ -6,7 +6,7 @@
 #include "Core/Graphics/Direct3D11/LetterBoxingRenderer.hpp"
 #include "Platform/RuntimeLoader/DirectComposition.hpp"
 
-namespace Core::Graphics
+namespace core::Graphics
 {
 	class SecondarySwapChain {
 	private:
@@ -69,7 +69,7 @@ namespace Core::Graphics
 		void onWindowDestroy();
 		void onWindowActive();
 		void onWindowInactive();
-		void onWindowSize(Core::Vector2U size);
+		void onWindowSize(core::Vector2U size);
 		void onWindowFullscreenStateChange(bool state);
 
 	private:

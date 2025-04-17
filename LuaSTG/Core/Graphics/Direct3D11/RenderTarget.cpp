@@ -4,7 +4,7 @@
 #include "Core/i18n.hpp"
 
 // RenderTarget
-namespace Core::Graphics::Direct3D11 {
+namespace core::Graphics::Direct3D11 {
 	void RenderTarget::onDeviceCreate() {
 		if (m_initialized) {
 			// 这里不能直接调用 texture 的 onDeviceCreate，因为要判断创建是否成功
@@ -111,7 +111,7 @@ namespace Core::Graphics::Direct3D11 {
 		return true;
 	}
 }
-namespace Core::Graphics::Direct3D11 {
+namespace core::Graphics::Direct3D11 {
 	bool Device::createRenderTarget(Vector2U const size, IRenderTarget** const pp_rt) {
 		*pp_rt = nullptr;
 		ScopeObject<RenderTarget> buffer;

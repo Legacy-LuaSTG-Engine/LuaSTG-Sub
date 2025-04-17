@@ -86,7 +86,7 @@ int luastg::main() {
 	Logger::destroy();
 
 #ifndef NDEBUG
-	Core::ObjectDebugger::check();
+	core::ObjectDebugger::check();
 #endif
 
 	return result;

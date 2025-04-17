@@ -109,7 +109,7 @@ namespace luastg::binding {
 				else {
 					auto const left = ctx.get_value<lua_Number>(1);
 					auto const copy = Vector4::create(vm);
-					copy->data = Core::Vector4(left, left, left, left) + right->data;
+					copy->data = core::Vector4(left, left, left, left) + right->data;
 				}
 			}
 			return 1;
@@ -139,7 +139,7 @@ namespace luastg::binding {
 				else {
 					auto const left = ctx.get_value<lua_Number>(1);
 					auto const copy = Vector4::create(vm);
-					copy->data = Core::Vector4(left, left, left, left) - right->data;
+					copy->data = core::Vector4(left, left, left, left) - right->data;
 				}
 			}
 			return 1;
@@ -169,7 +169,7 @@ namespace luastg::binding {
 				else {
 					auto const left = ctx.get_value<lua_Number>(1);
 					auto const copy = Vector4::create(vm);
-					copy->data = Core::Vector4(left, left, left, left) * right->data;
+					copy->data = core::Vector4(left, left, left, left) * right->data;
 				}
 			}
 			return 1;
@@ -199,7 +199,7 @@ namespace luastg::binding {
 				else {
 					auto const left = ctx.get_value<lua_Number>(1);
 					auto const copy = Vector4::create(vm);
-					copy->data = Core::Vector4(left, left, left, left) / right->data;
+					copy->data = core::Vector4(left, left, left, left) / right->data;
 				}
 			}
 			return 1;
@@ -254,7 +254,7 @@ namespace luastg::binding {
 				auto const z = ctx.get_value<lua_Number>(3);
 				auto const w = ctx.get_value<lua_Number>(4);
 				auto const self = Vector4::create(vm);
-				self->data = Core::Vector4(x, y, z, w);
+				self->data = core::Vector4(x, y, z, w);
 			}
 			else {
 				std::ignore = Vector4::create(vm);

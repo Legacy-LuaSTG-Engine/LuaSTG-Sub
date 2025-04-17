@@ -1,7 +1,7 @@
 #include "Core/Type.hpp"
 #include "Core/Object.hpp"
 
-namespace Core {
+namespace core {
 	class ImmutableString final
 		: public Object<IImmutableString> {
 	public:
@@ -31,7 +31,7 @@ namespace Core {
 		std::string m_string;
 	};
 }
-namespace Core {
+namespace core {
 	void IImmutableString::create(StringView const& view, IImmutableString** const output) {
 		ScopeObject<ImmutableString> s;
 		s.attach(new ImmutableString);

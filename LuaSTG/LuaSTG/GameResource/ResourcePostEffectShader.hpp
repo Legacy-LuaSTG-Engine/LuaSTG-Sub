@@ -6,6 +6,6 @@ namespace luastg
 {
     struct IResourcePostEffectShader : public IResourceBase
     {
-        virtual Core::Graphics::IPostEffectShader* GetPostEffectShader() = 0;
+        virtual core::Graphics::IPostEffectShader* GetPostEffectShader() = 0;
     };
 }

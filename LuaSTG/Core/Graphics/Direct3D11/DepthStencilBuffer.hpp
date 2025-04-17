@@ -3,7 +3,7 @@
 #include "Core/Graphics/Device.hpp"
 
 // DepthStencilBuffer
-namespace Core::Graphics::Direct3D11 {
+namespace core::Graphics::Direct3D11 {
 	class Device;
 
 	class DepthStencilBuffer final

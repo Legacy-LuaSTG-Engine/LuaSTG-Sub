@@ -4,7 +4,7 @@
 #include "Platform/WindowsVersion.hpp"
 #include "Platform/DetectCPU.hpp"
 
-namespace Core
+namespace core
 {
 	double FrameRateController::indexFPS(size_t idx)
 	{
@@ -154,7 +154,7 @@ namespace Core
 	}
 }
 
-namespace Core
+namespace core
 {
 	// 基于时间戳的帧率控制器
 	// 当帧率有波动时，追赶或者等待更长时间
@@ -267,7 +267,7 @@ namespace Core
 	}
 }
 
-namespace Core
+namespace core
 {
 	static std::string bytes_count_to_string(DWORDLONG size)
 	{

@@ -7,7 +7,7 @@
 #include "Core/Graphics/Renderer_D3D11.hpp"
 #include "Core/Audio/Device_XAUDIO2.hpp"
 
-namespace Core
+namespace core
 {
 	class FrameRateController : public IFrameRateController
 	{

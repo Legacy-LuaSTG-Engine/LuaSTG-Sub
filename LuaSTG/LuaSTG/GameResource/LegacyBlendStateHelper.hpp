@@ -4,13 +4,13 @@
 
 namespace luastg {
 	struct LegacyBlendStateData {
-		Core::Graphics::IRenderer::VertexColorBlendState vertex_color_blend_state{ Core::Graphics::IRenderer::VertexColorBlendState::Mul };
-		Core::Graphics::IRenderer::BlendState blend_state{ Core::Graphics::IRenderer::BlendState::Alpha };
+		core::Graphics::IRenderer::VertexColorBlendState vertex_color_blend_state{ core::Graphics::IRenderer::VertexColorBlendState::Mul };
+		core::Graphics::IRenderer::BlendState blend_state{ core::Graphics::IRenderer::BlendState::Alpha };
 	};
 
 	inline LegacyBlendStateData translateLegacyBlendState(BlendMode const legacy_blend_state) {
 		LegacyBlendStateData data;
-	#define CASE(A, B, C) case BlendMode::##A: data.vertex_color_blend_state = Core::Graphics::IRenderer::VertexColorBlendState::##B; data.blend_state = Core::Graphics::IRenderer::BlendState::##C; break
+	#define CASE(A, B, C) case BlendMode::##A: data.vertex_color_blend_state = core::Graphics::IRenderer::VertexColorBlendState::##B; data.blend_state = core::Graphics::IRenderer::BlendState::##C; break
 		switch (legacy_blend_state) {  // NOLINT(clang-diagnostic-switch-enum)
 		default:
 			CASE(MulAlpha, Mul, Alpha);

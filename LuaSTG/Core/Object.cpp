@@ -5,7 +5,7 @@
 #include <unordered_set>
 #include <format>
 
-namespace Core {
+namespace core {
 	static std::unordered_set<IObject*> g_object_set;
 	void ObjectDebugger::add(IObject* object) {
 		g_object_set.insert(object);

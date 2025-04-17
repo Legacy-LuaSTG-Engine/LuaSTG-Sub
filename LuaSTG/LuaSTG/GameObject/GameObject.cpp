@@ -206,7 +206,7 @@ namespace luastg
 	
 	bool GameObject::ChangeResource(std::string_view const& res_name)
 	{
-		Core::ScopeObject<IResourceSprite> tSprite = LRES.FindSprite(res_name.data());
+		core::ScopeObject<IResourceSprite> tSprite = LRES.FindSprite(res_name.data());
 		if (tSprite)
 		{
 			res = *tSprite;
@@ -223,7 +223,7 @@ namespace luastg
 			return true;
 		}
 
-		Core::ScopeObject<IResourceAnimation> tAnimation = LRES.FindAnimation(res_name.data());
+		core::ScopeObject<IResourceAnimation> tAnimation = LRES.FindAnimation(res_name.data());
 		if (tAnimation)
 		{
 			res = *tAnimation;
@@ -240,7 +240,7 @@ namespace luastg
 			return true;
 		}
 
-		Core::ScopeObject<IResourceParticle> tParticle = LRES.FindParticle(res_name.data());
+		core::ScopeObject<IResourceParticle> tParticle = LRES.FindParticle(res_name.data());
 		if (tParticle)
 		{
 			// 分配粒子池
@@ -251,7 +251,7 @@ namespace luastg
 				return false;
 			}
 			ps->SetActive(false);
-			ps->SetCenter(Core::Vector2F((float)x, (float)y));
+			ps->SetCenter(core::Vector2F((float)x, (float)y));
 			ps->SetRotation((float)rot);
 			ps->SetActive(true);
 			// 设置资源
@@ -377,12 +377,12 @@ namespace luastg
 				if (ps->IsActived()) // 兼容性处理
 				{
 					ps->SetActive(false);
-					ps->SetCenter(Core::Vector2F((float)x, (float)y));
+					ps->SetCenter(core::Vector2F((float)x, (float)y));
 					ps->SetActive(true);
 				}
 				else
 				{
-					ps->SetCenter(Core::Vector2F((float)x, (float)y));
+					ps->SetCenter(core::Vector2F((float)x, (float)y));
 				}
 				ps->Update(1.0f / 60.f);
 			}
@@ -490,12 +490,12 @@ namespace luastg
 				if (ps->IsActived()) // 兼容性处理
 				{
 					ps->SetActive(false);
-					ps->SetCenter(Core::Vector2F((float)x, (float)y));
+					ps->SetCenter(core::Vector2F((float)x, (float)y));
 					ps->SetActive(true);
 				}
 				else
 				{
-					ps->SetCenter(Core::Vector2F((float)x, (float)y));
+					ps->SetCenter(core::Vector2F((float)x, (float)y));
 				}
 				ps->Update(1.0f / 60.f);
 			}
@@ -576,7 +576,7 @@ namespace luastg
 							static_cast<float>(hscale) * gscale,
 						static_cast<float>(vscale) * gscale,
 						blendmode,
-						Core::Color4B(vertexcolor)
+						core::Color4B(vertexcolor)
 						);
 				case ResourceType::Animation:
 					static_cast<IResourceAnimation*>(res)->Render(
@@ -587,14 +587,14 @@ namespace luastg
 						static_cast<float>(hscale) * gscale,
 						static_cast<float>(vscale) * gscale,
 						blendmode,
-						Core::Color4B(vertexcolor)
+						core::Color4B(vertexcolor)
 					);
 					break;
 				case ResourceType::Particle:
 					if (ps)
 					{
 						ps->SetBlendMode(blendmode);
-						ps->SetVertexColor(Core::Color4B(vertexcolor));
+						ps->SetVertexColor(core::Color4B(vertexcolor));
 						LAPP.Render(
 							ps,
 							static_cast<float>(hscale) * gscale,
@@ -756,7 +756,7 @@ namespace luastg
 			return 1;
 		case LuaSTG::GameObjectMember::_COLOR:
 			if (luaclass.IsRenderClass)
-				binding::Color::CreateAndPush(L, Core::Color4B(vertexcolor));
+				binding::Color::CreateAndPush(L, core::Color4B(vertexcolor));
 			else
 				return_default(L);
 			return 1;

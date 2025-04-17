@@ -245,7 +245,7 @@ static int register_mouse(lua_State* L)
 		}
 		static int GetPosition(lua_State* L) noexcept
 		{
-			Core::Vector2F tPos = LAPP.GetMousePosition(lua_toboolean(L, 1));
+			core::Vector2F tPos = LAPP.GetMousePosition(lua_toboolean(L, 1));
 			lua_pushnumber(L, tPos.x);
 			lua_pushnumber(L, tPos.y);
 			return 2;
@@ -313,7 +313,7 @@ void luastg::binding::Input::Register(lua_State* L) noexcept
 		}
 		static int GetMousePosition(lua_State* L) noexcept
 		{
-			Core::Vector2F tPos = LAPP.GetMousePosition(lua_toboolean(L, 1));
+			core::Vector2F tPos = LAPP.GetMousePosition(lua_toboolean(L, 1));
 			lua_pushnumber(L, tPos.x);
 			lua_pushnumber(L, tPos.y);
 			return 2;

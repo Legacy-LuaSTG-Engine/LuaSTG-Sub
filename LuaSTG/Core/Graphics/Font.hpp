@@ -2,7 +2,7 @@
 #include "Core/Graphics/Device.hpp"
 #include "Core/Graphics/Renderer.hpp"
 
-namespace Core::Graphics
+namespace core::Graphics
 {
 	struct GlyphInfo
 	{

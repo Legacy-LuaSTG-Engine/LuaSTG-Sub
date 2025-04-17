@@ -5,7 +5,7 @@
 namespace luastg
 {
 	template<typename Base>
-	class ResourceBaseImpl : public Core::Object<Base>
+	class ResourceBaseImpl : public core::Object<Base>
 	{
 	private:
 		ResourceType m_resource_type;

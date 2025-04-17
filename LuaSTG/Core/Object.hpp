@@ -2,7 +2,7 @@
 #include "Core/Type.hpp"
 #include <atomic>
 
-namespace Core {
+namespace core {
 #ifndef NDEBUG
 	class ObjectDebugger {
 	public:

@@ -2,7 +2,7 @@
 #include "Core/Type.hpp"
 #include "Core/Graphics/Device.hpp"
 
-namespace Core::Graphics
+namespace core::Graphics
 {
 	struct IRenderer;
 

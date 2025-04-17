@@ -8,7 +8,7 @@ namespace luastg::binding
 	{
 	public:
 		static void Register(lua_State* L);
-		static void Create(lua_State* L, Core::Graphics::IPostEffectShader* p_shader);
-		static Core::Graphics::IPostEffectShader* Cast(lua_State* L, int idx);
+		static void Create(lua_State* L, core::Graphics::IPostEffectShader* p_shader);
+		static core::Graphics::IPostEffectShader* Cast(lua_State* L, int idx);
 	};
 }

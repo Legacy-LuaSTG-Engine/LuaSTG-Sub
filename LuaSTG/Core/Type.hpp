@@ -5,7 +5,7 @@
 #include <string_view>
 #include <string>
 
-namespace Core {
+namespace core {
 	// 二维向量
 
 	template<typename T>

@@ -25,29 +25,29 @@ namespace luastg {
 		virtual bool PopRenderTarget() = 0;
 		virtual bool IsRenderTargetStackEmpty() = 0;
 		virtual bool CheckRenderTargetInUse(IResourceTexture* rt) = 0;
-		virtual Core::Vector2U GetTopRenderTargetSize() = 0;
+		virtual core::Vector2U GetTopRenderTargetSize() = 0;
 
 		// 维护自动大小的渲染目标
 
 		virtual void AddAutoSizeRenderTarget(IResourceTexture* rt) = 0;
 		virtual void RemoveAutoSizeRenderTarget(IResourceTexture* rt) = 0;
-		virtual Core::Vector2U GetAutoSizeRenderTargetSize() = 0;
-		virtual bool ResizeAutoSizeRenderTarget(Core::Vector2U size) = 0;
+		virtual core::Vector2U GetAutoSizeRenderTargetSize() = 0;
+		virtual bool ResizeAutoSizeRenderTarget(core::Vector2U size) = 0;
 	};
 
 	/// @brief 应用程序框架
 	class AppFrame
-		: public Core::IApplicationEventListener
-		, public Core::Graphics::IWindowEventListener
-		, public Core::Graphics::ISwapChainEventListener
+		: public core::IApplicationEventListener
+		, public core::Graphics::IWindowEventListener
+		, public core::Graphics::ISwapChainEventListener
 		, public IRenderTargetManager
 	{
 	private:
 		AppStatus m_iStatus = AppStatus::NotInitialized;
 
 		// 应用程序框架
-		Core::ScopeObject<Core::IApplicationModel> m_pAppModel;
-		Core::ScopeObject<Core::Graphics::ITextRenderer> m_pTextRenderer;
+		core::ScopeObject<core::IApplicationModel> m_pAppModel;
+		core::ScopeObject<core::Graphics::ITextRenderer> m_pTextRenderer;
 
 		// 资源管理器
 		ResourceMgr m_ResourceMgr;
@@ -110,10 +110,10 @@ namespace luastg {
 		int GetLastKey()noexcept;
 
 		/// @brief 获取鼠标位置（以窗口左下角为原点）
-		Core::Vector2F GetMousePosition(bool no_flip = false)noexcept;
+		core::Vector2F GetMousePosition(bool no_flip = false)noexcept;
 
-		Core::Vector2F GetCurrentWindowSizeF();
-		Core::Vector4F GetMousePositionTransformF();
+		core::Vector2F GetCurrentWindowSizeF();
+		core::Vector4F GetMousePositionTransformF();
 
 		/// @brief 获取鼠标滚轮增量
 		int32_t GetMouseWheelDelta()noexcept;
@@ -136,11 +136,11 @@ namespace luastg {
 
 		// 以窗口模式显示  
 		// 当 monitor_rect 为空矩形时，窗口自动挑选最近的显示器来居中，否则根据显示器矩形选择匹配的显示器居中  
-		bool SetDisplayModeWindow(Core::Vector2U window_size, bool vsync);
+		bool SetDisplayModeWindow(core::Vector2U window_size, bool vsync);
 
 		// 以独占全屏显示  
 		// 当 refresh_rate 为全 0 时，自动选择合适的匹配的刷新率  
-		bool SetDisplayModeExclusiveFullscreen(Core::Vector2U window_size, bool vsync, Core::Rational refresh_rate);
+		bool SetDisplayModeExclusiveFullscreen(core::Vector2U window_size, bool vsync, core::Rational refresh_rate);
 
 		bool InitializationApplySettingStage1();
 
@@ -173,13 +173,13 @@ namespace luastg {
 		bool Render(IParticlePool* p, float hscale = 1, float vscale = 1)noexcept;
 
 		/// @brief 渲染文字
-		bool RenderText(IResourceFont* p, wchar_t* strBuf, Core::RectF rect, Core::Vector2F scale, FontAlignHorizontal halign, FontAlignVertical valign, bool bWordBreak)noexcept;
+		bool RenderText(IResourceFont* p, wchar_t* strBuf, core::RectF rect, core::Vector2F scale, FontAlignHorizontal halign, FontAlignVertical valign, bool bWordBreak)noexcept;
 
-		Core::Vector2F CalcuTextSize(IResourceFont* p, const wchar_t* strBuf, Core::Vector2F scale)noexcept;
+		core::Vector2F CalcuTextSize(IResourceFont* p, const wchar_t* strBuf, core::Vector2F scale)noexcept;
 
 		bool RenderText(const char* name, const char* str, float x, float y, float scale, FontAlignHorizontal halign, FontAlignVertical valign)noexcept;
 
-		bool RenderTTF(const char* name, const char* str, float left, float right, float bottom, float top, float scale, int format, Core::Color4B c)noexcept;
+		bool RenderTTF(const char* name, const char* str, float left, float right, float bottom, float top, float scale, int format, core::Color4B c)noexcept;
 
 		void SnapShot(const char* path)noexcept;
 		void SaveTexture(const char* tex_name, const char* path)noexcept;
@@ -188,16 +188,16 @@ namespace luastg {
 
 	public:
 		void DebugSetGeometryRenderState();
-		void DebugDrawCircle(float x, float y, float r, Core::Color4B color);
-		void DebugDrawRect(float x, float y, float a, float b, float rot, Core::Color4B color);
-		void DebugDrawEllipse(float x, float y, float a, float b, float rot, Core::Color4B color);
+		void DebugDrawCircle(float x, float y, float r, core::Color4B color);
+		void DebugDrawRect(float x, float y, float a, float b, float rot, core::Color4B color);
+		void DebugDrawEllipse(float x, float y, float a, float b, float rot, core::Color4B color);
 
 		// ---------- 渲染目标管理 ----------
 
 	private:
-		std::vector<Core::ScopeObject<IResourceTexture>> m_stRenderTargetStack;
+		std::vector<core::ScopeObject<IResourceTexture>> m_stRenderTargetStack;
 		std::set<IResourceTexture*> m_AutoSizeRenderTarget;
-		Core::Vector2U m_AutoSizeRenderTargetSize;
+		core::Vector2U m_AutoSizeRenderTargetSize;
 	private:
 		// 渲染目标栈
 
@@ -207,14 +207,14 @@ namespace luastg {
 		bool PopRenderTarget();
 		bool IsRenderTargetStackEmpty();
 		bool CheckRenderTargetInUse(IResourceTexture* rt);
-		Core::Vector2U GetTopRenderTargetSize();
+		core::Vector2U GetTopRenderTargetSize();
 
 		// 维护自动大小的渲染目标
 
 		void AddAutoSizeRenderTarget(IResourceTexture* rt);
 		void RemoveAutoSizeRenderTarget(IResourceTexture* rt);
-		Core::Vector2U GetAutoSizeRenderTargetSize();
-		bool ResizeAutoSizeRenderTarget(Core::Vector2U size);
+		core::Vector2U GetAutoSizeRenderTargetSize();
+		bool ResizeAutoSizeRenderTarget(core::Vector2U size);
 
 	public:
 		// 事件监听
@@ -229,12 +229,12 @@ namespace luastg {
 	public:
 		// 文字渲染器包装
 		bool FontRenderer_SetFontProvider(const char* name);
-		void FontRenderer_SetScale(const Core::Vector2F& s);
+		void FontRenderer_SetScale(const core::Vector2F& s);
 
-		Core::RectF FontRenderer_MeasureTextBoundary(const char* str, size_t len);
-		Core::Vector2F FontRenderer_MeasureTextAdvance(const char* str, size_t len);
-		bool FontRenderer_RenderText(const char* str, size_t len, Core::Vector2F& pos, float z, BlendMode blend, Core::Color4B const& color);
-		bool FontRenderer_RenderTextInSpace(const char* str, size_t len, Core::Vector3F& pos, Core::Vector3F const& rvec, Core::Vector3F const& dvec, BlendMode blend, Core::Color4B const& color);
+		core::RectF FontRenderer_MeasureTextBoundary(const char* str, size_t len);
+		core::Vector2F FontRenderer_MeasureTextAdvance(const char* str, size_t len);
+		bool FontRenderer_RenderText(const char* str, size_t len, core::Vector2F& pos, float z, BlendMode blend, core::Color4B const& color);
+		bool FontRenderer_RenderTextInSpace(const char* str, size_t len, core::Vector3F& pos, core::Vector3F const& rvec, core::Vector3F const& dvec, BlendMode blend, core::Color4B const& color);
 
 		float FontRenderer_GetFontLineHeight();
 		float FontRenderer_GetFontAscender();
@@ -250,8 +250,8 @@ namespace luastg {
 
 		Platform::DirectInput* GetDInput()noexcept { return m_DirectInput.get(); }
 
-		Core::IApplicationModel* GetAppModel() { return m_pAppModel.get(); }
-		Core::Graphics::IRenderer* GetRenderer2D() { return m_pAppModel->getRenderer(); }
+		core::IApplicationModel* GetAppModel() { return m_pAppModel.get(); }
+		core::Graphics::IRenderer* GetRenderer2D() { return m_pAppModel->getRenderer(); }
 
 	public:
 		/// @brief 初始化框架
@@ -267,13 +267,13 @@ namespace luastg {
 
 	protected:
 		std::atomic_int m_window_active_changed{ 0 };
-		Core::Vector2U m_win32_window_size;
+		core::Vector2U m_win32_window_size;
 
 		void onWindowCreate() override;
 		void onWindowDestroy() override;
 		void onWindowActive() override;
 		void onWindowInactive() override;
-		void onWindowSize(Core::Vector2U size) override;
+		void onWindowSize(core::Vector2U size) override;
 		void onDeviceChange() override;
 
 		bool onUpdate() override;

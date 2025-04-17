@@ -1,7 +1,7 @@
 #include "LuaBinding/LuaWrapper.hpp"
 #include "lua/plus.hpp"
 
-inline void lua_push_vec2(lua_State* L, Core::Vector2F const& v)
+inline void lua_push_vec2(lua_State* L, core::Vector2F const& v)
 {
 	lua_createtable(L, 0, 2);
 	lua_pushlstring(L, "x", 1);
@@ -11,9 +11,9 @@ inline void lua_push_vec2(lua_State* L, Core::Vector2F const& v)
 	lua_pushnumber(L, v.y);
 	lua_rawset(L, -3);
 }
-inline Core::Vector2F luaL_check_vec2(lua_State* L, int idx)
+inline core::Vector2F luaL_check_vec2(lua_State* L, int idx)
 {
-	Core::Vector2F ret;
+	core::Vector2F ret;
 	if (!lua_istable(L, idx))
 	{
 		luaL_typerror(L, idx, "table  (vector2f)");
@@ -29,16 +29,16 @@ inline Core::Vector2F luaL_check_vec2(lua_State* L, int idx)
 	lua_pop(L, 1);
 	return ret;
 }
-inline Core::Color4B Color4f_to_Color4B(float c[4])
+inline core::Color4B Color4f_to_Color4B(float c[4])
 {
-	return Core::Color4B(
+	return core::Color4B(
 		(uint8_t)std::clamp(c[0] * 255.0f, 0.0f, 255.0f),
 		(uint8_t)std::clamp(c[1] * 255.0f, 0.0f, 255.0f),
 		(uint8_t)std::clamp(c[2] * 255.0f, 0.0f, 255.0f),
 		(uint8_t)std::clamp(c[3] * 255.0f, 0.0f, 255.0f)
 	);
 }
-inline void Color4B_to_Color4f(Core::Color4B c, float d[4])
+inline void Color4B_to_Color4f(core::Color4B c, float d[4])
 {
 	d[0] = (float)c.r / 255.0f;
 	d[1] = (float)c.g / 255.0f;
@@ -200,12 +200,12 @@ namespace luastg::binding
 						if (self->ptr->IsActived())  // 兼容性处理
 						{
 							self->ptr->SetActive(false);
-							self->ptr->SetCenter(Core::Vector2F(x, y));
+							self->ptr->SetCenter(core::Vector2F(x, y));
 							self->ptr->SetActive(true);
 						}
 						else
 						{
-							self->ptr->SetCenter(Core::Vector2F(x, y));
+							self->ptr->SetCenter(core::Vector2F(x, y));
 						}
 						self->ptr->Update(delta);
 					}
@@ -217,12 +217,12 @@ namespace luastg::binding
 						if (self->ptr->IsActived())  // 兼容性处理
 						{
 							self->ptr->SetActive(false);
-							self->ptr->SetCenter(Core::Vector2F(x, y));
+							self->ptr->SetCenter(core::Vector2F(x, y));
 							self->ptr->SetActive(true);
 						}
 						else
 						{
-							self->ptr->SetCenter(Core::Vector2F(x, y));
+							self->ptr->SetCenter(core::Vector2F(x, y));
 						}
 						self->ptr->Update(delta);
 					}
@@ -725,7 +725,7 @@ namespace luastg::binding
 				UserData* self = (UserData*)luaL_checkudata(L, 1, ClassID.data());
 				if (self->ptr)
 				{
-					Core::Vector2F const vec2 = luaL_check_vec2(L, 2);
+					core::Vector2F const vec2 = luaL_check_vec2(L, 2);
 					self->ptr->SetCenter(vec2);
 					return 0;
 				}
@@ -741,7 +741,7 @@ namespace luastg::binding
 				{
 					if (lua_isuserdata(L, 2))
 					{
-						Core::Color4B* col = Color::Cast(L, 2);
+						core::Color4B* col = Color::Cast(L, 2);
 						Color4B_to_Color4f(*col, self->ptr->GetParticleSystemInfo().colColorEnd);
 					}
 					else
@@ -762,7 +762,7 @@ namespace luastg::binding
 				{
 					if (lua_isuserdata(L, 2))
 					{
-						Core::Color4B* col = Color::Cast(L, 2);
+						core::Color4B* col = Color::Cast(L, 2);
 						Color4B_to_Color4f(*col, self->ptr->GetParticleSystemInfo().colColorStart);
 					}
 					else

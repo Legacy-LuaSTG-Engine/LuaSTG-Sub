@@ -7,7 +7,7 @@
 
 #define IDX(x) (size_t)static_cast<uint8_t>(x)
 
-namespace Core::Graphics
+namespace core::Graphics
 {
 	struct RendererStateSet
 	{

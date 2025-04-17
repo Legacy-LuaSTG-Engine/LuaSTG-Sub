@@ -4,7 +4,7 @@
 
 #include <vorbis/vorbisfile.h>
 
-namespace Core::Audio
+namespace core::Audio
 {
 	class Decoder_VorbisOGG : public Object<IDecoder>
 	{

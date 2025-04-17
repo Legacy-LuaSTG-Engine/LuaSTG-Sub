@@ -9,7 +9,7 @@
 #include "ScreenGrab11.h"
 
 // Texture2D
-namespace Core::Graphics::Direct3D11 {
+namespace core::Graphics::Direct3D11 {
 	void Texture2D::onDeviceCreate() {
 		if (m_initialized) {
 			createResource();
@@ -265,7 +265,7 @@ namespace Core::Graphics::Direct3D11 {
 		return true;
 	}
 }
-namespace Core::Graphics::Direct3D11 {
+namespace core::Graphics::Direct3D11 {
 	bool Device::createTextureFromFile(StringView const path, bool const mipmap, ITexture2D** const pp_texture) {
 		*pp_texture = nullptr;
 		ScopeObject<Texture2D> buffer;

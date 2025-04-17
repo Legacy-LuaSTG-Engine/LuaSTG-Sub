@@ -880,7 +880,7 @@ namespace luastg
 		return 1;
 	}
 
-	bool GameObjectPool::SetImgState(GameObject* p, BlendMode m, Core::Color4B c) noexcept
+	bool GameObjectPool::SetImgState(GameObject* p, BlendMode m, core::Color4B c) noexcept
 	{
 		if (p->res)
 		{
@@ -903,7 +903,7 @@ namespace luastg
 		}
 		return true;
 	}
-	bool GameObjectPool::SetParState(GameObject* p, BlendMode m, Core::Color4B c) noexcept
+	bool GameObjectPool::SetParState(GameObject* p, BlendMode m, core::Color4B c) noexcept
 	{
 		if (p->res)
 		{
@@ -972,15 +972,15 @@ namespace luastg
 		struct ColliderDisplayConfig
 		{
 			int group;
-			Core::Color4B color;
+			core::Color4B color;
 			ColliderDisplayConfig() { group = 0; }
-			ColliderDisplayConfig(int g, Core::Color4B c) { group = g; color = c; }
+			ColliderDisplayConfig(int g, core::Color4B c) { group = g; color = c; }
 		};
 		static std::vector<ColliderDisplayConfig> m_collidercfg = {
-			ColliderDisplayConfig(1, Core::Color4B(163, 73, 164, 150)), // GROUP_ENEMY_
-			ColliderDisplayConfig(2, Core::Color4B(163, 73, 164, 150)), // GROUP_ENEMY
-			ColliderDisplayConfig(5, Core::Color4B(163, 73,  20, 150)), // GROUP_INDES
-			ColliderDisplayConfig(4, Core::Color4B(175, 15,  20, 150)), // GROUP_PLAYER
+			ColliderDisplayConfig(1, core::Color4B(163, 73, 164, 150)), // GROUP_ENEMY_
+			ColliderDisplayConfig(2, core::Color4B(163, 73, 164, 150)), // GROUP_ENEMY
+			ColliderDisplayConfig(5, core::Color4B(163, 73,  20, 150)), // GROUP_INDES
+			ColliderDisplayConfig(4, core::Color4B(175, 15,  20, 150)), // GROUP_PLAYER
 		};
 		static bool f8 = false;
 		static bool kf8 = false;
@@ -998,7 +998,7 @@ namespace luastg
 		}
 #endif
 	}
-	void GameObjectPool::DrawGroupCollider(int groupId, Core::Color4B fillColor)
+	void GameObjectPool::DrawGroupCollider(int groupId, core::Color4B fillColor)
 	{
 #ifdef USING_MULTI_GAME_WORLD
 		lua_Integer world = GetWorldFlag();
@@ -1028,7 +1028,7 @@ namespace luastg
 					/*
 					case _::Diamond:
 					{
-						Core::Vector2F tHalfSize(cc.a, cc.b);
+						core::Vector2F tHalfSize(cc.a, cc.b);
 						// 计算出菱形的4个顶点
 						f2dGraphics2DVertex tFinalPos[4] =
 						{
@@ -1052,7 +1052,7 @@ namespace luastg
 					}
 					case _::Triangle:
 					{
-						Core::Vector2F tHalfSize(cc.a, cc.b);
+						core::Vector2F tHalfSize(cc.a, cc.b);
 						// 计算出菱形的4个顶点
 						f2dGraphics2DVertex tFinalPos[4] =
 						{
@@ -1077,7 +1077,7 @@ namespace luastg
 					case _::Point:
 					{
 						//点使用直径1的圆来替代
-						grender->____FillCircle(graph, Core::Vector2F(cc.absx, cc.absy), 0.5f, fillColor, fillColor, 3);
+						grender->____FillCircle(graph, core::Vector2F(cc.absx, cc.absy), 0.5f, fillColor, fillColor, 3);
 						break;
 					}
 					//*/
@@ -1085,7 +1085,7 @@ namespace luastg
 			}
 		}
 	}
-	void GameObjectPool::DrawGroupCollider2(int groupId, Core::Color4B fillColor)
+	void GameObjectPool::DrawGroupCollider2(int groupId, core::Color4B fillColor)
 	{
 		LAPP.DebugSetGeometryRenderState();
 		DrawGroupCollider(groupId, fillColor);
@@ -1274,7 +1274,7 @@ namespace luastg
 	{
 		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
 		BlendMode m = TranslateBlendMode(L, 2);
-		Core::Color4B c = Core::Color4B(
+		core::Color4B c = core::Color4B(
 			(uint8_t)luaL_checkinteger(L, 4),
 			(uint8_t)luaL_checkinteger(L, 5),
 			(uint8_t)luaL_checkinteger(L, 6),
@@ -1287,7 +1287,7 @@ namespace luastg
 	{
 		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
 		BlendMode m = TranslateBlendMode(L, 2);
-		Core::Color4B c = Core::Color4B(
+		core::Color4B c = core::Color4B(
 			(uint8_t)luaL_checkinteger(L, 4),
 			(uint8_t)luaL_checkinteger(L, 5),
 			(uint8_t)luaL_checkinteger(L, 6),

@@ -87,7 +87,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 				return luaL_error(L, "can't load resource at this time.");
 
 			if (lua_istable(L, 2)) {
-				std::vector<Core::ScopeObject<IResourceSprite>> sprites;
+				std::vector<core::ScopeObject<IResourceSprite>> sprites;
 				sprites.reserve(lua_objlen(L, 2));
 				for (int i = 1; i <= static_cast<int>(lua_objlen(L, 2)); i += 1) {
 					lua_pushinteger(L, i);
@@ -281,13 +281,13 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 				return luaL_error(L, "invalid parameter #2, required table");
 			}
 			int const cnt = (int)lua_objlen(L, 2);
-			std::vector<Core::Graphics::TrueTypeFontInfo> fonts(cnt);
+			std::vector<core::Graphics::TrueTypeFontInfo> fonts(cnt);
 			for (int i = 1; i <= cnt; i += 1)
 			{
 				auto& font = fonts[i - 1];
 				font.source = "";
 				font.font_face = 0;
-				font.font_size = Core::Vector2F(0.0f, 0.0f);
+				font.font_size = core::Vector2F(0.0f, 0.0f);
 				font.is_force_to_file = false;
 				font.is_buffer = false;
 
@@ -394,7 +394,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		}
 		static int IsRenderTarget(lua_State* L) noexcept
 		{
-			Core::ScopeObject<IResourceTexture> p = LRES.FindTexture(luaL_checkstring(L, 1));
+			core::ScopeObject<IResourceTexture> p = LRES.FindTexture(luaL_checkstring(L, 1));
 			if (!p)
 				return luaL_error(L, "render target '%s' not found.", luaL_checkstring(L, 1));
 			lua_pushboolean(L, p->IsRenderTarget());
@@ -402,7 +402,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		}
 		static int SetTexturePreMulAlphaState(lua_State* L) noexcept
 		{
-			Core::ScopeObject<IResourceTexture> p = LRES.FindTexture(luaL_checkstring(L, 1));
+			core::ScopeObject<IResourceTexture> p = LRES.FindTexture(luaL_checkstring(L, 1));
 			if (p)
 			{
 				p->GetTexture()->setPremultipliedAlpha(lua_toboolean(L, 2));
@@ -417,7 +417,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 			if (sampler_name == "" || sampler_name == "point+wrap" || sampler_name == "point+clamp" || sampler_name == "linear+wrap" || sampler_name == "linear+clamp")
 			{
 				std::string_view const tex_name = S.get_value<std::string_view>(1);
-				Core::ScopeObject<IResourceTexture> p = LRES.FindTexture(tex_name.data());
+				core::ScopeObject<IResourceTexture> p = LRES.FindTexture(tex_name.data());
 				if (!p)
 				{
 					spdlog::error("[luastg] lstg.SetTextureSamplerState failed: can't find texture '{}'", tex_name);
@@ -425,15 +425,15 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 				}
 
 				// 映射
-				Core::Graphics::IRenderer::SamplerState state = Core::Graphics::IRenderer::SamplerState::LinearClamp;
-				if (sampler_name == "point+wrap") state = Core::Graphics::IRenderer::SamplerState::PointWrap;
-				else if (sampler_name == "point+clamp") state = Core::Graphics::IRenderer::SamplerState::PointClamp;
-				else if (sampler_name == "linear+wrap") state = Core::Graphics::IRenderer::SamplerState::LinearWrap;
-				else if (sampler_name == "" || sampler_name == "linear+clamp") state = Core::Graphics::IRenderer::SamplerState::LinearClamp;
+				core::Graphics::IRenderer::SamplerState state = core::Graphics::IRenderer::SamplerState::LinearClamp;
+				if (sampler_name == "point+wrap") state = core::Graphics::IRenderer::SamplerState::PointWrap;
+				else if (sampler_name == "point+clamp") state = core::Graphics::IRenderer::SamplerState::PointClamp;
+				else if (sampler_name == "linear+wrap") state = core::Graphics::IRenderer::SamplerState::LinearWrap;
+				else if (sampler_name == "" || sampler_name == "linear+clamp") state = core::Graphics::IRenderer::SamplerState::LinearClamp;
 				else return luaL_error(L, "unknown sampler state '%s'", sampler_name.data());
 
 				// 设置
-				Core::Graphics::ISamplerState* p_sampler = LAPP.GetRenderer2D()->getKnownSamplerState(state);
+				core::Graphics::ISamplerState* p_sampler = LAPP.GetRenderer2D()->getKnownSamplerState(state);
 				p->GetTexture()->setSamplerState(p_sampler);
 
 				return 0;
@@ -446,7 +446,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		static int GetTextureSize(lua_State* L) noexcept
 		{
 			const char* name = luaL_checkstring(L, 1);
-			Core::Vector2U size;
+			core::Vector2U size;
 			if (!LRES.GetTextureSize(name, size))
 				return luaL_error(L, "texture '%s' not found.", name);
 			lua_pushinteger(L, (lua_Integer)size.x);
@@ -532,7 +532,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 			}
 			else
 			{
-				Core::ScopeObject<IResourceSprite> p = LRES.FindSprite(luaL_checkstring(L, 1));
+				core::ScopeObject<IResourceSprite> p = LRES.FindSprite(luaL_checkstring(L, 1));
 				if (!p)
 					return luaL_error(L, "image '%s' not found.", luaL_checkstring(L, 1));
 				float x = (float)luaL_checknumber(L, 2);
@@ -550,7 +550,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 			}
 			else
 			{
-				Core::ScopeObject<IResourceSprite> p = LRES.FindSprite(luaL_checkstring(L, 1));
+				core::ScopeObject<IResourceSprite> p = LRES.FindSprite(luaL_checkstring(L, 1));
 				if (!p)
 					return luaL_error(L, "image '%s' not found.", luaL_checkstring(L, 1));
 				lua_pushnumber(L, p->GetSprite()->getUnitsPerPixel());
@@ -559,7 +559,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		}
 		static int SetImageState(lua_State* L) noexcept
 		{
-			Core::ScopeObject<IResourceSprite> p = LRES.FindSprite(luaL_checkstring(L, 1));
+			core::ScopeObject<IResourceSprite> p = LRES.FindSprite(luaL_checkstring(L, 1));
 			if (!p)
 				return luaL_error(L, "image '%s' not found.", luaL_checkstring(L, 1));
 
@@ -568,7 +568,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 				p->GetSprite()->setColor(*Color::Cast(L, 3));
 			else if (lua_gettop(L) == 6)
 			{
-				Core::Color4B tColors[] = {
+				core::Color4B tColors[] = {
 					*Color::Cast(L, 3),
 					*Color::Cast(L, 4),
 					*Color::Cast(L, 5),
@@ -580,10 +580,10 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		}
 		static int SetImageCenter(lua_State* L) noexcept
 		{
-			Core::ScopeObject<IResourceSprite> p = LRES.FindSprite(luaL_checkstring(L, 1));
+			core::ScopeObject<IResourceSprite> p = LRES.FindSprite(luaL_checkstring(L, 1));
 			if (!p)
 				return luaL_error(L, "image '%s' not found.", luaL_checkstring(L, 1));
-			p->GetSprite()->setTextureCenter(Core::Vector2F(
+			p->GetSprite()->setTextureCenter(core::Vector2F(
 				static_cast<float>(luaL_checknumber(L, 2) + p->GetSprite()->getTextureRect().a.x),
 				static_cast<float>(luaL_checknumber(L, 3) + p->GetSprite()->getTextureRect().a.y))
 			);
@@ -592,7 +592,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 
 		static int SetAnimationScale(lua_State* L) noexcept
 		{
-			Core::ScopeObject<IResourceAnimation> p = LRES.FindAnimation(luaL_checkstring(L, 1));
+			core::ScopeObject<IResourceAnimation> p = LRES.FindAnimation(luaL_checkstring(L, 1));
 			if (!p)
 				return luaL_error(L, "animation '%s' not found.", luaL_checkstring(L, 1));
 			if (!p->IsSpriteCloned())
@@ -604,7 +604,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		}
 		static int GetAnimationScale(lua_State* L) noexcept
 		{
-			Core::ScopeObject<IResourceAnimation> p = LRES.FindAnimation(luaL_checkstring(L, 1));
+			core::ScopeObject<IResourceAnimation> p = LRES.FindAnimation(luaL_checkstring(L, 1));
 			if (!p)
 				return luaL_error(L, "animation '%s' not found.", luaL_checkstring(L, 1));
 			if (!p->IsSpriteCloned())
@@ -614,7 +614,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		}
 		static int SetAnimationState(lua_State* L) noexcept
 		{
-			Core::ScopeObject<IResourceAnimation> p = LRES.FindAnimation(luaL_checkstring(L, 1));
+			core::ScopeObject<IResourceAnimation> p = LRES.FindAnimation(luaL_checkstring(L, 1));
 			if (!p)
 				return luaL_error(L, "animation '%s' not found.", luaL_checkstring(L, 1));
 
@@ -625,7 +625,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 			}
 			else if (lua_gettop(L) == 6)
 			{
-				Core::Color4B tColors[] = {
+				core::Color4B tColors[] = {
 					*Color::Cast(L, 3),
 					*Color::Cast(L, 4),
 					*Color::Cast(L, 5),
@@ -637,14 +637,14 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		}
 		static int SetAnimationCenter(lua_State* L) noexcept
 		{
-			Core::ScopeObject<IResourceAnimation> p = LRES.FindAnimation(luaL_checkstring(L, 1));
+			core::ScopeObject<IResourceAnimation> p = LRES.FindAnimation(luaL_checkstring(L, 1));
 			if (!p)
 				return luaL_error(L, "animation '%s' not found.", luaL_checkstring(L, 1));
 			if (!p->IsSpriteCloned())
 				return luaL_error(L, "SetAnimationCenter on animation '%s' is invalid, please set each sprite separately.");
 			for (size_t i = 0; i < p->GetCount(); ++i)
 			{
-				p->GetSprite((uint32_t)i)->GetSprite()->setTextureCenter(Core::Vector2F(
+				p->GetSprite((uint32_t)i)->GetSprite()->setTextureCenter(core::Vector2F(
 					static_cast<float>(luaL_checknumber(L, 2) + p->GetSprite((uint32_t)i)->GetSprite()->getTextureRect().a.x),
 					static_cast<float>(luaL_checknumber(L, 3) + p->GetSprite((uint32_t)i)->GetSprite()->getTextureRect().a.y)
 				));
@@ -654,7 +654,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 
 		static int SetFontState(lua_State* L) noexcept
 		{
-			Core::ScopeObject<IResourceFont> p = LRES.FindSpriteFont(luaL_checkstring(L, 1));
+			core::ScopeObject<IResourceFont> p = LRES.FindSpriteFont(luaL_checkstring(L, 1));
 			if (!p)
 				return luaL_error(L, "sprite font '%s' not found.", luaL_checkstring(L, 1));
 

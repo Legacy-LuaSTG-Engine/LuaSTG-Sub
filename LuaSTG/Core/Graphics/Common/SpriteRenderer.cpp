@@ -1,7 +1,7 @@
 #include "Core/Graphics/Common/SpriteRenderer.hpp"
 #include <cassert>
 
-namespace Core::Graphics::Common {
+namespace core::Graphics::Common {
 	void SpriteRenderer::setTransform(RectF const& rect) {
 		m_vertex[0].x = rect.a.x;
 		m_vertex[0].y = rect.a.y;
@@ -144,7 +144,7 @@ namespace Core::Graphics::Common {
 	}
 	SpriteRenderer::~SpriteRenderer() = default;
 }
-namespace Core::Graphics {
+namespace core::Graphics {
 	bool ISpriteRenderer::create(ISpriteRenderer** const output) {
 		if (output == nullptr) {
 			assert(false);

@@ -6,9 +6,9 @@ namespace luastg::binding {
 	struct SpriteRenderer {
 		static std::string_view const class_name;
 
-		Core::Graphics::ISpriteRenderer* data{};
-		Core::Vector2F position;
-		Core::Vector2F scale;
+		core::Graphics::ISpriteRenderer* data{};
+		core::Vector2F position;
+		core::Vector2F scale;
 		float rotation{};
 		bool is_dirty{};
 
@@ -21,7 +21,7 @@ namespace luastg::binding {
 	struct SpriteRectRenderer {
 		static std::string_view const class_name;
 
-		Core::Graphics::ISpriteRenderer* data{};
+		core::Graphics::ISpriteRenderer* data{};
 
 		static bool is(lua_State* vm, int index);
 		static SpriteRectRenderer* as(lua_State* vm, int index);
@@ -32,7 +32,7 @@ namespace luastg::binding {
 	struct SpriteQuadRenderer {
 		static std::string_view const class_name;
 
-		Core::Graphics::ISpriteRenderer* data{};
+		core::Graphics::ISpriteRenderer* data{};
 
 		static bool is(lua_State* vm, int index);
 		static SpriteQuadRenderer* as(lua_State* vm, int index);

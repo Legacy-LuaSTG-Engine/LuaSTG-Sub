@@ -63,7 +63,7 @@ namespace luastg::binding {
 			auto const y = ctx.get_value<float>(1 + 2);
 			auto const width = ctx.get_value<float>(1 + 3);
 			auto const height = ctx.get_value<float>(1 + 4);
-			self->data->setTextureRect(Core::RectF(x, y, x + width, x + height));
+			self->data->setTextureRect(core::RectF(x, y, x + width, x + height));
 			return 0;
 		}
 		static int getTextureRect(lua_State* vm) {
@@ -81,7 +81,7 @@ namespace luastg::binding {
 			auto const self = as(vm, 1);
 			auto const x = ctx.get_value<float>(1 + 1);
 			auto const y = ctx.get_value<float>(1 + 2);
-			self->data->setTextureCenter(Core::Vector2F(x, y));
+			self->data->setTextureCenter(core::Vector2F(x, y));
 			return 0;
 		}
 		static int getCenter(lua_State* vm) {
@@ -120,22 +120,22 @@ namespace luastg::binding {
 				auto const center_y = ctx.get_value<float>(7);
 				auto const unit_per_pixel = ctx.get_value<float>(8, 1.0f);
 				auto const self = Sprite::create(vm);
-				if (!Core::Graphics::ISprite::create(LAPP.GetAppModel()->getRenderer(), texture->data, &self->data)) {
+				if (!core::Graphics::ISprite::create(LAPP.GetAppModel()->getRenderer(), texture->data, &self->data)) {
 					return luaL_error(vm, "create Sprite failed");
 				}
 				self->data->setTexture(texture->data);
-				self->data->setTextureRect(Core::RectF(x, y, x + width, x + height));
-				self->data->setTextureCenter(Core::Vector2F(center_x, center_y));
+				self->data->setTextureRect(core::RectF(x, y, x + width, x + height));
+				self->data->setTextureCenter(core::Vector2F(center_x, center_y));
 				self->data->setUnitsPerPixel(unit_per_pixel);
 			}
 			else {
 				auto const unit_per_pixel = ctx.get_value<float>(6, 1.0f);
 				auto const self = Sprite::create(vm);
-				if (!Core::Graphics::ISprite::create(LAPP.GetAppModel()->getRenderer(), texture->data, &self->data)) {
+				if (!core::Graphics::ISprite::create(LAPP.GetAppModel()->getRenderer(), texture->data, &self->data)) {
 					return luaL_error(vm, "create Sprite failed");
 				}
 				self->data->setTexture(texture->data);
-				self->data->setTextureRect(Core::RectF(x, y, x + width, x + height));
+				self->data->setTextureRect(core::RectF(x, y, x + width, x + height));
 				self->data->setUnitsPerPixel(unit_per_pixel);
 			}
 			return 1;

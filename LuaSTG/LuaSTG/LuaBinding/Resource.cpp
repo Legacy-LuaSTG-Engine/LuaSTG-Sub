@@ -165,7 +165,7 @@ namespace luastg::binding
 			auto* self = cast(L, 1);
 			auto const x = S.get_value<float>(2);
 			auto const y = S.get_value<float>(3);
-			self->data->GetSprite()->setTextureCenter(Core::Vector2F(x, y));
+			self->data->GetSprite()->setTextureCenter(core::Vector2F(x, y));
 			return 0;
 		}
 		static int api_setUnitsPerPixel(lua_State* L)
@@ -392,7 +392,7 @@ namespace luastg::binding
 			lua::stack_t S(L);
 			auto* self = cast(L, 1);
 			auto const sprite_name = S.get_value<std::string_view>(2);
-			Core::ScopeObject<luastg::IResourceTexture> texture;
+			core::ScopeObject<luastg::IResourceTexture> texture;
 			if (S.is_string(3)) {
 				auto const texture_name = S.get_value<std::string_view>(3);
 				texture = self->data->GetTexture(texture_name);
@@ -428,7 +428,7 @@ namespace luastg::binding
 
 			auto const sprite_sequence_name = S.get_value<std::string_view>(2);
 			if (S.is_string(3) || S.is_userdata(3)) {
-				Core::ScopeObject<luastg::IResourceTexture> texture;
+				core::ScopeObject<luastg::IResourceTexture> texture;
 				if (S.is_string(3)) {
 					auto const texture_name = S.get_value<std::string_view>(3);
 					texture = self->data->GetTexture(texture_name);
@@ -462,7 +462,7 @@ namespace luastg::binding
 			}
 			else /* (S.is_table(3)) */ {
 				size_t const sprite_count = S.get_array_size(3);
-				std::vector<Core::ScopeObject<luastg::IResourceSprite>> sprite_list;
+				std::vector<core::ScopeObject<luastg::IResourceSprite>> sprite_list;
 				for (size_t index = 0; index < sprite_count; index += 1)
 				{
 					S.push_array_value_zero_base(3, index);
@@ -488,7 +488,7 @@ namespace luastg::binding
 		{
 			lua::stack_t S(L);
 			auto* self = cast(L, 1);
-			Core::ScopeObject<luastg::IResourceTexture> texture;
+			core::ScopeObject<luastg::IResourceTexture> texture;
 			if (S.is_string(2)) {
 				auto const texture_name = S.get_value<std::string_view>(2);
 				texture = self->data->GetTexture(texture_name);
@@ -506,7 +506,7 @@ namespace luastg::binding
 		{
 			lua::stack_t S(L);
 			auto* self = cast(L, 1);
-			Core::ScopeObject<luastg::IResourceSprite> sprite;
+			core::ScopeObject<luastg::IResourceSprite> sprite;
 			if (S.is_string(2)) {
 				auto const sprite_name = S.get_value<std::string_view>(2);
 				sprite = self->data->GetSprite(sprite_name);
@@ -524,7 +524,7 @@ namespace luastg::binding
 		{
 			lua::stack_t S(L);
 			auto* self = cast(L, 1);
-			Core::ScopeObject<luastg::IResourceAnimation> sprite_sequence;
+			core::ScopeObject<luastg::IResourceAnimation> sprite_sequence;
 			if (S.is_string(2)) {
 				auto const sprite_sequence_name = S.get_value<std::string_view>(2);
 				sprite_sequence = self->data->GetAnimation(sprite_sequence_name);
