@@ -46,6 +46,14 @@
       "binaryDir": "${sourceDir}/build/amd64"
     },
     {
+      "name": "vs2022-arm64",
+      "inherits": [
+        "vs2022"
+      ],
+      "architecture": "ARM64",
+      "binaryDir": "${sourceDir}/build/arm64"
+    },
+    {
       "name": "vs2022-x86-steam",
       "inherits": [
         "vs2022",
@@ -84,6 +92,11 @@
       "name": "windows-amd64",
       "hidden": true,
       "configurePreset": "vs2022-amd64"
+    },
+    {
+      "name": "windows-arm64",
+      "hidden": true,
+      "configurePreset": "vs2022-arm64"
     },
     {
       "name": "windows-x86-steam",
@@ -130,6 +143,22 @@
       "name": "windows-amd64-release",
       "inherits": [
         "windows-amd64",
+        "release",
+        "target-luastg"
+      ]
+    },
+    {
+      "name": "windows-arm64-debug",
+      "inherits": [
+        "windows-arm64",
+        "debug",
+        "target-luastg"
+      ]
+    },
+    {
+      "name": "windows-arm64-release",
+      "inherits": [
+        "windows-arm64",
         "release",
         "target-luastg"
       ]
@@ -191,6 +220,19 @@
         {
           "type": "build",
           "name": "windows-amd64-release"
+        }
+      ]
+    },
+    {
+      "name": "windows-arm64-release",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "vs2022-arm64"
+        },
+        {
+          "type": "build",
+          "name": "windows-arm64-release"
         }
       ]
     },
