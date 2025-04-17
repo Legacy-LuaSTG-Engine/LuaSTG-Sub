@@ -1,5 +1,4 @@
 #pragma once
-#ifndef NDEBUG
 #include "core/ReferenceCounted.hpp"
 
 namespace core::implement {
@@ -10,4 +9,3 @@ namespace core::implement {
 		static void reportLeak();
 	};
 }
-#endif

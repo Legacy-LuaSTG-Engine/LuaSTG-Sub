@@ -1,5 +1,4 @@
 #include "core/implement/ReferenceCountedDebugger.hpp"
-#ifndef NDEBUG
 #include <cassert>
 #include <mutex>
 #include <set>
@@ -39,4 +38,3 @@ namespace core::implement {
 		}
 	}
 }
-#endif
