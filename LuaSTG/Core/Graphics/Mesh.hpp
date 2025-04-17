@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/Graphics/Device.hpp"
 #include "Core/Graphics/Renderer.hpp"
+#include "core/ReferenceCounted.hpp"
 
 namespace core::Graphics {
 	enum class PrimitiveTopology : uint8_t {
@@ -27,7 +28,7 @@ namespace core::Graphics {
 		PrimitiveTopology primitive_topology{ PrimitiveTopology::triangle_list };
 	};
 
-	struct IMesh : IObject {
+	struct IMesh : IReferenceCounted {
 		[[nodiscard]] virtual uint32_t getVertexCount() const noexcept = 0;
 		[[nodiscard]] virtual uint32_t getIndexCount() const noexcept = 0;
 		[[nodiscard]] virtual PrimitiveTopology getPrimitiveTopology() const noexcept = 0;
@@ -56,7 +57,7 @@ namespace core::Graphics {
 		static bool create(IDevice* device, MeshOptions const& options, IMesh** output);
 	};
 
-	struct IMeshRenderer : IObject {
+	struct IMeshRenderer : IReferenceCounted {
 		virtual void setTransform(Matrix4F const& transform) = 0;
 		virtual void setTexture(ITexture2D* texture) = 0;
 		virtual void setMesh(IMesh* mesh) = 0;
@@ -65,4 +66,16 @@ namespace core::Graphics {
 
 		static bool create(IDevice* device, IMeshRenderer** output);
 	};
+}
+
+namespace core {
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.IMesh
+	template<> constexpr InterfaceId getInterfaceId<Graphics::IMesh>() { return UUID::parse("91e67fcf-1cec-5bee-a80b-ac46f878462d"); }
+
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.IMeshRenderer
+	template<> constexpr InterfaceId getInterfaceId<Graphics::IMeshRenderer>() { return UUID::parse("5c88cabe-95b0-5854-a7fd-de92a6eb5916"); }
 }

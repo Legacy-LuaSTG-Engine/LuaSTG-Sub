@@ -1,10 +1,10 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/Sprite.hpp"
 
 namespace core::Graphics::Common {
 	class Sprite final
-		: public Object<ISprite>
+		: public implement::ReferenceCounted<ISprite>
 	{
 	public:
 		// ISprite

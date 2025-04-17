@@ -8,7 +8,7 @@
 namespace luastg
 {
 	class hgeFont
-		: public core::Object<core::Graphics::IGlyphManager>
+		: public core::implement::ReferenceCounted<core::Graphics::IGlyphManager>
 	{
 	private:
 		core::ScopeObject<core::Graphics::ITexture2D> m_texture;
@@ -347,7 +347,7 @@ namespace luastg
 	};
 
 	class f2dFont
-		: public core::Object<core::Graphics::IGlyphManager>
+		: public core::implement::ReferenceCounted<core::Graphics::IGlyphManager>
 	{
 	private:
 		core::ScopeObject<core::Graphics::ITexture2D> m_texture;

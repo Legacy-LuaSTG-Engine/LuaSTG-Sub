@@ -1,5 +1,5 @@
 #include "Main.h"
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCountedDebugger.hpp"
 #include "Platform/MessageBox.hpp"
 #include "Platform/ApplicationSingleInstance.hpp"
 #include "Debugger/Logger.hpp"
@@ -86,7 +86,7 @@ int luastg::main() {
 	Logger::destroy();
 
 #ifndef NDEBUG
-	core::ObjectDebugger::check();
+	core::implement::ReferenceCountedDebugger::reportLeak();
 #endif
 
 	return result;

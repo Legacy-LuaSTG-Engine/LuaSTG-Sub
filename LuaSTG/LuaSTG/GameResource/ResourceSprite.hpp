@@ -18,3 +18,10 @@ namespace luastg
 		virtual void Render4V(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4) = 0;
 	};
 }
+
+namespace core {
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/luastg.IResourceSprite
+	template<> constexpr InterfaceId getInterfaceId<luastg::IResourceSprite>() { return UUID::parse("83410d3d-4a9f-509b-b562-ab4d8f0190d9"); }
+}

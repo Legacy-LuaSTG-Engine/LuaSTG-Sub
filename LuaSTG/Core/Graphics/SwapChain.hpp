@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/Type.hpp"
+#include "core/ReferenceCounted.hpp"
 #include "Core/Graphics/Window.hpp"
 #include "Core/Graphics/Format.hpp"
 #include "Core/Graphics/Device.hpp"
@@ -26,7 +27,7 @@ namespace core::Graphics
 		virtual void onSwapChainDestroy() = 0;
 	};
 
-	struct ISwapChain : public IObject
+	struct ISwapChain : public IReferenceCounted
 	{
 		virtual void addEventListener(ISwapChainEventListener* e) = 0;
 		virtual void removeEventListener(ISwapChainEventListener* e) = 0;
@@ -49,4 +50,11 @@ namespace core::Graphics
 
 		static bool create(IWindow* p_window, IDevice* p_device, ISwapChain** pp_swapchain);
 	};
+}
+
+namespace core {
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.ISwapChain
+	template<> constexpr InterfaceId getInterfaceId<Graphics::ISwapChain>() { return UUID::parse("9036abca-4134-5258-9021-a79b7bfe5a58"); }
 }

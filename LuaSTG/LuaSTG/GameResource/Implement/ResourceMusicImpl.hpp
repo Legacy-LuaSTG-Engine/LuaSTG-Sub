@@ -7,7 +7,7 @@ namespace luastg
 	class ResourceMusicImpl : public ResourceBaseImpl<IResourceMusic>
 	{
 	public:
-		class LoopDecoder : public core::Object<core::Audio::IDecoder>
+		class LoopDecoder : public core::implement::ReferenceCounted<core::Audio::IDecoder>
 		{
 		protected:
 			core::ScopeObject<core::Audio::IDecoder> m_decoder;

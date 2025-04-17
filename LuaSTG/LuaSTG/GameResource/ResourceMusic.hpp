@@ -52,3 +52,10 @@ namespace luastg
 		virtual void SetLoopRange(MusicRoopRange range) = 0;
 	};
 }
+
+namespace core {
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/luastg.IResourceMusic
+	template<> constexpr InterfaceId getInterfaceId<luastg::IResourceMusic>() { return UUID::parse("5a109cf3-31ef-5c4d-9a81-6951d7aecd00"); }
+}

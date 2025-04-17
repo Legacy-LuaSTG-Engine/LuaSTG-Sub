@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/Font.hpp"
 
 #include "ft2build.h"
@@ -60,7 +60,7 @@ namespace core::Graphics::Common {
 	};
 
 	class FreeTypeGlyphManager final
-		: public Object<IGlyphManager>
+		: public implement::ReferenceCounted<IGlyphManager>
 		, public IDeviceEventListener {
 	public:
 		// IDeviceEventListener

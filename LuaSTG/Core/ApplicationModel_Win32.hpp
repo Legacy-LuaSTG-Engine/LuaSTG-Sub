@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/ApplicationModel.hpp"
 #include "Core/Graphics/Window_Win32.hpp"
 #include "Core/Graphics/Direct3D11/Device.hpp"
@@ -357,7 +357,7 @@ namespace core
 		}
 	};
 
-	class ApplicationModel_Win32 : public Object<IApplicationModel>
+	class ApplicationModel_Win32 : public implement::ReferenceCounted<IApplicationModel>
 	{
 	private:
 		// 多个线程共享

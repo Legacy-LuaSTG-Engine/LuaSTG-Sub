@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/Device.hpp"
 
 // Texture2D
@@ -7,7 +7,7 @@ namespace core::Graphics::Direct3D11 {
 	class Device;
 
 	class Texture2D final
-		: public Object<ITexture2D>
+		: public implement::ReferenceCounted<ITexture2D>
 		, public IDeviceEventListener {
 	public:
 		// IDeviceEventListener

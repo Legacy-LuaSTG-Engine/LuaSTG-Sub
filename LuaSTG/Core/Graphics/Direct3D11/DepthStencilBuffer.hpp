@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/Device.hpp"
 
 // DepthStencilBuffer
@@ -7,7 +7,7 @@ namespace core::Graphics::Direct3D11 {
 	class Device;
 
 	class DepthStencilBuffer final
-		: public Object<IDepthStencilBuffer>
+		: public implement::ReferenceCounted<IDepthStencilBuffer>
 		, public IDeviceEventListener {
 	public:
 		// IDeviceEventListener

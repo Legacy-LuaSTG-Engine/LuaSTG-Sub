@@ -4,6 +4,7 @@
 #include <limits>
 #include <string_view>
 #include <string>
+#include "core/ReferenceCounted.hpp"
 
 namespace core {
 	// 二维向量
@@ -349,13 +350,13 @@ namespace core {
 
 	// 引用计数
 
-	struct IObject {
-		virtual intptr_t retain() = 0;
-		virtual intptr_t release() = 0;
-		virtual ~IObject() {};
-	};
+	//struct IObject {
+	//	virtual intptr_t retain() = 0;
+	//	virtual intptr_t release() = 0;
+	//	virtual ~IObject() {};
+	//};
 
-	template<typename T = IObject>
+	template<typename T = IReferenceCounted>
 	class ScopeObject {
 	private:
 		T* ptr_;
@@ -385,7 +386,7 @@ namespace core {
 		~ScopeObject() { internal_release(); }
 	};
 
-	struct IData : public IObject {
+	struct IData : public IReferenceCounted {
 		virtual void* data() = 0;
 		virtual size_t size() = 0;
 
@@ -393,13 +394,18 @@ namespace core {
 		static bool create(size_t size, size_t align, IData** pp_data);
 	};
 
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.IData
+	template<> constexpr InterfaceId getInterfaceId<IData>() { return UUID::parse("acc69b53-02e3-5d58-a6c6-6c30c936ac98"); }
+
 	// 字符串视图
 
 	using StringView = std::string_view; // pointer | size
 
 	// 不可变的空终止字符串
 
-	struct IImmutableString : IObject {
+	struct IImmutableString : IReferenceCounted {
 		[[nodiscard]] virtual bool empty() const noexcept = 0;
 		[[nodiscard]] virtual char const* data() const noexcept = 0;
 		[[nodiscard]] virtual size_t size() const noexcept = 0;
@@ -410,5 +416,10 @@ namespace core {
 		static void create(StringView const& view, IImmutableString** output);
 		static void create(char const* data, size_t size, IImmutableString** output);
 	};
+
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.IImmutableString
+	template<> constexpr InterfaceId getInterfaceId<IImmutableString>() { return UUID::parse("1ef36173-0c4d-5bd8-af47-fa362a5e4805"); }
 
 }

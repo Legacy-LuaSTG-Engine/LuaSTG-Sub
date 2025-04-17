@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/Renderer.hpp"
 #include "Core/Graphics/Direct3D11/Device.hpp"
 #include "tiny_gltf.h"
@@ -9,7 +9,7 @@
 namespace core::Graphics
 {
     class ModelSharedComponent_D3D11
-        : public Object<IObject>
+        : public implement::ReferenceCounted<IReferenceCounted>
         , public IDeviceEventListener
     {
         friend class Model_D3D11;
@@ -73,7 +73,7 @@ namespace core::Graphics
     };
 
     class Model_D3D11
-        : public Object<IModel>
+        : public implement::ReferenceCounted<IModel>
         , public IDeviceEventListener
     {
     private:

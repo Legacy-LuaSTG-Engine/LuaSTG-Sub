@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/SwapChain.hpp"
 #include "Core/Graphics/Window_Win32.hpp"
 #include "Core/Graphics/Direct3D11/Device.hpp"
@@ -34,7 +34,7 @@ namespace core::Graphics
 	};
 
 	class SwapChain_D3D11
-		: public Object<ISwapChain>
+		: public implement::ReferenceCounted<ISwapChain>
 		, public IWindowEventListener
 		, public IDeviceEventListener
 	{

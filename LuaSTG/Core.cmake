@@ -18,8 +18,6 @@ set(Core_SRC
     Core/i18n.cpp
     Core/framework.hpp
     Core/framework.cpp
-    Core/Object.hpp
-    Core/Object.cpp
     Core/ImmutableString.cpp
     Core/DataObject.cpp
 
@@ -139,4 +137,5 @@ target_link_libraries(Core PUBLIC
     # database
     nlohmann_json
     Core.Configuration
+    Core.ReferenceCounted
 )

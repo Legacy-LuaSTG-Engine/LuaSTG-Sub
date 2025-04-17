@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/Type.hpp"
+#include "core/ReferenceCounted.hpp"
 
 namespace luastg {
 	// 资源类型
@@ -46,8 +47,15 @@ namespace luastg {
 	};
 
 	// 资源接口
-	struct IResourceBase : core::IObject {
+	struct IResourceBase : core::IReferenceCounted {
 		virtual ResourceType GetType() const noexcept = 0;
 		virtual std::string_view GetResName() const noexcept = 0;
 	};
 };
+
+namespace core {
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/luastg.IResourceBase
+	template<> constexpr InterfaceId getInterfaceId<luastg::IResourceBase>() { return UUID::parse("90e5a483-1cb5-5a21-8fdf-cd8609df164c"); }
+}

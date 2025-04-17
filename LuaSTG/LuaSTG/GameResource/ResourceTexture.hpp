@@ -15,3 +15,10 @@ namespace luastg
 		virtual bool HasDepthStencilBuffer() = 0;
 	};
 };
+
+namespace core {
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/luastg.IResourceTexture
+	template<> constexpr InterfaceId getInterfaceId<luastg::IResourceTexture>() { return UUID::parse("33f4401f-8c9e-59b0-b9e5-98e4bd60b662"); }
+}

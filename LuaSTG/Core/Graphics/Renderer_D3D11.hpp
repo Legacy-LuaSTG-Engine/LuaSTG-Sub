@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/Renderer.hpp"
 #include "Core/Graphics/Direct3D11/Texture2D.hpp"
 #include "Core/Graphics/Direct3D11/Device.hpp"
@@ -91,7 +91,7 @@ namespace core::Graphics
 	};
 
 	class PostEffectShader_D3D11
-		: public Object<IPostEffectShader>
+		: public implement::ReferenceCounted<IPostEffectShader>
 		, IDeviceEventListener
 	{
 	private:
@@ -144,7 +144,7 @@ namespace core::Graphics
 	};
 
 	class Renderer_D3D11
-		: public Object<IRenderer>
+		: public implement::ReferenceCounted<IRenderer>
 		, IDeviceEventListener
 	{
 	private:

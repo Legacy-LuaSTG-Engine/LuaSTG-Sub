@@ -27,3 +27,10 @@ namespace luastg
 		virtual void SetBlendColor(core::Color4B c) = 0;
 	};
 }
+
+namespace core {
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/luastg.IResourceFont
+	template<> constexpr InterfaceId getInterfaceId<luastg::IResourceFont>() { return UUID::parse("73b6f11f-cd6c-523f-b534-e57f9ca54526"); }
+}

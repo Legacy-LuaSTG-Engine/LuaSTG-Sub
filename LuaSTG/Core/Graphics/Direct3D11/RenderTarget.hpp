@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/Device.hpp"
 
 // RenderTarget
@@ -8,7 +8,7 @@ namespace core::Graphics::Direct3D11 {
 	class Texture2D;
 
 	class RenderTarget final
-		: public Object<IRenderTarget>
+		: public implement::ReferenceCounted<IRenderTarget>
 		, public IDeviceEventListener {
 	public:
 		// IDeviceEventListener

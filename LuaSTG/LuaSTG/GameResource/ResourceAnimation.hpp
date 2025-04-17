@@ -25,3 +25,10 @@ namespace luastg
 		virtual void Render(int timer, float x, float y, float rot, float hscale, float vscale, BlendMode blend, core::Color4B color, float z = 0.5f) = 0;
 	};
 }
+
+namespace core {
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/luastg.IResourceAnimation
+	template<> constexpr InterfaceId getInterfaceId<luastg::IResourceAnimation>() { return UUID::parse("8b4a13a3-01e8-5eec-9c5a-0af16bd342d9"); }
+}

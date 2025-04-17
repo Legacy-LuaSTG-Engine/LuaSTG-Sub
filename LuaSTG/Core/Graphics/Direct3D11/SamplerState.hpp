@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/Device.hpp"
 
 // SamplerState
@@ -7,7 +7,7 @@ namespace core::Graphics::Direct3D11 {
 	class Device;
 
 	class SamplerState final
-		: public Object<ISamplerState>
+		: public implement::ReferenceCounted<ISamplerState>
 		, public IDeviceEventListener {
 
 	public:

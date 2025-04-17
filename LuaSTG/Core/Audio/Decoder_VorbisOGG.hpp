@@ -1,12 +1,12 @@
 ﻿#pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Audio/Decoder.hpp"
 
 #include <vorbis/vorbisfile.h>
 
 namespace core::Audio
 {
-	class Decoder_VorbisOGG : public Object<IDecoder>
+	class Decoder_VorbisOGG : public implement::ReferenceCounted<IDecoder>
 	{
 	public:
 		struct OggVorbis_Stream

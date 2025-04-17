@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/Device.hpp"
 
 // Buffer
@@ -7,7 +7,7 @@ namespace core::Graphics::Direct3D11 {
 	class Device;
 
 	class Buffer final
-		: public Object<IBuffer>
+		: public implement::ReferenceCounted<IBuffer>
 		, public IDeviceEventListener {
 	public:
 		// IDeviceEventListener

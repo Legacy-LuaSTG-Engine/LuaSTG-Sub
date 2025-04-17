@@ -16,3 +16,10 @@ namespace luastg
 		virtual float GetSpeed() = 0;
 	};
 }
+
+namespace core {
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/luastg.IResourceSoundEffect
+	template<> constexpr InterfaceId getInterfaceId<luastg::IResourceSoundEffect>() { return UUID::parse("300c1295-98f3-5f6d-b285-d0be8d5ae3a2"); }
+}

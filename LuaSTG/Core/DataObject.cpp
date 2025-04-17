@@ -1,5 +1,5 @@
 ﻿#include "Core/Type.hpp"
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 
 namespace core
 {
@@ -53,7 +53,7 @@ namespace core
 		return true;
 	}
 
-	class DataObject : public Object<IData>
+	class DataObject : public implement::ReferenceCounted<IData>
 	{
 	private:
 		uint8_t* m_data;

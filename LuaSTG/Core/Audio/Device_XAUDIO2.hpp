@@ -1,5 +1,6 @@
 ﻿#pragma once
-#include "Core/Object.hpp"
+#include "core/ReferenceCounted.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Audio/Device.hpp"
 #include "Platform/RuntimeLoader/XAudio2.hpp"
 
@@ -11,7 +12,7 @@ namespace core::Audio
 		virtual void onAudioDeviceDestroy() = 0;
 	};
 
-	class Shared_XAUDIO2 : public Object<IObject>
+	class Shared_XAUDIO2 : public implement::ReferenceCounted<IReferenceCounted>
 	{
 	public:
 		Platform::RuntimeLoader::XAudio2 loader;
@@ -24,7 +25,7 @@ namespace core::Audio
 		~Shared_XAUDIO2();
 	};
 
-	class Device_XAUDIO2 : public Object<IAudioDevice>
+	class Device_XAUDIO2 : public implement::ReferenceCounted<IAudioDevice>
 	{
 	private:
 		std::unordered_set<IAudioDeviceEventListener*> m_listener;
@@ -91,7 +92,7 @@ namespace core::Audio
 	};
 
 	class AudioPlayer_XAUDIO2
-		: public Object<IAudioPlayer>
+		: public implement::ReferenceCounted<IAudioPlayer>
 		, public XAudio2VoiceCallbackPlaceholder
 		, public IAudioDeviceEventListener
 	{
@@ -147,7 +148,7 @@ namespace core::Audio
 	};
 
 	class LoopAudioPlayer_XAUDIO2
-		: public Object<IAudioPlayer>
+		: public implement::ReferenceCounted<IAudioPlayer>
 		, public XAudio2VoiceCallbackPlaceholder
 		, public IAudioDeviceEventListener
 	{
@@ -209,7 +210,7 @@ namespace core::Audio
 	};
 
 	class StreamAudioPlayer_XAUDIO2
-		: public Object<IAudioPlayer>
+		: public implement::ReferenceCounted<IAudioPlayer>
 		, public XAudio2VoiceCallbackPlaceholder
 		, public IAudioDeviceEventListener
 	{

@@ -1,11 +1,11 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/Font.hpp"
 
 namespace core::Graphics::Common
 {
 	class TextRenderer final
-		: public Object<ITextRenderer>
+		: public implement::ReferenceCounted<ITextRenderer>
 	{
 	public:
 		// ITextRenderer

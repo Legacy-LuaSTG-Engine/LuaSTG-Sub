@@ -1,12 +1,12 @@
 ﻿#pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Audio/Decoder.hpp"
 
 #include "FLAC/stream_decoder.h"
 
 namespace core::Audio
 {
-	class Decoder_FLAC : public Object<IDecoder>
+	class Decoder_FLAC : public implement::ReferenceCounted<IDecoder>
 	{
 	private:
 		struct Frame

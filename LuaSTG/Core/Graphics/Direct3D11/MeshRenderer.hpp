@@ -1,10 +1,10 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/Mesh.hpp"
 
 namespace core::Graphics::Direct3D11 {
 	class MeshRenderer final
-		: public Object<IMeshRenderer>
+		: public implement::ReferenceCounted<IMeshRenderer>
 		, public IDeviceEventListener {
 	public:
 		// IDeviceEventListener

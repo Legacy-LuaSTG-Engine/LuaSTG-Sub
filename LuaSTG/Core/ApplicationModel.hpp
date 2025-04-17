@@ -5,6 +5,7 @@
 #include "Core/Graphics/SwapChain.hpp"
 #include "Core/Graphics/Renderer.hpp"
 #include "Core/Audio/Device.hpp"
+#include "core/ReferenceCounted.hpp"
 
 namespace core
 {
@@ -43,7 +44,7 @@ namespace core
         double render_time{};
     };
 
-    struct IApplicationModel : public IObject
+    struct IApplicationModel : public IReferenceCounted
     {
         // [工作线程]
         virtual IFrameRateController* getFrameRateController() = 0;
@@ -69,4 +70,9 @@ namespace core
 
         static bool create(IApplicationEventListener* p_app, IApplicationModel** pp_model);
     };
+
+    // UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.IApplicationModel
+	template<> constexpr InterfaceId getInterfaceId<IApplicationModel>() { return UUID::parse("42313368-4b16-511f-895f-ee43f0e10713"); }
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/Device.hpp"
 #include "Platform/RuntimeLoader/DXGI.hpp"
 #include "Platform/RuntimeLoader/Direct3D11.hpp"
@@ -9,7 +9,7 @@
 // Device
 namespace core::Graphics::Direct3D11 {
 	class Device final
-		: public Object<IDevice> {
+		: public implement::ReferenceCounted<IDevice> {
 	private:
 		// DXGI
 

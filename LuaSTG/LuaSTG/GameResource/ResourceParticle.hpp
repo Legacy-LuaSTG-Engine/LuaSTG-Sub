@@ -79,3 +79,10 @@ namespace luastg
 		virtual void DestroyInstance(IParticlePool* p_pool) = 0;
 	};
 };
+
+namespace core {
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/luastg.IResourceParticle
+	template<> constexpr InterfaceId getInterfaceId<luastg::IResourceParticle>() { return UUID::parse("c396ef15-221a-5df9-ad11-45f4421aa5ec"); }
+}

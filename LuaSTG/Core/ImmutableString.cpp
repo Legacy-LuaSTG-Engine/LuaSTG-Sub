@@ -1,9 +1,9 @@
 #include "Core/Type.hpp"
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 
 namespace core {
 	class ImmutableString final
-		: public Object<IImmutableString> {
+		: public implement::ReferenceCounted<IImmutableString> {
 	public:
 		// IImmutableString
 
