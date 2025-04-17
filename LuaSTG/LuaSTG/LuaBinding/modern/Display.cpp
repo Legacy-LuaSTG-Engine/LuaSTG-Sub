@@ -68,7 +68,7 @@ namespace luastg::binding {
 			auto self = as(L, 1);
 			lua::stack_t S(L);
 			core::SmartReference<core::IImmutableString> friendly_name;
-			self->data->getFriendlyName(~friendly_name);
+			self->data->getFriendlyName(friendly_name.put());
 			S.push_value(friendly_name->view());
 			return 1;
 		}

@@ -296,7 +296,7 @@ namespace core::Graphics::Common {
 		m_tex.emplace_back();
 		// ReSharper disable once CppTooWideScopeInitStatement
 		auto& t = m_tex.back();
-		if (!m_device->createTexture(Vector2U(t.image.width, t.image.height), ~t.texture)) {
+		if (!m_device->createTexture(Vector2U(t.image.width, t.image.height), t.texture.put())) {
 			return false;
 		}
 		//t.texture->setPremultipliedAlpha(true); // 为了支持彩色文本，需要使用预乘 alpha 模式

@@ -239,7 +239,7 @@ namespace core
             return false;
         }
         SmartReference<IData> p_data;
-        if (!IData::create((size_t)script_size, ~p_data))
+        if (!IData::create((size_t)script_size, p_data.put()))
         {
             return false;
         }
@@ -339,7 +339,7 @@ namespace core
             return false;
         }
         SmartReference<IData> p_data;
-        if (!IData::create((size_t)script_size, ~p_data))
+        if (!IData::create((size_t)script_size, p_data.put()))
         {
             return false;
         }
@@ -548,7 +548,7 @@ namespace core
             return false;
         }
         SmartReference<IData> p_data;
-        if (!IData::create((size_t)size, ~p_data))
+        if (!IData::create((size_t)size, p_data.put()))
         {
             return false;
         }

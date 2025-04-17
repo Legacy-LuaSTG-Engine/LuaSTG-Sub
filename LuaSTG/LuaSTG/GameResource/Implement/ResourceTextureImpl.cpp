@@ -7,7 +7,7 @@ namespace luastg
 	{
 		if (!m_rt)
 		{
-			if (!LAPP.GetAppModel()->getDevice()->createRenderTarget(size, ~m_rt))
+			if (!LAPP.GetAppModel()->getDevice()->createRenderTarget(size, m_rt.put()))
 			{
 				return false;
 			}
@@ -25,7 +25,7 @@ namespace luastg
 		{
 			if (!m_ds)
 			{
-				if (!LAPP.GetAppModel()->getDevice()->createDepthStencilBuffer(size, ~m_ds))
+				if (!LAPP.GetAppModel()->getDevice()->createDepthStencilBuffer(size, m_ds.put()))
 				{
 					return false;
 				}

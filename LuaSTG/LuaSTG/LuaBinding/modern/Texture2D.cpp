@@ -59,7 +59,7 @@ namespace luastg::binding {
 			auto const path = ctx.get_value<std::string_view>(1);
 			auto const mipmap_levels = ctx.get_value<uint32_t>(2, 1ui32);
 			core::SmartReference<core::Graphics::ITexture2D> texture;
-			if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(path, mipmap_levels != 1, ~texture)) {
+			if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(path, mipmap_levels != 1, texture.put())) {
 				auto const error_message = std::format(
 					"create Texture2D from file '{}' failed", path);
 				return luaL_error(vm, error_message.c_str());

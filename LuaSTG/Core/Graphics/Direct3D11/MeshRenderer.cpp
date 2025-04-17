@@ -166,7 +166,7 @@ namespace core::Graphics::Direct3D11 {
 	bool MeshRenderer::initialize(IDevice* const device) {
 		assert(device);
 		m_device = device;
-		if (!m_device->createConstantBuffer(sizeof(m_transform), ~m_constant_buffer)) {
+		if (!m_device->createConstantBuffer(sizeof(m_transform), m_constant_buffer.put())) {
 			return false;
 		}
 		return true;

@@ -1163,7 +1163,7 @@ namespace core::Graphics
 	void Window_Win32::setCentered(bool show, IDisplay* display) {
 		core::SmartReference<IDisplay> local_display;
 		if (!display) {
-			if (!IDisplay::getNearestFromWindow(this, ~local_display)) {
+			if (!IDisplay::getNearestFromWindow(this, local_display.put())) {
 				return;
 			}
 			display = local_display.get();

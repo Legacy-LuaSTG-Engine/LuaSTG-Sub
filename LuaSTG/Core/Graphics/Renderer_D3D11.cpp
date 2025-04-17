@@ -371,14 +371,14 @@ namespace core::Graphics
 			sampler_state.address_u = TextureAddressMode::Wrap;
 			sampler_state.address_v = TextureAddressMode::Wrap;
 			sampler_state.address_w = TextureAddressMode::Wrap;
-			if (!m_device->createSamplerState(sampler_state, ~_sampler_state[IDX(SamplerState::PointWrap)]))
+			if (!m_device->createSamplerState(sampler_state, _sampler_state[IDX(SamplerState::PointWrap)].put()))
 				return false;
 
 			sampler_state.filer = Filter::Point;
 			sampler_state.address_u = TextureAddressMode::Clamp;
 			sampler_state.address_v = TextureAddressMode::Clamp;
 			sampler_state.address_w = TextureAddressMode::Clamp;
-			if (!m_device->createSamplerState(sampler_state, ~_sampler_state[IDX(SamplerState::PointClamp)]))
+			if (!m_device->createSamplerState(sampler_state, _sampler_state[IDX(SamplerState::PointClamp)].put()))
 				return false;
 
 			sampler_state.filer = Filter::Point;
@@ -386,7 +386,7 @@ namespace core::Graphics
 			sampler_state.address_v = TextureAddressMode::Border;
 			sampler_state.address_w = TextureAddressMode::Border;
 			sampler_state.border_color = BorderColor::Black;
-			if (!m_device->createSamplerState(sampler_state, ~_sampler_state[IDX(SamplerState::PointBorderBlack)]))
+			if (!m_device->createSamplerState(sampler_state, _sampler_state[IDX(SamplerState::PointBorderBlack)].put()))
 				return false;
 
 			sampler_state.filer = Filter::Point;
@@ -394,7 +394,7 @@ namespace core::Graphics
 			sampler_state.address_v = TextureAddressMode::Border;
 			sampler_state.address_w = TextureAddressMode::Border;
 			sampler_state.border_color = BorderColor::White;
-			if (!m_device->createSamplerState(sampler_state, ~_sampler_state[IDX(SamplerState::PointBorderWhite)]))
+			if (!m_device->createSamplerState(sampler_state, _sampler_state[IDX(SamplerState::PointBorderWhite)].put()))
 				return false;
 
 			// linear
@@ -403,14 +403,14 @@ namespace core::Graphics
 			sampler_state.address_u = TextureAddressMode::Wrap;
 			sampler_state.address_v = TextureAddressMode::Wrap;
 			sampler_state.address_w = TextureAddressMode::Wrap;
-			if (!m_device->createSamplerState(sampler_state, ~_sampler_state[IDX(SamplerState::LinearWrap)]))
+			if (!m_device->createSamplerState(sampler_state, _sampler_state[IDX(SamplerState::LinearWrap)].put()))
 				return false;
 
 			sampler_state.filer = Filter::Linear;
 			sampler_state.address_u = TextureAddressMode::Clamp;
 			sampler_state.address_v = TextureAddressMode::Clamp;
 			sampler_state.address_w = TextureAddressMode::Clamp;
-			if (!m_device->createSamplerState(sampler_state, ~_sampler_state[IDX(SamplerState::LinearClamp)]))
+			if (!m_device->createSamplerState(sampler_state, _sampler_state[IDX(SamplerState::LinearClamp)].put()))
 				return false;
 
 			sampler_state.filer = Filter::Linear;
@@ -418,7 +418,7 @@ namespace core::Graphics
 			sampler_state.address_v = TextureAddressMode::Border;
 			sampler_state.address_w = TextureAddressMode::Border;
 			sampler_state.border_color = BorderColor::Black;
-			if (!m_device->createSamplerState(sampler_state, ~_sampler_state[IDX(SamplerState::LinearBorderBlack)]))
+			if (!m_device->createSamplerState(sampler_state, _sampler_state[IDX(SamplerState::LinearBorderBlack)].put()))
 				return false;
 
 			sampler_state.filer = Filter::Linear;
@@ -426,7 +426,7 @@ namespace core::Graphics
 			sampler_state.address_v = TextureAddressMode::Border;
 			sampler_state.address_w = TextureAddressMode::Border;
 			sampler_state.border_color = BorderColor::White;
-			if (!m_device->createSamplerState(sampler_state, ~_sampler_state[IDX(SamplerState::LinearBorderWhite)]))
+			if (!m_device->createSamplerState(sampler_state, _sampler_state[IDX(SamplerState::LinearBorderWhite)].put()))
 				return false;
 		}
 
@@ -1640,7 +1640,7 @@ namespace core::Graphics
 			spdlog::info("[core] 创建模型渲染器共享组件");
 			try
 			{
-				*(~m_model_shared) = new ModelSharedComponent_D3D11(m_device.get());
+				*(m_model_shared.put()) = new ModelSharedComponent_D3D11(m_device.get());
 				spdlog::info("[luastg] 已创建模型渲染器共享组件");
 			}
 			catch (...)

@@ -26,7 +26,7 @@ namespace luastg
 				if (!core::Graphics::ISprite::create(
 					LAPP.GetAppModel()->getRenderer(),
 					tex->GetTexture(),
-					~p_sprite_core
+					p_sprite_core.put()
 				))
 				{
 					throw std::runtime_error("ResourceAnimationImpl::ResourceAnimationImpl");

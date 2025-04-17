@@ -668,17 +668,17 @@ namespace core
 			m_p_frame_rate_controller = &m_frame_rate_controller;
 		}
 		get_system_memory_status();
-		if (!Graphics::Window_Win32::create(~m_window))
+		if (!Graphics::Window_Win32::create(m_window.put()))
 			throw std::runtime_error("Graphics::Window_Win32::create");
 		m_window->implSetApplicationModel(this);
 		auto const& gpu = core::ConfigurationLoader::getInstance().getGraphicsSystem().getPreferredDeviceName();
-		if (!Graphics::Direct3D11::Device::create(gpu, ~m_device))
+		if (!Graphics::Direct3D11::Device::create(gpu, m_device.put()))
 			throw std::runtime_error("Graphics::Direct3D11::Device::create");
-		if (!Graphics::SwapChain_D3D11::create(*m_window, *m_device, ~m_swapchain))
+		if (!Graphics::SwapChain_D3D11::create(*m_window, *m_device, m_swapchain.put()))
 			throw std::runtime_error("Graphics::SwapChain_D3D11::create");
-		if (!Graphics::Renderer_D3D11::create(*m_device, ~m_renderer))
+		if (!Graphics::Renderer_D3D11::create(*m_device, m_renderer.put()))
 			throw std::runtime_error("Graphics::Renderer_D3D11::create");
-		if (!Audio::Device_XAUDIO2::create(~m_audiosys))
+		if (!Audio::Device_XAUDIO2::create(m_audiosys.put()))
 			throw std::runtime_error("Audio::Device_XAUDIO2::create");
 		m_frame_query_list.reserve(2);
 		for (int i = 0; i < 2; i += 1) {

@@ -178,9 +178,9 @@ bool AppFrame::Init()noexcept
 	//////////////////////////////////////// 应用程序模型、窗口子系统、图形子系统、音频子系统等
 
 	{
-		if (!core::IApplicationModel::create(this, ~m_pAppModel))
+		if (!core::IApplicationModel::create(this, m_pAppModel.put()))
 			return false;
-		if (!core::Graphics::ITextRenderer::create(m_pAppModel->getRenderer(), ~m_pTextRenderer))
+		if (!core::Graphics::ITextRenderer::create(m_pAppModel->getRenderer(), m_pTextRenderer.put()))
 			return false;
 		if (!InitializationApplySettingStage1())
 			return false;

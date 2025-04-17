@@ -201,7 +201,7 @@ namespace luastg
         }
     
         core::SmartReference<core::Graphics::ITexture2D> p_texture;
-        if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(path, mipmaps, ~p_texture))
+        if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(path, mipmaps, p_texture.put()))
         {
             spdlog::error("[luastg] 从 '{}' 创建纹理 '{}' 失败", path, name);
             return false;
@@ -239,7 +239,7 @@ namespace luastg
         }
 
         core::SmartReference<core::Graphics::ITexture2D> p_texture;
-        if (!LAPP.GetAppModel()->getDevice()->createTexture(core::Vector2U((uint32_t)width, (uint32_t)height), ~p_texture))
+        if (!LAPP.GetAppModel()->getDevice()->createTexture(core::Vector2U((uint32_t)width, (uint32_t)height), p_texture.put()))
         {
             spdlog::error("[luastg] 创建纹理 '{}' ({}x{}) 失败", name, width, height);
             return false;
@@ -339,7 +339,7 @@ namespace luastg
         if (!core::Graphics::ISprite::create(
             LAPP.GetAppModel()->getRenderer(),
             pTex->GetTexture(),
-            ~p_sprite
+            p_sprite.put()
         ))
         {
             spdlog::error("[luastg] 从纹理 '{}' 创建图片精灵 '{}' 失败", texname, name);
@@ -469,7 +469,7 @@ namespace luastg
 
         // 创建解码器
         SmartReference<IDecoder> p_decoder;
-        if (!IDecoder::create(path, ~p_decoder))
+        if (!IDecoder::create(path, p_decoder.put()))
         {
             spdlog::error("[luastg] LoadMusic: 无法解码文件 '{}'，要求文件格式为 WAV 或 OGG", path);
             return false;
@@ -500,7 +500,7 @@ namespace luastg
         if (!once_decode)
         {
             // 流式播放器
-            if (!LAPP.GetAppModel()->getAudioDevice()->createStreamAudioPlayer(p_loop_decoder.get(), ~p_player))
+            if (!LAPP.GetAppModel()->getAudioDevice()->createStreamAudioPlayer(p_loop_decoder.get(), p_player.put()))
             {
                 spdlog::error("[luastg] LoadMusic: 无法创建音频播放器");
                 return false;
@@ -509,7 +509,7 @@ namespace luastg
         else
         {
             // 一次性解码的播放器
-            if (!LAPP.GetAppModel()->getAudioDevice()->createLoopAudioPlayer(p_decoder.get(), ~p_player))
+            if (!LAPP.GetAppModel()->getAudioDevice()->createLoopAudioPlayer(p_decoder.get(), p_player.put()))
             {
                 spdlog::error("[luastg] LoadMusic: 无法创建音频播放器");
                 return false;
@@ -556,7 +556,7 @@ namespace luastg
 
         // 创建解码器
         SmartReference<IDecoder> p_decoder;
-        if (!IDecoder::create(path, ~p_decoder))
+        if (!IDecoder::create(path, p_decoder.put()))
         {
             spdlog::error("[luastg] LoadSoundEffect: 无法解码文件 '{}'，要求文件格式为 WAV 或 OGG", path);
             return false;
@@ -564,7 +564,7 @@ namespace luastg
 
         // 创建播放器
         SmartReference<IAudioPlayer> p_player;
-        if (!LAPP.GetAppModel()->getAudioDevice()->createAudioPlayer(p_decoder.get(), ~p_player))
+        if (!LAPP.GetAppModel()->getAudioDevice()->createAudioPlayer(p_decoder.get(), p_player.put()))
         {
             spdlog::error("[luastg] LoadSoundEffect: 无法创建音频播放器");
             return false;
@@ -612,7 +612,7 @@ namespace luastg
         }
     
         core::SmartReference<core::Graphics::ISprite> p_sprite;
-        if (!pSprite->GetSprite()->clone(~p_sprite))
+        if (!pSprite->GetSprite()->clone(p_sprite.put()))
         {
             spdlog::error("[luastg] LoadParticle: 无法创建粒子特效 '{}'，复制图片精灵 '{}' 失败", name, img_name);
             return false;
@@ -758,7 +758,7 @@ namespace luastg
             .is_force_to_file = false,
             .is_buffer = false,
         };
-        if (!core::Graphics::IGlyphManager::create(LAPP.GetAppModel()->getDevice(), &create_info, 1, ~p_glyphmgr))
+        if (!core::Graphics::IGlyphManager::create(LAPP.GetAppModel()->getDevice(), &create_info, 1, p_glyphmgr.put()))
         {
             spdlog::error("[luastg] LoadTTFFont: 加载矢量字体 '{}' 失败", name);
             return false;
@@ -797,7 +797,7 @@ namespace luastg
         }
     
         core::SmartReference<core::Graphics::IGlyphManager> p_glyphmgr;
-        if (!core::Graphics::IGlyphManager::create(LAPP.GetAppModel()->getDevice(), fonts, count, ~p_glyphmgr))
+        if (!core::Graphics::IGlyphManager::create(LAPP.GetAppModel()->getDevice(), fonts, count, p_glyphmgr.put()))
         {
             spdlog::error("[luastg] LoadTrueTypeFont: 加载矢量字体组 '{}' 失败", name);
             return false;
