@@ -16,6 +16,7 @@ namespace core {
 		virtual int32_t release() = 0;
 
 		template<typename Interface> bool queryInterface(Interface** const output) {
+			static_assert(std::is_base_of_v<IReferenceCounted, Interface>);
 			return queryInterface(getInterfaceId<Interface>(), reinterpret_cast<void**>(output));
 		}
 	};

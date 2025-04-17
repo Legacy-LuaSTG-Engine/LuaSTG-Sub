@@ -6,6 +6,7 @@ namespace core {
 		virtual bool resolve(InterfaceId const& uuid, void** output) = 0;
 
 		template<typename Interface> bool resolve(Interface** const output) {
+			static_assert(std::is_base_of_v<IReferenceCounted, Interface>);
 			return resolve(getInterfaceId<Interface>(), reinterpret_cast<void**>(output));
 		}
 	};
