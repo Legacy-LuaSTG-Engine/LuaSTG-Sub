@@ -19,10 +19,6 @@ set(Core_SRC
     Core/framework.hpp
     Core/framework.cpp
     Core/ImmutableString.cpp
-    Core/DataObject.cpp
-
-    Core/FileManager.hpp
-    Core/FileManager.cpp
 
     Core/Graphics/Window.hpp
     Core/Graphics/Window_Win32.hpp
@@ -122,8 +118,6 @@ target_link_libraries(Core PUBLIC
     libqoi
     # math
     xmath
-    # file
-    minizip_ng
     # text
     Freetype::Freetype
     # model
@@ -138,4 +132,5 @@ target_link_libraries(Core PUBLIC
     nlohmann_json
     Core.Configuration
     Core.ReferenceCounted
+    Core.FileSystem
 )

@@ -349,21 +349,6 @@ namespace core {
 		Rational(uint32_t const numerator_, uint32_t const denominator_) : numerator(numerator_), denominator(denominator_) {}
 	};
 
-	// 数据对象
-
-	struct IData : public IReferenceCounted {
-		virtual void* data() = 0;
-		virtual size_t size() = 0;
-
-		static bool create(size_t size, IData** pp_data);
-		static bool create(size_t size, size_t align, IData** pp_data);
-	};
-
-	// UUID v5
-	// ns:URL
-	// https://www.luastg-sub.com/core.IData
-	template<> constexpr InterfaceId getInterfaceId<IData>() { return UUID::parse("acc69b53-02e3-5d58-a6c6-6c30c936ac98"); }
-
 	// 字符串视图
 
 	using StringView = std::string_view; // pointer | size
