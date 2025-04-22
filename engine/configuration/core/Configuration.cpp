@@ -563,7 +563,7 @@ namespace core {
 
 	bool ConfigurationLoader::exists(std::string_view const& path) {
 		std::error_code ec;
-		std::filesystem::path fs_path(to_u8string_view(path));
+		std::filesystem::path const fs_path(to_u8string_view(path));
 		return std::filesystem::is_regular_file(fs_path, ec);
 	}
 
