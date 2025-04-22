@@ -162,6 +162,36 @@ function M:initCube3(cube)
         :commit()
 end
 
+function M:initLegacy()
+    ---@diagnostic disable-next-line: undefined-field
+    local mesh_data = lstg.MeshData(4, 6) -- legacy method
+
+    mesh_data:setVertexPosition(0, 200 +   0, 100 + 400, 0)
+    mesh_data:setVertexPosition(1, 200 + 400, 100 + 400, 0)
+    mesh_data:setVertexPosition(2, 200 + 400, 100 +   0, 0)
+    mesh_data:setVertexPosition(3, 200 +   0, 100 +   0, 0)
+
+    mesh_data:setVertexCoords(0, 0.0, 0.0)
+    mesh_data:setVertexCoords(1, 1.0, 0.0)
+    mesh_data:setVertexCoords(2, 1.0, 1.0)
+    mesh_data:setVertexCoords(3, 0.0, 1.0)
+
+    mesh_data:setVertexColor(0, lstg.Color(255, 255, 255, 255))
+    mesh_data:setVertexColor(1, lstg.Color(255, 255, 255, 255))
+    mesh_data:setVertexColor(2, lstg.Color(255, 255, 255, 255))
+    mesh_data:setVertexColor(3, lstg.Color(255, 255, 255, 255))
+
+    mesh_data:setIndex(0, 0)
+    mesh_data:setIndex(1, 1)
+    mesh_data:setIndex(2, 2)
+
+    mesh_data:setIndex(3, 0)
+    mesh_data:setIndex(4, 2)
+    mesh_data:setIndex(5, 3)
+
+    self.legacy_mesh = mesh_data
+end
+
 function M:initMesh()
     local white = lstg.Color(255, 255, 255, 255)
 
@@ -195,6 +225,8 @@ function M:initMesh()
     self:initCube3(self.cube)
 
     self.cube_renderer = MeshRenderer.create(self.cube, self.texture)
+
+    self:initLegacy()
 end
 
 function M:updateMesh()
@@ -214,11 +246,13 @@ function M:onCreate()
     local last_pool = lstg.GetResourceStatus()
     lstg.SetResourceStatus("global")
     load_image("image_2", "res/image_2.jpg")
+    lstg.LoadTexture("block", "res/block.png", true)
     lstg.SetResourceStatus(last_pool)
 end
 
 function M:onDestroy()
     unload_image("global", "image_2")
+    lstg.RemoveResource("global", 1, "block")
 end
 
 function M:onUpdate()
@@ -239,6 +273,8 @@ function M:onRender()
     lstg.ClearZBuffer(1)
     self.mesh_renderer:draw()
     self.cube_renderer:draw()
+    ---@diagnostic disable-next-line: undefined-field
+    lstg.RenderMesh("block", "", self.legacy_mesh) -- legacy method
     lstg.SetZBufferEnable(0)
 end
 
