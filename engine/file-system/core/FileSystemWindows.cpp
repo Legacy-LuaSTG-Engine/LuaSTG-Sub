@@ -53,10 +53,7 @@ namespace win32 {
 
 		uint8_t buf[4096]{};
 		std::pmr::monotonic_buffer_resource res(buf, sizeof(buf), std::pmr::get_default_resource());
-		std::pmr::wstring str(&res);
-		str.reserve(unc_prefix.size() + path.size());
-		str.append(unc_prefix);
-		str.append(path);
+		std::pmr::wstring const str(path, &res);
 
 		DWORD const full_path_size = GetFullPathNameW(str.c_str(), 0, nullptr, nullptr);
 		if (full_path_size == 0) {

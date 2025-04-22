@@ -13,12 +13,12 @@ target_link_libraries(${lib_name} PUBLIC utf8 spdlog minizip_ng Core.ReferenceCo
 
 set_target_properties(${lib_name} PROPERTIES FOLDER engine)
 
-#set(test_name "Core.FileSystem.Test")
+set(test_name "Core.FileSystem.Test")
 
-#add_executable(${test_name})
-#luastg_target_common_options(${test_name})
-#luastg_target_more_warning(${test_name})
-#target_sources(${test_name} PRIVATE test/Test.cpp)
-#target_link_libraries(${test_name} PRIVATE options_compile_utf8 ${lib_name} GTest::gtest_main)
+add_executable(${test_name})
+luastg_target_common_options(${test_name})
+luastg_target_more_warning(${test_name})
+target_sources(${test_name} PRIVATE test/Test.cpp)
+target_link_libraries(${test_name} PRIVATE options_compile_utf8 ${lib_name} GTest::gtest_main)
 
-#set_target_properties(${test_name} PROPERTIES FOLDER engine)
+set_target_properties(${test_name} PROPERTIES FOLDER engine/test)
