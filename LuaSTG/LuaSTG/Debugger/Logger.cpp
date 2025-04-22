@@ -164,7 +164,7 @@ namespace {
 		if (g_alloc_console) {
 			if (logging_console.isPreserve()) {
 				constexpr std::wstring_view exit_message(L"按 ESC 关闭引擎日志窗口 | Press ESC to close the engine log window\n");
-				WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), exit_message.data(), exit_message.length(), nullptr, nullptr);
+				WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), exit_message.data(), static_cast<DWORD>(exit_message.length()), nullptr, nullptr);
 				while ((GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0x8000) {
 					Sleep(1);
 				}

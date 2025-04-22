@@ -547,7 +547,7 @@ namespace core {
 		return true;
 	}
 	
-	std::string ConfigurationLoader::getFormattedMessage() {
+	std::string ConfigurationLoader::getFormattedMessage() const {
 		std::string message;
 		if (!messages.empty()) {
 			for (auto const& s : messages) {
