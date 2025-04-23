@@ -3,6 +3,8 @@
 #include <filesystem>
 #include <fstream>
 #include "core/FileSystemWindows.hpp"
+#include "core/FileSystem.hpp"
+#include "core/SmartReference.hpp"
 #include "gtest/gtest.h"
 
 using std::string_view_literals::operator ""sv;
@@ -15,4 +17,33 @@ TEST(FileSystemWindows, isFilePathCaseCorrect) {
 	std::string c1;
 	ASSERT_TRUE(win32::isFilePathCaseCorrect(R"(Hello world 你好世界.txt)"sv, c1));
 	ASSERT_FALSE(win32::isFilePathCaseCorrect(R"(hello world 你好世界.txt)"sv, c1));
+}
+
+TEST(FileSystemArchive, all) {
+	core::SmartReference<core::IFileSystemArchive> archive;
+	ASSERT_TRUE(core::IFileSystemArchive::createFromFile(R"(（窗口与显示分支）LuaSTG-Sub-v0.21.7.zip)"sv, archive.put()));
+
+	ASSERT_FALSE(archive->hasFile("x"sv));
+	ASSERT_FALSE(archive->hasDirectory("y"sv));
+
+	ASSERT_TRUE(archive->hasDirectory("LuaSTG-Sub-v0.21.7/"sv));
+	ASSERT_FALSE(archive->hasFile("LuaSTG-Sub-v0.21.7/"sv));
+
+	ASSERT_TRUE(archive->hasDirectory("LuaSTG-Sub-v0.21.7/doc/"sv));
+	ASSERT_TRUE(archive->hasDirectory("LuaSTG-Sub-v0.21.7/license/"sv));
+	ASSERT_TRUE(archive->hasDirectory("LuaSTG-Sub-v0.21.7/res/"sv));
+	ASSERT_TRUE(archive->hasDirectory("LuaSTG-Sub-v0.21.7/src/"sv));
+	ASSERT_TRUE(archive->hasDirectory("LuaSTG-Sub-v0.21.7/windows-32bit/"sv));
+	ASSERT_FALSE(archive->hasFile("LuaSTG-Sub-v0.21.7/doc/"sv));
+	ASSERT_FALSE(archive->hasFile("LuaSTG-Sub-v0.21.7/license/"sv));
+	ASSERT_FALSE(archive->hasFile("LuaSTG-Sub-v0.21.7/res/"sv));
+	ASSERT_FALSE(archive->hasFile("LuaSTG-Sub-v0.21.7/src/"sv));
+	ASSERT_FALSE(archive->hasFile("LuaSTG-Sub-v0.21.7/windows-32bit/"sv));
+
+	ASSERT_TRUE(archive->hasFile("LuaSTG-Sub-v0.21.7/d3dcompiler_47.dll"sv));
+	ASSERT_TRUE(archive->hasFile("LuaSTG-Sub-v0.21.7/LuaSTGSub.exe"sv));
+	ASSERT_TRUE(archive->hasFile("LuaSTG-Sub-v0.21.7/xaudio2_9redist.dll"sv));
+	ASSERT_FALSE(archive->hasDirectory("LuaSTG-Sub-v0.21.7/d3dcompiler_47.dll"sv));
+	ASSERT_FALSE(archive->hasDirectory("LuaSTG-Sub-v0.21.7/LuaSTGSub.exe"sv));
+	ASSERT_FALSE(archive->hasDirectory("LuaSTG-Sub-v0.21.7/xaudio2_9redist.dll"sv));
 }
