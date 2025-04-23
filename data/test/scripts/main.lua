@@ -130,11 +130,12 @@ require("test_window_and_display")
 
 print(package.path)
 
-require("test.math.init")
-require("test.imgui.init")
-require("test.graphics.init")
-require("test.audio.init")
-require("test.input.init")
+require("test.math")
+require("test.imgui")
+require("test.graphics")
+require("test.audio")
+require("test.input")
+require("test.gameplay")
 
 function GameInit()
     window:init()

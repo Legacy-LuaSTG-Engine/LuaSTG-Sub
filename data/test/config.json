@@ -1,6 +1,12 @@
 {
     "file_system": {
         "resources": [
+            
+            {
+                "name": "sample-scripts",
+                "type": "directory",
+                "path": "../example/scripts/"
+            },
             {
                 "name": "scripts",
                 "type": "directory",
