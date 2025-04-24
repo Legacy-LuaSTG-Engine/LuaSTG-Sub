@@ -18,6 +18,7 @@ set(test_name "Core.FileSystem.Test")
 add_executable(${test_name})
 luastg_target_common_options(${test_name})
 luastg_target_more_warning(${test_name})
+target_compile_features(${test_name} PRIVATE cxx_std_23)
 target_sources(${test_name} PRIVATE test/Test.cpp)
 target_link_libraries(${test_name} PRIVATE options_compile_utf8 ${lib_name} GTest::gtest_main)
 
