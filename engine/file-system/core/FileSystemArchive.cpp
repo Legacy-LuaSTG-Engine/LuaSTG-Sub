@@ -5,6 +5,7 @@
 #include <memory_resource>
 #include <algorithm>
 #include <ranges>
+#include <filesystem>
 #include "mz.h"
 #include "mz_strm.h"
 #include "mz_zip.h"
@@ -103,6 +104,14 @@ namespace {
 			return true; // current level directory
 		}
 		return false; // in child directory
+	}
+	std::u8string normalizePath(std::string_view const& path) {
+		std::u8string_view const directory_u8(reinterpret_cast<char8_t const*>(path.data()), path.size()); // as utf-8
+		std::filesystem::path const directory_path(directory_u8);
+		return directory_path.lexically_normal().generic_u8string();
+	}
+	std::string_view getStringView(std::u8string const& s) {
+		return { reinterpret_cast<char const*>(s.data()), s.size() };
 	}
 }
 
@@ -265,9 +274,6 @@ namespace core {
 	// IFileSystemEnumerator
 
 	bool FileSystemArchiveEnumerator::next() {
-		if (!m_archive->m_archive) {
-			return false;
-		}
 		bool result{};
 		if (m_initialized) {
 			result = MZ_OK == mz_zip_reader_goto_next_entry(m_archive->m_archive);
@@ -339,21 +345,22 @@ namespace core {
 	FileSystemArchiveEnumerator::FileSystemArchiveEnumerator(FileSystemArchive* const archive, std::string_view const& directory, bool const recursive)
 		: m_archive(archive), m_recursive(recursive) {
 		assert(archive != nullptr);
-		// zip style directory path
-		// - no beginning separator '/'
-		// - no current directory dot '.'
-		if (isPathStartsWith(directory, "./"sv)) {
-			m_directory = directory.substr(2);
+		initializeDirectory(directory);
+	}
+
+	void FileSystemArchiveEnumerator::initializeDirectory(std::string_view const& directory) {
+		std::u8string const normalized = normalizePath(directory);
+		if (normalized.empty()) {
+			return;
 		}
-		else if (isPathStartsWith(directory, "/"sv)) {
-			m_directory = directory.substr(1);
+		if (!isPathEndsWithSeparator(getStringView(normalized))) {
+			// zip style directory path
+			m_directory.reserve(normalized.size() + 1);
+			m_directory.append(getStringView(normalized));
+			m_directory.push_back('/');
 		}
 		else {
-			m_directory = directory;
-		}
-		// - ends with separator '/'
-		if (!m_directory.empty() && !isPathEndsWithSeparator(m_directory)) {
-			m_directory.push_back('/');
+			m_directory.assign(getStringView(normalized));
 		}
 	}
 }

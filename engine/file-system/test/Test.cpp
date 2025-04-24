@@ -67,7 +67,7 @@ TEST(FileSystemArchiveEnumerator, pattern) {
 	ASSERT_TRUE(core::IFileSystemArchive::createFromFile(R"(（窗口与显示分支）LuaSTG-Sub-v0.21.7.zip)"sv, archive.put()));
 
 	core::SmartReference<core::IFileSystemEnumerator> enumerator;
-	ASSERT_TRUE(archive->createRecursiveEnumerator(enumerator.put(), "LuaSTG-Sub-v0.21.7/src"sv));
+	ASSERT_TRUE(archive->createRecursiveEnumerator(enumerator.put(), "LuaSTG-Sub-v0.21.7////////////src"sv));
 
 	while (enumerator->next()) {
 		std::println("{}", enumerator->getName());

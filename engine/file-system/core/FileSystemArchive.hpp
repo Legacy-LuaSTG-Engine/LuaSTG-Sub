@@ -61,6 +61,8 @@ namespace core {
 		FileSystemArchiveEnumerator& operator=(FileSystemArchiveEnumerator const&) = delete;
 		FileSystemArchiveEnumerator& operator=(FileSystemArchiveEnumerator&&) = delete;
 
+		void initializeDirectory(std::string_view const& directory);
+
 	private:
 		SmartReference<FileSystemArchive> m_archive;
 		std::string m_directory;
