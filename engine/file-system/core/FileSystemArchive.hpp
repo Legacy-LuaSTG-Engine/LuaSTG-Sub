@@ -16,7 +16,8 @@ namespace core {
 		bool readFile(std::string_view const& name, IData** data) override;
 		bool hasDirectory(std::string_view const& name) override;
 
-		bool createEnumerator(IFileSystemEnumerator** enumerator) override;
+		bool createEnumerator(IFileSystemEnumerator** enumerator, std::string_view const& directory) override;
+		bool createRecursiveEnumerator(IFileSystemEnumerator** enumerator, std::string_view const& directory) override;
 
 		// IFileSystemArchive
 
@@ -52,15 +53,19 @@ namespace core {
 		// FileSystemArchiveEnumerator
 
 		FileSystemArchiveEnumerator() = delete;
-		explicit FileSystemArchiveEnumerator(FileSystemArchive* archive);
+		FileSystemArchiveEnumerator(FileSystemArchive* archive, std::string_view const& directory, bool recursive);
 		FileSystemArchiveEnumerator(FileSystemArchiveEnumerator const&) = delete;
 		FileSystemArchiveEnumerator(FileSystemArchiveEnumerator&&) = delete;
 		~FileSystemArchiveEnumerator() override = default;
 
 		FileSystemArchiveEnumerator& operator=(FileSystemArchiveEnumerator const&) = delete;
 		FileSystemArchiveEnumerator& operator=(FileSystemArchiveEnumerator&&) = delete;
+
 	private:
 		SmartReference<FileSystemArchive> m_archive;
+		std::string m_directory;
+		bool m_recursive{ false };
 		bool m_initialized{ false };
+		bool m_available{ false };
 	};
 }
