@@ -40,6 +40,7 @@ namespace core {
 	template<> constexpr InterfaceId getInterfaceId<IFileSystem>() { return UUID::parse("61c1bc5e-6e1e-5fe2-958c-527e85138010"); }
 
 	struct CORE_NO_VIRTUAL_TABLE IFileSystemArchive : IFileSystem {
+		virtual std::string_view getArchivePath() = 0;
 		virtual bool setPassword(std::string_view const& password) = 0;
 
 		static bool createFromFile(std::string_view const& path, IFileSystemArchive** archive);
@@ -50,6 +51,26 @@ namespace core {
 	// https://www.luastg-sub.com/core.IFileSystemArchive
 	template<> constexpr InterfaceId getInterfaceId<IFileSystemArchive>() { return UUID::parse("a36e930b-4fb8-5061-b88b-127e5200474e"); }
 
-	class FileSystemFactory {
+	class FileSystemManager {
+	public:
+		static void addFileSystem(std::string_view const& name, IFileSystem* file_system);
+		static bool hasFileSystem(std::string_view const& name);
+		static void removeFileSystem(std::string_view const& name);
+		static void removeAllFileSystem();
+
+		static void addSearchPath(std::string_view const& path);
+		static bool hasSearchPath(std::string_view const& path);
+		static void removeSearchPath(std::string_view const& path);
+		static void removeAllSearchPath();
+
+		static bool hasNode(std::string_view const& name);
+		static FileSystemNodeType getNodeType(std::string_view const& name);
+		static bool hasFile(std::string_view const& name);
+		static size_t getFileSize(std::string_view const& name);;
+		static bool readFile(std::string_view const& name, IData** data);
+		static bool hasDirectory(std::string_view const& name);
+
+		static bool createEnumerator(IFileSystemEnumerator** enumerator, std::string_view const& directory);
+		static bool createRecursiveEnumerator(IFileSystemEnumerator** enumerator, std::string_view const& directory);
 	};
 }

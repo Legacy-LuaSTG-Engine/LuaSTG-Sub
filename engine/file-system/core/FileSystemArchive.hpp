@@ -21,6 +21,7 @@ namespace core {
 
 		// IFileSystemArchive
 
+		std::string_view getArchivePath() override { return m_name; }
 		bool setPassword(std::string_view const& password) override;
 
 		// FileSystemArchive
