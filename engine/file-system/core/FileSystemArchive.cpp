@@ -106,8 +106,11 @@ namespace core {
 	}
 
 	bool FileSystemArchive::createEnumerator(IFileSystemEnumerator** enumerator) {
-		std::ignore = enumerator;
-		return false;
+		if (!m_archive) {
+			return false;
+		}
+		*enumerator = new FileSystemArchiveEnumerator(this);
+		return true;
 	}
 
 	// IFileSystemArchive
@@ -157,4 +160,28 @@ namespace core {
 		*archive = object.detach();
 		return true;
 	}
+}
+namespace core {
+	// IFileSystemEnumerator
+
+	bool FileSystemArchiveEnumerator::next() {
+		return false;
+	}
+	std::string_view FileSystemArchiveEnumerator::getName() {
+		return "";
+	}
+	FileSystemNodeType FileSystemArchiveEnumerator::getNodeType() {
+		return FileSystemNodeType::unknown;
+	}
+	size_t FileSystemArchiveEnumerator::getFileSize() {
+		return 0;
+	}
+	bool FileSystemArchiveEnumerator::readFile(IData** data) {
+		std::ignore = data;
+		return false;
+	}
+
+	// FileSystemArchiveEnumerator
+
+	FileSystemArchiveEnumerator::FileSystemArchiveEnumerator(FileSystemArchive* archive) : m_archive(archive) {}
 }

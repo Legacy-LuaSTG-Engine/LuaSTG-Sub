@@ -1,10 +1,11 @@
 #pragma once
 #include "core/FileSystem.hpp"
+#include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
-#include <vector>
 
 namespace core {
 	class FileSystemArchive final : public implement::ReferenceCounted<IFileSystemArchive> {
+		friend class FileSystemArchiveEnumerator;
 	public:
 		// IFileSystem
 
@@ -36,5 +37,30 @@ namespace core {
 	private:
 		std::string m_name;
 		void* m_archive{};
+	};
+
+	class FileSystemArchiveEnumerator final : public implement::ReferenceCounted<IFileSystemEnumerator> {
+	public:
+		// IFileSystemEnumerator
+
+		bool next() override;
+		std::string_view getName() override;
+		FileSystemNodeType getNodeType() override;
+		size_t getFileSize() override;
+		bool readFile(IData** data) override;
+
+		// FileSystemArchiveEnumerator
+
+		FileSystemArchiveEnumerator() = delete;
+		explicit FileSystemArchiveEnumerator(FileSystemArchive* archive);
+		FileSystemArchiveEnumerator(FileSystemArchiveEnumerator const&) = delete;
+		FileSystemArchiveEnumerator(FileSystemArchiveEnumerator&&) = delete;
+		~FileSystemArchiveEnumerator() override = default;
+
+		FileSystemArchiveEnumerator& operator=(FileSystemArchiveEnumerator const&) = delete;
+		FileSystemArchiveEnumerator& operator=(FileSystemArchiveEnumerator&&) = delete;
+	private:
+		SmartReference<FileSystemArchive> m_archive;
+		bool m_initialized{ false };
 	};
 }
