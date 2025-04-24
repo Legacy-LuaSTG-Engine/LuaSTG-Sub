@@ -51,6 +51,5 @@ namespace core {
 	template<> constexpr InterfaceId getInterfaceId<IFileSystemArchive>() { return UUID::parse("a36e930b-4fb8-5061-b88b-127e5200474e"); }
 
 	class FileSystemFactory {
-		
 	};
 }

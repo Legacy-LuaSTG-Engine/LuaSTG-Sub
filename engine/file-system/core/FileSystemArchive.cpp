@@ -108,7 +108,11 @@ namespace {
 	std::u8string normalizePath(std::string_view const& path) {
 		std::u8string_view const directory_u8(reinterpret_cast<char8_t const*>(path.data()), path.size()); // as utf-8
 		std::filesystem::path const directory_path(directory_u8);
-		return directory_path.lexically_normal().generic_u8string();
+		std::u8string normalized = directory_path.lexically_normal().generic_u8string();
+		if (normalized == u8"."sv || normalized == u8"/"sv || normalized.find(u8".."sv) != std::u8string::npos) {
+			normalized.clear();
+		}
+		return normalized;
 	}
 	std::string_view getStringView(std::u8string const& s) {
 		return { reinterpret_cast<char const*>(s.data()), s.size() };
