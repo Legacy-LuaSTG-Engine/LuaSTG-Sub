@@ -7,6 +7,7 @@
 #include "core/FileSystemWindows.hpp"
 #include "core/FileSystem.hpp"
 #include "core/SmartReference.hpp"
+#include "core/FileSystemOS.hpp"
 #include "gtest/gtest.h"
 
 using std::string_view_literals::operator ""sv;
@@ -50,6 +51,28 @@ TEST(FileSystemArchive, all) {
 	ASSERT_FALSE(archive->hasDirectory("LuaSTG-Sub-v0.21.7/xaudio2_9redist.dll"sv));
 }
 
+TEST(FileSystemOsEnumerator, all) {
+	auto const file_system = core::FileSystemOS::getInstance();
+
+	core::SmartReference<core::IFileSystemEnumerator> enumerator;
+	ASSERT_TRUE(file_system->createEnumerator(enumerator.put(), "Core.FileSystem.dir\\/"sv));
+
+	while (enumerator->next()) {
+		std::println("{}", enumerator->getName());
+	}
+}
+
+TEST(FileSystemOsEnumerator, recursive) {
+	auto const file_system = core::FileSystemOS::getInstance();
+
+	core::SmartReference<core::IFileSystemEnumerator> enumerator;
+	ASSERT_TRUE(file_system->createEnumerator(enumerator.put(), "Core.FileSystem.dir\\/"sv, true));
+
+	while (enumerator->next()) {
+		std::println("{}", enumerator->getName());
+	}
+}
+
 TEST(FileSystemArchiveEnumerator, all) {
 	core::SmartReference<core::IFileSystemArchive> archive;
 	ASSERT_TRUE(core::IFileSystemArchive::createFromFile(R"(（窗口与显示分支）LuaSTG-Sub-v0.21.7.zip)"sv, archive.put()));
@@ -67,7 +90,7 @@ TEST(FileSystemArchiveEnumerator, pattern) {
 	ASSERT_TRUE(core::IFileSystemArchive::createFromFile(R"(（窗口与显示分支）LuaSTG-Sub-v0.21.7.zip)"sv, archive.put()));
 
 	core::SmartReference<core::IFileSystemEnumerator> enumerator;
-	ASSERT_TRUE(archive->createRecursiveEnumerator(enumerator.put(), "LuaSTG-Sub-v0.21.7////////////src"sv));
+	ASSERT_TRUE(archive->createEnumerator(enumerator.put(), "LuaSTG-Sub-v0.21.7////////////src"sv, true));
 
 	while (enumerator->next()) {
 		std::println("{}", enumerator->getName());

@@ -2,11 +2,66 @@
 #include "core/SmartReference.hpp"
 #include <cassert>
 #include <fstream>
-#include <filesystem>
+
+using std::string_view_literals::operator ""sv;
 
 namespace {
+	bool isSeparator(char const c) {
+		return c == '/' || c == '\\';
+	}
+	bool isPathEndsWithSeparator(std::string_view const& path) {
+		return !path.empty() && isSeparator(path.back());
+	}
 	std::u8string_view getUtf8StringView(std::string_view const& s) {
 		return { reinterpret_cast<char8_t const*>(s.data()), s.size() };
+	}
+	std::string_view getStringView(std::u8string_view const& s) {
+		return { reinterpret_cast<char const*>(s.data()), s.size() };
+	}
+	std::u8string normalizePath(std::string_view const& path) {
+		std::u8string_view const directory_u8(reinterpret_cast<char8_t const*>(path.data()), path.size()); // as utf-8
+		std::filesystem::path const directory_path(directory_u8);
+		std::u8string normalized = directory_path.lexically_normal().generic_u8string();
+		if (normalized == u8"."sv || normalized == u8"/"sv) {
+			normalized.clear();
+		}
+		return normalized;
+	}
+	bool readFileData(std::filesystem::path const& path, core::IData** const data) {
+		assert(data != nullptr);
+		std::ifstream file(path, std::ifstream::in | std::ifstream::binary);
+		if (!file.is_open()) {
+			return false;
+		}
+		if (!file.seekg(0, std::ifstream::end)) {
+			return false;
+		}
+		auto const end = file.tellg();
+		if (end == static_cast<std::ifstream::pos_type>(-1)) {
+			return false;
+		}
+		if (!file.seekg(0, std::ifstream::beg)) {
+			return false;
+		}
+		auto const begin = file.tellg();
+		if (begin == static_cast<std::ifstream::pos_type>(-1)) {
+			return false;
+		}
+		auto const size = end - begin;
+		core::SmartReference<core::IData> buffer;
+		if (!core::IData::create(static_cast<size_t>(size), buffer.put())) {
+			return false;
+		}
+		if (!file.read(static_cast<char*>(buffer->data()), static_cast<std::streamsize>(size))) {
+			return false;
+		}
+		*data = buffer.detach();
+		return true;
+	}
+	bool readFileData(std::string_view const& name, core::IData** const data) {
+		assert(data != nullptr);
+		std::filesystem::path const path(getUtf8StringView(name));
+		return readFileData(path, data);
 	}
 }
 
@@ -35,49 +90,197 @@ namespace core {
 		}
 		return static_cast<size_t>(size);
 	}
-	bool FileSystemOS::readFile(std::string_view const& name, IData** const data) {
-		assert(data != nullptr);
-		std::filesystem::path const path(getUtf8StringView(name));
-		std::ifstream file(path, std::ifstream::in | std::ifstream::binary);
-		if (!file.is_open()) {
-			return false;
-		}
-		if (!file.seekg(0, std::ifstream::end)) {
-			return false;
-		}
-		auto const end = file.tellg();
-		if (end == static_cast<std::ifstream::pos_type>(-1)) {
-			return false;
-		}
-		if (!file.seekg(0, std::ifstream::beg)) {
-			return false;
-		}
-		auto const begin = file.tellg();
-		if (begin == static_cast<std::ifstream::pos_type>(-1)) {
-			return false;
-		}
-		auto const size = end - begin;
-		SmartReference<IData> buffer;
-		if (!IData::create(static_cast<size_t>(size), buffer.put())) {
-			return false;
-		}
-		if (!file.read(static_cast<char*>(buffer->data()), static_cast<std::streamsize>(size))) {
-			return false;
-		}
-		*data = buffer.detach();
-		return true;
-	}
+	bool FileSystemOS::readFile(std::string_view const& name, IData** const data) { return readFileData(name, data); }
 	bool FileSystemOS::hasDirectory(std::string_view const& name) {
 		std::error_code ec;
 		return std::filesystem::is_directory(getUtf8StringView(name), ec);
 	}
 
-	bool FileSystemOS::createEnumerator(IFileSystemEnumerator** enumerator, std::string_view const& directory, bool const recursive) {
-		return false;
+	bool FileSystemOS::createEnumerator(IFileSystemEnumerator** const enumerator, std::string_view const& directory, bool const recursive) {
+		assert(enumerator != nullptr);
+		SmartReference<IFileSystemEnumerator> temp;
+		if (recursive) {
+			temp.attach(new FileSystemOsRecursiveEnumerator(directory));
+		}
+		else {
+			temp.attach(new FileSystemOsEnumerator(directory));
+		}
+		*enumerator = temp.detach();
+		return true;
 	}
 
 	IFileSystem* FileSystemOS::getInstance() {
 		static FileSystemOS instance;
 		return &instance;
+	}
+}
+namespace core {
+	// IFileSystemEnumerator
+
+	bool FileSystemOsEnumerator::next() {
+		std::error_code ec;
+		m_path.clear();
+		if (m_initialized) {
+			m_iterator.increment(ec);
+		}
+		else {
+			m_iterator = std::filesystem::directory_iterator(m_directory, ec);
+			m_end = std::filesystem::end(m_iterator);
+			m_initialized = !ec;
+		}
+		m_available = !ec && m_iterator != m_end;
+		//while (!isPathMatched(getName(), m_directory, m_recursive)) {
+		//	result = MZ_OK == mz_zip_reader_goto_next_entry(m_archive->m_archive);
+		//	m_available = result;
+		//	if (!result) {
+		//		break;
+		//	}
+		//}
+		return m_available;
+	}
+	std::string_view FileSystemOsEnumerator::getName() {
+		if (!m_available) {
+			return "";
+		}
+		if (m_path.empty()) {
+			auto const path = m_iterator->path().lexically_normal().generic_u8string();
+			m_path.assign(getStringView(path));
+			if (std::error_code ec; m_iterator->is_directory(ec) && !ec) {
+				if (!m_path.empty() && !isPathEndsWithSeparator(m_path)) {
+					m_path.push_back('/'); // zip style
+				}
+			}
+		}
+		return m_path;
+	}
+	FileSystemNodeType FileSystemOsEnumerator::getNodeType() {
+		if (!m_available) {
+			return FileSystemNodeType::unknown;
+		}
+		if (std::error_code ec; m_iterator->is_directory(ec) && !ec) {
+			return FileSystemNodeType::directory;
+		}
+		if (std::error_code ec; m_iterator->is_regular_file(ec) && !ec) {
+			return FileSystemNodeType::file;
+		}
+		return FileSystemNodeType::unknown;
+	}
+	size_t FileSystemOsEnumerator::getFileSize() {
+		if (!m_available) {
+			return 0;
+		}
+		std::error_code ec;
+		auto const size = m_iterator->file_size(ec);
+		if (size == static_cast<std::uintmax_t>(-1)) {
+			return 0;
+		}
+		return static_cast<size_t>(size);
+	}
+	bool FileSystemOsEnumerator::readFile(IData** const data) {
+		if (!m_available) {
+			return false;
+		}
+		return readFileData(m_iterator->path(), data);
+	}
+
+	// FileSystemOsEnumerator
+
+	FileSystemOsEnumerator::FileSystemOsEnumerator(std::string_view const& directory) {
+		initializeDirectory(directory);
+	}
+
+	void FileSystemOsEnumerator::initializeDirectory(std::string_view const& directory) {
+		std::u8string const normalized = normalizePath(directory);
+		if (normalized.empty()) {
+			m_directory.assign("."sv); // root directory
+		}
+		else {
+			m_directory.assign(getStringView(normalized));
+		}
+	}
+}
+namespace core {
+	// IFileSystemEnumerator
+
+	bool FileSystemOsRecursiveEnumerator::next() {
+		std::error_code ec;
+		m_path.clear();
+		if (m_initialized) {
+			m_iterator.increment(ec);
+		}
+		else {
+			m_iterator = std::filesystem::recursive_directory_iterator(m_directory, ec);
+			m_end = std::filesystem::end(m_iterator);
+			m_initialized = !ec;
+		}
+		m_available = !ec && m_iterator != m_end;
+		//while (!isPathMatched(getName(), m_directory, m_recursive)) {
+		//	result = MZ_OK == mz_zip_reader_goto_next_entry(m_archive->m_archive);
+		//	m_available = result;
+		//	if (!result) {
+		//		break;
+		//	}
+		//}
+		return m_available;
+	}
+	std::string_view FileSystemOsRecursiveEnumerator::getName() {
+		if (!m_available) {
+			return "";
+		}
+		if (m_path.empty()) {
+			auto const path = m_iterator->path().lexically_normal().generic_u8string();
+			m_path.assign(getStringView(path));
+			if (std::error_code ec; m_iterator->is_directory(ec) && !ec) {
+				if (!m_path.empty() && !isPathEndsWithSeparator(m_path)) {
+					m_path.push_back('/'); // zip style
+				}
+			}
+		}
+		return m_path;
+	}
+	FileSystemNodeType FileSystemOsRecursiveEnumerator::getNodeType() {
+		if (!m_available) {
+			return FileSystemNodeType::unknown;
+		}
+		if (std::error_code ec; m_iterator->is_directory(ec) && !ec) {
+			return FileSystemNodeType::directory;
+		}
+		if (std::error_code ec; m_iterator->is_regular_file(ec) && !ec) {
+			return FileSystemNodeType::file;
+		}
+		return FileSystemNodeType::unknown;
+	}
+	size_t FileSystemOsRecursiveEnumerator::getFileSize() {
+		if (!m_available) {
+			return 0;
+		}
+		std::error_code ec;
+		auto const size = m_iterator->file_size(ec);
+		if (size == static_cast<std::uintmax_t>(-1)) {
+			return 0;
+		}
+		return static_cast<size_t>(size);
+	}
+	bool FileSystemOsRecursiveEnumerator::readFile(IData** const data) {
+		if (!m_available) {
+			return false;
+		}
+		return readFileData(m_iterator->path(), data);
+	}
+
+	// FileSystemOsRecursiveEnumerator
+
+	FileSystemOsRecursiveEnumerator::FileSystemOsRecursiveEnumerator(std::string_view const& directory) {
+		initializeDirectory(directory);
+	}
+
+	void FileSystemOsRecursiveEnumerator::initializeDirectory(std::string_view const& directory) {
+		std::u8string const normalized = normalizePath(directory);
+		if (normalized.empty()) {
+			m_directory.assign("."sv); // root directory
+		}
+		else {
+			m_directory.assign(getStringView(normalized));
+		}
 	}
 }

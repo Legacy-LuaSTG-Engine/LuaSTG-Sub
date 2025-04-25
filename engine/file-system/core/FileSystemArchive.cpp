@@ -318,7 +318,7 @@ namespace core {
 		}
 		return size;
 	}
-	bool FileSystemArchiveEnumerator::readFile(IData** data) {
+	bool FileSystemArchiveEnumerator::readFile(IData** const data) {
 		if (!m_available) {
 			return false;
 		}
@@ -336,7 +336,7 @@ namespace core {
 		*data = buffer.detach();
 		return true;
 	}
-
+	 
 	// FileSystemArchiveEnumerator
 
 	FileSystemArchiveEnumerator::FileSystemArchiveEnumerator(FileSystemArchive* const archive, std::string_view const& directory, bool const recursive)
@@ -346,6 +346,9 @@ namespace core {
 	}
 
 	void FileSystemArchiveEnumerator::initializeDirectory(std::string_view const& directory) {
+		if (directory.empty()) {
+			return;
+		}
 		std::u8string const normalized = normalizePath(directory);
 		if (normalized.empty()) {
 			return;
