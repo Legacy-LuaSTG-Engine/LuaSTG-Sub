@@ -1,5 +1,5 @@
 #include "Core/Graphics/Common/FreeTypeGlyphManager.hpp"
-#include "Core/FileManager.hpp"
+#include "core/FileSystem.hpp"
 #include "utility/utf.hpp"
 #include "utf8.hpp"
 
