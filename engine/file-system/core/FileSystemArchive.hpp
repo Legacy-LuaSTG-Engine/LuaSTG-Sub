@@ -16,8 +16,7 @@ namespace core {
 		bool readFile(std::string_view const& name, IData** data) override;
 		bool hasDirectory(std::string_view const& name) override;
 
-		bool createEnumerator(IFileSystemEnumerator** enumerator, std::string_view const& directory) override;
-		bool createRecursiveEnumerator(IFileSystemEnumerator** enumerator, std::string_view const& directory) override;
+		bool createEnumerator(IFileSystemEnumerator** enumerator, std::string_view const& directory, bool recursive) override;
 
 		// IFileSystemArchive
 

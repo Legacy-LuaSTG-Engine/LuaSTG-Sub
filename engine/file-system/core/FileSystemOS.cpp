@@ -72,10 +72,7 @@ namespace core {
 		return std::filesystem::is_directory(getUtf8StringView(name), ec);
 	}
 
-	bool FileSystemOS::createEnumerator(IFileSystemEnumerator** enumerator, std::string_view const& directory) {
-		return false;
-	}
-	bool FileSystemOS::createRecursiveEnumerator(IFileSystemEnumerator** enumerator, std::string_view const& directory) {
+	bool FileSystemOS::createEnumerator(IFileSystemEnumerator** enumerator, std::string_view const& directory, bool const recursive) {
 		return false;
 	}
 

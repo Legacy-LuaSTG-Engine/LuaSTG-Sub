@@ -211,18 +211,11 @@ namespace core {
 		return MZ_OK == mz_zip_reader_entry_is_dir(m_archive);
 	}
 
-	bool FileSystemArchive::createEnumerator(IFileSystemEnumerator** const enumerator, std::string_view const& directory) {
+	bool FileSystemArchive::createEnumerator(IFileSystemEnumerator** const enumerator, std::string_view const& directory, bool const recursive) {
 		if (!m_archive) {
 			return false;
 		}
-		*enumerator = new FileSystemArchiveEnumerator(this, directory, false);
-		return true;
-	}
-	bool FileSystemArchive::createRecursiveEnumerator(IFileSystemEnumerator** const enumerator, std::string_view const& directory) {
-		if (!m_archive) {
-			return false;
-		}
-		*enumerator = new FileSystemArchiveEnumerator(this, directory, true);
+		*enumerator = new FileSystemArchiveEnumerator(this, directory, recursive);
 		return true;
 	}
 

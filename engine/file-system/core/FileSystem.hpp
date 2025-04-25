@@ -30,8 +30,7 @@ namespace core {
 		virtual bool readFile(std::string_view const& name, IData** data) = 0;
 		virtual bool hasDirectory(std::string_view const& name) = 0;
 
-		virtual bool createEnumerator(IFileSystemEnumerator** enumerator, std::string_view const& directory) = 0;
-		virtual bool createRecursiveEnumerator(IFileSystemEnumerator** enumerator, std::string_view const& directory) = 0;
+		virtual bool createEnumerator(IFileSystemEnumerator** enumerator, std::string_view const& directory, bool recursive = false) = 0;
 	};
 
 	// UUID v5
