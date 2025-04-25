@@ -104,10 +104,7 @@ namespace {
 
 	#define RESULT(FS, P) ResolvedResourceLocation{ .file_system = (FS), .path = std::string(P) }
 
-		[[maybe_unused]] std::lock_guard lock_search_paths(s_search_paths_mutex);
-
 		if (l.schema == ResourceLocationSchema::resource) {
-			[[maybe_unused]] std::lock_guard lock_file_systems(s_file_systems_mutex);
 			for (auto const& v : s_file_systems) {
 				if (!l.file_system.empty() && v.name != l.file_system) {
 					continue;
@@ -234,11 +231,15 @@ namespace core {
 
 	bool FileSystemManager::hasNode(std::string_view const& name) {
 		auto const l = ResourceLocation::parse(name);
+		[[maybe_unused]] std::lock_guard lock_file_systems(s_file_systems_mutex);
+		[[maybe_unused]] std::lock_guard lock_search_paths(s_search_paths_mutex);
 		auto const r = resolve(l);
 		return r.file_system != nullptr;
 	}
 	FileSystemNodeType FileSystemManager::getNodeType(std::string_view const& name) {
 		auto const l = ResourceLocation::parse(name);
+		[[maybe_unused]] std::lock_guard lock_file_systems(s_file_systems_mutex);
+		[[maybe_unused]] std::lock_guard lock_search_paths(s_search_paths_mutex);
 		auto const r = resolve(l);
 		if (r.file_system == nullptr) {
 			return FileSystemNodeType::unknown;
@@ -247,6 +248,8 @@ namespace core {
 	}
 	bool FileSystemManager::hasFile(std::string_view const& name) {
 		auto const l = ResourceLocation::parse(name);
+		[[maybe_unused]] std::lock_guard lock_file_systems(s_file_systems_mutex);
+		[[maybe_unused]] std::lock_guard lock_search_paths(s_search_paths_mutex);
 		auto const r = resolve(l);
 		if (r.file_system == nullptr) {
 			return false;
@@ -255,6 +258,8 @@ namespace core {
 	}
 	size_t FileSystemManager::getFileSize(std::string_view const& name) {
 		auto const l = ResourceLocation::parse(name);
+		[[maybe_unused]] std::lock_guard lock_file_systems(s_file_systems_mutex);
+		[[maybe_unused]] std::lock_guard lock_search_paths(s_search_paths_mutex);
 		auto const r = resolve(l);
 		if (r.file_system == nullptr) {
 			return 0;
@@ -267,6 +272,8 @@ namespace core {
 			return false;
 		}
 		auto const l = ResourceLocation::parse(name);
+		[[maybe_unused]] std::lock_guard lock_file_systems(s_file_systems_mutex);
+		[[maybe_unused]] std::lock_guard lock_search_paths(s_search_paths_mutex);
 		auto const r = resolve(l);
 		if (r.file_system == nullptr) {
 			return false;
@@ -275,10 +282,18 @@ namespace core {
 	}
 	bool FileSystemManager::hasDirectory(std::string_view const& name) {
 		auto const l = ResourceLocation::parse(name);
+		[[maybe_unused]] std::lock_guard lock_file_systems(s_file_systems_mutex);
+		[[maybe_unused]] std::lock_guard lock_search_paths(s_search_paths_mutex);
 		auto const r = resolve(l);
 		if (r.file_system == nullptr) {
 			return false;
 		}
 		return r.file_system->hasDirectory(r.path);
+	}
+
+	bool FileSystemManager::createEnumerator(IFileSystemEnumerator** const enumerator, std::string_view const& directory, bool const recursive) {
+		[[maybe_unused]] std::lock_guard lock_file_systems(s_file_systems_mutex);
+		[[maybe_unused]] std::lock_guard lock_search_paths(s_search_paths_mutex);
+		return false;
 	}
 }
