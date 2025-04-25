@@ -8,6 +8,8 @@
 #include "core/FileSystem.hpp"
 #include "core/SmartReference.hpp"
 #include "core/FileSystemOS.hpp"
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
 #include "gtest/gtest.h"
 
 using std::string_view_literals::operator ""sv;
@@ -54,6 +56,10 @@ TEST(FileSystemArchive, all) {
 //*/
 
 TEST(FileSystemOs, readFile) {
+	if (!spdlog::get("test")) {
+		spdlog::set_default_logger(spdlog::stdout_color_mt("test"));
+	}
+
 	auto const file_system = core::FileSystemOS::getInstance();
 
 	std::filesystem::path const p(u8"Windows.txt"sv);

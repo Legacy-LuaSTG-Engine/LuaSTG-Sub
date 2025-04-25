@@ -1,6 +1,7 @@
 #include "core/FileSystemOS.hpp"
 #include "core/FileSystemWindows.hpp"
 #include "core/SmartReference.hpp"
+#include "core/Logger.hpp"
 #include <cassert>
 #include <fstream>
 
@@ -32,7 +33,7 @@ namespace {
 		assert(data != nullptr);
 		if (std::string correct; !win32::isFilePathCaseCorrect(path, correct)) {
 			auto const name = path.u8string();
-			//spdlog::error("[core] There is a difference in case between file paths '{}' and '{}'", getStringView(name), correct);
+			core::Logger::error("[core] There is a difference in case between file paths '{}' and '{}'", getStringView(name), correct);
 			return false;
 		}
 		std::ifstream file(path, std::ifstream::in | std::ifstream::binary);
