@@ -21,4 +21,4 @@ luastg_target_more_warning(${test_name})
 target_sources(${test_name} PRIVATE test/Test.cpp)
 target_link_libraries(${test_name} PRIVATE options_compile_utf8 ${lib_name} GTest::gtest_main)
 
-set_target_properties(${test_name} PROPERTIES FOLDER engine)
+set_target_properties(${test_name} PROPERTIES FOLDER engine/test)
