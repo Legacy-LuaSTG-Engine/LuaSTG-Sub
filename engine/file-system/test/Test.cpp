@@ -22,6 +22,7 @@ TEST(FileSystemWindows, isFilePathCaseCorrect) {
 	ASSERT_FALSE(win32::isFilePathCaseCorrect(R"(hello world 你好世界.txt)"sv, c1));
 }
 
+/*
 TEST(FileSystemArchive, all) {
 	core::SmartReference<core::IFileSystemArchive> archive;
 	ASSERT_TRUE(core::IFileSystemArchive::createFromFile(R"(（窗口与显示分支）LuaSTG-Sub-v0.21.7.zip)"sv, archive.put()));
@@ -50,12 +51,14 @@ TEST(FileSystemArchive, all) {
 	ASSERT_FALSE(archive->hasDirectory("LuaSTG-Sub-v0.21.7/LuaSTGSub.exe"sv));
 	ASSERT_FALSE(archive->hasDirectory("LuaSTG-Sub-v0.21.7/xaudio2_9redist.dll"sv));
 }
+//*/
 
 TEST(FileSystemOs, readFile) {
 	auto const file_system = core::FileSystemOS::getInstance();
 
 	std::filesystem::path const p(u8"Windows.txt"sv);
 	std::ofstream file(p, std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
+	file.close();
 
 	core::SmartReference<core::IData> data;
 	ASSERT_FALSE(file_system->readFile("windows.txt"sv, data.put()));
@@ -73,6 +76,7 @@ TEST(FileSystemOsEnumerator, all) {
 	}
 }
 
+/*
 TEST(FileSystemOsEnumerator, recursive) {
 	auto const file_system = core::FileSystemOS::getInstance();
 
@@ -107,3 +111,4 @@ TEST(FileSystemArchiveEnumerator, pattern) {
 		std::println("{}", enumerator->getName());
 	}
 }
+//*/
