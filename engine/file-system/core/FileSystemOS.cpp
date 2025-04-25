@@ -32,7 +32,7 @@ namespace {
 		assert(data != nullptr);
 		if (std::string correct; !win32::isFilePathCaseCorrect(path, correct)) {
 			auto const name = path.u8string();
-			spdlog::error("[core] There is a difference in case between file paths '{}' and '{}'", getStringView(name), correct);
+			//spdlog::error("[core] There is a difference in case between file paths '{}' and '{}'", getStringView(name), correct);
 			return false;
 		}
 		std::ifstream file(path, std::ifstream::in | std::ifstream::binary);
