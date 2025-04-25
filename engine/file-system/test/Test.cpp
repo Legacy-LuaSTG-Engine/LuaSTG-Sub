@@ -51,6 +51,17 @@ TEST(FileSystemArchive, all) {
 	ASSERT_FALSE(archive->hasDirectory("LuaSTG-Sub-v0.21.7/xaudio2_9redist.dll"sv));
 }
 
+TEST(FileSystemOs, readFile) {
+	auto const file_system = core::FileSystemOS::getInstance();
+
+	std::filesystem::path const p(u8"Windows.txt"sv);
+	std::ofstream file(p, std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
+
+	core::SmartReference<core::IData> data;
+	ASSERT_FALSE(file_system->readFile("windows.txt"sv, data.put()));
+	ASSERT_TRUE(file_system->readFile("Windows.txt"sv, data.put()));
+}
+
 TEST(FileSystemOsEnumerator, all) {
 	auto const file_system = core::FileSystemOS::getInstance();
 

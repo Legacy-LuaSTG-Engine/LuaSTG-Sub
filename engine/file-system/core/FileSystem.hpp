@@ -69,7 +69,6 @@ namespace core {
 		static bool readFile(std::string_view const& name, IData** data);
 		static bool hasDirectory(std::string_view const& name);
 
-		static bool createEnumerator(IFileSystemEnumerator** enumerator, std::string_view const& directory);
-		static bool createRecursiveEnumerator(IFileSystemEnumerator** enumerator, std::string_view const& directory);
+		static bool createEnumerator(IFileSystemEnumerator** enumerator, std::string_view const& directory, bool recursive = false);
 	};
 }

@@ -1,4 +1,5 @@
 #include "core/FileSystemOS.hpp"
+#include "core/FileSystemWindows.hpp"
 #include "core/SmartReference.hpp"
 #include <cassert>
 #include <fstream>
@@ -29,6 +30,11 @@ namespace {
 	}
 	bool readFileData(std::filesystem::path const& path, core::IData** const data) {
 		assert(data != nullptr);
+		if (std::string correct; !win32::isFilePathCaseCorrect(path, correct)) {
+			auto const name = path.u8string();
+			spdlog::error("[core] There is a difference in case between file paths '{}' and '{}'", getStringView(name), correct);
+			return false;
+		}
 		std::ifstream file(path, std::ifstream::in | std::ifstream::binary);
 		if (!file.is_open()) {
 			return false;

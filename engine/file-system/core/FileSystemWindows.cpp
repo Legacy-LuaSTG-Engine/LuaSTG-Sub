@@ -96,4 +96,15 @@ namespace win32 {
 	bool isFilePathCaseCorrect(std::wstring const& path, std::wstring& correct) {
 		return isFilePathCaseCorrect(std::wstring_view(path), correct);
 	}
+
+	bool isFilePathCaseCorrect(std::filesystem::path const& path, std::string& correct) {
+		std::wstring temp;
+		auto const result = isFilePathCaseCorrect(path.wstring(), temp);
+		correct.assign(utf8::to_string(temp));
+		return result;
+	}
+
+	bool isFilePathCaseCorrect(std::filesystem::path const& path, std::wstring& correct) {
+		return isFilePathCaseCorrect(path.wstring(), correct);
+	}
 }
