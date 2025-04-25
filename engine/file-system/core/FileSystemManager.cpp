@@ -114,6 +114,9 @@ namespace {
 				}
 				for (auto const& s : s_search_paths | std::ranges::views::reverse) {
 					auto const p = join(s, l.path);
+					if (p.find(u8".."sv) != std::u8string::npos) {
+						continue; // not allowed for archive
+					}
 					if (v.file_system->hasNode(getStringView(p))) {
 						return RESULT(v.file_system.get(), getStringView(p));
 					}
@@ -124,6 +127,7 @@ namespace {
 			}
 		}
 
+		// TODO: read configuration
 		auto const os_file_system = core::FileSystemOS::getInstance();
 		for (auto const& s : s_search_paths | std::ranges::views::reverse) {
 			auto const p = join(s, l.path);
