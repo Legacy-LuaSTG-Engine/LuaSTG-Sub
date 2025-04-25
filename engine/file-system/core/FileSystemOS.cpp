@@ -129,13 +129,6 @@ namespace core {
 			m_initialized = !ec;
 		}
 		m_available = !ec && m_iterator != m_end;
-		//while (!isPathMatched(getName(), m_directory, m_recursive)) {
-		//	result = MZ_OK == mz_zip_reader_goto_next_entry(m_archive->m_archive);
-		//	m_available = result;
-		//	if (!result) {
-		//		break;
-		//	}
-		//}
 		return m_available;
 	}
 	std::string_view FileSystemOsEnumerator::getName() {
@@ -214,13 +207,6 @@ namespace core {
 			m_initialized = !ec;
 		}
 		m_available = !ec && m_iterator != m_end;
-		//while (!isPathMatched(getName(), m_directory, m_recursive)) {
-		//	result = MZ_OK == mz_zip_reader_goto_next_entry(m_archive->m_archive);
-		//	m_available = result;
-		//	if (!result) {
-		//		break;
-		//	}
-		//}
 		return m_available;
 	}
 	std::string_view FileSystemOsRecursiveEnumerator::getName() {
