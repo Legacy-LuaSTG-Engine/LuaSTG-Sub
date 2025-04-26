@@ -1,6 +1,5 @@
 #include "LuaBinding/LuaWrapper.hpp"
 #include "lua/plus.hpp"
-#include "Core/FileManager.hpp"
 #include "AppFrame.h"
 
 void luastg::binding::ResourceManager::Register(lua_State* L) noexcept

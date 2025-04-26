@@ -2,6 +2,7 @@
 /// @brief lua包装层 用于导出C++函数和类
 #pragma once
 #include "AppFrame.h"
+#include "core/FileSystem.hpp"
 #include "LuaBinding/LuaWrapperMisc.hpp"
 
 #define LUASTG_LUA_LIBNAME "lstg"
@@ -32,7 +33,7 @@ namespace luastg::binding
 		struct Wrapper;
 	public:
 		static void Register(lua_State* L) noexcept;
-		static void CreateAndPush(lua_State* L, uint64_t uuid) noexcept;
+		static void CreateAndPush(lua_State* L, core::IFileSystemArchive* archive) noexcept;
 	};
 	
 	class FileManager {

@@ -10,7 +10,7 @@
 #include <functional>
 
 #include "Platform/HResultChecker.hpp"
-#include "Core/FileManager.hpp"
+#include "core/FileSystem.hpp"
 #include "AppFrame.h"
 #include "utf8.hpp"
 #include "LuaBinding/LuaWrapper.hpp"
@@ -319,16 +319,16 @@ namespace DirectWrite
 	class DWriteFontFileStreamImplement : public UnknownImplement<IDWriteFontFileStream>
 	{
 	private:
-		std::vector<uint8_t> m_data;
+		core::SmartReference<core::IData> m_data;
 	public:
 		HRESULT WINAPI ReadFileFragment(void const** fragmentStart, UINT64 fileOffset, UINT64 fragmentSize, void** fragmentContext) noexcept
 		{
 			assert(fragmentStart);
 			assert(fragmentContext);
 			assert(fileOffset <= UINT32_MAX && fragmentSize <= UINT32_MAX && (fileOffset + fragmentSize) <= UINT32_MAX); // only files smaller than 4GB are supported
-			if ((fileOffset + fragmentSize) > m_data.size()) return E_INVALIDARG;
-			*fragmentStart = m_data.data() + fileOffset;
-			*fragmentContext = m_data.data() + fileOffset; // for identification only
+			if ((fileOffset + fragmentSize) > m_data->size()) return E_INVALIDARG;
+			*fragmentStart = static_cast<uint8_t*>(m_data->data()) + fileOffset;
+			*fragmentContext = static_cast<uint8_t*>(m_data->data()) + fileOffset; // for identification only
 			return S_OK;
 		}
 		void WINAPI ReleaseFileFragment(void* fragmentContext) noexcept
@@ -339,7 +339,7 @@ namespace DirectWrite
 		HRESULT WINAPI GetFileSize(UINT64* fileSize) noexcept
 		{
 			assert(fileSize);
-			*fileSize = m_data.size();
+			*fileSize = m_data->size();
 			return S_OK; // always succeed
 		}
 		HRESULT WINAPI GetLastWriteTime(UINT64* lastWriteTime) noexcept
@@ -375,9 +375,11 @@ namespace DirectWrite
 				assert(false);
 				return false;
 			}
-			m_data.resize(size.LowPart); // OOM catch by factory
+			if (!core::IData::create(size.LowPart, m_data.put())) { // OOM catch by factory
+				return false;
+			}
 			DWORD read_size = 0;
-			if (!ReadFile(file.Get(), m_data.data(), size.LowPart, &read_size, NULL))
+			if (!ReadFile(file.Get(), m_data->data(), size.LowPart, &read_size, nullptr))
 			{
 				return false;
 			}
@@ -390,7 +392,7 @@ namespace DirectWrite
 		}
 		bool loadFromFileManager(std::string_view const path)
 		{
-			return GFileManager().loadEx(path, m_data); // OOM catch by factory
+			return core::FileSystemManager::readFile(path, m_data.put()); // OOM catch by factory
 		}
 	public:
 		DWriteFontFileStreamImplement() {}
@@ -473,7 +475,7 @@ namespace DirectWrite
 				return E_FAIL;
 			}
 			std::string const& path = m_font_file_name_list->at((size_t)m_index);
-			if (GFileManager().containEx(path))
+			if (core::FileSystemManager::hasFile(path))
 			{
 				return m_dwrite_factory->CreateCustomFontFileReference(
 					path.data(),

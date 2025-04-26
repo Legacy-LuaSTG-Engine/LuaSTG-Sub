@@ -8,7 +8,7 @@
 #include "GameResource/Implement/ResourceFontImpl.hpp"
 #include "GameResource/Implement/ResourcePostEffectShaderImpl.hpp"
 #include "GameResource/Implement/ResourceModelImpl.hpp"
-#include "Core/FileManager.hpp"
+#include "core/FileSystem.hpp"
 #include "AppFrame.h"
 #include "lua/plus.hpp"
 
@@ -641,20 +641,20 @@ namespace luastg
     bool ResourcePool::LoadParticle(const char* name, const char* path, const char* img_name,
                                     double a, double b,bool rect) noexcept
     {
-        std::vector<uint8_t> src;
-        if (!GFileManager().loadEx(path, src))
+        core::SmartReference<core::IData> src;
+        if (!core::FileSystemManager::readFile(path, src.put()))
         {
             spdlog::error("[luastg] LoadParticle：无法从 '{}' 加载粒子特效 '{}'，读取文件失败", path, name);
             return false;
         }
     
-        if (src.size() != sizeof(hgeParticleSystemInfo))
+        if (src->size() != sizeof(hgeParticleSystemInfo))
         {
             spdlog::error("[luastg] LoadParticle: 粒子特效定义文件 '{}' 格式不正确", path);
             return false;
         }
         hgeParticleSystemInfo tInfo;
-        std::memcpy(&tInfo, src.data(), sizeof(hgeParticleSystemInfo));
+        std::memcpy(&tInfo, src->data(), sizeof(hgeParticleSystemInfo));
     
         if (!LoadParticle(name, tInfo, img_name, a, b, rect, /* _nolog */ true))
         {

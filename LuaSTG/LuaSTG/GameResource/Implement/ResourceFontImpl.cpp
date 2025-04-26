@@ -1,5 +1,5 @@
 #include "GameResource/Implement/ResourceFontImpl.hpp"
-#include "Core/FileManager.hpp"
+#include "core/FileSystem.hpp"
 #include "utility/utf.hpp"
 #include "pugixml.hpp"
 #include "AppFrame.h"
@@ -291,15 +291,15 @@ namespace luastg
 			: m_line_height(0.0f)
 		{
 			// 打开 HGE 字体定义文件
-			std::vector<uint8_t> src;
-			if (!GFileManager().loadEx(path, src))
+			core::SmartReference<core::IData> src;
+			if (!core::FileSystemManager::readFile(path, src.put()))
 			{
 				spdlog::error("[luastg] 加载 HGE 纹理字体失败，无法加载字体定义文件 '{}'", path);
 				throw std::runtime_error("hgeFont::hgeFont");
 			}
 
 			// 解析
-			std::string_view font_define((char*)src.data(), src.size());
+			std::string_view font_define((char*)src->data(), src->size());
 			std::string_view texture;
 			if (!readDefine(path, font_define, texture))
 			{
@@ -307,7 +307,7 @@ namespace luastg
 			}
 
 			// 加载纹理
-			if (GFileManager().containEx(texture))
+			if (core::FileSystemManager::hasFile(texture))
 			{
 				if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(texture, mipmap, m_texture.put()))
 				{
@@ -462,15 +462,15 @@ namespace luastg
 			, m_descender(0.0f)
 		{
 			// 打开 fancy2d 字体定义文件
-			std::vector<uint8_t> src;
-			if (!GFileManager().loadEx(path, src))
+			core::SmartReference<core::IData> src;
+			if (!core::FileSystemManager::readFile(path, src.put()))
 			{
 				spdlog::error("[luastg] 加载 fancy2d 纹理字体失败，无法加载字体定义文件 '{}'", path);
 				throw std::runtime_error("f2dFont::f2dFont");
 			}
 
 			// 加载纹理
-			if (GFileManager().containEx(raw_texture_path))
+			if (core::FileSystemManager::hasFile(raw_texture_path))
 			{
 				if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(raw_texture_path, mipmap, m_texture.put()))
 				{
@@ -494,7 +494,7 @@ namespace luastg
 
 			// 解析
 			pugi::xml_document doc;
-			pugi::xml_parse_result result = doc.load_buffer(src.data(), src.size());
+			pugi::xml_parse_result result = doc.load_buffer(src->data(), src->size());
 			if (!result)
 			{
 				spdlog::error("[luastg] 加载 fancy2d 纹理字体失败，无法解析字体定义文件 '{}' ({})", path, result.description());

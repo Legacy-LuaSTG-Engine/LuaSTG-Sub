@@ -131,7 +131,7 @@ namespace lua {
 
 		// C -> lua array
 
-		inline stack_index_t create_array(size_t size = 0) { lua_createtable(L, static_cast<int>(size), 0); return index_of_top(); }
+		stack_index_t create_array(size_t const size = 0) const { lua_createtable(L, static_cast<int>(size), 0); return index_of_top(); }
 
 		template<typename T>
 		inline void set_array_value_zero_base(size_t c_index, T value) { typename T::__invalid_type__ _{}; }
@@ -145,7 +145,10 @@ namespace lua {
 		template<>
 		inline void set_array_value(stack_index_t index, std::string_view value) { lua_pushlstring(L, value.data(), value.size()); lua_rawseti(L, -2, index.value); }
 
-		inline void set_array_value(stack_index_t array_index, int32_t index, stack_index_t value_index) { lua_pushvalue(L, value_index.value); lua_rawseti(L, array_index.value, index); }
+		void set_array_value(stack_index_t const array_index, int32_t const index, stack_index_t const value_index) const { lua_pushvalue(L, value_index.value); lua_rawseti(L, array_index.value, index); }
+		void set_array_value(stack_index_t const array_index, int32_t const index, bool const value) const { push_value(value); lua_rawseti(L, array_index.value, index); }
+		void set_array_value(stack_index_t const array_index, int32_t const index, int32_t const& value) const { push_value(value); lua_rawseti(L, array_index.value, index); }
+		void set_array_value(stack_index_t const array_index, int32_t const index, std::string_view const& value) const { push_value(value); lua_rawseti(L, array_index.value, index); }
 
 		inline size_t get_array_size(stack_index_t index) { return lua_objlen(L, index.value); }
 

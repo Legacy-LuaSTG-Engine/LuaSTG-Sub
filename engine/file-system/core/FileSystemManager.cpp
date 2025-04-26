@@ -8,6 +8,7 @@
 #include <mutex>
 #include <ranges>
 #include <filesystem>
+#include <fstream>
 
 using std::string_view_literals::operator ""sv;
 
@@ -143,6 +144,51 @@ namespace {
 }
 
 namespace core {
+	class FileSystemFileSystemEnumerator final : public implement::ReferenceCounted<IFileSystemFileSystemEnumerator> {
+	public:
+		bool next(IFileSystem** const output) override {
+			assert(output != nullptr);
+			if (output == nullptr) {
+				return false;
+			}
+			if (m_file_systems->empty()) {
+				return false;
+			}
+			if (m_index == SIZE_MAX) {
+				m_index = 0;
+			}
+			if (m_index < m_file_systems->size() && m_index < SIZE_MAX) {
+				*output = m_file_systems->at(m_index).file_system.get();
+				if (*output) (*output)->retain();
+				++m_index;
+				return true;
+			}
+			return false;
+		}
+
+		FileSystemFileSystemEnumerator(std::recursive_mutex& file_systems_mutex, std::vector<NamedFileSystem> const& file_systems)
+			: m_file_systems_mutex(&file_systems_mutex), m_file_systems(&file_systems) {
+			assert(m_file_systems_mutex != nullptr);
+			assert(m_file_systems != nullptr);
+			m_file_systems_mutex->lock();
+		}
+		FileSystemFileSystemEnumerator(FileSystemFileSystemEnumerator const&) = delete;
+		FileSystemFileSystemEnumerator(FileSystemFileSystemEnumerator&&) = delete;
+		~FileSystemFileSystemEnumerator() override {
+			m_file_systems_mutex->unlock();
+		}
+
+		FileSystemFileSystemEnumerator& operator=(FileSystemFileSystemEnumerator const&) = delete;
+		FileSystemFileSystemEnumerator& operator=(FileSystemFileSystemEnumerator&&) = delete;
+
+	private:
+		std::recursive_mutex* m_file_systems_mutex{};
+		std::vector<NamedFileSystem> const* m_file_systems{};
+		size_t m_index{ SIZE_MAX };
+	};
+}
+
+namespace core {
 	void FileSystemManager::addFileSystem(std::string_view const& name, IFileSystem* const file_system) {
 		assert(!name.empty());
 		assert(file_system != nullptr);
@@ -190,9 +236,55 @@ namespace core {
 			}
 		}
 	}
+	void FileSystemManager::removeFileSystem(IFileSystem* const file_system) {
+		assert(file_system != nullptr);
+		if (file_system == nullptr) {
+			return;
+		}
+		[[maybe_unused]] std::lock_guard lock(s_file_systems_mutex);
+		for (auto it = s_file_systems.begin(); it != s_file_systems.end();) {
+			if (it->file_system.get() == file_system) {
+				it = s_file_systems.erase(it);
+			}
+			else {
+				++it;
+			}
+		}
+	}
 	void FileSystemManager::removeAllFileSystem() {
 		[[maybe_unused]] std::lock_guard lock(s_file_systems_mutex);
 		s_file_systems.clear();
+	}
+	bool FileSystemManager::createFileSystemEnumerator(IFileSystemFileSystemEnumerator** const enumerator) {
+		assert(enumerator != nullptr);
+		if (enumerator == nullptr) {
+			return false;
+		}
+		*enumerator = new FileSystemFileSystemEnumerator(s_file_systems_mutex, s_file_systems);
+		return true;
+	}
+
+	bool FileSystemManager::getFileSystemArchiveByPath(std::string_view const& path, IFileSystemArchive** const output) {
+		assert(!path.empty());
+		assert(output != nullptr);
+		if (path.empty()) {
+			return false;
+		}
+		if (output == nullptr) {
+			return false;
+		}
+		[[maybe_unused]] std::lock_guard lock(s_file_systems_mutex);
+		for (auto const& v : s_file_systems) {
+			SmartReference<IFileSystemArchive> archive;
+			if (!v.file_system->queryInterface(archive.put())) {
+				continue;
+			}
+			if (archive->getArchivePath() == path) {
+				*output = archive.detach();
+				return true;
+			}
+		}
+		return false;
 	}
 
 	void FileSystemManager::addSearchPath(std::string_view const& path) {
@@ -291,6 +383,17 @@ namespace core {
 		return r.file_system->hasDirectory(r.path);
 	}
 
+	bool FileSystemManager::writeFile(std::string_view const& name, IData* const data) {
+		std::filesystem::path const path(getUtf8StringView(name));
+		std::ofstream file(path, std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
+		if (!file.is_open()) {
+			return false;
+		}
+		if (!file.write(static_cast<char const*>(data->data()), static_cast<std::streamsize>(data->size()))) {
+			return false;
+		}
+		return true;
+	}
 	bool FileSystemManager::createEnumerator(IFileSystemEnumerator** const enumerator, std::string_view const& directory, bool const recursive) {
 		[[maybe_unused]] std::lock_guard lock_file_systems(s_file_systems_mutex);
 		[[maybe_unused]] std::lock_guard lock_search_paths(s_search_paths_mutex);

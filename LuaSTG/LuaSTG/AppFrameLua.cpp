@@ -21,7 +21,7 @@ extern "C" {
 #include "LuaBinding/external/lua_random.hpp"
 #include "LuaBinding/external/lua_dwrite.hpp"
 
-#include "Core/FileManager.hpp"
+#include "core/FileSystem.hpp"
 #include "utf8.hpp"
 #include "Platform/CommandLineArguments.hpp"
 
@@ -248,18 +248,17 @@ namespace luastg
 				spdlog::info("[luastg] 加载脚本'{}'", path);
 		}
 		bool loaded = false;
-		std::vector<uint8_t> src;
+		core::SmartReference<core::IData> src;
 		if (packname)
 		{
-			auto& arc = GFileManager().getFileArchive(packname);
-			if (!arc.empty())
-			{
-				loaded = arc.load(path, src);
+			core::SmartReference<core::IFileSystemArchive> archive;
+			if (core::FileSystemManager::getFileSystemArchiveByPath(packname, archive.put())) {
+				loaded = archive->readFile(path, src.put());
 			}
 		}
 		else
 		{
-			loaded = GFileManager().loadEx(path, src);
+			loaded = core::FileSystemManager::readFile(path, src.put());
 		}
 		if (!loaded)
 		{
@@ -267,7 +266,7 @@ namespace luastg
 			luaL_error(SL, "can't load file '%s'", path);
 			return;
 		}
-		if (0 != luaL_loadbuffer(SL, (char const*)src.data(), (size_t)src.size(), luaL_checkstring(SL, 1)))
+		if (0 != luaL_loadbuffer(SL, (char const*)src->data(), src->size(), luaL_checkstring(SL, 1)))
 		{
 			const char* tDetail = lua_tostring(SL, -1);
 			spdlog::error("[luajit] 编译'{}'失败：{}", path, tDetail);
