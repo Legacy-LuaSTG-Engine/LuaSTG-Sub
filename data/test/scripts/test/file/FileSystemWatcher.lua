@@ -43,8 +43,7 @@ function M:onUpdate()
         table.insert(self.changes, { file_name = change.file_name, action = change.action })
         refreshGlyphCache(change.file_name)
     end
-    
-    
+
     ---@diagnostic disable-next-line: undefined-field
     local ImGui = imgui.ImGui
     if ImGui.Begin(TEST_NAME) then
