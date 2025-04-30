@@ -7,7 +7,6 @@
 #include "core/FileSystemWindows.hpp"
 #include "core/FileSystem.hpp"
 #include "core/SmartReference.hpp"
-#include "core/FileSystemOS.hpp"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "gtest/gtest.h"
@@ -60,7 +59,7 @@ TEST(FileSystemOs, readFile) {
 		spdlog::set_default_logger(spdlog::stdout_color_mt("test"));
 	}
 
-	auto const file_system = core::FileSystemOS::getInstance();
+	auto const file_system = core::IFileSystemOS::getInstance();
 
 	std::filesystem::path const p(u8"Windows.txt"sv);
 	std::ofstream file(p, std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
@@ -72,7 +71,7 @@ TEST(FileSystemOs, readFile) {
 }
 
 TEST(FileSystemOsEnumerator, all) {
-	auto const file_system = core::FileSystemOS::getInstance();
+	auto const file_system = core::IFileSystemOS::getInstance();
 
 	core::SmartReference<core::IFileSystemEnumerator> enumerator;
 	ASSERT_TRUE(file_system->createEnumerator(enumerator.put(), "Core.FileSystem.dir\\/"sv));
@@ -84,7 +83,7 @@ TEST(FileSystemOsEnumerator, all) {
 
 /*
 TEST(FileSystemOsEnumerator, recursive) {
-	auto const file_system = core::FileSystemOS::getInstance();
+	auto const file_system = core::IFileSystemOS::getInstance();
 
 	core::SmartReference<core::IFileSystemEnumerator> enumerator;
 	ASSERT_TRUE(file_system->createEnumerator(enumerator.put(), "Core.FileSystem.dir\\/"sv, true));

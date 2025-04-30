@@ -38,6 +38,15 @@ namespace core {
 	// https://www.luastg-sub.com/core.IFileSystem
 	template<> constexpr InterfaceId getInterfaceId<IFileSystem>() { return UUID::parse("61c1bc5e-6e1e-5fe2-958c-527e85138010"); }
 
+	struct CORE_NO_VIRTUAL_TABLE IFileSystemOS : IFileSystem {
+		static IFileSystemOS* getInstance();
+	};
+
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.IFileSystemOS
+	template<> constexpr InterfaceId getInterfaceId<IFileSystemOS>() { return UUID::parse("f21693cb-e71a-5877-9786-7815d4af4ffd"); }
+
 	struct CORE_NO_VIRTUAL_TABLE IFileSystemArchive : IFileSystem {
 		virtual std::string_view getArchivePath() = 0;
 		virtual bool setPassword(std::string_view const& password) = 0;

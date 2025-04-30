@@ -96,7 +96,7 @@ namespace core {
 		return true;
 	}
 
-	IFileSystem* FileSystemOS::getInstance() {
+	IFileSystemOS* IFileSystemOS::getInstance() {
 		static FileSystemOS instance;
 		return &instance;
 	}

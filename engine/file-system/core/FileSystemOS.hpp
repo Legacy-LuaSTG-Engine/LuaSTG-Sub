@@ -4,7 +4,7 @@
 #include <filesystem>
 
 namespace core {
-	class FileSystemOS final : public implement::NoOperationReferenceCounted<IFileSystem> {
+	class FileSystemOS final : public implement::NoOperationReferenceCounted<IFileSystemOS> {
 	public:
 		bool hasNode(std::string_view const& name) override;
 		FileSystemNodeType getNodeType(std::string_view const& name) override;
@@ -14,8 +14,6 @@ namespace core {
 		bool hasDirectory(std::string_view const& name) override;
 
 		bool createEnumerator(IFileSystemEnumerator** enumerator, std::string_view const& directory, bool recursive = false) override;
-
-		static IFileSystem* getInstance();
 	};
 
 	class FileSystemOsEnumerator final : public implement::ReferenceCounted<IFileSystemEnumerator> {

@@ -234,7 +234,7 @@ namespace core {
 		*data = buffer.detach();
 		return true;
 	}
-	 
+
 	// FileSystemArchiveEnumerator
 
 	FileSystemArchiveEnumerator::FileSystemArchiveEnumerator(FileSystemArchive* const archive, std::string_view const& directory, bool const recursive)

@@ -1,8 +1,8 @@
 // ReSharper disable CppUseStructuredBinding
 
 #include "core/FileSystem.hpp"
-#include "core/FileSystemOS.hpp"
 #include "core/SmartReference.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include <cassert>
 #include <vector>
 #include <mutex>
@@ -126,7 +126,7 @@ namespace {
 		}
 
 		// TODO: read configuration
-		auto const os_file_system = core::FileSystemOS::getInstance();
+		auto const os_file_system = core::IFileSystemOS::getInstance();
 		for (auto const& s : s_search_paths | std::ranges::views::reverse) {
 			auto const p = join(s, l.path);
 			if (os_file_system->hasNode(getStringView(p))) {

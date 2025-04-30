@@ -1,7 +1,6 @@
 #include "LuaBinding/LuaWrapper.hpp"
 #include "lua/plus.hpp"
 #include "core/FileSystem.hpp"
-#include "core/FileSystemOS.hpp"
 #include "utility/path.hpp"
 #include "AppFrame.h"
 #include "utf8.hpp"
@@ -312,7 +311,7 @@ void luastg::binding::FileManager::Register(lua_State* L)noexcept {
 				ctx.push_value(core::FileSystemManager::hasFile(path));
 			}
 			else {
-				ctx.push_value(core::FileSystemOS::getInstance()->hasFile(path));
+				ctx.push_value(core::IFileSystemOS::getInstance()->hasFile(path));
 			}
 			return 1;
 		}
@@ -434,7 +433,7 @@ void luastg::binding::FileManager::Register(lua_State* L)noexcept {
 				ctx.push_value(core::FileSystemManager::hasDirectory(path));
 			}
 			else {
-				ctx.push_value(core::FileSystemOS::getInstance()->hasDirectory(path));
+				ctx.push_value(core::IFileSystemOS::getInstance()->hasDirectory(path));
 			}
 			return 1;
 		}
