@@ -45,7 +45,7 @@ namespace core::Graphics::Common {
 	};
 
 	struct FreeTypeFontData {
-		std::vector<uint8_t> buffer;
+		SmartReference<IData> buffer;
 		FT_Face ft_face{};
 		float ft_line_height{};
 		float ft_ascender{};

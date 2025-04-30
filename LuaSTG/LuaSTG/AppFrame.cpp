@@ -1,5 +1,5 @@
 #include "AppFrame.h"
-#include "Core/FileManager.hpp"
+#include "core/FileSystem.hpp"
 #include "Platform/XInput.hpp"
 #include "Utility/Utility.h"
 #include "Debugger/ImGuiExtension.h"
@@ -107,24 +107,23 @@ int AppFrame::LoadTextFile(lua_State* L_, const char* path, const char* packname
 			spdlog::info("[luastg] 读取文本文件'{}'", path);
 	}
 	bool loaded = false;
-	std::vector<uint8_t> src;
+	core::SmartReference<core::IData> src;
 	if (packname)
 	{
-		auto& arc = GFileManager().getFileArchive(packname);
-		if (!arc.empty())
-		{
-			loaded = arc.load(path, src);
+		core::SmartReference<core::IFileSystemArchive> archive;
+		if (core::FileSystemManager::getFileSystemArchiveByPath(packname, archive.put())) {
+			loaded = archive->readFile(path, src.put());
 		}
 	}
 	else
 	{
-		loaded = GFileManager().loadEx(path, src);
+		loaded = core::FileSystemManager::readFile(path, src.put());
 	}
 	if (!loaded) {
 		spdlog::error("[luastg] 无法加载文件'{}'", path);
 		return 0;
 	}
-	lua_pushlstring(L_, (char*)src.data(), src.size());
+	lua_pushlstring(L_, (char*)src->data(), src->size());
 	return 1;
 }
 
@@ -144,15 +143,20 @@ bool AppFrame::Init()noexcept
 
 	// 初始化文件系统
 	if (auto const& resources = core::ConfigurationLoader::getInstance().getFileSystem().getResources(); !resources.empty()) {
-		auto& file_manager = GFileManager();
 		for (auto const& resource : resources) {
 			using Type = core::ConfigurationLoader::FileSystem::ResourceFileSystem::Type;
 			switch (resource.getType()) {
 			case Type::directory:
-				file_manager.addSearchPath(resource.getPath());
+				core::FileSystemManager::addSearchPath(resource.getPath());
 				break;
 			case Type::archive:
-				file_manager.loadFileArchive(resource.getPath());
+				do {
+					core::SmartReference<core::IFileSystemArchive> archive;
+					if (core::IFileSystemArchive::createFromFile(resource.getPath(), archive.put())) {
+						core::FileSystemManager::addFileSystem(resource.getName(), archive.get());
+					}
+				}
+				while (false);
 				break;
 			}
 		}
@@ -276,7 +280,7 @@ void AppFrame::Shutdown()noexcept
 	imgui::unbindEngine();
 #endif
 
-	GFileManager().unloadAllFileArchive();
+	core::FileSystemManager::removeAllFileSystem();
 	spdlog::info("[luastg] 卸载所有资源包");
 
 	CloseInput();

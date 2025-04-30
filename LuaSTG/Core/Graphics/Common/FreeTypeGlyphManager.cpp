@@ -1,5 +1,5 @@
 #include "Core/Graphics/Common/FreeTypeGlyphManager.hpp"
-#include "Core/FileManager.hpp"
+#include "core/FileSystem.hpp"
 #include "utility/utf.hpp"
 #include "utf8.hpp"
 
@@ -236,7 +236,7 @@ namespace core::Graphics::Common {
 			};
 			auto openFromBuffer = [&]() {
 				// 打开
-				if (FT_Err_Ok != FT_New_Memory_Face(FT_LIBRARY, (FT_Byte*)data.buffer.data(), (FT_Long)data.buffer.size(), (FT_Long)fonts[i].font_face, &data.ft_face)) {
+				if (FT_Err_Ok != FT_New_Memory_Face(FT_LIBRARY, (FT_Byte*)data.buffer->data(), (FT_Long)data.buffer->size(), (FT_Long)fonts[i].font_face, &data.ft_face)) {
 					return;
 				}
 				setupFontFace();
@@ -244,7 +244,7 @@ namespace core::Graphics::Common {
 			if (!fonts[i].is_buffer) {
 				// 先看看是不是要从系统加载
 				std::string u8_path(fonts[i].source);
-				if (!GFileManager().containEx(u8_path)) {
+				if (!FileSystemManager::hasFile(u8_path)) {
 					if (!findSystemFont(fonts[i].source, u8_path)) {
 						continue; // 还是找不到
 					}
@@ -252,19 +252,24 @@ namespace core::Graphics::Common {
 				// 如果是路径，尝试从文件打开
 				if (!fonts[i].is_force_to_file) {
 					// 读取进内存
-					if (GFileManager().loadEx(u8_path, data.buffer)) {
+					if (FileSystemManager::readFile(u8_path, data.buffer.put())) {
 						openFromBuffer();
 					}
-				} else {
+				}
+				else {
 					// 从文件打开
 					openFromFile(u8_path);
 				}
-			} else if (fonts[i].source.data() && fonts[i].source.size() > 0) {
+			}
+			else if (fonts[i].source.data() && !fonts[i].source.empty()) {
 				// 如果是一块二进制数据，复制下来备用
-				data.buffer.resize(fonts[i].source.size());
-				std::memcpy(data.buffer.data(), fonts[i].source.data(), fonts[i].source.size());
+				if (!IData::create(fonts[i].source.size(), data.buffer.put())) {
+					continue; // 失败了
+				}
+				std::memcpy(data.buffer->data(), fonts[i].source.data(), fonts[i].source.size());
 				openFromBuffer();
-			} else {
+			}
+			else {
 				assert(false); continue; // 您数据呢？
 			}
 		}
@@ -287,7 +292,8 @@ namespace core::Graphics::Common {
 				m_common_info.ft_descender = std::min(m_common_info.ft_descender, f.ft_descender);
 			}
 			return true;
-		} else {
+		}
+		else {
 			closeFonts();
 			return false;
 		}
@@ -346,13 +352,15 @@ namespace core::Graphics::Common {
 			}
 			if (pt) {
 				break;
-			} else {
+			}
+			else {
 				// 该添新丁了
 				if (!addTexture()) {
 					return false;
 				}
 			}
-		} while (!pt);
+		}
+		while (!pt);
 		GlyphCache2D& t = *pt;
 		// 写入字形数据
 		info.texture_index = (uint32_t)(pt - m_tex.data());
@@ -383,7 +391,8 @@ namespace core::Graphics::Common {
 			t.dirty_t = t.pen_y - 1;
 			t.dirty_r = t.pen_x + bitmap.width + 1;
 			t.dirty_b = t.pen_y + bitmap.rows + 1;
-		} else {
+		}
+		else {
 			t.dirty_l = std::min(t.dirty_l, t.pen_x - 1);
 			t.dirty_t = std::min(t.dirty_t, t.pen_y - 1);
 			t.dirty_r = std::max(t.dirty_r, t.pen_x + bitmap.width + 1);
@@ -432,7 +441,8 @@ namespace core::Graphics {
 		try {
 			*output = new Common::FreeTypeGlyphManager(p_device, p_arr_info, info_count);
 			return true;
-		} catch (...) {
+		}
+		catch (...) {
 			*output = nullptr;
 			return false;
 		}
@@ -497,7 +507,8 @@ namespace {
 				tKeyDataLen = MAX_PATH;
 				tIndex++;
 			}
-		} else {
+		}
+		else {
 			return false; // 打开注册表失败
 		}
 

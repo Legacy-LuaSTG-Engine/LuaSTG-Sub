@@ -14,6 +14,7 @@
 #include "LuaBinding/modern/Vector4.hpp"
 #include "LuaBinding/modern/Sprite.hpp"
 #include "LuaBinding/modern/SpriteRenderer.hpp"
+#include "LuaBinding/modern/FileSystemWatcher.hpp"
 
 namespace luastg::binding
 {
@@ -89,5 +90,6 @@ namespace luastg::binding
 		SpriteRenderer::registerClass(L);
 		SpriteRectRenderer::registerClass(L);
 		SpriteQuadRenderer::registerClass(L);
+		FileSystemWatcher::registerClass(L);
 	}
 }

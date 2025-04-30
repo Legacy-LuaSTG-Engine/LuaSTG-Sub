@@ -1,6 +1,7 @@
-﻿#pragma once
+#pragma once
 #include "core/implement/ReferenceCounted.hpp"
 #include "Core/Audio/Decoder.hpp"
+#include "core/Data.hpp"
 
 #include <vorbis/vorbisfile.h>
 
@@ -22,7 +23,7 @@ namespace core::Audio
 		};
 
 	private:
-		std::vector<uint8_t> m_data;
+		SmartReference<IData> m_data;
 		OggVorbis_Stream m_stream;
 		OggVorbis_File m_ogg;
 		bool m_init;

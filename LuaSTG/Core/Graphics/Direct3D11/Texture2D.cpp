@@ -1,6 +1,6 @@
 #include "Core/Graphics/Direct3D11/Texture2D.hpp"
-#include "Core/FileManager.hpp"
 #include "Core/Graphics/Direct3D11/Device.hpp"
+#include "core/FileSystem.hpp"
 #include "Core/i18n.hpp"
 #include "utf8.hpp"
 #include "WICTextureLoader11.h"
@@ -158,8 +158,8 @@ namespace core::Graphics::Direct3D11 {
 			M_D3D_SET_DEBUG_NAME(m_view.Get(), "Texture2D_D3D11::d3d11_srv");
 		}
 		else if (!m_source_path.empty()) {
-			std::vector<uint8_t> src;
-			if (!GFileManager().loadEx(m_source_path, src)) {
+			SmartReference<IData> src;
+			if (!FileSystemManager::readFile(m_source_path, src.put())) {
 				spdlog::error("[core] 无法加载文件 '{}'", m_source_path);
 				return false;
 			}
@@ -169,8 +169,8 @@ namespace core::Graphics::Direct3D11 {
 			// 先尝试以 DDS 格式加载
 			DirectX::DDS_ALPHA_MODE dds_alpha_mode = DirectX::DDS_ALPHA_MODE_UNKNOWN;
 			HRESULT const hr1 = DirectX::CreateDDSTextureFromMemoryEx(
-				d3d11_device, m_mipmap ? d3d11_devctx : NULL,
-				src.data(), src.size(),
+				d3d11_device, m_mipmap ? d3d11_devctx : nullptr,
+				static_cast<uint8_t const*>(src->data()), src->size(),
 				0,
 				D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0,
 				DirectX::DDS_LOADER_IGNORE_SRGB, // TODO: 这里也同样忽略了 sRGB，看以后渲染管线颜色空间怎么改
@@ -179,8 +179,8 @@ namespace core::Graphics::Direct3D11 {
 			if (FAILED(hr1)) {
 				// 尝试以普通图片格式加载
 				HRESULT const hr2 = DirectX::CreateWICTextureFromMemoryEx(
-					d3d11_device, m_mipmap ? d3d11_devctx : NULL,
-					src.data(), src.size(),
+					d3d11_device, m_mipmap ? d3d11_devctx : nullptr,
+					static_cast<uint8_t const*>(src->data()), src->size(),
 					0,
 					D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0,
 					DirectX::WIC_LOADER_DEFAULT | DirectX::WIC_LOADER_IGNORE_SRGB,
@@ -190,8 +190,8 @@ namespace core::Graphics::Direct3D11 {
 				if (FAILED(hr2)) {
 					// 尝试以 QOI 图片格式加载
 					HRESULT const hr3 = DirectX::CreateQOITextureFromMemoryEx(
-						d3d11_device, m_mipmap ? d3d11_devctx : NULL, m_device->GetWICImagingFactory(),
-						src.data(), src.size(),
+						d3d11_device, m_mipmap ? d3d11_devctx : nullptr, m_device->GetWICImagingFactory(),
+						static_cast<uint8_t const*>(src->data()), src->size(),
 						0,
 						D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0,
 						DirectX::QOI_LOADER_DEFAULT | DirectX::QOI_LOADER_IGNORE_SRGB,

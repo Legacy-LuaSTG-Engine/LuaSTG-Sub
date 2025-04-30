@@ -11,6 +11,38 @@ namespace core::implement {
 	};
 
 	template<typename T>
+	class NoOperationReferenceCounted : public T {
+	public:
+		int32_t retain() override {
+			return 1;
+		}
+		int32_t release() override {
+			return 1;
+		}
+		bool queryInterface(InterfaceId const& uuid, void** const output) override {
+			assert(output != nullptr);
+			if (uuid == getInterfaceId<IReferenceCounted>()) {
+				*output = static_cast<IReferenceCounted*>(this);
+				return true;
+			}
+			if (uuid == getInterfaceId<T>()) {
+				*output = static_cast<T*>(this);
+				return true;
+			}
+			*output = nullptr;
+			return false;
+		}
+
+		NoOperationReferenceCounted() = default;
+		NoOperationReferenceCounted(NoOperationReferenceCounted const&) = delete;
+		NoOperationReferenceCounted(NoOperationReferenceCounted&&) = delete;
+		virtual ~NoOperationReferenceCounted() = default;
+
+		NoOperationReferenceCounted& operator=(NoOperationReferenceCounted const&) = delete;
+		NoOperationReferenceCounted& operator=(NoOperationReferenceCounted&&) = delete;
+	};
+
+	template<typename T>
 	class ReferenceCounted : public T {
 	public:
 		int32_t retain() override {

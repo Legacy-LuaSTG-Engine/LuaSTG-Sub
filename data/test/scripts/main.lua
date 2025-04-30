@@ -131,6 +131,7 @@ require("test_window_and_display")
 print(package.path)
 
 require("test.math")
+require("test.file")
 require("test.imgui")
 require("test.graphics")
 require("test.audio")

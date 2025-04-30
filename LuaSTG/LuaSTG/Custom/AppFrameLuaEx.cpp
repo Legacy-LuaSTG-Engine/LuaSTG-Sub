@@ -1,6 +1,6 @@
 #include "AppFrame.h"
 #include "Config.h"
-#include "Core/FileManager.hpp"
+#include "core/FileSystem.hpp"
 
 #include "Platform/HResultChecker.hpp"
 
@@ -11,10 +11,10 @@ namespace luastg
         bool is_launch_loaded = false;
         #ifdef USING_LAUNCH_FILE
         spdlog::info("[luastg] 加载初始化脚本");
-        std::vector<uint8_t> src;
-        if (GFileManager().loadEx(LUASTG_LAUNCH_SCRIPT, src))
+        core::SmartReference<core::IData> src;
+        if (core::FileSystemManager::readFile(LUASTG_LAUNCH_SCRIPT, src.put()))
         {
-            if (SafeCallScript((char const*)src.data(), src.size(), LUASTG_LAUNCH_SCRIPT))
+            if (SafeCallScript((char const*)src->data(), src->size(), LUASTG_LAUNCH_SCRIPT))
             {
                 is_launch_loaded = true;
                 spdlog::info("[luastg] 加载脚本'{}'", LUASTG_LAUNCH_SCRIPT);
@@ -41,13 +41,13 @@ namespace luastg
             "main.lua",
             "src/main.lua",
         };
-        std::vector<uint8_t> src;
+        core::SmartReference<core::IData> src;
         bool is_load = false;
         for (auto& v : entry_scripts)
         {
-            if (GFileManager().loadEx(v, src))
+            if (core::FileSystemManager::readFile(v, src.put()))
             {
-                if (SafeCallScript((char const*)src.data(), src.size(), v.data()))
+                if (SafeCallScript((char const*)src->data(), src->size(), v.data()))
                 {
                     spdlog::info("[luastg] 加载脚本'{}'", v);
                     is_load = true;

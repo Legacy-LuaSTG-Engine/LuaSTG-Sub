@@ -1,9 +1,10 @@
 #include "LuaBinding/LuaCustomLoader.hpp"
-#include "Core/FileManager.hpp"
+#include "core/FileSystem.hpp"
+#include "core/SmartReference.hpp"
 
 static int readable(const char* filename) {
     try {
-        return GFileManager().containEx(filename) ? 1 : 0;
+        return core::FileSystemManager::hasFile(filename) ? 1 : 0;
     }
     catch(...) {}
     return 0;
@@ -70,13 +71,13 @@ static int package_loader_luastg(lua_State* L) {
     if (filename == NULL) return 1;  /* library not found in this path */
     //if (luaL_loadfile(L, filename) != 0)
         //loaderror(L, filename);
-    std::vector<uint8_t> src;
-    if (!GFileManager().loadEx(filename, src))
+    core::SmartReference<core::IData> src;
+    if (!core::FileSystemManager::readFile(filename, src.put()))
         loaderror(L, filename);
     else {
         if (luaL_loadbuffer(L,
-            (char*)src.data(),
-            src.size(),
+            (char*)src->data(),
+            src->size(),
             filename) != 0)
             loaderror(L, filename);
     }
