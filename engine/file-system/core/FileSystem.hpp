@@ -83,6 +83,7 @@ namespace core {
 		static bool hasSearchPath(std::string_view const& path);
 		static void removeSearchPath(std::string_view const& path);
 		static void removeAllSearchPath();
+		static void resolveLocation(std::string_view const& path, IFileSystemEnumerator** enumerator);
 
 		static bool hasNode(std::string_view const& name);
 		static FileSystemNodeType getNodeType(std::string_view const& name);
