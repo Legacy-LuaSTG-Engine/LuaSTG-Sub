@@ -1,5 +1,6 @@
 #include "FileSystemWatcher.hpp"
 #include "core/implement/ReferenceCounted.hpp"
+#include "core/FileSystemCommon.hpp"
 #include "lua/plus.hpp"
 #include "utf8.hpp"
 #include <thread>
@@ -218,7 +219,8 @@ namespace luastg::binding {
 			core::FileNotifyInformation info;
 			if (self->object->next(&info)) {
 				constexpr lua::stack_index_t info_table(1 + 1);
-				ctx.set_map_value(info_table, "file_name"sv, std::string_view(info.file_name->c_str(), info.file_name->length()));
+				auto const normalized = normalizePath(std::string_view(info.file_name->c_str(), info.file_name->length()));
+				ctx.set_map_value(info_table, "file_name"sv, getStringView(normalized));
 				ctx.set_map_value(info_table, "action"sv, static_cast<int32_t>(info.action));
 				ctx.push_value(true);
 			}
@@ -277,6 +279,14 @@ namespace luastg::binding {
 	void FileSystemWatcher::registerClass(lua_State* const vm) {
 		lua::stack_balancer_t const sb(vm);
 		lua::stack_t const ctx(vm);
+
+		// lstg.FileSystemWatcher.FileAction
+		auto const action_table = ctx.create_module("lstg.FileSystemWatcher.FileAction"sv);
+		ctx.set_map_value(action_table, "added", static_cast<int32_t>(core::FileAction::added));
+		ctx.set_map_value(action_table, "removed", static_cast<int32_t>(core::FileAction::removed));
+		ctx.set_map_value(action_table, "modified", static_cast<int32_t>(core::FileAction::modified));
+		ctx.set_map_value(action_table, "renamed_old_name", static_cast<int32_t>(core::FileAction::renamed_old_name));
+		ctx.set_map_value(action_table, "renamed_new_name", static_cast<int32_t>(core::FileAction::renamed_new_name));
 
 		// method
 
