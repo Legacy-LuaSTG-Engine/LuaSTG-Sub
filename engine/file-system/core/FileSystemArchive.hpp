@@ -2,6 +2,7 @@
 #include "core/FileSystem.hpp"
 #include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
+#include <mutex>
 
 namespace core {
 	class FileSystemArchive final : public implement::ReferenceCounted<IFileSystemArchive> {
@@ -37,6 +38,7 @@ namespace core {
 
 	private:
 		std::string m_name;
+		std::recursive_mutex m_mutex;
 		void* m_archive{};
 	};
 
@@ -56,7 +58,7 @@ namespace core {
 		FileSystemArchiveEnumerator(FileSystemArchive* archive, std::string_view const& directory, bool recursive);
 		FileSystemArchiveEnumerator(FileSystemArchiveEnumerator const&) = delete;
 		FileSystemArchiveEnumerator(FileSystemArchiveEnumerator&&) = delete;
-		~FileSystemArchiveEnumerator() override = default;
+		~FileSystemArchiveEnumerator() override;
 
 		FileSystemArchiveEnumerator& operator=(FileSystemArchiveEnumerator const&) = delete;
 		FileSystemArchiveEnumerator& operator=(FileSystemArchiveEnumerator&&) = delete;

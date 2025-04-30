@@ -15,12 +15,11 @@
 
 #define MEMORY_RESOURCE_STRING(NAME, SOURCE) std::pmr::string const NAME ((SOURCE), &memory_resource)
 
-using std::string_view_literals::operator ""sv;
-
 namespace core {
 	// IFileSystem
 
 	bool FileSystemArchive::hasNode(std::string_view const& name) {
+		std::lock_guard lock_archive(m_mutex);
 		if (!m_archive) {
 			return false;
 		}
@@ -32,6 +31,7 @@ namespace core {
 		return true;
 	}
 	FileSystemNodeType FileSystemArchive::getNodeType(std::string_view const& name) {
+		std::lock_guard lock_archive(m_mutex);
 		if (!m_archive) {
 			return FileSystemNodeType::unknown;
 		}
@@ -46,6 +46,7 @@ namespace core {
 		return FileSystemNodeType::file;
 	}
 	bool FileSystemArchive::hasFile(std::string_view const& name) {
+		std::lock_guard lock_archive(m_mutex);
 		if (!m_archive) {
 			return false;
 		}
@@ -57,6 +58,7 @@ namespace core {
 		return MZ_OK != mz_zip_reader_entry_is_dir(m_archive);
 	}
 	size_t FileSystemArchive::getFileSize(std::string_view const& name) {
+		std::lock_guard lock_archive(m_mutex);
 		if (!m_archive) {
 			return 0;
 		}
@@ -72,6 +74,7 @@ namespace core {
 		return size;
 	}
 	bool FileSystemArchive::readFile(std::string_view const& name, IData** const data) {
+		std::lock_guard lock_archive(m_mutex);
 		if (!data) {
 			return false;
 		}
@@ -98,6 +101,7 @@ namespace core {
 		return true;
 	}
 	bool FileSystemArchive::hasDirectory(std::string_view const& name) {
+		std::lock_guard lock_archive(m_mutex);
 		if (!m_archive) {
 			return false;
 		}
@@ -110,7 +114,9 @@ namespace core {
 	}
 
 	bool FileSystemArchive::createEnumerator(IFileSystemEnumerator** const enumerator, std::string_view const& directory, bool const recursive) {
+		m_mutex.lock(); // release by FileSystemArchiveEnumerator
 		if (!m_archive) {
+			m_mutex.unlock();
 			return false;
 		}
 		*enumerator = new FileSystemArchiveEnumerator(this, directory, recursive);
@@ -120,6 +126,7 @@ namespace core {
 	// IFileSystemArchive
 
 	bool FileSystemArchive::setPassword(std::string_view const& password) {
+		std::lock_guard lock_archive(m_mutex);
 		if (!m_archive) {
 			return false;
 		}
@@ -140,6 +147,7 @@ namespace core {
 	}
 
 	bool FileSystemArchive::open(std::string_view const& path) {
+		std::lock_guard lock_archive(m_mutex);
 		m_archive = mz_zip_reader_create();
 		if (m_archive == nullptr) {
 			return false;
@@ -241,6 +249,9 @@ namespace core {
 		: m_archive(archive), m_recursive(recursive) {
 		assert(archive != nullptr);
 		initializeDirectory(directory);
+	}
+	FileSystemArchiveEnumerator::~FileSystemArchiveEnumerator() {
+		m_archive->m_mutex.unlock();
 	}
 
 	void FileSystemArchiveEnumerator::initializeDirectory(std::string_view const& directory) {
