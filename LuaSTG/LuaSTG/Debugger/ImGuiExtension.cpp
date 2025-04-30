@@ -1061,10 +1061,11 @@ namespace imgui
 			if ((msg_flags & 0x1) || ranges_flag)
 			{
 				// 窗口 DPI 有变化或者有新的字形要添加进来
+				ImGui_ImplDX11_InvalidateDeviceObjects();
 				auto& io = ImGui::GetIO();
 				io.Fonts->Clear();
 				setConfig();
-				ImGui_ImplDX11_InvalidateDeviceObjects();
+				io.Fonts->Build();
 			}
 			constexpr int const mask = (~((int)ImGuiConfigFlags_NoMouseCursorChange));
 			auto& io = ImGui::GetIO();

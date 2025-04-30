@@ -46,7 +46,7 @@ namespace lua {
 	struct stack_t {
 		lua_State* L{};
 
-		explicit stack_t(lua_State*& state) : L(state) {}
+		explicit stack_t(lua_State* const& state) : L(state) {}
 
 		// lua stack
 
@@ -184,6 +184,13 @@ namespace lua {
 
 		template<>
 		inline void set_map_value(stack_index_t index, std::string_view key, double value) const {
+			push_value(key);
+			push_value(value);
+			lua_settable(L, index.value);
+		}
+
+		template<>
+		inline void set_map_value(stack_index_t index, std::string_view key, std::string_view value) const {
 			push_value(key);
 			push_value(value);
 			lua_settable(L, index.value);
