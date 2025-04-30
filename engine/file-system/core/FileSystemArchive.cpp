@@ -1,11 +1,9 @@
-#include "FileSystemArchive.hpp"
+#include "core/FileSystemArchive.hpp"
 #include "core/SmartReference.hpp"
+#include "core/FileSystemCommon.hpp"
 #include <cassert>
 #include <array>
 #include <memory_resource>
-#include <algorithm>
-#include <ranges>
-#include <filesystem>
 #include "mz.h"
 #include "mz_strm.h"
 #include "mz_zip.h"
@@ -18,106 +16,6 @@
 #define MEMORY_RESOURCE_STRING(NAME, SOURCE) std::pmr::string const NAME ((SOURCE), &memory_resource)
 
 using std::string_view_literals::operator ""sv;
-
-namespace {
-	bool isSeparator(char const c) {
-		return c == '/' || c == '\\';
-	}
-	bool isPathEndsWithSeparator(std::string_view const& path) {
-		return !path.empty() && isSeparator(path.back());
-	}
-	bool isPathEquals(std::string_view const& a, std::string_view const& b) {
-		if (a.size() != b.size()) {
-			return false;
-		}
-		for (size_t i = 0; i < a.size(); ++i) {
-			if (isSeparator(a[i]) && isSeparator(b[i])) {
-				continue;
-			}
-			if (a[i] != b[i]) {
-				return false;
-			}
-		}
-		return true;
-	}
-	bool isPathStartsWith(std::string_view const& a, std::string_view const& b) {
-		if (a.size() < b.size()) {
-			return false;
-		}
-		for (size_t i = 0; i < b.size(); ++i) {
-			if (isSeparator(a[i]) && isSeparator(b[i])) {
-				continue;
-			}
-			if (a[i] != b[i]) {
-				return false;
-			}
-		}
-		return true;
-	}
-	bool isPatternMatched(std::string_view const& path, std::string const& pattern) {
-		if (pattern.empty()) {
-			return true;
-		}
-		if (pattern.ends_with("**"sv)) {
-			auto const head = pattern.substr(0, pattern.size() - 2);
-			if (isPathEndsWithSeparator(head) && isPathEquals(path, head)) {
-				return false; // exclude parent level directory
-			}
-			return isPathStartsWith(path, head);
-		}
-		if (pattern.ends_with("*"sv)) {
-			auto const head = pattern.substr(0, pattern.size() - 1);
-			if (isPathEndsWithSeparator(head) && isPathEquals(path, head)) {
-				return false; // exclude parent level directory
-			}
-			if (!isPathStartsWith(path, head)) {
-				return false;
-			}
-			auto const tail = path.substr(head.size());
-			auto const separator_count = std::ranges::count_if(tail, &isSeparator);
-			if (separator_count == 0) {
-				return true; // current level file
-			}
-			if (separator_count == 1 && isSeparator(tail.back())) {
-				return true; // current level directory
-			}
-			return false; // in child directory
-		}
-		return isPathEquals(path, pattern);
-	}
-	bool isPathMatched(std::string_view const& path, std::string const& directory, bool const recursive) {
-		if (!isPathStartsWith(path, directory)) {
-			return false;
-		}
-		if (path.size() == directory.size() /* isPathEquals(path, directory) */) {
-			return false; // exclude 'directory'
-		}
-		if (recursive) {
-			return true;
-		}
-		auto const leaf = path.substr(directory.size());
-		auto const separator_count = std::ranges::count_if(leaf, &isSeparator);
-		if (separator_count == 0) {
-			return true; // current level file
-		}
-		if (separator_count == 1 && isPathEndsWithSeparator(leaf)) {
-			return true; // current level directory
-		}
-		return false; // in child directory
-	}
-	std::u8string normalizePath(std::string_view const& path) {
-		std::u8string_view const directory_u8(reinterpret_cast<char8_t const*>(path.data()), path.size()); // as utf-8
-		std::filesystem::path const directory_path(directory_u8);
-		std::u8string normalized = directory_path.lexically_normal().generic_u8string();
-		if (normalized == u8"."sv || normalized == u8"/"sv || normalized.find(u8".."sv) != std::u8string::npos) {
-			normalized.clear();
-		}
-		return normalized;
-	}
-	std::string_view getStringView(std::u8string const& s) {
-		return { reinterpret_cast<char const*>(s.data()), s.size() };
-	}
-}
 
 namespace core {
 	// IFileSystem
@@ -349,7 +247,7 @@ namespace core {
 		if (directory.empty()) {
 			return;
 		}
-		std::u8string const normalized = normalizePath(directory);
+		std::u8string const normalized = normalizePath(directory, true);
 		if (normalized.empty()) {
 			return;
 		}

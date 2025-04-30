@@ -2,33 +2,13 @@
 #include "core/FileSystemWindows.hpp"
 #include "core/SmartReference.hpp"
 #include "core/Logger.hpp"
+#include "core/FileSystemCommon.hpp"
 #include <cassert>
 #include <fstream>
 
 using std::string_view_literals::operator ""sv;
 
 namespace {
-	bool isSeparator(char const c) {
-		return c == '/' || c == '\\';
-	}
-	bool isPathEndsWithSeparator(std::string_view const& path) {
-		return !path.empty() && isSeparator(path.back());
-	}
-	std::u8string_view getUtf8StringView(std::string_view const& s) {
-		return { reinterpret_cast<char8_t const*>(s.data()), s.size() };
-	}
-	std::string_view getStringView(std::u8string_view const& s) {
-		return { reinterpret_cast<char const*>(s.data()), s.size() };
-	}
-	std::u8string normalizePath(std::string_view const& path) {
-		std::u8string_view const directory_u8(reinterpret_cast<char8_t const*>(path.data()), path.size()); // as utf-8
-		std::filesystem::path const directory_path(directory_u8);
-		std::u8string normalized = directory_path.lexically_normal().generic_u8string();
-		if (normalized == u8"."sv || normalized == u8"/"sv) {
-			normalized.clear();
-		}
-		return normalized;
-	}
 	bool readFileData(std::filesystem::path const& path, core::IData** const data) {
 		assert(data != nullptr);
 		if (std::string correct; !win32::isFilePathCaseCorrect(path, correct)) {
