@@ -8,6 +8,8 @@
 #include <ranges>
 #include <algorithm>
 
+using std::string_view_literals::operator ""sv;
+
 namespace luastg {
     using Node = InternalLuaScriptsFileSystemNode;
 
@@ -58,6 +60,7 @@ namespace luastg {
                     std::memcpy(temp->data(), file.data.data(), file.data.size());
                     mask(temp->data(), temp->size());
                     *data = temp.detach();
+                    return true;
                 }
             }
             return false;

@@ -2,7 +2,6 @@
 #include "GameResource/ResourcePassword.hpp"
 #include "LuaBinding/LuaAppFrame.hpp"
 #include "LuaBinding/LuaCustomLoader.hpp"
-#include "LuaBinding/LuaInternalSource.hpp"
 #include "LuaBinding/LuaWrapper.hpp"
 extern "C" {
 #include "lua_cjson.h"
@@ -24,6 +23,8 @@ extern "C" {
 #include "core/FileSystem.hpp"
 #include "utf8.hpp"
 #include "Platform/CommandLineArguments.hpp"
+#include "core/FileSystem.hpp"
+#include "luastg/InternalLuaScriptsFileSystem.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -35,7 +36,7 @@ namespace luastg
     {
         // ??? errmsg
         int ret = 0;
-        
+
         lua_getfield(L, LUA_GLOBALSINDEX, "debug");            // ??? errmsg table(debug)
         if (!lua_istable(L, -1))
         {
@@ -48,7 +49,7 @@ namespace luastg
             lua_pop(L, 2);                                     // ??? errmsg
             return 1;
         }
-        
+
         lua_pushvalue(L, -3);        // ??? errmsg table(debug) function(debug.traceback) errmsg
         lua_pushinteger(L, 2);       // ??? errmsg table(debug) function(debug.traceback) errmsg 2
         ret = lua_pcall(L, 2, 1, 0); // ??? errmsg table(debug) tracebackmsg   <==> [lua] debug.traceback(errmsg, 2)
@@ -62,7 +63,7 @@ namespace luastg
             lua_pop(L, 2);                                                // ??? errmsg
             return 1;
         }
-        
+
         return 1;
     }
 
@@ -279,6 +280,9 @@ namespace luastg
 
 	bool AppFrame::OnOpenLuaEngine()
 	{
+		// 挂载文件系统
+		core::FileSystemManager::addFileSystem("luastg", IInternalLuaScriptsFileSystem::getInstance());
+
 		// 加载lua虚拟机
 		spdlog::info("[luajit] {}", LUAJIT_VERSION);
 		L = luaL_newstate();
@@ -296,12 +300,6 @@ namespace luastg
 			spdlog::info("[luajit] 注册标准库与内置包");
 			luaL_openlibs(L);  // 内建库 (lua build in lib)
 			lua_register_custom_loader(L); // 加强版 package 库 (require)
-
-			if (!SafeCallScript(LuaInternalSource_1().c_str(), LuaInternalSource_1().length(), "internal.main")) {
-				spdlog::error("[luajit] 内置脚本'internal.main'出错");
-				return false;
-			}
-
 			luaopen_cjson(L);
 			luaopen_lfs(L);
 			//lua_xlsx_open(L);
@@ -349,8 +347,12 @@ namespace luastg
 				lua_pop(L, 1);                                  // ?
 			}
 
-			if (!SafeCallScript(LuaInternalSource_2().c_str(), LuaInternalSource_2().length(), "internal.api")) {
-				spdlog::error("[luajit] 内置脚本'internal.api'出错");
+			constexpr std::string_view boost_script(R"(-- LuaSTG Sub boost script
+package.cpath = ""
+package.path = "?.lua;?/init.lua;"
+require("luastg.main")
+)");
+			if (!SafeCallScript(boost_script.data(), boost_script.size(), "luastg/boost.lua")) {
 				return false;
 			}
 		}
@@ -358,4 +360,4 @@ namespace luastg
 
 		return true;
 	}
-};
+}

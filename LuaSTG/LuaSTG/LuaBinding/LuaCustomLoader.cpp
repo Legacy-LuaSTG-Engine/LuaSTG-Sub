@@ -75,6 +75,9 @@ static int package_loader_luastg(lua_State* L) {
     if (!core::FileSystemManager::readFile(filename, src.put()))
         loaderror(L, filename);
     else {
+#ifndef NDEBUG
+        spdlog::info(R"(require "{}" from {})", name, filename);
+#endif
         if (luaL_loadbuffer(L,
             (char*)src->data(),
             src->size(),

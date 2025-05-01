@@ -1026,14 +1026,20 @@ namespace imgui
 		g_ImGuiBindEngine = false;
 		g_ImGuiTexIDValid = false;
 
-		auto* window = APP.GetAppModel()->getWindow();
-		auto* device = APP.GetAppModel()->getDevice();
+		if (APP.GetAppModel()) {
+			auto* window = APP.GetAppModel()->getWindow();
+			auto* device = APP.GetAppModel()->getDevice();
 
-		device->removeEventListener(&g_ImGuiRenderDeviceEventListener);
-		g_ImGuiRenderDeviceEventListener.onDeviceDestroy();
+			device->removeEventListener(&g_ImGuiRenderDeviceEventListener);
+			g_ImGuiRenderDeviceEventListener.onDeviceDestroy();
 
-		window->removeEventListener(&g_ImGuiRenderDeviceEventListener);
-		g_ImGuiRenderDeviceEventListener.onWindowDestroy();
+			window->removeEventListener(&g_ImGuiRenderDeviceEventListener);
+			g_ImGuiRenderDeviceEventListener.onWindowDestroy();
+		}
+		else {
+			g_ImGuiRenderDeviceEventListener.onDeviceDestroy();
+			g_ImGuiRenderDeviceEventListener.onWindowDestroy();
+		}
 
 		ImPlot::DestroyContext();
 		ImGui::DestroyContext();
