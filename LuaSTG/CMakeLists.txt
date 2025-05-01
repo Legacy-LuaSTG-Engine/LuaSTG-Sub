@@ -1,5 +1,6 @@
 # LuaSTG configurer
 
+add_subdirectory(internal-lua-scripts)
 add_subdirectory(Shader)
 include(Platform.cmake)
 include(Core.cmake)

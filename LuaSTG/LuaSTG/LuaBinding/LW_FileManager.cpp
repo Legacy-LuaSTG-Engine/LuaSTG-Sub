@@ -242,7 +242,7 @@ void luastg::binding::FileManager::Register(lua_State* L)noexcept {
 				}
 
 				core::SmartReference<core::IFileSystemEnumerator> e;
-				if (!archive->createEnumerator(e.put(), cfg.searchpath2)) {
+				if (!archive->createEnumerator(e.put(), cfg.searchpath2, false)) {
 					continue;
 				}
 

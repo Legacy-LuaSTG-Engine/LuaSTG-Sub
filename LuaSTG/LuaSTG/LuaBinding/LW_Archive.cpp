@@ -32,7 +32,7 @@ namespace luastg::binding {
 
 				auto const directory = vm.get_value<std::string_view>(1 + 1);
 				core::SmartReference<core::IFileSystemEnumerator> enumerator;
-				if (!self->data->createEnumerator(enumerator.put(), directory)) {
+				if (!self->data->createEnumerator(enumerator.put(), directory, false)) {
 					return 1;
 				}
 
