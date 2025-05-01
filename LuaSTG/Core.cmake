@@ -18,7 +18,6 @@ set(Core_SRC
     Core/i18n.cpp
     Core/framework.hpp
     Core/framework.cpp
-    Core/ImmutableString.cpp
 
     Core/Graphics/Window.hpp
     Core/Graphics/Window_Win32.hpp
@@ -130,6 +129,7 @@ target_link_libraries(Core PUBLIC
     FLAC::FLAC
     # database
     nlohmann_json
+    Core.String
     Core.Configuration
     Core.ReferenceCounted
     Core.FileSystem

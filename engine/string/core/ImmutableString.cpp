@@ -1,9 +1,9 @@
-#include "Core/Type.hpp"
+#include "core/ImmutableString.hpp"
+#include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
 
 namespace core {
-	class ImmutableString final
-		: public implement::ReferenceCounted<IImmutableString> {
+	class ImmutableString final : public implement::ReferenceCounted<IImmutableString> {
 	public:
 		// IImmutableString
 
@@ -19,7 +19,7 @@ namespace core {
 		ImmutableString() = default;
 		ImmutableString(ImmutableString const&) = delete;
 		ImmutableString(ImmutableString&&) = delete;
-		~ImmutableString() = default;
+		~ImmutableString() override = default;
 
 		ImmutableString& operator=(ImmutableString const&) = delete;
 		ImmutableString& operator=(ImmutableString&&) = delete;

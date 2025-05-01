@@ -230,7 +230,6 @@ void luastg::binding::FileManager::Register(lua_State* L)noexcept {
 				return;
 			}
 
-			int32_t i{ 1 };
 			core::SmartReference<core::IFileSystem> file_system;
 			while (enumerator->next(file_system.put())) {
 				core::SmartReference<core::IFileSystemArchive> archive;
