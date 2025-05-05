@@ -38,6 +38,7 @@ namespace core {
 
 	private:
 		std::string m_name;
+		std::string m_password;
 		std::recursive_mutex m_mutex;
 		void* m_archive{};
 	};

@@ -94,7 +94,10 @@ namespace core {
 		if (!IData::create(static_cast<size_t>(size), buffer.put())) {
 			return false;
 		}
-		if (MZ_OK != mz_zip_reader_entry_save_buffer(m_archive, buffer->data(), size)) {
+		mz_zip_reader_set_password(m_archive, m_password.empty() ? nullptr : m_password.c_str());
+		auto const read_file_result = mz_zip_reader_entry_save_buffer(m_archive, buffer->data(), size);
+		mz_zip_reader_set_password(m_archive, nullptr);
+		if (MZ_OK != read_file_result) {
 			return false;
 		}
 		*data = buffer.detach();
@@ -130,9 +133,8 @@ namespace core {
 		if (!m_archive) {
 			return false;
 		}
-		MEMORY_RESOURCE();
-		MEMORY_RESOURCE_STRING(password_z, password);
-		mz_zip_reader_set_password(m_archive, password_z.c_str());
+		m_password = password;
+		mz_zip_reader_set_password(m_archive, m_password.empty() ? nullptr : m_password.c_str());
 		return true;
 	}
 
