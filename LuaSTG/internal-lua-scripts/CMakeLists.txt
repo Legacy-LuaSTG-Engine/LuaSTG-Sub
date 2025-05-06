@@ -6,3 +6,5 @@ add_custom_target(generate-embedded-file-system
         ${CMAKE_CURRENT_LIST_DIR}/scripts
         --output ${CMAKE_CURRENT_LIST_DIR}/file-system/generated/scripts.cpp
 )
+
+set_target_properties(generate-embedded-file-system PROPERTIES FOLDER tool)

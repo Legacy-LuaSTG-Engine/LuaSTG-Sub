@@ -6,4 +6,4 @@ target_include_directories(${lib_name} PUBLIC .)
 target_sources(${lib_name} PRIVATE lua/plus.hpp lua/plus.cpp)
 target_link_libraries(${lib_name} PUBLIC lua51_static)
 
-set_target_properties(${lib_name} PROPERTIES FOLDER utility)
+set_target_properties(${lib_name} PROPERTIES FOLDER engine)

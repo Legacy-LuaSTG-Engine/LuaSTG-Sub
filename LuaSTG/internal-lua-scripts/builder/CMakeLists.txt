@@ -13,3 +13,5 @@ set_target_properties(${tool_name} PROPERTIES
 )
 target_include_directories(${tool_name} PRIVATE ../common)
 target_sources(${tool_name} PRIVATE main.cpp)
+
+set_target_properties(internal-lua-scripts-builder PROPERTIES FOLDER tool/toolchain)
