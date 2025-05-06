@@ -13,9 +13,9 @@ CPMAddPackage(
 
 CPMAddPackage(
     NAME minizip_ng
-    VERSION 4.0.8
+    VERSION 4.0.10
     GITHUB_REPOSITORY zlib-ng/minizip-ng
-    GIT_TAG 4.0.8
+    GIT_TAG 4.0.10
     DOWNLOAD_ONLY YES
 )
 
@@ -58,6 +58,11 @@ if(zlib_ng_ADDED AND minizip_ng_ADDED)
     )
     set_target_properties(zlib_ng_build PROPERTIES FOLDER external)
 
+    add_custom_target(zlib_ng_clean
+        COMMAND cmake -E rm -rf ${zlib_ng_build_dir}
+    )
+    set_target_properties(zlib_ng_clean PROPERTIES FOLDER external)
+
     # next, fuck minizip ng
 
     set(minizip_ng_source_dir  ${minizip_ng_SOURCE_DIR})
@@ -93,6 +98,11 @@ if(zlib_ng_ADDED AND minizip_ng_ADDED)
         DEPENDS zlib_ng_build ${minizip_ng_lib_file}
     )
     set_target_properties(minizip_ng_build PROPERTIES FOLDER external)
+
+    add_custom_target(minizip_ng_clean
+        COMMAND cmake -E rm -rf ${minizip_ng_build_dir}
+    )
+    set_target_properties(minizip_ng_clean PROPERTIES FOLDER external)
 
     # finally, import targets
 
