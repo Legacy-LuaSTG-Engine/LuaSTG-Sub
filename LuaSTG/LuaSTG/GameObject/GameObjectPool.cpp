@@ -197,7 +197,9 @@ namespace luastg
 			ot_stk = lua_gettop(G_L);
 		}
 		lua_rawgeti(G_L, ot_stk, index);		// ot object
+#ifdef LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
 		p->ReleaseLuaRC(G_L, lua_gettop(G_L));	// ot object				// 释放可能的粒子系统
+#endif // LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
 		lua_pushlightuserdata(G_L, nullptr);	// ot object nullptr
 		lua_rawseti(G_L, -2, 3);				// ot object
 		lua_pop(G_L, 1);						// ot
@@ -332,15 +334,11 @@ namespace luastg
 		int superpause = UpdateSuperPause(); // 更新超级暂停
 		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second; p = p->pUpdateNext) {
 			if (superpause <= 0 || p->ignore_superpause) {
-#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-				if (p->luaclass.IsDefaultUpdate) {
-					p->Update(); // 默认更新逻辑
-					continue;
+				if (p->features.has_callback_update) {
+					m_pCurrentObject = p;
+					_GameObjectCallback(L, objects_index, p, LGOBJ_CC_FRAME);
+					m_pCurrentObject = nullptr;
 				}
-#endif // USING_ADVANCE_GAMEOBJECT_CLASS
-				m_pCurrentObject = p;
-				_GameObjectCallback(L, objects_index, p, LGOBJ_CC_FRAME);
-				m_pCurrentObject = nullptr;
 				p->Update();
 			}
 		}
@@ -351,11 +349,9 @@ namespace luastg
 		int superpause = GetSuperPauseTime();
 		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second; p = p->pUpdateNext) {
 			if (superpause <= 0 || p->ignore_superpause) {
-#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-				if (p->luaclass.IsDefaultUpdate) {
+				if (!p->features.has_callback_update) {
 					continue;
 				}
-#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 				m_pCurrentObject = p;
 				_GameObjectCallback(L, objects_index, p, LGOBJ_CC_FRAME);
 				m_pCurrentObject = nullptr;
@@ -387,18 +383,12 @@ namespace luastg
 #endif // USING_MULTI_GAME_WORLD
 			{
 				m_pCurrentObject = p;
-#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-				if (!p->luaclass.IsDefaultRender)
-				{
-#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+				if (p->features.has_callback_render) {
 					_GameObjectCallback(G_L, ot_idx, p, LGOBJ_CC_RENDER);
-#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 				}
-				else
-				{
+				else {
 					p->Render();
 				}
-#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 			}
 		}
 		m_pCurrentObject = nullptr;
@@ -486,14 +476,11 @@ namespace luastg
 			}
 			p->status = GameObjectStatus::Dead; // 产生副作用
 			// 调用 del 回调
-#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-			if (p->luaclass.IsDefaultDestroy) {
-				continue;
+			if (p->features.has_callback_destroy) {
+				m_pCurrentObject = p;
+				_GameObjectCallback(L, objects_index, p, LGOBJ_CC_DEL);
+				m_pCurrentObject = nullptr;
 			}
-#endif // USING_ADVANCE_GAMEOBJECT_CLASS
-			m_pCurrentObject = p;
-			_GameObjectCallback(L, objects_index, p, LGOBJ_CC_DEL);
-			m_pCurrentObject = nullptr;
 		}
 	}
 	void GameObjectPool::detectOutOfWorldBound(int32_t objects_index, lua_State* L) {
@@ -520,16 +507,13 @@ namespace luastg
 				continue;
 			}
 			p->status = GameObjectStatus::Dead; // 产生副作用
-			// 调用 del 回调
-#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-			if (p->luaclass.IsDefaultDestroy) {
-				continue;
-			}
-#endif // USING_ADVANCE_GAMEOBJECT_CLASS
-			cache.push_back(OutOfWorldBoundDetectionResult{
-				.uid = p->uid,
-				.game_object = p,
+			// 需要调用 del 回调
+			if (p->features.has_callback_destroy) {
+				cache.push_back(OutOfWorldBoundDetectionResult{
+					.uid = p->uid,
+					.game_object = p,
 				});
+			}
 		}
 
 		for (auto const& [uid, game_object] : cache) {
@@ -559,11 +543,9 @@ namespace luastg
 			for (GameObject* ptrB = group2.first.pColliNext; ptrB != &group2.second;) {
 				GameObject* pB = ptrB;
 				ptrB = ptrB->pColliNext;
-#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-				if (pA->luaclass.IsDefaultTrigger) {
+				if (!pA->features.has_callback_trigger) {
 					continue;
 				}
-#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 #ifdef USING_MULTI_GAME_WORLD
 				if (!CheckWorlds(pA->world, pB->world)) {
 					continue;
@@ -600,11 +582,9 @@ namespace luastg
 			auto& group2 = m_ColliLinkList[group_pair.group2];
 			for (GameObject* object1 = group1.first.pColliNext; object1 != &group1.second; object1 = object1->pColliNext) {
 				for (GameObject* object2 = group2.first.pColliNext; object2 != &group2.second; object2 = object2->pColliNext) {
-#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-					if (object1->luaclass.IsDefaultTrigger) {
+					if (!object1->features.has_callback_trigger) {
 						continue;
 					}
-#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 #ifdef USING_MULTI_GAME_WORLD
 					if (!CheckWorlds(object1->world, object2->world)) {
 						continue;
@@ -764,8 +744,9 @@ namespace luastg
 	int GameObjectPool::New(lua_State* L) noexcept
 	{
 		// 检查参数
-		if (!GameObjectClass::CheckClassValid(L, 1))
-		{
+		GameObjectFeatures features;
+		features.read(L, 1);
+		if (!features.is_class) {
 			return luaL_error(L, "invalid argument #1, luastg object class required for 'New'.");
 		}
 
@@ -776,9 +757,7 @@ namespace luastg
 			return luaL_error(L, "can't alloc object, object pool may be full.");
 		}
 
-#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-		p->luaclass.CheckClassClass(L, 1);
-#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+		p->features = features;
 
 		//											// class ...
 
@@ -800,10 +779,7 @@ namespace luastg
 		lua_pushvalue(L, -1);						// class ... ot object object
 		lua_rawseti(L, -3, (int)p->id + 1);			// class ... ot object
 
-#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-		if (!p->luaclass.IsDefaultCreate)
-		{
-#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+		if (p->features.has_callback_create) {
 			// 调用 init
 			lua_insert(L, 1);							// object class ... ot
 			lua_pop(L, 1);								// object class ...
@@ -818,9 +794,7 @@ namespace luastg
 			// 更新初始状态
 			//p->lastx = p->x;
 			//p->lasty = p->y;
-#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 		}
-#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 
 #if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
 		static std::string _name("<null>");
@@ -849,18 +823,14 @@ namespace luastg
 			// 标记为即将回收的状态
 			p->status = (!kill_mode) ? GameObjectStatus::Dead : GameObjectStatus::Killed;
 			// 回调
-#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-			if (!(!kill_mode && p->luaclass.IsDefaultDestroy) && !(kill_mode && p->luaclass.IsDefaultLegacyKill))
+			if ((!kill_mode && p->features.has_callback_destroy) || (kill_mode && p->features.has_callback_legacy_kill))
 			{
-#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 				lua_rawgeti(L, 1, 1);												// object ... class
 				lua_rawgeti(L, -1, (!kill_mode) ? LGOBJ_CC_DEL : LGOBJ_CC_KILL);	// object ... class callback
 				lua_insert(L, 1);													// callback object ...
 				lua_pop(L, 1);														// callback object ...
 				lua_call(L, lua_gettop(L) - 1, 0);									// 
-#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 			}
-#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 		}
 		return 0;
 	}

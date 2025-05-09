@@ -8,39 +8,63 @@
 #include "XCollision.h"
 #include "AppFrame.h"
 
-namespace luastg
-{
+using std::string_view_literals::operator ""sv;
+
+namespace luastg {
+	void GameObjectFeatures::read(lua_State* const vm, int const index) {
+		lua::stack_t const ctx(vm);
+		reset();
+		if (!ctx.is_table(index)) {
+			return;
+		}
+		is_class = ctx.get_map_value<bool>(index, "is_class"sv, false);
+		if (!is_class) {
+			return;
+		}
+		is_render_class = ctx.get_map_value<bool>(index, ".render"sv, false);
+		auto const default_function_mask = ctx.get_map_value<int32_t>(index, "default_function"sv, 0);
+	#define TEST_CALLBACK(CALLBACK) (default_function_mask & (1 << (CALLBACK))) ? false : true
+		has_callback_create = TEST_CALLBACK(LGOBJ_CC_INIT);
+		has_callback_destroy = TEST_CALLBACK(LGOBJ_CC_DEL);
+		has_callback_update = TEST_CALLBACK(LGOBJ_CC_FRAME);
+		has_callback_render = TEST_CALLBACK(LGOBJ_CC_RENDER);
+		has_callback_trigger = TEST_CALLBACK(LGOBJ_CC_COLLI);
+		has_callback_legacy_kill = TEST_CALLBACK(LGOBJ_CC_KILL);
+	#undef TEST_CALLBACK
+	}
+}
+
+namespace luastg {
 	//【弃用】游戏碰撞体类型
 	enum class GameObjectColliderType {
-		None      = -1, // 关闭
-		
-		Circle    = 0,  // 严格圆
-		OBB       = 1,  // 矩形
-		Ellipse   = 2,  // 椭圆
-		Diamond   = 3,  // 菱形
-		Triangle  = 4,  // 三角
-		Point     = 5,  // 点
-		
+		None = -1, // 关闭
+
+		Circle = 0,  // 严格圆
+		OBB = 1,  // 矩形
+		Ellipse = 2,  // 椭圆
+		Diamond = 3,  // 菱形
+		Triangle = 4,  // 三角
+		Point = 5,  // 点
+
 		BentLazer = 100, //曲线激光
 	};
-	
+
 	//【弃用】游戏碰撞体
-	struct GameObjectCollider
-	{
+	struct GameObjectCollider {
 		GameObjectColliderType type;  //碰撞体类型
 		float a;                      //椭圆半长轴、矩形半宽
 		float b;                      //椭圆半短轴、矩形半高
 		float rot;                    //相对旋转
 		float dx;                     //相对偏移x
 		float dy;                     //相对偏移y
-		
+
 		float circum_r;               //外接圆
-		
+
 		float absx;                   //计算后的绝对坐标x
 		float absy;                   //计算后的绝对坐标y
 		float absrot;                 //计算后的绝对旋转方向
 		XColliderType xtype;          //转换后的碰撞体类型
-		
+
 		//重置数值
 		void reset() {
 			type = GameObjectColliderType::None;
@@ -52,8 +76,7 @@ namespace luastg
 		}
 		//计算外接圆和对应的XMath库碰撞体类型
 		void calcircum() {
-			switch (type)
-			{
+			switch (type) {
 			case GameObjectColliderType::Circle:
 				circum_r = a > b ? a : b;
 				xtype = XColliderType::Circle;
@@ -89,7 +112,10 @@ namespace luastg
 			absrot = _rot + rot;
 		}
 	};
-	
+}
+
+namespace luastg
+{
 	void GameObject::Reset()
 	{
 		pUpdatePrev = pUpdateNext = nullptr;
@@ -98,9 +124,7 @@ namespace luastg
 		status = GameObjectStatus::Free;
 		id = (size_t)-1;
 		uid = 0;
-#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-		luaclass.Reset();
-#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+		features.reset();
 
 		x = y = 0.;
 		lastx = lasty = 0.;
@@ -138,10 +162,8 @@ namespace luastg
 		a = b = 0.;
 		col_r = 0.;
 
-#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 		blendmode = BlendMode::MulAlpha;
 		vertexcolor = 0xFFFFFFFF;
-#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 	}
 	void GameObject::DirtReset()
 	{
@@ -182,10 +204,8 @@ namespace luastg
 		a = b = 0.;
 		col_r = 0.;
 
-#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 		blendmode = BlendMode::MulAlpha;
 		vertexcolor = 0xFFFFFFFF;
-#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 	}
 	
 	void GameObject::UpdateCollisionCircleRadius()
@@ -285,9 +305,10 @@ namespace luastg
 			res = nullptr;
 		}
 	}
+#ifdef LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
 	void GameObject::ChangeLuaRC(lua_State* L, int idx)
 	{
-		if (luaclass.IsRenderClass && res && ps)
+		if (features.is_render_class && res && ps)
 		{
 			auto p = binding::ParticleSystem::Create(L);
 			p->res = dynamic_cast<IResourceParticle*>(res); res->retain();
@@ -312,6 +333,7 @@ namespace luastg
 		lua_pushnil(L);
 		lua_rawseti(L, idx, 4);
 	}
+#endif // LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
 	
 	void GameObject::Update()
 	{
@@ -526,10 +548,7 @@ namespace luastg
 		if (res)
 		{
 			float const gscale = LRES.GetGlobalImageScaleFactor();
-		#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-			if (!luaclass.IsRenderClass)
-			{
-		#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+			if (!features.is_render_class) {
 				switch (res->GetType())
 				{
 				case ResourceType::Sprite:
@@ -562,10 +581,8 @@ namespace luastg
 					}
 					break;
 				}
-		#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 			}
-			else
-			{
+			else {
 				switch (res->GetType())
 				{
 				case ResourceType::Sprite:
@@ -604,7 +621,6 @@ namespace luastg
 					break;
 				}
 			}
-		#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 		}
 	}
 	
@@ -747,44 +763,42 @@ namespace luastg
 		case LuaSTG::GameObjectMember::OMIGA:
 			lua_pushnumber(L, omega * L_RAD_TO_DEG);
 			return 1;
-		#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 		case LuaSTG::GameObjectMember::_BLEND:
-			if (luaclass.IsRenderClass)
+			if (features.is_render_class)
 				TranslateBlendModeToString(L, blendmode);
 			else
 				return_default(L);
 			return 1;
 		case LuaSTG::GameObjectMember::_COLOR:
-			if (luaclass.IsRenderClass)
+			if (features.is_render_class)
 				binding::Color::CreateAndPush(L, core::Color4B(vertexcolor));
 			else
 				return_default(L);
 			return 1;
 		case LuaSTG::GameObjectMember::_A:
-			if (luaclass.IsRenderClass)
+			if (features.is_render_class)
 				lua_pushinteger(L, (lua_Integer)((uint8_t*)&vertexcolor)[3]);
 			else
 				return_default(L);
 			return 1;
 		case LuaSTG::GameObjectMember::_R:
-			if (luaclass.IsRenderClass)
+			if (features.is_render_class)
 				lua_pushinteger(L, (lua_Integer)((uint8_t*)&vertexcolor)[2]);
 			else
 				return_default(L);
 			return 1;
 		case LuaSTG::GameObjectMember::_G:
-			if (luaclass.IsRenderClass)
+			if (features.is_render_class)
 				lua_pushinteger(L, (lua_Integer)((uint8_t*)&vertexcolor)[1]);
 			else
 				return_default(L);
 			return 1;
 		case LuaSTG::GameObjectMember::_B:
-			if (luaclass.IsRenderClass)
+			if (features.is_render_class)
 				lua_pushinteger(L, (lua_Integer)((uint8_t*)&vertexcolor)[0]);
 			else
 				return_default(L);
 			return 1;
-		#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 		case LuaSTG::GameObjectMember::ANI:
 			lua_pushinteger(L, ani_timer);
 			return 1;
@@ -800,14 +814,14 @@ namespace luastg
 			else
 				return_default(L);
 			return 1;
-		#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+		#ifdef LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
 		case LuaSTG::GameObjectMember::RES_RC:
-			if (luaclass.IsRenderClass)
+			if (features.is_render_class)
 				lua_rawgeti(L, 1, 4);
 			else
 				return_default(L);
 			return 1;
-		#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+		#endif // LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
 
 			// 更新控制
 
@@ -856,15 +870,14 @@ namespace luastg
 			} while (false);
 			return 0;
 		case LuaSTG::GameObjectMember::CLASS:
-			do {
-			#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-				if (!GameObjectClass::CheckClassValid(L, 3))
-					return luaL_error(L, "invalid argument for property 'class', required luastg object class.");
-				luaclass.CheckClassClass(L, 3); // 刷新对象的class
-				if (!luaclass.IsRenderClass) ReleaseLuaRC(L, 1); // 你怎么回事，还给变回去了，那就释放资源
-			#endif // USING_ADVANCE_GAMEOBJECT_CLASS
-				lua_rawseti(L, 1, 1);
-			} while (false);
+			features.read(L, 3); // 刷新对象的 class
+			if (!features.is_class)
+				return luaL_error(L, "invalid argument for property 'class', required luastg object class.");
+#ifdef LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
+			if (!features.is_render_class)
+				ReleaseLuaRC(L, 1);
+#endif // LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
+			lua_rawseti(L, 1, 1);
 			return 0;
 			
 			// 分组
@@ -1013,44 +1026,42 @@ namespace luastg
 		case LuaSTG::GameObjectMember::OMIGA:
 			omega = luaL_checknumber(L, 3) * L_DEG_TO_RAD;
 			return 0;
-		#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 		case LuaSTG::GameObjectMember::_BLEND:
-			if (luaclass.IsRenderClass)
+			if (features.is_render_class)
 				blendmode = TranslateBlendMode(L, 3);
 			else
 				lua_rawset(L, 1);
 			return 0;
 		case LuaSTG::GameObjectMember::_COLOR:
-			if (luaclass.IsRenderClass)
+			if (features.is_render_class)
 				vertexcolor = binding::Color::Cast(L, 3)->color();
 			else
 				lua_rawset(L, 1);
 			return 0;
 		case LuaSTG::GameObjectMember::_A:
-			if (luaclass.IsRenderClass)
+			if (features.is_render_class)
 				((uint8_t*)&vertexcolor)[3] = (uint8_t)luaL_checkinteger(L, 3);
 			else
 				lua_rawset(L, 1);
 			return 0;
 		case LuaSTG::GameObjectMember::_R:
-			if (luaclass.IsRenderClass)
+			if (features.is_render_class)
 				((uint8_t*)&vertexcolor)[2] = (uint8_t)luaL_checkinteger(L, 3);
 			else
 				lua_rawset(L, 1);
 			return 0;
 		case LuaSTG::GameObjectMember::_G:
-			if (luaclass.IsRenderClass)
+			if (features.is_render_class)
 				((uint8_t*)&vertexcolor)[1] = (uint8_t)luaL_checkinteger(L, 3);
 			else
 				lua_rawset(L, 1);
 			return 0;
 		case LuaSTG::GameObjectMember::_B:
-			if (luaclass.IsRenderClass)
+			if (features.is_render_class)
 				((uint8_t*)&vertexcolor)[0] = (uint8_t)luaL_checkinteger(L, 3);
 			else
 				lua_rawset(L, 1);
 			return 0;
-		#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 		case LuaSTG::GameObjectMember::ANI:
 			return luaL_error(L, "property 'ani' is readonly.");
 		case LuaSTG::GameObjectMember::HIDE:
@@ -1066,28 +1077,34 @@ namespace luastg
 					std::string_view const value = S.get_value<std::string_view>(3);
 					if (!res || value != res->GetResName())
 					{
+#ifdef LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
 						ReleaseLuaRC(L, 1); // TODO: 默认 table 是第一个？
+#endif // LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
 						ReleaseResource();
 						if (!ChangeResource(value))
 							return luaL_error(L, "can't find resource '%s' in image/animation/particle pool.", value.data());
+#ifdef LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
 						ChangeLuaRC(L, 1); // TODO: 默认 table 是第一个？
+#endif // LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
 					}
 				}
 				else
 				{
+#ifdef LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
 					ReleaseLuaRC(L, 1); // TODO: 默认 table 是第一个？
+#endif // LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
 					ReleaseResource();
 				}
 			} while (false);
 			return 0;
-		#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
+		#ifdef LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
 		case LuaSTG::GameObjectMember::RES_RC:
-			if (luaclass.IsRenderClass)
+			if (features.is_render_class)
 				return luaL_error(L, "property 'rc' is readonly.");
 			else
 				lua_rawset(L, 1);
 			return 0;
-		#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+		#endif // LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
 
 			// 更新控制
 

@@ -1,8 +1,14 @@
 #pragma once
 #include "GameResource/ResourceBase.hpp"
 #include "GameResource/ResourceParticle.hpp"
-#include "GameObject/GameObjectClass.hpp"
 #include "lua.hpp"
+
+#define LGOBJ_CC_INIT 1
+#define LGOBJ_CC_DEL 2
+#define LGOBJ_CC_FRAME 3
+#define LGOBJ_CC_RENDER 4
+#define LGOBJ_CC_COLLI 5
+#define LGOBJ_CC_KILL 6
 
 namespace luastg
 {
@@ -14,7 +20,21 @@ namespace luastg
 		Dead   = 2, // 生命周期结束
 		Killed = 4, // 生命周期结束
 	};
-	
+
+	struct GameObjectFeatures {
+		uint32_t is_class : 1;
+		uint32_t is_render_class : 1;
+		uint32_t has_callback_create : 1;
+		uint32_t has_callback_destroy : 1;
+		uint32_t has_callback_update : 1;
+		uint32_t has_callback_render : 1;
+		uint32_t has_callback_trigger : 1;
+		uint32_t has_callback_legacy_kill : 1;
+
+		void reset() { static_assert(sizeof(GameObjectFeatures) == sizeof(uint32_t)); *reinterpret_cast<uint32_t*>(this) = 0u; }
+		void read(lua_State* vm, int index);
+	};
+
 #pragma warning(push)
 #pragma warning(disable:26495)
 
@@ -31,9 +51,7 @@ namespace luastg
 		// 基本信息
 
 		GameObjectStatus status;		// [4] 对象状态
-	#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-		GameObjectClass luaclass;		// [4] [不可见] 对象类的一些特性
-	#endif // USING_ADVANCE_GAMEOBJECT_CLASS
+		GameObjectFeatures features;	// [4] [不可见] 对象类的一些特性
 		uint64_t uid;					// [8] [不可见] 对象全局唯一标识符
 		size_t id;						// [P] [不可见] 对象在对象池中的索引
 
@@ -82,10 +100,8 @@ namespace luastg
 		lua_Number vscale;				// [8] 纵向渲染缩放
 		lua_Number rot;					// [8] 平面渲染旋转角
 		lua_Number omega;				// [8] 平面渲染旋转角加速度
-	#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
 		BlendMode blendmode;			// [4] 混合模式
 		uint32_t vertexcolor;			// [4] 顶点颜色
-	#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 		lua_Integer ani_timer;			// [P] [只读] 动画自增计数器
 		uint8_t hide;					// [1] 不渲染
 		uint8_t navi;					// [1] 根据坐标增量自动设置渲染旋转角
@@ -109,9 +125,11 @@ namespace luastg
 		void DirtReset();
 		void UpdateCollisionCircleRadius();
 		bool ChangeResource(std::string_view const& res_name);
-		void ChangeLuaRC(lua_State* L, int idx);
 		void ReleaseResource();
+#ifdef LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
+		void ChangeLuaRC(lua_State* L, int idx);
 		void ReleaseLuaRC(lua_State* L, int idx);
+#endif // LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
 
 		void Update();
 		void UpdateLast();
