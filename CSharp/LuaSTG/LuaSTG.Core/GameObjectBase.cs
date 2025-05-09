@@ -16,7 +16,7 @@ namespace LuaSTG.Core
     /// </summary>
     public unsafe abstract class GameObjectBase
     {
-        public enum GameObjectStatus : int
+        public enum GameObjectStatus : byte
         {
             /// <summary>
             /// Available state
@@ -210,20 +210,20 @@ namespace LuaSTG.Core
 
         public bool Bound
         {
-            get => _nativePtrConverted->bound != 0;
-            set => _nativePtrConverted->bound = value ? (byte)0 : (byte)1;
+            get => _nativePtrConverted->Bound;
+            set => _nativePtrConverted->Bound = value;
         }
 
         public bool Colli
         {
-            get => _nativePtrConverted->colli != 0;
-            set => _nativePtrConverted->colli = value ? (byte)0 : (byte)1;
+            get => _nativePtrConverted->Colli;
+            set => _nativePtrConverted->Colli = value;
         }
 
         public bool Rect
         {
-            get => _nativePtrConverted->rect != 0;
-            set => _nativePtrConverted->rect = value ? (byte)0 : (byte)1;
+            get => _nativePtrConverted->Rect;
+            set => _nativePtrConverted->Rect = value;
         }
 
         public double A
@@ -271,14 +271,14 @@ namespace LuaSTG.Core
 
         public bool Hide
         {
-            get => _nativePtrConverted->hide != 0;
-            set => _nativePtrConverted->hide = value ? (byte)0 : (byte)1;
+            get => _nativePtrConverted->Hide;
+            set => _nativePtrConverted->Hide = value;
         }
 
         public bool Navi
         {
-            get => _nativePtrConverted->navi != 0;
-            set => _nativePtrConverted->navi = value ? (byte)0 : (byte)1;
+            get => _nativePtrConverted->Navi;
+            set => _nativePtrConverted->Navi = value;
         }
 
 
@@ -295,48 +295,136 @@ namespace LuaSTG.Core
             [FieldOffset(8)] public IntPtr pUpdateNext;
             [FieldOffset(16)] public IntPtr pColliPrev;
             [FieldOffset(24)] public IntPtr pColliNext;
-            [FieldOffset(32)] public GameObjectStatus status;
-            [FieldOffset(36)] public int luaclass;
-            [FieldOffset(40)] public long uid;
-            [FieldOffset(48)] public long id;
-            [FieldOffset(56)] public long world;
-            [FieldOffset(64)] public double lastx;
-            [FieldOffset(72)] public double lasty;
-            [FieldOffset(80)] public double x;
-            [FieldOffset(88)] public double y;
-            [FieldOffset(96)] public double dx;
-            [FieldOffset(104)] public double dy;
-            [FieldOffset(112)] public double vx;
-            [FieldOffset(120)] public double vy;
-            [FieldOffset(128)] public double ax;
-            [FieldOffset(136)] public double ay;
-            [FieldOffset(144)] public double maxvx;
-            [FieldOffset(152)] public double maxvy;
-            [FieldOffset(160)] public double maxv;
-            [FieldOffset(168)] public double ag;
-            [FieldOffset(176)] public long group;
-            [FieldOffset(184)] public byte bound;
-            [FieldOffset(185)] public byte colli;
-            [FieldOffset(186)] public byte rect;
-            [FieldOffset(192)] public double a;
-            [FieldOffset(200)] public double b;
-            [FieldOffset(208)] public double col_r;
-            [FieldOffset(216)] public double layer;
-            [FieldOffset(224)] public double nextlayer;
-            [FieldOffset(232)] public double hscale;
-            [FieldOffset(240)] public double vscale;
-            [FieldOffset(248)] public double rot;
-            [FieldOffset(256)] public double omega;
-            [FieldOffset(264)] public BlendMode blendmode;
-            [FieldOffset(268)] public uint vertexcolor;
-            [FieldOffset(272)] public long ani_timer;
-            [FieldOffset(280)] public byte hide;
-            [FieldOffset(281)] public byte navi;
-            [FieldOffset(288)] public IntPtr res;
-            [FieldOffset(296)] public IntPtr ps;
-            [FieldOffset(304)] public long timer;
-            [FieldOffset(312)] public byte ignore_superpause;
-            [FieldOffset(313)] public byte touch_lastx_lasty;
+
+            [FieldOffset(32)] public ulong uid;
+            [FieldOffset(40)] public ulong id;
+
+            [FieldOffset(48)] public double lastx;
+            [FieldOffset(56)] public double lasty;
+            [FieldOffset(64)] public double x;
+            [FieldOffset(72)] public double y;
+            [FieldOffset(80)] public double dx;
+            [FieldOffset(88)] public double dy;
+            [FieldOffset(96)] public double vx;
+            [FieldOffset(104)] public double vy;
+            [FieldOffset(112)] public double ax;
+            [FieldOffset(120)] public double ay;
+            [FieldOffset(128)] public double maxvx;
+            [FieldOffset(136)] public double maxvy;
+            [FieldOffset(144)] public double maxv;
+            [FieldOffset(152)] public double ag;
+
+            [FieldOffset(160)] public long group;
+
+            [FieldOffset(168)] public double a;
+            [FieldOffset(176)] public double b;
+            [FieldOffset(184)] public double col_r;
+            [FieldOffset(192)] public double layer;
+            [FieldOffset(200)] public double nextlayer;
+            [FieldOffset(208)] public double hscale;
+            [FieldOffset(216)] public double vscale;
+            [FieldOffset(224)] public double rot;
+            [FieldOffset(232)] public double omega;
+            [FieldOffset(240)] public double ani_timer;
+
+            [FieldOffset(248)] public IntPtr res;
+            [FieldOffset(256)] public IntPtr ps;
+
+            [FieldOffset(264)] public long timer;
+
+            [FieldOffset(272)] public uint vertexcolor;
+
+            [FieldOffset(276)] public BlendMode blendmode;
+            //[FieldOffset(277)] public GameObjectFeatures features;
+            [FieldOffset(278)] public GameObjectStatus status;
+
+            // 位域标志位集合
+            [FieldOffset(279)] public byte flags;
+
+            // 位域访问属性
+            public bool Bound
+            {
+                readonly get => (flags & (1 << 0)) != 0;
+                set
+                {
+                    if (value)
+                        flags |= (1 << 0);
+                    else
+                        flags &= unchecked((byte)~(1 << 0));
+                }
+            }
+
+            public bool Colli
+            {
+                readonly get => (flags & (1 << 1)) != 0;
+                set
+                {
+                    if (value)
+                        flags |= (1 << 1);
+                    else
+                        flags &= unchecked((byte)~(1 << 1));
+                }
+            }
+
+            public bool Rect
+            {
+                readonly get => (flags & (1 << 2)) != 0;
+                set
+                {
+                    if (value)
+                        flags |= (1 << 2);
+                    else
+                        flags &= unchecked((byte)~(1 << 2));
+                }
+            }
+
+            public bool Hide
+            {
+                readonly get => (flags & (1 << 3)) != 0;
+                set
+                {
+                    if (value)
+                        flags |= (1 << 3);
+                    else
+                        flags &= unchecked((byte)~(1 << 3));
+                }
+            }
+
+            public bool Navi
+            {
+                readonly get => (flags & (1 << 4)) != 0;
+                set
+                {
+                    if (value)
+                        flags |= (1 << 4);
+                    else
+                        flags &= unchecked((byte)~(1 << 4));
+                }
+            }
+
+            public bool IgnoreSuperpause
+            {
+                readonly get => (flags & (1 << 5)) != 0;
+                set
+                {
+                    if (value)
+                        flags |= (1 << 5);
+                    else
+                        flags &= unchecked((byte)~(1 << 5));
+                }
+            }
+
+            public bool TouchLastXY
+            {
+                readonly get => (flags & (1 << 6)) != 0;
+                set
+                {
+                    if (value)
+                        flags |= (1 << 6);
+                    else
+                        flags &= unchecked((byte)~(1 << 6));
+                }
+            }
         }
         #endregion
     }

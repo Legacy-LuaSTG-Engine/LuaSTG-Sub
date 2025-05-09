@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LuaSTG.Core
 {
-    public enum BlendMode : int
+    public enum BlendMode : byte
     {
     }
 }
