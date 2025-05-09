@@ -100,13 +100,13 @@ namespace luastg
 		lua_Number vscale;				// [8] 纵向渲染缩放
 		lua_Number rot;					// [8] 平面渲染旋转角
 		lua_Number omega;				// [8] 平面渲染旋转角加速度
-		BlendMode blendmode;			// [4] 混合模式
+		BlendMode blendmode;			// [1] 混合模式
 		uint32_t vertexcolor;			// [4] 顶点颜色
 		lua_Integer ani_timer;			// [P] [只读] 动画自增计数器
 		uint8_t hide;					// [1] 不渲染
 		uint8_t navi;					// [1] 根据坐标增量自动设置渲染旋转角
-		IResourceBase* res;					// [P] 渲染资源
-		IParticlePool* ps;	// [P] 粒子系统
+		IResourceBase* res;				// [P] 渲染资源
+		IParticlePool* ps;				// [P] 粒子系统
 
 		// 更新控制
 

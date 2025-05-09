@@ -18,7 +18,7 @@ namespace luastg {
 	};
 
 	// 混合模式
-	enum class BlendMode {
+	enum class BlendMode : uint8_t {
 		__RESERVE__ = 0,
 
 		MulAlpha = 1,		//顶点色和纹理色相乘 混合模式：正常（透明度混合）
@@ -43,7 +43,7 @@ namespace luastg {
 
 		One = 18,			//无混合，直接覆盖
 
-		_KEY_NOT_FOUND = -1,
+		_KEY_NOT_FOUND = 0x7f,
 	};
 
 	// 资源接口
