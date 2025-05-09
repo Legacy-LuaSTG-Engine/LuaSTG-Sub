@@ -453,7 +453,7 @@ OM_INPUT PS_Main_NoBaseTexture_ScreenDoor_VertexColor(PS_S4F_P4F_N4F_C4F_T2F inp
 
 static Platform::RuntimeLoader::Direct3DCompiler g_d3dcompiler_loader;
 
-namespace Core::Graphics
+namespace core::Graphics
 {
     bool ModelSharedComponent_D3D11::createShader()
     {

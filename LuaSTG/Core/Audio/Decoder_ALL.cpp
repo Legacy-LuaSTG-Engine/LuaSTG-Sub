@@ -3,11 +3,11 @@
 #include "Core/Audio/Decoder_VorbisOGG.hpp"
 #include "Core/Audio/Decoder_FLAC.hpp"
 
-namespace Core::Audio
+namespace core::Audio
 {
 	bool IDecoder::create(StringView path, IDecoder** pp_decoder)
 	{
-		ScopeObject<IDecoder> p_decoder;
+		SmartReference<IDecoder> p_decoder;
 
 		try
 		{

@@ -1,13 +1,13 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/Device.hpp"
 
 // Texture2D
-namespace Core::Graphics::Direct3D11 {
+namespace core::Graphics::Direct3D11 {
 	class Device;
 
 	class Texture2D final
-		: public Object<ITexture2D>
+		: public implement::ReferenceCounted<ITexture2D>
 		, public IDeviceEventListener {
 	public:
 		// IDeviceEventListener
@@ -50,9 +50,9 @@ namespace Core::Graphics::Direct3D11 {
 		bool createResource();
 
 	private:
-		ScopeObject<Device> m_device;
-		ScopeObject<ISamplerState> m_sampler;
-		ScopeObject<IData> m_data;
+		SmartReference<Device> m_device;
+		SmartReference<ISamplerState> m_sampler;
+		SmartReference<IData> m_data;
 		std::string m_source_path;
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> m_texture;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_view;

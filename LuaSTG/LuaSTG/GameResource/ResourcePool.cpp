@@ -1,4 +1,4 @@
-﻿#include "GameResource/ResourceManager.h"
+#include "GameResource/ResourceManager.h"
 #include "GameResource/Implement/ResourceTextureImpl.hpp"
 #include "GameResource/Implement/ResourceSpriteImpl.hpp"
 #include "GameResource/Implement/ResourceAnimationImpl.hpp"
@@ -8,11 +8,11 @@
 #include "GameResource/Implement/ResourceFontImpl.hpp"
 #include "GameResource/Implement/ResourcePostEffectShaderImpl.hpp"
 #include "GameResource/Implement/ResourceModelImpl.hpp"
-#include "Core/FileManager.hpp"
+#include "core/FileSystem.hpp"
 #include "AppFrame.h"
 #include "lua/plus.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
     // 总体管理
 
@@ -200,8 +200,8 @@ namespace LuaSTGPlus
             return true;
         }
     
-        Core::ScopeObject<Core::Graphics::ITexture2D> p_texture;
-        if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(path, mipmaps, ~p_texture))
+        core::SmartReference<core::Graphics::ITexture2D> p_texture;
+        if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(path, mipmaps, p_texture.put()))
         {
             spdlog::error("[luastg] 从 '{}' 创建纹理 '{}' 失败", path, name);
             return false;
@@ -209,7 +209,7 @@ namespace LuaSTGPlus
 
         try
         {
-            Core::ScopeObject<IResourceTexture> tRes;
+            core::SmartReference<IResourceTexture> tRes;
             tRes.attach(new ResourceTextureImpl(name, p_texture.get()));
             m_TexturePool.emplace(name, tRes);
         }
@@ -238,8 +238,8 @@ namespace LuaSTGPlus
             return true;
         }
 
-        Core::ScopeObject<Core::Graphics::ITexture2D> p_texture;
-        if (!LAPP.GetAppModel()->getDevice()->createTexture(Core::Vector2U((uint32_t)width, (uint32_t)height), ~p_texture))
+        core::SmartReference<core::Graphics::ITexture2D> p_texture;
+        if (!LAPP.GetAppModel()->getDevice()->createTexture(core::Vector2U((uint32_t)width, (uint32_t)height), p_texture.put()))
         {
             spdlog::error("[luastg] 创建纹理 '{}' ({}x{}) 失败", name, width, height);
             return false;
@@ -247,7 +247,7 @@ namespace LuaSTGPlus
 
         try
         {
-            Core::ScopeObject<IResourceTexture> tRes;
+            core::SmartReference<IResourceTexture> tRes;
             tRes.attach(new ResourceTextureImpl(name, p_texture.get()));
             m_TexturePool.emplace(name, tRes);
         }
@@ -281,7 +281,7 @@ namespace LuaSTGPlus
 
         try
         {
-            Core::ScopeObject<IResourceTexture> tRes;
+            core::SmartReference<IResourceTexture> tRes;
             if (width <= 0 || height <= 0)
             {
                 tRes.attach(new ResourceTextureImpl(name, depth_buffer));
@@ -328,29 +328,29 @@ namespace LuaSTGPlus
             return true;
         }
     
-        Core::ScopeObject<IResourceTexture> pTex = m_pMgr->FindTexture(texname);
+        core::SmartReference<IResourceTexture> pTex = m_pMgr->FindTexture(texname);
         if (!pTex)
         {
             spdlog::error("[luastg] CreateSprite: 无法创建图片精灵 '{}'，无法找到纹理 '{}'", name, texname);
             return false;
         }
     
-        Core::ScopeObject<Core::Graphics::ISprite> p_sprite;
-        if (!Core::Graphics::ISprite::create(
+        core::SmartReference<core::Graphics::ISprite> p_sprite;
+        if (!core::Graphics::ISprite::create(
             LAPP.GetAppModel()->getRenderer(),
             pTex->GetTexture(),
-            ~p_sprite
+            p_sprite.put()
         ))
         {
             spdlog::error("[luastg] 从纹理 '{}' 创建图片精灵 '{}' 失败", texname, name);
             return false;
         }
-        p_sprite->setTextureRect(Core::RectF((float)x, (float)y, (float)(x + w), (float)(y + h)));
-        p_sprite->setTextureCenter(Core::Vector2F((float)(x + w * 0.5), (float)(y + h * 0.5)));
+        p_sprite->setTextureRect(core::RectF((float)x, (float)y, (float)(x + w), (float)(y + h)));
+        p_sprite->setTextureCenter(core::Vector2F((float)(x + w * 0.5), (float)(y + h * 0.5)));
     
         try
         {
-            Core::ScopeObject<IResourceSprite> tRes;
+            core::SmartReference<IResourceSprite> tRes;
             tRes.attach(new ResourceSpriteImpl(name, p_sprite.get(), a, b, rect));
             m_SpritePool.emplace(name, tRes);
         }
@@ -383,7 +383,7 @@ namespace LuaSTGPlus
             return true;
         }
     
-        Core::ScopeObject<IResourceTexture> pTex = m_pMgr->FindTexture(texname);
+        core::SmartReference<IResourceTexture> pTex = m_pMgr->FindTexture(texname);
         if (!pTex)
         {
             spdlog::error("[luastg] CreateAnimation: 无法创建动画精灵 '{}'，无法找到纹理 '{}'", name, texname);
@@ -391,7 +391,7 @@ namespace LuaSTGPlus
         }
     
         try {
-            Core::ScopeObject<IResourceAnimation> tRes;
+            core::SmartReference<IResourceAnimation> tRes;
             tRes.attach(
                 new ResourceAnimationImpl(name, pTex,
                     (float) x, (float) y,
@@ -416,7 +416,7 @@ namespace LuaSTGPlus
     }
 
     bool ResourcePool::CreateAnimation(const char* name,
-        std::vector<Core::ScopeObject<IResourceSprite>> const& sprite_list,
+        std::vector<core::SmartReference<IResourceSprite>> const& sprite_list,
         int intv,
         double a, double b, bool rect) noexcept
     {
@@ -430,7 +430,7 @@ namespace LuaSTGPlus
         }
 
         try {
-            Core::ScopeObject<IResourceAnimation> tRes;
+            core::SmartReference<IResourceAnimation> tRes;
             tRes.attach(
                 new ResourceAnimationImpl(name, sprite_list, intv, a, b, rect)
             );
@@ -464,12 +464,12 @@ namespace LuaSTGPlus
             return true;
         }
     
-        using namespace Core;
-        using namespace Core::Audio;
+        using namespace core;
+        using namespace core::Audio;
 
         // 创建解码器
-        ScopeObject<IDecoder> p_decoder;
-        if (!IDecoder::create(path, ~p_decoder))
+        SmartReference<IDecoder> p_decoder;
+        if (!IDecoder::create(path, p_decoder.put()))
         {
             spdlog::error("[luastg] LoadMusic: 无法解码文件 '{}'，要求文件格式为 WAV 或 OGG", path);
             return false;
@@ -492,15 +492,15 @@ namespace LuaSTGPlus
         }
     
         // 配置循环解码器（这里不用担心出现 exception，因为上面已经处理了）
-        ScopeObject<ResourceMusicImpl::LoopDecoder> p_loop_decoder;
+        SmartReference<ResourceMusicImpl::LoopDecoder> p_loop_decoder;
         p_loop_decoder.attach(new ResourceMusicImpl::LoopDecoder(p_decoder.get(), start, end));
 
         // 创建播放器
-        ScopeObject<IAudioPlayer> p_player;
+        SmartReference<IAudioPlayer> p_player;
         if (!once_decode)
         {
             // 流式播放器
-            if (!LAPP.GetAppModel()->getAudioDevice()->createStreamAudioPlayer(p_loop_decoder.get(), ~p_player))
+            if (!LAPP.GetAppModel()->getAudioDevice()->createStreamAudioPlayer(p_loop_decoder.get(), p_player.put()))
             {
                 spdlog::error("[luastg] LoadMusic: 无法创建音频播放器");
                 return false;
@@ -509,7 +509,7 @@ namespace LuaSTGPlus
         else
         {
             // 一次性解码的播放器
-            if (!LAPP.GetAppModel()->getAudioDevice()->createLoopAudioPlayer(p_decoder.get(), ~p_player))
+            if (!LAPP.GetAppModel()->getAudioDevice()->createLoopAudioPlayer(p_decoder.get(), p_player.put()))
             {
                 spdlog::error("[luastg] LoadMusic: 无法创建音频播放器");
                 return false;
@@ -520,7 +520,7 @@ namespace LuaSTGPlus
         try
         {
             //存入资源池
-            Core::ScopeObject<IResourceMusic> tRes;
+            core::SmartReference<IResourceMusic> tRes;
             tRes.attach(new ResourceMusicImpl(name, p_loop_decoder.get(), p_player.get()));
             m_MusicPool.emplace(name, tRes);
         }
@@ -551,20 +551,20 @@ namespace LuaSTGPlus
             return true;
         }
 
-        using namespace Core;
-        using namespace Core::Audio;
+        using namespace core;
+        using namespace core::Audio;
 
         // 创建解码器
-        ScopeObject<IDecoder> p_decoder;
-        if (!IDecoder::create(path, ~p_decoder))
+        SmartReference<IDecoder> p_decoder;
+        if (!IDecoder::create(path, p_decoder.put()))
         {
             spdlog::error("[luastg] LoadSoundEffect: 无法解码文件 '{}'，要求文件格式为 WAV 或 OGG", path);
             return false;
         }
 
         // 创建播放器
-        ScopeObject<IAudioPlayer> p_player;
-        if (!LAPP.GetAppModel()->getAudioDevice()->createAudioPlayer(p_decoder.get(), ~p_player))
+        SmartReference<IAudioPlayer> p_player;
+        if (!LAPP.GetAppModel()->getAudioDevice()->createAudioPlayer(p_decoder.get(), p_player.put()))
         {
             spdlog::error("[luastg] LoadSoundEffect: 无法创建音频播放器");
             return false;
@@ -572,7 +572,7 @@ namespace LuaSTGPlus
 
         try
         {
-            Core::ScopeObject<IResourceSoundEffect> tRes;
+            core::SmartReference<IResourceSoundEffect> tRes;
             tRes.attach(new ResourceSoundEffectImpl(name, p_player.get()));
             m_SoundSpritePool.emplace(name, tRes);
         }
@@ -604,15 +604,15 @@ namespace LuaSTGPlus
             return true;
         }
     
-        Core::ScopeObject<IResourceSprite> pSprite = m_pMgr->FindSprite(img_name);
+        core::SmartReference<IResourceSprite> pSprite = m_pMgr->FindSprite(img_name);
         if (!pSprite)
         {
             spdlog::error("[luastg] LoadParticle: 无法创建粒子特效 '{}'，找不到图片精灵 '{}'", name, img_name);
             return false;
         }
     
-        Core::ScopeObject<Core::Graphics::ISprite> p_sprite;
-        if (!pSprite->GetSprite()->clone(~p_sprite))
+        core::SmartReference<core::Graphics::ISprite> p_sprite;
+        if (!pSprite->GetSprite()->clone(p_sprite.put()))
         {
             spdlog::error("[luastg] LoadParticle: 无法创建粒子特效 '{}'，复制图片精灵 '{}' 失败", name, img_name);
             return false;
@@ -620,7 +620,7 @@ namespace LuaSTGPlus
 
         try
         {
-            Core::ScopeObject<IResourceParticle> tRes;
+            core::SmartReference<IResourceParticle> tRes;
             tRes.attach(new ResourceParticleImpl(name, info, p_sprite.get(), a, b, rect));
             m_ParticlePool.emplace(name, tRes);
         }
@@ -641,20 +641,20 @@ namespace LuaSTGPlus
     bool ResourcePool::LoadParticle(const char* name, const char* path, const char* img_name,
                                     double a, double b,bool rect) noexcept
     {
-        std::vector<uint8_t> src;
-        if (!GFileManager().loadEx(path, src))
+        core::SmartReference<core::IData> src;
+        if (!core::FileSystemManager::readFile(path, src.put()))
         {
             spdlog::error("[luastg] LoadParticle：无法从 '{}' 加载粒子特效 '{}'，读取文件失败", path, name);
             return false;
         }
     
-        if (src.size() != sizeof(hgeParticleSystemInfo))
+        if (src->size() != sizeof(hgeParticleSystemInfo))
         {
             spdlog::error("[luastg] LoadParticle: 粒子特效定义文件 '{}' 格式不正确", path);
             return false;
         }
         hgeParticleSystemInfo tInfo;
-        std::memcpy(&tInfo, src.data(), sizeof(hgeParticleSystemInfo));
+        std::memcpy(&tInfo, src->data(), sizeof(hgeParticleSystemInfo));
     
         if (!LoadParticle(name, tInfo, img_name, a, b, rect, /* _nolog */ true))
         {
@@ -685,7 +685,7 @@ namespace LuaSTGPlus
         // 创建定义
         try
         {
-            Core::ScopeObject<IResourceFont> tRes;
+            core::SmartReference<IResourceFont> tRes;
             tRes.attach(new ResourceFontImpl(name, path, mipmaps));
             m_SpriteFontPool.emplace(name, tRes);
         }
@@ -719,7 +719,7 @@ namespace LuaSTGPlus
         // 创建定义
         try
         {
-            Core::ScopeObject<IResourceFont> tRes;
+            core::SmartReference<IResourceFont> tRes;
             tRes.attach(new ResourceFontImpl(name, path, tex_path, mipmaps));
             m_SpriteFontPool.emplace(name, tRes);
         }
@@ -750,15 +750,15 @@ namespace LuaSTGPlus
             return true;
         }
     
-        Core::ScopeObject<Core::Graphics::IGlyphManager> p_glyphmgr;
-        Core::Graphics::TrueTypeFontInfo create_info = {
+        core::SmartReference<core::Graphics::IGlyphManager> p_glyphmgr;
+        core::Graphics::TrueTypeFontInfo create_info = {
             .source = path,
             .font_face = 0,
-            .font_size = Core::Vector2F(width, height),
+            .font_size = core::Vector2F(width, height),
             .is_force_to_file = false,
             .is_buffer = false,
         };
-        if (!Core::Graphics::IGlyphManager::create(LAPP.GetAppModel()->getDevice(), &create_info, 1, ~p_glyphmgr))
+        if (!core::Graphics::IGlyphManager::create(LAPP.GetAppModel()->getDevice(), &create_info, 1, p_glyphmgr.put()))
         {
             spdlog::error("[luastg] LoadTTFFont: 加载矢量字体 '{}' 失败", name);
             return false;
@@ -767,7 +767,7 @@ namespace LuaSTGPlus
         // 创建定义
         try
         {
-            Core::ScopeObject<IResourceFont> tRes;
+            core::SmartReference<IResourceFont> tRes;
             tRes.attach(new ResourceFontImpl(name, p_glyphmgr.get()));
             m_TTFFontPool.emplace(name, tRes);
         }
@@ -785,7 +785,7 @@ namespace LuaSTGPlus
         return true;
     }
 
-    bool ResourcePool::LoadTrueTypeFont(const char* name, Core::Graphics::TrueTypeFontInfo* fonts, size_t count) noexcept
+    bool ResourcePool::LoadTrueTypeFont(const char* name, core::Graphics::TrueTypeFontInfo* fonts, size_t count) noexcept
     {
         if (m_TTFFontPool.find(std::string_view(name)) != m_TTFFontPool.end())
         {
@@ -796,8 +796,8 @@ namespace LuaSTGPlus
             return true;
         }
     
-        Core::ScopeObject<Core::Graphics::IGlyphManager> p_glyphmgr;
-        if (!Core::Graphics::IGlyphManager::create(LAPP.GetAppModel()->getDevice(), fonts, count, ~p_glyphmgr))
+        core::SmartReference<core::Graphics::IGlyphManager> p_glyphmgr;
+        if (!core::Graphics::IGlyphManager::create(LAPP.GetAppModel()->getDevice(), fonts, count, p_glyphmgr.put()))
         {
             spdlog::error("[luastg] LoadTrueTypeFont: 加载矢量字体组 '{}' 失败", name);
             return false;
@@ -806,7 +806,7 @@ namespace LuaSTGPlus
         // 创建定义
         try
         {
-            Core::ScopeObject<IResourceFont> tRes;
+            core::SmartReference<IResourceFont> tRes;
             tRes.attach(new ResourceFontImpl(name, p_glyphmgr.get()));
             m_TTFFontPool.emplace(name, tRes);
         }
@@ -839,7 +839,7 @@ namespace LuaSTGPlus
     
         try
         {
-            Core::ScopeObject<IResourcePostEffectShader> tRes;
+            core::SmartReference<IResourcePostEffectShader> tRes;
             tRes.attach(new ResourcePostEffectShaderImpl(name, path));
             if (!tRes->GetPostEffectShader())
             {
@@ -877,7 +877,7 @@ namespace LuaSTGPlus
     
         try
         {
-            Core::ScopeObject<IResourceModel> tRes;
+            core::SmartReference<IResourceModel> tRes;
             tRes.attach(new ResourceModelImpl(name, path));
             m_ModelPool.emplace(name, tRes);
         }
@@ -902,57 +902,57 @@ namespace LuaSTGPlus
     {
         auto i = resource_set.find(name);
         if (i == resource_set.end())
-            return nullptr;
+            return {};
         else
             return i->second;
     }
 
-	Core::ScopeObject<IResourceTexture> ResourcePool::GetTexture(std::string_view name) noexcept
+	core::SmartReference<IResourceTexture> ResourcePool::GetTexture(std::string_view name) noexcept
     {
         return findResource(m_TexturePool, name);
 	}
 
-	Core::ScopeObject<IResourceSprite> ResourcePool::GetSprite(std::string_view name) noexcept
+	core::SmartReference<IResourceSprite> ResourcePool::GetSprite(std::string_view name) noexcept
     {
         return findResource(m_SpritePool, name);
 	}
 
-	Core::ScopeObject<IResourceAnimation> ResourcePool::GetAnimation(std::string_view name) noexcept
+	core::SmartReference<IResourceAnimation> ResourcePool::GetAnimation(std::string_view name) noexcept
     {
         return findResource(m_AnimationPool, name);
 	}
 
-	Core::ScopeObject<IResourceMusic> ResourcePool::GetMusic(std::string_view name) noexcept
+	core::SmartReference<IResourceMusic> ResourcePool::GetMusic(std::string_view name) noexcept
     {
         return findResource(m_MusicPool, name);
 	}
 
-	Core::ScopeObject<IResourceSoundEffect> ResourcePool::GetSound(std::string_view name) noexcept
+	core::SmartReference<IResourceSoundEffect> ResourcePool::GetSound(std::string_view name) noexcept
     {
         return findResource(m_SoundSpritePool, name);
 	}
 
-	Core::ScopeObject<IResourceParticle> ResourcePool::GetParticle(std::string_view name) noexcept
+	core::SmartReference<IResourceParticle> ResourcePool::GetParticle(std::string_view name) noexcept
     {
         return findResource(m_ParticlePool, name);
 	}
 
-	Core::ScopeObject<IResourceFont> ResourcePool::GetSpriteFont(std::string_view name) noexcept
+	core::SmartReference<IResourceFont> ResourcePool::GetSpriteFont(std::string_view name) noexcept
     {
         return findResource(m_SpriteFontPool, name);
 	}
 
-	Core::ScopeObject<IResourceFont> ResourcePool::GetTTFFont(std::string_view name) noexcept
+	core::SmartReference<IResourceFont> ResourcePool::GetTTFFont(std::string_view name) noexcept
     {
         return findResource(m_TTFFontPool, name);
 	}
 
-	Core::ScopeObject<IResourcePostEffectShader> ResourcePool::GetFX(std::string_view name) noexcept
+	core::SmartReference<IResourcePostEffectShader> ResourcePool::GetFX(std::string_view name) noexcept
     {
         return findResource(m_FXPool, name);
 	}
 
-	Core::ScopeObject<IResourceModel> ResourcePool::GetModel(std::string_view name) noexcept
+	core::SmartReference<IResourceModel> ResourcePool::GetModel(std::string_view name) noexcept
 	{
         return findResource(m_ModelPool, name);
 	}

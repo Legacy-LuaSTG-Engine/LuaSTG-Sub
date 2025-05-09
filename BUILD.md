@@ -56,6 +56,12 @@ cmake --workflow --preset windows-x86-release
 
 > TODO: Waiting for me to get a Windows on arm laptop  
 
+## Start Developing
+
+Next, you can use Visual Studio 2022 to open the sln solution file and start developing.
+
+Note: Please compile the LuaSTG target at least once, otherwise the header files of dependency libraries such as libflac, libogg, libvorbis, zlib ng, minizip ng, etc. do not exist.
+
 ---
 
 # 编译项目
@@ -115,3 +121,9 @@ cmake --workflow --preset windows-x86-release
 ## arm64 版本（未完成）  
 
 > 未完成：等我买一台 Windows on arm 笔记本  
+
+## 开始编写代码
+
+接下来你就可以用 Visual Studio 2022 打开 sln 解决方案开始开发。
+
+注意：请编译 LuaSTG 项目至少一次，否则 libflac、libogg、libvorbis、zlib-ng、minizip-ng 等依赖库的头文件不存在。

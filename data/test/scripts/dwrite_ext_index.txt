@@ -1,0 +1,95 @@
+----- basic format
+
+    IDWriteTextLayout::GetFontCollection
+    +IDWriteTextLayout::SetFontCollection
+
+    IDWriteTextLayout::GetFontFamilyName
+    IDWriteTextLayout::GetFontFamilyNameLength
+    +IDWriteTextLayout::SetFontFamilyName
+
+    IDWriteTextLayout::GetLocaleName
+    IDWriteTextLayout::GetLocaleNameLength
+    +IDWriteTextLayout::SetLocaleName
+
+    IDWriteTextLayout::GetFontSize
+    +IDWriteTextLayout::SetFontSize
+
+    IDWriteTextLayout::GetFontStretch
+    +IDWriteTextLayout::SetFontStretch
+
+    IDWriteTextLayout::GetFontStyle
+    +IDWriteTextLayout::SetFontStyle
+
+    IDWriteTextLayout::GetFontWeight
+    +IDWriteTextLayout::SetFontWeight
+
+----- block format
+
+    IDWriteTextFormat::GetIncrementalTabStop
+    +IDWriteTextFormat::SetIncrementalTabStop
+
+    IDWriteTextFormat::GetLineSpacing
+    +IDWriteTextFormat::SetLineSpacing
+
+    IDWriteTextFormat::GetTextAlignment
+    +IDWriteTextFormat::SetTextAlignment
+
+    IDWriteTextFormat::GetParagraphAlignment
+    +IDWriteTextFormat::SetParagraphAlignment
+
+    IDWriteTextFormat::GetFlowDirection
+    +IDWriteTextFormat::SetFlowDirection
+
+    IDWriteTextFormat::GetReadingDirection
+    +IDWriteTextFormat::SetReadingDirection
+
+    IDWriteTextFormat::GetTrimming
+    IDWriteTextFormat::SetTrimming
+
+    IDWriteTextFormat::GetWordWrapping
+    +IDWriteTextFormat::SetWordWrapping
+
+----- extend format
+
+    IDWriteTextLayout::GetStrikethrough
+    +IDWriteTextLayout::SetStrikethrough
+
+    IDWriteTextLayout::GetUnderline
+    +IDWriteTextLayout::SetUnderline
+
+    IDWriteTextLayout::GetTypography
+    IDWriteTextLayout::SetTypography
+
+----- custom format
+
+    IDWriteTextLayout::GetDrawingEffect
+    IDWriteTextLayout::SetDrawingEffect
+
+    IDWriteTextLayout::GetInlineObject
+    IDWriteTextLayout::SetInlineObject
+
+----- layout box
+
+    IDWriteTextLayout::GetMaxHeight
+    +IDWriteTextLayout::SetMaxHeight
+
+    IDWriteTextLayout::GetMaxWidth
+    +IDWriteTextLayout::SetMaxWidth
+
+----- metrics
+
+    +IDWriteTextLayout::DetermineMinWidth
+    IDWriteTextLayout::GetClusterMetrics
+    IDWriteTextLayout::GetMetrics
+    IDWriteTextLayout::GetOverhangMetrics
+    IDWriteTextLayout::GetLineMetrics
+
+----- hit test
+
+    IDWriteTextLayout::HitTestPoint
+    IDWriteTextLayout::HitTestTextPosition
+    IDWriteTextLayout::HitTestTextRange
+
+----- draw
+
+    IDWriteTextLayout::Draw

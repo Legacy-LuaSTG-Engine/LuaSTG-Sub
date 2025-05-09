@@ -1,24 +1,24 @@
-﻿#include "AppFrame.h"
+#include "AppFrame.h"
 #include "utf8.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	// luastg plus interface
 	
-	constexpr int const TEXT_ALIGN_LEFT = 0x00;
-	constexpr int const TEXT_ALIGN_CENTER = 0x01;
-	constexpr int const TEXT_ALIGN_RIGHT = 0x02;
+	constexpr int TEXT_ALIGN_LEFT = 0x00;
+	constexpr int TEXT_ALIGN_CENTER = 0x01;
+	constexpr int TEXT_ALIGN_RIGHT = 0x02;
 
-	constexpr int const TEXT_ALIGN_TOP = 0x00;
-	constexpr int const TEXT_ALIGN_VCENTER = 0x04;
-	constexpr int const TEXT_ALIGN_BOTTOM = 0x08;
+	constexpr int TEXT_ALIGN_TOP = 0x00;
+	constexpr int TEXT_ALIGN_VCENTER = 0x04;
+	constexpr int TEXT_ALIGN_BOTTOM = 0x08;
 
-	constexpr int const TEXT_FLAG_WORDBREAK = 0x10;
+	constexpr int TEXT_FLAG_WORDBREAK = 0x10;
 
-	bool AppFrame::RenderText(IResourceFont* p, wchar_t* strBuf, Core::RectF rect, Core::Vector2F scale, FontAlignHorizontal halign, FontAlignVertical valign, bool bWordBreak)noexcept
+	bool AppFrame::RenderText(IResourceFont* p, wchar_t* strBuf, core::RectF rect, core::Vector2F scale, FontAlignHorizontal halign, FontAlignVertical valign, bool bWordBreak)noexcept
 	{
-		using namespace Core;
-		using namespace Core::Graphics;
+		using namespace core;
+		using namespace core::Graphics;
 
 		IGlyphManager* pGlyphManager = p->GetGlyphManager();
 		
@@ -70,7 +70,7 @@ namespace LuaSTGPlus
 		
 		// 计算起笔位置
 		float fTotalLineHeight = pGlyphManager->getLineHeight() * iLineCount * scale.y;
-		Core::Vector2F vRenderPos;
+		core::Vector2F vRenderPos;
 		switch (valign)
 		{
 		case FontAlignVertical::Bottom:
@@ -160,10 +160,10 @@ namespace LuaSTGPlus
 		return true;
 	}
 	
-	Core::Vector2F AppFrame::CalcuTextSize(IResourceFont* p, const wchar_t* strBuf, Core::Vector2F scale)noexcept
+	core::Vector2F AppFrame::CalcuTextSize(IResourceFont* p, const wchar_t* strBuf, core::Vector2F scale)noexcept
 	{
-		using namespace Core;
-		using namespace Core::Graphics;
+		using namespace core;
+		using namespace core::Graphics;
 
 		IGlyphManager* pGlyphManager = p->GetGlyphManager();
 		
@@ -188,12 +188,12 @@ namespace LuaSTGPlus
 		}
 		fMaxLineWidth = std::max(fMaxLineWidth, fLineWidth);
 		
-		return Core::Vector2F(fMaxLineWidth, iLineCount * pGlyphManager->getLineHeight() * scale.y);
+		return core::Vector2F(fMaxLineWidth, iLineCount * pGlyphManager->getLineHeight() * scale.y);
 	}
 	
 	bool AppFrame::RenderText(const char* name, const char* str, float x, float y, float scale, FontAlignHorizontal halign, FontAlignVertical valign)noexcept
 	{
-		Core::ScopeObject<IResourceFont> p = m_ResourceMgr.FindSpriteFont(name);
+		core::SmartReference<IResourceFont> p = m_ResourceMgr.FindSpriteFont(name);
 		if (!p)
 		{
 			spdlog::error("[luastg] RenderText: 找不到字体资源'{}'", name);
@@ -213,7 +213,7 @@ namespace LuaSTGPlus
 		}
 		
 		// 计算渲染位置
-		Core::Vector2F tSize = CalcuTextSize(p.get(), s_TempStringBuf.c_str(), Core::Vector2F(scale, scale));
+		core::Vector2F tSize = CalcuTextSize(p.get(), s_TempStringBuf.c_str(), core::Vector2F(scale, scale));
 		switch (halign)
 		{
 		case FontAlignHorizontal::Right:
@@ -242,8 +242,8 @@ namespace LuaSTGPlus
 		return RenderText(
 			p.get(),
 			const_cast<wchar_t*>(s_TempStringBuf.data()),
-			Core::RectF(x, y, x + tSize.x, y - tSize.y),
-			Core::Vector2F(scale, scale),
+			core::RectF(x, y, x + tSize.x, y - tSize.y),
+			core::Vector2F(scale, scale),
 			halign,
 			valign,
 			false
@@ -251,9 +251,9 @@ namespace LuaSTGPlus
 	}
 	
 	bool AppFrame::RenderTTF(const char* name, const char* str,
-		float left, float right, float bottom, float top, float scale, int format, Core::Color4B c)noexcept
+		float left, float right, float bottom, float top, float scale, int format, core::Color4B c)noexcept
 	{
-		Core::ScopeObject<IResourceFont> p = m_ResourceMgr.FindTTFFont(name);
+		core::SmartReference<IResourceFont> p = m_ResourceMgr.FindTTFFont(name);
 		if (!p) {
 			spdlog::error("[luastg] RenderTTF: 找不到字体资源'{}'", name);
 			return false;
@@ -291,8 +291,8 @@ namespace LuaSTGPlus
 		return RenderText(
 			p.get(),
 			const_cast<wchar_t*>(s_TempStringBuf.data()),
-			Core::RectF(left, top, right, bottom),
-			Core::Vector2F(scale, scale) * 0.5f,  // TODO: 缩放系数=0.5 ????????????
+			core::RectF(left, top, right, bottom),
+			core::Vector2F(scale, scale) * 0.5f,  // TODO: 缩放系数=0.5 ????????????
 			halign,
 			valign,
 			bWordBreak
@@ -303,7 +303,7 @@ namespace LuaSTGPlus
 	
 	bool AppFrame::FontRenderer_SetFontProvider(const char* name)
 	{
-		Core::ScopeObject<IResourceFont> p = m_ResourceMgr.FindTTFFont(name);
+		core::SmartReference<IResourceFont> p = m_ResourceMgr.FindTTFFont(name);
 		if (!p)
 		{
 			spdlog::error("[luastg] SetFontProvider: 找不到字体资源'{}'", name);
@@ -313,22 +313,22 @@ namespace LuaSTGPlus
 		return true;
 	}
 	
-	void AppFrame::FontRenderer_SetScale(Core::Vector2F const& s)
+	void AppFrame::FontRenderer_SetScale(core::Vector2F const& s)
 	{
 		m_pTextRenderer->setScale(s);
 	}
 	
-	Core::RectF AppFrame::FontRenderer_MeasureTextBoundary(const char* str, size_t len)
+	core::RectF AppFrame::FontRenderer_MeasureTextBoundary(const char* str, size_t len)
 	{
-		return m_pTextRenderer->getTextBoundary(Core::StringView(str, len));
+		return m_pTextRenderer->getTextBoundary(core::StringView(str, len));
 	}
 	
-	Core::Vector2F AppFrame::FontRenderer_MeasureTextAdvance(const char* str, size_t len)
+	core::Vector2F AppFrame::FontRenderer_MeasureTextAdvance(const char* str, size_t len)
 	{
-		return m_pTextRenderer->getTextAdvance(Core::StringView(str, len));
+		return m_pTextRenderer->getTextAdvance(core::StringView(str, len));
 	}
 	
-	bool AppFrame::FontRenderer_RenderText(const char* str, size_t len, Core::Vector2F& pos, const float z, const BlendMode blend, Core::Color4B const& color)
+	bool AppFrame::FontRenderer_RenderText(const char* str, size_t len, core::Vector2F& pos, const float z, const BlendMode blend, core::Color4B const& color)
 	{
 		float const last_z = m_pTextRenderer->getZ();
 
@@ -336,22 +336,22 @@ namespace LuaSTGPlus
 		m_pTextRenderer->setZ(z);
 		m_pTextRenderer->setColor(color);
 		
-		Core::Vector2F endpos;
-		const bool result = m_pTextRenderer->drawText(Core::StringView(str, len), pos, &endpos);
+		core::Vector2F endpos;
+		const bool result = m_pTextRenderer->drawText(core::StringView(str, len), pos, &endpos);
 		pos = endpos;
 
 		m_pTextRenderer->setZ(last_z);
 		return result;
 	}
 	
-	bool AppFrame::FontRenderer_RenderTextInSpace(const char* str, size_t len, Core::Vector3F& pos, Core::Vector3F const& rvec, Core::Vector3F const& dvec, const BlendMode blend, Core::Color4B const& color)
+	bool AppFrame::FontRenderer_RenderTextInSpace(const char* str, size_t len, core::Vector3F& pos, core::Vector3F const& rvec, core::Vector3F const& dvec, const BlendMode blend, core::Color4B const& color)
 	{
 		updateGraph2DBlendMode(blend);
 		m_pTextRenderer->setColor(color);
 
-		Core::Vector3F endpos;
+		core::Vector3F endpos;
 		const bool result = m_pTextRenderer->drawTextInSpace(
-			Core::StringView(str, len),
+			core::StringView(str, len),
 			pos,
 			rvec,
 			dvec,

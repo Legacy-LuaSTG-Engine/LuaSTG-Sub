@@ -2,14 +2,14 @@
 #include "lua/plus.hpp"
 #include "AppFrame.h"
 
-inline Core::RectI lua_to_Core_RectI(lua_State* L, int idx)
+inline core::RectI lua_to_Core_RectI(lua_State* L, int idx)
 {
 	if (!lua_istable(L, idx))
 	{
-		return Core::RectI();
+		return core::RectI();
 	}
 
-	Core::Vector2I pos;
+	core::Vector2I pos;
 
 	lua_getfield(L, idx, "x");
 	pos.x = (int32_t)luaL_checkinteger(L, -1);
@@ -19,7 +19,7 @@ inline Core::RectI lua_to_Core_RectI(lua_State* L, int idx)
 	pos.y = (int32_t)luaL_checkinteger(L, -1);
 	lua_pop(L, 1);
 
-	Core::Vector2I size;
+	core::Vector2I size;
 
 	lua_getfield(L, idx, "width");
 	size.x = (int32_t)luaL_checkinteger(L, -1);
@@ -29,12 +29,12 @@ inline Core::RectI lua_to_Core_RectI(lua_State* L, int idx)
 	size.y = (int32_t)luaL_checkinteger(L, -1);
 	lua_pop(L, 1);
 
-	return Core::RectI(pos, pos + size);
+	return core::RectI(pos, pos + size);
 }
 
-void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
+void luastg::binding::BuiltInFunction::Register(lua_State* L)noexcept
 {
-	struct WrapperImplement
+	struct Wrapper
 	{
 		#pragma region 框架函数
 		// 框架函数
@@ -115,7 +115,7 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 			bool const windowed = lua_toboolean(L, 3);
 			bool const vsync = lua_toboolean(L, 4);
 
-			auto const size = Core::Vector2U(width, height);
+			auto const size = core::Vector2U(width, height);
 
 			if (windowed)
 			{
@@ -124,7 +124,7 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 			}
 			else
 			{
-				bool const result = LAPP.SetDisplayModeExclusiveFullscreen(size, vsync, Core::Rational());
+				bool const result = LAPP.SetDisplayModeExclusiveFullscreen(size, vsync, core::Rational());
 				lua_pushboolean(L, result);
 			}
 
@@ -133,12 +133,12 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 		static int EnumResolutions(lua_State* L)
 		{
 			lua_createtable(L, 5, 0);		// t
-			Core::Graphics::DisplayMode mode_list[5] = {
-				{ 640, 480, { 60, 1 }, Core::Graphics::Format::B8G8R8A8_UNORM },
-				{ 800, 600, { 60, 1 }, Core::Graphics::Format::B8G8R8A8_UNORM },
-				{ 960, 720, { 60, 1 }, Core::Graphics::Format::B8G8R8A8_UNORM },
-				{ 1024, 768, { 60, 1 }, Core::Graphics::Format::B8G8R8A8_UNORM },
-				{ 1280, 960, { 60, 1 }, Core::Graphics::Format::B8G8R8A8_UNORM },
+			core::Graphics::DisplayMode mode_list[5] = {
+				{ 640, 480, { 60, 1 }, core::Graphics::Format::B8G8R8A8_UNORM },
+				{ 800, 600, { 60, 1 }, core::Graphics::Format::B8G8R8A8_UNORM },
+				{ 960, 720, { 60, 1 }, core::Graphics::Format::B8G8R8A8_UNORM },
+				{ 1024, 768, { 60, 1 }, core::Graphics::Format::B8G8R8A8_UNORM },
+				{ 1280, 960, { 60, 1 }, core::Graphics::Format::B8G8R8A8_UNORM },
 			};
 			for (int index = 0; index < 5; index += 1)
 			{
@@ -211,7 +211,7 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 		static int SetSwapChainScalingMode(lua_State* L)noexcept
 		{
 			LAPP.GetAppModel()->getSwapChain()->setScalingMode(
-				(Core::Graphics::SwapChainScalingMode)luaL_checkinteger(L, 1));
+				(core::Graphics::SwapChainScalingMode)luaL_checkinteger(L, 1));
 			return 0;
 		}
 		#pragma endregion
@@ -219,26 +219,26 @@ void LuaSTGPlus::BuiltInFunctionWrapper::Register(lua_State* L)noexcept
 	
 	luaL_Reg tFunctions[] = {
 		#pragma region 框架函数
-		{ "GetVersionNumber", &WrapperImplement::GetVersionNumber },
-		{ "GetVersionName", &WrapperImplement::GetVersionName },
-		{ "SetWindowed", &WrapperImplement::SetWindowed },
-		{ "SetFPS", &WrapperImplement::SetFPS },
-		{ "GetFPS", &WrapperImplement::GetFPS },
-		{ "SetVsync", &WrapperImplement::SetVsync },
-		{ "SetPreferenceGPU", &WrapperImplement::SetPreferenceGPU },
-		{ "SetResolution", &WrapperImplement::SetResolution },
-		{ "Log", &WrapperImplement::Log },
-		{ "DoFile", &WrapperImplement::DoFile },
-		{ "LoadTextFile", &WrapperImplement::LoadTextFile },
+		{ "GetVersionNumber", &Wrapper::GetVersionNumber },
+		{ "GetVersionName", &Wrapper::GetVersionName },
+		{ "SetWindowed", &Wrapper::SetWindowed },
+		{ "SetFPS", &Wrapper::SetFPS },
+		{ "GetFPS", &Wrapper::GetFPS },
+		{ "SetVsync", &Wrapper::SetVsync },
+		{ "SetPreferenceGPU", &Wrapper::SetPreferenceGPU },
+		{ "SetResolution", &Wrapper::SetResolution },
+		{ "Log", &Wrapper::Log },
+		{ "DoFile", &Wrapper::DoFile },
+		{ "LoadTextFile", &Wrapper::LoadTextFile },
 		#pragma endregion
 		
 		#pragma region 窗口与交换链控制函数
-		{ "ChangeVideoMode", &WrapperImplement::ChangeVideoMode },
-		{ "EnumResolutions", &WrapperImplement::EnumResolutions },
-		{ "EnumGPUs", &WrapperImplement::EnumGPUs },
-		{ "ChangeGPU", &WrapperImplement::ChangeGPU },
-		{ "GetCurrentGpuName", &WrapperImplement::GetCurrentGpuName },
-		{ "SetSwapChainScalingMode", &WrapperImplement::SetSwapChainScalingMode },
+		{ "ChangeVideoMode", &Wrapper::ChangeVideoMode },
+		{ "EnumResolutions", &Wrapper::EnumResolutions },
+		{ "EnumGPUs", &Wrapper::EnumGPUs },
+		{ "ChangeGPU", &Wrapper::ChangeGPU },
+		{ "GetCurrentGpuName", &Wrapper::GetCurrentGpuName },
+		{ "SetSwapChainScalingMode", &Wrapper::SetSwapChainScalingMode },
 		#pragma endregion
 		
 		{ NULL, NULL },

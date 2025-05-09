@@ -1,6 +1,6 @@
 #include "GameResource/Implement/ResourceSoundEffectImpl.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	void ResourceSoundEffectImpl::FlushCommand()
 	{
@@ -141,7 +141,7 @@ namespace LuaSTGPlus
 	bool ResourceSoundEffectImpl::SetSpeed(float speed) { return m_player->setSpeed(speed); }
 	float ResourceSoundEffectImpl::GetSpeed() { return m_player->getSpeed(); }
 
-	ResourceSoundEffectImpl::ResourceSoundEffectImpl(const char* name, Core::Audio::IAudioPlayer* p_player)
+	ResourceSoundEffectImpl::ResourceSoundEffectImpl(const char* name, core::Audio::IAudioPlayer* p_player)
 		: ResourceBaseImpl(ResourceType::SoundEffect, name)
 		, m_player(p_player)
 	{

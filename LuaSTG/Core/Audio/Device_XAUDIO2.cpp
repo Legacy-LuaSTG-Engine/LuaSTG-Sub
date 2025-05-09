@@ -4,7 +4,7 @@
 
 static std::array<float, 1> s_empty_fft_data{};
 
-namespace Core::Audio
+namespace core::Audio
 {
 	template<typename T = IXAudio2Voice>
 	inline void SAFE_RELEASE_VOICE(T*& ref_p) { if (ref_p) { ref_p->DestroyVoice(); ref_p = NULL; } }
@@ -393,7 +393,7 @@ namespace Core::Audio
 	}
 }
 
-namespace Core::Audio
+namespace core::Audio
 {
 	void WINAPI AudioPlayer_XAUDIO2::OnVoiceError(void*, HRESULT Error) noexcept
 	{
@@ -595,7 +595,7 @@ namespace Core::Audio
 	}
 }
 
-namespace Core::Audio
+namespace core::Audio
 {
 	void WINAPI LoopAudioPlayer_XAUDIO2::OnVoiceError(void*, HRESULT Error) noexcept
 	{
@@ -906,7 +906,7 @@ namespace Core::Audio
 	}
 }
 
-namespace Core::Audio
+namespace core::Audio
 {
 	bool StreamAudioPlayer_XAUDIO2::ActionQueue::createObjects()
 	{
@@ -1394,7 +1394,7 @@ namespace Core::Audio
 // 高科技
 #include "xmath/XFFT.h"
 
-namespace Core::Audio
+namespace core::Audio
 {
 	void StreamAudioPlayer_XAUDIO2::updateFFT()
 	{

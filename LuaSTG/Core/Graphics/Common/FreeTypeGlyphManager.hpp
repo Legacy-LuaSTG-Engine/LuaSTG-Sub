@@ -1,11 +1,11 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/Font.hpp"
 
 #include "ft2build.h"
 #include FT_FREETYPE_H
 
-namespace Core::Graphics::Common {
+namespace core::Graphics::Common {
 	struct Image2D {
 		static constexpr uint32_t texture_size{ 1024 };
 		uint32_t width{ texture_size };
@@ -23,7 +23,7 @@ namespace Core::Graphics::Common {
 	struct GlyphCache2D {
 		static constexpr uint32_t invalid_rect_value{ 0x7FFFFFFF };
 		Image2D image;
-		ScopeObject<ITexture2D> texture;
+		SmartReference<ITexture2D> texture;
 		uint32_t pen_x{};
 		uint32_t pen_y{};
 		uint32_t pen_bottom{};
@@ -45,7 +45,7 @@ namespace Core::Graphics::Common {
 	};
 
 	struct FreeTypeFontData {
-		std::vector<uint8_t> buffer;
+		SmartReference<IData> buffer;
 		FT_Face ft_face{};
 		float ft_line_height{};
 		float ft_ascender{};
@@ -60,7 +60,7 @@ namespace Core::Graphics::Common {
 	};
 
 	class FreeTypeGlyphManager final
-		: public Object<IGlyphManager>
+		: public implement::ReferenceCounted<IGlyphManager>
 		, public IDeviceEventListener {
 	public:
 		// IDeviceEventListener
@@ -102,7 +102,7 @@ namespace Core::Graphics::Common {
 		GlyphCacheInfo* getGlyphCacheInfo(uint32_t codepoint);
 		bool renderCache(uint32_t codepoint);
 
-		ScopeObject<IDevice> m_device;
+		SmartReference<IDevice> m_device;
 		FreeTypeFontCommonInfo m_common_info;
 		std::vector<FreeTypeFontData> m_font;
 		std::vector<GlyphCache2D> m_tex;

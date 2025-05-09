@@ -1,12 +1,13 @@
-﻿#pragma once
-#include "Core/Object.hpp"
+#pragma once
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Audio/Decoder.hpp"
+#include "core/Data.hpp"
 
 #include <vorbis/vorbisfile.h>
 
-namespace Core::Audio
+namespace core::Audio
 {
-	class Decoder_VorbisOGG : public Object<IDecoder>
+	class Decoder_VorbisOGG : public implement::ReferenceCounted<IDecoder>
 	{
 	public:
 		struct OggVorbis_Stream
@@ -22,7 +23,7 @@ namespace Core::Audio
 		};
 
 	private:
-		std::vector<uint8_t> m_data;
+		SmartReference<IData> m_data;
 		OggVorbis_Stream m_stream;
 		OggVorbis_File m_ogg;
 		bool m_init;

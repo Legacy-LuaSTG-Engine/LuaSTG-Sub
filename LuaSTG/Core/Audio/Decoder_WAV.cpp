@@ -1,8 +1,8 @@
-﻿#include "Core/Audio/Decoder_WAV.hpp"
-#include "Core/FileManager.hpp"
+#include "Core/Audio/Decoder_WAV.hpp"
+#include "core/FileSystem.hpp"
 #include "utf8.hpp"
 
-namespace Core::Audio
+namespace core::Audio
 {
 	void Decoder_WAV::destroyResources()
 	{
@@ -11,7 +11,7 @@ namespace Core::Audio
 			m_init = false;
 			drwav_uninit(&m_wav);
 		}
-		m_data.clear();
+		m_data.reset();
 	}
 
 	uint32_t Decoder_WAV::getFrameCount()
@@ -65,36 +65,36 @@ namespace Core::Audio
 		: m_wav({})
 		, m_init(false)
 	{
-		if (GFileManager().contain(path))
-		{
-			// 存在于文件系统，直接以文件的形式打开，一般 wav 都贼 TM 大
-			drwav_bool32 const result = drwav_init_file_w(&m_wav, utf8::to_wstring(path).c_str(), NULL);
-			if (DRWAV_TRUE != result)
-			{
-				destroyResources();
-				throw std::runtime_error("Decoder_WAV::Decoder_WAV (1)");
-			}
-		}
-		else if (GFileManager().containEx(path))
+		//if (GFileManager().contain(path))
+		//{
+		//	// 存在于文件系统，直接以文件的形式打开，一般 wav 都贼 TM 大
+		//	drwav_bool32 const result = drwav_init_file_w(&m_wav, utf8::to_wstring(path).c_str(), nullptr);
+		//	if (DRWAV_TRUE != result)
+		//	{
+		//		destroyResources();
+		//		throw std::runtime_error("Decoder_WAV::Decoder_WAV (1)");
+		//	}
+		//}
+		//else if (GFileManager().containEx(path))
 		{
 			// 在压缩包里的文件，只能读取到内存了
-			if (!GFileManager().loadEx(path, m_data))
+			if (!FileSystemManager::readFile(path, m_data.put()))
 			{
 				destroyResources();
 				throw std::runtime_error("Decoder_WAV::Decoder_WAV (2)");
 			}
-			drwav_bool32 const result = drwav_init_memory(&m_wav, m_data.data(), m_data.size(), NULL);
+			drwav_bool32 const result = drwav_init_memory(&m_wav, m_data->data(), m_data->size(), nullptr);
 			if (DRWAV_TRUE != result)
 			{
 				destroyResources();
 				throw std::runtime_error("Decoder_WAV::Decoder_WAV (3)");
 			}
 		}
-		else
-		{
-			destroyResources();
-			throw std::runtime_error("Decoder_WAV::Decoder_WAV (4)");
-		}
+		//else
+		//{
+		//	destroyResources();
+		//	throw std::runtime_error("Decoder_WAV::Decoder_WAV (4)");
+		//}
 		m_init = true; // 标记为需要清理
 		// 一些断言
 		if ((m_wav.bitsPerSample % 8) != 0 || !(m_wav.channels == 1 || m_wav.channels == 2))

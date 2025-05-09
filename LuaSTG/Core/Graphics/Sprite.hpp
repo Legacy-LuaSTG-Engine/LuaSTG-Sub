@@ -1,9 +1,10 @@
-﻿#pragma once
+#pragma once
+#include "core/ReferenceCounted.hpp"
 #include "Core/Graphics/Renderer.hpp"
 
-namespace Core::Graphics
+namespace core::Graphics
 {
-	struct ISprite : public IObject
+	struct ISprite : IReferenceCounted
 	{
 		virtual ITexture2D* getTexture() = 0;
 		virtual void setTexture(ITexture2D* p_texture) = 0;
@@ -17,23 +18,50 @@ namespace Core::Graphics
 		virtual void setUnitsPerPixel(float v) = 0;
 		virtual float getUnitsPerPixel() = 0;
 
-		virtual void setZ(float v) = 0;
-		virtual float getZ() = 0;
+		/* TODO: remove */ virtual void setZ(float v) = 0;
+		/* TODO: remove */ virtual float getZ() = 0;
 
-		virtual void setColor(Color4B color) = 0;
-		virtual void setColor(Color4B const* color) = 0;
-		virtual void getColor(Color4B* color) = 0;
+		/* TODO: remove */ virtual void setColor(Color4B color) = 0;
+		/* TODO: remove */ virtual void setColor(Color4B const* color) = 0;
+		/* TODO: remove */ virtual void getColor(Color4B* color) = 0;
 
-		virtual void draw(RectF const& rc) = 0;
-		virtual void draw(Vector3F const& p1, Vector3F const& p2, Vector3F const& p3, Vector3F const& p4) = 0;
-		virtual void draw(Vector2F const& pos) = 0;
-		virtual void draw(Vector2F const& pos, float scale) = 0;
-		virtual void draw(Vector2F const& pos, float scale, float rotation) = 0;
-		virtual void draw(Vector2F const& pos, Vector2F const& scale) = 0;
-		virtual void draw(Vector2F const& pos, Vector2F const& scale, float rotation) = 0;
+		/* TODO: remove */ virtual void draw(RectF const& rc) = 0;
+		/* TODO: remove */ virtual void draw(Vector3F const& p1, Vector3F const& p2, Vector3F const& p3, Vector3F const& p4) = 0;
+		/* TODO: remove */ virtual void draw(Vector2F const& pos) = 0;
+		/* TODO: remove */ virtual void draw(Vector2F const& pos, float scale) = 0;
+		/* TODO: remove */ virtual void draw(Vector2F const& pos, float scale, float rotation) = 0;
+		/* TODO: remove */ virtual void draw(Vector2F const& pos, Vector2F const& scale) = 0;
+		/* TODO: remove */ virtual void draw(Vector2F const& pos, Vector2F const& scale, float rotation) = 0;
 
 		virtual bool clone(ISprite** pp_sprite) = 0;
 
 		static bool create(IRenderer* p_renderer, ITexture2D* p_texture, ISprite** pp_sprite);
 	};
+
+	struct ISpriteRenderer : IReferenceCounted {
+		virtual void setTransform(RectF const& rect) = 0;
+		virtual void setTransform(Vector2F const& p1, Vector2F const& p2, Vector2F const& p3, Vector2F const& p4) = 0;
+		virtual void setTransform(Vector3F const& p1, Vector3F const& p2, Vector3F const& p3, Vector3F const& p4) = 0;
+		virtual void setTransform(Vector2F const& position, Vector2F const& scale, float rotation) = 0;
+		virtual void setSprite(ISprite* sprite) = 0;
+		virtual void setColor(Color4B color) = 0;
+		virtual void setColor(Color4B c1, Color4B c2, Color4B c3, Color4B c4) = 0;
+		virtual void setZ(float z) = 0;
+		virtual void setLegacyBlendState(IRenderer::VertexColorBlendState vertex_color_blend_state, IRenderer::BlendState blend_state) = 0;
+		virtual void draw(IRenderer* renderer) = 0;
+
+		static bool create(ISpriteRenderer** output);
+	};
+}
+
+namespace core {
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.ISprite
+	template<> constexpr InterfaceId getInterfaceId<Graphics::ISprite>() { return UUID::parse("291cd55f-be6c-5abf-a014-cbd47ab655a3"); }
+
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.ISpriteRenderer
+	template<> constexpr InterfaceId getInterfaceId<Graphics::ISpriteRenderer>() { return UUID::parse("928af8d9-f387-557b-a7d9-d1395b9bc0f1"); }
 }

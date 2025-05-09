@@ -1,7 +1,7 @@
 #pragma once
 #include "Core/Type.hpp"
 
-namespace Core::Graphics
+namespace core::Graphics
 {
 	enum class Format : uint32_t
 	{

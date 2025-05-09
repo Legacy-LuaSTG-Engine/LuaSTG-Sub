@@ -2,10 +2,10 @@
 #include "GameResource/Implement/ResourceSpriteImpl.hpp"
 #include "AppFrame.h"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	ResourceAnimationImpl::ResourceAnimationImpl(
-		const char* name, Core::ScopeObject<IResourceTexture> tex,
+		const char* name, core::SmartReference<IResourceTexture> tex,
 		float x, float y, float w, float h,
 		int n, int m, int intv,
 		double a, double b, bool rect)
@@ -22,27 +22,27 @@ namespace LuaSTGPlus
 		{
 			for (int i = 0; i < n; ++i)  // 列
 			{
-				Core::ScopeObject<Core::Graphics::ISprite> p_sprite_core;
-				if (!Core::Graphics::ISprite::create(
+				core::SmartReference<core::Graphics::ISprite> p_sprite_core;
+				if (!core::Graphics::ISprite::create(
 					LAPP.GetAppModel()->getRenderer(),
 					tex->GetTexture(),
-					~p_sprite_core
+					p_sprite_core.put()
 				))
 				{
 					throw std::runtime_error("ResourceAnimationImpl::ResourceAnimationImpl");
 				}
-				Core::RectF rc = Core::RectF(
+				core::RectF rc = core::RectF(
 					x + w * i,
 					y + h * j,
 					x + w * (i + 1),
 					y + h * (j + 1)
 				);
 				p_sprite_core->setTextureRect(rc);
-				p_sprite_core->setTextureCenter(Core::Vector2F(
+				p_sprite_core->setTextureCenter(core::Vector2F(
 					(rc.a.x + rc.b.x) * 0.5f,
 					(rc.a.y + rc.b.y) * 0.5f
 				));
-				Core::ScopeObject<IResourceSprite> p_sprite;
+				core::SmartReference<IResourceSprite> p_sprite;
 				p_sprite.attach(new ResourceSpriteImpl("", p_sprite_core.get(), a, b, rect));
 				m_sprites.emplace_back(p_sprite);
 			}
@@ -50,7 +50,7 @@ namespace LuaSTGPlus
 	}
 	ResourceAnimationImpl::ResourceAnimationImpl(
 		const char* name,
-		std::vector<Core::ScopeObject<IResourceSprite>> const& sprite_list,
+		std::vector<core::SmartReference<IResourceSprite>> const& sprite_list,
 		int intv,
 		double a, double b, bool rect)
 		: ResourceBaseImpl(ResourceType::Animation, name)
@@ -85,13 +85,13 @@ namespace LuaSTGPlus
 	}
 	void ResourceAnimationImpl::Render(int timer, float x, float y, float rot, float hscale, float vscale, float z)
 	{
-		Core::Graphics::ISprite* pSprite = GetSpriteByTimer(timer)->GetSprite();
+		core::Graphics::ISprite* pSprite = GetSpriteByTimer(timer)->GetSprite();
 		// 备份状态
-		Core::Color4B color_backup[4] = {
-			Core::Color4B(0xFFFFFFFF),
-			Core::Color4B(0xFFFFFFFF),
-			Core::Color4B(0xFFFFFFFF),
-			Core::Color4B(0xFFFFFFFF),
+		core::Color4B color_backup[4] = {
+			core::Color4B(0xFFFFFFFF),
+			core::Color4B(0xFFFFFFFF),
+			core::Color4B(0xFFFFFFFF),
+			core::Color4B(0xFFFFFFFF),
 		};
 		pSprite->getColor(color_backup);
 		float const z_backup = pSprite->getZ();
@@ -100,20 +100,20 @@ namespace LuaSTGPlus
 		pSprite->setZ(z);
 		// 渲染
 		LAPP.updateGraph2DBlendMode(GetBlendMode());
-		pSprite->draw(Core::Vector2F(x, y), Core::Vector2F(hscale, vscale), rot);
+		pSprite->draw(core::Vector2F(x, y), core::Vector2F(hscale, vscale), rot);
 		// 还原状态
 		pSprite->setColor(color_backup);
 		pSprite->setZ(z_backup);
 	}
-	void ResourceAnimationImpl::Render(int timer, float x, float y, float rot, float hscale, float vscale, BlendMode blend, Core::Color4B color, float z)
+	void ResourceAnimationImpl::Render(int timer, float x, float y, float rot, float hscale, float vscale, BlendMode blend, core::Color4B color, float z)
 	{
 		// 备份状态
 		BlendMode blend_backup = GetBlendMode();
-		Core::Color4B color_backup[4] = {
-			Core::Color4B(0xFFFFFFFF),
-			Core::Color4B(0xFFFFFFFF),
-			Core::Color4B(0xFFFFFFFF),
-			Core::Color4B(0xFFFFFFFF),
+		core::Color4B color_backup[4] = {
+			core::Color4B(0xFFFFFFFF),
+			core::Color4B(0xFFFFFFFF),
+			core::Color4B(0xFFFFFFFF),
+			core::Color4B(0xFFFFFFFF),
 		};
 		GetVertexColor(color_backup);
 		// 设置状态

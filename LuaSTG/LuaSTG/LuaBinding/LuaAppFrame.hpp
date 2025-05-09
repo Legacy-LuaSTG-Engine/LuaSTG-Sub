@@ -1,6 +1,6 @@
 #pragma once
 
-namespace LuaSTG
+namespace luastg
 {
     namespace LuaEngine
     {

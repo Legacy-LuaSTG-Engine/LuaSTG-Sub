@@ -2,7 +2,7 @@
 #include "GameResource/ResourceBase.hpp"
 #include "Core/Audio/Device.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	enum class MusicRoopRangeType : int32_t
 	{
@@ -35,7 +35,7 @@ namespace LuaSTGPlus
 
 	struct IResourceMusic : public IResourceBase
 	{
-		virtual Core::Audio::IAudioPlayer* GetAudioPlayer() = 0;
+		virtual core::Audio::IAudioPlayer* GetAudioPlayer() = 0;
 
 		virtual void Play(float vol, double position) = 0;
 		virtual void Stop() = 0;
@@ -51,4 +51,11 @@ namespace LuaSTGPlus
 		virtual void SetLoop(bool v) = 0;
 		virtual void SetLoopRange(MusicRoopRange range) = 0;
 	};
+}
+
+namespace core {
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/luastg.IResourceMusic
+	template<> constexpr InterfaceId getInterfaceId<luastg::IResourceMusic>() { return UUID::parse("5a109cf3-31ef-5c4d-9a81-6951d7aecd00"); }
 }

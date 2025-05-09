@@ -1,84 +1,95 @@
 #include "LuaBinding/LuaWrapper.hpp"
 #include "LuaBinding/PostEffectShader.hpp"
-#include "LuaBinding/Display.hpp"
-#include "LuaBinding/Window.hpp"
-#include "LuaBinding/SwapChain.hpp"
-#include "LuaBinding/HttpClient.hpp"
-#include "LuaBinding/Texture2D.hpp"
-#include "LuaBinding/Mesh.hpp"
-#include "LuaBinding/MeshRenderer.hpp"
-#include "LuaBinding/Vector2.hpp"
-#include "LuaBinding/Vector3.hpp"
-#include "LuaBinding/Vector4.hpp"
+#include "LuaBinding/Resource.hpp"
+#include "LuaBinding/external/HttpClient.hpp"
+#include "LuaBinding/modern/Clipboard.hpp"
+#include "LuaBinding/modern/Display.hpp"
+#include "LuaBinding/modern/Window.hpp"
+#include "LuaBinding/modern/SwapChain.hpp"
+#include "LuaBinding/modern/Texture2D.hpp"
+#include "LuaBinding/modern/Mesh.hpp"
+#include "LuaBinding/modern/MeshRenderer.hpp"
+#include "LuaBinding/modern/Vector2.hpp"
+#include "LuaBinding/modern/Vector3.hpp"
+#include "LuaBinding/modern/Vector4.hpp"
+#include "LuaBinding/modern/Sprite.hpp"
+#include "LuaBinding/modern/SpriteRenderer.hpp"
+#include "LuaBinding/modern/FileSystemWatcher.hpp"
 
-namespace LuaSTGPlus
+namespace luastg::binding
 {
-	void LuaWrapper::Register(lua_State* L) noexcept
+	static int lib_StopWatch(lua_State* L) noexcept
 	{
-		struct Function
-		{
-			static int StopWatch(lua_State* L) noexcept
-			{
-				StopWatchWrapper::CreateAndPush(L);
-				return 1;
-			}
-			static int Rand(lua_State* L) noexcept
-			{
-				RandomizerWrapper::CreateAndPush(L);
-				return 1;
-			}
-			static int BentLaser(lua_State* L) noexcept
-			{
-				BentLaserWrapper::CreateAndPush(L);
-				return 1;
-			}
-		};
-			
-		luaL_Reg tMethod[] =
-		{
-			{ "StopWatch", &Function::StopWatch },
-			{ "Rand", &Function::Rand },
-			{ "BentLaserData", &Function::BentLaser },
-			{ NULL, NULL }
-		};
-
-		luaL_register(L, LUASTG_LUA_LIBNAME, tMethod);	// ? t
-		ColorWrapper::Register(L);
-		ParticleSystemWrapper::Register(L);
-		StopWatchWrapper::Register(L);
-		RandomizerWrapper::Register(L);
-		BentLaserWrapper::Register(L);
-		DInputWrapper::Register(L);
-		lua_pop(L, 1);									// ?
+		StopWatch::CreateAndPush(L);
+		return 1;
 	}
-	
+	static int lib_Rand(lua_State* L) noexcept
+	{
+		Randomizer::CreateAndPush(L);
+		return 1;
+	}
+	static int lib_BentLaser(lua_State* L) noexcept
+	{
+		BentLaser::CreateAndPush(L);
+		return 1;
+	}
+
 	void RegistBuiltInClassWrapper(lua_State* L) noexcept
 	{
-		LuaWrapper::Register(L);
-		BuiltInFunctionWrapper::Register(L);  // 内建函数库
-		LuaWrapper::InputWrapper::Register(L);
-		LuaWrapper::RenderWrapper::Register(L);
-		LuaWrapper::RendererWrapper::Register(L);
-		LuaWrapper::GameObjectManagerWrapper::Register(L);
-		LuaWrapper::ResourceMgrWrapper::Register(L);
-		LuaWrapper::AudioWrapper::Register(L);
-		LuaWrapper::PlatformWrapper::Register(L);
-		FileManagerWrapper::Register(L); //内建函数库，文件资源管理，请确保位于内建函数库后加载
-		ArchiveWrapper::Register(L); //压缩包
-		LuaSTG::LuaBinding::PostEffectShader::Register(L);
-		LuaSTG::Sub::LuaBinding::Display::registerClass(L);
-		LuaSTG::Sub::LuaBinding::Window::registerClass(L);
-		LuaSTG::Sub::LuaBinding::Window_InputMethodExtension::registerClass(L);
-		LuaSTG::Sub::LuaBinding::Window_TextInputExtension::registerClass(L);
-		LuaSTG::Sub::LuaBinding::Window_Windows11Extension::registerClass(L);
-		LuaSTG::Sub::LuaBinding::SwapChain::registerClass(L);
-		LuaSTG::Sub::LuaBinding::Texture2D::registerClass(L);
-		LuaSTG::Sub::LuaBinding::Mesh::registerClass(L);
-		LuaSTG::Sub::LuaBinding::MeshRenderer::registerClass(L);
-		LuaSTG::Sub::LuaBinding::Vector2::registerClass(L);
-		LuaSTG::Sub::LuaBinding::Vector3::registerClass(L);
-		LuaSTG::Sub::LuaBinding::Vector4::registerClass(L);
+		luaL_Reg constructors[] = {
+			{ "StopWatch", &lib_StopWatch },
+			{ "Rand", &lib_Rand },
+			{ "BentLaserData", &lib_BentLaser },
+			{ nullptr, nullptr },
+		};
+
+		luaL_register(L, LUASTG_LUA_LIBNAME, constructors);	// ? t
+		Color::Register(L);
+		ParticleSystem::Register(L);
+		StopWatch::Register(L);
+		Randomizer::Register(L);
+		BentLaser::Register(L);
+		DirectInput::Register(L);
+		lua_pop(L, 1);	
+
+		BuiltInFunction::Register(L);  // 内建函数库
+		Input::Register(L);
+		Render::Register(L);
+		Renderer::Register(L);
+		GameObjectManager::Register(L);
+		ResourceManager::Register(L);
+		Audio::Register(L);
+		Platform::Register(L);
+		FileManager::Register(L); //内建函数库，文件资源管理，请确保位于内建函数库后加载
+		Archive::Register(L); //压缩包
+		lua_settop(L, 0);
+		luaopen_LuaSTG_Sub(L);
+
+		// external
+
+		PostEffectShader::Register(L);
 		http::Request::registerClass(L);
 		http::ResponseEntity::registerClass(L);
+
+		// modern
+
+		Clipboard::registerClass(L);
+		Display::registerClass(L);
+		Window::registerClass(L);
+		Window_InputMethodExtension::registerClass(L);
+		Window_TextInputExtension::registerClass(L);
+		Window_Windows11Extension::registerClass(L);
+		SwapChain::registerClass(L);
+		Texture2D::registerClass(L);
+		Mesh::registerClass(L);
+		MeshRenderer::registerClass(L);
+		Vector2::registerClass(L);
+		Vector3::registerClass(L);
+		Vector4::registerClass(L);
+		Sprite::registerClass(L);
+		SpriteRenderer::registerClass(L);
+		SpriteRectRenderer::registerClass(L);
+		SpriteQuadRenderer::registerClass(L);
+		FileSystemWatcher::registerClass(L);
 	}
 }

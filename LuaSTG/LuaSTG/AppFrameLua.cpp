@@ -1,8 +1,7 @@
-﻿#include "AppFrame.h"
+#include "AppFrame.h"
 #include "GameResource/ResourcePassword.hpp"
 #include "LuaBinding/LuaAppFrame.hpp"
 #include "LuaBinding/LuaCustomLoader.hpp"
-#include "LuaBinding/LuaInternalSource.hpp"
 #include "LuaBinding/LuaWrapper.hpp"
 extern "C" {
 #include "lua_cjson.h"
@@ -17,26 +16,27 @@ extern "C" {
 #endif
 //#include "lua_xlsx_csv.h"
 #include "lua_steam.h"
-#include "LuaBinding/lua_xinput.hpp"
-#include "LuaBinding/lua_random.hpp"
-#include "LuaBinding/lua_dwrite.hpp"
-#include "LuaBinding/Resource.hpp"
+#include "LuaBinding/external/lua_xinput.hpp"
+#include "LuaBinding/external/lua_random.hpp"
+#include "LuaBinding/external/lua_dwrite.hpp"
 
-#include "Core/FileManager.hpp"
+#include "core/FileSystem.hpp"
 #include "utf8.hpp"
 #include "Platform/CommandLineArguments.hpp"
+#include "core/FileSystem.hpp"
+#include "luastg/EmbeddedFileSystem.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <Windows.h>
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	static int StackTraceback(lua_State *L) noexcept
     {
         // ??? errmsg
         int ret = 0;
-        
+
         lua_getfield(L, LUA_GLOBALSINDEX, "debug");            // ??? errmsg table(debug)
         if (!lua_istable(L, -1))
         {
@@ -49,7 +49,7 @@ namespace LuaSTGPlus
             lua_pop(L, 2);                                     // ??? errmsg
             return 1;
         }
-        
+
         lua_pushvalue(L, -3);        // ??? errmsg table(debug) function(debug.traceback) errmsg
         lua_pushinteger(L, 2);       // ??? errmsg table(debug) function(debug.traceback) errmsg 2
         ret = lua_pcall(L, 2, 1, 0); // ??? errmsg table(debug) tracebackmsg   <==> [lua] debug.traceback(errmsg, 2)
@@ -63,7 +63,7 @@ namespace LuaSTGPlus
             lua_pop(L, 2);                                                // ??? errmsg
             return 1;
         }
-        
+
         return 1;
     }
 
@@ -249,18 +249,17 @@ namespace LuaSTGPlus
 				spdlog::info("[luastg] 加载脚本'{}'", path);
 		}
 		bool loaded = false;
-		std::vector<uint8_t> src;
+		core::SmartReference<core::IData> src;
 		if (packname)
 		{
-			auto& arc = GFileManager().getFileArchive(packname);
-			if (!arc.empty())
-			{
-				loaded = arc.load(path, src);
+			core::SmartReference<core::IFileSystemArchive> archive;
+			if (core::FileSystemManager::getFileSystemArchiveByPath(packname, archive.put())) {
+				loaded = archive->readFile(path, src.put());
 			}
 		}
 		else
 		{
-			loaded = GFileManager().loadEx(path, src);
+			loaded = core::FileSystemManager::readFile(path, src.put());
 		}
 		if (!loaded)
 		{
@@ -268,7 +267,7 @@ namespace LuaSTGPlus
 			luaL_error(SL, "can't load file '%s'", path);
 			return;
 		}
-		if (0 != luaL_loadbuffer(SL, (char const*)src.data(), (size_t)src.size(), luaL_checkstring(SL, 1)))
+		if (0 != luaL_loadbuffer(SL, (char const*)src->data(), src->size(), luaL_checkstring(SL, 1)))
 		{
 			const char* tDetail = lua_tostring(SL, -1);
 			spdlog::error("[luajit] 编译'{}'失败：{}", path, tDetail);
@@ -281,6 +280,9 @@ namespace LuaSTGPlus
 
 	bool AppFrame::OnOpenLuaEngine()
 	{
+		// 挂载文件系统
+		core::FileSystemManager::addFileSystem("luastg", IEmbeddedFileSystem::getInstance());
+
 		// 加载lua虚拟机
 		spdlog::info("[luajit] {}", LUAJIT_VERSION);
 		L = luaL_newstate();
@@ -298,18 +300,12 @@ namespace LuaSTGPlus
 			spdlog::info("[luajit] 注册标准库与内置包");
 			luaL_openlibs(L);  // 内建库 (lua build in lib)
 			lua_register_custom_loader(L); // 加强版 package 库 (require)
-
-			if (!SafeCallScript(LuaInternalSource_1().c_str(), LuaInternalSource_1().length(), "internal.main")) {
-				spdlog::error("[luajit] 内置脚本'internal.main'出错");
-				return false;
-			}
-
 			luaopen_cjson(L);
 			luaopen_lfs(L);
 			//lua_xlsx_open(L);
 			//lua_csv_open(L);
 			lua_steam_open(L);
-			lua_xinput_open(L);
+			luaopen_xinput(L);
 			luaopen_dwrite(L);
 			luaopen_random(L);
 			luaopen_string_pack(L);
@@ -327,9 +323,7 @@ namespace LuaSTGPlus
 		#endif
 			lua_settop(L, 0);
 
-			RegistBuiltInClassWrapper(L);  // 注册内建类 (luastg lib)
-			luaopen_LuaSTG_Sub(L);
-			lua_settop(L, 0);
+			binding::RegistBuiltInClassWrapper(L);  // 注册内建类 (luastg lib)
 
 			// 设置命令行参数
 			spdlog::info("[luajit] 储存命令行参数");
@@ -353,8 +347,12 @@ namespace LuaSTGPlus
 				lua_pop(L, 1);                                  // ?
 			}
 
-			if (!SafeCallScript(LuaInternalSource_2().c_str(), LuaInternalSource_2().length(), "internal.api")) {
-				spdlog::error("[luajit] 内置脚本'internal.api'出错");
+			constexpr std::string_view boost_script(R"(-- LuaSTG Sub boost script
+package.cpath = ""
+package.path = "?.lua;?/init.lua;"
+require("luastg.main")
+)");
+			if (!SafeCallScript(boost_script.data(), boost_script.size(), "luastg/boost.lua")) {
 				return false;
 			}
 		}
@@ -362,4 +360,4 @@ namespace LuaSTGPlus
 
 		return true;
 	}
-};
+}

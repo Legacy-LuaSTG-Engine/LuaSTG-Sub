@@ -1,8 +1,9 @@
 #pragma once
 #include "Core/Graphics/Device.hpp"
 #include "Core/Graphics/Renderer.hpp"
+#include "core/ReferenceCounted.hpp"
 
-namespace Core::Graphics
+namespace core::Graphics
 {
 	struct GlyphInfo
 	{
@@ -22,7 +23,7 @@ namespace Core::Graphics
 		bool       is_buffer;        // source 参数代表二进制数据，而不是文件路径
 	};
 
-	struct IGlyphManager : public IObject
+	struct IGlyphManager : public IReferenceCounted
 	{
 		virtual float getLineHeight() = 0;
 		virtual float getAscender() = 0;
@@ -40,7 +41,7 @@ namespace Core::Graphics
 		static bool create(IDevice* p_device, TrueTypeFontInfo const* p_arr_info, size_t info_count, IGlyphManager** output);
 	};
 
-	struct ITextRenderer : public IObject
+	struct ITextRenderer : public IReferenceCounted
 	{
 		virtual void setScale(Vector2F const& scale) = 0;
 		virtual Vector2F getScale() = 0;
@@ -64,4 +65,16 @@ namespace Core::Graphics
 
 		static bool create(IRenderer* p_renderer, ITextRenderer** output);
 	};
+}
+
+namespace core {
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.IGlyphManager
+	template<> constexpr InterfaceId getInterfaceId<Graphics::IGlyphManager>() { return UUID::parse("2c719bf6-dbf1-5d51-86c6-8ea3c1d5a7f0"); }
+
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.ITextRenderer
+	template<> constexpr InterfaceId getInterfaceId<Graphics::ITextRenderer>() { return UUID::parse("23c381e5-4769-5caf-9623-5f050c0f9aba"); }
 }

@@ -1,7 +1,7 @@
-﻿#include "LuaBinding/LuaWrapper.hpp"
+#include "LuaBinding/LuaWrapper.hpp"
 #include "lua/plus.hpp"
 
-inline void lua_push_vec2(lua_State* L, Core::Vector2F const& v)
+inline void lua_push_vec2(lua_State* L, core::Vector2F const& v)
 {
 	lua_createtable(L, 0, 2);
 	lua_pushlstring(L, "x", 1);
@@ -11,9 +11,9 @@ inline void lua_push_vec2(lua_State* L, Core::Vector2F const& v)
 	lua_pushnumber(L, v.y);
 	lua_rawset(L, -3);
 }
-inline Core::Vector2F luaL_check_vec2(lua_State* L, int idx)
+inline core::Vector2F luaL_check_vec2(lua_State* L, int idx)
 {
-	Core::Vector2F ret;
+	core::Vector2F ret;
 	if (!lua_istable(L, idx))
 	{
 		luaL_typerror(L, idx, "table  (vector2f)");
@@ -29,16 +29,16 @@ inline Core::Vector2F luaL_check_vec2(lua_State* L, int idx)
 	lua_pop(L, 1);
 	return ret;
 }
-inline Core::Color4B Color4f_to_Color4B(float c[4])
+inline core::Color4B Color4f_to_Color4B(float c[4])
 {
-	return Core::Color4B(
+	return core::Color4B(
 		(uint8_t)std::clamp(c[0] * 255.0f, 0.0f, 255.0f),
 		(uint8_t)std::clamp(c[1] * 255.0f, 0.0f, 255.0f),
 		(uint8_t)std::clamp(c[2] * 255.0f, 0.0f, 255.0f),
 		(uint8_t)std::clamp(c[3] * 255.0f, 0.0f, 255.0f)
 	);
 }
-inline void Color4B_to_Color4f(Core::Color4B c, float d[4])
+inline void Color4B_to_Color4f(core::Color4B c, float d[4])
 {
 	d[0] = (float)c.r / 255.0f;
 	d[1] = (float)c.g / 255.0f;
@@ -94,11 +94,11 @@ inline void luaL_check_color4f(lua_State* L, int idx, float c[4])
 	lua_pop(L, 1);
 }
 
-namespace LuaSTGPlus::LuaWrapper
+namespace luastg::binding
 {
-	std::string_view const ParticleSystemWrapper::ClassID("lstg.ParticleSystemInstance");
+	std::string_view const ParticleSystem::ClassID("lstg.ParticleSystemInstance");
 
-	void ParticleSystemWrapper::UserData::ReleaseAll()
+	void ParticleSystem::UserData::ReleaseAll()
 	{
 		if (res)
 		{
@@ -113,11 +113,11 @@ namespace LuaSTGPlus::LuaWrapper
 		ptr = nullptr;
 	}
 
-	ParticleSystemWrapper::UserData* ParticleSystemWrapper::Cast(lua_State* L, int idx)
+	ParticleSystem::UserData* ParticleSystem::Cast(lua_State* L, int idx)
 	{
 		return (UserData*)luaL_checkudata(L, idx, ClassID.data());
 	}
-	ParticleSystemWrapper::UserData* ParticleSystemWrapper::Create(lua_State* L)
+	ParticleSystem::UserData* ParticleSystem::Create(lua_State* L)
 	{
 		UserData* self = (UserData*)lua_newuserdata(L, sizeof(UserData)); // udata
 		self->res = nullptr;
@@ -126,7 +126,7 @@ namespace LuaSTGPlus::LuaWrapper
 		lua_setmetatable(L, -2); // udata
 		return self;
 	}
-	void ParticleSystemWrapper::Register(lua_State* L)
+	void ParticleSystem::Register(lua_State* L)
 	{
 		struct Wrapper
 		{
@@ -200,12 +200,12 @@ namespace LuaSTGPlus::LuaWrapper
 						if (self->ptr->IsActived())  // 兼容性处理
 						{
 							self->ptr->SetActive(false);
-							self->ptr->SetCenter(Core::Vector2F(x, y));
+							self->ptr->SetCenter(core::Vector2F(x, y));
 							self->ptr->SetActive(true);
 						}
 						else
 						{
-							self->ptr->SetCenter(Core::Vector2F(x, y));
+							self->ptr->SetCenter(core::Vector2F(x, y));
 						}
 						self->ptr->Update(delta);
 					}
@@ -217,12 +217,12 @@ namespace LuaSTGPlus::LuaWrapper
 						if (self->ptr->IsActived())  // 兼容性处理
 						{
 							self->ptr->SetActive(false);
-							self->ptr->SetCenter(Core::Vector2F(x, y));
+							self->ptr->SetCenter(core::Vector2F(x, y));
 							self->ptr->SetActive(true);
 						}
 						else
 						{
-							self->ptr->SetCenter(Core::Vector2F(x, y));
+							self->ptr->SetCenter(core::Vector2F(x, y));
 						}
 						self->ptr->Update(delta);
 					}
@@ -316,7 +316,7 @@ namespace LuaSTGPlus::LuaWrapper
 					if (lua_toboolean(L, 2))
 						lua_push_color4f(L, self->ptr->GetParticleSystemInfo().colColorEnd);
 					else
-						ColorWrapper::CreateAndPush(L, Color4f_to_Color4B(self->ptr->GetParticleSystemInfo().colColorEnd));
+						Color::CreateAndPush(L, Color4f_to_Color4B(self->ptr->GetParticleSystemInfo().colColorEnd));
 					return 1;
 				}
 				else
@@ -332,7 +332,7 @@ namespace LuaSTGPlus::LuaWrapper
 					if (lua_toboolean(L, 2))
 						lua_push_color4f(L, self->ptr->GetParticleSystemInfo().colColorStart);
 					else
-						ColorWrapper::CreateAndPush(L, Color4f_to_Color4B(self->ptr->GetParticleSystemInfo().colColorStart));
+						Color::CreateAndPush(L, Color4f_to_Color4B(self->ptr->GetParticleSystemInfo().colColorStart));
 					return 1;
 				}
 				else
@@ -725,7 +725,7 @@ namespace LuaSTGPlus::LuaWrapper
 				UserData* self = (UserData*)luaL_checkudata(L, 1, ClassID.data());
 				if (self->ptr)
 				{
-					Core::Vector2F const vec2 = luaL_check_vec2(L, 2);
+					core::Vector2F const vec2 = luaL_check_vec2(L, 2);
 					self->ptr->SetCenter(vec2);
 					return 0;
 				}
@@ -741,7 +741,7 @@ namespace LuaSTGPlus::LuaWrapper
 				{
 					if (lua_isuserdata(L, 2))
 					{
-						Core::Color4B* col = ColorWrapper::Cast(L, 2);
+						core::Color4B* col = Color::Cast(L, 2);
 						Color4B_to_Color4f(*col, self->ptr->GetParticleSystemInfo().colColorEnd);
 					}
 					else
@@ -762,7 +762,7 @@ namespace LuaSTGPlus::LuaWrapper
 				{
 					if (lua_isuserdata(L, 2))
 					{
-						Core::Color4B* col = ColorWrapper::Cast(L, 2);
+						core::Color4B* col = Color::Cast(L, 2);
 						Color4B_to_Color4f(*col, self->ptr->GetParticleSystemInfo().colColorStart);
 					}
 					else

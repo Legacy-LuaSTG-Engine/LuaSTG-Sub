@@ -1,4 +1,4 @@
-﻿#include "LuaBinding/LuaWrapper.hpp"
+#include "LuaBinding/LuaWrapper.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief WELL512随机数算法
@@ -151,18 +151,16 @@ bool fcyRandomWELL512::Deserialize(std::string const& data)
 	return false;
 }
 
-namespace LuaSTGPlus::LuaWrapper
+namespace luastg::binding
 {
 	template<typename T>
-	inline void make_less(T& a, T& b)
-	{
-		if (a > b)
-		{
+	void make_less(T& a, T& b) {
+		if (a > b) {
 			std::swap(a, b);
 		}
 	}
 
-	void RandomizerWrapper::Register(lua_State* L)noexcept
+	void Randomizer::Register(lua_State* L)noexcept
 	{
 		struct Function
 		{
@@ -207,7 +205,7 @@ namespace LuaSTGPlus::LuaWrapper
 			static int clone(lua_State* L)noexcept
 			{
 				GETUDATA(self, 1);
-				RandomizerWrapper::CreateAndPush(L);
+				Randomizer::CreateAndPush(L);
 				GETUDATA(other, -1);
 				*other = *self;
 				return 1;
@@ -254,7 +252,7 @@ namespace LuaSTGPlus::LuaWrapper
 		RegisterClassIntoTable(L, ".Rand", tMethods, LUASTG_LUA_TYPENAME_RANDGEN, tMetaTable);
 	}
 
-	void RandomizerWrapper::CreateAndPush(lua_State* L)
+	void Randomizer::CreateAndPush(lua_State* L)
 	{
 		fcyRandomWELL512* p = static_cast<fcyRandomWELL512*>(lua_newuserdata(L, sizeof(fcyRandomWELL512))); // udata
 		new(p) fcyRandomWELL512();

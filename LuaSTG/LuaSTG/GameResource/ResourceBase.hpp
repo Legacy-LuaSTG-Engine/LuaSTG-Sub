@@ -1,11 +1,10 @@
-﻿#pragma once
+#pragma once
 #include "Core/Type.hpp"
+#include "core/ReferenceCounted.hpp"
 
-namespace LuaSTGPlus
-{
+namespace luastg {
 	// 资源类型
-	enum class ResourceType
-	{
+	enum class ResourceType {
 		Texture = 1,
 		Sprite,
 		Animation,
@@ -19,8 +18,7 @@ namespace LuaSTGPlus
 	};
 
 	// 混合模式
-	enum class BlendMode
-	{
+	enum class BlendMode : uint8_t {
 		__RESERVE__ = 0,
 
 		MulAlpha = 1,		//顶点色和纹理色相乘 混合模式：正常（透明度混合）
@@ -43,15 +41,22 @@ namespace LuaSTGPlus
 		AddMutiply = 16,	//顶点色和纹理色相加 混合模式：正片叠底（相乘）
 		AddScreen = 17,		//顶点色和纹理色相加 混合模式：滤色（相加减去相乘）
 
-		One = 18,           //无混合，直接覆盖
+		One = 18,			//无混合，直接覆盖
 
-		_KEY_NOT_FOUND = -1,
+		_KEY_NOT_FOUND = 0x7f,
 	};
+	static_assert(sizeof(BlendMode) == sizeof(uint8_t));
 
 	// 资源接口
-	struct IResourceBase : public Core::IObject
-	{
+	struct IResourceBase : core::IReferenceCounted {
 		virtual ResourceType GetType() const noexcept = 0;
 		virtual std::string_view GetResName() const noexcept = 0;
 	};
 };
+
+namespace core {
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/luastg.IResourceBase
+	template<> constexpr InterfaceId getInterfaceId<luastg::IResourceBase>() { return UUID::parse("90e5a483-1cb5-5a21-8fdf-cd8609df164c"); }
+}

@@ -1,12 +1,13 @@
 ﻿#pragma once
 #include "Core/Type.hpp"
+#include "core/ReferenceCounted.hpp"
 #include "Core/Graphics/Device.hpp"
 
-namespace Core::Graphics
+namespace core::Graphics
 {
 	struct IRenderer;
 
-	struct IPostEffectShader : public IObject
+	struct IPostEffectShader : public IReferenceCounted
 	{
 		virtual bool setFloat(StringView name, float value) = 0;
 		virtual bool setFloat2(StringView name, Vector2F value) = 0;
@@ -16,7 +17,7 @@ namespace Core::Graphics
 		virtual bool apply(IRenderer* p_renderer) = 0;
 	};
 
-	struct IModel : public IObject
+	struct IModel : public IReferenceCounted
 	{
 		virtual void setAmbient(Vector3F const& color, float brightness) = 0;
 		virtual void setDirectionalLight(Vector3F const& direction, Vector3F const& color, float brightness) = 0;
@@ -27,7 +28,7 @@ namespace Core::Graphics
 		virtual void setRotationQuaternion(Vector4F const& quat) = 0;
 	};
 
-	struct IRenderer : public IObject
+	struct IRenderer : public IReferenceCounted
 	{
 		enum class VertexColorBlendState : uint8_t
 		{
@@ -171,4 +172,21 @@ namespace Core::Graphics
 
 		static bool create(IDevice* p_device, IRenderer** pp_renderer);
 	};
+}
+
+namespace core {
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.IPostEffectShader
+	template<> constexpr InterfaceId getInterfaceId<Graphics::IPostEffectShader>() { return UUID::parse("d9bbdce5-bb1a-50fe-af44-0149e7e3f1b4"); }
+
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.IModel
+	template<> constexpr InterfaceId getInterfaceId<Graphics::IModel>() { return UUID::parse("31d5322d-0165-56e4-bda6-914e131eccf9"); }
+
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.IRenderer
+	template<> constexpr InterfaceId getInterfaceId<Graphics::IRenderer>() { return UUID::parse("0ebdb9dc-847f-5827-bf0a-a902494b84bc"); }
 }

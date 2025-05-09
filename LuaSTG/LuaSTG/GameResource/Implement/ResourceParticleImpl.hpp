@@ -6,14 +6,14 @@
 
 #define LPARTICLE_MAXCNT 500  // 单个粒子池最多有500个粒子，这是HGE粒子特效的实现，不应该修改
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	// https://github.com/kvakvs/hge/blob/hge1.9/include/hgeparticle.h
 	// HGE 粒子实例
 	struct hgeParticle
 	{
-		Core::Vector2F vecLocation; // 位置
-		Core::Vector2F vecVelocity; // 速度
+		core::Vector2F vecLocation; // 位置
+		core::Vector2F vecVelocity; // 速度
 
 		float fGravity;         // 重力
 		float fRadialAccel;     // 径向加速度
@@ -36,7 +36,7 @@ namespace LuaSTGPlus
 	struct ParticleSystemResourceInfo
 	{
 		hgeParticleSystemInfo tParticleSystemInfo = {};
-		Core::ScopeObject<Core::Graphics::ISprite> pSprite;
+		core::SmartReference<core::Graphics::ISprite> pSprite;
 		BlendMode eBlendMode = BlendMode::MulAlpha;
 		float colVertexColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
@@ -54,14 +54,14 @@ namespace LuaSTGPlus
 			Sleep
 		};
 	private:
-		Core::ScopeObject<IResourceParticle> m_Res;
+		core::SmartReference<IResourceParticle> m_Res;
 		ParticleSystemResourceInfo m_Info;
 		std::array<hgeParticle, LPARTICLE_MAXCNT> m_ParticlePool;
 		random::xoshiro128p m_Random;
 		uint32_t m_RandomSeed = 0;
 		Status m_iStatus = Status::Alive;  // 状态
-		Core::Vector2F m_vCenter;  // 中心
-		Core::Vector2F m_vPrevCenter;  // 上一个中心
+		core::Vector2F m_vCenter;  // 中心
+		core::Vector2F m_vPrevCenter;  // 上一个中心
 		size_t m_iAlive = 0;  // 存活数
 		float m_fDirection = 0.0f; // 相对发射角度
 		float m_fAge = 0.f;  // 已存活时间
@@ -74,23 +74,23 @@ namespace LuaSTGPlus
 		size_t GetAliveCount();
 		BlendMode GetBlendMode();
 		void SetBlendMode(BlendMode m);
-		Core::Color4B GetVertexColor();
-		void SetVertexColor(Core::Color4B c);
+		core::Color4B GetVertexColor();
+		void SetVertexColor(core::Color4B c);
 		int GetEmission();
 		void SetEmission(int e);
 		uint32_t GetSeed();
 		void SetSeed(uint32_t seed);
 		bool IsActived();
 		void SetActive(bool v);
-		void SetCenter(Core::Vector2F pos);
-		Core::Vector2F GetCenter();
+		void SetCenter(core::Vector2F pos);
+		core::Vector2F GetCenter();
 		float GetRotation();
 		void SetRotation(float r);
 		void Update(float delta);
 		void Render(float scaleX, float scaleY);
 		void SetOldBehavior(bool b) { m_bOldBehavior = b; }
 	public:
-		ParticlePoolImpl(Core::ScopeObject<IResourceParticle> ps_ref);
+		ParticlePoolImpl(core::SmartReference<IResourceParticle> ps_ref);
 	};
 
 	class ResourceParticleImpl : public ResourceBaseImpl<IResourceParticle>
@@ -111,6 +111,6 @@ namespace LuaSTGPlus
 		bool CreateInstance(IParticlePool** pp_pool);
 		void DestroyInstance(IParticlePool* p_pool);
 	public:
-		ResourceParticleImpl(const char* name, const hgeParticleSystemInfo& pinfo, Core::Graphics::ISprite* sprite, double a, double b, bool rect = false);
+		ResourceParticleImpl(const char* name, const hgeParticleSystemInfo& pinfo, core::Graphics::ISprite* sprite, double a, double b, bool rect = false);
 	};
 }

@@ -28,8 +28,8 @@ include(cmake/packages.lua.cmake)
 include(LuaSTG/shaders.cmake)
 add_subdirectory(imgui)
 
-add_subdirectory(utility)
 add_subdirectory(engine)
+add_subdirectory(tool)
 add_subdirectory(LuaSTG)
 
 if (CMAKE_GENERATOR MATCHES "Visual Studio")

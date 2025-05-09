@@ -1,14 +1,14 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/Device.hpp"
 
 // RenderTarget
-namespace Core::Graphics::Direct3D11 {
+namespace core::Graphics::Direct3D11 {
 	class Device;
 	class Texture2D;
 
 	class RenderTarget final
-		: public Object<IRenderTarget>
+		: public implement::ReferenceCounted<IRenderTarget>
 		, public IDeviceEventListener {
 	public:
 		// IDeviceEventListener
@@ -38,8 +38,8 @@ namespace Core::Graphics::Direct3D11 {
 		bool createResource();
 
 	private:
-		ScopeObject<Device> m_device;
-		ScopeObject<Texture2D> m_texture;
+		SmartReference<Device> m_device;
+		SmartReference<Texture2D> m_texture;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_view;
 		Microsoft::WRL::ComPtr<ID2D1Bitmap1> m_bitmap;
 		bool m_initialized{ false };

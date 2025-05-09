@@ -1,5 +1,5 @@
 #include "Core/Graphics/Common/FreeTypeGlyphManager.hpp"
-#include "Core/FileManager.hpp"
+#include "core/FileSystem.hpp"
 #include "utility/utf.hpp"
 #include "utf8.hpp"
 
@@ -81,12 +81,12 @@ namespace {
 #define FT_LIBRARY (FreeTypeLibrarySingleton::getInstance().get())
 }
 
-namespace Core::Graphics::Common {
+namespace core::Graphics::Common {
 	Image2D::Image2D() {
 		std::memset(data, 0, sizeof(data));
 	}
 }
-namespace Core::Graphics::Common {
+namespace core::Graphics::Common {
 	// IDeviceEventListener
 
 	void FreeTypeGlyphManager::onDeviceCreate() {
@@ -236,7 +236,7 @@ namespace Core::Graphics::Common {
 			};
 			auto openFromBuffer = [&]() {
 				// 打开
-				if (FT_Err_Ok != FT_New_Memory_Face(FT_LIBRARY, (FT_Byte*)data.buffer.data(), (FT_Long)data.buffer.size(), (FT_Long)fonts[i].font_face, &data.ft_face)) {
+				if (FT_Err_Ok != FT_New_Memory_Face(FT_LIBRARY, (FT_Byte*)data.buffer->data(), (FT_Long)data.buffer->size(), (FT_Long)fonts[i].font_face, &data.ft_face)) {
 					return;
 				}
 				setupFontFace();
@@ -244,7 +244,7 @@ namespace Core::Graphics::Common {
 			if (!fonts[i].is_buffer) {
 				// 先看看是不是要从系统加载
 				std::string u8_path(fonts[i].source);
-				if (!GFileManager().containEx(u8_path)) {
+				if (!FileSystemManager::hasFile(u8_path)) {
 					if (!findSystemFont(fonts[i].source, u8_path)) {
 						continue; // 还是找不到
 					}
@@ -252,19 +252,24 @@ namespace Core::Graphics::Common {
 				// 如果是路径，尝试从文件打开
 				if (!fonts[i].is_force_to_file) {
 					// 读取进内存
-					if (GFileManager().loadEx(u8_path, data.buffer)) {
+					if (FileSystemManager::readFile(u8_path, data.buffer.put())) {
 						openFromBuffer();
 					}
-				} else {
+				}
+				else {
 					// 从文件打开
 					openFromFile(u8_path);
 				}
-			} else if (fonts[i].source.data() && fonts[i].source.size() > 0) {
+			}
+			else if (fonts[i].source.data() && !fonts[i].source.empty()) {
 				// 如果是一块二进制数据，复制下来备用
-				data.buffer.resize(fonts[i].source.size());
-				std::memcpy(data.buffer.data(), fonts[i].source.data(), fonts[i].source.size());
+				if (!IData::create(fonts[i].source.size(), data.buffer.put())) {
+					continue; // 失败了
+				}
+				std::memcpy(data.buffer->data(), fonts[i].source.data(), fonts[i].source.size());
 				openFromBuffer();
-			} else {
+			}
+			else {
 				assert(false); continue; // 您数据呢？
 			}
 		}
@@ -287,7 +292,8 @@ namespace Core::Graphics::Common {
 				m_common_info.ft_descender = std::min(m_common_info.ft_descender, f.ft_descender);
 			}
 			return true;
-		} else {
+		}
+		else {
 			closeFonts();
 			return false;
 		}
@@ -296,7 +302,7 @@ namespace Core::Graphics::Common {
 		m_tex.emplace_back();
 		// ReSharper disable once CppTooWideScopeInitStatement
 		auto& t = m_tex.back();
-		if (!m_device->createTexture(Vector2U(t.image.width, t.image.height), ~t.texture)) {
+		if (!m_device->createTexture(Vector2U(t.image.width, t.image.height), t.texture.put())) {
 			return false;
 		}
 		//t.texture->setPremultipliedAlpha(true); // 为了支持彩色文本，需要使用预乘 alpha 模式
@@ -346,13 +352,15 @@ namespace Core::Graphics::Common {
 			}
 			if (pt) {
 				break;
-			} else {
+			}
+			else {
 				// 该添新丁了
 				if (!addTexture()) {
 					return false;
 				}
 			}
-		} while (!pt);
+		}
+		while (!pt);
 		GlyphCache2D& t = *pt;
 		// 写入字形数据
 		info.texture_index = (uint32_t)(pt - m_tex.data());
@@ -383,7 +391,8 @@ namespace Core::Graphics::Common {
 			t.dirty_t = t.pen_y - 1;
 			t.dirty_r = t.pen_x + bitmap.width + 1;
 			t.dirty_b = t.pen_y + bitmap.rows + 1;
-		} else {
+		}
+		else {
 			t.dirty_l = std::min(t.dirty_l, t.pen_x - 1);
 			t.dirty_t = std::min(t.dirty_t, t.pen_y - 1);
 			t.dirty_r = std::max(t.dirty_r, t.pen_x + bitmap.width + 1);
@@ -427,12 +436,13 @@ namespace Core::Graphics::Common {
 		return false;
 	}
 }
-namespace Core::Graphics {
+namespace core::Graphics {
 	bool IGlyphManager::create(IDevice* const p_device, TrueTypeFontInfo const* const p_arr_info, size_t const info_count, IGlyphManager** const output) {
 		try {
 			*output = new Common::FreeTypeGlyphManager(p_device, p_arr_info, info_count);
 			return true;
-		} catch (...) {
+		}
+		catch (...) {
 			*output = nullptr;
 			return false;
 		}
@@ -497,7 +507,8 @@ namespace {
 				tKeyDataLen = MAX_PATH;
 				tIndex++;
 			}
-		} else {
+		}
+		else {
 			return false; // 打开注册表失败
 		}
 

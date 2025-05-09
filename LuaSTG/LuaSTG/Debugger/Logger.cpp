@@ -7,14 +7,14 @@
 #include "core/Configuration.hpp"
 #include "utf8.hpp"
 
-namespace LuaSTG::Debugger {
-	static std::filesystem::path rolling_file_root;
-	static bool openWin32Console();
-	static void closeWin32Console();
-	static std::string generateRollingFileName();
-	static spdlog::level::level_enum mapLevel(core::ConfigurationLoader::Logging::Level const level) {
+namespace {
+	std::filesystem::path rolling_file_root;
+	bool openWin32Console();
+	void closeWin32Console();
+	std::string generateRollingFileName();
+	spdlog::level::level_enum mapLevel(core::ConfigurationLoader::Logging::Level const level) {
 		switch (level) {
-		default:
+		default:  // NOLINT(clang-diagnostic-covered-switch-default)
 			return (spdlog::level::trace);
 		case core::ConfigurationLoader::Logging::Level::debug:
 			return (spdlog::level::debug);
@@ -28,9 +28,12 @@ namespace LuaSTG::Debugger {
 			return (spdlog::level::critical);
 		}
 	}
-	static void writeMessage(std::string_view const message) {
+	void writeMessage(std::string_view const message) {
 		spdlog::error("[luastg] {}", message);
 	}
+}
+
+namespace luastg {
 	void Logger::create() {
 		auto const& config = core::ConfigurationLoader::getInstance().getLogging();
 
@@ -87,7 +90,7 @@ namespace LuaSTG::Debugger {
 			sinks.emplace_back(sink);
 		}
 
-		auto logger = std::make_shared<spdlog::logger>("luastg", sinks.begin(), sinks.end());
+		auto const logger = std::make_shared<spdlog::logger>("luastg", sinks.begin(), sinks.end());
 		logger->set_level(spdlog::level::trace);
 		//logger->set_pattern("[%Y-%m-%d %H:%M:%S] [%L] %v");
 		//logger->set_pattern("%^[%Y-%m-%d %H:%M:%S] [%L]%$ %v");
@@ -101,7 +104,7 @@ namespace LuaSTG::Debugger {
 	void Logger::destroy() {
 		auto const& config = core::ConfigurationLoader::getInstance().getLogging();
 
-		if (auto logger = spdlog::get("luastg")) {
+		if (auto const logger = spdlog::get("luastg")) {
 			logger->flush();
 		}
 
@@ -137,8 +140,8 @@ namespace LuaSTG::Debugger {
 
 #include "Platform/CleanWindows.hpp"
 
-namespace LuaSTG::Debugger {
-	static bool g_alloc_console{ false };
+namespace {
+	bool g_alloc_console{ false };
 	bool openWin32Console() {
 		auto const& logging_console = core::ConfigurationLoader::getInstance().getLogging().getConsole();
 		if (!logging_console.isEnable()) {
@@ -148,8 +151,8 @@ namespace LuaSTG::Debugger {
 			return false;
 		}
 		g_alloc_console = true;
-		HWND window = GetConsoleWindow();
-		HMENU menu = GetSystemMenu(window, FALSE);
+		HWND const window = GetConsoleWindow();
+		HMENU const menu = GetSystemMenu(window, FALSE);
 		RemoveMenu(menu, SC_CLOSE, MF_BYCOMMAND);
 		SetWindowTextW(window, L"" LUASTG_INFO);
 		ShowWindow(window, SW_MAXIMIZE);
@@ -160,10 +163,9 @@ namespace LuaSTG::Debugger {
 		auto const& logging_console = core::ConfigurationLoader::getInstance().getLogging().getConsole();
 		if (g_alloc_console) {
 			if (logging_console.isPreserve()) {
-				std::wstring_view const exit_msg(L"按 ESC 关闭引擎日志窗口 | Press ESC to close the engine log window\n");
-				WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), exit_msg.data(), (DWORD)exit_msg.length(), NULL, NULL);
-				while ((GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0x8000)
-				{
+				constexpr std::wstring_view exit_message(L"按 ESC 关闭引擎日志窗口 | Press ESC to close the engine log window\n");
+				WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), exit_message.data(), static_cast<DWORD>(exit_message.length()), nullptr, nullptr);
+				while ((GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0x8000) {
 					Sleep(1);
 				}
 			}

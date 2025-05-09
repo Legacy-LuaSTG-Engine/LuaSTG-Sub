@@ -1,9 +1,10 @@
 ﻿#pragma once
 #include "Core/Type.hpp"
+#include "core/ReferenceCounted.hpp"
 
-namespace Core::Audio
+namespace core::Audio
 {
-	struct IDecoder : public IObject
+	struct IDecoder : public IReferenceCounted
 	{
 		virtual uint16_t getSampleSize() = 0;   // 1byte(8bit) 2bytes(16bits) 3byte(24bits) 4byte(32bits)
 		virtual uint16_t getChannelCount() = 0; // 1channels 2channels
@@ -20,4 +21,11 @@ namespace Core::Audio
 
 		static bool create(StringView path, IDecoder** pp_decoder);
 	};
+}
+
+namespace core {
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.IDecoder
+	template<> constexpr InterfaceId getInterfaceId<Audio::IDecoder>() { return UUID::parse("d4b8ac05-c486-5795-a545-dbe6b65b3828"); }
 }

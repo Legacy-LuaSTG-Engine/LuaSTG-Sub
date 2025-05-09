@@ -4,8 +4,11 @@
 #include <limits>
 #include <string_view>
 #include <string>
+#include "core/ReferenceCounted.hpp"
+#include "core/SmartReference.hpp"
+#include "core/ImmutableString.hpp"
 
-namespace Core {
+namespace core {
 	// 二维向量
 
 	template<typename T>
@@ -345,70 +348,6 @@ namespace Core {
 		Rational() : numerator(0), denominator(0) {}
 		Rational(uint32_t const numerator_) : numerator(numerator_), denominator(1) {}
 		Rational(uint32_t const numerator_, uint32_t const denominator_) : numerator(numerator_), denominator(denominator_) {}
-	};
-
-	// 引用计数
-
-	struct IObject {
-		virtual intptr_t retain() = 0;
-		virtual intptr_t release() = 0;
-		virtual ~IObject() {};
-	};
-
-	template<typename T = IObject>
-	class ScopeObject {
-	private:
-		T* ptr_;
-	private:
-		inline void internal_retain() { if (ptr_) ptr_->retain(); }
-		inline void internal_release() { if (ptr_) ptr_->release(); ptr_ = nullptr; }
-	public:
-		T* operator->() { return ptr_; }
-		T* operator*() { return ptr_; }
-		T** operator~() { internal_release(); return &ptr_; }
-		ScopeObject& operator=(std::nullptr_t) { internal_release(); return *this; }
-		ScopeObject& operator=(T* ptr) { if (ptr_ != ptr) { internal_release(); ptr_ = ptr; internal_retain(); } return *this; }
-		ScopeObject& operator=(ScopeObject& right) { if (ptr_ != right.ptr_) { internal_release(); ptr_ = right.ptr_; internal_retain(); } return *this; }
-		ScopeObject& operator=(ScopeObject const& right) { if (ptr_ != right.ptr_) { internal_release(); ptr_ = right.ptr_; internal_retain(); } return *this; }
-		operator bool() { return ptr_ != nullptr; }
-		ScopeObject& attach(T* ptr) { internal_release(); ptr_ = ptr; return *this; }
-		T* detach() { T* tmp_ = ptr_; ptr_ = nullptr; return tmp_; }
-		ScopeObject& reset() { internal_release(); return *this; }
-		T* get() const { return ptr_; }
-	public:
-		ScopeObject() : ptr_(nullptr) {}
-		ScopeObject(T* ptr) : ptr_(ptr) { internal_retain(); }
-		ScopeObject(ScopeObject& right) : ptr_(right.ptr_) { internal_retain(); }
-		ScopeObject(ScopeObject const& right) : ptr_(right.ptr_) { internal_retain(); }
-		ScopeObject(ScopeObject&& right) noexcept : ptr_(right.ptr_) { right.ptr_ = nullptr; }
-		ScopeObject(ScopeObject const&&) = delete;
-		~ScopeObject() { internal_release(); }
-	};
-
-	struct IData : public IObject {
-		virtual void* data() = 0;
-		virtual size_t size() = 0;
-
-		static bool create(size_t size, IData** pp_data);
-		static bool create(size_t size, size_t align, IData** pp_data);
-	};
-
-	// 字符串视图
-
-	using StringView = std::string_view; // pointer | size
-
-	// 不可变的空终止字符串
-
-	struct IImmutableString : IObject {
-		[[nodiscard]] virtual bool empty() const noexcept = 0;
-		[[nodiscard]] virtual char const* data() const noexcept = 0;
-		[[nodiscard]] virtual size_t size() const noexcept = 0;
-		[[nodiscard]] virtual char const* c_str() const noexcept = 0;
-		[[nodiscard]] virtual size_t length() const noexcept = 0;
-		[[nodiscard]] virtual StringView view() const noexcept = 0;
-
-		static void create(StringView const& view, IImmutableString** output);
-		static void create(char const* data, size_t size, IImmutableString** output);
 	};
 
 }

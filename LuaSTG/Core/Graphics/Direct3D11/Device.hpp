@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/Device.hpp"
 #include "Platform/RuntimeLoader/DXGI.hpp"
 #include "Platform/RuntimeLoader/Direct3D11.hpp"
@@ -7,9 +7,9 @@
 #include "Platform/RuntimeLoader/DirectWrite.hpp"
 
 // Device
-namespace Core::Graphics::Direct3D11 {
+namespace core::Graphics::Direct3D11 {
 	class Device final
-		: public Object<IDevice> {
+		: public implement::ReferenceCounted<IDevice> {
 	private:
 		// DXGI
 
@@ -140,7 +140,7 @@ namespace Core::Graphics::Direct3D11 {
 		bool createRenderTarget(Vector2U size, IRenderTarget** pp_rt);
 		bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** pp_ds);
 
-		bool createSamplerState(Core::Graphics::SamplerState const& info, ISamplerState** pp_sampler);
+		bool createSamplerState(core::Graphics::SamplerState const& info, ISamplerState** pp_sampler);
 
 	public:
 		Device(std::string_view const& preferred_gpu = "");

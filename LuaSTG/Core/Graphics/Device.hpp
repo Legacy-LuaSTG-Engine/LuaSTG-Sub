@@ -1,7 +1,9 @@
 #pragma once
 #include "Core/Type.hpp"
+#include "core/ReferenceCounted.hpp"
+#include "core/Data.hpp"
 
-namespace Core::Graphics
+namespace core::Graphics
 {
 	struct IDeviceEventListener
 	{
@@ -87,11 +89,11 @@ namespace Core::Graphics
 		{}
 	};
 
-	struct ISamplerState : IObject
+	struct ISamplerState : IReferenceCounted
 	{
 	};
 
-	struct ITexture2D : IObject
+	struct ITexture2D : IReferenceCounted
 	{
 		virtual void* getNativeHandle() const noexcept = 0;
 
@@ -111,7 +113,7 @@ namespace Core::Graphics
 		virtual ISamplerState* getSamplerState() const noexcept = 0;
 	};
 
-	struct IRenderTarget : IObject
+	struct IRenderTarget : IReferenceCounted
 	{
 		virtual void* getNativeHandle() const noexcept = 0;
 		virtual void* getNativeBitmapHandle() const noexcept = 0;
@@ -120,7 +122,7 @@ namespace Core::Graphics
 		virtual ITexture2D* getTexture() const noexcept = 0;
 	};
 
-	struct IDepthStencilBuffer : IObject
+	struct IDepthStencilBuffer : IReferenceCounted
 	{
 		virtual void* getNativeHandle() const noexcept = 0;
 
@@ -128,12 +130,12 @@ namespace Core::Graphics
 		virtual Vector2U getSize() const noexcept = 0;
 	};
 
-	struct IBuffer : IObject {
+	struct IBuffer : IReferenceCounted {
 		virtual bool map(uint32_t size_in_bytes, bool discard, void** out_pointer) = 0;
 		virtual bool unmap() = 0;
 	};
 
-	struct IDevice : IObject
+	struct IDevice : IReferenceCounted
 	{
 		virtual void addEventListener(IDeviceEventListener* e) = 0;
 		virtual void removeEventListener(IDeviceEventListener* e) = 0;
@@ -164,4 +166,36 @@ namespace Core::Graphics
 
 		static bool create(StringView preferred_gpu, IDevice** p_device);
 	};
+}
+
+namespace core {
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.ISamplerState
+	template<> constexpr InterfaceId getInterfaceId<Graphics::ISamplerState>() { return UUID::parse("e3d354b2-5ba5-5ead-8e63-0d3516b45c05"); }
+
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.ITexture2D
+	template<> constexpr InterfaceId getInterfaceId<Graphics::ITexture2D>() { return UUID::parse("5477054a-61c9-5071-9339-a9959e538a21"); }
+
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.IRenderTarget
+	template<> constexpr InterfaceId getInterfaceId<Graphics::IRenderTarget>() { return UUID::parse("2753f336-07b6-5e69-95b1-46f1125531fa"); }
+
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.IDepthStencilBuffer
+	template<> constexpr InterfaceId getInterfaceId<Graphics::IDepthStencilBuffer>() { return UUID::parse("2c92426c-9703-57aa-88e6-073957b0d92c"); }
+
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.IBuffer
+	template<> constexpr InterfaceId getInterfaceId<Graphics::IBuffer>() { return UUID::parse("089911ec-bd44-519e-a1e6-41a0e8e4626c"); }
+
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.IDevice
+	template<> constexpr InterfaceId getInterfaceId<Graphics::IDevice>() { return UUID::parse("f6b65f2d-4307-597e-bc16-f3504ef89def"); }
 }

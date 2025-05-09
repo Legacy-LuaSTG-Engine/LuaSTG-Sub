@@ -1,6 +1,6 @@
 #include "lua_imgui_common.hpp"
 #include "lua_imgui_type.hpp"
-#include "lua_imgui_hash.hpp"
+#include "generated/ImGuiTextBufferMember.hpp"
 
 struct __ImGuiTextBuffer
 {
@@ -18,6 +18,12 @@ void imgui_binding_lua_register_ImGuiTextBuffer(lua_State* L)
             const int r = self->size();
             lua_pushinteger(L, (lua_Integer)r);
             return 1;
+        }
+        static int resize(lua_State* L) {
+            ImGuiTextBuffer* self = imgui_binding_lua_to_ImGuiTextBuffer(L, 1);
+            const int size = (int)luaL_checkinteger(L, 2);
+            self->resize(size);
+            return 0;
         }
         static int empty(lua_State* L)
         {
@@ -72,12 +78,16 @@ void imgui_binding_lua_register_ImGuiTextBuffer(lua_State* L)
                 break;
             case LUA_TSTRING:
                 {
-                    const char* key = lua_tostring(L, 2);
-                    using E = imgui_binding_lua_PropertiesHash;
-                    switch (imgui_binding_lua_ComputePropertiesHash(key))
+                    size_t len{};
+                    const char* key = lua_tolstring(L, 2, &len);
+                    using E = imgui_binding_lua::ImGuiTextBufferMember;
+                    switch (imgui_binding_lua::mapImGuiTextBufferMember(key, len))
                     {
                     case E::size:
                         lua_pushcfunction(L, &size);
+                        break;
+                    case E::resize:
+                        lua_pushcfunction(L, &resize);
                         break;
                     case E::empty:
                         lua_pushcfunction(L, &empty);

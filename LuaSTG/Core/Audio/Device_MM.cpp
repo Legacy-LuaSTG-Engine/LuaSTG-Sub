@@ -3,7 +3,7 @@
 #include <mmdeviceapi.h>
 #include <functiondiscoverykeys_devpkey.h>
 
-namespace Core::Audio
+namespace core::Audio
 {
 	bool Device_XAUDIO2::refreshAudioDeviceList()
 	{

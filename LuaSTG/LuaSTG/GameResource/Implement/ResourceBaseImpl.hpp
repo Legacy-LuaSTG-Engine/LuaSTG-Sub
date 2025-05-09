@@ -1,11 +1,11 @@
 #pragma once
 #include "GameResource/ResourceBase.hpp"
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	template<typename Base>
-	class ResourceBaseImpl : public Core::Object<Base>
+	class ResourceBaseImpl : public core::implement::ReferenceCounted<Base>
 	{
 	private:
 		ResourceType m_resource_type;

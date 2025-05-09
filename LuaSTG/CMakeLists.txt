@@ -8,6 +8,7 @@ add_subdirectory(Configurer)
 # LuaSTG Engine
 
 add_executable(LuaSTG WIN32)
+set_target_properties(LuaSTG PROPERTIES OUTPUT_NAME "LuaSTGSub")
 
 luastg_target_common_options(LuaSTG)
 luastg_target_more_warning(LuaSTG)
@@ -36,11 +37,10 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/GameObject/GameObject.hpp
     LuaSTG/GameObject/GameObjectBentLaser.cpp
     LuaSTG/GameObject/GameObjectBentLaser.hpp
-    LuaSTG/GameObject/GameObjectClass.cpp
-    LuaSTG/GameObject/GameObjectClass.hpp
     LuaSTG/GameObject/GameObjectPool.cpp
     LuaSTG/GameObject/GameObjectPool.h
 
+    LuaSTG/GameResource/LegacyBlendStateHelper.hpp
     LuaSTG/GameResource/ResourceBase.hpp
     LuaSTG/GameResource/ResourceTexture.hpp
     LuaSTG/GameResource/ResourceSprite.hpp
@@ -80,17 +80,9 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/GameResource/Implement/ResourceModelImpl.hpp
     LuaSTG/GameResource/Implement/ResourceModelImpl.cpp
 
-    LuaSTG/LuaBinding/lua_dwrite.hpp
-    LuaSTG/LuaBinding/lua_dwrite.cpp
-    LuaSTG/LuaBinding/lua_random.hpp
-    LuaSTG/LuaBinding/lua_random.cpp
-    LuaSTG/LuaBinding/lua_xinput.hpp
-    LuaSTG/LuaBinding/lua_xinput.cpp
     LuaSTG/LuaBinding/LuaAppFrame.hpp
     LuaSTG/LuaBinding/LuaCustomLoader.cpp
     LuaSTG/LuaBinding/LuaCustomLoader.hpp
-    LuaSTG/LuaBinding/LuaInternalSource.cpp
-    LuaSTG/LuaBinding/LuaInternalSource.hpp
     LuaSTG/LuaBinding/LuaWrapper.cpp
     LuaSTG/LuaBinding/LuaWrapper.hpp
     LuaSTG/LuaBinding/LuaWrapperMisc.hpp
@@ -114,26 +106,43 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/PostEffectShader.cpp
     LuaSTG/LuaBinding/Resource.hpp
     LuaSTG/LuaBinding/Resource.cpp
-    LuaSTG/LuaBinding/Display.hpp
-    LuaSTG/LuaBinding/Display.cpp
-    LuaSTG/LuaBinding/Window.hpp
-    LuaSTG/LuaBinding/Window.cpp
-    LuaSTG/LuaBinding/SwapChain.hpp
-    LuaSTG/LuaBinding/SwapChain.cpp
-    LuaSTG/LuaBinding/Texture2D.hpp
-    LuaSTG/LuaBinding/Texture2D.cpp
-    LuaSTG/LuaBinding/Mesh.hpp
-    LuaSTG/LuaBinding/Mesh.cpp
-    LuaSTG/LuaBinding/MeshRenderer.hpp
-    LuaSTG/LuaBinding/MeshRenderer.cpp
-    LuaSTG/LuaBinding/HttpClient.hpp
-    LuaSTG/LuaBinding/HttpClient.cpp
-    LuaSTG/LuaBinding/Vector2.hpp
-    LuaSTG/LuaBinding/Vector2.cpp
-    LuaSTG/LuaBinding/Vector3.hpp
-    LuaSTG/LuaBinding/Vector3.cpp
-    LuaSTG/LuaBinding/Vector4.hpp
-    LuaSTG/LuaBinding/Vector4.cpp
+
+    LuaSTG/LuaBinding/external/lua_dwrite.hpp
+    LuaSTG/LuaBinding/external/lua_dwrite.cpp
+    LuaSTG/LuaBinding/external/lua_random.hpp
+    LuaSTG/LuaBinding/external/lua_random.cpp
+    LuaSTG/LuaBinding/external/lua_xinput.hpp
+    LuaSTG/LuaBinding/external/lua_xinput.cpp
+    LuaSTG/LuaBinding/external/HttpClient.hpp
+    LuaSTG/LuaBinding/external/HttpClient.cpp
+
+    LuaSTG/LuaBinding/modern/Display.hpp
+    LuaSTG/LuaBinding/modern/Display.cpp
+    LuaSTG/LuaBinding/modern/Window.hpp
+    LuaSTG/LuaBinding/modern/Window.cpp
+    LuaSTG/LuaBinding/modern/SwapChain.hpp
+    LuaSTG/LuaBinding/modern/SwapChain.cpp
+    LuaSTG/LuaBinding/modern/Texture2D.hpp
+    LuaSTG/LuaBinding/modern/Texture2D.cpp
+    LuaSTG/LuaBinding/modern/Mesh.hpp
+    LuaSTG/LuaBinding/modern/Mesh.cpp
+    LuaSTG/LuaBinding/modern/MeshRenderer.hpp
+    LuaSTG/LuaBinding/modern/MeshRenderer.cpp
+    LuaSTG/LuaBinding/modern/Vector2.hpp
+    LuaSTG/LuaBinding/modern/Vector2.cpp
+    LuaSTG/LuaBinding/modern/Vector3.hpp
+    LuaSTG/LuaBinding/modern/Vector3.cpp
+    LuaSTG/LuaBinding/modern/Vector4.hpp
+    LuaSTG/LuaBinding/modern/Vector4.cpp
+    LuaSTG/LuaBinding/modern/Sprite.hpp
+    LuaSTG/LuaBinding/modern/Sprite.cpp
+    LuaSTG/LuaBinding/modern/SpriteRenderer.hpp
+    LuaSTG/LuaBinding/modern/SpriteRenderer.cpp
+    LuaSTG/LuaBinding/modern/Clipboard.hpp
+    LuaSTG/LuaBinding/modern/Clipboard.cpp
+    LuaSTG/LuaBinding/modern/FileSystemWatcher.hpp
+    LuaSTG/LuaBinding/modern/FileSystemWatcher.cpp
+
     LuaSTG/LuaBinding/generated/BlendModeX.cpp
     LuaSTG/LuaBinding/generated/BlendModeX.hpp
     LuaSTG/LuaBinding/generated/ColorMember.cpp
@@ -149,8 +158,6 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/SteamAPI/SteamAPI.cpp
     LuaSTG/SteamAPI/SteamAPI.hpp
 
-    LuaSTG/Utility/CircularQueue.hpp
-    LuaSTG/Utility/fixed_object_pool.hpp
     LuaSTG/Utility/Utility.h
     LuaSTG/Utility/ScopeObject.cpp
     LuaSTG/Utility/xorshift.hpp
@@ -180,10 +187,10 @@ target_sources(LuaSTG PRIVATE
 
 set(LUASTG_RESDIR ${CMAKE_CURRENT_LIST_DIR}/LuaSTG/Custom CACHE PATH "LuaSTG custom build configuration")
 if(EXISTS ${LUASTG_RESDIR}/Custom.cmake)
-    message("LuaSTG will using custom build configuration: " ${LUASTG_RESDIR}/Custom.cmake)
+    message(STATUS "LuaSTG will using custom build configuration: " ${LUASTG_RESDIR}/Custom.cmake)
     include(${LUASTG_RESDIR}/Custom.cmake)
 elseif(EXISTS ${CMAKE_CURRENT_LIST_DIR}/${LUASTG_RESDIR}/Custom.cmake)
-    message("LuaSTG will using custom build configuration: " ${CMAKE_CURRENT_LIST_DIR}/${LUASTG_RESDIR}/Custom.cmake)
+    message(STATUS "LuaSTG will using custom build configuration: " ${CMAKE_CURRENT_LIST_DIR}/${LUASTG_RESDIR}/Custom.cmake)
     include(${CMAKE_CURRENT_LIST_DIR}/${LUASTG_RESDIR}/Custom.cmake)
 else()
     message(FATAL_ERROR "LuaSTG can not find custom build configuration")
@@ -213,7 +220,10 @@ target_link_libraries(LuaSTG PRIVATE
     pcg_cpp
     pugixml
     xxhash
-    LuaSTG.Sub.Configuration
+    Core.Collection
+    Core.Configuration
+    Core.Clipboard
+    LuaSTG.InternalLuaScriptsFileSystem
 )
 if (LUASTG_LINK_YY_THUNKS)
     target_link_libraries(LuaSTG PRIVATE YY_Thunks)

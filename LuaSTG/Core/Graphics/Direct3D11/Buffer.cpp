@@ -15,7 +15,7 @@ namespace {
 }
 
 // Buffer
-namespace Core::Graphics::Direct3D11 {
+namespace core::Graphics::Direct3D11 {
 	void Buffer::onDeviceCreate() {
 		if (m_initialized) {
 			createResources();
@@ -98,10 +98,10 @@ namespace Core::Graphics::Direct3D11 {
 		return true;
 	}
 }
-namespace Core::Graphics::Direct3D11 {
+namespace core::Graphics::Direct3D11 {
 	bool Device::createVertexBuffer(uint32_t const size_in_bytes, IBuffer** const output) {
 		*output = nullptr;
-		ScopeObject<Buffer> buffer;
+		SmartReference<Buffer> buffer;
 		buffer.attach(new Buffer);
 		if (!buffer->initialize(this, Buffer::type_vertex_buffer, size_in_bytes)) {
 			return false;
@@ -111,7 +111,7 @@ namespace Core::Graphics::Direct3D11 {
 	}
 	bool Device::createIndexBuffer(uint32_t const size_in_bytes, IBuffer** const output) {
 		*output = nullptr;
-		ScopeObject<Buffer> buffer;
+		SmartReference<Buffer> buffer;
 		buffer.attach(new Buffer);
 		if (!buffer->initialize(this, Buffer::type_index_buffer, size_in_bytes)) {
 			return false;
@@ -121,7 +121,7 @@ namespace Core::Graphics::Direct3D11 {
 	}
 	bool Device::createConstantBuffer(uint32_t const size_in_bytes, IBuffer** const output) {
 		*output = nullptr;
-		ScopeObject<Buffer> buffer;
+		SmartReference<Buffer> buffer;
 		buffer.attach(new Buffer);
 		if (!buffer->initialize(this, Buffer::type_constant_buffer, size_in_bytes)) {
 			return false;

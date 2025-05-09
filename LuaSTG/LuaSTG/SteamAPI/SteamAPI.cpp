@@ -1,10 +1,10 @@
-﻿#include "SteamAPI/SteamAPI.hpp"
+#include "SteamAPI/SteamAPI.hpp"
 
 #ifdef HAVE_STEAM_API
 #include "steam_api.h"
 #endif
 
-namespace LuaSTG::SteamAPI
+namespace luastg::SteamAPI
 {
 	bool Init()
 	{

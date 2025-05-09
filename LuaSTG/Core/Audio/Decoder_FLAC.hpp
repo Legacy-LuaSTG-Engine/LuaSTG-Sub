@@ -1,12 +1,13 @@
-﻿#pragma once
-#include "Core/Object.hpp"
+#pragma once
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Audio/Decoder.hpp"
+#include "core/Data.hpp"
 
 #include "FLAC/stream_decoder.h"
 
-namespace Core::Audio
+namespace core::Audio
 {
-	class Decoder_FLAC : public Object<IDecoder>
+	class Decoder_FLAC : public implement::ReferenceCounted<IDecoder>
 	{
 	private:
 		struct Frame
@@ -38,7 +39,7 @@ namespace Core::Audio
 		};
 
 	private:
-		std::vector<uint8_t> m_data;
+		SmartReference<IData> m_data;
 		uint8_t* m_ptr{ nullptr };
 		FILE* m_file;
 		FLAC__StreamDecoder* m_flac;

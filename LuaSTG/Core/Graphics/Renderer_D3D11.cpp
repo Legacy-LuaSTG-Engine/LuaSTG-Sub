@@ -7,7 +7,7 @@
 
 #define IDX(x) (size_t)static_cast<uint8_t>(x)
 
-namespace Core::Graphics
+namespace core::Graphics
 {
 	inline ID3D11ShaderResourceView* get_view(Direct3D11::Texture2D* p)
 	{
@@ -17,11 +17,11 @@ namespace Core::Graphics
 	{
 		return get_view(static_cast<Direct3D11::Texture2D*>(p));
 	}
-	inline ID3D11ShaderResourceView* get_view(ScopeObject<Direct3D11::Texture2D>& p)
+	inline ID3D11ShaderResourceView* get_view(SmartReference<Direct3D11::Texture2D>& p)
 	{
 		return get_view(p.get());
 	}
-	inline ID3D11ShaderResourceView* get_view(ScopeObject<ITexture2D>& p)
+	inline ID3D11ShaderResourceView* get_view(SmartReference<ITexture2D>& p)
 	{
 		return get_view(static_cast<Direct3D11::Texture2D*>(p.get()));
 	}
@@ -30,13 +30,13 @@ namespace Core::Graphics
 	{
 		return static_cast<Direct3D11::SamplerState*>(p_sampler)->GetState();
 	}
-	inline ID3D11SamplerState* get_sampler(ScopeObject<ISamplerState>& p_sampler)
+	inline ID3D11SamplerState* get_sampler(SmartReference<ISamplerState>& p_sampler)
 	{
 		return static_cast<Direct3D11::SamplerState*>(p_sampler.get())->GetState();
 	}
 }
 
-namespace Core::Graphics
+namespace core::Graphics
 {
 	void PostEffectShader_D3D11::onDeviceCreate()
 	{
@@ -159,7 +159,7 @@ namespace Core::Graphics
 	}
 }
 
-namespace Core::Graphics
+namespace core::Graphics
 {
 	void Renderer_D3D11::setVertexIndexBuffer(size_t index)
 	{
@@ -371,14 +371,14 @@ namespace Core::Graphics
 			sampler_state.address_u = TextureAddressMode::Wrap;
 			sampler_state.address_v = TextureAddressMode::Wrap;
 			sampler_state.address_w = TextureAddressMode::Wrap;
-			if (!m_device->createSamplerState(sampler_state, ~_sampler_state[IDX(SamplerState::PointWrap)]))
+			if (!m_device->createSamplerState(sampler_state, _sampler_state[IDX(SamplerState::PointWrap)].put()))
 				return false;
 
 			sampler_state.filer = Filter::Point;
 			sampler_state.address_u = TextureAddressMode::Clamp;
 			sampler_state.address_v = TextureAddressMode::Clamp;
 			sampler_state.address_w = TextureAddressMode::Clamp;
-			if (!m_device->createSamplerState(sampler_state, ~_sampler_state[IDX(SamplerState::PointClamp)]))
+			if (!m_device->createSamplerState(sampler_state, _sampler_state[IDX(SamplerState::PointClamp)].put()))
 				return false;
 
 			sampler_state.filer = Filter::Point;
@@ -386,7 +386,7 @@ namespace Core::Graphics
 			sampler_state.address_v = TextureAddressMode::Border;
 			sampler_state.address_w = TextureAddressMode::Border;
 			sampler_state.border_color = BorderColor::Black;
-			if (!m_device->createSamplerState(sampler_state, ~_sampler_state[IDX(SamplerState::PointBorderBlack)]))
+			if (!m_device->createSamplerState(sampler_state, _sampler_state[IDX(SamplerState::PointBorderBlack)].put()))
 				return false;
 
 			sampler_state.filer = Filter::Point;
@@ -394,7 +394,7 @@ namespace Core::Graphics
 			sampler_state.address_v = TextureAddressMode::Border;
 			sampler_state.address_w = TextureAddressMode::Border;
 			sampler_state.border_color = BorderColor::White;
-			if (!m_device->createSamplerState(sampler_state, ~_sampler_state[IDX(SamplerState::PointBorderWhite)]))
+			if (!m_device->createSamplerState(sampler_state, _sampler_state[IDX(SamplerState::PointBorderWhite)].put()))
 				return false;
 
 			// linear
@@ -403,14 +403,14 @@ namespace Core::Graphics
 			sampler_state.address_u = TextureAddressMode::Wrap;
 			sampler_state.address_v = TextureAddressMode::Wrap;
 			sampler_state.address_w = TextureAddressMode::Wrap;
-			if (!m_device->createSamplerState(sampler_state, ~_sampler_state[IDX(SamplerState::LinearWrap)]))
+			if (!m_device->createSamplerState(sampler_state, _sampler_state[IDX(SamplerState::LinearWrap)].put()))
 				return false;
 
 			sampler_state.filer = Filter::Linear;
 			sampler_state.address_u = TextureAddressMode::Clamp;
 			sampler_state.address_v = TextureAddressMode::Clamp;
 			sampler_state.address_w = TextureAddressMode::Clamp;
-			if (!m_device->createSamplerState(sampler_state, ~_sampler_state[IDX(SamplerState::LinearClamp)]))
+			if (!m_device->createSamplerState(sampler_state, _sampler_state[IDX(SamplerState::LinearClamp)].put()))
 				return false;
 
 			sampler_state.filer = Filter::Linear;
@@ -418,7 +418,7 @@ namespace Core::Graphics
 			sampler_state.address_v = TextureAddressMode::Border;
 			sampler_state.address_w = TextureAddressMode::Border;
 			sampler_state.border_color = BorderColor::Black;
-			if (!m_device->createSamplerState(sampler_state, ~_sampler_state[IDX(SamplerState::LinearBorderBlack)]))
+			if (!m_device->createSamplerState(sampler_state, _sampler_state[IDX(SamplerState::LinearBorderBlack)].put()))
 				return false;
 
 			sampler_state.filer = Filter::Linear;
@@ -426,7 +426,7 @@ namespace Core::Graphics
 			sampler_state.address_v = TextureAddressMode::Border;
 			sampler_state.address_w = TextureAddressMode::Border;
 			sampler_state.border_color = BorderColor::White;
-			if (!m_device->createSamplerState(sampler_state, ~_sampler_state[IDX(SamplerState::LinearBorderWhite)]))
+			if (!m_device->createSamplerState(sampler_state, _sampler_state[IDX(SamplerState::LinearBorderWhite)].put()))
 				return false;
 		}
 
@@ -1122,7 +1122,7 @@ namespace Core::Graphics
 		else
 			return false;
 	}
-	inline bool is_same(ScopeObject<Direct3D11::Texture2D>& a, ITexture2D* b)
+	inline bool is_same(SmartReference<Direct3D11::Texture2D>& a, ITexture2D* b)
 	{
 		return is_same(*a, b);
 	}
@@ -1337,7 +1337,7 @@ namespace Core::Graphics
 		}
 		if (sw_ < 1.0f || sh_ < 1.0f)
 		{
-			spdlog::warn("[core] LuaSTG::Core::Renderer::postEffect 调用提前中止，当前渲染管线未绑定渲染目标");
+			spdlog::warn("[core] LuaSTG::core::Renderer::postEffect 调用提前中止，当前渲染管线未绑定渲染目标");
 			return false;
 		}
 
@@ -1420,7 +1420,7 @@ namespace Core::Graphics
 			HRESULT hr = gHR = ctx->Map(_user_float_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
 			if (FAILED(hr))
 			{
-				spdlog::error("[core] ID3D11DeviceContext::Map -> #user_float_buffer 调用失败，上传数据失败，LuaSTG::Core::Renderer::postEffect 调用提前中止");
+				spdlog::error("[core] ID3D11DeviceContext::Map -> #user_float_buffer 调用失败，上传数据失败，LuaSTG::core::Renderer::postEffect 调用提前中止");
 				return false;
 			}
 			std::memcpy(res_.pData, cv, std::min<UINT>((UINT)cv_n, 8) * sizeof(Vector4F));
@@ -1435,7 +1435,7 @@ namespace Core::Graphics
 			HRESULT hr = gHR = ctx->Map(_fog_data_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
 			if (FAILED(hr))
 			{
-				spdlog::error("[core] ID3D11DeviceContext::Map -> #engine_built_in_value_buffer 调用失败，无法上传渲染目标尺寸和视口信息，LuaSTG::Core::Renderer::postEffect 调用提前中止");
+				spdlog::error("[core] ID3D11DeviceContext::Map -> #engine_built_in_value_buffer 调用失败，无法上传渲染目标尺寸和视口信息，LuaSTG::core::Renderer::postEffect 调用提前中止");
 				return false;
 			}
 			std::memcpy(res_.pData, ps_cbdata, sizeof(ps_cbdata));
@@ -1528,7 +1528,7 @@ namespace Core::Graphics
 		}
 		if (sw_ < 1.0f || sh_ < 1.0f)
 		{
-			spdlog::warn("[core] LuaSTG::Core::Renderer::postEffect 调用提前中止，当前渲染管线未绑定渲染目标");
+			spdlog::warn("[core] LuaSTG::core::Renderer::postEffect 调用提前中止，当前渲染管线未绑定渲染目标");
 			return false;
 		}
 
@@ -1640,7 +1640,7 @@ namespace Core::Graphics
 			spdlog::info("[core] 创建模型渲染器共享组件");
 			try
 			{
-				*(~m_model_shared) = new ModelSharedComponent_D3D11(m_device.get());
+				*(m_model_shared.put()) = new ModelSharedComponent_D3D11(m_device.get());
 				spdlog::info("[luastg] 已创建模型渲染器共享组件");
 			}
 			catch (...)
@@ -1658,7 +1658,7 @@ namespace Core::Graphics
 		catch (const std::exception&)
 		{
 			*pp_model = nullptr;
-			spdlog::error("[luastg] LuaSTG::Core::Renderer::createModel 失败");
+			spdlog::error("[luastg] LuaSTG::core::Renderer::createModel 失败");
 			return false;
 		}
 	}

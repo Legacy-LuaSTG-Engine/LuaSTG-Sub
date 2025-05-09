@@ -1,5 +1,5 @@
 #include "AppFrame.h"
-#include "Core/FileManager.hpp"
+#include "core/FileSystem.hpp"
 #include "Platform/XInput.hpp"
 #include "Utility/Utility.h"
 #include "Debugger/ImGuiExtension.h"
@@ -9,7 +9,7 @@
 #include "core/Configuration.hpp"
 #include "CLRBinding/CLRBinding.hpp"
 
-using namespace LuaSTGPlus;
+using namespace luastg;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// AppFrame
@@ -38,7 +38,7 @@ void AppFrame::SetFPS(uint32_t v)noexcept
 }
 void AppFrame::SetSEVolume(float v) {
 	if (m_pAppModel) {
-		m_pAppModel->getAudioDevice()->setMixChannelVolume(Core::Audio::MixChannel::SoundEffect, v);
+		m_pAppModel->getAudioDevice()->setMixChannelVolume(core::Audio::MixChannel::SoundEffect, v);
 	}
 	else {
 		core::ConfigurationLoader::getInstance().getAudioSystemRef().setSoundEffectVolume(v);
@@ -46,7 +46,7 @@ void AppFrame::SetSEVolume(float v) {
 }
 void AppFrame::SetBGMVolume(float v) {
 	if (m_pAppModel) {
-		m_pAppModel->getAudioDevice()->setMixChannelVolume(Core::Audio::MixChannel::Music, v);
+		m_pAppModel->getAudioDevice()->setMixChannelVolume(core::Audio::MixChannel::Music, v);
 	}
 	else {
 		core::ConfigurationLoader::getInstance().getAudioSystemRef().setMusicVolume(v);
@@ -54,7 +54,7 @@ void AppFrame::SetBGMVolume(float v) {
 }
 float AppFrame::GetSEVolume() {
 	if (m_pAppModel) {
-		return m_pAppModel->getAudioDevice()->getMixChannelVolume(Core::Audio::MixChannel::SoundEffect);
+		return m_pAppModel->getAudioDevice()->getMixChannelVolume(core::Audio::MixChannel::SoundEffect);
 	}
 	else {
 		return core::ConfigurationLoader::getInstance().getAudioSystem().getSoundEffectVolume();
@@ -62,7 +62,7 @@ float AppFrame::GetSEVolume() {
 }
 float AppFrame::GetBGMVolume() {
 	if (m_pAppModel) {
-		return m_pAppModel->getAudioDevice()->getMixChannelVolume(Core::Audio::MixChannel::Music);
+		return m_pAppModel->getAudioDevice()->getMixChannelVolume(core::Audio::MixChannel::Music);
 	}
 	else {
 		return core::ConfigurationLoader::getInstance().getAudioSystem().getMusicVolume();
@@ -91,7 +91,7 @@ void AppFrame::SetPreferenceGPU(const char* v) noexcept
 void AppFrame::SetSplash(bool v)noexcept
 {
 	if (m_pAppModel) {
-		m_pAppModel->getWindow()->setCursor(v ? Core::Graphics::WindowCursor::Arrow : Core::Graphics::WindowCursor::None);
+		m_pAppModel->getWindow()->setCursor(v ? core::Graphics::WindowCursor::Arrow : core::Graphics::WindowCursor::None);
 	}
 	else {
 		auto& win = core::ConfigurationLoader::getInstance().getWindowRef();
@@ -108,24 +108,23 @@ int AppFrame::LoadTextFile(lua_State* L_, const char* path, const char* packname
 			spdlog::info("[luastg] 读取文本文件'{}'", path);
 	}
 	bool loaded = false;
-	std::vector<uint8_t> src;
+	core::SmartReference<core::IData> src;
 	if (packname)
 	{
-		auto& arc = GFileManager().getFileArchive(packname);
-		if (!arc.empty())
-		{
-			loaded = arc.load(path, src);
+		core::SmartReference<core::IFileSystemArchive> archive;
+		if (core::FileSystemManager::getFileSystemArchiveByPath(packname, archive.put())) {
+			loaded = archive->readFile(path, src.put());
 		}
 	}
 	else
 	{
-		loaded = GFileManager().loadEx(path, src);
+		loaded = core::FileSystemManager::readFile(path, src.put());
 	}
 	if (!loaded) {
 		spdlog::error("[luastg] 无法加载文件'{}'", path);
 		return 0;
 	}
-	lua_pushlstring(L_, (char*)src.data(), src.size());
+	lua_pushlstring(L_, (char*)src->data(), src->size());
 	return 1;
 }
 
@@ -145,15 +144,20 @@ bool AppFrame::Init()noexcept
 
 	// 初始化文件系统
 	if (auto const& resources = core::ConfigurationLoader::getInstance().getFileSystem().getResources(); !resources.empty()) {
-		auto& file_manager = GFileManager();
 		for (auto const& resource : resources) {
 			using Type = core::ConfigurationLoader::FileSystem::ResourceFileSystem::Type;
 			switch (resource.getType()) {
 			case Type::directory:
-				file_manager.addSearchPath(resource.getPath());
+				core::FileSystemManager::addSearchPath(resource.getPath());
 				break;
 			case Type::archive:
-				file_manager.loadFileArchive(resource.getPath());
+				do {
+					core::SmartReference<core::IFileSystemArchive> archive;
+					if (core::IFileSystemArchive::createFromFile(resource.getPath(), archive.put())) {
+						core::FileSystemManager::addFileSystem(resource.getName(), archive.get());
+					}
+				}
+				while (false);
 				break;
 			}
 		}
@@ -191,9 +195,9 @@ bool AppFrame::Init()noexcept
 	//////////////////////////////////////// 应用程序模型、窗口子系统、图形子系统、音频子系统等
 
 	{
-		if (!Core::IApplicationModel::create(this, ~m_pAppModel))
+		if (!core::IApplicationModel::create(this, m_pAppModel.put()))
 			return false;
-		if (!Core::Graphics::ITextRenderer::create(m_pAppModel->getRenderer(), ~m_pTextRenderer))
+		if (!core::Graphics::ITextRenderer::create(m_pAppModel->getRenderer(), m_pTextRenderer.put()))
 			return false;
 		if (!InitializationApplySettingStage1())
 			return false;
@@ -258,7 +262,7 @@ bool AppFrame::Init()noexcept
 	spdlog::info("[luastg] 初始化完成");
 
 	//////////////////////////////////////// 调用GameInit
-	if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineInit)) {
+	if (!SafeCallGlobalFunction(LuaEngine::G_CALLBACK_EngineInit)) {
 		return false;
 	}
 	clr_fn.GameInit();
@@ -268,7 +272,7 @@ bool AppFrame::Init()noexcept
 void AppFrame::Shutdown()noexcept
 {
 	if (L) {
-		SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineStop);
+		SafeCallGlobalFunction(LuaEngine::G_CALLBACK_EngineStop);
 	}
 	clr_fn.GameExit();
 
@@ -291,7 +295,7 @@ void AppFrame::Shutdown()noexcept
 	imgui::unbindEngine();
 #endif
 
-	GFileManager().unloadAllFileArchive();
+	core::FileSystemManager::removeAllFileSystem();
 	spdlog::info("[luastg] 卸载所有资源包");
 
 	CloseInput();
@@ -357,7 +361,7 @@ void AppFrame::onWindowInactive()
 	Platform::XInput::setEnable(false);
 	m_window_active_changed.fetch_or(0x2);
 }
-void AppFrame::onWindowSize(Core::Vector2U size)
+void AppFrame::onWindowSize(core::Vector2U size)
 {
 	m_win32_window_size = size;
 }
@@ -383,11 +387,11 @@ bool AppFrame::onUpdate()
 			if (m_DirectInput)
 				m_DirectInput->reset();
 
-			lua_pushinteger(L, (lua_Integer)LuaSTG::LuaEngine::EngineEvent::WindowActive);
+			lua_pushinteger(L, (lua_Integer)LuaEngine::EngineEvent::WindowActive);
 			lua_pushboolean(L, false);
-			SafeCallGlobalFunctionB(LuaSTG::LuaEngine::G_CALLBACK_EngineEvent, 2, 0);
+			SafeCallGlobalFunctionB(LuaEngine::G_CALLBACK_EngineEvent, 2, 0);
 
-			if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_FocusLoseFunc))
+			if (!SafeCallGlobalFunction(LuaEngine::G_CALLBACK_FocusLoseFunc))
 			{
 				result = false;
 				m_pAppModel->requestExit();
@@ -399,11 +403,11 @@ bool AppFrame::onUpdate()
 			if (m_DirectInput)
 				m_DirectInput->reset();
 
-			lua_pushinteger(L, (lua_Integer)LuaSTG::LuaEngine::EngineEvent::WindowActive);
+			lua_pushinteger(L, (lua_Integer)LuaEngine::EngineEvent::WindowActive);
 			lua_pushboolean(L, true);
-			SafeCallGlobalFunctionB(LuaSTG::LuaEngine::G_CALLBACK_EngineEvent, 2, 0);
+			SafeCallGlobalFunctionB(LuaEngine::G_CALLBACK_EngineEvent, 2, 0);
 
-			if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_FocusGainFunc))
+			if (!SafeCallGlobalFunction(LuaEngine::G_CALLBACK_FocusGainFunc))
 			{
 				result = false;
 				m_pAppModel->requestExit();
@@ -431,7 +435,7 @@ bool AppFrame::onUpdate()
 		// 执行帧函数
 		imgui::cancelSetCursor();
 		m_GameObjectPool->DebugNextFrame();
-		if (!SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineUpdate, 1))
+		if (!SafeCallGlobalFunction(LuaEngine::G_CALLBACK_EngineUpdate, 1))
 		{
 			result = false;
 			m_pAppModel->requestExit();
@@ -453,7 +457,7 @@ bool AppFrame::onRender()
 	GetRenderTargetManager()->BeginRenderTargetStack();
 
 	// 执行渲染函数
-	bool result = SafeCallGlobalFunction(LuaSTG::LuaEngine::G_CALLBACK_EngineDraw);
+	bool result = SafeCallGlobalFunction(LuaEngine::G_CALLBACK_EngineDraw);
 	if (!result)
 		m_pAppModel->requestExit();
 	clr_fn.RenderFunc();

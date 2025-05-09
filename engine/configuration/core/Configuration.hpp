@@ -175,7 +175,7 @@ namespace core {
 		bool loadFromFile(std::string_view const& path);
 		bool loadFromCommandLineArguments();
 		inline std::vector<std::string> const& getMessages() const noexcept { return messages; }
-		std::string getFormattedMessage();
+		std::string getFormattedMessage() const;
 		inline Debug const& getDebug() const noexcept { return debug; }
 		inline Application const& getApplication() const noexcept { return application; }
 		inline Logging const& getLogging() const noexcept { return logging; }

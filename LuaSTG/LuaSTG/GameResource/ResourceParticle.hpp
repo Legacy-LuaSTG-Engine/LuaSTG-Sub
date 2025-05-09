@@ -1,7 +1,7 @@
-﻿#pragma once
+#pragma once
 #include "GameResource/ResourceBase.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	// https://github.com/kvakvs/hge/blob/hge1.9/include/hgeparticle.h
 	// HGE 粒子效果定义
@@ -51,16 +51,16 @@ namespace LuaSTGPlus
 		virtual size_t GetAliveCount() = 0;
 		virtual BlendMode GetBlendMode() = 0;
 		virtual void SetBlendMode(BlendMode m) = 0;
-		virtual Core::Color4B GetVertexColor() = 0;
-		virtual void SetVertexColor(Core::Color4B c) = 0;
+		virtual core::Color4B GetVertexColor() = 0;
+		virtual void SetVertexColor(core::Color4B c) = 0;
 		virtual int GetEmission() = 0;
 		virtual void SetEmission(int e) = 0;
 		virtual uint32_t GetSeed() = 0;
 		virtual void SetSeed(uint32_t seed) = 0;
 		virtual bool IsActived() = 0;
 		virtual void SetActive(bool v) = 0;
-		virtual void SetCenter(Core::Vector2F pos) = 0;
-		virtual Core::Vector2F GetCenter() = 0;
+		virtual void SetCenter(core::Vector2F pos) = 0;
+		virtual core::Vector2F GetCenter() = 0;
 		virtual float GetRotation() = 0;
 		virtual void SetRotation(float r) = 0;
 		virtual void Update(float delta) = 0;
@@ -79,3 +79,10 @@ namespace LuaSTGPlus
 		virtual void DestroyInstance(IParticlePool* p_pool) = 0;
 	};
 };
+
+namespace core {
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/luastg.IResourceParticle
+	template<> constexpr InterfaceId getInterfaceId<luastg::IResourceParticle>() { return UUID::parse("c396ef15-221a-5df9-ad11-45f4421aa5ec"); }
+}

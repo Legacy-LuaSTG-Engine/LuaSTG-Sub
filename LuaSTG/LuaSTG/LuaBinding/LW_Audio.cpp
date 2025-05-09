@@ -7,7 +7,7 @@
 #undef PlaySound
 #endif
 
-void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
+void luastg::binding::Audio::Register(lua_State* L)noexcept
 {
 	struct Wrapper
 	{
@@ -55,7 +55,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 		static int PlaySound(lua_State* L)noexcept
 		{
 			const char* s = luaL_checkstring(L, 1);
-			Core::ScopeObject<IResourceSoundEffect> p = LRES.FindSound(s);
+			core::SmartReference<IResourceSoundEffect> p = LRES.FindSound(s);
 			if (!p)
 				return luaL_error(L, "sound '%s' not found.", s);
 			p->Play((float)luaL_optnumber(L, 2, 1.), (float)luaL_optnumber(L, 3, 0.0));
@@ -64,7 +64,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 		static int StopSound(lua_State* L)noexcept
 		{
 			const char* s = luaL_checkstring(L, 1);
-			Core::ScopeObject<IResourceSoundEffect> p = LRES.FindSound(s);
+			core::SmartReference<IResourceSoundEffect> p = LRES.FindSound(s);
 			if (!p)
 				return luaL_error(L, "sound '%s' not found.", s);
 			p->Stop();
@@ -73,7 +73,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 		static int PauseSound(lua_State* L)noexcept
 		{
 			const char* s = luaL_checkstring(L, 1);
-			Core::ScopeObject<IResourceSoundEffect> p = LRES.FindSound(s);
+			core::SmartReference<IResourceSoundEffect> p = LRES.FindSound(s);
 			if (!p)
 				return luaL_error(L, "sound '%s' not found.", s);
 			p->Pause();
@@ -82,7 +82,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 		static int ResumeSound(lua_State* L)noexcept
 		{
 			const char* s = luaL_checkstring(L, 1);
-			Core::ScopeObject<IResourceSoundEffect> p = LRES.FindSound(s);
+			core::SmartReference<IResourceSoundEffect> p = LRES.FindSound(s);
 			if (!p)
 				return luaL_error(L, "sound '%s' not found.", s);
 			p->Resume();
@@ -91,7 +91,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 		static int GetSoundState(lua_State* L)noexcept
 		{
 			const char* s = luaL_checkstring(L, 1);
-			Core::ScopeObject<IResourceSoundEffect> p = LRES.FindSound(s);
+			core::SmartReference<IResourceSoundEffect> p = LRES.FindSound(s);
 			if (!p)
 				return luaL_error(L, "sound '%s' not found.", s);
 			if (p->IsPlaying())
@@ -116,7 +116,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 		static int SetSESpeed(lua_State* L) {
 			const char* s = luaL_checkstring(L, 1);
 			float speed = (float)luaL_checknumber(L, 2);
-			Core::ScopeObject<IResourceSoundEffect> p = LRES.FindSound(s);
+			core::SmartReference<IResourceSoundEffect> p = LRES.FindSound(s);
 			if (!p)
 				return luaL_error(L, "sound '%s' not found.", s);
 			if (!p->SetSpeed(speed))
@@ -125,7 +125,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 		}
 		static int GetSESpeed(lua_State* L) {
 			const char* s = luaL_checkstring(L, 1);
-			Core::ScopeObject<IResourceSoundEffect> p = LRES.FindSound(s);
+			core::SmartReference<IResourceSoundEffect> p = LRES.FindSound(s);
 			if (!p)
 				return luaL_error(L, "sound '%s' not found.", s);
 			lua_pushnumber(L, p->GetSpeed());
@@ -140,7 +140,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 		static int PlayMusic(lua_State* L)noexcept
 		{
 			const char* s = luaL_checkstring(L, 1);
-			Core::ScopeObject<IResourceMusic> p = LRES.FindMusic(s);
+			core::SmartReference<IResourceMusic> p = LRES.FindMusic(s);
 			if (!p)
 				return luaL_error(L, "music '%s' not found.", s);
 			p->Play((float)luaL_optnumber(L, 2, 1.), luaL_optnumber(L, 3, 0.));
@@ -149,7 +149,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 		static int StopMusic(lua_State* L)noexcept
 		{
 			const char* s = luaL_checkstring(L, 1);
-			Core::ScopeObject<IResourceMusic> p = LRES.FindMusic(s);
+			core::SmartReference<IResourceMusic> p = LRES.FindMusic(s);
 			if (!p)
 				return luaL_error(L, "music '%s' not found.", s);
 			p->Stop();
@@ -158,7 +158,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 		static int PauseMusic(lua_State* L)noexcept
 		{
 			const char* s = luaL_checkstring(L, 1);
-			Core::ScopeObject<IResourceMusic> p = LRES.FindMusic(s);
+			core::SmartReference<IResourceMusic> p = LRES.FindMusic(s);
 			if (!p)
 				return luaL_error(L, "music '%s' not found.", s);
 			p->Pause();
@@ -167,7 +167,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 		static int ResumeMusic(lua_State* L)noexcept
 		{
 			const char* s = luaL_checkstring(L, 1);
-			Core::ScopeObject<IResourceMusic> p = LRES.FindMusic(s);
+			core::SmartReference<IResourceMusic> p = LRES.FindMusic(s);
 			if (!p)
 				return luaL_error(L, "music '%s' not found.", s);
 			p->Resume();
@@ -176,7 +176,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 		static int GetMusicState(lua_State* L)noexcept
 		{
 			const char* s = luaL_checkstring(L, 1);
-			Core::ScopeObject<IResourceMusic> p = LRES.FindMusic(s);
+			core::SmartReference<IResourceMusic> p = LRES.FindMusic(s);
 			if (!p)
 				return luaL_error(L, "music '%s' not found.", s);
 			if (p->IsPlaying())
@@ -193,7 +193,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 		static int GetMusicFFT(lua_State* L)noexcept
 		{
 			const char* s = luaL_checkstring(L, 1);
-			Core::ScopeObject<IResourceMusic> p = LRES.FindMusic(s);
+			core::SmartReference<IResourceMusic> p = LRES.FindMusic(s);
 			if (!p)
 				return luaL_error(L, "music '%s' not found.", s);
 			p->GetAudioPlayer()->updateFFT();
@@ -214,7 +214,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 			lua::stack_t S(L);
 
 			auto const music_name = S.get_value<std::string_view>(1);
-			Core::ScopeObject<IResourceMusic> p = LRES.FindMusic(music_name.data());
+			core::SmartReference<IResourceMusic> p = LRES.FindMusic(music_name.data());
 			if (!p)
 				return luaL_error(L, "music '%s' not found.", music_name.data());
 
@@ -326,7 +326,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 			{
 				const char* s = luaL_checkstring(L, 1);
 				float x = static_cast<float>(luaL_checknumber(L, 2));
-				Core::ScopeObject<IResourceMusic> p = LRES.FindMusic(s);
+				core::SmartReference<IResourceMusic> p = LRES.FindMusic(s);
 				if (!p)
 					return luaL_error(L, "music '%s' not found.", s);
 				p->SetVolume(x);
@@ -342,7 +342,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 			else if (lua_gettop(L) == 1)
 			{
 				const char* s = luaL_checkstring(L, 1);
-				Core::ScopeObject<IResourceMusic> p = LRES.FindMusic(s);
+				core::SmartReference<IResourceMusic> p = LRES.FindMusic(s);
 				if (!p)
 					return luaL_error(L, "music '%s' not found.", s);
 				lua_pushnumber(L, p->GetVolume());
@@ -352,7 +352,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 		static int SetBGMSpeed(lua_State* L) {
 			const char* s = luaL_checkstring(L, 1);
 			float speed = (float)luaL_checknumber(L, 2);
-			Core::ScopeObject<IResourceMusic> p = LRES.FindMusic(s);
+			core::SmartReference<IResourceMusic> p = LRES.FindMusic(s);
 			if (!p)
 				return luaL_error(L, "music '%s' not found.", s);
 			if (!p->SetSpeed(speed))
@@ -361,7 +361,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 		}
 		static int GetBGMSpeed(lua_State* L) {
 			const char* s = luaL_checkstring(L, 1);
-			Core::ScopeObject<IResourceMusic> p = LRES.FindMusic(s);
+			core::SmartReference<IResourceMusic> p = LRES.FindMusic(s);
 			if (!p)
 				return luaL_error(L, "music '%s' not found.", s);
 			lua_pushnumber(L, p->GetSpeed());
@@ -370,7 +370,7 @@ void LuaSTGPlus::LuaWrapper::AudioWrapper::Register(lua_State* L)noexcept
 		static int SetBGMLoop(lua_State* L) {
 			const char* s = luaL_checkstring(L, 1);
 			bool loop = lua_toboolean(L, 2);
-			Core::ScopeObject<IResourceMusic> p = LRES.FindMusic(s);
+			core::SmartReference<IResourceMusic> p = LRES.FindMusic(s);
 			if (!p)
 				return luaL_error(L, "music '%s' not found.", s);
 			p->SetLoop(loop);

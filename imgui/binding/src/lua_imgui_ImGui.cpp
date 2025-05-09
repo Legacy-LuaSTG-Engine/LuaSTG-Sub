@@ -1464,6 +1464,9 @@ static /* !!!! */ int lib_Image(lua_State* L)
 {
     LUA_IMGUI_NOT_SUPPORT;
 }
+static /* !!!! */ int lib_ImageWithBg(lua_State* L) {
+    LUA_IMGUI_NOT_SUPPORT;
+}
 static /* !!!! */ int lib_ImageButton(lua_State* L)
 {
     LUA_IMGUI_NOT_SUPPORT;
@@ -3170,6 +3173,14 @@ static int lib_IsMouseDoubleClicked(lua_State* L)
 {
     const ImGuiMouseButton button = (ImGuiMouseButton)luaL_checkinteger(L, 1);
     const bool ret = ImGui::IsMouseDoubleClicked(button);
+    lua_pushboolean(L, ret);
+    return 1;
+}
+static int lib_IsMouseReleasedWithDelay(lua_State* L)
+{
+    const ImGuiMouseButton button = (ImGuiMouseButton)luaL_checkinteger(L, 1);
+    const float delay = (float)luaL_checknumber(L, 2);
+    const bool ret = ImGui::IsMouseReleasedWithDelay(button, delay);
     lua_pushboolean(L, ret);
     return 1;
 }

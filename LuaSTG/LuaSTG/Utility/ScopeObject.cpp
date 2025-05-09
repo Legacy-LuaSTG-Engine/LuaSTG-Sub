@@ -4,7 +4,7 @@
 #include <Windows.h>
 #include <combaseapi.h>
 
-namespace LuaSTGPlus
+namespace luastg
 {
     // 离开作用域自动执行委托的函数
     class Scope

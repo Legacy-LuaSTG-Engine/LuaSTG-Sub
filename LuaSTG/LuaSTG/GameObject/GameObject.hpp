@@ -1,28 +1,48 @@
 #pragma once
 #include "GameResource/ResourceBase.hpp"
 #include "GameResource/ResourceParticle.hpp"
-#include "GameObject/GameObjectClass.hpp"
 #include "lua.hpp"
 
-namespace LuaSTGPlus
+#define LGOBJ_CC_INIT 1
+#define LGOBJ_CC_DEL 2
+#define LGOBJ_CC_FRAME 3
+#define LGOBJ_CC_RENDER 4
+#define LGOBJ_CC_COLLI 5
+#define LGOBJ_CC_KILL 6
+
+namespace luastg
 {
 	// 游戏对象状态
-	enum class GameObjectStatus : uint32_t
+	enum class GameObjectStatus : uint8_t
 	{
 		Free   = 0, // 空闲可用状态
 		Active = 1, // 正常活跃状态
 		Dead   = 2, // 生命周期结束
 		Killed = 4, // 生命周期结束
 	};
-	
+
+	struct GameObjectFeatures {
+		uint8_t is_class : 1;
+		uint8_t is_render_class : 1;
+		uint8_t has_callback_create : 1;
+		uint8_t has_callback_destroy : 1;
+		uint8_t has_callback_update : 1;
+		uint8_t has_callback_render : 1;
+		uint8_t has_callback_trigger : 1;
+		uint8_t has_callback_legacy_kill : 1;
+
+		void reset() { static_assert(sizeof(GameObjectFeatures) == sizeof(uint8_t)); *reinterpret_cast<uint8_t*>(this) = 0u; }
+		void read(lua_State* vm, int index);
+	};
+
 #pragma warning(push)
 #pragma warning(disable:26495)
 
 	// 游戏对象
 	struct GameObject
 	{
-
 		// 链表部分
+
 		GameObject* pUpdatePrev;		// [P] [不可见]
 		GameObject* pUpdateNext;		// [P] [不可见]
 		GameObject* pColliPrev;			// [P] [不可见]
@@ -30,16 +50,14 @@ namespace LuaSTGPlus
 
 		// 基本信息
 
-		GameObjectStatus status;		// [4] 对象状态
-	#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-		GameObjectClass luaclass;		// [4] [不可见] 对象类的一些特性
-	#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 		uint64_t uid;					// [8] [不可见] 对象全局唯一标识符
 		size_t id;						// [P] [不可见] 对象在对象池中的索引
 
 		// 分组
 
+#ifdef USING_MULTI_GAME_WORLD
 		lua_Integer world;				// [P] 世界标记位，用于对一个对象进行分组，影响更新、渲染、碰撞检测等
+#endif // USING_MULTI_GAME_WORLD
 
 		// 位置
 
@@ -67,9 +85,6 @@ namespace LuaSTGPlus
 		// 碰撞体
 
 		lua_Integer group;				// [P] 对象所在的碰撞组
-		uint8_t bound;					// [1] 是否离开边界自动回收
-		uint8_t colli;					// [1] 是否参与碰撞
-		uint8_t rect;					// [1] 是否为矩形碰撞盒
 		lua_Number a;					// [8] 矩形模式下，为横向宽度一半；非矩形模式下，为圆半径或椭圆横向宽度一半
 		lua_Number b;					// [8] 矩形模式下，为纵向宽度一半；非矩形模式下，为圆半径或椭圆纵向宽度一半
 		lua_Number col_r;				// [8] [不可见] 碰撞体外接圆半径
@@ -82,26 +97,39 @@ namespace LuaSTGPlus
 		lua_Number vscale;				// [8] 纵向渲染缩放
 		lua_Number rot;					// [8] 平面渲染旋转角
 		lua_Number omega;				// [8] 平面渲染旋转角加速度
-	#ifdef USING_ADVANCE_GAMEOBJECT_CLASS
-		BlendMode blendmode;			// [4] 混合模式
-		uint32_t vertexcolor;			// [4] 顶点颜色
-	#endif // USING_ADVANCE_GAMEOBJECT_CLASS
 		lua_Integer ani_timer;			// [P] [只读] 动画自增计数器
-		uint8_t hide;					// [1] 不渲染
-		uint8_t navi;					// [1] 根据坐标增量自动设置渲染旋转角
-		IResourceBase* res;					// [P] 渲染资源
-		IParticlePool* ps;	// [P] 粒子系统
+		IResourceBase* res;				// [P] 渲染资源
+		IParticlePool* ps;				// [P] 粒子系统
 
 		// 更新控制
 
 		lua_Integer timer;				// [P] 自增计数器
 	#ifdef LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 		lua_Integer pause;				// [P] 对象被暂停的时间(帧) 对象被暂停时，将跳过速度计算，但是timer会增加，frame仍会调用
-		uint8_t resolve_move;			// [1] 是否为计算速度而非计算位置
-	#endif
-		uint8_t ignore_superpause;		// [1] 是否无视超级暂停。 超级暂停时，timer不会增加，frame不会调用，但render会调用。
-		uint8_t touch_lastx_lasty;		// [1] 是否已经更新过 lastx 和 lasty 值，如果未更新过，表明对象刚生成，获取 dx 和 dy 时应当返回 0
-	
+	#endif // LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
+
+		// 小型属性
+		// 小型属性 - 渲染
+		uint32_t vertexcolor;			// [4] 顶点颜色
+		BlendMode blendmode;			// [1] 混合模式
+		// 小型属性 - 基本信息
+		GameObjectFeatures features;	// [1] [不可见] 对象类的一些特性
+		GameObjectStatus status;		// [1] 对象状态
+
+		// 布尔属性
+		// 布尔属性 - 碰撞体
+		uint8_t bound : 1;				// [1] 是否离开边界自动回收
+		uint8_t colli : 1;				// [1] 是否参与碰撞
+		uint8_t rect : 1;				// [1] 是否为矩形碰撞盒
+		// 布尔属性 - 渲染
+		uint8_t hide : 1;				// [b] 不渲染
+		uint8_t navi : 1;				// [b] 根据坐标增量自动设置渲染旋转角
+		// 布尔属性 - 更新控制
+	#ifdef LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
+		uint8_t resolve_move : 1;		// [b] 是否为计算速度而非计算位置
+	#endif // LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
+		uint8_t ignore_superpause : 1;	// [b] 是否无视超级暂停。 超级暂停时，timer不会增加，frame不会调用，但render会调用。
+		uint8_t touch_lastx_lasty : 1;	// [b] 是否已经更新过 last_x 和 last_y 值，如果未更新过，表明对象刚生成，获取 dx 和 dy 时应当返回 0
 
 		// 成员方法
 
@@ -109,9 +137,11 @@ namespace LuaSTGPlus
 		void DirtReset();
 		void UpdateCollisionCircleRadius();
 		bool ChangeResource(std::string_view const& res_name);
-		void ChangeLuaRC(lua_State* L, int idx);
 		void ReleaseResource();
+#ifdef LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
+		void ChangeLuaRC(lua_State* L, int idx);
 		void ReleaseLuaRC(lua_State* L, int idx);
+#endif // LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
 
 		void Update();
 		void UpdateLast();

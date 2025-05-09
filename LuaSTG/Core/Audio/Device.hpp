@@ -1,8 +1,9 @@
 ﻿#pragma once
 #include "Core/Type.hpp"
+#include "core/ReferenceCounted.hpp"
 #include "Core/Audio/Decoder.hpp"
 
-namespace Core::Audio
+namespace core::Audio
 {
 	enum class MixChannel
 	{
@@ -14,7 +15,7 @@ namespace Core::Audio
 		_COUNT,
 	};
 
-	struct IAudioPlayer : public IObject
+	struct IAudioPlayer : public IReferenceCounted
 	{
 		virtual bool start() = 0;
 		virtual bool stop() = 0;
@@ -39,7 +40,7 @@ namespace Core::Audio
 		virtual float* getFFT() = 0;
 	};
 
-	struct IAudioDevice : public IObject
+	struct IAudioDevice : public IReferenceCounted
 	{
 		virtual uint32_t getAudioDeviceCount(bool refresh) = 0;
 		virtual std::string_view getAudioDeviceName(uint32_t index) const noexcept = 0;
@@ -55,4 +56,16 @@ namespace Core::Audio
 		virtual bool createLoopAudioPlayer(IDecoder* p_decoder, IAudioPlayer** pp_player) = 0; // 全部解码到内存中
 		virtual bool createStreamAudioPlayer(IDecoder* p_decoder, IAudioPlayer** pp_player) = 0; // 播放时才逐步解码
 	};
+}
+
+namespace core {
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.IAudioPlayer
+	template<> constexpr InterfaceId getInterfaceId<Audio::IAudioPlayer>() { return UUID::parse("fcdf8d18-b862-5de2-8732-2b9bf7d42d88"); }
+
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.IAudioDevice
+	template<> constexpr InterfaceId getInterfaceId<Audio::IAudioDevice>() { return UUID::parse("586a1629-1e5d-5757-a481-7560ef3fca8a"); }
 }

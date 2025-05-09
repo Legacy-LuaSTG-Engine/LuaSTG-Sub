@@ -1,6 +1,6 @@
 #pragma once
 #include "GameObject/GameObject.hpp"
-#include "Utility/fixed_object_pool.hpp"
+#include "core/FixedObjectPool.hpp"
 #include <deque>
 #include <memory_resource>
 #include "CLRBinding/CLRBinding.hpp"
@@ -9,7 +9,7 @@
 #define LOBJPOOL_SIZE   32768 // 最大对象数 //32768(full) //16384(half)
 #define LOBJPOOL_GROUPN 16    // 碰撞组数
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	//游戏对象池
 	class GameObjectPool
@@ -30,7 +30,7 @@ namespace LuaSTGPlus
 		};
 
 	private:
-		cpp::fixed_object_pool<GameObject, LOBJPOOL_SIZE> m_ObjectPool;
+		core::FixedObjectPool<GameObject, LOBJPOOL_SIZE> m_ObjectPool;
 		uint64_t m_iUid = 0;
 		lua_State* G_L = nullptr;
 		ManagedAPI* CLR_fn;
@@ -50,7 +50,9 @@ namespace LuaSTGPlus
 		std::pair<GameObject, GameObject> m_UpdateLinkList;
 		std::array<std::pair<GameObject, GameObject>, LOBJPOOL_GROUPN> m_ColliLinkList = {};
 
+#ifdef USING_MULTI_GAME_WORLD
 		GameObject* m_pCurrentObject{};
+#endif // USING_MULTI_GAME_WORLD
 		GameObject* m_LockObjectA{};
 		GameObject* m_LockObjectB{};
 
@@ -117,7 +119,9 @@ namespace LuaSTGPlus
 	public:
 		void Del(GameObject* p, bool kill_mode = false) noexcept;
 
+#ifdef USING_MULTI_GAME_WORLD
 		int PushCurrentObject(lua_State* L) noexcept;
+#endif // USING_MULTI_GAME_WORLD
 
 		GameObject* CastGameObject(lua_State* L, int idx);
 
@@ -192,10 +196,10 @@ namespace LuaSTGPlus
 		void DirtResetObject(GameObject* p) noexcept;
 
 		/// @brief 设置元素的图像状态
-		bool SetImgState(GameObject* p, BlendMode m, Core::Color4B c) noexcept;
+		bool SetImgState(GameObject* p, BlendMode m, core::Color4B c) noexcept;
 
 		/// @brief 特化设置HGE粒子的渲染状态
-		bool SetParState(GameObject* p, BlendMode m, Core::Color4B c) noexcept;
+		bool SetParState(GameObject* p, BlendMode m, core::Color4B c) noexcept;
 
 		/// @brief 清空对象池
 		void ResetPool() noexcept;
@@ -211,6 +215,8 @@ namespace LuaSTGPlus
 
 		/// @brief 调试目的，获取对象列表
 		int GetObjectTable(lua_State* L) noexcept;
+
+#ifdef USING_MULTI_GAME_WORLD
 	private:
 		// 用于多world
 
@@ -246,6 +252,8 @@ namespace LuaSTGPlus
 			if (CheckWorld(a, m_Worlds[3]) && CheckWorld(b, m_Worlds[3]))return true;
 			return false;
 		}
+#endif // USING_MULTI_GAME_WORLD
+
 	private:
 		// 用于超级暂停
 
@@ -277,8 +285,8 @@ namespace LuaSTGPlus
 		// 内部使用
 
 		void DrawCollider();
-		void DrawGroupCollider(int groupId, Core::Color4B fillColor);
-		void DrawGroupCollider2(int groupId, Core::Color4B fillColor);
+		void DrawGroupCollider(int groupId, core::Color4B fillColor);
+		void DrawGroupCollider2(int groupId, core::Color4B fillColor);
 	public:
 		// lua api
 

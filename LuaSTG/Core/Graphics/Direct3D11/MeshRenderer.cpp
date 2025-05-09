@@ -7,7 +7,7 @@
 #include "Core/Graphics/Direct3D11/Mesh.hpp"
 #include "Core/Graphics/Renderer_D3D11.hpp"
 
-namespace Core::Graphics::Direct3D11 {
+namespace core::Graphics::Direct3D11 {
 	void MeshRenderer::onDeviceCreate() {
 	}
 	void MeshRenderer::onDeviceDestroy() {
@@ -166,18 +166,18 @@ namespace Core::Graphics::Direct3D11 {
 	bool MeshRenderer::initialize(IDevice* const device) {
 		assert(device);
 		m_device = device;
-		if (!m_device->createConstantBuffer(sizeof(m_transform), ~m_constant_buffer)) {
+		if (!m_device->createConstantBuffer(sizeof(m_transform), m_constant_buffer.put())) {
 			return false;
 		}
 		return true;
 	}
 }
-namespace Core::Graphics {
+namespace core::Graphics {
 	bool IMeshRenderer::create(IDevice* const device, IMeshRenderer** const output) {
 		assert(device);
 		assert(output);
 		*output = nullptr;
-		ScopeObject<Direct3D11::MeshRenderer> mesh_renderer;
+		SmartReference<Direct3D11::MeshRenderer> mesh_renderer;
 		mesh_renderer.attach(new Direct3D11::MeshRenderer);
 		if (!mesh_renderer->initialize(device)) {
 			return false;

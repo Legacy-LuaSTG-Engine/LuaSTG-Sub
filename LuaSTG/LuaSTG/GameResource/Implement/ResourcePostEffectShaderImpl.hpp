@@ -2,14 +2,14 @@
 #include "GameResource/ResourcePostEffectShader.hpp"
 #include "GameResource/Implement/ResourceBaseImpl.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
     class ResourcePostEffectShaderImpl : public ResourceBaseImpl<IResourcePostEffectShader>
     {
     private:
-        Core::ScopeObject<Core::Graphics::IPostEffectShader> m_shader;
+        core::SmartReference<core::Graphics::IPostEffectShader> m_shader;
     public:
-        Core::Graphics::IPostEffectShader* GetPostEffectShader() noexcept { return *m_shader; }
+        core::Graphics::IPostEffectShader* GetPostEffectShader() noexcept { return *m_shader; }
     public:
         ResourcePostEffectShaderImpl(const char* name, const char* path);
     };

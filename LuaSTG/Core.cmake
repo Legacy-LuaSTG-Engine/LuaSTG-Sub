@@ -18,13 +18,6 @@ set(Core_SRC
     Core/i18n.cpp
     Core/framework.hpp
     Core/framework.cpp
-    Core/Object.hpp
-    Core/Object.cpp
-    Core/ImmutableString.cpp
-    Core/DataObject.cpp
-
-    Core/FileManager.hpp
-    Core/FileManager.cpp
 
     Core/Graphics/Window.hpp
     Core/Graphics/Window_Win32.hpp
@@ -47,6 +40,8 @@ set(Core_SRC
     
     Core/Graphics/Common/Sprite.hpp
     Core/Graphics/Common/Sprite.cpp
+    Core/Graphics/Common/SpriteRenderer.hpp
+    Core/Graphics/Common/SpriteRenderer.cpp
     Core/Graphics/Common/FreeTypeGlyphManager.hpp
     Core/Graphics/Common/FreeTypeGlyphManager.cpp
     Core/Graphics/Common/TextRenderer.hpp
@@ -72,11 +67,9 @@ set(Core_SRC
     Core/Graphics/Direct3D11/LetterBoxingRenderer.hpp
     Core/Graphics/Direct3D11/LetterBoxingRenderer.cpp
 
-    Core/Application.hpp
     Core/ApplicationModel.hpp
     Core/ApplicationModel_Win32.hpp
     Core/ApplicationModel_Win32.cpp
-    Core/EventDispatcherImpl.hpp
 
     Core/Audio/Decoder.hpp
     Core/Audio/Decoder_VorbisOGG.cpp
@@ -124,8 +117,6 @@ target_link_libraries(Core PUBLIC
     libqoi
     # math
     xmath
-    # file
-    minizip_ng
     # text
     Freetype::Freetype
     # model
@@ -138,5 +129,8 @@ target_link_libraries(Core PUBLIC
     FLAC::FLAC
     # database
     nlohmann_json
-    LuaSTG.Sub.Configuration
+    Core.String
+    Core.Configuration
+    Core.ReferenceCounted
+    Core.FileSystem
 )

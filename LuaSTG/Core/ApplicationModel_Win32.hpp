@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/ApplicationModel.hpp"
 #include "Core/Graphics/Window_Win32.hpp"
 #include "Core/Graphics/Direct3D11/Device.hpp"
@@ -7,7 +7,7 @@
 #include "Core/Graphics/Renderer_D3D11.hpp"
 #include "Core/Audio/Device_XAUDIO2.hpp"
 
-namespace Core
+namespace core
 {
 	class FrameRateController : public IFrameRateController
 	{
@@ -210,7 +210,7 @@ namespace Core
 	{
 	private:
 
-		ScopeObject<Graphics::IDevice> m_device;
+		SmartReference<Graphics::IDevice> m_device;
 		winrt::com_ptr<ID3D11Device> d3d11_device;
 		winrt::com_ptr<ID3D11DeviceContext> d3d11_device_context;
 		winrt::com_ptr<ID3D11Query> d3d11_query_freq;
@@ -357,21 +357,21 @@ namespace Core
 		}
 	};
 
-	class ApplicationModel_Win32 : public Object<IApplicationModel>
+	class ApplicationModel_Win32 : public implement::ReferenceCounted<IApplicationModel>
 	{
 	private:
 		// 多个线程共享
 
-		ScopeObject<Graphics::Window_Win32> m_window;
+		SmartReference<Graphics::Window_Win32> m_window;
 		Microsoft::WRL::Wrappers::Event win32_event_exit;
 		bool m_exit_flag{};
 
 		// 仅限工作线程
 
-		ScopeObject<Graphics::Direct3D11::Device> m_device;
-		ScopeObject<Graphics::SwapChain_D3D11> m_swapchain;
-		ScopeObject<Graphics::Renderer_D3D11> m_renderer;
-		ScopeObject<Audio::Device_XAUDIO2> m_audiosys;
+		SmartReference<Graphics::Direct3D11::Device> m_device;
+		SmartReference<Graphics::SwapChain_D3D11> m_swapchain;
+		SmartReference<Graphics::Renderer_D3D11> m_renderer;
+		SmartReference<Audio::Device_XAUDIO2> m_audiosys;
 		IFrameRateController* m_p_frame_rate_controller{};
 		FrameRateController m_frame_rate_controller;
 		SteadyFrameRateController m_steady_frame_rate_controller;

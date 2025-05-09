@@ -1,5 +1,5 @@
 #include "Main.h"
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCountedDebugger.hpp"
 #include "Platform/MessageBox.hpp"
 #include "Platform/ApplicationSingleInstance.hpp"
 #include "Debugger/Logger.hpp"
@@ -10,7 +10,7 @@
 #include "core/Configuration.hpp"
 #include <chrono>
 
-int luastg::sub::main() {
+int luastg::main() {
 #ifdef _DEBUG
 	_CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG) | _CRTDBG_LEAK_CHECK_DF);
 	// _CrtSetBreakAlloc(5351);
@@ -19,7 +19,7 @@ int luastg::sub::main() {
 
 	// STAGE 1: initialize COM
 
-	LuaSTGPlus::CoInitializeScope com_runtime;
+	CoInitializeScope com_runtime;
 	if (!com_runtime()) {
 		Platform::MessageBox::Error(LUASTG_INFO,
 			"引擎初始化失败。\n"
@@ -45,19 +45,19 @@ int luastg::sub::main() {
 
 	// STAGE 4: check runtime
 
-	if (!LuaSTG::CheckUserRuntime()) {
+	if (!checkEngineRuntimeRequirement()) {
 		return EXIT_FAILURE;
 	}
 
 	// STAGE 5: start
 
-	LuaSTG::Debugger::Logger::create();
+	Logger::create();
 
 	auto const t2 = std::chrono::high_resolution_clock::now();
 	spdlog::info("Duration before logging system: {}s", double((t2 - t1).count()) / 1000000000.0);
 
 	int result = EXIT_SUCCESS;
-	if (LuaSTG::SteamAPI::Init())
+	if (SteamAPI::Init())
 	{
 		if (LAPP.Init())
 		{
@@ -76,17 +76,17 @@ int luastg::sub::main() {
 			result = EXIT_FAILURE;
 		}
 		LAPP.Shutdown();
-		LuaSTG::SteamAPI::Shutdown();
+		SteamAPI::Shutdown();
 	}
 	else
 	{
 		result = EXIT_FAILURE;
 	}
 
-	LuaSTG::Debugger::Logger::destroy();
+	Logger::destroy();
 
 #ifndef NDEBUG
-	Core::ObjectDebugger::check();
+	core::implement::ReferenceCountedDebugger::reportLeak();
 #endif
 
 	return result;

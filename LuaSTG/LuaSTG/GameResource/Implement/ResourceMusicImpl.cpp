@@ -1,6 +1,6 @@
 #include "GameResource/Implement/ResourceMusicImpl.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	bool ResourceMusicImpl::LoopDecoder::read(uint32_t pcm_frame, void* buffer, uint32_t* read_pcm_frame)
 	{
@@ -90,7 +90,7 @@ namespace LuaSTGPlus
 		return true;
 	}
 
-	ResourceMusicImpl::LoopDecoder::LoopDecoder(Core::Audio::IDecoder* p_decoder, double LoopStart, double LoopEnd)
+	ResourceMusicImpl::LoopDecoder::LoopDecoder(core::Audio::IDecoder* p_decoder, double LoopStart, double LoopEnd)
 		: m_decoder(p_decoder)
 	{
 		// 计算参数
@@ -251,7 +251,7 @@ namespace LuaSTGPlus
 		}
 	}
 
-	ResourceMusicImpl::ResourceMusicImpl(const char* name, LoopDecoder* p_decoder, Core::Audio::IAudioPlayer* p_player)
+	ResourceMusicImpl::ResourceMusicImpl(const char* name, LoopDecoder* p_decoder, core::Audio::IAudioPlayer* p_player)
 		: ResourceBaseImpl(ResourceType::Music, name)
 		, m_decoder(p_decoder)
 		, m_player(p_player)

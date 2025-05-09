@@ -1,7 +1,8 @@
 #pragma once
 #include "Core/Type.hpp"
+#include "core/ReferenceCounted.hpp"
 
-namespace Core::Graphics
+namespace core::Graphics
 {
 	struct IWindowEventListener
 	{
@@ -70,7 +71,7 @@ namespace Core::Graphics
 
 	struct IWindow;
 
-	struct IDisplay : public IObject {
+	struct IDisplay : public IReferenceCounted {
 		virtual void* getNativeHandle() = 0;
 		virtual void getFriendlyName(IImmutableString** output) = 0;
 		virtual Vector2U getSize() = 0;
@@ -87,7 +88,7 @@ namespace Core::Graphics
 		static bool getNearestFromWindow(IWindow* window, IDisplay** output);
 	};
 
-	struct IWindow : public IObject
+	struct IWindow : public IReferenceCounted
 	{
 		virtual void addEventListener(IWindowEventListener* e) = 0;
 		virtual void removeEventListener(IWindowEventListener* e) = 0;
@@ -150,4 +151,16 @@ namespace Core::Graphics
 		static bool create(IWindow** pp_window);
 		static bool create(Vector2U size, StringView title_text, WindowFrameStyle style, bool show, IWindow** pp_window);
 	};
+}
+
+namespace core {
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.IDisplay
+	template<> constexpr InterfaceId getInterfaceId<Graphics::IDisplay>() { return UUID::parse("9432a56d-e3d2-5173-b313-a9581b373155"); }
+
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.IWindow
+	template<> constexpr InterfaceId getInterfaceId<Graphics::IWindow>() { return UUID::parse("7be6255c-08f5-5cd4-81d7-2f490256f2e9"); }
 }

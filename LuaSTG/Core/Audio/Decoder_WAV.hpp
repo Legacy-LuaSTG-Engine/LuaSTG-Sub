@@ -1,15 +1,16 @@
-﻿#pragma once
-#include "Core/Object.hpp"
+#pragma once
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Audio/Decoder.hpp"
+#include "core/Data.hpp"
 
 #include "dr_wav.h"
 
-namespace Core::Audio
+namespace core::Audio
 {
-	class Decoder_WAV : public Object<IDecoder>
+	class Decoder_WAV : public implement::ReferenceCounted<IDecoder>
 	{
 	private:
-		std::vector<uint8_t> m_data;
+		SmartReference<IData> m_data;
 		drwav m_wav;
 		bool m_init;
 

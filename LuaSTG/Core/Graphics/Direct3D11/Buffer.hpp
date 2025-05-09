@@ -1,13 +1,13 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/Device.hpp"
 
 // Buffer
-namespace Core::Graphics::Direct3D11 {
+namespace core::Graphics::Direct3D11 {
 	class Device;
 
 	class Buffer final
-		: public Object<IBuffer>
+		: public implement::ReferenceCounted<IBuffer>
 		, public IDeviceEventListener {
 	public:
 		// IDeviceEventListener
@@ -39,7 +39,7 @@ namespace Core::Graphics::Direct3D11 {
 		bool createResources();
 
 	private:
-		ScopeObject<Device> m_device;
+		SmartReference<Device> m_device;
 		wil::com_ptr_nothrow<ID3D11Buffer> m_buffer;
 		uint32_t m_size_in_bytes{};
 		uint8_t m_type{};

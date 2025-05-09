@@ -1,6 +1,6 @@
-﻿#include "AppFrame.h"
+#include "AppFrame.h"
 
-namespace LuaSTGPlus
+namespace luastg
 {
     bool AppFrame::BeginRenderTargetStack()
     {
@@ -37,7 +37,7 @@ namespace LuaSTGPlus
             rt->GetDepthStencilBuffer()
         );
 
-        m_stRenderTargetStack.push_back(rt);
+        m_stRenderTargetStack.emplace_back(rt);
 
         return true;
     }
@@ -72,13 +72,17 @@ namespace LuaSTGPlus
 
         return true;
     }
+    bool AppFrame::IsRenderTargetStackEmpty()
+    {
+        return m_stRenderTargetStack.empty();
+    }
     bool AppFrame::CheckRenderTargetInUse(IResourceTexture* rt)
     {
         if (!rt || !rt->IsRenderTarget() || m_stRenderTargetStack.empty())
             return false;
         return rt == m_stRenderTargetStack.back().get();
     }
-    Core::Vector2U AppFrame::GetTopRenderTargetSize()
+    core::Vector2U AppFrame::GetTopRenderTargetSize()
     {
         if (!m_stRenderTargetStack.empty())
         {
@@ -103,7 +107,7 @@ namespace LuaSTGPlus
         if (m_AutoSizeRenderTarget.contains(rt))
             m_AutoSizeRenderTarget.erase(rt);
     }
-    Core::Vector2U AppFrame::GetAutoSizeRenderTargetSize()
+    core::Vector2U AppFrame::GetAutoSizeRenderTargetSize()
     {
         if (m_AutoSizeRenderTargetSize.x == 0 || m_AutoSizeRenderTargetSize.y == 0)
         {
@@ -112,7 +116,7 @@ namespace LuaSTGPlus
         }
         return m_AutoSizeRenderTargetSize;
     }
-    bool AppFrame::ResizeAutoSizeRenderTarget(Core::Vector2U size)
+    bool AppFrame::ResizeAutoSizeRenderTarget(core::Vector2U size)
     {
         m_AutoSizeRenderTargetSize = size;
         int failed_count = 0;
@@ -138,11 +142,11 @@ namespace LuaSTGPlus
     }
 }
 
-namespace LuaSTGPlus
+namespace luastg
 {
     void AppFrame::DebugSetGeometryRenderState()
     {
-        using namespace Core::Graphics;
+        using namespace core::Graphics;
         auto* r2d = GetRenderer2D();
         r2d->setBlendState(IRenderer::BlendState::Alpha);
         r2d->setDepthState(IRenderer::DepthState::Disable);
@@ -150,12 +154,12 @@ namespace LuaSTGPlus
         r2d->setVertexColorBlendState(IRenderer::VertexColorBlendState::One);
         r2d->setTexture(nullptr);
     }
-    void AppFrame::DebugDrawCircle(float const x, float const y, float const r, Core::Color4B const color)
+    void AppFrame::DebugDrawCircle(float const x, float const y, float const r, core::Color4B const color)
     {
         if (std::abs(r) >= std::numeric_limits<float>::min())
         {
-            using namespace Core;
-            using namespace Core::Graphics;
+            using namespace core;
+            using namespace core::Graphics;
             auto* r2d = GetRenderer2D();
             // 分割 32 份，圆周上 32 个点以及中心点，共 32 个三角形，需要 32 * 3 个索引
             IRenderer::DrawVertex* vert = nullptr;
@@ -185,12 +189,12 @@ namespace LuaSTGPlus
             // p_vidx += 3;
         }
     }
-    void AppFrame::DebugDrawRect(float const x, float const y, float const a, float const b, float const rot, Core::Color4B const color)
+    void AppFrame::DebugDrawRect(float const x, float const y, float const a, float const b, float const rot, core::Color4B const color)
     {
         if (std::abs(a) >= std::numeric_limits<float>::min() && std::abs(b) >= std::numeric_limits<float>::min())
         {
-            using namespace Core;
-            using namespace Core::Graphics;
+            using namespace core;
+            using namespace core::Graphics;
             auto* r2d = GetRenderer2D();
             // 计算出矩形的4个顶点
             IRenderer::DrawVertex vert[4] = {
@@ -213,12 +217,12 @@ namespace LuaSTGPlus
             r2d->drawQuad(vert);
         }
     }
-    void AppFrame::DebugDrawEllipse(float const x, float const y, float const a, float const b, float const rot, Core::Color4B const color)
+    void AppFrame::DebugDrawEllipse(float const x, float const y, float const a, float const b, float const rot, core::Color4B const color)
     {
         if (std::abs(a) >= std::numeric_limits<float>::min() && std::abs(b) >= std::numeric_limits<float>::min())
         {
-            using namespace Core;
-            using namespace Core::Graphics;
+            using namespace core;
+            using namespace core::Graphics;
             auto* r2d = GetRenderer2D();
             // 分割 36 份，椭圆周上 36 个点以及中心点，共 36 个三角形，需要 36 * 3 个索引
             IRenderer::DrawVertex* vert = nullptr;

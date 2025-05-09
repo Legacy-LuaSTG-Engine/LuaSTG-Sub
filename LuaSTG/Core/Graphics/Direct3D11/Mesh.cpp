@@ -16,7 +16,7 @@ namespace {
 	void reportIndexOutOfBounds() {
 		spdlog::error("[core] Mesh: index out of bounds");
 	}
-	std::string generateVertexShader(Core::Graphics::MeshOptions const& options, bool const fog) {
+	std::string generateVertexShader(core::Graphics::MeshOptions const& options, bool const fog) {
 		// ReSharper disable StringLiteralTypo
 		std::string generated_vertex_shader;
 		generated_vertex_shader.reserve(1024);
@@ -112,7 +112,7 @@ namespace {
 
 #define REPORT_READ_ONLY_RETURN_BOOL if (m_validation && m_read_only) { reportReadOnly(); assert(false); return false; }
 
-namespace Core::Graphics::Direct3D11 {
+namespace core::Graphics::Direct3D11 {
 	void Mesh::onDeviceCreate() {
 		if (m_initialized) {
 			createResources();
@@ -342,12 +342,12 @@ namespace Core::Graphics::Direct3D11 {
 		m_index_data.resize(m_options.index_count * m_index_metadata.stride);
 
 		if (m_options.vertex_count > 0) {
-			if (!m_device->createVertexBuffer(static_cast<uint32_t>(m_vertex_data.size()), ~m_vertex_buffer)) {
+			if (!m_device->createVertexBuffer(static_cast<uint32_t>(m_vertex_data.size()), m_vertex_buffer.put())) {
 				return false;
 			}
 		}
 		if (m_options.index_count > 0) {
-			if (!m_device->createIndexBuffer(static_cast<uint32_t>(m_index_data.size()), ~m_index_buffer)) {
+			if (!m_device->createIndexBuffer(static_cast<uint32_t>(m_index_data.size()), m_index_buffer.put())) {
 				return false;
 			}
 		}
@@ -412,10 +412,10 @@ namespace Core::Graphics::Direct3D11 {
 		return true;
 	}
 }
-namespace Core::Graphics {
+namespace core::Graphics {
 	bool IMesh::create(IDevice* device, MeshOptions const& options, IMesh** output) {
 		*output = nullptr;
-		ScopeObject<Direct3D11::Mesh> buffer;
+		SmartReference<Direct3D11::Mesh> buffer;
 		buffer.attach(new Direct3D11::Mesh);
 		if (!buffer->initialize(device, options)) {
 			return false;

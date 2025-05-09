@@ -1,6 +1,6 @@
 #include "Core/Graphics/Common/Sprite.hpp"
 
-namespace Core::Graphics::Common {
+namespace core::Graphics::Common {
 	void Sprite::updateRect() {
 		// 纹理坐标系需要归一化
 
@@ -170,7 +170,7 @@ namespace Core::Graphics::Common {
 	}
 	Sprite::~Sprite() = default;
 }
-namespace Core::Graphics {
+namespace core::Graphics {
 	bool ISprite::create(IRenderer* const p_renderer, ITexture2D* const p_texture, ISprite** const pp_sprite) {
 		*pp_sprite = new Common::Sprite(p_renderer, p_texture);
 		return true;

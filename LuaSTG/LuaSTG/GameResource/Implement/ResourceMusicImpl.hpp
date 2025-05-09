@@ -2,15 +2,15 @@
 #include "GameResource/ResourceMusic.hpp"
 #include "GameResource/Implement/ResourceBaseImpl.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	class ResourceMusicImpl : public ResourceBaseImpl<IResourceMusic>
 	{
 	public:
-		class LoopDecoder : public Core::Object<Core::Audio::IDecoder>
+		class LoopDecoder : public core::implement::ReferenceCounted<core::Audio::IDecoder>
 		{
 		protected:
-			Core::ScopeObject<Core::Audio::IDecoder> m_decoder;
+			core::SmartReference<core::Audio::IDecoder> m_decoder;
 			uint32_t m_total_sample = 0;
 			uint32_t m_start_sample = 0;
 			uint32_t m_end_sample = 0;
@@ -33,16 +33,16 @@ namespace LuaSTGPlus
 			void setLoop(bool v) { m_is_loop = v; }
 			void setLoopRange(uint32_t start_samples, uint32_t end_samples) { m_start_sample = start_samples; m_end_sample = end_samples; }
 		public:
-			LoopDecoder(Core::Audio::IDecoder* p_decoder, double LoopStart, double LoopEnd);
+			LoopDecoder(core::Audio::IDecoder* p_decoder, double LoopStart, double LoopEnd);
 		};
 
 	private:
-		Core::ScopeObject<LoopDecoder> m_decoder;
-		Core::ScopeObject<Core::Audio::IAudioPlayer> m_player;
+		core::SmartReference<LoopDecoder> m_decoder;
+		core::SmartReference<core::Audio::IAudioPlayer> m_player;
 		int m_status = 0; // 0停止 1暂停 2播放
 
 	public:
-		Core::Audio::IAudioPlayer* GetAudioPlayer() { return m_player.get(); }
+		core::Audio::IAudioPlayer* GetAudioPlayer() { return m_player.get(); }
 
 		void Play(float vol, double position);
 		void Stop();
@@ -59,6 +59,6 @@ namespace LuaSTGPlus
 		void SetLoopRange(MusicRoopRange range);
 
 	public:
-		ResourceMusicImpl(const char* name, LoopDecoder* p_decoder, Core::Audio::IAudioPlayer* p_player);
+		ResourceMusicImpl(const char* name, LoopDecoder* p_decoder, core::Audio::IAudioPlayer* p_player);
 	};
 }

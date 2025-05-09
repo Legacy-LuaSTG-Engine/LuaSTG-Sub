@@ -1,201 +1,163 @@
-﻿#include "LuaBinding/LuaWrapper.hpp"
-#include "Core/FileManager.hpp"
+#include "LuaBinding/LuaWrapper.hpp"
+#include "core/FileSystem.hpp"
 #include "utility/path.hpp"
 #include "AppFrame.h"
+#include "lua/plus.hpp"
 
-using namespace std;
-using namespace LuaSTGPlus;
+using std::string_view_literals::operator ""sv;
 
-struct ArchiveWrapper::Wrapper
-{
-	uint64_t uuid;
-};
+namespace luastg::binding {
 
-#define getself ArchiveWrapper::Wrapper* self = static_cast<ArchiveWrapper::Wrapper*>(luaL_checkudata(L, 1, LUASTG_LUA_TYPENAME_ARCHIVE));
-#define getthis (GFileManager().getFileArchiveByUUID(self->uuid))
-
-void ArchiveWrapper::Register(lua_State* L)noexcept
-{
-	struct Function
-	{
-		static int IsValid(lua_State* L)
-		{
-			// self
-			getself;
-			::lua_pushboolean(L, !getthis.empty());
-			return 1;
-		}
-		static int EnumFiles(lua_State* L)
-		{
-			// ??? self searchpath
-			getself;
-			auto& zip = getthis;
-			if (!zip.empty()) {
-				string frompathattr = luaL_checkstring(L, -1);
-				utility::path::to_slash(frompathattr);//转换为'/'分隔符
-				if ((frompathattr.size() == 1) && (frompathattr.back() == '/')) {
-					frompathattr.pop_back();//根目录不需要分隔符
-				}
-				else if ((frompathattr.size() > 0) && (frompathattr.back() != '/')) {
-					frompathattr.push_back('/');//补充一个分隔符
-				}
-				string_view frompath = frompathattr; //目标路径
-				lua_newtable(L);// ??? self searchpath t 
-				int i = 1;
-				for (size_t index = 0; index < zip.getCount(); index++) {
-					string topath(zip.getName(index)); //要比较的路径
-					if (frompath.size() >= topath.size()) {
-						continue; // 短的直接pass
-					}
-					else {
-						string_view path(&topath[0], frompath.size()); //前导部分
-						if (path == frompath) {
-							string_view path2(&topath[frompath.size()], topath.size() - frompath.size());//剩余部分
-							int count = 0;
-							for (auto& c : path2) {
-								if (c == '/') {
-									count++;
-								}
-							}
-							bool flag = false;
-							if (count <= 0) {
-								flag = true;//没有别的分割符，是查找路径下的文件
-							}
-							else if ((count == 1) && (path2.back() == '/')) {
-								flag = true;//有一个分割符，是查找路径下一级的文件夹
-							}
-							if (flag) {
-								lua_pushinteger(L, i);// ??? self searchpath t i 
-								lua_newtable(L);// ??? self searchpath t i tt 
-								lua_pushinteger(L, 1);// ??? self searchpath t i tt 1 
-								lua_pushstring(L, topath.c_str());// ??? self searchpath t i tt 1 s 
-								lua_settable(L, -3);// ??? self searchpath t i tt 
-								lua_pushinteger(L, 2);// ??? self searchpath t i tt 2 
-								lua_pushboolean(L, (topath.back() == '/'));// ??? self searchpath t i tt 2 bool //以分隔符结尾的都是文件夹
-								lua_settable(L, -3);// ??? self searchpath t i tt 
-								lua_settable(L, -3);// ??? self searchpath t 
-
-								i++;
-							}
-						}
-					}
-				}
-			}
-			else {
-				lua_newtable(L); // ??? self searchpath t 
-			}
-			return 1;
-		}
-		static int ListFiles(lua_State* L)
-		{
-			// self
-			getself;
-			auto& zip = getthis;
-			if (!zip.empty()) {
-				lua_newtable(L);// ??? self t 
-				int i = 1;
-				for (size_t index = 0; index < zip.getCount(); index++) {
-					string topath(zip.getName(index));
-
-					lua_pushinteger(L, i);// ??? self searchpath t i 
-					lua_newtable(L);// ??? self searchpath t i tt 
-					lua_pushinteger(L, 1);// ??? self searchpath t i tt 1 
-					lua_pushstring(L, topath.c_str());// ??? self searchpath t i tt 1 s 
-					lua_settable(L, -3);// ??? self searchpath t i tt 
-					lua_pushinteger(L, 2);// ??? self searchpath t i tt 2 
-					lua_pushboolean(L, (topath.back() == '/'));// ??? self searchpath t i tt 2 bool //以分隔符结尾的都是文件夹
-					lua_settable(L, -3);// ??? self searchpath t i tt 
-					lua_settable(L, -3);// ??? self searchpath t 
-
-					i++;
-				}
-			}
-			else {
-				lua_newtable(L); // ??? self t 
-			}
-			return 1;
-		}
-		static int FileExist(lua_State* L)
-		{
-			// self path
-			getself;
-			auto& zip = getthis;
-			if (!zip.empty())
-			{
-				string frompath = luaL_checkstring(L, -1);
-				utility::path::to_slash(frompath);
-				lua_pushboolean(L, zip.contain(frompath));
-			}
-			else
-			{
-				lua_pushboolean(L, false);
-			}
-			return 1;
-		}
-		static int GetName(lua_State* L) {
-			getself;
-			auto& zip = getthis;
-			if (!zip.empty())
-			{
-				lua_pushstring(L, zip.getFileArchiveName().data());
-			}
-			else
-			{
-				lua_pushnil(L);
-			}
-			return 1;
-		}
-		static int GetPriority(lua_State* L)
-		{
-			lua_pushinteger(L, 0);
-			return 1;
-		}
-		static int SetPriority(lua_State*)
-		{
-			return 0;
-		}
-
-		static int Meta_ToString(lua_State* L)noexcept
-		{
-			getself;
-			auto& zip = getthis;
-			if (!zip.empty())
-			{
-				lua_pushfstring(L, "lstg.Archive(%llu, \"%s\")", self->uuid, zip.getFileArchiveName().data());
-			}
-			else
-			{
-				lua_pushfstring(L, "lstg.Archive(%llu)", self->uuid);
-			}
-			return 1;
-		}
-	};
-	
-	luaL_Reg tMethods[] =
-	{
-		{ "IsValid", &Function::IsValid },
-		{ "EnumFiles", &Function::EnumFiles },
-		{ "ListFiles", &Function::ListFiles },
-		{ "FileExist", &Function::FileExist },
-		{ "GetName", &Function::GetName },
-		{ "GetPriority", &Function::GetPriority },
-		{ "SetPriority", &Function::SetPriority },
-		{ NULL, NULL }
+	struct Archive::Wrapper {
+		core::IFileSystemArchive* data{};
 	};
 
-	luaL_Reg tMetaTable[] =
-	{
-		{ "__tostring", &Function::Meta_ToString },
-		{ NULL, NULL }
-	};
-	
-	LuaSTGPlus::RegisterMethodD(L, LUASTG_LUA_TYPENAME_ARCHIVE, tMethods, tMetaTable);
-}
+	void Archive::Register(lua_State* L)noexcept {
+		struct Function {
+			static int IsValid(lua_State* L) {
+				lua::stack_t const vm(L);
+				auto const self = as(L, 1);
+				vm.push_value(self->data != nullptr);
+				return 1;
+			}
+			static int EnumFiles(lua_State* L) {
+				lua::stack_t const vm(L);
+				auto const self = as(L, 1);
 
-void ArchiveWrapper::CreateAndPush(lua_State* L, uint64_t uuid)noexcept {
-	ArchiveWrapper::Wrapper* p = static_cast<ArchiveWrapper::Wrapper*>(lua_newuserdata(L, sizeof(ArchiveWrapper::Wrapper))); // udata
-	new(p) ArchiveWrapper::Wrapper(); // udata
-	p->uuid = uuid;
-	luaL_getmetatable(L, LUASTG_LUA_TYPENAME_ARCHIVE); // udata mt
-	lua_setmetatable(L, -2); // udata 
+				//                                              self directory
+				auto const result_table = vm.create_array(); // self directory results
+				if (self->data == nullptr) {
+					return 1;
+				}
+
+				auto const directory = vm.get_value<std::string_view>(1 + 1);
+				core::SmartReference<core::IFileSystemEnumerator> enumerator;
+				if (!self->data->createEnumerator(enumerator.put(), directory, false)) {
+					return 1;
+				}
+
+				int32_t i{ 1 };
+				while (enumerator->next()) {
+					auto const node_table = vm.create_array(); // self directory results node
+					vm.set_array_value(node_table, 1, enumerator->getName());
+					vm.set_array_value(node_table, 2, enumerator->getNodeType() == core::FileSystemNodeType::directory);
+					vm.set_array_value(result_table, i, node_table);
+					vm.pop_value(); // self directory results
+					++i;
+				}
+
+				return 1;
+			}
+			static int ListFiles(lua_State* L) {
+				lua::stack_t const vm(L);
+				auto const self = as(L, 1);
+
+				//                                              self directory
+				auto const result_table = vm.create_array(); // self directory results
+				if (self->data == nullptr) {
+					return 1;
+				}
+
+				auto const directory = vm.get_value<std::string_view>(1 + 1);
+				core::SmartReference<core::IFileSystemEnumerator> enumerator;
+				if (!self->data->createEnumerator(enumerator.put(), directory, true)) {
+					return 1;
+				}
+
+				int32_t i{ 1 };
+				while (enumerator->next()) {
+					auto const node_table = vm.create_array(); // self directory results node
+					vm.set_array_value(node_table, 1, enumerator->getName());
+					vm.set_array_value(node_table, 2, enumerator->getNodeType() == core::FileSystemNodeType::directory);
+					vm.set_array_value(result_table, i, node_table);
+					vm.pop_value(); // self directory results
+					++i;
+				}
+
+				return 1;
+			}
+			static int FileExist(lua_State* L) {
+				lua::stack_t const vm(L);
+				auto const self = as(L, 1);
+				if (self->data == nullptr) {
+					vm.push_value(false);
+					return 1;
+				}
+
+				auto const path = vm.get_value<std::string_view>(1 + 1);
+				vm.push_value(self->data->hasFile(path));
+				return 1;
+			}
+			static int GetName(lua_State* L) {
+				lua::stack_t const vm(L);
+				auto const self = as(L, 1);
+				if (self->data == nullptr) {
+					vm.push_value(std::nullopt);
+					return 1;
+				}
+				vm.push_value(self->data->getArchivePath());
+				return 1;
+			}
+			static int GetPriority(lua_State* L) {
+				[[maybe_unused]] auto const self = as(L, 1);
+				lua_pushinteger(L, 0);
+				return 1;
+			}
+			static int SetPriority(lua_State* L) {
+				[[maybe_unused]] auto const self = as(L, 1);
+				return 0;
+			}
+
+			static int Meta_ToString(lua_State* L)noexcept {
+				lua::stack_t const vm(L);
+				if (auto const self = as(L, 1); self->data != nullptr) {
+					vm.push_value(std::format("lstg.Archive(\"{}\")", self->data->getArchivePath()));
+				}
+				else {
+					vm.push_value("lstg.Archive(null)"sv);
+				}
+				return 1;
+			}
+			static int Meta_GC(lua_State* L)noexcept {
+				if (auto const self = as(L, 1); self->data != nullptr) {
+					self->data->release();
+					self->data = nullptr;
+				}
+				return 0;
+			}
+
+			static Archive::Wrapper* as(lua_State* L, int const i) {
+				return static_cast<Archive::Wrapper*>(luaL_checkudata(L, i, LUASTG_LUA_TYPENAME_ARCHIVE));
+			}
+		};
+
+		luaL_Reg tMethods[] = {
+			{ "IsValid", &Function::IsValid },
+			{ "EnumFiles", &Function::EnumFiles },
+			{ "ListFiles", &Function::ListFiles },
+			{ "FileExist", &Function::FileExist },
+			{ "GetName", &Function::GetName },
+			{ "GetPriority", &Function::GetPriority },
+			{ "SetPriority", &Function::SetPriority },
+			{},
+		};
+
+		luaL_Reg tMetaTable[] = {
+			{ "__tostring", &Function::Meta_ToString },
+			{ "__gc", &Function::Meta_GC },
+			{},
+		};
+
+		RegisterMethodD(L, LUASTG_LUA_TYPENAME_ARCHIVE, tMethods, tMetaTable);
+	}
+
+	void Archive::CreateAndPush(lua_State* L, core::IFileSystemArchive* const archive)noexcept {
+		Archive::Wrapper* p = static_cast<Archive::Wrapper*>(lua_newuserdata(L, sizeof(Archive::Wrapper))); // udata
+		p->data = archive;
+		if (p->data) {
+			p->data->retain();
+		}
+		luaL_getmetatable(L, LUASTG_LUA_TYPENAME_ARCHIVE); // udata mt
+		lua_setmetatable(L, -2); // udata 
+	}
 }

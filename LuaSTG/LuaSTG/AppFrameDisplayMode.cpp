@@ -2,9 +2,9 @@
 #include "core/Configuration.hpp"
 #include "resource.h"
 
-namespace LuaSTGPlus
+namespace luastg
 {
-	bool AppFrame::SetDisplayModeWindow(Core::Vector2U window_size, bool vsync)
+	bool AppFrame::SetDisplayModeWindow(core::Vector2U window_size, bool vsync)
 	{
 		auto* window = GetAppModel()->getWindow();
 		auto* swapchain = GetAppModel()->getSwapChain();
@@ -18,7 +18,7 @@ namespace LuaSTGPlus
 	}
 
 	// TODO: 废弃
-	bool AppFrame::SetDisplayModeExclusiveFullscreen(Core::Vector2U window_size, bool vsync, Core::Rational)
+	bool AppFrame::SetDisplayModeExclusiveFullscreen(core::Vector2U window_size, bool vsync, core::Rational)
 	{
 		auto* window = GetAppModel()->getWindow();
 		auto* swapchain = GetAppModel()->getSwapChain();
@@ -43,17 +43,17 @@ namespace LuaSTGPlus
 		{
 			auto const& gs = core::ConfigurationLoader::getInstance().getGraphicsSystem();
 			auto const& win = core::ConfigurationLoader::getInstance().getWindow();
-			using namespace Core::Graphics;
+			using namespace core::Graphics;
 			auto* p_window = m_pAppModel->getWindow();
 			p_window->setTitleText(win.hasTitle() ? win.getTitle() : std::string(LUASTG_INFO));
 			p_window->setCursor(win.isCursorVisible() ? WindowCursor::Arrow : WindowCursor::None);
 			p_window->setNativeIcon((void*)(ptrdiff_t)IDI_APPICON);
-			//p_window->setSize(Core::Vector2U(gs.getWidth(), gs.getHeight()));
+			//p_window->setSize(core::Vector2U(gs.getWidth(), gs.getHeight()));
 			//p_window->setCentered(false);
-			//p_window->setFrameStyle(Core::Graphics::WindowFrameStyle::Normal);
+			//p_window->setFrameStyle(core::Graphics::WindowFrameStyle::Normal);
 			p_window->setWindowCornerPreference(win.isAllowWindowCorner());
-			p_window->setLayer(Core::Graphics::WindowLayer::Invisible);
-			p_window->setWindowMode(Core::Vector2U(gs.getWidth(), gs.getHeight()));
+			p_window->setLayer(core::Graphics::WindowLayer::Invisible);
+			p_window->setWindowMode(core::Vector2U(gs.getWidth(), gs.getHeight()));
 		}
 		return true;
 	}
@@ -64,14 +64,14 @@ namespace LuaSTGPlus
 		auto* p_window = m_pAppModel->getWindow();
 		auto* p_swapchain = GetAppModel()->getSwapChain();
 		// 先初始化交换链
-		bool const result = p_swapchain->setWindowMode(Core::Vector2U(gs.getWidth(), gs.getHeight()));
+		bool const result = p_swapchain->setWindowMode(core::Vector2U(gs.getWidth(), gs.getHeight()));
 		if (!result) return false;
 		p_swapchain->setVSync(gs.isVsync());
 		// 先刷新一下画面，避免白屏
 		p_swapchain->clearRenderAttachment();
 		p_swapchain->present();
 		// 显示窗口
-		p_window->setLayer(Core::Graphics::WindowLayer::Top);
+		p_window->setLayer(core::Graphics::WindowLayer::Top);
 		if (gs.isFullscreen()) {
 			p_window->setFullScreenMode();
 		}

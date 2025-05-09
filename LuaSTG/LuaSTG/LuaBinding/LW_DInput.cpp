@@ -2,11 +2,11 @@
 #include "AppFrame.h"
 #include "utf8.hpp"
 
-namespace LuaSTGPlus::LuaWrapper
+namespace luastg::binding
 {
-    void DInputWrapper::Register(lua_State* L)noexcept
+    void DirectInput::Register(lua_State* L)noexcept
     {
-        #define LDI() Platform::DirectInput* self = LuaSTGPlus::AppFrame::GetInstance().GetDInput()
+        #define LDI() auto self = LAPP.GetDInput()
         
         struct Wrapper
         {
@@ -62,7 +62,7 @@ namespace LuaSTGPlus::LuaWrapper
                 if (self)
                 {
                     uint32_t index = (uint32_t)(luaL_checkinteger(L, 1) - 1);
-                    Platform::DirectInput::AxisRange range;
+                    ::Platform::DirectInput::AxisRange range;
                     if (self->getAxisRange(index, &range))
                     {
                         lua_createtable(L, 0, 12);
@@ -85,7 +85,7 @@ namespace LuaSTGPlus::LuaWrapper
                 if (self)
                 {
                     uint32_t index = (uint32_t)(luaL_checkinteger(L, 1) - 1);
-                    Platform::DirectInput::RawState state;
+                    ::Platform::DirectInput::RawState state;
                     if (self->getRawState(index, &state))
                     {
                         lua_createtable(L, 0, 9);
@@ -139,7 +139,7 @@ namespace LuaSTGPlus::LuaWrapper
                 if (self)
                 {
                     uint32_t index = (uint32_t)(luaL_checkinteger(L, 1) - 1);
-                    Platform::DirectInput::State state;
+                    ::Platform::DirectInput::State state;
                     if (self->getState(index, &state))
                     {
                         lua_createtable(L, 0, 7);

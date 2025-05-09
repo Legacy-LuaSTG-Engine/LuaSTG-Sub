@@ -1,7 +1,7 @@
-﻿#pragma once
+#pragma once
 #include <string>
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	std::string GetGameName();
 }

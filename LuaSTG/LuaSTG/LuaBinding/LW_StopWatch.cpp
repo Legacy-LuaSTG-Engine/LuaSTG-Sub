@@ -1,4 +1,4 @@
-﻿#include "LuaBinding/LuaWrapper.hpp"
+#include "LuaBinding/LuaWrapper.hpp"
 #include "Platform/CleanWindows.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -63,9 +63,9 @@ double fcyStopWatch::GetElapsed()
 	return ((double)(t.QuadPart - m_cLast - m_cFixAll)) / ((double)m_cFreq);
 }
 
-namespace LuaSTGPlus::LuaWrapper
+namespace luastg::binding
 {
-	void StopWatchWrapper::Register(lua_State* L)noexcept
+	void StopWatch::Register(lua_State* L)noexcept
 	{
 		struct Function
 		{
@@ -119,7 +119,7 @@ namespace LuaSTGPlus::LuaWrapper
 		RegisterClassIntoTable(L, ".StopWatch", tMethods, LUASTG_LUA_TYPENAME_STOPWATCH, tMetaTable);
 	}
 
-	void StopWatchWrapper::CreateAndPush(lua_State* L)
+	void StopWatch::CreateAndPush(lua_State* L)
 	{
 		fcyStopWatch* p = static_cast<fcyStopWatch*>(lua_newuserdata(L, sizeof(fcyStopWatch))); // udata
 		new(p) fcyStopWatch();

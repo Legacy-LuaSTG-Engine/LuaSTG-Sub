@@ -33,10 +33,11 @@
 #define GLOBAL_SCALE_COLLI_SHAPE
 
 // BAKAESC
-#define USING_MULTI_GAME_WORLD
+//#define USING_MULTI_GAME_WORLD
 
-// allow render a object directly (no render callback)
-#define USING_ADVANCE_GAMEOBJECT_CLASS
+// lstg.GameObject.ps
+// access lstg.GameObject particle system via lstg.ParticleSystem instance
+//#define LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
 
 // ---------- ---------- steam api ---------- ---------- //
 

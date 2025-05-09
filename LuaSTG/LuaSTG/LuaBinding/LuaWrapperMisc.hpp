@@ -1,10 +1,10 @@
-﻿#pragma once
+#pragma once
 #include "GameResource/ResourceBase.hpp"
 #include "GameResource/ResourceFont.hpp"
 #include "GameResource/ResourceParticle.hpp"
 #include "LuaBinding/generated/BlendModeX.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	//注册方法和元方法到名字为name的库和元表中，并保护元表不被修改
 	inline void RegisterMethodD(lua_State* L, const char* name, luaL_Reg* method, luaL_Reg* metamethod)

@@ -1,10 +1,10 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/Sprite.hpp"
 
-namespace Core::Graphics::Common {
+namespace core::Graphics::Common {
 	class Sprite final
-		: public Object<ISprite>
+		: public implement::ReferenceCounted<ISprite>
 	{
 	public:
 		// ISprite
@@ -65,8 +65,8 @@ namespace Core::Graphics::Common {
 		void updateRect();
 
 	private:
-		ScopeObject<IRenderer> m_renderer;
-		ScopeObject<ITexture2D> m_texture;
+		SmartReference<IRenderer> m_renderer;
+		SmartReference<ITexture2D> m_texture;
 		RectF m_rect;
 		RectF m_pos_rc;
 		RectF m_uv;

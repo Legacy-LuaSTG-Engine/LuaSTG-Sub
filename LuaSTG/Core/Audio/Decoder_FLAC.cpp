@@ -1,8 +1,8 @@
-﻿#include "Core/Audio/Decoder_FLAC.hpp"
-#include "Core/FileManager.hpp"
+#include "Core/Audio/Decoder_FLAC.hpp"
+#include "core/FileSystem.hpp"
 #include "utf8.hpp"
 
-namespace Core::Audio
+namespace core::Audio
 {
 	inline Decoder_FLAC& cast(void* client_data) { return *(Decoder_FLAC*)client_data; }
 
@@ -15,7 +15,7 @@ namespace Core::Audio
 		Decoder_FLAC& self = cast(client_data);
 
 		// 看看还剩下多少能读的
-		size_t const valid_size = self.m_data.size() - (self.m_ptr - self.m_data.data());
+		size_t const valid_size = self.m_data->size() - (self.m_ptr - static_cast<uint8_t*>(self.m_data->data()));
 		if (valid_size == 0)
 		{
 			// 寄了
@@ -36,33 +36,33 @@ namespace Core::Audio
 	{
 		Decoder_FLAC& self = cast(client_data);
 		assert(absolute_byte_offset <= UINT32_MAX); // TODO: 谁那么丧心病狂整超过 4GB 的文件呢
-		if (absolute_byte_offset > self.m_data.size())
+		if (absolute_byte_offset > self.m_data->size())
 		{
-			self.m_ptr = self.m_data.data() + self.m_data.size(); // 限制位置
+			self.m_ptr = static_cast<uint8_t*>(self.m_data->data()) + self.m_data->size(); // 限制位置
 			return FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
 		}
 		else
 		{
-			self.m_ptr = self.m_data.data() + absolute_byte_offset;
+			self.m_ptr = static_cast<uint8_t*>(self.m_data->data()) + absolute_byte_offset;
 			return FLAC__STREAM_DECODER_SEEK_STATUS_OK;
 		}
 	}
 	FLAC__StreamDecoderTellStatus Decoder_FLAC::onTell(FLAC__StreamDecoder const*, FLAC__uint64* absolute_byte_offset, void* client_data)
 	{
 		Decoder_FLAC& self = cast(client_data);
-		*absolute_byte_offset = (FLAC__uint64)(self.m_ptr - self.m_data.data());
+		*absolute_byte_offset = (FLAC__uint64)(self.m_ptr - static_cast<uint8_t*>(self.m_data->data()));
 		return FLAC__STREAM_DECODER_TELL_STATUS_OK;
 	}
 	FLAC__StreamDecoderLengthStatus Decoder_FLAC::onGetLength(FLAC__StreamDecoder const*, FLAC__uint64* stream_length, void* client_data)
 	{
 		Decoder_FLAC& self = cast(client_data);
-		*stream_length = self.m_data.size();
+		*stream_length = self.m_data->size();
 		return FLAC__STREAM_DECODER_LENGTH_STATUS_OK;
 	}
 	FLAC__bool Decoder_FLAC::onCheckEOF(FLAC__StreamDecoder const*, void* client_data)
 	{
 		Decoder_FLAC& self = cast(client_data);
-		return (self.m_ptr - self.m_data.data()) >= (ptrdiff_t)self.m_data.size();
+		return (self.m_ptr - static_cast<uint8_t*>(self.m_data->data())) >= (ptrdiff_t)self.m_data->size();
 	}
 
 	// 公共回调
@@ -118,7 +118,7 @@ namespace Core::Audio
 	}
 }
 
-namespace Core::Audio
+namespace core::Audio
 {
 	void Decoder_FLAC::destroyResources()
 	{
@@ -145,7 +145,7 @@ namespace Core::Audio
 			m_file = NULL;
 		}
 		m_ptr = nullptr;
-		m_data.clear();
+		m_data.reset();
 	}
 
 	uint16_t Decoder_FLAC::getSampleSize()
@@ -287,36 +287,36 @@ namespace Core::Audio
 		// 第一步：打开文件/加载文件
 		// WARNING: 记得多测试一下在内存中打开能不能正常读写，行为是不是 libFLAC 期望的
 
-		if (GFileManager().contain(path))
-		{
-			// 存在于文件系统，直接以文件的形式打开，flac 文件的大小也是有点离谱的
-			errno_t const result = _wfopen_s(&m_file, utf8::to_wstring(path).c_str(), L"rb");
-			if (0 != result)
-			{
-				destroyResources();
-				throw std::runtime_error("Decoder_FLAC::Decoder_FLAC (1.1)");
-			}
-		}
-		else if (GFileManager().containEx(path))
+		//if (GFileManager().contain(path))
+		//{
+		//	// 存在于文件系统，直接以文件的形式打开，flac 文件的大小也是有点离谱的
+		//	errno_t const result = _wfopen_s(&m_file, utf8::to_wstring(path).c_str(), L"rb");
+		//	if (0 != result)
+		//	{
+		//		destroyResources();
+		//		throw std::runtime_error("Decoder_FLAC::Decoder_FLAC (1.1)");
+		//	}
+		//}
+		//else if (GFileManager().containEx(path))
 		{
 			// 在压缩包里的文件，只能读取到内存了
-			if (!GFileManager().loadEx(path, m_data))
+			if (!FileSystemManager::readFile(path, m_data.put()))
 			{
 				destroyResources();
 				throw std::runtime_error("Decoder_FLAC::Decoder_FLAC (1.2)");
 			}
-			m_ptr = m_data.data(); // 先到文件头
+			m_ptr = static_cast<uint8_t*>(m_data->data()); // 先到文件头
 		}
-		else
-		{
-			destroyResources();
-			throw std::runtime_error("Decoder_FLAC::Decoder_FLAC (1.3)");
-		}
+		//else
+		//{
+		//	destroyResources();
+		//	throw std::runtime_error("Decoder_FLAC::Decoder_FLAC (1.3)");
+		//}
 
 		// 第二步：创建解码器
 
 		m_flac = FLAC__stream_decoder_new();
-		if (NULL == m_flac)
+		if (nullptr == m_flac)
 		{
 			destroyResources();
 			throw std::runtime_error("Decoder_FLAC::Decoder_FLAC (2.1)");
@@ -356,7 +356,7 @@ namespace Core::Audio
 			if (FLAC__STREAM_DECODER_INIT_STATUS_OK != flac_init)
 			{
 				// 容器或者格式不对？
-				m_ptr = m_data.data(); // 先回到文件头
+				m_ptr = static_cast<uint8_t*>(m_data->data()); // 先回到文件头
 				flac_init = FLAC__stream_decoder_init_ogg_stream(m_flac, &onRead, &onSeek, &onTell, &onGetLength, onCheckEOF, &onWrite, &onMetadata, &onError, this);
 			}
 			if (FLAC__STREAM_DECODER_INIT_STATUS_OK != flac_init)

@@ -23,9 +23,9 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/public/steam AND EXISTS 
             IMPORTED_IMPLIB             ${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin/steam_api.lib
         )
     endif()
-    message("Find Steamworks SDK")
+    message(STATUS "Steamworks SDK (present)")
 else()
-    message("Steamworks SDK doesn't exist")
+    message(STATUS "Steamworks SDK (not exist)")
 endif()
 
 # binding
@@ -61,12 +61,12 @@ if((LINK_STEAM_API OR LUASTG_LINK_STEAM_API) AND (TARGET steam_api)) # LINK_STEA
     target_link_libraries(lua_steam_api PUBLIC
         steam_api
     )
-    message("Link Steamworks SDK")
+    message(STATUS "-- link Steamworks SDK")
 else()
     target_sources(lua_steam_api PRIVATE
         binding/lua_steam_empty.cpp
     )
-    message("Ignore Steamworks SDK")
+    message(STATUS "-- ignore Steamworks SDK")
 endif()
 target_link_libraries(lua_steam_api PUBLIC
     lua51_static

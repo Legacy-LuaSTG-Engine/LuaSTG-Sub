@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../../doc"
+		}
+	],
+	"settings": {
+		"Lua.runtime.version": "LuaJIT"
+	}
+}

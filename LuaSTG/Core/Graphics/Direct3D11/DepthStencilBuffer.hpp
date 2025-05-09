@@ -1,13 +1,13 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/Device.hpp"
 
 // DepthStencilBuffer
-namespace Core::Graphics::Direct3D11 {
+namespace core::Graphics::Direct3D11 {
 	class Device;
 
 	class DepthStencilBuffer final
-		: public Object<IDepthStencilBuffer>
+		: public implement::ReferenceCounted<IDepthStencilBuffer>
 		, public IDeviceEventListener {
 	public:
 		// IDeviceEventListener
@@ -37,7 +37,7 @@ namespace Core::Graphics::Direct3D11 {
 		bool createResource();
 
 	private:
-		ScopeObject<Device> m_device;
+		SmartReference<Device> m_device;
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> m_texture;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_view;
 		Vector2U m_size{};

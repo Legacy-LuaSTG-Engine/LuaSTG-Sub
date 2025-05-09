@@ -1,13 +1,13 @@
 #include "GameResource/Implement/ResourceTextureImpl.hpp"
 #include "AppFrame.h"
 
-namespace LuaSTGPlus
+namespace luastg
 {
-	bool ResourceTextureImpl::ResizeRenderTarget(Core::Vector2U size)
+	bool ResourceTextureImpl::ResizeRenderTarget(core::Vector2U size)
 	{
 		if (!m_rt)
 		{
-			if (!LAPP.GetAppModel()->getDevice()->createRenderTarget(size, ~m_rt))
+			if (!LAPP.GetAppModel()->getDevice()->createRenderTarget(size, m_rt.put()))
 			{
 				return false;
 			}
@@ -25,7 +25,7 @@ namespace LuaSTGPlus
 		{
 			if (!m_ds)
 			{
-				if (!LAPP.GetAppModel()->getDevice()->createDepthStencilBuffer(size, ~m_ds))
+				if (!LAPP.GetAppModel()->getDevice()->createDepthStencilBuffer(size, m_ds.put()))
 				{
 					return false;
 				}
@@ -42,7 +42,7 @@ namespace LuaSTGPlus
 		return true;
 	}
 
-	ResourceTextureImpl::ResourceTextureImpl(const char* name, Core::Graphics::ITexture2D* p_texture)
+	ResourceTextureImpl::ResourceTextureImpl(const char* name, core::Graphics::ITexture2D* p_texture)
 		: ResourceBaseImpl(ResourceType::Texture, name)
 		, m_texture(p_texture)
 		, m_is_rendertarget(false)
@@ -57,7 +57,7 @@ namespace LuaSTGPlus
 		, m_is_auto_resize(false)
 		, m_enable_depthbuffer(ds)
 	{
-		auto const size = Core::Vector2U((uint32_t)w, (uint32_t)h);
+		auto const size = core::Vector2U((uint32_t)w, (uint32_t)h);
 		if (!ResizeRenderTarget(size))
 		{
 			throw std::runtime_error("ResTexture::ResTexture createRenderTarget");

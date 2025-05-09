@@ -1,18 +1,18 @@
 #include "GameResource/Implement/ResourceFontImpl.hpp"
-#include "Core/FileManager.hpp"
+#include "core/FileSystem.hpp"
 #include "utility/utf.hpp"
 #include "pugixml.hpp"
 #include "AppFrame.h"
 #include "utf8.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	class hgeFont
-		: public Core::Object<Core::Graphics::IGlyphManager>
+		: public core::implement::ReferenceCounted<core::Graphics::IGlyphManager>
 	{
 	private:
-		Core::ScopeObject<Core::Graphics::ITexture2D> m_texture;
-		std::unordered_map<uint32_t, Core::Graphics::GlyphInfo> m_map;
+		core::SmartReference<core::Graphics::ITexture2D> m_texture;
+		std::unordered_map<uint32_t, core::Graphics::GlyphInfo> m_map;
 		float m_line_height;
 
 	private:
@@ -234,16 +234,16 @@ namespace LuaSTGPlus
 						continue;
 					}
 					// 转换为字形数据
-					Core::Graphics::GlyphInfo const glyph_info = {
+					core::Graphics::GlyphInfo const glyph_info = {
 						.texture_index = 0,
-						.texture_rect = Core::RectF(
+						.texture_rect = core::RectF(
 							char_data.x,
 							char_data.y,
 							char_data.x + char_data.w,
 							char_data.y + char_data.h),
-						.size = Core::Vector2F(char_data.w, char_data.h),
-						.position = Core::Vector2F(char_data.left_offset, char_data.h),
-						.advance = Core::Vector2F(char_data.w + char_data.left_offset + char_data.right_offset, 0),
+						.size = core::Vector2F(char_data.w, char_data.h),
+						.position = core::Vector2F(char_data.left_offset, char_data.h),
+						.advance = core::Vector2F(char_data.w + char_data.left_offset + char_data.right_offset, 0),
 					};
 					m_map.emplace((uint32_t)char_data.code, glyph_info);
 				}
@@ -262,7 +262,7 @@ namespace LuaSTGPlus
 		float getDescender() { return 0.0f; }
 
 		uint32_t getTextureCount() { return 1; }
-		Core::Graphics::ITexture2D* getTexture(uint32_t index)
+		core::Graphics::ITexture2D* getTexture(uint32_t index)
 		{
 			if (index == 0)
 			{
@@ -272,10 +272,10 @@ namespace LuaSTGPlus
 		}
 
 		bool cacheGlyph(uint32_t) { return true; }
-		bool cacheString(Core::StringView) { return true; }
+		bool cacheString(core::StringView) { return true; }
 		bool flush() { return true; }
 
-		bool getGlyph(uint32_t codepoint, Core::Graphics::GlyphInfo* p_ref_info, bool)
+		bool getGlyph(uint32_t codepoint, core::Graphics::GlyphInfo* p_ref_info, bool)
 		{
 			auto it = m_map.find(codepoint);
 			if (it != m_map.end())
@@ -291,15 +291,15 @@ namespace LuaSTGPlus
 			: m_line_height(0.0f)
 		{
 			// 打开 HGE 字体定义文件
-			std::vector<uint8_t> src;
-			if (!GFileManager().loadEx(path, src))
+			core::SmartReference<core::IData> src;
+			if (!core::FileSystemManager::readFile(path, src.put()))
 			{
 				spdlog::error("[luastg] 加载 HGE 纹理字体失败，无法加载字体定义文件 '{}'", path);
 				throw std::runtime_error("hgeFont::hgeFont");
 			}
 
 			// 解析
-			std::string_view font_define((char*)src.data(), src.size());
+			std::string_view font_define((char*)src->data(), src->size());
 			std::string_view texture;
 			if (!readDefine(path, font_define, texture))
 			{
@@ -307,9 +307,9 @@ namespace LuaSTGPlus
 			}
 
 			// 加载纹理
-			if (GFileManager().containEx(texture))
+			if (core::FileSystemManager::hasFile(texture))
 			{
-				if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(texture, mipmap, ~m_texture))
+				if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(texture, mipmap, m_texture.put()))
 				{
 					spdlog::error("[luastg] 加载 HGE 纹理字体失败，无法加载纹理 '{}'", texture);
 					throw std::runtime_error("hgeFont::hgeFont");
@@ -322,7 +322,7 @@ namespace LuaSTGPlus
 				wide_path.remove_filename();
 				wide_path /= utf8::to_wstring(texture);
 				std::string texture_path(utf8::to_string(wide_path.wstring()));
-				if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(texture_path, mipmap, ~m_texture))
+				if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(texture_path, mipmap, m_texture.put()))
 				{
 					spdlog::error("[luastg] 加载 HGE 纹理字体失败，无法加载纹理 '{}'", texture_path);
 					throw std::runtime_error("hgeFont::hgeFont");
@@ -347,19 +347,19 @@ namespace LuaSTGPlus
 	};
 
 	class f2dFont
-		: public Core::Object<Core::Graphics::IGlyphManager>
+		: public core::implement::ReferenceCounted<core::Graphics::IGlyphManager>
 	{
 	private:
-		Core::ScopeObject<Core::Graphics::ITexture2D> m_texture;
-		std::unordered_map<uint32_t, Core::Graphics::GlyphInfo> m_map;
+		core::SmartReference<core::Graphics::ITexture2D> m_texture;
+		std::unordered_map<uint32_t, core::Graphics::GlyphInfo> m_map;
 		float m_line_height;
 		float m_ascender;
 		float m_descender;
 
 	private:
-		Core::Vector2F readVec2Str(std::string const& Str)
+		core::Vector2F readVec2Str(std::string const& Str)
 		{
-			Core::Vector2F tRet;
+			core::Vector2F tRet;
 			size_t const sep = Str.find_first_of(',');
 			if (Str.empty() || sep == std::string::npos)
 				throw std::runtime_error("invalid f2dTexturedFont Measure vec2");
@@ -404,19 +404,19 @@ namespace LuaSTGPlus
 					throw std::runtime_error("invalid char");
 				}
 
-				Core::Vector2F const Advance = readVec2Str(item.attribute("Advance").as_string());
-				Core::Vector2F const BrushPos = readVec2Str(item.attribute("BrushPos").as_string());
-				Core::Vector2F const GlyphSize = readVec2Str(item.attribute("Size").as_string());
-				Core::Vector2F GlyphPosA = readVec2Str(item.attribute("Pos").as_string());
-				Core::Vector2F GlyphPosB = GlyphPosA + readVec2Str(item.attribute("Size").as_string());
+				core::Vector2F const Advance = readVec2Str(item.attribute("Advance").as_string());
+				core::Vector2F const BrushPos = readVec2Str(item.attribute("BrushPos").as_string());
+				core::Vector2F const GlyphSize = readVec2Str(item.attribute("Size").as_string());
+				core::Vector2F GlyphPosA = readVec2Str(item.attribute("Pos").as_string());
+				core::Vector2F GlyphPosB = GlyphPosA + readVec2Str(item.attribute("Size").as_string());
 				GlyphPosA.x *= u_scale;
 				GlyphPosB.x *= u_scale;
 				GlyphPosA.y *= v_scale;
 				GlyphPosB.y *= v_scale;
 
-				Core::Graphics::GlyphInfo const glyph_info = {
+				core::Graphics::GlyphInfo const glyph_info = {
 					.texture_index = 0,
-					.texture_rect = Core::RectF(GlyphPosA, GlyphPosB),
+					.texture_rect = core::RectF(GlyphPosA, GlyphPosB),
 					.size = GlyphSize,
 					.position = BrushPos,
 					.advance = Advance,
@@ -431,7 +431,7 @@ namespace LuaSTGPlus
 		float getDescender() { return m_descender; }
 
 		uint32_t getTextureCount() { return 1; }
-		Core::Graphics::ITexture2D* getTexture(uint32_t index)
+		core::Graphics::ITexture2D* getTexture(uint32_t index)
 		{
 			if (index == 0)
 			{
@@ -441,10 +441,10 @@ namespace LuaSTGPlus
 		}
 
 		bool cacheGlyph(uint32_t) { return true; }
-		bool cacheString(Core::StringView) { return true; }
+		bool cacheString(core::StringView) { return true; }
 		bool flush() { return true; }
 
-		bool getGlyph(uint32_t codepoint, Core::Graphics::GlyphInfo* p_ref_info, bool)
+		bool getGlyph(uint32_t codepoint, core::Graphics::GlyphInfo* p_ref_info, bool)
 		{
 			auto it = m_map.find(codepoint);
 			if (it != m_map.end())
@@ -462,17 +462,17 @@ namespace LuaSTGPlus
 			, m_descender(0.0f)
 		{
 			// 打开 fancy2d 字体定义文件
-			std::vector<uint8_t> src;
-			if (!GFileManager().loadEx(path, src))
+			core::SmartReference<core::IData> src;
+			if (!core::FileSystemManager::readFile(path, src.put()))
 			{
 				spdlog::error("[luastg] 加载 fancy2d 纹理字体失败，无法加载字体定义文件 '{}'", path);
 				throw std::runtime_error("f2dFont::f2dFont");
 			}
 
 			// 加载纹理
-			if (GFileManager().containEx(raw_texture_path))
+			if (core::FileSystemManager::hasFile(raw_texture_path))
 			{
-				if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(raw_texture_path, mipmap, ~m_texture))
+				if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(raw_texture_path, mipmap, m_texture.put()))
 				{
 					spdlog::error("[luastg] 加载 fancy2d 纹理字体失败，无法加载纹理 '{}'", raw_texture_path);
 					throw std::runtime_error("f2dFont::f2dFont");
@@ -485,7 +485,7 @@ namespace LuaSTGPlus
 				wide_path.remove_filename();
 				wide_path /= utf8::to_wstring(raw_texture_path);
 				std::string texture_path(utf8::to_string(wide_path.wstring()));
-				if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(texture_path, mipmap, ~m_texture))
+				if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(texture_path, mipmap, m_texture.put()))
 				{
 					spdlog::error("[luastg] 加载 fancy2d 纹理字体失败，无法加载纹理 '{}'", texture_path);
 					throw std::runtime_error("f2dFont::f2dFont");
@@ -494,7 +494,7 @@ namespace LuaSTGPlus
 
 			// 解析
 			pugi::xml_document doc;
-			pugi::xml_parse_result result = doc.load_buffer(src.data(), src.size());
+			pugi::xml_parse_result result = doc.load_buffer(src->data(), src->size());
 			if (!result)
 			{
 				spdlog::error("[luastg] 加载 fancy2d 纹理字体失败，无法解析字体定义文件 '{}' ({})", path, result.description());
@@ -510,22 +510,22 @@ namespace LuaSTGPlus
 	ResourceFontImpl::ResourceFontImpl(const char* name, std::string_view hge_path, bool mipmap)
 		: ResourceBaseImpl(ResourceType::SpriteFont, name)
 		, m_BlendMode(BlendMode::MulAlpha)
-		, m_BlendColor(Core::Color4B(0xFFFFFFFFu))
+		, m_BlendColor(core::Color4B(0xFFFFFFFFu))
 	{
 		m_glyphmgr.attach(new hgeFont(hge_path, mipmap));
 	}
 	ResourceFontImpl::ResourceFontImpl(const char* name, std::string_view f2d_path, std::string_view tex_path, bool mipmap)
 		: ResourceBaseImpl(ResourceType::SpriteFont, name)
 		, m_BlendMode(BlendMode::MulAlpha)
-		, m_BlendColor(Core::Color4B(0xFFFFFFFFu))
+		, m_BlendColor(core::Color4B(0xFFFFFFFFu))
 	{
 		m_glyphmgr.attach(new f2dFont(f2d_path, tex_path, mipmap));
 	}
-	ResourceFontImpl::ResourceFontImpl(const char* name, Core::Graphics::IGlyphManager* p_mgr)
+	ResourceFontImpl::ResourceFontImpl(const char* name, core::Graphics::IGlyphManager* p_mgr)
 		: ResourceBaseImpl(ResourceType::SpriteFont, name)
 		, m_glyphmgr(p_mgr)
 		, m_BlendMode(BlendMode::MulAlpha)
-		, m_BlendColor(Core::Color4B(0xFFFFFFFFu))
+		, m_BlendColor(core::Color4B(0xFFFFFFFFu))
 	{
 	}
 }

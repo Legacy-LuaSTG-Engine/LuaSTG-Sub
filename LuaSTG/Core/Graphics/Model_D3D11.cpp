@@ -1,5 +1,5 @@
 #include "Core/Graphics/Model_D3D11.hpp"
-#include "Core/FileManager.hpp"
+#include "core/FileSystem.hpp"
 
 #define IDX(x) (size_t)static_cast<uint8_t>(x)
 
@@ -15,7 +15,7 @@ namespace DirectX
     }
 }
 
-namespace Core::Graphics
+namespace core::Graphics
 {
     bool ModelSharedComponent_D3D11::createImage()
     {
@@ -432,7 +432,7 @@ namespace Core::Graphics
     }
 }
 
-namespace Core::Graphics
+namespace core::Graphics
 {
     static void map_sampler_to_d3d11(tinygltf::Sampler& samp, D3D11_SAMPLER_DESC& desc)
     {
@@ -1068,28 +1068,25 @@ namespace Core::Graphics
         {
             static bool FileExists(const std::string& abs_filename, void*)
             {
-                return GFileManager().containEx(abs_filename);
+                return FileSystemManager::hasFile(abs_filename);
             }
             static bool ReadWholeFile(std::vector<unsigned char>* out, std::string* err, const std::string& filepath, void*)
             {
-                if (!GFileManager().loadEx(filepath, *out))
-                {
-                    if (err)
-                    {
+                // TODO: no copy x2
+                SmartReference<IData> data;
+                if (!FileSystemManager::readFile(filepath, data.put())) {
+                    if (err) {
                         (*err) += "File load error : " + filepath + "\n";
                     }
+                    return false;
                 }
+                out->resize(data->size());
+                std::memcpy(out->data(), data->data(), data->size());
                 return true;
             }
             static bool GetFileSizeInBytes(size_t* filesize_out, [[maybe_unused]] std::string* err, const std::string& abs_filename, void*) {
-                auto const file_size = GFileManager().getSizeEx(abs_filename);
-                if (file_size == size_t(-1)) {
-                    *filesize_out = file_size;
-                    return true;
-                } else {
-                    *filesize_out = 0;
-                    return false;
-                }
+                *filesize_out = FileSystemManager::getFileSize(abs_filename);
+                return *filesize_out > 0;
             }
         };
         tinygltf::FsCallbacks fs_cb = {
@@ -1098,7 +1095,7 @@ namespace Core::Graphics
             .ReadWholeFile = &FileSystemWrapper::ReadWholeFile,
             .WriteWholeFile = &tinygltf::WriteWholeFile,
             .GetFileSizeInBytes = &FileSystemWrapper::GetFileSizeInBytes,
-            .user_data = &GFileManager(),
+            .user_data = nullptr,
         };
         tinygltf::TinyGLTF gltf_ctx;
         gltf_ctx.SetStoreOriginalJSONForExtrasAndExtensions(true);

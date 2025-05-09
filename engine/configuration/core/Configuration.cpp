@@ -114,7 +114,7 @@ namespace core {
 		return true;
 	}
 
-	static std::string_view const getTypeName(nlohmann::json const& json) {
+	static std::string_view getTypeName(nlohmann::json const& json) {
 		if (json.is_object()) {
 			return "object"sv;
 		}
@@ -479,20 +479,76 @@ namespace core {
 				}
 			}
 
+			// compatibility
+			// - debug
+			if (root.contains("debug_track_window_focus"sv)) {
+				auto const& debug_track_window_focus = root.at("debug_track_window_focus"sv);
+				assert_type_is_boolean(debug_track_window_focus, "/debug_track_window_focus"sv);
+				loader.debug.setTrackWindowFocus(debug_track_window_focus.get<bool>());
+			}
+			// - application
+			if (root.contains("single_application_instance"sv)) {
+				auto const& single_application_instance = root.at("single_application_instance"sv);
+				assert_type_is_boolean(single_application_instance, "/single_application_instance"sv);
+				loader.application.setSingleInstance(single_application_instance.get<bool>());
+			}
+			if (root.contains("application_instance_id"sv)) {
+				auto const& application_instance_id = root.at("application_instance_id"sv);
+				assert_type_is_string(application_instance_id, "/application_instance_id"sv);
+				loader.application.setUuid(application_instance_id.get<std::string_view>());
+			}
+			// - logging
+			// - - file
+			if (root.contains("log_file_enable"sv)) {
+				auto const& log_file_enable = root.at("log_file_enable"sv);
+				assert_type_is_boolean(log_file_enable, "/log_file_enable"sv);
+				loader.logging.file.setEnable(log_file_enable.get<bool>());
+			}
+			if (root.contains("log_file_path"sv)) {
+				auto const& log_file_path = root.at("log_file_path"sv);
+				assert_type_is_string(log_file_path, "/log_file_path"sv);
+				loader.logging.file.setPath(log_file_path.get<std::string_view>());
+			}
+			// - - rolling_file
+			if (root.contains("persistent_log_file_enable"sv)) {
+				auto const& persistent_log_file_enable = root.at("persistent_log_file_enable"sv);
+				assert_type_is_boolean(persistent_log_file_enable, "/persistent_log_file_enable"sv);
+				loader.logging.rolling_file.setEnable(persistent_log_file_enable.get<bool>());
+			}
+			if (root.contains("persistent_log_file_directory"sv)) {
+				auto const& persistent_log_file_directory = root.at("persistent_log_file_directory"sv);
+				assert_type_is_string(persistent_log_file_directory, "/persistent_log_file_directory"sv);
+				loader.logging.rolling_file.setPath(persistent_log_file_directory.get<std::string_view>());
+			}
+			if (root.contains("persistent_log_file_max_count"sv)) {
+				auto const& persistent_log_file_max_count = root.at("persistent_log_file_max_count"sv);
+				assert_type_is_unsigned_integer(persistent_log_file_max_count, "/persistent_log_file_max_count"sv);
+				loader.logging.rolling_file.setMaxHistory(persistent_log_file_max_count.get<uint32_t>());
+			}
+			// - file_system
+			if (root.contains("engine_cache_directory"sv)) {
+				auto const& engine_cache_directory = root.at("engine_cache_directory"sv);
+				assert_type_is_string(engine_cache_directory, "/engine_cache_directory"sv);
+				loader.file_system.setUser(engine_cache_directory.get<std::string_view>());
+			}
+
 			return true;
 		}
 		static bool load(ConfigurationLoader& loader, std::vector<Include>* include_out, std::string_view const& path) {
 			std::string json_text;
 			if (!readTextFile(path, json_text)) {
+				loader.messages.emplace_back(std::format("read file '{}' failed"sv, path));
 				return false;
 			}
 
-			auto const root = nlohmann::json::parse(json_text, nullptr, false);
-			if (root.is_discarded()) {
+			try {
+				auto const root = nlohmann::json::parse(json_text);
+				return merge(loader, include_out, root);
+			}
+			catch (std::exception const& e) {
+				loader.messages.emplace_back(std::format("parse config file '{}' failed: {}"sv, path, e.what()));
 				return false;
 			}
-
-			return merge(loader, include_out, root);
 		}
 	};
 
@@ -543,8 +599,8 @@ namespace core {
 
 		return true;
 	}
-	
-	std::string ConfigurationLoader::getFormattedMessage() {
+
+	std::string ConfigurationLoader::getFormattedMessage() const {
 		std::string message;
 		if (!messages.empty()) {
 			for (auto const& s : messages) {
@@ -560,7 +616,7 @@ namespace core {
 
 	bool ConfigurationLoader::exists(std::string_view const& path) {
 		std::error_code ec;
-		std::filesystem::path fs_path(to_u8string_view(path));
+		std::filesystem::path const fs_path(to_u8string_view(path));
 		return std::filesystem::is_regular_file(fs_path, ec);
 	}
 

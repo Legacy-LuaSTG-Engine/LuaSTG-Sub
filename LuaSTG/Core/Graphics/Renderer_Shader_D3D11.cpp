@@ -1,5 +1,5 @@
-﻿#include "Core/Graphics/Renderer_D3D11.hpp"
-#include "Core/FileManager.hpp"
+#include "Core/Graphics/Renderer_D3D11.hpp"
+#include "core/FileSystem.hpp"
 #include "Platform/RuntimeLoader/Direct3DCompiler.hpp"
 
 #include "luastg/sub/renderer/vertex_shader_def_none.hpp"
@@ -54,16 +54,17 @@ public:
 	{
 		UNREFERENCED_PARAMETER(IncludeType); // 我们不关心它是从哪里包含的
 		UNREFERENCED_PARAMETER(pParentData);
-		std::vector<uint8_t> data;
-		if (!GFileManager().loadEx(pFileName, data))
+		core::SmartReference<core::IData> data;
+		if (!core::FileSystemManager::readFile(pFileName, data.put()))
 		{
 			return HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND);
 		}
-		void* buffer = malloc(data.size());
+		void* buffer = malloc(data->size());
 		if (!buffer) return HRESULT_FROM_WIN32(ERROR_NOT_ENOUGH_MEMORY);
-		memcpy(buffer, data.data(), data.size());
+		// TODO: no copy x2
+		memcpy(buffer, data->data(), data->size());
 		*ppData = buffer;
-		*pBytes = static_cast<UINT>(data.size());
+		*pBytes = static_cast<UINT>(data->size());
 		return S_OK;
 	}
 	COM_DECLSPEC_NOTHROW HRESULT WINAPI Close(LPCVOID pData)
@@ -77,7 +78,7 @@ public:
 static D3DIncludeImpl g_include_loader;
 static Platform::RuntimeLoader::Direct3DCompiler g_d3dcompiler_loader;
 
-namespace Core::Graphics
+namespace core::Graphics
 {
 	static bool compileShaderMacro(char const* name, void const* data, size_t size, char const* target, const D3D_SHADER_MACRO* defs, ID3DBlob** ppBlob)
 	{
@@ -111,20 +112,20 @@ namespace Core::Graphics
 		{
 			if (is_path)
 			{
-				std::vector<uint8_t> src;
-				if (!GFileManager().loadEx(source, src))
+				SmartReference<IData> src;
+				if (!FileSystemManager::readFile(source, src.put()))
 					return false;
-				if (!compilePixelShaderMacro11(source.c_str(), src.data(), src.size(), NULL, &d3d_ps_blob))
+				if (!compilePixelShaderMacro11(source.c_str(), src->data(), src->size(), nullptr, &d3d_ps_blob))
 					return false;
 			}
 			else
 			{
-				if (!compilePixelShaderMacro11(source.c_str(), source.data(), source.size(), NULL, &d3d_ps_blob))
+				if (!compilePixelShaderMacro11(source.c_str(), source.data(), source.size(), nullptr, &d3d_ps_blob))
 					return false;
 			}
 		}
 		assert(m_device->GetD3D11Device());
-		HRESULT hr = gHR = m_device->GetD3D11Device()->CreatePixelShader(d3d_ps_blob->GetBufferPointer(), d3d_ps_blob->GetBufferSize(), NULL, &d3d11_ps);
+		HRESULT hr = gHR = m_device->GetD3D11Device()->CreatePixelShader(d3d_ps_blob->GetBufferPointer(), d3d_ps_blob->GetBufferSize(), nullptr, &d3d11_ps);
 		if (FAILED(hr))
 			return false;
 		M_D3D_SET_DEBUG_NAME_SIMPLE(d3d11_ps.Get());

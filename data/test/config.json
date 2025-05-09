@@ -1,0 +1,20 @@
+{
+    "file_system": {
+        "resources": [
+            {
+                "name": "sample-scripts",
+                "type": "directory",
+                "path": "../example/scripts/"
+            },
+            {
+                "name": "scripts",
+                "type": "directory",
+                "path": "scripts/"
+            }
+        ],
+        "user": "userdata/"
+    },
+    "graphics_system": {
+        "allow_software_device": true
+    }
+}

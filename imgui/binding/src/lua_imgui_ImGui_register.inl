@@ -170,6 +170,7 @@ static const luaL_Reg lib_fun[] = {
     
     // Widgets: Images
     MAKEF(Image),
+    MAKEF(ImageWithBg),
     MAKEF(ImageButton),
 
     // Widgets: Combo Box (Dropdown)
@@ -433,6 +434,7 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(IsMouseClicked),
     MAKEF(IsMouseReleased),
     MAKEF(IsMouseDoubleClicked),
+    MAKEF(IsMouseReleasedWithDelay),
     MAKEF(GetMouseClickedCount),
     MAKEF(IsMouseHoveringRect),
     MAKEF(IsMousePosValid),

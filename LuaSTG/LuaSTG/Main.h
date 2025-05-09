@@ -1,5 +1,5 @@
 #pragma once
 
-namespace luastg::sub {
+namespace luastg {
 	int main();
 }

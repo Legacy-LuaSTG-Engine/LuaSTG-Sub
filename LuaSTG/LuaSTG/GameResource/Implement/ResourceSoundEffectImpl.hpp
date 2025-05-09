@@ -3,7 +3,7 @@
 #include "GameResource/Implement/ResourceBaseImpl.hpp"
 #include "Core/Audio/Device.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	class ResourceSoundEffectImpl : public ResourceBaseImpl<IResourceSoundEffect>
 	{
@@ -23,7 +23,7 @@ namespace LuaSTGPlus
 			float pan = 0.0f;
 		};
 	private:
-		Core::ScopeObject<Core::Audio::IAudioPlayer> m_player;
+		core::SmartReference<core::Audio::IAudioPlayer> m_player;
 		int m_status = 0; // 0停止 1暂停 2播放
 		Command m_last_command;
 	public:
@@ -38,6 +38,6 @@ namespace LuaSTGPlus
 		float GetSpeed();
 
 	public:
-		ResourceSoundEffectImpl(const char* name, Core::Audio::IAudioPlayer* p_player);
+		ResourceSoundEffectImpl(const char* name, core::Audio::IAudioPlayer* p_player);
 	};
 }

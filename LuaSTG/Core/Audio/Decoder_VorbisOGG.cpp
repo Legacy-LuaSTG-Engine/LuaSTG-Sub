@@ -1,7 +1,7 @@
-﻿#include "Core/Audio/Decoder_VorbisOGG.hpp"
-#include "Core/FileManager.hpp"
+#include "Core/Audio/Decoder_VorbisOGG.hpp"
+#include "core/FileSystem.hpp"
 
-namespace Core::Audio
+namespace core::Audio
 {
 	inline Decoder_VorbisOGG::OggVorbis_Stream* _cast(void* datasource) { return (Decoder_VorbisOGG::OggVorbis_Stream*)datasource; }
 
@@ -105,7 +105,7 @@ namespace Core::Audio
 			m_init = false;
 			ov_clear(&m_ogg);
 		}
-		m_data.clear();
+		m_data.reset();
 	}
 
 	uint16_t Decoder_VorbisOGG::getChannelCount()
@@ -204,15 +204,15 @@ namespace Core::Audio
 		, m_init(false)
 	{
 		// OGG 直接读取进内存，加快解码
-		if (!GFileManager().loadEx(path, m_data))
+		if (!FileSystemManager::readFile(path, m_data.put()))
 		{
 			destroyResources();
 			throw std::runtime_error("Decoder_VorbisOGG::Decoder_VorbisOGG (1)");
 		}
 
-		m_stream.data = m_data.data();
-		m_stream.size = m_data.size();
-		m_stream.ptr = m_data.data();
+		m_stream.data = static_cast<uint8_t*>(m_data->data());
+		m_stream.size = m_data->size();
+		m_stream.ptr = static_cast<uint8_t*>(m_data->data());
 
 		ov_callbacks callbacks = {
 			&OggVorbis_Stream::read,

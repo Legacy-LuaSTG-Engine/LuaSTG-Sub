@@ -1,12 +1,12 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/SwapChain.hpp"
 #include "Core/Graphics/Window_Win32.hpp"
 #include "Core/Graphics/Direct3D11/Device.hpp"
 #include "Core/Graphics/Direct3D11/LetterBoxingRenderer.hpp"
 #include "Platform/RuntimeLoader/DirectComposition.hpp"
 
-namespace Core::Graphics
+namespace core::Graphics
 {
 	class SecondarySwapChain {
 	private:
@@ -34,13 +34,13 @@ namespace Core::Graphics
 	};
 
 	class SwapChain_D3D11
-		: public Object<ISwapChain>
+		: public implement::ReferenceCounted<ISwapChain>
 		, public IWindowEventListener
 		, public IDeviceEventListener
 	{
 	private:
-		ScopeObject<Window_Win32> m_window;
-		ScopeObject<Direct3D11::Device> m_device;
+		SmartReference<Window_Win32> m_window;
+		SmartReference<Direct3D11::Device> m_device;
 		Direct3D11::LetterBoxingRenderer m_scaling_renderer;
 
 		Microsoft::WRL::Wrappers::Event dxgi_swapchain_event;
@@ -69,7 +69,7 @@ namespace Core::Graphics
 		void onWindowDestroy();
 		void onWindowActive();
 		void onWindowInactive();
-		void onWindowSize(Core::Vector2U size);
+		void onWindowSize(core::Vector2U size);
 		void onWindowFullscreenStateChange(bool state);
 
 	private:

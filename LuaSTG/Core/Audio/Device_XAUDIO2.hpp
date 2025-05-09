@@ -1,9 +1,10 @@
 ﻿#pragma once
-#include "Core/Object.hpp"
+#include "core/ReferenceCounted.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Audio/Device.hpp"
 #include "Platform/RuntimeLoader/XAudio2.hpp"
 
-namespace Core::Audio
+namespace core::Audio
 {
 	struct IAudioDeviceEventListener
 	{
@@ -11,7 +12,7 @@ namespace Core::Audio
 		virtual void onAudioDeviceDestroy() = 0;
 	};
 
-	class Shared_XAUDIO2 : public Object<IObject>
+	class Shared_XAUDIO2 : public implement::ReferenceCounted<IReferenceCounted>
 	{
 	public:
 		Platform::RuntimeLoader::XAudio2 loader;
@@ -24,7 +25,7 @@ namespace Core::Audio
 		~Shared_XAUDIO2();
 	};
 
-	class Device_XAUDIO2 : public Object<IAudioDevice>
+	class Device_XAUDIO2 : public implement::ReferenceCounted<IAudioDevice>
 	{
 	private:
 		std::unordered_set<IAudioDeviceEventListener*> m_listener;
@@ -52,7 +53,7 @@ namespace Core::Audio
 		std::string_view getCurrentAudioDeviceName() const noexcept { return m_current_audio_device_name; }
 
 	private:
-		ScopeObject<Shared_XAUDIO2> m_shared;
+		SmartReference<Shared_XAUDIO2> m_shared;
 		float m_volume_direct = 1.0f;
 		float m_volume_sound_effect = 1.0f;
 		float m_volume_music = 1.0f;
@@ -91,15 +92,15 @@ namespace Core::Audio
 	};
 
 	class AudioPlayer_XAUDIO2
-		: public Object<IAudioPlayer>
+		: public implement::ReferenceCounted<IAudioPlayer>
 		, public XAudio2VoiceCallbackPlaceholder
 		, public IAudioDeviceEventListener
 	{
 	private:
-		ScopeObject<Device_XAUDIO2> m_device;
-		ScopeObject<Shared_XAUDIO2> m_shared;
+		SmartReference<Device_XAUDIO2> m_device;
+		SmartReference<Shared_XAUDIO2> m_shared;
 	#ifndef NDEBUG
-		ScopeObject<IDecoder> m_decoder;
+		SmartReference<IDecoder> m_decoder;
 	#endif
 		winrt::xaudio2_voice_ptr<IXAudio2SourceVoice> m_player;
 		WAVEFORMATEX m_format{};
@@ -147,15 +148,15 @@ namespace Core::Audio
 	};
 
 	class LoopAudioPlayer_XAUDIO2
-		: public Object<IAudioPlayer>
+		: public implement::ReferenceCounted<IAudioPlayer>
 		, public XAudio2VoiceCallbackPlaceholder
 		, public IAudioDeviceEventListener
 	{
 	private:
-		ScopeObject<Device_XAUDIO2> m_device;
-		ScopeObject<Shared_XAUDIO2> m_shared;
+		SmartReference<Device_XAUDIO2> m_device;
+		SmartReference<Shared_XAUDIO2> m_shared;
 	#ifndef NDEBUG
-		ScopeObject<IDecoder> m_decoder;
+		SmartReference<IDecoder> m_decoder;
 	#endif
 		winrt::xaudio2_voice_ptr<IXAudio2SourceVoice> m_player;
 		WAVEFORMATEX m_format{};
@@ -209,7 +210,7 @@ namespace Core::Audio
 	};
 
 	class StreamAudioPlayer_XAUDIO2
-		: public Object<IAudioPlayer>
+		: public implement::ReferenceCounted<IAudioPlayer>
 		, public XAudio2VoiceCallbackPlaceholder
 		, public IAudioDeviceEventListener
 	{
@@ -290,9 +291,9 @@ namespace Core::Audio
 		};
 
 	private:
-		ScopeObject<Device_XAUDIO2> m_device;
-		ScopeObject<Shared_XAUDIO2> m_shared;
-		ScopeObject<IDecoder> m_decoder;
+		SmartReference<Device_XAUDIO2> m_device;
+		SmartReference<Shared_XAUDIO2> m_shared;
+		SmartReference<IDecoder> m_decoder;
 		winrt::xaudio2_voice_ptr<IXAudio2SourceVoice> m_player;
 		wil::critical_section m_player_lock;
 		WAVEFORMATEX m_format{};

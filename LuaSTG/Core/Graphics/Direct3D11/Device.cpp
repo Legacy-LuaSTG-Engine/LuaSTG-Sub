@@ -149,7 +149,7 @@ namespace {
 }
 
 // Device
-namespace Core::Graphics::Direct3D11 {
+namespace core::Graphics::Direct3D11 {
 	Device::Device(std::string_view const& preferred_gpu)
 		: preferred_adapter_name(preferred_gpu) {
 		// 创建图形组件
@@ -1063,7 +1063,7 @@ namespace Core::Graphics::Direct3D11 {
 		}
 	}
 }
-namespace Core::Graphics {
+namespace core::Graphics {
 	bool IDevice::create(StringView preferred_gpu, IDevice** p_device) {
 		try {
 			*p_device = new Direct3D11::Device(preferred_gpu);

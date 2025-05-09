@@ -1,0 +1,15 @@
+{
+    "file_system": {
+        "resources": [
+            {
+                "name": "scripts",
+                "type": "directory",
+                "path": "scripts/"
+            }
+        ],
+        "user": "userdata/"
+    },
+    "graphics_system": {
+        "allow_software_device": true
+    }
+}

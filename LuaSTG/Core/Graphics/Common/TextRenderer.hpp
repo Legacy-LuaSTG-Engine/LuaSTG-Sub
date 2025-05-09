@@ -1,11 +1,11 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/Font.hpp"
 
-namespace Core::Graphics::Common
+namespace core::Graphics::Common
 {
 	class TextRenderer final
-		: public Object<ITextRenderer>
+		: public implement::ReferenceCounted<ITextRenderer>
 	{
 	public:
 		// ITextRenderer
@@ -41,8 +41,8 @@ namespace Core::Graphics::Common
 		bool drawGlyph(GlyphInfo const& glyph_info, Vector2F const& start_pos);
 		bool drawGlyphInSpace(GlyphInfo const& glyph_info, Vector3F const& start_pos, Vector3F const& right_vec, Vector3F const& down_vec);
 
-		ScopeObject<IRenderer> m_renderer;
-		ScopeObject<IGlyphManager> m_glyph_mgr;
+		SmartReference<IRenderer> m_renderer;
+		SmartReference<IGlyphManager> m_glyph_mgr;
 		Vector2F m_scale;
 		float m_z{ 0.0f };
 		Color4B m_color;

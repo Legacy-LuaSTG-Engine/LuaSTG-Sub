@@ -1,149 +1,128 @@
-﻿#include "LuaBinding/LuaWrapper.hpp"
+#include "LuaBinding/LuaWrapper.hpp"
 #include "lua/plus.hpp"
-#include "Core/FileManager.hpp"
+#include "core/FileSystem.hpp"
 #include "utility/path.hpp"
 #include "AppFrame.h"
 #include "utf8.hpp"
 #include "GameResource/ResourcePassword.hpp"
 
-static bool extractRes(const char* path, const char* target) noexcept
-{
-	std::vector<uint8_t> src;
-	if (!GFileManager().loadEx(path, src))
-	{
-		spdlog::error("[luastg] ExtractRes: 无法读取文件'{}'", path);
-		return false;
+namespace {
+	bool extractRes(const char* path, const char* target) noexcept {
+		core::SmartReference<core::IData> src;
+		if (!core::FileSystemManager::readFile(path, src.put())) {
+			spdlog::error("[luastg] ExtractRes: 无法读取文件'{}'", path);
+			return false;
+		}
+		if (!core::FileSystemManager::writeFile(target, src.get())) {
+			spdlog::error("[luastg] ExtractRes: 无法写入文件'{}'", target);
+			return false;
+		}
+		return true;
 	}
-	if (!GFileManager().write(target, src))
-	{
-		spdlog::error("[luastg] ExtractRes: 无法写入文件'{}'", target);
-		return false;
-	}
-	return true;
 }
 
-void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
-{
-	struct Wrapper
-	{
-		static int LoadArchive(lua_State* L)
-		{
-			lua::stack_t S(L);
-			// path ???
-			std::string_view const path = S.get_value<std::string_view>(1);
-			int const argc = lua_gettop(L);
-			bool ret = false;
-			if (argc >= 3)
-			{
-				// path lv pw
-				std::string_view const pw = S.get_value<std::string_view>(3);
-				ret = GFileManager().loadFileArchive(path, pw);
+void luastg::binding::FileManager::Register(lua_State* L)noexcept {
+	struct Wrapper {
+		static int LoadArchive(lua_State* L) {
+			lua::stack_t const ctx(L);
+			auto const path = ctx.get_value<std::string_view>(1);
+
+			core::SmartReference<core::IFileSystemArchive> archive;
+			if (!core::IFileSystemArchive::createFromFile(path, archive.put())) {
+				spdlog::error("[luastg] 无法加载资源包'{}'，文件不存在或不是合法的资源包格式（zip）", path);
+				ctx.push_value(std::nullopt);
+				return 1;
 			}
-			else if (argc == 2)
-			{
-				if (lua_isnumber(L, 2))
-				{
-					// path lv
-					ret = GFileManager().loadFileArchive(path);
-				}
-				else
-				{
-					// path pw
-					std::string_view const pw = S.get_value<std::string_view>(2);
-					ret = GFileManager().loadFileArchive(path, pw);
-				}
+
+			// 第二个参数位曾经支持设置优先级，现在已失效
+
+			if (ctx.is_string(3)) {
+				auto const password = ctx.get_value<std::string_view>(3);
+				archive->setPassword(password);
 			}
-			else if (argc == 1)
-			{
-				ret = GFileManager().loadFileArchive(path);
+			else if (ctx.is_string(2)) {
+				auto const password = ctx.get_value<std::string_view>(2);
+				archive->setPassword(password);
 			}
-			if (ret)
-			{
-				auto& zip = GFileManager().getFileArchive(path);
-				if (!zip.empty())
-				{
-					ArchiveWrapper::CreateAndPush(L, zip.getUUID());
-				}
-				else
-				{
-					lua_pushnil(L);
-				}
+
+			core::FileSystemManager::addFileSystem(path, archive.get());
+
+			Archive::CreateAndPush(L, archive.get());
+			return 1;
+		}
+		static int UnloadArchive(lua_State* L) {
+			lua::stack_t const ctx(L);
+			auto const name = ctx.get_value<std::string_view>(1);
+			core::SmartReference<core::IFileSystemArchive> archive;
+			if (core::FileSystemManager::getFileSystemArchiveByPath(name, archive.put())) {
+				core::FileSystemManager::removeFileSystem(archive.get());
+				ctx.push_value(true);
 			}
-			else
-			{
-				lua_pushnil(L);
+			else {
+				ctx.push_value(false);
 			}
 			return 1;
 		}
-		static int UnloadArchive(lua_State* L)
-		{
-			lua::stack_t S(L);
-			std::string_view const name = S.get_value<std::string_view>(1);
-			if (GFileManager().containFileArchive(name))
-			{
-				GFileManager().unloadFileArchive(name);
-				lua_pushboolean(L, true);
-			}
-			else
-			{
-				lua_pushboolean(L, false);
-			}
-			return 1;
-		}
-		static int UnloadAllArchive(lua_State* L)
-		{
+		static int UnloadAllArchive(lua_State* L) {
 			std::ignore = L;
-			GFileManager().unloadAllFileArchive();
+			core::FileSystemManager::removeAllFileSystem();
 			return 0;
 		}
-		static int ArchiveExist(lua_State* L)
-		{
-			lua::stack_t S(L);
-			std::string_view const name = S.get_value<std::string_view>(1);
-			lua_pushboolean(L, GFileManager().containFileArchive(name));
+		static int ArchiveExist(lua_State* L) {
+			lua::stack_t const ctx(L);
+			auto const name = ctx.get_value<std::string_view>(1);
+			core::SmartReference<core::IFileSystemArchive> archive;
+			if (core::FileSystemManager::getFileSystemArchiveByPath(name, archive.put())) {
+				ctx.push_value(true);
+			}
+			else {
+				ctx.push_value(false);
+			}
 			return 1;
 		}
-		static int GetArchive(lua_State* L)
-		{
-			lua::stack_t S(L);
-			std::string_view const name = S.get_value<std::string_view>(1);
-			auto& zip = GFileManager().getFileArchive(name);
-			if (!zip.empty())
-			{
-				ArchiveWrapper::CreateAndPush(L, zip.getUUID());
+		static int GetArchive(lua_State* L) {
+			lua::stack_t const ctx(L);
+			auto const name = ctx.get_value<std::string_view>(1);
+			core::SmartReference<core::IFileSystemArchive> archive;
+			if (core::FileSystemManager::getFileSystemArchiveByPath(name, archive.put())) {
+				Archive::CreateAndPush(L, archive.get());
 			}
-			else
-			{
+			else {
 				lua_pushnil(L);
 			}
 			return 1;
 		}
-		static int EnumArchives(lua_State* L)
-		{
-			lua::stack_t S(L);
-			size_t const count = GFileManager().getFileArchiveCount();
-			lua_createtable(L, (int)count, 0);							// ??? t 
-			for (size_t index = 0; index < count; index += 1)
-			{
-				auto& ref = GFileManager().getFileArchive(index);
-				if (!ref.empty())
-				{
-					lua_pushinteger(L, (lua_Integer)index + 1);			// ??? t index 
-					lua_createtable(L, 2, 0);							// ??? t index tt 
-					lua_pushinteger(L, 1);								// ??? t index tt 1 
-					S.push_value(ref.getFileArchiveName());	// ??? t index tt 1 s
-					lua_settable(L, -3);								// ??? t index tt 
-					lua_pushinteger(L, 2);								// ??? t index tt 2 
-					lua_pushinteger(L, 0);								// ??? t index tt 2 priority 
-					lua_settable(L, -3);								// ??? t index tt 
-					lua_settable(L, -3);								// ??? t 
-				}
+		static int EnumArchives(lua_State* L) {
+			lua::stack_t const ctx(L);
+
+			auto const result_table = ctx.create_array();
+
+			core::SmartReference<core::IFileSystemFileSystemEnumerator> enumerator;
+			if (!core::FileSystemManager::createFileSystemEnumerator(enumerator.put())) {
+				return 1;
 			}
+
+			int32_t i{ 1 };
+			core::SmartReference<core::IFileSystem> file_system;
+			while (enumerator->next(file_system.put())) {
+				core::SmartReference<core::IFileSystemArchive> archive;
+				if (!file_system->queryInterface(archive.put())) {
+					continue;
+				}
+
+				auto const entry_table = ctx.create_array();
+				ctx.set_array_value(entry_table, 1, archive->getArchivePath());
+				ctx.set_array_value(entry_table, 2, 0);
+
+				ctx.set_array_value(result_table, i, entry_table);
+				ctx.pop_value();
+				++i;
+			}
+
 			return 1;
 		}
 
-		struct _EnumFilesConfig
-		{
+		struct _EnumFilesConfig {
 			std::string searchpath;
 			std::string searchpath2;
 			size_t headlen = 0;
@@ -154,42 +133,35 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 			bool checkpack = false;
 			bool findfiles = false;
 		};
-		static _EnumFilesConfig _InitEnumFiles(lua_State* L, bool FindFilesMode = false)
-		{
+		static _EnumFilesConfig _InitEnumFiles(lua_State* L, bool FindFilesMode = false) {
 			lua::stack_t S(L);
 			// path ext 
 
 			std::string searchpath(S.get_value<std::string_view>(1));
 			utility::path::to_slash(searchpath);
 			size_t headlen = 0;
-			if (!searchpath.empty() && searchpath.back() != '/')
-			{
+			if (!searchpath.empty() && searchpath.back() != '/') {
 				searchpath.push_back('/');
 			}
-			else if (searchpath.empty())
-			{
+			else if (searchpath.empty()) {
 				searchpath.push_back('.');
 				headlen = 2;
 			}
 
 			std::string searchpath2(S.get_value<std::string_view>(1));
 			utility::path::to_slash(searchpath2);
-			if (!searchpath2.empty() && searchpath2.back() != '/')
-			{
+			if (!searchpath2.empty() && searchpath2.back() != '/') {
 				searchpath2.push_back('/');
 			}
-			else if (searchpath2 == "." || searchpath2 == "./")
-			{
+			else if (searchpath2 == "." || searchpath2 == "./") {
 				searchpath2 = "";
 			}
 
 			std::string extpath = "";
 			bool checkext = false;
-			if (lua_gettop(L) >= 2 && lua_isstring(L, 2))
-			{
+			if (lua_gettop(L) >= 2 && lua_isstring(L, 2)) {
 				std::string_view const argext(S.get_value<std::string_view>(2));
-				if (!argext.empty())
-				{
+				if (!argext.empty()) {
 					extpath.push_back('.');
 					extpath.append(argext);
 					checkext = true;
@@ -198,16 +170,14 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 
 			std::string packname = "";
 			bool checkpack = false;
-			if (FindFilesMode && lua_gettop(L) >= 2 && lua_isstring(L, 2))
-			{
+			if (FindFilesMode && lua_gettop(L) >= 2 && lua_isstring(L, 2)) {
 				std::string_view const argpack(S.get_value<std::string_view>(3));
-				if (!argpack.empty())
-				{
+				if (!argpack.empty()) {
 					packname.append(argpack);
 					checkpack = true;
 				}
 			}
-			
+
 			return _EnumFilesConfig{
 				.searchpath = std::move(searchpath),
 				.searchpath2 = std::move(searchpath2),
@@ -220,23 +190,18 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 				.findfiles = FindFilesMode,
 			};
 		}
-		static void _EnumFilesSystem(lua_State* L, _EnumFilesConfig& cfg)
-		{
+		static void _EnumFilesSystem(lua_State* L, _EnumFilesConfig& cfg) {
 			lua::stack_t S(L);
 			// path ? t 
 			std::wstring wextpath(utf8::to_wstring(cfg.extpath));
 			std::error_code ec;
-			for (auto& p : std::filesystem::directory_iterator(utf8::to_wstring(cfg.searchpath), ec))
-			{
+			for (auto& p : std::filesystem::directory_iterator(utf8::to_wstring(cfg.searchpath), ec)) {
 				bool is_dir = p.is_directory();
-				if ((cfg.checkext || cfg.findfiles) && is_dir)
-				{
+				if ((cfg.checkext || cfg.findfiles) && is_dir) {
 					continue; // 需要检查拓展名，那就不可能是文件夹了，或者为 FindFiles 模式（忽略文件夹）
 				}
-				if (p.is_regular_file() || is_dir)
-				{
-					if (cfg.checkext && p.path().extension().wstring() != wextpath)
-					{
+				if (p.is_regular_file() || is_dir) {
+					if (cfg.checkext && p.path().extension().wstring() != wextpath) {
 						continue;
 					}
 					lua_pushinteger(L, cfg.index);		// path ? t index 
@@ -255,97 +220,67 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 				}
 			}
 		}
-		static void _EnumFilesArchive(lua_State* L, _EnumFilesConfig& cfg)
-		{
-			lua::stack_t S(L);
-			// path ? t 
-			std::wstring wextpath(utf8::to_wstring(cfg.extpath));
-			for (size_t z = 0; z < GFileManager().getFileArchiveCount(); z += 1)
-			{
-				auto& zip = GFileManager().getFileArchive(z);
-				if (!zip.empty())
-				{
-					if (cfg.checkpack && zip.getFileArchiveName() != cfg.packname)
-					{
-						continue; // 需要匹配压缩包名
+		static void _EnumFilesArchive(lua_State* L, _EnumFilesConfig& cfg) {
+			lua::stack_t const ctx(L);
+
+			auto const result_table = ctx.index_of_top();
+
+			core::SmartReference<core::IFileSystemFileSystemEnumerator> enumerator;
+			if (!core::FileSystemManager::createFileSystemEnumerator(enumerator.put())) {
+				return;
+			}
+
+			core::SmartReference<core::IFileSystem> file_system;
+			while (enumerator->next(file_system.put())) {
+				core::SmartReference<core::IFileSystemArchive> archive;
+				if (!file_system->queryInterface(archive.put())) {
+					continue; // 必须是压缩包
+				}
+
+				if (cfg.checkpack && archive->getArchivePath() != cfg.packname) {
+					continue; // 需要匹配压缩包名
+				}
+
+				core::SmartReference<core::IFileSystemEnumerator> e;
+				if (!archive->createEnumerator(e.put(), cfg.searchpath2, false)) {
+					continue;
+				}
+
+				while (e->next()) {
+					if (cfg.findfiles && e->getNodeType() != core::FileSystemNodeType::file) {
+						continue; // 需要检查拓展名，那就不可能是文件夹了，或者为 FindFiles 模式（仅限文件）
 					}
-					std::string_view frompath = cfg.searchpath2; // 目标路径
-					for (size_t f = 0; f < zip.getCount(); f += 1)
-					{
-						bool is_dir = zip.getType(f) == Core::FileType::Directory;
-						if ((cfg.checkext || cfg.findfiles) && zip.getType(f) != Core::FileType::File)
-						{
-							continue; // 需要检查拓展名，那就不可能是文件夹了，或者为 FindFiles 模式（忽略文件夹）
-						}
-						std::string_view topath(zip.getName(f)); // 要比较的路径
-						if (frompath.size() >= topath.size())
-						{
-							continue; // 短的直接 pass
-						}
-						if (!topath.starts_with(frompath))
-						{
-							continue; // 前导部分不一致
-						}
-						std::string_view path2(topath.data() + frompath.size(), topath.size() - frompath.size()); // 剩余部分
-						size_t const find_pos1 = path2.find_first_of('/');
-						size_t find_pos2 = std::string_view::npos;
-						if (find_pos1 != std::string_view::npos)
-						{
-							find_pos2 = path2.find_first_of('/', find_pos1 + 1);
-						}
-						if (find_pos2 != std::string_view::npos)
-						{
-							continue; // 非同级文件或者文件夹，跳过
-						}
-						if (find_pos1 != std::string_view::npos && path2.back() != '/')
-						{
-							continue; // 非同级文件夹，跳过
-						}
-						if (cfg.checkext)
-						{
-							std::filesystem::path checkpath(utf8::to_wstring(topath));
-							if (checkpath.extension().wstring() != wextpath)
-							{
-								continue; // 拓展名不匹配
-							}
-						}
-						lua_pushinteger(L, cfg.index);						// path ? t i 
-						lua_createtable(L, 3, 0);							// path ? t i tt 
-						lua_pushinteger(L, 1);								// path ? t i tt 1 
-						S.push_value(topath);					// path ? t i tt 1 s 
-						lua_settable(L, -3);								// path ? t i tt 
-						if (!cfg.findfiles)
-						{
-							lua_pushinteger(L, 2);							// path ? t i tt 2 
-							lua_pushboolean(L, is_dir);						// path ? t i tt 2 bool 
-							lua_settable(L, -3);							// path ? t i tt 
-							lua_pushinteger(L, 3);							// path ? t i tt 3 
-						}
-						else
-						{
-							lua_pushinteger(L, 2);							// path ? t i tt 2 
-						}
-						S.push_value(zip.getFileArchiveName());	// path ? t i tt X s 
-						lua_settable(L, -3);								// path ? t i tt 
-						lua_settable(L, -3);								// path ? t  
-						cfg.index += 1;
+					if (cfg.checkext && !e->getName().ends_with(cfg.extpath)) {
+						continue; // 拓展名不匹配
 					}
+
+					auto const entry_table = ctx.create_array();
+					ctx.set_array_value(entry_table, 1, e->getName());
+					if (cfg.findfiles) {
+						ctx.set_array_value(entry_table, 2, archive->getArchivePath());
+					}
+					else {
+						ctx.set_array_value(entry_table, 2, e->getNodeType() == core::FileSystemNodeType::directory);
+						ctx.set_array_value(entry_table, 3, archive->getArchivePath());
+					}
+
+					ctx.set_array_value(result_table, cfg.index, entry_table);
+					ctx.pop_value();
+					++cfg.index;
 				}
 			}
 		}
 
-		static int EnumFiles(lua_State* L)
-		{
+		static int EnumFiles(lua_State* L) {
 			// path ???
 
 			_EnumFilesConfig cfg = _InitEnumFiles(L);
-			
+
 			// path ??? t 
 
-			lua_newtable(L); 
-			
-			if (lua_toboolean(L, 3))
-			{
+			lua_newtable(L);
+
+			if (lua_toboolean(L, 3)) {
 				_EnumFilesArchive(L, cfg);
 			}
 
@@ -353,8 +288,7 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 
 			return 1;
 		}
-		static int EnumFilesEx(lua_State* L)
-		{
+		static int EnumFilesEx(lua_State* L) {
 			// path ???
 
 			_EnumFilesConfig cfg = _InitEnumFiles(L);
@@ -368,27 +302,26 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 
 			return 1;
 		}
-		static int FileExist(lua_State* L)
-		{
-			lua::stack_t S(L);
-			std::string_view const path = S.get_value<std::string_view>(1);
-			bool const respack = lua_toboolean(L, 2);
-			if (respack)
-				lua_pushboolean(L, GFileManager().containEx(path));
-			else
-				lua_pushboolean(L, GFileManager().contain(path));
+		static int FileExist(lua_State* L) {
+			lua::stack_t const ctx(L);
+			auto const path = ctx.get_value<std::string_view>(1);
+			auto const all = ctx.get_value<bool>(2);
+			if (all) {
+				ctx.push_value(core::FileSystemManager::hasFile(path));
+			}
+			else {
+				ctx.push_value(core::IFileSystemOS::getInstance()->hasFile(path));
+			}
 			return 1;
 		}
-		static int FileExistEx(lua_State* L)
-		{
-			lua::stack_t S(L);
-			std::string_view const path = S.get_value<std::string_view>(1);
-			lua_pushboolean(L, GFileManager().containEx(path));
+		static int FileExistEx(lua_State* L) {
+			lua::stack_t const ctx(L);
+			auto const path = ctx.get_value<std::string_view>(1);
+			ctx.push_value(core::FileSystemManager::hasFile(path));
 			return 1;
 		}
-		
-		static int FindFiles(lua_State* L)
-		{
+
+		static int FindFiles(lua_State* L) {
 			// path ???
 
 			_EnumFilesConfig cfg = _InitEnumFiles(L, true);
@@ -399,151 +332,108 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 
 			_EnumFilesArchive(L, cfg);
 
-			if (!cfg.checkpack)
-			{
+			if (!cfg.checkpack) {
 				_EnumFilesSystem(L, cfg);
 			}
-			
+
 			return 1;
 		}
 
 		static int AddSearchPath(lua_State* L) {
-			lua::stack_t S(L);
-			std::string_view const path = S.get_value<std::string_view>(1);
-			GFileManager().addSearchPath(path);
+			lua::stack_t const ctx(L);
+			auto const path = ctx.get_value<std::string_view>(1);
+			core::FileSystemManager::addSearchPath(path);
 			return 0;
 		}
 		static int RemoveSearchPath(lua_State* L) {
-			lua::stack_t S(L);
-			std::string_view const path = S.get_value<std::string_view>(1);
-			GFileManager().removeSearchPath(path);
+			lua::stack_t const ctx(L);
+			auto const path = ctx.get_value<std::string_view>(1);
+			core::FileSystemManager::removeSearchPath(path);
 			return 0;
 		}
 		static int ClearSearchPath(lua_State* L) {
 			std::ignore = L;
-			GFileManager().clearSearchPath();
-			return 1;
+			core::FileSystemManager::removeAllSearchPath();
+			return 0;
 		}
 
-		static int SetCurrentDirectory(lua_State* L)
-		{
+		static int SetCurrentDirectory(lua_State* L) {
 			lua::stack_t S(L);
 			std::string_view const path = S.get_value<std::string_view>(1);
 			std::error_code ec;
 			std::filesystem::current_path(utf8::to_wstring(path), ec);
-			if (ec)
-			{
+			if (ec) {
 				lua_pushboolean(L, false);
 				S.push_value(ec.message());
 				lua_pushinteger(L, ec.value());
 				return 3;
 			}
-			else
-			{
+			else {
 				lua_pushboolean(L, true);
 				return 1;
 			}
 		}
-		static int GetCurrentDirectory(lua_State* L)
-		{
+		static int GetCurrentDirectory(lua_State* L) {
 			lua::stack_t S(L);
 			std::error_code ec;
 			std::filesystem::path path = std::filesystem::current_path(ec);
-			if (ec)
-			{
+			if (ec) {
 				lua_pushnil(L);
 				S.push_value(ec.message());
 				lua_pushinteger(L, ec.value());
 				return 3;
 			}
-			else
-			{
+			else {
 				std::string str = utf8::to_string(path.wstring());
 				utility::path::to_slash(str);
 				S.push_value(str);
 				return 1;
 			}
 		}
-		static int CreateDirectory(lua_State* L)
-		{
+		static int CreateDirectory(lua_State* L) {
 			lua::stack_t S(L);
 			std::string_view const path = S.get_value<std::string_view>(1);
 			std::error_code ec;
 			bool result = std::filesystem::create_directories(utf8::to_wstring(path), ec);
 			lua_pushboolean(L, result);
-			if (ec)
-			{
+			if (ec) {
 				S.push_value(ec.message());
 				lua_pushinteger(L, ec.value());
 				return 3;
 			}
-			else
-			{
+			else {
 				return 1;
 			}
 		}
-		static int RemoveDirectory(lua_State* L)
-		{
+		static int RemoveDirectory(lua_State* L) {
 			lua::stack_t S(L);
 			std::string_view const path = S.get_value<std::string_view>(1);
 			std::error_code ec;
 			uintmax_t result = std::filesystem::remove_all(utf8::to_wstring(path), ec);
 			lua_pushboolean(L, result != static_cast<std::uintmax_t>(-1));
-			if (ec)
-			{
+			if (ec) {
 				S.push_value(ec.message());
 				lua_pushinteger(L, ec.value());
 				return 3;
 			}
-			else
-			{
+			else {
 				return 1;
 			}
 		}
-		static int DirectoryExist(lua_State* L)
-		{
-			lua::stack_t S(L);
-			std::string_view const path = S.get_value<std::string_view>(1);
-			if (path.empty())
-			{
-				lua_pushboolean(L, true); // 相对路径 "" 永远是存在的
+		static int DirectoryExist(lua_State* L) {
+			lua::stack_t const ctx(L);
+			auto const path = ctx.get_value<std::string_view>(1);
+			auto const all = ctx.get_value<bool>(2);
+			if (path.empty()) {
+				ctx.push_value(true); // 相对路径 "" 永远是存在的
 				return 1;
 			}
-			bool const respack = lua_toboolean(L, 2);
-			if (GFileManager().getType(path) == Core::FileType::Directory)
-			{
-				lua_pushboolean(L, true);
-				return 1;
+			if (all) {
+				ctx.push_value(core::FileSystemManager::hasDirectory(path));
 			}
-			if (respack)
-			{
-				auto hasDir = [](std::string_view const& p) -> bool
-				{
-					for (size_t idx = 0; idx < GFileManager().getFileArchiveCount(); idx += 1)
-					{
-						auto& zip = GFileManager().getFileArchive(idx);
-						if (zip.getType(p) == Core::FileType::Directory)
-						{
-							return true;
-						}
-					}
-					return false;
-				};
-				bool has_dir = false;
-				if (path.back() != '/' && path.back() != '\\')
-				{
-					std::string path_dir(path);
-					path_dir.push_back('/');
-					has_dir = hasDir(path_dir);
-				}
-				else
-				{
-					has_dir = hasDir(path);
-				}
-				lua_pushboolean(L, has_dir);
-				return 1;
+			else {
+				ctx.push_value(core::IFileSystemOS::getInstance()->hasDirectory(path));
 			}
-			lua_pushboolean(L, false);
 			return 1;
 		}
 	};
@@ -573,7 +463,7 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 
 		{ NULL, NULL },
 	};
-	
+
 	struct FR_Wrapper {
 		static int SetFontProvider(lua_State* L) {
 			lua_pushboolean(L, LAPP.FontRenderer_SetFontProvider(luaL_checkstring(L, 1)));
@@ -582,13 +472,13 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 		static int SetScale(lua_State* L) {
 			float a = (float)luaL_checknumber(L, 1);
 			float b = (float)luaL_checknumber(L, 2);
-			LAPP.FontRenderer_SetScale(Core::Vector2F(a, b));
+			LAPP.FontRenderer_SetScale(core::Vector2F(a, b));
 			return 0;
 		}
 		static int MeasureTextBoundary(lua_State* L) {
 			size_t len = 0;
 			const char* str = luaL_checklstring(L, 1, &len);
-			const Core::RectF v = LAPP.FontRenderer_MeasureTextBoundary(str, len);
+			const core::RectF v = LAPP.FontRenderer_MeasureTextBoundary(str, len);
 			lua_pushnumber(L, v.a.x);
 			lua_pushnumber(L, v.b.x);
 			lua_pushnumber(L, v.b.y);
@@ -598,7 +488,7 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 		static int MeasureTextAdvance(lua_State* L) {
 			size_t len = 0;
 			const char* str = luaL_checklstring(L, 1, &len);
-			const Core::Vector2F v = LAPP.FontRenderer_MeasureTextAdvance(str, len);
+			const core::Vector2F v = LAPP.FontRenderer_MeasureTextAdvance(str, len);
 			lua_pushnumber(L, v.x);
 			lua_pushnumber(L, v.y);
 			return 2;
@@ -606,12 +496,12 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 		static int RenderText(lua_State* L) {
 			size_t len = 0;
 			const char* str = luaL_checklstring(L, 1, &len);
-			auto pos = Core::Vector2F((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3));
+			auto pos = core::Vector2F((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3));
 			const bool ret = LAPP.FontRenderer_RenderText(
 				str, len,
 				pos, (float)luaL_checknumber(L, 4),
 				TranslateBlendMode(L, 5),
-				*LuaWrapper::ColorWrapper::Cast(L, 6));
+				*Color::Cast(L, 6));
 			lua_pushboolean(L, ret);
 			lua_pushnumber(L, (lua_Number)pos.x);
 			lua_pushnumber(L, (lua_Number)pos.y);
@@ -621,23 +511,23 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 			size_t len = 0;
 			const char* str = luaL_checklstring(L, 1, &len);
 
-			auto pos = Core::Vector3F((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3), (float)luaL_checknumber(L, 4));
-			auto const rvec = Core::Vector3F((float)luaL_checknumber(L, 5), (float)luaL_checknumber(L, 6), (float)luaL_checknumber(L, 7));
-			auto const dvec = Core::Vector3F((float)luaL_checknumber(L, 8), (float)luaL_checknumber(L, 9), (float)luaL_checknumber(L, 10));
+			auto pos = core::Vector3F((float)luaL_checknumber(L, 2), (float)luaL_checknumber(L, 3), (float)luaL_checknumber(L, 4));
+			auto const rvec = core::Vector3F((float)luaL_checknumber(L, 5), (float)luaL_checknumber(L, 6), (float)luaL_checknumber(L, 7));
+			auto const dvec = core::Vector3F((float)luaL_checknumber(L, 8), (float)luaL_checknumber(L, 9), (float)luaL_checknumber(L, 10));
 
 			BlendMode blend = TranslateBlendMode(L, 11);
 			const bool ret = LAPP.FontRenderer_RenderTextInSpace(
 				str, len,
 				pos, rvec, dvec,
 				blend,
-				*LuaWrapper::ColorWrapper::Cast(L, 12));
+				*Color::Cast(L, 12));
 			lua_pushboolean(L, ret);
 			lua_pushnumber(L, (lua_Number)pos.x);
 			lua_pushnumber(L, (lua_Number)pos.y);
 			lua_pushnumber(L, (lua_Number)pos.z);
 			return 4;
 		}
-		
+
 		static int GetFontLineHeight(lua_State* L) {
 			lua_pushnumber(L, LAPP.FontRenderer_GetFontLineHeight());
 			return 1;
@@ -651,70 +541,42 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 			return 1;
 		};
 	};
-	
+
 	luaL_Reg FR_Method[] = {
 		{ "SetFontProvider", &FR_Wrapper::SetFontProvider },
 		{ "SetScale", &FR_Wrapper::SetScale },
-		
+
 		{ "MeasureTextBoundary", &FR_Wrapper::MeasureTextBoundary },
 		{ "MeasureTextAdvance", &FR_Wrapper::MeasureTextAdvance },
 		{ "RenderText", &FR_Wrapper::RenderText },
 		{ "RenderTextInSpace", &FR_Wrapper::RenderTextInSpace },
-		
+
 		{ "GetFontLineHeight", &FR_Wrapper::GetFontLineHeight },
 		{ "GetFontAscender", &FR_Wrapper::GetFontAscender },
 		{ "GetFontDescender", &FR_Wrapper::GetFontDescender },
-		
+
 		{ NULL, NULL },
 	};
-	
-	struct C_Wrapper
-	{
-		static int LoadPack(lua_State* L)noexcept
-		{
-			const char* p = luaL_checkstring(L, 1);
-			if (lua_isstring(L, 2))
-			{
-				const char* pwd = luaL_checkstring(L, 2);
-				if (!GFileManager().loadFileArchive(p, pwd))
-				{
-					spdlog::error("[luastg] LoadPack: 无法装载资源包'{}'，文件不存在或不是合法的资源包格式", p);
-					lua_pushboolean(L, false);
-					return 1;
-				}
-			}
-			else
-			{
-				if (!GFileManager().loadFileArchive(p))
-				{
-					spdlog::error("[luastg] LoadPack: 无法装载资源包'{}'，文件不存在或不是合法的资源包格式", p);
-					lua_pushboolean(L, false);
-					return 1;
-				}
-			}
-			lua_pushboolean(L, true);
-			return 1;
-		}
-		static int LoadPackSub(lua_State* L)noexcept
-		{
-			const char* p = luaL_checkstring(L, 1);
-			if (!GFileManager().loadFileArchive(p, LuaSTGPlus::GetGameName()))
-			{
-				spdlog::error("[luastg] LoadPackSub: 无法装载资源包'{}'，文件不存在或不是合法的资源包格式", p);
-				lua_pushboolean(L, false);
+
+	struct C_Wrapper {
+		static int LoadPackSub(lua_State* L)noexcept {
+			lua::stack_t const ctx(L);
+			auto const path = ctx.get_value<std::string_view>(1);
+
+			core::SmartReference<core::IFileSystemArchive> archive;
+			if (!core::IFileSystemArchive::createFromFile(path, archive.put())) {
+				spdlog::error("[luastg] 无法加载资源包'{}'，文件不存在或不是合法的资源包格式（zip）", path);
+				ctx.push_value(std::nullopt);
 				return 1;
 			}
-			lua_pushboolean(L, true);
+			archive->setPassword(GetGameName());
+
+			core::FileSystemManager::addFileSystem(path, archive.get());
+
+			Archive::CreateAndPush(L, archive.get());
 			return 1;
 		}
-		static int UnloadPack(lua_State* L)noexcept
-		{
-			const char* p = luaL_checkstring(L, 1);
-			GFileManager().unloadFileArchive(p);
-			return 0;
-		}
-		static int ExtractRes(lua_State* L)noexcept
-		{
+		static int ExtractRes(lua_State* L)noexcept {
 			const char* pArgPath = luaL_checkstring(L, 1);
 			const char* pArgTarget = luaL_checkstring(L, 2);
 			if (!extractRes(pArgPath, pArgTarget))
@@ -722,27 +584,27 @@ void LuaSTGPlus::FileManagerWrapper::Register(lua_State* L)noexcept
 			return 0;
 		}
 	};
-	
+
 	luaL_Reg compat_lib[] = {
-		{ "LoadPack", &C_Wrapper::LoadPack },
+		{ "LoadPack", &Wrapper::LoadArchive },
 		{ "LoadPackSub", &C_Wrapper::LoadPackSub },
-		{ "UnloadPack", &C_Wrapper::UnloadPack },
+		{ "UnloadPack", &Wrapper::UnloadArchive },
 		#ifndef USING_ENCRYPTION
 		{ "ExtractRes", &C_Wrapper::ExtractRes },
 		#endif // !USING_ENCRYPTION
 		{ "FindFiles", &Wrapper::FindFiles },
 		{ NULL, NULL },
 	};
-	
+
 	luaL_register(L, "lstg", compat_lib); // ??? t 
-	
+
 	lua_newtable(L); // ??? t t
 	luaL_register(L, NULL, tMethods); // ??? t t 
 	lua_setfield(L, -2, "FileManager"); // ??? t 
-	
+
 	lua_newtable(L); // ??? t t
 	luaL_register(L, NULL, FR_Method); // ??? t t 
 	lua_setfield(L, -2, "FontRenderer"); // ??? t 
-	
+
 	lua_pop(L, 1); // ??? 
 }

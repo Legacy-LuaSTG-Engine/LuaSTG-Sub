@@ -1,6 +1,6 @@
 #include "GameResource/Implement/ResourceParticleImpl.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	static std::pmr::unsynchronized_pool_resource s_particle_pool_res;
 	
@@ -37,7 +37,7 @@ namespace LuaSTGPlus
 	bool ResourceParticleImpl::CreateInstance(IParticlePool** pp_pool)
 	{
 		ParticlePoolImpl* p_pool = static_cast<ParticlePoolImpl*>(s_particle_pool_res.allocate(sizeof(ParticlePoolImpl), alignof(ParticlePoolImpl)));
-		new(p_pool) ParticlePoolImpl(this);
+		new(p_pool) ParticlePoolImpl(core::SmartReference<IResourceParticle>(this));
 		*pp_pool = p_pool;
 		return true;
 	}
@@ -49,7 +49,7 @@ namespace LuaSTGPlus
 		s_particle_pool_res.deallocate(p_class, sizeof(ParticlePoolImpl), alignof(ParticlePoolImpl));
 	}
 
-	ResourceParticleImpl::ResourceParticleImpl(const char* name, const hgeParticleSystemInfo& pinfo, Core::Graphics::ISprite* sprite, double a, double b, bool rect)
+	ResourceParticleImpl::ResourceParticleImpl(const char* name, const hgeParticleSystemInfo& pinfo, core::Graphics::ISprite* sprite, double a, double b, bool rect)
 		: ResourceBaseImpl(ResourceType::Particle, name)
 		, m_HalfSizeX(a)
 		, m_HalfSizeY(b)
@@ -67,7 +67,7 @@ namespace LuaSTGPlus
 		return a + c * random::to_float(m_Random());
 	}
 
-	ParticlePoolImpl::ParticlePoolImpl(Core::ScopeObject<IResourceParticle> ref)
+	ParticlePoolImpl::ParticlePoolImpl(core::SmartReference<IResourceParticle> ref)
 	{
 		m_Res = ref;
 		m_Info = static_cast<ResourceParticleImpl*>(ref.get())->GetResourceInfo();
@@ -76,16 +76,16 @@ namespace LuaSTGPlus
 	size_t ParticlePoolImpl::GetAliveCount() { return m_iAlive; }
 	BlendMode ParticlePoolImpl::GetBlendMode() { return m_Info.eBlendMode; }
 	void ParticlePoolImpl::SetBlendMode(BlendMode m) { m_Info.eBlendMode = m; }
-	Core::Color4B ParticlePoolImpl::GetVertexColor()
+	core::Color4B ParticlePoolImpl::GetVertexColor()
 	{
-		return Core::Color4B(
+		return core::Color4B(
 			(uint8_t)std::clamp(m_Info.colVertexColor[0] * 255.0f, 0.0f, 255.0f),
 			(uint8_t)std::clamp(m_Info.colVertexColor[1] * 255.0f, 0.0f, 255.0f),
 			(uint8_t)std::clamp(m_Info.colVertexColor[2] * 255.0f, 0.0f, 255.0f),
 			(uint8_t)std::clamp(m_Info.colVertexColor[3] * 255.0f, 0.0f, 255.0f)
 		);
 	}
-	void ParticlePoolImpl::SetVertexColor(Core::Color4B c)
+	void ParticlePoolImpl::SetVertexColor(core::Color4B c)
 	{
 		m_Info.colVertexColor[0] = (float)c.r / 255.0f;
 		m_Info.colVertexColor[1] = (float)c.g / 255.0f;
@@ -113,7 +113,7 @@ namespace LuaSTGPlus
 			m_iStatus = Status::Sleep;
 		}
 	}
-	void ParticlePoolImpl::SetCenter(Core::Vector2F pos)
+	void ParticlePoolImpl::SetCenter(core::Vector2F pos)
 	{
 		if (m_iStatus == Status::Alive)
 			m_vPrevCenter = m_vCenter;
@@ -121,7 +121,7 @@ namespace LuaSTGPlus
 			m_vPrevCenter = pos;
 		m_vCenter = pos;
 	}
-	Core::Vector2F ParticlePoolImpl::GetCenter() { return m_vCenter; }
+	core::Vector2F ParticlePoolImpl::GetCenter() { return m_vCenter; }
 	void ParticlePoolImpl::SetRotation(float r) { m_fDirection = r; }
 	float ParticlePoolImpl::GetRotation() { return m_fDirection; }
 	void ParticlePoolImpl::Update(float delta)
@@ -156,8 +156,8 @@ namespace LuaSTGPlus
 			}
 
 			// 计算线加速度和切向加速度
-			Core::Vector2F vecAccel = (tInst.vecLocation - m_vCenter).normalized();
-			Core::Vector2F vecAccel2 = vecAccel;
+			core::Vector2F vecAccel = (tInst.vecLocation - m_vCenter).normalized();
+			core::Vector2F vecAccel2 = vecAccel;
 			vecAccel *= tInst.fRadialAccel;
 			// 相当于旋转向量 vecAccel2.Rotate(M_PI_2);
 			std::swap(vecAccel2.x, vecAccel2.y);
@@ -256,15 +256,15 @@ namespace LuaSTGPlus
 	}
 	void ParticlePoolImpl::Render(float scaleX, float scaleY)
 	{
-		Core::Graphics::ISprite* pSprite = m_Info.pSprite.get();
+		core::Graphics::ISprite* pSprite = m_Info.pSprite.get();
 		hgeParticleSystemInfo const& pInfo = m_Info.tParticleSystemInfo;
-		Core::Color4B const tVertexColor = GetVertexColor();
+		core::Color4B const tVertexColor = GetVertexColor();
 		for (size_t i = 0; i < m_iAlive; i += 1)
 		{
 			hgeParticle const& pInst = m_ParticlePool[i];
 			if (pInfo.colColorStart[0] < 0) // r < 0
 			{
-				pSprite->setColor(Core::Color4B(
+				pSprite->setColor(core::Color4B(
 					tVertexColor.r,
 					tVertexColor.g,
 					tVertexColor.b,
@@ -273,7 +273,7 @@ namespace LuaSTGPlus
 			}
 			else
 			{
-				pSprite->setColor(Core::Color4B(
+				pSprite->setColor(core::Color4B(
 					(uint8_t)std::clamp(pInst.colColor[0] * (float)tVertexColor.r, 0.0f, 255.0f),
 					(uint8_t)std::clamp(pInst.colColor[1] * (float)tVertexColor.g, 0.0f, 255.0f),
 					(uint8_t)std::clamp(pInst.colColor[2] * (float)tVertexColor.b, 0.0f, 255.0f),
@@ -281,8 +281,8 @@ namespace LuaSTGPlus
 				));
 			}
 			pSprite->draw(
-				Core::Vector2F(pInst.vecLocation.x, pInst.vecLocation.y),
-				Core::Vector2F(scaleX * pInst.fSize, scaleY * pInst.fSize),
+				core::Vector2F(pInst.vecLocation.x, pInst.vecLocation.y),
+				core::Vector2F(scaleX * pInst.fSize, scaleY * pInst.fSize),
 				pInst.fSpin);
 		}
 	}

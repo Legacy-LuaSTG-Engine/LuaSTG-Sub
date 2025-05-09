@@ -1,14 +1,14 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/ApplicationModel.hpp"
 #include "Core/Graphics/Window.hpp"
 #include "Platform/WindowSizeMoveController.hpp"
 #include "Platform/RuntimeLoader/DesktopWindowManager.hpp"
 #include "Platform/ImmersiveTitleBarController.hpp"
 
-namespace Core::Graphics
+namespace core::Graphics
 {
-	class Display_Win32 : public Object<IDisplay> {
+	class Display_Win32 : public implement::ReferenceCounted<IDisplay> {
 	private:
 		HMONITOR win32_monitor{};
 	public:
@@ -33,7 +33,7 @@ namespace Core::Graphics
 		IDisplay* display{};
 	};
 
-	class Window_Win32 : public Object<IWindow>
+	class Window_Win32 : public implement::ReferenceCounted<IWindow>
 	{
 	private:
 		WCHAR win32_window_class_name[64]{};

@@ -2,14 +2,14 @@
 #include "GameResource/ResourceModel.hpp"
 #include "GameResource/Implement/ResourceBaseImpl.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	class ResourceModelImpl : public ResourceBaseImpl<IResourceModel>
 	{
 	private:
-		Core::ScopeObject<Core::Graphics::IModel> model_;
+		core::SmartReference<core::Graphics::IModel> model_;
 	public:
-		Core::Graphics::IModel* GetModel() { return *model_; }
+		core::Graphics::IModel* GetModel() { return *model_; }
 	public:
 		ResourceModelImpl(const char* name, const char* path);
 	};

@@ -1,13 +1,13 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/Device.hpp"
 
 // SamplerState
-namespace Core::Graphics::Direct3D11 {
+namespace core::Graphics::Direct3D11 {
 	class Device;
 
 	class SamplerState final
-		: public Object<ISamplerState>
+		: public implement::ReferenceCounted<ISamplerState>
 		, public IDeviceEventListener {
 
 	public:
@@ -29,13 +29,13 @@ namespace Core::Graphics::Direct3D11 {
 
 		[[nodiscard]] ID3D11SamplerState* GetState() const noexcept { return m_sampler.Get(); }
 
-		bool initialize(Device* device, Core::Graphics::SamplerState const& info);
+		bool initialize(Device* device, core::Graphics::SamplerState const& info);
 		bool createResource();
 
 	private:
-		ScopeObject<Device> m_device;
+		SmartReference<Device> m_device;
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> m_sampler;
-		Core::Graphics::SamplerState m_info{};
+		core::Graphics::SamplerState m_info{};
 		bool m_initialized{ false };
 	};
 }

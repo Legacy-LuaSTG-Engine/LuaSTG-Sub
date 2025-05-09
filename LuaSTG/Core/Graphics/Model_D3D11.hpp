@@ -1,20 +1,20 @@
 #pragma once
-#include "Core/Object.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/Renderer.hpp"
 #include "Core/Graphics/Direct3D11/Device.hpp"
 #include "tiny_gltf.h"
 
 #define IDX(x) (size_t)static_cast<uint8_t>(x)
 
-namespace Core::Graphics
+namespace core::Graphics
 {
     class ModelSharedComponent_D3D11
-        : public Object<IObject>
+        : public implement::ReferenceCounted<IReferenceCounted>
         , public IDeviceEventListener
     {
         friend class Model_D3D11;
     private:
-        ScopeObject<Direct3D11::Device> m_device;
+        SmartReference<Direct3D11::Device> m_device;
 
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> default_image;
         Microsoft::WRL::ComPtr<ID3D11SamplerState> default_sampler;
@@ -73,12 +73,12 @@ namespace Core::Graphics
     };
 
     class Model_D3D11
-        : public Object<IModel>
+        : public implement::ReferenceCounted<IModel>
         , public IDeviceEventListener
     {
     private:
-        ScopeObject<Direct3D11::Device> m_device;
-        ScopeObject<ModelSharedComponent_D3D11> shared_;
+        SmartReference<Direct3D11::Device> m_device;
+        SmartReference<ModelSharedComponent_D3D11> shared_;
 
         DirectX::XMMATRIX t_scale_;
         DirectX::XMMATRIX t_trans_;
