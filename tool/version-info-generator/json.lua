@@ -51,7 +51,9 @@ if _VERSION == "Lua 5.1" or _VERSION == "Lua 5.2" then
         return "float"
     end
 else
+    ---@diagnostic disable-next-line: undefined-global
     utf8_char = utf8.char
+    ---@diagnostic disable-next-line: deprecated
     math_type = math.type
 end
 
