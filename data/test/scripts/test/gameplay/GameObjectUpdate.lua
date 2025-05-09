@@ -1,3 +1,5 @@
+---@diagnostic disable: inject-field, param-type-mismatch
+
 local test = require("test")
 local task = require("task")
 local TaskManager = require("task.Manager")
@@ -23,12 +25,14 @@ local function registerGameObjectClass(c)
     c.is_class = true
 end
 
+---@class test.gameplay.GameObjectUpdate.Follower : lstg.GameObject
 local Follower = {}
 function Follower:init(parent)
     self.img = "block"
     self.hscale = 50 / 256
     self.vscale = 50 / 256
     self.parent = parent
+    self.counter = 0
     if lstg.IsValid(self.parent) then
         self.x = self.parent.x
         self.y = self.parent.y - 100
@@ -44,7 +48,15 @@ function Follower:late_frame()
         lstg.Del(self)
     end
 end
+function Follower:render()
+    lstg.DefaultRenderFunc(self)
+    lstg.RenderTTF("sans", ("%d"):format(self.counter), self.x, self.x, self.y, self.y, 1 + 4, lstg.Color(255, 0, 0, 0), 2)
+end
+function Follower:del()
+    print(("Follower %d deleted"):format(self.counter))
+end
 
+---@class test.gameplay.GameObjectUpdate.Runner : lstg.GameObject
 local Runner = {}
 function Runner:init()
     self.y = window.height / 2
@@ -52,6 +64,14 @@ function Runner:init()
     self.img = "block"
     self.hscale = 60 / 256
     self.vscale = 60 / 256
+    self.counter = 0
+end
+function Runner:render()
+    lstg.DefaultRenderFunc(self)
+    lstg.RenderTTF("sans", ("%d"):format(self.counter), self.x, self.x, self.y, self.y, 1 + 4, lstg.Color(255, 0, 0, 0), 2)
+end
+function Runner:del()
+    print(("Runner %d deleted"):format(self.counter))
 end
 
 registerGameObjectClass(Follower)
@@ -65,6 +85,7 @@ function M:onCreate()
     lstg.SetResourceStatus("global")
     lstg.LoadTexture("block", "res/block.png", true)
     lstg.LoadImage("block", "block", 0, 0, 256, 256)
+    lstg.LoadTTF("sans", "C:/Windows/Fonts/msyh.ttc", 0, 16)
     lstg.SetResourceStatus(last_pool)
 
     lstg.SetBound(0, window.width, 0, window.height)
@@ -72,9 +93,13 @@ function M:onCreate()
     self.objects = {}
     self.tasks = TaskManager.create()
     self.tasks:add(function()
+        local counter = 0
         while true do
+            counter = counter + 1
             local runner = lstg.New(Runner)
             local follower = lstg.New(Follower, runner)
+            runner.counter = counter
+            follower.counter = counter
             table.insert(self.objects, runner)
             table.insert(self.objects, follower)
             task.wait(60)
@@ -87,24 +112,29 @@ function M:onDestroy()
 
     lstg.RemoveResource("global", 2, "block")
     lstg.RemoveResource("global", 1, "block")
+    lstg.RemoveResource("global", 8, "sans")
 end
 
 function M:dispatchLateFrame()
-    local ol = self.objects
-    local n0 = #self.objects
-    local n = n0
-    for i = n0, 1, -1 do
-        local o = ol[i]
+    for _, o in ipairs(self.objects) do
         if lstg.IsValid(o) then
             local f = o[1].late_frame
             if f then
                 f(o)
             end
-        else
-            o = ol[n]
-            ol[n] = nil
-            n = n - 1
         end
+    end
+    local j = 0
+    for i = 1, #self.objects do
+        if lstg.IsValid(self.objects[i]) then
+            j = j + 1
+            if j < i then
+                self.objects[j] = self.objects[i]
+            end
+        end
+    end
+    for i = j + 1, #self.objects do
+        self.objects[i] = nil
     end
 end
 
