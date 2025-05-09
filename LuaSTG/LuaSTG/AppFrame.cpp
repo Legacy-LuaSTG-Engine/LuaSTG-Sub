@@ -7,6 +7,7 @@
 #include "utf8.hpp"
 #include "resource.h"
 #include "core/Configuration.hpp"
+#include "CLRBinding/CLRBinding.hpp"
 
 using namespace luastg;
 
@@ -173,6 +174,18 @@ bool AppFrame::Init()noexcept
 		return false;
 	}
 
+	CLR = new CLRHost(L".\\Managed\\net8.0\\LuaSTG.runtimeconfig.json");
+	if (!CLR->init()) 
+	{
+		spdlog::info("[luastg] 初始化coreclr失败");
+		return false;
+	}
+
+	if (!InitCLRBinding(CLR, &clr_fn))
+	{
+		spdlog::info("[luastg] 托管程序集LuaSTG.dll加载失败");
+	}
+
 	// 加载初始化脚本（可选）
 	if (!OnLoadLaunchScriptAndFiles())
 	{
@@ -193,7 +206,7 @@ bool AppFrame::Init()noexcept
 		spdlog::info("[luastg] 初始化对象池，容量{}", LOBJPOOL_SIZE);
 		try
 		{
-			m_GameObjectPool = std::make_unique<GameObjectPool>(L);
+			m_GameObjectPool = std::make_unique<GameObjectPool>(L, &clr_fn);
 		}
 		catch (const std::bad_alloc&)
 		{
@@ -252,6 +265,7 @@ bool AppFrame::Init()noexcept
 	if (!SafeCallGlobalFunction(LuaEngine::G_CALLBACK_EngineInit)) {
 		return false;
 	}
+	clr_fn.GameInit();
 
 	return true;
 }
@@ -260,6 +274,7 @@ void AppFrame::Shutdown()noexcept
 	if (L) {
 		SafeCallGlobalFunction(LuaEngine::G_CALLBACK_EngineStop);
 	}
+	clr_fn.GameExit();
 
 	m_GameObjectPool = nullptr;
 	spdlog::info("[luastg] 清空对象池");
@@ -381,6 +396,7 @@ bool AppFrame::onUpdate()
 				result = false;
 				m_pAppModel->requestExit();
 			}
+			clr_fn.FocusLoseFunc();
 		}
 		if (window_active_changed & 0x1)
 		{
@@ -396,6 +412,7 @@ bool AppFrame::onUpdate()
 				result = false;
 				m_pAppModel->requestExit();
 			}
+			clr_fn.FocusGainFunc();
 		}
 		if (window_active_changed & 0x4)
 		{
@@ -425,6 +442,7 @@ bool AppFrame::onUpdate()
 		}
 		bool tAbort = lua_toboolean(L, -1) != 0;
 		lua_pop(L, 1);
+		tAbort |= clr_fn.FrameFunc();
 		if (tAbort)
 			m_pAppModel->requestExit();
 		m_ResourceMgr.UpdateSound();
@@ -442,6 +460,7 @@ bool AppFrame::onRender()
 	bool result = SafeCallGlobalFunction(LuaEngine::G_CALLBACK_EngineDraw);
 	if (!result)
 		m_pAppModel->requestExit();
+	clr_fn.RenderFunc();
 
 	GetRenderTargetManager()->EndRenderTargetStack();
 

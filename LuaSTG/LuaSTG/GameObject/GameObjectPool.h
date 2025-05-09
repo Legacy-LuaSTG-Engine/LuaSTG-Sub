@@ -3,6 +3,7 @@
 #include "core/FixedObjectPool.hpp"
 #include <deque>
 #include <memory_resource>
+#include "CLRBinding/CLRBinding.hpp"
 
 // 对象池信息
 #define LOBJPOOL_SIZE   32768 // 最大对象数 //32768(full) //16384(half)
@@ -32,6 +33,7 @@ namespace luastg
 		core::FixedObjectPool<GameObject, LOBJPOOL_SIZE> m_ObjectPool;
 		uint64_t m_iUid = 0;
 		lua_State* G_L = nullptr;
+		ManagedAPI* CLR_fn;
 
 		// GameObject List
 		struct _less_render {
@@ -111,11 +113,14 @@ namespace luastg
 
 		void _GameObjectCallback(lua_State* L, int otidx, GameObject* p, int cbidx);
 
+		void Del(lua_State* L, GameObject* p, bool kill_mode = false) noexcept;
 	public:
 		void DebugNextFrame();
 		FrameStatistics DebugGetFrameStatistics();
 
 	public:
+		void Del(GameObject* p, bool kill_mode = false) noexcept;
+
 #ifdef USING_MULTI_GAME_WORLD
 		int PushCurrentObject(lua_State* L) noexcept;
 #endif // USING_MULTI_GAME_WORLD
@@ -321,7 +326,15 @@ namespace luastg
 		static int api_ParticleSetEmission(lua_State* L) noexcept;
 
 	public:
-		GameObjectPool(lua_State* pL);
+		// CORECLR
+		
+		/// @brief 创建新对象
+		GameObject* CLR_New(uint32_t) noexcept;
+
+		static GameObjectPool* GetInstance();
+
+	public:
+		GameObjectPool(lua_State* pL, ManagedAPI* clr_fn);
 		GameObjectPool& operator=(const GameObjectPool&) = delete;
 		GameObjectPool(const GameObjectPool&) = delete;
 		~GameObjectPool();

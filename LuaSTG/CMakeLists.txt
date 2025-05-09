@@ -149,6 +149,11 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/generated/ColorMember.hpp
     LuaSTG/LuaBinding/generated/GameObjectMember.cpp
     LuaSTG/LuaBinding/generated/GameObjectMember.hpp
+    
+    LuaSTG/CLRBinding/CLRHost.cpp
+    LuaSTG/CLRBinding/CLRHost.hpp
+    LuaSTG/CLRBinding/CLRBinding.cpp
+    LuaSTG/CLRBinding/CLRBinding.hpp
 
     LuaSTG/SteamAPI/SteamAPI.cpp
     LuaSTG/SteamAPI/SteamAPI.hpp
@@ -230,10 +235,16 @@ if (LUASTG_LINK_LUASOCKET)
     message(STATUS "[LuaSTG] Link: luasocket")
 endif ()
 
+set (CLR_HOST_PATH "C:/Program Files/dotnet/packs/Microsoft.NETCore.App.Host.win-x64/8.0.13/runtimes/win-x64/native")
+include_directories (${CLR_HOST_PATH})
+find_library (HOSTFXR NAMES nethost PATHS ${CLR_HOST_PATH})
+target_link_libraries (LuaSTG PRIVATE ${HOSTFXR})
+
 add_custom_command(TARGET LuaSTG POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory                                                ${CMAKE_BINARY_DIR}/bin
     COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:LuaSTG>                       ${CMAKE_BINARY_DIR}/bin/$<TARGET_FILE_NAME:LuaSTG>
     COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:Microsoft.XAudio2.Redist>     ${CMAKE_BINARY_DIR}/bin/$<TARGET_FILE_NAME:Microsoft.XAudio2.Redist>
     COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:Microsoft.D3DCompiler.Redist> ${CMAKE_BINARY_DIR}/bin/$<TARGET_FILE_NAME:Microsoft.D3DCompiler.Redist>
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CLR_HOST_PATH}/nethost.dll                ${CMAKE_BINARY_DIR}/bin/nethost.dll
     VERBATIM
 )
