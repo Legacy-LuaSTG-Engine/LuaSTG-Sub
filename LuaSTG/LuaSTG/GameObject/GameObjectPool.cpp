@@ -500,8 +500,8 @@ namespace luastg
 		tracy_zone_scoped_with_name("LOBJMGR.BoundCheck(New)");
 
 		struct OutOfWorldBoundDetectionResult {
-			uint64_t id{};
-			uint32_t index{};
+			uint64_t uid{};
+			GameObject* game_object{};
 		};
 
 		std::pmr::deque<OutOfWorldBoundDetectionResult> cache{ &local_memory_resource };
@@ -527,26 +527,24 @@ namespace luastg
 			}
 #endif // USING_ADVANCE_GAMEOBJECT_CLASS
 			cache.push_back(OutOfWorldBoundDetectionResult{
-				.id = p->uid,
-				.index = static_cast<uint32_t>(p->id),
+				.uid = p->uid,
+				.game_object = p,
 				});
-			
 		}
 
-		for (auto const& result : cache) {
-			auto* object = m_ObjectPool.object(result.index);
-			if (object->uid != result.id) {
+		for (auto const& [uid, game_object] : cache) {
+			if (game_object->uid != uid) {
 				assert(false); continue; // 理论上不太可能发生
 			}
-			m_pCurrentObject = object;
+			m_pCurrentObject = game_object;
 			//_GameObjectCallback(L, objects_index, object, LGOBJ_CC_DEL);
-			lua_rawgeti(L, objects_index, object->id + 1);	// ... object
-			lua_rawgeti(L, -1, 1);							// ... object class
-			lua_rawgeti(L, -1, LGOBJ_CC_DEL);				// ... object class colli
-			lua_pushvalue(L, -3);							// ... object class colli object
-			lua_pushstring(L, "luastg:leave_world_border");	// ... object class colli object "luastg:leave_world_border"
-			lua_call(L, 2, 0);								// ... object class
-			lua_pop(L, 2);									// ...
+			lua_rawgeti(L, objects_index, game_object->id + 1);	// ... object
+			lua_rawgeti(L, -1, 1);								// ... object class
+			lua_rawgeti(L, -1, LGOBJ_CC_DEL);					// ... object class colli
+			lua_pushvalue(L, -3);								// ... object class colli object
+			lua_pushstring(L, "luastg:leave_world_border");		// ... object class colli object "luastg:leave_world_border"
+			lua_call(L, 2, 0);									// ... object class
+			lua_pop(L, 2);										// ...
 			m_pCurrentObject = nullptr;
 		}
 	}
