@@ -45,6 +45,7 @@ namespace luastg {
 
 		_KEY_NOT_FOUND = 0x7f,
 	};
+	static_assert(sizeof(BlendMode) == sizeof(uint8_t));
 
 	// 资源接口
 	struct IResourceBase : core::IReferenceCounted {
