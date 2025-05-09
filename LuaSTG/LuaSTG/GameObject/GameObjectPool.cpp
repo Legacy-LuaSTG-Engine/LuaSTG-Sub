@@ -262,7 +262,7 @@ namespace luastg
 	int GameObjectPool::Del(lua_State* L, bool kill_mode) noexcept
 	{
 		GameObject* p = _ToGameObject(L, 1);
-		Del(p, kill_mode);
+		Del(L, p, kill_mode);
 		return 0;
 	}
 
@@ -870,6 +870,10 @@ namespace luastg
 	}
 	void GameObjectPool::Del(GameObject* p, bool kill_mode) noexcept
 	{
+		Del(G_L, p, kill_mode);
+	}
+	void GameObjectPool::Del(lua_State* L, GameObject* p, bool kill_mode) noexcept
+	{
 		if (p->status == GameObjectStatus::Active)
 		{
 			// 标记为即将回收的状态
@@ -877,11 +881,11 @@ namespace luastg
 			// 回调
 			if ((!kill_mode && p->features.has_callback_destroy) || (kill_mode && p->features.has_callback_legacy_kill))
 			{
-				lua_rawgeti(G_L, 1, 1);												// object ... class
-				lua_rawgeti(G_L, -1, (!kill_mode) ? LGOBJ_CC_DEL : LGOBJ_CC_KILL);	// object ... class callback
-				lua_insert(G_L, 1);													// callback object ...
-				lua_pop(G_L, 1);														// callback object ...
-				lua_call(G_L, lua_gettop(G_L) - 1, 0);									// 
+				lua_rawgeti(L, 1, 1);												// object ... class
+				lua_rawgeti(L, -1, (!kill_mode) ? LGOBJ_CC_DEL : LGOBJ_CC_KILL);	// object ... class callback
+				lua_insert(L, 1);													// callback object ...
+				lua_pop(L, 1);														// callback object ...
+				lua_call(L, lua_gettop(L) - 1, 0);									// 
 			}
 		}
 	}

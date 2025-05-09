@@ -112,6 +112,8 @@ namespace luastg
 		GameObject* _TableToGameObject(lua_State* L, int idx);
 
 		void _GameObjectCallback(lua_State* L, int otidx, GameObject* p, int cbidx);
+
+		void Del(lua_State* L, GameObject* p, bool kill_mode = false) noexcept;
 	public:
 		void DebugNextFrame();
 		FrameStatistics DebugGetFrameStatistics();
