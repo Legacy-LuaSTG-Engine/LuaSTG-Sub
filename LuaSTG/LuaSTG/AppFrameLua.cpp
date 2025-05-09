@@ -24,7 +24,7 @@ extern "C" {
 #include "utf8.hpp"
 #include "Platform/CommandLineArguments.hpp"
 #include "core/FileSystem.hpp"
-#include "luastg/InternalLuaScriptsFileSystem.hpp"
+#include "luastg/EmbeddedFileSystem.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -281,7 +281,7 @@ namespace luastg
 	bool AppFrame::OnOpenLuaEngine()
 	{
 		// 挂载文件系统
-		core::FileSystemManager::addFileSystem("luastg", IInternalLuaScriptsFileSystem::getInstance());
+		core::FileSystemManager::addFileSystem("luastg", IEmbeddedFileSystem::getInstance());
 
 		// 加载lua虚拟机
 		spdlog::info("[luajit] {}", LUAJIT_VERSION);
