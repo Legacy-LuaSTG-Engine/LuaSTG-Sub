@@ -1,6 +1,5 @@
 #include "GameObject/GameObjectPool.h"
 #include "LuaBinding/LuaWrapper.hpp"
-#include "LuaBinding/generated/GameObjectMember.hpp"
 #include "lua/plus.hpp"
 #include "AppFrame.h"
 

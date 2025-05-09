@@ -104,7 +104,7 @@ namespace luastg
 		lua_Integer timer;				// [P] 自增计数器
 	#ifdef LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 		lua_Integer pause;				// [P] 对象被暂停的时间(帧) 对象被暂停时，将跳过速度计算，但是timer会增加，frame仍会调用
-	#endif LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
+	#endif // LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 
 		// 小型属性
 		// 小型属性 - 渲染
