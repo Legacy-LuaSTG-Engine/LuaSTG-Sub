@@ -5,21 +5,21 @@
 
 #include "CLRHost.hpp"
 
-void* LuaSTGPlus::CLRHost::load_library(const char_t* path)
+void* luastg::CLRHost::load_library(const char_t* path)
 {
 	HMODULE h = ::LoadLibraryW(path);
 	assert(h != nullptr);
 	return (void*)h;
 }
 
-void* LuaSTGPlus::CLRHost::get_export(void* h, const char* name)
+void* luastg::CLRHost::get_export(void* h, const char* name)
 {
 	void* f = ::GetProcAddress((HMODULE)h, name);
 	assert(f != nullptr);
 	return f;
 }
 
-bool LuaSTGPlus::CLRHost::init_hostfxr()
+bool luastg::CLRHost::init_hostfxr()
 {
 	// Pre-allocate a large buffer for the path to hostfxr
 	char_t buffer[MAX_PATH];
@@ -37,7 +37,7 @@ bool LuaSTGPlus::CLRHost::init_hostfxr()
 	return (_init_runtime && _get_delegate && _close_context);
 }
 
-bool LuaSTGPlus::CLRHost::get_dotnet_load_assembly_config(const char_t* config_path)
+bool luastg::CLRHost::get_dotnet_load_assembly_config(const char_t* config_path)
 {
 	hostfxr_handle cxt = nullptr;
 	int rc = _init_runtime(config_path, nullptr, &cxt);
@@ -90,7 +90,7 @@ bool LuaSTGPlus::CLRHost::get_dotnet_load_assembly_config(const char_t* config_p
 	return true;
 }
 
-LuaSTGPlus::CLRHost::CLRHost(const char_t* config_path)
+luastg::CLRHost::CLRHost(const char_t* config_path)
 {
 	_init_runtime = nullptr;
 	_get_delegate = nullptr;
@@ -103,12 +103,12 @@ LuaSTGPlus::CLRHost::CLRHost(const char_t* config_path)
 	_config_path = config_path;
 }
 
-bool LuaSTGPlus::CLRHost::init()
+bool luastg::CLRHost::init()
 {
 	return init_hostfxr() && get_dotnet_load_assembly_config(_config_path);
 }
 
-int LuaSTGPlus::CLRHost::load_assembly_and_get_function_pointer(
+int luastg::CLRHost::load_assembly_and_get_function_pointer(
 	const char_t* assembly_path, 
 	const char_t* type_name, 
 	const char_t* method_name, 
@@ -125,7 +125,7 @@ int LuaSTGPlus::CLRHost::load_assembly_and_get_function_pointer(
 	);
 }
 
-int LuaSTGPlus::CLRHost::load_assembly(const char_t* assembly_path) const
+int luastg::CLRHost::load_assembly(const char_t* assembly_path) const
 {
 	return _load_assembly(
 		assembly_path,
@@ -134,7 +134,7 @@ int LuaSTGPlus::CLRHost::load_assembly(const char_t* assembly_path) const
 	);
 }
 
-int LuaSTGPlus::CLRHost::get_function_pointer(
+int luastg::CLRHost::get_function_pointer(
 	const char_t* type_name, 
 	const char_t* method_name, 
 	const char_t* delegate_type_name, 
@@ -150,6 +150,6 @@ int LuaSTGPlus::CLRHost::get_function_pointer(
 	);
 }
 
-LuaSTGPlus::CLRHost::~CLRHost()
+luastg::CLRHost::~CLRHost()
 {
 }

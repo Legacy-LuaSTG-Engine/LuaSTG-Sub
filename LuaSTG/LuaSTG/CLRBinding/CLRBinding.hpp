@@ -2,7 +2,7 @@
 
 #include "CLRBinding/CLRHost.hpp"
 
-namespace LuaSTGPlus
+namespace luastg
 {
 #define BINDING_METHODS \
     DECLARE_CLR_API(void, Log, (int32_t, intptr_t)) \

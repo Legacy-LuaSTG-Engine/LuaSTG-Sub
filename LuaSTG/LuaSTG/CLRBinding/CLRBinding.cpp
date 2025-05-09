@@ -2,9 +2,9 @@
 #include "LuaWrapper.hpp"
 #include "AppFrame.h"
 
-inline Core::Graphics::IRenderer* LR2D() { return LAPP.GetAppModel()->getRenderer(); }
+inline core::Graphics::IRenderer* LR2D() { return LAPP.GetAppModel()->getRenderer(); }
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	void CLRBinding::Log(int32_t level, intptr_t str)
 	{
@@ -53,7 +53,7 @@ namespace LuaSTGPlus
 
 	void CLRBinding::RenderClear(uint8_t a, uint8_t r, uint8_t g, uint8_t b)
 	{
-		Core::Color4B color(r, g, b, a);
+		core::Color4B color(r, g, b, a);
 		LR2D()->clearRenderTarget(color);
 	}
 

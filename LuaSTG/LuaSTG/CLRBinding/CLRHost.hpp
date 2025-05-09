@@ -4,7 +4,7 @@
 #include <coreclr_delegates.h>
 #include <hostfxr.h>
 
-namespace LuaSTGPlus
+namespace luastg
 {
 	class CLRHost 
 	{

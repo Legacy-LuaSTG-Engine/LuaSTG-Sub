@@ -868,7 +868,7 @@ namespace luastg
 		_InsertToRenderList(p);
 		_InsertToColliLinkList(p, (size_t)p->group);
 	}
-	void LuaSTGPlus::GameObjectPool::Del(GameObject* p, bool kill_mode) noexcept
+	void GameObjectPool::Del(GameObject* p, bool kill_mode) noexcept
 	{
 		if (p->status == GameObjectStatus::Active)
 		{
@@ -877,11 +877,11 @@ namespace luastg
 			// 回调
 			if ((!kill_mode && p->features.has_callback_destroy) || (kill_mode && p->features.has_callback_legacy_kill))
 			{
-				lua_rawgeti(L, 1, 1);												// object ... class
-				lua_rawgeti(L, -1, (!kill_mode) ? LGOBJ_CC_DEL : LGOBJ_CC_KILL);	// object ... class callback
-				lua_insert(L, 1);													// callback object ...
-				lua_pop(L, 1);														// callback object ...
-				lua_call(L, lua_gettop(L) - 1, 0);									// 
+				lua_rawgeti(G_L, 1, 1);												// object ... class
+				lua_rawgeti(G_L, -1, (!kill_mode) ? LGOBJ_CC_DEL : LGOBJ_CC_KILL);	// object ... class callback
+				lua_insert(G_L, 1);													// callback object ...
+				lua_pop(G_L, 1);														// callback object ...
+				lua_call(G_L, lua_gettop(G_L) - 1, 0);									// 
 			}
 		}
 	}
