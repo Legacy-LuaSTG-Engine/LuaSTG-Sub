@@ -83,6 +83,7 @@ void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 			return 1;
 		}
 		// EX+ multi world  world mask
+#ifdef USING_MULTI_GAME_WORLD
 		static int GetWorldFlag(lua_State* L) noexcept
 		{
 			lua_pushinteger(L, LPOOL.GetWorldFlag());
@@ -121,6 +122,7 @@ void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 		{
 			return LPOOL.PushCurrentObject(L);
 		}
+#endif // USING_MULTI_GAME_WORLD
 	};
 
 	luaL_Reg const lib[] = {
@@ -169,12 +171,14 @@ void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 		{ "SetSuperPause", &Wrapper::SetSuperPause },
 		{ "AddSuperPause", &Wrapper::AddSuperPause },
 		{ "GetCurrentSuperPause", &Wrapper::GetCurrentSuperPause },
+#ifdef USING_MULTI_GAME_WORLD
 		{ "GetWorldFlag", &Wrapper::GetWorldFlag },
 		{ "SetWorldFlag", &Wrapper::SetWorldFlag },
 		{ "IsInWorld", &Wrapper::IsSameWorld },
 		{ "IsSameWorld", &Wrapper::CheckWorlds },
 		{ "ActiveWorlds", &Wrapper::ActiveWorlds },
 		{ "GetCurrentObject", &Wrapper::GetCurrentObject },
+#endif // USING_MULTI_GAME_WORLD
 		{ NULL, NULL },
 	};
 

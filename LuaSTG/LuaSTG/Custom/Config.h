@@ -33,7 +33,7 @@
 #define GLOBAL_SCALE_COLLI_SHAPE
 
 // BAKAESC
-#define USING_MULTI_GAME_WORLD
+//#define USING_MULTI_GAME_WORLD
 
 // lstg.GameObject.ps
 // access lstg.GameObject particle system via lstg.ParticleSystem instance

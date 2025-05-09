@@ -48,7 +48,9 @@ namespace luastg
 		std::pair<GameObject, GameObject> m_UpdateLinkList;
 		std::array<std::pair<GameObject, GameObject>, LOBJPOOL_GROUPN> m_ColliLinkList = {};
 
+#ifdef USING_MULTI_GAME_WORLD
 		GameObject* m_pCurrentObject{};
+#endif // USING_MULTI_GAME_WORLD
 		GameObject* m_LockObjectA{};
 		GameObject* m_LockObjectB{};
 
@@ -114,7 +116,9 @@ namespace luastg
 		FrameStatistics DebugGetFrameStatistics();
 
 	public:
+#ifdef USING_MULTI_GAME_WORLD
 		int PushCurrentObject(lua_State* L) noexcept;
+#endif // USING_MULTI_GAME_WORLD
 
 		GameObject* CastGameObject(lua_State* L, int idx);
 
@@ -208,6 +212,8 @@ namespace luastg
 
 		/// @brief 调试目的，获取对象列表
 		int GetObjectTable(lua_State* L) noexcept;
+
+#ifdef USING_MULTI_GAME_WORLD
 	private:
 		// 用于多world
 
@@ -243,6 +249,8 @@ namespace luastg
 			if (CheckWorld(a, m_Worlds[3]) && CheckWorld(b, m_Worlds[3]))return true;
 			return false;
 		}
+#endif // USING_MULTI_GAME_WORLD
+
 	private:
 		// 用于超级暂停
 

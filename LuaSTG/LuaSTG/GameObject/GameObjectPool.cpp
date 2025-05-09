@@ -22,7 +22,9 @@ namespace luastg
 		_ClearLinkList();
 		m_RenderList.clear();
 		// ex+
+#ifdef USING_MULTI_GAME_WORLD
 		m_pCurrentObject = nullptr;
+#endif // USING_MULTI_GAME_WORLD
 		m_superpause = 0;
 		m_nextsuperpause = 0;
 		// lua
@@ -171,10 +173,12 @@ namespace luastg
 		_RemoveFromUpdateLinkList(object);
 		_RemoveFromRenderList(object);
 		_RemoveFromColliLinkList(object);
+#ifdef USING_MULTI_GAME_WORLD
 		if (m_pCurrentObject == object)
 		{
 			m_pCurrentObject = nullptr;
 		}
+#endif // USING_MULTI_GAME_WORLD
 		object->status = GameObjectStatus::Free;
 		m_ObjectPool.free(object->id);
 		return ret;
@@ -276,6 +280,7 @@ namespace luastg
 		lua_gettable(L, LUA_REGISTRYINDEX);
 		return 1;
 	}
+#ifdef USING_MULTI_GAME_WORLD
 	int GameObjectPool::PushCurrentObject(lua_State* L)  noexcept
 	{
 		if (!m_pCurrentObject)
@@ -287,6 +292,7 @@ namespace luastg
 		lua_rawgeti(L, -1, (int)m_pCurrentObject->id + 1);  // ot t(object)
 		return 1;
 	}
+#endif // USING_MULTI_GAME_WORLD
 	GameObject* GameObjectPool::CastGameObject(lua_State* L, int idx)
 	{
 		return _ToGameObject(L, idx);
@@ -317,9 +323,11 @@ namespace luastg
 		// 重置整个对象池，恢复为线性状态
 		m_ObjectPool.clear();
 		// 重置其他数据
+#ifdef USING_MULTI_GAME_WORLD
 		m_iWorld = 15;
 		m_Worlds = { 15, 0, 0, 0 };
 		m_pCurrentObject = nullptr;
+#endif // USING_MULTI_GAME_WORLD
 		m_LockObjectA = nullptr;
 		m_LockObjectB = nullptr;
 		m_superpause = 0;
@@ -334,9 +342,13 @@ namespace luastg
 		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second; p = p->pUpdateNext) {
 			if (superpause <= 0 || p->ignore_superpause) {
 				if (p->features.has_callback_update) {
+#ifdef USING_MULTI_GAME_WORLD
 					m_pCurrentObject = p;
+#endif // USING_MULTI_GAME_WORLD
 					_GameObjectCallback(L, objects_index, p, LGOBJ_CC_FRAME);
+#ifdef USING_MULTI_GAME_WORLD
 					m_pCurrentObject = nullptr;
+#endif // USING_MULTI_GAME_WORLD
 				}
 				p->Update();
 			}
@@ -351,9 +363,13 @@ namespace luastg
 				if (!p->features.has_callback_update) {
 					continue;
 				}
+#ifdef USING_MULTI_GAME_WORLD
 				m_pCurrentObject = p;
+#endif // USING_MULTI_GAME_WORLD
 				_GameObjectCallback(L, objects_index, p, LGOBJ_CC_FRAME);
+#ifdef USING_MULTI_GAME_WORLD
 				m_pCurrentObject = nullptr;
+#endif // USING_MULTI_GAME_WORLD
 			}
 		}
 
@@ -369,19 +385,19 @@ namespace luastg
 		int const ot_idx = lua_gettop(G_L);
 
 		m_IsRendering = true;
-		m_pCurrentObject = nullptr;
+
 #ifdef USING_MULTI_GAME_WORLD
+		m_pCurrentObject = nullptr;
 		lua_Integer world = GetWorldFlag();
 #endif // USING_MULTI_GAME_WORLD
-		for (auto& p : m_RenderList)
-		{
+
+		for (auto& p : m_RenderList) {
 #ifdef USING_MULTI_GAME_WORLD
-			if (!p->hide && CheckWorld(p->world, world))  // 只渲染可见对象
-#else // USING_MULTI_GAME_WORLD
-			if (!p->hide)  // 只渲染可见对象
-#endif // USING_MULTI_GAME_WORLD
-			{
+			if (!p->hide && CheckWorld(p->world, world)) { // 只渲染可见对象
 				m_pCurrentObject = p;
+#else // USING_MULTI_GAME_WORLD
+			if (!p->hide) {  // 只渲染可见对象
+#endif // USING_MULTI_GAME_WORLD
 				if (p->features.has_callback_render) {
 					_GameObjectCallback(G_L, ot_idx, p, LGOBJ_CC_RENDER);
 				}
@@ -390,7 +406,10 @@ namespace luastg
 				}
 			}
 		}
+
+#ifdef USING_MULTI_GAME_WORLD
 		m_pCurrentObject = nullptr;
+#endif // USING_MULTI_GAME_WORLD
 		m_IsRendering = false;
 
 		lua_pop(G_L, 1);
@@ -476,9 +495,13 @@ namespace luastg
 			p->status = GameObjectStatus::Dead; // 产生副作用
 			// 调用 del 回调
 			if (p->features.has_callback_destroy) {
+#ifdef USING_MULTI_GAME_WORLD
 				m_pCurrentObject = p;
+#endif // USING_MULTI_GAME_WORLD
 				_GameObjectCallback(L, objects_index, p, LGOBJ_CC_DEL);
+#ifdef USING_MULTI_GAME_WORLD
 				m_pCurrentObject = nullptr;
+#endif // USING_MULTI_GAME_WORLD
 			}
 		}
 	}
@@ -519,7 +542,9 @@ namespace luastg
 			if (game_object->uid != uid) {
 				assert(false); continue; // 理论上不太可能发生
 			}
+#ifdef USING_MULTI_GAME_WORLD
 			m_pCurrentObject = game_object;
+#endif // USING_MULTI_GAME_WORLD
 			//_GameObjectCallback(L, objects_index, object, LGOBJ_CC_DEL);
 			lua_rawgeti(L, objects_index, game_object->id + 1);	// ... object
 			lua_rawgeti(L, -1, 1);								// ... object class
@@ -528,7 +553,9 @@ namespace luastg
 			lua_pushstring(L, "luastg:leave_world_border");		// ... object class colli object "luastg:leave_world_border"
 			lua_call(L, 2, 0);									// ... object class
 			lua_pop(L, 2);										// ...
+#ifdef USING_MULTI_GAME_WORLD
 			m_pCurrentObject = nullptr;
+#endif // USING_MULTI_GAME_WORLD
 		}
 	}
 	void GameObjectPool::detectIntersectionLegacy(uint32_t group1_, uint32_t group2_, int32_t objects_index, lua_State* L) {
@@ -555,7 +582,9 @@ namespace luastg
 					continue;
 				}
 				debug_data.object_colli_callback += 1;
+#ifdef USING_MULTI_GAME_WORLD
 				m_pCurrentObject = pA;
+#endif // USING_MULTI_GAME_WORLD
 				m_LockObjectA = ptrA;
 				m_LockObjectB = ptrB;
 				// 根据id获取对象的lua绑定table、拿到class再拿到collifunc
@@ -566,7 +595,9 @@ namespace luastg
 				lua_rawgeti(L, objects_index, pB->id + 1);	// ... object1 class1 colli1 object1 object2
 				lua_call(L, 2, 0);							// ... object1 class1
 				lua_pop(L, 2);								// ...
+#ifdef USING_MULTI_GAME_WORLD
 				m_pCurrentObject = nullptr;
+#endif // USING_MULTI_GAME_WORLD
 				m_LockObjectA = nullptr;
 				m_LockObjectB = nullptr;
 			}
@@ -613,7 +644,9 @@ namespace luastg
 				assert(false); continue; // 理论上不太可能发生
 			}
 			debug_data.object_colli_callback += 1;
+#ifdef USING_MULTI_GAME_WORLD
 			m_pCurrentObject = object1;
+#endif // USING_MULTI_GAME_WORLD
 			m_LockObjectA = object1;
 			m_LockObjectB = object2;
 			lua_rawgeti(L, objects_index, object1->id + 1);	// ... object1
@@ -623,7 +656,9 @@ namespace luastg
 			lua_rawgeti(L, objects_index, object2->id + 1);	// ... object1 class1 colli1 object1 object2
 			lua_call(L, 2, 0);								// ... object1 class1
 			lua_pop(L, 2);									// ...
+#ifdef USING_MULTI_GAME_WORLD
 			m_pCurrentObject = nullptr;
+#endif // USING_MULTI_GAME_WORLD
 			m_LockObjectA = nullptr;
 			m_LockObjectB = nullptr;
 		}
@@ -780,19 +815,14 @@ namespace luastg
 
 		if (p->features.has_callback_create) {
 			// 调用 init
-			lua_insert(L, 1);							// object class ... ot
-			lua_pop(L, 1);								// object class ...
-			lua_rawgeti(L, 2, LGOBJ_CC_INIT);			// object class ... init
-			lua_insert(L, 3);							// object class init ...
-			lua_pushvalue(L, 1);						// object class init ... object
-			lua_insert(L, 4);							// object class init object ...
-			lua_call(L, lua_gettop(L) - 3, 0);			// object class
-			lua_pop(L, 1);								// object
-
-			// TODO: 潜在的 dx、dy 值问题，可能会导致意外情况
-			// 更新初始状态
-			//p->lastx = p->x;
-			//p->lasty = p->y;
+			lua_insert(L, 1);						// object class ... ot
+			lua_pop(L, 1);							// object class ...
+			lua_rawgeti(L, 2, LGOBJ_CC_INIT);		// object class ... init
+			lua_insert(L, 3);						// object class init ...
+			lua_pushvalue(L, 1);					// object class init ... object
+			lua_insert(L, 4);						// object class init object ...
+			lua_call(L, lua_gettop(L) - 3, 0);		// object class
+			lua_pop(L, 1);							// object
 		}
 
 #if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))

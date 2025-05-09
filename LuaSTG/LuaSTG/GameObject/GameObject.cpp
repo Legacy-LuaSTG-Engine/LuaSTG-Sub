@@ -156,7 +156,9 @@ namespace luastg
 		ignore_superpause = false;
 		touch_lastx_lasty = false;
 
+#ifdef USING_MULTI_GAME_WORLD
 		world = 15;
+#endif // USING_MULTI_GAME_WORLD
 
 		rect = false;
 		a = b = 0.;
@@ -198,7 +200,9 @@ namespace luastg
 		ignore_superpause = false;
 		touch_lastx_lasty = false;
 
+#ifdef USING_MULTI_GAME_WORLD
 		world = 15;
+#endif // USING_MULTI_GAME_WORLD
 
 		rect = false;
 		a = b = 0.;
@@ -657,9 +661,11 @@ namespace luastg
 
 			// 分组
 
+#ifdef USING_MULTI_GAME_WORLD
 		case LuaSTG::GameObjectMember::WORLD:
 			lua_pushinteger(L, world);
 			return 1;
+#endif // USING_MULTI_GAME_WORLD
 
 			// 位置
 
@@ -882,9 +888,11 @@ namespace luastg
 			
 			// 分组
 
+#ifdef USING_MULTI_GAME_WORLD
 		case LuaSTG::GameObjectMember::WORLD:
 			world = luaL_checkinteger(L, 3);
 			return 0;
+#endif // USING_MULTI_GAME_WORLD
 
 			// 位置
 

@@ -55,7 +55,9 @@ namespace luastg
 
 		// 分组
 
+#ifdef USING_MULTI_GAME_WORLD
 		lua_Integer world;				// [P] 世界标记位，用于对一个对象进行分组，影响更新、渲染、碰撞检测等
+#endif // USING_MULTI_GAME_WORLD
 
 		// 位置
 
