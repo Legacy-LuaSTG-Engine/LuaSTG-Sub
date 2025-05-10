@@ -35,6 +35,7 @@ set(LUASTG_ENGINE_SOURCES
 
     LuaSTG/GameObject/GameObject.cpp
     LuaSTG/GameObject/GameObject.hpp
+    LuaSTG/GameObject/GameObjectIntersectDetect.cpp
     LuaSTG/GameObject/GameObjectBentLaser.cpp
     LuaSTG/GameObject/GameObjectBentLaser.hpp
     LuaSTG/GameObject/GameObjectPool.cpp
