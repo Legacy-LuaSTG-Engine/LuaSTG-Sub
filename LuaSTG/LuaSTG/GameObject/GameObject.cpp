@@ -971,16 +971,7 @@ namespace luastg
 			// 碰撞体
 
 		case LuaSTG::GameObjectMember::GROUP:
-			do {
-				lua_Integer const group_ = luaL_checkinteger(L, 3);
-				if (group == group_)
-					return 0;
-				if (0 <= group_ && group_ < LOBJPOOL_GROUPN)
-					group = group_;
-				else
-					return luaL_error(L, "invalid argument for property 'group', required 0 <= group <= %d.", LOBJPOOL_GROUPN - 1);
-			} while (false);
-			return 1;
+			return unhandled_set_group;
 		case LuaSTG::GameObjectMember::BOUND:
 			bound = lua_toboolean(L, 3);
 			return 0;
@@ -1011,14 +1002,7 @@ namespace luastg
 			// 渲染
 
 		case LuaSTG::GameObjectMember::LAYER:
-			do
-			{
-				lua_Number const layer_ = luaL_checknumber(L, 3);
-				if (layer == layer_)
-					return 0;
-				nextlayer = layer_;
-			} while (false);
-			return 2;
+			return unhandled_set_layer;
 		case LuaSTG::GameObjectMember::HSCALE:
 			hscale = luaL_checknumber(L, 3);
 			return 0;

@@ -41,6 +41,9 @@ namespace luastg
 	// 游戏对象
 	struct GameObject
 	{
+		static constexpr int unhandled_set_group = 1;
+		static constexpr int unhandled_set_layer = 2;
+
 		// 链表部分
 
 		GameObject* pUpdatePrev;		// [P] [不可见]
@@ -92,7 +95,6 @@ namespace luastg
 		// 渲染
 
 		lua_Number layer;				// [8] 图层
-		lua_Number nextlayer;			// [8] [不可见] 对象要切换到的图层
 		lua_Number hscale;				// [8] 横向渲染缩放
 		lua_Number vscale;				// [8] 纵向渲染缩放
 		lua_Number rot;					// [8] 平面渲染旋转角

@@ -1301,18 +1301,29 @@ namespace luastg
 	}
 	int GameObjectPool::api_SetAttr(lua_State* L) noexcept
 	{
-		GameObject* p = g_GameObjectPool->_TableToGameObject(L, 1);
-		switch (p->SetAttr(L))
-		{
-		case 1: // group
-			if (p == g_GameObjectPool->m_LockObjectA || p == g_GameObjectPool->m_LockObjectB)
+		auto const p = g_GameObjectPool->_TableToGameObject(L, 1);
+		switch (p->SetAttr(L)) {
+		case GameObject::unhandled_set_group:
+			if (p == g_GameObjectPool->m_LockObjectA || p == g_GameObjectPool->m_LockObjectB) {
 				return luaL_error(L, "illegal operation, lstg object 'group' property should not be modified in 'lstg.CollisionCheck'");
-			g_GameObjectPool->_MoveToColliLinkList(p, (size_t)p->group);
+			}
+			if (lua_Integer const group = luaL_checkinteger(L, 3); group < 0 || group >= LOBJPOOL_GROUPN) {
+				return luaL_error(L, "invalid argument for property 'group', required 0 <= group <= %d.", LOBJPOOL_GROUPN - 1);
+			}
+			else if (p->group != group) {
+				g_GameObjectPool->_MoveToColliLinkList(p, static_cast<size_t>(group));
+				p->group = group;
+			}
 			break;
-		case 2: // layer
-			if (g_GameObjectPool->m_IsRendering)
+		case GameObject::unhandled_set_layer:
+			if (g_GameObjectPool->m_IsRendering) {
 				return luaL_error(L, "illegal operation, lstg object 'layer' property should not be modified in 'lstg.ObjRender'");
-			g_GameObjectPool->_SetObjectLayer(p, p->nextlayer);
+			}
+			if (lua_Number const layer = luaL_checknumber(L, 3); p->layer != layer) {
+				g_GameObjectPool->_SetObjectLayer(p, layer);
+			}
+			break;
+		default:
 			break;
 		}
 		return 0;
