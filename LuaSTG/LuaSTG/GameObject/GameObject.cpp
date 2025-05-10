@@ -224,7 +224,7 @@ namespace luastg
 		}
 		else {
 			//严格的正圆
-			col_r = (a + b) / 2;
+			col_r = a;
 		}
 	}
 	
