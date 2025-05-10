@@ -45,7 +45,7 @@ namespace luastg
 		m_UpdateLinkList.first.status = GameObjectStatus::Free;
 		m_UpdateLinkList.first.uid = 0;
 		m_UpdateLinkList.second.status = GameObjectStatus::Free;
-		m_UpdateLinkList.second.uid = UINT64_MAX;
+		m_UpdateLinkList.second.uid = GameObject::max_uid;
 		for (size_t i = 0; i < LOBJPOOL_GROUPN; i += 1)
 		{
 			m_ColliLinkList[i].first.pUpdateNext = &m_ColliLinkList[i].second;
@@ -56,7 +56,7 @@ namespace luastg
 			m_ColliLinkList[i].first.uid = 0;
 			m_ColliLinkList[i].first.group = (lua_Integer)i;
 			m_ColliLinkList[i].second.status = GameObjectStatus::Free;
-			m_ColliLinkList[i].second.uid = UINT64_MAX;
+			m_ColliLinkList[i].second.uid = GameObject::max_uid;
 			m_ColliLinkList[i].second.group = (lua_Integer)i;
 		}
 	}
@@ -152,7 +152,7 @@ namespace luastg
 		p->Reset();
 		p->status = GameObjectStatus::Active;
 		p->id = id;
-		p->uid = m_iUid;
+		p->uid = m_iUid % GameObject::max_uid; // GameObject::max_uid is reserved
 		m_iUid++;
 #ifdef USING_MULTI_GAME_WORLD
 		if (m_pCurrentObject)
@@ -625,11 +625,11 @@ namespace luastg
 						continue;
 					}
 					cache.push_back(IntersectionDetectionResult{
-						.id1 = object1->uid,
-						.id2 = object2->uid,
-						.index1 = static_cast<uint32_t>(object1->id),
-						.index2 = static_cast<uint32_t>(object2->id),
-						});
+						.uid1 = object1->uid,
+						.uid2 = object2->uid,
+						.object1 = object1,
+						.object2 = object2,
+					});
 				}
 			}
 		}
@@ -637,10 +637,8 @@ namespace luastg
 			return;
 		}
 		auto& debug_data = m_DbgData[m_DbgIdx];
-		for (auto const& result : cache) {
-			auto* object1 = m_ObjectPool.object(result.index1);
-			auto* object2 = m_ObjectPool.object(result.index2);
-			if (object1->uid != result.id1 || object2->uid != result.id2) {
+		for (auto const& [uid1, uid2, object1, object2] : cache) {
+			if (object1->uid != uid1 || object2->uid != uid2) {
 				assert(false); continue; // 理论上不太可能发生
 			}
 			debug_data.object_colli_callback += 1;
@@ -838,8 +836,8 @@ namespace luastg
 		_RemoveFromUpdateLinkList(p);
 		_RemoveFromRenderList(p);
 		_RemoveFromColliLinkList(p);
-		p->uid = m_iUid;
-		m_iUid += 1;
+		p->uid = m_iUid % GameObject::max_uid; // GameObject::max_uid is reserved
+		++m_iUid;
 		_InsertToUpdateLinkList(p);
 		_InsertToRenderList(p);
 		_InsertToColliLinkList(p, (size_t)p->group);
@@ -1336,68 +1334,43 @@ namespace luastg
 		return 0;
 	}
 
-	int GameObjectPool::api_ParticleStop(lua_State* L) noexcept
-	{
+	int GameObjectPool::api_ParticleStop(lua_State* L) noexcept {
 		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
-		if (!p->res || p->res->GetType() != ResourceType::Particle)
-		{
-#if !defined(NDEBUG)
-			spdlog::warn("[luastg] ParticleStop: 试图停止一个不带有粒子发射器的对象的粒子发射过程 (uid={})", p->uid);
-#endif
+		if (!p->res || p->res->GetType() != ResourceType::Particle){
 			return 0;
 		}
 		p->ps->SetActive(false);
 		return 0;
 	}
-	int GameObjectPool::api_ParticleFire(lua_State* L) noexcept
-	{
+	int GameObjectPool::api_ParticleFire(lua_State* L) noexcept {
 		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
-		if (!p->res || p->res->GetType() != ResourceType::Particle)
-		{
-#if !defined(NDEBUG)
-			spdlog::warn("[luastg] ParticleFire: 试图启动一个不带有粒子发射器的对象的粒子发射过程 (uid={})", p->uid);
-#endif
+		if (!p->res || p->res->GetType() != ResourceType::Particle) {
 			return 0;
 		}
 		p->ps->SetActive(true);
 		return 0;
 	}
-	int GameObjectPool::api_ParticleGetn(lua_State* L) noexcept
-	{
+	int GameObjectPool::api_ParticleGetn(lua_State* L) noexcept {
 		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
-		if (!p->res || p->res->GetType() != ResourceType::Particle)
-		{
-#if !defined(NDEBUG)
-			spdlog::warn("[luastg] ParticleGetn: 试图获取一个不带有粒子发射器的对象的粒子数量 (uid={})", p->uid);
-#endif
+		if (!p->res || p->res->GetType() != ResourceType::Particle) {
 			lua_pushinteger(L, 0);
 			return 1;
 		}
 		lua_pushinteger(L, (lua_Integer)p->ps->GetAliveCount());
 		return 1;
 	}
-	int GameObjectPool::api_ParticleGetEmission(lua_State* L) noexcept
-	{
+	int GameObjectPool::api_ParticleGetEmission(lua_State* L) noexcept {
 		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
-		if (!p->res || p->res->GetType() != ResourceType::Particle)
-		{
-#if !defined(NDEBUG)
-			spdlog::warn("[luastg] ParticleGetEmission: 试图获取一个不带有粒子发射器的对象的粒子发射密度 (uid={})", p->uid);
-#endif
+		if (!p->res || p->res->GetType() != ResourceType::Particle) {
 			lua_pushinteger(L, 0);
 			return 1;
 		}
 		lua_pushinteger(L, p->ps->GetEmission());
 		return 1;
 	}
-	int GameObjectPool::api_ParticleSetEmission(lua_State* L) noexcept
-	{
+	int GameObjectPool::api_ParticleSetEmission(lua_State* L) noexcept {
 		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
-		if (!p->res || p->res->GetType() != ResourceType::Particle)
-		{
-#if !defined(NDEBUG)
-			spdlog::warn("[luastg] ParticleSetEmission: 试图设置一个不带有粒子发射器的对象的粒子发射密度 (uid={})", p->uid);
-#endif
+		if (!p->res || p->res->GetType() != ResourceType::Particle) {
 			return 0;
 		}
 		p->ps->SetEmission((int)std::max<lua_Integer>(0, luaL_checkinteger(L, 2)));

@@ -66,10 +66,10 @@ namespace luastg
 		size_t m_DbgIdx{ 0 };
 
 		struct IntersectionDetectionResult {
-			uint64_t id1{};
-			uint64_t id2{};
-			uint32_t index1{};
-			uint32_t index2{};
+			uint64_t uid1{};
+			uint64_t uid2{};
+			GameObject* object1{};
+			GameObject* object2{};
 		};
 
 		std::pmr::unsynchronized_pool_resource local_memory_resource;

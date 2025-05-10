@@ -41,6 +41,9 @@ namespace luastg
 	// 游戏对象
 	struct GameObject
 	{
+		static constexpr uint64_t max_id = 0xffffull;
+		static constexpr uint64_t max_uid = 0xffff'ffff'ffffull;
+
 		static constexpr int unhandled_set_group = 1;
 		static constexpr int unhandled_set_layer = 2;
 
@@ -53,8 +56,8 @@ namespace luastg
 
 		// 基本信息
 
-		uint64_t uid;					// [8] [不可见] 对象全局唯一标识符
-		size_t id;						// [P] [不可见] 对象在对象池中的索引
+		uint64_t id : 16;				// [8:16] [不可见] 对象在对象池中的索引
+		uint64_t uid : 48;				// [8:48] [不可见] 对象全局唯一标识符
 
 		// 分组
 
