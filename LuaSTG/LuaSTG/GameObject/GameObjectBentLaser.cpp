@@ -601,7 +601,7 @@ void GameObjectBentLaser::RenderCollider(core::Color4B fillColor) noexcept
 					testObjA.a = df / 2;
 					testObjA.b = n.half_width;
 					testObjA.UpdateCollisionCircleRadius();
-					if (LuaSTGPlus::CollisionCheck(&testObjA, &testObjB))
+					if (GameObject::isIntersect(&testObjA, &testObjB))
 						return true;
 
 				}
@@ -655,7 +655,7 @@ bool GameObjectBentLaser::CollisionCheck(float x, float y, float rot, float a, f
 					testObjA.a = df / 2;
 					testObjA.b = n.half_width;
 					testObjA.UpdateCollisionCircleRadius();
-					if (LuaSTGPlus::CollisionCheck(&testObjA, &testObjB))
+					if (GameObject::isIntersect(&testObjA, &testObjB))
 						return true;
 
 				}
@@ -667,7 +667,7 @@ bool GameObjectBentLaser::CollisionCheck(float x, float y, float rot, float a, f
 		testObjA.a = testObjA.b = n.half_width * _GetEnvelope((float)i / (float)(sn - 1u)); //n.half_width;
 		testObjA.rect = false;
 		testObjA.UpdateCollisionCircleRadius();
-		if (luastg::CollisionCheck(&testObjA, &testObjB))
+		if (GameObject::isIntersect(&testObjA, &testObjB))
 			return true;
 	}
 	return false;
@@ -713,7 +713,7 @@ bool GameObjectBentLaser::CollisionCheckW(float x, float y, float rot, float a, 
 					testObjA.a = df / 2;
 					testObjA.b = width;
 					testObjA.UpdateCollisionCircleRadius();
-					if (LuaSTGPlus::CollisionCheck(&testObjA, &testObjB))
+					if (GameObject::isIntersect(&testObjA, &testObjB))
 						return true;
 
 				}
@@ -725,7 +725,7 @@ bool GameObjectBentLaser::CollisionCheckW(float x, float y, float rot, float a, 
 		testObjA.a = testObjA.b = width;
 		testObjA.rect = false;
 		testObjA.UpdateCollisionCircleRadius();
-		if (luastg::CollisionCheck(&testObjA, &testObjB))
+		if (GameObject::isIntersect(&testObjA, &testObjB))
 			return true;
 	}
 	return false;

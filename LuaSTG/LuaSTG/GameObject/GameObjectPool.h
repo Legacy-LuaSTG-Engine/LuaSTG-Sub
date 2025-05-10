@@ -100,7 +100,7 @@ namespace luastg
 		{
 			if (!object->bound)
 				return true;
-			return object->IsInRect(m_BoundLeft, m_BoundRight, m_BoundBottom, m_BoundTop);
+			return object->isInRect(m_BoundLeft, m_BoundRight, m_BoundBottom, m_BoundTop);
 		}
 
 		// 释放一个对象，完全释放，返回下一个可用的对象（可能为nullptr）
@@ -150,6 +150,7 @@ namespace luastg
 
 		/// @brief 设置舞台边界
 		inline void SetBound(lua_Number l, lua_Number r, lua_Number b, lua_Number t) noexcept {
+			assert(r >= l && t >= b);
 			m_BoundLeft = l;
 			m_BoundRight = r;
 			m_BoundTop = t;

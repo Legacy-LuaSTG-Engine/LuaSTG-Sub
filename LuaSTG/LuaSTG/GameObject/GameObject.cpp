@@ -122,7 +122,7 @@ namespace luastg
 		pColliPrev = pColliNext = nullptr;
 
 		status = GameObjectStatus::Free;
-		id = (size_t)-1;
+		id = max_id;
 		uid = 0;
 		features.reset();
 
@@ -1122,67 +1122,87 @@ namespace luastg
 		}
 	}
 
-	bool CollisionCheck(GameObject* p1, GameObject* p2) noexcept {
+	template<typename T>
+	constexpr bool isAxisAlignedBoundingBoxIntersect(
+		const T x1, const T y1, const T a1, const T b1,
+		const T x2, const T y2, const T a2, const T b2
+	) noexcept {
+		return (x1 + a1) >= (x2 - a2)
+			&& (x1 - a1) <= (x2 + a2)
+			&& (y1 + b1) >= (y2 - b2)
+			&& (y1 - b1) <= (y2 + b2);
+	}
+
+	inline bool isAxisAlignedBoundingBoxIntersect(
+		GameObject const* const p1,
+		GameObject const* const p2
+	) noexcept {
+		return isAxisAlignedBoundingBoxIntersect(
+			p1->x, p1->y, p1->col_r, p1->col_r,
+			p2->x, p2->y, p2->col_r, p2->col_r);
+	}
+
+	template<typename T>
+	constexpr bool isAxisAlignedBoundingBoxNotIntersect(
+		const T x1, const T y1, const T a1, const T b1,
+		const T x2, const T y2, const T a2, const T b2
+	) noexcept {
+		return (x1 + a1) < (x2 - a2)
+			|| (x1 - a1) > (x2 + a2)
+			|| (y1 + b1) < (y2 - b2)
+			|| (y1 - b1) > (y2 + b2);
+	}
+
+	inline bool isAxisAlignedBoundingBoxNotIntersect(
+		GameObject const* const p1,
+		GameObject const* const p2
+	) noexcept {
+		return isAxisAlignedBoundingBoxIntersect(
+			p1->x, p1->y, p1->col_r, p1->col_r,
+			p2->x, p2->y, p2->col_r, p2->col_r);
+	}
+
+	bool GameObject::isIntersect(GameObject const* const p1, GameObject const* const p2) noexcept {
+		using cocos2d::Vec2;
+		using xmath::collision::ColliderType;
+		using xmath::collision::check;
+
 		//忽略不碰撞对象
-		if (!p1->colli || !p2->colli)
-			return false;//返回点0
-		
+		if (!p1->colli || !p2->colli) {
+			return false;
+		}
+
+		Vec2 const xy1(static_cast<float>(p1->x), static_cast<float>(p1->y));
+		auto const r1 = static_cast<float>(p1->col_r);
+		Vec2 const xy2(static_cast<float>(p2->x), static_cast<float>(p2->y));
+		auto const r2 = static_cast<float>(p2->col_r);
+
 		//快速AABB检测
-		if ((p1->x - p1->col_r >= p2->x + p2->col_r) ||
-			(p1->x + p1->col_r <= p2->x - p2->col_r) ||
-			(p1->y - p1->col_r >= p2->y + p2->col_r) ||
-			(p1->y + p1->col_r <= p2->y - p2->col_r))
-		{
+		if (isAxisAlignedBoundingBoxNotIntersect(p1, p2)) {
 			return false;
 		}
-		
-		float x1 = (float)p1->x;
-		float x2 = (float)p2->x;
-		float y1 = (float)p1->y;
-		float y2 = (float)p2->y;
-		float a1 = (float)p1->a;
-		float a2 = (float)p2->a;
-		float b1 = (float)p1->b;
-		float b2 = (float)p2->b;
-		float rot1 = (float)p1->rot;
-		float rot2 = (float)p2->rot;
-		float cr1 = (float)p1->col_r;
-		float cr2 = (float)p2->col_r;
-		
-		using XVec2 = cocos2d::Vec2;
-		
-		//外接圆碰撞检测，没发生碰撞则直接PASS
-		
-		if (!xmath::collision::check(XVec2(x1, y1), cr1, cr1, rot1, XColliderType::Circle,
-			XVec2(x2, y2), cr2, cr2, rot2, XColliderType::Circle)) {
+
+		auto const a1 = static_cast<float>(p1->a);
+		auto const b1 = static_cast<float>(p1->b);
+		auto const rot1 = static_cast<float>(p1->rot);
+		auto const a2 = static_cast<float>(p2->a);
+		auto const b2 = static_cast<float>(p2->b);
+		auto const rot2 = static_cast<float>(p2->rot);
+
+		//外接圆碰撞检测
+		if (!check(
+			xy1, r1, r1, rot1, ColliderType::Circle,
+			xy2, r2, r2, rot2, ColliderType::Circle)) {
 			return false;
 		}
-		
-		//精确碰撞检测
-		if (!p1->rect && !p2->rect) {
-			//椭圆、椭圆碰撞检测
-			return xmath::collision::check(XVec2(x1, y1), a1, b1, rot1, XColliderType::Ellipse,
-				XVec2(x2, y2), a2, b2, rot2, XColliderType::Ellipse);
-		}
-		else if (p1->rect && p2->rect) {
-			//矩形、矩形碰撞检测
-			return xmath::collision::check(XVec2(x1, y1), a1, b1, rot1, XColliderType::OBB,
-				XVec2(x2, y2), a2, b2, rot2, XColliderType::OBB);
-		}
-		else
-		{
-			//矩形、椭圆碰撞检测
-			if (p1->rect && (!p2->rect))
-			{
-				return xmath::collision::check(XVec2(x1, y1), a1, b1, rot1, XColliderType::OBB,
-					XVec2(x2, y2), a2, b2, rot2, XColliderType::Ellipse);
-			}
-			else if ((!p1->rect) && p2->rect)
-			{
-				return xmath::collision::check(XVec2(x1, y1), a1, b1, rot1, XColliderType::Ellipse,
-					XVec2(x2, y2), a2, b2, rot2, XColliderType::OBB);
-			}
-		}
-		return false;
+
+		// 精确碰撞检测
+		auto const type1 = p1->rect
+			? ColliderType::OBB
+			: p1->a == p1->b ? ColliderType::Circle : ColliderType::Ellipse;
+		auto const type2 = p2->rect
+			? ColliderType::OBB
+			: p2->a == p2->b ? ColliderType::Circle : ColliderType::Ellipse;
+		return check(xy1, a1, b1, rot1, type1, xy2, a2, b2, rot2, type2);
 	}
 }

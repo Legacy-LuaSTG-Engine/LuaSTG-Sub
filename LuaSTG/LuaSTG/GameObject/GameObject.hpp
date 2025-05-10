@@ -159,15 +159,13 @@ namespace luastg
 		int GetAttr(lua_State* L) noexcept;
 		int SetAttr(lua_State* L) noexcept;
 
-		inline bool IsInRect(lua_Number l, lua_Number r, lua_Number b_, lua_Number t) const noexcept
-		{
-			assert(r >= l && t >= b_);
-			return x >= l && x <= r && y >= b_ && y <= t;
+		[[nodiscard]] bool isInRect(lua_Number const l, lua_Number const r, lua_Number const bb, lua_Number const t) const noexcept {
+			return x >= l && x <= r && y >= bb && y <= t;
 		}
+		[[nodiscard]] bool isIntersect(GameObject const* other) const noexcept { return isIntersect(this, other); }
+
+		[[nodiscard]] static bool isIntersect(GameObject const* p1, GameObject const* p2) noexcept;
 	};
 
 #pragma warning(pop)
-	
-	// 对两个游戏对象进行碰撞检测
-	bool CollisionCheck(GameObject* p1, GameObject* p2) noexcept;
 }

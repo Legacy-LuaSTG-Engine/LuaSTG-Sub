@@ -578,7 +578,7 @@ namespace luastg
 				}
 #endif // USING_MULTI_GAME_WORLD
 				debug_data.object_colli_check += 1;
-				if (!CollisionCheck(pA, pB)) {
+				if (!GameObject::isIntersect(pA, pB)) {
 					continue;
 				}
 				debug_data.object_colli_callback += 1;
@@ -621,7 +621,7 @@ namespace luastg
 					}
 #endif // USING_MULTI_GAME_WORLD
 					debug_data.object_colli_check += 1;
-					if (!CollisionCheck(object1, object2)) {
+					if (!GameObject::isIntersect(object1, object2)) {
 						continue;
 					}
 					cache.push_back(IntersectionDetectionResult{
@@ -1138,7 +1138,7 @@ namespace luastg
 		lua_Number const right = luaL_checknumber(L, 3);
 		lua_Number const bottom = luaL_checknumber(L, 4);
 		lua_Number const top = luaL_checknumber(L, 5);
-		lua_pushboolean(L, p->IsInRect(left, right, bottom, top));
+		lua_pushboolean(L, p->isInRect(left, right, bottom, top));
 		return 1;
 	}
 	int GameObjectPool::api_ColliCheck(lua_State* L) noexcept
@@ -1150,12 +1150,12 @@ namespace luastg
 		if (ignore_world_mask)
 		{
 #endif // USING_MULTI_GAME_WORLD
-			lua_pushboolean(L, CollisionCheck(p1, p2));
+			lua_pushboolean(L, GameObject::isIntersect(p1, p2));
 #ifdef USING_MULTI_GAME_WORLD
 		}
 		else
 		{
-			lua_pushboolean(L, g_GameObjectPool->CheckWorlds(p1->world, p2->world) && CollisionCheck(p1, p2));
+			lua_pushboolean(L, g_GameObjectPool->CheckWorlds(p1->world, p2->world) && GameObject::isIntersect(p1, p2));
 		}
 #endif // USING_MULTI_GAME_WORLD
 		return 1;
