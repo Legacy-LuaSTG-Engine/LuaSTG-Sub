@@ -212,13 +212,12 @@ namespace luastg
 		vertexcolor = 0xFFFFFFFF;
 	}
 	
-	void GameObject::UpdateCollisionCircleRadius()
-	{
+	void GameObject::UpdateCollisionCircleRadius() {
 		if (rect) {
 			//矩形
 			col_r = std::sqrt(a * a + b * b);
 		}
-		else if (!rect && (a != b)) {
+		else if (a != b) {
 			//椭圆
 			col_r = a > b ? a : b;
 		}
