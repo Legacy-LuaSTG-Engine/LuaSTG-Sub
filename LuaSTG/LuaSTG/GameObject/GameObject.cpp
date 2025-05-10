@@ -215,7 +215,7 @@ namespace luastg
 	void GameObject::UpdateCollisionCircleRadius() {
 		if (rect) {
 			//矩形
-			col_r = std::sqrt(a * a + b * b);
+			col_r = std::hypot(a, b);
 		}
 		else if (a != b) {
 			//椭圆
