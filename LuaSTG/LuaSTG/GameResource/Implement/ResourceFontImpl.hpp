@@ -8,8 +8,8 @@ namespace luastg
 	{
 	private:
 		core::SmartReference<core::Graphics::IGlyphManager> m_glyphmgr;
-		BlendMode m_BlendMode;
 		core::Color4B m_BlendColor;
+		BlendMode m_BlendMode;
 
 	public:
 		core::Graphics::IGlyphManager* GetGlyphManager() { return m_glyphmgr.get(); }
