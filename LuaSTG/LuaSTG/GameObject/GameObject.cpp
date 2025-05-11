@@ -84,7 +84,7 @@ namespace luastg
 		col_r = 0.0;
 
 		blend_mode = BlendMode::MulAlpha;
-		vertex_color = 0xFFFFFFFF;
+		vertex_color = core::Color4B::white();
 	}
 	void GameObject::DirtReset()
 	{
@@ -128,7 +128,7 @@ namespace luastg
 		col_r = 0.;
 
 		blend_mode = BlendMode::MulAlpha;
-		vertex_color = 0xFFFFFFFF;
+		vertex_color = core::Color4B::white();
 	}
 	
 	void GameObject::UpdateCollisionCircleRadius() {
@@ -515,7 +515,7 @@ namespace luastg
 							static_cast<float>(hscale) * gscale,
 						static_cast<float>(vscale) * gscale,
 						blend_mode,
-						core::Color4B(vertex_color)
+						vertex_color
 						);
 				case ResourceType::Animation:
 					static_cast<IResourceAnimation*>(res)->Render(
@@ -526,14 +526,14 @@ namespace luastg
 						static_cast<float>(hscale) * gscale,
 						static_cast<float>(vscale) * gscale,
 						blend_mode,
-						core::Color4B(vertex_color)
+						vertex_color
 					);
 					break;
 				case ResourceType::Particle:
 					if (ps)
 					{
 						ps->SetBlendMode(blend_mode);
-						ps->SetVertexColor(core::Color4B(vertex_color));
+						ps->SetVertexColor(vertex_color);
 						LAPP.Render(
 							ps,
 							static_cast<float>(hscale) * gscale,
@@ -695,31 +695,31 @@ namespace luastg
 			return 1;
 		case LuaSTG::GameObjectMember::_COLOR:
 			if (features.is_render_class)
-				binding::Color::CreateAndPush(L, core::Color4B(vertex_color));
+				binding::Color::CreateAndPush(L, vertex_color);
 			else
 				return_default(L);
 			return 1;
 		case LuaSTG::GameObjectMember::_A:
 			if (features.is_render_class)
-				lua_pushinteger(L, (lua_Integer)((uint8_t*)&vertex_color)[3]);
+				lua_pushinteger(L, vertex_color.a);
 			else
 				return_default(L);
 			return 1;
 		case LuaSTG::GameObjectMember::_R:
 			if (features.is_render_class)
-				lua_pushinteger(L, (lua_Integer)((uint8_t*)&vertex_color)[2]);
+				lua_pushinteger(L, vertex_color.r);
 			else
 				return_default(L);
 			return 1;
 		case LuaSTG::GameObjectMember::_G:
 			if (features.is_render_class)
-				lua_pushinteger(L, (lua_Integer)((uint8_t*)&vertex_color)[1]);
+				lua_pushinteger(L, vertex_color.g);
 			else
 				return_default(L);
 			return 1;
 		case LuaSTG::GameObjectMember::_B:
 			if (features.is_render_class)
-				lua_pushinteger(L, (lua_Integer)((uint8_t*)&vertex_color)[0]);
+				lua_pushinteger(L, vertex_color.b);
 			else
 				return_default(L);
 			return 1;
@@ -944,31 +944,31 @@ namespace luastg
 			return 0;
 		case LuaSTG::GameObjectMember::_COLOR:
 			if (features.is_render_class)
-				vertex_color = binding::Color::Cast(L, 3)->color();
+				vertex_color = *binding::Color::Cast(L, 3);
 			else
 				lua_rawset(L, 1);
 			return 0;
 		case LuaSTG::GameObjectMember::_A:
 			if (features.is_render_class)
-				((uint8_t*)&vertex_color)[3] = (uint8_t)luaL_checkinteger(L, 3);
+				vertex_color.a = std::clamp<lua_Integer>(luaL_checkinteger(L, 3), 0, 255);
 			else
 				lua_rawset(L, 1);
 			return 0;
 		case LuaSTG::GameObjectMember::_R:
 			if (features.is_render_class)
-				((uint8_t*)&vertex_color)[2] = (uint8_t)luaL_checkinteger(L, 3);
+				vertex_color.r = std::clamp<lua_Integer>(luaL_checkinteger(L, 3), 0, 255);
 			else
 				lua_rawset(L, 1);
 			return 0;
 		case LuaSTG::GameObjectMember::_G:
 			if (features.is_render_class)
-				((uint8_t*)&vertex_color)[1] = (uint8_t)luaL_checkinteger(L, 3);
+				vertex_color.g = std::clamp<lua_Integer>(luaL_checkinteger(L, 3), 0, 255);
 			else
 				lua_rawset(L, 1);
 			return 0;
 		case LuaSTG::GameObjectMember::_B:
 			if (features.is_render_class)
-				((uint8_t*)&vertex_color)[0] = (uint8_t)luaL_checkinteger(L, 3);
+				vertex_color.b = std::clamp<lua_Integer>(luaL_checkinteger(L, 3), 0, 255);
 			else
 				lua_rawset(L, 1);
 			return 0;

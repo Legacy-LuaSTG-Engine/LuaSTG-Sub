@@ -114,7 +114,7 @@ namespace luastg
 
 		// 小型属性
 		// 小型属性 - 渲染
-		uint32_t vertex_color;			// [4] 顶点颜色
+		core::Color4B vertex_color;		// [4] 顶点颜色
 		BlendMode blend_mode;			// [1] 混合模式
 		// 小型属性 - 基本信息
 		GameObjectFeatures features;	// [1] [不可见] 对象类的一些特性
