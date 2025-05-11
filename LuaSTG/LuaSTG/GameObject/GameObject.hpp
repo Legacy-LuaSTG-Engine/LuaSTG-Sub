@@ -61,55 +61,55 @@ namespace luastg
 		// 分组
 
 #ifdef USING_MULTI_GAME_WORLD
-		lua_Integer world;				// [P] 世界标记位，用于对一个对象进行分组，影响更新、渲染、碰撞检测等
+		Integer world;					// [8] 世界标记位，用于对一个对象进行分组，影响更新、渲染、碰撞检测等
 #endif // USING_MULTI_GAME_WORLD
 
 		// 位置
 
-		lua_Number last_x;				// [8] [不可见] 对象上一帧坐标 x
-		lua_Number last_y;				// [8] [不可见] 对象上一帧坐标 y
-		lua_Number x;					// [8] 对象坐标 x
-		lua_Number y;					// [8] 对象坐标 y
-		lua_Number dx;					// [8] [只读] 对象坐标增量 x
-		lua_Number dy;					// [8] [只读] 对象坐标增量 y
+		double last_x;					// [8] [不可见] 对象上一帧坐标 x
+		double last_y;					// [8] [不可见] 对象上一帧坐标 y
+		double x;						// [8] 对象坐标 x
+		double y;						// [8] 对象坐标 y
+		double dx;						// [8] [只读] 对象坐标增量 x
+		double dy;						// [8] [只读] 对象坐标增量 y
 
 		// 运动学
 
-		lua_Number vx;					// [8] 对象速度 x 分量
-		lua_Number vy;					// [8] 对象速度 y 分量
-		lua_Number ax;					// [8] 对象加速度 x 分量
-		lua_Number ay;					// [8] 对象加速度 x 分量
+		double vx;						// [8] 对象速度 x 分量
+		double vy;						// [8] 对象速度 y 分量
+		double ax;						// [8] 对象加速度 x 分量
+		double ay;						// [8] 对象加速度 x 分量
 	#ifdef USER_SYSTEM_OPERATION
-		lua_Number max_vx;				// [8] 对象速度 x 分量最大值
-		lua_Number max_vy;				// [8] 对象速度 y 分量最大值
-		lua_Number max_v;				// [8] 对象速度最大值
-		lua_Number ag;					// [8] 重力加速度
+		double max_vx;					// [8] 对象速度 x 分量最大值
+		double max_vy;					// [8] 对象速度 y 分量最大值
+		double max_v;					// [8] 对象速度最大值
+		double ag;						// [8] 重力加速度
 	#endif
 		//lua_Number va, speed; // 速度方向 速度值
 
 		// 碰撞体
 
-		lua_Integer group;				// [P] 对象所在的碰撞组
-		lua_Number a;					// [8] 矩形模式下，为横向宽度一半；非矩形模式下，为圆半径或椭圆横向宽度一半
-		lua_Number b;					// [8] 矩形模式下，为纵向宽度一半；非矩形模式下，为圆半径或椭圆纵向宽度一半
-		lua_Number col_r;				// [8] [不可见] 碰撞体外接圆半径
+		int64_t group;					// [8] 对象所在的碰撞组
+		double a;						// [8] 矩形模式下，为横向宽度一半；非矩形模式下，为圆半径或椭圆横向宽度一半
+		double b;						// [8] 矩形模式下，为纵向宽度一半；非矩形模式下，为圆半径或椭圆纵向宽度一半
+		double col_r;					// [8] [不可见] 碰撞体外接圆半径
 
 		// 渲染
 
-		lua_Number layer;				// [8] 图层
-		lua_Number hscale;				// [8] 横向渲染缩放
-		lua_Number vscale;				// [8] 纵向渲染缩放
-		lua_Number rot;					// [8] 平面渲染旋转角
-		lua_Number omega;				// [8] 平面渲染旋转角加速度
-		lua_Integer ani_timer;			// [P] [只读] 动画自增计数器
+		double layer;					// [8] 图层
+		double hscale;					// [8] 横向渲染缩放
+		double vscale;					// [8] 纵向渲染缩放
+		double rot;						// [8] 平面渲染旋转角
+		double omega;					// [8] 平面渲染旋转角加速度
+		int64_t ani_timer;				// [P] [只读] 动画自增计数器
 		IResourceBase* res;				// [P] 渲染资源
 		IParticlePool* ps;				// [P] 粒子系统
 
 		// 更新控制
 
-		lua_Integer timer;				// [P] 自增计数器
+		int64_t timer;					// [P] 自增计数器
 	#ifdef LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
-		lua_Integer pause;				// [P] 对象被暂停的时间(帧) 对象被暂停时，将跳过速度计算，但是timer会增加，frame仍会调用
+		int64_t pause;					// [P] 对象被暂停的时间(帧) 对象被暂停时，将跳过速度计算，但是timer会增加，frame仍会调用
 	#endif // LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 
 		// 小型属性
