@@ -5,7 +5,6 @@
 #include "lua/plus.hpp"
 #include "LuaBinding/LuaWrapperMisc.hpp"
 #include "LuaBinding/LuaWrapper.hpp"
-#include "XCollision.h"
 #include "AppFrame.h"
 
 using std::string_view_literals::operator ""sv;
