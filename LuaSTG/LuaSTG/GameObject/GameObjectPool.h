@@ -173,16 +173,6 @@ namespace luastg
 		};
 
 	private:
-		void _InsertToUpdateLinkList(GameObject* p);
-		void _RemoveFromUpdateLinkList(GameObject* p);
-		void _InsertToColliLinkList(GameObject* p, size_t group);
-		void _RemoveFromColliLinkList(GameObject* p);
-		void _MoveToColliLinkList(GameObject* p, size_t group);
-
-		void _InsertToRenderList(GameObject* p);
-		void _RemoveFromRenderList(GameObject* p);
-		void _SetObjectLayer(GameObject* object, lua_Number layer);
-
 		//准备lua表用于存放对象
 		void _PrepareLuaObjectTable();
 
@@ -295,6 +285,12 @@ namespace luastg
 
 		/// @brief 特化设置HGE粒子的渲染状态
 		bool SetParState(GameObject* p, BlendMode m, core::Color4B c) noexcept;
+
+		// 修改游戏对象所在的碰撞组：从原碰撞组链表移除，插入到新碰撞组链表，并更新 group 属性
+		void setGroup(GameObject* object, size_t group);
+
+		// 修改游戏对象渲染图层：从有序渲染链表移除，更新 layer 属性，重新插入有序渲染链表
+		void setLayer(GameObject* object, double layer);
 
 		/// @brief 清空对象池
 		void ResetPool() noexcept;

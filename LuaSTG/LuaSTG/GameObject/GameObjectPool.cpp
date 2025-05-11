@@ -48,38 +48,6 @@ namespace luastg
 		}
 	}
 
-	void GameObjectPool::_InsertToUpdateLinkList(GameObject* const p) {
-		m_update_list.add(p);
-	}
-	void GameObjectPool::_RemoveFromUpdateLinkList(GameObject* const p) {
-		m_update_list.remove(p);
-	}
-
-	void GameObjectPool::_InsertToColliLinkList(GameObject* const p, size_t const group) {
-		assert(group < LOBJPOOL_GROUPN);
-		m_detect_lists[group].add(p);
-	}
-	void GameObjectPool::_RemoveFromColliLinkList(GameObject* const p) {
-		assert(p != m_LockObjectA && p != m_LockObjectB);
-		m_detect_lists[p->group].remove(p);
-	}
-	void GameObjectPool::_MoveToColliLinkList(GameObject* const p, size_t const group) {
-		_RemoveFromColliLinkList(p);
-		_InsertToColliLinkList(p, group);
-	}
-
-	void GameObjectPool::_InsertToRenderList(GameObject* const p) {
-		m_render_list.insert(p);
-	}
-	void GameObjectPool::_RemoveFromRenderList(GameObject* const p) {
-		m_render_list.erase(p);
-	}
-	void GameObjectPool::_SetObjectLayer(GameObject* const object, lua_Number const layer) {
-		m_render_list.erase(object);
-		object->layer = layer;
-		m_render_list.insert(object);
-	}
-
 	void GameObjectPool::_PrepareLuaObjectTable() {
 		luaL_Reg const mt[3] = {
 			{ "__index", &api_GetAttr },
@@ -119,9 +87,9 @@ namespace luastg
 			p->world = m_pCurrentObject->world;
 		}
 #endif // USING_MULTI_GAME_WORLD
-		_InsertToUpdateLinkList(p);
-		_InsertToRenderList(p);
-		_InsertToColliLinkList(p, (size_t)p->group);
+		m_update_list.add(p);
+		m_render_list.insert(p);
+		m_detect_lists[p->group].add(p);
 		m_DbgData[m_DbgIdx].object_alloc += 1;
 		return p;
 	}
@@ -129,8 +97,8 @@ namespace luastg
 	{
 		m_DbgData[m_DbgIdx].object_free += 1;
 		auto const next = m_update_list.remove(object);
-		_RemoveFromRenderList(object);
-		_RemoveFromColliLinkList(object);
+		m_render_list.erase(object);
+		m_detect_lists[object->group].remove(object);
 #ifdef USING_MULTI_GAME_WORLD
 		if (m_pCurrentObject == object)
 		{
@@ -761,14 +729,15 @@ namespace luastg
 	void GameObjectPool::DirtResetObject(GameObject* p) noexcept
 	{
 		// 分配新的 UUID 并重新插入更新链表末尾
-		_RemoveFromUpdateLinkList(p);
-		_RemoveFromRenderList(p);
-		_RemoveFromColliLinkList(p);
+		m_update_list.remove(p);
+		m_render_list.erase(p);
+		assert(p != m_LockObjectA && p != m_LockObjectB);
+		m_detect_lists[p->group].remove(p);
 		p->uid = m_iUid % GameObject::max_uid; // GameObject::max_uid is reserved
 		++m_iUid;
-		_InsertToUpdateLinkList(p);
-		_InsertToRenderList(p);
-		_InsertToColliLinkList(p, (size_t)p->group);
+		m_update_list.add(p);
+		m_render_list.insert(p);
+		m_detect_lists[p->group].add(p);
 	}
 	int GameObjectPool::Del(lua_State* L, bool kill_mode) noexcept
 	{
@@ -841,6 +810,18 @@ namespace luastg
 			}
 		}
 		return true;
+	}
+	void GameObjectPool::setGroup(GameObject* const object, size_t const group) {
+		assert(object != m_LockObjectA && object != m_LockObjectB);
+		m_detect_lists[object->group].remove(object);
+		object->group = static_cast<lua_Integer>(group);
+		m_detect_lists[object->group].add(object);
+	}
+	void GameObjectPool::setLayer(GameObject* const object, double const layer) {
+		assert(!m_IsRendering);
+		m_render_list.erase(object);
+		object->layer = layer;
+		m_render_list.insert(object);
 	}
 
 	int GameObjectPool::FirstObject(int const group) noexcept {
@@ -1224,8 +1205,7 @@ namespace luastg
 				return luaL_error(L, "invalid argument for property 'group', required 0 <= group <= %d.", LOBJPOOL_GROUPN - 1);
 			}
 			else if (p->group != group) {
-				g_GameObjectPool->_MoveToColliLinkList(p, static_cast<size_t>(group));
-				p->group = group;
+				g_GameObjectPool->setGroup(p, static_cast<size_t>(group));
 			}
 			break;
 		case GameObject::unhandled_set_layer:
@@ -1233,7 +1213,7 @@ namespace luastg
 				return luaL_error(L, "illegal operation, lstg object 'layer' property should not be modified in 'lstg.ObjRender'");
 			}
 			if (lua_Number const layer = luaL_checknumber(L, 3); p->layer != layer) {
-				g_GameObjectPool->_SetObjectLayer(p, layer);
+				g_GameObjectPool->setLayer(p, layer);
 			}
 			break;
 		default:
