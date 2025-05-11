@@ -155,9 +155,42 @@ namespace luastg
 		void UpdateV2();
 		void UpdateLastV2();
 
-		int GetAttr(lua_State* L) noexcept;
-		int SetAttr(lua_State* L) noexcept;
-
+		[[nodiscard]] bool hasRenderResource() const noexcept { return res != nullptr; }
+		[[nodiscard]] std::string_view getRenderResourceName() const noexcept {
+			if (res != nullptr) {
+				return res->GetResName();
+			}
+			return {""};
+		}
+		[[nodiscard]] double calculateSpeed() const noexcept { return std::hypot(vx, vy); }
+		[[nodiscard]] double calculateSpeedDirection() const noexcept {
+			if (std::abs(vx) > std::numeric_limits<double>::min() && std::abs(vy) > std::numeric_limits<double>::min()) {
+				return std::atan2(vy, vx);
+			}
+			return rot;
+		}
+		void setSpeed(double const speed) noexcept {
+			if (auto const current = calculateSpeed(); current > std::numeric_limits<double>::min()) {
+				auto const a3 = speed / current;
+				vx *= a3;
+				vy *= a3;
+			}
+			else {
+				vx = std::cos(rot) * speed;
+				vy = std::sin(rot) * speed;
+			}
+		}
+		void setSpeedDirection(double const direction) noexcept {
+			if (auto const speed = calculateSpeed(); speed > std::numeric_limits<double>::min()) {
+				vx = speed * std::cos(direction);
+				vy = speed * std::sin(direction);
+			}
+			else {
+				rot = direction;
+			}
+		}
+		void setGroup(int64_t new_group);
+		void setLayer(double new_layer);
 		[[nodiscard]] bool isInRect(lua_Number const l, lua_Number const r, lua_Number const bb, lua_Number const t) const noexcept {
 			return x >= l && x <= r && y >= bb && y <= t;
 		}

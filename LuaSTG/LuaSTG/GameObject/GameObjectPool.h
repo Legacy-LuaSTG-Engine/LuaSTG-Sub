@@ -173,8 +173,6 @@ namespace luastg
 		};
 
 	private:
-		//准备lua表用于存放对象
-		void _PrepareLuaObjectTable();
 
 		// 申请一个对象，重置对象并将对象插入到各个链表，不处理lua部分，返回申请的对象
 		GameObject* _AllocObject();
@@ -304,8 +302,8 @@ namespace luastg
 		/// @return 返回-1表示无元素
 		int FirstObject(int group) noexcept;
 
-		/// @brief 调试目的，获取对象列表
-		int GetObjectTable(lua_State* L) noexcept;
+		[[nodiscard]] bool isLockedByDetectIntersection(GameObject const* const object) const noexcept { return object == m_LockObjectA || object == m_LockObjectB; }
+		[[nodiscard]] bool isRendering() const noexcept { return m_IsRendering; }
 
 #ifdef USING_MULTI_GAME_WORLD
 	private:
@@ -403,9 +401,7 @@ namespace luastg
 
 		static int api_SetImgState(lua_State* L) noexcept;
 		static int api_SetParState(lua_State* L) noexcept;
-		static int api_GetAttr(lua_State* L) noexcept;
-		static int api_SetAttr(lua_State* L) noexcept;
-
+	
 		static int api_DefaultRenderFunc(lua_State* L) noexcept;
 
 		static int api_ParticleStop(lua_State* L) noexcept;

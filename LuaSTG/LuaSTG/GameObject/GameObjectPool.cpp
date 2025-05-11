@@ -1,5 +1,6 @@
 #include "GameObject/GameObjectPool.h"
 #include "LuaBinding/LuaWrapper.hpp"
+#include "LuaBinding/modern/GameObject.hpp"
 #include "lua/plus.hpp"
 #include "AppFrame.h"
 
@@ -30,9 +31,6 @@ namespace luastg
 #endif // USING_MULTI_GAME_WORLD
 		m_superpause = 0;
 		m_nextsuperpause = 0;
-
-		// lua
-		_PrepareLuaObjectTable();
 	}
 	GameObjectPool::~GameObjectPool()
 	{
@@ -46,26 +44,6 @@ namespace luastg
 		for (auto &list : m_detect_lists) {
 			list.clear();
 		}
-	}
-
-	void GameObjectPool::_PrepareLuaObjectTable() {
-		luaL_Reg const mt[3] = {
-			{ "__index", &api_GetAttr },
-			{ "__newindex", &api_SetAttr },
-			{},
-		};
-
-		// 创建一个全局表用于存放所有对象
-		lua_pushlightuserdata(G_L, this);					// ??? p
-		lua_createtable(G_L, LOBJPOOL_SIZE_INTERNAL, 0);	// ??? p ot
-
-		// 创建对象元表
-		lua_createtable(G_L, 0, 2);							// ??? p ot mt
-		luaL_register(G_L, NULL, mt);						// ??? p ot mt
-		lua_rawseti(G_L, -2, LOBJPOOL_METATABLE_IDX);		// ??? p ot
-
-		// 保存对象表
-		lua_settable(G_L, LUA_REGISTRYINDEX);				// ???
 	}
 
 	GameObject* GameObjectPool::_AllocObject()
@@ -122,7 +100,7 @@ namespace luastg
 		// 删除lua对象表中元素
 		if (ot_at <= 0)
 		{
-			GetObjectTable(G_L);				// ot
+			binding::GameObject::pushGameObjectTable(G_L); // ot
 			ot_stk = lua_gettop(G_L);
 		}
 		lua_rawgeti(G_L, ot_stk, index);		// ot object
@@ -197,12 +175,6 @@ namespace luastg
 		return m_DbgData[i];
 	}
 
-	int GameObjectPool::GetObjectTable(lua_State* L) noexcept
-	{
-		lua_pushlightuserdata(L, this);
-		lua_gettable(L, LUA_REGISTRYINDEX);
-		return 1;
-	}
 #ifdef USING_MULTI_GAME_WORLD
 	int GameObjectPool::PushCurrentObject(lua_State* L)  noexcept
 	{
@@ -211,7 +183,7 @@ namespace luastg
 			lua_pushnil(L);
 			return 1;
 		}
-		GetObjectTable(L);
+		binding::GameObject::pushGameObjectTable(L);
 		lua_rawgeti(L, -1, (int)m_pCurrentObject->id + 1);  // ot t(object)
 		return 1;
 	}
@@ -224,7 +196,7 @@ namespace luastg
 	void GameObjectPool::ResetPool() noexcept
 	{
 		// 回收已分配的对象和更新链表
-		GetObjectTable(G_L);
+		binding::GameObject::pushGameObjectTable(G_L);
 		int const ot_at = lua_gettop(G_L);
 		for (auto p = m_update_list.first(); p != nullptr;) {
 			p = _FreeObject(p, ot_at);
@@ -302,7 +274,7 @@ namespace luastg
 		}
 	}
 	void GameObjectPool::DoRender() noexcept {
-		GetObjectTable(G_L); // ot
+		binding::GameObject::pushGameObjectTable(G_L); // ot
 		int const ot_idx = lua_gettop(G_L);
 
 		m_IsRendering = true;
@@ -563,7 +535,7 @@ namespace luastg
 		if (S.is_number(1)) {
 			auto const version = S.get_value<int32_t>(1);
 			if (version == 2) {
-				g_GameObjectPool->GetObjectTable(L);
+				binding::GameObject::pushGameObjectTable(L);
 				auto const objects = S.index_of_top();
 				g_GameObjectPool->updateMovements(objects.value, L);
 				S.pop_value();
@@ -571,7 +543,7 @@ namespace luastg
 			}
 		}
 		// version 1
-		g_GameObjectPool->GetObjectTable(L);
+		binding::GameObject::pushGameObjectTable(L);
 		auto const objects = S.index_of_top();
 		g_GameObjectPool->updateMovementsLegacy(objects.value, L);
 		S.pop_value();
@@ -582,7 +554,7 @@ namespace luastg
 		if (S.is_number(1)) {
 			auto const version = S.get_value<int32_t>(1);
 			if (version == 2) {
-				g_GameObjectPool->GetObjectTable(L);
+				binding::GameObject::pushGameObjectTable(L);
 				auto const objects = S.index_of_top();
 				g_GameObjectPool->updateNext(objects.value, L);
 				S.pop_value();
@@ -590,7 +562,7 @@ namespace luastg
 			}
 		}
 		// version 1
-		g_GameObjectPool->GetObjectTable(L);
+		binding::GameObject::pushGameObjectTable(L);
 		auto const objects = S.index_of_top();
 		g_GameObjectPool->updateNextLegacy(objects.value, L);
 		S.pop_value();
@@ -601,7 +573,7 @@ namespace luastg
 		if (S.is_number(1)) {
 			auto const version = S.get_value<int32_t>(1);
 			if (version == 2) {
-				g_GameObjectPool->GetObjectTable(L);
+				binding::GameObject::pushGameObjectTable(L);
 				auto const objects = S.index_of_top();
 				g_GameObjectPool->detectOutOfWorldBound(objects.value, L);
 				S.pop_value();
@@ -609,7 +581,7 @@ namespace luastg
 			}
 		}
 		// version 1
-		g_GameObjectPool->GetObjectTable(L);
+		binding::GameObject::pushGameObjectTable(L);
 		auto const objects = S.index_of_top();
 		g_GameObjectPool->detectOutOfWorldBoundLegacy(objects.value, L);
 		S.pop_value();
@@ -629,7 +601,7 @@ namespace luastg
 			if (group2 < 0 || group2 >= LOBJPOOL_GROUPN) {
 				return luaL_error(L, "invalid collision group <%d>", group1);
 			}
-			g_GameObjectPool->GetObjectTable(L);
+			binding::GameObject::pushGameObjectTable(L);
 			auto const objects = S.index_of_top();
 			g_GameObjectPool->detectIntersectionLegacy(group1, group2, objects.value, L);
 			S.pop_value();
@@ -658,7 +630,7 @@ namespace luastg
 				group_pairs.emplace_back(group1, group2);
 			}
 			// Stage 3
-			g_GameObjectPool->GetObjectTable(L);
+			binding::GameObject::pushGameObjectTable(L);
 			auto const objects = S.index_of_top();
 			g_GameObjectPool->detectIntersection(group_pairs, objects.value, L);
 			S.pop_value();
@@ -690,7 +662,7 @@ namespace luastg
 		//											// class ...
 
 		// 创建对象 table
-		GetObjectTable(L);							// class ... ot
+		binding::GameObject::pushGameObjectTable(L);// class ... ot
 		lua_createtable(L, 3, 0);					// class ... ot object
 		lua_pushvalue(L, 1);						// class ... ot object class
 		lua_rawseti(L, -2, 1);						// class ... ot object
@@ -991,7 +963,7 @@ namespace luastg
 		if (id < 0)
 			return 0;
 		lua_pushinteger(L, g_GameObjectPool->NextObject(g, id));	// i(groupId) id(lastobj) id(next)
-		g_GameObjectPool->GetObjectTable(L);						// i(groupId) id(lastobj) id(next) ot
+		binding::GameObject::pushGameObjectTable(L);				// i(groupId) id(lastobj) id(next) ot
 		lua_rawgeti(L, -1, id + 1);									// i(groupId) id(lastobj) id(next) ot t(object)
 		lua_remove(L, -2);											// i(groupId) id(lastobj) id(next) t(object)
 		return 2;
@@ -1187,41 +1159,7 @@ namespace luastg
 		g_GameObjectPool->SetParState(p, m, c);
 		return 0;
 	}
-	int GameObjectPool::api_GetAttr(lua_State* L) noexcept
-	{
-		GameObject* p = g_GameObjectPool->_TableToGameObject(L, 1);
-		p->GetAttr(L);
-		return 1;
-	}
-	int GameObjectPool::api_SetAttr(lua_State* L) noexcept
-	{
-		auto const p = g_GameObjectPool->_TableToGameObject(L, 1);
-		switch (p->SetAttr(L)) {
-		case GameObject::unhandled_set_group:
-			if (p == g_GameObjectPool->m_LockObjectA || p == g_GameObjectPool->m_LockObjectB) {
-				return luaL_error(L, "illegal operation, lstg object 'group' property should not be modified in 'lstg.CollisionCheck'");
-			}
-			if (lua_Integer const group = luaL_checkinteger(L, 3); group < 0 || group >= LOBJPOOL_GROUPN) {
-				return luaL_error(L, "invalid argument for property 'group', required 0 <= group <= %d.", LOBJPOOL_GROUPN - 1);
-			}
-			else if (p->group != group) {
-				g_GameObjectPool->setGroup(p, static_cast<size_t>(group));
-			}
-			break;
-		case GameObject::unhandled_set_layer:
-			if (g_GameObjectPool->m_IsRendering) {
-				return luaL_error(L, "illegal operation, lstg object 'layer' property should not be modified in 'lstg.ObjRender'");
-			}
-			if (lua_Number const layer = luaL_checknumber(L, 3); p->layer != layer) {
-				g_GameObjectPool->setLayer(p, layer);
-			}
-			break;
-		default:
-			break;
-		}
-		return 0;
-	}
-
+	
 	int GameObjectPool::api_DefaultRenderFunc(lua_State* L) noexcept
 	{
 		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);

@@ -5,11 +5,6 @@ void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 {
 	struct Wrapper
 	{
-		// 高级方法
-		static int ObjTable(lua_State* L) noexcept
-		{
-			return LPOOL.GetObjectTable(L);
-		}
 		// 对象管理器
 		static int GetnObj(lua_State* L) noexcept
 		{
@@ -126,8 +121,6 @@ void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 	};
 
 	luaL_Reg const lib[] = {
-		// 高级方法
-		{ "ObjTable", &Wrapper::ObjTable },
 		// 对象管理器
 		{ "GetnObj", &Wrapper::GetnObj },
 		{ "ObjFrame", &Wrapper::ObjFrame },
@@ -153,9 +146,6 @@ void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 		{ "Dist", &GameObjectPool::api_Dist },
 		{ "GetV", &GameObjectPool::api_GetV },
 		{ "SetV", &GameObjectPool::api_SetV },
-		// 对象属性访问
-		{ "GetAttr", &GameObjectPool::api_GetAttr },
-		{ "SetAttr", &GameObjectPool::api_SetAttr },
 		// 对象默认回调函数
 		{ "DefaultRenderFunc", &GameObjectPool::api_DefaultRenderFunc },
 		// 对象资源控制

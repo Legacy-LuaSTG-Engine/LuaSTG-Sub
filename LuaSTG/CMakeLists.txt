@@ -143,6 +143,8 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/modern/Clipboard.cpp
     LuaSTG/LuaBinding/modern/FileSystemWatcher.hpp
     LuaSTG/LuaBinding/modern/FileSystemWatcher.cpp
+    LuaSTG/LuaBinding/modern/GameObject.hpp
+    LuaSTG/LuaBinding/modern/GameObject.cpp
 
     LuaSTG/LuaBinding/generated/BlendModeX.cpp
     LuaSTG/LuaBinding/generated/BlendModeX.hpp

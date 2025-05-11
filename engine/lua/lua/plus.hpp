@@ -74,6 +74,9 @@ namespace lua {
 			else if constexpr (std::is_same_v<T, bool>) {
 				lua_pushboolean(L, value);
 			}
+			else if constexpr (std::is_same_v<T, uint8_t>) {
+				lua_pushinteger(L, value);
+			}
 			else if constexpr (std::is_same_v<T, int32_t>) {
 				lua_pushinteger(L, value);
 			}

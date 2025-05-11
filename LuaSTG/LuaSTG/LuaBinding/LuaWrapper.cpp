@@ -15,6 +15,7 @@
 #include "LuaBinding/modern/Sprite.hpp"
 #include "LuaBinding/modern/SpriteRenderer.hpp"
 #include "LuaBinding/modern/FileSystemWatcher.hpp"
+#include "LuaBinding/modern/GameObject.hpp"
 
 namespace luastg::binding
 {
@@ -91,5 +92,6 @@ namespace luastg::binding
 		SpriteRectRenderer::registerClass(L);
 		SpriteQuadRenderer::registerClass(L);
 		FileSystemWatcher::registerClass(L);
+		GameObject::registerClass(L);
 	}
 }
