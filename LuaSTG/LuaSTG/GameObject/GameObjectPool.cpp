@@ -79,7 +79,7 @@ namespace luastg
 		p->Reset();
 		p->status = GameObjectStatus::Active;
 		p->id = id;
-		p->uid = m_iUid % GameObject::max_uid; // GameObject::max_uid is reserved
+		p->unique_id = m_iUid % GameObject::max_unique_id; // GameObject::max_unique_id is reserved
 		m_iUid++;
 #ifdef USING_MULTI_GAME_WORLD
 		if (m_pCurrentObject)
@@ -116,7 +116,7 @@ namespace luastg
 
 #if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
 		static std::string _name("<null>");
-		spdlog::debug("[object] free {}-{} (img = {})", p->id, p->uid, p->res ? p->res->GetResName() : _name);
+		spdlog::debug("[object] free {}-{} (img = {})", p->id, p->unique_id, p->res ? p->res->GetResName() : _name);
 #endif
 
 		// 删除lua对象表中元素
@@ -260,7 +260,7 @@ namespace luastg
 		tracy_zone_scoped_with_name("LOBJMGR.ObjFrame");
 		auto const super_pause_time = UpdateSuperPause(); // 更新超级暂停
 		for (auto p = m_update_list.first(); p != nullptr; p = p->update_list_next) {
-			if (super_pause_time > 0 && !p->ignore_superpause) {
+			if (super_pause_time > 0 && !p->ignore_super_pause) {
 				continue;
 			}
 			if (p->features.has_callback_update) {
@@ -280,7 +280,7 @@ namespace luastg
 
 		auto const super_pause_time = GetSuperPauseTime();
 		for (auto p = m_update_list.first(); p != nullptr; p = p->update_list_next) {
-			if (super_pause_time > 0 && !p->ignore_superpause) {
+			if (super_pause_time > 0 && !p->ignore_super_pause) {
 				continue;
 			}
 			if (p->features.has_callback_update) {
@@ -295,7 +295,7 @@ namespace luastg
 		}
 
 		for (auto p = m_update_list.first(); p != nullptr; p = p->update_list_next) {
-			if (super_pause_time > 0 && !p->ignore_superpause) {
+			if (super_pause_time > 0 && !p->ignore_super_pause) {
 				continue;
 			}
 			p->UpdateV2();
@@ -339,7 +339,7 @@ namespace luastg
 		tracy_zone_scoped_with_name("LOBJMGR.UpdateXY");
 		auto const super_pause_time = GetSuperPauseTime();
 		for (auto p = m_update_list.first(); p != nullptr; p = p->update_list_next) {
-			if (super_pause_time > 0 && !p->ignore_superpause) {
+			if (super_pause_time > 0 && !p->ignore_super_pause) {
 				continue;
 			}
 			p->UpdateLast();
@@ -349,7 +349,7 @@ namespace luastg
 		tracy_zone_scoped_with_name("LOBJMGR.AfterFrame");
 		auto const super_pause_time = GetSuperPauseTime();
 		for (auto p = m_update_list.first(); p != nullptr;) {
-			if (super_pause_time > 0 && !p->ignore_superpause) {
+			if (super_pause_time > 0 && !p->ignore_super_pause) {
 				p = p->update_list_next;
 				continue;
 			}
@@ -365,7 +365,7 @@ namespace luastg
 		tracy_zone_scoped_with_name("LOBJMGR.AfterFrame(New)");
 		auto const super_pause_time = UpdateSuperPause(); // 更新超级暂停
 		for (auto p = m_update_list.first(); p != nullptr;) {
-			if (super_pause_time > 0 && !p->ignore_superpause) {
+			if (super_pause_time > 0 && !p->ignore_super_pause) {
 				p = p->update_list_next;
 				continue;
 			}
@@ -433,14 +433,14 @@ namespace luastg
 			// 需要调用 del 回调
 			if (p->features.has_callback_destroy) {
 				cache.push_back(OutOfWorldBoundDetectionResult{
-					.uid = p->uid,
+					.uid = p->unique_id,
 					.game_object = p,
 				});
 			}
 		}
 
 		for (auto const& [uid, game_object] : cache) {
-			if (game_object->uid != uid) {
+			if (game_object->unique_id != uid) {
 				assert(false); continue; // 理论上不太可能发生
 			}
 #ifdef USING_MULTI_GAME_WORLD
@@ -522,8 +522,8 @@ namespace luastg
 						continue;
 					}
 					cache.push_back(IntersectionDetectionResult{
-						.uid1 = object1->uid,
-						.uid2 = object2->uid,
+						.uid1 = object1->unique_id,
+						.uid2 = object2->unique_id,
 						.object1 = object1,
 						.object2 = object2,
 					});
@@ -534,7 +534,7 @@ namespace luastg
 			return;
 		}
 		for (auto const& [uid1, uid2, object1, object2] : cache) {
-			if (object1->uid != uid1 || object2->uid != uid2) {
+			if (object1->unique_id != uid1 || object2->unique_id != uid2) {
 				assert(false); continue; // 理论上不太可能发生
 			}
 			debug_data.object_colli_callback += 1;
@@ -721,7 +721,7 @@ namespace luastg
 
 #if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
 		static std::string _name("<null>");
-		spdlog::debug("[object] new {}-{} (img = {})", p->id, p->uid, p->res ? p->res->GetResName() : _name);
+		spdlog::debug("[object] new {}-{} (img = {})", p->id, p->unique_id, p->res ? p->res->GetResName() : _name);
 #endif
 
 		return 1;
@@ -733,7 +733,7 @@ namespace luastg
 		m_render_list.erase(p);
 		assert(p != m_LockObjectA && p != m_LockObjectB);
 		m_detect_lists[p->group].remove(p);
-		p->uid = m_iUid % GameObject::max_uid; // GameObject::max_uid is reserved
+		p->unique_id = m_iUid % GameObject::max_unique_id; // GameObject::max_unique_id is reserved
 		++m_iUid;
 		m_update_list.add(p);
 		m_render_list.insert(p);

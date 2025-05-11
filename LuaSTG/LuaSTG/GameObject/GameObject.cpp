@@ -42,11 +42,11 @@ namespace luastg
 
 		status = GameObjectStatus::Free;
 		id = max_id;
-		uid = 0;
+		unique_id = 0;
 		features.reset();
 
 		x = y = 0.0;
-		lastx = lasty = 0.0;
+		last_x = last_y = 0.0;
 		dx = dy = 0.0;
 		rot = omega = 0.0;
 		vx = vy = 0.0;
@@ -54,8 +54,8 @@ namespace luastg
 		layer = 0.0;
 		hscale = vscale = 1.0;
 #ifdef USER_SYSTEM_OPERATION
-		maxv = DBL_MAX * 0.5; // 平时应该不会有人弄那么大的速度吧，希望计算时不会溢出（
-		maxvx = maxvy = DBL_MAX;
+		max_v = DBL_MAX * 0.5; // 平时应该不会有人弄那么大的速度吧，希望计算时不会溢出（
+		max_vx = max_vy = DBL_MAX;
 		ag = 0.0;
 #endif
 
@@ -72,8 +72,8 @@ namespace luastg
 		resolve_move = false;
 		pause = 0;
 	#endif
-		ignore_superpause = false;
-		touch_lastx_lasty = false;
+		ignore_super_pause = false;
+		last_xy_touched = false;
 
 #ifdef USING_MULTI_GAME_WORLD
 		world = 15;
@@ -83,15 +83,15 @@ namespace luastg
 		a = b = 0.0;
 		col_r = 0.0;
 
-		blendmode = BlendMode::MulAlpha;
-		vertexcolor = 0xFFFFFFFF;
+		blend_mode = BlendMode::MulAlpha;
+		vertex_color = 0xFFFFFFFF;
 	}
 	void GameObject::DirtReset()
 	{
 		status = GameObjectStatus::Active;
 
 		x = y = 0.;
-		lastx = lasty = 0.;
+		last_x = last_y = 0.;
 		dx = dy = 0.;
 		rot = omega = 0.;
 		vx = vy = 0.;
@@ -99,8 +99,8 @@ namespace luastg
 		layer = 0.;
 		hscale = vscale = 1.;
 #ifdef USER_SYSTEM_OPERATION
-		maxv = DBL_MAX * 0.5; // 平时应该不会有人弄那么大的速度吧，希望计算时不会溢出（
-		maxvx = maxvy = DBL_MAX;
+		max_v = DBL_MAX * 0.5; // 平时应该不会有人弄那么大的速度吧，希望计算时不会溢出（
+		max_vx = max_vy = DBL_MAX;
 		ag = 0.;
 #endif
 
@@ -116,8 +116,8 @@ namespace luastg
 		resolve_move = false;
 		pause = 0;
 	#endif
-		ignore_superpause = false;
-		touch_lastx_lasty = false;
+		ignore_super_pause = false;
+		last_xy_touched = false;
 
 #ifdef USING_MULTI_GAME_WORLD
 		world = 15;
@@ -127,8 +127,8 @@ namespace luastg
 		a = b = 0.;
 		col_r = 0.;
 
-		blendmode = BlendMode::MulAlpha;
-		vertexcolor = 0xFFFFFFFF;
+		blend_mode = BlendMode::MulAlpha;
+		vertex_color = 0xFFFFFFFF;
 	}
 	
 	void GameObject::UpdateCollisionCircleRadius() {
@@ -268,10 +268,10 @@ namespace luastg
 		{
 			if (resolve_move)
 			{
-				if (touch_lastx_lasty)
+				if (last_xy_touched)
 				{
-					vx = x - lastx;
-					vy = y - lasty;
+					vx = x - last_x;
+					vy = y - last_y;
 				}
 				else
 				{
@@ -289,7 +289,7 @@ namespace luastg
 				// 单独应用重力加速度
 				vy -= ag;
 				// 速度限制，来自lua层
-				if (maxv <= DBL_MIN)
+				if (max_v <= DBL_MIN)
 				{
 					vx = 0.0;
 					vy = 0.0;
@@ -297,16 +297,16 @@ namespace luastg
 				else
 				{
 					lua_Number const speed_ = std::sqrt(vx * vx + vy * vy);
-					if (maxv < speed_ && speed_ > DBL_MIN)
+					if (max_v < speed_ && speed_ > DBL_MIN)
 					{
-						lua_Number const scale_ = maxv / speed_;
+						lua_Number const scale_ = max_v / speed_;
 						vx = scale_ * vx;
 						vy = scale_ * vy;
 					}
 				}
 				//针对x、y方向单独限制
-				vx = std::clamp(vx, -maxvx, maxvx);
-				vy = std::clamp(vy, -maxvy, maxvy);
+				vx = std::clamp(vx, -max_vx, max_vx);
+				vy = std::clamp(vy, -max_vy, max_vy);
 			#endif
 				x += vx;
 				y += vy;
@@ -336,19 +336,19 @@ namespace luastg
 	}
 	void GameObject::UpdateLast()
 	{
-		if (touch_lastx_lasty)
+		if (last_xy_touched)
 		{
-			dx = x - lastx;
-			dy = y - lasty;
+			dx = x - last_x;
+			dy = y - last_y;
 		}
 		else
 		{
 			dx = 0.0;
 			dy = 0.0;
 		}
-		lastx = x;
-		lasty = y;
-		touch_lastx_lasty = true;
+		last_x = x;
+		last_y = y;
+		last_xy_touched = true;
 		if (navi && (std::abs(dx) > DBL_MIN || std::abs(dy) > DBL_MIN))
 		{
 			rot = std::atan2(dy, dx);
@@ -371,10 +371,10 @@ namespace luastg
 		{
 			if (resolve_move)
 			{
-				if (touch_lastx_lasty)
+				if (last_xy_touched)
 				{
-					vx = x - lastx;
-					vy = y - lasty;
+					vx = x - last_x;
+					vy = y - last_y;
 				}
 				else
 				{
@@ -392,7 +392,7 @@ namespace luastg
 				// 单独应用重力加速度
 				vy -= ag;
 				// 速度限制，来自lua层
-				if (maxv <= DBL_MIN)
+				if (max_v <= DBL_MIN)
 				{
 					vx = 0.0;
 					vy = 0.0;
@@ -400,16 +400,16 @@ namespace luastg
 				else
 				{
 					lua_Number const speed_ = std::sqrt(vx * vx + vy * vy);
-					if (maxv < speed_ && speed_ > DBL_MIN)
+					if (max_v < speed_ && speed_ > DBL_MIN)
 					{
-						lua_Number const scale_ = maxv / speed_;
+						lua_Number const scale_ = max_v / speed_;
 						vx = scale_ * vx;
 						vy = scale_ * vy;
 					}
 				}
 				//针对x、y方向单独限制
-				vx = std::clamp(vx, -maxvx, maxvx);
-				vy = std::clamp(vy, -maxvy, maxvy);
+				vx = std::clamp(vx, -max_vx, max_vx);
+				vy = std::clamp(vy, -max_vy, max_vy);
 			#endif
 				x += vx;
 				y += vy;
@@ -419,9 +419,9 @@ namespace luastg
 
 			// 自动旋转
 
-			if (navi && touch_lastx_lasty) {
-				auto const dx_ = x - lastx;
-				auto const dy_ = y - lasty;
+			if (navi && last_xy_touched) {
+				auto const dx_ = x - last_x;
+				auto const dy_ = y - last_y;
 				if (std::abs(dx_) > DBL_MIN || std::abs(dy_) > DBL_MIN) {
 					rot = std::atan2(dy_, dx_);
 				}
@@ -448,19 +448,19 @@ namespace luastg
 	#endif
 	}
 	void GameObject::UpdateLastV2() {
-		if (touch_lastx_lasty)
+		if (last_xy_touched)
 		{
-			dx = x - lastx;
-			dy = y - lasty;
+			dx = x - last_x;
+			dy = y - last_y;
 		}
 		else
 		{
 			dx = 0.0;
 			dy = 0.0;
 		}
-		lastx = x;
-		lasty = y;
-		touch_lastx_lasty = true;
+		last_x = x;
+		last_y = y;
+		last_xy_touched = true;
 		timer += 1;
 		ani_timer += 1;
 	}
@@ -514,8 +514,8 @@ namespace luastg
 							static_cast<float>(rot),
 							static_cast<float>(hscale) * gscale,
 						static_cast<float>(vscale) * gscale,
-						blendmode,
-						core::Color4B(vertexcolor)
+						blend_mode,
+						core::Color4B(vertex_color)
 						);
 				case ResourceType::Animation:
 					static_cast<IResourceAnimation*>(res)->Render(
@@ -525,15 +525,15 @@ namespace luastg
 						static_cast<float>(rot),
 						static_cast<float>(hscale) * gscale,
 						static_cast<float>(vscale) * gscale,
-						blendmode,
-						core::Color4B(vertexcolor)
+						blend_mode,
+						core::Color4B(vertex_color)
 					);
 					break;
 				case ResourceType::Particle:
 					if (ps)
 					{
-						ps->SetBlendMode(blendmode);
-						ps->SetVertexColor(core::Color4B(vertexcolor));
+						ps->SetBlendMode(blend_mode);
+						ps->SetVertexColor(core::Color4B(vertex_color));
 						LAPP.Render(
 							ps,
 							static_cast<float>(hscale) * gscale,
@@ -616,13 +616,13 @@ namespace luastg
 			return 1;
 		#ifdef USER_SYSTEM_OPERATION
 		case LuaSTG::GameObjectMember::MAXVX:
-			lua_pushnumber(L, maxvx);
+			lua_pushnumber(L, max_vx);
 			return 1;
 		case LuaSTG::GameObjectMember::MAXVY:
-			lua_pushnumber(L, maxvy);
+			lua_pushnumber(L, max_vy);
 			return 1;
 		case LuaSTG::GameObjectMember::MAXV:
-			lua_pushnumber(L, maxv);
+			lua_pushnumber(L, max_v);
 			return 1;
 		case LuaSTG::GameObjectMember::AG:
 			lua_pushnumber(L, ag);
@@ -689,37 +689,37 @@ namespace luastg
 			return 1;
 		case LuaSTG::GameObjectMember::_BLEND:
 			if (features.is_render_class)
-				TranslateBlendModeToString(L, blendmode);
+				TranslateBlendModeToString(L, blend_mode);
 			else
 				return_default(L);
 			return 1;
 		case LuaSTG::GameObjectMember::_COLOR:
 			if (features.is_render_class)
-				binding::Color::CreateAndPush(L, core::Color4B(vertexcolor));
+				binding::Color::CreateAndPush(L, core::Color4B(vertex_color));
 			else
 				return_default(L);
 			return 1;
 		case LuaSTG::GameObjectMember::_A:
 			if (features.is_render_class)
-				lua_pushinteger(L, (lua_Integer)((uint8_t*)&vertexcolor)[3]);
+				lua_pushinteger(L, (lua_Integer)((uint8_t*)&vertex_color)[3]);
 			else
 				return_default(L);
 			return 1;
 		case LuaSTG::GameObjectMember::_R:
 			if (features.is_render_class)
-				lua_pushinteger(L, (lua_Integer)((uint8_t*)&vertexcolor)[2]);
+				lua_pushinteger(L, (lua_Integer)((uint8_t*)&vertex_color)[2]);
 			else
 				return_default(L);
 			return 1;
 		case LuaSTG::GameObjectMember::_G:
 			if (features.is_render_class)
-				lua_pushinteger(L, (lua_Integer)((uint8_t*)&vertexcolor)[1]);
+				lua_pushinteger(L, (lua_Integer)((uint8_t*)&vertex_color)[1]);
 			else
 				return_default(L);
 			return 1;
 		case LuaSTG::GameObjectMember::_B:
 			if (features.is_render_class)
-				lua_pushinteger(L, (lua_Integer)((uint8_t*)&vertexcolor)[0]);
+				lua_pushinteger(L, (lua_Integer)((uint8_t*)&vertex_color)[0]);
 			else
 				return_default(L);
 			return 1;
@@ -761,7 +761,7 @@ namespace luastg
 			return 1;
 		#endif
 		case LuaSTG::GameObjectMember::IGNORESUPERPAUSE:
-			lua_pushboolean(L, ignore_superpause);
+			lua_pushboolean(L, ignore_super_pause);
 			return 1;
 		
 		default:
@@ -841,13 +841,13 @@ namespace luastg
 			return 0;
 		#ifdef USER_SYSTEM_OPERATION
 		case LuaSTG::GameObjectMember::MAXVX:
-			maxvx = std::abs(luaL_checknumber(L, 3));
+			max_vx = std::abs(luaL_checknumber(L, 3));
 			return 0;
 		case LuaSTG::GameObjectMember::MAXVY:
-			maxvy = std::abs(luaL_checknumber(L, 3));
+			max_vy = std::abs(luaL_checknumber(L, 3));
 			return 0;
 		case LuaSTG::GameObjectMember::MAXV:
-			maxv = luaL_checknumber(L, 3);
+			max_v = luaL_checknumber(L, 3);
 			return 0;
 		case LuaSTG::GameObjectMember::AG:
 			ag = luaL_checknumber(L, 3);
@@ -938,37 +938,37 @@ namespace luastg
 			return 0;
 		case LuaSTG::GameObjectMember::_BLEND:
 			if (features.is_render_class)
-				blendmode = TranslateBlendMode(L, 3);
+				blend_mode = TranslateBlendMode(L, 3);
 			else
 				lua_rawset(L, 1);
 			return 0;
 		case LuaSTG::GameObjectMember::_COLOR:
 			if (features.is_render_class)
-				vertexcolor = binding::Color::Cast(L, 3)->color();
+				vertex_color = binding::Color::Cast(L, 3)->color();
 			else
 				lua_rawset(L, 1);
 			return 0;
 		case LuaSTG::GameObjectMember::_A:
 			if (features.is_render_class)
-				((uint8_t*)&vertexcolor)[3] = (uint8_t)luaL_checkinteger(L, 3);
+				((uint8_t*)&vertex_color)[3] = (uint8_t)luaL_checkinteger(L, 3);
 			else
 				lua_rawset(L, 1);
 			return 0;
 		case LuaSTG::GameObjectMember::_R:
 			if (features.is_render_class)
-				((uint8_t*)&vertexcolor)[2] = (uint8_t)luaL_checkinteger(L, 3);
+				((uint8_t*)&vertex_color)[2] = (uint8_t)luaL_checkinteger(L, 3);
 			else
 				lua_rawset(L, 1);
 			return 0;
 		case LuaSTG::GameObjectMember::_G:
 			if (features.is_render_class)
-				((uint8_t*)&vertexcolor)[1] = (uint8_t)luaL_checkinteger(L, 3);
+				((uint8_t*)&vertex_color)[1] = (uint8_t)luaL_checkinteger(L, 3);
 			else
 				lua_rawset(L, 1);
 			return 0;
 		case LuaSTG::GameObjectMember::_B:
 			if (features.is_render_class)
-				((uint8_t*)&vertexcolor)[0] = (uint8_t)luaL_checkinteger(L, 3);
+				((uint8_t*)&vertex_color)[0] = (uint8_t)luaL_checkinteger(L, 3);
 			else
 				lua_rawset(L, 1);
 			return 0;
@@ -1030,7 +1030,7 @@ namespace luastg
 			return 0;
 		#endif
 		case LuaSTG::GameObjectMember::IGNORESUPERPAUSE:
-			ignore_superpause = lua_toboolean(L, 3);
+			ignore_super_pause = lua_toboolean(L, 3);
 			return 0;
 		
 			// 默认处理

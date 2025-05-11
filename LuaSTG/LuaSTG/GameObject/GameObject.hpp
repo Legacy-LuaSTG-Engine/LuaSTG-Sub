@@ -41,7 +41,7 @@ namespace luastg
 	// 游戏对象
 	struct GameObject {
 		static constexpr uint64_t max_id = 0xffffull;
-		static constexpr uint64_t max_uid = 0xffff'ffff'ffffull;
+		static constexpr uint64_t max_unique_id = 0xffff'ffff'ffffull;
 
 		static constexpr int unhandled_set_group = 1;
 		static constexpr int unhandled_set_layer = 2;
@@ -56,7 +56,7 @@ namespace luastg
 		// 基本信息
 
 		uint64_t id : 16;				// [8:16] [不可见] 对象在对象池中的索引
-		uint64_t uid : 48;				// [8:48] [不可见] 对象全局唯一标识符
+		uint64_t unique_id : 48;		// [8:48] [不可见] 对象全局唯一标识符
 
 		// 分组
 
@@ -66,8 +66,8 @@ namespace luastg
 
 		// 位置
 
-		lua_Number lastx;				// [8] [不可见] 对象上一帧坐标 x
-		lua_Number lasty;				// [8] [不可见] 对象上一帧坐标 y
+		lua_Number last_x;				// [8] [不可见] 对象上一帧坐标 x
+		lua_Number last_y;				// [8] [不可见] 对象上一帧坐标 y
 		lua_Number x;					// [8] 对象坐标 x
 		lua_Number y;					// [8] 对象坐标 y
 		lua_Number dx;					// [8] [只读] 对象坐标增量 x
@@ -80,9 +80,9 @@ namespace luastg
 		lua_Number ax;					// [8] 对象加速度 x 分量
 		lua_Number ay;					// [8] 对象加速度 x 分量
 	#ifdef USER_SYSTEM_OPERATION
-		lua_Number maxvx;				// [8] 对象速度 x 分量最大值
-		lua_Number maxvy;				// [8] 对象速度 y 分量最大值
-		lua_Number maxv;				// [8] 对象速度最大值
+		lua_Number max_vx;				// [8] 对象速度 x 分量最大值
+		lua_Number max_vy;				// [8] 对象速度 y 分量最大值
+		lua_Number max_v;				// [8] 对象速度最大值
 		lua_Number ag;					// [8] 重力加速度
 	#endif
 		//lua_Number va, speed; // 速度方向 速度值
@@ -114,8 +114,8 @@ namespace luastg
 
 		// 小型属性
 		// 小型属性 - 渲染
-		uint32_t vertexcolor;			// [4] 顶点颜色
-		BlendMode blendmode;			// [1] 混合模式
+		uint32_t vertex_color;			// [4] 顶点颜色
+		BlendMode blend_mode;			// [1] 混合模式
 		// 小型属性 - 基本信息
 		GameObjectFeatures features;	// [1] [不可见] 对象类的一些特性
 		GameObjectStatus status;		// [1] 对象状态
@@ -132,8 +132,8 @@ namespace luastg
 	#ifdef LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 		uint8_t resolve_move : 1;		// [b] 是否为计算速度而非计算位置
 	#endif // LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
-		uint8_t ignore_superpause : 1;	// [b] 是否无视超级暂停。 超级暂停时，timer不会增加，frame不会调用，但render会调用。
-		uint8_t touch_lastx_lasty : 1;	// [b] 是否已经更新过 last_x 和 last_y 值，如果未更新过，表明对象刚生成，获取 dx 和 dy 时应当返回 0
+		uint8_t ignore_super_pause : 1;	// [b] 是否无视超级暂停。 超级暂停时，timer不会增加，frame不会调用，但render会调用。
+		uint8_t last_xy_touched : 1;	// [b] 是否已经更新过 last_x 和 last_y 值，如果未更新过，表明对象刚生成，获取 dx 和 dy 时应当返回 0
 
 		// 成员方法
 

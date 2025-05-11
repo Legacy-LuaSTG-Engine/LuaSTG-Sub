@@ -16,7 +16,7 @@ namespace luastg
 			if (left->layer != right->layer) {
 				return left->layer < right->layer;
 			}
-			return left->uid < right->uid;
+			return left->unique_id < right->unique_id;
 		}
 	};
 
