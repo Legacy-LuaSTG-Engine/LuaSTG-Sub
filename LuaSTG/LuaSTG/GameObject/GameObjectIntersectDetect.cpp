@@ -37,7 +37,7 @@ namespace {
 		luastg::GameObject const* const p1,
 		luastg::GameObject const* const p2
 	) noexcept {
-		return isAxisAlignedBoundingBoxIntersect(
+		return isAxisAlignedBoundingBoxNotIntersect(
 			p1->x, p1->y, p1->col_r, p1->col_r,
 			p2->x, p2->y, p2->col_r, p2->col_r);
 	}
