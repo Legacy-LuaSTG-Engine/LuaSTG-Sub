@@ -335,6 +335,11 @@ namespace core {
 
 		[[nodiscard]] bool operator==(Color4B const& right) const noexcept { return color() == right.color(); }
 		[[nodiscard]] bool operator!=(Color4B const& right) const noexcept { return color() != right.color(); }
+
+		static Color4B black() { return Color4B(0, 0, 0); }
+		static Color4B transparentBlack() { return Color4B(0, 0, 0, 0); }
+		static Color4B white() { return Color4B(255, 255, 255); }
+		static Color4B transparentWhite() { return Color4B(255, 255, 255, 0); }
 	};
 
 	static_assert(sizeof(Color4B) == sizeof(uint32_t));
