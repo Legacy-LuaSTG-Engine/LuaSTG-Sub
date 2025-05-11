@@ -38,26 +38,26 @@ namespace luastg
 {
 	void GameObject::Reset()
 	{
-		pUpdatePrev = pUpdateNext = nullptr;
-		pColliPrev = pColliNext = nullptr;
+		update_list_previous = update_list_next = nullptr;
+		detect_list_previous = detect_list_next = nullptr;
 
 		status = GameObjectStatus::Free;
 		id = max_id;
 		uid = 0;
 		features.reset();
 
-		x = y = 0.;
-		lastx = lasty = 0.;
-		dx = dy = 0.;
-		rot = omega = 0.;
-		vx = vy = 0.;
-		ax = ay = 0.;
-		layer = 0.;
-		hscale = vscale = 1.;
+		x = y = 0.0;
+		lastx = lasty = 0.0;
+		dx = dy = 0.0;
+		rot = omega = 0.0;
+		vx = vy = 0.0;
+		ax = ay = 0.0;
+		layer = 0.0;
+		hscale = vscale = 1.0;
 #ifdef USER_SYSTEM_OPERATION
 		maxv = DBL_MAX * 0.5; // 平时应该不会有人弄那么大的速度吧，希望计算时不会溢出（
 		maxvx = maxvy = DBL_MAX;
-		ag = 0.;
+		ag = 0.0;
 #endif
 
 		colli = bound = true;
@@ -81,8 +81,8 @@ namespace luastg
 #endif // USING_MULTI_GAME_WORLD
 
 		rect = false;
-		a = b = 0.;
-		col_r = 0.;
+		a = b = 0.0;
+		col_r = 0.0;
 
 		blendmode = BlendMode::MulAlpha;
 		vertexcolor = 0xFFFFFFFF;

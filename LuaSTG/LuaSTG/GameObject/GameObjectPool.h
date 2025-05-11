@@ -2,6 +2,7 @@
 #include "GameObject/GameObject.hpp"
 #include "core/FixedObjectPool.hpp"
 #include <deque>
+#include <list>
 #include <memory_resource>
 
 // 对象池信息
@@ -10,6 +11,112 @@
 
 namespace luastg
 {
+	struct GameObjectLayerComparer {
+		bool operator()(GameObject const* const left, GameObject const* const right) const noexcept {
+			if (left->layer != right->layer) {
+				return left->layer < right->layer;
+			}
+			return left->uid < right->uid;
+		}
+	};
+
+	struct GameObjectUpdateLinkedListFieldAssessor {
+		static GameObject* getPrevious(GameObject const* const object) noexcept {
+			return object->update_list_previous;
+		}
+		static void setPrevious(GameObject* const object, GameObject* value) noexcept {
+			object->update_list_previous = value;
+		}
+		static GameObject* getNext(GameObject const* const object) noexcept {
+			return object->update_list_next;
+		}
+		static void setNext(GameObject* const object, GameObject* value) noexcept {
+			object->update_list_next = value;
+		}
+	};
+
+	struct GameObjectDetectLinkedListFieldAssessor {
+		static GameObject* getPrevious(GameObject const* const object) noexcept {
+			return object->detect_list_previous;
+		}
+		static void setPrevious(GameObject* const object, GameObject* value) noexcept {
+			object->detect_list_previous = value;
+		}
+		static GameObject* getNext(GameObject const* const object) noexcept {
+			return object->detect_list_next;
+		}
+		static void setNext(GameObject* const object, GameObject* value) noexcept {
+			object->detect_list_next = value;
+		}
+	};
+
+	template<typename FieldAssessor>
+	class GameObjectLinkedList {
+	public:
+		[[nodiscard]] bool empty() const noexcept {
+			return m_first == nullptr && m_last == nullptr;
+		}
+		void add(GameObject* object) noexcept {
+			assert(object != nullptr);
+			if (empty()) {
+				m_first = object;
+				m_last = object;
+				FieldAssessor::setPrevious(object, nullptr);
+				FieldAssessor::setNext(object, nullptr);
+			}
+			else {
+				auto const last = m_last;
+				FieldAssessor::setNext(last, object);
+				FieldAssessor::setPrevious(object, last);
+				m_last = object;
+			}
+		}
+		GameObject* remove(GameObject* object) noexcept {
+			assert(object != nullptr);
+			assert(!empty());
+			if (m_first == object && m_last == object) {
+				m_first = nullptr;
+				m_last = nullptr;
+				assert(FieldAssessor::getPrevious(object) == nullptr);
+				assert(FieldAssessor::getNext(object) == nullptr);
+				return nullptr;
+			}
+			auto const previous = FieldAssessor::getPrevious(object);
+			auto const next = FieldAssessor::getNext(object);
+			if (previous != nullptr) {
+				FieldAssessor::setNext(previous, next);
+			}
+			if (next != nullptr) {
+				FieldAssessor::setPrevious(next, previous);
+			}
+			FieldAssessor::setPrevious(object, nullptr);
+			FieldAssessor::setNext(object, nullptr);
+			if (m_first == object) {
+				m_first = next;
+			}
+			if (m_last == object) {
+				m_last = previous;
+			}
+			return next;
+		}
+		[[nodiscard]] GameObject* first() const noexcept { return m_first; }
+		void clear() {
+			GameObject* object = m_first;
+			while (object) {
+				GameObject* const current = object;
+				object = FieldAssessor::getNext(object);
+				FieldAssessor::setPrevious(current, nullptr);
+				FieldAssessor::setNext(current, nullptr);
+			}
+		}
+	private:
+		GameObject* m_first{};
+		GameObject* m_last{};
+	};
+
+	using GameObjectUpdateLinkedList = GameObjectLinkedList<GameObjectUpdateLinkedListFieldAssessor>;
+	using GameObjectDetectLinkedList = GameObjectLinkedList<GameObjectDetectLinkedListFieldAssessor>;
+
 	//游戏对象池
 	class GameObjectPool
 	{
@@ -33,20 +140,13 @@ namespace luastg
 		uint64_t m_iUid = 0;
 		lua_State* G_L = nullptr;
 
-		// GameObject List
-		struct _less_render {
-			bool operator()(const GameObject* x, const GameObject* y) const {
-				if (x->layer != y->layer) {
-					return x->layer < y->layer;
-				}
-				else {
-					return x->uid < y->uid;
-				}
-			}
-		};
-		std::set<GameObject*, _less_render> m_RenderList;
-		std::pair<GameObject, GameObject> m_UpdateLinkList;
-		std::array<std::pair<GameObject, GameObject>, LOBJPOOL_GROUPN> m_ColliLinkList = {};
+		// GameObject lists
+		std::pmr::unsynchronized_pool_resource m_memory_resource;
+		GameObjectUpdateLinkedList m_update_list;
+		std::pmr::set<GameObject*, GameObjectLayerComparer> m_render_list;
+		std::array<GameObjectDetectLinkedList, LOBJPOOL_GROUPN> m_detect_lists;
+
+		void resetGameObjectLists();
 
 #ifdef USING_MULTI_GAME_WORLD
 		GameObject* m_pCurrentObject{};
@@ -72,10 +172,7 @@ namespace luastg
 			GameObject* object2{};
 		};
 
-		std::pmr::unsynchronized_pool_resource local_memory_resource;
-
 	private:
-		void _ClearLinkList();
 		void _InsertToUpdateLinkList(GameObject* p);
 		void _RemoveFromUpdateLinkList(GameObject* p);
 		void _InsertToColliLinkList(GameObject* p, size_t group);
@@ -92,7 +189,7 @@ namespace luastg
 		// 申请一个对象，重置对象并将对象插入到各个链表，不处理lua部分，返回申请的对象
 		GameObject* _AllocObject();
 
-		// 释放一个对象，将对象从各个链表中移除，并回收，不处理lua部分和对象资源，返回下一个可用的对象（可能为nullptr）
+		// 释放一个对象，将对象从渲染和检测链表中移除，并回收，不处理lua部分和对象资源
 		GameObject* _ReleaseObject(GameObject* object);
 
 		// 检查指定对象的坐标是否在场景边界内
@@ -103,7 +200,7 @@ namespace luastg
 			return object->isInRect(m_BoundLeft, m_BoundRight, m_BoundBottom, m_BoundTop);
 		}
 
-		// 释放一个对象，完全释放，返回下一个可用的对象（可能为nullptr）
+		// 释放一个对象，完全释放
 		GameObject* _FreeObject(GameObject* p, int ot_at = 0) noexcept;
 
 		GameObject* _ToGameObject(lua_State* L, int idx);
@@ -204,12 +301,12 @@ namespace luastg
 
 		/// @brief 获取下一个元素的ID
 		/// @return 返回-1表示无元素
-		int NextObject(int groupId, int id) noexcept;
+		int NextObject(int group, int id) noexcept;
 
 		/// @brief 获取列表中的第一个元素ID
 		/// @note 为迭代器使用
 		/// @return 返回-1表示无元素
-		int FirstObject(int groupId) noexcept;
+		int FirstObject(int group) noexcept;
 
 		/// @brief 调试目的，获取对象列表
 		int GetObjectTable(lua_State* L) noexcept;

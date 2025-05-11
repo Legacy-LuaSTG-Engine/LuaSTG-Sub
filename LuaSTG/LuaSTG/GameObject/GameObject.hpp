@@ -39,8 +39,7 @@ namespace luastg
 #pragma warning(disable:26495)
 
 	// 游戏对象
-	struct GameObject
-	{
+	struct GameObject {
 		static constexpr uint64_t max_id = 0xffffull;
 		static constexpr uint64_t max_uid = 0xffff'ffff'ffffull;
 
@@ -49,10 +48,10 @@ namespace luastg
 
 		// 链表部分
 
-		GameObject* pUpdatePrev;		// [P] [不可见]
-		GameObject* pUpdateNext;		// [P] [不可见]
-		GameObject* pColliPrev;			// [P] [不可见]
-		GameObject* pColliNext;			// [P] [不可见]
+		GameObject* update_list_previous;	// [P] [不可见] 更新链表上一个对象
+		GameObject* update_list_next;		// [P] [不可见] 更新链表下一个对象
+		GameObject* detect_list_previous;	// [P] [不可见] 相交检测链表上一个对象
+		GameObject* detect_list_next;		// [P] [不可见] 相交检测链表下一个对象
 
 		// 基本信息
 

@@ -12,21 +12,25 @@ namespace luastg
 
 	static GameObjectPool* g_GameObjectPool = nullptr;
 
-	GameObjectPool::GameObjectPool(lua_State* pL)
-	{
+	GameObjectPool::GameObjectPool(lua_State* const pL) {
 		assert(g_GameObjectPool == nullptr);
 		g_GameObjectPool = this;
 		// Lua_State
 		G_L = pL;
-		// 初始化对象链表
-		_ClearLinkList();
-		m_RenderList.clear();
+
+		// initialize GameObject list
+
+		m_render_list = decltype(m_render_list){ &m_memory_resource };
+		resetGameObjectLists();
+
 		// ex+
+
 #ifdef USING_MULTI_GAME_WORLD
 		m_pCurrentObject = nullptr;
 #endif // USING_MULTI_GAME_WORLD
 		m_superpause = 0;
 		m_nextsuperpause = 0;
+
 		// lua
 		_PrepareLuaObjectTable();
 	}
@@ -36,96 +40,51 @@ namespace luastg
 		g_GameObjectPool = nullptr;
 	}
 
-	void GameObjectPool::_ClearLinkList()
-	{
-		m_UpdateLinkList.first.pUpdateNext = &m_UpdateLinkList.second;
-		m_UpdateLinkList.first.pColliNext = &m_UpdateLinkList.second;
-		m_UpdateLinkList.second.pUpdatePrev = &m_UpdateLinkList.first;
-		m_UpdateLinkList.second.pColliPrev = &m_UpdateLinkList.first;
-		m_UpdateLinkList.first.status = GameObjectStatus::Free;
-		m_UpdateLinkList.first.uid = 0;
-		m_UpdateLinkList.second.status = GameObjectStatus::Free;
-		m_UpdateLinkList.second.uid = GameObject::max_uid;
-		for (size_t i = 0; i < LOBJPOOL_GROUPN; i += 1)
-		{
-			m_ColliLinkList[i].first.pUpdateNext = &m_ColliLinkList[i].second;
-			m_ColliLinkList[i].first.pColliNext = &m_ColliLinkList[i].second;
-			m_ColliLinkList[i].second.pUpdatePrev = &m_ColliLinkList[i].first;
-			m_ColliLinkList[i].second.pColliPrev = &m_ColliLinkList[i].first;
-			m_ColliLinkList[i].first.status = GameObjectStatus::Free;
-			m_ColliLinkList[i].first.uid = 0;
-			m_ColliLinkList[i].first.group = (lua_Integer)i;
-			m_ColliLinkList[i].second.status = GameObjectStatus::Free;
-			m_ColliLinkList[i].second.uid = GameObject::max_uid;
-			m_ColliLinkList[i].second.group = (lua_Integer)i;
+	void GameObjectPool::resetGameObjectLists() {
+		m_update_list.clear();
+		m_render_list.clear();
+		for (auto &list : m_detect_lists) {
+			list.clear();
 		}
 	}
 
-	void GameObjectPool::_InsertToUpdateLinkList(GameObject* p)
-	{
-		GameObject* prev = m_UpdateLinkList.second.pUpdatePrev;
-		GameObject* next = &m_UpdateLinkList.second;
-		prev->pUpdateNext = p;
-		p->pUpdatePrev = prev;
-		p->pUpdateNext = next;
-		next->pUpdatePrev = p;
+	void GameObjectPool::_InsertToUpdateLinkList(GameObject* const p) {
+		m_update_list.add(p);
 	}
-	void GameObjectPool::_RemoveFromUpdateLinkList(GameObject* p)
-	{
-		GameObject* prev = p->pUpdatePrev;
-		GameObject* next = p->pUpdateNext;
-		prev->pUpdateNext = next;
-		next->pUpdatePrev = prev;
-		p->pUpdatePrev = nullptr;
-		p->pUpdateNext = nullptr;
+	void GameObjectPool::_RemoveFromUpdateLinkList(GameObject* const p) {
+		m_update_list.remove(p);
 	}
 
-	void GameObjectPool::_InsertToColliLinkList(GameObject* p, size_t group)
-	{
-		GameObject* prev = m_ColliLinkList[group].second.pColliPrev;
-		GameObject* next = &m_ColliLinkList[group].second;
-		prev->pColliNext = p;
-		p->pColliPrev = prev;
-		p->pColliNext = next;
-		next->pColliPrev = p;
+	void GameObjectPool::_InsertToColliLinkList(GameObject* const p, size_t const group) {
+		assert(group < LOBJPOOL_GROUPN);
+		m_detect_lists[group].add(p);
 	}
-	void GameObjectPool::_RemoveFromColliLinkList(GameObject* p)
-	{
+	void GameObjectPool::_RemoveFromColliLinkList(GameObject* const p) {
 		assert(p != m_LockObjectA && p != m_LockObjectB);
-		GameObject* prev = p->pColliPrev;
-		GameObject* next = p->pColliNext;
-		prev->pColliNext = next;
-		next->pColliPrev = prev;
-		p->pColliPrev = nullptr;
-		p->pColliNext = nullptr;
+		m_detect_lists[p->group].remove(p);
 	}
-	void GameObjectPool::_MoveToColliLinkList(GameObject* p, size_t group)
-	{
+	void GameObjectPool::_MoveToColliLinkList(GameObject* const p, size_t const group) {
 		_RemoveFromColliLinkList(p);
 		_InsertToColliLinkList(p, group);
 	}
 
-	void GameObjectPool::_InsertToRenderList(GameObject* p)
-	{
-		m_RenderList.insert(p);
+	void GameObjectPool::_InsertToRenderList(GameObject* const p) {
+		m_render_list.insert(p);
 	}
-	void GameObjectPool::_RemoveFromRenderList(GameObject* p)
-	{
-		m_RenderList.erase(p);
+	void GameObjectPool::_RemoveFromRenderList(GameObject* const p) {
+		m_render_list.erase(p);
 	}
-	void GameObjectPool::_SetObjectLayer(GameObject* object, lua_Number layer)
-	{
-		m_RenderList.erase(object);
+	void GameObjectPool::_SetObjectLayer(GameObject* const object, lua_Number const layer) {
+		m_render_list.erase(object);
 		object->layer = layer;
-		m_RenderList.insert(object);
+		m_render_list.insert(object);
 	}
 
-	void GameObjectPool::_PrepareLuaObjectTable()
-	{
+	void GameObjectPool::_PrepareLuaObjectTable() {
 		luaL_Reg const mt[3] = {
 			{ "__index", &api_GetAttr },
 			{ "__newindex", &api_SetAttr },
-			{ NULL, NULL },
+			{},
 		};
 
 		// 创建一个全局表用于存放所有对象
@@ -169,8 +128,7 @@ namespace luastg
 	GameObject* GameObjectPool::_ReleaseObject(GameObject* object)
 	{
 		m_DbgData[m_DbgIdx].object_free += 1;
-		GameObject* ret = object->pUpdateNext;
-		_RemoveFromUpdateLinkList(object);
+		auto const next = m_update_list.remove(object);
 		_RemoveFromRenderList(object);
 		_RemoveFromColliLinkList(object);
 #ifdef USING_MULTI_GAME_WORLD
@@ -181,7 +139,7 @@ namespace luastg
 #endif // USING_MULTI_GAME_WORLD
 		object->status = GameObjectStatus::Free;
 		m_ObjectPool.free(object->id);
-		return ret;
+		return next;
 	}
 	GameObject* GameObjectPool::_FreeObject(GameObject* p, int ot_at) noexcept
 	{
@@ -216,9 +174,7 @@ namespace luastg
 		// 释放引用的资源
 		p->ReleaseResource();
 
-		GameObject* pRet = _ReleaseObject(p);
-
-		return pRet;
+		return _ReleaseObject(p);
 	}
 
 	GameObject* GameObjectPool::_ToGameObject(lua_State* L, int idx)
@@ -246,8 +202,7 @@ namespace luastg
 		return p;
 	}
 
-	void GameObjectPool::_GameObjectCallback(lua_State* L, int otidx, GameObject* p, int cbidx)
-	{
+	void GameObjectPool::_GameObjectCallback(lua_State* L, int otidx, GameObject* p, int cbidx) {
 		lua_rawgeti(L, otidx, (int)p->id + 1);	// ??? ot object
 		lua_rawgeti(L, -1, 1);					// ??? ot object class
 		lua_rawgeti(L, -1, cbidx);				// ??? ot object class frame
@@ -303,8 +258,7 @@ namespace luastg
 		// 回收已分配的对象和更新链表
 		GetObjectTable(G_L);
 		int const ot_at = lua_gettop(G_L);
-		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second;)
-		{
+		for (auto p = m_update_list.first(); p != nullptr;) {
 			p = _FreeObject(p, ot_at);
 		}
 #if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
@@ -318,8 +272,7 @@ namespace luastg
 #endif
 		lua_pop(G_L, 1);
 		// 重置其他链表
-		_ClearLinkList();
-		m_RenderList.clear();
+		resetGameObjectLists();
 		// 重置整个对象池，恢复为线性状态
 		m_ObjectPool.clear();
 		// 重置其他数据
@@ -333,54 +286,54 @@ namespace luastg
 		m_superpause = 0;
 		m_nextsuperpause = 0;
 		// 清理内存
-		local_memory_resource.release();
+		m_memory_resource.release();
 	}
-	void GameObjectPool::updateMovementsLegacy(int32_t objects_index, lua_State* L) {
+	void GameObjectPool::updateMovementsLegacy(int32_t const objects_index, lua_State* const L) {
 		tracy_zone_scoped_with_name("LOBJMGR.ObjFrame");
-
-		int superpause = UpdateSuperPause(); // 更新超级暂停
-		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second; p = p->pUpdateNext) {
-			if (superpause <= 0 || p->ignore_superpause) {
-				if (p->features.has_callback_update) {
-#ifdef USING_MULTI_GAME_WORLD
-					m_pCurrentObject = p;
-#endif // USING_MULTI_GAME_WORLD
-					_GameObjectCallback(L, objects_index, p, LGOBJ_CC_FRAME);
-#ifdef USING_MULTI_GAME_WORLD
-					m_pCurrentObject = nullptr;
-#endif // USING_MULTI_GAME_WORLD
-				}
-				p->Update();
+		auto const super_pause_time = UpdateSuperPause(); // 更新超级暂停
+		for (auto p = m_update_list.first(); p != nullptr; p = p->update_list_next) {
+			if (super_pause_time > 0 && !p->ignore_superpause) {
+				continue;
 			}
+			if (p->features.has_callback_update) {
+			#ifdef USING_MULTI_GAME_WORLD
+				m_pCurrentObject = p;
+			#endif // USING_MULTI_GAME_WORLD
+				_GameObjectCallback(L, objects_index, p, LGOBJ_CC_FRAME);
+			#ifdef USING_MULTI_GAME_WORLD
+				m_pCurrentObject = nullptr;
+			#endif // USING_MULTI_GAME_WORLD
+			}
+			p->Update();
 		}
 	}
 	void GameObjectPool::updateMovements(int32_t objects_index, lua_State* L) {
 		tracy_zone_scoped_with_name("LOBJMGR.ObjFrame(New)");
 
-		int superpause = GetSuperPauseTime();
-		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second; p = p->pUpdateNext) {
-			if (superpause <= 0 || p->ignore_superpause) {
-				if (!p->features.has_callback_update) {
-					continue;
-				}
-#ifdef USING_MULTI_GAME_WORLD
+		auto const super_pause_time = GetSuperPauseTime();
+		for (auto p = m_update_list.first(); p != nullptr; p = p->update_list_next) {
+			if (super_pause_time > 0 && !p->ignore_superpause) {
+				continue;
+			}
+			if (p->features.has_callback_update) {
+			#ifdef USING_MULTI_GAME_WORLD
 				m_pCurrentObject = p;
-#endif // USING_MULTI_GAME_WORLD
+			#endif // USING_MULTI_GAME_WORLD
 				_GameObjectCallback(L, objects_index, p, LGOBJ_CC_FRAME);
-#ifdef USING_MULTI_GAME_WORLD
+			#ifdef USING_MULTI_GAME_WORLD
 				m_pCurrentObject = nullptr;
-#endif // USING_MULTI_GAME_WORLD
+			#endif // USING_MULTI_GAME_WORLD
 			}
 		}
 
-		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second; p = p->pUpdateNext) {
-			if (superpause <= 0 || p->ignore_superpause) {
-				p->UpdateV2();
+		for (auto p = m_update_list.first(); p != nullptr; p = p->update_list_next) {
+			if (super_pause_time > 0 && !p->ignore_superpause) {
+				continue;
 			}
+			p->UpdateV2();
 		}
 	}
-	void GameObjectPool::DoRender() noexcept
-	{
+	void GameObjectPool::DoRender() noexcept {
 		GetObjectTable(G_L); // ot
 		int const ot_idx = lua_gettop(G_L);
 
@@ -391,7 +344,7 @@ namespace luastg
 		lua_Integer world = GetWorldFlag();
 #endif // USING_MULTI_GAME_WORLD
 
-		for (auto& p : m_RenderList) {
+		for (auto& p : m_render_list) {
 #ifdef USING_MULTI_GAME_WORLD
 			if (!p->hide && CheckWorld(p->world, world)) { // 只渲染可见对象
 				m_pCurrentObject = p;
@@ -414,76 +367,56 @@ namespace luastg
 
 		lua_pop(G_L, 1);
 	}
-	void GameObjectPool::UpdateXY() noexcept
-	{
+	void GameObjectPool::UpdateXY() noexcept {
 		tracy_zone_scoped_with_name("LOBJMGR.UpdateXY");
-
-		int superpause = GetSuperPauseTime();
-		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second; p = p->pUpdateNext)
-		{
-			if (superpause <= 0 || p->ignore_superpause)
-			{
-				p->UpdateLast();
+		auto const super_pause_time = GetSuperPauseTime();
+		for (auto p = m_update_list.first(); p != nullptr; p = p->update_list_next) {
+			if (super_pause_time > 0 && !p->ignore_superpause) {
+				continue;
 			}
+			p->UpdateLast();
 		}
 	}
-	void GameObjectPool::updateNextLegacy(int32_t objects_index, lua_State*)
-	{
+	void GameObjectPool::updateNextLegacy(int32_t const objects_index, lua_State* const) {
 		tracy_zone_scoped_with_name("LOBJMGR.AfterFrame");
-
-		int superpause = GetSuperPauseTime();
-		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second;)
-		{
-			if (superpause <= 0 || p->ignore_superpause)
-			{
-				p->UpdateTimer();
-				if (p->status != GameObjectStatus::Active)
-				{
-					p = _FreeObject(p, objects_index); // 再下一个
-				}
-				else
-				{
-					p = p->pUpdateNext;
-				}
+		auto const super_pause_time = GetSuperPauseTime();
+		for (auto p = m_update_list.first(); p != nullptr;) {
+			if (super_pause_time > 0 && !p->ignore_superpause) {
+				p = p->update_list_next;
+				continue;
 			}
-			else
-			{
-				p = p->pUpdateNext;
+			if (p->status != GameObjectStatus::Active) {
+				p = _FreeObject(p, objects_index);
+				continue;
 			}
+			p->UpdateTimer();
+			p = p->update_list_next;
 		}
 	}
-	void GameObjectPool::updateNext(int32_t objects_index, lua_State*) {
+	void GameObjectPool::updateNext(int32_t const objects_index, lua_State* const) {
 		tracy_zone_scoped_with_name("LOBJMGR.AfterFrame(New)");
-
-		int superpause = UpdateSuperPause(); // 更新超级暂停
-		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second;)
-		{
-			if (superpause <= 0 || p->ignore_superpause)
-			{
-				p->UpdateLastV2();
-				if (p->status != GameObjectStatus::Active)
-				{
-					p = _FreeObject(p, objects_index); // 再下一个
-				}
-				else
-				{
-					p = p->pUpdateNext;
-				}
+		auto const super_pause_time = UpdateSuperPause(); // 更新超级暂停
+		for (auto p = m_update_list.first(); p != nullptr;) {
+			if (super_pause_time > 0 && !p->ignore_superpause) {
+				p = p->update_list_next;
+				continue;
 			}
-			else
-			{
-				p = p->pUpdateNext;
+			if (p->status != GameObjectStatus::Active) {
+				p = _FreeObject(p, objects_index);
+				continue;
 			}
+			p->UpdateLastV2();
+			p = p->update_list_next;
 		}
 	}
-	void GameObjectPool::detectOutOfWorldBoundLegacy(int32_t objects_index, lua_State* L) {
+	void GameObjectPool::detectOutOfWorldBoundLegacy(int32_t const objects_index, lua_State* const L) {
 		tracy_zone_scoped_with_name("LOBJMGR.BoundCheck");
 
 #ifdef USING_MULTI_GAME_WORLD
 		auto const world = GetWorldFlag();
 #endif // USING_MULTI_GAME_WORLD
 
-		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second; p = p->pUpdateNext) {
+		for (auto p = m_update_list.first(); p != nullptr; p = p->update_list_next) {
 #ifdef USING_MULTI_GAME_WORLD
 			if (!CheckWorld(p->world, world)) {
 				continue;
@@ -505,7 +438,7 @@ namespace luastg
 			}
 		}
 	}
-	void GameObjectPool::detectOutOfWorldBound(int32_t objects_index, lua_State* L) {
+	void GameObjectPool::detectOutOfWorldBound(int32_t const objects_index, lua_State* const L) {
 		tracy_zone_scoped_with_name("LOBJMGR.BoundCheck(New)");
 
 		struct OutOfWorldBoundDetectionResult {
@@ -513,13 +446,13 @@ namespace luastg
 			GameObject* game_object{};
 		};
 
-		std::pmr::deque<OutOfWorldBoundDetectionResult> cache{ &local_memory_resource };
+		std::pmr::deque<OutOfWorldBoundDetectionResult> cache{ &m_memory_resource };
 
 #ifdef USING_MULTI_GAME_WORLD
 		auto const world = GetWorldFlag();
 #endif // USING_MULTI_GAME_WORLD
 
-		for (GameObject* p = m_UpdateLinkList.first.pUpdateNext; p != &m_UpdateLinkList.second; p = p->pUpdateNext) {
+		for (auto p = m_update_list.first(); p != nullptr; p = p->update_list_next) {
 #ifdef USING_MULTI_GAME_WORLD
 			if (!CheckWorld(p->world, world)) {
 				continue;
@@ -558,17 +491,15 @@ namespace luastg
 #endif // USING_MULTI_GAME_WORLD
 		}
 	}
-	void GameObjectPool::detectIntersectionLegacy(uint32_t group1_, uint32_t group2_, int32_t objects_index, lua_State* L) {
+	void GameObjectPool::detectIntersectionLegacy(uint32_t const group1, uint32_t const group2, int32_t const objects_index, lua_State* const L) {
 		tracy_zone_scoped_with_name("LOBJMGR.CollisionCheck");
 		auto& debug_data = m_DbgData[m_DbgIdx];
-		auto& group1 = m_ColliLinkList[group1_];
-		auto& group2 = m_ColliLinkList[group2_];
-		for (GameObject* ptrA = group1.first.pColliNext; ptrA != &group1.second;) {
+		for (auto ptrA = m_detect_lists[group1].first(); ptrA != nullptr;) {
 			GameObject* pA = ptrA;
-			ptrA = ptrA->pColliNext;
-			for (GameObject* ptrB = group2.first.pColliNext; ptrB != &group2.second;) {
+			ptrA = ptrA->detect_list_next;
+			for (auto ptrB = m_detect_lists[group2].first(); ptrB != nullptr;) {
 				GameObject* pB = ptrB;
-				ptrB = ptrB->pColliNext;
+				ptrB = ptrB->detect_list_next;
 				if (!pA->features.has_callback_trigger) {
 					continue;
 				}
@@ -603,15 +534,13 @@ namespace luastg
 			}
 		}
 	}
-	void GameObjectPool::detectIntersection(std::pmr::vector<IntersectionDetectionGroupPair> const& group_pairs, int32_t objects_index, lua_State* L) {
+	void GameObjectPool::detectIntersection(std::pmr::vector<IntersectionDetectionGroupPair> const& group_pairs, int32_t const objects_index, lua_State* const L) {
 		tracy_zone_scoped_with_name("LOBJMGR.CollisionCheck(New)");
-		std::pmr::deque<IntersectionDetectionResult> cache{ &local_memory_resource };
-		for (auto const& group_pair : group_pairs) {
-			auto& debug_data = m_DbgData[m_DbgIdx];
-			auto& group1 = m_ColliLinkList[group_pair.group1];
-			auto& group2 = m_ColliLinkList[group_pair.group2];
-			for (GameObject* object1 = group1.first.pColliNext; object1 != &group1.second; object1 = object1->pColliNext) {
-				for (GameObject* object2 = group2.first.pColliNext; object2 != &group2.second; object2 = object2->pColliNext) {
+		auto& debug_data = m_DbgData[m_DbgIdx];
+		std::pmr::deque<IntersectionDetectionResult> cache{ &m_memory_resource };
+		for (const auto& [group1, group2] : group_pairs) {
+			for (auto object1 = m_detect_lists[group1].first(); object1 != nullptr; object1 = object1->detect_list_next) {
+				for (auto object2 = m_detect_lists[group2].first(); object2 != nullptr; object2 = object2->detect_list_next) {
 					if (!object1->features.has_callback_trigger) {
 						continue;
 					}
@@ -636,7 +565,6 @@ namespace luastg
 		if (objects_index <= 0 || L == nullptr) {
 			return;
 		}
-		auto& debug_data = m_DbgData[m_DbgIdx];
 		for (auto const& [uid1, uid2, object1, object2] : cache) {
 			if (object1->uid != uid1 || object2->uid != uid2) {
 				assert(false); continue; // 理论上不太可能发生
@@ -746,7 +674,7 @@ namespace luastg
 				return 0; // early return
 			}
 			// Stage 2
-			std::pmr::vector<IntersectionDetectionGroupPair> group_pairs{ &g_GameObjectPool->local_memory_resource };
+			std::pmr::vector<IntersectionDetectionGroupPair> group_pairs{ &g_GameObjectPool->m_memory_resource };
 			group_pairs.reserve(group_count);
 			for (int32_t i = 1; i <= static_cast<int32_t>(group_count); i += 1) {
 				auto const group_pair = S.get_array_value<lua::stack_index_t>(1, i);
@@ -915,49 +843,37 @@ namespace luastg
 		return true;
 	}
 
-	int GameObjectPool::FirstObject(int groupId) noexcept
-	{
-		if (groupId < 0 || groupId >= LOBJPOOL_GROUPN)
-		{
+	int GameObjectPool::FirstObject(int const group) noexcept {
+		if (group < 0 || group >= LOBJPOOL_GROUPN) {
 			// 如果不是一个有效的分组，则在整个对象表中遍历
-			GameObject* p = m_UpdateLinkList.first.pUpdateNext;
-			if (p != &m_UpdateLinkList.second)
+			if (auto const p = m_update_list.first(); p != nullptr)
 				return static_cast<int>(p->id);
-			else
-				return -1;
+			return -1;
 		}
-		else
-		{
-			GameObject* p = m_ColliLinkList[groupId].first.pColliNext;
-			if (p != &m_ColliLinkList[groupId].second)
+		else {
+			if (auto const p = m_detect_lists[group].first(); p != nullptr)
 				return static_cast<int>(p->id);
-			else
-				return -1;
+			return -1;
 		}
 	}
-	int GameObjectPool::NextObject(int groupId, int id) noexcept
-	{
+	int GameObjectPool::NextObject(int const group, int const id) noexcept {
 		if (id < 0)
 			return -1;
 		GameObject* p = m_ObjectPool.object(static_cast<size_t>(id));
 		if (!p)
 			return -1;
-		if (groupId < 0 || groupId >= LOBJPOOL_GROUPN)
-		{
+		if (group < 0 || group >= LOBJPOOL_GROUPN) {
 			// 如果不是一个有效的分组，则在整个对象表中遍历
-			if (p->pUpdateNext != &m_UpdateLinkList.second)
-				return static_cast<int>(p->pUpdateNext->id);
-			else
-				return -1;
+			if (p->update_list_next != nullptr)
+				return static_cast<int>(p->update_list_next->id);
+			return -1;
 		}
-		else
-		{
-			if (p->group != groupId)
+		else {
+			if (p->group != group)
 				return -1;
-			if (p->pColliNext != &m_ColliLinkList[groupId].second)
-				return static_cast<int>(p->pColliNext->id);
-			else
-				return -1;
+			if (p->detect_list_next != nullptr)
+				return static_cast<int>(p->detect_list_next->id);
+			return -1;
 		}
 	}
 
@@ -998,8 +914,7 @@ namespace luastg
 #ifdef USING_MULTI_GAME_WORLD
 		lua_Integer world = GetWorldFlag();
 #endif // USING_MULTI_GAME_WORLD
-		for (GameObject* p = m_ColliLinkList[groupId].first.pColliNext; p != &m_ColliLinkList[groupId].second; p = p->pColliNext)
-		{
+		for (auto p = m_detect_lists[groupId].first(); p != nullptr; p = p->update_list_next) {
 #ifdef USING_MULTI_GAME_WORLD
 			if (p->colli && CheckWorld(p->world, world))
 #else // !USING_MULTI_GAME_WORLD
