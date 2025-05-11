@@ -152,6 +152,7 @@ namespace lua {
 		void set_array_value(stack_index_t const array_index, int32_t const index, bool const value) const { push_value(value); lua_rawseti(L, array_index.value, index); }
 		void set_array_value(stack_index_t const array_index, int32_t const index, int32_t const& value) const { push_value(value); lua_rawseti(L, array_index.value, index); }
 		void set_array_value(stack_index_t const array_index, int32_t const index, std::string_view const& value) const { push_value(value); lua_rawseti(L, array_index.value, index); }
+		void set_array_value(stack_index_t const array_index, int32_t const index, void* ptr) const { lua_pushlightuserdata(L, ptr); lua_rawseti(L, array_index.value, index); }
 
 		inline size_t get_array_size(stack_index_t index) { return lua_objlen(L, index.value); }
 

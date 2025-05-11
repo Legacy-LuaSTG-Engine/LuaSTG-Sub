@@ -135,7 +135,6 @@ void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 		{ "NextObject", &GameObjectPool::api_NextObject },
 		{ "ObjList", &GameObjectPool::api_ObjList },
 		// 对象控制函数
-		{ "New", &GameObjectPool::api_New },
 		{ "ResetObject", &GameObjectPool::api_ResetObject },
 		{ "Del", &GameObjectPool::api_Del },
 		{ "Kill", &GameObjectPool::api_Kill },
@@ -146,8 +145,6 @@ void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 		{ "Dist", &GameObjectPool::api_Dist },
 		{ "GetV", &GameObjectPool::api_GetV },
 		{ "SetV", &GameObjectPool::api_SetV },
-		// 对象默认回调函数
-		{ "DefaultRenderFunc", &GameObjectPool::api_DefaultRenderFunc },
 		// 对象资源控制
 		{ "SetImgState", &GameObjectPool::api_SetImgState },
 		{ "SetParState", &GameObjectPool::api_SetParState },

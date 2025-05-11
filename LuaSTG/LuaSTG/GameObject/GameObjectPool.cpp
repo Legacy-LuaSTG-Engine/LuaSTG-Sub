@@ -641,63 +641,6 @@ namespace luastg
 		}
 	}
 
-	int GameObjectPool::New(lua_State* L) noexcept
-	{
-		// 检查参数
-		GameObjectFeatures features;
-		features.read(L, 1);
-		if (!features.is_class) {
-			return luaL_error(L, "invalid argument #1, luastg object class required for 'New'.");
-		}
-
-		// 分配一个对象
-		GameObject* p = _AllocObject();
-		if (p == nullptr)
-		{
-			return luaL_error(L, "can't alloc object, object pool may be full.");
-		}
-
-		p->features = features;
-
-		//											// class ...
-
-		// 创建对象 table
-		binding::GameObject::pushGameObjectTable(L);// class ... ot
-		lua_createtable(L, 3, 0);					// class ... ot object
-		lua_pushvalue(L, 1);						// class ... ot object class
-		lua_rawseti(L, -2, 1);						// class ... ot object
-		lua_pushinteger(L, (lua_Integer)p->id);		// class ... ot object id
-		lua_rawseti(L, -2, 2);						// class ... ot object
-		lua_pushlightuserdata(L, p);				// class ... ot object pGameObject
-		lua_rawseti(L, -2, 3);						// class ... ot object
-
-		// 设置对象 metatable
-		lua_rawgeti(L, -2, LOBJPOOL_METATABLE_IDX);	// class ... ot object mt
-		lua_setmetatable(L, -2);					// class ... ot object
-
-		// 设置到全局表 ot[n]
-		lua_pushvalue(L, -1);						// class ... ot object object
-		lua_rawseti(L, -3, (int)p->id + 1);			// class ... ot object
-
-		if (p->features.has_callback_create) {
-			// 调用 init
-			lua_insert(L, 1);						// object class ... ot
-			lua_pop(L, 1);							// object class ...
-			lua_rawgeti(L, 2, LGOBJ_CC_INIT);		// object class ... init
-			lua_insert(L, 3);						// object class init ...
-			lua_pushvalue(L, 1);					// object class init ... object
-			lua_insert(L, 4);						// object class init object ...
-			lua_call(L, lua_gettop(L) - 3, 0);		// object class
-			lua_pop(L, 1);							// object
-		}
-
-#if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
-		static std::string _name("<null>");
-		spdlog::debug("[object] new {}-{} (img = {})", p->id, p->unique_id, p->res ? p->res->GetResName() : _name);
-#endif
-
-		return 1;
-	}
 	void GameObjectPool::DirtResetObject(GameObject* p) noexcept
 	{
 		// 分配新的 UUID 并重新插入更新链表末尾
@@ -977,10 +920,6 @@ namespace luastg
 		return 3;
 	}
 
-	int GameObjectPool::api_New(lua_State* L) noexcept
-	{
-		return g_GameObjectPool->New(L);
-	}
 	int GameObjectPool::api_ResetObject(lua_State* L) noexcept
 	{
 		GameObject* p = g_GameObjectPool->_TableToGameObject(L, 1);
@@ -1160,13 +1099,6 @@ namespace luastg
 		return 0;
 	}
 	
-	int GameObjectPool::api_DefaultRenderFunc(lua_State* L) noexcept
-	{
-		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
-		p->Render();
-		return 0;
-	}
-
 	int GameObjectPool::api_ParticleStop(lua_State* L) noexcept {
 		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
 		if (!p->res || p->res->GetType() != ResourceType::Particle){

@@ -9,8 +9,8 @@
 using std::string_view_literals::operator ""sv;
 
 namespace {
-	void* game_object_meta_table_key{};
-	void* game_object_tables_key{};
+	std::byte game_object_meta_table_key{};
+	std::byte game_object_tables_key{};
 
 	std::string_view getStatusName(luastg::GameObjectStatus const status) {
 		switch (status) {
@@ -253,6 +253,8 @@ namespace luastg::binding {
 		static int __newindex(lua_State* const vm) {
 			lua::stack_t const ctx(vm);
 			auto const self = as(vm, 1);
+			if (self == nullptr)
+				return luaL_error(vm, "nullptr");
 			auto const key = ctx.get_value<std::string_view>(2);
 			switch (LuaSTG::MapGameObjectMember(key.data(), key.size())) {
 				// 基本信息
@@ -497,6 +499,24 @@ namespace luastg::binding {
 
 		// NOLINTEND(*-reserved-identifier)
 
+		// methods
+
+		static int render(lua_State* const vm) {
+			auto const self = as(vm, 1);
+			self->Render();
+			return 0;
+		}
+
+		// static methods
+
+		static int allocateAndManage(lua_State* const vm) {
+			auto const object = LPOOL.allocate();
+			if (object == nullptr) {
+				return luaL_error(vm, "failed to allocate object, object pool has been exhausted.");
+			}
+			return manage(vm, object, 1);
+		}
+
 	};
 
 	bool GameObject::is(lua_State* const vm, int const index) {
@@ -529,8 +549,49 @@ namespace luastg::binding {
 
 	//luastg::GameObject* GameObject::create(lua_State* vm);
 
+	int GameObject::manage(lua_State* const vm, luastg::GameObject* const object, int const class_index) {
+		lua::stack_t const ctx(vm);
+
+		GameObjectFeatures features;
+		features.read(vm, class_index);
+		if (!features.is_class) {
+			return luaL_error(vm, "invalid argument #1, luastg object class required for 'New'.");
+		}
+
+		object->features = features;
+
+		auto const table = ctx.create_array(3);			// class object
+		ctx.set_array_value(table, 1, lua::stack_index_t(class_index));
+		ctx.set_array_value(table, 2, static_cast<int32_t>(object->id));
+		ctx.set_array_value(table, 3, object);
+
+		lua_pushlightuserdata(vm, &game_object_meta_table_key);		// class object k
+		lua_gettable(vm, LUA_REGISTRYINDEX);						// class object mt
+		lua_setmetatable(vm, table.value);							// class object
+
+		pushGameObjectTable(vm);									// class object t
+		auto const objects_table = ctx.index_of_top();
+		auto const index = static_cast<int32_t>(object->id + 1);
+		ctx.set_array_value(objects_table, index, table);			// class object t
+		ctx.pop_value();											// class object
+
+		ctx.push_value<bool>(object->features.has_callback_create);	// class object init
+
+	#if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
+		static std::string _name("<null>");
+		spdlog::debug("[object] new {}-{} (img = {})",
+			object->id, object->unique_id, object->res ? object->res->GetResName() : _name);
+	#endif
+
+		return 2;
+	}
+
+	int GameObject::unmanage(lua_State* vm, luastg::GameObject* object) {
+		return 0;
+	}
+
 	int GameObject::pushGameObjectTable(lua_State* const vm) {
-		lua_pushlightuserdata(vm, game_object_tables_key);
+		lua_pushlightuserdata(vm, &game_object_tables_key);
 		lua_gettable(vm, LUA_REGISTRYINDEX);
 		return 1;
 	}
@@ -543,11 +604,11 @@ namespace luastg::binding {
 		ctx.set_map_value(meta_table, "__index"sv, &GameObjectBinding::__index);
 		ctx.set_map_value(meta_table, "__newindex"sv, &GameObjectBinding::__newindex);
 
-		lua_pushlightuserdata(vm, game_object_meta_table_key);
+		lua_pushlightuserdata(vm, &game_object_meta_table_key);
 		ctx.push_value(meta_table);
 		lua_settable(vm, LUA_REGISTRYINDEX);
 
-		lua_pushlightuserdata(vm, game_object_tables_key);
+		lua_pushlightuserdata(vm, &game_object_tables_key);
 		auto const objects_table = ctx.create_array(LOBJPOOL_SIZE + 1); // TODO: 移除兼容代码
 		ctx.set_array_value(objects_table, LOBJPOOL_SIZE + 1, meta_table);
 		lua_settable(vm, LUA_REGISTRYINDEX);
@@ -555,6 +616,8 @@ namespace luastg::binding {
 		auto const lstg_table = ctx.push_module("lstg"sv);
 		ctx.set_map_value(lstg_table, "GetAttr"sv, &GameObjectBinding::__index);
 		ctx.set_map_value(lstg_table, "SetAttr"sv, &GameObjectBinding::__newindex);
+		ctx.set_map_value(lstg_table, "DefaultRenderFunc"sv, &GameObjectBinding::render);
+		ctx.set_map_value(lstg_table, "_New"sv, &GameObjectBinding::allocateAndManage);
 		ctx.set_map_value(lstg_table, "ObjTable"sv, &pushGameObjectTable);
 	}
 }

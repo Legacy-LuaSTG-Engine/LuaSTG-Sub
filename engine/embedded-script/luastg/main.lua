@@ -2,6 +2,7 @@ require("luastg.cjson")
 require("luastg.io")
 require("luastg.math")
 require("luastg.removed")
+require("luastg.GameObject")
 
 function GameInit() end
 function FrameFunc() return false end

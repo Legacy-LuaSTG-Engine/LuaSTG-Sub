@@ -266,9 +266,6 @@ namespace luastg
 		/// @brief 更新对象的XY坐标偏移量
 		void UpdateXY() noexcept;
 		
-		/// @brief 创建新对象
-		int New(lua_State* L) noexcept;
-
 		/// @brief 通知对象删除
 		int Del(lua_State* L, bool kill_mode = false) noexcept;
 
@@ -302,6 +299,7 @@ namespace luastg
 		/// @return 返回-1表示无元素
 		int FirstObject(int group) noexcept;
 
+		[[nodiscard]] GameObject* allocate() { return _AllocObject(); }
 		[[nodiscard]] bool isLockedByDetectIntersection(GameObject const* const object) const noexcept { return object == m_LockObjectA || object == m_LockObjectB; }
 		[[nodiscard]] bool isRendering() const noexcept { return m_IsRendering; }
 
@@ -402,8 +400,6 @@ namespace luastg
 		static int api_SetImgState(lua_State* L) noexcept;
 		static int api_SetParState(lua_State* L) noexcept;
 	
-		static int api_DefaultRenderFunc(lua_State* L) noexcept;
-
 		static int api_ParticleStop(lua_State* L) noexcept;
 		static int api_ParticleFire(lua_State* L) noexcept;
 		static int api_ParticleGetn(lua_State* L) noexcept;
