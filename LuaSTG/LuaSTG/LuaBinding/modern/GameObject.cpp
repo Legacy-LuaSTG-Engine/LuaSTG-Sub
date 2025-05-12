@@ -733,7 +733,7 @@ namespace luastg::binding {
 		ctx.set_map_value(lstg_table, "_New"sv, &GameObjectBinding::allocateAndManage);
 		ctx.set_map_value(lstg_table, "AfterFrame"sv, &GameObjectBinding::updateNext);
 		ctx.set_map_value(lstg_table, "ResetPool"sv, &GameObjectBinding::resetGameObjectManager);
-		ctx.set_map_value(lstg_table, "ObjRender"sv, &GameObjectBinding::render);
+		ctx.set_map_value(lstg_table, "ObjRender"sv, &GameObjectBinding::renderGameObjectManager);
 		ctx.set_map_value(lstg_table, "ObjTable"sv, &pushGameObjectTable);
 
 		LPOOL.addCallbacks(&game_object_manager_callbacks);
