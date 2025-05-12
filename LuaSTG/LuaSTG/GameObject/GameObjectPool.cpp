@@ -73,15 +73,6 @@ namespace luastg
 		return p;
 	}
 
-	void GameObjectPool::_GameObjectCallback(lua_State* L, int otidx, GameObject* p, int cbidx) {
-		lua_rawgeti(L, otidx, (int)p->id + 1);	// ??? ot object
-		lua_rawgeti(L, -1, 1);					// ??? ot object class
-		lua_rawgeti(L, -1, cbidx);				// ??? ot object class frame
-		lua_pushvalue(L, -3);					// ??? ot object class frame object
-		lua_call(L, 1, 0);						// ??? ot object class
-		lua_pop(L, 2);							// ??? ot
-	}
-
 	// --------------------------------------------------------------------------------
 
 	void GameObjectPool::DebugNextFrame()

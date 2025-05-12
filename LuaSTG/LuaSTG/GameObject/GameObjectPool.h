@@ -214,8 +214,6 @@ namespace luastg
 		GameObject* _ToGameObject(lua_State* L, int idx);
 		GameObject* _TableToGameObject(lua_State* L, int idx);
 
-		void _GameObjectCallback(lua_State* L, int otidx, GameObject* p, int cbidx);
-
 	public:
 		void addCallbacks(IGameObjectManagerCallbacks* const callbacks) {
 			for (auto const c : m_callbacks) {
