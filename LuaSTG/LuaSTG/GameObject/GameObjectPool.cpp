@@ -532,40 +532,6 @@ namespace luastg
 		m_render_list.insert(object);
 	}
 
-	int GameObjectPool::FirstObject(int const group) noexcept {
-		if (group < 0 || group >= LOBJPOOL_GROUPN) {
-			// 如果不是一个有效的分组，则在整个对象表中遍历
-			if (auto const p = m_update_list.first(); p != nullptr)
-				return static_cast<int>(p->id);
-			return -1;
-		}
-		else {
-			if (auto const p = m_detect_lists[group].first(); p != nullptr)
-				return static_cast<int>(p->id);
-			return -1;
-		}
-	}
-	int GameObjectPool::NextObject(int const group, int const id) noexcept {
-		if (id < 0)
-			return -1;
-		GameObject* p = m_ObjectPool.object(static_cast<size_t>(id));
-		if (!p)
-			return -1;
-		if (group < 0 || group >= LOBJPOOL_GROUPN) {
-			// 如果不是一个有效的分组，则在整个对象表中遍历
-			if (p->update_list_next != nullptr)
-				return static_cast<int>(p->update_list_next->id);
-			return -1;
-		}
-		else {
-			if (p->group != group)
-				return -1;
-			if (p->detect_list_next != nullptr)
-				return static_cast<int>(p->detect_list_next->id);
-			return -1;
-		}
-	}
-
 	GameObject* GameObjectPool::allocateWithCallbacks(IGameObjectCallbacks* callbacks) {
 		size_t id = 0;
 		if (!m_ObjectPool.alloc(id)) {
@@ -744,27 +710,6 @@ namespace luastg
 	}
 
 	// --------------------------------------------------------------------------------
-
-	int GameObjectPool::api_NextObject(lua_State* L) noexcept
-	{
-		lua_Integer g = luaL_checkinteger(L, 1);
-		lua_Integer id = luaL_checkinteger(L, 2);
-		if (id < 0)
-			return 0;
-		lua_pushinteger(L, g_GameObjectPool->NextObject(g, id));	// i(groupId) id(lastobj) id(next)
-		binding::GameObject::pushGameObjectTable(L);				// i(groupId) id(lastobj) id(next) ot
-		lua_rawgeti(L, -1, id + 1);									// i(groupId) id(lastobj) id(next) ot t(object)
-		lua_remove(L, -2);											// i(groupId) id(lastobj) id(next) t(object)
-		return 2;
-	}
-	int GameObjectPool::api_ObjList(lua_State* L) noexcept
-	{
-		lua_Integer g = luaL_checkinteger(L, 1);				// i(groupId)
-		lua_pushcfunction(L, &api_NextObject);					// i(groupId) next(f)
-		lua_insert(L, 1);										// next(f) i(groupId)
-		lua_pushinteger(L, g_GameObjectPool->FirstObject(g));	// next(f) i(groupId) id(firstobj) 最后的两个参数作为迭代器参数传入
-		return 3;
-	}
 
 	int GameObjectPool::api_ResetObject(lua_State* L) noexcept
 	{

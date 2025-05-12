@@ -19,3 +19,33 @@ function lstg.Kill(o, ...)
         o[1][6](o, ...)
     end
 end
+local _UpdateListFirst = lstg._UpdateListFirst
+local _UpdateListNext = lstg._UpdateListNext
+local _DetectListFirst = lstg._DetectListFirst
+local _DetectListNext = lstg._DetectListNext
+local objects = lstg.ObjTable()
+function lstg.ObjList(group)
+    if group < 0 or group >= 16 then
+        local id = _UpdateListFirst()
+        return function()
+            if id == 0 then
+                return nil
+            else
+                local o = objects[id]
+                id = _UpdateListNext(id)
+                return o
+            end
+        end
+    else
+        local id = _DetectListFirst(group)
+        return function()
+            if id == 0 then
+                return nil
+            else
+                local o = objects[id]
+                id = _DetectListNext(group, id)
+                return o
+            end
+        end
+    end
+end

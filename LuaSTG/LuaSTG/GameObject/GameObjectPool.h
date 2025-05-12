@@ -371,15 +371,6 @@ namespace luastg
 		/// @brief 清空对象池
 		void ResetPool() noexcept;
 
-		/// @brief 获取下一个元素的ID
-		/// @return 返回-1表示无元素
-		int NextObject(int group, int id) noexcept;
-
-		/// @brief 获取列表中的第一个元素ID
-		/// @note 为迭代器使用
-		/// @return 返回-1表示无元素
-		int FirstObject(int group) noexcept;
-
 		[[nodiscard]] GameObject* allocate() { return allocateWithCallbacks(nullptr); }
 		[[nodiscard]] GameObject* allocateWithCallbacks(IGameObjectCallbacks* callbacks);
 		GameObject* freeWithCallbacks(GameObject* object);
@@ -387,6 +378,26 @@ namespace luastg
 		[[nodiscard]] bool isLockedByDetectIntersection(GameObject const* const object) const noexcept { return object == m_LockObjectA || object == m_LockObjectB; }
 		[[nodiscard]] bool isRendering() const noexcept { return m_IsRendering; }
 		[[nodiscard]] bool isDetectingIntersect() const noexcept { return m_is_detecting_intersect; }
+
+		GameObject* getUpdateListFirst() { return m_update_list.first(); }
+		GameObject* getUpdateListNext(size_t const id) { return getUpdateListNext(m_ObjectPool.object(id)); }
+		GameObject* getUpdateListNext(GameObject const* object) {
+			if (object == nullptr) {
+				return nullptr;
+			}
+			return object->update_list_next;
+		}
+		GameObject* getDetectListFirst(size_t const group) { return m_detect_lists[group].first(); }
+		GameObject* getDetectListNext(size_t const group, size_t const id) { return getDetectListNext(group, m_ObjectPool.object(id)); }
+		GameObject* getDetectListNext(size_t const group, GameObject const* const object) {
+			if (object == nullptr) {
+				return nullptr;
+			}
+			if (static_cast<size_t>(object->group) != group) {
+				return nullptr;
+			}
+			return object->detect_list_next;
+		}
 
 #ifdef USING_MULTI_GAME_WORLD
 	private:
@@ -461,9 +472,6 @@ namespace luastg
 		void DrawGroupCollider2(int groupId, core::Color4B fillColor);
 	public:
 		// lua api
-
-		static int api_NextObject(lua_State* L) noexcept;
-		static int api_ObjList(lua_State* L) noexcept;
 
 		static int api_ResetObject(lua_State* L) noexcept;
 		static int api_IsValid(lua_State* L) noexcept;

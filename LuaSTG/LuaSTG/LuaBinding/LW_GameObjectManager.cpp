@@ -96,9 +96,6 @@ void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 		{ "GetnObj", &Wrapper::GetnObj },
 		{ "SetBound", &Wrapper::SetBound },
 		{ "UpdateXY", &Wrapper::UpdateXY },
-		// 对象遍历
-		{ "NextObject", &GameObjectPool::api_NextObject },
-		{ "ObjList", &GameObjectPool::api_ObjList },
 		// 对象控制函数
 		{ "ResetObject", &GameObjectPool::api_ResetObject },
 		{ "IsValid", &GameObjectPool::api_IsValid },

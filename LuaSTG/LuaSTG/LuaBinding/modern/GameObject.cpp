@@ -838,6 +838,46 @@ namespace luastg::binding {
 			}
 			return luaL_error(vm, "invalid parameters");
 		}
+		static int getUpdateListFirst(lua_State* const vm) {
+			if (auto const object = LPOOL.getUpdateListFirst(); object == nullptr) {
+				lua_pushinteger(vm, 0);
+			}
+			else {
+				lua_pushinteger(vm, static_cast<lua_Integer>(object->id + 1));
+			}
+			return 1;
+		}
+		static int getUpdateListNext(lua_State* const vm) {
+			auto const id = static_cast<size_t>(luaL_checkinteger(vm, 1));
+			if (auto const object = LPOOL.getUpdateListNext(id - 1); object == nullptr) {
+				lua_pushinteger(vm, 0);
+			}
+			else {
+				lua_pushinteger(vm, static_cast<lua_Integer>(object->id + 1));
+			}
+			return 1;
+		}
+		static int getDetectListFirst(lua_State* const vm) {
+			auto const group = static_cast<size_t>(luaL_checkinteger(vm, 1));
+			if (auto const object = LPOOL.getDetectListFirst(group); object == nullptr) {
+				lua_pushinteger(vm, 0);
+			}
+			else {
+				lua_pushinteger(vm, static_cast<lua_Integer>(object->id + 1));
+			}
+			return 1;
+		}
+		static int getDetectListNext(lua_State* const vm) {
+			auto const group = static_cast<size_t>(luaL_checkinteger(vm, 1));
+			auto const id = static_cast<size_t>(luaL_checkinteger(vm, 2));
+			if (auto const object = LPOOL.getDetectListNext(group, id - 1); object == nullptr) {
+				lua_pushinteger(vm, 0);
+			}
+			else {
+				lua_pushinteger(vm, static_cast<lua_Integer>(object->id + 1));
+			}
+			return 1;
+		}
 	};
 
 	bool GameObject::is(lua_State* const vm, int const index) {
@@ -904,6 +944,10 @@ namespace luastg::binding {
 		ctx.set_map_value(lstg_table, "ObjRender"sv, &GameObjectBinding::renderGameObjectManager);
 		ctx.set_map_value(lstg_table, "BoundCheck"sv, &GameObjectBinding::boundCheckGameObjectManager);
 		ctx.set_map_value(lstg_table, "CollisionCheck"sv, &GameObjectBinding::intersectDetectGameObjectManager);
+		ctx.set_map_value(lstg_table, "_UpdateListFirst"sv, &GameObjectBinding::getUpdateListFirst);
+		ctx.set_map_value(lstg_table, "_UpdateListNext"sv, &GameObjectBinding::getUpdateListNext);
+		ctx.set_map_value(lstg_table, "_DetectListFirst"sv, &GameObjectBinding::getDetectListFirst);
+		ctx.set_map_value(lstg_table, "_DetectListNext"sv, &GameObjectBinding::getDetectListNext);
 		ctx.set_map_value(lstg_table, "ObjTable"sv, &pushGameObjectTable);
 
 		LPOOL.addCallbacks(&game_object_manager_callbacks);
