@@ -97,7 +97,7 @@ namespace {
 		}
 		IGameObjectCallbacks* getNextCallbacks(luastg::GameObject*) const noexcept override { return next_callbacks; }
 		void setNextCallbacks(luastg::GameObject*, IGameObjectCallbacks* callbacks) override { next_callbacks = callbacks; }
-		void onCreate(luastg::GameObject* self) override {}
+		void onCreate(luastg::GameObject*) override {}
 		void onDestroy(luastg::GameObject* self) override {
 		#if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
 			static std::string null_name("<null>");
@@ -139,7 +139,7 @@ namespace {
 		void onUpdate(luastg::GameObject* self) override {
 			call(self, LGOBJ_CC_FRAME);
 		}
-		void onLateUpdate(luastg::GameObject* self) override {}
+		void onLateUpdate(luastg::GameObject*) override {}
 		void onRender(luastg::GameObject* self) override {
 			call(self, LGOBJ_CC_RENDER);
 		}
@@ -828,6 +828,14 @@ namespace luastg::binding {
 			// TODO: 移动到 GameObjectManager 绑定
 			game_object_manager_callbacks.lua_vm.push_back(vm);
 			LPOOL.ResetPool();
+		#if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
+			for (int i = 1; i <= LOBJPOOL_SIZE; i += 1) {
+				// 确保所有 lua 侧对象都被正确回收
+				lua_rawgeti(vm, game_object_manager_callbacks.game_object_tables_index.value, i);
+				assert(!lua_istable(vm, -1));
+				lua_pop(vm, 1);
+			}
+		#endif
 			game_object_manager_callbacks.lua_vm.pop_back();
 			return 0;
 		}

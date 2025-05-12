@@ -73,15 +73,6 @@ namespace luastg
 		for (auto p = m_update_list.first(); p != nullptr;) {
 			p = freeWithCallbacks(p);
 		}
-#if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
-		for (int i = 1; i <= LOBJPOOL_SIZE; i += 1)
-		{
-			// 确保所有 lua 侧对象都被正确回收
-			lua_rawgeti(G_L, ot_at, i);
-			assert(!lua_istable(G_L, -1));
-			lua_pop(G_L, 1);
-		}
-#endif
 		dispatchOnAfterBatchDestroy();
 		// 重置其他链表
 		resetGameObjectLists();
@@ -156,7 +147,7 @@ namespace luastg
 		dispatchOnBeforeBatchRender();
 #ifdef USING_MULTI_GAME_WORLD
 		m_pCurrentObject = nullptr;
-		lua_Integer world = GetWorldFlag();
+		auto const world = GetWorldFlag();
 #endif // USING_MULTI_GAME_WORLD
 
 		for (auto& p : m_render_list) {
@@ -417,7 +408,7 @@ namespace luastg
 	void GameObjectPool::setGroup(GameObject* const object, size_t const group) {
 		assert(object != m_LockObjectA && object != m_LockObjectB);
 		m_detect_lists[object->group].remove(object);
-		object->group = static_cast<lua_Integer>(group);
+		object->group = static_cast<int32_t>(group);
 		m_detect_lists[object->group].add(object);
 	}
 	void GameObjectPool::setLayer(GameObject* const object, double const layer) {
@@ -515,7 +506,7 @@ namespace luastg
 	void GameObjectPool::DrawGroupCollider(int groupId, core::Color4B fillColor)
 	{
 #ifdef USING_MULTI_GAME_WORLD
-		lua_Integer world = GetWorldFlag();
+		auto const world = GetWorldFlag();
 #endif // USING_MULTI_GAME_WORLD
 		for (auto p = m_detect_lists[groupId].first(); p != nullptr; p = p->update_list_next) {
 #ifdef USING_MULTI_GAME_WORLD

@@ -183,10 +183,10 @@ namespace luastg
 		GameObject* m_LockObjectB{};
 
 		// 场景边界
-		lua_Number m_BoundLeft = -100.f;
-		lua_Number m_BoundRight = 100.f;
-		lua_Number m_BoundTop = 100.f;
-		lua_Number m_BoundBottom = -100.f;
+		double m_BoundLeft = -100.f;
+		double m_BoundRight = 100.f;
+		double m_BoundTop = 100.f;
+		double m_BoundBottom = -100.f;
 
 		bool m_IsRendering{ false };
 		bool m_is_detecting_intersect{ false };
@@ -311,7 +311,7 @@ namespace luastg
 		void render();
 
 		/// @brief 设置舞台边界
-		inline void SetBound(lua_Number l, lua_Number r, lua_Number b, lua_Number t) noexcept {
+		inline void SetBound(double const l, double const r, double const b, double const t) noexcept {
 			assert(r >= l && t >= b);
 			m_BoundLeft = l;
 			m_BoundRight = r;
@@ -319,7 +319,7 @@ namespace luastg
 			m_BoundBottom = b;
 		}
 
-		inline bool isPointInBound(lua_Number x, lua_Number y) noexcept {
+		inline bool isPointInBound(double const x, double const y) const noexcept {
 			return x >= m_BoundLeft
 				&& x <= m_BoundRight
 				&& y >= m_BoundBottom
@@ -387,36 +387,36 @@ namespace luastg
 	private:
 		// 用于多world
 
-		lua_Integer m_iWorld = 15; // 当前的 world mask
-		std::array<lua_Integer, 4> m_Worlds = { 15, 0, 0, 0 }; // 预置的 world mask
+		int32_t m_iWorld = 15; // 当前的 world mask
+		std::array<int32_t, 4> m_Worlds = { 15, 0, 0, 0 }; // 预置的 world mask
 	public:
 		// 用于多world
 
 		// 设置当前的world mask
-		inline void SetWorldFlag(lua_Integer world) noexcept {
+		inline void SetWorldFlag(int32_t const world) noexcept {
 			m_iWorld = world;
 		}
 		// 获取当前的world mask
-		inline lua_Integer GetWorldFlag() noexcept {
+		inline int32_t GetWorldFlag() noexcept {
 			return m_iWorld;
 		}
 		// 设置预置的world mask
-		inline void ActiveWorlds(lua_Integer a, lua_Integer b, lua_Integer c, lua_Integer d) noexcept {
+		inline void ActiveWorlds(int32_t const a, int32_t const b, int32_t const c, int32_t const d) noexcept {
 			m_Worlds[0] = a;
 			m_Worlds[1] = b;
 			m_Worlds[2] = c;
 			m_Worlds[3] = d;
 		}
 		// 检查两个world mask位与或的结果 //静态函数，不应该只用于类内
-		static inline bool CheckWorld(lua_Integer gameworld, lua_Integer objworld) {
+		static inline bool CheckWorld(int32_t const gameworld, int32_t const objworld) {
 			return (gameworld == objworld) || (gameworld & objworld);
 		}
 		// 对两个world mask，分别与预置的world mask位与或，用于检查是否在同一个world内
-		bool CheckWorlds(int a, int b) noexcept {
-			if (CheckWorld(a, m_Worlds[0]) && CheckWorld(b, m_Worlds[0]))return true;
-			if (CheckWorld(a, m_Worlds[1]) && CheckWorld(b, m_Worlds[1]))return true;
-			if (CheckWorld(a, m_Worlds[2]) && CheckWorld(b, m_Worlds[2]))return true;
-			if (CheckWorld(a, m_Worlds[3]) && CheckWorld(b, m_Worlds[3]))return true;
+		bool CheckWorlds(int32_t const a, int32_t const b) const noexcept {
+			if (CheckWorld(a, m_Worlds[0]) && CheckWorld(b, m_Worlds[0])) return true;
+			if (CheckWorld(a, m_Worlds[1]) && CheckWorld(b, m_Worlds[1])) return true;
+			if (CheckWorld(a, m_Worlds[2]) && CheckWorld(b, m_Worlds[2])) return true;
+			if (CheckWorld(a, m_Worlds[3]) && CheckWorld(b, m_Worlds[3])) return true;
 			return false;
 		}
 #endif // USING_MULTI_GAME_WORLD
@@ -424,25 +424,25 @@ namespace luastg
 	private:
 		// 用于超级暂停
 
-		lua_Integer m_superpause = 0;
-		lua_Integer m_nextsuperpause = 0;
+		int64_t m_superpause = 0;
+		int64_t m_nextsuperpause = 0;
 	public:
 		// 用于超级暂停
 
 		// 获取可信的超级暂停时间
-		inline lua_Integer GetSuperPauseTime() noexcept {
+		inline int64_t GetSuperPauseTime() const noexcept {
 			return m_superpause;
 		}
 		// 获取超级暂停剩余时间
-		inline lua_Integer GetNextFrameSuperPauseTime() noexcept {
+		inline int64_t GetNextFrameSuperPauseTime() const noexcept {
 			return m_nextsuperpause;
 		}
 		// 设置超级暂停剩余时间
-		inline void SetNextFrameSuperPauseTime(lua_Integer time) noexcept {
+		inline void SetNextFrameSuperPauseTime(int64_t const time) noexcept {
 			m_nextsuperpause = time;
 		}
 		// 更新超级暂停的剩余时间并返回当前的可信值
-		inline lua_Integer UpdateSuperPause() {
+		inline int64_t UpdateSuperPause() noexcept {
 			m_superpause = m_nextsuperpause;
 			if (m_nextsuperpause > 0)
 				m_nextsuperpause = m_nextsuperpause - 1;
