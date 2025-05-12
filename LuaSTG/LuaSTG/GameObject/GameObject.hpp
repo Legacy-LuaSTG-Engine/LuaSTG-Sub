@@ -53,6 +53,8 @@ namespace luastg
 		virtual void onCreate(GameObject* self) = 0;
 		// 被回收前调用
 		virtual void onDestroy(GameObject* self) = 0;
+		// 被标记为删除状态时调用
+		virtual void onQueueToDestroy(GameObject* self, std::string_view reason) = 0;
 		// 每帧的运行更新前调用
 		virtual void onUpdate(GameObject* self) = 0;
 		// 每帧的运动更新后调用
@@ -235,6 +237,11 @@ namespace luastg
 		void dispatchOnDestroy() {
 			for (auto c = callbacks; c != nullptr; c = c->getNextCallbacks(this)) {
 				c->onDestroy(this);
+			}
+		}
+		void dispatchOnQueueToDestroy(std::string_view const reason) {
+			for (auto c = callbacks; c != nullptr; c = c->getNextCallbacks(this)) {
+				c->onQueueToDestroy(this, reason);
 			}
 		}
 		void dispatchOnUpdate() {

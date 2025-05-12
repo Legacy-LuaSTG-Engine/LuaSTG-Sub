@@ -135,6 +135,10 @@ namespace luastg
 		virtual void onBeforeBatchRender() = 0;
 		// 对象管理器批量渲染对象之后
 		virtual void onAfterBatchRender() = 0;
+		// 对象管理器批量进行出界检查之前
+		virtual void onBeforeBatchOutOfWorldBoundCheck() = 0;
+		// 对象管理器批量进行出界检查之后
+		virtual void onAfterBatchOutOfWorldBoundCheck() = 0;
 	};
 
 	//游戏对象池
@@ -255,6 +259,16 @@ namespace luastg
 				c->onAfterBatchRender();
 			}
 		}
+		void dispatchOnBeforeBatchOutOfWorldBoundCheck() {
+			for (auto const c : m_callbacks) {
+				c->onBeforeBatchOutOfWorldBoundCheck();
+			}
+		}
+		void dispatchOnAfterBatchOutOfWorldBoundCheck() {
+			for (auto const c : m_callbacks) {
+				c->onAfterBatchOutOfWorldBoundCheck();
+			}
+		}
 		void DebugNextFrame();
 		FrameStatistics DebugGetFrameStatistics();
 
@@ -305,10 +319,10 @@ namespace luastg
 		}
 
 		// 脱离世界边界检测：传统模式
-		void detectOutOfWorldBoundLegacy(int32_t objects_index = 0, lua_State* L = nullptr);
+		void detectOutOfWorldBoundLegacy();
 
 		// 脱离世界边界检测：延迟模式
-		void detectOutOfWorldBound(int32_t objects_index = 0, lua_State* L = nullptr);
+		void detectOutOfWorldBound();
 
 		// 相交检测：传统模式
 		// 检测 -> 回调（如果相交） -> 检测 -> 回调（如果相交） -> ...
@@ -448,7 +462,6 @@ namespace luastg
 		static int api_GetV(lua_State* L) noexcept;
 		static int api_SetV(lua_State* L) noexcept;
 		
-		static int api_BoundCheck(lua_State* L);
 		static int api_CollisionCheck(lua_State* L);
 
 		static int api_SetImgState(lua_State* L) noexcept;

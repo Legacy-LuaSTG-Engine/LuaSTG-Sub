@@ -61,6 +61,12 @@ namespace {
 		void onAfterBatchRender() override {
 			afterBatch();
 		}
+		void onBeforeBatchOutOfWorldBoundCheck() override {
+			beforeBatch();
+		}
+		void onAfterBatchOutOfWorldBoundCheck() override {
+			afterBatch();
+		}
 
 		void beforeBatch() {
 			auto const vm = lua_vm.back();
@@ -105,6 +111,21 @@ namespace {
 			ctx.pop_value(); // ... t ...
 
 			ctx.set_array_value(table, lua_index, std::nullopt); // table[lua_index] = nil
+		}
+		void onQueueToDestroy(luastg::GameObject* self, std::string_view const reason) override {
+			auto const vm = game_object_manager_callbacks.lua_vm.back();
+			lua::stack_t const ctx(vm);
+
+			auto const table = game_object_manager_callbacks.game_object_tables_index;
+			auto const lua_index = static_cast<int32_t>(self->id + 1);
+
+			auto const object = ctx.get_array_value<lua::stack_index_t>(table, lua_index); // ... t ... object
+			auto const object_class = ctx.get_array_value<lua::stack_index_t>(object, 1); // ... t ... object class
+			std::ignore = ctx.get_array_value<lua::stack_index_t>(object_class, LGOBJ_CC_DEL);	 // ... t ... object class callback
+			ctx.push_value(object); // ... t ... object class callback object
+			ctx.push_value(reason); // ... t ... object class callback object reason
+			lua_call(vm, 2, 0); // ... t ... object class
+			ctx.pop_value(2); // ... t ...
 		}
 		void onUpdate(luastg::GameObject* self) override {
 			call(self, LGOBJ_CC_FRAME);
@@ -702,6 +723,23 @@ namespace luastg::binding {
 			game_object_manager_callbacks.lua_vm.pop_back();
 			return 0;
 		}
+		static int boundCheckGameObjectManager(lua_State* const vm) {
+			// TODO: 移动到 GameObjectManager 绑定
+			// version 2
+			if (lua::stack_t const ctx(vm); ctx.is_number(1)) {
+				if (auto const version = ctx.get_value<int32_t>(1); version == 2) {
+					game_object_manager_callbacks.lua_vm.push_back(vm);
+					LPOOL.detectOutOfWorldBound();
+					game_object_manager_callbacks.lua_vm.pop_back();
+					return 0;
+				}
+			}
+			// version 1
+			game_object_manager_callbacks.lua_vm.push_back(vm);
+			LPOOL.detectOutOfWorldBoundLegacy();
+			game_object_manager_callbacks.lua_vm.pop_back();
+			return 0;
+		}
 	};
 
 	bool GameObject::is(lua_State* const vm, int const index) {
@@ -764,6 +802,7 @@ namespace luastg::binding {
 		ctx.set_map_value(lstg_table, "ResetPool"sv, &GameObjectBinding::resetGameObjectManager);
 		ctx.set_map_value(lstg_table, "ObjFrame"sv, &GameObjectBinding::updateGameObjectManager);
 		ctx.set_map_value(lstg_table, "ObjRender"sv, &GameObjectBinding::renderGameObjectManager);
+		ctx.set_map_value(lstg_table, "BoundCheck"sv, &GameObjectBinding::boundCheckGameObjectManager);
 		ctx.set_map_value(lstg_table, "ObjTable"sv, &pushGameObjectTable);
 
 		LPOOL.addCallbacks(&game_object_manager_callbacks);

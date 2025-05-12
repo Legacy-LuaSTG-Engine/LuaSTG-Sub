@@ -7,6 +7,12 @@
 #define LOBJPOOL_SIZE_INTERNAL (LOBJPOOL_SIZE + 1)
 #define LOBJPOOL_METATABLE_IDX (LOBJPOOL_SIZE_INTERNAL)
 
+using std::string_view_literals::operator ""sv;
+
+namespace {
+	constexpr auto queue_to_destroy_reason_out_of_world_bound{ "luastg:leave_world_border"sv };
+}
+
 namespace luastg
 {
 	// --------------------------------------------------------------------------------
@@ -276,9 +282,10 @@ namespace luastg
 		}
 		dispatchOnAfterBatchDestroy();
 	}
-	void GameObjectPool::detectOutOfWorldBoundLegacy(int32_t const objects_index, lua_State* const L) {
+	void GameObjectPool::detectOutOfWorldBoundLegacy() {
 		tracy_zone_scoped_with_name("LOBJMGR.BoundCheck");
 
+		dispatchOnBeforeBatchOutOfWorldBoundCheck();
 #ifdef USING_MULTI_GAME_WORLD
 		auto const world = GetWorldFlag();
 #endif // USING_MULTI_GAME_WORLD
@@ -298,15 +305,19 @@ namespace luastg
 #ifdef USING_MULTI_GAME_WORLD
 				m_pCurrentObject = p;
 #endif // USING_MULTI_GAME_WORLD
-				_GameObjectCallback(L, objects_index, p, LGOBJ_CC_DEL);
+				p->dispatchOnQueueToDestroy(queue_to_destroy_reason_out_of_world_bound);
 #ifdef USING_MULTI_GAME_WORLD
 				m_pCurrentObject = nullptr;
 #endif // USING_MULTI_GAME_WORLD
 			}
 		}
+
+		dispatchOnAfterBatchOutOfWorldBoundCheck();
 	}
-	void GameObjectPool::detectOutOfWorldBound(int32_t const objects_index, lua_State* const L) {
+	void GameObjectPool::detectOutOfWorldBound() {
 		tracy_zone_scoped_with_name("LOBJMGR.BoundCheck(New)");
+
+		dispatchOnBeforeBatchOutOfWorldBoundCheck();
 
 		struct OutOfWorldBoundDetectionResult {
 			uint64_t uid{};
@@ -342,21 +353,17 @@ namespace luastg
 			if (game_object->unique_id != uid) {
 				assert(false); continue; // 理论上不太可能发生
 			}
+			
 #ifdef USING_MULTI_GAME_WORLD
 			m_pCurrentObject = game_object;
 #endif // USING_MULTI_GAME_WORLD
-			//_GameObjectCallback(L, objects_index, object, LGOBJ_CC_DEL);
-			lua_rawgeti(L, objects_index, game_object->id + 1);	// ... object
-			lua_rawgeti(L, -1, 1);								// ... object class
-			lua_rawgeti(L, -1, LGOBJ_CC_DEL);					// ... object class colli
-			lua_pushvalue(L, -3);								// ... object class colli object
-			lua_pushstring(L, "luastg:leave_world_border");		// ... object class colli object "luastg:leave_world_border"
-			lua_call(L, 2, 0);									// ... object class
-			lua_pop(L, 2);										// ...
+			game_object->dispatchOnQueueToDestroy(queue_to_destroy_reason_out_of_world_bound);
 #ifdef USING_MULTI_GAME_WORLD
 			m_pCurrentObject = nullptr;
 #endif // USING_MULTI_GAME_WORLD
 		}
+
+		dispatchOnAfterBatchOutOfWorldBoundCheck();
 	}
 	void GameObjectPool::detectIntersectionLegacy(uint32_t const group1, uint32_t const group2, int32_t const objects_index, lua_State* const L) {
 		tracy_zone_scoped_with_name("LOBJMGR.CollisionCheck");
@@ -457,25 +464,6 @@ namespace luastg
 		}
 	}
 
-	int GameObjectPool::api_BoundCheck(lua_State* L) {
-		lua::stack_t S(L);
-		if (S.is_number(1)) {
-			auto const version = S.get_value<int32_t>(1);
-			if (version == 2) {
-				binding::GameObject::pushGameObjectTable(L);
-				auto const objects = S.index_of_top();
-				g_GameObjectPool->detectOutOfWorldBound(objects.value, L);
-				S.pop_value();
-				return 0;
-			}
-		}
-		// version 1
-		binding::GameObject::pushGameObjectTable(L);
-		auto const objects = S.index_of_top();
-		g_GameObjectPool->detectOutOfWorldBoundLegacy(objects.value, L);
-		S.pop_value();
-		return 0;
-	}
 	int GameObjectPool::api_CollisionCheck(lua_State* L) {
 		lua::stack_t S(L);
 		if (g_GameObjectPool->m_LockObjectA && g_GameObjectPool->m_LockObjectB) {
