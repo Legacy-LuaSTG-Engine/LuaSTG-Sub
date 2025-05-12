@@ -111,7 +111,7 @@ namespace {
 			auto const lua_index = static_cast<int32_t>(self->id + 1);
 
 			auto const object = ctx.get_array_value<lua::stack_index_t>(table, lua_index); // ... t ... object
-			ctx.set_array_value(object, 3, static_cast<void*>(nullptr));
+			ctx.set_array_value(object, 3, std::nullopt); // object[3] = nil
 		#ifdef LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
 			self->ReleaseLuaRC(vm, object.value); // 释放可能的粒子系统
 		#endif // LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
@@ -896,15 +896,20 @@ namespace luastg::binding {
 
 	luastg::GameObject* GameObject::as(lua_State* const vm, int const index) {
 		if (!lua_istable(vm, index)) {
+			luaL_error(vm, "invalid lstg object");
 			return nullptr;
 		}
 		lua_rawgeti(vm, index, 3);
 		if (!lua_islightuserdata(vm, -1)) {
 			lua_pop(vm, 1);
+			luaL_error(vm, "invalid lstg object");
 			return nullptr;
 		}
 		auto const ptr = static_cast<luastg::GameObject*>(lua_touserdata(vm, -1));
 		lua_pop(vm, 1);
+		if (ptr == nullptr) {
+			luaL_error(vm, "invalid lstg object");
+		}
 		return ptr;
 	}
 
