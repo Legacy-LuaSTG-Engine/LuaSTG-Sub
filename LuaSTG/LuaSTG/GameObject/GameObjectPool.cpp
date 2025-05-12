@@ -4,9 +4,6 @@
 #include "lua/plus.hpp"
 #include "AppFrame.h"
 
-#define LOBJPOOL_SIZE_INTERNAL (LOBJPOOL_SIZE + 1)
-#define LOBJPOOL_METATABLE_IDX (LOBJPOOL_SIZE_INTERNAL)
-
 using std::string_view_literals::operator ""sv;
 
 namespace {
