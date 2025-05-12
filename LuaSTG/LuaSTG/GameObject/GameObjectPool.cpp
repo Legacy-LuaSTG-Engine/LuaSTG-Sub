@@ -151,6 +151,7 @@ namespace luastg
 	}
 	void GameObjectPool::updateMovementsLegacy() {
 		tracy_zone_scoped_with_name("LOBJMGR.ObjFrame");
+		dispatchOnBeforeBatchUpdate();
 		auto const super_pause_time = UpdateSuperPause(); // 更新超级暂停
 		for (auto p = m_update_list.first(); p != nullptr; p = p->update_list_next) {
 			if (super_pause_time > 0 && !p->ignore_super_pause) {
@@ -167,9 +168,12 @@ namespace luastg
 			}
 			p->Update();
 		}
+		dispatchOnAfterBatchUpdate();
 	}
 	void GameObjectPool::updateMovements() {
 		tracy_zone_scoped_with_name("LOBJMGR.ObjFrame(New)");
+
+		dispatchOnBeforeBatchUpdate();
 
 		auto const super_pause_time = GetSuperPauseTime();
 		for (auto p = m_update_list.first(); p != nullptr; p = p->update_list_next) {
@@ -186,6 +190,8 @@ namespace luastg
 			#endif // USING_MULTI_GAME_WORLD
 			}
 		}
+
+		dispatchOnAfterBatchUpdate();
 
 		for (auto p = m_update_list.first(); p != nullptr; p = p->update_list_next) {
 			if (super_pause_time > 0 && !p->ignore_super_pause) {
