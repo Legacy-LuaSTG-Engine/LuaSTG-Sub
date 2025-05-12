@@ -49,6 +49,12 @@ namespace {
 		void onAfterBatchDestroy() override {
 			afterBatch();
 		}
+		void onBeforeBatchUpdate() override {
+			beforeBatch();
+		}
+		void onAfterBatchUpdate() override {
+			afterBatch();
+		}
 		void onBeforeBatchRender() override {
 			beforeBatch();
 		}
@@ -100,9 +106,15 @@ namespace {
 
 			ctx.set_array_value(table, lua_index, std::nullopt); // table[lua_index] = nil
 		}
-		void onUpdate(luastg::GameObject* self) override {}
+		void onUpdate(luastg::GameObject* self) override {
+			call(self, LGOBJ_CC_FRAME);
+		}
 		void onLateUpdate(luastg::GameObject* self) override {}
 		void onRender(luastg::GameObject* self) override {
+			call(self, LGOBJ_CC_RENDER);
+		}
+
+		static void call(luastg::GameObject const* const self, int const type) {
 			auto const vm = game_object_manager_callbacks.lua_vm.back();
 			lua::stack_t const ctx(vm);
 
@@ -111,8 +123,8 @@ namespace {
 
 			auto const object = ctx.get_array_value<lua::stack_index_t>(table, lua_index); // ... t ... object
 			auto const object_class = ctx.get_array_value<lua::stack_index_t>(object, 1); // ... t ... object class
-			std::ignore = ctx.get_array_value<lua::stack_index_t>(object_class, LGOBJ_CC_RENDER);	 // ... t ... object class render
-			ctx.push_value(object); // ... t ... object class render object
+			std::ignore = ctx.get_array_value<lua::stack_index_t>(object_class, type);	 // ... t ... object class callback
+			ctx.push_value(object); // ... t ... object class callback object
 			lua_call(vm, 1, 0); // ... t ... object class
 			ctx.pop_value(2); // ... t ...
 		}
@@ -666,6 +678,23 @@ namespace luastg::binding {
 			game_object_manager_callbacks.lua_vm.pop_back();
 			return 0;
 		}
+		static int updateGameObjectManager(lua_State* const vm) {
+			// TODO: 移动到 GameObjectManager 绑定
+			// version 2
+			if (lua::stack_t const ctx(vm); ctx.is_number(1)) {
+				if (auto const version = ctx.get_value<int32_t>(1); version == 2) {
+					game_object_manager_callbacks.lua_vm.push_back(vm);
+					LPOOL.updateMovements();
+					game_object_manager_callbacks.lua_vm.pop_back();
+					return 0;
+				}
+			}
+			// version 1
+			game_object_manager_callbacks.lua_vm.push_back(vm);
+			LPOOL.updateMovementsLegacy();
+			game_object_manager_callbacks.lua_vm.pop_back();
+			return 0;
+		}
 		static int renderGameObjectManager(lua_State* const vm) {
 			// TODO: 移动到 GameObjectManager 绑定
 			game_object_manager_callbacks.lua_vm.push_back(vm);
@@ -733,6 +762,7 @@ namespace luastg::binding {
 		ctx.set_map_value(lstg_table, "_New"sv, &GameObjectBinding::allocateAndManage);
 		ctx.set_map_value(lstg_table, "AfterFrame"sv, &GameObjectBinding::updateNext);
 		ctx.set_map_value(lstg_table, "ResetPool"sv, &GameObjectBinding::resetGameObjectManager);
+		ctx.set_map_value(lstg_table, "ObjFrame"sv, &GameObjectBinding::updateGameObjectManager);
 		ctx.set_map_value(lstg_table, "ObjRender"sv, &GameObjectBinding::renderGameObjectManager);
 		ctx.set_map_value(lstg_table, "ObjTable"sv, &pushGameObjectTable);
 

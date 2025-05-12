@@ -127,6 +127,10 @@ namespace luastg
 		virtual void onBeforeBatchDestroy() = 0;
 		// 对象管理器批量回收对象之后
 		virtual void onAfterBatchDestroy() = 0;
+		// 对象管理器批量更新对象之前
+		virtual void onBeforeBatchUpdate() = 0;
+		// 对象管理器批量更新对象之后
+		virtual void onAfterBatchUpdate() = 0;
 		// 对象管理器批量渲染对象之前
 		virtual void onBeforeBatchRender() = 0;
 		// 对象管理器批量渲染对象之后
@@ -231,6 +235,16 @@ namespace luastg
 				c->onAfterBatchDestroy();
 			}
 		}
+		void dispatchOnBeforeBatchUpdate() {
+			for (auto const c : m_callbacks) {
+				c->onBeforeBatchUpdate();
+			}
+		}
+		void dispatchOnAfterBatchUpdate() {
+			for (auto const c : m_callbacks) {
+				c->onAfterBatchUpdate();
+			}
+		}
 		void dispatchOnBeforeBatchRender() {
 			for (auto const c : m_callbacks) {
 				c->onBeforeBatchRender();
@@ -259,11 +273,11 @@ namespace luastg
 
 		// 对象更新：传统模式
 		// 回调 -> 运动更新 -> 回调 -> 运动更新 -> ...
-		void updateMovementsLegacy(int32_t objects_index = 0, lua_State* L = nullptr);
+		void updateMovementsLegacy();
 
 		// 对象更新：批量模式
 		// 回调所有 -> 更新所有运动
-		void updateMovements(int32_t objects_index = 0, lua_State* L = nullptr);
+		void updateMovements();
 
 		// 对象更新：传统模式新旧帧衔接
 		void updateNextLegacy();
@@ -434,7 +448,6 @@ namespace luastg
 		static int api_GetV(lua_State* L) noexcept;
 		static int api_SetV(lua_State* L) noexcept;
 		
-		static int api_ObjFrame(lua_State* L);
 		static int api_BoundCheck(lua_State* L);
 		static int api_CollisionCheck(lua_State* L);
 

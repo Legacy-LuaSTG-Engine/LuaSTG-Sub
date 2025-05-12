@@ -149,7 +149,7 @@ namespace luastg
 		// 清理内存
 		m_memory_resource.release();
 	}
-	void GameObjectPool::updateMovementsLegacy(int32_t const objects_index, lua_State* const L) {
+	void GameObjectPool::updateMovementsLegacy() {
 		tracy_zone_scoped_with_name("LOBJMGR.ObjFrame");
 		auto const super_pause_time = UpdateSuperPause(); // 更新超级暂停
 		for (auto p = m_update_list.first(); p != nullptr; p = p->update_list_next) {
@@ -160,7 +160,7 @@ namespace luastg
 			#ifdef USING_MULTI_GAME_WORLD
 				m_pCurrentObject = p;
 			#endif // USING_MULTI_GAME_WORLD
-				_GameObjectCallback(L, objects_index, p, LGOBJ_CC_FRAME);
+				p->dispatchOnUpdate();
 			#ifdef USING_MULTI_GAME_WORLD
 				m_pCurrentObject = nullptr;
 			#endif // USING_MULTI_GAME_WORLD
@@ -168,7 +168,7 @@ namespace luastg
 			p->Update();
 		}
 	}
-	void GameObjectPool::updateMovements(int32_t objects_index, lua_State* L) {
+	void GameObjectPool::updateMovements() {
 		tracy_zone_scoped_with_name("LOBJMGR.ObjFrame(New)");
 
 		auto const super_pause_time = GetSuperPauseTime();
@@ -180,7 +180,7 @@ namespace luastg
 			#ifdef USING_MULTI_GAME_WORLD
 				m_pCurrentObject = p;
 			#endif // USING_MULTI_GAME_WORLD
-				_GameObjectCallback(L, objects_index, p, LGOBJ_CC_FRAME);
+				p->dispatchOnUpdate();
 			#ifdef USING_MULTI_GAME_WORLD
 				m_pCurrentObject = nullptr;
 			#endif // USING_MULTI_GAME_WORLD
@@ -451,25 +451,6 @@ namespace luastg
 		}
 	}
 
-	int GameObjectPool::api_ObjFrame(lua_State* L) {
-		lua::stack_t S(L);
-		if (S.is_number(1)) {
-			auto const version = S.get_value<int32_t>(1);
-			if (version == 2) {
-				binding::GameObject::pushGameObjectTable(L);
-				auto const objects = S.index_of_top();
-				g_GameObjectPool->updateMovements(objects.value, L);
-				S.pop_value();
-				return 0;
-			}
-		}
-		// version 1
-		binding::GameObject::pushGameObjectTable(L);
-		auto const objects = S.index_of_top();
-		g_GameObjectPool->updateMovementsLegacy(objects.value, L);
-		S.pop_value();
-		return 0;
-	}
 	int GameObjectPool::api_BoundCheck(lua_State* L) {
 		lua::stack_t S(L);
 		if (S.is_number(1)) {

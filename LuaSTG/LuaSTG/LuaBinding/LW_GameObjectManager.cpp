@@ -11,10 +11,6 @@ void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 			lua_pushinteger(L, (lua_Integer)LPOOL.GetObjectCount());
 			return 1;
 		}
-		static int ObjFrame(lua_State* L) noexcept
-		{
-			return LPOOL.api_ObjFrame(L);
-		}
 		static int BoundCheck(lua_State* L) noexcept
 		{
 			return LPOOL.api_BoundCheck(L);
@@ -106,7 +102,6 @@ void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 	luaL_Reg const lib[] = {
 		// 对象管理器
 		{ "GetnObj", &Wrapper::GetnObj },
-		{ "ObjFrame", &Wrapper::ObjFrame },
 		{ "BoundCheck", &Wrapper::BoundCheck },
 		{ "SetBound", &Wrapper::SetBound },
 		{ "CollisionCheck", &Wrapper::CollisionCheck },
