@@ -148,6 +148,7 @@ namespace lua {
 		template<>
 		inline void set_array_value(stack_index_t index, std::string_view value) { lua_pushlstring(L, value.data(), value.size()); lua_rawseti(L, -2, index.value); }
 
+		void set_array_value(stack_index_t const array_index, int32_t const index, std::nullopt_t) const { lua_pushnil(L); lua_rawseti(L, array_index.value, index); }
 		void set_array_value(stack_index_t const array_index, int32_t const index, stack_index_t const value_index) const { lua_pushvalue(L, value_index.value); lua_rawseti(L, array_index.value, index); }
 		void set_array_value(stack_index_t const array_index, int32_t const index, bool const value) const { push_value(value); lua_rawseti(L, array_index.value, index); }
 		void set_array_value(stack_index_t const array_index, int32_t const index, int32_t const& value) const { push_value(value); lua_rawseti(L, array_index.value, index); }
@@ -308,17 +309,17 @@ namespace lua {
 		// array & map
 
 		template<typename T>
-		inline T get_array_value(stack_index_t array_index, stack_index_t lua_index) { typename T::__invalid_type__ _{}; }
+		inline T get_array_value(stack_index_t array_index, stack_index_t lua_index) const { typename T::__invalid_type__ _{}; }
 
 		template<>
-		inline stack_index_t get_array_value(stack_index_t array_index, stack_index_t lua_index) {
+		inline stack_index_t get_array_value(stack_index_t array_index, stack_index_t lua_index) const {
 			lua_pushinteger(L, lua_index.value);
 			lua_gettable(L, array_index.value);
 			return { lua_gettop(L) };
 		}
 
 		template<>
-		inline int32_t get_array_value(stack_index_t array_index, stack_index_t lua_index) {
+		inline int32_t get_array_value(stack_index_t array_index, stack_index_t lua_index) const {
 			lua_pushinteger(L, lua_index.value);
 			lua_gettable(L, array_index.value);
 			auto const result = static_cast<int32_t>(luaL_checkinteger(L, -1));
@@ -327,7 +328,7 @@ namespace lua {
 		}
 
 		template<>
-		inline uint32_t get_array_value(stack_index_t array_index, stack_index_t lua_index) {
+		inline uint32_t get_array_value(stack_index_t array_index, stack_index_t lua_index) const {
 			lua_pushinteger(L, lua_index.value);
 			lua_gettable(L, array_index.value);
 			auto const result = static_cast<uint32_t>(luaL_checknumber(L, -1));

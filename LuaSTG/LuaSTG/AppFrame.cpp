@@ -162,20 +162,30 @@ bool AppFrame::Init()noexcept
 		}
 	}
 
+	//////////////////////////////////////// 游戏对象池
+
+	// 为对象池分配空间
+	spdlog::info("[luastg] 初始化对象池，容量{}", LOBJPOOL_SIZE);
+	try {
+		m_GameObjectPool = std::make_unique<GameObjectPool>();
+	}
+	catch (const std::bad_alloc&) {
+		spdlog::error("[luastg] 无法为对象池分配内存");
+		return false;
+	}
+
 	//////////////////////////////////////// Lua 引擎
 
 	spdlog::info("[luastg] 初始化luajit引擎");
 
 	// 开启Lua引擎
-	if (!OnOpenLuaEngine())
-	{
+	if (!OnOpenLuaEngine()) {
 		spdlog::info("[luastg] 初始化luajit引擎失败");
 		return false;
 	}
 
 	// 加载初始化脚本（可选）
-	if (!OnLoadLaunchScriptAndFiles())
-	{
+	if (!OnLoadLaunchScriptAndFiles()) {
 		return false;
 	}
 
@@ -188,18 +198,6 @@ bool AppFrame::Init()noexcept
 			return false;
 		if (!InitializationApplySettingStage1())
 			return false;
-
-		// 为对象池分配空间
-		spdlog::info("[luastg] 初始化对象池，容量{}", LOBJPOOL_SIZE);
-		try
-		{
-			m_GameObjectPool = std::make_unique<GameObjectPool>(L);
-		}
-		catch (const std::bad_alloc&)
-		{
-			spdlog::error("[luastg] 无法为对象池分配内存");
-			return false;
-		}
 
 		// 渲染器适配器
 		m_bRenderStarted = false;

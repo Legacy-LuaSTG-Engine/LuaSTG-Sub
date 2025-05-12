@@ -12,12 +12,6 @@ namespace luastg::binding {
 
 		static luastg::GameObject* as(lua_State* vm, int index);
 
-		//static luastg::GameObject* create(lua_State* vm);
-
-		static int manage(lua_State* vm, luastg::GameObject* object, int class_index);
-
-		static int unmanage(lua_State* vm, luastg::GameObject* object);
-
 		static int pushGameObjectTable(lua_State* vm);
 
 		static void registerClass(lua_State* vm);

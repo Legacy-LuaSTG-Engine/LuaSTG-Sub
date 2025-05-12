@@ -13,15 +13,14 @@ namespace luastg
 
 	static GameObjectPool* g_GameObjectPool = nullptr;
 
-	GameObjectPool::GameObjectPool(lua_State* const pL) {
+	GameObjectPool::GameObjectPool() {
 		assert(g_GameObjectPool == nullptr);
 		g_GameObjectPool = this;
-		// Lua_State
-		G_L = pL;
 
 		// initialize GameObject list
 
 		m_render_list = decltype(m_render_list){ &m_memory_resource };
+		m_callbacks = decltype(m_callbacks){&m_memory_resource};
 		resetGameObjectLists();
 
 		// ex+
@@ -44,83 +43,6 @@ namespace luastg
 		for (auto &list : m_detect_lists) {
 			list.clear();
 		}
-	}
-
-	GameObject* GameObjectPool::_AllocObject()
-	{
-		size_t id = 0;
-		if (!m_ObjectPool.alloc(id))
-		{
-			return nullptr;
-		}
-		GameObject* p = m_ObjectPool.object(id);
-		p->Reset();
-		p->status = GameObjectStatus::Active;
-		p->id = id;
-		p->unique_id = m_iUid % GameObject::max_unique_id; // GameObject::max_unique_id is reserved
-		m_iUid++;
-#ifdef USING_MULTI_GAME_WORLD
-		if (m_pCurrentObject)
-		{
-			p->world = m_pCurrentObject->world;
-		}
-#endif // USING_MULTI_GAME_WORLD
-		m_update_list.add(p);
-		m_render_list.insert(p);
-		m_detect_lists[p->group].add(p);
-		m_DbgData[m_DbgIdx].object_alloc += 1;
-		return p;
-	}
-	GameObject* GameObjectPool::_ReleaseObject(GameObject* object)
-	{
-		m_DbgData[m_DbgIdx].object_free += 1;
-		auto const next = m_update_list.remove(object);
-		m_render_list.erase(object);
-		m_detect_lists[object->group].remove(object);
-#ifdef USING_MULTI_GAME_WORLD
-		if (m_pCurrentObject == object)
-		{
-			m_pCurrentObject = nullptr;
-		}
-#endif // USING_MULTI_GAME_WORLD
-		object->status = GameObjectStatus::Free;
-		m_ObjectPool.free(object->id);
-		return next;
-	}
-	GameObject* GameObjectPool::_FreeObject(GameObject* p, int ot_at) noexcept
-	{
-		int const index = (int)p->id + 1;
-		int ot_stk = ot_at;
-
-#if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
-		static std::string _name("<null>");
-		spdlog::debug("[object] free {}-{} (img = {})", p->id, p->unique_id, p->res ? p->res->GetResName() : _name);
-#endif
-
-		// 删除lua对象表中元素
-		if (ot_at <= 0)
-		{
-			binding::GameObject::pushGameObjectTable(G_L); // ot
-			ot_stk = lua_gettop(G_L);
-		}
-		lua_rawgeti(G_L, ot_stk, index);		// ot object
-#ifdef LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
-		p->ReleaseLuaRC(G_L, lua_gettop(G_L));	// ot object				// 释放可能的粒子系统
-#endif // LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
-		lua_pushlightuserdata(G_L, nullptr);	// ot object nullptr
-		lua_rawseti(G_L, -2, 3);				// ot object
-		lua_pop(G_L, 1);						// ot
-		lua_pushnil(G_L);						// ot nil
-		lua_rawseti(G_L, ot_stk, index);		// ot
-		if (ot_at <= 0)
-		{
-			lua_pop(G_L, 1);					// 
-		}
-
-		// 释放引用的资源
-		p->ReleaseResource();
-
-		return _ReleaseObject(p);
 	}
 
 	GameObject* GameObjectPool::_ToGameObject(lua_State* L, int idx)
@@ -196,10 +118,9 @@ namespace luastg
 	void GameObjectPool::ResetPool() noexcept
 	{
 		// 回收已分配的对象和更新链表
-		binding::GameObject::pushGameObjectTable(G_L);
-		int const ot_at = lua_gettop(G_L);
+		dispatchOnBeforeBatchDestroy();
 		for (auto p = m_update_list.first(); p != nullptr;) {
-			p = _FreeObject(p, ot_at);
+			p = freeWithCallbacks(p);
 		}
 #if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
 		for (int i = 1; i <= LOBJPOOL_SIZE; i += 1)
@@ -210,7 +131,7 @@ namespace luastg
 			lua_pop(G_L, 1);
 		}
 #endif
-		lua_pop(G_L, 1);
+		dispatchOnAfterBatchDestroy();
 		// 重置其他链表
 		resetGameObjectLists();
 		// 重置整个对象池，恢复为线性状态
@@ -274,7 +195,7 @@ namespace luastg
 		}
 	}
 	void GameObjectPool::DoRender() noexcept {
-		binding::GameObject::pushGameObjectTable(G_L); // ot
+		/*binding::GameObject::pushGameObjectTable(G_L); // ot
 		int const ot_idx = lua_gettop(G_L);
 
 		m_IsRendering = true;
@@ -305,7 +226,7 @@ namespace luastg
 #endif // USING_MULTI_GAME_WORLD
 		m_IsRendering = false;
 
-		lua_pop(G_L, 1);
+		lua_pop(G_L, 1);*/
 	}
 	void GameObjectPool::UpdateXY() noexcept {
 		tracy_zone_scoped_with_name("LOBJMGR.UpdateXY");
@@ -317,8 +238,9 @@ namespace luastg
 			p->UpdateLast();
 		}
 	}
-	void GameObjectPool::updateNextLegacy(int32_t const objects_index, lua_State* const) {
+	void GameObjectPool::updateNextLegacy() {
 		tracy_zone_scoped_with_name("LOBJMGR.AfterFrame");
+		dispatchOnBeforeBatchDestroy();
 		auto const super_pause_time = GetSuperPauseTime();
 		for (auto p = m_update_list.first(); p != nullptr;) {
 			if (super_pause_time > 0 && !p->ignore_super_pause) {
@@ -326,15 +248,17 @@ namespace luastg
 				continue;
 			}
 			if (p->status != GameObjectStatus::Active) {
-				p = _FreeObject(p, objects_index);
+				p = freeWithCallbacks(p);
 				continue;
 			}
 			p->UpdateTimer();
 			p = p->update_list_next;
 		}
+		dispatchOnAfterBatchDestroy();
 	}
-	void GameObjectPool::updateNext(int32_t const objects_index, lua_State* const) {
+	void GameObjectPool::updateNext() {
 		tracy_zone_scoped_with_name("LOBJMGR.AfterFrame(New)");
+		dispatchOnBeforeBatchDestroy();
 		auto const super_pause_time = UpdateSuperPause(); // 更新超级暂停
 		for (auto p = m_update_list.first(); p != nullptr;) {
 			if (super_pause_time > 0 && !p->ignore_super_pause) {
@@ -342,12 +266,13 @@ namespace luastg
 				continue;
 			}
 			if (p->status != GameObjectStatus::Active) {
-				p = _FreeObject(p, objects_index);
+				p = freeWithCallbacks(p);
 				continue;
 			}
 			p->UpdateLastV2();
 			p = p->update_list_next;
 		}
+		dispatchOnAfterBatchDestroy();
 	}
 	void GameObjectPool::detectOutOfWorldBoundLegacy(int32_t const objects_index, lua_State* const L) {
 		tracy_zone_scoped_with_name("LOBJMGR.BoundCheck");
@@ -546,25 +471,6 @@ namespace luastg
 		binding::GameObject::pushGameObjectTable(L);
 		auto const objects = S.index_of_top();
 		g_GameObjectPool->updateMovementsLegacy(objects.value, L);
-		S.pop_value();
-		return 0;
-	}
-	int GameObjectPool::api_AfterFrame(lua_State* L) {
-		lua::stack_t S(L);
-		if (S.is_number(1)) {
-			auto const version = S.get_value<int32_t>(1);
-			if (version == 2) {
-				binding::GameObject::pushGameObjectTable(L);
-				auto const objects = S.index_of_top();
-				g_GameObjectPool->updateNext(objects.value, L);
-				S.pop_value();
-				return 0;
-			}
-		}
-		// version 1
-		binding::GameObject::pushGameObjectTable(L);
-		auto const objects = S.index_of_top();
-		g_GameObjectPool->updateNextLegacy(objects.value, L);
 		S.pop_value();
 		return 0;
 	}
@@ -773,6 +679,50 @@ namespace luastg
 		}
 	}
 
+	GameObject* GameObjectPool::allocateWithCallbacks(IGameObjectCallbacks* callbacks) {
+		size_t id = 0;
+		if (!m_ObjectPool.alloc(id)) {
+			return nullptr;
+		}
+		GameObject* p = m_ObjectPool.object(id);
+		p->Reset();
+		p->status = GameObjectStatus::Active;
+		p->id = id;
+		p->unique_id = m_iUid % GameObject::max_unique_id; // GameObject::max_unique_id is reserved
+		m_iUid++;
+	#ifdef USING_MULTI_GAME_WORLD
+		if (m_pCurrentObject) {
+			p->world = m_pCurrentObject->world;
+		}
+	#endif // USING_MULTI_GAME_WORLD
+		m_update_list.add(p);
+		m_render_list.insert(p);
+		m_detect_lists[p->group].add(p);
+		m_DbgData[m_DbgIdx].object_alloc += 1;
+		if (callbacks != nullptr) {
+			p->addCallbacks(callbacks);
+			p->dispatchOnCreate();
+		}
+		return p;
+	}
+	GameObject* GameObjectPool::freeWithCallbacks(GameObject* object) {
+		object->dispatchOnDestroy();
+		object->removeAllCallbacks();
+		object->ReleaseResource();
+		m_DbgData[m_DbgIdx].object_free += 1;
+		auto const next = m_update_list.remove(object);
+		m_render_list.erase(object);
+		m_detect_lists[object->group].remove(object);
+	#ifdef USING_MULTI_GAME_WORLD
+		if (m_pCurrentObject == object) {
+			m_pCurrentObject = nullptr;
+		}
+	#endif // USING_MULTI_GAME_WORLD
+		object->status = GameObjectStatus::Free;
+		m_ObjectPool.free(object->id);
+		return next;
+	}
+
 	void GameObjectPool::DrawCollider()
 	{
 #if (defined LDEVVERSION)
@@ -966,6 +916,41 @@ namespace luastg
 		}
 #endif // USING_MULTI_GAME_WORLD
 		return 1;
+	}
+	int GameObjectPool::api_DoRender(lua_State* L) {
+		binding::GameObject::pushGameObjectTable(L); // ot
+		int const ot_idx = lua_gettop(L);
+
+		g_GameObjectPool->m_IsRendering = true;
+
+	#ifdef USING_MULTI_GAME_WORLD
+		g_GameObjectPool->m_pCurrentObject = nullptr;
+		lua_Integer world = g_GameObjectPool->GetWorldFlag();
+	#endif // USING_MULTI_GAME_WORLD
+
+		for (auto& p : g_GameObjectPool->m_render_list) {
+		#ifdef USING_MULTI_GAME_WORLD
+			if (!p->hide && g_GameObjectPool->CheckWorld(p->world, world)) { // 只渲染可见对象
+				g_GameObjectPool->m_pCurrentObject = p;
+			#else // USING_MULTI_GAME_WORLD
+			if (!p->hide) {  // 只渲染可见对象
+			#endif // USING_MULTI_GAME_WORLD
+				if (p->features.has_callback_render) {
+					g_GameObjectPool->_GameObjectCallback(L, ot_idx, p, LGOBJ_CC_RENDER);
+				}
+				else {
+					p->Render();
+				}
+			}
+			}
+
+	#ifdef USING_MULTI_GAME_WORLD
+		g_GameObjectPool->m_pCurrentObject = nullptr;
+	#endif // USING_MULTI_GAME_WORLD
+		g_GameObjectPool->m_IsRendering = false;
+
+		lua_pop(L, 1);
+		return 0;
 	}
 	int GameObjectPool::api_Angle(lua_State* L) noexcept
 	{

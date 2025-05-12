@@ -542,7 +542,7 @@ namespace luastg
 			}
 		}
 	}
-	
+
 	void GameObject::setGroup(int64_t const new_group) {
 		LPOOL.setGroup(this, static_cast<size_t>(new_group));
 	}

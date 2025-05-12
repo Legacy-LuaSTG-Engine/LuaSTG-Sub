@@ -4,6 +4,8 @@
 #include <deque>
 #include <list>
 #include <memory_resource>
+#include <ranges>
+#include <algorithm>
 
 // 对象池信息
 #define LOBJPOOL_SIZE   32768 // 最大对象数 //32768(full) //16384(half)
@@ -117,6 +119,16 @@ namespace luastg
 	using GameObjectUpdateLinkedList = GameObjectLinkedList<GameObjectUpdateLinkedListFieldAssessor>;
 	using GameObjectDetectLinkedList = GameObjectLinkedList<GameObjectDetectLinkedListFieldAssessor>;
 
+	// 游戏对象管理器回调函数集
+	struct CORE_NO_VIRTUAL_TABLE IGameObjectManagerCallbacks {
+		// 获取当前回调函数集的名称
+		virtual std::string_view getCallbacksName() const noexcept = 0;
+		// 对象管理器批量回收对象之前
+		virtual void onBeforeBatchDestroy() = 0;
+		// 对象管理器批量回收对象之后
+		virtual void onAfterBatchDestroy() = 0;
+	};
+
 	//游戏对象池
 	class GameObjectPool
 	{
@@ -138,13 +150,13 @@ namespace luastg
 	private:
 		core::FixedObjectPool<GameObject, LOBJPOOL_SIZE> m_ObjectPool;
 		uint64_t m_iUid = 0;
-		lua_State* G_L = nullptr;
 
 		// GameObject lists
 		std::pmr::unsynchronized_pool_resource m_memory_resource;
 		GameObjectUpdateLinkedList m_update_list;
 		std::pmr::set<GameObject*, GameObjectLayerComparer> m_render_list;
 		std::array<GameObjectDetectLinkedList, LOBJPOOL_GROUPN> m_detect_lists;
+		std::pmr::vector<IGameObjectManagerCallbacks*> m_callbacks;
 
 		void resetGameObjectLists();
 
@@ -174,12 +186,6 @@ namespace luastg
 
 	private:
 
-		// 申请一个对象，重置对象并将对象插入到各个链表，不处理lua部分，返回申请的对象
-		GameObject* _AllocObject();
-
-		// 释放一个对象，将对象从渲染和检测链表中移除，并回收，不处理lua部分和对象资源
-		GameObject* _ReleaseObject(GameObject* object);
-
 		// 检查指定对象的坐标是否在场景边界内
 		inline bool _ObjectBoundCheck(GameObject* object) const noexcept
 		{
@@ -188,15 +194,39 @@ namespace luastg
 			return object->isInRect(m_BoundLeft, m_BoundRight, m_BoundBottom, m_BoundTop);
 		}
 
-		// 释放一个对象，完全释放
-		GameObject* _FreeObject(GameObject* p, int ot_at = 0) noexcept;
-
 		GameObject* _ToGameObject(lua_State* L, int idx);
 		GameObject* _TableToGameObject(lua_State* L, int idx);
 
 		void _GameObjectCallback(lua_State* L, int otidx, GameObject* p, int cbidx);
 
 	public:
+		void addCallbacks(IGameObjectManagerCallbacks* const callbacks) {
+			for (auto const c : m_callbacks) {
+				if (c == callbacks) {
+					return;
+				}
+			}
+			m_callbacks.push_back(callbacks);
+		}
+		void removeCallbacks(IGameObjectManagerCallbacks* const callbacks) {
+			for (auto it = m_callbacks.begin(); it != m_callbacks.end();) {
+				if (*it == callbacks) {
+					it = m_callbacks.erase(it);
+					continue;
+				}
+				++it;
+			}
+		}
+		void dispatchOnBeforeBatchDestroy() {
+			for (auto const c : m_callbacks) {
+				c->onBeforeBatchDestroy();
+			}
+		}
+		void dispatchOnAfterBatchDestroy() {
+			for (auto const c : m_callbacks) {
+				c->onAfterBatchDestroy();
+			}
+		}
 		void DebugNextFrame();
 		FrameStatistics DebugGetFrameStatistics();
 
@@ -206,9 +236,6 @@ namespace luastg
 #endif // USING_MULTI_GAME_WORLD
 
 		GameObject* CastGameObject(lua_State* L, int idx);
-
-		/// @brief 检查是否为主线程
-		bool CheckIsMainThread(lua_State* pL) noexcept { return pL == G_L; }
 
 		/// @brief 获取已分配对象数量
 		size_t GetObjectCount() noexcept { return m_ObjectPool.size(); }
@@ -225,10 +252,10 @@ namespace luastg
 		void updateMovements(int32_t objects_index = 0, lua_State* L = nullptr);
 
 		// 对象更新：传统模式新旧帧衔接
-		void updateNextLegacy(int32_t objects_index = 0, lua_State* L = nullptr);
+		void updateNextLegacy();
 
 		// 对象更新：新旧帧衔接
-		void updateNext(int32_t objects_index = 0, lua_State* L = nullptr);
+		void updateNext();
 
 		/// @brief 执行对象的Render函数
 		void DoRender() noexcept;
@@ -299,7 +326,9 @@ namespace luastg
 		/// @return 返回-1表示无元素
 		int FirstObject(int group) noexcept;
 
-		[[nodiscard]] GameObject* allocate() { return _AllocObject(); }
+		[[nodiscard]] GameObject* allocate() { return allocateWithCallbacks(nullptr); }
+		[[nodiscard]] GameObject* allocateWithCallbacks(IGameObjectCallbacks* callbacks);
+		GameObject* freeWithCallbacks(GameObject* object);
 		[[nodiscard]] bool isLockedByDetectIntersection(GameObject const* const object) const noexcept { return object == m_LockObjectA || object == m_LockObjectB; }
 		[[nodiscard]] bool isRendering() const noexcept { return m_IsRendering; }
 
@@ -380,7 +409,6 @@ namespace luastg
 		static int api_NextObject(lua_State* L) noexcept;
 		static int api_ObjList(lua_State* L) noexcept;
 
-		static int api_New(lua_State* L) noexcept;
 		static int api_ResetObject(lua_State* L) noexcept;
 		static int api_Del(lua_State* L) noexcept;
 		static int api_Kill(lua_State* L) noexcept;
@@ -393,9 +421,9 @@ namespace luastg
 		static int api_SetV(lua_State* L) noexcept;
 		
 		static int api_ObjFrame(lua_State* L);
-		static int api_AfterFrame(lua_State* L);
 		static int api_BoundCheck(lua_State* L);
 		static int api_CollisionCheck(lua_State* L);
+		static int api_DoRender(lua_State* L);
 
 		static int api_SetImgState(lua_State* L) noexcept;
 		static int api_SetParState(lua_State* L) noexcept;
@@ -407,7 +435,7 @@ namespace luastg
 		static int api_ParticleSetEmission(lua_State* L) noexcept;
 
 	public:
-		GameObjectPool(lua_State* pL);
+		GameObjectPool();
 		GameObjectPool& operator=(const GameObjectPool&) = delete;
 		GameObjectPool(const GameObjectPool&) = delete;
 		~GameObjectPool();

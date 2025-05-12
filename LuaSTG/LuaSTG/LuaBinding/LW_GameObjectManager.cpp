@@ -15,12 +15,6 @@ void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 		{
 			return LPOOL.api_ObjFrame(L);
 		}
-		static int ObjRender(lua_State* L) noexcept
-		{
-			LPOOL.CheckIsMainThread(L);
-			LPOOL.DoRender();
-			return 0;
-		}
 		static int BoundCheck(lua_State* L) noexcept
 		{
 			return LPOOL.api_BoundCheck(L);
@@ -41,18 +35,7 @@ void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 		}
 		static int UpdateXY(lua_State* L) noexcept
 		{
-			LPOOL.CheckIsMainThread(L);
 			LPOOL.UpdateXY();
-			return 0;
-		}
-		static int AfterFrame(lua_State* L) noexcept
-		{
-			return LPOOL.api_AfterFrame(L);
-		}
-		static int ResetPool(lua_State* L) noexcept
-		{
-			std::ignore = L;
-			LPOOL.ResetPool();
 			return 0;
 		}
 		// EX+ 对象更新相关，影响 frame 回调函数以及对象更新
@@ -124,13 +107,11 @@ void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 		// 对象管理器
 		{ "GetnObj", &Wrapper::GetnObj },
 		{ "ObjFrame", &Wrapper::ObjFrame },
-		{ "ObjRender", &Wrapper::ObjRender },
+		{ "ObjRender", &GameObjectPool::api_DoRender },
 		{ "BoundCheck", &Wrapper::BoundCheck },
 		{ "SetBound", &Wrapper::SetBound },
 		{ "CollisionCheck", &Wrapper::CollisionCheck },
 		{ "UpdateXY", &Wrapper::UpdateXY },
-		{ "AfterFrame", &Wrapper::AfterFrame },
-		{ "ResetPool", &Wrapper::ResetPool },
 		// 对象遍历
 		{ "NextObject", &GameObjectPool::api_NextObject },
 		{ "ObjList", &GameObjectPool::api_ObjList },
