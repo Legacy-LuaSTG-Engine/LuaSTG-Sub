@@ -454,45 +454,6 @@ namespace luastg
 		m_detect_lists[p->group].add(p);
 	}
 
-	bool GameObjectPool::SetImgState(GameObject* p, BlendMode m, core::Color4B c) noexcept
-	{
-		if (p->res)
-		{
-			switch (p->res->GetType())
-			{
-			case ResourceType::Sprite:
-				static_cast<IResourceSprite*>(p->res)->SetBlendMode(m);
-				static_cast<IResourceSprite*>(p->res)->GetSprite()->setColor(c);
-				break;
-			case ResourceType::Animation:
-				do {
-					auto* ani = static_cast<IResourceAnimation*>(p->res);
-					ani->SetBlendMode(m);
-					ani->SetVertexColor(c);
-				} while (false);
-				break;
-			default:
-				break;
-			}
-		}
-		return true;
-	}
-	bool GameObjectPool::SetParState(GameObject* p, BlendMode m, core::Color4B c) noexcept
-	{
-		if (p->res)
-		{
-			switch (p->res->GetType())
-			{
-			case ResourceType::Particle:
-				p->ps->SetBlendMode(m);
-				p->ps->SetVertexColor(c);
-				break;
-			default:
-				break;
-			}
-		}
-		return true;
-	}
 	void GameObjectPool::setGroup(GameObject* const object, size_t const group) {
 		assert(object != m_LockObjectA && object != m_LockObjectB);
 		m_detect_lists[object->group].remove(object);
@@ -825,30 +786,4 @@ namespace luastg
 		return 0;
 	}
 
-	int GameObjectPool::api_SetImgState(lua_State* L) noexcept
-	{
-		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
-		BlendMode m = TranslateBlendMode(L, 2);
-		core::Color4B c = core::Color4B(
-			(uint8_t)luaL_checkinteger(L, 4),
-			(uint8_t)luaL_checkinteger(L, 5),
-			(uint8_t)luaL_checkinteger(L, 6),
-			(uint8_t)luaL_checkinteger(L, 3) // 这个才是 a 通道
-		);
-		g_GameObjectPool->SetImgState(p, m, c);
-		return 0;
-	}
-	int GameObjectPool::api_SetParState(lua_State* L) noexcept
-	{
-		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
-		BlendMode m = TranslateBlendMode(L, 2);
-		core::Color4B c = core::Color4B(
-			(uint8_t)luaL_checkinteger(L, 4),
-			(uint8_t)luaL_checkinteger(L, 5),
-			(uint8_t)luaL_checkinteger(L, 6),
-			(uint8_t)luaL_checkinteger(L, 3) // 这个才是 a 通道
-		);
-		g_GameObjectPool->SetParState(p, m, c);
-		return 0;
-	}
 }

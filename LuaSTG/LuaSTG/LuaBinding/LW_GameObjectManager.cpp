@@ -104,9 +104,6 @@ void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 		{ "Dist", &GameObjectPool::api_Dist },
 		{ "GetV", &GameObjectPool::api_GetV },
 		{ "SetV", &GameObjectPool::api_SetV },
-		// 对象资源控制
-		{ "SetImgState", &GameObjectPool::api_SetImgState },
-		{ "SetParState", &GameObjectPool::api_SetParState },
 		// EX+
 		{ "GetSuperPause", &Wrapper::GetSuperPause },
 		{ "SetSuperPause", &Wrapper::SetSuperPause },

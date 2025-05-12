@@ -549,4 +549,26 @@ namespace luastg
 	void GameObject::setLayer(double const new_layer) {
 		LPOOL.setLayer(this, new_layer);
 	}
+	void GameObject::setResourceRenderState(BlendMode const blend, core::Color4B const color) {
+		if (res == nullptr) {
+			return;
+		}
+		if (auto const resource_type = res->GetType(); resource_type == ResourceType::Sprite) {
+			auto const sprite = static_cast<IResourceSprite*>(res);
+			sprite->SetBlendMode(blend);
+			sprite->GetSprite()->setColor(color);
+		}
+		else if (resource_type == ResourceType::Animation) {
+			auto const sprite_sequence = static_cast<IResourceAnimation*>(res);
+			sprite_sequence->SetBlendMode(blend);
+			sprite_sequence->SetVertexColor(color);
+		}
+	}
+	void GameObject::setParticleRenderState(BlendMode const blend, core::Color4B const color) {
+		if (res == nullptr || res->GetType() != ResourceType::Particle) {
+			return;
+		}
+		ps->SetBlendMode(blend);
+		ps->SetVertexColor(color);
+	}
 }

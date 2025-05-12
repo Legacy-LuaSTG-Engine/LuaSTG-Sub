@@ -349,12 +349,6 @@ namespace luastg
 		//重置对象的各项属性，并释放资源，保留uid和id
 		void DirtResetObject(GameObject* p) noexcept;
 
-		/// @brief 设置元素的图像状态
-		bool SetImgState(GameObject* p, BlendMode m, core::Color4B c) noexcept;
-
-		/// @brief 特化设置HGE粒子的渲染状态
-		bool SetParState(GameObject* p, BlendMode m, core::Color4B c) noexcept;
-
 		// 修改游戏对象所在的碰撞组：从原碰撞组链表移除，插入到新碰撞组链表，并更新 group 属性
 		void setGroup(GameObject* object, size_t group);
 
@@ -474,9 +468,6 @@ namespace luastg
 		static int api_GetV(lua_State* L) noexcept;
 		static int api_SetV(lua_State* L) noexcept;
 		
-		static int api_SetImgState(lua_State* L) noexcept;
-		static int api_SetParState(lua_State* L) noexcept;
-	
 	public:
 		GameObjectPool();
 		GameObjectPool& operator=(const GameObjectPool&) = delete;

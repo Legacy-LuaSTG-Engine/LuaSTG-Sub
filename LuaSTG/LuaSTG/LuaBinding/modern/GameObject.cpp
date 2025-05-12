@@ -561,25 +561,25 @@ namespace luastg::binding {
 				break;
 			case LuaSTG::GameObjectMember::_A:
 				if (self->features.is_render_class) {
-					self->vertex_color.a = std::clamp<lua_Integer>(luaL_checkinteger(vm, 3), 0, 255);
+					self->vertex_color.a = static_cast<uint8_t>(std::clamp(ctx.get_value<int32_t>(3), 0, 255));
 					return 0;
 				}
 				break;
 			case LuaSTG::GameObjectMember::_R:
 				if (self->features.is_render_class) {
-					self->vertex_color.r = std::clamp<lua_Integer>(luaL_checkinteger(vm, 3), 0, 255);
+					self->vertex_color.r = static_cast<uint8_t>(std::clamp(ctx.get_value<int32_t>(3), 0, 255));
 					return 0;
 				}
 				break;
 			case LuaSTG::GameObjectMember::_G:
 				if (self->features.is_render_class) {
-					self->vertex_color.g = std::clamp<lua_Integer>(luaL_checkinteger(vm, 3), 0, 255);
+					self->vertex_color.g = static_cast<uint8_t>(std::clamp(ctx.get_value<int32_t>(3), 0, 255));
 					return 0;
 				}
 				break;
 			case LuaSTG::GameObjectMember::_B:
 				if (self->features.is_render_class) {
-					self->vertex_color.b = std::clamp<lua_Integer>(luaL_checkinteger(vm, 3), 0, 255);
+					self->vertex_color.b = static_cast<uint8_t>(std::clamp(ctx.get_value<int32_t>(3), 0, 255));
 					return 0;
 				}
 				break;
@@ -653,6 +653,32 @@ namespace luastg::binding {
 		static int render(lua_State* const vm) {
 			auto const self = as(vm, 1);
 			self->Render();
+			return 0;
+		}
+		static int setResourceRenderState(lua_State* const vm) {
+			lua::stack_t const ctx(vm);
+			auto const self = as(vm, 1);
+			auto const blend = TranslateBlendMode(vm, 2);
+			core::Color4B const color(
+				static_cast<uint8_t>(std::clamp(ctx.get_value<int32_t>(4), 0, 255)),
+				static_cast<uint8_t>(std::clamp(ctx.get_value<int32_t>(5), 0, 255)),
+				static_cast<uint8_t>(std::clamp(ctx.get_value<int32_t>(6), 0, 255)),
+				static_cast<uint8_t>(std::clamp(ctx.get_value<int32_t>(3), 0, 255))// 这个才是 a 通道
+			);
+			self->setResourceRenderState(blend, color);
+			return 0;
+		}
+		static int setParticleRenderState(lua_State* const vm) {
+			lua::stack_t const ctx(vm);
+			auto const self = as(vm, 1);
+			auto const blend = TranslateBlendMode(vm, 2);
+			core::Color4B const color(
+				static_cast<uint8_t>(std::clamp(ctx.get_value<int32_t>(4), 0, 255)),
+				static_cast<uint8_t>(std::clamp(ctx.get_value<int32_t>(5), 0, 255)),
+				static_cast<uint8_t>(std::clamp(ctx.get_value<int32_t>(6), 0, 255)),
+				static_cast<uint8_t>(std::clamp(ctx.get_value<int32_t>(3), 0, 255))// 这个才是 a 通道
+			);
+			self->setParticleRenderState(blend, color);
 			return 0;
 		}
 		static int stopParticle(lua_State* const vm) {
@@ -974,6 +1000,8 @@ namespace luastg::binding {
 		ctx.set_map_value(lstg_table, "GetAttr"sv, &GameObjectBinding::__index);
 		ctx.set_map_value(lstg_table, "SetAttr"sv, &GameObjectBinding::__newindex);
 		ctx.set_map_value(lstg_table, "DefaultRenderFunc"sv, &GameObjectBinding::render);
+		ctx.set_map_value(lstg_table, "SetImgState"sv, &GameObjectBinding::setResourceRenderState);
+		ctx.set_map_value(lstg_table, "SetParState"sv, &GameObjectBinding::setParticleRenderState);
 		ctx.set_map_value(lstg_table, "ParticleStop"sv, &GameObjectBinding::stopParticle);
 		ctx.set_map_value(lstg_table, "ParticleFire"sv, &GameObjectBinding::startParticle);
 		ctx.set_map_value(lstg_table, "ParticleGetn"sv, &GameObjectBinding::getParticleCount);

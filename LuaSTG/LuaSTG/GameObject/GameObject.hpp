@@ -308,6 +308,8 @@ namespace luastg
 		}
 		[[nodiscard]] bool isIntersect(GameObject const* other) const noexcept { return isIntersect(this, other); }
 
+		void setResourceRenderState(BlendMode blend, core::Color4B color);
+		void setParticleRenderState(BlendMode blend, core::Color4B color);
 		void stopParticle() {
 			if (!hasParticlePool()) {
 				return;
