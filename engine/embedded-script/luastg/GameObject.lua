@@ -1,3 +1,5 @@
+local type = type
+local math = require("math")
 local lstg = require("lstg")
 local _New = lstg._New
 function lstg.New(class, ...)
@@ -29,23 +31,57 @@ function lstg.ObjList(group)
         local id = _UpdateListFirst()
         return function()
             if id == 0 then
-                return nil
+                return nil, nil
             else
-                local o = objects[id]
+                local i, o = id, objects[id]
                 id = _UpdateListNext(id)
-                return o
+                return i, o
             end
         end
     else
         local id = _DetectListFirst(group)
         return function()
             if id == 0 then
-                return nil
+                return nil, nil
             else
-                local o = objects[id]
+                local i, o = id, objects[id]
                 id = _DetectListNext(group, id)
-                return o
+                return i, o
             end
         end
     end
+end
+local _sin = lstg.sin
+local _cos = lstg.cos
+function lstg.SetV(o, v, a, update_rot)
+    o.vx = v * _cos(a)
+    o.vy = v * _sin(a)
+    if update_rot then
+        o.rot = a
+    end
+end
+local sqrt = math.sqrt
+local _atan2 = lstg.atan2
+function lstg.GetV(o)
+    local vx, vy = o.vx, o.vy
+    return sqrt(vx * vx + vy * vy), _atan2(vy, vx)
+end
+local function _dxdy(a, b, c, d)
+    if d then
+        return c - a, d - b
+    elseif type(c) == "number" then
+        return b - a.x, c - a.y
+    elseif c then
+        return c.x - a, c.y - b
+    else
+        return b.x - a.x, b.y - a.y
+    end
+end
+function lstg.Dist(a, b, c, d)
+    local dx, dy = _dxdy(a, b, c, d)
+    return sqrt(dx * dx + dy * dy)
+end
+function lstg.Angle(a, b, c, d)
+    local dx, dy = _dxdy(a, b, c, d)
+    return _atan2(dy, dx)
 end

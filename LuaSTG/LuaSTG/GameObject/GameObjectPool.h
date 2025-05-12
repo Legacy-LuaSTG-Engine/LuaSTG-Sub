@@ -463,10 +463,6 @@ namespace luastg
 		static int api_ResetObject(lua_State* L) noexcept;
 		static int api_BoxCheck(lua_State* L) noexcept;
 		static int api_ColliCheck(lua_State* L) noexcept;
-		static int api_Angle(lua_State* L) noexcept;
-		static int api_Dist(lua_State* L) noexcept;
-		static int api_GetV(lua_State* L) noexcept;
-		static int api_SetV(lua_State* L) noexcept;
 		
 	public:
 		GameObjectPool();

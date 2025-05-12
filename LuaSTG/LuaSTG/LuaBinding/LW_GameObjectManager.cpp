@@ -100,10 +100,6 @@ void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 		{ "ResetObject", &GameObjectPool::api_ResetObject },
 		{ "BoxCheck", &GameObjectPool::api_BoxCheck },
 		{ "ColliCheck", &GameObjectPool::api_ColliCheck },
-		{ "Angle", &GameObjectPool::api_Angle },
-		{ "Dist", &GameObjectPool::api_Dist },
-		{ "GetV", &GameObjectPool::api_GetV },
-		{ "SetV", &GameObjectPool::api_SetV },
 		// EX+
 		{ "GetSuperPause", &Wrapper::GetSuperPause },
 		{ "SetSuperPause", &Wrapper::SetSuperPause },
