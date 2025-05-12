@@ -655,6 +655,35 @@ namespace luastg::binding {
 			self->Render();
 			return 0;
 		}
+		static int stopParticle(lua_State* const vm) {
+			auto const self = as(vm, 1);
+			self->stopParticle();
+			return 0;
+		}
+		static int startParticle(lua_State* const vm) {
+			auto const self = as(vm, 1);
+			self->startParticle();
+			return 0;
+		}
+		static int getParticleCount(lua_State* const vm) {
+			lua::stack_t const ctx(vm);
+			auto const self = as(vm, 1);
+			ctx.push_value(static_cast<int32_t>(self->getParticleCount()));
+			return 1;
+		}
+		static int getParticleEmission(lua_State* const vm) {
+			lua::stack_t const ctx(vm);
+			auto const self = as(vm, 1);
+			ctx.push_value(self->getParticleEmission());
+			return 1;
+		}
+		static int setParticleEmission(lua_State* const vm) {
+			lua::stack_t const ctx(vm);
+			auto const self = as(vm, 1);
+			auto const value = std::max<int32_t>(0, ctx.get_value<int32_t>(2));
+			self->setParticleEmission(value);
+			return 0;
+		}
 
 		// static methods
 
@@ -878,6 +907,11 @@ namespace luastg::binding {
 			}
 			return 1;
 		}
+		static int isValid(lua_State* const vm) {
+			lua::stack_t const ctx(vm);
+			ctx.push_value(is(vm, 1));
+			return 1;
+		}
 	};
 
 	bool GameObject::is(lua_State* const vm, int const index) {
@@ -940,6 +974,11 @@ namespace luastg::binding {
 		ctx.set_map_value(lstg_table, "GetAttr"sv, &GameObjectBinding::__index);
 		ctx.set_map_value(lstg_table, "SetAttr"sv, &GameObjectBinding::__newindex);
 		ctx.set_map_value(lstg_table, "DefaultRenderFunc"sv, &GameObjectBinding::render);
+		ctx.set_map_value(lstg_table, "ParticleStop"sv, &GameObjectBinding::stopParticle);
+		ctx.set_map_value(lstg_table, "ParticleFire"sv, &GameObjectBinding::startParticle);
+		ctx.set_map_value(lstg_table, "ParticleGetn"sv, &GameObjectBinding::getParticleCount);
+		ctx.set_map_value(lstg_table, "ParticleGetEmission"sv, &GameObjectBinding::getParticleEmission);
+		ctx.set_map_value(lstg_table, "ParticleSetEmission"sv, &GameObjectBinding::setParticleEmission);
 		ctx.set_map_value(lstg_table, "_New"sv, &GameObjectBinding::allocateAndManage);
 		ctx.set_map_value(lstg_table, "_Del"sv, &GameObjectBinding::queueToFree);
 		ctx.set_map_value(lstg_table, "_Kill"sv, &GameObjectBinding::queueToFreeLegacyKillMode);
@@ -953,6 +992,7 @@ namespace luastg::binding {
 		ctx.set_map_value(lstg_table, "_UpdateListNext"sv, &GameObjectBinding::getUpdateListNext);
 		ctx.set_map_value(lstg_table, "_DetectListFirst"sv, &GameObjectBinding::getDetectListFirst);
 		ctx.set_map_value(lstg_table, "_DetectListNext"sv, &GameObjectBinding::getDetectListNext);
+		ctx.set_map_value(lstg_table, "IsValid"sv, &GameObjectBinding::isValid);
 		ctx.set_map_value(lstg_table, "ObjTable"sv, &pushGameObjectTable);
 
 		LPOOL.addCallbacks(&game_object_manager_callbacks);

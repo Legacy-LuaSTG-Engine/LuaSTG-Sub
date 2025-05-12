@@ -113,11 +113,7 @@ namespace luastg
 		return 1;
 	}
 #endif // USING_MULTI_GAME_WORLD
-	GameObject* GameObjectPool::CastGameObject(lua_State* L, int idx)
-	{
-		return _ToGameObject(L, idx);
-	}
-
+	
 	void GameObjectPool::ResetPool() noexcept
 	{
 		// 回收已分配的对象和更新链表
@@ -879,49 +875,6 @@ namespace luastg
 			(uint8_t)luaL_checkinteger(L, 3) // 这个才是 a 通道
 		);
 		g_GameObjectPool->SetParState(p, m, c);
-		return 0;
-	}
-	
-	int GameObjectPool::api_ParticleStop(lua_State* L) noexcept {
-		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
-		if (!p->res || p->res->GetType() != ResourceType::Particle){
-			return 0;
-		}
-		p->ps->SetActive(false);
-		return 0;
-	}
-	int GameObjectPool::api_ParticleFire(lua_State* L) noexcept {
-		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
-		if (!p->res || p->res->GetType() != ResourceType::Particle) {
-			return 0;
-		}
-		p->ps->SetActive(true);
-		return 0;
-	}
-	int GameObjectPool::api_ParticleGetn(lua_State* L) noexcept {
-		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
-		if (!p->res || p->res->GetType() != ResourceType::Particle) {
-			lua_pushinteger(L, 0);
-			return 1;
-		}
-		lua_pushinteger(L, (lua_Integer)p->ps->GetAliveCount());
-		return 1;
-	}
-	int GameObjectPool::api_ParticleGetEmission(lua_State* L) noexcept {
-		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
-		if (!p->res || p->res->GetType() != ResourceType::Particle) {
-			lua_pushinteger(L, 0);
-			return 1;
-		}
-		lua_pushinteger(L, p->ps->GetEmission());
-		return 1;
-	}
-	int GameObjectPool::api_ParticleSetEmission(lua_State* L) noexcept {
-		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
-		if (!p->res || p->res->GetType() != ResourceType::Particle) {
-			return 0;
-		}
-		p->ps->SetEmission((int)std::max<lua_Integer>(0, luaL_checkinteger(L, 2)));
 		return 0;
 	}
 }

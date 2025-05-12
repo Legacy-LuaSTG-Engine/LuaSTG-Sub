@@ -1,4 +1,5 @@
 #include "LuaBinding/LuaWrapper.hpp"
+#include "LuaBinding/modern/GameObject.hpp"
 #include "GameObject/GameObjectBentLaser.hpp"
 #include "AppFrame.h"
 
@@ -170,7 +171,7 @@ namespace luastg::binding
 				GETUDATA(p, 1);
 				CHECKUDATA(p);
 				if (lua_istable(L, 3)) {
-					auto const* obj = LPOOL.CastGameObject(L, 3);
+					auto const* obj = GameObject::as(L, 3);
 					bool const r = p->handle->CollisionCheckW(
 						(float)obj->x,
 						(float)obj->y,

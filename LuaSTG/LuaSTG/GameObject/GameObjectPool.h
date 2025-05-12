@@ -292,8 +292,6 @@ namespace luastg
 		int PushCurrentObject(lua_State* L) noexcept;
 #endif // USING_MULTI_GAME_WORLD
 
-		GameObject* CastGameObject(lua_State* L, int idx);
-
 		/// @brief 获取已分配对象数量
 		size_t GetObjectCount() noexcept { return m_ObjectPool.size(); }
 
@@ -485,12 +483,6 @@ namespace luastg
 		static int api_SetImgState(lua_State* L) noexcept;
 		static int api_SetParState(lua_State* L) noexcept;
 	
-		static int api_ParticleStop(lua_State* L) noexcept;
-		static int api_ParticleFire(lua_State* L) noexcept;
-		static int api_ParticleGetn(lua_State* L) noexcept;
-		static int api_ParticleGetEmission(lua_State* L) noexcept;
-		static int api_ParticleSetEmission(lua_State* L) noexcept;
-
 	public:
 		GameObjectPool();
 		GameObjectPool& operator=(const GameObjectPool&) = delete;

@@ -267,6 +267,7 @@ namespace luastg
 			}
 		}
 		[[nodiscard]] bool hasRenderResource() const noexcept { return res != nullptr; }
+		[[nodiscard]] bool hasParticlePool() const noexcept { return res != nullptr && res->GetType() == ResourceType::Particle && ps != nullptr; }
 		[[nodiscard]] std::string_view getRenderResourceName() const noexcept {
 			if (res != nullptr) {
 				return res->GetResName();
@@ -307,6 +308,37 @@ namespace luastg
 		}
 		[[nodiscard]] bool isIntersect(GameObject const* other) const noexcept { return isIntersect(this, other); }
 
+		void stopParticle() {
+			if (!hasParticlePool()) {
+				return;
+			}
+			ps->SetActive(false);
+		}
+		void startParticle() {
+			if (!hasParticlePool()) {
+				return;
+			}
+			ps->SetActive(true);
+		}
+		[[nodiscard]] size_t getParticleCount() const {
+			if (!hasParticlePool()) {
+				return 0;
+			}
+			return ps->GetAliveCount();
+		}
+		[[nodiscard]] int32_t getParticleEmission() const {
+			if (!hasParticlePool()) {
+				return 0;
+			}
+			return ps->GetEmission();
+		}
+		void setParticleEmission(int32_t const value) {
+			if (!hasParticlePool()) {
+				return;
+			}
+			ps->SetEmission(value);
+		}
+		
 		[[nodiscard]] static bool isIntersect(GameObject const* p1, GameObject const* p2) noexcept;
 	};
 

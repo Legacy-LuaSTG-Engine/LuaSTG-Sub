@@ -108,11 +108,6 @@ void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 		// 对象资源控制
 		{ "SetImgState", &GameObjectPool::api_SetImgState },
 		{ "SetParState", &GameObjectPool::api_SetParState },
-		{ "ParticleStop", &GameObjectPool::api_ParticleStop },
-		{ "ParticleFire", &GameObjectPool::api_ParticleFire },
-		{ "ParticleGetn", &GameObjectPool::api_ParticleGetn },
-		{ "ParticleGetEmission", &GameObjectPool::api_ParticleGetEmission },
-		{ "ParticleSetEmission", &GameObjectPool::api_ParticleSetEmission },
 		// EX+
 		{ "GetSuperPause", &Wrapper::GetSuperPause },
 		{ "SetSuperPause", &Wrapper::SetSuperPause },
