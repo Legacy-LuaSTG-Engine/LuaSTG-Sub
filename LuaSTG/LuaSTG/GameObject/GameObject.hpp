@@ -61,6 +61,8 @@ namespace luastg
 		virtual void onLateUpdate(GameObject* self) = 0;
 		// 每次渲染到该游戏对象时调用, TODO: 考虑将该能力废弃掉，改为使用 Renderer 组件实现
 		virtual void onRender(GameObject* self) = 0;
+		// 每次与别的游戏对象相交时调用
+		virtual void onTrigger(GameObject* self, GameObject* other) = 0;
 	};
 
 	// 游戏对象
@@ -257,6 +259,11 @@ namespace luastg
 		void dispatchOnRender() {
 			for (auto c = callbacks; c != nullptr; c = c->getNextCallbacks(this)) {
 				c->onRender(this);
+			}
+		}
+		void dispatchOnTrigger(GameObject* other) {
+			for (auto c = callbacks; c != nullptr; c = c->getNextCallbacks(this)) {
+				c->onTrigger(this, other);
 			}
 		}
 		[[nodiscard]] bool hasRenderResource() const noexcept { return res != nullptr; }

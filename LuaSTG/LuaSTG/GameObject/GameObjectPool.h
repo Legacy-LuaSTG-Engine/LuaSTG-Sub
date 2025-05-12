@@ -139,6 +139,10 @@ namespace luastg
 		virtual void onBeforeBatchOutOfWorldBoundCheck() = 0;
 		// 对象管理器批量进行出界检查之后
 		virtual void onAfterBatchOutOfWorldBoundCheck() = 0;
+		// 对象管理器批量进行相交检测之前
+		virtual void onBeforeBatchIntersectDetect() = 0;
+		// 对象管理器批量进行相交检测之后
+		virtual void onAfterBatchIntersectDetect() = 0;
 	};
 
 	//游戏对象池
@@ -185,6 +189,7 @@ namespace luastg
 		lua_Number m_BoundBottom = -100.f;
 
 		bool m_IsRendering{ false };
+		bool m_is_detecting_intersect{ false };
 
 		FrameStatistics m_DbgData[2]{};
 		size_t m_DbgIdx{ 0 };
@@ -269,6 +274,16 @@ namespace luastg
 				c->onAfterBatchOutOfWorldBoundCheck();
 			}
 		}
+		void dispatchOnBeforeBatchIntersectDetect() {
+			for (auto const c : m_callbacks) {
+				c->onBeforeBatchIntersectDetect();
+			}
+		}
+		void dispatchOnAfterBatchIntersectDetect() {
+			for (auto const c : m_callbacks) {
+				c->onAfterBatchIntersectDetect();
+			}
+		}
 		void DebugNextFrame();
 		FrameStatistics DebugGetFrameStatistics();
 
@@ -326,11 +341,11 @@ namespace luastg
 
 		// 相交检测：传统模式
 		// 检测 -> 回调（如果相交） -> 检测 -> 回调（如果相交） -> ...
-		void detectIntersectionLegacy(uint32_t group1, uint32_t group2, int32_t objects_index = 0, lua_State* L = nullptr);
+		void detectIntersectionLegacy(uint32_t group1, uint32_t group2);
 
 		// 相交检测：批量模式
 		// 检测所有 -> 回调所有
-		void detectIntersection(std::pmr::vector<IntersectionDetectionGroupPair> const& group_pairs, int32_t objects_index = 0, lua_State* L = nullptr);
+		void detectIntersection(std::pmr::vector<IntersectionDetectionGroupPair> const& group_pairs);
 
 		/// @brief 更新对象的XY坐标偏移量
 		void UpdateXY() noexcept;
@@ -373,6 +388,7 @@ namespace luastg
 		GameObject* freeWithCallbacks(GameObject* object);
 		[[nodiscard]] bool isLockedByDetectIntersection(GameObject const* const object) const noexcept { return object == m_LockObjectA || object == m_LockObjectB; }
 		[[nodiscard]] bool isRendering() const noexcept { return m_IsRendering; }
+		[[nodiscard]] bool isDetectingIntersect() const noexcept { return m_is_detecting_intersect; }
 
 #ifdef USING_MULTI_GAME_WORLD
 	private:
@@ -462,8 +478,6 @@ namespace luastg
 		static int api_GetV(lua_State* L) noexcept;
 		static int api_SetV(lua_State* L) noexcept;
 		
-		static int api_CollisionCheck(lua_State* L);
-
 		static int api_SetImgState(lua_State* L) noexcept;
 		static int api_SetParState(lua_State* L) noexcept;
 	

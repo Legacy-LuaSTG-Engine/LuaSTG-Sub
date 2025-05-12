@@ -365,8 +365,10 @@ namespace luastg
 
 		dispatchOnAfterBatchOutOfWorldBoundCheck();
 	}
-	void GameObjectPool::detectIntersectionLegacy(uint32_t const group1, uint32_t const group2, int32_t const objects_index, lua_State* const L) {
+	void GameObjectPool::detectIntersectionLegacy(uint32_t const group1, uint32_t const group2) {
 		tracy_zone_scoped_with_name("LOBJMGR.CollisionCheck");
+		m_is_detecting_intersect = true;
+		dispatchOnBeforeBatchIntersectDetect();
 		auto& debug_data = m_DbgData[m_DbgIdx];
 		for (auto ptrA = m_detect_lists[group1].first(); ptrA != nullptr;) {
 			GameObject* pA = ptrA;
@@ -390,16 +392,9 @@ namespace luastg
 #ifdef USING_MULTI_GAME_WORLD
 				m_pCurrentObject = pA;
 #endif // USING_MULTI_GAME_WORLD
-				m_LockObjectA = ptrA;
-				m_LockObjectB = ptrB;
-				// 根据id获取对象的lua绑定table、拿到class再拿到collifunc
-				lua_rawgeti(L, objects_index, pA->id + 1);	// ... object1
-				lua_rawgeti(L, -1, 1);						// ... object1 class1
-				lua_rawgeti(L, -1, LGOBJ_CC_COLLI);			// ... object1 class1 colli1
-				lua_pushvalue(L, -3);						// ... object1 class1 colli1 object1
-				lua_rawgeti(L, objects_index, pB->id + 1);	// ... object1 class1 colli1 object1 object2
-				lua_call(L, 2, 0);							// ... object1 class1
-				lua_pop(L, 2);								// ...
+				m_LockObjectA = pA;
+				m_LockObjectB = pB;
+				pA->dispatchOnTrigger(pB);
 #ifdef USING_MULTI_GAME_WORLD
 				m_pCurrentObject = nullptr;
 #endif // USING_MULTI_GAME_WORLD
@@ -407,9 +402,13 @@ namespace luastg
 				m_LockObjectB = nullptr;
 			}
 		}
+		dispatchOnAfterBatchIntersectDetect();
+		m_is_detecting_intersect = false;
 	}
-	void GameObjectPool::detectIntersection(std::pmr::vector<IntersectionDetectionGroupPair> const& group_pairs, int32_t const objects_index, lua_State* const L) {
+	void GameObjectPool::detectIntersection(std::pmr::vector<IntersectionDetectionGroupPair> const& group_pairs) {
 		tracy_zone_scoped_with_name("LOBJMGR.CollisionCheck(New)");
+		m_is_detecting_intersect = true;
+		dispatchOnBeforeBatchIntersectDetect();
 		auto& debug_data = m_DbgData[m_DbgIdx];
 		std::pmr::deque<IntersectionDetectionResult> cache{ &m_memory_resource };
 		for (const auto& [group1, group2] : group_pairs) {
@@ -436,9 +435,6 @@ namespace luastg
 				}
 			}
 		}
-		if (objects_index <= 0 || L == nullptr) {
-			return;
-		}
 		for (auto const& [uid1, uid2, object1, object2] : cache) {
 			if (object1->unique_id != uid1 || object2->unique_id != uid2) {
 				assert(false); continue; // 理论上不太可能发生
@@ -449,73 +445,15 @@ namespace luastg
 #endif // USING_MULTI_GAME_WORLD
 			m_LockObjectA = object1;
 			m_LockObjectB = object2;
-			lua_rawgeti(L, objects_index, object1->id + 1);	// ... object1
-			lua_rawgeti(L, -1, 1);							// ... object1 class1
-			lua_rawgeti(L, -1, LGOBJ_CC_COLLI);				// ... object1 class1 colli1
-			lua_pushvalue(L, -3);							// ... object1 class1 colli1 object1
-			lua_rawgeti(L, objects_index, object2->id + 1);	// ... object1 class1 colli1 object1 object2
-			lua_call(L, 2, 0);								// ... object1 class1
-			lua_pop(L, 2);									// ...
+			object1->dispatchOnTrigger(object2);
 #ifdef USING_MULTI_GAME_WORLD
 			m_pCurrentObject = nullptr;
 #endif // USING_MULTI_GAME_WORLD
 			m_LockObjectA = nullptr;
 			m_LockObjectB = nullptr;
 		}
-	}
-
-	int GameObjectPool::api_CollisionCheck(lua_State* L) {
-		lua::stack_t S(L);
-		if (g_GameObjectPool->m_LockObjectA && g_GameObjectPool->m_LockObjectB) {
-			return luaL_error(L, "invalid operation");
-		}
-		if (S.is_number(1) && S.is_number(2)) {
-			auto const group1 = S.get_value<uint32_t>(1);
-			auto const group2 = S.get_value<uint32_t>(2);
-			if (group1 < 0 || group1 >= LOBJPOOL_GROUPN) {
-				return luaL_error(L, "invalid collision group <%d>", group1);
-			}
-			if (group2 < 0 || group2 >= LOBJPOOL_GROUPN) {
-				return luaL_error(L, "invalid collision group <%d>", group1);
-			}
-			binding::GameObject::pushGameObjectTable(L);
-			auto const objects = S.index_of_top();
-			g_GameObjectPool->detectIntersectionLegacy(group1, group2, objects.value, L);
-			S.pop_value();
-			return 0;
-		}
-		else if (S.is_table(1)) {
-			// Stage 1
-			auto const group_count = S.get_array_size(1);
-			if (group_count == 0) {
-				return 0; // early return
-			}
-			// Stage 2
-			std::pmr::vector<IntersectionDetectionGroupPair> group_pairs{ &g_GameObjectPool->m_memory_resource };
-			group_pairs.reserve(group_count);
-			for (int32_t i = 1; i <= static_cast<int32_t>(group_count); i += 1) {
-				auto const group_pair = S.get_array_value<lua::stack_index_t>(1, i);
-				auto const group1 = S.get_array_value<uint32_t>(group_pair, 1);
-				auto const group2 = S.get_array_value<uint32_t>(group_pair, 2);
-				if (group1 < 0 || group1 >= LOBJPOOL_GROUPN) {
-					return luaL_error(L, "invalid collision group <%d>", group1);
-				}
-				if (group2 < 0 || group2 >= LOBJPOOL_GROUPN) {
-					return luaL_error(L, "invalid collision group <%d>", group1);
-				}
-				S.pop_value();
-				group_pairs.emplace_back(group1, group2);
-			}
-			// Stage 3
-			binding::GameObject::pushGameObjectTable(L);
-			auto const objects = S.index_of_top();
-			g_GameObjectPool->detectIntersection(group_pairs, objects.value, L);
-			S.pop_value();
-			return 0;
-		}
-		else {
-			return luaL_error(L, "invalid parameters");
-		}
+		dispatchOnAfterBatchIntersectDetect();
+		m_is_detecting_intersect = false;
 	}
 
 	void GameObjectPool::DirtResetObject(GameObject* p) noexcept

@@ -21,10 +21,6 @@ void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 			);
 			return 0;
 		}
-		static int CollisionCheck(lua_State* L) noexcept
-		{
-			return LPOOL.api_CollisionCheck(L);
-		}
 		static int UpdateXY(lua_State* L) noexcept
 		{
 			LPOOL.UpdateXY();
@@ -99,7 +95,6 @@ void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 		// 对象管理器
 		{ "GetnObj", &Wrapper::GetnObj },
 		{ "SetBound", &Wrapper::SetBound },
-		{ "CollisionCheck", &Wrapper::CollisionCheck },
 		{ "UpdateXY", &Wrapper::UpdateXY },
 		// 对象遍历
 		{ "NextObject", &GameObjectPool::api_NextObject },

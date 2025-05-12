@@ -67,6 +67,12 @@ namespace {
 		void onAfterBatchOutOfWorldBoundCheck() override {
 			afterBatch();
 		}
+		void onBeforeBatchIntersectDetect() override {
+			beforeBatch();
+		}
+		void onAfterBatchIntersectDetect() override {
+			afterBatch();
+		}
 
 		void beforeBatch() {
 			auto const vm = lua_vm.back();
@@ -133,6 +139,22 @@ namespace {
 		void onLateUpdate(luastg::GameObject* self) override {}
 		void onRender(luastg::GameObject* self) override {
 			call(self, LGOBJ_CC_RENDER);
+		}
+		void onTrigger(luastg::GameObject* self, luastg::GameObject* other) override {
+			auto const vm = game_object_manager_callbacks.lua_vm.back();
+			lua::stack_t const ctx(vm);
+
+			auto const table = game_object_manager_callbacks.game_object_tables_index;
+			auto const lua_index = static_cast<int32_t>(self->id + 1);
+			auto const other_lua_index = static_cast<int32_t>(other->id + 1);
+
+			auto const object = ctx.get_array_value<lua::stack_index_t>(table, lua_index); // ... t ... object
+			auto const object_class = ctx.get_array_value<lua::stack_index_t>(object, 1); // ... t ... object class
+			std::ignore = ctx.get_array_value<lua::stack_index_t>(object_class, LGOBJ_CC_COLLI);	 // ... t ... object class callback
+			ctx.push_value(object); // ... t ... object class callback object
+			std::ignore = ctx.get_array_value<lua::stack_index_t>(table, other_lua_index); // ... t ... object class callback object other
+			lua_call(vm, 2, 0); // ... t ... object class
+			ctx.pop_value(2); // ... t ...
 		}
 
 		static void call(luastg::GameObject const* const self, int const type) {
@@ -740,6 +762,59 @@ namespace luastg::binding {
 			game_object_manager_callbacks.lua_vm.pop_back();
 			return 0;
 		}
+		static int intersectDetectGameObjectManager(lua_State* const vm) {
+			lua::stack_t const ctx(vm);
+			if (LPOOL.isDetectingIntersect()) {
+				return luaL_error(vm, "invalid operation");
+			}
+			if (ctx.is_number(1) && ctx.is_number(2)) {
+				auto const group1 = ctx.get_value<uint32_t>(1);
+				auto const group2 = ctx.get_value<uint32_t>(2);
+				if (group1 < 0 || group1 >= LOBJPOOL_GROUPN) {
+					return luaL_error(vm, "invalid collision group <%d>", group1);
+				}
+				if (group2 < 0 || group2 >= LOBJPOOL_GROUPN) {
+					return luaL_error(vm, "invalid collision group <%d>", group1);
+				}
+				game_object_manager_callbacks.lua_vm.push_back(vm);
+				LPOOL.detectIntersectionLegacy(group1, group2);
+				game_object_manager_callbacks.lua_vm.pop_back();
+				return 0;
+			}
+			if (ctx.is_table(1)) {
+				// Stage 1
+				auto const group_count = ctx.get_array_size(1);
+				if (group_count == 0) {
+					return 0; // early return
+				}
+				// Stage 2
+				std::array<uint32_t, 32> stack_buffer{};
+				std::pmr::monotonic_buffer_resource local_memory_resource(
+					stack_buffer.data(), stack_buffer.size() * sizeof(uint32_t),
+					std::pmr::get_default_resource());
+				std::pmr::vector<GameObjectPool::IntersectionDetectionGroupPair> group_pairs{ &local_memory_resource };
+				group_pairs.reserve(group_count);
+				for (int32_t i = 1; i <= static_cast<int32_t>(group_count); i += 1) {
+					auto const group_pair = ctx.get_array_value<lua::stack_index_t>(1, i);
+					auto const group1 = ctx.get_array_value<uint32_t>(group_pair, 1);
+					auto const group2 = ctx.get_array_value<uint32_t>(group_pair, 2);
+					if (group1 < 0 || group1 >= LOBJPOOL_GROUPN) {
+						return luaL_error(vm, "invalid collision group <%d>", group1);
+					}
+					if (group2 < 0 || group2 >= LOBJPOOL_GROUPN) {
+						return luaL_error(vm, "invalid collision group <%d>", group1);
+					}
+					ctx.pop_value();
+					group_pairs.emplace_back(group1, group2);
+				}
+				// Stage 3
+				game_object_manager_callbacks.lua_vm.push_back(vm);
+				LPOOL.detectIntersection(group_pairs);
+				game_object_manager_callbacks.lua_vm.pop_back();
+				return 0;
+			}
+			return luaL_error(vm, "invalid parameters");
+		}
 	};
 
 	bool GameObject::is(lua_State* const vm, int const index) {
@@ -803,6 +878,7 @@ namespace luastg::binding {
 		ctx.set_map_value(lstg_table, "ObjFrame"sv, &GameObjectBinding::updateGameObjectManager);
 		ctx.set_map_value(lstg_table, "ObjRender"sv, &GameObjectBinding::renderGameObjectManager);
 		ctx.set_map_value(lstg_table, "BoundCheck"sv, &GameObjectBinding::boundCheckGameObjectManager);
+		ctx.set_map_value(lstg_table, "CollisionCheck"sv, &GameObjectBinding::intersectDetectGameObjectManager);
 		ctx.set_map_value(lstg_table, "ObjTable"sv, &pushGameObjectTable);
 
 		LPOOL.addCallbacks(&game_object_manager_callbacks);
