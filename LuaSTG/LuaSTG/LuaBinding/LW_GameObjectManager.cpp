@@ -101,8 +101,6 @@ void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 		{ "ObjList", &GameObjectPool::api_ObjList },
 		// 对象控制函数
 		{ "ResetObject", &GameObjectPool::api_ResetObject },
-		{ "Del", &GameObjectPool::api_Del },
-		{ "Kill", &GameObjectPool::api_Kill },
 		{ "IsValid", &GameObjectPool::api_IsValid },
 		{ "BoxCheck", &GameObjectPool::api_BoxCheck },
 		{ "ColliCheck", &GameObjectPool::api_ColliCheck },

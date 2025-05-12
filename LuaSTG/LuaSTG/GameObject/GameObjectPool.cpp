@@ -466,25 +466,6 @@ namespace luastg
 		m_render_list.insert(p);
 		m_detect_lists[p->group].add(p);
 	}
-	int GameObjectPool::Del(lua_State* L, bool kill_mode) noexcept
-	{
-		GameObject* p = _ToGameObject(L, 1);
-		if (p->status == GameObjectStatus::Active)
-		{
-			// 标记为即将回收的状态
-			p->status = (!kill_mode) ? GameObjectStatus::Dead : GameObjectStatus::Killed;
-			// 回调
-			if ((!kill_mode && p->features.has_callback_destroy) || (kill_mode && p->features.has_callback_legacy_kill))
-			{
-				lua_rawgeti(L, 1, 1);												// object ... class
-				lua_rawgeti(L, -1, (!kill_mode) ? LGOBJ_CC_DEL : LGOBJ_CC_KILL);	// object ... class callback
-				lua_insert(L, 1);													// callback object ...
-				lua_pop(L, 1);														// callback object ...
-				lua_call(L, lua_gettop(L) - 1, 0);									// 
-			}
-		}
-		return 0;
-	}
 	int GameObjectPool::IsValid(lua_State* L) noexcept
 	{
 		if (!lua_istable(L, 1))
@@ -627,6 +608,15 @@ namespace luastg
 		object->status = GameObjectStatus::Free;
 		m_ObjectPool.free(object->id);
 		return next;
+	}
+	bool GameObjectPool::queueToFree(GameObject* const object, bool const legacy_kill_mode) {
+		if (object->status != GameObjectStatus::Active) {
+			return false;
+		}
+		object->status = legacy_kill_mode ? GameObjectStatus::Killed : GameObjectStatus::Dead;
+		auto const has_callback_destroy = !legacy_kill_mode && object->features.has_callback_destroy;
+		auto const has_callback_legacy_kill = legacy_kill_mode && object->features.has_callback_legacy_kill;
+		return has_callback_destroy || has_callback_legacy_kill;
 	}
 
 	void GameObjectPool::DrawCollider()
@@ -781,14 +771,6 @@ namespace luastg
 		GameObject* p = g_GameObjectPool->_TableToGameObject(L, 1);
 		g_GameObjectPool->DirtResetObject(p);
 		return 0;
-	}
-	int GameObjectPool::api_Del(lua_State* L) noexcept
-	{
-		return g_GameObjectPool->Del(L);
-	}
-	int GameObjectPool::api_Kill(lua_State* L) noexcept
-	{
-		return g_GameObjectPool->Del(L, true);
 	}
 	int GameObjectPool::api_IsValid(lua_State* L) noexcept
 	{

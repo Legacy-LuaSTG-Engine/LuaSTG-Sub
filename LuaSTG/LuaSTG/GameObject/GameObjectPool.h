@@ -350,9 +350,6 @@ namespace luastg
 		/// @brief 更新对象的XY坐标偏移量
 		void UpdateXY() noexcept;
 		
-		/// @brief 通知对象删除
-		int Del(lua_State* L, bool kill_mode = false) noexcept;
-
 		/// @brief 检查对象是否有效
 		int IsValid(lua_State* L) noexcept;
 
@@ -386,6 +383,7 @@ namespace luastg
 		[[nodiscard]] GameObject* allocate() { return allocateWithCallbacks(nullptr); }
 		[[nodiscard]] GameObject* allocateWithCallbacks(IGameObjectCallbacks* callbacks);
 		GameObject* freeWithCallbacks(GameObject* object);
+		bool queueToFree(GameObject* object, bool legacy_kill_mode = false);
 		[[nodiscard]] bool isLockedByDetectIntersection(GameObject const* const object) const noexcept { return object == m_LockObjectA || object == m_LockObjectB; }
 		[[nodiscard]] bool isRendering() const noexcept { return m_IsRendering; }
 		[[nodiscard]] bool isDetectingIntersect() const noexcept { return m_is_detecting_intersect; }
@@ -468,8 +466,6 @@ namespace luastg
 		static int api_ObjList(lua_State* L) noexcept;
 
 		static int api_ResetObject(lua_State* L) noexcept;
-		static int api_Del(lua_State* L) noexcept;
-		static int api_Kill(lua_State* L) noexcept;
 		static int api_IsValid(lua_State* L) noexcept;
 		static int api_BoxCheck(lua_State* L) noexcept;
 		static int api_ColliCheck(lua_State* L) noexcept;

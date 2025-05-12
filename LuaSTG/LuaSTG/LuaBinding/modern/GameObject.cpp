@@ -697,6 +697,20 @@ namespace luastg::binding {
 
 			return 2;
 		}
+		static int queueToFree(lua_State* const vm) {
+			lua::stack_t const ctx(vm);
+			auto const self = as(vm, 1);
+			auto const has_callback = LPOOL.queueToFree(self);
+			ctx.push_value(has_callback);
+			return 1;
+		}
+		static int queueToFreeLegacyKillMode(lua_State* const vm) {
+			lua::stack_t const ctx(vm);
+			auto const self = as(vm, 1);
+			auto const has_callback = LPOOL.queueToFree(self, true);
+			ctx.push_value(has_callback);
+			return 1;
+		}
 		static int updateNext(lua_State* const vm) {
 			// TODO: 移动到 GameObjectManager 绑定
 			// version 2
@@ -873,6 +887,8 @@ namespace luastg::binding {
 		ctx.set_map_value(lstg_table, "SetAttr"sv, &GameObjectBinding::__newindex);
 		ctx.set_map_value(lstg_table, "DefaultRenderFunc"sv, &GameObjectBinding::render);
 		ctx.set_map_value(lstg_table, "_New"sv, &GameObjectBinding::allocateAndManage);
+		ctx.set_map_value(lstg_table, "_Del"sv, &GameObjectBinding::queueToFree);
+		ctx.set_map_value(lstg_table, "_Kill"sv, &GameObjectBinding::queueToFreeLegacyKillMode);
 		ctx.set_map_value(lstg_table, "AfterFrame"sv, &GameObjectBinding::updateNext);
 		ctx.set_map_value(lstg_table, "ResetPool"sv, &GameObjectBinding::resetGameObjectManager);
 		ctx.set_map_value(lstg_table, "ObjFrame"sv, &GameObjectBinding::updateGameObjectManager);
