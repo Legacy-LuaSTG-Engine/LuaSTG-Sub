@@ -127,6 +127,10 @@ namespace luastg
 		virtual void onBeforeBatchDestroy() = 0;
 		// 对象管理器批量回收对象之后
 		virtual void onAfterBatchDestroy() = 0;
+		// 对象管理器批量渲染对象之前
+		virtual void onBeforeBatchRender() = 0;
+		// 对象管理器批量渲染对象之后
+		virtual void onAfterBatchRender() = 0;
 	};
 
 	//游戏对象池
@@ -227,6 +231,16 @@ namespace luastg
 				c->onAfterBatchDestroy();
 			}
 		}
+		void dispatchOnBeforeBatchRender() {
+			for (auto const c : m_callbacks) {
+				c->onBeforeBatchRender();
+			}
+		}
+		void dispatchOnAfterBatchRender() {
+			for (auto const c : m_callbacks) {
+				c->onAfterBatchRender();
+			}
+		}
 		void DebugNextFrame();
 		FrameStatistics DebugGetFrameStatistics();
 
@@ -257,8 +271,8 @@ namespace luastg
 		// 对象更新：新旧帧衔接
 		void updateNext();
 
-		/// @brief 执行对象的Render函数
-		void DoRender() noexcept;
+		// 渲染所有游戏对象
+		void render();
 
 		/// @brief 设置舞台边界
 		inline void SetBound(lua_Number l, lua_Number r, lua_Number b, lua_Number t) noexcept {
@@ -423,7 +437,6 @@ namespace luastg
 		static int api_ObjFrame(lua_State* L);
 		static int api_BoundCheck(lua_State* L);
 		static int api_CollisionCheck(lua_State* L);
-		static int api_DoRender(lua_State* L);
 
 		static int api_SetImgState(lua_State* L) noexcept;
 		static int api_SetParState(lua_State* L) noexcept;

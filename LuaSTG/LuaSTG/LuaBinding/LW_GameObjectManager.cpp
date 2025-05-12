@@ -107,7 +107,6 @@ void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 		// 对象管理器
 		{ "GetnObj", &Wrapper::GetnObj },
 		{ "ObjFrame", &Wrapper::ObjFrame },
-		{ "ObjRender", &GameObjectPool::api_DoRender },
 		{ "BoundCheck", &Wrapper::BoundCheck },
 		{ "SetBound", &Wrapper::SetBound },
 		{ "CollisionCheck", &Wrapper::CollisionCheck },

@@ -194,12 +194,9 @@ namespace luastg
 			p->UpdateV2();
 		}
 	}
-	void GameObjectPool::DoRender() noexcept {
-		/*binding::GameObject::pushGameObjectTable(G_L); // ot
-		int const ot_idx = lua_gettop(G_L);
-
+	void GameObjectPool::render() {
 		m_IsRendering = true;
-
+		dispatchOnBeforeBatchRender();
 #ifdef USING_MULTI_GAME_WORLD
 		m_pCurrentObject = nullptr;
 		lua_Integer world = GetWorldFlag();
@@ -213,7 +210,7 @@ namespace luastg
 			if (!p->hide) {  // 只渲染可见对象
 #endif // USING_MULTI_GAME_WORLD
 				if (p->features.has_callback_render) {
-					_GameObjectCallback(G_L, ot_idx, p, LGOBJ_CC_RENDER);
+					p->dispatchOnRender();
 				}
 				else {
 					p->Render();
@@ -224,9 +221,8 @@ namespace luastg
 #ifdef USING_MULTI_GAME_WORLD
 		m_pCurrentObject = nullptr;
 #endif // USING_MULTI_GAME_WORLD
+		dispatchOnAfterBatchRender();
 		m_IsRendering = false;
-
-		lua_pop(G_L, 1);*/
 	}
 	void GameObjectPool::UpdateXY() noexcept {
 		tracy_zone_scoped_with_name("LOBJMGR.UpdateXY");
@@ -916,41 +912,6 @@ namespace luastg
 		}
 #endif // USING_MULTI_GAME_WORLD
 		return 1;
-	}
-	int GameObjectPool::api_DoRender(lua_State* L) {
-		binding::GameObject::pushGameObjectTable(L); // ot
-		int const ot_idx = lua_gettop(L);
-
-		g_GameObjectPool->m_IsRendering = true;
-
-	#ifdef USING_MULTI_GAME_WORLD
-		g_GameObjectPool->m_pCurrentObject = nullptr;
-		lua_Integer world = g_GameObjectPool->GetWorldFlag();
-	#endif // USING_MULTI_GAME_WORLD
-
-		for (auto& p : g_GameObjectPool->m_render_list) {
-		#ifdef USING_MULTI_GAME_WORLD
-			if (!p->hide && g_GameObjectPool->CheckWorld(p->world, world)) { // 只渲染可见对象
-				g_GameObjectPool->m_pCurrentObject = p;
-			#else // USING_MULTI_GAME_WORLD
-			if (!p->hide) {  // 只渲染可见对象
-			#endif // USING_MULTI_GAME_WORLD
-				if (p->features.has_callback_render) {
-					g_GameObjectPool->_GameObjectCallback(L, ot_idx, p, LGOBJ_CC_RENDER);
-				}
-				else {
-					p->Render();
-				}
-			}
-			}
-
-	#ifdef USING_MULTI_GAME_WORLD
-		g_GameObjectPool->m_pCurrentObject = nullptr;
-	#endif // USING_MULTI_GAME_WORLD
-		g_GameObjectPool->m_IsRendering = false;
-
-		lua_pop(L, 1);
-		return 0;
 	}
 	int GameObjectPool::api_Angle(lua_State* L) noexcept
 	{
