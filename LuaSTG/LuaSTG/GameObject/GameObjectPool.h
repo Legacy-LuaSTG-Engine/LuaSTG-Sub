@@ -347,10 +347,7 @@ namespace luastg
 
 		/// @brief 更新对象的XY坐标偏移量
 		void UpdateXY() noexcept;
-		
-		/// @brief 检查对象是否有效
-		int IsValid(lua_State* L) noexcept;
-
+	
 		//重置对象的各项属性，并释放资源，保留uid和id
 		void DirtResetObject(GameObject* p) noexcept;
 
@@ -472,7 +469,6 @@ namespace luastg
 		// lua api
 
 		static int api_ResetObject(lua_State* L) noexcept;
-		static int api_IsValid(lua_State* L) noexcept;
 		static int api_BoxCheck(lua_State* L) noexcept;
 		static int api_ColliCheck(lua_State* L) noexcept;
 		static int api_Angle(lua_State* L) noexcept;

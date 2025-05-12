@@ -98,7 +98,6 @@ void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 		{ "UpdateXY", &Wrapper::UpdateXY },
 		// 对象控制函数
 		{ "ResetObject", &GameObjectPool::api_ResetObject },
-		{ "IsValid", &GameObjectPool::api_IsValid },
 		{ "BoxCheck", &GameObjectPool::api_BoxCheck },
 		{ "ColliCheck", &GameObjectPool::api_ColliCheck },
 		{ "Angle", &GameObjectPool::api_Angle },

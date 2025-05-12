@@ -462,19 +462,6 @@ namespace luastg
 		m_render_list.insert(p);
 		m_detect_lists[p->group].add(p);
 	}
-	int GameObjectPool::IsValid(lua_State* L) noexcept
-	{
-		if (!lua_istable(L, 1))
-		{
-			lua_pushboolean(L, false);
-			return 1;
-		}
-		lua_rawgeti(L, 1, 3);
-		GameObject* p = (GameObject*)lua_touserdata(L, -1);
-		lua_pop(L, 1);
-		lua_pushboolean(L, p != nullptr);
-		return 1;
-	}
 
 	bool GameObjectPool::SetImgState(GameObject* p, BlendMode m, core::Color4B c) noexcept
 	{
@@ -712,10 +699,6 @@ namespace luastg
 		GameObject* p = g_GameObjectPool->_TableToGameObject(L, 1);
 		g_GameObjectPool->DirtResetObject(p);
 		return 0;
-	}
-	int GameObjectPool::api_IsValid(lua_State* L) noexcept
-	{
-		return g_GameObjectPool->IsValid(L);
 	}
 	int GameObjectPool::api_BoxCheck(lua_State* L) noexcept
 	{
