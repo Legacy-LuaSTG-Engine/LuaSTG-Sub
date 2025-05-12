@@ -211,9 +211,6 @@ namespace luastg
 			return object->isInRect(m_BoundLeft, m_BoundRight, m_BoundBottom, m_BoundTop);
 		}
 
-		GameObject* _ToGameObject(lua_State* L, int idx);
-		GameObject* _TableToGameObject(lua_State* L, int idx);
-
 	public:
 		void addCallbacks(IGameObjectManagerCallbacks* const callbacks) {
 			for (auto const c : m_callbacks) {
@@ -457,13 +454,7 @@ namespace luastg
 		void DrawCollider();
 		void DrawGroupCollider(int groupId, core::Color4B fillColor);
 		void DrawGroupCollider2(int groupId, core::Color4B fillColor);
-	public:
-		// lua api
 
-		static int api_ResetObject(lua_State* L) noexcept;
-		static int api_BoxCheck(lua_State* L) noexcept;
-		static int api_ColliCheck(lua_State* L) noexcept;
-		
 	public:
 		GameObjectPool();
 		GameObjectPool& operator=(const GameObjectPool&) = delete;

@@ -48,31 +48,6 @@ namespace luastg
 		}
 	}
 
-	GameObject* GameObjectPool::_ToGameObject(lua_State* L, int idx)
-	{
-		if (!lua_istable(L, idx))
-		{
-			luaL_error(L, "invalid lstg object");
-			return nullptr;
-		}
-		return _TableToGameObject(L, idx);
-	}
-	GameObject* GameObjectPool::_TableToGameObject(lua_State* L, int idx)
-	{
-#if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
-		lua_rawgeti(L, idx, 2);
-		size_t oidx = (size_t)(luaL_checkinteger(L, -1));
-		lua_pop(L, 1);
-		GameObject* pukn = m_ObjectPool.object(oidx);
-#endif
-		lua_rawgeti(L, idx, 3);
-		GameObject* p = (GameObject*)lua_touserdata(L, -1);
-		lua_pop(L, 1);
-		if (!p)
-			luaL_error(L, "invalid lstg object");
-		return p;
-	}
-
 	// --------------------------------------------------------------------------------
 
 	void GameObjectPool::DebugNextFrame()
@@ -439,7 +414,6 @@ namespace luastg
 		dispatchOnAfterBatchIntersectDetect();
 		m_is_detecting_intersect = false;
 	}
-
 	void GameObjectPool::DirtResetObject(GameObject* p) noexcept
 	{
 		// 分配新的 UUID 并重新插入更新链表末尾
@@ -644,42 +618,4 @@ namespace luastg
 		DrawGroupCollider(groupId, fillColor);
 	}
 
-	// --------------------------------------------------------------------------------
-
-	int GameObjectPool::api_ResetObject(lua_State* L) noexcept
-	{
-		GameObject* p = g_GameObjectPool->_TableToGameObject(L, 1);
-		g_GameObjectPool->DirtResetObject(p);
-		return 0;
-	}
-	int GameObjectPool::api_BoxCheck(lua_State* L) noexcept
-	{
-		GameObject* p = g_GameObjectPool->_ToGameObject(L, 1);
-		lua_Number const left = luaL_checknumber(L, 2);
-		lua_Number const right = luaL_checknumber(L, 3);
-		lua_Number const bottom = luaL_checknumber(L, 4);
-		lua_Number const top = luaL_checknumber(L, 5);
-		lua_pushboolean(L, p->isInRect(left, right, bottom, top));
-		return 1;
-	}
-	int GameObjectPool::api_ColliCheck(lua_State* L) noexcept
-	{
-		GameObject* p1 = g_GameObjectPool->_ToGameObject(L, 1);
-		GameObject* p2 = g_GameObjectPool->_ToGameObject(L, 2);
-#ifdef USING_MULTI_GAME_WORLD
-		bool const ignore_world_mask = (lua_gettop(L) >= 3) ? lua_toboolean(L, 3) : false;
-		if (ignore_world_mask)
-		{
-#endif // USING_MULTI_GAME_WORLD
-			lua_pushboolean(L, GameObject::isIntersect(p1, p2));
-#ifdef USING_MULTI_GAME_WORLD
-		}
-		else
-		{
-			lua_pushboolean(L, g_GameObjectPool->CheckWorlds(p1->world, p2->world) && GameObject::isIntersect(p1, p2));
-		}
-#endif // USING_MULTI_GAME_WORLD
-		return 1;
-	}
-	
 }

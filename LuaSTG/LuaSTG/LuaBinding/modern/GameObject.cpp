@@ -710,6 +710,33 @@ namespace luastg::binding {
 			self->setParticleEmission(value);
 			return 0;
 		}
+		static int isInRect(lua_State* const vm) {
+			lua::stack_t const ctx(vm);
+			auto const self = as(vm, 1);
+			auto const left = ctx.get_value<double>(2);
+			auto const right = ctx.get_value<double>(3);
+			auto const bottom = ctx.get_value<double>(4);
+			auto const top = ctx.get_value<double>(5);
+			ctx.push_value(self->isInRect(left, right, bottom, top));
+			return 1;
+		}
+		static int isIntersect(lua_State* const vm) {
+			lua::stack_t const ctx(vm);
+			auto const self = as(vm, 1);
+			auto const other = as(vm, 2);
+		#ifdef USING_MULTI_GAME_WORLD
+			auto const ignore_world_mask = ctx.get_value<bool>(3);
+			if (ignore_world_mask) {
+		#endif // USING_MULTI_GAME_WORLD
+				ctx.push_value(self->isIntersect(other));
+		#ifdef USING_MULTI_GAME_WORLD
+			}
+			else {
+				ctx.push_value(LPOOL.CheckWorlds(p1->world, p2->world) && self->isIntersect(other));
+			}
+		#endif // USING_MULTI_GAME_WORLD
+			return 1;
+		}
 
 		// static methods
 
@@ -760,6 +787,11 @@ namespace luastg::binding {
 		#endif
 
 			return 2;
+		}
+		static int dirtyReset(lua_State* const vm) {
+			auto const self = as(vm, 1);
+			LPOOL.DirtResetObject(self);
+			return 0;
 		}
 		static int queueToFree(lua_State* const vm) {
 			lua::stack_t const ctx(vm);
@@ -1007,7 +1039,10 @@ namespace luastg::binding {
 		ctx.set_map_value(lstg_table, "ParticleGetn"sv, &GameObjectBinding::getParticleCount);
 		ctx.set_map_value(lstg_table, "ParticleGetEmission"sv, &GameObjectBinding::getParticleEmission);
 		ctx.set_map_value(lstg_table, "ParticleSetEmission"sv, &GameObjectBinding::setParticleEmission);
+		ctx.set_map_value(lstg_table, "BoxCheck"sv, &GameObjectBinding::isInRect);
+		ctx.set_map_value(lstg_table, "ColliCheck"sv, &GameObjectBinding::isIntersect);
 		ctx.set_map_value(lstg_table, "_New"sv, &GameObjectBinding::allocateAndManage);
+		ctx.set_map_value(lstg_table, "ResetObject"sv, &GameObjectBinding::dirtyReset); // TODO: WTF?
 		ctx.set_map_value(lstg_table, "_Del"sv, &GameObjectBinding::queueToFree);
 		ctx.set_map_value(lstg_table, "_Kill"sv, &GameObjectBinding::queueToFreeLegacyKillMode);
 		ctx.set_map_value(lstg_table, "AfterFrame"sv, &GameObjectBinding::updateNext);

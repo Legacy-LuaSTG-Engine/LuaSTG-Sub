@@ -96,10 +96,6 @@ void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 		{ "GetnObj", &Wrapper::GetnObj },
 		{ "SetBound", &Wrapper::SetBound },
 		{ "UpdateXY", &Wrapper::UpdateXY },
-		// 对象控制函数
-		{ "ResetObject", &GameObjectPool::api_ResetObject },
-		{ "BoxCheck", &GameObjectPool::api_BoxCheck },
-		{ "ColliCheck", &GameObjectPool::api_ColliCheck },
 		// EX+
 		{ "GetSuperPause", &Wrapper::GetSuperPause },
 		{ "SetSuperPause", &Wrapper::SetSuperPause },
