@@ -66,20 +66,6 @@ namespace luastg
 		return m_DbgData[i];
 	}
 
-#ifdef USING_MULTI_GAME_WORLD
-	int GameObjectPool::PushCurrentObject(lua_State* L)  noexcept
-	{
-		if (!m_pCurrentObject)
-		{
-			lua_pushnil(L);
-			return 1;
-		}
-		binding::GameObject::pushGameObjectTable(L);
-		lua_rawgeti(L, -1, (int)m_pCurrentObject->id + 1);  // ot t(object)
-		return 1;
-	}
-#endif // USING_MULTI_GAME_WORLD
-	
 	void GameObjectPool::ResetPool() noexcept
 	{
 		// 回收已分配的对象和更新链表

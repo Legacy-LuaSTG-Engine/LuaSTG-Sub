@@ -1,5 +1,6 @@
 #include "LuaBinding/LuaWrapper.hpp"
 #include "AppFrame.h"
+#include "LuaBinding/modern/GameObject.hpp"
 
 void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 {
@@ -86,7 +87,14 @@ void luastg::binding::GameObjectManager::Register(lua_State* L) noexcept
 		// EX+
 		static int GetCurrentObject(lua_State* L) noexcept
 		{
-			return LPOOL.PushCurrentObject(L);
+			auto const object = LPOOL.getCurrentGameObject();
+			if (object == nullptr) {
+				lua_pushnil(L);
+				return 1;
+			}
+			GameObject::pushGameObjectTable(L);
+			lua_rawseti(L, -1, static_cast<int32_t>(object->id + 1));
+			return 1;
 		}
 #endif // USING_MULTI_GAME_WORLD
 	};

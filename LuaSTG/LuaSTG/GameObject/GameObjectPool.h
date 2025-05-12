@@ -284,7 +284,7 @@ namespace luastg
 
 	public:
 #ifdef USING_MULTI_GAME_WORLD
-		int PushCurrentObject(lua_State* L) noexcept;
+		GameObject* getCurrentGameObject() { return m_pCurrentObject; }
 #endif // USING_MULTI_GAME_WORLD
 
 		/// @brief 获取已分配对象数量
