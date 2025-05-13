@@ -95,7 +95,7 @@ namespace {
 			lua_rawseti(vm, idx, 4);
 		}
 	}
-	[[maybe_unused]] void releaseParticlePoolBinding(luastg::GameObject const* const self, lua_State* const vm, int const idx) {
+	[[maybe_unused]] void releaseParticlePoolBinding(luastg::GameObject const* const, lua_State* const vm, int const idx) {
 		// release
 		lua_rawgeti(vm, idx, 4);
 		if (lua_isuserdata(vm, -1)) {
@@ -240,7 +240,7 @@ namespace luastg::binding {
 
 			#ifdef USING_MULTI_GAME_WORLD
 			case LuaSTG::GameObjectMember::WORLD:
-				ctx.push_value(vm, self->world);
+				lua_pushinteger(vm, self->world); // interesting
 				return 1;
 			#endif // USING_MULTI_GAME_WORLD
 
@@ -752,14 +752,13 @@ namespace luastg::binding {
 			auto const self = as(vm, 1);
 			auto const other = as(vm, 2);
 		#ifdef USING_MULTI_GAME_WORLD
-			auto const ignore_world_mask = ctx.get_value<bool>(3);
-			if (ignore_world_mask) {
+			if (auto const ignore_world_mask = ctx.get_value<bool>(3)) {
 			#endif // USING_MULTI_GAME_WORLD
 				ctx.push_value(self->isIntersect(other));
 			#ifdef USING_MULTI_GAME_WORLD
 			}
 			else {
-				ctx.push_value(LPOOL.CheckWorlds(p1->world, p2->world) && self->isIntersect(other));
+				ctx.push_value(LPOOL.CheckWorlds(self->world, other->world) && self->isIntersect(other));
 			}
 		#endif // USING_MULTI_GAME_WORLD
 			return 1;

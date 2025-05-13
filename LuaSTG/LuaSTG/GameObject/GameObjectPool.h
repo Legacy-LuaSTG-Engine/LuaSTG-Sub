@@ -284,7 +284,7 @@ namespace luastg
 
 	public:
 #ifdef USING_MULTI_GAME_WORLD
-		GameObject* getCurrentGameObject() { return m_pCurrentObject; }
+		GameObject* getCurrentGameObject() const noexcept { return m_pCurrentObject; }
 #endif // USING_MULTI_GAME_WORLD
 
 		/// @brief 获取已分配对象数量
@@ -393,15 +393,15 @@ namespace luastg
 		// 用于多world
 
 		// 设置当前的world mask
-		inline void SetWorldFlag(int32_t const world) noexcept {
+		void SetWorldFlag(int32_t const world) noexcept {
 			m_iWorld = world;
 		}
 		// 获取当前的world mask
-		inline int32_t GetWorldFlag() noexcept {
+		int32_t GetWorldFlag() const noexcept {
 			return m_iWorld;
 		}
 		// 设置预置的world mask
-		inline void ActiveWorlds(int32_t const a, int32_t const b, int32_t const c, int32_t const d) noexcept {
+		void ActiveWorlds(int32_t const a, int32_t const b, int32_t const c, int32_t const d) noexcept {
 			m_Worlds[0] = a;
 			m_Worlds[1] = b;
 			m_Worlds[2] = c;
