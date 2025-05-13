@@ -188,7 +188,7 @@ namespace luastg
 		double m_BoundTop = 100.f;
 		double m_BoundBottom = -100.f;
 
-		bool m_IsRendering{ false };
+		bool m_is_rendering{ false };
 		bool m_is_detecting_intersect{ false };
 
 		FrameStatistics m_statistics[2]{};
@@ -360,7 +360,7 @@ namespace luastg
 		GameObject* freeWithCallbacks(GameObject* object);
 		bool queueToFree(GameObject* object, bool legacy_kill_mode = false);
 		[[nodiscard]] bool isLockedByDetectIntersection(GameObject const* const object) const noexcept { return object == m_LockObjectA || object == m_LockObjectB; }
-		[[nodiscard]] bool isRendering() const noexcept { return m_IsRendering; }
+		[[nodiscard]] bool isRendering() const noexcept { return m_is_rendering; }
 		[[nodiscard]] bool isDetectingIntersect() const noexcept { return m_is_detecting_intersect; }
 
 		GameObject* getUpdateListFirst() { return m_update_list.first(); }

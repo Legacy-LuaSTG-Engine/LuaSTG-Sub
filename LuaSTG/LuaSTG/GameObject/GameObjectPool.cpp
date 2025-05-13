@@ -143,7 +143,7 @@ namespace luastg
 		}
 	}
 	void GameObjectPool::render() {
-		m_IsRendering = true;
+		m_is_rendering = true;
 		dispatchOnBeforeBatchRender();
 #ifdef USING_MULTI_GAME_WORLD
 		m_pCurrentObject = nullptr;
@@ -170,7 +170,7 @@ namespace luastg
 		m_pCurrentObject = nullptr;
 #endif // USING_MULTI_GAME_WORLD
 		dispatchOnAfterBatchRender();
-		m_IsRendering = false;
+		m_is_rendering = false;
 	}
 	void GameObjectPool::UpdateXY() noexcept {
 		tracy_zone_scoped_with_name("LOBJMGR.UpdateXY");
@@ -412,7 +412,7 @@ namespace luastg
 		m_detect_lists[object->group].add(object);
 	}
 	void GameObjectPool::setLayer(GameObject* const object, double const layer) {
-		assert(!m_IsRendering);
+		assert(!m_is_rendering);
 		m_render_list.erase(object);
 		object->layer = layer;
 		m_render_list.insert(object);
