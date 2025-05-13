@@ -191,8 +191,8 @@ namespace luastg
 		bool m_IsRendering{ false };
 		bool m_is_detecting_intersect{ false };
 
-		FrameStatistics m_DbgData[2]{};
-		size_t m_DbgIdx{ 0 };
+		FrameStatistics m_statistics[2]{};
+		size_t m_statistics_index{ 0 };
 
 		struct IntersectionDetectionResult {
 			uint64_t uid1{};

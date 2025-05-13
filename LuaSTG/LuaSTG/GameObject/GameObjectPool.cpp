@@ -52,18 +52,18 @@ namespace luastg
 
 	void GameObjectPool::DebugNextFrame()
 	{
-		m_DbgIdx = (m_DbgIdx + 1) % std::size(m_DbgData);
-		m_DbgData[m_DbgIdx].object_alloc = 0;
-		m_DbgData[m_DbgIdx].object_free = 0;
-		m_DbgData[m_DbgIdx].object_alive = m_ObjectPool.size();
-		m_DbgData[m_DbgIdx].object_colli_check = 0;
-		m_DbgData[m_DbgIdx].object_colli_callback = 0;
+		m_statistics_index = (m_statistics_index + 1) % std::size(m_statistics);
+		m_statistics[m_statistics_index].object_alloc = 0;
+		m_statistics[m_statistics_index].object_free = 0;
+		m_statistics[m_statistics_index].object_alive = m_ObjectPool.size();
+		m_statistics[m_statistics_index].object_colli_check = 0;
+		m_statistics[m_statistics_index].object_colli_callback = 0;
 	}
 	GameObjectPool::FrameStatistics GameObjectPool::DebugGetFrameStatistics()
 	{
-		size_t const n = std::size(m_DbgData);
-		size_t const i = (m_DbgIdx + n - 1) % n;
-		return m_DbgData[i];
+		size_t const n = std::size(m_statistics);
+		size_t const i = (m_statistics_index + n - 1) % n;
+		return m_statistics[i];
 	}
 
 	void GameObjectPool::ResetPool() noexcept
@@ -305,7 +305,7 @@ namespace luastg
 		tracy_zone_scoped_with_name("LOBJMGR.CollisionCheck");
 		m_is_detecting_intersect = true;
 		dispatchOnBeforeBatchIntersectDetect();
-		auto& debug_data = m_DbgData[m_DbgIdx];
+		auto& debug_data = m_statistics[m_statistics_index];
 		for (auto ptrA = m_detect_lists[group1].first(); ptrA != nullptr;) {
 			GameObject* pA = ptrA;
 			ptrA = ptrA->detect_list_next;
@@ -345,7 +345,7 @@ namespace luastg
 		tracy_zone_scoped_with_name("LOBJMGR.CollisionCheck(New)");
 		m_is_detecting_intersect = true;
 		dispatchOnBeforeBatchIntersectDetect();
-		auto& debug_data = m_DbgData[m_DbgIdx];
+		auto& debug_data = m_statistics[m_statistics_index];
 		std::pmr::deque<IntersectionDetectionResult> cache{ &m_memory_resource };
 		for (const auto& [group1, group2] : group_pairs) {
 			for (auto object1 = m_detect_lists[group1].first(); object1 != nullptr; object1 = object1->detect_list_next) {
@@ -437,7 +437,7 @@ namespace luastg
 		m_update_list.add(p);
 		m_render_list.insert(p);
 		m_detect_lists[p->group].add(p);
-		m_DbgData[m_DbgIdx].object_alloc += 1;
+		m_statistics[m_statistics_index].object_alloc += 1;
 		if (callbacks != nullptr) {
 			p->addCallbacks(callbacks);
 			p->dispatchOnCreate();
@@ -448,7 +448,7 @@ namespace luastg
 		object->dispatchOnDestroy();
 		object->removeAllCallbacks();
 		object->ReleaseResource();
-		m_DbgData[m_DbgIdx].object_free += 1;
+		m_statistics[m_statistics_index].object_free += 1;
 		auto const next = m_update_list.remove(object);
 		m_render_list.erase(object);
 		m_detect_lists[object->group].remove(object);
