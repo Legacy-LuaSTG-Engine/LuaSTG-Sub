@@ -65,10 +65,10 @@ namespace luastg
 		res = nullptr;
 		ps = nullptr;
 
-	#ifdef	LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
+	#ifdef LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 		resolve_move = false;
 		pause = 0;
-	#endif
+	#endif // LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 		ignore_super_pause = false;
 		last_xy_touched = false;
 
@@ -109,10 +109,10 @@ namespace luastg
 
 		ReleaseResource();
 
-	#ifdef	LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
+	#ifdef LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 		resolve_move = false;
 		pause = 0;
-	#endif
+	#endif // LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 		ignore_super_pause = false;
 		last_xy_touched = false;
 
@@ -227,7 +227,7 @@ namespace luastg
 
 	void GameObject::Update()
 	{
-	#ifdef	LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
+	#ifdef LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 		if (pause > 0)
 		{
 			pause -= 1;
@@ -248,7 +248,7 @@ namespace luastg
 				}
 			}
 			else
-	#endif
+	#endif // LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 			{
 				// 更新速度
 				vx += ax;
@@ -298,9 +298,9 @@ namespace luastg
 				}
 				ps->Update(1.0f / 60.f);
 			}
-	#ifdef	LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
+	#ifdef LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 		}
-	#endif
+	#endif // LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 	}
 	void GameObject::UpdateLast()
 	{
@@ -330,7 +330,7 @@ namespace luastg
 
 	void GameObject::UpdateV2()
 	{
-	#ifdef	LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
+	#ifdef LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 		if (pause > 0)
 		{
 			pause -= 1;
@@ -351,7 +351,7 @@ namespace luastg
 				}
 			}
 			else
-			#endif
+	#endif // LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 			{
 				// 更新速度
 				vx += ax;
@@ -411,9 +411,9 @@ namespace luastg
 				}
 				ps->Update(1.0f / 60.f);
 			}
-		#ifdef	LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
+	#ifdef LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 		}
-	#endif
+	#endif // LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 	}
 	void GameObject::UpdateLastV2() {
 		if (last_xy_touched)

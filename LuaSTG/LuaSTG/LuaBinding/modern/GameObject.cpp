@@ -653,14 +653,14 @@ namespace luastg::binding {
 			case LuaSTG::GameObjectMember::TIMER:
 				self->timer = luaL_checkinteger(vm, 3); // interesting
 				return 0;
-			#ifdef	LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
+			#ifdef LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 			case LuaSTG::GameObjectMember::PAUSE:
 				self->pause = luaL_checkinteger(vm, 3);
 				return 0;
 			case LuaSTG::GameObjectMember::RESOLVEMOVE:
 				self->resolve_move = ctx.get_value<bool>(3);
 				return 0;
-			#endif
+			#endif // LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 			case LuaSTG::GameObjectMember::IGNORESUPERPAUSE:
 				self->ignore_super_pause = ctx.get_value<bool>(3);
 				return 0;
