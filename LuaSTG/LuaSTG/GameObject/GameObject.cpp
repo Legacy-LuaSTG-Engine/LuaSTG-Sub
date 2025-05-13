@@ -224,36 +224,7 @@ namespace luastg
 			res = nullptr;
 		}
 	}
-#ifdef LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
-	void GameObject::ChangeLuaRC(lua_State* L, int idx)
-	{
-		if (features.is_render_class && res && ps)
-		{
-			auto p = binding::ParticleSystem::Create(L);
-			p->res = dynamic_cast<IResourceParticle*>(res); res->retain();
-			p->ptr = ps;
-			lua_rawseti(L, idx, 4);
-		}
-	}
-	void GameObject::ReleaseLuaRC(lua_State* L, int idx)
-	{
-		// release
-		lua_rawgeti(L, idx, 4);
-		if (lua_isuserdata(L, -1))
-		{
-			if (auto p = binding::ParticleSystem::Cast(L, -1))
-			{
-				if (p->res) p->res->release();
-				p->ptr = nullptr; // 不要释放 ps，因为已经在 ReleaseResource 做过了
-			}
-		}
-		lua_pop(L, 1);
-		// set nil
-		lua_pushnil(L);
-		lua_rawseti(L, idx, 4);
-	}
-#endif // LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
-	
+
 	void GameObject::Update()
 	{
 	#ifdef	LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE

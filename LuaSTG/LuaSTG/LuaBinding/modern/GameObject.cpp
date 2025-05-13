@@ -86,6 +86,33 @@ namespace {
 		}
 	};
 
+	[[maybe_unused]] void changeParticlePoolBinding(luastg::GameObject const* const self, lua_State* const vm, int const idx) {
+		if (self->features.is_render_class && self->hasParticlePool()) {
+			auto const p = luastg::binding::ParticleSystem::Create(vm);
+			p->res = static_cast<luastg::IResourceParticle*>(self->res);
+			p->res->retain();
+			p->ptr = self->ps;
+			lua_rawseti(vm, idx, 4);
+		}
+	}
+	[[maybe_unused]] void releaseParticlePoolBinding(luastg::GameObject const* const self, lua_State* const vm, int const idx) {
+		// release
+		lua_rawgeti(vm, idx, 4);
+		if (lua_isuserdata(vm, -1)) {
+			if (auto const p = luastg::binding::ParticleSystem::Cast(vm, -1); p != nullptr) {
+				if (p->res) {
+					p->res->release();
+					p->res = nullptr;
+				}
+				p->ptr = nullptr; // 交给游戏对象的 ReleaseResource 释放，这里没有持有所有权
+			}
+		}
+		lua_pop(vm, 1);
+		// object[4] = nil
+		lua_pushnil(vm);
+		lua_rawseti(vm, idx, 4);
+	}
+
 	GameObjectManagerCallbacks game_object_manager_callbacks;
 
 	struct GameObjectCallbacks : luastg::IGameObjectCallbacks {
@@ -113,7 +140,7 @@ namespace {
 			auto const object = ctx.get_array_value<lua::stack_index_t>(table, lua_index); // ... t ... object
 			ctx.set_array_value(object, 3, std::nullopt); // object[3] = nil
 		#ifdef LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
-			self->ReleaseLuaRC(vm, object.value); // 释放可能的粒子系统
+			releaseParticlePoolBinding(self, vm, object.value); // releaseParticlePoolBinding(object[4]); object[4] = nil
 		#endif // LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
 			ctx.pop_value(); // ... t ...
 
@@ -422,8 +449,8 @@ namespace luastg::binding {
 				if (!self->features.is_class)
 					return luaL_error(vm, "invalid argument for property 'class', required luastg object class.");
 			#ifdef LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
-				if (!self.features.is_render_class)
-					self->ReleaseLuaRC(vm, 1);
+				if (!self->features.is_render_class)
+					releaseParticlePoolBinding(self, vm, 1);
 			#endif // LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
 				lua_rawseti(vm, 1, 1); // self[1] = value
 				return 0;
@@ -596,19 +623,19 @@ namespace luastg::binding {
 					auto const resource_name = ctx.get_value<std::string_view>(3);
 					if (!self->hasRenderResource() || self->getRenderResourceName() != resource_name) {
 					#ifdef LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
-						ReleaseLuaRC(L, 1); // TODO: 默认 table 是第一个？
+						releaseParticlePoolBinding(self, vm, 1);
 					#endif // LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
 						self->ReleaseResource();
 						if (!self->ChangeResource(resource_name))
 							return luaL_error(vm, "can't find resource '%s' in image/animation/particle pool.", resource_name.data());
 					#ifdef LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
-						ChangeLuaRC(L, 1); // TODO: 默认 table 是第一个？
+						changeParticlePoolBinding(self, vm, 1);
 					#endif // LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
 					}
 				}
 				else {
 				#ifdef LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
-					ReleaseLuaRC(L, 1); // TODO: 默认 table 是第一个？
+					releaseParticlePoolBinding(self, vm, 1);
 				#endif // LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
 					self->ReleaseResource();
 				}
@@ -727,9 +754,9 @@ namespace luastg::binding {
 		#ifdef USING_MULTI_GAME_WORLD
 			auto const ignore_world_mask = ctx.get_value<bool>(3);
 			if (ignore_world_mask) {
-		#endif // USING_MULTI_GAME_WORLD
+			#endif // USING_MULTI_GAME_WORLD
 				ctx.push_value(self->isIntersect(other));
-		#ifdef USING_MULTI_GAME_WORLD
+			#ifdef USING_MULTI_GAME_WORLD
 			}
 			else {
 				ctx.push_value(LPOOL.CheckWorlds(p1->world, p2->world) && self->isIntersect(other));

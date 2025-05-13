@@ -91,7 +91,7 @@ namespace luastg
 		// 分组
 
 #ifdef USING_MULTI_GAME_WORLD
-		Integer world;					// [8] 世界标记位，用于对一个对象进行分组，影响更新、渲染、碰撞检测等
+		int64_t world;					// [8] 世界标记位，用于对一个对象进行分组，影响更新、渲染、碰撞检测等
 #endif // USING_MULTI_GAME_WORLD
 
 		// 位置
@@ -172,10 +172,6 @@ namespace luastg
 		void UpdateCollisionCircleRadius();
 		bool ChangeResource(std::string_view const& res_name);
 		void ReleaseResource();
-#ifdef LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
-		void ChangeLuaRC(lua_State* L, int idx);
-		void ReleaseLuaRC(lua_State* L, int idx);
-#endif // LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
 
 		void Update();
 		void UpdateLast();
