@@ -37,7 +37,7 @@
 
 // lstg.GameObject.ps
 // access lstg.GameObject particle system via lstg.ParticleSystem instance
-//#define LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
+#define LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
 
 // ---------- ---------- steam api ---------- ---------- //
 
