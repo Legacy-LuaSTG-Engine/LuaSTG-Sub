@@ -16,17 +16,13 @@
 #include "LuaBinding/modern/SpriteRenderer.hpp"
 #include "LuaBinding/modern/FileSystemWatcher.hpp"
 #include "LuaBinding/modern/GameObject.hpp"
+#include "LuaBinding/modern/Well512.hpp"
 
 namespace luastg::binding
 {
 	static int lib_StopWatch(lua_State* L) noexcept
 	{
 		StopWatch::CreateAndPush(L);
-		return 1;
-	}
-	static int lib_Rand(lua_State* L) noexcept
-	{
-		Randomizer::CreateAndPush(L);
 		return 1;
 	}
 	static int lib_BentLaser(lua_State* L) noexcept
@@ -39,7 +35,6 @@ namespace luastg::binding
 	{
 		luaL_Reg constructors[] = {
 			{ "StopWatch", &lib_StopWatch },
-			{ "Rand", &lib_Rand },
 			{ "BentLaserData", &lib_BentLaser },
 			{ nullptr, nullptr },
 		};
@@ -48,7 +43,6 @@ namespace luastg::binding
 		Color::Register(L);
 		ParticleSystem::Register(L);
 		StopWatch::Register(L);
-		Randomizer::Register(L);
 		BentLaser::Register(L);
 		DirectInput::Register(L);
 		lua_pop(L, 1);	
@@ -93,5 +87,6 @@ namespace luastg::binding
 		SpriteQuadRenderer::registerClass(L);
 		FileSystemWatcher::registerClass(L);
 		GameObject::registerClass(L);
+		Well512::registerClass(L);
 	}
 }

@@ -8,7 +8,6 @@
 #define LUASTG_LUA_LIBNAME "lstg"
 
 #define LUASTG_LUA_TYPENAME_STOPWATCH "lstg.StopWatch"
-#define LUASTG_LUA_TYPENAME_RANDGEN "lstg.Rand"
 #define LUASTG_LUA_TYPENAME_BENTLASER "lstg.CurveLaser"
 
 #define LUASTG_LUA_LIBNAME_IO "IO"
@@ -93,13 +92,6 @@ namespace luastg::binding
 	};
 
 	class StopWatch
-	{
-	public:
-		static void Register(lua_State* L) noexcept;
-		static void CreateAndPush(lua_State* L);
-	};
-
-	class Randomizer
 	{
 	public:
 		static void Register(lua_State* L) noexcept;

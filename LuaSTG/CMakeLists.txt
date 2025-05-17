@@ -96,7 +96,6 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/LW_Input.cpp
     LuaSTG/LuaBinding/LW_LuaSTG.cpp
     LuaSTG/LuaBinding/LW_ParticleSystem.cpp
-    LuaSTG/LuaBinding/LW_Randomizer.cpp
     LuaSTG/LuaBinding/LW_Render.cpp
     LuaSTG/LuaBinding/LW_Renderer.cpp
     LuaSTG/LuaBinding/LW_StopWatch.cpp
@@ -145,6 +144,8 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/modern/FileSystemWatcher.cpp
     LuaSTG/LuaBinding/modern/GameObject.hpp
     LuaSTG/LuaBinding/modern/GameObject.cpp
+    LuaSTG/LuaBinding/modern/Well512.hpp
+    LuaSTG/LuaBinding/modern/Well512.cpp
 
     LuaSTG/LuaBinding/generated/BlendModeX.cpp
     LuaSTG/LuaBinding/generated/BlendModeX.hpp
@@ -159,6 +160,8 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/Utility/Utility.h
     LuaSTG/Utility/ScopeObject.cpp
     LuaSTG/Utility/xorshift.hpp
+    LuaSTG/Utility/well512.hpp
+    LuaSTG/Utility/well512.cpp
     
     LuaSTG/AppFrame.h
     LuaSTG/AppFrame.cpp
