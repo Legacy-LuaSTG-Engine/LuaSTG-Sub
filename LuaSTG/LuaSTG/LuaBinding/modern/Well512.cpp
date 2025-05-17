@@ -144,6 +144,7 @@ namespace luastg::binding {
 
 		auto const metatable = ctx.create_metatable(class_name);
 		ctx.set_map_value(metatable, "__tostring", &Well512Binding::__tostring);
+		ctx.set_map_value(metatable, "__index", method_table);
 
 		// legacy constructor
 		auto const lstg_table = ctx.push_module("lstg"sv);
