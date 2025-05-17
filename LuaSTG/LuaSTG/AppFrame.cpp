@@ -297,6 +297,9 @@ void AppFrame::Run()noexcept
 	m_pAppModel->getWindow()->addEventListener(this);
 	onSwapChainCreate(); // 手动触发一次，让自动尺寸的RenderTarget设置为正确的尺寸
 	m_pAppModel->getSwapChain()->addEventListener(this);
+	// 刷新窗口的排序，强制带到最前面
+	m_pAppModel->getWindow()->setLayer(core::Graphics::WindowLayer::TopMost);
+	m_pAppModel->getWindow()->setLayer(core::Graphics::WindowLayer::Normal);
 
 	m_pAppModel->getFrameRateController()->setTargetFPS(m_target_fps);
 	m_pAppModel->run();

@@ -71,7 +71,7 @@ namespace luastg
 		p_swapchain->clearRenderAttachment();
 		p_swapchain->present();
 		// 显示窗口
-		p_window->setLayer(core::Graphics::WindowLayer::Top);
+		p_window->setLayer(core::Graphics::WindowLayer::Normal);
 		if (gs.isFullscreen()) {
 			p_window->setFullScreenMode();
 		}
