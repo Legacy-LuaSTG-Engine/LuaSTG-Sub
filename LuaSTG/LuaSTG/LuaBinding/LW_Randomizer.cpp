@@ -177,14 +177,19 @@ namespace luastg::binding
 				lua_pushinteger(L, (lua_Integer)p->GetRandSeed());
 				return 1;
 			}
-			static int Int(lua_State* L)noexcept
+			static int Int(lua_State* const L) noexcept
 			{
 				GETUDATA(p, 1);
-				lua_Integer a = luaL_checkinteger(L, 2);
-				lua_Integer b = luaL_checkinteger(L, 3);
+				auto a = luaL_checkinteger(L, 2);
+				auto b = luaL_checkinteger(L, 3);
 				make_less(a, b);
-				lua_Integer ret = (lua_Integer)p->GetRandUInt((std::max)(static_cast<uint32_t>(b - a), 0U));
-				lua_pushinteger(L, a + ret);
+				auto const range = static_cast<uint64_t>(b - a);
+				if (range > 0x7fffffff) {
+					auto const message = std::format("range [a:{}, b:{}] too large, (b - a) must <= 2147483647", a, b);
+					return luaL_error(L, message.c_str());
+				}
+				auto const result = p->GetRandUInt(static_cast<uint32_t>(range));
+				lua_pushinteger(L, a + static_cast<lua_Integer>(result));
 				return 1;
 			}
 			static int Float(lua_State* L)noexcept
