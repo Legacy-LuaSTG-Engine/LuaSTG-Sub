@@ -37,7 +37,10 @@ set(Core_SRC
     Core/Graphics/Sprite.hpp
     Core/Graphics/Font.hpp
     Core/Graphics/Mesh.hpp
+    Core/Graphics/Image.hpp
     
+    Core/Graphics/Common/MemoryImage.hpp
+    Core/Graphics/Common/MemoryImage.cpp
     Core/Graphics/Common/Sprite.hpp
     Core/Graphics/Common/Sprite.cpp
     Core/Graphics/Common/SpriteRenderer.hpp
