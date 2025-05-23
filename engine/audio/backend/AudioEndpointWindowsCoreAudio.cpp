@@ -1,0 +1,54 @@
+#include "backend/AudioEndpointXAudio2.hpp"
+#include "core/Logger.hpp"
+#include <winrt/base.h>
+#include <wil/resource.h>
+#include <mmdeviceapi.h>
+#include <functiondiscoverykeys_devpkey.h>
+
+namespace core {
+	bool AudioEndpointXAudio2::refreshAudioEndpoint() {
+		m_endpoints.clear();
+
+		try {
+			winrt::com_ptr<IMMDeviceEnumerator> device_enumerator = winrt::create_instance<IMMDeviceEnumerator>(winrt::guid_of<MMDeviceEnumerator>(), CLSCTX_ALL);
+
+			winrt::com_ptr<IMMDeviceCollection> device_list;
+			winrt::check_hresult(device_enumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, device_list.put()));
+
+			UINT device_count = 0;
+			winrt::check_hresult(device_list->GetCount(&device_count));
+
+			for (UINT index = 0; index < device_count; index += 1) {
+				winrt::com_ptr<IMMDevice> device;
+				winrt::check_hresult(device_list->Item(index, device.put()));
+
+				wil::unique_cotaskmem_string id;
+				winrt::check_hresult(device->GetId(id.put()));
+
+				winrt::com_ptr<IPropertyStore> prop;
+				winrt::check_hresult(device->OpenPropertyStore(STGM_READ, prop.put()));
+				assert(id.get());
+
+				wil::unique_prop_variant name;
+				winrt::check_hresult(prop->GetValue(PKEY_Device_FriendlyName, name.addressof()));
+				assert(name.vt == VT_LPWSTR);
+
+				winrt::hstring name_default = winrt::hstring(L"Device") + winrt::to_hstring(index);
+
+				auto& endpoint = m_endpoints.emplace_back();
+				endpoint.id = winrt::to_string(id.get());
+				endpoint.name = winrt::to_string(name.vt == VT_LPWSTR ? name.pwszVal : name_default);
+			}
+
+			return true;
+		}
+		catch (winrt::hresult_error const& e) {
+			Logger::error("[core] enumerate audio endpoint failed: <winrt::hresult_error> {}", winrt::to_string(e.message()));
+		}
+		catch (std::exception const& e) {
+			Logger::error("[core] enumerate audio endpoint failed: <std::exception> {}", e.what());
+		}
+
+		return false;
+	}
+}
