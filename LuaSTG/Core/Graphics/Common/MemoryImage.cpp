@@ -35,9 +35,6 @@ namespace core {
 		}
 		return false;
 	}
-	bool Image::saveToFile(std::string_view const path) const {
-		return false;
-	}
 
 	bool Image::setSize(Vector2U const size) {
 		if (size.x == 0 || size.y == 0) {
@@ -83,6 +80,18 @@ namespace core {
 		if (output_image == nullptr) {
 			assert(false);
 			return false;
+		}
+		try {
+			SmartReference<Image> image;
+			image.attach(new Image());
+			if (!image->loadFromFile(path)) {
+				return false;
+			}
+			*output_image = image.detach();
+			return true;
+		}
+		catch (std::exception const&) {
+			// TODO: logging
 		}
 		return false;
 	}

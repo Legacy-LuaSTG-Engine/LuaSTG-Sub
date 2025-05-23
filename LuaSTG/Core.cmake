@@ -70,6 +70,8 @@ set(Core_SRC
     Core/Graphics/Direct3D11/LetterBoxingRenderer.hpp
     Core/Graphics/Direct3D11/LetterBoxingRenderer.cpp
 
+    Core/Graphics/WindowsImageComponent/WindowsImageComponentImage.cpp
+
     Core/ApplicationModel.hpp
     Core/ApplicationModel_Win32.hpp
     Core/ApplicationModel_Win32.cpp

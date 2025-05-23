@@ -25,6 +25,7 @@ namespace core {
 		Image& operator=(Image&&) = delete;
 
 		[[nodiscard]] bool setSize(Vector2U size);
+		[[nodiscard]] bool loadFromFile(std::string_view path);
 
 	private:
 		std::vector<Color4B> m_pixels;
