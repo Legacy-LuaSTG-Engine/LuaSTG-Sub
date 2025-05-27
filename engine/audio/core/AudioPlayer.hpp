@@ -23,7 +23,7 @@ namespace core {
 
 		virtual void updateFFT() = 0;
 		virtual uint32_t getFFTSize() = 0;
-		virtual float* getFFT() = 0;
+		virtual float const* getFFT() = 0;
 	};
 
 	// UUID v5

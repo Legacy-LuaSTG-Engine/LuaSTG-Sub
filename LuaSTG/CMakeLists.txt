@@ -201,6 +201,7 @@ target_link_libraries(LuaSTG PRIVATE
     spdlog
     utility
     utf8
+    win32
     PlatformAPI
     DirectX::ToolKitMini
     DirectX::TextureMini

@@ -33,7 +33,7 @@ namespace core {
 
 		void updateFFT() override;
 		uint32_t getFFTSize() override;
-		float* getFFT() override;
+		float const* getFFT() override;
 
 		// IXAudio2VoiceCallback
 

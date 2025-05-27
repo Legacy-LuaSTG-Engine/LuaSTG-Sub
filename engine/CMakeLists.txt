@@ -1,4 +1,5 @@
 add_subdirectory(utf8)
+add_subdirectory(win32)
 add_subdirectory(utility)
 add_subdirectory(lua)
 add_subdirectory(collection)

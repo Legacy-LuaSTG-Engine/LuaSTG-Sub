@@ -1,9 +1,12 @@
 #include "backend/SimpleAudioPlayerXAudio2.hpp"
 #include "core/Logger.hpp"
 #include "winrt/base.h"
+#include "win32/base.hpp"
+
+using std::string_view_literals::operator ""sv;
 
 namespace {
-	float s_empty_fft_data[1]{};
+	constexpr float s_empty_fft_data[1]{};
 }
 
 namespace core {
@@ -98,17 +101,7 @@ namespace core {
 		if (m_voice == nullptr) {
 			return true;
 		}
-		try {
-			winrt::check_hresult(m_voice->SetVolume(m_volume));
-			return true;
-		}
-		catch (winrt::hresult_error const& e) {
-			Logger::error("[core] IXAudio2SourceVoice::SetVolume failed: <winrt::hresult_error> {}", winrt::to_string(e.message()));
-		}
-		catch (std::exception const& e) {
-			Logger::error("[core] IXAudio2SourceVoice::SetVolume failed: <std::exception> {}", e.what());
-		}
-		return false;
+		return win32::check_hresult_as_boolean(m_voice->SetVolume(m_volume), "IXAudio2SourceVoice::SetVolume"sv);
 	}
 	float SimpleAudioPlayerXAudio2::getBalance() {
 		return m_output_balance;
@@ -118,17 +111,8 @@ namespace core {
 		if (m_voice == nullptr) {
 			return true;
 		}
-		try {
-			winrt::check_hresult(setOutputBalance(m_voice, m_parent->getChannel(m_mixing_channel), m_output_balance));
-			return true;
-		}
-		catch (winrt::hresult_error const& e) {
-			Logger::error("[core] SimpleAudioPlayerXAudio2::setBalance failed: <winrt::hresult_error> {}", winrt::to_string(e.message()));
-		}
-		catch (std::exception const& e) {
-			Logger::error("[core] SimpleAudioPlayerXAudio2::setBalance failed: <std::exception> {}", e.what());
-		}
-		return false;
+		auto const result = setOutputBalance(m_voice, m_parent->getChannel(m_mixing_channel), m_output_balance);
+		return win32::check_hresult_as_boolean(result, "IXAudio2SourceVoice::SetOutputMatrix"sv);
 	}
 	float SimpleAudioPlayerXAudio2::getSpeed() {
 		return m_speed;
@@ -138,22 +122,12 @@ namespace core {
 		if (m_voice == nullptr) {
 			return true;
 		}
-		try {
-			winrt::check_hresult(m_voice->SetFrequencyRatio(m_speed));
-			return true;
-		}
-		catch (winrt::hresult_error const& e) {
-			Logger::error("[core] IXAudio2SourceVoice::SetFrequencyRatio failed: <winrt::hresult_error> {}", winrt::to_string(e.message()));
-		}
-		catch (std::exception const& e) {
-			Logger::error("[core] IXAudio2SourceVoice::SetFrequencyRatio failed: <std::exception> {}", e.what());
-		}
-		return false;
+		return win32::check_hresult_as_boolean(m_voice->SetFrequencyRatio(m_speed), "IXAudio2SourceVoice::SetFrequencyRatio"sv);
 	}
 
 	void SimpleAudioPlayerXAudio2::updateFFT() { assert(false); }
 	uint32_t SimpleAudioPlayerXAudio2::getFFTSize() { assert(false); return 0; }
-	float* SimpleAudioPlayerXAudio2::getFFT() { assert(false); return s_empty_fft_data; }
+	float const* SimpleAudioPlayerXAudio2::getFFT() { assert(false); return s_empty_fft_data; }
 
 	// IXAudio2VoiceCallback
 
