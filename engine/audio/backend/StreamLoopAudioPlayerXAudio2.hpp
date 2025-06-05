@@ -144,7 +144,6 @@ namespace core {
 		double m_total_seconds{};
 		bool m_is_playing{};
 
-		double start_time = 0.0;
 		double total_time = 0.0;
 		double current_time = 0.0;
 
