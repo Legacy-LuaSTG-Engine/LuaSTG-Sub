@@ -1,6 +1,9 @@
 #include "backend/AudioEndpointXAudio2.hpp"
 #include "core/Configuration.hpp"
 #include "core/Logger.hpp"
+#include "backend/SimpleAudioPlayerXAudio2.hpp"
+#include "backend/LoopAudioPlayerXAudio2.hpp"
+#include "backend/StreamLoopAudioPlayerXAudio2.hpp"
 #include <ranges>
 
 namespace core {
@@ -66,14 +69,50 @@ namespace core {
 		return m_mixing_channel_volumes[static_cast<size_t>(channel)];
 	}
 
-	bool AudioEndpointXAudio2::createAudioPlayer(IAudioDecoder* decoder, AudioMixingChannel channel, IAudioPlayer** output_player) {
-		return false;
+	bool AudioEndpointXAudio2::createAudioPlayer(IAudioDecoder* const decoder, AudioMixingChannel const channel, IAudioPlayer** const output_player) {
+		try {
+			SmartReference<SimpleAudioPlayerXAudio2> player;
+			player.attach(new SimpleAudioPlayerXAudio2);
+			if (!player->create(this, channel, decoder)) {
+				return false;
+			}
+			*output_player = player.detach();
+			return true;
+		}
+		catch (std::exception const& e) {
+			Logger::error("[core] create SimpleAudioPlayerXAudio2 failed: {}", e.what());
+			return false;
+		}
 	}
-	bool AudioEndpointXAudio2::createLoopAudioPlayer(IAudioDecoder* decoder, AudioMixingChannel channel, IAudioPlayer** output_player) {
-		return false;
+	bool AudioEndpointXAudio2::createLoopAudioPlayer(IAudioDecoder* const decoder, AudioMixingChannel const channel, IAudioPlayer** const output_player) {
+		try {
+			SmartReference<LoopAudioPlayerXAudio2> player;
+			player.attach(new LoopAudioPlayerXAudio2);
+			if (!player->create(this, channel, decoder)) {
+				return false;
+			}
+			*output_player = player.detach();
+			return true;
+		}
+		catch (std::exception const& e) {
+			Logger::error("[core] create LoopAudioPlayerXAudio2 failed: {}", e.what());
+			return false;
+		}
 	}
-	bool AudioEndpointXAudio2::createStreamAudioPlayer(IAudioDecoder* decoder, AudioMixingChannel channel, IAudioPlayer** output_player) {
-		return false;
+	bool AudioEndpointXAudio2::createStreamAudioPlayer(IAudioDecoder* const decoder, AudioMixingChannel const channel, IAudioPlayer** const output_player) {
+		try {
+			SmartReference<StreamLoopAudioPlayerXAudio2> player;
+			player.attach(new StreamLoopAudioPlayerXAudio2);
+			if (!player->create(this, channel, decoder)) {
+				return false;
+			}
+			*output_player = player.detach();
+			return true;
+		}
+		catch (std::exception const& e) {
+			Logger::error("[core] create StreamLoopAudioPlayerXAudio2 failed: {}", e.what());
+			return false;
+		}
 	}
 
 	AudioEndpointXAudio2::AudioEndpointXAudio2() {
