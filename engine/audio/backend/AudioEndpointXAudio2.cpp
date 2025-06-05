@@ -4,7 +4,10 @@
 #include "backend/SimpleAudioPlayerXAudio2.hpp"
 #include "backend/LoopAudioPlayerXAudio2.hpp"
 #include "backend/StreamLoopAudioPlayerXAudio2.hpp"
+#include "utf8.hpp"
 #include <ranges>
+
+using std::string_view_literals::operator ""sv;
 
 namespace core {
 	void AudioEndpointXAudio2::addEventListener(IAudioEndpointEventListener* const listener) {
@@ -54,15 +57,7 @@ namespace core {
 	void AudioEndpointXAudio2::setMixingChannelVolume(AudioMixingChannel const channel, float const volume) {
 		m_mixing_channel_volumes[static_cast<size_t>(channel)] = std::clamp(volume, 0.0f, 1.0f);
 		if (auto const voice = m_mixing_channels[static_cast<size_t>(channel)]; voice != nullptr) {
-			try {
-				winrt::check_hresult(voice->SetVolume(volume));
-			}
-			catch (winrt::hresult_error const& e) {
-				Logger::error("[core] set voice volume failed <winrt::hresult_error> {}", winrt::to_string(e.message()));
-			}
-			catch (std::exception const& e) {
-				Logger::error("[core] set voice volume failed <std::exception> {}", e.what());
-			}
+			win32::check_hresult(voice->SetVolume(volume), "IXAudio2Voice::SetVolume"sv);
 		}
 	}
 	float AudioEndpointXAudio2::getMixingChannelVolume(AudioMixingChannel const channel) const noexcept {
@@ -129,9 +124,18 @@ namespace core {
 
 	bool AudioEndpointXAudio2::create() {
 		try {
+			// com
+
+			if (auto const hr = CoInitializeEx(nullptr, COINITBASE_MULTITHREADED); hr != S_OK && hr != S_FALSE) {
+				win32::check_hresult(hr, "CoInitializeEx"sv);
+				return false;
+			}
+
 			// endpoint
 
-			winrt::check_hresult(XAudio2Create(m_endpoint.put()));
+			if (!win32::check_hresult_as_boolean(XAudio2Create(m_endpoint.put()), "XAudio2Create"sv)) {
+				return false;
+			}
 
 		#ifndef NDEBUG
 			XAUDIO2_DEBUG_CONFIGURATION debug_config{};
@@ -156,15 +160,21 @@ namespace core {
 
 			IXAudio2MasteringVoice* direct{};
 			if (!endpoint_id.empty()) {
-				auto const endpoint_id_wide = winrt::to_hstring(endpoint_id);
-				winrt::check_hresult(m_endpoint->CreateMasteringVoice(
-					&direct,
-					XAUDIO2_DEFAULT_CHANNELS, XAUDIO2_DEFAULT_SAMPLERATE, 0U,
-					endpoint_id_wide.c_str())
-				);
+				auto const endpoint_id_wide = utf8::to_wstring(endpoint_id);
+				if (!win32::check_hresult_as_boolean(
+					m_endpoint->CreateMasteringVoice(
+						&direct,
+						XAUDIO2_DEFAULT_CHANNELS, XAUDIO2_DEFAULT_SAMPLERATE, 0U,
+						endpoint_id_wide.c_str()),
+					"IXAudio2::CreateMasteringVoice"sv
+				)) {
+					return false;
+				}
 			}
 			else {
-				winrt::check_hresult(m_endpoint->CreateMasteringVoice(&direct));
+				if (!win32::check_hresult_as_boolean(m_endpoint->CreateMasteringVoice(&direct), "IXAudio2::CreateMasteringVoice"sv)) {
+					return false;
+				}
 			}
 			m_mixing_channels[static_cast<size_t>(AudioMixingChannel::direct)] = direct;
 
@@ -174,11 +184,21 @@ namespace core {
 			direct->GetVoiceDetails(&direct_info);
 
 			IXAudio2SubmixVoice* sound_effect{};
-			winrt::check_hresult(m_endpoint->CreateSubmixVoice(&sound_effect, direct_info.InputChannels, direct_info.InputSampleRate));
+			if (!win32::check_hresult_as_boolean(
+				m_endpoint->CreateSubmixVoice(&sound_effect, direct_info.InputChannels, direct_info.InputSampleRate),
+				"IXAudio2::CreateSubmixVoice"sv
+			)) {
+				return false;
+			}
 			m_mixing_channels[static_cast<size_t>(AudioMixingChannel::sound_effect)] = sound_effect;
 
 			IXAudio2SubmixVoice* music{};
-			winrt::check_hresult(m_endpoint->CreateSubmixVoice(&music, direct_info.InputChannels, direct_info.InputSampleRate));
+			if (!win32::check_hresult_as_boolean(
+				m_endpoint->CreateSubmixVoice(&music, direct_info.InputChannels, direct_info.InputSampleRate),
+				"IXAudio2::CreateSubmixVoice"sv
+			)) {
+				return false;
+			}
 			m_mixing_channels[static_cast<size_t>(AudioMixingChannel::music)] = music;
 
 			// build graph
@@ -189,20 +209,27 @@ namespace core {
 			voice_send_list.SendCount = 1;
 			voice_send_list.pSends = &voice_send_master;
 
-			winrt::check_hresult(sound_effect->SetOutputVoices(&voice_send_list));
-			winrt::check_hresult(music->SetOutputVoices(&voice_send_list));
+			if (!win32::check_hresult_as_boolean(sound_effect->SetOutputVoices(&voice_send_list), "IXAudio2SubmixVoice::SetOutputVoices"sv)) {
+				return false;
+			}
+			if (!win32::check_hresult_as_boolean(music->SetOutputVoices(&voice_send_list), "IXAudio2SubmixVoice::SetOutputVoices"sv)) {
+				return false;
+			}
 
 			// update volume
-			winrt::check_hresult(direct->SetVolume(m_mixing_channel_volumes[static_cast<size_t>(AudioMixingChannel::direct)]));
-			winrt::check_hresult(sound_effect->SetVolume(m_mixing_channel_volumes[static_cast<size_t>(AudioMixingChannel::sound_effect)]));
-			winrt::check_hresult(music->SetVolume(m_mixing_channel_volumes[static_cast<size_t>(AudioMixingChannel::music)]));
+			if (!win32::check_hresult_as_boolean(direct->SetVolume(getMixingChannelVolume(AudioMixingChannel::direct)), "IXAudio2MasteringVoice::SetOutputVoices"sv)) {
+				return false;
+			}
+			if (!win32::check_hresult_as_boolean(sound_effect->SetVolume(getMixingChannelVolume(AudioMixingChannel::sound_effect)), "IXAudio2SubmixVoice::SetVolume"sv)) {
+				return false;
+			}
+			if (!win32::check_hresult_as_boolean(music->SetVolume(getMixingChannelVolume(AudioMixingChannel::music)), "IXAudio2SubmixVoice::SetVolume"sv)) {
+				return false;
+			}
 
 			m_current_endpoint = endpoint_name;
 			dispatchOnAudioEndpointCreate();
 			return true;
-		}
-		catch (winrt::hresult_error const& e) {
-			Logger::error("[core] create audio endpoint failed <winrt::hresult_error> {}", winrt::to_string(e.message()));
 		}
 		catch (std::exception const& e) {
 			Logger::error("[core] create audio endpoint failed <std::exception> {}", e.what());
@@ -281,5 +308,19 @@ namespace core {
 			channel->DestroyVoice();
 			channel = nullptr;
 		}
+	}
+
+	bool IAudioEndpoint::create(IAudioEndpoint** const output_endpoint) {
+		if (output_endpoint == nullptr) {
+			assert(false);
+			return false;
+		}
+		SmartReference<AudioEndpointXAudio2> endpoint;
+		endpoint.attach(new AudioEndpointXAudio2);
+		if (!endpoint->create()) {
+			Logger::warn("[core] AudioEndpointXAudio2::create failed");
+		}
+		*output_endpoint = endpoint.detach();
+		return true;
 	}
 }

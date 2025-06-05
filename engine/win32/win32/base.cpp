@@ -84,6 +84,10 @@ namespace win32 {
 #define PSL
 #endif
 
+	std::string hresult_error::message() const {
+		return format_message(m_code);
+	}
+
 	hresult check_hresult(hresult const hr SL) {
 		if (FAILED(hr)) {
 			const auto message = format_message(hr);
@@ -124,6 +128,18 @@ namespace win32 {
 
 	bool check_hresult_as_boolean(hresult const hr, std::string_view const api SL) {
 		return SUCCEEDED(check_hresult(hr, api PSL));
+	}
+
+	void check_hresult_throw_if_failed(hresult const hr SL) {
+		if (!check_hresult_as_boolean(hr PSL)) {
+			throw hresult_error(hr, "unknown call");
+		}
+	}
+
+	void check_hresult_throw_if_failed(hresult const hr, std::string_view const api SL) {
+		if (!check_hresult_as_boolean(hr, api PSL)) {
+			throw hresult_error(hr, std::string(api));
+		}
 	}
 
 #undef SL

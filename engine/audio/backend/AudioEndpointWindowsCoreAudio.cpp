@@ -1,54 +1,69 @@
 #include "backend/AudioEndpointXAudio2.hpp"
 #include "core/Logger.hpp"
-#include <winrt/base.h>
+#include <windows.h>
 #include <wil/resource.h>
 #include <mmdeviceapi.h>
 #include <functiondiscoverykeys_devpkey.h>
+#include "utf8.hpp"
+#include "win32/base.hpp"
+
+using std::string_view_literals::operator ""sv;
 
 namespace core {
 	bool AudioEndpointXAudio2::refreshAudioEndpoint() {
 		m_endpoints.clear();
 
-		try {
-			winrt::com_ptr<IMMDeviceEnumerator> device_enumerator = winrt::create_instance<IMMDeviceEnumerator>(winrt::guid_of<MMDeviceEnumerator>(), CLSCTX_ALL);
+		win32::com_ptr<IMMDeviceEnumerator> device_enumerator;
+		if (!win32::check_hresult_as_boolean(
+			win32::create_instance<MMDeviceEnumerator, IMMDeviceEnumerator>(CLSCTX_ALL, device_enumerator.put()),
+			"CoCreateInstance->IMMDeviceEnumerator"sv
+		)) {
+			return false;
+		}
 
-			winrt::com_ptr<IMMDeviceCollection> device_list;
-			winrt::check_hresult(device_enumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, device_list.put()));
+		win32::com_ptr<IMMDeviceCollection> device_list;
+		if (!win32::check_hresult_as_boolean(
+			device_enumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, device_list.put()),
+			"IMMDeviceEnumerator::EnumAudioEndpoints"sv
+		)) {
+			return false;
+		}
 
-			UINT device_count = 0;
-			winrt::check_hresult(device_list->GetCount(&device_count));
+		UINT device_count = 0;
+		if (!win32::check_hresult_as_boolean(device_list->GetCount(&device_count), "IMMDeviceCollection::GetCount"sv)) {
+			return false;
+		}
 
-			for (UINT index = 0; index < device_count; index += 1) {
-				winrt::com_ptr<IMMDevice> device;
-				winrt::check_hresult(device_list->Item(index, device.put()));
-
-				wil::unique_cotaskmem_string id;
-				winrt::check_hresult(device->GetId(id.put()));
-
-				winrt::com_ptr<IPropertyStore> prop;
-				winrt::check_hresult(device->OpenPropertyStore(STGM_READ, prop.put()));
-				assert(id.get());
-
-				wil::unique_prop_variant name;
-				winrt::check_hresult(prop->GetValue(PKEY_Device_FriendlyName, name.addressof()));
-				assert(name.vt == VT_LPWSTR);
-
-				winrt::hstring name_default = winrt::hstring(L"Device") + winrt::to_hstring(index);
-
-				auto& endpoint = m_endpoints.emplace_back();
-				endpoint.id = winrt::to_string(id.get());
-				endpoint.name = winrt::to_string(name.vt == VT_LPWSTR ? name.pwszVal : name_default);
+		for (UINT index = 0; index < device_count; index += 1) {
+			win32::com_ptr<IMMDevice> device;
+			if (!win32::check_hresult_as_boolean(device_list->Item(index, device.put()), "IMMDeviceCollection::Item"sv)) {
+				return false;
 			}
 
-			return true;
-		}
-		catch (winrt::hresult_error const& e) {
-			Logger::error("[core] enumerate audio endpoint failed: <winrt::hresult_error> {}", winrt::to_string(e.message()));
-		}
-		catch (std::exception const& e) {
-			Logger::error("[core] enumerate audio endpoint failed: <std::exception> {}", e.what());
+			wil::unique_cotaskmem_string id;
+			if (!win32::check_hresult_as_boolean(device->GetId(id.put()), "IMMDevice::GetId"sv)) {
+				return false;
+			}
+			assert(id.get() != nullptr);
+
+			win32::com_ptr<IPropertyStore> prop;
+			if (!win32::check_hresult_as_boolean(device->OpenPropertyStore(STGM_READ, prop.put()), "IMMDevice::OpenPropertyStore"sv)) {
+				return false;
+			}
+
+			wil::unique_prop_variant name;
+			if (!win32::check_hresult_as_boolean(prop->GetValue(PKEY_Device_FriendlyName, name.addressof()), "IPropertyStore::GetValue(PKEY_Device_FriendlyName)"sv)) {
+				return false;
+			}
+			assert(name.vt == VT_LPWSTR);
+
+			m_endpoints.emplace_back(
+				AudioEndpointInfo{
+				.id = utf8::to_string(id.get()),
+				.name = name.vt == VT_LPWSTR ? utf8::to_string(name.pwszVal) : std::format("Audio Endpoint {}", index),
+				});
 		}
 
-		return false;
+		return true;
 	}
 }

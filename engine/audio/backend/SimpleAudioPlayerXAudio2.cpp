@@ -1,6 +1,5 @@
 #include "backend/SimpleAudioPlayerXAudio2.hpp"
 #include "core/Logger.hpp"
-#include "winrt/base.h"
 #include "win32/base.hpp"
 
 using std::string_view_literals::operator ""sv;
@@ -17,64 +16,40 @@ namespace core {
 		if (m_voice == nullptr) {
 			return true;
 		}
-		try {
-			winrt::check_hresult(m_voice->Start());
-			return true;
-		}
-		catch (winrt::hresult_error const& e) {
-			Logger::error("[core] IXAudio2SourceVoice::Start failed: <winrt::hresult_error> {}", winrt::to_string(e.message()));
-		}
-		catch (std::exception const& e) {
-			Logger::error("[core] IXAudio2SourceVoice::Start failed: <std::exception> {}", e.what());
-		}
-		return false;
+		return win32::check_hresult_as_boolean(m_voice->Start(), "IXAudio2SourceVoice::Start"sv);
 	}
 	bool SimpleAudioPlayerXAudio2::stop() {
 		m_is_playing = false;
 		if (m_voice == nullptr) {
 			return true;
 		}
-		try {
-			winrt::check_hresult(m_voice->Stop());
-			return true;
-		}
-		catch (winrt::hresult_error const& e) {
-			Logger::error("[core] IXAudio2SourceVoice::Start failed: <winrt::hresult_error> {}", winrt::to_string(e.message()));
-		}
-		catch (std::exception const& e) {
-			Logger::error("[core] IXAudio2SourceVoice::Start failed: <std::exception> {}", e.what());
-		}
-		return false;
+		return win32::check_hresult_as_boolean(m_voice->Stop(), "IXAudio2SourceVoice::Stop"sv);
 	}
 	bool SimpleAudioPlayerXAudio2::reset() {
 		m_is_playing = false;
 		if (m_voice == nullptr) {
 			return true;
 		}
-		try {
-			winrt::check_hresult(m_voice->Stop());
-			winrt::check_hresult(m_voice->FlushSourceBuffers());
 
-			XAUDIO2_VOICE_STATE state = {};
-			while (true) {
-				m_voice->GetState(&state, XAUDIO2_VOICE_NOSAMPLESPLAYED);
-				if (state.BuffersQueued < XAUDIO2_MAX_QUEUED_BUFFERS) {
-					break;
-				}
-				Logger::warn("[core] audio buffer queue is full");
+		if (!win32::check_hresult_as_boolean(m_voice->Stop(), "IXAudio2SourceVoice::Stop"sv)) {
+			return false;
+		}
+		if (!win32::check_hresult_as_boolean(m_voice->FlushSourceBuffers(), "IXAudio2SourceVoice::FlushSourceBuffers"sv)) {
+
+		}
+
+	#ifndef NDEBUG
+		XAUDIO2_VOICE_STATE state = {};
+		while (true) {
+			m_voice->GetState(&state, XAUDIO2_VOICE_NOSAMPLESPLAYED);
+			if (state.BuffersQueued < XAUDIO2_MAX_QUEUED_BUFFERS) {
+				break;
 			}
+			Logger::warn("[core] audio buffer queue is full");
+		}
+	#endif
 
-			winrt::check_hresult(m_voice->SubmitSourceBuffer(&m_voice_buffer));
-
-			return true;
-		}
-		catch (winrt::hresult_error const& e) {
-			Logger::error("[core] SimpleAudioPlayerXAudio2::reset failed: <winrt::hresult_error> {}", winrt::to_string(e.message()));
-		}
-		catch (std::exception const& e) {
-			Logger::error("[core] SimpleAudioPlayerXAudio2::reset failed: <std::exception> {}", e.what());
-		}
-		return false;
+		return win32::check_hresult_as_boolean(m_voice->SubmitSourceBuffer(&m_voice_buffer), "IXAudio2SourceVoice::SubmitSourceBuffer"sv);
 	}
 
 	bool SimpleAudioPlayerXAudio2::isPlaying() {
@@ -132,15 +107,7 @@ namespace core {
 	// IXAudio2VoiceCallback
 
 	void WINAPI SimpleAudioPlayerXAudio2::OnVoiceError(void* const, HRESULT const error) noexcept {
-		try {
-			winrt::throw_hresult(error);
-		}
-		catch (winrt::hresult_error const& e) {
-			Logger::error("[core] IXAudio2SourceVoice error: <winrt::hresult_error> {}", winrt::to_string(e.message()));
-		}
-		catch (std::exception const& e) {
-			Logger::error("[core] IXAudio2SourceVoice error: <std::exception> {}", e.what());
-		}
+		win32::check_hresult(error, "IAudioEndpointEventListener::OnVoiceError");
 	}
 
 	// IAudioEndpointEventListener
@@ -162,39 +129,44 @@ namespace core {
 	}
 
 	bool SimpleAudioPlayerXAudio2::create() {
-		try {
-			if (m_parent->getDirectChannel() == nullptr) {
-				return false;
-			}
-
-			XAUDIO2_SEND_DESCRIPTOR voice_send{};
-			voice_send.pOutputVoice = m_parent->getChannel(m_mixing_channel);
-			XAUDIO2_VOICE_SENDS voice_send_list{};
-			voice_send_list.SendCount = 1;
-			voice_send_list.pSends = &voice_send;
-
-			winrt::check_hresult(m_parent->getFactory()->CreateSourceVoice(&m_voice, &m_format, 0, XAUDIO2_DEFAULT_FREQ_RATIO, this, &voice_send_list));
-			winrt::check_hresult(m_voice->SetVolume(m_volume));
-			winrt::check_hresult(m_voice->SetFrequencyRatio(m_speed));
-			if (!setBalance(m_output_balance)) {
-				return false;
-			}
-
-			return true;
+		if (m_parent->getDirectChannel() == nullptr) {
+			return false;
 		}
-		catch (winrt::hresult_error const& e) {
-			Logger::error("[core] SimpleAudioPlayerXAudio2::create failed: <winrt::hresult_error> {}", winrt::to_string(e.message()));
+
+		HRESULT hr{};
+
+		XAUDIO2_SEND_DESCRIPTOR voice_send{};
+		voice_send.pOutputVoice = m_parent->getChannel(m_mixing_channel);
+		XAUDIO2_VOICE_SENDS voice_send_list{};
+		voice_send_list.SendCount = 1;
+		voice_send_list.pSends = &voice_send;
+
+		hr = m_parent->getFactory()->CreateSourceVoice(&m_voice, &m_format, 0, XAUDIO2_DEFAULT_FREQ_RATIO, this, &voice_send_list);
+		if (!win32::check_hresult_as_boolean(hr, "XAudio2::CreateSourceVoice"sv)) {
+			return false;
 		}
-		catch (std::exception const& e) {
-			Logger::error("[core] SimpleAudioPlayerXAudio2::create failed: <std::exception> {}", e.what());
+
+		hr = m_voice->SetVolume(m_volume);
+		if (!win32::check_hresult_as_boolean(hr, "IXAudio2SourceVoice::SetVolume"sv)) {
+			return false;
 		}
-		return false;
+
+		hr = m_voice->SetFrequencyRatio(m_speed);
+		if (!win32::check_hresult_as_boolean(hr, "IXAudio2SourceVoice::SetFrequencyRatio"sv)) {
+			return false;
+		}
+
+		if (!setBalance(m_output_balance)) {
+			return false;
+		}
+
+		return true;
 	}
 	bool SimpleAudioPlayerXAudio2::create(AudioEndpointXAudio2* const parent, AudioMixingChannel const mixing_channel, IAudioDecoder* const decoder) {
 		m_parent = parent;
 		m_mixing_channel = mixing_channel;
 		m_total_seconds = static_cast<double>(decoder->getFrameCount()) / static_cast<double>(decoder->getSampleRate());
-	
+
 		m_format.wFormatTag = WAVE_FORMAT_PCM;
 		m_format.nChannels = decoder->getChannelCount();
 		m_format.nSamplesPerSec = decoder->getSampleRate();

@@ -3,8 +3,8 @@
 #include "core/implement/ReferenceCounted.hpp"
 #include <string>
 #include <vector>
-#include <winrt/base.h>
 #include <xaudio2redist.h>
+#include "win32/base.hpp"
 
 namespace core {
 	class AudioEndpointXAudio2 final : public implement::ReferenceCounted<IAudioEndpoint> {
@@ -63,7 +63,7 @@ namespace core {
 		std::vector<AudioEndpointInfo> m_endpoints;
 		std::string m_current_endpoint;
 		std::string m_preferred_endpoint;
-		winrt::com_ptr<IXAudio2> m_endpoint;
+		win32::com_ptr<IXAudio2> m_endpoint;
 		float m_mixing_channel_volumes[static_cast<size_t>(AudioMixingChannel::count)]{};
 		IXAudio2Voice* m_mixing_channels[static_cast<size_t>(AudioMixingChannel::count)]{};
 	};
