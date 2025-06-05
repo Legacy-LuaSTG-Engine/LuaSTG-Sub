@@ -5,80 +5,124 @@
 using std::string_view_literals::operator""sv;
 
 namespace core {
-	bool StreamLoopAudioPlayerXAudio2::ActionQueue::createObjects() {
-		semaphore_space = CreateSemaphoreExW(NULL, 64, 64, NULL, 0, SEMAPHORE_ALL_ACCESS);
-		semaphore_data = CreateSemaphoreExW(NULL, 0, 64, NULL, 0, SEMAPHORE_ALL_ACCESS);
-		if (semaphore_space == NULL || semaphore_data == NULL) return false;
-		event_exit = CreateEventExW(NULL, NULL, CREATE_EVENT_MANUAL_RESET, EVENT_ALL_ACCESS);
-		event_buffer[0] = CreateEventExW(NULL, NULL, CREATE_EVENT_MANUAL_RESET, EVENT_ALL_ACCESS);
-		event_buffer[1] = CreateEventExW(NULL, NULL, CREATE_EVENT_MANUAL_RESET, EVENT_ALL_ACCESS);
-		if (event_exit == NULL || event_buffer[0] == NULL || event_buffer[1] == NULL) return false;
-		return true;
-	}
-
 	void StreamLoopAudioPlayerXAudio2::ActionQueue::notifyExit() {
-		SetEvent(event_exit);
+		m_event_exit.store(true);
 	}
 	void StreamLoopAudioPlayerXAudio2::ActionQueue::notifyBufferAvailable(size_t const i) {
-		SetEvent(event_buffer[i]);
+		m_buffer_available_mask.fetch_or(1 << i);
 	}
 	void StreamLoopAudioPlayerXAudio2::ActionQueue::sendAction(Action const& v) {
-		DWORD const wait_result = WaitForSingleObject(semaphore_space, 1000); // 减少剩余空间的信号量，减少到 0 就会阻塞，大于 0 才会继续执行
-		if (wait_result == WAIT_OBJECT_0) {
-			data[writer_index] = v;
-			writer_index = (writer_index + 1) % size;
-			ReleaseSemaphore(semaphore_data, 1, NULL); // 增加已用空间的信号量
-		}
-		else if (wait_result == WAIT_TIMEOUT) {
+		if (!m_semaphore_space.try_acquire_for(std::chrono::seconds(1))) {
 			Logger::warn("[core] audio decode thread is blocking");
+			return;
 		}
+		m_data[m_writer_index.fetch_add(1) % m_data.size()] = v;
+		m_semaphore_data.release();
 	}
-	void StreamLoopAudioPlayerXAudio2::ActionQueue::reciveAction(Action& v) {
-		HANDLE objects[4] = {
-			event_exit,
-			event_buffer[0],
-			event_buffer[1],
-			semaphore_data,
-		};
-		switch (WaitForMultipleObjects(4, objects, FALSE, INFINITE)) {
-		case WAIT_OBJECT_0 + 0:
-			v.type = ActionType::Exit; // 特殊处理，且不重置 event
-			break;
-		case WAIT_OBJECT_0 + 1:
-			ResetEvent(event_buffer[0]);
-			v.type = ActionType::BufferAvailable; // 特殊处理
-			v.action_buffer_available.index = 0;
-			break;
-		case WAIT_OBJECT_0 + 2:
-			ResetEvent(event_buffer[1]);
-			v.type = ActionType::BufferAvailable; // 特殊处理
-			v.action_buffer_available.index = 1;
-			break;
-		case WAIT_OBJECT_0 + 3:
-			//WaitForSingleObject(semaphore_data, INFINITE); // 减少已用空间的信号量，减少到 0 就会阻塞，大于 0 才会继续执行，上面已经调用过
-			v = data[reader_index];
-			reader_index = (reader_index + 1) % size;
-			ReleaseSemaphore(semaphore_space, 1, NULL); // 增加剩余空间的信号量
-			break;
-		default:
-			v.type = ActionType::Exit; // 出错了，快给爷退出
-			break;
+	void StreamLoopAudioPlayerXAudio2::ActionQueue::receiveAction(Action& v) {
+		for (;;) {
+			if (m_event_exit.load()) {
+				v.type = ActionType::Exit;
+				return;
+			}
+			if (auto const mask = m_buffer_available_mask.fetch_add(0x2); (mask & 0x1) == 0x1) {
+				v.type = ActionType::BufferAvailable;
+				v.action_buffer_available.index = 0;
+				return;
+			}
+			if (auto const mask = m_buffer_available_mask.fetch_add(0x1); (mask & 0x2) == 0x2) {
+				v.type = ActionType::BufferAvailable;
+				v.action_buffer_available.index = 1;
+				return;
+			}
+			if (m_semaphore_data.try_acquire_for(std::chrono::seconds(1))) {
+				v = m_data[m_reader_index.fetch_add(1) % m_data.size()];
+				m_semaphore_space.release();
+				return;
+			}
 		}
-	}
-
-	StreamLoopAudioPlayerXAudio2::ActionQueue::ActionQueue() = default;
-	StreamLoopAudioPlayerXAudio2::ActionQueue::~ActionQueue() {
-		writer_index = 0;
-		reader_index = 0;
-		if (semaphore_space) CloseHandle(semaphore_space); semaphore_space = NULL;
-		if (semaphore_data) CloseHandle(semaphore_data); semaphore_data = NULL;
-		if (event_exit) CloseHandle(event_exit); event_exit = NULL;
-		if (event_buffer[0]) CloseHandle(event_buffer[0]); event_buffer[0] = NULL;
-		if (event_buffer[1]) CloseHandle(event_buffer[1]); event_buffer[1] = NULL;
 	}
 }
 
 namespace core {
+	// IAudioPlayer
+
+	bool StreamLoopAudioPlayerXAudio2::start() {
+		source_state = State::Play;
+		Action action = {};
+		action.type = ActionType::Start;
+		action_queue.sendAction(action);
+		return true;
+	}
+	bool StreamLoopAudioPlayerXAudio2::stop() {
+		source_state = State::Pause;
+		Action action = {};
+		action.type = ActionType::Stop;
+		action_queue.sendAction(action);
+		return true;
+	}
+	bool StreamLoopAudioPlayerXAudio2::reset() {
+		source_state = State::Stop;
+		Action action = {};
+		action.type = ActionType::Reset;
+		action.action_reset.play = false;
+		action_queue.sendAction(action);
+		return true;
+	}
+
+	bool StreamLoopAudioPlayerXAudio2::isPlaying() {
+		return source_state == State::Play;
+	}
+
+	double StreamLoopAudioPlayerXAudio2::getTotalTime() {
+		return total_time;
+	}
+	double StreamLoopAudioPlayerXAudio2::getTime() {
+		return current_time;
+	}
+	bool StreamLoopAudioPlayerXAudio2::setTime(double const time) {
+		Action action = {};
+		action.type = ActionType::SetTime;
+		action.action_set_time.time = time;
+		action_queue.sendAction(action);
+		return true;
+	}
+
+	float StreamLoopAudioPlayerXAudio2::getVolume() {
+		return m_volume;
+	}
+	bool StreamLoopAudioPlayerXAudio2::setVolume(float const volume) {
+		m_volume = std::clamp(volume, 0.0f, 1.0f);
+		std::shared_lock lock(m_player_lock);
+		if (m_voice == nullptr) {
+			return true;
+		}
+		return win32::check_hresult_as_boolean(m_voice->SetVolume(m_volume), "IXAudio2SourceVoice::SetVolume"sv);
+	}
+	float StreamLoopAudioPlayerXAudio2::getBalance() {
+		return m_output_balance;
+	}
+	bool StreamLoopAudioPlayerXAudio2::setBalance(float const v) {
+		m_output_balance = std::clamp(v, -1.0f, 1.0f);
+		std::shared_lock lock(m_player_lock);
+		if (m_voice == nullptr) {
+			return true;
+		}
+		auto const result = setOutputBalance(m_voice, m_parent->getChannel(m_mixing_channel), m_output_balance);
+		return win32::check_hresult_as_boolean(result, "IXAudio2SourceVoice::SetOutputMatrix"sv);
+	}
+	float StreamLoopAudioPlayerXAudio2::getSpeed() {
+		return m_speed;
+	}
+	bool StreamLoopAudioPlayerXAudio2::setSpeed(float const speed) {
+		m_speed = speed;
+		std::shared_lock lock(m_player_lock);
+		if (m_voice == nullptr) {
+			return true;
+		}
+		return win32::check_hresult_as_boolean(m_voice->SetFrequencyRatio(m_speed), "IXAudio2SourceVoice::SetFrequencyRatio"sv);
+	}
+
 	// IXAudio2VoiceCallback
 
 	void WINAPI StreamLoopAudioPlayerXAudio2::OnBufferEnd(void* const buffer_context) noexcept {
@@ -111,19 +155,55 @@ namespace core {
 	}
 
 	bool StreamLoopAudioPlayerXAudio2::create() {
+		if (m_parent->getDirectChannel() == nullptr) {
+			return false;
+		}
 
+		HRESULT hr{};
+
+		XAUDIO2_SEND_DESCRIPTOR voice_send{};
+		voice_send.pOutputVoice = m_parent->getChannel(m_mixing_channel);
+		XAUDIO2_VOICE_SENDS voice_send_list{};
+		voice_send_list.SendCount = 1;
+		voice_send_list.pSends = &voice_send;
+
+		// 创建
+
+		std::unique_lock lock(m_player_lock); // mutex
+
+		hr = m_parent->getFactory()->CreateSourceVoice(&m_voice, &m_format, 0, XAUDIO2_DEFAULT_FREQ_RATIO, this, &voice_send_list);
+		if (!win32::check_hresult_as_boolean(hr, "XAudio2::CreateSourceVoice"sv)) {
+			return false;
+		}
+
+		hr = m_voice->SetVolume(m_volume);
+		if (!win32::check_hresult_as_boolean(hr, "IXAudio2SourceVoice::SetVolume"sv)) {
+			return false;
+		}
+
+		hr = m_voice->SetFrequencyRatio(m_speed);
+		if (!win32::check_hresult_as_boolean(hr, "IXAudio2SourceVoice::SetFrequencyRatio"sv)) {
+			return false;
+		}
+
+		if (!setBalance(m_output_balance)) {
+			return false;
+		}
+
+		// 恢复
+
+		action_queue.notifyBufferAvailable(0);
+		action_queue.notifyBufferAvailable(1);
+		if (source_state == State::Play) {
+			start(); // 恢复播放
+		}
+
+		return true;
 	}
 	bool StreamLoopAudioPlayerXAudio2::create(AudioEndpointXAudio2* const parent, AudioMixingChannel const mixing_channel, IAudioDecoder* const decoder) {
 		m_parent = parent;
 		m_mixing_channel = mixing_channel;
 		m_decoder = decoder;
-
-		// 动作队列
-
-		if (!action_queue.createObjects()) {
-			Logger::error("[core] StreamLoopAudioPlayerXAudio2::ActionQueue::createObjects failed: CreateSemaphoreExW or CreateEventExW failed");
-			return false;
-		}
 
 		// 填写格式
 
@@ -277,7 +357,7 @@ namespace core {
 		Action action = {};
 
 		while (is_running) {
-			action_queue.reciveAction(action);
+			action_queue.receiveAction(action);
 			switch (action.type) {
 			default:
 			case ActionType::Exit:
@@ -318,5 +398,77 @@ namespace core {
 				break;
 			}
 		}
+	}
+}
+
+#include "xmath/XFFT.h"
+
+namespace core {
+	void StreamLoopAudioPlayerXAudio2::updateFFT() {
+		constexpr size_t sample_count = 512;
+		// 第一步，填充音频数据
+		if (fft_wave_data.size() != sample_count) {
+			fft_wave_data.resize(sample_count);
+		}
+		std::memset(fft_wave_data.data(), 0, sizeof(float) * fft_wave_data.size());
+		if constexpr (true) {
+			uint8_t* p_data = p_audio_buffer[(audio_buffer_index + 1) % 2];
+			if (m_decoder->getSampleSize() == 2) {
+				int16_t* p_pcm = (int16_t*)p_data;
+				size_t pitch = m_decoder->getChannelCount();
+				if (!(pitch == 1 || pitch == 2)) {
+					return; // 没法处理的声道数
+				}
+				for (size_t i = 0; i < sample_count; i += 1) {
+					fft_wave_data[i] = (float)(*p_pcm) / (float)(-(INT16_MIN));
+					p_pcm += pitch;
+				}
+			}
+			else if (m_decoder->getSampleSize() == 1) {
+				int8_t* p_pcm = (int8_t*)p_data;
+				size_t pitch = m_decoder->getChannelCount();
+				if (!(pitch == 1 || pitch == 2)) {
+					return; // 没法处理的声道数
+				}
+				for (size_t i = 0; i < sample_count; i += 1) {
+					fft_wave_data[i] = (float)(*p_pcm) / (float)(-(INT8_MIN));
+					p_pcm += pitch;
+				}
+			}
+			else {
+				return; // 没法处理的位深度
+			}
+		}
+		// 第二步，获得采样窗
+		if (fft_window.size() != sample_count) {
+			fft_window.resize(sample_count);
+			xmath::fft::getWindow(fft_window.size(), fft_window.data());
+		}
+		// 第三步，应用采样窗
+		for (size_t i = 0; i < sample_count; i += 1) {
+			fft_wave_data[i] *= fft_window[i];
+		}
+		// 第四步，申请 FFT 计算空间
+		const size_t fft_data_size = xmath::fft::getNeededWorksetSize(fft_wave_data.size());
+		const size_t fft_data_float_size = (fft_data_size / sizeof(float)) + 1;
+		if (fft_data.size() != fft_data_float_size) {
+			fft_data.resize(fft_data_float_size);
+		}
+		if (fft_complex_output.size() != (fft_wave_data.size() * 2)) {
+			fft_complex_output.resize(fft_wave_data.size() * 2);
+		}
+		if (fft_output.size() != (sample_count / 2)) {
+			fft_output.resize(sample_count / 2);
+		}
+		// 第五步，可以计算 FFT 了
+		xmath::fft::fft(fft_wave_data.size(), fft_data.data(), fft_wave_data.data(), fft_complex_output.data(), fft_output.data());
+		// 我先打个断点在这
+		std::ignore = nullptr;
+	}
+	uint32_t StreamLoopAudioPlayerXAudio2::getFFTSize() {
+		return static_cast<uint32_t>(fft_output.size());
+	}
+	float const* StreamLoopAudioPlayerXAudio2::getFFT() {
+		return fft_output.data();
 	}
 }

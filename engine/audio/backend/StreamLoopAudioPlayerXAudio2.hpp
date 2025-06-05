@@ -6,6 +6,8 @@
 #include "backend/AudioEndpointXAudio2.hpp"
 #include <thread>
 #include <shared_mutex>
+#include <semaphore>
+#include <atomic>
 
 namespace core {
 	class StreamLoopAudioPlayerXAudio2 final
@@ -24,7 +26,7 @@ namespace core {
 		double getTotalTime() override;
 		double getTime() override;
 		bool setTime(double time) override;
-		bool setLoop(bool enable, double start_pos, double length) override;
+		bool setLoop(bool, double, double) override { return true; }
 
 		float getVolume() override;
 		bool setVolume(float volume) override;
@@ -63,7 +65,7 @@ namespace core {
 		void worker();
 
 	private:
-		enum class ActionType {
+		enum class ActionType : uint8_t {
 			Exit,
 			Stop,
 			Start,
@@ -96,35 +98,35 @@ namespace core {
 			};
 		};
 
-		struct ActionQueue {
-			size_t const size = 64;
-			Action data[64] = {};
-			size_t writer_index = 0;
-			size_t reader_index = 0;
-			HANDLE semaphore_space = NULL;
-			HANDLE semaphore_data = NULL;
-			HANDLE event_exit = NULL;
-			HANDLE event_buffer[2] = { NULL, NULL };
-
-			bool createObjects();
+		class ActionQueue {
+		public:
 			// 线程：任意线程
 			// 通知工作线程应该退出
 			void notifyExit();
+
 			// 线程：任意线程
 			// 通知指定的缓冲区已经处于可用状态，可用于解码并储存 PCM 数据
 			void notifyBufferAvailable(size_t i);
+
 			// 线程：仅限引擎更新线程
 			// 向工作线程发送动作
 			void sendAction(Action const& v);
+
 			// 线程：仅限解码线程
 			// 工作线程接收动作
-			void reciveAction(Action& v);
+			void receiveAction(Action& v);
 
-			ActionQueue();
-			~ActionQueue();
+		private:
+			std::array<Action, 64> m_data{};
+			std::atomic_size_t m_writer_index{0};
+			std::atomic_size_t m_reader_index{0};
+			std::counting_semaphore<255> m_semaphore_space{64};
+			std::counting_semaphore<255> m_semaphore_data{0};
+			std::atomic_bool m_event_exit{false};
+			std::atomic_int m_buffer_available_mask{0x0};
 		};
 
-		enum class State {
+		enum class State : uint8_t {
 			Stop,
 			Pause,
 			Play,
@@ -156,5 +158,13 @@ namespace core {
 
 		std::thread m_working_thread;
 		std::shared_mutex m_player_lock;
+
+		// FFT
+
+		std::vector<float> fft_wave_data;
+		std::vector<float> fft_window;
+		std::vector<float> fft_data;
+		std::vector<float> fft_complex_output;
+		std::vector<float> fft_output;
 	};
 }

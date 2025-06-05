@@ -21,6 +21,7 @@ target_link_libraries(${lib_name} PUBLIC
     FLAC::FLAC
     Microsoft.XAudio2.Redist
     win32
+    xmath
 )
 
 set_target_properties(${lib_name} PROPERTIES FOLDER engine)
