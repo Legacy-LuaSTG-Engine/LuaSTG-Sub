@@ -1088,13 +1088,21 @@ namespace core::Graphics
 		{
 			if (reset && dxgi_swapchain)
 			{
+				HRNew;
+
 				// 微软不知道写了什么狗屎bug，有时候dwm临时接管桌面合成后会导致上屏延迟多一倍
 				// 重新设置最大帧延迟并创建延迟等待对象似乎能解决该问题
 				dxgi_swapchain_event.Close();
-				Microsoft::WRL::ComPtr<IDXGISwapChain2> dxgi_swapchain2;
-				winrt::check_hresult(dxgi_swapchain.As(&dxgi_swapchain2));
-				winrt::check_hresult(dxgi_swapchain2->SetMaximumFrameLatency(1));
-				dxgi_swapchain_event.Attach(dxgi_swapchain2->GetFrameLatencyWaitableObject());
+
+				Microsoft::WRL::ComPtr<IDXGISwapChain2> dxgi_swap_chain2;
+				HRGet = dxgi_swapchain.As(&dxgi_swap_chain2);
+				HRCheckCallReport("IDXGISwapChain1 -> IDXGISwapChain２");
+				if (FAILED(hr)) return;
+				HRGet = dxgi_swap_chain2->SetMaximumFrameLatency(1);
+				HRCheckCallReport("IDXGISwapChain２::SetMaximumFrameLatency(1)");
+				if (FAILED(hr)) return;
+
+				dxgi_swapchain_event.Attach(dxgi_swap_chain2->GetFrameLatencyWaitableObject());
 			}
 			if (dxgi_swapchain_event.IsValid())
 			{

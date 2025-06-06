@@ -78,6 +78,15 @@ namespace win32 {
 			m_object = std::exchange(other.m_object, nullptr);
 			return *this;
 		}
+		com_ptr& operator=(T* const other) noexcept {
+			if (m_object == other) {
+				return *this;
+			}
+			release();
+			m_object = other;
+			reference();
+			return *this;
+		}
 
 		T* get() const noexcept { return m_object; }
 		T* operator->() const noexcept { return m_object; }
@@ -95,6 +104,11 @@ namespace win32 {
 			reset();
 			return &m_object;
 		}
+
+		[[nodiscard]] explicit operator bool() const noexcept { return m_object != nullptr; }
+
+		void attach(T* const other) { release(); m_object = other; }
+		T* detach() { return std::exchange(m_object, nullptr); }
 
 	private:
 		void reference() {

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "core/ReferenceCounted.hpp"
 #include "core/implement/ReferenceCounted.hpp"
 #include "Core/Audio/Device.hpp"
@@ -16,7 +16,7 @@ namespace core::Audio
 	{
 	public:
 		Platform::RuntimeLoader::XAudio2 loader;
-		winrt::com_ptr<IXAudio2> xaudio2;
+		win32::com_ptr<IXAudio2> xaudio2;
 		winrt::xaudio2_voice_ptr<IXAudio2MasteringVoice> voice_master;
 		winrt::xaudio2_voice_ptr<IXAudio2SubmixVoice> voice_sound_effect;
 		winrt::xaudio2_voice_ptr<IXAudio2SubmixVoice> voice_music;

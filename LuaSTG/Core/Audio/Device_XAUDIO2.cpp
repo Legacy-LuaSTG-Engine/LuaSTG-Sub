@@ -1,4 +1,6 @@
 #include "Core/Audio/Device_XAUDIO2.hpp"
+
+#include "utf8.hpp"
 #include "Core/i18n.hpp"
 #include "core/Configuration.hpp"
 
@@ -103,7 +105,7 @@ namespace core::Audio
 		voice_sound_effect = {};
 		voice_music = {};
 		voice_master = {};
-		xaudio2 = {};
+		xaudio2.reset();
 	}
 
 	void Device_XAUDIO2::addEventListener(IAudioDeviceEventListener* p_m_listener)
@@ -170,7 +172,7 @@ namespace core::Audio
 		{
 			m_shared.attach(new Shared_XAUDIO2);
 
-			winrt::check_hresult(m_shared->loader.Create(m_shared->xaudio2.put()));
+			win32::check_hresult_throw_if_failed(m_shared->loader.Create(m_shared->xaudio2.put()));
 
 		#ifndef NDEBUG
 			XAUDIO2_DEBUG_CONFIGURATION xaudio2_debug{};
@@ -203,20 +205,20 @@ namespace core::Audio
 
 			if (device_id.empty())
 			{
-				winrt::check_hresult(m_shared->xaudio2->CreateMasteringVoice(m_shared->voice_master.put()));
+				win32::check_hresult_throw_if_failed(m_shared->xaudio2->CreateMasteringVoice(m_shared->voice_master.put()));
 			}
 			else
 			{
-				winrt::check_hresult(m_shared->xaudio2->CreateMasteringVoice(
+				win32::check_hresult_throw_if_failed(m_shared->xaudio2->CreateMasteringVoice(
 					m_shared->voice_master.put(),
 					0U, 0U, 0U,
-					winrt::to_hstring(device_id).c_str()));
+					utf8::to_wstring(device_id).c_str()));
 			}
 
 			// fixed, 2 channel, 44100hz sample rate
 
-			winrt::check_hresult(m_shared->xaudio2->CreateSubmixVoice(m_shared->voice_sound_effect.put(), 2, 44100));
-			winrt::check_hresult(m_shared->xaudio2->CreateSubmixVoice(m_shared->voice_music.put(), 2, 44100));
+			win32::check_hresult_throw_if_failed(m_shared->xaudio2->CreateSubmixVoice(m_shared->voice_sound_effect.put(), 2, 44100));
+			win32::check_hresult_throw_if_failed(m_shared->xaudio2->CreateSubmixVoice(m_shared->voice_music.put(), 2, 44100));
 
 			// build graph
 
@@ -226,22 +228,22 @@ namespace core::Audio
 			voice_send_list.SendCount = 1;
 			voice_send_list.pSends = &voice_send_master;
 
-			winrt::check_hresult(m_shared->voice_sound_effect->SetOutputVoices(&voice_send_list));
-			winrt::check_hresult(m_shared->voice_music->SetOutputVoices(&voice_send_list));
+			win32::check_hresult_throw_if_failed(m_shared->voice_sound_effect->SetOutputVoices(&voice_send_list));
+			win32::check_hresult_throw_if_failed(m_shared->voice_music->SetOutputVoices(&voice_send_list));
 
 			// update volume
-			winrt::check_hresult(m_shared->voice_master->SetVolume(std::clamp(m_volume_direct, 0.0f, 1.0f)));
-			winrt::check_hresult(m_shared->voice_sound_effect->SetVolume(std::clamp(m_volume_sound_effect, 0.0f, 1.0f)));
-			winrt::check_hresult(m_shared->voice_music->SetVolume(std::clamp(m_volume_music, 0.0f, 1.0f)));
+			win32::check_hresult_throw_if_failed(m_shared->voice_master->SetVolume(std::clamp(m_volume_direct, 0.0f, 1.0f)));
+			win32::check_hresult_throw_if_failed(m_shared->voice_sound_effect->SetVolume(std::clamp(m_volume_sound_effect, 0.0f, 1.0f)));
+			win32::check_hresult_throw_if_failed(m_shared->voice_music->SetVolume(std::clamp(m_volume_music, 0.0f, 1.0f)));
 
 			m_current_audio_device_name = device_name;
 			dispatchEventAudioDeviceCreate();
 
 			return true;
 		}
-		catch (winrt::hresult_error const& e)
+		catch (win32::hresult_error const& e)
 		{
-			spdlog::error("[core] <winrt::hresult_error> {}", winrt::to_string(e.message()));
+			spdlog::error("[core] <win32::hresult_error> {}", e.message());
 		}
 		catch (std::exception const& e)
 		{
@@ -420,7 +422,7 @@ namespace core::Audio
 
 			m_shared = m_device->getShared();
 
-			winrt::check_hresult(m_shared->xaudio2->CreateSourceVoice(m_player.put(), &m_format, 0, XAUDIO2_DEFAULT_FREQ_RATIO, this));
+			win32::check_hresult_throw_if_failed(m_shared->xaudio2->CreateSourceVoice(m_player.put(), &m_format, 0, XAUDIO2_DEFAULT_FREQ_RATIO, this));
 
 			XAUDIO2_SEND_DESCRIPTOR voice_send{};
 			voice_send.pOutputVoice = m_shared->voice_sound_effect.get();
@@ -428,17 +430,17 @@ namespace core::Audio
 			voice_send_list.SendCount = 1;
 			voice_send_list.pSends = &voice_send;
 
-			winrt::check_hresult(m_player->SetOutputVoices(&voice_send_list));
+			win32::check_hresult_throw_if_failed(m_player->SetOutputVoices(&voice_send_list));
 
-			winrt::check_hresult(m_player->SetVolume(std::clamp(m_volume, 0.0f, 1.0f)));
-			winrt::check_hresult(SetOutputBalance(m_player.get(), m_output_balance));
-			winrt::check_hresult(m_player->SetFrequencyRatio(m_speed));
+			win32::check_hresult_throw_if_failed(m_player->SetVolume(std::clamp(m_volume, 0.0f, 1.0f)));
+			win32::check_hresult_throw_if_failed(SetOutputBalance(m_player.get(), m_output_balance));
+			win32::check_hresult_throw_if_failed(m_player->SetFrequencyRatio(m_speed));
 
 			return true;
 		}
-		catch (winrt::hresult_error const& e)
+		catch (win32::hresult_error const& e)
 		{
-			spdlog::error("[core] <winrt::hresult_error> {}", winrt::to_string(e.message()));
+			spdlog::error("[core] <win32::hresult_error> {}", e.message());
 		}
 		catch (std::exception const& e)
 		{
@@ -622,7 +624,7 @@ namespace core::Audio
 
 			m_shared = m_device->getShared();
 
-			winrt::check_hresult(m_shared->xaudio2->CreateSourceVoice(m_player.put(), &m_format, 0, XAUDIO2_DEFAULT_FREQ_RATIO, this));
+			win32::check_hresult_throw_if_failed(m_shared->xaudio2->CreateSourceVoice(m_player.put(), &m_format, 0, XAUDIO2_DEFAULT_FREQ_RATIO, this));
 
 			XAUDIO2_SEND_DESCRIPTOR voice_send{};
 			voice_send.pOutputVoice = m_shared->voice_music.get(); // 音乐通道
@@ -630,17 +632,17 @@ namespace core::Audio
 			voice_send_list.SendCount = 1;
 			voice_send_list.pSends = &voice_send;
 
-			winrt::check_hresult(m_player->SetOutputVoices(&voice_send_list));
+			win32::check_hresult_throw_if_failed(m_player->SetOutputVoices(&voice_send_list));
 
-			winrt::check_hresult(m_player->SetVolume(std::clamp(m_volume, 0.0f, 1.0f)));
-			winrt::check_hresult(SetOutputBalance(m_player.get(), m_output_balance));
-			winrt::check_hresult(m_player->SetFrequencyRatio(m_speed));
+			win32::check_hresult_throw_if_failed(m_player->SetVolume(std::clamp(m_volume, 0.0f, 1.0f)));
+			win32::check_hresult_throw_if_failed(SetOutputBalance(m_player.get(), m_output_balance));
+			win32::check_hresult_throw_if_failed(m_player->SetFrequencyRatio(m_speed));
 
 			return true;
 		}
-		catch (winrt::hresult_error const& e)
+		catch (win32::hresult_error const& e)
 		{
-			spdlog::error("[core] <winrt::hresult_error> {}", winrt::to_string(e.message()));
+			spdlog::error("[core] <win32::hresult_error> {}", e.message());
 		}
 		catch (std::exception const& e)
 		{
@@ -1023,7 +1025,7 @@ namespace core::Audio
 			{
 				auto lock_scope = m_player_lock.lock();
 
-				winrt::check_hresult(m_shared->xaudio2->CreateSourceVoice(m_player.put(), &m_format, 0, XAUDIO2_DEFAULT_FREQ_RATIO, this));
+				win32::check_hresult_throw_if_failed(m_shared->xaudio2->CreateSourceVoice(m_player.put(), &m_format, 0, XAUDIO2_DEFAULT_FREQ_RATIO, this));
 
 				XAUDIO2_SEND_DESCRIPTOR voice_send{};
 				voice_send.pOutputVoice = m_shared->voice_music.get(); // 音乐通道
@@ -1031,11 +1033,11 @@ namespace core::Audio
 				voice_send_list.SendCount = 1;
 				voice_send_list.pSends = &voice_send;
 
-				winrt::check_hresult(m_player->SetOutputVoices(&voice_send_list));
+				win32::check_hresult_throw_if_failed(m_player->SetOutputVoices(&voice_send_list));
 
-				winrt::check_hresult(m_player->SetVolume(std::clamp(m_volume, 0.0f, 1.0f)));
-				winrt::check_hresult(SetOutputBalance(m_player.get(), m_output_balance));
-				winrt::check_hresult(m_player->SetFrequencyRatio(m_speed));
+				win32::check_hresult_throw_if_failed(m_player->SetVolume(std::clamp(m_volume, 0.0f, 1.0f)));
+				win32::check_hresult_throw_if_failed(SetOutputBalance(m_player.get(), m_output_balance));
+				win32::check_hresult_throw_if_failed(m_player->SetFrequencyRatio(m_speed));
 
 				std::ignore = lock_scope;
 			}
@@ -1051,9 +1053,9 @@ namespace core::Audio
 
 			return true;
 		}
-		catch (winrt::hresult_error const& e)
+		catch (win32::hresult_error const& e)
 		{
-			spdlog::error("[core] <winrt::hresult_error> {}", winrt::to_string(e.message()));
+			spdlog::error("[core] <win32::hresult_error> {}", e.message());
 		}
 		catch (std::exception const& e)
 		{

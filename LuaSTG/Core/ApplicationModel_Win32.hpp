@@ -78,7 +78,7 @@ namespace core
 	private:
 		uint32_t const m_max_error{ 10 }; // 相差超过 10 帧就不应该再追帧了
 		double const m_update_avg_fps_delta{ 0.25 }; // 每 0.25s 更新一次平均帧率
-		winrt::handle m_event;
+		wil::unique_event_nothrow m_event;
 		LARGE_INTEGER m_freq{};
 		LARGE_INTEGER m_last{};
 		LARGE_INTEGER m_target_time{}; // 下一个期望的时间戳
@@ -129,8 +129,7 @@ namespace core
 		}
 		bool recreateResource()
 		{
-			m_event.close();
-			m_event.attach(CreateWaitableTimerExW(NULL, NULL, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS));
+			m_event.reset(CreateWaitableTimerExW(NULL, NULL, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS));
 			if (!m_event) {
 				spdlog::error("[core] [SteadyFrameRateController] CreateWaitableTimerExW failed (LastError={})", GetLastError());
 			}
@@ -211,12 +210,12 @@ namespace core
 	private:
 
 		SmartReference<Graphics::IDevice> m_device;
-		winrt::com_ptr<ID3D11Device> d3d11_device;
-		winrt::com_ptr<ID3D11DeviceContext> d3d11_device_context;
-		winrt::com_ptr<ID3D11Query> d3d11_query_freq;
-		winrt::com_ptr<ID3D11Query> d3d11_query_time_begin;
-		winrt::com_ptr<ID3D11Query> d3d11_query_time_end;
-		winrt::com_ptr<ID3D11Query> d3d11_query_statistics;
+		win32::com_ptr<ID3D11Device> d3d11_device;
+		win32::com_ptr<ID3D11DeviceContext> d3d11_device_context;
+		win32::com_ptr<ID3D11Query> d3d11_query_freq;
+		win32::com_ptr<ID3D11Query> d3d11_query_time_begin;
+		win32::com_ptr<ID3D11Query> d3d11_query_time_end;
+		win32::com_ptr<ID3D11Query> d3d11_query_statistics;
 		D3D11_QUERY_DATA_TIMESTAMP_DISJOINT freq{};
 		UINT64 time_begin{};
 		UINT64 time_end{};
@@ -236,7 +235,7 @@ namespace core
 		bool createResources(ID3D11Device* device)
 		{
 			assert(device);
-			d3d11_device.copy_from(device);
+			d3d11_device = device;
 			d3d11_device->GetImmediateContext(d3d11_device_context.put());
 			D3D11_QUERY_DESC d3d11_query_info{};
 			d3d11_query_info.Query = D3D11_QUERY_TIMESTAMP_DISJOINT;

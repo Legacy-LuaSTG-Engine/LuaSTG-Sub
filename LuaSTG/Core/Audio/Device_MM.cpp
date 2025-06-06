@@ -2,6 +2,7 @@
 
 #include <mmdeviceapi.h>
 #include <functiondiscoverykeys_devpkey.h>
+#include "utf8.hpp"
 
 namespace core::Audio
 {
@@ -11,43 +12,42 @@ namespace core::Audio
 
 		try
 		{
-			winrt::com_ptr<IMMDeviceEnumerator> device_enumerator = winrt::create_instance<IMMDeviceEnumerator>(winrt::guid_of<MMDeviceEnumerator>(), CLSCTX_ALL);
-
-			winrt::com_ptr<IMMDeviceCollection> device_list;
-			winrt::check_hresult(device_enumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, device_list.put()));
+			win32::com_ptr<IMMDeviceEnumerator> device_enumerator;
+			win32::check_hresult_throw_if_failed(win32::create_instance<MMDeviceEnumerator, IMMDeviceEnumerator>(CLSCTX_ALL, device_enumerator.put()));
+			
+			win32::com_ptr<IMMDeviceCollection> device_list;
+			win32::check_hresult_throw_if_failed(device_enumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, device_list.put()));
 
 			UINT device_count = 0;
-			winrt::check_hresult(device_list->GetCount(&device_count));
+			win32::check_hresult_throw_if_failed(device_list->GetCount(&device_count));
 
 			for (UINT index = 0; index < device_count; index += 1)
 			{
-				winrt::com_ptr<IMMDevice> device;
-				winrt::check_hresult(device_list->Item(index, device.put()));
+				win32::com_ptr<IMMDevice> device;
+				win32::check_hresult_throw_if_failed(device_list->Item(index, device.put()));
 
 				wil::unique_cotaskmem_string id;
-				winrt::check_hresult(device->GetId(id.put()));
+				win32::check_hresult_throw_if_failed(device->GetId(id.put()));
 
-				winrt::com_ptr<IPropertyStore> prop;
-				winrt::check_hresult(device->OpenPropertyStore(STGM_READ, prop.put()));
+				win32::com_ptr<IPropertyStore> prop;
+				win32::check_hresult_throw_if_failed(device->OpenPropertyStore(STGM_READ, prop.put()));
 				assert(id.get());
 
 				wil::unique_prop_variant name;
-				winrt::check_hresult(prop->GetValue(PKEY_Device_FriendlyName, name.addressof()));
+				win32::check_hresult_throw_if_failed(prop->GetValue(PKEY_Device_FriendlyName, name.addressof()));
 				assert(name.vt == VT_LPWSTR);
 
-				winrt::hstring name_default = winrt::hstring(L"Device") + winrt::to_hstring(index);
-
 				m_audio_device_list.emplace_back(AudioDeviceInfo{
-					winrt::to_string(id.get()),
-					winrt::to_string(name.vt == VT_LPWSTR ? name.pwszVal : name_default),
+					utf8::to_string(id.get()),
+					name.vt == VT_LPWSTR ? utf8::to_string(name.pwszVal) : std::string("Device"),
 				});
 			}
 
 			return true;
 		}
-		catch (winrt::hresult_error const& e)
+		catch (win32::hresult_error const& e)
 		{
-			spdlog::error("[core] <winrt::hresult_error> {}", winrt::to_string(e.message()));
+			spdlog::error("[core] <win32::hresult_error> {}", e.message());
 		}
 		catch (std::exception const& e)
 		{
