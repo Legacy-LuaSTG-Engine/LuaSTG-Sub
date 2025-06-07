@@ -47,15 +47,13 @@ int main() {
 	}
 
 	core::SmartReference<core::IAudioPlayer> player;
-	if (!endpoint->createLoopAudioPlayer(decoder.get(), core::AudioMixingChannel::music, player.put())) {
+	if (!endpoint->createStreamAudioPlayer(decoder.get(), core::AudioMixingChannel::music, player.put())) {
 		core::Logger::error("core::IAudioEndpoint::createAudioPlayer");
 		return 1;
 	}
 
 	player->setLoop(true, 105.60 - 90.40, 90.40);
-	player->setTime(80.0);
-	player->reset();
-	player->start();
+	player->play(80.0);
 
 	std::string command;
 	while (true) {

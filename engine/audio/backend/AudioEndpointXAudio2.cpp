@@ -1,9 +1,8 @@
 #include "backend/AudioEndpointXAudio2.hpp"
 #include "core/Configuration.hpp"
 #include "core/Logger.hpp"
-#include "backend/SimpleAudioPlayerXAudio2.hpp"
-#include "backend/LoopAudioPlayerXAudio2.hpp"
-#include "backend/StreamLoopAudioPlayerXAudio2.hpp"
+#include "backend/AudioPlayerXAudio2.hpp"
+#include "backend/StreamAudioPlayerXAudio2.hpp"
 #include "utf8.hpp"
 #include <ranges>
 
@@ -66,8 +65,8 @@ namespace core {
 
 	bool AudioEndpointXAudio2::createAudioPlayer(IAudioDecoder* const decoder, AudioMixingChannel const channel, IAudioPlayer** const output_player) {
 		try {
-			SmartReference<SimpleAudioPlayerXAudio2> player;
-			player.attach(new SimpleAudioPlayerXAudio2);
+			SmartReference<AudioPlayerXAudio2> player;
+			player.attach(new AudioPlayerXAudio2);
 			if (!player->create(this, channel, decoder)) {
 				return false;
 			}
@@ -75,29 +74,14 @@ namespace core {
 			return true;
 		}
 		catch (std::exception const& e) {
-			Logger::error("[core] create SimpleAudioPlayerXAudio2 failed: {}", e.what());
-			return false;
-		}
-	}
-	bool AudioEndpointXAudio2::createLoopAudioPlayer(IAudioDecoder* const decoder, AudioMixingChannel const channel, IAudioPlayer** const output_player) {
-		try {
-			SmartReference<LoopAudioPlayerXAudio2> player;
-			player.attach(new LoopAudioPlayerXAudio2);
-			if (!player->create(this, channel, decoder)) {
-				return false;
-			}
-			*output_player = player.detach();
-			return true;
-		}
-		catch (std::exception const& e) {
-			Logger::error("[core] create LoopAudioPlayerXAudio2 failed: {}", e.what());
+			Logger::error("[core] create AudioPlayerXAudio2 failed: {}", e.what());
 			return false;
 		}
 	}
 	bool AudioEndpointXAudio2::createStreamAudioPlayer(IAudioDecoder* const decoder, AudioMixingChannel const channel, IAudioPlayer** const output_player) {
 		try {
-			SmartReference<StreamLoopAudioPlayerXAudio2> player;
-			player.attach(new StreamLoopAudioPlayerXAudio2);
+			SmartReference<StreamAudioPlayerXAudio2> player;
+			player.attach(new StreamAudioPlayerXAudio2);
 			if (!player->create(this, channel, decoder)) {
 				return false;
 			}
@@ -105,7 +89,7 @@ namespace core {
 			return true;
 		}
 		catch (std::exception const& e) {
-			Logger::error("[core] create StreamLoopAudioPlayerXAudio2 failed: {}", e.what());
+			Logger::error("[core] create StreamAudioPlayerXAudio2 failed: {}", e.what());
 			return false;
 		}
 	}

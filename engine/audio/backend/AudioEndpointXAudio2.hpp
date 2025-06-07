@@ -3,6 +3,9 @@
 #include "core/implement/ReferenceCounted.hpp"
 #include <string>
 #include <vector>
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include <xaudio2redist.h>
 #include "win32/base.hpp"
 
@@ -28,7 +31,6 @@ namespace core {
 		[[nodiscard]] float getMixingChannelVolume(AudioMixingChannel channel) const noexcept override;
 
 		[[nodiscard]] bool createAudioPlayer(IAudioDecoder* decoder, AudioMixingChannel channel, IAudioPlayer** output_player) override;
-		[[nodiscard]] bool createLoopAudioPlayer(IAudioDecoder* decoder, AudioMixingChannel channel, IAudioPlayer** output_player) override;
 		[[nodiscard]] bool createStreamAudioPlayer(IAudioDecoder* decoder, AudioMixingChannel channel, IAudioPlayer** output_player) override;
 
 		// AudioEndpointXAudio2

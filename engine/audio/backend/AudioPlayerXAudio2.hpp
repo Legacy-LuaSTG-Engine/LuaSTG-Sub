@@ -4,24 +4,24 @@
 #include "core/implement/ReferenceCounted.hpp"
 #include "backend/CommonAudioPlayerXAudio2.hpp"
 #include "backend/AudioEndpointXAudio2.hpp"
+#include <atomic>
 
 namespace core {
-	class LoopAudioPlayerXAudio2 final
+	class AudioPlayerXAudio2 final
 		: public implement::ReferenceCounted<IAudioPlayer>
 		, public XAudio2VoiceCallbackHelper
 		, public IAudioEndpointEventListener {
 	public:
 		// IAudioPlayer
 
-		bool start() override;
+		bool play(double seconds) override;
+		bool pause() override;
+		bool resume() override;
 		bool stop() override;
-		bool reset() override;
-
-		bool isPlaying() override;
+		AudioPlayerState getState() override;
 
 		double getTotalTime() override;
 		double getTime() override;
-		bool setTime(double time) override;
 		bool setLoop(bool enable, double start_pos, double length) override;
 
 		float getVolume() override;
@@ -37,6 +37,7 @@ namespace core {
 
 		// IXAudio2VoiceCallback
 
+		void WINAPI OnStreamEnd() noexcept override;
 		void WINAPI OnVoiceError(void*, HRESULT error) noexcept override;
 
 		// IAudioEndpointEventListener
@@ -44,19 +45,20 @@ namespace core {
 		void onAudioEndpointCreate() override;
 		void onAudioEndpointDestroy() override;
 
-		// LoopAudioPlayerXAudio2
+		// AudioPlayerXAudio2
 
-		LoopAudioPlayerXAudio2() = default;
-		LoopAudioPlayerXAudio2(LoopAudioPlayerXAudio2 const&) = delete;
-		LoopAudioPlayerXAudio2(LoopAudioPlayerXAudio2&&) = delete;
-		~LoopAudioPlayerXAudio2() override;
+		AudioPlayerXAudio2() = default;
+		AudioPlayerXAudio2(AudioPlayerXAudio2 const&) = delete;
+		AudioPlayerXAudio2(AudioPlayerXAudio2&&) = delete;
+		~AudioPlayerXAudio2() override;
 
-		LoopAudioPlayerXAudio2& operator=(LoopAudioPlayerXAudio2 const&) = delete;
-		LoopAudioPlayerXAudio2& operator=(LoopAudioPlayerXAudio2&&) = delete;
+		AudioPlayerXAudio2& operator=(AudioPlayerXAudio2 const&) = delete;
+		AudioPlayerXAudio2& operator=(AudioPlayerXAudio2&&) = delete;
 
 		bool create();
 		bool create(AudioEndpointXAudio2* parent, AudioMixingChannel mixing_channel, IAudioDecoder* decoder);
 		void destroy();
+		bool submitBuffer();
 
 	private:
 		SmartReference<AudioEndpointXAudio2> m_parent;
@@ -69,7 +71,7 @@ namespace core {
 		float m_output_balance = 0.0f;
 		float m_speed = 1.0f;
 		double m_total_seconds{};
-		bool m_is_playing{};
+		AudioPlayerState m_state{ AudioPlayerState::stopped };
 
 		double m_start_time{};
 		bool m_loop{};

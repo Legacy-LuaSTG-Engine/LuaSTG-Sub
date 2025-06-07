@@ -1,6 +1,9 @@
 #pragma once
 #include <cassert>
 #include <algorithm>
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include <xaudio2redist.h>
 
 namespace core {

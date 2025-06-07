@@ -2,16 +2,27 @@
 #include "core/ReferenceCounted.hpp"
 
 namespace core {
-	struct CORE_NO_VIRTUAL_TABLE IAudioPlayer : IReferenceCounted {
-		virtual bool start() = 0;
-		virtual bool stop() = 0;
-		virtual bool reset() = 0;
+	//      /------------------stop--------------------\
+	//      v                                          |
+	// /---------\ <-stop-- /---------\ <-resume-- /--------\
+	// | stopped |          | playing |            | paused |
+	// \---------/ --play-> \---------/ --pause--> \--------/
 
-		virtual bool isPlaying() = 0;
+	enum class AudioPlayerState : uint8_t {
+		stopped = 0,
+		playing = 1,
+		paused = 2,
+	};
+
+	struct CORE_NO_VIRTUAL_TABLE IAudioPlayer : IReferenceCounted {
+		virtual bool play(double seconds) = 0;
+		virtual bool pause() = 0;
+		virtual bool resume() = 0;
+		virtual bool stop() = 0;
+		virtual AudioPlayerState getState() = 0;
 
 		virtual double getTotalTime() = 0;
 		virtual double getTime() = 0;
-		virtual bool setTime(double t) = 0;
 		virtual bool setLoop(bool enable, double start_pos, double length) = 0;
 
 		virtual float getVolume() = 0;

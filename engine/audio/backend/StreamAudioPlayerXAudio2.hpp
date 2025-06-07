@@ -10,23 +10,22 @@
 #include <atomic>
 
 namespace core {
-	class StreamLoopAudioPlayerXAudio2 final
+	class StreamAudioPlayerXAudio2 final
 		: public implement::ReferenceCounted<IAudioPlayer>
 		, public XAudio2VoiceCallbackHelper
 		, public IAudioEndpointEventListener {
 	public:
 		// IAudioPlayer
 
-		bool start() override;
+		bool play(double seconds) override;
+		bool pause() override;
+		bool resume() override;
 		bool stop() override;
-		bool reset() override;
-
-		bool isPlaying() override;
+		AudioPlayerState getState() override;
 
 		double getTotalTime() override;
 		double getTime() override;
-		bool setTime(double time) override;
-		bool setLoop(bool, double, double) override { return true; }
+		bool setLoop(bool enable, double start_pos, double length) override;
 
 		float getVolume() override;
 		bool setVolume(float volume) override;
@@ -49,15 +48,15 @@ namespace core {
 		void onAudioEndpointCreate() override;
 		void onAudioEndpointDestroy() override;
 
-		// StreamLoopAudioPlayerXAudio2
+		// StreamAudioPlayerXAudio2
 
-		StreamLoopAudioPlayerXAudio2() = default;
-		StreamLoopAudioPlayerXAudio2(StreamLoopAudioPlayerXAudio2 const&) = delete;
-		StreamLoopAudioPlayerXAudio2(StreamLoopAudioPlayerXAudio2&&) = delete;
-		~StreamLoopAudioPlayerXAudio2() override;
+		StreamAudioPlayerXAudio2() = default;
+		StreamAudioPlayerXAudio2(StreamAudioPlayerXAudio2 const&) = delete;
+		StreamAudioPlayerXAudio2(StreamAudioPlayerXAudio2&&) = delete;
+		~StreamAudioPlayerXAudio2() override;
 
-		StreamLoopAudioPlayerXAudio2& operator=(StreamLoopAudioPlayerXAudio2 const&) = delete;
-		StreamLoopAudioPlayerXAudio2& operator=(StreamLoopAudioPlayerXAudio2&&) = delete;
+		StreamAudioPlayerXAudio2& operator=(StreamAudioPlayerXAudio2 const&) = delete;
+		StreamAudioPlayerXAudio2& operator=(StreamAudioPlayerXAudio2&&) = delete;
 
 		bool create();
 		bool create(AudioEndpointXAudio2* parent, AudioMixingChannel mixing_channel, IAudioDecoder* decoder);
@@ -66,36 +65,20 @@ namespace core {
 
 	private:
 		enum class ActionType : uint8_t {
-			Exit,
-			Stop,
-			Start,
-			Reset,
-			SetTime,
-			BufferAvailable, // 注意，严禁通过 sendAction 发出，请使用 notifyBufferAvailable
+			exit,
+			buffer_available, // 注意，严禁通过 sendAction 发出，请使用 notifyBufferAvailable
+			play,
+			pause,
+			resume,
+			stop,
+			update_loop,
 		};
 
 		struct Action {
+			double start;
+			double length;
+			uint8_t buffer_available_index;
 			ActionType type;
-			union {
-				struct ActionExit {
-					uint8_t _dummy;
-				} action_exit;
-				struct ActionStop {
-					uint8_t _dummy;
-				} action_stop;
-				struct ActionStart {
-					uint8_t _dummy;
-				} action_start;
-				struct ActionReset {
-					bool play;
-				} action_reset;
-				struct ActionSetTime {
-					double time;
-				} action_set_time;
-				struct ActionBufferAvailable {
-					size_t index;
-				} action_buffer_available;
-			};
 		};
 
 		class ActionQueue {
@@ -118,52 +101,54 @@ namespace core {
 
 		private:
 			std::array<Action, 64> m_data{};
-			std::atomic_size_t m_writer_index{0};
-			std::atomic_size_t m_reader_index{0};
-			std::counting_semaphore<255> m_semaphore_space{64};
-			std::counting_semaphore<255> m_semaphore_data{0};
-			std::atomic_bool m_event_exit{false};
-			std::atomic_int m_buffer_available_mask{0x0};
-		};
-
-		enum class State : uint8_t {
-			Stop,
-			Pause,
-			Play,
+			std::atomic_size_t m_writer_index{ 0 };
+			std::atomic_size_t m_reader_index{ 0 };
+			std::counting_semaphore<255> m_semaphore_space{ 64 };
+			std::counting_semaphore<255> m_semaphore_data{ 0 };
+			std::atomic_bool m_event_exit{ false };
+			std::atomic_int m_buffer_available_mask{ 0x0 };
 		};
 
 		SmartReference<AudioEndpointXAudio2> m_parent;
 		IXAudio2SourceVoice* m_voice{};
 		WAVEFORMATEX m_format{};
-		XAUDIO2_BUFFER m_voice_buffer = {};
-		std::vector<BYTE> m_pcm_data;
 		AudioMixingChannel m_mixing_channel;
-		float m_volume = 1.0f;
-		float m_output_balance = 0.0f;
-		float m_speed = 1.0f;
-		double m_total_seconds{};
-		bool m_is_playing{};
+		float m_volume{ 1.0f };
+		float m_output_balance{ 0.0f };
+		float m_speed{ 1.0f };
 
-		double total_time = 0.0;
-		double current_time = 0.0;
+		// decode
 
 		SmartReference<IAudioDecoder> m_decoder;
-		ActionQueue action_queue;
-		State source_state = State::Stop;
-
 		std::vector<uint8_t> raw_buffer;
 		uint8_t* p_audio_buffer[2] = {};
-		size_t audio_buffer_index = 0;
 
+		// worker
+
+		ActionQueue m_action_queue;
 		std::thread m_working_thread;
-		std::shared_mutex m_player_lock;
+		std::shared_mutex m_voice_lock;
 
-		// FFT
+		// state
 
-		std::vector<float> fft_wave_data;
-		std::vector<float> fft_window;
-		std::vector<float> fft_data;
-		std::vector<float> fft_complex_output;
-		std::vector<float> fft_output;
+		double m_played_seconds{};
+		double m_current_seconds{};
+		AudioPlayerState m_state{ AudioPlayerState::stopped };
+
+		// loop
+
+		bool m_loop_enabled{};
+		uint32_t m_loop_sample_start{};
+		uint32_t m_loop_sample_count{};
+		uint32_t m_current_sample{}; // [worker thread only]
+
+		// fft
+
+		size_t m_fft_buffer_index{};
+		std::vector<float> m_fft_input;
+		std::vector<float> m_fft_window;
+		std::vector<float> m_fft_data;
+		std::vector<float> m_fft_complex_result;
+		std::vector<float> m_fft_result;
 	};
 }

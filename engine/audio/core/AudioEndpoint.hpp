@@ -35,7 +35,6 @@ namespace core {
 		[[nodiscard]] virtual float getMixingChannelVolume(AudioMixingChannel channel) const noexcept = 0;
 
 		[[nodiscard]] virtual bool createAudioPlayer(IAudioDecoder* decoder, AudioMixingChannel channel, IAudioPlayer** output_player) = 0;
-		[[nodiscard]] virtual bool createLoopAudioPlayer(IAudioDecoder* decoder, AudioMixingChannel channel, IAudioPlayer** output_player) = 0;
 		[[nodiscard]] virtual bool createStreamAudioPlayer(IAudioDecoder* decoder, AudioMixingChannel channel, IAudioPlayer** output_player) = 0;
 
 		[[nodiscard]] static bool create(IAudioEndpoint** output_endpoint);

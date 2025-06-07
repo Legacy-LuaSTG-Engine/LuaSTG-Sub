@@ -1,4 +1,4 @@
-#include "backend/LoopAudioPlayerXAudio2.hpp"
+#include "backend/AudioPlayerXAudio2.hpp"
 #include "core/Logger.hpp"
 #include "win32/base.hpp"
 
@@ -11,22 +11,18 @@ namespace {
 namespace core {
 	// IAudioPlayer
 
-	bool LoopAudioPlayerXAudio2::start() {
-		m_is_playing = true;
-		if (m_voice == nullptr) {
-			return true;
+	bool AudioPlayerXAudio2::play(double const seconds) {
+		if (static_cast<double>(m_sample_rate) * m_start_time > static_cast<double>(m_total_frame)) {
+			m_start_time = m_total_seconds;
+			if (!m_loop) {
+				m_state = AudioPlayerState::stopped;
+				return true; // not a fault
+			}
 		}
-		return win32::check_hresult_as_boolean(m_voice->Start(), "IXAudio2SourceVoice::Start"sv);
-	}
-	bool LoopAudioPlayerXAudio2::stop() {
-		m_is_playing = false;
-		if (m_voice == nullptr) {
-			return true;
+		else {
+			m_start_time = seconds;
 		}
-		return win32::check_hresult_as_boolean(m_voice->Stop(), "IXAudio2SourceVoice::Stop"sv);
-	}
-	bool LoopAudioPlayerXAudio2::reset() {
-		m_is_playing = false;
+		m_state = AudioPlayerState::playing;
 		if (m_voice == nullptr) {
 			return true;
 		}
@@ -36,41 +32,61 @@ namespace core {
 		if (!win32::check_hresult_as_boolean(m_voice->FlushSourceBuffers(), "IXAudio2SourceVoice::FlushSourceBuffers"sv)) {
 			return false;
 		}
-		XAUDIO2_BUFFER buffer{};
-		buffer.Flags = XAUDIO2_END_OF_STREAM;
-		buffer.AudioBytes = static_cast<uint32_t>(m_pcm_data.size());
-		buffer.pAudioData = m_pcm_data.data();
-		auto const start_sample = static_cast<uint32_t>(static_cast<double>(m_sample_rate) * m_start_time);
-		buffer.PlayBegin = start_sample;
-		buffer.PlayLength = m_total_frame - start_sample;
-		if (m_loop) {
-			auto const loop_start_sample = static_cast<uint32_t>(static_cast<double>(m_sample_rate) * m_loop_start);
-			auto const loop_sample_count = static_cast<uint32_t>(static_cast<double>(m_sample_rate) * m_loop_length);
-			buffer.LoopBegin = loop_start_sample;
-			buffer.LoopLength = loop_sample_count;
-			buffer.LoopCount = XAUDIO2_LOOP_INFINITE;
+	#ifndef NDEBUG
+		XAUDIO2_VOICE_STATE state = {};
+		while (true) {
+			m_voice->GetState(&state, XAUDIO2_VOICE_NOSAMPLESPLAYED);
+			if (state.BuffersQueued < XAUDIO2_MAX_QUEUED_BUFFERS) {
+				break;
+			}
+			Logger::warn("[core] audio buffer queue is full");
 		}
-		return win32::check_hresult_as_boolean(m_voice->SubmitSourceBuffer(&buffer), "IXAudio2SourceVoice::SubmitSourceBuffer"sv);
+	#endif
+		if (!submitBuffer()) {
+			return false;
+		}
+		return win32::check_hresult_as_boolean(m_voice->Start(), "IXAudio2SourceVoice::Start"sv);
 	}
-
-	bool LoopAudioPlayerXAudio2::isPlaying() {
+	bool AudioPlayerXAudio2::pause() {
+		if (m_state != AudioPlayerState::playing) {
+			return true; // not a fault
+		}
+		m_state = AudioPlayerState::paused;
 		if (m_voice == nullptr) {
-			return m_is_playing;
+			return true;
 		}
-		XAUDIO2_VOICE_STATE state{};
-		m_voice->GetState(&state, XAUDIO2_VOICE_NOSAMPLESPLAYED);
-		return m_is_playing && state.BuffersQueued > 0;
+		return win32::check_hresult_as_boolean(m_voice->Stop(), "IXAudio2SourceVoice::Stop"sv);
+	}
+	bool AudioPlayerXAudio2::resume() {
+		if (m_state != AudioPlayerState::paused) {
+			return true; // not a fault
+		}
+		m_state = AudioPlayerState::playing;
+		if (m_voice == nullptr) {
+			return true;
+		}
+		return win32::check_hresult_as_boolean(m_voice->Start(), "IXAudio2SourceVoice::Start"sv);
+	}
+	bool AudioPlayerXAudio2::stop() {
+		m_state = AudioPlayerState::stopped;
+		if (m_voice == nullptr) {
+			return true;
+		}
+		if (!win32::check_hresult_as_boolean(m_voice->Stop(), "IXAudio2SourceVoice::Stop"sv)) {
+			return false;
+		}
+		if (!win32::check_hresult_as_boolean(m_voice->FlushSourceBuffers(), "IXAudio2SourceVoice::FlushSourceBuffers"sv)) {
+			return false;
+		}
+		return true;
+	}
+	AudioPlayerState AudioPlayerXAudio2::getState() {
+		return m_state;
 	}
 
-	double LoopAudioPlayerXAudio2::getTotalTime() { assert(false); return 0.0; }
-	double LoopAudioPlayerXAudio2::getTime() { assert(false); return 0.0; }
-	bool LoopAudioPlayerXAudio2::setTime(double const time) {
-		m_start_time = time;
-		auto const start_sample = static_cast<uint32_t>(static_cast<double>(m_sample_rate) * m_start_time);
-		assert(start_sample <= m_total_frame);
-		return start_sample <= m_total_frame;
-	}
-	bool LoopAudioPlayerXAudio2::setLoop(bool const enable, double const start_pos, double const length) {
+	double AudioPlayerXAudio2::getTotalTime() { assert(false); return 0.0; }
+	double AudioPlayerXAudio2::getTime() { assert(false); return 0.0; }
+	bool AudioPlayerXAudio2::setLoop(bool const enable, double const start_pos, double const length) {
 		m_loop = enable;
 		m_loop_start = start_pos;
 		m_loop_length = length;
@@ -80,20 +96,20 @@ namespace core {
 		return (loop_start_sample + loop_range_sample_count) <= m_total_frame;
 	}
 
-	float LoopAudioPlayerXAudio2::getVolume() {
+	float AudioPlayerXAudio2::getVolume() {
 		return m_volume;
 	}
-	bool LoopAudioPlayerXAudio2::setVolume(float const volume) {
+	bool AudioPlayerXAudio2::setVolume(float const volume) {
 		m_volume = std::clamp(volume, 0.0f, 1.0f);
 		if (m_voice == nullptr) {
 			return true;
 		}
 		return win32::check_hresult_as_boolean(m_voice->SetVolume(m_volume), "IXAudio2SourceVoice::SetVolume"sv);
 	}
-	float LoopAudioPlayerXAudio2::getBalance() {
+	float AudioPlayerXAudio2::getBalance() {
 		return m_output_balance;
 	}
-	bool LoopAudioPlayerXAudio2::setBalance(float const v) {
+	bool AudioPlayerXAudio2::setBalance(float const v) {
 		m_output_balance = std::clamp(v, -1.0f, 1.0f);
 		if (m_voice == nullptr) {
 			return true;
@@ -101,10 +117,10 @@ namespace core {
 		auto const result = setOutputBalance(m_voice, m_parent->getChannel(m_mixing_channel), m_output_balance);
 		return win32::check_hresult_as_boolean(result, "IXAudio2SourceVoice::SetOutputMatrix"sv);
 	}
-	float LoopAudioPlayerXAudio2::getSpeed() {
+	float AudioPlayerXAudio2::getSpeed() {
 		return m_speed;
 	}
-	bool LoopAudioPlayerXAudio2::setSpeed(float const speed) {
+	bool AudioPlayerXAudio2::setSpeed(float const speed) {
 		m_speed = speed;
 		if (m_voice == nullptr) {
 			return true;
@@ -112,35 +128,38 @@ namespace core {
 		return win32::check_hresult_as_boolean(m_voice->SetFrequencyRatio(m_speed), "IXAudio2SourceVoice::SetFrequencyRatio"sv);
 	}
 
-	void LoopAudioPlayerXAudio2::updateFFT() { assert(false); }
-	uint32_t LoopAudioPlayerXAudio2::getFFTSize() { assert(false); return 0; }
-	float const* LoopAudioPlayerXAudio2::getFFT() { assert(false); return s_empty_fft_data; }
+	void AudioPlayerXAudio2::updateFFT() { assert(false); }
+	uint32_t AudioPlayerXAudio2::getFFTSize() { assert(false); return 0; }
+	float const* AudioPlayerXAudio2::getFFT() { assert(false); return s_empty_fft_data; }
 
 	// IXAudio2VoiceCallback
 
-	void WINAPI LoopAudioPlayerXAudio2::OnVoiceError(void* const, HRESULT const error) noexcept {
+	void WINAPI AudioPlayerXAudio2::OnStreamEnd() noexcept {
+		m_state = AudioPlayerState::stopped;
+	}
+	void WINAPI AudioPlayerXAudio2::OnVoiceError(void* const, HRESULT const error) noexcept {
 		std::ignore = win32::check_hresult(error, "IXAudio2VoiceCallback::OnVoiceError"sv);
 	}
 
 	// IAudioEndpointEventListener
 
-	void LoopAudioPlayerXAudio2::onAudioEndpointCreate() {
+	void AudioPlayerXAudio2::onAudioEndpointCreate() {
 		create();
 	}
-	void LoopAudioPlayerXAudio2::onAudioEndpointDestroy() {
+	void AudioPlayerXAudio2::onAudioEndpointDestroy() {
 		destroy();
 	}
 
-	// LoopAudioPlayerXAudio2
+	// AudioPlayerXAudio2
 
-	LoopAudioPlayerXAudio2::~LoopAudioPlayerXAudio2() {
+	AudioPlayerXAudio2::~AudioPlayerXAudio2() {
 		if (m_parent) {
 			m_parent->removeEventListener(this);
 		}
 		destroy();
 	}
 
-	bool LoopAudioPlayerXAudio2::create() {
+	bool AudioPlayerXAudio2::create() {
 		if (m_parent->getDirectChannel() == nullptr) {
 			return false;
 		}
@@ -174,7 +193,7 @@ namespace core {
 
 		return true;
 	}
-	bool LoopAudioPlayerXAudio2::create(AudioEndpointXAudio2* const parent, AudioMixingChannel const mixing_channel, IAudioDecoder* const decoder) {
+	bool AudioPlayerXAudio2::create(AudioEndpointXAudio2* const parent, AudioMixingChannel const mixing_channel, IAudioDecoder* const decoder) {
 		m_parent = parent;
 		m_mixing_channel = mixing_channel;
 		m_total_seconds = static_cast<double>(decoder->getFrameCount()) / static_cast<double>(decoder->getSampleRate());
@@ -204,10 +223,34 @@ namespace core {
 		m_parent->addEventListener(this);
 		return true;
 	}
-	void LoopAudioPlayerXAudio2::destroy() {
+	void AudioPlayerXAudio2::destroy() {
 		if (m_voice != nullptr) {
 			m_voice->DestroyVoice();
 			m_voice = nullptr;
 		}
+	}
+	bool AudioPlayerXAudio2::submitBuffer() {
+		if (m_voice == nullptr) {
+			return true;
+		}
+
+		XAUDIO2_BUFFER buffer{};
+		buffer.Flags = XAUDIO2_END_OF_STREAM;
+		buffer.AudioBytes = static_cast<uint32_t>(m_pcm_data.size());
+		buffer.pAudioData = m_pcm_data.data();
+
+		auto const start_sample = static_cast<uint32_t>(static_cast<double>(m_sample_rate) * m_start_time);
+		buffer.PlayBegin = start_sample;
+		buffer.PlayLength = m_total_frame - start_sample;
+
+		if (m_loop) {
+			auto const loop_start_sample = static_cast<uint32_t>(static_cast<double>(m_sample_rate) * m_loop_start);
+			auto const loop_sample_count = static_cast<uint32_t>(static_cast<double>(m_sample_rate) * m_loop_length);
+			buffer.LoopBegin = loop_start_sample;
+			buffer.LoopLength = loop_sample_count;
+			buffer.LoopCount = XAUDIO2_LOOP_INFINITE;
+		}
+
+		return win32::check_hresult_as_boolean(m_voice->SubmitSourceBuffer(&buffer), "IXAudio2SourceVoice::SubmitSourceBuffer"sv);
 	}
 }
