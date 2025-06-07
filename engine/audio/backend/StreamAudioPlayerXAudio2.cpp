@@ -202,9 +202,12 @@ namespace core {
 
 		// 恢复
 
+		m_action_queue.notifyBufferAvailable(0);
+		m_action_queue.notifyBufferAvailable(1);
 		if (m_state == AudioPlayerState::playing) {
-			m_action_queue.notifyBufferAvailable(0);
-			m_action_queue.notifyBufferAvailable(1);
+			Action action{};
+			action.type = ActionType::resume;
+			m_action_queue.sendAction(action);
 		}
 
 		return true;
@@ -387,9 +390,6 @@ namespace core {
 				win32::check_hresult(m_voice->FlushSourceBuffers());
 				win32::check_hresult(m_voice->Start());
 			});
-
-			m_action_queue.notifyBufferAvailable(0);
-			m_action_queue.notifyBufferAvailable(1);
 		};
 
 		auto on_pause = [&]() -> void {
