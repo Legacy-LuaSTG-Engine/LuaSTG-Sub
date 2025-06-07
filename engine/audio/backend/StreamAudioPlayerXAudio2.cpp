@@ -324,6 +324,9 @@ namespace core {
 			uint32_t sample_count{};
 			if (m_loop_enabled) {
 				if (m_current_sample >= loop_sample_end) {
+				#ifdef PLAYER_DECODER_DEBUG
+					Logger::info("[StreamAudioPlayer] return to loop start");
+				#endif
 					m_current_sample = m_loop_sample_start;
 					sample_count = std::min(m_loop_sample_count, buffer.max_sample_count);
 				}
