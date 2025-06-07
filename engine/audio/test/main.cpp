@@ -4,17 +4,11 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "core/Logger.hpp"
 #include "core/SmartReference.hpp"
+#include "core/implement/ReferenceCountedDebugger.hpp"
 #include "core/AudioEndpoint.hpp"
 #include "win32/base.hpp"
 
-int main() {
-	auto const logger = spdlog::stdout_color_mt("core");
-	spdlog::set_default_logger(logger);
-
-	win32::set_logger_writer([](std::string_view const message) -> void {
-		core::Logger::error(message);
-	});
-
+static int test() {
 	core::SmartReference<core::IAudioEndpoint> endpoint;
 	if (!core::IAudioEndpoint::create(endpoint.put())) {
 		core::Logger::error("core::IAudioEndpoint::create");
@@ -52,8 +46,8 @@ int main() {
 		return 1;
 	}
 
-	player->setLoop(true, 105.60 - 90.40, 90.40);
-	player->play(80.0);
+	player->setLoop(true, 13.015, 141.874 - 13.015);
+	player->play(0.0);
 
 	std::string command;
 	while (true) {
@@ -61,7 +55,31 @@ int main() {
 		if (command == "exit") {
 			break;
 		}
+		if (command == "play") {
+			player->play(0.0);
+		}
+		if (command == "stop") {
+			player->stop();
+		}
+		if (command == "pause") {
+			player->pause();
+		}
+		if (command == "resume") {
+			player->resume();
+		}
 	}
+}
 
+int main() {
+	auto const logger = spdlog::stdout_color_mt("core");
+	spdlog::set_default_logger(logger);
+
+	win32::set_logger_writer([](std::string_view const message) -> void {
+		core::Logger::error(message);
+	});
+
+	test();
+
+	core::implement::ReferenceCountedDebugger::reportLeak();
 	return 0;
 }
