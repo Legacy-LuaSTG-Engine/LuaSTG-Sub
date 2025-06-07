@@ -6,6 +6,7 @@
 #include "Platform/HResultChecker.hpp"
 #include "core/Configuration.hpp"
 #include "utf8.hpp"
+#include "win32/base.hpp"
 
 namespace {
 	std::filesystem::path rolling_file_root;
@@ -100,6 +101,7 @@ namespace luastg {
 		spdlog::set_default_logger(logger);
 
 		Platform::HResultChecker::SetPrintCallback(&writeMessage);
+		win32::set_logger_writer(writeMessage);
 	}
 	void Logger::destroy() {
 		auto const& config = core::ConfigurationLoader::getInstance().getLogging();

@@ -1,6 +1,6 @@
 #pragma once
 #include "GameResource/ResourceBase.hpp"
-#include "Core/Audio/Device.hpp"
+#include "core/AudioPlayer.hpp"
 
 namespace luastg
 {
@@ -35,7 +35,7 @@ namespace luastg
 
 	struct IResourceMusic : public IResourceBase
 	{
-		virtual core::Audio::IAudioPlayer* GetAudioPlayer() = 0;
+		virtual core::IAudioPlayer* GetAudioPlayer() = 0;
 
 		virtual void Play(float vol, double position) = 0;
 		virtual void Stop() = 0;

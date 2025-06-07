@@ -201,6 +201,7 @@ target_link_libraries(LuaSTG PRIVATE
     spdlog
     utility
     utf8
+    win32
     PlatformAPI
     DirectX::ToolKitMini
     DirectX::TextureMini
@@ -224,6 +225,7 @@ target_link_libraries(LuaSTG PRIVATE
     Core.Collection
     Core.Configuration
     Core.Clipboard
+    Core.Audio
     LuaSTG.InternalLuaScriptsFileSystem
 )
 if (LUASTG_LINK_YY_THUNKS)

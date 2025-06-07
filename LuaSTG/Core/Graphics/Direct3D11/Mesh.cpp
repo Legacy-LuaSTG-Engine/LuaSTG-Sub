@@ -84,8 +84,8 @@ namespace {
 		flags |= D3DCOMPILE_SKIP_OPTIMIZATION;
 		flags |= D3DCOMPILE_OPTIMIZATION_LEVEL0;
 	#endif
-		wil::com_ptr<ID3DBlob> vertex_shader_blob;
-		wil::com_ptr<ID3DBlob> error_message_blob;
+		win32::com_ptr<ID3DBlob> vertex_shader_blob;
+		win32::com_ptr<ID3DBlob> error_message_blob;
 		hr = gHR = d3d_compiler.Compile(
 			source.data(), source.size(), "Mesh generated vertex shader",
 			nullptr, nullptr, "main", "vs_4_0", flags, 0,

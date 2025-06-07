@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/ApplicationModel.hpp"
 #include "Core/Graphics/Font.hpp"
+#include "core/AudioEngine.hpp"
 #include "GameResource/ResourceManager.h"
 #include "GameObject/GameObjectPool.h"
 #include "Platform/DirectInput.hpp"
@@ -48,6 +49,7 @@ namespace luastg {
 		// 应用程序框架
 		core::SmartReference<core::IApplicationModel> m_pAppModel;
 		core::SmartReference<core::Graphics::ITextRenderer> m_pTextRenderer;
+		core::SmartReference<core::IAudioEngine> m_audio_engine;
 
 		// 资源管理器
 		ResourceMgr m_ResourceMgr;
@@ -252,6 +254,7 @@ namespace luastg {
 
 		core::IApplicationModel* GetAppModel() { return m_pAppModel.get(); }
 		core::Graphics::IRenderer* GetRenderer2D() { return m_pAppModel->getRenderer(); }
+		core::IAudioEngine* getAudioEngine() { return m_audio_engine.get(); }
 
 	public:
 		/// @brief 初始化框架

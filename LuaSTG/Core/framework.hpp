@@ -25,9 +25,9 @@
 #include <VersionHelpers.h>
 #include <wrl/client.h>
 #include <wrl/wrappers/corewrappers.h>
-#include <winrt/base.h>
 #include <wil/resource.h>
 #include <wil/com.h>
+#include <win32/base.hpp>
 #include <timeapi.h>
 #include <dxgi1_6.h>
 #include <dxgidebug.h>
@@ -66,7 +66,7 @@ namespace winrt
     template<typename T>
     struct xaudio2_voice_ptr
     {
-        using type = impl::abi_t<T>;
+        using type = T;
 
         xaudio2_voice_ptr(std::nullptr_t = nullptr) noexcept {}
 
@@ -156,7 +156,7 @@ namespace winrt
 
         type** put() noexcept
         {
-            WINRT_ASSERT(m_ptr == nullptr);
+            //WINRT_ASSERT(m_ptr == nullptr);
             return &m_ptr;
         }
 

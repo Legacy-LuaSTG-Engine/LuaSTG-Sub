@@ -678,8 +678,6 @@ namespace core
 			throw std::runtime_error("Graphics::SwapChain_D3D11::create");
 		if (!Graphics::Renderer_D3D11::create(*m_device, m_renderer.put()))
 			throw std::runtime_error("Graphics::Renderer_D3D11::create");
-		if (!Audio::Device_XAUDIO2::create(m_audiosys.put()))
-			throw std::runtime_error("Audio::Device_XAUDIO2::create");
 		m_frame_query_list.reserve(2);
 		for (int i = 0; i < 2; i += 1) {
 			m_frame_query_list.emplace_back(m_device.get());

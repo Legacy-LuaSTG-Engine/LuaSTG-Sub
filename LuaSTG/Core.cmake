@@ -37,7 +37,10 @@ set(Core_SRC
     Core/Graphics/Sprite.hpp
     Core/Graphics/Font.hpp
     Core/Graphics/Mesh.hpp
+    Core/Graphics/Image.hpp
     
+    Core/Graphics/Common/MemoryImage.hpp
+    Core/Graphics/Common/MemoryImage.cpp
     Core/Graphics/Common/Sprite.hpp
     Core/Graphics/Common/Sprite.cpp
     Core/Graphics/Common/SpriteRenderer.hpp
@@ -67,22 +70,11 @@ set(Core_SRC
     Core/Graphics/Direct3D11/LetterBoxingRenderer.hpp
     Core/Graphics/Direct3D11/LetterBoxingRenderer.cpp
 
+    Core/Graphics/WindowsImageComponent/WindowsImageComponentImage.cpp
+
     Core/ApplicationModel.hpp
     Core/ApplicationModel_Win32.hpp
     Core/ApplicationModel_Win32.cpp
-
-    Core/Audio/Decoder.hpp
-    Core/Audio/Decoder_VorbisOGG.cpp
-    Core/Audio/Decoder_VorbisOGG.hpp
-    Core/Audio/Decoder_FLAC.hpp
-    Core/Audio/Decoder_FLAC.cpp
-    Core/Audio/Decoder_WAV.cpp
-    Core/Audio/Decoder_WAV.hpp
-    Core/Audio/Decoder_ALL.cpp
-    Core/Audio/Device.hpp
-    Core/Audio/Device_MM.cpp
-    Core/Audio/Device_XAUDIO2.cpp
-    Core/Audio/Device_XAUDIO2.hpp
 )
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${Core_SRC})
 target_precompile_headers(Core PRIVATE
@@ -133,4 +125,5 @@ target_link_libraries(Core PUBLIC
     Core.Configuration
     Core.ReferenceCounted
     Core.FileSystem
+    win32
 )
