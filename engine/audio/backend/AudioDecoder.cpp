@@ -9,7 +9,7 @@ namespace {
 	template<typename T>
 	bool createDecoder(core::IData* const data, core::IAudioDecoder** const output_decoder) {
 		core::SmartReference<T> decoder;
-		decoder = new T;
+		decoder.attach(new T);
 		if (!decoder->open(data)) {
 			return false;
 		}
