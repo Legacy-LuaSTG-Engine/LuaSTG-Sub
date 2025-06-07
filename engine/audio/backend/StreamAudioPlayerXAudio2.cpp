@@ -275,7 +275,7 @@ namespace core {
 		stream_buffer[1].info.pContext = reinterpret_cast<void*>(1);
 
 	#ifndef NDEBUG
-	#define PLAYER_DECODER_DEBUG
+	//#define PLAYER_DECODER_DEBUG
 	#endif
 
 		bool running{ true };
@@ -482,7 +482,7 @@ namespace core {
 namespace core {
 	void StreamAudioPlayerXAudio2::updateFFT() {
 		constexpr size_t sample_count = 512;
-		// 第一步，填充音频数据
+		// fill input
 		if (m_fft_input.size() != sample_count) {
 			m_fft_input.resize(sample_count);
 		}
@@ -490,56 +490,53 @@ namespace core {
 		if constexpr (true) {
 			uint8_t* p_data = p_audio_buffer[(m_fft_buffer_index + 1) % 2];
 			if (m_decoder->getSampleSize() == 2) {
-				int16_t* p_pcm = (int16_t*)p_data;
-				size_t pitch = m_decoder->getChannelCount();
+				auto p_pcm = reinterpret_cast<int16_t*>(p_data);
+				const size_t pitch = m_decoder->getChannelCount();
 				if (!(pitch == 1 || pitch == 2)) {
-					return; // 没法处理的声道数
+					return; // unknown channel count
 				}
 				for (size_t i = 0; i < sample_count; i += 1) {
-					m_fft_input[i] = (float)(*p_pcm) / (float)(-(INT16_MIN));
+					m_fft_input[i] = static_cast<float>(*p_pcm) / static_cast<float>(-(INT16_MIN));
 					p_pcm += pitch;
 				}
 			}
 			else if (m_decoder->getSampleSize() == 1) {
-				int8_t* p_pcm = (int8_t*)p_data;
-				size_t pitch = m_decoder->getChannelCount();
+				auto p_pcm = reinterpret_cast<int8_t*>(p_data);
+				const size_t pitch = m_decoder->getChannelCount();
 				if (!(pitch == 1 || pitch == 2)) {
-					return; // 没法处理的声道数
+					return; // unknown channel count
 				}
 				for (size_t i = 0; i < sample_count; i += 1) {
-					m_fft_input[i] = (float)(*p_pcm) / (float)(-(INT8_MIN));
+					m_fft_input[i] = static_cast<float>(*p_pcm) / static_cast<float>(-(INT8_MIN));
 					p_pcm += pitch;
 				}
 			}
 			else {
-				return; // 没法处理的位深度
+				return; // unknown depth
 			}
 		}
-		// 第二步，获得采样窗
+		// generate fft window
 		if (m_fft_window.size() != sample_count) {
 			m_fft_window.resize(sample_count);
 			xmath::fft::getWindow(m_fft_window.size(), m_fft_window.data());
 		}
-		// 第三步，应用采样窗
+		// apply fft window
 		for (size_t i = 0; i < sample_count; i += 1) {
 			m_fft_input[i] *= m_fft_window[i];
 		}
-		// 第四步，申请 FFT 计算空间
+		// allocate fft calculating space
 		const size_t fft_data_size = xmath::fft::getNeededWorksetSize(m_fft_input.size());
-		const size_t fft_data_float_size = (fft_data_size / sizeof(float)) + 1;
-		if (m_fft_data.size() != fft_data_float_size) {
-			m_fft_data.resize(fft_data_float_size);
+		if (auto const count = fft_data_size / sizeof(float) + 1; m_fft_data.size() != count) {
+			m_fft_data.resize(count);
 		}
-		if (m_fft_complex_result.size() != (m_fft_input.size() * 2)) {
+		if (m_fft_complex_result.size() != m_fft_input.size() * 2) {
 			m_fft_complex_result.resize(m_fft_input.size() * 2);
 		}
-		if (m_fft_result.size() != (sample_count / 2)) {
+		if (m_fft_result.size() != sample_count / 2) {
 			m_fft_result.resize(sample_count / 2);
 		}
-		// 第五步，可以计算 FFT 了
+		// fft
 		xmath::fft::fft(m_fft_input.size(), m_fft_data.data(), m_fft_input.data(), m_fft_complex_result.data(), m_fft_result.data());
-		// 我先打个断点在这
-		std::ignore = nullptr;
 	}
 	uint32_t StreamAudioPlayerXAudio2::getFFTSize() {
 		return static_cast<uint32_t>(m_fft_result.size());
