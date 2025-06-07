@@ -116,14 +116,10 @@ namespace {
 	GameObjectManagerCallbacks game_object_manager_callbacks;
 
 	struct GameObjectCallbacks : luastg::IGameObjectCallbacks {
-		size_t id{};
-		IGameObjectCallbacks* next_callbacks{};
 
 		std::string_view getCallbacksName(luastg::GameObject*) const noexcept override {
 			return "lua"sv;
 		}
-		IGameObjectCallbacks* getNextCallbacks(luastg::GameObject*) const noexcept override { return next_callbacks; }
-		void setNextCallbacks(luastg::GameObject*, IGameObjectCallbacks* callbacks) override { next_callbacks = callbacks; }
 		void onCreate(luastg::GameObject*) override {}
 		void onDestroy(luastg::GameObject* self) override {
 		#if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
@@ -145,8 +141,6 @@ namespace {
 			ctx.pop_value(); // ... t ...
 
 			ctx.set_array_value(table, lua_index, std::nullopt); // table[lua_index] = nil
-			getPool().free(id);
-			id = 0;
 		}
 		void onQueueToDestroy(luastg::GameObject* self, std::string_view const reason) override {
 			auto const vm = game_object_manager_callbacks.lua_vm.back();
@@ -201,14 +195,9 @@ namespace {
 			lua_call(vm, 1, 0); // ... t ... object class
 			ctx.pop_value(2); // ... t ...
 		}
-
-		using Pool = core::FixedObjectPool<GameObjectCallbacks, LOBJPOOL_SIZE>;
-
-		static Pool& getPool() {
-			static Pool instance{};
-			return instance;
-		}
 	};
+
+	GameObjectCallbacks game_object_callbacks;
 }
 
 namespace luastg::binding {
@@ -767,14 +756,7 @@ namespace luastg::binding {
 		// static methods
 
 		static int allocateAndManage(lua_State* const vm) {
-			size_t callbacks_id{};
-			if (!GameObjectCallbacks::getPool().alloc(callbacks_id)) {
-				return luaL_error(vm, "failed to allocate object, object pool has been exhausted.");
-			}
-			auto const callbacks = GameObjectCallbacks::getPool().object(callbacks_id);
-			callbacks->id = callbacks_id;
-
-			auto const object = LPOOL.allocateWithCallbacks(callbacks);
+			auto const object = LPOOL.allocateWithCallbacks(&game_object_callbacks);
 			if (object == nullptr) {
 				return luaL_error(vm, "failed to allocate object, object pool has been exhausted.");
 			}

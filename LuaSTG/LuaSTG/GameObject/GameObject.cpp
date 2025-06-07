@@ -30,10 +30,8 @@ namespace luastg {
 	}
 }
 
-namespace luastg
-{
-	void GameObject::Reset()
-	{
+namespace luastg {
+	void GameObject::Reset() {
 		update_list_previous = update_list_next = nullptr;
 		detect_list_previous = detect_list_next = nullptr;
 
@@ -50,11 +48,11 @@ namespace luastg
 		ax = ay = 0.0;
 		layer = 0.0;
 		hscale = vscale = 1.0;
-#ifdef USER_SYSTEM_OPERATION
+	#ifdef USER_SYSTEM_OPERATION
 		max_v = DBL_MAX * 0.5; // 平时应该不会有人弄那么大的速度吧，希望计算时不会溢出（
 		max_vx = max_vy = DBL_MAX;
 		ag = 0.0;
-#endif
+	#endif
 
 		colli = bound = true;
 		hide = navi = false;
@@ -72,9 +70,9 @@ namespace luastg
 		ignore_super_pause = false;
 		last_xy_touched = false;
 
-#ifdef USING_MULTI_GAME_WORLD
+	#ifdef USING_MULTI_GAME_WORLD
 		world = 15;
-#endif // USING_MULTI_GAME_WORLD
+	#endif // USING_MULTI_GAME_WORLD
 
 		rect = false;
 		a = b = 0.0;
@@ -83,8 +81,7 @@ namespace luastg
 		blend_mode = BlendMode::MulAlpha;
 		vertex_color = core::Color4B::white();
 	}
-	void GameObject::DirtReset()
-	{
+	void GameObject::DirtReset() {
 		status = GameObjectStatus::Active;
 
 		x = y = 0.;
@@ -95,11 +92,11 @@ namespace luastg
 		ax = ay = 0.;
 		layer = 0.;
 		hscale = vscale = 1.;
-#ifdef USER_SYSTEM_OPERATION
+	#ifdef USER_SYSTEM_OPERATION
 		max_v = DBL_MAX * 0.5; // 平时应该不会有人弄那么大的速度吧，希望计算时不会溢出（
 		max_vx = max_vy = DBL_MAX;
 		ag = 0.;
-#endif
+	#endif
 
 		colli = bound = true;
 		hide = navi = false;
@@ -116,9 +113,9 @@ namespace luastg
 		ignore_super_pause = false;
 		last_xy_touched = false;
 
-#ifdef USING_MULTI_GAME_WORLD
+	#ifdef USING_MULTI_GAME_WORLD
 		world = 15;
-#endif // USING_MULTI_GAME_WORLD
+	#endif // USING_MULTI_GAME_WORLD
 
 		rect = false;
 		a = b = 0.;
@@ -127,7 +124,7 @@ namespace luastg
 		blend_mode = BlendMode::MulAlpha;
 		vertex_color = core::Color4B::white();
 	}
-	
+
 	void GameObject::UpdateCollisionCircleRadius() {
 		if (rect) {
 			//矩形
@@ -142,49 +139,44 @@ namespace luastg
 			col_r = a;
 		}
 	}
-	
-	bool GameObject::ChangeResource(std::string_view const& res_name)
-	{
+
+	bool GameObject::ChangeResource(std::string_view const& res_name) {
 		core::SmartReference<IResourceSprite> tSprite = LRES.FindSprite(res_name.data());
-		if (tSprite)
-		{
+		if (tSprite) {
 			res = *tSprite;
 			res->retain();
-#ifdef GLOBAL_SCALE_COLLI_SHAPE
+		#ifdef GLOBAL_SCALE_COLLI_SHAPE
 			a = tSprite->GetHalfSizeX() * LRES.GetGlobalImageScaleFactor();
 			b = tSprite->GetHalfSizeY() * LRES.GetGlobalImageScaleFactor();
-#else
+		#else
 			a = tSprite->GetHalfSizeX();
 			b = tSprite->GetHalfSizeY();
-#endif // GLOBAL_SCALE_COLLI_SHAPE
+		#endif // GLOBAL_SCALE_COLLI_SHAPE
 			rect = tSprite->IsRectangle();
 			UpdateCollisionCircleRadius();
 			return true;
 		}
 
 		core::SmartReference<IResourceAnimation> tAnimation = LRES.FindAnimation(res_name.data());
-		if (tAnimation)
-		{
+		if (tAnimation) {
 			res = *tAnimation;
 			res->retain();
-#ifdef GLOBAL_SCALE_COLLI_SHAPE
+		#ifdef GLOBAL_SCALE_COLLI_SHAPE
 			a = tAnimation->GetHalfSizeX() * LRES.GetGlobalImageScaleFactor();
 			b = tAnimation->GetHalfSizeY() * LRES.GetGlobalImageScaleFactor();
-#else
+		#else
 			a = tAnimation->GetHalfSizeX();
 			b = tAnimation->GetHalfSizeY();
-#endif // GLOBAL_SCALE_COLLI_SHAPE
+		#endif // GLOBAL_SCALE_COLLI_SHAPE
 			rect = tAnimation->IsRectangle();
 			UpdateCollisionCircleRadius();
 			return true;
 		}
 
 		core::SmartReference<IResourceParticle> tParticle = LRES.FindParticle(res_name.data());
-		if (tParticle)
-		{
+		if (tParticle) {
 			// 分配粒子池
-			if (!tParticle->CreateInstance(&ps))
-			{
+			if (!tParticle->CreateInstance(&ps)) {
 				res = nullptr;
 				spdlog::error("[luastg] ResParticle: 无法分配粒子池，内存不足");
 				return false;
@@ -196,13 +188,13 @@ namespace luastg
 			// 设置资源
 			res = *tParticle;
 			res->retain();
-#ifdef GLOBAL_SCALE_COLLI_SHAPE
+		#ifdef GLOBAL_SCALE_COLLI_SHAPE
 			a = tParticle->GetHalfSizeX() * LRES.GetGlobalImageScaleFactor();
 			b = tParticle->GetHalfSizeY() * LRES.GetGlobalImageScaleFactor();
-#else
+		#else
 			a = tParticle->GetHalfSizeX();
 			b = tParticle->GetHalfSizeY();
-#endif // GLOBAL_SCALE_COLLI_SHAPE
+		#endif // GLOBAL_SCALE_COLLI_SHAPE
 			rect = tParticle->IsRectangle();
 			UpdateCollisionCircleRadius();
 			return true;
@@ -210,12 +202,9 @@ namespace luastg
 
 		return false;
 	}
-	void GameObject::ReleaseResource()
-	{
-		if (res)
-		{
-			if (res->GetType() == ResourceType::Particle)
-			{
+	void GameObject::ReleaseResource() {
+		if (res) {
+			if (res->GetType() == ResourceType::Particle) {
 				assert(ps);
 				static_cast<IResourceParticle*>(res)->DestroyInstance(ps);
 				ps = nullptr;
@@ -225,30 +214,24 @@ namespace luastg
 		}
 	}
 
-	void GameObject::Update()
-	{
+	void GameObject::Update() {
 	#ifdef LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
-		if (pause > 0)
-		{
+		if (pause > 0) {
 			pause -= 1;
 		}
-		else
-		{
-			if (resolve_move)
-			{
-				if (last_xy_touched)
-				{
+		else {
+			if (resolve_move) {
+				if (last_xy_touched) {
 					vx = x - last_x;
 					vy = y - last_y;
 				}
-				else
-				{
+				else {
 					vx = 0.0;
 					vy = 0.0;
 				}
 			}
 			else
-	#endif // LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
+			#endif // LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 			{
 				// 更新速度
 				vx += ax;
@@ -257,16 +240,13 @@ namespace luastg
 				// 单独应用重力加速度
 				vy -= ag;
 				// 速度限制，来自lua层
-				if (max_v <= DBL_MIN)
-				{
+				if (max_v <= DBL_MIN) {
 					vx = 0.0;
 					vy = 0.0;
 				}
-				else
-				{
+				else {
 					lua_Number const speed_ = std::sqrt(vx * vx + vy * vy);
-					if (max_v < speed_ && speed_ > DBL_MIN)
-					{
+					if (max_v < speed_ && speed_ > DBL_MIN) {
 						lua_Number const scale_ = max_v / speed_;
 						vx = scale_ * vx;
 						vy = scale_ * vy;
@@ -279,12 +259,11 @@ namespace luastg
 				x += vx;
 				y += vy;
 			}
-			
+
 			rot += omega;
 
 			// 更新粒子系统（若有）
-			if (res && res->GetType() == ResourceType::Particle)
-			{
+			if (res && res->GetType() == ResourceType::Particle) {
 				ps->SetRotation((float)rot);
 				if (ps->IsActived()) // 兼容性处理
 				{
@@ -292,66 +271,54 @@ namespace luastg
 					ps->SetCenter(core::Vector2F((float)x, (float)y));
 					ps->SetActive(true);
 				}
-				else
-				{
+				else {
 					ps->SetCenter(core::Vector2F((float)x, (float)y));
 				}
 				ps->Update(1.0f / 60.f);
 			}
-	#ifdef LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
+		#ifdef LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 		}
 	#endif // LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 	}
-	void GameObject::UpdateLast()
-	{
-		if (last_xy_touched)
-		{
+	void GameObject::UpdateLast() {
+		if (last_xy_touched) {
 			dx = x - last_x;
 			dy = y - last_y;
 		}
-		else
-		{
+		else {
 			dx = 0.0;
 			dy = 0.0;
 		}
 		last_x = x;
 		last_y = y;
 		last_xy_touched = true;
-		if (navi && (std::abs(dx) > DBL_MIN || std::abs(dy) > DBL_MIN))
-		{
+		if (navi && (std::abs(dx) > DBL_MIN || std::abs(dy) > DBL_MIN)) {
 			rot = std::atan2(dy, dx);
 		}
 	}
-	void GameObject::UpdateTimer()
-	{
+	void GameObject::UpdateTimer() {
 		timer += 1;
 		ani_timer += 1;
 	}
 
-	void GameObject::UpdateV2()
-	{
+	void GameObject::UpdateV2() {
 	#ifdef LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
-		if (pause > 0)
-		{
+		if (pause > 0) {
 			pause -= 1;
 		}
-		else
-		{
-			if (resolve_move)
-			{
-				if (last_xy_touched)
-				{
+		else {
+			if (resolve_move) {
+				if (last_xy_touched) {
 					vx = x - last_x;
 					vy = y - last_y;
 				}
-				else
-				{
+				else {
 					vx = 0.0;
 					vy = 0.0;
 				}
 			}
 			else
-	#endif // LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
+			#endif // LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 			{
 				// 更新速度
 				vx += ax;
@@ -360,16 +327,13 @@ namespace luastg
 				// 单独应用重力加速度
 				vy -= ag;
 				// 速度限制，来自lua层
-				if (max_v <= DBL_MIN)
-				{
+				if (max_v <= DBL_MIN) {
 					vx = 0.0;
 					vy = 0.0;
 				}
-				else
-				{
+				else {
 					lua_Number const speed_ = std::sqrt(vx * vx + vy * vy);
-					if (max_v < speed_ && speed_ > DBL_MIN)
-					{
+					if (max_v < speed_ && speed_ > DBL_MIN) {
 						lua_Number const scale_ = max_v / speed_;
 						vx = scale_ * vx;
 						vy = scale_ * vy;
@@ -394,10 +358,9 @@ namespace luastg
 					rot = std::atan2(dy_, dx_);
 				}
 			}
-			
+
 			// 更新粒子系统（若有）
-			if (res && res->GetType() == ResourceType::Particle)
-			{
+			if (res && res->GetType() == ResourceType::Particle) {
 				ps->SetRotation((float)rot);
 				if (ps->IsActived()) // 兼容性处理
 				{
@@ -405,24 +368,21 @@ namespace luastg
 					ps->SetCenter(core::Vector2F((float)x, (float)y));
 					ps->SetActive(true);
 				}
-				else
-				{
+				else {
 					ps->SetCenter(core::Vector2F((float)x, (float)y));
 				}
 				ps->Update(1.0f / 60.f);
 			}
-	#ifdef LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
+		#ifdef LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 		}
 	#endif // LUASTG_ENABLE_GAME_OBJECT_PROPERTY_PAUSE
 	}
 	void GameObject::UpdateLastV2() {
-		if (last_xy_touched)
-		{
+		if (last_xy_touched) {
 			dx = x - last_x;
 			dy = y - last_y;
 		}
-		else
-		{
+		else {
 			dx = 0.0;
 			dy = 0.0;
 		}
@@ -433,14 +393,11 @@ namespace luastg
 		ani_timer += 1;
 	}
 
-	void GameObject::Render()
-	{
-		if (res)
-		{
+	void GameObject::Render() {
+		if (res) {
 			float const gscale = LRES.GetGlobalImageScaleFactor();
 			if (!features.is_render_class) {
-				switch (res->GetType())
-				{
+				switch (res->GetType()) {
 				case ResourceType::Sprite:
 					static_cast<IResourceSprite*>(res)->Render(
 						static_cast<float>(x),
@@ -461,8 +418,7 @@ namespace luastg
 					);
 					break;
 				case ResourceType::Particle:
-					if (ps)
-					{
+					if (ps) {
 						LAPP.Render(
 							ps,
 							static_cast<float>(hscale) * gscale,
@@ -473,18 +429,17 @@ namespace luastg
 				}
 			}
 			else {
-				switch (res->GetType())
-				{
+				switch (res->GetType()) {
 				case ResourceType::Sprite:
 					static_cast<IResourceSprite*>(res)->Render(
-							static_cast<float>(x),
-							static_cast<float>(y),
-							static_cast<float>(rot),
-							static_cast<float>(hscale) * gscale,
+						static_cast<float>(x),
+						static_cast<float>(y),
+						static_cast<float>(rot),
+						static_cast<float>(hscale) * gscale,
 						static_cast<float>(vscale) * gscale,
 						blend_mode,
 						vertex_color
-						);
+					);
 				case ResourceType::Animation:
 					static_cast<IResourceAnimation*>(res)->Render(
 						static_cast<int>(ani_timer),
@@ -498,8 +453,7 @@ namespace luastg
 					);
 					break;
 				case ResourceType::Particle:
-					if (ps)
-					{
+					if (ps) {
 						ps->SetBlendMode(blend_mode);
 						ps->SetVertexColor(vertex_color);
 						LAPP.Render(
@@ -513,6 +467,17 @@ namespace luastg
 			}
 		}
 	}
+
+	std::pmr::unsynchronized_pool_resource GameObject::s_callbacks_resource;
+
+	static struct CallbacksResourceInitializer {
+		CallbacksResourceInitializer() {
+			constexpr auto bytes = sizeof(IGameObjectCallbacks*) * 4;
+			for (size_t i = 0; i < 8192; i++) {
+				GameObject::s_callbacks_resource.deallocate(GameObject::s_callbacks_resource.allocate(bytes), bytes);
+			}
+		}
+	} s_callbacks_resource_initializer;
 
 	void GameObject::setGroup(int64_t const new_group) {
 		LPOOL.setGroup(this, static_cast<size_t>(new_group));
