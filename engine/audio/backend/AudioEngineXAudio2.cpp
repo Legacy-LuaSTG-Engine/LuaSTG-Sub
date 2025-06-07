@@ -99,6 +99,7 @@ namespace core {
 			volume = 1.0f;
 		}
 		auto const& config = ConfigurationLoader::getInstance().getAudioSystem();
+		m_preferred_endpoint = config.getPreferredEndpointName();
 		m_mixing_channel_volumes[static_cast<size_t>(AudioMixingChannel::sound_effect)] = config.getSoundEffectVolume();
 		m_mixing_channel_volumes[static_cast<size_t>(AudioMixingChannel::music)] = config.getMusicVolume();
 	}
