@@ -1,43 +1,40 @@
 #pragma once
 #include "GameResource/ResourceSoundEffect.hpp"
 #include "GameResource/Implement/ResourceBaseImpl.hpp"
-#include "Core/Audio/Device.hpp"
+#include "core/AudioPlayer.hpp"
 
-namespace luastg
-{
-	class ResourceSoundEffectImpl : public ResourceBaseImpl<IResourceSoundEffect>
-	{
+namespace luastg {
+	class ResourceSoundEffectImpl final : public ResourceBaseImpl<IResourceSoundEffect> {
+	public:
+		void FlushCommand() override;
+		void Play(float vol, float pan) override;
+		void Resume() override;
+		void Pause() override;
+		void Stop() override;
+		bool IsPlaying() override;
+		bool IsStopped() override;
+		bool SetSpeed(float speed) override;
+		float GetSpeed() override;
+
+		ResourceSoundEffectImpl(const char* name, core::IAudioPlayer* p_player);
+
 	private:
-		enum class CommandType : uint32_t
-		{
+		enum class CommandType : uint8_t {
 			None,
 			Play,
 			Stop,
 			Reset,
 			ResetAndStop,
 		};
-		struct Command
-		{
+
+		struct Command {
 			CommandType type = CommandType::None;
 			float vol = 0.0f;
 			float pan = 0.0f;
 		};
-	private:
-		core::SmartReference<core::Audio::IAudioPlayer> m_player;
+
+		core::SmartReference<core::IAudioPlayer> m_player;
 		int m_status = 0; // 0停止 1暂停 2播放
 		Command m_last_command;
-	public:
-		void FlushCommand();
-		void Play(float vol, float pan);
-		void Resume();
-		void Pause();
-		void Stop();
-		bool IsPlaying();
-		bool IsStopped();
-		bool SetSpeed(float speed);
-		float GetSpeed();
-
-	public:
-		ResourceSoundEffectImpl(const char* name, core::Audio::IAudioPlayer* p_player);
 	};
 }

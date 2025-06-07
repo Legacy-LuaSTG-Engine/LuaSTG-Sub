@@ -36,32 +36,32 @@ void AppFrame::SetFPS(uint32_t v)noexcept
 	m_target_fps = std::max(1u, v); // 最低也得有1FPS每秒
 }
 void AppFrame::SetSEVolume(float v) {
-	if (m_pAppModel) {
-		m_pAppModel->getAudioDevice()->setMixChannelVolume(core::Audio::MixChannel::SoundEffect, v);
+	if (m_audio_engine) {
+		m_audio_engine->setMixingChannelVolume(core::AudioMixingChannel::sound_effect, v);
 	}
 	else {
 		core::ConfigurationLoader::getInstance().getAudioSystemRef().setSoundEffectVolume(v);
 	}
 }
 void AppFrame::SetBGMVolume(float v) {
-	if (m_pAppModel) {
-		m_pAppModel->getAudioDevice()->setMixChannelVolume(core::Audio::MixChannel::Music, v);
+	if (m_audio_engine) {
+		m_audio_engine->setMixingChannelVolume(core::AudioMixingChannel::music, v);
 	}
 	else {
 		core::ConfigurationLoader::getInstance().getAudioSystemRef().setMusicVolume(v);
 	}
 }
 float AppFrame::GetSEVolume() {
-	if (m_pAppModel) {
-		return m_pAppModel->getAudioDevice()->getMixChannelVolume(core::Audio::MixChannel::SoundEffect);
+	if (m_audio_engine) {
+		return m_audio_engine->getMixingChannelVolume(core::AudioMixingChannel::sound_effect);
 	}
 	else {
 		return core::ConfigurationLoader::getInstance().getAudioSystem().getSoundEffectVolume();
 	}
 }
 float AppFrame::GetBGMVolume() {
-	if (m_pAppModel) {
-		return m_pAppModel->getAudioDevice()->getMixChannelVolume(core::Audio::MixChannel::Music);
+	if (m_audio_engine) {
+		return m_audio_engine->getMixingChannelVolume(core::AudioMixingChannel::music);
 	}
 	else {
 		return core::ConfigurationLoader::getInstance().getAudioSystem().getMusicVolume();
@@ -194,6 +194,8 @@ bool AppFrame::Init()noexcept
 	{
 		if (!core::IApplicationModel::create(this, m_pAppModel.put()))
 			return false;
+		if (!core::IAudioEngine::create(m_audio_engine.put()))
+			return false;
 		if (!core::Graphics::ITextRenderer::create(m_pAppModel->getRenderer(), m_pTextRenderer.put()))
 			return false;
 		if (!InitializationApplySettingStage1())
@@ -285,6 +287,7 @@ void AppFrame::Shutdown()noexcept
 	m_DirectInput = nullptr;
 	m_pTextRenderer = nullptr;
 	m_pAppModel = nullptr;
+	m_audio_engine = nullptr;
 
 	m_iStatus = AppStatus::Destroyed;
 	spdlog::info("[luastg] 引擎关闭");

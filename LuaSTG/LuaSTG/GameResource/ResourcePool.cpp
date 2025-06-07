@@ -465,13 +465,12 @@ namespace luastg
         }
     
         using namespace core;
-        using namespace core::Audio;
 
         // 创建解码器
-        SmartReference<IDecoder> p_decoder;
-        if (!IDecoder::create(path, p_decoder.put()))
+        SmartReference<IAudioDecoder> p_decoder;
+        if (!IAudioDecoder::create(path, p_decoder.put()))
         {
-            spdlog::error("[luastg] LoadMusic: 无法解码文件 '{}'，要求文件格式为 WAV 或 OGG", path);
+            spdlog::error("[luastg] LoadMusic: 无法解码文件 '{}'，要求文件格式为 WAV/OGG/FLAC", path);
             return false;
         }
         auto to_sample = [&p_decoder](double t) -> uint32_t
@@ -491,16 +490,12 @@ namespace luastg
             return false;
         }
     
-        // 配置循环解码器（这里不用担心出现 exception，因为上面已经处理了）
-        SmartReference<ResourceMusicImpl::LoopDecoder> p_loop_decoder;
-        p_loop_decoder.attach(new ResourceMusicImpl::LoopDecoder(p_decoder.get(), start, end));
-
         // 创建播放器
         SmartReference<IAudioPlayer> p_player;
         if (!once_decode)
         {
             // 流式播放器
-            if (!LAPP.GetAppModel()->getAudioDevice()->createStreamAudioPlayer(p_loop_decoder.get(), p_player.put()))
+            if (!LAPP.getAudioEngine()->createStreamAudioPlayer(p_decoder.get(), AudioMixingChannel::music, p_player.put()))
             {
                 spdlog::error("[luastg] LoadMusic: 无法创建音频播放器");
                 return false;
@@ -509,19 +504,19 @@ namespace luastg
         else
         {
             // 一次性解码的播放器
-            if (!LAPP.GetAppModel()->getAudioDevice()->createLoopAudioPlayer(p_decoder.get(), p_player.put()))
+            if (!LAPP.getAudioEngine()->createAudioPlayer(p_decoder.get(), AudioMixingChannel::music, p_player.put()))
             {
                 spdlog::error("[luastg] LoadMusic: 无法创建音频播放器");
                 return false;
             }
-            p_player->setLoop(true, start, end - start);
         }
+        p_player->setLoop(true, start, end - start);
 
         try
         {
             //存入资源池
             core::SmartReference<IResourceMusic> tRes;
-            tRes.attach(new ResourceMusicImpl(name, p_loop_decoder.get(), p_player.get()));
+            tRes.attach(new ResourceMusicImpl(name, p_decoder.get(), p_player.get()));
             m_MusicPool.emplace(name, tRes);
         }
         catch (std::exception const& e)
@@ -552,19 +547,18 @@ namespace luastg
         }
 
         using namespace core;
-        using namespace core::Audio;
 
         // 创建解码器
-        SmartReference<IDecoder> p_decoder;
-        if (!IDecoder::create(path, p_decoder.put()))
+        SmartReference<IAudioDecoder> p_decoder;
+        if (!IAudioDecoder::create(path, p_decoder.put()))
         {
-            spdlog::error("[luastg] LoadSoundEffect: 无法解码文件 '{}'，要求文件格式为 WAV 或 OGG", path);
+            spdlog::error("[luastg] LoadSoundEffect: 无法解码文件 '{}'，要求文件格式为 WAV/OGG/FLAC", path);
             return false;
         }
 
         // 创建播放器
         SmartReference<IAudioPlayer> p_player;
-        if (!LAPP.GetAppModel()->getAudioDevice()->createAudioPlayer(p_decoder.get(), p_player.put()))
+        if (!LAPP.getAudioEngine()->createAudioPlayer(p_decoder.get(), AudioMixingChannel::sound_effect, p_player.put()))
         {
             spdlog::error("[luastg] LoadSoundEffect: 无法创建音频播放器");
             return false;

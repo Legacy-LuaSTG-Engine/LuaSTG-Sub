@@ -75,19 +75,6 @@ set(Core_SRC
     Core/ApplicationModel.hpp
     Core/ApplicationModel_Win32.hpp
     Core/ApplicationModel_Win32.cpp
-
-    Core/Audio/Decoder.hpp
-    Core/Audio/Decoder_VorbisOGG.cpp
-    Core/Audio/Decoder_VorbisOGG.hpp
-    Core/Audio/Decoder_FLAC.hpp
-    Core/Audio/Decoder_FLAC.cpp
-    Core/Audio/Decoder_WAV.cpp
-    Core/Audio/Decoder_WAV.hpp
-    Core/Audio/Decoder_ALL.cpp
-    Core/Audio/Device.hpp
-    Core/Audio/Device_MM.cpp
-    Core/Audio/Device_XAUDIO2.cpp
-    Core/Audio/Device_XAUDIO2.hpp
 )
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${Core_SRC})
 target_precompile_headers(Core PRIVATE

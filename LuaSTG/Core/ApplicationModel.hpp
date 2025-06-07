@@ -1,10 +1,9 @@
-﻿#pragma once
+#pragma once
 #include "Core/Type.hpp"
 #include "Core/Graphics/Window.hpp"
 #include "Core/Graphics/Device.hpp"
 #include "Core/Graphics/SwapChain.hpp"
 #include "Core/Graphics/Renderer.hpp"
-#include "Core/Audio/Device.hpp"
 #include "core/ReferenceCounted.hpp"
 
 namespace core
@@ -56,8 +55,6 @@ namespace core
         virtual Graphics::ISwapChain* getSwapChain() = 0;
         // [工作线程]
         virtual Graphics::IRenderer* getRenderer() = 0;
-        // [工作线程]
-        virtual Audio::IAudioDevice* getAudioDevice() = 0;
         // [工作线程]
         virtual FrameStatistics getFrameStatistics() = 0;
         // [工作线程]

@@ -13,41 +13,47 @@ void luastg::binding::Audio::Register(lua_State* L)noexcept
 	{
 		static int ListAudioDevice(lua_State* L)
 		{
-			if (!LAPP.GetAppModel()->getAudioDevice())
+			auto const audio_engine = LAPP.getAudioEngine();
+			if (!audio_engine)
 			{
 				return luaL_error(L, "engine not initialized");
 			}
 			lua::stack_t S(L);
 			auto const refresh = S.get_value<bool>(1);
-			uint32_t const count = LAPP.GetAppModel()->getAudioDevice()->getAudioDeviceCount(refresh);
+			if (refresh) {
+				audio_engine->refreshAudioEndpoint();
+			}
+			uint32_t const count = audio_engine->getAudioEndpointCount();
 			S.create_array(count);
 			for (uint32_t i = 0; i < count; i += 1)
 			{
-				auto const name = LAPP.GetAppModel()->getAudioDevice()->getAudioDeviceName(i);
+				auto const name = audio_engine->getAudioEndpointName(i);
 				S.set_array_value_zero_base<std::string_view>(i, name);
 			}
 			return 1;
 		}
 		static int ChangeAudioDevice(lua_State* L)
 		{
-			if (!LAPP.GetAppModel()->getAudioDevice())
+			auto const audio_engine = LAPP.getAudioEngine();
+			if (!audio_engine)
 			{
 				return luaL_error(L, "engine not initialized");
 			}
 			lua::stack_t S(L);
 			auto const name = S.get_value<std::string_view>(1);
-			auto const result = LAPP.GetAppModel()->getAudioDevice()->setTargetAudioDevice(name);
+			auto const result = audio_engine->setAudioEndpoint(name);
 			S.push_value<bool>(result);
 			return 1;
 		}
 		static int GetCurrentAudioDeviceName(lua_State* L)
 		{
-			if (!LAPP.GetAppModel()->getAudioDevice())
+			auto const audio_engine = LAPP.getAudioEngine();
+			if (!audio_engine)
 			{
 				return luaL_error(L, "engine not initialized");
 			}
 			lua::stack_t S(L);
-			auto const result = LAPP.GetAppModel()->getAudioDevice()->getCurrentAudioDeviceName();
+			auto const result = audio_engine->getCurrentAudioEndpointName();
 			S.push_value<std::string_view>(result);
 			return 1;
 		}
@@ -198,7 +204,7 @@ void luastg::binding::Audio::Register(lua_State* L)noexcept
 				return luaL_error(L, "music '%s' not found.", s);
 			p->GetAudioPlayer()->updateFFT();
 			size_t sz = p->GetAudioPlayer()->getFFTSize();
-			float* fdata = p->GetAudioPlayer()->getFFT();
+			float const* fdata = p->GetAudioPlayer()->getFFT();
 			if (!lua_istable(L, 2))
 			{
 				lua_createtable(L, (int)sz, 0);

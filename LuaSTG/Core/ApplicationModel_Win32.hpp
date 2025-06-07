@@ -5,7 +5,6 @@
 #include "Core/Graphics/Direct3D11/Device.hpp"
 #include "Core/Graphics/SwapChain_D3D11.hpp"
 #include "Core/Graphics/Renderer_D3D11.hpp"
-#include "Core/Audio/Device_XAUDIO2.hpp"
 
 namespace core
 {
@@ -370,7 +369,6 @@ namespace core
 		SmartReference<Graphics::Direct3D11::Device> m_device;
 		SmartReference<Graphics::SwapChain_D3D11> m_swapchain;
 		SmartReference<Graphics::Renderer_D3D11> m_renderer;
-		SmartReference<Audio::Device_XAUDIO2> m_audiosys;
 		IFrameRateController* m_p_frame_rate_controller{};
 		FrameRateController m_frame_rate_controller;
 		SteadyFrameRateController m_steady_frame_rate_controller;
@@ -403,7 +401,6 @@ namespace core
 		Graphics::IDevice* getDevice() { return *m_device; }
 		Graphics::ISwapChain* getSwapChain() { return *m_swapchain; }
 		Graphics::IRenderer* getRenderer() { return *m_renderer; }
-		Audio::IAudioDevice* getAudioDevice() { return m_audiosys.get(); }
 		FrameStatistics getFrameStatistics();
 		FrameRenderStatistics getFrameRenderStatistics();
 

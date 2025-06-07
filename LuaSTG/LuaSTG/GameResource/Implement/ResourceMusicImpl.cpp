@@ -1,205 +1,72 @@
 #include "GameResource/Implement/ResourceMusicImpl.hpp"
 
-namespace luastg
-{
-	bool ResourceMusicImpl::LoopDecoder::read(uint32_t pcm_frame, void* buffer, uint32_t* read_pcm_frame)
-	{
-		uint32_t const raw_pcm_frame = pcm_frame;
-		uint8_t* p_buffer = (uint8_t*)buffer;
-
-		// 填充音频数据
-		if (m_is_loop)
-		{
-			while (pcm_frame > 0)
-			{
-				// 获得当前解码器位置(采样)
-				uint32_t current_frame = 0;
-				if (!tell(&current_frame)) { assert(false); return false; }
-
-				// 检查读取位置是否超出循环节
-				if ((current_frame + pcm_frame) >= m_end_sample)
-				{
-					// 填充尚未填充数据
-					if (current_frame < m_end_sample)
-					{
-						uint32_t const vaild_frame = m_end_sample - current_frame;
-						uint32_t const should_read_size = vaild_frame * getFrameSize();
-						uint32_t read_frame = 0;
-						if (!m_decoder->read(vaild_frame, p_buffer, &read_frame)) { assert(false); return false; }
-						//spdlog::debug("[Loop] read [{}, {}) total {} samples", current_frame, current_frame + read_frame, read_frame);
-
-						// 剩下的数据全部置为0
-						uint8_t* ptr = p_buffer + (read_frame * getFrameSize());
-						uint32_t const fill_size = (vaild_frame - read_frame) * getFrameSize();
-						if (fill_size > 0)
-						{
-							assert(false); std::memset(ptr, 0, fill_size);
-						}
-
-						// 即使实际上没有读取出来这么多内容，也要如此
-						p_buffer += should_read_size;
-						pcm_frame -= vaild_frame;
-					}
-
-					// 跳到循环头
-					if (!seek(m_start_sample)) { assert(false); return false; }
-				}
-				else
-				{
-					uint32_t const vaild_frame = pcm_frame;
-					uint32_t const should_read_size = vaild_frame * getFrameSize();
-					uint32_t read_frame = 0;
-					if (!m_decoder->read(vaild_frame, p_buffer, &read_frame)) { assert(false); return false; }
-					//spdlog::debug("[Loop] read [{}, {}) total {} samples", current_frame, current_frame + read_frame, read_frame);
-
-					// 剩下的数据全部置为0
-					uint8_t* ptr = p_buffer + (read_frame * getFrameSize());
-					uint32_t const fill_size = (vaild_frame - read_frame) * getFrameSize();
-					if (fill_size > 0)
-					{
-						assert(false); std::memset(ptr, 0, fill_size);
-					}
-
-					// 即使实际上没有读取出来这么多内容，也要如此
-					p_buffer += should_read_size;
-					pcm_frame -= vaild_frame;
-				}
-			}
-		}
-		else
-		{
-			// 直接填充数据
-			uint32_t read_frame = 0;
-			if (!m_decoder->read(pcm_frame, p_buffer, &read_frame)) { assert(false); return false; }
-			p_buffer += read_frame * getFrameSize();
-
-			// 剩下的数据全部置为0
-			uint32_t const fill_size = (pcm_frame - read_frame) * getFrameSize();
-			if (fill_size > 0)
-			{
-				std::memset(p_buffer, 0, fill_size);
-			}
-		}
-
-		if (read_pcm_frame)
-		{
-			// 即使实际上没有读取出来这么多内容，也要如此
-			*read_pcm_frame = raw_pcm_frame;
-		}
-
-		return true;
-	}
-
-	ResourceMusicImpl::LoopDecoder::LoopDecoder(core::Audio::IDecoder* p_decoder, double LoopStart, double LoopEnd)
-		: m_decoder(p_decoder)
-	{
-		// 计算参数
-		m_total_sample = getFrameCount();
-
-		if (LoopStart <= 0)
-			m_start_sample = 0;
-		else
-			m_start_sample = (uint32_t)(LoopStart * getSampleRate());
-
-		if (LoopEnd <= 0)
-			m_end_sample = m_total_sample;
-		else
-			m_end_sample = std::min(m_total_sample, (uint32_t)(LoopEnd * getSampleRate()));
-
-		if (m_end_sample < m_start_sample)
-			std::swap(m_start_sample, m_end_sample);
-
-		if (m_start_sample == m_end_sample)
-			throw std::runtime_error("ResMusic::LoopDecoder::LoopDecoder (1)");
-	}
-
-	void ResourceMusicImpl::Play(float vol, double position)
-	{
-		m_player->reset();
-
-		m_player->setTime(position);
+namespace luastg {
+	void ResourceMusicImpl::Play(float const vol, double const position) {
 		m_player->setVolume(vol);
-
-		m_player->start();
-		m_status = 2;
+		m_player->play(position);
 	}
-	void ResourceMusicImpl::Stop()
-	{
-		m_player->reset();
-		m_status = 0;
-	}
-	void ResourceMusicImpl::Pause()
-	{
-		m_player->stop();
-		m_status = 1;
-	}
-	void ResourceMusicImpl::Resume()
-	{
-		m_player->start();
-		m_status = 2;
-	}
-	bool ResourceMusicImpl::IsPlaying() { return m_player->isPlaying(); }
-	bool ResourceMusicImpl::IsPaused() { return m_status == 1; }
-	bool ResourceMusicImpl::IsStopped() { return !IsPlaying() && m_player->getTotalTime() == 0.0; }
-	void ResourceMusicImpl::SetVolume(float v) { m_player->setVolume(v); }
+	void ResourceMusicImpl::Stop() { m_player->stop(); }
+	void ResourceMusicImpl::Pause() { m_player->pause(); }
+	void ResourceMusicImpl::Resume() { m_player->resume(); }
+	bool ResourceMusicImpl::IsPlaying() { return m_player->getState() == core::AudioPlayerState::playing; }
+	bool ResourceMusicImpl::IsPaused() { return m_player->getState() == core::AudioPlayerState::paused; }
+	bool ResourceMusicImpl::IsStopped() { return m_player->getState() == core::AudioPlayerState::stopped; }
+	void ResourceMusicImpl::SetVolume(float const v) { m_player->setVolume(v); }
 	float ResourceMusicImpl::GetVolume() { return m_player->getVolume(); }
-	bool ResourceMusicImpl::SetSpeed(float speed) { return m_player->setSpeed(speed); }
+	bool ResourceMusicImpl::SetSpeed(float const speed) { return m_player->setSpeed(speed); }
 	float ResourceMusicImpl::GetSpeed() { return m_player->getSpeed(); }
-	void ResourceMusicImpl::SetLoop(bool v) { if (m_decoder) m_decoder->setLoop(v); }
-	void ResourceMusicImpl::SetLoopRange(MusicRoopRange range)
-	{
-		// 修改循环范围必须停止BGM
-		Stop();
-		if (m_decoder)
-		{
+	void ResourceMusicImpl::SetLoop(bool const v) { if (!v) m_player->setLoop(false, 0.0, 0.0); }
+	void ResourceMusicImpl::SetLoopRange(MusicRoopRange range) {
+		if (m_decoder) {
 			// 转换单位
-			auto const sample_rate = double(m_decoder->getSampleRate());
-			if (range.unit == MusicRoopRangeUnit::Second)
-			{
-				range.start_in_samples = uint32_t(range.start_in_seconds * sample_rate);
-				range.end_in_samples = uint32_t(range.end_in_seconds * sample_rate);
-				range.length_in_samples = uint32_t(range.length_in_seconds * sample_rate);
+			auto const sample_rate = static_cast<double>(m_decoder->getSampleRate());
+			if (range.unit == MusicRoopRangeUnit::Sample) {
+				range.start_in_seconds = static_cast<double>(range.start_in_samples) / sample_rate;
+				range.end_in_seconds = static_cast<double>(range.end_in_samples) / sample_rate;
+				range.length_in_seconds = static_cast<double>(range.length_in_samples) / sample_rate;
 			}
-			// 循环开关
-			m_decoder->setLoop(range.type != MusicRoopRangeType::Disable);
+			if (range.unit == MusicRoopRangeUnit::Second) {
+				range.start_in_samples = static_cast<uint32_t>(range.start_in_seconds * sample_rate);
+				range.end_in_samples = static_cast<uint32_t>(range.end_in_seconds * sample_rate);
+				range.length_in_samples = static_cast<uint32_t>(range.length_in_seconds * sample_rate);
+			}
 			// 限制范围
 			auto const total_samples = m_decoder->getFrameCount();
+			auto const total_seconds = static_cast<double>(m_decoder->getFrameCount()) / sample_rate;
 			range.start_in_samples = std::min(range.start_in_samples, total_samples);
 			range.end_in_samples = std::min(range.end_in_samples, total_samples);
-			if (range.type == MusicRoopRangeType::StartPointAndLength)
-			{
+			if (range.type == MusicRoopRangeType::StartPointAndLength) {
 				range.length_in_samples = std::min(range.length_in_samples, total_samples - range.start_in_samples);
 			}
-			else if (range.type == MusicRoopRangeType::LengthAndEndPoint)
-			{
+			else if (range.type == MusicRoopRangeType::LengthAndEndPoint) {
 				range.length_in_samples = std::min(range.length_in_samples, range.end_in_samples);
 			}
 			// 转换范围
-			switch (range.type)
-			{
+			switch (range.type) {
 			case MusicRoopRangeType::Disable:
+				m_player->setLoop(false, 0.0, 0.0);
+				break;
 			case MusicRoopRangeType::All:
-				m_decoder->setLoopRange(0, total_samples);
+				m_player->setLoop(true, 0.0, total_seconds);
 				break;
 			case MusicRoopRangeType::StartPointToEnd:
-				m_decoder->setLoopRange(range.start_in_samples, total_samples);
+				m_player->setLoop(true, range.start_in_seconds, total_seconds - range.start_in_seconds);
 				break;
 			case MusicRoopRangeType::StartPointAndLength:
-				m_decoder->setLoopRange(range.start_in_samples, range.start_in_samples + range.length_in_samples);
+				m_player->setLoop(true, range.start_in_seconds, range.length_in_seconds);
 				break;
 			case MusicRoopRangeType::LengthAndEndPoint:
-				m_decoder->setLoopRange(range.end_in_samples - range.length_in_samples, range.end_in_samples);
+				m_player->setLoop(true, range.end_in_seconds - range.length_in_seconds, range.end_in_seconds);
 				break;
 			case MusicRoopRangeType::StartToEndPoint:
-				m_decoder->setLoopRange(0, range.end_in_samples);
+				m_player->setLoop(true, 0.0, range.end_in_seconds);
 				break;
 			case MusicRoopRangeType::StartPointAndEndPoint:
-				m_decoder->setLoopRange(range.start_in_samples, range.end_in_samples);
+				m_player->setLoop(true, range.start_in_seconds, range.end_in_seconds - range.start_in_seconds);
 				break;
 			}
 			// 打印日志
-			switch (range.type)
-			{
+			switch (range.type) {
 			case MusicRoopRangeType::Disable:
 				spdlog::info("[luastg] SetMusicLoopRange '{}' : Disable", GetResName());
 				break;
@@ -251,10 +118,9 @@ namespace luastg
 		}
 	}
 
-	ResourceMusicImpl::ResourceMusicImpl(const char* name, LoopDecoder* p_decoder, core::Audio::IAudioPlayer* p_player)
+	ResourceMusicImpl::ResourceMusicImpl(const char* name, core::IAudioDecoder* decoder, core::IAudioPlayer* p_player)
 		: ResourceBaseImpl(ResourceType::Music, name)
-		, m_decoder(p_decoder)
-		, m_player(p_player)
-	{
+		, m_decoder(decoder)
+		, m_player(p_player) {
 	}
 }

@@ -225,6 +225,7 @@ target_link_libraries(LuaSTG PRIVATE
     Core.Collection
     Core.Configuration
     Core.Clipboard
+    Core.Audio
     LuaSTG.InternalLuaScriptsFileSystem
 )
 if (LUASTG_LINK_YY_THUNKS)
