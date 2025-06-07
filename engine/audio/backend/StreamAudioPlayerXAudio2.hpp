@@ -66,7 +66,7 @@ namespace core {
 	private:
 		enum class ActionType : uint8_t {
 			exit,
-			buffer_available, // 注意，严禁通过 sendAction 发出，请使用 notifyBufferAvailable
+			buffer_available,
 			play,
 			pause,
 			resume,
