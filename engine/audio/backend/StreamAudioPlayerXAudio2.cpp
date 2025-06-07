@@ -11,7 +11,10 @@ namespace core {
 		m_event_exit.store(true);
 	}
 	void StreamAudioPlayerXAudio2::ActionQueue::notifyBufferAvailable(size_t const i) {
-		m_buffer_available_mask.fetch_or(1 << i);
+		Action action{};
+		action.type = ActionType::buffer_available;
+		action.buffer_available_index = static_cast<uint8_t>(i);
+		sendAction(action);
 	}
 	void StreamAudioPlayerXAudio2::ActionQueue::sendAction(Action const& v) {
 		if (!m_semaphore_space.try_acquire_for(std::chrono::seconds(1))) {
@@ -25,16 +28,6 @@ namespace core {
 		for (;;) {
 			if (m_event_exit.load()) {
 				v.type = ActionType::exit;
-				return;
-			}
-			if (auto const mask = m_buffer_available_mask.fetch_add(0x2); (mask & 0x1) == 0x1) {
-				v.type = ActionType::buffer_available;
-				v.buffer_available_index = 0;
-				return;
-			}
-			if (auto const mask = m_buffer_available_mask.fetch_add(0x1); (mask & 0x2) == 0x2) {
-				v.type = ActionType::buffer_available;
-				v.buffer_available_index = 1;
 				return;
 			}
 			if (m_semaphore_data.try_acquire_for(std::chrono::seconds(1))) {
@@ -109,7 +102,7 @@ namespace core {
 	}
 	bool StreamAudioPlayerXAudio2::setVolume(float const volume) {
 		m_volume = std::clamp(volume, 0.0f, 1.0f);
-		std::shared_lock lock(m_voice_lock);
+		std::unique_lock lock(m_voice_lock);
 		if (m_voice == nullptr) {
 			return true;
 		}
@@ -120,7 +113,7 @@ namespace core {
 	}
 	bool StreamAudioPlayerXAudio2::setBalance(float const v) {
 		m_output_balance = std::clamp(v, -1.0f, 1.0f);
-		std::shared_lock lock(m_voice_lock);
+		std::unique_lock lock(m_voice_lock);
 		if (m_voice == nullptr) {
 			return true;
 		}
@@ -132,7 +125,7 @@ namespace core {
 	}
 	bool StreamAudioPlayerXAudio2::setSpeed(float const speed) {
 		m_speed = speed;
-		std::shared_lock lock(m_voice_lock);
+		std::unique_lock lock(m_voice_lock);
 		if (m_voice == nullptr) {
 			return true;
 		}
@@ -175,8 +168,6 @@ namespace core {
 			return false;
 		}
 
-		HRESULT hr{};
-
 		XAUDIO2_SEND_DESCRIPTOR voice_send{};
 		voice_send.pOutputVoice = m_parent->getChannel(m_mixing_channel);
 		XAUDIO2_VOICE_SENDS voice_send_list{};
@@ -185,31 +176,36 @@ namespace core {
 
 		// 创建
 
-		std::unique_lock lock(m_voice_lock); // mutex
+		{
+			HRESULT hr{};
+			std::unique_lock lock(m_voice_lock);
 
-		hr = m_parent->getFactory()->CreateSourceVoice(&m_voice, &m_format, 0, XAUDIO2_DEFAULT_FREQ_RATIO, this, &voice_send_list);
-		if (!win32::check_hresult_as_boolean(hr, "XAudio2::CreateSourceVoice"sv)) {
-			return false;
-		}
+			hr = m_parent->getFactory()->CreateSourceVoice(&m_voice, &m_format, 0, XAUDIO2_DEFAULT_FREQ_RATIO, this, &voice_send_list);
+			if (!win32::check_hresult_as_boolean(hr, "XAudio2::CreateSourceVoice"sv)) {
+				return false;
+			}
 
-		hr = m_voice->SetVolume(m_volume);
-		if (!win32::check_hresult_as_boolean(hr, "IXAudio2SourceVoice::SetVolume"sv)) {
-			return false;
-		}
+			hr = m_voice->SetVolume(m_volume);
+			if (!win32::check_hresult_as_boolean(hr, "IXAudio2SourceVoice::SetVolume"sv)) {
+				return false;
+			}
 
-		hr = m_voice->SetFrequencyRatio(m_speed);
-		if (!win32::check_hresult_as_boolean(hr, "IXAudio2SourceVoice::SetFrequencyRatio"sv)) {
-			return false;
-		}
+			hr = m_voice->SetFrequencyRatio(m_speed);
+			if (!win32::check_hresult_as_boolean(hr, "IXAudio2SourceVoice::SetFrequencyRatio"sv)) {
+				return false;
+			}
 
-		if (!setBalance(m_output_balance)) {
-			return false;
+			if (!setBalance(m_output_balance)) {
+				return false;
+			}
 		}
 
 		// 恢复
 
-		m_action_queue.notifyBufferAvailable(0);
-		m_action_queue.notifyBufferAvailable(1);
+		if (m_state == AudioPlayerState::playing) {
+			m_action_queue.notifyBufferAvailable(0);
+			m_action_queue.notifyBufferAvailable(1);
+		}
 
 		return true;
 	}
@@ -283,7 +279,7 @@ namespace core {
 		Action action{};
 
 		auto lock_voice = [this](std::function<void()> const& fun) {
-			std::shared_lock lock(m_voice_lock);
+			std::unique_lock lock(m_voice_lock);
 			if (m_voice != nullptr) {
 				fun();
 			}
@@ -326,10 +322,6 @@ namespace core {
 			if (m_loop_enabled) {
 				if (m_current_sample >= loop_sample_end) {
 					m_current_sample = m_loop_sample_start;
-					if (!m_decoder->seek(m_current_sample)) {
-						Logger::error("[StreamAudioPlayer] AudioDecoder seek failed");
-						return;
-					}
 					sample_count = std::min(m_loop_sample_count, buffer.max_sample_count);
 				}
 				else {
@@ -341,6 +333,10 @@ namespace core {
 			}
 
 			// decode
+			if (!m_decoder->seek(m_current_sample)) {
+				Logger::error("[StreamAudioPlayer] AudioDecoder seek failed");
+				return;
+			}
 			uint32_t read_sample_count{};
 			if (!m_decoder->read(sample_count, buffer.data, &read_sample_count)) {
 				Logger::error("[StreamAudioPlayer] AudioDecoder read failed");
@@ -391,6 +387,9 @@ namespace core {
 				win32::check_hresult(m_voice->FlushSourceBuffers());
 				win32::check_hresult(m_voice->Start());
 			});
+
+			m_action_queue.notifyBufferAvailable(0);
+			m_action_queue.notifyBufferAvailable(1);
 		};
 
 		auto on_pause = [&]() -> void {
@@ -425,6 +424,10 @@ namespace core {
 
 		auto on_update_loop = [&](bool const enabled, double const start, double const length) -> void {
 			if (enabled) {
+			#ifdef PLAYER_DECODER_DEBUG
+				Logger::info("[StreamAudioPlayer] loop enabled: start {} length {}", start, length);
+			#endif
+
 				m_loop_enabled = true;
 				m_loop_sample_start = static_cast<uint32_t>(static_cast<double>(m_decoder->getSampleRate()) * start);
 				m_loop_sample_start = std::min(m_loop_sample_start, m_decoder->getFrameCount());
@@ -432,6 +435,10 @@ namespace core {
 				m_loop_sample_count = std::min(m_loop_sample_count, m_decoder->getFrameCount() - m_loop_sample_start);
 			}
 			else {
+			#ifdef PLAYER_DECODER_DEBUG
+				Logger::info("[StreamAudioPlayer] loop disabled");
+			#endif
+
 				m_loop_enabled = false;
 				m_loop_sample_start = 0;
 				m_loop_sample_count = m_decoder->getFrameCount();

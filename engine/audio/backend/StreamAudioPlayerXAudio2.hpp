@@ -5,7 +5,7 @@
 #include "backend/CommonAudioPlayerXAudio2.hpp"
 #include "backend/AudioEndpointXAudio2.hpp"
 #include <thread>
-#include <shared_mutex>
+#include <mutex>
 #include <semaphore>
 #include <atomic>
 
@@ -106,7 +106,6 @@ namespace core {
 			std::counting_semaphore<255> m_semaphore_space{ 64 };
 			std::counting_semaphore<255> m_semaphore_data{ 0 };
 			std::atomic_bool m_event_exit{ false };
-			std::atomic_int m_buffer_available_mask{ 0x0 };
 		};
 
 		SmartReference<AudioEndpointXAudio2> m_parent;
@@ -127,7 +126,7 @@ namespace core {
 
 		ActionQueue m_action_queue;
 		std::thread m_working_thread;
-		std::shared_mutex m_voice_lock;
+		std::recursive_mutex m_voice_lock;
 
 		// state
 

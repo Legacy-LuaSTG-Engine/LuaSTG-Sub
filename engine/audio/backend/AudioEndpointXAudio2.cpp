@@ -169,7 +169,7 @@ namespace core {
 
 			IXAudio2SubmixVoice* sound_effect{};
 			if (!win32::check_hresult_as_boolean(
-				m_endpoint->CreateSubmixVoice(&sound_effect, direct_info.InputChannels, direct_info.InputSampleRate),
+				m_endpoint->CreateSubmixVoice(&sound_effect, 2, direct_info.InputSampleRate),
 				"IXAudio2::CreateSubmixVoice"sv
 			)) {
 				return false;
@@ -178,7 +178,7 @@ namespace core {
 
 			IXAudio2SubmixVoice* music{};
 			if (!win32::check_hresult_as_boolean(
-				m_endpoint->CreateSubmixVoice(&music, direct_info.InputChannels, direct_info.InputSampleRate),
+				m_endpoint->CreateSubmixVoice(&music, 2, direct_info.InputSampleRate),
 				"IXAudio2::CreateSubmixVoice"sv
 			)) {
 				return false;
