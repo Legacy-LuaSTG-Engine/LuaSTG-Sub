@@ -3,14 +3,14 @@
 #include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
 #include "backend/CommonAudioPlayerXAudio2.hpp"
-#include "backend/AudioEndpointXAudio2.hpp"
+#include "backend/AudioEngineXAudio2.hpp"
 #include <atomic>
 
 namespace core {
 	class AudioPlayerXAudio2 final
 		: public implement::ReferenceCounted<IAudioPlayer>
 		, public XAudio2VoiceCallbackHelper
-		, public IAudioEndpointEventListener {
+		, public IAudioEngineEventListener {
 	public:
 		// IAudioPlayer
 
@@ -40,10 +40,10 @@ namespace core {
 		void WINAPI OnStreamEnd() noexcept override;
 		void WINAPI OnVoiceError(void*, HRESULT error) noexcept override;
 
-		// IAudioEndpointEventListener
+		// IAudioEngineEventListener
 
-		void onAudioEndpointCreate() override;
-		void onAudioEndpointDestroy() override;
+		void onAudioEngineCreate() override;
+		void onAudioEngineDestroy() override;
 
 		// AudioPlayerXAudio2
 
@@ -56,12 +56,12 @@ namespace core {
 		AudioPlayerXAudio2& operator=(AudioPlayerXAudio2&&) = delete;
 
 		bool create();
-		bool create(AudioEndpointXAudio2* parent, AudioMixingChannel mixing_channel, IAudioDecoder* decoder);
+		bool create(AudioEngineXAudio2* parent, AudioMixingChannel mixing_channel, IAudioDecoder* decoder);
 		void destroy();
 		bool submitBuffer();
 
 	private:
-		SmartReference<AudioEndpointXAudio2> m_parent;
+		SmartReference<AudioEngineXAudio2> m_parent;
 		IXAudio2SourceVoice* m_voice{};
 		WAVEFORMATEX m_format{};
 		XAUDIO2_BUFFER m_voice_buffer = {};

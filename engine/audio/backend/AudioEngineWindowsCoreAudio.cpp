@@ -1,4 +1,4 @@
-#include "backend/AudioEndpointXAudio2.hpp"
+#include "backend/AudioEngineXAudio2.hpp"
 #include "core/Logger.hpp"
 #include <windows.h>
 #include <wil/resource.h>
@@ -10,7 +10,7 @@
 using std::string_view_literals::operator ""sv;
 
 namespace core {
-	bool AudioEndpointXAudio2::refreshAudioEndpoint() {
+	bool AudioEngineXAudio2::refreshAudioEndpoint() {
 		m_endpoints.clear();
 
 		win32::com_ptr<IMMDeviceEnumerator> device_enumerator;

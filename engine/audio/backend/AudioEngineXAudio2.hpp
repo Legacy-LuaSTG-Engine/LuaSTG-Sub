@@ -1,5 +1,5 @@
 #pragma once
-#include "core/AudioEndpoint.hpp"
+#include "core/AudioEngine.hpp"
 #include "core/implement/ReferenceCounted.hpp"
 #include <string>
 #include <vector>
@@ -10,12 +10,12 @@
 #include "win32/base.hpp"
 
 namespace core {
-	class AudioEndpointXAudio2 final : public implement::ReferenceCounted<IAudioEndpoint> {
+	class AudioEngineXAudio2 final : public implement::ReferenceCounted<IAudioEngine> {
 	public:
-		// IAudioEndpoint
+		// IAudioEngine
 
-		void addEventListener(IAudioEndpointEventListener* listener) override;
-		void removeEventListener(IAudioEndpointEventListener* listener) override;
+		void addEventListener(IAudioEngineEventListener* listener) override;
+		void removeEventListener(IAudioEngineEventListener* listener) override;
 
 		[[nodiscard]] bool refreshAudioEndpoint() override;
 		[[nodiscard]] uint32_t getAudioEndpointCount() const noexcept override;
@@ -33,15 +33,15 @@ namespace core {
 		[[nodiscard]] bool createAudioPlayer(IAudioDecoder* decoder, AudioMixingChannel channel, IAudioPlayer** output_player) override;
 		[[nodiscard]] bool createStreamAudioPlayer(IAudioDecoder* decoder, AudioMixingChannel channel, IAudioPlayer** output_player) override;
 
-		// AudioEndpointXAudio2
+		// AudioEngineXAudio2
 
-		AudioEndpointXAudio2();
-		AudioEndpointXAudio2(AudioEndpointXAudio2 const&) = delete;
-		AudioEndpointXAudio2(AudioEndpointXAudio2&&) = delete;
-		~AudioEndpointXAudio2() override;
+		AudioEngineXAudio2();
+		AudioEngineXAudio2(AudioEngineXAudio2 const&) = delete;
+		AudioEngineXAudio2(AudioEngineXAudio2&&) = delete;
+		~AudioEngineXAudio2() override;
 
-		AudioEndpointXAudio2& operator=(AudioEndpointXAudio2 const&) = delete;
-		AudioEndpointXAudio2& operator=(AudioEndpointXAudio2&&) = delete;
+		AudioEngineXAudio2& operator=(AudioEngineXAudio2 const&) = delete;
+		AudioEngineXAudio2& operator=(AudioEngineXAudio2&&) = delete;
 
 		bool create();
 		void destroy();
@@ -61,7 +61,7 @@ namespace core {
 
 		void closeMixingChannels();
 
-		std::vector<IAudioEndpointEventListener*> m_listeners;
+		std::vector<IAudioEngineEventListener*> m_listeners;
 		std::vector<AudioEndpointInfo> m_endpoints;
 		std::string m_current_endpoint;
 		std::string m_preferred_endpoint;

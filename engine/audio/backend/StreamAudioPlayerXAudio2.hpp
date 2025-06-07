@@ -3,7 +3,7 @@
 #include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
 #include "backend/CommonAudioPlayerXAudio2.hpp"
-#include "backend/AudioEndpointXAudio2.hpp"
+#include "backend/AudioEngineXAudio2.hpp"
 #include <thread>
 #include <mutex>
 #include <semaphore>
@@ -13,7 +13,7 @@ namespace core {
 	class StreamAudioPlayerXAudio2 final
 		: public implement::ReferenceCounted<IAudioPlayer>
 		, public XAudio2VoiceCallbackHelper
-		, public IAudioEndpointEventListener {
+		, public IAudioEngineEventListener {
 	public:
 		// IAudioPlayer
 
@@ -43,10 +43,10 @@ namespace core {
 		void WINAPI OnBufferEnd(void* buffer_context) noexcept override;
 		void WINAPI OnVoiceError(void*, HRESULT error) noexcept override;
 
-		// IAudioEndpointEventListener
+		// IAudioEngineEventListener
 
-		void onAudioEndpointCreate() override;
-		void onAudioEndpointDestroy() override;
+		void onAudioEngineCreate() override;
+		void onAudioEngineDestroy() override;
 
 		// StreamAudioPlayerXAudio2
 
@@ -59,7 +59,7 @@ namespace core {
 		StreamAudioPlayerXAudio2& operator=(StreamAudioPlayerXAudio2&&) = delete;
 
 		bool create();
-		bool create(AudioEndpointXAudio2* parent, AudioMixingChannel mixing_channel, IAudioDecoder* decoder);
+		bool create(AudioEngineXAudio2* parent, AudioMixingChannel mixing_channel, IAudioDecoder* decoder);
 		void destroy();
 		void worker();
 
@@ -108,7 +108,7 @@ namespace core {
 			std::atomic_bool m_event_exit{ false };
 		};
 
-		SmartReference<AudioEndpointXAudio2> m_parent;
+		SmartReference<AudioEngineXAudio2> m_parent;
 		IXAudio2SourceVoice* m_voice{};
 		WAVEFORMATEX m_format{};
 		AudioMixingChannel m_mixing_channel;

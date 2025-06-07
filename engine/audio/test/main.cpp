@@ -5,18 +5,18 @@
 #include "core/Logger.hpp"
 #include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCountedDebugger.hpp"
-#include "core/AudioEndpoint.hpp"
+#include "core/AudioEngine.hpp"
 #include "win32/base.hpp"
 
 static int test() {
-	core::SmartReference<core::IAudioEndpoint> endpoint;
-	if (!core::IAudioEndpoint::create(endpoint.put())) {
-		core::Logger::error("core::IAudioEndpoint::create");
+	core::SmartReference<core::IAudioEngine> endpoint;
+	if (!core::IAudioEngine::create(endpoint.put())) {
+		core::Logger::error("core::IAudioEngine::create");
 		return 1;
 	}
 
 	if (!endpoint->refreshAudioEndpoint()) {
-		core::Logger::error("core::IAudioEndpoint::refreshAudioEndpoint");
+		core::Logger::error("core::IAudioEngine::refreshAudioEndpoint");
 		return 1;
 	}
 
@@ -24,13 +24,13 @@ static int test() {
 		auto const name = endpoint->getAudioEndpointName(i);
 		core::Logger::info("{}: {}", i, name);
 		if (!endpoint->setAudioEndpoint(name)) {
-			core::Logger::error("core::IAudioEndpoint::setAudioEndpoint('{}')", name);
+			core::Logger::error("core::IAudioEngine::setAudioEndpoint('{}')", name);
 			return 1;
 		}
 	}
 
 	if (!endpoint->setAudioEndpoint("")) {
-		core::Logger::error("core::IAudioEndpoint::setAudioEndpoint('')");
+		core::Logger::error("core::IAudioEngine::setAudioEndpoint('')");
 		return 1;
 	}
 
@@ -42,7 +42,7 @@ static int test() {
 
 	core::SmartReference<core::IAudioPlayer> player;
 	if (!endpoint->createStreamAudioPlayer(decoder.get(), core::AudioMixingChannel::music, player.put())) {
-		core::Logger::error("core::IAudioEndpoint::createAudioPlayer");
+		core::Logger::error("core::IAudioEngine::createAudioPlayer");
 		return 1;
 	}
 

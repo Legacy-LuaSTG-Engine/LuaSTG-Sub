@@ -1,4 +1,4 @@
-#include "backend/AudioEndpointXAudio2.hpp"
+#include "backend/AudioEngineXAudio2.hpp"
 #include "core/Configuration.hpp"
 #include "core/Logger.hpp"
 #include "backend/AudioPlayerXAudio2.hpp"
@@ -9,7 +9,7 @@
 using std::string_view_literals::operator ""sv;
 
 namespace core {
-	void AudioEndpointXAudio2::addEventListener(IAudioEndpointEventListener* const listener) {
+	void AudioEngineXAudio2::addEventListener(IAudioEngineEventListener* const listener) {
 		for (auto const v : m_listeners) {
 			if (v == listener) {
 				return;
@@ -17,7 +17,7 @@ namespace core {
 		}
 		m_listeners.push_back(listener);
 	}
-	void AudioEndpointXAudio2::removeEventListener(IAudioEndpointEventListener* const listener) {
+	void AudioEngineXAudio2::removeEventListener(IAudioEngineEventListener* const listener) {
 		for (auto& v : m_listeners) {
 			if (v == listener) {
 				v = nullptr;
@@ -25,45 +25,45 @@ namespace core {
 		}
 	}
 
-	uint32_t AudioEndpointXAudio2::getAudioEndpointCount() const noexcept {
+	uint32_t AudioEngineXAudio2::getAudioEndpointCount() const noexcept {
 		return static_cast<uint32_t>(m_endpoints.size());
 	}
-	std::string_view AudioEndpointXAudio2::getAudioEndpointName(uint32_t const index) const noexcept {
+	std::string_view AudioEngineXAudio2::getAudioEndpointName(uint32_t const index) const noexcept {
 		if (index >= m_endpoints.size()) {
 			return "";
 		}
 		return m_endpoints[index].name;
 	}
 
-	void AudioEndpointXAudio2::setPreferredAudioEndpoint(std::string_view const name) {
+	void AudioEngineXAudio2::setPreferredAudioEndpoint(std::string_view const name) {
 		m_preferred_endpoint = name;
 	}
-	bool AudioEndpointXAudio2::setAudioEndpoint(std::string_view const name) {
+	bool AudioEngineXAudio2::setAudioEndpoint(std::string_view const name) {
 		destroy();
 		setPreferredAudioEndpoint(name);
 		return create();
 	}
-	std::string_view AudioEndpointXAudio2::getCurrentAudioEndpointName() const noexcept {
+	std::string_view AudioEngineXAudio2::getCurrentAudioEndpointName() const noexcept {
 		return m_current_endpoint;
 	}
 
-	void AudioEndpointXAudio2::setVolume(float const volume) {
+	void AudioEngineXAudio2::setVolume(float const volume) {
 		setMixingChannelVolume(AudioMixingChannel::direct, volume);
 	}
-	float AudioEndpointXAudio2::getVolume() const noexcept {
+	float AudioEngineXAudio2::getVolume() const noexcept {
 		return getMixingChannelVolume(AudioMixingChannel::direct);
 	}
-	void AudioEndpointXAudio2::setMixingChannelVolume(AudioMixingChannel const channel, float const volume) {
+	void AudioEngineXAudio2::setMixingChannelVolume(AudioMixingChannel const channel, float const volume) {
 		m_mixing_channel_volumes[static_cast<size_t>(channel)] = std::clamp(volume, 0.0f, 1.0f);
 		if (auto const voice = m_mixing_channels[static_cast<size_t>(channel)]; voice != nullptr) {
 			win32::check_hresult(voice->SetVolume(volume), "IXAudio2Voice::SetVolume"sv);
 		}
 	}
-	float AudioEndpointXAudio2::getMixingChannelVolume(AudioMixingChannel const channel) const noexcept {
+	float AudioEngineXAudio2::getMixingChannelVolume(AudioMixingChannel const channel) const noexcept {
 		return m_mixing_channel_volumes[static_cast<size_t>(channel)];
 	}
 
-	bool AudioEndpointXAudio2::createAudioPlayer(IAudioDecoder* const decoder, AudioMixingChannel const channel, IAudioPlayer** const output_player) {
+	bool AudioEngineXAudio2::createAudioPlayer(IAudioDecoder* const decoder, AudioMixingChannel const channel, IAudioPlayer** const output_player) {
 		try {
 			SmartReference<AudioPlayerXAudio2> player;
 			player.attach(new AudioPlayerXAudio2);
@@ -78,7 +78,7 @@ namespace core {
 			return false;
 		}
 	}
-	bool AudioEndpointXAudio2::createStreamAudioPlayer(IAudioDecoder* const decoder, AudioMixingChannel const channel, IAudioPlayer** const output_player) {
+	bool AudioEngineXAudio2::createStreamAudioPlayer(IAudioDecoder* const decoder, AudioMixingChannel const channel, IAudioPlayer** const output_player) {
 		try {
 			SmartReference<StreamAudioPlayerXAudio2> player;
 			player.attach(new StreamAudioPlayerXAudio2);
@@ -94,7 +94,7 @@ namespace core {
 		}
 	}
 
-	AudioEndpointXAudio2::AudioEndpointXAudio2() {
+	AudioEngineXAudio2::AudioEngineXAudio2() {
 		for (auto& volume : m_mixing_channel_volumes) {
 			volume = 1.0f;
 		}
@@ -102,11 +102,11 @@ namespace core {
 		m_mixing_channel_volumes[static_cast<size_t>(AudioMixingChannel::sound_effect)] = config.getSoundEffectVolume();
 		m_mixing_channel_volumes[static_cast<size_t>(AudioMixingChannel::music)] = config.getMusicVolume();
 	}
-	AudioEndpointXAudio2::~AudioEndpointXAudio2() {
+	AudioEngineXAudio2::~AudioEngineXAudio2() {
 		destroy();
 	}
 
-	bool AudioEndpointXAudio2::create() {
+	bool AudioEngineXAudio2::create() {
 		try {
 			// com
 
@@ -220,25 +220,25 @@ namespace core {
 		}
 		return false;
 	}
-	void AudioEndpointXAudio2::destroy() {
+	void AudioEngineXAudio2::destroy() {
 		dispatchOnAudioEndpointDestroy();
 		m_current_endpoint.clear();
 		closeMixingChannels();
 		m_endpoint = nullptr;
 	}
-	void AudioEndpointXAudio2::dispatchOnAudioEndpointCreate() {
+	void AudioEngineXAudio2::dispatchOnAudioEndpointCreate() {
 		bool has_nullptr{};
 		for (auto const listener : m_listeners) {
 			if (listener == nullptr) {
 				has_nullptr = true;
 				continue;
 			}
-			listener->onAudioEndpointCreate();
+			listener->onAudioEngineCreate();
 		}
 		if (!has_nullptr) {
 			return;
 		}
-		std::vector<IAudioEndpointEventListener*> listeners;
+		std::vector<IAudioEngineEventListener*> listeners;
 		listeners.reserve(m_listeners.size());
 		for (auto const listener : m_listeners) {
 			if (listener == nullptr) {
@@ -248,19 +248,19 @@ namespace core {
 		}
 		std::swap(m_listeners, listeners);
 	}
-	void AudioEndpointXAudio2::dispatchOnAudioEndpointDestroy() {
+	void AudioEngineXAudio2::dispatchOnAudioEndpointDestroy() {
 		bool has_nullptr{};
 		for (auto const listener : m_listeners) {
 			if (listener == nullptr) {
 				has_nullptr = true;
 				continue;
 			}
-			listener->onAudioEndpointDestroy();
+			listener->onAudioEngineDestroy();
 		}
 		if (!has_nullptr) {
 			return;
 		}
-		std::vector<IAudioEndpointEventListener*> listeners;
+		std::vector<IAudioEngineEventListener*> listeners;
 		listeners.reserve(m_listeners.size());
 		for (auto const listener : m_listeners) {
 			if (listener == nullptr) {
@@ -271,20 +271,20 @@ namespace core {
 		std::swap(m_listeners, listeners);
 	}
 
-	IXAudio2MasteringVoice* AudioEndpointXAudio2::getDirectChannel() const noexcept {
+	IXAudio2MasteringVoice* AudioEngineXAudio2::getDirectChannel() const noexcept {
 		return static_cast<IXAudio2MasteringVoice*>(m_mixing_channels[static_cast<size_t>(AudioMixingChannel::direct)]);
 	}
-	IXAudio2SubmixVoice* AudioEndpointXAudio2::getSoundEffectChannel() const noexcept {
+	IXAudio2SubmixVoice* AudioEngineXAudio2::getSoundEffectChannel() const noexcept {
 		return static_cast<IXAudio2SubmixVoice*>(m_mixing_channels[static_cast<size_t>(AudioMixingChannel::sound_effect)]);
 	}
-	IXAudio2SubmixVoice* AudioEndpointXAudio2::getMusicChannel() const noexcept {
+	IXAudio2SubmixVoice* AudioEngineXAudio2::getMusicChannel() const noexcept {
 		return static_cast<IXAudio2SubmixVoice*>(m_mixing_channels[static_cast<size_t>(AudioMixingChannel::music)]);
 	}
-	IXAudio2Voice* AudioEndpointXAudio2::getChannel(AudioMixingChannel channel) const noexcept {
+	IXAudio2Voice* AudioEngineXAudio2::getChannel(AudioMixingChannel channel) const noexcept {
 		return m_mixing_channels[static_cast<size_t>(channel)];
 	}
 
-	void AudioEndpointXAudio2::closeMixingChannels() {
+	void AudioEngineXAudio2::closeMixingChannels() {
 		for (auto& channel : m_mixing_channels | std::views::reverse) {
 			if (channel == nullptr) {
 				continue;
@@ -294,15 +294,15 @@ namespace core {
 		}
 	}
 
-	bool IAudioEndpoint::create(IAudioEndpoint** const output_endpoint) {
+	bool IAudioEngine::create(IAudioEngine** const output_endpoint) {
 		if (output_endpoint == nullptr) {
 			assert(false);
 			return false;
 		}
-		SmartReference<AudioEndpointXAudio2> endpoint;
-		endpoint.attach(new AudioEndpointXAudio2);
+		SmartReference<AudioEngineXAudio2> endpoint;
+		endpoint.attach(new AudioEngineXAudio2);
 		if (!endpoint->create()) {
-			Logger::warn("[core] AudioEndpointXAudio2::create failed");
+			Logger::warn("[core] AudioEngineXAudio2::create failed");
 		}
 		*output_endpoint = endpoint.detach();
 		return true;

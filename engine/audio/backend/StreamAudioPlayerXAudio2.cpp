@@ -141,12 +141,12 @@ namespace core {
 		std::ignore = win32::check_hresult(error, "IXAudio2VoiceCallback::OnVoiceError"sv);
 	}
 
-	// IAudioEndpointEventListener
+	// IAudioEngineEventListener
 
-	void StreamAudioPlayerXAudio2::onAudioEndpointCreate() {
+	void StreamAudioPlayerXAudio2::onAudioEngineCreate() {
 		create();
 	}
-	void StreamAudioPlayerXAudio2::onAudioEndpointDestroy() {
+	void StreamAudioPlayerXAudio2::onAudioEngineDestroy() {
 		destroy();
 	}
 
@@ -212,7 +212,7 @@ namespace core {
 
 		return true;
 	}
-	bool StreamAudioPlayerXAudio2::create(AudioEndpointXAudio2* const parent, AudioMixingChannel const mixing_channel, IAudioDecoder* const decoder) {
+	bool StreamAudioPlayerXAudio2::create(AudioEngineXAudio2* const parent, AudioMixingChannel const mixing_channel, IAudioDecoder* const decoder) {
 		m_parent = parent;
 		m_mixing_channel = mixing_channel;
 		m_decoder = decoder;
