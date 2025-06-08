@@ -472,7 +472,7 @@ namespace luastg {
 
 	static struct CallbacksResourceInitializer {
 		CallbacksResourceInitializer() {
-			constexpr auto bytes = sizeof(IGameObjectCallbacks*) * 4;
+			constexpr auto bytes = sizeof(IGameObjectCallbacks*) * 2;
 			for (size_t i = 0; i < 8192; i++) {
 				GameObject::s_callbacks_resource.deallocate(GameObject::s_callbacks_resource.allocate(bytes), bytes);
 			}
