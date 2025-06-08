@@ -38,7 +38,12 @@ namespace {
 
 	struct GameObjectManagerCallbacks : luastg::IGameObjectManagerCallbacks {
 		std::vector<lua_State*> lua_vm;
-		lua::stack_index_t game_object_tables_index{};
+		std::vector<lua::stack_index_t> game_object_tables_index;
+
+		GameObjectManagerCallbacks() {
+			lua_vm.reserve(16);
+			game_object_tables_index.reserve(16);
+		}
 
 		std::string_view getCallbacksName() const noexcept override {
 			return "lua"sv;
@@ -77,12 +82,12 @@ namespace {
 		void beforeBatch() {
 			auto const vm = lua_vm.back();
 			luastg::binding::GameObject::pushGameObjectTable(vm);
-			game_object_tables_index.value = lua_gettop(vm);
+			game_object_tables_index.emplace_back(lua_gettop(vm));
 		}
 		void afterBatch() {
 			auto const vm = lua_vm.back();
-			lua_settop(vm, game_object_tables_index.value - 1);
-			game_object_tables_index = {};
+			lua_settop(vm, game_object_tables_index.back().value - 1);
+			game_object_tables_index.pop_back();
 		}
 	};
 
@@ -130,7 +135,7 @@ namespace {
 			auto const vm = game_object_manager_callbacks.lua_vm.back();
 			lua::stack_t const ctx(vm);
 
-			auto const table = game_object_manager_callbacks.game_object_tables_index;
+			auto const table = game_object_manager_callbacks.game_object_tables_index.back();
 			auto const lua_index = static_cast<int32_t>(self->id + 1);
 
 			auto const object = ctx.get_array_value<lua::stack_index_t>(table, lua_index); // ... t ... object
@@ -146,7 +151,7 @@ namespace {
 			auto const vm = game_object_manager_callbacks.lua_vm.back();
 			lua::stack_t const ctx(vm);
 
-			auto const table = game_object_manager_callbacks.game_object_tables_index;
+			auto const table = game_object_manager_callbacks.game_object_tables_index.back();
 			auto const lua_index = static_cast<int32_t>(self->id + 1);
 
 			auto const object = ctx.get_array_value<lua::stack_index_t>(table, lua_index); // ... t ... object
@@ -168,7 +173,7 @@ namespace {
 			auto const vm = game_object_manager_callbacks.lua_vm.back();
 			lua::stack_t const ctx(vm);
 
-			auto const table = game_object_manager_callbacks.game_object_tables_index;
+			auto const table = game_object_manager_callbacks.game_object_tables_index.back();
 			auto const lua_index = static_cast<int32_t>(self->id + 1);
 			auto const other_lua_index = static_cast<int32_t>(other->id + 1);
 
@@ -185,7 +190,7 @@ namespace {
 			auto const vm = game_object_manager_callbacks.lua_vm.back();
 			lua::stack_t const ctx(vm);
 
-			auto const table = game_object_manager_callbacks.game_object_tables_index;
+			auto const table = game_object_manager_callbacks.game_object_tables_index.back();
 			auto const lua_index = static_cast<int32_t>(self->id + 1);
 
 			auto const object = ctx.get_array_value<lua::stack_index_t>(table, lua_index); // ... t ... object
@@ -839,7 +844,7 @@ namespace luastg::binding {
 		#if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
 			for (int i = 1; i <= LOBJPOOL_SIZE; i += 1) {
 				// 确保所有 lua 侧对象都被正确回收
-				lua_rawgeti(vm, game_object_manager_callbacks.game_object_tables_index.value, i);
+				lua_rawgeti(vm, game_object_manager_callbacks.game_object_tables_index.back().value, i);
 				assert(!lua_istable(vm, -1));
 				lua_pop(vm, 1);
 			}
