@@ -239,6 +239,8 @@ if (LUASTG_LINK_LUASOCKET)
 endif ()
 
 add_custom_command(TARGET LuaSTG POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:Microsoft.XAudio2.Redist>     $<TARGET_FILE_DIR:LuaSTG>/$<TARGET_FILE_NAME:Microsoft.XAudio2.Redist>
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:Microsoft.D3DCompiler.Redist> $<TARGET_FILE_DIR:LuaSTG>/$<TARGET_FILE_NAME:Microsoft.D3DCompiler.Redist>
     COMMAND ${CMAKE_COMMAND} -E make_directory                                                ${CMAKE_BINARY_DIR}/bin
     COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:LuaSTG>                       ${CMAKE_BINARY_DIR}/bin/$<TARGET_FILE_NAME:LuaSTG>
     COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:Microsoft.XAudio2.Redist>     ${CMAKE_BINARY_DIR}/bin/$<TARGET_FILE_NAME:Microsoft.XAudio2.Redist>
