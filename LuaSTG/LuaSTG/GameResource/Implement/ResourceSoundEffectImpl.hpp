@@ -20,21 +20,21 @@ namespace luastg {
 
 	private:
 		enum class CommandType : uint8_t {
-			None,
-			Play,
-			Stop,
-			Reset,
-			ResetAndStop,
+			none,
+			play,
+			pause,
+			resume,
+			stop,
 		};
 
 		struct Command {
-			CommandType type = CommandType::None;
-			float vol = 0.0f;
-			float pan = 0.0f;
+			CommandType type{ CommandType::none };
+			float vol{ 1.0f };
+			float pan{ 0.0f };
 		};
 
 		core::SmartReference<core::IAudioPlayer> m_player;
-		int m_status = 0; // 0停止 1暂停 2播放
+		core::AudioPlayerState m_state{ core::AudioPlayerState::stopped };
 		Command m_last_command;
 	};
 }
