@@ -127,6 +127,9 @@ static void* xSteamLuaKey = nullptr;
 #include "lua_steam_SteamAPI.inl"
 #include "lua_steam_SteamInput.inl"
 #include "lua_steam_SteamUserStats.inl"
+#include "lua_steam_SteamUtils.inl"
+#include "lua_steam_SteamFriends.inl"
+#include "lua_steam_SteamUGC.inl"
 
 bool lua_steam_check(uint32_t appid)
 {
@@ -145,5 +148,8 @@ int lua_steam_open(lua_State* L)
     xSteamAPI::xRegister(L);
     xSteamInput::xRegister(L);
     xSteamUserStats::xRegister(L);
+    xSteamUtils::xRegister(L);
+    xSteamFriends::xRegister(L);
+    xSteamUGC::xRegister(L);
     return 1;
 }
