@@ -71,6 +71,7 @@ namespace luastg {
 		static constexpr int unhandled_set_layer = 2;
 
 		// 回调函数
+
 		IGameObjectCallbacks** callbacks;	// [P] [不可见] 回调函数集和调用链
 		uint32_t callbacks_count;			// [4] [不可见]
 		uint32_t callbacks_capacity;		// [4] [不可见]
