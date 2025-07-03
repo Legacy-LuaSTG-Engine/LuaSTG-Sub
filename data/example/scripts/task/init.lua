@@ -6,9 +6,9 @@
 ---@class task
 local task = {}
 
----@param frames integer
-function task.wait(frames)
-    for _ = 1, frames do
+---@param times integer?
+function task.wait(times)
+    for _ = 1, times or 1 do
         coroutine.yield()
     end
 end
