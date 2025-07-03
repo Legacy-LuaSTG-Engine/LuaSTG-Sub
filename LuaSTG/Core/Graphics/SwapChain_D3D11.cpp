@@ -2123,6 +2123,7 @@ namespace core::Graphics
 		// 手动合成画面的情况下，通过内接缩放渲染器来缩放显示
 
 		if (!m_is_composition_mode) {
+			tracy_d3d11_context_zone(m_device->GetTracyContext(), "PreScaling");
 			if (!presentLetterBoxingRenderer()) {
 				return false;
 			}
@@ -2132,6 +2133,7 @@ namespace core::Graphics
 		// 绘制标题栏
 
 		if (m_is_composition_mode) {
+			tracy_d3d11_context_zone(m_device->GetTracyContext(), "TitleBarComposition");
 			// 绘制标题栏到单独的表面
 			if (m_window->getTitleBarController().isVisible()) {
 				if (!m_title_bar_attached) {
@@ -2161,6 +2163,7 @@ namespace core::Graphics
 			}
 		}
 		else {
+			tracy_d3d11_context_zone(m_device->GetTracyContext(), "DrawTitleBar");
 			// 绘制标题栏到交换链上，而不是画布上
 			m_window->getTitleBarController().draw(m_swap_chain_d2d1_bitmap.Get());
 		}
