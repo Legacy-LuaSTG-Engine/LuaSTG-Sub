@@ -285,38 +285,13 @@ namespace luastg {
 		}
 		[[nodiscard]] bool isIntersect(GameObject const* other) const noexcept { return isIntersect(this, other); }
 
-		void setResourceRenderState(BlendMode blend, core::Color4B color);
-		void setParticleRenderState(BlendMode blend, core::Color4B color);
-		void stopParticle() {
-			if (!hasParticlePool()) {
-				return;
-			}
-			ps->SetActive(false);
-		}
-		void startParticle() {
-			if (!hasParticlePool()) {
-				return;
-			}
-			ps->SetActive(true);
-		}
-		[[nodiscard]] size_t getParticleCount() const {
-			if (!hasParticlePool()) {
-				return 0;
-			}
-			return ps->GetAliveCount();
-		}
-		[[nodiscard]] int32_t getParticleEmission() const {
-			if (!hasParticlePool()) {
-				return 0;
-			}
-			return ps->GetEmission();
-		}
-		void setParticleEmission(int32_t const value) {
-			if (!hasParticlePool()) {
-				return;
-			}
-			ps->SetEmission(value);
-		}
+		void setResourceRenderState(BlendMode blend, core::Color4B color) const;
+		void setParticleRenderState(BlendMode blend, core::Color4B color) const;
+		void stopParticle() const;
+		void startParticle() const;
+		[[nodiscard]] size_t getParticleCount() const;
+		[[nodiscard]] int32_t getParticleEmission() const;
+		void setParticleEmission(int32_t value) const;
 
 		[[nodiscard]] static bool isIntersect(GameObject const* p1, GameObject const* p2) noexcept;
 	};

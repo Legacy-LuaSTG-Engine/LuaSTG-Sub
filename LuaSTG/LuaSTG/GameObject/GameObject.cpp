@@ -485,7 +485,7 @@ namespace luastg {
 	void GameObject::setLayer(double const new_layer) {
 		LPOOL.setLayer(this, new_layer);
 	}
-	void GameObject::setResourceRenderState(BlendMode const blend, core::Color4B const color) {
+	void GameObject::setResourceRenderState(BlendMode const blend, core::Color4B const color) const {
 		if (res == nullptr) {
 			return;
 		}
@@ -500,11 +500,41 @@ namespace luastg {
 			sprite_sequence->SetVertexColor(color);
 		}
 	}
-	void GameObject::setParticleRenderState(BlendMode const blend, core::Color4B const color) {
+	void GameObject::setParticleRenderState(BlendMode const blend, core::Color4B const color) const {
 		if (res == nullptr || res->GetType() != ResourceType::Particle) {
 			return;
 		}
 		ps->SetBlendMode(blend);
 		ps->SetVertexColor(color);
+	}
+	void GameObject::stopParticle() const {
+		if (!hasParticlePool()) {
+			return;
+		}
+		ps->SetActive(false);
+	}
+	void GameObject::startParticle() const {
+		if (!hasParticlePool()) {
+			return;
+		}
+		ps->SetActive(true);
+	}
+	size_t GameObject::getParticleCount() const {
+		if (!hasParticlePool()) {
+			return 0;
+		}
+		return ps->GetAliveCount();
+	}
+	int32_t GameObject::getParticleEmission() const {
+		if (!hasParticlePool()) {
+			return 0;
+		}
+		return ps->GetEmission();
+	}
+	void GameObject::setParticleEmission(int32_t const value) const {
+		if (!hasParticlePool()) {
+			return;
+		}
+		ps->SetEmission(value);
 	}
 }
