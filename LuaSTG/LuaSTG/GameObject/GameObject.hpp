@@ -182,66 +182,17 @@ namespace luastg {
 
 		static std::pmr::unsynchronized_pool_resource s_callbacks_resource;
 
-		[[nodiscard]] bool containsCallbacks(IGameObjectCallbacks const* const c) const noexcept {
-			for (size_t i = 0; i < callbacks_count; i++) {
-				if (callbacks[i] == c) {
-					return true;
-				}
-			}
-			return false;
-		}
-		void addCallbacks(IGameObjectCallbacks* const c) {
-			if (callbacks_capacity == 0) {
-				callbacks_capacity = 2;
-				callbacks = static_cast<IGameObjectCallbacks**>(s_callbacks_resource.allocate(sizeof(IGameObjectCallbacks*) * callbacks_capacity));
-				callbacks[0] = c;
-				callbacks[1] = nullptr;
-				callbacks_count = 1;
-			}
-			else if (!containsCallbacks(c)) {
-				if (callbacks_count == callbacks_capacity) {
-					assert(false); // unlikely
-					auto const data = callbacks;
-					auto const size = callbacks_count;
-					callbacks_capacity *= 2;
-					callbacks = static_cast<IGameObjectCallbacks**>(s_callbacks_resource.allocate(sizeof(IGameObjectCallbacks*) * callbacks_capacity));
-					std::memcpy(static_cast<void*>(callbacks), static_cast<void*>(data), sizeof(IGameObjectCallbacks*) * size);
-					std::memset(static_cast<void*>(callbacks + size), 0, sizeof(IGameObjectCallbacks*) * size);
-					s_callbacks_resource.deallocate(static_cast<void*>(data), sizeof(IGameObjectCallbacks*) * size);
-				}
-				callbacks[callbacks_count] = c;
-				callbacks_count++;
-			}
-		}
-		void removeCallbacks(IGameObjectCallbacks* const c) {
-			if (callbacks_count == 0) {
-				return;
-			}
-			if (auto const padding = std::ranges::remove(callbacks, callbacks + callbacks_count, c); !padding.empty()) {
-				std::ranges::fill(padding, nullptr);
-				callbacks_count -= static_cast<uint32_t>(padding.size());
-			}
-		}
-		void removeAllCallbacks() {
-			if (callbacks != nullptr) {
-				s_callbacks_resource.deallocate(static_cast<void*>(callbacks), sizeof(IGameObjectCallbacks*) * callbacks_capacity);
-			}
-			callbacks = nullptr;
-			callbacks_count = 0;
-			callbacks_capacity = 0;
-		}
-
-	#define FOR_EACH_CALLBACKS(S) for (uint32_t i = 0; i < callbacks_count; i++) { callbacks[i]-> S }
-
-		void dispatchOnCreate() { FOR_EACH_CALLBACKS(onCreate(this);) }
-		void dispatchOnDestroy() { FOR_EACH_CALLBACKS(onDestroy(this);) }
-		void dispatchOnQueueToDestroy(std::string_view const reason) { FOR_EACH_CALLBACKS(onQueueToDestroy(this, reason);) }
-		void dispatchOnUpdate() { FOR_EACH_CALLBACKS(onUpdate(this);) }
-		void dispatchOnLateUpdate() { FOR_EACH_CALLBACKS(onLateUpdate(this);) }
-		void dispatchOnRender() { FOR_EACH_CALLBACKS(onRender(this);) }
-		void dispatchOnTrigger(GameObject* const other) { FOR_EACH_CALLBACKS(onTrigger(this, other);) }
-
-	#undef FOR_EACH_CALLBACKS
+		[[nodiscard]] bool containsCallbacks(IGameObjectCallbacks const* c) const noexcept;
+		void addCallbacks(IGameObjectCallbacks* c);
+		void removeCallbacks(IGameObjectCallbacks* c);
+		void removeAllCallbacks();
+		void dispatchOnCreate();
+		void dispatchOnDestroy();
+		void dispatchOnQueueToDestroy(std::string_view reason);
+		void dispatchOnUpdate();
+		void dispatchOnLateUpdate();
+		void dispatchOnRender();
+		void dispatchOnTrigger(GameObject* other);
 
 		[[nodiscard]] bool hasRenderResource() const noexcept { return res != nullptr; }
 		[[nodiscard]] bool hasParticlePool() const noexcept { return res != nullptr && res->GetType() == ResourceType::Particle && ps != nullptr; }

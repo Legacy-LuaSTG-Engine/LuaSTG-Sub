@@ -31,6 +31,101 @@ namespace luastg {
 }
 
 namespace luastg {
+	std::pmr::unsynchronized_pool_resource GameObject::s_callbacks_resource;
+
+	namespace {
+		[[nodiscard]] bool isDirectCallbacks(GameObject const* const self) noexcept {
+			return self->callbacks_count == 1 && self->callbacks_capacity == 0;
+		}
+		void setDirectCallbacks(GameObject* const self, IGameObjectCallbacks* const c) noexcept {
+			self->callbacks = reinterpret_cast<IGameObjectCallbacks**>(c);
+			self->callbacks_count = 1;
+			self->callbacks_capacity = 0;
+		}
+		void clearCallbacks(GameObject* const self) noexcept {
+			self->callbacks = nullptr;
+			self->callbacks_count = 0;
+			self->callbacks_capacity = 0;
+		}
+	}
+
+	bool GameObject::containsCallbacks(IGameObjectCallbacks const* const c) const noexcept {
+		if (isDirectCallbacks(this)) {
+			return reinterpret_cast<IGameObjectCallbacks*>(callbacks) == c;
+		}
+		for (size_t i = 0; i < callbacks_count; i++) {
+			if (callbacks[i] == c) {
+				return true;
+			}
+		}
+		return false;
+	}
+	void GameObject::addCallbacks(IGameObjectCallbacks* const c) {
+		if (callbacks_count == 0) {
+			setDirectCallbacks(this, c);
+		}
+		else if (!containsCallbacks(c)) {
+			if (isDirectCallbacks(this)) {
+				auto const last = reinterpret_cast<IGameObjectCallbacks*>(callbacks);
+				callbacks_count = 2;
+				callbacks_capacity = 2;
+				callbacks = static_cast<IGameObjectCallbacks**>(s_callbacks_resource.allocate(sizeof(IGameObjectCallbacks*) * callbacks_capacity));
+				callbacks[0] = last;
+				callbacks[1] = c;
+			}
+			else if (callbacks_count == callbacks_capacity) {
+				assert(false); // DEBUG: unlikely
+				auto const data = callbacks;
+				auto const size = callbacks_count;
+				callbacks_capacity *= 2;
+				callbacks = static_cast<IGameObjectCallbacks**>(s_callbacks_resource.allocate(sizeof(IGameObjectCallbacks*) * callbacks_capacity));
+				std::memcpy(static_cast<void*>(callbacks), static_cast<void*>(data), sizeof(IGameObjectCallbacks*) * size);
+				std::memset(static_cast<void*>(callbacks + size), 0, sizeof(IGameObjectCallbacks*) * size);
+				s_callbacks_resource.deallocate(static_cast<void*>(data), sizeof(IGameObjectCallbacks*) * size);
+			}
+			callbacks[callbacks_count] = c;
+			callbacks_count++;
+		}
+	}
+	void GameObject::removeCallbacks(IGameObjectCallbacks* const c) {
+		if (callbacks_count == 0) {
+			return;
+		}
+		if (isDirectCallbacks(this) && reinterpret_cast<IGameObjectCallbacks*>(callbacks) == c) {
+			clearCallbacks(this);
+		}
+		if (callbacks_count == 1 && callbacks[0] == c) {
+			callbacks[0] = nullptr;
+			callbacks_count = 0;
+		}
+		if (auto const padding = std::ranges::remove(callbacks, callbacks + callbacks_count, c); !padding.empty()) {
+			std::ranges::fill(padding, nullptr);
+			callbacks_count -= static_cast<uint32_t>(padding.size());
+		}
+	}
+	void GameObject::removeAllCallbacks() {
+		if (callbacks != nullptr && !isDirectCallbacks(this)) {
+			s_callbacks_resource.deallocate(static_cast<void*>(callbacks), sizeof(IGameObjectCallbacks*) * callbacks_capacity);
+		}
+		clearCallbacks(this);
+	}
+
+#define FOR_EACH_CALLBACKS(S) \
+	if (isDirectCallbacks(this)) { reinterpret_cast<IGameObjectCallbacks*>(callbacks)-> S return; } \
+	for (uint32_t i = 0; i < callbacks_count; i++) { callbacks[i]-> S }
+
+	void GameObject::dispatchOnCreate() { FOR_EACH_CALLBACKS(onCreate(this);) }
+	void GameObject::dispatchOnDestroy() { FOR_EACH_CALLBACKS(onDestroy(this);) }
+	void GameObject::dispatchOnQueueToDestroy(std::string_view const reason) { FOR_EACH_CALLBACKS(onQueueToDestroy(this, reason);) }
+	void GameObject::dispatchOnUpdate() { FOR_EACH_CALLBACKS(onUpdate(this);) }
+	void GameObject::dispatchOnLateUpdate() { FOR_EACH_CALLBACKS(onLateUpdate(this);) }
+	void GameObject::dispatchOnRender() { FOR_EACH_CALLBACKS(onRender(this);) }
+	void GameObject::dispatchOnTrigger(GameObject* const other) { FOR_EACH_CALLBACKS(onTrigger(this, other);) }
+
+#undef FOR_EACH_CALLBACKS
+}
+
+namespace luastg {
 	void GameObject::Reset() {
 		update_list_previous = update_list_next = nullptr;
 		detect_list_previous = detect_list_next = nullptr;
@@ -467,17 +562,6 @@ namespace luastg {
 			}
 		}
 	}
-
-	std::pmr::unsynchronized_pool_resource GameObject::s_callbacks_resource;
-
-	static struct CallbacksResourceInitializer {
-		CallbacksResourceInitializer() {
-			constexpr auto bytes = sizeof(IGameObjectCallbacks*) * 2;
-			for (size_t i = 0; i < 8192; i++) {
-				GameObject::s_callbacks_resource.deallocate(GameObject::s_callbacks_resource.allocate(bytes), bytes);
-			}
-		}
-	} s_callbacks_resource_initializer;
 
 	void GameObject::setGroup(int64_t const new_group) {
 		LPOOL.setGroup(this, static_cast<size_t>(new_group));
