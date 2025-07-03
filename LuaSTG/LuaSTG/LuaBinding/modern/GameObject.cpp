@@ -203,6 +203,28 @@ namespace {
 	};
 
 	GameObjectCallbacks game_object_callbacks;
+
+	void updateGameObjectFeatures(luastg::GameObjectFeatures& self, lua_State* const vm, int const idx) {
+		lua::stack_t const ctx(vm);
+		self.reset();
+		if (!ctx.is_table(idx)) {
+			return;
+		}
+		self.is_class = ctx.get_map_value<bool>(idx, "is_class"sv, false);
+		if (!self.is_class) {
+			return;
+		}
+		self.is_render_class = ctx.get_map_value<bool>(idx, ".render"sv, false);
+		auto const default_function_mask = ctx.get_map_value<int32_t>(idx, "default_function"sv, 0);
+	#define TEST_CALLBACK(CALLBACK) (default_function_mask & (1 << (CALLBACK))) ? false : true
+		self.has_callback_create = TEST_CALLBACK(LGOBJ_CC_INIT);
+		self.has_callback_destroy = TEST_CALLBACK(LGOBJ_CC_DEL);
+		self.has_callback_update = TEST_CALLBACK(LGOBJ_CC_FRAME);
+		self.has_callback_render = TEST_CALLBACK(LGOBJ_CC_RENDER);
+		self.has_callback_trigger = TEST_CALLBACK(LGOBJ_CC_COLLI);
+		self.has_callback_legacy_kill = TEST_CALLBACK(LGOBJ_CC_KILL);
+	#undef TEST_CALLBACK
+	}
 }
 
 namespace luastg::binding {
@@ -439,7 +461,7 @@ namespace luastg::binding {
 				return 0;
 			}
 			case LuaSTG::GameObjectMember::CLASS:
-				self->features.read(vm, 3); // 刷新对象的 class
+				updateGameObjectFeatures(self->features, vm, 3); // 刷新对象的 class
 				if (!self->features.is_class)
 					return luaL_error(vm, "invalid argument for property 'class', required luastg object class.");
 			#ifdef LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
@@ -769,7 +791,7 @@ namespace luastg::binding {
 			lua::stack_t const ctx(vm);
 
 			GameObjectFeatures features{};
-			features.read(vm, 1);
+			updateGameObjectFeatures(features, vm, 1);
 			if (!features.is_class) {
 				return luaL_error(vm, "invalid argument #1, luastg object class required for 'New'.");
 			}

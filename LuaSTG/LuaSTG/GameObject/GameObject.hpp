@@ -2,7 +2,6 @@
 #include "GameResource/ResourceBase.hpp"
 #include "GameResource/ResourceParticle.hpp"
 #include <memory_resource>
-#include "lua.hpp"
 
 #define LGOBJ_CC_INIT 1
 #define LGOBJ_CC_DEL 2
@@ -31,7 +30,6 @@ namespace luastg {
 		uint8_t has_callback_legacy_kill : 1;
 
 		void reset() { static_assert(sizeof(GameObjectFeatures) == sizeof(uint8_t)); *reinterpret_cast<uint8_t*>(this) = 0u; }
-		void read(lua_State* vm, int index);
 	};
 
 #pragma warning(push)
@@ -230,7 +228,7 @@ namespace luastg {
 		}
 		void setGroup(int64_t new_group);
 		void setLayer(double new_layer);
-		[[nodiscard]] bool isInRect(lua_Number const l, lua_Number const r, lua_Number const bb, lua_Number const t) const noexcept {
+		[[nodiscard]] bool isInRect(double const l, double const r, double const bb, double const t) const noexcept {
 			return x >= l && x <= r && y >= bb && y <= t;
 		}
 		[[nodiscard]] bool isIntersect(GameObject const* other) const noexcept { return isIntersect(this, other); }

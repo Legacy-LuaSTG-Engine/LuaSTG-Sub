@@ -9,30 +9,6 @@
 using std::string_view_literals::operator ""sv;
 
 namespace luastg {
-	void GameObjectFeatures::read(lua_State* const vm, int const index) {
-		lua::stack_t const ctx(vm);
-		reset();
-		if (!ctx.is_table(index)) {
-			return;
-		}
-		is_class = ctx.get_map_value<bool>(index, "is_class"sv, false);
-		if (!is_class) {
-			return;
-		}
-		is_render_class = ctx.get_map_value<bool>(index, ".render"sv, false);
-		auto const default_function_mask = ctx.get_map_value<int32_t>(index, "default_function"sv, 0);
-	#define TEST_CALLBACK(CALLBACK) (default_function_mask & (1 << (CALLBACK))) ? false : true
-		has_callback_create = TEST_CALLBACK(LGOBJ_CC_INIT);
-		has_callback_destroy = TEST_CALLBACK(LGOBJ_CC_DEL);
-		has_callback_update = TEST_CALLBACK(LGOBJ_CC_FRAME);
-		has_callback_render = TEST_CALLBACK(LGOBJ_CC_RENDER);
-		has_callback_trigger = TEST_CALLBACK(LGOBJ_CC_COLLI);
-		has_callback_legacy_kill = TEST_CALLBACK(LGOBJ_CC_KILL);
-	#undef TEST_CALLBACK
-	}
-}
-
-namespace luastg {
 	std::pmr::unsynchronized_pool_resource GameObject::s_callbacks_resource;
 
 	namespace {
