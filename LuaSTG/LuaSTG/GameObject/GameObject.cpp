@@ -3,6 +3,8 @@
 #include "GameResource/ResourceAnimation.hpp"
 #include "lua/plus.hpp"
 #include "AppFrame.h"
+#include <ranges>
+#include <algorithm>
 
 using std::string_view_literals::operator ""sv;
 

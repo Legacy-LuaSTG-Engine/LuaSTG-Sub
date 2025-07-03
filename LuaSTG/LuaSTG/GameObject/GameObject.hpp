@@ -2,8 +2,6 @@
 #include "GameResource/ResourceBase.hpp"
 #include "GameResource/ResourceParticle.hpp"
 #include <memory_resource>
-#include <ranges>
-#include <algorithm>
 #include "lua.hpp"
 
 #define LGOBJ_CC_INIT 1
