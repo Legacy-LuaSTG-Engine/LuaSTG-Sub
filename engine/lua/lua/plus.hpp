@@ -338,6 +338,9 @@ namespace lua {
 		template<typename T>
 		T* as_userdata(stack_index_t const index) const { return static_cast<T*>(luaL_checkudata(L, index.value, T::class_name.data())); }
 
+		template<typename T>
+		T* as_userdata(stack_index_t const index, std::string_view const class_name) const { return static_cast<T*>(luaL_checkudata(L, index.value, class_name.data())); }
+
 		// type
 
 		[[nodiscard]] bool has_value(stack_index_t const index) const { return lua_type(L, index.value) != LUA_TNONE; }
