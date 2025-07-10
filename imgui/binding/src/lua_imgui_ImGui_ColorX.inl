@@ -185,7 +185,7 @@ static int lib_ColorButton(lua_State* L)
 {
     const int argc = lua_gettop(L);
     const char* desc_id = luaL_checkstring(L, 1);
-    ImVec4* col = lua::as_type_instance<ImVec4>(L, 2);
+    ImVec4* col = imgui::binding::ImVec4Binding::as(L, 2);
     bool ret = false;
     if (argc <= 2)
     {
@@ -199,7 +199,7 @@ static int lib_ColorButton(lua_State* L)
     else
     {
         const ImGuiColorEditFlags flags = (ImGuiColorEditFlags)luaL_checkinteger(L, 3);
-        ImVec2* size = lua::as_type_instance<ImVec2>(L, 4);
+        ImVec2* size = imgui::binding::ImVec2Binding::as(L, 4);
         ret = ImGui::ColorButton(desc_id, *col, flags, *size);
     }
     lua_pushboolean(L, ret);

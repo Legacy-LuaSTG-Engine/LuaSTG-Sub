@@ -1,9 +1,9 @@
 #include "lua_imgui_common.hpp"
 #include "lua_imgui_ImGui.hpp"
 #include "lua_imgui_type.hpp"
+#include "lua_imgui_binding.hpp"
 #include <cstdint>
 #include <tuple>
-#include "imgui.h"
 
 // TODO TODO TODO TODO TODO TODO TODO TODO
 // - [ ] get/push ImGuiID integer (int32 ?) -> number (double)
@@ -44,25 +44,6 @@ static const int IMGUI_REGISTRY = 9961;
 
 // XXXX: will not implement (or should not export to lua API)
 // !!!!: works in progress
-
-//////// Context creation and access
-
-static /* XXXX */ int lib_CreateContext(lua_State* L)
-{
-    LUA_IMGUI_NOT_SUPPORT;
-}
-static /* XXXX */ int lib_DestroyContext(lua_State* L)
-{
-    LUA_IMGUI_NOT_SUPPORT;
-}
-static /* XXXX */ int lib_GetCurrentContext(lua_State* L)
-{
-    LUA_IMGUI_NOT_SUPPORT;
-}
-static /* XXXX */ int lib_SetCurrentContext(lua_State* L)
-{
-    LUA_IMGUI_NOT_SUPPORT;
-}
 
 //////// Main
 
@@ -313,18 +294,18 @@ static int lib_BeginChild(lua_State* L)
             }
             else if (argc == 2)
             {
-                ImVec2* size = lua::as_type_instance<ImVec2>(L, 2);
+                ImVec2* size = imgui::binding::ImVec2Binding::as(L, 2);
                 ret = ImGui::BeginChild(id, *size);
             }
             else if (argc == 3)
             {
-                ImVec2* size = lua::as_type_instance<ImVec2>(L, 2);
+                ImVec2* size = imgui::binding::ImVec2Binding::as(L, 2);
                 const auto flags = (ImGuiChildFlags)luaL_checkinteger(L, 3);
                 ret = ImGui::BeginChild(id, *size, flags);
             }
             else
             {
-                ImVec2* size = lua::as_type_instance<ImVec2>(L, 2);
+                ImVec2* size = imgui::binding::ImVec2Binding::as(L, 2);
                 const auto flags = (ImGuiChildFlags)luaL_checkinteger(L, 3);
                 const auto window_flags = (ImGuiWindowFlags)luaL_checkinteger(L, 4);
                 ret = ImGui::BeginChild(id, *size, flags, window_flags);
@@ -343,18 +324,18 @@ static int lib_BeginChild(lua_State* L)
             }
             else if (argc == 2)
             {
-                ImVec2* size = lua::as_type_instance<ImVec2>(L, 2);
+                ImVec2* size = imgui::binding::ImVec2Binding::as(L, 2);
                 ret = ImGui::BeginChild(str_id, *size);
             }
             else if (argc == 3)
             {
-                ImVec2* size = lua::as_type_instance<ImVec2>(L, 2);
+                ImVec2* size = imgui::binding::ImVec2Binding::as(L, 2);
                 const auto flags = (ImGuiChildFlags)luaL_checkinteger(L, 3);
                 ret = ImGui::BeginChild(str_id, *size, flags);
             }
             else
             {
-                ImVec2* size = lua::as_type_instance<ImVec2>(L, 2);
+                ImVec2* size = imgui::binding::ImVec2Binding::as(L, 2);
                 const auto flags = (ImGuiChildFlags)luaL_checkinteger(L, 3);
                 const auto window_flags = (ImGuiWindowFlags)luaL_checkinteger(L, 4);
                 ret = ImGui::BeginChild(str_id, *size, flags, window_flags);
@@ -421,13 +402,13 @@ static /* !!!! */ int lib_GetWindowDrawList(lua_State* L)
 }
 static int lib_GetWindowPos(lua_State* L)
 {
-    ImVec2* vec2 = lua::create_type_instance<ImVec2>(L);
+    ImVec2* vec2 = imgui::binding::ImVec2Binding::create(L);
     *vec2 = ImGui::GetWindowPos();
     return 1;
 }
 static int lib_GetWindowSize(lua_State* L)
 {
-    ImVec2* vec2 = lua::create_type_instance<ImVec2>(L);
+    ImVec2* vec2 = imgui::binding::ImVec2Binding::create(L);
     *vec2 = ImGui::GetWindowSize();
     return 1;
 }
@@ -447,7 +428,7 @@ static int lib_GetWindowHeight(lua_State* L)
 static int lib_SetNextWindowPos(lua_State* L)
 {
     const int argc = lua_gettop(L);
-    ImVec2* pos = lua::as_type_instance<ImVec2>(L, 1);
+    ImVec2* pos = imgui::binding::ImVec2Binding::as(L, 1);
     if (argc <= 1)
     {
         ImGui::SetNextWindowPos(*pos);
@@ -460,14 +441,14 @@ static int lib_SetNextWindowPos(lua_State* L)
     else
     {
         const ImGuiCond cond = (ImGuiCond)luaL_checkinteger(L, 2);
-        ImVec2* pivot = lua::as_type_instance<ImVec2>(L, 3);
+        ImVec2* pivot = imgui::binding::ImVec2Binding::as(L, 3);
         ImGui::SetNextWindowPos(*pos, cond, *pivot);
     }
     return 0;
 }
 static int lib_SetNextWindowSize(lua_State* L)
 {
-    ImVec2* size = lua::as_type_instance<ImVec2>(L, 1);
+    ImVec2* size = imgui::binding::ImVec2Binding::as(L, 1);
     if (lua_gettop(L) <= 1)
     {
         ImGui::SetNextWindowSize(*size);
@@ -481,8 +462,8 @@ static int lib_SetNextWindowSize(lua_State* L)
 }
 static /* !!!! */ int lib_SetNextWindowSizeConstraints(lua_State* L)
 {
-    ImVec2* v1 = lua::as_type_instance<ImVec2>(L, 1);
-    ImVec2* v2 = lua::as_type_instance<ImVec2>(L, 2);
+    ImVec2* v1 = imgui::binding::ImVec2Binding::as(L, 1);
+    ImVec2* v2 = imgui::binding::ImVec2Binding::as(L, 2);
     if (lua_gettop(L) <= 2)
     {
         ImGui::SetNextWindowSizeConstraints(*v1, *v2);
@@ -542,7 +523,7 @@ static /* !!!! */ int lib_SetNextWindowSizeConstraints(lua_State* L)
 }
 static int lib_SetNextWindowContentSize(lua_State* L)
 {
-    ImVec2* size = lua::as_type_instance<ImVec2>(L, 1);
+    ImVec2* size = imgui::binding::ImVec2Binding::as(L, 1);
     ImGui::SetNextWindowContentSize(*size);
     return 0;
 }
@@ -579,7 +560,7 @@ static int lib_SetWindowPos(lua_State* L)
     {
     default:
         {
-            ImVec2* pos = lua::as_type_instance<ImVec2>(L, 1);
+            ImVec2* pos = imgui::binding::ImVec2Binding::as(L, 1);
             if (argc <= 1)
             {
                 ImGui::SetWindowPos(*pos);
@@ -594,7 +575,7 @@ static int lib_SetWindowPos(lua_State* L)
     case LUA_TSTRING:
         {
             const char* name = luaL_checkstring(L, 1);
-            ImVec2* pos = lua::as_type_instance<ImVec2>(L, 2);
+            ImVec2* pos = imgui::binding::ImVec2Binding::as(L, 2);
             if (argc <= 2)
             {
                 ImGui::SetWindowPos(name, *pos);
@@ -615,7 +596,7 @@ static int lib_SetWindowSize(lua_State* L)
     {
     default:
         {
-            ImVec2* size = lua::as_type_instance<ImVec2>(L, 1);
+            ImVec2* size = imgui::binding::ImVec2Binding::as(L, 1);
             if (argc <= 1)
             {
                 ImGui::SetWindowSize(*size);
@@ -630,7 +611,7 @@ static int lib_SetWindowSize(lua_State* L)
     case LUA_TSTRING:
         {
             const char* name = luaL_checkstring(L, 1);
-            ImVec2* size = lua::as_type_instance<ImVec2>(L, 2);
+            ImVec2* size = imgui::binding::ImVec2Binding::as(L, 2);
             if (argc <= 2)
             {
                 ImGui::SetWindowSize(name, *size);
@@ -697,7 +678,7 @@ static int lib_SetWindowFocus(lua_State* L)
 static int lib_SetWindowFontScale(lua_State* L)
 {
     const float scale = (float)luaL_checknumber(L, 1);
-    ImGui::SetWindowFontScale(scale);
+    //ImGui::SetWindowFontScale(scale);
     return 0;
 }
 
@@ -813,7 +794,7 @@ static int lib_PushStyleColor(lua_State* L)
     {
     case LUA_TUSERDATA:
         {
-            ImVec4* col = lua::as_type_instance<ImVec4>(L, 2);
+            ImVec4* col = imgui::binding::ImVec4Binding::as(L, 2);
             ImGui::PushStyleColor(idx, *col);
         }
         return 0;
@@ -846,7 +827,7 @@ static int lib_PushStyleVar(lua_State* L)
     {
     case LUA_TUSERDATA:
         {
-            ImVec2* val = lua::as_type_instance<ImVec2>(L, 2);
+            ImVec2* val = imgui::binding::ImVec2Binding::as(L, 2);
             ImGui::PushStyleVar(idx, *val);
         }
         return 0;
@@ -957,7 +938,7 @@ static int lib_GetFontSize(lua_State* L)
 }
 static int lib_GetFontTexUvWhitePixel(lua_State* L)
 {
-    ImVec2* vec2 = lua::create_type_instance<ImVec2>(L);
+    ImVec2* vec2 = imgui::binding::ImVec2Binding::create(L);
     *vec2 = ImGui::GetFontTexUvWhitePixel();
     return 1;
 }
@@ -967,7 +948,7 @@ static /* !!!! */ int lib_GetColorU32(lua_State* L)
     {
     case LUA_TUSERDATA:
         {
-            ImVec4* col = lua::as_type_instance<ImVec4>(L, 1);
+            ImVec4* col = imgui::binding::ImVec4Binding::as(L, 1);
             const ImU32 ret = ImGui::GetColorU32(*col);
             lua_pushnumber(L, (lua_Number)ret);
             return 1;
@@ -998,7 +979,7 @@ static /* !!!! */ int lib_GetColorU32(lua_State* L)
 static int lib_GetStyleColorVec4(lua_State* L)
 {
     const ImGuiCol idx = (ImGuiCol)luaL_checkinteger(L, 1);
-    ImVec4* vec4 = lua::create_type_instance<ImVec4>(L);
+    ImVec4* vec4 = imgui::binding::ImVec4Binding::create(L);
     *vec4 = ImGui::GetStyleColorVec4(idx);
     return 1;
 }
@@ -1007,25 +988,25 @@ static int lib_GetStyleColorVec4(lua_State* L)
 
 static int lib_GetCursorScreenPos(lua_State* L)
 {
-    ImVec2* vec2 = lua::create_type_instance<ImVec2>(L);
+    ImVec2* vec2 = imgui::binding::ImVec2Binding::create(L);
     *vec2 = ImGui::GetCursorScreenPos();
     return 1;
 }
 static int lib_SetCursorScreenPos(lua_State* L)
 {
-    ImVec2* pos = lua::as_type_instance<ImVec2>(L, 1);
+    ImVec2* pos = imgui::binding::ImVec2Binding::as(L, 1);
     ImGui::SetCursorScreenPos(*pos);
     return 0;
 }
 static int lib_GetContentRegionAvail(lua_State* L)
 {
-    ImVec2* vec2 = lua::create_type_instance<ImVec2>(L);
+    ImVec2* vec2 = imgui::binding::ImVec2Binding::create(L);
     *vec2 = ImGui::GetContentRegionAvail();
     return 1;
 }
 static int lib_GetCursorPos(lua_State* L)
 {
-    ImVec2* vec2 = lua::create_type_instance<ImVec2>(L);
+    ImVec2* vec2 = imgui::binding::ImVec2Binding::create(L);
     *vec2 = ImGui::GetCursorPos();
     return 1;
 }
@@ -1043,7 +1024,7 @@ static int lib_GetCursorPosY(lua_State* L)
 }
 static int lib_SetCursorPos(lua_State* L)
 {
-    ImVec2* local_pos = lua::as_type_instance<ImVec2>(L, 1);
+    ImVec2* local_pos = imgui::binding::ImVec2Binding::as(L, 1);
     ImGui::SetCursorPos(*local_pos);
     return 0;
 }
@@ -1061,7 +1042,7 @@ static int lib_SetCursorPosY(lua_State* L)
 }
 static int lib_GetCursorStartPos(lua_State* L)
 {
-    ImVec2* vec2 = lua::create_type_instance<ImVec2>(L);
+    ImVec2* vec2 = imgui::binding::ImVec2Binding::create(L);
     *vec2 = ImGui::GetCursorStartPos();
     return 1;
 }
@@ -1108,7 +1089,7 @@ static int lib_Spacing(lua_State* L)
 }
 static int lib_Dummy(lua_State* L)
 {
-    ImVec2* size = lua::as_type_instance<ImVec2>(L, 1);
+    ImVec2* size = imgui::binding::ImVec2Binding::as(L, 1);
     ImGui::Dummy(*size);
     return 0;
 }
@@ -1268,7 +1249,7 @@ static /* XXXX */ int lib_TextV(lua_State* L)
 }
 static int lib_TextColored(lua_State* L)
 {
-    ImVec4* col = lua::as_type_instance<ImVec4>(L, 1);
+    ImVec4* col = imgui::binding::ImVec4Binding::as(L, 1);
     const char* fmt = luaL_checkstring(L, 2);
     ImGui::TextColored(*col, fmt);
     return 0;
@@ -1337,7 +1318,7 @@ static int lib_Button(lua_State* L)
     }
     else
     {
-        ImVec2* size = lua::as_type_instance<ImVec2>(L, 2);
+        ImVec2* size = imgui::binding::ImVec2Binding::as(L, 2);
         const bool ret = ImGui::Button(label, *size);
         lua_pushboolean(L, ret);
     }
@@ -1353,7 +1334,7 @@ static int lib_SmallButton(lua_State* L)
 static int lib_InvisibleButton(lua_State* L)
 {
     const char* str_id = luaL_checkstring(L, 1);
-    ImVec2* size = lua::as_type_instance<ImVec2>(L, 2);
+    ImVec2* size = imgui::binding::ImVec2Binding::as(L, 2);
     if (lua_gettop(L) <= 2)
     {
         const bool ret = ImGui::InvisibleButton(str_id, *size);
@@ -1425,13 +1406,13 @@ static int lib_ProgressBar(lua_State* L)
     }
     else if (argc == 2)
     {
-        ImVec2* size_arg = lua::as_type_instance<ImVec2>(L, 2);
+        ImVec2* size_arg = imgui::binding::ImVec2Binding::as(L, 2);
         ImGui::ProgressBar(fraction, *size_arg);
         
     }
     else
     {
-        ImVec2* size_arg = lua::as_type_instance<ImVec2>(L, 2);
+        ImVec2* size_arg = imgui::binding::ImVec2Binding::as(L, 2);
         const char* overlay = luaL_checkstring(L, 3);
         ImGui::ProgressBar(fraction, *size_arg, overlay);
     }
@@ -1838,7 +1819,7 @@ static int lib_Selectable(lua_State* L)
     {
         bool selected = lua_toboolean(L, 2);
         const ImGuiSelectableFlags flags = (ImGuiSelectableFlags)luaL_checkinteger(L, 3);
-        ImVec2* size = lua::as_type_instance<ImVec2>(L, 4);
+        ImVec2* size = imgui::binding::ImVec2Binding::as(L, 4);
         const bool ret = ImGui::Selectable(label, &selected, flags, *size);
         lua_pushboolean(L, ret);
         lua_pushboolean(L, selected);
@@ -1858,7 +1839,7 @@ static int lib_BeginListBox(lua_State* L)
     }
     else
     {
-        ImVec2* size = lua::as_type_instance<ImVec2>(L, 2);
+        ImVec2* size = imgui::binding::ImVec2Binding::as(L, 2);
         const bool ret = ImGui::BeginListBox(label, *size);
         lua_pushboolean(L, ret);
     }
@@ -2338,14 +2319,14 @@ static int lib_BeginTable(lua_State* L)
     else if (argc == 4)
     {
         const ImGuiTableFlags row_flags = (ImGuiTableFlags)luaL_checkinteger(L, 3);
-        ImVec2* outer_size = lua::as_type_instance<ImVec2>(L, 4);
+        ImVec2* outer_size = imgui::binding::ImVec2Binding::as(L, 4);
         const bool ret = ImGui::BeginTable(str_id, column, row_flags, *outer_size);
         lua_pushboolean(L, ret);
     }
     else
     {
         const ImGuiTableFlags row_flags = (ImGuiTableFlags)luaL_checkinteger(L, 3);
-        ImVec2* outer_size = lua::as_type_instance<ImVec2>(L, 4);
+        ImVec2* outer_size = imgui::binding::ImVec2Binding::as(L, 4);
         const float inner_width = (float)luaL_checknumber(L, 5);
         const bool ret = ImGui::BeginTable(str_id, column, row_flags, *outer_size, inner_width);
         lua_pushboolean(L, ret);
@@ -2780,8 +2761,8 @@ static int lib_EndDisabled(lua_State* L)
 
 static int lib_PushClipRect(lua_State* L)
 {
-    ImVec2* clip_rect_min = lua::as_type_instance<ImVec2>(L, 1);
-    ImVec2* clip_rect_max = lua::as_type_instance<ImVec2>(L, 2);
+    ImVec2* clip_rect_min = imgui::binding::ImVec2Binding::as(L, 1);
+    ImVec2* clip_rect_max = imgui::binding::ImVec2Binding::as(L, 2);
     const bool intersect_with_current_clip_rect = lua_toboolean(L, 3);
     ImGui::PushClipRect(*clip_rect_min, *clip_rect_max, intersect_with_current_clip_rect);
     return 0;
@@ -2915,19 +2896,19 @@ static int lib_GetItemID(lua_State* L)
 }
 static int lib_GetItemRectMin(lua_State* L)
 {
-    ImVec2* vec2 = lua::create_type_instance<ImVec2>(L);
+    ImVec2* vec2 = imgui::binding::ImVec2Binding::create(L);
     *vec2 = ImGui::GetItemRectMin();
     return 1;
 }
 static int lib_GetItemRectMax(lua_State* L)
 {
-    ImVec2* vec2 = lua::create_type_instance<ImVec2>(L);
+    ImVec2* vec2 = imgui::binding::ImVec2Binding::create(L);
     *vec2 = ImGui::GetItemRectMax();
     return 1;
 }
 static int lib_GetItemRectSize(lua_State* L)
 {
-    ImVec2* vec2 = lua::create_type_instance<ImVec2>(L);
+    ImVec2* vec2 = imgui::binding::ImVec2Binding::create(L);
     *vec2 = ImGui::GetItemRectSize();
     return 1;
 }
@@ -2947,10 +2928,10 @@ static /* !!!! */ int lib_GetForegroundDrawList(lua_State* L)
 
 static int lib_IsRectVisible(lua_State* L)
 {
-    ImVec2* v1 = lua::as_type_instance<ImVec2>(L, 1);
+    ImVec2* v1 = imgui::binding::ImVec2Binding::as(L, 1);
     if (lua_gettop(L) >= 2)
     {
-        ImVec2* v2 = lua::as_type_instance<ImVec2>(L, 2);
+        ImVec2* v2 = imgui::binding::ImVec2Binding::as(L, 2);
         const bool ret = ImGui::IsRectVisible(*v1, *v2);
         lua_pushboolean(L, ret);
     }
@@ -3005,7 +2986,7 @@ static int lib_CalcTextSize(lua_State* L)
         const char* text_end = text + text_length;
         const bool hide_text_after_double_hash = (argc >= 3) ? lua_toboolean(L, 3) : false;
         const float wrap_width = (argc >= 4) ? (float)luaL_checknumber(L, 4) : -1.0f;
-        ImVec2* vec2 = lua::create_type_instance<ImVec2>(L);
+        ImVec2* vec2 = imgui::binding::ImVec2Binding::create(L);
         *vec2 = ImGui::CalcTextSize(text, text_end, hide_text_after_double_hash, wrap_width);
     }
     else
@@ -3015,7 +2996,7 @@ static int lib_CalcTextSize(lua_State* L)
         const char* text_end = text + text_length;
         const bool hide_text_after_double_hash = (argc >= 2) ? lua_toboolean(L, 2) : false;
         const float wrap_width = (argc >= 3) ? (float)luaL_checknumber(L, 3) : -1.0f;
-        ImVec2* vec2 = lua::create_type_instance<ImVec2>(L);
+        ImVec2* vec2 = imgui::binding::ImVec2Binding::create(L);
         *vec2 = ImGui::CalcTextSize(text, text_end, hide_text_after_double_hash, wrap_width);
     }
     return 1;
@@ -3026,13 +3007,13 @@ static int lib_CalcTextSize(lua_State* L)
 static int lib_ColorConvertU32ToFloat4(lua_State* L)
 {
     const ImU32 in_ = (ImU32)luaL_checkinteger(L, 1);
-    ImVec4* ret = lua::create_type_instance<ImVec4>(L);
+    ImVec4* ret = imgui::binding::ImVec4Binding::create(L);
     *ret = ImGui::ColorConvertU32ToFloat4(in_);
     return 1;
 }
 static int lib_ColorConvertFloat4ToU32(lua_State* L)
 {
-    ImVec4* in_ = lua::as_type_instance<ImVec4>(L, 1);
+    ImVec4* in_ = imgui::binding::ImVec4Binding::as(L, 1);
     const ImU32 ret = ImGui::ColorConvertFloat4ToU32(*in_);
     lua_pushinteger(L, (lua_Integer)ret);
     return 1;
@@ -3194,8 +3175,8 @@ static int lib_GetMouseClickedCount(lua_State* L)
 static int lib_IsMouseHoveringRect(lua_State* L)
 {
     const int argc = lua_gettop(L);
-    ImVec2* r_min = lua::as_type_instance<ImVec2>(L, 1);
-    ImVec2* r_max = lua::as_type_instance<ImVec2>(L, 2);
+    ImVec2* r_min = imgui::binding::ImVec2Binding::as(L, 1);
+    ImVec2* r_max = imgui::binding::ImVec2Binding::as(L, 2);
     const bool clip = (argc >= 3) ? lua_toboolean(L, 3) : true;
     const bool ret = ImGui::IsMouseHoveringRect(*r_min, *r_max, clip);
     lua_pushboolean(L, ret);
@@ -3204,7 +3185,7 @@ static int lib_IsMouseHoveringRect(lua_State* L)
 static int lib_IsMousePosValid(lua_State* L)
 {
     const int argc = lua_gettop(L);
-    ImVec2* mouse_pos = (argc >= 1) ? lua::as_type_instance<ImVec2>(L, 1) : NULL;
+    ImVec2* mouse_pos = (argc >= 1) ? imgui::binding::ImVec2Binding::as(L, 1) : NULL;
     const bool ret = ImGui::IsMousePosValid(mouse_pos);
     lua_pushboolean(L, ret);
     return 1;
@@ -3217,13 +3198,13 @@ static int lib_IsAnyMouseDown(lua_State* L)
 }
 static int lib_GetMousePos(lua_State* L)
 {
-    ImVec2* vec2 = lua::create_type_instance<ImVec2>(L);
+    ImVec2* vec2 = imgui::binding::ImVec2Binding::create(L);
     *vec2 = ImGui::GetMousePos();
     return 1;
 }
 static int lib_GetMousePosOnOpeningCurrentPopup(lua_State* L)
 {
-    ImVec2* vec2 = lua::create_type_instance<ImVec2>(L);
+    ImVec2* vec2 = imgui::binding::ImVec2Binding::create(L);
     *vec2 = ImGui::GetMousePosOnOpeningCurrentPopup();
     return 1;
 }
@@ -3239,7 +3220,7 @@ static int lib_GetMouseDragDelta(lua_State* L)
 {
     const ImGuiMouseButton button = (ImGuiMouseButton)luaL_optinteger(L, 1, 0);
     const float lock_threshold = (float)luaL_optnumber(L, 2, -1.0f);
-    ImVec2* vec2 = lua::create_type_instance<ImVec2>(L);
+    ImVec2* vec2 = imgui::binding::ImVec2Binding::create(L);
     *vec2 = ImGui::GetMouseDragDelta(button, lock_threshold);
     return 1;
 }
@@ -3382,7 +3363,7 @@ void imgui_binding_lua_register_ImGui(lua_State* L)
 #include "lua_imgui_ImGui_register.inl"
     //                                  // ? M
     lua_pushstring(L, "ImGui");         // ? M k
-    lua_createtable(L, 0, lib_func);    // ? M k t
-    _luaL_setfuncs(L, lib_fun);         // ? M k t
-    lua_settable(L, -3);                // ? M
+    lua_gettable(L, -2);                // ? M t
+    _luaL_setfuncs(L, lib_fun);         // ? M t
+    lua_pop(L, 1);                      // ? M
 }

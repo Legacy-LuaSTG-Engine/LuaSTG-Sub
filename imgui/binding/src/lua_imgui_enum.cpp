@@ -129,7 +129,7 @@ void imgui_binding_lua_register_enum(lua_State* L)
     {"SpanLabelWidth"      , ImGuiTreeNodeFlags_SpanLabelWidth      },
     {"SpanAllColumns"      , ImGuiTreeNodeFlags_SpanAllColumns      },
     {"LabelSpanAllColumns" , ImGuiTreeNodeFlags_LabelSpanAllColumns },
-    {"NavLeftJumpsBackHere", ImGuiTreeNodeFlags_NavLeftJumpsBackHere},
+    //{"NavLeftJumpsBackHere", ImGuiTreeNodeFlags_NavLeftJumpsBackHere},
     {"CollapsingHeader"    , ImGuiTreeNodeFlags_CollapsingHeader    },
 }},
 {"ImGuiPopupFlags", {

@@ -3,12 +3,6 @@
 #define MAKEF(NAME) {#NAME, &lib_##NAME##}
 
 static const luaL_Reg lib_fun[] = {
-    // Context creation and access
-    MAKEF(CreateContext),
-    MAKEF(DestroyContext),
-    MAKEF(GetCurrentContext),
-    MAKEF(SetCurrentContext),
-    
     // Main
     MAKEF(GetIO),
     MAKEF(GetPlatformIO),

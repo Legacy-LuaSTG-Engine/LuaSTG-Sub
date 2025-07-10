@@ -571,7 +571,7 @@ static int lib_VSliderFloat(lua_State* L)
 {
     const int argc = lua_gettop(L);
     const char* label = luaL_checkstring(L, 1);
-    ImVec2* size = lua::as_type_instance<ImVec2>(L, 2);
+    ImVec2* size = imgui::binding::ImVec2Binding::as(L, 2);
     float v = (float)luaL_checknumber(L, 3);
     const float v_min = (float)luaL_checknumber(L, 4);
     const float v_max = (float)luaL_checknumber(L, 5);
@@ -599,7 +599,7 @@ static int lib_VSliderInt(lua_State* L)
 {
     const int argc = lua_gettop(L);
     const char* label = luaL_checkstring(L, 1);
-    ImVec2* size = lua::as_type_instance<ImVec2>(L, 2);
+    ImVec2* size = imgui::binding::ImVec2Binding::as(L, 2);
     int v = (int)luaL_checkinteger(L, 3);
     const int v_min = (int)luaL_checkinteger(L, 4);
     const int v_max = (int)luaL_checkinteger(L, 5);
@@ -627,7 +627,7 @@ static int lib_VSliderScalar(lua_State* L)
 {
     const int argc = lua_gettop(L);
     const char* label = luaL_checkstring(L, 1);
-    ImVec2* size = lua::as_type_instance<ImVec2>(L, 2);
+    ImVec2* size = imgui::binding::ImVec2Binding::as(L, 2);
     const ImGuiDataType data_type = (ImGuiDataType)luaL_checkinteger(L, 3);
     bool ret = false;
     if (data_type == ImGuiDataType_Integer)

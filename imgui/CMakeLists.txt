@@ -67,11 +67,12 @@ set_target_properties(implot PROPERTIES FOLDER external)
 add_library(imgui_impl_dx11 STATIC)
 luastg_target_common_options(imgui_impl_dx11)
 target_include_directories(imgui_impl_dx11 PUBLIC
-    imgui/backends
+    backend
 )
 target_sources(imgui_impl_dx11 PRIVATE
-    imgui/backends/imgui_impl_dx11.h
+    #imgui/backends/imgui_impl_dx11.h
     #imgui/backends/imgui_impl_dx11.cpp
+    backend/imgui_impl_dx11.h
     backend/imgui_impl_dx11.cpp
 )
 target_link_libraries(imgui_impl_dx11 PUBLIC
@@ -142,8 +143,6 @@ target_sources(lua_imgui PRIVATE
     binding/src/lua_imgui_ImGuiTextBuffer.cpp
     binding/src/lua_imgui_type.cpp
     binding/src/lua_imgui.cpp
-    binding/src/ImVec2.cpp
-    binding/src/ImVec4.cpp
 
     binding/src/generated/ImGuiStyleMember.hpp
     binding/src/generated/ImGuiStyleMember.cpp
@@ -154,5 +153,15 @@ target_link_libraries(lua_imgui PUBLIC
     imgui
     lua51_static
 )
+
+file(GLOB_RECURSE lua_imgui_modern
+    ${CMAKE_CURRENT_LIST_DIR}/binding/modern/*.h
+    ${CMAKE_CURRENT_LIST_DIR}/binding/modern/*.c
+    ${CMAKE_CURRENT_LIST_DIR}/binding/modern/*.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/binding/modern/*.cpp
+)
+source_group(TREE ${CMAKE_CURRENT_LIST_DIR}/binding FILES ${lua_imgui_modern})
+target_include_directories(lua_imgui PRIVATE ${CMAKE_CURRENT_LIST_DIR}/binding/modern)
+target_sources(lua_imgui PRIVATE ${lua_imgui_modern})
 
 set_target_properties(lua_imgui PROPERTIES FOLDER lualib)

@@ -3,22 +3,15 @@
 #include "lua_imgui_enum.hpp"
 #include "lua_imgui_type.hpp"
 #include "lua_imgui_ImGui.hpp"
-#include "imgui.h"
+#include "lua_imgui_binding.hpp"
 
 int luaopen_imgui(lua_State* L)
 {
     _luaL_reglib(L, lua_module_imgui);      // ? M
-    
-    lua_pushstring(L, "IMGUI_VERSION");     // ? M k
-    lua_pushstring(L, IMGUI_VERSION);       // ? M k s
-    lua_settable(L, -3);                    // ? M
-    lua_pushstring(L, "IMGUI_VERSION_NUM"); // ? M k
-    lua_pushinteger(L, IMGUI_VERSION_NUM);  // ? M k v
-    lua_settable(L, -3);                    // ? M
-    
+
+    imgui::binding::registerAll(L);
+
     imgui_binding_lua_register_enum(L);
-    lua::register_type<ImVec2>(L);
-    lua::register_type<ImVec4>(L);
     imgui_binding_lua_register_ImGuiStyle(L);
     imgui_binding_lua_register_ImGuiTextBuffer(L);
     imgui_binding_lua_register_ImGui(L);
