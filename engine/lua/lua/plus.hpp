@@ -58,9 +58,10 @@ namespace lua {
 
 		template<size_t N>
 		void push_value(char const (&str)[N]) const {
-			for (size_t len = N - 1; len > 0; len -= 1) {
-				if (str[len] != '\0') {
-					lua_pushlstring(L, str, len + 1);
+			for (auto i = static_cast<intptr_t>(N - 1); i >= 0; i -= 1) {
+				if (str[i] != '\0') {
+					lua_pushlstring(L, str, i + 1);
+					return;
 				}
 			}
 			lua_pushlstring(L, str, 0);
