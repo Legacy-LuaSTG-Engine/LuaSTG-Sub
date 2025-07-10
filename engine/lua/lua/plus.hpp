@@ -162,7 +162,7 @@ namespace lua {
 
 		// C -> lua map
 
-		inline stack_index_t create_map(size_t reserve = 0u) { lua_createtable(L, 0, static_cast<int>(reserve)); return index_of_top(); }
+		inline stack_index_t create_map(size_t reserve = 0u) const { lua_createtable(L, 0, static_cast<int>(reserve)); return index_of_top(); }
 
 		template<typename T>
 		inline void set_map_value(stack_index_t const index, std::string_view const key, T const value) const {
