@@ -165,52 +165,7 @@ namespace lua {
 		inline stack_index_t create_map(size_t reserve = 0u) { lua_createtable(L, 0, static_cast<int>(reserve)); return index_of_top(); }
 
 		template<typename T>
-		inline void set_map_value(stack_index_t index, std::string_view key, T value) const { typename T::__invalid_type__ _{}; }
-
-		template<>
-		inline void set_map_value(stack_index_t index, std::string_view key, int32_t value) const {
-			push_value(key);
-			push_value(value);
-			lua_settable(L, index.value);
-		}
-
-		template<>
-		inline void set_map_value(stack_index_t index, std::string_view key, uint32_t value) const {
-			push_value(key);
-			push_value(value);
-			lua_settable(L, index.value);
-		}
-
-		template<>
-		inline void set_map_value(stack_index_t index, std::string_view key, float value) const {
-			push_value(key);
-			push_value(value);
-			lua_settable(L, index.value);
-		}
-
-		template<>
-		inline void set_map_value(stack_index_t index, std::string_view key, double value) const {
-			push_value(key);
-			push_value(value);
-			lua_settable(L, index.value);
-		}
-
-		template<>
-		inline void set_map_value(stack_index_t index, std::string_view key, std::string_view value) const {
-			push_value(key);
-			push_value(value);
-			lua_settable(L, index.value);
-		}
-
-		template<>
-		inline void set_map_value(stack_index_t index, std::string_view key, stack_index_t value) const {
-			push_value(key);
-			push_value(value);
-			lua_settable(L, index.value);
-		}
-
-		template<>
-		inline void set_map_value(stack_index_t index, std::string_view key, lua_CFunction value) const {
+		inline void set_map_value(stack_index_t const index, std::string_view const key, T const value) const {
 			push_value(key);
 			push_value(value);
 			lua_settable(L, index.value);
