@@ -24,7 +24,6 @@ namespace imgui::binding {
 	// Summary:
 	// - Begin
 	// - BeginCombo
-	// - BeginComboPopup
 
 	struct ImGuiSizeCallbackDataBinding {
 		static constexpr auto class_name{ "imgui.ImGuiSizeCallbackData"sv };
