@@ -10,7 +10,9 @@ namespace {
 			auto const name = ctx.get_value<std::string_view>(1);
 			auto open = ctx.get_value<bool>(2);
 			auto const flags = ctx.get_value<ImGuiWindowFlags>(3);
+			imgui::binding::beginSetNextWindowSizeConstraintsCallbackWrapper(vm);
 			auto const result = ImGui::Begin(name.data(), &open, flags);
+			imgui::binding::endSetNextWindowSizeConstraintsCallbackWrapper(vm);
 			ctx.push_value(result);
 			ctx.push_value(open);
 			return 2;
@@ -18,13 +20,17 @@ namespace {
 		if (ctx.index_of_top() >= 2) {
 			auto const name = ctx.get_value<std::string_view>(1);
 			auto open = ctx.get_value<bool>(2);
+			imgui::binding::beginSetNextWindowSizeConstraintsCallbackWrapper(vm);
 			auto const result = ImGui::Begin(name.data(), &open);
+			imgui::binding::endSetNextWindowSizeConstraintsCallbackWrapper(vm);
 			ctx.push_value(result);
 			ctx.push_value(open);
 			return 2;
 		}
 		auto const name = ctx.get_value<std::string_view>(1);
+		imgui::binding::beginSetNextWindowSizeConstraintsCallbackWrapper(vm);
 		auto const result = ImGui::Begin(name.data());
+		imgui::binding::endSetNextWindowSizeConstraintsCallbackWrapper(vm);
 		ctx.push_value(result);
 		return 1;
 	}

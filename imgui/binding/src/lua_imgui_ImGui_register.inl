@@ -3,30 +3,6 @@
 #define MAKEF(NAME) {#NAME, &lib_##NAME##}
 
 static const luaL_Reg lib_fun[] = {
-    // Windows Utilities
-    MAKEF(IsWindowAppearing),
-    MAKEF(IsWindowCollapsed),
-    MAKEF(IsWindowFocused),
-    MAKEF(IsWindowHovered),
-    MAKEF(GetWindowDrawList),
-    MAKEF(GetWindowPos),
-    MAKEF(GetWindowSize),
-    MAKEF(GetWindowWidth),
-    MAKEF(GetWindowHeight),
-    
-    MAKEF(SetNextWindowPos),
-    MAKEF(SetNextWindowSize),
-    MAKEF(SetNextWindowSizeConstraints),
-    MAKEF(SetNextWindowContentSize),
-    MAKEF(SetNextWindowCollapsed),
-    MAKEF(SetNextWindowFocus),
-    MAKEF(SetNextWindowBgAlpha),
-    MAKEF(SetWindowPos),
-    MAKEF(SetWindowSize),
-    MAKEF(SetWindowCollapsed),
-    MAKEF(SetWindowFocus),
-    MAKEF(SetWindowFontScale),
-    
     // Windows Scrolling
     MAKEF(GetScrollX),
     MAKEF(GetScrollY),
