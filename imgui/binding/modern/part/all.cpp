@@ -20,6 +20,9 @@ namespace imgui::binding {
 		registerImGuiWindowManipulation(vm);
 		registerImGuiWindowsScrolling(vm);
 		registerImGuiParametersStacksFont(vm);
+		registerImGuiParametersStacksShared(vm);
+		registerImGuiParametersStacksCurrentWindow(vm);
+		registerImGuiStyleReadAccess(vm);
 
 		ImGuiStyleBinding::registerClass(vm);
 	}

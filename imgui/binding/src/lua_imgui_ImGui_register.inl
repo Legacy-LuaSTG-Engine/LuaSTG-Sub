@@ -3,29 +3,6 @@
 #define MAKEF(NAME) {#NAME, &lib_##NAME##}
 
 static const luaL_Reg lib_fun[] = {
-    // Parameters stacks (shared)
-    MAKEF(PushStyleColor),
-    MAKEF(PopStyleColor),
-    MAKEF(PushStyleVar),
-    MAKEF(PushStyleVarX),
-    MAKEF(PushStyleVarY),
-    MAKEF(PopStyleVar),
-    MAKEF(PushItemFlag),
-    MAKEF(PopItemFlag),
-    
-    // Parameters stacks (current window)
-    MAKEF(PushItemWidth),
-    MAKEF(PopItemWidth),
-    MAKEF(SetNextItemWidth),
-    MAKEF(CalcItemWidth),
-    MAKEF(PushTextWrapPos),
-    MAKEF(PopTextWrapPos),
-    
-    // Style read access
-    MAKEF(GetFontTexUvWhitePixel),
-    MAKEF(GetColorU32),
-    MAKEF(GetStyleColorVec4),
-    
     // Cursor / Layout
     MAKEF(GetCursorScreenPos),
     MAKEF(SetCursorScreenPos),
