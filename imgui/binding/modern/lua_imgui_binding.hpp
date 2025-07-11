@@ -54,7 +54,7 @@ namespace imgui::binding {
 	void registerImGuiStyles(lua_State* vm);
 	void registerImGuiWindows(lua_State* vm);
 	void registerImGuiChildWindows(lua_State* vm);
-	
+
 	struct ImGuiStyleBinding {
 		static std::string_view const class_name;
 
