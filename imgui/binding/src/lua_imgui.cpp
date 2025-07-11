@@ -12,7 +12,6 @@ int luaopen_imgui(lua_State* L)
     imgui::binding::registerAll(L);
 
     imgui_binding_lua_register_enum(L);
-    imgui_binding_lua_register_ImGuiStyle(L);
     imgui_binding_lua_register_ImGuiTextBuffer(L);
     imgui_binding_lua_register_ImGui(L);
     

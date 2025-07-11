@@ -49,6 +49,26 @@ namespace imgui::binding {
 
 	extern std::string_view const module_ImGui_name;
 	void registerImGuiContextCreationAndAccess(lua_State* vm);
+	void registerImGuiMain(lua_State* vm);
+	void registerImGuiDemoDebugInformation(lua_State* vm);
+	void registerImGuiStyles(lua_State* vm);
+	
+	struct ImGuiStyleBinding {
+		static std::string_view const class_name;
+
+		ImGuiStyle* data{};
+
+		void set(ImGuiStyle* ptr, bool is_reference);
+		ImGuiStyle* get();
+		[[nodiscard]] bool isReference() const noexcept;
+
+		static bool is(lua_State* vm, int index);
+		static ImGuiStyle* as(lua_State* vm, int index);
+		static ImGuiStyle* create(lua_State* vm);
+		static ImGuiStyle* create(lua_State* vm, ImGuiStyle const& value);
+		static ImGuiStyle* reference(lua_State* vm, ImGuiStyle* value);
+		static void registerClass(lua_State* vm);
+	};
 
 	void registerAll(lua_State* vm);
 }

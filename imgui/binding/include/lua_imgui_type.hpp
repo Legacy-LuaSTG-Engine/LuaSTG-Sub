@@ -4,13 +4,6 @@
 
 constexpr const char lua_module_imgui[] = "imgui";
 
-constexpr const char lua_class_imgui_ImGuiStyle[] = "imgui.ImGuiStyle";
-
-void imgui_binding_lua_register_ImGuiStyle(lua_State* L);
-ImGuiStyle* imgui_binding_lua_new_ImGuiStyle(lua_State* L);
-ImGuiStyle* imgui_binding_lua_ref_ImGuiStyle(lua_State* L, ImGuiStyle* v);
-ImGuiStyle* imgui_binding_lua_to_ImGuiStyle(lua_State* L, int idx);
-
 constexpr const char lua_class_imgui_string[] = "imgui.string";
 constexpr const char lua_class_imgui_ImGuiTextBuffer[] = "imgui.ImGuiTextBuffer";
 

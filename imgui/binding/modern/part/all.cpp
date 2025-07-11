@@ -11,5 +11,10 @@ namespace imgui::binding {
 		ImTextureRefBinding::registerClass(vm);
 
 		registerImGuiContextCreationAndAccess(vm);
+		registerImGuiMain(vm);
+		registerImGuiDemoDebugInformation(vm);
+		registerImGuiStyles(vm);
+
+		ImGuiStyleBinding::registerClass(vm);
 	}
 }

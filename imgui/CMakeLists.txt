@@ -141,7 +141,6 @@ target_sources(lua_imgui PRIVATE
     binding/src/lua_imgui_ImGui_SliderX.inl
     binding/src/lua_imgui_ImGui.cpp
     binding/src/lua_imgui_ImGuiTextBuffer.cpp
-    binding/src/lua_imgui_type.cpp
     binding/src/lua_imgui.cpp
 
     binding/src/generated/ImGuiStyleMember.hpp

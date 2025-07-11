@@ -3,32 +3,6 @@
 #define MAKEF(NAME) {#NAME, &lib_##NAME##}
 
 static const luaL_Reg lib_fun[] = {
-    // Main
-    MAKEF(GetIO),
-    MAKEF(GetPlatformIO),
-    MAKEF(GetStyle),
-    MAKEF(NewFrame),
-    MAKEF(EndFrame),
-    MAKEF(Render),
-    MAKEF(GetDrawData),
-    
-    // Demo, Debug, Information
-    MAKEF(ShowDemoWindow),
-    MAKEF(ShowMetricsWindow),
-    MAKEF(ShowDebugLogWindow),
-    MAKEF(ShowIDStackToolWindow),
-    MAKEF(ShowAboutWindow),
-    MAKEF(ShowStyleEditor),
-    MAKEF(ShowStyleSelector),
-    MAKEF(ShowFontSelector),
-    MAKEF(ShowUserGuide),
-    MAKEF(GetVersion),
-    
-    // Styles
-    MAKEF(StyleColorsDark),
-    MAKEF(StyleColorsLight),
-    MAKEF(StyleColorsClassic),
-    
     // Windows
     MAKEF(Begin),
     MAKEF(End),
