@@ -3,21 +3,7 @@
 #define MAKEF(NAME) {#NAME, &lib_##NAME##}
 
 static const luaL_Reg lib_fun[] = {
-    // Windows Scrolling
-    MAKEF(GetScrollX),
-    MAKEF(GetScrollY),
-    MAKEF(SetScrollX),
-    MAKEF(SetScrollY),
-    MAKEF(GetScrollMaxX),
-    MAKEF(GetScrollMaxY),
-    MAKEF(SetScrollHereX),
-    MAKEF(SetScrollHereY),
-    MAKEF(SetScrollFromPosX),
-    MAKEF(SetScrollFromPosY),
-    
     // Parameters stacks (shared)
-    MAKEF(PushFont),
-    MAKEF(PopFont),
     MAKEF(PushStyleColor),
     MAKEF(PopStyleColor),
     MAKEF(PushStyleVar),
@@ -36,8 +22,6 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(PopTextWrapPos),
     
     // Style read access
-    MAKEF(GetFont),
-    MAKEF(GetFontSize),
     MAKEF(GetFontTexUvWhitePixel),
     MAKEF(GetColorU32),
     MAKEF(GetStyleColorVec4),

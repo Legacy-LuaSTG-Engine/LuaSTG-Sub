@@ -18,6 +18,8 @@ namespace imgui::binding {
 		registerImGuiChildWindows(vm);
 		registerImGuiWindowsUtilities(vm);
 		registerImGuiWindowManipulation(vm);
+		registerImGuiWindowsScrolling(vm);
+		registerImGuiParametersStacksFont(vm);
 
 		ImGuiStyleBinding::registerClass(vm);
 	}

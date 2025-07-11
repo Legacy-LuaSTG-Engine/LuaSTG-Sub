@@ -58,6 +58,8 @@ namespace imgui::binding {
 	void beginSetNextWindowSizeConstraintsCallbackWrapper(lua_State* vm);
 	void endSetNextWindowSizeConstraintsCallbackWrapper(lua_State* vm);
 	void registerImGuiWindowManipulation(lua_State* vm);
+	void registerImGuiWindowsScrolling(lua_State* vm);
+	void registerImGuiParametersStacksFont(lua_State* vm);
 
 	struct ImGuiStyleBinding {
 		static std::string_view const class_name;

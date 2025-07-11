@@ -45,111 +45,8 @@ static const int IMGUI_REGISTRY = 9961;
 // XXXX: will not implement (or should not export to lua API)
 // !!!!: works in progress
 
-//////// Windows Scrolling
-
-static int lib_GetScrollX(lua_State* L)
-{
-    const float ret = ImGui::GetScrollX();
-    lua_pushnumber(L, (lua_Number)ret);
-    return 1;
-}
-static int lib_GetScrollY(lua_State* L)
-{
-    const float ret = ImGui::GetScrollY();
-    lua_pushnumber(L, (lua_Number)ret);
-    return 1;
-}
-static int lib_SetScrollX(lua_State* L)
-{
-    const float scroll_x = (float)luaL_checknumber(L, 1);
-    ImGui::SetScrollX(scroll_x);
-    return 0;
-}
-static int lib_SetScrollY(lua_State* L)
-{
-    const float scroll_y = (float)luaL_checknumber(L, 1);
-    ImGui::SetScrollY(scroll_y);
-    return 0;
-}
-static int lib_GetScrollMaxX(lua_State* L)
-{
-    const float ret = ImGui::GetScrollMaxX();
-    lua_pushnumber(L, (lua_Number)ret);
-    return 1;
-}
-static int lib_GetScrollMaxY(lua_State* L)
-{
-    const float ret = ImGui::GetScrollMaxY();
-    lua_pushnumber(L, (lua_Number)ret);
-    return 1;
-}
-static int lib_SetScrollHereX(lua_State* L)
-{
-    if (lua_gettop(L) >= 1)
-    {
-        const float center_x_ratio = (float)luaL_checknumber(L, 1);
-        ImGui::SetScrollHereX(center_x_ratio);
-    }
-    else
-    {
-        ImGui::SetScrollHereX();
-    }
-    return 0;
-}
-static int lib_SetScrollHereY(lua_State* L)
-{
-    if (lua_gettop(L) >= 1)
-    {
-        const float center_y_ratio = (float)luaL_checknumber(L, 1);
-        ImGui::SetScrollHereY(center_y_ratio);
-    }
-    else
-    {
-        ImGui::SetScrollHereY();
-    }
-    return 0;
-}
-static int lib_SetScrollFromPosX(lua_State* L)
-{
-    const float local_x = (float)luaL_checknumber(L, 1);
-    if (lua_gettop(L) <= 1)
-    {
-        ImGui::SetScrollFromPosX(local_x);
-    }
-    else
-    {
-        const float center_x_ratio = (float)luaL_checknumber(L, 2);
-        ImGui::SetScrollFromPosX(local_x, center_x_ratio);
-    }
-    return 0;
-}
-static int lib_SetScrollFromPosY(lua_State* L)
-{
-    const float local_y = (float)luaL_checknumber(L, 1);
-    if (lua_gettop(L) <= 1)
-    {
-        ImGui::SetScrollFromPosY(local_y);
-    }
-    else
-    {
-        const float center_y_ratio = (float)luaL_checknumber(L, 2);
-        ImGui::SetScrollFromPosY(local_y, center_y_ratio);
-    }
-    return 0;
-}
-
 //////// Parameters stacks (shared)
 
-static /* !!!! */ int lib_PushFont(lua_State* L)
-{
-    LUA_IMGUI_NOT_SUPPORT;
-}
-static int lib_PopFont(lua_State* L)
-{
-    std::ignore = L;
-    ImGui::PopFont();
-    return 0;
-}
 static int lib_PushStyleColor(lua_State* L)
 {
     const ImGuiCol idx = (ImGuiCol)luaL_checkinteger(L, 1);
@@ -289,16 +186,6 @@ static int lib_PopTextWrapPos(lua_State* L)
 
 //////// Style read access
 
-static /* !!!! */ int lib_GetFont(lua_State* L)
-{
-    LUA_IMGUI_NOT_SUPPORT;
-}
-static int lib_GetFontSize(lua_State* L)
-{
-    const float ret = ImGui::GetFontSize();
-    lua_pushnumber(L, (lua_Number)ret);
-    return 1;
-}
 static int lib_GetFontTexUvWhitePixel(lua_State* L)
 {
     ImVec2* vec2 = imgui::binding::ImVec2Binding::create(L);
