@@ -3,14 +3,6 @@
 #define MAKEF(NAME) {#NAME, &lib_##NAME##}
 
 static const luaL_Reg lib_fun[] = {
-    // Windows
-    MAKEF(Begin),
-    MAKEF(End),
-    
-    // Child Windows
-    MAKEF(BeginChild),
-    MAKEF(EndChild),
-    
     // Windows Utilities
     MAKEF(IsWindowAppearing),
     MAKEF(IsWindowCollapsed),

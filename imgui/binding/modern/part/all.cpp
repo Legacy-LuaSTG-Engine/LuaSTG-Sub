@@ -14,6 +14,8 @@ namespace imgui::binding {
 		registerImGuiMain(vm);
 		registerImGuiDemoDebugInformation(vm);
 		registerImGuiStyles(vm);
+		registerImGuiWindows(vm);
+		registerImGuiChildWindows(vm);
 
 		ImGuiStyleBinding::registerClass(vm);
 	}
