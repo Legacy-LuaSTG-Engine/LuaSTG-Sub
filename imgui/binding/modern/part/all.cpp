@@ -26,6 +26,7 @@ namespace imgui::binding {
 		registerImGuiLayoutCursorPositioning(vm);
 		registerImGuiOtherLayoutFunctions(vm);
 		registerImGuiIdStackScopes(vm);
+		registerImGuiWidgetsText(vm);
 
 		ImGuiStyleBinding::registerClass(vm);
 	}

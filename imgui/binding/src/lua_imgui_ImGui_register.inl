@@ -3,22 +3,6 @@
 #define MAKEF(NAME) {#NAME, &lib_##NAME##}
 
 static const luaL_Reg lib_fun[] = {
-    // Widgets: Text
-    MAKEF(TextUnformatted),
-    MAKEF(Text),
-    MAKEF(TextV),
-    MAKEF(TextColored),
-    MAKEF(TextColoredV),
-    MAKEF(TextDisabled),
-    MAKEF(TextDisabledV),
-    MAKEF(TextWrapped),
-    MAKEF(TextWrappedV),
-    MAKEF(LabelText),
-    MAKEF(LabelTextV),
-    MAKEF(BulletText),
-    MAKEF(BulletTextV),
-    MAKEF(SeparatorText),
-    
     // Widgets: Main
     MAKEF(Button),
     MAKEF(SmallButton),
