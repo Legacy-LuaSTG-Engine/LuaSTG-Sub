@@ -304,6 +304,15 @@ namespace lua {
 			return result;
 		}
 
+		template<>
+		inline float get_array_value(stack_index_t array_index, stack_index_t lua_index) const {
+			lua_pushinteger(L, lua_index.value);
+			lua_gettable(L, array_index.value);
+			auto const result = get_value<float>(-1);
+			pop_value();
+			return result;
+		}
+
 		template<typename T>
 		inline T get_map_value(stack_index_t index, std::string_view key) { return typename T::__invalid_type__{}; }
 
