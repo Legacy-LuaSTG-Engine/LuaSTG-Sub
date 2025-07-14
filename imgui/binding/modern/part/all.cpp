@@ -28,6 +28,8 @@ namespace imgui::binding {
 		registerImGuiIdStackScopes(vm);
 		registerImGuiWidgetsText(vm);
 		registerImGuiWidgetsMain(vm);
+		registerImGuiWidgetsImages(vm);
+		registerImGuiWidgetsComboBoxDropdown(vm);
 
 		ImGuiStyleBinding::registerClass(vm);
 	}

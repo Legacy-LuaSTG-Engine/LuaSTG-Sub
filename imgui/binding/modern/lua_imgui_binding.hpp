@@ -68,6 +68,8 @@ namespace imgui::binding {
 	void registerImGuiIdStackScopes(lua_State* vm);
 	void registerImGuiWidgetsText(lua_State* vm);
 	void registerImGuiWidgetsMain(lua_State* vm);
+	void registerImGuiWidgetsImages(lua_State* vm);
+	void registerImGuiWidgetsComboBoxDropdown(lua_State* vm);
 
 	struct ImGuiStyleBinding {
 		static std::string_view const class_name;

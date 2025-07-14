@@ -3,16 +3,6 @@
 #define MAKEF(NAME) {#NAME, &lib_##NAME##}
 
 static const luaL_Reg lib_fun[] = {
-    // Widgets: Images
-    MAKEF(Image),
-    MAKEF(ImageWithBg),
-    MAKEF(ImageButton),
-
-    // Widgets: Combo Box (Dropdown)
-    MAKEF(BeginCombo),
-    MAKEF(EndCombo),
-    MAKEF(Combo),
-    
     // Widgets: Drag Sliders
     MAKEF(DragFloat),
     MAKEF(DragFloat2),
