@@ -200,7 +200,10 @@ namespace lua {
 
 		template<typename T>
 		[[nodiscard]] T get_value(stack_index_t const index) const {
-			if constexpr (std::is_same_v<T, bool>) {
+			if constexpr (std::is_enum_v<T>) {
+				return static_cast<T>(get_value<std::underlying_type_t<T>>(index));
+			}
+			else if constexpr (std::is_same_v<T, bool>) {
 				return lua_toboolean(L, index.value);
 			}
 			else if constexpr (std::is_same_v<T, int32_t>) {

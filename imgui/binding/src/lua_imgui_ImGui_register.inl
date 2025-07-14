@@ -3,19 +3,6 @@
 #define MAKEF(NAME) {#NAME, &lib_##NAME##}
 
 static const luaL_Reg lib_fun[] = {
-    // Widgets: Main
-    MAKEF(Button),
-    MAKEF(SmallButton),
-    MAKEF(InvisibleButton),
-    MAKEF(ArrowButton),
-    MAKEF(Checkbox),
-    MAKEF(CheckboxFlags),
-    MAKEF(RadioButton),
-    MAKEF(ProgressBar),
-    MAKEF(Bullet),
-    MAKEF(TextLink),
-    MAKEF(TextLinkOpenURL),
-    
     // Widgets: Images
     MAKEF(Image),
     MAKEF(ImageWithBg),
