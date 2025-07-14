@@ -63,6 +63,9 @@ namespace imgui::binding {
 	void registerImGuiParametersStacksShared(lua_State* vm);
 	void registerImGuiParametersStacksCurrentWindow(lua_State* vm);
 	void registerImGuiStyleReadAccess(lua_State* vm);
+	void registerImGuiLayoutCursorPositioning(lua_State* vm);
+	void registerImGuiOtherLayoutFunctions(lua_State* vm);
+	void registerImGuiIdStackScopes(lua_State* vm);
 
 	struct ImGuiStyleBinding {
 		static std::string_view const class_name;

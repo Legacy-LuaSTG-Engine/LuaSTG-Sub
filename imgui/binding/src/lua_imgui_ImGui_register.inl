@@ -3,39 +3,6 @@
 #define MAKEF(NAME) {#NAME, &lib_##NAME##}
 
 static const luaL_Reg lib_fun[] = {
-    // Cursor / Layout
-    MAKEF(GetCursorScreenPos),
-    MAKEF(SetCursorScreenPos),
-    MAKEF(GetContentRegionAvail),
-    MAKEF(GetCursorPos),
-    MAKEF(GetCursorPosX),
-    MAKEF(GetCursorPosY),
-    MAKEF(SetCursorPos),
-    MAKEF(SetCursorPosX),
-    MAKEF(SetCursorPosY),
-    MAKEF(GetCursorStartPos),
-
-    // Other layout functions
-    MAKEF(Separator),
-    MAKEF(SameLine),
-    MAKEF(NewLine),
-    MAKEF(Spacing),
-    MAKEF(Dummy),
-    MAKEF(Indent),
-    MAKEF(Unindent),
-    MAKEF(BeginGroup),
-    MAKEF(EndGroup),
-    MAKEF(AlignTextToFramePadding),
-    MAKEF(GetTextLineHeight),
-    MAKEF(GetTextLineHeightWithSpacing),
-    MAKEF(GetFrameHeight),
-    MAKEF(GetFrameHeightWithSpacing),
-    
-    // ID stack/scopes
-    MAKEF(PushID),
-    MAKEF(PopID),
-    MAKEF(GetID),
-    
     // Widgets: Text
     MAKEF(TextUnformatted),
     MAKEF(Text),

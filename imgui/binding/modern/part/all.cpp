@@ -23,6 +23,9 @@ namespace imgui::binding {
 		registerImGuiParametersStacksShared(vm);
 		registerImGuiParametersStacksCurrentWindow(vm);
 		registerImGuiStyleReadAccess(vm);
+		registerImGuiLayoutCursorPositioning(vm);
+		registerImGuiOtherLayoutFunctions(vm);
+		registerImGuiIdStackScopes(vm);
 
 		ImGuiStyleBinding::registerClass(vm);
 	}
