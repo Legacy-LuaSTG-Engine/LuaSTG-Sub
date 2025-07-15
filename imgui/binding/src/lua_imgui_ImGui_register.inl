@@ -3,22 +3,6 @@
 #define MAKEF(NAME) {#NAME, &lib_##NAME##}
 
 static const luaL_Reg lib_fun[] = {
-    // Widgets: Regular Sliders
-    MAKEF(SliderFloat),
-    MAKEF(SliderFloat2),
-    MAKEF(SliderFloat3),
-    MAKEF(SliderFloat4),
-    MAKEF(SliderAngle),
-    MAKEF(SliderInt),
-    MAKEF(SliderInt2),
-    MAKEF(SliderInt3),
-    MAKEF(SliderInt4),
-    MAKEF(SliderScalar),
-    MAKEF(SliderScalarN),
-    MAKEF(VSliderFloat),
-    MAKEF(VSliderInt),
-    MAKEF(VSliderScalar),
-    
     // Widgets: Input with Keyboard
     MAKEF(InputText),
     MAKEF(InputTextMultiline),

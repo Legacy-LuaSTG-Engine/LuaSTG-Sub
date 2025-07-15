@@ -45,10 +45,6 @@ static const int IMGUI_REGISTRY = 9961;
 // XXXX: will not implement (or should not export to lua API)
 // !!!!: works in progress
 
-//////// Widgets: Regular Sliders
-
-#include "lua_imgui_ImGui_SliderX.inl"
-
 //////// Widgets: Input with Keyboard
 
 #include "lua_imgui_ImGui_InputX.inl"
