@@ -238,31 +238,9 @@ namespace lua {
 
 		template<typename T>
 		[[nodiscard]] T get_value(stack_index_t const index, T const& default_value) const {
-			if constexpr (std::is_same_v<T, bool>) {
-				if (has_value(index))
-					return lua_toboolean(L, index.value);
-				return default_value;
-			}
-			else if constexpr (std::is_same_v<T, int32_t>) {
-				return static_cast<int32_t>(luaL_optinteger(L, index.value, default_value));
-			}
-			else if constexpr (std::is_same_v<T, uint32_t>) {
-				return static_cast<uint32_t>(luaL_optnumber(L, index.value, static_cast<lua_Number>(default_value)));
-			}
-			else if constexpr (std::is_same_v<T, float>) {
-				if (has_value(index))
-					return static_cast<float>(luaL_checknumber(L, index.value));
-				return default_value;
-			}
-			else if constexpr (std::is_same_v<T, double>) {
-				if (has_value(index))
-					return luaL_checknumber(L, index.value);
-				return default_value;
-			}
-			else {
-				static_assert(false, "FIXME");
-				return {};
-			}
+			if (has_value(index))
+				return get_value<T>(index);
+			return default_value;
 		}
 
 		// array & map
