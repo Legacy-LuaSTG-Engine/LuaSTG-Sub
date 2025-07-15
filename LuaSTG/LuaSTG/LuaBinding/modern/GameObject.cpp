@@ -801,7 +801,7 @@ namespace luastg::binding {
 			auto const table = ctx.create_array(3);			// class object
 			ctx.set_array_value(table, 1, lua::stack_index_t(1));
 			ctx.set_array_value(table, 2, static_cast<int32_t>(object->id));
-			ctx.set_array_value(table, 3, object);
+			ctx.set_array_value(table, 3, static_cast<void*>(object));
 
 			lua_pushlightuserdata(vm, &game_object_meta_table_key);		// class object k
 			lua_gettable(vm, LUA_REGISTRYINDEX);						// class object mt

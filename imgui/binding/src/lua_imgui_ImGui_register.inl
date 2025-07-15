@@ -3,20 +3,6 @@
 #define MAKEF(NAME) {#NAME, &lib_##NAME##}
 
 static const luaL_Reg lib_fun[] = {
-    // Widgets: Drag Sliders
-    MAKEF(DragFloat),
-    MAKEF(DragFloat2),
-    MAKEF(DragFloat3),
-    MAKEF(DragFloat4),
-    MAKEF(DragFloatRange2),
-    MAKEF(DragInt),
-    MAKEF(DragInt2),
-    MAKEF(DragInt3),
-    MAKEF(DragInt4),
-    MAKEF(DragIntRange2),
-    MAKEF(DragScalar),
-    MAKEF(DragScalarN),
-    
     // Widgets: Regular Sliders
     MAKEF(SliderFloat),
     MAKEF(SliderFloat2),
