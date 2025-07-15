@@ -32,6 +32,8 @@ namespace imgui::binding {
 		registerImGuiWidgetsComboBoxDropdown(vm);
 		registerImGuiWidgetsDragSliders(vm);
 		registerImGuiWidgetsRegularSliders(vm);
+		registerImGuiWidgetsInputWithKeyboardInputText(vm);
+		registerImGuiWidgetsInputWithKeyboard(vm);
 
 		ImGuiStyleBinding::registerClass(vm);
 	}

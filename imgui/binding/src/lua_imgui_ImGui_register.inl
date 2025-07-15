@@ -7,18 +7,7 @@ static const luaL_Reg lib_fun[] = {
     MAKEF(InputText),
     MAKEF(InputTextMultiline),
     MAKEF(InputTextWithHint),
-    MAKEF(InputFloat),
-    MAKEF(InputFloat2),
-    MAKEF(InputFloat3),
-    MAKEF(InputFloat4),
-    MAKEF(InputInt),
-    MAKEF(InputInt2),
-    MAKEF(InputInt3),
-    MAKEF(InputInt4),
-    MAKEF(InputDouble),
-    MAKEF(InputScalar),
-    MAKEF(InputScalarN),
-    
+
     // Widgets: Color Editor/Picker
     MAKEF(ColorEdit3),
     MAKEF(ColorEdit4),

@@ -72,6 +72,8 @@ namespace imgui::binding {
 	void registerImGuiWidgetsComboBoxDropdown(lua_State* vm);
 	void registerImGuiWidgetsDragSliders(lua_State* vm);
 	void registerImGuiWidgetsRegularSliders(lua_State* vm);
+	void registerImGuiWidgetsInputWithKeyboardInputText(lua_State* vm);
+	void registerImGuiWidgetsInputWithKeyboard(lua_State* vm);
 
 	struct ImGuiStyleBinding {
 		static std::string_view const class_name;
