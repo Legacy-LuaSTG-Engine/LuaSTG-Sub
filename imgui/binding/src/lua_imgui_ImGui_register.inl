@@ -3,18 +3,6 @@
 #define MAKEF(NAME) {#NAME, &lib_##NAME##}
 
 static const luaL_Reg lib_fun[] = {
-    // Widgets: Trees
-    MAKEF(TreeNode),
-    MAKEF(TreeNodeV),
-    MAKEF(TreeNodeEx),
-    MAKEF(TreeNodeExV),
-    MAKEF(TreePush),
-    MAKEF(TreePop),
-    MAKEF(GetTreeNodeToLabelSpacing),
-    MAKEF(CollapsingHeader),
-    MAKEF(SetNextItemOpen),
-    MAKEF(SetNextItemStorageID),
-    
     // Widgets: Selectables
     MAKEF(Selectable),
     

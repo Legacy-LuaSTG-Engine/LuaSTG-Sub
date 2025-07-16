@@ -75,6 +75,7 @@ namespace imgui::binding {
 	void registerImGuiWidgetsInputWithKeyboardInputText(lua_State* vm);
 	void registerImGuiWidgetsInputWithKeyboard(lua_State* vm);
 	void registerImGuiWidgetsColorEditorPicker(lua_State* vm);
+	void registerImGuiWidgetsTrees(lua_State* vm);
 
 	struct ImGuiStyleBinding {
 		static std::string_view const class_name;
