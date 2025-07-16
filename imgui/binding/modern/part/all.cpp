@@ -34,6 +34,7 @@ namespace imgui::binding {
 		registerImGuiWidgetsRegularSliders(vm);
 		registerImGuiWidgetsInputWithKeyboardInputText(vm);
 		registerImGuiWidgetsInputWithKeyboard(vm);
+		registerImGuiWidgetsColorEditorPicker(vm);
 
 		ImGuiStyleBinding::registerClass(vm);
 	}

@@ -45,14 +45,6 @@ static const int IMGUI_REGISTRY = 9961;
 // XXXX: will not implement (or should not export to lua API)
 // !!!!: works in progress
 
-//////// Widgets: Input with Keyboard
-
-#include "lua_imgui_ImGui_InputX.inl"
-
-//////// Widgets: Color Editor/Picker
-
-#include "lua_imgui_ImGui_ColorX.inl"
-
 //////// Widgets: Trees
 
 static int lib_TreeNode(lua_State* L)

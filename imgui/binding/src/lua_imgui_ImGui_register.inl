@@ -3,19 +3,6 @@
 #define MAKEF(NAME) {#NAME, &lib_##NAME##}
 
 static const luaL_Reg lib_fun[] = {
-    // Widgets: Input with Keyboard
-    MAKEF(InputText),
-    MAKEF(InputTextMultiline),
-    MAKEF(InputTextWithHint),
-
-    // Widgets: Color Editor/Picker
-    MAKEF(ColorEdit3),
-    MAKEF(ColorEdit4),
-    MAKEF(ColorPicker3),
-    MAKEF(ColorPicker4),
-    MAKEF(ColorButton),
-    MAKEF(SetColorEditOptions),
-    
     // Widgets: Trees
     MAKEF(TreeNode),
     MAKEF(TreeNodeV),
