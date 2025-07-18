@@ -11,6 +11,7 @@ namespace imgui::binding {
 	extern std::string_view const module_name;
 
 	void registerGlobal(lua_State* vm);
+	void registerConstants(lua_State* vm);
 
 	struct ImVec2Binding {
 		static std::string_view const class_name;

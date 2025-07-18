@@ -127,8 +127,6 @@ target_include_directories(lua_imgui PRIVATE
 )
 target_sources(lua_imgui PRIVATE
     binding/include/lua_imgui.hpp
-    binding/src/lua_imgui_enum.hpp
-    binding/src/lua_imgui_enum.cpp
     binding/src/lua_imgui.cpp
 )
 target_link_libraries(lua_imgui PUBLIC
