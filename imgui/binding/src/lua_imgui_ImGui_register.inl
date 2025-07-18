@@ -3,46 +3,6 @@
 #define MAKEF(NAME) {#NAME, &lib_##NAME##}
 
 static const luaL_Reg lib_fun[] = {
-    // Widgets: Value() Helpers.
-    MAKEF(ValueB),
-    MAKEF(ValueI),
-    MAKEF(ValueF),
-    MAKEF(Value),
-    
-    // Widgets: Menus
-    MAKEF(BeginMenuBar),
-    MAKEF(EndMenuBar),
-    MAKEF(BeginMainMenuBar),
-    MAKEF(EndMainMenuBar),
-    MAKEF(BeginMenu),
-    MAKEF(EndMenu),
-    MAKEF(MenuItem),
-    
-    // Tooltips
-    MAKEF(BeginTooltip),
-    MAKEF(EndTooltip),
-    MAKEF(SetTooltip),
-    MAKEF(SetTooltipV),
-
-    MAKEF(BeginItemTooltip),
-    MAKEF(SetItemTooltip),
-    MAKEF(SetItemTooltipV),
-    
-    // Popups, Modals
-    MAKEF(BeginPopup),
-    MAKEF(BeginPopupModal),
-    MAKEF(EndPopup),
-    // Popups: open/close functions
-    MAKEF(OpenPopup),
-    MAKEF(OpenPopupOnItemClick),
-    MAKEF(CloseCurrentPopup),
-    // Popups: open+begin combined functions helpers
-    MAKEF(BeginPopupContextItem),
-    MAKEF(BeginPopupContextWindow),
-    MAKEF(BeginPopupContextVoid),
-    // Popups: test function
-    MAKEF(IsPopupOpen),
-    
     // Tables
     MAKEF(BeginTable),
     MAKEF(EndTable),

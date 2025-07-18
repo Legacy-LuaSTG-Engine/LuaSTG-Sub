@@ -40,6 +40,10 @@ namespace imgui::binding {
 		registerImGuiMultiSelectionSystem(vm);
 		registerImGuiWidgetsListBoxes(vm);
 		registerImGuiWidgetsDataPlotting(vm);
+		registerImGuiWidgetsValueHelpers(vm);
+		registerImGuiWidgetsMenus(vm);
+		registerImGuiTooltips(vm);
+		registerImGuiPopupsModals(vm);
 
 		ImGuiStyleBinding::registerClass(vm);
 	}

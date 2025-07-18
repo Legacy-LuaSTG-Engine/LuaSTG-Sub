@@ -81,6 +81,10 @@ namespace imgui::binding {
 	void registerImGuiMultiSelectionSystem(lua_State* vm);
 	void registerImGuiWidgetsListBoxes(lua_State* vm);
 	void registerImGuiWidgetsDataPlotting(lua_State* vm);
+	void registerImGuiWidgetsValueHelpers(lua_State* vm);
+	void registerImGuiWidgetsMenus(lua_State* vm);
+	void registerImGuiTooltips(lua_State* vm);
+	void registerImGuiPopupsModals(lua_State* vm);
 
 	struct ImGuiStyleBinding {
 		static std::string_view const class_name;
