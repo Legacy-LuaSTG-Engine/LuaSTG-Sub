@@ -15,7 +15,6 @@
 
 #include "lua.hpp"
 #include "lua_imgui.hpp"
-#include "lua_imgui_type.hpp"
 
 #include "Platform/XInput.hpp"
 #include "core/Configuration.hpp"

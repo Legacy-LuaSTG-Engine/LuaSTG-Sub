@@ -1,22 +1,47 @@
 #include "lua_imgui_enum.hpp"
-#include "lua_imgui_type.hpp"
 #include "imgui.h"
 #include <vector>
 #include <string_view>
 
-struct enum_name_value_pair
-{
-    std::string_view name;
-    int value;
-};
+namespace {
+    constexpr ImGuiDataType ImGuiDataType_Integer =
+    (sizeof(lua_Integer) >= 8
+        ? (ImGuiDataType)ImGuiDataType_S64
+        : (ImGuiDataType)ImGuiDataType_S32
+    );
+    constexpr ImGuiDataType ImGuiDataType_Number =
+    (sizeof(lua_Number) >= 8
+        ? (ImGuiDataType)ImGuiDataType_Double
+        : (ImGuiDataType)ImGuiDataType_Float
+    );
 
-struct enum_name_data_pair
-{
-    std::string_view name;
-    std::vector<enum_name_value_pair> data;
-};
+    constexpr char const* ImGuiDataTypeName[] = {
+        "S8",
+        "U8",
+        "S16",
+        "U16",
+        "S32",
+        "U32",
+        "S64",
+        "U64",
+        "Float",
+        "Double",
+    };
 
-using enum_data = std::vector<enum_name_data_pair>;
+    struct enum_name_value_pair
+    {
+        std::string_view name;
+        int value;
+    };
+
+    struct enum_name_data_pair
+    {
+        std::string_view name;
+        std::vector<enum_name_value_pair> data;
+    };
+
+    using enum_data = std::vector<enum_name_data_pair>;
+}
 
 void imgui_binding_lua_register_enum(lua_State* L)
 {

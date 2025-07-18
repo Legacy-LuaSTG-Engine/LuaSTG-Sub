@@ -1,7 +1,5 @@
-#include "lua_imgui_common.hpp"
 #include "lua_imgui.hpp"
 #include "lua_imgui_enum.hpp"
-#include "lua_imgui_type.hpp"
 #include "lua_imgui_binding.hpp"
 #include "lua/plus.hpp"
 
@@ -12,6 +10,5 @@ int luaopen_imgui(lua_State* const vm)
 
     std::ignore = ctx.push_module("imgui");
     imgui_binding_lua_register_enum(vm);
-    imgui_binding_lua_register_ImGuiTextBuffer(vm);
     return 1;
 }
