@@ -46,6 +46,25 @@ namespace imgui::binding {
 		registerImGuiPopupsModals(vm);
 		registerImGuiTables(vm);
 		registerImGuiLegacyColumns(vm);
+		registerImGuiTabBarsTabs(vm);
+		registerImGuiLoggingCapture(vm);
+		registerImGuiDragAndDrop(vm);
+		registerImGuiDisabling(vm);
+		registerImGuiClipping(vm);
+		registerImGuiFocusActivation(vm);
+		registerImGuiKeyboardGamepadNavigation(vm);
+		registerImGuiOverlappingMode(vm);
+		registerImGuiItemWidgetsUtilitiesAndQuery(vm);
+		registerImGuiViewports(vm);
+		registerImGuiBackgroundForegroundDrawLists(vm);
+		registerImGuiMiscellaneousUtilities(vm);
+		registerImGuiTextUtilities(vm);
+		registerImGuiColorUtilities(vm);
+		registerImGuiInputsUtilities(vm);
+		registerImGuiClipboardUtilities(vm);
+		registerImGuiSettingsIniUtilities(vm);
+		registerImGuiDebugUtilities(vm);
+		registerImGuiMemoryAllocators(vm);
 
 		ImGuiStyleBinding::registerClass(vm);
 	}

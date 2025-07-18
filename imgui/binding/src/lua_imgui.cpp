@@ -2,18 +2,16 @@
 #include "lua_imgui.hpp"
 #include "lua_imgui_enum.hpp"
 #include "lua_imgui_type.hpp"
-#include "lua_imgui_ImGui.hpp"
 #include "lua_imgui_binding.hpp"
+#include "lua/plus.hpp"
 
-int luaopen_imgui(lua_State* L)
+int luaopen_imgui(lua_State* const vm)
 {
-    _luaL_reglib(L, lua_module_imgui);      // ? M
+    lua::stack_t const ctx(vm);
+    imgui::binding::registerAll(vm);
 
-    imgui::binding::registerAll(L);
-
-    imgui_binding_lua_register_enum(L);
-    imgui_binding_lua_register_ImGuiTextBuffer(L);
-    imgui_binding_lua_register_ImGui(L);
-    
+    std::ignore = ctx.push_module("imgui");
+    imgui_binding_lua_register_enum(vm);
+    imgui_binding_lua_register_ImGuiTextBuffer(vm);
     return 1;
 }

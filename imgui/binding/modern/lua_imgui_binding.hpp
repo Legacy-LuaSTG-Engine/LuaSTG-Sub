@@ -87,6 +87,25 @@ namespace imgui::binding {
 	void registerImGuiPopupsModals(lua_State* vm);
 	void registerImGuiTables(lua_State* vm);
 	void registerImGuiLegacyColumns(lua_State* vm);
+	void registerImGuiTabBarsTabs(lua_State* vm);
+	void registerImGuiLoggingCapture(lua_State* vm);
+	void registerImGuiDragAndDrop(lua_State* vm);
+	void registerImGuiDisabling(lua_State* vm);
+	void registerImGuiClipping(lua_State* vm);
+	void registerImGuiFocusActivation(lua_State* vm);
+	void registerImGuiKeyboardGamepadNavigation(lua_State* vm);
+	void registerImGuiOverlappingMode(lua_State* vm);
+	void registerImGuiItemWidgetsUtilitiesAndQuery(lua_State* vm);
+	void registerImGuiViewports(lua_State* vm);
+	void registerImGuiBackgroundForegroundDrawLists(lua_State* vm);
+	void registerImGuiMiscellaneousUtilities(lua_State* vm);
+	void registerImGuiTextUtilities(lua_State* vm);
+	void registerImGuiColorUtilities(lua_State* vm);
+	void registerImGuiInputsUtilities(lua_State* vm);
+	void registerImGuiClipboardUtilities(lua_State* vm);
+	void registerImGuiSettingsIniUtilities(lua_State* vm);
+	void registerImGuiDebugUtilities(lua_State* vm);
+	void registerImGuiMemoryAllocators(lua_State* vm);
 
 	struct ImGuiStyleBinding {
 		static std::string_view const class_name;
