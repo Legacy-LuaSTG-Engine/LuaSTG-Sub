@@ -17,6 +17,7 @@ namespace imgui::binding {
 
 		static bool is(lua_State* vm, int index);
 		static ImVec2* as(lua_State* vm, int index);
+		static ImVec2 const* as(lua_State* vm, int index, ImVec2 const& default_value);
 		static ImVec2* create(lua_State* vm);
 		static ImVec2* create(lua_State* vm, ImVec2 const& value);
 		static void registerClass(lua_State* vm);
@@ -76,6 +77,10 @@ namespace imgui::binding {
 	void registerImGuiWidgetsInputWithKeyboard(lua_State* vm);
 	void registerImGuiWidgetsColorEditorPicker(lua_State* vm);
 	void registerImGuiWidgetsTrees(lua_State* vm);
+	void registerImGuiWidgetsSelectables(lua_State* vm);
+	void registerImGuiMultiSelectionSystem(lua_State* vm);
+	void registerImGuiWidgetsListBoxes(lua_State* vm);
+	void registerImGuiWidgetsDataPlotting(lua_State* vm);
 
 	struct ImGuiStyleBinding {
 		static std::string_view const class_name;

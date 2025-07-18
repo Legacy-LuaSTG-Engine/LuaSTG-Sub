@@ -3,18 +3,6 @@
 #define MAKEF(NAME) {#NAME, &lib_##NAME##}
 
 static const luaL_Reg lib_fun[] = {
-    // Widgets: Selectables
-    MAKEF(Selectable),
-    
-    // Widgets: List Boxes
-    MAKEF(BeginListBox),
-    MAKEF(EndListBox),
-    MAKEF(ListBox),
-    
-    // Widgets: Data Plotting
-    MAKEF(PlotLines),
-    MAKEF(PlotHistogram),
-    
     // Widgets: Value() Helpers.
     MAKEF(ValueB),
     MAKEF(ValueI),

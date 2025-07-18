@@ -133,7 +133,6 @@ target_sources(lua_imgui PRIVATE
     binding/src/lua_imgui_enum.hpp
     binding/src/lua_imgui_enum.cpp
     binding/src/lua_imgui_ImGui.hpp
-    binding/src/lua_imgui_ImGui_PlotX.inl
     binding/src/lua_imgui_ImGui_register.inl
     binding/src/lua_imgui_ImGui.cpp
     binding/src/lua_imgui_ImGuiTextBuffer.cpp

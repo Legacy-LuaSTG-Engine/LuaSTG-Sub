@@ -36,6 +36,10 @@ namespace imgui::binding {
 		registerImGuiWidgetsInputWithKeyboard(vm);
 		registerImGuiWidgetsColorEditorPicker(vm);
 		registerImGuiWidgetsTrees(vm);
+		registerImGuiWidgetsSelectables(vm);
+		registerImGuiMultiSelectionSystem(vm);
+		registerImGuiWidgetsListBoxes(vm);
+		registerImGuiWidgetsDataPlotting(vm);
 
 		ImGuiStyleBinding::registerClass(vm);
 	}

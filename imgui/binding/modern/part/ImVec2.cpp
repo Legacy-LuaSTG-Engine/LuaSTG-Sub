@@ -88,6 +88,13 @@ namespace imgui::binding {
 		lua::stack_t const ctx(vm);
 		return ctx.as_userdata<ImVec2>(index, class_name);
 	}
+	ImVec2 const* ImVec2Binding::as(lua_State* vm, int index, ImVec2 const& default_value) {
+		lua::stack_t const ctx(vm);
+		if (ctx.has_value(index)) {
+			return as(vm, index);
+		}
+		return &default_value;
+	}
 	ImVec2* ImVec2Binding::create(lua_State* const vm) {
 		lua::stack_t const ctx(vm);
 		auto const self = ctx.create_userdata<ImVec2>();
