@@ -85,6 +85,8 @@ namespace imgui::binding {
 	void registerImGuiWidgetsMenus(lua_State* vm);
 	void registerImGuiTooltips(lua_State* vm);
 	void registerImGuiPopupsModals(lua_State* vm);
+	void registerImGuiTables(lua_State* vm);
+	void registerImGuiLegacyColumns(lua_State* vm);
 
 	struct ImGuiStyleBinding {
 		static std::string_view const class_name;

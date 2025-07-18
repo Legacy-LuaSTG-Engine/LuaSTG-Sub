@@ -44,6 +44,8 @@ namespace imgui::binding {
 		registerImGuiWidgetsMenus(vm);
 		registerImGuiTooltips(vm);
 		registerImGuiPopupsModals(vm);
+		registerImGuiTables(vm);
+		registerImGuiLegacyColumns(vm);
 
 		ImGuiStyleBinding::registerClass(vm);
 	}

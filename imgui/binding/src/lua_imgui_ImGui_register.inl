@@ -3,39 +3,6 @@
 #define MAKEF(NAME) {#NAME, &lib_##NAME##}
 
 static const luaL_Reg lib_fun[] = {
-    // Tables
-    MAKEF(BeginTable),
-    MAKEF(EndTable),
-    MAKEF(TableNextRow),
-    MAKEF(TableNextColumn),
-    MAKEF(TableSetColumnIndex),
-    // Tables: Headers & Columns declaration
-    MAKEF(TableSetupColumn),
-    MAKEF(TableSetupScrollFreeze),
-    MAKEF(TableHeader),
-    MAKEF(TableHeadersRow),
-    MAKEF(TableAngledHeadersRow),
-    // Tables: Sorting & Miscellaneous functions
-    MAKEF(TableGetSortSpecs),
-    MAKEF(TableGetColumnCount),
-    MAKEF(TableGetColumnIndex),
-    MAKEF(TableGetRowIndex),
-    MAKEF(TableGetColumnName),
-    MAKEF(TableGetColumnFlags),
-    MAKEF(TableSetColumnEnabled),
-    MAKEF(TableGetHoveredColumn),
-    MAKEF(TableSetBgColor),
-    
-    // Legacy Columns API
-    MAKEF(Columns),
-    MAKEF(NextColumn),
-    MAKEF(GetColumnIndex),
-    MAKEF(GetColumnWidth),
-    MAKEF(SetColumnWidth),
-    MAKEF(GetColumnOffset),
-    MAKEF(SetColumnOffset),
-    MAKEF(GetColumnsCount),
-    
     // Tab Bars, Tabs
     MAKEF(BeginTabBar),
     MAKEF(EndTabBar),

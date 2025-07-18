@@ -4,10 +4,6 @@
 using std::string_view_literals::operator ""sv;
 
 namespace {
-	int notSupported(lua_State* const vm) {
-		return luaL_error(vm, "not supported");
-	}
-
 	int BeginPopup(lua_State* const vm) {
 		lua::stack_t const ctx(vm);
 		auto const str_id = ctx.get_value<std::string_view>(1);
