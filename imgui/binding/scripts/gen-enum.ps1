@@ -37,6 +37,7 @@ foreach ($Enum in $Metadata.enums) {
 
 $OutputFile = "$PSScriptRoot/../modern/Constants.cpp"
 $IncludeObsolete = $false
+$EnumValueDebug = $false
 
 Set-Content -Path $OutputFile -Value "" -NoNewline -Encoding utf8
 
@@ -72,23 +73,29 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 '
 
 foreach ($Enum in $Metadata.enums) {
+	$EnumName = $Enum.name.TrimEnd("_")
 	Add-Cpp "	{`n"
 	Add-Cpp ("		auto const e = ctx.create_map(" + $Enum.elements.Length + ");`n")
-	Add-Cpp ("		ctx.set_map_value(m, `"" + $Enum.name.TrimEnd("_") + "`"sv, e);`n")
+	Add-Cpp ("		ctx.set_map_value(m, `"$EnumName`"sv, e);`n")
 	foreach ($Element in $Enum.elements) {
+		$ElementName = $Element.name.Substring($Element.name.IndexOf("_") + 1)
+		$ElementValue = $Element.name
+		$DebugName = ""
+		if ($EnumValueDebug -eq $true) {
+			$DebugName = " " + $EnumName + "_" + $ElementName + ";"
+		}
 		if (Find-Obsolete $Element) {
 			if ($IncludeObsolete) {
 				Add-Cpp "	#ifndef IMGUI_DISABLE_OBSOLETE_FUNCTIONS`n"
-				Add-Cpp ("		ctx.set_map_value(e, `"" + $Element.name.Substring($Enum.name.Length) + "`"sv, " + $Element.name + ");`n")
+				Add-Cpp ("		ctx.set_map_value(e, `"$ElementName`"sv, $ElementValue);$DebugName`n")
 				Add-Cpp "	#endif IMGUI_DISABLE_OBSOLETE_FUNCTIONS`n"
 			}
 		}
 		else {
-			Add-Cpp ("		ctx.set_map_value(e, `"" + $Element.name.Substring($Enum.name.Length) + "`"sv, " + $Element.name + ");`n")
+			Add-Cpp ("		ctx.set_map_value(e, `"$ElementName`"sv, $ElementValue);$DebugName`n")
 		}
 	}
 	Add-Cpp "	}`n"
 }
 
-Add-Cpp '}
-'
+Add-Cpp "}`n"
