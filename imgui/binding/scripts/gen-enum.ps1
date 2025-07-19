@@ -35,7 +35,7 @@ foreach ($Enum in $Metadata.enums) {
 	}
 }
 
-$OutputFile = "$PSScriptRoot/../modern/Constants.cpp"
+$OutputFile = "$PSScriptRoot/../src/Constants.cpp"
 $IncludeObsolete = $false
 $EnumValueDebug = $false
 

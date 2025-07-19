@@ -119,29 +119,26 @@ set_target_properties(imgui_impl_win32 PROPERTIES FOLDER external)
 add_library(lua_imgui STATIC)
 luastg_target_common_options(lua_imgui)
 luastg_target_more_warning(lua_imgui)
-target_include_directories(lua_imgui PUBLIC
+target_include_directories(lua_imgui
+PUBLIC
     binding/include
-)
-target_include_directories(lua_imgui PRIVATE
+PRIVATE
     binding/src
-)
-target_sources(lua_imgui PRIVATE
-    binding/include/lua_imgui.hpp
-    binding/src/lua_imgui.cpp
 )
 target_link_libraries(lua_imgui PUBLIC
     imgui
     lua51_static
 )
 
-file(GLOB_RECURSE lua_imgui_modern
-    ${CMAKE_CURRENT_LIST_DIR}/binding/modern/*.h
-    ${CMAKE_CURRENT_LIST_DIR}/binding/modern/*.c
-    ${CMAKE_CURRENT_LIST_DIR}/binding/modern/*.hpp
-    ${CMAKE_CURRENT_LIST_DIR}/binding/modern/*.cpp
+file(GLOB_RECURSE lua_imgui_src
+    ${CMAKE_CURRENT_LIST_DIR}/binding/include/*.h
+    ${CMAKE_CURRENT_LIST_DIR}/binding/include/*.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/binding/src/*.h
+    ${CMAKE_CURRENT_LIST_DIR}/binding/src/*.c
+    ${CMAKE_CURRENT_LIST_DIR}/binding/src/*.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/binding/src/*.cpp
 )
-source_group(TREE ${CMAKE_CURRENT_LIST_DIR}/binding FILES ${lua_imgui_modern})
-target_include_directories(lua_imgui PRIVATE ${CMAKE_CURRENT_LIST_DIR}/binding/modern)
-target_sources(lua_imgui PRIVATE ${lua_imgui_modern})
+source_group(TREE ${CMAKE_CURRENT_LIST_DIR}/binding FILES ${lua_imgui_src})
+target_sources(lua_imgui PRIVATE ${lua_imgui_src})
 
 set_target_properties(lua_imgui PROPERTIES FOLDER lualib)
