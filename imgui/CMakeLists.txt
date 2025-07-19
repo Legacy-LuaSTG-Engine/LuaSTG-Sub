@@ -67,11 +67,12 @@ set_target_properties(implot PROPERTIES FOLDER external)
 add_library(imgui_impl_dx11 STATIC)
 luastg_target_common_options(imgui_impl_dx11)
 target_include_directories(imgui_impl_dx11 PUBLIC
-    imgui/backends
+    backend
 )
 target_sources(imgui_impl_dx11 PRIVATE
-    imgui/backends/imgui_impl_dx11.h
+    #imgui/backends/imgui_impl_dx11.h
     #imgui/backends/imgui_impl_dx11.cpp
+    backend/imgui_impl_dx11.h
     backend/imgui_impl_dx11.cpp
 )
 target_link_libraries(imgui_impl_dx11 PUBLIC
@@ -118,41 +119,26 @@ set_target_properties(imgui_impl_win32 PROPERTIES FOLDER external)
 add_library(lua_imgui STATIC)
 luastg_target_common_options(lua_imgui)
 luastg_target_more_warning(lua_imgui)
-target_include_directories(lua_imgui PUBLIC
+target_include_directories(lua_imgui
+PUBLIC
     binding/include
-)
-target_include_directories(lua_imgui PRIVATE
+PRIVATE
     binding/src
-)
-target_sources(lua_imgui PRIVATE
-    binding/include/lua_imgui.hpp
-    binding/include/lua_imgui_type.hpp
-    
-    binding/src/lua_imgui_common.hpp
-    binding/src/lua_imgui_enum.hpp
-    binding/src/lua_imgui_enum.cpp
-    binding/src/lua_imgui_ImGui.hpp
-    binding/src/lua_imgui_ImGui_ColorX.inl
-    binding/src/lua_imgui_ImGui_DragX.inl
-    binding/src/lua_imgui_ImGui_InputX.inl
-    binding/src/lua_imgui_ImGui_PlotX.inl
-    binding/src/lua_imgui_ImGui_register.inl
-    binding/src/lua_imgui_ImGui_SliderX.inl
-    binding/src/lua_imgui_ImGui.cpp
-    binding/src/lua_imgui_ImGuiTextBuffer.cpp
-    binding/src/lua_imgui_type.cpp
-    binding/src/lua_imgui.cpp
-    binding/src/ImVec2.cpp
-    binding/src/ImVec4.cpp
-
-    binding/src/generated/ImGuiStyleMember.hpp
-    binding/src/generated/ImGuiStyleMember.cpp
-    binding/src/generated/ImGuiTextBufferMember.hpp
-    binding/src/generated/ImGuiTextBufferMember.cpp
 )
 target_link_libraries(lua_imgui PUBLIC
     imgui
     lua51_static
 )
+
+file(GLOB_RECURSE lua_imgui_src
+    ${CMAKE_CURRENT_LIST_DIR}/binding/include/*.h
+    ${CMAKE_CURRENT_LIST_DIR}/binding/include/*.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/binding/src/*.h
+    ${CMAKE_CURRENT_LIST_DIR}/binding/src/*.c
+    ${CMAKE_CURRENT_LIST_DIR}/binding/src/*.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/binding/src/*.cpp
+)
+source_group(TREE ${CMAKE_CURRENT_LIST_DIR}/binding FILES ${lua_imgui_src})
+target_sources(lua_imgui PRIVATE ${lua_imgui_src})
 
 set_target_properties(lua_imgui PROPERTIES FOLDER lualib)

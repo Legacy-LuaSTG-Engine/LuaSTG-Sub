@@ -1,4 +1,4 @@
 #pragma once
 #include "lua.hpp"
 
-int luaopen_imgui(lua_State* L);
+int luaopen_imgui(lua_State* vm);

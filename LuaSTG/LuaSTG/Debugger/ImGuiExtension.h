@@ -1,17 +1,12 @@
-﻿#pragma once
+#pragma once
 
-namespace imgui
-{
-    void loadConfig();
-    void saveConfig();
-    
-    void bindEngine();
-    void unbindEngine();
-    
-    void cacheGlyphFromString(std::string_view str);
-    void cancelSetCursor();
-    void updateEngine(bool allow_set_cursor);
-    void drawEngine();
+namespace imgui {
+	void bindEngine();
+	void unbindEngine();
 
-    void showTestInputWindow(bool* p_open = nullptr);
+	void cancelSetCursor();
+	void updateEngine(bool allow_set_cursor);
+	void drawEngine();
+
+	void showTestInputWindow(bool* p_open = nullptr);
 };

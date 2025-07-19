@@ -29,6 +29,7 @@ include(LuaSTG/shaders.cmake)
 add_subdirectory(imgui)
 
 add_subdirectory(engine)
+target_link_libraries(lua_imgui PUBLIC lua_plus) # TODO: 丑不拉几的
 add_subdirectory(tool)
 add_subdirectory(LuaSTG)
 
