@@ -68,6 +68,7 @@ Add-Cpp '#include "lua_imgui_binding.hpp"
 using std::string_view_literals::operator ""sv;
 
 void imgui::binding::registerConstants(lua_State* const vm) {
+	lua::stack_balancer_t const sb(vm);
 	lua::stack_t const ctx(vm);
 	auto const m = ctx.push_module(module_name); // imgui
 '
