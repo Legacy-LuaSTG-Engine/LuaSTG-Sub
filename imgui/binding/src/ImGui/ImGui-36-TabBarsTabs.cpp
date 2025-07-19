@@ -21,7 +21,7 @@ namespace {
 		auto const label = ctx.get_value<std::string_view>(1);
 		auto p_open = ctx.get_value<bool>(2, false);
 		auto const flags = ctx.get_value<ImGuiTabItemFlags>(3, 0);
-		auto const result = ImGui::BeginTabItem(label.data(), ctx.has_value(2) ? &p_open : nullptr, flags);
+		auto const result = ImGui::BeginTabItem(label.data(), ctx.is_non_or_nil(2) ? nullptr : &p_open, flags);
 		ctx.push_value(result);
 		ctx.push_value(p_open);
 		return 2;

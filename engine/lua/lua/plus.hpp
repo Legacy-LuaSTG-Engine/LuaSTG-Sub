@@ -291,7 +291,7 @@ namespace lua {
 
 		template<typename T>
 		[[nodiscard]] T get_value(stack_index_t const index, T const& default_value) const {
-			if (has_value(index))
+			if (!is_non_or_nil(index))
 				return get_value<T>(index);
 			return default_value;
 		}
@@ -365,6 +365,7 @@ namespace lua {
 		// type
 
 		[[nodiscard]] bool has_value(stack_index_t const index) const { return lua_type(L, index.value) != LUA_TNONE; }
+		[[nodiscard]] bool is_non_or_nil(stack_index_t const index) const { auto const type = lua_type(L, index.value); return type == LUA_TNONE || type == LUA_TNIL; }
 		[[nodiscard]] bool is_nil(stack_index_t const index) const { return lua_type(L, index.value) == LUA_TNIL; }
 		[[nodiscard]] bool is_boolean(stack_index_t const index) const { return lua_type(L, index.value) == LUA_TBOOLEAN; }
 		[[nodiscard]] bool is_number(stack_index_t const index) const { return lua_type(L, index.value) == LUA_TNUMBER; }

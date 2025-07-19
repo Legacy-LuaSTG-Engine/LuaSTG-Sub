@@ -52,7 +52,7 @@ namespace {
         auto current_item = ctx.get_value<int>(2);
         auto result = false;
         if (ctx.is_table(3)) {
-            auto const items_count = ctx.has_value(4) ? ctx.get_value<int>(4) : static_cast<int>(ctx.get_array_size(3));
+            auto const items_count = !ctx.is_non_or_nil(4) ? ctx.get_value<int>(4) : static_cast<int>(ctx.get_array_size(3));
             auto const height_in_items = ctx.get_value<int>(5, -1);
             if (items_count < 0) {
                 return luaL_error(vm, "items_count is less then 0");

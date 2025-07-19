@@ -87,7 +87,7 @@ namespace {
 			}
 			ref_col = ref_col_arr4;
 		}
-		else if (ctx.has_value(4)) {
+		else if (!ctx.is_non_or_nil(4)) {
 			auto const ref_col_vec4 = imgui::binding::ImVec4Binding::as(vm, 4);
 			ref_col = &ref_col_vec4->x;
 		}

@@ -28,7 +28,7 @@ namespace {
 		lua::stack_t const ctx(vm);
         auto const label = ctx.get_value<std::string_view>(1);
         if (ctx.is_table(2)) {
-            auto const values_count = ctx.has_value(3) ? ctx.get_value<int>(3) : static_cast<int>(ctx.get_array_size(2));
+            auto const values_count = !ctx.is_non_or_nil(3) ? ctx.get_value<int>(3) : static_cast<int>(ctx.get_array_size(2));
             if (values_count < 0) {
                 return luaL_error(vm, "items_count is less then 0");
             }
@@ -71,7 +71,7 @@ namespace {
 		lua::stack_t const ctx(vm);
         auto const label = ctx.get_value<std::string_view>(1);
         if (ctx.is_table(2)) {
-            auto const values_count = ctx.has_value(3) ? ctx.get_value<int>(3) : static_cast<int>(ctx.get_array_size(2));
+            auto const values_count = !ctx.is_non_or_nil(3) ? ctx.get_value<int>(3) : static_cast<int>(ctx.get_array_size(2));
             if (values_count < 0) {
                 return luaL_error(vm, "items_count is less then 0");
             }

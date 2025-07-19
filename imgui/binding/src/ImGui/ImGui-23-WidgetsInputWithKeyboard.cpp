@@ -114,8 +114,8 @@ namespace {
 		auto const format = ctx.get_value<std::string_view>(6, {});
 		auto const flags = ctx.get_value<ImGuiInputTextFlags>(7, 0);
 		auto const result = ImGui::InputScalar(label.data(), DataType, &p_data,
-											   ctx.has_value(4) ? &p_step : nullptr,
-											   ctx.has_value(5) ? &p_step_fast : nullptr,
+											   ctx.is_non_or_nil(4) ? nullptr : &p_step,
+											   ctx.is_non_or_nil(5) ? nullptr : &p_step_fast,
 											   format.data(), flags);
 		ctx.push_value(result);
 		ctx.push_value(p_data);
@@ -175,8 +175,8 @@ namespace {
 		auto const format = ctx.get_value<std::string_view>(7, {});
 		auto const flags = ctx.get_value<ImGuiInputTextFlags>(8, 0);
 		auto const result = ImGui::InputScalarN(label.data(), DataType, data.data(), components,
-												ctx.has_value(4) ? &p_step : nullptr,
-												ctx.has_value(5) ? &p_step_fast : nullptr,
+												ctx.is_non_or_nil(4) ? nullptr : &p_step,
+												ctx.is_non_or_nil(5) ? nullptr : &p_step_fast,
 												format.data(), flags);
 		for (int i = 0; i < components; i += 1) {
 			ctx.set_array_value(3, i + 1, data[i]);

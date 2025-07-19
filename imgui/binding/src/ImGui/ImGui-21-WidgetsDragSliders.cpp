@@ -141,8 +141,8 @@ namespace {
 		auto const format = ctx.get_value<std::string_view>(7, {});
 		auto const flags = ctx.get_value<ImGuiSliderFlags>(8, 0);
 		auto const result = ImGui::DragScalar(label.data(), DataType, &p_data, v_speed,
-											  ctx.has_value(5) ? &p_min : nullptr,
-											  ctx.has_value(6) ? &p_max : nullptr,
+											  ctx.is_non_or_nil(5) ? nullptr : &p_min,
+											  ctx.is_non_or_nil(6) ? nullptr : &p_max,
 											  format.data(), flags);
 		ctx.push_value(result);
 		ctx.push_value(p_data);
@@ -202,8 +202,8 @@ namespace {
 		auto const format = ctx.get_value<std::string_view>(8, {});
 		auto const flags = ctx.get_value<ImGuiSliderFlags>(9, 0);
 		auto const result = ImGui::DragScalarN(label.data(), DataType, data.data(), components, v_speed,
-											   ctx.has_value(6) ? &p_min : nullptr,
-											   ctx.has_value(7) ? &p_max : nullptr,
+											   ctx.is_non_or_nil(6) ? nullptr : &p_min,
+											   ctx.is_non_or_nil(7) ? nullptr : &p_max,
 											   format.data(), flags);
 		for (int i = 0; i < components; i += 1) {
 			ctx.set_array_value(3, i + 1, data[i]);
