@@ -547,23 +547,8 @@ namespace core::Graphics
 			SetWindowTextW(window, win32_window_text_w.data());
 			return 0;
 		case LUASTG_WM_RECREATE:
-		{
-			BOOL result = FALSE;
-			WINDOWPLACEMENT last_window_placement = {};
-			last_window_placement.length = sizeof(last_window_placement);
-
-			assert(win32_window);
-			result = GetWindowPlacement(win32_window, &last_window_placement);
-			assert(result); (void)result;
-
-			destroyWindow();
-			if (!createWindow()) return false;
-
-			assert(win32_window);
-			result = SetWindowPlacement(win32_window, &last_window_placement);
-			assert(result); (void)result;
-		}
-		return 0;
+			_recreateWindow();
+			return 0;
 		case LUASTG_WM_SETICON:
 		{
 			HICON hIcon = LoadIcon(win32_window_class.hInstance, MAKEINTRESOURCE(win32_window_icon_id));
@@ -680,11 +665,40 @@ namespace core::Graphics
 			win32_window = NULL;
 		}
 	}
+	bool Window_Win32::_recreateWindow() {
+		BOOL result{ FALSE };
+		WINDOWPLACEMENT last_window_placement{};
+		last_window_placement.length = sizeof(last_window_placement);
+
+		assert(win32_window);
+		if (result = GetWindowPlacement(win32_window, &last_window_placement); !result) {
+			assert(result);
+			return false;
+		}
+		
+		destroyWindow();
+		if (!createWindow()) {
+			return false;
+		}
+
+		assert(win32_window);
+		if (result = SetWindowPlacement(win32_window, &last_window_placement); !result) {
+			assert(result);
+			return false;
+		}
+		
+		return true;
+	}
 	bool Window_Win32::recreateWindow()
 	{
 		dispatchEvent(EventType::WindowDestroy);
 		SendMessageW(win32_window, LUASTG_WM_RECREATE, 0, 0);
-		ShowWindow(win32_window, SW_SHOWDEFAULT);
+		//if (!_recreateWindow()) {
+		//	return false;
+		//}
+		if (!m_hidewindow) {
+			ShowWindow(win32_window, SW_SHOW);
+		}
 		dispatchEvent(EventType::WindowCreate);
 		return true;
 	}

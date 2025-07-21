@@ -102,6 +102,7 @@ namespace core::Graphics
 		uint32_t getDPI();
 		void setRedirectBitmapEnable(bool enable);
 		bool getRedirectBitmapEnable();
+		bool _recreateWindow();
 		bool recreateWindow();
 		void _toggleFullScreenMode();
 		void _setWindowMode(SetWindowedModeParameters* parameters, bool ignore_size);
