@@ -325,18 +325,18 @@ namespace core::Graphics
 {
 	static DWORD mapWindowStyle(WindowFrameStyle style, bool fullscreen) {
 		if (fullscreen) {
-			return WS_POPUP;
+			return WS_VISIBLE | WS_POPUP;
 		}
 		switch (style)
 		{
 		default:
-			assert(false); return WS_POPUP;
+			assert(false); return WS_VISIBLE | WS_POPUP;
 		case WindowFrameStyle::None:
-			return WS_POPUP;
+			return WS_VISIBLE | WS_POPUP;
 		case WindowFrameStyle::Fixed:
-			return WS_OVERLAPPEDWINDOW ^ (WS_THICKFRAME | WS_MAXIMIZEBOX);
+			return WS_VISIBLE | WS_OVERLAPPEDWINDOW ^ (WS_THICKFRAME | WS_MAXIMIZEBOX);
 		case WindowFrameStyle::Normal:
-			return WS_OVERLAPPEDWINDOW;
+			return WS_VISIBLE | WS_OVERLAPPEDWINDOW;
 		}
 	}
 
@@ -579,6 +579,7 @@ namespace core::Graphics
 		cls.lpfnWndProc = &win32_window_callback;
 		cls.hInstance = hInstance;
 		cls.hCursor = LoadCursor(NULL, IDC_ARROW);
+		cls.hbrBackground = static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH));
 		cls.lpszClassName = win32_window_class_name;
 
 		win32_window_class_atom = RegisterClassExW(&cls);
@@ -654,7 +655,6 @@ namespace core::Graphics
 		if (win32_window_icon_id) {
 			SendMessageW(win32_window, LUASTG_WM_SETICON, 0, 0);
 		}
-
 		return true;
 	}
 	void Window_Win32::destroyWindow()
@@ -697,7 +697,7 @@ namespace core::Graphics
 		//	return false;
 		//}
 		if (!m_hidewindow) {
-			ShowWindow(win32_window, SW_SHOW);
+			ShowWindow(win32_window, SW_SHOWNORMAL);
 		}
 		dispatchEvent(EventType::WindowCreate);
 		return true;
