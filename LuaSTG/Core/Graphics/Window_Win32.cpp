@@ -609,14 +609,6 @@ namespace core::Graphics
 		// 直接创建窗口
 
 		convertTitleText();
-		if (!m_redirect_bitmap)
-		{
-			win32_window_style_ex |= WS_EX_NOREDIRECTIONBITMAP;
-		}
-		else
-		{
-			win32_window_style_ex &= ~DWORD(WS_EX_NOREDIRECTIONBITMAP);
-		}
 		win32_window = CreateWindowExW(
 			win32_window_style_ex,
 			win32_window_class.lpszClassName,
@@ -629,10 +621,6 @@ namespace core::Graphics
 			spdlog::error("[luastg] (LastError = {}) CreateWindowExW failed", GetLastError());
 			return false;
 		}
-
-		// 丢到显示器中间
-
-		setCentered(false, nullptr);
 
 		// 配置输入法
 
@@ -655,6 +643,11 @@ namespace core::Graphics
 		if (win32_window_icon_id) {
 			SendMessageW(win32_window, LUASTG_WM_SETICON, 0, 0);
 		}
+
+		// 丢到显示器中间
+
+		setCentered(true, nullptr);
+
 		return true;
 	}
 	void Window_Win32::destroyWindow()
@@ -925,14 +918,6 @@ namespace core::Graphics
 	{
 		win32_window_dpi = win32::getDpiForWindow(win32_window);
 		return win32_window_dpi;
-	}
-	void Window_Win32::setRedirectBitmapEnable(bool enable)
-	{
-		m_redirect_bitmap = enable ? TRUE : FALSE;
-	}
-	bool Window_Win32::getRedirectBitmapEnable()
-	{
-		return m_redirect_bitmap;
 	}
 
 	void Window_Win32::dispatchEvent(EventType t, EventData d)

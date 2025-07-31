@@ -51,7 +51,7 @@ namespace core::Graphics
 
 		INT_PTR win32_window_icon_id{ 0 };
 
-		std::string win32_window_text{ "Window" };
+		std::string win32_window_text{ "LuaSTG Sub" };
 		std::array<wchar_t, 512> win32_window_text_w;
 
 		WindowCursor m_cursor{ WindowCursor::Arrow };
@@ -61,7 +61,6 @@ namespace core::Graphics
 		DWORD win32_window_style{ WS_OVERLAPPEDWINDOW ^ (WS_THICKFRAME | WS_MAXIMIZEBOX) };
 		DWORD win32_window_style_ex{ 0 };
 		BOOL m_hidewindow{ TRUE };
-		BOOL m_redirect_bitmap{ TRUE };
 		WINDOWPLACEMENT m_last_window_placement{};
 		BOOL m_alt_down{ FALSE };
 		BOOL m_fullscreen_mode{ FALSE };
@@ -100,8 +99,6 @@ namespace core::Graphics
 		RectI getClientRect();
 		bool setClientRect(RectI v);
 		uint32_t getDPI();
-		void setRedirectBitmapEnable(bool enable);
-		bool getRedirectBitmapEnable();
 		bool _recreateWindow();
 		bool recreateWindow();
 		void _toggleFullScreenMode();

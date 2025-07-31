@@ -1191,12 +1191,6 @@ namespace core::Graphics
 		dispatchEvent(EventType::SwapChainDestroy);
 		destroySwapChain();
 
-		if (!m_window->getRedirectBitmapEnable())
-		{
-			m_window->setRedirectBitmapEnable(true);
-			if (!m_window->recreateWindow()) return false;
-		}
-
 		m_window->setSize({ display_mode.Width, display_mode.Height });
 
 		if (!createSwapChain(true, display_mode, true)) // 稍后创建渲染附件
@@ -1251,12 +1245,6 @@ namespace core::Graphics
 
 			dispatchEvent(EventType::SwapChainDestroy);
 			destroySwapChain();
-
-			if (!m_window->getRedirectBitmapEnable())
-			{
-				m_window->setRedirectBitmapEnable(true);
-				if (!m_window->recreateWindow()) return false;
-			}
 
 			if (!createSwapChain(false, {}, false))
 			{
@@ -1322,24 +1310,8 @@ namespace core::Graphics
 			HRGet = dcomp_desktop_device->CreateVisual(&dcomp_visual_root);
 			HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateVisual");
 
-			HRGet = dcomp_desktop_device->CreateVisual(&dcomp_visual_background);
-			HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateVisual");
-
 			HRGet = dcomp_desktop_device->CreateVisual(&dcomp_visual_title_bar);
 			HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateVisual");
-
-			if (!swap_chain_background.create(
-				m_device->GetDXGIFactory2(),
-				m_device->GetD3D11Device(),
-				m_device->GetD2D1DeviceContext(),
-				m_window->_getCurrentSize()
-			)) {
-				return false;
-			}
-			swap_chain_background.clearRenderTarget();
-			if (!swap_chain_background.present()) {
-				return false;
-			}
 
 			if (!swap_chain_title_bar.create(
 				m_device->GetDXGIFactory2(),
@@ -1350,9 +1322,6 @@ namespace core::Graphics
 				return false;
 			}
 			// 标题栏交换链需要的时候再使用
-
-			HRGet = dcomp_visual_background->SetContent(swap_chain_background.GetDXGISwapChain1());
-			HRCheckCallReturnBool("IDCompositionVisual2::SetContent");
 
 			HRGet = dcomp_visual_title_bar->SetContent(swap_chain_title_bar.GetDXGISwapChain1());
 			HRCheckCallReturnBool("IDCompositionVisual2::SetContent");
@@ -1370,10 +1339,7 @@ namespace core::Graphics
 
 		if (m_is_composition_mode)
 		{
-			HRGet = dcomp_visual_root->AddVisual(dcomp_visual_background.Get(), FALSE, NULL);
-			HRCheckCallReturnBool("IDCompositionVisual2::AddVisual");
-
-			HRGet = dcomp_visual_root->AddVisual(dcomp_visual_swap_chain.Get(), TRUE, dcomp_visual_background.Get());
+			HRGet = dcomp_visual_root->AddVisual(dcomp_visual_swap_chain.Get(), TRUE, nullptr);
 			HRCheckCallReturnBool("IDCompositionVisual2::AddVisual");
 
 			HRGet = dcomp_target->SetRoot(dcomp_visual_root.Get());
@@ -1412,11 +1378,6 @@ namespace core::Graphics
 			HRGet = dcomp_visual_root->RemoveAllVisuals();
 			HRCheckCallReport("IDCompositionVisual2::RemoveAllVisuals");
 		}
-		if (dcomp_visual_background)
-		{
-			HRGet = dcomp_visual_background->SetContent(NULL);
-			HRCheckCallReport("IDCompositionVisual2::SetContent -> NULL");
-		}
 		if (dcomp_visual_swap_chain)
 		{
 			HRGet = dcomp_visual_swap_chain->SetContent(NULL);
@@ -1430,10 +1391,8 @@ namespace core::Graphics
 
 		dcomp_target.Reset();
 		dcomp_visual_root.Reset();
-		dcomp_visual_background.Reset();
 		dcomp_visual_swap_chain.Reset();
 		dcomp_visual_title_bar.Reset();
-		swap_chain_background.destroy();
 		swap_chain_title_bar.destroy();
 		m_title_bar_attached = false;
 
@@ -1470,15 +1429,8 @@ namespace core::Graphics
 			(uint32_t)(rc.right - rc.left),
 			(uint32_t)(rc.bottom - rc.top));
 
-		// 让背景铺满整个画面
+		// 让背景铺满整个画面（由 Window Class 的背景来处理）
 
-		if (!swap_chain_background.setSize(window_size_u)) {
-			return false;
-		}
-		swap_chain_background.clearRenderTarget();
-		if (!swap_chain_background.present()) {
-			return false;
-		}
 
 		// 设置交换链内容内接放大
 
@@ -1949,14 +1901,6 @@ namespace core::Graphics
 		if (!m_disable_modern_swap_chain && m_modern_swap_chain_available)
 		{
 			// TODO: 这样就没法独占全屏了，因为拿不到包含的Output
-			// 如果有重定向表面，则去除
-
-			if (m_window->getRedirectBitmapEnable())
-			{
-				m_window->setRedirectBitmapEnable(false);
-				if (!m_window->recreateWindow()) return false;
-			}
-
 			m_canvas_size = size;
 			if (!createCompositionSwapChain(size, /* latency event */ true)) // 让它创建渲染附件
 			{
@@ -1965,14 +1909,6 @@ namespace core::Graphics
 		}
 		else
 		{
-			// 如果没有重定向表面，还得加回来
-
-			if (!m_window->getRedirectBitmapEnable())
-			{
-				m_window->setRedirectBitmapEnable(true);
-				if (!m_window->recreateWindow()) return false;
-			}
-
 			m_canvas_size = size;
 			if (!createSwapChain(false, {}, false)) // 让它创建渲染附件
 			{
@@ -1999,15 +1935,6 @@ namespace core::Graphics
 
 		dispatchEvent(EventType::SwapChainDestroy);
 		destroySwapChain();
-
-		// 如果有重定向表面，则去除
-
-		if (m_window->getRedirectBitmapEnable())
-		{
-			m_window->setRedirectBitmapEnable(false);
-			if (!m_window->recreateWindow())
-				return false;
-		}
 
 		// 创建交换链
 

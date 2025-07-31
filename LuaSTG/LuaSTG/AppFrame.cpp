@@ -5,7 +5,6 @@
 #include "Debugger/ImGuiExtension.h"
 #include "LuaBinding/LuaAppFrame.hpp"
 #include "utf8.hpp"
-#include "resource.h"
 #include "core/Configuration.hpp"
 
 using namespace luastg;
