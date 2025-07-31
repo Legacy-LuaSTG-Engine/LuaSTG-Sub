@@ -27,6 +27,42 @@
 
 #define ReportError(x) i18n_core_system_call_report_error(x)
 
+namespace {
+	bool resolveOutput(HWND const window, IDXGISwapChain* const swap_chain, IDXGIOutput** const output_output) {
+		HRNew;
+
+		auto const monitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
+		if (monitor == nullptr) {
+			ReportError("MonitorFromWindow (MONITOR_DEFAULT_TO_NEAREST)");
+			return false;
+		}
+
+		Microsoft::WRL::ComPtr<IDXGIFactory1> factory;
+		HRGet = swap_chain->GetParent(IID_PPV_ARGS(factory.ReleaseAndGetAddressOf()));
+		HRCheckCallNoAssertReturnBool("IDXGISwapChain::GetParent -> IDXGIFactory1");
+
+		Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter;
+		Microsoft::WRL::ComPtr<IDXGIOutput> output;
+
+		for (UINT adapter_index = 0; SUCCEEDED(factory->EnumAdapters1(adapter_index, adapter.ReleaseAndGetAddressOf())); adapter_index++) {
+			for (UINT output_index = 0; SUCCEEDED(adapter->EnumOutputs(output_index, output.ReleaseAndGetAddressOf())); output_index++) {
+				DXGI_OUTPUT_DESC output_info{};
+				HRGet = output->GetDesc(&output_info);
+				if (FAILED(hr)) {
+					ReportError("IDXGIOutput::GetDesc");
+					continue;
+				}
+				if (monitor == output_info.Monitor) {
+					*output_output = output.Detach();
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+}
+
 namespace core::Graphics
 {
 	constexpr DXGI_FORMAT const COLOR_BUFFER_FORMAT = DXGI_FORMAT_B8G8R8A8_UNORM;
@@ -122,14 +158,20 @@ namespace core::Graphics
 			.Flags = 0,
 		};
 	}
-	static bool findBestDisplayMode(IDXGISwapChain1* dxgi_swapchain, Vector2U canvas_size, DXGI_MODE_DESC1& mode)
+	
+	static bool findBestDisplayMode(HWND const window, IDXGISwapChain1* dxgi_swapchain, Vector2U canvas_size, DXGI_MODE_DESC1& mode)
 	{
 		HRNew;
 
 		Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output;
 		HRGet = dxgi_swapchain->GetContainingOutput(&dxgi_output);
-		HRCheckCallNoAssertReturnBool("IDXGISwapChain1::GetContainingOutput");
-
+		if (FAILED(hr)) {
+			ReportError("IDXGISwapChain1::GetContainingOutput");
+			if (!resolveOutput(window, dxgi_swapchain, dxgi_output.ReleaseAndGetAddressOf())) {
+				return false;
+			}
+		}
+		
 		Microsoft::WRL::ComPtr<IDXGIOutput1> dxgi_output_1;
 		HRGet = dxgi_output.As(&dxgi_output_1);
 		HRCheckCallReturnBool("IDXGIOutput::QueryInterface -> IDXGIOutput1");
@@ -1175,26 +1217,29 @@ namespace core::Graphics
 
 		return true;
 	}
-	bool SwapChain_D3D11::enterExclusiveFullscreen()
-	{
-		if (m_disable_exclusive_fullscreen)
-		{
+	bool SwapChain_D3D11::enterExclusiveFullscreen() {
+		if (m_disable_exclusive_fullscreen) {
+			return false;
+		}
+		if (!dxgi_swapchain) {
+			assert(false);
+			return false;
+		}
+		if (dcomp_visual_swap_chain) {
 			return false;
 		}
 
-		assert(dxgi_swapchain);
-		if (!dxgi_swapchain) return false;
-
-		DXGI_MODE_DESC1 display_mode = {};
-		if (!findBestDisplayMode(dxgi_swapchain.Get(), m_canvas_size, display_mode)) return false;
+		DXGI_MODE_DESC1 display_mode{};
+		if (!findBestDisplayMode(m_window->GetWindow(), dxgi_swapchain.Get(), m_canvas_size, display_mode)) {
+			return false;
+		}
 
 		dispatchEvent(EventType::SwapChainDestroy);
 		destroySwapChain();
 
 		m_window->setSize({ display_mode.Width, display_mode.Height });
 
-		if (!createSwapChain(true, display_mode, true)) // 稍后创建渲染附件
-		{
+		if (!createSwapChain(true, display_mode, true /* 稍后创建渲染附件 */)) {
 			return false;
 		}
 
@@ -1202,7 +1247,7 @@ namespace core::Graphics
 
 		// 进入全屏
 		i18n_log_info("[core].SwapChain_D3D11.enter_exclusive_fullscreen");
-		HRGet = dxgi_swapchain->SetFullscreenState(TRUE, NULL);
+		HRGet = dxgi_swapchain->SetFullscreenState(TRUE, nullptr);
 		HRCheckCallReturnBool("IDXGISwapChain::SetFullscreenState -> TRUE");
 
 		// 需要重设交换链大小（特别是 Flip 交换链模型）
@@ -1210,11 +1255,12 @@ namespace core::Graphics
 		HRCheckCallReturnBool("IDXGISwapChain::ResizeBuffers");
 
 		// 创建渲染附件
-		if (!createRenderAttachment())
-		{
+		if (!createRenderAttachment()) {
 			return false;
 		}
-		if (!updateLetterBoxingRendererTransform()) return false;
+		if (!updateLetterBoxingRendererTransform()) {
+			return false;
+		}
 
 		// 记录状态
 		m_init = TRUE;
