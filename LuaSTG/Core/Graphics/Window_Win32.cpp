@@ -649,10 +649,6 @@ namespace core::Graphics
 		Platform::WindowTheme::UpdateColorMode(win32_window, TRUE);
 		setWindowCornerPreference(m_allow_windows_11_window_corner);
 
-		// 丢到显示器中间
-
-		setCentered(true, nullptr);
-
 		return true;
 	}
 	void Window_Win32::destroyWindow()
