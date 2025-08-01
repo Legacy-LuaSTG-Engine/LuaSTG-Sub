@@ -36,7 +36,6 @@ namespace core::Graphics
 	class Window_Win32 : public implement::ReferenceCounted<IWindow>
 	{
 	private:
-		WCHAR win32_window_class_name[64]{};
 		WNDCLASSEXW win32_window_class{ sizeof(WNDCLASSEXW) };
 		ATOM win32_window_class_atom{ 0 };
 		static LRESULT CALLBACK win32_window_callback(HWND window, UINT message, WPARAM arg1, LPARAM arg2);
@@ -49,7 +48,7 @@ namespace core::Graphics
 		UINT win32_window_height{ 480 };
 		UINT win32_window_dpi{};
 
-		INT_PTR win32_window_icon_id{ 0 };
+		INT_PTR win32_window_icon_id{ /* IDI_APPICON THIS IS A HACK */ 101 };
 
 		std::string win32_window_text{ "LuaSTG Sub" };
 		std::array<wchar_t, 512> win32_window_text_w;
@@ -157,64 +156,60 @@ namespace core::Graphics
 
 	public:
 
-		// vvvvvvvv BEGIN WIP
+		// IWindow
 
-		bool       textInput_isEnabled();
-		void       textInput_setEnabled(bool enabled);
-		StringView textInput_getBuffer();
-		void       textInput_clearBuffer();
-		uint32_t   textInput_getCursorPosition();
-		void       textInput_setCursorPosition(uint32_t code_point_index);
-		void       textInput_addCursorPosition(int32_t offset_by_code_point);
-		void       textInput_removeBufferRange(uint32_t code_point_index, uint32_t code_point_count);
-		void       textInput_insertBufferRange(uint32_t code_point_index, StringView str);
-		void       textInput_backspace(uint32_t code_point_count);
+		bool       textInput_isEnabled() override;
+		void       textInput_setEnabled(bool enabled) override;
+		StringView textInput_getBuffer() override;
+		void       textInput_clearBuffer() override;
+		uint32_t   textInput_getCursorPosition() override;
+		void       textInput_setCursorPosition(uint32_t code_point_index) override;
+		void       textInput_addCursorPosition(int32_t offset_by_code_point) override;
+		void       textInput_removeBufferRange(uint32_t code_point_index, uint32_t code_point_count) override;
+		void       textInput_insertBufferRange(uint32_t code_point_index, StringView str) override;
+		void       textInput_backspace(uint32_t code_point_count) override;
 
-		// ^^^^^^^^ END WIP
+		void* getNativeHandle() override;
 
-		void* getNativeHandle();
-		void setNativeIcon(void* id);
+		void setIMEState(bool enable) override;
+		bool getIMEState() override;
+		void setInputMethodPosition(Vector2I position) override;
 
-		void setIMEState(bool enable);
-		bool getIMEState();
-		void setInputMethodPosition(Vector2I position);
+		void setTitleText(StringView str) override;
+		StringView getTitleText() override;
 
-		void setTitleText(StringView str);
-		StringView getTitleText();
+		bool setFrameStyle(WindowFrameStyle style) override;
+		WindowFrameStyle getFrameStyle() override;
 
-		bool setFrameStyle(WindowFrameStyle style);
-		WindowFrameStyle getFrameStyle();
+		Vector2U getSize() override;
+		Vector2U _getCurrentSize() override;
+		bool setSize(Vector2U v) override;
 
-		Vector2U getSize();
-		Vector2U _getCurrentSize();
-		bool setSize(Vector2U v);
+		WindowLayer getLayer() override;
+		bool setLayer(WindowLayer layer) override;
 
-		WindowLayer getLayer();
-		bool setLayer(WindowLayer layer);
+		float getDPIScaling() override;
 
-		float getDPIScaling();
+		void setWindowMode(Vector2U size, WindowFrameStyle style, IDisplay* display) override;
+		void setFullScreenMode(IDisplay* display) override;
+		void setCentered(bool show, IDisplay* display) override;
 
-		void setWindowMode(Vector2U size, WindowFrameStyle style, IDisplay* display);
-		void setFullScreenMode(IDisplay* display);
-		void setCentered(bool show, IDisplay* display);
+		void setCustomSizeMoveEnable(bool v) override;
+		void setCustomMinimizeButtonRect(RectI v) override;
+		void setCustomCloseButtonRect(RectI v) override;
+		void setCustomMoveButtonRect(RectI v) override;
 
-		void setCustomSizeMoveEnable(bool v);
-		void setCustomMinimizeButtonRect(RectI v);
-		void setCustomCloseButtonRect(RectI v);
-		void setCustomMoveButtonRect(RectI v);
+		bool setCursor(WindowCursor type) override;
+		WindowCursor getCursor() override;
 
-		bool setCursor(WindowCursor type);
-		WindowCursor getCursor();
+		void setWindowCornerPreference(bool allow) override; // Windows 11
+		void setTitleBarAutoHidePreference(bool allow) override; // Windows 11
 
-		// Windows 11
-		void setWindowCornerPreference(bool allow);
-		void setTitleBarAutoHidePreference(bool allow);
+		// Window/Win32
 
-	public:
 		Window_Win32();
-		~Window_Win32();
+		~Window_Win32() override;
 
-	public:
 		static bool create(Window_Win32** pp_window);
 		static bool create(Vector2U size, StringView title_text, WindowFrameStyle style, bool show, Window_Win32** pp_window);
 	};

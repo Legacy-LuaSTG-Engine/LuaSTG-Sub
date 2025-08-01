@@ -13,7 +13,6 @@
 
 static constexpr int LUASTG_WM_UPDAE_TITLE = WM_APP + __LINE__;
 static constexpr int LUASTG_WM_RECREATE = WM_APP + __LINE__;
-static constexpr int LUASTG_WM_SETICON = WM_APP + __LINE__;
 static constexpr int LUASTG_WM_SET_WINDOW_MODE = WM_APP + __LINE__;
 static constexpr int LUASTG_WM_SET_FULLSCREEN_MODE = WM_APP + __LINE__;
 
@@ -549,14 +548,6 @@ namespace core::Graphics
 		case LUASTG_WM_RECREATE:
 			_recreateWindow();
 			return 0;
-		case LUASTG_WM_SETICON:
-		{
-			HICON hIcon = LoadIcon(win32_window_class.hInstance, MAKEINTRESOURCE(win32_window_icon_id));
-			SendMessageW(win32_window, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hIcon);
-			SendMessageW(win32_window, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)hIcon);
-			DestroyIcon(hIcon);
-		}
-		return 0;
 		case LUASTG_WM_SET_WINDOW_MODE:
 			_setWindowMode(reinterpret_cast<SetWindowedModeParameters*>(arg1), arg2);
 			return 0;
@@ -566,25 +557,35 @@ namespace core::Graphics
 		}
 		return DefWindowProcW(window, message, arg1, arg2);
 	}
-	bool Window_Win32::createWindowClass()
-	{
-		HINSTANCE hInstance = GetModuleHandleW(NULL);
-		assert(hInstance); // 如果 hInstance 为 NULL 那肯定是见鬼了
+	bool Window_Win32::createWindowClass() {
+		auto const instance_handle = GetModuleHandleW(nullptr);
+		if (instance_handle == nullptr) {
+			assert(false); // unlikely
+			return false;
+		}
 
-		std::memset(win32_window_class_name, 0, sizeof(win32_window_class_name));
-		std::swprintf(win32_window_class_name, std::size(win32_window_class_name), L"LuaSTG::core::Window[%p]", this);
+		HICON icon{};
+		if (win32_window_icon_id != 0) {
+			icon = LoadIcon(instance_handle, MAKEINTRESOURCE(win32_window_icon_id));
+		}
 
 		auto& cls = win32_window_class;
 		cls.style = CS_HREDRAW | CS_VREDRAW;
 		cls.lpfnWndProc = &win32_window_callback;
-		cls.hInstance = hInstance;
-		cls.hCursor = LoadCursor(NULL, IDC_ARROW);
+		cls.hInstance = instance_handle;
+		cls.hIcon = icon;
+		cls.hCursor = LoadCursor(nullptr, IDC_ARROW);
 		cls.hbrBackground = static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH));
-		cls.lpszClassName = win32_window_class_name;
+		cls.lpszClassName = L"luastg::core::Window";
+		cls.hIconSm = icon;
 
 		win32_window_class_atom = RegisterClassExW(&cls);
-		if (win32_window_class_atom == 0)
-		{
+
+		if (icon != nullptr) {
+			DestroyIcon(icon);
+		}
+
+		if (win32_window_class_atom == 0) {
 			spdlog::error("[luastg] (LastError = {}) RegisterClassExW failed", GetLastError());
 			return false;
 		}
@@ -640,9 +641,6 @@ namespace core::Graphics
 
 		Platform::WindowTheme::UpdateColorMode(win32_window, TRUE);
 		setWindowCornerPreference(m_allow_windows_11_window_corner);
-		if (win32_window_icon_id) {
-			SendMessageW(win32_window, LUASTG_WM_SETICON, 0, 0);
-		}
 
 		// 丢到显示器中间
 
@@ -1027,11 +1025,6 @@ namespace core::Graphics
 	}
 
 	void* Window_Win32::getNativeHandle() { return win32_window; }
-	void Window_Win32::setNativeIcon(void* id)
-	{
-		win32_window_icon_id = (INT_PTR)id;
-		SendMessageW(win32_window, LUASTG_WM_SETICON, 0, 0);
-	}
 
 	void Window_Win32::setIMEState(bool enable)
 	{
@@ -1053,15 +1046,15 @@ namespace core::Graphics
 		return win32_window_ime_enable;
 	}
 
-	void Window_Win32::setTitleText(StringView str)
-	{
+	void Window_Win32::setTitleText(StringView const str) {
 		win32_window_text = str;
 		m_title_bar_controller.setTitle(std::string(str));
 		convertTitleText();
-		PostMessageW(win32_window, LUASTG_WM_UPDAE_TITLE, 0, 0);
+		if (win32_window) {
+			PostMessageW(win32_window, LUASTG_WM_UPDAE_TITLE, 0, 0);
+		}
 	}
-	StringView Window_Win32::getTitleText()
-	{
+	StringView Window_Win32::getTitleText() {
 		return win32_window_text;
 	}
 
@@ -1314,12 +1307,26 @@ namespace core::Graphics
 		}
 	}
 
-	Window_Win32::Window_Win32()
-	{
-		enable_track_window_focus = core::ConfigurationLoader::getInstance().getDebug().isTrackWindowFocus();
-		auto_hide_title_bar = core::ConfigurationLoader::getInstance().getWindow().isAllowTitleBarAutoHide();
+	Window_Win32::Window_Win32() {
+		auto const& debug_config = ConfigurationLoader::getInstance().getDebug();
+		enable_track_window_focus = debug_config.isTrackWindowFocus();
+
+		auto const& window_config = ConfigurationLoader::getInstance().getWindow();
+		if (window_config.hasTitle()) {
+			win32_window_text = window_config.getTitle();
+		}
+		m_cursor = window_config.isCursorVisible() ? WindowCursor::Arrow : WindowCursor::None;
+		m_allow_windows_11_window_corner = window_config.isAllowWindowCorner();
+		auto_hide_title_bar = window_config.isAllowTitleBarAutoHide();
+
+		auto const& graphics_config = ConfigurationLoader::getInstance().getGraphicsSystem();
+		win32_window_width = graphics_config.getWidth();
+		win32_window_height = graphics_config.getHeight();
+
+		m_title_bar_controller.setTitle(win32_window_text);
+		convertTitleText();
 		win32_window_dpi = win32::getUserDefaultScreenDpi();
-		win32_window_text_w.fill(L'\0');
+
 		if (!createWindowClass())
 			throw std::runtime_error("createWindowClass failed");
 		if (!createWindow())

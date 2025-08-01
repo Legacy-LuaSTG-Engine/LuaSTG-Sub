@@ -94,7 +94,6 @@ namespace core::Graphics
 		virtual void removeEventListener(IWindowEventListener* e) = 0;
 
 		virtual void* getNativeHandle() = 0;
-		virtual void setNativeIcon(void* id) = 0;
 
 		virtual void setIMEState(bool enable) = 0;
 		virtual bool getIMEState() = 0;

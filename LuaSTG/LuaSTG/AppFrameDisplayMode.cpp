@@ -44,9 +44,7 @@ namespace luastg
 			auto const& gs = core::ConfigurationLoader::getInstance().getGraphicsSystem();
 			auto const& win = core::ConfigurationLoader::getInstance().getWindow();
 			auto* p_window = m_pAppModel->getWindow();
-			p_window->setTitleText(win.hasTitle() ? win.getTitle() : std::string(LUASTG_INFO));
 			p_window->setCursor(win.isCursorVisible() ? core::Graphics::WindowCursor::Arrow : core::Graphics::WindowCursor::None);
-			p_window->setNativeIcon((void*)(ptrdiff_t)IDI_APPICON);
 			p_window->setWindowCornerPreference(win.isAllowWindowCorner());
 			p_window->setWindowMode(core::Vector2U(gs.getWidth(), gs.getHeight()));
 		}

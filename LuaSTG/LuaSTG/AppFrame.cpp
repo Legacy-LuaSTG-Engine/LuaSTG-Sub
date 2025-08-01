@@ -191,6 +191,10 @@ bool AppFrame::Init()noexcept
 	//////////////////////////////////////// 应用程序模型、窗口子系统、图形子系统、音频子系统等
 
 	{
+		if (auto& window_config = core::ConfigurationLoader::getInstance().getWindowRef(); !window_config.hasTitle()) {
+			window_config.setTitle(LUASTG_INFO);
+		}
+
 		if (!core::IApplicationModel::create(this, m_pAppModel.put()))
 			return false;
 		if (!core::IAudioEngine::create(m_audio_engine.put()))
