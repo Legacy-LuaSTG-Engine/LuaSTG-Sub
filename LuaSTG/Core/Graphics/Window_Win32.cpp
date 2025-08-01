@@ -130,61 +130,56 @@ namespace core::Graphics
 	}
 	Display_Win32::~Display_Win32() = default;
 
-	bool IDisplay::getAll(size_t* count, IDisplay** output) {
-		assert(count);
-		std::vector<HMONITOR> list;
+	bool IDisplay::getAll(size_t* const count, IDisplay** const output) {
+		assert(count != nullptr);
+		assert(*count == 0 || (*count > 0 && output != nullptr));
 		struct Context {
 			std::vector<HMONITOR> list;
-			static BOOL CALLBACK callback(HMONITOR monitor, HDC, LPRECT, LPARAM data) {
-				auto context = reinterpret_cast<Context*>(data);
+			static BOOL CALLBACK callback(HMONITOR const monitor, HDC, LPRECT, LPARAM const data) {
+				auto const context = reinterpret_cast<Context*>(data);
 				context->list.emplace_back(monitor);
 				return TRUE;
-			};
+			}
 		};
 		Context context{};
-		if (!EnumDisplayMonitors(NULL, NULL, &Context::callback, reinterpret_cast<LPARAM>(&context))) {
+		if (!EnumDisplayMonitors(nullptr, nullptr, &Context::callback, reinterpret_cast<LPARAM>(&context))) {
 			return false;
 		}
 		*count = context.list.size();
 		if (output) {
 			for (size_t i = 0; i < context.list.size(); i += 1) {
-				auto display = new Display_Win32(context.list.at(i));
-				output[i] = display;
+				output[i] = new Display_Win32(context.list.at(i));
 			}
 		}
 		return true;
 	}
-	bool IDisplay::getPrimary(IDisplay** output) {
-		assert(output);
+	bool IDisplay::getPrimary(IDisplay** const output) {
+		assert(output != nullptr);
 		struct Context {
 			HMONITOR primary{};
-			static BOOL CALLBACK callback(HMONITOR monitor, HDC, LPRECT, LPARAM data) {
-				auto context = reinterpret_cast<Context*>(data);
-				auto const info = getMonitorInfo(monitor);
-				if (info.dwFlags & MONITORINFOF_PRIMARY) {
+			static BOOL CALLBACK callback(HMONITOR const monitor, HDC, LPRECT, LPARAM const data) {
+				auto const context = reinterpret_cast<Context*>(data);
+				if (auto const info = getMonitorInfo(monitor); info.dwFlags & MONITORINFOF_PRIMARY) {
 					context->primary = monitor;
-					return FALSE;
 				}
 				return TRUE;
 			};
 		};
 		Context context{};
-		if (!EnumDisplayMonitors(NULL, NULL, &Context::callback, reinterpret_cast<LPARAM>(&context))) {
+		if (!EnumDisplayMonitors(nullptr, nullptr, &Context::callback, reinterpret_cast<LPARAM>(&context))) {
 			return false;
 		}
-		auto display = new Display_Win32(context.primary);
-		*output = display;
+		*output = new Display_Win32(context.primary);
 		return true;
 	}
-	bool IDisplay::getNearestFromWindow(IWindow* window, IDisplay** output) {
-		assert(window);
-		assert(output);
-		HMONITOR monitor = MonitorFromWindow(static_cast<HWND>(window->getNativeHandle()), MONITOR_DEFAULTTOPRIMARY);
+	bool IDisplay::getNearestFromWindow(IWindow* const window, IDisplay** const output) {
+		assert(window != nullptr);
+		assert(output != nullptr);
+		auto const monitor = MonitorFromWindow(static_cast<HWND>(window->getNativeHandle()), MONITOR_DEFAULTTOPRIMARY);
 		if (!monitor) {
 			return false;
 		}
-		auto display = new Display_Win32(monitor);
-		*output = display;
+		*output = new Display_Win32(monitor);
 		return true;
 	}
 }
@@ -600,14 +595,26 @@ namespace core::Graphics
 		}
 		win32_window_class_atom = 0;
 	}
-	bool Window_Win32::createWindow()
-	{
-		if (win32_window_class_atom == 0)
-		{
+	bool Window_Win32::createWindow() {
+		if (win32_window_class_atom == 0) {
 			return false;
 		}
 
-		// 直接创建窗口
+		// 拿到原点位置的显示器信息
+		SmartReference<IDisplay> display;
+		if (!IDisplay::getPrimary(display.put())) {
+			return false; // 理论上 Windows 平台的主显示器都在原点
+		}
+		auto const display_rect = display->getWorkAreaRect();
+		auto const display_dpi = static_cast<UINT>(display->getDisplayScale() * USER_DEFAULT_SCREEN_DPI);
+
+		// 计算初始大小
+
+		RECT client{ 0, 0, static_cast<LONG>(win32_window_width),static_cast<LONG>(win32_window_height) };
+		m_title_bar_controller.setEnable(auto_hide_title_bar);
+		m_title_bar_controller.adjustWindowRectExForDpi(&client, win32_window_style, FALSE, win32_window_style_ex, display_dpi);
+
+		// 创建窗口
 
 		convertTitleText();
 		win32_window = CreateWindowExW(
@@ -615,10 +622,16 @@ namespace core::Graphics
 			win32_window_class.lpszClassName,
 			win32_window_text_w.data(),
 			win32_window_style,
-			0, 0, (int)win32_window_width, (int)win32_window_height,
-			NULL, NULL, win32_window_class.hInstance, this);
-		if (win32_window == NULL)
-		{
+			display_rect.a.x, // x (left)
+			display_rect.a.y, // y (top)
+			client.right - client.left,
+			client.bottom - client.top,
+			nullptr, // parent
+			nullptr, // menu
+			win32_window_class.hInstance,
+			this
+		);
+		if (win32_window == nullptr) {
 			spdlog::error("[luastg] (LastError = {}) CreateWindowExW failed", GetLastError());
 			return false;
 		}
@@ -632,10 +645,6 @@ namespace core::Graphics
 		// 配置窗口挪动器
 
 		m_sizemove.setWindow(win32_window);
-
-		// 标题栏控制器
-
-		m_title_bar_controller.setEnable(auto_hide_title_bar && !m_fullscreen_mode);
 
 		// 窗口样式
 
