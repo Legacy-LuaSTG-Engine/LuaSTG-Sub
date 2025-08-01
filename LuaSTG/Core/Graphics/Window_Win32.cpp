@@ -126,7 +126,7 @@ namespace core::Graphics
 		return win32::getDpiScalingForMonitor(win32_monitor);
 	}
 
-	Display_Win32::Display_Win32(HMONITOR monitor) : win32_monitor(monitor) {
+	Display_Win32::Display_Win32(HMONITOR const monitor) : win32_monitor(monitor) {
 	}
 	Display_Win32::~Display_Win32() = default;
 

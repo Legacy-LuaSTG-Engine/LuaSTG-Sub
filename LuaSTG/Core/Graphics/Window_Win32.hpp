@@ -8,23 +8,33 @@
 
 namespace core::Graphics
 {
-	class Display_Win32 : public implement::ReferenceCounted<IDisplay> {
+	class Display_Win32 final : public implement::ReferenceCounted<IDisplay> {
+	public:
+		// IDisplay
+		
+		void* getNativeHandle() override;
+		void getFriendlyName(IImmutableString** output) override;
+		Vector2U getSize() override;
+		Vector2I getPosition() override;
+		RectI getRect() override;
+		Vector2U getWorkAreaSize() override;
+		Vector2I getWorkAreaPosition() override;
+		RectI getWorkAreaRect() override;
+		bool isPrimary() override;
+		float getDisplayScale() override;
+
+		// Display/Win32
+
+		explicit Display_Win32(HMONITOR monitor);
+		Display_Win32(Display_Win32 const&) = delete;
+		Display_Win32(Display_Win32&&) = delete;
+		~Display_Win32() override;
+
+		Display_Win32& operator=(Display_Win32 const&) = delete;
+		Display_Win32& operator=(Display_Win32&&) = delete;
+
 	private:
 		HMONITOR win32_monitor{};
-	public:
-		void* getNativeHandle();
-		void getFriendlyName(IImmutableString** output);
-		Vector2U getSize();
-		Vector2I getPosition();
-		RectI getRect();
-		Vector2U getWorkAreaSize();
-		Vector2I getWorkAreaPosition();
-		RectI getWorkAreaRect();
-		bool isPrimary();
-		float getDisplayScale();
-	public:
-		Display_Win32(HMONITOR monitor);
-		~Display_Win32();
 	};
 
 	struct SetWindowedModeParameters {
