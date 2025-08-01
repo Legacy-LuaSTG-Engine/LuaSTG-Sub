@@ -45,7 +45,6 @@ namespace luastg
 			auto const& win = core::ConfigurationLoader::getInstance().getWindow();
 			auto* p_window = m_pAppModel->getWindow();
 			p_window->setCursor(win.isCursorVisible() ? core::Graphics::WindowCursor::Arrow : core::Graphics::WindowCursor::None);
-			p_window->setWindowCornerPreference(win.isAllowWindowCorner());
 			p_window->setWindowMode(core::Vector2U(gs.getWidth(), gs.getHeight()));
 		}
 		return true;
