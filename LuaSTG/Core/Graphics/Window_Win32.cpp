@@ -990,7 +990,7 @@ namespace core::Graphics
 		}
 		m_eventobj_late.clear();
 	}
-	void Window_Win32::Window_Win32::addEventListener(IWindowEventListener* e)
+	void Window_Win32::addEventListener(IWindowEventListener* e)
 	{
 		removeEventListener(e);
 		if (m_is_dispatch_event)
@@ -1002,7 +1002,7 @@ namespace core::Graphics
 			m_eventobj.emplace_back(e);
 		}
 	}
-	void Window_Win32::Window_Win32::removeEventListener(IWindowEventListener* e)
+	void Window_Win32::removeEventListener(IWindowEventListener* e)
 	{
 		if (m_is_dispatch_event)
 		{
