@@ -622,8 +622,8 @@ namespace core::Graphics
 			win32_window_class.lpszClassName,
 			win32_window_text_w.data(),
 			win32_window_style,
-			display_rect.a.x, // x (left)
-			display_rect.a.y, // y (top)
+			(display_rect.a.x + display_rect.b.x) / 2 - (client.right - client.left) / 2, // x (left)
+			(display_rect.a.y + display_rect.b.y) / 2 - (client.bottom - client.top) / 2, // y (top)
 			client.right - client.left,
 			client.bottom - client.top,
 			nullptr, // parent
