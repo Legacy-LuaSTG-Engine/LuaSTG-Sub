@@ -27,6 +27,17 @@ namespace {
 		assert(result);
 		return info;
 	}
+
+	void clearWindowBackground(HWND const window) {
+		PAINTSTRUCT ps{};
+		if (auto const dc = BeginPaint(window, &ps); dc != nullptr) {
+			RECT rc{};
+			GetClientRect(window, &rc);
+			auto const brush = static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH));
+			FillRect(dc, &rc, brush);
+			EndPaint(window, &ps);
+		}
+	}
 }
 
 namespace core::Graphics
@@ -548,7 +559,40 @@ namespace core::Graphics
 			_setFullScreenMode(reinterpret_cast<IDisplay*>(arg2));
 			return 0;
 		}
-		return DefWindowProcW(window, message, arg1, arg2);
+		const auto result = DefWindowProcW(window, message, arg1, arg2);
+		if (!m_window_created) {
+			// 在 CreateWindow/CreateWindowEx 期间，
+			// 即使设置了窗口类的 hbrBackground 为黑色笔刷，窗口背景也会先绘制为白色，再转为黑色。
+			// 只有不断追着窗口消息重绘背景，才能 **一定程度** 上避免白色背景（不保证 100% 有效）。
+			// CreateWindow/CreateWindowEx 一般会产生以下窗口消息（按先后顺序）：
+			// - WM_GETMINMAXINFO
+			// - WM_NCCREATE
+			// - WM_NCCALCSIZE
+			// - WM_CREATE
+			// - WM_SHOWWINDOW
+			// - WM_WINDOWPOSCHANGING
+			// - WM_NCPAINT
+			// - WM_GETICON
+			// - WM_ERASEBKGND
+			// - WM_GETICON
+			// - WM_ACTIVATEAPP
+			// - WM_NCACTIVATE
+			// - WM_ACTIVATE
+			// - WM_IME_SETCONTEXT
+			// - WM_IME_NOTIFY
+			// - WM_SETFOCUS
+			// - WM_WINDOWPOSCHANGED
+			// - WM_SIZE
+			// - WM_MOVE
+			// 经过测试，如果在以下三类消息之后重绘背景为黑色，能极大程度地减少看到白色背景的概率：
+			// - WM_NCPAINT
+			// - WM_GETICON
+			// - WM_ERASEBKGND
+			// 但仅处理以上三类消息，仍然会有一定概率出现白色背景，
+			// 因此，有理由猜测白色背景的绘制在窗口弹出动画期间都会持续执行（可能由桌面窗口管理器合成）。
+			clearWindowBackground(window);
+		}
+		return result;
 	}
 	bool Window_Win32::createWindowClass() {
 		auto const instance_handle = GetModuleHandleW(nullptr);
@@ -633,6 +677,7 @@ namespace core::Graphics
 			spdlog::error("[luastg] (LastError = {}) CreateWindowExW failed", GetLastError());
 			return false;
 		}
+		m_window_created = true;
 
 		// 配置输入法
 
@@ -651,12 +696,12 @@ namespace core::Graphics
 
 		return true;
 	}
-	void Window_Win32::destroyWindow()
-	{
-		m_sizemove.setWindow(NULL);
+	void Window_Win32::destroyWindow() {
+		m_sizemove.setWindow(nullptr);
+		m_window_created = false;
 		if (win32_window) {
 			DestroyWindow(win32_window);
-			win32_window = NULL;
+			win32_window = nullptr;
 		}
 	}
 	bool Window_Win32::_recreateWindow() {

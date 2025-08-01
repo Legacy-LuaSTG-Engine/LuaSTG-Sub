@@ -51,6 +51,7 @@ namespace core::Graphics
 		static LRESULT CALLBACK win32_window_callback(HWND window, UINT message, WPARAM arg1, LPARAM arg2);
 
 		HWND win32_window{};
+		bool m_window_created{ false };
 
 		BOOL win32_window_ime_enable{ FALSE };
 
