@@ -6,6 +6,7 @@
 #include "win32/abi.hpp"
 #include "Platform/WindowsVersion.hpp"
 #include "Platform/WindowTheme.hpp"
+#include "Platform/RuntimeLoader/DesktopWindowManager.hpp"
 #include "utf8.hpp"
 #include "simdutf.h"
 #include <WinUser.h>
@@ -17,6 +18,8 @@ static constexpr int LUASTG_WM_SET_WINDOW_MODE = WM_APP + __LINE__;
 static constexpr int LUASTG_WM_SET_FULLSCREEN_MODE = WM_APP + __LINE__;
 
 namespace {
+	Platform::RuntimeLoader::DesktopWindowManager dwmapi_loader;
+
 	template<typename T = MONITORINFO>
 	T getMonitorInfo(HMONITOR const monitor) {
 		static_assert(std::is_same_v<T, MONITORINFO> || std::is_same_v<T, MONITORINFOEXW>);
@@ -36,6 +39,18 @@ namespace {
 			auto const brush = static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH));
 			FillRect(dc, &rc, brush);
 			EndPaint(window, &ps);
+		}
+	}
+
+	void setAllowWindowCorner(HWND const window, bool const allow) {
+		DWM_WINDOW_CORNER_PREFERENCE const attr = allow ? DWMWCP_DEFAULT : DWMWCP_DONOTROUND;
+		HRESULT const hr = gHR = dwmapi_loader.SetWindowAttribute(window, DWMWA_WINDOW_CORNER_PREFERENCE, &attr, sizeof(attr));
+		if (FAILED(hr)) {
+			std::string msg;
+			msg.reserve(64);
+			msg.append("DwmSetWindowAttribute -> ");
+			msg.append(allow ? "DWMWCP_DEFAULT" : "DWMWCP_DONOTROUND");
+			i18n_core_system_call_report_error(msg);
 		}
 	}
 }
@@ -347,27 +362,25 @@ namespace core::Graphics
 
 #define APPMODEL ((ApplicationModel_Win32*)m_framework)
 
-	LRESULT CALLBACK Window_Win32::win32_window_callback(HWND window, UINT message, WPARAM arg1, LPARAM arg2)
-	{
-		if (Window_Win32* self = (Window_Win32*)GetWindowLongPtrW(window, GWLP_USERDATA))
-		{
+	LRESULT CALLBACK Window_Win32::win32_window_callback(HWND const window, UINT const message, WPARAM const arg1, LPARAM const arg2) {
+		if (auto const self = reinterpret_cast<Window_Win32*>(GetWindowLongPtrW(window, GWLP_USERDATA))) {
 			return self->onMessage(window, message, arg1, arg2);
 		}
-		switch (message)
-		{
-		case WM_NCCREATE:
+		if (message == WM_NCCREATE) {
 			win32::enableNonClientDpiScaling(window);
-			Platform::WindowTheme::UpdateColorMode(window, TRUE);
-			break;
-		case WM_CREATE:
-			SetLastError(0);
-			SetWindowLongPtrW(window, GWLP_USERDATA, (LONG_PTR)((CREATESTRUCTW*)arg2)->lpCreateParams);
-			if (DWORD const err = GetLastError())
-			{
-				spdlog::error("[luastg] (LastError = {}) SetWindowLongPtrW -> #GWLP_USERDATA failed", err);
-				return -1;
+			if (auto const params = reinterpret_cast<CREATESTRUCTW*>(arg2); params->lpCreateParams) {
+				auto const self = static_cast<Window_Win32*>(params->lpCreateParams);
+
+				SetLastError(0);
+				SetWindowLongPtrW(window, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(self));
+				if (auto const code = GetLastError(); code != 0) {
+					spdlog::error("[luastg] (LastError = {}) SetWindowLongPtrW -> #GWLP_USERDATA failed", code);
+					return FALSE;
+				}
+
+				Platform::WindowTheme::UpdateColorMode(window, TRUE);
+				setAllowWindowCorner(window, self->m_allow_windows_11_window_corner);
 			}
-			return 0;
 		}
 		return DefWindowProcW(window, message, arg1, arg2);
 	}
@@ -689,10 +702,6 @@ namespace core::Graphics
 		// 配置窗口挪动器
 
 		m_sizemove.setWindow(win32_window);
-
-		// 窗口样式
-
-		setWindowCornerPreference(m_allow_windows_11_window_corner);
 
 		return true;
 	}
@@ -1290,40 +1299,25 @@ namespace core::Graphics
 		return m_cursor;
 	}
 
-	void Window_Win32::setWindowCornerPreference(bool allow)
-	{
+	void Window_Win32::setWindowCornerPreference(bool const allow) {
 		m_allow_windows_11_window_corner = allow;
-
-		if (!Platform::WindowsVersion::Is11())
-		{
+		if (!Platform::WindowsVersion::Is11()) {
 			return;
 		}
-
 		assert(win32_window);
-
-		DWM_WINDOW_CORNER_PREFERENCE attr = allow ? DWMWCP_DEFAULT : DWMWCP_DONOTROUND;
-		HRESULT hr = gHR = dwmapi_loader.SetWindowAttribute(
-			win32_window, DWMWA_WINDOW_CORNER_PREFERENCE, &attr, sizeof(attr));
-		if (FAILED(hr))
-		{
-			std::string msg;
-			msg.reserve(64);
-			msg.append("DwmSetWindowAttribute -> ");
-			msg.append(allow ? "DWMWCP_DEFAULT" : "DWMWCP_DONOTROUND");
-			i18n_core_system_call_report_error(msg);
-		}
+		setAllowWindowCorner(win32_window, allow);
 	}
-	void Window_Win32::setTitleBarAutoHidePreference(bool allow) {
+	void Window_Win32::setTitleBarAutoHidePreference(bool const allow) {
 		auto_hide_title_bar = allow;
 		m_title_bar_controller.setEnable(auto_hide_title_bar && !m_fullscreen_mode);
 		if (!m_fullscreen_mode) {
 			WINDOWPLACEMENT placement{ .length{sizeof(WINDOWPLACEMENT)} };
 			GetWindowPlacement(win32_window, &placement);
-			SetWindowPos(win32_window, NULL, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
+			SetWindowPos(win32_window, nullptr, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
 			SetWindowPlacement(win32_window, &placement);
 		}
 		else {
-			SetWindowPos(win32_window, NULL, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+			SetWindowPos(win32_window, nullptr, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
 		}
 	}
 

@@ -3,7 +3,6 @@
 #include "Core/ApplicationModel.hpp"
 #include "Core/Graphics/Window.hpp"
 #include "Platform/WindowSizeMoveController.hpp"
-#include "Platform/RuntimeLoader/DesktopWindowManager.hpp"
 #include "Platform/ImmersiveTitleBarController.hpp"
 
 namespace core::Graphics
@@ -84,7 +83,6 @@ namespace core::Graphics
 
 		Platform::WindowSizeMoveController m_sizemove;
 		platform::windows::ImmersiveTitleBarController m_title_bar_controller;
-		Platform::RuntimeLoader::DesktopWindowManager dwmapi_loader;
 
 		LRESULT onMessage(HWND window, UINT message, WPARAM arg1, LPARAM arg2);
 
