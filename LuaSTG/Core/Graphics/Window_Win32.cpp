@@ -450,13 +450,11 @@ namespace core::Graphics
 			win32_window_is_menu_loop = FALSE;
 			return 0;
 		case WM_PAINT:
-			if (win32_window_is_sizemove || win32_window_is_menu_loop)
-			{
+			if (win32_window_is_sizemove || win32_window_is_menu_loop) {
 				APPMODEL->runFrame();
 			}
-			else
-			{
-				ValidateRect(window, NULL); // 正常情况下，WM_PAINT 忽略掉
+			else {
+				ValidateRect(window, nullptr); // no gdi painting
 			}
 			return 0;
 		case WM_SYSKEYDOWN:
