@@ -40,24 +40,24 @@ namespace core::Graphics
 		ATOM win32_window_class_atom{ 0 };
 		static LRESULT CALLBACK win32_window_callback(HWND window, UINT message, WPARAM arg1, LPARAM arg2);
 
-		HWND win32_window{ NULL };
+		HWND win32_window{};
 
 		BOOL win32_window_ime_enable{ FALSE };
 
 		UINT win32_window_width{ 640 };
 		UINT win32_window_height{ 480 };
-		UINT win32_window_dpi{};
+		UINT win32_window_dpi{ USER_DEFAULT_SCREEN_DPI };
 
 		INT_PTR win32_window_icon_id{ /* IDI_APPICON THIS IS A HACK */ 101 };
 
 		std::string win32_window_text{ "LuaSTG Sub" };
-		std::array<wchar_t, 512> win32_window_text_w;
+		std::array<wchar_t, 512> win32_window_text_w{};
 
 		WindowCursor m_cursor{ WindowCursor::Arrow };
-		HCURSOR win32_window_cursor{ NULL };
+		HCURSOR win32_window_cursor{};
 
 		WindowFrameStyle m_framestyle{ WindowFrameStyle::Normal };
-		DWORD win32_window_style{ WS_OVERLAPPEDWINDOW ^ (WS_THICKFRAME | WS_MAXIMIZEBOX) };
+		DWORD win32_window_style{ WS_VISIBLE | WS_OVERLAPPEDWINDOW ^ (WS_THICKFRAME | WS_MAXIMIZEBOX) };
 		DWORD win32_window_style_ex{ 0 };
 		BOOL m_hidewindow{ TRUE };
 		WINDOWPLACEMENT m_last_window_placement{};
@@ -138,8 +138,8 @@ namespace core::Graphics
 
 	public:
 
-		void addEventListener(IWindowEventListener* e);
-		void removeEventListener(IWindowEventListener* e);
+		void addEventListener(IWindowEventListener* e) override;
+		void removeEventListener(IWindowEventListener* e) override;
 
 	private:
 
