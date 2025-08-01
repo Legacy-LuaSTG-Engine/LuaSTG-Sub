@@ -59,7 +59,6 @@ namespace core::Graphics
 		WindowFrameStyle m_framestyle{ WindowFrameStyle::Normal };
 		DWORD win32_window_style{ WS_VISIBLE | WS_OVERLAPPEDWINDOW ^ (WS_THICKFRAME | WS_MAXIMIZEBOX) };
 		DWORD win32_window_style_ex{ 0 };
-		BOOL m_hidewindow{ TRUE };
 		WINDOWPLACEMENT m_last_window_placement{};
 		BOOL m_alt_down{ FALSE };
 		BOOL m_fullscreen_mode{ FALSE };
@@ -184,8 +183,6 @@ namespace core::Graphics
 		Vector2U getSize() override;
 		Vector2U _getCurrentSize() override;
 		bool setSize(Vector2U v) override;
-
-		WindowLayer getLayer() override;
 		bool setLayer(WindowLayer layer) override;
 
 		float getDPIScaling() override;

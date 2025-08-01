@@ -32,25 +32,20 @@ namespace core::Graphics
 		virtual NativeWindowMessageResult onNativeWindowMessage(void*, uint32_t, uintptr_t, intptr_t) { return {}; };
 	};
 
-	enum class WindowFrameStyle
-	{
+	enum class WindowFrameStyle {
 		None,
 		Fixed,
 		Normal,
 	};
 
-	enum class WindowLayer
-	{
-		Unknown,
-		Invisible,
+	enum class WindowLayer {
 		Bottom,
 		Normal,
 		Top,
 		TopMost,
 	};
 
-	enum class WindowCursor
-	{
+	enum class WindowCursor {
 		None,
 
 		Arrow,
@@ -124,8 +119,6 @@ namespace core::Graphics
 		virtual Vector2U getSize() = 0; // TODO: history problem
 		virtual Vector2U _getCurrentSize() = 0; // TODO: history problem
 		virtual bool setSize(Vector2U v) = 0;
-
-		virtual WindowLayer getLayer() = 0;
 		virtual bool setLayer(WindowLayer layer) = 0;
 
 		virtual uint32_t getDPI() = 0;

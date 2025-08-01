@@ -694,9 +694,6 @@ namespace core::Graphics
 		//if (!_recreateWindow()) {
 		//	return false;
 		//}
-		if (!m_hidewindow) {
-			ShowWindow(win32_window, SW_SHOWNORMAL);
-		}
 		dispatchEvent(EventType::WindowCreate);
 		return true;
 	}
@@ -763,12 +760,12 @@ namespace core::Graphics
 		{
 			BOOL const set_window_pos_result = SetWindowPos(
 				win32_window,
-				m_hidewindow ? NULL : HWND_TOP,
+				HWND_TOP,
 				(monitor_info.rcWork.right + monitor_info.rcWork.left) / 2 - (rect.right - rect.left) / 2,
 				(monitor_info.rcWork.bottom + monitor_info.rcWork.top) / 2 - (rect.bottom - rect.top) / 2,
 				rect.right - rect.left,
 				rect.bottom - rect.top,
-				SWP_FRAMECHANGED | (m_hidewindow ? SWP_NOZORDER : SWP_SHOWWINDOW));
+				SWP_FRAMECHANGED | SWP_SHOWWINDOW);
 			assert(set_window_pos_result); (void)set_window_pos_result;
 		}
 
@@ -1071,8 +1068,8 @@ namespace core::Graphics
 		win32_window_style = mapWindowStyle(m_framestyle, m_fullscreen_mode);
 		SetWindowLongPtrW(win32_window, GWL_STYLE, win32_window_style);
 		//SetWindowLongPtrW(win32_window, GWL_EXSTYLE, win32_window_style_ex);
-		UINT const flags = (SWP_FRAMECHANGED | SWP_NOZORDER | SWP_NOSIZE | SWP_NOMOVE) | (!m_hidewindow ? SWP_SHOWWINDOW : 0);
-		SetWindowPos(win32_window, NULL, 0, 0, 0, 0, flags);
+		constexpr UINT flags = SWP_FRAMECHANGED | SWP_NOZORDER | SWP_NOSIZE | SWP_NOMOVE | SWP_SHOWWINDOW;
+		SetWindowPos(win32_window, nullptr, 0, 0, 0, 0, flags);
 		return true;
 	}
 	WindowFrameStyle Window_Win32::getFrameStyle()
@@ -1095,51 +1092,26 @@ namespace core::Graphics
 		win32_window_height = v.y;
 		return setClientRect(RectI(0, 0, (int)v.x, (int)v.y));
 	}
-
-	WindowLayer Window_Win32::getLayer()
-	{
-		if (m_hidewindow)
-			return WindowLayer::Invisible;
-		if (WS_EX_TOPMOST & GetWindowLongPtrW(win32_window, GWL_EXSTYLE))
-			return WindowLayer::TopMost;
-		return WindowLayer::Unknown;
-	}
-	bool Window_Win32::setLayer(WindowLayer layer)
-	{
-		HWND pLayer = NULL;
-		switch (layer)
-		{
-		default:
-		case WindowLayer::Unknown:
-			assert(false); return false;
-		case WindowLayer::Invisible:
-			pLayer = NULL;
-			break;
+	bool Window_Win32::setLayer(WindowLayer const layer) {
+		HWND native_layer{};
+		switch (layer) {
 		case WindowLayer::Bottom:
-			pLayer = HWND_BOTTOM;
+			native_layer = HWND_BOTTOM;
 			break;
 		case WindowLayer::Normal:
-			pLayer = HWND_NOTOPMOST;
+			native_layer = HWND_NOTOPMOST;
 			break;
 		case WindowLayer::Top:
-			pLayer = HWND_TOP;
+			native_layer = HWND_TOP;
 			break;
 		case WindowLayer::TopMost:
-			pLayer = HWND_TOPMOST;
+			native_layer = HWND_TOPMOST;
 			break;
+		default:
+			assert(false);
+			return false;
 		}
-		UINT flags = (SWP_NOMOVE | SWP_NOSIZE);
-		if (layer == WindowLayer::Invisible)
-		{
-			flags |= (SWP_NOZORDER | SWP_HIDEWINDOW);
-			m_hidewindow = TRUE;
-		}
-		else
-		{
-			flags |= (SWP_SHOWWINDOW);
-			m_hidewindow = FALSE;
-		}
-		return SetWindowPos(win32_window, pLayer, 0, 0, 0, 0, flags) != FALSE;
+		return SetWindowPos(win32_window, native_layer, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW) != FALSE;
 	}
 
 	float Window_Win32::getDPIScaling()
