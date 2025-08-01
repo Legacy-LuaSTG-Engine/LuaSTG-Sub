@@ -357,6 +357,7 @@ namespace core::Graphics
 		{
 		case WM_NCCREATE:
 			win32::enableNonClientDpiScaling(window);
+			Platform::WindowTheme::UpdateColorMode(window, TRUE);
 			break;
 		case WM_CREATE:
 			SetLastError(0);
@@ -691,7 +692,6 @@ namespace core::Graphics
 
 		// 窗口样式
 
-		Platform::WindowTheme::UpdateColorMode(win32_window, TRUE);
 		setWindowCornerPreference(m_allow_windows_11_window_corner);
 
 		return true;
