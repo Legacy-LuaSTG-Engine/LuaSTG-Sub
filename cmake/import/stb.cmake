@@ -2,8 +2,9 @@
 
 CPMAddPackage(
     NAME nothings_stb
+    VERSION 2025.5.26
     GITHUB_REPOSITORY nothings/stb
-    GIT_TAG 5c205738c191bcb0abc65c4febfa9bd25ff35234
+    GIT_TAG f58f558c120e9b32c217290b80bad1a0729fbb2c
     DOWNLOAD_ONLY YES
 )
 

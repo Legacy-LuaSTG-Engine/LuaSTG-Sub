@@ -2,7 +2,7 @@
 
 CPMAddPackage(
     NAME libogg
-    VERSION 1.3.5
+    VERSION 1.3.6
     GITHUB_REPOSITORY xiph/ogg
     DOWNLOAD_ONLY YES
 )
