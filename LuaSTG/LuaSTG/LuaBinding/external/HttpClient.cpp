@@ -36,7 +36,7 @@ static void setHeaders(HINTERNET const handle, std::unordered_map<std::string, s
 	THROW_IF_WIN32_BOOL_FALSE(WinHttpAddRequestHeaders(
 		handle,
 		headers_wide.c_str(),
-		headers_wide.size(),
+		static_cast<DWORD>(headers_wide.size()),
 		0
 	));
 }
@@ -103,7 +103,7 @@ static int verifyUrl(lua_State* L, std::string_view const& url) {
 	url_components.dwExtraInfoLength = static_cast<DWORD>(-1);
 	auto const url_wide = utf8::to_wstring(url);
 	auto const result = WinHttpCrackUrl(
-		url_wide.c_str(), url_wide.size(), 0, &url_components);
+		url_wide.c_str(), static_cast<DWORD>(url_wide.size()), 0, &url_components);
 	if (!result) {
 		switch (GetLastError()) {
 		case ERROR_WINHTTP_INVALID_URL:
@@ -399,7 +399,7 @@ namespace http {
 				url_components.dwUrlPathLength = static_cast<DWORD>(-1);
 				url_components.dwExtraInfoLength = static_cast<DWORD>(-1);
 				auto const url_wide = utf8::to_wstring(self->url);
-				br = WinHttpCrackUrl(url_wide.c_str(), url_wide.size(), 0, &url_components);
+				br = WinHttpCrackUrl(url_wide.c_str(), static_cast<DWORD>(url_wide.size()), 0, &url_components);
 				THROW_IF_WIN32_BOOL_FALSE_MSG(br, "WinHttpCrackUrl failed");
 
 				// open session
