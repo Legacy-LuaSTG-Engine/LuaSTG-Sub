@@ -130,6 +130,7 @@ require("test_window_and_display")
 
 print(package.path)
 
+require("test.base")
 require("test.math")
 require("test.file")
 require("test.imgui")

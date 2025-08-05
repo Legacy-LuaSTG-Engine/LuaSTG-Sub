@@ -20,7 +20,7 @@ namespace {
 		auto const label = ctx.get_value<std::string_view>(1);
 		auto const buf = imgui::binding::ImGuiTextBufferBinding::as(vm, 2);
 		auto const buf_size = ctx.get_value<size_t>(3, buf->size());
-		auto const size = imgui::binding::ImVec2Binding::as(vm, 4);
+		auto const size = imgui::binding::ImVec2Binding::as(vm, 4, ImVec2());
 		auto const flags = ctx.get_value<ImGuiInputTextFlags>(5, 0);
 		// TODO: supports callback
 		auto const result = ImGui::InputTextMultiline(label.data(), const_cast<char*>(buf->c_str()), buf_size, *size, flags);
