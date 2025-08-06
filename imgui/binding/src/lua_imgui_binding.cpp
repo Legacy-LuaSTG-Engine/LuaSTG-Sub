@@ -18,6 +18,8 @@ namespace imgui::binding {
 
 	void registerAll(lua_State* const vm) {
 		registerGlobal(vm);
+		registerConstants(vm);
+		registerConstantsManually(vm);
 
 		ImVec2Binding::registerClass(vm);
 
