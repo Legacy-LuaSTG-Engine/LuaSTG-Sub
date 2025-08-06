@@ -129,15 +129,19 @@ local ImGui = require("imgui.ImGui")
 function ImGui.TreeNode(id, fmt, ...)
 	if select("#", ...) > 0 then
 		ImGui._TreeNode(id, fmt:format(...))
-	else
+	elseif fmt then
 		ImGui._TreeNode(id, fmt)
+	else
+		ImGui._TreeNode(id)
 	end
 end
 function ImGui.TreeNodeEx(id, flags, fmt, ...)
 	if select("#", ...) > 0 then
 		ImGui._TreeNodeEx(id, flags, fmt:format(...))
-	else
+	elseif fmt then
 		ImGui._TreeNodeEx(id, flags, fmt)
+	else
+		ImGui._TreeNodeEx(id, flags)
 	end
 end
 		)");
