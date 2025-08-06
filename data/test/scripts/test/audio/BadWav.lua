@@ -1,18 +1,15 @@
 local test = require("test")
 
----@class test.Module.SoundEffect : test.Base
+---@class test.audio.BadWav : test.Base
 local M = {}
-
-lstg.FileManager.AddSearchPath("deep/")
 
 function M:onCreate()
     local pool = lstg.GetResourceStatus()
     lstg.SetResourceStatus("global")
     pcall(function()
-        lstg.LoadSound("se:ok00", "res/se_ok00.wav")
+        lstg.LoadSound("se:ok00", "assets/se/se_ok00.wav")
     end)
-    lstg.LoadSound("se:ok00", "res/se_ok00_fixed.wav")
-    lstg.SetResourceStatus(pool)
+    lstg.LoadSound("se:ok00", "assets/se/se_ok00_fixed.wav")
     lstg.SetResourceStatus(pool)
 end
 
@@ -26,4 +23,4 @@ end
 function M:onRender()
 end
 
-test.registerTest("Test BAD SoundEffect", M)
+test.registerTest("test.audio.BadWav", M, "Audio: Bad WAV")

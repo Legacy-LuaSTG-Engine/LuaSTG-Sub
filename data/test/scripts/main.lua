@@ -124,7 +124,6 @@ require("test_hgefont")
 require("test_ttf")
 require("test_object_resource")
 require("test_random")
-require("test_se")
 require("test_window_and_display")
 
 print(package.path)
