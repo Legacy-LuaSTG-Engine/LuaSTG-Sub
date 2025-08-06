@@ -9,7 +9,8 @@ local TEST_NAME = "File: FileSystemWatcher"
 local M = {}
 
 function M:onCreate()
-    self.watcher = FileSystemWatcher.create("C:\\Users\\Admin\\Downloads");
+    local home = os.getenv("USERPROFILE") or "."
+    self.watcher = FileSystemWatcher.create(home .. "\\Downloads");
     self.changes = {}
 end
 
