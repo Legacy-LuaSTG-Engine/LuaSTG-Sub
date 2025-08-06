@@ -1,4 +1,3 @@
----@type boolean, imgui
 local imgui_exist, imgui = pcall(require, "imgui")
 
 ---@class test.Base
@@ -23,16 +22,6 @@ local tests = {
 ---@type test.Base
 local current_test = T
 
----@param text string
-function M.cacheDisplayText(text)
-    assert(type(text) == "string")
-    ---@diagnostic disable-next-line: undefined-field
-    if imgui_exist and imgui and imgui.backend and imgui.backend.CacheGlyphFromString then
-        ---@diagnostic disable-next-line: undefined-field
-        imgui.backend.CacheGlyphFromString(text)
-    end
-end
-
 ---@param name string
 ---@param test_class test.Base
 ---@param display_name string?
@@ -46,7 +35,6 @@ function M.registerTest(name, test_class, display_name)
     end
     local entry = { name, test_class, display_name or name }
     table.insert(tests, entry)
-    M.cacheDisplayText(entry[3])
 end
 
 function M.onCreate()
