@@ -29,11 +29,17 @@ namespace core {
 		if (m_current_pcm_frame == pcm_frame) {
 			return true;
 		}
+		if (!m_flac_frame_data.empty() && m_flac_frame_data.contains(pcm_frame)) {
+			m_current_pcm_frame = pcm_frame;
+			return true;
+		}
 		if (!FLAC__stream_decoder_seek_absolute(m_flac, pcm_frame)) {
 			return false;
 		}
+		if (!m_flac_frame_data.empty() && !m_flac_frame_data.contains(pcm_frame)) {
+			m_flac_frame_data.clear();
+		}
 		m_current_pcm_frame = pcm_frame;
-		m_flac_frame_data.clear();
 		return true;
 	}
 	bool AudioDecodeFLAC::seekByTime(double const sec) {
