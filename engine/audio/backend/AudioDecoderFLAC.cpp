@@ -14,6 +14,10 @@ namespace {
 			&& magic[2] == 'a'
 			&& magic[3] == 'C';
 	}
+	bool isSupportedFormat(FLAC__StreamMetadata_StreamInfo const& info) {
+		return (info.bits_per_sample == 8 || info.bits_per_sample == 16 || info.bits_per_sample == 24 || info.bits_per_sample == 32)
+			&& (info.channels == 1 || info.channels == 2);
+	}
 }
 
 namespace core {
@@ -110,13 +114,14 @@ namespace core {
 	}
 
 	bool AudioDecodeFLAC::open(IData* const data) {
-		// check
+		// check input
+
 		if (data == nullptr) {
 			assert(false); // unlikely
 			return false;
 		}
 
-		// read file
+		// ref data
 
 		m_data = data;
 		m_pointer = static_cast<uint8_t*>(m_data->data());
@@ -125,20 +130,21 @@ namespace core {
 
 		m_flac = FLAC__stream_decoder_new();
 		if (nullptr == m_flac) {
-			close();
 			return false;
 		}
 
-		// open stream
+		// read magic
 
-		if (data->size() < 4) {
+		if (m_data->size() < 4) {
 			assert(false); // unlikely
 			return false;
 		}
 		std::array<char, 4> magic{};
-		std::memcpy(magic.data(), data->data(), 4);
+		std::memcpy(magic.data(), m_data->data(), 4);
 
-		FLAC__StreamDecoderInitStatus flac_init = FLAC__STREAM_DECODER_INIT_STATUS_OK;
+		// open stream
+
+		FLAC__StreamDecoderInitStatus flac_init{};
 		if (isContainerFlac(magic)) {
 			flac_init = FLAC__stream_decoder_init_stream(
 				m_flac,
@@ -159,34 +165,37 @@ namespace core {
 			return false;
 		}
 		if (FLAC__STREAM_DECODER_INIT_STATUS_OK != flac_init) {
-			close();
 			return false;
 		}
 		m_initialized = true;
 
-		// check
+		// read info
 
 		if (!FLAC__stream_decoder_process_until_end_of_metadata(m_flac)) {
-			close();
 			return false;
 		}
 		if (!m_has_info) {
-			close();
 			return false;
 		}
-		if ((m_info.bits_per_sample % 8) != 0 || !(m_info.channels == 1 || m_info.channels == 2)) {
-			close();
+		if (!isSupportedFormat(m_info)) {
 			return false;
 		}
 
-		// test
+		// count total sample (if necessary)
+
+		if (m_info.total_samples == 0) {
+			m_info.total_samples = FLAC__stream_decoder_find_total_samples(m_flac);
+			if (m_info.total_samples == 0) {
+				return false;
+			}
+		}
+		
+		// goto begin
 
 		if (!FLAC__stream_decoder_flush(m_flac)) {
-			close();
 			return false;
 		}
 		if (!FLAC__stream_decoder_seek_absolute(m_flac, 0)) {
-			close();
 			return false;
 		}
 
@@ -292,7 +301,9 @@ namespace core {
 	void AudioDecodeFLAC::onMetadata(FLAC__StreamDecoder const* const, FLAC__StreamMetadata const* const metadata, void* const client_data) {
 		SELF;
 		if (metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
+			auto const last_total_samples = self->m_info.total_samples;
 			self->m_info = metadata->data.stream_info;
+			self->m_info.total_samples = std::max(self->m_info.total_samples, last_total_samples);
 			self->m_has_info = true;
 		}
 	}
