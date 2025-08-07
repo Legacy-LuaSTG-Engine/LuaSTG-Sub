@@ -48,62 +48,54 @@ namespace core {
 		*sec = static_cast<double>(m_current_pcm_frame) / static_cast<double>(m_info.sample_rate);
 		return true;
 	}
-	bool AudioDecodeFLAC::read(uint32_t pcm_frame, void* buffer, uint32_t* read_pcm_frame) {
-		uint32_t read_pcm_frame_ = 0;
+	bool AudioDecodeFLAC::read(uint32_t const pcm_frame, void* const buffer, uint32_t* const read_pcm_frame) {
+		assert(read_pcm_frame != nullptr);
+		if (pcm_frame == 0) {
+			*read_pcm_frame = 0;
+			return true;
+		}
+		assert(buffer != nullptr);
 
-		while (pcm_frame > 0) {
-			// 先康康有没有没处理完的 frame
-			if (!m_flac_frame_data.empty()) {
-				if (m_current_pcm_frame >= m_flac_frame_data.sample_index && m_current_pcm_frame < (m_flac_frame_data.sample_index + m_flac_frame_data.sample_count)) {
-					// 计算参数
-					uint32_t const pcm_frame_offset = m_current_pcm_frame - m_flac_frame_data.sample_index;
-					uint32_t const valid_pcm_frame = (m_flac_frame_data.sample_index + m_flac_frame_data.sample_count) - m_current_pcm_frame;
-					uint32_t const should_read_pcm_frame = std::min(pcm_frame, valid_pcm_frame);
-					// 写入
-					uint8_t* ptr = (uint8_t*)buffer;
-					for (uint32_t idx = 0; idx < should_read_pcm_frame; idx += 1) {
-						for (uint16_t chs = 0; chs < m_flac_frame_data.channels; chs += 1) {
-							// 拆数据
-							int32_t const sample = m_flac_frame_data.data[chs][pcm_frame_offset + idx];
-							uint8_t const bytes[4] = {
-								(uint8_t)((sample & 0x000000FF)),
-								(uint8_t)((sample & 0x0000FF00) >> 8),
-								(uint8_t)((sample & 0x00FF0000) >> 16),
-								(uint8_t)((sample & 0xFF000000) >> 24),
-							};
-							// 看位深来写入数据，Windows 一般是小端，如果是大端平台需要把上面的 bytes 数组颠倒
-							for (uint16_t bid = 0; bid < (m_flac_frame_data.bits_per_sample / 8); bid += 1) {
-								*ptr = bytes[bid];
-								ptr += 1;
-							}
-						}
-					}
-					// 更新
-					buffer = ptr;
-					pcm_frame -= should_read_pcm_frame;
-					read_pcm_frame_ += should_read_pcm_frame;
-					m_current_pcm_frame += should_read_pcm_frame;
-					// 如果已经完成了，直接返回
-					if (pcm_frame == 0) {
-						*read_pcm_frame = read_pcm_frame_;
-						return true;
+		auto ptr = static_cast<uint8_t*>(buffer);
+		uint32_t const bytes_per_sample = m_flac_frame_data.bits_per_sample / 8;
+		uint32_t pcm_frame_to_read = pcm_frame;
+		uint32_t pcm_frame_read = 0;
+
+		while (pcm_frame_to_read > 0) {
+			// process last block
+			if (!m_flac_frame_data.empty() && m_flac_frame_data.contains(m_current_pcm_frame)) {
+				uint32_t const offset = m_current_pcm_frame - m_flac_frame_data.sample_index;
+				uint32_t const count = std::min(pcm_frame_to_read, m_flac_frame_data.sample_count - offset);
+
+				for (uint32_t i = 0; i < count; i += 1) {
+					for (uint16_t channel = 0; channel < m_flac_frame_data.channels; channel += 1) {
+						auto const v = m_flac_frame_data.data[channel][offset + i];
+						std::memcpy(ptr, &v, bytes_per_sample);
+						ptr += bytes_per_sample;
 					}
 				}
-				else {
-					m_flac_frame_data.clear(); // 不在范围内，可以清理了
+
+				pcm_frame_to_read -= count;
+				pcm_frame_read += count;
+				m_current_pcm_frame += count;
+
+				if (pcm_frame_to_read == 0) {
+					*read_pcm_frame = pcm_frame_read;
+					return true;
 				}
 			}
+			else {
+				m_flac_frame_data.clear();
+			}
 
-			// 还需要继续读取
+			// next block
 			if (!FLAC__stream_decoder_process_single(m_flac)) {
-				// 发生错误
-				*read_pcm_frame = read_pcm_frame_;
+				*read_pcm_frame = pcm_frame_read;
 				return false;
 			}
 		}
 
-		// 没有了
-		*read_pcm_frame = read_pcm_frame_;
+		*read_pcm_frame = pcm_frame_read;
 		return true;
 	}
 

@@ -61,6 +61,9 @@ namespace core {
 					|| bits_per_sample == 0
 					|| sample_count == 0;
 			}
+			[[nodiscard]] bool contains(uint32_t const sample) const noexcept {
+				return sample >= sample_index && sample < (sample_index + sample_count);
+			}
 		};
 
 		static FLAC__StreamDecoderReadStatus onRead(FLAC__StreamDecoder const* decoder, FLAC__byte buffer[], size_t* bytes, void* client_data);
