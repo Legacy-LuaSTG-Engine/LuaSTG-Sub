@@ -74,7 +74,8 @@ namespace core {
 		static void onError(FLAC__StreamDecoder const* decoder, FLAC__StreamDecoderErrorStatus status, void* client_data);
 
 		SmartReference<IData> m_data;
-		void* m_pointer{};
+		size_t m_position{};
+
 		FLAC__StreamDecoder* m_flac;
 		FLAC__StreamMetadata_StreamInfo m_info{};
 		uint32_t m_current_pcm_frame{ 0 };

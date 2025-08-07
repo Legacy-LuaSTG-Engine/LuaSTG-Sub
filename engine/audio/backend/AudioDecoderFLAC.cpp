@@ -124,7 +124,7 @@ namespace core {
 		// ref data
 
 		m_data = data;
-		m_pointer = static_cast<uint8_t*>(m_data->data());
+		m_position = 0;
 
 		// create decoder
 
@@ -189,7 +189,7 @@ namespace core {
 				return false;
 			}
 		}
-		
+
 		// goto begin
 
 		if (!FLAC__stream_decoder_seek_absolute(m_flac, 0)) {
@@ -213,55 +213,63 @@ namespace core {
 		}
 
 		m_data.reset();
-		m_pointer = {};
+		m_position = 0;
 	}
 
 #define SELF \
+	assert(client_data != nullptr); \
 	auto const self = static_cast<AudioDecodeFLAC*>(client_data); \
+	assert(self->m_data); \
 	[[maybe_unused]] auto const m_data = static_cast<uint8_t*>(self->m_data->data()); \
 	[[maybe_unused]] auto const m_size = self->m_data->size(); \
-	[[maybe_unused]] auto const m_ptr = static_cast<uint8_t*>(self->m_pointer)
+	[[maybe_unused]] auto const m_position = self->m_position
 
-	FLAC__StreamDecoderReadStatus AudioDecodeFLAC::onRead(FLAC__StreamDecoder const* const, FLAC__byte buffer[], size_t* const bytes, void* const client_data) {
+	FLAC__StreamDecoderReadStatus AudioDecodeFLAC::onRead(FLAC__StreamDecoder const*, FLAC__byte buffer[], size_t* const bytes, void* const client_data) {
 		SELF;
-		assert(bytes);
 
-		size_t const valid_size = m_size - (m_ptr - m_data);
+		assert(bytes != nullptr);
+		auto const valid_size = std::min(m_position, m_size) - m_size;
 		if (valid_size == 0) {
 			*bytes = 0;
 			return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
 		}
 
-		assert(buffer);
-
+		assert(buffer != nullptr);
 		size_t const read_size = std::min(valid_size, *bytes);
-		std::memcpy(buffer, m_ptr, read_size);
-		self->m_pointer = m_ptr + read_size;
+		std::memcpy(buffer, m_data + m_position, read_size);
+
+		self->m_position += read_size;
 		*bytes = read_size;
 		return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
 	}
-	FLAC__StreamDecoderSeekStatus AudioDecodeFLAC::onSeek(FLAC__StreamDecoder const* const, FLAC__uint64 const absolute_byte_offset, void* const client_data) {
+	FLAC__StreamDecoderSeekStatus AudioDecodeFLAC::onSeek(FLAC__StreamDecoder const*, FLAC__uint64 const absolute_byte_offset, void* const client_data) {
 		SELF;
-		if (absolute_byte_offset > m_size) {
-			self->m_pointer = m_data + m_size;
+	#if SIZE_MAX < UINT64_MAX
+		if (absolute_byte_offset > std::numeric_limits<size_t>::max()) {
+			self->m_position = std::numeric_limits<size_t>::max();
 			return FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
 		}
-		self->m_pointer = m_data + absolute_byte_offset;
+	#endif
+		if (absolute_byte_offset > m_size) {
+			self->m_position = m_size;
+			return FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
+		}
+		self->m_position = static_cast<size_t>(absolute_byte_offset);
 		return FLAC__STREAM_DECODER_SEEK_STATUS_OK;
 	}
-	FLAC__StreamDecoderTellStatus AudioDecodeFLAC::onTell(FLAC__StreamDecoder const* const, FLAC__uint64* const absolute_byte_offset, void* const client_data) {
+	FLAC__StreamDecoderTellStatus AudioDecodeFLAC::onTell(FLAC__StreamDecoder const*, FLAC__uint64* const absolute_byte_offset, void* const client_data) {
 		SELF;
-		*absolute_byte_offset = static_cast<FLAC__uint64>(m_ptr - m_data);
+		*absolute_byte_offset = static_cast<FLAC__uint64>(m_position);
 		return FLAC__STREAM_DECODER_TELL_STATUS_OK;
 	}
-	FLAC__StreamDecoderLengthStatus AudioDecodeFLAC::onGetLength(FLAC__StreamDecoder const* const, FLAC__uint64* const stream_length, void* const client_data) {
+	FLAC__StreamDecoderLengthStatus AudioDecodeFLAC::onGetLength(FLAC__StreamDecoder const*, FLAC__uint64* const stream_length, void* const client_data) {
 		SELF;
 		*stream_length = m_size;
 		return FLAC__STREAM_DECODER_LENGTH_STATUS_OK;
 	}
-	FLAC__bool AudioDecodeFLAC::onCheckEof(FLAC__StreamDecoder const* const, void* const client_data) {
+	FLAC__bool AudioDecodeFLAC::onCheckEof(FLAC__StreamDecoder const*, void* const client_data) {
 		SELF;
-		return static_cast<size_t>(m_ptr - m_data) >= m_size;
+		return m_position >= m_size;
 	}
 
 	FLAC__StreamDecoderWriteStatus AudioDecodeFLAC::onWrite(FLAC__StreamDecoder const* const, FLAC__Frame const* const frame, const FLAC__int32* const buffer[], void* const client_data) {
