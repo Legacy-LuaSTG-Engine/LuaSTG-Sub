@@ -57,7 +57,6 @@ namespace core {
 		assert(buffer != nullptr);
 
 		auto ptr = static_cast<uint8_t*>(buffer);
-		uint32_t const bytes_per_sample = m_flac_frame_data.bits_per_sample / 8;
 		uint32_t pcm_frame_to_read = pcm_frame;
 		uint32_t pcm_frame_read = 0;
 
@@ -66,6 +65,7 @@ namespace core {
 			if (!m_flac_frame_data.empty() && m_flac_frame_data.contains(m_current_pcm_frame)) {
 				uint32_t const offset = m_current_pcm_frame - m_flac_frame_data.sample_index;
 				uint32_t const count = std::min(pcm_frame_to_read, m_flac_frame_data.sample_count - offset);
+				uint32_t const bytes_per_sample = m_flac_frame_data.bits_per_sample / 8;
 
 				for (uint32_t i = 0; i < count; i += 1) {
 					for (uint16_t channel = 0; channel < m_flac_frame_data.channels; channel += 1) {
@@ -185,6 +185,7 @@ namespace core {
 		if (!FLAC__stream_decoder_seek_absolute(m_flac, 0)) {
 			return false;
 		}
+		m_current_pcm_frame = 0;
 
 		return true;
 	}
@@ -195,6 +196,7 @@ namespace core {
 			}
 			m_initialized = false;
 		}
+		m_current_pcm_frame = 0;
 		m_has_info = false;
 
 		if (m_flac != nullptr) {
@@ -218,7 +220,7 @@ namespace core {
 		SELF;
 
 		assert(bytes != nullptr);
-		auto const valid_size = std::min(m_position, m_size) - m_size;
+		auto const valid_size = m_size - std::min(m_position, m_size);
 		if (valid_size == 0) {
 			*bytes = 0;
 			return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
