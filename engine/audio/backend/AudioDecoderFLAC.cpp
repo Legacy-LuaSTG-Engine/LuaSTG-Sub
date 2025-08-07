@@ -36,21 +36,14 @@ namespace core {
 		return FLAC__stream_decoder_seek_absolute(m_flac, pcm_frame);
 	}
 	bool AudioDecodeFLAC::seekByTime(double const sec) {
-		if (FLAC__STREAM_DECODER_SEEK_ERROR == FLAC__stream_decoder_get_state(m_flac)) {
-			if (!FLAC__stream_decoder_flush(m_flac)) {
-				return false;
-			}
-		}
-		FLAC__uint64 const pcm_frame = static_cast<FLAC__uint64>(sec * static_cast<double>(m_info.sample_rate));
-		m_current_pcm_frame = static_cast<uint32_t>(pcm_frame);
-		m_flac_frame_data.clear();
-		return FLAC__stream_decoder_seek_absolute(m_flac, pcm_frame);
+		auto const pcm_frame = static_cast<uint64_t>(sec * static_cast<double>(m_info.sample_rate));
+		return seek(static_cast<uint32_t>(pcm_frame));
 	}
-	bool AudioDecodeFLAC::tell(uint32_t* pcm_frame) {
+	bool AudioDecodeFLAC::tell(uint32_t* const pcm_frame) {
 		*pcm_frame = m_current_pcm_frame;
 		return true;
 	}
-	bool AudioDecodeFLAC::tellAsTime(double* sec) {
+	bool AudioDecodeFLAC::tellAsTime(double* const sec) {
 		*sec = static_cast<double>(m_current_pcm_frame) / static_cast<double>(m_info.sample_rate);
 		return true;
 	}
