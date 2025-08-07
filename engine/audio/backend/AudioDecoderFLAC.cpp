@@ -26,14 +26,15 @@ namespace {
 
 namespace core {
 	bool AudioDecodeFLAC::seek(uint32_t const pcm_frame) {
-		if (FLAC__STREAM_DECODER_SEEK_ERROR == FLAC__stream_decoder_get_state(m_flac)) {
-			if (!FLAC__stream_decoder_flush(m_flac)) {
-				return false;
-			}
+		if (m_current_pcm_frame == pcm_frame) {
+			return true;
+		}
+		if (!FLAC__stream_decoder_seek_absolute(m_flac, pcm_frame)) {
+			return false;
 		}
 		m_current_pcm_frame = pcm_frame;
 		m_flac_frame_data.clear();
-		return FLAC__stream_decoder_seek_absolute(m_flac, pcm_frame);
+		return true;
 	}
 	bool AudioDecodeFLAC::seekByTime(double const sec) {
 		auto const pcm_frame = static_cast<uint64_t>(sec * static_cast<double>(m_info.sample_rate));
