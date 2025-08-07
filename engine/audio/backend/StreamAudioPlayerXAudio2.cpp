@@ -348,6 +348,9 @@ namespace core {
 				Logger::error("[StreamAudioPlayer] AudioDecoder read failed");
 				return;
 			}
+			if (read_sample_count == 0) {
+				return; // eof
+			}
 			m_current_sample += read_sample_count;
 			buffer.seconds = static_cast<double>(read_sample_count) / static_cast<double>(m_decoder->getSampleRate());
 			buffer.current_seconds = static_cast<double>(m_current_sample) / static_cast<double>(m_decoder->getSampleRate());
