@@ -192,9 +192,6 @@ namespace core {
 		
 		// goto begin
 
-		if (!FLAC__stream_decoder_flush(m_flac)) {
-			return false;
-		}
 		if (!FLAC__stream_decoder_seek_absolute(m_flac, 0)) {
 			return false;
 		}
