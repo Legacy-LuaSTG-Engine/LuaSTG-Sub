@@ -1,6 +1,21 @@
 #include "backend/AudioDecoderFLAC.hpp"
 #include "core/Logger.hpp"
 
+namespace {
+	bool isContainerOgg(std::array<char, 4> const& magic) noexcept {
+		return magic[0] == 'O'
+			&& magic[1] == 'g'
+			&& magic[2] == 'g'
+			&& magic[3] == 'S';
+	}
+	bool isContainerFlac(std::array<char, 4> const& magic) noexcept {
+		return magic[0] == 'f'
+			&& magic[1] == 'L'
+			&& magic[2] == 'a'
+			&& magic[3] == 'C';
+	}
+}
+
 namespace core {
 	bool AudioDecodeFLAC::seek(uint32_t const pcm_frame) {
 		if (FLAC__STREAM_DECODER_SEEK_ERROR == FLAC__stream_decoder_get_state(m_flac)) {
@@ -95,6 +110,12 @@ namespace core {
 	}
 
 	bool AudioDecodeFLAC::open(IData* const data) {
+		// check
+		if (data == nullptr) {
+			assert(false); // unlikely
+			return false;
+		}
+
 		// read file
 
 		m_data = data;
@@ -113,12 +134,33 @@ namespace core {
 
 		// open stream
 
+		if (data->size() < 4) {
+			assert(false); // unlikely
+			return false;
+		}
+		std::array<char, 4> magic{};
+		std::memcpy(magic.data(), data->data(), 4);
+
+
 		FLAC__StreamDecoderInitStatus flac_init = FLAC__STREAM_DECODER_INIT_STATUS_OK;
-		flac_init = FLAC__stream_decoder_init_stream(m_flac, &onRead, &onSeek, &onTell, &onGetLength, onCheckEof, &onWrite, &onMetadata, &onError, this);
-		if (FLAC__STREAM_DECODER_INIT_STATUS_OK != flac_init) {
-			// retry
-			m_pointer = static_cast<uint8_t*>(m_data->data()); // reset stream
-			flac_init = FLAC__stream_decoder_init_ogg_stream(m_flac, &onRead, &onSeek, &onTell, &onGetLength, onCheckEof, &onWrite, &onMetadata, &onError, this);
+		if (isContainerFlac(magic)) {
+			flac_init = FLAC__stream_decoder_init_stream(
+				m_flac,
+				&onRead, &onSeek, &onTell, &onGetLength, &onCheckEof,
+				&onWrite, &onMetadata, &onError,
+				this
+			);
+		}
+		else if (isContainerOgg(magic)) {
+			flac_init = FLAC__stream_decoder_init_ogg_stream(
+				m_flac,
+				&onRead, &onSeek, &onTell, &onGetLength, &onCheckEof,
+				&onWrite, &onMetadata, &onError,
+				this
+			);
+		}
+		else {
+			return false;
 		}
 		if (FLAC__STREAM_DECODER_INIT_STATUS_OK != flac_init) {
 			close();
