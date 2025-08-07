@@ -18,6 +18,10 @@ namespace {
 		return (info.bits_per_sample == 8 || info.bits_per_sample == 16 || info.bits_per_sample == 24 || info.bits_per_sample == 32)
 			&& (info.channels == 1 || info.channels == 2);
 	}
+	bool isSupportedFormat(FLAC__FrameHeader const& info) {
+		return (info.bits_per_sample == 8 || info.bits_per_sample == 16 || info.bits_per_sample == 24 || info.bits_per_sample == 32)
+			&& (info.channels == 1 || info.channels == 2);
+	}
 }
 
 namespace core {
@@ -276,28 +280,31 @@ namespace core {
 		SELF;
 
 		// check
-		assert(frame->header.channels == 1 || frame->header.channels == 2);
-		assert((frame->header.bits_per_sample % 8) == 0 && frame->header.bits_per_sample <= 32);
-		assert(frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER); // libflac 文档里说为了便于开发者使用， number 类型永远会被转换为样本索引，如果这个 assert 触发了，请找 xiph
+		assert(isSupportedFormat(frame->header));
+		assert(frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
+
+		// check format
+		assert(self->m_info.sample_rate == frame->header.sample_rate);
+		assert(self->m_info.channels == frame->header.channels);
+		assert(self->m_info.bits_per_sample == frame->header.bits_per_sample);
 
 		// save frame info
-		auto& current = self->m_flac_frame_data;
-		current.sample_rate = frame->header.sample_rate;
-		current.channels = static_cast<uint16_t>(frame->header.channels);
-		current.bits_per_sample = static_cast<uint16_t>(frame->header.bits_per_sample);
-		current.sample_index = static_cast<uint32_t>(frame->header.number.sample_number);
-		current.sample_count = frame->header.blocksize;
+		auto& ctx = self->m_flac_frame_data;
+		ctx.sample_rate = frame->header.sample_rate;
+		ctx.channels = static_cast<uint16_t>(frame->header.channels);
+		ctx.bits_per_sample = static_cast<uint16_t>(frame->header.bits_per_sample);
+		ctx.sample_index = static_cast<uint32_t>(frame->header.number.sample_number);
+		ctx.sample_count = frame->header.blocksize;
 
 		// copy data
-		current.data[0].resize(frame->header.blocksize);
-		current.data[1].resize(frame->header.blocksize);
-		for (uint32_t i = 0; i < frame->header.blocksize; i += 1) {
-			if (frame->header.channels == 1) {
-				current.data[0][i] = buffer[0][i];
+		if (frame->header.blocksize > 0) {
+			if (frame->header.channels >= 1) {
+				ctx.data[0].resize(frame->header.blocksize);
+				std::memcpy(ctx.data[0].data(), buffer[0], frame->header.blocksize * sizeof(int32_t));
 			}
-			else {
-				current.data[0][i] = buffer[0][i];
-				current.data[1][i] = buffer[1][i];
+			if (frame->header.channels >= 2) {
+				ctx.data[1].resize(frame->header.blocksize);
+				std::memcpy(ctx.data[1].data(), buffer[1], frame->header.blocksize * sizeof(int32_t));
 			}
 		}
 
