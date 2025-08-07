@@ -129,9 +129,6 @@ namespace core {
 			return false;
 		}
 
-		FLAC__stream_decoder_set_metadata_respond(m_flac, FLAC__METADATA_TYPE_STREAMINFO);
-		FLAC__stream_decoder_set_md5_checking(m_flac, true);
-
 		// open stream
 
 		if (data->size() < 4) {
@@ -140,7 +137,6 @@ namespace core {
 		}
 		std::array<char, 4> magic{};
 		std::memcpy(magic.data(), data->data(), 4);
-
 
 		FLAC__StreamDecoderInitStatus flac_init = FLAC__STREAM_DECODER_INIT_STATUS_OK;
 		if (isContainerFlac(magic)) {
