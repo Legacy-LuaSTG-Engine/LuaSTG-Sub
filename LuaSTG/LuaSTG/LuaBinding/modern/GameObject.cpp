@@ -5,7 +5,6 @@
 #include "LuaBinding/LuaWrapper.hpp"
 #include "LuaBinding/LuaWrapperMisc.hpp"
 #include "lua/plus.hpp"
-#include "core/FixedObjectPool.hpp"
 
 using std::string_view_literals::operator ""sv;
 
@@ -35,6 +34,53 @@ namespace {
 			return luastg::GameObjectStatus::Killed;
 		return luastg::GameObjectStatus::Free;
 	}
+	void updateGameObjectFeatures(luastg::GameObjectFeatures& self, lua_State* const vm, int const idx) {
+		lua::stack_t const ctx(vm);
+		self.reset();
+		if (!ctx.is_table(idx)) {
+			return;
+		}
+		self.is_class = ctx.get_map_value<bool>(idx, "is_class"sv, false);
+		if (!self.is_class) {
+			return;
+		}
+		self.is_render_class = ctx.get_map_value<bool>(idx, ".render"sv, false);
+		auto const default_function_mask = ctx.get_map_value<int32_t>(idx, "default_function"sv, 0);
+	#define TEST_CALLBACK(CALLBACK) (default_function_mask & (1 << (CALLBACK))) ? false : true
+		self.has_callback_create = TEST_CALLBACK(LGOBJ_CC_INIT);
+		self.has_callback_destroy = TEST_CALLBACK(LGOBJ_CC_DEL);
+		self.has_callback_update = TEST_CALLBACK(LGOBJ_CC_FRAME);
+		self.has_callback_render = TEST_CALLBACK(LGOBJ_CC_RENDER);
+		self.has_callback_trigger = TEST_CALLBACK(LGOBJ_CC_COLLI);
+		self.has_callback_legacy_kill = TEST_CALLBACK(LGOBJ_CC_KILL);
+	#undef TEST_CALLBACK
+	}
+	[[maybe_unused]] void changeParticlePoolBinding(luastg::GameObject const* const self, lua_State* const vm, int const idx) {
+		if (self->features.is_render_class && self->hasParticlePool()) {
+			auto const p = luastg::binding::ParticleSystem::Create(vm);
+			p->res = static_cast<luastg::IResourceParticle*>(self->res);
+			p->res->retain();
+			p->ptr = self->ps;
+			lua_rawseti(vm, idx, 4);
+		}
+	}
+	[[maybe_unused]] void releaseParticlePoolBinding(luastg::GameObject const* const, lua_State* const vm, int const idx) {
+		// release
+		lua_rawgeti(vm, idx, 4);
+		if (lua_isuserdata(vm, -1)) {
+			if (auto const p = luastg::binding::ParticleSystem::Cast(vm, -1); p != nullptr) {
+				if (p->res) {
+					p->res->release();
+					p->res = nullptr;
+				}
+				p->ptr = nullptr; // 交给游戏对象的 ReleaseResource 释放，这里没有持有所有权
+			}
+		}
+		lua_pop(vm, 1);
+		// object[4] = nil
+		lua_pushnil(vm);
+		lua_rawseti(vm, idx, 4);
+	}
 
 	struct GameObjectManagerCallbacks : luastg::IGameObjectManagerCallbacks {
 		std::vector<lua_State*> lua_vm;
@@ -45,8 +91,31 @@ namespace {
 			game_object_tables_index.reserve(16);
 		}
 
-		std::string_view getCallbacksName() const noexcept override {
+		[[nodiscard]] std::string_view getCallbacksName() const noexcept override {
 			return "lua"sv;
+		}
+		void onCreate(luastg::GameObject*) override {
+		}
+		void onDestroy(luastg::GameObject* const object) override {
+		#if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
+			static std::string null_name("<null>");
+			spdlog::debug("[object] free {}-{} (img = {})", object->id, object->unique_id, object->res ? object->res->GetResName() : null_name);
+		#endif
+
+			auto const vm = getInstance().lua_vm.back();
+			lua::stack_t const ctx(vm);
+
+			auto const table = getInstance().game_object_tables_index.back();
+			auto const lua_index = static_cast<int32_t>(object->id + 1);
+
+			auto const object_table = ctx.get_array_value<lua::stack_index_t>(table, lua_index); // ... t ... object
+			ctx.set_array_value(object_table, 3, std::nullopt); // object[3] = nil
+		#ifdef LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
+			releaseParticlePoolBinding(object, vm, object_table.value); // releaseParticlePoolBinding(object[4]); object[4] = nil
+		#endif // LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
+			ctx.pop_value(); // ... t ...
+
+			ctx.set_array_value(table, lua_index, std::nullopt); // table[lua_index] = nil
 		}
 		void onBeforeBatchDestroy() override {
 			beforeBatch();
@@ -89,69 +158,22 @@ namespace {
 			lua_settop(vm, game_object_tables_index.back().value - 1);
 			game_object_tables_index.pop_back();
 		}
+
+		static GameObjectManagerCallbacks& getInstance() {
+			static GameObjectManagerCallbacks instance;
+			return instance;
+		}
 	};
 
-	[[maybe_unused]] void changeParticlePoolBinding(luastg::GameObject const* const self, lua_State* const vm, int const idx) {
-		if (self->features.is_render_class && self->hasParticlePool()) {
-			auto const p = luastg::binding::ParticleSystem::Create(vm);
-			p->res = static_cast<luastg::IResourceParticle*>(self->res);
-			p->res->retain();
-			p->ptr = self->ps;
-			lua_rawseti(vm, idx, 4);
-		}
-	}
-	[[maybe_unused]] void releaseParticlePoolBinding(luastg::GameObject const* const, lua_State* const vm, int const idx) {
-		// release
-		lua_rawgeti(vm, idx, 4);
-		if (lua_isuserdata(vm, -1)) {
-			if (auto const p = luastg::binding::ParticleSystem::Cast(vm, -1); p != nullptr) {
-				if (p->res) {
-					p->res->release();
-					p->res = nullptr;
-				}
-				p->ptr = nullptr; // 交给游戏对象的 ReleaseResource 释放，这里没有持有所有权
-			}
-		}
-		lua_pop(vm, 1);
-		// object[4] = nil
-		lua_pushnil(vm);
-		lua_rawseti(vm, idx, 4);
-	}
-
-	GameObjectManagerCallbacks game_object_manager_callbacks;
-
 	struct GameObjectCallbacks : luastg::IGameObjectCallbacks {
-
 		std::string_view getCallbacksName(luastg::GameObject*) const noexcept override {
 			return "lua"sv;
 		}
-		void onCreate(luastg::GameObject*) override {}
-		void onDestroy(luastg::GameObject* self) override {
-		#if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
-			static std::string null_name("<null>");
-			spdlog::debug("[object] free {}-{} (img = {})", self->id, self->unique_id, self->res ? self->res->GetResName() : null_name);
-		#endif
-
-			auto const vm = game_object_manager_callbacks.lua_vm.back();
-			lua::stack_t const ctx(vm);
-
-			auto const table = game_object_manager_callbacks.game_object_tables_index.back();
-			auto const lua_index = static_cast<int32_t>(self->id + 1);
-
-			auto const object = ctx.get_array_value<lua::stack_index_t>(table, lua_index); // ... t ... object
-			ctx.set_array_value(object, 3, std::nullopt); // object[3] = nil
-		#ifdef LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
-			releaseParticlePoolBinding(self, vm, object.value); // releaseParticlePoolBinding(object[4]); object[4] = nil
-		#endif // LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
-			ctx.pop_value(); // ... t ...
-
-			ctx.set_array_value(table, lua_index, std::nullopt); // table[lua_index] = nil
-		}
 		void onQueueToDestroy(luastg::GameObject* self, std::string_view const reason) override {
-			auto const vm = game_object_manager_callbacks.lua_vm.back();
+			auto const vm = GameObjectManagerCallbacks::getInstance().lua_vm.back();
 			lua::stack_t const ctx(vm);
 
-			auto const table = game_object_manager_callbacks.game_object_tables_index.back();
+			auto const table = GameObjectManagerCallbacks::getInstance().game_object_tables_index.back();
 			auto const lua_index = static_cast<int32_t>(self->id + 1);
 
 			auto const object = ctx.get_array_value<lua::stack_index_t>(table, lua_index); // ... t ... object
@@ -170,10 +192,10 @@ namespace {
 			call(self, LGOBJ_CC_RENDER);
 		}
 		void onTrigger(luastg::GameObject* self, luastg::GameObject* other) override {
-			auto const vm = game_object_manager_callbacks.lua_vm.back();
+			auto const vm = GameObjectManagerCallbacks::getInstance().lua_vm.back();
 			lua::stack_t const ctx(vm);
 
-			auto const table = game_object_manager_callbacks.game_object_tables_index.back();
+			auto const table = GameObjectManagerCallbacks::getInstance().game_object_tables_index.back();
 			auto const lua_index = static_cast<int32_t>(self->id + 1);
 			auto const other_lua_index = static_cast<int32_t>(other->id + 1);
 
@@ -187,10 +209,10 @@ namespace {
 		}
 
 		static void call(luastg::GameObject const* const self, int const type) {
-			auto const vm = game_object_manager_callbacks.lua_vm.back();
+			auto const vm = GameObjectManagerCallbacks::getInstance().lua_vm.back();
 			lua::stack_t const ctx(vm);
 
-			auto const table = game_object_manager_callbacks.game_object_tables_index.back();
+			auto const table = GameObjectManagerCallbacks::getInstance().game_object_tables_index.back();
 			auto const lua_index = static_cast<int32_t>(self->id + 1);
 
 			auto const object = ctx.get_array_value<lua::stack_index_t>(table, lua_index); // ... t ... object
@@ -200,31 +222,12 @@ namespace {
 			lua_call(vm, 1, 0); // ... t ... object class
 			ctx.pop_value(2); // ... t ...
 		}
+
+		static GameObjectCallbacks& getInstance() {
+			static GameObjectCallbacks instance;
+			return instance;
+		}
 	};
-
-	GameObjectCallbacks game_object_callbacks;
-
-	void updateGameObjectFeatures(luastg::GameObjectFeatures& self, lua_State* const vm, int const idx) {
-		lua::stack_t const ctx(vm);
-		self.reset();
-		if (!ctx.is_table(idx)) {
-			return;
-		}
-		self.is_class = ctx.get_map_value<bool>(idx, "is_class"sv, false);
-		if (!self.is_class) {
-			return;
-		}
-		self.is_render_class = ctx.get_map_value<bool>(idx, ".render"sv, false);
-		auto const default_function_mask = ctx.get_map_value<int32_t>(idx, "default_function"sv, 0);
-	#define TEST_CALLBACK(CALLBACK) (default_function_mask & (1 << (CALLBACK))) ? false : true
-		self.has_callback_create = TEST_CALLBACK(LGOBJ_CC_INIT);
-		self.has_callback_destroy = TEST_CALLBACK(LGOBJ_CC_DEL);
-		self.has_callback_update = TEST_CALLBACK(LGOBJ_CC_FRAME);
-		self.has_callback_render = TEST_CALLBACK(LGOBJ_CC_RENDER);
-		self.has_callback_trigger = TEST_CALLBACK(LGOBJ_CC_COLLI);
-		self.has_callback_legacy_kill = TEST_CALLBACK(LGOBJ_CC_KILL);
-	#undef TEST_CALLBACK
-	}
 }
 
 namespace luastg::binding {
@@ -783,7 +786,7 @@ namespace luastg::binding {
 		// static methods
 
 		static int allocateAndManage(lua_State* const vm) {
-			auto const object = LPOOL.allocateWithCallbacks(&game_object_callbacks);
+			auto const object = LPOOL.allocateWithCallbacks(&GameObjectCallbacks::getInstance());
 			if (object == nullptr) {
 				return luaL_error(vm, "failed to allocate object, object pool has been exhausted.");
 			}
@@ -847,31 +850,31 @@ namespace luastg::binding {
 			// version 2
 			if (lua::stack_t const ctx(vm); ctx.is_number(1)) {
 				if (auto const version = ctx.get_value<int32_t>(1); version == 2) {
-					game_object_manager_callbacks.lua_vm.push_back(vm);
+					GameObjectManagerCallbacks::getInstance().lua_vm.push_back(vm);
 					LPOOL.updateNext();
-					game_object_manager_callbacks.lua_vm.pop_back();
+					GameObjectManagerCallbacks::getInstance().lua_vm.pop_back();
 					return 0;
 				}
 			}
 			// version 1
-			game_object_manager_callbacks.lua_vm.push_back(vm);
+			GameObjectManagerCallbacks::getInstance().lua_vm.push_back(vm);
 			LPOOL.updateNextLegacy();
-			game_object_manager_callbacks.lua_vm.pop_back();
+			GameObjectManagerCallbacks::getInstance().lua_vm.pop_back();
 			return 0;
 		}
 		static int resetGameObjectManager(lua_State* const vm) {
 			// TODO: 移动到 GameObjectManager 绑定
-			game_object_manager_callbacks.lua_vm.push_back(vm);
+			GameObjectManagerCallbacks::getInstance().lua_vm.push_back(vm);
 			LPOOL.ResetPool();
 		#if (defined(_DEBUG) && defined(LuaSTG_enable_GameObjectManager_Debug))
 			for (int i = 1; i <= LOBJPOOL_SIZE; i += 1) {
 				// 确保所有 lua 侧对象都被正确回收
-				lua_rawgeti(vm, game_object_manager_callbacks.game_object_tables_index.back().value, i);
+				lua_rawgeti(vm, GameObjectManagerCallbacks::getInstance().game_object_tables_index.back().value, i);
 				assert(!lua_istable(vm, -1));
 				lua_pop(vm, 1);
 			}
 		#endif
-			game_object_manager_callbacks.lua_vm.pop_back();
+			GameObjectManagerCallbacks::getInstance().lua_vm.pop_back();
 			return 0;
 		}
 		static int updateGameObjectManager(lua_State* const vm) {
@@ -879,23 +882,23 @@ namespace luastg::binding {
 			// version 2
 			if (lua::stack_t const ctx(vm); ctx.is_number(1)) {
 				if (auto const version = ctx.get_value<int32_t>(1); version == 2) {
-					game_object_manager_callbacks.lua_vm.push_back(vm);
+					GameObjectManagerCallbacks::getInstance().lua_vm.push_back(vm);
 					LPOOL.updateMovements();
-					game_object_manager_callbacks.lua_vm.pop_back();
+					GameObjectManagerCallbacks::getInstance().lua_vm.pop_back();
 					return 0;
 				}
 			}
 			// version 1
-			game_object_manager_callbacks.lua_vm.push_back(vm);
+			GameObjectManagerCallbacks::getInstance().lua_vm.push_back(vm);
 			LPOOL.updateMovementsLegacy();
-			game_object_manager_callbacks.lua_vm.pop_back();
+			GameObjectManagerCallbacks::getInstance().lua_vm.pop_back();
 			return 0;
 		}
 		static int renderGameObjectManager(lua_State* const vm) {
 			// TODO: 移动到 GameObjectManager 绑定
-			game_object_manager_callbacks.lua_vm.push_back(vm);
+			GameObjectManagerCallbacks::getInstance().lua_vm.push_back(vm);
 			LPOOL.render();
-			game_object_manager_callbacks.lua_vm.pop_back();
+			GameObjectManagerCallbacks::getInstance().lua_vm.pop_back();
 			return 0;
 		}
 		static int boundCheckGameObjectManager(lua_State* const vm) {
@@ -903,16 +906,16 @@ namespace luastg::binding {
 			// version 2
 			if (lua::stack_t const ctx(vm); ctx.is_number(1)) {
 				if (auto const version = ctx.get_value<int32_t>(1); version == 2) {
-					game_object_manager_callbacks.lua_vm.push_back(vm);
+					GameObjectManagerCallbacks::getInstance().lua_vm.push_back(vm);
 					LPOOL.detectOutOfWorldBound();
-					game_object_manager_callbacks.lua_vm.pop_back();
+					GameObjectManagerCallbacks::getInstance().lua_vm.pop_back();
 					return 0;
 				}
 			}
 			// version 1
-			game_object_manager_callbacks.lua_vm.push_back(vm);
+			GameObjectManagerCallbacks::getInstance().lua_vm.push_back(vm);
 			LPOOL.detectOutOfWorldBoundLegacy();
-			game_object_manager_callbacks.lua_vm.pop_back();
+			GameObjectManagerCallbacks::getInstance().lua_vm.pop_back();
 			return 0;
 		}
 		static int intersectDetectGameObjectManager(lua_State* const vm) {
@@ -929,9 +932,9 @@ namespace luastg::binding {
 				if (group2 < 0 || group2 >= LOBJPOOL_GROUPN) {
 					return luaL_error(vm, "invalid collision group <%d>", group1);
 				}
-				game_object_manager_callbacks.lua_vm.push_back(vm);
+				GameObjectManagerCallbacks::getInstance().lua_vm.push_back(vm);
 				LPOOL.detectIntersectionLegacy(group1, group2);
-				game_object_manager_callbacks.lua_vm.pop_back();
+				GameObjectManagerCallbacks::getInstance().lua_vm.pop_back();
 				return 0;
 			}
 			if (ctx.is_table(1)) {
@@ -961,9 +964,9 @@ namespace luastg::binding {
 					group_pairs.emplace_back(group1, group2);
 				}
 				// Stage 3
-				game_object_manager_callbacks.lua_vm.push_back(vm);
+				GameObjectManagerCallbacks::getInstance().lua_vm.push_back(vm);
 				LPOOL.detectIntersection(group_pairs);
-				game_object_manager_callbacks.lua_vm.pop_back();
+				GameObjectManagerCallbacks::getInstance().lua_vm.pop_back();
 				return 0;
 			}
 			return luaL_error(vm, "invalid parameters");
@@ -1101,8 +1104,8 @@ namespace luastg::binding {
 		ctx.set_map_value(lstg_table, "IsValid"sv, &GameObjectBinding::isValid);
 		ctx.set_map_value(lstg_table, "ObjTable"sv, &pushGameObjectTable);
 
-		LPOOL.addCallbacks(&game_object_manager_callbacks);
-		game_object_manager_callbacks.lua_vm.reserve(16);
-		game_object_manager_callbacks.lua_vm.push_back(LAPP.GetLuaEngine());
+		LPOOL.addCallbacks(&GameObjectManagerCallbacks::getInstance());
+		GameObjectManagerCallbacks::getInstance().lua_vm.reserve(16);
+		GameObjectManagerCallbacks::getInstance().lua_vm.push_back(LAPP.GetLuaEngine());
 	}
 }

@@ -92,8 +92,6 @@ namespace luastg {
 	if (isDirectCallbacks(this)) { reinterpret_cast<IGameObjectCallbacks*>(callbacks)-> S return; } \
 	for (uint32_t i = 0; i < callbacks_count; i++) { callbacks[i]-> S }
 
-	void GameObject::dispatchOnCreate() { FOR_EACH_CALLBACKS(onCreate(this);) }
-	void GameObject::dispatchOnDestroy() { FOR_EACH_CALLBACKS(onDestroy(this);) }
 	void GameObject::dispatchOnQueueToDestroy(std::string_view const reason) { FOR_EACH_CALLBACKS(onQueueToDestroy(this, reason);) }
 	void GameObject::dispatchOnUpdate() { FOR_EACH_CALLBACKS(onUpdate(this);) }
 	void GameObject::dispatchOnLateUpdate() { FOR_EACH_CALLBACKS(onLateUpdate(this);) }

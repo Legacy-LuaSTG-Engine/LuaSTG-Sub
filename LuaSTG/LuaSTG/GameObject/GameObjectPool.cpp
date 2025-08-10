@@ -418,7 +418,7 @@ namespace luastg
 		m_render_list.insert(object);
 	}
 
-	GameObject* GameObjectPool::allocateWithCallbacks(IGameObjectCallbacks* callbacks) {
+	GameObject* GameObjectPool::allocateWithCallbacks(IGameObjectCallbacks* const callbacks) {
 		size_t id = 0;
 		if (!m_ObjectPool.alloc(id)) {
 			return nullptr;
@@ -440,12 +440,12 @@ namespace luastg
 		m_statistics[m_statistics_index].object_alloc += 1;
 		if (callbacks != nullptr) {
 			p->addCallbacks(callbacks);
-			p->dispatchOnCreate();
 		}
+		dispatchOnCreate(p);
 		return p;
 	}
-	GameObject* GameObjectPool::freeWithCallbacks(GameObject* object) {
-		object->dispatchOnDestroy();
+	GameObject* GameObjectPool::freeWithCallbacks(GameObject* const object) {
+		dispatchOnDestroy(object);
 		object->removeAllCallbacks();
 		object->ReleaseResource();
 		m_statistics[m_statistics_index].object_free += 1;

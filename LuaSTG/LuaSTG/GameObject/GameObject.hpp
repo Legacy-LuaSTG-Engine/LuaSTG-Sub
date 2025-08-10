@@ -42,10 +42,6 @@ namespace luastg {
 	struct CORE_NO_VIRTUAL_TABLE IGameObjectCallbacks {
 		// 获取当前回调函数集的名称
 		virtual std::string_view getCallbacksName(GameObject* self) const noexcept = 0;
-		// 被分配后调用
-		virtual void onCreate(GameObject* self) = 0;
-		// 被回收前调用
-		virtual void onDestroy(GameObject* self) = 0;
 		// 被标记为删除状态时调用
 		virtual void onQueueToDestroy(GameObject* self, std::string_view reason) = 0;
 		// 每帧的运行更新前调用
@@ -183,8 +179,6 @@ namespace luastg {
 		void addCallbacks(IGameObjectCallbacks* c);
 		void removeCallbacks(IGameObjectCallbacks* c);
 		void removeAllCallbacks();
-		void dispatchOnCreate();
-		void dispatchOnDestroy();
 		void dispatchOnQueueToDestroy(std::string_view reason);
 		void dispatchOnUpdate();
 		void dispatchOnLateUpdate();
