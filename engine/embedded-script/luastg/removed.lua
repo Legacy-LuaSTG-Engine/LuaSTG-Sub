@@ -1,3 +1,4 @@
+---@class lstg
 local lstg = require("lstg")
 
 function lstg.ShowSplashWindow() end

@@ -7,7 +7,8 @@ local TEST_NAME = "File: FileSystemArchive"
 local M = {}
 
 function M:onCreate()
-    lstg.LoadPackSub("assets/alpha.zip")
+    ---@diagnostic disable-next-line: undefined-field
+    lstg.LoadPackSub("assets/alpha.zip") -- internal api
     lstg.DoFile("alpha/alpha.lua", "assets/alpha.zip")
 end
 

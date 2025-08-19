@@ -2,8 +2,9 @@
 // This needs to be used along with a Platform Backend (e.g. Win32)
 
 // Implemented features:
-//  [X] Renderer: User texture binding. Use 'ID3D11ShaderResourceView*' as ImTextureID. Read the FAQ about ImTextureID!
+//  [X] Renderer: User texture binding. Use 'ID3D11ShaderResourceView*' as texture identifier. Read the FAQ about ImTextureID/ImTextureRef!
 //  [X] Renderer: Large meshes support (64k+ vertices) even with 16-bit indices (ImGuiBackendFlags_RendererHasVtxOffset).
+//  [X] Renderer: Texture updates support for dynamic font atlas (ImGuiBackendFlags_RendererHasTextures).
 //  [X] Renderer: Expose selected render state for draw callbacks to use. Access in '(ImGui_ImplXXXX_RenderState*)GetPlatformIO().Renderer_RenderState'.
 
 // You can use unmodified imgui_impl_* files in your project. See examples/ folder for examples of using this.
@@ -16,6 +17,8 @@
 
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
+//  2025-06-11: DirectX11: Added support for ImGuiBackendFlags_RendererHasTextures, for dynamic font atlas.
+//  2025-05-07: DirectX11: Honor draw_data->FramebufferScale to allow for custom backends and experiment using it (consistently with other renderer backends, even though in normal condition it is not set under Windows).
 //  2025-01-06: DirectX11: Expose VertexConstantBuffer in ImGui_ImplDX11_RenderState. Reset projection matrix in ImDrawCallback_ResetRenderState handler.
 //  2024-10-07: DirectX11: Changed default texture sampler to Clamp instead of Repeat/Wrap.
 //  2024-10-07: DirectX11: Expose selected render state in ImGui_ImplDX11_RenderState, which you can access in 'void* platform_io.Renderer_RenderState' during draw callbacks.
@@ -52,7 +55,19 @@
 #include "imgui/backend/d3d11/pixel_shader.hpp"
 namespace hlsl = imgui::backend::d3d11;
 
+// Clang/GCC warnings with -Weverything
+#if defined(__clang__)
+#pragma clang diagnostic ignored "-Wold-style-cast"         // warning: use of old-style cast                            // yes, they are more terse.
+#pragma clang diagnostic ignored "-Wsign-conversion"        // warning: implicit conversion changes signedness
+#endif
+
 // DirectX11 data
+struct ImGui_ImplDX11_Texture
+{
+    ID3D11Texture2D*            pTexture;
+    ID3D11ShaderResourceView*   pTextureView;
+};
+
 struct ImGui_ImplDX11_Data
 {
     ID3D11Device*               pd3dDevice;
@@ -65,7 +80,6 @@ struct ImGui_ImplDX11_Data
     ID3D11Buffer*               pVertexConstantBuffer;
     ID3D11PixelShader*          pPixelShader;
     ID3D11SamplerState*         pFontSampler;
-    ID3D11ShaderResourceView*   pFontTextureView;
     ID3D11RasterizerState*      pRasterizerState;
     ID3D11BlendState*           pBlendState;
     ID3D11DepthStencilState*    pDepthStencilState;
@@ -94,8 +108,8 @@ static void ImGui_ImplDX11_SetupRenderState(ImDrawData* draw_data, ID3D11DeviceC
 
     // Setup viewport
     D3D11_VIEWPORT vp = {};
-    vp.Width = draw_data->DisplaySize.x;
-    vp.Height = draw_data->DisplaySize.y;
+    vp.Width = draw_data->DisplaySize.x * draw_data->FramebufferScale.x;
+    vp.Height = draw_data->DisplaySize.y * draw_data->FramebufferScale.y;
     vp.MinDepth = 0.0f;
     vp.MaxDepth = 1.0f;
     vp.TopLeftX = vp.TopLeftY = 0;
@@ -154,6 +168,14 @@ void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data)
 
     ImGui_ImplDX11_Data* bd = ImGui_ImplDX11_GetBackendData();
     ID3D11DeviceContext* device = bd->pd3dDeviceContext;
+
+    // Catch up with texture updates. Most of the times, the list will have 1 element with an OK status, aka nothing to do.
+    // (This almost always points to ImGui::GetPlatformIO().Textures[] but is part of ImDrawData to allow overriding or disabling texture updates).
+    if (draw_data->Textures != nullptr)
+        for (ImTextureData* tex : *draw_data->Textures)
+            if (tex->Status != ImTextureStatus_OK)
+                if (!ImGui_ImplDX11_UpdateTexture(tex))
+                    return;
 
     // Create and grow vertex/index buffers if needed
     if (!bd->pVB || bd->VertexBufferSize < draw_data->TotalVtxCount)
@@ -263,6 +285,7 @@ void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data)
     int global_idx_offset = 0;
     int global_vtx_offset = 0;
     ImVec2 clip_off = draw_data->DisplayPos;
+    ImVec2 clip_scale = draw_data->FramebufferScale;
     for (int n = 0; n < draw_data->CmdListsCount; n++)
     {
         const ImDrawList* draw_list = draw_data->CmdLists[n];
@@ -281,8 +304,8 @@ void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data)
             else
             {
                 // Project scissor/clipping rectangles into framebuffer space
-                ImVec2 clip_min(pcmd->ClipRect.x - clip_off.x, pcmd->ClipRect.y - clip_off.y);
-                ImVec2 clip_max(pcmd->ClipRect.z - clip_off.x, pcmd->ClipRect.w - clip_off.y);
+                ImVec2 clip_min((pcmd->ClipRect.x - clip_off.x) * clip_scale.x, (pcmd->ClipRect.y - clip_off.y) * clip_scale.y);
+                ImVec2 clip_max((pcmd->ClipRect.z - clip_off.x) * clip_scale.x, (pcmd->ClipRect.w - clip_off.y) * clip_scale.y);
                 if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
                     continue;
 
@@ -321,21 +344,39 @@ void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data)
     device->IASetInputLayout(old.InputLayout); if (old.InputLayout) old.InputLayout->Release();
 }
 
-static bool ImGui_ImplDX11_CreateFontsTexture()
+static void ImGui_ImplDX11_DestroyTexture(ImTextureData* tex)
 {
-    // Build texture atlas
-    ImGuiIO& io = ImGui::GetIO();
-    ImGui_ImplDX11_Data* bd = ImGui_ImplDX11_GetBackendData();
-    unsigned char* pixels;
-    int width, height;
-    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+    ImGui_ImplDX11_Texture* backend_tex = (ImGui_ImplDX11_Texture*)tex->BackendUserData;
+    if (backend_tex == nullptr)
+        return;
+    IM_ASSERT(backend_tex->pTextureView == (ID3D11ShaderResourceView*)(intptr_t)tex->TexID);
+    backend_tex->pTextureView->Release();
+    backend_tex->pTexture->Release();
+    IM_DELETE(backend_tex);
 
-    // Upload texture to graphics system
+    // Clear identifiers and mark as destroyed (in order to allow e.g. calling InvalidateDeviceObjects while running)
+    tex->SetTexID(ImTextureID_Invalid);
+    tex->SetStatus(ImTextureStatus_Destroyed);
+    tex->BackendUserData = nullptr;
+}
+
+bool ImGui_ImplDX11_UpdateTexture(ImTextureData* tex)
+{
+    ImGui_ImplDX11_Data* bd = ImGui_ImplDX11_GetBackendData();
+    if (tex->Status == ImTextureStatus_WantCreate)
     {
+        // Create and upload new texture to graphics system
+        //IMGUI_DEBUG_LOG("UpdateTexture #%03d: WantCreate %dx%d\n", tex->UniqueID, tex->Width, tex->Height);
+        IM_ASSERT(tex->TexID == ImTextureID_Invalid && tex->BackendUserData == nullptr);
+        IM_ASSERT(tex->Format == ImTextureFormat_RGBA32);
+        unsigned int* pixels = (unsigned int*)tex->GetPixels();
+        ImGui_ImplDX11_Texture* backend_tex = IM_NEW(ImGui_ImplDX11_Texture)();
+
+        // Create texture
         D3D11_TEXTURE2D_DESC desc;
         ZeroMemory(&desc, sizeof(desc));
-        desc.Width = width;
-        desc.Height = height;
+        desc.Width = (UINT)tex->Width;
+        desc.Height = (UINT)tex->Height;
         desc.MipLevels = 1;
         desc.ArraySize = 1;
         desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -343,15 +384,15 @@ static bool ImGui_ImplDX11_CreateFontsTexture()
         desc.Usage = D3D11_USAGE_DEFAULT;
         desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
         desc.CPUAccessFlags = 0;
-
-        ID3D11Texture2D* pTexture = nullptr;
         D3D11_SUBRESOURCE_DATA subResource;
         subResource.pSysMem = pixels;
         subResource.SysMemPitch = desc.Width * 4;
         subResource.SysMemSlicePitch = 0;
-        if (FAILED(bd->pd3dDevice->CreateTexture2D(&desc, &subResource, &pTexture)))
+        if (FAILED(bd->pd3dDevice->CreateTexture2D(&desc, &subResource, &backend_tex->pTexture)))
+        {
+            IM_ASSERT(backend_tex->pTexture != nullptr && "Backend failed to create texture!");
             return false;
-        IM_ASSERT(pTexture != nullptr);
+        }
 
         // Create texture view
         D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
@@ -360,30 +401,33 @@ static bool ImGui_ImplDX11_CreateFontsTexture()
         srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
         srvDesc.Texture2D.MipLevels = desc.MipLevels;
         srvDesc.Texture2D.MostDetailedMip = 0;
-        if (FAILED(bd->pd3dDevice->CreateShaderResourceView(pTexture, &srvDesc, &bd->pFontTextureView)))
+        if (FAILED(bd->pd3dDevice->CreateShaderResourceView(backend_tex->pTexture, &srvDesc, &backend_tex->pTextureView)))
         {
-            pTexture->Release();
+            IM_ASSERT(backend_tex->pTextureView != nullptr && "Backend failed to create texture!");
             return false;
         }
 
-        pTexture->Release();
+        // Store identifiers
+        tex->SetTexID((ImTextureID)(intptr_t)backend_tex->pTextureView);
+        tex->SetStatus(ImTextureStatus_OK);
+        tex->BackendUserData = backend_tex;
     }
-
-    // Store our identifier
-    io.Fonts->SetTexID((ImTextureID)bd->pFontTextureView);
-
-    return true;
-}
-
-static void ImGui_ImplDX11_DestroyFontsTexture()
-{
-    ImGui_ImplDX11_Data* bd = ImGui_ImplDX11_GetBackendData();
-    if (bd->pFontTextureView)
+    else if (tex->Status == ImTextureStatus_WantUpdates)
     {
-        bd->pFontTextureView->Release();
-        bd->pFontTextureView = nullptr;
-        ImGui::GetIO().Fonts->SetTexID(0); // We copied data->pFontTextureView to io.Fonts->TexID so let's clear that as well.
+        // Update selected blocks. We only ever write to textures regions which have never been used before!
+        // This backend choose to use tex->Updates[] but you can use tex->UpdateRect to upload a single region.
+        ImGui_ImplDX11_Texture* backend_tex = (ImGui_ImplDX11_Texture*)tex->BackendUserData;
+        IM_ASSERT(backend_tex->pTextureView == (ID3D11ShaderResourceView*)(intptr_t)tex->TexID);
+        for (ImTextureRect& r : tex->Updates)
+        {
+            D3D11_BOX box = { (UINT)r.x, (UINT)r.y, (UINT)0, (UINT)(r.x + r.w), (UINT)(r.y + r .h), (UINT)1 };
+            bd->pd3dDeviceContext->UpdateSubresource(backend_tex->pTexture, 0, &box, tex->GetPixelsAt(r.x, r.y), (UINT)tex->GetPitch(), 0);
+        }
+        tex->SetStatus(ImTextureStatus_OK);
     }
+    if (tex->Status == ImTextureStatus_WantDestroy && tex->UnusedFrames > 0)
+        ImGui_ImplDX11_DestroyTexture(tex);
+    return true;
 }
 
 bool    ImGui_ImplDX11_CreateDeviceObjects()
@@ -391,8 +435,7 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
     ImGui_ImplDX11_Data* bd = ImGui_ImplDX11_GetBackendData();
     if (!bd->pd3dDevice)
         return false;
-    if (bd->pFontSampler)
-        ImGui_ImplDX11_InvalidateDeviceObjects();
+    ImGui_ImplDX11_InvalidateDeviceObjects();
 
     // By using D3DCompile() from <d3dcompiler.h> / d3dcompiler.lib, we introduce a dependency to a given version of d3dcompiler_XX.dll (see D3DCOMPILER_DLL_A)
     // If you would like to use this DX11 sample code but remove this dependency you can:
@@ -433,7 +476,7 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
         //ID3DBlob* vertexShaderBlob;
         //if (FAILED(D3DCompile(vertexShader, strlen(vertexShader), nullptr, nullptr, nullptr, "main", "vs_4_0", 0, 0, &vertexShaderBlob, nullptr)))
         //    return false; // NB: Pass ID3DBlob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
-        if (bd->pd3dDevice->CreateVertexShader(hlsl::vertex_shader, sizeof(hlsl::vertex_shader), nullptr, &bd->pVertexShader) != S_OK)
+        if (FAILED(bd->pd3dDevice->CreateVertexShader(hlsl::vertex_shader, sizeof(hlsl::vertex_shader), nullptr, &bd->pVertexShader)))
         {
             //vertexShaderBlob->Release();
             return false;
@@ -446,7 +489,7 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
             { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (UINT)offsetof(ImDrawVert, uv),  D3D11_INPUT_PER_VERTEX_DATA, 0 },
             { "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (UINT)offsetof(ImDrawVert, col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
         };
-        if (bd->pd3dDevice->CreateInputLayout(local_layout, 3, hlsl::vertex_shader, sizeof(hlsl::vertex_shader), &bd->pInputLayout) != S_OK)
+        if (FAILED(bd->pd3dDevice->CreateInputLayout(local_layout, 3, hlsl::vertex_shader, sizeof(hlsl::vertex_shader), &bd->pInputLayout)))
         {
             //vertexShaderBlob->Release();
             return false;
@@ -486,7 +529,7 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
         //ID3DBlob* pixelShaderBlob;
         //if (FAILED(D3DCompile(pixelShader, strlen(pixelShader), nullptr, nullptr, nullptr, "main", "ps_4_0", 0, 0, &pixelShaderBlob, nullptr)))
         //    return false; // NB: Pass ID3DBlob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
-        if (bd->pd3dDevice->CreatePixelShader(hlsl::pixel_shader, sizeof(hlsl::pixel_shader), nullptr, &bd->pPixelShader) != S_OK)
+        if (FAILED(bd->pd3dDevice->CreatePixelShader(hlsl::pixel_shader, sizeof(hlsl::pixel_shader), nullptr, &bd->pPixelShader)))
         {
             //pixelShaderBlob->Release();
             return false;
@@ -507,7 +550,7 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
         desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
         desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
         desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-        if (bd->pd3dDevice->CreateBlendState(&desc, &bd->pBlendState) != S_OK)
+        if (FAILED(bd->pd3dDevice->CreateBlendState(&desc, &bd->pBlendState)))
             return false;
     }
 
@@ -519,7 +562,7 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
         desc.CullMode = D3D11_CULL_NONE;
         desc.ScissorEnable = true;
         desc.DepthClipEnable = true;
-        if (bd->pd3dDevice->CreateRasterizerState(&desc, &bd->pRasterizerState) != S_OK)
+        if (FAILED(bd->pd3dDevice->CreateRasterizerState(&desc, &bd->pRasterizerState)))
             return false;
     }
 
@@ -534,7 +577,7 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
         desc.FrontFace.StencilFailOp = desc.FrontFace.StencilDepthFailOp = desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
         desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
         desc.BackFace = desc.FrontFace;
-        if (bd->pd3dDevice->CreateDepthStencilState(&desc, &bd->pDepthStencilState) != S_OK)
+        if (FAILED(bd->pd3dDevice->CreateDepthStencilState(&desc, &bd->pDepthStencilState)))
             return false;
     }
 
@@ -551,12 +594,9 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
         desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
         desc.MinLOD = 0.f;
         desc.MaxLOD = 0.f;
-        if (bd->pd3dDevice->CreateSamplerState(&desc, &bd->pFontSampler) != S_OK)
+        if (FAILED(bd->pd3dDevice->CreateSamplerState(&desc, &bd->pFontSampler)))
             return false;
     }
-
-    if (!ImGui_ImplDX11_CreateFontsTexture())
-        return false;
 
     return true;
 }
@@ -567,7 +607,10 @@ void    ImGui_ImplDX11_InvalidateDeviceObjects()
     if (!bd->pd3dDevice)
         return;
 
-    ImGui_ImplDX11_DestroyFontsTexture();
+    // Destroy all textures
+    for (ImTextureData* tex : ImGui::GetPlatformIO().Textures)
+        if (tex->RefCount == 1)
+            ImGui_ImplDX11_DestroyTexture(tex);
 
     if (bd->pFontSampler)           { bd->pFontSampler->Release(); bd->pFontSampler = nullptr; }
     if (bd->pIB)                    { bd->pIB->Release(); bd->pIB = nullptr; }
@@ -592,6 +635,10 @@ bool    ImGui_ImplDX11_Init(ID3D11Device* device, ID3D11DeviceContext* device_co
     io.BackendRendererUserData = (void*)bd;
     io.BackendRendererName = "imgui_impl_dx11";
     io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;  // We can honor the ImDrawCmd::VtxOffset field, allowing for large meshes.
+    io.BackendFlags |= ImGuiBackendFlags_RendererHasTextures;   // We can honor ImGuiPlatformIO::Textures[] requests during render.
+
+    ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
+    platform_io.Renderer_TextureMaxWidth = platform_io.Renderer_TextureMaxHeight = D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION;
 
     // Get factory from device
     IDXGIDevice* pDXGIDevice = nullptr;
@@ -626,7 +673,7 @@ void ImGui_ImplDX11_Shutdown()
     if (bd->pd3dDeviceContext)    { bd->pd3dDeviceContext->Release(); }
     io.BackendRendererName = nullptr;
     io.BackendRendererUserData = nullptr;
-    io.BackendFlags &= ~ImGuiBackendFlags_RendererHasVtxOffset;
+    io.BackendFlags &= ~(ImGuiBackendFlags_RendererHasVtxOffset | ImGuiBackendFlags_RendererHasTextures);
     IM_DELETE(bd);
 }
 
@@ -635,8 +682,9 @@ void ImGui_ImplDX11_NewFrame()
     ImGui_ImplDX11_Data* bd = ImGui_ImplDX11_GetBackendData();
     IM_ASSERT(bd != nullptr && "Context or backend not initialized! Did you call ImGui_ImplDX11_Init()?");
 
-    if (!bd->pFontSampler)
-        ImGui_ImplDX11_CreateDeviceObjects();
+    if (!bd->pVertexShader)
+        if (!ImGui_ImplDX11_CreateDeviceObjects())
+            IM_ASSERT(0 && "ImGui_ImplDX11_CreateDeviceObjects() failed!");
 }
 
 //-----------------------------------------------------------------------------

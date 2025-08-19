@@ -2,9 +2,6 @@
 #include "GameResource/ResourceBase.hpp"
 #include "GameResource/ResourceParticle.hpp"
 #include <memory_resource>
-#include <ranges>
-#include <algorithm>
-#include "lua.hpp"
 
 #define LGOBJ_CC_INIT 1
 #define LGOBJ_CC_DEL 2
@@ -33,7 +30,6 @@ namespace luastg {
 		uint8_t has_callback_legacy_kill : 1;
 
 		void reset() { static_assert(sizeof(GameObjectFeatures) == sizeof(uint8_t)); *reinterpret_cast<uint8_t*>(this) = 0u; }
-		void read(lua_State* vm, int index);
 	};
 
 #pragma warning(push)
@@ -46,10 +42,6 @@ namespace luastg {
 	struct CORE_NO_VIRTUAL_TABLE IGameObjectCallbacks {
 		// 获取当前回调函数集的名称
 		virtual std::string_view getCallbacksName(GameObject* self) const noexcept = 0;
-		// 被分配后调用
-		virtual void onCreate(GameObject* self) = 0;
-		// 被回收前调用
-		virtual void onDestroy(GameObject* self) = 0;
 		// 被标记为删除状态时调用
 		virtual void onQueueToDestroy(GameObject* self, std::string_view reason) = 0;
 		// 每帧的运行更新前调用
@@ -71,6 +63,7 @@ namespace luastg {
 		static constexpr int unhandled_set_layer = 2;
 
 		// 回调函数
+
 		IGameObjectCallbacks** callbacks;	// [P] [不可见] 回调函数集和调用链
 		uint32_t callbacks_count;			// [4] [不可见]
 		uint32_t callbacks_capacity;		// [4] [不可见]
@@ -182,66 +175,15 @@ namespace luastg {
 
 		static std::pmr::unsynchronized_pool_resource s_callbacks_resource;
 
-		[[nodiscard]] bool containsCallbacks(IGameObjectCallbacks const* const c) const noexcept {
-			for (size_t i = 0; i < callbacks_count; i++) {
-				if (callbacks[i] == c) {
-					return true;
-				}
-			}
-			return false;
-		}
-		void addCallbacks(IGameObjectCallbacks* const c) {
-			if (callbacks_capacity == 0) {
-				callbacks_capacity = 2;
-				callbacks = static_cast<IGameObjectCallbacks**>(s_callbacks_resource.allocate(sizeof(IGameObjectCallbacks*) * callbacks_capacity));
-				callbacks[0] = c;
-				callbacks[1] = nullptr;
-				callbacks_count = 1;
-			}
-			else if (!containsCallbacks(c)) {
-				if (callbacks_count == callbacks_capacity) {
-					assert(false); // unlikely
-					auto const data = callbacks;
-					auto const size = callbacks_count;
-					callbacks_capacity *= 2;
-					callbacks = static_cast<IGameObjectCallbacks**>(s_callbacks_resource.allocate(sizeof(IGameObjectCallbacks*) * callbacks_capacity));
-					std::memcpy(static_cast<void*>(callbacks), static_cast<void*>(data), sizeof(IGameObjectCallbacks*) * size);
-					std::memset(static_cast<void*>(callbacks + size), 0, sizeof(IGameObjectCallbacks*) * size);
-					s_callbacks_resource.deallocate(static_cast<void*>(data), sizeof(IGameObjectCallbacks*) * size);
-				}
-				callbacks[callbacks_count] = c;
-				callbacks_count++;
-			}
-		}
-		void removeCallbacks(IGameObjectCallbacks* const c) {
-			if (callbacks_count == 0) {
-				return;
-			}
-			if (auto const padding = std::ranges::remove(callbacks, callbacks + callbacks_count, c); !padding.empty()) {
-				std::ranges::fill(padding, nullptr);
-				callbacks_count -= static_cast<uint32_t>(padding.size());
-			}
-		}
-		void removeAllCallbacks() {
-			if (callbacks != nullptr) {
-				s_callbacks_resource.deallocate(static_cast<void*>(callbacks), sizeof(IGameObjectCallbacks*) * callbacks_capacity);
-			}
-			callbacks = nullptr;
-			callbacks_count = 0;
-			callbacks_capacity = 0;
-		}
-
-	#define FOR_EACH_CALLBACKS(S) for (uint32_t i = 0; i < callbacks_count; i++) { callbacks[i]-> S }
-
-		void dispatchOnCreate() { FOR_EACH_CALLBACKS(onCreate(this);) }
-		void dispatchOnDestroy() { FOR_EACH_CALLBACKS(onDestroy(this);) }
-		void dispatchOnQueueToDestroy(std::string_view const reason) { FOR_EACH_CALLBACKS(onQueueToDestroy(this, reason);) }
-		void dispatchOnUpdate() { FOR_EACH_CALLBACKS(onUpdate(this);) }
-		void dispatchOnLateUpdate() { FOR_EACH_CALLBACKS(onLateUpdate(this);) }
-		void dispatchOnRender() { FOR_EACH_CALLBACKS(onRender(this);) }
-		void dispatchOnTrigger(GameObject* const other) { FOR_EACH_CALLBACKS(onTrigger(this, other);) }
-
-	#undef FOR_EACH_CALLBACKS
+		[[nodiscard]] bool containsCallbacks(IGameObjectCallbacks const* c) const noexcept;
+		void addCallbacks(IGameObjectCallbacks* c);
+		void removeCallbacks(IGameObjectCallbacks* c);
+		void removeAllCallbacks();
+		void dispatchOnQueueToDestroy(std::string_view reason);
+		void dispatchOnUpdate();
+		void dispatchOnLateUpdate();
+		void dispatchOnRender();
+		void dispatchOnTrigger(GameObject* other);
 
 		[[nodiscard]] bool hasRenderResource() const noexcept { return res != nullptr; }
 		[[nodiscard]] bool hasParticlePool() const noexcept { return res != nullptr && res->GetType() == ResourceType::Particle && ps != nullptr; }
@@ -280,43 +222,18 @@ namespace luastg {
 		}
 		void setGroup(int64_t new_group);
 		void setLayer(double new_layer);
-		[[nodiscard]] bool isInRect(lua_Number const l, lua_Number const r, lua_Number const bb, lua_Number const t) const noexcept {
+		[[nodiscard]] bool isInRect(double const l, double const r, double const bb, double const t) const noexcept {
 			return x >= l && x <= r && y >= bb && y <= t;
 		}
 		[[nodiscard]] bool isIntersect(GameObject const* other) const noexcept { return isIntersect(this, other); }
 
-		void setResourceRenderState(BlendMode blend, core::Color4B color);
-		void setParticleRenderState(BlendMode blend, core::Color4B color);
-		void stopParticle() {
-			if (!hasParticlePool()) {
-				return;
-			}
-			ps->SetActive(false);
-		}
-		void startParticle() {
-			if (!hasParticlePool()) {
-				return;
-			}
-			ps->SetActive(true);
-		}
-		[[nodiscard]] size_t getParticleCount() const {
-			if (!hasParticlePool()) {
-				return 0;
-			}
-			return ps->GetAliveCount();
-		}
-		[[nodiscard]] int32_t getParticleEmission() const {
-			if (!hasParticlePool()) {
-				return 0;
-			}
-			return ps->GetEmission();
-		}
-		void setParticleEmission(int32_t const value) {
-			if (!hasParticlePool()) {
-				return;
-			}
-			ps->SetEmission(value);
-		}
+		void setResourceRenderState(BlendMode blend, core::Color4B color) const;
+		void setParticleRenderState(BlendMode blend, core::Color4B color) const;
+		void stopParticle() const;
+		void startParticle() const;
+		[[nodiscard]] size_t getParticleCount() const;
+		[[nodiscard]] int32_t getParticleEmission() const;
+		void setParticleEmission(int32_t value) const;
 
 		[[nodiscard]] static bool isIntersect(GameObject const* p1, GameObject const* p2) noexcept;
 	};

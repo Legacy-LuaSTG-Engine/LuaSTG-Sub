@@ -612,7 +612,6 @@ namespace core
 		if (render_result)
 		{
 			tracy_zone_scoped_with_name("OnPresent");
-			tracy_d3d11_context_zone(m_device->GetTracyContext(), "OnPresent");
 			ScopeTimer t(d.present_time);
 			m_swapchain->present();
 			TracyD3D11Collect(m_device->GetTracyContext());

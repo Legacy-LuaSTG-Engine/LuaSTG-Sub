@@ -10,6 +10,8 @@
         "user": "userdata/"
     },
     "graphics_system": {
+        "width": 1280,
+        "height": 720,
         "allow_software_device": true
     }
 }

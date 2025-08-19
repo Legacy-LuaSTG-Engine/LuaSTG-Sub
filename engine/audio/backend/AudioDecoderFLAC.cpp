@@ -1,92 +1,107 @@
 #include "backend/AudioDecoderFLAC.hpp"
 #include "core/Logger.hpp"
 
+namespace {
+	bool isContainerOgg(std::array<char, 4> const& magic) noexcept {
+		return magic[0] == 'O'
+			&& magic[1] == 'g'
+			&& magic[2] == 'g'
+			&& magic[3] == 'S';
+	}
+	bool isContainerFlac(std::array<char, 4> const& magic) noexcept {
+		return magic[0] == 'f'
+			&& magic[1] == 'L'
+			&& magic[2] == 'a'
+			&& magic[3] == 'C';
+	}
+	bool isSupportedFormat(FLAC__StreamMetadata_StreamInfo const& info) {
+		return (info.bits_per_sample == 8 || info.bits_per_sample == 16 || info.bits_per_sample == 24 || info.bits_per_sample == 32)
+			&& (info.channels == 1 || info.channels == 2);
+	}
+	bool isSupportedFormat(FLAC__FrameHeader const& info) {
+		return (info.bits_per_sample == 8 || info.bits_per_sample == 16 || info.bits_per_sample == 24 || info.bits_per_sample == 32)
+			&& (info.channels == 1 || info.channels == 2);
+	}
+}
+
 namespace core {
 	bool AudioDecodeFLAC::seek(uint32_t const pcm_frame) {
-		if (FLAC__STREAM_DECODER_SEEK_ERROR == FLAC__stream_decoder_get_state(m_flac)) {
-			if (!FLAC__stream_decoder_flush(m_flac)) {
-				return false;
-			}
+		if (m_current_pcm_frame == pcm_frame) {
+			return true;
+		}
+		if (!m_flac_frame_data.empty() && m_flac_frame_data.contains(pcm_frame)) {
+			m_current_pcm_frame = pcm_frame;
+			return true;
+		}
+		if (!FLAC__stream_decoder_seek_absolute(m_flac, pcm_frame)) {
+			return false;
+		}
+		if (!m_flac_frame_data.empty() && !m_flac_frame_data.contains(pcm_frame)) {
+			m_flac_frame_data.clear();
 		}
 		m_current_pcm_frame = pcm_frame;
-		m_flac_frame_data.clear();
-		return FLAC__stream_decoder_seek_absolute(m_flac, pcm_frame);
+		return true;
 	}
 	bool AudioDecodeFLAC::seekByTime(double const sec) {
-		if (FLAC__STREAM_DECODER_SEEK_ERROR == FLAC__stream_decoder_get_state(m_flac)) {
-			if (!FLAC__stream_decoder_flush(m_flac)) {
-				return false;
-			}
-		}
-		FLAC__uint64 const pcm_frame = static_cast<FLAC__uint64>(sec * static_cast<double>(m_info.sample_rate));
-		m_current_pcm_frame = static_cast<uint32_t>(pcm_frame);
-		m_flac_frame_data.clear();
-		return FLAC__stream_decoder_seek_absolute(m_flac, pcm_frame);
+		auto const pcm_frame = static_cast<uint64_t>(sec * static_cast<double>(m_info.sample_rate));
+		return seek(static_cast<uint32_t>(pcm_frame));
 	}
-	bool AudioDecodeFLAC::tell(uint32_t* pcm_frame) {
+	bool AudioDecodeFLAC::tell(uint32_t* const pcm_frame) {
 		*pcm_frame = m_current_pcm_frame;
 		return true;
 	}
-	bool AudioDecodeFLAC::tellAsTime(double* sec) {
+	bool AudioDecodeFLAC::tellAsTime(double* const sec) {
 		*sec = static_cast<double>(m_current_pcm_frame) / static_cast<double>(m_info.sample_rate);
 		return true;
 	}
-	bool AudioDecodeFLAC::read(uint32_t pcm_frame, void* buffer, uint32_t* read_pcm_frame) {
-		uint32_t read_pcm_frame_ = 0;
+	bool AudioDecodeFLAC::read(uint32_t const pcm_frame, void* const buffer, uint32_t* const read_pcm_frame) {
+		assert(read_pcm_frame != nullptr);
+		if (pcm_frame == 0) {
+			*read_pcm_frame = 0;
+			return true;
+		}
+		assert(buffer != nullptr);
 
-		while (pcm_frame > 0) {
-			// 先康康有没有没处理完的 frame
-			if (!m_flac_frame_data.empty()) {
-				if (m_current_pcm_frame >= m_flac_frame_data.sample_index && m_current_pcm_frame < (m_flac_frame_data.sample_index + m_flac_frame_data.sample_count)) {
-					// 计算参数
-					uint32_t const pcm_frame_offset = m_current_pcm_frame - m_flac_frame_data.sample_index;
-					uint32_t const valid_pcm_frame = (m_flac_frame_data.sample_index + m_flac_frame_data.sample_count) - m_current_pcm_frame;
-					uint32_t const should_read_pcm_frame = std::min(pcm_frame, valid_pcm_frame);
-					// 写入
-					uint8_t* ptr = (uint8_t*)buffer;
-					for (uint32_t idx = 0; idx < should_read_pcm_frame; idx += 1) {
-						for (uint16_t chs = 0; chs < m_flac_frame_data.channels; chs += 1) {
-							// 拆数据
-							int32_t const sample = m_flac_frame_data.data[chs][pcm_frame_offset + idx];
-							uint8_t const bytes[4] = {
-								(uint8_t)((sample & 0x000000FF)),
-								(uint8_t)((sample & 0x0000FF00) >> 8),
-								(uint8_t)((sample & 0x00FF0000) >> 16),
-								(uint8_t)((sample & 0xFF000000) >> 24),
-							};
-							// 看位深来写入数据，Windows 一般是小端，如果是大端平台需要把上面的 bytes 数组颠倒
-							for (uint16_t bid = 0; bid < (m_flac_frame_data.bits_per_sample / 8); bid += 1) {
-								*ptr = bytes[bid];
-								ptr += 1;
-							}
-						}
-					}
-					// 更新
-					buffer = ptr;
-					pcm_frame -= should_read_pcm_frame;
-					read_pcm_frame_ += should_read_pcm_frame;
-					m_current_pcm_frame += should_read_pcm_frame;
-					// 如果已经完成了，直接返回
-					if (pcm_frame == 0) {
-						*read_pcm_frame = read_pcm_frame_;
-						return true;
+		auto ptr = static_cast<uint8_t*>(buffer);
+		uint32_t pcm_frame_to_read = pcm_frame;
+		uint32_t pcm_frame_read = 0;
+
+		while (pcm_frame_to_read > 0) {
+			// process last block
+			if (!m_flac_frame_data.empty() && m_flac_frame_data.contains(m_current_pcm_frame)) {
+				uint32_t const offset = m_current_pcm_frame - m_flac_frame_data.sample_index;
+				uint32_t const count = std::min(pcm_frame_to_read, m_flac_frame_data.sample_count - offset);
+				uint32_t const bytes_per_sample = m_flac_frame_data.bits_per_sample / 8;
+
+				for (uint32_t i = 0; i < count; i += 1) {
+					for (uint16_t channel = 0; channel < m_flac_frame_data.channels; channel += 1) {
+						auto const v = m_flac_frame_data.data[channel][offset + i];
+						std::memcpy(ptr, &v, bytes_per_sample);
+						ptr += bytes_per_sample;
 					}
 				}
-				else {
-					m_flac_frame_data.clear(); // 不在范围内，可以清理了
+
+				pcm_frame_to_read -= count;
+				pcm_frame_read += count;
+				m_current_pcm_frame += count;
+
+				if (pcm_frame_to_read == 0) {
+					*read_pcm_frame = pcm_frame_read;
+					return true;
 				}
 			}
+			else {
+				m_flac_frame_data.clear();
+			}
 
-			// 还需要继续读取
+			// next block
 			if (!FLAC__stream_decoder_process_single(m_flac)) {
-				// 发生错误
-				*read_pcm_frame = read_pcm_frame_;
+				*read_pcm_frame = pcm_frame_read;
 				return false;
 			}
 		}
 
-		// 没有了
-		*read_pcm_frame = read_pcm_frame_;
+		*read_pcm_frame = pcm_frame_read;
 		return true;
 	}
 
@@ -95,62 +110,88 @@ namespace core {
 	}
 
 	bool AudioDecodeFLAC::open(IData* const data) {
-		// read file
+		// check input
+
+		if (data == nullptr) {
+			assert(false); // unlikely
+			return false;
+		}
+
+		// ref data
 
 		m_data = data;
-		m_pointer = static_cast<uint8_t*>(m_data->data());
+		m_position = 0;
 
 		// create decoder
 
 		m_flac = FLAC__stream_decoder_new();
 		if (nullptr == m_flac) {
-			close();
 			return false;
 		}
 
-		FLAC__stream_decoder_set_metadata_respond(m_flac, FLAC__METADATA_TYPE_STREAMINFO);
-		FLAC__stream_decoder_set_md5_checking(m_flac, true);
+		// read magic
+
+		if (m_data->size() < 4) {
+			assert(false); // unlikely
+			return false;
+		}
+		std::array<char, 4> magic{};
+		std::memcpy(magic.data(), m_data->data(), 4);
 
 		// open stream
 
-		FLAC__StreamDecoderInitStatus flac_init = FLAC__STREAM_DECODER_INIT_STATUS_OK;
-		flac_init = FLAC__stream_decoder_init_stream(m_flac, &onRead, &onSeek, &onTell, &onGetLength, onCheckEof, &onWrite, &onMetadata, &onError, this);
-		if (FLAC__STREAM_DECODER_INIT_STATUS_OK != flac_init) {
-			// retry
-			m_pointer = static_cast<uint8_t*>(m_data->data()); // reset stream
-			flac_init = FLAC__stream_decoder_init_ogg_stream(m_flac, &onRead, &onSeek, &onTell, &onGetLength, onCheckEof, &onWrite, &onMetadata, &onError, this);
+		FLAC__StreamDecoderInitStatus flac_init{};
+		if (isContainerFlac(magic)) {
+			flac_init = FLAC__stream_decoder_init_stream(
+				m_flac,
+				&onRead, &onSeek, &onTell, &onGetLength, &onCheckEof,
+				&onWrite, &onMetadata, &onError,
+				this
+			);
+		}
+		else if (isContainerOgg(magic)) {
+			flac_init = FLAC__stream_decoder_init_ogg_stream(
+				m_flac,
+				&onRead, &onSeek, &onTell, &onGetLength, &onCheckEof,
+				&onWrite, &onMetadata, &onError,
+				this
+			);
+		}
+		else {
+			return false;
 		}
 		if (FLAC__STREAM_DECODER_INIT_STATUS_OK != flac_init) {
-			close();
 			return false;
 		}
 		m_initialized = true;
 
-		// check
+		// read info
 
 		if (!FLAC__stream_decoder_process_until_end_of_metadata(m_flac)) {
-			close();
 			return false;
 		}
 		if (!m_has_info) {
-			close();
 			return false;
 		}
-		if ((m_info.bits_per_sample % 8) != 0 || !(m_info.channels == 1 || m_info.channels == 2)) {
-			close();
+		if (!isSupportedFormat(m_info)) {
 			return false;
 		}
 
-		// test
+		// count total sample (if necessary)
 
-		if (!FLAC__stream_decoder_flush(m_flac)) {
-			close();
-			return false;
+		if (m_info.total_samples == 0) {
+			m_info.total_samples = FLAC__stream_decoder_find_total_samples(m_flac);
+			if (m_info.total_samples == 0) {
+				return false;
+			}
 		}
+
+		// goto begin
+
 		if (!FLAC__stream_decoder_seek_absolute(m_flac, 0)) {
-			close();
 			return false;
 		}
+		m_current_pcm_frame = 0;
 
 		return true;
 	}
@@ -161,6 +202,7 @@ namespace core {
 			}
 			m_initialized = false;
 		}
+		m_current_pcm_frame = 0;
 		m_has_info = false;
 
 		if (m_flac != nullptr) {
@@ -169,83 +211,94 @@ namespace core {
 		}
 
 		m_data.reset();
-		m_pointer = {};
+		m_position = 0;
 	}
 
 #define SELF \
+	assert(client_data != nullptr); \
 	auto const self = static_cast<AudioDecodeFLAC*>(client_data); \
+	assert(self->m_data); \
 	[[maybe_unused]] auto const m_data = static_cast<uint8_t*>(self->m_data->data()); \
 	[[maybe_unused]] auto const m_size = self->m_data->size(); \
-	[[maybe_unused]] auto const m_ptr = static_cast<uint8_t*>(self->m_pointer)
+	[[maybe_unused]] auto const m_position = self->m_position
 
-	FLAC__StreamDecoderReadStatus AudioDecodeFLAC::onRead(FLAC__StreamDecoder const* const, FLAC__byte buffer[], size_t* const bytes, void* const client_data) {
+	FLAC__StreamDecoderReadStatus AudioDecodeFLAC::onRead(FLAC__StreamDecoder const*, FLAC__byte buffer[], size_t* const bytes, void* const client_data) {
 		SELF;
-		assert(bytes);
 
-		size_t const valid_size = m_size - (m_ptr - m_data);
+		assert(bytes != nullptr);
+		auto const valid_size = m_size - std::min(m_position, m_size);
 		if (valid_size == 0) {
 			*bytes = 0;
 			return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
 		}
 
-		assert(buffer);
-
+		assert(buffer != nullptr);
 		size_t const read_size = std::min(valid_size, *bytes);
-		std::memcpy(buffer, m_ptr, read_size);
-		self->m_pointer = m_ptr + read_size;
+		std::memcpy(buffer, m_data + m_position, read_size);
+
+		self->m_position += read_size;
 		*bytes = read_size;
 		return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
 	}
-	FLAC__StreamDecoderSeekStatus AudioDecodeFLAC::onSeek(FLAC__StreamDecoder const* const, FLAC__uint64 const absolute_byte_offset, void* const client_data) {
+	FLAC__StreamDecoderSeekStatus AudioDecodeFLAC::onSeek(FLAC__StreamDecoder const*, FLAC__uint64 const absolute_byte_offset, void* const client_data) {
 		SELF;
-		if (absolute_byte_offset > m_size) {
-			self->m_pointer = m_data + m_size;
+	#if SIZE_MAX < UINT64_MAX
+		if (absolute_byte_offset > std::numeric_limits<size_t>::max()) {
+			self->m_position = std::numeric_limits<size_t>::max();
 			return FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
 		}
-		self->m_pointer = m_data + absolute_byte_offset;
+	#endif
+		if (absolute_byte_offset > m_size) {
+			self->m_position = m_size;
+			return FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
+		}
+		self->m_position = static_cast<size_t>(absolute_byte_offset);
 		return FLAC__STREAM_DECODER_SEEK_STATUS_OK;
 	}
-	FLAC__StreamDecoderTellStatus AudioDecodeFLAC::onTell(FLAC__StreamDecoder const* const, FLAC__uint64* const absolute_byte_offset, void* const client_data) {
+	FLAC__StreamDecoderTellStatus AudioDecodeFLAC::onTell(FLAC__StreamDecoder const*, FLAC__uint64* const absolute_byte_offset, void* const client_data) {
 		SELF;
-		*absolute_byte_offset = static_cast<FLAC__uint64>(m_ptr - m_data);
+		*absolute_byte_offset = static_cast<FLAC__uint64>(m_position);
 		return FLAC__STREAM_DECODER_TELL_STATUS_OK;
 	}
-	FLAC__StreamDecoderLengthStatus AudioDecodeFLAC::onGetLength(FLAC__StreamDecoder const* const, FLAC__uint64* const stream_length, void* const client_data) {
+	FLAC__StreamDecoderLengthStatus AudioDecodeFLAC::onGetLength(FLAC__StreamDecoder const*, FLAC__uint64* const stream_length, void* const client_data) {
 		SELF;
 		*stream_length = m_size;
 		return FLAC__STREAM_DECODER_LENGTH_STATUS_OK;
 	}
-	FLAC__bool AudioDecodeFLAC::onCheckEof(FLAC__StreamDecoder const* const, void* const client_data) {
+	FLAC__bool AudioDecodeFLAC::onCheckEof(FLAC__StreamDecoder const*, void* const client_data) {
 		SELF;
-		return static_cast<size_t>(m_ptr - m_data) >= m_size;
+		return m_position >= m_size;
 	}
 
 	FLAC__StreamDecoderWriteStatus AudioDecodeFLAC::onWrite(FLAC__StreamDecoder const* const, FLAC__Frame const* const frame, const FLAC__int32* const buffer[], void* const client_data) {
 		SELF;
 
 		// check
-		assert(frame->header.channels == 1 || frame->header.channels == 2);
-		assert((frame->header.bits_per_sample % 8) == 0 && frame->header.bits_per_sample <= 32);
-		assert(frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER); // libflac 文档里说为了便于开发者使用， number 类型永远会被转换为样本索引，如果这个 assert 触发了，请找 xiph
+		assert(isSupportedFormat(frame->header));
+		assert(frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
+
+		// check format
+		assert(self->m_info.sample_rate == frame->header.sample_rate);
+		assert(self->m_info.channels == frame->header.channels);
+		assert(self->m_info.bits_per_sample == frame->header.bits_per_sample);
 
 		// save frame info
-		auto& current = self->m_flac_frame_data;
-		current.sample_rate = frame->header.sample_rate;
-		current.channels = static_cast<uint16_t>(frame->header.channels);
-		current.bits_per_sample = static_cast<uint16_t>(frame->header.bits_per_sample);
-		current.sample_index = static_cast<uint32_t>(frame->header.number.sample_number);
-		current.sample_count = frame->header.blocksize;
+		auto& ctx = self->m_flac_frame_data;
+		ctx.sample_rate = frame->header.sample_rate;
+		ctx.channels = static_cast<uint16_t>(frame->header.channels);
+		ctx.bits_per_sample = static_cast<uint16_t>(frame->header.bits_per_sample);
+		ctx.sample_index = static_cast<uint32_t>(frame->header.number.sample_number);
+		ctx.sample_count = frame->header.blocksize;
 
 		// copy data
-		current.data[0].resize(frame->header.blocksize);
-		current.data[1].resize(frame->header.blocksize);
-		for (uint32_t i = 0; i < frame->header.blocksize; i += 1) {
-			if (frame->header.channels == 1) {
-				current.data[0][i] = buffer[0][i];
+		if (frame->header.blocksize > 0) {
+			if (frame->header.channels >= 1) {
+				ctx.data[0].resize(frame->header.blocksize);
+				std::memcpy(ctx.data[0].data(), buffer[0], frame->header.blocksize * sizeof(int32_t));
 			}
-			else {
-				current.data[0][i] = buffer[0][i];
-				current.data[1][i] = buffer[1][i];
+			if (frame->header.channels >= 2) {
+				ctx.data[1].resize(frame->header.blocksize);
+				std::memcpy(ctx.data[1].data(), buffer[1], frame->header.blocksize * sizeof(int32_t));
 			}
 		}
 
@@ -254,7 +307,9 @@ namespace core {
 	void AudioDecodeFLAC::onMetadata(FLAC__StreamDecoder const* const, FLAC__StreamMetadata const* const metadata, void* const client_data) {
 		SELF;
 		if (metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
+			auto const last_total_samples = self->m_info.total_samples;
 			self->m_info = metadata->data.stream_info;
+			self->m_info.total_samples = std::max(self->m_info.total_samples, last_total_samples);
 			self->m_has_info = true;
 		}
 	}

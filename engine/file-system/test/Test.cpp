@@ -74,7 +74,7 @@ TEST(FileSystemOsEnumerator, all) {
 	auto const file_system = core::IFileSystemOS::getInstance();
 
 	core::SmartReference<core::IFileSystemEnumerator> enumerator;
-	ASSERT_TRUE(file_system->createEnumerator(enumerator.put(), "Core.FileSystem.dir\\/"sv));
+	ASSERT_TRUE(file_system->createEnumerator(enumerator.put(), "Core.FileSystem.dir\\/"sv, true));
 
 	while (enumerator->next()) {
 		std::println("{}", enumerator->getName());

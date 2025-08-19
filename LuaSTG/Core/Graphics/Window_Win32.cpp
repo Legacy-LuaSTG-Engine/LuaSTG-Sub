@@ -6,6 +6,7 @@
 #include "win32/abi.hpp"
 #include "Platform/WindowsVersion.hpp"
 #include "Platform/WindowTheme.hpp"
+#include "Platform/RuntimeLoader/DesktopWindowManager.hpp"
 #include "utf8.hpp"
 #include "simdutf.h"
 #include <WinUser.h>
@@ -13,11 +14,12 @@
 
 static constexpr int LUASTG_WM_UPDAE_TITLE = WM_APP + __LINE__;
 static constexpr int LUASTG_WM_RECREATE = WM_APP + __LINE__;
-static constexpr int LUASTG_WM_SETICON = WM_APP + __LINE__;
 static constexpr int LUASTG_WM_SET_WINDOW_MODE = WM_APP + __LINE__;
 static constexpr int LUASTG_WM_SET_FULLSCREEN_MODE = WM_APP + __LINE__;
 
 namespace {
+	Platform::RuntimeLoader::DesktopWindowManager dwmapi_loader;
+
 	template<typename T = MONITORINFO>
 	T getMonitorInfo(HMONITOR const monitor) {
 		static_assert(std::is_same_v<T, MONITORINFO> || std::is_same_v<T, MONITORINFOEXW>);
@@ -27,6 +29,29 @@ namespace {
 		[[maybe_unused]] auto const result = GetMonitorInfoW(monitor, &info);
 		assert(result);
 		return info;
+	}
+
+	void clearWindowBackground(HWND const window) {
+		PAINTSTRUCT ps{};
+		if (auto const dc = BeginPaint(window, &ps); dc != nullptr) {
+			RECT rc{};
+			GetClientRect(window, &rc);
+			auto const brush = static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH));
+			FillRect(dc, &rc, brush);
+			EndPaint(window, &ps);
+		}
+	}
+
+	void setAllowWindowCorner(HWND const window, bool const allow) {
+		DWM_WINDOW_CORNER_PREFERENCE const attr = allow ? DWMWCP_DEFAULT : DWMWCP_DONOTROUND;
+		HRESULT const hr = gHR = dwmapi_loader.SetWindowAttribute(window, DWMWA_WINDOW_CORNER_PREFERENCE, &attr, sizeof(attr));
+		if (FAILED(hr)) {
+			std::string msg;
+			msg.reserve(64);
+			msg.append("DwmSetWindowAttribute -> ");
+			msg.append(allow ? "DWMWCP_DEFAULT" : "DWMWCP_DONOTROUND");
+			i18n_core_system_call_report_error(msg);
+		}
 	}
 }
 
@@ -127,65 +152,60 @@ namespace core::Graphics
 		return win32::getDpiScalingForMonitor(win32_monitor);
 	}
 
-	Display_Win32::Display_Win32(HMONITOR monitor) : win32_monitor(monitor) {
+	Display_Win32::Display_Win32(HMONITOR const monitor) : win32_monitor(monitor) {
 	}
 	Display_Win32::~Display_Win32() = default;
 
-	bool IDisplay::getAll(size_t* count, IDisplay** output) {
-		assert(count);
-		std::vector<HMONITOR> list;
+	bool IDisplay::getAll(size_t* const count, IDisplay** const output) {
+		assert(count != nullptr);
+		assert(*count == 0 || (*count > 0 && output != nullptr));
 		struct Context {
 			std::vector<HMONITOR> list;
-			static BOOL CALLBACK callback(HMONITOR monitor, HDC, LPRECT, LPARAM data) {
-				auto context = reinterpret_cast<Context*>(data);
+			static BOOL CALLBACK callback(HMONITOR const monitor, HDC, LPRECT, LPARAM const data) {
+				auto const context = reinterpret_cast<Context*>(data);
 				context->list.emplace_back(monitor);
 				return TRUE;
-			};
+			}
 		};
 		Context context{};
-		if (!EnumDisplayMonitors(NULL, NULL, &Context::callback, reinterpret_cast<LPARAM>(&context))) {
+		if (!EnumDisplayMonitors(nullptr, nullptr, &Context::callback, reinterpret_cast<LPARAM>(&context))) {
 			return false;
 		}
 		*count = context.list.size();
 		if (output) {
 			for (size_t i = 0; i < context.list.size(); i += 1) {
-				auto display = new Display_Win32(context.list.at(i));
-				output[i] = display;
+				output[i] = new Display_Win32(context.list.at(i));
 			}
 		}
 		return true;
 	}
-	bool IDisplay::getPrimary(IDisplay** output) {
-		assert(output);
+	bool IDisplay::getPrimary(IDisplay** const output) {
+		assert(output != nullptr);
 		struct Context {
 			HMONITOR primary{};
-			static BOOL CALLBACK callback(HMONITOR monitor, HDC, LPRECT, LPARAM data) {
-				auto context = reinterpret_cast<Context*>(data);
-				auto const info = getMonitorInfo(monitor);
-				if (info.dwFlags & MONITORINFOF_PRIMARY) {
+			static BOOL CALLBACK callback(HMONITOR const monitor, HDC, LPRECT, LPARAM const data) {
+				auto const context = reinterpret_cast<Context*>(data);
+				if (auto const info = getMonitorInfo(monitor); info.dwFlags & MONITORINFOF_PRIMARY) {
 					context->primary = monitor;
-					return FALSE;
 				}
 				return TRUE;
 			};
 		};
 		Context context{};
-		if (!EnumDisplayMonitors(NULL, NULL, &Context::callback, reinterpret_cast<LPARAM>(&context))) {
+		if (!EnumDisplayMonitors(nullptr, nullptr, &Context::callback, reinterpret_cast<LPARAM>(&context))) {
 			return false;
 		}
-		auto display = new Display_Win32(context.primary);
-		*output = display;
+		*output = new Display_Win32(context.primary);
 		return true;
 	}
-	bool IDisplay::getNearestFromWindow(IWindow* window, IDisplay** output) {
-		assert(window);
-		assert(output);
-		HMONITOR monitor = MonitorFromWindow(static_cast<HWND>(window->getNativeHandle()), MONITOR_DEFAULTTOPRIMARY);
+	bool IDisplay::getNearestFromWindow(IWindow* const window, IDisplay** const output) {
+		assert(window != nullptr);
+		assert(output != nullptr);
+		auto const monitor = MonitorFromWindow(static_cast<HWND>(window->getNativeHandle()), MONITOR_DEFAULTTOPRIMARY);
 		if (!monitor) {
 			return false;
 		}
-		auto display = new Display_Win32(monitor);
-		*output = display;
+		*output = new Display_Win32(monitor);
 		return true;
 	}
 }
@@ -325,43 +345,42 @@ namespace core::Graphics
 {
 	static DWORD mapWindowStyle(WindowFrameStyle style, bool fullscreen) {
 		if (fullscreen) {
-			return WS_POPUP;
+			return WS_VISIBLE | WS_POPUP;
 		}
 		switch (style)
 		{
 		default:
-			assert(false); return WS_POPUP;
+			assert(false); return WS_VISIBLE | WS_POPUP;
 		case WindowFrameStyle::None:
-			return WS_POPUP;
+			return WS_VISIBLE | WS_POPUP;
 		case WindowFrameStyle::Fixed:
-			return WS_OVERLAPPEDWINDOW ^ (WS_THICKFRAME | WS_MAXIMIZEBOX);
+			return WS_VISIBLE | WS_OVERLAPPEDWINDOW ^ (WS_THICKFRAME | WS_MAXIMIZEBOX);
 		case WindowFrameStyle::Normal:
-			return WS_OVERLAPPEDWINDOW;
+			return WS_VISIBLE | WS_OVERLAPPEDWINDOW;
 		}
 	}
 
 #define APPMODEL ((ApplicationModel_Win32*)m_framework)
 
-	LRESULT CALLBACK Window_Win32::win32_window_callback(HWND window, UINT message, WPARAM arg1, LPARAM arg2)
-	{
-		if (Window_Win32* self = (Window_Win32*)GetWindowLongPtrW(window, GWLP_USERDATA))
-		{
+	LRESULT CALLBACK Window_Win32::win32_window_callback(HWND const window, UINT const message, WPARAM const arg1, LPARAM const arg2) {
+		if (auto const self = reinterpret_cast<Window_Win32*>(GetWindowLongPtrW(window, GWLP_USERDATA))) {
 			return self->onMessage(window, message, arg1, arg2);
 		}
-		switch (message)
-		{
-		case WM_NCCREATE:
+		if (message == WM_NCCREATE) {
 			win32::enableNonClientDpiScaling(window);
-			break;
-		case WM_CREATE:
-			SetLastError(0);
-			SetWindowLongPtrW(window, GWLP_USERDATA, (LONG_PTR)((CREATESTRUCTW*)arg2)->lpCreateParams);
-			if (DWORD const err = GetLastError())
-			{
-				spdlog::error("[luastg] (LastError = {}) SetWindowLongPtrW -> #GWLP_USERDATA failed", err);
-				return -1;
+			if (auto const params = reinterpret_cast<CREATESTRUCTW*>(arg2); params->lpCreateParams) {
+				auto const self = static_cast<Window_Win32*>(params->lpCreateParams);
+
+				SetLastError(0);
+				SetWindowLongPtrW(window, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(self));
+				if (auto const code = GetLastError(); code != 0) {
+					spdlog::error("[luastg] (LastError = {}) SetWindowLongPtrW -> #GWLP_USERDATA failed", code);
+					return FALSE;
+				}
+
+				Platform::WindowTheme::UpdateColorMode(window, TRUE);
+				setAllowWindowCorner(window, self->m_allow_windows_11_window_corner);
 			}
-			return 0;
 		}
 		return DefWindowProcW(window, message, arg1, arg2);
 	}
@@ -456,13 +475,11 @@ namespace core::Graphics
 			win32_window_is_menu_loop = FALSE;
 			return 0;
 		case WM_PAINT:
-			if (win32_window_is_sizemove || win32_window_is_menu_loop)
-			{
+			if (win32_window_is_sizemove || win32_window_is_menu_loop) {
 				APPMODEL->runFrame();
 			}
-			else
-			{
-				ValidateRect(window, NULL); // 正常情况下，WM_PAINT 忽略掉
+			else {
+				ValidateRect(window, nullptr); // no gdi painting
 			}
 			return 0;
 		case WM_SYSKEYDOWN:
@@ -547,31 +564,8 @@ namespace core::Graphics
 			SetWindowTextW(window, win32_window_text_w.data());
 			return 0;
 		case LUASTG_WM_RECREATE:
-		{
-			BOOL result = FALSE;
-			WINDOWPLACEMENT last_window_placement = {};
-			last_window_placement.length = sizeof(last_window_placement);
-
-			assert(win32_window);
-			result = GetWindowPlacement(win32_window, &last_window_placement);
-			assert(result); (void)result;
-
-			destroyWindow();
-			if (!createWindow()) return false;
-
-			assert(win32_window);
-			result = SetWindowPlacement(win32_window, &last_window_placement);
-			assert(result); (void)result;
-		}
-		return 0;
-		case LUASTG_WM_SETICON:
-		{
-			HICON hIcon = LoadIcon(win32_window_class.hInstance, MAKEINTRESOURCE(win32_window_icon_id));
-			SendMessageW(win32_window, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hIcon);
-			SendMessageW(win32_window, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)hIcon);
-			DestroyIcon(hIcon);
-		}
-		return 0;
+			_recreateWindow();
+			return 0;
 		case LUASTG_WM_SET_WINDOW_MODE:
 			_setWindowMode(reinterpret_cast<SetWindowedModeParameters*>(arg1), arg2);
 			return 0;
@@ -579,26 +573,70 @@ namespace core::Graphics
 			_setFullScreenMode(reinterpret_cast<IDisplay*>(arg2));
 			return 0;
 		}
-		return DefWindowProcW(window, message, arg1, arg2);
+		const auto result = DefWindowProcW(window, message, arg1, arg2);
+		if (!m_window_created) {
+			// 在 CreateWindow/CreateWindowEx 期间，
+			// 即使设置了窗口类的 hbrBackground 为黑色笔刷，窗口背景也会先绘制为白色，再转为黑色。
+			// 只有不断追着窗口消息重绘背景，才能 **一定程度** 上避免白色背景（不保证 100% 有效）。
+			// CreateWindow/CreateWindowEx 一般会产生以下窗口消息（按先后顺序）：
+			// - WM_GETMINMAXINFO
+			// - WM_NCCREATE
+			// - WM_NCCALCSIZE
+			// - WM_CREATE
+			// - WM_SHOWWINDOW
+			// - WM_WINDOWPOSCHANGING
+			// - WM_NCPAINT
+			// - WM_GETICON
+			// - WM_ERASEBKGND
+			// - WM_GETICON
+			// - WM_ACTIVATEAPP
+			// - WM_NCACTIVATE
+			// - WM_ACTIVATE
+			// - WM_IME_SETCONTEXT
+			// - WM_IME_NOTIFY
+			// - WM_SETFOCUS
+			// - WM_WINDOWPOSCHANGED
+			// - WM_SIZE
+			// - WM_MOVE
+			// 经过测试，如果在以下三类消息之后重绘背景为黑色，能极大程度地减少看到白色背景的概率：
+			// - WM_NCPAINT
+			// - WM_GETICON
+			// - WM_ERASEBKGND
+			// 但仅处理以上三类消息，仍然会有一定概率出现白色背景，
+			// 因此，有理由猜测白色背景的绘制在窗口弹出动画期间都会持续执行（可能由桌面窗口管理器合成）。
+			clearWindowBackground(window);
+		}
+		return result;
 	}
-	bool Window_Win32::createWindowClass()
-	{
-		HINSTANCE hInstance = GetModuleHandleW(NULL);
-		assert(hInstance); // 如果 hInstance 为 NULL 那肯定是见鬼了
+	bool Window_Win32::createWindowClass() {
+		auto const instance_handle = GetModuleHandleW(nullptr);
+		if (instance_handle == nullptr) {
+			assert(false); // unlikely
+			return false;
+		}
 
-		std::memset(win32_window_class_name, 0, sizeof(win32_window_class_name));
-		std::swprintf(win32_window_class_name, std::size(win32_window_class_name), L"LuaSTG::core::Window[%p]", this);
+		HICON icon{};
+		if (win32_window_icon_id != 0) {
+			icon = LoadIcon(instance_handle, MAKEINTRESOURCE(win32_window_icon_id));
+		}
 
 		auto& cls = win32_window_class;
 		cls.style = CS_HREDRAW | CS_VREDRAW;
 		cls.lpfnWndProc = &win32_window_callback;
-		cls.hInstance = hInstance;
-		cls.hCursor = LoadCursor(NULL, IDC_ARROW);
-		cls.lpszClassName = win32_window_class_name;
+		cls.hInstance = instance_handle;
+		cls.hIcon = icon;
+		cls.hCursor = LoadCursor(nullptr, IDC_ARROW);
+		cls.hbrBackground = static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH));
+		cls.lpszClassName = L"luastg::core::Window";
+		cls.hIconSm = icon;
 
 		win32_window_class_atom = RegisterClassExW(&cls);
-		if (win32_window_class_atom == 0)
-		{
+
+		if (icon != nullptr) {
+			DestroyIcon(icon);
+		}
+
+		if (win32_window_class_atom == 0) {
 			spdlog::error("[luastg] (LastError = {}) RegisterClassExW failed", GetLastError());
 			return false;
 		}
@@ -613,40 +651,47 @@ namespace core::Graphics
 		}
 		win32_window_class_atom = 0;
 	}
-	bool Window_Win32::createWindow()
-	{
-		if (win32_window_class_atom == 0)
-		{
+	bool Window_Win32::createWindow() {
+		if (win32_window_class_atom == 0) {
 			return false;
 		}
 
-		// 直接创建窗口
+		// 拿到原点位置的显示器信息
+		SmartReference<IDisplay> display;
+		if (!IDisplay::getPrimary(display.put())) {
+			return false; // 理论上 Windows 平台的主显示器都在原点
+		}
+		auto const display_rect = display->getWorkAreaRect();
+		auto const display_dpi = static_cast<UINT>(display->getDisplayScale() * USER_DEFAULT_SCREEN_DPI);
+
+		// 计算初始大小
+
+		RECT client{ 0, 0, static_cast<LONG>(win32_window_width),static_cast<LONG>(win32_window_height) };
+		m_title_bar_controller.setEnable(auto_hide_title_bar);
+		m_title_bar_controller.adjustWindowRectExForDpi(&client, win32_window_style, FALSE, win32_window_style_ex, display_dpi);
+
+		// 创建窗口
 
 		convertTitleText();
-		if (!m_redirect_bitmap)
-		{
-			win32_window_style_ex |= WS_EX_NOREDIRECTIONBITMAP;
-		}
-		else
-		{
-			win32_window_style_ex &= ~DWORD(WS_EX_NOREDIRECTIONBITMAP);
-		}
 		win32_window = CreateWindowExW(
 			win32_window_style_ex,
 			win32_window_class.lpszClassName,
 			win32_window_text_w.data(),
 			win32_window_style,
-			0, 0, (int)win32_window_width, (int)win32_window_height,
-			NULL, NULL, win32_window_class.hInstance, this);
-		if (win32_window == NULL)
-		{
+			(display_rect.a.x + display_rect.b.x) / 2 - (client.right - client.left) / 2, // x (left)
+			(display_rect.a.y + display_rect.b.y) / 2 - (client.bottom - client.top) / 2, // y (top)
+			client.right - client.left,
+			client.bottom - client.top,
+			nullptr, // parent
+			nullptr, // menu
+			win32_window_class.hInstance,
+			this
+		);
+		if (win32_window == nullptr) {
 			spdlog::error("[luastg] (LastError = {}) CreateWindowExW failed", GetLastError());
 			return false;
 		}
-
-		// 丢到显示器中间
-
-		setCentered(false, nullptr);
+		m_window_created = true;
 
 		// 配置输入法
 
@@ -658,33 +703,47 @@ namespace core::Graphics
 
 		m_sizemove.setWindow(win32_window);
 
-		// 标题栏控制器
-
-		m_title_bar_controller.setEnable(auto_hide_title_bar && !m_fullscreen_mode);
-
-		// 窗口样式
-
-		Platform::WindowTheme::UpdateColorMode(win32_window, TRUE);
-		setWindowCornerPreference(m_allow_windows_11_window_corner);
-		if (win32_window_icon_id) {
-			SendMessageW(win32_window, LUASTG_WM_SETICON, 0, 0);
-		}
-
 		return true;
 	}
-	void Window_Win32::destroyWindow()
-	{
-		m_sizemove.setWindow(NULL);
+	void Window_Win32::destroyWindow() {
+		m_sizemove.setWindow(nullptr);
+		m_window_created = false;
 		if (win32_window) {
 			DestroyWindow(win32_window);
-			win32_window = NULL;
+			win32_window = nullptr;
 		}
+	}
+	bool Window_Win32::_recreateWindow() {
+		BOOL result{ FALSE };
+		WINDOWPLACEMENT last_window_placement{};
+		last_window_placement.length = sizeof(last_window_placement);
+
+		assert(win32_window);
+		if (result = GetWindowPlacement(win32_window, &last_window_placement); !result) {
+			assert(result);
+			return false;
+		}
+		
+		destroyWindow();
+		if (!createWindow()) {
+			return false;
+		}
+
+		assert(win32_window);
+		if (result = SetWindowPlacement(win32_window, &last_window_placement); !result) {
+			assert(result);
+			return false;
+		}
+		
+		return true;
 	}
 	bool Window_Win32::recreateWindow()
 	{
 		dispatchEvent(EventType::WindowDestroy);
 		SendMessageW(win32_window, LUASTG_WM_RECREATE, 0, 0);
-		ShowWindow(win32_window, SW_SHOWDEFAULT);
+		//if (!_recreateWindow()) {
+		//	return false;
+		//}
 		dispatchEvent(EventType::WindowCreate);
 		return true;
 	}
@@ -751,12 +810,12 @@ namespace core::Graphics
 		{
 			BOOL const set_window_pos_result = SetWindowPos(
 				win32_window,
-				m_hidewindow ? NULL : HWND_TOP,
+				HWND_TOP,
 				(monitor_info.rcWork.right + monitor_info.rcWork.left) / 2 - (rect.right - rect.left) / 2,
 				(monitor_info.rcWork.bottom + monitor_info.rcWork.top) / 2 - (rect.bottom - rect.top) / 2,
 				rect.right - rect.left,
 				rect.bottom - rect.top,
-				SWP_FRAMECHANGED | (m_hidewindow ? SWP_NOZORDER : SWP_SHOWWINDOW));
+				SWP_FRAMECHANGED | SWP_SHOWWINDOW);
 			assert(set_window_pos_result); (void)set_window_pos_result;
 		}
 
@@ -912,14 +971,6 @@ namespace core::Graphics
 		win32_window_dpi = win32::getDpiForWindow(win32_window);
 		return win32_window_dpi;
 	}
-	void Window_Win32::setRedirectBitmapEnable(bool enable)
-	{
-		m_redirect_bitmap = enable ? TRUE : FALSE;
-	}
-	bool Window_Win32::getRedirectBitmapEnable()
-	{
-		return m_redirect_bitmap;
-	}
 
 	void Window_Win32::dispatchEvent(EventType t, EventData d)
 	{
@@ -991,7 +1042,7 @@ namespace core::Graphics
 		}
 		m_eventobj_late.clear();
 	}
-	void Window_Win32::Window_Win32::addEventListener(IWindowEventListener* e)
+	void Window_Win32::addEventListener(IWindowEventListener* e)
 	{
 		removeEventListener(e);
 		if (m_is_dispatch_event)
@@ -1003,7 +1054,7 @@ namespace core::Graphics
 			m_eventobj.emplace_back(e);
 		}
 	}
-	void Window_Win32::Window_Win32::removeEventListener(IWindowEventListener* e)
+	void Window_Win32::removeEventListener(IWindowEventListener* e)
 	{
 		if (m_is_dispatch_event)
 		{
@@ -1028,11 +1079,6 @@ namespace core::Graphics
 	}
 
 	void* Window_Win32::getNativeHandle() { return win32_window; }
-	void Window_Win32::setNativeIcon(void* id)
-	{
-		win32_window_icon_id = (INT_PTR)id;
-		SendMessageW(win32_window, LUASTG_WM_SETICON, 0, 0);
-	}
 
 	void Window_Win32::setIMEState(bool enable)
 	{
@@ -1054,15 +1100,15 @@ namespace core::Graphics
 		return win32_window_ime_enable;
 	}
 
-	void Window_Win32::setTitleText(StringView str)
-	{
+	void Window_Win32::setTitleText(StringView const str) {
 		win32_window_text = str;
 		m_title_bar_controller.setTitle(std::string(str));
 		convertTitleText();
-		PostMessageW(win32_window, LUASTG_WM_UPDAE_TITLE, 0, 0);
+		if (win32_window) {
+			PostMessageW(win32_window, LUASTG_WM_UPDAE_TITLE, 0, 0);
+		}
 	}
-	StringView Window_Win32::getTitleText()
-	{
+	StringView Window_Win32::getTitleText() {
 		return win32_window_text;
 	}
 
@@ -1072,8 +1118,8 @@ namespace core::Graphics
 		win32_window_style = mapWindowStyle(m_framestyle, m_fullscreen_mode);
 		SetWindowLongPtrW(win32_window, GWL_STYLE, win32_window_style);
 		//SetWindowLongPtrW(win32_window, GWL_EXSTYLE, win32_window_style_ex);
-		UINT const flags = (SWP_FRAMECHANGED | SWP_NOZORDER | SWP_NOSIZE | SWP_NOMOVE) | (!m_hidewindow ? SWP_SHOWWINDOW : 0);
-		SetWindowPos(win32_window, NULL, 0, 0, 0, 0, flags);
+		constexpr UINT flags = SWP_FRAMECHANGED | SWP_NOZORDER | SWP_NOSIZE | SWP_NOMOVE | SWP_SHOWWINDOW;
+		SetWindowPos(win32_window, nullptr, 0, 0, 0, 0, flags);
 		return true;
 	}
 	WindowFrameStyle Window_Win32::getFrameStyle()
@@ -1096,51 +1142,26 @@ namespace core::Graphics
 		win32_window_height = v.y;
 		return setClientRect(RectI(0, 0, (int)v.x, (int)v.y));
 	}
-
-	WindowLayer Window_Win32::getLayer()
-	{
-		if (m_hidewindow)
-			return WindowLayer::Invisible;
-		if (WS_EX_TOPMOST & GetWindowLongPtrW(win32_window, GWL_EXSTYLE))
-			return WindowLayer::TopMost;
-		return WindowLayer::Unknown;
-	}
-	bool Window_Win32::setLayer(WindowLayer layer)
-	{
-		HWND pLayer = NULL;
-		switch (layer)
-		{
-		default:
-		case WindowLayer::Unknown:
-			assert(false); return false;
-		case WindowLayer::Invisible:
-			pLayer = NULL;
-			break;
+	bool Window_Win32::setLayer(WindowLayer const layer) {
+		HWND native_layer{};
+		switch (layer) {
 		case WindowLayer::Bottom:
-			pLayer = HWND_BOTTOM;
+			native_layer = HWND_BOTTOM;
 			break;
 		case WindowLayer::Normal:
-			pLayer = HWND_NOTOPMOST;
+			native_layer = HWND_NOTOPMOST;
 			break;
 		case WindowLayer::Top:
-			pLayer = HWND_TOP;
+			native_layer = HWND_TOP;
 			break;
 		case WindowLayer::TopMost:
-			pLayer = HWND_TOPMOST;
+			native_layer = HWND_TOPMOST;
 			break;
+		default:
+			assert(false);
+			return false;
 		}
-		UINT flags = (SWP_NOMOVE | SWP_NOSIZE);
-		if (layer == WindowLayer::Invisible)
-		{
-			flags |= (SWP_NOZORDER | SWP_HIDEWINDOW);
-			m_hidewindow = TRUE;
-		}
-		else
-		{
-			flags |= (SWP_SHOWWINDOW);
-			m_hidewindow = FALSE;
-		}
-		return SetWindowPos(win32_window, pLayer, 0, 0, 0, 0, flags) != FALSE;
+		return SetWindowPos(win32_window, native_layer, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW) != FALSE;
 	}
 
 	float Window_Win32::getDPIScaling()
@@ -1278,49 +1299,48 @@ namespace core::Graphics
 		return m_cursor;
 	}
 
-	void Window_Win32::setWindowCornerPreference(bool allow)
-	{
+	void Window_Win32::setWindowCornerPreference(bool const allow) {
 		m_allow_windows_11_window_corner = allow;
-
-		if (!Platform::WindowsVersion::Is11())
-		{
+		if (!Platform::WindowsVersion::Is11()) {
 			return;
 		}
-
 		assert(win32_window);
-
-		DWM_WINDOW_CORNER_PREFERENCE attr = allow ? DWMWCP_DEFAULT : DWMWCP_DONOTROUND;
-		HRESULT hr = gHR = dwmapi_loader.SetWindowAttribute(
-			win32_window, DWMWA_WINDOW_CORNER_PREFERENCE, &attr, sizeof(attr));
-		if (FAILED(hr))
-		{
-			std::string msg;
-			msg.reserve(64);
-			msg.append("DwmSetWindowAttribute -> ");
-			msg.append(allow ? "DWMWCP_DEFAULT" : "DWMWCP_DONOTROUND");
-			i18n_core_system_call_report_error(msg);
-		}
+		setAllowWindowCorner(win32_window, allow);
 	}
-	void Window_Win32::setTitleBarAutoHidePreference(bool allow) {
+	void Window_Win32::setTitleBarAutoHidePreference(bool const allow) {
 		auto_hide_title_bar = allow;
 		m_title_bar_controller.setEnable(auto_hide_title_bar && !m_fullscreen_mode);
 		if (!m_fullscreen_mode) {
 			WINDOWPLACEMENT placement{ .length{sizeof(WINDOWPLACEMENT)} };
 			GetWindowPlacement(win32_window, &placement);
-			SetWindowPos(win32_window, NULL, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
+			SetWindowPos(win32_window, nullptr, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
 			SetWindowPlacement(win32_window, &placement);
 		}
 		else {
-			SetWindowPos(win32_window, NULL, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+			SetWindowPos(win32_window, nullptr, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
 		}
 	}
 
-	Window_Win32::Window_Win32()
-	{
-		enable_track_window_focus = core::ConfigurationLoader::getInstance().getDebug().isTrackWindowFocus();
-		auto_hide_title_bar = core::ConfigurationLoader::getInstance().getWindow().isAllowTitleBarAutoHide();
+	Window_Win32::Window_Win32() {
+		auto const& debug_config = ConfigurationLoader::getInstance().getDebug();
+		enable_track_window_focus = debug_config.isTrackWindowFocus();
+
+		auto const& window_config = ConfigurationLoader::getInstance().getWindow();
+		if (window_config.hasTitle()) {
+			win32_window_text = window_config.getTitle();
+		}
+		m_cursor = window_config.isCursorVisible() ? WindowCursor::Arrow : WindowCursor::None;
+		m_allow_windows_11_window_corner = window_config.isAllowWindowCorner();
+		auto_hide_title_bar = window_config.isAllowTitleBarAutoHide();
+
+		auto const& graphics_config = ConfigurationLoader::getInstance().getGraphicsSystem();
+		win32_window_width = graphics_config.getWidth();
+		win32_window_height = graphics_config.getHeight();
+
+		m_title_bar_controller.setTitle(win32_window_text);
+		convertTitleText();
 		win32_window_dpi = win32::getUserDefaultScreenDpi();
-		win32_window_text_w.fill(L'\0');
+
 		if (!createWindowClass())
 			throw std::runtime_error("createWindowClass failed");
 		if (!createWindow())

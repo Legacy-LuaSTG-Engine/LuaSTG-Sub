@@ -208,16 +208,16 @@ namespace luastg {
 		headup.x = (float)luaL_checknumber(L, 7);
 		headup.y = (float)luaL_checknumber(L, 8);
 		headup.z = (float)luaL_checknumber(L, 9);
+		auto const fov = (float)luaL_checknumber(L, 10);
+		auto const aspect_ratio = (float)luaL_checknumber(L, 11);
 		core::Vector2F zrange;
 		zrange.x = (float)luaL_checknumber(L, 12);
 		zrange.y = (float)luaL_checknumber(L, 13);
+		if (fov < 0.0f || fov >= L_PI_F)
+			return luaL_error(L, "invalid parameters, require (0 < fov < pi ~= 3.1415...), receive (fov = %f)", fov);
 		if (zrange.x <= 0.0f || zrange.y <= zrange.x)
-			return luaL_error(L, "invalid parameters, require (0 < znear < far), receive (znear = %f, zfar = %f)", zrange.x, zrange.y);
-		LR2D()->setPerspective(eye, lookat, headup,
-							   (float)luaL_checknumber(L, 10),
-							   (float)luaL_checknumber(L, 11),
-							   zrange.x,
-							   zrange.y);
+			return luaL_error(L, "invalid parameters, require (0 < z_near < z_far), receive (z_near = %f, z_far = %f)", zrange.x, zrange.y);
+		LR2D()->setPerspective(eye, lookat, headup, fov, aspect_ratio, zrange.x, zrange.y);
 		return 0;
 	}
 

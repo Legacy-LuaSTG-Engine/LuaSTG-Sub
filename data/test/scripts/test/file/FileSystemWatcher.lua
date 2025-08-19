@@ -5,22 +5,12 @@ local FileAction = require("lstg.FileSystemWatcher.FileAction")
 
 local TEST_NAME = "File: FileSystemWatcher"
 
-local function refreshGlyphCache(str)
-    ---@diagnostic disable-next-line: undefined-field
-    imgui.backend.CacheGlyphFromString(str)
-end
-
 ---@class test.file.FileSystemWatcher : test.Base
 local M = {}
 
 function M:onCreate()
-    refreshGlyphCache("添加")
-    refreshGlyphCache("移除")
-    refreshGlyphCache("修改")
-    refreshGlyphCache("重命名（旧）")
-    refreshGlyphCache("重命名（新）")
-    refreshGlyphCache("未知")
-    self.watcher = FileSystemWatcher.create("C:\\Users\\Admin\\Downloads");
+    local home = os.getenv("USERPROFILE") or "."
+    self.watcher = FileSystemWatcher.create(home .. "\\Downloads");
     self.changes = {}
 end
 
@@ -41,7 +31,6 @@ function M:onUpdate()
     local change = { file_name = "", action = 0 }
     while self.watcher:read(change) do
         table.insert(self.changes, { file_name = change.file_name, action = change.action })
-        refreshGlyphCache(change.file_name)
     end
 
     ---@diagnostic disable-next-line: undefined-field

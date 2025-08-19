@@ -27,6 +27,42 @@
 
 #define ReportError(x) i18n_core_system_call_report_error(x)
 
+namespace {
+	bool resolveOutput(HWND const window, IDXGISwapChain* const swap_chain, IDXGIOutput** const output_output) {
+		HRNew;
+
+		auto const monitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
+		if (monitor == nullptr) {
+			ReportError("MonitorFromWindow (MONITOR_DEFAULT_TO_NEAREST)");
+			return false;
+		}
+
+		Microsoft::WRL::ComPtr<IDXGIFactory1> factory;
+		HRGet = swap_chain->GetParent(IID_PPV_ARGS(factory.ReleaseAndGetAddressOf()));
+		HRCheckCallNoAssertReturnBool("IDXGISwapChain::GetParent -> IDXGIFactory1");
+
+		Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter;
+		Microsoft::WRL::ComPtr<IDXGIOutput> output;
+
+		for (UINT adapter_index = 0; SUCCEEDED(factory->EnumAdapters1(adapter_index, adapter.ReleaseAndGetAddressOf())); adapter_index++) {
+			for (UINT output_index = 0; SUCCEEDED(adapter->EnumOutputs(output_index, output.ReleaseAndGetAddressOf())); output_index++) {
+				DXGI_OUTPUT_DESC output_info{};
+				HRGet = output->GetDesc(&output_info);
+				if (FAILED(hr)) {
+					ReportError("IDXGIOutput::GetDesc");
+					continue;
+				}
+				if (monitor == output_info.Monitor) {
+					*output_output = output.Detach();
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+}
+
 namespace core::Graphics
 {
 	constexpr DXGI_FORMAT const COLOR_BUFFER_FORMAT = DXGI_FORMAT_B8G8R8A8_UNORM;
@@ -122,14 +158,20 @@ namespace core::Graphics
 			.Flags = 0,
 		};
 	}
-	static bool findBestDisplayMode(IDXGISwapChain1* dxgi_swapchain, Vector2U canvas_size, DXGI_MODE_DESC1& mode)
+	
+	static bool findBestDisplayMode(HWND const window, IDXGISwapChain1* dxgi_swapchain, Vector2U canvas_size, DXGI_MODE_DESC1& mode)
 	{
 		HRNew;
 
 		Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output;
 		HRGet = dxgi_swapchain->GetContainingOutput(&dxgi_output);
-		HRCheckCallNoAssertReturnBool("IDXGISwapChain1::GetContainingOutput");
-
+		if (FAILED(hr)) {
+			ReportError("IDXGISwapChain1::GetContainingOutput");
+			if (!resolveOutput(window, dxgi_swapchain, dxgi_output.ReleaseAndGetAddressOf())) {
+				return false;
+			}
+		}
+		
 		Microsoft::WRL::ComPtr<IDXGIOutput1> dxgi_output_1;
 		HRGet = dxgi_output.As(&dxgi_output_1);
 		HRCheckCallReturnBool("IDXGIOutput::QueryInterface -> IDXGIOutput1");
@@ -1175,32 +1217,29 @@ namespace core::Graphics
 
 		return true;
 	}
-	bool SwapChain_D3D11::enterExclusiveFullscreen()
-	{
-		if (m_disable_exclusive_fullscreen)
-		{
+	bool SwapChain_D3D11::enterExclusiveFullscreen() {
+		if (m_disable_exclusive_fullscreen) {
+			return false;
+		}
+		if (!dxgi_swapchain) {
+			assert(false);
+			return false;
+		}
+		if (dcomp_visual_swap_chain) {
 			return false;
 		}
 
-		assert(dxgi_swapchain);
-		if (!dxgi_swapchain) return false;
-
-		DXGI_MODE_DESC1 display_mode = {};
-		if (!findBestDisplayMode(dxgi_swapchain.Get(), m_canvas_size, display_mode)) return false;
+		DXGI_MODE_DESC1 display_mode{};
+		if (!findBestDisplayMode(m_window->GetWindow(), dxgi_swapchain.Get(), m_canvas_size, display_mode)) {
+			return false;
+		}
 
 		dispatchEvent(EventType::SwapChainDestroy);
 		destroySwapChain();
 
-		if (!m_window->getRedirectBitmapEnable())
-		{
-			m_window->setRedirectBitmapEnable(true);
-			if (!m_window->recreateWindow()) return false;
-		}
-
 		m_window->setSize({ display_mode.Width, display_mode.Height });
 
-		if (!createSwapChain(true, display_mode, true)) // 稍后创建渲染附件
-		{
+		if (!createSwapChain(true, display_mode, true /* 稍后创建渲染附件 */)) {
 			return false;
 		}
 
@@ -1208,7 +1247,7 @@ namespace core::Graphics
 
 		// 进入全屏
 		i18n_log_info("[core].SwapChain_D3D11.enter_exclusive_fullscreen");
-		HRGet = dxgi_swapchain->SetFullscreenState(TRUE, NULL);
+		HRGet = dxgi_swapchain->SetFullscreenState(TRUE, nullptr);
 		HRCheckCallReturnBool("IDXGISwapChain::SetFullscreenState -> TRUE");
 
 		// 需要重设交换链大小（特别是 Flip 交换链模型）
@@ -1216,11 +1255,12 @@ namespace core::Graphics
 		HRCheckCallReturnBool("IDXGISwapChain::ResizeBuffers");
 
 		// 创建渲染附件
-		if (!createRenderAttachment())
-		{
+		if (!createRenderAttachment()) {
 			return false;
 		}
-		if (!updateLetterBoxingRendererTransform()) return false;
+		if (!updateLetterBoxingRendererTransform()) {
+			return false;
+		}
 
 		// 记录状态
 		m_init = TRUE;
@@ -1251,12 +1291,6 @@ namespace core::Graphics
 
 			dispatchEvent(EventType::SwapChainDestroy);
 			destroySwapChain();
-
-			if (!m_window->getRedirectBitmapEnable())
-			{
-				m_window->setRedirectBitmapEnable(true);
-				if (!m_window->recreateWindow()) return false;
-			}
 
 			if (!createSwapChain(false, {}, false))
 			{
@@ -1322,24 +1356,8 @@ namespace core::Graphics
 			HRGet = dcomp_desktop_device->CreateVisual(&dcomp_visual_root);
 			HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateVisual");
 
-			HRGet = dcomp_desktop_device->CreateVisual(&dcomp_visual_background);
-			HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateVisual");
-
 			HRGet = dcomp_desktop_device->CreateVisual(&dcomp_visual_title_bar);
 			HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateVisual");
-
-			if (!swap_chain_background.create(
-				m_device->GetDXGIFactory2(),
-				m_device->GetD3D11Device(),
-				m_device->GetD2D1DeviceContext(),
-				m_window->_getCurrentSize()
-			)) {
-				return false;
-			}
-			swap_chain_background.clearRenderTarget();
-			if (!swap_chain_background.present()) {
-				return false;
-			}
 
 			if (!swap_chain_title_bar.create(
 				m_device->GetDXGIFactory2(),
@@ -1350,9 +1368,6 @@ namespace core::Graphics
 				return false;
 			}
 			// 标题栏交换链需要的时候再使用
-
-			HRGet = dcomp_visual_background->SetContent(swap_chain_background.GetDXGISwapChain1());
-			HRCheckCallReturnBool("IDCompositionVisual2::SetContent");
 
 			HRGet = dcomp_visual_title_bar->SetContent(swap_chain_title_bar.GetDXGISwapChain1());
 			HRCheckCallReturnBool("IDCompositionVisual2::SetContent");
@@ -1370,10 +1385,7 @@ namespace core::Graphics
 
 		if (m_is_composition_mode)
 		{
-			HRGet = dcomp_visual_root->AddVisual(dcomp_visual_background.Get(), FALSE, NULL);
-			HRCheckCallReturnBool("IDCompositionVisual2::AddVisual");
-
-			HRGet = dcomp_visual_root->AddVisual(dcomp_visual_swap_chain.Get(), TRUE, dcomp_visual_background.Get());
+			HRGet = dcomp_visual_root->AddVisual(dcomp_visual_swap_chain.Get(), TRUE, nullptr);
 			HRCheckCallReturnBool("IDCompositionVisual2::AddVisual");
 
 			HRGet = dcomp_target->SetRoot(dcomp_visual_root.Get());
@@ -1412,11 +1424,6 @@ namespace core::Graphics
 			HRGet = dcomp_visual_root->RemoveAllVisuals();
 			HRCheckCallReport("IDCompositionVisual2::RemoveAllVisuals");
 		}
-		if (dcomp_visual_background)
-		{
-			HRGet = dcomp_visual_background->SetContent(NULL);
-			HRCheckCallReport("IDCompositionVisual2::SetContent -> NULL");
-		}
 		if (dcomp_visual_swap_chain)
 		{
 			HRGet = dcomp_visual_swap_chain->SetContent(NULL);
@@ -1430,10 +1437,8 @@ namespace core::Graphics
 
 		dcomp_target.Reset();
 		dcomp_visual_root.Reset();
-		dcomp_visual_background.Reset();
 		dcomp_visual_swap_chain.Reset();
 		dcomp_visual_title_bar.Reset();
-		swap_chain_background.destroy();
 		swap_chain_title_bar.destroy();
 		m_title_bar_attached = false;
 
@@ -1470,15 +1475,8 @@ namespace core::Graphics
 			(uint32_t)(rc.right - rc.left),
 			(uint32_t)(rc.bottom - rc.top));
 
-		// 让背景铺满整个画面
+		// 让背景铺满整个画面（由 Window Class 的背景来处理）
 
-		if (!swap_chain_background.setSize(window_size_u)) {
-			return false;
-		}
-		swap_chain_background.clearRenderTarget();
-		if (!swap_chain_background.present()) {
-			return false;
-		}
 
 		// 设置交换链内容内接放大
 
@@ -1949,14 +1947,6 @@ namespace core::Graphics
 		if (!m_disable_modern_swap_chain && m_modern_swap_chain_available)
 		{
 			// TODO: 这样就没法独占全屏了，因为拿不到包含的Output
-			// 如果有重定向表面，则去除
-
-			if (m_window->getRedirectBitmapEnable())
-			{
-				m_window->setRedirectBitmapEnable(false);
-				if (!m_window->recreateWindow()) return false;
-			}
-
 			m_canvas_size = size;
 			if (!createCompositionSwapChain(size, /* latency event */ true)) // 让它创建渲染附件
 			{
@@ -1965,14 +1955,6 @@ namespace core::Graphics
 		}
 		else
 		{
-			// 如果没有重定向表面，还得加回来
-
-			if (!m_window->getRedirectBitmapEnable())
-			{
-				m_window->setRedirectBitmapEnable(true);
-				if (!m_window->recreateWindow()) return false;
-			}
-
 			m_canvas_size = size;
 			if (!createSwapChain(false, {}, false)) // 让它创建渲染附件
 			{
@@ -1999,15 +1981,6 @@ namespace core::Graphics
 
 		dispatchEvent(EventType::SwapChainDestroy);
 		destroySwapChain();
-
-		// 如果有重定向表面，则去除
-
-		if (m_window->getRedirectBitmapEnable())
-		{
-			m_window->setRedirectBitmapEnable(false);
-			if (!m_window->recreateWindow())
-				return false;
-		}
 
 		// 创建交换链
 
@@ -2123,6 +2096,7 @@ namespace core::Graphics
 		// 手动合成画面的情况下，通过内接缩放渲染器来缩放显示
 
 		if (!m_is_composition_mode) {
+			tracy_d3d11_context_zone(m_device->GetTracyContext(), "PreScaling");
 			if (!presentLetterBoxingRenderer()) {
 				return false;
 			}
@@ -2132,6 +2106,7 @@ namespace core::Graphics
 		// 绘制标题栏
 
 		if (m_is_composition_mode) {
+			tracy_d3d11_context_zone(m_device->GetTracyContext(), "TitleBarComposition");
 			// 绘制标题栏到单独的表面
 			if (m_window->getTitleBarController().isVisible()) {
 				if (!m_title_bar_attached) {
@@ -2161,6 +2136,7 @@ namespace core::Graphics
 			}
 		}
 		else {
+			tracy_d3d11_context_zone(m_device->GetTracyContext(), "DrawTitleBar");
 			// 绘制标题栏到交换链上，而不是画布上
 			m_window->getTitleBarController().draw(m_swap_chain_d2d1_bitmap.Get());
 		}

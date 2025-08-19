@@ -2,7 +2,7 @@
 
 CPMAddPackage(
     NAME tracy
-    VERSION 0.11.1
+    VERSION 0.12.2
     GITHUB_REPOSITORY wolfpld/tracy
     DOWNLOAD_ONLY YES
 )

@@ -1,6 +1,6 @@
 #include "ProcessorInfo.hpp"
 #include <windows.h>
-#include <winrt/base.h>
+#include "utf8.hpp"
 
 namespace Platform {
 	std::string ProcessorInfo::name() {
@@ -17,7 +17,7 @@ namespace Platform {
 			&size
 		);
 		if (ERROR_SUCCESS == result) {
-			return winrt::to_string(buffer);
+			return utf8::to_string(buffer);
 		}
 		return "Unknown";
 	}

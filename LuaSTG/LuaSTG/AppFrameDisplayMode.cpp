@@ -43,16 +43,8 @@ namespace luastg
 		{
 			auto const& gs = core::ConfigurationLoader::getInstance().getGraphicsSystem();
 			auto const& win = core::ConfigurationLoader::getInstance().getWindow();
-			using namespace core::Graphics;
 			auto* p_window = m_pAppModel->getWindow();
-			p_window->setTitleText(win.hasTitle() ? win.getTitle() : std::string(LUASTG_INFO));
-			p_window->setCursor(win.isCursorVisible() ? WindowCursor::Arrow : WindowCursor::None);
-			p_window->setNativeIcon((void*)(ptrdiff_t)IDI_APPICON);
-			//p_window->setSize(core::Vector2U(gs.getWidth(), gs.getHeight()));
-			//p_window->setCentered(false);
-			//p_window->setFrameStyle(core::Graphics::WindowFrameStyle::Normal);
-			p_window->setWindowCornerPreference(win.isAllowWindowCorner());
-			p_window->setLayer(core::Graphics::WindowLayer::Invisible);
+			p_window->setCursor(win.isCursorVisible() ? core::Graphics::WindowCursor::Arrow : core::Graphics::WindowCursor::None);
 			p_window->setWindowMode(core::Vector2U(gs.getWidth(), gs.getHeight()));
 		}
 		return true;
@@ -63,15 +55,12 @@ namespace luastg
 		auto const& gs = core::ConfigurationLoader::getInstance().getGraphicsSystem();
 		auto* p_window = m_pAppModel->getWindow();
 		auto* p_swapchain = GetAppModel()->getSwapChain();
-		// 先初始化交换链
-		bool const result = p_swapchain->setWindowMode(core::Vector2U(gs.getWidth(), gs.getHeight()));
-		if (!result) return false;
+		// 初始化交换链
+		auto const canvas_size = core::Vector2U(gs.getWidth(), gs.getHeight());
 		p_swapchain->setVSync(gs.isVsync());
-		// 先刷新一下画面，避免白屏
-		p_swapchain->clearRenderAttachment();
-		p_swapchain->present();
-		// 显示窗口
-		p_window->setLayer(core::Graphics::WindowLayer::Normal);
+		if (!p_swapchain->setWindowMode(canvas_size)) {
+			return false;
+		}
 		if (gs.isFullscreen()) {
 			p_window->setFullScreenMode();
 		}

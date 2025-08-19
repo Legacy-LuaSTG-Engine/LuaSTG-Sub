@@ -3,31 +3,102 @@
 #include "GameResource/ResourceAnimation.hpp"
 #include "lua/plus.hpp"
 #include "AppFrame.h"
+#include <ranges>
+#include <algorithm>
 
 using std::string_view_literals::operator ""sv;
 
 namespace luastg {
-	void GameObjectFeatures::read(lua_State* const vm, int const index) {
-		lua::stack_t const ctx(vm);
-		reset();
-		if (!ctx.is_table(index)) {
-			return;
+	std::pmr::unsynchronized_pool_resource GameObject::s_callbacks_resource;
+
+	namespace {
+		[[nodiscard]] bool isDirectCallbacks(GameObject const* const self) noexcept {
+			return self->callbacks_count == 1 && self->callbacks_capacity == 0;
 		}
-		is_class = ctx.get_map_value<bool>(index, "is_class"sv, false);
-		if (!is_class) {
-			return;
+		void setDirectCallbacks(GameObject* const self, IGameObjectCallbacks* const c) noexcept {
+			self->callbacks = reinterpret_cast<IGameObjectCallbacks**>(c);
+			self->callbacks_count = 1;
+			self->callbacks_capacity = 0;
 		}
-		is_render_class = ctx.get_map_value<bool>(index, ".render"sv, false);
-		auto const default_function_mask = ctx.get_map_value<int32_t>(index, "default_function"sv, 0);
-	#define TEST_CALLBACK(CALLBACK) (default_function_mask & (1 << (CALLBACK))) ? false : true
-		has_callback_create = TEST_CALLBACK(LGOBJ_CC_INIT);
-		has_callback_destroy = TEST_CALLBACK(LGOBJ_CC_DEL);
-		has_callback_update = TEST_CALLBACK(LGOBJ_CC_FRAME);
-		has_callback_render = TEST_CALLBACK(LGOBJ_CC_RENDER);
-		has_callback_trigger = TEST_CALLBACK(LGOBJ_CC_COLLI);
-		has_callback_legacy_kill = TEST_CALLBACK(LGOBJ_CC_KILL);
-	#undef TEST_CALLBACK
+		void clearCallbacks(GameObject* const self) noexcept {
+			self->callbacks = nullptr;
+			self->callbacks_count = 0;
+			self->callbacks_capacity = 0;
+		}
 	}
+
+	bool GameObject::containsCallbacks(IGameObjectCallbacks const* const c) const noexcept {
+		if (isDirectCallbacks(this)) {
+			return reinterpret_cast<IGameObjectCallbacks*>(callbacks) == c;
+		}
+		for (size_t i = 0; i < callbacks_count; i++) {
+			if (callbacks[i] == c) {
+				return true;
+			}
+		}
+		return false;
+	}
+	void GameObject::addCallbacks(IGameObjectCallbacks* const c) {
+		if (callbacks_count == 0) {
+			setDirectCallbacks(this, c);
+		}
+		else if (!containsCallbacks(c)) {
+			if (isDirectCallbacks(this)) {
+				auto const last = reinterpret_cast<IGameObjectCallbacks*>(callbacks);
+				callbacks_count = 2;
+				callbacks_capacity = 2;
+				callbacks = static_cast<IGameObjectCallbacks**>(s_callbacks_resource.allocate(sizeof(IGameObjectCallbacks*) * callbacks_capacity));
+				callbacks[0] = last;
+				callbacks[1] = c;
+			}
+			else if (callbacks_count == callbacks_capacity) {
+				assert(false); // DEBUG: unlikely
+				auto const data = callbacks;
+				auto const size = callbacks_count;
+				callbacks_capacity *= 2;
+				callbacks = static_cast<IGameObjectCallbacks**>(s_callbacks_resource.allocate(sizeof(IGameObjectCallbacks*) * callbacks_capacity));
+				std::memcpy(static_cast<void*>(callbacks), static_cast<void*>(data), sizeof(IGameObjectCallbacks*) * size);
+				std::memset(static_cast<void*>(callbacks + size), 0, sizeof(IGameObjectCallbacks*) * size);
+				s_callbacks_resource.deallocate(static_cast<void*>(data), sizeof(IGameObjectCallbacks*) * size);
+			}
+			callbacks[callbacks_count] = c;
+			callbacks_count++;
+		}
+	}
+	void GameObject::removeCallbacks(IGameObjectCallbacks* const c) {
+		if (callbacks_count == 0) {
+			return;
+		}
+		if (isDirectCallbacks(this) && reinterpret_cast<IGameObjectCallbacks*>(callbacks) == c) {
+			clearCallbacks(this);
+		}
+		if (callbacks_count == 1 && callbacks[0] == c) {
+			callbacks[0] = nullptr;
+			callbacks_count = 0;
+		}
+		if (auto const padding = std::ranges::remove(callbacks, callbacks + callbacks_count, c); !padding.empty()) {
+			std::ranges::fill(padding, nullptr);
+			callbacks_count -= static_cast<uint32_t>(padding.size());
+		}
+	}
+	void GameObject::removeAllCallbacks() {
+		if (callbacks != nullptr && !isDirectCallbacks(this)) {
+			s_callbacks_resource.deallocate(static_cast<void*>(callbacks), sizeof(IGameObjectCallbacks*) * callbacks_capacity);
+		}
+		clearCallbacks(this);
+	}
+
+#define FOR_EACH_CALLBACKS(S) \
+	if (isDirectCallbacks(this)) { reinterpret_cast<IGameObjectCallbacks*>(callbacks)-> S return; } \
+	for (uint32_t i = 0; i < callbacks_count; i++) { callbacks[i]-> S }
+
+	void GameObject::dispatchOnQueueToDestroy(std::string_view const reason) { FOR_EACH_CALLBACKS(onQueueToDestroy(this, reason);) }
+	void GameObject::dispatchOnUpdate() { FOR_EACH_CALLBACKS(onUpdate(this);) }
+	void GameObject::dispatchOnLateUpdate() { FOR_EACH_CALLBACKS(onLateUpdate(this);) }
+	void GameObject::dispatchOnRender() { FOR_EACH_CALLBACKS(onRender(this);) }
+	void GameObject::dispatchOnTrigger(GameObject* const other) { FOR_EACH_CALLBACKS(onTrigger(this, other);) }
+
+#undef FOR_EACH_CALLBACKS
 }
 
 namespace luastg {
@@ -468,24 +539,13 @@ namespace luastg {
 		}
 	}
 
-	std::pmr::unsynchronized_pool_resource GameObject::s_callbacks_resource;
-
-	static struct CallbacksResourceInitializer {
-		CallbacksResourceInitializer() {
-			constexpr auto bytes = sizeof(IGameObjectCallbacks*) * 2;
-			for (size_t i = 0; i < 8192; i++) {
-				GameObject::s_callbacks_resource.deallocate(GameObject::s_callbacks_resource.allocate(bytes), bytes);
-			}
-		}
-	} s_callbacks_resource_initializer;
-
 	void GameObject::setGroup(int64_t const new_group) {
 		LPOOL.setGroup(this, static_cast<size_t>(new_group));
 	}
 	void GameObject::setLayer(double const new_layer) {
 		LPOOL.setLayer(this, new_layer);
 	}
-	void GameObject::setResourceRenderState(BlendMode const blend, core::Color4B const color) {
+	void GameObject::setResourceRenderState(BlendMode const blend, core::Color4B const color) const {
 		if (res == nullptr) {
 			return;
 		}
@@ -500,11 +560,41 @@ namespace luastg {
 			sprite_sequence->SetVertexColor(color);
 		}
 	}
-	void GameObject::setParticleRenderState(BlendMode const blend, core::Color4B const color) {
+	void GameObject::setParticleRenderState(BlendMode const blend, core::Color4B const color) const {
 		if (res == nullptr || res->GetType() != ResourceType::Particle) {
 			return;
 		}
 		ps->SetBlendMode(blend);
 		ps->SetVertexColor(color);
+	}
+	void GameObject::stopParticle() const {
+		if (!hasParticlePool()) {
+			return;
+		}
+		ps->SetActive(false);
+	}
+	void GameObject::startParticle() const {
+		if (!hasParticlePool()) {
+			return;
+		}
+		ps->SetActive(true);
+	}
+	size_t GameObject::getParticleCount() const {
+		if (!hasParticlePool()) {
+			return 0;
+		}
+		return ps->GetAliveCount();
+	}
+	int32_t GameObject::getParticleEmission() const {
+		if (!hasParticlePool()) {
+			return 0;
+		}
+		return ps->GetEmission();
+	}
+	void GameObject::setParticleEmission(int32_t const value) const {
+		if (!hasParticlePool()) {
+			return;
+		}
+		ps->SetEmission(value);
 	}
 }

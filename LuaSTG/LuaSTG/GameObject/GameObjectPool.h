@@ -122,7 +122,11 @@ namespace luastg
 	// 游戏对象管理器回调函数集
 	struct CORE_NO_VIRTUAL_TABLE IGameObjectManagerCallbacks {
 		// 获取当前回调函数集的名称
-		virtual std::string_view getCallbacksName() const noexcept = 0;
+		[[nodiscard]] virtual std::string_view getCallbacksName() const noexcept = 0;
+		// 对象管理器分配对象
+		virtual void onCreate(GameObject* object) = 0;
+		// 对象管理器回收对象
+		virtual void onDestroy(GameObject* object) = 0;
 		// 对象管理器批量回收对象之前
 		virtual void onBeforeBatchDestroy() = 0;
 		// 对象管理器批量回收对象之后
@@ -227,6 +231,16 @@ namespace luastg
 					continue;
 				}
 				++it;
+			}
+		}
+		void dispatchOnCreate(GameObject* const object) {
+			for (auto const c : m_callbacks) {
+				c->onCreate(object);
+			}
+		}
+		void dispatchOnDestroy(GameObject* const object) {
+			for (auto const c : m_callbacks) {
+				c->onDestroy(object);
 			}
 		}
 		void dispatchOnBeforeBatchDestroy() {

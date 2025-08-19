@@ -5,7 +5,6 @@
 #include "Debugger/ImGuiExtension.h"
 #include "LuaBinding/LuaAppFrame.hpp"
 #include "utf8.hpp"
-#include "resource.h"
 #include "core/Configuration.hpp"
 
 using namespace luastg;
@@ -192,6 +191,10 @@ bool AppFrame::Init()noexcept
 	//////////////////////////////////////// 应用程序模型、窗口子系统、图形子系统、音频子系统等
 
 	{
+		if (auto& window_config = core::ConfigurationLoader::getInstance().getWindowRef(); !window_config.hasTitle()) {
+			window_config.setTitle(LUASTG_INFO);
+		}
+
 		if (!core::IApplicationModel::create(this, m_pAppModel.put()))
 			return false;
 		if (!core::IAudioEngine::create(m_audio_engine.put()))
@@ -300,9 +303,6 @@ void AppFrame::Run()noexcept
 	m_pAppModel->getWindow()->addEventListener(this);
 	onSwapChainCreate(); // 手动触发一次，让自动尺寸的RenderTarget设置为正确的尺寸
 	m_pAppModel->getSwapChain()->addEventListener(this);
-	// 刷新窗口的排序，强制带到最前面
-	m_pAppModel->getWindow()->setLayer(core::Graphics::WindowLayer::TopMost);
-	m_pAppModel->getWindow()->setLayer(core::Graphics::WindowLayer::Normal);
 
 	m_pAppModel->getFrameRateController()->setTargetFPS(m_target_fps);
 	m_pAppModel->run();

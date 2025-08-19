@@ -87,10 +87,8 @@ namespace core::Graphics
 		Microsoft::WRL::ComPtr<IDCompositionDesktopDevice> dcomp_desktop_device;
 		Microsoft::WRL::ComPtr<IDCompositionTarget> dcomp_target;
 		Microsoft::WRL::ComPtr<IDCompositionVisual2> dcomp_visual_root;
-		Microsoft::WRL::ComPtr<IDCompositionVisual2> dcomp_visual_background;
 		Microsoft::WRL::ComPtr<IDCompositionVisual2> dcomp_visual_swap_chain;
 		Microsoft::WRL::ComPtr<IDCompositionVisual2> dcomp_visual_title_bar;
-		SecondarySwapChain swap_chain_background;
 		SecondarySwapChain swap_chain_title_bar;
 		bool m_title_bar_attached{ false };
 	private:

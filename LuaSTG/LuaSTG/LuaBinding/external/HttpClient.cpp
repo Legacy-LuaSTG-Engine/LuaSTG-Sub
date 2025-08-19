@@ -9,9 +9,9 @@
 #define NOIME
 #include <Windows.h>
 #include <winhttp.h>
-#include <winrt/base.h>
 #include <wil/resource.h>
 #include <wil/result_macros.h>
+#include "utf8.hpp"
 
 #pragma comment(lib, "winhttp.lib")
 
@@ -32,11 +32,11 @@ static void setHeaders(HINTERNET const handle, std::unordered_map<std::string, s
 		headers_buffer.pop_back();
 	}
 
-	auto const headers_wide = winrt::to_hstring(headers_buffer);
+	auto const headers_wide = utf8::to_wstring(headers_buffer);
 	THROW_IF_WIN32_BOOL_FALSE(WinHttpAddRequestHeaders(
 		handle,
 		headers_wide.c_str(),
-		headers_wide.size(),
+		static_cast<DWORD>(headers_wide.size()),
 		0
 	));
 }
@@ -55,7 +55,8 @@ static void parseResponseHeaders(std::string const& response_headers, std::unord
 		return;
 	}
 
-	std::vector<std::string_view> header_lines; {
+	std::vector<std::string_view> header_lines;
+	{
 		constexpr std::string_view line_break("\r\n");
 		std::string_view view(response_headers);
 		while (!view.empty()) {
@@ -100,9 +101,9 @@ static int verifyUrl(lua_State* L, std::string_view const& url) {
 	url_components.dwPasswordLength = static_cast<DWORD>(-1);
 	url_components.dwUrlPathLength = static_cast<DWORD>(-1);
 	url_components.dwExtraInfoLength = static_cast<DWORD>(-1);
-	auto const url_wide = winrt::to_hstring(url);
+	auto const url_wide = utf8::to_wstring(url);
 	auto const result = WinHttpCrackUrl(
-		url_wide.c_str(), url_wide.size(), 0, &url_components);
+		url_wide.c_str(), static_cast<DWORD>(url_wide.size()), 0, &url_components);
 	if (!result) {
 		switch (GetLastError()) {
 		case ERROR_WINHTTP_INVALID_URL:
@@ -397,8 +398,8 @@ namespace http {
 				url_components.dwPasswordLength = static_cast<DWORD>(-1);
 				url_components.dwUrlPathLength = static_cast<DWORD>(-1);
 				url_components.dwExtraInfoLength = static_cast<DWORD>(-1);
-				auto const url_wide = winrt::to_hstring(self->url);
-				br = WinHttpCrackUrl(url_wide.c_str(), url_wide.size(), 0, &url_components);
+				auto const url_wide = utf8::to_wstring(self->url);
+				br = WinHttpCrackUrl(url_wide.c_str(), static_cast<DWORD>(url_wide.size()), 0, &url_components);
 				THROW_IF_WIN32_BOOL_FALSE_MSG(br, "WinHttpCrackUrl failed");
 
 				// open session
@@ -492,8 +493,7 @@ namespace http {
 					THROW_IF_WIN32_BOOL_FALSE_MSG(br, "WinHttpQueryHeaders failed");
 				}
 
-				std::wstring response_headers_buffer((response_headers_size + 1) / sizeof(std::wstring::value_type),
-					L'\0');
+				std::wstring response_headers_buffer((response_headers_size + 1) / sizeof(std::wstring::value_type), L'\0');
 				SetLastError(ERROR_SUCCESS);
 				br = WinHttpQueryHeaders(
 					request.get(),
@@ -509,7 +509,7 @@ namespace http {
 				THROW_IF_WIN32_BOOL_FALSE_MSG(br, "WinHttpQueryHeaders failed");
 
 				response_headers_buffer.resize(response_headers_size / sizeof(std::wstring::value_type));
-				auto const response_headers = winrt::to_string(response_headers_buffer);
+				auto const response_headers = utf8::to_string(response_headers_buffer);
 				self->headers.clear();
 				parseResponseHeaders(response_headers, self->headers);
 
@@ -538,7 +538,7 @@ namespace http {
 			catch (wil::ResultException const& e) {
 				std::wstring message_buffer(65536, L'\0');
 				wil::GetFailureLogString(message_buffer.data(), message_buffer.size(), e.GetFailureInfo());
-				auto const message = winrt::to_string(message_buffer);
+				auto const message = utf8::to_string(message_buffer);
 				return luaL_error(L, message.c_str());
 			}
 			catch (std::exception const& e) {
