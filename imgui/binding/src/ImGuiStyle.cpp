@@ -138,6 +138,8 @@ namespace imgui::binding {
 			GET_SCALAR(ImageBorderSize);
 			GET_SCALAR(TabRounding);
 			GET_SCALAR(TabBorderSize);
+			GET_SCALAR(TabMinWidthBase);
+			GET_SCALAR(TabMinWidthShrink);
 			GET_SCALAR(TabCloseButtonMinWidthSelected);
 			GET_SCALAR(TabCloseButtonMinWidthUnselected);
 			GET_SCALAR(TabBarBorderSize);
@@ -287,6 +289,8 @@ namespace imgui::binding {
 			SET_SCALAR(ImageBorderSize);
 			SET_SCALAR(TabRounding);
 			SET_SCALAR(TabBorderSize);
+			SET_SCALAR(TabMinWidthBase);
+			SET_SCALAR(TabMinWidthShrink);
 			SET_SCALAR(TabCloseButtonMinWidthSelected);
 			SET_SCALAR(TabCloseButtonMinWidthUnselected);
 			SET_SCALAR(TabBarBorderSize);

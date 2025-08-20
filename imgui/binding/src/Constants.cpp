@@ -161,7 +161,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "HeightMask_"sv, ImGuiComboFlags_HeightMask_);
 	}
 	{
-		auto const e = ctx.create_map(12);
+		auto const e = ctx.create_map(14);
 		ctx.set_map_value(m, "ImGuiTabBarFlags"sv, e);
 		ctx.set_map_value(e, "None"sv, ImGuiTabBarFlags_None);
 		ctx.set_map_value(e, "Reorderable"sv, ImGuiTabBarFlags_Reorderable);
@@ -171,7 +171,8 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "NoTabListScrollingButtons"sv, ImGuiTabBarFlags_NoTabListScrollingButtons);
 		ctx.set_map_value(e, "NoTooltip"sv, ImGuiTabBarFlags_NoTooltip);
 		ctx.set_map_value(e, "DrawSelectedOverline"sv, ImGuiTabBarFlags_DrawSelectedOverline);
-		ctx.set_map_value(e, "FittingPolicyResizeDown"sv, ImGuiTabBarFlags_FittingPolicyResizeDown);
+		ctx.set_map_value(e, "FittingPolicyMixed"sv, ImGuiTabBarFlags_FittingPolicyMixed);
+		ctx.set_map_value(e, "FittingPolicyShrink"sv, ImGuiTabBarFlags_FittingPolicyShrink);
 		ctx.set_map_value(e, "FittingPolicyScroll"sv, ImGuiTabBarFlags_FittingPolicyScroll);
 		ctx.set_map_value(e, "FittingPolicyMask_"sv, ImGuiTabBarFlags_FittingPolicyMask_);
 		ctx.set_map_value(e, "FittingPolicyDefault_"sv, ImGuiTabBarFlags_FittingPolicyDefault_);
@@ -545,7 +546,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "COUNT"sv, ImGuiCol_COUNT);
 	}
 	{
-		auto const e = ctx.create_map(37);
+		auto const e = ctx.create_map(39);
 		ctx.set_map_value(m, "ImGuiStyleVar"sv, e);
 		ctx.set_map_value(e, "Alpha"sv, ImGuiStyleVar_Alpha);
 		ctx.set_map_value(e, "DisabledAlpha"sv, ImGuiStyleVar_DisabledAlpha);
@@ -572,6 +573,8 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "ImageBorderSize"sv, ImGuiStyleVar_ImageBorderSize);
 		ctx.set_map_value(e, "TabRounding"sv, ImGuiStyleVar_TabRounding);
 		ctx.set_map_value(e, "TabBorderSize"sv, ImGuiStyleVar_TabBorderSize);
+		ctx.set_map_value(e, "TabMinWidthBase"sv, ImGuiStyleVar_TabMinWidthBase);
+		ctx.set_map_value(e, "TabMinWidthShrink"sv, ImGuiStyleVar_TabMinWidthShrink);
 		ctx.set_map_value(e, "TabBarBorderSize"sv, ImGuiStyleVar_TabBarBorderSize);
 		ctx.set_map_value(e, "TabBarOverlineSize"sv, ImGuiStyleVar_TabBarOverlineSize);
 		ctx.set_map_value(e, "TableAngledHeadersAngle"sv, ImGuiStyleVar_TableAngledHeadersAngle);
