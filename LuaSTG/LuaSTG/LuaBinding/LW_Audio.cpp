@@ -382,6 +382,22 @@ void luastg::binding::Audio::Register(lua_State* L)noexcept
 			p->SetLoop(loop);
 			return 0;
 		}
+		static int GetBGMTotalTime(lua_State* L) {
+			const char* s = luaL_checkstring(L, 1);
+			core::SmartReference<IResourceMusic> p = LRES.FindMusic(s);
+			if (!p)
+				return luaL_error(L, "music '%s' not found.", s);
+			lua_pushnumber(L, p->GetAudioPlayer()->getTotalTime());
+			return 1;
+		}
+		static int GetBGMTime(lua_State* L) {
+			const char* s = luaL_checkstring(L, 1);
+			core::SmartReference<IResourceMusic> p = LRES.FindMusic(s);
+			if (!p)
+				return luaL_error(L, "music '%s' not found.", s);
+			lua_pushnumber(L, p->GetAudioPlayer()->getTime());
+			return 1;
+		}
 	};
 
 	luaL_Reg const lib[] = {
@@ -412,6 +428,8 @@ void luastg::binding::Audio::Register(lua_State* L)noexcept
 		{ "SetBGMSpeed", &Wrapper::SetBGMSpeed },
 		{ "GetBGMSpeed", &Wrapper::GetBGMSpeed },
 		{ "SetBGMLoop", &Wrapper::SetBGMLoop },
+		{ "GetBGMTotalTime", &Wrapper::GetBGMTotalTime },
+		{ "GetBGMTime", &Wrapper::GetBGMTime },
 		{ NULL, NULL },
 	};
 
