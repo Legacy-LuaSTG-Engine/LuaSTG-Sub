@@ -132,6 +132,7 @@ namespace imgui::binding {
 			GET_SCALAR(ColumnsMinSpacing);
 			GET_SCALAR(ScrollbarSize);
 			GET_SCALAR(ScrollbarRounding);
+			GET_SCALAR(ScrollbarPadding);
 			GET_SCALAR(GrabMinSize);
 			GET_SCALAR(GrabRounding);
 			GET_SCALAR(LogSliderDeadzone);
@@ -283,6 +284,7 @@ namespace imgui::binding {
 			SET_SCALAR(ColumnsMinSpacing);
 			SET_SCALAR(ScrollbarSize);
 			SET_SCALAR(ScrollbarRounding);
+			SET_SCALAR(ScrollbarPadding);
 			SET_SCALAR(GrabMinSize);
 			SET_SCALAR(GrabRounding);
 			SET_SCALAR(LogSliderDeadzone);
