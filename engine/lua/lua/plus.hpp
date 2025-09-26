@@ -426,4 +426,48 @@ namespace lua {
 		}
 
 	};
+
+	namespace methods {
+		// a + b
+		constexpr std::string_view add{"__add"};
+		// a - b
+		constexpr std::string_view sub{"__sub"};
+		// a * b
+		constexpr std::string_view mul{"__mul"};
+		// a / b
+		constexpr std::string_view div{"__div"};
+		// a % b
+		constexpr std::string_view mod{"__mod"};
+		// -n
+		constexpr std::string_view unm{"__unm"};
+		// #n
+		constexpr std::string_view len{"__len"};
+		// a .. b
+		constexpr std::string_view concat{"__concat"};
+		// a == b
+		constexpr std::string_view eq{"__eq"};
+		// a < b
+		constexpr std::string_view lt{"__lt"};
+		// a <= b
+		constexpr std::string_view le{"__le"};
+		// tostring(n)
+		constexpr std::string_view to_string{"__tostring"};
+		// n[k]
+		constexpr std::string_view index{"__index"};
+		// n[k] = v
+		constexpr std::string_view new_index{"__newindex"};
+		// n()
+		constexpr std::string_view call{"__call"};
+		// dispose
+		constexpr std::string_view gc{"__gc"};
+	}
+
+	namespace fields {
+		// n[k]
+		constexpr std::string_view index{"__index"};
+		// weak table
+		constexpr std::string_view mode{"__mode"};
+		// meta table
+		constexpr std::string_view meta_table{"__metatable"};
+	}
 }
