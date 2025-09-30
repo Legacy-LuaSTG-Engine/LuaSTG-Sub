@@ -70,6 +70,19 @@
       ],
       "architecture": "x64",
       "binaryDir": "${sourceDir}/build/amd64-steam"
+    },
+    {
+      "name": "vcpkg",
+      "inherits": [
+        "cpm-cache"
+      ],
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/vcpkg-debug",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static",
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
     }
   ],
   "buildPresets": [

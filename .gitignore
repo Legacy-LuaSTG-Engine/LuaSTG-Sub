@@ -10,6 +10,9 @@ install/*
 cmake-build-*/*
 packages/*
 
+# custom
+CMakeUserPresets.json
+
 # publish
 .backup/*
 
