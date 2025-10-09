@@ -511,6 +511,7 @@ namespace luastg {
 						blend_mode,
 						vertex_color
 					);
+					break;
 				case ResourceType::Animation:
 					static_cast<IResourceAnimation*>(res)->Render(
 						static_cast<int>(ani_timer),
