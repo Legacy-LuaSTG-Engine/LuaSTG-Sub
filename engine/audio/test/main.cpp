@@ -149,6 +149,11 @@ namespace {
 			player->setLoop(true, start, length);
 		}
 	}
+	void destroyResources() {
+		engine.reset();
+		player.reset();
+		decoder.reset();
+	}
 	int run() {
 		if (!core::IAudioEngine::create(engine.put())) {
 			core::Logger::error("core::IAudioEngine::create");
@@ -225,6 +230,7 @@ namespace {
 			}
 		}
 
+		destroyResources();
 		return 0;
 	}
 }
