@@ -736,7 +736,7 @@ bool GameObjectBentLaser::BoundCheck() noexcept
 	auto& manager = LPOOL;
 	for (size_t i = 0u; i < m_Queue.size(); i++) {
 		LaserNode& n = m_Queue[i];
-		if (!manager.isPointInBound(n.pos.x, n.pos.y)) {
+		if (manager.isPointInBound(n.pos.x, n.pos.y)) {
 			return true;
 		}
 	}
