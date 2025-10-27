@@ -71,7 +71,7 @@ jobs:
         run: pwsh scripts/package.ps1
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: release
           path: |
