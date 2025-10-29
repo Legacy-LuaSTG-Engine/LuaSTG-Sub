@@ -58,13 +58,16 @@ void luastg::binding::Audio::Register(lua_State* L)noexcept
 			return 1;
 		}
 
-		static int PlaySound(lua_State* L)noexcept
+		static int PlaySound(lua_State* vm)noexcept
 		{
-			const char* s = luaL_checkstring(L, 1);
-			core::SmartReference<IResourceSoundEffect> p = LRES.FindSound(s);
+			lua::stack_t const ctx(vm);
+			auto const name = ctx.get_value<std::string_view>(1);
+			auto const volume = ctx.get_value<float>(2, 1.0f);
+			auto const pan = ctx.get_value<float>(3, 0.0f);
+			core::SmartReference<IResourceSoundEffect> p = LRES.FindSound(name.data());
 			if (!p)
-				return luaL_error(L, "sound '%s' not found.", s);
-			p->Play((float)luaL_optnumber(L, 2, 1.), (float)luaL_optnumber(L, 3, 0.0));
+				return luaL_error(vm, "sound '%s' not found.", name.data());
+			p->Play(std::clamp(volume, 0.0f, 1.0f), std::clamp(pan, -1.0f, 1.0f));
 			return 0;
 		}
 		static int StopSound(lua_State* L)noexcept
@@ -108,10 +111,11 @@ void luastg::binding::Audio::Register(lua_State* L)noexcept
 				lua_pushstring(L, "paused");
 			return 1;
 		}
-		static int SetSEVolume(lua_State* L)noexcept
+		static int SetSEVolume(lua_State* vm)noexcept
 		{
-			float v = static_cast<float>(luaL_checknumber(L, 1));
-			LAPP.SetSEVolume(v);
+			lua::stack_t const ctx(vm);
+			auto const volume = ctx.get_value<float>(1);
+			LAPP.SetSEVolume(std::clamp(volume, 0.0f, 1.0f));
 			return 0;
 		}
 		static int GetSEVolume(lua_State* L)
@@ -143,13 +147,16 @@ void luastg::binding::Audio::Register(lua_State* L)noexcept
 			return 0;
 		}
 
-		static int PlayMusic(lua_State* L)noexcept
+		static int PlayMusic(lua_State* vm)noexcept
 		{
-			const char* s = luaL_checkstring(L, 1);
-			core::SmartReference<IResourceMusic> p = LRES.FindMusic(s);
+			lua::stack_t const ctx(vm);
+			auto const name = ctx.get_value<std::string_view>(1);
+			auto const volume = ctx.get_value<float>(2, 1.0f);
+			auto const position = ctx.get_value<double>(3, 0.0f);
+			core::SmartReference<IResourceMusic> p = LRES.FindMusic(name.data());
 			if (!p)
-				return luaL_error(L, "music '%s' not found.", s);
-			p->Play((float)luaL_optnumber(L, 2, 1.), luaL_optnumber(L, 3, 0.));
+				return luaL_error(vm, "music '%s' not found.", name.data());
+			p->Play(std::clamp(volume, 0.0f, 1.0f), position);
 			return 0;
 		}
 		static int StopMusic(lua_State* L)noexcept
@@ -321,21 +328,22 @@ void luastg::binding::Audio::Register(lua_State* L)noexcept
 			p->SetLoopRange(range);
 			return 0;
 		}
-		static int SetBGMVolume(lua_State* L)noexcept
+		static int SetBGMVolume(lua_State* vm)noexcept
 		{
-			if (lua_gettop(L) <= 1)
+			lua::stack_t const ctx(vm);
+			if (lua_gettop(vm) <= 1)
 			{
-				float x = static_cast<float>(luaL_checknumber(L, 1));
-				LAPP.SetBGMVolume(x);
+				auto const volume = ctx.get_value<float>(1);
+				LAPP.SetBGMVolume(std::clamp(volume, 0.0f, 1.0f));
 			}
 			else
 			{
-				const char* s = luaL_checkstring(L, 1);
-				float x = static_cast<float>(luaL_checknumber(L, 2));
-				core::SmartReference<IResourceMusic> p = LRES.FindMusic(s);
+				auto const name = ctx.get_value<std::string_view>(1);
+				auto const volume = ctx.get_value<float>(2);
+				core::SmartReference<IResourceMusic> p = LRES.FindMusic(name.data());
 				if (!p)
-					return luaL_error(L, "music '%s' not found.", s);
-				p->SetVolume(x);
+					return luaL_error(vm, "music '%s' not found.", name.data());
+				p->SetVolume(std::clamp(volume, 0.0f, 1.0f));
 			}
 			return 0;
 		}
