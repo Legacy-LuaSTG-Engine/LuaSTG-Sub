@@ -1,6 +1,9 @@
 #include "LuaBinding/LuaWrapper.hpp"
 #include "lua/plus.hpp"
 #include "LuaBinding/PostEffectShader.hpp"
+#include "LuaBinding/modern/Vector2.hpp"
+#include "LuaBinding/modern/Vector3.hpp"
+#include "LuaBinding/modern/Vector4.hpp"
 #include "AppFrame.h"
 #include "GameResource/LegacyBlendStateHelper.hpp"
 
@@ -744,13 +747,37 @@ namespace luastg {
 						check_rendertarget_usage(ptex);
 						p_effect->setTexture2D(key, ptex->GetTexture());
 					}
-					else if (lua_isuserdata(L, -1)) {
-						core::Color4B color = *binding::Color::Cast(L, -1);
+					else if (binding::Vector2::is(L, -1)) {
+						auto const p_value =  binding::Vector2::as(L, -1);
+						p_effect->setFloat2(key, core::Vector2F(
+							static_cast<float>(p_value->data.x),
+							static_cast<float>(p_value->data.y)
+						));
+					}
+					else if (binding::Vector3::is(L, -1)) {
+						auto const p_value = binding::Vector3::as(L, -1);
+						p_effect->setFloat3(key, core::Vector3F(
+							static_cast<float>(p_value->data.x),
+							static_cast<float>(p_value->data.y),
+							static_cast<float>(p_value->data.z)
+						));
+					}
+					else if (binding::Vector4::is(L, -1)) {
+						auto const p_value = binding::Vector4::as(L, -1);
 						p_effect->setFloat4(key, core::Vector4F(
-							float(color.r) / 255.0f,
-							float(color.g) / 255.0f,
-							float(color.b) / 255.0f,
-							float(color.a) / 255.0f
+							static_cast<float>(p_value->data.x),
+							static_cast<float>(p_value->data.y),
+							static_cast<float>(p_value->data.z),
+							static_cast<float>(p_value->data.w)
+						));
+					}
+					else if (lua_isuserdata(L, -1)) {
+						auto const color = *binding::Color::Cast(L, -1);
+						p_effect->setFloat4(key, core::Vector4F(
+							static_cast<float>(color.r) / 255.0f,
+							static_cast<float>(color.g) / 255.0f,
+							static_cast<float>(color.b) / 255.0f,
+							static_cast<float>(color.a) / 255.0f
 						));
 					}
 					else {
