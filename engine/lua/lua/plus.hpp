@@ -164,6 +164,13 @@ namespace lua {
 		inline void set_array_value_zero_base(size_t c_index, std::string_view value) { lua_pushlstring(L, value.data(), value.size()); lua_rawseti(L, -2, static_cast<int>(c_index + 1)); }
 
 		template<typename T>
+		void set_array_value_zero_base(stack_index_t const array_index, stack_index_t const index, T const& value) const {
+			lua_pushinteger(L, index.value + 1);
+			push_value(value);
+			lua_settable(L, array_index.value);
+		}
+
+		template<typename T>
 		inline void set_array_value(stack_index_t index, T value) { typename T::__invalid_type__ _{}; }
 
 		template<>

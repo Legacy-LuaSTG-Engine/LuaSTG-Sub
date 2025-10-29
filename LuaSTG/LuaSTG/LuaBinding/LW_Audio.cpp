@@ -11,24 +11,23 @@ void luastg::binding::Audio::Register(lua_State* L)noexcept
 {
 	struct Wrapper
 	{
-		static int ListAudioDevice(lua_State* L)
+		static int ListAudioDevice(lua_State* vm)
 		{
+			lua::stack_t const ctx(vm);
 			auto const audio_engine = LAPP.getAudioEngine();
 			if (!audio_engine)
 			{
-				return luaL_error(L, "engine not initialized");
+				return luaL_error(vm, "engine not initialized");
 			}
-			lua::stack_t S(L);
-			auto const refresh = S.get_value<bool>(1);
-			if (refresh) {
-				audio_engine->refreshAudioEndpoint();
+			if (auto const refresh = ctx.get_value<bool>(1); refresh) {
+				std::ignore = audio_engine->refreshAudioEndpoint();
 			}
 			uint32_t const count = audio_engine->getAudioEndpointCount();
-			S.create_array(count);
+			auto const names = ctx.create_array(count);
 			for (uint32_t i = 0; i < count; i += 1)
 			{
 				auto const name = audio_engine->getAudioEndpointName(i);
-				S.set_array_value_zero_base<std::string_view>(i, name);
+				ctx.set_array_value_zero_base<std::string_view>(names, i, name);
 			}
 			return 1;
 		}
