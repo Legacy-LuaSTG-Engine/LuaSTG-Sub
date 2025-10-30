@@ -351,7 +351,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		{
 			const char* name = luaL_checkstring(L, 1);
 			const char* model_path = luaL_checkstring(L, 2);
-			
+
 			ResourcePool* pActivedPool = LRES.GetActivedPool();
 			if (!pActivedPool)
 				return luaL_error(L, "can't load resource at this time.");
@@ -360,6 +360,40 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 				model_path))
 			{
 				return luaL_error(L, "load model failed (name='%s', model='%s').", name, model_path);
+			}
+			return 0;
+		}
+		static int LoadSpineAtlas(lua_State* L) noexcept
+		{
+			const char* name = luaL_checkstring(L, 1);
+			const char* atlas_path = luaL_checkstring(L, 2);
+
+			ResourcePool* pActivedPool = LRES.GetActivedPool();
+			if (!pActivedPool)
+				return luaL_error(L, "can't load resource at this time.");
+			if (!pActivedPool->LoadSpineAtlas(
+				name,
+				atlas_path))
+			{
+				return luaL_error(L, "load spineAtlas failed (name='%s', atlas='%s').", name, atlas_path);
+			}
+			return 0;
+		}
+		static int LoadSpineSkeleton(lua_State* L) noexcept
+		{
+			const char* name = luaL_checkstring(L, 1);
+			const char* atlas_name = luaL_checkstring(L, 2);
+			const char* skel_path = luaL_checkstring(L, 3);
+
+			ResourcePool* pActivedPool = LRES.GetActivedPool();
+			if (!pActivedPool)
+				return luaL_error(L, "can't load resource at this time.");
+			if (!pActivedPool->LoadSpineSkeleton(
+				name,
+				atlas_name,
+				skel_path))
+			{
+				return luaL_error(L, "load spineSkeleton failed (name='%s', atlas='%s', skeleton='%s').", name, atlas_name, skel_path);
 			}
 			return 0;
 		}
@@ -688,6 +722,8 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		{ "LoadTrueTypeFont", &Wrapper::LoadTrueTypeFont },
 		{ "LoadFX", &Wrapper::LoadFX },
 		{ "LoadModel", &Wrapper::LoadModel },
+		{ "LoadSpineAtlas", &Wrapper::LoadSpineAtlas },
+		{ "LoadSpineSkeleton", &Wrapper::LoadSpineSkeleton },
 		{ "CreateRenderTarget", &Wrapper::CreateRenderTarget },
 		{ "IsRenderTarget", &Wrapper::IsRenderTarget },
 		{ "SetTexturePreMulAlphaState", &Wrapper::SetTexturePreMulAlphaState },

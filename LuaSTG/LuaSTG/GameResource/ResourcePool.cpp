@@ -944,7 +944,7 @@ namespace luastg
 
     // 加载SpineSkeleton
 
-    bool ResourcePool::LoadSpineSkeleton(const char* atlas_name, const char* name, const char* skeleton_path) noexcept
+    bool ResourcePool::LoadSpineSkeleton(const char* name, const char* atlas_name, const char* skeleton_path) noexcept
     {
         if (m_SpineSkeletonPool.find(std::string_view(name)) != m_SpineSkeletonPool.end())
         {

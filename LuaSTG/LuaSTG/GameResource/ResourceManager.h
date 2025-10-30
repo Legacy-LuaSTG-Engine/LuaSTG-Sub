@@ -139,7 +139,7 @@ namespace luastg
         bool LoadModel(const char* name, const char* path) noexcept;
         // Spine
         bool LoadSpineAtlas(const char* name, const char* atlas_path) noexcept;
-        bool LoadSpineSkeleton(const char* atlas_name, const char* name, const char* skeleton_path) noexcept;
+        bool LoadSpineSkeleton(const char* name, const char* atlas_name, const char* skeleton_path) noexcept;
 
         core::SmartReference<IResourceTexture> GetTexture(std::string_view name) noexcept;
         core::SmartReference<IResourceSprite> GetSprite(std::string_view name) noexcept;

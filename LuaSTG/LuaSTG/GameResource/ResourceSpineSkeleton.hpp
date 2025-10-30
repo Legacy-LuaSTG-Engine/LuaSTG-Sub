@@ -1,11 +1,13 @@
 #pragma once
 #include "GameResource/ResourceBase.hpp"
+#include <spine/spine.h>
 
 namespace luastg
 {
 	struct IResourceSpineSkeleton : public IResourceBase
 	{
-        
+		//virtual std::unique_ptr<spine::Skeleton> CreateInstance() = 0;
+
 	};
 }
 
