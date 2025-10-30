@@ -14,6 +14,7 @@ namespace luastg {
 		TrueTypeFont,
 		FX,
 		Model,
+		Spine,
 	};
 
 	// 混合模式
