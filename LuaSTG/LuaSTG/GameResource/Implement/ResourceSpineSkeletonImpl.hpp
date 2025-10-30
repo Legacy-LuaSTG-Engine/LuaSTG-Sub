@@ -9,8 +9,10 @@ namespace luastg
 	{
 	private:
 		std::shared_ptr<spine::Atlas> atlas_holder;
-		std::shared_ptr<spine::SkeletonData> skeleton;
-	
+		std::unique_ptr<spine::SkeletonData> skeleton;
+
+	public:
+		spine::SkeletonData* getSkeletonData();
 	public:
 		ResourceSpineSkeletonImpl(const char* name, const char* skelPath, const std::shared_ptr<spine::Atlas>& atlas);
 	};

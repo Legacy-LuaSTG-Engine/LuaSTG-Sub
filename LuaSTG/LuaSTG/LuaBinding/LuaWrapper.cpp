@@ -20,6 +20,11 @@
 
 namespace luastg::binding
 {
+	static int lib_CreateSpineInstance(lua_State* L) noexcept
+	{
+		Spine::CreateAndPush(L);
+		return 1;
+	}
 	static int lib_StopWatch(lua_State* L) noexcept
 	{
 		StopWatch::CreateAndPush(L);
@@ -42,6 +47,7 @@ namespace luastg::binding
 		luaL_register(L, LUASTG_LUA_LIBNAME, constructors);	// ? t
 		Color::Register(L);
 		ParticleSystem::Register(L);
+		Spine::Register(L);
 		StopWatch::Register(L);
 		BentLaser::Register(L);
 		DirectInput::Register(L);

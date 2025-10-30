@@ -6,8 +6,7 @@ namespace luastg
 {
 	struct IResourceSpineSkeleton : public IResourceBase
 	{
-		//virtual std::unique_ptr<spine::Skeleton> CreateInstance() = 0;
-
+		virtual spine::SkeletonData* getSkeletonData() = 0;
 	};
 }
 

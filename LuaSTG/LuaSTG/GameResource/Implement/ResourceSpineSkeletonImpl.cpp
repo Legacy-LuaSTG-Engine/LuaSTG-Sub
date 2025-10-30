@@ -24,5 +24,5 @@ namespace luastg
 			spdlog::error("'{}' 不是可识别的SpineSkeleton文件");
 		}
 	}
-
+	spine::SkeletonData* ResourceSpineSkeletonImpl::getSkeletonData() { return skeleton.get(); }
 }

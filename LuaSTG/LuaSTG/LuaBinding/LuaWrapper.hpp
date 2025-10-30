@@ -7,6 +7,7 @@
 
 #define LUASTG_LUA_LIBNAME "lstg"
 
+#define LUASTG_LUA_TYPENAME_SPINE "lstg.Spine" 
 #define LUASTG_LUA_TYPENAME_STOPWATCH "lstg.StopWatch"
 #define LUASTG_LUA_TYPENAME_BENTLASER "lstg.CurveLaser"
 
@@ -89,6 +90,13 @@ namespace luastg::binding
 		static core::Color4B* Cast(lua_State* L, int idx);
 		static void Register(lua_State* L) noexcept;
 		static void CreateAndPush(lua_State* L, core::Color4B const& color);
+	};
+
+	class Spine
+	{
+	public:
+		static void Register(lua_State* L) noexcept;
+		static void CreateAndPush(lua_State* L, spine::SkeletonData* data);
 	};
 
 	class StopWatch
