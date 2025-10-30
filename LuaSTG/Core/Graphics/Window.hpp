@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/Type.hpp"
 #include "core/ReferenceCounted.hpp"
+#include "core/ImmutableString.hpp"
 
 namespace core::Graphics
 {

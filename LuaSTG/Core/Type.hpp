@@ -6,7 +6,6 @@
 #include <string>
 #include "core/ReferenceCounted.hpp"
 #include "core/SmartReference.hpp"
-#include "core/ImmutableString.hpp"
 
 namespace core {
 	// 二维向量
