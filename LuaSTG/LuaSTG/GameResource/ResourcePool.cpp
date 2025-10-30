@@ -901,13 +901,13 @@ namespace luastg
 
     // 加载Spine
 
-    bool ResourcePool::LoadSpine(const char* name, const char* path) noexcept
+    bool ResourcePool::LoadSpine(const char* name, const char* atlas_path, const char* skel_path) noexcept
     {
         if (m_SpinePool.find(std::string_view(name)) != m_SpinePool.end())
         {
             if (ResourceMgr::GetResourceLoadingLog())
             {
-                spdlog::warn("[luastg] LoadModel: Spine '{}' 已存在，加载操作已取消", name);
+                spdlog::warn("[luastg] LoadSpine: Spine '{}' 已存在，加载操作已取消", name);
             }
             return true;
         }
@@ -915,18 +915,18 @@ namespace luastg
         try
         {
             core::SmartReference<IResourceSpine> tRes;
-            tRes.attach(new ResourceSpineImpl(name, path));
+            tRes.attach(new ResourceSpineImpl(name, atlas_path, skel_path));
             m_SpinePool.emplace(name, tRes);
         }
         catch (std::exception const& e)
         {
-            spdlog::error("[luastg] LoadModel: 无法加载Spine '{}' ({})", name, e.what());
+            spdlog::error("[luastg] LoadSpine: 无法加载Spine '{}' ({})", name, e.what());
             return false;
         }
 
         if (ResourceMgr::GetResourceLoadingLog())
         {
-            spdlog::info("[luastg] LoadModel: 已从 '{}' 加载Spine '{}' ({})", path, name, getResourcePoolTypeName());
+            spdlog::info("[luastg] LoadSpine: 已从 '{}', '{}' 加载Spine '{}' ({})", atlas_path, skel_path, name, getResourcePoolTypeName());
         }
 
         return true;

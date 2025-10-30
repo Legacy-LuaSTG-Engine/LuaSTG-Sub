@@ -3,17 +3,6 @@
 #include "GameResource/Implement/ResourceBaseImpl.hpp"
 #include <spine/spine.h>
 
-namespace luastg
-{
-	class ResourceSpineImpl : public ResourceBaseImpl<IResourceSpine>
-	{
-	private:
-	
-	public:
-		ResourceSpineImpl(const char* name, const char* path);
-	};
-}
-
 namespace spine
 {
 	class LuaSTGAtlasAttachmentLoader : public AtlasAttachmentLoader
@@ -41,5 +30,19 @@ namespace spine
 
 	protected:
 		virtual char *_readFile(const String &path, int *length);
+	};
+}
+
+namespace luastg
+{
+	class ResourceSpineImpl : public ResourceBaseImpl<IResourceSpine>
+	{
+	private:
+		inline static spine::LuaSTGTextureLoader textureLoader{};
+		spine::Atlas* atlas;
+		spine::SkeletonData* skeldata;
+	
+	public:
+		ResourceSpineImpl(const char* name, const char* atlasPath, const char* skelPath);
 	};
 }

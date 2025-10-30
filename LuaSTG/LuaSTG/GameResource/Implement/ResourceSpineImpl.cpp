@@ -4,15 +4,49 @@
 
 namespace luastg
 {
-	ResourceSpineImpl::ResourceSpineImpl(const char* name, const char* path)
+	ResourceSpineImpl::ResourceSpineImpl(const char* name, const char* atlas_path, const char* skel_path)
 		: ResourceBaseImpl(ResourceType::Spine, name)
 	{
+		atlas = new spine::Atlas(atlas_path, &textureLoader);
 
+		if (std::string_view(skel_path).ends_with(".json"))
+			skeldata = (new spine::SkeletonJson(atlas))->readSkeletonDataFile(skel_path);
+		else
+			skeldata = (new spine::SkeletonBinary(atlas))->readSkeletonDataFile(skel_path);
 	}
 }
 
 namespace spine
 {
+	using SamplerStateEnum = core::Graphics::IRenderer::SamplerState;
+	// 沟槽的采样模式映射
+	static SamplerStateEnum mapSpineToD3D11(
+		TextureFilter minFilter, TextureFilter magFilter,
+		TextureWrap uWrap, TextureWrap vWrap,
+		bool& enableMipmap)
+	{
+		bool isLinear = false;
+		if (minFilter == TextureFilter_Linear || minFilter == TextureFilter_MipMapLinearNearest ||
+			minFilter == TextureFilter_MipMap || magFilter == TextureFilter_Linear) 
+			isLinear = true;
+		
+		if (minFilter == TextureFilter_MipMapNearestNearest || magFilter == TextureFilter_MipMapNearestNearest ||
+			minFilter == TextureFilter_MipMapLinearNearest || magFilter == TextureFilter_MipMapLinearNearest ||
+			minFilter == TextureFilter_MipMapNearestLinear || magFilter == TextureFilter_MipMapNearestLinear ||
+			minFilter == TextureFilter_MipMapLinearLinear || magFilter == TextureFilter_MipMapLinearLinear)
+			enableMipmap = true;
+
+		SamplerStateEnum mode;
+		if (uWrap == TextureWrap_Repeat)
+			mode = isLinear ? SamplerStateEnum::LinearWrap : SamplerStateEnum::PointWrap;
+		else if (uWrap == TextureWrap_ClampToEdge)
+			mode = isLinear ? SamplerStateEnum::LinearClamp : SamplerStateEnum::PointClamp;
+		else 
+			mode = SamplerStateEnum::LinearWrap;
+		
+		return mode;
+	}
+
 	LuaSTGAtlasAttachmentLoader::LuaSTGAtlasAttachmentLoader(Atlas* atlas) : AtlasAttachmentLoader(atlas) {}
 	LuaSTGAtlasAttachmentLoader::~LuaSTGAtlasAttachmentLoader() {}
 	void LuaSTGAtlasAttachmentLoader::configureAttachment(Attachment* attachment) {}
@@ -21,13 +55,18 @@ namespace spine
 	LuaSTGTextureLoader::~LuaSTGTextureLoader() {}
 	void LuaSTGTextureLoader::load(AtlasPage& page, const spine::String& path)
 	{
+		bool enableMipmap = false;
+		SamplerStateEnum state = mapSpineToD3D11(page.minFilter, page.magFilter, page.uWrap, page.uWrap, enableMipmap);
+
         core::Graphics::ITexture2D* p_texture;
-        if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(path.buffer(), true, &p_texture))
+        if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(path.buffer(), enableMipmap, &p_texture))
         {
             spdlog::error("[luastg] 从 '{}' 创建Spine纹理失败", path.buffer());
             return;
         }
-
+		core::Graphics::ISamplerState* p_sampler = LAPP.GetRenderer2D()->getKnownSamplerState(state);
+		p_texture->setSamplerState(p_sampler);
+		
 		p_texture->retain();
 		auto [w, h] = p_texture->getSize();
 
@@ -43,9 +82,7 @@ namespace spine
 	}
 
 	LuaSTGExtension::LuaSTGExtension() : DefaultSpineExtension() {}
-
 	LuaSTGExtension::~LuaSTGExtension() {}
-
 	char* LuaSTGExtension::_readFile(const spine::String& path, int* length) {
 		core::IData* data;
 		if(!core::FileSystemManager::readFile(path.buffer(), &data)) return nullptr;
