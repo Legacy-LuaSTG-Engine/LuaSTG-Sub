@@ -11,6 +11,7 @@
 #include "core/FileSystem.hpp"
 #include "AppFrame.h"
 #include "lua/plus.hpp"
+#include "GameResource/Implement/ResourceSpineImpl.hpp"
 
 namespace luastg
 {
@@ -28,6 +29,7 @@ namespace luastg
         m_TTFFontPool.clear();
         m_FXPool.clear();
         m_ModelPool.clear();
+        m_SpinePool.clear();
         spdlog::info("[luastg] 已清空资源池 '{}'", getResourcePoolTypeName());
     }
 
@@ -93,6 +95,9 @@ namespace luastg
         case ResourceType::Model:
             removeResource(m_ModelPool, name);
             break;
+        case ResourceType::Spine:
+            removeResource(m_SpinePool, name);
+            break;
         default:
             spdlog::warn("[luastg] RemoveResource: 试图移除一个不存在的资源类型 ({})", (int)t);
             return;
@@ -123,6 +128,8 @@ namespace luastg
             return m_FXPool.find(name) != m_FXPool.end();
         case ResourceType::Model:
             return m_ModelPool.find(name) != m_ModelPool.end();
+        case ResourceType::Spine:
+            return m_SpinePool.find(name) != m_SpinePool.end();
         default:
             spdlog::warn("[luastg] CheckRes: 试图检索一个不存在的资源类型({})", (int)t);
             break;
@@ -178,6 +185,9 @@ namespace luastg
             break;
         case ResourceType::Model:
             listResourceName(L, m_ModelPool);
+            break;
+        case ResourceType::Spine:
+            listResourceName(L, m_SpinePool);
             break;
         default:
             spdlog::warn("[luastg] EnumRes: 试图枚举一个不存在的资源类型({})", (int)t);
@@ -868,7 +878,7 @@ namespace luastg
             }
             return true;
         }
-    
+
         try
         {
             core::SmartReference<IResourceModel> tRes;
@@ -880,12 +890,45 @@ namespace luastg
             spdlog::error("[luastg] LoadModel: 无法加载模型 '{}' ({})", name, e.what());
             return false;
         }
-    
+
         if (ResourceMgr::GetResourceLoadingLog())
         {
             spdlog::info("[luastg] LoadModel: 已从 '{}' 加载模型 '{}' ({})", path, name, getResourcePoolTypeName());
         }
-    
+
+        return true;
+    }
+
+    // 加载Spine
+
+    bool ResourcePool::LoadSpine(const char* name, const char* path) noexcept
+    {
+        if (m_SpinePool.find(std::string_view(name)) != m_SpinePool.end())
+        {
+            if (ResourceMgr::GetResourceLoadingLog())
+            {
+                spdlog::warn("[luastg] LoadModel: Spine '{}' 已存在，加载操作已取消", name);
+            }
+            return true;
+        }
+
+        try
+        {
+            core::SmartReference<IResourceSpine> tRes;
+            tRes.attach(new ResourceSpineImpl(name, path));
+            m_SpinePool.emplace(name, tRes);
+        }
+        catch (std::exception const& e)
+        {
+            spdlog::error("[luastg] LoadModel: 无法加载Spine '{}' ({})", name, e.what());
+            return false;
+        }
+
+        if (ResourceMgr::GetResourceLoadingLog())
+        {
+            spdlog::info("[luastg] LoadModel: 已从 '{}' 加载Spine '{}' ({})", path, name, getResourcePoolTypeName());
+        }
+
         return true;
     }
 
@@ -946,10 +989,15 @@ namespace luastg
         return findResource(m_FXPool, name);
 	}
 
-	core::SmartReference<IResourceModel> ResourcePool::GetModel(std::string_view name) noexcept
-	{
+    core::SmartReference<IResourceModel> ResourcePool::GetModel(std::string_view name) noexcept
+    {
         return findResource(m_ModelPool, name);
-	}
+    }
+
+    core::SmartReference<IResourceSpine> ResourcePool::GetSpine(std::string_view name) noexcept
+    {
+        return findResource(m_SpinePool, name);
+    }
 
     ResourcePool::ResourcePool(ResourceMgr* mgr, ResourcePoolType t)
         : m_pMgr(mgr)
@@ -964,6 +1012,7 @@ namespace luastg
         , m_TTFFontPool(&m_memory_resource)
         , m_FXPool(&m_memory_resource)
         , m_ModelPool(&m_memory_resource)
+        , m_SpinePool(&m_memory_resource)
     {
 
     }

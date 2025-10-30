@@ -9,6 +9,7 @@
 #include "GameResource/ResourceFont.hpp"
 #include "GameResource/ResourcePostEffectShader.hpp"
 #include "GameResource/ResourceModel.hpp"
+#include "GameResource/ResourceSpine.hpp"
 #include "lua.hpp"
 #include "xxhash.h"
 
@@ -87,6 +88,7 @@ namespace luastg
         dictionary_t<core::SmartReference<IResourceFont>> m_TTFFontPool;
         dictionary_t<core::SmartReference<IResourcePostEffectShader>> m_FXPool;
         dictionary_t<core::SmartReference<IResourceModel>> m_ModelPool;
+        dictionary_t<core::SmartReference<IResourceSpine>> m_SpinePool;
     private:
         const char* getResourcePoolTypeName();
     public:
@@ -132,7 +134,9 @@ namespace luastg
         bool LoadFX(const char* name, const char* path) noexcept;
         // 模型
         bool LoadModel(const char* name, const char* path) noexcept;
-        
+        // Spine
+        bool LoadSpine(const char* name, const char* path) noexcept;
+
         core::SmartReference<IResourceTexture> GetTexture(std::string_view name) noexcept;
         core::SmartReference<IResourceSprite> GetSprite(std::string_view name) noexcept;
         core::SmartReference<IResourceAnimation> GetAnimation(std::string_view name) noexcept;
@@ -143,6 +147,7 @@ namespace luastg
         core::SmartReference<IResourceFont> GetTTFFont(std::string_view name) noexcept;
         core::SmartReference<IResourcePostEffectShader> GetFX(std::string_view name) noexcept;
         core::SmartReference<IResourceModel> GetModel(std::string_view name) noexcept;
+        core::SmartReference<IResourceSpine> GetSpine(std::string_view name) noexcept;
     public:
         ResourcePool(ResourceMgr* mgr, ResourcePoolType t);
         ResourcePool& operator=(const ResourcePool&) = delete;

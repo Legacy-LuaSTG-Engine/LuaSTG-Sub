@@ -1,6 +1,5 @@
 #pragma once
 #include "GameResource/ResourceBase.hpp"
-#include "spine/Extension.h"
 
 namespace luastg
 {
