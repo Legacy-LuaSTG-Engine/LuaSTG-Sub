@@ -48,12 +48,15 @@ namespace spine
 		std::unique_ptr<Skeleton> skeleton;
 		std::unique_ptr<AnimationState> anistate;
 		std::unordered_map<std::string_view, Bone*> bonecache;
+		std::unordered_map<std::string_view, Animation*> animationcache;
 	public:
 		const std::string_view& getName();
 		const std::unordered_map<std::string_view, Bone*>& getAllBones();
+		const std::unordered_map<std::string_view, Animation*>& getAllAnimations();
 		Skeleton* getSkeleton();
 		AnimationState* getAnimationState();
 		Bone* findBone(const char* name);
+		Animation* findAnimation(const char* name);
 	public:
 		LuaSTGSpineInstance(const std::string_view& name, spine::SkeletonData* skeldata, spine::AnimationStateData* anidata);
 	};

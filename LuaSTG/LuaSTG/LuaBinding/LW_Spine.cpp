@@ -13,6 +13,8 @@ namespace
 		getBoneInfo,
 		update, reset,
 		render,
+		getExistAnimations,
+		addAnimation, setAnimation,
 	};
 
 	const std::unordered_map<std::string_view, Mapper> KeyMapper
@@ -26,6 +28,9 @@ namespace
 		{ "update", Mapper::update },
 		{ "reset", Mapper::reset },
 		{ "render", Mapper::render },
+		{ "getExistAnimations", Mapper::getExistAnimations },
+		{ "addAnimation", Mapper::addAnimation },
+		{ "setAnimation", Mapper::setAnimation },
 	};
 }
 
@@ -78,6 +83,12 @@ void luastg::binding::Spine::Register(lua_State* L) noexcept
 				lua_pushcfunction(L, Wrapper::reset);					break;
 			case Mapper::render :
 				lua_pushcfunction(L, Wrapper::render);					break;
+			case Mapper::getExistAnimations :
+				lua_pushcfunction(L, Wrapper::getExistAnimations);		break;
+			case Mapper::addAnimation :
+				lua_pushcfunction(L, Wrapper::addAnimation);			break;
+			case Mapper::setAnimation :
+				lua_pushcfunction(L, Wrapper::setAnimation);			break;
 			default :
 				lua_pushnil(L);											break;
 			};
@@ -269,6 +280,58 @@ void luastg::binding::Spine::Register(lua_State* L) noexcept
 
 			return 1;
 		}
+		static int getExistAnimations(lua_State* L)
+		{
+			GETUDATA(data, 1);
+			auto& animations = data->getAllAnimations();
+
+			lua_createtable(L, animations.size(), 0);		// ..args t
+
+			int count = 1;
+			for (const auto& [k, _] : animations)
+			{
+				lua_pushlstring(L, k.data(), k.length());	// ..args t v
+				lua_rawseti(L, -2, count++);				// ..args t
+			}
+
+			return 1;
+		}
+		static int addAnimation(lua_State* L)
+		{
+			GETUDATA(data, 1);
+			const char* ani_name = luaL_checkstring(L, 2);
+			const size_t track_index = luaL_checkinteger(L, 3);
+			const float delay = luaL_checknumber(L, 4);
+			const bool loop = lua_toboolean(L, 5);
+
+
+			spine::Animation* ani = data->findAnimation(ani_name);
+			if (!ani) return luaL_error(L, "could not find animation '%s' from spine skeleton '%s'.", ani_name, std::string(data->getName()).c_str());
+
+			auto animationState = data->getAnimationState();
+			animationState->addAnimation(track_index, ani, loop, delay);
+
+			return 0;
+		}
+		static int setAnimation(lua_State* L)
+		{
+			GETUDATA(data, 1);
+			const char* ani_name = luaL_checkstring(L, 2);
+			const size_t track_index = luaL_checkinteger(L, 3);
+			const float delay = luaL_checknumber(L, 4);
+			const bool loop = lua_toboolean(L, 5);
+
+
+			spine::Animation* ani = data->findAnimation(ani_name);
+			if (!ani) return luaL_error(L, "could not find animation '%s' from spine skeleton '%s'.", ani_name, std::string(data->getName()).c_str());
+
+			auto animationState = data->getAnimationState();
+			animationState->setAnimation(track_index, ani, loop);
+
+			return 0;
+		}
+
+
 		static int GetEvent()
 		{
 
