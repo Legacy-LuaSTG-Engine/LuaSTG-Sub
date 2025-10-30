@@ -33,6 +33,13 @@ namespace spine
 		return mode;
 	}
 
+	void LuaSTGdummyOnAnimationEventFunc(AnimationState* state, spine::EventType type, TrackEntry* entry, Event* event) {
+		SP_UNUSED(state);
+		SP_UNUSED(type);
+		SP_UNUSED(entry);
+		SP_UNUSED(event);
+	}
+
 	LuaSTGAtlasAttachmentLoader::LuaSTGAtlasAttachmentLoader(Atlas* atlas) : AtlasAttachmentLoader(atlas) {}
 	LuaSTGAtlasAttachmentLoader::~LuaSTGAtlasAttachmentLoader() {}
 	void LuaSTGAtlasAttachmentLoader::configureAttachment(Attachment* attachment) {}
@@ -87,6 +94,12 @@ namespace spine
 		static LuaSTGExtension _instance;
 		return _instance;
 	}
+
+	SkeletonRenderer& LuaSTGSkeletonRenderer::Instance()
+	{
+		static SkeletonRenderer _instance;
+		return _instance;
+	};
 
 	LuaSTGSpineInstance::LuaSTGSpineInstance(const std::string_view& name, spine::SkeletonData* skeldata, spine::AnimationStateData* anidata)
 		: resname(name)

@@ -3,6 +3,8 @@
 
 namespace spine
 {
+	void LuaSTGdummyOnAnimationEventFunc(AnimationState* state, spine::EventType type, TrackEntry* entry, Event* event);
+
 	class LuaSTGAtlasAttachmentLoader : public AtlasAttachmentLoader
 	{
 	public:
@@ -31,6 +33,12 @@ namespace spine
 
 	protected:
 		virtual char *_readFile(const String &path, int *length);
+	};
+
+	class LuaSTGSkeletonRenderer
+	{
+	public:
+		static SkeletonRenderer& Instance();
 	};
 
 	class LuaSTGSpineInstance
