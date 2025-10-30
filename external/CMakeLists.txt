@@ -140,6 +140,24 @@ target_sources(libqoi PRIVATE
 
 set_target_properties(libqoi PROPERTIES FOLDER external)
 
+# ==================== spine-cpp ====================
+
+add_library(spine-cpp STATIC)
+target_compile_definitions(spine-cpp PRIVATE
+    _CRT_SECURE_NO_WARNINGS
+)
+target_include_directories(spine-cpp PUBLIC
+    spine-runtimes/spine-cpp/spine-cpp/include
+)
+
+file(GLOB SPINE_INCLUDES "spine-runtimes/spine-cpp/spine-cpp/include/**/*.h")
+file(GLOB SPINE_SOURCES "spine-runtimes/spine-cpp/spine-cpp/src/**/*.cpp")
+
+target_sources(spine-cpp PRIVATE
+#    ${SPINE_INCLUDES}
+    ${SPINE_SOURCES}
+)
+
 # ==================== steam api ====================
 
 add_subdirectory(steam_api)

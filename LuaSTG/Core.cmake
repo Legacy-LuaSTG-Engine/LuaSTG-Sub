@@ -111,6 +111,8 @@ target_link_libraries(Core PUBLIC
     Freetype::Freetype
     # model
     tinygltf
+    # spine
+    spine-cpp
     # audio
     dr_libs
     Ogg::ogg

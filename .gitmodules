@@ -22,3 +22,6 @@
 [submodule "external/beautiful-win32-api"]
 	path = external/beautiful-win32-api
 	url = https://github.com/Demonese/beautiful-win32-api
+[submodule "external/spine-runtimes"]
+	path = external/spine-runtimes
+	url = https://github.com/EsotericSoftware/spine-runtimes.git
