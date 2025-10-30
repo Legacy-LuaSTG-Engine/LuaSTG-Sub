@@ -20,11 +20,6 @@
 
 namespace luastg::binding
 {
-	static int lib_CreateSpineInstance(lua_State* L) noexcept
-	{
-		Spine::CreateAndPush(L);
-		return 1;
-	}
 	static int lib_StopWatch(lua_State* L) noexcept
 	{
 		StopWatch::CreateAndPush(L);

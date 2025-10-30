@@ -96,7 +96,7 @@ namespace luastg::binding
 	{
 	public:
 		static void Register(lua_State* L) noexcept;
-		static void CreateAndPush(lua_State* L, spine::SkeletonData* data);
+		static void CreateAndPush(lua_State* L, IResourceSpineSkeleton* data);
 	};
 
 	class StopWatch

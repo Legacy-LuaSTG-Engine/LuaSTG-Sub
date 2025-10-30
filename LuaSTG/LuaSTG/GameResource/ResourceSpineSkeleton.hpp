@@ -7,6 +7,9 @@ namespace luastg
 	struct IResourceSpineSkeleton : public IResourceBase
 	{
 		virtual spine::SkeletonData* getSkeletonData() = 0;
+		virtual spine::AnimationStateData* getAnimationStateData() = 0;
+		virtual void setAnimationMix(const char* ani1, const char* ani2, float mix_time) = 0;
+		virtual void setAnimationMix(float mix_time) = 0;
 	};
 }
 

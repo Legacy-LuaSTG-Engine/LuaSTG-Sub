@@ -699,6 +699,25 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 			return 0;
 		}
 
+		static int SetSpineAnimationMix(lua_State* L)
+		{
+			const char* name = luaL_checkstring(L, 1);
+			core::SmartReference<IResourceSpineSkeleton> p = LRES.FindSpineSkeleton(name);
+			if (!p) return luaL_error(L, "spine skeleton '%s' not found.", name);
+
+			if (lua_gettop(L) == 2) 
+			{
+				p->setAnimationMix(luaL_checknumber(L, 2));
+				return 0;
+			}
+			
+			const char* ani1 = luaL_checkstring(L, 2);
+			const char* ani2 = luaL_checkstring(L, 3);
+			p->setAnimationMix(ani1, ani2, luaL_checknumber(L, 4));
+
+			return 0;
+		}
+
 		static int CacheTTFString(lua_State* L) {
 			size_t len = 0;
 			const char* str = luaL_checklstring(L, 2, &len);
@@ -744,6 +763,8 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		{ "SetAnimationCenter", &Wrapper::SetAnimationCenter },
 
 		{ "SetFontState", &Wrapper::SetFontState },
+
+		{ "SetSpineAnimationMix", &Wrapper::SetSpineAnimationMix },
 
 		{ "CacheTTFString", &Wrapper::CacheTTFString },
 		{ NULL, NULL },

@@ -88,5 +88,21 @@ namespace spine
 		return _instance;
 	}
 
+	LuaSTGSpineInstance::LuaSTGSpineInstance(const std::string_view& name, spine::SkeletonData* skeldata, spine::AnimationStateData* anidata)
+		: resname(name)
+		, skeleton(new spine::Skeleton(skeldata))
+		, anistate(new spine::AnimationState(anidata))
+	{
+		// name -> bone mapping
+		auto bones = skeleton->getBones();
+		auto bone_size = bones.size();
+		for (int i = 0; i < bone_size; i++) bonecache[bones[i]->getData().getName().buffer()] = bones[i];
+	};
+	const std::string_view& LuaSTGSpineInstance::getName() { return resname; }
+	const std::unordered_map<std::string_view, Bone*>& LuaSTGSpineInstance::getAllBones() { return bonecache; }
+	Skeleton* LuaSTGSpineInstance::getSkeleton() { return skeleton.get(); }
+	AnimationState* LuaSTGSpineInstance::getAnimationState() { return anistate.get(); }
+	Bone* LuaSTGSpineInstance::findBone(const char* name) { return bonecache.contains(name) ? bonecache[name] : nullptr; }
+
 	SpineExtension* spine::getDefaultExtension() { return &LuaSTGExtension::Instance(); }
 }
