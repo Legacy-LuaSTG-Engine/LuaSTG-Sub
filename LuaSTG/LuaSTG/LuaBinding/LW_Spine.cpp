@@ -1,6 +1,115 @@
 #include "LuaBinding/LuaWrapper.hpp"
 #include <spine/Version.h>
 
+namespace spine
+{
+	class LuaSTGSpineInstance
+	{
+	private:
+		std::string_view resname;
+		std::unique_ptr<Skeleton> skeleton;
+		std::unique_ptr<AnimationState> anistate;
+		std::unordered_map<std::string_view, Bone*> bonecache;
+		std::unordered_map<std::string_view, Animation*> animationcache;
+		int animation_callback = LUA_NOREF;
+		int event_callback = LUA_NOREF;
+		int self_weak_table = LUA_NOREF;
+	public:
+		const std::string_view& getName();
+		const std::unordered_map<std::string_view, Bone*>& getAllBones();
+		const std::unordered_map<std::string_view, Animation*>& getAllAnimations();
+		Skeleton* getSkeleton();
+		AnimationState* getAnimationState();
+		Bone* findBone(const char* name);
+		Animation* findAnimation(const char* name);
+		void setAnimationCallback(lua_State* L, int position);
+		void setEventCallback(lua_State* L, int position);
+		bool pushAnimationCallback(lua_State* L);
+		bool pushEventCallback(lua_State* L);
+		void makeSelfWeakTable(lua_State* L, int self_position);
+		bool pushSelf(lua_State* L);
+	public:
+		LuaSTGSpineInstance(const std::string_view& name, spine::SkeletonData* skeldata, spine::AnimationStateData* anidata);
+		~LuaSTGSpineInstance();
+	};
+
+	LuaSTGSpineInstance::LuaSTGSpineInstance(const std::string_view& name, spine::SkeletonData* skeldata, spine::AnimationStateData* anidata)
+		: resname(name)
+		, skeleton(new spine::Skeleton(skeldata))
+		, anistate(new spine::AnimationState(anidata))
+	{
+		// name -> bone mapping
+		const auto& bones = skeleton->getBones();
+		const auto bone_size = bones.size();
+		for (int i = 0; i < bone_size; i++) bonecache[bones[i]->getData().getName().buffer()] = bones[i];
+		// name -> ani mapping
+		const auto& animations = skeldata->getAnimations();
+		const auto ani_size = animations.size();
+		for (int i = 0; i < ani_size; i++) animationcache[animations[i]->getName().buffer()] = animations[i];
+	};
+	const std::string_view& LuaSTGSpineInstance::getName() { return resname; }
+	const std::unordered_map<std::string_view, Bone*>& LuaSTGSpineInstance::getAllBones() { return bonecache; }
+	const std::unordered_map<std::string_view, Animation*>& LuaSTGSpineInstance::getAllAnimations() { return animationcache; }
+	Skeleton* LuaSTGSpineInstance::getSkeleton() { return skeleton.get(); }
+	AnimationState* LuaSTGSpineInstance::getAnimationState() { return anistate.get(); }
+	Bone* LuaSTGSpineInstance::findBone(const char* name) { return bonecache.contains(name) ? bonecache[name] : nullptr; }
+	Animation* LuaSTGSpineInstance::findAnimation(const char* name) { return animationcache.contains(name) ? animationcache[name] : nullptr; }
+	void LuaSTGSpineInstance::setAnimationCallback(lua_State* L, int position)
+	{
+		if (animation_callback != LUA_NOREF) luaL_unref(L, LUA_REGISTRYINDEX, animation_callback);
+		lua_pushvalue(L, position);
+		animation_callback = luaL_ref(L, LUA_REGISTRYINDEX);
+	};
+	void LuaSTGSpineInstance::setEventCallback(lua_State* L, int position)
+	{
+		if (event_callback != LUA_NOREF) luaL_unref(L, LUA_REGISTRYINDEX, event_callback);
+		lua_pushvalue(L, position);
+		event_callback = luaL_ref(L, LUA_REGISTRYINDEX);
+	};
+	bool LuaSTGSpineInstance::pushAnimationCallback(lua_State* L)
+	{
+		if (animation_callback == LUA_NOREF) return false;
+		lua_rawgeti(L, LUA_REGISTRYINDEX, animation_callback);
+		return true;
+	}
+	bool LuaSTGSpineInstance::pushEventCallback(lua_State* L)
+	{
+		if (event_callback == LUA_NOREF) return false;
+		lua_rawgeti(L, LUA_REGISTRYINDEX, event_callback);
+		return true;
+	}
+	LuaSTGSpineInstance::~LuaSTGSpineInstance()
+	{
+		lua_State* L = LAPP.GetLuaEngine();
+		if (animation_callback != LUA_NOREF) luaL_unref(L, LUA_REGISTRYINDEX, animation_callback);
+		if (event_callback != LUA_NOREF) luaL_unref(L, LUA_REGISTRYINDEX, event_callback);
+		if (self_weak_table != LUA_NOREF) luaL_unref(L, LUA_REGISTRYINDEX, self_weak_table);
+	}
+	void LuaSTGSpineInstance::makeSelfWeakTable(lua_State* L, int self_position)
+	{
+		if (self_weak_table != LUA_NOREF) return;
+
+		lua_newtable(L);									// ..arg t
+		lua_newtable(L);									// ..arg t mt
+		lua_pushstring(L, "v");								// ..arg t mt "v"
+		lua_setfield(L, -2, "__mode");						// ..arg t mt
+		lua_setmetatable(L, -2);							// ..arg t
+		lua_pushvalue(L, self_position);					// ..arg t self
+		lua_setfield(L, -2, "self");						// ..arg t
+		self_weak_table = luaL_ref(L, LUA_REGISTRYINDEX);	// ..arg
+	}
+	bool LuaSTGSpineInstance::pushSelf(lua_State* L)
+	{
+		if (self_weak_table == LUA_NOREF) return false;
+
+		lua_rawgeti(L, LUA_REGISTRYINDEX, self_weak_table);		// ..arg t
+		lua_getfield(L, -1, "self");							// ..arg t self
+		lua_remove(L, -2);										// ..arg self
+
+		return true;
+	}
+}
+
 using SpineInstance = spine::LuaSTGSpineInstance;
 
 namespace
@@ -14,7 +123,8 @@ namespace
 		update, reset,
 		render,
 		getExistAnimations,
-		addAnimation, setAnimation,
+		addAnimation, setAnimation, getCurrentAnimation,
+		getExistEvents, setEventListener,
 	};
 
 	const std::unordered_map<std::string_view, Mapper> KeyMapper
@@ -31,6 +141,9 @@ namespace
 		{ "getExistAnimations", Mapper::getExistAnimations },
 		{ "addAnimation", Mapper::addAnimation },
 		{ "setAnimation", Mapper::setAnimation },
+		{ "getCurrentAnimation", Mapper::getCurrentAnimation },
+		{ "getExistEvents", Mapper::getExistEvents },
+		{ "setEventListener", Mapper::setEventListener },
 	};
 }
 
@@ -87,8 +200,14 @@ void luastg::binding::Spine::Register(lua_State* L) noexcept
 				lua_pushcfunction(L, Wrapper::getExistAnimations);		break;
 			case Mapper::addAnimation :
 				lua_pushcfunction(L, Wrapper::addAnimation);			break;
-			case Mapper::setAnimation :
+			case Mapper::setAnimation:
 				lua_pushcfunction(L, Wrapper::setAnimation);			break;
+			case Mapper::getCurrentAnimation:
+				lua_pushcfunction(L, Wrapper::getCurrentAnimation);		break;
+			case Mapper::getExistEvents:
+				lua_pushcfunction(L, Wrapper::getExistEvents);			break;
+			case Mapper::setEventListener:
+				lua_pushcfunction(L, Wrapper::setEventListener);		break;
 			default :
 				lua_pushnil(L);											break;
 			};
@@ -330,15 +449,106 @@ void luastg::binding::Spine::Register(lua_State* L) noexcept
 
 			return 0;
 		}
-
-
-		static int GetEvent()
+		static int getCurrentAnimation(lua_State* L)
 		{
+			GETUDATA(data, 1);
+			const size_t track_index = luaL_checkinteger(L, 2);
 
+			auto animationState = data->getAnimationState();
+			auto current = animationState->getCurrent(track_index);
+
+			if (!current) 
+			{
+				lua_pushnil(L);
+				return 1;
+			}
+
+			const auto& ani_name = current->getAnimation()->getName();
+			lua_pushlstring(L, ani_name.buffer(), ani_name.length());
+
+			return 1;
 		}
-		static int SetEventListener()
+		static int getExistEvents(lua_State* L)
 		{
+			GETUDATA(data, 1);
+			const auto& events = data->getSkeleton()->getData()->getEvents();
+		
+			const auto size = events.size();
+			lua_createtable(L, size, 0);		// ..args t
 
+			int count = 1;
+			for (int i = 0; i < size; i++)
+			{
+				const auto& event = events[i]->getName();
+				lua_pushlstring(L, event.buffer(), event.length());	// ..args t v
+				lua_rawseti(L, -2, count++);						// ..args t
+			}
+
+			return 1;
+		}
+		static int setEventListener(lua_State* L)
+		{
+			GETUDATA(data, 1);
+			luaL_checktype(L, 2, LUA_TFUNCTION);	// animation callback
+			luaL_checktype(L, 3, LUA_TFUNCTION);	// event callback
+			
+			data->makeSelfWeakTable(L, 1);
+			data->setAnimationCallback(L, 2);
+			data->setEventCallback(L, 3);
+			
+			auto listener = [data](spine::AnimationState* state, spine::EventType type, spine::TrackEntry* entry, spine::Event* event)
+			{
+				lua_State* L = LAPP.GetLuaEngine();
+				int stack_top = lua_gettop(L);
+				
+				if (type == spine::EventType_Event) 
+				{
+					// spine name time fval ival  sval ba vol
+					data->pushEventCallback(L);
+					data->pushSelf(L);
+					const auto& name = event->getData().getName();
+					lua_pushlstring(L, name.buffer(), name.length());
+					lua_pushinteger(L, event->getTime());
+					lua_pushinteger(L, event->getFloatValue());
+					lua_pushinteger(L, event->getIntValue());
+					const auto& str = event->getStringValue();
+					lua_pushlstring(L, str.buffer(), str.length());
+					lua_pushnumber(L, event->getBalance());
+					lua_pushnumber(L, event->getVolume());
+
+					lua_call(L, 8, 0);
+					lua_settop(L, stack_top);
+					return;
+				}
+				
+				data->pushAnimationCallback(L);
+				data->pushSelf(L);
+				const auto& name = entry->getAnimation()->getName();
+				lua_pushlstring(L, name.buffer(), name.length());
+				switch (type) {
+				case spine::EventType_Start:
+					lua_pushstring(L, "start");			break;
+				case spine::EventType_Interrupt:
+					lua_pushstring(L, "interrupt");		break;
+				case spine::EventType_End:
+					lua_pushstring(L, "end");			break;
+				case spine::EventType_Complete:
+					lua_pushstring(L, "complete");		break;
+				case spine::EventType_Dispose:
+					lua_pushstring(L, "dispose");		break;
+				default:
+					break;
+				};
+				lua_call(L, 3, 0);
+				lua_settop(L, stack_top);
+				
+				return;
+			};
+			
+			data->getAnimationState()->setListener(listener);
+
+
+			return 1;
 		}
 
 
@@ -351,6 +561,15 @@ void luastg::binding::Spine::Register(lua_State* L) noexcept
 		{ "render", &Wrapper::render },
 		{ "getExistBones", &Wrapper::getExistBones },
 		{ "getBoneInfo", &Wrapper::getBoneInfo },
+		{ "update", &Wrapper::update },
+		{ "reset", &Wrapper::reset },
+		{ "render", &Wrapper::render },
+		{ "getExistAnimations", &Wrapper::getExistAnimations },
+		{ "addAnimation", &Wrapper::addAnimation },
+		{ "setAnimation", &Wrapper::setAnimation },
+		{ "getCurrentAnimation", &Wrapper::getCurrentAnimation },
+		{ "getExistEvents", &Wrapper::getExistEvents },
+		{ "setEventListener", &Wrapper::setEventListener },
 		{ NULL, NULL },
 	};
 

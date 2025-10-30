@@ -143,8 +143,9 @@ set_target_properties(libqoi PROPERTIES FOLDER external)
 # ==================== spine-cpp ====================
 
 add_library(spine-cpp STATIC)
-target_compile_definitions(spine-cpp PRIVATE
+target_compile_definitions(spine-cpp PUBLIC
     _CRT_SECURE_NO_WARNINGS
+    SPINE_USE_STD_FUNCTION
 )
 target_include_directories(spine-cpp PUBLIC
     spine-runtimes/spine-cpp/spine-cpp/include
