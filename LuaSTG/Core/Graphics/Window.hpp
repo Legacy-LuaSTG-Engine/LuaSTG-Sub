@@ -1,5 +1,6 @@
 #pragma once
-#include "Core/Type.hpp"
+#include "core/Vector2.hpp"
+#include "core/Rect.hpp"
 #include "core/ReferenceCounted.hpp"
 #include "core/ImmutableString.hpp"
 

@@ -1,5 +1,6 @@
 #pragma once
-#include "Core/Type.hpp"
+#include "core/Vector2.hpp"
+#include "core/Color.hpp"
 #include "core/FixedCircularQueue.hpp"
 #include "GameResource/ResourceBase.hpp"
 #include "lua.hpp"

@@ -1,0 +1,8 @@
+#include "core/Vector2.hpp"
+#include "core/Vector3.hpp"
+#include "core/Vector4.hpp"
+#include "core/Color.hpp"
+#include "core/Matrix4x4.hpp"
+#include "core/Rect.hpp"
+#include "core/Box.hpp"
+#include "core/Rational.hpp"

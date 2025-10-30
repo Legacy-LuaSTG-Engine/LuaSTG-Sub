@@ -1,5 +1,9 @@
-﻿#pragma once
-#include "Core/Type.hpp"
+#pragma once
+#include "core/Vector2.hpp"
+#include "core/Vector3.hpp"
+#include "core/Vector4.hpp"
+#include "core/Color.hpp"
+#include "core/Box.hpp"
 #include "core/ReferenceCounted.hpp"
 #include "Core/Graphics/Device.hpp"
 

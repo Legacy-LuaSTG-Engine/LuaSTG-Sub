@@ -1,5 +1,4 @@
 #pragma once
-#include "Core/Type.hpp"
 #include "Core/Graphics/Window.hpp"
 #include "Core/Graphics/Device.hpp"
 #include "Core/Graphics/SwapChain.hpp"

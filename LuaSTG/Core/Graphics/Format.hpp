@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Type.hpp"
+#include <cstdint>
 
 namespace core::Graphics
 {

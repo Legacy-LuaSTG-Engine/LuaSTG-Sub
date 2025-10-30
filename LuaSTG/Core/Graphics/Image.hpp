@@ -1,6 +1,7 @@
 #pragma once
 #include "core/ReferenceCounted.hpp"
-#include "core/Type.hpp"
+#include "core/Vector2.hpp"
+#include "core/Color.hpp"
 
 namespace core {
 	struct CORE_NO_VIRTUAL_TABLE IImage : IReferenceCounted {

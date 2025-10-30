@@ -1,6 +1,6 @@
 #pragma once
 #include "lua.hpp"
-#include "Core/Type.hpp"
+#include "core/Vector4.hpp"
 
 namespace luastg::binding {
 	struct Vector4 {

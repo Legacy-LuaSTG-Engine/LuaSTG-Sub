@@ -12,8 +12,6 @@ target_include_directories(Core PUBLIC
 )
 
 set(Core_SRC
-    Core/Type.hpp
-
     Core/i18n.hpp
     Core/i18n.cpp
     Core/framework.hpp
@@ -121,6 +119,7 @@ target_link_libraries(Core PUBLIC
     FLAC::FLAC
     # database
     nlohmann_json
+    Core.Math
     Core.String
     Core.Configuration
     Core.ReferenceCounted
