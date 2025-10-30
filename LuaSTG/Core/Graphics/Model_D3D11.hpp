@@ -1,4 +1,5 @@
 #pragma once
+#include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/Renderer.hpp"
 #include "Core/Graphics/Direct3D11/Device.hpp"

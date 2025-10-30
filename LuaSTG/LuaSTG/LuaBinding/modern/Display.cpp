@@ -1,4 +1,5 @@
 #include "Display.hpp"
+#include "core/SmartReference.hpp"
 #include "lua/plus.hpp"
 #include "wil/resource.h"
 

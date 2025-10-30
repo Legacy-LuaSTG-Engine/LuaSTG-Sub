@@ -1,4 +1,5 @@
 #pragma once
+#include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/Font.hpp"
 

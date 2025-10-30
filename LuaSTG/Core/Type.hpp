@@ -4,8 +4,6 @@
 #include <limits>
 #include <string_view>
 #include <string>
-#include "core/ReferenceCounted.hpp"
-#include "core/SmartReference.hpp"
 
 namespace core {
 	// 二维向量

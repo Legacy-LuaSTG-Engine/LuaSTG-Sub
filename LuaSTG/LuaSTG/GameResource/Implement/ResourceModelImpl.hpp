@@ -1,4 +1,5 @@
 #pragma once
+#include "core/SmartReference.hpp"
 #include "GameResource/ResourceModel.hpp"
 #include "GameResource/Implement/ResourceBaseImpl.hpp"
 
