@@ -21,8 +21,11 @@ namespace luastg
 		}
 		else
 		{
-			spdlog::error("'{}' 不是可识别的SpineSkeleton文件");
+			spdlog::error("'{}' 不是可识别的SpineSkeleton文件.", skel_path);
+			throw std::exception("spine skeleton only support .json and .skel format, check your skeleton file!");
 		}
+
+		if (skeleton.get() == nullptr) throw std::exception("load spine skeleton failed! check your spine export version and make sure it's 4.2.xx!");
 
 		anistate.reset(new spine::AnimationStateData(skeleton.get()));
 	}
