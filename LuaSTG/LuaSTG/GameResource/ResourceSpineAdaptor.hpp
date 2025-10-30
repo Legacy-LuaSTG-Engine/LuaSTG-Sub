@@ -1,6 +1,4 @@
 #pragma once
-#include "GameResource/ResourceSpine.hpp"
-#include "GameResource/Implement/ResourceBaseImpl.hpp"
 #include <spine/spine.h>
 
 namespace spine
@@ -24,25 +22,13 @@ namespace spine
 
 	class LuaSTGExtension : public DefaultSpineExtension
 	{
+	private:
 	public:
+		static LuaSTGExtension& Instance();
 		LuaSTGExtension();
 		virtual ~LuaSTGExtension();
 
 	protected:
 		virtual char *_readFile(const String &path, int *length);
-	};
-}
-
-namespace luastg
-{
-	class ResourceSpineImpl : public ResourceBaseImpl<IResourceSpine>
-	{
-	private:
-		inline static spine::LuaSTGTextureLoader textureLoader{};
-		spine::Atlas* atlas;
-		spine::SkeletonData* skeldata;
-	
-	public:
-		ResourceSpineImpl(const char* name, const char* atlasPath, const char* skelPath);
 	};
 }

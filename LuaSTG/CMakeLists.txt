@@ -45,7 +45,9 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/GameResource/ResourceBase.hpp
     LuaSTG/GameResource/ResourceTexture.hpp
     LuaSTG/GameResource/ResourceSprite.hpp
-    LuaSTG/GameResource/ResourceSpine.hpp
+    LuaSTG/GameResource/ResourceSpineAtlas.hpp
+    LuaSTG/GameResource/ResourceSpineAdaptor.hpp
+    LuaSTG/GameResource/ResourceSpineAdaptor.cpp
     LuaSTG/GameResource/ResourceAnimation.hpp
     LuaSTG/GameResource/ResourceMusic.hpp
     LuaSTG/GameResource/ResourceSoundEffect.hpp
@@ -67,8 +69,8 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/GameResource/Implement/ResourceTextureImpl.cpp
     LuaSTG/GameResource/Implement/ResourceSpriteImpl.hpp
     LuaSTG/GameResource/Implement/ResourceSpriteImpl.cpp
-    LuaSTG/GameResource/Implement/ResourceSpineImpl.hpp
-    LuaSTG/GameResource/Implement/ResourceSpineImpl.cpp
+    LuaSTG/GameResource/Implement/ResourceSpineAtlasImpl.hpp
+    LuaSTG/GameResource/Implement/ResourceSpineAtlasImpl.cpp
     LuaSTG/GameResource/Implement/ResourceAnimationImpl.hpp
     LuaSTG/GameResource/Implement/ResourceAnimationImpl.cpp
     LuaSTG/GameResource/Implement/ResourceMusicImpl.hpp

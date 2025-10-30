@@ -9,7 +9,8 @@
 #include "GameResource/ResourceFont.hpp"
 #include "GameResource/ResourcePostEffectShader.hpp"
 #include "GameResource/ResourceModel.hpp"
-#include "GameResource/ResourceSpine.hpp"
+#include "GameResource/ResourceSpineAtlas.hpp"
+#include "GameResource/ResourceSpineAdaptor.hpp"
 #include "lua.hpp"
 #include "xxhash.h"
 
@@ -77,6 +78,7 @@ namespace luastg
     private:
         ResourceMgr* m_pMgr;
         ResourcePoolType m_iType;
+        std::unique_ptr<spine::LuaSTGTextureLoader> m_SpineTextureLoader;
         std::pmr::unsynchronized_pool_resource m_memory_resource;
         dictionary_t<core::SmartReference<IResourceTexture>> m_TexturePool;
         dictionary_t<core::SmartReference<IResourceSprite>> m_SpritePool;
@@ -88,7 +90,7 @@ namespace luastg
         dictionary_t<core::SmartReference<IResourceFont>> m_TTFFontPool;
         dictionary_t<core::SmartReference<IResourcePostEffectShader>> m_FXPool;
         dictionary_t<core::SmartReference<IResourceModel>> m_ModelPool;
-        dictionary_t<core::SmartReference<IResourceSpine>> m_SpinePool;
+        dictionary_t<core::SmartReference<IResourceSpineAtlas>> m_SpineAtlasPool;
     private:
         const char* getResourcePoolTypeName();
     public:
@@ -135,7 +137,7 @@ namespace luastg
         // 模型
         bool LoadModel(const char* name, const char* path) noexcept;
         // Spine
-        bool LoadSpine(const char* name, const char* atlas_path, const char* skel_path) noexcept;
+        bool LoadSpineAtlas(const char* name, const char* atlas_path) noexcept;
 
         core::SmartReference<IResourceTexture> GetTexture(std::string_view name) noexcept;
         core::SmartReference<IResourceSprite> GetSprite(std::string_view name) noexcept;
@@ -147,7 +149,7 @@ namespace luastg
         core::SmartReference<IResourceFont> GetTTFFont(std::string_view name) noexcept;
         core::SmartReference<IResourcePostEffectShader> GetFX(std::string_view name) noexcept;
         core::SmartReference<IResourceModel> GetModel(std::string_view name) noexcept;
-        core::SmartReference<IResourceSpine> GetSpine(std::string_view name) noexcept;
+        core::SmartReference<IResourceSpineAtlas> GetSpine(std::string_view name) noexcept;
     public:
         ResourcePool(ResourceMgr* mgr, ResourcePoolType t);
         ResourcePool& operator=(const ResourcePool&) = delete;

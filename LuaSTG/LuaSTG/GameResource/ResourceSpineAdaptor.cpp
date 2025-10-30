@@ -1,20 +1,6 @@
-#include "GameResource/Implement/ResourceSpineImpl.hpp"
+#include "ResourceSpineAdaptor.hpp"
 #include "AppFrame.h"
 #include "Core/FileSystem.hpp"
-
-namespace luastg
-{
-	ResourceSpineImpl::ResourceSpineImpl(const char* name, const char* atlas_path, const char* skel_path)
-		: ResourceBaseImpl(ResourceType::Spine, name)
-	{
-		atlas = new spine::Atlas(atlas_path, &textureLoader);
-
-		if (std::string_view(skel_path).ends_with(".json"))
-			skeldata = (new spine::SkeletonJson(atlas))->readSkeletonDataFile(skel_path);
-		else
-			skeldata = (new spine::SkeletonBinary(atlas))->readSkeletonDataFile(skel_path);
-	}
-}
 
 namespace spine
 {
@@ -58,7 +44,7 @@ namespace spine
 		bool enableMipmap = false;
 		SamplerStateEnum state = mapSpineToD3D11(page.minFilter, page.magFilter, page.uWrap, page.uWrap, enableMipmap);
 
-        core::Graphics::ITexture2D* p_texture;
+		core::Graphics::ITexture2D* p_texture;
         if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(path.buffer(), enableMipmap, &p_texture))
         {
             spdlog::error("[luastg] 从 '{}' 创建Spine纹理失败", path.buffer());
@@ -67,9 +53,8 @@ namespace spine
 		core::Graphics::ISamplerState* p_sampler = LAPP.GetRenderer2D()->getKnownSamplerState(state);
 		p_texture->setSamplerState(p_sampler);
 		
-		p_texture->retain();
 		auto [w, h] = p_texture->getSize();
-
+		
 		page.texture = p_texture;
 		page.width = w;
 		page.height = h;
@@ -90,8 +75,13 @@ namespace spine
 		*length = static_cast<int>(data->size());
 		char* bytes = SpineExtension::alloc<char>(*length, __FILE__, __LINE__);
 		std::memcpy(bytes, data->data(), *length);
+		data->release();
 		return bytes;
 	}
+	LuaSTGExtension& LuaSTGExtension::Instance() {
+		static LuaSTGExtension _instance;
+		return _instance;
+	}
 
-	SpineExtension* spine::getDefaultExtension() { return new LuaSTGExtension(); }
+	SpineExtension* spine::getDefaultExtension() { return &LuaSTGExtension::Instance(); }
 }
