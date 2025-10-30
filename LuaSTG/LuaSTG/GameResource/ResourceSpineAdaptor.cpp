@@ -55,6 +55,7 @@ namespace spine
         if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(path.buffer(), enableMipmap, &p_texture))
         {
             spdlog::error("[luastg] 从 '{}' 创建Spine纹理失败", path.buffer());
+			throw std::exception("failed loading spine atlas's texture, please make sure file structure is as same as it was exported!");
             return;
         }
 		core::Graphics::ISamplerState* p_sampler = LAPP.GetRenderer2D()->getKnownSamplerState(state);
