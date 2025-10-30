@@ -2,8 +2,6 @@
 #include <cstdint>
 #include <cmath>
 #include <limits>
-#include <string_view>
-#include <string>
 
 namespace core {
 	// 二维向量
