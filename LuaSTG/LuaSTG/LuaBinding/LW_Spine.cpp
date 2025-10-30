@@ -3,6 +3,12 @@
 
 namespace spine
 {
+	struct LuaSTGSlotCacheHelper
+	{
+		Slot* slot;
+		int index;
+	};
+
 	class LuaSTGSpineInstance
 	{
 	private:
@@ -11,6 +17,8 @@ namespace spine
 		std::unique_ptr<AnimationState> anistate;
 		std::unordered_map<std::string_view, Bone*> bonecache;
 		std::unordered_map<std::string_view, Animation*> animationcache;
+		std::unordered_map <std::string_view, Skin*> skincache;
+		std::unordered_map <std::string_view, LuaSTGSlotCacheHelper> slotcache;
 		int animation_callback = LUA_NOREF;
 		int event_callback = LUA_NOREF;
 		int self_weak_table = LUA_NOREF;
@@ -18,10 +26,14 @@ namespace spine
 		const std::string_view& getName();
 		const std::unordered_map<std::string_view, Bone*>& getAllBones();
 		const std::unordered_map<std::string_view, Animation*>& getAllAnimations();
+		const std::unordered_map<std::string_view, Skin*>& getAllSkins();
+		const std::unordered_map <std::string_view, LuaSTGSlotCacheHelper>& getAllSlots();
 		Skeleton* getSkeleton();
 		AnimationState* getAnimationState();
 		Bone* findBone(const char* name);
 		Animation* findAnimation(const char* name);
+		Skin* findSkin(const char* name);
+		const LuaSTGSlotCacheHelper& findSlot(const char* name);
 		void setAnimationCallback(lua_State* L, int position);
 		void setEventCallback(lua_State* L, int position);
 		bool pushAnimationCallback(lua_State* L);
@@ -46,14 +58,26 @@ namespace spine
 		const auto& animations = skeldata->getAnimations();
 		const auto ani_size = animations.size();
 		for (int i = 0; i < ani_size; i++) animationcache[animations[i]->getName().buffer()] = animations[i];
+		// name -> skin mapping
+		const auto& skins = skeldata->getSkins();
+		const auto ski_size = skins.size();
+		for (int i = 0; i < ski_size; i++) skincache[skins[i]->getName().buffer()] = skins[i];
+		// name -> slot mapping
+		const auto& slots = skeleton->getSlots();
+		const auto slt_size = slots.size();
+		for (int i = 0; i < slt_size; i++) slotcache[slots[i]->getData().getName().buffer()] = {.slot = slots[i], .index = i };
 	};
 	const std::string_view& LuaSTGSpineInstance::getName() { return resname; }
 	const std::unordered_map<std::string_view, Bone*>& LuaSTGSpineInstance::getAllBones() { return bonecache; }
 	const std::unordered_map<std::string_view, Animation*>& LuaSTGSpineInstance::getAllAnimations() { return animationcache; }
+	const std::unordered_map<std::string_view, Skin*>& LuaSTGSpineInstance::getAllSkins() { return skincache; }
+	const std::unordered_map <std::string_view, LuaSTGSlotCacheHelper>& LuaSTGSpineInstance::getAllSlots() { return slotcache; }
 	Skeleton* LuaSTGSpineInstance::getSkeleton() { return skeleton.get(); }
 	AnimationState* LuaSTGSpineInstance::getAnimationState() { return anistate.get(); }
 	Bone* LuaSTGSpineInstance::findBone(const char* name) { return bonecache.contains(name) ? bonecache[name] : nullptr; }
 	Animation* LuaSTGSpineInstance::findAnimation(const char* name) { return animationcache.contains(name) ? animationcache[name] : nullptr; }
+	Skin* LuaSTGSpineInstance::findSkin(const char* name) { return skincache.contains(name) ? skincache[name] : nullptr; }
+	const LuaSTGSlotCacheHelper& LuaSTGSpineInstance::findSlot(const char* name) { return slotcache.contains(name) ? slotcache[name] : LuaSTGSlotCacheHelper{ .slot = nullptr, .index = -1 }; }
 	void LuaSTGSpineInstance::setAnimationCallback(lua_State* L, int position)
 	{
 		if (animation_callback != LUA_NOREF) luaL_unref(L, LUA_REGISTRYINDEX, animation_callback);
@@ -119,12 +143,14 @@ namespace
 		x, y,
 		vscale, hscale,
 		getExistBones,
-		getBoneInfo,
-		update, reset,
-		render,
+		getBoneInfo, setBoneState,
+		update, reset, render,
 		getExistAnimations,
-		addAnimation, setAnimation, getCurrentAnimation,
+		addAnimation, setAnimation,
+		setAnimationTimeScale, getCurrentAnimation,
 		getExistEvents, setEventListener,
+		getExistSkins, setSkin, getCurrentSkin,
+		getExistSlots, setSlotAttachment, getCurrentAttachmentOnSlot,
 	};
 
 	const std::unordered_map<std::string_view, Mapper> KeyMapper
@@ -135,15 +161,24 @@ namespace
 		{ "hscale", Mapper::hscale },
 		{ "getExistBones", Mapper::getExistBones },
 		{ "getBoneInfo", Mapper::getBoneInfo },
+		{ "setBoneState", Mapper::setBoneState },
 		{ "update", Mapper::update },
 		{ "reset", Mapper::reset },
 		{ "render", Mapper::render },
 		{ "getExistAnimations", Mapper::getExistAnimations },
 		{ "addAnimation", Mapper::addAnimation },
 		{ "setAnimation", Mapper::setAnimation },
+		{ "setAnimationTimeScale", Mapper::setAnimationTimeScale },
 		{ "getCurrentAnimation", Mapper::getCurrentAnimation },
 		{ "getExistEvents", Mapper::getExistEvents },
 		{ "setEventListener", Mapper::setEventListener },
+		{ "getExistSkins", Mapper::getExistSkins },
+		{ "setSkin", Mapper::setSkin },
+		{ "getCurrentSkin", Mapper::getCurrentSkin },
+		{ "getExistSlots", Mapper::getExistSlots },
+		{ "setSlotAttachment", Mapper::setSlotAttachment },
+		{ "getCurrentAttachmentOnSlot", Mapper::getCurrentAttachmentOnSlot },
+		
 	};
 }
 
@@ -179,37 +214,52 @@ void luastg::binding::Spine::Register(lua_State* L) noexcept
 			switch (KeyMapper.at(key))
 			{
 			case Mapper::x :
-				lua_pushnumber(L, data->getSkeleton()->getX());			break;
+				lua_pushnumber(L, data->getSkeleton()->getX());					break;
 			case Mapper::y :
-				lua_pushnumber(L, data->getSkeleton()->getY());			break;
+				lua_pushnumber(L, data->getSkeleton()->getY());					break;
 			case Mapper::vscale :
-				lua_pushnumber(L, data->getSkeleton()->getScaleX());	break;
+				lua_pushnumber(L, data->getSkeleton()->getScaleX());			break;
 			case Mapper::hscale :
-				lua_pushnumber(L, data->getSkeleton()->getScaleY());	break;
+				lua_pushnumber(L, data->getSkeleton()->getScaleY());			break;
 			case Mapper::getExistBones :
-				lua_pushcfunction(L, Wrapper::getExistBones);			break;
-			case Mapper::getBoneInfo :
-				lua_pushcfunction(L, Wrapper::getBoneInfo);				break;
+				lua_pushcfunction(L, Wrapper::getExistBones);					break;
+			case Mapper::getBoneInfo:
+				lua_pushcfunction(L, Wrapper::getBoneInfo);						break;
+			case Mapper::setBoneState:
+				lua_pushcfunction(L, Wrapper::setBoneState);					break;
 			case Mapper::update :
-				lua_pushcfunction(L, Wrapper::update);					break;
+				lua_pushcfunction(L, Wrapper::update);							break;
 			case Mapper::reset :
-				lua_pushcfunction(L, Wrapper::reset);					break;
+				lua_pushcfunction(L, Wrapper::reset);							break;
 			case Mapper::render :
-				lua_pushcfunction(L, Wrapper::render);					break;
+				lua_pushcfunction(L, Wrapper::render);							break;
 			case Mapper::getExistAnimations :
-				lua_pushcfunction(L, Wrapper::getExistAnimations);		break;
+				lua_pushcfunction(L, Wrapper::getExistAnimations);				break;
 			case Mapper::addAnimation :
-				lua_pushcfunction(L, Wrapper::addAnimation);			break;
+				lua_pushcfunction(L, Wrapper::addAnimation);					break;
 			case Mapper::setAnimation:
-				lua_pushcfunction(L, Wrapper::setAnimation);			break;
+				lua_pushcfunction(L, Wrapper::setAnimation);					break;
 			case Mapper::getCurrentAnimation:
-				lua_pushcfunction(L, Wrapper::getCurrentAnimation);		break;
+				lua_pushcfunction(L, Wrapper::getCurrentAnimation);				break;
 			case Mapper::getExistEvents:
-				lua_pushcfunction(L, Wrapper::getExistEvents);			break;
+				lua_pushcfunction(L, Wrapper::getExistEvents);					break;
 			case Mapper::setEventListener:
-				lua_pushcfunction(L, Wrapper::setEventListener);		break;
+				lua_pushcfunction(L, Wrapper::setEventListener);				break;
+			case Mapper::getExistSkins:
+				lua_pushcfunction(L, Wrapper::getExistSkins);					break;
+			case Mapper::setSkin:
+				lua_pushcfunction(L, Wrapper::setSkin);							break;
+			case Mapper::getCurrentSkin:
+				lua_pushcfunction(L, Wrapper::getCurrentSkin);					break;
+			case Mapper::getExistSlots:
+				lua_pushcfunction(L, Wrapper::getExistSlots);					break;
+			case Mapper::setSlotAttachment:
+				lua_pushcfunction(L, Wrapper::setSlotAttachment);				break;
+			case Mapper::getCurrentAttachmentOnSlot:
+				lua_pushcfunction(L, Wrapper::getCurrentAttachmentOnSlot);		break;
+
 			default :
-				lua_pushnil(L);											break;
+				lua_pushnil(L);													break;
 			};
 			
 			return 1;
@@ -398,6 +448,37 @@ void luastg::binding::Spine::Register(lua_State* L) noexcept
 			lua_setfield(L, -2, "shear_y");					// ..args t
 
 			return 1;
+		}	
+		static int setBoneState(lua_State* L)
+		{
+			GETUDATA(data, 1);
+			const char* name = luaL_checkstring(L, 2);
+			
+			auto bone = data->findBone(name);
+			if (!bone) return luaL_error(L, "spine skeleton '%s' does not have bone '%s'.", std::string(data->getName()).c_str(), name);
+
+			const float x = luaL_checknumber(L, 3);
+			const float y = luaL_checknumber(L, 4);
+			const float rot = luaL_checknumber(L, 5);
+
+			float vscale = 1, hscale = 1, shear_x = 0, shear_y = 0;
+			const int stack_top = lua_gettop(L);
+			switch (stack_top) {
+			// using fallthrogh here
+			default:
+			case 9:
+				shear_y = luaL_checknumber(L, 9);
+			case 8:
+				shear_x = luaL_checknumber(L, 8);
+			case 7:
+				hscale = luaL_checknumber(L, 7);
+			case 6:
+				vscale = luaL_checknumber(L, 6);
+			}
+
+			bone->updateWorldTransform(x, y, rot, vscale, hscale, shear_x, shear_y);
+
+			return 0;
 		}
 		static int getExistAnimations(lua_State* L)
 		{
@@ -448,6 +529,19 @@ void luastg::binding::Spine::Register(lua_State* L) noexcept
 			animationState->setAnimation(track_index, ani, loop);
 
 			return 0;
+		}
+		static int setAnimationTimeScale(lua_State* L)
+		{
+			GETUDATA(data, 1);
+			const float time_scale = luaL_checknumber(L, 2);
+
+			auto animationState = data->getAnimationState();
+			const float old_time_scale = animationState->getTimeScale();
+			animationState->setTimeScale(time_scale);
+
+			lua_pushnumber(L, old_time_scale);
+
+			return 1;
 		}
 		static int getCurrentAnimation(lua_State* L)
 		{
@@ -550,7 +644,97 @@ void luastg::binding::Spine::Register(lua_State* L) noexcept
 
 			return 1;
 		}
+		static int getExistSkins(lua_State* L)
+		{
+			GETUDATA(data, 1);
+			auto& skins = data->getAllSkins();
 
+			lua_createtable(L, skins.size(), 0);			// ..args t
+
+			int count = 1;
+			for (const auto& [k, _] : skins)
+			{
+				lua_pushlstring(L, k.data(), k.length());	// ..args t v
+				lua_rawseti(L, -2, count++);				// ..args t
+			}
+
+			return 1;
+		}
+		static int setSkin(lua_State* L)
+		{
+			GETUDATA(data, 1);
+			const char* name = luaL_checkstring(L, 2);
+
+			spine::Skin* skin = data->findSkin(name);
+			if (!skin) return luaL_error(L, "could not find skin '%s' from spine skeleton '%s'.", name, std::string(data->getName()).c_str());
+
+			const auto skeleton = data->getSkeleton();
+			skeleton->setSkin(skin);
+			skeleton->setSlotsToSetupPose();
+			data->getAnimationState()->apply(*skeleton);
+
+			return 0;
+		}
+		static int getCurrentSkin(lua_State* L)
+		{
+			GETUDATA(data, 1);
+
+			const auto& name = data->getSkeleton()->getSkin()->getName();
+			lua_pushlstring(L, name.buffer(), name.length());
+
+			return 1;
+		}
+		static int getExistSlots(lua_State* L)
+		{
+			GETUDATA(data, 1);
+			const auto& slots = data->getAllSlots();
+
+			const auto size = slots.size();
+			lua_createtable(L, size, 0);							// ..args t
+
+			int count = 1;
+			for (const auto& [_, slot] : slots)
+			{
+				const auto& name = slot.slot->getData().getName();
+				lua_pushlstring(L, name.buffer(), name.length());	// ..args t v
+				lua_rawseti(L, -2, count++);						// ..args t
+			}
+			return 1;
+		}
+		static int setSlotAttachment(lua_State* L)
+		{
+			GETUDATA(data, 1);
+			const char* slot_name = luaL_checkstring(L, 2);
+			const char* attachment_name = luaL_checkstring(L, 3);
+
+			const auto& slot_info = data->findSlot(slot_name);
+			auto slot = slot_info.slot;
+			if (!slot) return luaL_error(L, "could not find slot '%s' from spine skeleton '%s'.", slot_name, std::string(data->getName()).c_str());
+
+			slot->setAttachment(data->getSkeleton()->getAttachment(slot_info.index, attachment_name));
+
+			return 0;
+		}
+		static int getCurrentAttachmentOnSlot(lua_State* L)
+		{
+			GETUDATA(data, 1);
+			const char* slot_name = luaL_checkstring(L, 2);
+
+			const auto& slot_info = data->findSlot(slot_name);
+			auto slot = slot_info.slot;
+			if (!slot) return luaL_error(L, "could not find slot '%s' from spine skeleton '%s'.", slot_name, std::string(data->getName()).c_str());
+
+			auto attachment = slot->getAttachment();
+			if (attachment) 
+			{
+				const auto& name = attachment->getName();
+				lua_pushlstring(L, name.buffer(), name.length());
+				return 1;
+			}
+
+			lua_pushnil(L);
+			return 1;
+		}
 
 	};
 #undef GETUDATA
@@ -570,6 +754,12 @@ void luastg::binding::Spine::Register(lua_State* L) noexcept
 		{ "getCurrentAnimation", &Wrapper::getCurrentAnimation },
 		{ "getExistEvents", &Wrapper::getExistEvents },
 		{ "setEventListener", &Wrapper::setEventListener },
+		{ "getExistSkins", &Wrapper::getExistSkins },
+		{ "setSkin", &Wrapper::setSkin },
+		{ "getCurrentSkin", &Wrapper::getCurrentSkin },
+		{ "getExistSlots", &Wrapper::getExistSlots },
+		{ "setSlotAttachment", &Wrapper::setSlotAttachment },
+		{ "getCurrentAttachmentOnSlot", &Wrapper::getCurrentAttachmentOnSlot },
 		{ NULL, NULL },
 	};
 
