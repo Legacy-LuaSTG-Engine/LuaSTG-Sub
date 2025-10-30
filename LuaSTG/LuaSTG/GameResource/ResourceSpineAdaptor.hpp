@@ -18,6 +18,7 @@ namespace spine
 		virtual ~LuaSTGTextureLoader();
 		virtual void load(AtlasPage &page, const String &path);
 		virtual void unload(void *texture);
+		static LuaSTGTextureLoader& Instance();
 	};
 
 	class LuaSTGExtension : public DefaultSpineExtension

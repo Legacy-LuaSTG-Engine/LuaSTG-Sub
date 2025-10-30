@@ -65,6 +65,11 @@ namespace spine
 		core::Graphics::ITexture2D* p_texture = (core::Graphics::ITexture2D*)texture;
 		p_texture->release();
 	}
+	LuaSTGTextureLoader& LuaSTGTextureLoader::Instance()
+	{
+		static LuaSTGTextureLoader _instance;
+		return _instance;
+	}
 
 	LuaSTGExtension::LuaSTGExtension() : DefaultSpineExtension() {}
 	LuaSTGExtension::~LuaSTGExtension() {}

@@ -78,7 +78,6 @@ namespace luastg
     private:
         ResourceMgr* m_pMgr;
         ResourcePoolType m_iType;
-        std::unique_ptr<spine::LuaSTGTextureLoader> m_SpineTextureLoader;
         std::pmr::unsynchronized_pool_resource m_memory_resource;
         dictionary_t<core::SmartReference<IResourceTexture>> m_TexturePool;
         dictionary_t<core::SmartReference<IResourceSprite>> m_SpritePool;

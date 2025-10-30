@@ -907,7 +907,7 @@ namespace luastg
         {
             if (ResourceMgr::GetResourceLoadingLog())
             {
-                spdlog::warn("[luastg] LoadSpine: Spine '{}' 已存在，加载操作已取消", name);
+                spdlog::warn("[luastg] LoadSpineAtlas: Spine '{}' 已存在，加载操作已取消", name);
             }
             return true;
         }
@@ -915,7 +915,7 @@ namespace luastg
         try
         {
             core::SmartReference<IResourceSpineAtlas> tRes;
-            tRes.attach(new ResourceSpineAtlasImpl(name, atlas_path, m_SpineTextureLoader.get()));
+            tRes.attach(new ResourceSpineAtlasImpl(name, atlas_path, &spine::LuaSTGTextureLoader::Instance()));
             m_SpineAtlasPool.emplace(name, tRes);
         }
         catch (std::exception const& e)
@@ -1002,7 +1002,6 @@ namespace luastg
     ResourcePool::ResourcePool(ResourceMgr* mgr, ResourcePoolType t)
         : m_pMgr(mgr)
         , m_iType(t)
-        , m_SpineTextureLoader(new spine::LuaSTGTextureLoader)
         , m_TexturePool(&m_memory_resource)
         , m_SpritePool(&m_memory_resource)
         , m_AnimationPool(&m_memory_resource)
