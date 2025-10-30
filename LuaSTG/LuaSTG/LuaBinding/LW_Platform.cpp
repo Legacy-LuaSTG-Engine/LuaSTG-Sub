@@ -50,6 +50,7 @@ void luastg::binding::Platform::Register(lua_State* L) noexcept
 			}
 			return 1;
 		}
+#ifdef LUASTG_ENABLE_EXECUTE_API
 		static int Execute(lua_State* L) noexcept
 		{
 			struct Detail_
@@ -106,6 +107,7 @@ void luastg::binding::Platform::Register(lua_State* L) noexcept
 			lua_pushboolean(L, Detail_::Execute(path, args, directory, bWait, bShow));
 			return 1;
 		}
+#endif
 		static int api_MessageBox(lua_State* L)
 		{
 			char const* title = luaL_checkstring(L, 1);
@@ -124,7 +126,9 @@ void luastg::binding::Platform::Register(lua_State* L) noexcept
 	luaL_Reg const lib[] = {
 		{ "GetLocalAppDataPath", &Wrapper::GetLocalAppDataPath },
 		{ "GetRoamingAppDataPath", &Wrapper::GetRoamingAppDataPath },
+	#ifdef LUASTG_ENABLE_EXECUTE_API
 		{ "Execute", &Wrapper::Execute },
+	#endif
 		{ "MessageBox", &Wrapper::api_MessageBox },
 		{ NULL, NULL },
 	};
@@ -133,4 +137,13 @@ void luastg::binding::Platform::Register(lua_State* L) noexcept
 	luaL_register(L, LUASTG_LUA_LIBNAME ".Platform", lib); // ??? lstg lstg.Platform
 	lua_setfield(L, -1, "Platform");                       // ??? lstg
 	lua_pop(L, 1);                                         // ???
+
+#ifndef LUASTG_ENABLE_EXECUTE_API
+	constexpr luaL_Reg empty[]{{}};
+	luaL_register(L, LUA_OSLIBNAME, empty); // ??? os
+	lua_pushstring(L, "execute");           // ??? os "execute"
+	lua_pushnil(L);                         // ??? os "execute" nil
+	lua_settable(L, -3);                    // ??? os
+	lua_pop(L, 1);                          // ???
+#endif
 }
