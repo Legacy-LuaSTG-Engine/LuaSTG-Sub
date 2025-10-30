@@ -1,11 +1,12 @@
 #pragma once
 #include "GameResource/ResourceBase.hpp"
+#include <spine/Atlas.h>
 
 namespace luastg
 {
 	struct IResourceSpineAtlas : public IResourceBase
 	{
-        
+		virtual const std::shared_ptr<spine::Atlas>& getAtlas() = 0;
 	};
 }
 

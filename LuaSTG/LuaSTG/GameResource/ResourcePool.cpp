@@ -9,6 +9,7 @@
 #include "GameResource/Implement/ResourcePostEffectShaderImpl.hpp"
 #include "GameResource/Implement/ResourceModelImpl.hpp"
 #include "GameResource/Implement/ResourceSpineAtlasImpl.hpp"
+#include "GameResource/Implement/ResourceSpineSkeletonImpl.hpp"
 #include "core/FileSystem.hpp"
 #include "AppFrame.h"
 #include "lua/plus.hpp"
@@ -30,6 +31,7 @@ namespace luastg
         m_FXPool.clear();
         m_ModelPool.clear();
         m_SpineAtlasPool.clear();
+        m_SpineSkeletonPool.clear();
         spdlog::info("[luastg] 已清空资源池 '{}'", getResourcePoolTypeName());
     }
 
@@ -98,6 +100,9 @@ namespace luastg
         case ResourceType::SpineAtlas:
             removeResource(m_SpineAtlasPool, name);
             break;
+        case ResourceType::SpineSkeleton:
+            removeResource(m_SpineSkeletonPool, name);
+            break;
         default:
             spdlog::warn("[luastg] RemoveResource: 试图移除一个不存在的资源类型 ({})", (int)t);
             return;
@@ -130,6 +135,8 @@ namespace luastg
             return m_ModelPool.find(name) != m_ModelPool.end();
         case ResourceType::SpineAtlas:
             return m_SpineAtlasPool.find(name) != m_SpineAtlasPool.end();
+        case ResourceType::SpineSkeleton:
+            return m_SpineSkeletonPool.find(name) != m_SpineSkeletonPool.end();
         default:
             spdlog::warn("[luastg] CheckRes: 试图检索一个不存在的资源类型({})", (int)t);
             break;
@@ -188,6 +195,9 @@ namespace luastg
             break;
         case ResourceType::SpineAtlas:
             listResourceName(L, m_SpineAtlasPool);
+            break;
+        case ResourceType::SpineSkeleton:
+            listResourceName(L, m_SpineSkeletonPool);
             break;
         default:
             spdlog::warn("[luastg] EnumRes: 试图枚举一个不存在的资源类型({})", (int)t);
@@ -899,7 +909,7 @@ namespace luastg
         return true;
     }
 
-    // 加载Spine
+    // 加载SpineAtlas
 
     bool ResourcePool::LoadSpineAtlas(const char* name, const char* atlas_path) noexcept
     {
@@ -907,7 +917,7 @@ namespace luastg
         {
             if (ResourceMgr::GetResourceLoadingLog())
             {
-                spdlog::warn("[luastg] LoadSpineAtlas: Spine '{}' 已存在，加载操作已取消", name);
+                spdlog::warn("[luastg] LoadSpineAtlas: SpineAtlas '{}' 已存在，加载操作已取消", name);
             }
             return true;
         }
@@ -932,6 +942,46 @@ namespace luastg
         return true;
     }
 
+    // 加载SpineSkeleton
+
+    bool ResourcePool::LoadSpineSkeleton(const char* atlas_name, const char* name, const char* skeleton_path) noexcept
+    {
+        if (m_SpineSkeletonPool.find(std::string_view(name)) != m_SpineSkeletonPool.end())
+        {
+            if (ResourceMgr::GetResourceLoadingLog())
+            {
+                spdlog::warn("[luastg] LoadSpineSkeleton: SpineSkeleton '{}' 已存在，加载操作已取消", name);
+            }
+            return true;
+        }
+
+        core::SmartReference<IResourceSpineAtlas> pAtlas = m_pMgr->FindSpineAtlas(atlas_name);
+        if (!pAtlas)
+        {
+            spdlog::error("[luastg] LoadSpineSkeleton: 无法创建SpineSkeleton '{}'，因为无法找到SpineAtlas '{}'", name, atlas_name);
+            return false;
+        }
+
+        try
+        {
+            core::SmartReference<IResourceSpineSkeleton> tRes;
+            tRes.attach(new ResourceSpineSkeletonImpl(name, skeleton_path, pAtlas->getAtlas()));
+            m_SpineSkeletonPool.emplace(name, tRes);
+        }
+        catch (std::exception const& e)
+        {
+            spdlog::error("[luastg] LoadSpineSkeleton: 无法加载SpineSkeleton '{}' ({})", name, e.what());
+            return false;
+        }
+
+        if (ResourceMgr::GetResourceLoadingLog())
+        {
+            spdlog::info("[luastg] LoadSpineSkeleton: 已从 '{}' 加载SpineSkeleton '{}' ({})", skeleton_path, name, getResourcePoolTypeName());
+        }
+
+        return true;
+    }
+    
     // 查找并获取
 
     template<typename T>
@@ -994,9 +1044,14 @@ namespace luastg
         return findResource(m_ModelPool, name);
     }
 
-    core::SmartReference<IResourceSpineAtlas> ResourcePool::GetSpine(std::string_view name) noexcept
+    core::SmartReference<IResourceSpineAtlas> ResourcePool::GetSpineAtlas(std::string_view name) noexcept
     {
         return findResource(m_SpineAtlasPool, name);
+    }
+
+    core::SmartReference<IResourceSpineSkeleton> ResourcePool::GetSpineSkeleton(std::string_view name) noexcept
+    {
+        return findResource(m_SpineSkeletonPool, name);
     }
 
     ResourcePool::ResourcePool(ResourceMgr* mgr, ResourcePoolType t)
@@ -1013,6 +1068,7 @@ namespace luastg
         , m_FXPool(&m_memory_resource)
         , m_ModelPool(&m_memory_resource)
         , m_SpineAtlasPool(&m_memory_resource)
+        , m_SpineSkeletonPool(&m_memory_resource)
     {
 
     }

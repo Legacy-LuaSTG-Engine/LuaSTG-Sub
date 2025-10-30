@@ -15,6 +15,7 @@ namespace luastg {
 		FX,
 		Model,
 		SpineAtlas,
+		SpineSkeleton,
 	};
 
 	// 混合模式

@@ -6,6 +6,7 @@
 
 namespace luastg
 {
+	const std::shared_ptr<spine::Atlas>& ResourceSpineAtlasImpl::getAtlas() { return atlas; }
 	ResourceSpineAtlasImpl::ResourceSpineAtlasImpl(const char* name, const char* atlas_path, spine::TextureLoader* textureLoader)
 		: ResourceBaseImpl(ResourceType::SpineAtlas, name),
 		atlas(new spine::Atlas(atlas_path, textureLoader))

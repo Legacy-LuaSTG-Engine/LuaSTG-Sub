@@ -114,6 +114,22 @@ namespace luastg
 		return tRet;
 	}
 
+	core::SmartReference<IResourceSpineAtlas> ResourceMgr::FindSpineAtlas(const char* name) noexcept
+	{
+		core::SmartReference<IResourceSpineAtlas> tRet;
+		if (!(tRet = m_StageResourcePool.GetSpineAtlas(name)))
+			tRet = m_GlobalResourcePool.GetSpineAtlas(name);
+		return tRet;
+	}
+
+	core::SmartReference<IResourceSpineSkeleton> ResourceMgr::FindSpineSkeleton(const char* name) noexcept
+	{
+		core::SmartReference<IResourceSpineSkeleton> tRet;
+		if (!(tRet = m_StageResourcePool.GetSpineSkeleton(name)))
+			tRet = m_GlobalResourcePool.GetSpineSkeleton(name);
+		return tRet;
+	}
+
 	// 其他资源操作
 
 	bool ResourceMgr::GetTextureSize(const char* name, core::Vector2U& out) noexcept {

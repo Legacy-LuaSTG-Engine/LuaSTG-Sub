@@ -305,8 +305,6 @@ void AppFrame::Run()noexcept
 	m_pAppModel->getSwapChain()->addEventListener(this);
 
 	m_pAppModel->getFrameRateController()->setTargetFPS(m_target_fps);
-	LAPP.GetResourceMgr().GetActivedPool()->LoadSpineAtlas("test", "spineboy.atlas");
-	LAPP.GetResourceMgr().GetActivedPool()->LoadSpineAtlas("test", "spineboy.atlas");
 	m_pAppModel->run();
 
 	m_pAppModel->getSwapChain()->removeEventListener(this);
