@@ -154,9 +154,11 @@ file(GLOB SPINE_INCLUDES "spine-runtimes/spine-cpp/spine-cpp/include/**/*.h")
 file(GLOB SPINE_SOURCES "spine-runtimes/spine-cpp/spine-cpp/src/**/*.cpp")
 
 target_sources(spine-cpp PRIVATE
-#    ${SPINE_INCLUDES}
+    ${SPINE_INCLUDES}
     ${SPINE_SOURCES}
 )
+
+set_target_properties(spine-cpp PROPERTIES FOLDER external)
 
 # ==================== steam api ====================
 
