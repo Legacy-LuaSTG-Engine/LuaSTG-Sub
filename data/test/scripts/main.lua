@@ -136,6 +136,7 @@ require("test.graphics")
 require("test.audio")
 require("test.input")
 require("test.gameplay")
+require("test.os")
 
 function GameInit()
     window:init()
