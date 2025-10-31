@@ -1,4 +1,5 @@
 #include "LuaBinding/LuaWrapper.hpp"
+#ifdef LUASTG_SUPPORTS_SPINE
 #include <spine/Version.h>
 
 namespace spine
@@ -195,6 +196,11 @@ void luastg::binding::Spine::Register(lua_State* L) noexcept
 			if (!pRes) return luaL_error(L, "could not find spine skeleton '%s'.", name);
 
 			luastg::binding::Spine::CreateAndPush(L, pRes.get());
+			return 1;
+		}
+		static int CheckSpineSupport(lua_State* L)
+		{
+			lua_pushstring(L, "4.2");
 			return 1;
 		}
 		static int __gc(lua_State* L) noexcept
@@ -740,9 +746,6 @@ void luastg::binding::Spine::Register(lua_State* L) noexcept
 #undef GETUDATA
 
 	luaL_Reg const lib[] = {
-		{ "update", &Wrapper::update },
-		{ "reset", &Wrapper::reset },
-		{ "render", &Wrapper::render },
 		{ "getExistBones", &Wrapper::getExistBones },
 		{ "getBoneInfo", &Wrapper::getBoneInfo },
 		{ "update", &Wrapper::update },
@@ -771,7 +774,8 @@ void luastg::binding::Spine::Register(lua_State* L) noexcept
 	};
 
 	luaL_Reg const ins[] = {
-		{ "CreateSpineInstance", Wrapper::CreateSpineInstance },
+		{ "CreateSpineInstance", &Wrapper::CreateSpineInstance },
+		{ "CheckSpineSupport", &Wrapper::CheckSpineSupport },
 		{ NULL, NULL }
 	};
 
@@ -787,3 +791,28 @@ void luastg::binding::Spine::CreateAndPush(lua_State* L, IResourceSpineSkeleton*
 	luaL_getmetatable(L, LUASTG_LUA_TYPENAME_SPINE); // udata mt
 	lua_setmetatable(L, -2); // udata
 }
+#else
+void luastg::binding::Spine::Register(lua_State* L) noexcept
+{
+	struct Wrapper {
+		static int CreateSpineInstance(lua_State* L)
+		{
+			return luaL_error(L, "spine is not supported in this version!");
+		}
+		static int CheckSpineSupport(lua_State* L)
+		{
+			lua_pushstring(L, "unsupport");
+			return 1;
+		}
+	};
+
+	luaL_Reg const ins[] = {
+		{ "CreateSpineInstance", &Wrapper::CreateSpineInstance },
+		{ "CheckSpineSupport", &Wrapper::CheckSpineSupport },
+		{ NULL, NULL }
+	};
+
+	luaL_register(L, "lstg", ins);	// ??? lstg
+	lua_pop(L, 1);					// ???
+}
+#endif

@@ -30,8 +30,10 @@ namespace luastg
         m_TTFFontPool.clear();
         m_FXPool.clear();
         m_ModelPool.clear();
+#ifdef LUASTG_SUPPORTS_SPINE
         m_SpineAtlasPool.clear();
         m_SpineSkeletonPool.clear();
+#endif // LUASTG_SUPPORTS_SPINE
         spdlog::info("[luastg] 已清空资源池 '{}'", getResourcePoolTypeName());
     }
 
@@ -97,12 +99,14 @@ namespace luastg
         case ResourceType::Model:
             removeResource(m_ModelPool, name);
             break;
+#ifdef LUASTG_SUPPORTS_SPINE
         case ResourceType::SpineAtlas:
             removeResource(m_SpineAtlasPool, name);
             break;
         case ResourceType::SpineSkeleton:
             removeResource(m_SpineSkeletonPool, name);
             break;
+#endif
         default:
             spdlog::warn("[luastg] RemoveResource: 试图移除一个不存在的资源类型 ({})", (int)t);
             return;
@@ -133,10 +137,12 @@ namespace luastg
             return m_FXPool.find(name) != m_FXPool.end();
         case ResourceType::Model:
             return m_ModelPool.find(name) != m_ModelPool.end();
+#ifdef LUASTG_SUPPORTS_SPINE
         case ResourceType::SpineAtlas:
             return m_SpineAtlasPool.find(name) != m_SpineAtlasPool.end();
         case ResourceType::SpineSkeleton:
             return m_SpineSkeletonPool.find(name) != m_SpineSkeletonPool.end();
+#endif
         default:
             spdlog::warn("[luastg] CheckRes: 试图检索一个不存在的资源类型({})", (int)t);
             break;
@@ -193,12 +199,14 @@ namespace luastg
         case ResourceType::Model:
             listResourceName(L, m_ModelPool);
             break;
+#ifdef LUASTG_SUPPORTS_SPINE
         case ResourceType::SpineAtlas:
             listResourceName(L, m_SpineAtlasPool);
             break;
         case ResourceType::SpineSkeleton:
             listResourceName(L, m_SpineSkeletonPool);
             break;
+#endif
         default:
             spdlog::warn("[luastg] EnumRes: 试图枚举一个不存在的资源类型({})", (int)t);
             S.create_array(0);
@@ -909,6 +917,7 @@ namespace luastg
         return true;
     }
 
+#ifdef LUASTG_SUPPORTS_SPINE
     // 加载SpineAtlas
 
     bool ResourcePool::LoadSpineAtlas(const char* name, const char* atlas_path) noexcept
@@ -981,7 +990,8 @@ namespace luastg
 
         return true;
     }
-    
+#endif
+
     // 查找并获取
 
     template<typename T>
@@ -1044,6 +1054,7 @@ namespace luastg
         return findResource(m_ModelPool, name);
     }
 
+#ifdef LUASTG_SUPPORTS_SPINE
     core::SmartReference<IResourceSpineAtlas> ResourcePool::GetSpineAtlas(std::string_view name) noexcept
     {
         return findResource(m_SpineAtlasPool, name);
@@ -1053,6 +1064,7 @@ namespace luastg
     {
         return findResource(m_SpineSkeletonPool, name);
     }
+#endif // LUASTG_SUPPORTS_SPINE
 
     ResourcePool::ResourcePool(ResourceMgr* mgr, ResourcePoolType t)
         : m_pMgr(mgr)
@@ -1067,8 +1079,10 @@ namespace luastg
         , m_TTFFontPool(&m_memory_resource)
         , m_FXPool(&m_memory_resource)
         , m_ModelPool(&m_memory_resource)
+#ifdef LUASTG_SUPPORTS_SPINE
         , m_SpineAtlasPool(&m_memory_resource)
         , m_SpineSkeletonPool(&m_memory_resource)
+#endif // LUASTG_SUPPORTS_SPINE
     {
 
     }

@@ -1,4 +1,6 @@
 #pragma once
+#ifdef LUASTG_SUPPORTS_SPINE
+
 #include "GameResource/ResourceBase.hpp"
 #include <spine/Atlas.h>
 
@@ -16,3 +18,5 @@ namespace core {
 	// https://www.luastg-sub.com/luastg.IResourceSpineAtlas
 	template<> constexpr InterfaceId getInterfaceId<luastg::IResourceSpineAtlas>() { return UUID::parse("a7995836-0ed4-57ee-a014-417162b8541d"); }
 }
+
+#endif // LUASTG_SUPPORTS_SPINE

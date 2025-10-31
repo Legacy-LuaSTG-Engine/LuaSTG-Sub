@@ -365,6 +365,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		}
 		static int LoadSpineAtlas(lua_State* L) noexcept
 		{
+#ifdef LUASTG_SUPPORTS_SPINE
 			const char* name = luaL_checkstring(L, 1);
 			const char* atlas_path = luaL_checkstring(L, 2);
 
@@ -378,9 +379,13 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 				return luaL_error(L, "load spineAtlas failed (name='%s', atlas='%s').", name, atlas_path);
 			}
 			return 0;
+#else
+			return luaL_error(L, "spine is not supported in this version!");
+#endif
 		}
 		static int LoadSpineSkeleton(lua_State* L) noexcept
 		{
+#ifdef LUASTG_SUPPORTS_SPINE
 			const char* name = luaL_checkstring(L, 1);
 			const char* atlas_name = luaL_checkstring(L, 2);
 			const char* skel_path = luaL_checkstring(L, 3);
@@ -396,6 +401,9 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 				return luaL_error(L, "load spineSkeleton failed (name='%s', atlas='%s', skeleton='%s').", name, atlas_name, skel_path);
 			}
 			return 0;
+#else
+			return luaL_error(L, "spine is not supported in this version!");
+#endif
 		}
 		static int CreateRenderTarget(lua_State* L) noexcept
 		{
@@ -701,6 +709,8 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 
 		static int SetSpineAnimationMix(lua_State* L)
 		{
+#ifdef LUASTG_SUPPORTS_SPINE
+
 			const char* name = luaL_checkstring(L, 1);
 			core::SmartReference<IResourceSpineSkeleton> p = LRES.FindSpineSkeleton(name);
 			if (!p) return luaL_error(L, "spine skeleton '%s' not found.", name);
@@ -716,6 +726,9 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 			p->setAnimationMix(ani1, ani2, luaL_checknumber(L, 4));
 
 			return 0;
+#else
+			return luaL_error(L, "spine is not supported in this version!");
+#endif
 		}
 
 		static int CacheTTFString(lua_State* L) {

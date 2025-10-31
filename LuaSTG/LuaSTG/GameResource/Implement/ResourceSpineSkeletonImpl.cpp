@@ -1,3 +1,4 @@
+#ifdef LUASTG_SUPPORTS_SPINE
 #include "GameResource/Implement/ResourceSpineSkeletonImpl.hpp"
 #include "AppFrame.h"
 
@@ -46,3 +47,4 @@ namespace luastg
 	}
 	void ResourceSpineSkeletonImpl::setAnimationMix(float mix_time) { anistate->setDefaultMix(mix_time); };
 }
+#endif

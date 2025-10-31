@@ -1,3 +1,4 @@
+#ifdef LUASTG_SUPPORTS_SPINE
 #include "GameResource/Implement/ResourceSpineAtlasImpl.hpp"
 #include "GameResource/Implement/ResourceTextureImpl.hpp"
 #include "AppFrame.h"
@@ -15,3 +16,4 @@ namespace luastg
 	}
 
 }
+#endif // LUASTG_SUPPORTS_SPINE

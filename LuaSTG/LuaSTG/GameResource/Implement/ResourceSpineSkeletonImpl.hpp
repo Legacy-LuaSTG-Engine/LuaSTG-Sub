@@ -1,4 +1,5 @@
 #pragma once
+#ifdef LUASTG_SUPPORTS_SPINE
 #include "GameResource/ResourceSpineSkeleton.hpp"
 #include "GameResource/Implement/ResourceBaseImpl.hpp"
 #include <spine/spine.h>
@@ -21,3 +22,4 @@ namespace luastg
 		ResourceSpineSkeletonImpl(const char* name, const char* skelPath, const std::shared_ptr<spine::Atlas>& atlas);
 	};
 }
+#endif // LUASTG_SUPPORTS_SPINE

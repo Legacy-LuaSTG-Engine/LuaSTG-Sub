@@ -91,14 +91,14 @@ namespace luastg::binding
 		static void Register(lua_State* L) noexcept;
 		static void CreateAndPush(lua_State* L, core::Color4B const& color);
 	};
-
 	class Spine
 	{
 	public:
 		static void Register(lua_State* L) noexcept;
+#ifdef LUASTG_SUPPORTS_SPINE
 		static void CreateAndPush(lua_State* L, IResourceSpineSkeleton* data);
+#endif
 	};
-
 	class StopWatch
 	{
 	public:

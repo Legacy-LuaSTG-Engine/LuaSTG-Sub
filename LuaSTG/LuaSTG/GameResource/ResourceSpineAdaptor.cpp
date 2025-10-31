@@ -1,3 +1,4 @@
+#ifdef LUASTG_SUPPORTS_SPINE
 #include "ResourceSpineAdaptor.hpp"
 #include "AppFrame.h"
 #include "Core/FileSystem.hpp"
@@ -104,3 +105,4 @@ namespace spine
 
 	SpineExtension* spine::getDefaultExtension() { return &LuaSTGExtension::Instance(); }
 }
+#endif

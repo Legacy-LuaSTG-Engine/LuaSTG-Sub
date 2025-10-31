@@ -114,6 +114,7 @@ namespace luastg
 		return tRet;
 	}
 
+#ifdef LUASTG_SUPPORTS_SPINE
 	core::SmartReference<IResourceSpineAtlas> ResourceMgr::FindSpineAtlas(const char* name) noexcept
 	{
 		core::SmartReference<IResourceSpineAtlas> tRet;
@@ -129,6 +130,7 @@ namespace luastg
 			tRet = m_GlobalResourcePool.GetSpineSkeleton(name);
 		return tRet;
 	}
+#endif // LUASTG_SUPPORTS_SPINE
 
 	// 其他资源操作
 

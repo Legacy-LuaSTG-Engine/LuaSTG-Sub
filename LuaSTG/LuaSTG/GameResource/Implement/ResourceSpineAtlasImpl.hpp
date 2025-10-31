@@ -1,4 +1,5 @@
 #pragma once
+#ifdef LUASTG_SUPPORTS_SPINE
 #include "GameResource/ResourceSpineAtlas.hpp"
 #include "GameResource/Implement/ResourceBaseImpl.hpp"
 #include <spine/spine.h>
@@ -16,3 +17,4 @@ namespace luastg
 		ResourceSpineAtlasImpl(const char* name, const char* atlasPath, spine::TextureLoader* textureLoader);
 	};
 }
+#endif // LUASTG_SUPPORTS_SPINE

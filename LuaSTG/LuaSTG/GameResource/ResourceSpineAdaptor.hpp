@@ -1,4 +1,5 @@
 #pragma once
+#ifdef LUASTG_SUPPORTS_SPINE
 #include <spine/spine.h>
 
 namespace spine
@@ -41,3 +42,5 @@ namespace spine
 		static SkeletonRenderer& Instance();
 	};
 }
+
+#endif
