@@ -1,7 +1,6 @@
 #include "LuaBinding/LuaWrapper.hpp"
 #include "lua/plus.hpp"
 #include "AppFrame.h"
-#include "ApplicationRestart.hpp"
 
 inline core::RectI lua_to_Core_RectI(lua_State* L, int idx)
 {
@@ -104,20 +103,6 @@ void luastg::binding::BuiltInFunction::Register(lua_State* L)noexcept
 		static int LoadTextFile(lua_State* L)noexcept
 		{
 			return LAPP.LoadTextFile(L, luaL_checkstring(L, 1), luaL_optstring(L, 2, NULL));
-		}
-		static int RestartWithCommandLineArguments(lua_State* const vm) noexcept {
-			lua::stack_t const ctx(vm);
-			std::vector<std::string> args;
-			if (ctx.is_table(1)) {
-				if (auto const n = ctx.get_array_size(1); n > 0) {
-					args.resize(n);
-					for (size_t i = 0; i < ctx.get_array_size(1); i += 1) {
-						args[i].assign(ctx.get_array_value<std::string_view>(1, static_cast<int32_t>(i + 1)));
-					}
-				}
-			}
-			ApplicationRestart::enableWithCommandLineArguments(args);
-			return 0;
 		}
 		#pragma endregion
 		
@@ -245,7 +230,6 @@ void luastg::binding::BuiltInFunction::Register(lua_State* L)noexcept
 		{ "Log", &Wrapper::Log },
 		{ "DoFile", &Wrapper::DoFile },
 		{ "LoadTextFile", &Wrapper::LoadTextFile },
-		{ "RestartWithCommandLineArguments", &Wrapper::RestartWithCommandLineArguments },
 		#pragma endregion
 		
 		#pragma region 窗口与交换链控制函数

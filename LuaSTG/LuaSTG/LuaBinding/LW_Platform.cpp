@@ -1,4 +1,6 @@
 #include "LuaBinding/LuaWrapper.hpp"
+#include "lua/plus.hpp"
+#include "ApplicationRestart.hpp"
 #include "Platform/KnownDirectory.hpp"
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -49,6 +51,20 @@ void luastg::binding::Platform::Register(lua_State* L) noexcept
 				lua_pushstring(L, "");
 			}
 			return 1;
+		}
+		static int RestartWithCommandLineArguments(lua_State* const vm) noexcept {
+			lua::stack_t const ctx(vm);
+			std::vector<std::string> args;
+			if (ctx.is_table(1)) {
+				if (auto const n = ctx.get_array_size(1); n > 0) {
+					args.resize(n);
+					for (size_t i = 0; i < ctx.get_array_size(1); i += 1) {
+						args[i].assign(ctx.get_array_value<std::string_view>(1, static_cast<int32_t>(i + 1)));
+					}
+				}
+			}
+			ApplicationRestart::enableWithCommandLineArguments(args);
+			return 0;
 		}
 #ifdef LUASTG_ENABLE_EXECUTE_API
 		static int Execute(lua_State* L) noexcept
@@ -126,6 +142,7 @@ void luastg::binding::Platform::Register(lua_State* L) noexcept
 	luaL_Reg const lib[] = {
 		{ "GetLocalAppDataPath", &Wrapper::GetLocalAppDataPath },
 		{ "GetRoamingAppDataPath", &Wrapper::GetRoamingAppDataPath },
+		{ "RestartWithCommandLineArguments", &Wrapper::RestartWithCommandLineArguments },
 	#ifdef LUASTG_ENABLE_EXECUTE_API
 		{ "Execute", &Wrapper::Execute },
 	#endif
