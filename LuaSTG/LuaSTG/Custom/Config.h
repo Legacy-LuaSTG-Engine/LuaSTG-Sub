@@ -17,7 +17,7 @@
 #define USING_CONSOLE_OUTPUT
 
 // Security: allow os.execute/lstg.Execute
-#define LUASTG_ENABLE_EXECUTE_API
+//#define LUASTG_ENABLE_EXECUTE_API
 
 // ---------- ---------- game play ---------- ---------- //
 
