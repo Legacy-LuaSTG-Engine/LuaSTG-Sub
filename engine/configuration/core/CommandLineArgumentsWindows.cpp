@@ -21,6 +21,10 @@ namespace core {
 		std::lock_guard const lock{ s_lock };
 		s_args.emplace_back(arg);
 	}
+	void CommandLineArguments::assign(std::vector<std::string> const& args) {
+		std::lock_guard const lock{ s_lock };
+		s_args = args;
+	}
 
 	std::string_view CommandLineArguments::at(size_t const n) {
 		std::lock_guard const lock{ s_lock };

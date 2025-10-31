@@ -14,6 +14,7 @@ namespace core {
 
 		static void clear();
 		static void add(std::string_view arg);
+		static void assign(std::vector<std::string> const& args);
 
 		// access
 

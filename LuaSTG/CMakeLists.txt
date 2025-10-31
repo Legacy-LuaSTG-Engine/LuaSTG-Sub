@@ -179,6 +179,8 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/RuntimeCheck.cpp
     LuaSTG/Main.h
     LuaSTG/Main.cpp
+    LuaSTG/ApplicationRestart.hpp
+    LuaSTG/ApplicationRestart.cpp
     LuaSTG/WindowsMain.cpp
 
     LuaSTG/LuaSTG.manifest

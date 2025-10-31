@@ -1,4 +1,5 @@
 #include "AppFrame.h"
+#include "ApplicationRestart.hpp"
 #include "core/FileSystem.hpp"
 #include "Platform/XInput.hpp"
 #include "Utility/Utility.h"
@@ -367,7 +368,12 @@ bool AppFrame::onUpdate()
 
 	bool result = true;
 
-	{
+	// pre-check
+	if (ApplicationRestart::hasRestart()) {
+		result = false;
+	}
+
+	if (result) {
 		tracy_zone_scoped_with_name("OnUpdate-Event");
 
 		int window_active_changed = m_window_active_changed.exchange(0);
@@ -416,8 +422,7 @@ bool AppFrame::onUpdate()
 	_frame_count += 1;
 #endif
 
-	if (result)
-	{
+	if (result) {
 		tracy_zone_scoped_with_name("OnUpdate-LuaCallback");
 		// 执行帧函数
 		imgui::cancelSetCursor();
@@ -432,6 +437,11 @@ bool AppFrame::onUpdate()
 		if (tAbort)
 			m_pAppModel->requestExit();
 		m_ResourceMgr.UpdateSound();
+	}
+
+	// check again after FrameFunc
+	if (ApplicationRestart::hasRestart()) {
+		result = false;
 	}
 
 	return result;
