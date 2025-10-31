@@ -25,6 +25,16 @@ function M:onUpdate()
         if ImGui.Button("Open url: https://www.lua.org") then
             ShellIntegration.openUrl("https://www.lua.org")
         end
+
+        if ImGui.Button("Open file: NOT-A-FILE") then
+            ShellIntegration.openFile("NOT-A-FILE")
+        end
+        if ImGui.Button("Open directory: NOT-A-DIR") then
+            ShellIntegration.openDirectory("NOT-A-DIR")
+        end
+        if ImGui.Button("Open url: NOT-A-URL") then
+            ShellIntegration.openUrl("NOT-A-URL")
+        end
     end
     ImGui.End()
 end

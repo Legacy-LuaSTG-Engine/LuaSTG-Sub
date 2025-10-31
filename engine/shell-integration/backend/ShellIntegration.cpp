@@ -5,6 +5,7 @@
 #include <filesystem>
 #include "utf8.hpp"
 #include <windows.h>
+#include <shlobj_core.h>
 
 using std::string_literals::operator ""s;
 using std::string_view_literals::operator ""sv;
@@ -71,6 +72,9 @@ namespace {
 
 	std::u8string_view u8sv(std::string_view const s) {
 		return { reinterpret_cast<char8_t const*>(s.data()), s.size() };
+	}
+	std::string_view u8sv(std::u8string_view const s) {
+		return { reinterpret_cast<char const*>(s.data()), s.size() };
 	}
 
 	bool open(std::string_view const op, std::string_view const url) {
@@ -187,19 +191,33 @@ namespace {
 namespace core {
 	bool ShellIntegration::openFile(std::string_view const path) {
 		try {
-			if (!std::filesystem::is_regular_file(std::filesystem::path(u8sv(path)))) {
+			const auto fs_path{ std::filesystem::path(u8sv(path)) };
+			const auto fs_abs_path{ std::filesystem::absolute(fs_path.lexically_normal()) };
+			if (!std::filesystem::is_regular_file(fs_abs_path)) {
 				Logger::error("[core::ShellIntegration] openFile failed: file does not exists"sv);
 				return false;
 			}
+			const auto path_u8{ fs_abs_path.u8string() };
+			const auto path_u8_v{ u8sv(path_u8) };
+
 			const auto title{ i18n(open_file_title) };
-			const auto message{ std::vformat(i18n(open_file_message), std::make_format_args(path)) };
+			const auto message{ std::vformat(i18n(open_file_message), std::make_format_args(path_u8_v)) };
 			const auto title_w{ utf8::to_wstring(title) };
 			const auto message_w{ utf8::to_wstring(message) };
 			if (MessageBoxW(nullptr, message_w.c_str(), title_w.c_str(), MB_ICONWARNING | MB_OKCANCEL) != IDOK) {
 				Logger::warn("[core::ShellIntegration] openFile canceled by user"sv);
 				return false;
 			}
-			return open("openFile"sv, path);
+
+			const auto path_w{ fs_abs_path.wstring() };
+			OPENASINFO info{};
+			info.pcszFile = path_w.c_str();
+			info.oaifInFlags = OAIF_EXEC | OAIF_HIDE_REGISTRATION;
+			const auto result = SHOpenWithDialog(nullptr, &info);
+			if (FAILED(result)) {
+				Logger::error("[core::ShellIntegration] openFile failed: SHOpenWithDialog failed (HRESULT 0x{:08x})"sv, static_cast<uint32_t>(result));
+			}
+			return SUCCEEDED(result);
 		}
 		catch (std::exception const& e) {
 			Logger::error("[core::ShellIntegration] openFile failed: {}"sv, e.what());
@@ -208,19 +226,25 @@ namespace core {
 	}
 	bool ShellIntegration::openDirectory(std::string_view const path) {
 		try {
-			if (!std::filesystem::is_directory(std::filesystem::path(u8sv(path)))) {
+			const auto fs_path{ std::filesystem::path(u8sv(path)) };
+			const auto fs_abs_path{ std::filesystem::absolute(fs_path.lexically_normal()) };
+			if (!std::filesystem::is_directory(fs_abs_path)) {
 				Logger::error("[core::ShellIntegration] openDirectory failed: directory does not exists"sv);
 				return false;
 			}
+			const auto path_u8{ fs_abs_path.u8string() };
+			const auto path_u8_v{ u8sv(path_u8) };
+
 			const auto title{ i18n(open_directory_title) };
-			const auto message{ std::vformat(i18n(open_directory_message), std::make_format_args(path)) };
+			const auto message{ std::vformat(i18n(open_directory_message), std::make_format_args(path_u8_v)) };
 			const auto title_w{ utf8::to_wstring(title) };
 			const auto message_w{ utf8::to_wstring(message) };
 			if (MessageBoxW(nullptr, message_w.c_str(), title_w.c_str(), MB_ICONWARNING | MB_OKCANCEL) != IDOK) {
 				Logger::warn("[core::ShellIntegration] openDirectory canceled by user"sv);
 				return false;
 			}
-			return open("openDirectory"sv, path);
+
+			return open("openDirectory"sv, path_u8_v);
 		}
 		catch (std::exception const& e) {
 			Logger::error("[core::ShellIntegration] openDirectory failed: {}"sv, e.what());
