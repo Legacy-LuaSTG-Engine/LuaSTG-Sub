@@ -140,10 +140,17 @@ void luastg::binding::Platform::Register(lua_State* L) noexcept
 
 #ifndef LUASTG_ENABLE_EXECUTE_API
 	constexpr luaL_Reg empty[]{{}};
+
 	luaL_register(L, LUA_OSLIBNAME, empty); // ??? os
 	lua_pushstring(L, "execute");           // ??? os "execute"
 	lua_pushnil(L);                         // ??? os "execute" nil
 	lua_settable(L, -3);                    // ??? os
+	lua_pop(L, 1);                          // ???
+
+	luaL_register(L, LUA_IOLIBNAME, empty); // ??? io
+	lua_pushstring(L, "popen");             // ??? io "popen"
+	lua_pushnil(L);                         // ??? io "popen" nil
+	lua_settable(L, -3);                    // ??? io
 	lua_pop(L, 1);                          // ???
 #endif
 }
