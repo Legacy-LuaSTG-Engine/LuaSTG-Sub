@@ -13,7 +13,6 @@ set(PLATFORM_SOURCES
     Platform/RuntimeLoader/DesktopWindowManager.hpp
     Platform/RuntimeLoader/XAudio2.hpp
     Platform/RuntimeLoader/All.cpp
-    Platform/CommandLineArguments.hpp
     Platform/DesktopWindowManager.hpp
     Platform/Direct3D11.hpp
     Platform/DXGI.hpp

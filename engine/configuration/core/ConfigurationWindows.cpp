@@ -1,8 +1,10 @@
 #include "core/Configuration.hpp"
+#include "core/CommandLineArguments.hpp"
 #include <array>
 #include <vector>
 #include <optional>
 #include <format>
+#include "utf8.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -13,17 +15,16 @@
 
 using namespace std::string_view_literals;
 
-namespace core {
-	static std::string to_string(std::wstring_view const& wstr) {
-		std::string str;
-		int const length = WideCharToMultiByte(CP_UTF8, 0, wstr.data(), static_cast<int>(wstr.size()), nullptr, 0, nullptr, nullptr);
-		if (length <= 0) return str;
-		str.resize(static_cast<size_t>(length));
-		int const result = WideCharToMultiByte(CP_UTF8, 0, wstr.data(), static_cast<int>(wstr.size()), str.data(), length, nullptr, nullptr);
-		if (length != result) str.clear();
-		return str;
+namespace {
+	constexpr GUID guid(
+		uint32_t const a, uint16_t const b, uint16_t const c,
+		uint8_t const d0, uint8_t const d1, uint8_t const d2, uint8_t const d3, uint8_t const d4, uint8_t const d5, uint8_t const d6, uint8_t const d7
+	) {
+		return { a, b, c, {d0, d1, d2, d3, d4, d5, d6, d7} };
 	}
+}
 
+namespace core {
 	static std::u8string_view to_u8string_view(std::string const& sv) {
 		static_assert(CHAR_BIT == 8 && sizeof(char) == 1 && sizeof(char) == sizeof(char8_t));
 		return { reinterpret_cast<char8_t const*>(sv.c_str()), sv.length() };
@@ -54,32 +55,8 @@ namespace core {
 		}
 	}
 
-	static bool getCommandLineArguments(std::vector<std::string>& args) {
-		PWSTR command_line = GetCommandLineW();
-		if (!command_line) {
-			return false;
-		}
-
-		int argc = 0;
-		PWSTR* argv = CommandLineToArgvW(command_line, &argc);
-		if (!argv) {
-			return false;
-		}
-
-		args.resize(static_cast<size_t>(argc));
-		for (int i = 0; i < argc; i += 1) {
-			args[i].assign(to_string(argv[i]));
-		}
-
-		LocalFree(argv);
-		return true;
-	}
-
 	bool ConfigurationLoader::loadFromCommandLineArguments() {
-		std::vector<std::string> args;
-		if (!getCommandLineArguments(args)) {
-			return false;
-		}
+		auto const args{ CommandLineArguments::copy() };
 		auto write_arg_error = [this](std::string_view const& raw_arg) -> void {
 			messages.emplace_back(std::format("invalid command line argument '{}'", raw_arg));
 		};
@@ -120,85 +97,85 @@ namespace core {
 			}
 
 			access_parent_field(graphics_system,
-								{
-									access_field(preferred_device_name,
-										if (!arg.empty()) {
-											graphics_system.setPreferredDeviceName(arg);
-										});
-									access_field(width,
-										if (auto const value = to_unsigned_integer<uint32_t>(arg); value) {
-											if (value.value() == 0) {
-												write_message(raw_arg, "width must greater than 0"sv);
-												return false;
-											}
-											graphics_system.setWidth(value.value());
-										}
-										else {
-											write_arg_error(raw_arg);
-											return false;
-										});
-									access_field(height,
-										if (auto const value = to_unsigned_integer<uint32_t>(arg); value) {
-											if (value.value() == 0) {
-												write_message(raw_arg, "height must greater than 0"sv);
-												return false;
-											}
-											graphics_system.setHeight(value.value());
-										}
-										else {
-											write_arg_error(raw_arg);
-											return false;
-										});
-									access_field(fullscreen,
-										if (auto const value = to_boolean(arg); value) {
-											graphics_system.setFullscreen(value.value());
-										}
-										else {
-											write_arg_error(raw_arg);
-											return false;
-										});
-									access_field(vsync,
-										if (auto const value = to_boolean(arg); value) {
-											graphics_system.setVsync(value.value());
-										}
-										else {
-											write_arg_error(raw_arg);
-											return false;
-										});
-									access_field(allow_software_device,
-										if (auto const value = to_boolean(arg); value) {
-											graphics_system.setAllowSoftwareDevice(value.value());
-										}
-										else {
-											write_arg_error(raw_arg);
-											return false;
-										});
+				{
+					access_field(preferred_device_name,
+						if (!arg.empty()) {
+							graphics_system.setPreferredDeviceName(arg);
+						});
+					access_field(width,
+						if (auto const value = to_unsigned_integer<uint32_t>(arg); value) {
+							if (value.value() == 0) {
+								write_message(raw_arg, "width must greater than 0"sv);
+								return false;
+							}
+							graphics_system.setWidth(value.value());
+						}
+						else {
+							write_arg_error(raw_arg);
+							return false;
+						});
+					access_field(height,
+						if (auto const value = to_unsigned_integer<uint32_t>(arg); value) {
+							if (value.value() == 0) {
+								write_message(raw_arg, "height must greater than 0"sv);
+								return false;
+							}
+							graphics_system.setHeight(value.value());
+						}
+						else {
+							write_arg_error(raw_arg);
+							return false;
+						});
+					access_field(fullscreen,
+						if (auto const value = to_boolean(arg); value) {
+							graphics_system.setFullscreen(value.value());
+						}
+						else {
+							write_arg_error(raw_arg);
+							return false;
+						});
+					access_field(vsync,
+						if (auto const value = to_boolean(arg); value) {
+							graphics_system.setVsync(value.value());
+						}
+						else {
+							write_arg_error(raw_arg);
+							return false;
+						});
+					access_field(allow_software_device,
+						if (auto const value = to_boolean(arg); value) {
+							graphics_system.setAllowSoftwareDevice(value.value());
+						}
+						else {
+							write_arg_error(raw_arg);
+							return false;
+						});
 
-									access_field(allow_exclusive_fullscreen,
-										if (auto const value = to_boolean(arg); value) {
-											graphics_system.setAllowExclusiveFullscreen(value.value());
-										}
-										else {
-											write_arg_error(raw_arg);
-											return false;
-										});
-									access_field(allow_modern_swap_chain,
-										if (auto const value = to_boolean(arg); value) {
-											graphics_system.setAllowModernSwapChain(value.value());
-										}
-										else {
-											write_arg_error(raw_arg);
-											return false;
-										});
-									access_field(allow_direct_composition,
-										if (auto const value = to_boolean(arg); value) {
-											graphics_system.setAllowDirectComposition(value.value());
-										}
-										else {
-											write_arg_error(raw_arg);
-											return false;
-										});
-								});
+					access_field(allow_exclusive_fullscreen,
+						if (auto const value = to_boolean(arg); value) {
+							graphics_system.setAllowExclusiveFullscreen(value.value());
+						}
+						else {
+							write_arg_error(raw_arg);
+							return false;
+						});
+					access_field(allow_modern_swap_chain,
+						if (auto const value = to_boolean(arg); value) {
+							graphics_system.setAllowModernSwapChain(value.value());
+						}
+						else {
+							write_arg_error(raw_arg);
+							return false;
+						});
+					access_field(allow_direct_composition,
+						if (auto const value = to_boolean(arg); value) {
+							graphics_system.setAllowDirectComposition(value.value());
+						}
+						else {
+							write_arg_error(raw_arg);
+							return false;
+						});
+				});
 
 		#undef access_parent_field
 		#undef access_field
@@ -222,7 +199,7 @@ namespace core {
 		if (FAILED(hr)) return false;
 
 		if (str) {
-			output.assign(to_string(str));
+			output.assign(utf8::to_string(str));
 		}
 		CoTaskMemFree(str);
 		return true;
@@ -251,7 +228,7 @@ namespace core {
 			if (result > size) {
 				continue;
 			}
-			output.assign(to_string(std::wstring_view(buffer.data(), result)));
+			output.assign(utf8::to_string(std::wstring_view(buffer.data(), result)));
 			return true;
 		}
 		return false;
@@ -266,16 +243,8 @@ namespace core {
 		if (result > size) {
 			return getTempPathDynamic(output);
 		}
-		output.assign(to_string(std::wstring_view(buffer, result)));
+		output.assign(utf8::to_string(std::wstring_view(buffer, result)));
 		return true;
-	}
-	static auto v = FOLDERID_LocalAppData;
-
-	constexpr GUID guid(
-		uint32_t const a, uint16_t const b, uint16_t const c,
-		uint8_t const d0, uint8_t const d1, uint8_t const d2, uint8_t const d3, uint8_t const d4, uint8_t const d5, uint8_t const d6, uint8_t const d7
-	) {
-		return { a, b, c, {d0, d1, d2, d3, d4, d5, d6, d7} };
 	}
 
 	// ReSharper disable CommentTypo

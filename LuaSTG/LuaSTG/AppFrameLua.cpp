@@ -20,15 +20,35 @@ extern "C" {
 #include "LuaBinding/external/lua_random.hpp"
 #include "LuaBinding/external/lua_dwrite.hpp"
 
+#include "core/Logger.hpp"
+#include "core/CommandLineArguments.hpp"
 #include "core/FileSystem.hpp"
 #include "utf8.hpp"
-#include "Platform/CommandLineArguments.hpp"
-#include "core/FileSystem.hpp"
+#include "lua/plus.hpp"
 #include "luastg/EmbeddedFileSystem.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <Windows.h>
+
+using std::string_view_literals::operator ""sv;
+
+namespace {
+	void registerCommandLineArguments(lua_State* const vm) {
+		[[maybe_unused]] lua::stack_balancer_t const sb(vm);
+		lua::stack_t const ctx(vm);
+
+		auto const args{ core::CommandLineArguments::copy() };
+		auto const args_table = ctx.create_array(args.size());
+		for (size_t i = 0; i < args.size(); i += 1) {
+			core::Logger::info("[luajit] [{}] {}", i, args[i]);
+			ctx.set_array_value(args_table, static_cast<int32_t>(i + 1), args[i]);
+		}
+
+		auto const m = ctx.push_module("lstg"sv);
+		ctx.set_map_value(m, "args"sv, args_table);
+	}
+}
 
 namespace luastg
 {
@@ -323,29 +343,8 @@ namespace luastg
 		#endif
 			lua_settop(L, 0);
 
-			binding::RegistBuiltInClassWrapper(L);  // 注册内建类 (luastg lib)
-
-			// 设置命令行参数
-			spdlog::info("[luajit] 储存命令行参数");
-			std::vector<std::string_view> args;
-			Platform::CommandLineArguments::Get().GetArguments(args);
-			if (!args.empty()) {
-				// 打印命令行参数
-				std::vector<std::string_view> args_lua;
-				for (size_t idx = 0; idx < args.size(); idx += 1) {
-					spdlog::info("[luajit] [{}] {}", idx, args[idx]);
-					args_lua.emplace_back(args[idx]);
-				}
-				// 储存
-				lua_getglobal(L, "lstg");                       // ? t
-				lua_createtable(L, (int)args_lua.size(), 0);    // ? t t
-				for (int idx = 0; idx < (int)args_lua.size(); idx += 1) {
-					lua_pushstring(L, args_lua[idx].data());    // ? t t s
-					lua_rawseti(L, -2, idx + 1);                // ? t t
-				}
-				lua_setfield(L, -2, "args");                    // ? t
-				lua_pop(L, 1);                                  // ?
-			}
+			binding::RegistBuiltInClassWrapper(L); // LuaSTG API
+			registerCommandLineArguments(L); // command line args
 
 			constexpr std::string_view boost_script(R"(-- LuaSTG Sub boost script
 package.cpath = ""

@@ -8,6 +8,6 @@ luastg_target_more_warning(${lib_name})
 target_compile_features(${lib_name} PRIVATE cxx_std_20)
 target_include_directories(${lib_name} PUBLIC .)
 target_sources(${lib_name} PRIVATE ${lib_src})
-target_link_libraries(${lib_name} PUBLIC nlohmann_json)
+target_link_libraries(${lib_name} PUBLIC nlohmann_json utf8)
 
-set_target_properties(Core.Configuration PROPERTIES FOLDER engine)
+set_target_properties(${lib_name} PROPERTIES FOLDER engine)
