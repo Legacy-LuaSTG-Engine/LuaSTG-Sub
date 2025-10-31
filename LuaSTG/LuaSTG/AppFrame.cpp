@@ -370,6 +370,7 @@ bool AppFrame::onUpdate()
 
 	// pre-check
 	if (ApplicationRestart::hasRestart()) {
+		m_pAppModel->requestExit();
 		result = false;
 	}
 
@@ -441,6 +442,7 @@ bool AppFrame::onUpdate()
 
 	// check again after FrameFunc
 	if (ApplicationRestart::hasRestart()) {
+		m_pAppModel->requestExit();
 		result = false;
 	}
 
