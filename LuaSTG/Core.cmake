@@ -126,3 +126,9 @@ target_link_libraries(Core PUBLIC
     Core.FileSystem
     win32
 )
+
+if (LUASTG_LINK_SPINE_RUNTIME)
+    target_link_libraries(Core PUBLIC spine-cpp)
+    #target_compile_definitions(Core PUBLIC LUASTG_SUPPORTS_SPINE)
+    message(STATUS "[Core] Link: spine-runtime")
+endif ()

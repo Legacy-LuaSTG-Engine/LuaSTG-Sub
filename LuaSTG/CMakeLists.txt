@@ -45,6 +45,10 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/GameResource/ResourceBase.hpp
     LuaSTG/GameResource/ResourceTexture.hpp
     LuaSTG/GameResource/ResourceSprite.hpp
+    LuaSTG/GameResource/ResourceSpineAtlas.hpp
+    LuaSTG/GameResource/ResourceSpineSkeleton.hpp
+    LuaSTG/GameResource/ResourceSpineAdaptor.hpp
+    LuaSTG/GameResource/ResourceSpineAdaptor.cpp
     LuaSTG/GameResource/ResourceAnimation.hpp
     LuaSTG/GameResource/ResourceMusic.hpp
     LuaSTG/GameResource/ResourceSoundEffect.hpp
@@ -66,6 +70,10 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/GameResource/Implement/ResourceTextureImpl.cpp
     LuaSTG/GameResource/Implement/ResourceSpriteImpl.hpp
     LuaSTG/GameResource/Implement/ResourceSpriteImpl.cpp
+    LuaSTG/GameResource/Implement/ResourceSpineAtlasImpl.hpp
+    LuaSTG/GameResource/Implement/ResourceSpineAtlasImpl.cpp
+    LuaSTG/GameResource/Implement/ResourceSpineSkeletonImpl.hpp
+    LuaSTG/GameResource/Implement/ResourceSpineSkeletonImpl.cpp
     LuaSTG/GameResource/Implement/ResourceAnimationImpl.hpp
     LuaSTG/GameResource/Implement/ResourceAnimationImpl.cpp
     LuaSTG/GameResource/Implement/ResourceMusicImpl.hpp
@@ -98,6 +106,7 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/LW_ParticleSystem.cpp
     LuaSTG/LuaBinding/LW_Render.cpp
     LuaSTG/LuaBinding/LW_Renderer.cpp
+    LuaSTG/LuaBinding/LW_Spine.cpp
     LuaSTG/LuaBinding/LW_StopWatch.cpp
     LuaSTG/LuaBinding/LW_ResourceMgr.cpp
     LuaSTG/LuaBinding/LW_Platform.cpp

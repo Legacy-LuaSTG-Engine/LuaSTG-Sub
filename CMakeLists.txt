@@ -8,10 +8,16 @@ option(LUASTG_LINK_YY_THUNKS "Link to YY_Thunks for older Windows version (not r
 option(LUASTG_LINK_LUASOCKET "Link to luasocket" OFF)
 option(LUASTG_LINK_TRACY_CLIENT "Link to Tracy client" OFF)
 option(LUASTG_LINK_STEAM_API "Link to Steam API" OFF)
+option(LUASTG_LINK_SPINE_RUNTIME "Link to Spine Runtime" OFF)
 
 if(LUASTG_SUPPORTS_WINDOWS_7)
     message(STATUS "[LuaSTG] Windows compatibility: Windows 7")
     add_compile_definitions(LUASTG_SUPPORTS_WINDOWS_7)
+endif()
+
+if(LUASTG_LINK_SPINE_RUNTIME)
+    message(STATUS "[LuaSTG] Spine support: ON")
+    add_compile_definitions(LUASTG_SUPPORTS_SPINE)
 endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
