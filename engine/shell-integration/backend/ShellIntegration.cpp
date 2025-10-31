@@ -16,10 +16,10 @@ namespace {
 		bool fallback;
 	};
 
-#define SR(L, SL, S, FALLBACK) \
+#define SR(LANG, SUB_LANG, STR, FALLBACK) \
 	StringResource{ \
-		.text = (S), \
-		.locale = MAKELCID((L), (SL)), \
+		.text = (STR), \
+		.locale = MAKELANGID((LANG), (SUB_LANG)), \
 		.fallback = (FALLBACK), \
 	}
 
@@ -37,12 +37,12 @@ namespace {
 		int const length = GetUserDefaultLocaleName(buffer, LOCALE_NAME_MAX_LENGTH);
 		assert(length >= 1);
 		if (length < 1) {
-			return MAKELCID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
+			return MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
 		}
 		LCID const id = LocaleNameToLCID(buffer, 0);
 		assert(id != 0);
 		if (id == 0) {
-			return MAKELCID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
+			return MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
 		}
 		return id;
 	}
