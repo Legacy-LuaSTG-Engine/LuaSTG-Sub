@@ -3,7 +3,7 @@
 
 namespace luastg::binding {
 
-	struct Clipboard {
+	struct ShellIntegration {
 
 		static std::string_view const class_name;
 

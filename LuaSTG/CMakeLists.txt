@@ -146,6 +146,8 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/modern/GameObject.cpp
     LuaSTG/LuaBinding/modern/Well512.hpp
     LuaSTG/LuaBinding/modern/Well512.cpp
+    LuaSTG/LuaBinding/modern/ShellIntegration.hpp
+    LuaSTG/LuaBinding/modern/ShellIntegration.cpp
 
     LuaSTG/LuaBinding/generated/BlendModeX.cpp
     LuaSTG/LuaBinding/generated/BlendModeX.hpp
@@ -225,6 +227,7 @@ target_link_libraries(LuaSTG PRIVATE
     Core.Collection
     Core.Configuration
     Core.Clipboard
+    Core.ShellIntegration
     Core.Audio
     LuaSTG.InternalLuaScriptsFileSystem
 )

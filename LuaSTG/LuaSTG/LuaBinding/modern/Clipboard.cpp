@@ -10,12 +10,12 @@ namespace luastg::binding {
 
 		// static methods
 
-		static int hasText(lua_State* vm) {
+		static int hasText(lua_State* const vm) {
 			lua::stack_t const ctx(vm);
 			ctx.push_value(core::Clipboard::hasText());
 			return 1;
 		}
-		static int getText(lua_State* vm) {
+		static int getText(lua_State* const vm) {
 			lua::stack_t const ctx(vm);
 			std::string buffer;
 			if (core::Clipboard::getText(buffer)) {
@@ -28,7 +28,7 @@ namespace luastg::binding {
 			}
 			return 2;
 		}
-		static int setText(lua_State* vm) {
+		static int setText(lua_State* const vm) {
 			lua::stack_t const ctx(vm);
 			auto const text = ctx.get_value<std::string_view>(1);
 			ctx.push_value(core::Clipboard::setText(text));
@@ -37,9 +37,9 @@ namespace luastg::binding {
 
 	};
 
-	void Clipboard::registerClass(lua_State* vm) {
-		[[maybe_unused]] lua::stack_balancer_t sb(vm);
-		lua::stack_t ctx(vm);
+	void Clipboard::registerClass(lua_State* const vm) {
+		[[maybe_unused]] lua::stack_balancer_t const sb(vm);
+		lua::stack_t const ctx(vm);
 
 		// method
 
