@@ -67,8 +67,6 @@ namespace core::Graphics::Direct3D11 {
 		// VS stage constant buffer setup by MeshRenderer
 		// * constant buffer (world matrix)
 
-		ID3D11Buffer* vs_sb_backup[1]{};
-		ctx->VSGetConstantBuffers(Constants::vertex_shader_stage_constant_buffer_slot_world_matrix, 1, vs_sb_backup);
 		ID3D11Buffer* const world_matrix[1]{ static_cast<Buffer*>(m_constant_buffer.get())->getNativeBuffer() };
 		ctx->VSSetConstantBuffers(Constants::vertex_shader_stage_constant_buffer_slot_world_matrix, 1, world_matrix);
 
@@ -85,13 +83,9 @@ namespace core::Graphics::Direct3D11 {
 		// * shader resource view (texture)
 		// * sampler state
 
-		ID3D11ShaderResourceView* ps_srv_backup[1]{};
-		ctx->PSGetShaderResources(0, 1, ps_srv_backup);
 		ID3D11ShaderResourceView* const texture[1]{ static_cast<Texture2D*>(m_texture.get())->GetView() };
 		ctx->PSSetShaderResources(0, 1, texture);
 
-		ID3D11SamplerState* ps_ss_backup[1]{};
-		ctx->PSGetSamplers(0, 1, ps_ss_backup);
 		ID3D11SamplerState* sampler_state[1]{};
 		if (m_texture->getSamplerState()) {
 			sampler_state[0] = static_cast<SamplerState*>(m_texture->getSamplerState())->GetState();
@@ -116,29 +110,8 @@ namespace core::Graphics::Direct3D11 {
 
 		mesh->drawNative(ctx);
 
-		// restore state
-
-		ctx->VSSetConstantBuffers(Constants::vertex_shader_stage_constant_buffer_slot_world_matrix, 1, vs_sb_backup);
-		ctx->PSSetShaderResources(0, 1, ps_srv_backup);
-		ctx->PSSetSamplers(0, 1, ps_ss_backup);
-
-		// release objects
-
-		for (auto const& ptr : vs_sb_backup) {
-			if (ptr) {
-				ptr->Release();
-			}
-		}
-		for (auto const& ptr : ps_srv_backup) {
-			if (ptr) {
-				ptr->Release();
-			}
-		}
-		for (auto const& ptr : ps_ss_backup) {
-			if (ptr) {
-				ptr->Release();
-			}
-		}
+		renderer->endBatch();
+		renderer->beginBatch(); // TODO: better batch rendering?
 	}
 
 	MeshRenderer::MeshRenderer() = default;
