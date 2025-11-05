@@ -15,7 +15,9 @@ namespace core::Graphics::Direct3D11 {
 	}
 	void RenderTarget::onDeviceDestroy() {
 		m_view.Reset();
+#ifdef LUASTG_ENABLE_DIRECT2D
 		m_bitmap.Reset();
+#endif
 		m_texture->onDeviceDestroy();
 	}
 
@@ -30,7 +32,9 @@ namespace core::Graphics::Direct3D11 {
 
 	bool RenderTarget::setSize(Vector2U const size) {
 		m_view.Reset();
+#ifdef LUASTG_ENABLE_DIRECT2D
 		m_bitmap.Reset();
+#endif
 		if (!m_texture->setSize(size)) {
 			return false;
 		}
@@ -57,9 +61,13 @@ namespace core::Graphics::Direct3D11 {
 
 		auto* d3d11_device = m_device->GetD3D11Device();
 		auto* d3d11_devctx = m_device->GetD3D11DeviceContext();
-		auto* d2d1_device_context = m_device->GetD2D1DeviceContext();
-		if (!d3d11_device || !d3d11_devctx || !d2d1_device_context)
+		if (!d3d11_device || !d3d11_devctx)
 			return false;
+#ifdef LUASTG_ENABLE_DIRECT2D
+		auto* d2d1_device_context = m_device->GetD2D1DeviceContext();
+		if (!d2d1_device_context)
+			return false;
+#endif
 
 		// 获取纹理资源信息
 
@@ -91,6 +99,7 @@ namespace core::Graphics::Direct3D11 {
 			return false;
 		}
 
+#ifdef LUASTG_ENABLE_DIRECT2D
 		D2D1_BITMAP_PROPERTIES1 bitmap_info = {
 			.pixelFormat = {
 				.format = DXGI_FORMAT_B8G8R8A8_UNORM,
@@ -106,7 +115,7 @@ namespace core::Graphics::Direct3D11 {
 			i18n_core_system_call_report_error("ID3D11DeviceContext::CreateBitmapFromDxgiSurface");
 			return false;
 		}
-		M_D3D_SET_DEBUG_NAME(m_view.Get(), "RenderTarget_D3D11::m_bitmap");
+#endif
 
 		return true;
 	}

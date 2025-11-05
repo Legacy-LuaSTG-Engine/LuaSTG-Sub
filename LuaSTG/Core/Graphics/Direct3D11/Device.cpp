@@ -163,8 +163,10 @@ namespace core::Graphics::Direct3D11 {
 			throw std::runtime_error("create basic D3D11 components failed");
 		if (!createWIC())
 			throw std::runtime_error("create basic WIC components failed");
+#ifdef LUASTG_ENABLE_DIRECT2D
 		if (!createD2D1())
 			throw std::runtime_error("create basic D2D1 components failed");
+#endif
 		if (!createDWrite())
 			throw std::runtime_error("create basic DWrite components failed");
 
@@ -173,7 +175,9 @@ namespace core::Graphics::Direct3D11 {
 	Device::~Device() {
 		// 清理对象
 		destroyDWrite(); // 长生存期
+#ifdef LUASTG_ENABLE_DIRECT2D
 		destroyD2D1();
+#endif
 		destroyWIC(); // 长生存期
 		destroyD3D11();
 		destroyDXGI();
@@ -747,6 +751,7 @@ namespace core::Graphics::Direct3D11 {
 		wic_factory.Reset();
 		wic_factory2.Reset();
 	}
+#ifdef LUASTG_ENABLE_DIRECT2D
 	bool Device::createD2D1() {
 		HRESULT hr = S_OK;
 
@@ -784,6 +789,7 @@ namespace core::Graphics::Direct3D11 {
 		d2d1_device.Reset();
 		d2d1_devctx.Reset();
 	}
+#endif
 	bool Device::createDWrite() {
 		HRESULT hr = S_OK;
 
@@ -802,7 +808,9 @@ namespace core::Graphics::Direct3D11 {
 		dispatchEvent(EventType::DeviceDestroy);
 
 		//destroyDWrite(); // 长生存期
+#ifdef LUASTG_ENABLE_DIRECT2D
 		destroyD2D1();
+#endif
 		//destroyWIC(); // 长生存期
 		destroyD3D11();
 		destroyDXGI();
@@ -812,7 +820,9 @@ namespace core::Graphics::Direct3D11 {
 		if (!createDXGI()) return false;
 		if (!createD3D11()) return false;
 		//if (!createWIC()) return false; // 长生存期
+#ifdef LUASTG_ENABLE_DIRECT2D
 		if (!createD2D1()) return false;
+#endif
 		//if (!createDWrite()) return false; // 长生存期
 
 		dispatchEvent(EventType::DeviceCreate);

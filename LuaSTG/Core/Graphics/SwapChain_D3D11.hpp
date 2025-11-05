@@ -15,16 +15,22 @@ namespace core::Graphics
 		wil::com_ptr_nothrow<IDXGIFactory2> dxgi_factory;
 		wil::com_ptr_nothrow<ID3D11Device> d3d11_device;
 		wil::com_ptr_nothrow<ID3D11DeviceContext> d3d11_device_context;
+#ifdef LUASTG_ENABLE_DIRECT2D
 		wil::com_ptr_nothrow<ID2D1DeviceContext> d2d1_device_context;
+#endif
 		wil::com_ptr_nothrow<IDXGISwapChain1> dxgi_swap_chain;
 		wil::com_ptr_nothrow<ID3D11RenderTargetView> d3d11_rtv;
+#ifdef LUASTG_ENABLE_DIRECT2D
 		wil::com_ptr_nothrow<ID2D1Bitmap1> d2d1_bitmap;
+#endif
 	private:
 		bool createRenderAttachment();
 		void destroyRenderAttachment();
 	public:
 		inline IDXGISwapChain1* GetDXGISwapChain1() { return dxgi_swap_chain.get(); }
+#ifdef LUASTG_ENABLE_DIRECT2D
 		inline ID2D1Bitmap1* GetD2D1Bitmap1() { return d2d1_bitmap.get(); }
+#endif
 	public:
 		bool create(IDXGIFactory2* factory, ID3D11Device* device, ID2D1DeviceContext* context, Vector2U const& size);
 		void destroy();
@@ -89,9 +95,11 @@ namespace core::Graphics
 		Microsoft::WRL::ComPtr<IDCompositionTarget> dcomp_target;
 		Microsoft::WRL::ComPtr<IDCompositionVisual2> dcomp_visual_root;
 		Microsoft::WRL::ComPtr<IDCompositionVisual2> dcomp_visual_swap_chain;
+#ifdef LUASTG_ENABLE_DIRECT2D
 		Microsoft::WRL::ComPtr<IDCompositionVisual2> dcomp_visual_title_bar;
 		SecondarySwapChain swap_chain_title_bar;
 		bool m_title_bar_attached{ false };
+#endif
 	private:
 		bool createDirectCompositionResources();
 		void destroyDirectCompositionResources();

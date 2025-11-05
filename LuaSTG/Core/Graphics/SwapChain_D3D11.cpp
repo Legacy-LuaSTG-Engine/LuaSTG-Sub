@@ -721,7 +721,9 @@ namespace core::Graphics
 
 	bool SecondarySwapChain::createRenderAttachment() {
 		assert(d3d11_device);
+#ifdef LUASTG_ENABLE_DIRECT2D
 		assert(d2d1_device_context);
+#endif
 		assert(dxgi_swap_chain);
 		HRNew;
 		
@@ -736,12 +738,14 @@ namespace core::Graphics
 		HRGet = dxgi_swap_chain->GetBuffer(0, IID_PPV_ARGS(surface.put()));
 		HRCheckCallReturnBool("IDXGISwapChain::GetBuffer");
 
+#ifdef LUASTG_ENABLE_DIRECT2D
 		D2D1_BITMAP_PROPERTIES1 bitmap_info{};
 		bitmap_info.pixelFormat.format = info.Format;
 		bitmap_info.pixelFormat.alphaMode = D2D1_ALPHA_MODE_IGNORE;
 		bitmap_info.bitmapOptions = D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW;
 		HRGet = d2d1_device_context->CreateBitmapFromDxgiSurface(surface.get(), &bitmap_info, d2d1_bitmap.put());
 		HRCheckCallReturnBool("ID2D1DeviceContext::CreateBitmapFromDxgiSurface");
+#endif
 
 		return true;
 	}
@@ -751,7 +755,9 @@ namespace core::Graphics
 			d3d11_device_context->Flush();
 		}
 		d3d11_rtv.reset();
+#ifdef LUASTG_ENABLE_DIRECT2D
 		d2d1_bitmap.reset();
+#endif
 	}
 
 	bool SecondarySwapChain::create(IDXGIFactory2* factory, ID3D11Device* device, ID2D1DeviceContext* context, Vector2U const& size) {
@@ -764,7 +770,9 @@ namespace core::Graphics
 		dxgi_factory = factory;
 		d3d11_device = device;
 		d3d11_device->GetImmediateContext(d3d11_device_context.put());
+#ifdef LUASTG_ENABLE_DIRECT2D
 		d2d1_device_context = context;
+#endif
 		
 		info.Width = size.x;
 		info.Height = size.y;
@@ -787,7 +795,9 @@ namespace core::Graphics
 		dxgi_factory.reset();
 		d3d11_device.reset();
 		d3d11_device_context.reset();
+#ifdef LUASTG_ENABLE_DIRECT2D
 		d2d1_device_context.reset();
+#endif
 		dxgi_swap_chain.reset();
 	}
 	bool SecondarySwapChain::setSize(Vector2U const& size) {
@@ -1093,7 +1103,9 @@ namespace core::Graphics
 
 		m_swapchain_want_present_reset = TRUE;
 
+#ifdef LUASTG_ENABLE_DIRECT2D
 		m_window->getTitleBarController().createResources(m_window->GetWindow(), m_device->GetD2D1DeviceContext());
+#endif
 
 		return true;
 	}
@@ -1356,6 +1368,7 @@ namespace core::Graphics
 			HRGet = dcomp_desktop_device->CreateVisual(&dcomp_visual_root);
 			HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateVisual");
 
+#ifdef LUASTG_ENABLE_DIRECT2D
 			HRGet = dcomp_desktop_device->CreateVisual(&dcomp_visual_title_bar);
 			HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateVisual");
 
@@ -1371,6 +1384,7 @@ namespace core::Graphics
 
 			HRGet = dcomp_visual_title_bar->SetContent(swap_chain_title_bar.GetDXGISwapChain1());
 			HRCheckCallReturnBool("IDCompositionVisual2::SetContent");
+#endif
 		}
 		
 		// 把交换链塞进可视物
@@ -1429,18 +1443,22 @@ namespace core::Graphics
 			HRGet = dcomp_visual_swap_chain->SetContent(NULL);
 			HRCheckCallReport("IDCompositionVisual2::SetContent -> NULL");
 		}
+#ifdef LUASTG_ENABLE_DIRECT2D
 		if (dcomp_visual_title_bar)
 		{
 			HRGet = dcomp_visual_title_bar->SetContent(NULL);
 			HRCheckCallReport("IDCompositionVisual2::SetContent -> NULL");
 		}
+#endif
 
 		dcomp_target.Reset();
 		dcomp_visual_root.Reset();
 		dcomp_visual_swap_chain.Reset();
+#ifdef LUASTG_ENABLE_DIRECT2D
 		dcomp_visual_title_bar.Reset();
 		swap_chain_title_bar.destroy();
 		m_title_bar_attached = false;
+#endif
 
 		if (dcomp_desktop_device)
 		{
@@ -1511,9 +1529,11 @@ namespace core::Graphics
 
 		// 同步窗口宽度
 
+#ifdef LUASTG_ENABLE_DIRECT2D
 		if (!swap_chain_title_bar.setSize(Vector2U(window_size_u.x, swap_chain_title_bar.getSize().y))) {
 			return false;
 		}
+#endif
 		
 		// 提交
 
@@ -1625,7 +1645,9 @@ namespace core::Graphics
 
 		m_swapchain_want_present_reset = TRUE;
 
+#ifdef LUASTG_ENABLE_DIRECT2D
 		m_window->getTitleBarController().createResources(m_window->GetWindow(), m_device->GetD2D1DeviceContext());
+#endif
 
 		return true;
 	}
@@ -1658,6 +1680,7 @@ namespace core::Graphics
 		HRGet = dxgi_swapchain->GetBuffer(0, IID_PPV_ARGS(&dxgi_surface));
 		HRCheckCallReturnBool("IDXGISwapChain::GetBuffer -> 0");
 
+#ifdef LUASTG_ENABLE_DIRECT2D
 		// TODO: 线性颜色空间
 		D2D1_BITMAP_PROPERTIES1 d2d1_bitmap_info{};
 		d2d1_bitmap_info.pixelFormat.format = COLOR_BUFFER_FORMAT;
@@ -1665,6 +1688,7 @@ namespace core::Graphics
 		d2d1_bitmap_info.bitmapOptions = D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW;
 		HRGet = m_device->GetD2D1DeviceContext()->CreateBitmapFromDxgiSurface(dxgi_surface.Get(), &d2d1_bitmap_info, &m_swap_chain_d2d1_bitmap);
 		HRCheckCallReturnBool("ID2D1DeviceContext::CreateBitmapFromDxgiSurface");
+#endif
 		
 		return true;
 	}
@@ -2105,6 +2129,7 @@ namespace core::Graphics
 
 		// 绘制标题栏
 
+#ifdef LUASTG_ENABLE_DIRECT2D
 		if (m_is_composition_mode) {
 			tracy_d3d11_context_zone(m_device->GetTracyContext(), "TitleBarComposition");
 			// 绘制标题栏到单独的表面
@@ -2140,6 +2165,7 @@ namespace core::Graphics
 			// 绘制标题栏到交换链上，而不是画布上
 			m_window->getTitleBarController().draw(m_swap_chain_d2d1_bitmap.Get());
 		}
+#endif
 		
 		// 呈现
 

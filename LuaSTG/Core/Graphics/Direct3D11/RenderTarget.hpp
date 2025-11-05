@@ -20,7 +20,11 @@ namespace core::Graphics::Direct3D11 {
 		// IRenderTarget
 
 		[[nodiscard]] void* getNativeHandle() const noexcept override { return m_view.Get(); }
+#ifdef LUASTG_ENABLE_DIRECT2D
 		[[nodiscard]] void* getNativeBitmapHandle() const noexcept override { return m_bitmap.Get(); }
+#else
+		[[nodiscard]] void* getNativeBitmapHandle() const noexcept override { return nullptr; }
+#endif
 		bool setSize(Vector2U size) override;
 		[[nodiscard]] ITexture2D* getTexture() const noexcept override;
 
@@ -42,7 +46,9 @@ namespace core::Graphics::Direct3D11 {
 		SmartReference<Device> m_device;
 		SmartReference<Texture2D> m_texture;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_view;
+#ifdef LUASTG_ENABLE_DIRECT2D
 		Microsoft::WRL::ComPtr<ID2D1Bitmap1> m_bitmap;
+#endif
 		bool m_initialized{ false };
 	};
 }

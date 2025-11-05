@@ -43,10 +43,12 @@ namespace core::Graphics::Direct3D11 {
 
 		// Direct2D 1
 
+#ifdef LUASTG_ENABLE_DIRECT2D
 		Platform::RuntimeLoader::Direct2D1 d2d1_loader;
 		Microsoft::WRL::ComPtr<ID2D1Factory1> d2d1_factory;
 		Microsoft::WRL::ComPtr<ID2D1Device> d2d1_device;
 		Microsoft::WRL::ComPtr<ID2D1DeviceContext> d2d1_devctx;
+#endif
 
 		// DirectWrite
 
@@ -73,8 +75,10 @@ namespace core::Graphics::Direct3D11 {
 		inline ID3D11DeviceContext* GetD3D11DeviceContext() const noexcept { return d3d11_devctx.Get(); }
 		inline ID3D11DeviceContext1* GetD3D11DeviceContext1() const noexcept { return d3d11_devctx1.Get(); }
 
+#ifdef LUASTG_ENABLE_DIRECT2D
 		inline ID2D1Device* GetD2D1Device() const noexcept { return d2d1_device.Get(); }
 		inline ID2D1DeviceContext* GetD2D1DeviceContext() const noexcept { return d2d1_devctx.Get(); }
+#endif
 
 		inline IWICImagingFactory* GetWICImagingFactory() const noexcept { return wic_factory.Get(); }
 
@@ -92,8 +96,10 @@ namespace core::Graphics::Direct3D11 {
 		void destroyD3D11();
 		bool createWIC();
 		void destroyWIC();
+#ifdef LUASTG_ENABLE_DIRECT2D
 		bool createD2D1();
 		void destroyD2D1();
+#endif
 		bool createDWrite();
 		void destroyDWrite();
 		bool doDestroyAndCreate();
@@ -127,7 +133,11 @@ namespace core::Graphics::Direct3D11 {
 		StringView getCurrentGpuName() const noexcept { return dxgi_adapter_name; }
 
 		void* getNativeHandle() { return d3d11_device.Get(); }
+#ifdef LUASTG_ENABLE_DIRECT2D
 		void* getNativeRendererHandle() { return d2d1_devctx.Get(); }
+#else
+		void* getNativeRendererHandle() { return nullptr; }
+#endif
 
 		bool createVertexBuffer(uint32_t size_in_bytes, IBuffer** output) override;
 		bool createIndexBuffer(uint32_t size_in_bytes, IBuffer** output) override;

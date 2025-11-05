@@ -5,6 +5,8 @@
 #include "core/Data.hpp"
 #include "core/ImmutableString.hpp"
 
+#define LUASTG_ENABLE_DIRECT2D
+
 namespace core::Graphics
 {
 	struct IDeviceEventListener
