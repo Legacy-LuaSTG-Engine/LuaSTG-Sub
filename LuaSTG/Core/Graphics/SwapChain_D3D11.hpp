@@ -109,7 +109,9 @@ namespace core::Graphics
 
 	private:
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_swap_chain_d3d11_rtv;
+#ifdef LUASTG_ENABLE_DIRECT2D
 		Microsoft::WRL::ComPtr<ID2D1Bitmap1> m_swap_chain_d2d1_bitmap;
+#endif
 		Vector2U m_canvas_size{ 640,480 };
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_canvas_d3d11_srv;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_canvas_d3d11_rtv;

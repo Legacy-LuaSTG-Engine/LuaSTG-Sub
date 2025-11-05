@@ -1334,6 +1334,7 @@ namespace core::Graphics
 
 		// 必须成功的操作
 
+#ifdef LUASTG_ENABLE_DIRECT2D
 		Microsoft::WRL::ComPtr<IDXGIDevice> dxgi_device;
 		HRGet = m_device->GetD3D11Device()->QueryInterface(IID_PPV_ARGS(&dxgi_device));
 		HRCheckCallReturnBool("ID3D11Device::QueryInterface -> IDXGIDevice");
@@ -1342,6 +1343,10 @@ namespace core::Graphics
 
 		HRGet = dcomp_loader.CreateDevice(dxgi_device.Get(), IID_PPV_ARGS(&dcomp_desktop_device));
 		HRCheckCallReturnBool("DCompositionCreateDevice");
+#else
+		HRGet = dcomp_loader.CreateDevice(nullptr, IID_PPV_ARGS(&dcomp_desktop_device));
+		HRCheckCallReturnBool("DCompositionCreateDevice");
+#endif
 		
 	#ifdef _DEBUG
 		Microsoft::WRL::ComPtr<IDCompositionDeviceDebug> dcomp_device_debug;
@@ -1702,7 +1707,9 @@ namespace core::Graphics
 			m_device->GetD3D11DeviceContext()->Flush();
 		}
 		m_swap_chain_d3d11_rtv.Reset();
+#ifdef LUASTG_ENABLE_DIRECT2D
 		m_swap_chain_d2d1_bitmap.Reset();
+#endif
 	}
 	bool SwapChain_D3D11::createCanvasColorBuffer()
 	{
