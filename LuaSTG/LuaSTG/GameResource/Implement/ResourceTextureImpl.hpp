@@ -31,4 +31,35 @@ namespace luastg
 		ResourceTextureImpl(const char* name, bool ds);
 		~ResourceTextureImpl();
 	};
+
+	class RenderTargetStackResourceTextureImpl : public core::implement::ReferenceCounted<IResourceTexture> {
+	public:
+		// IResourceBase
+
+		ResourceType GetType() const noexcept override { return ResourceType::Texture; }
+		std::string_view GetResName() const noexcept override { return "auto"; }
+
+		// IResourceTexture
+
+		bool ResizeRenderTarget(core::Vector2U) override { return false; }
+
+		core::Graphics::ITexture2D* GetTexture() override { return m_rt->getTexture(); }
+		core::Graphics::IRenderTarget* GetRenderTarget() override { return m_rt.get(); }
+		core::Graphics::IDepthStencilBuffer* GetDepthStencilBuffer() override { return m_ds.get(); }
+		bool IsRenderTarget() override { return true; }
+		bool HasDepthStencilBuffer() override { return !!m_ds; }
+
+		// RenderTargetStackResourceTextureImpl
+
+		RenderTargetStackResourceTextureImpl(core::Graphics::IRenderTarget* rt, core::Graphics::IDepthStencilBuffer* ds);
+		RenderTargetStackResourceTextureImpl(RenderTargetStackResourceTextureImpl const&) = delete;
+		RenderTargetStackResourceTextureImpl(RenderTargetStackResourceTextureImpl&&) = delete;
+		~RenderTargetStackResourceTextureImpl();
+
+		RenderTargetStackResourceTextureImpl& operator=(RenderTargetStackResourceTextureImpl const&) = delete;
+		RenderTargetStackResourceTextureImpl& operator=(RenderTargetStackResourceTextureImpl&&) = delete;
+	private:
+		core::SmartReference<core::Graphics::IRenderTarget> m_rt;
+		core::SmartReference<core::Graphics::IDepthStencilBuffer> m_ds;
+	};
 }

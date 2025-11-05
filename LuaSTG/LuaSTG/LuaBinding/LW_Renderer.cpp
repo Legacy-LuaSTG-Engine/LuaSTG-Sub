@@ -4,7 +4,10 @@
 #include "LuaBinding/modern/Vector2.hpp"
 #include "LuaBinding/modern/Vector3.hpp"
 #include "LuaBinding/modern/Vector4.hpp"
+#include "LuaBinding/modern/RenderTarget.hpp"
+#include "LuaBinding/modern/DepthStencilBuffer.hpp"
 #include "AppFrame.h"
+#include "GameResource/Implement/ResourceTextureImpl.hpp"
 #include "GameResource/LegacyBlendStateHelper.hpp"
 
 namespace luastg {
@@ -677,14 +680,33 @@ namespace luastg {
 	static int compat_PushRenderTarget(lua_State* L)noexcept {
 		validate_render_scope();
 		LR2D()->flush();
-		core::SmartReference<IResourceTexture> p = LRES.FindTexture(luaL_checkstring(L, 1));
-		if (!p)
-			return luaL_error(L, "rendertarget '%s' not found.", luaL_checkstring(L, 1));
-		if (!p->IsRenderTarget())
-			return luaL_error(L, "'%s' is not a rendertarget.", luaL_checkstring(L, 1));
+		if (lua_isstring(L, 1)) {
+			core::SmartReference<IResourceTexture> p = LRES.FindTexture(luaL_checkstring(L, 1));
+			if (!p)
+				return luaL_error(L, "rendertarget '%s' not found.", luaL_checkstring(L, 1));
+			if (!p->IsRenderTarget())
+				return luaL_error(L, "'%s' is not a rendertarget.", luaL_checkstring(L, 1));
 
-		if (!LAPP.GetRenderTargetManager()->PushRenderTarget(p.get()))
-			return luaL_error(L, "push rendertarget '%s' failed.", luaL_checkstring(L, 1));
+			if (!LAPP.GetRenderTargetManager()->PushRenderTarget(p.get()))
+				return luaL_error(L, "push rendertarget '%s' failed.", luaL_checkstring(L, 1));
+		}
+		else {
+			auto const rt = luastg::binding::RenderTarget::as(L, 1);
+			luastg::binding::DepthStencilBuffer* ds{};
+			if (lua_isuserdata(L, 2)) {
+				ds = luastg::binding::DepthStencilBuffer::as(L, 2);
+				if (rt->data->getTexture()->getSize() != ds->data->getSize()) {
+					return luaL_error(L, "RenderTarget and DepthStencilBuffer size do not match.");
+				}
+			}
+			core::SmartReference<luastg::IResourceTexture> texture;
+			texture.attach(new luastg::RenderTargetStackResourceTextureImpl(rt->data, ds ? ds->data : nullptr));
+			if (!LAPP.GetRenderTargetManager()->PushRenderTarget(texture.get())) {
+				return luaL_error(L, ds
+								  ? "push RenderTarget and DepthStencilBuffer failed."
+								  : "push RenderTarget failed.");
+			}
+		}
 		LR2D()->setViewportAndScissorRect();
 		return 0;
 	}

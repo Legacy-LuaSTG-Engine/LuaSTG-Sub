@@ -124,6 +124,10 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/modern/SwapChain.cpp
     LuaSTG/LuaBinding/modern/Texture2D.hpp
     LuaSTG/LuaBinding/modern/Texture2D.cpp
+    LuaSTG/LuaBinding/modern/RenderTarget.hpp
+    LuaSTG/LuaBinding/modern/RenderTarget.cpp
+    LuaSTG/LuaBinding/modern/DepthStencilBuffer.hpp
+    LuaSTG/LuaBinding/modern/DepthStencilBuffer.cpp
     LuaSTG/LuaBinding/modern/Mesh.hpp
     LuaSTG/LuaBinding/modern/Mesh.cpp
     LuaSTG/LuaBinding/modern/MeshRenderer.hpp
