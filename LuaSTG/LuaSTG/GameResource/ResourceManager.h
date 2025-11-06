@@ -9,6 +9,9 @@
 #include "GameResource/ResourceFont.hpp"
 #include "GameResource/ResourcePostEffectShader.hpp"
 #include "GameResource/ResourceModel.hpp"
+#include "GameResource/ResourceSpineAdaptor.hpp"
+#include "GameResource/ResourceSpineAtlas.hpp"
+#include "GameResource/ResourceSpineSkeleton.hpp"
 #include "lua.hpp"
 #include "xxhash.h"
 
@@ -87,6 +90,10 @@ namespace luastg
         dictionary_t<core::SmartReference<IResourceFont>> m_TTFFontPool;
         dictionary_t<core::SmartReference<IResourcePostEffectShader>> m_FXPool;
         dictionary_t<core::SmartReference<IResourceModel>> m_ModelPool;
+#ifdef LUASTG_SUPPORTS_SPINE
+        dictionary_t<core::SmartReference<IResourceSpineAtlas>> m_SpineAtlasPool;
+        dictionary_t<core::SmartReference<IResourceSpineSkeleton>> m_SpineSkeletonPool;
+#endif // LUASTG_SUPPORTS_SPINE
     private:
         const char* getResourcePoolTypeName();
     public:
@@ -132,7 +139,12 @@ namespace luastg
         bool LoadFX(const char* name, const char* path) noexcept;
         // 模型
         bool LoadModel(const char* name, const char* path) noexcept;
-        
+        // Spine
+#ifdef LUASTG_SUPPORTS_SPINE
+        bool LoadSpineAtlas(const char* name, const char* atlas_path) noexcept;
+        bool LoadSpineSkeleton(const char* name, const char* atlas_name, const char* skeleton_path) noexcept;
+#endif // LUASTG_SUPPORTS_SPINE
+
         core::SmartReference<IResourceTexture> GetTexture(std::string_view name) noexcept;
         core::SmartReference<IResourceSprite> GetSprite(std::string_view name) noexcept;
         core::SmartReference<IResourceAnimation> GetAnimation(std::string_view name) noexcept;
@@ -143,6 +155,10 @@ namespace luastg
         core::SmartReference<IResourceFont> GetTTFFont(std::string_view name) noexcept;
         core::SmartReference<IResourcePostEffectShader> GetFX(std::string_view name) noexcept;
         core::SmartReference<IResourceModel> GetModel(std::string_view name) noexcept;
+#ifdef LUASTG_SUPPORTS_SPINE
+        core::SmartReference<IResourceSpineAtlas> GetSpineAtlas(std::string_view name) noexcept;
+        core::SmartReference<IResourceSpineSkeleton> GetSpineSkeleton(std::string_view name) noexcept;
+#endif // LUASTG_SUPPORTS_SPINE
     public:
         ResourcePool(ResourceMgr* mgr, ResourcePoolType t);
         ResourcePool& operator=(const ResourcePool&) = delete;
@@ -173,7 +189,11 @@ namespace luastg
         core::SmartReference<IResourceFont> FindTTFFont(const char* name) noexcept;
         core::SmartReference<IResourcePostEffectShader> FindFX(const char* name) noexcept;
         core::SmartReference<IResourceModel> FindModel(const char* name) noexcept;
-        
+#ifdef LUASTG_SUPPORTS_SPINE
+        core::SmartReference<IResourceSpineAtlas> FindSpineAtlas(const char* name) noexcept;
+        core::SmartReference<IResourceSpineSkeleton> FindSpineSkeleton(const char* name) noexcept;
+#endif
+
         bool GetTextureSize(const char* name, core::Vector2U& out) noexcept;
         void CacheTTFFontString(const char* name, const char* text, size_t len) noexcept;
         void UpdateSound();

@@ -56,7 +56,7 @@ namespace luastg
 	//在栈顶的table创建一个名为name的新表，然后注册静态方法到该表中
 	//注册元方法到注册表中名为metaname的元表中，并保护元表不被修改
 	//不注册index元方法
-	inline void RegisterClassIntoTable2(lua_State* L, const char* name, luaL_Reg* method, const char* metaname, luaL_Reg* metamethod)
+	inline void RegisterClassIntoTable2(lua_State* L, const char* name, luaL_Reg const* method, const char* metaname, luaL_Reg const* metamethod)
 	{
 		// ... t
 		lua_pushstring(L, name);			// ... t s			//key

@@ -45,6 +45,7 @@ namespace luastg::binding
 		luaL_register(L, LUASTG_LUA_LIBNAME, constructors);	// ? t
 		Color::Register(L);
 		ParticleSystem::Register(L);
+		Spine::Register(L);
 		StopWatch::Register(L);
 		BentLaser::Register(L);
 		DirectInput::Register(L);

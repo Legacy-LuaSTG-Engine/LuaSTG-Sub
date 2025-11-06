@@ -351,7 +351,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		{
 			const char* name = luaL_checkstring(L, 1);
 			const char* model_path = luaL_checkstring(L, 2);
-			
+
 			ResourcePool* pActivedPool = LRES.GetActivedPool();
 			if (!pActivedPool)
 				return luaL_error(L, "can't load resource at this time.");
@@ -362,6 +362,48 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 				return luaL_error(L, "load model failed (name='%s', model='%s').", name, model_path);
 			}
 			return 0;
+		}
+		static int LoadSpineAtlas(lua_State* L) noexcept
+		{
+#ifdef LUASTG_SUPPORTS_SPINE
+			const char* name = luaL_checkstring(L, 1);
+			const char* atlas_path = luaL_checkstring(L, 2);
+
+			ResourcePool* pActivedPool = LRES.GetActivedPool();
+			if (!pActivedPool)
+				return luaL_error(L, "can't load resource at this time.");
+			if (!pActivedPool->LoadSpineAtlas(
+				name,
+				atlas_path))
+			{
+				return luaL_error(L, "load spineAtlas failed (name='%s', atlas='%s').", name, atlas_path);
+			}
+			return 0;
+#else
+			return luaL_error(L, "spine is not supported in this version!");
+#endif
+		}
+		static int LoadSpineSkeleton(lua_State* L) noexcept
+		{
+#ifdef LUASTG_SUPPORTS_SPINE
+			const char* name = luaL_checkstring(L, 1);
+			const char* atlas_name = luaL_checkstring(L, 2);
+			const char* skel_path = luaL_checkstring(L, 3);
+
+			ResourcePool* pActivedPool = LRES.GetActivedPool();
+			if (!pActivedPool)
+				return luaL_error(L, "can't load resource at this time.");
+			if (!pActivedPool->LoadSpineSkeleton(
+				name,
+				atlas_name,
+				skel_path))
+			{
+				return luaL_error(L, "load spineSkeleton failed (name='%s', atlas='%s', skeleton='%s').", name, atlas_name, skel_path);
+			}
+			return 0;
+#else
+			return luaL_error(L, "spine is not supported in this version!");
+#endif
 		}
 		static int CreateRenderTarget(lua_State* L) noexcept
 		{
@@ -665,6 +707,30 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 			return 0;
 		}
 
+		static int SetSpineAnimationMix(lua_State* L)
+		{
+#ifdef LUASTG_SUPPORTS_SPINE
+
+			const char* name = luaL_checkstring(L, 1);
+			core::SmartReference<IResourceSpineSkeleton> p = LRES.FindSpineSkeleton(name);
+			if (!p) return luaL_error(L, "spine skeleton '%s' not found.", name);
+
+			if (lua_gettop(L) == 2) 
+			{
+				p->setAnimationMix(luaL_checknumber(L, 2));
+				return 0;
+			}
+			
+			const char* ani1 = luaL_checkstring(L, 2);
+			const char* ani2 = luaL_checkstring(L, 3);
+			p->setAnimationMix(ani1, ani2, luaL_checknumber(L, 4));
+
+			return 0;
+#else
+			return luaL_error(L, "spine is not supported in this version!");
+#endif
+		}
+
 		static int CacheTTFString(lua_State* L) {
 			size_t len = 0;
 			const char* str = luaL_checklstring(L, 2, &len);
@@ -688,6 +754,8 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		{ "LoadTrueTypeFont", &Wrapper::LoadTrueTypeFont },
 		{ "LoadFX", &Wrapper::LoadFX },
 		{ "LoadModel", &Wrapper::LoadModel },
+		{ "LoadSpineAtlas", &Wrapper::LoadSpineAtlas },
+		{ "LoadSpineSkeleton", &Wrapper::LoadSpineSkeleton },
 		{ "CreateRenderTarget", &Wrapper::CreateRenderTarget },
 		{ "IsRenderTarget", &Wrapper::IsRenderTarget },
 		{ "SetTexturePreMulAlphaState", &Wrapper::SetTexturePreMulAlphaState },
@@ -708,6 +776,8 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 		{ "SetAnimationCenter", &Wrapper::SetAnimationCenter },
 
 		{ "SetFontState", &Wrapper::SetFontState },
+
+		{ "SetSpineAnimationMix", &Wrapper::SetSpineAnimationMix },
 
 		{ "CacheTTFString", &Wrapper::CacheTTFString },
 		{ NULL, NULL },
