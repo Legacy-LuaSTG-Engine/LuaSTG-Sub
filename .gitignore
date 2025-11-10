@@ -9,6 +9,7 @@ out/*
 install/*
 cmake-build-*/*
 packages/*
+CMakeUserPresets.json
 
 # publish
 .backup/*
