@@ -3,11 +3,6 @@ project(LuaSTGSub)
 
 include(cmake/luastg_options.cmake)
 
-if(LUASTG_SUPPORTS_WINDOWS_7)
-    message(STATUS "[LuaSTG] Windows compatibility: Windows 7")
-    add_compile_definitions(LUASTG_SUPPORTS_WINDOWS_7)
-endif()
-
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 include(cmake/TargetCommonOptions.cmake)
 include(cmake/options.cmake)

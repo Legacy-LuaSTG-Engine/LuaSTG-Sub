@@ -1,3 +1,4 @@
+#include "luastg_config_generated.h"
 #include "Debugger/Logger.hpp"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/basic_file_sink.h"
@@ -13,6 +14,23 @@ namespace {
 	bool openWin32Console();
 	void closeWin32Console();
 	std::string generateRollingFileName() {
+	#if (defined LUASTG_COMPATIBILITY_MODE_WINDOWS7_SP1) || (defined LUASTG_COMPATIBILITY_MODE_WINDOWS10_PRE_1809)
+		std::time_t const t{ std::time(nullptr) };
+	#ifdef _WIN32
+		std::tm v_tm{};
+		if (auto const e = localtime_s(&v_tm, &t); e == 0) {
+			std::tm const* const tm{ &v_tm };
+	#else
+		if (std::tm const* const tm = std::localtime(&t); tm != nullptr) {
+	#endif
+			return std::format(
+				"engine-{:04}{:02}{:02}-{:02}{:02}{:02}.log",
+				1900 + tm->tm_year, 1 + tm->tm_mon, tm->tm_mday,
+				tm->tm_hour, tm->tm_min, tm->tm_sec
+			);
+		}
+		return std::format("engine-{}.log", t); // fallback
+	#else
 		auto const now = std::chrono::zoned_time{
 			std::chrono::current_zone(),
 			std::chrono::utc_clock::to_sys(std::chrono::utc_clock::now()),
@@ -30,6 +48,7 @@ namespace {
 			local_time.minutes().count(),
 			local_time.seconds().count()
 		);
+	#endif
 	}
 	spdlog::level::level_enum mapLevel(core::ConfigurationLoader::Logging::Level const level) {
 		switch (level) {
