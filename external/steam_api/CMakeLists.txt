@@ -1,32 +1,48 @@
-# steam api
+# Steam API
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/public/steam AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin)
-    # steam api 32
+set(STEAM_API_REQUIRED_FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/public/steam/steam_api.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/public/steam/steam_api.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin/steam_api.lib
+    ${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin/steam_api.dll
+    ${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin/win64/steam_api64.lib
+    ${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin/win64/steam_api64.dll
+)
+
+# See: cmake/luastg_options.cmake
+if (LUASTG_STEAM_API_ENABLE)
+    # check
+
+    foreach(file IN LISTS STEAM_API_REQUIRED_FILES)
+        if (NOT EXISTS ${file})
+            message(FATAL_ERROR "LuaSTG: Steam API: Required file not found: ${file}")
+        endif ()
+    endforeach()
+
+    # import
+
     add_library(steam_api SHARED IMPORTED GLOBAL)
     target_include_directories(steam_api INTERFACE
-        SteamworksSDK/sdk/public/steam
+        "${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/public/steam"
     )
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)
         target_link_directories(steam_api INTERFACE
-            ${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin/win64
+            "${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin/win64"
         )
         set_target_properties(steam_api PROPERTIES
-            IMPORTED_LOCATION           ${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin/win64/steam_api64.dll
-            IMPORTED_IMPLIB             ${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin/win64/steam_api64.lib
+            IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin/win64/steam_api64.dll"
+            IMPORTED_IMPLIB   "${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin/win64/steam_api64.lib"
         )
     else()
         target_link_directories(steam_api INTERFACE
-            ${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin
+            "${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin"
         )
         set_target_properties(steam_api PROPERTIES
-            IMPORTED_LOCATION           ${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin/steam_api.dll
-            IMPORTED_IMPLIB             ${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin/steam_api.lib
+            IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin/steam_api.dll"
+            IMPORTED_IMPLIB   "${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin/steam_api.lib"
         )
     endif()
-    message(STATUS "Steamworks SDK (present)")
-else()
-    message(STATUS "Steamworks SDK (not exist)")
-endif()
+endif ()
 
 # binding
 
@@ -47,10 +63,7 @@ target_include_directories(lua_steam_api PUBLIC
 target_sources(lua_steam_api PRIVATE
     binding/lua_steam.h
 )
-if((LINK_STEAM_API OR LUASTG_LINK_STEAM_API) AND (TARGET steam_api)) # LINK_STEAM_API for compatibility
-    target_compile_definitions(lua_steam_api PUBLIC
-        HAVE_STEAM_API
-    )
+if (LUASTG_STEAM_API_ENABLE)
     target_sources(lua_steam_api PRIVATE
         binding/lua_steam_SteamCallbackWrapper.inl
         binding/lua_steam_SteamAPI.inl
@@ -61,13 +74,11 @@ if((LINK_STEAM_API OR LUASTG_LINK_STEAM_API) AND (TARGET steam_api)) # LINK_STEA
     target_link_libraries(lua_steam_api PUBLIC
         steam_api
     )
-    message(STATUS "-- link Steamworks SDK")
-else()
+else ()
     target_sources(lua_steam_api PRIVATE
         binding/lua_steam_empty.cpp
     )
-    message(STATUS "-- ignore Steamworks SDK")
-endif()
+endif ()
 target_link_libraries(lua_steam_api PUBLIC
     lua51_static
 )

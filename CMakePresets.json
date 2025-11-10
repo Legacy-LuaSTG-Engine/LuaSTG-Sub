@@ -15,7 +15,7 @@
       "name": "link-steam-api",
       "hidden": true,
       "cacheVariables": {
-        "LUASTG_LINK_STEAM_API": {
+        "LUASTG_STEAM_API_ENABLE": {
           "type": "BOOL",
           "value": "TRUE"
         }

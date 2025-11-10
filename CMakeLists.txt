@@ -1,13 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 project(LuaSTGSub)
 
-#option(LUASTG_RESDIR "Custom configurations" "res")
-
-option(LUASTG_SUPPORTS_WINDOWS_7 "LuaSTG Sub Windows compatibility: Windows 7" ON)
-option(LUASTG_LINK_YY_THUNKS "Link to YY_Thunks for older Windows version (not recommended)" OFF)
-option(LUASTG_LINK_LUASOCKET "Link to luasocket" OFF)
-option(LUASTG_LINK_TRACY_CLIENT "Link to Tracy client" OFF)
-option(LUASTG_LINK_STEAM_API "Link to Steam API" OFF)
+include(cmake/luastg_options.cmake)
 
 if(LUASTG_SUPPORTS_WINDOWS_7)
     message(STATUS "[LuaSTG] Windows compatibility: Windows 7")

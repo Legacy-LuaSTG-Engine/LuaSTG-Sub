@@ -44,9 +44,3 @@
 #define LUASTG_GAME_OBJECT_PARTICLE_SYSTEM_OBJECT
 
 // ---------- ---------- steam api ---------- ---------- //
-
-#define STEAM_APP_ID 0
-
-//#define USING_STEAM_API
-
-//#define KEEP_LAUNCH_BY_STEAM

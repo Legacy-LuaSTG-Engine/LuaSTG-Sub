@@ -194,17 +194,6 @@ target_sources(LuaSTG PRIVATE
     ${LUASTG_ENGINE_SOURCES}
 )
 
-set(LUASTG_RESDIR ${CMAKE_CURRENT_LIST_DIR}/LuaSTG/Custom CACHE PATH "LuaSTG custom build configuration")
-if(EXISTS ${LUASTG_RESDIR}/Custom.cmake)
-    message(STATUS "LuaSTG will using custom build configuration: " ${LUASTG_RESDIR}/Custom.cmake)
-    include(${LUASTG_RESDIR}/Custom.cmake)
-elseif(EXISTS ${CMAKE_CURRENT_LIST_DIR}/${LUASTG_RESDIR}/Custom.cmake)
-    message(STATUS "LuaSTG will using custom build configuration: " ${CMAKE_CURRENT_LIST_DIR}/${LUASTG_RESDIR}/Custom.cmake)
-    include(${CMAKE_CURRENT_LIST_DIR}/${LUASTG_RESDIR}/Custom.cmake)
-else()
-    message(FATAL_ERROR "LuaSTG can not find custom build configuration")
-endif()
-
 target_link_libraries(LuaSTG PRIVATE
     spdlog
     utility
@@ -237,15 +226,8 @@ target_link_libraries(LuaSTG PRIVATE
     Core.Audio
     LuaSTG.InternalLuaScriptsFileSystem
 )
-if (LUASTG_LINK_YY_THUNKS)
-    target_link_libraries(LuaSTG PRIVATE YY_Thunks)
-    message(STATUS "[LuaSTG] Link: YY_Thunks")
-endif ()
-if (LUASTG_LINK_LUASOCKET)
-    target_compile_definitions(LuaSTG PRIVATE LUASTG_LINK_LUASOCKET)
-    target_link_libraries(LuaSTG PRIVATE luasocket)
-    message(STATUS "[LuaSTG] Link: luasocket")
-endif ()
+
+include(${CMAKE_CURRENT_LIST_DIR}/import_luastg_options.cmake)
 
 add_custom_command(TARGET LuaSTG POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:Microsoft.XAudio2.Redist>     $<TARGET_FILE_DIR:LuaSTG>/$<TARGET_FILE_NAME:Microsoft.XAudio2.Redist>

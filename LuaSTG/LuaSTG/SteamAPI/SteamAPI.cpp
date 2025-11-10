@@ -1,43 +1,33 @@
+#include "luastg_config_generated.h"
 #include "SteamAPI/SteamAPI.hpp"
 
-#ifdef HAVE_STEAM_API
+#ifdef LUASTG_STEAM_API_ENABLE
 #include "steam_api.h"
 #endif
 
 namespace luastg::SteamAPI
 {
-	bool Init()
-	{
-	#ifdef HAVE_STEAM_API
-	#ifdef USING_STEAM_API
-	#ifdef KEEP_LAUNCH_BY_STEAM
-		if (::SteamAPI_RestartAppIfNecessary(STEAM_APP_ID))
-		{
+	bool Init() {
+	#ifdef LUASTG_STEAM_API_ENABLE
+	#ifdef LUASTG_STEAM_API_FORCE_LAUNCH_BY_STEAM
+		if (::SteamAPI_RestartAppIfNecessary(LUASTG_STEAM_API_APP_ID)) {
 			return false;
 		}
 	#endif
-		if (!::SteamAPI_Init())
-		{
+		if (!::SteamAPI_Init()) {
 			return false;
 		}
-	#endif
 	#endif
 		return true;
 	}
-	void RunCallbacks()
-	{
-	#ifdef HAVE_STEAM_API
-	#ifdef USING_STEAM_API
+	void RunCallbacks() {
+	#ifdef LUASTG_STEAM_API_ENABLE
 		::SteamAPI_RunCallbacks();
 	#endif
-	#endif
 	}
-	void Shutdown()
-	{
-	#ifdef HAVE_STEAM_API
-	#ifdef USING_STEAM_API
+	void Shutdown() {
+	#ifdef LUASTG_STEAM_API_ENABLE
 		::SteamAPI_Shutdown();
-	#endif
 	#endif
 	}
 }
