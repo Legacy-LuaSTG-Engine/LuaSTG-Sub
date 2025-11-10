@@ -12,16 +12,6 @@
       }
     },
     {
-      "name": "link-steam-api",
-      "hidden": true,
-      "cacheVariables": {
-        "LUASTG_STEAM_API_ENABLE": {
-          "type": "BOOL",
-          "value": "TRUE"
-        }
-      }
-    },
-    {
       "name": "vs2022",
       "hidden": true,
       "inherits": [
@@ -52,24 +42,6 @@
       ],
       "architecture": "ARM64",
       "binaryDir": "${sourceDir}/build/arm64"
-    },
-    {
-      "name": "vs2022-x86-steam",
-      "inherits": [
-        "vs2022",
-        "link-steam-api"
-      ],
-      "architecture": "Win32",
-      "binaryDir": "${sourceDir}/build/x86-steam"
-    },
-    {
-      "name": "vs2022-amd64-steam",
-      "inherits": [
-        "vs2022",
-        "link-steam-api"
-      ],
-      "architecture": "x64",
-      "binaryDir": "${sourceDir}/build/amd64-steam"
     }
   ],
   "buildPresets": [
@@ -97,16 +69,6 @@
       "name": "windows-arm64",
       "hidden": true,
       "configurePreset": "vs2022-arm64"
-    },
-    {
-      "name": "windows-x86-steam",
-      "hidden": true,
-      "configurePreset": "vs2022-x86-steam"
-    },
-    {
-      "name": "windows-amd64-steam",
-      "hidden": true,
-      "configurePreset": "vs2022-amd64-steam"
     },
     {
       "name": "target-luastg",
@@ -162,38 +124,6 @@
         "release",
         "target-luastg"
       ]
-    },
-    {
-      "name": "windows-x86-steam-debug",
-      "inherits": [
-        "windows-x86-steam",
-        "debug",
-        "target-luastg"
-      ]
-    },
-    {
-      "name": "windows-x86-steam-release",
-      "inherits": [
-        "windows-x86-steam",
-        "release",
-        "target-luastg"
-      ]
-    },
-    {
-      "name": "windows-amd64-steam-debug",
-      "inherits": [
-        "windows-amd64-steam",
-        "debug",
-        "target-luastg"
-      ]
-    },
-    {
-      "name": "windows-amd64-steam-release",
-      "inherits": [
-        "windows-amd64-steam",
-        "release",
-        "target-luastg"
-      ]
     }
   ],
   "workflowPresets": [
@@ -233,32 +163,6 @@
         {
           "type": "build",
           "name": "windows-arm64-release"
-        }
-      ]
-    },
-    {
-      "name": "windows-x86-steam-release",
-      "steps": [
-        {
-          "type": "configure",
-          "name": "vs2022-x86-steam"
-        },
-        {
-          "type": "build",
-          "name": "windows-x86-steam-release"
-        }
-      ]
-    },
-    {
-      "name": "windows-amd64-steam-release",
-      "steps": [
-        {
-          "type": "configure",
-          "name": "vs2022-amd64-steam"
-        },
-        {
-          "type": "build",
-          "name": "windows-amd64-steam-release"
         }
       ]
     }
