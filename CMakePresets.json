@@ -19,30 +19,9 @@
       ],
       "generator": "Visual Studio 17 2022"
     },
-    {
-      "name": "vs2022-x86",
-      "inherits": [
-        "vs2022"
-      ],
-      "architecture": "Win32",
-      "binaryDir": "${sourceDir}/build/x86"
-    },
-    {
-      "name": "vs2022-amd64",
-      "inherits": [
-        "vs2022"
-      ],
-      "architecture": "x64",
-      "binaryDir": "${sourceDir}/build/amd64"
-    },
-    {
-      "name": "vs2022-arm64",
-      "inherits": [
-        "vs2022"
-      ],
-      "architecture": "ARM64",
-      "binaryDir": "${sourceDir}/build/arm64"
-    }
+    { "name": "vs2022-x86"  , "inherits": [ "vs2022" ], "architecture": "Win32", "binaryDir": "${sourceDir}/build/x86"   },
+    { "name": "vs2022-amd64", "inherits": [ "vs2022" ], "architecture": "x64"  , "binaryDir": "${sourceDir}/build/amd64" },
+    { "name": "vs2022-arm64", "inherits": [ "vs2022" ], "architecture": "ARM64", "binaryDir": "${sourceDir}/build/arm64" }
   ],
   "buildPresets": [
     {
@@ -77,54 +56,12 @@
         "LuaSTG"
       ]
     },
-    {
-      "name": "windows-x86-debug",
-      "inherits": [
-        "windows-x86",
-        "debug",
-        "target-luastg"
-      ]
-    },
-    {
-      "name": "windows-x86-release",
-      "inherits": [
-        "windows-x86",
-        "release",
-        "target-luastg"
-      ]
-    },
-    {
-      "name": "windows-amd64-debug",
-      "inherits": [
-        "windows-amd64",
-        "debug",
-        "target-luastg"
-      ]
-    },
-    {
-      "name": "windows-amd64-release",
-      "inherits": [
-        "windows-amd64",
-        "release",
-        "target-luastg"
-      ]
-    },
-    {
-      "name": "windows-arm64-debug",
-      "inherits": [
-        "windows-arm64",
-        "debug",
-        "target-luastg"
-      ]
-    },
-    {
-      "name": "windows-arm64-release",
-      "inherits": [
-        "windows-arm64",
-        "release",
-        "target-luastg"
-      ]
-    }
+    { "name": "windows-x86-debug"    , "inherits": [ "windows-x86"  , "debug"  , "target-luastg" ] },
+    { "name": "windows-x86-release"  , "inherits": [ "windows-x86"  , "release", "target-luastg" ] },
+    { "name": "windows-amd64-debug"  , "inherits": [ "windows-amd64", "debug"  , "target-luastg" ] },
+    { "name": "windows-amd64-release", "inherits": [ "windows-amd64", "release", "target-luastg" ] },
+    { "name": "windows-arm64-debug"  , "inherits": [ "windows-arm64", "debug"  , "target-luastg" ] },
+    { "name": "windows-arm64-release", "inherits": [ "windows-arm64", "release", "target-luastg" ] }
   ],
   "workflowPresets": [
     {
