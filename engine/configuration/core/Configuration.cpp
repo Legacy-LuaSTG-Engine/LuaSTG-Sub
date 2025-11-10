@@ -256,6 +256,11 @@ namespace core {
 						get_level("/logging/console/threshold");
 						loader.logging.console.setThreshold(level);
 					}
+					if (console.contains("preserve"sv)) {
+						auto const& preserve = console.at("preserve"sv);
+						assert_type_is_boolean(preserve, "/logging/console/preserve"sv);
+						loader.logging.console.setPreserve(preserve.get<bool>());
+					}
 				}
 				if (logging.contains("file"sv)) {
 					auto const& file = logging.at("file"sv);
