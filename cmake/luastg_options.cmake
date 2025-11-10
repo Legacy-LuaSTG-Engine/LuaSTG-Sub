@@ -4,7 +4,7 @@ option(LUASTG_SUPPORTS_WINDOWS_7 "LuaSTG Sub Windows compatibility: Windows 7" O
 option(LUASTG_LINK_YY_THUNKS "Link to YY_Thunks for older Windows version (not recommended)" OFF)
 option(LUASTG_LINK_LUASOCKET "Link to luasocket" OFF)
 option(LUASTG_LINK_TRACY_CLIENT "Link to Tracy client" OFF)
-set(LUASTG_RESDIR ${CMAKE_CURRENT_LIST_DIR}/LuaSTG/Custom CACHE PATH "LuaSTG custom build configuration")
+set(LUASTG_RESDIR "${CMAKE_SOURCE_DIR}/LuaSTG/LuaSTG/Custom" CACHE PATH "LuaSTG custom build configuration")
 
 function(luastg_cmake_option)
     set(option_args      FORCE)
