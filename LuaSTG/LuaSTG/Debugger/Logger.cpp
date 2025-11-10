@@ -12,7 +12,25 @@ namespace {
 	std::filesystem::path rolling_file_root;
 	bool openWin32Console();
 	void closeWin32Console();
-	std::string generateRollingFileName();
+	std::string generateRollingFileName() {
+		auto const now = std::chrono::zoned_time{
+			std::chrono::current_zone(),
+			std::chrono::utc_clock::to_sys(std::chrono::utc_clock::now()),
+		};
+		auto const local_date_time = now.get_local_time();
+		auto const local_date_time_point = std::chrono::floor<std::chrono::days>(local_date_time);
+		auto const local_date = std::chrono::year_month_day{ local_date_time_point };
+		auto const local_time = std::chrono::hh_mm_ss{ local_date_time - local_date_time_point };
+		return std::format(
+			"engine-{:04}{:02}{:02}-{:02}{:02}{:02}.log",
+			static_cast<int>(local_date.year()),
+			static_cast<unsigned int>(local_date.month()),
+			static_cast<unsigned int>(local_date.day()),
+			local_time.hours().count(),
+			local_time.minutes().count(),
+			local_time.seconds().count()
+		);
+	}
 	spdlog::level::level_enum mapLevel(core::ConfigurationLoader::Logging::Level const level) {
 		switch (level) {
 		default:  // NOLINT(clang-diagnostic-covered-switch-default)
@@ -173,28 +191,5 @@ namespace {
 			}
 			FreeConsole();
 		}
-	}
-	std::string generateRollingFileName() {
-		SYSTEMTIME current_time{};
-		GetLocalTime(&current_time);
-
-		std::array<char, 32> buffer{};
-		int const length = std::snprintf(
-			buffer.data(), buffer.size(),
-			"%04u-%02u-%02u-%02u-%02u-%02u-%03u",
-			current_time.wYear,
-			current_time.wMonth,
-			current_time.wDay,
-			current_time.wHour,
-			current_time.wMinute,
-			current_time.wSecond,
-			current_time.wMilliseconds);
-		assert(length > 0);
-
-		std::string path;
-		path.append("engine-");
-		path.append(std::string_view(buffer.data(), static_cast<size_t>(length)));
-		path.append(".log");
-		return path;
 	}
 }
