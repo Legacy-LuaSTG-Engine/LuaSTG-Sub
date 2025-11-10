@@ -80,6 +80,17 @@ If you need to use the Steam API, please follow these steps:
     3. To prevent players from launching the `exe` directly by double-clicking (which may cause Steam API initialization to fail), set the CMake option `LUASTG_STEAM_API_FORCE_LAUNCH_BY_STEAM` to `TRUE`  
 4. Re-run CMake configuration (CMake Configure)  
 
+### Quick Configuration with `CMakeUserPresets.json`  
+
+To make it easier for developers, we provide a template file `cmake/example/CMakeUserPresets.SteamAPI.json` that can be used with just minor modifications:  
+
+1. Copy the file `cmake/example/CMakeUserPresets.SteamAPI.json` to the project root directory.  
+2. Rename the file to `CMakeUserPresets.json`.  
+3. Modify the value of `LUASTG_STEAM_API_APP_ID`.  
+4. Execute the command `cmake --workflow --preset windows-amd64-my-steam-api-release` to run the CMake workflow.  
+
+If the template file does not meet your needs, you can modify it as needed.  
+
 ---
 
 # 编译项目
@@ -163,3 +174,14 @@ cmake --workflow --preset windows-x86-release
     2. 将 CMake 选项 `LUASTG_STEAM_API_APP_ID` 修改为你的 AppID
     3. 为了避免玩家直接双击 `exe` 启动造成 Steam API 初始化失败，可以将 CMake 选项 `LUASTG_STEAM_API_FORCE_LAUNCH_BY_STEAM` 设置为 `TRUE`  
 4. 重新运行一次 CMake 配置（CMake Configure）  
+
+### 通过 `CMakeUserPresets.json` 快速配置  
+
+为了方便开发者，我们提供了样板文件 `cmake/example/CMakeUserPresets.SteamAPI.json`，只需要少许修改即可使用：  
+
+1. 将 `cmake/example/CMakeUserPresets.SteamAPI.json` 文件复制到项目根目录  
+2. 将文件重命名为 `CMakeUserPresets.json`  
+3. 修改 `LUASTG_STEAM_API_APP_ID` 的值  
+4. 执行命令 `cmake --workflow --preset windows-amd64-my-steam-api-release` 执行 CMake 工作流  
+
+如果样板文件无法满足你的需求，可以自行修改。  
