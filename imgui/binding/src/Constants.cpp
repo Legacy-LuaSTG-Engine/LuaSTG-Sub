@@ -95,7 +95,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "WordWrap"sv, ImGuiInputTextFlags_WordWrap);
 	}
 	{
-		auto const e = ctx.create_map(25);
+		auto const e = ctx.create_map(24);
 		ctx.set_map_value(m, "ImGuiTreeNodeFlags"sv, e);
 		ctx.set_map_value(e, "None"sv, ImGuiTreeNodeFlags_None);
 		ctx.set_map_value(e, "Selected"sv, ImGuiTreeNodeFlags_Selected);
@@ -137,7 +137,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "AnyPopup"sv, ImGuiPopupFlags_AnyPopup);
 	}
 	{
-		auto const e = ctx.create_map(10);
+		auto const e = ctx.create_map(9);
 		ctx.set_map_value(m, "ImGuiSelectableFlags"sv, e);
 		ctx.set_map_value(e, "None"sv, ImGuiSelectableFlags_None);
 		ctx.set_map_value(e, "NoAutoClosePopups"sv, ImGuiSelectableFlags_NoAutoClosePopups);
@@ -485,7 +485,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "RendererHasTextures"sv, ImGuiBackendFlags_RendererHasTextures);
 	}
 	{
-		auto const e = ctx.create_map(63);
+		auto const e = ctx.create_map(64);
 		ctx.set_map_value(m, "ImGuiCol"sv, e);
 		ctx.set_map_value(e, "Text"sv, ImGuiCol_Text);
 		ctx.set_map_value(e, "TextDisabled"sv, ImGuiCol_TextDisabled);
@@ -541,6 +541,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "TextSelectedBg"sv, ImGuiCol_TextSelectedBg);
 		ctx.set_map_value(e, "TreeLines"sv, ImGuiCol_TreeLines);
 		ctx.set_map_value(e, "DragDropTarget"sv, ImGuiCol_DragDropTarget);
+		ctx.set_map_value(e, "UnsavedMarker"sv, ImGuiCol_UnsavedMarker);
 		ctx.set_map_value(e, "NavCursor"sv, ImGuiCol_NavCursor);
 		ctx.set_map_value(e, "NavWindowingHighlight"sv, ImGuiCol_NavWindowingHighlight);
 		ctx.set_map_value(e, "NavWindowingDimBg"sv, ImGuiCol_NavWindowingDimBg);
