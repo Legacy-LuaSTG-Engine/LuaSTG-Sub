@@ -86,7 +86,7 @@ namespace luastg {
 		}
 	#endif
 
-	#ifdef USING_CONSOLE_OUTPUT
+	#ifdef LUASTG_LOGGING_CONSOLE_WINDOW_ALLOWED
 		if (auto const& logging_console = config.getConsole(); logging_console.isEnable() && openWin32Console()) {
 			auto sink = std::make_shared<spdlog::sinks::wincolor_stdout_sink_mt>();
 			sink->set_pattern("%^[%Y-%m-%d %H:%M:%S] [%L]%$ %v");
@@ -152,7 +152,7 @@ namespace luastg {
 		spdlog::drop_all();
 		spdlog::shutdown();
 
-	#ifdef USING_CONSOLE_OUTPUT
+	#ifdef LUASTG_LOGGING_CONSOLE_WINDOW_ALLOWED
 		closeWin32Console();
 	#endif
 

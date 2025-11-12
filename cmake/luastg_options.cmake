@@ -77,6 +77,13 @@ luastg_cmake_option(
     VALUE "engine.log"
 )
 
+luastg_cmake_option(
+    NAME LUASTG_LOGGING_CONSOLE_WINDOW_ALLOWED
+    TYPE BOOL
+    HELP "LuaSTG: Logging: Allow open an additional console window to print logs"
+    VALUE ON
+)
+
 # LuaSTG - Steam API
 
 luastg_cmake_option(

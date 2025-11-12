@@ -6,8 +6,6 @@
 
 #define USING_DEAR_IMGUI
 
-#define USING_CONSOLE_OUTPUT
-
 // Security: allow os.execute/lstg.Execute
 //#define LUASTG_ENABLE_EXECUTE_API
 
