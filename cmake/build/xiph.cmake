@@ -32,7 +32,13 @@ if(libogg_ADDED)
         COMMAND echo ${CMAKE_GENERATOR}
         COMMAND echo ${CMAKE_GENERATOR_PLATFORM}
         COMMAND echo $<CONFIG>
-        COMMAND cmake -S ${libogg_source_dir} -B ${libogg_build_dir} -G ${CMAKE_GENERATOR} -A ${CMAKE_GENERATOR_PLATFORM} ${libogg_options}
+        COMMAND ${CMAKE_COMMAND}
+            -S ${libogg_source_dir}
+            -B ${libogg_build_dir}
+            -G ${CMAKE_GENERATOR}
+            $<$<BOOL:${CMAKE_GENERATOR_PLATFORM}>:-A> ${CMAKE_GENERATOR_PLATFORM}
+            $<$<BOOL:${CMAKE_GENERATOR_TOOLSET}>:-T> ${CMAKE_GENERATOR_TOOLSET}
+            ${libogg_options}
         # magic target for MSVC
         COMMAND cmake --build   ${libogg_build_dir} --config $<CONFIG> --target ALL_BUILD
         COMMAND cmake --install ${libogg_build_dir} --config $<CONFIG> --prefix ${libogg_install_dir}
@@ -101,7 +107,13 @@ if(libvorbis_ADDED)
         COMMAND echo ${CMAKE_GENERATOR}
         COMMAND echo ${CMAKE_GENERATOR_PLATFORM}
         COMMAND echo $<CONFIG>
-        COMMAND cmake -S ${libvorbis_source_dir} -B ${libvorbis_build_dir} -G ${CMAKE_GENERATOR} -A ${CMAKE_GENERATOR_PLATFORM} ${libvorbis_options}
+        COMMAND ${CMAKE_COMMAND}
+            -S ${libvorbis_source_dir}
+            -B ${libvorbis_build_dir}
+            -G ${CMAKE_GENERATOR}
+            $<$<BOOL:${CMAKE_GENERATOR_PLATFORM}>:-A> ${CMAKE_GENERATOR_PLATFORM}
+            $<$<BOOL:${CMAKE_GENERATOR_TOOLSET}>:-T> ${CMAKE_GENERATOR_TOOLSET}
+            ${libvorbis_options}
         # magic target for MSVC
         COMMAND cmake --build   ${libvorbis_build_dir} --config $<CONFIG> --target ALL_BUILD
         COMMAND cmake --install ${libvorbis_build_dir} --config $<CONFIG> --prefix ${libvorbis_install_dir}
@@ -213,7 +225,13 @@ if(libflac_ADDED)
         COMMAND echo ${CMAKE_GENERATOR}
         COMMAND echo ${CMAKE_GENERATOR_PLATFORM}
         COMMAND echo $<CONFIG>
-        COMMAND cmake -S ${libflac_source_dir} -B ${libflac_build_dir} -G ${CMAKE_GENERATOR} -A ${CMAKE_GENERATOR_PLATFORM} ${libflac_options}
+        COMMAND ${CMAKE_COMMAND}
+            -S ${libflac_source_dir}
+            -B ${libflac_build_dir}
+            -G ${CMAKE_GENERATOR}
+            $<$<BOOL:${CMAKE_GENERATOR_PLATFORM}>:-A> ${CMAKE_GENERATOR_PLATFORM}
+            $<$<BOOL:${CMAKE_GENERATOR_TOOLSET}>:-T> ${CMAKE_GENERATOR_TOOLSET}
+            ${libflac_options}
         # magic target for MSVC
         COMMAND cmake --build   ${libflac_build_dir} --config $<CONFIG> --target ALL_BUILD
         COMMAND cmake --install ${libflac_build_dir} --config $<CONFIG> --prefix ${libflac_install_dir}

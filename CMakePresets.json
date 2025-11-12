@@ -26,6 +26,20 @@
     { "name": "vs2022-arm64", "inherits": [ "vs2022" ], "architecture": "ARM64", "binaryDir": "${sourceDir}/build/arm64" },
 
     {
+      "name": "vs2026-v143",
+      "hidden": true,
+      "inherits": [
+        "cpm-cache"
+      ],
+      "generator": "Visual Studio 18 2026",
+      "toolset": "v143"
+    },
+
+    { "name": "vs2026-v143-x86"  , "inherits": [ "vs2026-v143" ], "architecture": "Win32", "binaryDir": "${sourceDir}/build/x86"   },
+    { "name": "vs2026-v143-amd64", "inherits": [ "vs2026-v143" ], "architecture": "x64"  , "binaryDir": "${sourceDir}/build/amd64" },
+    { "name": "vs2026-v143-arm64", "inherits": [ "vs2026-v143" ], "architecture": "ARM64", "binaryDir": "${sourceDir}/build/arm64" },
+
+    {
       "name": "vs2026",
       "hidden": true,
       "inherits": [
@@ -55,6 +69,17 @@
     { "name": "windows-arm64-debug"  , "inherits": [ "windows-arm64", "debug"  , "target-luastg" ] },
     { "name": "windows-arm64-release", "inherits": [ "windows-arm64", "release", "target-luastg" ] },
 
+    { "name": "windows-vs2026-v143-x86"  , "hidden": true, "configurePreset": "vs2026-v143-x86"   },
+    { "name": "windows-vs2026-v143-amd64", "hidden": true, "configurePreset": "vs2026-v143-amd64" },
+    { "name": "windows-vs2026-v143-arm64", "hidden": true, "configurePreset": "vs2026-v143-arm64" },
+
+    { "name": "windows-vs2026-v143-x86-debug"    , "inherits": [ "windows-vs2026-v143-x86"  , "debug"  , "target-luastg" ] },
+    { "name": "windows-vs2026-v143-x86-release"  , "inherits": [ "windows-vs2026-v143-x86"  , "release", "target-luastg" ] },
+    { "name": "windows-vs2026-v143-amd64-debug"  , "inherits": [ "windows-vs2026-v143-amd64", "debug"  , "target-luastg" ] },
+    { "name": "windows-vs2026-v143-amd64-release", "inherits": [ "windows-vs2026-v143-amd64", "release", "target-luastg" ] },
+    { "name": "windows-vs2026-v143-arm64-debug"  , "inherits": [ "windows-vs2026-v143-arm64", "debug"  , "target-luastg" ] },
+    { "name": "windows-vs2026-v143-arm64-release", "inherits": [ "windows-vs2026-v143-arm64", "release", "target-luastg" ] },
+
     { "name": "windows-vs2026-x86"  , "hidden": true, "configurePreset": "vs2026-x86"   },
     { "name": "windows-vs2026-amd64", "hidden": true, "configurePreset": "vs2026-amd64" },
     { "name": "windows-vs2026-arm64", "hidden": true, "configurePreset": "vs2026-arm64" },
@@ -70,6 +95,10 @@
     { "name": "windows-x86-release"  , "steps": [ { "type": "configure", "name": "vs2022-x86"   }, { "type": "build", "name": "windows-x86-release"   } ] },
     { "name": "windows-amd64-release", "steps": [ { "type": "configure", "name": "vs2022-amd64" }, { "type": "build", "name": "windows-amd64-release" } ] },
     { "name": "windows-arm64-release", "steps": [ { "type": "configure", "name": "vs2022-arm64" }, { "type": "build", "name": "windows-arm64-release" } ] },
+
+    { "name": "windows-vs2026-v143-x86-release"  , "steps": [ { "type": "configure", "name": "vs2026-v143-x86"   }, { "type": "build", "name": "windows-vs2026-v143-x86-release"   } ] },
+    { "name": "windows-vs2026-v143-amd64-release", "steps": [ { "type": "configure", "name": "vs2026-v143-amd64" }, { "type": "build", "name": "windows-vs2026-v143-amd64-release" } ] },
+    { "name": "windows-vs2026-v143-arm64-release", "steps": [ { "type": "configure", "name": "vs2026-v143-arm64" }, { "type": "build", "name": "windows-vs2026-v143-arm64-release" } ] },
 
     { "name": "windows-vs2026-x86-release"  , "steps": [ { "type": "configure", "name": "vs2026-x86"   }, { "type": "build", "name": "windows-vs2026-x86-release"   } ] },
     { "name": "windows-vs2026-amd64-release", "steps": [ { "type": "configure", "name": "vs2026-amd64" }, { "type": "build", "name": "windows-vs2026-amd64-release" } ] },

@@ -34,7 +34,13 @@ if(libfreetype_ADDED)
         COMMAND echo ${CMAKE_GENERATOR}
         COMMAND echo ${CMAKE_GENERATOR_PLATFORM}
         COMMAND echo $<CONFIG>
-        COMMAND cmake -S ${libfreetype_source_dir} -B ${libfreetype_build_dir} -G ${CMAKE_GENERATOR} -A ${CMAKE_GENERATOR_PLATFORM} ${libfreetype_options}
+        COMMAND ${CMAKE_COMMAND}
+            -S ${libfreetype_source_dir}
+            -B ${libfreetype_build_dir}
+            -G ${CMAKE_GENERATOR}
+            $<$<BOOL:${CMAKE_GENERATOR_PLATFORM}>:-A> ${CMAKE_GENERATOR_PLATFORM}
+            $<$<BOOL:${CMAKE_GENERATOR_TOOLSET}>:-T> ${CMAKE_GENERATOR_TOOLSET}
+            ${libfreetype_options}
         # magic target for MSVC
         COMMAND cmake --build   ${libfreetype_build_dir} --config $<CONFIG> --target ALL_BUILD
         COMMAND cmake --install ${libfreetype_build_dir} --config $<CONFIG> --prefix ${libfreetype_install_dir}

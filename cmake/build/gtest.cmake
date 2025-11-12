@@ -36,7 +36,13 @@ if (gtest_ADDED)
         COMMAND echo ${CMAKE_GENERATOR}
         COMMAND echo ${CMAKE_GENERATOR_PLATFORM}
         COMMAND echo $<CONFIG>
-        COMMAND cmake -S ${gtest_source_dir} -B ${gtest_build_dir} -G ${CMAKE_GENERATOR} -A ${CMAKE_GENERATOR_PLATFORM} ${gtest_options}
+        COMMAND ${CMAKE_COMMAND}
+            -S ${gtest_source_dir}
+            -B ${gtest_build_dir}
+            -G ${CMAKE_GENERATOR}
+            $<$<BOOL:${CMAKE_GENERATOR_PLATFORM}>:-A> ${CMAKE_GENERATOR_PLATFORM}
+            $<$<BOOL:${CMAKE_GENERATOR_TOOLSET}>:-T> ${CMAKE_GENERATOR_TOOLSET}
+            ${gtest_options}
         COMMAND cmake --build   ${gtest_build_dir} --config $<CONFIG> --target ALL_BUILD # magic target for MSVC
         COMMAND cmake --install ${gtest_build_dir} --config $<CONFIG> --prefix ${gtest_install_dir}
         VERBATIM

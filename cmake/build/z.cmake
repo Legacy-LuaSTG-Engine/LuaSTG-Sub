@@ -46,7 +46,13 @@ if(zlib_ng_ADDED AND minizip_ng_ADDED)
         COMMAND echo ${CMAKE_GENERATOR}
         COMMAND echo ${CMAKE_GENERATOR_PLATFORM}
         COMMAND echo $<CONFIG>
-        COMMAND cmake -S ${zlib_ng_source_dir} -B ${zlib_ng_build_dir} -G ${CMAKE_GENERATOR} -A ${CMAKE_GENERATOR_PLATFORM} ${zlib_ng_options}
+        COMMAND ${CMAKE_COMMAND}
+            -S ${zlib_ng_source_dir}
+            -B ${zlib_ng_build_dir}
+            -G ${CMAKE_GENERATOR}
+            $<$<BOOL:${CMAKE_GENERATOR_PLATFORM}>:-A> ${CMAKE_GENERATOR_PLATFORM}
+            $<$<BOOL:${CMAKE_GENERATOR_TOOLSET}>:-T> ${CMAKE_GENERATOR_TOOLSET}
+            ${zlib_ng_options}
         COMMAND cmake --build   ${zlib_ng_build_dir} --config $<CONFIG> --target ALL_BUILD # magic target for MSVC
         COMMAND cmake --install ${zlib_ng_build_dir} --config $<CONFIG> --prefix ${zlib_ng_install_dir}
         COMMAND cmake -E rm -f ${zlib_ng_install_dir}/bin/zlib-ng$<$<CONFIG:Debug>:d>2.dll # remove dynamic libraries
@@ -89,7 +95,13 @@ if(zlib_ng_ADDED AND minizip_ng_ADDED)
         COMMAND echo ${CMAKE_GENERATOR}
         COMMAND echo ${CMAKE_GENERATOR_PLATFORM}
         COMMAND echo $<CONFIG>
-        COMMAND cmake -S ${minizip_ng_source_dir} -B ${minizip_ng_build_dir} -G ${CMAKE_GENERATOR} -A ${CMAKE_GENERATOR_PLATFORM} ${minizip_ng_options}
+        COMMAND ${CMAKE_COMMAND}
+            -S ${minizip_ng_source_dir}
+            -B ${minizip_ng_build_dir}
+            -G ${CMAKE_GENERATOR}
+            $<$<BOOL:${CMAKE_GENERATOR_PLATFORM}>:-A> ${CMAKE_GENERATOR_PLATFORM}
+            $<$<BOOL:${CMAKE_GENERATOR_TOOLSET}>:-T> ${CMAKE_GENERATOR_TOOLSET}
+            ${minizip_ng_options}
         COMMAND cmake --build   ${minizip_ng_build_dir} --config $<CONFIG> --target ALL_BUILD # magic target for MSVC
         COMMAND cmake --install ${minizip_ng_build_dir} --config $<CONFIG> --prefix ${minizip_ng_install_dir}
         VERBATIM
