@@ -1,3 +1,4 @@
+#include "luastg_config_generated.h"
 #include "Main.h"
 #include "core/implement/ReferenceCountedDebugger.hpp"
 #include "Platform/MessageBox.hpp"
@@ -30,7 +31,7 @@ int luastg::main() {
 	// STAGE 2: load application configurations
 
 	auto& config_loader = core::ConfigurationLoader::getInstance();
-	if (core::ConfigurationLoader::exists(LUASTG_CONFIGURATION_FILE) && !config_loader.loadFromFile(LUASTG_CONFIGURATION_FILE)) {
+	if (core::ConfigurationLoader::exists(LUASTG_CONFIGURATION_DEFAULT_FILE_PATH) && !config_loader.loadFromFile(LUASTG_CONFIGURATION_DEFAULT_FILE_PATH)) {
 		Platform::MessageBox::Error(LUASTG_INFO, config_loader.getFormattedMessage());
 		return EXIT_FAILURE;
 	}

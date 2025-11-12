@@ -101,7 +101,7 @@ namespace luastg {
 				core::ConfigurationLoader::resolveFilePathWithPredefinedVariables(logging_file.getPath(), file_path, true);
 			}
 			else {
-				file_path = (L"" LUASTG_LOG_FILE);
+				file_path = (L"" LUASTG_LOGGING_DEFAULT_FILE_PATH);
 			}
 			auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(file_path.generic_wstring(), true);
 			sink->set_pattern("[%Y-%m-%d %H:%M:%S] [%L] %v");
