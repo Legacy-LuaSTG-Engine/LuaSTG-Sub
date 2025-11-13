@@ -2,9 +2,9 @@
 
 CPMAddPackage(
     NAME libfreetype
-    VERSION 2.13.3
+    VERSION 2.14.1
     GITHUB_REPOSITORY freetype/freetype
-    GIT_TAG VER-2-13-3
+    GIT_TAG VER-2-14-1
     DOWNLOAD_ONLY YES
 )
 

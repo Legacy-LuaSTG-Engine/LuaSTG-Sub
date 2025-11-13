@@ -2,9 +2,9 @@
 
 CPMAddPackage(
     NAME zlib_ng # 必须用这个名称，用来适配一些SB库
-    VERSION 2.2.4
+    VERSION 2.2.5
     GITHUB_REPOSITORY zlib-ng/zlib-ng
-    GIT_TAG 2.2.4
+    GIT_TAG 2.2.5
     DOWNLOAD_ONLY YES
 )
 
