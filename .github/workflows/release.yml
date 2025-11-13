@@ -68,7 +68,7 @@ jobs:
         run: cmake --workflow --preset windows-amd64-release
 
       - name: Package  
-        run: pwsh scripts/package.ps1
+        run: pwsh tool/package.ps1
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v5
