@@ -34,6 +34,8 @@ static std::unordered_map<std::string_view, std::string_view> i18n_map[2] = {
         {"setting-save", "保存并退出"},
 
         {"common-enable", "启用"},
+        {"common-default1", "默认"},
+        {"common-default2", "（默认）"},
 
         {"config-logging", "日志"},
         {"config-logging-level", "日志等级"},
@@ -57,6 +59,14 @@ static std::unordered_map<std::string_view, std::string_view> i18n_map[2] = {
         {"config-window-title", "窗口标题"},
         {"config-window-cursor-visible", "显示鼠标"},
         {"config-window-allow-window-corner", "允许窗口圆角（Windows 11）"},
+        {"config-graphics-system", "显示"},
+        {"config-graphics-system-preferred-device-name", "显卡"},
+        {"config-graphics-system-resolution", "分辨率"},
+        {"config-graphics-system-fullscreen", "全屏显示"},
+        {"config-graphics-system-vsync", "垂直同步（防止画面撕裂）"},
+        {"config-audio-system", "音频"},
+        {"config-audio-system-sound-effect-volume", "音效音量"},
+        {"config-audio-system-music-volume", "背景音乐音量"},
     },
     {
         {"window-title", "Configuer"},
@@ -72,6 +82,8 @@ static std::unordered_map<std::string_view, std::string_view> i18n_map[2] = {
         {"setting-save", "Save & Exit"},
 
         {"common-enable", "Enable"},
+        {"common-default1", "Default"},
+        {"common-default2", "(Default)"},
 
         {"config-logging", "Logging"},
         {"config-logging-level", "Logging level"},
@@ -95,6 +107,14 @@ static std::unordered_map<std::string_view, std::string_view> i18n_map[2] = {
         {"config-window-title", "Window title"},
         {"config-window-cursor-visible", "Show mouse cursor"},
         {"config-window-allow-window-corner", "Allow window corner (Windows 11)"},
+        {"config-graphics-system", "Display"},
+        {"config-graphics-system-preferred-device-name", "Graphics card"},
+        {"config-graphics-system-resolution", "Resolution"},
+        {"config-graphics-system-fullscreen", "Fullscreen"},
+        {"config-graphics-system-vsync", "VSync (prevent screen tearing)"},
+        {"config-audio-system", "Audio"},
+        {"config-audio-system-sound-effect-volume", "Sound effect volume"},
+        {"config-audio-system-music-volume", "Music volume"},
     },
 };
 std::string_view const& i18n(std::string_view const& key)
@@ -114,24 +134,32 @@ inline char const* i18n_c_str(std::string_view const& key)
 // Common Controls
 
 namespace {
-    void showCheckBoxEdit(nlohmann::json& json, const nlohmann::json_pointer<std::string>& path, const std::string_view i18n_id, const bool default_value = false) {
+#define EDIT_COMMON_PARAMS nlohmann::json& json, const nlohmann::json_pointer<std::string>& path, const std::string_view i18n_id
+    void showCheckBoxEdit(EDIT_COMMON_PARAMS, const bool default_value = false) {
         bool enable = json.value(path, default_value);
         if (ImGui::Checkbox(i18n_c_str(i18n_id), &enable)) {
             json[path] = enable;
         }
     }
-    void showIntegerEdit(nlohmann::json& json, const nlohmann::json_pointer<std::string>& path, const std::string_view i18n_id, const int default_value = 0, const int min_value = 0) {
+    void showIntegerEdit(EDIT_COMMON_PARAMS, const int default_value = 0, const int min_value = 0) {
         int value = json.value(path, default_value);
         if (ImGui::InputInt(i18n_c_str(i18n_id), &value)) {
             json[path] = (std::max)(min_value, value);
         }
     }
-    void showTextFieldEdit(nlohmann::json& json, const nlohmann::json_pointer<std::string>& path, const std::string_view i18n_id, const std::string& default_value) {
+    void showNumberSliderEdit(EDIT_COMMON_PARAMS, const double default_value = 0, const double min_value = 0.0, const double max_value = 1.0) {
+        double value = json.value(path, default_value);
+        if (ImGui::SliderScalar(i18n_c_str(i18n_id), ImGuiDataType_Double, &value, &min_value, &max_value)) {
+            json[path] = value;
+        }
+    }
+    void showTextFieldEdit(EDIT_COMMON_PARAMS, const std::string& default_value) {
         std::string value = json.value(path, default_value);
         if (ImGui::InputText(i18n_c_str(i18n_id), &value)) {
             json[path] = value;
         }
     }
+#undef EDIT_COMMON_PARAMS
 }
 
 // Logging Level
@@ -544,6 +572,44 @@ struct Window
         showCheckBoxEdit(config_json, "/window/cursor_visible"_json_pointer, "config-window-cursor-visible"sv, true);
         showCheckBoxEdit(config_json, "/window/allow_window_corner"_json_pointer, "config-window-allow-window-corner"sv, true);
     }
+    void LayoutGraphicsSystemTab() {
+        const auto& preferred_device_name = config_json.value("/graphics_system/preferred_device_name"_json_pointer, ""s);
+        if (ImGui::BeginCombo(i18n_c_str("config-graphics-system-preferred-device-name"), !preferred_device_name.empty() ? preferred_device_name.c_str() : i18n_c_str("common-default2"sv))) {
+            if (ImGui::Selectable(i18n_c_str("common-default2"sv), preferred_device_name.empty())) {
+                config_json["/graphics_system/preferred_device_name"_json_pointer] = ""sv;
+            }
+            for (const auto& device_name : dxgi_adapter_list) {
+                if (ImGui::Selectable(device_name.c_str(), device_name == preferred_device_name)) {
+                    config_json["/graphics_system/preferred_device_name"_json_pointer] = device_name;
+                }
+            }
+            ImGui::EndCombo();
+        }
+
+        const int width = config_json.value("/graphics_system/width"_json_pointer, 640);
+        const int height = config_json.value("/graphics_system/height"_json_pointer, 480);
+        const auto resolution = std::format("{}x{}", width, height);
+        if (ImGui::BeginCombo(i18n_c_str("config-graphics-system-resolution"sv), resolution.c_str())) {
+            for (double s = 1.0; s < 9.00001; s += 0.25) {
+                const int w = static_cast<int>(640 * s);
+                const int h = static_cast<int>(480 * s);
+                const auto r = std::format("{}x{}", w, h);
+                if (ImGui::Selectable(r.c_str(), width == w && height == h)) {
+                    config_json["/graphics_system/width"_json_pointer] = w;
+                    config_json["/graphics_system/height"_json_pointer] = h;
+                }
+            }
+            ImGui::EndCombo();
+        }
+
+        showCheckBoxEdit(config_json, "/graphics_system/fullscreen"_json_pointer, "config-graphics-system-fullscreen"sv, false);
+        showCheckBoxEdit(config_json, "/graphics_system/vsync"_json_pointer, "config-graphics-system-vsync"sv, false);
+    }
+    void LayoutAudioSystemTab() {
+        // TODO: "/audio_system/preferred_endpoint_name"_json_pointer
+        showNumberSliderEdit(config_json, "/audio_system/sound_effect_volume"_json_pointer, "config-audio-system-sound-effect-volume"sv, 1.0);
+        showNumberSliderEdit(config_json, "/audio_system/music_volume"_json_pointer, "config-audio-system-music-volume"sv, 1.0);
+    }
     void Layout() {
         ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiCond_Always);
         ImGui::SetNextWindowSize(ImVec2((float)win32_window_width, (float)win32_window_height), ImGuiCond_Always);
@@ -614,6 +680,14 @@ struct Window
                 }
                 if (ImGui::BeginTabItem(i18n_c_str("config-window"))) {
                     LayoutWindowTab();
+                    ImGui::EndTabItem();
+                }
+                if (ImGui::BeginTabItem(i18n_c_str("config-graphics-system"))) {
+                    LayoutGraphicsSystemTab();
+                    ImGui::EndTabItem();
+                }
+                if (ImGui::BeginTabItem(i18n_c_str("config-audio-system"))) {
+                    LayoutAudioSystemTab();
                     ImGui::EndTabItem();
                 }
                 ImGui::EndTabBar();
