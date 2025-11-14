@@ -48,6 +48,8 @@ static std::unordered_map<std::string_view, std::string_view> i18n_map[2] = {
         {"config-logging-rolling-file", "滚动日志文件"},
         {"config-logging-rolling-file-path", "文件夹路径"},
         {"config-logging-rolling-file-max-history", "保留的文件数量"},
+        {"config-timing", "计时系统"},
+        {"config-timing-frame-rate", "目标帧率"},
     },
     {
         {"window-title", "Configuer"},
@@ -65,7 +67,7 @@ static std::unordered_map<std::string_view, std::string_view> i18n_map[2] = {
         {"common-enable", "Enable"},
 
         {"config-logging", "Logging"},
-        {"config-logging-level", "Logging Level"},
+        {"config-logging-level", "Logging level"},
         {"config-logging-level-debug", "Debug"},
         {"config-logging-level-info", "Info"},
         {"config-logging-level-warn", "Warn"},
@@ -79,6 +81,8 @@ static std::unordered_map<std::string_view, std::string_view> i18n_map[2] = {
         {"config-logging-rolling-file", "Rolling File"},
         {"config-logging-rolling-file-path", "Folder path"},
         {"config-logging-rolling-file-max-history", "Number of files to retain"},
+        {"config-timing", "Timing"},
+        {"config-timing-frame-rate", "Target frame rate"},
     },
 };
 std::string_view const& i18n(std::string_view const& key)
@@ -518,6 +522,9 @@ struct Window
         showIntegerEdit(config_json, "/logging/rolling_file/max_history"_json_pointer, "config-logging-rolling-file-max-history"sv, 10, 1);
         ImGui::PopID();
     }
+    void LayoutTimingTab() {
+        showIntegerEdit(config_json, "/logging/timing/frame_rate"_json_pointer, "config-timing-frame-rate"sv, 60, 1);
+    }
     void Layout() {
         ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiCond_Always);
         ImGui::SetNextWindowSize(ImVec2((float)win32_window_width, (float)win32_window_height), ImGuiCond_Always);
@@ -580,6 +587,10 @@ struct Window
             if (ImGui::BeginTabBar("##SettingTabs")) {
                 if (ImGui::BeginTabItem(i18n_c_str("config-logging"))) {
                     LayoutLoggingTab();
+                    ImGui::EndTabItem();
+                }
+                if (ImGui::BeginTabItem(i18n_c_str("config-timing"))) {
+                    LayoutTimingTab();
                     ImGui::EndTabItem();
                 }
                 ImGui::EndTabBar();
