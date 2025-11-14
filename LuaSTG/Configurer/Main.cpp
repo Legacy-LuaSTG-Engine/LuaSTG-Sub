@@ -2,9 +2,14 @@
 #include "win32/abi.hpp"
 #include "Platform/WindowTheme.hpp"
 #include "imgui.h"
+#include "imgui_stdlib.h"
 #include "imgui_freetype.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
+
+using std::string_view_literals::operator""sv;
+using std::string_literals::operator""s;
+using nlohmann::operator""_json_pointer;
 
 enum class Language : size_t
 {
@@ -25,6 +30,24 @@ static std::unordered_map<std::string_view, std::string_view> i18n_map[2] = {
         {"setting-vsync", "垂直同步"},
         {"setting-cancel", "取消并退出"},
         {"setting-save", "保存并退出"},
+
+        {"common-enable", "启用"},
+
+        {"config-logging", "日志"},
+        {"config-logging-level", "日志等级"},
+        {"config-logging-level-debug", "调试（debug）"},
+        {"config-logging-level-info", "信息（info）"},
+        {"config-logging-level-warn", "警告（warn）"},
+        {"config-logging-level-error", "错误（error）"},
+        {"config-logging-level-fatal", "严重错误（fatal）"},
+        {"config-logging-debugger", "Windows调试器"},
+        {"config-logging-console", "控制台窗口"},
+        {"config-logging-console-preserve", "关闭程序后保留控制台窗口"},
+        {"config-logging-file", "日志文件"},
+        {"config-logging-file-path", "文件路径"},
+        {"config-logging-rolling-file", "滚动日志文件"},
+        {"config-logging-rolling-file-path", "文件夹路径"},
+        {"config-logging-rolling-file-max-history", "保留的文件数量"},
     },
     {
         {"window-title", "Configuer"},
@@ -38,6 +61,24 @@ static std::unordered_map<std::string_view, std::string_view> i18n_map[2] = {
         {"setting-vsync", "VSync"},
         {"setting-cancel", "Cancel & Exit"},
         {"setting-save", "Save & Exit"},
+
+        {"common-enable", "Enable"},
+
+        {"config-logging", "Logging"},
+        {"config-logging-level", "Logging Level"},
+        {"config-logging-level-debug", "Debug"},
+        {"config-logging-level-info", "Info"},
+        {"config-logging-level-warn", "Warn"},
+        {"config-logging-level-error", "Error"},
+        {"config-logging-level-fatal", "Fatal"},
+        {"config-logging-debugger", "Windows Debugger"},
+        {"config-logging-console", "Console Window"},
+        {"config-logging-console-preserve", "Keep console window open after closing the program"},
+        {"config-logging-file", "File"},
+        {"config-logging-file-path", "File path"},
+        {"config-logging-rolling-file", "Rolling File"},
+        {"config-logging-rolling-file-path", "Folder path"},
+        {"config-logging-rolling-file-max-history", "Number of files to retain"},
     },
 };
 std::string_view const& i18n(std::string_view const& key)
@@ -52,6 +93,102 @@ std::string_view const& i18n(std::string_view const& key)
 inline char const* i18n_c_str(std::string_view const& key)
 {
     return i18n(key).data();
+}
+
+// Common Controls
+
+namespace {
+    void showCheckBoxEdit(nlohmann::json& json, const nlohmann::json_pointer<std::string>& path, const std::string_view i18n_id, const bool default_value = false) {
+        bool enable = json.value(path, default_value);
+        if (ImGui::Checkbox(i18n_c_str(i18n_id), &enable)) {
+            json[path] = enable;
+        }
+    }
+    void showIntegerEdit(nlohmann::json& json, const nlohmann::json_pointer<std::string>& path, const std::string_view i18n_id, const int default_value = 0, const int min_value = 0) {
+        int value = json.value(path, default_value);
+        if (ImGui::InputInt(i18n_c_str(i18n_id), &value)) {
+            json[path] = (std::max)(min_value, value);
+        }
+    }
+    void showTextFieldEdit(nlohmann::json& json, const nlohmann::json_pointer<std::string>& path, const std::string_view i18n_id, const std::string& default_value) {
+        std::string value = json.value(path, default_value);
+        if (ImGui::InputText(i18n_c_str(i18n_id), &value)) {
+            json[path] = value;
+        }
+    }
+}
+
+// Logging Level
+
+namespace {
+    enum class LoggingLevel {
+        debug,
+        info,
+        warn,
+        error,
+        fatal,
+    };
+    LoggingLevel toLoggingLevel(const std::string& s) {
+        if (s == "debug"sv) return LoggingLevel::debug;
+        if (s == "info"sv) return LoggingLevel::info;
+        if (s == "warn"sv) return LoggingLevel::warn;
+        if (s == "error"sv) return LoggingLevel::error;
+        if (s == "fatal"sv) return LoggingLevel::fatal;
+        return LoggingLevel::info;
+    }
+    std::string_view toLocalizedStringView(const LoggingLevel l) {
+        switch (l) {
+        case LoggingLevel::debug: return i18n("config-logging-level-debug"sv);
+        case LoggingLevel::info: return i18n("config-logging-level-info"sv);
+        case LoggingLevel::warn: return i18n("config-logging-level-warn"sv);
+        case LoggingLevel::error: return i18n("config-logging-level-error"sv);
+        case LoggingLevel::fatal: return i18n("config-logging-level-fatal"sv);
+        default: return i18n("config-logging-level-info"sv);
+        }
+    }
+    std::string_view toStringView(const LoggingLevel l) {
+        switch (l) {
+        case LoggingLevel::debug: return "debug"sv;
+        case LoggingLevel::info: return "info"sv;
+        case LoggingLevel::warn: return "warn"sv;
+        case LoggingLevel::error: return "error"sv;
+        case LoggingLevel::fatal: return "fatal"sv;
+        default: return "info"sv;
+        }
+    }
+    void showLoggingEnableEdit(nlohmann::json& json, const nlohmann::json_pointer<std::string>& path, const bool default_value = false) {
+        showCheckBoxEdit(json, path, "common-enable"sv, default_value);
+    }
+    void showLoggingThresholdEdit(nlohmann::json& json, const nlohmann::json_pointer<std::string>& path) {
+        LoggingLevel threshold = toLoggingLevel(json.value(path, "info"s));
+        if (ImGui::BeginCombo(i18n_c_str("config-logging-level"sv), toLocalizedStringView(threshold).data())) {
+            bool changed = false;
+            if (ImGui::Selectable(i18n_c_str("config-logging-level-debug"sv), threshold == LoggingLevel::debug)) {
+                threshold = LoggingLevel::debug;
+                changed = true;
+            }
+            if (ImGui::Selectable(i18n_c_str("config-logging-level-info"sv), threshold == LoggingLevel::info)) {
+                threshold = LoggingLevel::info;
+                changed = true;
+            }
+            if (ImGui::Selectable(i18n_c_str("config-logging-level-warn"sv), threshold == LoggingLevel::warn)) {
+                threshold = LoggingLevel::warn;
+                changed = true;
+            }
+            if (ImGui::Selectable(i18n_c_str("config-logging-level-error"sv), threshold == LoggingLevel::error)) {
+                threshold = LoggingLevel::error;
+                changed = true;
+            }
+            if (ImGui::Selectable(i18n_c_str("config-logging-level-fatal"sv), threshold == LoggingLevel::fatal)) {
+                threshold = LoggingLevel::fatal;
+                changed = true;
+            }
+            if (changed) {
+                json[path] = toStringView(threshold);
+            }
+            ImGui::EndCombo();
+        }
+    }
 }
 
 struct DisplayMode
@@ -101,7 +238,7 @@ struct Config
 };
 
 constexpr UINT WINDOW_SIZE_X = 400;
-constexpr UINT WINDOW_SIZE_Y = 200;
+constexpr UINT WINDOW_SIZE_Y = 300;
 
 struct Window
 {
@@ -141,6 +278,7 @@ struct Window
     std::vector<DisplayMode> dxgi_output_mode_list;
     
     Config luastg_config;
+    nlohmann::json config_json = nlohmann::json::object();
 
     BOOL is_open = FALSE;
     BOOL want_exit = FALSE;
@@ -226,65 +364,7 @@ struct Window
 
         //ImGui::ShowDemoWindow();
 
-        ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiCond_Always);
-        ImGui::SetNextWindowSize(ImVec2((float)win32_window_width, (float)win32_window_height), ImGuiCond_Always);
-        if (ImGui::Begin("##MainWindow", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground))
-        {
-            int select_lang = (int)i18n_map_index;
-            char const* langs[2] = {
-                i18n_c_str("language-chinese"),
-                i18n_c_str("language-english"),
-            };
-            if (ImGui::Combo(i18n_c_str("setting-language"), &select_lang, langs, 2))
-            {
-                i18n_map_index = (Language)select_lang;
-                updateTitle();
-            }
-
-            ImGui::Separator();
-
-            if (ImGui::BeginCombo(i18n_c_str("setting-graphic-card"), dxgi_adapter_list[luastg_config.select_adapter].c_str()))
-            {
-                for (auto& entry : dxgi_adapter_list)
-                {
-                    if (ImGui::Selectable(entry.c_str()))
-                    {
-                        luastg_config.select_adapter = static_cast<int>(&entry - dxgi_adapter_list.data());
-                    }
-                }
-                ImGui::EndCombo();
-            }
-
-            if (ImGui::BeginCombo(i18n_c_str("setting-canvas-size"), dxgi_output_mode_list[luastg_config.select_mode].name.c_str()))
-            {
-                for (auto& entry : dxgi_output_mode_list)
-                {
-                    if (ImGui::Selectable(entry.name.c_str()))
-                    {
-                        luastg_config.select_mode = static_cast<int>(&entry - dxgi_output_mode_list.data());
-                    }
-                }
-                ImGui::EndCombo();
-            }
-
-            bool is_fullscreen = !luastg_config.windowed;
-            ImGui::Checkbox(i18n_c_str("setting-fullscreen"), &is_fullscreen);
-            luastg_config.windowed = !is_fullscreen;
-
-            ImGui::Checkbox(i18n_c_str("setting-vsync"), &luastg_config.vsync);
-
-            if (ImGui::Button(i18n_c_str("setting-cancel")))
-            {
-                wantExit();
-            }
-            ImGui::SameLine();
-            if (ImGui::Button(i18n_c_str("setting-save")))
-            {
-                saveConfigToJson();
-                wantExit();
-            }
-        }
-        ImGui::End();
+        Layout();
 
         ImGui::EndFrame();
         ImGui::Render();
@@ -408,6 +488,104 @@ struct Window
         style.FontScaleMain = 1.0f;
         style.FontScaleDpi = scaling;
         ImGui::GetStyle() = style;
+    }
+    void LayoutLoggingTab() {
+        ImGui::PushID(1);
+        ImGui::SeparatorText(i18n_c_str("config-logging-debugger"));
+        showLoggingEnableEdit(config_json, "/logging/debugger/enable"_json_pointer);
+        showLoggingThresholdEdit(config_json, "/logging/debugger/threshold"_json_pointer);
+        ImGui::PopID();
+
+        ImGui::PushID(2);
+        ImGui::SeparatorText(i18n_c_str("config-logging-console"));
+        showLoggingEnableEdit(config_json, "/logging/console/enable"_json_pointer);
+        showLoggingThresholdEdit(config_json, "/logging/console/threshold"_json_pointer);
+        showCheckBoxEdit(config_json, "/logging/console/preserve"_json_pointer, "config-logging-console-preserve"sv);
+        ImGui::PopID();
+
+        ImGui::PushID(3);
+        ImGui::SeparatorText(i18n_c_str("config-logging-file"));
+        showLoggingEnableEdit(config_json, "/logging/file/enable"_json_pointer, true);
+        showLoggingThresholdEdit(config_json, "/logging/file/threshold"_json_pointer);
+        showTextFieldEdit(config_json, "/logging/file/path"_json_pointer, "config-logging-file-path"sv, "engine.log"s);
+        ImGui::PopID();
+
+        ImGui::PushID(4);
+        ImGui::SeparatorText(i18n_c_str("config-logging-rolling-file"));
+        showLoggingEnableEdit(config_json, "/logging/rolling_file/enable"_json_pointer);
+        showLoggingThresholdEdit(config_json, "/logging/rolling_file/threshold"_json_pointer);
+        showTextFieldEdit(config_json, "/logging/rolling_file/path"_json_pointer, "config-logging-rolling-file-path"sv, ""s);
+        showIntegerEdit(config_json, "/logging/rolling_file/max_history"_json_pointer, "config-logging-rolling-file-max-history"sv, 10, 1);
+        ImGui::PopID();
+    }
+    void Layout() {
+        ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2((float)win32_window_width, (float)win32_window_height), ImGuiCond_Always);
+        if (ImGui::Begin("##MainWindow", nullptr, (ImGuiWindowFlags_NoDecoration ^ ImGuiWindowFlags_NoScrollbar) | ImGuiWindowFlags_NoBackground))
+        {
+            int select_lang = (int)i18n_map_index;
+            char const* langs[2] = {
+                i18n_c_str("language-chinese"),
+                i18n_c_str("language-english"),
+            };
+            if (ImGui::Combo(i18n_c_str("setting-language"), &select_lang, langs, 2))
+            {
+                i18n_map_index = (Language)select_lang;
+                updateTitle();
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::BeginCombo(i18n_c_str("setting-graphic-card"), dxgi_adapter_list[luastg_config.select_adapter].c_str()))
+            {
+                for (auto& entry : dxgi_adapter_list)
+                {
+                    if (ImGui::Selectable(entry.c_str()))
+                    {
+                        luastg_config.select_adapter = static_cast<int>(&entry - dxgi_adapter_list.data());
+                    }
+                }
+                ImGui::EndCombo();
+            }
+
+            if (ImGui::BeginCombo(i18n_c_str("setting-canvas-size"), dxgi_output_mode_list[luastg_config.select_mode].name.c_str()))
+            {
+                for (auto& entry : dxgi_output_mode_list)
+                {
+                    if (ImGui::Selectable(entry.name.c_str()))
+                    {
+                        luastg_config.select_mode = static_cast<int>(&entry - dxgi_output_mode_list.data());
+                    }
+                }
+                ImGui::EndCombo();
+            }
+
+            bool is_fullscreen = !luastg_config.windowed;
+            ImGui::Checkbox(i18n_c_str("setting-fullscreen"), &is_fullscreen);
+            luastg_config.windowed = !is_fullscreen;
+
+            ImGui::Checkbox(i18n_c_str("setting-vsync"), &luastg_config.vsync);
+
+            if (ImGui::Button(i18n_c_str("setting-cancel")))
+            {
+                wantExit();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(i18n_c_str("setting-save")))
+            {
+                saveConfigToJson();
+                wantExit();
+            }
+
+            if (ImGui::BeginTabBar("##SettingTabs")) {
+                if (ImGui::BeginTabItem(i18n_c_str("config-logging"))) {
+                    LayoutLoggingTab();
+                    ImGui::EndTabItem();
+                }
+                ImGui::EndTabBar();
+            }
+        }
+        ImGui::End();
     }
 
     bool CreateDirectX()
