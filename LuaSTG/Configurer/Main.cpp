@@ -52,6 +52,7 @@ static std::unordered_map<std::string_view, std::string_view> i18n_map[2] = {
         {"config-logging-rolling-file-max-history", "保留的文件数量"},
         {"config-timing", "计时系统"},
         {"config-timing-frame-rate", "目标帧率"},
+        {"config-timing-frame-rate-warn", "警告：随意修改目标帧率可能会造成严重后果"},
         {"config-window", "窗口"},
         {"config-window-title", "窗口标题"},
         {"config-window-cursor-visible", "显示鼠标"},
@@ -89,6 +90,7 @@ static std::unordered_map<std::string_view, std::string_view> i18n_map[2] = {
         {"config-logging-rolling-file-max-history", "Number of files to retain"},
         {"config-timing", "Timing"},
         {"config-timing-frame-rate", "Target frame rate"},
+        {"config-timing-frame-rate-warn", "Warning: Arbitrarily modifying the target frame rate may lead to serious consequences."},
         {"config-window", "Window"},
         {"config-window-title", "Window title"},
         {"config-window-cursor-visible", "Show mouse cursor"},
@@ -534,6 +536,8 @@ struct Window
     }
     void LayoutTimingTab() {
         showIntegerEdit(config_json, "/timing/frame_rate"_json_pointer, "config-timing-frame-rate"sv, 60, 1);
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextColored(ImColor(1.0f, 0.1f, 0.1f), i18n_c_str("config-timing-frame-rate-warn"sv));
     }
     void LayoutWindowTab() {
         showTextFieldEdit(config_json, "/window/title"_json_pointer, "config-window-title"sv, LUASTG_INFO ""s);
