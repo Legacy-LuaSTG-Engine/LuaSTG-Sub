@@ -267,19 +267,6 @@ struct DisplayMode
     }
     DisplayMode(std::string_view name_, DXGI_MODE_DESC const& mode_) : name(name_), mode(mode_) {}
 };
-struct Config
-{
-    std::string adapter;
-    int width = 640;
-    int height = 480;
-    int refresh_rate_numerator = 0;
-    int refresh_rate_denominator = 0;
-    bool windowed = true;
-    bool vsync = false;
-
-    int select_adapter = 0;
-    int select_mode = 0;
-};
 
 constexpr UINT WINDOW_SIZE_X = 400;
 constexpr UINT WINDOW_SIZE_Y = 300;
@@ -321,7 +308,6 @@ struct Window
     std::vector<std::string> dxgi_adapter_list;
     std::vector<DisplayMode> dxgi_output_mode_list;
     
-    Config luastg_config;
     nlohmann::json config_json = nlohmann::json::object();
 
     BOOL is_open = FALSE;
@@ -628,36 +614,6 @@ struct Window
 
             ImGui::Separator();
 
-            if (ImGui::BeginCombo(i18n_c_str("setting-graphic-card"), dxgi_adapter_list[luastg_config.select_adapter].c_str()))
-            {
-                for (auto& entry : dxgi_adapter_list)
-                {
-                    if (ImGui::Selectable(entry.c_str()))
-                    {
-                        luastg_config.select_adapter = static_cast<int>(&entry - dxgi_adapter_list.data());
-                    }
-                }
-                ImGui::EndCombo();
-            }
-
-            if (ImGui::BeginCombo(i18n_c_str("setting-canvas-size"), dxgi_output_mode_list[luastg_config.select_mode].name.c_str()))
-            {
-                for (auto& entry : dxgi_output_mode_list)
-                {
-                    if (ImGui::Selectable(entry.name.c_str()))
-                    {
-                        luastg_config.select_mode = static_cast<int>(&entry - dxgi_output_mode_list.data());
-                    }
-                }
-                ImGui::EndCombo();
-            }
-
-            bool is_fullscreen = !luastg_config.windowed;
-            ImGui::Checkbox(i18n_c_str("setting-fullscreen"), &is_fullscreen);
-            luastg_config.windowed = !is_fullscreen;
-
-            ImGui::Checkbox(i18n_c_str("setting-vsync"), &luastg_config.vsync);
-
             if (ImGui::Button(i18n_c_str("setting-cancel")))
             {
                 wantExit();
@@ -883,94 +839,19 @@ struct Window
         SetWindowTextW(win32_window, str.c_str());
     }
 
-    void loadConfigFromJson()
-    {
-        if (std::filesystem::is_regular_file(L"config.json"))
-        {
+    void loadConfigFromJson() {
+        if (std::filesystem::is_regular_file(L"config.json")) {
             std::ifstream file(L"config.json", std::ios::in | std::ios::binary);
-            if (file.is_open())
-            {
-                nlohmann::json json;
-                file >> json;
-                luastg_config.adapter = json["gpu"].get<std::string>();
-                luastg_config.width = json["width"].get<int>();
-                luastg_config.height = json["height"].get<int>();
-                luastg_config.refresh_rate_numerator = json["refresh_rate_numerator"].get<int>();
-                luastg_config.refresh_rate_denominator = json["refresh_rate_denominator"].get<int>();
-                luastg_config.windowed = json["windowed"].get<bool>();
-                luastg_config.vsync = json["vsync"].get<bool>();
-            }
-        }
-
-        luastg_config.select_adapter = 0;
-        for (auto& v : dxgi_adapter_list)
-        {
-            if (luastg_config.adapter == v)
-            {
-                luastg_config.select_adapter = static_cast<int>(&v - dxgi_adapter_list.data());
-                break;
-            }
-        }
-
-        luastg_config.select_mode = 0;
-        bool find_mode = false;
-        for (auto& v : dxgi_output_mode_list)
-        {
-            if (luastg_config.width == (int)v.mode.Width && luastg_config.height == (int)v.mode.Height
-                && luastg_config.refresh_rate_numerator == (int)v.mode.RefreshRate.Numerator
-                && luastg_config.refresh_rate_denominator == (int)v.mode.RefreshRate.Denominator)
-            {
-                luastg_config.select_mode = static_cast<int>(&v - dxgi_output_mode_list.data());
-                find_mode = true;
-                break;
-            }
-        }
-        if (!find_mode)
-        {
-            for (auto& v : dxgi_output_mode_list)
-            {
-                if (luastg_config.width == (int)v.mode.Width && luastg_config.height == (int)v.mode.Height)
-                {
-                    luastg_config.select_mode = static_cast<int>(&v - dxgi_output_mode_list.data());
-                    find_mode = true;
-                    break;
-                }
-            }
-        }
-        if (!find_mode)
-        {
-            for (auto& v : dxgi_output_mode_list)
-            {
-                if (luastg_config.width == (int)v.mode.Width || luastg_config.height == (int)v.mode.Height)
-                {
-                    luastg_config.select_mode = static_cast<int>(&v - dxgi_output_mode_list.data());
-                    find_mode = true;
-                    break;
-                }
+            if (file.is_open()) {
+                config_json = nlohmann::json::object();
+                file >> config_json;
             }
         }
     }
-    void saveConfigToJson()
-    {
-        luastg_config.adapter = dxgi_adapter_list[luastg_config.select_adapter];
-        auto& mode = dxgi_output_mode_list[luastg_config.select_mode].mode;
-        luastg_config.width = mode.Width;
-        luastg_config.height = mode.Height;
-        luastg_config.refresh_rate_numerator = mode.RefreshRate.Numerator;
-        luastg_config.refresh_rate_denominator = mode.RefreshRate.Denominator;
-
+    void saveConfigToJson() {
         std::ofstream file(L"config.json", std::ios::out | std::ios::binary | std::ios::trunc);
-        if (file.is_open())
-        {
-            nlohmann::json json;
-            json["gpu"] = luastg_config.adapter;
-            json["width"] = luastg_config.width;
-            json["height"] = luastg_config.height;
-            json["refresh_rate_numerator"] = luastg_config.refresh_rate_numerator;
-            json["refresh_rate_denominator"] = luastg_config.refresh_rate_denominator;
-            json["windowed"] = luastg_config.windowed;
-            json["vsync"] = luastg_config.vsync;
-            file << json;
+        if (file.is_open()) {
+            file << config_json.dump(4);
         }
     }
 
