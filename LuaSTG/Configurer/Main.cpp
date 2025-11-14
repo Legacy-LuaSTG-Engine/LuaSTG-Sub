@@ -378,42 +378,7 @@ struct Window
     void UpdateStyleAndFont()
     {
         if (!ImGui::GetCurrentContext()) return;
-
-        ImGuiIO& io = ImGui::GetIO();
-        float const scaling = win32::getScalingFromDpi(win32_window_dpi);
-
         ApplyStyle();
-
-        ImFontGlyphRangesBuilder builder;
-        for (ImWchar c = 0x20; c < 0x7F; c += 1)
-        {
-            builder.AddChar(c);
-        }
-        for (auto& i : i18n_map)
-        {
-            for (auto& pair : i)
-            {
-                builder.AddText(pair.first.data());
-                builder.AddText(pair.second.data());
-            }
-        }
-        static ImVector<ImWchar> ranges;
-        ranges.clear();
-        builder.BuildRanges(&ranges);
-
-        io.Fonts->Clear();
-        ImFontConfig font_cfg;
-        font_cfg.FontBuilderFlags = ImGuiFreeTypeBuilderFlags_NoHinting;
-        ImFont* font = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\msyh.ttc", 16.0f * scaling, &font_cfg, ranges.Data);
-        if (!font)
-        {
-            font = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\msyh.ttf", 16.0f * scaling, &font_cfg, ranges.Data);
-        }
-        if (!font)
-        {
-            throw std::runtime_error("ImFontAtlas::AddFontFromFileTTF failed.");
-        }
-        io.Fonts->Build();
     }
     void ApplyStyle()
     {
@@ -439,6 +404,9 @@ struct Window
         style.TabRounding = 0.0f;
         style.WindowRounding = 0.0f;
         style.ScaleAllSizes(scaling);
+        style.FontSizeBase = 16.0f;
+        style.FontScaleMain = 1.0f;
+        style.FontScaleDpi = scaling;
         ImGui::GetStyle() = style;
     }
 
@@ -765,6 +733,20 @@ struct Window
         ImGui::GetIO().IniFilename = NULL;
         ImGui_ImplWin32_Init(win32_window);
         ImGui_ImplDX11_Init(d3d11_device.Get(), d3d11_devctx.Get());
+
+        auto const scaling = ImGui_ImplWin32_GetDpiScaleForHwnd(win32_window);
+        ImFontConfig font_cfg;
+        font_cfg.FontLoaderFlags = ImGuiFreeTypeLoaderFlags_NoHinting | ImGuiFreeTypeLoaderFlags_LoadColor;
+        ImFont* font = ImGui::GetIO().Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\msyh.ttc", 16.0f * scaling, &font_cfg, nullptr);
+        if (!font)
+        {
+            font = ImGui::GetIO().Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\msyh.ttf", 16.0f * scaling, &font_cfg, nullptr);
+        }
+        if (!font)
+        {
+            throw std::runtime_error("ImFontAtlas::AddFontFromFileTTF failed.");
+        }
+
         UpdateStyleAndFont();
         is_open = TRUE;
 
