@@ -20,6 +20,9 @@ target_include_directories(LuaSTG PRIVATE
     LuaSTG
     LuaSTG/LuaBinding
 )
+target_include_directories(Setting PRIVATE
+    LuaSTG
+)
 target_compile_definitions(LuaSTG PRIVATE
     LDEVVERSION
 )

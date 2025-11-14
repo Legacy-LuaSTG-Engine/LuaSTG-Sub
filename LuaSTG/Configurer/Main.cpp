@@ -6,6 +6,8 @@
 #include "imgui_freetype.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
+#include "luastg_config_generated.h"
+#include "LConfig.h"
 
 using std::string_view_literals::operator""sv;
 using std::string_literals::operator""s;
@@ -50,6 +52,10 @@ static std::unordered_map<std::string_view, std::string_view> i18n_map[2] = {
         {"config-logging-rolling-file-max-history", "保留的文件数量"},
         {"config-timing", "计时系统"},
         {"config-timing-frame-rate", "目标帧率"},
+        {"config-window", "窗口"},
+        {"config-window-title", "窗口标题"},
+        {"config-window-cursor-visible", "显示鼠标"},
+        {"config-window-allow-window-corner", "允许窗口圆角（Windows 11）"},
     },
     {
         {"window-title", "Configuer"},
@@ -83,6 +89,10 @@ static std::unordered_map<std::string_view, std::string_view> i18n_map[2] = {
         {"config-logging-rolling-file-max-history", "Number of files to retain"},
         {"config-timing", "Timing"},
         {"config-timing-frame-rate", "Target frame rate"},
+        {"config-window", "Window"},
+        {"config-window-title", "Window title"},
+        {"config-window-cursor-visible", "Show mouse cursor"},
+        {"config-window-allow-window-corner", "Allow window corner (Windows 11)"},
     },
 };
 std::string_view const& i18n(std::string_view const& key)
@@ -511,7 +521,7 @@ struct Window
         ImGui::SeparatorText(i18n_c_str("config-logging-file"));
         showLoggingEnableEdit(config_json, "/logging/file/enable"_json_pointer, true);
         showLoggingThresholdEdit(config_json, "/logging/file/threshold"_json_pointer);
-        showTextFieldEdit(config_json, "/logging/file/path"_json_pointer, "config-logging-file-path"sv, "engine.log"s);
+        showTextFieldEdit(config_json, "/logging/file/path"_json_pointer, "config-logging-file-path"sv, LUASTG_LOGGING_DEFAULT_FILE_PATH ""s);
         ImGui::PopID();
 
         ImGui::PushID(4);
@@ -523,7 +533,12 @@ struct Window
         ImGui::PopID();
     }
     void LayoutTimingTab() {
-        showIntegerEdit(config_json, "/logging/timing/frame_rate"_json_pointer, "config-timing-frame-rate"sv, 60, 1);
+        showIntegerEdit(config_json, "/timing/frame_rate"_json_pointer, "config-timing-frame-rate"sv, 60, 1);
+    }
+    void LayoutWindowTab() {
+        showTextFieldEdit(config_json, "/window/title"_json_pointer, "config-window-title"sv, LUASTG_INFO ""s);
+        showCheckBoxEdit(config_json, "/window/cursor_visible"_json_pointer, "config-window-cursor-visible"sv, true);
+        showCheckBoxEdit(config_json, "/window/allow_window_corner"_json_pointer, "config-window-allow-window-corner"sv, true);
     }
     void Layout() {
         ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiCond_Always);
@@ -591,6 +606,10 @@ struct Window
                 }
                 if (ImGui::BeginTabItem(i18n_c_str("config-timing"))) {
                     LayoutTimingTab();
+                    ImGui::EndTabItem();
+                }
+                if (ImGui::BeginTabItem(i18n_c_str("config-window"))) {
+                    LayoutWindowTab();
                     ImGui::EndTabItem();
                 }
                 ImGui::EndTabBar();
