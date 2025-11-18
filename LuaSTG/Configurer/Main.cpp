@@ -37,6 +37,13 @@ static std::unordered_map<std::string_view, std::string_view> i18n_map[2] = {
         {"common-default1", "默认"},
         {"common-default2", "（默认）"},
 
+        {"config-show-advance", "显示高级设置"},
+
+        {"config-application", "应用"},
+        {"config-application-uuid", "UUID"},
+        {"config-application-single-instance", "单例模式"},
+        {"config-debug", "调试"},
+        {"config-debug-track-window-focus", "记录窗口焦点被哪个应用占用"},
         {"config-logging", "日志"},
         {"config-logging-level", "日志等级"},
         {"config-logging-level-debug", "调试（debug）"},
@@ -85,6 +92,13 @@ static std::unordered_map<std::string_view, std::string_view> i18n_map[2] = {
         {"common-default1", "Default"},
         {"common-default2", "(Default)"},
 
+        {"config-show-advance", "Show Advance"},
+
+        {"config-application", "Application"},
+        {"config-application-uuid", "UUID"},
+        {"config-application-single-instance", "Single instance"},
+        {"config-debug", "Debug"},
+        {"config-debug-track-window-focus", "Log which application has acquired the window focus"},
         {"config-logging", "Logging"},
         {"config-logging-level", "Logging level"},
         {"config-logging-level-debug", "Debug"},
@@ -137,27 +151,46 @@ namespace {
 #define EDIT_COMMON_PARAMS nlohmann::json& json, const nlohmann::json_pointer<std::string>& path, const std::string_view i18n_id
     void showCheckBoxEdit(EDIT_COMMON_PARAMS, const bool default_value = false) {
         bool enable = json.value(path, default_value);
-        if (ImGui::Checkbox(i18n_c_str(i18n_id), &enable)) {
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted(i18n_c_str(i18n_id));
+        ImGui::PushID(i18n_c_str(i18n_id));
+        if (ImGui::Checkbox("##", &enable)) {
             json[path] = enable;
         }
+        ImGui::PopID();
     }
     void showIntegerEdit(EDIT_COMMON_PARAMS, const int default_value = 0, const int min_value = 0) {
         int value = json.value(path, default_value);
-        if (ImGui::InputInt(i18n_c_str(i18n_id), &value)) {
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted(i18n_c_str(i18n_id));
+        ImGui::PushID(i18n_c_str(i18n_id));
+        ImGui::SetNextItemWidth(-FLT_MIN);
+        if (ImGui::InputInt("##", &value)) {
             json[path] = (std::max)(min_value, value);
         }
+        ImGui::PopID();
     }
     void showNumberSliderEdit(EDIT_COMMON_PARAMS, const double default_value = 0, const double min_value = 0.0, const double max_value = 1.0) {
         double value = json.value(path, default_value);
-        if (ImGui::SliderScalar(i18n_c_str(i18n_id), ImGuiDataType_Double, &value, &min_value, &max_value)) {
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted(i18n_c_str(i18n_id));
+        ImGui::PushID(i18n_c_str(i18n_id));
+        ImGui::SetNextItemWidth(-FLT_MIN);
+        if (ImGui::SliderScalar("##", ImGuiDataType_Double, &value, &min_value, &max_value)) {
             json[path] = value;
         }
+        ImGui::PopID();
     }
     void showTextFieldEdit(EDIT_COMMON_PARAMS, const std::string& default_value) {
         std::string value = json.value(path, default_value);
-        if (ImGui::InputText(i18n_c_str(i18n_id), &value)) {
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted(i18n_c_str(i18n_id));
+        ImGui::PushID(i18n_c_str(i18n_id));
+        ImGui::SetNextItemWidth(-FLT_MIN);
+        if (ImGui::InputText("##", &value)) {
             json[path] = value;
         }
+        ImGui::PopID();
     }
 #undef EDIT_COMMON_PARAMS
 }
@@ -205,7 +238,11 @@ namespace {
     }
     void showLoggingThresholdEdit(nlohmann::json& json, const nlohmann::json_pointer<std::string>& path) {
         LoggingLevel threshold = toLoggingLevel(json.value(path, "info"s));
-        if (ImGui::BeginCombo(i18n_c_str("config-logging-level"sv), toLocalizedStringView(threshold).data())) {
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted(i18n_c_str("config-logging-level"sv));
+        ImGui::PushID(i18n_c_str("config-logging-level"sv));
+        ImGui::SetNextItemWidth(-FLT_MIN);
+        if (ImGui::BeginCombo("##", toLocalizedStringView(threshold).data())) {
             bool changed = false;
             if (ImGui::Selectable(i18n_c_str("config-logging-level-debug"sv), threshold == LoggingLevel::debug)) {
                 threshold = LoggingLevel::debug;
@@ -232,6 +269,7 @@ namespace {
             }
             ImGui::EndCombo();
         }
+        ImGui::PopID();
     }
 }
 
@@ -309,6 +347,7 @@ struct Window
     std::vector<DisplayMode> dxgi_output_mode_list;
     
     nlohmann::json config_json = nlohmann::json::object();
+    bool show_advance{false};
 
     BOOL is_open = FALSE;
     BOOL want_exit = FALSE;
@@ -519,6 +558,13 @@ struct Window
         style.FontScaleDpi = scaling;
         ImGui::GetStyle() = style;
     }
+    void LayoutApplicationTab() {
+        showTextFieldEdit(config_json, "/application/uuid"_json_pointer, "config-application-uuid"sv, ""s);
+        showCheckBoxEdit(config_json, "/application/single_instance"_json_pointer, "config-application-single-instance"sv, false);
+    }
+    void LayoutDebugTab() {
+        showCheckBoxEdit(config_json, "/debug/track_window_focus"_json_pointer, "config-debug-track-window-focus"sv, false);
+    }
     void LayoutLoggingTab() {
         ImGui::PushID(1);
         ImGui::SeparatorText(i18n_c_str("config-logging-debugger"));
@@ -554,13 +600,19 @@ struct Window
         ImGui::TextColored(ImColor(1.0f, 0.1f, 0.1f), i18n_c_str("config-timing-frame-rate-warn"sv));
     }
     void LayoutWindowTab() {
-        showTextFieldEdit(config_json, "/window/title"_json_pointer, "config-window-title"sv, LUASTG_INFO ""s);
-        showCheckBoxEdit(config_json, "/window/cursor_visible"_json_pointer, "config-window-cursor-visible"sv, true);
+        if (show_advance) {
+	        showTextFieldEdit(config_json, "/window/title"_json_pointer, "config-window-title"sv, LUASTG_INFO ""s);
+	        showCheckBoxEdit(config_json, "/window/cursor_visible"_json_pointer, "config-window-cursor-visible"sv, true);
+        }
         showCheckBoxEdit(config_json, "/window/allow_window_corner"_json_pointer, "config-window-allow-window-corner"sv, true);
     }
     void LayoutGraphicsSystemTab() {
         const auto& preferred_device_name = config_json.value("/graphics_system/preferred_device_name"_json_pointer, ""s);
-        if (ImGui::BeginCombo(i18n_c_str("config-graphics-system-preferred-device-name"), !preferred_device_name.empty() ? preferred_device_name.c_str() : i18n_c_str("common-default2"sv))) {
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted(i18n_c_str("config-graphics-system-preferred-device-name"sv));
+        ImGui::PushID(i18n_c_str("config-graphics-system-preferred-device-name"sv));
+        ImGui::SetNextItemWidth(-FLT_MIN);
+    	if (ImGui::BeginCombo("##", !preferred_device_name.empty() ? preferred_device_name.c_str() : i18n_c_str("common-default2"sv))) {
             if (ImGui::Selectable(i18n_c_str("common-default2"sv), preferred_device_name.empty())) {
                 config_json["/graphics_system/preferred_device_name"_json_pointer] = ""sv;
             }
@@ -571,11 +623,16 @@ struct Window
             }
             ImGui::EndCombo();
         }
+        ImGui::PopID();
 
         const int width = config_json.value("/graphics_system/width"_json_pointer, 640);
         const int height = config_json.value("/graphics_system/height"_json_pointer, 480);
-        const auto resolution = std::format("{}x{}", width, height);
-        if (ImGui::BeginCombo(i18n_c_str("config-graphics-system-resolution"sv), resolution.c_str())) {
+        const auto resolution = std::format("{}x{}"sv, width, height);
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted(i18n_c_str("config-graphics-system-resolution"sv));
+        ImGui::PushID(i18n_c_str("config-graphics-system-resolution"sv));
+        ImGui::SetNextItemWidth(-FLT_MIN);
+        if (ImGui::BeginCombo("##", resolution.c_str())) {
             for (double s = 1.0; s < 9.00001; s += 0.25) {
                 const int w = static_cast<int>(640 * s);
                 const int h = static_cast<int>(480 * s);
@@ -587,6 +644,7 @@ struct Window
             }
             ImGui::EndCombo();
         }
+        ImGui::PopID();
 
         showCheckBoxEdit(config_json, "/graphics_system/fullscreen"_json_pointer, "config-graphics-system-fullscreen"sv, false);
         showCheckBoxEdit(config_json, "/graphics_system/vsync"_json_pointer, "config-graphics-system-vsync"sv, false);
@@ -614,23 +672,31 @@ struct Window
 
             ImGui::Separator();
 
-            if (ImGui::Button(i18n_c_str("setting-cancel")))
-            {
+            if (ImGui::Button(i18n_c_str("setting-cancel"))) {
                 wantExit();
             }
             ImGui::SameLine();
-            if (ImGui::Button(i18n_c_str("setting-save")))
-            {
+            if (ImGui::Button(i18n_c_str("setting-save"))) {
                 saveConfigToJson();
                 wantExit();
             }
+            ImGui::SameLine();
+            ImGui::Checkbox(i18n_c_str("config-show-advance"), &show_advance);
 
             if (ImGui::BeginTabBar("##SettingTabs")) {
-                if (ImGui::BeginTabItem(i18n_c_str("config-logging"))) {
+                if (show_advance && ImGui::BeginTabItem(i18n_c_str("config-application"))) {
+                    LayoutApplicationTab();
+                    ImGui::EndTabItem();
+                }
+                if (show_advance && ImGui::BeginTabItem(i18n_c_str("config-debug"))) {
+                    LayoutDebugTab();
+                    ImGui::EndTabItem();
+                }
+                if (show_advance && ImGui::BeginTabItem(i18n_c_str("config-logging"))) {
                     LayoutLoggingTab();
                     ImGui::EndTabItem();
                 }
-                if (ImGui::BeginTabItem(i18n_c_str("config-timing"))) {
+                if (show_advance && ImGui::BeginTabItem(i18n_c_str("config-timing"))) {
                     LayoutTimingTab();
                     ImGui::EndTabItem();
                 }
