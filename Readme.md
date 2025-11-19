@@ -8,7 +8,9 @@
 
 ## Introduce
 
-LuaSTG Sub, is a branch that the basic functions migrated to the new system API, target to replace the legacy [LuaSTG Plus](https://github.com/9chu/LuaSTGPlus) and [LuaSTG Ex Plus](https://github.com/Legacy-LuaSTG-Engine/Legacy-LuaSTG-Ex-Plus) branch. If you need a cross-platform or a more powerful branch of the LuaSTG engine, try [LuaSTG-x](https://github.com/Xrysnow/LuaSTG-x).
+LuaSTG Sub, is a branch that the basic functions migrated to the new system API, target to replace the legacy [LuaSTG Plus](https://github.com/9chu/LuaSTGPlus/tree/legacy) and [LuaSTG Ex Plus](https://github.com/Legacy-LuaSTG-Engine/Legacy-LuaSTG-Ex-Plus) branch.
+
+Other branches are listed on the homepage of the [Legacy LuaSTG Engine organization](https://github.com/Legacy-LuaSTG-Engine).
 
 ## Download
 
@@ -45,7 +47,9 @@ See [Build Projects](./BUILD.md).
 
 ## 介绍  
 
-LuaSTG Sub 分支的基础功能被迁移到新的系统 API，用于替代老旧的 [LuaSTG Plus](https://github.com/9chu/LuaSTGPlus) 和 [LuaSTG Ex Plus](https://github.com/Legacy-LuaSTG-Engine/Legacy-LuaSTG-Ex-Plus)。如果需要跨平台或功能更加强大的 LuaSTG 引擎分支，请尝试 [LuaSTG-x](https://github.com/Xrysnow/LuaSTG-x)。  
+LuaSTG Sub 分支的基础功能被迁移到新的系统 API，用于替代老旧的 [LuaSTG Plus](https://github.com/9chu/LuaSTGPlus/tree/legacy) 和 [LuaSTG Ex Plus](https://github.com/Legacy-LuaSTG-Engine/Legacy-LuaSTG-Ex-Plus)。  
+
+其他分支收录在 [Legacy LuaSTG Engine 组织首页](https://github.com/Legacy-LuaSTG-Engine)。  
 
 ## 下载  
 
