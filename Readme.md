@@ -36,12 +36,31 @@ In addition, there are development tools and libraries such as THlib, LuaSTG Sha
 
 See [Build Projects](./BUILD.md).
 
+## Project and Maintainer Status
+
+### Project
+
+This project was archived for two months in 2025, but due to strong requests from several developers, we unarchived it and resumed providing security updates and bug fixes.
+
+We will continue maintaining the LuaSTG Sub engine. However, due to a shortage of maintainers or their limited availability, we will prioritize fixing bugs that severely impact usability.
+
+### Maintainer Status
+
+The primary maintainers of LuaSTG Sub are all occupied with their jobs, often resulting in periods of several months with no code contributions. Some maintainers, due to workplace restrictions, are unable to contribute code to projects "owned by individuals or external organizations".
+
+- 隔壁的桌子: No longer involved in LuaSTG engine development  
+- 9chu: Unknown  
+- ESC: No longer involved in LuaSTG engine development  
+- Xiliusha: Unable to participate in software development due to health issues  
+- 璀境石: Work schedule is Monday through Saturday, 9:00 AM to 9:00 PM, also frequently required to work overtime on Sundays.  
+
 ## Major Contributors
 
-* [9chu](https://github.com/9chu) (developer of LuaSTG Plus)
-* [ESC](https://github.com/ExboCooope) (developer of LuaSTG Ex Plus)
-* [Xiliusha](https://github.com/Xiliusha) (developer of LuaSTG Ex Plus)
-* [璀境石](https://github.com/Demonese) (developer of LuaSTG Sub)
+- 隔壁的桌子 (developer of vanilla LuaSTG)  
+- [9chu](https://github.com/9chu) (developer of LuaSTG Plus)  
+- [ESC](https://github.com/ExboCooope) (developer of LuaSTG Ex Plus)  
+- [Xiliusha](https://github.com/Xiliusha) (developer of LuaSTG Ex Plus)  
+- [璀境石](https://github.com/Demonese) (developer of LuaSTG Sub)  
 
 ---
 
@@ -75,9 +94,28 @@ LuaSTG Sub 分支的基础功能被迁移到新的系统 API，用于替代老�
 
 请阅读[编译项目](./BUILD.md)。
 
+## 项目和维护者状态  
+
+### 项目
+
+该项目曾在 2025 年归档了两个月，但在一些开发者的强烈要求下，我们取消了归档并进行安全更新和BUG修复。
+
+我们仍然会继续维护 LuaSTG Sub 引擎，但由于缺乏维护者，或者维护者缺少空闲时间，我们将优先修复严重影响使用的BUG。
+
+### 维护者状态
+
+LuaSTG Sub 的主要维护者们都忙于工作，经常出现长达几个月没有任何代码提交的情况。其中有些维护者由于工作安排上的限制，无法向“属于个人或外部组织”的项目提交代码。
+
+- 隔壁的桌子：不再参与 LuaSTG 引擎开发  
+- 9chu：未知  
+- ESC：不再参与 LuaSTG 引擎开发  
+- Xiliusha：由于疾病影响，无法再参与程序开发  
+- 璀境石：工作时间周一到周六，9:00 到 21:00，在周日也经常被要求加班  
+
 ## 主要贡献者  
 
-* [9chu](https://github.com/9chu)（LuaSTG Plus 开发者）  
-* [ESC](https://github.com/ExboCooope)（LuaSTG Ex Plus 开发者）  
-* [Xiliusha](https://github.com/Xiliusha)（LuaSTG Ex Plus 开发者）  
-* [璀境石](https://github.com/Demonese)（LuaSTG Sub 开发者）  
+- 隔壁的桌子（LuaSTG 开发者）  
+- [9chu](https://github.com/9chu)（LuaSTG Plus 开发者）  
+- [ESC](https://github.com/ExboCooope)（LuaSTG Ex Plus 开发者）  
+- [Xiliusha](https://github.com/Xiliusha)（LuaSTG Ex Plus 开发者）  
+- [璀境石](https://github.com/Demonese)（LuaSTG Sub 开发者）  
