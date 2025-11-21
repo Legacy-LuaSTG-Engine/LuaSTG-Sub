@@ -68,44 +68,30 @@ uint32_t lua_to_uint32(lua_State* L, const int n)
 }
 int lua_push_uint64(lua_State* L, const uint64_t v)
 {
-    const int a = (0xFFFF000000000000 & v) >> 48;
-    const int b = (0x0000FFFF00000000 & v) >> 32;
-    const int c = (0x00000000FFFF0000 & v) >> 16;
-    const int d = (0x000000000000FFFF & v);
-    lua_createtable(L, 4, 0); // ? t
-    lua_pushinteger(L, a);    // ? t a
-    lua_pushinteger(L, b);    // ? t a b
-    lua_pushinteger(L, c);    // ? t a b c
-    lua_pushinteger(L, d);    // ? t a b c d
-    lua_rawseti(L, -5, 1);    // ? t a b c
-    lua_rawseti(L, -4, 2);    // ? t a b
-    lua_rawseti(L, -3, 3);    // ? t a
-    lua_rawseti(L, -2, 4);    // ? t
+    char buffer[21];
+    int len = snprintf(buffer, sizeof(buffer), "%llu", static_cast<unsigned long long>(v));
+    if (len < 0 || len >= static_cast<int>(sizeof(buffer))) {
+        return luaL_error(L, "uint64_t to string conversion failed");
+    }
+    lua_pushlstring(L, buffer, len);  
     return 1;
 };
 uint64_t lua_to_uint64(lua_State* L, const int n, const char* name)
 {
-    if (!lua_istable(L, n))
+    if (!lua_isstring(L, n))
     {
         luaL_typerror(L, n, name);
         return 0;
     }
-    lua_rawgeti(L, n, 4); // ? t a
-    lua_rawgeti(L, n, 3); // ? t a b
-    lua_rawgeti(L, n, 2); // ? t a b c
-    lua_rawgeti(L, n, 1); // ? t a b c d
-    if (!lua_isnumber(L, -4) || !lua_isnumber(L, -3) || !lua_isnumber(L, -2) || !lua_isnumber(L, -1))
-    {
-        lua_pop(L, 4);
-        luaL_typerror(L, n, name);
+    const char* str = lua_tostring(L, n);
+    uint64_t result = 0;
+
+    if (sscanf(str, "%llu", &result) != 1) {
+        luaL_error(L, "Invalid uint64_t value: '%s'", str);
         return 0;
     }
-    const uint64_t a = (uint64_t)(lua_tointeger(L, -4) & 0xFFFF);
-    const uint64_t b = (uint64_t)(lua_tointeger(L, -3) & 0xFFFF);
-    const uint64_t c = (uint64_t)(lua_tointeger(L, -2) & 0xFFFF);
-    const uint64_t d = (uint64_t)(lua_tointeger(L, -1) & 0xFFFF);
-    lua_pop(L, 4);
-    return (a << 48) | (b << 32) | (c << 16) | d;
+
+    return result;
 };
 
 #define lua_push_to_uin64_t(_T)\
@@ -119,6 +105,15 @@ lua_push_to_uin64_t(InputAnalogActionHandle_t);
 lua_push_to_uin64_t(InputDigitalActionHandle_t);
 lua_push_to_uin64_t(InputHandle_t);
 
+lua_push_to_uin64_t(PublishedFileId_t);
+
+lua_push_to_uin64_t(UGCQueryHandle_t);
+lua_push_to_uin64_t(UGCUpdateHandle_t);
+lua_push_to_uin64_t(UGCHandle_t);
+
+lua_push_to_uin64_t(SteamLeaderboard_t);
+lua_push_to_uin64_t(SteamLeaderboardEntries_t);
+
 #define xfbinding(_X) { #_X , & _X }
 
 static void* xSteamLuaKey = nullptr;
@@ -127,6 +122,11 @@ static void* xSteamLuaKey = nullptr;
 #include "lua_steam_SteamAPI.inl"
 #include "lua_steam_SteamInput.inl"
 #include "lua_steam_SteamUserStats.inl"
+#include "lua_steam_SteamUtils.inl"
+#include "lua_steam_SteamFriends.inl"
+#include "lua_steam_SteamUGC.inl"
+#include "lua_steam_SteamUser.inl"
+#include "lua_steam_SteamApps.inl"
 
 bool lua_steam_check(uint32_t appid)
 {
@@ -135,7 +135,7 @@ bool lua_steam_check(uint32_t appid)
 int lua_steam_open(lua_State* L)
 {
     // create and register steam lib
-    const luaL_Reg lib[] = {{NULL, NULL}};
+    const luaL_Reg lib[] = { {NULL, NULL} };
     luaL_register(L, "steam", lib);         // t
     lua_pushlightuserdata(L, &xSteamLuaKey); // t k
     lua_pushvalue(L, -2);                   // t k t
@@ -145,5 +145,10 @@ int lua_steam_open(lua_State* L)
     xSteamAPI::xRegister(L);
     xSteamInput::xRegister(L);
     xSteamUserStats::xRegister(L);
+    xSteamUtils::xRegister(L);
+    xSteamFriends::xRegister(L);
+    xSteamUGC::xRegister(L);
+    xSteamUser::xRegister(L);
+    xSteamApps::xRegister(L);
     return 1;
 }
