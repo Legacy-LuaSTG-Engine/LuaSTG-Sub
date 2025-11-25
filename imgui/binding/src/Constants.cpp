@@ -8,7 +8,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 	lua::stack_t const ctx(vm);
 	auto const m = ctx.push_module(module_name); // imgui
 	{
-		auto const e = ctx.create_map(30);
+		auto const e = ctx.create_map(28);
 		ctx.set_map_value(m, "ImGuiWindowFlags"sv, e);
 		ctx.set_map_value(e, "None"sv, ImGuiWindowFlags_None);
 		ctx.set_map_value(e, "NoTitleBar"sv, ImGuiWindowFlags_NoTitleBar);
@@ -40,7 +40,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "ChildMenu"sv, ImGuiWindowFlags_ChildMenu);
 	}
 	{
-		auto const e = ctx.create_map(11);
+		auto const e = ctx.create_map(10);
 		ctx.set_map_value(m, "ImGuiChildFlags"sv, e);
 		ctx.set_map_value(e, "None"sv, ImGuiChildFlags_None);
 		ctx.set_map_value(e, "Borders"sv, ImGuiChildFlags_Borders);
@@ -228,7 +228,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "NoSharedDelay"sv, ImGuiHoveredFlags_NoSharedDelay);
 	}
 	{
-		auto const e = ctx.create_map(14);
+		auto const e = ctx.create_map(15);
 		ctx.set_map_value(m, "ImGuiDragDropFlags"sv, e);
 		ctx.set_map_value(e, "None"sv, ImGuiDragDropFlags_None);
 		ctx.set_map_value(e, "SourceNoPreviewTooltip"sv, ImGuiDragDropFlags_SourceNoPreviewTooltip);
@@ -242,6 +242,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "AcceptBeforeDelivery"sv, ImGuiDragDropFlags_AcceptBeforeDelivery);
 		ctx.set_map_value(e, "AcceptNoDrawDefaultRect"sv, ImGuiDragDropFlags_AcceptNoDrawDefaultRect);
 		ctx.set_map_value(e, "AcceptNoPreviewTooltip"sv, ImGuiDragDropFlags_AcceptNoPreviewTooltip);
+		ctx.set_map_value(e, "AcceptDrawAsHovered"sv, ImGuiDragDropFlags_AcceptDrawAsHovered);
 		ctx.set_map_value(e, "AcceptPeekOnly"sv, ImGuiDragDropFlags_AcceptPeekOnly);
 	}
 	{
@@ -279,7 +280,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "Descending"sv, ImGuiSortDirection_Descending);
 	}
 	{
-		auto const e = ctx.create_map(171);
+		auto const e = ctx.create_map(167);
 		ctx.set_map_value(m, "ImGuiKey"sv, e);
 		ctx.set_map_value(e, "None"sv, ImGuiKey_None);
 		ctx.set_map_value(e, "NamedKey_BEGIN"sv, ImGuiKey_NamedKey_BEGIN);
@@ -485,7 +486,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "RendererHasTextures"sv, ImGuiBackendFlags_RendererHasTextures);
 	}
 	{
-		auto const e = ctx.create_map(64);
+		auto const e = ctx.create_map(65);
 		ctx.set_map_value(m, "ImGuiCol"sv, e);
 		ctx.set_map_value(e, "Text"sv, ImGuiCol_Text);
 		ctx.set_map_value(e, "TextDisabled"sv, ImGuiCol_TextDisabled);
@@ -541,6 +542,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "TextSelectedBg"sv, ImGuiCol_TextSelectedBg);
 		ctx.set_map_value(e, "TreeLines"sv, ImGuiCol_TreeLines);
 		ctx.set_map_value(e, "DragDropTarget"sv, ImGuiCol_DragDropTarget);
+		ctx.set_map_value(e, "DragDropTargetBg"sv, ImGuiCol_DragDropTargetBg);
 		ctx.set_map_value(e, "UnsavedMarker"sv, ImGuiCol_UnsavedMarker);
 		ctx.set_map_value(e, "NavCursor"sv, ImGuiCol_NavCursor);
 		ctx.set_map_value(e, "NavWindowingHighlight"sv, ImGuiCol_NavWindowingHighlight);
@@ -787,7 +789,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "NoSetTableRowCounters"sv, ImGuiListClipperFlags_NoSetTableRowCounters);
 	}
 	{
-		auto const e = ctx.create_map(17);
+		auto const e = ctx.create_map(18);
 		ctx.set_map_value(m, "ImGuiMultiSelectFlags"sv, e);
 		ctx.set_map_value(e, "None"sv, ImGuiMultiSelectFlags_None);
 		ctx.set_map_value(e, "SingleSelect"sv, ImGuiMultiSelectFlags_SingleSelect);
@@ -806,6 +808,7 @@ void imgui::binding::registerConstants(lua_State* const vm) {
 		ctx.set_map_value(e, "SelectOnClick"sv, ImGuiMultiSelectFlags_SelectOnClick);
 		ctx.set_map_value(e, "SelectOnClickRelease"sv, ImGuiMultiSelectFlags_SelectOnClickRelease);
 		ctx.set_map_value(e, "NavWrapX"sv, ImGuiMultiSelectFlags_NavWrapX);
+		ctx.set_map_value(e, "NoSelectOnRightClick"sv, ImGuiMultiSelectFlags_NoSelectOnRightClick);
 	}
 	{
 		auto const e = ctx.create_map(3);

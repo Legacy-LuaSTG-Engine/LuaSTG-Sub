@@ -150,6 +150,9 @@ namespace imgui::binding {
 			GET_FLAG(TreeLinesFlags);
 			GET_SCALAR(TreeLinesSize);
 			GET_SCALAR(TreeLinesRounding);
+			GET_SCALAR(DragDropTargetRounding);
+			GET_SCALAR(DragDropTargetBorderSize);
+			GET_SCALAR(DragDropTargetPadding);
 			GET_FLAG(ColorButtonPosition);
 			GET_VEC2(ButtonTextAlign);
 			GET_VEC2(SelectableTextAlign);
@@ -302,6 +305,9 @@ namespace imgui::binding {
 			SET_FLAG(TreeLinesFlags);
 			SET_SCALAR(TreeLinesSize);
 			SET_SCALAR(TreeLinesRounding);
+			SET_SCALAR(DragDropTargetRounding);
+			SET_SCALAR(DragDropTargetBorderSize);
+			SET_SCALAR(DragDropTargetPadding);
 			SET_FLAG(ColorButtonPosition);
 			SET_VEC2(ButtonTextAlign);
 			SET_VEC2(SelectableTextAlign);

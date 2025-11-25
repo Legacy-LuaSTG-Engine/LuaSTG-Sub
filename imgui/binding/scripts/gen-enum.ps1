@@ -1,6 +1,6 @@
 $MetadataFileUri = "https://github.com/dearimgui/dear_bindings/releases/download/DearBindings_v0.17_ImGui_v1.92.4/dcimgui.json"
 $MetadataFile = "$PSScriptRoot/dcimgui.json"
-$MetadataFileHash = "0F1CA023BDB6D0CEA6910D06478617B4C047D9D76A30CB3C693172483AB86D1B"
+$MetadataFileHash = "F7D596BC97B8500838FF0AB64F5A68F1A617CFE9F36DE0940626573D91BB8B41"
 $CurrentMetadataFileHash = ""
 
 Write-Output "Expected metadata file hash: $MetadataFileHash"
