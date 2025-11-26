@@ -1,8 +1,15 @@
-# Graphics
+# Image
 
-set(lib_name "Core.Graphics")
+set(lib_name "Core.Image")
 
-file(GLOB_RECURSE lib_src RELATIVE ${CMAKE_CURRENT_LIST_DIR} core/*.hpp core/*.cpp d3d11/*.hpp d3d11/*.cpp)
+file(GLOB_RECURSE
+    lib_src
+    RELATIVE ${CMAKE_CURRENT_LIST_DIR}
+    core/*.hpp
+    core/*.cpp
+    wic/*.hpp
+    wic/*.cpp
+)
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${lib_src})
 
 add_library(${lib_name})
