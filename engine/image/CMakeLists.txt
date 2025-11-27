@@ -7,8 +7,8 @@ file(GLOB_RECURSE
     RELATIVE ${CMAKE_CURRENT_LIST_DIR}
     core/*.hpp
     core/*.cpp
-    wic/*.hpp
-    wic/*.cpp
+    backend/*.hpp
+    backend/*.cpp
 )
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${lib_src})
 
@@ -24,6 +24,9 @@ target_link_libraries(${lib_name} PUBLIC
     Core.FileSystem
     Core.Logging
     Core.Math
+    Microsoft::DirectXTex
+    Microsoft.Windows.ImplementationLibrary
+    libqoi
     win32
 )
 
