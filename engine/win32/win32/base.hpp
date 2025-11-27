@@ -127,6 +127,11 @@ namespace win32 {
 
 	// CreateInstance
 
+	template<typename ClassId, typename Interface>
+	hresult create_instance(ClassId const id, uint32_t const context, Interface** const output_instance) {
+		return CoCreateInstance(id, nullptr, context, IID_PPV_ARGS(output_instance));
+	}
+
 	template<typename Class, typename Interface>
 	hresult create_instance(uint32_t const context, Interface** const output_instance) {
 		return CoCreateInstance(__uuidof(Class), nullptr, context, IID_PPV_ARGS(output_instance));

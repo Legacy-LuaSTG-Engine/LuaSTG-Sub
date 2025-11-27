@@ -11,6 +11,36 @@ namespace core {
     // IImage
 
     void* Image::getBufferPointer() const noexcept { return m_pixels; }
+    uint32_t Image::getBufferStride() const noexcept {
+        switch (m_format) {
+            case ImageFormat::r8g8b8a8:
+            case ImageFormat::b8g8r8a8: {
+                return m_size.x * static_cast<uint32_t>(sizeof(uint32_t));
+            }
+            case ImageFormat::r32g32b32a32: {
+                return m_size.x * static_cast<uint32_t>(sizeof(Vector4F));
+            }
+            default: {
+                assert(false);
+                return 0;
+            }
+        }
+    }
+    uint32_t Image::getBufferSize() const noexcept {
+        switch (m_format) {
+            case ImageFormat::r8g8b8a8:
+            case ImageFormat::b8g8r8a8: {
+                return m_size.x * m_size.y * static_cast<uint32_t>(sizeof(uint32_t));
+            }
+            case ImageFormat::r32g32b32a32: {
+                return m_size.x * m_size.y * static_cast<uint32_t>(sizeof(Vector4F));
+            }
+            default: {
+                assert(false);
+                return 0;
+            }
+        }
+    }
     ImageFormat Image::getFormat() const noexcept { return m_format; }
     Vector2U Image::getSize() const noexcept { return m_size; }
     Vector4F Image::getPixel(const uint32_t x, const uint32_t y) const noexcept {

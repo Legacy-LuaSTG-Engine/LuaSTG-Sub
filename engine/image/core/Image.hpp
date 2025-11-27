@@ -27,6 +27,12 @@ namespace core {
         // You should know what you are doing.
         virtual void* getBufferPointer() const noexcept = 0;
 
+        // You should know what you are doing.
+        virtual uint32_t getBufferStride() const noexcept = 0;
+
+        // You should know what you are doing.
+        virtual uint32_t getBufferSize() const noexcept = 0;
+
         // Get current image format, or return unknown if failed or not initialized.
         virtual ImageFormat getFormat() const noexcept = 0;
 

@@ -8,6 +8,8 @@ namespace core {
         // IImage
 
         void* getBufferPointer() const noexcept override;
+        uint32_t getBufferStride() const noexcept override;
+        uint32_t getBufferSize() const noexcept override;
         ImageFormat getFormat() const noexcept override;
         Vector2U getSize() const noexcept override;
         Vector4F getPixel(uint32_t x, uint32_t y) const noexcept override;
