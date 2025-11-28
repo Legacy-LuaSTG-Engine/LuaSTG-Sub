@@ -29,17 +29,19 @@ namespace {
 
 namespace core {
     bool WicImageFactory::createFromMemory(const void* const data, const uint32_t size_in_bytes, IImage** const output_image) {
-        ScopeCoInitialize init;
+        thread_local ScopeCoInitialize init;
         if (!init) {
             return false;
         }
 
-        win32::com_ptr<IWICImagingFactory> wic_factory;
-        if (!win32::check_hresult_as_boolean(
-            win32::create_instance(CLSID_WICImagingFactory, CLSCTX_INPROC_SERVER, wic_factory.put()),
-            "CoCreateInstance WICImagingFactory"sv
-        )) {
-            return false;
+        thread_local win32::com_ptr<IWICImagingFactory> wic_factory;
+        if (!wic_factory) {
+            if (!win32::check_hresult_as_boolean(
+                win32::create_instance(CLSID_WICImagingFactory, CLSCTX_INPROC_SERVER, wic_factory.put()),
+                "CoCreateInstance WICImagingFactory"sv
+            )) {
+                return false;
+            }
         }
 
         win32::com_ptr<IWICStream> wic_stream;
