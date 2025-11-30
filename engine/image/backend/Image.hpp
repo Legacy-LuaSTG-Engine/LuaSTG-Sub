@@ -7,11 +7,9 @@ namespace core {
     public:
         // IImage
 
-        void* getBufferPointer() const noexcept override;
-        uint32_t getBufferStride() const noexcept override;
-        uint32_t getBufferSize() const noexcept override;
-        ImageFormat getFormat() const noexcept override;
-        Vector2U getSize() const noexcept override;
+        bool map(ImageMappedBuffer& buffer) noexcept override;
+        void unmap() noexcept override;
+        const ImageDescription* getDescription() const noexcept override;
         Vector4F getPixel(uint32_t x, uint32_t y) const noexcept override;
         void setPixel(uint32_t x, uint32_t y, const Vector4F& pixel) noexcept override;
         bool isReadOnly() const noexcept override;
@@ -26,14 +24,15 @@ namespace core {
         Image& operator=(Image&&) = delete;
         ~Image();
 
-        bool initialize(Vector2U size, ImageFormat format);
-        bool initializeFromMemory(Vector2U size, ImageFormat format, void* pixels, bool aligned);
+        bool initialize(const ImageDescription& description);
+        bool initializeFromMemory(const ImageDescription& description, void* pixels, bool aligned);
+        void destroyPixels();
 
     private:
         void* m_pixels{};
-        Vector2U m_size{};
-        ImageFormat m_format{};
+        ImageDescription m_description;
         bool m_read_only{};
         bool m_aligned{};
+        bool m_mapped{};
     };
 }

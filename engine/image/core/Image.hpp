@@ -11,10 +11,10 @@ namespace core {
         unknown,
 
         // [ r: u8, g: u8, b: u8, a: u8 ], or abgr: u32
-        r8g8b8a8,
+        r8g8b8a8_normalized,
 
         // [ g: u8, g: u8, r: u8, a: u8 ], or argb: u32
-        b8g8r8a8,
+        b8g8r8a8_normalized,
 
         // [ r: f16, g: f16, b: f16, a: f16 ], or rgba: harf4
         r16g16b16a16_float,
@@ -26,21 +26,41 @@ namespace core {
         count,
     };
 
+    enum class ImageColorSpace : int32_t {
+        // Indicate that an error has occurred
+        unknown,
+
+        // linear color-space
+        linear,
+
+        // sRGB (gamma 2.2) color-space
+        srgb_gamma_2_2,
+
+        // Image color-space count
+        count,
+    };
+
+    struct ImageDescription {
+        Vector2U size;
+        ImageFormat format{};
+        ImageColorSpace color_space{};
+    };
+
+    struct ImageMappedBuffer {
+        void* data{};
+        uint32_t stride{};
+        uint32_t size{};
+    };
+
     CORE_INTERFACE IImage : IReferenceCounted {
-        // You should know what you are doing.
-        virtual void* getBufferPointer() const noexcept = 0;
+        // Map image to read/write
+        virtual bool map(ImageMappedBuffer& buffer) noexcept = 0;
 
-        // You should know what you are doing.
-        virtual uint32_t getBufferStride() const noexcept = 0;
+        // Unmap image
+        virtual void unmap() noexcept = 0;
 
-        // You should know what you are doing.
-        virtual uint32_t getBufferSize() const noexcept = 0;
-
-        // Get current image format, or return unknown if failed or not initialized.
-        virtual ImageFormat getFormat() const noexcept = 0;
-
-        // Get current image size.
-        virtual Vector2U getSize() const noexcept = 0;
+        // Get current image description
+        virtual const ImageDescription* getDescription() const noexcept = 0;
 
         // Get pixel at (x, y), value is always converted to float4.
         // If the (x, y) coordinates are out of range, return float4(0.0f, 0.0f, 0.0f, 0.0f).
@@ -56,13 +76,24 @@ namespace core {
 
         // Sets the image to read-only state.
         virtual void setReadOnly() noexcept = 0;
+
+        // vvvvvvvvvv Helper functions vvvvvvvvvv
+
+        // Get current image size.
+        inline Vector2U getSize() const noexcept { return getDescription()->size; }
+
+        // Get current image format, or return unknown if failed or not initialized.
+        inline ImageFormat getFormat() const noexcept { return getDescription()->format; }
+
+        // Get current image color-space, or return unknown if failed or not initialized.
+        inline ImageColorSpace getColorSpace() const noexcept { return getDescription()->color_space; }
     };
     CORE_INTERFACE_ID(IImage, "5e4c12e0-e094-5346-b129-b9ddbb881373")
 
     class ImageFactory {
     public:
         // Create a modifiable image.
-        static bool create(Vector2U size, ImageFormat format, IImage** output_image);
+        static bool create(const ImageDescription& description, IImage** output_image);
 
         // Load image from file.
         // See: createFromMemory.

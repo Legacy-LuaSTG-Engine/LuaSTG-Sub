@@ -115,13 +115,13 @@ namespace core {
         ImageFormat image_format{};
         bool need_convert{};
         if (pixel_format == GUID_WICPixelFormat32bppRGBA) {
-            image_format = ImageFormat::b8g8r8a8;
+            image_format = ImageFormat::b8g8r8a8_normalized;
         }
         else if (pixel_format == GUID_WICPixelFormat32bppBGRA) {
-            image_format = ImageFormat::b8g8r8a8;
+            image_format = ImageFormat::b8g8r8a8_normalized;
         }
         else {
-            image_format = ImageFormat::b8g8r8a8;
+            image_format = ImageFormat::b8g8r8a8_normalized;
             need_convert = true;
         }
 
@@ -157,9 +157,15 @@ namespace core {
             }
         }
 
+        ImageDescription description;
+        description.size.x = width;
+        description.size.y = height;
+        description.format = ImageFormat::r8g8b8a8_normalized;
+        description.color_space = ImageColorSpace::srgb_gamma_2_2;
+
         SmartReference<Image> image;
         image.attach(new Image());
-        if (!image->initialize(Vector2U(width, height), image_format)) {
+        if (!image->initialize(description)) {
             assert(false);
             return false;
         }
@@ -168,19 +174,27 @@ namespace core {
             ? static_cast<IWICBitmapSource*>(wic_format_converter.get())
             : static_cast<IWICBitmapSource*>(wic_bitmap_frame.get());
 
+        ImageMappedBuffer buffer{};
+        if (!image->map(buffer)) {
+            assert(false);
+            return false;
+        }
+
         const WICRect rect{ 0, 0, static_cast<INT>(width), static_cast<INT>(height) };
         if (!win32::check_hresult_as_boolean(
             wic_bitmap_source->CopyPixels(
                 &rect,
-                image->getBufferStride(),
-                image->getBufferSize(),
-                static_cast<uint8_t*>(image->getBufferPointer())
+                buffer.stride,
+                buffer.size,
+                static_cast<uint8_t*>(buffer.data)
             ),
             "IWICBitmapSource::CopyPixels"sv
         )) {
+            image->unmap();
             return false;
         }
 
+        image->unmap();
         *output_image = image.detach();
         return true;
     }
