@@ -2,6 +2,7 @@
 #include "core/SmartReference.hpp"
 #include <cassert>
 #include <algorithm>
+#include <DirectXPackedVector.h>
 
 namespace {
     constexpr auto _1_255 = 1.0f / 255.0f;
@@ -17,7 +18,10 @@ namespace core {
             case ImageFormat::b8g8r8a8: {
                 return m_size.x * static_cast<uint32_t>(sizeof(uint32_t));
             }
-            case ImageFormat::r32g32b32a32: {
+            case ImageFormat::r16g16b16a16_float: {
+                return m_size.x * static_cast<uint32_t>(sizeof(DirectX::PackedVector::XMHALF4));
+            }
+            case ImageFormat::r32g32b32a32_float: {
                 return m_size.x * static_cast<uint32_t>(sizeof(Vector4F));
             }
             default: {
@@ -32,7 +36,10 @@ namespace core {
             case ImageFormat::b8g8r8a8: {
                 return m_size.x * m_size.y * static_cast<uint32_t>(sizeof(uint32_t));
             }
-            case ImageFormat::r32g32b32a32: {
+            case ImageFormat::r16g16b16a16_float: {
+                return m_size.x * m_size.y * static_cast<uint32_t>(sizeof(DirectX::PackedVector::XMHALF4));
+            }
+            case ImageFormat::r32g32b32a32_float: {
                 return m_size.x * m_size.y * static_cast<uint32_t>(sizeof(Vector4F));
             }
             default: {
@@ -71,7 +78,13 @@ namespace core {
                 const auto a = (pixel >> 24) & 0xff;
                 return Vector4F(r * _1_255, g * _1_255, b * _1_255, a * _1_255);
             }
-            case ImageFormat::r32g32b32a32: {
+            case ImageFormat::r16g16b16a16_float: {
+                const auto pixels = static_cast<const DirectX::PackedVector::XMHALF4*>(m_pixels);
+                DirectX::XMFLOAT4A pixel;
+                DirectX::XMStoreFloat4A(&pixel, DirectX::PackedVector::XMLoadHalf4(&pixels[m_size.x * y + x]));
+                return *reinterpret_cast<Vector4F*>(&pixel);
+            }
+            case ImageFormat::r32g32b32a32_float: {
                 const auto pixels = static_cast<const Vector4F*>(m_pixels);
                 return pixels[m_size.x * y + x];
             }
@@ -110,7 +123,14 @@ namespace core {
                 pixels[m_size.x * y + x] = bgra;
                 break;
             }
-            case ImageFormat::r32g32b32a32: {
+            case ImageFormat::r16g16b16a16_float: {
+                DirectX::PackedVector::XMStoreHalf4(
+                    &static_cast<DirectX::PackedVector::XMHALF4*>(m_pixels)[m_size.x * y + x],
+                    DirectX::XMLoadFloat4(reinterpret_cast<const DirectX::XMFLOAT4*>(&pixel))
+                );
+                break;
+            }
+            case ImageFormat::r32g32b32a32_float: {
                 const auto pixels = static_cast<Vector4F*>(m_pixels);
                 pixels[m_size.x * y + x] = pixel;
                 break;
@@ -168,7 +188,11 @@ namespace core {
                 m_pixels = _aligned_malloc(sizeof(uint32_t) * m_size.x * m_size.y, alignof(uint32_t));
                 break;
             }
-            case ImageFormat::r32g32b32a32: {
+            case ImageFormat::r16g16b16a16_float: {
+                m_pixels = _aligned_malloc(sizeof(DirectX::PackedVector::XMHALF4) * m_size.x * m_size.y, alignof(DirectX::PackedVector::XMHALF4));
+                break;
+            }
+            case ImageFormat::r32g32b32a32_float: {
                 m_pixels = _aligned_malloc(sizeof(Vector4F) * m_size.x * m_size.y, alignof(Vector4F));
                 break;
             }

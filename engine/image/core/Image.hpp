@@ -16,8 +16,11 @@ namespace core {
         // [ g: u8, g: u8, r: u8, a: u8 ], or argb: u32
         b8g8r8a8,
 
+        // [ r: f16, g: f16, b: f16, a: f16 ], or rgba: harf4
+        r16g16b16a16_float,
+
         // [ r: f32, g: f32, b: f32, a: f32 ], or rgba: float4
-        r32g32b32a32,
+        r32g32b32a32_float,
 
         // Image format count
         count,
@@ -64,7 +67,7 @@ namespace core {
         // Load image from file.
         // See: createFromMemory.
         static bool createFromFile(StringView path, IImage** output_image);
-        
+
         // Load image from memory.
         // Supported image container formats:
         // - bmp
