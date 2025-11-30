@@ -1,24 +1,25 @@
 #include "backend/Image.hpp"
 #include "core/SmartReference.hpp"
+#include "core/Logger.hpp"
 #include <cassert>
 #include <algorithm>
 #include <DirectXPackedVector.h>
 
 namespace {
-    constexpr auto _1_255 = 1.0f / 255.0f;
+    using std::string_view_literals::operator ""sv;
 
     bool validateImageDescription(const core::ImageDescription& description) {
         if (description.size.x == 0 || description.size.x > 16384 || description.size.y == 0 || description.size.y > 16384) {
-            assert(false);
+            core::Logger::error("[core] invalid image size {}x{}"sv, description.size.x, description.size.y);
             return false;
         }
     #define I(E) static_cast<int32_t>(E)
         if (I(description.format) <= I(core::ImageFormat::unknown) || I(description.format) >= I(core::ImageFormat::count)) {
-            assert(false);
+            core::Logger::error("[core] unknown image format ({})"sv, static_cast<int32_t>(description.format));
             return false;
         }
         if (I(description.color_space) <= I(core::ImageColorSpace::unknown) || I(description.color_space) >= I(core::ImageColorSpace::count)) {
-            assert(false);
+            core::Logger::error("[core] unknown image color space ({})"sv, static_cast<int32_t>(description.color_space));
             return false;
         }
     #undef I
@@ -29,7 +30,7 @@ namespace {
                     break;
                 }
                 default: {
-                    assert(false);
+                    core::Logger::error("[core] image format ({}) does not support sRGB color space"sv, static_cast<int32_t>(description.format));
                     return false;
                 }
             }
@@ -86,7 +87,7 @@ namespace core {
     const ImageDescription* Image::getDescription() const noexcept { return &m_description; }
     bool Image::map(ImageMappedBuffer& buffer) noexcept {
         if (m_mapped) {
-            assert(false);
+            Logger::error("[core] image has been mapped"sv);
             return false;
         }
         buffer.data = m_pixels;
@@ -94,10 +95,15 @@ namespace core {
         buffer.size = m_description.size.y * buffer.stride;
         return true;
     }
-    void Image::unmap() noexcept { m_mapped = false; }
+    void Image::unmap() noexcept {
+        if (m_mapped) {
+            Logger::warn("[core] cannot unmap an image that has not been mapped"sv);
+        }
+        m_mapped = false;
+    }
     Vector4F Image::getPixel(const uint32_t x, const uint32_t y) const noexcept {
         if (x >= m_description.size.x || y >= m_description.size.y) {
-            assert(false);
+            Logger::error("[core] out of range when accessing image pixels"sv);
             return {};
         }
         switch (m_description.format) {
@@ -133,10 +139,11 @@ namespace core {
     }
     void Image::setPixel(const uint32_t x, const uint32_t y, const Vector4F& pixel) noexcept {
         if (x >= m_description.size.x || y >= m_description.size.y) {
+            Logger::error("[core] out of range when accessing image pixels"sv);
             return;
         }
         if (m_read_only) {
-            assert(false);
+            Logger::error("[core] image is read-only"sv);
             return;
         }
         switch (m_description.format) {
@@ -200,7 +207,7 @@ namespace core {
             return false;
         }
         if (pixels == nullptr) {
-            assert(false);
+            core::Logger::error("[core] invalid image pixels data (null pointer)"sv);
             return false;
         }
         destroyPixels();
@@ -229,13 +236,13 @@ namespace core {
             return false;
         }
         if (!output_image) {
-            assert(false);
+            Logger::error("[core] invalid parameter (null pointer)"sv);
             return false;
         }
         SmartReference<Image> image;
         image.attach(new Image());
         if (!image->initialize(description)) {
-            assert(false);
+            Logger::error("[core] failed to initialize image"sv);
             return false;
         }
         *output_image = image.detach();
