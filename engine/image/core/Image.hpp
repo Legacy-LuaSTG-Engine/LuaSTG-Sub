@@ -53,14 +53,14 @@ namespace core {
     };
 
     CORE_INTERFACE IImage : IReferenceCounted {
+        // Get current image description
+        virtual const ImageDescription* getDescription() const noexcept = 0;
+
         // Map image to read/write
         virtual bool map(ImageMappedBuffer& buffer) noexcept = 0;
 
         // Unmap image
         virtual void unmap() noexcept = 0;
-
-        // Get current image description
-        virtual const ImageDescription* getDescription() const noexcept = 0;
 
         // Get pixel at (x, y), value is always converted to float4.
         // If the (x, y) coordinates are out of range, return float4(0.0f, 0.0f, 0.0f, 0.0f).

@@ -83,6 +83,7 @@ namespace {
 namespace core {
     // IImage
 
+    const ImageDescription* Image::getDescription() const noexcept { return &m_description; }
     bool Image::map(ImageMappedBuffer& buffer) noexcept {
         if (m_mapped) {
             assert(false);
@@ -94,7 +95,6 @@ namespace core {
         return true;
     }
     void Image::unmap() noexcept { m_mapped = false; }
-    const ImageDescription* Image::getDescription() const noexcept { return &m_description; }
     Vector4F Image::getPixel(const uint32_t x, const uint32_t y) const noexcept {
         if (x >= m_description.size.x || y >= m_description.size.y) {
             assert(false);
