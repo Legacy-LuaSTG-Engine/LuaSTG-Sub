@@ -1,6 +1,8 @@
 #include "core/Logger.hpp"
 #include "core/SmartReference.hpp"
+#include "core/FileSystem.hpp"
 #include "core/Image.hpp"
+#include "backend/WebpImageFactory.hpp"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "win32/base.hpp"
@@ -232,4 +234,24 @@ TEST(Image, r32g32b32a32_float_map_write_unmap_getPixel) {
     image->unmap();
 
     EXPECT_EQ(color, image->getPixel(0, 0));
+}
+
+TEST(WebpImageFactory, createFromMemory) {
+    setupLogger();
+    using namespace core;
+
+    SmartReference<IData> data;
+    SmartReference<IImage> image;
+
+    static constexpr std::string_view files[]{
+        "test_color_hq.webp"sv,
+        "test_color_lossless.webp"sv,
+        "test_text_hq.webp"sv,
+        "test_text_lossless.webp"sv,
+    };
+
+    for (const auto file : files) {
+        ASSERT_TRUE(FileSystemManager::readFile(file, data.put()));
+        EXPECT_TRUE(WebpImageFactory::createFromMemory(data->data(), static_cast<uint32_t>(data->size()), image.put()));
+    }
 }
