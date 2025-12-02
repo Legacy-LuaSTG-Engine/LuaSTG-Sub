@@ -1,9 +1,21 @@
 # prepare cmake external build install directories
 
-file(WRITE ${CMAKE_BINARY_DIR}/install/Debug/include/placeholder          "")
-file(WRITE ${CMAKE_BINARY_DIR}/install/Release/include/placeholder        "")
-file(WRITE ${CMAKE_BINARY_DIR}/install/RelWithDebInfo/include/placeholder "")
-file(WRITE ${CMAKE_BINARY_DIR}/install/MinSizeRel/include/placeholder     "")
+function(luastg_cmake_external_build_prepare_directories dir)
+    list(LENGTH CMAKE_CONFIGURATION_TYPES config_count)
+    if (config_count GREATER_EQUAL 1)
+        #message(STATUS "luastg_cmake_external_build_prepare_directories -- multi-config mode (${config_count} configs)")
+        foreach(config IN LISTS CMAKE_CONFIGURATION_TYPES)
+            #message(STATUS "luastg_cmake_external_build_prepare_directories -- -- ${config}")
+            file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/install/${config}/${dir})
+        endforeach()
+    else ()
+        #message(STATUS "luastg_cmake_external_build_prepare_directories -- single-config mode")
+        #message(STATUS "luastg_cmake_external_build_prepare_directories -- -- ${CMAKE_BUILD_TYPE}")
+        file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/install/${CMAKE_BUILD_TYPE}/${dir})
+    endif ()
+endfunction()
+
+luastg_cmake_external_build_prepare_directories(include)
 
 # collect cmake external build generator options
 
@@ -30,6 +42,8 @@ set(LUASTG_CMAKE_SUB_BUILD_ROOT ${CMAKE_CURRENT_LIST_DIR})
 include(${LUASTG_CMAKE_SUB_BUILD_ROOT}/z.cmake)
 include(${LUASTG_CMAKE_SUB_BUILD_ROOT}/xiph.cmake)
 include(${LUASTG_CMAKE_SUB_BUILD_ROOT}/freetype.cmake)
-#include(${LUASTG_CMAKE_SUB_BUILD_ROOT}/harfbuzz.cmake)
 include(${LUASTG_CMAKE_SUB_BUILD_ROOT}/webp.cmake)
+include(${LUASTG_CMAKE_SUB_BUILD_ROOT}/directx_tex.cmake)
 include(${LUASTG_CMAKE_SUB_BUILD_ROOT}/gtest.cmake)
+
+#include(${LUASTG_CMAKE_SUB_BUILD_ROOT}/harfbuzz.cmake)

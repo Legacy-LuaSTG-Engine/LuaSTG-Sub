@@ -14,6 +14,8 @@ endif ()
 
 # prepare
 
+luastg_cmake_external_build_prepare_directories(include/webp)
+
 set(libwebp_source_directory  ${libwebp_SOURCE_DIR})
 set(libwebp_build_directory   ${CMAKE_BINARY_DIR}/build/libwebp)
 set(libwebp_install_directory ${CMAKE_BINARY_DIR}/install/$<CONFIG>)

@@ -21,12 +21,7 @@ CPMAddPackage(
 
 if(zlib_ng_ADDED AND minizip_ng_ADDED)
     # first, fuck cmake
-    # cmake import target requires exist include directories, idk why
-
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/Debug/include/minizip-ng/placeholder.h "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/Release/include/minizip-ng/placeholder.h "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/RelWithDebInfo/include/minizip-ng/placeholder.h "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/MinSizeRel/include/minizip-ng/placeholder.h "")
+    luastg_cmake_external_build_prepare_directories(include/minizip-ng)
 
     # then, fuck zlib ng
 

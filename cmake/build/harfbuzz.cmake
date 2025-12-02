@@ -53,10 +53,7 @@ if(libharfbuzz_ADDED)
     set_target_properties(libharfbuzz_clean PROPERTIES FOLDER external)
 
     # fuck cmake
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/Debug/include/harfbuzz/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/Release/include/harfbuzz/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/RelWithDebInfo/include/harfbuzz/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/MinSizeRel/include/harfbuzz/placeholder "")
+    luastg_cmake_external_build_prepare_directories(include/harfbuzz)
 
     # libharfbuzz
     add_library(libharfbuzz STATIC IMPORTED GLOBAL)

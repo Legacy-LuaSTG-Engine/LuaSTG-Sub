@@ -26,6 +26,7 @@ target_link_libraries(${lib_name} PUBLIC
     Microsoft::DirectXTex
     Microsoft.Windows.ImplementationLibrary
     libqoi
+    WebP::webp
     win32
 )
 

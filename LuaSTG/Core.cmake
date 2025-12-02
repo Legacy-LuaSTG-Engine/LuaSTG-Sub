@@ -103,7 +103,7 @@ target_link_libraries(Core PUBLIC
     d3d11.lib
     #Microsoft.XAudio2.Redist
     Microsoft.Windows.ImplementationLibrary
-    DirectX::TextureMini
+    Microsoft::DirectXTexMini
     libqoi
     # math
     xmath

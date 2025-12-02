@@ -13,15 +13,7 @@ if (NOT gtest_ADDED)
 endif ()
 
 if (gtest_ADDED)
-    # first, fuck cmake
-    # cmake import target requires exist include directories, idk why
-
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/Debug/include/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/Release/include/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/RelWithDebInfo/include/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/MinSizeRel/include/placeholder "")
-
-    # then, fuck gtest
+    # gtest
 
     set(gtest_source_dir  ${gtest_SOURCE_DIR})
     set(gtest_build_dir   ${CMAKE_CURRENT_BINARY_DIR}/gtest/$<CONFIG>)

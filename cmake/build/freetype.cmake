@@ -58,10 +58,7 @@ if(libfreetype_ADDED)
     set_target_properties(libfreetype_clean PROPERTIES FOLDER external)
 
     # fuck cmake
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/Debug/include/freetype2/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/Release/include/freetype2/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/RelWithDebInfo/include/freetype2/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/MinSizeRel/include/freetype2/placeholder "")
+    luastg_cmake_external_build_prepare_directories(include/freetype2)
 
     # libfreetype
     add_library(libfreetype STATIC IMPORTED GLOBAL)

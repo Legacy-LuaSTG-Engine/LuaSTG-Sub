@@ -56,10 +56,7 @@ if(libogg_ADDED)
     set_target_properties(libogg_clean PROPERTIES FOLDER external)
 
     # fuck cmake
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/Debug/include/ogg/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/Release/include/ogg/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/RelWithDebInfo/include/ogg/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/MinSizeRel/include/ogg/placeholder "")
+    luastg_cmake_external_build_prepare_directories(include/ogg)
 
     # libogg
     add_library(libogg STATIC IMPORTED GLOBAL)
@@ -131,10 +128,7 @@ if(libvorbis_ADDED)
     set_target_properties(libvorbis_clean PROPERTIES FOLDER external)
 
     # fuck cmake
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/Debug/include/vorbis/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/Release/include/vorbis/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/RelWithDebInfo/include/vorbis/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/MinSizeRel/include/vorbis/placeholder "")
+    luastg_cmake_external_build_prepare_directories(include/vorbis)
 
     # vorbis
     add_library(libvorbis STATIC IMPORTED GLOBAL)
@@ -251,10 +245,7 @@ if(libflac_ADDED)
     set_target_properties(libflac_clean PROPERTIES FOLDER external)
 
     # fuck cmake
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/Debug/include/FLAC/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/Release/include/FLAC/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/RelWithDebInfo/include/FLAC/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/MinSizeRel/include/FLAC/placeholder "")
+    luastg_cmake_external_build_prepare_directories(include/FLAC)
 
     # libflac
     add_library(libflac STATIC IMPORTED GLOBAL)
