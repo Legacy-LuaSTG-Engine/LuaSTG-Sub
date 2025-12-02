@@ -87,10 +87,10 @@ if(Microsoft.DirectXTex_ADDED)
 
     # fuck cmake
 
-    file(TOUCH ${CMAKE_CURRENT_BINARY_DIR}/install/Debug/include/placeholder)
-    file(TOUCH ${CMAKE_CURRENT_BINARY_DIR}/install/Release/include/placeholder)
-    file(TOUCH ${CMAKE_CURRENT_BINARY_DIR}/install/RelWithDebInfo/include/placeholder)
-    file(TOUCH ${CMAKE_CURRENT_BINARY_DIR}/install/MinSizeRel/include/placeholder)
+    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/Debug/include/placeholder          "")
+    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/Release/include/placeholder        "")
+    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/RelWithDebInfo/include/placeholder "")
+    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/MinSizeRel/include/placeholder     "")
 
     # import
 
