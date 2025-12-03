@@ -48,10 +48,26 @@ if(zlib_ng_ADDED AND minizip_ng_ADDED)
             $<$<BOOL:${CMAKE_GENERATOR_PLATFORM}>:-A> ${CMAKE_GENERATOR_PLATFORM}
             $<$<BOOL:${CMAKE_GENERATOR_TOOLSET}>:-T> ${CMAKE_GENERATOR_TOOLSET}
             ${zlib_ng_options}
-        COMMAND cmake --build   ${zlib_ng_build_dir} --config $<CONFIG> --target ALL_BUILD # magic target for MSVC
-        COMMAND cmake --install ${zlib_ng_build_dir} --config $<CONFIG> --prefix ${zlib_ng_install_dir}
-        COMMAND cmake -E rm -f ${zlib_ng_install_dir}/bin/zlib-ng$<$<CONFIG:Debug>:d>2.dll # remove dynamic libraries
-        COMMAND cmake -E rm -f ${zlib_ng_install_dir}/lib/zlib-ng$<$<CONFIG:Debug>:d>.lib  # remove dynamic libraries
+        COMMAND ${CMAKE_COMMAND}
+            --build ${zlib_ng_build_dir}
+            --config $<CONFIG>
+        COMMAND ${CMAKE_COMMAND}
+            --install ${zlib_ng_build_dir}
+            --config $<CONFIG>
+            --prefix ${zlib_ng_install_dir}
+        COMMAND ${CMAKE_COMMAND}
+            -E rm -f
+            ${zlib_ng_install_dir}/bin/zlib-ng$<$<CONFIG:Debug>:d>2.dll # remove dynamic libraries
+        COMMAND ${CMAKE_COMMAND}
+            -E touch
+            ${zlib_ng_install_dir}/bin/zlib-ng$<$<CONFIG:Debug>:d>2.dll # fake dynamic library
+        COMMAND ${CMAKE_COMMAND}
+            -E rm -f
+            ${zlib_ng_install_dir}/lib/zlib-ng$<$<CONFIG:Debug>:d>.lib  # remove dynamic libraries
+        COMMAND ${CMAKE_COMMAND}
+            -E copy_if_different
+            ${zlib_ng_install_dir}/lib/zlibstatic-ng$<$<CONFIG:Debug>:d>.lib
+            ${zlib_ng_install_dir}/lib/zlib-ng$<$<CONFIG:Debug>:d>.lib
         VERBATIM
     )
     add_custom_target(zlib_ng_build ALL
@@ -61,6 +77,7 @@ if(zlib_ng_ADDED AND minizip_ng_ADDED)
 
     add_custom_target(zlib_ng_clean
         COMMAND cmake -E rm -rf ${zlib_ng_build_dir}
+        COMMAND cmake -E rm -f  ${zlib_ng_lib_file}
     )
     set_target_properties(zlib_ng_clean PROPERTIES FOLDER external)
 
