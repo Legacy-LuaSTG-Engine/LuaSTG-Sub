@@ -84,6 +84,15 @@ luastg_cmake_option(
     VALUE ON
 )
 
+# LuaSTG - Image
+
+luastg_cmake_option(
+    NAME LUASTG_IMAGE_WEBP_ENABLE
+    TYPE BOOL
+    HELP "LuaSTG: Image: Enable webp support"
+    VALUE TRUE
+)
+
 # LuaSTG - Steam API
 
 luastg_cmake_option(

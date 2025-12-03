@@ -1,3 +1,5 @@
+#ifdef LUASTG_IMAGE_WEBP_ENABLE
+
 #include "backend/WebpImageFactory.hpp"
 #include "core/SmartReference.hpp"
 #include "core/Logger.hpp"
@@ -71,3 +73,5 @@ namespace core {
         return true;
     }
 }
+
+#endif // LUASTG_IMAGE_WEBP_ENABLE

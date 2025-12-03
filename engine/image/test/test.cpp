@@ -236,6 +236,7 @@ TEST(Image, r32g32b32a32_float_map_write_unmap_getPixel) {
     EXPECT_EQ(color, image->getPixel(0, 0));
 }
 
+#ifdef LUASTG_IMAGE_WEBP_ENABLE
 TEST(WebpImageFactory, createFromMemory) {
     setupLogger();
     using namespace core;
@@ -255,3 +256,4 @@ TEST(WebpImageFactory, createFromMemory) {
         EXPECT_TRUE(WebpImageFactory::createFromMemory(data->data(), static_cast<uint32_t>(data->size()), image.put()));
     }
 }
+#endif // LUASTG_IMAGE_WEBP_ENABLE

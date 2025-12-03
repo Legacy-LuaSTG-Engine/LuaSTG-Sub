@@ -26,9 +26,12 @@ target_link_libraries(${lib_name} PUBLIC
     Microsoft::DirectXTex
     Microsoft.Windows.ImplementationLibrary
     libqoi
-    WebP::webp
     win32
 )
+if (LUASTG_IMAGE_WEBP_ENABLE)
+    target_compile_definitions(${lib_name} PUBLIC LUASTG_IMAGE_WEBP_ENABLE)
+    target_link_libraries(${lib_name} PUBLIC WebP::webp)
+endif ()
 
 set_target_properties(${lib_name} PROPERTIES FOLDER engine)
 
