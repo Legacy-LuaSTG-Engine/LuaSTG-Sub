@@ -244,10 +244,10 @@ TEST(WebpImageFactory, createFromMemory) {
     SmartReference<IImage> image;
 
     static constexpr std::string_view files[]{
-        "test_color_hq.webp"sv,
-        "test_color_lossless.webp"sv,
-        "test_text_hq.webp"sv,
-        "test_text_lossless.webp"sv,
+        "assets/test_color_hq.webp"sv,
+        "assets/test_color_lossless.webp"sv,
+        "assets/test_text_hq.webp"sv,
+        "assets/test_text_lossless.webp"sv,
     };
 
     for (const auto file : files) {
