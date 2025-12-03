@@ -28,6 +28,10 @@ target_link_libraries(${lib_name} PUBLIC
     libqoi
     win32
 )
+if (LUASTG_IMAGE_PNG_ENABLE)
+    target_compile_definitions(${lib_name} PUBLIC LUASTG_IMAGE_PNG_ENABLE)
+    target_link_libraries(${lib_name} PUBLIC PNG::png_static)
+endif ()
 if (LUASTG_IMAGE_WEBP_ENABLE)
     target_compile_definitions(${lib_name} PUBLIC LUASTG_IMAGE_WEBP_ENABLE)
     target_link_libraries(${lib_name} PUBLIC WebP::webp)

@@ -131,6 +131,7 @@ if(zlib_ng_ADDED AND minizip_ng_ADDED)
     # finally, import targets
 
     add_library(zlib_ng STATIC IMPORTED GLOBAL)
+    add_library(zlib-ng::zlibstatic ALIAS zlib_ng)
     target_include_directories(zlib_ng
     INTERFACE
         ${zlib_ng_install_dir}/include

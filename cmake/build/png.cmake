@@ -19,6 +19,8 @@ set(libpng_build_directory   ${CMAKE_BINARY_DIR}/build/libpng)
 set(libpng_install_directory ${CMAKE_BINARY_DIR}/install/$<CONFIG>)
 set(libpng_library_file      ${libpng_install_directory}/lib/libpng16_static.lib)
 
+luastg_cmake_external_build_prepare_directories(include/libpng16)
+
 # external cmake build
 
 add_custom_command(
@@ -61,3 +63,22 @@ add_custom_target(libpng_clean
     COMMAND ${CMAKE_COMMAND} -E rm -r  ${libpng_library_file}
 )
 set_target_properties(libpng_clean PROPERTIES FOLDER external/libpng)
+
+# import
+
+add_library(png_static STATIC IMPORTED GLOBAL)
+add_library(PNG::png_static ALIAS png_static)
+target_include_directories(png_static
+INTERFACE
+    ${libpng_install_directory}/include
+    ${libpng_install_directory}/include/libpng16
+)
+target_link_libraries(png_static
+INTERFACE
+    zlib-ng::zlibstatic
+)
+set_target_properties(png_static PROPERTIES
+    IMPORTED_LOCATION       ${CMAKE_CURRENT_BINARY_DIR}/install/Release/lib/libpng16_static.lib
+    IMPORTED_LOCATION_DEBUG ${CMAKE_CURRENT_BINARY_DIR}/install/Debug/lib/libpng16_static.lib
+)
+add_dependencies(png_static libpng_build)

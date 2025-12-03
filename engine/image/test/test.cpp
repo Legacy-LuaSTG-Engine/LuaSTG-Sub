@@ -2,6 +2,7 @@
 #include "core/SmartReference.hpp"
 #include "core/FileSystem.hpp"
 #include "core/Image.hpp"
+#include "backend/PngImageFactory.hpp"
 #include "backend/WebpImageFactory.hpp"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -257,3 +258,23 @@ TEST(WebpImageFactory, createFromMemory) {
     }
 }
 #endif // LUASTG_IMAGE_WEBP_ENABLE
+
+#ifdef LUASTG_IMAGE_PNG_ENABLE
+TEST(PngImageFactory, createFromMemory) {
+    setupLogger();
+    using namespace core;
+
+    SmartReference<IData> data;
+    SmartReference<IImage> image;
+
+    static constexpr std::string_view files[]{
+        "assets/test_color.png"sv,
+        "assets/test_text.png"sv,
+    };
+
+    for (const auto file : files) {
+        ASSERT_TRUE(FileSystemManager::readFile(file, data.put()));
+        EXPECT_TRUE(PngImageFactory::createFromMemory(data->data(), static_cast<uint32_t>(data->size()), image.put()));
+    }
+}
+#endif // LUASTG_IMAGE_PNG_ENABLE
