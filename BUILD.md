@@ -151,6 +151,32 @@ cmake --workflow --preset windows-x86-release
 
 > 未完成：等我买一台 Windows on arm 笔记本  
 
+## 使用 Ninja 编译项目
+
+首先需要初始化环境，比如初始化为以下环境：
+
+* Visual Studio 2026 Community v143 (MSVC 14.44)
+* Windows SDK 10.0.26100
+* AMD64 (x64)
+
+那么对应的命令为：
+
+```batch
+"C:\Program Files\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" x64 10.0.26100.0 -vcvars_ver=14.44
+```
+
+接下来，执行 CMake 配置步骤，以 Debug 配置为例：
+
+```batch
+cmake -S . -B %cd%\build\amd64-ninja-debug -G Ninja -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DCMAKE_BUILD_TYPE=Debug -DCPM_SOURCE_CACHE=%cd%\build\packages
+```
+
+最后，执行编译：
+
+```batch
+cmake --build %cd%\build\amd64-ninja-debug --target LuaSTG
+```
+
 ## 开始编写代码
 
 接下来你就可以用 Visual Studio 2022 打开 sln 解决方案开始开发。
