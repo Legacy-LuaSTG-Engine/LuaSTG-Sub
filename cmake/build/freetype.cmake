@@ -14,7 +14,7 @@ endif ()
 
 # prepare
 
-set(freetype_source_directory  ${freetype_SOURCE_DIR})
+set(freetype_source_directory  ${libfreetype_SOURCE_DIR})
 set(freetype_build_directory   ${CMAKE_BINARY_DIR}/build/freetype/$<CONFIG>)
 set(freetype_install_directory ${CMAKE_BINARY_DIR}/install/$<CONFIG>)
 set(freetype_library_file      ${freetype_install_directory}/lib/freetype$<$<CONFIG:Debug>:d>.lib)
