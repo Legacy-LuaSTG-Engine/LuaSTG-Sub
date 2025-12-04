@@ -39,8 +39,11 @@ unset(_options)
 
 set(LUASTG_CMAKE_SUB_BUILD_ROOT ${CMAKE_CURRENT_LIST_DIR})
 
-include(${LUASTG_CMAKE_SUB_BUILD_ROOT}/z.cmake)
-include(${LUASTG_CMAKE_SUB_BUILD_ROOT}/xiph.cmake)
+include(${LUASTG_CMAKE_SUB_BUILD_ROOT}/zlib_ng.cmake)
+include(${LUASTG_CMAKE_SUB_BUILD_ROOT}/minizip_ng.cmake)
+include(${LUASTG_CMAKE_SUB_BUILD_ROOT}/libogg.cmake)
+include(${LUASTG_CMAKE_SUB_BUILD_ROOT}/libvorbis.cmake)
+include(${LUASTG_CMAKE_SUB_BUILD_ROOT}/libflac.cmake)
 include(${LUASTG_CMAKE_SUB_BUILD_ROOT}/freetype.cmake)
 if (LUASTG_IMAGE_PNG_ENABLE)
     include(${LUASTG_CMAKE_SUB_BUILD_ROOT}/png.cmake)

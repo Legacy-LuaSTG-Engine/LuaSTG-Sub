@@ -22,7 +22,7 @@ add_custom_command(
         -B ${DirectXTex_build_directory}
         # generator
         ${LUASTG_CMAKE_EXTERNAL_BUILD_GENERATOR_OPTIONS}
-        # crt
+        # msvc runtime library
         -DCMAKE_POLICY_DEFAULT_CMP0091=NEW
         -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>
         # install
