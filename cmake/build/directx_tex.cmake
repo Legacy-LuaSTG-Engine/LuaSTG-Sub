@@ -27,8 +27,6 @@ add_custom_command(
         -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>
         # install
         -DCMAKE_INSTALL_PREFIX=${DirectXTex_install_directory}
-        # win7
-        "-DCMAKE_C_FLAGS=/D_WIN32_WINNT=0x0601 /DWINVER=0x0601"
         # options
         -DBUILD_TOOLS=OFF
         -DBUILD_SAMPLE=OFF
