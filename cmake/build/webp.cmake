@@ -19,12 +19,18 @@ luastg_cmake_external_build_prepare_directories(include/webp)
 set(libwebp_source_directory  ${libwebp_SOURCE_DIR})
 set(libwebp_build_directory   ${CMAKE_BINARY_DIR}/build/libwebp)
 set(libwebp_install_directory ${CMAKE_BINARY_DIR}/install/$<CONFIG>)
-set(libwebp_library_file      ${libwebp_install_directory}/lib/libwebp.lib)
+set(libwebp_library_files
+    ${libwebp_install_directory}/lib/libsharpyuv.lib
+    ${libwebp_install_directory}/lib/libwebpdecoder.lib
+    ${libwebp_install_directory}/lib/libwebp.lib
+    ${libwebp_install_directory}/lib/libwebpdemux.lib
+    ${libwebp_install_directory}/lib/libwebpmux.lib
+)
 
 # external cmake build
 
 add_custom_command(
-    OUTPUT ${libwebp_library_file}
+    OUTPUT ${libwebp_library_files}
     COMMAND echo ${CMAKE_GENERATOR} ${CMAKE_GENERATOR_PLATFORM} ${CMAKE_GENERATOR_TOOLSET} $<CONFIG>
     COMMAND ${CMAKE_COMMAND}
         # basic
@@ -57,7 +63,7 @@ add_custom_command(
     VERBATIM
 )
 add_custom_target(libwebp_build ALL
-    DEPENDS ${libwebp_library_file}
+    DEPENDS ${libwebp_library_files}
 )
 set_target_properties(libwebp_build PROPERTIES FOLDER external/libwebp)
 
@@ -65,7 +71,7 @@ set_target_properties(libwebp_build PROPERTIES FOLDER external/libwebp)
 
 add_custom_target(libwebp_clean
     COMMAND ${CMAKE_COMMAND} -E rm -rf ${libwebp_build_directory}
-    COMMAND ${CMAKE_COMMAND} -E rm -r  ${libwebp_library_file}
+    COMMAND ${CMAKE_COMMAND} -E rm -r  ${libwebp_library_files}
 )
 set_target_properties(libwebp_clean PROPERTIES FOLDER external/libwebp)
 

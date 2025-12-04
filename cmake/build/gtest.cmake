@@ -17,12 +17,15 @@ endif ()
 set(gtest_source_directory  ${gtest_SOURCE_DIR})
 set(gtest_build_directory   ${CMAKE_BINARY_DIR}/build/gtest/$<CONFIG>)
 set(gtest_install_directory ${CMAKE_BINARY_DIR}/install/$<CONFIG>)
-set(gtest_library_file      ${gtest_install_directory}/lib/gtest.lib)
+set(gtest_library_files
+    ${gtest_install_directory}/lib/gtest.lib
+    ${gtest_install_directory}/lib/gtest_main.lib
+)
 
 # external cmake build
 
 add_custom_command(
-    OUTPUT ${gtest_library_file}
+    OUTPUT ${gtest_library_files}
     COMMAND ${CMAKE_COMMAND} -E echo ${CMAKE_GENERATOR} ${CMAKE_GENERATOR_PLATFORM} ${CMAKE_GENERATOR_TOOLSET} $<CONFIG>
     COMMAND ${CMAKE_COMMAND}
         # basic
@@ -45,7 +48,7 @@ add_custom_command(
     VERBATIM
 )
 add_custom_target(gtest_build ALL
-    DEPENDS ${gtest_library_file}
+    DEPENDS ${gtest_library_files}
 )
 set_target_properties(gtest_build PROPERTIES FOLDER external/gtest)
 
@@ -53,7 +56,7 @@ set_target_properties(gtest_build PROPERTIES FOLDER external/gtest)
 
 add_custom_target(gtest_clean
     COMMAND ${CMAKE_COMMAND} -E rm -rf ${gtest_build_directory}
-    COMMAND ${CMAKE_COMMAND} -E rm -f  ${gtest_library_file}
+    COMMAND ${CMAKE_COMMAND} -E rm -f  ${gtest_library_files}
     VERBATIM
 )
 set_target_properties(gtest_clean PROPERTIES FOLDER external/gtest)
