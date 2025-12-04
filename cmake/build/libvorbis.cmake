@@ -16,14 +16,18 @@ endif ()
 set(libvorbis_source_directory  ${libvorbis_SOURCE_DIR})
 set(libvorbis_build_directory   ${CMAKE_BINARY_DIR}/build/libvorbis/$<CONFIG>)
 set(libvorbis_install_directory ${CMAKE_BINARY_DIR}/install/$<CONFIG>)
-set(libvorbis_library_file      ${libvorbis_install_directory}/lib/vorbis.lib)
+set(libvorbis_library_files
+    ${libvorbis_install_directory}/lib/vorbis.lib
+    ${libvorbis_install_directory}/lib/vorbisenc.lib
+    ${libvorbis_install_directory}/lib/vorbisfile.lib
+)
 
 luastg_cmake_external_build_prepare_directories(include/vorbis)
 
 # external cmake build
 
 add_custom_command(
-    OUTPUT ${libvorbis_library_file}
+    OUTPUT ${libvorbis_library_files}
     COMMAND echo ${CMAKE_GENERATOR} ${CMAKE_GENERATOR_PLATFORM} ${CMAKE_GENERATOR_TOOLSET} $<CONFIG>
     COMMAND ${CMAKE_COMMAND}
         # basic
@@ -51,7 +55,7 @@ add_custom_command(
     VERBATIM
 )
 add_custom_target(libvorbis_build ALL
-    DEPENDS ${libvorbis_library_file}
+    DEPENDS ${libvorbis_library_files}
 )
 add_dependencies(libvorbis_build libogg_build)
 set_target_properties(libvorbis_build PROPERTIES FOLDER external/libvorbis)
@@ -60,7 +64,7 @@ set_target_properties(libvorbis_build PROPERTIES FOLDER external/libvorbis)
 
 add_custom_target(libvorbis_clean
     COMMAND ${CMAKE_COMMAND} -E rm -rf ${libvorbis_build_directory}
-    COMMAND ${CMAKE_COMMAND} -E rm -f  ${libvorbis_library_file}
+    COMMAND ${CMAKE_COMMAND} -E rm -f  ${libvorbis_library_files}
     VERBATIM
 )
 set_target_properties(libvorbis_clean PROPERTIES FOLDER external/libvorbis)
