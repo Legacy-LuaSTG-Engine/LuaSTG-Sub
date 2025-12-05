@@ -87,9 +87,9 @@ luastg_cmake_option(
 # LuaSTG - Image
 
 luastg_cmake_option(
-    NAME LUASTG_IMAGE_WEBP_ENABLE
+    NAME LUASTG_IMAGE_JPEG_ENABLE
     TYPE BOOL
-    HELP "LuaSTG: Image: Enable libwebp support"
+    HELP "LuaSTG: Image: Enable libjpeg-turbo support"
     VALUE TRUE
 )
 
@@ -97,6 +97,13 @@ luastg_cmake_option(
     NAME LUASTG_IMAGE_PNG_ENABLE
     TYPE BOOL
     HELP "LuaSTG: Image: Enable libpng support"
+    VALUE TRUE
+)
+
+luastg_cmake_option(
+    NAME LUASTG_IMAGE_WEBP_ENABLE
+    TYPE BOOL
+    HELP "LuaSTG: Image: Enable libwebp support"
     VALUE TRUE
 )
 
