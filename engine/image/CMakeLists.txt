@@ -24,8 +24,8 @@ target_link_libraries(${lib_name} PUBLIC
     Core.FileSystem
     Core.Math
     Microsoft::DirectXTex
+    nothings_stb
     libqoi
-    win32
 )
 if (LUASTG_IMAGE_JPEG_ENABLE)
     target_compile_definitions(${lib_name} PUBLIC LUASTG_IMAGE_JPEG_ENABLE)
@@ -41,7 +41,7 @@ if (LUASTG_IMAGE_WEBP_ENABLE)
 endif ()
 if (LUASTG_IMAGE_WINDOWS_IMAGING_COMPONENT_ENABLE)
     target_compile_definitions(${lib_name} PUBLIC LUASTG_IMAGE_WINDOWS_IMAGING_COMPONENT_ENABLE)
-    target_link_libraries(${lib_name} PUBLIC windowscodecs.lib)
+    target_link_libraries(${lib_name} PUBLIC win32 windowscodecs.lib)
 endif ()
 
 set_target_properties(${lib_name} PROPERTIES FOLDER engine)
