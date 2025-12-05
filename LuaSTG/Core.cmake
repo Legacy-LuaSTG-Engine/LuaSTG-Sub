@@ -119,5 +119,6 @@ target_link_libraries(Core PUBLIC
     Core.Configuration
     Core.ReferenceCounted
     Core.FileSystem
+    Core.Image
     win32
 )

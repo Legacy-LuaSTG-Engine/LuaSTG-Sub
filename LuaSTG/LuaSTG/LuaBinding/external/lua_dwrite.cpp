@@ -2688,18 +2688,35 @@ namespace DirectWrite
 
 		// copy and store pixel data
 
-		core::SmartReference<core::IData> p_pixel_data;
-		if (!core::IData::create(4 * (uint32_t)texture_canvas_width * (uint32_t)texture_canvas_height, p_pixel_data.put()))
+		core::ImageDescription canvas_image_description{};
+		canvas_image_description.size.x = static_cast<uint32_t>(texture_canvas_width);
+		canvas_image_description.size.y = static_cast<uint32_t>(texture_canvas_height);
+		canvas_image_description.format = core::ImageFormat::b8g8r8a8_normalized;
+		canvas_image_description.color_space = core::ImageColorSpace::srgb_gamma_2_2;
+
+		core::SmartReference<core::IImage> canvas_image;
+		if (!core::ImageFactory::create(canvas_image_description, canvas_image.put())) {
 			return luaL_error(L, "copy texture data failed");
-		uint8_t* dst_ptr = (uint8_t*)p_pixel_data->data();
-		uint8_t* src_ptr = buffer;
-		for (uint32_t y = 0; y < (uint32_t)texture_canvas_height; y += 1)
-		{
-			std::memcpy(dst_ptr, src_ptr, 4 * (uint32_t)texture_canvas_width);
-			src_ptr += buffer_stride;
-			dst_ptr += 4 * (uint32_t)texture_canvas_width;
 		}
-		p_texture->setPixelData(p_pixel_data.get());
+
+		{
+			core::ScopedImageMappedBuffer mapped_buffer;
+			if (!canvas_image->createScopedMap(mapped_buffer)) {
+				return luaL_error(L, "copy texture data failed");
+			}
+	
+			auto dst_ptr = static_cast<uint8_t*>(mapped_buffer.data);
+			uint8_t* src_ptr = buffer;
+			for (uint32_t y = 0; y < static_cast<uint32_t>(texture_canvas_height); y += 1)
+			{
+				std::memcpy(dst_ptr, src_ptr, mapped_buffer.stride);
+				src_ptr += buffer_stride;
+				dst_ptr += mapped_buffer.stride;
+			}
+		}
+
+		canvas_image->setReadOnly();
+		p_texture->setImage(canvas_image.get());
 
 		return 0;
 	}

@@ -87,6 +87,21 @@ namespace core::Graphics::Direct3D11 {
 		m_device->addEventListener(this);
 		return true;
 	}
+	bool Texture2D::initialize(Device* const device, IImage* const image, bool const mipmap) {
+		// TODO: image must be read-only
+		assert(device);
+		assert(image);
+		m_device = device;
+		m_image = image;
+		m_size = m_image->getSize();
+		m_mipmap = mipmap;
+		if (!createResource()) {
+			return false;
+		}
+		m_initialized = true;
+		m_device->addEventListener(this);
+		return true;
+	}
 	bool Texture2D::initialize(Device* const device, Vector2U const size, bool const is_render_target) {
 		assert(device);
 		assert(size.x > 0 && size.y > 0);
@@ -114,7 +129,7 @@ namespace core::Graphics::Direct3D11 {
 		if (!d3d11_device || !d3d11_devctx)
 			return false;
 
-		if (m_data) {
+		if (m_image) {
 			D3D11_TEXTURE2D_DESC tex2d_desc = {
 				.Width = m_size.x,
 				.Height = m_size.y,
@@ -130,11 +145,35 @@ namespace core::Graphics::Direct3D11 {
 				.CPUAccessFlags = 0,
 				.MiscFlags = 0,
 			};
+			
+			switch (m_image->getFormat()) {
+			case ImageFormat::r8g8b8a8_normalized:
+				tex2d_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				break;
+			case ImageFormat::b8g8r8a8_normalized:
+				tex2d_desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+				break;
+			case ImageFormat::r16g16b16a16_float:
+				tex2d_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				break;
+			case ImageFormat::r32g32b32a32_float:
+				tex2d_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+				break;
+			default:
+				return false;
+			}
+			
+			ScopedImageMappedBuffer buffer;
+			if (!m_image->createScopedMap(buffer)) {
+				return false;
+			}
+
 			D3D11_SUBRESOURCE_DATA subres_data = {
-				.pSysMem = m_data->data(),
-				.SysMemPitch = 4 * m_size.x, // BGRA
-				.SysMemSlicePitch = 4 * m_size.x * m_size.y,
+				.pSysMem = buffer.data,
+				.SysMemPitch = buffer.stride,
+				.SysMemSlicePitch = buffer.size,
 			};
+
 			hr = gHR = d3d11_device->CreateTexture2D(&tex2d_desc, &subres_data, &m_texture);
 			if (FAILED(hr)) {
 				i18n_core_system_call_report_error("ID3D11Device::CreateTexture2D");
@@ -276,7 +315,19 @@ namespace core::Graphics::Direct3D11 {
 		*pp_texture = buffer.detach();
 		return true;
 	}
-	//bool createTextureFromMemory(void const* data, size_t size, bool mipmap, ITexture2D** pp_texture);
+	bool Device::createTextureFromImage(IImage* const image, bool const mipmap, ITexture2D** const pp_texture) {
+		*pp_texture = nullptr;
+		if (image == nullptr) {
+			return false;
+		}
+		SmartReference<Texture2D> buffer;
+		buffer.attach(new Texture2D);
+		if (!buffer->initialize(this, image, mipmap)) {
+			return false;
+		}
+		*pp_texture = buffer.detach();
+		return true;
+	}
 	bool Device::createTexture(Vector2U const size, ITexture2D** const pp_texture) {
 		*pp_texture = nullptr;
 		SmartReference<Texture2D> buffer;
