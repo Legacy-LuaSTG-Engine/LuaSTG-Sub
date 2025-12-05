@@ -23,7 +23,6 @@ target_link_libraries(${lib_name} PUBLIC
     Core.Logging
     Core.FileSystem
     Core.Math
-    Microsoft::DirectXTex
     libqoi
 )
 if (LUASTG_IMAGE_JPEG_ENABLE)
