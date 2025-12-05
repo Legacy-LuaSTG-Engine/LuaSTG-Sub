@@ -107,6 +107,13 @@ luastg_cmake_option(
     VALUE TRUE
 )
 
+luastg_cmake_option(
+    NAME LUASTG_IMAGE_WINDOWS_IMAGING_COMPONENT_ENABLE
+    TYPE BOOL
+    HELP "LuaSTG: Image: Enable Windows Imaging Component support"
+    VALUE TRUE
+)
+
 # LuaSTG - Steam API
 
 luastg_cmake_option(

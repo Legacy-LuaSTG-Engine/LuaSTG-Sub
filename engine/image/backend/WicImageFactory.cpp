@@ -1,3 +1,5 @@
+#ifdef LUASTG_IMAGE_WINDOWS_IMAGING_COMPONENT_ENABLE
+
 #include "backend/WicImageFactory.hpp"
 #include "core/SmartReference.hpp"
 #include "backend/Image.hpp"
@@ -10,11 +12,9 @@
 #undef CLSID_WICImagingFactory
 #endif
 
-#pragma comment(lib, "windowscodecs.lib")
-
-using std::string_view_literals::operator ""sv;
-
 namespace {
+    using std::string_view_literals::operator ""sv;
+
     class ScopeCoInitialize {
     public:
         ScopeCoInitialize() : m_result(CoInitializeEx(nullptr, COINIT_MULTITHREADED)) {}
@@ -197,3 +197,5 @@ namespace core {
         return true;
     }
 }
+
+#endif // LUASTG_IMAGE_WINDOWS_IMAGING_COMPONENT_ENABLE

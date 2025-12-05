@@ -24,7 +24,6 @@ target_link_libraries(${lib_name} PUBLIC
     Core.FileSystem
     Core.Math
     Microsoft::DirectXTex
-    Microsoft.Windows.ImplementationLibrary
     libqoi
     win32
 )
@@ -39,6 +38,10 @@ endif ()
 if (LUASTG_IMAGE_WEBP_ENABLE)
     target_compile_definitions(${lib_name} PUBLIC LUASTG_IMAGE_WEBP_ENABLE)
     target_link_libraries(${lib_name} PUBLIC WebP::webp)
+endif ()
+if (LUASTG_IMAGE_WINDOWS_IMAGING_COMPONENT_ENABLE)
+    target_compile_definitions(${lib_name} PUBLIC LUASTG_IMAGE_WINDOWS_IMAGING_COMPONENT_ENABLE)
+    target_link_libraries(${lib_name} PUBLIC windowscodecs.lib)
 endif ()
 
 set_target_properties(${lib_name} PROPERTIES FOLDER engine)
