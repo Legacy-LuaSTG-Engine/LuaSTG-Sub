@@ -69,8 +69,8 @@ namespace core {
             return false;
         }
 
-        ImageMappedBuffer buffer{};
-        if (!image->map(buffer)) {
+        ScopedImageMappedBuffer buffer{};
+        if (!image->createScopedMap(buffer)) {
             Logger::error("{} Image::map failed"sv, log_header);
             return false;
         }
@@ -82,16 +82,13 @@ namespace core {
             nullptr // no color-map
         )) {
             Logger::error("{} png_image_finish_read failed ({})"sv, log_header, png.message);
-            image->unmap();
             return false;
         }
         if (PNG_IMAGE_FAILED(png)) {
             Logger::error("{} png_image_finish_read failed ({})"sv, log_header, png.message);
-            image->unmap();
             return false;
         }
 
-        image->unmap();
         *output_image = image.detach();
         return true;
     }

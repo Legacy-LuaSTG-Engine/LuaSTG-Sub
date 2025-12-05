@@ -52,6 +52,14 @@ namespace core {
         uint32_t size{};
     };
 
+    struct IImage;
+
+    struct ScopedImageMappedBuffer : ImageMappedBuffer {
+        IImage* image{};
+
+        ~ScopedImageMappedBuffer() noexcept;
+    };
+
     CORE_INTERFACE IImage : IReferenceCounted {
         // Get current image description
         virtual const ImageDescription* getDescription() const noexcept = 0;
@@ -79,6 +87,17 @@ namespace core {
 
         // vvvvvvvvvv Helper functions vvvvvvvvvv
 
+        // Map image to read/write (scoped ver).
+        inline bool createScopedMap(ScopedImageMappedBuffer& buffer) noexcept {
+            buffer.image = nullptr;
+            if (!map(buffer)) {
+                return false;
+            }
+            buffer.image = this;
+            retain();
+            return true;
+        }
+
         // Get current image size.
         inline Vector2U getSize() const noexcept { return getDescription()->size; }
 
@@ -89,6 +108,13 @@ namespace core {
         inline ImageColorSpace getColorSpace() const noexcept { return getDescription()->color_space; }
     };
     CORE_INTERFACE_ID(IImage, "5e4c12e0-e094-5346-b129-b9ddbb881373")
+
+    inline ScopedImageMappedBuffer::~ScopedImageMappedBuffer() noexcept {
+        if (image) {
+            image->unmap();
+            image->release();
+        }
+    }
 
     class ImageFactory {
     public:

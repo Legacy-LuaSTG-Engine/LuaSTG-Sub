@@ -174,8 +174,8 @@ namespace core {
             ? static_cast<IWICBitmapSource*>(wic_format_converter.get())
             : static_cast<IWICBitmapSource*>(wic_bitmap_frame.get());
 
-        ImageMappedBuffer buffer{};
-        if (!image->map(buffer)) {
+        ScopedImageMappedBuffer buffer{};
+        if (!image->createScopedMap(buffer)) {
             assert(false);
             return false;
         }
@@ -190,11 +190,9 @@ namespace core {
             ),
             "IWICBitmapSource::CopyPixels"sv
         )) {
-            image->unmap();
             return false;
         }
 
-        image->unmap();
         *output_image = image.detach();
         return true;
     }

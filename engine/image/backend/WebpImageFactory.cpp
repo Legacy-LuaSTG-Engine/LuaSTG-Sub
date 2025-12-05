@@ -53,8 +53,8 @@ namespace core {
             return false;
         }
 
-        ImageMappedBuffer buffer{};
-        if (!image->map(buffer)) {
+        ScopedImageMappedBuffer buffer{};
+        if (!image->createScopedMap(buffer)) {
             Logger::error("{} Image::map failed"sv, log_header);
             return false;
         }
@@ -64,11 +64,9 @@ namespace core {
             static_cast<uint8_t*>(buffer.data), buffer.size, static_cast<int>(buffer.stride)
         )) {
             Logger::error("{} WebPDecodeBGRAInto failed"sv, log_header);
-            image->unmap();
             return false;
         }
 
-        image->unmap();
         *output_image = image.detach();
         return true;
     }

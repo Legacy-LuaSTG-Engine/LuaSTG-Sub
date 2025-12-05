@@ -74,8 +74,8 @@ namespace core {
             return false;
         }
 
-        ImageMappedBuffer buffer{};
-        if (!image->map(buffer)) {
+        ScopedImageMappedBuffer buffer{};
+        if (!image->createScopedMap(buffer)) {
             Logger::error("{} Image::map failed"sv, log_header);
             return false;
         }
@@ -87,11 +87,9 @@ namespace core {
             TJPF_BGRA
         ) != 0) {
             Logger::error("{} tj3Decompress8 failed ({})"sv, log_header, getErrorMessage(jpeg));
-            image->unmap();
             return false;
         }
 
-        image->unmap();
         *output_image = image.detach();
         return true;
     }

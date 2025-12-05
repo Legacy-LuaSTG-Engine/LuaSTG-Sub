@@ -42,8 +42,8 @@ namespace core {
             return false;
         }
 
-        ImageMappedBuffer buffer{};
-        if (!image->map(buffer)) {
+        ScopedImageMappedBuffer buffer{};
+        if (!image->createScopedMap(buffer)) {
             assert(false);
             return false;
         }
@@ -57,7 +57,6 @@ namespace core {
             output += buffer.stride;
         }
 
-        image->unmap();
         *output_image = image.detach();
         return true;
     }
