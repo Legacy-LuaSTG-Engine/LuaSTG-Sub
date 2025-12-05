@@ -1,3 +1,5 @@
+#ifdef LUASTG_IMAGE_STB_ENABLE
+
 #include "backend/StbImageFactory.hpp"
 #include "core/SmartReference.hpp"
 #include "core/Logger.hpp"
@@ -81,3 +83,5 @@ namespace core {
         return true;
     }
 }
+
+#endif // LUASTG_IMAGE_STB_ENABLE

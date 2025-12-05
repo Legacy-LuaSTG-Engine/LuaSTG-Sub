@@ -11,7 +11,9 @@
 #ifdef LUASTG_IMAGE_WEBP_ENABLE
 #include "backend/WebpImageFactory.hpp"
 #endif
+#ifdef LUASTG_IMAGE_STB_ENABLE
 #include "backend/StbImageFactory.hpp"
+#endif
 #ifdef LUASTG_IMAGE_WINDOWS_IMAGING_COMPONENT_ENABLE
 #include "backend/WicImageFactory.hpp"
 #endif
@@ -62,7 +64,7 @@ namespace core {
         }
     #endif
 
-    #ifdef LUASTG_IMAGE_PNG_ENABLE
+    #ifdef LUASTG_IMAGE_WEBP_ENABLE
         if (WebpImageFactory::createFromMemory(data, size_in_bytes, output_image)) {
             return true;
         }
@@ -74,9 +76,11 @@ namespace core {
         }
     #endif
 
+    #ifdef LUASTG_IMAGE_STB_ENABLE
         if (StbImageFactory::createFromMemory(data, size_in_bytes, output_image)) {
             return true;
         }
+    #endif
 
     #ifdef LUASTG_IMAGE_WINDOWS_IMAGING_COMPONENT_ENABLE
         if (WicImageFactory::createFromMemory(data, size_in_bytes, output_image)) {

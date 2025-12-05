@@ -24,7 +24,6 @@ target_link_libraries(${lib_name} PUBLIC
     Core.FileSystem
     Core.Math
     Microsoft::DirectXTex
-    nothings_stb
     libqoi
 )
 if (LUASTG_IMAGE_JPEG_ENABLE)
@@ -38,6 +37,10 @@ endif ()
 if (LUASTG_IMAGE_WEBP_ENABLE)
     target_compile_definitions(${lib_name} PUBLIC LUASTG_IMAGE_WEBP_ENABLE)
     target_link_libraries(${lib_name} PUBLIC WebP::webp)
+endif ()
+if (LUASTG_IMAGE_STB_ENABLE)
+    target_compile_definitions(${lib_name} PUBLIC LUASTG_IMAGE_STB_ENABLE)
+    target_link_libraries(${lib_name} PUBLIC nothings_stb)
 endif ()
 if (LUASTG_IMAGE_WINDOWS_IMAGING_COMPONENT_ENABLE)
     target_compile_definitions(${lib_name} PUBLIC LUASTG_IMAGE_WINDOWS_IMAGING_COMPONENT_ENABLE)

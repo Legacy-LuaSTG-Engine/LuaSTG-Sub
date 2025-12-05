@@ -108,6 +108,13 @@ luastg_cmake_option(
 )
 
 luastg_cmake_option(
+    NAME LUASTG_IMAGE_STB_ENABLE
+    TYPE BOOL
+    HELP "LuaSTG: Image: Enable stb_image support"
+    VALUE TRUE
+)
+
+luastg_cmake_option(
     NAME LUASTG_IMAGE_WINDOWS_IMAGING_COMPONENT_ENABLE
     TYPE BOOL
     HELP "LuaSTG: Image: Enable Windows Imaging Component support"
