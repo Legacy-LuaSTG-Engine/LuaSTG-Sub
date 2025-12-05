@@ -2,6 +2,7 @@
 #include "core/SmartReference.hpp"
 #include "core/FileSystem.hpp"
 #include "core/Image.hpp"
+#include "backend/JpegImageFactory.hpp"
 #include "backend/PngImageFactory.hpp"
 #include "backend/WebpImageFactory.hpp"
 #include "spdlog/spdlog.h"
@@ -237,6 +238,46 @@ TEST(Image, r32g32b32a32_float_map_write_unmap_getPixel) {
     EXPECT_EQ(color, image->getPixel(0, 0));
 }
 
+#ifdef LUASTG_IMAGE_JPEG_ENABLE
+TEST(JpegImageFactory, createFromMemory) {
+    setupLogger();
+    using namespace core;
+
+    SmartReference<IData> data;
+    SmartReference<IImage> image;
+
+    static constexpr std::string_view files[]{
+        "assets/test_color.jpg"sv,
+        "assets/test_text.jpg"sv,
+    };
+
+    for (const auto file : files) {
+        ASSERT_TRUE(FileSystemManager::readFile(file, data.put()));
+        EXPECT_TRUE(JpegImageFactory::createFromMemory(data->data(), static_cast<uint32_t>(data->size()), image.put()));
+    }
+}
+#endif // LUASTG_IMAGE_JPEG_ENABLE
+
+#ifdef LUASTG_IMAGE_PNG_ENABLE
+TEST(PngImageFactory, createFromMemory) {
+    setupLogger();
+    using namespace core;
+
+    SmartReference<IData> data;
+    SmartReference<IImage> image;
+
+    static constexpr std::string_view files[]{
+        "assets/test_color.png"sv,
+        "assets/test_text.png"sv,
+    };
+
+    for (const auto file : files) {
+        ASSERT_TRUE(FileSystemManager::readFile(file, data.put()));
+        EXPECT_TRUE(PngImageFactory::createFromMemory(data->data(), static_cast<uint32_t>(data->size()), image.put()));
+    }
+}
+#endif // LUASTG_IMAGE_PNG_ENABLE
+
 #ifdef LUASTG_IMAGE_WEBP_ENABLE
 TEST(WebpImageFactory, createFromMemory) {
     setupLogger();
@@ -258,23 +299,3 @@ TEST(WebpImageFactory, createFromMemory) {
     }
 }
 #endif // LUASTG_IMAGE_WEBP_ENABLE
-
-#ifdef LUASTG_IMAGE_PNG_ENABLE
-TEST(PngImageFactory, createFromMemory) {
-    setupLogger();
-    using namespace core;
-
-    SmartReference<IData> data;
-    SmartReference<IImage> image;
-
-    static constexpr std::string_view files[]{
-        "assets/test_color.png"sv,
-        "assets/test_text.png"sv,
-    };
-
-    for (const auto file : files) {
-        ASSERT_TRUE(FileSystemManager::readFile(file, data.put()));
-        EXPECT_TRUE(PngImageFactory::createFromMemory(data->data(), static_cast<uint32_t>(data->size()), image.put()));
-    }
-}
-#endif // LUASTG_IMAGE_PNG_ENABLE
