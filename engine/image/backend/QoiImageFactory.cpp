@@ -31,7 +31,7 @@ namespace core {
             Logger::error("{} {} size_in_bytes is 0"sv, log_header, invalid_parameter_header);
             return false;
         }
-        if (output_image == 0) {
+        if (output_image == nullptr) {
             Logger::error("{} {} output_image is null pointer"sv, log_header, invalid_parameter_header);
             return false;
         }
