@@ -2542,6 +2542,274 @@ namespace DirectWrite
 		return 1;
 	}
 
+	class WICBitmapLockOnImage : public IWICBitmapLock {
+	public:
+		// IUnknown
+
+		HRESULT STDMETHODCALLTYPE QueryInterface(
+			/* [in] */ REFIID riid,
+			/* [iid_is][out] */ _COM_Outptr_ void __RPC_FAR* __RPC_FAR* ppvObject
+		) override {
+			if (ppvObject == nullptr) {
+				return E_INVALIDARG;
+			}
+			*ppvObject = nullptr;
+			if (riid == __uuidof(IUnknown)) {
+				*ppvObject = (void*)(IUnknown*)(this);
+				return S_OK;
+			}
+			if (riid == __uuidof(IWICBitmapLock)) {
+				*ppvObject = (void*)(IWICBitmapLock*)(this);
+				return S_OK;
+			}
+			return E_NOINTERFACE;
+		}
+
+		ULONG STDMETHODCALLTYPE AddRef() override { m_ref += 1; return m_ref; }
+
+		ULONG STDMETHODCALLTYPE Release() override {
+			m_ref -= 1;
+			const auto ret = m_ref;
+			if (ret == 0) {
+				delete this;
+			}
+			return ret;
+		}
+
+		// IWICBitmapLock
+
+		HRESULT STDMETHODCALLTYPE GetSize(
+			/* [out] */ __RPC__out UINT* puiWidth,
+			/* [out] */ __RPC__out UINT* puiHeight
+		) override {
+			if (puiWidth == nullptr || puiHeight == nullptr) {
+				return E_INVALIDARG;
+			}
+			*puiWidth = static_cast<UINT>(m_rect.Width);
+			*puiHeight = static_cast<UINT>(m_rect.Height);
+			return S_OK;
+		}
+
+		HRESULT STDMETHODCALLTYPE GetStride(
+			/* [out] */ __RPC__out UINT* pcbStride
+		) override {
+			if (pcbStride == nullptr) {
+				return E_INVALIDARG;
+			}
+			*pcbStride = m_buffer.stride;
+			return S_OK;
+		}
+
+		HRESULT STDMETHODCALLTYPE GetDataPointer(
+			/* [out] */ __RPC__out UINT* pcbBufferSize,
+			/* [size_is][size_is][out] */ __RPC__deref_out_ecount_full_opt(*pcbBufferSize) WICInProcPointer* ppbData
+		) override {
+			if (pcbBufferSize == nullptr || ppbData == nullptr) {
+				return E_INVALIDARG;
+			}
+			const auto pixels = static_cast<uint8_t*>(m_buffer.data);
+			const auto sub = pixels + static_cast<size_t>(m_rect.Y) * m_buffer.stride + static_cast<size_t>(m_rect.X) * sizeof(uint32_t); // B8G8R8A8
+			*pcbBufferSize = m_buffer.size; // oops
+			*ppbData = sub;
+			return S_OK;
+		}
+
+		HRESULT STDMETHODCALLTYPE GetPixelFormat(
+			/* [out] */ __RPC__out WICPixelFormatGUID* pPixelFormat
+		) override {
+			if (pPixelFormat == nullptr) {
+				return E_INVALIDARG;
+			}
+			*pPixelFormat = GUID_WICPixelFormat32bppPBGRA;
+			return S_OK;
+		}
+
+		core::SmartReference<core::IImage> m_image;
+		core::ImageMappedBuffer m_buffer{};
+		WICRect m_rect{};
+		ULONG m_ref{ 1 };
+	};
+
+	class WICBitmapOnImage : public IWICBitmap {
+	public:
+
+		// IUnknown
+
+		HRESULT STDMETHODCALLTYPE QueryInterface(
+			/* [in] */ REFIID riid,
+			/* [iid_is][out] */ _COM_Outptr_ void __RPC_FAR* __RPC_FAR* ppvObject
+		) override {
+			if (ppvObject == nullptr) {
+				return E_INVALIDARG;
+			}
+			*ppvObject = nullptr;
+			if (riid == __uuidof(IUnknown)) {
+				*ppvObject = (void*)(IUnknown*)(this);
+				return S_OK;
+			}
+			if (riid == __uuidof(IWICBitmapSource)) {
+				*ppvObject = (void*)(IWICBitmapSource*)(this);
+				return S_OK;
+			}
+			if (riid == __uuidof(IWICBitmap)) {
+				*ppvObject = (void*)(IWICBitmap*)(this);
+				return S_OK;
+			}
+			return E_NOINTERFACE;
+		}
+
+		ULONG STDMETHODCALLTYPE AddRef() override { m_ref += 1; return m_ref; }
+
+		ULONG STDMETHODCALLTYPE Release() override {
+			m_ref -= 1;
+			const auto ret = m_ref;
+			if (ret == 0) {
+				delete this;
+			}
+			return ret;
+		}
+
+		// IWICBitmapSource
+
+		HRESULT STDMETHODCALLTYPE GetSize(
+			/* [out] */ __RPC__out UINT* puiWidth,
+			/* [out] */ __RPC__out UINT* puiHeight
+		) override {
+			if (puiWidth == nullptr || puiHeight == nullptr) {
+				return E_INVALIDARG;
+			}
+			const auto size = m_image->getSize();
+			*puiWidth = size.x;
+			*puiHeight = size.y;
+			return S_OK;
+		}
+
+		HRESULT STDMETHODCALLTYPE GetPixelFormat(
+			/* [out] */ __RPC__out WICPixelFormatGUID* pPixelFormat
+		) override {
+			if (pPixelFormat == nullptr) {
+				return E_INVALIDARG;
+			}
+			*pPixelFormat = GUID_WICPixelFormat32bppPBGRA;
+			return S_OK;
+		}
+
+		HRESULT STDMETHODCALLTYPE GetResolution(
+			/* [out] */ __RPC__out double* pDpiX,
+			/* [out] */ __RPC__out double* pDpiY
+		) override {
+			if (pDpiX == nullptr || pDpiY == nullptr) {
+				return E_INVALIDARG;
+			}
+			*pDpiX = m_dpi_x;
+			*pDpiY = m_dpi_y;
+			return S_OK;
+		}
+
+		HRESULT STDMETHODCALLTYPE CopyPalette(
+			/* [in] */ __RPC__in_opt IWICPalette* pIPalette
+		) override {
+			UNREFERENCED_PARAMETER(pIPalette);
+			return E_NOTIMPL;
+		}
+
+		HRESULT STDMETHODCALLTYPE CopyPixels(
+			/* [unique][in] */ __RPC__in_opt const WICRect* prc,
+			/* [in] */ UINT cbStride,
+			/* [in] */ UINT cbBufferSize,
+			/* [size_is][out] */ __RPC__out_ecount_full(cbBufferSize) BYTE* pbBuffer
+		) override {
+			UNREFERENCED_PARAMETER(cbBufferSize);
+			const auto size = m_image->getSize();
+			WICRect rc{ 0, 0, static_cast<INT>(size.x), static_cast<INT>(size.y) };
+			if (prc != nullptr) {
+				if (
+					prc->X < 0
+					|| prc->X > static_cast<INT>(size.x)
+					|| prc->Y < 0
+					|| prc->Y > static_cast<INT>(size.y)
+					|| prc->Width < 0
+					|| prc->Width > (static_cast<INT>(size.x) - prc->X)
+					|| prc->Height < 0
+					|| prc->Height > (static_cast<INT>(size.y) - prc->Y)
+					) {
+					return E_INVALIDARG;
+				}
+				rc = *prc;
+			}
+			auto src = static_cast<uint8_t*>(m_buffer.data) + static_cast<size_t>(rc.Y) * m_buffer.stride;
+			const auto x_offset = static_cast<size_t>(rc.X) * sizeof(uint32_t);
+			const auto line_size = static_cast<size_t>(rc.Width) * sizeof(uint32_t);
+			uint8_t* dst = pbBuffer;
+			for (INT y = 0; y < rc.Height; y += 1) {
+				std::memcpy(dst, src + x_offset, line_size);
+				src += m_buffer.stride;
+				dst += cbStride;
+			}
+			return S_OK;
+		}
+
+		// IWICBitmap
+
+		HRESULT STDMETHODCALLTYPE Lock(
+			/* [unique][in] */ __RPC__in_opt const WICRect* prcLock,
+			/* [in] */ DWORD flags,
+			/* [out] */ __RPC__deref_out_opt IWICBitmapLock** ppILock
+		) override {
+			if (ppILock == nullptr) {
+				return E_INVALIDARG;
+			}
+			const auto size = m_image->getSize();
+			WICRect rc{ 0, 0, static_cast<INT>(size.x), static_cast<INT>(size.y) };
+			if (prcLock != nullptr) {
+				if (
+					prcLock->X < 0
+					|| prcLock->X > static_cast<INT>(size.x)
+					|| prcLock->Y < 0
+					|| prcLock->Y > static_cast<INT>(size.y)
+					|| prcLock->Width < 0
+					|| prcLock->Width >(static_cast<INT>(size.x) - prcLock->X)
+					|| prcLock->Height < 0
+					|| prcLock->Height >(static_cast<INT>(size.y) - prcLock->Y)
+					) {
+					return E_INVALIDARG;
+				}
+				rc = *prcLock;
+			}
+			if ((flags & (~(WICBitmapLockRead | WICBitmapLockWrite))) != 0) {
+				return E_INVALIDARG;
+			}
+			auto lock = new WICBitmapLockOnImage();
+			lock->m_image = m_image;
+			lock->m_buffer = m_buffer;
+			lock->m_rect = rc;
+			*ppILock = lock;
+			return S_OK;
+		}
+
+		HRESULT STDMETHODCALLTYPE SetPalette(
+			/* [in] */ __RPC__in_opt IWICPalette* pIPalette
+		) override {
+			UNREFERENCED_PARAMETER(pIPalette);
+			return E_NOTIMPL;
+		}
+
+		HRESULT STDMETHODCALLTYPE SetResolution(
+			/* [in] */ double dpiX,
+			/* [in] */ double dpiY
+		) override {
+			m_dpi_x = dpiX;
+			m_dpi_y = dpiY;
+			return S_OK;
+		}
+
+		core::SmartReference<core::IImage> m_image;
+		core::ImageMappedBuffer m_buffer{};
+		double m_dpi_x{ USER_DEFAULT_SCREEN_DPI };
+		double m_dpi_y{ USER_DEFAULT_SCREEN_DPI };
+		ULONG m_ref{ 1 };
+	};
+
 	static int api_CreateTextureFromTextLayout(lua_State* L)
 	{
 		lua::stack_t S(L);
@@ -2574,26 +2842,32 @@ namespace DirectWrite
 
 		// bitmap
 
-		//auto const texture_width = std::ceil(text_layout->dwrite_text_layout->GetMaxWidth());
-		//auto const texture_height = std::ceil(text_layout->dwrite_text_layout->GetMaxHeight());
 		auto const texture_canvas_width = std::ceil(text_layout->dwrite_text_layout->GetMaxWidth() + 2.0f * outline_width);
 		auto const texture_canvas_height = std::ceil(text_layout->dwrite_text_layout->GetMaxHeight() + 2.0f * outline_width);
 
-		Microsoft::WRL::ComPtr<IWICBitmap> wic_bitmap;
-		hr = gHR = core->wic_factory->CreateBitmap(
-			(UINT)texture_canvas_width,
-			(UINT)texture_canvas_height,
-			GUID_WICPixelFormat32bppPBGRA,
-			WICBitmapCacheOnDemand,
-			&wic_bitmap);
-		if (FAILED(hr))
-			return luaL_error(L, "create bitmap failed");
+		core::ImageDescription canvas_image_description{};
+		canvas_image_description.size.x = static_cast<uint32_t>(texture_canvas_width);
+		canvas_image_description.size.y = static_cast<uint32_t>(texture_canvas_height);
+		canvas_image_description.format = core::ImageFormat::b8g8r8a8_normalized;
+		canvas_image_description.color_space = core::ImageColorSpace::srgb_gamma_2_2;
+
+		core::SmartReference<core::IImage> canvas_image;
+		if (!core::ImageFactory::create(canvas_image_description, canvas_image.put())) {
+			return luaL_error(L, "copy texture data failed");
+		}
+
+		Microsoft::WRL::ComPtr<WICBitmapOnImage> my_bitmap; // GUID_WICPixelFormat32bppPBGRA
+		my_bitmap.Attach(new WICBitmapOnImage());
+		my_bitmap->m_image = canvas_image;
+		if (!canvas_image->map(my_bitmap->m_buffer)) {
+			return luaL_error(L, "copy texture data failed");
+		}
 
 		// d2d1 rasterizer
 
 		Microsoft::WRL::ComPtr<ID2D1RenderTarget> d2d1_rt;
 		hr = gHR = core->d2d1_factory->CreateWicBitmapRenderTarget(
-			wic_bitmap.Get(),
+			my_bitmap.Get(),
 			D2D1::RenderTargetProperties(),
 			&d2d1_rt);
 		if (FAILED(hr))
@@ -2651,27 +2925,8 @@ namespace DirectWrite
 		if (FAILED(hr))
 			return luaL_error(L, "rasterize failed");
 
-		// lock result
-
-		WICRect lock_rect = {
-			.X = 0,
-			.Y = 0,
-			.Width = (INT)texture_canvas_width,
-			.Height = (INT)texture_canvas_height,
-		};
-		Microsoft::WRL::ComPtr<IWICBitmapLock> wic_bitmap_lock;
-		hr = gHR = wic_bitmap->Lock(&lock_rect, WICBitmapLockRead, &wic_bitmap_lock);
-		if (FAILED(hr)) return luaL_error(L, "read rasterize result failed");
-		UINT buffer_size = 0;
-		WICInProcPointer buffer = NULL;
-		hr = gHR = wic_bitmap_lock->GetDataPointer(&buffer_size, &buffer);
-		if (FAILED(hr)) return luaL_error(L, "read rasterize result failed");
-		UINT buffer_stride = 0;
-		hr = gHR = wic_bitmap_lock->GetStride(&buffer_stride);
-		if (FAILED(hr)) return luaL_error(L, "read rasterize result failed");
-
 		// create texture
-
+		
 		if (!pool->CreateTexture(texture_name.data(), (int)texture_canvas_width, (int)texture_canvas_height))
 			return luaL_error(L, "create texture failed");
 
@@ -2683,38 +2938,11 @@ namespace DirectWrite
 		p_texture->setPremultipliedAlpha(true);
 		if (!p_texture->uploadPixelData(
 			core::RectU(0, 0, (uint32_t)texture_canvas_width, (uint32_t)texture_canvas_height),
-			buffer, buffer_stride))
+			my_bitmap->m_buffer.data, my_bitmap->m_buffer.stride
+		)) {
 			return luaL_error(L, "upload texture data failed");
-
-		// copy and store pixel data
-
-		core::ImageDescription canvas_image_description{};
-		canvas_image_description.size.x = static_cast<uint32_t>(texture_canvas_width);
-		canvas_image_description.size.y = static_cast<uint32_t>(texture_canvas_height);
-		canvas_image_description.format = core::ImageFormat::b8g8r8a8_normalized;
-		canvas_image_description.color_space = core::ImageColorSpace::srgb_gamma_2_2;
-
-		core::SmartReference<core::IImage> canvas_image;
-		if (!core::ImageFactory::create(canvas_image_description, canvas_image.put())) {
-			return luaL_error(L, "copy texture data failed");
 		}
-
-		{
-			core::ScopedImageMappedBuffer mapped_buffer;
-			if (!canvas_image->createScopedMap(mapped_buffer)) {
-				return luaL_error(L, "copy texture data failed");
-			}
-	
-			auto dst_ptr = static_cast<uint8_t*>(mapped_buffer.data);
-			uint8_t* src_ptr = buffer;
-			for (uint32_t y = 0; y < static_cast<uint32_t>(texture_canvas_height); y += 1)
-			{
-				std::memcpy(dst_ptr, src_ptr, mapped_buffer.stride);
-				src_ptr += buffer_stride;
-				dst_ptr += mapped_buffer.stride;
-			}
-		}
-
+		canvas_image->unmap();
 		canvas_image->setReadOnly();
 		p_texture->setImage(canvas_image.get());
 
