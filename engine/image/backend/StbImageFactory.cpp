@@ -2,7 +2,6 @@
 
 #include "backend/StbImageFactory.hpp"
 #include "core/SmartReference.hpp"
-#include "core/Logger.hpp"
 #include "backend/Image.hpp"
 #include "stb_image.h"
 #include <cassert>
@@ -30,17 +29,17 @@ namespace {
 }
 
 namespace core {
-    bool StbImageFactory::createFromMemory(const void* const data, const uint32_t size_in_bytes, IImage** const output_image) {
+    bool StbImageFactory::createFromMemory(LoggingBuffer& log, const void* const data, const uint32_t size_in_bytes, IImage** const output_image) {
         if (data == nullptr) {
-            Logger::error("{} {} data is null pointer"sv, log_header, invalid_parameter_header);
+            L_ERROR("{} {} data is null pointer"sv, log_header, invalid_parameter_header);
             return false;
         }
         if (size_in_bytes == 0) {
-            Logger::error("{} {} size_in_bytes is 0"sv, log_header, invalid_parameter_header);
+            L_ERROR("{} {} size_in_bytes is 0"sv, log_header, invalid_parameter_header);
             return false;
         }
         if (output_image == nullptr) {
-            Logger::error("{} {} output_image is null pointer"sv, log_header, invalid_parameter_header);
+            L_ERROR("{} {} output_image is null pointer"sv, log_header, invalid_parameter_header);
             return false;
         }
 
@@ -55,13 +54,13 @@ namespace core {
             4 // RGBA
         );
         if (pixels == nullptr) {
-            Logger::error("{} stbi_load_from_memory failed ({})"sv, log_header, getFailureReason());
+            L_ERROR("{} stbi_load_from_memory failed ({})"sv, log_header, getFailureReason());
             return false;
         }
         ScopedMemory scoped_memory(pixels);
 
         if (width <= 0 || width > 16384 || height <= 0 || height > 16384) {
-            Logger::error("{} image size ({}x{}) too large"sv, log_header, width, height);
+            L_ERROR("{} image size too large ({}x{})"sv, log_header, width, height);
             return false;
         }
 
@@ -74,7 +73,7 @@ namespace core {
         SmartReference<Image> image;
         image.attach(new Image());
         if (!image->initializeFromMemory(description, pixels, false)) {
-            Logger::error("{} Image::initializeFromMemory failed"sv, log_header);
+            L_ERROR("{} Image::initializeFromMemory failed"sv, log_header);
             return false;
         }
 

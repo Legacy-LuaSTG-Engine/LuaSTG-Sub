@@ -2,7 +2,6 @@
 
 #include "backend/PngImageFactory.hpp"
 #include "core/SmartReference.hpp"
-#include "core/Logger.hpp"
 #include "backend/Image.hpp"
 #include "png.h"
 #include <cassert>
@@ -23,17 +22,17 @@ namespace {
 }
 
 namespace core {
-    bool PngImageFactory::createFromMemory(const void* const data, const uint32_t size_in_bytes, IImage** const output_image) {
+    bool PngImageFactory::createFromMemory(LoggingBuffer& log, const void* const data, const uint32_t size_in_bytes, IImage** const output_image) {
         if (data == nullptr) {
-            Logger::error("{} {} data is null pointer"sv, log_header, invalid_parameter_header);
+            L_ERROR("{} {} data is null pointer"sv, log_header, invalid_parameter_header);
             return false;
         }
         if (size_in_bytes == 0) {
-            Logger::error("{} {} size_in_bytes is 0"sv, log_header, invalid_parameter_header);
+            L_ERROR("{} {} size_in_bytes is 0"sv, log_header, invalid_parameter_header);
             return false;
         }
         if (output_image == nullptr) {
-            Logger::error("{} {} output_image is null pointer"sv, log_header, invalid_parameter_header);
+            L_ERROR("{} {} output_image is null pointer"sv, log_header, invalid_parameter_header);
             return false;
         }
 
@@ -41,16 +40,16 @@ namespace core {
         png.version = PNG_IMAGE_VERSION;
         const ScopedPngImage scoped_png(&png);
         if (!png_image_begin_read_from_memory(&png, data, size_in_bytes)) {
-            Logger::error("{} png image failed ({})"sv, log_header, png.message);
+            L_ERROR("{} png image failed ({})"sv, log_header, png.message);
             return false;
         }
         if (PNG_IMAGE_FAILED(png)) {
-            Logger::error("{} png image failed ({})"sv, log_header, png.message);
+            L_ERROR("{} png image failed ({})"sv, log_header, png.message);
             return false;
         }
 
         if (png.width <= 0 || png.width > 16384 || png.height <= 0 || png.height > 16384) {
-            Logger::error("{} png image size ({}x{}) too large"sv, log_header, png.width, png.height);
+            L_ERROR("{} png image size too large ({}x{})"sv, log_header, png.width, png.height);
             return false;
         }
 
@@ -65,13 +64,13 @@ namespace core {
         SmartReference<Image> image;
         image.attach(new Image());
         if (!image->initialize(description)) {
-            Logger::error("{} Image::initialize failed"sv, log_header);
+            L_ERROR("{} Image::initialize failed"sv, log_header);
             return false;
         }
 
         ScopedImageMappedBuffer buffer{};
         if (!image->createScopedMap(buffer)) {
-            Logger::error("{} Image::map failed"sv, log_header);
+            L_ERROR("{} Image::map failed"sv, log_header);
             return false;
         }
 
@@ -81,11 +80,11 @@ namespace core {
             buffer.data, static_cast<png_int_32>(buffer.stride),
             nullptr // no color-map
         )) {
-            Logger::error("{} png_image_finish_read failed ({})"sv, log_header, png.message);
+            L_ERROR("{} png_image_finish_read failed ({})"sv, log_header, png.message);
             return false;
         }
         if (PNG_IMAGE_FAILED(png)) {
-            Logger::error("{} png_image_finish_read failed ({})"sv, log_header, png.message);
+            L_ERROR("{} png_image_finish_read failed ({})"sv, log_header, png.message);
             return false;
         }
 

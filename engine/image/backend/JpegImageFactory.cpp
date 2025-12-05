@@ -2,10 +2,10 @@
 
 #include "backend/JpegImageFactory.hpp"
 #include "core/SmartReference.hpp"
-#include "core/Logger.hpp"
 #include "backend/Image.hpp"
 #include "turbojpeg.h"
 #include <cassert>
+#include <format>
 
 namespace {
     using std::string_view_literals::operator ""sv;
@@ -28,36 +28,36 @@ namespace {
 }
 
 namespace core {
-    bool JpegImageFactory::createFromMemory(const void* const data, const uint32_t size_in_bytes, IImage** const output_image) {
+    bool JpegImageFactory::createFromMemory(LoggingBuffer& log, const void* const data, const uint32_t size_in_bytes, IImage** const output_image) {
         if (data == nullptr) {
-            Logger::error("{} {} data is null pointer"sv, log_header, invalid_parameter_header);
+            L_ERROR("{} {} data is null pointer"sv, log_header, invalid_parameter_header);
             return false;
         }
         if (size_in_bytes == 0) {
-            Logger::error("{} {} size_in_bytes is 0"sv, log_header, invalid_parameter_header);
+            L_ERROR("{} {} size_in_bytes is 0"sv, log_header, invalid_parameter_header);
             return false;
         }
         if (output_image == nullptr) {
-            Logger::error("{} {} output_image is null pointer"sv, log_header, invalid_parameter_header);
+            L_ERROR("{} {} output_image is null pointer"sv, log_header, invalid_parameter_header);
             return false;
         }
 
         const tjhandle jpeg = tj3Init(TJINIT_DECOMPRESS);
         if (jpeg == nullptr) {
-            Logger::error("{} tj3Init failed ({})"sv, log_header, getErrorMessage(jpeg));
+            L_ERROR("{} tj3Init failed ({})"sv, log_header, getErrorMessage(jpeg));
             return false;
         }
         const ScopedJpegHandle scoped_jpeg(jpeg);
 
         if (tj3DecompressHeader(jpeg, static_cast<const uint8_t*>(data), size_in_bytes) != 0) {
-            Logger::error("{} tj3DecompressHeader failed ({})"sv, log_header, getErrorMessage(jpeg));
+            L_ERROR("{} tj3DecompressHeader failed ({})"sv, log_header, getErrorMessage(jpeg));
             return false;
         }
 
         const auto width = tj3Get(jpeg, TJPARAM_JPEGWIDTH);
         const auto height = tj3Get(jpeg, TJPARAM_JPEGHEIGHT);
         if (width <= 0 || width > 16384 || height <= 0 || height > 16384) {
-            Logger::error("{} jpeg image size ({}x{}) too large"sv, log_header, width, height);
+            L_ERROR("{} jpeg image too large ({}x{})"sv, log_header, width, height);
             return false;
         }
 
@@ -70,13 +70,13 @@ namespace core {
         SmartReference<Image> image;
         image.attach(new Image());
         if (!image->initialize(description)) {
-            Logger::error("{} Image::initialize failed"sv, log_header);
+            L_ERROR("{} Image::initialize failed"sv, log_header);
             return false;
         }
 
         ScopedImageMappedBuffer buffer{};
         if (!image->createScopedMap(buffer)) {
-            Logger::error("{} Image::map failed"sv, log_header);
+            L_ERROR("{} Image::map failed"sv, log_header);
             return false;
         }
 
@@ -86,7 +86,7 @@ namespace core {
             static_cast<uint8_t*>(buffer.data), static_cast<int>(buffer.stride),
             TJPF_BGRA
         ) != 0) {
-            Logger::error("{} tj3Decompress8 failed ({})"sv, log_header, getErrorMessage(jpeg));
+            L_ERROR("{} tj3Decompress8 failed ({})"sv, log_header, getErrorMessage(jpeg));
             return false;
         }
 

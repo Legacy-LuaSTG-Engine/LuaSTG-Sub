@@ -54,40 +54,45 @@ namespace core {
             return false;
         }
         
-        if (QoiImageFactory::createFromMemory(data, size_in_bytes, output_image)) {
+        LoggingBuffer log;
+
+        if (QoiImageFactory::createFromMemory(log, data, size_in_bytes, output_image)) {
             return true;
         }
 
     #ifdef LUASTG_IMAGE_PNG_ENABLE
-        if (PngImageFactory::createFromMemory(data, size_in_bytes, output_image)) {
+        if (PngImageFactory::createFromMemory(log, data, size_in_bytes, output_image)) {
             return true;
         }
     #endif
 
     #ifdef LUASTG_IMAGE_WEBP_ENABLE
-        if (WebpImageFactory::createFromMemory(data, size_in_bytes, output_image)) {
+        if (WebpImageFactory::createFromMemory(log, data, size_in_bytes, output_image)) {
             return true;
         }
     #endif 
 
     #ifdef LUASTG_IMAGE_JPEG_ENABLE
-        if (JpegImageFactory::createFromMemory(data, size_in_bytes, output_image)) {
+        if (JpegImageFactory::createFromMemory(log, data, size_in_bytes, output_image)) {
             return true;
         }
     #endif
 
     #ifdef LUASTG_IMAGE_STB_ENABLE
-        if (StbImageFactory::createFromMemory(data, size_in_bytes, output_image)) {
+        if (StbImageFactory::createFromMemory(log, data, size_in_bytes, output_image)) {
             return true;
         }
     #endif
 
     #ifdef LUASTG_IMAGE_WINDOWS_IMAGING_COMPONENT_ENABLE
-        if (WicImageFactory::createFromMemory(data, size_in_bytes, output_image)) {
+        if (WicImageFactory::createFromMemory(log, data, size_in_bytes, output_image)) {
             return true;
         }
     #endif
 
+        for (const auto& message : log.error) {
+            Logger::error(message);
+        }
         return false;
     }
     bool ImageFactory::createFromData(IData* const data, IImage** const output_image) {

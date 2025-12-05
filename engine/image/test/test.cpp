@@ -277,6 +277,13 @@ TEST(ImageFactory, createFromMemory_jpeg) {
     const auto size = image->getSize();
     EXPECT_TRUE(size.x == 256u && size.y == 32u);
 }
+TEST(ImageFactory, createFromMemory_wtf) {
+    setupLogger();
+    using namespace core;
+
+    SmartReference<IImage> image;
+    EXPECT_FALSE(ImageFactory::createFromFile("assets/not_a_image"sv, image.put()));
+}
 
 #ifdef LUASTG_IMAGE_JPEG_ENABLE
 TEST(JpegImageFactory, createFromMemory) {
@@ -291,9 +298,10 @@ TEST(JpegImageFactory, createFromMemory) {
         "assets/test_text.jpg"sv,
     };
 
+    LoggingBuffer log;
     for (const auto file : files) {
         ASSERT_TRUE(FileSystemManager::readFile(file, data.put()));
-        EXPECT_TRUE(JpegImageFactory::createFromMemory(data->data(), static_cast<uint32_t>(data->size()), image.put()));
+        EXPECT_TRUE(JpegImageFactory::createFromMemory(log, data->data(), static_cast<uint32_t>(data->size()), image.put()));
     }
 }
 #endif // LUASTG_IMAGE_JPEG_ENABLE
@@ -311,9 +319,10 @@ TEST(PngImageFactory, createFromMemory) {
         "assets/test_text.png"sv,
     };
 
+    LoggingBuffer log;
     for (const auto file : files) {
         ASSERT_TRUE(FileSystemManager::readFile(file, data.put()));
-        EXPECT_TRUE(PngImageFactory::createFromMemory(data->data(), static_cast<uint32_t>(data->size()), image.put()));
+        EXPECT_TRUE(PngImageFactory::createFromMemory(log, data->data(), static_cast<uint32_t>(data->size()), image.put()));
     }
 }
 #endif // LUASTG_IMAGE_PNG_ENABLE
@@ -333,9 +342,10 @@ TEST(WebpImageFactory, createFromMemory) {
         "assets/test_text_lossless.webp"sv,
     };
 
+    LoggingBuffer log;
     for (const auto file : files) {
         ASSERT_TRUE(FileSystemManager::readFile(file, data.put()));
-        EXPECT_TRUE(WebpImageFactory::createFromMemory(data->data(), static_cast<uint32_t>(data->size()), image.put()));
+        EXPECT_TRUE(WebpImageFactory::createFromMemory(log, data->data(), static_cast<uint32_t>(data->size()), image.put()));
     }
 }
 #endif // LUASTG_IMAGE_WEBP_ENABLE

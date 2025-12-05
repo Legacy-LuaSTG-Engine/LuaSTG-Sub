@@ -28,7 +28,7 @@ namespace {
 }
 
 namespace core {
-    bool WicImageFactory::createFromMemory(const void* const data, const uint32_t size_in_bytes, IImage** const output_image) {
+    bool WicImageFactory::createFromMemory(LoggingBuffer& log, const void* const data, const uint32_t size_in_bytes, IImage** const output_image) {
         thread_local ScopeCoInitialize init;
         if (!init) {
             return false;
