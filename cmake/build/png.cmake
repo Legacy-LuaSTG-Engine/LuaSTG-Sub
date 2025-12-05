@@ -54,6 +54,7 @@ add_custom_command(
 add_custom_target(libpng_build ALL
     DEPENDS ${libpng_library_file}
 )
+add_dependencies(libpng_build zlib_ng_build)
 set_target_properties(libpng_build PROPERTIES FOLDER external/libpng)
 
 # external cmake build clean
