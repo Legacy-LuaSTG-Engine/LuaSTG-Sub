@@ -2,12 +2,24 @@
 #include "core/SmartReference.hpp"
 #include "core/FileSystem.hpp"
 #include "core/Image.hpp"
+#ifdef LUASTG_IMAGE_JPEG_ENABLE
 #include "backend/JpegImageFactory.hpp"
+#endif
+#ifdef LUASTG_IMAGE_PNG_ENABLE
 #include "backend/PngImageFactory.hpp"
+#endif
+#ifdef LUASTG_IMAGE_WEBP_ENABLE
 #include "backend/WebpImageFactory.hpp"
+#endif
+#ifdef LUASTG_IMAGE_STB_ENABLE
+#include "backend/StbImageFactory.hpp"
+#endif
+#ifdef LUASTG_IMAGE_WINDOWS_IMAGING_COMPONENT_ENABLE
+#include "win32/base.hpp"
+#include "backend/WicImageFactory.hpp"
+#endif
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
-#include "win32/base.hpp"
 #include "gtest/gtest.h"
 #include <DirectXPackedVector.h>
 
@@ -236,6 +248,34 @@ TEST(Image, r32g32b32a32_float_map_write_unmap_getPixel) {
     image->unmap();
 
     EXPECT_EQ(color, image->getPixel(0, 0));
+}
+
+TEST(ImageFactory, createFromMemory_png) {
+    setupLogger();
+    using namespace core;
+
+    SmartReference<IImage> image;
+    EXPECT_TRUE(ImageFactory::createFromFile("assets/test_color.png"sv, image.put()));
+    const auto size = image->getSize();
+    EXPECT_TRUE(size.x == 256u && size.y == 32u);
+}
+TEST(ImageFactory, createFromMemory_webp) {
+    setupLogger();
+    using namespace core;
+
+    SmartReference<IImage> image;
+    EXPECT_TRUE(ImageFactory::createFromFile("assets/test_color_lossless.webp"sv, image.put()));
+    const auto size = image->getSize();
+    EXPECT_TRUE(size.x == 256u && size.y == 32u);
+}
+TEST(ImageFactory, createFromMemory_jpeg) {
+    setupLogger();
+    using namespace core;
+
+    SmartReference<IImage> image;
+    EXPECT_TRUE(ImageFactory::createFromFile("assets/test_color.jpg"sv, image.put()));
+    const auto size = image->getSize();
+    EXPECT_TRUE(size.x == 256u && size.y == 32u);
 }
 
 #ifdef LUASTG_IMAGE_JPEG_ENABLE
