@@ -99,6 +99,6 @@ namespace core {
             Logger::error("{} {} output_image is null pointer"sv, log_header_data, invalid_parameter_header);
             return false;
         }
-        return createFromMemory(data->data(), data->size(), output_image);
+        return createFromMemory(data->data(), static_cast<uint32_t>(data->size()), output_image);
     }
 }
