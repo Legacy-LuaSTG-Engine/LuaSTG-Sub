@@ -140,22 +140,25 @@ namespace core::Graphics::Common {
 		return result;
 	}
 	bool FreeTypeGlyphManager::flush() {
+		bool result = true;
 		for (auto& t : m_tex) {
 			if (t.dirty_l != GlyphCache2D::invalid_rect_value) {
-				if (!t.texture->uploadPixelData(
+				if (t.texture->uploadPixelData(
 					RectU(t.dirty_l, t.dirty_t, t.dirty_r, t.dirty_b),
 					&t.image.pixel(t.dirty_l, t.dirty_t),
 					t.image.pitch
 				)) {
-					return false;
+					t.dirty_l = GlyphCache2D::invalid_rect_value;
+					t.dirty_t = GlyphCache2D::invalid_rect_value;
+					t.dirty_r = GlyphCache2D::invalid_rect_value;
+					t.dirty_b = GlyphCache2D::invalid_rect_value;
 				}
-				t.dirty_l = GlyphCache2D::invalid_rect_value;
-				t.dirty_t = GlyphCache2D::invalid_rect_value;
-				t.dirty_r = GlyphCache2D::invalid_rect_value;
-				t.dirty_b = GlyphCache2D::invalid_rect_value;
+				else {
+					result = false;
+				}
 			}
 		}
-		return true;
+		return result;
 	}
 
 	bool FreeTypeGlyphManager::getGlyph(uint32_t const codepoint, GlyphInfo* const p_ref_info, bool const no_render) {
@@ -432,6 +435,7 @@ namespace core::Graphics::Common {
 				return false;
 			}
 			m_map.emplace(codepoint, cache);
+			return true;
 		}
 		return false;
 	}
