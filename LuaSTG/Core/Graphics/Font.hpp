@@ -77,4 +77,57 @@ namespace core {
 	// ns:URL
 	// https://www.luastg-sub.com/core.ITextRenderer
 	template<> constexpr InterfaceId getInterfaceId<Graphics::ITextRenderer>() { return UUID::parse("23c381e5-4769-5caf-9623-5f050c0f9aba"); }
+
+	enum class FontWeight : int32_t {
+		normal = 400,
+		bold = 700,
+	};
+
+	enum class FontStyle : int32_t {
+		normal = 0,
+		italic = 1,
+	};
+
+	enum class Alignment : int32_t {
+		start = 0,
+		center = 1,
+		end = 2,
+	};
+
+	enum class Anchor : int32_t {
+		left_top = 0,
+		center_top = 1,
+		right_top = 2,
+		left_center = 4,
+		center_center = 4 | 1,
+		right_center = 4 | 2,
+		left_bottom = 8,
+		center_bottom = 8 | 1,
+		right_bottom = 8 | 2,
+	};
+
+	CORE_INTERFACE ITextLayout : public IReferenceCounted{
+		virtual void setText(StringView text) = 0;
+		virtual void setFontFamilyName(StringView font_family) = 0;
+		virtual void setFontSize(float size) = 0;
+		virtual void setFontWeight(FontWeight weight) = 0;
+		virtual void setFontStyle(FontStyle style) = 0;
+		virtual void setLayoutSize(Vector2F size) = 0;
+		virtual void setTextAlignment(Alignment alignment) = 0;
+		virtual void setParagraphAlignment(Alignment alignment) = 0;
+	};
+	CORE_INTERFACE_ID(ITextLayout, "4c5e5524-815f-5632-915d-0e14df3dfce3");
+
+	CORE_INTERFACE ITextRenderer2 : public IReferenceCounted{
+		virtual void setTextLayout(ITextLayout* text_layout) = 0;
+		virtual void setAnchor(Anchor anchor) = 0;
+		virtual void setPosition(Vector2F position) = 0;
+		virtual void setScale(Vector2F scale) = 0;
+		virtual void setRotation(float rotation) = 0;
+		virtual void setTransform(Vector2F position, float rotation, Vector2F scale) = 0;
+		virtual void setColor(Color4B color) = 0;
+		virtual void setLegacyBlendState(Graphics::IRenderer::VertexColorBlendState vertex_color_blend, Graphics::IRenderer::BlendState blend) = 0;
+		virtual void draw(Graphics::IRenderer* renderer) = 0;
+	};
+	CORE_INTERFACE_ID(ITextRenderer2, "3308ba67-afc6-54ef-938b-7aeb006876a0");
 }
