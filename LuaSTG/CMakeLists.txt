@@ -204,7 +204,7 @@ target_link_libraries(LuaSTG PRIVATE
     win32
     PlatformAPI
     DirectX::ToolKitMini
-    DirectX::TextureMini
+    Microsoft::DirectXTexMini
     Core
     xmath
     lua51_static

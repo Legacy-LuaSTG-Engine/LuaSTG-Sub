@@ -1,4 +1,4 @@
-# libfreetype
+# freetype
 
 CPMAddPackage(
     NAME libfreetype
@@ -8,72 +8,77 @@ CPMAddPackage(
     DOWNLOAD_ONLY YES
 )
 
-if(libfreetype_ADDED)
-    set(libfreetype_source_dir  ${libfreetype_SOURCE_DIR})
-    set(libfreetype_build_dir   ${CMAKE_CURRENT_BINARY_DIR}/libfreetype/$<CONFIG>)
-    set(libfreetype_install_dir ${CMAKE_CURRENT_BINARY_DIR}/install/$<CONFIG>)
-    set(libfreetype_lib_file    ${libfreetype_install_dir}/lib/freetype$<$<CONFIG:Debug>:d>.lib)
-    set(libfreetype_options
-        # install location
-        -DCMAKE_INSTALL_PREFIX=${libfreetype_install_dir}
+if (NOT libfreetype_ADDED)
+    message(FATAL_ERROR "freetype is requied")
+endif ()
+
+# prepare
+
+set(freetype_source_directory  ${libfreetype_SOURCE_DIR})
+set(freetype_build_directory   ${CMAKE_BINARY_DIR}/build/freetype/$<CONFIG>)
+set(freetype_install_directory ${CMAKE_BINARY_DIR}/install/$<CONFIG>)
+set(freetype_library_file      ${freetype_install_directory}/lib/freetype$<$<CONFIG:Debug>:d>.lib)
+
+luastg_cmake_external_build_prepare_directories(include/freetype2)
+
+# external cmake build
+
+add_custom_command(
+    OUTPUT ${freetype_library_file}
+    COMMAND ${CMAKE_COMMAND} -E echo ${CMAKE_GENERATOR} ${CMAKE_GENERATOR_PLATFORM} ${CMAKE_GENERATOR_TOOLSET} $<CONFIG>
+    COMMAND ${CMAKE_COMMAND}
+        # basic
+        -S ${freetype_source_directory}
+        -B ${freetype_build_directory}
+        # generator
+        ${LUASTG_CMAKE_EXTERNAL_BUILD_GENERATOR_OPTIONS}
         # msvc runtime library
         -DCMAKE_POLICY_DEFAULT_CMP0091=NEW
         -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>
+        # install location
+        -DCMAKE_INSTALL_PREFIX=${freetype_install_directory}
         # force utf-8
         -DCMAKE_C_FLAGS=/utf-8
-        #-DCMAKE_CXX_FLAGS=/utf-8  # freetype is C lib
-        # libfreetype options
+        # options
         -DFT_DISABLE_ZLIB=ON
         -DFT_DISABLE_BZIP2=ON
         -DFT_DISABLE_PNG=ON
         -DFT_DISABLE_HARFBUZZ=ON
         -DFT_DISABLE_BROTLI=ON
-    )
-    add_custom_command(
-        OUTPUT ${libfreetype_lib_file}
-        COMMAND echo ${CMAKE_GENERATOR}
-        COMMAND echo ${CMAKE_GENERATOR_PLATFORM}
-        COMMAND echo $<CONFIG>
-        COMMAND ${CMAKE_COMMAND}
-            -S ${libfreetype_source_dir}
-            -B ${libfreetype_build_dir}
-            -G ${CMAKE_GENERATOR}
-            $<$<BOOL:${CMAKE_GENERATOR_PLATFORM}>:-A> ${CMAKE_GENERATOR_PLATFORM}
-            $<$<BOOL:${CMAKE_GENERATOR_TOOLSET}>:-T> ${CMAKE_GENERATOR_TOOLSET}
-            ${libfreetype_options}
-        # magic target for MSVC
-        COMMAND cmake --build   ${libfreetype_build_dir} --config $<CONFIG> --target ALL_BUILD
-        COMMAND cmake --install ${libfreetype_build_dir} --config $<CONFIG> --prefix ${libfreetype_install_dir}
-        VERBATIM
-    )
-    add_custom_target(libfreetype_build ALL
-        DEPENDS ${libfreetype_lib_file}
-    )
-    add_custom_target(libfreetype_clean
-        COMMAND cmake -E rm -rf ${libfreetype_build_dir}
-        COMMAND cmake -E rm -f ${libfreetype_lib_file}
-        VERBATIM
-    )
-    set_target_properties(libfreetype_build PROPERTIES FOLDER external)
-    set_target_properties(libfreetype_clean PROPERTIES FOLDER external)
+    COMMAND ${CMAKE_COMMAND}
+        --build ${freetype_build_directory}
+        --config $<CONFIG>
+    COMMAND ${CMAKE_COMMAND}
+        --install ${freetype_build_directory}
+        --config $<CONFIG>
+        --prefix ${freetype_install_directory}
+    VERBATIM
+)
+add_custom_target(freetype_build ALL
+    DEPENDS ${freetype_library_file}
+)
+set_target_properties(freetype_build PROPERTIES FOLDER external/freetype)
 
-    # fuck cmake
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/Debug/include/freetype2/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/Release/include/freetype2/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/RelWithDebInfo/include/freetype2/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/MinSizeRel/include/freetype2/placeholder "")
+# external cmake build clean
 
-    # libfreetype
-    add_library(libfreetype STATIC IMPORTED GLOBAL)
-    add_library(Freetype::Freetype ALIAS libfreetype)
-    target_include_directories(libfreetype
-    INTERFACE
-        ${libfreetype_install_dir}/include
-        ${libfreetype_install_dir}/include/freetype2
-    )
-    set_target_properties(libfreetype PROPERTIES
-        IMPORTED_LOCATION       ${CMAKE_CURRENT_BINARY_DIR}/install/Release/lib/freetype.lib
-        IMPORTED_LOCATION_DEBUG ${CMAKE_CURRENT_BINARY_DIR}/install/Debug/lib/freetyped.lib
-    )
-    add_dependencies(libfreetype libfreetype_build)
-endif()
+add_custom_target(freetype_clean
+    COMMAND ${CMAKE_COMMAND} -E rm -rf ${freetype_build_directory}
+    COMMAND ${CMAKE_COMMAND} -E rm -f  ${freetype_library_file}
+    VERBATIM
+)
+set_target_properties(freetype_clean PROPERTIES FOLDER external/freetype)
+
+# import
+
+add_library(freetype STATIC IMPORTED GLOBAL)
+add_library(Freetype::Freetype ALIAS freetype)
+target_include_directories(freetype
+INTERFACE
+    ${freetype_install_directory}/include
+    ${freetype_install_directory}/include/freetype2
+)
+set_target_properties(freetype PROPERTIES
+    IMPORTED_LOCATION       ${CMAKE_BINARY_DIR}/install/Release/lib/freetype.lib
+    IMPORTED_LOCATION_DEBUG ${CMAKE_BINARY_DIR}/install/Debug/lib/freetyped.lib
+)
+add_dependencies(freetype freetype_build)

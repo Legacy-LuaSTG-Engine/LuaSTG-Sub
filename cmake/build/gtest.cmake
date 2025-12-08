@@ -12,70 +12,82 @@ if (NOT gtest_ADDED)
     message(FATAL_ERROR "gtest is requied")
 endif ()
 
-if (gtest_ADDED)
-    # first, fuck cmake
-    # cmake import target requires exist include directories, idk why
+# gtest
 
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/Debug/include/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/Release/include/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/RelWithDebInfo/include/placeholder "")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/install/MinSizeRel/include/placeholder "")
+set(gtest_source_directory  ${gtest_SOURCE_DIR})
+set(gtest_build_directory   ${CMAKE_BINARY_DIR}/build/gtest/$<CONFIG>)
+set(gtest_install_directory ${CMAKE_BINARY_DIR}/install/$<CONFIG>)
+set(gtest_library_files
+    ${gtest_install_directory}/lib/gtest.lib
+    ${gtest_install_directory}/lib/gtest_main.lib
+)
 
-    # then, fuck gtest
+# external cmake build
 
-    set(gtest_source_dir  ${gtest_SOURCE_DIR})
-    set(gtest_build_dir   ${CMAKE_CURRENT_BINARY_DIR}/gtest/$<CONFIG>)
-    set(gtest_install_dir ${CMAKE_CURRENT_BINARY_DIR}/install/$<CONFIG>)
-    set(gtest_lib_file    ${gtest_install_dir}/lib/gtest.lib)
-    set(gtest_options
-        -DCMAKE_INSTALL_PREFIX=${gtest_install_dir}
+add_custom_command(
+    OUTPUT ${gtest_library_files}
+    COMMAND ${CMAKE_COMMAND} -E echo ${CMAKE_GENERATOR} ${CMAKE_GENERATOR_PLATFORM} ${CMAKE_GENERATOR_TOOLSET} $<CONFIG>
+    COMMAND ${CMAKE_COMMAND}
+        # basic
+        -S ${gtest_source_directory}
+        -B ${gtest_build_directory}
+        # generator
+        ${LUASTG_CMAKE_EXTERNAL_BUILD_GENERATOR_OPTIONS}
+        # msvc runtime library
+        -DCMAKE_POLICY_DEFAULT_CMP0091=NEW
         -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>
-    )
-    add_custom_command(
-        OUTPUT ${gtest_lib_file}
-        COMMAND echo ${CMAKE_GENERATOR}
-        COMMAND echo ${CMAKE_GENERATOR_PLATFORM}
-        COMMAND echo $<CONFIG>
-        COMMAND ${CMAKE_COMMAND}
-            -S ${gtest_source_dir}
-            -B ${gtest_build_dir}
-            -G ${CMAKE_GENERATOR}
-            $<$<BOOL:${CMAKE_GENERATOR_PLATFORM}>:-A> ${CMAKE_GENERATOR_PLATFORM}
-            $<$<BOOL:${CMAKE_GENERATOR_TOOLSET}>:-T> ${CMAKE_GENERATOR_TOOLSET}
-            ${gtest_options}
-        COMMAND cmake --build   ${gtest_build_dir} --config $<CONFIG> --target ALL_BUILD # magic target for MSVC
-        COMMAND cmake --install ${gtest_build_dir} --config $<CONFIG> --prefix ${gtest_install_dir}
-        VERBATIM
-    )
-    add_custom_target(gtest_build ALL
-        DEPENDS ${gtest_lib_file}
-    )
-    set_target_properties(gtest_build PROPERTIES FOLDER external)
+        # install location
+        -DCMAKE_INSTALL_PREFIX=${gtest_install_directory}
+    COMMAND ${CMAKE_COMMAND}
+        --build ${gtest_build_directory}
+        --config $<CONFIG>
+    COMMAND ${CMAKE_COMMAND}
+        --install ${gtest_build_directory}
+        --config $<CONFIG>
+        --prefix ${gtest_install_directory}
+    VERBATIM
+)
+add_custom_target(gtest_build ALL
+    DEPENDS ${gtest_library_files}
+)
+set_target_properties(gtest_build PROPERTIES FOLDER external/gtest)
 
-    # finally, import targets
+# external cmake build clean
 
-    add_library(gtest STATIC IMPORTED GLOBAL)
-    add_library(GTest::gtest ALIAS gtest)
-    target_include_directories(gtest
-    INTERFACE
-        ${gtest_install_dir}/include
-    )
-    set_target_properties(gtest PROPERTIES
-        IMPORTED_LOCATION       ${CMAKE_CURRENT_BINARY_DIR}/install/Release/lib/gtest.lib
-        IMPORTED_LOCATION_DEBUG ${CMAKE_CURRENT_BINARY_DIR}/install/Debug/lib/gtest.lib
-    )
-    add_dependencies(gtest gtest_build)
+add_custom_target(gtest_clean
+    COMMAND ${CMAKE_COMMAND} -E rm -rf ${gtest_build_directory}
+    COMMAND ${CMAKE_COMMAND} -E rm -f  ${gtest_library_files}
+    VERBATIM
+)
+set_target_properties(gtest_clean PROPERTIES FOLDER external/gtest)
 
-    add_library(gtest_main STATIC IMPORTED GLOBAL)
-    add_library(GTest::gtest_main ALIAS gtest_main)
-    target_include_directories(gtest_main
-    INTERFACE
-        ${gtest_install_dir}/include
-    )
-    set_target_properties(gtest_main PROPERTIES
-        IMPORTED_LOCATION       ${CMAKE_CURRENT_BINARY_DIR}/install/Release/lib/gtest_main.lib
-        IMPORTED_LOCATION_DEBUG ${CMAKE_CURRENT_BINARY_DIR}/install/Debug/lib/gtest_main.lib
-    )
-    target_link_libraries(gtest_main INTERFACE gtest)
-    add_dependencies(gtest_main gtest_build)
-endif ()
+# import 
+
+## GTest::gtest
+
+add_library(gtest STATIC IMPORTED GLOBAL)
+add_library(GTest::gtest ALIAS gtest)
+target_include_directories(gtest
+INTERFACE
+    ${gtest_install_directory}/include
+)
+set_target_properties(gtest PROPERTIES
+    IMPORTED_LOCATION       ${CMAKE_BINARY_DIR}/install/Release/lib/gtest.lib
+    IMPORTED_LOCATION_DEBUG ${CMAKE_BINARY_DIR}/install/Debug/lib/gtest.lib
+)
+add_dependencies(gtest gtest_build)
+
+## GTest::gtest_main
+
+add_library(gtest_main STATIC IMPORTED GLOBAL)
+add_library(GTest::gtest_main ALIAS gtest_main)
+target_include_directories(gtest_main
+INTERFACE
+    ${gtest_install_directory}/include
+)
+set_target_properties(gtest_main PROPERTIES
+    IMPORTED_LOCATION       ${CMAKE_BINARY_DIR}/install/Release/lib/gtest_main.lib
+    IMPORTED_LOCATION_DEBUG ${CMAKE_BINARY_DIR}/install/Debug/lib/gtest_main.lib
+)
+target_link_libraries(gtest_main INTERFACE gtest)
+add_dependencies(gtest_main gtest_build)

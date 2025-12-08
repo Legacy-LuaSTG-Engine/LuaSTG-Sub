@@ -35,10 +35,7 @@ set(Core_SRC
     Core/Graphics/Sprite.hpp
     Core/Graphics/Font.hpp
     Core/Graphics/Mesh.hpp
-    Core/Graphics/Image.hpp
-    
-    Core/Graphics/Common/MemoryImage.hpp
-    Core/Graphics/Common/MemoryImage.cpp
+
     Core/Graphics/Common/Sprite.hpp
     Core/Graphics/Common/Sprite.cpp
     Core/Graphics/Common/SpriteRenderer.hpp
@@ -67,8 +64,6 @@ set(Core_SRC
     Core/Graphics/Direct3D11/MeshRenderer.cpp
     Core/Graphics/Direct3D11/LetterBoxingRenderer.hpp
     Core/Graphics/Direct3D11/LetterBoxingRenderer.cpp
-
-    Core/Graphics/WindowsImageComponent/WindowsImageComponentImage.cpp
 
     Core/ApplicationModel.hpp
     Core/ApplicationModel_Win32.hpp
@@ -103,7 +98,7 @@ target_link_libraries(Core PUBLIC
     d3d11.lib
     #Microsoft.XAudio2.Redist
     Microsoft.Windows.ImplementationLibrary
-    DirectX::TextureMini
+    Microsoft::DirectXTexMini
     libqoi
     # math
     xmath
@@ -124,5 +119,6 @@ target_link_libraries(Core PUBLIC
     Core.Configuration
     Core.ReferenceCounted
     Core.FileSystem
+    Core.Image
     win32
 )

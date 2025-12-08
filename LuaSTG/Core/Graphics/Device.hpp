@@ -4,6 +4,7 @@
 #include "core/ReferenceCounted.hpp"
 #include "core/Data.hpp"
 #include "core/ImmutableString.hpp"
+#include "core/Image.hpp"
 
 #define LUASTG_ENABLE_DIRECT2D
 
@@ -108,7 +109,7 @@ namespace core::Graphics
 		virtual bool setSize(Vector2U size) = 0;
 
 		virtual bool uploadPixelData(RectU rc, void const* data, uint32_t pitch) = 0;
-		virtual void setPixelData(IData* p_data) = 0;
+		virtual void setImage(IImage* image) = 0;
 
 		virtual bool saveToFile(StringView path) = 0;
 
@@ -160,7 +161,7 @@ namespace core::Graphics
 		virtual bool createConstantBuffer(uint32_t size_in_bytes, IBuffer** output) = 0;
 
 		virtual bool createTextureFromFile(StringView path, bool mipmap, ITexture2D** pp_texture) = 0;
-		//virtual bool createTextureFromMemory(void const* data, size_t size, bool mipmap, ITexture2D** pp_texture) = 0;
+		virtual bool createTextureFromImage(IImage* image, bool mipmap, ITexture2D** pp_texture) = 0;
 		virtual bool createTexture(Vector2U size, ITexture2D** pp_texture) = 0;
 
 		virtual bool createRenderTarget(Vector2U size, IRenderTarget** pp_rt) = 0;

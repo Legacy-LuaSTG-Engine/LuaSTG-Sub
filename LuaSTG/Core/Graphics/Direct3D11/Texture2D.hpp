@@ -27,7 +27,7 @@ namespace core::Graphics::Direct3D11 {
 		bool setSize(Vector2U size) override;
 
 		bool uploadPixelData(RectU rc, void const* data, uint32_t pitch) override;
-		void setPixelData(IData* p_data) override { m_data = p_data; }
+		void setImage(IImage* const image) override { m_image = image; }
 
 		bool saveToFile(StringView path) override;
 
@@ -47,13 +47,14 @@ namespace core::Graphics::Direct3D11 {
 		[[nodiscard]] ID3D11ShaderResourceView* GetView() const noexcept { return m_view.Get(); }
 
 		bool initialize(Device* device, StringView path, bool mipmap);
+		bool initialize(Device* device, IImage* image, bool mipmap);
 		bool initialize(Device* device, Vector2U size, bool is_render_target);
 		bool createResource();
 
 	private:
 		SmartReference<Device> m_device;
 		SmartReference<ISamplerState> m_sampler;
-		SmartReference<IData> m_data;
+		SmartReference<IImage> m_image;
 		std::string m_source_path;
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> m_texture;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_view;
