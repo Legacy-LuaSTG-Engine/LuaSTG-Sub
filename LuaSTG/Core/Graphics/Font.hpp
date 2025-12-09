@@ -107,18 +107,6 @@ namespace core {
 		end = 2,
 	};
 
-	enum class Anchor : int32_t {
-		left_top = 0,
-		center_top = 1,
-		right_top = 2,
-		left_center = 4,
-		center_center = 4 | 1,
-		right_center = 4 | 2,
-		left_bottom = 8,
-		center_bottom = 8 | 1,
-		right_bottom = 8 | 2,
-	};
-
 	CORE_INTERFACE ITextLayout : public IReferenceCounted {
 		virtual void setText(StringView text) = 0;
 		virtual void setFontFamilyName(StringView font_family_name) = 0;
