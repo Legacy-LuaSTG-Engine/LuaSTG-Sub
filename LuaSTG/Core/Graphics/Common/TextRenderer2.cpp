@@ -298,4 +298,19 @@ namespace core {
     Graphics::ITexture2D* TextLayout_DirectWrite::getTexture() {
         return m_texture.get();
     }
+
+    // TextLayout_DirectWrite
+
+    TextLayout_DirectWrite::TextLayout_DirectWrite(Graphics::IDevice* const device) : m_device(device) {
+    }
+}
+
+namespace core {
+    bool ITextLayout::create(Graphics::IDevice* const device, ITextLayout** const output) {
+        if (device == nullptr || output == nullptr) {
+            return false;
+        }
+        *output = new TextLayout_DirectWrite(device);
+        return true;
+    }
 }

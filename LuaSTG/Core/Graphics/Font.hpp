@@ -131,19 +131,8 @@ namespace core {
 
 		virtual bool build() = 0;
 		virtual Graphics::ITexture2D* getTexture() = 0;
+
+		static bool create(Graphics::IDevice* device, ITextLayout** output);
 	};
 	CORE_INTERFACE_ID(ITextLayout, "4c5e5524-815f-5632-915d-0e14df3dfce3");
-
-	CORE_INTERFACE ITextRenderer2 : public IReferenceCounted {
-		virtual void setTextLayout(ITextLayout* text_layout) = 0;
-		virtual void setAnchor(Anchor anchor) = 0;
-		virtual void setPosition(Vector2F position) = 0;
-		virtual void setScale(Vector2F scale) = 0;
-		virtual void setRotation(float rotation) = 0;
-		virtual void setTransform(Vector2F position, float rotation, Vector2F scale) = 0;
-		virtual void setColor(Color4B color) = 0;
-		virtual void setLegacyBlendState(Graphics::IRenderer::VertexColorBlendState vertex_color_blend, Graphics::IRenderer::BlendState blend) = 0;
-		virtual void draw(Graphics::IRenderer* renderer) = 0;
-	};
-	CORE_INTERFACE_ID(ITextRenderer2, "3308ba67-afc6-54ef-938b-7aeb006876a0");
 }
