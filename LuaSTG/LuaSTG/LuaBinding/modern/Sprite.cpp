@@ -54,7 +54,7 @@ namespace luastg::binding {
 			if (texture->data) {
 				texture->data->retain();
 			}
-			return 0;
+			return 1;
 		}
 		static int setTextureRect(lua_State* vm) {
 			lua::stack_t const ctx(vm);

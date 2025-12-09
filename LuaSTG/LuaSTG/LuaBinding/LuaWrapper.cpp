@@ -20,6 +20,7 @@
 #include "LuaBinding/modern/GameObject.hpp"
 #include "LuaBinding/modern/Well512.hpp"
 #include "LuaBinding/modern/ShellIntegration.hpp"
+#include "LuaBinding/modern/TextLayout.hpp"
 
 namespace luastg::binding
 {
@@ -94,5 +95,6 @@ namespace luastg::binding
 		GameObject::registerClass(L);
 		Well512::registerClass(L);
 		ShellIntegration::registerClass(L);
+		TextLayout::registerClass(L);
 	}
 }

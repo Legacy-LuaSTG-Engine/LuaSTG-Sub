@@ -155,6 +155,8 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/modern/Well512.cpp
     LuaSTG/LuaBinding/modern/ShellIntegration.hpp
     LuaSTG/LuaBinding/modern/ShellIntegration.cpp
+    LuaSTG/LuaBinding/modern/TextLayout.hpp
+    LuaSTG/LuaBinding/modern/TextLayout.cpp
 
     LuaSTG/LuaBinding/generated/BlendModeX.cpp
     LuaSTG/LuaBinding/generated/BlendModeX.hpp
