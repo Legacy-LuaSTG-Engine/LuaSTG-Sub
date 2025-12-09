@@ -100,9 +100,10 @@ namespace win32 {
 			return *this;
 		}
 
-		T** put() {
+		template<typename U = T>
+		U** put() {
 			reset();
-			return &m_object;
+			return reinterpret_cast<U**>(&m_object);
 		}
 
 		[[nodiscard]] explicit operator bool() const noexcept { return m_object != nullptr; }
