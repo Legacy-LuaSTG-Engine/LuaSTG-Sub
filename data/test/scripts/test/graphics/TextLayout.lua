@@ -29,6 +29,20 @@ function M:onCreate()
     self.sprite = Sprite.create(self.text_layout:getTexture(), 0, 0, w, h, w / 2, h / 2, 0.5)
     self.renderer = SpriteRenderer.create(self.sprite)
     self.timer = 0
+
+    self.text_layout_large = TextLayout.create()
+        :setText(lstg.LoadTextFile("assets/text/article1.txt"))
+        :setFontFamilyName("Noto Sans SC")
+        :setFontSize(16)
+        :setFontWeight(FontWeight.normal)
+        :setFontStyle(FontStyle.normal)
+        :setTextAlignment(TextAlignment.start)
+        :setParagraphAlignment(ParagraphAlignment.start)
+        :setLayoutSize(1280, 720)
+    self.text_layout_large:build()
+    self.sprite_large = Sprite.create(self.text_layout_large:getTexture(), 0, 0, 1280, 720, 0, 0)
+    self.renderer_large = SpriteRenderer.create(self.sprite_large)
+    self.renderer_large:setTransform(0, 720)
 end
 
 function M:onDestroy()
@@ -46,6 +60,7 @@ end
 
 function M:onRender()
     window:applyCameraV()
+    self.renderer_large:draw()
     self.renderer:draw()
 end
 

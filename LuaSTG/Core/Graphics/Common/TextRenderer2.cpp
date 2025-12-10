@@ -255,9 +255,25 @@ namespace core {
             return false;
         }
 
+        win32::com_ptr<IDWriteRenderingParams> rendering_params;
+        if (!win32::check_hresult_as_boolean(
+            dwrite->CreateCustomRenderingParams(
+                1.0f, // gamma
+                0.0f, // no Enhanced contrast
+                0.0f, // no ClearType
+                DWRITE_PIXEL_GEOMETRY_FLAT,
+                DWRITE_RENDERING_MODE_OUTLINE,
+                rendering_params.put()
+            ),
+            "IDWriteFactory::CreateCustomRenderingParams"sv
+        )) {
+            return false;
+        }
+
         render_target->BeginDraw();
         render_target->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
         render_target->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_GRAYSCALE);
+        render_target->SetTextRenderingParams(rendering_params.get());
         constexpr D2D1_COLOR_F clear_color{};
         render_target->Clear(&clear_color);
         constexpr D2D1_POINT_2F position{};
