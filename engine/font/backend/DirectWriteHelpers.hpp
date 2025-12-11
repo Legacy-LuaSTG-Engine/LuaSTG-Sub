@@ -1,4 +1,5 @@
 #pragma once
+#include "core/ImmutableStringList.hpp"
 #include "core/FontCommon.hpp"
 #define WIN32_LEAN_AND_MEAN
 #define NOSERVICE
@@ -14,6 +15,7 @@ namespace core {
     class DirectWriteHelpers {
     public:
         static IDWriteFactory* getFactory();
+        static HRESULT createCustomFontCollection(core::IImmutableStringList* files, IDWriteFontCollection** output);
 
         static DWRITE_FONT_WEIGHT toFontWeight(FontWeight weight) noexcept;
         static DWRITE_FONT_STYLE toFontStyle(FontStyle style) noexcept;

@@ -9,7 +9,7 @@ namespace core {
 
         virtual bool findFontFamily(StringView font_family_name, uint32_t& font_family_index) = 0;
         virtual uint32_t getFontFamilyCount() = 0;
-        virtual StringView getFontFamilyName(uint32_t font_family_index) = 0;
+        virtual bool getFontFamilyName(uint32_t font_family_index, IImmutableString** output) = 0;
 
         virtual bool findFont(
             StringView font_family_name,
@@ -17,7 +17,7 @@ namespace core {
             uint32_t& font_family_index, uint32_t& font_index
         ) = 0;
         virtual uint32_t getFontCount(uint32_t font_family_index) = 0;
-        virtual StringView getFontName(uint32_t font_family_index, uint32_t font_index) = 0;
+        virtual bool getFontName(uint32_t font_family_index, uint32_t font_index, IImmutableString** output) = 0;
         virtual FontWeight getFontWeight(uint32_t font_family_index, uint32_t font_index) = 0;
         virtual FontStyle getFontStyle(uint32_t font_family_index, uint32_t font_index) = 0;
         virtual FontWidth getFontWidth(uint32_t font_family_index, uint32_t font_index) = 0;

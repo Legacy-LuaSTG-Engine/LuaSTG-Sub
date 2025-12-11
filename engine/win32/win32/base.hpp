@@ -57,6 +57,9 @@ namespace win32 {
 		}
 		com_ptr(com_ptr&& other) noexcept : m_object(std::exchange(other.m_object, nullptr)) {
 		}
+		com_ptr(T* const other) : m_object(other) {
+			reference();
+		}
 		~com_ptr() {
 			reset();
 		}
