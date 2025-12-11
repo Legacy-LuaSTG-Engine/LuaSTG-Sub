@@ -6,6 +6,7 @@
 namespace core {
     CORE_INTERFACE IFontCollection : public IReferenceCounted {
         virtual bool addFile(StringView path) = 0;
+        virtual bool build() = 0;
 
         virtual bool findFontFamily(StringView font_family_name, uint32_t& font_family_index) = 0;
         virtual uint32_t getFontFamilyCount() = 0;
