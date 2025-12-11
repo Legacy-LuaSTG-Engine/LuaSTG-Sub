@@ -84,46 +84,46 @@ namespace {
     };
 
     class DirectWriteFontFileStream final : public SimpleUnknown<IDWriteFontFileStream> {
-	public:
+    public:
         // IDWriteFontFileStream
 
-		HRESULT WINAPI ReadFileFragment(void const** fragmentStart, UINT64 fileOffset, UINT64 fragmentSize, void** fragmentContext) noexcept {
-			if (fragmentStart == nullptr) {
+        HRESULT WINAPI ReadFileFragment(void const** fragmentStart, UINT64 fileOffset, UINT64 fragmentSize, void** fragmentContext) noexcept {
+            if (fragmentStart == nullptr) {
                 return E_POINTER;
             }
             if (fileOffset >= m_data->size() || (fileOffset + fragmentSize) > m_data->size()) {
                 return E_INVALIDARG;
             }
             const auto pointer = static_cast<uint8_t*>(m_data->data()) + fileOffset;
-			*fragmentStart = pointer;
-			*fragmentContext = pointer; // for identification only
-			return S_OK;
-		}
-		void WINAPI ReleaseFileFragment(void* fragmentContext) noexcept {
-			UNREFERENCED_PARAMETER(fragmentContext);
-		}
-		HRESULT WINAPI GetFileSize(UINT64* fileSize) noexcept {
+            *fragmentStart = pointer;
+            *fragmentContext = pointer; // for identification only
+            return S_OK;
+        }
+        void WINAPI ReleaseFileFragment(void* fragmentContext) noexcept {
+            UNREFERENCED_PARAMETER(fragmentContext);
+        }
+        HRESULT WINAPI GetFileSize(UINT64* fileSize) noexcept {
             if (fileSize == nullptr) {
                 return E_POINTER;
             }
-			*fileSize = m_data->size();
-			return S_OK;
-		}
-		HRESULT WINAPI GetLastWriteTime(UINT64* lastWriteTime) noexcept {
-			if (lastWriteTime == nullptr) {
+            *fileSize = m_data->size();
+            return S_OK;
+        }
+        HRESULT WINAPI GetLastWriteTime(UINT64* lastWriteTime) noexcept {
+            if (lastWriteTime == nullptr) {
                 return E_POINTER;
             }
             *lastWriteTime = 0;
-			return S_OK;
-		}
+            return S_OK;
+        }
 
         // DirectWriteFontFileStream
 
         explicit DirectWriteFontFileStream(core::IData* const data) noexcept : m_data(data) {}
 
     private:
-		core::SmartReference<core::IData> m_data;
-	};
+        core::SmartReference<core::IData> m_data;
+    };
 
     class DirectWriteFontFileLoader final : public SimpleSingletonUnknown<IDWriteFontFileLoader> {
     public:
