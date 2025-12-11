@@ -3,8 +3,9 @@
 #include "Core/Graphics/Sprite.hpp"
 #include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
-#include <dwrite_3.h>
-#include "win32/base.hpp"
+
+struct IDWriteTextFormat;
+struct IDWriteTextLayout;
 
 namespace core {
     class TextLayout_DirectWrite final : public implement::ReferenceCounted<ITextLayout> {
@@ -16,6 +17,7 @@ namespace core {
         void setFontSize(float size) override;
         void setFontWeight(FontWeight weight) override;
         void setFontStyle(FontStyle style) override;
+        void setFontWidth(FontWidth width) override;
         void setLayoutSize(Vector2F size) override;
         void setTextAlignment(TextAlignment alignment) override;
         void setParagraphAlignment(ParagraphAlignment alignment) override;
@@ -46,6 +48,7 @@ namespace core {
         float m_font_size{ 10.0f };
         FontWeight m_font_weight{ FontWeight::normal };
         FontStyle m_font_style{ FontStyle::normal };
+        FontWidth m_font_width{ FontWidth::normal };
         Vector2F m_layout_size{ 1.0f, 1.0f };
         TextAlignment m_text_alignment{ TextAlignment::start };
         ParagraphAlignment m_paragraph_alignment{ ParagraphAlignment::start };

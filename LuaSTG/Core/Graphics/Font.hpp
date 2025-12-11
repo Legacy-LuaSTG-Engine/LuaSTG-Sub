@@ -2,6 +2,7 @@
 #include "Core/Graphics/Device.hpp"
 #include "Core/Graphics/Renderer.hpp"
 #include "core/ReferenceCounted.hpp"
+#include "core/FontCommon.hpp"
 
 namespace core::Graphics
 {
@@ -78,23 +79,6 @@ namespace core {
 	// https://www.luastg-sub.com/core.ITextRenderer
 	template<> constexpr InterfaceId getInterfaceId<Graphics::ITextRenderer>() { return UUID::parse("23c381e5-4769-5caf-9623-5f050c0f9aba"); }
 
-	enum class FontWeight : int32_t {
-		thin = 100,
-		extra_light = 200,
-		light = 300,
-		normal = 400,
-		medium = 500,
-		semi_bold = 600,
-		bold = 700,
-		extra_bold = 800,
-		black = 900,
-	};
-
-	enum class FontStyle : int32_t {
-		normal = 0,
-		italic = 2,
-	};
-
 	enum class TextAlignment : int32_t {
 		start = 0,
 		center = 1,
@@ -113,6 +97,7 @@ namespace core {
 		virtual void setFontSize(float size) = 0;
 		virtual void setFontWeight(FontWeight weight) = 0;
 		virtual void setFontStyle(FontStyle style) = 0;
+		virtual void setFontWidth(FontWidth width) = 0;
 		virtual void setLayoutSize(Vector2F size) = 0;
 		virtual void setTextAlignment(TextAlignment alignment) = 0;
 		virtual void setParagraphAlignment(ParagraphAlignment alignment) = 0;

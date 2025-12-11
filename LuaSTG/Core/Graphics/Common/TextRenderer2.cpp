@@ -3,35 +3,14 @@
 #include "backend/WicImage.hpp"
 #include <cassert>
 #include "utf8.hpp"
-#include <d2d1_3.h>
+#include "backend/DirectWriteHelpers.hpp"
+#include "win32/base.hpp"
 
 #pragma comment(lib, "d2d1.lib")
-#pragma comment(lib, "dwrite.lib")
 
 namespace {
     using std::string_view_literals::operator ""sv;
 
-    DWRITE_FONT_WEIGHT toFontWeight(const core::FontWeight weight) noexcept {
-        switch (weight) {
-        case core::FontWeight::thin:        return DWRITE_FONT_WEIGHT_THIN;
-        case core::FontWeight::extra_light: return DWRITE_FONT_WEIGHT_EXTRA_BLACK;
-        case core::FontWeight::light:       return DWRITE_FONT_WEIGHT_LIGHT;
-        case core::FontWeight::normal:      return DWRITE_FONT_WEIGHT_NORMAL;
-        case core::FontWeight::medium:      return DWRITE_FONT_WEIGHT_MEDIUM;
-        case core::FontWeight::semi_bold:   return DWRITE_FONT_WEIGHT_SEMI_BOLD;
-        case core::FontWeight::bold:        return DWRITE_FONT_WEIGHT_BOLD;
-        case core::FontWeight::extra_bold:  return DWRITE_FONT_WEIGHT_EXTRA_BOLD;
-        case core::FontWeight::black:       return DWRITE_FONT_WEIGHT_BLACK;
-        default: return {}; // unlikely
-        }
-    }
-    DWRITE_FONT_STYLE toFontStyle(const core::FontStyle style) noexcept {
-        switch (style) {
-        case core::FontStyle::normal: return DWRITE_FONT_STYLE_NORMAL;
-        case core::FontStyle::italic: return DWRITE_FONT_STYLE_ITALIC;
-        default: return {}; // unlikely
-        }
-    }
     DWRITE_TEXT_ALIGNMENT toTextAlignment(const core::TextAlignment alignment) noexcept {
         switch (alignment) {
         case core::TextAlignment::start:  return DWRITE_TEXT_ALIGNMENT_LEADING;
@@ -49,22 +28,8 @@ namespace {
         }
     }
 
-    win32::com_ptr<IDWriteFactory> s_dwrite_factory;
     win32::com_ptr<ID2D1Factory> s_d2d1_factory;
 
-    IDWriteFactory* getFactory() {
-        if (!s_dwrite_factory) {
-            win32::check_hresult_throw_if_failed(
-                DWriteCreateFactory(
-                    DWRITE_FACTORY_TYPE_SHARED,
-                    __uuidof(IDWriteFactory),
-                    s_dwrite_factory.put<IUnknown>()
-                ),
-                "DWriteCreateFactory"sv
-            );
-        }
-        return s_dwrite_factory.get();
-    }
     ID2D1Factory* getRendererFactory() {
         if (!s_d2d1_factory) {
             constexpr D2D1_FACTORY_OPTIONS options{
@@ -126,6 +91,13 @@ namespace core {
         m_font_style = style;
         m_dirty = true;
     }
+    void TextLayout_DirectWrite::setFontWidth(const FontWidth width) {
+        if (m_font_width == width) {
+            return;
+        }
+        m_font_width = width;
+        m_dirty = true;
+    }
     void TextLayout_DirectWrite::setLayoutSize(const Vector2F size) {
         if (m_layout_size == size) {
             return;
@@ -155,7 +127,10 @@ namespace core {
 
         // Stage 1: text
 
-        const auto dwrite = getFactory();
+        const auto dwrite = DirectWriteHelpers::getFactory();
+        if (dwrite == nullptr) {
+            return false;
+        }
 
         const auto font_family_name = utf8::to_wstring(m_font_family_name);
         const auto locale_name = utf8::to_wstring(m_locale_name);
@@ -163,9 +138,9 @@ namespace core {
             dwrite->CreateTextFormat(
                 font_family_name.c_str(),
                 nullptr,
-                toFontWeight(m_font_weight),
-                toFontStyle(m_font_style),
-                DWRITE_FONT_STRETCH_NORMAL,
+                DirectWriteHelpers::toFontWeight(m_font_weight),
+                DirectWriteHelpers::toFontStyle(m_font_style),
+                DirectWriteHelpers::toFontWidth(m_font_width),
                 m_font_size,
                 locale_name.c_str(),
                 m_text_format.put()

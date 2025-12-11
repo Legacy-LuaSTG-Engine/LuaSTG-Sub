@@ -122,5 +122,6 @@ target_link_libraries(Core PUBLIC
     Core.ReferenceCounted
     Core.FileSystem
     Core.Image
+    Core.Font
     win32
 )
