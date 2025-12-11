@@ -5,6 +5,8 @@
 
 namespace core {
     CORE_INTERFACE IFontCollection : public IReferenceCounted {
+        virtual void* getNativeHandle() = 0;
+
         virtual bool addFile(StringView path) = 0;
         virtual bool build() = 0;
 

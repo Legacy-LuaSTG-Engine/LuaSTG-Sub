@@ -12,6 +12,8 @@ namespace core {
     public:
         // IFontCollection
 
+        void* getNativeHandle() override;
+
         bool addFile(StringView path) override;
         bool build() override;
 

@@ -125,6 +125,10 @@ namespace {
 namespace core {
     // IFontCollection
 
+    void* DirectWriteFontCollection::getNativeHandle() {
+        return m_font_collection.get();
+    }
+
     bool DirectWriteFontCollection::addFile(const StringView path) {
         if (m_read_only) {
             assert(false);
