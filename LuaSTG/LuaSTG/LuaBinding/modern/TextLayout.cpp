@@ -209,8 +209,9 @@ namespace luastg::binding {
         // FontStyle
         
         auto const font_style = ctx.create_module("lstg.FontStyle");
-        ctx.set_map_value(font_style, "normal", V(core::FontStyle::normal));
-        ctx.set_map_value(font_style, "italic", V(core::FontStyle::italic));
+        ctx.set_map_value(font_style, "normal" , V(core::FontStyle::normal) );
+        ctx.set_map_value(font_style, "oblique", V(core::FontStyle::oblique));
+        ctx.set_map_value(font_style, "italic" , V(core::FontStyle::italic) );
 
         // TextAlignment
         

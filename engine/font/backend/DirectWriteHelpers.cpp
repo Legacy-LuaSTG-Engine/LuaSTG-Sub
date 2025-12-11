@@ -310,8 +310,9 @@ namespace core {
     }
     DWRITE_FONT_STYLE DirectWriteHelpers::toFontStyle(const FontStyle style) noexcept {
         switch (style) {
-        case FontStyle::normal: return DWRITE_FONT_STYLE_NORMAL;
-        case FontStyle::italic: return DWRITE_FONT_STYLE_ITALIC;
+        case FontStyle::normal:  return DWRITE_FONT_STYLE_NORMAL;
+        case FontStyle::oblique: return DWRITE_FONT_STYLE_OBLIQUE;
+        case FontStyle::italic:  return DWRITE_FONT_STYLE_ITALIC;
         default: return {}; // unlikely
         }
     }

@@ -40,7 +40,7 @@ namespace {
         );
         locale_name.resize(locale_name_length);
         win32::check_hresult_throw_if_failed(
-            str->GetLocaleName(index, locale_name.data(), locale_name_length),
+            str->GetLocaleName(index, locale_name.data(), locale_name_length + 1),
             "IDWriteLocalizedStrings::GetLocaleName"sv
         );
         return locale_name;
@@ -54,7 +54,7 @@ namespace {
         );
         s.resize(length);
         win32::check_hresult_throw_if_failed(
-            str->GetString(index, s.data(), length),
+            str->GetString(index, s.data(), length + 1),
             "IDWriteLocalizedStrings::GetString"sv
         );
         return s;
