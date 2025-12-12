@@ -1,12 +1,16 @@
 #include "core/Logger.hpp"
 #include "core/SmartReference.hpp"
 #include "core/FontCollection.hpp"
+#include "core/TextLayout.hpp"
+#include "core/Color.hpp"
 #include "utf8.hpp"
 #include "win32/base.hpp"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "gtest/gtest.h"
 #include <filesystem>
+#include <fstream>
+#include "webp/encode.h"
 
 namespace {
     using std::string_literals::operator ""s;
@@ -63,6 +67,20 @@ namespace {
         }
     }
 
+    std::string readTextFile(const std::string_view path) {
+        const auto path_w{ utf8::to_wstring(path) };
+        const auto size = std::filesystem::file_size(path_w);
+        std::string text(size, '\0');
+        std::ifstream file(path_w, std::ios::in | std::ios::binary);
+        file.read(text.data(), static_cast<std::streamsize>(size));
+        return text;
+    }
+    void writeFile(const std::string_view path, const void* const data, const size_t size) {
+        const auto path_w{ utf8::to_wstring(path) };
+        std::ofstream file(path_w, std::ios::out | std::ios::trunc | std::ios::binary);
+        file.write(static_cast<const char*>(data), static_cast<std::streamsize>(size));
+    }
+
     void printFontCollectionInfo(core::IFontCollection* const font_collection) {
         using namespace core;
 
@@ -114,4 +132,116 @@ TEST(FontCollection, custom) {
     ASSERT_TRUE(font_collection->build());
 
     printFontCollectionInfo(font_collection.get());
+}
+
+TEST(TextLayout, text) {
+    setupLogger();
+    using namespace core;
+
+    SmartReference<ITextLayout> text_layout;
+    ASSERT_TRUE(ITextLayout::create(text_layout.put()));
+
+    const auto text{ readTextFile("assets/text/article1.txt"sv) };
+    text_layout->setText(text);
+    text_layout->setFontFamily("Noto Sans SC"sv);
+    text_layout->setFontSize(16.0f);
+    text_layout->setLayoutSize(Vector2F(1280.0f, 720.0f));
+    text_layout->setTextColor(Vector4F(0.0f, 0.0f, 0.0f, 1.0f));
+    ASSERT_TRUE(text_layout->build());
+    EXPECT_EQ(text_layout->getVersion(), 1);
+
+    const auto image = text_layout->getImage();
+    ASSERT_TRUE(image != nullptr);
+
+    const auto size = image->getSize();
+    ScopedImageMappedBuffer buffer{};
+    ASSERT_TRUE(image->createScopedMap(buffer));
+
+    auto pixels = static_cast<Color4B*>(buffer.data);
+    for (uint32_t y = 0; y < size.y; y += 1) {
+        for (uint32_t x = 0; x < size.x; x += 1) {
+            auto& c = pixels[y * size.x + x];
+            if (c.a == 0) {
+                c = {};
+            }
+            else if (c.a < 255) {
+                const auto inv = 255.0f / static_cast<float>(c.a);
+                const auto r = inv * static_cast<float>(c.r) / 255.0f;
+                const auto g = inv * static_cast<float>(c.g) / 255.0f;
+                const auto b = inv * static_cast<float>(c.b) / 255.0f;
+                c.r = static_cast<uint8_t>(std::clamp(r * 255.0f, 0.0f, 255.0f) + 0.5f);
+                c.g = static_cast<uint8_t>(std::clamp(g * 255.0f, 0.0f, 255.0f) + 0.5f);
+                c.b = static_cast<uint8_t>(std::clamp(b * 255.0f, 0.0f, 255.0f) + 0.5f);
+            }
+        }
+    }
+
+    uint8_t* webp_data{};
+    const auto webp_size = WebPEncodeLosslessBGRA(
+        static_cast<const uint8_t*>(buffer.data),
+        static_cast<int>(size.x),
+        static_cast<int>(size.y),
+        static_cast<int>(buffer.stride),
+        &webp_data
+    );
+    ASSERT_TRUE(webp_data != nullptr);
+    std::filesystem::create_directory("userdata");
+    writeFile("userdata/1.webp", webp_data, webp_size);
+    WebPFree(webp_data);
+}
+
+TEST(TextLayout, stroke) {
+    setupLogger();
+    using namespace core;
+
+    SmartReference<ITextLayout> text_layout;
+    ASSERT_TRUE(ITextLayout::create(text_layout.put()));
+
+    const auto text{ readTextFile("assets/text/article1.txt"sv) };
+    text_layout->setText(text);
+    text_layout->setFontFamily("Noto Sans SC"sv);
+    text_layout->setFontSize(16.0f * 1.5f);
+    text_layout->setLayoutSize(Vector2F(1280.0f, 720.0f));
+    text_layout->setStrokeWidth(2.0f);
+    ASSERT_TRUE(text_layout->build());
+    EXPECT_EQ(text_layout->getVersion(), 1);
+
+    const auto image = text_layout->getImage();
+    ASSERT_TRUE(image != nullptr);
+
+    const auto size = image->getSize();
+    ScopedImageMappedBuffer buffer{};
+    ASSERT_TRUE(image->createScopedMap(buffer));
+
+    auto pixels = static_cast<Color4B*>(buffer.data);
+    for (uint32_t y = 0; y < size.y; y += 1) {
+        for (uint32_t x = 0; x < size.x; x += 1) {
+            auto& c = pixels[y * size.x + x];
+            if (c.a == 0) {
+                c = {};
+            }
+            else if (c.a < 255) {
+                const auto inv = 255.0f / static_cast<float>(c.a);
+                const auto r = inv * static_cast<float>(c.r) / 255.0f;
+                const auto g = inv * static_cast<float>(c.g) / 255.0f;
+                const auto b = inv * static_cast<float>(c.b) / 255.0f;
+                c.r = static_cast<uint8_t>(std::clamp(r * 255.0f, 0.0f, 255.0f) + 0.5f);
+                c.g = static_cast<uint8_t>(std::clamp(g * 255.0f, 0.0f, 255.0f) + 0.5f);
+                c.b = static_cast<uint8_t>(std::clamp(b * 255.0f, 0.0f, 255.0f) + 0.5f);
+            }
+        }
+    }
+
+    uint8_t* webp_data{};
+    const auto webp_size = WebPEncodeLosslessBGRA(
+        static_cast<const uint8_t*>(buffer.data),
+        static_cast<int>(size.x),
+        static_cast<int>(size.y),
+        static_cast<int>(buffer.stride),
+        &webp_data
+    );
+    ASSERT_TRUE(webp_data != nullptr);
+    std::filesystem::create_directory("userdata");
+    writeFile("userdata/2.webp", webp_data, webp_size);
+    WebPFree(webp_data);
 }
