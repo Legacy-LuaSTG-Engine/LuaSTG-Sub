@@ -14,7 +14,7 @@ namespace core {
 
         void setText(StringView text) override;
         void setFontCollection(IFontCollection* font_collection) override;
-        void setFontFamilyName(StringView font_family_name) override;
+        void setFontFamily(StringView font_family_name) override;
         void setFontSize(float size) override;
         void setFontWeight(FontWeight weight) override;
         void setFontStyle(FontStyle style) override;
@@ -22,6 +22,10 @@ namespace core {
         void setLayoutSize(Vector2F size) override;
         void setTextAlignment(TextAlignment alignment) override;
         void setParagraphAlignment(ParagraphAlignment alignment) override;
+
+        void setTextColor(Vector4F color) override;
+        void setStrokeWidth(float width) override;
+        void setStrokeColor(Vector4F color) override;
 
         bool build() override;
         uint32_t getVersion() override;
@@ -54,6 +58,9 @@ namespace core {
         Vector2F m_layout_size{ 1.0f, 1.0f };
         TextAlignment m_text_alignment{ TextAlignment::start };
         ParagraphAlignment m_paragraph_alignment{ ParagraphAlignment::start };
+        Vector4F m_text_color{ 1.0f, 1.0f, 1.0f, 1.0f };
+        Vector4F m_stroke_color{ 0.0f, 0.0f, 0.0f, 1.0f };
+        float m_stroke_width{};
         uint32_t m_version{};
         bool m_dirty{ true };
     };

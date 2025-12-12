@@ -19,7 +19,7 @@ namespace core {
     CORE_INTERFACE ITextLayout : public IReferenceCounted {
         virtual void setText(StringView text) = 0;
         virtual void setFontCollection(IFontCollection* font_collection) = 0;
-        virtual void setFontFamilyName(StringView font_family_name) = 0;
+        virtual void setFontFamily(StringView font_family_name) = 0;
         virtual void setFontSize(float size) = 0;
         virtual void setFontWeight(FontWeight weight) = 0;
         virtual void setFontStyle(FontStyle style) = 0;
@@ -27,6 +27,10 @@ namespace core {
         virtual void setLayoutSize(Vector2F size) = 0;
         virtual void setTextAlignment(TextAlignment alignment) = 0;
         virtual void setParagraphAlignment(ParagraphAlignment alignment) = 0;
+
+        virtual void setTextColor(Vector4F color) = 0;
+        virtual void setStrokeWidth(float width) = 0;
+        virtual void setStrokeColor(Vector4F color) = 0;
 
         virtual bool build() = 0;
         virtual uint32_t getVersion() = 0;
