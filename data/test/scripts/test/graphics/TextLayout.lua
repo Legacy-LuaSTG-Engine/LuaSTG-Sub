@@ -1,5 +1,4 @@
 local test = require("test")
-local imgui = require("imgui")
 local FontWeight = require("lstg.FontWeight")
 local FontStyle = require("lstg.FontStyle")
 local FontWidth = require("lstg.FontWidth")
