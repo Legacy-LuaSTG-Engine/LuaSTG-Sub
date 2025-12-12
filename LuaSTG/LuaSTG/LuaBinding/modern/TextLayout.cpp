@@ -1,8 +1,8 @@
 #include "TextLayout.hpp"
-#include "Texture2D.hpp"
 #include "Vector2.hpp"
+#include "Vector4.hpp"
+#include "LuaWrapper.hpp"
 #include "lua/plus.hpp"
-#include "AppFrame.h"
 
 namespace luastg::binding {
     std::string_view const TextLayout::class_name{ "lstg.TextLayout" };
@@ -50,11 +50,18 @@ namespace luastg::binding {
             ctx.push_value(lua::stack_index_t(1));
             return 1;
         }
-        static int setFontFamilyName(lua_State* const vm) {
+        static int setFontCollection(lua_State* const vm) {
+            lua::stack_t const ctx(vm);
+            auto const self = as(vm, 1);
+            // TODO
+            ctx.push_value(lua::stack_index_t(1));
+            return 1;
+        }
+        static int setFontFamily(lua_State* const vm) {
             lua::stack_t const ctx(vm);
             auto const self = as(vm, 1);
             auto const font_family_name = ctx.get_value<std::string_view>(1 + 1);
-            self->data->setFontFamilyName(font_family_name);
+            self->data->setFontFamily(font_family_name);
             ctx.push_value(lua::stack_index_t(1));
             return 1;
         }
@@ -82,10 +89,18 @@ namespace luastg::binding {
             ctx.push_value(lua::stack_index_t(1));
             return 1;
         }
+        static int setFontWidth(lua_State* const vm) {
+            lua::stack_t const ctx(vm);
+            auto const self = as(vm, 1);
+            auto const font_width = ctx.get_value<core::FontWidth>(1 + 1);
+            self->data->setFontWidth(font_width);
+            ctx.push_value(lua::stack_index_t(1));
+            return 1;
+        }
         static int setLayoutSize(lua_State* const vm) {
             lua::stack_t const ctx(vm);
             auto const self = as(vm, 1);
-            if (ctx.index_of_top() >= (1 + 2)) {
+            if (ctx.is_number(1 + 1)) {
                 auto const width = ctx.get_value<float>(1 + 1);
                 auto const height = ctx.get_value<float>(1 + 2);
                 self->data->setLayoutSize(core::Vector2F(width, height));
@@ -117,20 +132,93 @@ namespace luastg::binding {
             return 1;
         }
 
+        static int setTextColor(lua_State* const vm) {
+            lua::stack_t const ctx(vm);
+            auto const self = as(vm, 1);
+            if (ctx.is_number(1 + 1)) {
+                const auto r = ctx.get_value<float>(1 + 1);
+                const auto g = ctx.get_value<float>(1 + 2);
+                const auto b = ctx.get_value<float>(1 + 3);
+                const auto a = ctx.get_value<float>(1 + 4, 1.0f);
+                self->data->setTextColor(core::Vector4F(r, g, b, a));
+            }
+            else if (Vector4::is(vm, 1 + 1)) {
+                const auto color = Vector4::as(vm, 1 + 1);
+                self->data->setTextColor(core::Vector4F(
+                    static_cast<float>(color->data.x),
+                    static_cast<float>(color->data.y),
+                    static_cast<float>(color->data.z),
+                    static_cast<float>(color->data.w)
+                ));
+            }
+            else {
+                const auto color = Color::Cast(vm, 1 + 1);
+                self->data->setTextColor(core::Vector4F(
+                    color->r / 255.0f,
+                    color->g / 255.0f,
+                    color->b / 255.0f,
+                    color->a / 255.0f
+                ));
+            }
+            ctx.push_value(lua::stack_index_t(1));
+            return 1;
+        }
+        static int setStrokeWidth(lua_State* const vm) {
+            lua::stack_t const ctx(vm);
+            auto const self = as(vm, 1);
+            auto const stroke_width = ctx.get_value<float>(1 + 1);
+            self->data->setStrokeWidth(stroke_width);
+            ctx.push_value(lua::stack_index_t(1));
+            return 1;
+        }
+        static int setStrokeColor(lua_State* const vm) {
+            lua::stack_t const ctx(vm);
+            auto const self = as(vm, 1);
+            if (ctx.is_number(1 + 1)) {
+                const auto r = ctx.get_value<float>(1 + 1);
+                const auto g = ctx.get_value<float>(1 + 2);
+                const auto b = ctx.get_value<float>(1 + 3);
+                const auto a = ctx.get_value<float>(1 + 4, 1.0f);
+                self->data->setStrokeColor(core::Vector4F(r, g, b, a));
+            }
+            else if (Vector4::is(vm, 1 + 1)) {
+                const auto color = Vector4::as(vm, 1 + 1);
+                self->data->setStrokeColor(core::Vector4F(
+                    static_cast<float>(color->data.x),
+                    static_cast<float>(color->data.y),
+                    static_cast<float>(color->data.z),
+                    static_cast<float>(color->data.w)
+                ));
+            }
+            else {
+                const auto color = Color::Cast(vm, 1 + 1);
+                self->data->setStrokeColor(core::Vector4F(
+                    color->r / 255.0f,
+                    color->g / 255.0f,
+                    color->b / 255.0f,
+                    color->a / 255.0f
+                ));
+            }
+            ctx.push_value(lua::stack_index_t(1));
+            return 1;
+        }
+
         static int build(lua_State* const vm) {
             lua::stack_t const ctx(vm);
             auto const self = as(vm, 1);
-            auto const result = self->data->build();
-            ctx.push_value(result);
+            if (self->data->build()) {
+                ctx.push_value(lua::stack_index_t(1));
+            }
+            else {
+                ctx.push_value(std::nullopt);
+            }
             return 1;
         }
-        static int getTexture(lua_State* const vm) {
+        static int getVersion(lua_State* const vm) {
+            lua::stack_t const ctx(vm);
             auto const self = as(vm, 1);
-            auto const texture = Texture2D::create(vm);
-            texture->data = self->data->getTexture();
-            if (texture->data) {
-                texture->data->retain();
-            }
+            const auto version = self->data->getVersion();
+            ctx.push_value(version);
             return 1;
         }
 
@@ -138,7 +226,7 @@ namespace luastg::binding {
 
         static int create(lua_State* const vm) {
             auto const self = TextLayout::create(vm);
-            if (!core::ITextLayout::create(LAPP.GetAppModel()->getDevice(), &self->data)) {
+            if (!core::ITextLayout::create(&self->data)) {
                 luaL_error(vm, "create TextLayout failed");
             }
             return 1;
@@ -168,16 +256,25 @@ namespace luastg::binding {
         // method
 
         auto const method_table = ctx.create_module(class_name);
+
         ctx.set_map_value(method_table, "setText", &TextLayoutBinding::setText);
-        ctx.set_map_value(method_table, "setFontFamilyName", &TextLayoutBinding::setFontFamilyName);
+        ctx.set_map_value(method_table, "setFontCollection", &TextLayoutBinding::setFontCollection);
+        ctx.set_map_value(method_table, "setFontFamily", &TextLayoutBinding::setFontFamily);
         ctx.set_map_value(method_table, "setFontSize", &TextLayoutBinding::setFontSize);
         ctx.set_map_value(method_table, "setFontWeight", &TextLayoutBinding::setFontWeight);
         ctx.set_map_value(method_table, "setFontStyle", &TextLayoutBinding::setFontStyle);
+        ctx.set_map_value(method_table, "setFontWidth", &TextLayoutBinding::setFontWidth);
         ctx.set_map_value(method_table, "setLayoutSize", &TextLayoutBinding::setLayoutSize);
         ctx.set_map_value(method_table, "setTextAlignment", &TextLayoutBinding::setTextAlignment);
         ctx.set_map_value(method_table, "setParagraphAlignment", &TextLayoutBinding::setParagraphAlignment);
+
+        ctx.set_map_value(method_table, "setTextColor", &TextLayoutBinding::setTextColor);
+        ctx.set_map_value(method_table, "setStrokeWidth", &TextLayoutBinding::setStrokeWidth);
+        ctx.set_map_value(method_table, "setStrokeColor", &TextLayoutBinding::setStrokeColor);
+
         ctx.set_map_value(method_table, "build", &TextLayoutBinding::build);
-        ctx.set_map_value(method_table, "getTexture", &TextLayoutBinding::getTexture);
+        ctx.set_map_value(method_table, "getVersion", &TextLayoutBinding::getVersion);
+
         ctx.set_map_value(method_table, "create", &TextLayoutBinding::create);
 
         // metatable
@@ -212,6 +309,19 @@ namespace luastg::binding {
         ctx.set_map_value(font_style, "normal" , V(core::FontStyle::normal) );
         ctx.set_map_value(font_style, "oblique", V(core::FontStyle::oblique));
         ctx.set_map_value(font_style, "italic" , V(core::FontStyle::italic) );
+
+        // FontWidth
+        
+        auto const font_width = ctx.create_module("lstg.FontWidth");
+        ctx.set_map_value(font_width, "ultra_condensed" , V(core::FontWidth::ultra_condensed));
+        ctx.set_map_value(font_width, "extra_condensed" , V(core::FontWidth::extra_condensed));
+        ctx.set_map_value(font_width, "condensed"       , V(core::FontWidth::condensed)      );
+        ctx.set_map_value(font_width, "semi_condensed"  , V(core::FontWidth::semi_condensed) );
+        ctx.set_map_value(font_width, "normal"          , V(core::FontWidth::normal)         );
+        ctx.set_map_value(font_width, "semi_expanded"   , V(core::FontWidth::semi_expanded)  );
+        ctx.set_map_value(font_width, "expanded"        , V(core::FontWidth::expanded)       );
+        ctx.set_map_value(font_width, "extra_expanded"  , V(core::FontWidth::extra_expanded) );
+        ctx.set_map_value(font_width, "ultra_expanded"  , V(core::FontWidth::ultra_expanded) );
 
         // TextAlignment
         

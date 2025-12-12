@@ -78,34 +78,4 @@ namespace core {
 	// ns:URL
 	// https://www.luastg-sub.com/core.ITextRenderer
 	template<> constexpr InterfaceId getInterfaceId<Graphics::ITextRenderer>() { return UUID::parse("23c381e5-4769-5caf-9623-5f050c0f9aba"); }
-
-	enum class TextAlignment : int32_t {
-		start = 0,
-		center = 1,
-		end = 2,
-	};
-
-	enum class ParagraphAlignment : int32_t {
-		start = 0,
-		center = 1,
-		end = 2,
-	};
-
-	CORE_INTERFACE ITextLayout : public IReferenceCounted {
-		virtual void setText(StringView text) = 0;
-		virtual void setFontFamilyName(StringView font_family_name) = 0;
-		virtual void setFontSize(float size) = 0;
-		virtual void setFontWeight(FontWeight weight) = 0;
-		virtual void setFontStyle(FontStyle style) = 0;
-		virtual void setFontWidth(FontWidth width) = 0;
-		virtual void setLayoutSize(Vector2F size) = 0;
-		virtual void setTextAlignment(TextAlignment alignment) = 0;
-		virtual void setParagraphAlignment(ParagraphAlignment alignment) = 0;
-
-		virtual bool build() = 0;
-		virtual Graphics::ITexture2D* getTexture() = 0;
-
-		static bool create(Graphics::IDevice* device, ITextLayout** output);
-	};
-	CORE_INTERFACE_ID(ITextLayout, "4c5e5524-815f-5632-915d-0e14df3dfce3");
 }

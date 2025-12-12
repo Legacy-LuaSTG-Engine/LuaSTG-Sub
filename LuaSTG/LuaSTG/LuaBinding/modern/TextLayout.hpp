@@ -1,6 +1,6 @@
 #pragma once
 #include "lua.hpp"
-#include "Core/Graphics/Font.hpp"
+#include "core/TextLayout.hpp"
 
 namespace luastg::binding {
     struct TextLayout {

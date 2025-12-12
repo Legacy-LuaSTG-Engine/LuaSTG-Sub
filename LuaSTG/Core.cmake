@@ -44,8 +44,8 @@ set(Core_SRC
     Core/Graphics/Common/FreeTypeGlyphManager.cpp
     Core/Graphics/Common/TextRenderer.hpp
     Core/Graphics/Common/TextRenderer.cpp
-    Core/Graphics/Common/TextRenderer2.hpp
-    Core/Graphics/Common/TextRenderer2.cpp
+    #Core/Graphics/Common/TextRenderer2.hpp
+    #Core/Graphics/Common/TextRenderer2.cpp
 
     Core/Graphics/Direct3D11/Constants.hpp
     Core/Graphics/Direct3D11/Buffer.hpp
