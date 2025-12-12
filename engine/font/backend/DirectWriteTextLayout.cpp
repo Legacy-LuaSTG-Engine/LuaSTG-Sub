@@ -639,7 +639,7 @@ namespace core {
         m_dirty = true;
     }
     void DirectWriteTextLayout::setStrokeWidth(const float width) {
-        const auto value = std::max(0.0f, width);
+        const auto value = std::max(width, 0.0f);
         if (m_stroke_width == value) {
             return;
         }
@@ -827,7 +827,7 @@ namespace core {
                 stroke_brush.get(),
                 text_brush.get(),
                 stroke_style.get(),
-                m_stroke_width
+                m_stroke_width * 2.0f // Direct2D stroke is centered on the line
             );
 
             const auto offset = std::ceil(m_stroke_width);
