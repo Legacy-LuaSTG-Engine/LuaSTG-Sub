@@ -67,18 +67,6 @@ namespace core::Graphics
 		static bool create(IRenderer* p_renderer, ITextRenderer** output);
 	};
 
-	enum class Anchor : int32_t {
-		left_top = 0,
-		center_top = 1,
-		right_top = 2,
-		left_center = 4,
-		center = 4 | 1,
-		right_center = 4 | 2,
-		left_bottom = 8,
-		center_bottom = 8 | 1,
-		right_bottom = 8 | 2,
-	};
-
 	struct ITextRenderer2 : public IReferenceCounted {
 		virtual void setTransform(RectF const& rect) = 0;
 		virtual void setTransform(Vector2F const& p1, Vector2F const& p2, Vector2F const& p3, Vector2F const& p4) = 0;
