@@ -157,6 +157,8 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/modern/Well512.cpp
     LuaSTG/LuaBinding/modern/ShellIntegration.hpp
     LuaSTG/LuaBinding/modern/ShellIntegration.cpp
+    LuaSTG/LuaBinding/modern/FontCollection.hpp
+    LuaSTG/LuaBinding/modern/FontCollection.cpp
     LuaSTG/LuaBinding/modern/TextLayout.hpp
     LuaSTG/LuaBinding/modern/TextLayout.cpp
     LuaSTG/LuaBinding/modern/TextRenderer.hpp

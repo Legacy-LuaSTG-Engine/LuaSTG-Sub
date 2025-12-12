@@ -1,6 +1,7 @@
 #include "TextLayout.hpp"
 #include "Vector2.hpp"
 #include "Vector4.hpp"
+#include "FontCollection.hpp"
 #include "LuaWrapper.hpp"
 #include "lua/plus.hpp"
 
@@ -51,9 +52,15 @@ namespace luastg::binding {
             return 1;
         }
         static int setFontCollection(lua_State* const vm) {
-            lua::stack_t const ctx(vm);
-            auto const self = as(vm, 1);
-            // TODO
+            const lua::stack_t ctx(vm);
+            const auto self = as(vm, 1);
+            if (ctx.is_non_or_nil(1 + 1)) {
+                self->data->setFontCollection(nullptr);
+            }
+            else {
+                const auto font_collection = FontCollection::as(vm, 1 + 1);
+                self->data->setFontCollection(font_collection->data);
+            }
             ctx.push_value(lua::stack_index_t(1));
             return 1;
         }
