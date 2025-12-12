@@ -337,7 +337,6 @@ namespace luastg
     
         core::SmartReference<core::Graphics::ISprite> p_sprite;
         if (!core::Graphics::ISprite::create(
-            LAPP.GetAppModel()->getRenderer(),
             pTex->GetTexture(),
             p_sprite.put()
         ))

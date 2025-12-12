@@ -563,17 +563,17 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 				return luaL_error(L, "image '%s' not found.", luaL_checkstring(L, 1));
 
 			p->SetBlendMode(TranslateBlendMode(L, 2));
-			if (lua_gettop(L) == 3)
-				p->GetSprite()->setColor(*Color::Cast(L, 3));
+			if (lua_gettop(L) == 3) {
+				p->SetColor(*Color::Cast(L, 3));
+			}
 			else if (lua_gettop(L) == 6)
 			{
-				core::Color4B tColors[] = {
+				p->SetColor(
 					*Color::Cast(L, 3),
 					*Color::Cast(L, 4),
 					*Color::Cast(L, 5),
 					*Color::Cast(L, 6)
-				};
-				p->GetSprite()->setColor(tColors);
+				);
 			}
 			return 0;
 		}

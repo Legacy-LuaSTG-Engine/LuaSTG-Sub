@@ -25,7 +25,7 @@ namespace core::Graphics {
         // TextRenderer2
 
         bool initialize(IDevice* device);
-        bool update(IRenderer* renderer);
+        bool update();
 
     private:
         SmartReference<ITextLayout> m_text_layout;

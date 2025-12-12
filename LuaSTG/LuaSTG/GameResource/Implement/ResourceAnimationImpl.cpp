@@ -1,6 +1,23 @@
 #include "GameResource/Implement/ResourceAnimationImpl.hpp"
 #include "GameResource/Implement/ResourceSpriteImpl.hpp"
+#include "GameResource/LegacyBlendStateHelper.hpp"
 #include "AppFrame.h"
+
+namespace {
+	class Instance {
+	public:
+		Instance() {
+			std::ignore = core::Graphics::ISpriteRenderer::create(m_renderer.put());
+		}
+
+		core::Graphics::ISpriteRenderer* get() { return m_renderer.get(); }
+
+	private:
+		core::SmartReference<core::Graphics::ISpriteRenderer> m_renderer;
+	};
+
+	Instance s_renderer;
+}
 
 namespace luastg
 {
@@ -24,7 +41,6 @@ namespace luastg
 			{
 				core::SmartReference<core::Graphics::ISprite> p_sprite_core;
 				if (!core::Graphics::ISprite::create(
-					LAPP.GetAppModel()->getRenderer(),
 					tex->GetTexture(),
 					p_sprite_core.put()
 				))
@@ -85,44 +101,34 @@ namespace luastg
 	}
 	void ResourceAnimationImpl::Render(int timer, float x, float y, float rot, float hscale, float vscale, float z)
 	{
-		core::Graphics::ISprite* pSprite = GetSpriteByTimer(timer)->GetSprite();
-		// 备份状态
-		core::Color4B color_backup[4] = {
-			core::Color4B(0xFFFFFFFF),
-			core::Color4B(0xFFFFFFFF),
-			core::Color4B(0xFFFFFFFF),
-			core::Color4B(0xFFFFFFFF),
-		};
-		pSprite->getColor(color_backup);
-		float const z_backup = pSprite->getZ();
-		// 设置状态
-		pSprite->setColor(m_vertex_color);
-		pSprite->setZ(z);
-		// 渲染
-		LAPP.updateGraph2DBlendMode(GetBlendMode());
-		pSprite->draw(core::Vector2F(x, y), core::Vector2F(hscale, vscale), rot);
-		// 还原状态
-		pSprite->setColor(color_backup);
-		pSprite->setZ(z_backup);
+		const auto sprite = GetSpriteByTimer(timer)->GetSprite();
+		const auto renderer = s_renderer.get();
+		const auto blend = luastg::translateLegacyBlendState(m_BlendMode);
+
+		renderer->setSprite(sprite);
+		renderer->setTransform(core::Vector2F(x, y), core::Vector2F(hscale, vscale), rot);
+		renderer->setZ(z);
+		renderer->setLegacyBlendState(blend.vertex_color_blend_state, blend.blend_state);
+		renderer->setColor(m_vertex_color[0], m_vertex_color[1], m_vertex_color[2], m_vertex_color[3]);
+
+		renderer->draw(LAPP.GetRenderer2D());
+
+		renderer->setSprite(nullptr);
 	}
-	void ResourceAnimationImpl::Render(int timer, float x, float y, float rot, float hscale, float vscale, BlendMode blend, core::Color4B color, float z)
+	void ResourceAnimationImpl::Render(int timer, float x, float y, float rot, float hscale, float vscale, BlendMode blend_, core::Color4B color, float z)
 	{
-		// 备份状态
-		BlendMode blend_backup = GetBlendMode();
-		core::Color4B color_backup[4] = {
-			core::Color4B(0xFFFFFFFF),
-			core::Color4B(0xFFFFFFFF),
-			core::Color4B(0xFFFFFFFF),
-			core::Color4B(0xFFFFFFFF),
-		};
-		GetVertexColor(color_backup);
-		// 设置状态
-		SetBlendMode(blend);
-		SetVertexColor(color);
-		// 渲染
-		Render(timer, x, y, rot, hscale, vscale, z);
-		// 还原状态
-		SetBlendMode(blend_backup);
-		SetVertexColor(color_backup);
+		const auto sprite = GetSpriteByTimer(timer)->GetSprite();
+		const auto renderer = s_renderer.get();
+		const auto blend = luastg::translateLegacyBlendState(blend_);
+
+		renderer->setSprite(sprite);
+		renderer->setTransform(core::Vector2F(x, y), core::Vector2F(hscale, vscale), rot);
+		renderer->setZ(z);
+		renderer->setLegacyBlendState(blend.vertex_color_blend_state, blend.blend_state);
+		renderer->setColor(color);
+
+		renderer->draw(LAPP.GetRenderer2D());
+
+		renderer->setSprite(nullptr);
 	}
 }

@@ -9,6 +9,8 @@ namespace luastg
 		virtual core::Graphics::ISprite* GetSprite() = 0;
 		virtual BlendMode GetBlendMode() = 0;
 		virtual void SetBlendMode(BlendMode m) = 0;
+		virtual void SetColor(core::Color4B color) = 0;
+		virtual void SetColor(core::Color4B c1, core::Color4B c2, core::Color4B c3, core::Color4B c4) = 0;
 		virtual double GetHalfSizeX() = 0;
 		virtual double GetHalfSizeY() = 0;
 		virtual bool IsRectangle() = 0;

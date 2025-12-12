@@ -39,7 +39,7 @@ namespace core::Graphics {
         if (!m_text_layout) {
             return;
         }
-        if (!update(renderer)) {
+        if (!update()) {
             return;
         }
         m_sprite_renderer->draw(renderer);
@@ -55,7 +55,7 @@ namespace core::Graphics {
         }
         return true;
     }
-    bool TextRenderer2::update(IRenderer* const renderer) {
+    bool TextRenderer2::update() {
         if (!m_text_layout) {
             return true;
         }
@@ -81,7 +81,7 @@ namespace core::Graphics {
         }
 
         if (!m_sprite) {
-            if (!ISprite::create(renderer, m_texture.get(), m_sprite.put())) {
+            if (!ISprite::create(m_texture.get(), m_sprite.put())) {
                 return false;
             }
             m_sprite->setTextureCenter(m_anchor);
