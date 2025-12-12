@@ -12,6 +12,12 @@ namespace core::Graphics {
         m_sprite_renderer->setTransform(p1, p2, p3, p4);
     }
     void TextRenderer2::setTransform(Vector2F const& position, Vector2F const& scale, const float rotation) {
+        if (!m_text_layout) {
+            return;
+        }
+        if (!update()) {
+            return;
+        }
         m_sprite_renderer->setTransform(position, scale, rotation);
     }
     void TextRenderer2::setTextLayout(ITextLayout* const text_layout) {
@@ -71,8 +77,10 @@ namespace core::Graphics {
             if (!m_device->createTexture(size, m_texture.put())) {
                 return false;
             }
+            m_texture->setPremultipliedAlpha(true);
         }
         else if (m_texture->getSize() != size) {
+            m_sprite_renderer->setSprite(nullptr);
             m_sprite.reset();
             m_last_version = 0;
             if (!m_texture->setSize(size)) {
@@ -85,6 +93,7 @@ namespace core::Graphics {
                 return false;
             }
             m_sprite->setTextureCenter(m_anchor);
+            m_sprite_renderer->setSprite(m_sprite.get());
         }
 
         if (m_text_layout->getVersion() > m_last_version) {
