@@ -54,7 +54,7 @@ namespace luastg::binding {
 			if (texture->data) {
 				texture->data->retain();
 			}
-			return 0;
+			return 1;
 		}
 		static int setTextureRect(lua_State* vm) {
 			lua::stack_t const ctx(vm);
@@ -120,7 +120,7 @@ namespace luastg::binding {
 				auto const center_y = ctx.get_value<float>(7);
 				auto const unit_per_pixel = ctx.get_value<float>(8, 1.0f);
 				auto const self = Sprite::create(vm);
-				if (!core::Graphics::ISprite::create(LAPP.GetAppModel()->getRenderer(), texture->data, &self->data)) {
+				if (!core::Graphics::ISprite::create(texture->data, &self->data)) {
 					return luaL_error(vm, "create Sprite failed");
 				}
 				self->data->setTexture(texture->data);
@@ -131,7 +131,7 @@ namespace luastg::binding {
 			else {
 				auto const unit_per_pixel = ctx.get_value<float>(6, 1.0f);
 				auto const self = Sprite::create(vm);
-				if (!core::Graphics::ISprite::create(LAPP.GetAppModel()->getRenderer(), texture->data, &self->data)) {
+				if (!core::Graphics::ISprite::create(texture->data, &self->data)) {
 					return luaL_error(vm, "create Sprite failed");
 				}
 				self->data->setTexture(texture->data);

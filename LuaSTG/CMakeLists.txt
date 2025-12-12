@@ -56,6 +56,8 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/GameResource/ResourcePostEffectShader.hpp
     LuaSTG/GameResource/ResourceModel.hpp
     LuaSTG/GameResource/ResourceModel.cpp
+    LuaSTG/GameResource/SharedSpriteRenderer.hpp
+    LuaSTG/GameResource/SharedSpriteRenderer.cpp
 
     LuaSTG/GameResource/ResourceDebug.cpp
     LuaSTG/GameResource/ResourceManager.cpp
@@ -155,6 +157,12 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/LuaBinding/modern/Well512.cpp
     LuaSTG/LuaBinding/modern/ShellIntegration.hpp
     LuaSTG/LuaBinding/modern/ShellIntegration.cpp
+    LuaSTG/LuaBinding/modern/FontCollection.hpp
+    LuaSTG/LuaBinding/modern/FontCollection.cpp
+    LuaSTG/LuaBinding/modern/TextLayout.hpp
+    LuaSTG/LuaBinding/modern/TextLayout.cpp
+    LuaSTG/LuaBinding/modern/TextRenderer.hpp
+    LuaSTG/LuaBinding/modern/TextRenderer.cpp
 
     LuaSTG/LuaBinding/generated/BlendModeX.cpp
     LuaSTG/LuaBinding/generated/BlendModeX.hpp

@@ -1,4 +1,9 @@
-file(GLOB_RECURSE lib_src RELATIVE ${CMAKE_CURRENT_LIST_DIR} core/*.hpp core/*.cpp)
+file(GLOB_RECURSE lib_src RELATIVE ${CMAKE_CURRENT_LIST_DIR}
+    core/*.hpp
+    core/*.cpp
+    core/implement/*.hpp
+    core/implement/*.cpp
+)
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${lib_src})
 
 set(lib_name "Core.String")

@@ -7,6 +7,7 @@
 #include "LuaBinding/LuaAppFrame.hpp"
 #include "utf8.hpp"
 #include "core/Configuration.hpp"
+#include "GameResource/SharedSpriteRenderer.hpp"
 
 using namespace luastg;
 
@@ -202,6 +203,8 @@ bool AppFrame::Init()noexcept
 			return false;
 		if (!core::Graphics::ITextRenderer::create(m_pAppModel->getRenderer(), m_pTextRenderer.put()))
 			return false;
+		if (!SharedSpriteRenderer::create())
+			return false;
 		if (!InitializationApplySettingStage1())
 			return false;
 
@@ -292,6 +295,7 @@ void AppFrame::Shutdown()noexcept
 	m_pTextRenderer = nullptr;
 	m_pAppModel = nullptr;
 	m_audio_engine = nullptr;
+	SharedSpriteRenderer::destroy();
 
 	m_iStatus = AppStatus::Destroyed;
 	spdlog::info("[luastg] 引擎关闭");

@@ -57,6 +57,9 @@ namespace win32 {
 		}
 		com_ptr(com_ptr&& other) noexcept : m_object(std::exchange(other.m_object, nullptr)) {
 		}
+		com_ptr(T* const other) : m_object(other) {
+			reference();
+		}
 		~com_ptr() {
 			reset();
 		}
@@ -100,9 +103,10 @@ namespace win32 {
 			return *this;
 		}
 
-		T** put() {
+		template<typename U = T>
+		U** put() {
 			reset();
-			return &m_object;
+			return reinterpret_cast<U**>(&m_object);
 		}
 
 		[[nodiscard]] explicit operator bool() const noexcept { return m_object != nullptr; }

@@ -1,4 +1,7 @@
 #include "GameResource/Implement/ResourceParticleImpl.hpp"
+#include "GameResource/LegacyBlendStateHelper.hpp"
+#include "GameResource/SharedSpriteRenderer.hpp"
+#include "AppFrame.h"
 
 namespace luastg
 {
@@ -256,15 +259,23 @@ namespace luastg
 	}
 	void ParticlePoolImpl::Render(float scaleX, float scaleY)
 	{
-		core::Graphics::ISprite* pSprite = m_Info.pSprite.get();
 		hgeParticleSystemInfo const& pInfo = m_Info.tParticleSystemInfo;
 		core::Color4B const tVertexColor = GetVertexColor();
+		const auto sprite = m_Info.pSprite.get();
+		const auto renderer = SharedSpriteRenderer::getInstance();
+		const auto command_list = LAPP.GetRenderer2D();
+		const auto blend = luastg::translateLegacyBlendState(m_Info.eBlendMode);
+
+		renderer->setSprite(sprite);
+		renderer->setZ(0.5f);
+		renderer->setLegacyBlendState(blend.vertex_color_blend_state, blend.blend_state);
+
 		for (size_t i = 0; i < m_iAlive; i += 1)
 		{
 			hgeParticle const& pInst = m_ParticlePool[i];
 			if (pInfo.colColorStart[0] < 0) // r < 0
 			{
-				pSprite->setColor(core::Color4B(
+				renderer->setColor(core::Color4B(
 					tVertexColor.r,
 					tVertexColor.g,
 					tVertexColor.b,
@@ -273,17 +284,21 @@ namespace luastg
 			}
 			else
 			{
-				pSprite->setColor(core::Color4B(
+				renderer->setColor(core::Color4B(
 					(uint8_t)std::clamp(pInst.colColor[0] * (float)tVertexColor.r, 0.0f, 255.0f),
 					(uint8_t)std::clamp(pInst.colColor[1] * (float)tVertexColor.g, 0.0f, 255.0f),
 					(uint8_t)std::clamp(pInst.colColor[2] * (float)tVertexColor.b, 0.0f, 255.0f),
 					(uint8_t)std::clamp(pInst.colColor[3] * (float)tVertexColor.a, 0.0f, 255.0f)
 				));
 			}
-			pSprite->draw(
+			renderer->setTransform(
 				core::Vector2F(pInst.vecLocation.x, pInst.vecLocation.y),
 				core::Vector2F(scaleX * pInst.fSize, scaleY * pInst.fSize),
-				pInst.fSpin);
+				pInst.fSpin
+			);
+			renderer->draw(command_list);
 		}
+
+		renderer->setSprite(nullptr);
 	}
 }
