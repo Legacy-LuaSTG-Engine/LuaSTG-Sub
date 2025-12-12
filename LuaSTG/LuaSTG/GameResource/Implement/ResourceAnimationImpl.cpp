@@ -1,23 +1,8 @@
 #include "GameResource/Implement/ResourceAnimationImpl.hpp"
 #include "GameResource/Implement/ResourceSpriteImpl.hpp"
 #include "GameResource/LegacyBlendStateHelper.hpp"
+#include "GameResource/SharedSpriteRenderer.hpp"
 #include "AppFrame.h"
-
-namespace {
-	class Instance {
-	public:
-		Instance() {
-			std::ignore = core::Graphics::ISpriteRenderer::create(m_renderer.put());
-		}
-
-		core::Graphics::ISpriteRenderer* get() { return m_renderer.get(); }
-
-	private:
-		core::SmartReference<core::Graphics::ISpriteRenderer> m_renderer;
-	};
-
-	Instance s_renderer;
-}
 
 namespace luastg
 {
@@ -102,7 +87,7 @@ namespace luastg
 	void ResourceAnimationImpl::Render(int timer, float x, float y, float rot, float hscale, float vscale, float z)
 	{
 		const auto sprite = GetSpriteByTimer(timer)->GetSprite();
-		const auto renderer = s_renderer.get();
+		const auto renderer = SharedSpriteRenderer::getInstance();
 		const auto blend = luastg::translateLegacyBlendState(m_BlendMode);
 
 		renderer->setSprite(sprite);
@@ -118,7 +103,7 @@ namespace luastg
 	void ResourceAnimationImpl::Render(int timer, float x, float y, float rot, float hscale, float vscale, BlendMode blend_, core::Color4B color, float z)
 	{
 		const auto sprite = GetSpriteByTimer(timer)->GetSprite();
-		const auto renderer = s_renderer.get();
+		const auto renderer = SharedSpriteRenderer::getInstance();
 		const auto blend = luastg::translateLegacyBlendState(blend_);
 
 		renderer->setSprite(sprite);

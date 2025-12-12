@@ -56,6 +56,8 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/GameResource/ResourcePostEffectShader.hpp
     LuaSTG/GameResource/ResourceModel.hpp
     LuaSTG/GameResource/ResourceModel.cpp
+    LuaSTG/GameResource/SharedSpriteRenderer.hpp
+    LuaSTG/GameResource/SharedSpriteRenderer.cpp
 
     LuaSTG/GameResource/ResourceDebug.cpp
     LuaSTG/GameResource/ResourceManager.cpp

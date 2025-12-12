@@ -1,22 +1,7 @@
 #include "GameResource/Implement/ResourceSpriteImpl.hpp"
-#include "AppFrame.h"
 #include "GameResource/LegacyBlendStateHelper.hpp"
-
-namespace {
-	class Instance {
-	public:
-		Instance() {
-			std::ignore = core::Graphics::ISpriteRenderer::create(m_renderer.put());
-		}
-
-		core::Graphics::ISpriteRenderer* get() { return m_renderer.get(); }
-
-	private:
-		core::SmartReference<core::Graphics::ISpriteRenderer> m_renderer;
-	};
-
-	Instance s_renderer;
-}
+#include "GameResource/SharedSpriteRenderer.hpp"
+#include "AppFrame.h"
 
 namespace luastg
 {
@@ -31,7 +16,7 @@ namespace luastg
 
 	void ResourceSpriteImpl::RenderRect(float l, float r, float b, float t, float z)
 	{
-		const auto renderer = s_renderer.get();
+		const auto renderer = SharedSpriteRenderer::getInstance();
 		const auto blend = luastg::translateLegacyBlendState(m_BlendMode);
 
 		renderer->setSprite(m_sprite.get());
@@ -46,7 +31,7 @@ namespace luastg
 	}
 	void ResourceSpriteImpl::Render(float x, float y, float rot, float hscale, float vscale, float z)
 	{
-		const auto renderer = s_renderer.get();
+		const auto renderer = SharedSpriteRenderer::getInstance();
 		const auto blend = luastg::translateLegacyBlendState(m_BlendMode);
 
 		renderer->setSprite(m_sprite.get());
@@ -61,7 +46,7 @@ namespace luastg
 	}
 	void ResourceSpriteImpl::Render(float x, float y, float rot, float hscale, float vscale, BlendMode blend_, core::Color4B color, float z)
 	{
-		const auto renderer = s_renderer.get();
+		const auto renderer = SharedSpriteRenderer::getInstance();
 		const auto blend = luastg::translateLegacyBlendState(blend_);
 
 		renderer->setSprite(m_sprite.get());
@@ -76,7 +61,7 @@ namespace luastg
 	}
 	void ResourceSpriteImpl::Render4V(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4)
 	{
-		const auto renderer = s_renderer.get();
+		const auto renderer = SharedSpriteRenderer::getInstance();
 		const auto blend = luastg::translateLegacyBlendState(m_BlendMode);
 
 		renderer->setSprite(m_sprite.get());

@@ -1,22 +1,7 @@
 #include "GameResource/Implement/ResourceParticleImpl.hpp"
 #include "GameResource/LegacyBlendStateHelper.hpp"
+#include "GameResource/SharedSpriteRenderer.hpp"
 #include "AppFrame.h"
-
-namespace {
-	class Instance {
-	public:
-		Instance() {
-			std::ignore = core::Graphics::ISpriteRenderer::create(m_renderer.put());
-		}
-
-		core::Graphics::ISpriteRenderer* get() { return m_renderer.get(); }
-
-	private:
-		core::SmartReference<core::Graphics::ISpriteRenderer> m_renderer;
-	};
-
-	Instance s_renderer;
-}
 
 namespace luastg
 {
@@ -277,7 +262,7 @@ namespace luastg
 		hgeParticleSystemInfo const& pInfo = m_Info.tParticleSystemInfo;
 		core::Color4B const tVertexColor = GetVertexColor();
 		const auto sprite = m_Info.pSprite.get();
-		const auto renderer = s_renderer.get();
+		const auto renderer = SharedSpriteRenderer::getInstance();
 		const auto command_list = LAPP.GetRenderer2D();
 		const auto blend = luastg::translateLegacyBlendState(m_Info.eBlendMode);
 
