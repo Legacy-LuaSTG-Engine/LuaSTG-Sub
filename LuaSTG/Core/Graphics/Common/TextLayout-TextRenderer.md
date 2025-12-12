@@ -29,23 +29,3 @@ GlyphCacheManager
     clear()
     getSpriteAtlas(): SpriteAtlas
     getSprite(code: integer | string, size_in_pixel: number?): Sprite?
-
-TextLayout
-    setText
-    setFontFamily
-    setFontSize
-    setFontWeight
-    setFontStyle
-    setLayoutSize
-    setTextAlignment
-    setParagraphAlignment
-
-TextRenderer
-    setTextLayout
-    setAnchor
-    setPosition
-    setScale
-    setRotation
-    setTransform
-    setColor
-    setLegacyBlendState
