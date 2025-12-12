@@ -23,6 +23,9 @@ namespace core::Graphics {
     void TextRenderer2::setTextLayout(ITextLayout* const text_layout) {
         if (m_text_layout.get() != text_layout) {
             m_text_layout = text_layout;
+            if (m_texture) {
+                m_texture->setImage(nullptr);
+            }
             m_last_version = 0;
         }
     }
@@ -105,6 +108,7 @@ namespace core::Graphics {
             if (!m_texture->uploadPixelData(core::RectU({}, size), buffer.data, buffer.stride)) {
                 return false;
             }
+            m_texture->setImage(image);
         }
 
         return true;
