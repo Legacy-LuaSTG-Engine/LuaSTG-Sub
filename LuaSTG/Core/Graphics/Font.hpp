@@ -2,7 +2,7 @@
 #include "Core/Graphics/Device.hpp"
 #include "Core/Graphics/Renderer.hpp"
 #include "core/ReferenceCounted.hpp"
-#include "core/FontCommon.hpp"
+#include "core/TextLayout.hpp"
 
 namespace core::Graphics
 {
@@ -66,6 +66,34 @@ namespace core::Graphics
 
 		static bool create(IRenderer* p_renderer, ITextRenderer** output);
 	};
+
+	enum class Anchor : int32_t {
+		left_top = 0,
+		center_top = 1,
+		right_top = 2,
+		left_center = 4,
+		center = 4 | 1,
+		right_center = 4 | 2,
+		left_bottom = 8,
+		center_bottom = 8 | 1,
+		right_bottom = 8 | 2,
+	};
+
+	struct ITextRenderer2 : public IReferenceCounted {
+		virtual void setTransform(RectF const& rect) = 0;
+		virtual void setTransform(Vector2F const& p1, Vector2F const& p2, Vector2F const& p3, Vector2F const& p4) = 0;
+		virtual void setTransform(Vector3F const& p1, Vector3F const& p2, Vector3F const& p3, Vector3F const& p4) = 0;
+		virtual void setTransform(Vector2F const& position, Vector2F const& scale, float rotation) = 0;
+		virtual void setTextLayout(ITextLayout* text_layout) = 0;
+		virtual void setColor(Color4B color) = 0;
+		virtual void setColor(Color4B c1, Color4B c2, Color4B c3, Color4B c4) = 0;
+		virtual void setAnchor(Vector2F anchor) = 0;
+		virtual void setZ(float z) = 0;
+		virtual void setLegacyBlendState(IRenderer::VertexColorBlendState vertex_color_blend_state, IRenderer::BlendState blend_state) = 0;
+		virtual void draw(IRenderer* renderer) = 0;
+
+		static bool create(ITextRenderer2** output);
+	};
 }
 
 namespace core {
@@ -78,4 +106,9 @@ namespace core {
 	// ns:URL
 	// https://www.luastg-sub.com/core.ITextRenderer
 	template<> constexpr InterfaceId getInterfaceId<Graphics::ITextRenderer>() { return UUID::parse("23c381e5-4769-5caf-9623-5f050c0f9aba"); }
+
+	// UUID v5
+	// ns:URL
+	// https://www.luastg-sub.com/core.ITextRenderer2
+	template<> constexpr InterfaceId getInterfaceId<Graphics::ITextRenderer2>() { return UUID::parse("3308ba67-afc6-54ef-938b-7aeb006876a0"); }
 }
