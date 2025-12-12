@@ -1,4 +1,5 @@
 #include "Core/Graphics/Common/TextRenderer2.hpp"
+#include <cassert>
 
 namespace core::Graphics {
     void TextRenderer2::setTransform(RectF const& rect) {
@@ -46,9 +47,14 @@ namespace core::Graphics {
 
     // TextRenderer2
 
-    TextRenderer2::TextRenderer2(IDevice* const device) : m_device(device) {
+    bool TextRenderer2::initialize(IDevice* const device) {
+        assert(device != nullptr);
+        m_device = device;
+        if (!ISpriteRenderer::create(m_sprite_renderer.put())) {
+            return false;
+        }
+        return true;
     }
-
     bool TextRenderer2::update(IRenderer* const renderer) {
         if (!m_text_layout) {
             return true;
@@ -92,6 +98,22 @@ namespace core::Graphics {
             }
         }
 
+        return true;
+    }
+}
+
+namespace core::Graphics {
+    bool ITextRenderer2::create(IDevice* const device, ITextRenderer2** const output) {
+        if (device == nullptr || output == nullptr) {
+            assert(false);
+            return false;
+        }
+        SmartReference<TextRenderer2> renderer;
+        renderer.attach(new TextRenderer2);
+        if (!renderer->initialize(device)) {
+            return false;
+        }
+        *output = renderer.detach();
         return true;
     }
 }

@@ -24,8 +24,7 @@ namespace core::Graphics {
 
         // TextRenderer2
 
-        explicit TextRenderer2(IDevice* device);
-
+        bool initialize(IDevice* device);
         bool update(IRenderer* renderer);
 
     private:

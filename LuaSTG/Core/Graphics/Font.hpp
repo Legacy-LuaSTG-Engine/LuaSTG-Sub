@@ -92,7 +92,7 @@ namespace core::Graphics
 		virtual void setLegacyBlendState(IRenderer::VertexColorBlendState vertex_color_blend_state, IRenderer::BlendState blend_state) = 0;
 		virtual void draw(IRenderer* renderer) = 0;
 
-		static bool create(ITextRenderer2** output);
+		static bool create(IDevice* device, ITextRenderer2** output);
 	};
 }
 

@@ -1,12 +1,12 @@
 local test = require("test")
 local imgui = require("imgui")
-local Sprite = require("lstg.Sprite")
-local SpriteRenderer = require("lstg.SpriteRenderer")
-local TextLayout = require("lstg.TextLayout")
 local FontWeight = require("lstg.FontWeight")
 local FontStyle = require("lstg.FontStyle")
+local FontWidth = require("lstg.FontWidth")
 local TextAlignment = require("lstg.TextAlignment")
 local ParagraphAlignment = require("lstg.ParagraphAlignment")
+local TextLayout = require("lstg.TextLayout")
+local TextRenderer = require("lstg.TextRenderer")
 
 local TITLE = "Graphics: TextLayout"
 
@@ -14,34 +14,28 @@ local TITLE = "Graphics: TextLayout"
 local M = {}
 
 function M:onCreate()
-    self.text_layout = TextLayout.create()
+    self.timer = 0
+
+    self.text_layout = assert(TextLayout.create()
         :setText("")
-        :setFontFamilyName("微软雅黑")
+        :setFontFamily("微软雅黑")
         :setFontSize(64)
         :setFontWeight(FontWeight.bold)
-        :setFontStyle(FontStyle.normal)
         :setTextAlignment(TextAlignment.center)
         :setParagraphAlignment(ParagraphAlignment.center)
         :setLayoutSize(600, 80)
-    self.text_layout:build()
-    local t = self.text_layout:getTexture()
-    local w, h = t:getWidth(), t:getHeight()
-    self.sprite = Sprite.create(self.text_layout:getTexture(), 0, 0, w, h, w / 2, h / 2, 0.5)
-    self.renderer = SpriteRenderer.create(self.sprite)
-    self.timer = 0
+        :build()
+    )
+    self.renderer = TextRenderer.create(self.text_layout)
 
-    self.text_layout_large = TextLayout.create()
+    self.text_layout_large = assert(TextLayout.create()
         :setText(lstg.LoadTextFile("assets/text/article1.txt"))
-        :setFontFamilyName("Noto Sans SC")
+        :setFontFamily("Noto Sans SC")
         :setFontSize(16)
-        :setFontWeight(FontWeight.normal)
-        :setFontStyle(FontStyle.normal)
-        :setTextAlignment(TextAlignment.start)
-        :setParagraphAlignment(ParagraphAlignment.start)
         :setLayoutSize(1280, 720)
-    self.text_layout_large:build()
-    self.sprite_large = Sprite.create(self.text_layout_large:getTexture(), 0, 0, 1280, 720, 0, 0)
-    self.renderer_large = SpriteRenderer.create(self.sprite_large)
+        :build()
+    )
+    self.renderer_large = TextRenderer.create(self.text_layout_large)
     self.renderer_large:setTransform(0, 720)
 end
 
