@@ -80,6 +80,26 @@ namespace {
         std::ofstream file(path_w, std::ios::out | std::ios::trunc | std::ios::binary);
         file.write(static_cast<const char*>(data), static_cast<std::streamsize>(size));
     }
+    void convertPremultipliedAlphaToStraight(core::ImageMappedBuffer& buffer, const core::Vector2U& size) {
+        auto pixels = static_cast<core::Color4B*>(buffer.data);
+        for (uint32_t y = 0; y < size.y; y += 1) {
+            for (uint32_t x = 0; x < size.x; x += 1) {
+                auto& c = pixels[y * size.x + x];
+                if (c.a == 0) {
+                    c = {};
+                }
+                else if (c.a < 255) {
+                    const auto inv = 255.0f / static_cast<float>(c.a);
+                    const auto r = inv * static_cast<float>(c.r) / 255.0f;
+                    const auto g = inv * static_cast<float>(c.g) / 255.0f;
+                    const auto b = inv * static_cast<float>(c.b) / 255.0f;
+                    c.r = static_cast<uint8_t>(std::clamp(r * 255.0f, 0.0f, 255.0f) + 0.5f);
+                    c.g = static_cast<uint8_t>(std::clamp(g * 255.0f, 0.0f, 255.0f) + 0.5f);
+                    c.b = static_cast<uint8_t>(std::clamp(b * 255.0f, 0.0f, 255.0f) + 0.5f);
+                }
+            }
+        }
+    }
 
     void printFontCollectionInfo(core::IFontCollection* const font_collection) {
         using namespace core;
@@ -157,24 +177,7 @@ TEST(TextLayout, text) {
     ScopedImageMappedBuffer buffer{};
     ASSERT_TRUE(image->createScopedMap(buffer));
 
-    auto pixels = static_cast<Color4B*>(buffer.data);
-    for (uint32_t y = 0; y < size.y; y += 1) {
-        for (uint32_t x = 0; x < size.x; x += 1) {
-            auto& c = pixels[y * size.x + x];
-            if (c.a == 0) {
-                c = {};
-            }
-            else if (c.a < 255) {
-                const auto inv = 255.0f / static_cast<float>(c.a);
-                const auto r = inv * static_cast<float>(c.r) / 255.0f;
-                const auto g = inv * static_cast<float>(c.g) / 255.0f;
-                const auto b = inv * static_cast<float>(c.b) / 255.0f;
-                c.r = static_cast<uint8_t>(std::clamp(r * 255.0f, 0.0f, 255.0f) + 0.5f);
-                c.g = static_cast<uint8_t>(std::clamp(g * 255.0f, 0.0f, 255.0f) + 0.5f);
-                c.b = static_cast<uint8_t>(std::clamp(b * 255.0f, 0.0f, 255.0f) + 0.5f);
-            }
-        }
-    }
+    convertPremultipliedAlphaToStraight(buffer, size);
 
     uint8_t* webp_data{};
     const auto webp_size = WebPEncodeLosslessBGRA(
@@ -213,24 +216,7 @@ TEST(TextLayout, stroke) {
     ScopedImageMappedBuffer buffer{};
     ASSERT_TRUE(image->createScopedMap(buffer));
 
-    auto pixels = static_cast<Color4B*>(buffer.data);
-    for (uint32_t y = 0; y < size.y; y += 1) {
-        for (uint32_t x = 0; x < size.x; x += 1) {
-            auto& c = pixels[y * size.x + x];
-            if (c.a == 0) {
-                c = {};
-            }
-            else if (c.a < 255) {
-                const auto inv = 255.0f / static_cast<float>(c.a);
-                const auto r = inv * static_cast<float>(c.r) / 255.0f;
-                const auto g = inv * static_cast<float>(c.g) / 255.0f;
-                const auto b = inv * static_cast<float>(c.b) / 255.0f;
-                c.r = static_cast<uint8_t>(std::clamp(r * 255.0f, 0.0f, 255.0f) + 0.5f);
-                c.g = static_cast<uint8_t>(std::clamp(g * 255.0f, 0.0f, 255.0f) + 0.5f);
-                c.b = static_cast<uint8_t>(std::clamp(b * 255.0f, 0.0f, 255.0f) + 0.5f);
-            }
-        }
-    }
+    convertPremultipliedAlphaToStraight(buffer, size);
 
     uint8_t* webp_data{};
     const auto webp_size = WebPEncodeLosslessBGRA(
