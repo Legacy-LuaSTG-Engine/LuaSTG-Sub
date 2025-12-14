@@ -2583,6 +2583,7 @@ namespace DirectWrite
 		canvas_image_description.size.y = static_cast<uint32_t>(texture_canvas_height);
 		canvas_image_description.format = core::ImageFormat::b8g8r8a8_normalized;
 		canvas_image_description.color_space = core::ImageColorSpace::srgb_gamma_2_2;
+		canvas_image_description.alpha_mode = core::ImageAlphaMode::premultiplied;
 
 		core::SmartReference<core::IImage> canvas_image;
 		if (!core::ImageFactory::create(canvas_image_description, canvas_image.put())) {

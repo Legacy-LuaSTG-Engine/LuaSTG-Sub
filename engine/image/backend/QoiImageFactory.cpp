@@ -55,6 +55,7 @@ namespace core {
         description.color_space = info.colorspace == QOI_LINEAR
             ? ImageColorSpace::linear
             : ImageColorSpace::srgb_gamma_2_2;
+        description.alpha_mode = ImageAlphaMode::straight;
 
         SmartReference<Image> image;
         image.attach(new Image());
