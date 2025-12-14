@@ -99,7 +99,7 @@ namespace core {
         void* getNativeResource() override;
         void* getNativeView() override;
         uint32_t getSizeInBytes() override;
-        bool upload(void const* data, uint32_t size_in_bytes) override;
+        bool update(void const* data, uint32_t size_in_bytes) override;
 
         // ConstantBuffer
 

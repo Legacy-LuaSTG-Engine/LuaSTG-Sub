@@ -5,9 +5,9 @@
 using std::string_view_literals::operator ""sv;
 
 namespace {
-	uint32_t alignTo16 (uint32_t const size) {
-		return ((size + 15u) / 16u) * 16;
-	}
+    uint32_t alignTo16 (uint32_t const size) {
+        return ((size + 15u) / 16u) * 16;
+    }
 }
 
 namespace core {
@@ -277,7 +277,7 @@ namespace core {
     uint32_t ConstantBuffer::getSizeInBytes() {
         return m_size_in_bytes;
     }
-    bool ConstantBuffer::upload(void const* const data, uint32_t const size_in_bytes) {
+    bool ConstantBuffer::update(void const* const data, uint32_t const size_in_bytes) {
         if (size_in_bytes == 0) {
             return true;
         }
