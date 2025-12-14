@@ -17,6 +17,7 @@ target_link_libraries(${lib_name} PUBLIC
     Core.FileSystem
     Core.Logging
     Core.Math
+    Core.Image
     win32
 )
 
