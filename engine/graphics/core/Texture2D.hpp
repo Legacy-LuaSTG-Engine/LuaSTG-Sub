@@ -2,7 +2,7 @@
 #include "core/ReferenceCounted.hpp"
 #include "core/Vector2.hpp"
 #include "core/Rect.hpp"
-#include "core/Data.hpp"
+#include "core/Image.hpp"
 #include "core/ImmutableString.hpp"
 
 namespace core {
@@ -14,10 +14,10 @@ namespace core {
         virtual bool isPremultipliedAlpha() const noexcept = 0;
         virtual void setPremultipliedAlpha(bool v) = 0;
         virtual Vector2U getSize() const noexcept = 0;
-        virtual bool setSize(Vector2U size) = 0;
 
-        virtual bool uploadPixelData(RectU rc, void const* data, uint32_t pitch_in_bytes) = 0;
-        virtual void setPixelData(IData* data) = 0;
+        virtual bool resize(Vector2U size) = 0;
+        virtual bool update(RectU rect, void const* data, uint32_t row_pitch_in_bytes) = 0;
+        virtual void setImage(IImage* image) = 0;
 
         virtual bool saveToFile(StringView path) = 0;
 
