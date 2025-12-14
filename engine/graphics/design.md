@@ -30,3 +30,17 @@ ITexture2D
 
 IPipelineState
 ISamplerState
+
+## Mixed style
+
+IGraphicsDevice
+
+IVertexBuffer
+IIndexBuffer
+IConstantBuffer
+IRenderTarget
+IDepthStencilBuffer
+ITexture2D
+
+IPipelineState
+ISamplerState
