@@ -48,6 +48,7 @@ TEST(Image, create) {
     description.size.y = 1;
     description.format = ImageFormat::r8g8b8a8_normalized;
     description.color_space = ImageColorSpace::linear;
+    description.alpha_mode = ImageAlphaMode::straight;
 
     SmartReference<IImage> image;
     ASSERT_TRUE(ImageFactory::create(description, image.put()));
@@ -62,6 +63,7 @@ TEST(Image, create_with_nullptr) {
     description.size.y = 1;
     description.format = ImageFormat::r8g8b8a8_normalized;
     description.color_space = ImageColorSpace::linear;
+    description.alpha_mode = ImageAlphaMode::straight;
 
     ASSERT_FALSE(ImageFactory::create(description, nullptr));
 }
@@ -73,6 +75,7 @@ TEST(Image, create_with_wrong_size) {
     ImageDescription description;
     description.format = ImageFormat::r8g8b8a8_normalized;
     description.color_space = ImageColorSpace::linear;
+    description.alpha_mode = ImageAlphaMode::straight;
 
     SmartReference<IImage> image;
 
@@ -102,6 +105,7 @@ TEST(Image, create_with_wrong_format) {
     description.size.y = 1;
     description.format = ImageFormat::unknown;
     description.color_space = ImageColorSpace::linear;
+    description.alpha_mode = ImageAlphaMode::straight;
 
     SmartReference<IImage> image;
     ASSERT_FALSE(ImageFactory::create(description, image.put()));
@@ -115,6 +119,7 @@ TEST(Image, create_with_wrong_color_space) {
     description.size.x = 1;
     description.size.y = 1;
     description.color_space = ImageColorSpace::srgb_gamma_2_2;
+    description.alpha_mode = ImageAlphaMode::straight;
 
     SmartReference<IImage> image;
 
@@ -145,6 +150,7 @@ TEST(Image, map) {
     description.size.y = 1;
     description.format = ImageFormat::r8g8b8a8_normalized;
     description.color_space = ImageColorSpace::linear;
+    description.alpha_mode = ImageAlphaMode::straight;
 
     SmartReference<IImage> image;
     ASSERT_TRUE(ImageFactory::create(description, image.put()));
@@ -163,6 +169,7 @@ TEST(Image, r8g8b8a8_normalized_map_write_unmap_getPixel) {
     description.size.y = 1;
     description.format = ImageFormat::r8g8b8a8_normalized;
     description.color_space = ImageColorSpace::linear;
+    description.alpha_mode = ImageAlphaMode::straight;
 
     SmartReference<IImage> image;
     ASSERT_TRUE(ImageFactory::create(description, image.put()));
@@ -186,6 +193,7 @@ TEST(Image, b8g8r8a8_normalized_map_write_unmap_getPixel) {
     description.size.y = 1;
     description.format = ImageFormat::b8g8r8a8_normalized;
     description.color_space = ImageColorSpace::linear;
+    description.alpha_mode = ImageAlphaMode::straight;
 
     SmartReference<IImage> image;
     ASSERT_TRUE(ImageFactory::create(description, image.put()));
@@ -209,6 +217,7 @@ TEST(Image, r16g16b16a16_float_map_write_unmap_getPixel) {
     description.size.y = 1;
     description.format = ImageFormat::r16g16b16a16_float;
     description.color_space = ImageColorSpace::linear;
+    description.alpha_mode = ImageAlphaMode::straight;
 
     SmartReference<IImage> image;
     ASSERT_TRUE(ImageFactory::create(description, image.put()));
@@ -236,6 +245,7 @@ TEST(Image, r32g32b32a32_float_map_write_unmap_getPixel) {
     description.size.y = 1;
     description.format = ImageFormat::r32g32b32a32_float;
     description.color_space = ImageColorSpace::linear;
+    description.alpha_mode = ImageAlphaMode::straight;
 
     SmartReference<IImage> image;
     ASSERT_TRUE(ImageFactory::create(description, image.put()));

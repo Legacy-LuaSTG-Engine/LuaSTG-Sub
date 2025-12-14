@@ -234,6 +234,7 @@ namespace core {
         }
         image_description.format = ImageFormat::b8g8r8a8_normalized;
         image_description.color_space = ImageColorSpace::srgb_gamma_2_2;
+        image_description.alpha_mode = ImageAlphaMode::premultiplied;
 
         if (!m_image || m_image->getDescription()->size != image_description.size) {
             if (!ImageFactory::create(image_description, m_image.put())) {

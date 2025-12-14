@@ -22,6 +22,10 @@ namespace {
             core::Logger::error("[core] unknown image color space ({})"sv, static_cast<int32_t>(description.color_space));
             return false;
         }
+        if (I(description.alpha_mode) <= I(core::ImageAlphaMode::unknown) || I(description.alpha_mode) >= I(core::ImageAlphaMode::count)) {
+            core::Logger::error("[core] unknown image alpha mode ({})"sv, static_cast<int32_t>(description.alpha_mode));
+            return false;
+        }
     #undef I
         if (description.color_space == core::ImageColorSpace::srgb_gamma_2_2) {
             switch (description.format) {
