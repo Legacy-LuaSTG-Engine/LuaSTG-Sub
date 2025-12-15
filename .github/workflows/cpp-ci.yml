@@ -29,7 +29,7 @@ jobs:
 
       - name: Cache C++ packages
         id: cache-cpp
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             build/packages
