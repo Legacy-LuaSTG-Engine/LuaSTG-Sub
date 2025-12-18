@@ -12,14 +12,16 @@ CPMAddPackage(
 
 if(YY_Thunks_ADDED)
     add_library(YY_Thunks INTERFACE)
-    if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+    if (LUASTG_ARCH STREQUAL "amd64")
         target_link_libraries(YY_Thunks INTERFACE
             ${YY_Thunks_SOURCE_DIR}/objs/x64/YY_Thunks_for_Win7.obj
         )
-    else()
+    elseif (LUASTG_ARCH STREQUAL "x86")
         target_link_libraries(YY_Thunks INTERFACE
             ${YY_Thunks_SOURCE_DIR}/objs/x86/YY_Thunks_for_Win7.obj
         )
+    else ()
+        message(FATAL_ERROR "YY_Thunks: unsupported architecture")
     endif()
-    message(STATUS "[LuaSTG] Import: YY_Thunks")
+    message(STATUS "LuaSTG: YY_Thunks: Enabled")
 endif()

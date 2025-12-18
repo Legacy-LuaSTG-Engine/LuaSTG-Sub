@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 project(LuaSTGSub)
 
+include(cmake/architecture.cmake)
 include(cmake/luastg_options.cmake)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)

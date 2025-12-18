@@ -13,11 +13,11 @@ set(STEAM_API_REQUIRED_FILES
 if (LUASTG_STEAM_API_ENABLE)
     # check
 
-    foreach(file IN LISTS STEAM_API_REQUIRED_FILES)
+    foreach (file IN LISTS STEAM_API_REQUIRED_FILES)
         if (NOT EXISTS ${file})
             message(FATAL_ERROR "LuaSTG: Steam API: Required file not found: ${file}")
         endif ()
-    endforeach()
+    endforeach ()
 
     # import
 
@@ -25,7 +25,7 @@ if (LUASTG_STEAM_API_ENABLE)
     target_include_directories(steam_api INTERFACE
         "${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/public/steam"
     )
-    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    if (LUASTG_ARCH STREQUAL "amd64")
         target_link_directories(steam_api INTERFACE
             "${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin/win64"
         )
@@ -33,7 +33,7 @@ if (LUASTG_STEAM_API_ENABLE)
             IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin/win64/steam_api64.dll"
             IMPORTED_IMPLIB   "${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin/win64/steam_api64.lib"
         )
-    else()
+    elseif (LUASTG_ARCH STREQUAL "x86")
         target_link_directories(steam_api INTERFACE
             "${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin"
         )
@@ -41,7 +41,9 @@ if (LUASTG_STEAM_API_ENABLE)
             IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin/steam_api.dll"
             IMPORTED_IMPLIB   "${CMAKE_CURRENT_SOURCE_DIR}/SteamworksSDK/sdk/redistributable_bin/steam_api.lib"
         )
-    endif()
+    else ()
+        message(FATAL_ERROR "Steam SDK: unsupported architecture")
+    endif ()
 endif ()
 
 # binding
