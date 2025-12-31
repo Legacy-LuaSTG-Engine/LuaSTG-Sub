@@ -1,5 +1,4 @@
 #include "core/Configuration.hpp"
-#include "core/CommandLineArguments.hpp"
 #include <array>
 #include <vector>
 #include <optional>
@@ -22,168 +21,13 @@ namespace {
 	) {
 		return { a, b, c, {d0, d1, d2, d3, d4, d5, d6, d7} };
 	}
-}
 
-namespace core {
-	static std::u8string_view to_u8string_view(std::string const& sv) {
+	std::u8string_view to_u8string_view(std::string const& sv) {
 		static_assert(CHAR_BIT == 8 && sizeof(char) == 1 && sizeof(char) == sizeof(char8_t));
 		return { reinterpret_cast<char8_t const*>(sv.c_str()), sv.length() };
 	}
 
-	static std::optional<bool> to_boolean(std::string_view const& s) {
-		if (s == "true"sv) {
-			return { true };
-		}
-		else if (s == "false"sv) {
-			return { false };
-		}
-		else {
-			return std::nullopt;
-		}
-	}
-
-	template<typename T>
-	static std::optional<T> to_unsigned_integer(std::string_view const& s) {
-		static_assert(std::is_unsigned<T>::value);
-		T value{};
-		auto const result = std::from_chars(s.data(), s.data() + s.size(), value);
-		if (result.ec == std::errc{}) {
-			return { value };
-		}
-		else {
-			return std::nullopt;
-		}
-	}
-
-	bool ConfigurationLoader::loadFromCommandLineArguments() {
-		auto const args{ CommandLineArguments::copy() };
-		auto write_arg_error = [this](std::string_view const& raw_arg) -> void {
-			messages.emplace_back(std::format("invalid command line argument '{}'", raw_arg));
-		};
-		auto write_message = [this](std::string_view const& raw_arg, std::string_view const& message) -> void {
-			messages.emplace_back(std::format("invalid command line argument '{}': {}", raw_arg, message));
-		};
-		for (size_t i = 0; i < args.size(); i += 1) {
-			std::string_view const raw_arg(args[i]);
-			std::string_view arg(args[i]);
-
-			constexpr auto double_dash = "--"sv;
-			constexpr auto separator = "."sv;
-			constexpr auto assignment = "="sv;
-
-			if (!arg.starts_with(double_dash)) {
-				continue;
-			}
-			arg = arg.substr(double_dash.size());
-
-		#define access_parent_field(VAR, EXP)			\
-			constexpr auto key_##VAR = "" #VAR ""sv;	\
-			if (arg.starts_with(key_##VAR)) {			\
-				arg = arg.substr(key_##VAR.size());		\
-				if (arg.starts_with(separator)) {		\
-					arg = arg.substr(separator.size());	\
-					EXP;								\
-				}										\
-			}
-
-		#define access_field(VAR, EXP)					\
-			constexpr auto key_##VAR = "" #VAR ""sv;	\
-			if (arg.starts_with(key_##VAR)) {			\
-				arg = arg.substr(key_##VAR.size());		\
-				if (arg.starts_with(assignment)) {		\
-					arg = arg.substr(assignment.size());\
-					EXP;								\
-				}										\
-			}
-
-			access_parent_field(graphics_system,
-				{
-					access_field(preferred_device_name,
-						if (!arg.empty()) {
-							graphics_system.setPreferredDeviceName(arg);
-						});
-					access_field(width,
-						if (auto const value = to_unsigned_integer<uint32_t>(arg); value) {
-							if (value.value() == 0) {
-								write_message(raw_arg, "width must greater than 0"sv);
-								return false;
-							}
-							graphics_system.setWidth(value.value());
-						}
-						else {
-							write_arg_error(raw_arg);
-							return false;
-						});
-					access_field(height,
-						if (auto const value = to_unsigned_integer<uint32_t>(arg); value) {
-							if (value.value() == 0) {
-								write_message(raw_arg, "height must greater than 0"sv);
-								return false;
-							}
-							graphics_system.setHeight(value.value());
-						}
-						else {
-							write_arg_error(raw_arg);
-							return false;
-						});
-					access_field(fullscreen,
-						if (auto const value = to_boolean(arg); value) {
-							graphics_system.setFullscreen(value.value());
-						}
-						else {
-							write_arg_error(raw_arg);
-							return false;
-						});
-					access_field(vsync,
-						if (auto const value = to_boolean(arg); value) {
-							graphics_system.setVsync(value.value());
-						}
-						else {
-							write_arg_error(raw_arg);
-							return false;
-						});
-					access_field(allow_software_device,
-						if (auto const value = to_boolean(arg); value) {
-							graphics_system.setAllowSoftwareDevice(value.value());
-						}
-						else {
-							write_arg_error(raw_arg);
-							return false;
-						});
-
-					access_field(allow_exclusive_fullscreen,
-						if (auto const value = to_boolean(arg); value) {
-							graphics_system.setAllowExclusiveFullscreen(value.value());
-						}
-						else {
-							write_arg_error(raw_arg);
-							return false;
-						});
-					access_field(allow_modern_swap_chain,
-						if (auto const value = to_boolean(arg); value) {
-							graphics_system.setAllowModernSwapChain(value.value());
-						}
-						else {
-							write_arg_error(raw_arg);
-							return false;
-						});
-					access_field(allow_direct_composition,
-						if (auto const value = to_boolean(arg); value) {
-							graphics_system.setAllowDirectComposition(value.value());
-						}
-						else {
-							write_arg_error(raw_arg);
-							return false;
-						});
-				});
-
-		#undef access_parent_field
-		#undef access_field
-		}
-		return true;
-	}
-
-	static bool getKnownDirectory(KNOWNFOLDERID const& id, std::string& output) {
+	bool getKnownDirectory(KNOWNFOLDERID const& id, std::string& output) {
 		HRESULT hr{};
 
 		Microsoft::WRL::ComPtr<IKnownFolderManager> manager;
@@ -217,7 +61,7 @@ namespace core {
 		KNOWNFOLDERID id;
 	};
 
-	static bool getTempPathDynamic(std::string& output) {
+	bool getTempPathDynamic(std::string& output) {
 		std::vector<WCHAR> buffer;
 		for (DWORD size = 256; size <= 0xffffu; size *= 2) {
 			buffer.resize(256, L'\0');
@@ -233,7 +77,8 @@ namespace core {
 		}
 		return false;
 	}
-	static bool getTempPath(std::string& output) {
+
+	bool getTempPath(std::string& output) {
 		constexpr DWORD size = MAX_PATH + 1;
 		WCHAR buffer[size]{};
 		DWORD const result = GetTempPathW(size, buffer);
@@ -248,7 +93,7 @@ namespace core {
 	}
 
 	// ReSharper disable CommentTypo
-	static constexpr std::array predefined_variables{
+	constexpr std::array predefined_variables{
 		PredefinedVariable{
 			.mark{"${user:roaming_app_data}"sv},
 			.type = PredefinedVariableType::folder,
@@ -294,7 +139,9 @@ namespace core {
 		},
 	};
 	// ReSharper restore CommentTypo
+}
 
+namespace core {
 	bool ConfigurationLoader::replaceAllPredefinedVariables(std::string_view const& input, std::string& output) {
 		std::string buffer(input);
 		for (auto const& predefined_variable : predefined_variables) {

@@ -1,4 +1,5 @@
 #include "core/Configuration.hpp"
+#include "core/CommandLineArguments.hpp"
 #include <iostream>
 #include <fstream>
 #include <filesystem>
@@ -44,18 +45,18 @@
 
 using namespace std::string_view_literals;
 
-namespace core {
-	static std::u8string_view to_u8string_view(std::string_view const& sv) {
+namespace {
+	std::u8string_view to_u8string_view(std::string_view const& sv) {
 		static_assert(CHAR_BIT == 8 && sizeof(char) == 1 && sizeof(char) == sizeof(char8_t));
-		return { reinterpret_cast<char8_t const*>(sv.data()), sv.size() };
+		return { reinterpret_cast<char8_t const*>(sv.data()), sv.length() };
 	}
 
-	static std::string to_string(std::u8string const& s) {
+	std::string to_string(std::u8string const& s) {
 		static_assert(CHAR_BIT == 8 && sizeof(char) == 1 && sizeof(char) == sizeof(char8_t));
 		return { reinterpret_cast<char const*>(s.c_str()), s.length() };
 	}
 
-	static bool is_uuid(std::string_view const& uuid) {
+	bool is_uuid(std::string_view const& uuid) {
 	#define is_uuid_char(c) (((c) >= '0' && (c) <= '9') || ((c) >= 'A' && (c) <= 'Z') || ((c) >= 'a' && (c) <= 'z'))
 	#define is_not_uuid_char(c) (!is_uuid_char(c))
 		constexpr std::string_view format36{ "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"sv };
@@ -89,7 +90,7 @@ namespace core {
 	#undef is_not_uuid_char
 	}
 
-	static bool readTextFile(std::string_view const& path, std::string& str) {
+	bool readTextFile(std::string_view const& path, std::string& str) {
 		str.clear();
 		std::error_code ec;
 		std::filesystem::path fs_path(to_u8string_view(path));
@@ -114,7 +115,7 @@ namespace core {
 		return true;
 	}
 
-	static std::string_view getTypeName(nlohmann::json const& json) {
+	std::string_view getTypeName(nlohmann::json const& json) {
 		if (json.is_object()) {
 			return "object"sv;
 		}
@@ -260,6 +261,21 @@ namespace core {
 						auto const& preserve = console.at("preserve"sv);
 						assert_type_is_boolean(preserve, "/logging/console/preserve"sv);
 						loader.logging.console.setPreserve(preserve.get<bool>());
+					}
+				}
+				if (logging.contains("standard_output"sv)) {
+					auto const& standard_output = logging.at("standard_output"sv);
+					assert_type_is_object(standard_output, "/logging/standard_output"sv);
+					if (standard_output.contains("enable"sv)) {
+						auto const& enable = standard_output.at("enable"sv);
+						assert_type_is_boolean(enable, "/logging/standard_output/enable"sv);
+						loader.logging.standard_output.setEnable(enable.get<bool>());
+					}
+					if (standard_output.contains("threshold"sv)) {
+						auto const& threshold = standard_output.at("threshold"sv);
+						assert_type_is_string(threshold, "/logging/standard_output/threshold"sv);
+						get_level("/logging/standard_output/threshold");
+						loader.logging.standard_output.setThreshold(level);
 					}
 				}
 				if (logging.contains("file"sv)) {
@@ -628,5 +644,162 @@ namespace core {
 	ConfigurationLoader& ConfigurationLoader::getInstance() {
 		static ConfigurationLoader instance;
 		return instance;
+	}
+}
+
+namespace {
+	std::optional<bool> to_boolean(std::string_view const& s) {
+		if (s == "true"sv) {
+			return { true };
+		}
+		else if (s == "false"sv) {
+			return { false };
+		}
+		else {
+			return std::nullopt;
+		}
+	}
+
+	template<typename T>
+	std::optional<T> to_unsigned_integer(std::string_view const& s) {
+		static_assert(std::is_unsigned<T>::value);
+		T value{};
+		auto const result = std::from_chars(s.data(), s.data() + s.size(), value);
+		if (result.ec == std::errc{}) {
+			return { value };
+		}
+		else {
+			return std::nullopt;
+		}
+	}
+}
+
+namespace core {
+	bool ConfigurationLoader::loadFromCommandLineArguments() {
+		auto const args{ CommandLineArguments::copy() };
+		auto write_arg_error = [this](std::string_view const& raw_arg) -> void {
+			messages.emplace_back(std::format("invalid command line argument '{}'", raw_arg));
+		};
+		auto write_message = [this](std::string_view const& raw_arg, std::string_view const& message) -> void {
+			messages.emplace_back(std::format("invalid command line argument '{}': {}", raw_arg, message));
+		};
+		for (size_t i = 0; i < args.size(); i += 1) {
+			std::string_view const raw_arg(args[i]);
+			std::string_view arg(args[i]);
+
+			constexpr auto double_dash = "--"sv;
+			constexpr auto separator = "."sv;
+			constexpr auto assignment = "="sv;
+
+			if (!arg.starts_with(double_dash)) {
+				continue;
+			}
+			arg = arg.substr(double_dash.size());
+
+		#define access_parent_field(VAR, EXP)			\
+			constexpr auto key_##VAR = "" #VAR ""sv;	\
+			if (arg.starts_with(key_##VAR)) {			\
+				arg = arg.substr(key_##VAR.size());		\
+				if (arg.starts_with(separator)) {		\
+					arg = arg.substr(separator.size());	\
+					EXP;								\
+				}										\
+			}
+
+		#define access_field(VAR, EXP)					\
+			constexpr auto key_##VAR = "" #VAR ""sv;	\
+			if (arg.starts_with(key_##VAR)) {			\
+				arg = arg.substr(key_##VAR.size());		\
+				if (arg.starts_with(assignment)) {		\
+					arg = arg.substr(assignment.size());\
+					EXP;								\
+				}										\
+			}
+
+			access_parent_field(graphics_system,
+				{
+					access_field(preferred_device_name,
+						if (!arg.empty()) {
+							graphics_system.setPreferredDeviceName(arg);
+						});
+					access_field(width,
+						if (auto const value = to_unsigned_integer<uint32_t>(arg); value) {
+							if (value.value() == 0) {
+								write_message(raw_arg, "width must greater than 0"sv);
+								return false;
+							}
+							graphics_system.setWidth(value.value());
+						}
+						else {
+							write_arg_error(raw_arg);
+							return false;
+						});
+					access_field(height,
+						if (auto const value = to_unsigned_integer<uint32_t>(arg); value) {
+							if (value.value() == 0) {
+								write_message(raw_arg, "height must greater than 0"sv);
+								return false;
+							}
+							graphics_system.setHeight(value.value());
+						}
+						else {
+							write_arg_error(raw_arg);
+							return false;
+						});
+					access_field(fullscreen,
+						if (auto const value = to_boolean(arg); value) {
+							graphics_system.setFullscreen(value.value());
+						}
+						else {
+							write_arg_error(raw_arg);
+							return false;
+						});
+					access_field(vsync,
+						if (auto const value = to_boolean(arg); value) {
+							graphics_system.setVsync(value.value());
+						}
+						else {
+							write_arg_error(raw_arg);
+							return false;
+						});
+					access_field(allow_software_device,
+						if (auto const value = to_boolean(arg); value) {
+							graphics_system.setAllowSoftwareDevice(value.value());
+						}
+						else {
+							write_arg_error(raw_arg);
+							return false;
+						});
+
+					access_field(allow_exclusive_fullscreen,
+						if (auto const value = to_boolean(arg); value) {
+							graphics_system.setAllowExclusiveFullscreen(value.value());
+						}
+						else {
+							write_arg_error(raw_arg);
+							return false;
+						});
+					access_field(allow_modern_swap_chain,
+						if (auto const value = to_boolean(arg); value) {
+							graphics_system.setAllowModernSwapChain(value.value());
+						}
+						else {
+							write_arg_error(raw_arg);
+							return false;
+						});
+					access_field(allow_direct_composition,
+						if (auto const value = to_boolean(arg); value) {
+							graphics_system.setAllowDirectComposition(value.value());
+						}
+						else {
+							write_arg_error(raw_arg);
+							return false;
+						});
+				});
+
+		#undef access_parent_field
+		#undef access_field
+		}
+		return true;
 	}
 }
