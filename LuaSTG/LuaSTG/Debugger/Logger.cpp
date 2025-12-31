@@ -2,6 +2,7 @@
 #include "Debugger/Logger.hpp"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/sinks/stdout_sinks.h"
 #include "spdlog/sinks/wincolor_sink.h"
 #include "spdlog/sinks/msvc_sink.h"
 #include "Platform/HResultChecker.hpp"
@@ -11,6 +12,7 @@
 
 namespace {
 	std::filesystem::path rolling_file_root;
+	bool redirectStdOut();
 	bool openWin32Console();
 	void closeWin32Console();
 	std::string generateRollingFileName() {
@@ -95,6 +97,13 @@ namespace luastg {
 		}
 	#endif
 
+		if (auto const& logging_file = config.getFile(); logging_file.isEnable() && redirectStdOut()) {
+			auto sink = std::make_shared<spdlog::sinks::stdout_sink_mt>();
+			sink->set_pattern("[%Y-%m-%d %H:%M:%S] [%L] %v");
+			sink->set_level(mapLevel(logging_file.getThreshold()));
+			sinks.emplace_back(sink);
+		}
+
 		if (auto const& logging_file = config.getFile(); logging_file.isEnable()) {
 			std::filesystem::path file_path;
 			if (logging_file.hasPath()) {
@@ -177,9 +186,40 @@ namespace luastg {
 	}
 };
 
+#include <fcntl.h>
 #include "Platform/CleanWindows.hpp"
 
 namespace {
+	bool redirectStdOut() {
+        const auto handle = GetStdHandle(STD_OUTPUT_HANDLE);
+        if (handle == nullptr || handle == INVALID_HANDLE_VALUE) {
+		#ifndef NDEBUG
+            OutputDebugStringA("GetStdHandle failed\n");
+		#endif
+            return false;
+        }
+
+        const auto fd = _open_osfhandle(reinterpret_cast<intptr_t>(handle), _O_WRONLY | _O_BINARY);
+        if (fd == -1) {
+		#ifndef NDEBUG
+            OutputDebugStringA("_open_osfhandle failed\n");
+		#endif
+            return false;
+        }
+
+        if (_dup2(fd, _fileno(stdout)) == -1) {
+		#ifndef NDEBUG
+            OutputDebugStringA("_dup2 failed\n");
+		#endif
+            _close(fd);
+            return false;
+        }
+
+        _close(fd);
+        setvbuf(stdout, nullptr, _IONBF, 0);
+        
+        return true;
+    }
 	bool g_alloc_console{ false };
 	bool openWin32Console() {
 		auto const& logging_console = core::ConfigurationLoader::getInstance().getLogging().getConsole();
