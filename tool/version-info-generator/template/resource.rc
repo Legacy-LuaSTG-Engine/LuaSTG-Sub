@@ -70,7 +70,7 @@ BEGIN
             VALUE "FileDescription", "LuaSTG Sub"
             VALUE "FileVersion", "${VERSION}.0"
             VALUE "InternalName", "LuaSTG Sub"
-            VALUE "LegalCopyright", "Copyright 2020-2025 ${ORGNIZATION}"
+            VALUE "LegalCopyright", "Copyright 2020-2026 ${ORGNIZATION}"
             VALUE "OriginalFilename", "LuaSTGSub.exe"
             VALUE "ProductName", "LuaSTG Sub"
             VALUE "ProductVersion", "${VERSION}.0"
