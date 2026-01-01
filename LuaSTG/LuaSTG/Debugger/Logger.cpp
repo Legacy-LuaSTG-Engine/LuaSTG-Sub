@@ -97,10 +97,10 @@ namespace luastg {
 		}
 	#endif
 
-		if (auto const& logging_file = config.getFile(); logging_file.isEnable() && redirectStdOut()) {
+		if (auto const& standard_output = config.getStandardOutput(); standard_output.isEnable() && redirectStdOut()) {
 			auto sink = std::make_shared<spdlog::sinks::stdout_sink_mt>();
 			sink->set_pattern("[%Y-%m-%d %H:%M:%S] [%L] %v");
-			sink->set_level(mapLevel(logging_file.getThreshold()));
+			sink->set_level(mapLevel(standard_output.getThreshold()));
 			sinks.emplace_back(sink);
 		}
 
