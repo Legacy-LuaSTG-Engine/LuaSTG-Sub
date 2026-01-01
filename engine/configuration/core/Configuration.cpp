@@ -1,4 +1,5 @@
 #include "core/Configuration.hpp"
+#include "core/CommandLineArguments.hpp"
 #include <iostream>
 #include <fstream>
 #include <filesystem>
@@ -44,18 +45,18 @@
 
 using namespace std::string_view_literals;
 
-namespace core {
-	static std::u8string_view to_u8string_view(std::string_view const& sv) {
+namespace {
+	std::u8string_view to_u8string_view(std::string_view const& sv) {
 		static_assert(CHAR_BIT == 8 && sizeof(char) == 1 && sizeof(char) == sizeof(char8_t));
-		return { reinterpret_cast<char8_t const*>(sv.data()), sv.size() };
+		return { reinterpret_cast<char8_t const*>(sv.data()), sv.length() };
 	}
 
-	static std::string to_string(std::u8string const& s) {
+	std::string to_string(std::u8string const& s) {
 		static_assert(CHAR_BIT == 8 && sizeof(char) == 1 && sizeof(char) == sizeof(char8_t));
 		return { reinterpret_cast<char const*>(s.c_str()), s.length() };
 	}
 
-	static bool is_uuid(std::string_view const& uuid) {
+	bool is_uuid(std::string_view const& uuid) {
 	#define is_uuid_char(c) (((c) >= '0' && (c) <= '9') || ((c) >= 'A' && (c) <= 'Z') || ((c) >= 'a' && (c) <= 'z'))
 	#define is_not_uuid_char(c) (!is_uuid_char(c))
 		constexpr std::string_view format36{ "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"sv };
@@ -89,7 +90,7 @@ namespace core {
 	#undef is_not_uuid_char
 	}
 
-	static bool readTextFile(std::string_view const& path, std::string& str) {
+	bool readTextFile(std::string_view const& path, std::string& str) {
 		str.clear();
 		std::error_code ec;
 		std::filesystem::path fs_path(to_u8string_view(path));
@@ -114,7 +115,7 @@ namespace core {
 		return true;
 	}
 
-	static std::string_view getTypeName(nlohmann::json const& json) {
+	std::string_view getTypeName(nlohmann::json const& json) {
 		if (json.is_object()) {
 			return "object"sv;
 		}
@@ -260,6 +261,21 @@ namespace core {
 						auto const& preserve = console.at("preserve"sv);
 						assert_type_is_boolean(preserve, "/logging/console/preserve"sv);
 						loader.logging.console.setPreserve(preserve.get<bool>());
+					}
+				}
+				if (logging.contains("standard_output"sv)) {
+					auto const& standard_output = logging.at("standard_output"sv);
+					assert_type_is_object(standard_output, "/logging/standard_output"sv);
+					if (standard_output.contains("enable"sv)) {
+						auto const& enable = standard_output.at("enable"sv);
+						assert_type_is_boolean(enable, "/logging/standard_output/enable"sv);
+						loader.logging.standard_output.setEnable(enable.get<bool>());
+					}
+					if (standard_output.contains("threshold"sv)) {
+						auto const& threshold = standard_output.at("threshold"sv);
+						assert_type_is_string(threshold, "/logging/standard_output/threshold"sv);
+						get_level("/logging/standard_output/threshold");
+						loader.logging.standard_output.setThreshold(level);
 					}
 				}
 				if (logging.contains("file"sv)) {
@@ -628,5 +644,150 @@ namespace core {
 	ConfigurationLoader& ConfigurationLoader::getInstance() {
 		static ConfigurationLoader instance;
 		return instance;
+	}
+}
+
+namespace {
+	std::optional<bool> to_boolean(std::string_view const& s) {
+		if (s == "true"sv) {
+			return { true };
+		}
+		else if (s == "false"sv) {
+			return { false };
+		}
+		else {
+			return std::nullopt;
+		}
+	}
+
+	template<typename T>
+	std::optional<T> to_unsigned_integer(std::string_view const& s) {
+		static_assert(std::is_unsigned_v<T>);
+		T value{};
+		auto const result = std::from_chars(s.data(), s.data() + s.size(), value);
+		if (result.ec == std::errc{}) {
+			return { value };
+		}
+		else {
+			return std::nullopt;
+		}
+	}
+
+	template<typename T>
+	std::optional<T> to_number(const std::string_view& s) {
+		static_assert(std::is_same_v<float, T> || std::is_same_v<double, T>);
+		const auto begin = s.data();
+		const auto end = s.data() + s.size();
+		T value{};
+		const auto result = std::from_chars(begin, end, value);
+		if (result.ec != std::errc{} || result.ptr != end) {
+			return std::nullopt;
+		}
+		return value;
+	}
+
+	enum class OptionType {
+		boolean,
+		number,
+		string,
+	};
+
+	using nlohmann::operator ""_json_pointer;
+
+	struct OptionMetadata {
+		OptionType type;
+		std::string_view prefix;
+		nlohmann::json_pointer<std::string> path;
+	};
+
+	const OptionMetadata meta[]{
+		// debug
+		{ .type = OptionType::boolean, .prefix = "--debug.track_window_focus="sv, .path = "/debug/track_window_focus"_json_pointer },
+		// application
+		{ .type = OptionType::string , .prefix = "--application.uuid="sv           , .path = "/application/uuid"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--application.single_instance="sv, .path = "/application/single_instance"_json_pointer },
+		// logging
+		{ .type = OptionType::boolean, .prefix = "--logging.debugger.enable="sv          , .path = "/logging/debugger/enable"_json_pointer },
+		{ .type = OptionType::string , .prefix = "--logging.debugger.threshold="sv       , .path = "/logging/debugger/threshold"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--logging.console.enable="sv           , .path = "/logging/console/enable"_json_pointer },
+		{ .type = OptionType::string , .prefix = "--logging.console.threshold="sv        , .path = "/logging/console/threshold"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--logging.console.preserve="sv         , .path = "/logging/console/preserve"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--logging.standard_output.enable="sv   , .path = "/logging/standard_output/enable"_json_pointer },
+		{ .type = OptionType::string , .prefix = "--logging.standard_output.threshold="sv, .path = "/logging/standard_output/threshold"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--logging.file.enable="sv              , .path = "/logging/file/enable"_json_pointer },
+		{ .type = OptionType::string , .prefix = "--logging.file.threshold="sv           , .path = "/logging/file/threshold"_json_pointer },
+		{ .type = OptionType::string , .prefix = "--logging.file.path="sv                , .path = "/logging/file/path"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--logging.rolling_file.enable="sv      , .path = "/logging/rolling_file/enable"_json_pointer },
+		{ .type = OptionType::string , .prefix = "--logging.rolling_file.threshold="sv   , .path = "/logging/rolling_file/threshold"_json_pointer },
+		{ .type = OptionType::string , .prefix = "--logging.rolling_file.path="sv        , .path = "/logging/rolling_file/path"_json_pointer },
+		{ .type = OptionType::number , .prefix = "--logging.rolling_file.max_history="sv , .path = "/logging/rolling_file/max_history"_json_pointer },
+		// timing
+		{ .type = OptionType::number , .prefix = "--timing.frame_rate="sv, .path = ""_json_pointer },
+		// window
+		{ .type = OptionType::string , .prefix = "--window.title="sv                    , .path = "/window/title"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--window.cursor_visible="sv           , .path = "/window/cursor_visible"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--window.allow_window_corner="sv      , .path = "/window/allow_window_corner"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--window.allow_title_bar_auto_hide="sv, .path = "/window/allow_title_bar_auto_hide"_json_pointer },
+		// graphics_system
+		{ .type = OptionType::string , .prefix = "--graphics_system.preferred_device_name="sv     , .path = "/graphics_system/preferred_device_name"_json_pointer },
+		{ .type = OptionType::number , .prefix = "--graphics_system.width="sv                     , .path = "/graphics_system/width"_json_pointer },
+		{ .type = OptionType::number , .prefix = "--graphics_system.height="sv                    , .path = "/graphics_system/height"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--graphics_system.fullscreen="sv                , .path = "/graphics_system/fullscreen"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--graphics_system.vsync="sv                     , .path = "/graphics_system/vsync"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--graphics_system.allow_software_device="sv     , .path = "/graphics_system/allow_software_device"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--graphics_system.allow_exclusive_fullscreen="sv, .path = "/graphics_system/allow_exclusive_fullscreen"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--graphics_system.allow_modern_swap_chain="sv   , .path = "/graphics_system/allow_modern_swap_chain"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--graphics_system.allow_direct_composition="sv  , .path = "/graphics_system/allow_direct_composition"_json_pointer },
+		// audio_system
+		{ .type = OptionType::string , .prefix = "--audio_system.preferred_endpoint_name="sv, .path = "/audio_system/preferred_endpoint_name"_json_pointer },
+		{ .type = OptionType::number , .prefix = "--audio_system.sound_effect_volume="sv    , .path = "/audio_system/sound_effect_volume"_json_pointer },
+		{ .type = OptionType::number , .prefix = "--audio_system.music_volume="sv           , .path = "/audio_system/music_volume"_json_pointer },
+	};
+}
+
+namespace core {
+	bool ConfigurationLoader::loadFromCommandLineArguments() {
+		const auto args{ CommandLineArguments::copy() };
+		const auto write_arg_error = [this](const std::string_view& raw_arg) -> void {
+			messages.emplace_back(std::format("invalid command line argument '{}'", raw_arg));
+		};
+		int error_counter{};
+		nlohmann::json json;
+		for (size_t i = 0; i < args.size(); i += 1) {
+			const std::string_view arg(args[i]);
+			for (const auto& t : meta) {
+				if (arg.starts_with(t.prefix)) {
+					const std::string_view value{ arg.substr(t.prefix.length()) };
+					switch (t.type) {
+					case OptionType::boolean:
+						if (const auto result = to_boolean(value); result) {
+							json[t.path] = result.value();
+						}
+						else {
+							write_arg_error(arg);
+							error_counter += 1;
+						}
+						break; // switch (t.type)
+					case OptionType::number:
+						if (const auto result = to_number<double>(value); result) {
+							json[t.path] = result.value();
+						}
+						else {
+							write_arg_error(arg);
+							error_counter += 1;
+						}
+						break; // switch (t.type)
+					case OptionType::string:
+						json[t.path] = value;
+						break; // switch (t.type)
+					}
+					break; // for (const auto& t : meta)
+				}
+			}
+		}
+		if (error_counter > 0) {
+			return false;
+		}
+		return ConfigurationLoaderContext::merge(*this, nullptr, json);
 	}
 }
