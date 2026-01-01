@@ -662,7 +662,7 @@ namespace {
 
 	template<typename T>
 	std::optional<T> to_unsigned_integer(std::string_view const& s) {
-		static_assert(std::is_unsigned<T>::value);
+		static_assert(std::is_unsigned_v<T>);
 		T value{};
 		auto const result = std::from_chars(s.data(), s.data() + s.size(), value);
 		if (result.ec == std::errc{}) {
@@ -672,134 +672,122 @@ namespace {
 			return std::nullopt;
 		}
 	}
+
+	template<typename T>
+	std::optional<T> to_number(const std::string_view& s) {
+		static_assert(std::is_same_v<float, T> || std::is_same_v<double, T>);
+		const auto begin = s.data();
+		const auto end = s.data() + s.size();
+		T value{};
+		const auto result = std::from_chars(begin, end, value);
+		if (result.ec != std::errc{} || result.ptr != end) {
+			return std::nullopt;
+		}
+		return value;
+	}
+
+	enum class OptionType {
+		boolean,
+		number,
+		string,
+	};
+
+	using nlohmann::operator ""_json_pointer;
+
+	struct OptionMetadata {
+		OptionType type;
+		std::string_view prefix;
+		nlohmann::json_pointer<std::string> path;
+	};
+
+	const OptionMetadata meta[]{
+		// debug
+		{ .type = OptionType::boolean, .prefix = "--debug.track_window_focus="sv, .path = "/debug/track_window_focus"_json_pointer },
+		// application
+		{ .type = OptionType::string , .prefix = "--application.uuid="sv           , .path = "/application/uuid"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--application.single_instance="sv, .path = "/application/single_instance"_json_pointer },
+		// logging
+		{ .type = OptionType::boolean, .prefix = "--logging.debugger.enable="sv          , .path = "/logging/debugger/enable"_json_pointer },
+		{ .type = OptionType::string , .prefix = "--logging.debugger.threshold="sv       , .path = "/logging/debugger/threshold"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--logging.console.enable="sv           , .path = "/logging/console/enable"_json_pointer },
+		{ .type = OptionType::string , .prefix = "--logging.console.threshold="sv        , .path = "/logging/console/threshold"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--logging.console.preserve="sv         , .path = "/logging/console/preserve"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--logging.standard_output.enable="sv   , .path = "/logging/standard_output/enable"_json_pointer },
+		{ .type = OptionType::string , .prefix = "--logging.standard_output.threshold="sv, .path = "/logging/standard_output/threshold"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--logging.file.enable="sv              , .path = "/logging/file/enable"_json_pointer },
+		{ .type = OptionType::string , .prefix = "--logging.file.threshold="sv           , .path = "/logging/file/threshold"_json_pointer },
+		{ .type = OptionType::string , .prefix = "--logging.file.path="sv                , .path = "/logging/file/path"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--logging.rolling_file.enable="sv      , .path = "/logging/rolling_file/enable"_json_pointer },
+		{ .type = OptionType::string , .prefix = "--logging.rolling_file.threshold="sv   , .path = "/logging/rolling_file/threshold"_json_pointer },
+		{ .type = OptionType::string , .prefix = "--logging.rolling_file.path="sv        , .path = "/logging/rolling_file/path"_json_pointer },
+		{ .type = OptionType::number , .prefix = "--logging.rolling_file.max_history="sv , .path = "/logging/rolling_file/max_history"_json_pointer },
+		// timing
+		{ .type = OptionType::number , .prefix = "--timing.frame_rate="sv, .path = ""_json_pointer },
+		// window
+		{ .type = OptionType::string , .prefix = "--window.title="sv                    , .path = "/window/title"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--window.cursor_visible="sv           , .path = "/window/cursor_visible"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--window.allow_window_corner="sv      , .path = "/window/allow_window_corner"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--window.allow_title_bar_auto_hide="sv, .path = "/window/allow_title_bar_auto_hide"_json_pointer },
+		// graphics_system
+		{ .type = OptionType::string , .prefix = "--graphics_system.preferred_device_name="sv     , .path = "/graphics_system/preferred_device_name"_json_pointer },
+		{ .type = OptionType::number , .prefix = "--graphics_system.width="sv                     , .path = "/graphics_system/width"_json_pointer },
+		{ .type = OptionType::number , .prefix = "--graphics_system.height="sv                    , .path = "/graphics_system/height"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--graphics_system.fullscreen="sv                , .path = "/graphics_system/fullscreen"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--graphics_system.vsync="sv                     , .path = "/graphics_system/vsync"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--graphics_system.allow_software_device="sv     , .path = "/graphics_system/allow_software_device"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--graphics_system.allow_exclusive_fullscreen="sv, .path = "/graphics_system/allow_exclusive_fullscreen"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--graphics_system.allow_modern_swap_chain="sv   , .path = "/graphics_system/allow_modern_swap_chain"_json_pointer },
+		{ .type = OptionType::boolean, .prefix = "--graphics_system.allow_direct_composition="sv  , .path = "/graphics_system/allow_direct_composition"_json_pointer },
+		// audio_system
+		{ .type = OptionType::string , .prefix = "--audio_system.preferred_endpoint_name="sv, .path = "/audio_system/preferred_endpoint_name"_json_pointer },
+		{ .type = OptionType::number , .prefix = "--audio_system.sound_effect_volume="sv    , .path = "/audio_system/sound_effect_volume"_json_pointer },
+		{ .type = OptionType::number , .prefix = "--audio_system.music_volume="sv           , .path = "/audio_system/music_volume"_json_pointer },
+	};
 }
 
 namespace core {
 	bool ConfigurationLoader::loadFromCommandLineArguments() {
-		auto const args{ CommandLineArguments::copy() };
-		auto write_arg_error = [this](std::string_view const& raw_arg) -> void {
+		const auto args{ CommandLineArguments::copy() };
+		const auto write_arg_error = [this](const std::string_view& raw_arg) -> void {
 			messages.emplace_back(std::format("invalid command line argument '{}'", raw_arg));
 		};
-		auto write_message = [this](std::string_view const& raw_arg, std::string_view const& message) -> void {
-			messages.emplace_back(std::format("invalid command line argument '{}': {}", raw_arg, message));
-		};
+		int error_counter{};
+		nlohmann::json json;
 		for (size_t i = 0; i < args.size(); i += 1) {
-			std::string_view const raw_arg(args[i]);
-			std::string_view arg(args[i]);
-
-			constexpr auto double_dash = "--"sv;
-			constexpr auto separator = "."sv;
-			constexpr auto assignment = "="sv;
-
-			if (!arg.starts_with(double_dash)) {
-				continue;
+			const std::string_view arg(args[i]);
+			for (const auto& t : meta) {
+				if (arg.starts_with(t.prefix)) {
+					const std::string_view value{ arg.substr(t.prefix.length()) };
+					switch (t.type) {
+					case OptionType::boolean:
+						if (const auto result = to_boolean(value); result) {
+							json[t.path] = result.value();
+						}
+						else {
+							write_arg_error(arg);
+							error_counter += 1;
+						}
+						break; // switch (t.type)
+					case OptionType::number:
+						if (const auto result = to_number<double>(value); result) {
+							json[t.path] = result.value();
+						}
+						else {
+							write_arg_error(arg);
+							error_counter += 1;
+						}
+						break; // switch (t.type)
+					case OptionType::string:
+						json[t.path] = value;
+						break; // switch (t.type)
+					}
+					break; // for (const auto& t : meta)
+				}
 			}
-			arg = arg.substr(double_dash.size());
-
-		#define access_parent_field(VAR, EXP)			\
-			constexpr auto key_##VAR = "" #VAR ""sv;	\
-			if (arg.starts_with(key_##VAR)) {			\
-				arg = arg.substr(key_##VAR.size());		\
-				if (arg.starts_with(separator)) {		\
-					arg = arg.substr(separator.size());	\
-					EXP;								\
-				}										\
-			}
-
-		#define access_field(VAR, EXP)					\
-			constexpr auto key_##VAR = "" #VAR ""sv;	\
-			if (arg.starts_with(key_##VAR)) {			\
-				arg = arg.substr(key_##VAR.size());		\
-				if (arg.starts_with(assignment)) {		\
-					arg = arg.substr(assignment.size());\
-					EXP;								\
-				}										\
-			}
-
-			access_parent_field(graphics_system,
-				{
-					access_field(preferred_device_name,
-						if (!arg.empty()) {
-							graphics_system.setPreferredDeviceName(arg);
-						});
-					access_field(width,
-						if (auto const value = to_unsigned_integer<uint32_t>(arg); value) {
-							if (value.value() == 0) {
-								write_message(raw_arg, "width must greater than 0"sv);
-								return false;
-							}
-							graphics_system.setWidth(value.value());
-						}
-						else {
-							write_arg_error(raw_arg);
-							return false;
-						});
-					access_field(height,
-						if (auto const value = to_unsigned_integer<uint32_t>(arg); value) {
-							if (value.value() == 0) {
-								write_message(raw_arg, "height must greater than 0"sv);
-								return false;
-							}
-							graphics_system.setHeight(value.value());
-						}
-						else {
-							write_arg_error(raw_arg);
-							return false;
-						});
-					access_field(fullscreen,
-						if (auto const value = to_boolean(arg); value) {
-							graphics_system.setFullscreen(value.value());
-						}
-						else {
-							write_arg_error(raw_arg);
-							return false;
-						});
-					access_field(vsync,
-						if (auto const value = to_boolean(arg); value) {
-							graphics_system.setVsync(value.value());
-						}
-						else {
-							write_arg_error(raw_arg);
-							return false;
-						});
-					access_field(allow_software_device,
-						if (auto const value = to_boolean(arg); value) {
-							graphics_system.setAllowSoftwareDevice(value.value());
-						}
-						else {
-							write_arg_error(raw_arg);
-							return false;
-						});
-
-					access_field(allow_exclusive_fullscreen,
-						if (auto const value = to_boolean(arg); value) {
-							graphics_system.setAllowExclusiveFullscreen(value.value());
-						}
-						else {
-							write_arg_error(raw_arg);
-							return false;
-						});
-					access_field(allow_modern_swap_chain,
-						if (auto const value = to_boolean(arg); value) {
-							graphics_system.setAllowModernSwapChain(value.value());
-						}
-						else {
-							write_arg_error(raw_arg);
-							return false;
-						});
-					access_field(allow_direct_composition,
-						if (auto const value = to_boolean(arg); value) {
-							graphics_system.setAllowDirectComposition(value.value());
-						}
-						else {
-							write_arg_error(raw_arg);
-							return false;
-						});
-				});
-
-		#undef access_parent_field
-		#undef access_field
 		}
-		return true;
+		if (error_counter > 0) {
+			return false;
+		}
+		return ConfigurationLoaderContext::merge(*this, nullptr, json);
 	}
 }
