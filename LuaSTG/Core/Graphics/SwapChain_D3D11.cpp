@@ -151,14 +151,14 @@ namespace core::Graphics
 				.Quality = 0,
 			},
 			.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
-			.BufferCount = 2,
+			.BufferCount = 3,
 			.Scaling = DXGI_SCALING_NONE,
 			.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD,
 			.AlphaMode = DXGI_ALPHA_MODE_IGNORE,
 			.Flags = 0,
 		};
 	}
-	
+
 	static bool findBestDisplayMode(HWND const window, IDXGISwapChain1* dxgi_swapchain, Vector2U canvas_size, DXGI_MODE_DESC1& mode)
 	{
 		HRNew;
@@ -408,9 +408,10 @@ namespace core::Graphics
 
 		// 预检系统版本 Windows 10 1809
 		// * DXGI_SWAP_EFFECT_FLIP_DISCARD 从 Windows 10 开始支持
-		// * 在 Windows 10 1709 (16299) Fall Creators Update 中
-		//   修复了 Frame Latency Waitable Object 和 SetMaximumFrameLatency 实际上至少有 2 帧的问题
-		// * Windows 10 1809 (17763) 是目前微软还在主流支持的最早版本
+		// * 在 Windows 10 1709 (16299) Fall Creators Update 中修复了
+		//   Frame Latency Waitable Object 和 SetMaximumFrameLatency 实际上至少有 2 帧的问题
+		// * Windows 10 1809 (17763) 是目前微软还在支持的长期支持版本
+		//   https://learn.microsoft.com/en-us/windows/release-health/release-information
 		// * DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT 从 Windows 8.1 开始支持，我们跳过它
 
 		if (!Platform::WindowsVersion::Is10Build17763()) {
@@ -423,7 +424,7 @@ namespace core::Graphics
 		// * 此外还有别的要求，比如WDDM支持、MPO支持、显卡驱动支持等
 		// * 注意，就算报告支持，实际运行的时候可能仍然不允许撕裂
 		// * 系统安装了 KB3156421 更新，也就是 Windows 10 在 2016 年 5 月 10 日的更新
-		//   https://zhuanlan.zhihu.com/p/20892856?refer=highwaytographics
+		//   https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/variable-refresh-rate-displays
 
 		Microsoft::WRL::ComPtr<IDXGIFactory2> dxgi_factory;
 		HRGet = Platform::Direct3D11::GetDeviceFactory(device, &dxgi_factory);
@@ -991,9 +992,8 @@ namespace core::Graphics
 		m_swap_chain_fullscreen_info = {};
 		
 		// 切换为 FLIP 交换链模型，独占全屏也支持
-		if (m_modern_swap_chain_available)
-		{
-			m_swap_chain_info.BufferCount = 2;
+		if (m_modern_swap_chain_available) {
+			m_swap_chain_info.BufferCount = 3;
 			m_swap_chain_info.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 		}
 
@@ -2176,15 +2176,24 @@ namespace core::Graphics
 		
 		// 呈现
 
-		// TODO: 这里应该使用FLIP交换链的立即丢弃机制吗
-		// 对于 FLIP 交换链来说，呈现间隔为 0 代表的是丢弃旧帧，而不是取消垂直同步，所以可以利用其来实现较低延迟的三重缓冲机制
 		UINT interval = 0;
-		if (!isModernSwapChainModel(m_swap_chain_info) && m_swap_chain_vsync) {
-			interval = 1;
-		}
 		UINT flags = 0;
-		if (interval == 0 && !m_swap_chain_vsync && (m_swap_chain_info.Flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING)) {
-			flags |= DXGI_PRESENT_ALLOW_TEARING;
+		if (isModernSwapChainModel(m_swap_chain_info)) {
+			// 现代交换链模型
+			if (!m_swap_chain_vsync && (m_swap_chain_info.Flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING)) {
+				// 如果禁用了垂直同步，且支持 DXGI_FEATURE_PRESENT_ALLOW_TEARING 功能，使用该模式获得最低延迟
+				// 如果系统、硬件（特别是显示器）、驱动支持可变刷新率，那么将不会造成画面撕裂
+				flags |= DXGI_PRESENT_ALLOW_TEARING;
+			}
+			else {
+				// 异步三重缓冲模式
+				flags |= DXGI_PRESENT_DO_NOT_WAIT;
+			}
+		}
+		else {
+			// 传统交换链模型，通过指定同步间隔开/关垂直同步
+			// 注意：从 Windows 8 开始才支持 DXGI_PRESENT_DO_NOT_WAIT
+			interval = m_swap_chain_vsync ? 1 : 0;
 		}
 		hr = gHR = dxgi_swapchain->Present(interval, flags);
 
@@ -2192,16 +2201,14 @@ namespace core::Graphics
 
 		m_device->GetD3D11DeviceContext()->ClearState();
 		m_device->GetD3D11DeviceContext1()->DiscardView(m_swap_chain_d3d11_rtv.Get());
-		
+
 		// 检查结果
 
-		if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
-		{
+		if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET) {
 			// 设备丢失
 			return m_device->handleDeviceLost();
 		}
-		else if (FAILED(hr))
-		{
+		else if (hr != DXGI_ERROR_WAS_STILL_DRAWING && FAILED(hr)) {
 			i18n_core_system_call_report_error("IDXGISwapChain::Present");
 			return false;
 		}
