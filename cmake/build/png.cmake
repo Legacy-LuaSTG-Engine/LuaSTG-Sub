@@ -2,9 +2,9 @@
 
 CPMAddPackage(
     NAME libpng
-    VERSION 1.6.51
+    VERSION 1.6.54
     GITHUB_REPOSITORY Legacy-LuaSTG-Engine/libpng-zlib-ng
-    GIT_TAG v1.6.51-zlib-ng
+    GIT_TAG v1.6.54-zlib-ng
     DOWNLOAD_ONLY YES
 )
 
