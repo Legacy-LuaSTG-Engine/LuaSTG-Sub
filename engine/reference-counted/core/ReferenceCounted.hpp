@@ -2,7 +2,6 @@
 #include <cstdint>
 #include "core/UUID.hpp"
 
-#define CORE_NO_VIRTUAL_TABLE __declspec(novtable)
 #define CORE_INTERFACE struct __declspec(novtable)
 #define CORE_INTERFACE_ID(NAME, ID) template<> constexpr InterfaceId getInterfaceId<NAME>() { return UUID::parse(ID); }
 
@@ -12,7 +11,7 @@ namespace core {
 	template<typename Interface>
 	InterfaceId getInterfaceId() { return Interface::interface_uuid; }
 
-	struct CORE_NO_VIRTUAL_TABLE IReferenceCounted {
+	CORE_INTERFACE IReferenceCounted {
 		virtual bool queryInterface(InterfaceId const& uuid, void** output) = 0;
 		virtual int32_t retain() = 0;
 		virtual int32_t release() = 0;

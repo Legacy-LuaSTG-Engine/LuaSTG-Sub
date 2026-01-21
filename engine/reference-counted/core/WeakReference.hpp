@@ -2,7 +2,7 @@
 #include "core/ReferenceCounted.hpp"
 
 namespace core {
-	struct CORE_NO_VIRTUAL_TABLE IWeakReference : IReferenceCounted {
+	CORE_INTERFACE IWeakReference : IReferenceCounted {
 		virtual bool resolve(InterfaceId const& uuid, void** output) = 0;
 
 		template<typename Interface> bool resolve(Interface** const output) {

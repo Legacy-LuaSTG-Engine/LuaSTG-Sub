@@ -13,11 +13,11 @@
 #include "gtest/gtest.h"
 
 namespace {
-	struct CORE_NO_VIRTUAL_TABLE IAlpha : core::IReferenceCounted {
+	CORE_INTERFACE IAlpha : core::IReferenceCounted {
 		virtual void print() = 0;
 	};
 
-	struct CORE_NO_VIRTUAL_TABLE IResource : core::IWeakReferenceSource {
+	CORE_INTERFACE IResource : core::IWeakReferenceSource {
 		virtual void download() = 0;
 	};
 }

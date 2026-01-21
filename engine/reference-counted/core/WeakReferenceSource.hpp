@@ -2,7 +2,7 @@
 #include "core/WeakReference.hpp"
 
 namespace core {
-	struct CORE_NO_VIRTUAL_TABLE IWeakReferenceSource : IReferenceCounted {
+	CORE_INTERFACE IWeakReferenceSource : IReferenceCounted {
 		virtual void getWeakReference(IWeakReference** output) = 0;
 	};
 

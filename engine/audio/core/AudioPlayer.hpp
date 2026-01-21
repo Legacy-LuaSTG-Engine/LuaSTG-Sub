@@ -14,7 +14,7 @@ namespace core {
 		paused = 2,
 	};
 
-	struct CORE_NO_VIRTUAL_TABLE IAudioPlayer : IReferenceCounted {
+	CORE_INTERFACE IAudioPlayer : IReferenceCounted {
 		virtual bool play(double seconds) = 0;
 		virtual bool pause() = 0;
 		virtual bool resume() = 0;
