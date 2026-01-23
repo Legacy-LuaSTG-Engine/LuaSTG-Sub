@@ -6,13 +6,10 @@ namespace luastg
 {
 	bool AppFrame::SetDisplayModeWindow(core::Vector2U window_size, bool vsync)
 	{
-		auto* window = GetAppModel()->getWindow();
-		auto* swapchain = GetAppModel()->getSwapChain();
+		m_swap_chain->setVSync(vsync);
+		bool const result = m_swap_chain->setCanvasSize(window_size);
 
-		swapchain->setVSync(vsync);
-		bool const result = swapchain->setCanvasSize(window_size);
-
-		window->setWindowMode(window_size);
+		m_window->setWindowMode(window_size);
 
 		return result;
 	}
@@ -20,14 +17,11 @@ namespace luastg
 	// TODO: 废弃
 	bool AppFrame::SetDisplayModeExclusiveFullscreen(core::Vector2U window_size, bool vsync, core::Rational)
 	{
-		auto* window = GetAppModel()->getWindow();
-		auto* swapchain = GetAppModel()->getSwapChain();
+		m_swap_chain->setVSync(vsync);
+		bool const result = m_swap_chain->setCanvasSize(window_size);
 
-		swapchain->setVSync(vsync);
-		bool const result = swapchain->setCanvasSize(window_size);
-
-		window->setWindowMode(window_size);
-		window->setFullScreenMode();
+		m_window->setWindowMode(window_size);
+		m_window->setFullScreenMode();
 
 		return result;
 	}
@@ -43,9 +37,8 @@ namespace luastg
 		{
 			auto const& gs = core::ConfigurationLoader::getInstance().getGraphicsSystem();
 			auto const& win = core::ConfigurationLoader::getInstance().getWindow();
-			auto* p_window = m_pAppModel->getWindow();
-			p_window->setCursor(win.isCursorVisible() ? core::Graphics::WindowCursor::Arrow : core::Graphics::WindowCursor::None);
-			p_window->setWindowMode(core::Vector2U(gs.getWidth(), gs.getHeight()));
+			m_window->setCursor(win.isCursorVisible() ? core::Graphics::WindowCursor::Arrow : core::Graphics::WindowCursor::None);
+			m_window->setWindowMode(core::Vector2U(gs.getWidth(), gs.getHeight()));
 		}
 		return true;
 	}
@@ -53,16 +46,14 @@ namespace luastg
 	bool AppFrame::InitializationApplySettingStage2()
 	{
 		auto const& gs = core::ConfigurationLoader::getInstance().getGraphicsSystem();
-		auto* p_window = m_pAppModel->getWindow();
-		auto* p_swapchain = GetAppModel()->getSwapChain();
 		// 初始化交换链
 		auto const canvas_size = core::Vector2U(gs.getWidth(), gs.getHeight());
-		p_swapchain->setVSync(gs.isVsync());
-		if (!p_swapchain->setWindowMode(canvas_size)) {
+		m_swap_chain->setVSync(gs.isVsync());
+		if (!m_swap_chain->setWindowMode(canvas_size)) {
 			return false;
 		}
 		if (gs.isFullscreen()) {
-			p_window->setFullScreenMode();
+			m_window->setFullScreenMode();
 		}
 		return true;
 	}

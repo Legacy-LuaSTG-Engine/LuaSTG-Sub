@@ -18,6 +18,8 @@ namespace core
         virtual double getAvgFPS() = 0;
         virtual double getMinFPS() = 0;
         virtual double getMaxFPS() = 0;
+
+        static IFrameRateController* getInstance();
     };
 
     struct IApplicationEventListener
@@ -65,6 +67,16 @@ namespace core
         virtual bool run() = 0;
 
         static bool create(IApplicationEventListener* p_app, IApplicationModel** pp_model);
+    };
+
+    class ScopeTimer {
+    public:
+        ScopeTimer(double* value = nullptr);
+        ~ScopeTimer();
+
+    private:
+        double* m_value{};
+        int64_t m_last{};
     };
 
     // UUID v5

@@ -475,7 +475,7 @@ namespace core::Graphics
 			win32_window_is_menu_loop = FALSE;
 			return 0;
 		case WM_PAINT:
-			if (win32_window_is_sizemove || win32_window_is_menu_loop) {
+			if ((win32_window_is_sizemove || win32_window_is_menu_loop) && APPMODEL != nullptr) {
 				APPMODEL->runFrame();
 			}
 			else {

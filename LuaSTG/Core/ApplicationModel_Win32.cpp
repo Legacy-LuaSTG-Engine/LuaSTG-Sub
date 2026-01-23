@@ -320,23 +320,32 @@ namespace core
 		}
 	}
 
-	struct ScopeTimer
-	{
-		LARGE_INTEGER freq{};
+	IFrameRateController* IFrameRateController::getInstance() {
+		static FrameRateController instance;
+		static SteadyFrameRateController steady_instance;
+		if (steady_instance.available()) {
+			spdlog::info("[core] High Resolution Waitable Timer available, enable SteadyFrameRateController");
+			return &steady_instance;
+		}
+		else {
+			return &instance;
+		}
+	}
+
+	ScopeTimer::ScopeTimer(double* const value) : m_value(value) {
 		LARGE_INTEGER last{};
-		double& t;
-		ScopeTimer(double& v_ref) : t(v_ref)
-		{
-			QueryPerformanceFrequency(&freq);
-			QueryPerformanceCounter(&last);
-		}
-		~ScopeTimer()
-		{
+		QueryPerformanceCounter(&last);
+		m_last = last.QuadPart;
+	}
+	ScopeTimer::~ScopeTimer() {
+		if (m_value != nullptr) {
+			LARGE_INTEGER freq{};
 			LARGE_INTEGER curr{};
+			QueryPerformanceFrequency(&freq);
 			QueryPerformanceCounter(&curr);
-			t = (double)(curr.QuadPart - last.QuadPart) / (double)freq.QuadPart;
+			*m_value = static_cast<double>(curr.QuadPart - m_last) / static_cast<double>(freq.QuadPart);
 		}
-	};
+	}
 
 	DWORD WINAPI ApplicationModel_Win32::win32_thread_worker_entry(LPVOID lpThreadParameter)
 	{
@@ -361,14 +370,14 @@ namespace core
 		{
 			size_t const i = (m_framestate_index + 1) % 2;
 			FrameStatistics& d = m_framestate[i];
-			ScopeTimer gt(d.total_time);
+			ScopeTimer gt(&d.total_time);
 
 			bool update_result = false;
 
 			// 更新
 			{
 				tracy_zone_scoped_with_name("OnUpdate");
-				ScopeTimer t(d.update_time);
+				ScopeTimer t(&d.update_time);
 				// 如果需要退出
 				if (WAIT_OBJECT_0 == WaitForSingleObjectEx(win32_event_exit.Get(), 0, TRUE))
 				{
@@ -384,7 +393,7 @@ namespace core
 			{
 				tracy_zone_scoped_with_name("OnRender");
 				tracy_d3d11_context_zone(m_device->GetTracyContext(), "OnRender");
-				ScopeTimer t(d.render_time);
+				ScopeTimer t(&d.render_time);
 				m_swapchain->applyRenderAttachment();
 				m_swapchain->clearRenderAttachment();
 				render_result = m_listener->onRender();
@@ -394,7 +403,7 @@ namespace core
 			if (render_result)
 			{
 				tracy_zone_scoped_with_name("OnPresent");
-				ScopeTimer t(d.present_time);
+				ScopeTimer t(&d.present_time);
 				m_swapchain->present();
 				TracyD3D11Collect(m_device->GetTracyContext());
 			}
@@ -402,7 +411,7 @@ namespace core
 			// 等待下一帧
 			{
 				tracy_zone_scoped_with_name("OnWait");
-				ScopeTimer t(d.wait_time);
+				ScopeTimer t(&d.wait_time);
 				m_swapchain->waitFrameLatency();
 				m_p_frame_rate_controller->update();
 			}
@@ -578,7 +587,7 @@ namespace core
 	{
 		size_t const i = (m_framestate_index + 1) % 2;
 		FrameStatistics& d = m_framestate[i];
-		ScopeTimer gt(d.total_time);
+		ScopeTimer gt(&d.total_time);
 		size_t const next_frame_query_index = (m_frame_query_index + 1) % m_frame_query_list.size();
 		FrameQuery& frame_query = m_frame_query_list[next_frame_query_index];
 		
@@ -587,7 +596,7 @@ namespace core
 		// 更新
 		{
 			tracy_zone_scoped_with_name("OnUpdate");
-			ScopeTimer t(d.update_time);
+			ScopeTimer t(&d.update_time);
 			update_result = m_listener->onUpdate();
 		}
 
@@ -600,7 +609,7 @@ namespace core
 		{
 			tracy_zone_scoped_with_name("OnRender");
 			tracy_d3d11_context_zone(m_device->GetTracyContext(), "OnRender");
-			ScopeTimer t(d.render_time);
+			ScopeTimer t(&d.render_time);
 			frame_query.begin(); // TODO: enable/disable by configuration
 			m_swapchain->applyRenderAttachment();
 			m_swapchain->clearRenderAttachment();
@@ -612,7 +621,7 @@ namespace core
 		if (render_result)
 		{
 			tracy_zone_scoped_with_name("OnPresent");
-			ScopeTimer t(d.present_time);
+			ScopeTimer t(&d.present_time);
 			m_swapchain->present();
 			TracyD3D11Collect(m_device->GetTracyContext());
 		}
@@ -620,7 +629,7 @@ namespace core
 		// 等待下一帧
 		{
 			tracy_zone_scoped_with_name("OnWait");
-			ScopeTimer t(d.wait_time);
+			ScopeTimer t(&d.wait_time);
 			m_swapchain->waitFrameLatency();
 			m_p_frame_rate_controller->update();
 		}

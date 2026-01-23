@@ -106,7 +106,7 @@ namespace luastg::binding
 				lua::stack_t S(L);
 				auto const file_path = S.get_value<std::string_view>(1);
 				core::SmartReference<core::Graphics::IPostEffectShader> shader;
-				if (!LAPP.GetRenderer2D()->createPostEffectShader(file_path, shader.put()))
+				if (!LAPP.getRenderer2D()->createPostEffectShader(file_path, shader.put()))
 				{
 					return luaL_error(L, "lstg.CreatePostEffectShader failed, see log file for more detail");
 				}

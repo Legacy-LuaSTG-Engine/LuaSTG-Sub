@@ -235,6 +235,7 @@ target_link_libraries(LuaSTG PRIVATE
     Core.Clipboard
     Core.ShellIntegration
     Core.Audio
+    Core.WindowSystem
     LuaSTG.InternalLuaScriptsFileSystem
 )
 

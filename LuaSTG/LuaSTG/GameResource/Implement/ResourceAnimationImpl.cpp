@@ -96,7 +96,7 @@ namespace luastg
 		renderer->setLegacyBlendState(blend.vertex_color_blend_state, blend.blend_state);
 		renderer->setColor(m_vertex_color[0], m_vertex_color[1], m_vertex_color[2], m_vertex_color[3]);
 
-		renderer->draw(LAPP.GetRenderer2D());
+		renderer->draw(LAPP.getRenderer2D());
 
 		renderer->setSprite(nullptr);
 	}
@@ -112,7 +112,7 @@ namespace luastg
 		renderer->setLegacyBlendState(blend.vertex_color_blend_state, blend.blend_state);
 		renderer->setColor(color);
 
-		renderer->draw(LAPP.GetRenderer2D());
+		renderer->draw(LAPP.getRenderer2D());
 
 		renderer->setSprite(nullptr);
 	}

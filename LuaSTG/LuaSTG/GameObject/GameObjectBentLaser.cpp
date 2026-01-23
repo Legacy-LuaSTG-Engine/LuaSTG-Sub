@@ -453,9 +453,9 @@ bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, core::Co
 	}
 
 	// 设置纹理、混合模式等
-	auto* p_renderer = LAPP.GetAppModel()->getRenderer();
+	const auto renderer = LAPP.getRenderer2D();
 	LAPP.updateGraph2DBlendMode(blend);
-	p_renderer->setTexture(pTex->GetTexture());
+	renderer->setTexture(pTex->GetTexture());
 
 	// 分配顶点和索引
 	// 顶点总共需要：节点数 * 2
@@ -465,7 +465,7 @@ bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, core::Co
 	IRenderer::DrawVertex* p_vertex = nullptr;
 	IRenderer::DrawIndex* p_index = nullptr;
 	uint16_t index_offset = 0;
-	if (!p_renderer->drawRequest(
+	if (!renderer->drawRequest(
 		node_count * 2,
 		(node_count - 1) * 6,
 		&p_vertex,

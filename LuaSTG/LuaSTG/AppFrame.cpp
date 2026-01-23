@@ -1,6 +1,8 @@
 #include "AppFrame.h"
 #include "ApplicationRestart.hpp"
 #include "core/FileSystem.hpp"
+#include "Platform/WindowsVersion.hpp"
+#include "Platform/ProcessorInfo.hpp"
 #include "Platform/XInput.hpp"
 #include "Utility/Utility.h"
 #include "Debugger/ImGuiExtension.h"
@@ -68,19 +70,17 @@ float AppFrame::GetBGMVolume() {
 		return core::ConfigurationLoader::getInstance().getAudioSystem().getMusicVolume();
 	}
 }
-void AppFrame::SetTitle(const char* v)noexcept
-{
-	if (m_pAppModel) {
-		m_pAppModel->getWindow()->setTitleText(v);
+void AppFrame::SetTitle(const char* v) noexcept {
+	if (m_window) {
+		m_window->setTitleText(v);
 	}
 	else {
 		auto& win = core::ConfigurationLoader::getInstance().getWindowRef();
 		win.setTitle(v);
 	}
 }
-void AppFrame::SetPreferenceGPU(const char* v) noexcept
-{
-	if (m_pAppModel) {
+void AppFrame::SetPreferenceGPU(const char* v) noexcept {
+	if (m_graphics_device) {
 		// TODO
 	}
 	else {
@@ -88,10 +88,9 @@ void AppFrame::SetPreferenceGPU(const char* v) noexcept
 		gs.setPreferredDeviceName(v);
 	}
 }
-void AppFrame::SetSplash(bool v)noexcept
-{
-	if (m_pAppModel) {
-		m_pAppModel->getWindow()->setCursor(v ? core::Graphics::WindowCursor::Arrow : core::Graphics::WindowCursor::None);
+void AppFrame::SetSplash(bool v) noexcept {
+	if (m_window) {
+		m_window->setCursor(v ? core::Graphics::WindowCursor::Arrow : core::Graphics::WindowCursor::None);
 	}
 	else {
 		auto& win = core::ConfigurationLoader::getInstance().getWindowRef();
@@ -197,11 +196,23 @@ bool AppFrame::Init()noexcept
 			window_config.setTitle(LUASTG_INFO);
 		}
 
-		if (!core::IApplicationModel::create(this, m_pAppModel.put()))
+		spdlog::info("[core] System: {}", Platform::WindowsVersion::GetName());
+		spdlog::info("[core] Kernel: {}", Platform::WindowsVersion::GetKernelVersionString());
+		spdlog::info("[core] CPU: {}", Platform::ProcessorInfo::name());
+		//get_system_memory_status();
+		if (!core::Graphics::IWindow::create(m_window.put()))
+			return false;
+		//m_window->implSetApplicationModel(this);
+		auto const& gpu = core::ConfigurationLoader::getInstance().getGraphicsSystem().getPreferredDeviceName();
+		if (!core::Graphics::IDevice::create(gpu, m_graphics_device.put()))
+			return false;
+		if (!core::Graphics::ISwapChain::create(m_window.get(), m_graphics_device.get(), m_swap_chain.put()))
+			return false;
+		if (!core::Graphics::IRenderer::create(m_graphics_device.get(), m_renderer.put()))
+			return false;
+		if (!core::Graphics::ITextRenderer::create(m_renderer.get(), m_text_renderer.put()))
 			return false;
 		if (!core::IAudioEngine::create(m_audio_engine.put()))
-			return false;
-		if (!core::Graphics::ITextRenderer::create(m_pAppModel->getRenderer(), m_pTextRenderer.put()))
 			return false;
 		if (!SharedSpriteRenderer::create())
 			return false;
@@ -216,7 +227,7 @@ bool AppFrame::Init()noexcept
 		// 创建手柄输入
 		try
 		{
-			m_DirectInput = std::make_unique<Platform::DirectInput>((ptrdiff_t)m_pAppModel->getWindow()->getNativeHandle());
+			m_DirectInput = std::make_unique<Platform::DirectInput>((ptrdiff_t)m_window->getNativeHandle());
 			{
 				m_DirectInput->refresh(); // 这里因为窗口还没显示，所以应该会出现一个Aquire设备失败的错误信息，忽略即可
 				uint32_t cnt = m_DirectInput->count();
@@ -292,9 +303,12 @@ void AppFrame::Shutdown()noexcept
 
 	CloseInput();
 	m_DirectInput = nullptr;
-	m_pTextRenderer = nullptr;
-	m_pAppModel = nullptr;
-	m_audio_engine = nullptr;
+	m_window.reset();
+	m_graphics_device.reset();
+	m_swap_chain.reset();
+	m_renderer.reset();
+	m_text_renderer.reset();
+	m_audio_engine.reset();
 	SharedSpriteRenderer::destroy();
 
 	m_iStatus = AppStatus::Destroyed;
@@ -305,15 +319,15 @@ void AppFrame::Run()noexcept
 	assert(m_iStatus == AppStatus::Initialized);
 	spdlog::info("[luastg] 开始更新&渲染循环");
 
-	m_pAppModel->getWindow()->addEventListener(this);
+	m_window->addEventListener(this);
 	onSwapChainCreate(); // 手动触发一次，让自动尺寸的RenderTarget设置为正确的尺寸
-	m_pAppModel->getSwapChain()->addEventListener(this);
+	m_swap_chain->addEventListener(this);
 
-	m_pAppModel->getFrameRateController()->setTargetFPS(m_target_fps);
-	m_pAppModel->run();
+	m_frame_rate_controller->setTargetFPS(m_target_fps);
+	core::ApplicationManager::run(this);
 
-	m_pAppModel->getSwapChain()->removeEventListener(this);
-	m_pAppModel->getWindow()->removeEventListener(this);
+	m_swap_chain->removeEventListener(this);
+	m_window->removeEventListener(this);
 
 	spdlog::info("[luastg] 结束更新&渲染循环");
 }
@@ -325,7 +339,7 @@ void AppFrame::Run()noexcept
 void AppFrame::onWindowCreate()
 {
 	OpenInput();
-	m_DirectInput = std::make_unique<Platform::DirectInput>((ptrdiff_t)m_pAppModel->getWindow()->getNativeHandle());
+	m_DirectInput = std::make_unique<Platform::DirectInput>((ptrdiff_t)m_window->getNativeHandle());
 	{
 		m_DirectInput->refresh(); // 这里因为窗口还没显示，所以应该会出现一个Aquire设备失败的错误信息，忽略即可
 		uint32_t cnt = m_DirectInput->count();
@@ -364,17 +378,65 @@ void AppFrame::onDeviceChange()
 	m_window_active_changed.fetch_or(0x4);
 }
 
-bool AppFrame::onUpdate()
-{
-	m_fFPS = m_pAppModel->getFrameRateController()->getFPS();
-	m_fAvgFPS = m_pAppModel->getFrameRateController()->getAvgFPS();
-	m_pAppModel->getFrameRateController()->setTargetFPS(m_target_fps);
+bool AppFrame::onCreate() { return true; }
+void AppFrame::onBeforeUpdate() {
+	const auto frame_statistics_index = (m_frame_statistics_index + 1) % 2;
+	auto& d = m_frame_statistics[frame_statistics_index];
 
+	{
+		core::ScopeTimer t(&d.wait_time);
+		if (m_swap_chain) {
+			m_swap_chain->waitFrameLatency();
+		}
+		m_frame_rate_controller->update();
+	}
+
+	m_fFPS = m_frame_rate_controller->getFPS();
+	m_fAvgFPS = m_frame_rate_controller->getAvgFPS();
+	m_frame_rate_controller->setTargetFPS(m_target_fps);
+	m_message_timer = core::ScopeTimer(&m_message_time);
+}
+bool AppFrame::onUpdate() {
+	m_message_timer = core::ScopeTimer();
+
+	const auto frame_statistics_index = (m_frame_statistics_index + 1) % 2;
+	auto& d = m_frame_statistics[frame_statistics_index];
+
+	{
+		core::ScopeTimer t(&d.update_time);
+		if (!onUpdateInternal()) {
+			return false;
+		}
+	}
+
+	{
+		core::ScopeTimer t(&d.render_time);
+		m_swap_chain->applyRenderAttachment();
+		m_swap_chain->clearRenderAttachment();
+		if (!onRenderInternal()) {
+			return false;
+		}
+	}
+
+	{
+		core::ScopeTimer t(&d.present_time);
+		m_swap_chain->present();
+	}
+
+	d.update_time += m_message_time;
+	d.total_time = d.wait_time + d.update_time + d.render_time + d.present_time;
+	m_frame_statistics_index = frame_statistics_index; // move next
+	return true;
+}
+void AppFrame::onDestroy() {}
+
+bool AppFrame::onUpdateInternal()
+{
 	bool result = true;
 
 	// pre-check
 	if (ApplicationRestart::hasRestart()) {
-		m_pAppModel->requestExit();
+		core::ApplicationManager::requestExit();
 		result = false;
 	}
 
@@ -394,7 +456,7 @@ bool AppFrame::onUpdate()
 			if (!SafeCallGlobalFunction(LuaEngine::G_CALLBACK_FocusLoseFunc))
 			{
 				result = false;
-				m_pAppModel->requestExit();
+				core::ApplicationManager::requestExit();
 			}
 		}
 		if (window_active_changed & 0x1)
@@ -409,7 +471,7 @@ bool AppFrame::onUpdate()
 			if (!SafeCallGlobalFunction(LuaEngine::G_CALLBACK_FocusGainFunc))
 			{
 				result = false;
-				m_pAppModel->requestExit();
+				core::ApplicationManager::requestExit();
 			}
 		}
 		if (window_active_changed & 0x4)
@@ -435,24 +497,24 @@ bool AppFrame::onUpdate()
 		if (!SafeCallGlobalFunction(LuaEngine::G_CALLBACK_EngineUpdate, 1))
 		{
 			result = false;
-			m_pAppModel->requestExit();
+			core::ApplicationManager::requestExit();
 		}
 		bool tAbort = lua_toboolean(L, -1) != 0;
 		lua_pop(L, 1);
 		if (tAbort)
-			m_pAppModel->requestExit();
+			core::ApplicationManager::requestExit();
 		m_ResourceMgr.UpdateSound();
 	}
 
 	// check again after FrameFunc
 	if (ApplicationRestart::hasRestart()) {
-		m_pAppModel->requestExit();
+		core::ApplicationManager::requestExit();
 		result = false;
 	}
 
 	return result;
 }
-bool AppFrame::onRender()
+bool AppFrame::onRenderInternal()
 {
 	m_bRenderStarted = true;
 
@@ -461,7 +523,7 @@ bool AppFrame::onRender()
 	// 执行渲染函数
 	bool result = SafeCallGlobalFunction(LuaEngine::G_CALLBACK_EngineDraw);
 	if (!result)
-		m_pAppModel->requestExit();
+		core::ApplicationManager::requestExit();
 
 	GetRenderTargetManager()->EndRenderTargetStack();
 

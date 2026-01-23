@@ -309,7 +309,7 @@ namespace luastg
 			// 加载纹理
 			if (core::FileSystemManager::hasFile(texture))
 			{
-				if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(texture, mipmap, m_texture.put()))
+				if (!LAPP.getGraphicsDevice()->createTextureFromFile(texture, mipmap, m_texture.put()))
 				{
 					spdlog::error("[luastg] 加载 HGE 纹理字体失败，无法加载纹理 '{}'", texture);
 					throw std::runtime_error("hgeFont::hgeFont");
@@ -322,7 +322,7 @@ namespace luastg
 				wide_path.remove_filename();
 				wide_path /= utf8::to_wstring(texture);
 				std::string texture_path(utf8::to_string(wide_path.wstring()));
-				if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(texture_path, mipmap, m_texture.put()))
+				if (!LAPP.getGraphicsDevice()->createTextureFromFile(texture_path, mipmap, m_texture.put()))
 				{
 					spdlog::error("[luastg] 加载 HGE 纹理字体失败，无法加载纹理 '{}'", texture_path);
 					throw std::runtime_error("hgeFont::hgeFont");
@@ -472,7 +472,7 @@ namespace luastg
 			// 加载纹理
 			if (core::FileSystemManager::hasFile(raw_texture_path))
 			{
-				if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(raw_texture_path, mipmap, m_texture.put()))
+				if (!LAPP.getGraphicsDevice()->createTextureFromFile(raw_texture_path, mipmap, m_texture.put()))
 				{
 					spdlog::error("[luastg] 加载 fancy2d 纹理字体失败，无法加载纹理 '{}'", raw_texture_path);
 					throw std::runtime_error("f2dFont::f2dFont");
@@ -485,7 +485,7 @@ namespace luastg
 				wide_path.remove_filename();
 				wide_path /= utf8::to_wstring(raw_texture_path);
 				std::string texture_path(utf8::to_string(wide_path.wstring()));
-				if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(texture_path, mipmap, m_texture.put()))
+				if (!LAPP.getGraphicsDevice()->createTextureFromFile(texture_path, mipmap, m_texture.put()))
 				{
 					spdlog::error("[luastg] 加载 fancy2d 纹理字体失败，无法加载纹理 '{}'", texture_path);
 					throw std::runtime_error("f2dFont::f2dFont");

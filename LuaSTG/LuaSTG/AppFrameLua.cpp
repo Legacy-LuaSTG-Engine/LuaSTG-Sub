@@ -34,6 +34,13 @@ extern "C" {
 using std::string_view_literals::operator ""sv;
 
 namespace {
+	HWND getMainWindow(core::Graphics::IWindow* const window) {
+		if (!window) {
+			return nullptr;
+		}
+		return static_cast<HWND>(window->getNativeHandle());
+	}
+
 	void registerCommandLineArguments(lua_State* const vm) {
 		[[maybe_unused]] lua::stack_balancer_t const sb(vm);
 		lua::stack_t const ctx(vm);
@@ -97,7 +104,7 @@ namespace luastg
 			{
 				spdlog::error("[luajit] 编译'{}'失败：{}", desc, lua_tostring(L, -1));
 				MessageBoxW(
-					m_pAppModel ? (HWND)m_pAppModel->getWindow()->getNativeHandle() : NULL,
+					getMainWindow(m_window.get()),
 					utf8::to_wstring(
 						fmt::format("编译'{}'失败：{}", desc, lua_tostring(L, -1))
 					).c_str(),
@@ -122,7 +129,7 @@ namespace luastg
 				}
 				spdlog::error("[luajit] 运行'{}'时出错：{}", desc, errmsg);
 				MessageBoxW(
-					m_pAppModel ? (HWND)m_pAppModel->getWindow()->getNativeHandle() : NULL,
+					getMainWindow(m_window.get()),
 					utf8::to_wstring(
 						fmt::format("运行'{}'时出错：\n{}", desc, errmsg)
 					).c_str(),
@@ -167,7 +174,7 @@ namespace luastg
 				}
 				spdlog::error("[luajit] 调用全局函数'{}'时出错：{}", name, errmsg);
 				MessageBoxW(
-					m_pAppModel ? (HWND)m_pAppModel->getWindow()->getNativeHandle() : NULL,
+					getMainWindow(m_window.get()),
 					utf8::to_wstring(
 						fmt::format("调用全局函数'{}'时出错：\n{}", name, errmsg)
 					).c_str(),
@@ -202,7 +209,7 @@ namespace luastg
 				spdlog::error("[luajit] 调用全局函数'{}'时出错：全局函数'{}'不存在", name, name);
 				/*
 				MessageBoxW(
-					m_pAppModel ? (HWND)m_pAppModel->getWindow()->getNativeHandle() : NULL,
+					getMainWindow(m_window.get()),
 					tErrorInfo.c_str(),
 					L"" LUASTG_INFO,
 					MB_ICONERROR | MB_OK);
@@ -228,7 +235,7 @@ namespace luastg
 			{
 				spdlog::error("[luajit] 调用全局函数'{}'时出错：{}", name, lua_tostring(L, -1));
 				MessageBoxW(
-					m_pAppModel ? (HWND)m_pAppModel->getWindow()->getNativeHandle() : NULL,
+					getMainWindow(m_window.get()),
 					utf8::to_wstring(
 						fmt::format("调用全局函数'{}'时出错：\n{}", name, lua_tostring(L, -1))
 					).c_str(),

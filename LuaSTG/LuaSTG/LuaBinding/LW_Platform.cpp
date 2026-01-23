@@ -8,6 +8,15 @@
 #include <shellapi.h>
 #include "utf8.hpp"
 
+namespace {
+	HWND getMainWindow(core::Graphics::IWindow* const window) {
+		if (window == nullptr) {
+			return nullptr;
+		}
+		return static_cast<HWND>(window->getNativeHandle());
+	}
+}
+
 void luastg::binding::Platform::Register(lua_State* L) noexcept
 {
 	struct Wrapper
@@ -130,7 +139,7 @@ void luastg::binding::Platform::Register(lua_State* L) noexcept
 			char const* text = luaL_checkstring(L, 2);
 			UINT flags = (UINT)luaL_checkinteger(L, 3);
 			int result = MessageBoxW(
-				(LAPP.GetAppModel() && LAPP.GetAppModel()->getWindow()) ? (HWND)LAPP.GetAppModel()->getWindow()->getNativeHandle() : NULL,
+				getMainWindow(LAPP.getWindow()),
 				utf8::to_wstring(text).c_str(),
 				utf8::to_wstring(title).c_str(),
 				flags);

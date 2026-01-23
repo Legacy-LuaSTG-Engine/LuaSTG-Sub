@@ -141,7 +141,7 @@ namespace luastg::binding {
                 self->data->setTransform(self->position, self->scale, self->rotation);  // TODO: TBD
                 self->data->setZ(0.5); // TODO: allow custom
             }
-            self->data->draw(LAPP.GetAppModel()->getRenderer());
+            self->data->draw(LAPP.getRenderer2D());
             return 0;
         }
 
@@ -151,14 +151,14 @@ namespace luastg::binding {
             if (lua::stack_t const ctx(vm); ctx.index_of_top() >= 1) {
                 auto const text_layout = TextLayout::as(vm, 1);
                 auto const self = TextRenderer::create(vm);
-                if (!core::Graphics::ITextRenderer2::create(LAPP.GetAppModel()->getDevice(), &self->data)) {
+                if (!core::Graphics::ITextRenderer2::create(LAPP.getGraphicsDevice(), &self->data)) {
                     return luaL_error(vm, "create TextRenderer failed");
                 }
                 self->data->setTextLayout(text_layout->data);
             }
             else {
                 auto const self = TextRenderer::create(vm);
-                if (!core::Graphics::ITextRenderer2::create(LAPP.GetAppModel()->getDevice(), &self->data)) {
+                if (!core::Graphics::ITextRenderer2::create(LAPP.getGraphicsDevice(), &self->data)) {
                     return luaL_error(vm, "create TextRenderer failed");
                 }
             }

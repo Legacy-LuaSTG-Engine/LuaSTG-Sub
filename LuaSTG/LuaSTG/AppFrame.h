@@ -1,4 +1,5 @@
 #pragma once
+#include "core/Application.hpp"
 #include "Core/ApplicationModel.hpp"
 #include "Core/Graphics/Font.hpp"
 #include "core/AudioEngine.hpp"
@@ -38,7 +39,7 @@ namespace luastg {
 
 	/// @brief 应用程序框架
 	class AppFrame
-		: public core::IApplicationEventListener
+		: public core::IApplication
 		, public core::Graphics::IWindowEventListener
 		, public core::Graphics::ISwapChainEventListener
 		, public IRenderTargetManager
@@ -47,9 +48,17 @@ namespace luastg {
 		AppStatus m_iStatus = AppStatus::NotInitialized;
 
 		// 应用程序框架
-		core::SmartReference<core::IApplicationModel> m_pAppModel;
-		core::SmartReference<core::Graphics::ITextRenderer> m_pTextRenderer;
+		core::IFrameRateController* m_frame_rate_controller{ core::IFrameRateController::getInstance() };
+		core::SmartReference<core::Graphics::IWindow> m_window;
+		core::SmartReference<core::Graphics::IDevice> m_graphics_device;
+		core::SmartReference<core::Graphics::ISwapChain> m_swap_chain;
+		core::SmartReference<core::Graphics::IRenderer> m_renderer;
+		core::SmartReference<core::Graphics::ITextRenderer> m_text_renderer;
 		core::SmartReference<core::IAudioEngine> m_audio_engine;
+		size_t m_frame_statistics_index{};
+		core::FrameStatistics m_frame_statistics[2]{};
+		double m_message_time{};
+		core::ScopeTimer m_message_timer;
 
 		// 资源管理器
 		ResourceMgr m_ResourceMgr;
@@ -252,9 +261,14 @@ namespace luastg {
 
 		Platform::DirectInput* GetDInput()noexcept { return m_DirectInput.get(); }
 
-		core::IApplicationModel* GetAppModel() { return m_pAppModel.get(); }
-		core::Graphics::IRenderer* GetRenderer2D() { return m_pAppModel->getRenderer(); }
-		core::IAudioEngine* getAudioEngine() { return m_audio_engine.get(); }
+		const core::FrameStatistics& getFrameStatistics() { return m_frame_statistics[m_frame_statistics_index]; }
+        const core::FrameRenderStatistics& getFrameRenderStatistics() { return {}; }
+		core::Graphics::IWindow* getWindow() const noexcept { return m_window.get(); }
+		core::Graphics::IDevice* getGraphicsDevice() const noexcept { return m_graphics_device.get(); }
+		core::Graphics::ISwapChain* getSwapChain() const noexcept { return m_swap_chain.get(); }
+		core::Graphics::IRenderer* getRenderer2D() const noexcept { return m_renderer.get(); }
+		core::Graphics::ITextRenderer* getTextRenderer() const noexcept { return m_text_renderer.get(); }
+		core::IAudioEngine* getAudioEngine() const noexcept { return m_audio_engine.get(); }
 
 	public:
 		/// @brief 初始化框架
@@ -279,8 +293,17 @@ namespace luastg {
 		void onWindowSize(core::Vector2U size) override;
 		void onDeviceChange() override;
 
-		bool onUpdate() override;
-		bool onRender() override;
+		// IApplication
+
+		bool onCreate() override;
+        void onBeforeUpdate() override;
+        bool onUpdate() override;
+        void onDestroy() override;
+
+		// Application
+
+		bool onUpdateInternal();
+		bool onRenderInternal();
 	public:
 		AppFrame()noexcept;
 		~AppFrame()noexcept;

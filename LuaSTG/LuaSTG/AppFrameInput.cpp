@@ -58,12 +58,12 @@ namespace luastg
         g_Keyboard.Reset();
         Mouse = std::make_unique<DirectX::Mouse>();
         ZeroMemory(&MouseState, sizeof(MouseState));
-        m_pAppModel->getWindow()->addEventListener(&g_InputEventListener);
-        Mouse->SetWindow((HWND)m_pAppModel->getWindow()->getNativeHandle());
+        m_window->addEventListener(&g_InputEventListener);
+        Mouse->SetWindow((HWND)m_window->getNativeHandle());
     }
     void AppFrame::CloseInput()
     {
-        m_pAppModel->getWindow()->removeEventListener(&g_InputEventListener);
+        m_window->removeEventListener(&g_InputEventListener);
         Mouse = nullptr;
     }
     void AppFrame::UpdateInput()
@@ -152,7 +152,7 @@ namespace luastg
     }
     core::Vector2F AppFrame::GetMousePosition(bool no_flip)noexcept
     {
-        auto const c_size = GetAppModel()->getSwapChain()->getCanvasSize();
+        auto const c_size = m_swap_chain->getCanvasSize();
         auto const transform = GetMousePositionTransformF();
         auto pos = core::Vector2F(
             ((float)MouseState.x + transform.x) * transform.z,
@@ -166,7 +166,7 @@ namespace luastg
         if (m_win32_window_size.x == 0 || m_win32_window_size.y == 0)
         {
             RECT rc = {};
-            GetClientRect((HWND)GetAppModel()->getWindow()->getNativeHandle(), &rc);
+            GetClientRect((HWND)m_window->getNativeHandle(), &rc);
             m_win32_window_size = core::Vector2U((uint32_t)(rc.right - rc.left), (uint32_t)(rc.bottom - rc.top));
         }
         auto const w_size = m_win32_window_size;
@@ -177,16 +177,16 @@ namespace luastg
         if (m_win32_window_size.x == 0 || m_win32_window_size.y == 0)
         {
             RECT rc = {};
-            GetClientRect((HWND)GetAppModel()->getWindow()->getNativeHandle(), &rc);
+            GetClientRect((HWND)m_window->getNativeHandle(), &rc);
             m_win32_window_size = core::Vector2U((uint32_t)(rc.right - rc.left), (uint32_t)(rc.bottom - rc.top));
         }
         auto const w_size = m_win32_window_size;
-        auto const c_size = GetAppModel()->getSwapChain()->getCanvasSize();
+        auto const c_size = m_swap_chain->getCanvasSize();
 
         float const hscale = (float)w_size.x / (float)c_size.x;
         float const vscale = (float)w_size.y / (float)c_size.y;
 
-        if (GetAppModel()->getSwapChain()->getScalingMode() == core::Graphics::SwapChainScalingMode::Stretch)
+        if (m_swap_chain->getScalingMode() == core::Graphics::SwapChainScalingMode::Stretch)
         {
             return core::Vector4F(0.0f, 0.0f, 1.0f / hscale, 1.0f / vscale);
         }

@@ -201,7 +201,7 @@ namespace luastg
         }
     
         core::SmartReference<core::Graphics::ITexture2D> p_texture;
-        if (!LAPP.GetAppModel()->getDevice()->createTextureFromFile(path, mipmaps, p_texture.put()))
+        if (!LAPP.getGraphicsDevice()->createTextureFromFile(path, mipmaps, p_texture.put()))
         {
             spdlog::error("[luastg] 从 '{}' 创建纹理 '{}' 失败", path, name);
             return false;
@@ -239,7 +239,7 @@ namespace luastg
         }
 
         core::SmartReference<core::Graphics::ITexture2D> p_texture;
-        if (!LAPP.GetAppModel()->getDevice()->createTexture(core::Vector2U((uint32_t)width, (uint32_t)height), p_texture.put()))
+        if (!LAPP.getGraphicsDevice()->createTexture(core::Vector2U((uint32_t)width, (uint32_t)height), p_texture.put()))
         {
             spdlog::error("[luastg] 创建纹理 '{}' ({}x{}) 失败", name, width, height);
             return false;
@@ -751,7 +751,7 @@ namespace luastg
             .is_force_to_file = false,
             .is_buffer = false,
         };
-        if (!core::Graphics::IGlyphManager::create(LAPP.GetAppModel()->getDevice(), &create_info, 1, p_glyphmgr.put()))
+        if (!core::Graphics::IGlyphManager::create(LAPP.getGraphicsDevice(), &create_info, 1, p_glyphmgr.put()))
         {
             spdlog::error("[luastg] LoadTTFFont: 加载矢量字体 '{}' 失败", name);
             return false;
@@ -790,7 +790,7 @@ namespace luastg
         }
     
         core::SmartReference<core::Graphics::IGlyphManager> p_glyphmgr;
-        if (!core::Graphics::IGlyphManager::create(LAPP.GetAppModel()->getDevice(), fonts, count, p_glyphmgr.put()))
+        if (!core::Graphics::IGlyphManager::create(LAPP.getGraphicsDevice(), fonts, count, p_glyphmgr.put()))
         {
             spdlog::error("[luastg] LoadTrueTypeFont: 加载矢量字体组 '{}' 失败", name);
             return false;

@@ -11,7 +11,7 @@
 #include "GameResource/LegacyBlendStateHelper.hpp"
 
 namespace luastg {
-	inline core::Graphics::IRenderer* LR2D() { return LAPP.GetAppModel()->getRenderer(); }
+	inline core::Graphics::IRenderer* LR2D() { return LAPP.getRenderer2D(); }
 	inline ResourceMgr& LRESMGR() { return LAPP.GetResourceMgr(); }
 
 #ifndef NDEBUG

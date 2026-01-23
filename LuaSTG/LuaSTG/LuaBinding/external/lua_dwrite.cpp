@@ -2143,7 +2143,7 @@ namespace DirectWrite
 			HRESULT hr = S_OK;
 
 			Microsoft::WRL::ComPtr<ID2D1DeviceContext> d2d1_device_context;
-			d2d1_device_context = (ID2D1DeviceContext*)LAPP.GetAppModel()->getDevice()->getNativeRendererHandle();
+			d2d1_device_context = (ID2D1DeviceContext*)LAPP.getGraphicsDevice()->getNativeRendererHandle();
 			assert(d2d1_device_context);
 			
 			Microsoft::WRL::ComPtr<ID2D1Bitmap1> d2d1_bitmap_target;

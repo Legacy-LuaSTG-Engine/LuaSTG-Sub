@@ -263,7 +263,7 @@ namespace luastg
 		core::Color4B const tVertexColor = GetVertexColor();
 		const auto sprite = m_Info.pSprite.get();
 		const auto renderer = SharedSpriteRenderer::getInstance();
-		const auto command_list = LAPP.GetRenderer2D();
+		const auto command_list = LAPP.getRenderer2D();
 		const auto blend = luastg::translateLegacyBlendState(m_Info.eBlendMode);
 
 		renderer->setSprite(sprite);
