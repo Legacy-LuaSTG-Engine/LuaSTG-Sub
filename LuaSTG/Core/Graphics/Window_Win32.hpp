@@ -1,6 +1,5 @@
 #pragma once
 #include "core/implement/ReferenceCounted.hpp"
-#include "Core/ApplicationModel.hpp"
 #include "Core/Graphics/Window.hpp"
 #include "Platform/WindowSizeMoveController.hpp"
 #include "Platform/ImmersiveTitleBarController.hpp"
@@ -91,8 +90,6 @@ namespace core::Graphics
 		bool createWindow();
 		void destroyWindow();
 
-		IApplicationModel* m_framework{};
-
 	public:
 		// 内部方法
 
@@ -111,8 +108,6 @@ namespace core::Graphics
 		void _toggleFullScreenMode();
 		void _setWindowMode(SetWindowedModeParameters* parameters, bool ignore_size);
 		void _setFullScreenMode(IDisplay* display);
-
-		void implSetApplicationModel(IApplicationModel* p_framework) { m_framework = p_framework; }
 
 	private:
 

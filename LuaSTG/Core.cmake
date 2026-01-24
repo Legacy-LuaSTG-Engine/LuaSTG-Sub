@@ -66,10 +66,6 @@ set(Core_SRC
     Core/Graphics/Direct3D11/MeshRenderer.cpp
     Core/Graphics/Direct3D11/LetterBoxingRenderer.hpp
     Core/Graphics/Direct3D11/LetterBoxingRenderer.cpp
-
-    Core/ApplicationModel.hpp
-    Core/ApplicationModel_Win32.hpp
-    Core/ApplicationModel_Win32.cpp
 )
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${Core_SRC})
 target_precompile_headers(Core PRIVATE
@@ -123,5 +119,6 @@ target_link_libraries(Core PUBLIC
     Core.FileSystem
     Core.Image
     Core.Font
+    Core.WindowSystem
     win32
 )

@@ -35,6 +35,8 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/Debugger/ImGuiExtension.h
     LuaSTG/Debugger/Logger.cpp
     LuaSTG/Debugger/Logger.hpp
+    LuaSTG/Debugger/FrameQuery.hpp
+    LuaSTG/Debugger/FrameQuery.cpp
 
     LuaSTG/GameObject/GameObject.cpp
     LuaSTG/GameObject/GameObject.hpp

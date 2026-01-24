@@ -1,11 +1,18 @@
 #pragma once
+#include <set>
+#include <vector>
 #include "core/Application.hpp"
-#include "Core/ApplicationModel.hpp"
-#include "Core/Graphics/Font.hpp"
+#include "core/FrameRateController.hpp"
+#include "core/Graphics/Window.hpp"
+#include "core/Graphics/Device.hpp"
+#include "core/Graphics/SwapChain.hpp"
+#include "core/Graphics/Renderer.hpp"
+#include "core/Graphics/Font.hpp"
 #include "core/AudioEngine.hpp"
 #include "GameResource/ResourceManager.h"
 #include "GameObject/GameObjectPool.h"
 #include "Platform/DirectInput.hpp"
+#include "Debugger/FrameQuery.hpp"
 
 namespace luastg {
 	/// @brief 应用程序状态
@@ -44,6 +51,21 @@ namespace luastg {
 		, public core::Graphics::ISwapChainEventListener
 		, public IRenderTargetManager
 	{
+	public:
+		// 统计数据
+
+		struct FrameStatistics {
+			double total_time{};
+			double wait_time{};
+			double update_time{};
+			double render_time{};
+			double present_time{};
+		};
+
+		struct FrameRenderStatistics {
+			double render_time{};
+		};
+
 	private:
 		AppStatus m_iStatus = AppStatus::NotInitialized;
 
@@ -55,10 +77,16 @@ namespace luastg {
 		core::SmartReference<core::Graphics::IRenderer> m_renderer;
 		core::SmartReference<core::Graphics::ITextRenderer> m_text_renderer;
 		core::SmartReference<core::IAudioEngine> m_audio_engine;
+
+		// 统计数据
 		size_t m_frame_statistics_index{};
-		core::FrameStatistics m_frame_statistics[2]{};
+		FrameStatistics m_frame_statistics[2]{};
 		double m_message_time{};
 		core::ScopeTimer m_message_timer;
+
+		// 图形统计数据
+		size_t m_render_statistics_index{};
+		std::vector<FrameQuery> m_render_statistics;
 
 		// 资源管理器
 		ResourceMgr m_ResourceMgr;
@@ -261,8 +289,13 @@ namespace luastg {
 
 		Platform::DirectInput* GetDInput()noexcept { return m_DirectInput.get(); }
 
-		const core::FrameStatistics& getFrameStatistics() { return m_frame_statistics[m_frame_statistics_index]; }
-        const core::FrameRenderStatistics& getFrameRenderStatistics() { return {}; }
+		const FrameStatistics& getFrameStatistics() { return m_frame_statistics[m_frame_statistics_index]; }
+		const FrameRenderStatistics& getFrameRenderStatistics() {
+			// TODO: stupid implement
+			static FrameRenderStatistics s;
+			s.render_time = m_render_statistics[m_render_statistics_index].getTime();
+			return s;
+		}
 		core::Graphics::IWindow* getWindow() const noexcept { return m_window.get(); }
 		core::Graphics::IDevice* getGraphicsDevice() const noexcept { return m_graphics_device.get(); }
 		core::Graphics::ISwapChain* getSwapChain() const noexcept { return m_swap_chain.get(); }
@@ -296,9 +329,9 @@ namespace luastg {
 		// IApplication
 
 		bool onCreate() override;
-        void onBeforeUpdate() override;
-        bool onUpdate() override;
-        void onDestroy() override;
+		void onBeforeUpdate() override;
+		bool onUpdate() override;
+		void onDestroy() override;
 
 		// Application
 

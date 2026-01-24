@@ -202,10 +202,13 @@ bool AppFrame::Init()noexcept
 		//get_system_memory_status();
 		if (!core::Graphics::IWindow::create(m_window.put()))
 			return false;
-		//m_window->implSetApplicationModel(this);
 		auto const& gpu = core::ConfigurationLoader::getInstance().getGraphicsSystem().getPreferredDeviceName();
 		if (!core::Graphics::IDevice::create(gpu, m_graphics_device.put()))
 			return false;
+		m_render_statistics.reserve(4);
+		for (int i = 0; i < 4; i += 1) {
+			m_render_statistics.emplace_back(m_graphics_device.get());
+		}
 		if (!core::Graphics::ISwapChain::create(m_window.get(), m_graphics_device.get(), m_swap_chain.put()))
 			return false;
 		if (!core::Graphics::IRenderer::create(m_graphics_device.get(), m_renderer.put()))
@@ -305,6 +308,7 @@ void AppFrame::Shutdown()noexcept
 	m_DirectInput = nullptr;
 	m_window.reset();
 	m_graphics_device.reset();
+	m_render_statistics.clear();
 	m_swap_chain.reset();
 	m_renderer.reset();
 	m_text_renderer.reset();
@@ -323,7 +327,7 @@ void AppFrame::Run()noexcept
 	onSwapChainCreate(); // 手动触发一次，让自动尺寸的RenderTarget设置为正确的尺寸
 	m_swap_chain->addEventListener(this);
 
-	m_frame_rate_controller->setTargetFPS(m_target_fps);
+	m_frame_rate_controller->setFrameRate(m_target_fps);
 	core::ApplicationManager::run(this);
 
 	m_swap_chain->removeEventListener(this);
@@ -391,9 +395,9 @@ void AppFrame::onBeforeUpdate() {
 		m_frame_rate_controller->update();
 	}
 
-	m_fFPS = m_frame_rate_controller->getFPS();
-	m_fAvgFPS = m_frame_rate_controller->getAvgFPS();
-	m_frame_rate_controller->setTargetFPS(m_target_fps);
+	m_fFPS = 1.0 / m_frame_rate_controller->getStatistics()->getDuration(0);
+	m_fAvgFPS = 1.0 / m_frame_rate_controller->getStatistics()->getAverage(10);
+	m_frame_rate_controller->setFrameRate(m_target_fps);
 	m_message_timer = core::ScopeTimer(&m_message_time);
 }
 bool AppFrame::onUpdate() {
@@ -401,6 +405,9 @@ bool AppFrame::onUpdate() {
 
 	const auto frame_statistics_index = (m_frame_statistics_index + 1) % 2;
 	auto& d = m_frame_statistics[frame_statistics_index];
+
+	const auto render_statistics_index = (m_render_statistics_index + 1) % m_render_statistics.size();
+	auto& r = m_render_statistics[render_statistics_index];
 
 	{
 		core::ScopeTimer t(&d.update_time);
@@ -411,9 +418,12 @@ bool AppFrame::onUpdate() {
 
 	{
 		core::ScopeTimer t(&d.render_time);
+		r.begin();
 		m_swap_chain->applyRenderAttachment();
 		m_swap_chain->clearRenderAttachment();
-		if (!onRenderInternal()) {
+		const auto result = onRenderInternal();
+		r.end();
+		if (!result) {
 			return false;
 		}
 	}
@@ -426,6 +436,7 @@ bool AppFrame::onUpdate() {
 	d.update_time += m_message_time;
 	d.total_time = d.wait_time + d.update_time + d.render_time + d.present_time;
 	m_frame_statistics_index = frame_statistics_index; // move next
+	m_render_statistics_index = render_statistics_index;
 	return true;
 }
 void AppFrame::onDestroy() {}

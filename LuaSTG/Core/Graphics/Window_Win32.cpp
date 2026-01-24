@@ -1,7 +1,9 @@
 #include "Core/Graphics/Window_Win32.hpp"
-#include "Core/ApplicationModel_Win32.hpp"
 #include "Core/i18n.hpp"
 #include "core/Configuration.hpp"
+#include "core/SmartReference.hpp"
+#include "core/Application.hpp"
+#include "core/FrameRateController.hpp"
 #include "win32/win32.hpp"
 #include "win32/abi.hpp"
 #include "Platform/WindowsVersion.hpp"
@@ -360,8 +362,6 @@ namespace core::Graphics
 		}
 	}
 
-#define APPMODEL ((ApplicationModel_Win32*)m_framework)
-
 	LRESULT CALLBACK Window_Win32::win32_window_callback(HWND const window, UINT const message, WPARAM const arg1, LPARAM const arg2) {
 		if (auto const self = reinterpret_cast<Window_Win32*>(GetWindowLongPtrW(window, GWLP_USERDATA))) {
 			return self->onMessage(window, message, arg1, arg2);
@@ -475,11 +475,19 @@ namespace core::Graphics
 			win32_window_is_menu_loop = FALSE;
 			return 0;
 		case WM_PAINT:
-			if ((win32_window_is_sizemove || win32_window_is_menu_loop) && APPMODEL != nullptr) {
-				APPMODEL->runFrame();
+			if (win32_window_is_sizemove || win32_window_is_menu_loop) {
+				if (const auto application = core::ApplicationManager::getApplication(); application != nullptr) {
+					const auto frame_rate_controller = core::IFrameRateController::getInstance();
+					if (frame_rate_controller->arrived()) {
+						application->onBeforeUpdate();
+						if (!application->onUpdate()) {
+							core::ApplicationManager::requestExit();
+						}
+					}
+				}
 			}
 			else {
-				ValidateRect(window, nullptr); // no gdi painting
+				ValidateRect(window, nullptr);
 			}
 			return 0;
 		case WM_SYSKEYDOWN:
