@@ -728,7 +728,7 @@ namespace {
 namespace imgui {
 	class ImGuiBackendEventListener
 		: public core::Graphics::IDeviceEventListener
-		, public core::Graphics::IWindowEventListener {
+		, public core::IWindowEventListener {
 	public:
 		// IDeviceEventListener
 

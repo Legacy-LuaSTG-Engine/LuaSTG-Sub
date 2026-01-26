@@ -9,7 +9,7 @@
 #include "utf8.hpp"
 
 namespace {
-	HWND getMainWindow(core::Graphics::IWindow* const window) {
+	HWND getMainWindow(core::IWindow* const window) {
 		if (window == nullptr) {
 			return nullptr;
 		}

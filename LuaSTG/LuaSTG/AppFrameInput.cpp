@@ -11,7 +11,7 @@ namespace
     Platform::Keyboard g_Keyboard;
     Platform::Keyboard::State g_KeyboardState;
 
-    struct InputEventListener : public core::Graphics::IWindowEventListener {
+    struct InputEventListener : public core::IWindowEventListener {
         NativeWindowMessageResult onNativeWindowMessage(void* window, uint32_t message, uintptr_t arg1, intptr_t arg2) {
             switch (message) {
             case WM_ACTIVATE:

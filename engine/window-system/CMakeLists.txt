@@ -16,7 +16,10 @@ target_link_libraries(${lib_name} PUBLIC
     Core.Configuration
     Core.Logging
     Core.Math
+    Core.String
+    simdutf::simdutf
     win32
+    beautiful_win32_api
 )
 
 set_target_properties(${lib_name} PROPERTIES FOLDER engine)

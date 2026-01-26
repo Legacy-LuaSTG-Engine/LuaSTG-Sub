@@ -34,7 +34,7 @@ extern "C" {
 using std::string_view_literals::operator ""sv;
 
 namespace {
-	HWND getMainWindow(core::Graphics::IWindow* const window) {
+	HWND getMainWindow(core::IWindow* const window) {
 		if (!window) {
 			return nullptr;
 		}

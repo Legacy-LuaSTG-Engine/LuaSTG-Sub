@@ -37,7 +37,7 @@ namespace luastg
 		{
 			auto const& gs = core::ConfigurationLoader::getInstance().getGraphicsSystem();
 			auto const& win = core::ConfigurationLoader::getInstance().getWindow();
-			m_window->setCursor(win.isCursorVisible() ? core::Graphics::WindowCursor::Arrow : core::Graphics::WindowCursor::None);
+			m_window->setCursor(win.isCursorVisible() ? core::WindowCursor::Arrow : core::WindowCursor::None);
 			m_window->setWindowMode(core::Vector2U(gs.getWidth(), gs.getHeight()));
 		}
 		return true;

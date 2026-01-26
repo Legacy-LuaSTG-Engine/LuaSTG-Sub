@@ -136,11 +136,11 @@ namespace luastg::binding {
 			lua::stack_t S(L);
 
 			size_t count{};
-			if (!core::Graphics::IDisplay::getAll(&count, nullptr)) {
+			if (!core::IDisplay::getAll(&count, nullptr)) {
 				return luaL_error(L, "lstg.Display.getAll failed");
 			}
 
-			std::vector<core::Graphics::IDisplay*> list(count);
+			std::vector<core::IDisplay*> list(count);
 			[[maybe_unused]] auto release_list = wil::scope_exit([&]() -> void {
 				for (auto ptr : list) {
 					if (ptr) {
@@ -148,7 +148,7 @@ namespace luastg::binding {
 					}
 				}
 			});
-			if (!core::Graphics::IDisplay::getAll(&count, list.data())) {
+			if (!core::IDisplay::getAll(&count, list.data())) {
 				return luaL_error(L, "lstg.Display.getAll failed");
 			}
 
@@ -168,7 +168,7 @@ namespace luastg::binding {
 		static int getPrimary(lua_State* L) {
 			lua::stack_t S(L);
 			auto self = create(L);
-			if (!core::Graphics::IDisplay::getPrimary(&self->data)) {
+			if (!core::IDisplay::getPrimary(&self->data)) {
 				return luaL_error(L, "lstg.Display.getPrimary failed");
 			}
 			return 1;

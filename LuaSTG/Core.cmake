@@ -17,9 +17,6 @@ set(Core_SRC
     Core/framework.hpp
     Core/framework.cpp
 
-    Core/Graphics/Window.hpp
-    Core/Graphics/Window_Win32.hpp
-    Core/Graphics/Window_Win32.cpp
     Core/Graphics/Format.hpp
     Core/Graphics/Device.hpp
     Core/Graphics/SwapChain.hpp
@@ -121,4 +118,8 @@ target_link_libraries(Core PUBLIC
     Core.Font
     Core.WindowSystem
     win32
+)
+
+target_link_libraries(Core.WindowSystem PUBLIC
+    PlatformAPI
 )

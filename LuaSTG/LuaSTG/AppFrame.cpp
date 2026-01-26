@@ -90,7 +90,7 @@ void AppFrame::SetPreferenceGPU(const char* v) noexcept {
 }
 void AppFrame::SetSplash(bool v) noexcept {
 	if (m_window) {
-		m_window->setCursor(v ? core::Graphics::WindowCursor::Arrow : core::Graphics::WindowCursor::None);
+		m_window->setCursor(v ? core::WindowCursor::Arrow : core::WindowCursor::None);
 	}
 	else {
 		auto& win = core::ConfigurationLoader::getInstance().getWindowRef();
@@ -200,7 +200,7 @@ bool AppFrame::Init()noexcept
 		spdlog::info("[core] Kernel: {}", Platform::WindowsVersion::GetKernelVersionString());
 		spdlog::info("[core] CPU: {}", Platform::ProcessorInfo::name());
 		//get_system_memory_status();
-		if (!core::Graphics::IWindow::create(m_window.put()))
+		if (!core::IWindow::create(m_window.put()))
 			return false;
 		auto const& gpu = core::ConfigurationLoader::getInstance().getGraphicsSystem().getPreferredDeviceName();
 		if (!core::Graphics::IDevice::create(gpu, m_graphics_device.put()))
