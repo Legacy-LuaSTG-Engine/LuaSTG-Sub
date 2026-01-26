@@ -9,9 +9,9 @@
 #include "win32/win32.hpp"
 #include "win32/abi.hpp"
 #include <dwmapi.h>
-#include "Platform/WindowsVersion.hpp"
-#include "Platform/WindowTheme.hpp"
-#include "Platform/RuntimeLoader/DesktopWindowManager.hpp"
+#include "windows/WindowsVersion.hpp"
+#include "windows/WindowTheme.hpp"
+#include "windows/RuntimeLoader/DesktopWindowManager.hpp"
 #include "win32/base.hpp"
 
 namespace {

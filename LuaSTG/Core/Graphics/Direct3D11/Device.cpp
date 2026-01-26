@@ -1,9 +1,9 @@
 #include "Core/Graphics/Direct3D11/Device.hpp"
 #include "core/Configuration.hpp"
 #include "Core/i18n.hpp"
-#include "Platform/WindowsVersion.hpp"
-#include "Platform/AdapterPolicy.hpp"
-#include "Platform/Direct3D11.hpp"
+#include "windows/WindowsVersion.hpp"
+#include "windows/AdapterPolicy.hpp"
+#include "windows/Direct3D11.hpp"
 #include "utf8.hpp"
 
 namespace {

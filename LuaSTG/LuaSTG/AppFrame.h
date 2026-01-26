@@ -11,7 +11,7 @@
 #include "core/AudioEngine.hpp"
 #include "GameResource/ResourceManager.h"
 #include "GameObject/GameObjectPool.h"
-#include "Platform/DirectInput.hpp"
+#include "windows/DirectInput.hpp"
 #include "Debugger/FrameQuery.hpp"
 
 namespace luastg {

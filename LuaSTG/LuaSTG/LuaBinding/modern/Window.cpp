@@ -2,7 +2,7 @@
 #include "Window.hpp"
 #include "lua/plus.hpp"
 #include "AppFrame.h"
-#include "Platform/WindowsVersion.hpp"
+#include "windows/WindowsVersion.hpp"
 
 static void pushSize(lua_State* L, lua_Number const width, lua_Number const height) {
 	lua::stack_t S(L);

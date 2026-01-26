@@ -1,7 +1,7 @@
 #include "LuaBinding/LuaWrapper.hpp"
 #include "lua/plus.hpp"
 #include "ApplicationRestart.hpp"
-#include "Platform/KnownDirectory.hpp"
+#include "windows/KnownDirectory.hpp"
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <Windows.h>

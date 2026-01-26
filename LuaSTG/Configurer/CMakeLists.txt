@@ -18,12 +18,12 @@ target_link_libraries(Setting PRIVATE
     dxgi.lib
     spdlog
     utf8
+    win32
     beautiful_win32_api
     imgui
     imgui_impl_win32
     imgui_impl_dx11
     nlohmann_json
-    PlatformAPI
 )
 
 set(LUASTG_SETTING_BUILD_OUTPUT_DIR ${CMAKE_BINARY_DIR}/bin)

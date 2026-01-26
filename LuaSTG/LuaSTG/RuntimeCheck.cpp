@@ -1,12 +1,12 @@
 ﻿#include "RuntimeCheck.hpp"
 #include "core/Configuration.hpp"
-#include "Platform/MessageBox.hpp"
-#include "Platform/WindowsVersion.hpp"
-#include "Platform/CleanWindows.hpp"
-#include "Platform/ModuleLoader.hpp"
+#include "windows/MessageBox.hpp"
+#include "windows/WindowsVersion.hpp"
+#include "windows/CleanWindows.hpp"
+#include "windows/ModuleLoader.hpp"
 #include <dxgi1_6.h>
 #include <d3d11_4.h>
-#include "Platform/Direct3D11.hpp"
+#include "windows/Direct3D11.hpp"
 #include <shellapi.h>
 
 namespace luastg

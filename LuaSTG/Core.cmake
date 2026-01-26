@@ -81,8 +81,6 @@ target_link_libraries(Core PUBLIC
     utility
     utf8
     simdutf::simdutf
-    PlatformAPI
-    beautiful_win32_api
     GeneratedShaderHeaders
     # win32
     winmm.lib
@@ -118,8 +116,5 @@ target_link_libraries(Core PUBLIC
     Core.Font
     Core.WindowSystem
     win32
-)
-
-target_link_libraries(Core.WindowSystem PUBLIC
-    PlatformAPI
+    beautiful_win32_api
 )

@@ -1,6 +1,6 @@
 #include "Core/Graphics/Renderer_D3D11.hpp"
 #include "core/FileSystem.hpp"
-#include "Platform/RuntimeLoader/Direct3DCompiler.hpp"
+#include "windows/RuntimeLoader/Direct3DCompiler.hpp"
 
 #include "luastg/sub/renderer/vertex_shader_def_none.hpp"
 #include "luastg/sub/renderer/vertex_shader_def_fog.hpp"

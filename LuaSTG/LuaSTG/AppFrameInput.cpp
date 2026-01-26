@@ -4,7 +4,7 @@
 #define NOMINMAX
 #include <Windows.h>
 #include "Mouse.h"
-#include "Platform/Keyboard.hpp"
+#include "windows/Keyboard.hpp"
 
 namespace
 {

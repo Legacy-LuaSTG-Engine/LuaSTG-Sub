@@ -1,10 +1,10 @@
 #pragma once
 #include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/Device.hpp"
-#include "Platform/RuntimeLoader/DXGI.hpp"
-#include "Platform/RuntimeLoader/Direct3D11.hpp"
-#include "Platform/RuntimeLoader/Direct2D1.hpp"
-#include "Platform/RuntimeLoader/DirectWrite.hpp"
+#include "windows/RuntimeLoader/DXGI.hpp"
+#include "windows/RuntimeLoader/Direct3D11.hpp"
+#include "windows/RuntimeLoader/Direct2D1.hpp"
+#include "windows/RuntimeLoader/DirectWrite.hpp"
 
 // Device
 namespace core::Graphics::Direct3D11 {

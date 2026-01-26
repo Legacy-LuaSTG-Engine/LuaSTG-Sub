@@ -4,7 +4,7 @@
 #include "Core/Graphics/SwapChain.hpp"
 #include "Core/Graphics/Direct3D11/Device.hpp"
 #include "Core/Graphics/Direct3D11/LetterBoxingRenderer.hpp"
-#include "Platform/RuntimeLoader/DirectComposition.hpp"
+#include "windows/RuntimeLoader/DirectComposition.hpp"
 
 namespace core::Graphics
 {

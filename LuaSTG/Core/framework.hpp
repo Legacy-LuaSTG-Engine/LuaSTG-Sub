@@ -48,7 +48,7 @@
 #include "tracy/TracyD3D11.hpp"
 #include "tracy/TracyAPI.hpp"
 
-#include "Platform/HResultChecker.hpp"
+#include "windows/HResultChecker.hpp"
 
 namespace Microsoft::WRL::Wrappers
 {

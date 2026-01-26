@@ -1,7 +1,6 @@
 # LuaSTG configurer
 
 add_subdirectory(Shader)
-include(Platform.cmake)
 include(Core.cmake)
 add_subdirectory(Configurer)
 
@@ -212,7 +211,7 @@ target_link_libraries(LuaSTG PRIVATE
     utility
     utf8
     win32
-    PlatformAPI
+    beautiful_win32_api
     DirectX::ToolKitMini
     Microsoft::DirectXTexMini
     Core

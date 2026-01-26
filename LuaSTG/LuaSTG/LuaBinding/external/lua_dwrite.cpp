@@ -9,7 +9,7 @@
 #include <memory>
 #include <functional>
 
-#include "Platform/HResultChecker.hpp"
+#include "windows/HResultChecker.hpp"
 #include "core/FileSystem.hpp"
 #include "backend/WicImage.hpp"
 #include "AppFrame.h"

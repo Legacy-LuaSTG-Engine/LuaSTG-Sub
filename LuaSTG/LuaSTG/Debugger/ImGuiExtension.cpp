@@ -16,7 +16,7 @@
 #include "lua.hpp"
 #include "lua_imgui.hpp"
 
-#include "Platform/XInput.hpp"
+#include "windows/XInput.hpp"
 #include "core/Configuration.hpp"
 #include "utf8.hpp"
 

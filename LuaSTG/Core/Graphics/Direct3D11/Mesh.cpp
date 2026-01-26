@@ -3,7 +3,7 @@
 #include "Core/Graphics/Direct3D11/Mesh.hpp"
 #include "Core/Graphics/Direct3D11/Buffer.hpp"
 #include "Core/Graphics/Direct3D11/Device.hpp"
-#include "Platform/RuntimeLoader/Direct3DCompiler.hpp"
+#include "windows/RuntimeLoader/Direct3DCompiler.hpp"
 #include "Core/i18n.hpp"
 
 using std::string_view_literals::operator ""sv;

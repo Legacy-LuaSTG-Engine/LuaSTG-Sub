@@ -6,8 +6,8 @@
 #define NOMINMAX
 #include <windows.h>
 #include <d2d1_3.h>
-#include "Platform/WindowSizeMoveController.hpp"
-#include "Platform/ImmersiveTitleBarController.hpp"
+#include "windows/WindowSizeMoveController.hpp"
+#include "windows/ImmersiveTitleBarController.hpp"
 
 namespace core {
     struct SetWindowedModeParameters {
