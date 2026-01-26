@@ -87,8 +87,8 @@ namespace core::Graphics
 		flag_ |= D3DCOMPILE_DEBUG;
 		flag_ |= D3DCOMPILE_SKIP_OPTIMIZATION;
 	#endif
-		Microsoft::WRL::ComPtr<ID3DBlob> errmsg_;
-		HRESULT hr = gHR = g_d3dcompiler_loader.Compile(data, size, name, defs, &g_include_loader, "main", target, flag_, 0, ppBlob, &errmsg_);
+		win32::com_ptr<ID3DBlob> errmsg_;
+		HRESULT hr = gHR = g_d3dcompiler_loader.Compile(data, size, name, defs, &g_include_loader, "main", target, flag_, 0, ppBlob, errmsg_.put());
 		if (FAILED(hr))
 		{
 			spdlog::error("[core] D3DCompile 调用失败");
@@ -115,26 +115,26 @@ namespace core::Graphics
 				SmartReference<IData> src;
 				if (!FileSystemManager::readFile(source, src.put()))
 					return false;
-				if (!compilePixelShaderMacro11(source.c_str(), src->data(), src->size(), nullptr, &d3d_ps_blob))
+				if (!compilePixelShaderMacro11(source.c_str(), src->data(), src->size(), nullptr, d3d_ps_blob.put()))
 					return false;
 			}
 			else
 			{
-				if (!compilePixelShaderMacro11(source.c_str(), source.data(), source.size(), nullptr, &d3d_ps_blob))
+				if (!compilePixelShaderMacro11(source.c_str(), source.data(), source.size(), nullptr, d3d_ps_blob.put()))
 					return false;
 			}
 		}
 		assert(m_device->GetD3D11Device());
-		HRESULT hr = gHR = m_device->GetD3D11Device()->CreatePixelShader(d3d_ps_blob->GetBufferPointer(), d3d_ps_blob->GetBufferSize(), nullptr, &d3d11_ps);
+		HRESULT hr = gHR = m_device->GetD3D11Device()->CreatePixelShader(d3d_ps_blob->GetBufferPointer(), d3d_ps_blob->GetBufferSize(), nullptr, d3d11_ps.put());
 		if (FAILED(hr))
 			return false;
-		M_D3D_SET_DEBUG_NAME_SIMPLE(d3d11_ps.Get());
+		M_D3D_SET_DEBUG_NAME_SIMPLE(d3d11_ps.get());
 
 		// 着色器反射
 
 		if (!d3d11_ps_reflect)
 		{
-			hr = gHR = g_d3dcompiler_loader.Reflect(d3d_ps_blob->GetBufferPointer(), d3d_ps_blob->GetBufferSize(), IID_PPV_ARGS(&d3d11_ps_reflect));
+			hr = gHR = g_d3dcompiler_loader.Reflect(d3d_ps_blob->GetBufferPointer(), d3d_ps_blob->GetBufferSize(), IID_PPV_ARGS(d3d11_ps_reflect.put()));
 			if (FAILED(hr)) return false;
 
 			// 获得着色器信息
@@ -220,7 +220,7 @@ namespace core::Graphics
 				.MiscFlags = 0,
 				.StructureByteStride = 0,
 			};
-			hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, &v.second.d3d11_buffer);
+			hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, v.second.d3d11_buffer.put());
 			if (FAILED(hr))
 				return false;
 		}
@@ -242,13 +242,13 @@ namespace core::Graphics
 					data,
 					size,
 					NULL,
-					& _vertex_shader[IDX(f)]);
+					_vertex_shader[IDX(f)].put());
 			};
 			
 		#define load(f, name)\
 			load_(f, luastg::sub::renderer::vertex_shader_##name, sizeof(luastg::sub::renderer::vertex_shader_##name));\
 			if (FAILED(hr)) return false;\
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_vertex_shader[IDX(f)].Get());
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_vertex_shader[IDX(f)].get());
 
 			load(FogState::Disable, def_none);
 			load(FogState::Linear, def_fog);
@@ -271,7 +271,7 @@ namespace core::Graphics
 				layout_, 3,
 				luastg::sub::renderer::vertex_shader_def_none,
 				sizeof(luastg::sub::renderer::vertex_shader_def_none),
-				&_input_layout);
+				_input_layout.put());
 			if (FAILED(hr))
 				return false;
 		}
@@ -284,14 +284,14 @@ namespace core::Graphics
 					data,
 					size,
 					NULL,
-					&_pixel_shader[IDX(v)][IDX(f)][IDX(t)]
+					_pixel_shader[IDX(v)][IDX(f)][IDX(t)].put()
 				);
 			};
 
 		#define load(v, f, t, name)\
 			load_(v, f, t, luastg::sub::renderer::pixel_shader_##name, sizeof(luastg::sub::renderer::pixel_shader_##name));\
 			if (FAILED(hr)) return false;\
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_pixel_shader[IDX(v)][IDX(f)][IDX(t)].Get());
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_pixel_shader[IDX(v)][IDX(f)][IDX(t)].get());
 
 			load(VertexColorBlendState::Zero, FogState::Disable, TextureAlphaType::Normal, def_zero_none_normal);
 			load(VertexColorBlendState::One, FogState::Disable, TextureAlphaType::Normal, def_one_none_normal);

@@ -71,7 +71,7 @@ namespace core::Graphics::Direct3D11
 				{ "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 				{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 8, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			};
-			HRGet = d3d11_device->CreateInputLayout(input_layout_p2f_t2f, 2, vertex_shader, sizeof(vertex_shader), &d3d11_input_layout);
+			HRGet = d3d11_device->CreateInputLayout(input_layout_p2f_t2f, 2, vertex_shader, sizeof(vertex_shader), d3d11_input_layout.put());
 			HRCheckCallReturnBool("ID3D11Device::CreateInputLayout");
 		}
 
@@ -81,7 +81,7 @@ namespace core::Graphics::Direct3D11
 			vertex_buffer_info.Usage = D3D11_USAGE_DYNAMIC;
 			vertex_buffer_info.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 			vertex_buffer_info.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-			HRGet = d3d11_device->CreateBuffer(&vertex_buffer_info, NULL, &d3d11_vertex_buffer);
+			HRGet = d3d11_device->CreateBuffer(&vertex_buffer_info, NULL, d3d11_vertex_buffer.put());
 			HRCheckCallReturnBool("ID3D11Device::CreateBuffer");
 		}
 
@@ -93,7 +93,7 @@ namespace core::Graphics::Direct3D11
 			Index index_buffer_data[6] = { 0, 1, 2, 0, 2, 3 };
 			D3D11_SUBRESOURCE_DATA index_buffer_data_info = {};
 			index_buffer_data_info.pSysMem = index_buffer_data;
-			HRGet = d3d11_device->CreateBuffer(&index_buffer_info, &index_buffer_data_info, &d3d11_index_buffer);
+			HRGet = d3d11_device->CreateBuffer(&index_buffer_info, &index_buffer_data_info, d3d11_index_buffer.put());
 			HRCheckCallReturnBool("ID3D11Device::CreateBuffer");
 		}
 
@@ -103,12 +103,12 @@ namespace core::Graphics::Direct3D11
 			constant_buffer_info.Usage = D3D11_USAGE_DYNAMIC;
 			constant_buffer_info.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 			constant_buffer_info.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-			HRGet = d3d11_device->CreateBuffer(&constant_buffer_info, NULL, &d3d11_constant_buffer);
+			HRGet = d3d11_device->CreateBuffer(&constant_buffer_info, NULL, d3d11_constant_buffer.put());
 			HRCheckCallReturnBool("ID3D11Device::CreateBuffer");
 		}
 
 		/* vertex shader */ {
-			HRGet = d3d11_device->CreateVertexShader(vertex_shader, sizeof(vertex_shader), NULL, &d3d11_vertex_shader);
+			HRGet = d3d11_device->CreateVertexShader(vertex_shader, sizeof(vertex_shader), NULL, d3d11_vertex_shader.put());
 			HRCheckCallReturnBool("ID3D11Device::CreateVertexShader");
 		}
 
@@ -116,7 +116,7 @@ namespace core::Graphics::Direct3D11
 			D3D11_RASTERIZER_DESC state_info = {};
 			state_info.FillMode = D3D11_FILL_SOLID;
 			state_info.CullMode = D3D11_CULL_NONE;
-			HRGet = d3d11_device->CreateRasterizerState(&state_info, &d3d11_rasterizer_state);
+			HRGet = d3d11_device->CreateRasterizerState(&state_info, d3d11_rasterizer_state.put());
 			HRCheckCallReturnBool("ID3D11Device::CreateRasterizerState");
 		}
 
@@ -130,16 +130,16 @@ namespace core::Graphics::Direct3D11
 			state_info.ComparisonFunc = D3D11_COMPARISON_NEVER;
 			state_info.MinLOD = -FLT_MAX;
 			state_info.MaxLOD = FLT_MAX;
-			HRGet = d3d11_device->CreateSamplerState(&state_info, &d3d11_sampler_state_linear);
+			HRGet = d3d11_device->CreateSamplerState(&state_info, d3d11_sampler_state_linear.put());
 			HRCheckCallReturnBool("ID3D11Device::CreateSamplerState");
 
 			state_info.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-			HRGet = d3d11_device->CreateSamplerState(&state_info, &d3d11_sampler_state_point);
+			HRGet = d3d11_device->CreateSamplerState(&state_info, d3d11_sampler_state_point.put());
 			HRCheckCallReturnBool("ID3D11Device::CreateSamplerState");
 		}
 
 		/* pixel shader */ {
-			HRGet = d3d11_device->CreatePixelShader(pixel_shader, sizeof(pixel_shader), NULL, &d3d11_pixel_shader);
+			HRGet = d3d11_device->CreatePixelShader(pixel_shader, sizeof(pixel_shader), NULL, d3d11_pixel_shader.put());
 			HRCheckCallReturnBool("ID3D11Device::CreatePixelShader");
 		}
 
@@ -160,7 +160,7 @@ namespace core::Graphics::Direct3D11
 				.FrontFace = state_op_info,
 				.BackFace = state_op_info,
 			};
-			HRGet = d3d11_device->CreateDepthStencilState(&state_info, &d3d11_depth_stencil_state);
+			HRGet = d3d11_device->CreateDepthStencilState(&state_info, d3d11_depth_stencil_state.put());
 			HRCheckCallReturnBool("ID3D11Device::CreateDepthStencilState");
 		}
 
@@ -189,7 +189,7 @@ namespace core::Graphics::Direct3D11
 					blend_state_info,
 				},
 			};
-			HRGet = d3d11_device->CreateBlendState(&state_info, &d3d11_blend_state);
+			HRGet = d3d11_device->CreateBlendState(&state_info, d3d11_blend_state.put());
 			HRCheckCallReturnBool("ID3D11Device::CreateBlendState");
 		}
 
@@ -197,27 +197,27 @@ namespace core::Graphics::Direct3D11
 	}
 	void LetterBoxingRenderer::DestroyResource()
 	{
-		d3d11_input_layout.Reset();
-		d3d11_vertex_buffer.Reset();
-		d3d11_index_buffer.Reset();
-		d3d11_constant_buffer.Reset();
-		d3d11_vertex_shader.Reset();
-		d3d11_rasterizer_state.Reset();
-		d3d11_sampler_state_linear.Reset();
-		d3d11_sampler_state_point.Reset();
-		d3d11_pixel_shader.Reset();
-		d3d11_depth_stencil_state.Reset();
-		d3d11_blend_state.Reset();
+		d3d11_input_layout.reset();
+		d3d11_vertex_buffer.reset();
+		d3d11_index_buffer.reset();
+		d3d11_constant_buffer.reset();
+		d3d11_vertex_shader.reset();
+		d3d11_rasterizer_state.reset();
+		d3d11_sampler_state_linear.reset();
+		d3d11_sampler_state_point.reset();
+		d3d11_pixel_shader.reset();
+		d3d11_depth_stencil_state.reset();
+		d3d11_blend_state.reset();
 	}
 
 	inline bool GetTexture2DInfoFromView(ID3D11View* view, D3D11_TEXTURE2D_DESC& info)
 	{
 		assert(view);
 		HRNew;
-		Microsoft::WRL::ComPtr<ID3D11Resource> resource;
-		view->GetResource(resource.ReleaseAndGetAddressOf());
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
-		HRGet = resource.As(&texture);
+		win32::com_ptr<ID3D11Resource> resource;
+		view->GetResource(resource.put());
+		win32::com_ptr<ID3D11Texture2D> texture;
+		HRGet = resource->QueryInterface(texture.put());
 		HRCheckCallReturnBool("ID3D11Resource::QueryInterface -> ID3D11Texture2D");
 		texture->GetDesc(&info);
 		return true;
@@ -227,14 +227,14 @@ namespace core::Graphics::Direct3D11
 	{
 		assert(device);
 		d3d11_device = device;
-		d3d11_device->GetImmediateContext(&d3d11_device_context);
+		d3d11_device->GetImmediateContext(d3d11_device_context.put());
 		return CreateResource();
 	}
 	void LetterBoxingRenderer::DetachDevice()
 	{
 		DestroyResource();
-		d3d11_device.Reset();
-		d3d11_device_context.Reset();
+		d3d11_device.reset();
+		d3d11_device_context.reset();
 	}
 	bool LetterBoxingRenderer::UpdateTransform(ID3D11ShaderResourceView* srv, ID3D11RenderTargetView* rtv, bool stretch)
 	{
@@ -294,10 +294,10 @@ namespace core::Graphics::Direct3D11
 		}
 		
 		D3D11_MAPPED_SUBRESOURCE vertex_data_range = {};
-		HRGet = d3d11_device_context->Map(d3d11_vertex_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &vertex_data_range);
+		HRGet = d3d11_device_context->Map(d3d11_vertex_buffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &vertex_data_range);
 		HRCheckCallReturnBool("ID3D11DeviceContext::Map");
 		memcpy(vertex_data_range.pData, vertex_buffer, sizeof(vertex_buffer));
-		d3d11_device_context->Unmap(d3d11_vertex_buffer.Get(), 0);
+		d3d11_device_context->Unmap(d3d11_vertex_buffer.get(), 0);
 
 		// constant buffer
 
@@ -311,10 +311,10 @@ namespace core::Graphics::Direct3D11
 		);
 
 		D3D11_MAPPED_SUBRESOURCE constant_data_range = {};
-		HRGet = d3d11_device_context->Map(d3d11_constant_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &constant_data_range);
+		HRGet = d3d11_device_context->Map(d3d11_constant_buffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &constant_data_range);
 		HRCheckCallReturnBool("ID3D11DeviceContext::Map");
 		memcpy(constant_data_range.pData, &transform_buffer, sizeof(transform_buffer));
-		d3d11_device_context->Unmap(d3d11_constant_buffer.Get(), 0);
+		d3d11_device_context->Unmap(d3d11_constant_buffer.get(), 0);
 
 		// state
 
@@ -348,15 +348,15 @@ namespace core::Graphics::Direct3D11
 				FLOAT const clear_color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 				d3d11_device_context->ClearRenderTargetView(rtv, clear_color);
 			}
-			Microsoft::WRL::ComPtr<ID3D11Resource> srv_res;
-			Microsoft::WRL::ComPtr<ID3D11Resource> rtv_res;
-			srv->GetResource(&srv_res);
-			rtv->GetResource(&rtv_res);
+			win32::com_ptr<ID3D11Resource> srv_res;
+			win32::com_ptr<ID3D11Resource> rtv_res;
+			srv->GetResource(srv_res.put());
+			rtv->GetResource(rtv_res.put());
 			UINT const dx = (rtv_res_tex_info.Width - srv_res_tex_info.Width) / 2;
 			UINT const dy = (rtv_res_tex_info.Height - srv_res_tex_info.Height) / 2;
 			d3d11_device_context->CopySubresourceRegion(
-				rtv_res.Get(), 0, dx, dy, 0,
-				srv_res.Get(), 0, NULL);
+				rtv_res.get(), 0, dx, dy, 0,
+				srv_res.get(), 0, NULL);
 			return true;
 		}
 
@@ -366,24 +366,24 @@ namespace core::Graphics::Direct3D11
 
 		d3d11_device_context->ClearState();
 
-		d3d11_device_context->IASetInputLayout(d3d11_input_layout.Get());
+		d3d11_device_context->IASetInputLayout(d3d11_input_layout.get());
 		d3d11_device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		ID3D11Buffer* vertex_buffer_list[1] = { d3d11_vertex_buffer.Get() };
+		ID3D11Buffer* vertex_buffer_list[1] = { d3d11_vertex_buffer.get() };
 		UINT stride_list[1] = { (UINT)sizeof(Vertex) };
 		UINT offset_list[1] = { 0 };
 		d3d11_device_context->IASetVertexBuffers(0, 1, vertex_buffer_list, stride_list, offset_list);
-		d3d11_device_context->IASetIndexBuffer(d3d11_index_buffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+		d3d11_device_context->IASetIndexBuffer(d3d11_index_buffer.get(), DXGI_FORMAT_R16_UINT, 0);
 
 		assert(d3d11_constant_buffer);
 		assert(d3d11_vertex_shader);
 
-		ID3D11Buffer* constant_buffer_list[1] = { d3d11_constant_buffer.Get() };
+		ID3D11Buffer* constant_buffer_list[1] = { d3d11_constant_buffer.get() };
 		d3d11_device_context->VSSetConstantBuffers(0, 1, constant_buffer_list);
-		d3d11_device_context->VSSetShader(d3d11_vertex_shader.Get(), NULL, 0);
+		d3d11_device_context->VSSetShader(d3d11_vertex_shader.get(), NULL, 0);
 
 		assert(d3d11_rasterizer_state);
 
-		d3d11_device_context->RSSetState(d3d11_rasterizer_state.Get());
+		d3d11_device_context->RSSetState(d3d11_rasterizer_state.get());
 		d3d11_device_context->RSSetViewports(1, &d3d11_viewport);
 		d3d11_device_context->RSSetScissorRects(1, &d3d11_scissor_rect);
 
@@ -392,19 +392,19 @@ namespace core::Graphics::Direct3D11
 		assert(srv);
 		assert(d3d11_pixel_shader);
 
-		ID3D11SamplerState* sampler_state_list[1] = { d3d11_sampler_state_linear.Get() };
+		ID3D11SamplerState* sampler_state_list[1] = { d3d11_sampler_state_linear.get() };
 		d3d11_device_context->PSSetSamplers(0, 1, sampler_state_list);
 		ID3D11ShaderResourceView* shader_resource_view_list[1] = { srv };
 		d3d11_device_context->PSSetShaderResources(0, 1, shader_resource_view_list);
-		d3d11_device_context->PSSetShader(d3d11_pixel_shader.Get(), NULL, 0);
+		d3d11_device_context->PSSetShader(d3d11_pixel_shader.get(), NULL, 0);
 
 		assert(d3d11_depth_stencil_state);
 		assert(d3d11_blend_state);
 		assert(rtv);
 
-		d3d11_device_context->OMSetDepthStencilState(d3d11_depth_stencil_state.Get(), D3D11_DEFAULT_STENCIL_REFERENCE);
+		d3d11_device_context->OMSetDepthStencilState(d3d11_depth_stencil_state.get(), D3D11_DEFAULT_STENCIL_REFERENCE);
 		FLOAT const blend_factor[4]{};
-		d3d11_device_context->OMSetBlendState(d3d11_blend_state.Get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
+		d3d11_device_context->OMSetBlendState(d3d11_blend_state.get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
 		ID3D11RenderTargetView* render_target_view_list[1] = { rtv };
 		d3d11_device_context->OMSetRenderTargets(1, render_target_view_list, NULL);
 

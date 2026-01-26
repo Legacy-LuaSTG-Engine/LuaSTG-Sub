@@ -10,7 +10,7 @@ namespace core::Graphics::Direct3D11 {
 		}
 	}
 	void SamplerState::onDeviceDestroy() {
-		m_sampler.Reset();
+		m_sampler.reset();
 	}
 
 	SamplerState::SamplerState() = default;
@@ -103,12 +103,12 @@ namespace core::Graphics::Direct3D11 {
 
 	#undef makeColor
 
-		hr = gHR = m_device->GetD3D11Device()->CreateSamplerState(&desc, &m_sampler);
+		hr = gHR = m_device->GetD3D11Device()->CreateSamplerState(&desc, m_sampler.put());
 		if (FAILED(hr)) {
 			i18n_core_system_call_report_error("ID3D11Device::CreateSamplerState");
 			return false;
 		}
-		M_D3D_SET_DEBUG_NAME(m_sampler.Get(), "SamplerState_D3D11::d3d11_sampler");
+		M_D3D_SET_DEBUG_NAME(m_sampler.get(), "SamplerState_D3D11::d3d11_sampler");
 
 		return true;
 	}

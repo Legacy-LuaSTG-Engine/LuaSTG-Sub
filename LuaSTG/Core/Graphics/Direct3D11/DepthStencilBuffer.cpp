@@ -10,13 +10,13 @@ namespace core::Graphics::Direct3D11 {
 		}
 	}
 	void DepthStencilBuffer::onDeviceDestroy() {
-		m_texture.Reset();
-		m_view.Reset();
+		m_texture.reset();
+		m_view.reset();
 	}
 
 	bool DepthStencilBuffer::setSize(Vector2U const size) {
-		m_texture.Reset();
-		m_view.Reset();
+		m_texture.reset();
+		m_view.reset();
 		m_size = size;
 		return createResource();
 	}
@@ -60,24 +60,24 @@ namespace core::Graphics::Direct3D11 {
 			.CPUAccessFlags = 0,
 			.MiscFlags = 0,
 		};
-		hr = gHR = d3d11_device->CreateTexture2D(&tex2ddef, nullptr, &m_texture);
+		hr = gHR = d3d11_device->CreateTexture2D(&tex2ddef, nullptr, m_texture.put());
 		if (FAILED(hr)) {
 			i18n_core_system_call_report_error("ID3D11Device::CreateTexture2D");
 			return false;
 		}
-		M_D3D_SET_DEBUG_NAME(m_texture.Get(), "DepthStencilBuffer_D3D11::d3d11_texture2d");
+		M_D3D_SET_DEBUG_NAME(m_texture.get(), "DepthStencilBuffer_D3D11::d3d11_texture2d");
 
 		D3D11_DEPTH_STENCIL_VIEW_DESC dsvdef = {
 			.Format = tex2ddef.Format,
 			.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D,
 			.Texture2D = D3D11_TEX2D_DSV{.MipSlice = 0,},
 		};
-		hr = gHR = d3d11_device->CreateDepthStencilView(m_texture.Get(), &dsvdef, &m_view);
+		hr = gHR = d3d11_device->CreateDepthStencilView(m_texture.get(), &dsvdef, m_view.put());
 		if (FAILED(hr)) {
 			i18n_core_system_call_report_error("ID3D11Device::CreateDepthStencilView");
 			return false;
 		}
-		M_D3D_SET_DEBUG_NAME(m_view.Get(), "DepthStencilBuffer_D3D11::d3d11_dsv");
+		M_D3D_SET_DEBUG_NAME(m_view.get(), "DepthStencilBuffer_D3D11::d3d11_dsv");
 
 		return true;
 	}

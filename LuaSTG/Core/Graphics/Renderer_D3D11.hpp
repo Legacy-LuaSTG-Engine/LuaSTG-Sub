@@ -55,8 +55,8 @@ namespace core::Graphics
 
 	struct VertexIndexBuffer
 	{
-		Microsoft::WRL::ComPtr<ID3D11Buffer> vertex_buffer;
-		Microsoft::WRL::ComPtr<ID3D11Buffer> index_buffer;
+		win32::com_ptr<ID3D11Buffer> vertex_buffer;
+		win32::com_ptr<ID3D11Buffer> index_buffer;
 		INT vertex_offset = 0;
 		UINT index_offset = 0;
 	};
@@ -104,7 +104,7 @@ namespace core::Graphics
 		{
 			UINT index{};
 			std::vector<uint8_t> buffer;
-			Microsoft::WRL::ComPtr<ID3D11Buffer> d3d11_buffer;
+			win32::com_ptr<ID3D11Buffer> d3d11_buffer;
 			std::unordered_map<std::string, LocalVariable> variable;
 		};
 		struct LocalTexture2D
@@ -114,9 +114,9 @@ namespace core::Graphics
 		};
 	private:
 		SmartReference<Direct3D11::Device> m_device;
-		Microsoft::WRL::ComPtr<ID3DBlob> d3d_ps_blob;
-		Microsoft::WRL::ComPtr<ID3D11ShaderReflection> d3d11_ps_reflect;
-		Microsoft::WRL::ComPtr<ID3D11PixelShader> d3d11_ps;
+		win32::com_ptr<ID3DBlob> d3d_ps_blob;
+		win32::com_ptr<ID3D11ShaderReflection> d3d11_ps_reflect;
+		win32::com_ptr<ID3D11PixelShader> d3d11_ps;
 		std::unordered_map<std::string, LocalConstantBuffer> m_buffer_map;
 		std::unordered_map<std::string, LocalTexture2D> m_texture2d_map;
 		std::string source;
@@ -128,7 +128,7 @@ namespace core::Graphics
 		bool findVariable(StringView name, LocalConstantBuffer*& buf, LocalVariable*& val);
 
 	public:
-		ID3D11PixelShader* GetPS() const noexcept { return d3d11_ps.Get(); }
+		ID3D11PixelShader* GetPS() const noexcept { return d3d11_ps.get(); }
 
 	public:
 		bool setFloat(StringView name, float value);
@@ -151,8 +151,8 @@ namespace core::Graphics
 		SmartReference<Direct3D11::Device> m_device;
 		SmartReference<ModelSharedComponent_D3D11> m_model_shared;
 
-		Microsoft::WRL::ComPtr<ID3D11Buffer> _fx_vbuffer;
-		Microsoft::WRL::ComPtr<ID3D11Buffer> _fx_ibuffer;
+		win32::com_ptr<ID3D11Buffer> _fx_vbuffer;
+		win32::com_ptr<ID3D11Buffer> _fx_ibuffer;
 		VertexIndexBuffer _vi_buffer[1];
 		size_t _vi_buffer_index = 0;
 		const size_t _vi_buffer_count = 1;
@@ -162,19 +162,19 @@ namespace core::Graphics
 		bool uploadVertexIndexBuffer(bool discard);
 		void clearDrawList();
 
-		Microsoft::WRL::ComPtr<ID3D11Buffer> _vp_matrix_buffer;
-		Microsoft::WRL::ComPtr<ID3D11Buffer> _world_matrix_buffer;
-		Microsoft::WRL::ComPtr<ID3D11Buffer> _camera_pos_buffer; // 在 postEffect 的时候被替换了
-		Microsoft::WRL::ComPtr<ID3D11Buffer> _fog_data_buffer; // 同时也用于储存 postEffect 的 纹理大小和视口范围
-		Microsoft::WRL::ComPtr<ID3D11Buffer> _user_float_buffer; // 在 postEffect 的时候用这个
+		win32::com_ptr<ID3D11Buffer> _vp_matrix_buffer;
+		win32::com_ptr<ID3D11Buffer> _world_matrix_buffer;
+		win32::com_ptr<ID3D11Buffer> _camera_pos_buffer; // 在 postEffect 的时候被替换了
+		win32::com_ptr<ID3D11Buffer> _fog_data_buffer; // 同时也用于储存 postEffect 的 纹理大小和视口范围
+		win32::com_ptr<ID3D11Buffer> _user_float_buffer; // 在 postEffect 的时候用这个
 
-		Microsoft::WRL::ComPtr<ID3D11InputLayout> _input_layout;
-		Microsoft::WRL::ComPtr<ID3D11VertexShader> _vertex_shader[IDX(FogState::MAX_COUNT)]; // FogState
-		Microsoft::WRL::ComPtr<ID3D11PixelShader> _pixel_shader[IDX(VertexColorBlendState::MAX_COUNT)][IDX(FogState::MAX_COUNT)][IDX(TextureAlphaType::MAX_COUNT)]; // VertexColorBlendState, FogState, TextureAlphaType
-		Microsoft::WRL::ComPtr<ID3D11RasterizerState> _raster_state;
+		win32::com_ptr<ID3D11InputLayout> _input_layout;
+		win32::com_ptr<ID3D11VertexShader> _vertex_shader[IDX(FogState::MAX_COUNT)]; // FogState
+		win32::com_ptr<ID3D11PixelShader> _pixel_shader[IDX(VertexColorBlendState::MAX_COUNT)][IDX(FogState::MAX_COUNT)][IDX(TextureAlphaType::MAX_COUNT)]; // VertexColorBlendState, FogState, TextureAlphaType
+		win32::com_ptr<ID3D11RasterizerState> _raster_state;
 		SmartReference<ISamplerState> _sampler_state[IDX(SamplerState::MAX_COUNT)];
-		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> _depth_state[IDX(DepthState::MAX_COUNT)];
-		Microsoft::WRL::ComPtr<ID3D11BlendState> _blend_state[IDX(BlendState::MAX_COUNT)];
+		win32::com_ptr<ID3D11DepthStencilState> _depth_state[IDX(DepthState::MAX_COUNT)];
+		win32::com_ptr<ID3D11BlendState> _blend_state[IDX(BlendState::MAX_COUNT)];
 		
 		SmartReference<Direct3D11::Texture2D> _state_texture;
 		CameraStateSet _camera_state_set;

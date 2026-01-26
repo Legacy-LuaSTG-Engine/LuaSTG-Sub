@@ -18,7 +18,7 @@ namespace core::Graphics::Direct3D11 {
 
 		// ITexture2D
 
-		[[nodiscard]] void* getNativeHandle() const noexcept override { return m_view.Get(); }
+		[[nodiscard]] void* getNativeHandle() const noexcept override { return m_view.get(); }
 
 		[[nodiscard]] bool isDynamic() const noexcept override { return m_dynamic; }
 		[[nodiscard]] bool isPremultipliedAlpha() const noexcept override { return m_pre_mul_alpha; }
@@ -43,8 +43,8 @@ namespace core::Graphics::Direct3D11 {
 		Texture2D& operator=(Texture2D&&) = delete;
 		~Texture2D();
 
-		[[nodiscard]] ID3D11Texture2D* GetResource() const noexcept { return m_texture.Get(); }
-		[[nodiscard]] ID3D11ShaderResourceView* GetView() const noexcept { return m_view.Get(); }
+		[[nodiscard]] ID3D11Texture2D* GetResource() const noexcept { return m_texture.get(); }
+		[[nodiscard]] ID3D11ShaderResourceView* GetView() const noexcept { return m_view.get(); }
 
 		bool initialize(Device* device, StringView path, bool mipmap);
 		bool initialize(Device* device, IImage* image, bool mipmap);
@@ -56,8 +56,8 @@ namespace core::Graphics::Direct3D11 {
 		SmartReference<ISamplerState> m_sampler;
 		SmartReference<IImage> m_image;
 		std::string m_source_path;
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> m_texture;
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_view;
+		win32::com_ptr<ID3D11Texture2D> m_texture;
+		win32::com_ptr<ID3D11ShaderResourceView> m_view;
 		Vector2U m_size{};
 		bool m_dynamic{ false };
 		bool m_pre_mul_alpha{ false };

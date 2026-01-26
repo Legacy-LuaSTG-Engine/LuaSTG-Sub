@@ -18,7 +18,7 @@ namespace core::Graphics::Direct3D11 {
 
 		// IDepthStencilBuffer
 
-		[[nodiscard]] void* getNativeHandle() const noexcept override { return m_view.Get(); }
+		[[nodiscard]] void* getNativeHandle() const noexcept override { return m_view.get(); }
 		bool setSize(Vector2U size) override;
 		[[nodiscard]] Vector2U getSize() const noexcept override { return m_size; }
 
@@ -31,16 +31,16 @@ namespace core::Graphics::Direct3D11 {
 		DepthStencilBuffer& operator=(DepthStencilBuffer&&) = delete;
 		~DepthStencilBuffer();
 
-		[[nodiscard]] ID3D11Texture2D* GetResource() const noexcept { return m_texture.Get(); }
-		[[nodiscard]] ID3D11DepthStencilView* GetView() const noexcept { return m_view.Get(); }
+		[[nodiscard]] ID3D11Texture2D* GetResource() const noexcept { return m_texture.get(); }
+		[[nodiscard]] ID3D11DepthStencilView* GetView() const noexcept { return m_view.get(); }
 
 		bool initialize(Device* device, Vector2U size);
 		bool createResource();
 
 	private:
 		SmartReference<Device> m_device;
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> m_texture;
-		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_view;
+		win32::com_ptr<ID3D11Texture2D> m_texture;
+		win32::com_ptr<ID3D11DepthStencilView> m_view;
 		Vector2U m_size{};
 		bool m_initialized{ false };
 	};

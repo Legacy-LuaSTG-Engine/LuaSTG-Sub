@@ -17,45 +17,45 @@ namespace core::Graphics
     private:
         SmartReference<Direct3D11::Device> m_device;
 
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> default_image;
-        Microsoft::WRL::ComPtr<ID3D11SamplerState> default_sampler;
+        win32::com_ptr<ID3D11ShaderResourceView> default_image;
+        win32::com_ptr<ID3D11SamplerState> default_sampler;
 
-        Microsoft::WRL::ComPtr<ID3D11InputLayout> input_layout;
-        Microsoft::WRL::ComPtr<ID3D11InputLayout> input_layout_vc;
-        Microsoft::WRL::ComPtr<ID3D11VertexShader> shader_vertex;
-        Microsoft::WRL::ComPtr<ID3D11VertexShader> shader_vertex_vc;
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel[IDX(IRenderer::FogState::MAX_COUNT)];
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_alpha[IDX(IRenderer::FogState::MAX_COUNT)];
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_inv_alpha[IDX(IRenderer::FogState::MAX_COUNT)];
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_nt[IDX(IRenderer::FogState::MAX_COUNT)];
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_alpha_nt[IDX(IRenderer::FogState::MAX_COUNT)];
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_inv_alpha_nt[IDX(IRenderer::FogState::MAX_COUNT)];
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_vc[IDX(IRenderer::FogState::MAX_COUNT)];
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_alpha_vc[IDX(IRenderer::FogState::MAX_COUNT)];
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_inv_alpha_vc[IDX(IRenderer::FogState::MAX_COUNT)];
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_nt_vc[IDX(IRenderer::FogState::MAX_COUNT)];
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_alpha_nt_vc[IDX(IRenderer::FogState::MAX_COUNT)];
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_inv_alpha_nt_vc[IDX(IRenderer::FogState::MAX_COUNT)];
+        win32::com_ptr<ID3D11InputLayout> input_layout;
+        win32::com_ptr<ID3D11InputLayout> input_layout_vc;
+        win32::com_ptr<ID3D11VertexShader> shader_vertex;
+        win32::com_ptr<ID3D11VertexShader> shader_vertex_vc;
+        win32::com_ptr<ID3D11PixelShader> shader_pixel[IDX(IRenderer::FogState::MAX_COUNT)];
+        win32::com_ptr<ID3D11PixelShader> shader_pixel_alpha[IDX(IRenderer::FogState::MAX_COUNT)];
+        win32::com_ptr<ID3D11PixelShader> shader_pixel_inv_alpha[IDX(IRenderer::FogState::MAX_COUNT)];
+        win32::com_ptr<ID3D11PixelShader> shader_pixel_nt[IDX(IRenderer::FogState::MAX_COUNT)];
+        win32::com_ptr<ID3D11PixelShader> shader_pixel_alpha_nt[IDX(IRenderer::FogState::MAX_COUNT)];
+        win32::com_ptr<ID3D11PixelShader> shader_pixel_inv_alpha_nt[IDX(IRenderer::FogState::MAX_COUNT)];
+        win32::com_ptr<ID3D11PixelShader> shader_pixel_vc[IDX(IRenderer::FogState::MAX_COUNT)];
+        win32::com_ptr<ID3D11PixelShader> shader_pixel_alpha_vc[IDX(IRenderer::FogState::MAX_COUNT)];
+        win32::com_ptr<ID3D11PixelShader> shader_pixel_inv_alpha_vc[IDX(IRenderer::FogState::MAX_COUNT)];
+        win32::com_ptr<ID3D11PixelShader> shader_pixel_nt_vc[IDX(IRenderer::FogState::MAX_COUNT)];
+        win32::com_ptr<ID3D11PixelShader> shader_pixel_alpha_nt_vc[IDX(IRenderer::FogState::MAX_COUNT)];
+        win32::com_ptr<ID3D11PixelShader> shader_pixel_inv_alpha_nt_vc[IDX(IRenderer::FogState::MAX_COUNT)];
 
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_sd[IDX(IRenderer::FogState::MAX_COUNT)];
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_sd_nt[IDX(IRenderer::FogState::MAX_COUNT)];
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_sd_vc[IDX(IRenderer::FogState::MAX_COUNT)];
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> shader_pixel_sd_nt_vc[IDX(IRenderer::FogState::MAX_COUNT)];
+        win32::com_ptr<ID3D11PixelShader> shader_pixel_sd[IDX(IRenderer::FogState::MAX_COUNT)];
+        win32::com_ptr<ID3D11PixelShader> shader_pixel_sd_nt[IDX(IRenderer::FogState::MAX_COUNT)];
+        win32::com_ptr<ID3D11PixelShader> shader_pixel_sd_vc[IDX(IRenderer::FogState::MAX_COUNT)];
+        win32::com_ptr<ID3D11PixelShader> shader_pixel_sd_nt_vc[IDX(IRenderer::FogState::MAX_COUNT)];
 
-        Microsoft::WRL::ComPtr<ID3D11RasterizerState> state_rs_cull_none;
-        Microsoft::WRL::ComPtr<ID3D11RasterizerState> state_rs_cull_back;
-        Microsoft::WRL::ComPtr<ID3D11DepthStencilState> state_ds_disable;
-        Microsoft::WRL::ComPtr<ID3D11DepthStencilState> state_ds;
-        Microsoft::WRL::ComPtr<ID3D11DepthStencilState> state_ds_no_write;
-        Microsoft::WRL::ComPtr<ID3D11DepthStencilState> state_ds_dl;
-        Microsoft::WRL::ComPtr<ID3D11BlendState> state_blend;
-        Microsoft::WRL::ComPtr<ID3D11BlendState> state_blend_alpha;
+        win32::com_ptr<ID3D11RasterizerState> state_rs_cull_none;
+        win32::com_ptr<ID3D11RasterizerState> state_rs_cull_back;
+        win32::com_ptr<ID3D11DepthStencilState> state_ds_disable;
+        win32::com_ptr<ID3D11DepthStencilState> state_ds;
+        win32::com_ptr<ID3D11DepthStencilState> state_ds_no_write;
+        win32::com_ptr<ID3D11DepthStencilState> state_ds_dl;
+        win32::com_ptr<ID3D11BlendState> state_blend;
+        win32::com_ptr<ID3D11BlendState> state_blend_alpha;
 
-        Microsoft::WRL::ComPtr<ID3D11Buffer> cbo_mvp;
-        Microsoft::WRL::ComPtr<ID3D11Buffer> cbo_mlw;
-        Microsoft::WRL::ComPtr<ID3D11Buffer> cbo_caminfo;
-        Microsoft::WRL::ComPtr<ID3D11Buffer> cbo_alpha;
-        Microsoft::WRL::ComPtr<ID3D11Buffer> cbo_light;
+        win32::com_ptr<ID3D11Buffer> cbo_mvp;
+        win32::com_ptr<ID3D11Buffer> cbo_mlw;
+        win32::com_ptr<ID3D11Buffer> cbo_caminfo;
+        win32::com_ptr<ID3D11Buffer> cbo_alpha;
+        win32::com_ptr<ID3D11Buffer> cbo_light;
 
     private:
         bool createImage();
@@ -89,13 +89,13 @@ namespace core::Graphics
 
         struct ModelBlock
         {
-            Microsoft::WRL::ComPtr<ID3D11Buffer> vertex_buffer;
-            Microsoft::WRL::ComPtr<ID3D11Buffer> uv_buffer;
-            Microsoft::WRL::ComPtr<ID3D11Buffer> normal_buffer;
-            Microsoft::WRL::ComPtr<ID3D11Buffer> color_buffer;
-            Microsoft::WRL::ComPtr<ID3D11Buffer> index_buffer;
-            Microsoft::WRL::ComPtr<ID3D11SamplerState> sampler;
-            Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> image;
+            win32::com_ptr<ID3D11Buffer> vertex_buffer;
+            win32::com_ptr<ID3D11Buffer> uv_buffer;
+            win32::com_ptr<ID3D11Buffer> normal_buffer;
+            win32::com_ptr<ID3D11Buffer> color_buffer;
+            win32::com_ptr<ID3D11Buffer> index_buffer;
+            win32::com_ptr<ID3D11SamplerState> sampler;
+            win32::com_ptr<ID3D11ShaderResourceView> image;
             DirectX::XMFLOAT4X4 local_matrix;
             DirectX::XMFLOAT4X4 local_matrix_normal; // notice: pair with local_matrix
             DirectX::XMFLOAT4 base_color;
@@ -152,8 +152,8 @@ namespace core::Graphics
             }
         };
 
-        std::vector<Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> image;
-        std::vector<Microsoft::WRL::ComPtr<ID3D11SamplerState>> sampler;
+        std::vector<win32::com_ptr<ID3D11ShaderResourceView>> image;
+        std::vector<win32::com_ptr<ID3D11SamplerState>> sampler;
 
         std::vector<ModelBlock> model_block;
 

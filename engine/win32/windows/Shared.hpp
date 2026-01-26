@@ -56,7 +56,6 @@ IsWindows11OrGreater()
 
 namespace Microsoft::WRL::Wrappers
 {
-	using ThreadHandle = HandleT<HandleTraits::HANDLENullTraits>;
 	using SemaphoreHandle = HandleT<HandleTraits::HANDLENullTraits>;
 }
 

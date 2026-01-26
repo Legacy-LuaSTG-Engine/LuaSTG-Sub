@@ -14,8 +14,8 @@ namespace core::Graphics::Direct3D11 {
 		// DXGI
 
 		Platform::RuntimeLoader::DXGI dxgi_loader;
-		Microsoft::WRL::ComPtr<IDXGIFactory2> dxgi_factory;
-		Microsoft::WRL::ComPtr<IDXGIAdapter1> dxgi_adapter;
+		win32::com_ptr<IDXGIFactory2> dxgi_factory;
+		win32::com_ptr<IDXGIAdapter1> dxgi_adapter;
 
 		std::string preferred_adapter_name;
 
@@ -31,29 +31,29 @@ namespace core::Graphics::Direct3D11 {
 		// Direct3D 11
 
 		Platform::RuntimeLoader::Direct3D11 d3d11_loader;
-		Microsoft::WRL::ComPtr<ID3D11Device> d3d11_device;
-		Microsoft::WRL::ComPtr<ID3D11Device1> d3d11_device1;
-		Microsoft::WRL::ComPtr<ID3D11DeviceContext> d3d11_devctx;
-		Microsoft::WRL::ComPtr<ID3D11DeviceContext1> d3d11_devctx1;
+		win32::com_ptr<ID3D11Device> d3d11_device;
+		win32::com_ptr<ID3D11Device1> d3d11_device1;
+		win32::com_ptr<ID3D11DeviceContext> d3d11_devctx;
+		win32::com_ptr<ID3D11DeviceContext1> d3d11_devctx1;
 
 		// Window Image Component
 
-		Microsoft::WRL::ComPtr<IWICImagingFactory> wic_factory;
-		Microsoft::WRL::ComPtr<IWICImagingFactory2> wic_factory2;
+		win32::com_ptr<IWICImagingFactory> wic_factory;
+		win32::com_ptr<IWICImagingFactory2> wic_factory2;
 
 		// Direct2D 1
 
 #ifdef LUASTG_ENABLE_DIRECT2D
 		Platform::RuntimeLoader::Direct2D1 d2d1_loader;
-		Microsoft::WRL::ComPtr<ID2D1Factory1> d2d1_factory;
-		Microsoft::WRL::ComPtr<ID2D1Device> d2d1_device;
-		Microsoft::WRL::ComPtr<ID2D1DeviceContext> d2d1_devctx;
+		win32::com_ptr<ID2D1Factory1> d2d1_factory;
+		win32::com_ptr<ID2D1Device> d2d1_device;
+		win32::com_ptr<ID2D1DeviceContext> d2d1_devctx;
 #endif
 
 		// DirectWrite
 
 		Platform::RuntimeLoader::DirectWrite dwrite_loader;
-		Microsoft::WRL::ComPtr<IDWriteFactory> dwrite_factory;
+		win32::com_ptr<IDWriteFactory> dwrite_factory;
 
 		// Debug
 
@@ -62,25 +62,25 @@ namespace core::Graphics::Direct3D11 {
 	public:
 		// Get API
 
-		inline IDXGIFactory2* GetDXGIFactory2() const noexcept { return dxgi_factory.Get(); }
-		inline IDXGIAdapter1* GetDXGIAdapter1() const noexcept { return dxgi_adapter.Get(); }
+		inline IDXGIFactory2* GetDXGIFactory2() const noexcept { return dxgi_factory.get(); }
+		inline IDXGIAdapter1* GetDXGIAdapter1() const noexcept { return dxgi_adapter.get(); }
 
 		inline std::string_view GetAdapterName() const noexcept { return dxgi_adapter_name; }
 		inline std::vector<std::string>& GetAdapterNameArray() { return dxgi_adapter_name_list; }
 
 		inline D3D_FEATURE_LEVEL GetD3DFeatureLevel() const noexcept { return d3d_feature_level; }
 
-		inline ID3D11Device* GetD3D11Device() const noexcept { return d3d11_device.Get(); }
-		inline ID3D11Device1* GetD3D11Device1() const noexcept { return d3d11_device1.Get(); }
-		inline ID3D11DeviceContext* GetD3D11DeviceContext() const noexcept { return d3d11_devctx.Get(); }
-		inline ID3D11DeviceContext1* GetD3D11DeviceContext1() const noexcept { return d3d11_devctx1.Get(); }
+		inline ID3D11Device* GetD3D11Device() const noexcept { return d3d11_device.get(); }
+		inline ID3D11Device1* GetD3D11Device1() const noexcept { return d3d11_device1.get(); }
+		inline ID3D11DeviceContext* GetD3D11DeviceContext() const noexcept { return d3d11_devctx.get(); }
+		inline ID3D11DeviceContext1* GetD3D11DeviceContext1() const noexcept { return d3d11_devctx1.get(); }
 
 #ifdef LUASTG_ENABLE_DIRECT2D
-		inline ID2D1Device* GetD2D1Device() const noexcept { return d2d1_device.Get(); }
-		inline ID2D1DeviceContext* GetD2D1DeviceContext() const noexcept { return d2d1_devctx.Get(); }
+		inline ID2D1Device* GetD2D1Device() const noexcept { return d2d1_device.get(); }
+		inline ID2D1DeviceContext* GetD2D1DeviceContext() const noexcept { return d2d1_devctx.get(); }
 #endif
 
-		inline IWICImagingFactory* GetWICImagingFactory() const noexcept { return wic_factory.Get(); }
+		inline IWICImagingFactory* GetWICImagingFactory() const noexcept { return wic_factory.get(); }
 
 		inline BOOL IsTearingSupport() const noexcept { return dxgi_support_tearing; }
 
@@ -132,9 +132,9 @@ namespace core::Graphics::Direct3D11 {
 		StringView getGpuName(uint32_t index) { return dxgi_adapter_name_list[index]; }
 		StringView getCurrentGpuName() const noexcept { return dxgi_adapter_name; }
 
-		void* getNativeHandle() { return d3d11_device.Get(); }
+		void* getNativeHandle() { return d3d11_device.get(); }
 #ifdef LUASTG_ENABLE_DIRECT2D
-		void* getNativeRendererHandle() { return d2d1_devctx.Get(); }
+		void* getNativeRendererHandle() { return d2d1_devctx.get(); }
 #else
 		void* getNativeRendererHandle() { return nullptr; }
 #endif

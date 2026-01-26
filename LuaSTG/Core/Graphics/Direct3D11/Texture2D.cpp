@@ -16,8 +16,8 @@ namespace core::Graphics::Direct3D11 {
 		}
 	}
 	void Texture2D::onDeviceDestroy() {
-		m_texture.Reset();
-		m_view.Reset();
+		m_texture.reset();
+		m_view.reset();
 	}
 
 	bool Texture2D::setSize(Vector2U const size) {
@@ -52,7 +52,7 @@ namespace core::Graphics::Direct3D11 {
 			.bottom = rc.b.y,
 			.back = 1,
 		};
-		ctx->UpdateSubresource(m_texture.Get(), 0, &box, data, pitch, 0);
+		ctx->UpdateSubresource(m_texture.get(), 0, &box, data, pitch, 0);
 		return true;
 	}
 	bool Texture2D::saveToFile(StringView const path) {
@@ -60,7 +60,7 @@ namespace core::Graphics::Direct3D11 {
 		HRESULT hr = S_OK;
 		hr = gHR = DirectX::SaveWICTextureToFile(
 			m_device->GetD3D11DeviceContext(),
-			m_texture.Get(),
+			m_texture.get(),
 			GUID_ContainerFormatJpeg,
 			wide_path.c_str(),
 			&GUID_WICPixelFormat24bppBGR);
@@ -174,12 +174,12 @@ namespace core::Graphics::Direct3D11 {
 				.SysMemSlicePitch = buffer.size,
 			};
 
-			hr = gHR = d3d11_device->CreateTexture2D(&tex2d_desc, &subres_data, &m_texture);
+			hr = gHR = d3d11_device->CreateTexture2D(&tex2d_desc, &subres_data, m_texture.put());
 			if (FAILED(hr)) {
 				i18n_core_system_call_report_error("ID3D11Device::CreateTexture2D");
 				return false;
 			}
-			M_D3D_SET_DEBUG_NAME(m_texture.Get(), "Texture2D_D3D11::d3d11_texture2d");
+			M_D3D_SET_DEBUG_NAME(m_texture.get(), "Texture2D_D3D11::d3d11_texture2d");
 
 			D3D11_SHADER_RESOURCE_VIEW_DESC view_desc = {
 				.Format = tex2d_desc.Format,
@@ -189,12 +189,12 @@ namespace core::Graphics::Direct3D11 {
 					.MipLevels = 1,
 				},
 			};
-			hr = gHR = d3d11_device->CreateShaderResourceView(m_texture.Get(), &view_desc, &m_view);
+			hr = gHR = d3d11_device->CreateShaderResourceView(m_texture.get(), &view_desc, m_view.put());
 			if (FAILED(hr)) {
 				i18n_core_system_call_report_error("ID3D11Device::CreateShaderResourceView");
 				return false;
 			}
-			M_D3D_SET_DEBUG_NAME(m_view.Get(), "Texture2D_D3D11::d3d11_srv");
+			M_D3D_SET_DEBUG_NAME(m_view.get(), "Texture2D_D3D11::d3d11_srv");
 		}
 		else if (!m_source_path.empty()) {
 			SmartReference<IData> src;
@@ -204,7 +204,7 @@ namespace core::Graphics::Direct3D11 {
 			}
 
 			// 加载图片
-			Microsoft::WRL::ComPtr<ID3D11Resource> res;
+			win32::com_ptr<ID3D11Resource> res;
 			// 先尝试以 DDS 格式加载
 			DirectX::DDS_ALPHA_MODE dds_alpha_mode = DirectX::DDS_ALPHA_MODE_UNKNOWN;
 			HRESULT const hr1 = DirectX::CreateDDSTextureFromMemoryEx(
@@ -213,7 +213,7 @@ namespace core::Graphics::Direct3D11 {
 				0,
 				D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0,
 				DirectX::DDS_LOADER_IGNORE_SRGB, // TODO: 这里也同样忽略了 sRGB，看以后渲染管线颜色空间怎么改
-				&res, &m_view,
+				res.put(), m_view.put(),
 				&dds_alpha_mode);
 			if (FAILED(hr1)) {
 				// 尝试以普通图片格式加载
@@ -225,7 +225,7 @@ namespace core::Graphics::Direct3D11 {
 					DirectX::WIC_LOADER_DEFAULT | DirectX::WIC_LOADER_IGNORE_SRGB,
 					// TODO: 渲染管线目前是在 sRGB 下计算的，也就是心理视觉色彩，将错就错吧……
 					//DirectX::WIC_LOADER_DEFAULT | DirectX::WIC_LOADER_SRGB_DEFAULT,
-					&res, &m_view);
+					res.put(), m_view.put());
 				if (FAILED(hr2)) {
 					// 尝试以 QOI 图片格式加载
 					HRESULT const hr3 = DirectX::CreateQOITextureFromMemoryEx(
@@ -236,7 +236,7 @@ namespace core::Graphics::Direct3D11 {
 						DirectX::QOI_LOADER_DEFAULT | DirectX::QOI_LOADER_IGNORE_SRGB,
 						// TODO: 渲染管线目前是在 sRGB 下计算的，也就是心理视觉色彩，将错就错吧……
 						//DirectX::QOI_LOADER_DEFAULT | DirectX::QOI_LOADER_SRGB_DEFAULT,
-						&res, &m_view);
+						res.put(), m_view.put());
 					if (FAILED(hr3)) {
 						// 在这里一起报告，不然 log 文件里遍地都是 error
 						gHR = hr1;
@@ -252,15 +252,15 @@ namespace core::Graphics::Direct3D11 {
 			if (dds_alpha_mode == DirectX::DDS_ALPHA_MODE_PREMULTIPLIED) {
 				m_pre_mul_alpha = true; // 您小子预乘了 alpha 通道是吧，行
 			}
-			M_D3D_SET_DEBUG_NAME(m_view.Get(), "Texture2D_D3D11::d3d11_srv");
+			M_D3D_SET_DEBUG_NAME(m_view.get(), "Texture2D_D3D11::d3d11_srv");
 
 			// 转换类型
-			hr = gHR = res.As(&m_texture);
+			hr = gHR = res->QueryInterface(m_texture.put());
 			if (FAILED(hr)) {
 				i18n_core_system_call_report_error("ID3D11Resource::QueryInterface -> ID3D11Texture2D");
 				return false;
 			}
-			M_D3D_SET_DEBUG_NAME(m_texture.Get(), "Texture2D_D3D11::d3d11_texture2d");
+			M_D3D_SET_DEBUG_NAME(m_texture.get(), "Texture2D_D3D11::d3d11_texture2d");
 
 			// 获取图片尺寸
 			D3D11_TEXTURE2D_DESC texture_info{};
@@ -281,24 +281,24 @@ namespace core::Graphics::Direct3D11 {
 				.CPUAccessFlags = 0,
 				.MiscFlags = 0,
 			};
-			hr = gHR = d3d11_device->CreateTexture2D(&texdef, nullptr, &m_texture);
+			hr = gHR = d3d11_device->CreateTexture2D(&texdef, nullptr, m_texture.put());
 			if (FAILED(hr)) {
 				i18n_core_system_call_report_error("ID3D11Device::CreateTexture2D");
 				return false;
 			}
-			M_D3D_SET_DEBUG_NAME(m_texture.Get(), "Texture2D_D3D11::d3d11_texture2d");
+			M_D3D_SET_DEBUG_NAME(m_texture.get(), "Texture2D_D3D11::d3d11_texture2d");
 
 			D3D11_SHADER_RESOURCE_VIEW_DESC viewdef = {
 				.Format = texdef.Format,
 				.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D,
 				.Texture2D = D3D11_TEX2D_SRV{.MostDetailedMip = 0,.MipLevels = 1,},
 			};
-			hr = gHR = d3d11_device->CreateShaderResourceView(m_texture.Get(), &viewdef, &m_view);
+			hr = gHR = d3d11_device->CreateShaderResourceView(m_texture.get(), &viewdef, m_view.put());
 			if (FAILED(hr)) {
 				i18n_core_system_call_report_error("ID3D11Device::CreateShaderResourceView");
 				return false;
 			}
-			M_D3D_SET_DEBUG_NAME(m_view.Get(), "Texture2D_D3D11::d3d11_srv");
+			M_D3D_SET_DEBUG_NAME(m_view.get(), "Texture2D_D3D11::d3d11_srv");
 		}
 
 		return true;

@@ -21,12 +21,9 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <Windows.h>
+#include <ntstatus.h>
 #include <Unknwn.h>
 #include <VersionHelpers.h>
-#include <wrl/client.h>
-#include <wrl/wrappers/corewrappers.h>
-#include <wil/resource.h>
-#include <wil/com.h>
 #include <win32/base.hpp>
 #include <timeapi.h>
 #include <dxgi1_6.h>
@@ -40,8 +37,6 @@
 #include <dwmapi.h>
 #include <DirectXMath.h>
 
-#include <xaudio2.h>
-
 #include "spdlog/spdlog.h"
 
 #include "tracy/Tracy.hpp"
@@ -49,17 +44,6 @@
 #include "tracy/TracyAPI.hpp"
 
 #include "windows/HResultChecker.hpp"
-
-namespace Microsoft::WRL::Wrappers
-{
-	namespace HandleTraits
-	{
-		struct ThreadHandleTraits : HANDLENullTraits
-		{
-		};
-	}
-	using ThreadHandle = HandleT<HandleTraits::ThreadHandleTraits>;
-}
 
 #ifdef _DEBUG
 inline void F_D3D_SET_DEBUG_NAME(IDXGIObject* ptr, std::string_view file, int line, std::string_view name)

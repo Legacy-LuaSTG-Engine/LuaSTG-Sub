@@ -86,8 +86,8 @@ namespace core::Graphics
             .SysMemPitch = 64 * 4,
             .SysMemSlicePitch = 0,
         };
-        Microsoft::WRL::ComPtr<ID3D11Texture2D> def_texture2d;
-        hr = device->CreateTexture2D(&def_tex_def, &def_dat_def, &def_texture2d);
+        win32::com_ptr<ID3D11Texture2D> def_texture2d;
+        hr = device->CreateTexture2D(&def_tex_def, &def_dat_def, def_texture2d.put());
         if (FAILED(hr))
         {
             assert(false);
@@ -101,7 +101,7 @@ namespace core::Graphics
                 .MipLevels = def_tex_def.MipLevels,
             },
         };
-        hr = device->CreateShaderResourceView(def_texture2d.Get(), &def_srv_def, &default_image);
+        hr = device->CreateShaderResourceView(def_texture2d.get(), &def_srv_def, default_image.put());
         if (FAILED(hr))
         {
             assert(false);
@@ -131,7 +131,7 @@ namespace core::Graphics
             .MinLOD = 0.0f,
             .MaxLOD = D3D11_FLOAT32_MAX,
         };
-        hr = device->CreateSamplerState(&def_samp_def, &default_sampler);
+        hr = device->CreateSamplerState(&def_samp_def, default_sampler.put());
         if (FAILED(hr))
         {
             assert(false);
@@ -157,7 +157,7 @@ namespace core::Graphics
             .MiscFlags = 0,
             .StructureByteStride = 0,
         };
-        hr = device->CreateBuffer(&cbo_def, NULL, &cbo_mvp);
+        hr = device->CreateBuffer(&cbo_def, NULL, cbo_mvp.put());
         if (FAILED(hr))
         {
             assert(false);
@@ -167,7 +167,7 @@ namespace core::Graphics
         // built-in: local-world matrix
 
         cbo_def.ByteWidth = 2 * sizeof(DirectX::XMFLOAT4X4);
-        hr = device->CreateBuffer(&cbo_def, NULL, &cbo_mlw);
+        hr = device->CreateBuffer(&cbo_def, NULL, cbo_mlw.put());
         if (FAILED(hr))
         {
             assert(false);
@@ -177,7 +177,7 @@ namespace core::Graphics
         // built-in: camera info
 
         cbo_def.ByteWidth = 2 * sizeof(DirectX::XMFLOAT4X4);
-        hr = device->CreateBuffer(&cbo_def, NULL, &cbo_caminfo);
+        hr = device->CreateBuffer(&cbo_def, NULL, cbo_caminfo.put());
         if (FAILED(hr))
         {
             assert(false);
@@ -187,7 +187,7 @@ namespace core::Graphics
         // // built-in: alpha mask
 
         cbo_def.ByteWidth = 2 * sizeof(DirectX::XMFLOAT4);
-        hr = device->CreateBuffer(&cbo_def, NULL, &cbo_alpha);
+        hr = device->CreateBuffer(&cbo_def, NULL, cbo_alpha.put());
         if (FAILED(hr))
         {
             assert(false);
@@ -197,7 +197,7 @@ namespace core::Graphics
         // // built-in: light
 
         cbo_def.ByteWidth = 4 * sizeof(DirectX::XMFLOAT4);
-        hr = device->CreateBuffer(&cbo_def, NULL, &cbo_light);
+        hr = device->CreateBuffer(&cbo_def, NULL, cbo_light.put());
         if (FAILED(hr))
         {
             assert(false);
@@ -229,7 +229,7 @@ namespace core::Graphics
             .MultisampleEnable = FALSE,
             .AntialiasedLineEnable = FALSE,
         };
-        hr = device->CreateRasterizerState(&rs_def, &state_rs_cull_none);
+        hr = device->CreateRasterizerState(&rs_def, state_rs_cull_none.put());
         if (FAILED(hr))
         {
             assert(false);
@@ -240,7 +240,7 @@ namespace core::Graphics
 
         rs_def.CullMode = D3D11_CULL_BACK;
         rs_def.FrontCounterClockwise = TRUE;
-        hr = device->CreateRasterizerState(&rs_def, &state_rs_cull_back);
+        hr = device->CreateRasterizerState(&rs_def, state_rs_cull_back.put());
         if (FAILED(hr))
         {
             assert(false);
@@ -271,7 +271,7 @@ namespace core::Graphics
                 .StencilFunc = D3D11_COMPARISON_ALWAYS,
             },
         };
-        hr = device->CreateDepthStencilState(&ds_def, &state_ds);
+        hr = device->CreateDepthStencilState(&ds_def, state_ds.put());
         if (FAILED(hr))
         {
             assert(false);
@@ -282,7 +282,7 @@ namespace core::Graphics
 
         ds_def.DepthFunc = D3D11_COMPARISON_LESS;
 
-        hr = device->CreateDepthStencilState(&ds_def, &state_ds_dl);
+        hr = device->CreateDepthStencilState(&ds_def, state_ds_dl.put());
         if (FAILED(hr))
         {
             assert(false);
@@ -293,7 +293,7 @@ namespace core::Graphics
 
         ds_def.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
 
-        hr = device->CreateDepthStencilState(&ds_def, &state_ds_no_write);
+        hr = device->CreateDepthStencilState(&ds_def, state_ds_no_write.put());
         if (FAILED(hr))
         {
             assert(false);
@@ -305,7 +305,7 @@ namespace core::Graphics
         ds_def.DepthEnable = FALSE;
         ds_def.DepthFunc = D3D11_COMPARISON_ALWAYS;
 
-        hr = device->CreateDepthStencilState(&ds_def, &state_ds_disable);
+        hr = device->CreateDepthStencilState(&ds_def, state_ds_disable.put());
         if (FAILED(hr))
         {
             assert(false);
@@ -335,7 +335,7 @@ namespace core::Graphics
         {
             rt_blend = rt_blend_def;
         }
-        hr = device->CreateBlendState(&blend_def, &state_blend);
+        hr = device->CreateBlendState(&blend_def, state_blend.put());
         if (FAILED(hr))
         {
             assert(false);
@@ -350,7 +350,7 @@ namespace core::Graphics
         {
             rt_blend = rt_blend_def;
         }
-        hr = device->CreateBlendState(&blend_def, &state_blend_alpha);
+        hr = device->CreateBlendState(&blend_def, state_blend_alpha.put());
         if (FAILED(hr))
         {
             assert(false);
@@ -390,33 +390,33 @@ namespace core::Graphics
     }
     void ModelSharedComponent_D3D11::onDeviceDestroy()
     {
-        default_image.Reset();
-        default_sampler.Reset();
+        default_image.reset();
+        default_sampler.reset();
 
-        input_layout.Reset();
-        input_layout_vc.Reset();
-        shader_vertex.Reset();
-        shader_vertex_vc.Reset();
-        for (auto& v : shader_pixel) v.Reset();
-        for (auto& v : shader_pixel_alpha) v.Reset();
-        for (auto& v : shader_pixel_nt) v.Reset();
-        for (auto& v : shader_pixel_alpha_nt) v.Reset();
-        for (auto& v : shader_pixel_vc) v.Reset();
-        for (auto& v : shader_pixel_alpha_vc) v.Reset();
-        for (auto& v : shader_pixel_nt_vc) v.Reset();
-        for (auto& v : shader_pixel_alpha_nt_vc) v.Reset();
+        input_layout.reset();
+        input_layout_vc.reset();
+        shader_vertex.reset();
+        shader_vertex_vc.reset();
+        for (auto& v : shader_pixel) v.reset();
+        for (auto& v : shader_pixel_alpha) v.reset();
+        for (auto& v : shader_pixel_nt) v.reset();
+        for (auto& v : shader_pixel_alpha_nt) v.reset();
+        for (auto& v : shader_pixel_vc) v.reset();
+        for (auto& v : shader_pixel_alpha_vc) v.reset();
+        for (auto& v : shader_pixel_nt_vc) v.reset();
+        for (auto& v : shader_pixel_alpha_nt_vc) v.reset();
 
-        state_rs_cull_none.Reset();
-        state_rs_cull_back.Reset();
-        state_ds.Reset();
-        state_blend.Reset();
-        state_blend_alpha.Reset();
+        state_rs_cull_none.reset();
+        state_rs_cull_back.reset();
+        state_ds.reset();
+        state_blend.reset();
+        state_blend_alpha.reset();
 
-        cbo_mvp.Reset();
-        cbo_mlw.Reset();
-        cbo_caminfo.Reset();
-        cbo_alpha.Reset();
-        cbo_light.Reset();
+        cbo_mvp.reset();
+        cbo_mlw.reset();
+        cbo_caminfo.reset();
+        cbo_alpha.reset();
+        cbo_light.reset();
     }
 
     ModelSharedComponent_D3D11::ModelSharedComponent_D3D11(Direct3D11::Device* p_device)
@@ -730,8 +730,8 @@ namespace core::Graphics
                 .SysMemPitch = (UINT)(img.width * img.component * img.bits) / 8,
                 .SysMemSlicePitch = (UINT)img.image.size(),
             };
-            Microsoft::WRL::ComPtr<ID3D11Texture2D> texture2d;
-            hr = device->CreateTexture2D(&tex_def, mipmap ? NULL : &dat_def, &texture2d);
+            win32::com_ptr<ID3D11Texture2D> texture2d;
+            hr = device->CreateTexture2D(&tex_def, mipmap ? NULL : &dat_def, texture2d.put());
             if (FAILED(hr))
             {
                 assert(false);
@@ -745,7 +745,7 @@ namespace core::Graphics
                     .MipLevels = mipmap ? UINT(-1) : tex_def.MipLevels,
                 },
             };
-            hr = device->CreateShaderResourceView(texture2d.Get(), &srv_def, &image[idx]);
+            hr = device->CreateShaderResourceView(texture2d.get(), &srv_def, image[idx].put());
             if (FAILED(hr))
             {
                 assert(false);
@@ -753,8 +753,8 @@ namespace core::Graphics
             }
             if (mipmap)
             {
-                context->UpdateSubresource(texture2d.Get(), 0, NULL, dat_def.pSysMem, dat_def.SysMemPitch, dat_def.SysMemSlicePitch);
-                context->GenerateMips(image[idx].Get());
+                context->UpdateSubresource(texture2d.get(), 0, NULL, dat_def.pSysMem, dat_def.SysMemPitch, dat_def.SysMemSlicePitch);
+                context->GenerateMips(image[idx].get());
             }
         }
 
@@ -786,7 +786,7 @@ namespace core::Graphics
             };
             map_sampler_to_d3d11(samp, samp_def);
             samp_def.Filter = D3D11_FILTER_ANISOTROPIC; // TODO: better?
-            hr = device->CreateSamplerState(&samp_def, &sampler[idx]);
+            hr = device->CreateSamplerState(&samp_def, sampler[idx].put());
             if (FAILED(hr))
             {
                 assert(false);
@@ -840,7 +840,7 @@ namespace core::Graphics
                         .SysMemPitch = 0,
                         .SysMemSlicePitch = 0,
                     };
-                    hr = device->CreateBuffer(&vbo_def, &dat_def, &mblock.vertex_buffer);
+                    hr = device->CreateBuffer(&vbo_def, &dat_def, mblock.vertex_buffer.put());
                     if (FAILED(hr))
                     {
                         assert(false);
@@ -871,7 +871,7 @@ namespace core::Graphics
                         .SysMemPitch = 0,
                         .SysMemSlicePitch = 0,
                     };
-                    hr = device->CreateBuffer(&vbo_def, &dat_def, &mblock.normal_buffer);
+                    hr = device->CreateBuffer(&vbo_def, &dat_def, mblock.normal_buffer.put());
                     if (FAILED(hr))
                     {
                         assert(false);
@@ -900,7 +900,7 @@ namespace core::Graphics
                         .SysMemPitch = 0,
                         .SysMemSlicePitch = 0,
                     };
-                    hr = device->CreateBuffer(&vbo_def, &dat_def, &mblock.color_buffer);
+                    hr = device->CreateBuffer(&vbo_def, &dat_def, mblock.color_buffer.put());
                     if (FAILED(hr))
                     {
                         assert(false);
@@ -929,7 +929,7 @@ namespace core::Graphics
                         .SysMemPitch = 0,
                         .SysMemSlicePitch = 0,
                     };
-                    hr = device->CreateBuffer(&vbo_def, &dat_def, &mblock.uv_buffer);
+                    hr = device->CreateBuffer(&vbo_def, &dat_def, mblock.uv_buffer.put());
                     if (FAILED(hr))
                     {
                         assert(false);
@@ -976,7 +976,7 @@ namespace core::Graphics
                     assert(index_size == 2 || index_size == 4);
                     mblock.index_format = index_size == 2 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
 
-                    hr = device->CreateBuffer(&ibo_def, &dat_def, &mblock.index_buffer);
+                    hr = device->CreateBuffer(&ibo_def, &dat_def, mblock.index_buffer.put());
                     if (FAILED(hr))
                     {
                         assert(false);
@@ -1159,7 +1159,7 @@ namespace core::Graphics
 
         // common data
 
-        context->UpdateSubresource(shared_->cbo_light.Get(), 0, NULL, &sunshine, 0, 0);
+        context->UpdateSubresource(shared_->cbo_light.get(), 0, NULL, &sunshine, 0, 0);
         DirectX::XMMATRIX const t_locwo_ = DirectX::XMMatrixMultiply(DirectX::XMMatrixMultiply(t_scale_, t_mbrot_), t_trans_);
 
         auto set_state_matrix_from_block = [&](ModelBlock& mblock)
@@ -1167,16 +1167,16 @@ namespace core::Graphics
             // IA
 
             if (mblock.color_buffer)
-                context->IASetInputLayout(shared_->input_layout_vc.Get());
+                context->IASetInputLayout(shared_->input_layout_vc.get());
             else
-                context->IASetInputLayout(shared_->input_layout.Get());
+                context->IASetInputLayout(shared_->input_layout.get());
 
             // VS
 
             if (mblock.color_buffer)
-                context->VSSetShader(shared_->shader_vertex_vc.Get(), NULL, 0);
+                context->VSSetShader(shared_->shader_vertex_vc.get(), NULL, 0);
             else
-                context->VSSetShader(shared_->shader_vertex.Get(), NULL, 0);
+                context->VSSetShader(shared_->shader_vertex.get(), NULL, 0);
 
             // PS
 
@@ -1185,16 +1185,16 @@ namespace core::Graphics
                 if (mblock.image)
                 {
                     if (mblock.color_buffer)
-                        context->PSSetShader(shared_->shader_pixel_vc[IDX(fog)].Get(), NULL, 0);
+                        context->PSSetShader(shared_->shader_pixel_vc[IDX(fog)].get(), NULL, 0);
                     else
-                        context->PSSetShader(shared_->shader_pixel[IDX(fog)].Get(), NULL, 0);
+                        context->PSSetShader(shared_->shader_pixel[IDX(fog)].get(), NULL, 0);
                 }
                 else
                 {
                     if (mblock.color_buffer)
-                        context->PSSetShader(shared_->shader_pixel_nt_vc[IDX(fog)].Get(), NULL, 0);
+                        context->PSSetShader(shared_->shader_pixel_nt_vc[IDX(fog)].get(), NULL, 0);
                     else
-                        context->PSSetShader(shared_->shader_pixel_nt[IDX(fog)].Get(), NULL, 0);
+                        context->PSSetShader(shared_->shader_pixel_nt[IDX(fog)].get(), NULL, 0);
                 }
             }
             else
@@ -1202,16 +1202,16 @@ namespace core::Graphics
                 if (mblock.image)
                 {
                     if (mblock.color_buffer)
-                        context->PSSetShader(shared_->shader_pixel_alpha_vc[IDX(fog)].Get(), NULL, 0);
+                        context->PSSetShader(shared_->shader_pixel_alpha_vc[IDX(fog)].get(), NULL, 0);
                     else
-                        context->PSSetShader(shared_->shader_pixel_alpha[IDX(fog)].Get(), NULL, 0);
+                        context->PSSetShader(shared_->shader_pixel_alpha[IDX(fog)].get(), NULL, 0);
                 }
                 else
                 {
                     if (mblock.color_buffer)
-                        context->PSSetShader(shared_->shader_pixel_alpha_nt_vc[IDX(fog)].Get(), NULL, 0);
+                        context->PSSetShader(shared_->shader_pixel_alpha_nt_vc[IDX(fog)].get(), NULL, 0);
                     else
-                        context->PSSetShader(shared_->shader_pixel_alpha_nt[IDX(fog)].Get(), NULL, 0);
+                        context->PSSetShader(shared_->shader_pixel_alpha_nt[IDX(fog)].get(), NULL, 0);
                 }
             }
         };
@@ -1225,7 +1225,7 @@ namespace core::Graphics
             DirectX::XMMATRIX const t_total_ = DirectX::XMMatrixMultiply(DirectX::XMLoadFloat4x4(&mblock.local_matrix), t_locwo_);
             DirectX::XMStoreFloat4x4(&v.v1, t_total_);
             DirectX::XMStoreFloat4x4(&v.v2, DirectX::XMMatrixInverseTranspose(t_total_));
-            context->UpdateSubresource(shared_->cbo_mlw.Get(), 0, NULL, &v, 0, 0);
+            context->UpdateSubresource(shared_->cbo_mlw.get(), 0, NULL, &v, 0, 0);
         };
         auto set_alpha_mode_opaque = [&](ModelBlock& mblock)
         {
@@ -1235,17 +1235,17 @@ namespace core::Graphics
                     mblock.base_color.x, mblock.base_color.y, mblock.base_color.z, mblock.base_color.w,
                     0.5f, 0.0f, 0.0f, 0.0f,
             };
-            context->UpdateSubresource(shared_->cbo_alpha.Get(), 0, NULL, alpha, 0, 0);
+            context->UpdateSubresource(shared_->cbo_alpha.get(), 0, NULL, alpha, 0, 0);
             ID3D11Buffer* ps_cbo[2] = {
                 // camera position and look to vector are setup by Renderer at register(b0)
-                shared_->cbo_alpha.Get(),
-                shared_->cbo_light.Get(),
+                shared_->cbo_alpha.get(),
+                shared_->cbo_light.get(),
             };
             context->PSSetConstantBuffers(2, 2, ps_cbo);
 
             // OM
             FLOAT const blend_factor[4]{};
-            context->OMSetBlendState(shared_->state_blend.Get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
+            context->OMSetBlendState(shared_->state_blend.get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
         };
         auto set_alpha_mode_mask = [&](ModelBlock& mblock)
         {
@@ -1255,17 +1255,17 @@ namespace core::Graphics
                     mblock.base_color.x, mblock.base_color.y, mblock.base_color.z, mblock.base_color.w,
                     mblock.alpha, 0.0f, 0.0f, 0.0f,
             };
-            context->UpdateSubresource(shared_->cbo_alpha.Get(), 0, NULL, alpha, 0, 0);
+            context->UpdateSubresource(shared_->cbo_alpha.get(), 0, NULL, alpha, 0, 0);
             ID3D11Buffer* ps_cbo[2] = {
                 // camera position and look to vector are setup by Renderer at register(b0)
-                shared_->cbo_alpha.Get(),
-                shared_->cbo_light.Get(),
+                shared_->cbo_alpha.get(),
+                shared_->cbo_light.get(),
             };
             context->PSSetConstantBuffers(2, 2, ps_cbo);
 
             // OM
             FLOAT const blend_factor[4]{};
-            context->OMSetBlendState(shared_->state_blend.Get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
+            context->OMSetBlendState(shared_->state_blend.get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
         };
         auto set_alpha_mode_mask_custom = [&](ModelBlock& mblock, float const value)
         {
@@ -1275,31 +1275,31 @@ namespace core::Graphics
                     mblock.base_color.x, mblock.base_color.y, mblock.base_color.z, mblock.base_color.w,
                     value, 0.0f, 0.0f, 0.0f,
             };
-            context->UpdateSubresource(shared_->cbo_alpha.Get(), 0, NULL, alpha, 0, 0);
+            context->UpdateSubresource(shared_->cbo_alpha.get(), 0, NULL, alpha, 0, 0);
             ID3D11Buffer* ps_cbo[2] = {
                 // camera position and look to vector are setup by Renderer at register(b0)
-                shared_->cbo_alpha.Get(),
-                shared_->cbo_light.Get(),
+                shared_->cbo_alpha.get(),
+                shared_->cbo_light.get(),
             };
             context->PSSetConstantBuffers(2, 2, ps_cbo);
             if (mblock.image)
             {
                 if (mblock.color_buffer)
-                    context->PSSetShader(shared_->shader_pixel_alpha_vc[IDX(fog)].Get(), NULL, 0);
+                    context->PSSetShader(shared_->shader_pixel_alpha_vc[IDX(fog)].get(), NULL, 0);
                 else
-                    context->PSSetShader(shared_->shader_pixel_alpha[IDX(fog)].Get(), NULL, 0);
+                    context->PSSetShader(shared_->shader_pixel_alpha[IDX(fog)].get(), NULL, 0);
             }
             else
             {
                 if (mblock.color_buffer)
-                    context->PSSetShader(shared_->shader_pixel_alpha_nt_vc[IDX(fog)].Get(), NULL, 0);
+                    context->PSSetShader(shared_->shader_pixel_alpha_nt_vc[IDX(fog)].get(), NULL, 0);
                 else
-                    context->PSSetShader(shared_->shader_pixel_alpha_nt[IDX(fog)].Get(), NULL, 0);
+                    context->PSSetShader(shared_->shader_pixel_alpha_nt[IDX(fog)].get(), NULL, 0);
             }
 
             // OM
             FLOAT const blend_factor[4]{};
-            context->OMSetBlendState(shared_->state_blend.Get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
+            context->OMSetBlendState(shared_->state_blend.get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
         };
         auto set_alpha_mode_blend = [&](ModelBlock& mblock)
         {
@@ -1309,17 +1309,17 @@ namespace core::Graphics
                     mblock.base_color.x, mblock.base_color.y, mblock.base_color.z, mblock.base_color.w,
                     0.5f, 0.0f, 0.0f, 0.0f,
             };
-            context->UpdateSubresource(shared_->cbo_alpha.Get(), 0, NULL, alpha, 0, 0);
+            context->UpdateSubresource(shared_->cbo_alpha.get(), 0, NULL, alpha, 0, 0);
             ID3D11Buffer* ps_cbo[2] = {
                 // camera position and look to vector are setup by Renderer at register(b0)
-                shared_->cbo_alpha.Get(),
-                shared_->cbo_light.Get(),
+                shared_->cbo_alpha.get(),
+                shared_->cbo_light.get(),
             };
             context->PSSetConstantBuffers(2, 2, ps_cbo);
 
             // OM
             FLOAT const blend_factor[4]{};
-            context->OMSetBlendState(shared_->state_blend_alpha.Get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
+            context->OMSetBlendState(shared_->state_blend_alpha.get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
         };
         auto set_alpha_mode_blend_overlay = [&](ModelBlock& mblock, float const exclude_value)
         {
@@ -1329,32 +1329,32 @@ namespace core::Graphics
                     mblock.base_color.x, mblock.base_color.y, mblock.base_color.z, mblock.base_color.w,
                     exclude_value, 0.0f, 0.0f, 0.0f,
             };
-            context->UpdateSubresource(shared_->cbo_alpha.Get(), 0, NULL, alpha, 0, 0);
+            context->UpdateSubresource(shared_->cbo_alpha.get(), 0, NULL, alpha, 0, 0);
             ID3D11Buffer* ps_cbo[2] = {
                 // camera position and look to vector are setup by Renderer at register(b0)
-                shared_->cbo_alpha.Get(),
-                shared_->cbo_light.Get(),
+                shared_->cbo_alpha.get(),
+                shared_->cbo_light.get(),
             };
             context->PSSetConstantBuffers(2, 2, ps_cbo);
             if (mblock.image)
             {
                 if (mblock.color_buffer)
-                    context->PSSetShader(shared_->shader_pixel_inv_alpha_vc[IDX(fog)].Get(), NULL, 0);
+                    context->PSSetShader(shared_->shader_pixel_inv_alpha_vc[IDX(fog)].get(), NULL, 0);
                 else
-                    context->PSSetShader(shared_->shader_pixel_inv_alpha[IDX(fog)].Get(), NULL, 0);
+                    context->PSSetShader(shared_->shader_pixel_inv_alpha[IDX(fog)].get(), NULL, 0);
             }
             else
             {
                 if (mblock.color_buffer)
-                    context->PSSetShader(shared_->shader_pixel_inv_alpha_nt_vc[IDX(fog)].Get(), NULL, 0);
+                    context->PSSetShader(shared_->shader_pixel_inv_alpha_nt_vc[IDX(fog)].get(), NULL, 0);
                 else
-                    context->PSSetShader(shared_->shader_pixel_inv_alpha_nt[IDX(fog)].Get(), NULL, 0);
+                    context->PSSetShader(shared_->shader_pixel_inv_alpha_nt[IDX(fog)].get(), NULL, 0);
             }
 
             // OM
-            context->OMSetDepthStencilState(shared_->state_ds.Get(), D3D11_DEFAULT_STENCIL_REFERENCE);
+            context->OMSetDepthStencilState(shared_->state_ds.get(), D3D11_DEFAULT_STENCIL_REFERENCE);
             FLOAT const blend_factor[4]{};
-            context->OMSetBlendState(shared_->state_blend_alpha.Get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
+            context->OMSetBlendState(shared_->state_blend_alpha.get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
         };
         auto set_alpha_mode_screen_door = [&](ModelBlock& mblock)
         {
@@ -1364,32 +1364,32 @@ namespace core::Graphics
                     mblock.base_color.x, mblock.base_color.y, mblock.base_color.z, mblock.base_color.w,
                     0.5f, 0.0f, 0.0f, 0.0f,
             };
-            context->UpdateSubresource(shared_->cbo_alpha.Get(), 0, NULL, alpha, 0, 0);
+            context->UpdateSubresource(shared_->cbo_alpha.get(), 0, NULL, alpha, 0, 0);
             ID3D11Buffer* ps_cbo[2] = {
                 // camera position and look to vector are setup by Renderer at register(b0)
-                shared_->cbo_alpha.Get(),
-                shared_->cbo_light.Get(),
+                shared_->cbo_alpha.get(),
+                shared_->cbo_light.get(),
             };
             context->PSSetConstantBuffers(2, 2, ps_cbo);
             if (mblock.image)
             {
                 if (mblock.color_buffer)
-                    context->PSSetShader(shared_->shader_pixel_sd_vc[IDX(fog)].Get(), NULL, 0);
+                    context->PSSetShader(shared_->shader_pixel_sd_vc[IDX(fog)].get(), NULL, 0);
                 else
-                    context->PSSetShader(shared_->shader_pixel_sd[IDX(fog)].Get(), NULL, 0);
+                    context->PSSetShader(shared_->shader_pixel_sd[IDX(fog)].get(), NULL, 0);
             }
             else
             {
                 if (mblock.color_buffer)
-                    context->PSSetShader(shared_->shader_pixel_sd_nt_vc[IDX(fog)].Get(), NULL, 0);
+                    context->PSSetShader(shared_->shader_pixel_sd_nt_vc[IDX(fog)].get(), NULL, 0);
                 else
-                    context->PSSetShader(shared_->shader_pixel_sd_nt[IDX(fog)].Get(), NULL, 0);
+                    context->PSSetShader(shared_->shader_pixel_sd_nt[IDX(fog)].get(), NULL, 0);
             }
 
             // OM
-            context->OMSetDepthStencilState(shared_->state_ds.Get(), D3D11_DEFAULT_STENCIL_REFERENCE);
+            context->OMSetDepthStencilState(shared_->state_ds.get(), D3D11_DEFAULT_STENCIL_REFERENCE);
             FLOAT const blend_factor[4]{};
-            context->OMSetBlendState(shared_->state_blend.Get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
+            context->OMSetBlendState(shared_->state_blend.get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
         };
         auto set_state_from_block = [&](ModelBlock& mblock)
         {
@@ -1398,18 +1398,18 @@ namespace core::Graphics
             // IA
 
             context->IASetPrimitiveTopology(mblock.primitive_topology);
-            ID3D11Buffer* vbo[4] = { mblock.vertex_buffer.Get(), mblock.normal_buffer.Get(), mblock.uv_buffer.Get(), mblock.color_buffer.Get() };
+            ID3D11Buffer* vbo[4] = { mblock.vertex_buffer.get(), mblock.normal_buffer.get(), mblock.uv_buffer.get(), mblock.color_buffer.get() };
             UINT stride[4] = { 3 * sizeof(float), 3 * sizeof(float), 2 * sizeof(float), 3 * sizeof(float) };
             UINT offset[4] = { 0, 0, 0, 0 };
             context->IASetVertexBuffers(0, 4, vbo, stride, offset);
-            context->IASetIndexBuffer(mblock.index_buffer.Get(), mblock.index_format, 0);
+            context->IASetIndexBuffer(mblock.index_buffer.get(), mblock.index_format, 0);
 
             // VS
 
             upload_local_world_matrix(mblock);
             ID3D11Buffer* vs_cbo[1] = {
                 // view-projection matrix setup by Renderer at register(b0)
-                shared_->cbo_mlw.Get(),
+                shared_->cbo_mlw.get(),
             };
             context->VSSetConstantBuffers(1, 1, vs_cbo);
 
@@ -1417,23 +1417,23 @@ namespace core::Graphics
 
             if (mblock.double_side)
             {
-                context->RSSetState(shared_->state_rs_cull_none.Get());
+                context->RSSetState(shared_->state_rs_cull_none.get());
             }
             else
             {
-                context->RSSetState(shared_->state_rs_cull_back.Get());
+                context->RSSetState(shared_->state_rs_cull_back.get());
             }
 
             // PS
 
-            ID3D11SamplerState* ps_samp[1] = { mblock.sampler.Get() };
+            ID3D11SamplerState* ps_samp[1] = { mblock.sampler.get() };
             context->PSSetSamplers(0, 1, ps_samp);
-            ID3D11ShaderResourceView* ps_srv[1] = { mblock.image.Get() };
+            ID3D11ShaderResourceView* ps_srv[1] = { mblock.image.get() };
             context->PSSetShaderResources(0, 1, ps_srv);
 
             // OM
 
-            context->OMSetDepthStencilState(shared_->state_ds.Get(), D3D11_DEFAULT_STENCIL_REFERENCE);
+            context->OMSetDepthStencilState(shared_->state_ds.get(), D3D11_DEFAULT_STENCIL_REFERENCE);
 
             // other
             if (mblock.alpha_blend) {

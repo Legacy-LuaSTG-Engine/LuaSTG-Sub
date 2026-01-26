@@ -44,10 +44,10 @@ namespace core::Graphics
 	}
 	void PostEffectShader_D3D11::onDeviceDestroy()
 	{
-		d3d11_ps.Reset();
+		d3d11_ps.reset();
 		for (auto& v : m_buffer_map)
 		{
-			v.second.d3d11_buffer.Reset();
+			v.second.d3d11_buffer.reset();
 		}
 	}
 
@@ -123,12 +123,12 @@ namespace core::Graphics
 		for (auto& v : m_buffer_map)
 		{
 			D3D11_MAPPED_SUBRESOURCE res{};
-			HRESULT hr = gHR = ctx->Map(v.second.d3d11_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
+			HRESULT hr = gHR = ctx->Map(v.second.d3d11_buffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
 			if (FAILED(hr)) { assert(false); return false; }
 			memcpy(res.pData, v.second.buffer.data(), v.second.buffer.size());
-			ctx->Unmap(v.second.d3d11_buffer.Get(), 0);
+			ctx->Unmap(v.second.d3d11_buffer.get(), 0);
 
-			ID3D11Buffer* b[1] = { v.second.d3d11_buffer.Get() };
+			ID3D11Buffer* b[1] = { v.second.d3d11_buffer.get() };
 			ctx->PSSetConstantBuffers(v.second.index, 1, b);
 		}
 
@@ -166,13 +166,13 @@ namespace core::Graphics
 		assert(m_device->GetD3D11DeviceContext());
 
 		auto& vi = _vi_buffer[(index == 0xFFFFFFFFu) ? _vi_buffer_index : index];
-		ID3D11Buffer* vbo[1] = { vi.vertex_buffer.Get() };
+		ID3D11Buffer* vbo[1] = { vi.vertex_buffer.get() };
 		UINT stride[1] = { sizeof(IRenderer::DrawVertex) };
 		UINT offset[1] = { 0 };
 		m_device->GetD3D11DeviceContext()->IASetVertexBuffers(0, 1, vbo, stride, offset);
 
 		constexpr DXGI_FORMAT format = sizeof(DrawIndex) < 4 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
-		m_device->GetD3D11DeviceContext()->IASetIndexBuffer(vi.index_buffer.Get(), format, 0);
+		m_device->GetD3D11DeviceContext()->IASetIndexBuffer(vi.index_buffer.get(), format, 0);
 	}
 	bool Renderer_D3D11::uploadVertexIndexBuffer(bool discard)
 	{
@@ -186,27 +186,27 @@ namespace core::Graphics
 		if (_draw_list.vertex.size > 0)
 		{
 			D3D11_MAPPED_SUBRESOURCE res_ = {};
-			hr = gHR = m_device->GetD3D11DeviceContext()->Map(vi_.vertex_buffer.Get(), 0, map_type_, 0, &res_);
+			hr = gHR = m_device->GetD3D11DeviceContext()->Map(vi_.vertex_buffer.get(), 0, map_type_, 0, &res_);
 			if (FAILED(hr))
 			{
 				spdlog::error("[core] ID3D11DeviceContext::Map -> #vertex_buffer[{}] 调用失败，无法上传顶点", _vi_buffer_index);
 				return false;
 			}
 			std::memcpy((DrawVertex*)res_.pData + vi_.vertex_offset, _draw_list.vertex.data, _draw_list.vertex.size * sizeof(DrawVertex));
-			m_device->GetD3D11DeviceContext()->Unmap(vi_.vertex_buffer.Get(), 0);
+			m_device->GetD3D11DeviceContext()->Unmap(vi_.vertex_buffer.get(), 0);
 		}
 		// copy index data
 		if (_draw_list.index.size > 0)
 		{
 			D3D11_MAPPED_SUBRESOURCE res_ = {};
-			hr = gHR = m_device->GetD3D11DeviceContext()->Map(vi_.index_buffer.Get(), 0, map_type_, 0, &res_);
+			hr = gHR = m_device->GetD3D11DeviceContext()->Map(vi_.index_buffer.get(), 0, map_type_, 0, &res_);
 			if (FAILED(hr))
 			{
 				spdlog::error("[core] ID3D11DeviceContext::Map -> #index_buffer[{}] 调用失败，无法上传顶点索引", _vi_buffer_index);
 				return false;
 			}
 			std::memcpy((DrawIndex*)res_.pData + vi_.index_offset, _draw_list.index.data, _draw_list.index.size * sizeof(DrawIndex));
-			m_device->GetD3D11DeviceContext()->Unmap(vi_.index_buffer.Get(), 0);
+			m_device->GetD3D11DeviceContext()->Unmap(vi_.index_buffer.get(), 0);
 		}
 		return true;
 	}
@@ -237,10 +237,10 @@ namespace core::Graphics
 					.MiscFlags = 0,
 					.StructureByteStride = 0,
 				};
-				hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, &_fx_vbuffer);
+				hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, _fx_vbuffer.put());
 				if (FAILED(hr))
 					return false;
-				M_D3D_SET_DEBUG_NAME_SIMPLE(_fx_vbuffer.Get());
+				M_D3D_SET_DEBUG_NAME_SIMPLE(_fx_vbuffer.get());
 			}
 			{
 				DrawIndex const idx_[6] = { 0, 1, 2, 0, 2, 3 };
@@ -257,10 +257,10 @@ namespace core::Graphics
 					.SysMemPitch = desc_.ByteWidth,
 					.SysMemSlicePitch = desc_.ByteWidth,
 				};
-				hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, &data_, &_fx_ibuffer);
+				hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, &data_, _fx_ibuffer.put());
 				if (FAILED(hr))
 					return false;
-				M_D3D_SET_DEBUG_NAME_SIMPLE(_fx_ibuffer.Get());
+				M_D3D_SET_DEBUG_NAME_SIMPLE(_fx_ibuffer.get());
 			}
 		}
 
@@ -275,10 +275,10 @@ namespace core::Graphics
 					.MiscFlags = 0,
 					.StructureByteStride = 0,
 				};
-				hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, &vi_.vertex_buffer);
+				hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, vi_.vertex_buffer.put());
 				if (FAILED(hr))
 					return false;
-				M_D3D_SET_DEBUG_NAME_SIMPLE(vi_.vertex_buffer.Get());
+				M_D3D_SET_DEBUG_NAME_SIMPLE(vi_.vertex_buffer.get());
 			}
 
 			{
@@ -290,10 +290,10 @@ namespace core::Graphics
 					.MiscFlags = 0,
 					.StructureByteStride = 0,
 				};
-				hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, &vi_.index_buffer);
+				hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, vi_.index_buffer.put());
 				if (FAILED(hr))
 					return false;
-				M_D3D_SET_DEBUG_NAME_SIMPLE(vi_.index_buffer.Get());
+				M_D3D_SET_DEBUG_NAME_SIMPLE(vi_.index_buffer.get());
 			}
 		}
 
@@ -306,33 +306,33 @@ namespace core::Graphics
 				.MiscFlags = 0,
 				.StructureByteStride = 0,
 			};
-			hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, &_vp_matrix_buffer);
+			hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, _vp_matrix_buffer.put());
 			if (FAILED(hr))
 				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_vp_matrix_buffer.Get());
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_vp_matrix_buffer.get());
 
-			hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, &_world_matrix_buffer);
+			hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, _world_matrix_buffer.put());
 			if (FAILED(hr))
 				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_world_matrix_buffer.Get());
-
-			desc_.ByteWidth = 2 * sizeof(DirectX::XMFLOAT4);
-			hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, &_camera_pos_buffer);
-			if (FAILED(hr))
-				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_camera_pos_buffer.Get());
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_world_matrix_buffer.get());
 
 			desc_.ByteWidth = 2 * sizeof(DirectX::XMFLOAT4);
-			hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, &_fog_data_buffer);
+			hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, _camera_pos_buffer.put());
 			if (FAILED(hr))
 				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_fog_data_buffer.Get());
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_camera_pos_buffer.get());
+
+			desc_.ByteWidth = 2 * sizeof(DirectX::XMFLOAT4);
+			hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, _fog_data_buffer.put());
+			if (FAILED(hr))
+				return false;
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_fog_data_buffer.get());
 
 			desc_.ByteWidth = 8 * sizeof(DirectX::XMFLOAT4); // 用户最多可用 8 个 float4
-			hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, &_user_float_buffer);
+			hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, _user_float_buffer.put());
 			if (FAILED(hr))
 				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_user_float_buffer.Get());
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_user_float_buffer.get());
 		}
 
 		return true;
@@ -356,10 +356,10 @@ namespace core::Graphics
 				.MultisampleEnable = FALSE,
 				.AntialiasedLineEnable = FALSE,
 			};
-			hr = gHR = m_device->GetD3D11Device()->CreateRasterizerState(&desc_, &_raster_state);
+			hr = gHR = m_device->GetD3D11Device()->CreateRasterizerState(&desc_, _raster_state.put());
 			if (FAILED(hr))
 				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_raster_state.Get());
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_raster_state.get());
 		}
 
 		{
@@ -451,16 +451,16 @@ namespace core::Graphics
 					.StencilFunc = D3D11_COMPARISON_ALWAYS,
 				},
 			};
-			hr = gHR = m_device->GetD3D11Device()->CreateDepthStencilState(&desc_, &_depth_state[IDX(DepthState::Disable)]);
+			hr = gHR = m_device->GetD3D11Device()->CreateDepthStencilState(&desc_, _depth_state[IDX(DepthState::Disable)].put());
 			if (FAILED(hr))
 				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_depth_state[IDX(DepthState::Disable)].Get());
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_depth_state[IDX(DepthState::Disable)].get());
 
 			desc_.DepthEnable = TRUE;
-			hr = gHR = m_device->GetD3D11Device()->CreateDepthStencilState(&desc_, &_depth_state[IDX(DepthState::Enable)]);
+			hr = gHR = m_device->GetD3D11Device()->CreateDepthStencilState(&desc_, _depth_state[IDX(DepthState::Enable)].put());
 			if (FAILED(hr))
 				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_depth_state[IDX(DepthState::Enable)].Get());
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_depth_state[IDX(DepthState::Enable)].get());
 		}
 
 		{
@@ -488,10 +488,10 @@ namespace core::Graphics
 			};
 			copy_();
 
-			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, &_blend_state[IDX(BlendState::Disable)]);
+			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, _blend_state[IDX(BlendState::Disable)].put());
 			if (FAILED(hr))
 				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Disable)].Get());
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Disable)].get());
 
 			blendt_.BlendEnable = TRUE;
 
@@ -502,10 +502,10 @@ namespace core::Graphics
 			blendt_.SrcBlendAlpha = D3D11_BLEND_ONE;
 			blendt_.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
 			copy_();
-			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, &_blend_state[IDX(BlendState::Alpha)]);
+			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, _blend_state[IDX(BlendState::Alpha)].put());
 			if (FAILED(hr))
 				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Alpha)].Get());
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Alpha)].get());
 
 			blendt_.BlendOp = D3D11_BLEND_OP_ADD;
 			blendt_.SrcBlend = D3D11_BLEND_ONE;
@@ -514,10 +514,10 @@ namespace core::Graphics
 			blendt_.SrcBlendAlpha = D3D11_BLEND_ONE;
 			blendt_.DestBlendAlpha = D3D11_BLEND_ZERO;
 			copy_();
-			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, &_blend_state[IDX(BlendState::One)]);
+			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, _blend_state[IDX(BlendState::One)].put());
 			if (FAILED(hr))
 				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::One)].Get());
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::One)].get());
 
 			blendt_.BlendOp = D3D11_BLEND_OP_MIN;
 			blendt_.SrcBlend = D3D11_BLEND_ONE;
@@ -526,10 +526,10 @@ namespace core::Graphics
 			blendt_.SrcBlendAlpha = D3D11_BLEND_ONE;
 			blendt_.DestBlendAlpha = D3D11_BLEND_ONE;
 			copy_();
-			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, &_blend_state[IDX(BlendState::Min)]);
+			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, _blend_state[IDX(BlendState::Min)].put());
 			if (FAILED(hr))
 				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Min)].Get());
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Min)].get());
 
 			blendt_.BlendOp = D3D11_BLEND_OP_MAX;
 			blendt_.SrcBlend = D3D11_BLEND_ONE;
@@ -538,10 +538,10 @@ namespace core::Graphics
 			blendt_.SrcBlendAlpha = D3D11_BLEND_ONE;
 			blendt_.DestBlendAlpha = D3D11_BLEND_ONE;
 			copy_();
-			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, &_blend_state[IDX(BlendState::Max)]);
+			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, _blend_state[IDX(BlendState::Max)].put());
 			if (FAILED(hr))
 				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Max)].Get());
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Max)].get());
 
 			blendt_.BlendOp = D3D11_BLEND_OP_ADD;
 			blendt_.SrcBlend = D3D11_BLEND_DEST_COLOR;
@@ -550,10 +550,10 @@ namespace core::Graphics
 			blendt_.SrcBlendAlpha = D3D11_BLEND_ONE;
 			blendt_.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
 			copy_();
-			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, &_blend_state[IDX(BlendState::Mul)]);
+			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, _blend_state[IDX(BlendState::Mul)].put());
 			if (FAILED(hr))
 				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Mul)].Get());
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Mul)].get());
 
 			blendt_.BlendOp = D3D11_BLEND_OP_ADD;
 			blendt_.SrcBlend = D3D11_BLEND_ONE;
@@ -562,10 +562,10 @@ namespace core::Graphics
 			blendt_.SrcBlendAlpha = D3D11_BLEND_ONE;
 			blendt_.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
 			copy_();
-			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, &_blend_state[IDX(BlendState::Screen)]);
+			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, _blend_state[IDX(BlendState::Screen)].put());
 			if (FAILED(hr))
 				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Screen)].Get());
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Screen)].get());
 
 			blendt_.BlendOp = D3D11_BLEND_OP_ADD;
 			blendt_.SrcBlend = D3D11_BLEND_ONE;
@@ -574,10 +574,10 @@ namespace core::Graphics
 			blendt_.SrcBlendAlpha = D3D11_BLEND_ONE;
 			blendt_.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
 			copy_();
-			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, &_blend_state[IDX(BlendState::Add)]);
+			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, _blend_state[IDX(BlendState::Add)].put());
 			if (FAILED(hr))
 				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Add)].Get());
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Add)].get());
 
 			blendt_.BlendOp = D3D11_BLEND_OP_SUBTRACT;
 			blendt_.SrcBlend = D3D11_BLEND_ONE;
@@ -586,10 +586,10 @@ namespace core::Graphics
 			blendt_.SrcBlendAlpha = D3D11_BLEND_ONE;
 			blendt_.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
 			copy_();
-			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, &_blend_state[IDX(BlendState::Sub)]);
+			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, _blend_state[IDX(BlendState::Sub)].put());
 			if (FAILED(hr))
 				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Sub)].Get());
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Sub)].get());
 
 			blendt_.BlendOp = D3D11_BLEND_OP_REV_SUBTRACT;
 			blendt_.SrcBlend = D3D11_BLEND_ONE;
@@ -598,10 +598,10 @@ namespace core::Graphics
 			blendt_.SrcBlendAlpha = D3D11_BLEND_ONE;
 			blendt_.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
 			copy_();
-			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, &_blend_state[IDX(BlendState::RevSub)]);
+			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, _blend_state[IDX(BlendState::RevSub)].put());
 			if (FAILED(hr))
 				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::RevSub)].Get());
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::RevSub)].get());
 
 			blendt_.BlendOp = D3D11_BLEND_OP_ADD;
 			blendt_.SrcBlend = D3D11_BLEND_INV_DEST_COLOR;
@@ -610,10 +610,10 @@ namespace core::Graphics
 			blendt_.SrcBlendAlpha = D3D11_BLEND_ZERO;
 			blendt_.DestBlendAlpha = D3D11_BLEND_ONE;
 			copy_();
-			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, &_blend_state[IDX(BlendState::Inv)]);
+			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, _blend_state[IDX(BlendState::Inv)].put());
 			if (FAILED(hr))
 				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Inv)].Get());
+			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Inv)].get());
 		}
 
 		return true;
@@ -697,7 +697,7 @@ namespace core::Graphics
 			_state_set.texture_alpha_type = state;
 			auto* ctx = m_device->GetD3D11DeviceContext();
 			assert(ctx);
-			ctx->PSSetShader(_pixel_shader[IDX(_state_set.vertex_color_blend_state)][IDX(_state_set.fog_state)][IDX(state)].Get(), NULL, 0);
+			ctx->PSSetShader(_pixel_shader[IDX(_state_set.vertex_color_blend_state)][IDX(_state_set.fog_state)][IDX(state)].get(), NULL, 0);
 		}
 	}
 	bool Renderer_D3D11::batchFlush(bool discard)
@@ -775,27 +775,27 @@ namespace core::Graphics
 
 		_state_texture.reset();
 
-		_fx_vbuffer.Reset();
-		_fx_ibuffer.Reset();
+		_fx_vbuffer.reset();
+		_fx_ibuffer.reset();
 		for (auto& v : _vi_buffer)
 		{
-			v.vertex_buffer.Reset();
-			v.index_buffer.Reset();
+			v.vertex_buffer.reset();
+			v.index_buffer.reset();
 			v.vertex_offset = 0;
 			v.index_offset = 0;
 		}
 		_vi_buffer_index = 0;
 
-		_vp_matrix_buffer.Reset();
-		_world_matrix_buffer.Reset();
-		_camera_pos_buffer.Reset();
-		_fog_data_buffer.Reset();
-		_user_float_buffer.Reset();
+		_vp_matrix_buffer.reset();
+		_world_matrix_buffer.reset();
+		_camera_pos_buffer.reset();
+		_fog_data_buffer.reset();
+		_user_float_buffer.reset();
 
-		_input_layout.Reset();
+		_input_layout.reset();
 		for (auto& v : _vertex_shader)
 		{
-			v.Reset();
+			v.reset();
 		}
 		for (auto& i : _pixel_shader)
 		{
@@ -803,22 +803,22 @@ namespace core::Graphics
 			{
 				for (auto& v : j)
 				{
-					v.Reset();
+					v.reset();
 				}
 			}
 		}
-		_raster_state.Reset();
+		_raster_state.reset();
 		for (auto& v : _sampler_state)
 		{
 			v.reset();
 		}
 		for (auto& v : _depth_state)
 		{
-			v.Reset();
+			v.reset();
 		}
 		for (auto& v : _blend_state)
 		{
-			v.Reset();
+			v.reset();
 		}
 
 		spdlog::info("[core] 已关闭渲染器");
@@ -832,25 +832,25 @@ namespace core::Graphics
 		// [IA Stage]
 
 		ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		ctx->IASetInputLayout(_input_layout.Get());
+		ctx->IASetInputLayout(_input_layout.get());
 		setVertexIndexBuffer();
 
 		// [VS State]
 
-		ID3D11Buffer* const view_projection_matrix = _vp_matrix_buffer.Get();
+		ID3D11Buffer* const view_projection_matrix = _vp_matrix_buffer.get();
 		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, 1, &view_projection_matrix);
-		ID3D11Buffer* const world_matrix = _world_matrix_buffer.Get();
+		ID3D11Buffer* const world_matrix = _world_matrix_buffer.get();
 		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_world_matrix, 1, &world_matrix);
 
 		// [RS Stage]
 
-		ctx->RSSetState(_raster_state.Get());
+		ctx->RSSetState(_raster_state.get());
 
 		// [PS State]
 
-		ID3D11Buffer* const camera_position = _camera_pos_buffer.Get();
+		ID3D11Buffer* const camera_position = _camera_pos_buffer.get();
 		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_camera_position, 1, &camera_position);
-		ID3D11Buffer* const fog_parameter = _fog_data_buffer.Get();
+		ID3D11Buffer* const fog_parameter = _fog_data_buffer.get();
 		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_fog_parameter, 1, &fog_parameter);
 
 		// [OM Stage]
@@ -930,11 +930,11 @@ namespace core::Graphics
 				auto* ctx = m_device->GetD3D11DeviceContext();
 				assert(ctx);
 				D3D11_MAPPED_SUBRESOURCE res_ = {};
-				HRESULT hr = gHR = ctx->Map(_vp_matrix_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
+				HRESULT hr = gHR = ctx->Map(_vp_matrix_buffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
 				if (SUCCEEDED(hr))
 				{
 					std::memcpy(res_.pData, &f4x4, sizeof(f4x4));
-					ctx->Unmap(_vp_matrix_buffer.Get(), 0);
+					ctx->Unmap(_vp_matrix_buffer.get(), 0);
 				}
 				else
 				{
@@ -972,11 +972,11 @@ namespace core::Graphics
 			assert(ctx);
 			/* upload vp matrix */ {
 				D3D11_MAPPED_SUBRESOURCE res_ = {};
-				HRESULT hr = gHR = ctx->Map(_vp_matrix_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
+				HRESULT hr = gHR = ctx->Map(_vp_matrix_buffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
 				if (SUCCEEDED(hr))
 				{
 					std::memcpy(res_.pData, &f4x4, sizeof(f4x4));
-					ctx->Unmap(_vp_matrix_buffer.Get(), 0);
+					ctx->Unmap(_vp_matrix_buffer.get(), 0);
 				}
 				else
 				{
@@ -985,11 +985,11 @@ namespace core::Graphics
 			}
 			/* upload camera pos */ {
 				D3D11_MAPPED_SUBRESOURCE res_ = {};
-				HRESULT hr = gHR = ctx->Map(_camera_pos_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
+				HRESULT hr = gHR = ctx->Map(_camera_pos_buffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
 				if (SUCCEEDED(hr))
 				{
 					std::memcpy(res_.pData, camera_pos, sizeof(camera_pos));
-					ctx->Unmap(_camera_pos_buffer.Get(), 0);
+					ctx->Unmap(_camera_pos_buffer.get(), 0);
 				}
 				else
 				{
@@ -1051,7 +1051,7 @@ namespace core::Graphics
 			_state_set.vertex_color_blend_state = state;
 			auto* ctx = m_device->GetD3D11DeviceContext();
 			assert(ctx);
-			ctx->PSSetShader(_pixel_shader[IDX(state)][IDX(_state_set.fog_state)][IDX(_state_set.texture_alpha_type)].Get(), NULL, 0);
+			ctx->PSSetShader(_pixel_shader[IDX(state)][IDX(_state_set.fog_state)][IDX(_state_set.texture_alpha_type)].get(), NULL, 0);
 		}
 	}
 	void Renderer_D3D11::setFogState(FogState state, Color4B const& color, float density_or_znear, float zfar)
@@ -1065,7 +1065,7 @@ namespace core::Graphics
 			_state_set.fog_far = zfar;
 			auto* ctx = m_device->GetD3D11DeviceContext();
 			assert(ctx);
-			ctx->VSSetShader(_vertex_shader[IDX(state)].Get(), NULL, 0);
+			ctx->VSSetShader(_vertex_shader[IDX(state)].get(), NULL, 0);
 			float const fog_color_and_range[8] = {
 				(float)color.r / 255.0f,
 				(float)color.g / 255.0f,
@@ -1075,18 +1075,18 @@ namespace core::Graphics
 			};
 			/* upload */ {
 				D3D11_MAPPED_SUBRESOURCE res_ = {};
-				HRESULT hr = gHR = ctx->Map(_fog_data_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
+				HRESULT hr = gHR = ctx->Map(_fog_data_buffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
 				if (SUCCEEDED(hr))
 				{
 					std::memcpy(res_.pData, fog_color_and_range, sizeof(fog_color_and_range));
-					ctx->Unmap(_fog_data_buffer.Get(), 0);
+					ctx->Unmap(_fog_data_buffer.get(), 0);
 				}
 				else
 				{
 					spdlog::error("[core] ID3D11DeviceContext::Map -> #fog_data_buffer 调用失败，无法上传雾颜色、范围和密度信息");
 				}
 			}
-			ctx->PSSetShader(_pixel_shader[IDX(_state_set.vertex_color_blend_state)][IDX(state)][IDX(_state_set.texture_alpha_type)].Get(), NULL, 0);
+			ctx->PSSetShader(_pixel_shader[IDX(_state_set.vertex_color_blend_state)][IDX(state)][IDX(_state_set.texture_alpha_type)].get(), NULL, 0);
 		}
 	}
 	void Renderer_D3D11::setDepthState(DepthState state)
@@ -1097,7 +1097,7 @@ namespace core::Graphics
 			_state_set.depth_state = state;
 			auto* ctx = m_device->GetD3D11DeviceContext();
 			assert(ctx);
-			ctx->OMSetDepthStencilState(_depth_state[IDX(state)].Get(), D3D11_DEFAULT_STENCIL_REFERENCE);
+			ctx->OMSetDepthStencilState(_depth_state[IDX(state)].get(), D3D11_DEFAULT_STENCIL_REFERENCE);
 		}
 	}
 	void Renderer_D3D11::setBlendState(BlendState state)
@@ -1109,7 +1109,7 @@ namespace core::Graphics
 			auto* ctx = m_device->GetD3D11DeviceContext();
 			assert(ctx);
 			FLOAT const factor[4] = {};
-			ctx->OMSetBlendState(_blend_state[IDX(state)].Get(), factor, D3D11_DEFAULT_SAMPLE_MASK);
+			ctx->OMSetBlendState(_blend_state[IDX(state)].get(), factor, D3D11_DEFAULT_SAMPLE_MASK);
 		}
 	}
 
@@ -1299,8 +1299,8 @@ namespace core::Graphics
 		auto* ctx = m_device->GetD3D11DeviceContext();
 		assert(ctx);
 
-		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> p_d3d11_rtv;
-		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> p_d3d11_dsv;
+		win32::com_ptr<ID3D11RenderTargetView> p_d3d11_rtv;
+		win32::com_ptr<ID3D11DepthStencilView> p_d3d11_dsv;
 
 		float sw_ = 0.0f;
 		float sh_ = 0.0f;
@@ -1310,10 +1310,10 @@ namespace core::Graphics
 			ctx->OMGetRenderTargets(1, &rtv_, &dsv_);
 			if (rtv_)
 			{
-				Microsoft::WRL::ComPtr<ID3D11Resource> res_;
-				rtv_->GetResource(&res_);
-				Microsoft::WRL::ComPtr<ID3D11Texture2D> tex2d_;
-				HRESULT hr = gHR = res_.As(&tex2d_);
+				win32::com_ptr<ID3D11Resource> res_;
+				rtv_->GetResource(res_.put());
+				win32::com_ptr<ID3D11Texture2D> tex2d_;
+				HRESULT hr = gHR = res_->QueryInterface(tex2d_.put());
 				if (SUCCEEDED(hr))
 				{
 					D3D11_TEXTURE2D_DESC desc_ = {};
@@ -1347,7 +1347,7 @@ namespace core::Graphics
 
 		/* upload vertex data */ {
 			D3D11_MAPPED_SUBRESOURCE res_ = {};
-			HRESULT hr = gHR = m_device->GetD3D11DeviceContext()->Map(_fx_vbuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
+			HRESULT hr = gHR = m_device->GetD3D11DeviceContext()->Map(_fx_vbuffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
 			if (FAILED(hr))
 			{
 				spdlog::error("[core] ID3D11DeviceContext::Map -> #_fx_vbuffer 调用失败，无法上传顶点");
@@ -1360,28 +1360,28 @@ namespace core::Graphics
 				DrawVertex(0.f, 0.f, 0.0f, 1.0f),
 			};
 			std::memcpy(res_.pData, vertex_data, sizeof(vertex_data));
-			m_device->GetD3D11DeviceContext()->Unmap(_fx_vbuffer.Get(), 0);
+			m_device->GetD3D11DeviceContext()->Unmap(_fx_vbuffer.get(), 0);
 		}
 		
 		ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		ID3D11Buffer* p_d3d11_vbos[1] = { _fx_vbuffer.Get() };
+		ID3D11Buffer* p_d3d11_vbos[1] = { _fx_vbuffer.get() };
 		UINT const stride = sizeof(DrawVertex);
 		UINT const offset = 0;
 		ctx->IASetVertexBuffers(0, 1, p_d3d11_vbos, &stride, &offset);
-		ctx->IASetIndexBuffer(_fx_ibuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
-		ctx->IASetInputLayout(_input_layout.Get());
+		ctx->IASetIndexBuffer(_fx_ibuffer.get(), DXGI_FORMAT_R16_UINT, 0);
+		ctx->IASetInputLayout(_input_layout.get());
 
 		// [Stage VS]
 
 		/* upload vp matrix */ {
 			D3D11_MAPPED_SUBRESOURCE res_ = {};
-			HRESULT hr = gHR = ctx->Map(_vp_matrix_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
+			HRESULT hr = gHR = ctx->Map(_vp_matrix_buffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
 			if (SUCCEEDED(hr))
 			{
 				DirectX::XMFLOAT4X4 f4x4;
 				DirectX::XMStoreFloat4x4(&f4x4, DirectX::XMMatrixOrthographicOffCenterLH(0.0f, sw_, 0.0f, sh_, 0.0f, 1.0f));
 				std::memcpy(res_.pData, &f4x4, sizeof(f4x4));
-				ctx->Unmap(_vp_matrix_buffer.Get(), 0);
+				ctx->Unmap(_vp_matrix_buffer.get(), 0);
 			}
 			else
 			{
@@ -1389,13 +1389,13 @@ namespace core::Graphics
 			}
 		}
 
-		ctx->VSSetShader(_vertex_shader[IDX(FogState::Disable)].Get(), NULL, 0);
-		ID3D11Buffer* const view_projection_matrix = _vp_matrix_buffer.Get();
+		ctx->VSSetShader(_vertex_shader[IDX(FogState::Disable)].get(), NULL, 0);
+		ID3D11Buffer* const view_projection_matrix = _vp_matrix_buffer.get();
 		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, 1, &view_projection_matrix);
 
 		// [Stage RS]
 
-		ctx->RSSetState(_raster_state.Get());
+		ctx->RSSetState(_raster_state.get());
 		D3D11_VIEWPORT viewport = {
 			.TopLeftX = 0.0f,
 			.TopLeftY = 0.0f,
@@ -1417,14 +1417,14 @@ namespace core::Graphics
 
 		/* upload built-in value */ if (cv_n > 0) {
 			D3D11_MAPPED_SUBRESOURCE res_ = {};
-			HRESULT hr = gHR = ctx->Map(_user_float_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
+			HRESULT hr = gHR = ctx->Map(_user_float_buffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
 			if (FAILED(hr))
 			{
 				spdlog::error("[core] ID3D11DeviceContext::Map -> #user_float_buffer 调用失败，上传数据失败，LuaSTG::core::Renderer::postEffect 调用提前中止");
 				return false;
 			}
 			std::memcpy(res_.pData, cv, std::min<UINT>((UINT)cv_n, 8) * sizeof(Vector4F));
-			ctx->Unmap(_user_float_buffer.Get(), 0);
+			ctx->Unmap(_user_float_buffer.get(), 0);
 		}
 		/* upload built-in value */ {
 			float ps_cbdata[8] = {
@@ -1432,18 +1432,18 @@ namespace core::Graphics
 				_state_set.viewport.a.x, _state_set.viewport.a.y, _state_set.viewport.b.x, _state_set.viewport.b.y,
 			};
 			D3D11_MAPPED_SUBRESOURCE res_ = {};
-			HRESULT hr = gHR = ctx->Map(_fog_data_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
+			HRESULT hr = gHR = ctx->Map(_fog_data_buffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
 			if (FAILED(hr))
 			{
 				spdlog::error("[core] ID3D11DeviceContext::Map -> #engine_built_in_value_buffer 调用失败，无法上传渲染目标尺寸和视口信息，LuaSTG::core::Renderer::postEffect 调用提前中止");
 				return false;
 			}
 			std::memcpy(res_.pData, ps_cbdata, sizeof(ps_cbdata));
-			ctx->Unmap(_fog_data_buffer.Get(), 0);
+			ctx->Unmap(_fog_data_buffer.get(), 0);
 		}
-		ID3D11Buffer* const user_data = _user_float_buffer.Get();
+		ID3D11Buffer* const user_data = _user_float_buffer.get();
 		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_user_data, 1, &user_data);
-		ID3D11Buffer* const fog_parameter = _fog_data_buffer.Get();
+		ID3D11Buffer* const fog_parameter = _fog_data_buffer.get();
 		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_fog_parameter, 1, &fog_parameter);
 
 		ctx->PSSetShader(static_cast<PostEffectShader_D3D11*>(p_effect)->GetPS(), NULL, 0);
@@ -1462,11 +1462,11 @@ namespace core::Graphics
 
 		// [Stage OM]
 
-		ctx->OMSetDepthStencilState(_depth_state[IDX(DepthState::Disable)].Get(), D3D11_DEFAULT_STENCIL_REFERENCE);
+		ctx->OMSetDepthStencilState(_depth_state[IDX(DepthState::Disable)].get(), D3D11_DEFAULT_STENCIL_REFERENCE);
 		FLOAT blend_factor[4] = {};
-		ctx->OMSetBlendState(_blend_state[IDX(blend)].Get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
-		ID3D11RenderTargetView* p_d3d11_rtvs[1] = { p_d3d11_rtv.Get() };
-		ctx->OMSetRenderTargets(1, p_d3d11_rtvs, p_d3d11_dsv.Get());
+		ctx->OMSetBlendState(_blend_state[IDX(blend)].get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
+		ID3D11RenderTargetView* p_d3d11_rtvs[1] = { p_d3d11_rtv.get() };
+		ctx->OMSetRenderTargets(1, p_d3d11_rtvs, p_d3d11_dsv.get());
 
 		// DRAW
 
@@ -1475,7 +1475,7 @@ namespace core::Graphics
 		// CLEAR
 
 		ctx->ClearState();
-		ctx->OMSetRenderTargets(1, p_d3d11_rtvs, p_d3d11_dsv.Get());
+		ctx->OMSetRenderTargets(1, p_d3d11_rtvs, p_d3d11_dsv.get());
 
 		return beginBatch();
 	}
@@ -1490,8 +1490,8 @@ namespace core::Graphics
 		auto* ctx = m_device->GetD3D11DeviceContext();
 		assert(ctx);
 
-		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> p_d3d11_rtv;
-		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> p_d3d11_dsv;
+		win32::com_ptr<ID3D11RenderTargetView> p_d3d11_rtv;
+		win32::com_ptr<ID3D11DepthStencilView> p_d3d11_dsv;
 
 		float sw_ = 0.0f;
 		float sh_ = 0.0f;
@@ -1501,10 +1501,10 @@ namespace core::Graphics
 			ctx->OMGetRenderTargets(1, &rtv_, &dsv_);
 			if (rtv_)
 			{
-				Microsoft::WRL::ComPtr<ID3D11Resource> res_;
-				rtv_->GetResource(&res_);
-				Microsoft::WRL::ComPtr<ID3D11Texture2D> tex2d_;
-				HRESULT hr = gHR = res_.As(&tex2d_);
+				win32::com_ptr<ID3D11Resource> res_;
+				rtv_->GetResource(res_.put());
+				win32::com_ptr<ID3D11Texture2D> tex2d_;
+				HRESULT hr = gHR = res_->QueryInterface(tex2d_.put());
 				if (SUCCEEDED(hr))
 				{
 					D3D11_TEXTURE2D_DESC desc_ = {};
@@ -1538,7 +1538,7 @@ namespace core::Graphics
 
 		/* upload vertex data */ {
 			D3D11_MAPPED_SUBRESOURCE res_ = {};
-			HRESULT hr = gHR = m_device->GetD3D11DeviceContext()->Map(_fx_vbuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
+			HRESULT hr = gHR = m_device->GetD3D11DeviceContext()->Map(_fx_vbuffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
 			if (FAILED(hr))
 			{
 				spdlog::error("[core] ID3D11DeviceContext::Map -> #_fx_vbuffer 调用失败，无法上传顶点");
@@ -1551,28 +1551,28 @@ namespace core::Graphics
 				DrawVertex(0.f, 0.f, 0.0f, 1.0f),
 			};
 			std::memcpy(res_.pData, vertex_data, sizeof(vertex_data));
-			m_device->GetD3D11DeviceContext()->Unmap(_fx_vbuffer.Get(), 0);
+			m_device->GetD3D11DeviceContext()->Unmap(_fx_vbuffer.get(), 0);
 		}
 
 		ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		ID3D11Buffer* p_d3d11_vbos[1] = { _fx_vbuffer.Get() };
+		ID3D11Buffer* p_d3d11_vbos[1] = { _fx_vbuffer.get() };
 		UINT const stride = sizeof(DrawVertex);
 		UINT const offset = 0;
 		ctx->IASetVertexBuffers(0, 1, p_d3d11_vbos, &stride, &offset);
-		ctx->IASetIndexBuffer(_fx_ibuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
-		ctx->IASetInputLayout(_input_layout.Get());
+		ctx->IASetIndexBuffer(_fx_ibuffer.get(), DXGI_FORMAT_R16_UINT, 0);
+		ctx->IASetInputLayout(_input_layout.get());
 
 		// [Stage VS]
 
 		/* upload vp matrix */ {
 			D3D11_MAPPED_SUBRESOURCE res_ = {};
-			HRESULT hr = gHR = ctx->Map(_vp_matrix_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
+			HRESULT hr = gHR = ctx->Map(_vp_matrix_buffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
 			if (SUCCEEDED(hr))
 			{
 				DirectX::XMFLOAT4X4 f4x4;
 				DirectX::XMStoreFloat4x4(&f4x4, DirectX::XMMatrixOrthographicOffCenterLH(0.0f, sw_, 0.0f, sh_, 0.0f, 1.0f));
 				std::memcpy(res_.pData, &f4x4, sizeof(f4x4));
-				ctx->Unmap(_vp_matrix_buffer.Get(), 0);
+				ctx->Unmap(_vp_matrix_buffer.get(), 0);
 			}
 			else
 			{
@@ -1580,13 +1580,13 @@ namespace core::Graphics
 			}
 		}
 
-		ctx->VSSetShader(_vertex_shader[IDX(FogState::Disable)].Get(), NULL, 0);
-		ID3D11Buffer* const view_projection_matrix = _vp_matrix_buffer.Get();
+		ctx->VSSetShader(_vertex_shader[IDX(FogState::Disable)].get(), NULL, 0);
+		ID3D11Buffer* const view_projection_matrix = _vp_matrix_buffer.get();
 		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, 1, &view_projection_matrix);
 
 		// [Stage RS]
 
-		ctx->RSSetState(_raster_state.Get());
+		ctx->RSSetState(_raster_state.get());
 		D3D11_VIEWPORT viewport = {
 			.TopLeftX = 0.0f,
 			.TopLeftY = 0.0f,
@@ -1615,11 +1615,11 @@ namespace core::Graphics
 		
 		// [Stage OM]
 
-		ctx->OMSetDepthStencilState(_depth_state[IDX(DepthState::Disable)].Get(), D3D11_DEFAULT_STENCIL_REFERENCE);
+		ctx->OMSetDepthStencilState(_depth_state[IDX(DepthState::Disable)].get(), D3D11_DEFAULT_STENCIL_REFERENCE);
 		FLOAT blend_factor[4] = {};
-		ctx->OMSetBlendState(_blend_state[IDX(blend)].Get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
-		ID3D11RenderTargetView* p_d3d11_rtvs[1] = { p_d3d11_rtv.Get() };
-		ctx->OMSetRenderTargets(1, p_d3d11_rtvs, p_d3d11_dsv.Get());
+		ctx->OMSetBlendState(_blend_state[IDX(blend)].get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
+		ID3D11RenderTargetView* p_d3d11_rtvs[1] = { p_d3d11_rtv.get() };
+		ctx->OMSetRenderTargets(1, p_d3d11_rtvs, p_d3d11_dsv.get());
 
 		// DRAW
 
@@ -1628,7 +1628,7 @@ namespace core::Graphics
 		// CLEAR
 
 		ctx->ClearState();
-		ctx->OMSetRenderTargets(1, p_d3d11_rtvs, p_d3d11_dsv.Get());
+		ctx->OMSetRenderTargets(1, p_d3d11_rtvs, p_d3d11_dsv.get());
 
 		return beginBatch();
 	}

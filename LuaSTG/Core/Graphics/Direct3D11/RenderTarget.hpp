@@ -19,9 +19,9 @@ namespace core::Graphics::Direct3D11 {
 
 		// IRenderTarget
 
-		[[nodiscard]] void* getNativeHandle() const noexcept override { return m_view.Get(); }
+		[[nodiscard]] void* getNativeHandle() const noexcept override { return m_view.get(); }
 #ifdef LUASTG_ENABLE_DIRECT2D
-		[[nodiscard]] void* getNativeBitmapHandle() const noexcept override { return m_bitmap.Get(); }
+		[[nodiscard]] void* getNativeBitmapHandle() const noexcept override { return m_bitmap.get(); }
 #else
 		[[nodiscard]] void* getNativeBitmapHandle() const noexcept override { return nullptr; }
 #endif
@@ -37,7 +37,7 @@ namespace core::Graphics::Direct3D11 {
 		RenderTarget& operator=(RenderTarget&&) = delete;
 		~RenderTarget();
 
-		[[nodiscard]] ID3D11RenderTargetView* GetView() const noexcept { return m_view.Get(); }
+		[[nodiscard]] ID3D11RenderTargetView* GetView() const noexcept { return m_view.get(); }
 
 		bool initialize(Device* device, Vector2U size);
 		bool createResource();
@@ -45,9 +45,9 @@ namespace core::Graphics::Direct3D11 {
 	private:
 		SmartReference<Device> m_device;
 		SmartReference<Texture2D> m_texture;
-		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_view;
+		win32::com_ptr<ID3D11RenderTargetView> m_view;
 #ifdef LUASTG_ENABLE_DIRECT2D
-		Microsoft::WRL::ComPtr<ID2D1Bitmap1> m_bitmap;
+		win32::com_ptr<ID2D1Bitmap1> m_bitmap;
 #endif
 		bool m_initialized{ false };
 	};

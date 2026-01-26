@@ -38,15 +38,15 @@ namespace {
 			return false;
 		}
 
-		Microsoft::WRL::ComPtr<IDXGIFactory1> factory;
-		HRGet = swap_chain->GetParent(IID_PPV_ARGS(factory.ReleaseAndGetAddressOf()));
+		win32::com_ptr<IDXGIFactory1> factory;
+		HRGet = swap_chain->GetParent(IID_PPV_ARGS(factory.put()));
 		HRCheckCallNoAssertReturnBool("IDXGISwapChain::GetParent -> IDXGIFactory1");
 
-		Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter;
-		Microsoft::WRL::ComPtr<IDXGIOutput> output;
+		win32::com_ptr<IDXGIAdapter1> adapter;
+		win32::com_ptr<IDXGIOutput> output;
 
-		for (UINT adapter_index = 0; SUCCEEDED(factory->EnumAdapters1(adapter_index, adapter.ReleaseAndGetAddressOf())); adapter_index++) {
-			for (UINT output_index = 0; SUCCEEDED(adapter->EnumOutputs(output_index, output.ReleaseAndGetAddressOf())); output_index++) {
+		for (UINT adapter_index = 0; SUCCEEDED(factory->EnumAdapters1(adapter_index, adapter.put())); adapter_index++) {
+			for (UINT output_index = 0; SUCCEEDED(adapter->EnumOutputs(output_index, output.put())); output_index++) {
 				DXGI_OUTPUT_DESC output_info{};
 				HRGet = output->GetDesc(&output_info);
 				if (FAILED(hr)) {
@@ -54,7 +54,7 @@ namespace {
 					continue;
 				}
 				if (monitor == output_info.Monitor) {
-					*output_output = output.Detach();
+					*output_output = output.detach();
 					return true;
 				}
 			}
@@ -164,17 +164,17 @@ namespace core::Graphics
 	{
 		HRNew;
 
-		Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output;
-		HRGet = dxgi_swapchain->GetContainingOutput(&dxgi_output);
+		win32::com_ptr<IDXGIOutput> dxgi_output;
+		HRGet = dxgi_swapchain->GetContainingOutput(dxgi_output.put());
 		if (FAILED(hr)) {
 			ReportError("IDXGISwapChain1::GetContainingOutput");
-			if (!resolveOutput(window, dxgi_swapchain, dxgi_output.ReleaseAndGetAddressOf())) {
+			if (!resolveOutput(window, dxgi_swapchain, dxgi_output.put())) {
 				return false;
 			}
 		}
 		
-		Microsoft::WRL::ComPtr<IDXGIOutput1> dxgi_output_1;
-		HRGet = dxgi_output.As(&dxgi_output_1);
+		win32::com_ptr<IDXGIOutput1> dxgi_output_1;
+		HRGet = dxgi_output->QueryInterface(dxgi_output_1.put());
 		HRCheckCallReturnBool("IDXGIOutput::QueryInterface -> IDXGIOutput1");
 
 		DXGI_OUTPUT_DESC dxgi_output_info = {};
@@ -427,15 +427,15 @@ namespace core::Graphics
 		// * 系统安装了 KB3156421 更新，也就是 Windows 10 在 2016 年 5 月 10 日的更新
 		//   https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/variable-refresh-rate-displays
 
-		Microsoft::WRL::ComPtr<IDXGIFactory2> dxgi_factory;
-		HRGet = Platform::Direct3D11::GetDeviceFactory(device, &dxgi_factory);
+		win32::com_ptr<IDXGIFactory2> dxgi_factory;
+		HRGet = Platform::Direct3D11::GetDeviceFactory(device, dxgi_factory.put());
 		HRCheckCallReturnBool("Platform::Direct3D11::GetDeviceFactory");
-		BOOL present_allow_tearing = Platform::DXGI::CheckFeatureSupportPresentAllowTearing(dxgi_factory.Get());
+		BOOL present_allow_tearing = Platform::DXGI::CheckFeatureSupportPresentAllowTearing(dxgi_factory.get());
 
 		// 检查 DirectFlip
 
-		Microsoft::WRL::ComPtr<IDXGIAdapter1> dxgi_adapter;
-		HRGet = Platform::Direct3D11::GetDeviceAdater(device, &dxgi_adapter);
+		win32::com_ptr<IDXGIAdapter1> dxgi_adapter;
+		HRGet = Platform::Direct3D11::GetDeviceAdater(device, dxgi_adapter.put());
 		HRCheckCallReturnBool("Platform::Direct3D11::GetDeviceAdater");
 		DXGI_ADAPTER_DESC1 dxgi_adapter_info{};
 		HRGet = dxgi_adapter->GetDesc1(&dxgi_adapter_info);
@@ -523,20 +523,20 @@ namespace core::Graphics
 
 		// 检查各个显示输出的支持情况
 
-		Microsoft::WRL::ComPtr<IDXGIFactory2> dxgi_factory;
-		HRGet = Platform::Direct3D11::GetDeviceFactory(device, &dxgi_factory);
+		win32::com_ptr<IDXGIFactory2> dxgi_factory;
+		HRGet = Platform::Direct3D11::GetDeviceFactory(device, dxgi_factory.put());
 		HRCheckCallReturnBool("Platform::Direct3D11::GetDeviceFactory");
 
 		Platform::RuntimeLoader::D3DKMT d3dkmt;
 
-		Microsoft::WRL::ComPtr<IDXGIAdapter1> dxgi_adapter;
-		for (UINT adapter_index = 0; SUCCEEDED(dxgi_factory->EnumAdapters1(adapter_index, &dxgi_adapter)); adapter_index += 1) {
+		win32::com_ptr<IDXGIAdapter1> dxgi_adapter;
+		for (UINT adapter_index = 0; SUCCEEDED(dxgi_factory->EnumAdapters1(adapter_index, dxgi_adapter.put())); adapter_index += 1) {
 			DXGI_ADAPTER_DESC1 dxgi_adapter_info{};
 			HRGet = dxgi_adapter->GetDesc1(&dxgi_adapter_info);
 			HRCheckCallReturnBool("IDXGIAdapter1::GetDesc1");
 
-			Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output;
-			for (UINT output_index = 0; SUCCEEDED(dxgi_adapter->EnumOutputs(output_index, &dxgi_output)); output_index += 1) {
+			win32::com_ptr<IDXGIOutput> dxgi_output;
+			for (UINT output_index = 0; SUCCEEDED(dxgi_adapter->EnumOutputs(output_index, dxgi_output.put())); output_index += 1) {
 				DXGI_OUTPUT_DESC dxgi_output_info{};
 				HRGet =  dxgi_output->GetDesc(&dxgi_output_info);
 				HRCheckCallReturnBool("IDXGIOutput::GetDesc");
@@ -597,8 +597,8 @@ namespace core::Graphics
 				// 检查额外的功能
 				
 				BOOL overlays = FALSE; // 我们只打印信息，但不使用这个值，因为它代表的含义并不清晰
-				Microsoft::WRL::ComPtr<IDXGIOutput2> dxgi_output2;
-				HRGet = dxgi_output.As(&dxgi_output2);
+				win32::com_ptr<IDXGIOutput2> dxgi_output2;
+				HRGet = dxgi_output->QueryInterface(dxgi_output2.put());
 				HRCheckCallReport("IDXGIOutput::QueryInterface -> IDXGIOutput2");
 				if (dxgi_output2)
 				{
@@ -606,8 +606,8 @@ namespace core::Graphics
 				}
 
 				UINT hardware_composition_support{};
-				Microsoft::WRL::ComPtr<IDXGIOutput6> dxgi_output6;
-				HRGet = dxgi_output.As(&dxgi_output6);
+				win32::com_ptr<IDXGIOutput6> dxgi_output6;
+				HRGet = dxgi_output->QueryInterface(dxgi_output6.put());
 				HRCheckCallReport("IDXGIOutput::QueryInterface -> IDXGIOutput6");
 				if (dxgi_output6)
 				{
@@ -729,14 +729,14 @@ namespace core::Graphics
 		assert(dxgi_swap_chain);
 		HRNew;
 		
-		wil::com_ptr_nothrow<ID3D11Texture2D> texture;
+		win32::com_ptr<ID3D11Texture2D> texture;
 		HRGet = dxgi_swap_chain->GetBuffer(0, IID_PPV_ARGS(texture.put()));
 		HRCheckCallReturnBool("IDXGISwapChain::GetBuffer");
 
 		HRGet = d3d11_device->CreateRenderTargetView(texture.get(), NULL, d3d11_rtv.put());
 		HRCheckCallReturnBool("ID3D11Device::CreateRenderTargetView");
 
-		wil::com_ptr_nothrow<IDXGISurface> surface;
+		win32::com_ptr<IDXGISurface> surface;
 		HRGet = dxgi_swap_chain->GetBuffer(0, IID_PPV_ARGS(surface.put()));
 		HRCheckCallReturnBool("IDXGISwapChain::GetBuffer");
 
@@ -1049,7 +1049,7 @@ namespace core::Graphics
 			&m_swap_chain_info,
 			fullscreen ? &m_swap_chain_fullscreen_info : NULL,
 			NULL,
-			&dxgi_swapchain);
+			dxgi_swapchain.put());
 		HRCheckCallReturnBool("IDXGIFactory2::CreateSwapChainForHwnd");
 		
 		m_swap_chain_fullscreen_mode = fullscreen;
@@ -1058,13 +1058,13 @@ namespace core::Graphics
 		// 注意这里他妈的有坑，新创建的 DXGI 工厂和交换链内部的的不是同一个
 
 		HRGet = Platform::DXGI::MakeSwapChainWindowAssociation(
-			dxgi_swapchain.Get(), DXGI_MWA_NO_ALT_ENTER);
+			dxgi_swapchain.get(), DXGI_MWA_NO_ALT_ENTER);
 		HRCheckCallReturnBool("IDXGIFactory1::MakeWindowAssociation -> DXGI_MWA_NO_ALT_ENTER");
 		
 		// 设置设备最大帧延迟为 1
 
 		HRGet = Platform::DXGI::SetDeviceMaximumFrameLatency(
-			dxgi_swapchain.Get(), 1);
+			dxgi_swapchain.get(), 1);
 		HRCheckCallReturnBool("IDXGIDevice1::SetMaximumFrameLatency -> 1");
 		
 		// 如果启用了低延迟呈现技术，则设置交换链最大帧延迟为 1
@@ -1073,9 +1073,9 @@ namespace core::Graphics
 		{
 			HANDLE event_handle{};
 			HRGet = Platform::DXGI::SetSwapChainMaximumFrameLatency(
-				dxgi_swapchain.Get(), 1, &event_handle);
+				dxgi_swapchain.get(), 1, &event_handle);
 			HRCheckCallReturnBool("IDXGISwapChain2::SetMaximumFrameLatency -> 1");
-			dxgi_swapchain_event.Attach(event_handle);
+			dxgi_swapchain_event.reset(event_handle);
 		}
 
 		//i18n_log_info("[core].SwapChain_D3D11.created_swapchain");
@@ -1123,8 +1123,8 @@ namespace core::Graphics
 			// 退出独占全屏
 			HRNew;
 			BOOL bFullscreen = FALSE;
-			Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output;
-			HRGet = dxgi_swapchain->GetFullscreenState(&bFullscreen, &dxgi_output);
+			win32::com_ptr<IDXGIOutput> dxgi_output;
+			HRGet = dxgi_swapchain->GetFullscreenState(&bFullscreen, dxgi_output.put());
 			HRCheckCallReport("IDXGISwapChain::GetFullscreenState");
 			if (SUCCEEDED(hr) && bFullscreen)
 			{
@@ -1133,8 +1133,8 @@ namespace core::Graphics
 				HRCheckCallReport("IDXGISwapChain::SetFullscreenState -> FALSE");
 			}
 		}
-		dxgi_swapchain_event.Close();
-		dxgi_swapchain.Reset();
+		dxgi_swapchain_event.reset();
+		dxgi_swapchain.reset();
 	}
 	void SwapChain_D3D11::waitFrameLatency(uint32_t timeout, bool reset)
 	{
@@ -1148,21 +1148,21 @@ namespace core::Graphics
 
 				// 微软不知道写了什么狗屎bug，有时候dwm临时接管桌面合成后会导致上屏延迟多一倍
 				// 重新设置最大帧延迟并创建延迟等待对象似乎能解决该问题
-				dxgi_swapchain_event.Close();
+				dxgi_swapchain_event.reset();
 
-				Microsoft::WRL::ComPtr<IDXGISwapChain2> dxgi_swap_chain2;
-				HRGet = dxgi_swapchain.As(&dxgi_swap_chain2);
+				win32::com_ptr<IDXGISwapChain2> dxgi_swap_chain2;
+				HRGet = dxgi_swapchain->QueryInterface(dxgi_swap_chain2.put());
 				HRCheckCallReport("IDXGISwapChain1 -> IDXGISwapChain２");
 				if (FAILED(hr)) return;
 				HRGet = dxgi_swap_chain2->SetMaximumFrameLatency(1);
 				HRCheckCallReport("IDXGISwapChain２::SetMaximumFrameLatency(1)");
 				if (FAILED(hr)) return;
 
-				dxgi_swapchain_event.Attach(dxgi_swap_chain2->GetFrameLatencyWaitableObject());
+				dxgi_swapchain_event.reset(dxgi_swap_chain2->GetFrameLatencyWaitableObject());
 			}
-			if (dxgi_swapchain_event.IsValid())
+			if (dxgi_swapchain_event)
 			{
-				DWORD const result = WaitForSingleObject(dxgi_swapchain_event.Get(), timeout);
+				DWORD const result = WaitForSingleObject(dxgi_swapchain_event.get(), timeout);
 				if (!(result == WAIT_OBJECT_0 || result == WAIT_TIMEOUT))
 				{
 					gHRLastError;
@@ -1244,7 +1244,7 @@ namespace core::Graphics
 		}
 
 		DXGI_MODE_DESC1 display_mode{};
-		if (!findBestDisplayMode(static_cast<HWND>(m_window->getNativeHandle()), dxgi_swapchain.Get(), m_canvas_size, display_mode)) {
+		if (!findBestDisplayMode(static_cast<HWND>(m_window->getNativeHandle()), dxgi_swapchain.get(), m_canvas_size, display_mode)) {
 			return false;
 		}
 
@@ -1337,22 +1337,22 @@ namespace core::Graphics
 		// 必须成功的操作
 
 #ifdef LUASTG_ENABLE_DIRECT2D
-		Microsoft::WRL::ComPtr<IDXGIDevice> dxgi_device;
-		HRGet = m_device->GetD3D11Device()->QueryInterface(IID_PPV_ARGS(&dxgi_device));
+		win32::com_ptr<IDXGIDevice> dxgi_device;
+		HRGet = m_device->GetD3D11Device()->QueryInterface(dxgi_device.put());
 		HRCheckCallReturnBool("ID3D11Device::QueryInterface -> IDXGIDevice");
 		
 		// 创建基本组件
 
-		HRGet = dcomp_loader.CreateDevice(dxgi_device.Get(), IID_PPV_ARGS(&dcomp_desktop_device));
+		HRGet = dcomp_loader.CreateDevice(dxgi_device.get(), IID_PPV_ARGS(dcomp_desktop_device.put()));
 		HRCheckCallReturnBool("DCompositionCreateDevice");
 #else
-		HRGet = dcomp_loader.CreateDevice(nullptr, IID_PPV_ARGS(&dcomp_desktop_device));
+		HRGet = dcomp_loader.CreateDevice(nullptr, IID_PPV_ARGS(dcomp_desktop_device.put()));
 		HRCheckCallReturnBool("DCompositionCreateDevice");
 #endif
 		
 	#ifdef _DEBUG
-		Microsoft::WRL::ComPtr<IDCompositionDeviceDebug> dcomp_device_debug;
-		HRGet = dcomp_desktop_device.As(&dcomp_device_debug);
+		win32::com_ptr<IDCompositionDeviceDebug> dcomp_device_debug;
+		HRGet = dcomp_desktop_device->QueryInterface(dcomp_device_debug.put());
 		HRCheckCallReport("IDCompositionDesktopDevice::QueryInterface -> IDCompositionDeviceDebug");
 		if (SUCCEEDED(hr))
 		{
@@ -1361,22 +1361,22 @@ namespace core::Graphics
 		}
 	#endif
 
-		HRGet = dcomp_desktop_device->CreateTargetForHwnd(static_cast<HWND>(m_window->getNativeHandle()), TRUE, &dcomp_target);
+		HRGet = dcomp_desktop_device->CreateTargetForHwnd(static_cast<HWND>(m_window->getNativeHandle()), TRUE, dcomp_target.put());
 		HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateTargetForHwnd");
 		
 		
-		HRGet = dcomp_desktop_device->CreateVisual(&dcomp_visual_swap_chain);
+		HRGet = dcomp_desktop_device->CreateVisual(dcomp_visual_swap_chain.put());
 		HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateVisual");
 		
 		// 桌面合成引擎模式，创建背景平面+交换链平面
 
 		if (m_is_composition_mode)
 		{
-			HRGet = dcomp_desktop_device->CreateVisual(&dcomp_visual_root);
+			HRGet = dcomp_desktop_device->CreateVisual(dcomp_visual_root.put());
 			HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateVisual");
 
 #ifdef LUASTG_ENABLE_DIRECT2D
-			HRGet = dcomp_desktop_device->CreateVisual(&dcomp_visual_title_bar);
+			HRGet = dcomp_desktop_device->CreateVisual(dcomp_visual_title_bar.put());
 			HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateVisual");
 
 			if (!swap_chain_title_bar.create(
@@ -1396,7 +1396,7 @@ namespace core::Graphics
 		
 		// 把交换链塞进可视物
 
-		HRGet = dcomp_visual_swap_chain->SetContent(dxgi_swapchain.Get());
+		HRGet = dcomp_visual_swap_chain->SetContent(dxgi_swapchain.get());
 		HRCheckCallReturnBool("IDCompositionVisual2::SetContent");
 		
 		HRGet = dcomp_visual_swap_chain->SetBitmapInterpolationMode(DCOMPOSITION_BITMAP_INTERPOLATION_MODE_LINEAR); // TODO: 支持改为临近缩放
@@ -1406,10 +1406,10 @@ namespace core::Graphics
 
 		if (m_is_composition_mode)
 		{
-			HRGet = dcomp_visual_root->AddVisual(dcomp_visual_swap_chain.Get(), TRUE, nullptr);
+			HRGet = dcomp_visual_root->AddVisual(dcomp_visual_swap_chain.get(), TRUE, nullptr);
 			HRCheckCallReturnBool("IDCompositionVisual2::AddVisual");
 
-			HRGet = dcomp_target->SetRoot(dcomp_visual_root.Get());
+			HRGet = dcomp_target->SetRoot(dcomp_visual_root.get());
 			HRCheckCallReturnBool("IDCompositionTarget::SetRoot");
 
 			// 设置变换并提交
@@ -1418,7 +1418,7 @@ namespace core::Graphics
 		}
 		else
 		{
-			HRGet = dcomp_target->SetRoot(dcomp_visual_swap_chain.Get());
+			HRGet = dcomp_target->SetRoot(dcomp_visual_swap_chain.get());
 			HRCheckCallReturnBool("IDCompositionTarget::SetRoot");
 
 			// 直接提交
@@ -1458,11 +1458,11 @@ namespace core::Graphics
 		}
 #endif
 
-		dcomp_target.Reset();
-		dcomp_visual_root.Reset();
-		dcomp_visual_swap_chain.Reset();
+		dcomp_target.reset();
+		dcomp_visual_root.reset();
+		dcomp_visual_swap_chain.reset();
 #ifdef LUASTG_ENABLE_DIRECT2D
-		dcomp_visual_title_bar.Reset();
+		dcomp_visual_title_bar.reset();
 		swap_chain_title_bar.destroy();
 		m_title_bar_attached = false;
 #endif
@@ -1475,7 +1475,7 @@ namespace core::Graphics
 			HRCheckCallReport("IDCompositionDesktopDevice::WaitForCommitCompletion");
 		}
 		
-		dcomp_desktop_device.Reset();
+		dcomp_desktop_device.reset();
 	}
 	bool SwapChain_D3D11::updateDirectCompositionTransform()
 	{
@@ -1607,23 +1607,23 @@ namespace core::Graphics
 		HRGet = m_device->GetDXGIFactory2()->CreateSwapChainForComposition(
 			m_device->GetD3D11Device(),
 			&m_swap_chain_info, NULL,
-			&dxgi_swapchain);
+			dxgi_swapchain.put());
 		HRCheckCallReturnBool("IDXGIFactory2::CreateSwapChainForComposition");
 		
 		m_swap_chain_fullscreen_mode = FALSE;
 
 		// 设置最大帧延迟为 1
 
-		HRGet = Platform::DXGI::SetDeviceMaximumFrameLatency(dxgi_swapchain.Get(), 1);
+		HRGet = Platform::DXGI::SetDeviceMaximumFrameLatency(dxgi_swapchain.get(), 1);
 		HRCheckCallReturnBool("IDXGIDevice1::SetMaximumFrameLatency -> 1");
 		
 		if (m_swap_chain_info.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
 		{
 			HANDLE event_handle{};
 			HRGet = Platform::DXGI::SetSwapChainMaximumFrameLatency(
-				dxgi_swapchain.Get(), 1, &event_handle);
+				dxgi_swapchain.get(), 1, &event_handle);
 			HRCheckCallReturnBool("IDXGISwapChain2::SetMaximumFrameLatency -> 1");
-			dxgi_swapchain_event.Attach(event_handle);
+			dxgi_swapchain_event.reset(event_handle);
 		}
 
 		// 打印信息
@@ -1675,16 +1675,16 @@ namespace core::Graphics
 
 		HRNew;
 
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> d3d11_texture2d;
-		HRGet = dxgi_swapchain->GetBuffer(0, IID_PPV_ARGS(&d3d11_texture2d));
+		win32::com_ptr<ID3D11Texture2D> d3d11_texture2d;
+		HRGet = dxgi_swapchain->GetBuffer(0, IID_PPV_ARGS(d3d11_texture2d.put()));
 		HRCheckCallReturnBool("IDXGISwapChain::GetBuffer -> 0");
 		
 		// TODO: 线性颜色空间
-		HRGet = m_device->GetD3D11Device()->CreateRenderTargetView(d3d11_texture2d.Get(), NULL, &m_swap_chain_d3d11_rtv);
+		HRGet = m_device->GetD3D11Device()->CreateRenderTargetView(d3d11_texture2d.get(), NULL, m_swap_chain_d3d11_rtv.put());
 		HRCheckCallReturnBool("ID3D11Device::CreateRenderTargetView");
 
-		Microsoft::WRL::ComPtr<IDXGISurface> dxgi_surface;
-		HRGet = dxgi_swapchain->GetBuffer(0, IID_PPV_ARGS(&dxgi_surface));
+		win32::com_ptr<IDXGISurface> dxgi_surface;
+		HRGet = dxgi_swapchain->GetBuffer(0, IID_PPV_ARGS(dxgi_surface.put()));
 		HRCheckCallReturnBool("IDXGISwapChain::GetBuffer -> 0");
 
 #ifdef LUASTG_ENABLE_DIRECT2D
@@ -1693,7 +1693,7 @@ namespace core::Graphics
 		d2d1_bitmap_info.pixelFormat.format = COLOR_BUFFER_FORMAT;
 		d2d1_bitmap_info.pixelFormat.alphaMode = D2D1_ALPHA_MODE_IGNORE;
 		d2d1_bitmap_info.bitmapOptions = D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW;
-		HRGet = m_device->GetD2D1DeviceContext()->CreateBitmapFromDxgiSurface(dxgi_surface.Get(), &d2d1_bitmap_info, &m_swap_chain_d2d1_bitmap);
+		HRGet = m_device->GetD2D1DeviceContext()->CreateBitmapFromDxgiSurface(dxgi_surface.get(), &d2d1_bitmap_info, m_swap_chain_d2d1_bitmap.put());
 		HRCheckCallReturnBool("ID2D1DeviceContext::CreateBitmapFromDxgiSurface");
 #endif
 		
@@ -1708,9 +1708,9 @@ namespace core::Graphics
 			m_device->GetD3D11DeviceContext()->ClearState();
 			m_device->GetD3D11DeviceContext()->Flush();
 		}
-		m_swap_chain_d3d11_rtv.Reset();
+		m_swap_chain_d3d11_rtv.reset();
 #ifdef LUASTG_ENABLE_DIRECT2D
-		m_swap_chain_d2d1_bitmap.Reset();
+		m_swap_chain_d2d1_bitmap.reset();
 #endif
 	}
 	bool SwapChain_D3D11::createCanvasColorBuffer()
@@ -1741,8 +1741,8 @@ namespace core::Graphics
 		cb_info.Usage = D3D11_USAGE_DEFAULT;
 		cb_info.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> cb_texture;
-		HRGet = m_device->GetD3D11Device()->CreateTexture2D(&cb_info, NULL, &cb_texture);
+		win32::com_ptr<ID3D11Texture2D> cb_texture;
+		HRGet = m_device->GetD3D11Device()->CreateTexture2D(&cb_info, NULL, cb_texture.put());
 		HRCheckCallReturnBool("ID3D11Device::CreateTexture2D");
 
 		// Shader Resource
@@ -1752,7 +1752,7 @@ namespace core::Graphics
 		srv_info.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		srv_info.Texture2D.MipLevels = cb_info.MipLevels;
 
-		HRGet = m_device->GetD3D11Device()->CreateShaderResourceView(cb_texture.Get(), &srv_info, &m_canvas_d3d11_srv);
+		HRGet = m_device->GetD3D11Device()->CreateShaderResourceView(cb_texture.get(), &srv_info, m_canvas_d3d11_srv.put());
 		HRCheckCallReturnBool("ID3D11Device::CreateShaderResourceView");
 
 		// Render Target
@@ -1761,7 +1761,7 @@ namespace core::Graphics
 		rtv_info.Format = cb_info.Format; // TODO: 线性颜色空间
 		rtv_info.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 
-		HRGet = m_device->GetD3D11Device()->CreateRenderTargetView(cb_texture.Get(), &rtv_info, &m_canvas_d3d11_rtv);
+		HRGet = m_device->GetD3D11Device()->CreateRenderTargetView(cb_texture.get(), &rtv_info, m_canvas_d3d11_rtv.put());
 		HRCheckCallReturnBool("ID3D11Device::CreateRenderTargetView");
 
 		return true;
@@ -1770,8 +1770,8 @@ namespace core::Graphics
 	{
 		_log("destroyCanvasColorBuffer");
 
-		m_canvas_d3d11_srv.Reset();
-		m_canvas_d3d11_rtv.Reset();
+		m_canvas_d3d11_srv.reset();
+		m_canvas_d3d11_rtv.reset();
 	}
 	bool SwapChain_D3D11::createCanvasDepthStencilBuffer()
 	{
@@ -1801,8 +1801,8 @@ namespace core::Graphics
 		ds_info.Usage = D3D11_USAGE_DEFAULT;
 		ds_info.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> ds_texture;
-		HRGet = m_device->GetD3D11Device()->CreateTexture2D(&ds_info, NULL, &ds_texture);
+		win32::com_ptr<ID3D11Texture2D> ds_texture;
+		HRGet = m_device->GetD3D11Device()->CreateTexture2D(&ds_info, NULL, ds_texture.put());
 		HRCheckCallReturnBool("ID3D11Device::CreateTexture2D");
 
 		// Depth Stencil View
@@ -1811,7 +1811,7 @@ namespace core::Graphics
 		dsv_info.Format = ds_info.Format;
 		dsv_info.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 
-		HRGet = m_device->GetD3D11Device()->CreateDepthStencilView(ds_texture.Get(), &dsv_info, &m_canvas_d3d11_dsv);
+		HRGet = m_device->GetD3D11Device()->CreateDepthStencilView(ds_texture.get(), &dsv_info, m_canvas_d3d11_dsv.put());
 		HRCheckCallReturnBool("ID3D11Device::CreateDepthStencilView");
 
 		return true;
@@ -1820,7 +1820,7 @@ namespace core::Graphics
 	{
 		_log("destroyCanvasDepthStencilBuffer");
 
-		m_canvas_d3d11_dsv.Reset();
+		m_canvas_d3d11_dsv.reset();
 	}
 	bool SwapChain_D3D11::createRenderAttachment()
 	{
@@ -1830,7 +1830,7 @@ namespace core::Graphics
 		if (m_is_composition_mode)
 		{
 			// 此时画布颜色缓冲区就是交换链的后台缓冲区
-			m_canvas_d3d11_srv.Reset(); // 不使用
+			m_canvas_d3d11_srv.reset(); // 不使用
 			m_canvas_d3d11_rtv = m_swap_chain_d3d11_rtv;
 		}
 		else
@@ -1854,8 +1854,8 @@ namespace core::Graphics
 
 		if (auto* ctx = m_device->GetD3D11DeviceContext())
 		{
-			ID3D11RenderTargetView* rtvs[1] = { m_canvas_d3d11_rtv.Get() };
-			ctx->OMSetRenderTargets(1, rtvs, m_canvas_d3d11_dsv.Get());
+			ID3D11RenderTargetView* rtvs[1] = { m_canvas_d3d11_rtv.get() };
+			ctx->OMSetRenderTargets(1, rtvs, m_canvas_d3d11_dsv.get());
 		}
 	}
 	void SwapChain_D3D11::clearRenderAttachment()
@@ -1867,11 +1867,11 @@ namespace core::Graphics
 			if (m_canvas_d3d11_rtv)
 			{
 				FLOAT const clear_color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-				ctx->ClearRenderTargetView(m_canvas_d3d11_rtv.Get(), clear_color);
+				ctx->ClearRenderTargetView(m_canvas_d3d11_rtv.get(), clear_color);
 			}
 			if (m_canvas_d3d11_dsv)
 			{
-				ctx->ClearDepthStencilView(m_canvas_d3d11_dsv.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0u);
+				ctx->ClearDepthStencilView(m_canvas_d3d11_dsv.get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0u);
 			}
 			ctx->Flush(); // 让命令立即提交到 GPU
 		}
@@ -1884,8 +1884,8 @@ namespace core::Graphics
 		assert(m_swap_chain_d3d11_rtv);
 
 		return m_scaling_renderer.UpdateTransform(
-			m_canvas_d3d11_srv.Get(),
-			m_swap_chain_d3d11_rtv.Get(),
+			m_canvas_d3d11_srv.get(),
+			m_swap_chain_d3d11_rtv.get(),
 			m_scaling_mode == SwapChainScalingMode::Stretch
 		);
 	}
@@ -1896,8 +1896,8 @@ namespace core::Graphics
 		assert(m_swap_chain_d3d11_rtv);
 
 		return m_scaling_renderer.Draw(
-			m_canvas_d3d11_srv.Get(),
-			m_swap_chain_d3d11_rtv.Get(),
+			m_canvas_d3d11_srv.get(),
+			m_swap_chain_d3d11_rtv.get(),
 			true
 		);
 	}
@@ -2145,7 +2145,7 @@ namespace core::Graphics
 			// 绘制标题栏到单独的表面
 			if (title_bar_controller.isVisible()) {
 				if (!m_title_bar_attached) {
-					HRGet = dcomp_visual_root->AddVisual(dcomp_visual_title_bar.Get(), TRUE, dcomp_visual_swap_chain.Get());
+					HRGet = dcomp_visual_root->AddVisual(dcomp_visual_title_bar.get(), TRUE, dcomp_visual_swap_chain.get());
 					HRCheckCallReturnBool("IDCompositionVisual2::AddVisual");
 					if (!commitDirectComposition()) return false;
 					m_title_bar_attached = true;
@@ -2164,7 +2164,7 @@ namespace core::Graphics
 				}
 			}
 			else if (m_title_bar_attached) {
-				HRGet = dcomp_visual_root->RemoveVisual(dcomp_visual_title_bar.Get());
+				HRGet = dcomp_visual_root->RemoveVisual(dcomp_visual_title_bar.get());
 				HRCheckCallReturnBool("IDCompositionVisual2::RemoveVisual");
 				if (!commitDirectComposition()) return false;
 				m_title_bar_attached = false;
@@ -2173,7 +2173,7 @@ namespace core::Graphics
 		else {
 			tracy_d3d11_context_zone(m_device->GetTracyContext(), "DrawTitleBar");
 			// 绘制标题栏到交换链上，而不是画布上
-			title_bar_controller.draw(m_swap_chain_d2d1_bitmap.Get());
+			title_bar_controller.draw(m_swap_chain_d2d1_bitmap.get());
 		}
 #endif
 		
@@ -2203,7 +2203,7 @@ namespace core::Graphics
 		// 清空渲染状态并丢弃内容
 
 		m_device->GetD3D11DeviceContext()->ClearState();
-		m_device->GetD3D11DeviceContext1()->DiscardView(m_swap_chain_d3d11_rtv.Get());
+		m_device->GetD3D11DeviceContext1()->DiscardView(m_swap_chain_d3d11_rtv.get());
 
 		// 检查结果
 
@@ -2230,12 +2230,12 @@ namespace core::Graphics
 
 		HRESULT hr = S_OK;
 
-		Microsoft::WRL::ComPtr<ID3D11Resource> d3d11_resource;
-		m_canvas_d3d11_rtv->GetResource(&d3d11_resource);
+		win32::com_ptr<ID3D11Resource> d3d11_resource;
+		m_canvas_d3d11_rtv->GetResource(d3d11_resource.put());
 
 		hr = gHR = DirectX::SaveWICTextureToFile(
 			m_device->GetD3D11DeviceContext(),
-			d3d11_resource.Get(),
+			d3d11_resource.get(),
 			GUID_ContainerFormatJpeg,
 			wpath.c_str(),
 			&GUID_WICPixelFormat24bppBGR);

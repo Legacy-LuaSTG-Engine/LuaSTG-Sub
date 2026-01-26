@@ -14,9 +14,9 @@ namespace core::Graphics::Direct3D11 {
 		}
 	}
 	void RenderTarget::onDeviceDestroy() {
-		m_view.Reset();
+		m_view.reset();
 #ifdef LUASTG_ENABLE_DIRECT2D
-		m_bitmap.Reset();
+		m_bitmap.reset();
 #endif
 		m_texture->onDeviceDestroy();
 	}
@@ -31,9 +31,9 @@ namespace core::Graphics::Direct3D11 {
 	}
 
 	bool RenderTarget::setSize(Vector2U const size) {
-		m_view.Reset();
+		m_view.reset();
 #ifdef LUASTG_ENABLE_DIRECT2D
-		m_bitmap.Reset();
+		m_bitmap.reset();
 #endif
 		if (!m_texture->setSize(size)) {
 			return false;
@@ -83,17 +83,17 @@ namespace core::Graphics::Direct3D11 {
 			.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D,
 			.Texture2D = D3D11_TEX2D_RTV{.MipSlice = 0,},
 		};
-		hr = gHR = d3d11_device->CreateRenderTargetView(m_texture->GetResource(), &rtvdef, &m_view);
+		hr = gHR = d3d11_device->CreateRenderTargetView(m_texture->GetResource(), &rtvdef, m_view.put());
 		if (FAILED(hr)) {
 			i18n_core_system_call_report_error("ID3D11Device::CreateRenderTargetView");
 			return false;
 		}
-		M_D3D_SET_DEBUG_NAME(m_view.Get(), "RenderTarget_D3D11::d3d11_rtv");
+		M_D3D_SET_DEBUG_NAME(m_view.get(), "RenderTarget_D3D11::d3d11_rtv");
 
 		// 创建D2D1位图
 
-		Microsoft::WRL::ComPtr<IDXGISurface> dxgi_surface;
-		hr = gHR = m_texture->GetResource()->QueryInterface(IID_PPV_ARGS(&dxgi_surface));
+		win32::com_ptr<IDXGISurface> dxgi_surface;
+		hr = gHR = m_texture->GetResource()->QueryInterface(dxgi_surface.put());
 		if (FAILED(hr)) {
 			i18n_core_system_call_report_error("ID3D11Texture2D::QueryInterface -> IDXGISurface");
 			return false;
@@ -110,7 +110,7 @@ namespace core::Graphics::Direct3D11 {
 			.bitmapOptions = D2D1_BITMAP_OPTIONS_TARGET,
 			.colorContext = nullptr,
 		};
-		hr = gHR = d2d1_device_context->CreateBitmapFromDxgiSurface(dxgi_surface.Get(), &bitmap_info, &m_bitmap);
+		hr = gHR = d2d1_device_context->CreateBitmapFromDxgiSurface(dxgi_surface.get(), &bitmap_info, m_bitmap.put());
 		if (FAILED(hr)) {
 			i18n_core_system_call_report_error("ID3D11DeviceContext::CreateBitmapFromDxgiSurface");
 			return false;

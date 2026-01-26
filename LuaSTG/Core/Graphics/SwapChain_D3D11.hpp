@@ -5,22 +5,23 @@
 #include "Core/Graphics/Direct3D11/Device.hpp"
 #include "Core/Graphics/Direct3D11/LetterBoxingRenderer.hpp"
 #include "windows/RuntimeLoader/DirectComposition.hpp"
+#include <wil/resource.h>
 
 namespace core::Graphics
 {
 	class SecondarySwapChain {
 	private:
 		DXGI_SWAP_CHAIN_DESC1 info{};
-		wil::com_ptr_nothrow<IDXGIFactory2> dxgi_factory;
-		wil::com_ptr_nothrow<ID3D11Device> d3d11_device;
-		wil::com_ptr_nothrow<ID3D11DeviceContext> d3d11_device_context;
+		win32::com_ptr<IDXGIFactory2> dxgi_factory;
+		win32::com_ptr<ID3D11Device> d3d11_device;
+		win32::com_ptr<ID3D11DeviceContext> d3d11_device_context;
 #ifdef LUASTG_ENABLE_DIRECT2D
-		wil::com_ptr_nothrow<ID2D1DeviceContext> d2d1_device_context;
+		win32::com_ptr<ID2D1DeviceContext> d2d1_device_context;
 #endif
-		wil::com_ptr_nothrow<IDXGISwapChain1> dxgi_swap_chain;
-		wil::com_ptr_nothrow<ID3D11RenderTargetView> d3d11_rtv;
+		win32::com_ptr<IDXGISwapChain1> dxgi_swap_chain;
+		win32::com_ptr<ID3D11RenderTargetView> d3d11_rtv;
 #ifdef LUASTG_ENABLE_DIRECT2D
-		wil::com_ptr_nothrow<ID2D1Bitmap1> d2d1_bitmap;
+		win32::com_ptr<ID2D1Bitmap1> d2d1_bitmap;
 #endif
 	private:
 		bool createRenderAttachment();
@@ -49,8 +50,8 @@ namespace core::Graphics
 		SmartReference<Direct3D11::Device> m_device;
 		Direct3D11::LetterBoxingRenderer m_scaling_renderer;
 
-		Microsoft::WRL::Wrappers::Event dxgi_swapchain_event;
-		Microsoft::WRL::ComPtr<IDXGISwapChain1> dxgi_swapchain;
+		wil::unique_event_nothrow dxgi_swapchain_event;
+		win32::com_ptr<IDXGISwapChain1> dxgi_swapchain;
 		DXGI_SWAP_CHAIN_DESC1 m_swap_chain_info{};
 		DXGI_SWAP_CHAIN_FULLSCREEN_DESC m_swap_chain_fullscreen_info{};
 		BOOL m_swap_chain_fullscreen_mode{ FALSE };
@@ -90,12 +91,12 @@ namespace core::Graphics
 	private:
 		bool m_is_composition_mode{ false };
 		Platform::RuntimeLoader::DirectComposition dcomp_loader;
-		Microsoft::WRL::ComPtr<IDCompositionDesktopDevice> dcomp_desktop_device;
-		Microsoft::WRL::ComPtr<IDCompositionTarget> dcomp_target;
-		Microsoft::WRL::ComPtr<IDCompositionVisual2> dcomp_visual_root;
-		Microsoft::WRL::ComPtr<IDCompositionVisual2> dcomp_visual_swap_chain;
+		win32::com_ptr<IDCompositionDesktopDevice> dcomp_desktop_device;
+		win32::com_ptr<IDCompositionTarget> dcomp_target;
+		win32::com_ptr<IDCompositionVisual2> dcomp_visual_root;
+		win32::com_ptr<IDCompositionVisual2> dcomp_visual_swap_chain;
 #ifdef LUASTG_ENABLE_DIRECT2D
-		Microsoft::WRL::ComPtr<IDCompositionVisual2> dcomp_visual_title_bar;
+		win32::com_ptr<IDCompositionVisual2> dcomp_visual_title_bar;
 		SecondarySwapChain swap_chain_title_bar;
 		bool m_title_bar_attached{ false };
 #endif
@@ -107,14 +108,14 @@ namespace core::Graphics
 		bool createCompositionSwapChain(Vector2U size, bool latency_event);
 
 	private:
-		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_swap_chain_d3d11_rtv;
+		win32::com_ptr<ID3D11RenderTargetView> m_swap_chain_d3d11_rtv;
 #ifdef LUASTG_ENABLE_DIRECT2D
-		Microsoft::WRL::ComPtr<ID2D1Bitmap1> m_swap_chain_d2d1_bitmap;
+		win32::com_ptr<ID2D1Bitmap1> m_swap_chain_d2d1_bitmap;
 #endif
 		Vector2U m_canvas_size{ 640,480 };
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_canvas_d3d11_srv;
-		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_canvas_d3d11_rtv;
-		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_canvas_d3d11_dsv;
+		win32::com_ptr<ID3D11ShaderResourceView> m_canvas_d3d11_srv;
+		win32::com_ptr<ID3D11RenderTargetView> m_canvas_d3d11_rtv;
+		win32::com_ptr<ID3D11DepthStencilView> m_canvas_d3d11_dsv;
 	private:
 		bool createSwapChainRenderTarget();
 		void destroySwapChainRenderTarget();

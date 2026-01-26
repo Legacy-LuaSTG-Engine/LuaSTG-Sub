@@ -28,14 +28,14 @@ namespace core::Graphics::Direct3D11 {
 		SamplerState& operator=(SamplerState&&) = delete;
 		~SamplerState();
 
-		[[nodiscard]] ID3D11SamplerState* GetState() const noexcept { return m_sampler.Get(); }
+		[[nodiscard]] ID3D11SamplerState* GetState() const noexcept { return m_sampler.get(); }
 
 		bool initialize(Device* device, core::Graphics::SamplerState const& info);
 		bool createResource();
 
 	private:
 		SmartReference<Device> m_device;
-		Microsoft::WRL::ComPtr<ID3D11SamplerState> m_sampler;
+		win32::com_ptr<ID3D11SamplerState> m_sampler;
 		core::Graphics::SamplerState m_info{};
 		bool m_initialized{ false };
 	};

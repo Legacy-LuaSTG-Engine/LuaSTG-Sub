@@ -189,7 +189,7 @@ namespace core::Graphics::Direct3D11 {
 		HRESULT hr = S_OK;
 
 		// 创建 1.2 的组件，强制要求平台更新
-		hr = gHR = dxgi_loader.CreateFactory(IID_PPV_ARGS(&dxgi_factory));
+		hr = gHR = dxgi_loader.CreateFactory(IID_PPV_ARGS(dxgi_factory.put()));
 		if (FAILED(hr)) {
 			i18n_core_system_call_report_error("CreateDXGIFactory2 -> IDXGIFactory2");
 			assert(false); return false;
@@ -198,7 +198,7 @@ namespace core::Graphics::Direct3D11 {
 		return true;
 	}
 	void Device::destroyDXGIFactory() {
-		dxgi_factory.Reset();
+		dxgi_factory.reset();
 	}
 	bool Device::selectAdapter() {
 		HRESULT hr = S_OK;
@@ -208,7 +208,7 @@ namespace core::Graphics::Direct3D11 {
 		i18n_log_info("[core].Device_D3D11.enum_all_adapters");
 
 		struct AdapterCandidate {
-			Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter;
+			win32::com_ptr<IDXGIAdapter1> adapter;
 			std::string adapter_name;
 			DXGI_ADAPTER_DESC1 adapter_info;
 			D3D_FEATURE_LEVEL feature_level;
@@ -216,13 +216,13 @@ namespace core::Graphics::Direct3D11 {
 		};
 		std::vector<AdapterCandidate> adapter_candidate;
 
-		Microsoft::WRL::ComPtr<IDXGIAdapter1> dxgi_adapter_temp;
-		for (UINT idx = 0; bHR = dxgi_factory->EnumAdapters1(idx, &dxgi_adapter_temp); idx += 1) {
+		win32::com_ptr<IDXGIAdapter1> dxgi_adapter_temp;
+		for (UINT idx = 0; bHR = dxgi_factory->EnumAdapters1(idx, dxgi_adapter_temp.put()); idx += 1) {
 			// 检查此设备是否支持 Direct3D 11 并获取特性级别
 			bool supported_d3d11 = false;
 			D3D_FEATURE_LEVEL level_info = D3D_FEATURE_LEVEL_10_0;
 			hr = gHR = d3d11_loader.CreateDeviceFromAdapter(
-				dxgi_adapter_temp.Get(),
+				dxgi_adapter_temp.get(),
 				D3D11_CREATE_DEVICE_BGRA_SUPPORT,
 				D3D_FEATURE_LEVEL_10_0,
 				NULL,
@@ -265,10 +265,10 @@ namespace core::Graphics::Direct3D11 {
 
 			// 枚举显示输出
 			bool has_linked_output = false;
-			Microsoft::WRL::ComPtr<IDXGIOutput> dxgi_output_temp;
-			for (UINT odx = 0; bHR = dxgi_adapter_temp->EnumOutputs(odx, &dxgi_output_temp); odx += 1) {
-				Microsoft::WRL::ComPtr<IDXGIOutput6> dxgi_output_temp6;
-				hr = gHR = dxgi_output_temp.As(&dxgi_output_temp6);
+			win32::com_ptr<IDXGIOutput> dxgi_output_temp;
+			for (UINT odx = 0; bHR = dxgi_adapter_temp->EnumOutputs(odx, dxgi_output_temp.put()); odx += 1) {
+				win32::com_ptr<IDXGIOutput6> dxgi_output_temp6;
+				hr = gHR = dxgi_output_temp->QueryInterface(dxgi_output_temp6.put());
 				if (FAILED(hr)) {
 					i18n_core_system_call_report_error("IDXGIOutput::QueryInterface -> IDXGIOutput6");
 					// 不是严重错误
@@ -322,7 +322,7 @@ namespace core::Graphics::Direct3D11 {
 					i18n_log_error_fmt("[core].Device_D3D11.DXGI_output_detail_error_fmt", idx, odx);
 				}
 			}
-			dxgi_output_temp.Reset();
+			dxgi_output_temp.reset();
 
 			// 加入候选列表
 			if (supported_d3d11) {
@@ -335,7 +335,7 @@ namespace core::Graphics::Direct3D11 {
 											   });
 			}
 		}
-		dxgi_adapter_temp.Reset();
+		dxgi_adapter_temp.reset();
 
 		// 选择图形设备
 
@@ -363,7 +363,7 @@ namespace core::Graphics::Direct3D11 {
 		// 获取图形设备
 
 		if (dxgi_adapter) {
-			M_D3D_SET_DEBUG_NAME(dxgi_adapter.Get(), "Device_D3D11::dxgi_adapter");
+			M_D3D_SET_DEBUG_NAME(dxgi_adapter.get(), "Device_D3D11::dxgi_adapter");
 			i18n_log_info_fmt("[core].Device_D3D11.select_DXGI_adapter_fmt", dxgi_adapter_name);
 			if (!link_to_output) {
 				i18n_log_warn_fmt("[core].Device_D3D11.DXGI_adapter_no_output_warning_fmt", dxgi_adapter_name);
@@ -387,36 +387,36 @@ namespace core::Graphics::Direct3D11 {
 
 		// 检测特性支持情况
 
-		Microsoft::WRL::ComPtr<IDXGIFactory3> dxgi_factory3;
-		hr = gHR = dxgi_factory.As(&dxgi_factory3);
+		win32::com_ptr<IDXGIFactory3> dxgi_factory3;
+		hr = gHR = dxgi_factory->QueryInterface(dxgi_factory3.put());
 		if (FAILED(hr)) {
 			i18n_core_system_call_report_error("IDXGIFactory1::QueryInterface -> IDXGIFactory3");
 			// 不是严重错误
 		}
 
-		Microsoft::WRL::ComPtr<IDXGIFactory4> dxgi_factory4;
-		hr = gHR = dxgi_factory.As(&dxgi_factory4);
+		win32::com_ptr<IDXGIFactory4> dxgi_factory4;
+		hr = gHR = dxgi_factory->QueryInterface(dxgi_factory4.put());
 		if (FAILED(hr)) {
 			i18n_core_system_call_report_error("IDXGIFactory1::QueryInterface -> IDXGIFactory4");
 			// 不是严重错误
 		}
 
-		Microsoft::WRL::ComPtr<IDXGIFactory5> dxgi_factory5;
-		hr = gHR = dxgi_factory.As(&dxgi_factory5);
+		win32::com_ptr<IDXGIFactory5> dxgi_factory5;
+		hr = gHR = dxgi_factory->QueryInterface(dxgi_factory5.put());
 		if (FAILED(hr)) {
 			i18n_core_system_call_report_error("IDXGIFactory1::QueryInterface -> IDXGIFactory5");
 			// 不是严重错误
 		}
 
-		Microsoft::WRL::ComPtr<IDXGIFactory6> dxgi_factory6;
-		hr = gHR = dxgi_factory.As(&dxgi_factory6);
+		win32::com_ptr<IDXGIFactory6> dxgi_factory6;
+		hr = gHR = dxgi_factory->QueryInterface(dxgi_factory6.put());
 		if (FAILED(hr)) {
 			i18n_core_system_call_report_error("IDXGIFactory1::QueryInterface -> IDXGIFactory6");
 			// 不是严重错误
 		}
 
-		Microsoft::WRL::ComPtr<IDXGIFactory7> dxgi_factory7;
-		hr = gHR = dxgi_factory.As(&dxgi_factory7);
+		win32::com_ptr<IDXGIFactory7> dxgi_factory7;
+		hr = gHR = dxgi_factory->QueryInterface(dxgi_factory7.put());
 		if (FAILED(hr)) {
 			i18n_core_system_call_report_error("IDXGIFactory1::QueryInterface -> IDXGIFactory7");
 			// 不是严重错误
@@ -450,22 +450,22 @@ namespace core::Graphics::Direct3D11 {
 		// 检查适配器支持
 
 		if (dxgi_adapter) {
-			Microsoft::WRL::ComPtr<IDXGIAdapter2> dxgi_adapter2;
-			hr = gHR = dxgi_adapter.As(&dxgi_adapter2);
+			win32::com_ptr<IDXGIAdapter2> dxgi_adapter2;
+			hr = gHR = dxgi_adapter->QueryInterface(dxgi_adapter2.put());
 			if (FAILED(hr)) {
 				i18n_core_system_call_report_error("IDXGIAdapter1::QueryInterface -> IDXGIAdapter2");
 				// 不是严重错误
 			}
 
-			Microsoft::WRL::ComPtr<IDXGIAdapter3> dxgi_adapter3;
-			hr = gHR = dxgi_adapter.As(&dxgi_adapter3);
+			win32::com_ptr<IDXGIAdapter3> dxgi_adapter3;
+			hr = gHR = dxgi_adapter->QueryInterface(dxgi_adapter3.put());
 			if (FAILED(hr)) {
 				i18n_core_system_call_report_error("IDXGIAdapter1::QueryInterface -> IDXGIAdapter3");
 				// 不是严重错误
 			}
 
-			Microsoft::WRL::ComPtr<IDXGIAdapter2> dxgi_adapter4;
-			hr = gHR = dxgi_adapter.As(&dxgi_adapter4);
+			win32::com_ptr<IDXGIAdapter2> dxgi_adapter4;
+			hr = gHR = dxgi_adapter->QueryInterface(dxgi_adapter4.put());
 			if (FAILED(hr)) {
 				i18n_core_system_call_report_error("IDXGIAdapter1::QueryInterface -> IDXGIAdapter4");
 				// 不是严重错误
@@ -478,7 +478,7 @@ namespace core::Graphics::Direct3D11 {
 	}
 	void Device::destroyDXGI() {
 		destroyDXGIFactory();
-		dxgi_adapter.Reset();
+		dxgi_adapter.reset();
 
 		dxgi_adapter_name.clear();
 		dxgi_adapter_name_list.clear();
@@ -494,21 +494,21 @@ namespace core::Graphics::Direct3D11 {
 
 		if (dxgi_adapter) {
 			hr = gHR = d3d11_loader.CreateDeviceFromAdapter(
-				dxgi_adapter.Get(),
+				dxgi_adapter.get(),
 				D3D11_CREATE_DEVICE_BGRA_SUPPORT,
 				D3D_FEATURE_LEVEL_10_0,
-				&d3d11_device,
+				d3d11_device.put(),
 				&d3d_feature_level,
-				&d3d11_devctx);
+				d3d11_devctx.put());
 		}
 		else if (core::ConfigurationLoader::getInstance().getGraphicsSystem().isAllowSoftwareDevice()) {
 			D3D_DRIVER_TYPE d3d_driver_type = D3D_DRIVER_TYPE_UNKNOWN;
 			hr = gHR = d3d11_loader.CreateDeviceFromSoftAdapter(
 				D3D11_CREATE_DEVICE_BGRA_SUPPORT,
 				D3D_FEATURE_LEVEL_10_0,
-				&d3d11_device,
+				d3d11_device.put(),
 				&d3d_feature_level,
-				&d3d11_devctx,
+				d3d11_devctx.put(),
 				&d3d_driver_type);
 			if (SUCCEEDED(hr)) {
 				switch (d3d_driver_type) {
@@ -528,10 +528,10 @@ namespace core::Graphics::Direct3D11 {
 			i18n_core_system_call_report_error("D3D11CreateDevice");
 			return false;
 		}
-		M_D3D_SET_DEBUG_NAME(d3d11_device.Get(), "Device_D3D11::d3d11_device");
-		M_D3D_SET_DEBUG_NAME(d3d11_devctx.Get(), "Device_D3D11::d3d11_devctx");
+		M_D3D_SET_DEBUG_NAME(d3d11_device.get(), "Device_D3D11::d3d11_device");
+		M_D3D_SET_DEBUG_NAME(d3d11_devctx.get(), "Device_D3D11::d3d11_devctx");
 		if (!dxgi_adapter) {
-			hr = gHR = Platform::Direct3D11::GetDeviceAdater(d3d11_device.Get(), &dxgi_adapter);
+			hr = gHR = Platform::Direct3D11::GetDeviceAdater(d3d11_device.get(), dxgi_adapter.put());
 			if (FAILED(hr)) {
 				i18n_core_system_call_report_error("Platform::Direct3D11::GetDeviceAdater");
 				return false;
@@ -540,12 +540,12 @@ namespace core::Graphics::Direct3D11 {
 
 		// 特性检查
 
-		hr = gHR = d3d11_device.As(&d3d11_device1);
+		hr = gHR = d3d11_device->QueryInterface(d3d11_device1.put());
 		if (FAILED(hr)) {
 			i18n_core_system_call_report_error("ID3D11Device::QueryInterface -> ID3D11Device1");
 			// 不是严重错误
 		}
-		hr = gHR = d3d11_devctx.As(&d3d11_devctx1);
+		hr = gHR = d3d11_devctx->QueryInterface(d3d11_devctx1.put());
 		if (FAILED(hr)) {
 			i18n_core_system_call_report_error("ID3D11DeviceContext::QueryInterface -> ID3D11DeviceContext1");
 			// 不是严重错误
@@ -707,7 +707,7 @@ namespace core::Graphics::Direct3D11 {
 
 		i18n_log_info("[core].Device_D3D11.created_basic_D3D11_components");
 
-		tracy_context = tracy_d3d11_context_create(d3d11_device.Get(), d3d11_devctx.Get());
+		tracy_context = tracy_d3d11_context_create(d3d11_device.get(), d3d11_devctx.get());
 
 		return true;
 	}
@@ -717,17 +717,17 @@ namespace core::Graphics::Direct3D11 {
 
 		d3d_feature_level = D3D_FEATURE_LEVEL_10_0;
 
-		d3d11_device.Reset();
-		d3d11_device1.Reset();
-		d3d11_devctx.Reset();
-		d3d11_devctx1.Reset();
+		d3d11_device.reset();
+		d3d11_device1.reset();
+		d3d11_devctx.reset();
+		d3d11_devctx1.reset();
 	}
 	bool Device::createWIC() {
 		HRESULT hr = S_OK;
 
-		hr = gHR = CoCreateInstance(CLSID_WICImagingFactory2, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&wic_factory2));
+		hr = gHR = CoCreateInstance(CLSID_WICImagingFactory2, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(wic_factory2.put()));
 		if (SUCCEEDED(hr)) {
-			hr = gHR = wic_factory2.As(&wic_factory);
+			hr = gHR = wic_factory2->QueryInterface(wic_factory.put());
 			assert(SUCCEEDED(hr));
 			if (FAILED(hr)) {
 				i18n_core_system_call_report_error("IWICImagingFactory2::QueryInterface -> IWICImagingFactory");
@@ -737,7 +737,7 @@ namespace core::Graphics::Direct3D11 {
 		else {
 			i18n_core_system_call_report_error("CoCreateInstance -> IWICImagingFactory2");
 			// 没有那么严重，来再一次
-			hr = gHR = CoCreateInstance(CLSID_WICImagingFactory1, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&wic_factory));
+			hr = gHR = CoCreateInstance(CLSID_WICImagingFactory1, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(wic_factory.put()));
 			assert(SUCCEEDED(hr));
 			if (FAILED(hr)) {
 				i18n_core_system_call_report_error("CoCreateInstance -> IWICImagingFactory");
@@ -748,8 +748,8 @@ namespace core::Graphics::Direct3D11 {
 		return true;
 	}
 	void Device::destroyWIC() {
-		wic_factory.Reset();
-		wic_factory2.Reset();
+		wic_factory.reset();
+		wic_factory2.reset();
 	}
 #ifdef LUASTG_ENABLE_DIRECT2D
 	bool Device::createD2D1() {
@@ -757,26 +757,26 @@ namespace core::Graphics::Direct3D11 {
 
 		hr = gHR = d2d1_loader.CreateFactory(
 			D2D1_FACTORY_TYPE_MULTI_THREADED,
-			IID_PPV_ARGS(&d2d1_factory));
+			IID_PPV_ARGS(d2d1_factory.put()));
 		if (FAILED(hr)) {
 			i18n_core_system_call_report_error("D2D1CreateFactory -> ID2D1Factory1");
 			assert(false); return false;
 		}
 
-		Microsoft::WRL::ComPtr<IDXGIDevice> dxgi_device;
-		hr = gHR = d3d11_device.As(&dxgi_device);
+		win32::com_ptr<IDXGIDevice> dxgi_device;
+		hr = gHR = d3d11_device->QueryInterface(dxgi_device.put());
 		if (FAILED(hr)) {
 			i18n_core_system_call_report_error("ID3D11Device::QueryInterface -> IDXGIDevice");
 			assert(false); return false;
 		}
 
-		hr = gHR = d2d1_factory->CreateDevice(dxgi_device.Get(), &d2d1_device);
+		hr = gHR = d2d1_factory->CreateDevice(dxgi_device.get(), d2d1_device.put());
 		if (FAILED(hr)) {
 			i18n_core_system_call_report_error("ID2D1Factory1::CreateDevice");
 			assert(false); return false;
 		}
 
-		hr = gHR = d2d1_device->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, &d2d1_devctx);
+		hr = gHR = d2d1_device->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, d2d1_devctx.put());
 		if (FAILED(hr)) {
 			i18n_core_system_call_report_error("ID2D1Device::CreateDeviceContext");
 			assert(false); return false;
@@ -785,15 +785,15 @@ namespace core::Graphics::Direct3D11 {
 		return true;
 	}
 	void Device::destroyD2D1() {
-		d2d1_factory.Reset();
-		d2d1_device.Reset();
-		d2d1_devctx.Reset();
+		d2d1_factory.reset();
+		d2d1_device.reset();
+		d2d1_devctx.reset();
 	}
 #endif
 	bool Device::createDWrite() {
 		HRESULT hr = S_OK;
 
-		hr = gHR = dwrite_loader.CreateFactory(DWRITE_FACTORY_TYPE_SHARED, IID_PPV_ARGS(&dwrite_factory));
+		hr = gHR = dwrite_loader.CreateFactory(DWRITE_FACTORY_TYPE_SHARED, IID_PPV_ARGS(dwrite_factory.put()));
 		if (FAILED(hr)) {
 			i18n_core_system_call_report_error("DWriteCreateFactory -> DWRITE_FACTORY_TYPE_SHARED");
 			return false;
@@ -802,7 +802,7 @@ namespace core::Graphics::Direct3D11 {
 		return true;
 	}
 	void Device::destroyDWrite() {
-		dwrite_factory.Reset();
+		dwrite_factory.reset();
 	}
 	bool Device::doDestroyAndCreate() {
 		dispatchEvent(EventType::DeviceDestroy);
@@ -834,8 +834,8 @@ namespace core::Graphics::Direct3D11 {
 
 		auto testAdapterName = [&]() -> bool {
 			HRESULT hr = S_OK;
-			Microsoft::WRL::ComPtr<IDXGIAdapter1> dxgi_adapter;
-			hr = gHR = dxgi_factory->EnumAdapters1(0, &dxgi_adapter);
+			win32::com_ptr<IDXGIAdapter1> dxgi_adapter;
+			hr = gHR = dxgi_factory->EnumAdapters1(0, dxgi_adapter.put());
 			if (FAILED(hr)) {
 				i18n_core_system_call_report_error("IDXGIFactory1::EnumAdapters1 -> #0");
 				assert(false); return false;
@@ -878,10 +878,10 @@ namespace core::Graphics::Direct3D11 {
 	bool Device::testMultiPlaneOverlay() {
 		HRESULT hr = S_OK;
 
-		Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter_;
-		for (UINT i = 0; bHR = dxgi_factory->EnumAdapters1(i, &adapter_); i += 1) {
-			Microsoft::WRL::ComPtr<IDXGIOutput> output_;
-			for (UINT j = 0; bHR = adapter_->EnumOutputs(j, &output_); j += 1) {
+		win32::com_ptr<IDXGIAdapter1> adapter_;
+		for (UINT i = 0; bHR = dxgi_factory->EnumAdapters1(i, adapter_.put()); i += 1) {
+			win32::com_ptr<IDXGIOutput> output_;
+			for (UINT j = 0; bHR = adapter_->EnumOutputs(j, output_.put()); j += 1) {
 				DXGI_OUTPUT_DESC desc = {};
 				hr = gHR = output_->GetDesc(&desc);
 				if (FAILED(hr)) {
@@ -890,17 +890,17 @@ namespace core::Graphics::Direct3D11 {
 				}
 
 				BOOL overlay_ = FALSE;
-				Microsoft::WRL::ComPtr<IDXGIOutput2> output2_;
-				if (bHR = output_.As(&output2_)) {
+				win32::com_ptr<IDXGIOutput2> output2_;
+				if (bHR = output_->QueryInterface(output2_.put())) {
 					overlay_ = output2_->SupportsOverlays();
 				}
 
 				UINT overlay_flags = 0;
-				Microsoft::WRL::ComPtr<IDXGIOutput3> output3_;
-				if (bHR = output_.As(&output3_)) {
+				win32::com_ptr<IDXGIOutput3> output3_;
+				if (bHR = output_->QueryInterface(output3_.put())) {
 					hr = gHR = output3_->CheckOverlaySupport(
 						DXGI_FORMAT_B8G8R8A8_UNORM,
-						d3d11_device.Get(),
+						d3d11_device.get(),
 						&overlay_flags);
 					if (FAILED(hr)) {
 						i18n_core_system_call_report_error("IDXGIOutput3::CheckOverlaySupport -> DXGI_FORMAT_B8G8R8A8_UNORM");
@@ -908,8 +908,8 @@ namespace core::Graphics::Direct3D11 {
 				}
 
 				UINT composition_flags = 0;
-				Microsoft::WRL::ComPtr<IDXGIOutput6> output6_;
-				if (bHR = output_.As(&output6_)) {
+				win32::com_ptr<IDXGIOutput6> output6_;
+				if (bHR = output_->QueryInterface(output6_.put())) {
 					hr = gHR = output6_->CheckHardwareCompositionSupport(&composition_flags);
 					if (FAILED(hr)) {
 						i18n_core_system_call_report_error("IDXGIOutput6::CheckHardwareCompositionSupport");
@@ -944,24 +944,24 @@ namespace core::Graphics::Direct3D11 {
 		if (!dxgi_factory->IsCurrent()) {
 			HRESULT hr = S_OK;
 
-			dxgi_factory.Reset();
-			dxgi_adapter.Reset();
+			dxgi_factory.reset();
+			dxgi_adapter.reset();
 
-			Microsoft::WRL::ComPtr<IDXGIDevice> dxgi_device;
-			hr = gHR = d3d11_device.As(&dxgi_device);
+			win32::com_ptr<IDXGIDevice> dxgi_device;
+			hr = gHR = d3d11_device->QueryInterface(dxgi_device.put());
 			if (FAILED(hr)) {
 				i18n_core_system_call_report_error("ID3D11Device::QueryInterface -> IDXGIDevice");
 				return false;
 			}
 
-			Microsoft::WRL::ComPtr<IDXGIAdapter> dxgi_adapter_tmp;
-			hr = gHR = dxgi_device->GetAdapter(&dxgi_adapter_tmp);
+			win32::com_ptr<IDXGIAdapter> dxgi_adapter_tmp;
+			hr = gHR = dxgi_device->GetAdapter(dxgi_adapter_tmp.put());
 			if (FAILED(hr)) {
 				i18n_core_system_call_report_error("IDXGIDevice::GetAdapter");
 				return false;
 			}
 
-			hr = gHR = dxgi_adapter_tmp.As(&dxgi_adapter);
+			hr = gHR = dxgi_adapter_tmp->QueryInterface(dxgi_adapter.put());
 			if (FAILED(hr)) {
 				i18n_core_system_call_report_error("IDXGIAdapter::QueryInterface -> IDXGIAdapter1");
 				return false;
@@ -975,7 +975,7 @@ namespace core::Graphics::Direct3D11 {
 			//}
 
 			// 创建 1.2 的组件，强制要求平台更新
-			hr = gHR = dxgi_loader.CreateFactory(IID_PPV_ARGS(&dxgi_factory));
+			hr = gHR = dxgi_loader.CreateFactory(IID_PPV_ARGS(dxgi_factory.put()));
 			if (FAILED(hr)) {
 				i18n_core_system_call_report_error("CreateDXGIFactory2 -> IDXGIFactory2");
 				assert(false); return false;
@@ -1039,8 +1039,8 @@ namespace core::Graphics::Direct3D11 {
 
 	DeviceMemoryUsageStatistics Device::getMemoryUsageStatistics() {
 		DeviceMemoryUsageStatistics data = {};
-		Microsoft::WRL::ComPtr<IDXGIAdapter3> adapter;
-		if (bHR = dxgi_adapter.As(&adapter)) {
+		win32::com_ptr<IDXGIAdapter3> adapter;
+		if (bHR = dxgi_adapter->QueryInterface(adapter.put())) {
 			DXGI_QUERY_VIDEO_MEMORY_INFO info = {};
 			if (bHR = gHR = adapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &info)) {
 				data.local.budget = info.Budget;

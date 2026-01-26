@@ -464,19 +464,19 @@ namespace core::Graphics
 
         // built-in: compile shader
 
-        Microsoft::WRL::ComPtr<ID3DBlob> vs;
-        Microsoft::WRL::ComPtr<ID3DBlob> vs_vc;
+        win32::com_ptr<ID3DBlob> vs;
+        win32::com_ptr<ID3DBlob> vs_vc;
 
         auto fxc = [&](std::string_view const& name, D3D_SHADER_MACRO const* macro, std::string_view const& entry, int type, ID3DBlob** blob) -> bool
         {
-            Microsoft::WRL::ComPtr<ID3DBlob> err;
+            win32::com_ptr<ID3DBlob> err;
             UINT compile_flags = D3DCOMPILE_ENABLE_STRICTNESS;
         #ifdef _DEBUG
             compile_flags |= (D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION);
         #endif
             hr = gHR = g_d3dcompiler_loader.Compile(
                 built_in_shader.data(), built_in_shader.size(), name.data(),
-                macro, NULL, entry.data(), type ? "ps_4_0" : "vs_4_0", compile_flags, 0, blob, &err);
+                macro, NULL, entry.data(), type ? "ps_4_0" : "vs_4_0", compile_flags, 0, blob, err.put());
             if (FAILED(hr))
             {
                 spdlog::error("[core] D3DCompile 调用失败");
@@ -487,12 +487,12 @@ namespace core::Graphics
             return true;
         };
 
-        if (!fxc("model-vs", NULL, "VS_Main", 0, &vs)) return false;
-        if (!fxc("model-vs-vertex-color", NULL, "VS_Main_VertexColor", 0, &vs_vc)) return false;
+        if (!fxc("model-vs", NULL, "VS_Main", 0, vs.put())) return false;
+        if (!fxc("model-vs-vertex-color", NULL, "VS_Main_VertexColor", 0, vs_vc.put())) return false;
 
-        hr = gHR = device->CreateVertexShader(vs->GetBufferPointer(), vs->GetBufferSize(), NULL, &shader_vertex);
+        hr = gHR = device->CreateVertexShader(vs->GetBufferPointer(), vs->GetBufferSize(), NULL, shader_vertex.put());
         if (FAILED(hr)) return false;
-        hr = gHR = device->CreateVertexShader(vs_vc->GetBufferPointer(), vs_vc->GetBufferSize(), NULL, &shader_vertex_vc);
+        hr = gHR = device->CreateVertexShader(vs_vc->GetBufferPointer(), vs_vc->GetBufferSize(), NULL, shader_vertex_vc.put());
         if (FAILED(hr)) return false;
 
         const D3D_SHADER_MACRO fog_none[] = {
@@ -514,24 +514,24 @@ namespace core::Graphics
             { NULL, NULL },
         };
 
-        auto fxc_ps = [&](std::string_view const& name, std::string_view const& entry, Microsoft::WRL::ComPtr<ID3D11PixelShader> ps[IDX(IRenderer::FogState::MAX_COUNT)]) -> bool
+        auto fxc_ps = [&](std::string_view const& name, std::string_view const& entry, win32::com_ptr<ID3D11PixelShader> ps[IDX(IRenderer::FogState::MAX_COUNT)]) -> bool
         {
-            Microsoft::WRL::ComPtr<ID3DBlob> ps_bc;
+            win32::com_ptr<ID3DBlob> ps_bc;
 
-            if (!fxc(name, fog_none, entry, 1, &ps_bc)) return false;
-            hr = gHR = device->CreatePixelShader(ps_bc->GetBufferPointer(), ps_bc->GetBufferSize(), NULL, &ps[IDX(IRenderer::FogState::Disable)]);
+            if (!fxc(name, fog_none, entry, 1, ps_bc.put())) return false;
+            hr = gHR = device->CreatePixelShader(ps_bc->GetBufferPointer(), ps_bc->GetBufferSize(), NULL, ps[IDX(IRenderer::FogState::Disable)].put());
             if (FAILED(hr)) return false;
 
-            if (!fxc(name, fog_line, entry, 1, &ps_bc)) return false;
-            hr = gHR = device->CreatePixelShader(ps_bc->GetBufferPointer(), ps_bc->GetBufferSize(), NULL, &ps[IDX(IRenderer::FogState::Linear)]);
+            if (!fxc(name, fog_line, entry, 1, ps_bc.put())) return false;
+            hr = gHR = device->CreatePixelShader(ps_bc->GetBufferPointer(), ps_bc->GetBufferSize(), NULL, ps[IDX(IRenderer::FogState::Linear)].put());
             if (FAILED(hr)) return false;
 
-            if (!fxc(name, fog_exp1, entry, 1, &ps_bc)) return false;
-            hr = gHR = device->CreatePixelShader(ps_bc->GetBufferPointer(), ps_bc->GetBufferSize(), NULL, &ps[IDX(IRenderer::FogState::Exp)]);
+            if (!fxc(name, fog_exp1, entry, 1, ps_bc.put())) return false;
+            hr = gHR = device->CreatePixelShader(ps_bc->GetBufferPointer(), ps_bc->GetBufferSize(), NULL, ps[IDX(IRenderer::FogState::Exp)].put());
             if (FAILED(hr)) return false;
 
-            if (!fxc(name, fog_exp2, entry, 1, &ps_bc)) return false;
-            hr = gHR = device->CreatePixelShader(ps_bc->GetBufferPointer(), ps_bc->GetBufferSize(), NULL, &ps[IDX(IRenderer::FogState::Exp2)]);
+            if (!fxc(name, fog_exp2, entry, 1, ps_bc.put())) return false;
+            hr = gHR = device->CreatePixelShader(ps_bc->GetBufferPointer(), ps_bc->GetBufferSize(), NULL, ps[IDX(IRenderer::FogState::Exp2)].put());
             if (FAILED(hr)) return false;
 
             return true;
@@ -564,7 +564,7 @@ namespace core::Graphics
             { "NORMAL"  , 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
             { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT   , 2, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         };
-        hr = gHR = device->CreateInputLayout(ia_layout, 3, vs->GetBufferPointer(), vs->GetBufferSize(), &input_layout);
+        hr = gHR = device->CreateInputLayout(ia_layout, 3, vs->GetBufferPointer(), vs->GetBufferSize(), input_layout.put());
         if (FAILED(hr))
         {
             assert(false);
@@ -577,7 +577,7 @@ namespace core::Graphics
             { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT   , 2, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
             { "COLOR"   , 0, DXGI_FORMAT_R32G32B32_FLOAT, 3, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         };
-        hr = gHR = device->CreateInputLayout(ia_layout_vc, 4, vs_vc->GetBufferPointer(), vs_vc->GetBufferSize(), &input_layout_vc);
+        hr = gHR = device->CreateInputLayout(ia_layout_vc, 4, vs_vc->GetBufferPointer(), vs_vc->GetBufferSize(), input_layout_vc.put());
         if (FAILED(hr))
         {
             assert(false);
