@@ -9,5 +9,5 @@ namespace core {
 	// UUID v5
 	// ns:URL
 	// https://www.luastg-sub.com/core.IWeakReferenceSource
-	template<> constexpr InterfaceId getInterfaceId<IWeakReferenceSource>() { return UUID::parse("beabd630-bc16-5df7-b4f1-595f4c55d1a4"); }
+	CORE_INTERFACE_ID(IWeakReferenceSource, "beabd630-bc16-5df7-b4f1-595f4c55d1a4") }
 }
