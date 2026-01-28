@@ -18,6 +18,8 @@ namespace core::Graphics::Direct3D11 {
 
 		// IBuffer
 
+		void* getNativeHandle() const noexcept override { return m_buffer.get(); }
+
 		bool map(uint32_t size_in_bytes, bool discard, void** out_pointer) override;
 		bool unmap() override;
 

@@ -136,6 +136,8 @@ namespace core::Graphics
 	};
 
 	struct IBuffer : IReferenceCounted {
+		virtual void* getNativeHandle() const noexcept = 0;
+
 		virtual bool map(uint32_t size_in_bytes, bool discard, void** out_pointer) = 0;
 		virtual bool unmap() = 0;
 	};

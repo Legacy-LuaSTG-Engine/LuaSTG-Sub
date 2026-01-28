@@ -1,4 +1,5 @@
 #include "Core/Graphics/Renderer_D3D11.hpp"
+#include "core/Logger.hpp"
 #include "Core/Graphics/Model_D3D11.hpp"
 #include "Core/Graphics/Direct3D11/Constants.hpp"
 #include "Core/Graphics/Direct3D11/SamplerState.hpp"
@@ -161,60 +162,57 @@ namespace core::Graphics
 
 namespace core::Graphics
 {
-	void Renderer_D3D11::setVertexIndexBuffer(size_t index)
-	{
+	void Renderer_D3D11::setVertexIndexBuffer(const size_t index) {
 		assert(m_device->GetD3D11DeviceContext());
 
 		auto& vi = _vi_buffer[(index == 0xFFFFFFFFu) ? _vi_buffer_index : index];
-		ID3D11Buffer* vbo[1] = { vi.vertex_buffer.get() };
+		ID3D11Buffer* vbo[1] = { static_cast<ID3D11Buffer*>(vi.vertex_buffer->getNativeHandle()) };
 		UINT stride[1] = { sizeof(IRenderer::DrawVertex) };
 		UINT offset[1] = { 0 };
 		m_device->GetD3D11DeviceContext()->IASetVertexBuffers(0, 1, vbo, stride, offset);
 
 		constexpr DXGI_FORMAT format = sizeof(DrawIndex) < 4 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
-		m_device->GetD3D11DeviceContext()->IASetIndexBuffer(vi.index_buffer.get(), format, 0);
+		m_device->GetD3D11DeviceContext()->IASetIndexBuffer(static_cast<ID3D11Buffer*>(vi.index_buffer->getNativeHandle()), format, 0);
 	}
-	bool Renderer_D3D11::uploadVertexIndexBuffer(bool discard)
-	{
-		assert(m_device->GetD3D11DeviceContext());
+	bool Renderer_D3D11::uploadVertexIndexBuffer(const bool discard) {
 		tracy_zone_scoped;
 		tracy_d3d11_context_zone(m_device->GetTracyContext(), "UploadVertexIndexBuffer");
-		HRESULT hr = 0;
-		auto& vi_ = _vi_buffer[_vi_buffer_index];
-		const D3D11_MAP map_type_ = discard ? D3D11_MAP_WRITE_DISCARD : D3D11_MAP_WRITE_NO_OVERWRITE;
+
+		const auto& current = _vi_buffer[_vi_buffer_index];
+
 		// copy vertex data
-		if (_draw_list.vertex.size > 0)
-		{
-			D3D11_MAPPED_SUBRESOURCE res_ = {};
-			hr = gHR = m_device->GetD3D11DeviceContext()->Map(vi_.vertex_buffer.get(), 0, map_type_, 0, &res_);
-			if (FAILED(hr))
-			{
-				spdlog::error("[core] ID3D11DeviceContext::Map -> #vertex_buffer[{}] 调用失败，无法上传顶点", _vi_buffer_index);
+		if (_draw_list.vertex.size > 0) {
+			DrawVertex* ptr{};
+			if (!current.vertex_buffer->map(0, discard, reinterpret_cast<void**>(&ptr))) {
+				Logger::error("[core] [Renderer] upload vertex buffer failed (map)");
 				return false;
 			}
-			std::memcpy((DrawVertex*)res_.pData + vi_.vertex_offset, _draw_list.vertex.data, _draw_list.vertex.size * sizeof(DrawVertex));
-			m_device->GetD3D11DeviceContext()->Unmap(vi_.vertex_buffer.get(), 0);
+			std::memcpy(ptr + current.vertex_offset, _draw_list.vertex.data, _draw_list.vertex.size * sizeof(DrawVertex));
+			if (!current.vertex_buffer->unmap()) {
+				Logger::error("[core] [Renderer] upload vertex buffer failed (unmap)");
+				return false;
+			}
 		}
+
 		// copy index data
-		if (_draw_list.index.size > 0)
-		{
-			D3D11_MAPPED_SUBRESOURCE res_ = {};
-			hr = gHR = m_device->GetD3D11DeviceContext()->Map(vi_.index_buffer.get(), 0, map_type_, 0, &res_);
-			if (FAILED(hr))
-			{
-				spdlog::error("[core] ID3D11DeviceContext::Map -> #index_buffer[{}] 调用失败，无法上传顶点索引", _vi_buffer_index);
+		if (_draw_list.index.size > 0) {
+			DrawIndex* ptr{};
+			if (!current.index_buffer->map(0, discard, reinterpret_cast<void**>(&ptr))) {
+				Logger::error("[core] [Renderer] upload index buffer failed (map)");
 				return false;
 			}
-			std::memcpy((DrawIndex*)res_.pData + vi_.index_offset, _draw_list.index.data, _draw_list.index.size * sizeof(DrawIndex));
-			m_device->GetD3D11DeviceContext()->Unmap(vi_.index_buffer.get(), 0);
+			std::memcpy(ptr + current.index_offset, _draw_list.index.data, _draw_list.index.size * sizeof(DrawIndex));
+			if (!current.index_buffer->unmap()) {
+				Logger::error("[core] [Renderer] upload index buffer failed (unmap)");
+				return false;
+			}
 		}
+
 		return true;
 	}
-	void Renderer_D3D11::clearDrawList()
-	{
-		for (size_t j_ = 0; j_ < _draw_list.command.size; j_ += 1)
-		{
-			_draw_list.command.data[j_].texture.reset();
+	void Renderer_D3D11::clearDrawList() {
+		for (size_t i = 0; i < _draw_list.command.size; i += 1) {
+			_draw_list.command.data[i].texture.reset();
 		}
 		_draw_list.vertex.size = 0;
 		_draw_list.index.size = 0;
@@ -264,36 +262,12 @@ namespace core::Graphics
 			}
 		}
 
-		for (auto& vi_ : _vi_buffer)
-		{
-			{
-				D3D11_BUFFER_DESC desc_ = {
-					.ByteWidth = sizeof(_draw_list.vertex.data),
-					.Usage = D3D11_USAGE_DYNAMIC,
-					.BindFlags = D3D11_BIND_VERTEX_BUFFER,
-					.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
-					.MiscFlags = 0,
-					.StructureByteStride = 0,
-				};
-				hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, vi_.vertex_buffer.put());
-				if (FAILED(hr))
-					return false;
-				M_D3D_SET_DEBUG_NAME_SIMPLE(vi_.vertex_buffer.get());
+		for (auto& vi_ : _vi_buffer) {
+			if (!m_device->createVertexBuffer(sizeof(_draw_list.vertex.data), vi_.vertex_buffer.put())) {
+				return false;
 			}
-
-			{
-				D3D11_BUFFER_DESC desc_ = {
-					.ByteWidth = sizeof(_draw_list.index.data),
-					.Usage = D3D11_USAGE_DYNAMIC,
-					.BindFlags = D3D11_BIND_INDEX_BUFFER,
-					.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
-					.MiscFlags = 0,
-					.StructureByteStride = 0,
-				};
-				hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, vi_.index_buffer.put());
-				if (FAILED(hr))
-					return false;
-				M_D3D_SET_DEBUG_NAME_SIMPLE(vi_.index_buffer.get());
+			if (!m_device->createIndexBuffer(sizeof(_draw_list.index.data), vi_.index_buffer.put())) {
+				return false;
 			}
 		}
 

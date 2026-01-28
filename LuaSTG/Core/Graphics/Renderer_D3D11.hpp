@@ -53,10 +53,9 @@ namespace core::Graphics
 		}
 	};
 
-	struct VertexIndexBuffer
-	{
-		win32::com_ptr<ID3D11Buffer> vertex_buffer;
-		win32::com_ptr<ID3D11Buffer> index_buffer;
+	struct VertexIndexBuffer {
+		SmartReference<IBuffer> vertex_buffer;
+		SmartReference<IBuffer> index_buffer;
 		INT vertex_offset = 0;
 		UINT index_offset = 0;
 	};
@@ -68,22 +67,18 @@ namespace core::Graphics
 		uint16_t index_count = 0;
 	};
 
-	struct DrawList
-	{
-		struct VertexBuffer
-		{
+	struct DrawList {
+		struct VertexBuffer {
 			const size_t capacity = 32768;
 			size_t size = 0;
 			IRenderer::DrawVertex data[32768] = {};
 		} vertex;
-		struct IndexBuffer
-		{
+		struct IndexBuffer {
 			const size_t capacity = 32768;
 			size_t size = 0;
 			IRenderer::DrawIndex data[32768] = {};
 		} index;
-		struct DrawCommandBuffer
-		{
+		struct DrawCommandBuffer {
 			const size_t capacity = 2048;
 			size_t size = 0;
 			DrawCommand data[2048] = {};
@@ -153,7 +148,7 @@ namespace core::Graphics
 
 		win32::com_ptr<ID3D11Buffer> _fx_vbuffer;
 		win32::com_ptr<ID3D11Buffer> _fx_ibuffer;
-		VertexIndexBuffer _vi_buffer[1];
+		std::array<VertexIndexBuffer, 1> _vi_buffer;
 		size_t _vi_buffer_index = 0;
 		const size_t _vi_buffer_count = 1;
 		DrawList _draw_list;
