@@ -140,6 +140,7 @@ namespace core::Graphics
 
 		virtual bool map(uint32_t size_in_bytes, bool discard, void** out_pointer) = 0;
 		virtual bool unmap() = 0;
+		virtual bool update(const void* data, size_t size_in_bytes) = 0;
 	};
 
 	struct IDevice : IReferenceCounted

@@ -252,42 +252,21 @@ namespace core::Graphics
 			}
 		}
 
-		{
-			D3D11_BUFFER_DESC desc_ = {
-				.ByteWidth = sizeof(DirectX::XMFLOAT4X4),
-				.Usage = D3D11_USAGE_DYNAMIC,
-				.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
-				.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
-				.MiscFlags = 0,
-				.StructureByteStride = 0,
-			};
-			hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, _vp_matrix_buffer.put());
-			if (FAILED(hr))
-				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_vp_matrix_buffer.get());
-
-			hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, _world_matrix_buffer.put());
-			if (FAILED(hr))
-				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_world_matrix_buffer.get());
-
-			desc_.ByteWidth = 2 * sizeof(DirectX::XMFLOAT4);
-			hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, _camera_pos_buffer.put());
-			if (FAILED(hr))
-				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_camera_pos_buffer.get());
-
-			desc_.ByteWidth = 2 * sizeof(DirectX::XMFLOAT4);
-			hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, _fog_data_buffer.put());
-			if (FAILED(hr))
-				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_fog_data_buffer.get());
-
-			desc_.ByteWidth = 8 * sizeof(DirectX::XMFLOAT4); // 用户最多可用 8 个 float4
-			hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, _user_float_buffer.put());
-			if (FAILED(hr))
-				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_user_float_buffer.get());
+		if (!m_device->createConstantBuffer(sizeof(DirectX::XMFLOAT4X4), _vp_matrix_buffer.put())) {
+			return false;
+		}
+		if (!m_device->createConstantBuffer(sizeof(DirectX::XMFLOAT4X4), _world_matrix_buffer.put())) {
+			return false;
+		}
+		if (!m_device->createConstantBuffer(2 * sizeof(DirectX::XMFLOAT4), _camera_pos_buffer.put())) {
+			return false;
+		}
+		if (!m_device->createConstantBuffer(2 * sizeof(DirectX::XMFLOAT4), _fog_data_buffer.put())) {
+			return false;
+		}
+		// 用户最多可用 8 个 float4
+		if (!m_device->createConstantBuffer(8 * sizeof(DirectX::XMFLOAT4), _user_float_buffer.put())) {
+			return false;
 		}
 
 		return true;
@@ -792,9 +771,9 @@ namespace core::Graphics
 
 		// [VS State]
 
-		ID3D11Buffer* const view_projection_matrix = _vp_matrix_buffer.get();
+		ID3D11Buffer* const view_projection_matrix = static_cast<ID3D11Buffer*>(_vp_matrix_buffer->getNativeHandle());
 		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, 1, &view_projection_matrix);
-		ID3D11Buffer* const world_matrix = _world_matrix_buffer.get();
+		ID3D11Buffer* const world_matrix = static_cast<ID3D11Buffer*>(_world_matrix_buffer->getNativeHandle());
 		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_world_matrix, 1, &world_matrix);
 
 		// [RS Stage]
@@ -803,9 +782,9 @@ namespace core::Graphics
 
 		// [PS State]
 
-		ID3D11Buffer* const camera_position = _camera_pos_buffer.get();
+		ID3D11Buffer* const camera_position = static_cast<ID3D11Buffer*>(_camera_pos_buffer->getNativeHandle());
 		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_camera_position, 1, &camera_position);
-		ID3D11Buffer* const fog_parameter = _fog_data_buffer.get();
+		ID3D11Buffer* const fog_parameter = static_cast<ID3D11Buffer*>(_fog_data_buffer->getNativeHandle());
 		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_fog_parameter, 1, &fog_parameter);
 
 		// [OM Stage]
@@ -881,20 +860,8 @@ namespace core::Graphics
 			_camera_state_set.is_3D = false;
 			DirectX::XMFLOAT4X4 f4x4;
 			DirectX::XMStoreFloat4x4(&f4x4, DirectX::XMMatrixOrthographicOffCenterLH(box.a.x, box.b.x, box.b.y, box.a.y, box.a.z, box.b.z));
-			/* upload vp matrix */ {
-				auto* ctx = m_device->GetD3D11DeviceContext();
-				assert(ctx);
-				D3D11_MAPPED_SUBRESOURCE res_ = {};
-				HRESULT hr = gHR = ctx->Map(_vp_matrix_buffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
-				if (SUCCEEDED(hr))
-				{
-					std::memcpy(res_.pData, &f4x4, sizeof(f4x4));
-					ctx->Unmap(_vp_matrix_buffer.get(), 0);
-				}
-				else
-				{
-					spdlog::error("[core] ID3D11DeviceContext::Map -> #view_projection_matrix_buffer 调用失败，无法上传摄像机变换矩阵");
-				}
+			if (!_vp_matrix_buffer->update(&f4x4, sizeof(f4x4))) {
+				Logger::error("[core] [Renderer] upload constant buffer failed (vp_matrix_buffer)");
 			}
 		}
 	}
@@ -925,31 +892,11 @@ namespace core::Graphics
 			};
 			auto* ctx = m_device->GetD3D11DeviceContext();
 			assert(ctx);
-			/* upload vp matrix */ {
-				D3D11_MAPPED_SUBRESOURCE res_ = {};
-				HRESULT hr = gHR = ctx->Map(_vp_matrix_buffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
-				if (SUCCEEDED(hr))
-				{
-					std::memcpy(res_.pData, &f4x4, sizeof(f4x4));
-					ctx->Unmap(_vp_matrix_buffer.get(), 0);
-				}
-				else
-				{
-					spdlog::error("[core] ID3D11DeviceContext::Map -> #view_projection_matrix_buffer 调用失败，无法上传摄像机变换矩阵");
-				}
+			if (!_vp_matrix_buffer->update(&f4x4, sizeof(f4x4))) {
+				Logger::error("[core] [Renderer] upload constant buffer failed (vp_matrix_buffer)");
 			}
-			/* upload camera pos */ {
-				D3D11_MAPPED_SUBRESOURCE res_ = {};
-				HRESULT hr = gHR = ctx->Map(_camera_pos_buffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
-				if (SUCCEEDED(hr))
-				{
-					std::memcpy(res_.pData, camera_pos, sizeof(camera_pos));
-					ctx->Unmap(_camera_pos_buffer.get(), 0);
-				}
-				else
-				{
-					spdlog::error("[core] ID3D11DeviceContext::Map -> #camera_position_buffer 调用失败，无法上传摄像机位置");
-				}
+			if (!_camera_pos_buffer->update(camera_pos, sizeof(camera_pos))) {
+				Logger::error("[core] [Renderer] upload constant buffer failed (camera_pos_buffer)");
 			}
 		}
 	}
@@ -1028,18 +975,8 @@ namespace core::Graphics
 				(float)color.a / 255.0f,
 				density_or_znear, zfar, 0.0f, zfar - density_or_znear,
 			};
-			/* upload */ {
-				D3D11_MAPPED_SUBRESOURCE res_ = {};
-				HRESULT hr = gHR = ctx->Map(_fog_data_buffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
-				if (SUCCEEDED(hr))
-				{
-					std::memcpy(res_.pData, fog_color_and_range, sizeof(fog_color_and_range));
-					ctx->Unmap(_fog_data_buffer.get(), 0);
-				}
-				else
-				{
-					spdlog::error("[core] ID3D11DeviceContext::Map -> #fog_data_buffer 调用失败，无法上传雾颜色、范围和密度信息");
-				}
+			if (!_fog_data_buffer->update(fog_color_and_range, sizeof(fog_color_and_range))) {
+				Logger::error("[core] [Renderer] upload constant buffer failed (fog_data_buffer)");
 			}
 			ctx->PSSetShader(_pixel_shader[IDX(_state_set.vertex_color_blend_state)][IDX(state)][IDX(_state_set.texture_alpha_type)].get(), NULL, 0);
 		}
@@ -1329,24 +1266,13 @@ namespace core::Graphics
 
 		// [Stage VS]
 
-		/* upload vp matrix */ {
-			D3D11_MAPPED_SUBRESOURCE res_ = {};
-			HRESULT hr = gHR = ctx->Map(_vp_matrix_buffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
-			if (SUCCEEDED(hr))
-			{
-				DirectX::XMFLOAT4X4 f4x4;
-				DirectX::XMStoreFloat4x4(&f4x4, DirectX::XMMatrixOrthographicOffCenterLH(0.0f, sw_, 0.0f, sh_, 0.0f, 1.0f));
-				std::memcpy(res_.pData, &f4x4, sizeof(f4x4));
-				ctx->Unmap(_vp_matrix_buffer.get(), 0);
-			}
-			else
-			{
-				spdlog::error("[core] ID3D11DeviceContext::Map -> #view_projection_matrix_buffer 调用失败，无法上传摄像机变换矩阵");
-			}
+		DirectX::XMFLOAT4X4 vp_matrix;
+		DirectX::XMStoreFloat4x4(&vp_matrix, DirectX::XMMatrixOrthographicOffCenterLH(0.0f, sw_, 0.0f, sh_, 0.0f, 1.0f));
+		if (!_vp_matrix_buffer->update(&vp_matrix, sizeof(vp_matrix))) {
+			Logger::error("[core] [Renderer] upload constant buffer failed (vp_matrix_buffer)");
 		}
-
 		ctx->VSSetShader(_vertex_shader[IDX(FogState::Disable)].get(), NULL, 0);
-		ID3D11Buffer* const view_projection_matrix = _vp_matrix_buffer.get();
+		ID3D11Buffer* const view_projection_matrix = static_cast<ID3D11Buffer*>(_vp_matrix_buffer->getNativeHandle());
 		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, 1, &view_projection_matrix);
 
 		// [Stage RS]
@@ -1371,35 +1297,19 @@ namespace core::Graphics
 
 		// [Stage PS]
 
-		/* upload built-in value */ if (cv_n > 0) {
-			D3D11_MAPPED_SUBRESOURCE res_ = {};
-			HRESULT hr = gHR = ctx->Map(_user_float_buffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
-			if (FAILED(hr))
-			{
-				spdlog::error("[core] ID3D11DeviceContext::Map -> #user_float_buffer 调用失败，上传数据失败，LuaSTG::core::Renderer::postEffect 调用提前中止");
-				return false;
-			}
-			std::memcpy(res_.pData, cv, std::min<UINT>((UINT)cv_n, 8) * sizeof(Vector4F));
-			ctx->Unmap(_user_float_buffer.get(), 0);
+		if (!_user_float_buffer->update(cv, std::min<size_t>(cv_n, 8) * sizeof(Vector4F))) {
+			Logger::error("[core] [Renderer] upload constant buffer failed (user_float_buffer)");
 		}
-		/* upload built-in value */ {
-			float ps_cbdata[8] = {
-				sw_, sh_, 0.0f, 0.0f,
-				_state_set.viewport.a.x, _state_set.viewport.a.y, _state_set.viewport.b.x, _state_set.viewport.b.y,
-			};
-			D3D11_MAPPED_SUBRESOURCE res_ = {};
-			HRESULT hr = gHR = ctx->Map(_fog_data_buffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
-			if (FAILED(hr))
-			{
-				spdlog::error("[core] ID3D11DeviceContext::Map -> #engine_built_in_value_buffer 调用失败，无法上传渲染目标尺寸和视口信息，LuaSTG::core::Renderer::postEffect 调用提前中止");
-				return false;
-			}
-			std::memcpy(res_.pData, ps_cbdata, sizeof(ps_cbdata));
-			ctx->Unmap(_fog_data_buffer.get(), 0);
+		const float size_viewport[8] = {
+			sw_, sh_, 0.0f, 0.0f,
+			_state_set.viewport.a.x, _state_set.viewport.a.y, _state_set.viewport.b.x, _state_set.viewport.b.y,
+		};
+		if (!_fog_data_buffer->update(size_viewport, sizeof(size_viewport))) {
+			Logger::error("[core] [Renderer] upload constant buffer failed (fog_data_buffer/size_viewport_buffer)");
 		}
-		ID3D11Buffer* const user_data = _user_float_buffer.get();
+		ID3D11Buffer* const user_data = static_cast<ID3D11Buffer*>(_user_float_buffer->getNativeHandle());
 		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_user_data, 1, &user_data);
-		ID3D11Buffer* const fog_parameter = _fog_data_buffer.get();
+		ID3D11Buffer* const fog_parameter = static_cast<ID3D11Buffer*>(_fog_data_buffer->getNativeHandle());
 		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_fog_parameter, 1, &fog_parameter);
 
 		ctx->PSSetShader(static_cast<PostEffectShader_D3D11*>(p_effect)->GetPS(), NULL, 0);
@@ -1521,24 +1431,13 @@ namespace core::Graphics
 
 		// [Stage VS]
 
-		/* upload vp matrix */ {
-			D3D11_MAPPED_SUBRESOURCE res_ = {};
-			HRESULT hr = gHR = ctx->Map(_vp_matrix_buffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
-			if (SUCCEEDED(hr))
-			{
-				DirectX::XMFLOAT4X4 f4x4;
-				DirectX::XMStoreFloat4x4(&f4x4, DirectX::XMMatrixOrthographicOffCenterLH(0.0f, sw_, 0.0f, sh_, 0.0f, 1.0f));
-				std::memcpy(res_.pData, &f4x4, sizeof(f4x4));
-				ctx->Unmap(_vp_matrix_buffer.get(), 0);
-			}
-			else
-			{
-				spdlog::error("[core] ID3D11DeviceContext::Map -> #view_projection_matrix_buffer 调用失败，无法上传摄像机变换矩阵");
-			}
+		DirectX::XMFLOAT4X4 vp_matrix;
+		DirectX::XMStoreFloat4x4(&vp_matrix, DirectX::XMMatrixOrthographicOffCenterLH(0.0f, sw_, 0.0f, sh_, 0.0f, 1.0f));
+		if (!_vp_matrix_buffer->update(&vp_matrix, sizeof(vp_matrix))) {
+			Logger::error("[core] [Renderer] upload constant buffer failed (vp_matrix_buffer)");
 		}
-
 		ctx->VSSetShader(_vertex_shader[IDX(FogState::Disable)].get(), NULL, 0);
-		ID3D11Buffer* const view_projection_matrix = _vp_matrix_buffer.get();
+		ID3D11Buffer* const view_projection_matrix = static_cast<ID3D11Buffer*>(_vp_matrix_buffer->getNativeHandle());
 		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, 1, &view_projection_matrix);
 
 		// [Stage RS]

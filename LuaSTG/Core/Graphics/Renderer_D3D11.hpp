@@ -157,11 +157,11 @@ namespace core::Graphics
 		bool uploadVertexIndexBuffer(bool discard);
 		void clearDrawList();
 
-		win32::com_ptr<ID3D11Buffer> _vp_matrix_buffer;
-		win32::com_ptr<ID3D11Buffer> _world_matrix_buffer;
-		win32::com_ptr<ID3D11Buffer> _camera_pos_buffer; // 在 postEffect 的时候被替换了
-		win32::com_ptr<ID3D11Buffer> _fog_data_buffer; // 同时也用于储存 postEffect 的 纹理大小和视口范围
-		win32::com_ptr<ID3D11Buffer> _user_float_buffer; // 在 postEffect 的时候用这个
+		SmartReference<IBuffer> _vp_matrix_buffer;
+		SmartReference<IBuffer> _world_matrix_buffer;
+		SmartReference<IBuffer> _camera_pos_buffer; // 在 postEffect 的时候被替换了
+		SmartReference<IBuffer> _fog_data_buffer; // 同时也用于储存 postEffect 的 纹理大小和视口范围
+		SmartReference<IBuffer> _user_float_buffer; // 在 postEffect 的时候用这个
 
 		win32::com_ptr<ID3D11InputLayout> _input_layout;
 		win32::com_ptr<ID3D11VertexShader> _vertex_shader[IDX(FogState::MAX_COUNT)]; // FogState

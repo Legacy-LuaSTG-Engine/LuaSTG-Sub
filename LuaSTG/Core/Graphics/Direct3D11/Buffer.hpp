@@ -22,6 +22,7 @@ namespace core::Graphics::Direct3D11 {
 
 		bool map(uint32_t size_in_bytes, bool discard, void** out_pointer) override;
 		bool unmap() override;
+		bool update(const void* data, size_t size_in_bytes) override;
 
 		// Buffer
 
