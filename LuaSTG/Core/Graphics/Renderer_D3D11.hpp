@@ -146,8 +146,8 @@ namespace core::Graphics
 		SmartReference<Direct3D11::Device> m_device;
 		SmartReference<ModelSharedComponent_D3D11> m_model_shared;
 
-		win32::com_ptr<ID3D11Buffer> _fx_vbuffer;
-		win32::com_ptr<ID3D11Buffer> _fx_ibuffer;
+		SmartReference<IBuffer> _fx_vbuffer;
+		SmartReference<IBuffer> _fx_ibuffer;
 		std::array<VertexIndexBuffer, 1> _vi_buffer;
 		size_t _vi_buffer_index = 0;
 		const size_t _vi_buffer_count = 1;

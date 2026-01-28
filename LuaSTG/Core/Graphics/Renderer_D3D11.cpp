@@ -225,40 +225,21 @@ namespace core::Graphics
 
 		HRESULT hr = 0;
 
+		if (!m_device->createVertexBuffer(4 * sizeof(DrawVertex), _fx_vbuffer.put())) {
+			return false;
+		}
+		if (!m_device->createIndexBuffer(6 * sizeof(DrawIndex), _fx_ibuffer.put())) {
+			return false;
+		}
 		{
-			{
-				D3D11_BUFFER_DESC desc_ = {
-					.ByteWidth = 4 * sizeof(DrawVertex),
-					.Usage = D3D11_USAGE_DYNAMIC,
-					.BindFlags = D3D11_BIND_VERTEX_BUFFER,
-					.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
-					.MiscFlags = 0,
-					.StructureByteStride = 0,
-				};
-				hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, _fx_vbuffer.put());
-				if (FAILED(hr))
-					return false;
-				M_D3D_SET_DEBUG_NAME_SIMPLE(_fx_vbuffer.get());
+			constexpr DrawIndex quad_index[6] = { 0, 1, 2, 0, 2, 3 };
+			DrawIndex* ptr{};
+			if (!_fx_ibuffer->map(0, false, reinterpret_cast<void**>(&ptr))) {
+				return false;
 			}
-			{
-				DrawIndex const idx_[6] = { 0, 1, 2, 0, 2, 3 };
-				D3D11_BUFFER_DESC desc_ = {
-					.ByteWidth = 6 * sizeof(DrawIndex),
-					.Usage = D3D11_USAGE_DEFAULT,
-					.BindFlags = D3D11_BIND_INDEX_BUFFER,
-					.CPUAccessFlags = 0,
-					.MiscFlags = 0,
-					.StructureByteStride = 0,
-				};
-				D3D11_SUBRESOURCE_DATA data_ = {
-					.pSysMem = &idx_,
-					.SysMemPitch = desc_.ByteWidth,
-					.SysMemSlicePitch = desc_.ByteWidth,
-				};
-				hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, &data_, _fx_ibuffer.put());
-				if (FAILED(hr))
-					return false;
-				M_D3D_SET_DEBUG_NAME_SIMPLE(_fx_ibuffer.get());
+			std::memcpy(ptr, quad_index, sizeof(quad_index));
+			if (!_fx_ibuffer->unmap()) {
+				return false;
 			}
 		}
 
@@ -1320,29 +1301,30 @@ namespace core::Graphics
 		// [Stage IA]
 
 		/* upload vertex data */ {
-			D3D11_MAPPED_SUBRESOURCE res_ = {};
-			HRESULT hr = gHR = m_device->GetD3D11DeviceContext()->Map(_fx_vbuffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
-			if (FAILED(hr))
-			{
-				spdlog::error("[core] ID3D11DeviceContext::Map -> #_fx_vbuffer 调用失败，无法上传顶点");
+			DrawVertex* ptr{};
+			if (!_fx_vbuffer->map(0, true, reinterpret_cast<void**>(&ptr))) {
+				Logger::error("[core] [Renderer] upload vertex buffer failed (map)");
 				return false;
 			}
-			DrawVertex const vertex_data[4] = {
+			const DrawVertex vertex_data[4] = {
 				DrawVertex(0.f, sh_, 0.0f, 0.0f),
 				DrawVertex(sw_, sh_, 1.0f, 0.0f),
 				DrawVertex(sw_, 0.f, 1.0f, 1.0f),
 				DrawVertex(0.f, 0.f, 0.0f, 1.0f),
 			};
-			std::memcpy(res_.pData, vertex_data, sizeof(vertex_data));
-			m_device->GetD3D11DeviceContext()->Unmap(_fx_vbuffer.get(), 0);
+			std::memcpy(ptr, vertex_data, sizeof(vertex_data));
+			if (!_fx_vbuffer->unmap()) {
+				Logger::error("[core] [Renderer] upload vertex buffer failed (unmap)");
+				return false;
+			}
 		}
-		
+
 		ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		ID3D11Buffer* p_d3d11_vbos[1] = { _fx_vbuffer.get() };
+		ID3D11Buffer* p_d3d11_vbos[1] = { static_cast<ID3D11Buffer*>(_fx_vbuffer->getNativeHandle()) };
 		UINT const stride = sizeof(DrawVertex);
 		UINT const offset = 0;
 		ctx->IASetVertexBuffers(0, 1, p_d3d11_vbos, &stride, &offset);
-		ctx->IASetIndexBuffer(_fx_ibuffer.get(), DXGI_FORMAT_R16_UINT, 0);
+		ctx->IASetIndexBuffer(static_cast<ID3D11Buffer*>(_fx_ibuffer->getNativeHandle()), DXGI_FORMAT_R16_UINT, 0);
 		ctx->IASetInputLayout(_input_layout.get());
 
 		// [Stage VS]
@@ -1511,29 +1493,30 @@ namespace core::Graphics
 		// [Stage IA]
 
 		/* upload vertex data */ {
-			D3D11_MAPPED_SUBRESOURCE res_ = {};
-			HRESULT hr = gHR = m_device->GetD3D11DeviceContext()->Map(_fx_vbuffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res_);
-			if (FAILED(hr))
-			{
-				spdlog::error("[core] ID3D11DeviceContext::Map -> #_fx_vbuffer 调用失败，无法上传顶点");
+			DrawVertex* ptr{};
+			if (!_fx_vbuffer->map(0, true, reinterpret_cast<void**>(&ptr))) {
+				Logger::error("[core] [Renderer] upload vertex buffer failed (map)");
 				return false;
 			}
-			DrawVertex const vertex_data[4] = {
+			const DrawVertex vertex_data[4] = {
 				DrawVertex(0.f, sh_, 0.0f, 0.0f),
 				DrawVertex(sw_, sh_, 1.0f, 0.0f),
 				DrawVertex(sw_, 0.f, 1.0f, 1.0f),
 				DrawVertex(0.f, 0.f, 0.0f, 1.0f),
 			};
-			std::memcpy(res_.pData, vertex_data, sizeof(vertex_data));
-			m_device->GetD3D11DeviceContext()->Unmap(_fx_vbuffer.get(), 0);
+			std::memcpy(ptr, vertex_data, sizeof(vertex_data));
+			if (!_fx_vbuffer->unmap()) {
+				Logger::error("[core] [Renderer] upload vertex buffer failed (unmap)");
+				return false;
+			}
 		}
 
 		ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		ID3D11Buffer* p_d3d11_vbos[1] = { _fx_vbuffer.get() };
+		ID3D11Buffer* p_d3d11_vbos[1] = { static_cast<ID3D11Buffer*>(_fx_vbuffer->getNativeHandle()) };
 		UINT const stride = sizeof(DrawVertex);
 		UINT const offset = 0;
 		ctx->IASetVertexBuffers(0, 1, p_d3d11_vbos, &stride, &offset);
-		ctx->IASetIndexBuffer(_fx_ibuffer.get(), DXGI_FORMAT_R16_UINT, 0);
+		ctx->IASetIndexBuffer(static_cast<ID3D11Buffer*>(_fx_ibuffer->getNativeHandle()), DXGI_FORMAT_R16_UINT, 0);
 		ctx->IASetInputLayout(_input_layout.get());
 
 		// [Stage VS]
