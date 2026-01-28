@@ -2,6 +2,7 @@
 #include "windows/Window.hpp"
 #include "Core/i18n.hpp"
 #include "core/Configuration.hpp"
+#include <wincodec.h>
 #include "windows/WindowsVersion.hpp"
 #include "windows/DesktopWindowManager.hpp"
 #include "windows/Direct3D11.hpp"

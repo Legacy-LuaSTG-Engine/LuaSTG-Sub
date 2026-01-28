@@ -1,6 +1,12 @@
 #pragma once
 #include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/Renderer.hpp"
+#include "win32/base.hpp"
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+#include <d3d11_4.h>
+#include <d3dcompiler.h>
 #include "Core/Graphics/Direct3D11/Texture2D.hpp"
 #include "Core/Graphics/Direct3D11/Device.hpp"
 #include "Core/Graphics/Model_D3D11.hpp"

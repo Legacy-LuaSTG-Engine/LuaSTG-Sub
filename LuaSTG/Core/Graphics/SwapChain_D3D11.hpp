@@ -2,9 +2,18 @@
 #include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
 #include "Core/Graphics/SwapChain.hpp"
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+#include <ntstatus.h>
+#include <dxgi1_6.h>
+#include <d3d11_4.h>
+#include <d2d1_3.h>
+#include <dcomp.h>
 #include "Core/Graphics/Direct3D11/Device.hpp"
 #include "Core/Graphics/Direct3D11/LetterBoxingRenderer.hpp"
 #include "windows/RuntimeLoader/DirectComposition.hpp"
+#include "win32/base.hpp"
 #include <wil/resource.h>
 
 namespace core::Graphics
