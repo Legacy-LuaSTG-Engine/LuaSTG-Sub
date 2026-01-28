@@ -89,7 +89,7 @@ namespace core::Graphics::Common {
 		m_vertex[3].y += position.y;
 	}
 	void SpriteRenderer::setSprite(ISprite* const sprite) {
-		assert(sprite);
+		//assert(sprite);
 		m_sprite = sprite;
 		if (m_sprite) {
 			auto const rect = m_sprite->getTextureRect();
