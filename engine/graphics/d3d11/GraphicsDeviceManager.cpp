@@ -162,9 +162,9 @@ namespace {
         return true;
     }
 
-    void logCollection(const std::vector<PhysicalDeviceInfo>& collection, std::stringstream& s) {
+    void logCollection(const std::vector<PhysicalDeviceInfo>& collection, std::string& s) {
         for (const auto& v : collection) {
-            s << std::format(
+            s.append(std::format(
                 "        {}:\n"sv
                 "            Direct3D feature level: {}\n"sv
                 "            VendorId: 0x{:08x}\n"sv
@@ -187,16 +187,16 @@ namespace {
                 , v.info.SharedSystemMemory, toString(v.info.SharedSystemMemory, Semantic::data_size)
                 , static_cast<DWORD>(v.info.AdapterLuid.HighPart), v.info.AdapterLuid.LowPart
                 , toString(v.info.Flags)
-            );
+            ));
             if (v.info_level < 4) {
                 continue;
             }
-            s << std::format(
+            s.append(std::format(
                 "            Graphics preemption granularity: {}\n"sv
                 "            Compute preemption granularity: {}\n"sv
                 , toStringView(v.info.GraphicsPreemptionGranularity)
                 , toStringView(v.info.ComputePreemptionGranularity)
-            );
+            ));
         }
     }
 }
@@ -226,29 +226,33 @@ namespace core {
         return physical_device_info.at(index).name;
     }
     void GraphicsDeviceManager::log() {
-        std::stringstream s;
-        s << std::format(
+        std::string s;
+        s.append(std::format(
             "[core] [GraphicsDeviceManager] Graphics System details:\n"sv
             "    Features:\n"sv
             "        Present allow tearing (Windows DXGI): {}\n"sv
             "    Physical devices:\n"sv
             , toStringView(is_present_allow_tearing_supported, Semantic::support)
-        );
+        ));
         if (!physical_device_info.empty()) {
             logCollection(physical_device_info, s);
         }
         else {
-            s << "        N/A\n"sv;
+            s.append("        N/A\n"sv);
         }
         if (!physical_device_info_not_supported.empty()) {
-            s << "    Physical devices (unmet requirements):\n"sv;
+            s.append("    Physical devices (unmet requirements):\n"sv);
             logCollection(physical_device_info_not_supported, s);
         }
+        if (s.back() == '\n') {
+            s.pop_back();
+        }
+        Logger::info(s);
     }
 }
 
 namespace core {
-    bool GraphicsDeviceManagerDXGI::refreshAndFindAdapter(const std::string_view name, IDXGIAdapter1** const adapter) {
+    bool GraphicsDeviceManagerDXGI::refreshAndFindAdapter(const std::string_view name, IDXGIAdapter1** const adapter, std::string* const adapter_name) {
         physical_device_info.clear();
         physical_device_info_not_supported.clear();
         is_present_allow_tearing_supported = false;
@@ -262,26 +266,26 @@ namespace core {
             return false;
         }
 
-        if (name.empty()) {
-            return win32::check_hresult_as_boolean(
-                factory->EnumAdapters1(0, adapter),
-                "IDXGIFactory1::EnumAdapters1 (0)"sv
-            );
-        }
-
-        for (const auto& v : physical_device_info) {
-            if (v.name == name) {
-                v.adapter->AddRef();
-                *adapter = v.adapter.get();
-                return true;
+        if (!name.empty()) {
+            for (const auto& v : physical_device_info) {
+                if (v.name == name) {
+                    v.adapter->AddRef();
+                    *adapter = v.adapter.get();
+                    if (adapter_name != nullptr) {
+                        *adapter_name = v.name;
+                    }
+                    return true;
+                }
             }
         }
 
-        // fallback
         if (!physical_device_info.empty()) {
-            const auto& v = physical_device_info.front().adapter;
-            v->AddRef();
-            *adapter = v.get();
+            const auto& v = physical_device_info.front();
+            v.adapter->AddRef();
+            *adapter = v.adapter.get();
+            if (adapter_name != nullptr) {
+                *adapter_name = v.name;
+            }
             return true;
         }
 
