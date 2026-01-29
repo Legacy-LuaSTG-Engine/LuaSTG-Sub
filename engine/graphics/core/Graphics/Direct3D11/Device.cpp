@@ -2,6 +2,8 @@
 #include "core/Configuration.hpp"
 #include "core/Logger.hpp"
 #include "d3d11/GraphicsDeviceManager.hpp"
+#include "d3d11/ToStringHelper.hpp"
+#include "d3d11/DeviceHelper.hpp"
 #include "windows/WindowsVersion.hpp"
 #include "windows/AdapterPolicy.hpp"
 #include "windows/Direct3D11.hpp"
@@ -10,60 +12,6 @@
 namespace {
 	using std::string_view_literals::operator ""sv;
 
-	std::string bytes_count_to_string(DWORDLONG size) {
-		int count = 0;
-		char buffer[64] = {};
-		if (size < 1024llu) // B
-		{
-			count = std::snprintf(buffer, 64, "%u B", (unsigned int)size);
-		}
-		else if (size < (1024llu * 1024llu)) // KB
-		{
-			count = std::snprintf(buffer, 64, "%.2f KiB", (double)size / 1024.0);
-		}
-		else if (size < (1024llu * 1024llu * 1024llu)) // MB
-		{
-			count = std::snprintf(buffer, 64, "%.2f MiB", (double)size / (1024.0 * 1024.0));
-		}
-		else // GB
-		{
-			count = std::snprintf(buffer, 64, "%.2f GiB", (double)size / (1024.0 * 1024.0 * 1024.0));
-		}
-		return std::string(buffer, count);
-	}
-	std::string_view adapter_flags_to_string(UINT const flags) {
-		if ((flags & DXGI_ADAPTER_FLAG_REMOTE)) {
-			if (flags & DXGI_ADAPTER_FLAG_SOFTWARE) {
-				return "Remote Software";
-			}
-			else {
-				return "Remote Hardware";
-			}
-		}
-		else {
-			if (flags & DXGI_ADAPTER_FLAG_SOFTWARE) {
-				return "Software";
-			}
-			else {
-				return "Hardware";
-			}
-		}
-	}
-	std::string_view d3d_feature_level_to_string(D3D_FEATURE_LEVEL level) {
-		switch (level) {
-		case D3D_FEATURE_LEVEL_12_2: return "12.2";
-		case D3D_FEATURE_LEVEL_12_1: return "12.1";
-		case D3D_FEATURE_LEVEL_12_0: return "12.0";
-		case D3D_FEATURE_LEVEL_11_1: return "11.1";
-		case D3D_FEATURE_LEVEL_11_0: return "11.0";
-		case D3D_FEATURE_LEVEL_10_1: return "10.1";
-		case D3D_FEATURE_LEVEL_10_0: return "10.0";
-		case D3D_FEATURE_LEVEL_9_3: return "9.3";
-		case D3D_FEATURE_LEVEL_9_2: return "9.2";
-		case D3D_FEATURE_LEVEL_9_1: return "9.1";
-		default: return "Unknown";
-		}
-	}
 	std::string multi_plane_overlay_flags_to_string(UINT const flags) {
 		std::string buffer;
 		if (flags & DXGI_OVERLAY_SUPPORT_FLAG_DIRECT) {
@@ -106,49 +54,6 @@ namespace {
 		case DXGI_MODE_ROTATION_ROTATE270: return "Rotate270";
 		}
 	};
-	std::string_view threading_feature_to_string(D3D11_FEATURE_DATA_THREADING const v) {
-		if (v.DriverConcurrentCreates) {
-			if (v.DriverCommandLists) {
-				return "DriverConcurrentCreates, DriverCommandLists";
-			}
-			else {
-				return "DriverConcurrentCreates";
-			}
-		}
-		else {
-			if (v.DriverCommandLists) {
-				return "DriverCommandLists";
-			}
-			else {
-				return "None";
-			}
-		}
-	};
-	std::string_view d3d_feature_level_to_maximum_texture2d_size_string(D3D_FEATURE_LEVEL const level) {
-		switch (level) {
-		case D3D_FEATURE_LEVEL_12_2:
-		case D3D_FEATURE_LEVEL_12_1:
-		case D3D_FEATURE_LEVEL_12_0:
-		case D3D_FEATURE_LEVEL_11_1:
-		case D3D_FEATURE_LEVEL_11_0:
-			return "16384x16384";
-		case D3D_FEATURE_LEVEL_10_1:
-		case D3D_FEATURE_LEVEL_10_0:
-			return "8192x8192";
-		case D3D_FEATURE_LEVEL_9_3:
-			return "4096x4096";
-		case D3D_FEATURE_LEVEL_9_2:
-		case D3D_FEATURE_LEVEL_9_1:
-		default:
-			return "2048x2048";
-		}
-	}
-	std::string_view renderer_architecture_to_string(BOOL const TileBasedDeferredRenderer) {
-		if (TileBasedDeferredRenderer)
-			return "Tile Based Deferred Renderer (TBDR)";
-		else
-			return "Immediate Mode Rendering (IMR)";
-	}
 }
 
 // Device
@@ -297,6 +202,9 @@ namespace core::Graphics::Direct3D11 {
 
 		// 特性检查
 
+		d3d11::logDeviceFeatureSupportDetails(d3d11_device.get());
+		d3d11::logDeviceFormatSupportDetails(d3d11_device.get());
+
 		hr = gHR = d3d11_device->QueryInterface(d3d11_device1.put());
 		if (FAILED(hr)) {
 			Logger::error("Windows API failed: ID3D11Device::QueryInterface -> ID3D11Device1");
@@ -352,99 +260,6 @@ namespace core::Graphics::Direct3D11 {
 		_CHECK_FORMAT_SUPPORT_1(d24_s8, DXGI_FORMAT_D24_UNORM_S8_UINT);
 
 	#undef _CHECK_FORMAT_SUPPORT
-
-		D3D11_FEATURE_DATA_THREADING d3d11_feature_mt = {};
-		HRESULT hr_mt = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_THREADING, &d3d11_feature_mt, sizeof(d3d11_feature_mt));
-		if (FAILED(hr_mt)) {
-			Logger::error("Windows API failed: ID3D11Device::CheckFeatureSupport -> D3D11_FEATURE_THREADING");
-			// 不是严重错误
-		}
-
-		D3D11_FEATURE_DATA_ARCHITECTURE_INFO d3d11_feature_arch = {};
-		HRESULT hr_arch = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_ARCHITECTURE_INFO, &d3d11_feature_arch, sizeof(d3d11_feature_arch));
-		if (FAILED(hr_arch)) {
-			Logger::error("Windows API failed: ID3D11Device::CheckFeatureSupport -> D3D11_FEATURE_ARCHITECTURE_INFO");
-			// 不是严重错误
-		}
-
-		D3D11_FEATURE_DATA_D3D11_OPTIONS2 d3d11_feature_o2 = {};
-		HRESULT hr_o2 = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_D3D11_OPTIONS2, &d3d11_feature_o2, sizeof(d3d11_feature_o2));
-		if (FAILED(hr_o2)) {
-			Logger::error("Windows API failed: ID3D11Device::CheckFeatureSupport -> D3D11_FEATURE_D3D11_OPTIONS2");
-			// 不是严重错误
-		}
-
-	#define _FORMAT_INFO_STRING_FMT3 \
-		"        用于顶点缓冲区：{}\n"\
-		"        创建二维纹理：{}\n"\
-		"        创建立方体纹理：{}\n"\
-		"        着色器采样：{}\n"\
-		"        创建多级渐进纹理：{}\n"\
-		"        自动生成多级渐进纹理：{}\n"\
-		"        绑定为渲染目标：{}\n"\
-		"        像素颜色混合操作：{}\n"\
-		"        绑定为深度、模板缓冲区：{}\n"\
-		"        被 CPU 锁定、读取：{}\n"\
-		"        解析多重采样：{}\n"\
-		"        用于显示输出：{}\n"\
-		"        创建多重采样渲染目标：{}\n"\
-		"        像素颜色逻辑混合操作：{}\n"\
-		"        资源可分块：{}\n"\
-		"        资源可共享：{}\n"\
-		"        多平面叠加：{}\n"
-
-	#define _FORMAT_MAKE_SUPPORT "support" : "not support"
-
-	#define _FORMAT_INFO_STRING_ARG3(_NAME) \
-		, (d3d11_feature_format_##_NAME.OutFormatSupport & D3D11_FORMAT_SUPPORT_IA_VERTEX_BUFFER        ) ? _FORMAT_MAKE_SUPPORT\
-		, (d3d11_feature_format_##_NAME.OutFormatSupport & D3D11_FORMAT_SUPPORT_TEXTURE2D               ) ? _FORMAT_MAKE_SUPPORT\
-		, (d3d11_feature_format_##_NAME.OutFormatSupport & D3D11_FORMAT_SUPPORT_TEXTURECUBE             ) ? _FORMAT_MAKE_SUPPORT\
-		, (d3d11_feature_format_##_NAME.OutFormatSupport & D3D11_FORMAT_SUPPORT_SHADER_SAMPLE           ) ? _FORMAT_MAKE_SUPPORT\
-		, (d3d11_feature_format_##_NAME.OutFormatSupport & D3D11_FORMAT_SUPPORT_MIP                     ) ? _FORMAT_MAKE_SUPPORT\
-		, (d3d11_feature_format_##_NAME.OutFormatSupport & D3D11_FORMAT_SUPPORT_MIP_AUTOGEN             ) ? _FORMAT_MAKE_SUPPORT\
-		, (d3d11_feature_format_##_NAME.OutFormatSupport & D3D11_FORMAT_SUPPORT_RENDER_TARGET           ) ? _FORMAT_MAKE_SUPPORT\
-		, (d3d11_feature_format_##_NAME.OutFormatSupport & D3D11_FORMAT_SUPPORT_BLENDABLE               ) ? _FORMAT_MAKE_SUPPORT\
-		, (d3d11_feature_format_##_NAME.OutFormatSupport & D3D11_FORMAT_SUPPORT_DEPTH_STENCIL           ) ? _FORMAT_MAKE_SUPPORT\
-		, (d3d11_feature_format_##_NAME.OutFormatSupport & D3D11_FORMAT_SUPPORT_CPU_LOCKABLE            ) ? _FORMAT_MAKE_SUPPORT\
-		, (d3d11_feature_format_##_NAME.OutFormatSupport & D3D11_FORMAT_SUPPORT_MULTISAMPLE_RESOLVE     ) ? _FORMAT_MAKE_SUPPORT\
-		, (d3d11_feature_format_##_NAME.OutFormatSupport & D3D11_FORMAT_SUPPORT_DISPLAY                 ) ? _FORMAT_MAKE_SUPPORT\
-		, (d3d11_feature_format_##_NAME.OutFormatSupport & D3D11_FORMAT_SUPPORT_MULTISAMPLE_RENDERTARGET) ? _FORMAT_MAKE_SUPPORT\
-		, (d3d11_feature_format_##_NAME.OutFormatSupport2 & D3D11_FORMAT_SUPPORT2_OUTPUT_MERGER_LOGIC_OP) ? _FORMAT_MAKE_SUPPORT\
-		, (d3d11_feature_format_##_NAME.OutFormatSupport2 & D3D11_FORMAT_SUPPORT2_TILED                 ) ? _FORMAT_MAKE_SUPPORT\
-		, (d3d11_feature_format_##_NAME.OutFormatSupport2 & D3D11_FORMAT_SUPPORT2_SHAREABLE             ) ? _FORMAT_MAKE_SUPPORT\
-		, (d3d11_feature_format_##_NAME.OutFormatSupport2 & D3D11_FORMAT_SUPPORT2_MULTIPLANE_OVERLAY    ) ? _FORMAT_MAKE_SUPPORT
-
-		Logger::info("[core] Direct3D 11 设备功能支持：\n"
-					 "    Direct3D 功能级别：{}\n"
-					 "    R8G8B8A8 格式：\n"
-					 _FORMAT_INFO_STRING_FMT3
-					 "    R8G8B8A8 sRGB 格式：\n"
-					 _FORMAT_INFO_STRING_FMT3
-					 "    B8G8R8A8 格式：\n"
-					 _FORMAT_INFO_STRING_FMT3
-					 "    B8G8R8A8 sRGB 格式：\n"
-					 _FORMAT_INFO_STRING_FMT3
-					 "    D24 S8 格式：\n"
-					 _FORMAT_INFO_STRING_FMT3
-					 "    最大二维纹理尺寸：{}\n"
-					 "    多线程架构：{}\n"
-					 "    渲染架构：{}\n"
-					 "    统一内存架构（UMA）：{}"
-					 , d3d_feature_level_to_string(d3d_feature_level)
-					 _FORMAT_INFO_STRING_ARG3(rgba32)
-					 _FORMAT_INFO_STRING_ARG3(rgba32_srgb)
-					 _FORMAT_INFO_STRING_ARG3(bgra32)
-					 _FORMAT_INFO_STRING_ARG3(bgra32_srgb)
-					 _FORMAT_INFO_STRING_ARG3(d24_s8)
-					 , d3d_feature_level_to_maximum_texture2d_size_string(d3d_feature_level)
-					 , threading_feature_to_string(d3d11_feature_mt)
-					 , renderer_architecture_to_string(d3d11_feature_arch.TileBasedDeferredRenderer)
-					 , d3d11_feature_o2.UnifiedMemoryArchitecture ? _FORMAT_MAKE_SUPPORT
-		);
-
-	#undef _FORMAT_INFO_STRING_ARG3
-	#undef _FORMAT_MAKE_SUPPORT
-	#undef _FORMAT_INFO_STRING_FMT3
 
 		if (
 			(d3d11_feature_format_bgra32.OutFormatSupport & D3D11_FORMAT_SUPPORT_TEXTURE2D)

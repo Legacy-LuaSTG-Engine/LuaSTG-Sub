@@ -8,7 +8,7 @@ namespace {
         boolean,
         integer,
         support,
-        answer,
+        yes_no,
         data_size,
     };
 
@@ -17,7 +17,7 @@ namespace {
         default:
         case Semantic::boolean: return v ? "true"sv : "false"sv;
         case Semantic::support: return v ? "supported"sv : "not supported"sv;
-        case Semantic::answer:  return v ? "yes"sv : "no"sv;
+        case Semantic::yes_no:  return v ? "yes"sv : "no"sv;
         }
     }
 
@@ -100,5 +100,69 @@ namespace {
         if (v & DXGI_ADAPTER_FLAG3_KEYED_MUTEX_CONFORMANCE) s.append("KEYED_MUTEX_CONFORMANCE "sv);
         if (!s.empty()) if (s.back() == ' ') s.pop_back();
         return s;
+    }
+
+    std::string_view toStringView(const D3D11_SHADER_MIN_PRECISION_SUPPORT flags) {
+        if ((flags & D3D11_SHADER_MIN_PRECISION_10_BIT) && (flags & D3D11_SHADER_MIN_PRECISION_16_BIT)) {
+            return "10bit 16bit"sv;
+        }
+        if (flags & D3D11_SHADER_MIN_PRECISION_10_BIT) {
+            return "10bit"sv;
+        }
+        if (flags & D3D11_SHADER_MIN_PRECISION_16_BIT) {
+            return "16bit"sv;
+        }
+        return "N/A"sv;
+    }
+
+    std::string_view toStringView(const D3D11_TILED_RESOURCES_TIER v) {
+        switch (v) {
+        case D3D11_TILED_RESOURCES_NOT_SUPPORTED: return "not supported"sv;
+        case D3D11_TILED_RESOURCES_TIER_1: return "1"sv;
+        case D3D11_TILED_RESOURCES_TIER_2: return "2"sv;
+        case D3D11_TILED_RESOURCES_TIER_3: return "3"sv;
+        default: return "unknown"sv;
+        }
+    }
+
+    std::string_view toStringView(const D3D11_CONSERVATIVE_RASTERIZATION_TIER v) {
+        switch (v) {
+        case D3D11_CONSERVATIVE_RASTERIZATION_NOT_SUPPORTED: return "not supported"sv;
+        case D3D11_CONSERVATIVE_RASTERIZATION_TIER_1: return "1"sv;
+        case D3D11_CONSERVATIVE_RASTERIZATION_TIER_2: return "2"sv;
+        case D3D11_CONSERVATIVE_RASTERIZATION_TIER_3: return "3"sv;
+        default: return "unknown"sv;
+        }
+    }
+
+    std::string_view toStringView(const D3D11_SHADER_CACHE_SUPPORT_FLAGS flags) {
+        if ((flags & D3D11_SHADER_CACHE_SUPPORT_AUTOMATIC_INPROC_CACHE) && (flags & D3D11_SHADER_CACHE_SUPPORT_AUTOMATIC_DISK_CACHE)) {
+            return "AUTOMATIC_INPROC_CACHE AUTOMATIC_DISK_CACHE"sv;
+        }
+        if (flags & D3D11_SHADER_CACHE_SUPPORT_AUTOMATIC_INPROC_CACHE) {
+            return "AUTOMATIC_INPROC_CACHE"sv;
+        }
+        if (flags & D3D11_SHADER_CACHE_SUPPORT_AUTOMATIC_DISK_CACHE) {
+            return "AUTOMATIC_DISK_CACHE"sv;
+        }
+        return "NONE"sv;
+    }
+
+    std::string_view toStringView(const D3D11_SHARED_RESOURCE_TIER v) {
+        switch (v) {
+        case D3D11_SHARED_RESOURCE_TIER_0: return "0"sv;
+        case D3D11_SHARED_RESOURCE_TIER_1: return "1"sv;
+        case D3D11_SHARED_RESOURCE_TIER_2: return "2"sv;
+        case D3D11_SHARED_RESOURCE_TIER_3: return "3"sv;
+        default: return "unknown"sv;
+        }
+    }
+
+    std::string_view toStringView(const D3D11_SHADER_ACCESS_RESTRICTED_RESOURCE_TIER v) {
+        switch (v) {
+        case D3D11_SHADER_ACCESS_RESTRICTED_RESOURCE_TIER_0: return "0"sv;
+        case D3D11_SHADER_ACCESS_RESTRICTED_RESOURCE_TIER_1: return "1"sv;
+        default: return "unknown"sv;
+        }
     }
 }
