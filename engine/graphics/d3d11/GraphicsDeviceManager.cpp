@@ -18,6 +18,17 @@ namespace {
     std::vector<PhysicalDeviceInfo> physical_device_info_not_supported;
     bool is_present_allow_tearing_supported{};
 
+    struct AutoReleaseaAapters {
+        ~AutoReleaseaAapters() {
+            for (auto& v : physical_device_info) {
+                v.adapter.reset();
+            }
+            for (auto& v : physical_device_info_not_supported) {
+                v.adapter.reset();
+            }
+        }
+    };
+
     decltype(&CreateDXGIFactory2) getCreateFactory2() {
         if (const auto dxgi = GetModuleHandleW(L"dxgi.dll"); dxgi != nullptr) {
             return reinterpret_cast<decltype(&CreateDXGIFactory2)>(GetProcAddress(dxgi, "CreateDXGIFactory2"));
@@ -262,6 +273,7 @@ namespace core {
         }
 
         win32::com_ptr<IDXGIFactory2> factory;
+        [[maybe_unused]] const AutoReleaseaAapters auto_release_adapters;
         if (!internalRefresh(factory, true)) {
             return false;
         }
