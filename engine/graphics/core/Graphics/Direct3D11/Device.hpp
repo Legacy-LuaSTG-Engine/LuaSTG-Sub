@@ -1,7 +1,6 @@
 #pragma once
 #include "core/implement/ReferenceCounted.hpp"
 #include "core/Graphics/Device.hpp"
-#include "windows/RuntimeLoader/DXGI.hpp"
 #include "windows/RuntimeLoader/Direct3D11.hpp"
 #include "windows/RuntimeLoader/Direct2D1.hpp"
 #include "windows/RuntimeLoader/DirectWrite.hpp"
@@ -13,7 +12,6 @@ namespace core::Graphics::Direct3D11 {
 	private:
 		// DXGI
 
-		Platform::RuntimeLoader::DXGI dxgi_loader;
 		win32::com_ptr<IDXGIFactory2> dxgi_factory;
 		win32::com_ptr<IDXGIAdapter1> dxgi_adapter;
 
@@ -21,8 +19,6 @@ namespace core::Graphics::Direct3D11 {
 
 		std::string dxgi_adapter_name;
 		std::vector<std::string> dxgi_adapter_name_list;
-
-		BOOL dxgi_support_tearing{ FALSE };
 
 		// Direct3D
 
@@ -82,13 +78,9 @@ namespace core::Graphics::Direct3D11 {
 
 		inline IWICImagingFactory* GetWICImagingFactory() const noexcept { return wic_factory.get(); }
 
-		inline BOOL IsTearingSupport() const noexcept { return dxgi_support_tearing; }
-
 		inline tracy_d3d11_context_t GetTracyContext() const noexcept { return tracy_context; }
 
 	private:
-		bool createDXGIFactory();
-		void destroyDXGIFactory();
 		bool selectAdapter();
 		bool createDXGI();
 		void destroyDXGI();
