@@ -1,7 +1,6 @@
 # LuaSTG configurer
 
 add_subdirectory(Shader)
-include(Core.cmake)
 add_subdirectory(Configurer)
 
 # LuaSTG Engine
