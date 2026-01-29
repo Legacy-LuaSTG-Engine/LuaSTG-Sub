@@ -1,7 +1,7 @@
 #include "Core/Graphics/Direct3D11/Texture2D.hpp"
 #include "Core/Graphics/Direct3D11/Device.hpp"
+#include "core/Logger.hpp"
 #include "core/FileSystem.hpp"
-#include "Core/i18n.hpp"
 #include "utf8.hpp"
 #include "WICTextureLoader11.h"
 #include "DDSTextureLoader11.h"
@@ -22,11 +22,11 @@ namespace core::Graphics::Direct3D11 {
 
 	bool Texture2D::setSize(Vector2U const size) {
 		if (!m_dynamic) {
-			spdlog::error("[core] 不能修改静态纹理的大小");
+			Logger::error("[core] [Texture2D] read-only texture cannot be resized");
 			assert(false); return false;
 		}
 		if (!m_is_render_target) {
-			spdlog::error("[core] 此纹理由 RenderTarget 托管，禁止直接 setSize");
+			Logger::error("[core] [Texture2D] this texture is managed by RenderTarget and cannot be resized");
 			assert(false); return false;
 		}
 		onDeviceDestroy();
@@ -35,7 +35,7 @@ namespace core::Graphics::Direct3D11 {
 	}
 	bool Texture2D::uploadPixelData(RectU const rc, void const* const data, uint32_t const pitch) {
 		if (!m_dynamic) {
-			spdlog::error("[core] 不能修改静态纹理的内容");
+			Logger::error("[core] [Texture2D] read-only texture cannot by modified");
 			assert(false); return false;
 		}
 		auto const ctx = m_device->GetD3D11DeviceContext();
@@ -176,7 +176,7 @@ namespace core::Graphics::Direct3D11 {
 
 			hr = gHR = d3d11_device->CreateTexture2D(&tex2d_desc, &subres_data, m_texture.put());
 			if (FAILED(hr)) {
-				i18n_core_system_call_report_error("ID3D11Device::CreateTexture2D");
+				Logger::error("Windows API failed: ID3D11Device::CreateTexture2D");
 				return false;
 			}
 			M_D3D_SET_DEBUG_NAME(m_texture.get(), "Texture2D_D3D11::d3d11_texture2d");
@@ -191,7 +191,7 @@ namespace core::Graphics::Direct3D11 {
 			};
 			hr = gHR = d3d11_device->CreateShaderResourceView(m_texture.get(), &view_desc, m_view.put());
 			if (FAILED(hr)) {
-				i18n_core_system_call_report_error("ID3D11Device::CreateShaderResourceView");
+				Logger::error("Windows API failed: ID3D11Device::CreateShaderResourceView");
 				return false;
 			}
 			M_D3D_SET_DEBUG_NAME(m_view.get(), "Texture2D_D3D11::d3d11_srv");
@@ -199,7 +199,7 @@ namespace core::Graphics::Direct3D11 {
 		else if (!m_source_path.empty()) {
 			SmartReference<IData> src;
 			if (!FileSystemManager::readFile(m_source_path, src.put())) {
-				spdlog::error("[core] 无法加载文件 '{}'", m_source_path);
+				Logger::error("[core] [Texture2D] read file '{}' failed", m_source_path);
 				return false;
 			}
 
@@ -240,11 +240,11 @@ namespace core::Graphics::Direct3D11 {
 					if (FAILED(hr3)) {
 						// 在这里一起报告，不然 log 文件里遍地都是 error
 						gHR = hr1;
-						i18n_core_system_call_report_error("DirectX::CreateDDSTextureFromMemoryEx");
+						Logger::error("Windows API failed: DirectX::CreateDDSTextureFromMemoryEx");
 						gHR = hr2;
-						i18n_core_system_call_report_error("DirectX::CreateWICTextureFromMemoryEx");
+						Logger::error("Windows API failed: DirectX::CreateWICTextureFromMemoryEx");
 						gHR = hr3;
-						i18n_core_system_call_report_error("DirectX::CreateQOITextureFromMemoryEx");
+						Logger::error("Windows API failed: DirectX::CreateQOITextureFromMemoryEx");
 						return false;
 					}
 				}
@@ -257,7 +257,7 @@ namespace core::Graphics::Direct3D11 {
 			// 转换类型
 			hr = gHR = res->QueryInterface(m_texture.put());
 			if (FAILED(hr)) {
-				i18n_core_system_call_report_error("ID3D11Resource::QueryInterface -> ID3D11Texture2D");
+				Logger::error("Windows API failed: ID3D11Resource::QueryInterface -> ID3D11Texture2D");
 				return false;
 			}
 			M_D3D_SET_DEBUG_NAME(m_texture.get(), "Texture2D_D3D11::d3d11_texture2d");
@@ -283,7 +283,7 @@ namespace core::Graphics::Direct3D11 {
 			};
 			hr = gHR = d3d11_device->CreateTexture2D(&texdef, nullptr, m_texture.put());
 			if (FAILED(hr)) {
-				i18n_core_system_call_report_error("ID3D11Device::CreateTexture2D");
+				Logger::error("Windows API failed: ID3D11Device::CreateTexture2D");
 				return false;
 			}
 			M_D3D_SET_DEBUG_NAME(m_texture.get(), "Texture2D_D3D11::d3d11_texture2d");
@@ -295,7 +295,7 @@ namespace core::Graphics::Direct3D11 {
 			};
 			hr = gHR = d3d11_device->CreateShaderResourceView(m_texture.get(), &viewdef, m_view.put());
 			if (FAILED(hr)) {
-				i18n_core_system_call_report_error("ID3D11Device::CreateShaderResourceView");
+				Logger::error("Windows API failed: ID3D11Device::CreateShaderResourceView");
 				return false;
 			}
 			M_D3D_SET_DEBUG_NAME(m_view.get(), "Texture2D_D3D11::d3d11_srv");

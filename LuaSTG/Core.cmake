@@ -12,8 +12,6 @@ target_include_directories(Core PUBLIC
 )
 
 set(Core_SRC
-    Core/i18n.hpp
-    Core/i18n.cpp
     Core/framework.hpp
     Core/framework.cpp
 

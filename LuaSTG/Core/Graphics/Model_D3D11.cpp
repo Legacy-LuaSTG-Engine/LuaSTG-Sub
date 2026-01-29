@@ -1,4 +1,5 @@
 #include "Core/Graphics/Model_D3D11.hpp"
+#include "core/Logger.hpp"
 #include "core/FileSystem.hpp"
 
 #define IDX(x) (size_t)static_cast<uint8_t>(x)
@@ -603,8 +604,8 @@ namespace core::Graphics
     ) {
         // buffer view
         if (accessor.bufferView < 0 || accessor.bufferView >= model.bufferViews.size()) {
-            spdlog::error(
-                "[core] gltf 2.0 loader -- accessor (index = {}) buffer view index out of bound (value = {})",
+            Logger::error(
+                "[core] [Model] gltf 2.0 loader -- accessor (index = {}) buffer view index out of bound (value = {})",
                 &accessor - model.accessors.data(),
                 accessor.bufferView
             );
@@ -612,8 +613,8 @@ namespace core::Graphics
         const auto& buffer_view = model.bufferViews[accessor.bufferView];
         // buffer
         if (buffer_view.buffer < 0 || buffer_view.buffer >= model.buffers.size()) {
-            spdlog::error(
-                "[core] gltf 2.0 loader -- buffer view (index = {}) buffer index out of bound (value = {})",
+            Logger::error(
+                "[core] [Model] gltf 2.0 loader -- buffer view (index = {}) buffer index out of bound (value = {})",
                 &buffer_view - model.bufferViews.data(),
                 buffer_view.buffer
             );
@@ -621,16 +622,16 @@ namespace core::Graphics
         const auto& buffer = model.buffers[buffer_view.buffer];
         // total size
         if (tinygltf::GetComponentSizeInBytes(accessor.componentType) < 0) {
-            spdlog::error(
-                "[core] gltf 2.0 loader -- unknown accessor (index = {}) component type (value = {})",
+            Logger::error(
+                "[core] [Model] gltf 2.0 loader -- unknown accessor (index = {}) component type (value = {})",
                 &accessor - model.accessors.data(),
                 accessor.componentType
             );
             return false;
         }
         if (tinygltf::GetNumComponentsInType(accessor.type) < 0) {
-            spdlog::error(
-                "[core] gltf 2.0 loader -- unknown accessor (index = {}) type (value = {})",
+            Logger::error(
+                "[core] [Model] gltf 2.0 loader -- unknown accessor (index = {}) type (value = {})",
                 &accessor - model.accessors.data(),
                 accessor.type
             );
@@ -705,7 +706,7 @@ namespace core::Graphics
             if (img.width <= 0 || img.height <= 0)
             {
                 image[idx] = shared_->default_image; // 兄啊，你这纹理好怪哦
-                spdlog::error("[core] 加载纹理 '{}' 失败", img.name);
+                Logger::error("[core] [Model] load texture '{}' failed", img.name);
                 continue;
             }
 
@@ -1116,11 +1117,11 @@ namespace core::Graphics
         }
         if (!warn.empty())
         {
-            spdlog::warn("[core] gltf model warning: {}", warn);
+            Logger::warn("[core] [Model] gltf model warning: {}", warn);
         }
         if (!err.empty())
         {
-            spdlog::error("[core] gltf model error: {}", err);
+            Logger::error("[core] [Model] gltf model error: {}", err);
         }
         if (!ret)
         {

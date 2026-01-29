@@ -673,29 +673,25 @@ namespace core::Graphics
 		return true;
 	}
 
-	bool Renderer_D3D11::createResources()
-	{
-		assert(m_device->GetD3D11Device());
+	bool Renderer_D3D11::createResources() {
+		assert(m_device->getNativeHandle());
 
-		spdlog::info("[core] 开始创建渲染器");
+		Logger::info("[core] [Renderer] initializing...");
 		
-		if (!createBuffers())
-		{
-			spdlog::error("[core] 无法创建渲染器所需的顶点、索引缓冲区和着色器常量缓冲区");
+		if (!createBuffers()) {
+			Logger::error("[core] [Renderer] create Buffers failed");
 			return false;
 		}
-		if (!createStates())
-		{
-			spdlog::error("[core] 无法创建渲染器所需的渲染状态");
+		if (!createStates()) {
+			Logger::error("[core] [Renderer] create PipelineState objects failed");
 			return false;
 		}
-		if (!createShaders())
-		{
-			spdlog::error("[core] 无法创建渲染器所需的内置着色器");
+		if (!createShaders()) {
+			Logger::error("[core] [Renderer] create Shaders failed");
 			return false;
 		}
 
-		spdlog::info("[core] 已创建渲染器");
+		Logger::info("[core] [Renderer] initialization complete");
 
 		return true;
 	}
@@ -703,16 +699,14 @@ namespace core::Graphics
 	{
 		createResources();
 	}
-	void Renderer_D3D11::onDeviceDestroy()
-	{
+	void Renderer_D3D11::onDeviceDestroy() {
 		batchFlush(true);
 
 		_state_texture.reset();
 
 		_fx_vbuffer.reset();
 		_fx_ibuffer.reset();
-		for (auto& v : _vi_buffer)
-		{
+		for (auto& v : _vi_buffer) {
 			v.vertex_buffer.reset();
 			v.index_buffer.reset();
 			v.vertex_offset = 0;
@@ -727,35 +721,28 @@ namespace core::Graphics
 		_user_float_buffer.reset();
 
 		_input_layout.reset();
-		for (auto& v : _vertex_shader)
-		{
+		for (auto& v : _vertex_shader) {
 			v.reset();
 		}
-		for (auto& i : _pixel_shader)
-		{
-			for (auto& j : i)
-			{
-				for (auto& v : j)
-				{
+		for (auto& i : _pixel_shader) {
+			for (auto& j : i) {
+				for (auto& v : j) {
 					v.reset();
 				}
 			}
 		}
 		_raster_state.reset();
-		for (auto& v : _sampler_state)
-		{
+		for (auto& v : _sampler_state) {
 			v.reset();
 		}
-		for (auto& v : _depth_state)
-		{
+		for (auto& v : _depth_state) {
 			v.reset();
 		}
-		for (auto& v : _blend_state)
-		{
+		for (auto& v : _blend_state) {
 			v.reset();
 		}
 
-		spdlog::info("[core] 已关闭渲染器");
+		Logger::info("[core] [Renderer] cleanup complete");
 	}
 
 	bool Renderer_D3D11::beginBatch()
@@ -1215,7 +1202,7 @@ namespace core::Graphics
 				}
 				else
 				{
-					spdlog::error("[core] ID3D11Resource::QueryInterface -> #ID3D11Texture2D 调用失败");
+					Logger::error("[core] [Renderer] postEffect failed: ID3D11Resource::QueryInterface -> #ID3D11Texture2D failed");
 					return false;
 				}
 				p_d3d11_rtv = rtv_;
@@ -1229,7 +1216,7 @@ namespace core::Graphics
 		}
 		if (sw_ < 1.0f || sh_ < 1.0f)
 		{
-			spdlog::warn("[core] LuaSTG::core::Renderer::postEffect 调用提前中止，当前渲染管线未绑定渲染目标");
+			Logger::error("[core] [Renderer] postEffect failed: no RenderTarget bound");
 			return false;
 		}
 
@@ -1380,7 +1367,7 @@ namespace core::Graphics
 				}
 				else
 				{
-					spdlog::error("[core] ID3D11Resource::QueryInterface -> #ID3D11Texture2D 调用失败");
+					Logger::error("[core] [Renderer] postEffect failed: ID3D11Resource::QueryInterface -> #ID3D11Texture2D failed");
 					return false;
 				}
 				p_d3d11_rtv = rtv_;
@@ -1394,7 +1381,7 @@ namespace core::Graphics
 		}
 		if (sw_ < 1.0f || sh_ < 1.0f)
 		{
-			spdlog::warn("[core] LuaSTG::core::Renderer::postEffect 调用提前中止，当前渲染管线未绑定渲染目标");
+			Logger::error("[core] [Renderer] postEffect failed: no RenderTarget bound");
 			return false;
 		}
 
@@ -1464,7 +1451,7 @@ namespace core::Graphics
 
 		if (!p_effect->apply(this))
 		{
-			spdlog::error("[core] 无法应用 PostEffectShader 变量");
+			Logger::error("[core] [Renderer] PostEffectShader apply failed");
 			return false;
 		}
 		ctx->PSSetShader(static_cast<PostEffectShader_D3D11*>(p_effect)->GetPS(), NULL, 0);
@@ -1489,32 +1476,26 @@ namespace core::Graphics
 		return beginBatch();
 	}
 
-	bool Renderer_D3D11::createModel(StringView path, IModel** pp_model)
-	{
-		if (!m_model_shared)
-		{
-			spdlog::info("[core] 创建模型渲染器共享组件");
-			try
-			{
+	bool Renderer_D3D11::createModel(StringView path, IModel** pp_model) {
+		if (!m_model_shared) {
+			Logger::info("[core] [Model] creating shared resources...");
+			try {
 				*(m_model_shared.put()) = new ModelSharedComponent_D3D11(m_device.get());
-				spdlog::info("[luastg] 已创建模型渲染器共享组件");
+				Logger::info("[core] [Model] shared resources created");
 			}
-			catch (...)
-			{
-				spdlog::error("[core] 无法创建模型渲染器共享组件");
+			catch (...) {
+				Logger::error("[core] [Model] create shared resources failed");
 				return false;
 			}
 		}
 
-		try
-		{
+		try {
 			*pp_model = new Model_D3D11(m_device.get(), m_model_shared.get(), path);
 			return true;
 		}
-		catch (const std::exception&)
-		{
+		catch (const std::exception&) {
 			*pp_model = nullptr;
-			spdlog::error("[luastg] LuaSTG::core::Renderer::createModel 失败");
+			Logger::error("[core] [Model] create failed");
 			return false;
 		}
 	}

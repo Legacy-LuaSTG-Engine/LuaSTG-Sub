@@ -1,7 +1,7 @@
 #include "Core/Graphics/Direct3D11/RenderTarget.hpp"
+#include "core/Logger.hpp"
 #include "Core/Graphics/Direct3D11/Device.hpp"
 #include "Core/Graphics/Direct3D11/Texture2D.hpp"
-#include "Core/i18n.hpp"
 
 // RenderTarget
 namespace core::Graphics::Direct3D11 {
@@ -85,7 +85,7 @@ namespace core::Graphics::Direct3D11 {
 		};
 		hr = gHR = d3d11_device->CreateRenderTargetView(m_texture->GetResource(), &rtvdef, m_view.put());
 		if (FAILED(hr)) {
-			i18n_core_system_call_report_error("ID3D11Device::CreateRenderTargetView");
+			Logger::error("Windows API failed: ID3D11Device::CreateRenderTargetView");
 			return false;
 		}
 		M_D3D_SET_DEBUG_NAME(m_view.get(), "RenderTarget_D3D11::d3d11_rtv");
@@ -95,7 +95,7 @@ namespace core::Graphics::Direct3D11 {
 		win32::com_ptr<IDXGISurface> dxgi_surface;
 		hr = gHR = m_texture->GetResource()->QueryInterface(dxgi_surface.put());
 		if (FAILED(hr)) {
-			i18n_core_system_call_report_error("ID3D11Texture2D::QueryInterface -> IDXGISurface");
+			Logger::error("Windows API failed: ID3D11Texture2D::QueryInterface -> IDXGISurface");
 			return false;
 		}
 
@@ -112,7 +112,7 @@ namespace core::Graphics::Direct3D11 {
 		};
 		hr = gHR = d2d1_device_context->CreateBitmapFromDxgiSurface(dxgi_surface.get(), &bitmap_info, m_bitmap.put());
 		if (FAILED(hr)) {
-			i18n_core_system_call_report_error("ID3D11DeviceContext::CreateBitmapFromDxgiSurface");
+			Logger::error("Windows API failed: ID3D11DeviceContext::CreateBitmapFromDxgiSurface");
 			return false;
 		}
 #endif

@@ -1,6 +1,6 @@
 #include "Core/Graphics/Direct3D11/DepthStencilBuffer.hpp"
+#include "core/Logger.hpp"
 #include "Core/Graphics/Direct3D11/Device.hpp"
-#include "Core/i18n.hpp"
 
 // DepthStencilBuffer
 namespace core::Graphics::Direct3D11 {
@@ -62,7 +62,7 @@ namespace core::Graphics::Direct3D11 {
 		};
 		hr = gHR = d3d11_device->CreateTexture2D(&tex2ddef, nullptr, m_texture.put());
 		if (FAILED(hr)) {
-			i18n_core_system_call_report_error("ID3D11Device::CreateTexture2D");
+			Logger::error("Windows API failed: ID3D11Device::CreateTexture2D");
 			return false;
 		}
 		M_D3D_SET_DEBUG_NAME(m_texture.get(), "DepthStencilBuffer_D3D11::d3d11_texture2d");
@@ -74,7 +74,7 @@ namespace core::Graphics::Direct3D11 {
 		};
 		hr = gHR = d3d11_device->CreateDepthStencilView(m_texture.get(), &dsvdef, m_view.put());
 		if (FAILED(hr)) {
-			i18n_core_system_call_report_error("ID3D11Device::CreateDepthStencilView");
+			Logger::error("Windows API failed: ID3D11Device::CreateDepthStencilView");
 			return false;
 		}
 		M_D3D_SET_DEBUG_NAME(m_view.get(), "DepthStencilBuffer_D3D11::d3d11_dsv");

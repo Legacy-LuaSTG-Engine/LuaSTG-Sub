@@ -1,7 +1,7 @@
 #include "Core/Graphics/SwapChain_D3D11.hpp"
 #include "windows/Window.hpp"
-#include "Core/i18n.hpp"
 #include "core/Configuration.hpp"
+#include "core/Logger.hpp"
 #include "windows/WindowsVersion.hpp"
 #include "windows/DesktopWindowManager.hpp"
 #include "windows/Direct3D11.hpp"
@@ -16,17 +16,18 @@
 
 #define HRNew HRESULT hr = S_OK;
 #define HRGet hr = gHR
-#define HRCheckCallReport(x) if (FAILED(hr)) { i18n_core_system_call_report_error(x); }
-#define HRCheckCallReturnBool(x) if (FAILED(hr)) { i18n_core_system_call_report_error(x); assert(false); return false; }
-#define HRCheckCallNoAssertReturnBool(x) if (FAILED(hr)) { i18n_core_system_call_report_error(x); return false; }
+#define HRCheckCallReport(x) if (FAILED(hr)) { core::Logger::error("Windows API failed: " x); }
+#define HRCheckCallReturnBool(x) if (FAILED(hr)) { core::Logger::error("Windows API failed: " x); assert(false); return false; }
+#define HRCheckCallNoAssertReturnBool(x) if (FAILED(hr)) { core::Logger::error("Windows API failed: " x); return false; }
 
 #define NTNew NTSTATUS nt{};
 #define NTGet nt
-#define NTCheckCallReport(x) if (nt != STATUS_SUCCESS) { i18n_core_system_call_report_error(x); }
-#define NTCheckCallReturnBool(x) if (nt != STATUS_SUCCESS) { i18n_core_system_call_report_error(x); assert(false); return false; }
-#define NTCheckCallNoAssertReturnBool(x) if (nt != STATUS_SUCCESS) { i18n_core_system_call_report_error(x); return false; }
+#define NTCheckCallReport(x) if (nt != STATUS_SUCCESS) { core::Logger::error("Windows API failed: " x); }
+#define NTCheckCallReportRuntime(x) if (nt != STATUS_SUCCESS) { core::Logger::error("Windows API failed: {}", x); }
+#define NTCheckCallReturnBool(x) if (nt != STATUS_SUCCESS) { core::Logger::error("Windows API failed: " x); assert(false); return false; }
+#define NTCheckCallNoAssertReturnBool(x) if (nt != STATUS_SUCCESS) { core::Logger::error("Windows API failed: " x); return false; }
 
-#define ReportError(x) i18n_core_system_call_report_error(x)
+#define ReportError(x) core::Logger::error("Windows API failed: " x)
 
 namespace {
 	bool resolveOutput(HWND const window, IDXGISwapChain* const swap_chain, IDXGIOutput** const output_output) {
@@ -372,10 +373,9 @@ namespace core::Graphics
 
 		// 打印结果
 
-		i18n_log_info_fmt("[core].SwapChain_D3D11.found_N_DisplayMode_fmt", mode_list.size());
-		for (size_t i = 0; i < mode_list.size(); i += 1)
-		{
-			spdlog::info("{: >4d}: ({: >5d} x {: >5d}) {:.2f}Hz {} {}"
+		Logger::info("[core] [SwapChain] found {} DisplayMode", mode_list.size());
+		for (size_t i = 0; i < mode_list.size(); i += 1) {
+			Logger::info("{: >4d}: ({: >5d} x {: >5d}) {:.2f}Hz {} {}"
 				, i
 				, mode_list[i].Width, mode_list[i].Height
 				, (double)mode_list[i].RefreshRate.Numerator / (double)mode_list[i].RefreshRate.Denominator
@@ -480,7 +480,7 @@ namespace core::Graphics
 			query.PrivateDriverDataSize = sizeof(data);
 			NTNew;
 			NTGet = d3dkmt.QueryAdapterInfo(&query);
-			NTCheckCallReport(std::string("D3DKMTQueryAdapterInfo -> ").append(type_name));
+			NTCheckCallReportRuntime(std::string("D3DKMTQueryAdapterInfo -> ").append(type_name));
 			return data;
 		};
 
@@ -493,7 +493,7 @@ namespace core::Graphics
 
 		auto bool_to_string = [](bool v) { return v ? "true" : "false"; };
 
-		spdlog::info(
+		Logger::info(
 			"[core] Graphics Device: {}\n"
 			"    Direct Flip Support: {}\n"
 			"    Independent Flip Support: {}\n"
@@ -517,7 +517,7 @@ namespace core::Graphics
 		// 用户禁用了 MPO 则跳过
 
 		if (Platform::DesktopWindowManager::IsOverlayTestModeExists()) {
-			spdlog::warn("[core] Multi Plane Overlay is disabled by user");
+			Logger::warn("[core] Multi Plane Overlay is disabled by user");
 			return false;
 		}
 
@@ -578,7 +578,7 @@ namespace core::Graphics
 					query.PrivateDriverDataSize = sizeof(data);
 					NTNew;
 					NTGet = d3dkmt.QueryAdapterInfo(&query);
-					NTCheckCallReport(std::string("D3DKMTQueryAdapterInfo -> ").append(type_name));
+					NTCheckCallReportRuntime(std::string("D3DKMTQueryAdapterInfo -> ").append(type_name));
 					return data;
 				};
 
@@ -619,7 +619,7 @@ namespace core::Graphics
 
 				auto bool_to_string = [](bool v) { return v ? "true" : "false"; };
 
-				spdlog::info(
+				Logger::info(
 					"[core] Display Output: {} -> {}\n"
 					"    Overlays Support: {}\n"
 					"    Multi Plane Overlay:\n"
@@ -970,19 +970,17 @@ namespace core::Graphics
 	{
 		_log("createSwapChain");
 
-		i18n_log_info("[core].SwapChain_D3D11.start_creating_swapchain");
+		Logger::info("[core] [SwapChain] creating...");
 
 		// 必须成功的操作
 
 		const auto win = static_cast<HWND>(m_window->getNativeHandle());
-		if (!win)
-		{
-			i18n_log_error("[core].SwapChain_D3D11.create_swapchain_failed_null_window");
+		if (!win) {
+			Logger::error("[core] [SwapChain] create failed: Window not initialized");
 			assert(false); return false;
 		}
-		if (!m_device->GetD3D11Device())
-		{
-			i18n_log_error("[core].SwapChain_D3D11.create_swapchain_failed_null_device");
+		if (!m_device->getNativeHandle()) {
+			Logger::error("[core] [SwapChain] create failed: GraphicsDevice not initialized");
 			assert(false); return false;
 		}
 
@@ -1010,9 +1008,11 @@ namespace core::Graphics
 			}
 			if (rc.right <= rc.left || rc.bottom <= rc.top)
 			{
-				i18n_log_error_fmt("[core].SwapChain_D3D11.create_swapchain_failed_invalid_size_fmt",
+				Logger::error(
+					"[core] [SwapChain] size cannot be ({}x{})",
 					rc.right - rc.left,
-					rc.bottom - rc.top);
+					rc.bottom - rc.top
+				);
 				assert(false); return false;
 			}
 			// 使用窗口尺寸
@@ -1078,15 +1078,19 @@ namespace core::Graphics
 			dxgi_swapchain_event.reset(event_handle);
 		}
 
-		//i18n_log_info("[core].SwapChain_D3D11.created_swapchain");
-
 		auto refresh_rate_string = fmt::format("{:.2f}Hz", (double)mode.RefreshRate.Numerator / (double)mode.RefreshRate.Denominator);
-		if (!fullscreen) refresh_rate_string = i18n("DXGI.DisplayMode.RefreshRate.Desktop");
-		std::string_view swapchain_model = i18n("DXGI.SwapChain.SwapEffect.Discard");
-		if (m_swap_chain_info.SwapEffect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL) swapchain_model = i18n("DXGI.SwapChain.SwapEffect.FlipSequential");
-		if (m_swap_chain_info.SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD) swapchain_model = i18n("DXGI.SwapChain.SwapEffect.FlipDiscard");
-		auto enable_or_disable = [](bool v) -> std::string_view { return v ? i18n("Enable") : i18n("Disable"); };
-		i18n_log_info_fmt("[core].SwapChain_D3D11.created_swapchain_info_fmt"
+		if (!fullscreen) refresh_rate_string = "Desktop RefreshRate";
+		std::string_view swapchain_model = "Discard";
+		if (m_swap_chain_info.SwapEffect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL) swapchain_model = "FlipSequential";
+		if (m_swap_chain_info.SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD) swapchain_model = "FlipDiscard";
+		auto enable_or_disable = [](bool v) -> std::string_view { return v ? "Enable" : "Disable"; };
+		Logger::info(
+			"[core] [SwapChain] created:\n"
+			"    Display Mode: {}x{}@{}\n"
+			"    Exclusive Fullscreen：{}\n"
+			"    SwapChain swap effect: {}\n"
+			"    Present Allow Tearing: {}\n"
+			"    Frame Latency Waitable Object: {}"
 			, mode.Width, mode.Height, refresh_rate_string
 			, enable_or_disable(fullscreen)
 			, swapchain_model
@@ -1128,7 +1132,7 @@ namespace core::Graphics
 			HRCheckCallReport("IDXGISwapChain::GetFullscreenState");
 			if (SUCCEEDED(hr) && bFullscreen)
 			{
-				i18n_log_info("[core].SwapChain_D3D11.leave_exclusive_fullscreen");
+				Logger::info("[core] [SwapChain] leave exclusive fullscreen");
 				HRGet = dxgi_swapchain->SetFullscreenState(FALSE, NULL);
 				HRCheckCallReport("IDXGISwapChain::SetFullscreenState -> FALSE");
 			}
@@ -1166,7 +1170,7 @@ namespace core::Graphics
 				if (!(result == WAIT_OBJECT_0 || result == WAIT_TIMEOUT))
 				{
 					gHRLastError;
-					i18n_core_system_call_report_error("WaitForSingleObject");
+					Logger::error("Windows API failed: WaitForSingleObject");
 				}
 			}
 		}
@@ -1194,7 +1198,7 @@ namespace core::Graphics
 		}
 
 		_log("IDXGISwapChain::SetFullscreenState -> TRUE\n");
-		i18n_log_info("[core].SwapChain_D3D11.enter_exclusive_fullscreen");
+		Logger::info("[core] [SwapChain] enter exclusive fullscreen");
 		HRGet = dxgi_swapchain->SetFullscreenState(TRUE, NULL);
 		HRCheckCallReturnBool("IDXGISwapChain::SetFullscreenState -> TRUE");
 
@@ -1223,7 +1227,7 @@ namespace core::Graphics
 		}
 
 		_log("IDXGISwapChain::SetFullscreenState -> FALSE\n");
-		i18n_log_info("[core].SwapChain_D3D11.leave_exclusive_fullscreen");
+		Logger::info("[core] [SwapChain] leave exclusive fullscreen");
 		HRGet = dxgi_swapchain->SetFullscreenState(FALSE, NULL);
 		HRCheckCallReturnBool("IDXGISwapChain::SetFullscreenState -> FALSE");
 
@@ -1260,7 +1264,7 @@ namespace core::Graphics
 		HRNew;
 
 		// 进入全屏
-		i18n_log_info("[core].SwapChain_D3D11.enter_exclusive_fullscreen");
+		Logger::info("[core] [SwapChain] enter exclusive fullscreen");
 		HRGet = dxgi_swapchain->SetFullscreenState(TRUE, nullptr);
 		HRCheckCallReturnBool("IDXGISwapChain::SetFullscreenState -> TRUE");
 
@@ -1294,7 +1298,7 @@ namespace core::Graphics
 
 		if (get_state)
 		{
-			i18n_log_info("[core].SwapChain_D3D11.leave_exclusive_fullscreen");
+			Logger::info("[core] [SwapChain] leave exclusive fullscreen");
 			HRGet = dxgi_swapchain->SetFullscreenState(FALSE, NULL);
 			HRCheckCallReturnBool("IDXGISwapChain::SetFullscreenState -> FALSE");
 		}
@@ -1570,18 +1574,16 @@ namespace core::Graphics
 
 		HRNew;
 
-		i18n_log_info("[core].SwapChain_D3D11.start_creating_swapchain");
+		Logger::info("[core] [SwapChain] creating... (DirectComposition)");
 
 		// 检查组件
 
-		if (!m_window->getNativeHandle())
-		{
-			i18n_log_error("[core].SwapChain_D3D11.create_swapchain_failed_null_window");
+		if (!m_window->getNativeHandle()) {
+			Logger::error("[core] [SwapChain] create failed: Window not initialized");
 			assert(false); return false;
 		}
-		if (!m_device->GetD3D11Device())
-		{
-			i18n_log_error("[core].SwapChain_D3D11.create_swapchain_failed_null_device");
+		if (!m_device->getNativeHandle()) {
+			Logger::error("[core] [SwapChain] create failed: GraphicsDevice not initialized");
 			assert(false); return false;
 		}
 
@@ -1628,13 +1630,19 @@ namespace core::Graphics
 
 		// 打印信息
 
-		auto refresh_rate_string = i18n("DXGI.DisplayMode.RefreshRate.Desktop");
-		std::string_view swapchain_model = i18n("DXGI.SwapChain.SwapEffect.FlipSequential");
-		if (m_swap_chain_info.SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD) swapchain_model = i18n("DXGI.SwapChain.SwapEffect.FlipDiscard");
-		auto enable_or_disable = [](bool v) -> std::string_view { return v ? i18n("Enable") : i18n("Disable"); };
-		i18n_log_info_fmt("[core].SwapChain_D3D11.created_swapchain_info_fmt"
+		auto refresh_rate_string = "Desktop RefreshRate";
+		std::string_view swapchain_model = "FlipSequential";
+		if (m_swap_chain_info.SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD) swapchain_model = "FlipDiscard";
+		auto enable_or_disable = [](bool v) -> std::string_view { return v ? "Enable" : "Disable"; };
+		Logger::info(
+			"[core] [SwapChain] created:\n"
+			"    Display Mode: {}x{}@{}\n"
+			"    Exclusive Fullscreen：{}\n"
+			"    SwapChain swap effect: {}\n"
+			"    Present Allow Tearing: {}\n"
+			"    Frame Latency Waitable Object: {}"
 			, size.x, size.y, refresh_rate_string
-			, i18n("Disable") // 没有独占全屏
+			, "Disable" // 没有独占全屏
 			, swapchain_model
 			, enable_or_disable(m_swap_chain_info.Flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING)
 			, enable_or_disable(m_swap_chain_info.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
@@ -1960,7 +1968,10 @@ namespace core::Graphics
 
 		if (size.x < 1 || size.y < 1)
 		{
-			i18n_log_error_fmt("[core].SwapChain_D3D11.create_swapchain_failed_invalid_size_fmt", size.x, size.y);
+			Logger::error(
+				"[core] [SwapChain] size cannot be ({}x{})",
+				size.x, size.y
+			);
 			assert(false); return false;
 		}
 
@@ -2041,8 +2052,10 @@ namespace core::Graphics
 
 		if (size.x == 0 || size.y == 0)
 		{
-			i18n_log_error_fmt("[core].SwapChain_D3D11.resize_canvas_failed_invalid_size_fmt",
-				size.x, size.y);
+			Logger::error(
+				"[core] [SwapChain] size cannot be ({}x{})",
+				size.x, size.y
+			);
 			assert(false); return false;
 		}
 
@@ -2212,7 +2225,7 @@ namespace core::Graphics
 			return m_device->handleDeviceLost();
 		}
 		else if (hr != DXGI_ERROR_WAS_STILL_DRAWING && FAILED(hr)) {
-			i18n_core_system_call_report_error("IDXGISwapChain::Present");
+			Logger::error("Windows API failed: IDXGISwapChain::Present");
 			return false;
 		}
 
@@ -2241,7 +2254,7 @@ namespace core::Graphics
 			&GUID_WICPixelFormat24bppBGR);
 		if (FAILED(hr))
 		{
-			i18n_core_system_call_report_error("DirectX::SaveWICTextureToFile");
+			Logger::error("Windows API failed: DirectX::SaveWICTextureToFile");
 			return false;
 		}
 

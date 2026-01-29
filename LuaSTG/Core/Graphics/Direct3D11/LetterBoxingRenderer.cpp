@@ -1,9 +1,9 @@
 #include "Core/Graphics/Direct3D11/LetterBoxingRenderer.hpp"
-#include "Core/i18n.hpp"
+#include "core/Logger.hpp"
 
 #define HRNew HRESULT hr = S_OK;
 #define HRGet hr = gHR
-#define HRCheckCallReturnBool(x) if (FAILED(hr)) { i18n_core_system_call_report_error(x); return false; }
+#define HRCheckCallReturnBool(x) if (FAILED(hr)) { Logger::error("Windows API failed: " x); return false; }
 
 namespace core::Graphics::Direct3D11
 {

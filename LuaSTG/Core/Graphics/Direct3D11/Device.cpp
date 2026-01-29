@@ -1,6 +1,6 @@
 #include "Core/Graphics/Direct3D11/Device.hpp"
 #include "core/Configuration.hpp"
-#include "Core/i18n.hpp"
+#include "core/Logger.hpp"
 #include "windows/WindowsVersion.hpp"
 #include "windows/AdapterPolicy.hpp"
 #include "windows/Direct3D11.hpp"
@@ -31,18 +31,18 @@ namespace {
 	std::string_view adapter_flags_to_string(UINT const flags) {
 		if ((flags & DXGI_ADAPTER_FLAG_REMOTE)) {
 			if (flags & DXGI_ADAPTER_FLAG_SOFTWARE) {
-				return i18n("DXGI_adapter_type_software_remote");
+				return "Remote Software";
 			}
 			else {
-				return i18n("DXGI_adapter_type_hardware_remote");
+				return "Remote Hardware";
 			}
 		}
 		else {
 			if (flags & DXGI_ADAPTER_FLAG_SOFTWARE) {
-				return i18n("DXGI_adapter_type_software");
+				return "Software";
 			}
 			else {
-				return i18n("DXGI_adapter_type_hardware");
+				return "Hardware";
 			}
 		}
 	}
@@ -58,66 +58,66 @@ namespace {
 		case D3D_FEATURE_LEVEL_9_3: return "9.3";
 		case D3D_FEATURE_LEVEL_9_2: return "9.2";
 		case D3D_FEATURE_LEVEL_9_1: return "9.1";
-		default: return i18n("unknown");
+		default: return "Unknown";
 		}
 	}
 	std::string multi_plane_overlay_flags_to_string(UINT const flags) {
 		std::string buffer;
 		if (flags & DXGI_OVERLAY_SUPPORT_FLAG_DIRECT) {
-			buffer.append("直接呈现");
+			buffer.append("Direct");
 		}
 		if (flags & DXGI_OVERLAY_SUPPORT_FLAG_SCALING) {
 			if (!buffer.empty()) buffer.append("、");
-			buffer.append("缩放呈现");
+			buffer.append("Scaling");
 		}
 		if (buffer.empty()) {
-			buffer.append("无");
+			buffer.append("None");
 		}
 		return buffer;
 	};
 	std::string hardware_composition_flags_to_string(UINT const flags) {
 		std::string buffer;
 		if (flags & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_FULLSCREEN) {
-			buffer.append("全屏");
+			buffer.append("Fullscreen");
 		}
 		if (flags & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_WINDOWED) {
 			if (!buffer.empty()) buffer.append("、");
-			buffer.append("窗口");
+			buffer.append("Windowed");
 		}
 		if (flags & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_CURSOR_STRETCHED) {
 			if (!buffer.empty()) buffer.append("、");
-			buffer.append("鼠标指针缩放");
+			buffer.append("CursorStretched");
 		}
 		if (buffer.empty()) {
-			buffer.append("无");
+			buffer.append("None");
 		}
 		return buffer;
 	};
 	std::string_view rotation_to_string(DXGI_MODE_ROTATION const rot) {
 		switch (rot) {
 		default:
-		case DXGI_MODE_ROTATION_UNSPECIFIED: return "未知";
-		case DXGI_MODE_ROTATION_IDENTITY: return "无";
-		case DXGI_MODE_ROTATION_ROTATE90: return "90 度";
-		case DXGI_MODE_ROTATION_ROTATE180: return "180 度";
-		case DXGI_MODE_ROTATION_ROTATE270: return "270 度";
+		case DXGI_MODE_ROTATION_UNSPECIFIED: return "Unspecified";
+		case DXGI_MODE_ROTATION_IDENTITY: return "Identity";
+		case DXGI_MODE_ROTATION_ROTATE90: return "Rotate90";
+		case DXGI_MODE_ROTATION_ROTATE180: return "Rotate180";
+		case DXGI_MODE_ROTATION_ROTATE270: return "Rotate270";
 		}
 	};
 	std::string_view threading_feature_to_string(D3D11_FEATURE_DATA_THREADING const v) {
 		if (v.DriverConcurrentCreates) {
 			if (v.DriverCommandLists) {
-				return "异步资源创建、多线程命令队列";
+				return "DriverConcurrentCreates, DriverCommandLists";
 			}
 			else {
-				return "异步资源创建";
+				return "DriverConcurrentCreates";
 			}
 		}
 		else {
 			if (v.DriverCommandLists) {
-				return "多线程命令队列";
+				return "DriverCommandLists";
 			}
 			else {
-				return "不支持";
+				return "None";
 			}
 		}
 	};
@@ -154,7 +154,7 @@ namespace core::Graphics::Direct3D11 {
 		: preferred_adapter_name(preferred_gpu) {
 		// 创建图形组件
 
-		i18n_log_info("[core].Device_D3D11.start_creating_graphic_components");
+		Logger::info("[core] [GraphicsDevice] initializing...");
 
 		testAdapterPolicy();
 		if (!createDXGI())
@@ -170,7 +170,7 @@ namespace core::Graphics::Direct3D11 {
 		if (!createDWrite())
 			throw std::runtime_error("create basic DWrite components failed");
 
-		i18n_log_info("[core].Device_D3D11.created_graphic_components");
+		Logger::info("[core] [GraphicsDevice] initialization complete");
 	}
 	Device::~Device() {
 		// 清理对象
@@ -191,7 +191,7 @@ namespace core::Graphics::Direct3D11 {
 		// 创建 1.2 的组件，强制要求平台更新
 		hr = gHR = dxgi_loader.CreateFactory(IID_PPV_ARGS(dxgi_factory.put()));
 		if (FAILED(hr)) {
-			i18n_core_system_call_report_error("CreateDXGIFactory2 -> IDXGIFactory2");
+			Logger::error("Windows API failed: CreateDXGIFactory2 -> IDXGIFactory2");
 			assert(false); return false;
 		}
 
@@ -205,7 +205,7 @@ namespace core::Graphics::Direct3D11 {
 
 		// 枚举所有图形设备
 
-		i18n_log_info("[core].Device_D3D11.enum_all_adapters");
+		Logger::info("[core] [GraphicsDevice] enumerate physical devices");
 
 		struct AdapterCandidate {
 			win32::com_ptr<IDXGIAdapter1> adapter;
@@ -238,28 +238,39 @@ namespace core::Graphics::Direct3D11 {
 			if (bHR = gHR = dxgi_adapter_temp->GetDesc1(&desc_)) {
 				bool soft_dev_type = (desc_.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) || (desc_.Flags & DXGI_ADAPTER_FLAG_REMOTE);
 				dev_name = utf8::to_string(desc_.Description);
-				i18n_log_info_fmt("[core].Device_D3D11.DXGI_adapter_detail_fmt"
-								  , idx
-								  , dev_name
-								  , d3d_feature_level_to_string(level_info)
-								  , adapter_flags_to_string(desc_.Flags)
-								  , soft_dev_type ? i18n("DXGI_adapter_type_software_warning") : ""
-								  , bytes_count_to_string(desc_.DedicatedVideoMemory)
-								  , bytes_count_to_string(desc_.DedicatedSystemMemory)
-								  , bytes_count_to_string(desc_.SharedSystemMemory)
-								  , desc_.VendorId
-								  , desc_.DeviceId
-								  , desc_.SubSysId
-								  , desc_.Revision
-								  , static_cast<DWORD>(desc_.AdapterLuid.HighPart), desc_.AdapterLuid.LowPart
+				Logger::info(
+					"[core] [GraphicsDevice] physical device {}:\n"
+					"    Description: {}\n"
+					"    Direct3D Feature Level: {}\n"
+					"    Type: {}\n"
+					"    Dedicated Video Memory: {}\n"
+					"    Dedicated System Memory: {}\n"
+					"    Shared System Memory: {}\n"
+					"    Vendor ID: 0x{:08X}\n"
+					"    Device ID: 0x{:08X}\n"
+					"    SubSystem ID: 0x{:08X}\n"
+					"    Revision: 0x{:08X}\n"
+					"    Adapter LUID：{:08X}-{:08X}"
+					, idx
+					, dev_name
+					, d3d_feature_level_to_string(level_info)
+					, adapter_flags_to_string(desc_.Flags)
+					, bytes_count_to_string(desc_.DedicatedVideoMemory)
+					, bytes_count_to_string(desc_.DedicatedSystemMemory)
+					, bytes_count_to_string(desc_.SharedSystemMemory)
+					, desc_.VendorId
+					, desc_.DeviceId
+					, desc_.SubSysId
+					, desc_.Revision
+					, static_cast<DWORD>(desc_.AdapterLuid.HighPart), desc_.AdapterLuid.LowPart
 				);
 				if (soft_dev_type) {
 					supported_d3d11 = false; // 排除软件或远程设备
 				}
 			}
 			else {
-				i18n_core_system_call_report_error("IDXGIAdapter1::GetDesc1");
-				i18n_log_error_fmt("[core].Device_D3D11.DXGI_adapter_detail_error_fmt", idx);
+				Logger::error("Windows API failed: IDXGIAdapter1::GetDesc1");
+				Logger::error("[core] [Graphics Device] physical device {}: <Unable to read information>", idx);
 				supported_d3d11 = false; // 排除未知错误
 			}
 
@@ -270,7 +281,7 @@ namespace core::Graphics::Direct3D11 {
 				win32::com_ptr<IDXGIOutput6> dxgi_output_temp6;
 				hr = gHR = dxgi_output_temp->QueryInterface(dxgi_output_temp6.put());
 				if (FAILED(hr)) {
-					i18n_core_system_call_report_error("IDXGIOutput::QueryInterface -> IDXGIOutput6");
+					Logger::error("Windows API failed: IDXGIOutput::QueryInterface -> IDXGIOutput6");
 					// 不是严重错误
 				}
 
@@ -281,13 +292,13 @@ namespace core::Graphics::Direct3D11 {
 				if (dxgi_output_temp6) {
 					if (!(bHR = gHR = dxgi_output_temp6->CheckHardwareCompositionSupport(&comp_sp_flags))) {
 						comp_sp_flags = 0;
-						i18n_core_system_call_report_error("IDXGIOutput6::CheckHardwareCompositionSupport");
+						Logger::error("Windows API failed: IDXGIOutput6::CheckHardwareCompositionSupport");
 					}
 					if (bHR = gHR = dxgi_output_temp6->GetDesc1(&o_desc)) {
 						read_o_desc = true;
 					}
 					else {
-						i18n_core_system_call_report_error("IDXGIOutput6::GetDesc1");
+						Logger::error("Windows API failed: IDXGIOutput6::GetDesc1");
 					}
 				}
 				if (!read_o_desc) {
@@ -301,25 +312,30 @@ namespace core::Graphics::Direct3D11 {
 						read_o_desc = true;
 					}
 					else {
-						i18n_core_system_call_report_error("IDXGIOutput::GetDesc");
+						Logger::error("Windows API failed: IDXGIOutput::GetDesc");
 					}
 				}
 
 				if (read_o_desc) {
-					i18n_log_info_fmt("[core].Device_D3D11.DXGI_output_detail_fmt"
-									  , idx, odx
-									  , o_desc.AttachedToDesktop ? i18n("DXGI_output_connected") : i18n("DXGI_output_not_connect")
-									  , o_desc.DesktopCoordinates.left
-									  , o_desc.DesktopCoordinates.top
-									  , o_desc.DesktopCoordinates.right - o_desc.DesktopCoordinates.left
-									  , o_desc.DesktopCoordinates.bottom - o_desc.DesktopCoordinates.top
-									  , rotation_to_string(o_desc.Rotation)
-									  , hardware_composition_flags_to_string(comp_sp_flags)
+					Logger::info(
+						"[core] [GraphicsDevice] physical device {} -- display output {}:\n"
+						"    Attached To Desktop: {}\n"
+						"    Desktop Coordinates: ({}, {}) ({} x {})\n"
+						"    Rotation: {}\n"
+						"    Hardware Composition: {}"
+						, idx, odx
+						, o_desc.AttachedToDesktop ? "True" : "False"
+						, o_desc.DesktopCoordinates.left
+						, o_desc.DesktopCoordinates.top
+						, o_desc.DesktopCoordinates.right - o_desc.DesktopCoordinates.left
+						, o_desc.DesktopCoordinates.bottom - o_desc.DesktopCoordinates.top
+						, rotation_to_string(o_desc.Rotation)
+						, hardware_composition_flags_to_string(comp_sp_flags)
 					);
 					has_linked_output = true;
 				}
 				else {
-					i18n_log_error_fmt("[core].Device_D3D11.DXGI_output_detail_error_fmt", idx, odx);
+					Logger::error("[core] [GraphicsDevice] physical device {} -- display output {}: <Unable to read information>", idx, odx);
 				}
 			}
 			dxgi_output_temp.reset();
@@ -363,14 +379,18 @@ namespace core::Graphics::Direct3D11 {
 		// 获取图形设备
 
 		if (dxgi_adapter) {
-			M_D3D_SET_DEBUG_NAME(dxgi_adapter.get(), "Device_D3D11::dxgi_adapter");
-			i18n_log_info_fmt("[core].Device_D3D11.select_DXGI_adapter_fmt", dxgi_adapter_name);
+			Logger::info("[core] [GraphicsDevice] current physical device: {}", dxgi_adapter_name);
 			if (!link_to_output) {
-				i18n_log_warn_fmt("[core].Device_D3D11.DXGI_adapter_no_output_warning_fmt", dxgi_adapter_name);
+				Logger::warn(
+					"[core] [GraphicsDevice] {} doesn't appear to connect to any display output, which could result in:\n"
+					"    Buffer is copied over PCI-E when in exclusive fullscreen\n"
+					"    Desktop Window Manager takes over desktop composition when in exclusive fullscreen\n"
+					"    Degraded performance and increased frame latency"
+				);
 			}
 		}
 		else {
-			i18n_log_critical("[core].Device_D3D11.no_available_DXGI_adapter");
+			Logger::error("[core] [GraphicsDevice] no device available");
 			return false;
 		}
 
@@ -378,8 +398,6 @@ namespace core::Graphics::Direct3D11 {
 	}
 	bool Device::createDXGI() {
 		HRESULT hr = S_OK;
-
-		i18n_log_info("[core].Device_D3D11.start_creating_basic_DXGI_components");
 
 		// 创建工厂
 
@@ -390,35 +408,35 @@ namespace core::Graphics::Direct3D11 {
 		win32::com_ptr<IDXGIFactory3> dxgi_factory3;
 		hr = gHR = dxgi_factory->QueryInterface(dxgi_factory3.put());
 		if (FAILED(hr)) {
-			i18n_core_system_call_report_error("IDXGIFactory1::QueryInterface -> IDXGIFactory3");
+			Logger::error("Windows API failed: IDXGIFactory1::QueryInterface -> IDXGIFactory3");
 			// 不是严重错误
 		}
 
 		win32::com_ptr<IDXGIFactory4> dxgi_factory4;
 		hr = gHR = dxgi_factory->QueryInterface(dxgi_factory4.put());
 		if (FAILED(hr)) {
-			i18n_core_system_call_report_error("IDXGIFactory1::QueryInterface -> IDXGIFactory4");
+			Logger::error("Windows API failed: IDXGIFactory1::QueryInterface -> IDXGIFactory4");
 			// 不是严重错误
 		}
 
 		win32::com_ptr<IDXGIFactory5> dxgi_factory5;
 		hr = gHR = dxgi_factory->QueryInterface(dxgi_factory5.put());
 		if (FAILED(hr)) {
-			i18n_core_system_call_report_error("IDXGIFactory1::QueryInterface -> IDXGIFactory5");
+			Logger::error("Windows API failed: IDXGIFactory1::QueryInterface -> IDXGIFactory5");
 			// 不是严重错误
 		}
 
 		win32::com_ptr<IDXGIFactory6> dxgi_factory6;
 		hr = gHR = dxgi_factory->QueryInterface(dxgi_factory6.put());
 		if (FAILED(hr)) {
-			i18n_core_system_call_report_error("IDXGIFactory1::QueryInterface -> IDXGIFactory6");
+			Logger::error("Windows API failed: IDXGIFactory1::QueryInterface -> IDXGIFactory6");
 			// 不是严重错误
 		}
 
 		win32::com_ptr<IDXGIFactory7> dxgi_factory7;
 		hr = gHR = dxgi_factory->QueryInterface(dxgi_factory7.put());
 		if (FAILED(hr)) {
-			i18n_core_system_call_report_error("IDXGIFactory1::QueryInterface -> IDXGIFactory7");
+			Logger::error("Windows API failed: IDXGIFactory1::QueryInterface -> IDXGIFactory7");
 			// 不是严重错误
 		}
 
@@ -429,14 +447,16 @@ namespace core::Graphics::Direct3D11 {
 				dxgi_support_tearing = value;
 			}
 			else {
-				i18n_core_system_call_report_error("IDXGIFactory5::CheckFeatureSupport -> DXGI_FEATURE_PRESENT_ALLOW_TEARING");
+				Logger::error("Windows API failed: IDXGIFactory5::CheckFeatureSupport -> DXGI_FEATURE_PRESENT_ALLOW_TEARING");
 				// 不是严重错误
 			}
 		}
 
 		// 打印特性支持情况
-		i18n_log_info_fmt("[core].Device_D3D11.DXGI_detail_fmt"
-						  , dxgi_support_tearing ? i18n("support") : i18n("not_support.requires_Windows_10_and_hardware")
+		Logger::info(
+			"[core] [GraphicsDevice] DXGI components feature support:\n"
+			"    Present Allow Tearing: {}"
+			, dxgi_support_tearing ? "support" : "not support (requires Windows 10 or above, and hardware support)"
 		);
 
 		// 获取适配器
@@ -453,25 +473,23 @@ namespace core::Graphics::Direct3D11 {
 			win32::com_ptr<IDXGIAdapter2> dxgi_adapter2;
 			hr = gHR = dxgi_adapter->QueryInterface(dxgi_adapter2.put());
 			if (FAILED(hr)) {
-				i18n_core_system_call_report_error("IDXGIAdapter1::QueryInterface -> IDXGIAdapter2");
+				Logger::error("Windows API failed: IDXGIAdapter1::QueryInterface -> IDXGIAdapter2");
 				// 不是严重错误
 			}
 
 			win32::com_ptr<IDXGIAdapter3> dxgi_adapter3;
 			hr = gHR = dxgi_adapter->QueryInterface(dxgi_adapter3.put());
 			if (FAILED(hr)) {
-				i18n_core_system_call_report_error("IDXGIAdapter1::QueryInterface -> IDXGIAdapter3");
+				Logger::error("Windows API failed: IDXGIAdapter1::QueryInterface -> IDXGIAdapter3");
 				// 不是严重错误
 			}
 
 			win32::com_ptr<IDXGIAdapter2> dxgi_adapter4;
 			hr = gHR = dxgi_adapter->QueryInterface(dxgi_adapter4.put());
 			if (FAILED(hr)) {
-				i18n_core_system_call_report_error("IDXGIAdapter1::QueryInterface -> IDXGIAdapter4");
+				Logger::error("Windows API failed: IDXGIAdapter1::QueryInterface -> IDXGIAdapter4");
 				// 不是严重错误
 			}
-
-			i18n_log_info("[core].Device_D3D11.created_basic_DXGI_components");
 		}
 
 		return true;
@@ -489,8 +507,6 @@ namespace core::Graphics::Direct3D11 {
 		HRESULT hr = S_OK;
 
 		// 创建
-
-		i18n_log_info("[core].Device_D3D11.start_creating_basic_D3D11_components");
 
 		if (dxgi_adapter) {
 			hr = gHR = d3d11_loader.CreateDeviceFromAdapter(
@@ -513,19 +529,19 @@ namespace core::Graphics::Direct3D11 {
 			if (SUCCEEDED(hr)) {
 				switch (d3d_driver_type) {
 				case D3D_DRIVER_TYPE_REFERENCE:
-					spdlog::info("[core] 设备类型：参考光栅化设备");
+					Logger::info("[core] [GraphicsDevice] device type: reference");
 					break;
 				case D3D_DRIVER_TYPE_SOFTWARE:
-					spdlog::info("[core] 设备类型：软件光栅化设备");
+					Logger::info("[core] [GraphicsDevice] device type: software");
 					break;
 				case D3D_DRIVER_TYPE_WARP:
-					spdlog::info("[core] 设备类型：Windows 高级光栅化平台（WARP）");
+					Logger::info("[core] [GraphicsDevice] device type: Windows Advanced Rasterization Platform (WARP)");
 					break;
 				}
 			}
 		}
 		if (!d3d11_device) {
-			i18n_core_system_call_report_error("D3D11CreateDevice");
+			Logger::error("Windows API failed: D3D11CreateDevice");
 			return false;
 		}
 		M_D3D_SET_DEBUG_NAME(d3d11_device.get(), "Device_D3D11::d3d11_device");
@@ -533,7 +549,7 @@ namespace core::Graphics::Direct3D11 {
 		if (!dxgi_adapter) {
 			hr = gHR = Platform::Direct3D11::GetDeviceAdater(d3d11_device.get(), dxgi_adapter.put());
 			if (FAILED(hr)) {
-				i18n_core_system_call_report_error("Platform::Direct3D11::GetDeviceAdater");
+				Logger::error("Windows API failed: Platform::Direct3D11::GetDeviceAdater");
 				return false;
 			}
 		}
@@ -542,12 +558,12 @@ namespace core::Graphics::Direct3D11 {
 
 		hr = gHR = d3d11_device->QueryInterface(d3d11_device1.put());
 		if (FAILED(hr)) {
-			i18n_core_system_call_report_error("ID3D11Device::QueryInterface -> ID3D11Device1");
+			Logger::error("Windows API failed: ID3D11Device::QueryInterface -> ID3D11Device1");
 			// 不是严重错误
 		}
 		hr = gHR = d3d11_devctx->QueryInterface(d3d11_devctx1.put());
 		if (FAILED(hr)) {
-			i18n_core_system_call_report_error("ID3D11DeviceContext::QueryInterface -> ID3D11DeviceContext1");
+			Logger::error("Windows API failed: ID3D11DeviceContext::QueryInterface -> ID3D11DeviceContext1");
 			// 不是严重错误
 		}
 
@@ -562,11 +578,11 @@ namespace core::Graphics::Direct3D11 {
 
 			D3D11_FEATURE_DATA_FORMAT_SUPPORT data1 = { .InFormat = format };
 			HRESULT const hr1 = gHR = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_FORMAT_SUPPORT, &data1, sizeof(D3D11_FEATURE_DATA_FORMAT_SUPPORT));
-			if (FAILED(hr1)) i18n_core_system_call_report_error(name1);
+			if (FAILED(hr1)) Logger::error("Windows API failed: {}", name1);
 
 			D3D11_FEATURE_DATA_FORMAT_SUPPORT2 data2 = { .InFormat = format };
 			HRESULT const hr2 = gHR = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_FORMAT_SUPPORT2, &data2, sizeof(D3D11_FEATURE_DATA_FORMAT_SUPPORT2));
-			if (FAILED(hr2)) i18n_core_system_call_report_error(name2);
+			if (FAILED(hr2)) Logger::error("Windows API failed: {}", name2);
 
 			return D3DX11_FEATURE_DATA_FORMAT_SUPPORT{ .InFormat = format, .OutFormatSupport = data1.OutFormatSupport, .OutFormatSupport2 = data2.OutFormatSupport2 };
 		};
@@ -575,7 +591,7 @@ namespace core::Graphics::Direct3D11 {
 
 			D3D11_FEATURE_DATA_FORMAT_SUPPORT data1 = { .InFormat = format };
 			HRESULT const hr1 = gHR = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_FORMAT_SUPPORT, &data1, sizeof(D3D11_FEATURE_DATA_FORMAT_SUPPORT));
-			if (FAILED(hr1)) i18n_core_system_call_report_error(name1);
+			if (FAILED(hr1)) Logger::error("Windows API failed: {}", name1);
 
 			D3D11_FEATURE_DATA_FORMAT_SUPPORT2 data2 = { .InFormat = format };
 			d3d11_device->CheckFeatureSupport(D3D11_FEATURE_FORMAT_SUPPORT2, &data2, sizeof(D3D11_FEATURE_DATA_FORMAT_SUPPORT2));
@@ -599,21 +615,21 @@ namespace core::Graphics::Direct3D11 {
 		D3D11_FEATURE_DATA_THREADING d3d11_feature_mt = {};
 		HRESULT hr_mt = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_THREADING, &d3d11_feature_mt, sizeof(d3d11_feature_mt));
 		if (FAILED(hr_mt)) {
-			i18n_core_system_call_report_error("ID3D11Device::CheckFeatureSupport -> D3D11_FEATURE_THREADING");
+			Logger::error("Windows API failed: ID3D11Device::CheckFeatureSupport -> D3D11_FEATURE_THREADING");
 			// 不是严重错误
 		}
 
 		D3D11_FEATURE_DATA_ARCHITECTURE_INFO d3d11_feature_arch = {};
 		HRESULT hr_arch = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_ARCHITECTURE_INFO, &d3d11_feature_arch, sizeof(d3d11_feature_arch));
 		if (FAILED(hr_arch)) {
-			i18n_core_system_call_report_error("ID3D11Device::CheckFeatureSupport -> D3D11_FEATURE_ARCHITECTURE_INFO");
+			Logger::error("Windows API failed: ID3D11Device::CheckFeatureSupport -> D3D11_FEATURE_ARCHITECTURE_INFO");
 			// 不是严重错误
 		}
 
 		D3D11_FEATURE_DATA_D3D11_OPTIONS2 d3d11_feature_o2 = {};
 		HRESULT hr_o2 = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_D3D11_OPTIONS2, &d3d11_feature_o2, sizeof(d3d11_feature_o2));
 		if (FAILED(hr_o2)) {
-			i18n_core_system_call_report_error("ID3D11Device::CheckFeatureSupport -> D3D11_FEATURE_D3D11_OPTIONS2");
+			Logger::error("Windows API failed: ID3D11Device::CheckFeatureSupport -> D3D11_FEATURE_D3D11_OPTIONS2");
 			// 不是严重错误
 		}
 
@@ -636,7 +652,7 @@ namespace core::Graphics::Direct3D11 {
 		"        资源可共享：{}\n"\
 		"        多平面叠加：{}\n"
 
-	#define _FORMAT_MAKE_SUPPORT i18n("support") : i18n("not_support")
+	#define _FORMAT_MAKE_SUPPORT "support" : "not support"
 
 	#define _FORMAT_INFO_STRING_ARG3(_NAME) \
 		, (d3d11_feature_format_##_NAME.OutFormatSupport & D3D11_FORMAT_SUPPORT_IA_VERTEX_BUFFER        ) ? _FORMAT_MAKE_SUPPORT\
@@ -657,7 +673,7 @@ namespace core::Graphics::Direct3D11 {
 		, (d3d11_feature_format_##_NAME.OutFormatSupport2 & D3D11_FORMAT_SUPPORT2_SHAREABLE             ) ? _FORMAT_MAKE_SUPPORT\
 		, (d3d11_feature_format_##_NAME.OutFormatSupport2 & D3D11_FORMAT_SUPPORT2_MULTIPLANE_OVERLAY    ) ? _FORMAT_MAKE_SUPPORT
 
-		spdlog::info("[core] Direct3D 11 设备功能支持：\n"
+		Logger::info("[core] Direct3D 11 设备功能支持：\n"
 					 "    Direct3D 功能级别：{}\n"
 					 "    R8G8B8A8 格式：\n"
 					 _FORMAT_INFO_STRING_FMT3
@@ -700,12 +716,10 @@ namespace core::Graphics::Direct3D11 {
 			// 确实支持
 		}
 		else {
-			spdlog::warn("[core] 此设备没有完整的 B8G8R8A8 格式支持，程序可能无法正常运行");
+			Logger::warn("[core] [GraphicsDevice] This device does not fully support the B8G8R8A8 format");
 		}
 
 		testMultiPlaneOverlay();
-
-		i18n_log_info("[core].Device_D3D11.created_basic_D3D11_components");
 
 		tracy_context = tracy_d3d11_context_create(d3d11_device.get(), d3d11_devctx.get());
 
@@ -730,17 +744,17 @@ namespace core::Graphics::Direct3D11 {
 			hr = gHR = wic_factory2->QueryInterface(wic_factory.put());
 			assert(SUCCEEDED(hr));
 			if (FAILED(hr)) {
-				i18n_core_system_call_report_error("IWICImagingFactory2::QueryInterface -> IWICImagingFactory");
+				Logger::error("Windows API failed: IWICImagingFactory2::QueryInterface -> IWICImagingFactory");
 				return false;
 			}
 		}
 		else {
-			i18n_core_system_call_report_error("CoCreateInstance -> IWICImagingFactory2");
+			Logger::error("Windows API failed: CoCreateInstance -> IWICImagingFactory2");
 			// 没有那么严重，来再一次
 			hr = gHR = CoCreateInstance(CLSID_WICImagingFactory1, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(wic_factory.put()));
 			assert(SUCCEEDED(hr));
 			if (FAILED(hr)) {
-				i18n_core_system_call_report_error("CoCreateInstance -> IWICImagingFactory");
+				Logger::error("Windows API failed: CoCreateInstance -> IWICImagingFactory");
 				return false;
 			}
 		}
@@ -759,26 +773,26 @@ namespace core::Graphics::Direct3D11 {
 			D2D1_FACTORY_TYPE_MULTI_THREADED,
 			IID_PPV_ARGS(d2d1_factory.put()));
 		if (FAILED(hr)) {
-			i18n_core_system_call_report_error("D2D1CreateFactory -> ID2D1Factory1");
+			Logger::error("Windows API failed: D2D1CreateFactory -> ID2D1Factory1");
 			assert(false); return false;
 		}
 
 		win32::com_ptr<IDXGIDevice> dxgi_device;
 		hr = gHR = d3d11_device->QueryInterface(dxgi_device.put());
 		if (FAILED(hr)) {
-			i18n_core_system_call_report_error("ID3D11Device::QueryInterface -> IDXGIDevice");
+			Logger::error("Windows API failed: ID3D11Device::QueryInterface -> IDXGIDevice");
 			assert(false); return false;
 		}
 
 		hr = gHR = d2d1_factory->CreateDevice(dxgi_device.get(), d2d1_device.put());
 		if (FAILED(hr)) {
-			i18n_core_system_call_report_error("ID2D1Factory1::CreateDevice");
+			Logger::error("Windows API failed: ID2D1Factory1::CreateDevice");
 			assert(false); return false;
 		}
 
 		hr = gHR = d2d1_device->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, d2d1_devctx.put());
 		if (FAILED(hr)) {
-			i18n_core_system_call_report_error("ID2D1Device::CreateDeviceContext");
+			Logger::error("Windows API failed: ID2D1Device::CreateDeviceContext");
 			assert(false); return false;
 		}
 
@@ -795,7 +809,7 @@ namespace core::Graphics::Direct3D11 {
 
 		hr = gHR = dwrite_loader.CreateFactory(DWRITE_FACTORY_TYPE_SHARED, IID_PPV_ARGS(dwrite_factory.put()));
 		if (FAILED(hr)) {
-			i18n_core_system_call_report_error("DWriteCreateFactory -> DWRITE_FACTORY_TYPE_SHARED");
+			Logger::error("Windows API failed: DWriteCreateFactory -> DWRITE_FACTORY_TYPE_SHARED");
 			return false;
 		}
 
@@ -837,13 +851,13 @@ namespace core::Graphics::Direct3D11 {
 			win32::com_ptr<IDXGIAdapter1> dxgi_adapter;
 			hr = gHR = dxgi_factory->EnumAdapters1(0, dxgi_adapter.put());
 			if (FAILED(hr)) {
-				i18n_core_system_call_report_error("IDXGIFactory1::EnumAdapters1 -> #0");
+				Logger::error("Windows API failed: IDXGIFactory1::EnumAdapters1 -> #0");
 				assert(false); return false;
 			}
 			DXGI_ADAPTER_DESC1 desc = {};
 			hr = gHR = dxgi_adapter->GetDesc1(&desc);
 			if (FAILED(hr)) {
-				i18n_core_system_call_report_error("IDXGIAdapter1::GetDesc1");
+				Logger::error("Windows API failed: IDXGIAdapter1::GetDesc1");
 				assert(false); return false;
 			}
 			std::string gpu_name(utf8::to_string(desc.Description));
@@ -885,7 +899,7 @@ namespace core::Graphics::Direct3D11 {
 				DXGI_OUTPUT_DESC desc = {};
 				hr = gHR = output_->GetDesc(&desc);
 				if (FAILED(hr)) {
-					i18n_core_system_call_report_error("IDXGIOutput3::CheckOverlaySupport -> DXGI_FORMAT_B8G8R8A8_UNORM");
+					Logger::error("Windows API failed: IDXGIOutput3::CheckOverlaySupport -> DXGI_FORMAT_B8G8R8A8_UNORM");
 					assert(false); return false;
 				}
 
@@ -903,7 +917,7 @@ namespace core::Graphics::Direct3D11 {
 						d3d11_device.get(),
 						&overlay_flags);
 					if (FAILED(hr)) {
-						i18n_core_system_call_report_error("IDXGIOutput3::CheckOverlaySupport -> DXGI_FORMAT_B8G8R8A8_UNORM");
+						Logger::error("Windows API failed: IDXGIOutput3::CheckOverlaySupport -> DXGI_FORMAT_B8G8R8A8_UNORM");
 					}
 				}
 
@@ -912,21 +926,28 @@ namespace core::Graphics::Direct3D11 {
 				if (bHR = output_->QueryInterface(output6_.put())) {
 					hr = gHR = output6_->CheckHardwareCompositionSupport(&composition_flags);
 					if (FAILED(hr)) {
-						i18n_core_system_call_report_error("IDXGIOutput6::CheckHardwareCompositionSupport");
+						Logger::error("Windows API failed: IDXGIOutput6::CheckHardwareCompositionSupport");
 					}
 				}
 
-				i18n_log_info_fmt("[core].Device_D3D11.DXGI_output_detail_fmt2"
-								  , i, j
-								  , desc.AttachedToDesktop ? i18n("DXGI_output_connected") : i18n("DXGI_output_not_connect")
-								  , desc.DesktopCoordinates.left
-								  , desc.DesktopCoordinates.top
-								  , desc.DesktopCoordinates.right - desc.DesktopCoordinates.left
-								  , desc.DesktopCoordinates.bottom - desc.DesktopCoordinates.top
-								  , rotation_to_string(desc.Rotation)
-								  , overlay_ ? i18n("support") : i18n("not_support")
-								  , multi_plane_overlay_flags_to_string(overlay_flags)
-								  , hardware_composition_flags_to_string(composition_flags)
+				Logger::info(
+					"[core] [GraphicsDevice] physical device {} -- display output {}:\n"
+					"    Attached To Desktop: {}\n"
+					"    Desktop Coordinates: ({}, {}) ({} x {})\n"
+					"    Rotation: {}\n"
+					"    Multi-Plane Overlay: {}\n"
+					"    Multi-Plane Overlay Feature: {}\n"
+					"    Hardware Composition: {}"
+					, i, j
+					, desc.AttachedToDesktop ? "True" : "False"
+					, desc.DesktopCoordinates.left
+					, desc.DesktopCoordinates.top
+					, desc.DesktopCoordinates.right - desc.DesktopCoordinates.left
+					, desc.DesktopCoordinates.bottom - desc.DesktopCoordinates.top
+					, rotation_to_string(desc.Rotation)
+					, overlay_ ? "support" : "not support"
+					, multi_plane_overlay_flags_to_string(overlay_flags)
+					, hardware_composition_flags_to_string(composition_flags)
 				);
 			}
 		}
@@ -950,34 +971,34 @@ namespace core::Graphics::Direct3D11 {
 			win32::com_ptr<IDXGIDevice> dxgi_device;
 			hr = gHR = d3d11_device->QueryInterface(dxgi_device.put());
 			if (FAILED(hr)) {
-				i18n_core_system_call_report_error("ID3D11Device::QueryInterface -> IDXGIDevice");
+				Logger::error("Windows API failed: ID3D11Device::QueryInterface -> IDXGIDevice");
 				return false;
 			}
 
 			win32::com_ptr<IDXGIAdapter> dxgi_adapter_tmp;
 			hr = gHR = dxgi_device->GetAdapter(dxgi_adapter_tmp.put());
 			if (FAILED(hr)) {
-				i18n_core_system_call_report_error("IDXGIDevice::GetAdapter");
+				Logger::error("Windows API failed: IDXGIDevice::GetAdapter");
 				return false;
 			}
 
 			hr = gHR = dxgi_adapter_tmp->QueryInterface(dxgi_adapter.put());
 			if (FAILED(hr)) {
-				i18n_core_system_call_report_error("IDXGIAdapter::QueryInterface -> IDXGIAdapter1");
+				Logger::error("Windows API failed: IDXGIAdapter::QueryInterface -> IDXGIAdapter1");
 				return false;
 			}
 
 			//hr = gHR = dxgi_adapter->GetParent(IID_PPV_ARGS(&dxgi_factory));
 			//if (FAILED(hr))
 			//{
-			//	i18n_core_system_call_report_error("IDXGIAdapter1::GetParent -> IDXGIFactory2");
+			//	Logger::error("Windows API failed: IDXGIAdapter1::GetParent -> IDXGIFactory2");
 			//	return false;
 			//}
 
 			// 创建 1.2 的组件，强制要求平台更新
 			hr = gHR = dxgi_loader.CreateFactory(IID_PPV_ARGS(dxgi_factory.put()));
 			if (FAILED(hr)) {
-				i18n_core_system_call_report_error("CreateDXGIFactory2 -> IDXGIFactory2");
+				Logger::error("Windows API failed: CreateDXGIFactory2 -> IDXGIFactory2");
 				assert(false); return false;
 			}
 

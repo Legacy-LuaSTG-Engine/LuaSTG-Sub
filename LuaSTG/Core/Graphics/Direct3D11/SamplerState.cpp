@@ -1,6 +1,6 @@
 #include "Core/Graphics/Direct3D11/SamplerState.hpp"
+#include "core/Logger.hpp"
 #include "Core/Graphics/Direct3D11/Device.hpp"
-#include "Core/i18n.hpp"
 
 // SamplerState
 namespace core::Graphics::Direct3D11 {
@@ -105,7 +105,7 @@ namespace core::Graphics::Direct3D11 {
 
 		hr = gHR = m_device->GetD3D11Device()->CreateSamplerState(&desc, m_sampler.put());
 		if (FAILED(hr)) {
-			i18n_core_system_call_report_error("ID3D11Device::CreateSamplerState");
+			Logger::error("Windows API failed: ID3D11Device::CreateSamplerState");
 			return false;
 		}
 		M_D3D_SET_DEBUG_NAME(m_sampler.get(), "SamplerState_D3D11::d3d11_sampler");

@@ -1,20 +1,20 @@
 // ReSharper disable CppTooWideScopeInitStatement
 
 #include "Core/Graphics/Direct3D11/Mesh.hpp"
+#include "core/Logger.hpp"
 #include "Core/Graphics/Direct3D11/Buffer.hpp"
 #include "Core/Graphics/Direct3D11/Device.hpp"
 #include "windows/RuntimeLoader/Direct3DCompiler.hpp"
-#include "Core/i18n.hpp"
 
 using std::string_view_literals::operator ""sv;
 
 namespace {
 	Platform::RuntimeLoader::Direct3DCompiler d3d_compiler;
 	void reportReadOnly() {
-		spdlog::error("[core] Mesh: read-only");
+		core::Logger::error("[core] [Mesh] read-only mesh");
 	}
 	void reportIndexOutOfBounds() {
-		spdlog::error("[core] Mesh: index out of bounds");
+		core::Logger::error("[core] [Mesh] index out of bounds");
 	}
 	std::string generateVertexShader(core::Graphics::MeshOptions const& options, bool const fog) {
 		// ReSharper disable StringLiteralTypo
@@ -91,12 +91,12 @@ namespace {
 			nullptr, nullptr, "main", "vs_4_0", flags, 0,
 			vertex_shader_blob.put(), error_message_blob.put());
 		if (FAILED(hr)) {
-			i18n_core_system_call_report_error("D3DCompile");
+			core::Logger::error("Windows API failed: D3DCompile");
 			if (error_message_blob) {
 				std::string_view const error_message(static_cast<std::string_view::const_pointer>(error_message_blob->GetBufferPointer()));
-				spdlog::error("compiler error message:\n{}", error_message);
+				core::Logger::error("[core] [Mesh] compiler error message:\n{}", error_message);
 			}
-			spdlog::error("generated vertex shader:\n{}", source);
+			core::Logger::error("[core] [Mesh] generated vertex shader:\n{}", source);
 			return false;
 		}
 		*output = vertex_shader_blob.detach();
@@ -313,8 +313,8 @@ namespace core::Graphics::Direct3D11 {
 		m_index_metadata.stride = m_options.vertex_index_compression ? sizeof(uint16_t) : sizeof(uint32_t);
 
 	#ifndef NDEBUG
-		spdlog::info(
-			"[core] Mesh metadata:\n"
+		Logger::info(
+			"[core] [Mesh] metadata:\n"
 			"    vertex metadata:\n"
 			"        position offset: {} (bytes)\n"
 			"        position size  : {} (bytes)\n"
@@ -393,19 +393,19 @@ namespace core::Graphics::Direct3D11 {
 
 		hr = gHR = device->CreateVertexShader(m_vertex_shader_byte_code->GetBufferPointer(), m_vertex_shader_byte_code->GetBufferSize(), nullptr, m_vertex_shader.put());
 		if (FAILED(hr)) {
-			i18n_core_system_call_report_error("ID3D11Device::CreateVertexShader");
+			Logger::error("Windows API failed: ID3D11Device::CreateVertexShader");
 			return false;
 		}
 		hr = gHR = device->CreateVertexShader(m_vertex_shader_byte_code_fog->GetBufferPointer(), m_vertex_shader_byte_code_fog->GetBufferSize(), nullptr, m_vertex_shader_fog.put());
 		if (FAILED(hr)) {
-			i18n_core_system_call_report_error("ID3D11Device::CreateVertexShader");
+			Logger::error("Windows API failed: ID3D11Device::CreateVertexShader");
 			return false;
 		}
 
 		// vertex shader input elements are compatible
 		hr = gHR = device->CreateInputLayout(elements, 3, m_vertex_shader_byte_code->GetBufferPointer(), m_vertex_shader_byte_code->GetBufferSize(), m_input_layout.put());
 		if (FAILED(hr)) {
-			i18n_core_system_call_report_error("ID3D11Device::CreateInputLayout");
+			Logger::error("Windows API failed: ID3D11Device::CreateInputLayout");
 			return false;
 		}
 

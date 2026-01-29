@@ -1,12 +1,12 @@
 #include "Core/Graphics/Direct3D11/Buffer.hpp"
+#include "core/Logger.hpp"
 #include "Core/Graphics/Direct3D11/Device.hpp"
-#include "Core/i18n.hpp"
 
 #define HRNew HRESULT hr = S_OK;
 #define HRGet hr = gHR
-#define HRCheckCallReport(x) if (FAILED(hr)) { i18n_core_system_call_report_error(x); }
-#define HRCheckCallReturnBool(x) if (FAILED(hr)) { i18n_core_system_call_report_error(x); assert(false); return false; }
-#define HRCheckCallNoAssertReturnBool(x) if (FAILED(hr)) { i18n_core_system_call_report_error(x); return false; }
+#define HRCheckCallReport(x) if (FAILED(hr)) { Logger::error("Windows API failed: " x); }
+#define HRCheckCallReturnBool(x) if (FAILED(hr)) { Logger::error("Windows API failed: " x); assert(false); return false; }
+#define HRCheckCallNoAssertReturnBool(x) if (FAILED(hr)) { Logger::error("Windows API failed: " x); return false; }
 
 namespace {
 	uint32_t alignTo16 (uint32_t const size) {

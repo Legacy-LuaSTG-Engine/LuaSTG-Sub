@@ -1,4 +1,5 @@
 #include "Core/Graphics/Renderer_D3D11.hpp"
+#include "core/Logger.hpp"
 #include "core/FileSystem.hpp"
 #include "windows/RuntimeLoader/Direct3DCompiler.hpp"
 
@@ -91,8 +92,7 @@ namespace core::Graphics
 		HRESULT hr = gHR = g_d3dcompiler_loader.Compile(data, size, name, defs, &g_include_loader, "main", target, flag_, 0, ppBlob, errmsg_.put());
 		if (FAILED(hr))
 		{
-			spdlog::error("[core] D3DCompile 调用失败");
-			spdlog::error("[core] 编译着色器 '{}' 失败：{}", name, (char*)errmsg_->GetBufferPointer());
+			Logger::error("[core] [Renderer] compile shader '{}' failed: {}", name, (char*)errmsg_->GetBufferPointer());
 			return false;
 		}
 		return true;
