@@ -302,45 +302,6 @@ bool process_shader(compile_config_t const& compile_config, output_config_t cons
 	return write_blob_to_file(blob, output_config);
 }
 
-void process_imgui_shader()
-{
-	// imgui::backend::d3d11
-
-	/* vertex shader */ {
-		compile_config_t iconfig = {
-			.compile_profile = compile_profile_t::standard_release(),
-			.shader_type = shader_type::vertex_shader,
-			.file_path = "imgui/backend/d3d11/vertex_shader.hlsl",
-		};
-		output_config_t oconfig = {
-			.namespace_name = "imgui::backend::d3d11",
-			.value_name = "vertex_shader",
-			.file_path = "imgui/backend/d3d11/vertex_shader.hpp",
-		};
-		if (!process_shader(iconfig, oconfig))
-		{
-			std::exit(1);
-		}
-	}
-
-	/* pixel shader */ {
-		compile_config_t iconfig = {
-			.compile_profile = compile_profile_t::standard_release(),
-			.shader_type = shader_type::pixel_shader,
-			.file_path = "imgui/backend/d3d11/pixel_shader.hlsl",
-		};
-		output_config_t oconfig = {
-			.namespace_name = "imgui::backend::d3d11",
-			.value_name = "pixel_shader",
-			.file_path = "imgui/backend/d3d11/pixel_shader.hpp",
-		};
-		if (!process_shader(iconfig, oconfig))
-		{
-			std::exit(1);
-		}
-	}
-}
-
 void process_luastg_shader()
 {
 	auto process_vertex_shader_ = [](std::vector<std::string> const& defs, std::string_view name)
@@ -620,7 +581,6 @@ void process_luastg_shader()
 
 int main(int, char**)
 {
-	process_imgui_shader();
 	process_luastg_shader();
 	return 0;
 }

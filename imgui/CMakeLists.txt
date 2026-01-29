@@ -77,7 +77,6 @@ target_sources(imgui_impl_dx11 PRIVATE
 )
 target_link_libraries(imgui_impl_dx11 PUBLIC
     imgui
-    GeneratedShaderHeaders
 )
 set_target_properties(imgui_impl_dx11 PROPERTIES FOLDER external)
 

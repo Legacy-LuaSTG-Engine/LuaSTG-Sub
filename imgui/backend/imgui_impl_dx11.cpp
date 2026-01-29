@@ -52,9 +52,8 @@
 //#ifdef _MSC_VER
 //#pragma comment(lib, "d3dcompiler") // Automatically link with d3dcompiler.lib as we are using D3DCompile() below.
 //#endif
-#include "imgui/backend/d3d11/vertex_shader.hpp"
-#include "imgui/backend/d3d11/pixel_shader.hpp"
-namespace hlsl = imgui::backend::d3d11;
+#include "shader/vertex_shader.h"
+#include "shader/pixel_shader.h"
 
 // Clang/GCC warnings with -Weverything
 #if defined(__clang__)
@@ -475,7 +474,7 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
         //ID3DBlob* vertexShaderBlob;
         //if (FAILED(D3DCompile(vertexShader, strlen(vertexShader), nullptr, nullptr, nullptr, "main", "vs_4_0", 0, 0, &vertexShaderBlob, nullptr)))
         //    return false; // NB: Pass ID3DBlob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
-        if (FAILED(bd->pd3dDevice->CreateVertexShader(hlsl::vertex_shader, sizeof(hlsl::vertex_shader), nullptr, &bd->pVertexShader)))
+        if (FAILED(bd->pd3dDevice->CreateVertexShader(vertex_shader_blob, sizeof(vertex_shader_blob), nullptr, &bd->pVertexShader)))
         {
             //vertexShaderBlob->Release();
             return false;
@@ -488,7 +487,7 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
             { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (UINT)offsetof(ImDrawVert, uv),  D3D11_INPUT_PER_VERTEX_DATA, 0 },
             { "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (UINT)offsetof(ImDrawVert, col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
         };
-        if (FAILED(bd->pd3dDevice->CreateInputLayout(local_layout, 3, hlsl::vertex_shader, sizeof(hlsl::vertex_shader), &bd->pInputLayout)))
+        if (FAILED(bd->pd3dDevice->CreateInputLayout(local_layout, 3, vertex_shader_blob, sizeof(vertex_shader_blob), &bd->pInputLayout)))
         {
             //vertexShaderBlob->Release();
             return false;
@@ -528,7 +527,7 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
         //ID3DBlob* pixelShaderBlob;
         //if (FAILED(D3DCompile(pixelShader, strlen(pixelShader), nullptr, nullptr, nullptr, "main", "ps_4_0", 0, 0, &pixelShaderBlob, nullptr)))
         //    return false; // NB: Pass ID3DBlob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
-        if (FAILED(bd->pd3dDevice->CreatePixelShader(hlsl::pixel_shader, sizeof(hlsl::pixel_shader), nullptr, &bd->pPixelShader)))
+        if (FAILED(bd->pd3dDevice->CreatePixelShader(pixel_shader_blob, sizeof(pixel_shader_blob), nullptr, &bd->pPixelShader)))
         {
             //pixelShaderBlob->Release();
             return false;
