@@ -72,9 +72,7 @@ target_sources(Core PRIVATE
 
 target_link_libraries(Core PUBLIC
     # debug
-    spdlog
     TracyAPI
-    imgui
     # util
     utility
     utf8
