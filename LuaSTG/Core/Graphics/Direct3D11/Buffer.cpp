@@ -48,7 +48,7 @@ namespace core::Graphics::Direct3D11 {
 	}
 	bool Buffer::update(const void* const data, const size_t size_in_bytes) {
 		void* ptr{};
-		if (!map(size_in_bytes, true, &ptr)) {
+		if (!map(static_cast<uint32_t>(size_in_bytes), true, &ptr)) {
 			return false;
 		}
 		std::memcpy(ptr, data, size_in_bytes);
