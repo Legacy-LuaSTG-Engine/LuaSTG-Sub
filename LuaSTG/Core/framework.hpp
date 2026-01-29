@@ -23,7 +23,6 @@
 #define NOMINMAX
 #include <Windows.h>
 #include <ntstatus.h>
-#include <Unknwn.h>
 #include <win32/base.hpp>
 #include <dxgi1_6.h>
 #include <dxgidebug.h>
