@@ -1078,7 +1078,7 @@ namespace core::Graphics
 			dxgi_swapchain_event.reset(event_handle);
 		}
 
-		auto refresh_rate_string = fmt::format("{:.2f}Hz", (double)mode.RefreshRate.Numerator / (double)mode.RefreshRate.Denominator);
+		auto refresh_rate_string = std::format("{:.2f}Hz", (double)mode.RefreshRate.Numerator / (double)mode.RefreshRate.Denominator);
 		if (!fullscreen) refresh_rate_string = "Desktop RefreshRate";
 		std::string_view swapchain_model = "Discard";
 		if (m_swap_chain_info.SwapEffect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL) swapchain_model = "FlipSequential";
