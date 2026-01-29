@@ -1,0 +1,10 @@
+#pragma once
+#include "core/GraphicsDeviceManager.hpp"
+#include "d3d11/pch.h"
+
+namespace core {
+    class GraphicsDeviceManagerDXGI {
+    public:
+        static bool refreshAndFindAdapter(std::string_view name, IDXGIAdapter1** adapter);
+    };
+}

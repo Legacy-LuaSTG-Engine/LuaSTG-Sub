@@ -10,6 +10,7 @@
 
 #include <string>
 #include <string_view>
+#include <sstream>
 #include <atomic>
 #include <algorithm>
 #include <array>
