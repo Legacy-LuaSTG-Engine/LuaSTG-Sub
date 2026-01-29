@@ -25,7 +25,6 @@
 #include <ntstatus.h>
 #include <Unknwn.h>
 #include <win32/base.hpp>
-#include <timeapi.h>
 #include <dxgi1_6.h>
 #include <dxgidebug.h>
 #include <d3d11_4.h>
