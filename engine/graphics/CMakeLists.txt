@@ -43,7 +43,6 @@ target_link_libraries(${lib_name} PUBLIC
     d3d11.lib
     Microsoft.Windows.ImplementationLibrary
     Microsoft::DirectXTexMini
-    GeneratedShaderHeaders
     libqoi
     # math
     xmath

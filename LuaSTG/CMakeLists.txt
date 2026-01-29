@@ -1,6 +1,5 @@
 # LuaSTG configurer
 
-add_subdirectory(Shader)
 add_subdirectory(Configurer)
 
 # LuaSTG Engine
