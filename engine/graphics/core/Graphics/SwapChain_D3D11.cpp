@@ -1594,10 +1594,7 @@ namespace core::Graphics
 		m_swap_chain_info.Height = size.y;
 		m_swap_chain_info.Scaling = DXGI_SCALING_STRETCH; // DirectComposition 要求这个缩放模式
 
-		if (m_device->IsTearingSupport()) // Windows 10+ 且要求系统支持
-		{
-			m_swap_chain_info.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING; // 允许撕裂
-		}
+		m_swap_chain_info.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING; // 必须支持
 		if (latency_event)
 		{
 			m_swap_chain_info.BufferCount = 3; // 三重缓冲
