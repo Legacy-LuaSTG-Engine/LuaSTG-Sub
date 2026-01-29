@@ -158,9 +158,4 @@ namespace Platform
 	{
 		g_pfn = (pfn != nullptr) ? pfn : &DefaultPrintCallback;
 	}
-
-	HResultToBool& HResultToBool::operator=(HResult v) noexcept { hr = v; return *this; }
-	HResultToBool::operator bool() const noexcept { return SUCCEEDED(hr); }
-	HResultToBool::HResultToBool() noexcept : hr(S_OK) {}
-	HResultToBool::HResultToBool(HResult const hr_) noexcept : hr(hr_) {}
 }

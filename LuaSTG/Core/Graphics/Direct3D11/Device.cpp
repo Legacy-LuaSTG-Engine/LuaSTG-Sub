@@ -217,7 +217,7 @@ namespace core::Graphics::Direct3D11 {
 		std::vector<AdapterCandidate> adapter_candidate;
 
 		win32::com_ptr<IDXGIAdapter1> dxgi_adapter_temp;
-		for (UINT idx = 0; bHR = dxgi_factory->EnumAdapters1(idx, dxgi_adapter_temp.put()); idx += 1) {
+		for (UINT idx = 0; SUCCEEDED(dxgi_factory->EnumAdapters1(idx, dxgi_adapter_temp.put())); idx += 1) {
 			// 检查此设备是否支持 Direct3D 11 并获取特性级别
 			bool supported_d3d11 = false;
 			D3D_FEATURE_LEVEL level_info = D3D_FEATURE_LEVEL_10_0;
@@ -235,7 +235,7 @@ namespace core::Graphics::Direct3D11 {
 			// 获取图形设备信息
 			std::string dev_name = "<NULL>";
 			DXGI_ADAPTER_DESC1 desc_ = {};
-			if (bHR = gHR = dxgi_adapter_temp->GetDesc1(&desc_)) {
+			if (win32::check_hresult_as_boolean(dxgi_adapter_temp->GetDesc1(&desc_))) {
 				bool soft_dev_type = (desc_.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) || (desc_.Flags & DXGI_ADAPTER_FLAG_REMOTE);
 				dev_name = utf8::to_string(desc_.Description);
 				Logger::info(
@@ -277,7 +277,7 @@ namespace core::Graphics::Direct3D11 {
 			// 枚举显示输出
 			bool has_linked_output = false;
 			win32::com_ptr<IDXGIOutput> dxgi_output_temp;
-			for (UINT odx = 0; bHR = dxgi_adapter_temp->EnumOutputs(odx, dxgi_output_temp.put()); odx += 1) {
+			for (UINT odx = 0; SUCCEEDED(dxgi_adapter_temp->EnumOutputs(odx, dxgi_output_temp.put())); odx += 1) {
 				win32::com_ptr<IDXGIOutput6> dxgi_output_temp6;
 				hr = gHR = dxgi_output_temp->QueryInterface(dxgi_output_temp6.put());
 				if (FAILED(hr)) {
@@ -290,11 +290,11 @@ namespace core::Graphics::Direct3D11 {
 				UINT comp_sp_flags = 0;
 
 				if (dxgi_output_temp6) {
-					if (!(bHR = gHR = dxgi_output_temp6->CheckHardwareCompositionSupport(&comp_sp_flags))) {
+					if (!win32::check_hresult_as_boolean(dxgi_output_temp6->CheckHardwareCompositionSupport(&comp_sp_flags))) {
 						comp_sp_flags = 0;
 						Logger::error("Windows API failed: IDXGIOutput6::CheckHardwareCompositionSupport");
 					}
-					if (bHR = gHR = dxgi_output_temp6->GetDesc1(&o_desc)) {
+					if (win32::check_hresult_as_boolean(dxgi_output_temp6->GetDesc1(&o_desc))) {
 						read_o_desc = true;
 					}
 					else {
@@ -303,7 +303,7 @@ namespace core::Graphics::Direct3D11 {
 				}
 				if (!read_o_desc) {
 					DXGI_OUTPUT_DESC desc_0_ = {};
-					if (bHR = gHR = dxgi_output_temp->GetDesc(&desc_0_)) {
+					if (win32::check_hresult_as_boolean(dxgi_output_temp->GetDesc(&desc_0_))) {
 						std::memcpy(o_desc.DeviceName, desc_0_.DeviceName, sizeof(o_desc.DeviceName));
 						o_desc.DesktopCoordinates = desc_0_.DesktopCoordinates;
 						o_desc.AttachedToDesktop = desc_0_.AttachedToDesktop;
@@ -893,9 +893,9 @@ namespace core::Graphics::Direct3D11 {
 		HRESULT hr = S_OK;
 
 		win32::com_ptr<IDXGIAdapter1> adapter_;
-		for (UINT i = 0; bHR = dxgi_factory->EnumAdapters1(i, adapter_.put()); i += 1) {
+		for (UINT i = 0; SUCCEEDED(dxgi_factory->EnumAdapters1(i, adapter_.put())); i += 1) {
 			win32::com_ptr<IDXGIOutput> output_;
-			for (UINT j = 0; bHR = adapter_->EnumOutputs(j, output_.put()); j += 1) {
+			for (UINT j = 0; SUCCEEDED(adapter_->EnumOutputs(j, output_.put())); j += 1) {
 				DXGI_OUTPUT_DESC desc = {};
 				hr = gHR = output_->GetDesc(&desc);
 				if (FAILED(hr)) {
@@ -905,13 +905,13 @@ namespace core::Graphics::Direct3D11 {
 
 				BOOL overlay_ = FALSE;
 				win32::com_ptr<IDXGIOutput2> output2_;
-				if (bHR = output_->QueryInterface(output2_.put())) {
+				if (win32::check_hresult_as_boolean(output_->QueryInterface(output2_.put()))) {
 					overlay_ = output2_->SupportsOverlays();
 				}
 
 				UINT overlay_flags = 0;
 				win32::com_ptr<IDXGIOutput3> output3_;
-				if (bHR = output_->QueryInterface(output3_.put())) {
+				if (win32::check_hresult_as_boolean(output_->QueryInterface(output3_.put()))) {
 					hr = gHR = output3_->CheckOverlaySupport(
 						DXGI_FORMAT_B8G8R8A8_UNORM,
 						d3d11_device.get(),
@@ -923,7 +923,7 @@ namespace core::Graphics::Direct3D11 {
 
 				UINT composition_flags = 0;
 				win32::com_ptr<IDXGIOutput6> output6_;
-				if (bHR = output_->QueryInterface(output6_.put())) {
+				if (win32::check_hresult_as_boolean(output_->QueryInterface(output6_.put()))) {
 					hr = gHR = output6_->CheckHardwareCompositionSupport(&composition_flags);
 					if (FAILED(hr)) {
 						Logger::error("Windows API failed: IDXGIOutput6::CheckHardwareCompositionSupport");
@@ -1061,15 +1061,15 @@ namespace core::Graphics::Direct3D11 {
 	DeviceMemoryUsageStatistics Device::getMemoryUsageStatistics() {
 		DeviceMemoryUsageStatistics data = {};
 		win32::com_ptr<IDXGIAdapter3> adapter;
-		if (bHR = dxgi_adapter->QueryInterface(adapter.put())) {
+		if (win32::check_hresult_as_boolean(dxgi_adapter->QueryInterface(adapter.put()))) {
 			DXGI_QUERY_VIDEO_MEMORY_INFO info = {};
-			if (bHR = gHR = adapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &info)) {
+			if (win32::check_hresult_as_boolean(adapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &info))) {
 				data.local.budget = info.Budget;
 				data.local.current_usage = info.CurrentUsage;
 				data.local.available_for_reservation = info.AvailableForReservation;
 				data.local.current_reservation = info.CurrentReservation;
 			}
-			if (bHR = gHR = adapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL, &info)) {
+			if (win32::check_hresult_as_boolean(adapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL, &info))) {
 				data.non_local.budget = info.Budget;
 				data.non_local.current_usage = info.CurrentUsage;
 				data.non_local.available_for_reservation = info.AvailableForReservation;

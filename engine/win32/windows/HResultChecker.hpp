@@ -31,15 +31,6 @@ namespace Platform
 		using PrintCallback = void (*)(std::string_view const);
 		static void SetPrintCallback(PrintCallback pfn = nullptr) noexcept;
 	};
-
-	struct HResultToBool
-	{
-		HResult hr{};
-		HResultToBool& operator=(HResult v) noexcept;
-		operator bool() const noexcept;
-		explicit HResultToBool() noexcept;
-		explicit HResultToBool(HResult const hr_) noexcept;
-	};
 }
 
 #ifdef _DEBUG
@@ -47,6 +38,3 @@ namespace Platform
 #else
 #define gHR Platform::HResultChecker()
 #endif
-
-#define gHRLastError gHR = HRESULT_FROM_WIN32(GetLastError())
-#define bHR Platform::HResultToBool()

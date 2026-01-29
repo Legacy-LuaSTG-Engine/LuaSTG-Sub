@@ -1169,7 +1169,7 @@ namespace core::Graphics
 				DWORD const result = WaitForSingleObject(dxgi_swapchain_event.get(), timeout);
 				if (!(result == WAIT_OBJECT_0 || result == WAIT_TIMEOUT))
 				{
-					gHRLastError;
+					win32::check_hresult(HRESULT_FROM_WIN32(GetLastError()));
 					Logger::error("Windows API failed: WaitForSingleObject");
 				}
 			}

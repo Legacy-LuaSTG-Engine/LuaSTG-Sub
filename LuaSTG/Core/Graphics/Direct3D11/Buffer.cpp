@@ -3,7 +3,7 @@
 #include "Core/Graphics/Direct3D11/Device.hpp"
 
 #define HRNew HRESULT hr = S_OK;
-#define HRGet hr = gHR
+#define HRGet hr
 #define HRCheckCallReport(x) if (FAILED(hr)) { Logger::error("Windows API failed: " x); }
 #define HRCheckCallReturnBool(x) if (FAILED(hr)) { Logger::error("Windows API failed: " x); assert(false); return false; }
 #define HRCheckCallNoAssertReturnBool(x) if (FAILED(hr)) { Logger::error("Windows API failed: " x); return false; }

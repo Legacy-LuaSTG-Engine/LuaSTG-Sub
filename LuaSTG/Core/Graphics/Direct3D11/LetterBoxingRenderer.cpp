@@ -2,7 +2,7 @@
 #include "core/Logger.hpp"
 
 #define HRNew HRESULT hr = S_OK;
-#define HRGet hr = gHR
+#define HRGet hr
 #define HRCheckCallReturnBool(x) if (FAILED(hr)) { Logger::error("Windows API failed: " x); return false; }
 
 namespace core::Graphics::Direct3D11
