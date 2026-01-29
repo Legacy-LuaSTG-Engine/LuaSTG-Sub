@@ -1,6 +1,6 @@
 #pragma once
 #include "core/implement/ReferenceCounted.hpp"
-#include "Core/Graphics/Device.hpp"
+#include "core/Graphics/Device.hpp"
 #include "windows/RuntimeLoader/DXGI.hpp"
 #include "windows/RuntimeLoader/Direct3D11.hpp"
 #include "windows/RuntimeLoader/Direct2D1.hpp"

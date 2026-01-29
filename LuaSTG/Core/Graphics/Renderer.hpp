@@ -5,7 +5,7 @@
 #include "core/Color.hpp"
 #include "core/Box.hpp"
 #include "core/ReferenceCounted.hpp"
-#include "Core/Graphics/Device.hpp"
+#include "core/Graphics/Device.hpp"
 
 namespace core::Graphics
 {

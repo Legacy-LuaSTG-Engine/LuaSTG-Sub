@@ -1,5 +1,5 @@
-#include "Core/Graphics/Direct3D11/Texture2D.hpp"
-#include "Core/Graphics/Direct3D11/Device.hpp"
+#include "core/Graphics/Direct3D11/Texture2D.hpp"
+#include "core/Graphics/Direct3D11/Device.hpp"
 #include "core/Logger.hpp"
 #include "core/FileSystem.hpp"
 #include "utf8.hpp"

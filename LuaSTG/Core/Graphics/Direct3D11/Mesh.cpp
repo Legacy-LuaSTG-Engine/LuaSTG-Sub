@@ -1,9 +1,9 @@
 // ReSharper disable CppTooWideScopeInitStatement
 
-#include "Core/Graphics/Direct3D11/Mesh.hpp"
+#include "core/Graphics/Direct3D11/Mesh.hpp"
 #include "core/Logger.hpp"
-#include "Core/Graphics/Direct3D11/Buffer.hpp"
-#include "Core/Graphics/Direct3D11/Device.hpp"
+#include "core/Graphics/Direct3D11/Buffer.hpp"
+#include "core/Graphics/Direct3D11/Device.hpp"
 #include "windows/RuntimeLoader/Direct3DCompiler.hpp"
 
 using std::string_view_literals::operator ""sv;

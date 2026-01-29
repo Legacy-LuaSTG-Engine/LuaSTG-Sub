@@ -1,4 +1,4 @@
-#include "Core/Graphics/SwapChain_D3D11.hpp"
+#include "core/Graphics/SwapChain_D3D11.hpp"
 #include "windows/Window.hpp"
 #include "core/Configuration.hpp"
 #include "core/Logger.hpp"

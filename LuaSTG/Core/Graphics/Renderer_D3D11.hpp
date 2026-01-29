@@ -1,9 +1,9 @@
 #pragma once
 #include "core/implement/ReferenceCounted.hpp"
-#include "Core/Graphics/Renderer.hpp"
-#include "Core/Graphics/Direct3D11/Texture2D.hpp"
-#include "Core/Graphics/Direct3D11/Device.hpp"
-#include "Core/Graphics/Model_D3D11.hpp"
+#include "core/Graphics/Renderer.hpp"
+#include "core/Graphics/Direct3D11/Texture2D.hpp"
+#include "core/Graphics/Direct3D11/Device.hpp"
+#include "core/Graphics/Model_D3D11.hpp"
 
 #define IDX(x) (size_t)static_cast<uint8_t>(x)
 

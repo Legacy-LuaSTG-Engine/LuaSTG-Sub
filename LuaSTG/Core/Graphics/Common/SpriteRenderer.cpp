@@ -1,4 +1,4 @@
-#include "Core/Graphics/Common/SpriteRenderer.hpp"
+#include "core/Graphics/Common/SpriteRenderer.hpp"
 #include <cassert>
 
 namespace core::Graphics::Common {

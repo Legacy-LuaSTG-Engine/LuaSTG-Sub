@@ -1,7 +1,7 @@
 #pragma once
 #include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
-#include "Core/Graphics/Device.hpp"
+#include "core/Graphics/Device.hpp"
 
 // Buffer
 namespace core::Graphics::Direct3D11 {

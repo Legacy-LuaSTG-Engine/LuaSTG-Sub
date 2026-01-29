@@ -1,6 +1,6 @@
 #pragma once
 #include "GameResource/ResourceBase.hpp"
-#include "Core/Graphics/Device.hpp"
+#include "core/Graphics/Device.hpp"
 
 namespace luastg
 {

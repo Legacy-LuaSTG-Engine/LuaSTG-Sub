@@ -1,7 +1,7 @@
 #pragma once
 #include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
-#include "Core/Graphics/Sprite.hpp"
+#include "core/Graphics/Sprite.hpp"
 
 namespace core::Graphics::Common {
 	class SpriteRenderer final

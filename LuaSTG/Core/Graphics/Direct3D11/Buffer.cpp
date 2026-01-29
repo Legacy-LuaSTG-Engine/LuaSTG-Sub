@@ -1,6 +1,6 @@
-#include "Core/Graphics/Direct3D11/Buffer.hpp"
+#include "core/Graphics/Direct3D11/Buffer.hpp"
 #include "core/Logger.hpp"
-#include "Core/Graphics/Direct3D11/Device.hpp"
+#include "core/Graphics/Direct3D11/Device.hpp"
 
 #define HRNew HRESULT hr = S_OK;
 #define HRGet hr

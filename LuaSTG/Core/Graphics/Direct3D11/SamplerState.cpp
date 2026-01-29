@@ -1,6 +1,6 @@
-#include "Core/Graphics/Direct3D11/SamplerState.hpp"
+#include "core/Graphics/Direct3D11/SamplerState.hpp"
 #include "core/Logger.hpp"
-#include "Core/Graphics/Direct3D11/Device.hpp"
+#include "core/Graphics/Direct3D11/Device.hpp"
 
 // SamplerState
 namespace core::Graphics::Direct3D11 {

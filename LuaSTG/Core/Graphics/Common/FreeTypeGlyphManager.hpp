@@ -1,7 +1,7 @@
 #pragma once
 #include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
-#include "Core/Graphics/Font.hpp"
+#include "core/Graphics/Font.hpp"
 
 #include "ft2build.h"
 #include FT_FREETYPE_H

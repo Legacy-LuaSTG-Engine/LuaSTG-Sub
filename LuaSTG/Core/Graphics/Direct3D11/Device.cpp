@@ -1,4 +1,4 @@
-#include "Core/Graphics/Direct3D11/Device.hpp"
+#include "core/Graphics/Direct3D11/Device.hpp"
 #include "core/Configuration.hpp"
 #include "core/Logger.hpp"
 #include "windows/WindowsVersion.hpp"

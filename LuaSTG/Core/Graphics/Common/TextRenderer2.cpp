@@ -1,4 +1,4 @@
-#include "Core/Graphics/Common/TextRenderer2.hpp"
+#include "core/Graphics/Common/TextRenderer2.hpp"
 #include <cassert>
 
 namespace core::Graphics {

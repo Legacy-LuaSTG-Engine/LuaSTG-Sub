@@ -1,6 +1,6 @@
 #pragma once
 #include "lua.hpp"
-#include "Core/Graphics/Device.hpp"
+#include "core/Graphics/Device.hpp"
 
 namespace luastg::binding {
 	struct RenderTarget {

@@ -1,6 +1,6 @@
 #pragma once
 #include "core/ReferenceCounted.hpp"
-#include "Core/Graphics/Renderer.hpp"
+#include "core/Graphics/Renderer.hpp"
 
 namespace core::Graphics
 {

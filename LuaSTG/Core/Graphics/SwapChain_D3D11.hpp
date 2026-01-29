@@ -1,9 +1,9 @@
 #pragma once
 #include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
-#include "Core/Graphics/SwapChain.hpp"
-#include "Core/Graphics/Direct3D11/Device.hpp"
-#include "Core/Graphics/Direct3D11/LetterBoxingRenderer.hpp"
+#include "core/Graphics/SwapChain.hpp"
+#include "core/Graphics/Direct3D11/Device.hpp"
+#include "core/Graphics/Direct3D11/LetterBoxingRenderer.hpp"
 #include "windows/RuntimeLoader/DirectComposition.hpp"
 #include <wil/resource.h>
 

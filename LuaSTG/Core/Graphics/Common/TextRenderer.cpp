@@ -1,4 +1,4 @@
-#include "Core/Graphics/Common/TextRenderer.hpp"
+#include "core/Graphics/Common/TextRenderer.hpp"
 #include "utility/utf.hpp"
 
 namespace core::Graphics::Common {

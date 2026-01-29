@@ -3,8 +3,8 @@
 #include "core/Rational.hpp"
 #include "core/ReferenceCounted.hpp"
 #include "core/Window.hpp"
-#include "Core/Graphics/Format.hpp"
-#include "Core/Graphics/Device.hpp"
+#include "core/Graphics/Format.hpp"
+#include "core/Graphics/Device.hpp"
 
 namespace core::Graphics
 {

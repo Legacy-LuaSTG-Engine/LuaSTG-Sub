@@ -1,4 +1,4 @@
-#include "Core/Graphics/Direct3D11/LetterBoxingRenderer.hpp"
+#include "core/Graphics/Direct3D11/LetterBoxingRenderer.hpp"
 #include "core/Logger.hpp"
 
 #define HRNew HRESULT hr = S_OK;

@@ -1,4 +1,4 @@
-#include "Core/Graphics/Renderer_D3D11.hpp"
+#include "core/Graphics/Renderer_D3D11.hpp"
 #include "core/Logger.hpp"
 #include "core/FileSystem.hpp"
 #include "windows/RuntimeLoader/Direct3DCompiler.hpp"

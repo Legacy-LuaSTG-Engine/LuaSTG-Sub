@@ -1,6 +1,6 @@
 #pragma once
-#include "Core/Graphics/Device.hpp"
-#include "Core/Graphics/Renderer.hpp"
+#include "core/Graphics/Device.hpp"
+#include "core/Graphics/Renderer.hpp"
 #include "core/ReferenceCounted.hpp"
 #include "core/TextLayout.hpp"
 

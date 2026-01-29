@@ -1,6 +1,6 @@
 #pragma once
 #include "lua.hpp"
-#include "Core/Graphics/Mesh.hpp"
+#include "core/Graphics/Mesh.hpp"
 
 namespace luastg::binding {
 	struct MeshRenderer {

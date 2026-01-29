@@ -1,7 +1,7 @@
-#include "Core/Graphics/Direct3D11/RenderTarget.hpp"
+#include "core/Graphics/Direct3D11/RenderTarget.hpp"
 #include "core/Logger.hpp"
-#include "Core/Graphics/Direct3D11/Device.hpp"
-#include "Core/Graphics/Direct3D11/Texture2D.hpp"
+#include "core/Graphics/Direct3D11/Device.hpp"
+#include "core/Graphics/Direct3D11/Texture2D.hpp"
 
 // RenderTarget
 namespace core::Graphics::Direct3D11 {

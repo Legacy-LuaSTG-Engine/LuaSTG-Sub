@@ -1,7 +1,7 @@
 #pragma once
 #include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
-#include "Core/Graphics/Mesh.hpp"
+#include "core/Graphics/Mesh.hpp"
 
 namespace core::Graphics::Direct3D11 {
 	class MeshRenderer final

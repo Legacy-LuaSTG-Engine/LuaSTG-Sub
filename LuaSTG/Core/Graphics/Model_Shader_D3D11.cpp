@@ -1,4 +1,4 @@
-﻿#include "Core/Graphics/Model_D3D11.hpp"
+﻿#include "core/Graphics/Model_D3D11.hpp"
 #include "core/Logger.hpp"
 #include "windows/RuntimeLoader/Direct3DCompiler.hpp"
 

@@ -1,4 +1,4 @@
-#include "Core/Graphics/Common/FreeTypeGlyphManager.hpp"
+#include "core/Graphics/Common/FreeTypeGlyphManager.hpp"
 #include "core/FileSystem.hpp"
 #include "utility/utf.hpp"
 #include "utf8.hpp"

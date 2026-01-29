@@ -1,4 +1,4 @@
-#include "Core/Graphics/Common/Sprite.hpp"
+#include "core/Graphics/Common/Sprite.hpp"
 
 namespace core::Graphics::Common {
 	void Sprite::setTextureRect(RectF const& rc) {

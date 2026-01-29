@@ -1,6 +1,6 @@
 #pragma once
-#include "Core/Graphics/Font.hpp"
-#include "Core/Graphics/Sprite.hpp"
+#include "core/Graphics/Font.hpp"
+#include "core/Graphics/Sprite.hpp"
 #include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
 #include "core/TextLayout.hpp"
