@@ -213,7 +213,6 @@ target_link_libraries(LuaSTG PRIVATE
     beautiful_win32_api
     DirectX::ToolKitMini
     Microsoft::DirectXTexMini
-    Core
     xmath
     lua51_static
     lua_plus
@@ -236,6 +235,7 @@ target_link_libraries(LuaSTG PRIVATE
     Core.ShellIntegration
     Core.Audio
     Core.WindowSystem
+    Core.Graphics
     LuaSTG.InternalLuaScriptsFileSystem
 )
 
