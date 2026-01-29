@@ -101,61 +101,51 @@ namespace DirectWrite
 
 	// DirectWrite helper
 
-	void printFontCollectionInfo(IDWriteFontCollection* dwrite_font_collection, std::stringstream& string_buffer)
-	{
-		for (UINT32 ff_idx = 0; ff_idx < dwrite_font_collection->GetFontFamilyCount(); ff_idx += 1)
-		{
+	void printFontCollectionInfo(IDWriteLocalizedStrings* const names, const std::string_view indent, std::stringstream& string_buffer) {
+		for (UINT32 name_idx = 0; name_idx < names->GetCount(); name_idx += 1) {
+			UINT32 str_len = 0;
+
+			if (FAILED(names->GetStringLength(name_idx, &str_len))) continue;
+			std::wstring name(str_len + 1, L'\0');
+			if (FAILED(names->GetString(name_idx, name.data(), str_len + 1))) continue;
+			if (name.back() == L'\0') name.pop_back();
+
+			if (FAILED(names->GetLocaleNameLength(name_idx, &str_len))) continue;
+			std::wstring locale_name(str_len + 1, L'\0');
+			if (FAILED(names->GetLocaleName(name_idx, locale_name.data(), str_len + 1))) continue;
+			if (locale_name.back() == L'\0') locale_name.pop_back();
+
+			string_buffer << indent << "[" << name_idx << "] (" << utf8::to_string(locale_name) << ") " << utf8::to_string(name) << '\n';
+		}
+	}
+	void printFontCollectionInfo(IDWriteFontCollection* dwrite_font_collection, std::stringstream& string_buffer) {
+		for (UINT32 ff_idx = 0; ff_idx < dwrite_font_collection->GetFontFamilyCount(); ff_idx += 1) {
 			string_buffer << '[' << ff_idx << "] Font Family\n";
 
 			Microsoft::WRL::ComPtr<IDWriteFontFamily> dwrite_font_family;
-			gHR = dwrite_font_collection->GetFontFamily(ff_idx, &dwrite_font_family);
+			if (FAILED(dwrite_font_collection->GetFontFamily(ff_idx, &dwrite_font_family))) {
+				continue;
+			}
 
 			string_buffer << "    Name:\n";
 			Microsoft::WRL::ComPtr<IDWriteLocalizedStrings> dwrite_font_family_names;
-			gHR = dwrite_font_family->GetFamilyNames(&dwrite_font_family_names);
-			for (UINT32 name_idx = 0; name_idx < dwrite_font_family_names->GetCount(); name_idx += 1)
-			{
-				UINT32 str_len = 0;
-
-				gHR = dwrite_font_family_names->GetStringLength(name_idx, &str_len);
-				std::wstring name(str_len + 1, L'\0');
-				gHR = dwrite_font_family_names->GetString(name_idx, name.data(), str_len + 1);
-				if (name.back() == L'\0') name.pop_back();
-
-				gHR = dwrite_font_family_names->GetLocaleNameLength(name_idx, &str_len);
-				std::wstring locale_name(str_len + 1, L'\0');
-				gHR = dwrite_font_family_names->GetLocaleName(name_idx, locale_name.data(), str_len + 1);
-				if (locale_name.back() == L'\0') locale_name.pop_back();
-
-				string_buffer << "        [" << name_idx << "] (" << utf8::to_string(locale_name) << ") " << utf8::to_string(name) << '\n';
+			if (SUCCEEDED(dwrite_font_family->GetFamilyNames(&dwrite_font_family_names))) {
+				printFontCollectionInfo(dwrite_font_family_names.Get(), "        ", string_buffer);
 			}
 
 			string_buffer << "    Font:\n";
-			for (UINT32 font_idx = 0; font_idx < dwrite_font_family->GetFontCount(); font_idx += 1)
-			{
+			for (UINT32 font_idx = 0; font_idx < dwrite_font_family->GetFontCount(); font_idx += 1) {
 				string_buffer << "        [" << font_idx << "] Font\n";
 
 				Microsoft::WRL::ComPtr<IDWriteFont> dwrite_font;
-				gHR = dwrite_font_family->GetFont(font_idx, &dwrite_font);
+				if (FAILED(dwrite_font_family->GetFont(font_idx, &dwrite_font))) {
+					continue;
+				}
 
 				string_buffer << "            Name:\n";
 				Microsoft::WRL::ComPtr<IDWriteLocalizedStrings> dwrite_font_face_names;
-				gHR = dwrite_font->GetFaceNames(&dwrite_font_face_names);
-				for (UINT32 name_idx = 0; name_idx < dwrite_font_face_names->GetCount(); name_idx += 1)
-				{
-					UINT32 str_len = 0;
-
-					gHR = dwrite_font_face_names->GetStringLength(name_idx, &str_len);
-					std::wstring name(str_len + 1, L'\0');
-					gHR = dwrite_font_face_names->GetString(name_idx, name.data(), str_len + 1);
-					if (name.back() == L'\0') name.pop_back();
-
-					gHR = dwrite_font_face_names->GetLocaleNameLength(name_idx, &str_len);
-					std::wstring locale_name(str_len + 1, L'\0');
-					gHR = dwrite_font_face_names->GetLocaleName(name_idx, locale_name.data(), str_len + 1);
-					if (locale_name.back() == L'\0') locale_name.pop_back();
-
-					string_buffer << "                [" << name_idx << "] (" << utf8::to_string(locale_name) << ") " << utf8::to_string(name) << '\n';
+				if (SUCCEEDED(dwrite_font->GetFaceNames(&dwrite_font_face_names))) {
+					printFontCollectionInfo(dwrite_font_face_names.Get(), "                ", string_buffer);
 				}
 
 				/*
