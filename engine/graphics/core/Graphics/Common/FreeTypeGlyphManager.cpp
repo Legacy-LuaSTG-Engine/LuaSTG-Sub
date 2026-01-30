@@ -85,12 +85,12 @@ namespace core::Graphics::Common {
 	}
 }
 namespace core::Graphics::Common {
-	// IDeviceEventListener
+	// IGraphicsDeviceEventListener
 
-	void FreeTypeGlyphManager::onDeviceCreate() {
+	void FreeTypeGlyphManager::onGraphicsDeviceCreate() {
 		// 等一个幸运儿调用 flush
 	}
-	void FreeTypeGlyphManager::onDeviceDestroy() {
+	void FreeTypeGlyphManager::onGraphicsDeviceDestroy() {
 		// 全标记为脏
 		for (auto& t : m_tex) {
 			t.dirty_l = 0;
@@ -179,7 +179,7 @@ namespace core::Graphics::Common {
 
 	// FreeTypeGlyphManager
 
-	FreeTypeGlyphManager::FreeTypeGlyphManager(IDevice* const p_device, TrueTypeFontInfo const* const p_arr_info, size_t const info_count)
+	FreeTypeGlyphManager::FreeTypeGlyphManager(IGraphicsDevice* const p_device, TrueTypeFontInfo const* const p_arr_info, size_t const info_count)
 		: m_device(p_device) {
 		if (!openFonts(p_arr_info, info_count)) {
 			throw std::runtime_error("FreeTypeGlyphManager::FreeTypeGlyphManager (openFonts)");
@@ -437,7 +437,7 @@ namespace core::Graphics::Common {
 	}
 }
 namespace core::Graphics {
-	bool IGlyphManager::create(IDevice* const p_device, TrueTypeFontInfo const* const p_arr_info, size_t const info_count, IGlyphManager** const output) {
+	bool IGlyphManager::create(IGraphicsDevice* const p_device, TrueTypeFontInfo const* const p_arr_info, size_t const info_count, IGlyphManager** const output) {
 		try {
 			*output = new Common::FreeTypeGlyphManager(p_device, p_arr_info, info_count);
 			return true;

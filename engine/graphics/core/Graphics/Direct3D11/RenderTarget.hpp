@@ -1,21 +1,20 @@
 #pragma once
 #include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
-#include "core/Graphics/Device.hpp"
+#include "core/GraphicsDevice.hpp"
 
 // RenderTarget
 namespace core::Graphics::Direct3D11 {
-	class Device;
 	class Texture2D;
 
 	class RenderTarget final
 		: public implement::ReferenceCounted<IRenderTarget>
-		, public IDeviceEventListener {
+		, public IGraphicsDeviceEventListener {
 	public:
-		// IDeviceEventListener
+		// IGraphicsDeviceEventListener
 
-		void onDeviceCreate() override;
-		void onDeviceDestroy() override;
+		void onGraphicsDeviceCreate() override;
+        void onGraphicsDeviceDestroy() override;
 
 		// IRenderTarget
 
@@ -39,11 +38,11 @@ namespace core::Graphics::Direct3D11 {
 
 		[[nodiscard]] ID3D11RenderTargetView* GetView() const noexcept { return m_view.get(); }
 
-		bool initialize(Device* device, Vector2U size);
+		bool initialize(IGraphicsDevice* device, Vector2U size);
 		bool createResource();
 
 	private:
-		SmartReference<Device> m_device;
+		SmartReference<IGraphicsDevice> m_device;
 		SmartReference<Texture2D> m_texture;
 		win32::com_ptr<ID3D11RenderTargetView> m_view;
 #ifdef LUASTG_ENABLE_DIRECT2D

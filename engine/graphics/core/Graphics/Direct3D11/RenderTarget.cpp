@@ -1,11 +1,10 @@
 #include "core/Graphics/Direct3D11/RenderTarget.hpp"
 #include "core/Logger.hpp"
-#include "core/Graphics/Direct3D11/Device.hpp"
 #include "core/Graphics/Direct3D11/Texture2D.hpp"
 
 // RenderTarget
 namespace core::Graphics::Direct3D11 {
-	void RenderTarget::onDeviceCreate() {
+	void RenderTarget::onGraphicsDeviceCreate() {
 		if (m_initialized) {
 			// 这里不能直接调用 texture 的 onDeviceCreate，因为要判断创建是否成功
 			if (m_texture->createResource()) {
@@ -13,12 +12,12 @@ namespace core::Graphics::Direct3D11 {
 			}
 		}
 	}
-	void RenderTarget::onDeviceDestroy() {
+	void RenderTarget::onGraphicsDeviceDestroy() {
 		m_view.reset();
 #ifdef LUASTG_ENABLE_DIRECT2D
 		m_bitmap.reset();
 #endif
-		m_texture->onDeviceDestroy();
+		m_texture->onGraphicsDeviceDestroy();
 	}
 
 	ITexture2D* RenderTarget::getTexture() const noexcept { return m_texture.get(); }
@@ -41,7 +40,7 @@ namespace core::Graphics::Direct3D11 {
 		return createResource();
 	}
 
-	bool RenderTarget::initialize(Device* const device, Vector2U const size) {
+	bool RenderTarget::initialize(IGraphicsDevice* const device, Vector2U const size) {
 		assert(device);
 		assert(size.x > 0 && size.y > 0);
 		m_device = device;
@@ -59,12 +58,15 @@ namespace core::Graphics::Direct3D11 {
 	bool RenderTarget::createResource() {
 		HRESULT hr = S_OK;
 
-		auto* d3d11_device = m_device->GetD3D11Device();
-		auto* d3d11_devctx = m_device->GetD3D11DeviceContext();
-		if (!d3d11_device || !d3d11_devctx)
+		const auto d3d11_device = static_cast<ID3D11Device*>(m_device->getNativeHandle());
+		if (!d3d11_device)
+			return false;
+		win32::com_ptr<ID3D11DeviceContext> d3d11_devctx;
+		d3d11_device->GetImmediateContext(d3d11_devctx.put());
+		if (!d3d11_devctx)
 			return false;
 #ifdef LUASTG_ENABLE_DIRECT2D
-		auto* d2d1_device_context = m_device->GetD2D1DeviceContext();
+		const auto d2d1_device_context = static_cast<ID2D1DeviceContext*>(m_device->getNativeRendererHandle());
 		if (!d2d1_device_context)
 			return false;
 #endif
@@ -120,11 +122,14 @@ namespace core::Graphics::Direct3D11 {
 		return true;
 	}
 }
-namespace core::Graphics::Direct3D11 {
-	bool Device::createRenderTarget(Vector2U const size, IRenderTarget** const pp_rt) {
+
+#include "d3d11/GraphicsDevice.hpp"
+
+namespace core {
+	bool GraphicsDevice::createRenderTarget(Vector2U const size, Graphics::IRenderTarget** const pp_rt) {
 		*pp_rt = nullptr;
-		SmartReference<RenderTarget> buffer;
-		buffer.attach(new RenderTarget);
+		SmartReference<Graphics::Direct3D11::RenderTarget> buffer;
+		buffer.attach(new Graphics::Direct3D11::RenderTarget);
 		if (!buffer->initialize(this, size)) {
 			return false;
 		}

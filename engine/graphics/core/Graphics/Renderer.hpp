@@ -5,7 +5,7 @@
 #include "core/Color.hpp"
 #include "core/Box.hpp"
 #include "core/ReferenceCounted.hpp"
-#include "core/Graphics/Device.hpp"
+#include "core/GraphicsDevice.hpp"
 
 namespace core::Graphics
 {
@@ -174,7 +174,7 @@ namespace core::Graphics
 
 		virtual ISamplerState* getKnownSamplerState(SamplerState state) = 0;
 
-		static bool create(IDevice* p_device, IRenderer** pp_renderer);
+		static bool create(IGraphicsDevice* p_device, IRenderer** pp_renderer);
 	};
 }
 

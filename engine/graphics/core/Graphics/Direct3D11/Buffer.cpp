@@ -1,6 +1,5 @@
 #include "core/Graphics/Direct3D11/Buffer.hpp"
 #include "core/Logger.hpp"
-#include "core/Graphics/Direct3D11/Device.hpp"
 
 #define HRNew HRESULT hr = S_OK;
 #define HRGet hr
@@ -14,14 +13,13 @@ namespace {
 	}
 }
 
-// Buffer
 namespace core::Graphics::Direct3D11 {
-	void Buffer::onDeviceCreate() {
+	void Buffer::onGraphicsDeviceCreate() {
 		if (m_initialized) {
 			createResources();
 		}
 	}
-	void Buffer::onDeviceDestroy() {
+	void Buffer::onGraphicsDeviceDestroy() {
 		m_buffer.reset();
 	}
 
@@ -30,8 +28,9 @@ namespace core::Graphics::Direct3D11 {
 			assert(false); return false;
 		}
 		HRNew;
-		auto const ctx = m_device->GetD3D11DeviceContext();
-		assert(ctx);
+		assert(m_device->getNativeHandle());
+		win32::com_ptr<ID3D11DeviceContext> ctx;
+		static_cast<ID3D11Device*>(m_device->getNativeHandle())->GetImmediateContext(ctx.put());
 		assert(m_buffer);
 		D3D11_MAPPED_SUBRESOURCE mapped{};
 		HRGet = ctx->Map(m_buffer.get(), 0, discard ? D3D11_MAP_WRITE_DISCARD : D3D11_MAP_WRITE_NO_OVERWRITE, 0, &mapped);
@@ -40,8 +39,9 @@ namespace core::Graphics::Direct3D11 {
 		return true;
 	}
 	bool Buffer::unmap() {
-		auto const ctx = m_device->GetD3D11DeviceContext();
-		assert(ctx);
+		assert(m_device->getNativeHandle());
+		win32::com_ptr<ID3D11DeviceContext> ctx;
+		static_cast<ID3D11Device*>(m_device->getNativeHandle())->GetImmediateContext(ctx.put());
 		assert(m_buffer);
 		ctx->Unmap(m_buffer.get(), 0);
 		return true;
@@ -62,7 +62,7 @@ namespace core::Graphics::Direct3D11 {
 		}
 	}
 
-	bool Buffer::initialize(Device* const device, uint8_t const type, uint32_t const size_in_bytes) {
+	bool Buffer::initialize(IGraphicsDevice* const device, uint8_t const type, uint32_t const size_in_bytes) {
 		assert(device);
 		assert(type == type_vertex_buffer || type == type_index_buffer || type == type_constant_buffer);
 		assert(size_in_bytes > 0);
@@ -78,7 +78,7 @@ namespace core::Graphics::Direct3D11 {
 	}
 	bool Buffer::createResources() {
 		HRNew;
-		auto const device = m_device->GetD3D11Device();
+		auto const device = static_cast<ID3D11Device*>(m_device->getNativeHandle());
 		assert(device);
 		D3D11_BUFFER_DESC info{};
 		info.ByteWidth = m_size_in_bytes;
@@ -106,32 +106,35 @@ namespace core::Graphics::Direct3D11 {
 		return true;
 	}
 }
-namespace core::Graphics::Direct3D11 {
-	bool Device::createVertexBuffer(uint32_t const size_in_bytes, IBuffer** const output) {
+
+#include "d3d11/GraphicsDevice.hpp"
+
+namespace core {
+	bool GraphicsDevice::createVertexBuffer(uint32_t const size_in_bytes, Graphics::IBuffer** const output) {
 		*output = nullptr;
-		SmartReference<Buffer> buffer;
-		buffer.attach(new Buffer);
-		if (!buffer->initialize(this, Buffer::type_vertex_buffer, size_in_bytes)) {
+		SmartReference<Graphics::Direct3D11::Buffer> buffer;
+		buffer.attach(new Graphics::Direct3D11::Buffer);
+		if (!buffer->initialize(this, Graphics::Direct3D11::Buffer::type_vertex_buffer, size_in_bytes)) {
 			return false;
 		}
 		*output = buffer.detach();
 		return true;
 	}
-	bool Device::createIndexBuffer(uint32_t const size_in_bytes, IBuffer** const output) {
+	bool GraphicsDevice::createIndexBuffer(uint32_t const size_in_bytes, Graphics::IBuffer** const output) {
 		*output = nullptr;
-		SmartReference<Buffer> buffer;
-		buffer.attach(new Buffer);
-		if (!buffer->initialize(this, Buffer::type_index_buffer, size_in_bytes)) {
+		SmartReference<Graphics::Direct3D11::Buffer> buffer;
+		buffer.attach(new Graphics::Direct3D11::Buffer);
+		if (!buffer->initialize(this, Graphics::Direct3D11::Buffer::type_index_buffer, size_in_bytes)) {
 			return false;
 		}
 		*output = buffer.detach();
 		return true;
 	}
-	bool Device::createConstantBuffer(uint32_t const size_in_bytes, IBuffer** const output) {
+	bool GraphicsDevice::createConstantBuffer(uint32_t const size_in_bytes, Graphics::IBuffer** const output) {
 		*output = nullptr;
-		SmartReference<Buffer> buffer;
-		buffer.attach(new Buffer);
-		if (!buffer->initialize(this, Buffer::type_constant_buffer, size_in_bytes)) {
+		SmartReference<Graphics::Direct3D11::Buffer> buffer;
+		buffer.attach(new Graphics::Direct3D11::Buffer);
+		if (!buffer->initialize(this, Graphics::Direct3D11::Buffer::type_constant_buffer, size_in_bytes)) {
 			return false;
 		}
 		*output = buffer.detach();

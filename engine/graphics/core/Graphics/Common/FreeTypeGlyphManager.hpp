@@ -62,12 +62,12 @@ namespace core::Graphics::Common {
 
 	class FreeTypeGlyphManager final
 		: public implement::ReferenceCounted<IGlyphManager>
-		, public IDeviceEventListener {
+		, public IGraphicsDeviceEventListener {
 	public:
-		// IDeviceEventListener
+		// IGraphicsDeviceEventListener
 
-		void onDeviceCreate() override;
-		void onDeviceDestroy() override;
+		void onGraphicsDeviceCreate() override;
+		void onGraphicsDeviceDestroy() override;
 
 		// IGlyphManager
 
@@ -86,7 +86,7 @@ namespace core::Graphics::Common {
 
 		// FreeTypeGlyphManager
 
-		FreeTypeGlyphManager(IDevice* p_device, TrueTypeFontInfo const* p_arr_info, size_t info_count);
+		FreeTypeGlyphManager(IGraphicsDevice* p_device, TrueTypeFontInfo const* p_arr_info, size_t info_count);
 		FreeTypeGlyphManager(FreeTypeGlyphManager const&) = delete;
 		FreeTypeGlyphManager(FreeTypeGlyphManager&&) = delete;
 		~FreeTypeGlyphManager();
@@ -103,7 +103,7 @@ namespace core::Graphics::Common {
 		GlyphCacheInfo* getGlyphCacheInfo(uint32_t codepoint);
 		bool renderCache(uint32_t codepoint);
 
-		SmartReference<IDevice> m_device;
+		SmartReference<IGraphicsDevice> m_device;
 		FreeTypeFontCommonInfo m_common_info;
 		std::vector<FreeTypeFontData> m_font;
 		std::vector<GlyphCache2D> m_tex;

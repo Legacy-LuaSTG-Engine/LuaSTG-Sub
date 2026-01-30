@@ -1,20 +1,18 @@
 #pragma once
 #include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
-#include "core/Graphics/Device.hpp"
+#include "core/GraphicsDevice.hpp"
 
 // DepthStencilBuffer
 namespace core::Graphics::Direct3D11 {
-	class Device;
-
 	class DepthStencilBuffer final
 		: public implement::ReferenceCounted<IDepthStencilBuffer>
-		, public IDeviceEventListener {
+		, public IGraphicsDeviceEventListener {
 	public:
-		// IDeviceEventListener
+		// IGraphicsDeviceEventListener
 
-		void onDeviceCreate() override;
-		void onDeviceDestroy() override;
+		void onGraphicsDeviceCreate() override;
+        void onGraphicsDeviceDestroy() override;
 
 		// IDepthStencilBuffer
 
@@ -34,11 +32,11 @@ namespace core::Graphics::Direct3D11 {
 		[[nodiscard]] ID3D11Texture2D* GetResource() const noexcept { return m_texture.get(); }
 		[[nodiscard]] ID3D11DepthStencilView* GetView() const noexcept { return m_view.get(); }
 
-		bool initialize(Device* device, Vector2U size);
+		bool initialize(IGraphicsDevice* device, Vector2U size);
 		bool createResource();
 
 	private:
-		SmartReference<Device> m_device;
+		SmartReference<IGraphicsDevice> m_device;
 		win32::com_ptr<ID3D11Texture2D> m_texture;
 		win32::com_ptr<ID3D11DepthStencilView> m_view;
 		Vector2U m_size{};

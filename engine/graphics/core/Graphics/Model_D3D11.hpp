@@ -2,7 +2,7 @@
 #include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
 #include "core/Graphics/Renderer.hpp"
-#include "core/Graphics/Direct3D11/Device.hpp"
+#include "d3d11/GraphicsDevice.hpp"
 #include "tiny_gltf.h"
 
 #define IDX(x) (size_t)static_cast<uint8_t>(x)
@@ -11,11 +11,11 @@ namespace core::Graphics
 {
     class ModelSharedComponent_D3D11
         : public implement::ReferenceCounted<IReferenceCounted>
-        , public IDeviceEventListener
+        , public IGraphicsDeviceEventListener
     {
         friend class Model_D3D11;
     private:
-        SmartReference<Direct3D11::Device> m_device;
+        SmartReference<GraphicsDevice> m_device;
 
         win32::com_ptr<ID3D11ShaderResourceView> default_image;
         win32::com_ptr<ID3D11SamplerState> default_sampler;
@@ -65,20 +65,20 @@ namespace core::Graphics
         bool createState();
 
         bool createResources();
-        void onDeviceCreate();
-        void onDeviceDestroy();
+        void onGraphicsDeviceCreate() override;
+        void onGraphicsDeviceDestroy() override;
 
     public:
-        ModelSharedComponent_D3D11(Direct3D11::Device* p_device);
+        ModelSharedComponent_D3D11(GraphicsDevice* p_device);
         ~ModelSharedComponent_D3D11();
     };
 
     class Model_D3D11
         : public implement::ReferenceCounted<IModel>
-        , public IDeviceEventListener
+        , public IGraphicsDeviceEventListener
     {
     private:
-        SmartReference<Direct3D11::Device> m_device;
+        SmartReference<GraphicsDevice> m_device;
         SmartReference<ModelSharedComponent_D3D11> shared_;
 
         DirectX::XMMATRIX t_scale_;
@@ -167,8 +167,8 @@ namespace core::Graphics
         bool createModelBlock(tinygltf::Model& model);
 
         bool createResources();
-        void onDeviceCreate();
-        void onDeviceDestroy();
+        void onGraphicsDeviceCreate() override;
+        void onGraphicsDeviceDestroy() override;
 
     public:
 
@@ -182,7 +182,7 @@ namespace core::Graphics
         void draw(IRenderer::FogState fog);
 
     public:
-        Model_D3D11(Direct3D11::Device* p_device, ModelSharedComponent_D3D11* p_model_shared, StringView path);
+        Model_D3D11(GraphicsDevice* p_device, ModelSharedComponent_D3D11* p_model_shared, StringView path);
         ~Model_D3D11();
     };
 }

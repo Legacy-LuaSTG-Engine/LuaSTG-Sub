@@ -56,7 +56,7 @@ namespace core::Graphics {
 
     // TextRenderer2
 
-    bool TextRenderer2::initialize(IDevice* const device) {
+    bool TextRenderer2::initialize(IGraphicsDevice* const device) {
         assert(device != nullptr);
         m_device = device;
         if (!ISpriteRenderer::create(m_sprite_renderer.put())) {
@@ -116,7 +116,7 @@ namespace core::Graphics {
 }
 
 namespace core::Graphics {
-    bool ITextRenderer2::create(IDevice* const device, ITextRenderer2** const output) {
+    bool ITextRenderer2::create(IGraphicsDevice* const device, ITextRenderer2** const output) {
         if (device == nullptr || output == nullptr) {
             assert(false);
             return false;

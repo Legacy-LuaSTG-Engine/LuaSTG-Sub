@@ -6,13 +6,13 @@
 namespace core::Graphics::Direct3D11 {
 	class Mesh final
 		: public implement::ReferenceCounted<IMesh>
-		, public IDeviceEventListener
+		, public IGraphicsDeviceEventListener
 	{
 	public:
-		// IDeviceEventListener
+		// IGraphicsDeviceEventListener
 
-		void onDeviceCreate() override;
-		void onDeviceDestroy() override;
+		void onGraphicsDeviceCreate() override;
+        void onGraphicsDeviceDestroy() override;
 
 		// IMesh
 
@@ -55,11 +55,11 @@ namespace core::Graphics::Direct3D11 {
 		void applyNative(ID3D11DeviceContext* ctx, bool fog = false);
 		void drawNative(ID3D11DeviceContext* ctx) const;
 
-		bool initialize(IDevice* device, MeshOptions const& options);
+		bool initialize(IGraphicsDevice* device, MeshOptions const& options);
 		bool createResources();
 
 	private:
-		SmartReference<IDevice> m_device;
+		SmartReference<IGraphicsDevice> m_device;
 		SmartReference<IBuffer> m_vertex_buffer;
 		SmartReference<IBuffer> m_index_buffer;
 		win32::com_ptr<ID3DBlob> m_vertex_shader_byte_code;

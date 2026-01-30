@@ -5,14 +5,14 @@
 #include <d3d11.h>
 
 namespace luastg {
-    struct FrameQuery::Impl : public core::Graphics::IDeviceEventListener {
+    struct FrameQuery::Impl : public core::IGraphicsDeviceEventListener {
     public:
-        // IDeviceEventListener
+        // IGraphicsDeviceEventListener
 
-        void onDeviceCreate() override {
+        void onGraphicsDeviceCreate() override {
             createResources(static_cast<ID3D11Device*>(m_device->getNativeHandle()));
         }
-        void onDeviceDestroy() override {
+        void onGraphicsDeviceDestroy() override {
             destroyResources();
         }
 
@@ -127,7 +127,7 @@ namespace luastg {
             is_flying = true;
         }
 
-        Impl(core::Graphics::IDevice* device) : m_device(device) {
+        Impl(core::IGraphicsDevice* device) : m_device(device) {
             createResources(static_cast<ID3D11Device*>(m_device->getNativeHandle()));
             m_device->addEventListener(this);
         }
@@ -136,7 +136,7 @@ namespace luastg {
         }
 
     private:
-        core::SmartReference<core::Graphics::IDevice> m_device;
+        core::SmartReference<core::IGraphicsDevice> m_device;
         win32::com_ptr<ID3D11Device> d3d11_device;
         win32::com_ptr<ID3D11DeviceContext> d3d11_device_context;
         win32::com_ptr<ID3D11Query> d3d11_query_freq;
@@ -156,7 +156,7 @@ namespace luastg {
     void FrameQuery::begin()  { m_impl->begin(); }
     void FrameQuery::end()  { m_impl->end(); }
 
-    FrameQuery::FrameQuery(core::Graphics::IDevice* device) {
+    FrameQuery::FrameQuery(core::IGraphicsDevice* device) {
         m_impl = new Impl(device);
     }
     FrameQuery::~FrameQuery() {

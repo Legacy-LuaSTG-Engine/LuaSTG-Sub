@@ -1,6 +1,6 @@
 #pragma once
 #include "core/Matrix4x4.hpp"
-#include "core/Graphics/Device.hpp"
+#include "core/GraphicsDevice.hpp"
 #include "core/Graphics/Renderer.hpp"
 #include "core/ReferenceCounted.hpp"
 
@@ -55,7 +55,7 @@ namespace core::Graphics {
 		virtual bool commit() = 0;
 		virtual void setReadOnly() = 0;
 
-		static bool create(IDevice* device, MeshOptions const& options, IMesh** output);
+		static bool create(IGraphicsDevice* device, MeshOptions const& options, IMesh** output);
 	};
 
 	struct IMeshRenderer : IReferenceCounted {
@@ -65,7 +65,7 @@ namespace core::Graphics {
 		virtual void setLegacyBlendState(IRenderer::VertexColorBlendState vertex_color_blend_state, IRenderer::BlendState blend_state) = 0;
 		virtual void draw(IRenderer* renderer) = 0;
 
-		static bool create(IDevice* device, IMeshRenderer** output);
+		static bool create(IGraphicsDevice* device, IMeshRenderer** output);
 	};
 }
 

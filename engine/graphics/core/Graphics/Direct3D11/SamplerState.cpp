@@ -1,15 +1,14 @@
 #include "core/Graphics/Direct3D11/SamplerState.hpp"
 #include "core/Logger.hpp"
-#include "core/Graphics/Direct3D11/Device.hpp"
 
 // SamplerState
 namespace core::Graphics::Direct3D11 {
-	void SamplerState::onDeviceCreate() {
+	void SamplerState::onGraphicsDeviceCreate() {
 		if (m_initialized) {
 			createResource();
 		}
 	}
-	void SamplerState::onDeviceDestroy() {
+	void SamplerState::onGraphicsDeviceDestroy() {
 		m_sampler.reset();
 	}
 
@@ -20,7 +19,7 @@ namespace core::Graphics::Direct3D11 {
 		}
 	}
 
-	bool SamplerState::initialize(Device* const device, core::Graphics::SamplerState const& info) {
+	bool SamplerState::initialize(IGraphicsDevice* const device, core::Graphics::SamplerState const& info) {
 		assert(device);
 		m_device = device;
 		m_info = info;
@@ -103,7 +102,7 @@ namespace core::Graphics::Direct3D11 {
 
 	#undef makeColor
 
-		hr = gHR = m_device->GetD3D11Device()->CreateSamplerState(&desc, m_sampler.put());
+		hr = gHR = static_cast<ID3D11Device*>(m_device->getNativeHandle())->CreateSamplerState(&desc, m_sampler.put());
 		if (FAILED(hr)) {
 			Logger::error("Windows API failed: ID3D11Device::CreateSamplerState");
 			return false;
@@ -113,11 +112,14 @@ namespace core::Graphics::Direct3D11 {
 		return true;
 	}
 }
-namespace core::Graphics::Direct3D11 {
-	bool Device::createSamplerState(core::Graphics::SamplerState const& info, ISamplerState** pp_sampler) {
+
+#include "d3d11/GraphicsDevice.hpp"
+
+namespace core{
+	bool GraphicsDevice::createSamplerState(core::Graphics::SamplerState const& info, Graphics::ISamplerState** pp_sampler) {
 		*pp_sampler = nullptr;
-		SmartReference<SamplerState> buffer;
-		buffer.attach(new SamplerState);
+		SmartReference<Graphics::Direct3D11::SamplerState> buffer;
+		buffer.attach(new Graphics::Direct3D11::SamplerState());
 		if (!buffer->initialize(this, info)) {
 			return false;
 		}

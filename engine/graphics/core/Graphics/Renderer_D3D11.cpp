@@ -39,11 +39,11 @@ namespace core::Graphics
 
 namespace core::Graphics
 {
-	void PostEffectShader_D3D11::onDeviceCreate()
+	void PostEffectShader_D3D11::onGraphicsDeviceCreate()
 	{
 		createResources();
 	}
-	void PostEffectShader_D3D11::onDeviceDestroy()
+	void PostEffectShader_D3D11::onGraphicsDeviceDestroy()
 	{
 		d3d11_ps.reset();
 		for (auto& v : m_buffer_map)
@@ -145,7 +145,7 @@ namespace core::Graphics
 		return true;
 	}
 
-	PostEffectShader_D3D11::PostEffectShader_D3D11(Direct3D11::Device* p_device, StringView path, bool is_path_)
+	PostEffectShader_D3D11::PostEffectShader_D3D11(GraphicsDevice* p_device, StringView path, bool is_path_)
 		: m_device(p_device)
 		, source(path)
 		, is_path(is_path_)
@@ -271,7 +271,7 @@ namespace core::Graphics
 
 		return true;
 	}
-	bool Renderer_D3D11::createStates()
+	bool Renderer_D3D11::createStates(const bool is_recreating)
 	{
 		assert(m_device->GetD3D11Device());
 
@@ -296,7 +296,7 @@ namespace core::Graphics
 			M_D3D_SET_DEBUG_NAME_SIMPLE(_raster_state.get());
 		}
 
-		{
+		if (!is_recreating) {
 			Graphics::SamplerState sampler_state;
 
 			// point
@@ -673,16 +673,18 @@ namespace core::Graphics
 		return true;
 	}
 
-	bool Renderer_D3D11::createResources() {
+	bool Renderer_D3D11::createResources(const bool is_recreating) {
 		assert(m_device->getNativeHandle());
 
 		Logger::info("[core] [Renderer] initializing...");
 		
-		if (!createBuffers()) {
-			Logger::error("[core] [Renderer] create Buffers failed");
-			return false;
+		if (!is_recreating) {
+			if (!createBuffers()) {
+				Logger::error("[core] [Renderer] create Buffers failed");
+				return false;
+			}
 		}
-		if (!createStates()) {
+		if (!createStates(is_recreating)) {
 			Logger::error("[core] [Renderer] create PipelineState objects failed");
 			return false;
 		}
@@ -695,30 +697,30 @@ namespace core::Graphics
 
 		return true;
 	}
-	void Renderer_D3D11::onDeviceCreate()
+	void Renderer_D3D11::onGraphicsDeviceCreate()
 	{
-		createResources();
+		createResources(true);
 	}
-	void Renderer_D3D11::onDeviceDestroy() {
+	void Renderer_D3D11::onGraphicsDeviceDestroy() {
 		batchFlush(true);
 
 		_state_texture.reset();
 
-		_fx_vbuffer.reset();
-		_fx_ibuffer.reset();
+		//_fx_vbuffer.reset();
+		//_fx_ibuffer.reset();
 		for (auto& v : _vi_buffer) {
-			v.vertex_buffer.reset();
-			v.index_buffer.reset();
+			//v.vertex_buffer.reset();
+			//v.index_buffer.reset();
 			v.vertex_offset = 0;
 			v.index_offset = 0;
 		}
 		_vi_buffer_index = 0;
 
-		_vp_matrix_buffer.reset();
-		_world_matrix_buffer.reset();
-		_camera_pos_buffer.reset();
-		_fog_data_buffer.reset();
-		_user_float_buffer.reset();
+		//_vp_matrix_buffer.reset();
+		//_world_matrix_buffer.reset();
+		//_camera_pos_buffer.reset();
+		//_fog_data_buffer.reset();
+		//_user_float_buffer.reset();
 
 		_input_layout.reset();
 		for (auto& v : _vertex_shader) {
@@ -732,9 +734,9 @@ namespace core::Graphics
 			}
 		}
 		_raster_state.reset();
-		for (auto& v : _sampler_state) {
-			v.reset();
-		}
+		//for (auto& v : _sampler_state) {
+		//	v.reset();
+		//}
 		for (auto& v : _depth_state) {
 			v.reset();
 		}
@@ -1527,7 +1529,7 @@ namespace core::Graphics
 		return _sampler_state[IDX(state)].get();
 	}
 
-	Renderer_D3D11::Renderer_D3D11(Direct3D11::Device* p_device)
+	Renderer_D3D11::Renderer_D3D11(GraphicsDevice* p_device)
 		: m_device(p_device)
 	{
 		if (!createResources())
@@ -1539,7 +1541,7 @@ namespace core::Graphics
 		m_device->removeEventListener(this);
 	}
 
-	bool Renderer_D3D11::create(Direct3D11::Device* p_device, Renderer_D3D11** pp_renderer)
+	bool Renderer_D3D11::create(GraphicsDevice* p_device, Renderer_D3D11** pp_renderer)
 	{
 		try
 		{
@@ -1553,11 +1555,11 @@ namespace core::Graphics
 		}
 	}
 
-	bool IRenderer::create(IDevice* p_device, IRenderer** pp_renderer)
+	bool IRenderer::create(IGraphicsDevice* p_device, IRenderer** pp_renderer)
 	{
 		try
 		{
-			*pp_renderer = new Renderer_D3D11(static_cast<Direct3D11::Device*>(p_device));
+			*pp_renderer = new Renderer_D3D11(static_cast<GraphicsDevice*>(p_device));
 			return true;
 		}
 		catch (...)

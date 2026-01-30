@@ -1,5 +1,5 @@
 #pragma once
-#include "core/Graphics/Device.hpp"
+#include "core/GraphicsDevice.hpp"
 
 namespace luastg {
     class FrameQuery {
@@ -9,7 +9,7 @@ namespace luastg {
         void begin();
         void end();
 
-        FrameQuery(core::Graphics::IDevice* device);
+        FrameQuery(core::IGraphicsDevice* device);
         ~FrameQuery();
 
     private:

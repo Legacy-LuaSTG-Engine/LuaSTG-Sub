@@ -135,7 +135,7 @@ namespace imgui {
 						ImGui::Text("Lua Virtual Machine: %s", format_size(size));
 					}
 					if (ImGui::CollapsingHeader("Graphics", ImGuiTreeNodeFlags_DefaultOpen)) {
-						auto const info = LAPP.getGraphicsDevice()->getMemoryUsageStatistics();
+						auto const info = LAPP.getGraphicsDevice()->getMemoryStatistics();
 						if (m_more_details) ImGui::Text("Local Budget: %s", format_size(info.local.budget));
 						ImGui::Text("Local Current Usage: %s", format_size(info.local.current_usage));
 						if (m_more_details) ImGui::Text("Local Available For Reservation: %s", format_size(info.local.available_for_reservation));
@@ -557,7 +557,7 @@ namespace {
 				if (ImGui::CollapsingHeader("Memory Usage")) {
 					MEMORYSTATUSEX mem_info = { sizeof(MEMORYSTATUSEX) };
 					GlobalMemoryStatusEx(&mem_info);
-					auto gpu_info = LAPP.getGraphicsDevice()->getMemoryUsageStatistics();
+					auto gpu_info = LAPP.getGraphicsDevice()->getMemoryStatistics();
 					lua_State* L_ = LAPP.GetLuaEngine();
 					int lua_infokb = lua_gc(L_, LUA_GCCOUNT, 0);
 					int lua_infob = lua_gc(L_, LUA_GCCOUNTB, 0);
@@ -727,16 +727,16 @@ namespace {
 
 namespace imgui {
 	class ImGuiBackendEventListener
-		: public core::Graphics::IDeviceEventListener
+		: public core::IGraphicsDeviceEventListener
 		, public core::IWindowEventListener {
 	public:
-		// IDeviceEventListener
+		// IGraphicsDeviceEventListener
 
-		void onDeviceDestroy() override {
+		void onGraphicsDeviceDestroy() override {
 			g_imgui_impl_dx11_initialized = false;
 			ImGui_ImplDX11_Shutdown();
 		}
-		void onDeviceCreate() override {
+		void onGraphicsDeviceCreate() override {
 			g_imgui_impl_dx11_initialized = false;
 			auto const device = static_cast<ID3D11Device*>(LAPP.getGraphicsDevice()->getNativeHandle());
 			ID3D11DeviceContext* context{};
@@ -859,7 +859,7 @@ namespace imgui {
 		auto const window = LAPP.getWindow();
 		window->addEventListener(&g_imgui_backend_event_listener);
 
-		g_imgui_backend_event_listener.onDeviceCreate();
+		g_imgui_backend_event_listener.onGraphicsDeviceCreate();
 		auto const device = LAPP.getGraphicsDevice();
 		device->addEventListener(&g_imgui_backend_event_listener);
 
@@ -873,10 +873,10 @@ namespace imgui {
 	void unbindEngine() {
 		if (const auto device = LAPP.getGraphicsDevice(); device != nullptr) {
 			device->removeEventListener(&g_imgui_backend_event_listener);
-			g_imgui_backend_event_listener.onDeviceDestroy();
+			g_imgui_backend_event_listener.onGraphicsDeviceDestroy();
 		}
 		else {
-			g_imgui_backend_event_listener.onDeviceDestroy();
+			g_imgui_backend_event_listener.onGraphicsDeviceDestroy();
 		}
 
 		if (const auto window = LAPP.getWindow(); window != nullptr) {

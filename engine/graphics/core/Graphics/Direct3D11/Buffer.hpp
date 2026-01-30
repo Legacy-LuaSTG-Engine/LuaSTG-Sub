@@ -1,20 +1,18 @@
 #pragma once
 #include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
-#include "core/Graphics/Device.hpp"
+#include "core/GraphicsDevice.hpp"
 
 // Buffer
 namespace core::Graphics::Direct3D11 {
-	class Device;
-
 	class Buffer final
 		: public implement::ReferenceCounted<IBuffer>
-		, public IDeviceEventListener {
+		, public IGraphicsDeviceEventListener {
 	public:
-		// IDeviceEventListener
+		// IGraphicsDeviceEventListener
 
-		void onDeviceCreate() override;
-		void onDeviceDestroy() override;
+		void onGraphicsDeviceCreate() override;
+		void onGraphicsDeviceDestroy() override;
 
 		// IBuffer
 
@@ -39,11 +37,11 @@ namespace core::Graphics::Direct3D11 {
 		static constexpr uint8_t type_index_buffer{ 2 };
 		static constexpr uint8_t type_constant_buffer{ 3 };
 
-		bool initialize(Device* device, uint8_t type, uint32_t size_in_bytes);
+		bool initialize(IGraphicsDevice* device, uint8_t type, uint32_t size_in_bytes);
 		bool createResources();
 
 	private:
-		SmartReference<Device> m_device;
+		SmartReference<IGraphicsDevice> m_device;
 		win32::com_ptr<ID3D11Buffer> m_buffer;
 		uint32_t m_size_in_bytes{};
 		uint8_t m_type{};

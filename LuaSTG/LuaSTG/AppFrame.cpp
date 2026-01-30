@@ -203,7 +203,7 @@ bool AppFrame::Init()noexcept
 		if (!core::IWindow::create(m_window.put()))
 			return false;
 		auto const& gpu = core::ConfigurationLoader::getInstance().getGraphicsSystem().getPreferredDeviceName();
-		if (!core::Graphics::IDevice::create(gpu, m_graphics_device.put()))
+		if (!core::IGraphicsDevice::create(gpu, m_graphics_device.put()))
 			return false;
 		m_render_statistics.reserve(4);
 		for (int i = 0; i < 4; i += 1) {

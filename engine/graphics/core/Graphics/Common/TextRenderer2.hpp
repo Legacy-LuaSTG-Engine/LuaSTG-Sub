@@ -24,12 +24,12 @@ namespace core::Graphics {
 
         // TextRenderer2
 
-        bool initialize(IDevice* device);
+        bool initialize(IGraphicsDevice* device);
         bool update();
 
     private:
         SmartReference<ITextLayout> m_text_layout;
-        SmartReference<IDevice> m_device;
+        SmartReference<IGraphicsDevice> m_device;
         SmartReference<ITexture2D> m_texture;
         SmartReference<ISprite> m_sprite;
         SmartReference<ISpriteRenderer> m_sprite_renderer;

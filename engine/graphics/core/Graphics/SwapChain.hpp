@@ -4,7 +4,7 @@
 #include "core/ReferenceCounted.hpp"
 #include "core/Window.hpp"
 #include "core/Graphics/Format.hpp"
-#include "core/Graphics/Device.hpp"
+#include "core/GraphicsDevice.hpp"
 
 namespace core::Graphics
 {
@@ -49,7 +49,7 @@ namespace core::Graphics
 
 		virtual bool saveSnapshotToFile(StringView path) = 0;
 
-		static bool create(IWindow* p_window, IDevice* p_device, ISwapChain** pp_swapchain);
+		static bool create(IWindow* p_window, IGraphicsDevice* p_device, ISwapChain** pp_swapchain);
 	};
 }
 

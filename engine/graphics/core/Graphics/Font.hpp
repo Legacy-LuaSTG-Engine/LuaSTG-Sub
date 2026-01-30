@@ -1,5 +1,5 @@
 #pragma once
-#include "core/Graphics/Device.hpp"
+#include "core/GraphicsDevice.hpp"
 #include "core/Graphics/Renderer.hpp"
 #include "core/ReferenceCounted.hpp"
 #include "core/TextLayout.hpp"
@@ -39,7 +39,7 @@ namespace core::Graphics
 
 		virtual bool getGlyph(uint32_t codepoint, GlyphInfo* p_ref_info, bool no_render) = 0;
 
-		static bool create(IDevice* p_device, TrueTypeFontInfo const* p_arr_info, size_t info_count, IGlyphManager** output);
+		static bool create(IGraphicsDevice* p_device, TrueTypeFontInfo const* p_arr_info, size_t info_count, IGlyphManager** output);
 	};
 
 	struct ITextRenderer : public IReferenceCounted
@@ -80,7 +80,7 @@ namespace core::Graphics
 		virtual void setLegacyBlendState(IRenderer::VertexColorBlendState vertex_color_blend_state, IRenderer::BlendState blend_state) = 0;
 		virtual void draw(IRenderer* renderer) = 0;
 
-		static bool create(IDevice* device, ITextRenderer2** output);
+		static bool create(IGraphicsDevice* device, ITextRenderer2** output);
 	};
 }
 

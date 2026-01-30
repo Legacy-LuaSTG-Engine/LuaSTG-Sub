@@ -8,14 +8,16 @@
 #endif
 #include <sdkddkver.h>
 
+#include <cassert>
+#include <atomic>
 #include <string>
 #include <string_view>
-#include <atomic>
-#include <algorithm>
 #include <array>
 #include <vector>
 #include <unordered_set>
 #include <unordered_map>
+#include <ranges>
+#include <algorithm>
 #include <thread>
 #include <format>
 

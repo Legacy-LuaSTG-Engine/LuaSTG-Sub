@@ -899,7 +899,7 @@ namespace core::Graphics
 		}
 	}
 
-	void SwapChain_D3D11::onDeviceCreate()
+	void SwapChain_D3D11::onGraphicsDeviceCreate()
 	{
 		m_modern_swap_chain_available = checkModernSwapChainModelAvailable(m_device->GetD3D11Device());
 		m_scaling_renderer.AttachDevice(m_device->GetD3D11Device());
@@ -913,7 +913,7 @@ namespace core::Graphics
 			}
 		}
 	}
-	void SwapChain_D3D11::onDeviceDestroy()
+	void SwapChain_D3D11::onGraphicsDeviceDestroy()
 	{
 		destroySwapChain();
 		m_scaling_renderer.DetachDevice();
@@ -2272,7 +2272,7 @@ namespace core::Graphics
 		return true;
 	}
 
-	SwapChain_D3D11::SwapChain_D3D11(IWindow* p_window, Direct3D11::Device* p_device)
+	SwapChain_D3D11::SwapChain_D3D11(IWindow* p_window, GraphicsDevice* p_device)
 		: m_window(p_window)
 		, m_device(p_device)
 	{
@@ -2299,7 +2299,7 @@ namespace core::Graphics
 		assert(m_eventobj_late.size() == 0);
 	}
 
-	bool SwapChain_D3D11::create(IWindow* p_window, Direct3D11::Device* p_device, SwapChain_D3D11** pp_swapchain)
+	bool SwapChain_D3D11::create(IWindow* p_window, GraphicsDevice* p_device, SwapChain_D3D11** pp_swapchain)
 	{
 		try
 		{
@@ -2313,11 +2313,11 @@ namespace core::Graphics
 		}
 	}
 
-	bool ISwapChain::create(IWindow* p_window, IDevice* p_device, ISwapChain** pp_swapchain)
+	bool ISwapChain::create(IWindow* p_window, IGraphicsDevice* p_device, ISwapChain** pp_swapchain)
 	{
 		try
 		{
-			*pp_swapchain = new SwapChain_D3D11(p_window, dynamic_cast<Direct3D11::Device*>(p_device));
+			*pp_swapchain = new SwapChain_D3D11(p_window, static_cast<GraphicsDevice*>(p_device));
 			return true;
 		}
 		catch (...)

@@ -1,15 +1,14 @@
 #include "core/Graphics/Direct3D11/DepthStencilBuffer.hpp"
 #include "core/Logger.hpp"
-#include "core/Graphics/Direct3D11/Device.hpp"
 
 // DepthStencilBuffer
 namespace core::Graphics::Direct3D11 {
-	void DepthStencilBuffer::onDeviceCreate() {
+	void DepthStencilBuffer::onGraphicsDeviceCreate() {
 		if (m_initialized) {
 			createResource();
 		}
 	}
-	void DepthStencilBuffer::onDeviceDestroy() {
+	void DepthStencilBuffer::onGraphicsDeviceDestroy() {
 		m_texture.reset();
 		m_view.reset();
 	}
@@ -28,7 +27,7 @@ namespace core::Graphics::Direct3D11 {
 		}
 	}
 
-	bool DepthStencilBuffer::initialize(Device* const device, Vector2U const size) {
+	bool DepthStencilBuffer::initialize(IGraphicsDevice* const device, Vector2U const size) {
 		assert(device);
 		assert(size.x > 0 && size.y > 0);
 		m_device = device;
@@ -43,9 +42,12 @@ namespace core::Graphics::Direct3D11 {
 	bool DepthStencilBuffer::createResource() {
 		HRESULT hr = S_OK;
 
-		auto* d3d11_device = m_device->GetD3D11Device();
-		auto* d3d11_devctx = m_device->GetD3D11DeviceContext();
-		if (!d3d11_device || !d3d11_devctx)
+		const auto d3d11_device = static_cast<ID3D11Device*>(m_device->getNativeHandle());
+		if (!d3d11_device)
+			return false;
+		win32::com_ptr<ID3D11DeviceContext> d3d11_devctx;
+		d3d11_device->GetImmediateContext(d3d11_devctx.put());
+		if (!d3d11_devctx)
 			return false;
 
 		D3D11_TEXTURE2D_DESC tex2ddef = {
@@ -82,11 +84,14 @@ namespace core::Graphics::Direct3D11 {
 		return true;
 	}
 }
-namespace core::Graphics::Direct3D11 {
-	bool Device::createDepthStencilBuffer(Vector2U const size, IDepthStencilBuffer** const pp_ds) {
+
+#include "d3d11/GraphicsDevice.hpp"
+
+namespace core {
+	bool GraphicsDevice::createDepthStencilBuffer(Vector2U const size, Graphics::IDepthStencilBuffer** const pp_ds) {
 		*pp_ds = nullptr;
-		SmartReference<DepthStencilBuffer> buffer;
-		buffer.attach(new DepthStencilBuffer);
+		SmartReference<Graphics::Direct3D11::DepthStencilBuffer> buffer;
+		buffer.attach(new Graphics::Direct3D11::DepthStencilBuffer);
 		if (!buffer->initialize(this, size)) {
 			return false;
 		}

@@ -1,20 +1,18 @@
 #pragma once
 #include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
-#include "core/Graphics/Device.hpp"
+#include "core/GraphicsDevice.hpp"
 
 // Texture2D
 namespace core::Graphics::Direct3D11 {
-	class Device;
-
 	class Texture2D final
 		: public implement::ReferenceCounted<ITexture2D>
-		, public IDeviceEventListener {
+		, public IGraphicsDeviceEventListener {
 	public:
-		// IDeviceEventListener
+		// IGraphicsDeviceEventListener
 
-		void onDeviceCreate() override;
-		void onDeviceDestroy() override;
+		void onGraphicsDeviceCreate() override;
+		void onGraphicsDeviceDestroy() override;
 
 		// ITexture2D
 
@@ -46,13 +44,13 @@ namespace core::Graphics::Direct3D11 {
 		[[nodiscard]] ID3D11Texture2D* GetResource() const noexcept { return m_texture.get(); }
 		[[nodiscard]] ID3D11ShaderResourceView* GetView() const noexcept { return m_view.get(); }
 
-		bool initialize(Device* device, StringView path, bool mipmap);
-		bool initialize(Device* device, IImage* image, bool mipmap);
-		bool initialize(Device* device, Vector2U size, bool is_render_target);
+		bool initialize(IGraphicsDevice* device, StringView path, bool mipmap);
+		bool initialize(IGraphicsDevice* device, IImage* image, bool mipmap);
+		bool initialize(IGraphicsDevice* device, Vector2U size, bool is_render_target);
 		bool createResource();
 
 	private:
-		SmartReference<Device> m_device;
+		SmartReference<IGraphicsDevice> m_device;
 		SmartReference<ISamplerState> m_sampler;
 		SmartReference<IImage> m_image;
 		std::string m_source_path;

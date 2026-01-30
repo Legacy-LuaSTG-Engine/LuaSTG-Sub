@@ -4,7 +4,7 @@
 #include "core/Application.hpp"
 #include "core/FrameRateController.hpp"
 #include "core/Window.hpp"
-#include "core/Graphics/Device.hpp"
+#include "core/GraphicsDevice.hpp"
 #include "core/Graphics/SwapChain.hpp"
 #include "core/Graphics/Renderer.hpp"
 #include "core/Graphics/Font.hpp"
@@ -72,7 +72,7 @@ namespace luastg {
 		// 应用程序框架
 		core::IFrameRateController* m_frame_rate_controller{ core::IFrameRateController::getInstance() };
 		core::SmartReference<core::IWindow> m_window;
-		core::SmartReference<core::Graphics::IDevice> m_graphics_device;
+		core::SmartReference<core::IGraphicsDevice> m_graphics_device;
 		core::SmartReference<core::Graphics::ISwapChain> m_swap_chain;
 		core::SmartReference<core::Graphics::IRenderer> m_renderer;
 		core::SmartReference<core::Graphics::ITextRenderer> m_text_renderer;
@@ -297,7 +297,7 @@ namespace luastg {
 			return s;
 		}
 		core::IWindow* getWindow() const noexcept { return m_window.get(); }
-		core::Graphics::IDevice* getGraphicsDevice() const noexcept { return m_graphics_device.get(); }
+		core::IGraphicsDevice* getGraphicsDevice() const noexcept { return m_graphics_device.get(); }
 		core::Graphics::ISwapChain* getSwapChain() const noexcept { return m_swap_chain.get(); }
 		core::Graphics::IRenderer* getRenderer2D() const noexcept { return m_renderer.get(); }
 		core::Graphics::ITextRenderer* getTextRenderer() const noexcept { return m_text_renderer.get(); }

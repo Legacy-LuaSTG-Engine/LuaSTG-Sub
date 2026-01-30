@@ -385,11 +385,11 @@ namespace core::Graphics
 
         return true;
     }
-    void ModelSharedComponent_D3D11::onDeviceCreate()
+    void ModelSharedComponent_D3D11::onGraphicsDeviceCreate()
     {
         createResources();
     }
-    void ModelSharedComponent_D3D11::onDeviceDestroy()
+    void ModelSharedComponent_D3D11::onGraphicsDeviceDestroy()
     {
         default_image.reset();
         default_sampler.reset();
@@ -420,7 +420,7 @@ namespace core::Graphics
         cbo_light.reset();
     }
 
-    ModelSharedComponent_D3D11::ModelSharedComponent_D3D11(Direct3D11::Device* p_device)
+    ModelSharedComponent_D3D11::ModelSharedComponent_D3D11(GraphicsDevice* p_device)
         : m_device(p_device)
     {
         if (!createResources())
@@ -1142,11 +1142,11 @@ namespace core::Graphics
 
         return true;
     }
-    void Model_D3D11::onDeviceCreate()
+    void Model_D3D11::onGraphicsDeviceCreate()
     {
         createResources();
     }
-    void Model_D3D11::onDeviceDestroy()
+    void Model_D3D11::onGraphicsDeviceDestroy()
     {
         image.clear();
         sampler.clear();
@@ -1518,7 +1518,7 @@ namespace core::Graphics
         clear_state();
     }
 
-    Model_D3D11::Model_D3D11(Direct3D11::Device* p_device, ModelSharedComponent_D3D11* p_model_shared, StringView path)
+    Model_D3D11::Model_D3D11(GraphicsDevice* p_device, ModelSharedComponent_D3D11* p_model_shared, StringView path)
         : m_device(p_device)
         , shared_(p_model_shared)
         , gltf_path(path)

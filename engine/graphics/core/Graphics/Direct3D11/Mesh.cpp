@@ -3,7 +3,7 @@
 #include "core/Graphics/Direct3D11/Mesh.hpp"
 #include "core/Logger.hpp"
 #include "core/Graphics/Direct3D11/Buffer.hpp"
-#include "core/Graphics/Direct3D11/Device.hpp"
+#include "d3d11/GraphicsDevice.hpp"
 #include "windows/RuntimeLoader/Direct3DCompiler.hpp"
 
 using std::string_view_literals::operator ""sv;
@@ -113,14 +113,14 @@ namespace {
 #define REPORT_READ_ONLY_RETURN_BOOL if (m_validation && m_read_only) { reportReadOnly(); assert(false); return false; }
 
 namespace core::Graphics::Direct3D11 {
-	void Mesh::onDeviceCreate() {
+	void Mesh::onGraphicsDeviceCreate() {
 		if (m_initialized) {
 			createResources();
 			// TODO: 如何确保回调顺序？我们希望 VertexBuffer 和 IndexBuffer 先重建
 			commit();
 		}
 	}
-	void Mesh::onDeviceDestroy() {
+	void Mesh::onGraphicsDeviceDestroy() {
 		m_vertex_shader.reset();
 		m_vertex_shader_fog.reset();
 		m_input_layout.reset();
@@ -296,7 +296,7 @@ namespace core::Graphics::Direct3D11 {
 		}
 	}
 
-	bool Mesh::initialize(IDevice* const device, MeshOptions const& options) {
+	bool Mesh::initialize(IGraphicsDevice* const device, MeshOptions const& options) {
 		assert(device);
 		m_device = device;
 		m_options = options;
@@ -361,7 +361,7 @@ namespace core::Graphics::Direct3D11 {
 	}
 	bool Mesh::createResources() {
 		HRESULT hr{};
-		auto const device = static_cast<Device*>(m_device.get())->GetD3D11Device();
+		auto const device = static_cast<GraphicsDevice*>(m_device.get())->GetD3D11Device();
 		assert(device);
 
 		D3D11_INPUT_ELEMENT_DESC elements[3]{};
@@ -413,7 +413,7 @@ namespace core::Graphics::Direct3D11 {
 	}
 }
 namespace core::Graphics {
-	bool IMesh::create(IDevice* device, MeshOptions const& options, IMesh** output) {
+	bool IMesh::create(IGraphicsDevice* device, MeshOptions const& options, IMesh** output) {
 		*output = nullptr;
 		SmartReference<Direct3D11::Mesh> buffer;
 		buffer.attach(new Direct3D11::Mesh);

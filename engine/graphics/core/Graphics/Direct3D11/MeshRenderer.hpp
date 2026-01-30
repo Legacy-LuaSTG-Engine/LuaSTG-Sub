@@ -6,12 +6,12 @@
 namespace core::Graphics::Direct3D11 {
 	class MeshRenderer final
 		: public implement::ReferenceCounted<IMeshRenderer>
-		, public IDeviceEventListener {
+		, public IGraphicsDeviceEventListener {
 	public:
-		// IDeviceEventListener
+		// IGraphicsDeviceEventListener
 
-		void onDeviceCreate() override;
-		void onDeviceDestroy() override;
+		void onGraphicsDeviceCreate() override;
+        void onGraphicsDeviceDestroy() override;
 
 		// IMeshRenderer
 
@@ -32,10 +32,10 @@ namespace core::Graphics::Direct3D11 {
 		MeshRenderer& operator=(MeshRenderer&&) = delete;
 
 		bool uploadConstantBuffer();
-		bool initialize(IDevice* device);
+		bool initialize(IGraphicsDevice* device);
 
 	private:
-		SmartReference<IDevice> m_device;
+		SmartReference<IGraphicsDevice> m_device;
 		SmartReference<ITexture2D> m_texture;
 		SmartReference<IMesh> m_mesh;
 		SmartReference<IBuffer> m_constant_buffer;

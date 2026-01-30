@@ -10,25 +10,6 @@
 
 namespace core::Graphics
 {
-	struct IDeviceEventListener
-	{
-		virtual void onDeviceCreate() = 0;
-		virtual void onDeviceDestroy() = 0;
-	};
-
-	struct DeviceMemoryUsageStatistics
-	{
-		struct DeviceMemoryUsage
-		{
-			uint64_t budget;
-			uint64_t current_usage;
-			uint64_t available_for_reservation;
-			uint64_t current_reservation;
-		};
-		DeviceMemoryUsage local{};
-		DeviceMemoryUsage non_local{};
-	};
-
 	enum class Filter
 	{
 		Point,
@@ -142,38 +123,6 @@ namespace core::Graphics
 		virtual bool unmap() = 0;
 		virtual bool update(const void* data, size_t size_in_bytes) = 0;
 	};
-
-	struct IDevice : IReferenceCounted
-	{
-		virtual void addEventListener(IDeviceEventListener* e) = 0;
-		virtual void removeEventListener(IDeviceEventListener* e) = 0;
-
-		virtual DeviceMemoryUsageStatistics getMemoryUsageStatistics() = 0;
-
-		virtual bool recreate() = 0;
-		virtual void setPreferenceGpu(StringView preferred_gpu) = 0;
-		virtual uint32_t getGpuCount() = 0;
-		virtual StringView getGpuName(uint32_t index) = 0;
-		virtual StringView getCurrentGpuName() const noexcept = 0;
-
-		virtual void* getNativeHandle() = 0;
-		virtual void* getNativeRendererHandle() = 0;
-
-		virtual bool createVertexBuffer(uint32_t size_in_bytes, IBuffer** output) = 0;
-		virtual bool createIndexBuffer(uint32_t size_in_bytes, IBuffer** output) = 0;
-		virtual bool createConstantBuffer(uint32_t size_in_bytes, IBuffer** output) = 0;
-
-		virtual bool createTextureFromFile(StringView path, bool mipmap, ITexture2D** pp_texture) = 0;
-		virtual bool createTextureFromImage(IImage* image, bool mipmap, ITexture2D** pp_texture) = 0;
-		virtual bool createTexture(Vector2U size, ITexture2D** pp_texture) = 0;
-
-		virtual bool createRenderTarget(Vector2U size, IRenderTarget** pp_rt) = 0;
-		virtual bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** pp_ds) = 0;
-
-		virtual bool createSamplerState(SamplerState const& info, ISamplerState** pp_sampler) = 0;
-
-		static bool create(StringView preferred_gpu, IDevice** output);
-	};
 }
 
 namespace core {
@@ -201,9 +150,4 @@ namespace core {
 	// ns:URL
 	// https://www.luastg-sub.com/core.IBuffer
 	template<> constexpr InterfaceId getInterfaceId<Graphics::IBuffer>() { return UUID::parse("089911ec-bd44-519e-a1e6-41a0e8e4626c"); }
-
-	// UUID v5
-	// ns:URL
-	// https://www.luastg-sub.com/core.IDevice
-	template<> constexpr InterfaceId getInterfaceId<Graphics::IDevice>() { return UUID::parse("f6b65f2d-4307-597e-bc16-f3504ef89def"); }
 }

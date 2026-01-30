@@ -1,21 +1,19 @@
 #pragma once
 #include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
-#include "core/Graphics/Device.hpp"
+#include "core/GraphicsDevice.hpp"
 
 // SamplerState
 namespace core::Graphics::Direct3D11 {
-	class Device;
-
 	class SamplerState final
 		: public implement::ReferenceCounted<ISamplerState>
-		, public IDeviceEventListener {
+		, public IGraphicsDeviceEventListener {
 
 	public:
-		// IDeviceEventListener
+		// IGraphicsDeviceEventListener
 
-		void onDeviceCreate() override;
-		void onDeviceDestroy() override;
+		void onGraphicsDeviceCreate() override;
+		void onGraphicsDeviceDestroy() override;
 
 		// ISamplerState
 
@@ -30,11 +28,11 @@ namespace core::Graphics::Direct3D11 {
 
 		[[nodiscard]] ID3D11SamplerState* GetState() const noexcept { return m_sampler.get(); }
 
-		bool initialize(Device* device, core::Graphics::SamplerState const& info);
+		bool initialize(IGraphicsDevice* device, core::Graphics::SamplerState const& info);
 		bool createResource();
 
 	private:
-		SmartReference<Device> m_device;
+		SmartReference<IGraphicsDevice> m_device;
 		win32::com_ptr<ID3D11SamplerState> m_sampler;
 		core::Graphics::SamplerState m_info{};
 		bool m_initialized{ false };

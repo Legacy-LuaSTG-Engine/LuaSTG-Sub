@@ -2,8 +2,8 @@
 #include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
 #include "core/Graphics/SwapChain.hpp"
-#include "core/Graphics/Direct3D11/Device.hpp"
 #include "core/Graphics/Direct3D11/LetterBoxingRenderer.hpp"
+#include "d3d11/GraphicsDevice.hpp"
 #include "windows/RuntimeLoader/DirectComposition.hpp"
 #include <wil/resource.h>
 
@@ -43,11 +43,11 @@ namespace core::Graphics
 	class SwapChain_D3D11
 		: public implement::ReferenceCounted<ISwapChain>
 		, public IWindowEventListener
-		, public IDeviceEventListener
+		, public IGraphicsDeviceEventListener
 	{
 	private:
 		SmartReference<IWindow> m_window;
-		SmartReference<Direct3D11::Device> m_device;
+		SmartReference<GraphicsDevice> m_device;
 		Direct3D11::LetterBoxingRenderer m_scaling_renderer;
 
 		wil::unique_event_nothrow dxgi_swapchain_event;
@@ -69,15 +69,15 @@ namespace core::Graphics
 
 		SwapChainScalingMode m_scaling_mode{ SwapChainScalingMode::AspectRatio };
 
-	private:
-		void onDeviceCreate();
-		void onDeviceDestroy();
-		void onWindowCreate();
-		void onWindowDestroy();
-		void onWindowActive();
-		void onWindowInactive();
-		void onWindowSize(core::Vector2U size);
-		void onWindowFullscreenStateChange(bool state);
+	public:
+		void onGraphicsDeviceCreate() override;
+		void onGraphicsDeviceDestroy() override;
+		void onWindowCreate() override;
+		void onWindowDestroy() override;
+		void onWindowActive() override;
+		void onWindowInactive() override;
+		void onWindowSize(core::Vector2U size) override;
+		void onWindowFullscreenStateChange(bool state) override;
 
 	private:
 		void destroySwapChain();
@@ -167,9 +167,9 @@ namespace core::Graphics
 		bool saveSnapshotToFile(StringView path);
 
 	public:
-		SwapChain_D3D11(IWindow* p_window, Direct3D11::Device* p_device);
+		SwapChain_D3D11(IWindow* p_window, GraphicsDevice* p_device);
 		~SwapChain_D3D11();
 	public:
-		static bool create(IWindow* p_window, Direct3D11::Device* p_device, SwapChain_D3D11** pp_swapchain);
+		static bool create(IWindow* p_window, GraphicsDevice* p_device, SwapChain_D3D11** pp_swapchain);
 	};
 }

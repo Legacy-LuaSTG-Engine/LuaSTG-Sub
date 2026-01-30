@@ -3,14 +3,14 @@
 #include "core/Graphics/Direct3D11/Buffer.hpp"
 #include "core/Graphics/Direct3D11/Texture2D.hpp"
 #include "core/Graphics/Direct3D11/SamplerState.hpp"
-#include "core/Graphics/Direct3D11/Device.hpp"
 #include "core/Graphics/Direct3D11/Mesh.hpp"
+#include "d3d11/GraphicsDevice.hpp"
 #include "core/Graphics/Renderer_D3D11.hpp"
 
 namespace core::Graphics::Direct3D11 {
-	void MeshRenderer::onDeviceCreate() {
+	void MeshRenderer::onGraphicsDeviceCreate() {
 	}
-	void MeshRenderer::onDeviceDestroy() {
+	void MeshRenderer::onGraphicsDeviceDestroy() {
 		m_transform_dirty = true;
 	}
 
@@ -44,7 +44,7 @@ namespace core::Graphics::Direct3D11 {
 			return;
 		}
 
-		auto const ctx = static_cast<Device*>(m_device.get())->GetD3D11DeviceContext();
+		auto const ctx = static_cast<GraphicsDevice*>(m_device.get())->GetD3D11DeviceContext();
 		assert(ctx);
 
 		// Mesh setup:
@@ -136,7 +136,7 @@ namespace core::Graphics::Direct3D11 {
 		}
 		return true;
 	}
-	bool MeshRenderer::initialize(IDevice* const device) {
+	bool MeshRenderer::initialize(IGraphicsDevice* const device) {
 		assert(device);
 		m_device = device;
 		if (!m_device->createConstantBuffer(sizeof(m_transform), m_constant_buffer.put())) {
@@ -146,7 +146,7 @@ namespace core::Graphics::Direct3D11 {
 	}
 }
 namespace core::Graphics {
-	bool IMeshRenderer::create(IDevice* const device, IMeshRenderer** const output) {
+	bool IMeshRenderer::create(IGraphicsDevice* const device, IMeshRenderer** const output) {
 		assert(device);
 		assert(output);
 		*output = nullptr;

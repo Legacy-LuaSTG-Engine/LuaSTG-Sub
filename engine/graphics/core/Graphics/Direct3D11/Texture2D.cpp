@@ -1,5 +1,4 @@
 #include "core/Graphics/Direct3D11/Texture2D.hpp"
-#include "core/Graphics/Direct3D11/Device.hpp"
 #include "core/Logger.hpp"
 #include "core/FileSystem.hpp"
 #include "utf8.hpp"
@@ -8,14 +7,18 @@
 #include "QOITextureLoader11.h"
 #include "ScreenGrab11.h"
 
+namespace {
+	IWICImagingFactory* getWIC(core::IGraphicsDevice* device);
+}
+
 // Texture2D
 namespace core::Graphics::Direct3D11 {
-	void Texture2D::onDeviceCreate() {
+	void Texture2D::onGraphicsDeviceCreate() {
 		if (m_initialized) {
 			createResource();
 		}
 	}
-	void Texture2D::onDeviceDestroy() {
+	void Texture2D::onGraphicsDeviceDestroy() {
 		m_texture.reset();
 		m_view.reset();
 	}
@@ -29,7 +32,7 @@ namespace core::Graphics::Direct3D11 {
 			Logger::error("[core] [Texture2D] this texture is managed by RenderTarget and cannot be resized");
 			assert(false); return false;
 		}
-		onDeviceDestroy();
+		onGraphicsDeviceDestroy();
 		m_size = size;
 		return createResource();
 	}
@@ -38,8 +41,9 @@ namespace core::Graphics::Direct3D11 {
 			Logger::error("[core] [Texture2D] read-only texture cannot by modified");
 			assert(false); return false;
 		}
-		auto const ctx = m_device->GetD3D11DeviceContext();
-		assert(ctx);
+		assert(m_device->getNativeHandle());
+		win32::com_ptr<ID3D11DeviceContext> ctx;
+		static_cast<ID3D11Device*>(m_device->getNativeHandle())->GetImmediateContext(ctx.put());
 		assert(m_texture);
 		if (!ctx || !m_texture) {
 			return false;
@@ -56,10 +60,14 @@ namespace core::Graphics::Direct3D11 {
 		return true;
 	}
 	bool Texture2D::saveToFile(StringView const path) {
+		assert(m_device->getNativeHandle());
+		win32::com_ptr<ID3D11DeviceContext> ctx;
+		static_cast<ID3D11Device*>(m_device->getNativeHandle())->GetImmediateContext(ctx.put());
+
 		std::wstring const wide_path(utf8::to_wstring(path));
 		HRESULT hr = S_OK;
 		hr = gHR = DirectX::SaveWICTextureToFile(
-			m_device->GetD3D11DeviceContext(),
+			ctx.get(),
 			m_texture.get(),
 			GUID_ContainerFormatJpeg,
 			wide_path.c_str(),
@@ -74,7 +82,7 @@ namespace core::Graphics::Direct3D11 {
 		}
 	}
 
-	bool Texture2D::initialize(Device* const device, StringView const path, bool const mipmap) {
+	bool Texture2D::initialize(IGraphicsDevice* const device, StringView const path, bool const mipmap) {
 		assert(device);
 		assert(!path.empty());
 		m_device = device;
@@ -87,7 +95,7 @@ namespace core::Graphics::Direct3D11 {
 		m_device->addEventListener(this);
 		return true;
 	}
-	bool Texture2D::initialize(Device* const device, IImage* const image, bool const mipmap) {
+	bool Texture2D::initialize(IGraphicsDevice* const device, IImage* const image, bool const mipmap) {
 		// TODO: image must be read-only
 		assert(device);
 		assert(image);
@@ -102,7 +110,7 @@ namespace core::Graphics::Direct3D11 {
 		m_device->addEventListener(this);
 		return true;
 	}
-	bool Texture2D::initialize(Device* const device, Vector2U const size, bool const is_render_target) {
+	bool Texture2D::initialize(IGraphicsDevice* const device, Vector2U const size, bool const is_render_target) {
 		assert(device);
 		assert(size.x > 0 && size.y > 0);
 		m_device = device;
@@ -124,9 +132,12 @@ namespace core::Graphics::Direct3D11 {
 	bool Texture2D::createResource() {
 		HRESULT hr = S_OK;
 
-		auto* d3d11_device = m_device->GetD3D11Device();
-		auto* d3d11_devctx = m_device->GetD3D11DeviceContext();
-		if (!d3d11_device || !d3d11_devctx)
+		const auto d3d11_device = static_cast<ID3D11Device*>(m_device->getNativeHandle());
+		if (!d3d11_device)
+			return false;
+		win32::com_ptr<ID3D11DeviceContext> d3d11_devctx;
+		d3d11_device->GetImmediateContext(d3d11_devctx.put());
+		if (!d3d11_devctx)
 			return false;
 
 		if (m_image) {
@@ -208,7 +219,7 @@ namespace core::Graphics::Direct3D11 {
 			// 先尝试以 DDS 格式加载
 			DirectX::DDS_ALPHA_MODE dds_alpha_mode = DirectX::DDS_ALPHA_MODE_UNKNOWN;
 			HRESULT const hr1 = DirectX::CreateDDSTextureFromMemoryEx(
-				d3d11_device, m_mipmap ? d3d11_devctx : nullptr,
+				d3d11_device, m_mipmap ? d3d11_devctx.get() : nullptr,
 				static_cast<uint8_t const*>(src->data()), src->size(),
 				0,
 				D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0,
@@ -218,7 +229,7 @@ namespace core::Graphics::Direct3D11 {
 			if (FAILED(hr1)) {
 				// 尝试以普通图片格式加载
 				HRESULT const hr2 = DirectX::CreateWICTextureFromMemoryEx(
-					d3d11_device, m_mipmap ? d3d11_devctx : nullptr,
+					d3d11_device, m_mipmap ? d3d11_devctx.get() : nullptr,
 					static_cast<uint8_t const*>(src->data()), src->size(),
 					0,
 					D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0,
@@ -229,7 +240,7 @@ namespace core::Graphics::Direct3D11 {
 				if (FAILED(hr2)) {
 					// 尝试以 QOI 图片格式加载
 					HRESULT const hr3 = DirectX::CreateQOITextureFromMemoryEx(
-						d3d11_device, m_mipmap ? d3d11_devctx : nullptr, m_device->GetWICImagingFactory(),
+						d3d11_device, m_mipmap ? d3d11_devctx.get() : nullptr, getWIC(m_device.get()),
 						static_cast<uint8_t const*>(src->data()), src->size(),
 						0,
 						D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0,
@@ -304,34 +315,43 @@ namespace core::Graphics::Direct3D11 {
 		return true;
 	}
 }
-namespace core::Graphics::Direct3D11 {
-	bool Device::createTextureFromFile(StringView const path, bool const mipmap, ITexture2D** const pp_texture) {
+
+#include "d3d11/GraphicsDevice.hpp"
+
+namespace {
+	IWICImagingFactory* getWIC(core::IGraphicsDevice* const device) {
+		return static_cast<core::GraphicsDevice*>(device)->GetWICImagingFactory();
+	}
+}
+
+namespace core {
+	bool GraphicsDevice::createTextureFromFile(StringView const path, bool const mipmap, Graphics::ITexture2D** const pp_texture) {
 		*pp_texture = nullptr;
-		SmartReference<Texture2D> buffer;
-		buffer.attach(new Texture2D);
+		SmartReference<Graphics::Direct3D11::Texture2D> buffer;
+		buffer.attach(new Graphics::Direct3D11::Texture2D);
 		if (!buffer->initialize(this, path, mipmap)) {
 			return false;
 		}
 		*pp_texture = buffer.detach();
 		return true;
 	}
-	bool Device::createTextureFromImage(IImage* const image, bool const mipmap, ITexture2D** const pp_texture) {
+	bool GraphicsDevice::createTextureFromImage(IImage* const image, bool const mipmap, Graphics::ITexture2D** const pp_texture) {
 		*pp_texture = nullptr;
 		if (image == nullptr) {
 			return false;
 		}
-		SmartReference<Texture2D> buffer;
-		buffer.attach(new Texture2D);
+		SmartReference<Graphics::Direct3D11::Texture2D> buffer;
+		buffer.attach(new Graphics::Direct3D11::Texture2D);
 		if (!buffer->initialize(this, image, mipmap)) {
 			return false;
 		}
 		*pp_texture = buffer.detach();
 		return true;
 	}
-	bool Device::createTexture(Vector2U const size, ITexture2D** const pp_texture) {
+	bool GraphicsDevice::createTexture(Vector2U const size, Graphics::ITexture2D** const pp_texture) {
 		*pp_texture = nullptr;
-		SmartReference<Texture2D> buffer;
-		buffer.attach(new Texture2D);
+		SmartReference<Graphics::Direct3D11::Texture2D> buffer;
+		buffer.attach(new Graphics::Direct3D11::Texture2D);
 		if (!buffer->initialize(this, size, false)) {
 			return false;
 		}
