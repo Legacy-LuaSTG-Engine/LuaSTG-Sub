@@ -100,7 +100,6 @@ namespace core::Graphics::Direct3D11 {
 
 	public:
 		bool handleDeviceLost();
-		bool validateDXGIFactory();
 
 	private:
 		enum class EventType {

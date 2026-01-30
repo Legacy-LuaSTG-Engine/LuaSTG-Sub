@@ -501,9 +501,6 @@ namespace core::Graphics::Direct3D11 {
 		}
 		return doDestroyAndCreate();
 	}
-	bool Device::validateDXGIFactory() {
-		return true;
-	}
 
 	void Device::dispatchEvent(EventType t) {
 		// 回调

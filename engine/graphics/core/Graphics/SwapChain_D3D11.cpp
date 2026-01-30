@@ -2226,11 +2226,6 @@ namespace core::Graphics
 			return false;
 		}
 
-		// 检查 DXGI 工厂有效性
-
-		if (!m_device->validateDXGIFactory())
-			return false;
-
 		return true;
 	}
 
