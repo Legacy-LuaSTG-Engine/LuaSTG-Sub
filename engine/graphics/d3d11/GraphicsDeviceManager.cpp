@@ -61,6 +61,7 @@ namespace {
     }
 
     bool isSoftwareOrRemoteAdapter(const DXGI_ADAPTER_DESC3& info) {
+        // https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/d3d10-graphics-programming-guide-dxgi#new-info-about-enumerating-adapters-for-windows-8
         // https://walbourn.github.io/anatomy-of-direct3d-11-create-device/
         return ((info.VendorId == 0x1414) && (info.DeviceId == 0x8c))
             || (info.Flags & DXGI_ADAPTER_FLAG3_REMOTE)
