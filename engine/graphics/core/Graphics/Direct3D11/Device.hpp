@@ -5,9 +5,100 @@
 
 // Device
 namespace core::Graphics::Direct3D11 {
-	class Device final
-		: public implement::ReferenceCounted<IDevice> {
+	class Device final : public implement::ReferenceCounted<IDevice> {
+	public:
+		// IDevice
+
+		void addEventListener(IDeviceEventListener* e) override;
+		void removeEventListener(IDeviceEventListener* e) override;
+
+		DeviceMemoryUsageStatistics getMemoryUsageStatistics() override;
+
+		bool recreate() override;
+		void setPreferenceGpu(StringView preferred_gpu) override { preferred_adapter_name = preferred_gpu; }
+		uint32_t getGpuCount() override { return static_cast<uint32_t>(dxgi_adapter_name_list.size()); }
+		StringView getGpuName(uint32_t index) override { return dxgi_adapter_name_list[index]; }
+		StringView getCurrentGpuName() const noexcept override { return dxgi_adapter_name; }
+
+		void* getNativeHandle() override { return d3d11_device.get(); }
+#ifdef LUASTG_ENABLE_DIRECT2D
+		void* getNativeRendererHandle() override { return d2d1_devctx.get(); }
+#else
+		void* getNativeRendererHandle() override { return nullptr; }
+#endif
+
+		bool createVertexBuffer(uint32_t size_in_bytes, IBuffer** output) override;
+		bool createIndexBuffer(uint32_t size_in_bytes, IBuffer** output) override;
+		bool createConstantBuffer(uint32_t size_in_bytes, IBuffer** output) override;
+
+		bool createTextureFromFile(StringView path, bool mipmap, ITexture2D** pp_texture) override;
+		bool createTexture(Vector2U size, ITexture2D** pp_texture) override;
+		bool createTextureFromImage(IImage* image, bool mipmap, ITexture2D** pp_texture) override;
+		bool createRenderTarget(Vector2U size, IRenderTarget** pp_rt) override;
+
+		bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** pp_ds) override;
+
+		bool createSamplerState(core::Graphics::SamplerState const& info, ISamplerState** pp_sampler) override;
+
+		// Device
+
+		Device(std::string_view preferred_gpu);
+		Device(const Device&) = delete;
+		Device(Device&&) = delete;
+		~Device();
+
+		Device& operator=(const Device&) = delete;
+		Device& operator=(Device&&) = delete;
+
+		IDXGIFactory2* GetDXGIFactory2() const noexcept { return dxgi_factory.get(); }
+		IDXGIAdapter1* GetDXGIAdapter1() const noexcept { return dxgi_adapter.get(); }
+
+		ID3D11Device* GetD3D11Device() const noexcept { return d3d11_device.get(); }
+		ID3D11Device1* GetD3D11Device1() const noexcept { return d3d11_device1.get(); }
+		ID3D11DeviceContext* GetD3D11DeviceContext() const noexcept { return d3d11_devctx.get(); }
+		ID3D11DeviceContext1* GetD3D11DeviceContext1() const noexcept { return d3d11_devctx1.get(); }
+
+#ifdef LUASTG_ENABLE_DIRECT2D
+		ID2D1Device* GetD2D1Device() const noexcept { return d2d1_device.get(); }
+		ID2D1DeviceContext* GetD2D1DeviceContext() const noexcept { return d2d1_devctx.get(); }
+#endif
+
+		IWICImagingFactory* GetWICImagingFactory() const noexcept { return wic_factory.get(); }
+
+		tracy_d3d11_context_t GetTracyContext() const noexcept { return tracy_context; }
+
+		bool create();
+		void destroy();
+		bool handleDeviceLost();
+
 	private:
+		enum class EventType {
+			DeviceCreate,
+			DeviceDestroy,
+		};
+
+		void dispatchEvent(EventType t);
+
+		bool testAdapterPolicy();
+		bool selectAdapter();
+		bool createDXGI();
+		void destroyDXGI();
+		bool createD3D11();
+		void destroyD3D11();
+		bool createWIC();
+		void destroyWIC();
+#ifdef LUASTG_ENABLE_DIRECT2D
+		bool createD2D1();
+		void destroyD2D1();
+#endif
+		bool doDestroyAndCreate();
+		
+		// Event dispatcher
+
+		std::vector<IDeviceEventListener*> m_eventobj;
+		std::vector<IDeviceEventListener*> m_eventobj_late;
+		bool m_is_dispatch_event{ false };
+
 		// DXGI
 
 		win32::com_ptr<IDXGIFactory2> dxgi_factory;
@@ -46,91 +137,5 @@ namespace core::Graphics::Direct3D11 {
 		// Debug
 
 		tracy_d3d11_context_t tracy_context{};
-
-	public:
-		// Get API
-
-		inline IDXGIFactory2* GetDXGIFactory2() const noexcept { return dxgi_factory.get(); }
-		inline IDXGIAdapter1* GetDXGIAdapter1() const noexcept { return dxgi_adapter.get(); }
-
-		inline ID3D11Device* GetD3D11Device() const noexcept { return d3d11_device.get(); }
-		inline ID3D11Device1* GetD3D11Device1() const noexcept { return d3d11_device1.get(); }
-		inline ID3D11DeviceContext* GetD3D11DeviceContext() const noexcept { return d3d11_devctx.get(); }
-		inline ID3D11DeviceContext1* GetD3D11DeviceContext1() const noexcept { return d3d11_devctx1.get(); }
-
-#ifdef LUASTG_ENABLE_DIRECT2D
-		inline ID2D1Device* GetD2D1Device() const noexcept { return d2d1_device.get(); }
-		inline ID2D1DeviceContext* GetD2D1DeviceContext() const noexcept { return d2d1_devctx.get(); }
-#endif
-
-		inline IWICImagingFactory* GetWICImagingFactory() const noexcept { return wic_factory.get(); }
-
-		inline tracy_d3d11_context_t GetTracyContext() const noexcept { return tracy_context; }
-
-	private:
-		bool selectAdapter();
-		bool createDXGI();
-		void destroyDXGI();
-		bool createD3D11();
-		void destroyD3D11();
-		bool createWIC();
-		void destroyWIC();
-#ifdef LUASTG_ENABLE_DIRECT2D
-		bool createD2D1();
-		void destroyD2D1();
-#endif
-		bool doDestroyAndCreate();
-		bool testAdapterPolicy();
-
-	public:
-		bool handleDeviceLost();
-
-	private:
-		enum class EventType {
-			DeviceCreate,
-			DeviceDestroy,
-		};
-		bool m_is_dispatch_event{ false };
-		std::vector<IDeviceEventListener*> m_eventobj;
-		std::vector<IDeviceEventListener*> m_eventobj_late;
-	private:
-		void dispatchEvent(EventType t);
-	public:
-		void addEventListener(IDeviceEventListener* e);
-		void removeEventListener(IDeviceEventListener* e);
-
-		DeviceMemoryUsageStatistics getMemoryUsageStatistics();
-
-		bool recreate();
-		void setPreferenceGpu(StringView preferred_gpu) { preferred_adapter_name = preferred_gpu; }
-		uint32_t getGpuCount() { return static_cast<uint32_t>(dxgi_adapter_name_list.size()); }
-		StringView getGpuName(uint32_t index) { return dxgi_adapter_name_list[index]; }
-		StringView getCurrentGpuName() const noexcept { return dxgi_adapter_name; }
-
-		void* getNativeHandle() { return d3d11_device.get(); }
-#ifdef LUASTG_ENABLE_DIRECT2D
-		void* getNativeRendererHandle() { return d2d1_devctx.get(); }
-#else
-		void* getNativeRendererHandle() { return nullptr; }
-#endif
-
-		bool createVertexBuffer(uint32_t size_in_bytes, IBuffer** output) override;
-		bool createIndexBuffer(uint32_t size_in_bytes, IBuffer** output) override;
-		bool createConstantBuffer(uint32_t size_in_bytes, IBuffer** output) override;
-
-		bool createTextureFromFile(StringView path, bool mipmap, ITexture2D** pp_texture);
-		bool createTexture(Vector2U size, ITexture2D** pp_texture);
-		bool createTextureFromImage(IImage* image, bool mipmap, ITexture2D** pp_texture);
-		bool createRenderTarget(Vector2U size, IRenderTarget** pp_rt);
-		bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** pp_ds);
-
-		bool createSamplerState(core::Graphics::SamplerState const& info, ISamplerState** pp_sampler);
-
-	public:
-		Device(std::string_view const& preferred_gpu = "");
-		~Device();
-
-	public:
-		static bool create(StringView preferred_gpu, Device** p_device);
 	};
 }

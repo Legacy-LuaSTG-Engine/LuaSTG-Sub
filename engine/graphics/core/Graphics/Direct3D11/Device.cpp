@@ -1,4 +1,5 @@
 #include "core/Graphics/Direct3D11/Device.hpp"
+#include "core/SmartReference.hpp"
 #include "core/Configuration.hpp"
 #include "core/Logger.hpp"
 #include "d3d11/GraphicsDeviceManager.hpp"
@@ -14,27 +15,31 @@ namespace {
 
 // Device
 namespace core::Graphics::Direct3D11 {
-	Device::Device(std::string_view const& preferred_gpu)
-		: preferred_adapter_name(preferred_gpu) {
-		// 创建图形组件
+	Device::Device(const std::string_view preferred_gpu) : preferred_adapter_name(preferred_gpu) {
+	}
+	Device::~Device() {
+		destroy();
+	}
 
+	bool Device::create() {
 		Logger::info("[core] [GraphicsDevice] initializing...");
 
 		testAdapterPolicy();
 		if (!createDXGI())
-			throw std::runtime_error("create basic DXGI components failed");
+			return false;
 		if (!createD3D11())
-			throw std::runtime_error("create basic D3D11 components failed");
+			return false;
 		if (!createWIC())
-			throw std::runtime_error("create basic WIC components failed");
+			return false;
 #ifdef LUASTG_ENABLE_DIRECT2D
 		if (!createD2D1())
-			throw std::runtime_error("create basic D2D1 components failed");
+			return false;
 #endif
 
 		Logger::info("[core] [GraphicsDevice] initialization complete");
+		return true;
 	}
-	Device::~Device() {
+	void Device::destroy() {
 		// 清理对象
 #ifdef LUASTG_ENABLE_DIRECT2D
 		destroyD2D1();
@@ -45,7 +50,6 @@ namespace core::Graphics::Direct3D11 {
 		assert(m_eventobj.size() == 0);
 		assert(m_eventobj_late.size() == 0);
 	}
-
 	bool Device::selectAdapter() {
 		Logger::info("[core] [GraphicsDevice] enumerate physical devices"sv);
 
@@ -378,27 +382,18 @@ namespace core::Graphics::Direct3D11 {
 	bool Device::recreate() {
 		return doDestroyAndCreate();
 	}
-
-	bool Device::create(StringView preferred_gpu, Device** p_device) {
-		try {
-			*p_device = new Device(preferred_gpu);
-			return true;
-		}
-		catch (...) {
-			*p_device = nullptr;
-			return false;
-		}
-	}
 }
 namespace core::Graphics {
-	bool IDevice::create(StringView preferred_gpu, IDevice** p_device) {
-		try {
-			*p_device = new Direct3D11::Device(preferred_gpu);
-			return true;
+	bool IDevice::create(const StringView preferred_gpu, IDevice** const output) {
+		if (output == nullptr) {
+			assert(false); return false;
 		}
-		catch (...) {
-			*p_device = nullptr;
+		SmartReference<Direct3D11::Device> device;
+		device.attach(new Direct3D11::Device(preferred_gpu));
+		if (!device->create()) {
 			return false;
 		}
+		*output = device.detach();
+		return true;
 	}
 }

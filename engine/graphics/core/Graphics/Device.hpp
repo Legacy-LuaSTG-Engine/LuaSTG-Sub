@@ -172,7 +172,7 @@ namespace core::Graphics
 
 		virtual bool createSamplerState(SamplerState const& info, ISamplerState** pp_sampler) = 0;
 
-		static bool create(StringView preferred_gpu, IDevice** p_device);
+		static bool create(StringView preferred_gpu, IDevice** output);
 	};
 }
 
