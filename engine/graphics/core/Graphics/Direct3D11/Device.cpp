@@ -258,8 +258,6 @@ namespace core::Graphics::Direct3D11 {
 			Logger::warn("[core] [GraphicsDevice] This device does not fully support the B8G8R8A8 format");
 		}
 
-		testMultiPlaneOverlay();
-
 		tracy_context = tracy_d3d11_context_create(d3d11_device.get(), d3d11_devctx.get());
 
 		return true;
@@ -411,71 +409,6 @@ namespace core::Graphics::Direct3D11 {
 		Platform::AdapterPolicy::setAll(false);
 
 		return false;
-	}
-	bool Device::testMultiPlaneOverlay() {
-		HRESULT hr = S_OK;
-
-		win32::com_ptr<IDXGIAdapter1> adapter_;
-		for (UINT i = 0; SUCCEEDED(dxgi_factory->EnumAdapters1(i, adapter_.put())); i += 1) {
-			win32::com_ptr<IDXGIOutput> output_;
-			for (UINT j = 0; SUCCEEDED(adapter_->EnumOutputs(j, output_.put())); j += 1) {
-				DXGI_OUTPUT_DESC desc = {};
-				hr = gHR = output_->GetDesc(&desc);
-				if (FAILED(hr)) {
-					Logger::error("Windows API failed: IDXGIOutput3::CheckOverlaySupport -> DXGI_FORMAT_B8G8R8A8_UNORM");
-					assert(false); return false;
-				}
-
-				BOOL overlay_ = FALSE;
-				win32::com_ptr<IDXGIOutput2> output2_;
-				if (win32::check_hresult_as_boolean(output_->QueryInterface(output2_.put()))) {
-					overlay_ = output2_->SupportsOverlays();
-				}
-
-				UINT overlay_flags = 0;
-				win32::com_ptr<IDXGIOutput3> output3_;
-				if (win32::check_hresult_as_boolean(output_->QueryInterface(output3_.put()))) {
-					hr = gHR = output3_->CheckOverlaySupport(
-						DXGI_FORMAT_B8G8R8A8_UNORM,
-						d3d11_device.get(),
-						&overlay_flags);
-					if (FAILED(hr)) {
-						Logger::error("Windows API failed: IDXGIOutput3::CheckOverlaySupport -> DXGI_FORMAT_B8G8R8A8_UNORM");
-					}
-				}
-
-				UINT composition_flags = 0;
-				win32::com_ptr<IDXGIOutput6> output6_;
-				if (win32::check_hresult_as_boolean(output_->QueryInterface(output6_.put()))) {
-					hr = gHR = output6_->CheckHardwareCompositionSupport(&composition_flags);
-					if (FAILED(hr)) {
-						Logger::error("Windows API failed: IDXGIOutput6::CheckHardwareCompositionSupport");
-					}
-				}
-
-				Logger::info(
-					"[core] [GraphicsDevice] physical device {} -- display output {}:\n"
-					"    Attached To Desktop: {}\n"
-					"    Desktop Coordinates: ({}, {}) ({} x {})\n"
-					"    Rotation: {}\n"
-					"    Multi-Plane Overlay: {}\n"
-					"    Multi-Plane Overlay Feature: {}\n"
-					"    Hardware Composition: {}"
-					, i, j
-					, desc.AttachedToDesktop ? "True" : "False"
-					, desc.DesktopCoordinates.left
-					, desc.DesktopCoordinates.top
-					, desc.DesktopCoordinates.right - desc.DesktopCoordinates.left
-					, desc.DesktopCoordinates.bottom - desc.DesktopCoordinates.top
-					, rotation_to_string(desc.Rotation)
-					, overlay_ ? "support" : "not support"
-					, multi_plane_overlay_flags_to_string(overlay_flags)
-					, hardware_composition_flags_to_string(composition_flags)
-				);
-			}
-		}
-
-		return true;
 	}
 
 	bool Device::handleDeviceLost() {

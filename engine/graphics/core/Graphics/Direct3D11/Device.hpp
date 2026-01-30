@@ -90,7 +90,6 @@ namespace core::Graphics::Direct3D11 {
 		void destroyDWrite();
 		bool doDestroyAndCreate();
 		bool testAdapterPolicy();
-		bool testMultiPlaneOverlay();
 
 	public:
 		bool handleDeviceLost();
