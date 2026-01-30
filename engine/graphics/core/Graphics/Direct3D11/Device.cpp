@@ -11,49 +11,6 @@
 
 namespace {
 	using std::string_view_literals::operator ""sv;
-
-	std::string multi_plane_overlay_flags_to_string(UINT const flags) {
-		std::string buffer;
-		if (flags & DXGI_OVERLAY_SUPPORT_FLAG_DIRECT) {
-			buffer.append("Direct");
-		}
-		if (flags & DXGI_OVERLAY_SUPPORT_FLAG_SCALING) {
-			if (!buffer.empty()) buffer.append("、");
-			buffer.append("Scaling");
-		}
-		if (buffer.empty()) {
-			buffer.append("None");
-		}
-		return buffer;
-	};
-	std::string hardware_composition_flags_to_string(UINT const flags) {
-		std::string buffer;
-		if (flags & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_FULLSCREEN) {
-			buffer.append("Fullscreen");
-		}
-		if (flags & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_WINDOWED) {
-			if (!buffer.empty()) buffer.append("、");
-			buffer.append("Windowed");
-		}
-		if (flags & DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_CURSOR_STRETCHED) {
-			if (!buffer.empty()) buffer.append("、");
-			buffer.append("CursorStretched");
-		}
-		if (buffer.empty()) {
-			buffer.append("None");
-		}
-		return buffer;
-	};
-	std::string_view rotation_to_string(DXGI_MODE_ROTATION const rot) {
-		switch (rot) {
-		default:
-		case DXGI_MODE_ROTATION_UNSPECIFIED: return "Unspecified";
-		case DXGI_MODE_ROTATION_IDENTITY: return "Identity";
-		case DXGI_MODE_ROTATION_ROTATE90: return "Rotate90";
-		case DXGI_MODE_ROTATION_ROTATE180: return "Rotate180";
-		case DXGI_MODE_ROTATION_ROTATE270: return "Rotate270";
-		}
-	};
 }
 
 // Device
