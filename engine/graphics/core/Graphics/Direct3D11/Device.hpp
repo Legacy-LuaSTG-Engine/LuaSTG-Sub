@@ -1,7 +1,6 @@
 #pragma once
 #include "core/implement/ReferenceCounted.hpp"
 #include "core/Graphics/Device.hpp"
-#include "windows/RuntimeLoader/Direct2D1.hpp"
 
 // Device
 namespace core::Graphics::Direct3D11 {
@@ -123,7 +122,6 @@ namespace core::Graphics::Direct3D11 {
 		// Direct2D 1
 
 #ifdef LUASTG_ENABLE_DIRECT2D
-		Platform::RuntimeLoader::Direct2D1 d2d1_loader;
 		win32::com_ptr<ID2D1Factory1> d2d1_factory;
 		win32::com_ptr<ID2D1Device> d2d1_device;
 		win32::com_ptr<ID2D1DeviceContext> d2d1_devctx;

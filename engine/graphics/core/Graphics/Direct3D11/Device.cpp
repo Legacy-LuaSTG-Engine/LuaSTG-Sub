@@ -325,9 +325,15 @@ namespace core::Graphics::Direct3D11 {
 	bool Device::createD2D1() {
 		HRESULT hr = S_OK;
 
-		hr = gHR = d2d1_loader.CreateFactory(
+		D2D1_FACTORY_OPTIONS d2d1_options{};
+	#ifndef NDEBUG
+		d2d1_options.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION;
+	#endif
+		hr = gHR = D2D1CreateFactory(
 			D2D1_FACTORY_TYPE_MULTI_THREADED,
-			IID_PPV_ARGS(d2d1_factory.put()));
+			__uuidof(ID2D1Factory1),
+			&d2d1_options,
+			d2d1_factory.put<void>());
 		if (FAILED(hr)) {
 			Logger::error("Windows API failed: D2D1CreateFactory -> ID2D1Factory1");
 			assert(false); return false;
