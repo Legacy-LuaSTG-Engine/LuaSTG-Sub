@@ -258,7 +258,6 @@ namespace core::Graphics::Direct3D11 {
 			}
 		}
 
-		d3d11_device->QueryInterface(d3d11_device1.put()); // error can be safely ignored
 		d3d11_devctx->QueryInterface(d3d11_devctx1.put()); // error can be safely ignored
 
 		// 特性检查
@@ -290,7 +289,6 @@ namespace core::Graphics::Direct3D11 {
 		d3d_feature_level = D3D_FEATURE_LEVEL_10_0;
 
 		d3d11_device.reset();
-		d3d11_device1.reset();
 		d3d11_devctx.reset();
 		d3d11_devctx1.reset();
 	}

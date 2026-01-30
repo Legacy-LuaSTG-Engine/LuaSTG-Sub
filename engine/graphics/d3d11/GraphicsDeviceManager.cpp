@@ -263,6 +263,17 @@ namespace core {
 }
 
 namespace core {
+    bool GraphicsDeviceManagerDXGI::refreshAndGetFactory(IDXGIFactory2** const out_factory) {
+        if (out_factory == nullptr) {
+            assert(false); return false;
+        }
+        win32::com_ptr<IDXGIFactory2> factory;
+        if (!internalRefresh(factory, false)) {
+            return false;
+        }
+        *out_factory = factory.detach();
+        return true;
+    }
     bool GraphicsDeviceManagerDXGI::refreshAndFindAdapter(const std::string_view name, IDXGIAdapter1** const adapter, std::string* const adapter_name) {
         physical_device_info.clear();
         physical_device_info_not_supported.clear();

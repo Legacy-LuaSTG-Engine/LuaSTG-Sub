@@ -2,6 +2,7 @@
 #include "windows/Window.hpp"
 #include "core/Configuration.hpp"
 #include "core/Logger.hpp"
+#include "d3d11/GraphicsDeviceManager.hpp"
 #include "windows/WindowsVersion.hpp"
 #include "windows/DesktopWindowManager.hpp"
 #include "windows/Direct3D11.hpp"
@@ -983,6 +984,11 @@ namespace core::Graphics
 			Logger::error("[core] [SwapChain] create failed: GraphicsDevice not initialized");
 			assert(false); return false;
 		}
+		win32::com_ptr<IDXGIFactory2> dxgi_factory;
+		if (!core::GraphicsDeviceManagerDXGI::refreshAndGetFactory(dxgi_factory.put())) {
+			Logger::error("[core] [SwapChain] create failed: DXGI not available");
+			assert(false); return false;
+		}
 
 		HRNew;
 
@@ -1043,7 +1049,7 @@ namespace core::Graphics
 
 		// 创建交换链
 
-		HRGet = m_device->GetDXGIFactory2()->CreateSwapChainForHwnd(
+		HRGet = dxgi_factory->CreateSwapChainForHwnd(
 			m_device->GetD3D11Device(),
 			win,
 			&m_swap_chain_info,
@@ -1340,6 +1346,12 @@ namespace core::Graphics
 
 		// 必须成功的操作
 
+		win32::com_ptr<IDXGIFactory2> dxgi_factory;
+		if (!core::GraphicsDeviceManagerDXGI::refreshAndGetFactory(dxgi_factory.put())) {
+			Logger::error("[core] [SwapChain] create failed: DXGI not available");
+			assert(false); return false;
+		}
+
 #ifdef LUASTG_ENABLE_DIRECT2D
 		win32::com_ptr<IDXGIDevice> dxgi_device;
 		HRGet = m_device->GetD3D11Device()->QueryInterface(dxgi_device.put());
@@ -1384,7 +1396,7 @@ namespace core::Graphics
 			HRCheckCallReturnBool("IDCompositionDesktopDevice::CreateVisual");
 
 			if (!swap_chain_title_bar.create(
-				m_device->GetDXGIFactory2(),
+				dxgi_factory.get(),
 				m_device->GetD3D11Device(),
 				m_device->GetD2D1DeviceContext(),
 				m_window->_getCurrentSize()
@@ -1586,6 +1598,11 @@ namespace core::Graphics
 			Logger::error("[core] [SwapChain] create failed: GraphicsDevice not initialized");
 			assert(false); return false;
 		}
+		win32::com_ptr<IDXGIFactory2> dxgi_factory;
+		if (!core::GraphicsDeviceManagerDXGI::refreshAndGetFactory(dxgi_factory.put())) {
+			Logger::error("[core] [SwapChain] create failed: DXGI not available");
+			assert(false); return false;
+		}
 
 		// 填充交换链描述
 
@@ -1603,7 +1620,7 @@ namespace core::Graphics
 
 		// 创建交换链
 
-		HRGet = m_device->GetDXGIFactory2()->CreateSwapChainForComposition(
+		HRGet = dxgi_factory->CreateSwapChainForComposition(
 			m_device->GetD3D11Device(),
 			&m_swap_chain_info, NULL,
 			dxgi_swapchain.put());
@@ -2213,7 +2230,9 @@ namespace core::Graphics
 		// 清空渲染状态并丢弃内容
 
 		m_device->GetD3D11DeviceContext()->ClearState();
-		m_device->GetD3D11DeviceContext1()->DiscardView(m_swap_chain_d3d11_rtv.get());
+		if (const auto ctx1 = m_device->GetD3D11DeviceContext1(); ctx1 != nullptr) {
+			ctx1->DiscardView(m_swap_chain_d3d11_rtv.get());
+		}
 
 		// 检查结果
 

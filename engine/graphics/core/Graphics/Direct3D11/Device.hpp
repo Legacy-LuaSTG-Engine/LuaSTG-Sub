@@ -50,11 +50,7 @@ namespace core::Graphics::Direct3D11 {
 		Device& operator=(const Device&) = delete;
 		Device& operator=(Device&&) = delete;
 
-		IDXGIFactory2* GetDXGIFactory2() const noexcept { return dxgi_factory.get(); }
-		IDXGIAdapter1* GetDXGIAdapter1() const noexcept { return dxgi_adapter.get(); }
-
 		ID3D11Device* GetD3D11Device() const noexcept { return d3d11_device.get(); }
-		ID3D11Device1* GetD3D11Device1() const noexcept { return d3d11_device1.get(); }
 		ID3D11DeviceContext* GetD3D11DeviceContext() const noexcept { return d3d11_devctx.get(); }
 		ID3D11DeviceContext1* GetD3D11DeviceContext1() const noexcept { return d3d11_devctx1.get(); }
 
@@ -116,7 +112,6 @@ namespace core::Graphics::Direct3D11 {
 		// Direct3D 11
 
 		win32::com_ptr<ID3D11Device> d3d11_device;
-		win32::com_ptr<ID3D11Device1> d3d11_device1;
 		win32::com_ptr<ID3D11DeviceContext> d3d11_devctx;
 		win32::com_ptr<ID3D11DeviceContext1> d3d11_devctx1;
 
