@@ -5,6 +5,120 @@
 namespace d3d11 {
 	using std::string_view_literals::operator ""sv;
 
+	// NOTE: Direct3D 11 does not support D3D_FEATURE_LEVEL_12_2
+
+	bool createDevice(
+        IDXGIAdapter1* const adapter,
+        ID3D11Device** const device, ID3D11DeviceContext** const device_context, D3D_FEATURE_LEVEL* const feature_level
+    ) {
+		const auto driver_type = (adapter != nullptr) ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE;
+		UINT flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+	#ifndef NDEBUG
+		flags |= D3D11_CREATE_DEVICE_DEBUG;
+	#endif
+		constexpr D3D_FEATURE_LEVEL feature_levels[] {
+			D3D_FEATURE_LEVEL_12_1,
+            D3D_FEATURE_LEVEL_12_0,
+            D3D_FEATURE_LEVEL_11_1,
+            D3D_FEATURE_LEVEL_11_0,
+            D3D_FEATURE_LEVEL_10_1,
+            D3D_FEATURE_LEVEL_10_0,
+            D3D_FEATURE_LEVEL_9_3,
+            D3D_FEATURE_LEVEL_9_2,
+            D3D_FEATURE_LEVEL_9_1,
+		};
+		std::vector<HRESULT> results{};
+		for (UINT offset = 0; offset <= 3; offset += 1) {
+            const auto hr = D3D11CreateDevice(
+				adapter, driver_type, nullptr,
+				flags, feature_levels + offset, 9u - offset, D3D11_SDK_VERSION,
+				device, feature_level, device_context
+			);
+            if (SUCCEEDED(hr)) {
+                return true;
+            }
+			results.push_back(hr);
+        }
+		for (const auto hr : results) {
+			win32::check_hresult(hr, "D3D11CreateDevice"sv);
+		}
+		return false;
+	}
+
+	bool createSoftwareDevice(
+		std::vector<HRESULT>& results, const D3D_DRIVER_TYPE driver_type,
+        ID3D11Device** const device, ID3D11DeviceContext** const device_context, D3D_FEATURE_LEVEL* const feature_level
+    ) {
+		UINT flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+	#ifndef NDEBUG
+		flags |= D3D11_CREATE_DEVICE_DEBUG;
+	#endif
+		constexpr D3D_FEATURE_LEVEL feature_levels[] {
+			D3D_FEATURE_LEVEL_12_1,
+            D3D_FEATURE_LEVEL_12_0,
+            D3D_FEATURE_LEVEL_11_1,
+            D3D_FEATURE_LEVEL_11_0,
+            D3D_FEATURE_LEVEL_10_1,
+            D3D_FEATURE_LEVEL_10_0,
+            D3D_FEATURE_LEVEL_9_3,
+            D3D_FEATURE_LEVEL_9_2,
+            D3D_FEATURE_LEVEL_9_1,
+		};
+		for (UINT offset = 0; offset <= 3; offset += 1) {
+			win32::com_ptr<ID3D11Device> local_devcie;
+			win32::com_ptr<ID3D11DeviceContext> local_device_context;
+			D3D_FEATURE_LEVEL local_feature_level{};
+            const auto hr = D3D11CreateDevice(
+				nullptr, driver_type, nullptr,
+				flags, feature_levels + offset, 9u - offset, D3D11_SDK_VERSION,
+				local_devcie.put(), &local_feature_level, local_device_context.put()
+			);
+            if (SUCCEEDED(hr) && local_feature_level >= D3D_FEATURE_LEVEL_10_0) {
+				if (device) *device = local_devcie.detach();
+				if (device_context) *device_context = local_device_context.detach();
+				if (feature_level) *feature_level = local_feature_level;
+                return true;
+            }
+			results.push_back(hr);
+        }
+		return false;
+	}
+	bool createSoftwareDevice(
+        ID3D11Device** const device, ID3D11DeviceContext** const device_context, D3D_FEATURE_LEVEL* const feature_level,
+		D3D_DRIVER_TYPE* const driver_type
+    ) {
+		std::vector<HRESULT> results{};
+
+		results.clear();
+		if (createSoftwareDevice(results, D3D_DRIVER_TYPE_WARP, device, device_context, feature_level)) {
+			if (driver_type) *driver_type = D3D_DRIVER_TYPE_WARP;
+			return true;
+		}
+		for (const auto hr : results) {
+			win32::check_hresult(hr, "D3D11CreateDevice (D3D_DRIVER_TYPE_WARP)"sv);
+		}
+
+		results.clear();
+		if (createSoftwareDevice(results, D3D_DRIVER_TYPE_SOFTWARE, device, device_context, feature_level)) {
+			if (driver_type) *driver_type = D3D_DRIVER_TYPE_SOFTWARE;
+			return true;
+		}
+		for (const auto hr : results) {
+			win32::check_hresult(hr, "D3D11CreateDevice (D3D_DRIVER_TYPE_SOFTWARE)"sv);
+		}
+
+		results.clear();
+		if (createSoftwareDevice(results, D3D_DRIVER_TYPE_REFERENCE, device, device_context, feature_level)) {
+			if (driver_type) *driver_type = D3D_DRIVER_TYPE_REFERENCE;
+			return true;
+		}
+		for (const auto hr : results) {
+			win32::check_hresult(hr, "D3D11CreateDevice (D3D_DRIVER_TYPE_REFERENCE)"sv);
+		}
+
+		return false;
+	}
+
 	void logDeviceFeatureSupportDetails(ID3D11Device* const device) {
 		std::string s;
 		s.append("[core] [GraphicsDevice] device feature support details:\n"sv);
@@ -241,6 +355,7 @@ namespace d3d11 {
 		}
 		core::Logger::info(s);
 	}
+
 	void logDeviceFormatSupportDetail(const D3D11_FEATURE_DATA_FORMAT_SUPPORT& info, const D3D11_FEATURE_DATA_FORMAT_SUPPORT2& info2, const std::string_view name, std::string& s) {
 		s.append(std::format("    {}:"sv, name));
 		if (info.OutFormatSupport != 0) {

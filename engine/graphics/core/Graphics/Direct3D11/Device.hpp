@@ -26,7 +26,6 @@ namespace core::Graphics::Direct3D11 {
 
 		// Direct3D 11
 
-		Platform::RuntimeLoader::Direct3D11 d3d11_loader;
 		win32::com_ptr<ID3D11Device> d3d11_device;
 		win32::com_ptr<ID3D11Device1> d3d11_device1;
 		win32::com_ptr<ID3D11DeviceContext> d3d11_devctx;

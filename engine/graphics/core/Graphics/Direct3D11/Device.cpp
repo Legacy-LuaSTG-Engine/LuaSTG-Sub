@@ -118,7 +118,7 @@ namespace core::Graphics::Direct3D11 {
 		}
 
 		if (!dxgi_adapter) {
-			Logger::error("[core] [GraphicsDevice] no device available");
+			Logger::error("[core] [GraphicsDevice] no physical device available");
 			return false;
 		}
 
@@ -155,43 +155,26 @@ namespace core::Graphics::Direct3D11 {
 		// 创建
 
 		if (dxgi_adapter) {
-			hr = gHR = d3d11_loader.CreateDeviceFromAdapter(
+			d3d11::createDevice(
 				dxgi_adapter.get(),
-				D3D11_CREATE_DEVICE_BGRA_SUPPORT,
-				D3D_FEATURE_LEVEL_10_0,
-				d3d11_device.put(),
-				&d3d_feature_level,
-				d3d11_devctx.put());
+				d3d11_device.put(), d3d11_devctx.put(), &d3d_feature_level
+			);
 		}
 		else if (core::ConfigurationLoader::getInstance().getGraphicsSystem().isAllowSoftwareDevice()) {
-			D3D_DRIVER_TYPE d3d_driver_type = D3D_DRIVER_TYPE_UNKNOWN;
-			hr = gHR = d3d11_loader.CreateDeviceFromSoftAdapter(
-				D3D11_CREATE_DEVICE_BGRA_SUPPORT,
-				D3D_FEATURE_LEVEL_10_0,
-				d3d11_device.put(),
-				&d3d_feature_level,
-				d3d11_devctx.put(),
-				&d3d_driver_type);
-			if (SUCCEEDED(hr)) {
-				switch (d3d_driver_type) {
-				case D3D_DRIVER_TYPE_REFERENCE:
-					Logger::info("[core] [GraphicsDevice] device type: reference");
-					break;
-				case D3D_DRIVER_TYPE_SOFTWARE:
-					Logger::info("[core] [GraphicsDevice] device type: software");
-					break;
-				case D3D_DRIVER_TYPE_WARP:
-					Logger::info("[core] [GraphicsDevice] device type: Windows Advanced Rasterization Platform (WARP)");
-					break;
-				}
+			D3D_DRIVER_TYPE driver_type{};
+			if (d3d11::createSoftwareDevice(
+				d3d11_device.put(), d3d11_devctx.put(), &d3d_feature_level,
+				&driver_type
+			)) {
+				Logger::info("[core] [GraphicsDevice] software device type: {}", toStringView(driver_type));
 			}
 		}
+
 		if (!d3d11_device) {
-			Logger::error("Windows API failed: D3D11CreateDevice");
+			Logger::error("[core] [GraphicsDevice] no device available");
 			return false;
 		}
-		M_D3D_SET_DEBUG_NAME(d3d11_device.get(), "Device_D3D11::d3d11_device");
-		M_D3D_SET_DEBUG_NAME(d3d11_devctx.get(), "Device_D3D11::d3d11_devctx");
+
 		if (!dxgi_adapter) {
 			hr = gHR = Platform::Direct3D11::GetDeviceAdater(d3d11_device.get(), dxgi_adapter.put());
 			if (FAILED(hr)) {

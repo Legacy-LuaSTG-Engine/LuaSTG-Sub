@@ -68,6 +68,18 @@ namespace {
         }
     }
 
+    std::string_view toStringView(const D3D_DRIVER_TYPE v) {
+        switch (v) {
+        default:
+        case D3D_DRIVER_TYPE_UNKNOWN: return "unknown"sv;
+        case D3D_DRIVER_TYPE_HARDWARE: return "hardware"sv;
+        case D3D_DRIVER_TYPE_REFERENCE: return "reference"sv;
+        case D3D_DRIVER_TYPE_NULL: return "null"sv;
+        case D3D_DRIVER_TYPE_SOFTWARE: return "software"sv;
+        case D3D_DRIVER_TYPE_WARP: return "Windows Advanced Rasterization Platform (WARP)"sv;
+        }
+    }
+
     std::string_view toStringView(const DXGI_GRAPHICS_PREEMPTION_GRANULARITY v) {
         switch (v) {
         case DXGI_GRAPHICS_PREEMPTION_DMA_BUFFER_BOUNDARY:  return "DMA_BUFFER_BOUNDARY"sv;
