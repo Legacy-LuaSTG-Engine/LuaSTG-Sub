@@ -1,9 +1,7 @@
 #pragma once
 #include "core/ReferenceCounted.hpp"
 #include "core/ImmutableString.hpp"
-#include "core/VertexBuffer.hpp"
-#include "core/IndexBuffer.hpp"
-#include "core/ConstantBuffer.hpp"
+#include "core/GraphicsBuffer.hpp"
 
 #include "core/Graphics/Device.hpp"
 
@@ -30,9 +28,9 @@ namespace core {
         virtual void addEventListener(IGraphicsDeviceEventListener* listener) = 0;
         virtual void removeEventListener(IGraphicsDeviceEventListener* listener) = 0;
 
-        virtual bool createVertexBuffer(uint32_t size_in_bytes, IVertexBuffer** output_buffer) = 0;
-        virtual bool createIndexBuffer(uint32_t size_in_bytes, IIndexBuffer** output_buffer) = 0;
-        virtual bool createConstantBuffer(uint32_t size_in_bytes, IConstantBuffer** output_buffer) = 0;
+        virtual bool createVertexBuffer(uint32_t size_in_bytes, IGraphicsBuffer** output_buffer) = 0;
+        virtual bool createIndexBuffer(uint32_t size_in_bytes, IGraphicsBuffer** output_buffer) = 0;
+        virtual bool createConstantBuffer(uint32_t size_in_bytes, IGraphicsBuffer** output_buffer) = 0;
 
         static bool create(StringView preferred_gpu, IGraphicsDevice** output);
 

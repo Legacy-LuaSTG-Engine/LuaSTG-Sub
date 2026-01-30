@@ -2,12 +2,11 @@
 #include "core/GraphicsDevice.hpp"
 #include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
-#include "win32/base.hpp"
-#include <d3d11_4.h>
+#include "pch.h"
 
 namespace core {
     class VertexBuffer final :
-        public implement::ReferenceCounted<IVertexBuffer>,
+        public implement::ReferenceCounted<IGraphicsBuffer>,
         public IGraphicsDeviceEventListener
     {
     public:
@@ -16,13 +15,15 @@ namespace core {
         void onGraphicsDeviceCreate() override;
         void onGraphicsDeviceDestroy() override;
 
-        // IVertexBuffer
+        // IGraphicsBuffer
 
-        void* getNativeResource() override;
-        void* getNativeView() override;
-        uint32_t getSizeInBytes() override;
-        bool map(uint32_t size_in_bytes, bool discard, void** out_pointer) override;
+        void* getNativeResource() const override;
+        void* getNativeView() const override;
+
+        uint32_t getSizeInBytes() const override;
+        bool map(void** out_pointer, bool cycle) override;
         bool unmap() override;
+        bool update(const void* data, uint32_t size, bool cycle) override;
 
         // VertexBuffer
 
@@ -46,7 +47,7 @@ namespace core {
 
 namespace core {
     class IndexBuffer final :
-        public implement::ReferenceCounted<IIndexBuffer>,
+        public implement::ReferenceCounted<IGraphicsBuffer>,
         public IGraphicsDeviceEventListener
     {
     public:
@@ -55,13 +56,15 @@ namespace core {
         void onGraphicsDeviceCreate() override;
         void onGraphicsDeviceDestroy() override;
 
-        // IIndexBuffer
+        // IGraphicsBuffer
 
-        void* getNativeResource() override;
-        void* getNativeView() override;
-        uint32_t getSizeInBytes() override;
-        bool map(uint32_t size_in_bytes, bool discard, void** out_pointer) override;
+        void* getNativeResource() const override;
+        void* getNativeView() const override;
+
+        uint32_t getSizeInBytes() const override;
+        bool map(void** out_pointer, bool cycle) override;
         bool unmap() override;
+        bool update(const void* data, uint32_t size, bool cycle) override;
 
         // IndexBuffer
 
@@ -85,7 +88,7 @@ namespace core {
 
 namespace core {
     class ConstantBuffer final :
-        public implement::ReferenceCounted<IConstantBuffer>,
+        public implement::ReferenceCounted<IGraphicsBuffer>,
         public IGraphicsDeviceEventListener
     {
     public:
@@ -94,12 +97,15 @@ namespace core {
         void onGraphicsDeviceCreate() override;
         void onGraphicsDeviceDestroy() override;
 
-        // IConstantBuffer
+        // IGraphicsBuffer
 
-        void* getNativeResource() override;
-        void* getNativeView() override;
-        uint32_t getSizeInBytes() override;
-        bool update(void const* data, uint32_t size_in_bytes) override;
+        void* getNativeResource() const override;
+        void* getNativeView() const override;
+
+        uint32_t getSizeInBytes() const override;
+        bool map(void** out_pointer, bool cycle) override;
+        bool unmap() override;
+        bool update(const void* data, uint32_t size, bool cycle) override;
 
         // ConstantBuffer
 

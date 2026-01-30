@@ -13,9 +13,9 @@ namespace core {
         void addEventListener(IGraphicsDeviceEventListener* listener) override;
         void removeEventListener(IGraphicsDeviceEventListener* listener) override;
 
-        bool createVertexBuffer(uint32_t size_in_bytes, IVertexBuffer** output_buffer) override;
-        bool createIndexBuffer(uint32_t size_in_bytes, IIndexBuffer** output_buffer) override;
-        bool createConstantBuffer(uint32_t size_in_bytes, IConstantBuffer** output_buffer) override;
+        bool createVertexBuffer(uint32_t size_in_bytes, IGraphicsBuffer** output_buffer) override;
+        bool createIndexBuffer(uint32_t size_in_bytes, IGraphicsBuffer** output_buffer) override;
+        bool createConstantBuffer(uint32_t size_in_bytes, IGraphicsBuffer** output_buffer) override;
 
         // from IDevice
 

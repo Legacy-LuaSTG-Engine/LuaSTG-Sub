@@ -221,9 +221,7 @@ namespace core::Graphics
 
 	bool Renderer_D3D11::createBuffers()
 	{
-		assert(m_device->GetD3D11Device());
-
-		HRESULT hr = 0;
+		assert(m_device->getNativeHandle() != nullptr);
 
 		if (!m_device->createVertexBuffer(4 * sizeof(DrawVertex), _fx_vbuffer.put())) {
 			return false;
