@@ -1,9 +1,7 @@
 #pragma once
 #include "core/implement/ReferenceCounted.hpp"
 #include "core/Graphics/Device.hpp"
-#include "windows/RuntimeLoader/Direct3D11.hpp"
 #include "windows/RuntimeLoader/Direct2D1.hpp"
-#include "windows/RuntimeLoader/DirectWrite.hpp"
 
 // Device
 namespace core::Graphics::Direct3D11 {
@@ -45,11 +43,6 @@ namespace core::Graphics::Direct3D11 {
 		win32::com_ptr<ID2D1DeviceContext> d2d1_devctx;
 #endif
 
-		// DirectWrite
-
-		Platform::RuntimeLoader::DirectWrite dwrite_loader;
-		win32::com_ptr<IDWriteFactory> dwrite_factory;
-
 		// Debug
 
 		tracy_d3d11_context_t tracy_context{};
@@ -86,8 +79,6 @@ namespace core::Graphics::Direct3D11 {
 		bool createD2D1();
 		void destroyD2D1();
 #endif
-		bool createDWrite();
-		void destroyDWrite();
 		bool doDestroyAndCreate();
 		bool testAdapterPolicy();
 

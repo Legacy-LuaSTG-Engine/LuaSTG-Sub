@@ -4,7 +4,6 @@
 #include "d3d11/GraphicsDeviceManager.hpp"
 #include "d3d11/ToStringHelper.hpp"
 #include "d3d11/DeviceHelper.hpp"
-#include "windows/WindowsVersion.hpp"
 #include "windows/AdapterPolicy.hpp"
 #include "windows/Direct3D11.hpp"
 #include "utf8.hpp"
@@ -32,14 +31,11 @@ namespace core::Graphics::Direct3D11 {
 		if (!createD2D1())
 			throw std::runtime_error("create basic D2D1 components failed");
 #endif
-		if (!createDWrite())
-			throw std::runtime_error("create basic DWrite components failed");
 
 		Logger::info("[core] [GraphicsDevice] initialization complete");
 	}
 	Device::~Device() {
 		// 清理对象
-		destroyDWrite(); // 长生存期
 #ifdef LUASTG_ENABLE_DIRECT2D
 		destroyD2D1();
 #endif
@@ -244,20 +240,6 @@ namespace core::Graphics::Direct3D11 {
 		d2d1_devctx.reset();
 	}
 #endif
-	bool Device::createDWrite() {
-		HRESULT hr = S_OK;
-
-		hr = gHR = dwrite_loader.CreateFactory(DWRITE_FACTORY_TYPE_SHARED, IID_PPV_ARGS(dwrite_factory.put()));
-		if (FAILED(hr)) {
-			Logger::error("Windows API failed: DWriteCreateFactory -> DWRITE_FACTORY_TYPE_SHARED");
-			return false;
-		}
-
-		return true;
-	}
-	void Device::destroyDWrite() {
-		dwrite_factory.reset();
-	}
 	bool Device::doDestroyAndCreate() {
 		dispatchEvent(EventType::DeviceDestroy);
 
