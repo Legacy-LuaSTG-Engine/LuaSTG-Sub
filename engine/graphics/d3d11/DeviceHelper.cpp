@@ -119,7 +119,25 @@ namespace d3d11 {
 		return false;
 	}
 
+	bool checkFormatSupport(ID3D11Device* const device, const DXGI_FORMAT format, UINT* const support, UINT* const support2) {
+		if (device == nullptr) {
+			assert(false); return false;
+		}
+
+		D3D11_FEATURE_DATA_FORMAT_SUPPORT info{};
+		D3D11_FEATURE_DATA_FORMAT_SUPPORT2 info2{};
+		info.InFormat = info2.InFormat = format;
+		device->CheckFeatureSupport(D3D11_FEATURE_FORMAT_SUPPORT, &info, sizeof(info));
+		device->CheckFeatureSupport(D3D11_FEATURE_FORMAT_SUPPORT2, &info2, sizeof(info2));
+
+		if (support) *support = info.OutFormatSupport;
+		if (support2) *support2 = info2.OutFormatSupport2;
+		return true;
+	}
+
 	void logDeviceFeatureSupportDetails(ID3D11Device* const device) {
+		assert(device != nullptr);
+
 		std::string s;
 		s.append("[core] [GraphicsDevice] device feature support details:\n"sv);
 
@@ -409,6 +427,8 @@ namespace d3d11 {
 		s.push_back('\n');
 	}
 	void logDeviceFormatSupportDetails(ID3D11Device* const device) {
+		assert(device != nullptr);
+
 		std::string s;
 		s.append("[core] [GraphicsDevice] device format support details:\n"sv);
 

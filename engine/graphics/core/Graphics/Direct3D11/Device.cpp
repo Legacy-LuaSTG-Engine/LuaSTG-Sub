@@ -183,79 +183,25 @@ namespace core::Graphics::Direct3D11 {
 			}
 		}
 
+		d3d11_device->QueryInterface(d3d11_device1.put()); // error can be safely ignored
+		d3d11_devctx->QueryInterface(d3d11_devctx1.put()); // error can be safely ignored
+
 		// 特性检查
 
 		d3d11::logDeviceFeatureSupportDetails(d3d11_device.get());
 		d3d11::logDeviceFormatSupportDetails(d3d11_device.get());
 
-		hr = gHR = d3d11_device->QueryInterface(d3d11_device1.put());
-		if (FAILED(hr)) {
-			Logger::error("Windows API failed: ID3D11Device::QueryInterface -> ID3D11Device1");
-			// 不是严重错误
-		}
-		hr = gHR = d3d11_devctx->QueryInterface(d3d11_devctx1.put());
-		if (FAILED(hr)) {
-			Logger::error("Windows API failed: ID3D11DeviceContext::QueryInterface -> ID3D11DeviceContext1");
-			// 不是严重错误
-		}
+		UINT bgra32_support{}, bgra32_support2{};
+		d3d11::checkFormatSupport(d3d11_device.get(), DXGI_FORMAT_B8G8R8A8_UNORM, &bgra32_support, &bgra32_support2); // error can be safely ignored
 
-		struct D3DX11_FEATURE_DATA_FORMAT_SUPPORT {
-			DXGI_FORMAT InFormat;
-			UINT OutFormatSupport;
-			UINT OutFormatSupport2;
-		};
-		auto check_format_support = [&](DXGI_FORMAT const format, std::string_view const& name) ->D3DX11_FEATURE_DATA_FORMAT_SUPPORT {
-			std::string name1("ID3D11Device::CheckFeatureSupport -> D3D11_FEATURE_FORMAT_SUPPORT ("); name1.append(name); name1.append(")");
-			std::string name2("ID3D11Device::CheckFeatureSupport -> D3D11_FEATURE_FORMAT_SUPPORT2 ("); name2.append(name); name2.append(")");
-
-			D3D11_FEATURE_DATA_FORMAT_SUPPORT data1 = { .InFormat = format };
-			HRESULT const hr1 = gHR = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_FORMAT_SUPPORT, &data1, sizeof(D3D11_FEATURE_DATA_FORMAT_SUPPORT));
-			if (FAILED(hr1)) Logger::error("Windows API failed: {}", name1);
-
-			D3D11_FEATURE_DATA_FORMAT_SUPPORT2 data2 = { .InFormat = format };
-			HRESULT const hr2 = gHR = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_FORMAT_SUPPORT2, &data2, sizeof(D3D11_FEATURE_DATA_FORMAT_SUPPORT2));
-			if (FAILED(hr2)) Logger::error("Windows API failed: {}", name2);
-
-			return D3DX11_FEATURE_DATA_FORMAT_SUPPORT{ .InFormat = format, .OutFormatSupport = data1.OutFormatSupport, .OutFormatSupport2 = data2.OutFormatSupport2 };
-		};
-		auto check_format_support_1 = [&](DXGI_FORMAT const format, std::string_view const& name) ->D3DX11_FEATURE_DATA_FORMAT_SUPPORT {
-			std::string name1("ID3D11Device::CheckFeatureSupport -> D3D11_FEATURE_FORMAT_SUPPORT ("); name1.append(name); name1.append(")");
-
-			D3D11_FEATURE_DATA_FORMAT_SUPPORT data1 = { .InFormat = format };
-			HRESULT const hr1 = gHR = d3d11_device->CheckFeatureSupport(D3D11_FEATURE_FORMAT_SUPPORT, &data1, sizeof(D3D11_FEATURE_DATA_FORMAT_SUPPORT));
-			if (FAILED(hr1)) Logger::error("Windows API failed: {}", name1);
-
-			D3D11_FEATURE_DATA_FORMAT_SUPPORT2 data2 = { .InFormat = format };
-			d3d11_device->CheckFeatureSupport(D3D11_FEATURE_FORMAT_SUPPORT2, &data2, sizeof(D3D11_FEATURE_DATA_FORMAT_SUPPORT2));
-
-			return D3DX11_FEATURE_DATA_FORMAT_SUPPORT{ .InFormat = format, .OutFormatSupport = data1.OutFormatSupport, .OutFormatSupport2 = data2.OutFormatSupport2 };
-		};
-
-	#define _CHECK_FORMAT_SUPPORT(_NAME, _FORMAT) \
-		D3DX11_FEATURE_DATA_FORMAT_SUPPORT d3d11_feature_format_##_NAME = check_format_support(_FORMAT, #_FORMAT);
-	#define _CHECK_FORMAT_SUPPORT_1(_NAME, _FORMAT) \
-		D3DX11_FEATURE_DATA_FORMAT_SUPPORT d3d11_feature_format_##_NAME = check_format_support_1(_FORMAT, #_FORMAT);
-
-		_CHECK_FORMAT_SUPPORT(rgba32, DXGI_FORMAT_R8G8B8A8_UNORM);
-		_CHECK_FORMAT_SUPPORT(rgba32_srgb, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB);
-		_CHECK_FORMAT_SUPPORT(bgra32, DXGI_FORMAT_B8G8R8A8_UNORM);
-		_CHECK_FORMAT_SUPPORT(bgra32_srgb, DXGI_FORMAT_B8G8R8A8_UNORM_SRGB);
-		_CHECK_FORMAT_SUPPORT_1(d24_s8, DXGI_FORMAT_D24_UNORM_S8_UINT);
-
-	#undef _CHECK_FORMAT_SUPPORT
-
-		if (
-			(d3d11_feature_format_bgra32.OutFormatSupport & D3D11_FORMAT_SUPPORT_TEXTURE2D)
-			&& (d3d11_feature_format_bgra32.OutFormatSupport & D3D11_FORMAT_SUPPORT_IA_VERTEX_BUFFER)
-			&& (d3d11_feature_format_bgra32.OutFormatSupport & D3D11_FORMAT_SUPPORT_MIP)
-			&& (d3d11_feature_format_bgra32.OutFormatSupport & D3D11_FORMAT_SUPPORT_RENDER_TARGET)
-			&& (d3d11_feature_format_bgra32.OutFormatSupport & D3D11_FORMAT_SUPPORT_BLENDABLE)
-			&& (d3d11_feature_format_bgra32.OutFormatSupport & D3D11_FORMAT_SUPPORT_DISPLAY)
-			) {
-			// 确实支持
-		}
-		else {
-			Logger::warn("[core] [GraphicsDevice] This device does not fully support the B8G8R8A8 format");
+		constexpr UINT required_support = D3D11_FORMAT_SUPPORT_TEXTURE2D
+			| D3D11_FORMAT_SUPPORT_IA_VERTEX_BUFFER
+			| D3D11_FORMAT_SUPPORT_MIP
+			| D3D11_FORMAT_SUPPORT_RENDER_TARGET
+			| D3D11_FORMAT_SUPPORT_BLENDABLE
+			| D3D11_FORMAT_SUPPORT_DISPLAY;
+		if ((bgra32_support & required_support) != required_support) {
+			Logger::warn("[core] [GraphicsDevice] device does not fully support the B8G8R8A8 format"sv);
 		}
 
 		tracy_context = tracy_d3d11_context_create(d3d11_device.get(), d3d11_devctx.get());

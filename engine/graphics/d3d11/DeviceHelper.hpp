@@ -12,6 +12,8 @@ namespace d3d11 {
         D3D_DRIVER_TYPE* driver_type
     );
 
+    bool checkFormatSupport(ID3D11Device* device, DXGI_FORMAT format, UINT* support, UINT* support2 = nullptr);
+
     void logDeviceFeatureSupportDetails(ID3D11Device* device);
 
     void logDeviceFormatSupportDetails(ID3D11Device* device);
