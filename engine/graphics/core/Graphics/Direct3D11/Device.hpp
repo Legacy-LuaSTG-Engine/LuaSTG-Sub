@@ -61,11 +61,6 @@ namespace core::Graphics::Direct3D11 {
 		inline IDXGIFactory2* GetDXGIFactory2() const noexcept { return dxgi_factory.get(); }
 		inline IDXGIAdapter1* GetDXGIAdapter1() const noexcept { return dxgi_adapter.get(); }
 
-		inline std::string_view GetAdapterName() const noexcept { return dxgi_adapter_name; }
-		inline std::vector<std::string>& GetAdapterNameArray() { return dxgi_adapter_name_list; }
-
-		inline D3D_FEATURE_LEVEL GetD3DFeatureLevel() const noexcept { return d3d_feature_level; }
-
 		inline ID3D11Device* GetD3D11Device() const noexcept { return d3d11_device.get(); }
 		inline ID3D11Device1* GetD3D11Device1() const noexcept { return d3d11_device1.get(); }
 		inline ID3D11DeviceContext* GetD3D11DeviceContext() const noexcept { return d3d11_devctx.get(); }
