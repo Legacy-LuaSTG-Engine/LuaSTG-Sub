@@ -1,6 +1,5 @@
 #include "core/Graphics/Direct3D11/MeshRenderer.hpp"
 #include "core/Graphics/Direct3D11/Constants.hpp"
-#include "core/Graphics/Direct3D11/Buffer.hpp"
 #include "core/Graphics/Direct3D11/Texture2D.hpp"
 #include "core/Graphics/Direct3D11/SamplerState.hpp"
 #include "core/Graphics/Direct3D11/Mesh.hpp"
@@ -67,7 +66,7 @@ namespace core::Graphics::Direct3D11 {
 		// VS stage constant buffer setup by MeshRenderer
 		// * constant buffer (world matrix)
 
-		ID3D11Buffer* const world_matrix[1]{ static_cast<Buffer*>(m_constant_buffer.get())->getNativeBuffer() };
+		ID3D11Buffer* const world_matrix[1]{ static_cast<ID3D11Buffer*>(m_constant_buffer->getNativeResource()) };
 		ctx->VSSetConstantBuffers(Constants::vertex_shader_stage_constant_buffer_slot_world_matrix, 1, world_matrix);
 
 		// RS stage setup by Renderer:
@@ -122,7 +121,7 @@ namespace core::Graphics::Direct3D11 {
 			return true;
 		}
 		void* ptr{};
-		if (!m_constant_buffer->map(sizeof(m_transform), true, &ptr)) {
+		if (!m_constant_buffer->map(&ptr, true)) {
 			return false;
 		}
 		//auto const original = DirectX::XMLoadFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4 const*>(&m_transform));

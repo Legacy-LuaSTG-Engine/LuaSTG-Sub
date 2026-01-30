@@ -54,8 +54,8 @@ namespace core::Graphics
 	};
 
 	struct VertexIndexBuffer {
-		SmartReference<IBuffer> vertex_buffer;
-		SmartReference<IBuffer> index_buffer;
+		SmartReference<IGraphicsBuffer> vertex_buffer;
+		SmartReference<IGraphicsBuffer> index_buffer;
 		INT vertex_offset = 0;
 		UINT index_offset = 0;
 	};
@@ -146,8 +146,8 @@ namespace core::Graphics
 		SmartReference<GraphicsDevice> m_device;
 		SmartReference<ModelSharedComponent_D3D11> m_model_shared;
 
-		SmartReference<IBuffer> _fx_vbuffer;
-		SmartReference<IBuffer> _fx_ibuffer;
+		SmartReference<IGraphicsBuffer> _fx_vbuffer;
+		SmartReference<IGraphicsBuffer> _fx_ibuffer;
 		std::array<VertexIndexBuffer, 1> _vi_buffer;
 		size_t _vi_buffer_index = 0;
 		const size_t _vi_buffer_count = 1;
@@ -157,11 +157,11 @@ namespace core::Graphics
 		bool uploadVertexIndexBuffer(bool discard);
 		void clearDrawList();
 
-		SmartReference<IBuffer> _vp_matrix_buffer;
-		SmartReference<IBuffer> _world_matrix_buffer;
-		SmartReference<IBuffer> _camera_pos_buffer; // 在 postEffect 的时候被替换了
-		SmartReference<IBuffer> _fog_data_buffer; // 同时也用于储存 postEffect 的 纹理大小和视口范围
-		SmartReference<IBuffer> _user_float_buffer; // 在 postEffect 的时候用这个
+		SmartReference<IGraphicsBuffer> _vp_matrix_buffer;
+		SmartReference<IGraphicsBuffer> _world_matrix_buffer;
+		SmartReference<IGraphicsBuffer> _camera_pos_buffer; // 在 postEffect 的时候被替换了
+		SmartReference<IGraphicsBuffer> _fog_data_buffer; // 同时也用于储存 postEffect 的 纹理大小和视口范围
+		SmartReference<IGraphicsBuffer> _user_float_buffer; // 在 postEffect 的时候用这个
 
 		win32::com_ptr<ID3D11InputLayout> _input_layout;
 		win32::com_ptr<ID3D11VertexShader> _vertex_shader[IDX(FogState::MAX_COUNT)]; // FogState

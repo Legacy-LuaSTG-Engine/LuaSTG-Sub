@@ -461,7 +461,7 @@ namespace core {
         // For a constant buffer (BindFlags of D3D11_BUFFER_DESC set to D3D11_BIND_CONSTANT_BUFFER),
         // you must set the ByteWidth value of D3D11_BUFFER_DESC in multiples of 16, and less than or equal to D3D11_REQ_CONSTANT_BUFFER_ELEMENT_COUNT.
         // https://learn.microsoft.com/en-us/windows/win32/api/D3D11/nf-d3d11-id3d11device-createbuffer
-        info.ByteWidth = alignTo16(info.ByteWidth);
+        info.ByteWidth = alignTo16(m_size_in_bytes);
         info.Usage = D3D11_USAGE_DYNAMIC;
         info.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
         info.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;

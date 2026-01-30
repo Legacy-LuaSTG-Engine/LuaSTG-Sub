@@ -2,7 +2,6 @@
 
 #include "core/Graphics/Direct3D11/Mesh.hpp"
 #include "core/Logger.hpp"
-#include "core/Graphics/Direct3D11/Buffer.hpp"
 #include "d3d11/GraphicsDevice.hpp"
 #include "windows/RuntimeLoader/Direct3DCompiler.hpp"
 
@@ -234,7 +233,7 @@ namespace core::Graphics::Direct3D11 {
 		REPORT_READ_ONLY_RETURN_BOOL;
 		if (m_options.vertex_count > 0) {
 			void* pointer{};
-			if (!m_vertex_buffer->map(static_cast<uint32_t>(m_vertex_data.size()), true, &pointer)) {
+			if (!m_vertex_buffer->map(&pointer, true)) {
 				return false;
 			}
 			std::memcpy(pointer, m_vertex_data.data(), m_vertex_data.size());
@@ -244,7 +243,7 @@ namespace core::Graphics::Direct3D11 {
 		}
 		if (m_options.index_count > 0) {
 			void* pointer{};
-			if (!m_index_buffer->map(static_cast<uint32_t>(m_index_data.size()), true, &pointer)) {
+			if (!m_index_buffer->map(&pointer, true)) {
 				return false;
 			}
 			std::memcpy(pointer, m_index_data.data(), m_index_data.size());
@@ -270,11 +269,11 @@ namespace core::Graphics::Direct3D11 {
 
 		// Stage: IA
 
-		ID3D11Buffer* const vbs[]{ static_cast<Buffer*>(m_vertex_buffer.get())->getNativeBuffer() };
+		ID3D11Buffer* const vbs[]{ static_cast<ID3D11Buffer*>(m_vertex_buffer->getNativeResource()) };
 		constexpr UINT offset{};
 		ctx->IASetVertexBuffers(0, 1, vbs, &m_vertex_metadata.stride, &offset);
 		if (m_index_buffer) {
-			ID3D11Buffer* const ib{ static_cast<Buffer*>(m_index_buffer.get())->getNativeBuffer() };
+			ID3D11Buffer* const ib{ static_cast<ID3D11Buffer*>(m_index_buffer->getNativeResource()) };
 			ctx->IASetIndexBuffer(ib, m_options.vertex_index_compression ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT, 0);
 		}
 		ctx->IASetPrimitiveTopology(m_options.primitive_topology == PrimitiveTopology::triangle_list

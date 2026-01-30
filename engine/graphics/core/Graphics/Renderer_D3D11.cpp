@@ -166,13 +166,13 @@ namespace core::Graphics
 		assert(m_device->GetD3D11DeviceContext());
 
 		auto& vi = _vi_buffer[(index == 0xFFFFFFFFu) ? _vi_buffer_index : index];
-		ID3D11Buffer* vbo[1] = { static_cast<ID3D11Buffer*>(vi.vertex_buffer->getNativeHandle()) };
+		ID3D11Buffer* vbo[1] = { static_cast<ID3D11Buffer*>(vi.vertex_buffer->getNativeResource()) };
 		UINT stride[1] = { sizeof(IRenderer::DrawVertex) };
 		UINT offset[1] = { 0 };
 		m_device->GetD3D11DeviceContext()->IASetVertexBuffers(0, 1, vbo, stride, offset);
 
 		constexpr DXGI_FORMAT format = sizeof(DrawIndex) < 4 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
-		m_device->GetD3D11DeviceContext()->IASetIndexBuffer(static_cast<ID3D11Buffer*>(vi.index_buffer->getNativeHandle()), format, 0);
+		m_device->GetD3D11DeviceContext()->IASetIndexBuffer(static_cast<ID3D11Buffer*>(vi.index_buffer->getNativeResource()), format, 0);
 	}
 	bool Renderer_D3D11::uploadVertexIndexBuffer(const bool discard) {
 		tracy_zone_scoped;
@@ -183,7 +183,7 @@ namespace core::Graphics
 		// copy vertex data
 		if (_draw_list.vertex.size > 0) {
 			DrawVertex* ptr{};
-			if (!current.vertex_buffer->map(0, discard, reinterpret_cast<void**>(&ptr))) {
+			if (!current.vertex_buffer->map(reinterpret_cast<void**>(&ptr), discard)) {
 				Logger::error("[core] [Renderer] upload vertex buffer failed (map)");
 				return false;
 			}
@@ -197,7 +197,7 @@ namespace core::Graphics
 		// copy index data
 		if (_draw_list.index.size > 0) {
 			DrawIndex* ptr{};
-			if (!current.index_buffer->map(0, discard, reinterpret_cast<void**>(&ptr))) {
+			if (!current.index_buffer->map(reinterpret_cast<void**>(&ptr), discard)) {
 				Logger::error("[core] [Renderer] upload index buffer failed (map)");
 				return false;
 			}
@@ -232,7 +232,7 @@ namespace core::Graphics
 		{
 			constexpr DrawIndex quad_index[6] = { 0, 1, 2, 0, 2, 3 };
 			DrawIndex* ptr{};
-			if (!_fx_ibuffer->map(0, false, reinterpret_cast<void**>(&ptr))) {
+			if (!_fx_ibuffer->map(reinterpret_cast<void**>(&ptr), false)) {
 				return false;
 			}
 			std::memcpy(ptr, quad_index, sizeof(quad_index));
@@ -758,9 +758,9 @@ namespace core::Graphics
 
 		// [VS State]
 
-		ID3D11Buffer* const view_projection_matrix = static_cast<ID3D11Buffer*>(_vp_matrix_buffer->getNativeHandle());
+		ID3D11Buffer* const view_projection_matrix = static_cast<ID3D11Buffer*>(_vp_matrix_buffer->getNativeResource());
 		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, 1, &view_projection_matrix);
-		ID3D11Buffer* const world_matrix = static_cast<ID3D11Buffer*>(_world_matrix_buffer->getNativeHandle());
+		ID3D11Buffer* const world_matrix = static_cast<ID3D11Buffer*>(_world_matrix_buffer->getNativeResource());
 		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_world_matrix, 1, &world_matrix);
 
 		// [RS Stage]
@@ -769,9 +769,9 @@ namespace core::Graphics
 
 		// [PS State]
 
-		ID3D11Buffer* const camera_position = static_cast<ID3D11Buffer*>(_camera_pos_buffer->getNativeHandle());
+		ID3D11Buffer* const camera_position = static_cast<ID3D11Buffer*>(_camera_pos_buffer->getNativeResource());
 		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_camera_position, 1, &camera_position);
-		ID3D11Buffer* const fog_parameter = static_cast<ID3D11Buffer*>(_fog_data_buffer->getNativeHandle());
+		ID3D11Buffer* const fog_parameter = static_cast<ID3D11Buffer*>(_fog_data_buffer->getNativeResource());
 		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_fog_parameter, 1, &fog_parameter);
 
 		// [OM Stage]
@@ -847,7 +847,7 @@ namespace core::Graphics
 			_camera_state_set.is_3D = false;
 			DirectX::XMFLOAT4X4 f4x4;
 			DirectX::XMStoreFloat4x4(&f4x4, DirectX::XMMatrixOrthographicOffCenterLH(box.a.x, box.b.x, box.b.y, box.a.y, box.a.z, box.b.z));
-			if (!_vp_matrix_buffer->update(&f4x4, sizeof(f4x4))) {
+			if (!_vp_matrix_buffer->update(&f4x4, sizeof(f4x4), true)) {
 				Logger::error("[core] [Renderer] upload constant buffer failed (vp_matrix_buffer)");
 			}
 		}
@@ -879,10 +879,10 @@ namespace core::Graphics
 			};
 			auto* ctx = m_device->GetD3D11DeviceContext();
 			assert(ctx);
-			if (!_vp_matrix_buffer->update(&f4x4, sizeof(f4x4))) {
+			if (!_vp_matrix_buffer->update(&f4x4, sizeof(f4x4), true)) {
 				Logger::error("[core] [Renderer] upload constant buffer failed (vp_matrix_buffer)");
 			}
-			if (!_camera_pos_buffer->update(camera_pos, sizeof(camera_pos))) {
+			if (!_camera_pos_buffer->update(camera_pos, sizeof(camera_pos), true)) {
 				Logger::error("[core] [Renderer] upload constant buffer failed (camera_pos_buffer)");
 			}
 		}
@@ -962,7 +962,7 @@ namespace core::Graphics
 				(float)color.a / 255.0f,
 				density_or_znear, zfar, 0.0f, zfar - density_or_znear,
 			};
-			if (!_fog_data_buffer->update(fog_color_and_range, sizeof(fog_color_and_range))) {
+			if (!_fog_data_buffer->update(fog_color_and_range, sizeof(fog_color_and_range), true)) {
 				Logger::error("[core] [Renderer] upload constant buffer failed (fog_data_buffer)");
 			}
 			ctx->PSSetShader(_pixel_shader[IDX(_state_set.vertex_color_blend_state)][IDX(state)][IDX(_state_set.texture_alpha_type)].get(), NULL, 0);
@@ -1226,7 +1226,7 @@ namespace core::Graphics
 
 		/* upload vertex data */ {
 			DrawVertex* ptr{};
-			if (!_fx_vbuffer->map(0, true, reinterpret_cast<void**>(&ptr))) {
+			if (!_fx_vbuffer->map(reinterpret_cast<void**>(&ptr), true)) {
 				Logger::error("[core] [Renderer] upload vertex buffer failed (map)");
 				return false;
 			}
@@ -1244,22 +1244,22 @@ namespace core::Graphics
 		}
 
 		ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		ID3D11Buffer* p_d3d11_vbos[1] = { static_cast<ID3D11Buffer*>(_fx_vbuffer->getNativeHandle()) };
+		ID3D11Buffer* p_d3d11_vbos[1] = { static_cast<ID3D11Buffer*>(_fx_vbuffer->getNativeResource()) };
 		UINT const stride = sizeof(DrawVertex);
 		UINT const offset = 0;
 		ctx->IASetVertexBuffers(0, 1, p_d3d11_vbos, &stride, &offset);
-		ctx->IASetIndexBuffer(static_cast<ID3D11Buffer*>(_fx_ibuffer->getNativeHandle()), DXGI_FORMAT_R16_UINT, 0);
+		ctx->IASetIndexBuffer(static_cast<ID3D11Buffer*>(_fx_ibuffer->getNativeResource()), DXGI_FORMAT_R16_UINT, 0);
 		ctx->IASetInputLayout(_input_layout.get());
 
 		// [Stage VS]
 
 		DirectX::XMFLOAT4X4 vp_matrix;
 		DirectX::XMStoreFloat4x4(&vp_matrix, DirectX::XMMatrixOrthographicOffCenterLH(0.0f, sw_, 0.0f, sh_, 0.0f, 1.0f));
-		if (!_vp_matrix_buffer->update(&vp_matrix, sizeof(vp_matrix))) {
+		if (!_vp_matrix_buffer->update(&vp_matrix, sizeof(vp_matrix), true)) {
 			Logger::error("[core] [Renderer] upload constant buffer failed (vp_matrix_buffer)");
 		}
 		ctx->VSSetShader(_vertex_shader[IDX(FogState::Disable)].get(), NULL, 0);
-		ID3D11Buffer* const view_projection_matrix = static_cast<ID3D11Buffer*>(_vp_matrix_buffer->getNativeHandle());
+		ID3D11Buffer* const view_projection_matrix = static_cast<ID3D11Buffer*>(_vp_matrix_buffer->getNativeResource());
 		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, 1, &view_projection_matrix);
 
 		// [Stage RS]
@@ -1284,19 +1284,20 @@ namespace core::Graphics
 
 		// [Stage PS]
 
-		if (!_user_float_buffer->update(cv, std::min<size_t>(cv_n, 8) * sizeof(Vector4F))) {
+		const auto cv_sz = static_cast<uint32_t>(std::min<size_t>(cv_n, 8) * sizeof(Vector4F));
+		if (!_user_float_buffer->update(cv, cv_sz, true)) {
 			Logger::error("[core] [Renderer] upload constant buffer failed (user_float_buffer)");
 		}
 		const float size_viewport[8] = {
 			sw_, sh_, 0.0f, 0.0f,
 			_state_set.viewport.a.x, _state_set.viewport.a.y, _state_set.viewport.b.x, _state_set.viewport.b.y,
 		};
-		if (!_fog_data_buffer->update(size_viewport, sizeof(size_viewport))) {
+		if (!_fog_data_buffer->update(size_viewport, sizeof(size_viewport), true)) {
 			Logger::error("[core] [Renderer] upload constant buffer failed (fog_data_buffer/size_viewport_buffer)");
 		}
-		ID3D11Buffer* const user_data = static_cast<ID3D11Buffer*>(_user_float_buffer->getNativeHandle());
+		ID3D11Buffer* const user_data = static_cast<ID3D11Buffer*>(_user_float_buffer->getNativeResource());
 		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_user_data, 1, &user_data);
-		ID3D11Buffer* const fog_parameter = static_cast<ID3D11Buffer*>(_fog_data_buffer->getNativeHandle());
+		ID3D11Buffer* const fog_parameter = static_cast<ID3D11Buffer*>(_fog_data_buffer->getNativeResource());
 		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_fog_parameter, 1, &fog_parameter);
 
 		ctx->PSSetShader(static_cast<PostEffectShader_D3D11*>(p_effect)->GetPS(), NULL, 0);
@@ -1391,7 +1392,7 @@ namespace core::Graphics
 
 		/* upload vertex data */ {
 			DrawVertex* ptr{};
-			if (!_fx_vbuffer->map(0, true, reinterpret_cast<void**>(&ptr))) {
+			if (!_fx_vbuffer->map(reinterpret_cast<void**>(&ptr), true)) {
 				Logger::error("[core] [Renderer] upload vertex buffer failed (map)");
 				return false;
 			}
@@ -1409,22 +1410,22 @@ namespace core::Graphics
 		}
 
 		ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		ID3D11Buffer* p_d3d11_vbos[1] = { static_cast<ID3D11Buffer*>(_fx_vbuffer->getNativeHandle()) };
+		ID3D11Buffer* p_d3d11_vbos[1] = { static_cast<ID3D11Buffer*>(_fx_vbuffer->getNativeResource()) };
 		UINT const stride = sizeof(DrawVertex);
 		UINT const offset = 0;
 		ctx->IASetVertexBuffers(0, 1, p_d3d11_vbos, &stride, &offset);
-		ctx->IASetIndexBuffer(static_cast<ID3D11Buffer*>(_fx_ibuffer->getNativeHandle()), DXGI_FORMAT_R16_UINT, 0);
+		ctx->IASetIndexBuffer(static_cast<ID3D11Buffer*>(_fx_ibuffer->getNativeResource()), DXGI_FORMAT_R16_UINT, 0);
 		ctx->IASetInputLayout(_input_layout.get());
 
 		// [Stage VS]
 
 		DirectX::XMFLOAT4X4 vp_matrix;
 		DirectX::XMStoreFloat4x4(&vp_matrix, DirectX::XMMatrixOrthographicOffCenterLH(0.0f, sw_, 0.0f, sh_, 0.0f, 1.0f));
-		if (!_vp_matrix_buffer->update(&vp_matrix, sizeof(vp_matrix))) {
+		if (!_vp_matrix_buffer->update(&vp_matrix, sizeof(vp_matrix), true)) {
 			Logger::error("[core] [Renderer] upload constant buffer failed (vp_matrix_buffer)");
 		}
 		ctx->VSSetShader(_vertex_shader[IDX(FogState::Disable)].get(), NULL, 0);
-		ID3D11Buffer* const view_projection_matrix = static_cast<ID3D11Buffer*>(_vp_matrix_buffer->getNativeHandle());
+		ID3D11Buffer* const view_projection_matrix = static_cast<ID3D11Buffer*>(_vp_matrix_buffer->getNativeResource());
 		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, 1, &view_projection_matrix);
 
 		// [Stage RS]

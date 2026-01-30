@@ -38,7 +38,7 @@ namespace core::Graphics::Direct3D11 {
 		SmartReference<IGraphicsDevice> m_device;
 		SmartReference<ITexture2D> m_texture;
 		SmartReference<IMesh> m_mesh;
-		SmartReference<IBuffer> m_constant_buffer;
+		SmartReference<IGraphicsBuffer> m_constant_buffer;
 		Matrix4F m_transform{ Matrix4F::identity() };
 		IRenderer::VertexColorBlendState m_vertex_color_blend_state{ IRenderer::VertexColorBlendState::Mul };
 		IRenderer::BlendState m_blend_state{ IRenderer::BlendState::Alpha };

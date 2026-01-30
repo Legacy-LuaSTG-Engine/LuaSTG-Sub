@@ -34,10 +34,6 @@ namespace core {
         void* getNativeRendererHandle() override { return nullptr; }
 #endif
 
-        bool createVertexBuffer(uint32_t size_in_bytes, Graphics::IBuffer** output) override;
-        bool createIndexBuffer(uint32_t size_in_bytes, Graphics::IBuffer** output) override;
-        bool createConstantBuffer(uint32_t size_in_bytes, Graphics::IBuffer** output) override;
-
         bool createTextureFromFile(StringView path, bool mipmap, Graphics::ITexture2D** pp_texture) override;
         bool createTexture(Vector2U size, Graphics::ITexture2D** pp_texture) override;
         bool createTextureFromImage(IImage* image, bool mipmap, Graphics::ITexture2D** pp_texture) override;

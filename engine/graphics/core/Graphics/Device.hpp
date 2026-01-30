@@ -115,14 +115,6 @@ namespace core::Graphics
 		virtual bool setSize(Vector2U size) = 0;
 		virtual Vector2U getSize() const noexcept = 0;
 	};
-
-	struct IBuffer : IReferenceCounted {
-		virtual void* getNativeHandle() const noexcept = 0;
-
-		virtual bool map(uint32_t size_in_bytes, bool discard, void** out_pointer) = 0;
-		virtual bool unmap() = 0;
-		virtual bool update(const void* data, size_t size_in_bytes) = 0;
-	};
 }
 
 namespace core {
@@ -145,9 +137,4 @@ namespace core {
 	// ns:URL
 	// https://www.luastg-sub.com/core.IDepthStencilBuffer
 	template<> constexpr InterfaceId getInterfaceId<Graphics::IDepthStencilBuffer>() { return UUID::parse("2c92426c-9703-57aa-88e6-073957b0d92c"); }
-
-	// UUID v5
-	// ns:URL
-	// https://www.luastg-sub.com/core.IBuffer
-	template<> constexpr InterfaceId getInterfaceId<Graphics::IBuffer>() { return UUID::parse("089911ec-bd44-519e-a1e6-41a0e8e4626c"); }
 }
