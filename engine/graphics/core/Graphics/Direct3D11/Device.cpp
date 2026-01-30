@@ -13,8 +13,63 @@ namespace {
 	using std::string_view_literals::operator ""sv;
 }
 
-// Device
 namespace core::Graphics::Direct3D11 {
+	// IDevice
+
+	void Device::addEventListener(IDeviceEventListener* e) {
+		removeEventListener(e);
+		if (m_is_dispatch_event) {
+			m_eventobj_late.emplace_back(e);
+		}
+		else {
+			m_eventobj.emplace_back(e);
+		}
+	}
+	void Device::removeEventListener(IDeviceEventListener* e) {
+		if (m_is_dispatch_event) {
+			for (auto& v : m_eventobj) {
+				if (v == e) {
+					v = nullptr; // 不破坏遍历过程
+				}
+			}
+		}
+		else {
+			for (auto it = m_eventobj.begin(); it != m_eventobj.end();) {
+				if (*it == e)
+					it = m_eventobj.erase(it);
+				else
+					it++;
+			}
+		}
+	}
+
+	DeviceMemoryUsageStatistics Device::getMemoryUsageStatistics() {
+		DeviceMemoryUsageStatistics data = {};
+		win32::com_ptr<IDXGIAdapter3> adapter;
+		if (win32::check_hresult_as_boolean(dxgi_adapter->QueryInterface(adapter.put()))) {
+			DXGI_QUERY_VIDEO_MEMORY_INFO info = {};
+			if (win32::check_hresult_as_boolean(adapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &info))) {
+				data.local.budget = info.Budget;
+				data.local.current_usage = info.CurrentUsage;
+				data.local.available_for_reservation = info.AvailableForReservation;
+				data.local.current_reservation = info.CurrentReservation;
+			}
+			if (win32::check_hresult_as_boolean(adapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL, &info))) {
+				data.non_local.budget = info.Budget;
+				data.non_local.current_usage = info.CurrentUsage;
+				data.non_local.available_for_reservation = info.AvailableForReservation;
+				data.non_local.current_reservation = info.CurrentReservation;
+			}
+		}
+		return data;
+	}
+
+	bool Device::recreate() {
+		return doDestroyAndCreate();
+	}
+
+	// Device
+
 	Device::Device(const std::string_view preferred_gpu) : preferred_adapter_name(preferred_gpu) {
 	}
 	Device::~Device() {
@@ -49,6 +104,69 @@ namespace core::Graphics::Direct3D11 {
 		destroyDXGI();
 		assert(m_eventobj.size() == 0);
 		assert(m_eventobj_late.size() == 0);
+	}
+	bool Device::handleDeviceLost() {
+		if (d3d11_device) {
+			gHR = d3d11_device->GetDeviceRemovedReason();
+		}
+		return doDestroyAndCreate();
+	}
+
+	// Device: private
+
+	void Device::dispatchEvent(EventType t) {
+		// 回调
+		m_is_dispatch_event = true;
+		switch (t) {
+		case EventType::DeviceCreate:
+			for (auto& v : m_eventobj) {
+				if (v) v->onDeviceCreate();
+			}
+			break;
+		case EventType::DeviceDestroy:
+			for (auto& v : m_eventobj) {
+				if (v) v->onDeviceDestroy();
+			}
+			break;
+		}
+		m_is_dispatch_event = false;
+		// 处理那些延迟的对象
+		removeEventListener(nullptr);
+		for (auto& v : m_eventobj_late) {
+			m_eventobj.emplace_back(v);
+		}
+		m_eventobj_late.clear();
+	}
+
+	bool Device::testAdapterPolicy() {
+		if (preferred_adapter_name.empty()) {
+			return true; // default GPU
+		}
+
+		auto testStage = [](const std::string& name, const bool nv, const bool amd) -> bool {
+			Platform::AdapterPolicy::setNVIDIA(nv);
+			Platform::AdapterPolicy::setAMD(amd);
+			if (!core::GraphicsDeviceManager::refresh()) {
+				return false;
+			}
+			if (core::GraphicsDeviceManager::getPhysicalDeviceCount() == 0) {
+				return false;
+			}
+			return core::GraphicsDeviceManager::getPhysicalDeviceName(0) == name;
+		};
+
+		// Stage 1 - Disable and test
+		if (testStage(preferred_adapter_name, false, false)) return true;
+		// Stage 2 - Enable and test
+		if (testStage(preferred_adapter_name, true, true)) return true;
+		// Stage 3 - NVIDIA and test
+		if (testStage(preferred_adapter_name, true, false)) return true;
+		// Stage 4 - AMD and test
+		if (testStage(preferred_adapter_name, false, true)) return true;
+		// Stage 5 - Disable and failed
+		Platform::AdapterPolicy::setAll(false);
+
+		return false;
 	}
 	bool Device::selectAdapter() {
 		Logger::info("[core] [GraphicsDevice] enumerate physical devices"sv);
@@ -269,120 +387,8 @@ namespace core::Graphics::Direct3D11 {
 
 		return true;
 	}
-	bool Device::testAdapterPolicy() {
-		if (preferred_adapter_name.empty()) {
-			return true; // default GPU
-		}
-
-		auto testStage = [](const std::string& name, const bool nv, const bool amd) -> bool {
-			Platform::AdapterPolicy::setNVIDIA(nv);
-			Platform::AdapterPolicy::setAMD(amd);
-			if (!core::GraphicsDeviceManager::refresh()) {
-				return false;
-			}
-			if (core::GraphicsDeviceManager::getPhysicalDeviceCount() == 0) {
-				return false;
-			}
-			return core::GraphicsDeviceManager::getPhysicalDeviceName(0) == name;
-		};
-
-		// Stage 1 - Disable and test
-		if (testStage(preferred_adapter_name, false, false)) return true;
-		// Stage 2 - Enable and test
-		if (testStage(preferred_adapter_name, true, true)) return true;
-		// Stage 3 - NVIDIA and test
-		if (testStage(preferred_adapter_name, true, false)) return true;
-		// Stage 4 - AMD and test
-		if (testStage(preferred_adapter_name, false, true)) return true;
-		// Stage 5 - Disable and failed
-		Platform::AdapterPolicy::setAll(false);
-
-		return false;
-	}
-
-	bool Device::handleDeviceLost() {
-		if (d3d11_device) {
-			gHR = d3d11_device->GetDeviceRemovedReason();
-		}
-		return doDestroyAndCreate();
-	}
-
-	void Device::dispatchEvent(EventType t) {
-		// 回调
-		m_is_dispatch_event = true;
-		switch (t) {
-		case EventType::DeviceCreate:
-			for (auto& v : m_eventobj) {
-				if (v) v->onDeviceCreate();
-			}
-			break;
-		case EventType::DeviceDestroy:
-			for (auto& v : m_eventobj) {
-				if (v) v->onDeviceDestroy();
-			}
-			break;
-		}
-		m_is_dispatch_event = false;
-		// 处理那些延迟的对象
-		removeEventListener(nullptr);
-		for (auto& v : m_eventobj_late) {
-			m_eventobj.emplace_back(v);
-		}
-		m_eventobj_late.clear();
-	}
-
-	void Device::addEventListener(IDeviceEventListener* e) {
-		removeEventListener(e);
-		if (m_is_dispatch_event) {
-			m_eventobj_late.emplace_back(e);
-		}
-		else {
-			m_eventobj.emplace_back(e);
-		}
-	}
-	void Device::removeEventListener(IDeviceEventListener* e) {
-		if (m_is_dispatch_event) {
-			for (auto& v : m_eventobj) {
-				if (v == e) {
-					v = nullptr; // 不破坏遍历过程
-				}
-			}
-		}
-		else {
-			for (auto it = m_eventobj.begin(); it != m_eventobj.end();) {
-				if (*it == e)
-					it = m_eventobj.erase(it);
-				else
-					it++;
-			}
-		}
-	}
-
-	DeviceMemoryUsageStatistics Device::getMemoryUsageStatistics() {
-		DeviceMemoryUsageStatistics data = {};
-		win32::com_ptr<IDXGIAdapter3> adapter;
-		if (win32::check_hresult_as_boolean(dxgi_adapter->QueryInterface(adapter.put()))) {
-			DXGI_QUERY_VIDEO_MEMORY_INFO info = {};
-			if (win32::check_hresult_as_boolean(adapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &info))) {
-				data.local.budget = info.Budget;
-				data.local.current_usage = info.CurrentUsage;
-				data.local.available_for_reservation = info.AvailableForReservation;
-				data.local.current_reservation = info.CurrentReservation;
-			}
-			if (win32::check_hresult_as_boolean(adapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL, &info))) {
-				data.non_local.budget = info.Budget;
-				data.non_local.current_usage = info.CurrentUsage;
-				data.non_local.available_for_reservation = info.AvailableForReservation;
-				data.non_local.current_reservation = info.CurrentReservation;
-			}
-		}
-		return data;
-	}
-
-	bool Device::recreate() {
-		return doDestroyAndCreate();
-	}
 }
+
 namespace core::Graphics {
 	bool IDevice::create(const StringView preferred_gpu, IDevice** const output) {
 		if (output == nullptr) {
