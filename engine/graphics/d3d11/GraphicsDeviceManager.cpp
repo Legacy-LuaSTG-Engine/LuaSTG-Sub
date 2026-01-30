@@ -37,10 +37,9 @@ namespace {
     }
 
     bool createFactory(win32::com_ptr<IDXGIFactory2>& factory) {
-    #ifdef NDEBUG
-        constexpr UINT flags{};
-    #else
-        constexpr UINT flags{ DXGI_CREATE_FACTORY_DEBUG };
+        UINT flags{};
+    #if (!defined(NDEBUG) && defined(LUASTG_GRAPHICS_DEBUG_LAYER_ENABLE))
+        flags |= DXGI_CREATE_FACTORY_DEBUG;
     #endif
         if (const auto createFactory2 = getCreateFactory2(); createFactory2 != nullptr) {
             if (!win32::check_hresult_as_boolean(

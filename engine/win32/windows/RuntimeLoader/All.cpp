@@ -10,7 +10,7 @@ namespace Platform::RuntimeLoader
 		if (api_CreateDXGIFactory2)
 		{
 			UINT flags = 0;
-		#ifdef _DEBUG
+		#if (!defined(NDEBUG) && defined(LUASTG_GRAPHICS_DEBUG_LAYER_ENABLE))
 			flags |= DXGI_CREATE_FACTORY_DEBUG;
 		#endif
 			return api_CreateDXGIFactory2(flags, riid, ppFactory);
@@ -68,7 +68,7 @@ namespace Platform::RuntimeLoader
 	{
 		if (api_D3D11CreateDevice)
 		{
-		#ifdef _DEBUG
+		#if (!defined(NDEBUG) && defined(LUASTG_GRAPHICS_DEBUG_LAYER_ENABLE))
 			Flags |= D3D11_CREATE_DEVICE_DEBUG;
 		#endif
 			HRESULT hr = S_OK;
@@ -138,7 +138,7 @@ namespace Platform::RuntimeLoader
 	{
 		if (api_D3D11CreateDevice)
 		{
-		#ifdef _DEBUG
+		#if (!defined(NDEBUG) && defined(LUASTG_GRAPHICS_DEBUG_LAYER_ENABLE))
 			Flags |= D3D11_CREATE_DEVICE_DEBUG;
 		#endif
 			HRESULT hr = S_OK;
@@ -270,7 +270,7 @@ namespace Platform::RuntimeLoader
 		}
 		if (api_D3D11CreateDevice)
 		{
-		#ifdef _DEBUG
+		#if (!defined(NDEBUG) && defined(LUASTG_GRAPHICS_DEBUG_LAYER_ENABLE))
 			Flags |= D3D11_CREATE_DEVICE_DEBUG;
 		#endif
 			HRESULT hr = S_OK;
@@ -450,7 +450,7 @@ namespace Platform::RuntimeLoader
 		if (api_D2D1CreateFactory)
 		{
 			D2D1_FACTORY_OPTIONS options = {
-			#ifdef _DEBUG
+			#if (!defined(NDEBUG) && defined(LUASTG_GRAPHICS_DEBUG_LAYER_ENABLE))
 				.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION
 			#else
 				.debugLevel = D2D1_DEBUG_LEVEL_NONE
@@ -475,7 +475,7 @@ namespace Platform::RuntimeLoader
 				.threadingMode = multiThread
 					? D2D1_THREADING_MODE_MULTI_THREADED
 					: D2D1_THREADING_MODE_SINGLE_THREADED,
-			#ifdef _DEBUG
+			#if (!defined(NDEBUG) && defined(LUASTG_GRAPHICS_DEBUG_LAYER_ENABLE))
 				.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION,
 			#else
 				.debugLevel = D2D1_DEBUG_LEVEL_NONE,
@@ -500,7 +500,7 @@ namespace Platform::RuntimeLoader
 				.threadingMode = multiThread
 					? D2D1_THREADING_MODE_MULTI_THREADED
 					: D2D1_THREADING_MODE_SINGLE_THREADED,
-			#ifdef _DEBUG
+			#if (!defined(NDEBUG) && defined(LUASTG_GRAPHICS_DEBUG_LAYER_ENABLE))
 				.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION,
 			#else
 				.debugLevel = D2D1_DEBUG_LEVEL_NONE,

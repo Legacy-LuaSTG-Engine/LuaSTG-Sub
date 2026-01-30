@@ -13,7 +13,7 @@ namespace d3d11 {
     ) {
 		const auto driver_type = (adapter != nullptr) ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE;
 		UINT flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
-	#ifndef NDEBUG
+	#if (!defined(NDEBUG) && defined(LUASTG_GRAPHICS_DEBUG_LAYER_ENABLE))
 		flags |= D3D11_CREATE_DEVICE_DEBUG;
 	#endif
 		constexpr D3D_FEATURE_LEVEL feature_levels[] {
@@ -50,7 +50,7 @@ namespace d3d11 {
         ID3D11Device** const device, ID3D11DeviceContext** const device_context, D3D_FEATURE_LEVEL* const feature_level
     ) {
 		UINT flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
-	#ifndef NDEBUG
+	#if (!defined(NDEBUG) && defined(LUASTG_GRAPHICS_DEBUG_LAYER_ENABLE))
 		flags |= D3D11_CREATE_DEVICE_DEBUG;
 	#endif
 		constexpr D3D_FEATURE_LEVEL feature_levels[] {

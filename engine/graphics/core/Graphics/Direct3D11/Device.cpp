@@ -326,7 +326,7 @@ namespace core::Graphics::Direct3D11 {
 		HRESULT hr = S_OK;
 
 		D2D1_FACTORY_OPTIONS d2d1_options{};
-	#ifndef NDEBUG
+	#if (!defined(NDEBUG) && defined(LUASTG_GRAPHICS_DEBUG_LAYER_ENABLE))
 		d2d1_options.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION;
 	#endif
 		hr = gHR = D2D1CreateFactory(

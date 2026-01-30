@@ -131,6 +131,15 @@ luastg_cmake_option(
 unset(use_wic)
 unset(image_library_enable)
 
+# LuaSTG - Graphics
+
+luastg_cmake_option(
+    NAME LUASTG_GRAPHICS_DEBUG_LAYER_ENABLE
+    TYPE BOOL
+    HELP "LuaSTG: Graphics: Enable debug layer"
+    VALUE TRUE
+)
+
 # LuaSTG - Steam API
 
 luastg_cmake_option(

@@ -42,10 +42,10 @@ namespace {
     ID2D1Factory* getRendererFactory() {
         if (!s_d2d1_factory) {
             constexpr D2D1_FACTORY_OPTIONS options{
-        #ifdef NDEBUG
-                .debugLevel = D2D1_DEBUG_LEVEL_NONE,
-        #else
+        #if (!defined(NDEBUG) && defined(LUASTG_GRAPHICS_DEBUG_LAYER_ENABLE))
                 .debugLevel = D2D1_DEBUG_LEVEL_INFORMATION,
+        #else
+                .debugLevel = D2D1_DEBUG_LEVEL_NONE,
         #endif
             };
             win32::check_hresult_throw_if_failed(
