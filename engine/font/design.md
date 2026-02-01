@@ -1,3 +1,5 @@
+# (outdated)
+
 ImageAtlas
     getImage
     add
