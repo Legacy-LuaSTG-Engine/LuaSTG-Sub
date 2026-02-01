@@ -2,13 +2,29 @@
 #include "core/ReferenceCounted.hpp"
 #include "core/Vector2.hpp"
 #include "core/Rect.hpp"
-#include "core/Image.hpp"
 #include "core/ImmutableString.hpp"
+#include "core/Image.hpp"
+#include "core/GraphicsFormat.hpp"
+#include "core/GraphicsSampler.hpp"
 
 namespace core {
+    enum class TextureBindFlag {
+        shader_resource = 0x8,
+        render_target = 0x20,
+        depth_stencil_buffer = 0x40,
+    };
+
+    struct TextureInfo {
+        GraphicsFormat format;
+        TextureBindFlag bind_flags;
+        uint32_t width;
+        uint32_t height;
+        uint32_t mipmap_level;
+    };
+
     CORE_INTERFACE ITexture2D : IReferenceCounted {
-        virtual void* getNativeResource() = 0;
-        virtual void* getNativeView() = 0;
+        virtual void* getNativeResource() const noexcept = 0;
+        virtual void* getNativeView() const noexcept = 0;
 
         virtual bool isDynamic() const noexcept = 0;
         virtual bool isPremultipliedAlpha() const noexcept = 0;
@@ -21,9 +37,9 @@ namespace core {
 
         virtual bool saveToFile(StringView path) = 0;
 
-        //virtual void setSamplerState(ISamplerState* p_sampler) = 0;
-        // Might be nullptr
-        //virtual ISamplerState* getSamplerState() const noexcept = 0;
+        virtual void setSamplerState(IGraphicsSampler* sampler) = 0;
+        virtual IGraphicsSampler* getSamplerState() const noexcept = 0;
     };
+
     CORE_INTERFACE_ID(ITexture2D, "5477054a-61c9-5071-9339-a9959e538a21")
 }
