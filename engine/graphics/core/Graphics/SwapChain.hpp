@@ -3,7 +3,6 @@
 #include "core/Rational.hpp"
 #include "core/ReferenceCounted.hpp"
 #include "core/Window.hpp"
-#include "core/Graphics/Format.hpp"
 #include "core/GraphicsDevice.hpp"
 
 namespace core::Graphics
@@ -13,7 +12,6 @@ namespace core::Graphics
 		uint32_t width{ 0 };
 		uint32_t height{ 0 };
 		Rational refresh_rate;
-		Format format{ Format::B8G8R8A8_UNORM };
 	};
 
 	enum class SwapChainScalingMode

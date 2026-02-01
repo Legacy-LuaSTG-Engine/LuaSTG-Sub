@@ -134,11 +134,11 @@ void luastg::binding::BuiltInFunction::Register(lua_State* L)noexcept
 		{
 			lua_createtable(L, 5, 0);		// t
 			core::Graphics::DisplayMode mode_list[5] = {
-				{ 640, 480, { 60, 1 }, core::Graphics::Format::B8G8R8A8_UNORM },
-				{ 800, 600, { 60, 1 }, core::Graphics::Format::B8G8R8A8_UNORM },
-				{ 960, 720, { 60, 1 }, core::Graphics::Format::B8G8R8A8_UNORM },
-				{ 1024, 768, { 60, 1 }, core::Graphics::Format::B8G8R8A8_UNORM },
-				{ 1280, 960, { 60, 1 }, core::Graphics::Format::B8G8R8A8_UNORM },
+				{  640, 480, { 60, 1 } },
+				{  800, 600, { 60, 1 } },
+				{  960, 720, { 60, 1 } },
+				{ 1024, 768, { 60, 1 } },
+				{ 1280, 960, { 60, 1 } },
 			};
 			for (int index = 0; index < 5; index += 1)
 			{
