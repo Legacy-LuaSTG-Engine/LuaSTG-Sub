@@ -22,6 +22,7 @@ namespace {
         switch (mode) {
         case core::GraphicsTextureAddressMode::wrap: return D3D11_TEXTURE_ADDRESS_WRAP;
         case core::GraphicsTextureAddressMode::clamp: return D3D11_TEXTURE_ADDRESS_CLAMP;
+        case core::GraphicsTextureAddressMode::border: return D3D11_TEXTURE_ADDRESS_BORDER;
         default: assert(false); return D3D11_TEXTURE_ADDRESS_CLAMP;
         }
     }

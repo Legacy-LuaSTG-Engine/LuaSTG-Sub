@@ -89,14 +89,20 @@ namespace core::Graphics
 		};
 		enum class SamplerState : uint8_t
 		{
+			// NOTE: 这里的枚举值不要随便改，要兼容以前遗留的屎山代码
+
 			MIN_INDEX = 0,
 
 			PointWrap = MIN_INDEX,
 			PointClamp,
+			PointBorderBlack,
+			PointBorderWhite,
 			LinearWrap,
 			LinearClamp,
+			LinearBorderBlack,
+			LinearBorderWhite,
 
-			MAX_INDEX = LinearClamp,
+			MAX_INDEX = LinearBorderWhite,
 			MAX_COUNT,
 		};
 		enum class TextureAlphaType : uint8_t

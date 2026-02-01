@@ -48,6 +48,7 @@ namespace core {
     enum class GraphicsTextureAddressMode : int32_t {
         wrap = 1,
         clamp = 3,
+        border = 4,
     };
 
     struct GraphicsSamplerInfo {

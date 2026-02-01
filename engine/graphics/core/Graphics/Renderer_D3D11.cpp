@@ -305,6 +305,20 @@ namespace core::Graphics
 			if (!m_device->createSampler(sampler_info, _sampler_state[IDX(SamplerState::PointClamp)].put()))
 				return false;
 
+			sampler_info.filter = GraphicsFilter::point;
+			sampler_info.address_u = GraphicsTextureAddressMode::border;
+			sampler_info.address_v = GraphicsTextureAddressMode::border;
+			sampler_info.address_w = GraphicsTextureAddressMode::border;
+			if (!m_device->createSampler(sampler_info, _sampler_state[IDX(SamplerState::PointBorderBlack)].put()))
+				return false;
+
+			sampler_info.filter = GraphicsFilter::point;
+			sampler_info.address_u = GraphicsTextureAddressMode::border;
+			sampler_info.address_v = GraphicsTextureAddressMode::border;
+			sampler_info.address_w = GraphicsTextureAddressMode::border;
+			if (!m_device->createSampler(sampler_info, _sampler_state[IDX(SamplerState::PointBorderWhite)].put())) // TODO: white?
+				return false;
+
 			// linear
 
 			sampler_info.filter = GraphicsFilter::linear;
@@ -319,6 +333,20 @@ namespace core::Graphics
 			sampler_info.address_v = GraphicsTextureAddressMode::clamp;
 			sampler_info.address_w = GraphicsTextureAddressMode::clamp;
 			if (!m_device->createSampler(sampler_info, _sampler_state[IDX(SamplerState::LinearClamp)].put()))
+				return false;
+
+			sampler_info.filter = GraphicsFilter::linear;
+			sampler_info.address_u = GraphicsTextureAddressMode::border;
+			sampler_info.address_v = GraphicsTextureAddressMode::border;
+			sampler_info.address_w = GraphicsTextureAddressMode::border;
+			if (!m_device->createSampler(sampler_info, _sampler_state[IDX(SamplerState::LinearBorderBlack)].put()))
+				return false;
+
+			sampler_info.filter = GraphicsFilter::linear;
+			sampler_info.address_u = GraphicsTextureAddressMode::border;
+			sampler_info.address_v = GraphicsTextureAddressMode::border;
+			sampler_info.address_w = GraphicsTextureAddressMode::border;
+			if (!m_device->createSampler(sampler_info, _sampler_state[IDX(SamplerState::LinearBorderWhite)].put())) // TODO: white?
 				return false;
 		}
 
