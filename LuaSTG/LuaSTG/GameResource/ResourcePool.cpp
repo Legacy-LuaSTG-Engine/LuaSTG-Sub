@@ -200,7 +200,7 @@ namespace luastg
             return true;
         }
     
-        core::SmartReference<core::Graphics::ITexture2D> p_texture;
+        core::SmartReference<core::ITexture2D> p_texture;
         if (!LAPP.getGraphicsDevice()->createTextureFromFile(path, mipmaps, p_texture.put()))
         {
             spdlog::error("[luastg] 从 '{}' 创建纹理 '{}' 失败", path, name);
@@ -238,7 +238,7 @@ namespace luastg
             return true;
         }
 
-        core::SmartReference<core::Graphics::ITexture2D> p_texture;
+        core::SmartReference<core::ITexture2D> p_texture;
         if (!LAPP.getGraphicsDevice()->createTexture(core::Vector2U((uint32_t)width, (uint32_t)height), p_texture.put()))
         {
             spdlog::error("[luastg] 创建纹理 '{}' ({}x{}) 失败", name, width, height);

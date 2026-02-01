@@ -1,6 +1,5 @@
 #include "core/Graphics/Direct3D11/MeshRenderer.hpp"
 #include "core/Graphics/Direct3D11/Constants.hpp"
-#include "core/Graphics/Direct3D11/Texture2D.hpp"
 #include "core/Graphics/Direct3D11/Mesh.hpp"
 #include "d3d11/GraphicsDevice.hpp"
 #include "core/Graphics/Renderer_D3D11.hpp"
@@ -81,7 +80,7 @@ namespace core::Graphics::Direct3D11 {
 		// * shader resource view (texture)
 		// * sampler state
 
-		ID3D11ShaderResourceView* const texture[1]{ static_cast<Texture2D*>(m_texture.get())->GetView() };
+		ID3D11ShaderResourceView* const texture[1]{ static_cast<ID3D11ShaderResourceView*>(m_texture->getNativeView()) };
 		ctx->PSSetShaderResources(0, 1, texture);
 
 		ID3D11SamplerState* sampler_state[1]{};

@@ -141,7 +141,7 @@ namespace core::Graphics::Common {
 		bool result = true;
 		for (auto& t : m_tex) {
 			if (t.dirty_l != GlyphCache2D::invalid_rect_value) {
-				if (t.texture->uploadPixelData(
+				if (t.texture->update(
 					RectU(t.dirty_l, t.dirty_t, t.dirty_r, t.dirty_b),
 					&t.image.pixel(t.dirty_l, t.dirty_t),
 					t.image.pitch

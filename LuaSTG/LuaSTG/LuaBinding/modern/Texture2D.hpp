@@ -6,7 +6,7 @@ namespace luastg::binding {
 	struct Texture2D {
 		static std::string_view class_name;
 
-		[[maybe_unused]] core::Graphics::ITexture2D* data{};
+		[[maybe_unused]] core::ITexture2D* data{};
 
 		static bool is(lua_State* vm, int index);
 		static Texture2D* as(lua_State* vm, int index);

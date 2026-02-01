@@ -8,7 +8,7 @@ namespace luastg
 	class ResourceTextureImpl : public ResourceBaseImpl<IResourceTexture>
 	{
 	private:
-		core::SmartReference<core::Graphics::ITexture2D> m_texture;
+		core::SmartReference<core::ITexture2D> m_texture;
 		core::SmartReference<core::Graphics::IRenderTarget> m_rt;
 		core::SmartReference<core::IDepthStencilBuffer> m_ds;
 		bool m_is_rendertarget{ false };
@@ -17,14 +17,14 @@ namespace luastg
 	public:
 		bool ResizeRenderTarget(core::Vector2U size);
 	public:
-		core::Graphics::ITexture2D* GetTexture() { return m_texture.get(); }
+		core::ITexture2D* GetTexture() { return m_texture.get(); }
 		core::Graphics::IRenderTarget* GetRenderTarget() { return m_rt.get(); }
 		core::IDepthStencilBuffer* GetDepthStencilBuffer() { return m_ds.get(); }
 		bool IsRenderTarget() { return m_is_rendertarget; }
 		bool HasDepthStencilBuffer() { return m_enable_depthbuffer; }
 	public:
 		// 纹理容器
-		ResourceTextureImpl(const char* name, core::Graphics::ITexture2D* p_texture);
+		ResourceTextureImpl(const char* name, core::ITexture2D* p_texture);
 		// 渲染附件容器
 		ResourceTextureImpl(const char* name, int w, int h, bool ds);
 		// 自动调整大小的渲染附件容器
@@ -43,7 +43,7 @@ namespace luastg
 
 		bool ResizeRenderTarget(core::Vector2U) override { return false; }
 
-		core::Graphics::ITexture2D* GetTexture() override { return m_rt->getTexture(); }
+		core::ITexture2D* GetTexture() override { return m_rt->getTexture(); }
 		core::Graphics::IRenderTarget* GetRenderTarget() override { return m_rt.get(); }
 		core::IDepthStencilBuffer* GetDepthStencilBuffer() override { return m_ds.get(); }
 		bool IsRenderTarget() override { return true; }

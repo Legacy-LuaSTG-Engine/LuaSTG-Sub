@@ -105,7 +105,7 @@ namespace core::Graphics {
                 return false;
             }
 
-            if (!m_texture->uploadPixelData(core::RectU({}, size), buffer.data, buffer.stride)) {
+            if (!m_texture->update(core::RectU({}, size), buffer.data, buffer.stride)) {
                 return false;
             }
             m_texture->setImage(image);

@@ -5,8 +5,6 @@
 
 // RenderTarget
 namespace core::Graphics::Direct3D11 {
-	class Texture2D;
-
 	class RenderTarget final
 		: public implement::ReferenceCounted<IRenderTarget>
 		, public IGraphicsDeviceEventListener {
@@ -43,7 +41,7 @@ namespace core::Graphics::Direct3D11 {
 
 	private:
 		SmartReference<IGraphicsDevice> m_device;
-		SmartReference<Texture2D> m_texture;
+		SmartReference<ITexture2D> m_texture;
 		win32::com_ptr<ID3D11RenderTargetView> m_view;
 #ifdef LUASTG_ENABLE_DIRECT2D
 		win32::com_ptr<ID2D1Bitmap1> m_bitmap;

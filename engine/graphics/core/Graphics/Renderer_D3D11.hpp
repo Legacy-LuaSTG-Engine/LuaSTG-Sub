@@ -1,7 +1,6 @@
 #pragma once
 #include "core/implement/ReferenceCounted.hpp"
 #include "core/Graphics/Renderer.hpp"
-#include "core/Graphics/Direct3D11/Texture2D.hpp"
 #include "d3d11/GraphicsDevice.hpp"
 #include "core/Graphics/Model_D3D11.hpp"
 
@@ -62,7 +61,7 @@ namespace core::Graphics
 
 	struct DrawCommand
 	{
-		SmartReference<Direct3D11::Texture2D> texture;
+		SmartReference<ITexture2D> texture;
 		uint16_t vertex_count = 0;
 		uint16_t index_count = 0;
 	};
@@ -105,7 +104,7 @@ namespace core::Graphics
 		struct LocalTexture2D
 		{
 			UINT index{};
-			SmartReference<Direct3D11::Texture2D> texture;
+			SmartReference<ITexture2D> texture;
 		};
 	private:
 		SmartReference<GraphicsDevice> m_device;
@@ -171,7 +170,7 @@ namespace core::Graphics
 		win32::com_ptr<ID3D11DepthStencilState> _depth_state[IDX(DepthState::MAX_COUNT)];
 		win32::com_ptr<ID3D11BlendState> _blend_state[IDX(BlendState::MAX_COUNT)];
 		
-		SmartReference<Direct3D11::Texture2D> _state_texture;
+		SmartReference<ITexture2D> _state_texture;
 		CameraStateSet _camera_state_set;
 		RendererStateSet _state_set;
 		bool _state_dirty = false;

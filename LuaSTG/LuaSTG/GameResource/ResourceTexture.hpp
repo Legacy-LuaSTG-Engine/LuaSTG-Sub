@@ -8,7 +8,7 @@ namespace luastg
 	{
 		virtual bool ResizeRenderTarget(core::Vector2U size) = 0;
 
-		virtual core::Graphics::ITexture2D* GetTexture() = 0;
+		virtual core::ITexture2D* GetTexture() = 0;
 		virtual core::Graphics::IRenderTarget* GetRenderTarget() = 0;
 		virtual core::IDepthStencilBuffer* GetDepthStencilBuffer() = 0;
 		virtual bool IsRenderTarget() = 0;

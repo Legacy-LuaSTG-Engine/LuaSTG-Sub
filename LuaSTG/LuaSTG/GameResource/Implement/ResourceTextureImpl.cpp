@@ -42,7 +42,7 @@ namespace luastg
 		return true;
 	}
 
-	ResourceTextureImpl::ResourceTextureImpl(const char* name, core::Graphics::ITexture2D* p_texture)
+	ResourceTextureImpl::ResourceTextureImpl(const char* name, core::ITexture2D* p_texture)
 		: ResourceBaseImpl(ResourceType::Texture, name)
 		, m_texture(p_texture)
 		, m_is_rendertarget(false)

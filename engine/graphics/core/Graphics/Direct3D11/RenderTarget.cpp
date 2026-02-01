@@ -1,13 +1,13 @@
 #include "core/Graphics/Direct3D11/RenderTarget.hpp"
 #include "core/Logger.hpp"
-#include "core/Graphics/Direct3D11/Texture2D.hpp"
+#include "d3d11/Texture2D.hpp"
 
 // RenderTarget
 namespace core::Graphics::Direct3D11 {
 	void RenderTarget::onGraphicsDeviceCreate() {
 		if (m_initialized) {
 			// 这里不能直接调用 texture 的 onDeviceCreate，因为要判断创建是否成功
-			if (m_texture->createResource()) {
+			if (static_cast<Texture2D*>(m_texture.get())->createResource()) {
 				createResource();
 			}
 		}
@@ -17,7 +17,7 @@ namespace core::Graphics::Direct3D11 {
 #ifdef LUASTG_ENABLE_DIRECT2D
 		m_bitmap.reset();
 #endif
-		m_texture->onGraphicsDeviceDestroy();
+		static_cast<Texture2D*>(m_texture.get())->onGraphicsDeviceDestroy();
 	}
 
 	ITexture2D* RenderTarget::getTexture() const noexcept { return m_texture.get(); }
@@ -45,7 +45,7 @@ namespace core::Graphics::Direct3D11 {
 		assert(size.x > 0 && size.y > 0);
 		m_device = device;
 		m_texture.attach(new Texture2D);
-		if (!m_texture->initialize(device, size, true)) {
+		if (!static_cast<Texture2D*>(m_texture.get())->initialize(device, size, true)) {
 			return false;
 		}
 		if (!createResource()) {
@@ -73,8 +73,10 @@ namespace core::Graphics::Direct3D11 {
 
 		// 获取纹理资源信息
 
+		const auto texture = static_cast<ID3D11Texture2D*>(m_texture->getNativeResource());
+		assert(texture != nullptr);
 		D3D11_TEXTURE2D_DESC tex2ddef = {};
-		m_texture->GetResource()->GetDesc(&tex2ddef);
+		texture->GetDesc(&tex2ddef);
 
 		// 创建渲染目标视图
 
@@ -85,7 +87,7 @@ namespace core::Graphics::Direct3D11 {
 			.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D,
 			.Texture2D = D3D11_TEX2D_RTV{.MipSlice = 0,},
 		};
-		hr = gHR = d3d11_device->CreateRenderTargetView(m_texture->GetResource(), &rtvdef, m_view.put());
+		hr = gHR = d3d11_device->CreateRenderTargetView(texture, &rtvdef, m_view.put());
 		if (FAILED(hr)) {
 			Logger::error("Windows API failed: ID3D11Device::CreateRenderTargetView");
 			return false;
@@ -94,14 +96,14 @@ namespace core::Graphics::Direct3D11 {
 
 		// 创建D2D1位图
 
+#ifdef LUASTG_ENABLE_DIRECT2D
 		win32::com_ptr<IDXGISurface> dxgi_surface;
-		hr = gHR = m_texture->GetResource()->QueryInterface(dxgi_surface.put());
+		hr = gHR = texture->QueryInterface(dxgi_surface.put());
 		if (FAILED(hr)) {
 			Logger::error("Windows API failed: ID3D11Texture2D::QueryInterface -> IDXGISurface");
 			return false;
 		}
 
-#ifdef LUASTG_ENABLE_DIRECT2D
 		D2D1_BITMAP_PROPERTIES1 bitmap_info = {
 			.pixelFormat = {
 				.format = DXGI_FORMAT_B8G8R8A8_UNORM,

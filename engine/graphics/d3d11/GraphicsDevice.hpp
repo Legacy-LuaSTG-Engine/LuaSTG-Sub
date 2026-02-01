@@ -13,17 +13,21 @@ namespace core {
         void addEventListener(IGraphicsDeviceEventListener* listener) override;
         void removeEventListener(IGraphicsDeviceEventListener* listener) override;
 
+        GraphicsDeviceMemoryStatistics getMemoryStatistics() override;
+
         bool createVertexBuffer(uint32_t size_in_bytes, IGraphicsBuffer** output_buffer) override;
         bool createIndexBuffer(uint32_t size_in_bytes, IGraphicsBuffer** output_buffer) override;
         bool createConstantBuffer(uint32_t size_in_bytes, IGraphicsBuffer** output_buffer) override;
+
+        bool createTextureFromFile(StringView path, bool mipmap, ITexture2D** out_texture) override;
+        bool createTexture(Vector2U size, ITexture2D** out_texture) override;
+        bool createTextureFromImage(IImage* image, bool mipmap, ITexture2D** out_texture) override;
 
         bool createSampler(const GraphicsSamplerInfo& info, IGraphicsSampler** out_sampler) override;
 
         bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** out_depth_stencil_buffer) override;
 
         // from IDevice
-
-        GraphicsDeviceMemoryStatistics getMemoryStatistics() override;
 
         bool recreate() override;
         void setPreferenceGpu(StringView preferred_gpu) override { preferred_adapter_name = preferred_gpu; }
@@ -37,11 +41,6 @@ namespace core {
 #else
         void* getNativeRendererHandle() override { return nullptr; }
 #endif
-
-        bool createTextureFromFile(StringView path, bool mipmap, Graphics::ITexture2D** pp_texture) override;
-        bool createTexture(Vector2U size, Graphics::ITexture2D** pp_texture) override;
-        bool createTextureFromImage(IImage* image, bool mipmap, Graphics::ITexture2D** pp_texture) override;
-
         bool createRenderTarget(Vector2U size, Graphics::IRenderTarget** pp_rt) override;
 
         // GraphicsDevice

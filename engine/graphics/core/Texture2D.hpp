@@ -31,7 +31,7 @@ namespace core {
         virtual void setPremultipliedAlpha(bool v) = 0;
         virtual Vector2U getSize() const noexcept = 0;
 
-        virtual bool resize(Vector2U size) = 0;
+        virtual bool setSize(Vector2U size) = 0;
         virtual bool update(RectU rect, void const* data, uint32_t row_pitch_in_bytes) = 0;
         virtual void setImage(IImage* image) = 0;
 

@@ -2663,7 +2663,7 @@ namespace DirectWrite
 		// upload data
 
 		p_texture->setPremultipliedAlpha(true);
-		if (!p_texture->uploadPixelData(
+		if (!p_texture->update(
 			core::RectU(0, 0, (uint32_t)texture_canvas_width, (uint32_t)texture_canvas_height),
 			canvas_buffer.data, canvas_buffer.stride
 		)) {
