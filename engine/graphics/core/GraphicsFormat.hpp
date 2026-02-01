@@ -96,35 +96,28 @@ namespace core {
 
         // bc
 
-        bc1_typeless,
         bc1_unorm,
         bc1_unorm_srgb,
 
-        bc2_typeless,
         bc2_unorm,
         bc2_unorm_srgb,
 
-        bc3_typeless,
         bc3_unorm,
         bc3_unorm_srgb,
 
-        bc4_typeless,
         bc4_unorm,
         bc4_snorm,
 
-        bc5_typeless,
         bc5_unorm,
         bc5_snorm,
 
-        bc6h_typeless,
         bc6h_uf16,
         bc6h_sf16,
 
-        bc7_typeless,
         bc7_unorm,
         bc7_unorm_srgb,
 
-        // complex
+        // other
 
         r32_g32_b32_a32_typeless,
         r32_g32_b32_typeless,
@@ -151,5 +144,13 @@ namespace core {
 
         b8_g8_r8_a8_typeless,
         b8_g8_r8_x8_typeless,
+
+        bc1_typeless,
+        bc2_typeless,
+        bc3_typeless,
+        bc4_typeless,
+        bc5_typeless,
+        bc6h_typeless,
+        bc7_typeless,
     };
 }

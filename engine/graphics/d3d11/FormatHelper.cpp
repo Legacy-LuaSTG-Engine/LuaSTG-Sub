@@ -96,31 +96,24 @@ namespace d3d11 {
 
         // bc
 
-        case core::GraphicsFormat::bc1_typeless: return DXGI_FORMAT_BC1_TYPELESS;
         case core::GraphicsFormat::bc1_unorm: return DXGI_FORMAT_BC1_UNORM;
         case core::GraphicsFormat::bc1_unorm_srgb: return DXGI_FORMAT_BC1_UNORM_SRGB;
 
-        case core::GraphicsFormat::bc2_typeless: return DXGI_FORMAT_BC2_TYPELESS;
         case core::GraphicsFormat::bc2_unorm: return DXGI_FORMAT_BC2_UNORM;
         case core::GraphicsFormat::bc2_unorm_srgb: return DXGI_FORMAT_BC2_UNORM_SRGB;
 
-        case core::GraphicsFormat::bc3_typeless: return DXGI_FORMAT_BC3_TYPELESS;
         case core::GraphicsFormat::bc3_unorm: return DXGI_FORMAT_BC3_UNORM;
         case core::GraphicsFormat::bc3_unorm_srgb: return DXGI_FORMAT_BC3_UNORM_SRGB;
 
-        case core::GraphicsFormat::bc4_typeless: return DXGI_FORMAT_BC4_TYPELESS;
         case core::GraphicsFormat::bc4_unorm: return DXGI_FORMAT_BC4_UNORM;
         case core::GraphicsFormat::bc4_snorm: return DXGI_FORMAT_BC4_SNORM;
 
-        case core::GraphicsFormat::bc5_typeless: return DXGI_FORMAT_BC5_TYPELESS;
         case core::GraphicsFormat::bc5_unorm: return DXGI_FORMAT_BC5_UNORM;
         case core::GraphicsFormat::bc5_snorm: return DXGI_FORMAT_BC5_SNORM;
 
-        case core::GraphicsFormat::bc6h_typeless: return DXGI_FORMAT_BC6H_TYPELESS;
         case core::GraphicsFormat::bc6h_uf16: return DXGI_FORMAT_BC6H_UF16;
         case core::GraphicsFormat::bc6h_sf16: return DXGI_FORMAT_BC6H_SF16;
 
-        case core::GraphicsFormat::bc7_typeless: return DXGI_FORMAT_BC7_TYPELESS;
         case core::GraphicsFormat::bc7_unorm: return DXGI_FORMAT_BC7_UNORM;
         case core::GraphicsFormat::bc7_unorm_srgb: return DXGI_FORMAT_BC7_UNORM_SRGB;
 
@@ -151,6 +144,14 @@ namespace d3d11 {
 
         case core::GraphicsFormat::b8_g8_r8_a8_typeless: return DXGI_FORMAT_B8G8R8A8_TYPELESS;
         case core::GraphicsFormat::b8_g8_r8_x8_typeless: return DXGI_FORMAT_B8G8R8X8_TYPELESS;
+
+        case core::GraphicsFormat::bc1_typeless: return DXGI_FORMAT_BC1_TYPELESS;
+        case core::GraphicsFormat::bc2_typeless: return DXGI_FORMAT_BC2_TYPELESS;
+        case core::GraphicsFormat::bc3_typeless: return DXGI_FORMAT_BC3_TYPELESS;
+        case core::GraphicsFormat::bc4_typeless: return DXGI_FORMAT_BC4_TYPELESS;
+        case core::GraphicsFormat::bc5_typeless: return DXGI_FORMAT_BC5_TYPELESS;
+        case core::GraphicsFormat::bc6h_typeless: return DXGI_FORMAT_BC6H_TYPELESS;
+        case core::GraphicsFormat::bc7_typeless: return DXGI_FORMAT_BC7_TYPELESS;
 
         // fallback
 
