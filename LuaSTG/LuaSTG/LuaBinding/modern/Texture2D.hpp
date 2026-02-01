@@ -1,6 +1,6 @@
 #pragma once
 #include "lua.hpp"
-#include "core/Graphics/Device.hpp"
+#include "core/Texture2D.hpp"
 
 namespace luastg::binding {
 	struct Texture2D {

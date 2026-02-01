@@ -4,9 +4,10 @@
 #include "core/GraphicsBuffer.hpp"
 #include "core/Texture2D.hpp"
 #include "core/GraphicsSampler.hpp"
+#include "core/RenderTarget.hpp"
 #include "core/DepthStencilBuffer.hpp"
 
-#include "core/Graphics/Device.hpp"
+#define LUASTG_ENABLE_DIRECT2D
 
 namespace core {
     CORE_INTERFACE IGraphicsDeviceEventListener {
@@ -43,6 +44,7 @@ namespace core {
 
         virtual bool createSampler(const GraphicsSamplerInfo& info, IGraphicsSampler** out_sampler) = 0;
 
+        virtual bool createRenderTarget(Vector2U size, IRenderTarget** out_render_target) = 0;
         virtual bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** out_depth_stencil_buffer) = 0;
 
         static bool create(StringView preferred_gpu, IGraphicsDevice** output);
@@ -57,8 +59,6 @@ namespace core {
 
         virtual void* getNativeHandle() = 0;
         virtual void* getNativeRendererHandle() = 0;
-
-        virtual bool createRenderTarget(Vector2U size, Graphics::IRenderTarget** pp_rt) = 0;
     };
 
     CORE_INTERFACE_ID(IGraphicsDevice, "17b76b63-ceb6-5f87-aa5f-366e89d7176e")

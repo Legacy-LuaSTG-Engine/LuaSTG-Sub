@@ -1,12 +1,12 @@
 #pragma once
 #include "lua.hpp"
-#include "core/Graphics/Device.hpp"
+#include "core/RenderTarget.hpp"
 
 namespace luastg::binding {
 	struct RenderTarget {
 		static std::string_view class_name;
 
-		[[maybe_unused]] core::Graphics::IRenderTarget* data{};
+		[[maybe_unused]] core::IRenderTarget* data{};
 
 		static bool is(lua_State* vm, int index);
 		static RenderTarget* as(lua_State* vm, int index);

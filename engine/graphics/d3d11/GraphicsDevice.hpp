@@ -25,6 +25,7 @@ namespace core {
 
         bool createSampler(const GraphicsSamplerInfo& info, IGraphicsSampler** out_sampler) override;
 
+        bool createRenderTarget(Vector2U size, IRenderTarget** out_render_target) override;
         bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** out_depth_stencil_buffer) override;
 
         // from IDevice
@@ -41,7 +42,6 @@ namespace core {
 #else
         void* getNativeRendererHandle() override { return nullptr; }
 #endif
-        bool createRenderTarget(Vector2U size, Graphics::IRenderTarget** pp_rt) override;
 
         // GraphicsDevice
 

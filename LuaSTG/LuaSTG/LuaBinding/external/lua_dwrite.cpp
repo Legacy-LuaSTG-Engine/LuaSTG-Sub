@@ -2137,7 +2137,7 @@ namespace DirectWrite
 			assert(d2d1_device_context);
 			
 			Microsoft::WRL::ComPtr<ID2D1Bitmap1> d2d1_bitmap_target;
-			d2d1_bitmap_target = (ID2D1Bitmap1*)tex_ptr->GetRenderTarget()->getNativeBitmapHandle();
+			d2d1_bitmap_target = (ID2D1Bitmap1*)tex_ptr->GetRenderTarget()->getNativeBitmap();
 			assert(d2d1_bitmap_target);
 
 			// 创建画笔

@@ -2,7 +2,6 @@
 #include "core/Logger.hpp"
 #include "core/Graphics/Model_D3D11.hpp"
 #include "core/Graphics/Direct3D11/Constants.hpp"
-#include "core/Graphics/Direct3D11/RenderTarget.hpp"
 #include "core//DepthStencilBuffer.hpp"
 
 #define IDX(x) (size_t)static_cast<uint8_t>(x)
@@ -803,7 +802,7 @@ namespace core::Graphics
 		batchFlush();
 		auto* ctx = m_device->GetD3D11DeviceContext();
 		assert(ctx);
-		ID3D11RenderTargetView* rtv[1] = { p_rt ? static_cast<Direct3D11::RenderTarget*>(p_rt)->GetView() : nullptr };
+		ID3D11RenderTargetView* rtv[1] = { p_rt ? static_cast<ID3D11RenderTargetView*>(p_rt->getNativeView()) : nullptr };
 		ID3D11DepthStencilView* dsv = p_ds ? static_cast<ID3D11DepthStencilView*>(p_ds->getNativeView()) : nullptr;
 		ctx->OMSetRenderTargets(1, rtv, dsv);
 	}
