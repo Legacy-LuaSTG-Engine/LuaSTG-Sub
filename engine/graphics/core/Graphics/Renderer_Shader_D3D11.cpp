@@ -90,7 +90,7 @@ namespace core::Graphics
 		}
 		return true;
 	}
-	static bool compileVertexShaderMacro11(char const* name, void const* data, size_t size, const D3D_SHADER_MACRO* defs, ID3DBlob** ppBlob)
+	[[maybe_unused]] static bool compileVertexShaderMacro11(char const* name, void const* data, size_t size, const D3D_SHADER_MACRO* defs, ID3DBlob** ppBlob)
 	{
 		return compileShaderMacro(name, data, size, "vs_4_0", defs, ppBlob);
 	}

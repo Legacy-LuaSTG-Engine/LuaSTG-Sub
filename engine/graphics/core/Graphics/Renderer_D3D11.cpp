@@ -132,7 +132,7 @@ namespace core::Graphics
 		auto* p_sampler = p_renderer->getKnownSamplerState(IRenderer::SamplerState::LinearClamp);
 
 		for (auto& v : m_buffer_map) {
-			if (!v.second.constant_buffer->update(v.second.buffer.data(), v.second.buffer.size(), true)) {
+			if (!v.second.constant_buffer->update(v.second.buffer.data(), static_cast<uint32_t>(v.second.buffer.size()), true)) {
 				return false;
 			}
 			ID3D11Buffer* b[1] { getBuffer(v.second.constant_buffer) };
