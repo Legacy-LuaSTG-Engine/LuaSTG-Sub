@@ -3,7 +3,7 @@
 #include "core/Data.hpp"
 
 namespace core {
-	struct CORE_NO_VIRTUAL_TABLE IAudioDecoder : IReferenceCounted {
+	CORE_INTERFACE IAudioDecoder : IReferenceCounted {
 		[[nodiscard]] virtual uint16_t getSampleSize() const noexcept = 0;   // 1byte(8bit) 2bytes(16bits) 3byte(24bits) 4byte(32bits)
 		[[nodiscard]] virtual uint16_t getChannelCount() const noexcept = 0; // 1channel 2channels
 		[[nodiscard]] virtual uint16_t getFrameSize() const noexcept = 0;    // = getChannelCount() * getSampleSize()

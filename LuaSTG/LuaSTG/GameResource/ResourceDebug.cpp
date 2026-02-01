@@ -68,12 +68,12 @@ namespace luastg
 				ImGui::Text("Preview Scaling");
 				ImGui::PopID();
 			};
-			auto draw_texture0 = [](core::Graphics::ITexture2D* p_tex, float scale) -> void
+			auto draw_texture0 = [](core::ITexture2D* p_tex, float scale) -> void
 			{
 				auto const size = p_tex->getSize();
 				ImGui::PushStyleVar(ImGuiStyleVar_ImageBorderSize, 1.0);
 				ImGui::Image(
-					reinterpret_cast<size_t>(p_tex->getNativeHandle()),
+					reinterpret_cast<size_t>(p_tex->getNativeView()),
 					ImVec2(scale * (float)size.x, scale * (float)size.y),
 					ImVec2(0.0f, 0.0f),
 					ImVec2(1.0f, 1.0f));
@@ -92,7 +92,7 @@ namespace luastg
 				}
 				ImGui::PushStyleVar(ImGuiStyleVar_ImageBorderSize, 1.0);
 				ImGui::Image(
-					reinterpret_cast<size_t>(p_res->GetTexture()->getNativeHandle()),
+					reinterpret_cast<size_t>(p_res->GetTexture()->getNativeView()),
 					ImVec2(scale * (float)size.x, scale * (float)size.y),
 					ImVec2(0.0f, 0.0f),
 					ImVec2(1.0f, 1.0f));
@@ -118,7 +118,7 @@ namespace luastg
 				ImGui::PushStyleVar(ImGuiStyleVar_ImageBorderSize, 1.0);
 				ImGui::PushStyleColor(ImGuiCol_Border, color);
 				ImGui::Image(
-					reinterpret_cast<size_t>(p_tex->getNativeHandle()),
+					reinterpret_cast<size_t>(p_tex->getNativeView()),
 					ImVec2(scale * (rc.b.x - rc.a.x), scale * (rc.b.y - rc.a.y)),
 					ImVec2(rc.a.x / (float)tex_size.x, rc.a.y / (float)tex_size.y),
 					ImVec2(rc.b.x / (float)tex_size.x, rc.b.y / (float)tex_size.y));

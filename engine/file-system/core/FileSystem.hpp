@@ -9,7 +9,7 @@ namespace core {
 		directory,
 	};
 
-	struct CORE_NO_VIRTUAL_TABLE IFileSystemEnumerator : IReferenceCounted {
+	CORE_INTERFACE IFileSystemEnumerator : IReferenceCounted {
 		virtual bool next() = 0;
 		virtual std::string_view getName() = 0;
 		virtual FileSystemNodeType getNodeType() = 0;
@@ -22,7 +22,7 @@ namespace core {
 	// https://www.luastg-sub.com/core.IFileSystemEnumerator
 	template<> constexpr InterfaceId getInterfaceId<IFileSystemEnumerator>() { return UUID::parse("49e754fe-15af-58ac-9632-d9ed06b3f0d4"); }
 
-	struct CORE_NO_VIRTUAL_TABLE IFileSystem : IReferenceCounted {
+	CORE_INTERFACE IFileSystem : IReferenceCounted {
 		virtual bool hasNode(std::string_view const& name) = 0;
 		virtual FileSystemNodeType getNodeType(std::string_view const& name) = 0;
 		virtual bool hasFile(std::string_view const& name) = 0;
@@ -38,7 +38,7 @@ namespace core {
 	// https://www.luastg-sub.com/core.IFileSystem
 	template<> constexpr InterfaceId getInterfaceId<IFileSystem>() { return UUID::parse("61c1bc5e-6e1e-5fe2-958c-527e85138010"); }
 
-	struct CORE_NO_VIRTUAL_TABLE IFileSystemOS : IFileSystem {
+	CORE_INTERFACE IFileSystemOS : IFileSystem {
 		static IFileSystemOS* getInstance();
 	};
 
@@ -47,7 +47,7 @@ namespace core {
 	// https://www.luastg-sub.com/core.IFileSystemOS
 	template<> constexpr InterfaceId getInterfaceId<IFileSystemOS>() { return UUID::parse("f21693cb-e71a-5877-9786-7815d4af4ffd"); }
 
-	struct CORE_NO_VIRTUAL_TABLE IFileSystemArchive : IFileSystem {
+	CORE_INTERFACE IFileSystemArchive : IFileSystem {
 		virtual std::string_view getArchivePath() = 0;
 		virtual bool setPassword(std::string_view const& password) = 0;
 
@@ -59,7 +59,7 @@ namespace core {
 	// https://www.luastg-sub.com/core.IFileSystemArchive
 	template<> constexpr InterfaceId getInterfaceId<IFileSystemArchive>() { return UUID::parse("a36e930b-4fb8-5061-b88b-127e5200474e"); }
 
-	struct CORE_NO_VIRTUAL_TABLE IFileSystemFileSystemEnumerator : IReferenceCounted {
+	CORE_INTERFACE IFileSystemFileSystemEnumerator : IReferenceCounted {
 		virtual bool next(IFileSystem** output) = 0;
 	};
 

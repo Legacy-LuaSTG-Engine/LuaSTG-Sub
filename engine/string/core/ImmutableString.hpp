@@ -8,7 +8,7 @@ namespace core {
 
 	// 不可变的空终止字符串
 
-	struct CORE_NO_VIRTUAL_TABLE IImmutableString : IReferenceCounted {
+	CORE_INTERFACE IImmutableString : IReferenceCounted {
 		[[nodiscard]] virtual bool empty() const noexcept = 0;
 		[[nodiscard]] virtual char const* data() const noexcept = 0;
 		[[nodiscard]] virtual size_t size() const noexcept = 0;

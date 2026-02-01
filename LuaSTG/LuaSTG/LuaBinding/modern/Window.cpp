@@ -2,7 +2,7 @@
 #include "Window.hpp"
 #include "lua/plus.hpp"
 #include "AppFrame.h"
-#include "Platform/WindowsVersion.hpp"
+#include "windows/WindowsVersion.hpp"
 
 static void pushSize(lua_State* L, lua_Number const width, lua_Number const height) {
 	lua::stack_t S(L);
@@ -99,7 +99,7 @@ namespace luastg::binding {
 			auto const size = core::Vector2U(width, height);
 			auto style = self->data->getFrameStyle();
 			if (S.is_number(4)) {
-				style = static_cast<core::Graphics::WindowFrameStyle>(S.get_value<int32_t>(4));
+				style = static_cast<core::WindowFrameStyle>(S.get_value<int32_t>(4));
 			}
 			if (Display::is(L, 5)) {
 				auto display = Display::as(L, 5);
@@ -127,7 +127,7 @@ namespace luastg::binding {
 		static int getCursorVisibility(lua_State* L) {
 			auto self = as(L, 1);
 			lua::stack_t S(L);
-			S.push_value(self->data->getCursor() != core::Graphics::WindowCursor::None);
+			S.push_value(self->data->getCursor() != core::WindowCursor::None);
 			return 1;
 		}
 
@@ -135,7 +135,7 @@ namespace luastg::binding {
 			auto self = as(L, 1);
 			lua::stack_t S(L);
 			auto const visible = S.get_value<bool>(2);
-			self->data->setCursor(visible ? core::Graphics::WindowCursor::Arrow : core::Graphics::WindowCursor::None);
+			self->data->setCursor(visible ? core::WindowCursor::Arrow : core::WindowCursor::None);
 			return 0;
 		}
 
@@ -174,7 +174,7 @@ namespace luastg::binding {
 		static int getMain(lua_State* L) {
 			lua::stack_t S(L);
 			auto self = create(L);
-			self->data = LAPP.GetAppModel()->getWindow();
+			self->data = LAPP.getWindow();
 			self->data->retain();
 			return 1;
 		}
@@ -206,9 +206,9 @@ namespace luastg::binding {
 
 		{
 			auto const e = S.create_module("lstg.Window.FrameStyle");
-			S.set_map_value(e, "borderless", static_cast<int32_t>(core::Graphics::WindowFrameStyle::None));
-			S.set_map_value(e, "fixed", static_cast<int32_t>(core::Graphics::WindowFrameStyle::Fixed));
-			S.set_map_value(e, "normal", static_cast<int32_t>(core::Graphics::WindowFrameStyle::Normal));
+			S.set_map_value(e, "borderless", static_cast<int32_t>(core::WindowFrameStyle::None));
+			S.set_map_value(e, "fixed", static_cast<int32_t>(core::WindowFrameStyle::Fixed));
+			S.set_map_value(e, "normal", static_cast<int32_t>(core::WindowFrameStyle::Normal));
 		}
 		
 		// method

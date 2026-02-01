@@ -1,10 +1,18 @@
 #pragma once
-#include "Core/ApplicationModel.hpp"
-#include "Core/Graphics/Font.hpp"
+#include <set>
+#include <vector>
+#include "core/Application.hpp"
+#include "core/FrameRateController.hpp"
+#include "core/Window.hpp"
+#include "core/GraphicsDevice.hpp"
+#include "core/Graphics/SwapChain.hpp"
+#include "core/Graphics/Renderer.hpp"
+#include "core/Graphics/Font.hpp"
 #include "core/AudioEngine.hpp"
 #include "GameResource/ResourceManager.h"
 #include "GameObject/GameObjectPool.h"
-#include "Platform/DirectInput.hpp"
+#include "windows/DirectInput.hpp"
+#include "Debugger/FrameQuery.hpp"
 
 namespace luastg {
 	/// @brief 应用程序状态
@@ -38,18 +46,47 @@ namespace luastg {
 
 	/// @brief 应用程序框架
 	class AppFrame
-		: public core::IApplicationEventListener
-		, public core::Graphics::IWindowEventListener
+		: public core::IApplication
+		, public core::IWindowEventListener
 		, public core::Graphics::ISwapChainEventListener
 		, public IRenderTargetManager
 	{
+	public:
+		// 统计数据
+
+		struct FrameStatistics {
+			double total_time{};
+			double wait_time{};
+			double update_time{};
+			double render_time{};
+			double present_time{};
+		};
+
+		struct FrameRenderStatistics {
+			double render_time{};
+		};
+
 	private:
 		AppStatus m_iStatus = AppStatus::NotInitialized;
 
 		// 应用程序框架
-		core::SmartReference<core::IApplicationModel> m_pAppModel;
-		core::SmartReference<core::Graphics::ITextRenderer> m_pTextRenderer;
+		core::IFrameRateController* m_frame_rate_controller{ core::IFrameRateController::getInstance() };
+		core::SmartReference<core::IWindow> m_window;
+		core::SmartReference<core::IGraphicsDevice> m_graphics_device;
+		core::SmartReference<core::Graphics::ISwapChain> m_swap_chain;
+		core::SmartReference<core::Graphics::IRenderer> m_renderer;
+		core::SmartReference<core::Graphics::ITextRenderer> m_text_renderer;
 		core::SmartReference<core::IAudioEngine> m_audio_engine;
+
+		// 统计数据
+		size_t m_frame_statistics_index{};
+		FrameStatistics m_frame_statistics[2]{};
+		double m_message_time{};
+		core::ScopeTimer m_message_timer;
+
+		// 图形统计数据
+		size_t m_render_statistics_index{};
+		std::vector<FrameQuery> m_render_statistics;
 
 		// 资源管理器
 		ResourceMgr m_ResourceMgr;
@@ -252,9 +289,19 @@ namespace luastg {
 
 		Platform::DirectInput* GetDInput()noexcept { return m_DirectInput.get(); }
 
-		core::IApplicationModel* GetAppModel() { return m_pAppModel.get(); }
-		core::Graphics::IRenderer* GetRenderer2D() { return m_pAppModel->getRenderer(); }
-		core::IAudioEngine* getAudioEngine() { return m_audio_engine.get(); }
+		const FrameStatistics& getFrameStatistics() { return m_frame_statistics[m_frame_statistics_index]; }
+		const FrameRenderStatistics& getFrameRenderStatistics() {
+			// TODO: stupid implement
+			static FrameRenderStatistics s;
+			s.render_time = m_render_statistics[m_render_statistics_index].getTime();
+			return s;
+		}
+		core::IWindow* getWindow() const noexcept { return m_window.get(); }
+		core::IGraphicsDevice* getGraphicsDevice() const noexcept { return m_graphics_device.get(); }
+		core::Graphics::ISwapChain* getSwapChain() const noexcept { return m_swap_chain.get(); }
+		core::Graphics::IRenderer* getRenderer2D() const noexcept { return m_renderer.get(); }
+		core::Graphics::ITextRenderer* getTextRenderer() const noexcept { return m_text_renderer.get(); }
+		core::IAudioEngine* getAudioEngine() const noexcept { return m_audio_engine.get(); }
 
 	public:
 		/// @brief 初始化框架
@@ -279,8 +326,17 @@ namespace luastg {
 		void onWindowSize(core::Vector2U size) override;
 		void onDeviceChange() override;
 
+		// IApplication
+
+		bool onCreate() override;
+		void onBeforeUpdate() override;
 		bool onUpdate() override;
-		bool onRender() override;
+		void onDestroy() override;
+
+		// Application
+
+		bool onUpdateInternal();
+		bool onRenderInternal();
 	public:
 		AppFrame()noexcept;
 		~AppFrame()noexcept;

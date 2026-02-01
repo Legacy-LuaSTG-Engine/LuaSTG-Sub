@@ -59,8 +59,8 @@ namespace luastg::binding {
 			lua::stack_t const ctx(vm);
 			auto const width = ctx.get_value<uint32_t>(1);
 			auto const height = ctx.get_value<uint32_t>(2);
-			core::SmartReference<core::Graphics::IDepthStencilBuffer> buffer;
-			if (!LAPP.GetAppModel()->getDevice()->createDepthStencilBuffer(core::Vector2U(width, height), buffer.put())) {
+			core::SmartReference<core::IDepthStencilBuffer> buffer;
+			if (!LAPP.getGraphicsDevice()->createDepthStencilBuffer(core::Vector2U(width, height), buffer.put())) {
 				auto const error_message = std::format(
 					"create DepthStencilBuffer ({}x{}) failed", width, height);
 				return luaL_error(vm, error_message.c_str());

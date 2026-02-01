@@ -23,12 +23,12 @@ namespace luastg
 		IGlyphManager* pGlyphManager = p->GetGlyphManager();
 		
 		// 准备渲染字体
-		m_pTextRenderer->setGlyphManager(pGlyphManager);
-		m_pTextRenderer->setScale(scale);
+		m_text_renderer->setGlyphManager(pGlyphManager);
+		m_text_renderer->setScale(scale);
 
 		// 设置混合和颜色
 		updateGraph2DBlendMode(p->GetBlendMode());
-		m_pTextRenderer->setColor(p->GetBlendColor());
+		m_text_renderer->setColor(p->GetBlendColor());
 		
 		// 第一次遍历计算要渲染多少行
 		const wchar_t* pText = strBuf;
@@ -128,20 +128,20 @@ namespace luastg
 			switch (halign)
 			{
 			case FontAlignHorizontal::Right:
-				m_pTextRenderer->drawText(u8_str, Vector2F(
+				m_text_renderer->drawText(u8_str, Vector2F(
 					vRenderPos.x + std::abs(rect.a.x - rect.b.x) - fLineWidth,
 					vRenderPos.y
 				), &ignore_);
 				break;
 			case FontAlignHorizontal::Center:
-				m_pTextRenderer->drawText(u8_str, Vector2F(
+				m_text_renderer->drawText(u8_str, Vector2F(
 					vRenderPos.x + std::abs(rect.a.x - rect.b.x) / 2.f - fLineWidth / 2.f,
 					vRenderPos.y
 				), &ignore_);
 				break;
 			case FontAlignHorizontal::Left:
 			default:
-				m_pTextRenderer->drawText(u8_str, vRenderPos, &ignore_);
+				m_text_renderer->drawText(u8_str, vRenderPos, &ignore_);
 				break;
 			}
 
@@ -309,48 +309,48 @@ namespace luastg
 			spdlog::error("[luastg] SetFontProvider: 找不到字体资源'{}'", name);
 			return false;
 		}
-		m_pTextRenderer->setGlyphManager(p->GetGlyphManager());
+		m_text_renderer->setGlyphManager(p->GetGlyphManager());
 		return true;
 	}
 	
 	void AppFrame::FontRenderer_SetScale(core::Vector2F const& s)
 	{
-		m_pTextRenderer->setScale(s);
+		m_text_renderer->setScale(s);
 	}
 	
 	core::RectF AppFrame::FontRenderer_MeasureTextBoundary(const char* str, size_t len)
 	{
-		return m_pTextRenderer->getTextBoundary(core::StringView(str, len));
+		return m_text_renderer->getTextBoundary(core::StringView(str, len));
 	}
 	
 	core::Vector2F AppFrame::FontRenderer_MeasureTextAdvance(const char* str, size_t len)
 	{
-		return m_pTextRenderer->getTextAdvance(core::StringView(str, len));
+		return m_text_renderer->getTextAdvance(core::StringView(str, len));
 	}
 	
 	bool AppFrame::FontRenderer_RenderText(const char* str, size_t len, core::Vector2F& pos, const float z, const BlendMode blend, core::Color4B const& color)
 	{
-		float const last_z = m_pTextRenderer->getZ();
+		float const last_z = m_text_renderer->getZ();
 
 		updateGraph2DBlendMode(blend);
-		m_pTextRenderer->setZ(z);
-		m_pTextRenderer->setColor(color);
+		m_text_renderer->setZ(z);
+		m_text_renderer->setColor(color);
 		
 		core::Vector2F endpos;
-		const bool result = m_pTextRenderer->drawText(core::StringView(str, len), pos, &endpos);
+		const bool result = m_text_renderer->drawText(core::StringView(str, len), pos, &endpos);
 		pos = endpos;
 
-		m_pTextRenderer->setZ(last_z);
+		m_text_renderer->setZ(last_z);
 		return result;
 	}
 	
 	bool AppFrame::FontRenderer_RenderTextInSpace(const char* str, size_t len, core::Vector3F& pos, core::Vector3F const& rvec, core::Vector3F const& dvec, const BlendMode blend, core::Color4B const& color)
 	{
 		updateGraph2DBlendMode(blend);
-		m_pTextRenderer->setColor(color);
+		m_text_renderer->setColor(color);
 
 		core::Vector3F endpos;
-		const bool result = m_pTextRenderer->drawTextInSpace(
+		const bool result = m_text_renderer->drawTextInSpace(
 			core::StringView(str, len),
 			pos,
 			rvec,
@@ -363,21 +363,21 @@ namespace luastg
 
 	float AppFrame::FontRenderer_GetFontLineHeight()
 	{
-		auto* p = m_pTextRenderer->getGlyphManager();
+		auto* p = m_text_renderer->getGlyphManager();
 		if (p) return p->getLineHeight();
 		return 0.0f;
 	}
 	
 	float AppFrame::FontRenderer_GetFontAscender()
 	{
-		auto* p = m_pTextRenderer->getGlyphManager();
+		auto* p = m_text_renderer->getGlyphManager();
 		if (p) return p->getAscender();
 		return 0.0f;
 	}
 	
 	float AppFrame::FontRenderer_GetFontDescender()
 	{
-		auto* p = m_pTextRenderer->getGlyphManager();
+		auto* p = m_text_renderer->getGlyphManager();
 		if (p) return p->getDescender();
 		return 0.0f;
 	}

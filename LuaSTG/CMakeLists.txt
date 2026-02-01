@@ -1,8 +1,5 @@
 # LuaSTG configurer
 
-add_subdirectory(Shader)
-include(Platform.cmake)
-include(Core.cmake)
 add_subdirectory(Configurer)
 
 # LuaSTG Engine
@@ -35,6 +32,8 @@ set(LUASTG_ENGINE_SOURCES
     LuaSTG/Debugger/ImGuiExtension.h
     LuaSTG/Debugger/Logger.cpp
     LuaSTG/Debugger/Logger.hpp
+    LuaSTG/Debugger/FrameQuery.hpp
+    LuaSTG/Debugger/FrameQuery.cpp
 
     LuaSTG/GameObject/GameObject.cpp
     LuaSTG/GameObject/GameObject.hpp
@@ -210,10 +209,9 @@ target_link_libraries(LuaSTG PRIVATE
     utility
     utf8
     win32
-    PlatformAPI
+    beautiful_win32_api
     DirectX::ToolKitMini
     Microsoft::DirectXTexMini
-    Core
     xmath
     lua51_static
     lua_plus
@@ -235,6 +233,8 @@ target_link_libraries(LuaSTG PRIVATE
     Core.Clipboard
     Core.ShellIntegration
     Core.Audio
+    Core.WindowSystem
+    Core.Graphics
     LuaSTG.InternalLuaScriptsFileSystem
 )
 

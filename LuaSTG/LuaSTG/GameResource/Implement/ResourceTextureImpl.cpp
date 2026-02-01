@@ -7,7 +7,7 @@ namespace luastg
 	{
 		if (!m_rt)
 		{
-			if (!LAPP.GetAppModel()->getDevice()->createRenderTarget(size, m_rt.put()))
+			if (!LAPP.getGraphicsDevice()->createRenderTarget(size, m_rt.put()))
 			{
 				return false;
 			}
@@ -25,7 +25,7 @@ namespace luastg
 		{
 			if (!m_ds)
 			{
-				if (!LAPP.GetAppModel()->getDevice()->createDepthStencilBuffer(size, m_ds.put()))
+				if (!LAPP.getGraphicsDevice()->createDepthStencilBuffer(size, m_ds.put()))
 				{
 					return false;
 				}
@@ -42,7 +42,7 @@ namespace luastg
 		return true;
 	}
 
-	ResourceTextureImpl::ResourceTextureImpl(const char* name, core::Graphics::ITexture2D* p_texture)
+	ResourceTextureImpl::ResourceTextureImpl(const char* name, core::ITexture2D* p_texture)
 		: ResourceBaseImpl(ResourceType::Texture, name)
 		, m_texture(p_texture)
 		, m_is_rendertarget(false)
@@ -84,7 +84,7 @@ namespace luastg
 }
 
 namespace luastg {
-	RenderTargetStackResourceTextureImpl::RenderTargetStackResourceTextureImpl(core::Graphics::IRenderTarget* const rt, core::Graphics::IDepthStencilBuffer* const ds) : m_rt(rt), m_ds(ds) {
+	RenderTargetStackResourceTextureImpl::RenderTargetStackResourceTextureImpl(core::IRenderTarget* const rt, core::IDepthStencilBuffer* const ds) : m_rt(rt), m_ds(ds) {
 	}
 	RenderTargetStackResourceTextureImpl::~RenderTargetStackResourceTextureImpl() = default;
 }

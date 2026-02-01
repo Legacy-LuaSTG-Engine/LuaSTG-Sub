@@ -432,7 +432,7 @@ void luastg::binding::ResourceManager::Register(lua_State* L) noexcept
 				else return luaL_error(L, "unknown sampler state '%s'", sampler_name.data());
 
 				// 设置
-				core::Graphics::ISamplerState* p_sampler = LAPP.GetRenderer2D()->getKnownSamplerState(state);
+				core::IGraphicsSampler* p_sampler = LAPP.getRenderer2D()->getKnownSamplerState(state);
 				p->GetTexture()->setSamplerState(p_sampler);
 
 				return 0;

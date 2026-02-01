@@ -11,7 +11,7 @@
 #include "GameResource/LegacyBlendStateHelper.hpp"
 
 namespace luastg {
-	inline core::Graphics::IRenderer* LR2D() { return LAPP.GetAppModel()->getRenderer(); }
+	inline core::Graphics::IRenderer* LR2D() { return LAPP.getRenderer2D(); }
 	inline ResourceMgr& LRESMGR() { return LAPP.GetResourceMgr(); }
 
 #ifndef NDEBUG
@@ -527,7 +527,7 @@ namespace luastg {
 			return luaL_error(L, "can't find texture '%s'", name);
 		}
 		check_rendertarget_usage(ptex2dres);
-		core::Graphics::ITexture2D* ptex2d = ptex2dres->GetTexture();
+		core::ITexture2D* ptex2d = ptex2dres->GetTexture();
 		float const uscale = 1.0f / (float)ptex2d->getSize().x;
 		float const vscale = 1.0f / (float)ptex2d->getSize().y;
 		for (int i = 0; i < 4; ++i) {
@@ -831,7 +831,7 @@ namespace luastg {
 		check_rendertarget_usage(prt);
 
 		core::Vector4F cbdata[8] = {};
-		core::Graphics::ITexture2D* tdata[4] = {};
+		core::ITexture2D* tdata[4] = {};
 		core::Graphics::IRenderer::SamplerState tsdata[4] = {};
 
 		size_t cbdata_n = lua_objlen(L, 5);

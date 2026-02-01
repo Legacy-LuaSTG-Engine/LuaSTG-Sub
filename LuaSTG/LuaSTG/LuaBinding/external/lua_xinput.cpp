@@ -1,5 +1,5 @@
 #include "lua_xinput.hpp"
-#include "Platform/XInput.hpp"
+#include "windows/XInput.hpp"
 #include <array>
 #include <string_view>
 

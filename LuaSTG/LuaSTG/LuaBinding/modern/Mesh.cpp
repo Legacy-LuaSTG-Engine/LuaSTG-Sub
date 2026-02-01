@@ -444,7 +444,7 @@ namespace luastg::binding {
 			}
 			ctx.pop_value();
 
-			auto const device = LAPP.GetAppModel()->getDevice();
+			auto const device = LAPP.getGraphicsDevice();
 			auto const self = Mesh::create(vm);
 			if (!core::Graphics::IMesh::create(device, options, &self->data)) {
 				return luaL_error(vm, "create Mesh failed.");

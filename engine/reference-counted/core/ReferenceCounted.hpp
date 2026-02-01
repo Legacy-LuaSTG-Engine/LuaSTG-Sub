@@ -2,8 +2,8 @@
 #include <cstdint>
 #include "core/UUID.hpp"
 
-#define CORE_NO_VIRTUAL_TABLE __declspec(novtable)
 #define CORE_INTERFACE struct __declspec(novtable)
+
 #define CORE_INTERFACE_ID(NAME, ID) template<> constexpr InterfaceId getInterfaceId<NAME>() { return UUID::parse(ID); }
 
 namespace core {
@@ -12,12 +12,13 @@ namespace core {
 	template<typename Interface>
 	InterfaceId getInterfaceId() { return Interface::interface_uuid; }
 
-	struct CORE_NO_VIRTUAL_TABLE IReferenceCounted {
+	CORE_INTERFACE IReferenceCounted {
 		virtual bool queryInterface(InterfaceId const& uuid, void** output) = 0;
 		virtual int32_t retain() = 0;
 		virtual int32_t release() = 0;
 
-		template<typename Interface> bool queryInterface(Interface** const output) {
+		template<typename Interface>
+		bool queryInterface(Interface** const output) {
 			static_assert(std::is_base_of_v<IReferenceCounted, Interface>);
 			return queryInterface(getInterfaceId<Interface>(), reinterpret_cast<void**>(output));
 		}
@@ -26,5 +27,5 @@ namespace core {
 	// UUID v5
 	// ns:URL
 	// https://www.luastg-sub.com/core.IReferenceCounted
-	template<> constexpr InterfaceId getInterfaceId<IReferenceCounted>() { return UUID::parse("b6a42c9f-376b-57e7-95a0-68b74556d1e4"); }
+	CORE_INTERFACE_ID(IReferenceCounted, "b6a42c9f-376b-57e7-95a0-68b74556d1e4")
 }

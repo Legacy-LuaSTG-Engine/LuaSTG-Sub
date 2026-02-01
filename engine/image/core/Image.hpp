@@ -40,10 +40,31 @@ namespace core {
         count,
     };
 
+    enum class ImageAlphaMode : int32_t {
+        // Indicate that an error has occurred
+        unknown,
+
+        // Always ignore alpha channel
+        opaque,
+
+        // A commonly used format for storing images,
+        // where color channels represent color and
+        // the alpha channel represents transparency.
+        straight,
+
+        // The color channels have already been pre-multiplied with the alpha channel.
+        // This is typically due to performing alpha blending of two or more images.
+        premultiplied,
+
+        // Image alpha mode count
+        count,
+    };
+
     struct ImageDescription {
         Vector2U size;
         ImageFormat format{};
         ImageColorSpace color_space{};
+        ImageAlphaMode alpha_mode{};
     };
 
     struct ImageMappedBuffer {
@@ -106,6 +127,9 @@ namespace core {
 
         // Get current image color-space, or return unknown if failed or not initialized.
         inline ImageColorSpace getColorSpace() const noexcept { return getDescription()->color_space; }
+
+        // Get current image alpha-mode, or return unknown if failed or not initialized.
+        inline ImageAlphaMode getAlphaMode() const noexcept { return getDescription()->alpha_mode; }
     };
     CORE_INTERFACE_ID(IImage, "5e4c12e0-e094-5346-b129-b9ddbb881373")
 

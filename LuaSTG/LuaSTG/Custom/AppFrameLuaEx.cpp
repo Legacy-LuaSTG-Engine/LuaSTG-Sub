@@ -6,12 +6,16 @@
 #include <ranges>
 #include <algorithm>
 
-#include "Platform/HResultChecker.hpp"
-
-using std::string_view_literals::operator""sv;
-using std::string_literals::operator""s;
-
 namespace {
+    using std::string_view_literals::operator""sv;
+    using std::string_literals::operator""s;
+
+    const std::string_view entry_scripts[3] = {
+        "core.lua"sv,
+        "main.lua"sv,
+        "src/main.lua"sv,
+    };
+
     constexpr bool not_space(const char c) {
         switch (c) {
         case '\t': case '\n': case '\v': case '\f': case '\r': case ' ':
@@ -74,33 +78,20 @@ namespace luastg {
     #endif
         return true;
     };
-    
-    bool AppFrame::OnLoadMainScriptAndFiles()
-    {
-        spdlog::info("[luastg] 加载入口点脚本");
-        std::string_view entry_scripts[3] = {
-            "core.lua",
-            "main.lua",
-            "src/main.lua",
-        };
+
+    bool AppFrame::OnLoadMainScriptAndFiles() {
+        core::Logger::info("[luastg] loading main script");
         core::SmartReference<core::IData> src;
-        bool is_load = false;
-        for (auto& v : entry_scripts)
-        {
-            if (core::FileSystemManager::readFile(v, src.put()))
-            {
-                if (SafeCallScript((char const*)src->data(), src->size(), v.data()))
-                {
-                    spdlog::info("[luastg] 加载脚本'{}'", v);
-                    is_load = true;
-                    break;
-                }
+        for (const auto& path : entry_scripts) {
+            if (!core::FileSystemManager::readFile(path, src.put())) {
+                continue;
+            }
+            if (SafeCallScript(static_cast<const char*>(src->data()), src->size(), path.data())) {
+                core::Logger::info("[luastg] main script '{}' loaded", path);
+                return true;
             }
         }
-        if (!is_load)
-        {
-            spdlog::error("[luastg] 找不到文件'{}'、'{}'或'{}'", entry_scripts[0], entry_scripts[1], entry_scripts[2]);
-        }
-        return true;
+        core::Logger::error("[luastg] main script not found");
+        return false;
     }
 }

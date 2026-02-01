@@ -6,6 +6,6 @@ namespace luastg
 	ResourcePostEffectShaderImpl::ResourcePostEffectShaderImpl(const char* name, const char* path)
 		: ResourceBaseImpl(ResourceType::FX, name)
 	{
-		LAPP.GetAppModel()->getRenderer()->createPostEffectShader(path, m_shader.put());
+		LAPP.getRenderer2D()->createPostEffectShader(path, m_shader.put());
 	}
 }

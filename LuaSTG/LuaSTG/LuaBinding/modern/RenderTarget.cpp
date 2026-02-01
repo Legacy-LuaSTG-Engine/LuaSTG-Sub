@@ -71,8 +71,8 @@ namespace luastg::binding {
 			lua::stack_t const ctx(vm);
 			auto const width = ctx.get_value<uint32_t>(1);
 			auto const height = ctx.get_value<uint32_t>(2);
-			core::SmartReference<core::Graphics::IRenderTarget> render_target;
-			if (!LAPP.GetAppModel()->getDevice()->createRenderTarget(core::Vector2U(width, height), render_target.put())) {
+			core::SmartReference<core::IRenderTarget> render_target;
+			if (!LAPP.getGraphicsDevice()->createRenderTarget(core::Vector2U(width, height), render_target.put())) {
 				auto const error_message = std::format(
 					"create RenderTarget ({}x{}) failed", width, height);
 				return luaL_error(vm, error_message.c_str());

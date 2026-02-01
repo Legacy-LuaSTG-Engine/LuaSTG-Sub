@@ -155,7 +155,7 @@ namespace luastg::binding {
 			lua::stack_t const ctx(vm);
 			auto const self = as(vm, 1);
 
-			auto const renderer = LAPP.GetAppModel()->getRenderer();
+			auto const renderer = LAPP.getRenderer2D();
 			self->data->draw(renderer);
 
 			ctx.push_value(lua::stack_index_t(1)); // return self
@@ -166,7 +166,7 @@ namespace luastg::binding {
 
 		static int create(lua_State* vm) {
 			lua::stack_t const ctx(vm);
-			auto const device = LAPP.GetAppModel()->getDevice();
+			auto const device = LAPP.getGraphicsDevice();
 			if (ctx.index_of_top() >= 2) {
 				auto const mesh = Mesh::as(vm, 1);
 				auto const texture = Texture2D::as(vm, 2);

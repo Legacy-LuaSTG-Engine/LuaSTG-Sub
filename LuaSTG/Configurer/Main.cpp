@@ -1,6 +1,6 @@
 #include "win32/win32.hpp"
 #include "win32/abi.hpp"
-#include "Platform/WindowTheme.hpp"
+#include "windows/WindowTheme.hpp"
 #include "imgui.h"
 #include "imgui_stdlib.h"
 #include "imgui_freetype.h"
@@ -601,8 +601,8 @@ struct Window
     }
     void LayoutWindowTab() {
         if (show_advance) {
-	        showTextFieldEdit(config_json, "/window/title"_json_pointer, "config-window-title"sv, LUASTG_INFO ""s);
-	        showCheckBoxEdit(config_json, "/window/cursor_visible"_json_pointer, "config-window-cursor-visible"sv, true);
+            showTextFieldEdit(config_json, "/window/title"_json_pointer, "config-window-title"sv, LUASTG_INFO ""s);
+            showCheckBoxEdit(config_json, "/window/cursor_visible"_json_pointer, "config-window-cursor-visible"sv, true);
         }
         showCheckBoxEdit(config_json, "/window/allow_window_corner"_json_pointer, "config-window-allow-window-corner"sv, true);
     }
@@ -612,7 +612,7 @@ struct Window
         ImGui::TextUnformatted(i18n_c_str("config-graphics-system-preferred-device-name"sv));
         ImGui::PushID(i18n_c_str("config-graphics-system-preferred-device-name"sv));
         ImGui::SetNextItemWidth(-FLT_MIN);
-    	if (ImGui::BeginCombo("##", !preferred_device_name.empty() ? preferred_device_name.c_str() : i18n_c_str("common-default2"sv))) {
+        if (ImGui::BeginCombo("##", !preferred_device_name.empty() ? preferred_device_name.c_str() : i18n_c_str("common-default2"sv))) {
             if (ImGui::Selectable(i18n_c_str("common-default2"sv), preferred_device_name.empty())) {
                 config_json["/graphics_system/preferred_device_name"_json_pointer] = ""sv;
             }
@@ -726,10 +726,7 @@ struct Window
         {
             throw std::runtime_error("CreateDXGIFactory1 failed.");
         }
-        if (FAILED(dxgi_factory->EnumAdapters1(0, &dxgi_adapter)))
-        {
-            throw std::runtime_error("IDXGIFactory1::EnumAdapters1 failed.");
-        }
+        dxgi_factory->EnumAdapters1(0, &dxgi_adapter);
         
         dxgi_adapter_list.clear();
         Microsoft::WRL::ComPtr<IDXGIFactory6> dxgi_factory6;
@@ -759,10 +756,34 @@ struct Window
             D3D_FEATURE_LEVEL_10_1,
             D3D_FEATURE_LEVEL_10_0,
         };
-        hr = D3D11CreateDevice(
-            dxgi_adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, NULL,
-            D3D11_CREATE_DEVICE_BGRA_SUPPORT, target_levels, 3, D3D11_SDK_VERSION,
-            &d3d11_device, &d3d11_feature_level, &d3d11_devctx);
+        hr = E_FAIL;
+        if (dxgi_adapter) {
+            hr = D3D11CreateDevice(
+                dxgi_adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, NULL,
+                D3D11_CREATE_DEVICE_BGRA_SUPPORT, target_levels, 3, D3D11_SDK_VERSION,
+                &d3d11_device, &d3d11_feature_level, &d3d11_devctx);
+        }
+        if (FAILED(hr))
+        {
+            hr = D3D11CreateDevice(
+                nullptr, D3D_DRIVER_TYPE_WARP, NULL,
+                D3D11_CREATE_DEVICE_BGRA_SUPPORT, target_levels, 3, D3D11_SDK_VERSION,
+                &d3d11_device, &d3d11_feature_level, &d3d11_devctx);
+        }
+        if (FAILED(hr))
+        {
+            hr = D3D11CreateDevice(
+                nullptr, D3D_DRIVER_TYPE_SOFTWARE, NULL,
+                D3D11_CREATE_DEVICE_BGRA_SUPPORT, target_levels, 3, D3D11_SDK_VERSION,
+                &d3d11_device, &d3d11_feature_level, &d3d11_devctx);
+        }
+        if (FAILED(hr))
+        {
+            hr = D3D11CreateDevice(
+                nullptr, D3D_DRIVER_TYPE_REFERENCE, NULL,
+                D3D11_CREATE_DEVICE_BGRA_SUPPORT, target_levels, 3, D3D11_SDK_VERSION,
+                &d3d11_device, &d3d11_feature_level, &d3d11_devctx);
+        }
         if (FAILED(hr))
         {
             throw std::runtime_error("D3D11CreateDevice failed.");

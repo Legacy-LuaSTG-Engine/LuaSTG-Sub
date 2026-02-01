@@ -164,54 +164,49 @@ void luastg::binding::BuiltInFunction::Register(lua_State* L)noexcept
 		}
 		static int EnumGPUs(lua_State* L) {
 			lua::stack_t S(L);
-			if (LAPP.GetAppModel())
-			{
-				auto* p_device = LAPP.GetAppModel()->getDevice();
-				auto count = p_device->getGpuCount();
+			if (const auto device = LAPP.getGraphicsDevice(); device != nullptr) {
+				auto count = device->getGpuCount();
 				lua_createtable(L, count, 0);		// t
-				for (int index = 0; index < (int)count; index += 1)
-				{
-					S.push_value(p_device->getGpuName((uint32_t)index)); // t name
+				for (int index = 0; index < (int)count; index += 1) {
+					S.push_value(device->getGpuName((uint32_t)index)); // t name
 					lua_rawseti(L, -2, index + 1);	// t
 				}
 				return 1;
 			}
-			else
-			{
+			else {
 				return luaL_error(L, "render device is not avilable.");
 			}
 		}
 		static int ChangeGPU(lua_State* L) {
 			lua::stack_t S(L);
-			if (LAPP.GetAppModel())
-			{
+			if (const auto device = LAPP.getGraphicsDevice(); device != nullptr) {
 				auto const gpu = S.get_value<std::string_view>(1);
-				auto* p_device = LAPP.GetAppModel()->getDevice();
-				p_device->setPreferenceGpu(gpu);
-				if (!p_device->recreate())
+				device->setPreferenceGpu(gpu);
+				if (!device->recreate())
 					return luaL_error(L, "ChangeGPU failed.");
 				return 0;
 			}
-			else
-			{
+			else {
 				return luaL_error(L, "render device is not avilable.");
 			}
 		}
 		static int GetCurrentGpuName(lua_State* L)
 		{
-			if (!LAPP.GetAppModel()->getDevice())
-			{
+			if (const auto device = LAPP.getGraphicsDevice(); device != nullptr) {
+				lua::stack_t S(L);
+				auto const name = device->getCurrentGpuName();
+				S.push_value<std::string_view>(name);
+				return 1;
+			}
+			else {
 				return luaL_error(L, "render device is not avilable.");
 			}
-			lua::stack_t S(L);
-			auto const name = LAPP.GetAppModel()->getDevice()->getCurrentGpuName();
-			S.push_value<std::string_view>(name);
-			return 1;
 		}
 		static int SetSwapChainScalingMode(lua_State* L)noexcept
 		{
-			LAPP.GetAppModel()->getSwapChain()->setScalingMode(
-				(core::Graphics::SwapChainScalingMode)luaL_checkinteger(L, 1));
+			const lua::stack_t ctx(L);
+			const auto scaling_mode = ctx.get_value<core::Graphics::SwapChainScalingMode>(1);
+			LAPP.getSwapChain()->setScalingMode(scaling_mode);
 			return 0;
 		}
 		#pragma endregion

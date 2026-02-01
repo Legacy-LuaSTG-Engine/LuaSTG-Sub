@@ -16,7 +16,7 @@
 #include "lua.hpp"
 #include "lua_imgui.hpp"
 
-#include "Platform/XInput.hpp"
+#include "windows/XInput.hpp"
 #include "core/Configuration.hpp"
 #include "utf8.hpp"
 
@@ -135,7 +135,7 @@ namespace imgui {
 						ImGui::Text("Lua Virtual Machine: %s", format_size(size));
 					}
 					if (ImGui::CollapsingHeader("Graphics", ImGuiTreeNodeFlags_DefaultOpen)) {
-						auto const info = LAPP.GetAppModel()->getDevice()->getMemoryUsageStatistics();
+						auto const info = LAPP.getGraphicsDevice()->getMemoryStatistics();
 						if (m_more_details) ImGui::Text("Local Budget: %s", format_size(info.local.budget));
 						ImGui::Text("Local Current Usage: %s", format_size(info.local.current_usage));
 						if (m_more_details) ImGui::Text("Local Available For Reservation: %s", format_size(info.local.available_for_reservation));
@@ -440,7 +440,7 @@ namespace {
 				// frame time
 
 				if (ImGui::CollapsingHeader("Frame Time")) {
-					auto info = LAPP.GetAppModel()->getFrameStatistics();
+					auto info = LAPP.getFrameStatistics();
 
 					ImGui::Text("Wait   : %.3fms", info.wait_time * 1000.0);
 					ImGui::Text("Update : %.3fms", info.update_time * 1000.0);
@@ -506,7 +506,7 @@ namespace {
 				// gpu time
 
 				if (ImGui::CollapsingHeader("GPU Time")) {
-					auto info = LAPP.GetAppModel()->getFrameRenderStatistics();
+					auto info = LAPP.getFrameRenderStatistics();
 
 					ImGui::Text("Render : %.3fms", info.render_time * 1000.0);
 
@@ -557,7 +557,7 @@ namespace {
 				if (ImGui::CollapsingHeader("Memory Usage")) {
 					MEMORYSTATUSEX mem_info = { sizeof(MEMORYSTATUSEX) };
 					GlobalMemoryStatusEx(&mem_info);
-					auto gpu_info = LAPP.GetAppModel()->getDevice()->getMemoryUsageStatistics();
+					auto gpu_info = LAPP.getGraphicsDevice()->getMemoryStatistics();
 					lua_State* L_ = LAPP.GetLuaEngine();
 					int lua_infokb = lua_gc(L_, LUA_GCCOUNT, 0);
 					int lua_infob = lua_gc(L_, LUA_GCCOUNTB, 0);
@@ -727,18 +727,18 @@ namespace {
 
 namespace imgui {
 	class ImGuiBackendEventListener
-		: public core::Graphics::IDeviceEventListener
-		, public core::Graphics::IWindowEventListener {
+		: public core::IGraphicsDeviceEventListener
+		, public core::IWindowEventListener {
 	public:
-		// IDeviceEventListener
+		// IGraphicsDeviceEventListener
 
-		void onDeviceDestroy() override {
+		void onGraphicsDeviceDestroy() override {
 			g_imgui_impl_dx11_initialized = false;
 			ImGui_ImplDX11_Shutdown();
 		}
-		void onDeviceCreate() override {
+		void onGraphicsDeviceCreate() override {
 			g_imgui_impl_dx11_initialized = false;
-			auto const device = static_cast<ID3D11Device*>(LAPP.GetAppModel()->getDevice()->getNativeHandle());
+			auto const device = static_cast<ID3D11Device*>(LAPP.getGraphicsDevice()->getNativeHandle());
 			ID3D11DeviceContext* context{};
 			device->GetImmediateContext(&context);
 			ImGui_ImplDX11_Init(device, context);
@@ -748,7 +748,7 @@ namespace imgui {
 		// IWindowEventListener
 
 		void onWindowCreate() override {
-			ImGui_ImplWin32Ex_Init(LAPP.GetAppModel()->getWindow()->getNativeHandle());
+			ImGui_ImplWin32Ex_Init(LAPP.getWindow()->getNativeHandle());
 		}
 		void onWindowDestroy() override {
 			ImGui_ImplWin32Ex_Shutdown();
@@ -834,10 +834,8 @@ namespace {
 		style.FrameBorderSize = 1.0f;
 		style.TabBorderSize = 1.0f;
 
-		if (auto const framework = LAPP.GetAppModel()) {
-			style.FontScaleDpi = framework->getWindow()->getDPIScaling();
-			style.ScaleAllSizes(framework->getWindow()->getDPIScaling());
-		}
+		style.FontScaleDpi = LAPP.getWindow()->getDPIScaling();
+		style.ScaleAllSizes(LAPP.getWindow()->getDPIScaling());
 
 		ImGui::GetStyle() = style;
 	}
@@ -858,11 +856,11 @@ namespace imgui {
 		applyStyle();
 
 		g_imgui_backend_event_listener.onWindowCreate();
-		auto const window = LAPP.GetAppModel()->getWindow();
+		auto const window = LAPP.getWindow();
 		window->addEventListener(&g_imgui_backend_event_listener);
 
-		g_imgui_backend_event_listener.onDeviceCreate();
-		auto const device = LAPP.GetAppModel()->getDevice();
+		g_imgui_backend_event_listener.onGraphicsDeviceCreate();
+		auto const device = LAPP.getGraphicsDevice();
 		device->addEventListener(&g_imgui_backend_event_listener);
 
 		auto const vm = LAPP.GetLuaEngine();
@@ -873,17 +871,19 @@ namespace imgui {
 		g_imgui_initialized = true;
 	}
 	void unbindEngine() {
-		if (LAPP.GetAppModel()) {
-			auto const device = LAPP.GetAppModel()->getDevice();
+		if (const auto device = LAPP.getGraphicsDevice(); device != nullptr) {
 			device->removeEventListener(&g_imgui_backend_event_listener);
-			g_imgui_backend_event_listener.onDeviceDestroy();
+			g_imgui_backend_event_listener.onGraphicsDeviceDestroy();
+		}
+		else {
+			g_imgui_backend_event_listener.onGraphicsDeviceDestroy();
+		}
 
-			auto const window = LAPP.GetAppModel()->getWindow();
+		if (const auto window = LAPP.getWindow(); window != nullptr) {
 			window->removeEventListener(&g_imgui_backend_event_listener);
 			g_imgui_backend_event_listener.onWindowDestroy();
 		}
 		else {
-			g_imgui_backend_event_listener.onDeviceDestroy();
 			g_imgui_backend_event_listener.onWindowDestroy();
 		}
 
@@ -919,7 +919,7 @@ namespace imgui {
 
 			{
 				tracy_zone_scoped_with_name("imgui.backend.NewFrame-WIN32");
-				auto const ws = LAPP.GetAppModel()->getSwapChain()->getCanvasSize();
+				auto const ws = LAPP.getSwapChain()->getCanvasSize();
 				auto const mt = LAPP.GetMousePositionTransformF();
 				ImGui_ImplWin32Ex_FrameData dt;
 				dt.view_size.x = static_cast<float>(ws.x);
@@ -940,9 +940,9 @@ namespace imgui {
 	}
 	void drawEngine() {
 		if (g_imgui_initialized && g_imgui_impl_dx11_initialized) {
-			LAPP.GetAppModel()->getRenderer()->endBatch();
+			LAPP.getRenderer2D()->endBatch();
 			ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-			LAPP.GetAppModel()->getRenderer()->beginBatch(); // restore
+			LAPP.getRenderer2D()->beginBatch(); // restore
 		}
 	}
 

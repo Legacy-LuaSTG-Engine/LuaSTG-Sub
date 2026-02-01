@@ -44,6 +44,7 @@ namespace core {
         description.size.y = static_cast<uint32_t>(height);
         description.format = ImageFormat::b8g8r8a8_normalized;
         description.color_space = ImageColorSpace::srgb_gamma_2_2;
+        description.alpha_mode = ImageAlphaMode::straight;
 
         SmartReference<Image> image;
         image.attach(new Image());

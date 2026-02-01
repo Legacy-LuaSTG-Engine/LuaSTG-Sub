@@ -4,9 +4,8 @@
 namespace luastg {
 	void AppFrame::updateGraph2DBlendMode(BlendMode const blend) {
 		auto const [v, b] = translateLegacyBlendState(blend);
-		auto const renderer = m_pAppModel->getRenderer();
-		renderer->setVertexColorBlendState(v);
-		renderer->setBlendState(b);
+		m_renderer->setVertexColorBlendState(v);
+		m_renderer->setBlendState(b);
 	}
 
 	bool AppFrame::Render(IParticlePool* p, float hscale, float vscale) noexcept {
@@ -21,7 +20,7 @@ namespace luastg {
 	}
 
 	void AppFrame::SnapShot(const char* path) noexcept {
-		if (!GetAppModel()->getSwapChain()->saveSnapshotToFile(path)) {
+		if (!m_swap_chain->saveSnapshotToFile(path)) {
 			spdlog::error("[luastg] SnapShot: 保存截图到文件'{}'失败", path);
 			return;
 		}

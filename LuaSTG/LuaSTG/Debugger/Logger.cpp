@@ -5,7 +5,7 @@
 #include "spdlog/sinks/stdout_sinks.h"
 #include "spdlog/sinks/wincolor_sink.h"
 #include "spdlog/sinks/msvc_sink.h"
-#include "Platform/HResultChecker.hpp"
+#include "windows/HResultChecker.hpp"
 #include "core/Configuration.hpp"
 #include "utf8.hpp"
 #include "win32/base.hpp"
@@ -187,7 +187,7 @@ namespace luastg {
 };
 
 #include <fcntl.h>
-#include "Platform/CleanWindows.hpp"
+#include "windows/CleanWindows.hpp"
 
 namespace {
 	bool redirectStdOut() {

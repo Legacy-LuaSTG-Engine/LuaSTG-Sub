@@ -15,7 +15,6 @@ include(cmake/import/all.cmake)
 include(cmake/build/all.cmake)
 add_subdirectory(external)
 include(cmake/packages.lua.cmake)
-include(LuaSTG/shaders.cmake)
 add_subdirectory(imgui)
 
 add_subdirectory(engine)

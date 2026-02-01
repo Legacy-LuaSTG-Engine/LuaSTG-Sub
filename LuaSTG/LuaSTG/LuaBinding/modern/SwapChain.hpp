@@ -1,7 +1,7 @@
 #pragma once
 #include <string_view>
 #include "lua.hpp"
-#include "Core/Graphics/SwapChain.hpp"
+#include "core/Graphics/SwapChain.hpp"
 
 namespace luastg::binding {
 

@@ -1,6 +1,6 @@
 #pragma once
 #include "GameResource/ResourceBase.hpp"
-#include "Core/Graphics/Device.hpp"
+#include "core/GraphicsDevice.hpp"
 
 namespace luastg
 {
@@ -8,9 +8,9 @@ namespace luastg
 	{
 		virtual bool ResizeRenderTarget(core::Vector2U size) = 0;
 
-		virtual core::Graphics::ITexture2D* GetTexture() = 0;
-		virtual core::Graphics::IRenderTarget* GetRenderTarget() = 0;
-		virtual core::Graphics::IDepthStencilBuffer* GetDepthStencilBuffer() = 0;
+		virtual core::ITexture2D* GetTexture() = 0;
+		virtual core::IRenderTarget* GetRenderTarget() = 0;
+		virtual core::IDepthStencilBuffer* GetDepthStencilBuffer() = 0;
 		virtual bool IsRenderTarget() = 0;
 		virtual bool HasDepthStencilBuffer() = 0;
 	};
