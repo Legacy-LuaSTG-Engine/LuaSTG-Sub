@@ -90,7 +90,7 @@ namespace core {
         d32_float,
         d32_float_s8_x24_uint,
 
-        d24_unorm_s8_uint,
+        d24_unorm_s8_uint, // d24_unorm
 
         d16_unorm,
 
