@@ -1,7 +1,6 @@
 #include "core/Graphics/Direct3D11/MeshRenderer.hpp"
 #include "core/Graphics/Direct3D11/Constants.hpp"
 #include "core/Graphics/Direct3D11/Texture2D.hpp"
-#include "core/Graphics/Direct3D11/SamplerState.hpp"
 #include "core/Graphics/Direct3D11/Mesh.hpp"
 #include "d3d11/GraphicsDevice.hpp"
 #include "core/Graphics/Renderer_D3D11.hpp"
@@ -87,10 +86,10 @@ namespace core::Graphics::Direct3D11 {
 
 		ID3D11SamplerState* sampler_state[1]{};
 		if (m_texture->getSamplerState()) {
-			sampler_state[0] = static_cast<SamplerState*>(m_texture->getSamplerState())->GetState();
+			sampler_state[0] = static_cast<ID3D11SamplerState*>(m_texture->getSamplerState()->getNativeHandle());
 		} else {
 			auto const ss = renderer->getKnownSamplerState(IRenderer::SamplerState::LinearWrap);
-			sampler_state[0] = static_cast<SamplerState*>(ss)->GetState();
+			sampler_state[0] = static_cast<ID3D11SamplerState*>(ss->getNativeHandle());
 		}
 		ctx->PSSetSamplers(0, 1, sampler_state);
 

@@ -2,6 +2,7 @@
 #include "core/ReferenceCounted.hpp"
 #include "core/ImmutableString.hpp"
 #include "core/GraphicsBuffer.hpp"
+#include "core/GraphicsSampler.hpp"
 #include "core/DepthStencilBuffer.hpp"
 
 #include "core/Graphics/Device.hpp"
@@ -33,6 +34,10 @@ namespace core {
         virtual bool createIndexBuffer(uint32_t size_in_bytes, IGraphicsBuffer** output_buffer) = 0;
         virtual bool createConstantBuffer(uint32_t size_in_bytes, IGraphicsBuffer** output_buffer) = 0;
 
+        virtual bool createSampler(const GraphicsSamplerInfo& info, IGraphicsSampler** out_sampler) = 0;
+
+        virtual bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** out_depth_stencil_buffer) = 0;
+
         static bool create(StringView preferred_gpu, IGraphicsDevice** output);
 
         // from IDevice
@@ -53,9 +58,6 @@ namespace core {
         virtual bool createTexture(Vector2U size, Graphics::ITexture2D** pp_texture) = 0;
 
         virtual bool createRenderTarget(Vector2U size, Graphics::IRenderTarget** pp_rt) = 0;
-        virtual bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** out_depth_stencil_buffer) = 0;
-
-        virtual bool createSamplerState(Graphics::SamplerState const& info, Graphics::ISamplerState** pp_sampler) = 0;
     };
 
     CORE_INTERFACE_ID(IGraphicsDevice, "17b76b63-ceb6-5f87-aa5f-366e89d7176e")

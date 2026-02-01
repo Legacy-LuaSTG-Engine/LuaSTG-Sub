@@ -93,14 +93,10 @@ namespace core::Graphics
 
 			PointWrap = MIN_INDEX,
 			PointClamp,
-			PointBorderBlack,
-			PointBorderWhite,
 			LinearWrap,
 			LinearClamp,
-			LinearBorderBlack,
-			LinearBorderWhite,
 
-			MAX_INDEX = LinearBorderWhite,
+			MAX_INDEX = LinearClamp,
 			MAX_COUNT,
 		};
 		enum class TextureAlphaType : uint8_t
@@ -172,7 +168,7 @@ namespace core::Graphics
 		virtual bool createModel(StringView path, IModel** pp_model) = 0;
 		virtual bool drawModel(IModel* p_model) = 0;
 
-		virtual ISamplerState* getKnownSamplerState(SamplerState state) = 0;
+		virtual IGraphicsSampler* getKnownSamplerState(SamplerState state) = 0;
 
 		static bool create(IGraphicsDevice* p_device, IRenderer** pp_renderer);
 	};

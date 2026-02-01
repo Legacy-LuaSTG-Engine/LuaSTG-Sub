@@ -2,7 +2,6 @@
 #include "core/Logger.hpp"
 #include "core/Graphics/Model_D3D11.hpp"
 #include "core/Graphics/Direct3D11/Constants.hpp"
-#include "core/Graphics/Direct3D11/SamplerState.hpp"
 #include "core/Graphics/Direct3D11/RenderTarget.hpp"
 #include "core//DepthStencilBuffer.hpp"
 
@@ -27,13 +26,13 @@ namespace core::Graphics
 		return get_view(static_cast<Direct3D11::Texture2D*>(p.get()));
 	}
 
-	inline ID3D11SamplerState* get_sampler(ISamplerState* p_sampler)
+	inline ID3D11SamplerState* get_sampler(IGraphicsSampler* p_sampler)
 	{
-		return static_cast<Direct3D11::SamplerState*>(p_sampler)->GetState();
+		return p_sampler != nullptr ? static_cast<ID3D11SamplerState*>(p_sampler->getNativeHandle()) : nullptr;
 	}
-	inline ID3D11SamplerState* get_sampler(SmartReference<ISamplerState>& p_sampler)
+	inline ID3D11SamplerState* get_sampler(SmartReference<IGraphicsSampler>& p_sampler)
 	{
-		return static_cast<Direct3D11::SamplerState*>(p_sampler.get())->GetState();
+		return p_sampler ? static_cast<ID3D11SamplerState*>(p_sampler->getNativeHandle()) : nullptr;
 	}
 }
 
@@ -295,70 +294,38 @@ namespace core::Graphics
 		}
 
 		if (!is_recreating) {
-			Graphics::SamplerState sampler_state;
+			GraphicsSamplerInfo sampler_info{};
 
 			// point
 
-			sampler_state.filer = Filter::Point;
-			sampler_state.address_u = TextureAddressMode::Wrap;
-			sampler_state.address_v = TextureAddressMode::Wrap;
-			sampler_state.address_w = TextureAddressMode::Wrap;
-			if (!m_device->createSamplerState(sampler_state, _sampler_state[IDX(SamplerState::PointWrap)].put()))
+			sampler_info.filter = GraphicsFilter::point;
+			sampler_info.address_u = GraphicsTextureAddressMode::wrap;
+			sampler_info.address_v = GraphicsTextureAddressMode::wrap;
+			sampler_info.address_w = GraphicsTextureAddressMode::wrap;
+			if (!m_device->createSampler(sampler_info, _sampler_state[IDX(SamplerState::PointWrap)].put()))
 				return false;
 
-			sampler_state.filer = Filter::Point;
-			sampler_state.address_u = TextureAddressMode::Clamp;
-			sampler_state.address_v = TextureAddressMode::Clamp;
-			sampler_state.address_w = TextureAddressMode::Clamp;
-			if (!m_device->createSamplerState(sampler_state, _sampler_state[IDX(SamplerState::PointClamp)].put()))
-				return false;
-
-			sampler_state.filer = Filter::Point;
-			sampler_state.address_u = TextureAddressMode::Border;
-			sampler_state.address_v = TextureAddressMode::Border;
-			sampler_state.address_w = TextureAddressMode::Border;
-			sampler_state.border_color = BorderColor::Black;
-			if (!m_device->createSamplerState(sampler_state, _sampler_state[IDX(SamplerState::PointBorderBlack)].put()))
-				return false;
-
-			sampler_state.filer = Filter::Point;
-			sampler_state.address_u = TextureAddressMode::Border;
-			sampler_state.address_v = TextureAddressMode::Border;
-			sampler_state.address_w = TextureAddressMode::Border;
-			sampler_state.border_color = BorderColor::White;
-			if (!m_device->createSamplerState(sampler_state, _sampler_state[IDX(SamplerState::PointBorderWhite)].put()))
+			sampler_info.filter = GraphicsFilter::point;
+			sampler_info.address_u = GraphicsTextureAddressMode::clamp;
+			sampler_info.address_v = GraphicsTextureAddressMode::clamp;
+			sampler_info.address_w = GraphicsTextureAddressMode::clamp;
+			if (!m_device->createSampler(sampler_info, _sampler_state[IDX(SamplerState::PointClamp)].put()))
 				return false;
 
 			// linear
 
-			sampler_state.filer = Filter::Linear;
-			sampler_state.address_u = TextureAddressMode::Wrap;
-			sampler_state.address_v = TextureAddressMode::Wrap;
-			sampler_state.address_w = TextureAddressMode::Wrap;
-			if (!m_device->createSamplerState(sampler_state, _sampler_state[IDX(SamplerState::LinearWrap)].put()))
+			sampler_info.filter = GraphicsFilter::linear;
+			sampler_info.address_u = GraphicsTextureAddressMode::wrap;
+			sampler_info.address_v = GraphicsTextureAddressMode::wrap;
+			sampler_info.address_w = GraphicsTextureAddressMode::wrap;
+			if (!m_device->createSampler(sampler_info, _sampler_state[IDX(SamplerState::LinearWrap)].put()))
 				return false;
 
-			sampler_state.filer = Filter::Linear;
-			sampler_state.address_u = TextureAddressMode::Clamp;
-			sampler_state.address_v = TextureAddressMode::Clamp;
-			sampler_state.address_w = TextureAddressMode::Clamp;
-			if (!m_device->createSamplerState(sampler_state, _sampler_state[IDX(SamplerState::LinearClamp)].put()))
-				return false;
-
-			sampler_state.filer = Filter::Linear;
-			sampler_state.address_u = TextureAddressMode::Border;
-			sampler_state.address_v = TextureAddressMode::Border;
-			sampler_state.address_w = TextureAddressMode::Border;
-			sampler_state.border_color = BorderColor::Black;
-			if (!m_device->createSamplerState(sampler_state, _sampler_state[IDX(SamplerState::LinearBorderBlack)].put()))
-				return false;
-
-			sampler_state.filer = Filter::Linear;
-			sampler_state.address_u = TextureAddressMode::Border;
-			sampler_state.address_v = TextureAddressMode::Border;
-			sampler_state.address_w = TextureAddressMode::Border;
-			sampler_state.border_color = BorderColor::White;
-			if (!m_device->createSamplerState(sampler_state, _sampler_state[IDX(SamplerState::LinearBorderWhite)].put()))
+			sampler_info.filter = GraphicsFilter::linear;
+			sampler_info.address_u = GraphicsTextureAddressMode::clamp;
+			sampler_info.address_v = GraphicsTextureAddressMode::clamp;
+			sampler_info.address_w = GraphicsTextureAddressMode::clamp;
+			if (!m_device->createSampler(sampler_info, _sampler_state[IDX(SamplerState::LinearClamp)].put()))
 				return false;
 		}
 
@@ -578,7 +545,7 @@ namespace core::Graphics
 	}
 	void Renderer_D3D11::setSamplerState(SamplerState state, UINT index)
 	{
-		ID3D11SamplerState* d3d11_sampler = static_cast<Direct3D11::SamplerState*>(_sampler_state[IDX(state)].get())->GetState();
+		ID3D11SamplerState* d3d11_sampler = get_sampler(_sampler_state[IDX(state)]);
 		m_device->GetD3D11DeviceContext()->PSSetSamplers(index, 1, &d3d11_sampler);
 	}
 	bool Renderer_D3D11::uploadVertexIndexBufferFromDrawList()
@@ -616,9 +583,9 @@ namespace core::Graphics
 	}
 	void Renderer_D3D11::bindTextureSamplerState(ITexture2D* texture)
 	{
-		ISamplerState* sampler_from_texture = texture ? texture->getSamplerState() : nullptr;
-		ISamplerState* sampler = sampler_from_texture ? sampler_from_texture : _sampler_state[IDX(_state_set.sampler_state)].get();
-		ID3D11SamplerState* d3d11_sampler = static_cast<Direct3D11::SamplerState*>(sampler)->GetState();
+		IGraphicsSampler* sampler_from_texture = texture ? texture->getSamplerState() : nullptr;
+		IGraphicsSampler* sampler = sampler_from_texture ? sampler_from_texture : _sampler_state[IDX(_state_set.sampler_state)].get();
+		ID3D11SamplerState* d3d11_sampler = get_sampler(sampler);
 		m_device->GetD3D11DeviceContext()->PSSetSamplers(0, 1, &d3d11_sampler);
 	}
 	void Renderer_D3D11::bindTextureAlphaType(ITexture2D* texture)
@@ -1523,7 +1490,7 @@ namespace core::Graphics
 		return true;
 	}
 
-	ISamplerState* Renderer_D3D11::getKnownSamplerState(SamplerState state)
+	IGraphicsSampler* Renderer_D3D11::getKnownSamplerState(SamplerState state)
 	{
 		return _sampler_state[IDX(state)].get();
 	}

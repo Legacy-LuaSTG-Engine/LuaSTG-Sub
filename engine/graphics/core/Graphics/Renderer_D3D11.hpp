@@ -167,7 +167,7 @@ namespace core::Graphics
 		win32::com_ptr<ID3D11VertexShader> _vertex_shader[IDX(FogState::MAX_COUNT)]; // FogState
 		win32::com_ptr<ID3D11PixelShader> _pixel_shader[IDX(VertexColorBlendState::MAX_COUNT)][IDX(FogState::MAX_COUNT)][IDX(TextureAlphaType::MAX_COUNT)]; // VertexColorBlendState, FogState, TextureAlphaType
 		win32::com_ptr<ID3D11RasterizerState> _raster_state;
-		SmartReference<ISamplerState> _sampler_state[IDX(SamplerState::MAX_COUNT)];
+		SmartReference<IGraphicsSampler> _sampler_state[IDX(SamplerState::MAX_COUNT)];
 		win32::com_ptr<ID3D11DepthStencilState> _depth_state[IDX(DepthState::MAX_COUNT)];
 		win32::com_ptr<ID3D11BlendState> _blend_state[IDX(BlendState::MAX_COUNT)];
 		
@@ -239,7 +239,7 @@ namespace core::Graphics
 		bool createModel(StringView path, IModel** pp_model);
 		bool drawModel(IModel* p_model);
 
-		ISamplerState* getKnownSamplerState(SamplerState state);
+		IGraphicsSampler* getKnownSamplerState(SamplerState state);
 
 	public:
 		Renderer_D3D11(GraphicsDevice* p_device);

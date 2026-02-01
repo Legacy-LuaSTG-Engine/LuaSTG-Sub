@@ -17,6 +17,10 @@ namespace core {
         bool createIndexBuffer(uint32_t size_in_bytes, IGraphicsBuffer** output_buffer) override;
         bool createConstantBuffer(uint32_t size_in_bytes, IGraphicsBuffer** output_buffer) override;
 
+        bool createSampler(const GraphicsSamplerInfo& info, IGraphicsSampler** out_sampler) override;
+
+        bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** out_depth_stencil_buffer) override;
+
         // from IDevice
 
         GraphicsDeviceMemoryStatistics getMemoryStatistics() override;
@@ -39,9 +43,6 @@ namespace core {
         bool createTextureFromImage(IImage* image, bool mipmap, Graphics::ITexture2D** pp_texture) override;
 
         bool createRenderTarget(Vector2U size, Graphics::IRenderTarget** pp_rt) override;
-        bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** out_depth_stencil_buffer) override;
-
-        bool createSamplerState(core::Graphics::SamplerState const& info, Graphics::ISamplerState** pp_sampler) override;
 
         // GraphicsDevice
 

@@ -29,8 +29,8 @@ namespace core::Graphics::Direct3D11 {
 
 		bool saveToFile(StringView path) override;
 
-		void setSamplerState(ISamplerState* p_sampler) override { m_sampler = p_sampler; }
-		[[nodiscard]] ISamplerState* getSamplerState() const noexcept override { return m_sampler.get(); }
+		void setSamplerState(IGraphicsSampler* p_sampler) override { m_sampler = p_sampler; }
+		[[nodiscard]] IGraphicsSampler* getSamplerState() const noexcept override { return m_sampler.get(); }
 
 		// Texture2D
 
@@ -51,7 +51,7 @@ namespace core::Graphics::Direct3D11 {
 
 	private:
 		SmartReference<IGraphicsDevice> m_device;
-		SmartReference<ISamplerState> m_sampler;
+		SmartReference<IGraphicsSampler> m_sampler;
 		SmartReference<IImage> m_image;
 		std::string m_source_path;
 		win32::com_ptr<ID3D11Texture2D> m_texture;
