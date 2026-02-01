@@ -46,8 +46,6 @@ namespace d3d11 {
         case core::GraphicsFormat::r16_g16_uint: return DXGI_FORMAT_R16G16_UINT;
         case core::GraphicsFormat::r16_uint: return DXGI_FORMAT_R16_UINT;
 
-        case core::GraphicsFormat::r10_g10_b10_a2_uint: return DXGI_FORMAT_R10G10B10A2_UINT;
-
         case core::GraphicsFormat::r8_g8_b8_a8_uint: return DXGI_FORMAT_R8G8B8A8_UINT;
         case core::GraphicsFormat::r8_g8_uint: return DXGI_FORMAT_R8G8_UINT;
         case core::GraphicsFormat::r8_uint: return DXGI_FORMAT_R8_UINT;
@@ -184,7 +182,7 @@ namespace d3d11 {
 // [x] DXGI_FORMAT_X32_TYPELESS_G8X24_UINT
 // [x] DXGI_FORMAT_R10G10B10A2_TYPELESS
 // [x] DXGI_FORMAT_R10G10B10A2_UNORM
-// [x] DXGI_FORMAT_R10G10B10A2_UINT
+// [ ] DXGI_FORMAT_R10G10B10A2_UINT
 // [x] DXGI_FORMAT_R11G11B10_FLOAT
 // [x] DXGI_FORMAT_R8G8B8A8_TYPELESS
 // [x] DXGI_FORMAT_R8G8B8A8_UNORM

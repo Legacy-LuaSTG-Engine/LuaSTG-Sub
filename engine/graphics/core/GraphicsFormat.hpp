@@ -46,8 +46,6 @@ namespace core {
         r16_g16_uint,
         r16_uint,
 
-        r10_g10_b10_a2_uint,
-
         r8_g8_b8_a8_uint,
         r8_g8_uint,
         r8_uint,
