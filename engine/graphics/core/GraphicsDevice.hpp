@@ -2,6 +2,7 @@
 #include "core/ReferenceCounted.hpp"
 #include "core/ImmutableString.hpp"
 #include "core/GraphicsBuffer.hpp"
+#include "core/DepthStencilBuffer.hpp"
 
 #include "core/Graphics/Device.hpp"
 
@@ -52,7 +53,7 @@ namespace core {
         virtual bool createTexture(Vector2U size, Graphics::ITexture2D** pp_texture) = 0;
 
         virtual bool createRenderTarget(Vector2U size, Graphics::IRenderTarget** pp_rt) = 0;
-        virtual bool createDepthStencilBuffer(Vector2U size, Graphics::IDepthStencilBuffer** pp_ds) = 0;
+        virtual bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** out_depth_stencil_buffer) = 0;
 
         virtual bool createSamplerState(Graphics::SamplerState const& info, Graphics::ISamplerState** pp_sampler) = 0;
     };

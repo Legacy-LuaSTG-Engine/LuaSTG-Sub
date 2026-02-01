@@ -10,7 +10,7 @@ namespace luastg
 	private:
 		core::SmartReference<core::Graphics::ITexture2D> m_texture;
 		core::SmartReference<core::Graphics::IRenderTarget> m_rt;
-		core::SmartReference<core::Graphics::IDepthStencilBuffer> m_ds;
+		core::SmartReference<core::IDepthStencilBuffer> m_ds;
 		bool m_is_rendertarget{ false };
 		bool m_is_auto_resize{ false };
 		bool m_enable_depthbuffer{ false };
@@ -19,7 +19,7 @@ namespace luastg
 	public:
 		core::Graphics::ITexture2D* GetTexture() { return m_texture.get(); }
 		core::Graphics::IRenderTarget* GetRenderTarget() { return m_rt.get(); }
-		core::Graphics::IDepthStencilBuffer* GetDepthStencilBuffer() { return m_ds.get(); }
+		core::IDepthStencilBuffer* GetDepthStencilBuffer() { return m_ds.get(); }
 		bool IsRenderTarget() { return m_is_rendertarget; }
 		bool HasDepthStencilBuffer() { return m_enable_depthbuffer; }
 	public:
@@ -45,13 +45,13 @@ namespace luastg
 
 		core::Graphics::ITexture2D* GetTexture() override { return m_rt->getTexture(); }
 		core::Graphics::IRenderTarget* GetRenderTarget() override { return m_rt.get(); }
-		core::Graphics::IDepthStencilBuffer* GetDepthStencilBuffer() override { return m_ds.get(); }
+		core::IDepthStencilBuffer* GetDepthStencilBuffer() override { return m_ds.get(); }
 		bool IsRenderTarget() override { return true; }
 		bool HasDepthStencilBuffer() override { return !!m_ds; }
 
 		// RenderTargetStackResourceTextureImpl
 
-		RenderTargetStackResourceTextureImpl(core::Graphics::IRenderTarget* rt, core::Graphics::IDepthStencilBuffer* ds);
+		RenderTargetStackResourceTextureImpl(core::Graphics::IRenderTarget* rt, core::IDepthStencilBuffer* ds);
 		RenderTargetStackResourceTextureImpl(RenderTargetStackResourceTextureImpl const&) = delete;
 		RenderTargetStackResourceTextureImpl(RenderTargetStackResourceTextureImpl&&) = delete;
 		~RenderTargetStackResourceTextureImpl();
@@ -60,6 +60,6 @@ namespace luastg
 		RenderTargetStackResourceTextureImpl& operator=(RenderTargetStackResourceTextureImpl&&) = delete;
 	private:
 		core::SmartReference<core::Graphics::IRenderTarget> m_rt;
-		core::SmartReference<core::Graphics::IDepthStencilBuffer> m_ds;
+		core::SmartReference<core::IDepthStencilBuffer> m_ds;
 	};
 }

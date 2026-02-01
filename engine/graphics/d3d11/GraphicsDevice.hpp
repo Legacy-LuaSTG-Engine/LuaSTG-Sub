@@ -37,9 +37,9 @@ namespace core {
         bool createTextureFromFile(StringView path, bool mipmap, Graphics::ITexture2D** pp_texture) override;
         bool createTexture(Vector2U size, Graphics::ITexture2D** pp_texture) override;
         bool createTextureFromImage(IImage* image, bool mipmap, Graphics::ITexture2D** pp_texture) override;
-        bool createRenderTarget(Vector2U size, Graphics::IRenderTarget** pp_rt) override;
 
-        bool createDepthStencilBuffer(Vector2U size, Graphics::IDepthStencilBuffer** pp_ds) override;
+        bool createRenderTarget(Vector2U size, Graphics::IRenderTarget** pp_rt) override;
+        bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** out_depth_stencil_buffer) override;
 
         bool createSamplerState(core::Graphics::SamplerState const& info, Graphics::ISamplerState** pp_sampler) override;
 

@@ -84,7 +84,7 @@ namespace luastg
 }
 
 namespace luastg {
-	RenderTargetStackResourceTextureImpl::RenderTargetStackResourceTextureImpl(core::Graphics::IRenderTarget* const rt, core::Graphics::IDepthStencilBuffer* const ds) : m_rt(rt), m_ds(ds) {
+	RenderTargetStackResourceTextureImpl::RenderTargetStackResourceTextureImpl(core::Graphics::IRenderTarget* const rt, core::IDepthStencilBuffer* const ds) : m_rt(rt), m_ds(ds) {
 	}
 	RenderTargetStackResourceTextureImpl::~RenderTargetStackResourceTextureImpl() = default;
 }
