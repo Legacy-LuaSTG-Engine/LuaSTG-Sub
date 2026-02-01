@@ -42,15 +42,11 @@ namespace core::Graphics
 {
 	void PostEffectShader_D3D11::onGraphicsDeviceCreate()
 	{
-		createResources();
+		createResources(true);
 	}
 	void PostEffectShader_D3D11::onGraphicsDeviceDestroy()
 	{
 		d3d11_ps.reset();
-		for (auto& v : m_buffer_map)
-		{
-			v.second.d3d11_buffer.reset();
-		}
 	}
 
 	bool PostEffectShader_D3D11::findVariable(StringView name, LocalConstantBuffer*& buf, LocalVariable*& val)
@@ -122,20 +118,15 @@ namespace core::Graphics
 		
 		auto* p_sampler = p_renderer->getKnownSamplerState(IRenderer::SamplerState::LinearClamp);
 
-		for (auto& v : m_buffer_map)
-		{
-			D3D11_MAPPED_SUBRESOURCE res{};
-			HRESULT hr = gHR = ctx->Map(v.second.d3d11_buffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
-			if (FAILED(hr)) { assert(false); return false; }
-			memcpy(res.pData, v.second.buffer.data(), v.second.buffer.size());
-			ctx->Unmap(v.second.d3d11_buffer.get(), 0);
-
-			ID3D11Buffer* b[1] = { v.second.d3d11_buffer.get() };
+		for (auto& v : m_buffer_map) {
+			if (!v.second.constant_buffer->update(v.second.buffer.data(), v.second.buffer.size(), true)) {
+				return false;
+			}
+			ID3D11Buffer* b[1] { static_cast<ID3D11Buffer*>(v.second.constant_buffer->getNativeResource()) };
 			ctx->PSSetConstantBuffers(v.second.index, 1, b);
 		}
 
-		for (auto& v : m_texture2d_map)
-		{
+		for (auto& v : m_texture2d_map) {
 			ID3D11ShaderResourceView* t[1] = { get_view(v.second.texture) };
 			ctx->PSSetShaderResources(v.second.index, 1, t);
 			auto* p_custom = v.second.texture->getSamplerState();
@@ -151,7 +142,7 @@ namespace core::Graphics
 		, source(path)
 		, is_path(is_path_)
 	{
-		if (!createResources())
+		if (!createResources(false))
 			throw std::runtime_error("PostEffectShader_D3D11::PostEffectShader_D3D11");
 		m_device->addEventListener(this);
 	}

@@ -99,7 +99,7 @@ namespace core::Graphics
 		return compileShaderMacro(name, data, size, "ps_4_0", defs, ppBlob);
 	}
 
-	bool PostEffectShader_D3D11::createResources()
+	bool PostEffectShader_D3D11::createResources(const bool is_recreating)
 	{
 		if (!d3d_ps_blob)
 		{
@@ -203,19 +203,15 @@ namespace core::Graphics
 
 		// 创建缓冲区
 
-		for (auto& v : m_buffer_map)
-		{
-			D3D11_BUFFER_DESC desc_ = {
-				.ByteWidth = static_cast<UINT>(v.second.buffer.size()),
-				.Usage = D3D11_USAGE_DYNAMIC,
-				.BindFlags = D3D11_BIND_CONSTANT_BUFFER,
-				.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
-				.MiscFlags = 0,
-				.StructureByteStride = 0,
-			};
-			hr = gHR = m_device->GetD3D11Device()->CreateBuffer(&desc_, NULL, v.second.d3d11_buffer.put());
-			if (FAILED(hr))
-				return false;
+		if (!is_recreating) {
+			for (auto& v : m_buffer_map) {
+				if (!m_device->createConstantBuffer(
+					static_cast<uint32_t>(v.second.buffer.size()),
+					v.second.constant_buffer.put()
+				)) {
+					return false;
+				}
+			}
 		}
 
 		return true;

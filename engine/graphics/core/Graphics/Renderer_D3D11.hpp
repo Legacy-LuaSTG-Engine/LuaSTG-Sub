@@ -98,7 +98,7 @@ namespace core::Graphics
 		{
 			UINT index{};
 			std::vector<uint8_t> buffer;
-			win32::com_ptr<ID3D11Buffer> d3d11_buffer;
+			SmartReference<IGraphicsBuffer> constant_buffer;
 			std::unordered_map<std::string, LocalVariable> variable;
 		};
 		struct LocalTexture2D
@@ -116,7 +116,7 @@ namespace core::Graphics
 		std::string source;
 		bool is_path{ false };
 
-		bool createResources();
+		bool createResources(bool is_recreating);
 		void onGraphicsDeviceCreate() override;
         void onGraphicsDeviceDestroy() override;
 		bool findVariable(StringView name, LocalConstantBuffer*& buf, LocalVariable*& val);
