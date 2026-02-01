@@ -6,6 +6,19 @@
 
 #define IDX(x) (size_t)static_cast<uint8_t>(x)
 
+namespace {
+	ID3D11Buffer* getBuffer(core::IGraphicsBuffer* const buffer) {
+		if (buffer != nullptr)
+			return static_cast<ID3D11Buffer*>(buffer->getNativeResource());
+		return nullptr;
+	}
+	ID3D11Buffer* getBuffer(const core::SmartReference<core::IGraphicsBuffer>& buffer) {
+		if (buffer)
+			return static_cast<ID3D11Buffer*>(buffer->getNativeResource());
+		return nullptr;
+	}
+}
+
 namespace core::Graphics
 {
 	inline ID3D11ShaderResourceView* get_view(ITexture2D* const p) {
@@ -122,7 +135,7 @@ namespace core::Graphics
 			if (!v.second.constant_buffer->update(v.second.buffer.data(), v.second.buffer.size(), true)) {
 				return false;
 			}
-			ID3D11Buffer* b[1] { static_cast<ID3D11Buffer*>(v.second.constant_buffer->getNativeResource()) };
+			ID3D11Buffer* b[1] { getBuffer(v.second.constant_buffer) };
 			ctx->PSSetConstantBuffers(v.second.index, 1, b);
 		}
 
@@ -158,13 +171,13 @@ namespace core::Graphics
 		assert(m_device->GetD3D11DeviceContext());
 
 		auto& vi = _vi_buffer[(index == 0xFFFFFFFFu) ? _vi_buffer_index : index];
-		ID3D11Buffer* vbo[1] = { static_cast<ID3D11Buffer*>(vi.vertex_buffer->getNativeResource()) };
+		ID3D11Buffer* vbo[1] = { getBuffer(vi.vertex_buffer) };
 		UINT stride[1] = { sizeof(IRenderer::DrawVertex) };
 		UINT offset[1] = { 0 };
 		m_device->GetD3D11DeviceContext()->IASetVertexBuffers(0, 1, vbo, stride, offset);
 
 		constexpr DXGI_FORMAT format = sizeof(DrawIndex) < 4 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
-		m_device->GetD3D11DeviceContext()->IASetIndexBuffer(static_cast<ID3D11Buffer*>(vi.index_buffer->getNativeResource()), format, 0);
+		m_device->GetD3D11DeviceContext()->IASetIndexBuffer(getBuffer(vi.index_buffer), format, 0);
 	}
 	bool Renderer_D3D11::uploadVertexIndexBuffer(const bool discard) {
 		tracy_zone_scoped;
@@ -746,9 +759,9 @@ namespace core::Graphics
 
 		// [VS State]
 
-		ID3D11Buffer* const view_projection_matrix = static_cast<ID3D11Buffer*>(_vp_matrix_buffer->getNativeResource());
+		ID3D11Buffer* const view_projection_matrix = getBuffer(_vp_matrix_buffer);
 		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, 1, &view_projection_matrix);
-		ID3D11Buffer* const world_matrix = static_cast<ID3D11Buffer*>(_world_matrix_buffer->getNativeResource());
+		ID3D11Buffer* const world_matrix = getBuffer(_world_matrix_buffer);
 		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_world_matrix, 1, &world_matrix);
 
 		// [RS Stage]
@@ -757,9 +770,9 @@ namespace core::Graphics
 
 		// [PS State]
 
-		ID3D11Buffer* const camera_position = static_cast<ID3D11Buffer*>(_camera_pos_buffer->getNativeResource());
+		ID3D11Buffer* const camera_position = getBuffer(_camera_pos_buffer);
 		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_camera_position, 1, &camera_position);
-		ID3D11Buffer* const fog_parameter = static_cast<ID3D11Buffer*>(_fog_data_buffer->getNativeResource());
+		ID3D11Buffer* const fog_parameter = getBuffer(_fog_data_buffer);
 		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_fog_parameter, 1, &fog_parameter);
 
 		// [OM Stage]
@@ -1218,11 +1231,11 @@ namespace core::Graphics
 		}
 
 		ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		ID3D11Buffer* p_d3d11_vbos[1] = { static_cast<ID3D11Buffer*>(_fx_vbuffer->getNativeResource()) };
+		ID3D11Buffer* p_d3d11_vbos[1] = { getBuffer(_fx_vbuffer) };
 		UINT const stride = sizeof(DrawVertex);
 		UINT const offset = 0;
 		ctx->IASetVertexBuffers(0, 1, p_d3d11_vbos, &stride, &offset);
-		ctx->IASetIndexBuffer(static_cast<ID3D11Buffer*>(_fx_ibuffer->getNativeResource()), DXGI_FORMAT_R16_UINT, 0);
+		ctx->IASetIndexBuffer(getBuffer(_fx_ibuffer), DXGI_FORMAT_R16_UINT, 0);
 		ctx->IASetInputLayout(_input_layout.get());
 
 		// [Stage VS]
@@ -1233,7 +1246,7 @@ namespace core::Graphics
 			Logger::error("[core] [Renderer] upload constant buffer failed (vp_matrix_buffer)");
 		}
 		ctx->VSSetShader(_vertex_shader[IDX(FogState::Disable)].get(), NULL, 0);
-		ID3D11Buffer* const view_projection_matrix = static_cast<ID3D11Buffer*>(_vp_matrix_buffer->getNativeResource());
+		ID3D11Buffer* const view_projection_matrix = getBuffer(_vp_matrix_buffer);
 		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, 1, &view_projection_matrix);
 
 		// [Stage RS]
@@ -1269,9 +1282,9 @@ namespace core::Graphics
 		if (!_fog_data_buffer->update(size_viewport, sizeof(size_viewport), true)) {
 			Logger::error("[core] [Renderer] upload constant buffer failed (fog_data_buffer/size_viewport_buffer)");
 		}
-		ID3D11Buffer* const user_data = static_cast<ID3D11Buffer*>(_user_float_buffer->getNativeResource());
+		ID3D11Buffer* const user_data = getBuffer(_user_float_buffer);
 		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_user_data, 1, &user_data);
-		ID3D11Buffer* const fog_parameter = static_cast<ID3D11Buffer*>(_fog_data_buffer->getNativeResource());
+		ID3D11Buffer* const fog_parameter = getBuffer(_fog_data_buffer);
 		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_fog_parameter, 1, &fog_parameter);
 
 		ctx->PSSetShader(static_cast<PostEffectShader_D3D11*>(p_effect)->GetPS(), NULL, 0);
@@ -1384,11 +1397,11 @@ namespace core::Graphics
 		}
 
 		ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		ID3D11Buffer* p_d3d11_vbos[1] = { static_cast<ID3D11Buffer*>(_fx_vbuffer->getNativeResource()) };
+		ID3D11Buffer* p_d3d11_vbos[1] = { getBuffer(_fx_vbuffer) };
 		UINT const stride = sizeof(DrawVertex);
 		UINT const offset = 0;
 		ctx->IASetVertexBuffers(0, 1, p_d3d11_vbos, &stride, &offset);
-		ctx->IASetIndexBuffer(static_cast<ID3D11Buffer*>(_fx_ibuffer->getNativeResource()), DXGI_FORMAT_R16_UINT, 0);
+		ctx->IASetIndexBuffer(getBuffer(_fx_ibuffer), DXGI_FORMAT_R16_UINT, 0);
 		ctx->IASetInputLayout(_input_layout.get());
 
 		// [Stage VS]
@@ -1399,7 +1412,7 @@ namespace core::Graphics
 			Logger::error("[core] [Renderer] upload constant buffer failed (vp_matrix_buffer)");
 		}
 		ctx->VSSetShader(_vertex_shader[IDX(FogState::Disable)].get(), NULL, 0);
-		ID3D11Buffer* const view_projection_matrix = static_cast<ID3D11Buffer*>(_vp_matrix_buffer->getNativeResource());
+		ID3D11Buffer* const view_projection_matrix = getBuffer(_vp_matrix_buffer);
 		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, 1, &view_projection_matrix);
 
 		// [Stage RS]
