@@ -33,7 +33,6 @@ add_custom_command(
         -B ${libjpeg_build_directory}
         # generator
         ${LUASTG_CMAKE_EXTERNAL_BUILD_GENERATOR_OPTIONS}
-        -DCMAKE_BUILD_TYPE=$<CONFIG>
         # install
         -DCMAKE_INSTALL_PREFIX=${libjpeg_install_directory}
         # options
