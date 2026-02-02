@@ -10,31 +10,17 @@ CPMAddPackage(
 
 if(nothings_stb_ADDED)
     add_library(nothings_stb STATIC)
-    if (NOT EXISTS ${CMAKE_BINARY_DIR}/nothings_stb/include)
-        file(WRITE ${CMAKE_BINARY_DIR}/nothings_stb/include/placeholder "")
-    endif ()
+    target_compile_definitions(nothings_stb PRIVATE
+    )
     target_include_directories(nothings_stb PUBLIC
         ${nothings_stb_SOURCE_DIR}
-        ${CMAKE_BINARY_DIR}/nothings_stb/include
+        ${CMAKE_CURRENT_LIST_DIR}/github-nothings-stb/include
     )
-    if (NOT EXISTS ${CMAKE_BINARY_DIR}/nothings_stb/include/stb_vorbis.h)
-        file(WRITE ${CMAKE_BINARY_DIR}/nothings_stb/include/stb_vorbis.h
-            "#define STB_VORBIS_HEADER_ONLY\n"
-            "#include \"stb_vorbis.c\"\n"
-            "#undef STB_VORBIS_HEADER_ONLY\n"
-        )
-    endif ()
-    if (NOT EXISTS ${CMAKE_BINARY_DIR}/nothings_stb/nothings_stb.c)
-        file(WRITE ${CMAKE_BINARY_DIR}/nothings_stb/nothings_stb.c
-            "#define STB_IMAGE_IMPLEMENTATION\n"
-            "#include \"stb_image.h\"\n"
-            "#include \"stb_vorbis.c\"\n"
-        )
-    endif ()
     target_sources(nothings_stb PRIVATE
-        ${CMAKE_BINARY_DIR}/nothings_stb/include/stb_vorbis.h
         ${nothings_stb_SOURCE_DIR}/stb_image.h
-        ${CMAKE_BINARY_DIR}/nothings_stb/nothings_stb.c
+        ${nothings_stb_SOURCE_DIR}/stb_vorbis.c
+        ${CMAKE_CURRENT_LIST_DIR}/github-nothings-stb/include/stb_vorbis.h
+        ${CMAKE_CURRENT_LIST_DIR}/github-nothings-stb/src/stb_image.c
     )
     set_target_properties(nothings_stb PROPERTIES FOLDER external)
 endif()
