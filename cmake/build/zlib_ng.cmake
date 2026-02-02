@@ -2,9 +2,9 @@
 
 CPMAddPackage(
     NAME zlib_ng
-    VERSION 2.2.5
+    VERSION 2.3.2
     GITHUB_REPOSITORY zlib-ng/zlib-ng
-    GIT_TAG 2.2.5
+    GIT_TAG 2.3.2
     DOWNLOAD_ONLY YES
 )
 
@@ -36,8 +36,9 @@ add_custom_command(
         # install
         -DCMAKE_INSTALL_PREFIX=${zlib_ng_install_directory}
         # options
-        -DZLIB_ENABLE_TESTS=OFF
+        -DZLIB_ALIASES=OFF
         -DZLIBNG_ENABLE_TESTS=OFF
+        -DBUILD_TESTING=OFF
         -DWITH_GTEST=OFF
     COMMAND ${CMAKE_COMMAND}
         --build ${zlib_ng_build_directory}
