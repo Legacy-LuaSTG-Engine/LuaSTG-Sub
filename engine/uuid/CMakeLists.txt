@@ -6,6 +6,5 @@ luastg_target_common_options(Core.UUID)
 luastg_target_more_warning(Core.UUID)
 target_include_directories(Core.UUID PUBLIC .)
 target_sources(Core.UUID PRIVATE ${src})
-target_link_libraries(Core.UUID PRIVATE options_compile_utf8)
 
 set_target_properties(Core.UUID PROPERTIES FOLDER engine)

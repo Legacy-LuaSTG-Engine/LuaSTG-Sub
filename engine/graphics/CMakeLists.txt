@@ -21,7 +21,6 @@ target_sources(${lib_name} PRIVATE ${lib_src})
 target_precompile_headers(${lib_name} PRIVATE
     d3d11/pch.h
 )
-target_link_libraries(${lib_name} PRIVATE options_compile_utf8)
 target_link_libraries(${lib_name} PUBLIC
     # Core
     Core.ReferenceCounted
