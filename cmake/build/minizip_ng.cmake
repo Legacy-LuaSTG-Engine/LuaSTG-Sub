@@ -48,8 +48,9 @@ add_custom_command(
         -DMZ_LZMA=OFF
         -DMZ_ZSTD=OFF
         -DMZ_FETCH_LIBS=OFF
-        -DZLIB_INCLUDE_DIRS=${zlib_ng_install_directory}/include  # stupid mechanism 
-        -DZLIBNG_LIBRARY=${minizip_ng_library_file}               # stupid mechanism
+        -DMZ_ZLIB_FLAVOR=zlib-ng
+        -DZLIB-NG_INCLUDE_DIRS=${zlib_ng_install_directory}/include  # stupid mechanism 
+        -DZLIB-NG_LIBRARY=${zlib_ng_library_file}                    # stupid mechanism
     COMMAND ${CMAKE_COMMAND}
         --build ${minizip_ng_build_directory}
         --config $<CONFIG>
