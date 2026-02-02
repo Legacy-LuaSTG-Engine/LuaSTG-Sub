@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.22)
 project(LuaSTGSub)
 
-include(cmake/architecture.cmake)
-include(cmake/luastg_options.cmake)
-
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-include(cmake/TargetCommonOptions.cmake)
-include(cmake/msvc.crt.cmake)
-#msvc_hybrid_runtime_library()
+
+include(cmake/architecture.cmake)
+include(cmake/luastg-options.cmake)
+include(cmake/luastg-utils.cmake)
+include(cmake/msvc-c-runtime.cmake)
+
 msvc_static_runtime_library()
 
 include(cmake/import/all.cmake)
