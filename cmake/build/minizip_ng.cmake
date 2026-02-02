@@ -2,9 +2,9 @@
 
 CPMAddPackage(
     NAME minizip_ng
-    VERSION 4.0.10
+    VERSION 4.1.0
     GITHUB_REPOSITORY zlib-ng/minizip-ng
-    GIT_TAG 4.0.10
+    GIT_TAG 4.1.0
     DOWNLOAD_ONLY YES
 )
 
