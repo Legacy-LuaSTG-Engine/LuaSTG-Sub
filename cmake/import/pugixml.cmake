@@ -23,7 +23,7 @@ if(pugixml_ADDED)
         ${pugixml_SOURCE_DIR}/scripts/natvis/pugixml.natvis
     )
     source_group(TREE ${pugixml_SOURCE_DIR}/scripts FILES ${pugixml_natvis})
-    target_sources(pugixml PUBLIC
+    target_sources(pugixml PRIVATE
         ${pugixml_src}
         ${pugixml_natvis}
     )
