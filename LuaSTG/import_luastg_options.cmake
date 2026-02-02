@@ -9,11 +9,6 @@ else()
     message(FATAL_ERROR "LuaSTG can not find custom build configuration")
 endif()
 
-if (LUASTG_LINK_YY_THUNKS)
-    target_link_libraries(LuaSTG PRIVATE YY_Thunks)
-    message(STATUS "[LuaSTG] Link: YY_Thunks")
-endif ()
-
 if (LUASTG_LINK_LUASOCKET)
     target_compile_definitions(LuaSTG PRIVATE LUASTG_LINK_LUASOCKET)
     target_link_libraries(LuaSTG PRIVATE luasocket)
