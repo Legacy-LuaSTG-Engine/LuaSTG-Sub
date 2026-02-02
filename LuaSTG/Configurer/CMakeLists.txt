@@ -26,14 +26,4 @@ target_link_libraries(Setting PRIVATE
     nlohmann_json
 )
 
-set(LUASTG_SETTING_BUILD_OUTPUT_DIR ${CMAKE_BINARY_DIR}/bin)
-add_custom_command(TARGET Setting POST_BUILD
-    # output dir
-    
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${LUASTG_SETTING_BUILD_OUTPUT_DIR}
-    
-    # luastg configuer
-    
-    COMMAND ${CMAKE_COMMAND} -E rm -f ${LUASTG_SETTING_BUILD_OUTPUT_DIR}/$<TARGET_FILE_NAME:Setting>
-    COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE_DIR:Setting>/$<TARGET_FILE_NAME:Setting>"            ${LUASTG_SETTING_BUILD_OUTPUT_DIR}
-)
+luastg_target_copy_to_bin_directory(Setting Setting)

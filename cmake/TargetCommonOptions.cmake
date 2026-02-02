@@ -58,11 +58,10 @@ function(luastg_target_more_warning __TARGET__)
     )
 endfunction()
 
-function(luastg_target_copy_to_output_directory __AFTER_TARGET__ __TARGET__)
-    add_custom_command(TARGET ${__AFTER_TARGET__} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_SOURCE_DIR}/engine
-        COMMAND ${CMAKE_COMMAND} -E rm -f ${CMAKE_SOURCE_DIR}/engine/"$<TARGET_FILE_NAME:${__TARGET__}>"
-        COMMAND ${CMAKE_COMMAND} -E copy  "$<TARGET_FILE:${__TARGET__}>" ${CMAKE_SOURCE_DIR}/engine
+function(luastg_target_copy_to_bin_directory after_target target)
+    add_custom_command(TARGET ${after_target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/bin
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:${target}>" ${CMAKE_BINARY_DIR}/bin/
     )
 endfunction()
 
