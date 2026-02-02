@@ -2,7 +2,7 @@
 
 CPMAddPackage(
     NAME spdlog
-    VERSION 1.16.0
+    VERSION 1.17.0
     GITHUB_REPOSITORY gabime/spdlog
     OPTIONS
     "SPDLOG_WCHAR_SUPPORT ON"
