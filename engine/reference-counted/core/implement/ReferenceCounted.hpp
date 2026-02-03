@@ -89,14 +89,14 @@ namespace core::implement {
 
 		ReferenceCounted() : m_counter{ 1 } {
 		#ifndef NDEBUG
-			ReferenceCountedDebugger::startTracking(this);
+			ReferenceCountedDebugger::startTracking(static_cast<FirstType<Interfaces...>*>(this));
 		#endif
 		}
 		ReferenceCounted(ReferenceCounted const&) = delete;
 		ReferenceCounted(ReferenceCounted&&) = delete;
 		virtual ~ReferenceCounted() {
 		#ifndef NDEBUG
-			ReferenceCountedDebugger::stopTracking(this);
+			ReferenceCountedDebugger::stopTracking(static_cast<FirstType<Interfaces...>*>(this));
 		#endif
 		}
 
