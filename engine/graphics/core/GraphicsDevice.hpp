@@ -26,7 +26,7 @@ namespace core {
         Scope non_local{};
     };
 
-    CORE_INTERFACE IGraphicsCommandbuffer : IReferenceCounted {
+    CORE_INTERFACE IGraphicsCommandBuffer : IReferenceCounted {
         virtual void bindVertexShaderConstantBuffer(uint32_t start_slot, IGraphicsBuffer* const* buffers, uint32_t count) = 0;
         virtual void bindVertexShaderTexture2D(uint32_t start_slot, ITexture2D* const* textures, uint32_t count) = 0;
         virtual void bindVertexShaderSampler(uint32_t start_slot, IGraphicsSampler* const* samplers, uint32_t count) = 0;
@@ -64,7 +64,7 @@ namespace core {
         }
     };
 
-    CORE_INTERFACE_ID(IGraphicsCommandbuffer, "ad182f92-e387-5055-ae9b-81d69663f304");
+    CORE_INTERFACE_ID(IGraphicsCommandBuffer, "ad182f92-e387-5055-ae9b-81d69663f304");
 
     CORE_INTERFACE IGraphicsDevice : IReferenceCounted {
         virtual void* getNativeDevice() = 0;
@@ -87,7 +87,7 @@ namespace core {
         virtual bool createRenderTarget(Vector2U size, IRenderTarget** out_render_target) = 0;
         virtual bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** out_depth_stencil_buffer) = 0;
 
-        virtual IGraphicsCommandbuffer* getCommandbuffer() const noexcept = 0;
+        virtual IGraphicsCommandBuffer* getCommandbuffer() const noexcept = 0;
 
         static bool create(StringView preferred_gpu, IGraphicsDevice** output);
 

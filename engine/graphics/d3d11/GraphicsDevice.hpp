@@ -4,7 +4,7 @@
 #include "d3d11/pch.h"
 
 namespace core {
-    class GraphicsDevice final : public implement::ReferenceCounted<IGraphicsDevice, IGraphicsCommandbuffer> {
+    class GraphicsDevice final : public implement::ReferenceCounted<IGraphicsDevice, IGraphicsCommandBuffer> {
     public:
         // IGraphicsDevice
 
@@ -28,9 +28,9 @@ namespace core {
         bool createRenderTarget(Vector2U size, IRenderTarget** out_render_target) override;
         bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** out_depth_stencil_buffer) override;
 
-        IGraphicsCommandbuffer* getCommandbuffer() const noexcept override { return const_cast<IGraphicsCommandbuffer*>(static_cast<IGraphicsCommandbuffer const*>(this)); }
+        IGraphicsCommandBuffer* getCommandbuffer() const noexcept override { return const_cast<IGraphicsCommandBuffer*>(static_cast<IGraphicsCommandBuffer const*>(this)); }
 
-        // IGraphicsCommandbuffer
+        // IGraphicsCommandBuffer
 
         void bindVertexShaderConstantBuffer(uint32_t start_slot, IGraphicsBuffer* const* buffers, uint32_t count) override;
         void bindVertexShaderTexture2D(uint32_t start_slot, ITexture2D* const* textures, uint32_t count) override;
