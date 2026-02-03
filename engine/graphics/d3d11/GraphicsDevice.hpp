@@ -4,7 +4,7 @@
 #include "d3d11/pch.h"
 
 namespace core {
-    class GraphicsDevice final : public implement::ReferenceCounted<IGraphicsDevice> {
+    class GraphicsDevice final : public implement::ReferenceCounted<IGraphicsDevice, IGraphicsCommandbuffer> {
     public:
         // IGraphicsDevice
 
@@ -27,6 +27,20 @@ namespace core {
 
         bool createRenderTarget(Vector2U size, IRenderTarget** out_render_target) override;
         bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** out_depth_stencil_buffer) override;
+
+        IGraphicsCommandbuffer* getCommandbuffer() const noexcept override { return const_cast<IGraphicsCommandbuffer*>(static_cast<IGraphicsCommandbuffer const*>(this)); }
+
+        // IGraphicsCommandbuffer
+
+        void bindVertexShaderConstantBuffer(uint32_t start_slot, IGraphicsBuffer* const* buffers, uint32_t count) override;
+        void bindVertexShaderTexture2D(uint32_t start_slot, ITexture2D* const* textures, uint32_t count) override;
+        void bindVertexShaderSampler(uint32_t start_slot, IGraphicsSampler* const* samplers, uint32_t count) override;
+
+        void bindPixelShaderConstantBuffer(uint32_t start_slot, IGraphicsBuffer* const* buffers, uint32_t count) override;
+        void bindPixelShaderTexture2D(uint32_t start_slot, ITexture2D* const* textures, uint32_t count) override;
+        void bindPixelShaderSampler(uint32_t start_slot, IGraphicsSampler* const* samplers, uint32_t count) override;
+
+        void bindRenderTarget(IRenderTarget* render_target, IDepthStencilBuffer* depth_stencil_buffer) override;
 
         // from IDevice
 

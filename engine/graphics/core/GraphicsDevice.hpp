@@ -26,6 +26,46 @@ namespace core {
         Scope non_local{};
     };
 
+    CORE_INTERFACE IGraphicsCommandbuffer : IReferenceCounted {
+        virtual void bindVertexShaderConstantBuffer(uint32_t start_slot, IGraphicsBuffer* const* buffers, uint32_t count) = 0;
+        virtual void bindVertexShaderTexture2D(uint32_t start_slot, ITexture2D* const* textures, uint32_t count) = 0;
+        virtual void bindVertexShaderSampler(uint32_t start_slot, IGraphicsSampler* const* samplers, uint32_t count) = 0;
+
+        virtual void bindPixelShaderConstantBuffer(uint32_t start_slot, IGraphicsBuffer* const* buffers, uint32_t count) = 0;
+        virtual void bindPixelShaderTexture2D(uint32_t start_slot, ITexture2D* const* textures, uint32_t count) = 0;
+        virtual void bindPixelShaderSampler(uint32_t start_slot, IGraphicsSampler* const* samplers, uint32_t count) = 0;
+
+        virtual void bindRenderTarget(IRenderTarget* render_target, IDepthStencilBuffer* depth_stencil_buffer) = 0;
+
+        // helpers
+
+        void bindVertexShaderConstantBuffer(const uint32_t slot, IGraphicsBuffer* const buffer) {
+            return bindVertexShaderConstantBuffer(slot, &buffer, 1);
+        }
+        void bindVertexShaderTexture2D(const uint32_t slot, ITexture2D* const texture) {
+            return bindVertexShaderTexture2D(slot, &texture, 1);
+        }
+        void bindVertexShaderSampler(const uint32_t slot, IGraphicsSampler* const sampler) {
+            bindVertexShaderSampler(slot, &sampler, 1);
+        }
+
+        void bindPixelShaderConstantBuffer(const uint32_t slot, IGraphicsBuffer* const buffer) {
+            bindPixelShaderConstantBuffer(slot, &buffer, 1);
+        }
+        void bindPixelShaderTexture2D(const uint32_t slot, ITexture2D* const texture) {
+            return bindPixelShaderTexture2D(slot, &texture, 1);
+        }
+        void bindPixelShaderSampler(const uint32_t slot, IGraphicsSampler* const sampler) {
+            bindPixelShaderSampler(slot, &sampler, 1);
+        }
+
+        void bindRenderTarget(IRenderTarget* const render_target) {
+            return bindRenderTarget(render_target, nullptr);
+        }
+    };
+
+    CORE_INTERFACE_ID(IGraphicsCommandbuffer, "ad182f92-e387-5055-ae9b-81d69663f304");
+
     CORE_INTERFACE IGraphicsDevice : IReferenceCounted {
         virtual void* getNativeDevice() = 0;
 
@@ -47,6 +87,8 @@ namespace core {
         virtual bool createRenderTarget(Vector2U size, IRenderTarget** out_render_target) = 0;
         virtual bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** out_depth_stencil_buffer) = 0;
 
+        virtual IGraphicsCommandbuffer* getCommandbuffer() const noexcept = 0;
+
         static bool create(StringView preferred_gpu, IGraphicsDevice** output);
 
         // from IDevice
@@ -61,5 +103,5 @@ namespace core {
         virtual void* getNativeRendererHandle() = 0;
     };
 
-    CORE_INTERFACE_ID(IGraphicsDevice, "17b76b63-ceb6-5f87-aa5f-366e89d7176e")
+    CORE_INTERFACE_ID(IGraphicsDevice, "17b76b63-ceb6-5f87-aa5f-366e89d7176e");
 }
