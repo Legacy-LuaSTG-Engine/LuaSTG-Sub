@@ -32,6 +32,9 @@ namespace core {
 
         // IGraphicsCommandBuffer
 
+        void bindVertexBuffer(uint32_t start_slot, IGraphicsBuffer* const* buffers, uint32_t count, uint32_t const* offset) override;
+        void bindIndexBuffer(IGraphicsBuffer* buffer, uint32_t offset, GraphicsFormat format) override;
+
         void bindVertexShaderConstantBuffer(uint32_t start_slot, IGraphicsBuffer* const* buffers, uint32_t count) override;
         void bindVertexShaderTexture2D(uint32_t start_slot, ITexture2D* const* textures, uint32_t count) override;
         void bindVertexShaderSampler(uint32_t start_slot, IGraphicsSampler* const* samplers, uint32_t count) override;
