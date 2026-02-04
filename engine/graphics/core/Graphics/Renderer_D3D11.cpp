@@ -817,11 +817,7 @@ namespace core::Graphics
 	void Renderer_D3D11::setRenderAttachment(IRenderTarget* p_rt, IDepthStencilBuffer* p_ds)
 	{
 		batchFlush();
-		auto* ctx = m_device->GetD3D11DeviceContext();
-		assert(ctx);
-		ID3D11RenderTargetView* rtv[1] = { p_rt ? static_cast<ID3D11RenderTargetView*>(p_rt->getNativeView()) : nullptr };
-		ID3D11DepthStencilView* dsv = p_ds ? static_cast<ID3D11DepthStencilView*>(p_ds->getNativeView()) : nullptr;
-		ctx->OMSetRenderTargets(1, rtv, dsv);
+		m_device->getCommandbuffer()->bindRenderTarget(p_rt, p_ds);
 	}
 
 	void Renderer_D3D11::setOrtho(BoxF const& box)
