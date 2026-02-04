@@ -269,12 +269,9 @@ namespace core::Graphics::Direct3D11 {
 
 		// Stage: IA
 
-		ID3D11Buffer* const vbs[]{ static_cast<ID3D11Buffer*>(m_vertex_buffer->getNativeResource()) };
-		constexpr UINT offset{};
-		ctx->IASetVertexBuffers(0, 1, vbs, &m_vertex_metadata.stride, &offset);
+		m_device->getCommandbuffer()->bindVertexBuffer(0, m_vertex_buffer.get());
 		if (m_index_buffer) {
-			ID3D11Buffer* const ib{ static_cast<ID3D11Buffer*>(m_index_buffer->getNativeResource()) };
-			ctx->IASetIndexBuffer(ib, m_options.vertex_index_compression ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT, 0);
+			m_device->getCommandbuffer()->bindIndexBuffer(m_index_buffer.get());
 		}
 		ctx->IASetPrimitiveTopology(m_options.primitive_topology == PrimitiveTopology::triangle_list
 									? D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST

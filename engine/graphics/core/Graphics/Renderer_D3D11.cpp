@@ -168,16 +168,9 @@ namespace core::Graphics
 namespace core::Graphics
 {
 	void Renderer_D3D11::setVertexIndexBuffer(const size_t index) {
-		assert(m_device->GetD3D11DeviceContext());
-
-		auto& vi = _vi_buffer[(index == 0xFFFFFFFFu) ? _vi_buffer_index : index];
-		ID3D11Buffer* vbo[1] = { getBuffer(vi.vertex_buffer) };
-		UINT stride[1] = { sizeof(IRenderer::DrawVertex) };
-		UINT offset[1] = { 0 };
-		m_device->GetD3D11DeviceContext()->IASetVertexBuffers(0, 1, vbo, stride, offset);
-
-		constexpr DXGI_FORMAT format = sizeof(DrawIndex) < 4 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
-		m_device->GetD3D11DeviceContext()->IASetIndexBuffer(getBuffer(vi.index_buffer), format, 0);
+		const auto& vi = _vi_buffer[(index == 0xFFFFFFFFu) ? _vi_buffer_index : index];
+		m_device->getCommandbuffer()->bindVertexBuffer(0, vi.vertex_buffer.get());
+		m_device->getCommandbuffer()->bindIndexBuffer(vi.index_buffer.get());
 	}
 	bool Renderer_D3D11::uploadVertexIndexBuffer(const bool discard) {
 		tracy_zone_scoped;
@@ -1231,11 +1224,8 @@ namespace core::Graphics
 		}
 
 		ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		ID3D11Buffer* p_d3d11_vbos[1] = { getBuffer(_fx_vbuffer) };
-		UINT const stride = sizeof(DrawVertex);
-		UINT const offset = 0;
-		ctx->IASetVertexBuffers(0, 1, p_d3d11_vbos, &stride, &offset);
-		ctx->IASetIndexBuffer(getBuffer(_fx_ibuffer), DXGI_FORMAT_R16_UINT, 0);
+		m_device->getCommandbuffer()->bindVertexBuffer(0, _fx_vbuffer.get());
+		m_device->getCommandbuffer()->bindIndexBuffer(_fx_ibuffer.get());
 		ctx->IASetInputLayout(_input_layout.get());
 
 		// [Stage VS]
@@ -1397,11 +1387,8 @@ namespace core::Graphics
 		}
 
 		ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		ID3D11Buffer* p_d3d11_vbos[1] = { getBuffer(_fx_vbuffer) };
-		UINT const stride = sizeof(DrawVertex);
-		UINT const offset = 0;
-		ctx->IASetVertexBuffers(0, 1, p_d3d11_vbos, &stride, &offset);
-		ctx->IASetIndexBuffer(getBuffer(_fx_ibuffer), DXGI_FORMAT_R16_UINT, 0);
+		m_device->getCommandbuffer()->bindVertexBuffer(0, _fx_vbuffer.get());
+		m_device->getCommandbuffer()->bindIndexBuffer(_fx_ibuffer.get());
 		ctx->IASetInputLayout(_input_layout.get());
 
 		// [Stage VS]
