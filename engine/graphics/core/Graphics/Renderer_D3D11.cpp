@@ -741,6 +741,7 @@ namespace core::Graphics
 
 	bool Renderer_D3D11::beginBatch()
 	{
+		const auto cmd = m_device->getCommandbuffer();
 		auto const ctx = m_device->GetD3D11DeviceContext();
 		assert(ctx);
 
@@ -752,10 +753,8 @@ namespace core::Graphics
 
 		// [VS State]
 
-		ID3D11Buffer* const view_projection_matrix = getBuffer(_vp_matrix_buffer);
-		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, 1, &view_projection_matrix);
-		ID3D11Buffer* const world_matrix = getBuffer(_world_matrix_buffer);
-		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_world_matrix, 1, &world_matrix);
+		cmd->bindVertexShaderConstantBuffer(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, _vp_matrix_buffer.get());
+		cmd->bindVertexShaderConstantBuffer(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_world_matrix, _world_matrix_buffer.get());
 
 		// [RS Stage]
 
@@ -1236,8 +1235,7 @@ namespace core::Graphics
 			Logger::error("[core] [Renderer] upload constant buffer failed (vp_matrix_buffer)");
 		}
 		ctx->VSSetShader(_vertex_shader[IDX(FogState::Disable)].get(), NULL, 0);
-		ID3D11Buffer* const view_projection_matrix = getBuffer(_vp_matrix_buffer);
-		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, 1, &view_projection_matrix);
+		m_device->getCommandbuffer()->bindVertexShaderConstantBuffer(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, _vp_matrix_buffer.get());
 
 		// [Stage RS]
 
@@ -1399,8 +1397,7 @@ namespace core::Graphics
 			Logger::error("[core] [Renderer] upload constant buffer failed (vp_matrix_buffer)");
 		}
 		ctx->VSSetShader(_vertex_shader[IDX(FogState::Disable)].get(), NULL, 0);
-		ID3D11Buffer* const view_projection_matrix = getBuffer(_vp_matrix_buffer);
-		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, 1, &view_projection_matrix);
+		m_device->getCommandbuffer()->bindVertexShaderConstantBuffer(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, _vp_matrix_buffer.get());
 
 		// [Stage RS]
 

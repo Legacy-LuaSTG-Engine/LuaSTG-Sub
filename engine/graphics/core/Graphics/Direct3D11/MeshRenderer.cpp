@@ -64,8 +64,7 @@ namespace core::Graphics::Direct3D11 {
 		// VS stage constant buffer setup by MeshRenderer
 		// * constant buffer (world matrix)
 
-		ID3D11Buffer* const world_matrix[1]{ static_cast<ID3D11Buffer*>(m_constant_buffer->getNativeResource()) };
-		ctx->VSSetConstantBuffers(Constants::vertex_shader_stage_constant_buffer_slot_world_matrix, 1, world_matrix);
+		m_device->getCommandbuffer()->bindVertexShaderConstantBuffer(Constants::vertex_shader_stage_constant_buffer_slot_world_matrix, m_constant_buffer.get());
 
 		// RS stage setup by Renderer:
 		// * viewport
