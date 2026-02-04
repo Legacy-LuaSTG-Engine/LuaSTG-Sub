@@ -3,103 +3,19 @@
 #include "core/Graphics/Direct3D11/Mesh.hpp"
 #include "core/Logger.hpp"
 #include "d3d11/GraphicsDevice.hpp"
-#include "windows/RuntimeLoader/Direct3DCompiler.hpp"
-
-using std::string_view_literals::operator ""sv;
+#include "d3d11/shader/mesh/vertex_shader_xy_normal.h"
+#include "d3d11/shader/mesh/vertex_shader_xy_fog.h"
+#include "d3d11/shader/mesh/vertex_shader_xyz_normal.h"
+#include "d3d11/shader/mesh/vertex_shader_xyz_fog.h"
 
 namespace {
-	Platform::RuntimeLoader::Direct3DCompiler d3d_compiler;
+	using std::string_view_literals::operator ""sv;
+
 	void reportReadOnly() {
 		core::Logger::error("[core] [Mesh] read-only mesh");
 	}
 	void reportIndexOutOfBounds() {
 		core::Logger::error("[core] [Mesh] index out of bounds");
-	}
-	std::string generateVertexShader(core::Graphics::MeshOptions const& options, bool const fog) {
-		// ReSharper disable StringLiteralTypo
-		std::string generated_vertex_shader;
-		generated_vertex_shader.reserve(1024);
-
-		generated_vertex_shader.append("cbuffer view_proj_buffer : register(b0) {\n"sv);
-		generated_vertex_shader.append("    float4x4 view_proj;\n"sv);
-		generated_vertex_shader.append("};\n"sv);
-
-		generated_vertex_shader.append("cbuffer world_buffer : register(b1) {\n"sv);
-		generated_vertex_shader.append("    float4x4 world;\n"sv);
-		generated_vertex_shader.append("};\n"sv);
-
-		generated_vertex_shader.append("struct VS_Input {\n"sv);
-		if (options.vertex_position_no_z) {
-			generated_vertex_shader.append("    float2 position: POSITION0;\n"sv);
-		}
-		else {
-			generated_vertex_shader.append("    float3 position: POSITION0;\n"sv);
-		}
-		generated_vertex_shader.append("    float2 uv: TEXCOORD0;\n"sv);
-		generated_vertex_shader.append("    float4 color: COLOR0;\n"sv);
-		generated_vertex_shader.append("};\n"sv);
-
-		generated_vertex_shader.append("struct VS_Output {\n"sv);
-		generated_vertex_shader.append("    float4 xy: SV_POSITION;\n"sv);
-		if (fog) {
-			generated_vertex_shader.append("    float4 position: POSITION0;\n"sv);
-		}
-		generated_vertex_shader.append("    float2 uv: TEXCOORD0;\n"sv);
-		generated_vertex_shader.append("    float4 color: COLOR0;\n"sv);
-		generated_vertex_shader.append("};\n"sv);
-
-		generated_vertex_shader.append("VS_Output main(VS_Input input) {\n"sv);
-
-		if (options.vertex_position_no_z) {
-			generated_vertex_shader.append("    float4 position_world = float4(input.position, 0.0f, 1.0f);\n"sv);
-		}
-		else {
-			generated_vertex_shader.append("    float4 position_world = float4(input.position, 1.0f);\n"sv);
-		}
-		generated_vertex_shader.append("    position_world = mul(world, position_world);\n"sv);
-
-		generated_vertex_shader.append("    VS_Output output;\n"sv);
-		generated_vertex_shader.append("    output.xy = mul(view_proj, position_world);\n"sv);
-		if (fog) {
-			generated_vertex_shader.append("    output.position = position_world;\n"sv);
-		}
-		generated_vertex_shader.append("    output.uv = input.uv;\n"sv);
-		generated_vertex_shader.append("    output.color = input.color;\n"sv);
-
-		generated_vertex_shader.append("    return output;\n"sv);
-		generated_vertex_shader.append("}\n"sv);
-		// ReSharper restore StringLiteralTypo
-		return generated_vertex_shader;
-	}
-	bool compileVertexShader(std::string const& source, ID3DBlob** const output) {
-		*output = nullptr;
-		HRESULT hr{};
-		UINT flags{ D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_WARNINGS_ARE_ERRORS };
-	#ifdef NDEBUG
-		flags |= D3DCOMPILE_AVOID_FLOW_CONTROL;
-		flags |= D3DCOMPILE_OPTIMIZATION_LEVEL3;
-	#else
-		flags |= D3DCOMPILE_DEBUG;
-		flags |= D3DCOMPILE_SKIP_OPTIMIZATION;
-		flags |= D3DCOMPILE_OPTIMIZATION_LEVEL0;
-	#endif
-		win32::com_ptr<ID3DBlob> vertex_shader_blob;
-		win32::com_ptr<ID3DBlob> error_message_blob;
-		hr = gHR = d3d_compiler.Compile(
-			source.data(), source.size(), "Mesh generated vertex shader",
-			nullptr, nullptr, "main", "vs_4_0", flags, 0,
-			vertex_shader_blob.put(), error_message_blob.put());
-		if (FAILED(hr)) {
-			core::Logger::error("Windows API failed: D3DCompile");
-			if (error_message_blob) {
-				std::string_view const error_message(static_cast<std::string_view::const_pointer>(error_message_blob->GetBufferPointer()));
-				core::Logger::error("[core] [Mesh] compiler error message:\n{}", error_message);
-			}
-			core::Logger::error("[core] [Mesh] generated vertex shader:\n{}", source);
-			return false;
-		}
-		*output = vertex_shader_blob.detach();
-		return true;
 	}
 }
 
@@ -357,8 +273,7 @@ namespace core::Graphics::Direct3D11 {
 		return true;
 	}
 	bool Mesh::createResources() {
-		HRESULT hr{};
-		auto const device = static_cast<GraphicsDevice*>(m_device.get())->GetD3D11Device();
+		const auto device = static_cast<ID3D11Device*>(m_device->getNativeHandle());
 		assert(device);
 
 		D3D11_INPUT_ELEMENT_DESC elements[3]{};
@@ -379,31 +294,48 @@ namespace core::Graphics::Direct3D11 {
 		elements[2].AlignedByteOffset = m_vertex_metadata.color_offset;
 		elements[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 
-		auto const vertex_shader_source = generateVertexShader(m_options, false);
-		if (!compileVertexShader(vertex_shader_source, m_vertex_shader_byte_code.put())) {
-			return false;
+		// TODO: share these objects
+		if (m_options.vertex_position_no_z) {
+			if (!win32::check_hresult_as_boolean(
+				device->CreateVertexShader(vertex_shader_xy_normal, sizeof(vertex_shader_xy_normal), nullptr, m_vertex_shader.put()),
+				"ID3D11Device::CreateVertexShader"sv
+			)) {
+				return false;
+			}
+			if (!win32::check_hresult_as_boolean(
+				device->CreateVertexShader(vertex_shader_xy_fog, sizeof(vertex_shader_xy_fog), nullptr, m_vertex_shader_fog.put()),
+				"ID3D11Device::CreateVertexShader"sv
+			)) {
+				return false;
+			}
+			// vertex shader input elements are compatible
+			if (!win32::check_hresult_as_boolean(
+				device->CreateInputLayout(elements, 3, vertex_shader_xy_normal, sizeof(vertex_shader_xy_normal), m_input_layout.put()),
+				"ID3D11Device::CreateInputLayout"sv
+			)) {
+				return false;
+			}
 		}
-		auto const vertex_shader_source_fog = generateVertexShader(m_options, true);
-		if (!compileVertexShader(vertex_shader_source_fog, m_vertex_shader_byte_code_fog.put())) {
-			return false;
-		}
-
-		hr = gHR = device->CreateVertexShader(m_vertex_shader_byte_code->GetBufferPointer(), m_vertex_shader_byte_code->GetBufferSize(), nullptr, m_vertex_shader.put());
-		if (FAILED(hr)) {
-			Logger::error("Windows API failed: ID3D11Device::CreateVertexShader");
-			return false;
-		}
-		hr = gHR = device->CreateVertexShader(m_vertex_shader_byte_code_fog->GetBufferPointer(), m_vertex_shader_byte_code_fog->GetBufferSize(), nullptr, m_vertex_shader_fog.put());
-		if (FAILED(hr)) {
-			Logger::error("Windows API failed: ID3D11Device::CreateVertexShader");
-			return false;
-		}
-
-		// vertex shader input elements are compatible
-		hr = gHR = device->CreateInputLayout(elements, 3, m_vertex_shader_byte_code->GetBufferPointer(), m_vertex_shader_byte_code->GetBufferSize(), m_input_layout.put());
-		if (FAILED(hr)) {
-			Logger::error("Windows API failed: ID3D11Device::CreateInputLayout");
-			return false;
+		else {
+			if (!win32::check_hresult_as_boolean(
+				device->CreateVertexShader(vertex_shader_xyz_normal, sizeof(vertex_shader_xyz_normal), nullptr, m_vertex_shader.put()),
+				"ID3D11Device::CreateVertexShader"sv
+			)) {
+				return false;
+			}
+			if (!win32::check_hresult_as_boolean(
+				device->CreateVertexShader(vertex_shader_xyz_fog, sizeof(vertex_shader_xyz_fog), nullptr, m_vertex_shader_fog.put()),
+				"ID3D11Device::CreateVertexShader"sv
+			)) {
+				return false;
+			}
+			// vertex shader input elements are compatible
+			if (!win32::check_hresult_as_boolean(
+				device->CreateInputLayout(elements, 3, vertex_shader_xyz_normal, sizeof(vertex_shader_xyz_normal), m_input_layout.put()),
+				"ID3D11Device::CreateInputLayout"sv
+			)) {
+				return false;
+			}
 		}
 
 		return true;
