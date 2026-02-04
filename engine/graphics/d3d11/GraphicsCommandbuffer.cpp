@@ -1,5 +1,4 @@
 #include "d3d11/GraphicsDevice.hpp"
-#include "d3d11/FormatHelper.hpp"
 
 namespace {
     ID3D11Buffer* getBuffer(core::IGraphicsBuffer* const buffer) {
@@ -56,9 +55,9 @@ namespace core {
         }
         d3d11_devctx->IASetVertexBuffers(start_slot, count, b, s, offset);
     }
-    void GraphicsDevice::bindIndexBuffer(IGraphicsBuffer* const buffer, const uint32_t offset, const GraphicsFormat format) {
-        assert(format == GraphicsFormat::r16_uint || format == GraphicsFormat::r32_uint);
-        d3d11_devctx->IASetIndexBuffer(getBuffer(buffer), d3d11::toFormat(format), offset);
+    void GraphicsDevice::bindIndexBuffer(IGraphicsBuffer* const buffer, const uint32_t offset) {
+        const auto format = getBufferStride(buffer) == 2 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
+        d3d11_devctx->IASetIndexBuffer(getBuffer(buffer), format, offset);
     }
 
     void GraphicsDevice::bindVertexShaderConstantBuffer(const uint32_t start_slot, IGraphicsBuffer* const* const buffers, const uint32_t count) {

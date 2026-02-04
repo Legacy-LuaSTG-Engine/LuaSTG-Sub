@@ -28,7 +28,7 @@ namespace core {
 
     CORE_INTERFACE IGraphicsCommandBuffer : IReferenceCounted {
         virtual void bindVertexBuffer(uint32_t start_slot, IGraphicsBuffer* const* buffers, uint32_t count, uint32_t const* offset) = 0;
-        virtual void bindIndexBuffer(IGraphicsBuffer* buffer, uint32_t offset, GraphicsFormat format) = 0;
+        virtual void bindIndexBuffer(IGraphicsBuffer* buffer, uint32_t offset) = 0;
 
         virtual void bindVertexShaderConstantBuffer(uint32_t start_slot, IGraphicsBuffer* const* buffers, uint32_t count) = 0;
         virtual void bindVertexShaderTexture2D(uint32_t start_slot, ITexture2D* const* textures, uint32_t count) = 0;
@@ -45,11 +45,8 @@ namespace core {
         void bindVertexBuffer(const uint32_t slot, IGraphicsBuffer* const buffer, const uint32_t offset = 0) {
             bindVertexBuffer(slot, &buffer, 1, &offset);
         }
-        void bindIndexBuffer16(IGraphicsBuffer* const buffer, const uint32_t offset = 0) {
-            bindIndexBuffer(buffer, offset, GraphicsFormat::r16_uint);
-        }
-        void bindIndexBuffer32(IGraphicsBuffer* const buffer, const uint32_t offset = 0) {
-            bindIndexBuffer(buffer, offset, GraphicsFormat::r32_uint);
+        void bindIndexBuffer(IGraphicsBuffer* const buffer) {
+            bindIndexBuffer(buffer, 0);
         }
 
         void bindVertexShaderConstantBuffer(const uint32_t slot, IGraphicsBuffer* const buffer) {
