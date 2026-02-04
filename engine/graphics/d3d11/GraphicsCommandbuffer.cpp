@@ -8,6 +8,12 @@ namespace {
         }
         return nullptr;
     }
+    UINT getBufferStride(core::IGraphicsBuffer* const buffer) {
+        if (buffer != nullptr) {
+            return buffer->getStrideInBytes();
+        }
+        return 0u;
+    }
     ID3D11ShaderResourceView* getTexture2D(core::ITexture2D* const texture) {
         if (texture != nullptr) {
             return static_cast<ID3D11ShaderResourceView*>(texture->getNativeView());
@@ -43,9 +49,10 @@ namespace core {
         assert(count > 0 && count <= (D3D10_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT - start_slot));
         assert(offset != nullptr);
         ID3D11Buffer* b[D3D10_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT]{};
-        UINT s[D3D10_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT]{}; // TODO
+        UINT s[D3D10_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT]{};
         for (uint32_t i = 0; i < count; i += 1) {
             b[i] = getBuffer(buffers[i]);
+            s[i] = getBufferStride(buffers[i]);
         }
         d3d11_devctx->IASetVertexBuffers(start_slot, count, b, s, offset);
     }
