@@ -122,29 +122,26 @@ namespace core::Graphics
 		if (!it->second.texture) { assert(false); return false; }
 		return true;
 	}
-	bool PostEffectShader_D3D11::apply(IRenderer* p_renderer)
+	bool PostEffectShader_D3D11::apply(IRenderer* const p_renderer)
 	{
 		assert(p_renderer);
 
-		auto* ctx = m_device->GetD3D11DeviceContext();
-		if (!ctx) { assert(false); return false; }
-		
-		auto* p_sampler = p_renderer->getKnownSamplerState(IRenderer::SamplerState::LinearClamp);
+		const auto cmd = m_device->getCommandbuffer();
+		const auto default_sampler = p_renderer->getKnownSamplerState(IRenderer::SamplerState::LinearClamp);
 
 		for (auto& v : m_buffer_map) {
 			if (!v.second.constant_buffer->update(v.second.buffer.data(), static_cast<uint32_t>(v.second.buffer.size()), true)) {
 				return false;
 			}
-			ID3D11Buffer* b[1] { getBuffer(v.second.constant_buffer) };
-			ctx->PSSetConstantBuffers(v.second.index, 1, b);
+			cmd->bindPixelShaderConstantBuffer(v.second.index, v.second.constant_buffer.get());
 		}
 
 		for (auto& v : m_texture2d_map) {
-			ID3D11ShaderResourceView* t[1] = { get_view(v.second.texture) };
-			ctx->PSSetShaderResources(v.second.index, 1, t);
-			auto* p_custom = v.second.texture->getSamplerState();
-			ID3D11SamplerState* s[1] = { p_custom ? get_sampler(p_custom) : get_sampler(p_sampler) };
-			ctx->PSSetSamplers(v.second.index, 1, s);
+			cmd->bindPixelShaderTexture2D(v.second.index, v.second.texture.get());
+			const auto sampler = v.second.texture->getSamplerState() != nullptr
+				? v.second.texture->getSamplerState()
+				: default_sampler;
+			cmd->bindPixelShaderSampler(v.second.index, sampler);
 		}
 
 		return true;
@@ -570,10 +567,9 @@ namespace core::Graphics
 		
 		_state_dirty = false;
 	}
-	void Renderer_D3D11::setSamplerState(SamplerState state, UINT index)
+	void Renderer_D3D11::setSamplerState(const SamplerState state, const UINT index)
 	{
-		ID3D11SamplerState* d3d11_sampler = get_sampler(_sampler_state[IDX(state)]);
-		m_device->GetD3D11DeviceContext()->PSSetSamplers(index, 1, &d3d11_sampler);
+		m_device->getCommandbuffer()->bindPixelShaderSampler(index, getKnownSamplerState(state));
 	}
 	bool Renderer_D3D11::uploadVertexIndexBufferFromDrawList()
 	{
@@ -608,14 +604,14 @@ namespace core::Graphics
 		}
 		return true;
 	}
-	void Renderer_D3D11::bindTextureSamplerState(ITexture2D* texture)
+	void Renderer_D3D11::bindTextureSamplerState(ITexture2D* const texture)
 	{
-		IGraphicsSampler* sampler_from_texture = texture ? texture->getSamplerState() : nullptr;
-		IGraphicsSampler* sampler = sampler_from_texture ? sampler_from_texture : _sampler_state[IDX(_state_set.sampler_state)].get();
-		ID3D11SamplerState* d3d11_sampler = get_sampler(sampler);
-		m_device->GetD3D11DeviceContext()->PSSetSamplers(0, 1, &d3d11_sampler);
+		const auto sampler = texture->getSamplerState() != nullptr
+			? texture->getSamplerState()
+			: _sampler_state[IDX(_state_set.sampler_state)].get();
+		m_device->getCommandbuffer()->bindPixelShaderSampler(0, sampler);
 	}
-	void Renderer_D3D11::bindTextureAlphaType(ITexture2D* texture)
+	void Renderer_D3D11::bindTextureAlphaType(ITexture2D* const texture)
 	{
 		TextureAlphaType const state = (texture ? texture->isPremultipliedAlpha() : false) ? TextureAlphaType::PremulAlpha : TextureAlphaType::Normal;
 		if (_state_dirty || _state_set.texture_alpha_type != state)
@@ -635,6 +631,7 @@ namespace core::Graphics
 			// upload data
 			if (!uploadVertexIndexBufferFromDrawList()) return false;
 			// draw
+			const auto cmd = m_device->getCommandbuffer();
 			auto* ctx = m_device->GetD3D11DeviceContext();
 			assert(ctx);
 			if (_draw_list.command.size > 0)
@@ -645,8 +642,7 @@ namespace core::Graphics
 					DrawCommand& cmd_ = _draw_list.command.data[j_];
 					if (cmd_.vertex_count > 0 && cmd_.index_count > 0)
 					{
-						ID3D11ShaderResourceView* srv[1] = { get_view(cmd_.texture) };
-						ctx->PSSetShaderResources(0, 1, srv);
+						cmd->bindPixelShaderTexture2D(0, cmd_.texture.get());
 						bindTextureSamplerState(cmd_.texture.get());
 						bindTextureAlphaType(cmd_.texture.get());
 						ctx->DrawIndexed(cmd_.index_count, vi_.index_offset, vi_.vertex_offset);
@@ -656,8 +652,7 @@ namespace core::Graphics
 				}
 			}
 			// unbound: solve some debug warning
-			ID3D11ShaderResourceView* null_srv[1] = { NULL };
-			ctx->PSSetShaderResources(0, 1, null_srv);
+			cmd->bindPixelShaderTexture2D(0, nullptr);
 		}
 		// clear
 		clearDrawList();
@@ -762,10 +757,8 @@ namespace core::Graphics
 
 		// [PS State]
 
-		ID3D11Buffer* const camera_position = getBuffer(_camera_pos_buffer);
-		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_camera_position, 1, &camera_position);
-		ID3D11Buffer* const fog_parameter = getBuffer(_fog_data_buffer);
-		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_fog_parameter, 1, &fog_parameter);
+		cmd->bindPixelShaderConstantBuffer(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_camera_position, _camera_pos_buffer.get());
+		cmd->bindPixelShaderConstantBuffer(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_fog_parameter, _fog_data_buffer.get());
 
 		// [OM Stage]
 
@@ -1270,24 +1263,21 @@ namespace core::Graphics
 		if (!_fog_data_buffer->update(size_viewport, sizeof(size_viewport), true)) {
 			Logger::error("[core] [Renderer] upload constant buffer failed (fog_data_buffer/size_viewport_buffer)");
 		}
-		ID3D11Buffer* const user_data = getBuffer(_user_float_buffer);
-		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_user_data, 1, &user_data);
-		ID3D11Buffer* const fog_parameter = getBuffer(_fog_data_buffer);
-		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_fog_parameter, 1, &fog_parameter);
+		m_device->getCommandbuffer()->bindPixelShaderConstantBuffer(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_user_data, _user_float_buffer.get());
+		m_device->getCommandbuffer()->bindPixelShaderConstantBuffer(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_fog_parameter, _fog_data_buffer.get());
 
 		ctx->PSSetShader(static_cast<PostEffectShader_D3D11*>(p_effect)->GetPS(), NULL, 0);
 
-		ID3D11ShaderResourceView* p_srvs[5] = {};
-		ID3D11SamplerState* p_samplers[5] = {};
-		p_srvs[4] = get_view(p_tex);
-		p_samplers[4] = get_sampler(_sampler_state[IDX(rtsv)]);
-		for (DWORD stage = 0; stage < std::min<DWORD>((DWORD)tv_sv_n, 4); stage += 1)
-		{
-			p_srvs[stage] = get_view(p_tex_arr[stage]);
-			p_samplers[stage] = get_sampler(_sampler_state[IDX(sv[stage])]);
+		ITexture2D* textures[5]{};
+		IGraphicsSampler* samplers[5]{};
+		for (uint32_t slot = 0; slot < std::min<uint32_t>(static_cast<uint32_t>(tv_sv_n), 4); slot += 1) {
+			textures[slot] = p_tex_arr[slot];
+			samplers[slot] = _sampler_state[IDX(sv[slot])].get();
 		}
-		ctx->PSSetShaderResources(0, 5, p_srvs);
-		ctx->PSSetSamplers(0, 5, p_samplers);
+		textures[4] = p_tex;
+		samplers[4] = _sampler_state[IDX(rtsv)].get();
+		m_device->getCommandbuffer()->bindPixelShaderTexture2D(0, textures, 5);
+		m_device->getCommandbuffer()->bindPixelShaderSampler(0, samplers, 5);
 
 		// [Stage OM]
 
