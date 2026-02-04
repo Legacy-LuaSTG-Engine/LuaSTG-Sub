@@ -32,6 +32,9 @@ namespace core {
     uint32_t VertexBuffer::getSizeInBytes() const {
         return m_size_in_bytes;
     }
+    uint32_t VertexBuffer::getStrideInBytes() const {
+        return m_stride_in_bytes;
+    }
     bool VertexBuffer::map(void** const out_pointer, const bool cycle) {
         if (!out_pointer) {
             assert(false);
@@ -145,17 +148,19 @@ namespace core {
             "ID3D11Device::CreateBuffer"sv
         );
     }
-    bool VertexBuffer::createResources(IGraphicsDevice* const device, uint32_t const size_in_bytes) {
-        if (!device) {
-            assert(false);
-            return false;
+    bool VertexBuffer::createResources(IGraphicsDevice* const device, const uint32_t size_in_bytes, const uint32_t stride_in_bytes) {
+        if (device == nullptr) {
+            assert(false); return false;
         }
         if (size_in_bytes == 0) {
-            assert(false);
-            return false;
+            assert(false); return false;
+        }
+        if (stride_in_bytes == 0) {
+            assert(false); return false;
         }
         m_device = device;
         m_size_in_bytes = size_in_bytes;
+        m_stride_in_bytes = stride_in_bytes;
         if (!createResources()) {
             return false;
         }
@@ -188,6 +193,9 @@ namespace core {
 
     uint32_t IndexBuffer::getSizeInBytes() const {
         return m_size_in_bytes;
+    }
+    uint32_t IndexBuffer::getStrideInBytes() const {
+        return 0; // FIXME
     }
     bool IndexBuffer::map(void** const out_pointer, const bool cycle) {
         if (!out_pointer) {
@@ -346,6 +354,9 @@ namespace core {
     uint32_t ConstantBuffer::getSizeInBytes() const {
         return m_size_in_bytes;
     }
+    uint32_t ConstantBuffer::getStrideInBytes() const {
+        return 0; // FIXME
+    }
     bool ConstantBuffer::map(void** const out_pointer, const bool cycle) {
         if (!out_pointer) {
             assert(false);
@@ -493,7 +504,7 @@ namespace core {
 #include "d3d11/GraphicsDevice.hpp"
 
 namespace core {
-    bool GraphicsDevice::createVertexBuffer(uint32_t const size_in_bytes, IGraphicsBuffer** const output_buffer) {
+    bool GraphicsDevice::createVertexBuffer(const uint32_t size_in_bytes, const uint32_t stride_in_bytes, IGraphicsBuffer** const output_buffer) {
         if (!output_buffer) {
             assert(false);
             return false;
@@ -501,13 +512,13 @@ namespace core {
         *output_buffer = nullptr;
         SmartReference<VertexBuffer> buffer;
         buffer.attach(new VertexBuffer());
-        if (!buffer->createResources(this, size_in_bytes)) {
+        if (!buffer->createResources(this, size_in_bytes, stride_in_bytes)) {
             return false;
         }
         *output_buffer = buffer.detach();
         return true;
     }
-    bool GraphicsDevice::createIndexBuffer(uint32_t const size_in_bytes, IGraphicsBuffer** const output_buffer) {
+    bool GraphicsDevice::createIndexBuffer(const uint32_t size_in_bytes, IGraphicsBuffer** const output_buffer) {
         if (!output_buffer) {
             assert(false);
             return false;
@@ -521,7 +532,7 @@ namespace core {
         *output_buffer = buffer.detach();
         return true;
     }
-    bool GraphicsDevice::createConstantBuffer(uint32_t const size_in_bytes, IGraphicsBuffer** const output_buffer) {
+    bool GraphicsDevice::createConstantBuffer(const uint32_t size_in_bytes, IGraphicsBuffer** const output_buffer) {
         if (!output_buffer) {
             assert(false);
             return false;

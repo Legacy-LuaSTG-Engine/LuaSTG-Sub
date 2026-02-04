@@ -7,6 +7,7 @@ namespace core {
         virtual void* getNativeView() const = 0;
 
         virtual uint32_t getSizeInBytes() const = 0;
+        virtual uint32_t getStrideInBytes() const = 0;
         virtual bool map(void** out_pointer, bool cycle) = 0;
         virtual bool unmap() = 0;
         virtual bool update(const void* data, uint32_t size, bool cycle) = 0;

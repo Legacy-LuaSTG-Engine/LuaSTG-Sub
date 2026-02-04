@@ -228,7 +228,7 @@ namespace core::Graphics
 	{
 		assert(m_device->getNativeHandle() != nullptr);
 
-		if (!m_device->createVertexBuffer(4 * sizeof(DrawVertex), _fx_vbuffer.put())) {
+		if (!m_device->createVertexBuffer(4 * sizeof(DrawVertex), sizeof(DrawVertex), _fx_vbuffer.put())) {
 			return false;
 		}
 		if (!m_device->createIndexBuffer(6 * sizeof(DrawIndex), _fx_ibuffer.put())) {
@@ -247,7 +247,7 @@ namespace core::Graphics
 		}
 
 		for (auto& vi_ : _vi_buffer) {
-			if (!m_device->createVertexBuffer(sizeof(_draw_list.vertex.data), vi_.vertex_buffer.put())) {
+			if (!m_device->createVertexBuffer(sizeof(_draw_list.vertex.data), sizeof(DrawVertex), vi_.vertex_buffer.put())) {
 				return false;
 			}
 			if (!m_device->createIndexBuffer(sizeof(_draw_list.index.data), vi_.index_buffer.put())) {

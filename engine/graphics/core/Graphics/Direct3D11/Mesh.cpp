@@ -341,7 +341,7 @@ namespace core::Graphics::Direct3D11 {
 		m_index_data.resize(m_options.index_count * m_index_metadata.stride);
 
 		if (m_options.vertex_count > 0) {
-			if (!m_device->createVertexBuffer(static_cast<uint32_t>(m_vertex_data.size()), m_vertex_buffer.put())) {
+			if (!m_device->createVertexBuffer(static_cast<uint32_t>(m_vertex_data.size()), m_vertex_metadata.stride, m_vertex_buffer.put())) {
 				return false;
 			}
 		}
