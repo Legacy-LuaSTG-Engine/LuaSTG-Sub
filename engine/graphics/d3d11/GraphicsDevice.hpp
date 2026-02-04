@@ -32,6 +32,8 @@ namespace core {
 
         // IGraphicsCommandBuffer
 
+        void* getNativeHandle() const noexcept override;
+
         void bindVertexBuffer(uint32_t start_slot, IGraphicsBuffer* const* buffers, uint32_t count, uint32_t const* offset) override;
         void bindIndexBuffer(IGraphicsBuffer* buffer, uint32_t offset) override;
 

@@ -42,6 +42,10 @@ namespace {
 namespace core {
     // NOTE: 由于我们设定的基线是 feature level 10.0 ，下方代码引用的数量限制常量均为 D3D10 的
 
+    void* GraphicsDevice::getNativeHandle() const noexcept {
+        return d3d11_devctx.get();
+    }
+
     void GraphicsDevice::bindVertexBuffer(const uint32_t start_slot, IGraphicsBuffer* const* const buffers, const uint32_t count, uint32_t const* const offset) {
         assert(start_slot < D3D10_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT);
         assert(buffers != nullptr);

@@ -27,6 +27,8 @@ namespace core {
     };
 
     CORE_INTERFACE IGraphicsCommandBuffer : IReferenceCounted {
+        virtual void* getNativeHandle() const noexcept = 0;
+
         virtual void bindVertexBuffer(uint32_t start_slot, IGraphicsBuffer* const* buffers, uint32_t count, uint32_t const* offset) = 0;
         virtual void bindIndexBuffer(IGraphicsBuffer* buffer, uint32_t offset) = 0;
 
