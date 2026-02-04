@@ -65,30 +65,30 @@ namespace core {
     }
 
     void GraphicsDevice::bindVertexShaderConstantBuffer(const uint32_t start_slot, IGraphicsBuffer* const* const buffers, const uint32_t count) {
-        assert(start_slot < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
+        assert(start_slot < D3D10_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
         assert(buffers != nullptr);
-        assert(count > 0 && count <= (D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - start_slot));
-        ID3D11Buffer* s[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]{};
+        assert(count > 0 && count <= (D3D10_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - start_slot));
+        ID3D11Buffer* s[D3D10_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]{};
         for (uint32_t i = 0; i < count; i += 1) {
             s[i] = getBuffer(buffers[i]);
         }
         d3d11_devctx->VSSetConstantBuffers(start_slot, count, s);
     }
     void GraphicsDevice::bindVertexShaderTexture2D(const uint32_t start_slot, ITexture2D* const* const textures, const uint32_t count) {
-        assert(start_slot < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
+        assert(start_slot < D3D10_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
         assert(textures != nullptr);
-        assert(count > 0 && count <= (D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - start_slot));
-        ID3D11ShaderResourceView* s[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT]{};
+        assert(count > 0 && count <= (D3D10_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - start_slot));
+        ID3D11ShaderResourceView* s[D3D10_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT]{};
         for (uint32_t i = 0; i < count; i += 1) {
             s[i] = getTexture2D(textures[i]);
         }
         d3d11_devctx->VSSetShaderResources(start_slot, count, s);
     }
     void GraphicsDevice::bindVertexShaderSampler(const uint32_t start_slot, IGraphicsSampler* const* const samplers, const uint32_t count) {
-        assert(start_slot < D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
+        assert(start_slot < D3D10_COMMONSHADER_SAMPLER_SLOT_COUNT);
         assert(samplers != nullptr);
-        assert(count > 0 && count <= (D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT - start_slot));
-        ID3D11SamplerState* s[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT]{};
+        assert(count > 0 && count <= (D3D10_COMMONSHADER_SAMPLER_SLOT_COUNT - start_slot));
+        ID3D11SamplerState* s[D3D10_COMMONSHADER_SAMPLER_SLOT_COUNT]{};
         for (uint32_t i = 0; i < count; i += 1) {
             s[i] = getSampler(samplers[i]);
         }
@@ -96,30 +96,30 @@ namespace core {
     }
 
     void GraphicsDevice::bindPixelShaderConstantBuffer(const uint32_t start_slot, IGraphicsBuffer* const* const buffers, const uint32_t count) {
-        assert(start_slot < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
+        assert(start_slot < D3D10_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
         assert(buffers != nullptr);
-        assert(count > 0 && count <= (D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - start_slot));
-        ID3D11Buffer* s[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]{};
+        assert(count > 0 && count <= (D3D10_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - start_slot));
+        ID3D11Buffer* s[D3D10_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT]{};
         for (uint32_t i = 0; i < count; i += 1) {
             s[i] = getBuffer(buffers[i]);
         }
         d3d11_devctx->PSSetConstantBuffers(start_slot, count, s);
     }
     void GraphicsDevice::bindPixelShaderTexture2D(const uint32_t start_slot, ITexture2D* const* const textures, const uint32_t count) {
-        assert(start_slot < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
+        assert(start_slot < D3D10_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
         assert(textures != nullptr);
-        assert(count > 0 && count <= (D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - start_slot));
-        ID3D11ShaderResourceView* s[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT]{};
+        assert(count > 0 && count <= (D3D10_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - start_slot));
+        ID3D11ShaderResourceView* s[D3D10_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT]{};
         for (uint32_t i = 0; i < count; i += 1) {
             s[i] = getTexture2D(textures[i]);
         }
         d3d11_devctx->PSSetShaderResources(start_slot, count, s);
     }
     void GraphicsDevice::bindPixelShaderSampler(const uint32_t start_slot, IGraphicsSampler* const* const samplers, const uint32_t count) {
-        assert(start_slot < D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
+        assert(start_slot < D3D10_COMMONSHADER_SAMPLER_SLOT_COUNT);
         assert(samplers != nullptr);
-        assert(count > 0 && count <= (D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT - start_slot));
-        ID3D11SamplerState* s[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT]{};
+        assert(count > 0 && count <= (D3D10_COMMONSHADER_SAMPLER_SLOT_COUNT - start_slot));
+        ID3D11SamplerState* s[D3D10_COMMONSHADER_SAMPLER_SLOT_COUNT]{};
         for (uint32_t i = 0; i < count; i += 1) {
             s[i] = getSampler(samplers[i]);
         }
