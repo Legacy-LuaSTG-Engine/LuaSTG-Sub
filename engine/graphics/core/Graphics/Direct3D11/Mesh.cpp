@@ -346,7 +346,8 @@ namespace core::Graphics::Direct3D11 {
 			}
 		}
 		if (m_options.index_count > 0) {
-			if (!m_device->createIndexBuffer(static_cast<uint32_t>(m_index_data.size()), m_index_buffer.put())) {
+			const auto format = m_options.vertex_index_compression ? GraphicsFormat::r16_uint : GraphicsFormat::r32_uint;
+			if (!m_device->createIndexBuffer(static_cast<uint32_t>(m_index_data.size()), format, m_index_buffer.put())) {
 				return false;
 			}
 		}

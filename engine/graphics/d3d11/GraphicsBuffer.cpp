@@ -195,7 +195,7 @@ namespace core {
         return m_size_in_bytes;
     }
     uint32_t IndexBuffer::getStrideInBytes() const {
-        return 0; // FIXME
+        return m_format == GraphicsFormat::r16_uint ? 2 : 4;
     }
     bool IndexBuffer::map(void** const out_pointer, const bool cycle) {
         if (!out_pointer) {
@@ -310,17 +310,19 @@ namespace core {
             "ID3D11Device::CreateBuffer"sv
         );
     }
-    bool IndexBuffer::createResources(IGraphicsDevice* const device, uint32_t const size_in_bytes) {
-        if (!device) {
-            assert(false);
-            return false;
+    bool IndexBuffer::createResources(IGraphicsDevice* const device, uint32_t const size_in_bytes, const GraphicsFormat format) {
+        if (device == nullptr) {
+            assert(false); return false;
         }
         if (size_in_bytes == 0) {
-            assert(false);
-            return false;
+            assert(false); return false;
+        }
+        if (format != GraphicsFormat::r16_uint && format != GraphicsFormat::r32_uint) {
+            assert(false); return false;
         }
         m_device = device;
         m_size_in_bytes = size_in_bytes;
+        m_format = format;
         if (!createResources()) {
             return false;
         }
@@ -355,7 +357,7 @@ namespace core {
         return m_size_in_bytes;
     }
     uint32_t ConstantBuffer::getStrideInBytes() const {
-        return 0; // FIXME
+        return m_size_in_bytes;
     }
     bool ConstantBuffer::map(void** const out_pointer, const bool cycle) {
         if (!out_pointer) {
@@ -518,7 +520,7 @@ namespace core {
         *output_buffer = buffer.detach();
         return true;
     }
-    bool GraphicsDevice::createIndexBuffer(const uint32_t size_in_bytes, IGraphicsBuffer** const output_buffer) {
+    bool GraphicsDevice::createIndexBuffer(const uint32_t size_in_bytes, const GraphicsFormat format, IGraphicsBuffer** const output_buffer) {
         if (!output_buffer) {
             assert(false);
             return false;
@@ -526,7 +528,7 @@ namespace core {
         *output_buffer = nullptr;
         SmartReference<IndexBuffer> buffer;
         buffer.attach(new IndexBuffer());
-        if (!buffer->createResources(this, size_in_bytes)) {
+        if (!buffer->createResources(this, size_in_bytes, format)) {
             return false;
         }
         *output_buffer = buffer.detach();

@@ -231,7 +231,7 @@ namespace core::Graphics
 		if (!m_device->createVertexBuffer(4 * sizeof(DrawVertex), sizeof(DrawVertex), _fx_vbuffer.put())) {
 			return false;
 		}
-		if (!m_device->createIndexBuffer(6 * sizeof(DrawIndex), _fx_ibuffer.put())) {
+		if (!m_device->createIndexBuffer(6 * sizeof(DrawIndex), GraphicsFormat::r16_uint, _fx_ibuffer.put())) {
 			return false;
 		}
 		{
@@ -250,7 +250,7 @@ namespace core::Graphics
 			if (!m_device->createVertexBuffer(sizeof(_draw_list.vertex.data), sizeof(DrawVertex), vi_.vertex_buffer.put())) {
 				return false;
 			}
-			if (!m_device->createIndexBuffer(sizeof(_draw_list.index.data), vi_.index_buffer.put())) {
+			if (!m_device->createIndexBuffer(sizeof(_draw_list.index.data), GraphicsFormat::r16_uint, vi_.index_buffer.put())) {
 				return false;
 			}
 		}

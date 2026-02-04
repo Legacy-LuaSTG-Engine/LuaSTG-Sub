@@ -88,7 +88,7 @@ namespace core {
         virtual GraphicsDeviceMemoryStatistics getMemoryStatistics() = 0;
 
         virtual bool createVertexBuffer(uint32_t size_in_bytes, uint32_t stride_in_bytes, IGraphicsBuffer** output_buffer) = 0;
-        virtual bool createIndexBuffer(uint32_t size_in_bytes, IGraphicsBuffer** output_buffer) = 0;
+        virtual bool createIndexBuffer(uint32_t size_in_bytes, GraphicsFormat format, IGraphicsBuffer** output_buffer) = 0;
         virtual bool createConstantBuffer(uint32_t size_in_bytes, IGraphicsBuffer** output_buffer) = 0;
 
         virtual bool createTextureFromFile(StringView path, bool mipmap, ITexture2D** out_texture) = 0;

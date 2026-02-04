@@ -79,12 +79,13 @@ namespace core {
         ~IndexBuffer();
 
         bool createResources();
-        bool createResources(IGraphicsDevice* device, uint32_t size_in_bytes);
+        bool createResources(IGraphicsDevice* device, uint32_t size_in_bytes, GraphicsFormat format);
 
     private:
         SmartReference<IGraphicsDevice> m_device;
         win32::com_ptr<ID3D11Buffer> m_buffer;
         uint32_t m_size_in_bytes{};
+        GraphicsFormat m_format{};
         bool m_initialized{};
     };
 }

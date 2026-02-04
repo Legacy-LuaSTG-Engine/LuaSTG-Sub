@@ -16,7 +16,7 @@ namespace core {
         GraphicsDeviceMemoryStatistics getMemoryStatistics() override;
 
         bool createVertexBuffer(uint32_t size_in_bytes, uint32_t stride_in_bytes, IGraphicsBuffer** output_buffer) override;
-        bool createIndexBuffer(uint32_t size_in_bytes, IGraphicsBuffer** output_buffer) override;
+        bool createIndexBuffer(uint32_t size_in_bytes, GraphicsFormat format, IGraphicsBuffer** output_buffer) override;
         bool createConstantBuffer(uint32_t size_in_bytes, IGraphicsBuffer** output_buffer) override;
 
         bool createTextureFromFile(StringView path, bool mipmap, ITexture2D** out_texture) override;
