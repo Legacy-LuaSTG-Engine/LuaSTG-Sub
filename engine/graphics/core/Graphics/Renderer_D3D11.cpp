@@ -1,8 +1,8 @@
 #include "core/Graphics/Renderer_D3D11.hpp"
 #include "core/Logger.hpp"
 #include "core/Graphics/Model_D3D11.hpp"
-#include "core/Graphics/Direct3D11/Constants.hpp"
-#include "core//DepthStencilBuffer.hpp"
+#include "core/DepthStencilBuffer.hpp"
+#include "d3d11/SlotConstants.hpp"
 
 #define IDX(x) (size_t)static_cast<uint8_t>(x)
 
@@ -748,8 +748,8 @@ namespace core::Graphics
 
 		// [VS State]
 
-		cmd->bindVertexShaderConstantBuffer(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, _vp_matrix_buffer.get());
-		cmd->bindVertexShaderConstantBuffer(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_world_matrix, _world_matrix_buffer.get());
+		cmd->bindVertexShaderConstantBuffer(d3d11::vertex_shader_constant_buffer_slot_view_projection_matrix, _vp_matrix_buffer.get());
+		cmd->bindVertexShaderConstantBuffer(d3d11::vertex_shader_constant_buffer_slot_world_matrix, _world_matrix_buffer.get());
 
 		// [RS Stage]
 
@@ -757,8 +757,8 @@ namespace core::Graphics
 
 		// [PS State]
 
-		cmd->bindPixelShaderConstantBuffer(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_camera_position, _camera_pos_buffer.get());
-		cmd->bindPixelShaderConstantBuffer(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_fog_parameter, _fog_data_buffer.get());
+		cmd->bindPixelShaderConstantBuffer(d3d11::pixel_shader_constant_buffer_slot_camera_position, _camera_pos_buffer.get());
+		cmd->bindPixelShaderConstantBuffer(d3d11::pixel_shader_constant_buffer_slot_fog_parameter, _fog_data_buffer.get());
 
 		// [OM Stage]
 
@@ -1224,7 +1224,7 @@ namespace core::Graphics
 			Logger::error("[core] [Renderer] upload constant buffer failed (vp_matrix_buffer)");
 		}
 		ctx->VSSetShader(_vertex_shader[IDX(FogState::Disable)].get(), NULL, 0);
-		m_device->getCommandbuffer()->bindVertexShaderConstantBuffer(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, _vp_matrix_buffer.get());
+		m_device->getCommandbuffer()->bindVertexShaderConstantBuffer(d3d11::vertex_shader_constant_buffer_slot_view_projection_matrix, _vp_matrix_buffer.get());
 
 		// [Stage RS]
 
@@ -1259,8 +1259,8 @@ namespace core::Graphics
 		if (!_fog_data_buffer->update(size_viewport, sizeof(size_viewport), true)) {
 			Logger::error("[core] [Renderer] upload constant buffer failed (fog_data_buffer/size_viewport_buffer)");
 		}
-		m_device->getCommandbuffer()->bindPixelShaderConstantBuffer(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_user_data, _user_float_buffer.get());
-		m_device->getCommandbuffer()->bindPixelShaderConstantBuffer(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_fog_parameter, _fog_data_buffer.get());
+		m_device->getCommandbuffer()->bindPixelShaderConstantBuffer(d3d11::pixel_shader_constant_buffer_slot_user_data, _user_float_buffer.get());
+		m_device->getCommandbuffer()->bindPixelShaderConstantBuffer(d3d11::pixel_shader_constant_buffer_slot_fog_parameter, _fog_data_buffer.get());
 
 		ctx->PSSetShader(static_cast<PostEffectShader_D3D11*>(p_effect)->GetPS(), NULL, 0);
 
@@ -1383,7 +1383,7 @@ namespace core::Graphics
 			Logger::error("[core] [Renderer] upload constant buffer failed (vp_matrix_buffer)");
 		}
 		ctx->VSSetShader(_vertex_shader[IDX(FogState::Disable)].get(), NULL, 0);
-		m_device->getCommandbuffer()->bindVertexShaderConstantBuffer(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, _vp_matrix_buffer.get());
+		m_device->getCommandbuffer()->bindVertexShaderConstantBuffer(d3d11::vertex_shader_constant_buffer_slot_view_projection_matrix, _vp_matrix_buffer.get());
 
 		// [Stage RS]
 

@@ -1,7 +1,7 @@
 #include "core/Graphics/Direct3D11/MeshRenderer.hpp"
-#include "core/Graphics/Direct3D11/Constants.hpp"
 #include "core/Graphics/Direct3D11/Mesh.hpp"
 #include "core/Graphics/Renderer_D3D11.hpp"
+#include "d3d11/SlotConstants.hpp"
 
 namespace core::Graphics::Direct3D11 {
 	void MeshRenderer::onGraphicsDeviceCreate() {
@@ -58,12 +58,12 @@ namespace core::Graphics::Direct3D11 {
 
 		// VS stage constant buffer setup by Renderer
 		// * constant buffer (view projection matrix)
-		// see: Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix
+		// see: d3d11::vertex_shader_constant_buffer_slot_view_projection_matrix
 
 		// VS stage constant buffer setup by MeshRenderer
 		// * constant buffer (world matrix)
 
-		cmd->bindVertexShaderConstantBuffer(Constants::vertex_shader_stage_constant_buffer_slot_world_matrix, m_constant_buffer.get());
+		cmd->bindVertexShaderConstantBuffer(d3d11::vertex_shader_constant_buffer_slot_world_matrix, m_constant_buffer.get());
 
 		// RS stage setup by Renderer:
 		// * viewport
