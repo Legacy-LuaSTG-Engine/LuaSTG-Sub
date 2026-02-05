@@ -36,6 +36,9 @@ namespace core {
         virtual void bindVertexShaderTexture2D(uint32_t start_slot, ITexture2D* const* textures, uint32_t count) = 0;
         virtual void bindVertexShaderSampler(uint32_t start_slot, IGraphicsSampler* const* samplers, uint32_t count) = 0;
 
+        virtual void setViewpoint(float x, float y, float width, float height, float min_depth, float max_depth) = 0;
+        virtual void setScissorRect(int32_t x, int32_t y, uint32_t width, uint32_t height) = 0;
+
         virtual void bindPixelShaderConstantBuffer(uint32_t start_slot, IGraphicsBuffer* const* buffers, uint32_t count) = 0;
         virtual void bindPixelShaderTexture2D(uint32_t start_slot, ITexture2D* const* textures, uint32_t count) = 0;
         virtual void bindPixelShaderSampler(uint32_t start_slot, IGraphicsSampler* const* samplers, uint32_t count) = 0;
@@ -59,6 +62,10 @@ namespace core {
         }
         void bindVertexShaderSampler(const uint32_t slot, IGraphicsSampler* const sampler) {
             bindVertexShaderSampler(slot, &sampler, 1);
+        }
+
+        void setViewpoint(const float x, const float y, const float width, const float height) {
+            setViewpoint(x, y, width, height, 0.0f, 1.0f);
         }
 
         void bindPixelShaderConstantBuffer(const uint32_t slot, IGraphicsBuffer* const buffer) {
