@@ -96,6 +96,8 @@ namespace core {
     }
 
     void GraphicsDevice::setViewport(const float x, const float y, const float width, const float height, const float min_depth, const float max_depth) {
+        assert(width >= 1.0f);
+        assert(height >= 1.0f);
         const D3D11_VIEWPORT viewport{
             .TopLeftX = x,
             .TopLeftY = y,
@@ -107,6 +109,8 @@ namespace core {
         d3d11_devctx->RSSetViewports(1, &viewport);
     }
     void GraphicsDevice::setScissorRect(const int32_t x, const int32_t y, const uint32_t width, const uint32_t height) {
+        assert(width > 0);
+        assert(height > 0);
         const D3D11_RECT rect{
             .left = x,
             .top = y,
