@@ -95,6 +95,27 @@ namespace core {
         d3d11_devctx->VSSetSamplers(start_slot, count, s);
     }
 
+    void GraphicsDevice::setViewport(const float x, const float y, const float width, const float height, const float min_depth, const float max_depth) {
+        const D3D11_VIEWPORT viewport{
+            .TopLeftX = x,
+            .TopLeftY = y,
+            .Width = width,
+            .Height = height,
+            .MinDepth = min_depth,
+            .MaxDepth = max_depth,
+        };
+        d3d11_devctx->RSSetViewports(1, &viewport);
+    }
+    void GraphicsDevice::setScissorRect(const int32_t x, const int32_t y, const uint32_t width, const uint32_t height) {
+        const D3D11_RECT rect{
+            .left = x,
+            .top = y,
+            .right = static_cast<LONG>(x + width),
+            .bottom = static_cast<LONG>(y + height)
+        };
+        d3d11_devctx->RSSetScissorRects(1, &rect);
+    }
+
     void GraphicsDevice::bindPixelShaderConstantBuffer(const uint32_t start_slot, IGraphicsBuffer* const* const buffers, const uint32_t count) {
         assert(start_slot < D3D10_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
         assert(buffers != nullptr);

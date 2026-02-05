@@ -41,6 +41,9 @@ namespace core {
         void bindVertexShaderTexture2D(uint32_t start_slot, ITexture2D* const* textures, uint32_t count) override;
         void bindVertexShaderSampler(uint32_t start_slot, IGraphicsSampler* const* samplers, uint32_t count) override;
 
+        void setViewport(float x, float y, float width, float height, float min_depth, float max_depth) override;
+        void setScissorRect(int32_t x, int32_t y, uint32_t width, uint32_t height) override;
+
         void bindPixelShaderConstantBuffer(uint32_t start_slot, IGraphicsBuffer* const* buffers, uint32_t count) override;
         void bindPixelShaderTexture2D(uint32_t start_slot, ITexture2D* const* textures, uint32_t count) override;
         void bindPixelShaderSampler(uint32_t start_slot, IGraphicsSampler* const* samplers, uint32_t count) override;

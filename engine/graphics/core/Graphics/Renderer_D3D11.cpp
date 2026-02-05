@@ -874,7 +874,7 @@ namespace core::Graphics
 		if (_state_dirty || _state_set.viewport != box) {
 			batchFlush();
 			_state_set.viewport = box;
-			m_device->getCommandbuffer()->setViewpoint(box.a.x, box.a.y, box.b.x - box.a.x, box.b.y - box.a.y, box.a.z, box.b.z);
+			m_device->getCommandbuffer()->setViewport(box.a.x, box.a.y, box.b.x - box.a.x, box.b.y - box.a.y, box.a.z, box.b.z);
 		}
 	}
 	void Renderer_D3D11::setScissorRect(const RectF& rect) {
@@ -1210,7 +1210,7 @@ namespace core::Graphics
 		// [Stage RS]
 
 		ctx->RSSetState(_raster_state.get());
-		m_device->getCommandbuffer()->setViewpoint(0.0f, 0.0f, sw_, sh_);
+		m_device->getCommandbuffer()->setViewport(0.0f, 0.0f, sw_, sh_);
 		m_device->getCommandbuffer()->setScissorRect(0, 0, static_cast<uint32_t>(sw_), static_cast<uint32_t>(sh_));
 
 		// [Stage PS]
@@ -1355,7 +1355,7 @@ namespace core::Graphics
 		// [Stage RS]
 
 		ctx->RSSetState(_raster_state.get());
-		m_device->getCommandbuffer()->setViewpoint(0.0f, 0.0f, sw_, sh_);
+		m_device->getCommandbuffer()->setViewport(0.0f, 0.0f, sw_, sh_);
 		m_device->getCommandbuffer()->setScissorRect(0, 0, static_cast<uint32_t>(sw_), static_cast<uint32_t>(sh_));
 
 		// [Stage PS]
