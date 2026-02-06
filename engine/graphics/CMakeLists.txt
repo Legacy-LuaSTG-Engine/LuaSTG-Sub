@@ -48,6 +48,7 @@ target_link_libraries(${lib_name} PUBLIC
     libqoi
     # math
     xmath
+    xxhash
     # text
     Freetype::Freetype
     # model
