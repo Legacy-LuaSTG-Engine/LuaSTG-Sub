@@ -1,4 +1,5 @@
 - VertexInputLayoutBuilder
+    - `[static] create()`
     - `beginBuffer(slot, input_rate = vertex, instance_step_rate = 0)`
         - `addPosition(format, offset = append)`
         - `addColor(format, offset = append)`
@@ -7,44 +8,58 @@
         - `addTangent(format, offset = append)`
         - `addElement(semantic_name, semantic_index, format, offset = append)`
     - `endBuffer()`
-    - `build()`
+    - `build(): VertexInputLayout`
 
 - Mesh
-    - `beginVertex(index = get_and_increment)`
+    - `[static] createFromVertexInputLayout(graphics_device, vertex_input_layout): Mesh`
+    - `vertex(index)`
+    - position
         - `position(x, y)`
         - `position(x, y, z)`
         - `position(vec2)`
         - `position(vec3)`
-        - `color(r, g, b)`
-        - `color(r, g, b, a)`
-        - `color(vec3)`
-        - `color(vec4)`
-        - `uv(u, v)`
-        - `uv(vec2)`
-        - `normal(x, y)`
-        - `normal(x, y, z)`
-        - `normal(vec2)`
-        - `normal(vec3)`
-        - `tangent(x, y)`
-        - `tangent(x, y, z)`
-        - `tangent(vec2)`
-        - `tangent(vec3)`
         - `position(semantic_index, x, y)`
         - `position(semantic_index, x, y, z)`
         - `position(semantic_index, vec2)`
         - `position(semantic_index, vec3)`
+    - color
+        - `color(r, g, b)`
+        - `color(r, g, b, a)`
+        - `color(vec3)`
+        - `color(vec4)`
         - `color(semantic_index, r, g, b)`
         - `color(semantic_index, r, g, b, a)`
         - `color(semantic_index, vec3)`
         - `color(semantic_index, vec4)`
+    - uv
+        - `uv(u, v)`
+        - `uv(vec2)`
         - `uv(semantic_index, u, v)`
         - `uv(semantic_index, vec2)`
+    - normal
+        - `normal(x, y)`
+        - `normal(x, y, z)`
+        - `normal(vec2)`
+        - `normal(vec3)`
         - `normal(semantic_index, x, y)`
         - `normal(semantic_index, x, y, z)`
         - `normal(semantic_index, vec2)`
         - `normal(semantic_index, vec3)`
+    - tangent
+        - `tangent(x, y)`
+        - `tangent(x, y, z)`
+        - `tangent(vec2)`
+        - `tangent(vec3)`
         - `tangent(semantic_index, x, y)`
         - `tangent(semantic_index, x, y, z)`
         - `tangent(semantic_index, vec2)`
         - `tangent(semantic_index, vec3)`
-    - `endVertex()`
+    - custom semantic
+        - `findElement(semantic_name): index`
+        - `element(index, x)`
+        - `element(index, x, y)`
+        - `element(index, x, y, z)`
+        - `element(index, x, y, z, w)`
+        - `element(index, vec2)`
+        - `element(index, vec3)`
+        - `element(index, vec4)`
