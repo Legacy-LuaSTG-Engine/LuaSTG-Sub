@@ -1,5 +1,5 @@
 - VertexInputLayoutBuilder
-    - `beginBuffer(slot, input_rate, instance_step_rate)`
+    - `beginBuffer(slot, input_rate = vertex, instance_step_rate = 0)`
         - `addPosition(format, offset = append)`
         - `addColor(format, offset = append)`
         - `addTextureCoordinate(format, offset = append)`
