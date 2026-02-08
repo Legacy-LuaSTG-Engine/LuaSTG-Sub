@@ -254,6 +254,31 @@ namespace core {
 }
 
 namespace core {
+    // IGraphicsDeviceEventListener
+
+    void GraphicsPipeline::onGraphicsDeviceCreate() {
+        if (m_initialized) {
+            // TODO
+        }
+    }
+    void GraphicsPipeline::onGraphicsDeviceDestroy() {
+        m_input_layout.reset();
+        m_vertex_shader.reset();
+        m_rasterizer_state.reset();
+        m_pixel_shader.reset();
+        m_depth_stencil_state.reset();
+        m_blend_state.reset();
+    }
+
+    // GraphicsPipeline
+
+    GraphicsPipeline::GraphicsPipeline() = default;
+    GraphicsPipeline::~GraphicsPipeline() {
+        if (m_initialized) {
+            m_device->removeEventListener(this);
+        }
+    }
+
     bool GraphicsPipeline::createResources(IGraphicsDevice* const device, const GraphicsPipelineState& create_info) {
         if (device == nullptr) {
             assert(false); return false;
@@ -395,6 +420,39 @@ namespace core {
             return false;
         }
 
+        m_device->addEventListener(this);
+        m_initialized = true;
+        return true;
+    }
+}
+
+#include "d3d11/GraphicsDevice.hpp"
+
+namespace core {
+    // IGraphicsCommandBuffer
+
+    void GraphicsDevice::bindGraphicsPipeline(IGraphicsPipeline* const graphics_pipeline) {
+        assert(graphics_pipeline != nullptr);
+        const auto impl = static_cast<GraphicsPipeline*>(graphics_pipeline);
+        impl->apply();
+        // TODO: ref it
+    }
+
+    // IGraphicsDevice
+
+    bool GraphicsDevice::createGraphicsPipeline(const GraphicsPipelineState* const graphics_pipeline_state, IGraphicsPipeline** const out_graphics_pipeline) {
+        if (graphics_pipeline_state == nullptr) {
+            assert(false); return false;
+        }
+        if (out_graphics_pipeline == nullptr) {
+            assert(false); return false;
+        }
+        SmartReference<GraphicsPipeline> graphics_pipeline;
+        graphics_pipeline.attach(new GraphicsPipeline());
+        if (!graphics_pipeline->createResources(this, *graphics_pipeline_state)) {
+            return false;
+        }
+        *out_graphics_pipeline = graphics_pipeline.detach();
         return true;
     }
 }

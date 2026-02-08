@@ -44,6 +44,21 @@ namespace core {
 
     class GraphicsPipeline final : public implement::ReferenceCounted<IGraphicsPipeline>, public IGraphicsDeviceEventListener {
     public:
+        // IGraphicsDeviceEventListener
+
+        void onGraphicsDeviceCreate() override;
+        void onGraphicsDeviceDestroy() override;
+
+        // GraphicsPipeline
+
+        GraphicsPipeline();
+        GraphicsPipeline(const GraphicsPipeline&) = delete;
+        GraphicsPipeline(GraphicsPipeline&&) = delete;
+        ~GraphicsPipeline();
+
+        GraphicsPipeline& operator=(const GraphicsPipeline&) = delete;
+        GraphicsPipeline& operator=(GraphicsPipeline&&) = delete;
+
         bool createResources(IGraphicsDevice* device, const GraphicsPipelineState& create_info);
         void apply();
 

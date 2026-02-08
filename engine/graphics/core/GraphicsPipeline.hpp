@@ -164,4 +164,6 @@ namespace core {
 
     CORE_INTERFACE IGraphicsPipeline : IReferenceCounted {
     };
+
+    CORE_INTERFACE_ID(IGraphicsPipeline, "7976f854-ca0f-53e2-ae5f-446352ccbf21");
 }

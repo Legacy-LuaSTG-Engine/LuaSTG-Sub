@@ -6,6 +6,7 @@
 #include "core/GraphicsSampler.hpp"
 #include "core/RenderTarget.hpp"
 #include "core/DepthStencilBuffer.hpp"
+#include "core/GraphicsPipeline.hpp"
 
 #define LUASTG_ENABLE_DIRECT2D
 
@@ -44,6 +45,8 @@ namespace core {
         virtual void bindPixelShaderSampler(uint32_t start_slot, IGraphicsSampler* const* samplers, uint32_t count) = 0;
 
         virtual void bindRenderTarget(IRenderTarget* render_target, IDepthStencilBuffer* depth_stencil_buffer) = 0;
+
+        virtual void bindGraphicsPipeline(IGraphicsPipeline* graphics_pipeline) = 0;
 
         // helpers
 
@@ -105,6 +108,8 @@ namespace core {
 
         virtual bool createRenderTarget(Vector2U size, IRenderTarget** out_render_target) = 0;
         virtual bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** out_depth_stencil_buffer) = 0;
+
+        virtual bool createGraphicsPipeline(const GraphicsPipelineState* graphics_pipeline_state, IGraphicsPipeline** out_graphics_pipeline) = 0;
 
         virtual IGraphicsCommandBuffer* getCommandbuffer() const noexcept = 0;
 

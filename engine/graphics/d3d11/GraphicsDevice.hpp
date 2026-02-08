@@ -28,6 +28,8 @@ namespace core {
         bool createRenderTarget(Vector2U size, IRenderTarget** out_render_target) override;
         bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** out_depth_stencil_buffer) override;
 
+        bool createGraphicsPipeline(const GraphicsPipelineState* graphics_pipeline_state, IGraphicsPipeline** out_graphics_pipeline) override;
+
         IGraphicsCommandBuffer* getCommandbuffer() const noexcept override { return const_cast<IGraphicsCommandBuffer*>(static_cast<IGraphicsCommandBuffer const*>(this)); }
 
         // IGraphicsCommandBuffer
@@ -49,6 +51,8 @@ namespace core {
         void bindPixelShaderSampler(uint32_t start_slot, IGraphicsSampler* const* samplers, uint32_t count) override;
 
         void bindRenderTarget(IRenderTarget* render_target, IDepthStencilBuffer* depth_stencil_buffer) override;
+
+        void bindGraphicsPipeline(IGraphicsPipeline* graphics_pipeline) override;
 
         // from IDevice
 
