@@ -1,5 +1,8 @@
 #pragma once
 #include "core/GraphicsPipeline.hpp"
+#include "core/GraphicsDevice.hpp"
+#include "core/SmartReference.hpp"
+#include "core/implement/ReferenceCounted.hpp"
 #include "xxhash.h"
 #include "d3d11/pch.h"
 
@@ -37,5 +40,24 @@ namespace core {
         std::pmr::unsynchronized_pool_resource m_memory_resource;
         std::pmr::unordered_set<InputLayoutCache, InputLayoutCacheOp, InputLayoutCacheOp> m_input_layout_cache;
 
+    };
+
+    class GraphicsPipeline final : public implement::ReferenceCounted<IGraphicsPipeline>, public IGraphicsDeviceEventListener {
+    public:
+        bool createResources(IGraphicsDevice* device, const GraphicsPipelineState& create_info);
+        void apply();
+
+    private:
+        bool createResources(const GraphicsPipelineState& create_info);
+
+        SmartReference<IGraphicsDevice> m_device;
+        win32::com_ptr<ID3D11InputLayout> m_input_layout;
+        D3D11_PRIMITIVE_TOPOLOGY m_primitive_topology;
+        win32::com_ptr<ID3D11VertexShader> m_vertex_shader;
+        win32::com_ptr<ID3D11RasterizerState> m_rasterizer_state;
+        win32::com_ptr<ID3D11PixelShader> m_pixel_shader;
+        win32::com_ptr<ID3D11DepthStencilState> m_depth_stencil_state;
+        win32::com_ptr<ID3D11BlendState> m_blend_state;
+        bool m_initialized{};
     };
 }

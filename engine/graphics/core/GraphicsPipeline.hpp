@@ -157,6 +157,7 @@ namespace core {
         GraphicsPrimitiveType primitive_type;
         GraphicsShaderByteCode vertex_shader;
         GraphicsRasterizerState rasterizer_state;
+        GraphicsShaderByteCode pixel_shader;
         GraphicsDepthStencilState depth_stencil_state;
         GraphicsBlendState blend_state;
     };
