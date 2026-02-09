@@ -61,6 +61,7 @@ namespace {
         case core::GraphicsCompareMethod::not_equal:       return D3D11_COMPARISON_NOT_EQUAL;
         case core::GraphicsCompareMethod::grater_or_equal: return D3D11_COMPARISON_GREATER_EQUAL;
         case core::GraphicsCompareMethod::always:          return D3D11_COMPARISON_ALWAYS;
+        default: assert(false); return D3D11_COMPARISON_FUNC{};
         }
     }
     D3D11_STENCIL_OP toStencilMethod(const core::GraphicsStencilMethod value) {
@@ -73,6 +74,7 @@ namespace {
         case core::GraphicsStencilMethod::invert:              return D3D11_STENCIL_OP_INVERT;
         case core::GraphicsStencilMethod::increment_and_wrap:  return D3D11_STENCIL_OP_INCR;
         case core::GraphicsStencilMethod::decrement_and_wrap:  return D3D11_STENCIL_OP_DECR;
+        default: assert(false); return D3D11_STENCIL_OP{};
         }
     }
     D3D11_DEPTH_STENCILOP_DESC toStencilState(const core::GraphicsStencilState& input) {
