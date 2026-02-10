@@ -54,6 +54,11 @@ namespace core {
 
         void bindGraphicsPipeline(IGraphicsPipeline* graphics_pipeline) override;
 
+        void draw(uint32_t vertex_count, uint32_t first_vertex) override;
+        void drawInstanced(uint32_t vertex_count, uint32_t instance_count, uint32_t first_vertex, uint32_t first_instance) override;
+        void drawIndexed(uint32_t index_count, uint32_t first_index, int32_t vertex_offset) override;
+        void drawIndexedInstanced(uint32_t index_count, uint32_t instance_count, uint32_t first_index, int32_t vertex_offset, uint32_t first_instance) override;
+
         // from IDevice
 
         bool recreate() override;

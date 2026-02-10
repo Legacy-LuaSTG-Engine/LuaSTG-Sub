@@ -156,4 +156,17 @@ namespace core {
         const auto rtv = getRenderTarget(render_target);
         d3d11_devctx->OMSetRenderTargets(1, &rtv, getDepthStencilBuffer(depth_stencil_buffer));
     }
+
+    void GraphicsDevice::draw(const uint32_t vertex_count, const uint32_t first_vertex) {
+        d3d11_devctx->Draw(vertex_count, first_vertex);
+    }
+    void GraphicsDevice::drawInstanced(const uint32_t vertex_count, const uint32_t instance_count, const uint32_t first_vertex, const uint32_t first_instance) {
+        d3d11_devctx->DrawInstanced(vertex_count, instance_count, first_vertex, first_instance);
+    }
+    void GraphicsDevice::drawIndexed(const uint32_t index_count, const uint32_t first_index, const int32_t vertex_offset) {
+        d3d11_devctx->DrawIndexed(index_count, first_index, vertex_offset);
+    }
+    void GraphicsDevice::drawIndexedInstanced(const uint32_t index_count, const uint32_t instance_count, const uint32_t first_index, const int32_t vertex_offset, const uint32_t first_instance) {
+        d3d11_devctx->DrawIndexedInstanced(index_count, instance_count, first_index, vertex_offset, first_instance);
+    }
 }

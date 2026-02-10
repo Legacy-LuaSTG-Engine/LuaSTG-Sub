@@ -201,10 +201,10 @@ namespace core::Graphics::Direct3D11 {
 	void Mesh::drawNative(ID3D11DeviceContext* const ctx) const {
 		assert(ctx);
 		if (m_options.index_count > 0) {
-			ctx->DrawIndexed(m_options.index_count, 0, 0);
+			m_device->getCommandbuffer()->drawIndexed(m_options.index_count, 0, 0);
 		}
 		else {
-			ctx->Draw(m_options.vertex_count, 0);
+			m_device->getCommandbuffer()->draw(m_options.vertex_count, 0);
 		}
 	}
 

@@ -645,7 +645,7 @@ namespace core::Graphics
 						cmd->bindPixelShaderTexture2D(0, cmd_.texture.get());
 						bindTextureSamplerState(cmd_.texture.get());
 						bindTextureAlphaType(cmd_.texture.get());
-						ctx->DrawIndexed(cmd_.index_count, vi_.index_offset, vi_.vertex_offset);
+						cmd->drawIndexed(cmd_.index_count, vi_.index_offset, vi_.vertex_offset);
 					}
 					vi_.vertex_offset += cmd_.vertex_count;
 					vi_.index_offset += cmd_.index_count;
@@ -1252,7 +1252,7 @@ namespace core::Graphics
 
 		// DRAW
 
-		ctx->DrawIndexed(6, 0, 0);
+		m_device->getCommandbuffer()->drawIndexed(6, 0, 0);
 		
 		// CLEAR
 
@@ -1377,7 +1377,7 @@ namespace core::Graphics
 
 		// DRAW
 
-		ctx->DrawIndexed(6, 0, 0);
+		m_device->getCommandbuffer()->drawIndexed(6, 0, 0);
 
 		// CLEAR
 

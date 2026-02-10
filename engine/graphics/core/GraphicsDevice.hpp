@@ -48,6 +48,11 @@ namespace core {
 
         virtual void bindGraphicsPipeline(IGraphicsPipeline* graphics_pipeline) = 0;
 
+        virtual void draw(uint32_t vertex_count, uint32_t first_vertex) = 0;
+        virtual void drawInstanced(uint32_t vertex_count, uint32_t instance_count, uint32_t first_vertex, uint32_t first_instance) = 0;
+        virtual void drawIndexed(uint32_t index_count, uint32_t first_index, int32_t vertex_offset) = 0;
+        virtual void drawIndexedInstanced(uint32_t index_count, uint32_t instance_count, uint32_t first_index, int32_t vertex_offset, uint32_t first_instance) = 0;
+
         // helpers
 
         void bindVertexBuffer(const uint32_t slot, IGraphicsBuffer* const buffer, const uint32_t offset = 0) {
