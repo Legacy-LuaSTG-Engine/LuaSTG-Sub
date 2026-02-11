@@ -62,8 +62,6 @@ namespace core::Graphics::Direct3D11 {
 		SmartReference<IGraphicsDevice> m_device;
 		SmartReference<IGraphicsBuffer> m_vertex_buffer;
 		SmartReference<IGraphicsBuffer> m_index_buffer;
-		win32::com_ptr<ID3DBlob> m_vertex_shader_byte_code;
-		win32::com_ptr<ID3DBlob> m_vertex_shader_byte_code_fog;
 		win32::com_ptr<ID3D11VertexShader> m_vertex_shader;
 		win32::com_ptr<ID3D11VertexShader> m_vertex_shader_fog;
 		win32::com_ptr<ID3D11InputLayout> m_input_layout;

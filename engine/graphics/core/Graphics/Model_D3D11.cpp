@@ -1451,9 +1451,9 @@ namespace core::Graphics
         auto draw_block = [&](ModelBlock& mblock)
         {
             if (mblock.index_buffer)
-                context->DrawIndexed(mblock.draw_count, 0, 0);
+                m_device->getCommandbuffer()->drawIndexed(mblock.draw_count, 0, 0);
             else
-                context->Draw(mblock.draw_count, 0);
+                m_device->getCommandbuffer()->draw(mblock.draw_count, 0);
         };
         auto clear_state = [&]()
         {

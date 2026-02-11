@@ -1,8 +1,7 @@
 #include "core/Graphics/Direct3D11/MeshRenderer.hpp"
-#include "core/Graphics/Direct3D11/Constants.hpp"
 #include "core/Graphics/Direct3D11/Mesh.hpp"
-#include "d3d11/GraphicsDevice.hpp"
 #include "core/Graphics/Renderer_D3D11.hpp"
+#include "d3d11/SlotConstants.hpp"
 
 namespace core::Graphics::Direct3D11 {
 	void MeshRenderer::onGraphicsDeviceCreate() {
@@ -41,8 +40,8 @@ namespace core::Graphics::Direct3D11 {
 			return;
 		}
 
-		auto const ctx = static_cast<GraphicsDevice*>(m_device.get())->GetD3D11DeviceContext();
-		assert(ctx);
+		const auto cmd = m_device->getCommandbuffer();
+		const auto ctx = static_cast<ID3D11DeviceContext*>(cmd->getNativeHandle());
 
 		// Mesh setup:
 		// * IA stage
@@ -59,13 +58,12 @@ namespace core::Graphics::Direct3D11 {
 
 		// VS stage constant buffer setup by Renderer
 		// * constant buffer (view projection matrix)
-		// see: Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix
+		// see: d3d11::vertex_shader_constant_buffer_slot_view_projection_matrix
 
 		// VS stage constant buffer setup by MeshRenderer
 		// * constant buffer (world matrix)
 
-		ID3D11Buffer* const world_matrix[1]{ static_cast<ID3D11Buffer*>(m_constant_buffer->getNativeResource()) };
-		ctx->VSSetConstantBuffers(Constants::vertex_shader_stage_constant_buffer_slot_world_matrix, 1, world_matrix);
+		cmd->bindVertexShaderConstantBuffer(d3d11::vertex_shader_constant_buffer_slot_world_matrix, m_constant_buffer.get());
 
 		// RS stage setup by Renderer:
 		// * viewport
@@ -80,17 +78,11 @@ namespace core::Graphics::Direct3D11 {
 		// * shader resource view (texture)
 		// * sampler state
 
-		ID3D11ShaderResourceView* const texture[1]{ static_cast<ID3D11ShaderResourceView*>(m_texture->getNativeView()) };
-		ctx->PSSetShaderResources(0, 1, texture);
-
-		ID3D11SamplerState* sampler_state[1]{};
-		if (m_texture->getSamplerState()) {
-			sampler_state[0] = static_cast<ID3D11SamplerState*>(m_texture->getSamplerState()->getNativeHandle());
-		} else {
-			auto const ss = renderer->getKnownSamplerState(IRenderer::SamplerState::LinearWrap);
-			sampler_state[0] = static_cast<ID3D11SamplerState*>(ss->getNativeHandle());
-		}
-		ctx->PSSetSamplers(0, 1, sampler_state);
+		cmd->bindPixelShaderTexture2D(0, m_texture.get());
+		const auto sampler = m_texture->getSamplerState() != nullptr
+			? m_texture->getSamplerState()
+			: renderer->getKnownSamplerState(IRenderer::SamplerState::LinearWrap);
+		cmd->bindPixelShaderSampler(0, sampler);
 
 		static_cast<Renderer_D3D11*>(renderer)->bindTextureAlphaType(m_texture.get());
 		//static_cast<Renderer_D3D11*>(renderer)->bindTextureSamplerState(m_texture.get());

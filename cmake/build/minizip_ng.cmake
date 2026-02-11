@@ -2,9 +2,9 @@
 
 CPMAddPackage(
     NAME minizip_ng
-    VERSION 4.0.10
+    VERSION 4.1.0
     GITHUB_REPOSITORY zlib-ng/minizip-ng
-    GIT_TAG 4.0.10
+    GIT_TAG 4.1.0
     DOWNLOAD_ONLY YES
 )
 
@@ -48,8 +48,9 @@ add_custom_command(
         -DMZ_LZMA=OFF
         -DMZ_ZSTD=OFF
         -DMZ_FETCH_LIBS=OFF
-        -DZLIB_INCLUDE_DIRS=${zlib_ng_install_directory}/include  # stupid mechanism 
-        -DZLIBNG_LIBRARY=${minizip_ng_library_file}               # stupid mechanism
+        -DMZ_ZLIB_FLAVOR=zlib-ng
+        -DZLIB-NG_INCLUDE_DIRS=${zlib_ng_install_directory}/include  # stupid mechanism 
+        -DZLIB-NG_LIBRARY=${zlib_ng_library_file}                    # stupid mechanism
     COMMAND ${CMAKE_COMMAND}
         --build ${minizip_ng_build_directory}
         --config $<CONFIG>

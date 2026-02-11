@@ -4,7 +4,7 @@
 #include "d3d11/pch.h"
 
 namespace core {
-    class GraphicsDevice final : public implement::ReferenceCounted<IGraphicsDevice> {
+    class GraphicsDevice final : public implement::ReferenceCounted<IGraphicsDevice, IGraphicsCommandBuffer> {
     public:
         // IGraphicsDevice
 
@@ -15,8 +15,8 @@ namespace core {
 
         GraphicsDeviceMemoryStatistics getMemoryStatistics() override;
 
-        bool createVertexBuffer(uint32_t size_in_bytes, IGraphicsBuffer** output_buffer) override;
-        bool createIndexBuffer(uint32_t size_in_bytes, IGraphicsBuffer** output_buffer) override;
+        bool createVertexBuffer(uint32_t size_in_bytes, uint32_t stride_in_bytes, IGraphicsBuffer** output_buffer) override;
+        bool createIndexBuffer(uint32_t size_in_bytes, GraphicsFormat format, IGraphicsBuffer** output_buffer) override;
         bool createConstantBuffer(uint32_t size_in_bytes, IGraphicsBuffer** output_buffer) override;
 
         bool createTextureFromFile(StringView path, bool mipmap, ITexture2D** out_texture) override;
@@ -27,6 +27,37 @@ namespace core {
 
         bool createRenderTarget(Vector2U size, IRenderTarget** out_render_target) override;
         bool createDepthStencilBuffer(Vector2U size, IDepthStencilBuffer** out_depth_stencil_buffer) override;
+
+        bool createGraphicsPipeline(const GraphicsPipelineState* graphics_pipeline_state, IGraphicsPipeline** out_graphics_pipeline) override;
+
+        IGraphicsCommandBuffer* getCommandbuffer() const noexcept override { return const_cast<IGraphicsCommandBuffer*>(static_cast<IGraphicsCommandBuffer const*>(this)); }
+
+        // IGraphicsCommandBuffer
+
+        void* getNativeHandle() const noexcept override;
+
+        void bindVertexBuffer(uint32_t start_slot, IGraphicsBuffer* const* buffers, uint32_t count, uint32_t const* offset) override;
+        void bindIndexBuffer(IGraphicsBuffer* buffer, uint32_t offset) override;
+
+        void bindVertexShaderConstantBuffer(uint32_t start_slot, IGraphicsBuffer* const* buffers, uint32_t count) override;
+        void bindVertexShaderTexture2D(uint32_t start_slot, ITexture2D* const* textures, uint32_t count) override;
+        void bindVertexShaderSampler(uint32_t start_slot, IGraphicsSampler* const* samplers, uint32_t count) override;
+
+        void setViewport(float x, float y, float width, float height, float min_depth, float max_depth) override;
+        void setScissorRect(int32_t x, int32_t y, uint32_t width, uint32_t height) override;
+
+        void bindPixelShaderConstantBuffer(uint32_t start_slot, IGraphicsBuffer* const* buffers, uint32_t count) override;
+        void bindPixelShaderTexture2D(uint32_t start_slot, ITexture2D* const* textures, uint32_t count) override;
+        void bindPixelShaderSampler(uint32_t start_slot, IGraphicsSampler* const* samplers, uint32_t count) override;
+
+        void bindRenderTarget(IRenderTarget* render_target, IDepthStencilBuffer* depth_stencil_buffer) override;
+
+        void bindGraphicsPipeline(IGraphicsPipeline* graphics_pipeline) override;
+
+        void draw(uint32_t vertex_count, uint32_t first_vertex) override;
+        void drawInstanced(uint32_t vertex_count, uint32_t instance_count, uint32_t first_vertex, uint32_t first_instance) override;
+        void drawIndexed(uint32_t index_count, uint32_t first_index, int32_t vertex_offset) override;
+        void drawIndexedInstanced(uint32_t index_count, uint32_t instance_count, uint32_t first_index, int32_t vertex_offset, uint32_t first_instance) override;
 
         // from IDevice
 

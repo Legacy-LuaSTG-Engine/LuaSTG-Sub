@@ -1,8 +1,8 @@
 #include "core/Graphics/Renderer_D3D11.hpp"
 #include "core/Logger.hpp"
 #include "core/Graphics/Model_D3D11.hpp"
-#include "core/Graphics/Direct3D11/Constants.hpp"
-#include "core//DepthStencilBuffer.hpp"
+#include "core/DepthStencilBuffer.hpp"
+#include "d3d11/SlotConstants.hpp"
 
 #define IDX(x) (size_t)static_cast<uint8_t>(x)
 
@@ -122,29 +122,26 @@ namespace core::Graphics
 		if (!it->second.texture) { assert(false); return false; }
 		return true;
 	}
-	bool PostEffectShader_D3D11::apply(IRenderer* p_renderer)
+	bool PostEffectShader_D3D11::apply(IRenderer* const p_renderer)
 	{
 		assert(p_renderer);
 
-		auto* ctx = m_device->GetD3D11DeviceContext();
-		if (!ctx) { assert(false); return false; }
-		
-		auto* p_sampler = p_renderer->getKnownSamplerState(IRenderer::SamplerState::LinearClamp);
+		const auto cmd = m_device->getCommandbuffer();
+		const auto default_sampler = p_renderer->getKnownSamplerState(IRenderer::SamplerState::LinearClamp);
 
 		for (auto& v : m_buffer_map) {
 			if (!v.second.constant_buffer->update(v.second.buffer.data(), static_cast<uint32_t>(v.second.buffer.size()), true)) {
 				return false;
 			}
-			ID3D11Buffer* b[1] { getBuffer(v.second.constant_buffer) };
-			ctx->PSSetConstantBuffers(v.second.index, 1, b);
+			cmd->bindPixelShaderConstantBuffer(v.second.index, v.second.constant_buffer.get());
 		}
 
 		for (auto& v : m_texture2d_map) {
-			ID3D11ShaderResourceView* t[1] = { get_view(v.second.texture) };
-			ctx->PSSetShaderResources(v.second.index, 1, t);
-			auto* p_custom = v.second.texture->getSamplerState();
-			ID3D11SamplerState* s[1] = { p_custom ? get_sampler(p_custom) : get_sampler(p_sampler) };
-			ctx->PSSetSamplers(v.second.index, 1, s);
+			cmd->bindPixelShaderTexture2D(v.second.index, v.second.texture.get());
+			const auto sampler = v.second.texture->getSamplerState() != nullptr
+				? v.second.texture->getSamplerState()
+				: default_sampler;
+			cmd->bindPixelShaderSampler(v.second.index, sampler);
 		}
 
 		return true;
@@ -168,16 +165,9 @@ namespace core::Graphics
 namespace core::Graphics
 {
 	void Renderer_D3D11::setVertexIndexBuffer(const size_t index) {
-		assert(m_device->GetD3D11DeviceContext());
-
-		auto& vi = _vi_buffer[(index == 0xFFFFFFFFu) ? _vi_buffer_index : index];
-		ID3D11Buffer* vbo[1] = { getBuffer(vi.vertex_buffer) };
-		UINT stride[1] = { sizeof(IRenderer::DrawVertex) };
-		UINT offset[1] = { 0 };
-		m_device->GetD3D11DeviceContext()->IASetVertexBuffers(0, 1, vbo, stride, offset);
-
-		constexpr DXGI_FORMAT format = sizeof(DrawIndex) < 4 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
-		m_device->GetD3D11DeviceContext()->IASetIndexBuffer(getBuffer(vi.index_buffer), format, 0);
+		const auto& vi = _vi_buffer[(index == 0xFFFFFFFFu) ? _vi_buffer_index : index];
+		m_device->getCommandbuffer()->bindVertexBuffer(0, vi.vertex_buffer.get());
+		m_device->getCommandbuffer()->bindIndexBuffer(vi.index_buffer.get());
 	}
 	bool Renderer_D3D11::uploadVertexIndexBuffer(const bool discard) {
 		tracy_zone_scoped;
@@ -228,10 +218,10 @@ namespace core::Graphics
 	{
 		assert(m_device->getNativeHandle() != nullptr);
 
-		if (!m_device->createVertexBuffer(4 * sizeof(DrawVertex), _fx_vbuffer.put())) {
+		if (!m_device->createVertexBuffer(4 * sizeof(DrawVertex), sizeof(DrawVertex), _fx_vbuffer.put())) {
 			return false;
 		}
-		if (!m_device->createIndexBuffer(6 * sizeof(DrawIndex), _fx_ibuffer.put())) {
+		if (!m_device->createIndexBuffer(6 * sizeof(DrawIndex), GraphicsFormat::r16_uint, _fx_ibuffer.put())) {
 			return false;
 		}
 		{
@@ -247,10 +237,10 @@ namespace core::Graphics
 		}
 
 		for (auto& vi_ : _vi_buffer) {
-			if (!m_device->createVertexBuffer(sizeof(_draw_list.vertex.data), vi_.vertex_buffer.put())) {
+			if (!m_device->createVertexBuffer(sizeof(_draw_list.vertex.data), sizeof(DrawVertex), vi_.vertex_buffer.put())) {
 				return false;
 			}
-			if (!m_device->createIndexBuffer(sizeof(_draw_list.index.data), vi_.index_buffer.put())) {
+			if (!m_device->createIndexBuffer(sizeof(_draw_list.index.data), GraphicsFormat::r16_uint, vi_.index_buffer.put())) {
 				return false;
 			}
 		}
@@ -577,10 +567,9 @@ namespace core::Graphics
 		
 		_state_dirty = false;
 	}
-	void Renderer_D3D11::setSamplerState(SamplerState state, UINT index)
+	void Renderer_D3D11::setSamplerState(const SamplerState state, const UINT index)
 	{
-		ID3D11SamplerState* d3d11_sampler = get_sampler(_sampler_state[IDX(state)]);
-		m_device->GetD3D11DeviceContext()->PSSetSamplers(index, 1, &d3d11_sampler);
+		m_device->getCommandbuffer()->bindPixelShaderSampler(index, getKnownSamplerState(state));
 	}
 	bool Renderer_D3D11::uploadVertexIndexBufferFromDrawList()
 	{
@@ -615,14 +604,14 @@ namespace core::Graphics
 		}
 		return true;
 	}
-	void Renderer_D3D11::bindTextureSamplerState(ITexture2D* texture)
+	void Renderer_D3D11::bindTextureSamplerState(ITexture2D* const texture)
 	{
-		IGraphicsSampler* sampler_from_texture = texture ? texture->getSamplerState() : nullptr;
-		IGraphicsSampler* sampler = sampler_from_texture ? sampler_from_texture : _sampler_state[IDX(_state_set.sampler_state)].get();
-		ID3D11SamplerState* d3d11_sampler = get_sampler(sampler);
-		m_device->GetD3D11DeviceContext()->PSSetSamplers(0, 1, &d3d11_sampler);
+		const auto sampler = texture->getSamplerState() != nullptr
+			? texture->getSamplerState()
+			: _sampler_state[IDX(_state_set.sampler_state)].get();
+		m_device->getCommandbuffer()->bindPixelShaderSampler(0, sampler);
 	}
-	void Renderer_D3D11::bindTextureAlphaType(ITexture2D* texture)
+	void Renderer_D3D11::bindTextureAlphaType(ITexture2D* const texture)
 	{
 		TextureAlphaType const state = (texture ? texture->isPremultipliedAlpha() : false) ? TextureAlphaType::PremulAlpha : TextureAlphaType::Normal;
 		if (_state_dirty || _state_set.texture_alpha_type != state)
@@ -642,6 +631,7 @@ namespace core::Graphics
 			// upload data
 			if (!uploadVertexIndexBufferFromDrawList()) return false;
 			// draw
+			const auto cmd = m_device->getCommandbuffer();
 			auto* ctx = m_device->GetD3D11DeviceContext();
 			assert(ctx);
 			if (_draw_list.command.size > 0)
@@ -652,19 +642,17 @@ namespace core::Graphics
 					DrawCommand& cmd_ = _draw_list.command.data[j_];
 					if (cmd_.vertex_count > 0 && cmd_.index_count > 0)
 					{
-						ID3D11ShaderResourceView* srv[1] = { get_view(cmd_.texture) };
-						ctx->PSSetShaderResources(0, 1, srv);
+						cmd->bindPixelShaderTexture2D(0, cmd_.texture.get());
 						bindTextureSamplerState(cmd_.texture.get());
 						bindTextureAlphaType(cmd_.texture.get());
-						ctx->DrawIndexed(cmd_.index_count, vi_.index_offset, vi_.vertex_offset);
+						cmd->drawIndexed(cmd_.index_count, vi_.index_offset, vi_.vertex_offset);
 					}
 					vi_.vertex_offset += cmd_.vertex_count;
 					vi_.index_offset += cmd_.index_count;
 				}
 			}
 			// unbound: solve some debug warning
-			ID3D11ShaderResourceView* null_srv[1] = { NULL };
-			ctx->PSSetShaderResources(0, 1, null_srv);
+			cmd->bindPixelShaderTexture2D(0, nullptr);
 		}
 		// clear
 		clearDrawList();
@@ -748,6 +736,7 @@ namespace core::Graphics
 
 	bool Renderer_D3D11::beginBatch()
 	{
+		const auto cmd = m_device->getCommandbuffer();
 		auto const ctx = m_device->GetD3D11DeviceContext();
 		assert(ctx);
 
@@ -759,10 +748,8 @@ namespace core::Graphics
 
 		// [VS State]
 
-		ID3D11Buffer* const view_projection_matrix = getBuffer(_vp_matrix_buffer);
-		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, 1, &view_projection_matrix);
-		ID3D11Buffer* const world_matrix = getBuffer(_world_matrix_buffer);
-		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_world_matrix, 1, &world_matrix);
+		cmd->bindVertexShaderConstantBuffer(d3d11::vertex_shader_constant_buffer_slot_view_projection_matrix, _vp_matrix_buffer.get());
+		cmd->bindVertexShaderConstantBuffer(d3d11::vertex_shader_constant_buffer_slot_world_matrix, _world_matrix_buffer.get());
 
 		// [RS Stage]
 
@@ -770,10 +757,8 @@ namespace core::Graphics
 
 		// [PS State]
 
-		ID3D11Buffer* const camera_position = getBuffer(_camera_pos_buffer);
-		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_camera_position, 1, &camera_position);
-		ID3D11Buffer* const fog_parameter = getBuffer(_fog_data_buffer);
-		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_fog_parameter, 1, &fog_parameter);
+		cmd->bindPixelShaderConstantBuffer(d3d11::pixel_shader_constant_buffer_slot_camera_position, _camera_pos_buffer.get());
+		cmd->bindPixelShaderConstantBuffer(d3d11::pixel_shader_constant_buffer_slot_fog_parameter, _fog_data_buffer.get());
 
 		// [OM Stage]
 
@@ -832,11 +817,7 @@ namespace core::Graphics
 	void Renderer_D3D11::setRenderAttachment(IRenderTarget* p_rt, IDepthStencilBuffer* p_ds)
 	{
 		batchFlush();
-		auto* ctx = m_device->GetD3D11DeviceContext();
-		assert(ctx);
-		ID3D11RenderTargetView* rtv[1] = { p_rt ? static_cast<ID3D11RenderTargetView*>(p_rt->getNativeView()) : nullptr };
-		ID3D11DepthStencilView* dsv = p_ds ? static_cast<ID3D11DepthStencilView*>(p_ds->getNativeView()) : nullptr;
-		ctx->OMSetRenderTargets(1, rtv, dsv);
+		m_device->getCommandbuffer()->bindRenderTarget(p_rt, p_ds);
 	}
 
 	void Renderer_D3D11::setOrtho(BoxF const& box)
@@ -889,40 +870,21 @@ namespace core::Graphics
 		}
 	}
 
-	void Renderer_D3D11::setViewport(BoxF const& box)
-	{
-		if (_state_dirty || _state_set.viewport != box)
-		{
+	void Renderer_D3D11::setViewport(const BoxF& box) {
+		if (_state_dirty || _state_set.viewport != box) {
 			batchFlush();
 			_state_set.viewport = box;
-			D3D11_VIEWPORT const vp = {
-				.TopLeftX = box.a.x,
-				.TopLeftY = box.a.y,
-				.Width = box.b.x - box.a.x,
-				.Height = box.b.y - box.a.y,
-				.MinDepth = box.a.z,
-				.MaxDepth = box.b.z,
-			};
-			auto* ctx = m_device->GetD3D11DeviceContext();
-			assert(ctx);
-			ctx->RSSetViewports(1, &vp);
+			m_device->getCommandbuffer()->setViewport(box.a.x, box.a.y, box.b.x - box.a.x, box.b.y - box.a.y, box.a.z, box.b.z);
 		}
 	}
-	void Renderer_D3D11::setScissorRect(RectF const& rect)
-	{
-		if (_state_dirty || _state_set.scissor_rect != rect)
-		{
+	void Renderer_D3D11::setScissorRect(const RectF& rect) {
+		if (_state_dirty || _state_set.scissor_rect != rect) {
 			batchFlush();
 			_state_set.scissor_rect = rect;
-			D3D11_RECT const rc = {
-				.left = (LONG)rect.a.x,
-				.top = (LONG)rect.a.y,
-				.right = (LONG)rect.b.x,
-				.bottom = (LONG)rect.b.y,
-			};
-			auto* ctx = m_device->GetD3D11DeviceContext();
-			assert(ctx);
-			ctx->RSSetScissorRects(1, &rc);
+			m_device->getCommandbuffer()->setScissorRect(
+				static_cast<int32_t>(rect.a.x), static_cast<int32_t>(rect.a.y),
+				static_cast<uint32_t>(rect.b.x - rect.a.x), static_cast<uint32_t>(rect.b.y - rect.a.y)
+			);
 		}
 	}
 	void Renderer_D3D11::setViewportAndScissorRect()
@@ -1231,11 +1193,8 @@ namespace core::Graphics
 		}
 
 		ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		ID3D11Buffer* p_d3d11_vbos[1] = { getBuffer(_fx_vbuffer) };
-		UINT const stride = sizeof(DrawVertex);
-		UINT const offset = 0;
-		ctx->IASetVertexBuffers(0, 1, p_d3d11_vbos, &stride, &offset);
-		ctx->IASetIndexBuffer(getBuffer(_fx_ibuffer), DXGI_FORMAT_R16_UINT, 0);
+		m_device->getCommandbuffer()->bindVertexBuffer(0, _fx_vbuffer.get());
+		m_device->getCommandbuffer()->bindIndexBuffer(_fx_ibuffer.get());
 		ctx->IASetInputLayout(_input_layout.get());
 
 		// [Stage VS]
@@ -1246,28 +1205,13 @@ namespace core::Graphics
 			Logger::error("[core] [Renderer] upload constant buffer failed (vp_matrix_buffer)");
 		}
 		ctx->VSSetShader(_vertex_shader[IDX(FogState::Disable)].get(), NULL, 0);
-		ID3D11Buffer* const view_projection_matrix = getBuffer(_vp_matrix_buffer);
-		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, 1, &view_projection_matrix);
+		m_device->getCommandbuffer()->bindVertexShaderConstantBuffer(d3d11::vertex_shader_constant_buffer_slot_view_projection_matrix, _vp_matrix_buffer.get());
 
 		// [Stage RS]
 
 		ctx->RSSetState(_raster_state.get());
-		D3D11_VIEWPORT viewport = {
-			.TopLeftX = 0.0f,
-			.TopLeftY = 0.0f,
-			.Width = sw_,
-			.Height = sh_,
-			.MinDepth = 0.0f,
-			.MaxDepth = 1.0f,
-		};
-		ctx->RSSetViewports(1, &viewport);
-		D3D11_RECT scissor = {
-			.left = 0,
-			.top = 0,
-			.right = (LONG)sw_,
-			.bottom = (LONG)sh_,
-		};
-		ctx->RSSetScissorRects(1, &scissor);
+		m_device->getCommandbuffer()->setViewport(0.0f, 0.0f, sw_, sh_);
+		m_device->getCommandbuffer()->setScissorRect(0, 0, static_cast<uint32_t>(sw_), static_cast<uint32_t>(sh_));
 
 		// [Stage PS]
 
@@ -1282,24 +1226,21 @@ namespace core::Graphics
 		if (!_fog_data_buffer->update(size_viewport, sizeof(size_viewport), true)) {
 			Logger::error("[core] [Renderer] upload constant buffer failed (fog_data_buffer/size_viewport_buffer)");
 		}
-		ID3D11Buffer* const user_data = getBuffer(_user_float_buffer);
-		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_user_data, 1, &user_data);
-		ID3D11Buffer* const fog_parameter = getBuffer(_fog_data_buffer);
-		ctx->PSSetConstantBuffers(Direct3D11::Constants::pixel_shader_stage_constant_buffer_slot_fog_parameter, 1, &fog_parameter);
+		m_device->getCommandbuffer()->bindPixelShaderConstantBuffer(d3d11::pixel_shader_constant_buffer_slot_user_data, _user_float_buffer.get());
+		m_device->getCommandbuffer()->bindPixelShaderConstantBuffer(d3d11::pixel_shader_constant_buffer_slot_fog_parameter, _fog_data_buffer.get());
 
 		ctx->PSSetShader(static_cast<PostEffectShader_D3D11*>(p_effect)->GetPS(), NULL, 0);
 
-		ID3D11ShaderResourceView* p_srvs[5] = {};
-		ID3D11SamplerState* p_samplers[5] = {};
-		p_srvs[4] = get_view(p_tex);
-		p_samplers[4] = get_sampler(_sampler_state[IDX(rtsv)]);
-		for (DWORD stage = 0; stage < std::min<DWORD>((DWORD)tv_sv_n, 4); stage += 1)
-		{
-			p_srvs[stage] = get_view(p_tex_arr[stage]);
-			p_samplers[stage] = get_sampler(_sampler_state[IDX(sv[stage])]);
+		ITexture2D* textures[5]{};
+		IGraphicsSampler* samplers[5]{};
+		for (uint32_t slot = 0; slot < std::min<uint32_t>(static_cast<uint32_t>(tv_sv_n), 4); slot += 1) {
+			textures[slot] = p_tex_arr[slot];
+			samplers[slot] = _sampler_state[IDX(sv[slot])].get();
 		}
-		ctx->PSSetShaderResources(0, 5, p_srvs);
-		ctx->PSSetSamplers(0, 5, p_samplers);
+		textures[4] = p_tex;
+		samplers[4] = _sampler_state[IDX(rtsv)].get();
+		m_device->getCommandbuffer()->bindPixelShaderTexture2D(0, textures, 5);
+		m_device->getCommandbuffer()->bindPixelShaderSampler(0, samplers, 5);
 
 		// [Stage OM]
 
@@ -1311,7 +1252,7 @@ namespace core::Graphics
 
 		// DRAW
 
-		ctx->DrawIndexed(6, 0, 0);
+		m_device->getCommandbuffer()->drawIndexed(6, 0, 0);
 		
 		// CLEAR
 
@@ -1397,11 +1338,8 @@ namespace core::Graphics
 		}
 
 		ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		ID3D11Buffer* p_d3d11_vbos[1] = { getBuffer(_fx_vbuffer) };
-		UINT const stride = sizeof(DrawVertex);
-		UINT const offset = 0;
-		ctx->IASetVertexBuffers(0, 1, p_d3d11_vbos, &stride, &offset);
-		ctx->IASetIndexBuffer(getBuffer(_fx_ibuffer), DXGI_FORMAT_R16_UINT, 0);
+		m_device->getCommandbuffer()->bindVertexBuffer(0, _fx_vbuffer.get());
+		m_device->getCommandbuffer()->bindIndexBuffer(_fx_ibuffer.get());
 		ctx->IASetInputLayout(_input_layout.get());
 
 		// [Stage VS]
@@ -1412,28 +1350,13 @@ namespace core::Graphics
 			Logger::error("[core] [Renderer] upload constant buffer failed (vp_matrix_buffer)");
 		}
 		ctx->VSSetShader(_vertex_shader[IDX(FogState::Disable)].get(), NULL, 0);
-		ID3D11Buffer* const view_projection_matrix = getBuffer(_vp_matrix_buffer);
-		ctx->VSSetConstantBuffers(Direct3D11::Constants::vertex_shader_stage_constant_buffer_slot_view_projection_matrix, 1, &view_projection_matrix);
+		m_device->getCommandbuffer()->bindVertexShaderConstantBuffer(d3d11::vertex_shader_constant_buffer_slot_view_projection_matrix, _vp_matrix_buffer.get());
 
 		// [Stage RS]
 
 		ctx->RSSetState(_raster_state.get());
-		D3D11_VIEWPORT viewport = {
-			.TopLeftX = 0.0f,
-			.TopLeftY = 0.0f,
-			.Width = sw_,
-			.Height = sh_,
-			.MinDepth = 0.0f,
-			.MaxDepth = 1.0f,
-		};
-		ctx->RSSetViewports(1, &viewport);
-		D3D11_RECT scissor = {
-			.left = 0,
-			.top = 0,
-			.right = (LONG)sw_,
-			.bottom = (LONG)sh_,
-		};
-		ctx->RSSetScissorRects(1, &scissor);
+		m_device->getCommandbuffer()->setViewport(0.0f, 0.0f, sw_, sh_);
+		m_device->getCommandbuffer()->setScissorRect(0, 0, static_cast<uint32_t>(sw_), static_cast<uint32_t>(sh_));
 
 		// [Stage PS]
 
@@ -1454,7 +1377,7 @@ namespace core::Graphics
 
 		// DRAW
 
-		ctx->DrawIndexed(6, 0, 0);
+		m_device->getCommandbuffer()->drawIndexed(6, 0, 0);
 
 		// CLEAR
 

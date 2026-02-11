@@ -21,6 +21,7 @@ namespace core {
         void* getNativeView() const override;
 
         uint32_t getSizeInBytes() const override;
+        uint32_t getStrideInBytes() const override;
         bool map(void** out_pointer, bool cycle) override;
         bool unmap() override;
         bool update(const void* data, uint32_t size, bool cycle) override;
@@ -35,12 +36,13 @@ namespace core {
         ~VertexBuffer();
 
         bool createResources();
-        bool createResources(IGraphicsDevice* device, uint32_t size_in_bytes);
+        bool createResources(IGraphicsDevice* device, uint32_t size_in_bytes, uint32_t stride_in_bytes);
 
     private:
         SmartReference<IGraphicsDevice> m_device;
         win32::com_ptr<ID3D11Buffer> m_buffer;
         uint32_t m_size_in_bytes{};
+        uint32_t m_stride_in_bytes{};
         bool m_initialized{};
     };
 }
@@ -62,6 +64,7 @@ namespace core {
         void* getNativeView() const override;
 
         uint32_t getSizeInBytes() const override;
+        uint32_t getStrideInBytes() const override;
         bool map(void** out_pointer, bool cycle) override;
         bool unmap() override;
         bool update(const void* data, uint32_t size, bool cycle) override;
@@ -76,12 +79,13 @@ namespace core {
         ~IndexBuffer();
 
         bool createResources();
-        bool createResources(IGraphicsDevice* device, uint32_t size_in_bytes);
+        bool createResources(IGraphicsDevice* device, uint32_t size_in_bytes, GraphicsFormat format);
 
     private:
         SmartReference<IGraphicsDevice> m_device;
         win32::com_ptr<ID3D11Buffer> m_buffer;
         uint32_t m_size_in_bytes{};
+        GraphicsFormat m_format{};
         bool m_initialized{};
     };
 }
@@ -103,6 +107,7 @@ namespace core {
         void* getNativeView() const override;
 
         uint32_t getSizeInBytes() const override;
+        uint32_t getStrideInBytes() const override;
         bool map(void** out_pointer, bool cycle) override;
         bool unmap() override;
         bool update(const void* data, uint32_t size, bool cycle) override;
