@@ -377,17 +377,13 @@ namespace core {
 
         // ID3D11InputLayout
 
-        std::vector<std::string> semantics;
         std::vector<D3D11_INPUT_ELEMENT_DESC> elements;
-
-        semantics.resize(create_info.vertex_input_state.element_count);
         elements.resize(create_info.vertex_input_state.element_count);
+
         for (uint32_t i = 0; i < create_info.vertex_input_state.element_count; i += 1) {
             const auto& e = create_info.vertex_input_state.elements[i];
-            auto& semantic = semantics[i];
             auto& element = elements[i];
-            semantic.assign(e.semantic_name);
-            element.SemanticName = semantic.c_str();
+            element.SemanticName = e.semantic_name;
             element.SemanticIndex = e.semantic_index;
             element.Format = d3d11::toFormat(e.format);
             element.InputSlot = e.buffer_slot;
