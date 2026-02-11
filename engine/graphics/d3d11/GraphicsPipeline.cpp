@@ -11,6 +11,29 @@ namespace {
         default: assert(false); return D3D11_INPUT_CLASSIFICATION{};
         }
     }
+    std::vector<D3D11_INPUT_ELEMENT_DESC> toVertexInputElements(const core::GraphicsVertexInputState& input) {
+        std::vector<D3D11_INPUT_ELEMENT_DESC> elements;
+        elements.resize(input.element_count);
+        for (uint32_t i = 0; i < input.element_count; i += 1) {
+            const auto& e = input.elements[i];
+            auto& element = elements[i];
+            element.SemanticName = e.semantic_name;
+            element.SemanticIndex = e.semantic_index;
+            element.Format = d3d11::toFormat(e.format);
+            element.InputSlot = e.buffer_slot;
+            element.AlignedByteOffset = e.offset;
+            for (uint32_t j = 0; j < input.buffer_count; j += 1) {
+                const auto& b = input.buffers[j];
+                if (e.buffer_slot == b.slot) {
+                    element.InputSlotClass = toVertexInputRate(b.input_rate);
+                    element.InstanceDataStepRate = (element.InputSlotClass == D3D11_INPUT_PER_VERTEX_DATA) ? 0 : b.instance_step_rate;
+                    break;
+                }
+            }
+        }
+        return elements;
+    }
+
     D3D11_PRIMITIVE_TOPOLOGY toPrimitiveType(const core::GraphicsPrimitiveType value) {
         switch (value) {
         case core::GraphicsPrimitiveType::triangle_list:  return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
@@ -377,27 +400,7 @@ namespace core {
 
         // ID3D11InputLayout
 
-        std::vector<D3D11_INPUT_ELEMENT_DESC> elements;
-        elements.resize(create_info.vertex_input_state.element_count);
-
-        for (uint32_t i = 0; i < create_info.vertex_input_state.element_count; i += 1) {
-            const auto& e = create_info.vertex_input_state.elements[i];
-            auto& element = elements[i];
-            element.SemanticName = e.semantic_name;
-            element.SemanticIndex = e.semantic_index;
-            element.Format = d3d11::toFormat(e.format);
-            element.InputSlot = e.buffer_slot;
-            element.AlignedByteOffset = e.offset;
-            for (uint32_t j = 0; j < create_info.vertex_input_state.buffer_count; j += 1) {
-                const auto& b = create_info.vertex_input_state.buffers[j];
-                if (e.buffer_slot == b.slot) {
-                    element.InputSlotClass = toVertexInputRate(b.input_rate);
-                    element.InstanceDataStepRate = (element.InputSlotClass == D3D11_INPUT_PER_VERTEX_DATA) ? 0 : b.instance_step_rate;
-                    break;
-                }
-            }
-        }
-
+        const std::vector<D3D11_INPUT_ELEMENT_DESC> elements = std::move(toVertexInputElements(create_info.vertex_input_state));
         if (!win32::check_hresult_as_boolean(
             device->CreateInputLayout(
                 elements.data(), static_cast<UINT>(elements.size()),
