@@ -256,11 +256,52 @@ namespace core {
 }
 
 namespace core {
+    // GraphicsPipelineStateHelper
+
+    void GraphicsPipelineStateHelper::save(const GraphicsPipelineState& state) {
+        // copy struct
+
+        *static_cast<GraphicsPipelineState*>(this) = state;
+
+        // copy buffers
+
+        buffers_data.resize(state.vertex_input_state.buffer_count);
+        for (size_t i = 0; i < buffers_data.size(); i += 1) {
+            buffers_data[i] = state.vertex_input_state.buffers[i];
+        }
+        vertex_input_state.buffers = buffers_data.data();
+
+        // copy elements
+
+        semantic_names_data.resize(state.vertex_input_state.element_count);
+        elements_data.resize(state.vertex_input_state.element_count);
+        for (size_t i = 0; i < elements_data.size(); i += 1) {
+            elements_data[i] = state.vertex_input_state.elements[i];
+            semantic_names_data[i].assign(state.vertex_input_state.elements[i].semantic_name);
+            elements_data[i].semantic_name = semantic_names_data[i].c_str();
+        }
+        vertex_input_state.elements = elements_data.data();
+
+        // copy vertex shader
+
+        vertex_shader_data.resize(state.vertex_shader.size);
+        std::memcpy(vertex_shader_data.data(), state.vertex_shader.data, state.vertex_shader.size);
+        vertex_shader.data = vertex_shader_data.data();
+
+        // copy pixel shader
+
+        pixel_shader_data.resize(state.pixel_shader.size);
+        std::memcpy(pixel_shader_data.data(), state.pixel_shader.data, state.pixel_shader.size);
+        pixel_shader.data = pixel_shader_data.data();
+    }
+}
+
+namespace core {
     // IGraphicsDeviceEventListener
 
     void GraphicsPipeline::onGraphicsDeviceCreate() {
         if (m_initialized) {
-            // TODO
+            createResources();
         }
     }
     void GraphicsPipeline::onGraphicsDeviceDestroy() {
@@ -286,7 +327,8 @@ namespace core {
             assert(false); return false;
         }
         m_device = device;
-        return createResources(create_info);
+        m_graphics_pipeline_state_helper.save(create_info);
+        return createResources();
     }
     void GraphicsPipeline::apply() {
         const auto ctx = static_cast<ID3D11DeviceContext*>(m_device->getCommandbuffer()->getNativeHandle());
@@ -328,9 +370,10 @@ namespace core {
         ctx->OMSetBlendState(m_blend_state.get(), blend_constant, D3D11_DEFAULT_SAMPLE_MASK); // TODO: blend constant, sample mask
     }
 
-    bool GraphicsPipeline::createResources(const GraphicsPipelineState& create_info) {
+    bool GraphicsPipeline::createResources() {
         const auto device = static_cast<ID3D11Device*>(m_device->getNativeHandle());
         assert(device != nullptr);
+        const auto& create_info = m_graphics_pipeline_state_helper;
 
         // ID3D11InputLayout
 
