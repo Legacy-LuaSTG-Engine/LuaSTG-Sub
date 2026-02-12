@@ -215,6 +215,12 @@ namespace core {
 }
 
 namespace core {
+    // IGraphicsPipeline
+
+    const GraphicsPipelineState* GraphicsPipeline::getInfo() const noexcept {
+        return &m_graphics_pipeline_state_helper;
+    }
+
     // IGraphicsDeviceEventListener
 
     void GraphicsPipeline::onGraphicsDeviceCreate() {

@@ -19,6 +19,10 @@ namespace core {
 
     class GraphicsPipeline final : public implement::ReferenceCounted<IGraphicsPipeline>, public IGraphicsDeviceEventListener {
     public:
+        // IGraphicsPipeline
+
+        const GraphicsPipelineState* getInfo() const noexcept override;
+
         // IGraphicsDeviceEventListener
 
         void onGraphicsDeviceCreate() override;
