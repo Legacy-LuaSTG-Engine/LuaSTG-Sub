@@ -101,6 +101,8 @@ namespace core {
         void destroy();
         bool handleDeviceLost();
 
+        void removeGraphicsPipelineCache(core::IGraphicsPipeline* graphics_pipeline);
+
     private:
         enum class Event {
             create,
@@ -147,6 +149,10 @@ namespace core {
         win32::com_ptr<ID3D11Device> d3d11_device;
         win32::com_ptr<ID3D11DeviceContext> d3d11_devctx;
         win32::com_ptr<ID3D11DeviceContext1> d3d11_devctx1;
+        
+        // Graphics
+
+        std::unordered_set<IGraphicsPipeline*> m_graphics_pipeline_cache;
 
         // Window Image Component
 

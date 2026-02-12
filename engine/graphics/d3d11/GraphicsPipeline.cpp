@@ -1,5 +1,6 @@
 #include "d3d11/GraphicsPipeline.hpp"
 #include "d3d11/FormatHelper.hpp"
+#include "xxhash.h"
 
 namespace {
     using std::string_view_literals::operator ""sv;
@@ -171,6 +172,34 @@ namespace {
         }
         return output;
     }
+
+    void hashVertexInputState(XXH3_state_t* const state, const core::GraphicsVertexInputState& input) {
+        XXH3_64bits_update(state, input.buffers, input.buffer_count * sizeof(core::GraphicsVertexInputBuffer));
+        for (uint32_t i = 0; i < input.element_count; i += 1) {
+            const std::string_view semantic_name(input.elements[i].semantic_name);
+            XXH3_64bits_update(state, semantic_name.data(), semantic_name.size());
+            XXH3_64bits_update(state, &input.elements[i].semantic_index, sizeof(core::GraphicsVertexInputElement) - offsetof(core::GraphicsVertexInputElement, semantic_name));
+        }
+    }
+    size_t hashGraphicsPipeline(const core::GraphicsPipelineState& input) {
+        const auto state = XXH3_createState();
+        XXH3_64bits_reset(state);
+        hashVertexInputState(state, input.vertex_input_state);
+        XXH3_64bits_update(state, input.vertex_shader.data, input.vertex_shader.size);
+        XXH3_64bits_update(state, &input.rasterizer_state, sizeof(input.rasterizer_state));
+        XXH3_64bits_update(state, input.pixel_shader.data, input.pixel_shader.size);
+        XXH3_64bits_update(state, &input.depth_stencil_state, sizeof(input.depth_stencil_state));
+        XXH3_64bits_update(state, &input.blend_state, sizeof(input.blend_state));
+        const auto hash_value = XXH3_64bits_digest(state);
+        XXH3_freeState(state);
+    #if (SIZE_T_MAX == UINT32_T_MAX)
+        return std::hash<XXH64_hash_t>{}(hash_value); // TODO: remove 32-bit architecture support
+    #else
+        return hash_value;
+    #endif
+    }
+
+    void removeGraphicsPipelineCache(core::IGraphicsDevice* device, core::IGraphicsPipeline* graphics_pipeline);
 }
 
 namespace core {
@@ -211,12 +240,19 @@ namespace core {
         pixel_shader_data.resize(state.pixel_shader.size);
         std::memcpy(pixel_shader_data.data(), state.pixel_shader.data, state.pixel_shader.size);
         pixel_shader.data = pixel_shader_data.data();
+
+        // hash
+
+        hash = hashGraphicsPipeline(*this);
     }
 }
 
 namespace core {
     // IGraphicsPipeline
 
+    size_t GraphicsPipeline::getHash() const noexcept {
+        return m_graphics_pipeline_state_helper.hash;
+    }
     const GraphicsPipelineState* GraphicsPipeline::getInfo() const noexcept {
         return &m_graphics_pipeline_state_helper;
     }
@@ -243,6 +279,7 @@ namespace core {
     GraphicsPipeline::~GraphicsPipeline() {
         if (m_initialized) {
             m_device->removeEventListener(this);
+            removeGraphicsPipelineCache(m_device.get(), this);
         }
     }
 
@@ -392,12 +429,44 @@ namespace core {
         if (out_graphics_pipeline == nullptr) {
             assert(false); return false;
         }
+
+        const auto hash = hashGraphicsPipeline(*graphics_pipeline_state);
+        for (const auto cache : m_graphics_pipeline_cache) {
+            if (cache->getHash() == hash) {
+                cache->retain();
+                *out_graphics_pipeline = cache;
+                return true;
+            }
+        }
+
         SmartReference<GraphicsPipeline> graphics_pipeline;
         graphics_pipeline.attach(new GraphicsPipeline());
         if (!graphics_pipeline->createResources(this, *graphics_pipeline_state)) {
             return false;
         }
+        m_graphics_pipeline_cache.emplace(graphics_pipeline.get());
         *out_graphics_pipeline = graphics_pipeline.detach();
         return true;
+    }
+
+    // GraphicsDevice
+
+    void GraphicsDevice::removeGraphicsPipelineCache(core::IGraphicsPipeline* const graphics_pipeline) {
+        if (graphics_pipeline == nullptr) {
+            assert(false); return;
+        }
+        m_graphics_pipeline_cache.erase(graphics_pipeline);
+    }
+}
+
+namespace {
+    void removeGraphicsPipelineCache(core::IGraphicsDevice* const device, core::IGraphicsPipeline* const graphics_pipeline) {
+        if (device == nullptr) {
+            assert(false); return;
+        }
+        if (graphics_pipeline == nullptr) {
+            assert(false); return;
+        }
+        static_cast<core::GraphicsDevice*>(device)->removeGraphicsPipelineCache(graphics_pipeline);
     }
 }

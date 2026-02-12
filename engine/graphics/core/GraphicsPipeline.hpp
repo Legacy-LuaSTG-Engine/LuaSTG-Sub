@@ -163,6 +163,7 @@ namespace core {
     };
 
     CORE_INTERFACE IGraphicsPipeline : IReferenceCounted {
+        virtual size_t getHash() const noexcept = 0;
         virtual const GraphicsPipelineState* getInfo() const noexcept = 0;
     };
 

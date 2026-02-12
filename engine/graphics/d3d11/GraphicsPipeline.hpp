@@ -3,7 +3,6 @@
 #include "core/GraphicsDevice.hpp"
 #include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
-#include "xxhash.h"
 #include "d3d11/pch.h"
 
 namespace core {
@@ -13,6 +12,7 @@ namespace core {
         std::vector<GraphicsVertexInputElement> elements_data;
         std::vector<uint8_t> vertex_shader_data;
         std::vector<uint8_t> pixel_shader_data;
+        size_t hash{};
 
         void save(const GraphicsPipelineState& state);
     };
@@ -21,6 +21,7 @@ namespace core {
     public:
         // IGraphicsPipeline
 
+        size_t getHash() const noexcept override;
         const GraphicsPipelineState* getInfo() const noexcept override;
 
         // IGraphicsDeviceEventListener
