@@ -178,12 +178,13 @@ namespace {
         for (uint32_t i = 0; i < input.element_count; i += 1) {
             const std::string_view semantic_name(input.elements[i].semantic_name);
             XXH3_64bits_update(state, semantic_name.data(), semantic_name.size());
-            XXH3_64bits_update(state, &input.elements[i].semantic_index, sizeof(core::GraphicsVertexInputElement) - offsetof(core::GraphicsVertexInputElement, semantic_name));
+            constexpr auto remain_size = sizeof(core::GraphicsVertexInputElement) - offsetof(core::GraphicsVertexInputElement, semantic_index);
+            XXH3_64bits_update(state, &input.elements[i].semantic_index, remain_size);
         }
     }
     size_t hashGraphicsPipeline(const core::GraphicsPipelineState& input) {
         const auto state = XXH3_createState();
-        XXH3_64bits_reset(state);
+        XXH3_64bits_reset_withSeed(state, 0xFF14DEAD13149961ull);
         hashVertexInputState(state, input.vertex_input_state);
         XXH3_64bits_update(state, input.vertex_shader.data, input.vertex_shader.size);
         XXH3_64bits_update(state, &input.rasterizer_state, sizeof(input.rasterizer_state));
