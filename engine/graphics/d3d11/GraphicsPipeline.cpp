@@ -1,5 +1,6 @@
 #include "d3d11/GraphicsPipeline.hpp"
 #include "d3d11/FormatHelper.hpp"
+#include "xxhash.h"
 
 namespace {
     using std::string_view_literals::operator ""sv;
@@ -171,111 +172,35 @@ namespace {
         }
         return output;
     }
-}
 
-namespace core {
-    InputLayoutCache::InputLayoutCache() = default;
-    InputLayoutCache::InputLayoutCache(const InputLayoutCache& other) {
-        this->operator=(other);
-    }
-    InputLayoutCache::InputLayoutCache(InputLayoutCache&& other) {
-        this->operator=(std::move(other));
-    }
-    InputLayoutCache::~InputLayoutCache() = default;
-
-    InputLayoutCache& InputLayoutCache::operator=(const InputLayoutCache& other) {
-        if (this == &other) {
-            return *this;
+    void hashVertexInputState(XXH3_state_t* const state, const core::GraphicsVertexInputState& input) {
+        XXH3_64bits_update(state, input.buffers, input.buffer_count * sizeof(core::GraphicsVertexInputBuffer));
+        for (uint32_t i = 0; i < input.element_count; i += 1) {
+            const std::string_view semantic_name(input.elements[i].semantic_name);
+            XXH3_64bits_update(state, semantic_name.data(), semantic_name.size());
+            constexpr auto remain_size = sizeof(core::GraphicsVertexInputElement) - offsetof(core::GraphicsVertexInputElement, semantic_index);
+            XXH3_64bits_update(state, &input.elements[i].semantic_index, remain_size);
         }
-        assert(other.semantic_names.size() == other.input_elements.size());
-        semantic_names = other.semantic_names;
-        input_elements = other.input_elements;
-        for (size_t i = 0; i < input_elements.size(); i += 1) {
-            input_elements[i].SemanticName = semantic_names[i].c_str();
-        }
-        shader_byte_code = other.shader_byte_code;
-        hash_value = other.hash_value;
-        return *this;
     }
-    InputLayoutCache& InputLayoutCache::operator=(InputLayoutCache&& other) {
-        if (this == &other) {
-            return *this;
-        }
-        assert(other.semantic_names.size() == other.input_elements.size());
-        semantic_names = std::move(other.semantic_names);
-        input_elements = std::move(other.input_elements);
-        shader_byte_code = std::move(other.shader_byte_code);
-        hash_value = other.hash_value;
-        return *this;
+    size_t hashGraphicsPipeline(const core::GraphicsPipelineState& input) {
+        const auto state = XXH3_createState();
+        XXH3_64bits_reset_withSeed(state, 0xFF14DEAD13149961ull);
+        hashVertexInputState(state, input.vertex_input_state);
+        XXH3_64bits_update(state, input.vertex_shader.data, input.vertex_shader.size);
+        XXH3_64bits_update(state, &input.rasterizer_state, sizeof(input.rasterizer_state));
+        XXH3_64bits_update(state, input.pixel_shader.data, input.pixel_shader.size);
+        XXH3_64bits_update(state, &input.depth_stencil_state, sizeof(input.depth_stencil_state));
+        XXH3_64bits_update(state, &input.blend_state, sizeof(input.blend_state));
+        const auto hash_value = XXH3_64bits_digest(state);
+        XXH3_freeState(state);
+    #if (SIZE_T_MAX == UINT32_T_MAX)
+        return std::hash<XXH64_hash_t>{}(hash_value); // TODO: remove 32-bit architecture support
+    #else
+        return hash_value;
+    #endif
     }
 
-    void InputLayoutCache::initialize(
-        const D3D11_INPUT_ELEMENT_DESC* const p_input_elements, const UINT input_element_count,
-        const void* const p_shader_byte_code, const SIZE_T shader_byte_code_length
-    ) {
-        assert(p_input_elements != nullptr);
-        assert(input_element_count != 0);
-        assert(p_shader_byte_code != nullptr);
-        assert(shader_byte_code_length != 0);
-        semantic_names.resize(input_element_count);
-        input_elements.resize(input_element_count);
-        for (uint32_t i = 0; i < input_element_count; i += 1) {
-            assert(p_input_elements[i].SemanticName != nullptr);
-            input_elements[i] = p_input_elements[i];
-            semantic_names[i].assign(p_input_elements[i].SemanticName);
-            input_elements[i].SemanticName = semantic_names[i].c_str();
-        }
-        shader_byte_code.resize(shader_byte_code_length);
-        std::memcpy(shader_byte_code.data(), p_shader_byte_code, shader_byte_code_length);
-    }
-
-    size_t InputLayoutCacheOp::operator()(const InputLayoutCache& s) const noexcept {
-        return s.hash_value;
-    }
-
-    bool InputLayoutCacheOp::operator()(const InputLayoutCache& a, const InputLayoutCache& b) const noexcept {
-        if (a.hash_value != b.hash_value) {
-            return false;
-        }
-        if (a.input_elements.size() != b.input_elements.size()) {
-            return false;
-        }
-        for (size_t i = 0; i < a.input_elements.size(); i += 1) {
-            const auto& a_semantic_name = a.semantic_names[i];
-            const auto& a_input_element = a.input_elements[i];
-            const auto& b_semantic_name = b.semantic_names[i];
-            const auto& b_input_element = b.input_elements[i];
-            if (a_semantic_name != b_semantic_name) {
-                return false;
-            }
-            if (std::memcmp(&a_input_element.SemanticIndex, &b_input_element.SemanticIndex, sizeof(a_input_element) - sizeof(a_input_element.SemanticName)) != 0) {
-                return false;
-            }
-        }
-        if (a.shader_byte_code.size() != b.shader_byte_code.size()) {
-            return false;
-        }
-        if (std::memcmp(a.shader_byte_code.data(), b.shader_byte_code.data(), a.shader_byte_code.size()) != 0) {
-            return false;
-        }
-        return true;
-    }
-
-    void GraphicsPipelineCache::hash(InputLayoutCache* const input_layout_cache) {
-        XXH3_64bits_reset(m_hash_state);
-        const auto& semantic_names = input_layout_cache->semantic_names;
-        const auto& input_elements = input_layout_cache->input_elements;
-        assert(semantic_names.size() == input_elements.size());
-        for (size_t i = 0; i < input_elements.size(); i += 1) {
-            const auto& semantic_name = semantic_names[i];
-            const auto& input_element = input_elements[i];
-            XXH3_64bits_update(m_hash_state, semantic_name.c_str(), semantic_name.size());
-            XXH3_64bits_update(m_hash_state, &input_element.SemanticIndex, sizeof(input_element) - sizeof(input_element.SemanticName));
-        }
-        const auto& shader_byte_code = input_layout_cache->shader_byte_code;
-        XXH3_64bits_update(m_hash_state, shader_byte_code.data(), shader_byte_code.size());
-        input_layout_cache->hash_value = XXH3_64bits_digest(m_hash_state);
-    }
+    void removeGraphicsPipelineCache(core::IGraphicsDevice* device, core::IGraphicsPipeline* graphics_pipeline);
 }
 
 namespace core {
@@ -316,10 +241,23 @@ namespace core {
         pixel_shader_data.resize(state.pixel_shader.size);
         std::memcpy(pixel_shader_data.data(), state.pixel_shader.data, state.pixel_shader.size);
         pixel_shader.data = pixel_shader_data.data();
+
+        // hash
+
+        hash = hashGraphicsPipeline(*this);
     }
 }
 
 namespace core {
+    // IGraphicsPipeline
+
+    size_t GraphicsPipeline::getHash() const noexcept {
+        return m_graphics_pipeline_state_helper.hash;
+    }
+    const GraphicsPipelineState* GraphicsPipeline::getInfo() const noexcept {
+        return &m_graphics_pipeline_state_helper;
+    }
+
     // IGraphicsDeviceEventListener
 
     void GraphicsPipeline::onGraphicsDeviceCreate() {
@@ -342,6 +280,7 @@ namespace core {
     GraphicsPipeline::~GraphicsPipeline() {
         if (m_initialized) {
             m_device->removeEventListener(this);
+            removeGraphicsPipelineCache(m_device.get(), this);
         }
     }
 
@@ -491,12 +430,44 @@ namespace core {
         if (out_graphics_pipeline == nullptr) {
             assert(false); return false;
         }
+
+        const auto hash = hashGraphicsPipeline(*graphics_pipeline_state);
+        for (const auto cache : m_graphics_pipeline_cache) {
+            if (cache->getHash() == hash) {
+                cache->retain();
+                *out_graphics_pipeline = cache;
+                return true;
+            }
+        }
+
         SmartReference<GraphicsPipeline> graphics_pipeline;
         graphics_pipeline.attach(new GraphicsPipeline());
         if (!graphics_pipeline->createResources(this, *graphics_pipeline_state)) {
             return false;
         }
+        m_graphics_pipeline_cache.emplace(graphics_pipeline.get());
         *out_graphics_pipeline = graphics_pipeline.detach();
         return true;
+    }
+
+    // GraphicsDevice
+
+    void GraphicsDevice::removeGraphicsPipelineCache(core::IGraphicsPipeline* const graphics_pipeline) {
+        if (graphics_pipeline == nullptr) {
+            assert(false); return;
+        }
+        m_graphics_pipeline_cache.erase(graphics_pipeline);
+    }
+}
+
+namespace {
+    void removeGraphicsPipelineCache(core::IGraphicsDevice* const device, core::IGraphicsPipeline* const graphics_pipeline) {
+        if (device == nullptr) {
+            assert(false); return;
+        }
+        if (graphics_pipeline == nullptr) {
+            assert(false); return;
+        }
+        static_cast<core::GraphicsDevice*>(device)->removeGraphicsPipelineCache(graphics_pipeline);
     }
 }
