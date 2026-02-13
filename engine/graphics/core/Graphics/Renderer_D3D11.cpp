@@ -682,6 +682,7 @@ namespace core::Graphics {
 		// [Stage IA] upload vertex data
 
 		if (!m_primitive_batch_renderer.beginBatch(true)) {
+			Logger::error("[core] [Renderer] postEffect failed: PrimitiveBatchRenderer beginBatch failed");
 			return false;
 		}
 		const DrawVertex vertex_data[4]{
@@ -692,6 +693,7 @@ namespace core::Graphics {
 		};
 		m_primitive_batch_renderer.discard();
 		if (!m_primitive_batch_renderer.addQuad(vertex_data)) {
+			Logger::error("[core] [Renderer] postEffect failed: PrimitiveBatchRenderer addQuad failed");
 			return false;
 		}
 
@@ -760,6 +762,7 @@ namespace core::Graphics {
 		// DRAW
 
 		if (!m_primitive_batch_renderer.endBatch()) {
+			Logger::error("[core] [Renderer] postEffect failed: PrimitiveBatchRenderer endBatch failed");
 			return false;
 		}
 
@@ -799,6 +802,7 @@ namespace core::Graphics {
 		// [Stage IA] upload vertex data
 
 		if (!m_primitive_batch_renderer.beginBatch(true)) {
+			Logger::error("[core] [Renderer] postEffect failed: PrimitiveBatchRenderer beginBatch failed");
 			return false;
 		}
 		const DrawVertex vertex_data[4]{
@@ -809,6 +813,7 @@ namespace core::Graphics {
 		};
 		m_primitive_batch_renderer.discard();
 		if (!m_primitive_batch_renderer.addQuad(vertex_data)) {
+			Logger::error("[core] [Renderer] postEffect failed: PrimitiveBatchRenderer addQuad failed");
 			return false;
 		}
 
@@ -854,6 +859,7 @@ namespace core::Graphics {
 		// DRAW
 
 		if (!m_primitive_batch_renderer.endBatch()) {
+			Logger::error("[core] [Renderer] postEffect failed: PrimitiveBatchRenderer endBatch failed");
 			return false;
 		}
 
