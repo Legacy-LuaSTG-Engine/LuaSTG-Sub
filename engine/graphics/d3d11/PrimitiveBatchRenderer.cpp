@@ -45,7 +45,15 @@ namespace core {
             assert(false); return false;
         }
         m_batch_scope = false;
-        return unmapBuffers();
+        if (!unmapBuffers()) {
+            return false;
+        }
+        if (m_auto_draw) {
+            drawOnly();
+            clear();
+        }
+        m_auto_draw = false;
+        return true;
     }
     bool PrimitiveBatchRenderer::addTriangle(const DrawVertex& v1, const DrawVertex& v2, const DrawVertex& v3) {
         const DrawVertex vertices[3]{ v1, v2, v3 };
