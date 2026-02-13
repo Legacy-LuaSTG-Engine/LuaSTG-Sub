@@ -72,7 +72,6 @@ namespace core {
             Logger::error("Windows API failed: ID3D11Device::CreateTexture2D");
             return false;
         }
-        M_D3D_SET_DEBUG_NAME(m_texture.get(), "DepthStencilBuffer_D3D11::d3d11_texture2d");
 
         D3D11_DEPTH_STENCIL_VIEW_DESC dsvdef = {
             .Format = tex2ddef.Format,
@@ -84,7 +83,6 @@ namespace core {
             Logger::error("Windows API failed: ID3D11Device::CreateDepthStencilView");
             return false;
         }
-        M_D3D_SET_DEBUG_NAME(m_view.get(), "DepthStencilBuffer_D3D11::d3d11_dsv");
 
         return true;
     }

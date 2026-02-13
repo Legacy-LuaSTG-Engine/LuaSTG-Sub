@@ -195,7 +195,6 @@ namespace core {
                 Logger::error("Windows API failed: ID3D11Device::CreateTexture2D");
                 return false;
             }
-            M_D3D_SET_DEBUG_NAME(m_texture.get(), "Texture2D_D3D11::d3d11_texture2d");
 
             D3D11_SHADER_RESOURCE_VIEW_DESC view_desc = {
                 .Format = tex2d_desc.Format,
@@ -210,7 +209,6 @@ namespace core {
                 Logger::error("Windows API failed: ID3D11Device::CreateShaderResourceView");
                 return false;
             }
-            M_D3D_SET_DEBUG_NAME(m_view.get(), "Texture2D_D3D11::d3d11_srv");
         }
         else if (!m_source_path.empty()) {
             SmartReference<IData> src;
@@ -268,7 +266,6 @@ namespace core {
             if (dds_alpha_mode == DirectX::DDS_ALPHA_MODE_PREMULTIPLIED) {
                 m_pre_mul_alpha = true; // 您小子预乘了 alpha 通道是吧，行
             }
-            M_D3D_SET_DEBUG_NAME(m_view.get(), "Texture2D_D3D11::d3d11_srv");
 
             // 转换类型
             hr = gHR = res->QueryInterface(m_texture.put());
@@ -276,7 +273,6 @@ namespace core {
                 Logger::error("Windows API failed: ID3D11Resource::QueryInterface -> ID3D11Texture2D");
                 return false;
             }
-            M_D3D_SET_DEBUG_NAME(m_texture.get(), "Texture2D_D3D11::d3d11_texture2d");
 
             // 获取图片尺寸
             D3D11_TEXTURE2D_DESC texture_info{};
@@ -302,7 +298,6 @@ namespace core {
                 Logger::error("Windows API failed: ID3D11Device::CreateTexture2D");
                 return false;
             }
-            M_D3D_SET_DEBUG_NAME(m_texture.get(), "Texture2D_D3D11::d3d11_texture2d");
 
             D3D11_SHADER_RESOURCE_VIEW_DESC viewdef = {
                 .Format = texdef.Format,
@@ -314,7 +309,6 @@ namespace core {
                 Logger::error("Windows API failed: ID3D11Device::CreateShaderResourceView");
                 return false;
             }
-            M_D3D_SET_DEBUG_NAME(m_view.get(), "Texture2D_D3D11::d3d11_srv");
         }
 
         return true;

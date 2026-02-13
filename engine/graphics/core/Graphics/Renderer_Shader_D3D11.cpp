@@ -84,7 +84,6 @@ namespace core::Graphics
 		HRESULT hr = gHR = device->CreatePixelShader(d3d_ps_blob->GetBufferPointer(), d3d_ps_blob->GetBufferSize(), nullptr, d3d11_ps.put());
 		if (FAILED(hr))
 			return false;
-		M_D3D_SET_DEBUG_NAME_SIMPLE(d3d11_ps.get());
 
 		// 着色器反射
 
