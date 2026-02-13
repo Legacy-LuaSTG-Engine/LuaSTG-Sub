@@ -93,7 +93,6 @@ namespace core {
             Logger::error("Windows API failed: ID3D11Device::CreateRenderTargetView");
             return false;
         }
-        M_D3D_SET_DEBUG_NAME(m_view.get(), "RenderTarget_D3D11::d3d11_rtv");
 
         // 创建D2D1位图
 

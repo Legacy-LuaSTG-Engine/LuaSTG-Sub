@@ -3,44 +3,6 @@
 #include "core/FileSystem.hpp"
 #include "windows/RuntimeLoader/Direct3DCompiler.hpp"
 
-#include "d3d11/shader/renderer/vertex_shader_fog.h"
-#include "d3d11/shader/renderer/vertex_shader_normal.h"
-
-#include "d3d11/shader/renderer/pixel_shader_add_exp2_premul.h"
-#include "d3d11/shader/renderer/pixel_shader_add_exp2_straight.h"
-#include "d3d11/shader/renderer/pixel_shader_add_exp_premul.h"
-#include "d3d11/shader/renderer/pixel_shader_add_exp_straight.h"
-#include "d3d11/shader/renderer/pixel_shader_add_linear_premul.h"
-#include "d3d11/shader/renderer/pixel_shader_add_linear_straight.h"
-#include "d3d11/shader/renderer/pixel_shader_add_none_premul.h"
-#include "d3d11/shader/renderer/pixel_shader_add_none_straight.h"
-#include "d3d11/shader/renderer/pixel_shader_mul_exp2_premul.h"
-#include "d3d11/shader/renderer/pixel_shader_mul_exp2_straight.h"
-#include "d3d11/shader/renderer/pixel_shader_mul_exp_premul.h"
-#include "d3d11/shader/renderer/pixel_shader_mul_exp_straight.h"
-#include "d3d11/shader/renderer/pixel_shader_mul_linear_premul.h"
-#include "d3d11/shader/renderer/pixel_shader_mul_linear_straight.h"
-#include "d3d11/shader/renderer/pixel_shader_mul_none_premul.h"
-#include "d3d11/shader/renderer/pixel_shader_mul_none_straight.h"
-#include "d3d11/shader/renderer/pixel_shader_one_exp2_premul.h"
-#include "d3d11/shader/renderer/pixel_shader_one_exp2_straight.h"
-#include "d3d11/shader/renderer/pixel_shader_one_exp_premul.h"
-#include "d3d11/shader/renderer/pixel_shader_one_exp_straight.h"
-#include "d3d11/shader/renderer/pixel_shader_one_linear_premul.h"
-#include "d3d11/shader/renderer/pixel_shader_one_linear_straight.h"
-#include "d3d11/shader/renderer/pixel_shader_one_none_premul.h"
-#include "d3d11/shader/renderer/pixel_shader_one_none_straight.h"
-#include "d3d11/shader/renderer/pixel_shader_zero_exp2_premul.h"
-#include "d3d11/shader/renderer/pixel_shader_zero_exp2_straight.h"
-#include "d3d11/shader/renderer/pixel_shader_zero_exp_premul.h"
-#include "d3d11/shader/renderer/pixel_shader_zero_exp_straight.h"
-#include "d3d11/shader/renderer/pixel_shader_zero_linear_premul.h"
-#include "d3d11/shader/renderer/pixel_shader_zero_linear_straight.h"
-#include "d3d11/shader/renderer/pixel_shader_zero_none_premul.h"
-#include "d3d11/shader/renderer/pixel_shader_zero_none_straight.h"
-
-#define IDX(x) (size_t)static_cast<uint8_t>(x)
-
 class D3DIncludeImpl : public ID3DInclude
 {
 public:
@@ -117,11 +79,11 @@ namespace core::Graphics
 					return false;
 			}
 		}
-		assert(m_device->GetD3D11Device());
-		HRESULT hr = gHR = m_device->GetD3D11Device()->CreatePixelShader(d3d_ps_blob->GetBufferPointer(), d3d_ps_blob->GetBufferSize(), nullptr, d3d11_ps.put());
+		const auto device = static_cast<ID3D11Device*>(m_device->getNativeHandle());
+		assert(device != nullptr);
+		HRESULT hr = gHR = device->CreatePixelShader(d3d_ps_blob->GetBufferPointer(), d3d_ps_blob->GetBufferSize(), nullptr, d3d11_ps.put());
 		if (FAILED(hr))
 			return false;
-		M_D3D_SET_DEBUG_NAME_SIMPLE(d3d11_ps.get());
 
 		// 着色器反射
 
@@ -212,117 +174,6 @@ namespace core::Graphics
 					return false;
 				}
 			}
-		}
-
-		return true;
-	}
-
-	bool Renderer_D3D11::createShaders()
-	{
-		assert(m_device->GetD3D11Device());
-
-		HRESULT hr = 0;
-
-		// vertex shader
-		{
-			auto load_ = [&](FogState f, void const* data, size_t size)
-			{
-				hr = gHR = m_device->GetD3D11Device()->CreateVertexShader(
-					data,
-					size,
-					NULL,
-					_vertex_shader[IDX(f)].put());
-			};
-			
-		#define load(f, name)\
-			load_(f, vertex_shader_##name, sizeof(vertex_shader_##name));\
-			if (FAILED(hr)) return false;\
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_vertex_shader[IDX(f)].get());
-
-			load(FogState::Disable, normal);
-			load(FogState::Linear, fog);
-			load(FogState::Exp, fog);
-			load(FogState::Exp2, fog);
-
-		#undef load
-		}
-
-		// input layout
-		{
-			D3D11_INPUT_ELEMENT_DESC layout_[] =
-			{
-				// DrawVertex2D
-				{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0 , D3D11_INPUT_PER_VERTEX_DATA, 0 },
-				{ "COLOR",    0, DXGI_FORMAT_B8G8R8A8_UNORM , 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-				{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT   , 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			};
-			hr = gHR = m_device->GetD3D11Device()->CreateInputLayout(
-				layout_, 3,
-				vertex_shader_normal,
-				sizeof(vertex_shader_normal),
-				_input_layout.put());
-			if (FAILED(hr))
-				return false;
-		}
-
-		// pixel shader
-		{
-			auto load_ = [&](VertexColorBlendState v, FogState f, TextureAlphaType t, void const* data, size_t size)
-			{
-				hr = gHR = m_device->GetD3D11Device()->CreatePixelShader(
-					data,
-					size,
-					NULL,
-					_pixel_shader[IDX(v)][IDX(f)][IDX(t)].put()
-				);
-			};
-
-		#define load(v, f, t, name)\
-			load_(v, f, t, pixel_shader_##name, sizeof(pixel_shader_##name));\
-			if (FAILED(hr)) return false;\
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_pixel_shader[IDX(v)][IDX(f)][IDX(t)].get());
-
-			load(VertexColorBlendState::Zero, FogState::Disable, TextureAlphaType::Normal, zero_none_straight);
-			load(VertexColorBlendState::One, FogState::Disable, TextureAlphaType::Normal, one_none_straight);
-			load(VertexColorBlendState::Add, FogState::Disable, TextureAlphaType::Normal, add_none_straight);
-			load(VertexColorBlendState::Mul, FogState::Disable, TextureAlphaType::Normal, mul_none_straight);
-
-			load(VertexColorBlendState::Zero, FogState::Linear, TextureAlphaType::Normal, zero_linear_straight);
-			load(VertexColorBlendState::One, FogState::Linear, TextureAlphaType::Normal, one_linear_straight);
-			load(VertexColorBlendState::Add, FogState::Linear, TextureAlphaType::Normal, add_linear_straight);
-			load(VertexColorBlendState::Mul, FogState::Linear, TextureAlphaType::Normal, mul_linear_straight);
-
-			load(VertexColorBlendState::Zero, FogState::Exp, TextureAlphaType::Normal, zero_exp_straight);
-			load(VertexColorBlendState::One, FogState::Exp, TextureAlphaType::Normal, one_exp_straight);
-			load(VertexColorBlendState::Add, FogState::Exp, TextureAlphaType::Normal, add_exp_straight);
-			load(VertexColorBlendState::Mul, FogState::Exp, TextureAlphaType::Normal, mul_exp_straight);
-
-			load(VertexColorBlendState::Zero, FogState::Exp2, TextureAlphaType::Normal, zero_exp2_straight);
-			load(VertexColorBlendState::One, FogState::Exp2, TextureAlphaType::Normal, one_exp2_straight);
-			load(VertexColorBlendState::Add, FogState::Exp2, TextureAlphaType::Normal, add_exp2_straight);
-			load(VertexColorBlendState::Mul, FogState::Exp2, TextureAlphaType::Normal, mul_exp2_straight);
-
-			load(VertexColorBlendState::Zero, FogState::Disable, TextureAlphaType::PremulAlpha, zero_none_premul);
-			load(VertexColorBlendState::One, FogState::Disable, TextureAlphaType::PremulAlpha, one_none_premul);
-			load(VertexColorBlendState::Add, FogState::Disable, TextureAlphaType::PremulAlpha, add_none_premul);
-			load(VertexColorBlendState::Mul, FogState::Disable, TextureAlphaType::PremulAlpha, mul_none_premul);
-
-			load(VertexColorBlendState::Zero, FogState::Linear, TextureAlphaType::PremulAlpha, zero_linear_premul);
-			load(VertexColorBlendState::One, FogState::Linear, TextureAlphaType::PremulAlpha, one_linear_premul);
-			load(VertexColorBlendState::Add, FogState::Linear, TextureAlphaType::PremulAlpha, add_linear_premul);
-			load(VertexColorBlendState::Mul, FogState::Linear, TextureAlphaType::PremulAlpha, mul_linear_premul);
-
-			load(VertexColorBlendState::Zero, FogState::Exp, TextureAlphaType::PremulAlpha, zero_exp_premul);
-			load(VertexColorBlendState::One, FogState::Exp, TextureAlphaType::PremulAlpha, one_exp_premul);
-			load(VertexColorBlendState::Add, FogState::Exp, TextureAlphaType::PremulAlpha, add_exp_premul);
-			load(VertexColorBlendState::Mul, FogState::Exp, TextureAlphaType::PremulAlpha, mul_exp_premul);
-
-			load(VertexColorBlendState::Zero, FogState::Exp2, TextureAlphaType::PremulAlpha, zero_exp2_premul);
-			load(VertexColorBlendState::One, FogState::Exp2, TextureAlphaType::PremulAlpha, one_exp2_premul);
-			load(VertexColorBlendState::Add, FogState::Exp2, TextureAlphaType::PremulAlpha, add_exp2_premul);
-			load(VertexColorBlendState::Mul, FogState::Exp2, TextureAlphaType::PremulAlpha, mul_exp2_premul);
-
-		#undef load
 		}
 
 		return true;

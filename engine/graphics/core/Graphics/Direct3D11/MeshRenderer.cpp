@@ -43,19 +43,6 @@ namespace core::Graphics::Direct3D11 {
 		const auto cmd = m_device->getCommandbuffer();
 		const auto ctx = static_cast<ID3D11DeviceContext*>(cmd->getNativeHandle());
 
-		// Mesh setup:
-		// * IA stage
-		//     * vertex buffer
-		//     * index buffer
-		//     * primitive topology
-		//     * input layout
-		// * VS stage
-		//     * vertex shader
-
-		auto const mesh = static_cast<Mesh*>(m_mesh.get());
-		assert(mesh);
-		mesh->applyNative(ctx, static_cast<Renderer_D3D11*>(renderer)->isFogEnabled());
-
 		// VS stage constant buffer setup by Renderer
 		// * constant buffer (view projection matrix)
 		// see: d3d11::vertex_shader_constant_buffer_slot_view_projection_matrix
@@ -94,6 +81,19 @@ namespace core::Graphics::Direct3D11 {
 		// OM stage setup by Renderer/SwapChain/Window:
 		// * render target view
 		// * depth stencil view
+
+		// Mesh setup:
+		// * IA stage
+		//     * vertex buffer
+		//     * index buffer
+		//     * primitive topology
+		//     * input layout
+		// * VS stage
+		//     * vertex shader
+
+		auto const mesh = static_cast<Mesh*>(m_mesh.get());
+		assert(mesh);
+		mesh->applyNative(ctx, static_cast<Renderer_D3D11*>(renderer)->isFogEnabled());
 
 		// Mesh draw
 
