@@ -681,7 +681,7 @@ namespace core::Graphics {
 
 		// [Stage IA] upload vertex data
 
-		if (!m_primitive_batch_renderer.beginBatch(false)) {
+		if (!m_primitive_batch_renderer.beginBatch(true)) {
 			return false;
 		}
 		const DrawVertex vertex_data[4]{
@@ -690,10 +690,8 @@ namespace core::Graphics {
 			DrawVertex(rtv_w, 0.00f, 1.0f, 1.0f),
 			DrawVertex(0.00f, 0.00f, 0.0f, 1.0f),
 		};
+		m_primitive_batch_renderer.discard();
 		if (!m_primitive_batch_renderer.addQuad(vertex_data)) {
-			return false;
-		}
-		if (!m_primitive_batch_renderer.endBatch()) {
 			return false;
 		}
 
@@ -761,7 +759,9 @@ namespace core::Graphics {
 
 		// DRAW
 
-		m_primitive_batch_renderer.draw();
+		if (!m_primitive_batch_renderer.endBatch()) {
+			return false;
+		}
 
 		// CLEAR
 
@@ -798,7 +798,7 @@ namespace core::Graphics {
 
 		// [Stage IA] upload vertex data
 
-		if (!m_primitive_batch_renderer.beginBatch(false)) {
+		if (!m_primitive_batch_renderer.beginBatch(true)) {
 			return false;
 		}
 		const DrawVertex vertex_data[4]{
@@ -807,10 +807,8 @@ namespace core::Graphics {
 			DrawVertex(rtv_w, 0.00f, 1.0f, 1.0f),
 			DrawVertex(0.00f, 0.00f, 0.0f, 1.0f),
 		};
+		m_primitive_batch_renderer.discard();
 		if (!m_primitive_batch_renderer.addQuad(vertex_data)) {
-			return false;
-		}
-		if (!m_primitive_batch_renderer.endBatch()) {
 			return false;
 		}
 
@@ -855,7 +853,9 @@ namespace core::Graphics {
 
 		// DRAW
 
-		m_primitive_batch_renderer.draw();
+		if (!m_primitive_batch_renderer.endBatch()) {
+			return false;
+		}
 
 		// CLEAR
 
