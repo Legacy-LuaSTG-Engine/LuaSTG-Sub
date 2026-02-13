@@ -50,7 +50,6 @@ namespace core {
         }
         if (m_auto_draw) {
             drawOnly();
-            clear();
         }
         m_auto_draw = false;
         return true;
