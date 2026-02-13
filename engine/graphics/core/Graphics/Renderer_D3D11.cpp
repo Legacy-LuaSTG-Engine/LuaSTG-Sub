@@ -204,6 +204,8 @@ namespace core::Graphics {
 	}
 	bool Renderer_D3D11::createSamplers() {
 		GraphicsSamplerInfo sampler_info{};
+		sampler_info.min_lod = -FLT_MAX;
+		sampler_info.max_lod = FLT_MAX;
 
 		// point
 
