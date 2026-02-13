@@ -264,281 +264,69 @@ namespace core::Graphics
 
 		return true;
 	}
-	bool Renderer_D3D11::createStates(const bool is_recreating)
-	{
-		assert(m_device->GetD3D11Device());
+	bool Renderer_D3D11::createSamplers() {
+		GraphicsSamplerInfo sampler_info{};
 
-		HRESULT hr = 0;
+		// point
 
-		{
-			D3D11_RASTERIZER_DESC desc_ = {
-				.FillMode = D3D11_FILL_SOLID,
-				.CullMode = D3D11_CULL_NONE, // 2D 图片精灵可能有负缩放
-				.FrontCounterClockwise = FALSE,
-				.DepthBias = D3D11_DEFAULT_DEPTH_BIAS,
-				.DepthBiasClamp = D3D11_DEFAULT_DEPTH_BIAS_CLAMP,
-				.SlopeScaledDepthBias = D3D11_DEFAULT_SLOPE_SCALED_DEPTH_BIAS,
-				.DepthClipEnable = TRUE,
-				.ScissorEnable = TRUE,
-				.MultisampleEnable = FALSE,
-				.AntialiasedLineEnable = FALSE,
-			};
-			hr = gHR = m_device->GetD3D11Device()->CreateRasterizerState(&desc_, _raster_state.put());
-			if (FAILED(hr))
-				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_raster_state.get());
-		}
+		sampler_info.filter = GraphicsFilter::point;
+		sampler_info.address_u = GraphicsTextureAddressMode::wrap;
+		sampler_info.address_v = GraphicsTextureAddressMode::wrap;
+		sampler_info.address_w = GraphicsTextureAddressMode::wrap;
+		if (!m_device->createSampler(sampler_info, _sampler_state[IDX(SamplerState::PointWrap)].put()))
+			return false;
 
-		if (!is_recreating) {
-			GraphicsSamplerInfo sampler_info{};
+		sampler_info.filter = GraphicsFilter::point;
+		sampler_info.address_u = GraphicsTextureAddressMode::clamp;
+		sampler_info.address_v = GraphicsTextureAddressMode::clamp;
+		sampler_info.address_w = GraphicsTextureAddressMode::clamp;
+		if (!m_device->createSampler(sampler_info, _sampler_state[IDX(SamplerState::PointClamp)].put()))
+			return false;
 
-			// point
+		sampler_info.filter = GraphicsFilter::point;
+		sampler_info.address_u = GraphicsTextureAddressMode::border;
+		sampler_info.address_v = GraphicsTextureAddressMode::border;
+		sampler_info.address_w = GraphicsTextureAddressMode::border;
+		if (!m_device->createSampler(sampler_info, _sampler_state[IDX(SamplerState::PointBorderBlack)].put()))
+			return false;
 
-			sampler_info.filter = GraphicsFilter::point;
-			sampler_info.address_u = GraphicsTextureAddressMode::wrap;
-			sampler_info.address_v = GraphicsTextureAddressMode::wrap;
-			sampler_info.address_w = GraphicsTextureAddressMode::wrap;
-			if (!m_device->createSampler(sampler_info, _sampler_state[IDX(SamplerState::PointWrap)].put()))
-				return false;
+		sampler_info.filter = GraphicsFilter::point;
+		sampler_info.address_u = GraphicsTextureAddressMode::border;
+		sampler_info.address_v = GraphicsTextureAddressMode::border;
+		sampler_info.address_w = GraphicsTextureAddressMode::border;
+		if (!m_device->createSampler(sampler_info, _sampler_state[IDX(SamplerState::PointBorderWhite)].put())) // TODO: white?
+			return false;
 
-			sampler_info.filter = GraphicsFilter::point;
-			sampler_info.address_u = GraphicsTextureAddressMode::clamp;
-			sampler_info.address_v = GraphicsTextureAddressMode::clamp;
-			sampler_info.address_w = GraphicsTextureAddressMode::clamp;
-			if (!m_device->createSampler(sampler_info, _sampler_state[IDX(SamplerState::PointClamp)].put()))
-				return false;
+		// linear
 
-			sampler_info.filter = GraphicsFilter::point;
-			sampler_info.address_u = GraphicsTextureAddressMode::border;
-			sampler_info.address_v = GraphicsTextureAddressMode::border;
-			sampler_info.address_w = GraphicsTextureAddressMode::border;
-			if (!m_device->createSampler(sampler_info, _sampler_state[IDX(SamplerState::PointBorderBlack)].put()))
-				return false;
+		sampler_info.filter = GraphicsFilter::linear;
+		sampler_info.address_u = GraphicsTextureAddressMode::wrap;
+		sampler_info.address_v = GraphicsTextureAddressMode::wrap;
+		sampler_info.address_w = GraphicsTextureAddressMode::wrap;
+		if (!m_device->createSampler(sampler_info, _sampler_state[IDX(SamplerState::LinearWrap)].put()))
+			return false;
 
-			sampler_info.filter = GraphicsFilter::point;
-			sampler_info.address_u = GraphicsTextureAddressMode::border;
-			sampler_info.address_v = GraphicsTextureAddressMode::border;
-			sampler_info.address_w = GraphicsTextureAddressMode::border;
-			if (!m_device->createSampler(sampler_info, _sampler_state[IDX(SamplerState::PointBorderWhite)].put())) // TODO: white?
-				return false;
+		sampler_info.filter = GraphicsFilter::linear;
+		sampler_info.address_u = GraphicsTextureAddressMode::clamp;
+		sampler_info.address_v = GraphicsTextureAddressMode::clamp;
+		sampler_info.address_w = GraphicsTextureAddressMode::clamp;
+		if (!m_device->createSampler(sampler_info, _sampler_state[IDX(SamplerState::LinearClamp)].put()))
+			return false;
 
-			// linear
+		sampler_info.filter = GraphicsFilter::linear;
+		sampler_info.address_u = GraphicsTextureAddressMode::border;
+		sampler_info.address_v = GraphicsTextureAddressMode::border;
+		sampler_info.address_w = GraphicsTextureAddressMode::border;
+		if (!m_device->createSampler(sampler_info, _sampler_state[IDX(SamplerState::LinearBorderBlack)].put()))
+			return false;
 
-			sampler_info.filter = GraphicsFilter::linear;
-			sampler_info.address_u = GraphicsTextureAddressMode::wrap;
-			sampler_info.address_v = GraphicsTextureAddressMode::wrap;
-			sampler_info.address_w = GraphicsTextureAddressMode::wrap;
-			if (!m_device->createSampler(sampler_info, _sampler_state[IDX(SamplerState::LinearWrap)].put()))
-				return false;
-
-			sampler_info.filter = GraphicsFilter::linear;
-			sampler_info.address_u = GraphicsTextureAddressMode::clamp;
-			sampler_info.address_v = GraphicsTextureAddressMode::clamp;
-			sampler_info.address_w = GraphicsTextureAddressMode::clamp;
-			if (!m_device->createSampler(sampler_info, _sampler_state[IDX(SamplerState::LinearClamp)].put()))
-				return false;
-
-			sampler_info.filter = GraphicsFilter::linear;
-			sampler_info.address_u = GraphicsTextureAddressMode::border;
-			sampler_info.address_v = GraphicsTextureAddressMode::border;
-			sampler_info.address_w = GraphicsTextureAddressMode::border;
-			if (!m_device->createSampler(sampler_info, _sampler_state[IDX(SamplerState::LinearBorderBlack)].put()))
-				return false;
-
-			sampler_info.filter = GraphicsFilter::linear;
-			sampler_info.address_u = GraphicsTextureAddressMode::border;
-			sampler_info.address_v = GraphicsTextureAddressMode::border;
-			sampler_info.address_w = GraphicsTextureAddressMode::border;
-			if (!m_device->createSampler(sampler_info, _sampler_state[IDX(SamplerState::LinearBorderWhite)].put())) // TODO: white?
-				return false;
-		}
-
-		{
-			D3D11_DEPTH_STENCIL_DESC desc_ = {
-				.DepthEnable = FALSE,
-				.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL,
-				.DepthFunc = D3D11_COMPARISON_LESS_EQUAL,
-				.StencilEnable = FALSE,
-				.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK,
-				.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK,
-				.FrontFace = D3D11_DEPTH_STENCILOP_DESC{
-					.StencilFailOp = D3D11_STENCIL_OP_KEEP,
-					.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP,
-					.StencilPassOp = D3D11_STENCIL_OP_KEEP,
-					.StencilFunc = D3D11_COMPARISON_ALWAYS,
-				},
-				.BackFace = D3D11_DEPTH_STENCILOP_DESC{
-					.StencilFailOp = D3D11_STENCIL_OP_KEEP,
-					.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP,
-					.StencilPassOp = D3D11_STENCIL_OP_KEEP,
-					.StencilFunc = D3D11_COMPARISON_ALWAYS,
-				},
-			};
-			hr = gHR = m_device->GetD3D11Device()->CreateDepthStencilState(&desc_, _depth_state[IDX(DepthState::Disable)].put());
-			if (FAILED(hr))
-				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_depth_state[IDX(DepthState::Disable)].get());
-
-			desc_.DepthEnable = TRUE;
-			hr = gHR = m_device->GetD3D11Device()->CreateDepthStencilState(&desc_, _depth_state[IDX(DepthState::Enable)].put());
-			if (FAILED(hr))
-				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_depth_state[IDX(DepthState::Enable)].get());
-		}
-
-		{
-			D3D11_BLEND_DESC desc_ = {
-				.AlphaToCoverageEnable = FALSE,
-				.IndependentBlendEnable = FALSE,
-				.RenderTarget = {},
-			};
-			D3D11_RENDER_TARGET_BLEND_DESC blendt_ = {
-				.BlendEnable = FALSE,
-				.SrcBlend = D3D11_BLEND_ZERO,
-				.DestBlend = D3D11_BLEND_ONE,
-				.BlendOp = D3D11_BLEND_OP_ADD,
-				.SrcBlendAlpha = D3D11_BLEND_ZERO,
-				.DestBlendAlpha = D3D11_BLEND_ONE,
-				.BlendOpAlpha = D3D11_BLEND_OP_ADD,
-				.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL,
-			};
-			auto copy_ = [&]() -> void
-			{
-				for (auto& v : desc_.RenderTarget)
-				{
-					v = blendt_;
-				}
-			};
-			copy_();
-
-			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, _blend_state[IDX(BlendState::Disable)].put());
-			if (FAILED(hr))
-				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Disable)].get());
-
-			blendt_.BlendEnable = TRUE;
-
-			blendt_.BlendOp = D3D11_BLEND_OP_ADD;
-			blendt_.SrcBlend = D3D11_BLEND_ONE;
-			blendt_.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-			blendt_.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-			blendt_.SrcBlendAlpha = D3D11_BLEND_ONE;
-			blendt_.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
-			copy_();
-			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, _blend_state[IDX(BlendState::Alpha)].put());
-			if (FAILED(hr))
-				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Alpha)].get());
-
-			blendt_.BlendOp = D3D11_BLEND_OP_ADD;
-			blendt_.SrcBlend = D3D11_BLEND_ONE;
-			blendt_.DestBlend = D3D11_BLEND_ZERO;
-			blendt_.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-			blendt_.SrcBlendAlpha = D3D11_BLEND_ONE;
-			blendt_.DestBlendAlpha = D3D11_BLEND_ZERO;
-			copy_();
-			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, _blend_state[IDX(BlendState::One)].put());
-			if (FAILED(hr))
-				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::One)].get());
-
-			blendt_.BlendOp = D3D11_BLEND_OP_MIN;
-			blendt_.SrcBlend = D3D11_BLEND_ONE;
-			blendt_.DestBlend = D3D11_BLEND_ONE;
-			blendt_.BlendOpAlpha = D3D11_BLEND_OP_MIN;
-			blendt_.SrcBlendAlpha = D3D11_BLEND_ONE;
-			blendt_.DestBlendAlpha = D3D11_BLEND_ONE;
-			copy_();
-			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, _blend_state[IDX(BlendState::Min)].put());
-			if (FAILED(hr))
-				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Min)].get());
-
-			blendt_.BlendOp = D3D11_BLEND_OP_MAX;
-			blendt_.SrcBlend = D3D11_BLEND_ONE;
-			blendt_.DestBlend = D3D11_BLEND_ONE;
-			blendt_.BlendOpAlpha = D3D11_BLEND_OP_MAX;
-			blendt_.SrcBlendAlpha = D3D11_BLEND_ONE;
-			blendt_.DestBlendAlpha = D3D11_BLEND_ONE;
-			copy_();
-			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, _blend_state[IDX(BlendState::Max)].put());
-			if (FAILED(hr))
-				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Max)].get());
-
-			blendt_.BlendOp = D3D11_BLEND_OP_ADD;
-			blendt_.SrcBlend = D3D11_BLEND_DEST_COLOR;
-			blendt_.DestBlend = D3D11_BLEND_ZERO;
-			blendt_.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-			blendt_.SrcBlendAlpha = D3D11_BLEND_ONE;
-			blendt_.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
-			copy_();
-			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, _blend_state[IDX(BlendState::Mul)].put());
-			if (FAILED(hr))
-				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Mul)].get());
-
-			blendt_.BlendOp = D3D11_BLEND_OP_ADD;
-			blendt_.SrcBlend = D3D11_BLEND_ONE;
-			blendt_.DestBlend = D3D11_BLEND_INV_SRC_COLOR;
-			blendt_.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-			blendt_.SrcBlendAlpha = D3D11_BLEND_ONE;
-			blendt_.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
-			copy_();
-			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, _blend_state[IDX(BlendState::Screen)].put());
-			if (FAILED(hr))
-				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Screen)].get());
-
-			blendt_.BlendOp = D3D11_BLEND_OP_ADD;
-			blendt_.SrcBlend = D3D11_BLEND_ONE;
-			blendt_.DestBlend = D3D11_BLEND_ONE;
-			blendt_.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-			blendt_.SrcBlendAlpha = D3D11_BLEND_ONE;
-			blendt_.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
-			copy_();
-			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, _blend_state[IDX(BlendState::Add)].put());
-			if (FAILED(hr))
-				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Add)].get());
-
-			blendt_.BlendOp = D3D11_BLEND_OP_SUBTRACT;
-			blendt_.SrcBlend = D3D11_BLEND_ONE;
-			blendt_.DestBlend = D3D11_BLEND_ONE;
-			blendt_.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-			blendt_.SrcBlendAlpha = D3D11_BLEND_ONE;
-			blendt_.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
-			copy_();
-			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, _blend_state[IDX(BlendState::Sub)].put());
-			if (FAILED(hr))
-				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Sub)].get());
-
-			blendt_.BlendOp = D3D11_BLEND_OP_REV_SUBTRACT;
-			blendt_.SrcBlend = D3D11_BLEND_ONE;
-			blendt_.DestBlend = D3D11_BLEND_ONE;
-			blendt_.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-			blendt_.SrcBlendAlpha = D3D11_BLEND_ONE;
-			blendt_.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
-			copy_();
-			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, _blend_state[IDX(BlendState::RevSub)].put());
-			if (FAILED(hr))
-				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::RevSub)].get());
-
-			blendt_.BlendOp = D3D11_BLEND_OP_ADD;
-			blendt_.SrcBlend = D3D11_BLEND_INV_DEST_COLOR;
-			blendt_.DestBlend = D3D11_BLEND_INV_SRC_COLOR;
-			blendt_.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-			blendt_.SrcBlendAlpha = D3D11_BLEND_ZERO;
-			blendt_.DestBlendAlpha = D3D11_BLEND_ONE;
-			copy_();
-			hr = gHR = m_device->GetD3D11Device()->CreateBlendState(&desc_, _blend_state[IDX(BlendState::Inv)].put());
-			if (FAILED(hr))
-				return false;
-			M_D3D_SET_DEBUG_NAME_SIMPLE(_blend_state[IDX(BlendState::Inv)].get());
-		}
-
+		sampler_info.filter = GraphicsFilter::linear;
+		sampler_info.address_u = GraphicsTextureAddressMode::border;
+		sampler_info.address_v = GraphicsTextureAddressMode::border;
+		sampler_info.address_w = GraphicsTextureAddressMode::border;
+		if (!m_device->createSampler(sampler_info, _sampler_state[IDX(SamplerState::LinearBorderWhite)].put())) // TODO: white?
+			return false;
+		
 		return true;
 	}
 	void Renderer_D3D11::initState()
@@ -660,23 +448,21 @@ namespace core::Graphics
 		return true;
 	}
 
-	bool Renderer_D3D11::createResources(const bool is_recreating) {
+	bool Renderer_D3D11::createResources() {
 		assert(m_device->getNativeHandle());
 
 		Logger::info("[core] [Renderer] initializing...");
 		
-		if (!is_recreating) {
-			if (!createBuffers()) {
-				Logger::error("[core] [Renderer] create Buffers failed");
-				return false;
-			}
-		}
-		if (!createStates(is_recreating)) {
-			Logger::error("[core] [Renderer] create PipelineState objects failed");
+		if (!createBuffers()) {
+			Logger::error("[core] [Renderer] create Buffers failed");
 			return false;
 		}
-		if (!createShaders()) {
-			Logger::error("[core] [Renderer] create Shaders failed");
+		if (!createSamplers()) {
+			Logger::error("[core] [Renderer] create Samplers failed");
+			return false;
+		}
+		if (!createGraphicsPipelines()) {
+			Logger::error("[core] [Renderer] create GraphicsPipelines failed");
 			return false;
 		}
 
@@ -684,52 +470,17 @@ namespace core::Graphics
 
 		return true;
 	}
-	void Renderer_D3D11::onGraphicsDeviceCreate()
-	{
-		createResources(true);
-	}
+	void Renderer_D3D11::onGraphicsDeviceCreate() {}
 	void Renderer_D3D11::onGraphicsDeviceDestroy() {
 		batchFlush(true);
 
 		_state_texture.reset();
 
-		//_fx_vbuffer.reset();
-		//_fx_ibuffer.reset();
 		for (auto& v : _vi_buffer) {
-			//v.vertex_buffer.reset();
-			//v.index_buffer.reset();
 			v.vertex_offset = 0;
 			v.index_offset = 0;
 		}
 		_vi_buffer_index = 0;
-
-		//_vp_matrix_buffer.reset();
-		//_world_matrix_buffer.reset();
-		//_camera_pos_buffer.reset();
-		//_fog_data_buffer.reset();
-		//_user_float_buffer.reset();
-
-		_input_layout.reset();
-		for (auto& v : _vertex_shader) {
-			v.reset();
-		}
-		for (auto& i : _pixel_shader) {
-			for (auto& j : i) {
-				for (auto& v : j) {
-					v.reset();
-				}
-			}
-		}
-		_raster_state.reset();
-		//for (auto& v : _sampler_state) {
-		//	v.reset();
-		//}
-		for (auto& v : _depth_state) {
-			v.reset();
-		}
-		for (auto& v : _blend_state) {
-			v.reset();
-		}
 
 		Logger::info("[core] [Renderer] cleanup complete");
 	}

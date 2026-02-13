@@ -162,14 +162,14 @@ namespace core::Graphics
 		SmartReference<IGraphicsBuffer> _fog_data_buffer; // 同时也用于储存 postEffect 的 纹理大小和视口范围
 		SmartReference<IGraphicsBuffer> _user_float_buffer; // 在 postEffect 的时候用这个
 
-		win32::com_ptr<ID3D11InputLayout> _input_layout;
-		win32::com_ptr<ID3D11VertexShader> _vertex_shader[IDX(FogState::MAX_COUNT)]; // FogState
-		win32::com_ptr<ID3D11PixelShader> _pixel_shader[IDX(VertexColorBlendState::MAX_COUNT)][IDX(FogState::MAX_COUNT)][IDX(TextureAlphaType::MAX_COUNT)]; // VertexColorBlendState, FogState, TextureAlphaType
-		win32::com_ptr<ID3D11RasterizerState> _raster_state;
+		SmartReference<IGraphicsPipeline> _graphics_pipeline
+			[IDX(VertexColorBlendState::MAX_COUNT)]
+			[IDX(FogState::MAX_COUNT)]
+			[IDX(TextureAlphaType::MAX_COUNT)]
+			[IDX(DepthState::MAX_COUNT)]
+			[IDX(BlendState::MAX_COUNT)];
 		SmartReference<IGraphicsSampler> _sampler_state[IDX(SamplerState::MAX_COUNT)];
-		win32::com_ptr<ID3D11DepthStencilState> _depth_state[IDX(DepthState::MAX_COUNT)];
-		win32::com_ptr<ID3D11BlendState> _blend_state[IDX(BlendState::MAX_COUNT)];
-		
+
 		SmartReference<ITexture2D> _state_texture;
 		CameraStateSet _camera_state_set;
 		RendererStateSet _state_set;
@@ -177,14 +177,14 @@ namespace core::Graphics
 		bool _batch_scope = false;
 
 		bool createBuffers();
-		bool createStates(bool is_recreating = false);
-		bool createShaders();
+		bool createSamplers();
+		bool createGraphicsPipelines();
 		void initState();
 		void setSamplerState(SamplerState state, UINT index);
 		bool uploadVertexIndexBufferFromDrawList();
 		bool batchFlush(bool discard = false);
 
-		bool createResources(bool is_recreating = false);
+		bool createResources();
 		void onGraphicsDeviceCreate() override;
         void onGraphicsDeviceDestroy() override;
 
