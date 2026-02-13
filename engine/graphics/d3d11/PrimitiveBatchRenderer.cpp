@@ -96,7 +96,7 @@ namespace core {
             static_cast<DrawIndex>(m_vertex_current + 1),
             static_cast<DrawIndex>(m_vertex_current + 2),
         };
-        std::memcpy(m_vertex_pointer + m_vertex_current, vertices, sizeof(vertices));
+        std::memcpy(m_vertex_pointer + m_vertex_current, vertices, sizeof(DrawVertex) * 3);
         m_vertex_current += 3;
         std::memcpy(m_index_pointer + m_index_current, indices, sizeof(indices));
         m_index_current += 3;
@@ -128,7 +128,7 @@ namespace core {
             static_cast<DrawIndex>(m_vertex_current + 3),
             static_cast<DrawIndex>(m_vertex_current),
         };
-        std::memcpy(m_vertex_pointer + m_vertex_current, vertices, sizeof(vertices));
+        std::memcpy(m_vertex_pointer + m_vertex_current, vertices, sizeof(DrawVertex) * 4);
         m_vertex_current += 4;
         std::memcpy(m_index_pointer + m_index_current, indices, sizeof(indices));
         m_index_current += 6;
