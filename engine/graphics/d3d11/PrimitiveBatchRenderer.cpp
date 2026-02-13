@@ -30,6 +30,12 @@ namespace core {
         if (!mapBuffers(cycle)) {
             return false;
         }
+        if (cycle) {
+            m_vertex_begin = 0;
+            m_vertex_current = 0;
+            m_index_begin = 0;
+            m_index_current = 0;
+        }
         if (m_auto_draw) {
             const auto cmd = m_device->getCommandbuffer();
             cmd->bindVertexBuffer(0, m_vertex_buffer.get());
@@ -195,11 +201,9 @@ namespace core {
         drawOnly();
         return true;
     }
-    void PrimitiveBatchRenderer::clear() {
-        m_vertex_begin = 0;
-        m_vertex_current = 0;
-        m_index_begin = 0;
-        m_index_current = 0;
+    void PrimitiveBatchRenderer::discard() {
+        m_vertex_begin = m_vertex_current;
+        m_index_begin = m_index_current;
     }
     void PrimitiveBatchRenderer::setCycleOnNextBatch() {
         m_cycle_on_next_batch = true;
@@ -230,7 +234,10 @@ namespace core {
             return false;
         }
         drawOnly();
-        clear();
+        m_vertex_begin = 0;
+        m_vertex_current = 0;
+        m_index_begin = 0;
+        m_index_current = 0;
         return mapBuffers(true);
     }
     void PrimitiveBatchRenderer::drawOnly() {

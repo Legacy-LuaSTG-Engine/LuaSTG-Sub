@@ -17,24 +17,40 @@ namespace core {
         PrimitiveBatchRenderer& operator=(const PrimitiveBatchRenderer&) = delete;
         PrimitiveBatchRenderer& operator=(PrimitiveBatchRenderer&&) = delete;
 
+        // [free]
         bool createResources(IGraphicsDevice* device);
 
+        // [free]
         bool beginBatch(bool auto_draw);
+        // [batch]
         bool endBatch();
+        // [batch]
         bool addTriangle(const DrawVertex& v1, const DrawVertex& v2, const DrawVertex& v3);
+        // [batch]
         bool addTriangle(const DrawVertex vertices[3]);
+        // [batch]
         bool addQuad(const DrawVertex& v1, const DrawVertex& v2, const DrawVertex& v3, const DrawVertex& v4);
+        // [batch]
         bool addQuad(const DrawVertex vertices[4]);
+        // [batch]
         bool addRaw(const DrawVertex* vertices, size_t vertex_count, const DrawIndex* indices, size_t index_count);
+        // [batch]
         bool addRequest(size_t vertex_count, size_t index_count, DrawVertex** out_vertices, DrawIndex** out_indices, size_t* out_index_offset);
+        // [free]
         bool draw();
-        void clear();
+        // [free] [batch]
+        void discard();
+        // [free] [batch]
         void setCycleOnNextBatch();
 
     private:
+        // [free] [batch]
         bool mapBuffers(bool cycle);
+        // [free] [batch]
         bool unmapBuffers();
+        // [batch]
         bool flush();
+        // [free] [batch]
         void drawOnly();
 
         SmartReference<IGraphicsDevice> m_device;
