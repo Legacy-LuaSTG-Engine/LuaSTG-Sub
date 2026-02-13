@@ -137,7 +137,7 @@ namespace core {
             }
         }
         const DrawIndex offset = static_cast<DrawIndex>(m_vertex_current);
-        if (index_count <= 256) {
+        if (index_count > 0 && index_count <= 256) {
             DrawIndex modified_indices[256]; // uninitialize, ok
             for (size_t i = 0; i < index_count; i += 1) {
                 modified_indices[i] = indices[i] + offset;
@@ -145,7 +145,7 @@ namespace core {
             std::memcpy(m_index_pointer + m_index_current, modified_indices, sizeof(DrawIndex) * index_count);
             m_index_current += index_count;
         }
-        else {
+        else if (index_count > 256) {
             std::vector<DrawIndex> modified_indices(index_count);
             for (size_t i = 0; i < index_count; i += 1) {
                 modified_indices[i] = indices[i] + offset;
@@ -153,8 +153,10 @@ namespace core {
             std::memcpy(m_index_pointer + m_index_current, modified_indices.data(), sizeof(DrawIndex) * index_count);
             m_index_current += index_count;
         }
-        std::memcpy(m_vertex_pointer + m_vertex_current, vertices, sizeof(DrawVertex) * vertex_count);
-        m_vertex_current += vertex_count;
+        if (vertex_count > 0) {
+            std::memcpy(m_vertex_pointer + m_vertex_current, vertices, sizeof(DrawVertex) * vertex_count);
+            m_vertex_current += vertex_count;
+        }
         return true;
     }
     bool PrimitiveBatchRenderer::addRequest(const size_t vertex_count, const size_t index_count, DrawVertex** const out_vertices, DrawIndex** const out_indices, size_t* const out_index_offset) {
@@ -234,7 +236,9 @@ namespace core {
     }
     void PrimitiveBatchRenderer::drawOnly() {
         const auto cmd = m_device->getCommandbuffer();
-        cmd->drawIndexed(m_index_current - m_index_begin, m_index_begin, 0);
+        if (const auto index_count = m_index_current - m_index_begin; index_count > 0) {
+            cmd->drawIndexed(m_index_current - m_index_begin, m_index_begin, 0);
+        }
         m_vertex_begin = m_vertex_current;
         m_index_begin = m_index_current;
     }
