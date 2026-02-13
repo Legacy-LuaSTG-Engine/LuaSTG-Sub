@@ -25,6 +25,8 @@ namespace core {
         // [batch]
         bool endBatch();
         // [batch]
+        bool consume();
+        // [batch]
         bool addTriangle(const DrawVertex& v1, const DrawVertex& v2, const DrawVertex& v3);
         // [batch]
         bool addTriangle(const DrawVertex vertices[3]);
@@ -49,7 +51,7 @@ namespace core {
         // [free] [batch]
         bool unmapBuffers();
         // [batch]
-        bool flush();
+        bool flush(bool cycle);
         // [free] [batch]
         void drawOnly();
 

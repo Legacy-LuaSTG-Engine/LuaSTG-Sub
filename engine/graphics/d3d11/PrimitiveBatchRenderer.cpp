@@ -9,10 +9,13 @@ namespace core {
             assert(false); return false;
         }
 
-        if (!m_device->createVertexBuffer(m_vertex_count * sizeof(DrawVertex), sizeof(DrawVertex), m_vertex_buffer.put())) {
+        const auto vertex_buffer_size = static_cast<uint32_t>(m_vertex_count * sizeof(DrawVertex));
+        if (!m_device->createVertexBuffer(vertex_buffer_size, sizeof(DrawVertex), m_vertex_buffer.put())) {
             return false;
         }
-        if (!m_device->createIndexBuffer(m_index_count * sizeof(DrawIndex), GraphicsFormat::r16_uint, m_index_buffer.put())) {
+
+        const auto index_buffer_size = static_cast<uint32_t>(m_index_count * sizeof(DrawIndex));
+        if (!m_device->createIndexBuffer(index_buffer_size, GraphicsFormat::r16_uint, m_index_buffer.put())) {
             return false;
         }
 
@@ -60,6 +63,15 @@ namespace core {
         m_auto_draw = false;
         return true;
     }
+    bool PrimitiveBatchRenderer::consume() {
+        if (!m_batch_scope) {
+            assert(false); return false;
+        }
+        if (const auto index_count = m_index_current - m_index_begin; index_count == 0) {
+            return true; // skip
+        }
+        return flush(false);
+    }
     bool PrimitiveBatchRenderer::addTriangle(const DrawVertex& v1, const DrawVertex& v2, const DrawVertex& v3) {
         const DrawVertex vertices[3]{ v1, v2, v3 };
         return addTriangle(vertices);
@@ -70,7 +82,7 @@ namespace core {
         }
         if (m_vertex_current + 3 >= m_vertex_count || m_index_current + 3 >= m_index_count) {
             if (m_auto_draw) {
-                if (!flush()) {
+                if (!flush(true)) {
                     return false;
                 }
             }
@@ -80,8 +92,8 @@ namespace core {
         }
         const DrawIndex indices[3]{
             static_cast<DrawIndex>(m_vertex_current),
-            static_cast<DrawIndex>(m_vertex_current) + 1,
-            static_cast<DrawIndex>(m_vertex_current) + 2,
+            static_cast<DrawIndex>(m_vertex_current + 1),
+            static_cast<DrawIndex>(m_vertex_current + 2),
         };
         std::memcpy(m_vertex_pointer + m_vertex_current, vertices, sizeof(vertices));
         m_vertex_current += 3;
@@ -99,7 +111,7 @@ namespace core {
         }
         if (m_vertex_current + 4 >= m_vertex_count || m_index_current + 6 >= m_index_count) {
             if (m_auto_draw) {
-                if (!flush()) {
+                if (!flush(true)) {
                     return false;
                 }
             }
@@ -109,10 +121,10 @@ namespace core {
         }
         const DrawIndex indices[6]{
             static_cast<DrawIndex>(m_vertex_current),
-            static_cast<DrawIndex>(m_vertex_current) + 1,
-            static_cast<DrawIndex>(m_vertex_current) + 2,
-            static_cast<DrawIndex>(m_vertex_current) + 2,
-            static_cast<DrawIndex>(m_vertex_current) + 3,
+            static_cast<DrawIndex>(m_vertex_current + 1),
+            static_cast<DrawIndex>(m_vertex_current + 2),
+            static_cast<DrawIndex>(m_vertex_current + 2),
+            static_cast<DrawIndex>(m_vertex_current + 3),
             static_cast<DrawIndex>(m_vertex_current),
         };
         std::memcpy(m_vertex_pointer + m_vertex_current, vertices, sizeof(vertices));
@@ -133,7 +145,7 @@ namespace core {
         }
         if (m_vertex_current + vertex_count >= m_vertex_count || m_index_current + index_count >= m_index_count) {
             if (m_auto_draw) {
-                if (!flush()) {
+                if (!flush(true)) {
                     return false;
                 }
             }
@@ -176,7 +188,7 @@ namespace core {
         }
         if (m_vertex_current + vertex_count >= m_vertex_count || m_index_current + index_count >= m_index_count) {
             if (m_auto_draw) {
-                if (!flush()) {
+                if (!flush(true)) {
                     return false;
                 }
             }
@@ -229,21 +241,23 @@ namespace core {
         m_index_pointer = nullptr;
         return true;
     }
-    bool PrimitiveBatchRenderer::flush() {
+    bool PrimitiveBatchRenderer::flush(const bool cycle) {
         if (!unmapBuffers()) {
             return false;
         }
         drawOnly();
-        m_vertex_begin = 0;
-        m_vertex_current = 0;
-        m_index_begin = 0;
-        m_index_current = 0;
-        return mapBuffers(true);
+        if (cycle) {
+            m_vertex_begin = 0;
+            m_vertex_current = 0;
+            m_index_begin = 0;
+            m_index_current = 0;
+        }
+        return mapBuffers(cycle);
     }
     void PrimitiveBatchRenderer::drawOnly() {
         const auto cmd = m_device->getCommandbuffer();
         if (const auto index_count = m_index_current - m_index_begin; index_count > 0) {
-            cmd->drawIndexed(m_index_current - m_index_begin, m_index_begin, 0);
+            cmd->drawIndexed(static_cast<uint32_t>(index_count), static_cast<uint32_t>(m_index_begin), 0);
         }
         m_vertex_begin = m_vertex_current;
         m_index_begin = m_index_current;
