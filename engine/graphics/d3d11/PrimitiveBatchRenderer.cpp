@@ -40,7 +40,7 @@ namespace core {
             m_index_begin = 0;
             m_index_current = 0;
         }
-        if (m_auto_draw) {
+        if (auto_draw) {
             const auto cmd = m_device->getCommandbuffer();
             cmd->bindVertexBuffer(0, m_vertex_buffer.get());
             cmd->bindIndexBuffer(m_index_buffer.get());
