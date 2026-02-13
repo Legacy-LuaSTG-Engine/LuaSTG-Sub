@@ -8,6 +8,7 @@ namespace core {
         if (device == nullptr) {
             assert(false); return false;
         }
+        m_device = device;
 
         const auto vertex_buffer_size = static_cast<uint32_t>(m_vertex_count * sizeof(DrawVertex));
         if (!m_device->createVertexBuffer(vertex_buffer_size, sizeof(DrawVertex), m_vertex_buffer.put())) {
