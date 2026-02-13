@@ -27,6 +27,12 @@ namespace {
 		}
 		return a->getNativeView() == b->getNativeView();
 	}
+	core::IGraphicsSampler* getTextureSampler(core::ITexture2D* const texture) {
+		if (texture == nullptr) {
+			return nullptr;
+		}
+		return texture->getSamplerState();
+	}
 	core::Graphics::IRenderer::TextureAlphaType getTextureAlphaMode(core::ITexture2D* const b) {
 		if (b == nullptr) {
 			return core::Graphics::IRenderer::TextureAlphaType::Normal;
@@ -280,8 +286,9 @@ namespace core::Graphics {
 		m_device->getCommandbuffer()->bindGraphicsPipeline(graphics_pipeline);
 	}
 	void Renderer_D3D11::bindTextureSamplerState(ITexture2D* const texture) {
-		const auto sampler = texture->getSamplerState() != nullptr
-			? texture->getSamplerState()
+		const auto texture_sampler = getTextureSampler(texture);
+		const auto sampler = texture_sampler != nullptr
+			? texture_sampler
 			: _sampler_state[IDX(SamplerState::LinearClamp)].get(); // default sampler: linear+clamp
 		m_device->getCommandbuffer()->bindPixelShaderSampler(0, sampler);
 	}
@@ -308,13 +315,6 @@ namespace core::Graphics {
 				return false;
 			}
 		}
-
-		//cmd->bindPixelShaderTexture2D(0, cmd_.texture.get());
-		//bindTextureSamplerState(cmd_.texture.get());
-		//bindTextureAlphaType(cmd_.texture.get());
-
-		// unbound: solve some debug warning
-		//cmd->bindPixelShaderTexture2D(0, nullptr);
 
 		return true;
 	}
