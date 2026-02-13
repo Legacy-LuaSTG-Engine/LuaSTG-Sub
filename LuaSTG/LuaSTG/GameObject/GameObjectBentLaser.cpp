@@ -462,7 +462,9 @@ bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, core::Co
 	// 索引总共需要：(节点数 - 1) * 3 * 2
 	// 两个节点之间组成一个四边形
 	uint16_t const node_count = (uint16_t)m_Queue.size();
+	// 注意：从显卡映射的缓冲区，只能写入，禁止读取
 	IRenderer::DrawVertex* p_vertex = nullptr;
+	// 注意：从显卡映射的缓冲区，只能写入，禁止读取
 	IRenderer::DrawIndex* p_index = nullptr;
 	uint16_t index_offset = 0;
 	if (!renderer->drawRequest(
@@ -493,6 +495,7 @@ bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, core::Co
 	uint32_t const vertex_color = c.color();
 	c.a = 0;
 	uint32_t const vertex_color_alpha = c.color();
+	// 注意：从显卡映射的缓冲区，只能写入，禁止读取
 	IRenderer::DrawVertex* p_vert = p_vertex;
 	for (size_t i = 0; i < node_count; i += 1)
 	{
@@ -520,22 +523,25 @@ bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, core::Co
 		}
 
 		// 填充顶点，顶点沿着节点向两侧延展
-		p_vert[0] = IRenderer::DrawVertex(
-			node.pos.x - pos_x,
-			node.pos.y - pos_y,
-			0.5f,
-			tex_u * u_scale,
-			v_top,
-			node.active ? vertex_color : vertex_color_alpha
-		);
-		p_vert[1] = IRenderer::DrawVertex(
-			node.pos.x + pos_x,
-			node.pos.y + pos_y,
-			0.5f,
-			tex_u * u_scale,
-			v_bottom,
-			node.active ? vertex_color : vertex_color_alpha
-		);
+		const IRenderer::DrawVertex vert2[2]{
+			IRenderer::DrawVertex(
+				node.pos.x - pos_x,
+				node.pos.y - pos_y,
+				0.5f,
+				tex_u * u_scale,
+				v_top,
+				node.active ? vertex_color : vertex_color_alpha
+			),
+			IRenderer::DrawVertex(
+				node.pos.x + pos_x,
+				node.pos.y + pos_y,
+				0.5f,
+				tex_u * u_scale,
+				v_bottom,
+				node.active ? vertex_color : vertex_color_alpha
+			),
+		};
+		std::memcpy(p_vert, vert2, sizeof(vert2)); // 尽可能使用内存复制，避免出现意外的读取
 
 		// 已使用 2 个顶点，接下来不要再修改这些顶点
 		p_vert += 2;
@@ -547,6 +553,7 @@ bool GameObjectBentLaser::Render(const char* tex_name, BlendMode blend, core::Co
 	// | \ \ | | \ \ | | \ \ |
 	// |  \ \| |  \ \| |  \ \|
 	// 1<--3 3 3<--5 5 5<--7 7
+	// 注意：从显卡映射的缓冲区，只能写入，禁止读取
 	IRenderer::DrawIndex* p_vidx = p_index;
 	uint16_t quad_offset = 0;
 	for (size_t i = 0; i < (node_count - 1u); i += 1)
