@@ -1,13 +1,13 @@
 #pragma once
 #include "core/implement/ReferenceCounted.hpp"
 #include "core/Graphics/Renderer.hpp"
+#include "d3d11/PrimitiveBatchRenderer.hpp"
 #include "d3d11/GraphicsDevice.hpp"
 #include "core/Graphics/Model_D3D11.hpp"
 
 #define IDX(x) (size_t)static_cast<uint8_t>(x)
 
-namespace core::Graphics
-{
+namespace core::Graphics {
 	struct RendererStateSet
 	{
 		BoxF viewport = { 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f };
@@ -16,7 +16,6 @@ namespace core::Graphics
 		float fog_far = 0.0f;
 		Color4B fog_color;
 		IRenderer::VertexColorBlendState vertex_color_blend_state = IRenderer::VertexColorBlendState::Mul;
-		IRenderer::SamplerState sampler_state = IRenderer::SamplerState::LinearClamp;
 		IRenderer::FogState fog_state = IRenderer::FogState::Disable;
 		IRenderer::TextureAlphaType texture_alpha_type = IRenderer::TextureAlphaType::Normal;
 		IRenderer::DepthState depth_state = IRenderer::DepthState::Disable;
@@ -52,38 +51,6 @@ namespace core::Graphics
 		}
 	};
 
-	struct VertexIndexBuffer {
-		SmartReference<IGraphicsBuffer> vertex_buffer;
-		SmartReference<IGraphicsBuffer> index_buffer;
-		INT vertex_offset = 0;
-		UINT index_offset = 0;
-	};
-
-	struct DrawCommand
-	{
-		SmartReference<ITexture2D> texture;
-		uint16_t vertex_count = 0;
-		uint16_t index_count = 0;
-	};
-
-	struct DrawList {
-		struct VertexBuffer {
-			const size_t capacity = 32768;
-			size_t size = 0;
-			IRenderer::DrawVertex data[32768] = {};
-		} vertex;
-		struct IndexBuffer {
-			const size_t capacity = 32768;
-			size_t size = 0;
-			IRenderer::DrawIndex data[32768] = {};
-		} index;
-		struct DrawCommandBuffer {
-			const size_t capacity = 2048;
-			size_t size = 0;
-			DrawCommand data[2048] = {};
-		} command;
-	};
-
 	class PostEffectShader_D3D11
 		: public implement::ReferenceCounted<IPostEffectShader>
 		, IGraphicsDeviceEventListener
@@ -107,7 +74,7 @@ namespace core::Graphics
 			SmartReference<ITexture2D> texture;
 		};
 	private:
-		SmartReference<GraphicsDevice> m_device;
+		SmartReference<IGraphicsDevice> m_device;
 		win32::com_ptr<ID3DBlob> d3d_ps_blob;
 		win32::com_ptr<ID3D11ShaderReflection> d3d11_ps_reflect;
 		win32::com_ptr<ID3D11PixelShader> d3d11_ps;
@@ -145,16 +112,7 @@ namespace core::Graphics
 		SmartReference<GraphicsDevice> m_device;
 		SmartReference<ModelSharedComponent_D3D11> m_model_shared;
 
-		SmartReference<IGraphicsBuffer> _fx_vbuffer;
-		SmartReference<IGraphicsBuffer> _fx_ibuffer;
-		std::array<VertexIndexBuffer, 1> _vi_buffer;
-		size_t _vi_buffer_index = 0;
-		const size_t _vi_buffer_count = 1;
-		DrawList _draw_list;
-
-		void setVertexIndexBuffer(size_t index = 0xFFFFFFFFu);
-		bool uploadVertexIndexBuffer(bool discard);
-		void clearDrawList();
+		PrimitiveBatchRenderer m_primitive_batch_renderer;
 
 		SmartReference<IGraphicsBuffer> _vp_matrix_buffer;
 		SmartReference<IGraphicsBuffer> _world_matrix_buffer;
@@ -173,18 +131,14 @@ namespace core::Graphics
 		SmartReference<ITexture2D> _state_texture;
 		CameraStateSet _camera_state_set;
 		RendererStateSet _state_set;
-		bool _state_dirty = false;
-		bool _batch_scope = false;
+		bool _batch_scope{};
 
 		bool createBuffers();
 		bool createSamplers();
 		bool createGraphicsPipelines();
-		void initState();
-		void setSamplerState(SamplerState state, UINT index);
-		bool uploadVertexIndexBufferFromDrawList();
+		void bindGraphicsPipeline();
 		bool batchFlush(bool discard = false);
 
-		bool createResources();
 		void onGraphicsDeviceCreate() override;
         void onGraphicsDeviceDestroy() override;
 
@@ -239,13 +193,40 @@ namespace core::Graphics
 		bool drawModel(IModel* p_model);
 
 		IGraphicsSampler* getKnownSamplerState(SamplerState state);
+		IGraphicsPipeline* getKnownGraphicsPipeline(
+			VertexColorBlendState vertex_color_blend_state,
+			FogState fog_state,
+			TextureAlphaType texture_alpha_mode,
+			DepthState depth_state,
+			BlendState blend_state
+		);
 
 	public:
-		Renderer_D3D11(GraphicsDevice* p_device);
+		Renderer_D3D11();
+		Renderer_D3D11(const Renderer_D3D11&) = delete;
+		Renderer_D3D11(Renderer_D3D11&&) = delete;
 		~Renderer_D3D11();
 
-	public:
-		static bool create(GraphicsDevice* p_device, Renderer_D3D11** pp_renderer);
+		Renderer_D3D11& operator=(const Renderer_D3D11&) = delete;
+		Renderer_D3D11& operator=(Renderer_D3D11&&) = delete;
+
+		bool createResources(IGraphicsDevice* device);
+
+	private:
+		bool uploadOrtho(const BoxF& box);
+		bool uploadOrtho();
+		bool uploadPerspective(const Vector3F& position, const Vector3F& look_at, const Vector3F& head_up, float fov, float aspect_ratio, float z_near, float z_far);
+		bool uploadPerspective();
+		bool uploadCameraState();
+		void applyViewport(const BoxF& box);
+		void applyViewport();
+		void applyScissorRect(const RectF& rect);
+		void applyScissorRect();
+		void applyViewportAndScissorRect();
+		bool uploadFogState(FogState state, const Color4B& color, float density_or_znear, float zfar);
+		bool uploadFogState();
+
+		bool m_initialized{};
 	};
 }
 

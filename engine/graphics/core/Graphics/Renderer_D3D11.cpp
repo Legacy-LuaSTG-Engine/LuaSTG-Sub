@@ -17,21 +17,8 @@ namespace {
 			return static_cast<ID3D11Buffer*>(buffer->getNativeResource());
 		return nullptr;
 	}
-}
 
-namespace core::Graphics
-{
-	inline ID3D11ShaderResourceView* get_view(ITexture2D* const p) {
-		if (p == nullptr) {
-			return nullptr;
-		}
-		return static_cast<ID3D11ShaderResourceView*>(p->getNativeView());
-	}
-	inline ID3D11ShaderResourceView* get_view(SmartReference<ITexture2D>& p) {
-		return get_view(p.get());
-	}
-
-	inline bool is_same(SmartReference<ITexture2D>& a, ITexture2D* const b) {
+	bool isTextureEquals(const core::SmartReference<core::ITexture2D>& a, core::ITexture2D* const b) {
 		if (!a && b == nullptr) {
 			return true;
 		}
@@ -40,19 +27,52 @@ namespace core::Graphics
 		}
 		return a->getNativeView() == b->getNativeView();
 	}
+	core::Graphics::IRenderer::TextureAlphaType getTextureAlphaMode(core::ITexture2D* const b) {
+		if (b == nullptr) {
+			return core::Graphics::IRenderer::TextureAlphaType::Normal;
+		}
+		return b->isPremultipliedAlpha()
+			? core::Graphics::IRenderer::TextureAlphaType::PremulAlpha
+			: core::Graphics::IRenderer::TextureAlphaType::Normal;
+	}
 
-	inline ID3D11SamplerState* get_sampler(IGraphicsSampler* const p_sampler)
-	{
-		return p_sampler != nullptr ? static_cast<ID3D11SamplerState*>(p_sampler->getNativeHandle()) : nullptr;
-	}
-	inline ID3D11SamplerState* get_sampler(SmartReference<IGraphicsSampler>& p_sampler)
-	{
-		return p_sampler ? static_cast<ID3D11SamplerState*>(p_sampler->getNativeHandle()) : nullptr;
-	}
+	struct RenderTargetHolder {
+		win32::com_ptr<ID3D11DeviceContext> ctx;
+		win32::com_ptr<ID3D11RenderTargetView> rtv;
+		win32::com_ptr<ID3D11DepthStencilView> dsv;
+		uint32_t width{};
+		uint32_t height{};
+
+		RenderTargetHolder(ID3D11DeviceContext* const context) {
+			ctx = context;
+			ID3D11RenderTargetView* rtvs[1]{};
+			ctx->OMGetRenderTargets(1, rtvs, dsv.put());
+			rtv.attach(rtvs[0]);
+			if (rtv) {
+				win32::com_ptr<ID3D11Resource> resource;
+				rtv->GetResource(resource.put());
+				D3D11_RESOURCE_DIMENSION type{};
+				resource->GetType(&type);
+				if (type == D3D11_RESOURCE_DIMENSION_TEXTURE2D) {
+					win32::com_ptr<ID3D11Texture2D> texture;
+					if (SUCCEEDED(resource->QueryInterface(texture.put()))) {
+						D3D11_TEXTURE2D_DESC texture_info{};
+						texture->GetDesc(&texture_info);
+						width = texture_info.Width;
+						height = texture_info.Height;
+					}
+				}
+			}
+		}
+
+		void bind() {
+			ID3D11RenderTargetView* rtvs[1]{ rtv.get() };
+			ctx->OMSetRenderTargets(1, rtvs, dsv.get());
+		}
+	};
 }
 
-namespace core::Graphics
-{
+namespace core::Graphics {
 	void PostEffectShader_D3D11::onGraphicsDeviceCreate()
 	{
 		createResources(true);
@@ -162,89 +182,8 @@ namespace core::Graphics
 	}
 }
 
-namespace core::Graphics
-{
-	void Renderer_D3D11::setVertexIndexBuffer(const size_t index) {
-		const auto& vi = _vi_buffer[(index == 0xFFFFFFFFu) ? _vi_buffer_index : index];
-		m_device->getCommandbuffer()->bindVertexBuffer(0, vi.vertex_buffer.get());
-		m_device->getCommandbuffer()->bindIndexBuffer(vi.index_buffer.get());
-	}
-	bool Renderer_D3D11::uploadVertexIndexBuffer(const bool discard) {
-		tracy_zone_scoped;
-		tracy_d3d11_context_zone(m_device->GetTracyContext(), "UploadVertexIndexBuffer");
-
-		const auto& current = _vi_buffer[_vi_buffer_index];
-
-		// copy vertex data
-		if (_draw_list.vertex.size > 0) {
-			DrawVertex* ptr{};
-			if (!current.vertex_buffer->map(reinterpret_cast<void**>(&ptr), discard)) {
-				Logger::error("[core] [Renderer] upload vertex buffer failed (map)");
-				return false;
-			}
-			std::memcpy(ptr + current.vertex_offset, _draw_list.vertex.data, _draw_list.vertex.size * sizeof(DrawVertex));
-			if (!current.vertex_buffer->unmap()) {
-				Logger::error("[core] [Renderer] upload vertex buffer failed (unmap)");
-				return false;
-			}
-		}
-
-		// copy index data
-		if (_draw_list.index.size > 0) {
-			DrawIndex* ptr{};
-			if (!current.index_buffer->map(reinterpret_cast<void**>(&ptr), discard)) {
-				Logger::error("[core] [Renderer] upload index buffer failed (map)");
-				return false;
-			}
-			std::memcpy(ptr + current.index_offset, _draw_list.index.data, _draw_list.index.size * sizeof(DrawIndex));
-			if (!current.index_buffer->unmap()) {
-				Logger::error("[core] [Renderer] upload index buffer failed (unmap)");
-				return false;
-			}
-		}
-
-		return true;
-	}
-	void Renderer_D3D11::clearDrawList() {
-		for (size_t i = 0; i < _draw_list.command.size; i += 1) {
-			_draw_list.command.data[i].texture.reset();
-		}
-		_draw_list.vertex.size = 0;
-		_draw_list.index.size = 0;
-		_draw_list.command.size = 0;
-	}
-
-	bool Renderer_D3D11::createBuffers()
-	{
-		assert(m_device->getNativeHandle() != nullptr);
-
-		if (!m_device->createVertexBuffer(4 * sizeof(DrawVertex), sizeof(DrawVertex), _fx_vbuffer.put())) {
-			return false;
-		}
-		if (!m_device->createIndexBuffer(6 * sizeof(DrawIndex), GraphicsFormat::r16_uint, _fx_ibuffer.put())) {
-			return false;
-		}
-		{
-			constexpr DrawIndex quad_index[6] = { 0, 1, 2, 0, 2, 3 };
-			DrawIndex* ptr{};
-			if (!_fx_ibuffer->map(reinterpret_cast<void**>(&ptr), false)) {
-				return false;
-			}
-			std::memcpy(ptr, quad_index, sizeof(quad_index));
-			if (!_fx_ibuffer->unmap()) {
-				return false;
-			}
-		}
-
-		for (auto& vi_ : _vi_buffer) {
-			if (!m_device->createVertexBuffer(sizeof(_draw_list.vertex.data), sizeof(DrawVertex), vi_.vertex_buffer.put())) {
-				return false;
-			}
-			if (!m_device->createIndexBuffer(sizeof(_draw_list.index.data), GraphicsFormat::r16_uint, vi_.index_buffer.put())) {
-				return false;
-			}
-		}
-
+namespace core::Graphics {
+	bool Renderer_D3D11::createBuffers() {
 		if (!m_device->createConstantBuffer(sizeof(DirectX::XMFLOAT4X4), _vp_matrix_buffer.put())) {
 			return false;
 		}
@@ -261,7 +200,6 @@ namespace core::Graphics
 		if (!m_device->createConstantBuffer(8 * sizeof(DirectX::XMFLOAT4), _user_float_buffer.put())) {
 			return false;
 		}
-
 		return true;
 	}
 	bool Renderer_D3D11::createSamplers() {
@@ -329,130 +267,63 @@ namespace core::Graphics
 		
 		return true;
 	}
-	void Renderer_D3D11::initState()
-	{
-		_state_dirty = true;
-
-		if (!_camera_state_set.is_3D)
-		{
-			setOrtho(_camera_state_set.ortho);
-		}
-		else
-		{
-			setPerspective(_camera_state_set.eye, _camera_state_set.lookat, _camera_state_set.headup, _camera_state_set.fov, _camera_state_set.aspect, _camera_state_set.znear, _camera_state_set.zfar);
-		}
-
-		setViewport(_state_set.viewport);
-		setScissorRect(_state_set.scissor_rect);
-
-		setVertexColorBlendState(_state_set.vertex_color_blend_state);
-		setSamplerState(_state_set.sampler_state, 0);
-		setFogState(_state_set.fog_state, _state_set.fog_color, _state_set.fog_near_or_density, _state_set.fog_far);
-		setDepthState(_state_set.depth_state);
-		setBlendState(_state_set.blend_state);
-		setTexture(_state_texture.get());
-		bindTextureAlphaType(_state_texture.get());
-		
-		_state_dirty = false;
+	void Renderer_D3D11::bindGraphicsPipeline() {
+		const auto graphics_pipeline = getKnownGraphicsPipeline(
+			_state_set.vertex_color_blend_state,
+			_state_set.fog_state,
+			_state_set.texture_alpha_type,
+			_state_set.depth_state,
+			_state_set.blend_state
+		);
+		m_device->getCommandbuffer()->bindGraphicsPipeline(graphics_pipeline);
 	}
-	void Renderer_D3D11::setSamplerState(const SamplerState state, const UINT index)
-	{
-		m_device->getCommandbuffer()->bindPixelShaderSampler(index, getKnownSamplerState(state));
-	}
-	bool Renderer_D3D11::uploadVertexIndexBufferFromDrawList()
-	{
-		// upload data
-		if ((_draw_list.vertex.capacity - _vi_buffer[_vi_buffer_index].vertex_offset) < _draw_list.vertex.size
-			|| (_draw_list.index.capacity - _vi_buffer[_vi_buffer_index].index_offset) < _draw_list.index.size)
-		{
-			// next  buffer
-			_vi_buffer_index = (_vi_buffer_index + 1) % _vi_buffer_count;
-			_vi_buffer[_vi_buffer_index].vertex_offset = 0;
-			_vi_buffer[_vi_buffer_index].index_offset = 0;
-			// discard and copy
-			if (!uploadVertexIndexBuffer(true))
-			{
-				clearDrawList();
-				return false;
-			}
-			// bind buffer
-			if (_vi_buffer_count > 1)
-			{
-				setVertexIndexBuffer(); // need to switch v/i buffers
-			}
-		}
-		else
-		{
-			// copy no overwrite
-			if (!uploadVertexIndexBuffer(false))
-			{
-				clearDrawList();
-				return false;
-			}
-		}
-		return true;
-	}
-	void Renderer_D3D11::bindTextureSamplerState(ITexture2D* const texture)
-	{
+	void Renderer_D3D11::bindTextureSamplerState(ITexture2D* const texture) {
 		const auto sampler = texture->getSamplerState() != nullptr
 			? texture->getSamplerState()
-			: _sampler_state[IDX(_state_set.sampler_state)].get();
+			: _sampler_state[IDX(SamplerState::LinearClamp)].get(); // default sampler: linear+clamp
 		m_device->getCommandbuffer()->bindPixelShaderSampler(0, sampler);
 	}
-	void Renderer_D3D11::bindTextureAlphaType(ITexture2D* const texture)
-	{
-		TextureAlphaType const state = (texture ? texture->isPremultipliedAlpha() : false) ? TextureAlphaType::PremulAlpha : TextureAlphaType::Normal;
-		if (_state_dirty || _state_set.texture_alpha_type != state)
-		{
-			_state_set.texture_alpha_type = state;
-			auto* ctx = m_device->GetD3D11DeviceContext();
-			assert(ctx);
-			ctx->PSSetShader(_pixel_shader[IDX(_state_set.vertex_color_blend_state)][IDX(_state_set.fog_state)][IDX(state)].get(), NULL, 0);
-		}
+	void Renderer_D3D11::bindTextureAlphaType(ITexture2D* const texture) {
+		const auto alpha_mode = getTextureAlphaMode(texture);
+		// update graphics pipeline
+		_state_set.texture_alpha_type = alpha_mode;
+		bindGraphicsPipeline();
 	}
-	bool Renderer_D3D11::batchFlush(bool discard)
-	{
+	bool Renderer_D3D11::batchFlush(const bool discard) {
 		tracy_zone_scoped;
-		if (!discard)
+
+		if (discard) {
+			m_primitive_batch_renderer.discard();
+			m_primitive_batch_renderer.endBatch();
+			m_primitive_batch_renderer.setCycleOnNextBatch();
+			setTexture(_state_texture.get());
+			return true;
+		}
+
 		{
 			tracy_d3d11_context_zone(m_device->GetTracyContext(), "BatchFlush");
-			// upload data
-			if (!uploadVertexIndexBufferFromDrawList()) return false;
-			// draw
-			const auto cmd = m_device->getCommandbuffer();
-			auto* ctx = m_device->GetD3D11DeviceContext();
-			assert(ctx);
-			if (_draw_list.command.size > 0)
-			{
-				VertexIndexBuffer& vi_ = _vi_buffer[_vi_buffer_index];
-				for (size_t j_ = 0; j_ < _draw_list.command.size; j_ += 1)
-				{
-					DrawCommand& cmd_ = _draw_list.command.data[j_];
-					if (cmd_.vertex_count > 0 && cmd_.index_count > 0)
-					{
-						cmd->bindPixelShaderTexture2D(0, cmd_.texture.get());
-						bindTextureSamplerState(cmd_.texture.get());
-						bindTextureAlphaType(cmd_.texture.get());
-						cmd->drawIndexed(cmd_.index_count, vi_.index_offset, vi_.vertex_offset);
-					}
-					vi_.vertex_offset += cmd_.vertex_count;
-					vi_.index_offset += cmd_.index_count;
-				}
+			if (!m_primitive_batch_renderer.consume()) {
+				return false;
 			}
-			// unbound: solve some debug warning
-			cmd->bindPixelShaderTexture2D(0, nullptr);
 		}
-		// clear
-		clearDrawList();
-		setTexture(_state_texture.get());
+
+		//cmd->bindPixelShaderTexture2D(0, cmd_.texture.get());
+		//bindTextureSamplerState(cmd_.texture.get());
+		//bindTextureAlphaType(cmd_.texture.get());
+
+		// unbound: solve some debug warning
+		//cmd->bindPixelShaderTexture2D(0, nullptr);
+
 		return true;
 	}
 
-	bool Renderer_D3D11::createResources() {
-		assert(m_device->getNativeHandle());
-
+	bool Renderer_D3D11::createResources(IGraphicsDevice* const device) {
 		Logger::info("[core] [Renderer] initializing...");
-		
+		if (device == nullptr) {
+			assert(false); return false;
+		}
+		m_device = static_cast<GraphicsDevice*>(device);
+
 		if (!createBuffers()) {
 			Logger::error("[core] [Renderer] create Buffers failed");
 			return false;
@@ -465,77 +336,114 @@ namespace core::Graphics
 			Logger::error("[core] [Renderer] create GraphicsPipelines failed");
 			return false;
 		}
+		if (!m_primitive_batch_renderer.createResources(m_device.get())) {
+			Logger::error("[core] [Renderer] create PrimitiveBatchRenderer failed");
+			return false;
+		}
 
 		Logger::info("[core] [Renderer] initialization complete");
-
+		m_device->addEventListener(this);
+		m_initialized = true;
 		return true;
 	}
 	void Renderer_D3D11::onGraphicsDeviceCreate() {}
 	void Renderer_D3D11::onGraphicsDeviceDestroy() {
 		batchFlush(true);
-
-		_state_texture.reset();
-
-		for (auto& v : _vi_buffer) {
-			v.vertex_offset = 0;
-			v.index_offset = 0;
-		}
-		_vi_buffer_index = 0;
-
-		Logger::info("[core] [Renderer] cleanup complete");
 	}
 
-	bool Renderer_D3D11::beginBatch()
-	{
+	bool Renderer_D3D11::beginBatch() {
+		if (_batch_scope) {
+			assert(false); return false;
+		}
 		const auto cmd = m_device->getCommandbuffer();
-		auto const ctx = m_device->GetD3D11DeviceContext();
-		assert(ctx);
 
-		// [IA Stage]
+		// IA Stage
+		// - vertex buffer
+		// - index buffer
 
-		ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		ctx->IASetInputLayout(_input_layout.get());
-		setVertexIndexBuffer();
+		if (!m_primitive_batch_renderer.beginBatch(true)) {
+			return false;
+		}
 
-		// [VS State]
+		// VS Stage
+		// - constant buffer (view projection matrix @0)
+		// - constant buffer (world/model matrix @1)
 
 		cmd->bindVertexShaderConstantBuffer(d3d11::vertex_shader_constant_buffer_slot_view_projection_matrix, _vp_matrix_buffer.get());
 		cmd->bindVertexShaderConstantBuffer(d3d11::vertex_shader_constant_buffer_slot_world_matrix, _world_matrix_buffer.get());
 
-		// [RS Stage]
+		// RS Stage
+		// - viewport
+		// - scissor rect
 
-		ctx->RSSetState(_raster_state.get());
+		applyViewportAndScissorRect();
 
-		// [PS State]
+		// PS Stage
+		// - constant buffer (camera info @0)
+		// - constant buffer (fog parameters @1)
+		// - shader resource view (texture @0)
+		// - sampler state (sampler @0)
 
 		cmd->bindPixelShaderConstantBuffer(d3d11::pixel_shader_constant_buffer_slot_camera_position, _camera_pos_buffer.get());
 		cmd->bindPixelShaderConstantBuffer(d3d11::pixel_shader_constant_buffer_slot_fog_parameter, _fog_data_buffer.get());
+		if (_state_texture) {
+			_state_set.texture_alpha_type = getTextureAlphaMode(_state_texture.get());
+			cmd->bindPixelShaderTexture2D(0, _state_texture.get());
+			bindTextureSamplerState(_state_texture.get());
+		}
 
-		// [OM Stage]
+		// Camera
+		// - VS Stage
+		//     - constant buffer (view projection matrix @0)
+		// - PS Stage
+		//     - constant buffer (camera info @0)
+		//     - constant buffer (fog parameters @1)
 
-		// [Internal State]
+		if (!uploadCameraState()) {
+			return false;
+		}
+		if (!uploadFogState()) {
+			return false;
+		}
 
-		initState();
+		// Pipeline
+		// - IA Stage
+		//     - input layout
+		//     - primitive type
+		// - VS Stage
+		//     - vertex shader
+		// - RS Stage
+		//     - rasterizer state
+		// - PS Stage
+		//     - pixel shader
+		// - OM Stage
+		//     - depth stencil state
+		//     - blend state
+
+		bindGraphicsPipeline();
 
 		_batch_scope = true;
 		return true;
 	}
-	bool Renderer_D3D11::endBatch()
-	{
+	bool Renderer_D3D11::endBatch() {
+		if (!_batch_scope) {
+			assert(false); return false;
+		}
 		_batch_scope = false;
-		if (!batchFlush())
+		if (!m_primitive_batch_renderer.endBatch()) {
 			return false;
+		}
 		_state_texture.reset();
 		return true;
 	}
-	bool Renderer_D3D11::flush()
-	{
+	bool Renderer_D3D11::flush() {
 		return batchFlush();
 	}
 
-	void Renderer_D3D11::clearRenderTarget(Color4B const& color)
-	{
-		batchFlush();
+	void Renderer_D3D11::clearRenderTarget(const Color4B& color) {
+		if (_batch_scope) {
+			m_primitive_batch_renderer.consume();
+		}
 		auto* ctx = m_device->GetD3D11DeviceContext();
 		assert(ctx);
 		ID3D11RenderTargetView* rtv = NULL;
@@ -552,9 +460,10 @@ namespace core::Graphics
 			rtv->Release();
 		}
 	}
-	void Renderer_D3D11::clearDepthBuffer(float zvalue)
-	{
-		batchFlush();
+	void Renderer_D3D11::clearDepthBuffer(const float zvalue) {
+		if (_batch_scope) {
+			m_primitive_batch_renderer.consume();
+		}
 		auto* ctx = m_device->GetD3D11DeviceContext();
 		assert(ctx);
 		ID3D11DepthStencilView* dsv = NULL;
@@ -565,297 +474,171 @@ namespace core::Graphics
 			dsv->Release();
 		}
 	}
-	void Renderer_D3D11::setRenderAttachment(IRenderTarget* p_rt, IDepthStencilBuffer* p_ds)
-	{
-		batchFlush();
+	void Renderer_D3D11::setRenderAttachment(IRenderTarget* p_rt, IDepthStencilBuffer* p_ds) {
+		if (_batch_scope) {
+			m_primitive_batch_renderer.consume();
+		}
 		m_device->getCommandbuffer()->bindRenderTarget(p_rt, p_ds);
 	}
 
-	void Renderer_D3D11::setOrtho(BoxF const& box)
-	{
-		if (_state_dirty || !_camera_state_set.isEqual(box))
-		{
-			batchFlush();
-			_camera_state_set.ortho = box;
-			_camera_state_set.is_3D = false;
-			DirectX::XMFLOAT4X4 f4x4;
-			DirectX::XMStoreFloat4x4(&f4x4, DirectX::XMMatrixOrthographicOffCenterLH(box.a.x, box.b.x, box.b.y, box.a.y, box.a.z, box.b.z));
-			if (!_vp_matrix_buffer->update(&f4x4, sizeof(f4x4), true)) {
-				Logger::error("[core] [Renderer] upload constant buffer failed (vp_matrix_buffer)");
-			}
+	void Renderer_D3D11::setOrtho(const BoxF& box) {
+		if (_camera_state_set.isEqual(box)) {
+			return;
 		}
+		if (_batch_scope) {
+			m_primitive_batch_renderer.consume();
+		}
+		// update mvp matrix constant buffer
+		_camera_state_set.ortho = box;
+		_camera_state_set.is_3D = false;
+		uploadOrtho();
 	}
-	void Renderer_D3D11::setPerspective(Vector3F const& eye, Vector3F const& lookat, Vector3F const& headup, float fov, float aspect, float znear, float zfar)
-	{
-		if (_state_dirty || !_camera_state_set.isEqual(eye, lookat, headup, fov, aspect, znear, zfar))
-		{
-			batchFlush();
-			_camera_state_set.eye = eye;
-			_camera_state_set.lookat = lookat;
-			_camera_state_set.headup = headup;
-			_camera_state_set.fov = fov;
-			_camera_state_set.aspect = aspect;
-			_camera_state_set.znear = znear;
-			_camera_state_set.zfar = zfar;
-			_camera_state_set.is_3D = true;
-			DirectX::XMFLOAT3 const eyef3(eye.x, eye.y, eye.z);
-			DirectX::XMFLOAT3 const lookatf3(lookat.x, lookat.y, lookat.z);
-			DirectX::XMFLOAT3 const headupf3(headup.x, headup.y, headup.z);
-			DirectX::XMFLOAT4X4 f4x4;
-			DirectX::XMStoreFloat4x4(&f4x4,
-				DirectX::XMMatrixMultiply(
-					DirectX::XMMatrixLookAtLH(DirectX::XMLoadFloat3(&eyef3), DirectX::XMLoadFloat3(&lookatf3), DirectX::XMLoadFloat3(&headupf3)),
-					DirectX::XMMatrixPerspectiveFovLH(fov, aspect, znear, zfar)));
-			float const camera_pos[8] = {
-				eye.x, eye.y, eye.z, 0.0f,
-				lookatf3.x - eyef3.x, lookatf3.y - eyef3.y, lookatf3.z - eyef3.z, 0.0f,
-			};
-			auto* ctx = m_device->GetD3D11DeviceContext();
-			assert(ctx);
-			if (!_vp_matrix_buffer->update(&f4x4, sizeof(f4x4), true)) {
-				Logger::error("[core] [Renderer] upload constant buffer failed (vp_matrix_buffer)");
-			}
-			if (!_camera_pos_buffer->update(camera_pos, sizeof(camera_pos), true)) {
-				Logger::error("[core] [Renderer] upload constant buffer failed (camera_pos_buffer)");
-			}
+	void Renderer_D3D11::setPerspective(
+		const Vector3F& eye, const Vector3F& lookat, const Vector3F& headup,
+		float fov, float aspect, float znear, float zfar
+	) {
+		if (_camera_state_set.isEqual(eye, lookat, headup, fov, aspect, znear, zfar)) {
+			return;
 		}
+		if (_batch_scope) {
+			m_primitive_batch_renderer.consume();
+		}
+		// update mvp matrix constant buffer
+		_camera_state_set.eye = eye;
+		_camera_state_set.lookat = lookat;
+		_camera_state_set.headup = headup;
+		_camera_state_set.fov = fov;
+		_camera_state_set.aspect = aspect;
+		_camera_state_set.znear = znear;
+		_camera_state_set.zfar = zfar;
+		_camera_state_set.is_3D = true;
+		uploadPerspective();
 	}
 
 	void Renderer_D3D11::setViewport(const BoxF& box) {
-		if (_state_dirty || _state_set.viewport != box) {
-			batchFlush();
-			_state_set.viewport = box;
-			m_device->getCommandbuffer()->setViewport(box.a.x, box.a.y, box.b.x - box.a.x, box.b.y - box.a.y, box.a.z, box.b.z);
+		if (_state_set.viewport == box) {
+			return;
 		}
+		if (_batch_scope) {
+			m_primitive_batch_renderer.consume();
+		}
+		// update viewport
+		_state_set.viewport = box;
+		applyViewport();
 	}
 	void Renderer_D3D11::setScissorRect(const RectF& rect) {
-		if (_state_dirty || _state_set.scissor_rect != rect) {
-			batchFlush();
-			_state_set.scissor_rect = rect;
-			m_device->getCommandbuffer()->setScissorRect(
-				static_cast<int32_t>(rect.a.x), static_cast<int32_t>(rect.a.y),
-				static_cast<uint32_t>(rect.b.x - rect.a.x), static_cast<uint32_t>(rect.b.y - rect.a.y)
-			);
+		if (_state_set.scissor_rect == rect) {
+			return;
 		}
+		if (_batch_scope) {
+			m_primitive_batch_renderer.consume();
+		}
+		// update scissor rect
+		_state_set.scissor_rect = rect;
+		applyScissorRect();
 	}
-	void Renderer_D3D11::setViewportAndScissorRect()
-	{
-		_state_dirty = true;
-		setViewport(_state_set.viewport);
-		setScissorRect(_state_set.scissor_rect);
-		_state_dirty = false;
+	void Renderer_D3D11::setViewportAndScissorRect() {
+		applyViewportAndScissorRect();
 	}
 
-	void Renderer_D3D11::setVertexColorBlendState(VertexColorBlendState state)
-	{
-		if (_state_dirty || _state_set.vertex_color_blend_state != state)
-		{
-			batchFlush();
-			_state_set.vertex_color_blend_state = state;
-			auto* ctx = m_device->GetD3D11DeviceContext();
-			assert(ctx);
-			ctx->PSSetShader(_pixel_shader[IDX(state)][IDX(_state_set.fog_state)][IDX(_state_set.texture_alpha_type)].get(), NULL, 0);
+	void Renderer_D3D11::setVertexColorBlendState(const VertexColorBlendState state) {
+		if (_state_set.vertex_color_blend_state == state) {
+			return;
 		}
+		if (_batch_scope) {
+			m_primitive_batch_renderer.consume();
+		}
+		// update graphics pipeline
+		_state_set.vertex_color_blend_state = state;
+		bindGraphicsPipeline();
 	}
-	void Renderer_D3D11::setFogState(FogState state, Color4B const& color, float density_or_znear, float zfar)
-	{
-		if (_state_dirty || _state_set.fog_state != state || _state_set.fog_color != color || _state_set.fog_near_or_density != density_or_znear || _state_set.fog_far != zfar)
-		{
-			batchFlush();
-			_state_set.fog_state = state;
-			_state_set.fog_color = color;
-			_state_set.fog_near_or_density = density_or_znear;
-			_state_set.fog_far = zfar;
-			auto* ctx = m_device->GetD3D11DeviceContext();
-			assert(ctx);
-			ctx->VSSetShader(_vertex_shader[IDX(state)].get(), NULL, 0);
-			float const fog_color_and_range[8] = {
-				(float)color.r / 255.0f,
-				(float)color.g / 255.0f,
-				(float)color.b / 255.0f,
-				(float)color.a / 255.0f,
-				density_or_znear, zfar, 0.0f, zfar - density_or_znear,
-			};
-			if (!_fog_data_buffer->update(fog_color_and_range, sizeof(fog_color_and_range), true)) {
-				Logger::error("[core] [Renderer] upload constant buffer failed (fog_data_buffer)");
-			}
-			ctx->PSSetShader(_pixel_shader[IDX(_state_set.vertex_color_blend_state)][IDX(state)][IDX(_state_set.texture_alpha_type)].get(), NULL, 0);
+	void Renderer_D3D11::setFogState(const FogState state, const Color4B& color, const float density_or_znear, const float zfar) {
+		if (_state_set.fog_state == state && _state_set.fog_color == color && _state_set.fog_near_or_density == density_or_znear && _state_set.fog_far == zfar) {
+			return;
 		}
+		if (_batch_scope) {
+			m_primitive_batch_renderer.consume();
+		}
+		// update graphics pipeline
+		_state_set.fog_state = state;
+		_state_set.fog_color = color;
+		_state_set.fog_near_or_density = density_or_znear;
+		_state_set.fog_far = zfar;
+		uploadFogState();
+		bindGraphicsPipeline();
 	}
-	void Renderer_D3D11::setDepthState(DepthState state)
-	{
-		if (_state_dirty || _state_set.depth_state != state)
-		{
-			batchFlush();
-			_state_set.depth_state = state;
-			auto* ctx = m_device->GetD3D11DeviceContext();
-			assert(ctx);
-			ctx->OMSetDepthStencilState(_depth_state[IDX(state)].get(), D3D11_DEFAULT_STENCIL_REFERENCE);
+	void Renderer_D3D11::setDepthState(const DepthState state) {
+		if (_state_set.depth_state == state) {
+			return;
 		}
+		if (_batch_scope) {
+			m_primitive_batch_renderer.consume();
+		}
+		// update graphics pipeline
+		_state_set.depth_state = state;
+		bindGraphicsPipeline();
 	}
-	void Renderer_D3D11::setBlendState(BlendState state)
-	{
-		if (_state_dirty || _state_set.blend_state != state)
-		{
-			batchFlush();
-			_state_set.blend_state = state;
-			auto* ctx = m_device->GetD3D11DeviceContext();
-			assert(ctx);
-			FLOAT const factor[4] = {};
-			ctx->OMSetBlendState(_blend_state[IDX(state)].get(), factor, D3D11_DEFAULT_SAMPLE_MASK);
+	void Renderer_D3D11::setBlendState(const BlendState state) {
+		if (_state_set.blend_state == state) {
+			return;
 		}
+		if (_batch_scope) {
+			m_primitive_batch_renderer.consume();
+		}
+		// update graphics pipeline
+		_state_set.blend_state = state;
+		bindGraphicsPipeline();
 	}
 
-	void Renderer_D3D11::setTexture(ITexture2D* texture)
-	{
-		if (_draw_list.command.size > 0 && is_same(_draw_list.command.data[_draw_list.command.size - 1].texture, texture))
-		{
-			// 可以合并
+	void Renderer_D3D11::setTexture(ITexture2D* const texture) {
+		const auto alpha_mode = getTextureAlphaMode(texture);
+		if (isTextureEquals(_state_texture, texture) && _state_set.texture_alpha_type == alpha_mode) {
+			return;
 		}
-		else
-		{
-			// 新的渲染命令
-			if ((_draw_list.command.capacity - _draw_list.command.size) < 1)
-			{
-				batchFlush(); // 需要腾出空间
-			}
-			_draw_list.command.size += 1;
-			DrawCommand& cmd_ = _draw_list.command.data[_draw_list.command.size - 1];
-			cmd_.texture = texture;
-			cmd_.vertex_count = 0;
-			cmd_.index_count = 0;
+		if (_batch_scope) {
+			m_primitive_batch_renderer.consume();
 		}
-		// 更新当前状态的纹理
-		if (!is_same(_state_texture, texture))
-		{
-			_state_texture = texture;
+		// update graphics pipeline
+		_state_texture = texture;
+		const auto cmd = m_device->getCommandbuffer();
+		cmd->bindPixelShaderTexture2D(0, _state_texture.get());
+		bindTextureSamplerState(_state_texture.get());
+		if (_state_set.texture_alpha_type != alpha_mode) {
+			_state_set.texture_alpha_type = alpha_mode;
+			bindGraphicsPipeline();
 		}
 	}
 
-	bool Renderer_D3D11::drawTriangle(DrawVertex const& v1, DrawVertex const& v2, DrawVertex const& v3)
-	{
-		if ((_draw_list.vertex.capacity - _draw_list.vertex.size) < 3 || (_draw_list.index.capacity - _draw_list.index.size) < 3)
-		{
-			if (!batchFlush()) return false;
-		}
-		assert(_draw_list.command.size > 0);
-		DrawCommand& cmd_ = _draw_list.command.data[_draw_list.command.size - 1];
-		DrawVertex* vbuf_ = _draw_list.vertex.data + _draw_list.vertex.size;
-		vbuf_[0] = v1;
-		vbuf_[1] = v2;
-		vbuf_[2] = v3;
-		_draw_list.vertex.size += 3;
-		DrawIndex* ibuf_ = _draw_list.index.data + _draw_list.index.size;
-		ibuf_[0] = cmd_.vertex_count;
-		ibuf_[1] = cmd_.vertex_count + 1;
-		ibuf_[2] = cmd_.vertex_count + 2;
-		_draw_list.index.size += 3;
-		cmd_.vertex_count += 3;
-		cmd_.index_count += 3;
-		return true;
+	bool Renderer_D3D11::drawTriangle(const DrawVertex& v1, const DrawVertex& v2, const DrawVertex& v3) {
+		return m_primitive_batch_renderer.addTriangle(v1, v2, v3);
 	}
-	bool Renderer_D3D11::drawTriangle(DrawVertex const* pvert)
-	{
-		return drawTriangle(pvert[0], pvert[1], pvert[2]);
+	bool Renderer_D3D11::drawTriangle(const DrawVertex vertices[3]) {
+		return m_primitive_batch_renderer.addTriangle(vertices);
 	}
-	bool Renderer_D3D11::drawQuad(DrawVertex const& v1, DrawVertex const& v2, DrawVertex const& v3, DrawVertex const& v4)
-	{
-		if ((_draw_list.vertex.capacity - _draw_list.vertex.size) < 4 || (_draw_list.index.capacity - _draw_list.index.size) < 6)
-		{
-			if (!batchFlush()) return false;
-		}
-		assert(_draw_list.command.size > 0);
-		DrawCommand& cmd_ = _draw_list.command.data[_draw_list.command.size - 1];
-		DrawVertex* vbuf_ = _draw_list.vertex.data + _draw_list.vertex.size;
-		vbuf_[0] = v1;
-		vbuf_[1] = v2;
-		vbuf_[2] = v3;
-		vbuf_[3] = v4;
-		_draw_list.vertex.size += 4;
-		DrawIndex* ibuf_ = _draw_list.index.data + _draw_list.index.size;
-		ibuf_[0] = cmd_.vertex_count;
-		ibuf_[1] = cmd_.vertex_count + 1;
-		ibuf_[2] = cmd_.vertex_count + 2;
-		ibuf_[3] = cmd_.vertex_count;
-		ibuf_[4] = cmd_.vertex_count + 2;
-		ibuf_[5] = cmd_.vertex_count + 3;
-		_draw_list.index.size += 6;
-		cmd_.vertex_count += 4;
-		cmd_.index_count += 6;
-		return true;
+	bool Renderer_D3D11::drawQuad(const DrawVertex& v1, const DrawVertex& v2, const DrawVertex& v3, const DrawVertex& v4) {
+		return m_primitive_batch_renderer.addQuad(v1, v2, v3, v4);
 	}
-	bool Renderer_D3D11::drawQuad(DrawVertex const* pvert)
-	{
-		return drawQuad(pvert[0], pvert[1], pvert[2], pvert[3]);
+	bool Renderer_D3D11::drawQuad(const DrawVertex vertices[4]) {
+		return m_primitive_batch_renderer.addQuad(vertices);
 	}
-	bool Renderer_D3D11::drawRaw(DrawVertex const* pvert, uint16_t nvert, DrawIndex const* pidx, uint16_t nidx)
-	{
-		if (nvert > _draw_list.vertex.capacity || nidx > _draw_list.index.capacity)
-		{
-			assert(false); return false;
-		}
-
-		if ((_draw_list.vertex.capacity - _draw_list.vertex.size) < nvert || (_draw_list.index.capacity - _draw_list.index.size) < nidx)
-		{
-			if (!batchFlush()) return false;
-		}
-
-		assert(_draw_list.command.size > 0);
-		DrawCommand& cmd_ = _draw_list.command.data[_draw_list.command.size - 1];
-
-		DrawVertex* vbuf_ = _draw_list.vertex.data + _draw_list.vertex.size;
-		std::memcpy(vbuf_, pvert, nvert * sizeof(DrawVertex));
-		_draw_list.vertex.size += nvert;
-
-		DrawIndex* ibuf_ = _draw_list.index.data + _draw_list.index.size;
-		for (size_t idx_ = 0; idx_ < nidx; idx_ += 1)
-		{
-			ibuf_[idx_] = cmd_.vertex_count + pidx[idx_];
-		}
-		_draw_list.index.size += nidx;
-
-		cmd_.vertex_count += nvert;
-		cmd_.index_count += nidx;
-
-		return true;
+	bool Renderer_D3D11::drawRaw(const DrawVertex* const vertices, const uint16_t vertex_count, const DrawIndex* const indices, const uint16_t index_count) {
+		return m_primitive_batch_renderer.addRaw(vertices, vertex_count, indices, index_count);
 	}
-	bool Renderer_D3D11::drawRequest(uint16_t nvert, uint16_t nidx, DrawVertex** ppvert, DrawIndex** ppidx, uint16_t* idxoffset)
-	{
-		if (nvert > _draw_list.vertex.capacity || nidx > _draw_list.index.capacity)
-		{
-			assert(false); return false;
+	bool Renderer_D3D11::drawRequest(const uint16_t vertex_count, const uint16_t index_count, DrawVertex** const out_vertices, DrawIndex** const out_indices, uint16_t* const out_index_offset) {
+		size_t index_offset_sz{};
+		if (!m_primitive_batch_renderer.addRequest(vertex_count, index_count, out_vertices, out_indices, &index_offset_sz)) {
+			return false;
 		}
-
-		if ((_draw_list.vertex.capacity - _draw_list.vertex.size) < nvert || (_draw_list.index.capacity - _draw_list.index.size) < nidx)
-		{
-			if (!batchFlush()) return false;
-		}
-
-		assert(_draw_list.command.size > 0);
-		DrawCommand& cmd_ = _draw_list.command.data[_draw_list.command.size - 1];
-
-		*ppvert = _draw_list.vertex.data + _draw_list.vertex.size;
-		_draw_list.vertex.size += nvert;
-
-		*ppidx = _draw_list.index.data + _draw_list.index.size;
-		_draw_list.index.size += nidx;
-
-		*idxoffset = cmd_.vertex_count; // 输出顶点索引偏移
-		cmd_.vertex_count += nvert;
-		cmd_.index_count += nidx;
-
+		*out_index_offset = static_cast<uint16_t>(index_offset_sz);
 		return true;
 	}
 
-	bool Renderer_D3D11::createPostEffectShader(StringView path, IPostEffectShader** pp_effect)
-	{
-		try
-		{
+	bool Renderer_D3D11::createPostEffectShader(const StringView path, IPostEffectShader** const pp_effect) {
+		try {
 			*pp_effect = new PostEffectShader_D3D11(m_device.get(), path, true);
 			return true;
 		}
-		catch (...)
-		{
+		catch (...) {
 			*pp_effect = nullptr;
 			return false;
 		}
@@ -865,104 +648,68 @@ namespace core::Graphics
 		BlendState blend,
 		ITexture2D* p_tex, SamplerState rtsv,
 		Vector4F const* cv, size_t cv_n,
-		ITexture2D* const* p_tex_arr, SamplerState const* sv, size_t tv_sv_n)
-	{
+		ITexture2D* const* p_tex_arr, SamplerState const* sv, size_t tv_sv_n
+	) {
 		assert(p_effect);
 		assert((cv_n == 0) || (cv_n > 0 && cv));
 		assert((tv_sv_n == 0) || (tv_sv_n > 0 && p_tex_arr && sv));
 
-		if (!endBatch()) return false;
-		
+		// FLUSH
+
+		if (!endBatch()) {
+			return false;
+		}
+
 		// PREPARE
 
-		auto* ctx = m_device->GetD3D11DeviceContext();
-		assert(ctx);
+		const auto cmd = m_device->getCommandbuffer();
+		const auto ctx = static_cast<ID3D11DeviceContext*>(cmd->getNativeHandle());
+		assert(ctx != nullptr);
 
-		win32::com_ptr<ID3D11RenderTargetView> p_d3d11_rtv;
-		win32::com_ptr<ID3D11DepthStencilView> p_d3d11_dsv;
+		RenderTargetHolder rtv(ctx);
+		const auto rtv_w = static_cast<float>(rtv.width);
+		const auto rtv_h = static_cast<float>(rtv.height);
 
-		float sw_ = 0.0f;
-		float sh_ = 0.0f;
-		/* get current rendertarget size */ {
-			ID3D11RenderTargetView* rtv_ = NULL;
-			ID3D11DepthStencilView* dsv_ = NULL;
-			ctx->OMGetRenderTargets(1, &rtv_, &dsv_);
-			if (rtv_)
-			{
-				win32::com_ptr<ID3D11Resource> res_;
-				rtv_->GetResource(res_.put());
-				win32::com_ptr<ID3D11Texture2D> tex2d_;
-				HRESULT hr = gHR = res_->QueryInterface(tex2d_.put());
-				if (SUCCEEDED(hr))
-				{
-					D3D11_TEXTURE2D_DESC desc_ = {};
-					tex2d_->GetDesc(&desc_);
-					sw_ = (float)desc_.Width;
-					sh_ = (float)desc_.Height;
-				}
-				else
-				{
-					Logger::error("[core] [Renderer] postEffect failed: ID3D11Resource::QueryInterface -> #ID3D11Texture2D failed");
-					return false;
-				}
-				p_d3d11_rtv = rtv_;
-				rtv_->Release();
-			}
-			if (dsv_)
-			{
-				p_d3d11_dsv = dsv_;
-				dsv_->Release();
-			}
-		}
-		if (sw_ < 1.0f || sh_ < 1.0f)
-		{
+		if (!rtv.rtv || rtv.width == 0 || rtv.height == 0) {
 			Logger::error("[core] [Renderer] postEffect failed: no RenderTarget bound");
 			return false;
 		}
 
 		ctx->ClearState();
 
-		// [Stage IA]
+		// [Stage IA] upload vertex data
 
-		/* upload vertex data */ {
-			DrawVertex* ptr{};
-			if (!_fx_vbuffer->map(reinterpret_cast<void**>(&ptr), true)) {
-				Logger::error("[core] [Renderer] upload vertex buffer failed (map)");
-				return false;
-			}
-			const DrawVertex vertex_data[4] = {
-				DrawVertex(0.f, sh_, 0.0f, 0.0f),
-				DrawVertex(sw_, sh_, 1.0f, 0.0f),
-				DrawVertex(sw_, 0.f, 1.0f, 1.0f),
-				DrawVertex(0.f, 0.f, 0.0f, 1.0f),
-			};
-			std::memcpy(ptr, vertex_data, sizeof(vertex_data));
-			if (!_fx_vbuffer->unmap()) {
-				Logger::error("[core] [Renderer] upload vertex buffer failed (unmap)");
-				return false;
-			}
+		if (!m_primitive_batch_renderer.beginBatch(false)) {
+			return false;
 		}
-
-		ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		m_device->getCommandbuffer()->bindVertexBuffer(0, _fx_vbuffer.get());
-		m_device->getCommandbuffer()->bindIndexBuffer(_fx_ibuffer.get());
-		ctx->IASetInputLayout(_input_layout.get());
+		const DrawVertex vertex_data[4]{
+			DrawVertex(0.00f, rtv_h, 0.0f, 0.0f),
+			DrawVertex(rtv_w, rtv_h, 1.0f, 0.0f),
+			DrawVertex(rtv_w, 0.00f, 1.0f, 1.0f),
+			DrawVertex(0.00f, 0.00f, 0.0f, 1.0f),
+		};
+		if (!m_primitive_batch_renderer.addQuad(vertex_data)) {
+			return false;
+		}
+		if (!m_primitive_batch_renderer.endBatch()) {
+			return false;
+		}
 
 		// [Stage VS]
 
 		DirectX::XMFLOAT4X4 vp_matrix;
-		DirectX::XMStoreFloat4x4(&vp_matrix, DirectX::XMMatrixOrthographicOffCenterLH(0.0f, sw_, 0.0f, sh_, 0.0f, 1.0f));
+		DirectX::XMStoreFloat4x4(&vp_matrix, DirectX::XMMatrixOrthographicOffCenterLH(
+			0.0f, rtv_w, 0.0f, rtv_h, 0.0f, 1.0f
+		));
 		if (!_vp_matrix_buffer->update(&vp_matrix, sizeof(vp_matrix), true)) {
 			Logger::error("[core] [Renderer] upload constant buffer failed (vp_matrix_buffer)");
 		}
-		ctx->VSSetShader(_vertex_shader[IDX(FogState::Disable)].get(), NULL, 0);
-		m_device->getCommandbuffer()->bindVertexShaderConstantBuffer(d3d11::vertex_shader_constant_buffer_slot_view_projection_matrix, _vp_matrix_buffer.get());
+		cmd->bindVertexShaderConstantBuffer(d3d11::vertex_shader_constant_buffer_slot_view_projection_matrix, _vp_matrix_buffer.get());
 
 		// [Stage RS]
 
-		ctx->RSSetState(_raster_state.get());
-		m_device->getCommandbuffer()->setViewport(0.0f, 0.0f, sw_, sh_);
-		m_device->getCommandbuffer()->setScissorRect(0, 0, static_cast<uint32_t>(sw_), static_cast<uint32_t>(sh_));
+		cmd->setViewport(0.0f, 0.0f, rtv_w, rtv_h);
+		cmd->setScissorRect(0, 0, rtv.width, rtv.height);
 
 		// [Stage PS]
 
@@ -971,16 +718,14 @@ namespace core::Graphics
 			Logger::error("[core] [Renderer] upload constant buffer failed (user_float_buffer)");
 		}
 		const float size_viewport[8] = {
-			sw_, sh_, 0.0f, 0.0f,
+			rtv_w, rtv_h, 0.0f, 0.0f,
 			_state_set.viewport.a.x, _state_set.viewport.a.y, _state_set.viewport.b.x, _state_set.viewport.b.y,
 		};
 		if (!_fog_data_buffer->update(size_viewport, sizeof(size_viewport), true)) {
 			Logger::error("[core] [Renderer] upload constant buffer failed (fog_data_buffer/size_viewport_buffer)");
 		}
-		m_device->getCommandbuffer()->bindPixelShaderConstantBuffer(d3d11::pixel_shader_constant_buffer_slot_user_data, _user_float_buffer.get());
-		m_device->getCommandbuffer()->bindPixelShaderConstantBuffer(d3d11::pixel_shader_constant_buffer_slot_fog_parameter, _fog_data_buffer.get());
-
-		ctx->PSSetShader(static_cast<PostEffectShader_D3D11*>(p_effect)->GetPS(), NULL, 0);
+		cmd->bindPixelShaderConstantBuffer(d3d11::pixel_shader_constant_buffer_slot_user_data, _user_float_buffer.get());
+		cmd->bindPixelShaderConstantBuffer(d3d11::pixel_shader_constant_buffer_slot_fog_parameter, _fog_data_buffer.get());
 
 		ITexture2D* textures[5]{};
 		IGraphicsSampler* samplers[5]{};
@@ -990,150 +735,130 @@ namespace core::Graphics
 		}
 		textures[4] = p_tex;
 		samplers[4] = _sampler_state[IDX(rtsv)].get();
-		m_device->getCommandbuffer()->bindPixelShaderTexture2D(0, textures, 5);
-		m_device->getCommandbuffer()->bindPixelShaderSampler(0, samplers, 5);
+		cmd->bindPixelShaderTexture2D(0, textures, 5);
+		cmd->bindPixelShaderSampler(0, samplers, 5);
+
+		// Pipeline
+
+		const auto graphics_pipeline = getKnownGraphicsPipeline(
+			VertexColorBlendState::Mul, // will overwrite
+			FogState::Disable,
+			TextureAlphaType::PremulAlpha, // will overwrite
+			DepthState::Disable,
+			blend
+		);
+		cmd->bindGraphicsPipeline(graphics_pipeline);
+
+		// [Stage PS] Overwrite
+
+		ctx->PSSetShader(static_cast<PostEffectShader_D3D11*>(p_effect)->GetPS(), NULL, 0);
 
 		// [Stage OM]
 
-		ctx->OMSetDepthStencilState(_depth_state[IDX(DepthState::Disable)].get(), D3D11_DEFAULT_STENCIL_REFERENCE);
-		FLOAT blend_factor[4] = {};
-		ctx->OMSetBlendState(_blend_state[IDX(blend)].get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
-		ID3D11RenderTargetView* p_d3d11_rtvs[1] = { p_d3d11_rtv.get() };
-		ctx->OMSetRenderTargets(1, p_d3d11_rtvs, p_d3d11_dsv.get());
+		rtv.bind();
 
 		// DRAW
 
-		m_device->getCommandbuffer()->drawIndexed(6, 0, 0);
-		
+		m_primitive_batch_renderer.draw();
+
 		// CLEAR
 
 		ctx->ClearState();
-		ctx->OMSetRenderTargets(1, p_d3d11_rtvs, p_d3d11_dsv.get());
+		rtv.bind();
 
 		return beginBatch();
 	}
-	bool Renderer_D3D11::drawPostEffect(IPostEffectShader* p_effect, BlendState blend)
-	{
+	bool Renderer_D3D11::drawPostEffect(IPostEffectShader* p_effect, BlendState blend) {
 		assert(p_effect);
 
-		if (!endBatch()) return false;
+		// FLUSH
+
+		if (!endBatch()) {
+			return false;
+		}
 
 		// PREPARE
 
-		auto* ctx = m_device->GetD3D11DeviceContext();
-		assert(ctx);
+		const auto cmd = m_device->getCommandbuffer();
+		const auto ctx = static_cast<ID3D11DeviceContext*>(cmd->getNativeHandle());
+		assert(ctx != nullptr);
 
-		win32::com_ptr<ID3D11RenderTargetView> p_d3d11_rtv;
-		win32::com_ptr<ID3D11DepthStencilView> p_d3d11_dsv;
+		RenderTargetHolder rtv(ctx);
+		const auto rtv_w = static_cast<float>(rtv.width);
+		const auto rtv_h = static_cast<float>(rtv.height);
 
-		float sw_ = 0.0f;
-		float sh_ = 0.0f;
-		/* get current rendertarget size */ {
-			ID3D11RenderTargetView* rtv_ = NULL;
-			ID3D11DepthStencilView* dsv_ = NULL;
-			ctx->OMGetRenderTargets(1, &rtv_, &dsv_);
-			if (rtv_)
-			{
-				win32::com_ptr<ID3D11Resource> res_;
-				rtv_->GetResource(res_.put());
-				win32::com_ptr<ID3D11Texture2D> tex2d_;
-				HRESULT hr = gHR = res_->QueryInterface(tex2d_.put());
-				if (SUCCEEDED(hr))
-				{
-					D3D11_TEXTURE2D_DESC desc_ = {};
-					tex2d_->GetDesc(&desc_);
-					sw_ = (float)desc_.Width;
-					sh_ = (float)desc_.Height;
-				}
-				else
-				{
-					Logger::error("[core] [Renderer] postEffect failed: ID3D11Resource::QueryInterface -> #ID3D11Texture2D failed");
-					return false;
-				}
-				p_d3d11_rtv = rtv_;
-				rtv_->Release();
-			}
-			if (dsv_)
-			{
-				p_d3d11_dsv = dsv_;
-				dsv_->Release();
-			}
-		}
-		if (sw_ < 1.0f || sh_ < 1.0f)
-		{
+		if (!rtv.rtv || rtv.width == 0 || rtv.height == 0) {
 			Logger::error("[core] [Renderer] postEffect failed: no RenderTarget bound");
 			return false;
 		}
 
 		ctx->ClearState();
 
-		// [Stage IA]
+		// [Stage IA] upload vertex data
 
-		/* upload vertex data */ {
-			DrawVertex* ptr{};
-			if (!_fx_vbuffer->map(reinterpret_cast<void**>(&ptr), true)) {
-				Logger::error("[core] [Renderer] upload vertex buffer failed (map)");
-				return false;
-			}
-			const DrawVertex vertex_data[4] = {
-				DrawVertex(0.f, sh_, 0.0f, 0.0f),
-				DrawVertex(sw_, sh_, 1.0f, 0.0f),
-				DrawVertex(sw_, 0.f, 1.0f, 1.0f),
-				DrawVertex(0.f, 0.f, 0.0f, 1.0f),
-			};
-			std::memcpy(ptr, vertex_data, sizeof(vertex_data));
-			if (!_fx_vbuffer->unmap()) {
-				Logger::error("[core] [Renderer] upload vertex buffer failed (unmap)");
-				return false;
-			}
+		if (!m_primitive_batch_renderer.beginBatch(false)) {
+			return false;
 		}
-
-		ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		m_device->getCommandbuffer()->bindVertexBuffer(0, _fx_vbuffer.get());
-		m_device->getCommandbuffer()->bindIndexBuffer(_fx_ibuffer.get());
-		ctx->IASetInputLayout(_input_layout.get());
+		const DrawVertex vertex_data[4]{
+			DrawVertex(0.00f, rtv_h, 0.0f, 0.0f),
+			DrawVertex(rtv_w, rtv_h, 1.0f, 0.0f),
+			DrawVertex(rtv_w, 0.00f, 1.0f, 1.0f),
+			DrawVertex(0.00f, 0.00f, 0.0f, 1.0f),
+		};
+		if (!m_primitive_batch_renderer.addQuad(vertex_data)) {
+			return false;
+		}
+		if (!m_primitive_batch_renderer.endBatch()) {
+			return false;
+		}
 
 		// [Stage VS]
 
 		DirectX::XMFLOAT4X4 vp_matrix;
-		DirectX::XMStoreFloat4x4(&vp_matrix, DirectX::XMMatrixOrthographicOffCenterLH(0.0f, sw_, 0.0f, sh_, 0.0f, 1.0f));
+		DirectX::XMStoreFloat4x4(&vp_matrix, DirectX::XMMatrixOrthographicOffCenterLH(
+			0.0f, rtv_w, 0.0f, rtv_h, 0.0f, 1.0f
+		));
 		if (!_vp_matrix_buffer->update(&vp_matrix, sizeof(vp_matrix), true)) {
 			Logger::error("[core] [Renderer] upload constant buffer failed (vp_matrix_buffer)");
 		}
-		ctx->VSSetShader(_vertex_shader[IDX(FogState::Disable)].get(), NULL, 0);
-		m_device->getCommandbuffer()->bindVertexShaderConstantBuffer(d3d11::vertex_shader_constant_buffer_slot_view_projection_matrix, _vp_matrix_buffer.get());
+		cmd->bindVertexShaderConstantBuffer(d3d11::vertex_shader_constant_buffer_slot_view_projection_matrix, _vp_matrix_buffer.get());
 
 		// [Stage RS]
 
-		ctx->RSSetState(_raster_state.get());
-		m_device->getCommandbuffer()->setViewport(0.0f, 0.0f, sw_, sh_);
-		m_device->getCommandbuffer()->setScissorRect(0, 0, static_cast<uint32_t>(sw_), static_cast<uint32_t>(sh_));
+		cmd->setViewport(0.0f, 0.0f, rtv_w, rtv_h);
+		cmd->setScissorRect(0, 0, rtv.width, rtv.height);
 
-		// [Stage PS]
+		// Pipeline
 
-		if (!p_effect->apply(this))
-		{
+		const auto graphics_pipeline = getKnownGraphicsPipeline(
+			VertexColorBlendState::Mul, // will overwrite
+			FogState::Disable,
+			TextureAlphaType::PremulAlpha, // will overwrite
+			DepthState::Disable,
+			blend
+		);
+		cmd->bindGraphicsPipeline(graphics_pipeline);
+
+		// [Stage PS] Overwrite
+
+		if (!p_effect->apply(this)) {
 			Logger::error("[core] [Renderer] PostEffectShader apply failed");
 			return false;
 		}
 		ctx->PSSetShader(static_cast<PostEffectShader_D3D11*>(p_effect)->GetPS(), NULL, 0);
-		
+
 		// [Stage OM]
 
-		ctx->OMSetDepthStencilState(_depth_state[IDX(DepthState::Disable)].get(), D3D11_DEFAULT_STENCIL_REFERENCE);
-		FLOAT blend_factor[4] = {};
-		ctx->OMSetBlendState(_blend_state[IDX(blend)].get(), blend_factor, D3D11_DEFAULT_SAMPLE_MASK);
-		ID3D11RenderTargetView* p_d3d11_rtvs[1] = { p_d3d11_rtv.get() };
-		ctx->OMSetRenderTargets(1, p_d3d11_rtvs, p_d3d11_dsv.get());
+		rtv.bind();
 
 		// DRAW
 
-		m_device->getCommandbuffer()->drawIndexed(6, 0, 0);
+		m_primitive_batch_renderer.draw();
 
 		// CLEAR
 
 		ctx->ClearState();
-		ctx->OMSetRenderTargets(1, p_d3d11_rtvs, p_d3d11_dsv.get());
+		rtv.bind();
 
 		return beginBatch();
 	}
@@ -1184,48 +909,144 @@ namespace core::Graphics
 		return true;
 	}
 
-	IGraphicsSampler* Renderer_D3D11::getKnownSamplerState(SamplerState state)
-	{
+	IGraphicsSampler* Renderer_D3D11::getKnownSamplerState(const SamplerState state) {
 		return _sampler_state[IDX(state)].get();
 	}
-
-	Renderer_D3D11::Renderer_D3D11(GraphicsDevice* p_device)
-		: m_device(p_device)
-	{
-		if (!createResources())
-			throw std::runtime_error("Renderer_D3D11::Renderer_D3D11");
-		m_device->addEventListener(this);
+	IGraphicsPipeline* Renderer_D3D11::getKnownGraphicsPipeline(
+		const VertexColorBlendState vertex_color_blend_state,
+		const FogState fog_state,
+		const TextureAlphaType texture_alpha_mode,
+		const DepthState depth_state,
+		const BlendState blend_state
+	) {
+		return _graphics_pipeline
+			[IDX(vertex_color_blend_state)]
+			[IDX(fog_state)]
+			[IDX(texture_alpha_mode)]
+			[IDX(depth_state)]
+			[IDX(blend_state)]
+			.get();
 	}
-	Renderer_D3D11::~Renderer_D3D11()
-	{
-		m_device->removeEventListener(this);
-	}
 
-	bool Renderer_D3D11::create(GraphicsDevice* p_device, Renderer_D3D11** pp_renderer)
-	{
-		try
-		{
-			*pp_renderer = new Renderer_D3D11(p_device);
-			return true;
+	Renderer_D3D11::Renderer_D3D11() = default;
+	Renderer_D3D11::~Renderer_D3D11() {
+		if (m_initialized) {
+			m_device->removeEventListener(this);
 		}
-		catch (...)
-		{
-			*pp_renderer = nullptr;
+	}
+
+	bool Renderer_D3D11::uploadOrtho(const BoxF& box) {
+		DirectX::XMFLOAT4X4 mat4;
+		DirectX::XMStoreFloat4x4(&mat4, DirectX::XMMatrixOrthographicOffCenterLH(box.a.x, box.b.x, box.b.y, box.a.y, box.a.z, box.b.z));
+		if (!_vp_matrix_buffer->update(&mat4, sizeof(mat4), true)) {
+			Logger::error("[core] [Renderer] upload constant buffer failed (vp_matrix_buffer)");
 			return false;
 		}
+		return true;
 	}
-
-	bool IRenderer::create(IGraphicsDevice* p_device, IRenderer** pp_renderer)
-	{
-		try
-		{
-			*pp_renderer = new Renderer_D3D11(static_cast<GraphicsDevice*>(p_device));
-			return true;
+	bool Renderer_D3D11::uploadOrtho() {
+		if (_camera_state_set.is_3D) {
+			assert(false); return false;
 		}
-		catch (...)
-		{
-			*pp_renderer = nullptr;
+		return uploadOrtho(_camera_state_set.ortho);
+	}
+	bool Renderer_D3D11::uploadPerspective(
+		const Vector3F& position, const Vector3F& look_at, const Vector3F& head_up,
+		const float fov, const float aspect_ratio, const float z_near, const float z_far
+	) {
+		const DirectX::XMFLOAT3 xm_position(position.x, position.y, position.z);
+		const DirectX::XMFLOAT3 xm_look_at(look_at.x, look_at.y, look_at.z);
+		const DirectX::XMFLOAT3 xm_head_up(head_up.x, head_up.y, head_up.z);
+		DirectX::XMFLOAT4X4 mat4;
+		DirectX::XMStoreFloat4x4(&mat4,
+			DirectX::XMMatrixMultiply(
+				DirectX::XMMatrixLookAtLH(DirectX::XMLoadFloat3(&xm_position), DirectX::XMLoadFloat3(&xm_look_at), DirectX::XMLoadFloat3(&xm_head_up)),
+				DirectX::XMMatrixPerspectiveFovLH(fov, aspect_ratio, z_near, z_far)
+			)
+		);
+		if (!_vp_matrix_buffer->update(&mat4, sizeof(mat4), true)) {
+			Logger::error("[core] [Renderer] upload constant buffer failed (vp_matrix_buffer)");
 			return false;
 		}
+
+		const float camera_pos[8] = {
+			position.x, position.y, position.z, 0.0f,
+			look_at.x - position.x, look_at.y - position.y, look_at.z - position.z, 0.0f,
+		};
+		if (!_camera_pos_buffer->update(camera_pos, sizeof(camera_pos), true)) {
+			Logger::error("[core] [Renderer] upload constant buffer failed (camera_pos_buffer)");
+			return false;
+		}
+
+		return true;
+	}
+	bool Renderer_D3D11::uploadPerspective() {
+		if (!_camera_state_set.is_3D) {
+			assert(false); return false;
+		}
+		const auto& s = _camera_state_set;
+		return uploadPerspective(s.eye, s.lookat, s.headup, s.fov, s.aspect, s.znear, s.zfar);
+	}
+	bool Renderer_D3D11::uploadCameraState() {
+		if (_camera_state_set.is_3D) {
+			return uploadPerspective();
+		}
+		else {
+			return uploadOrtho();
+		}
+	}
+	void Renderer_D3D11::applyViewport(const BoxF& box) {
+		m_device->getCommandbuffer()->setViewport(box.a.x, box.a.y, box.b.x - box.a.x, box.b.y - box.a.y, box.a.z, box.b.z);
+	}
+	void Renderer_D3D11::applyViewport() {
+		applyViewport(_state_set.viewport);
+	}
+	void Renderer_D3D11::applyScissorRect(const RectF& rect) {
+		m_device->getCommandbuffer()->setScissorRect(
+			static_cast<int32_t>(rect.a.x), static_cast<int32_t>(rect.a.y),
+			static_cast<uint32_t>(rect.b.x - rect.a.x), static_cast<uint32_t>(rect.b.y - rect.a.y)
+		);
+	}
+	void Renderer_D3D11::applyScissorRect() {
+		applyScissorRect(_state_set.scissor_rect);
+	}
+	void Renderer_D3D11::applyViewportAndScissorRect() {
+		applyViewport();
+		applyScissorRect();
+	}
+	bool Renderer_D3D11::uploadFogState(FogState, const Color4B& color, const float density_or_znear, const float zfar) {
+		constexpr float factor = 1.0f / 255.0f;
+		const float fog_color_and_range[8] = {
+			static_cast<float>(color.r) * factor,
+			static_cast<float>(color.g) * factor,
+			static_cast<float>(color.b) * factor,
+			static_cast<float>(color.a) * factor,
+			density_or_znear, zfar, 0.0f, zfar - density_or_znear,
+		};
+		if (!_fog_data_buffer->update(fog_color_and_range, sizeof(fog_color_and_range), true)) {
+			Logger::error("[core] [Renderer] upload constant buffer failed (fog_data_buffer)");
+			return false;
+		}
+		return true;
+	}
+	bool Renderer_D3D11::uploadFogState() {
+		const auto& s = _state_set;
+		return uploadFogState(s.fog_state, s.fog_color, s.fog_near_or_density, s.fog_far);
+	}
+
+	bool IRenderer::create(IGraphicsDevice* const p_device, IRenderer** const pp_renderer) {
+		if (p_device == nullptr) {
+			assert(false); return false;
+		}
+		if (pp_renderer == nullptr) {
+			assert(false); return false;
+		}
+		SmartReference<Renderer_D3D11> renderer;
+		renderer.attach(new Renderer_D3D11());
+		if (!renderer->createResources(p_device)) {
+			return false;
+		}
+		*pp_renderer = renderer.detach();
+		return true;
 	}
 }

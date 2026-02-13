@@ -79,8 +79,9 @@ namespace core::Graphics
 					return false;
 			}
 		}
-		assert(m_device->GetD3D11Device());
-		HRESULT hr = gHR = m_device->GetD3D11Device()->CreatePixelShader(d3d_ps_blob->GetBufferPointer(), d3d_ps_blob->GetBufferSize(), nullptr, d3d11_ps.put());
+		const auto device = static_cast<ID3D11Device*>(m_device->getNativeHandle());
+		assert(device != nullptr);
+		HRESULT hr = gHR = device->CreatePixelShader(d3d_ps_blob->GetBufferPointer(), d3d_ps_blob->GetBufferSize(), nullptr, d3d11_ps.put());
 		if (FAILED(hr))
 			return false;
 		M_D3D_SET_DEBUG_NAME_SIMPLE(d3d11_ps.get());
