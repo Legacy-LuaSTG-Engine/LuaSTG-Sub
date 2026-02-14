@@ -4,7 +4,7 @@
 #include "core/SmartReference.hpp"
 #include "core/Window.hpp"
 #include "core/GraphicsDevice.hpp"
-#include "core/Graphics/SwapChain.hpp"
+#include "core/SwapChain.hpp"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "win32/base.hpp"
@@ -35,7 +35,7 @@ namespace {
 			if (!core::IGraphicsDevice::create(""sv, m_graphics_device.put())) {
 				return false;
 			}
-			if (!core::Graphics::ISwapChain::create(m_window.get(), m_graphics_device.get(), m_swap_chain.put())) {
+			if (!core::ISwapChain::create(m_window.get(), m_graphics_device.get(), m_swap_chain.put())) {
 				return false;
 			}
 
@@ -185,7 +185,7 @@ namespace {
 		core::IFrameRateController* m_frame_rate_controller{ core::IFrameRateController::getInstance() };
 		core::SmartReference<core::IWindow> m_window;
 		core::SmartReference<core::IGraphicsDevice> m_graphics_device;
-		core::SmartReference<core::Graphics::ISwapChain> m_swap_chain;
+		core::SmartReference<core::ISwapChain> m_swap_chain;
 
 		core::SmartReference<core::IGraphicsBuffer> m_vertex_buffer;
 		core::SmartReference<core::IGraphicsBuffer> m_index_buffer;
