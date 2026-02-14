@@ -104,7 +104,7 @@ namespace luastg::binding {
 		static int setScalingMode(lua_State* L) {
 			auto self = as(L, 1);
 			lua::stack_t S(L);
-			auto const mode = static_cast<core::Graphics::SwapChainScalingMode>(S.get_value<int32_t>(2));
+			auto const mode = static_cast<core::SwapChainScalingMode>(S.get_value<int32_t>(2));
 			self->data->setScalingMode(mode);
 			return 0;
 		}
@@ -146,8 +146,8 @@ namespace luastg::binding {
 
 		{
 			auto const e = S.create_module("lstg.SwapChain.ScalingMode");
-			S.set_map_value(e, "stretch", static_cast<int32_t>(core::Graphics::SwapChainScalingMode::Stretch));
-			S.set_map_value(e, "aspect_ratio", static_cast<int32_t>(core::Graphics::SwapChainScalingMode::AspectRatio));
+			S.set_map_value(e, "stretch", static_cast<int32_t>(core::SwapChainScalingMode::stretch));
+			S.set_map_value(e, "aspect_ratio", static_cast<int32_t>(core::SwapChainScalingMode::aspect_ratio));
 		}
 
 		// method

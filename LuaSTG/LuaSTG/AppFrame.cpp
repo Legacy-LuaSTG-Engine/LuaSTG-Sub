@@ -209,7 +209,7 @@ bool AppFrame::Init()noexcept
 		for (int i = 0; i < 4; i += 1) {
 			m_render_statistics.emplace_back(m_graphics_device.get());
 		}
-		if (!core::Graphics::ISwapChain::create(m_window.get(), m_graphics_device.get(), m_swap_chain.put()))
+		if (!core::ISwapChain::create(m_window.get(), m_graphics_device.get(), m_swap_chain.put()))
 			return false;
 		if (!core::Graphics::IRenderer::create(m_graphics_device.get(), m_renderer.put()))
 			return false;

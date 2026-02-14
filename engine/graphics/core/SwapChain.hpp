@@ -5,29 +5,24 @@
 #include "core/Window.hpp"
 #include "core/GraphicsDevice.hpp"
 
-namespace core::Graphics
-{
-	struct DisplayMode
-	{
-		uint32_t width{ 0 };
-		uint32_t height{ 0 };
+namespace core {
+	struct DisplayMode {
+		uint32_t width{};
+		uint32_t height{};
 		Rational refresh_rate;
 	};
 
-	enum class SwapChainScalingMode
-	{
-		Stretch,
-		AspectRatio,
+	enum class SwapChainScalingMode {
+		stretch,
+		aspect_ratio,
 	};
 
-	struct ISwapChainEventListener
-	{
+	struct ISwapChainEventListener {
 		virtual void onSwapChainCreate() = 0;
 		virtual void onSwapChainDestroy() = 0;
 	};
 
-	struct ISwapChain : public IReferenceCounted
-	{
+	CORE_INTERFACE ISwapChain : IReferenceCounted {
 		virtual void addEventListener(ISwapChainEventListener* e) = 0;
 		virtual void removeEventListener(ISwapChainEventListener* e) = 0;
 
@@ -49,11 +44,6 @@ namespace core::Graphics
 
 		static bool create(IWindow* p_window, IGraphicsDevice* p_device, ISwapChain** pp_swapchain);
 	};
-}
 
-namespace core {
-	// UUID v5
-	// ns:URL
-	// https://www.luastg-sub.com/core.ISwapChain
-	template<> constexpr InterfaceId getInterfaceId<Graphics::ISwapChain>() { return UUID::parse("9036abca-4134-5258-9021-a79b7bfe5a58"); }
+	CORE_INTERFACE_ID(ISwapChain, "9036abca-4134-5258-9021-a79b7bfe5a58");
 }

@@ -133,7 +133,7 @@ void luastg::binding::BuiltInFunction::Register(lua_State* L)noexcept
 		static int EnumResolutions(lua_State* L)
 		{
 			lua_createtable(L, 5, 0);		// t
-			core::Graphics::DisplayMode mode_list[5] = {
+			core::DisplayMode mode_list[5] = {
 				{  640, 480, { 60, 1 } },
 				{  800, 600, { 60, 1 } },
 				{  960, 720, { 60, 1 } },
@@ -205,7 +205,7 @@ void luastg::binding::BuiltInFunction::Register(lua_State* L)noexcept
 		static int SetSwapChainScalingMode(lua_State* L)noexcept
 		{
 			const lua::stack_t ctx(L);
-			const auto scaling_mode = ctx.get_value<core::Graphics::SwapChainScalingMode>(1);
+			const auto scaling_mode = ctx.get_value<core::SwapChainScalingMode>(1);
 			LAPP.getSwapChain()->setScalingMode(scaling_mode);
 			return 0;
 		}

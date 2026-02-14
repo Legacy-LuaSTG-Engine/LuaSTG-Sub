@@ -1,4 +1,4 @@
-#include "core/Graphics/SwapChain_D3D11.hpp"
+#include "d3d11/SwapChain.hpp"
 #include "windows/Window.hpp"
 #include "core/Configuration.hpp"
 #include "core/Logger.hpp"
@@ -31,6 +31,9 @@
 #define ReportError(x) core::Logger::error("Windows API failed: " x)
 
 namespace {
+	constexpr DXGI_FORMAT const COLOR_BUFFER_FORMAT = DXGI_FORMAT_B8G8R8A8_UNORM;
+	constexpr DXGI_FORMAT const DEPTH_BUFFER_FORMAT = DXGI_FORMAT_D24_UNORM_S8_UINT;
+
 	bool resolveOutput(HWND const window, IDXGISwapChain* const swap_chain, IDXGIOutput** const output_output) {
 		HRNew;
 
@@ -64,14 +67,8 @@ namespace {
 
 		return false;
 	}
-}
 
-namespace core::Graphics
-{
-	constexpr DXGI_FORMAT const COLOR_BUFFER_FORMAT = DXGI_FORMAT_B8G8R8A8_UNORM;
-	constexpr DXGI_FORMAT const DEPTH_BUFFER_FORMAT = DXGI_FORMAT_D24_UNORM_S8_UINT;
-
-	inline std::string_view to_string(DXGI_MODE_SCANLINE_ORDER v)
+	std::string_view to_string(DXGI_MODE_SCANLINE_ORDER v)
 	{
 		switch (v)
 		{
@@ -86,7 +83,7 @@ namespace core::Graphics
 			return "隔行扫描（先偶数行）";
 		}
 	}
-	inline std::string_view to_string(DXGI_MODE_SCALING v)
+	std::string_view to_string(DXGI_MODE_SCALING v)
 	{
 		switch (v)
 		{
@@ -100,7 +97,7 @@ namespace core::Graphics
 		}
 	}
 
-	inline bool makeLetterboxing(Vector2U rect, Vector2U inner_rect, DXGI_MATRIX_3X2_F& mat)
+	bool makeLetterboxing(core::Vector2U rect, core::Vector2U inner_rect, DXGI_MATRIX_3X2_F& mat)
 	{
 		if (rect == inner_rect)
 		{
@@ -123,7 +120,7 @@ namespace core::Graphics
 			return true;
 		}
 	}
-	inline DXGI_SWAP_CHAIN_DESC1 getDefaultSwapChainInfo7()
+	DXGI_SWAP_CHAIN_DESC1 getDefaultSwapChainInfo7()
 	{
 		return DXGI_SWAP_CHAIN_DESC1{
 			.Width = 0,
@@ -142,7 +139,7 @@ namespace core::Graphics
 			.Flags = 0,
 		};
 	}
-	inline DXGI_SWAP_CHAIN_DESC1 getDefaultSwapChainInfo10()
+	DXGI_SWAP_CHAIN_DESC1 getDefaultSwapChainInfo10()
 	{
 		return DXGI_SWAP_CHAIN_DESC1{
 			.Width = 0,
@@ -162,7 +159,7 @@ namespace core::Graphics
 		};
 	}
 
-	static bool findBestDisplayMode(HWND const window, IDXGISwapChain1* dxgi_swapchain, Vector2U canvas_size, DXGI_MODE_DESC1& mode)
+	bool findBestDisplayMode(HWND const window, IDXGISwapChain1* dxgi_swapchain, core::Vector2U canvas_size, DXGI_MODE_DESC1& mode)
 	{
 		HRNew;
 
@@ -374,9 +371,9 @@ namespace core::Graphics
 
 		// 打印结果
 
-		Logger::info("[core] [SwapChain] found {} DisplayMode", mode_list.size());
+		core::Logger::info("[core] [SwapChain] found {} DisplayMode", mode_list.size());
 		for (size_t i = 0; i < mode_list.size(); i += 1) {
-			Logger::info("{: >4d}: ({: >5d} x {: >5d}) {:.2f}Hz {} {}"
+			core::Logger::info("{: >4d}: ({: >5d} x {: >5d}) {:.2f}Hz {} {}"
 				, i
 				, mode_list[i].Width, mode_list[i].Height
 				, (double)mode_list[i].RefreshRate.Numerator / (double)mode_list[i].RefreshRate.Denominator
@@ -398,7 +395,7 @@ namespace core::Graphics
 
 		return true;
 	}
-	static bool checkModernSwapChainModelAvailable(ID3D11Device* device)
+	bool checkModernSwapChainModelAvailable(ID3D11Device* device)
 	{
 		// 是否需要统一开启现代交换链模型
 		// 我们划定一个红线，红线以下永远不开启，红线以上永远开启
@@ -494,7 +491,7 @@ namespace core::Graphics
 
 		auto bool_to_string = [](bool v) { return v ? "true" : "false"; };
 
-		Logger::info(
+		core::Logger::info(
 			"[core] Graphics Device: {}\n"
 			"    Direct Flip Support: {}\n"
 			"    Independent Flip Support: {}\n"
@@ -507,7 +504,7 @@ namespace core::Graphics
 
 		return present_allow_tearing && direct_flip_caps.Supported && independent_flip_support.Supported;
 	}
-	static bool checkMultiPlaneOverlaySupport(ID3D11Device* device)
+	bool checkMultiPlaneOverlaySupport(ID3D11Device* device)
 	{
 		// 是否有多平面叠加支持，如果有，就可以提供更好的性能
 
@@ -518,7 +515,7 @@ namespace core::Graphics
 		// 用户禁用了 MPO 则跳过
 
 		if (Platform::DesktopWindowManager::IsOverlayTestModeExists()) {
-			Logger::warn("[core] Multi Plane Overlay is disabled by user");
+			core::Logger::warn("[core] Multi Plane Overlay is disabled by user");
 			return false;
 		}
 
@@ -620,7 +617,7 @@ namespace core::Graphics
 
 				auto bool_to_string = [](bool v) { return v ? "true" : "false"; };
 
-				Logger::info(
+				core::Logger::info(
 					"[core] Display Output: {} -> {}\n"
 					"    Overlays Support: {}\n"
 					"    Multi Plane Overlay:\n"
@@ -705,13 +702,13 @@ namespace core::Graphics
 
 		return true;
 	}
-	inline bool isModernSwapChainModel(DXGI_SWAP_CHAIN_DESC1 const& info)
+	bool isModernSwapChainModel(DXGI_SWAP_CHAIN_DESC1 const& info)
 	{
 		return info.SwapEffect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL
 			|| info.SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD
 			;
 	}
-	inline bool isModernSwapChainModel(IDXGISwapChain1* dxgi_swapchain)
+	bool isModernSwapChainModel(IDXGISwapChain1* dxgi_swapchain)
 	{
 		HRNew;
 
@@ -721,7 +718,9 @@ namespace core::Graphics
 
 		return isModernSwapChainModel(info);
 	}
+}
 
+namespace core {
 	bool SecondarySwapChain::createRenderAttachment() {
 		assert(d3d11_device);
 #ifdef LUASTG_ENABLE_DIRECT2D
@@ -834,7 +833,9 @@ namespace core::Graphics
 		HRCheckCallReturnBool("IDXGISwapChain::Present");
 		return true;
 	}
+}
 
+namespace core {
 	void SwapChain_D3D11::dispatchEvent(EventType t)
 	{
 		// 回调
@@ -1521,7 +1522,7 @@ namespace core::Graphics
 
 		// 设置交换链内容内接放大
 
-		if (m_scaling_mode == SwapChainScalingMode::Stretch)
+		if (m_scaling_mode == SwapChainScalingMode::stretch)
 		{
 			auto const mat_d2d = D2D1::Matrix3x2F::Scale(
 				(float)window_size_u.x / (float)desc1.Width,
@@ -1908,7 +1909,7 @@ namespace core::Graphics
 		return m_scaling_renderer.UpdateTransform(
 			m_canvas_d3d11_srv.get(),
 			m_swap_chain_d3d11_rtv.get(),
-			m_scaling_mode == SwapChainScalingMode::Stretch
+			m_scaling_mode == SwapChainScalingMode::stretch
 		);
 	}
 	bool SwapChain_D3D11::presentLetterBoxingRenderer()

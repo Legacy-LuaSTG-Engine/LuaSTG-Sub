@@ -5,7 +5,7 @@
 #include "core/FrameRateController.hpp"
 #include "core/Window.hpp"
 #include "core/GraphicsDevice.hpp"
-#include "core/Graphics/SwapChain.hpp"
+#include "core/SwapChain.hpp"
 #include "core/Graphics/Renderer.hpp"
 #include "core/Graphics/Font.hpp"
 #include "core/AudioEngine.hpp"
@@ -48,7 +48,7 @@ namespace luastg {
 	class AppFrame
 		: public core::IApplication
 		, public core::IWindowEventListener
-		, public core::Graphics::ISwapChainEventListener
+		, public core::ISwapChainEventListener
 		, public IRenderTargetManager
 	{
 	public:
@@ -73,7 +73,7 @@ namespace luastg {
 		core::IFrameRateController* m_frame_rate_controller{ core::IFrameRateController::getInstance() };
 		core::SmartReference<core::IWindow> m_window;
 		core::SmartReference<core::IGraphicsDevice> m_graphics_device;
-		core::SmartReference<core::Graphics::ISwapChain> m_swap_chain;
+		core::SmartReference<core::ISwapChain> m_swap_chain;
 		core::SmartReference<core::Graphics::IRenderer> m_renderer;
 		core::SmartReference<core::Graphics::ITextRenderer> m_text_renderer;
 		core::SmartReference<core::IAudioEngine> m_audio_engine;
@@ -298,7 +298,7 @@ namespace luastg {
 		}
 		core::IWindow* getWindow() const noexcept { return m_window.get(); }
 		core::IGraphicsDevice* getGraphicsDevice() const noexcept { return m_graphics_device.get(); }
-		core::Graphics::ISwapChain* getSwapChain() const noexcept { return m_swap_chain.get(); }
+		core::ISwapChain* getSwapChain() const noexcept { return m_swap_chain.get(); }
 		core::Graphics::IRenderer* getRenderer2D() const noexcept { return m_renderer.get(); }
 		core::Graphics::ITextRenderer* getTextRenderer() const noexcept { return m_text_renderer.get(); }
 		core::IAudioEngine* getAudioEngine() const noexcept { return m_audio_engine.get(); }

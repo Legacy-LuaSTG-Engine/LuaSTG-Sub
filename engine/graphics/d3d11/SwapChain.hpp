@@ -1,14 +1,13 @@
 #pragma once
+#include "core/SwapChain.hpp"
 #include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
-#include "core/Graphics/SwapChain.hpp"
 #include "core/Graphics/Direct3D11/LetterBoxingRenderer.hpp"
 #include "d3d11/GraphicsDevice.hpp"
 #include "windows/RuntimeLoader/DirectComposition.hpp"
 #include <wil/resource.h>
 
-namespace core::Graphics
-{
+namespace core {
 	class SecondarySwapChain {
 	private:
 		DXGI_SWAP_CHAIN_DESC1 info{};
@@ -48,7 +47,7 @@ namespace core::Graphics
 	private:
 		SmartReference<IWindow> m_window;
 		SmartReference<GraphicsDevice> m_device;
-		Direct3D11::LetterBoxingRenderer m_scaling_renderer;
+		Graphics::Direct3D11::LetterBoxingRenderer m_scaling_renderer;
 
 		wil::unique_event_nothrow dxgi_swapchain_event;
 		win32::com_ptr<IDXGISwapChain1> dxgi_swapchain;
@@ -67,7 +66,7 @@ namespace core::Graphics
 		bool m_disable_composition{ false };
 		bool m_enable_composition{ false };
 
-		SwapChainScalingMode m_scaling_mode{ SwapChainScalingMode::AspectRatio };
+		SwapChainScalingMode m_scaling_mode{ SwapChainScalingMode::aspect_ratio };
 
 	public:
 		void onGraphicsDeviceCreate() override;

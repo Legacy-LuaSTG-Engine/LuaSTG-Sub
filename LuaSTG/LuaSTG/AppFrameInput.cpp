@@ -186,7 +186,7 @@ namespace luastg
         float const hscale = (float)w_size.x / (float)c_size.x;
         float const vscale = (float)w_size.y / (float)c_size.y;
 
-        if (m_swap_chain->getScalingMode() == core::Graphics::SwapChainScalingMode::Stretch)
+        if (m_swap_chain->getScalingMode() == core::SwapChainScalingMode::stretch)
         {
             return core::Vector4F(0.0f, 0.0f, 1.0f / hscale, 1.0f / vscale);
         }

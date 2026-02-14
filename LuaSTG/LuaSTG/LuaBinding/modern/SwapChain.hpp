@@ -1,7 +1,7 @@
 #pragma once
 #include <string_view>
 #include "lua.hpp"
-#include "core/Graphics/SwapChain.hpp"
+#include "core/SwapChain.hpp"
 
 namespace luastg::binding {
 
@@ -9,7 +9,7 @@ namespace luastg::binding {
 
 		static std::string_view class_name;
 
-		[[maybe_unused]] core::Graphics::ISwapChain* data{};
+		[[maybe_unused]] core::ISwapChain* data{};
 
 		static bool is(lua_State* L, int index);
 
