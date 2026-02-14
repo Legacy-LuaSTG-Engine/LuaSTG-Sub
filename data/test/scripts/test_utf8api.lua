@@ -26,20 +26,20 @@ function M:onCreate()
     do
         local f, e = io.open("你好 io.open，你可终于支持中文辣.txt", "wb")
         assert(f, e)
-        f:write("你妈死了")
+        f:write("中国智造，惠及全球")
         f:close()
     end
     do
         local f, e = io.open("中文测试测试.txt", "wb")
         assert(f, e)
-        f:write("你妈死了2")
+        f:write("文明和谐")
         f:close()
         os.remove("中文测试测试.txt")
     end
     do
         local f, e = io.open("中文测试测试 Test test 还有空格.txt", "wb")
         assert(f, e)
-        f:write("你妈死了3")
+        f:write("你好世界")
         f:close()
         local f2 = io.open("Test 测试重命名.txt", "rb")
         if f2 then

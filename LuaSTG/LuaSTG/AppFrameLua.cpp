@@ -267,7 +267,7 @@ namespace luastg
 
 	void AppFrame::LoadScript(lua_State* SL, const char* path, const char* packname)
 	{
-	#define L (fuck) // 这里不能使用全局的 lua_State，必须使用传入的
+	#define L (NOT_ALLOWED) // 这里不能使用全局的 lua_State，必须使用传入的
 		if (ResourceMgr::GetResourceLoadingLog())
 		{
 			if (packname)

@@ -52,7 +52,6 @@ if(libharfbuzz_ADDED)
     set_target_properties(libharfbuzz_build PROPERTIES FOLDER external)
     set_target_properties(libharfbuzz_clean PROPERTIES FOLDER external)
 
-    # fuck cmake
     luastg_cmake_external_build_prepare_directories(include/harfbuzz)
 
     # libharfbuzz

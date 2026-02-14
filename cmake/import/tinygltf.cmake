@@ -28,7 +28,7 @@ if(tinygltf_ADDED)
     # 配置 include 路径，避免使用自带的 json 和 stb 库
     target_include_directories(tinygltf PUBLIC
         ${CMAKE_BINARY_DIR}/tinygltf
-        ${nlohmann_json_SOURCE_DIR}/include/nlohmann # 非常傻逼
+        ${nlohmann_json_SOURCE_DIR}/include/nlohmann # tinygltf 直接 #include "json.hpp"
     )
     if (NOT EXISTS ${CMAKE_BINARY_DIR}/tinygltf/tiny_gltf.cpp)
         file(WRITE ${CMAKE_BINARY_DIR}/tinygltf/tiny_gltf.cpp

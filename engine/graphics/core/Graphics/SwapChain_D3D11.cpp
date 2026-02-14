@@ -1060,8 +1060,8 @@ namespace core::Graphics
 		
 		m_swap_chain_fullscreen_mode = fullscreen;
 
-		// 关闭傻逼快捷键，别他妈乱切换了
-		// 注意这里他妈的有坑，新创建的 DXGI 工厂和交换链内部的的不是同一个
+		// 禁用默认的 ALT+ENTER 全屏切换
+		// 注意这里有坑，新创建的 DXGI 工厂和交换链内部使用的不是同一个实例
 
 		HRGet = Platform::DXGI::MakeSwapChainWindowAssociation(
 			dxgi_swapchain.get(), DXGI_MWA_NO_ALT_ENTER);

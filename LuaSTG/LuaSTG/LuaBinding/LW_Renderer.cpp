@@ -814,7 +814,7 @@ namespace luastg {
 			return 0;
 		}
 
-		// 下面是傻逼风格
+		// 下面是一是脑抽设计出来的，以后必须干掉
 
 		const char* ps_name = luaL_checkstring(L, 1);
 		const char* rt_name = luaL_checkstring(L, 2);

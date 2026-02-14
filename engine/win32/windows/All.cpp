@@ -52,7 +52,7 @@ namespace Platform
 
 		if (_IsOverlayTestModeExists(KEY_WOW64_32KEY))
 		{
-			return TRUE; // 理论上不会触发，但是以防万一，省的微软妈又死了
+			return TRUE; // 理论上不会触发
 		}
 
 		if (_IsOverlayTestModeExists(KEY_WOW64_64KEY))

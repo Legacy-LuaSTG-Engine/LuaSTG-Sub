@@ -8,7 +8,7 @@
 
 #include <Windows.h>
 
-// Now, let's FUCK Windows.h
+// Now, let's FUCK MICROSOFT
 
 #ifdef DrawText
 #undef DrawText

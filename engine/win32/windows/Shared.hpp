@@ -59,7 +59,7 @@ namespace Microsoft::WRL::Wrappers
 	using SemaphoreHandle = HandleT<HandleTraits::HANDLENullTraits>;
 }
 
-// Now, let's FUCK Windows.h
+// Now, let's FUCK MICROSOFT
 
 #undef CreateWindow
 #undef DefWindowProc
