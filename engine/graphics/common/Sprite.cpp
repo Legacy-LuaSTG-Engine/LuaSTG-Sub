@@ -1,6 +1,6 @@
-#include "core/Graphics/Common/Sprite.hpp"
+#include "common/Sprite.hpp"
 
-namespace core::Graphics::Common {
+namespace core {
 	void Sprite::setTextureRect(RectF const& rc) {
 		m_rect = rc;
 	}
@@ -27,9 +27,10 @@ namespace core::Graphics::Common {
 	}
 	Sprite::~Sprite() = default;
 }
+
 namespace core::Graphics {
 	bool ISprite::create(ITexture2D* const p_texture, ISprite** const pp_sprite) {
-		*pp_sprite = new Common::Sprite(p_texture);
+		*pp_sprite = new Sprite(p_texture);
 		return true;
 	}
 }

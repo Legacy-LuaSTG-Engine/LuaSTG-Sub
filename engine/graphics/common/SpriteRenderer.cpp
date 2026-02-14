@@ -1,7 +1,6 @@
-#include "core/Graphics/Common/SpriteRenderer.hpp"
-#include <cassert>
+#include "common/SpriteRenderer.hpp"
 
-namespace core::Graphics::Common {
+namespace core {
 	void SpriteRenderer::setTransform(RectF const& rect) {
 		m_vertex[0].x = rect.a.x;
 		m_vertex[0].y = rect.a.y;
@@ -88,7 +87,7 @@ namespace core::Graphics::Common {
 		m_vertex[3].x += position.x;
 		m_vertex[3].y += position.y;
 	}
-	void SpriteRenderer::setSprite(ISprite* const sprite) {
+	void SpriteRenderer::setSprite(Graphics::ISprite* const sprite) {
 		//assert(sprite);
 		m_sprite = sprite;
 		if (m_sprite) {
@@ -127,11 +126,11 @@ namespace core::Graphics::Common {
 			vertex.z = z;
 		}
 	}
-	void SpriteRenderer::setLegacyBlendState(IRenderer::VertexColorBlendState const vertex_color_blend_state, IRenderer::BlendState const blend_state) {
+	void SpriteRenderer::setLegacyBlendState(Graphics::IRenderer::VertexColorBlendState const vertex_color_blend_state, Graphics::IRenderer::BlendState const blend_state) {
 		m_vertex_color_blend_state = vertex_color_blend_state;
 		m_blend_state = blend_state;
 	}
-	void SpriteRenderer::draw(IRenderer* const renderer) {
+	void SpriteRenderer::draw(Graphics::IRenderer* const renderer) {
 		assert(renderer);
 		renderer->setVertexColorBlendState(m_vertex_color_blend_state);
 		renderer->setBlendState(m_blend_state);
@@ -144,13 +143,14 @@ namespace core::Graphics::Common {
 	}
 	SpriteRenderer::~SpriteRenderer() = default;
 }
+
 namespace core::Graphics {
 	bool ISpriteRenderer::create(ISpriteRenderer** const output) {
 		if (output == nullptr) {
 			assert(false);
 			return false;
 		}
-		*output = new Common::SpriteRenderer;
+		*output = new SpriteRenderer;
 		return true;
 	}
 }

@@ -1,4 +1,4 @@
-#include "core/Graphics/Common/FreeTypeGlyphManager.hpp"
+#include "common/FreeTypeGlyphManager.hpp"
 #include "core/FileSystem.hpp"
 #include "utility/utf.hpp"
 #include "utf8.hpp"
@@ -79,12 +79,13 @@ namespace {
 #define FT_LIBRARY (FreeTypeLibrarySingleton::getInstance().get())
 }
 
-namespace core::Graphics::Common {
-	Image2D::Image2D() {
+namespace core {
+	FreeTypeGlyphManager::Image2D::Image2D() {
 		std::memset(data, 0, sizeof(data));
 	}
 }
-namespace core::Graphics::Common {
+
+namespace core {
 	// IGraphicsDeviceEventListener
 
 	void FreeTypeGlyphManager::onGraphicsDeviceCreate() {
@@ -159,7 +160,7 @@ namespace core::Graphics::Common {
 		return result;
 	}
 
-	bool FreeTypeGlyphManager::getGlyph(uint32_t const codepoint, GlyphInfo* const p_ref_info, bool const no_render) {
+	bool FreeTypeGlyphManager::getGlyph(uint32_t const codepoint, Graphics::GlyphInfo* const p_ref_info, bool const no_render) {
 		if (!p_ref_info) {
 			assert(false); return false;
 		}
@@ -179,7 +180,7 @@ namespace core::Graphics::Common {
 
 	// FreeTypeGlyphManager
 
-	FreeTypeGlyphManager::FreeTypeGlyphManager(IGraphicsDevice* const p_device, TrueTypeFontInfo const* const p_arr_info, size_t const info_count)
+	FreeTypeGlyphManager::FreeTypeGlyphManager(IGraphicsDevice* const p_device, Graphics::TrueTypeFontInfo const* const p_arr_info, size_t const info_count)
 		: m_device(p_device) {
 		if (!openFonts(p_arr_info, info_count)) {
 			throw std::runtime_error("FreeTypeGlyphManager::FreeTypeGlyphManager (openFonts)");
@@ -205,7 +206,7 @@ namespace core::Graphics::Common {
 		}
 		m_font.clear();
 	}
-	bool FreeTypeGlyphManager::openFonts(TrueTypeFontInfo const* const fonts, size_t const count) {
+	bool FreeTypeGlyphManager::openFonts(Graphics::TrueTypeFontInfo const* const fonts, size_t const count) {
 		closeFonts();
 		if (!fonts || count == 0) {
 			assert(false); return false;
@@ -402,7 +403,7 @@ namespace core::Graphics::Common {
 		t.pen_bottom = std::max(t.pen_bottom, t.pen_y + bitmap.rows);
 		return true;
 	}
-	GlyphCacheInfo* FreeTypeGlyphManager::getGlyphCacheInfo(uint32_t const codepoint) {
+	FreeTypeGlyphManager::GlyphCacheInfo* FreeTypeGlyphManager::getGlyphCacheInfo(uint32_t const codepoint) {
 		auto const it = m_map.find(codepoint);
 		if (it != m_map.end()) {
 			return &it->second;
@@ -436,10 +437,11 @@ namespace core::Graphics::Common {
 		return false;
 	}
 }
+
 namespace core::Graphics {
 	bool IGlyphManager::create(IGraphicsDevice* const p_device, TrueTypeFontInfo const* const p_arr_info, size_t const info_count, IGlyphManager** const output) {
 		try {
-			*output = new Common::FreeTypeGlyphManager(p_device, p_arr_info, info_count);
+			*output = new FreeTypeGlyphManager(p_device, p_arr_info, info_count);
 			return true;
 		}
 		catch (...) {

@@ -3,8 +3,8 @@
 #include "core/implement/ReferenceCounted.hpp"
 #include "core/Graphics/Sprite.hpp"
 
-namespace core::Graphics::Common {
-    class Sprite final : public implement::ReferenceCounted<ISprite> {
+namespace core {
+    class Sprite final : public implement::ReferenceCounted<Graphics::ISprite> {
     public:
         // ISprite
 

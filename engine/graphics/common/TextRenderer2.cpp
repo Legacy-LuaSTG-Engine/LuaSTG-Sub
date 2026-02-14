@@ -1,7 +1,7 @@
-#include "core/Graphics/Common/TextRenderer2.hpp"
+#include "common/TextRenderer2.hpp"
 #include <cassert>
 
-namespace core::Graphics {
+namespace core {
     void TextRenderer2::setTransform(RectF const& rect) {
         m_sprite_renderer->setTransform(rect);
     }
@@ -41,10 +41,10 @@ namespace core::Graphics {
     void TextRenderer2::setZ(const float z) {
         m_sprite_renderer->setZ(z);
     }
-    void TextRenderer2::setLegacyBlendState(const IRenderer::VertexColorBlendState vertex_color_blend_state, const IRenderer::BlendState blend_state) {
+    void TextRenderer2::setLegacyBlendState(const Graphics::IRenderer::VertexColorBlendState vertex_color_blend_state, const Graphics::IRenderer::BlendState blend_state) {
         m_sprite_renderer->setLegacyBlendState(vertex_color_blend_state, blend_state);
     }
-    void TextRenderer2::draw(IRenderer* renderer) {
+    void TextRenderer2::draw(Graphics::IRenderer* renderer) {
         if (!m_text_layout) {
             return;
         }
@@ -59,7 +59,7 @@ namespace core::Graphics {
     bool TextRenderer2::initialize(IGraphicsDevice* const device) {
         assert(device != nullptr);
         m_device = device;
-        if (!ISpriteRenderer::create(m_sprite_renderer.put())) {
+        if (!Graphics::ISpriteRenderer::create(m_sprite_renderer.put())) {
             return false;
         }
         return true;
@@ -92,7 +92,7 @@ namespace core::Graphics {
         }
 
         if (!m_sprite) {
-            if (!ISprite::create(m_texture.get(), m_sprite.put())) {
+            if (!Graphics::ISprite::create(m_texture.get(), m_sprite.put())) {
                 return false;
             }
             m_sprite->setTextureCenter(m_anchor);

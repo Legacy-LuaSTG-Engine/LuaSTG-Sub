@@ -1,8 +1,7 @@
-#include "core/Graphics/Common/TextRenderer.hpp"
+#include "common/TextRenderer.hpp"
 #include "utility/utf.hpp"
 
-namespace core::Graphics::Common {
-	
+namespace core {
 	RectF TextRenderer::getTextBoundary(StringView const str)
 	{
 		if (!m_glyph_mgr)
@@ -12,7 +11,7 @@ namespace core::Graphics::Common {
 
 		utf::utf8reader reader_(str.data(), str.size());
 		
-		GlyphInfo glyph_info = {};
+		Graphics::GlyphInfo glyph_info = {};
 		Vector2F start_pos;
 		RectF rect(
 			Vector2F(FLT_MAX, -FLT_MAX),
@@ -68,7 +67,7 @@ namespace core::Graphics::Common {
 
 		utf::utf8reader reader_(str.data(), str.size());
 
-		GlyphInfo glyph_info = {};
+		Graphics::GlyphInfo glyph_info = {};
 		Vector2F start_pos;
 		bool is_updated = false;
 		float const line_height = m_glyph_mgr->getLineHeight();
@@ -118,12 +117,12 @@ namespace core::Graphics::Common {
 		}
 
 		// 绘制参数
-		GlyphInfo glyph_info = {};
+		Graphics::GlyphInfo glyph_info = {};
 		Vector2F start_pos = start; // 笔触位置
 		float const line_height = m_glyph_mgr->getLineHeight() * m_scale.y; // 行高
 
 		// 比较常用的空格
-		GlyphInfo space_glyph_info = {};
+		Graphics::GlyphInfo space_glyph_info = {};
 		if (!m_glyph_mgr->getGlyph(uint32_t(U' '), &space_glyph_info, true))
 		{
 			//assert(false); return false; // 没有空格就默认它所有度量值为 0
@@ -245,13 +244,13 @@ namespace core::Graphics::Common {
 		}
 
 		// 绘制参数
-		GlyphInfo glyph_info = {};
+		Graphics::GlyphInfo glyph_info = {};
 		Vector3F line_pos = start; // 行起始笔触位置
 		Vector3F start_pos = start; // 笔触位置
 		float const line_height = m_glyph_mgr->getLineHeight() * m_scale.y; // 行高
 
 		// 比较常用的空格
-		GlyphInfo space_glyph_info = {};
+		Graphics::GlyphInfo space_glyph_info = {};
 		if (!m_glyph_mgr->getGlyph(uint32_t(U' '), &space_glyph_info, true))
 		{
 			//assert(false); return false; // 没有空格就默认它所有度量值为 0
@@ -355,7 +354,7 @@ namespace core::Graphics::Common {
 		return true;
 	}
 
-	TextRenderer::TextRenderer(IRenderer* const p_renderer)
+	TextRenderer::TextRenderer(Graphics::IRenderer* const p_renderer)
 		: m_renderer(p_renderer)
 		, m_scale(Vector2F(1.0f, 1.0f))
 		, m_z(0.5f)
@@ -364,13 +363,13 @@ namespace core::Graphics::Common {
 	}
 	TextRenderer::~TextRenderer() = default;
 
-	bool TextRenderer::drawGlyph(GlyphInfo const& glyph_info, Vector2F const& start_pos) {
+	bool TextRenderer::drawGlyph(Graphics::GlyphInfo const& glyph_info, Vector2F const& start_pos) {
 		// 准备顶点
-		IRenderer::DrawVertex vert[4] = {
-			IRenderer::DrawVertex(0.0f, 0.0f, m_z, 0.0f, 0.0f, m_color.color()),
-			IRenderer::DrawVertex(0.0f, 0.0f, m_z, 0.0f, 0.0f, m_color.color()),
-			IRenderer::DrawVertex(0.0f, 0.0f, m_z, 0.0f, 0.0f, m_color.color()),
-			IRenderer::DrawVertex(0.0f, 0.0f, m_z, 0.0f, 0.0f, m_color.color()),
+		Graphics::IRenderer::DrawVertex vert[4] = {
+			Graphics::IRenderer::DrawVertex(0.0f, 0.0f, m_z, 0.0f, 0.0f, m_color.color()),
+			Graphics::IRenderer::DrawVertex(0.0f, 0.0f, m_z, 0.0f, 0.0f, m_color.color()),
+			Graphics::IRenderer::DrawVertex(0.0f, 0.0f, m_z, 0.0f, 0.0f, m_color.color()),
+			Graphics::IRenderer::DrawVertex(0.0f, 0.0f, m_z, 0.0f, 0.0f, m_color.color()),
 		};
 
 		// 计算位置矩形
@@ -405,13 +404,13 @@ namespace core::Graphics::Common {
 
 		return true;
 	}
-	bool TextRenderer::drawGlyphInSpace(GlyphInfo const& glyph_info, Vector3F const& start_pos, Vector3F const& right_vec, Vector3F const& down_vec) {
+	bool TextRenderer::drawGlyphInSpace(Graphics::GlyphInfo const& glyph_info, Vector3F const& start_pos, Vector3F const& right_vec, Vector3F const& down_vec) {
 		// 准备顶点
-		IRenderer::DrawVertex vert[4] = {
-			IRenderer::DrawVertex(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, m_color.color()),
-			IRenderer::DrawVertex(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, m_color.color()),
-			IRenderer::DrawVertex(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, m_color.color()),
-			IRenderer::DrawVertex(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, m_color.color()),
+		Graphics::IRenderer::DrawVertex vert[4] = {
+			Graphics::IRenderer::DrawVertex(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, m_color.color()),
+			Graphics::IRenderer::DrawVertex(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, m_color.color()),
+			Graphics::IRenderer::DrawVertex(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, m_color.color()),
+			Graphics::IRenderer::DrawVertex(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, m_color.color()),
 		};
 
 		// 计算位置矩形
@@ -454,12 +453,12 @@ namespace core::Graphics::Common {
 
 		return true;
 	}
-
 }
+
 namespace core::Graphics {
 	bool ITextRenderer::create(IRenderer* const p_renderer, ITextRenderer** const output) {
 		try {
-			*output = new Common::TextRenderer(p_renderer);
+			*output = new TextRenderer(p_renderer);
 			return true;
 		} catch (...) {
 			*output = nullptr;
