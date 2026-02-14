@@ -1,7 +1,7 @@
 #pragma once
 #include "core/implement/ReferenceCounted.hpp"
 #include "core/Graphics/Renderer.hpp"
-#include "d3d11/PrimitiveBatchRenderer.hpp"
+#include "common/PrimitiveBatchRenderer.hpp"
 #include "d3d11/GraphicsDevice.hpp"
 #include "core/Graphics/Model_D3D11.hpp"
 

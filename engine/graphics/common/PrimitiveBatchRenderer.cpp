@@ -1,4 +1,4 @@
-#include "d3d11/PrimitiveBatchRenderer.hpp"
+#include "common/PrimitiveBatchRenderer.hpp"
 
 namespace core {
     PrimitiveBatchRenderer::PrimitiveBatchRenderer() = default;

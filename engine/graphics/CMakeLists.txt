@@ -5,6 +5,8 @@ set(lib_name "Core.Graphics")
 file(GLOB_RECURSE lib_src RELATIVE ${CMAKE_CURRENT_LIST_DIR}
     core/*.hpp
     core/*.cpp
+    common/*.hpp
+    common/*.cpp
     d3d11/*.hpp
     d3d11/*.cpp
 )
