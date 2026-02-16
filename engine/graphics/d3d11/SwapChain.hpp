@@ -138,7 +138,5 @@ namespace core {
 	public:
 		SwapChain_D3D11(IWindow* p_window, GraphicsDevice* p_device);
 		~SwapChain_D3D11();
-	public:
-		static bool create(IWindow* p_window, GraphicsDevice* p_device, SwapChain_D3D11** pp_swapchain);
 	};
 }

@@ -2185,20 +2185,6 @@ namespace core {
 		assert(m_eventobj_late.size() == 0);
 	}
 
-	bool SwapChain_D3D11::create(IWindow* p_window, GraphicsDevice* p_device, SwapChain_D3D11** pp_swapchain)
-	{
-		try
-		{
-			*pp_swapchain = new SwapChain_D3D11(p_window, p_device);
-			return true;
-		}
-		catch (...)
-		{
-			*pp_swapchain = nullptr;
-			return false;
-		}
-	}
-
 	bool ISwapChain::create(IWindow* p_window, IGraphicsDevice* p_device, ISwapChain** pp_swapchain)
 	{
 		try
