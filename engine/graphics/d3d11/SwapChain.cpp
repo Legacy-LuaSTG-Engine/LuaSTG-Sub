@@ -3,6 +3,7 @@
 #include "core/Configuration.hpp"
 #include "core/Logger.hpp"
 #include "d3d11/GraphicsDeviceManager.hpp"
+#include "d3d11/DisplayModeHelper.hpp"
 #include "windows/WindowsVersion.hpp"
 #include "windows/DesktopWindowManager.hpp"
 #include "windows/Direct3D11.hpp"
@@ -33,40 +34,6 @@
 namespace {
 	constexpr DXGI_FORMAT const COLOR_BUFFER_FORMAT = DXGI_FORMAT_B8G8R8A8_UNORM;
 	constexpr DXGI_FORMAT const DEPTH_BUFFER_FORMAT = DXGI_FORMAT_D24_UNORM_S8_UINT;
-
-	bool resolveOutput(HWND const window, IDXGISwapChain* const swap_chain, IDXGIOutput** const output_output) {
-		HRNew;
-
-		auto const monitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
-		if (monitor == nullptr) {
-			ReportError("MonitorFromWindow (MONITOR_DEFAULT_TO_NEAREST)");
-			return false;
-		}
-
-		win32::com_ptr<IDXGIFactory1> factory;
-		HRGet = swap_chain->GetParent(IID_PPV_ARGS(factory.put()));
-		HRCheckCallNoAssertReturnBool("IDXGISwapChain::GetParent -> IDXGIFactory1");
-
-		win32::com_ptr<IDXGIAdapter1> adapter;
-		win32::com_ptr<IDXGIOutput> output;
-
-		for (UINT adapter_index = 0; SUCCEEDED(factory->EnumAdapters1(adapter_index, adapter.put())); adapter_index++) {
-			for (UINT output_index = 0; SUCCEEDED(adapter->EnumOutputs(output_index, output.put())); output_index++) {
-				DXGI_OUTPUT_DESC output_info{};
-				HRGet = output->GetDesc(&output_info);
-				if (FAILED(hr)) {
-					ReportError("IDXGIOutput::GetDesc");
-					continue;
-				}
-				if (monitor == output_info.Monitor) {
-					*output_output = output.detach();
-					return true;
-				}
-			}
-		}
-
-		return false;
-	}
 
 	std::string_view to_string(DXGI_MODE_SCANLINE_ORDER v)
 	{
@@ -167,11 +134,11 @@ namespace {
 		HRGet = dxgi_swapchain->GetContainingOutput(dxgi_output.put());
 		if (FAILED(hr)) {
 			ReportError("IDXGISwapChain1::GetContainingOutput");
-			if (!resolveOutput(window, dxgi_swapchain, dxgi_output.put())) {
+			if (!d3d11::getSwapChainNearestOutputFromWindow(dxgi_swapchain, window, dxgi_output.put())) {
 				return false;
 			}
 		}
-		
+	
 		win32::com_ptr<IDXGIOutput1> dxgi_output_1;
 		HRGet = dxgi_output->QueryInterface(dxgi_output_1.put());
 		HRCheckCallReturnBool("IDXGIOutput::QueryInterface -> IDXGIOutput1");
