@@ -721,121 +721,6 @@ namespace {
 }
 
 namespace core {
-	bool SecondarySwapChain::createRenderAttachment() {
-		assert(d3d11_device);
-#ifdef LUASTG_ENABLE_DIRECT2D
-		assert(d2d1_device_context);
-#endif
-		assert(dxgi_swap_chain);
-		HRNew;
-		
-		win32::com_ptr<ID3D11Texture2D> texture;
-		HRGet = dxgi_swap_chain->GetBuffer(0, IID_PPV_ARGS(texture.put()));
-		HRCheckCallReturnBool("IDXGISwapChain::GetBuffer");
-
-		HRGet = d3d11_device->CreateRenderTargetView(texture.get(), NULL, d3d11_rtv.put());
-		HRCheckCallReturnBool("ID3D11Device::CreateRenderTargetView");
-
-		win32::com_ptr<IDXGISurface> surface;
-		HRGet = dxgi_swap_chain->GetBuffer(0, IID_PPV_ARGS(surface.put()));
-		HRCheckCallReturnBool("IDXGISwapChain::GetBuffer");
-
-#ifdef LUASTG_ENABLE_DIRECT2D
-		D2D1_BITMAP_PROPERTIES1 bitmap_info{};
-		bitmap_info.pixelFormat.format = info.Format;
-		bitmap_info.pixelFormat.alphaMode = D2D1_ALPHA_MODE_IGNORE;
-		bitmap_info.bitmapOptions = D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW;
-		HRGet = d2d1_device_context->CreateBitmapFromDxgiSurface(surface.get(), &bitmap_info, d2d1_bitmap.put());
-		HRCheckCallReturnBool("ID2D1DeviceContext::CreateBitmapFromDxgiSurface");
-#endif
-
-		return true;
-	}
-	void SecondarySwapChain::destroyRenderAttachment() {
-		if (d3d11_device_context) {
-			d3d11_device_context->ClearState();
-			d3d11_device_context->Flush();
-		}
-		d3d11_rtv.reset();
-#ifdef LUASTG_ENABLE_DIRECT2D
-		d2d1_bitmap.reset();
-#endif
-	}
-
-	bool SecondarySwapChain::create(IDXGIFactory2* factory, ID3D11Device* device, ID2D1DeviceContext* context, Vector2U const& size) {
-		assert(factory);
-		assert(device);
-		assert(context);
-		assert(size.x > 0 && size.y > 0);
-		HRNew;
-
-		dxgi_factory = factory;
-		d3d11_device = device;
-		d3d11_device->GetImmediateContext(d3d11_device_context.put());
-#ifdef LUASTG_ENABLE_DIRECT2D
-		d2d1_device_context = context;
-#endif
-		
-		info.Width = size.x;
-		info.Height = size.y;
-		info.Format = COLOR_BUFFER_FORMAT;
-		info.SampleDesc.Count = 1;
-		info.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		info.BufferCount = 2;
-		info.Scaling = DXGI_SCALING_STRETCH;
-		info.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-		info.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
-		info.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-
-		HRGet = dxgi_factory->CreateSwapChainForComposition(d3d11_device.get(), &info, NULL, dxgi_swap_chain.put());
-		HRCheckCallReturnBool("IDXGIFactory2::CreateSwapChainForComposition");
-
-		return createRenderAttachment();
-	}
-	void SecondarySwapChain::destroy() {
-		destroyRenderAttachment();
-		dxgi_factory.reset();
-		d3d11_device.reset();
-		d3d11_device_context.reset();
-#ifdef LUASTG_ENABLE_DIRECT2D
-		d2d1_device_context.reset();
-#endif
-		dxgi_swap_chain.reset();
-	}
-	bool SecondarySwapChain::setSize(Vector2U const& size) {
-		assert(size.x > 0 && size.y > 0);
-		if (size.x == 0 || size.y == 0) {
-			return false;
-		}
-		HRNew;
-		destroyRenderAttachment();
-		info.Width = size.x;
-		info.Height = size.y;
-		HRGet = dxgi_swap_chain->ResizeBuffers(info.BufferCount, info.Width, info.Height, info.Format, info.Flags);
-		HRCheckCallReturnBool("IDXGISwapChain::ResizeBuffers");
-		return createRenderAttachment();
-	}
-	void SecondarySwapChain::clearRenderTarget() {
-		assert(d3d11_device_context);
-		assert(d3d11_rtv);
-		if (d3d11_device_context && d3d11_rtv) {
-			FLOAT const solid_black[4]{ 0.0f, 0.0f, 0.0f, 1.0f };
-			d3d11_device_context->ClearRenderTargetView(d3d11_rtv.get(), solid_black);
-		}
-	}
-	bool SecondarySwapChain::present() {
-		assert(dxgi_swap_chain);
-		if (!dxgi_swap_chain) {
-			return false;
-		}
-		HRNew;
-		HRGet = dxgi_swap_chain->Present(0, DXGI_PRESENT_ALLOW_TEARING);
-		HRCheckCallReturnBool("IDXGISwapChain::Present");
-		return true;
-	}
-}
-
-namespace core {
 	void SwapChain_D3D11::dispatchEvent(EventType t)
 	{
 		// 回调
@@ -1406,7 +1291,7 @@ namespace core {
 			}
 			// 标题栏交换链需要的时候再使用
 
-			HRGet = dcomp_visual_title_bar->SetContent(swap_chain_title_bar.GetDXGISwapChain1());
+			HRGet = dcomp_visual_title_bar->SetContent(swap_chain_title_bar.getSwapChain1());
 			HRCheckCallReturnBool("IDCompositionVisual2::SetContent");
 #endif
 		}
@@ -2186,7 +2071,7 @@ namespace core {
 					}
 				}
 				swap_chain_title_bar.clearRenderTarget();
-				title_bar_controller.draw(swap_chain_title_bar.GetD2D1Bitmap1());
+				title_bar_controller.draw(swap_chain_title_bar.getBitmap1());
 				if (!swap_chain_title_bar.present()) {
 					return false;
 				}

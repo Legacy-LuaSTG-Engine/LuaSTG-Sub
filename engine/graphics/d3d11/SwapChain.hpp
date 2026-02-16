@@ -4,41 +4,11 @@
 #include "core/implement/ReferenceCounted.hpp"
 #include "core/Graphics/Direct3D11/LetterBoxingRenderer.hpp"
 #include "d3d11/GraphicsDevice.hpp"
+#include "d3d11/SecondarySwapChain.hpp"
 #include "windows/RuntimeLoader/DirectComposition.hpp"
 #include <wil/resource.h>
 
 namespace core {
-	class SecondarySwapChain {
-	private:
-		DXGI_SWAP_CHAIN_DESC1 info{};
-		win32::com_ptr<IDXGIFactory2> dxgi_factory;
-		win32::com_ptr<ID3D11Device> d3d11_device;
-		win32::com_ptr<ID3D11DeviceContext> d3d11_device_context;
-#ifdef LUASTG_ENABLE_DIRECT2D
-		win32::com_ptr<ID2D1DeviceContext> d2d1_device_context;
-#endif
-		win32::com_ptr<IDXGISwapChain1> dxgi_swap_chain;
-		win32::com_ptr<ID3D11RenderTargetView> d3d11_rtv;
-#ifdef LUASTG_ENABLE_DIRECT2D
-		win32::com_ptr<ID2D1Bitmap1> d2d1_bitmap;
-#endif
-	private:
-		bool createRenderAttachment();
-		void destroyRenderAttachment();
-	public:
-		inline IDXGISwapChain1* GetDXGISwapChain1() { return dxgi_swap_chain.get(); }
-#ifdef LUASTG_ENABLE_DIRECT2D
-		inline ID2D1Bitmap1* GetD2D1Bitmap1() { return d2d1_bitmap.get(); }
-#endif
-	public:
-		bool create(IDXGIFactory2* factory, ID3D11Device* device, ID2D1DeviceContext* context, Vector2U const& size);
-		void destroy();
-		bool setSize(Vector2U const& size);
-		inline Vector2U getSize() const noexcept { return { info.Width, info.Height }; }
-		void clearRenderTarget();
-		bool present();
-	};
-
 	class SwapChain_D3D11
 		: public implement::ReferenceCounted<ISwapChain>
 		, public IWindowEventListener
