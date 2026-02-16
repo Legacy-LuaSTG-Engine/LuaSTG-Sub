@@ -1,0 +1,13 @@
+---
+Language: Cpp
+BasedOnStyle: LLVM
+IndentWidth: 4
+NamespaceIndentation: All
+ColumnLimit: 240
+#DerivePointerAlignment: false
+PointerAlignment: Left
+ReferenceAlignment: Left
+#SpaceAroundPointerQualifiers: Before
+SortIncludes: false
+SpaceAfterTemplateKeyword: false
+BreakTemplateDeclarations: Yes
