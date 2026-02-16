@@ -721,68 +721,33 @@ namespace {
 }
 
 namespace core {
-	void SwapChain_D3D11::dispatchEvent(EventType t)
-	{
-		// 回调
-		m_is_dispatch_event = true;
-		switch (t)
-		{
-		case EventType::SwapChainCreate:
-			for (auto& v : m_eventobj)
-			{
-				if (v) v->onSwapChainCreate();
-			}
-			break;
-		case EventType::SwapChainDestroy:
-			for (auto& v : m_eventobj)
-			{
-				if (v) v->onSwapChainDestroy();
-			}
-			break;
-		}
-		m_is_dispatch_event = false;
-		// 处理那些延迟的对象
-		removeEventListener(nullptr);
-		for (auto& v : m_eventobj_late)
-		{
-			m_eventobj.emplace_back(v);
-		}
-		m_eventobj_late.clear();
+	void SwapChain_D3D11::dispatchEvent(const EventType e) {
+		assert(!m_is_dispatching_event);
+		m_is_dispatching_event = true;
+
+		switch (e) {
+        case EventType::SwapChainCreate:
+            for (const auto listener : m_event_listeners) {
+                listener->onSwapChainCreate();
+            }
+            break;
+        case EventType::SwapChainDestroy:
+            for (const auto listener : m_event_listeners) {
+                listener->onSwapChainDestroy();
+            }
+            break;
+        }
+
+		m_is_dispatching_event = false;
 	}
-	void SwapChain_D3D11::addEventListener(ISwapChainEventListener* e)
-	{
-		removeEventListener(e);
-		if (m_is_dispatch_event)
-		{
-			m_eventobj_late.emplace_back(e);
-		}
-		else
-		{
-			m_eventobj.emplace_back(e);
-		}
+	void SwapChain_D3D11::addEventListener(ISwapChainEventListener* const listener) {
+		assert(!m_is_dispatching_event);
+        std::erase(m_event_listeners, listener);
+        m_event_listeners.emplace_back(listener);
 	}
-	void SwapChain_D3D11::removeEventListener(ISwapChainEventListener* e)
-	{
-		if (m_is_dispatch_event)
-		{
-			for (auto& v : m_eventobj)
-			{
-				if (v == e)
-				{
-					v = nullptr; // 不破坏遍历过程
-				}
-			}
-		}
-		else
-		{
-			for (auto it = m_eventobj.begin(); it != m_eventobj.end();)
-			{
-				if (*it == e)
-					it = m_eventobj.erase(it);
-				else
-					it++;
-			}
-		}
+	void SwapChain_D3D11::removeEventListener(ISwapChainEventListener* const listener) {
+		assert(!m_is_dispatching_event);
+        std::erase(m_event_listeners, listener);
 	}
 
 	void SwapChain_D3D11::onGraphicsDeviceCreate()
@@ -2174,15 +2139,13 @@ namespace core {
 		m_window->addEventListener(this);
 		m_device->addEventListener(this);
 	}
-	SwapChain_D3D11::~SwapChain_D3D11()
-	{
+	SwapChain_D3D11::~SwapChain_D3D11() {
 		m_window->removeEventListener(this);
 		m_device->removeEventListener(this);
 		destroySwapChain();
 		m_scaling_renderer.DetachDevice();
 		m_modern_swap_chain_available = false;
-		assert(m_eventobj.size() == 0);
-		assert(m_eventobj_late.size() == 0);
+		assert(m_event_listeners.empty());
 	}
 
 	bool ISwapChain::create(IWindow* p_window, IGraphicsDevice* p_device, ISwapChain** pp_swapchain)

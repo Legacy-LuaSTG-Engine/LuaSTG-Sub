@@ -23,8 +23,8 @@ namespace core {
 	};
 
 	CORE_INTERFACE ISwapChain : IReferenceCounted {
-		virtual void addEventListener(ISwapChainEventListener* e) = 0;
-		virtual void removeEventListener(ISwapChainEventListener* e) = 0;
+		virtual void addEventListener(ISwapChainEventListener* listener) = 0;
+		virtual void removeEventListener(ISwapChainEventListener* listener) = 0;
 
 		virtual bool setWindowMode(Vector2U size) = 0;
 		virtual bool setCanvasSize(Vector2U size) = 0;

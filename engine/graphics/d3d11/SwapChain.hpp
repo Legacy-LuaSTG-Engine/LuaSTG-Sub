@@ -109,13 +109,12 @@ namespace core {
 			SwapChainCreate,
 			SwapChainDestroy,
 		};
-		bool m_is_dispatch_event{ false };
-		std::vector<ISwapChainEventListener*> m_eventobj;
-		std::vector<ISwapChainEventListener*> m_eventobj_late;
-		void dispatchEvent(EventType t);
+		bool m_is_dispatching_event{};
+		std::vector<ISwapChainEventListener*> m_event_listeners;
+		void dispatchEvent(EventType e);
 	public:
-		void addEventListener(ISwapChainEventListener* e);
-		void removeEventListener(ISwapChainEventListener* e);
+		void addEventListener(ISwapChainEventListener* listener);
+		void removeEventListener(ISwapChainEventListener* listener);
 
 		bool setWindowMode(Vector2U size);
 		bool setCompositionWindowMode(Vector2U size);
