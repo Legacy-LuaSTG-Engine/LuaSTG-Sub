@@ -7,6 +7,7 @@ namespace core {
         // (Direct2D)
         virtual void* getNativeBitmap() const noexcept = 0;
 
+        virtual Vector2U getSize() const noexcept = 0;
         virtual bool setSize(Vector2U size) = 0;
         virtual ITexture2D* getTexture() const noexcept = 0;
     };

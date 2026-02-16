@@ -17,6 +17,8 @@ namespace core {
 #else
         void* getNativeBitmap() const noexcept override { return nullptr; }
 #endif
+
+        Vector2U getSize() const noexcept override { return m_texture->getSize(); }
         bool setSize(Vector2U size) override;
         ITexture2D* getTexture() const noexcept override { return m_texture.get(); }
 
