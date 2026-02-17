@@ -24,6 +24,7 @@ namespace {
     HANDLE g_main_thread{};
     DWORD g_main_thread_id{};
     bool is_updating{};
+    bool is_delegate_update_enabled{};
 }
 
 namespace core {
@@ -104,5 +105,13 @@ namespace core {
         if (!update_result) {
             requestExit();
         }
+    }
+
+    bool ApplicationManager::isDelegateUpdateEnabled() {
+        return is_delegate_update_enabled;
+    }
+
+    void ApplicationManager::setDelegateUpdateEnabled(const bool enabled) {
+        is_delegate_update_enabled = enabled;
     }
 }

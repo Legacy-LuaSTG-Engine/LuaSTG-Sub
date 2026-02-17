@@ -2,6 +2,7 @@
 #include "windows/Window.hpp"
 #include "core/Configuration.hpp"
 #include "core/Logger.hpp"
+#include "core/Application.hpp"
 #include "d3d11/GraphicsDeviceManager.hpp"
 #include "d3d11/DisplayModeHelper.hpp"
 #include "windows/WindowsVersion.hpp"
@@ -420,6 +421,13 @@ namespace {
 
 		return isModernSwapChainModel(info);
 	}
+
+	HRESULT setFullscreenState(IDXGISwapChain* const swap_chain, const BOOL fullscreen) {
+		core::ApplicationManager::setDelegateUpdateEnabled(false);
+		const HRESULT hr = swap_chain->SetFullscreenState(fullscreen, nullptr);
+		core::ApplicationManager::setDelegateUpdateEnabled(true);
+		return hr;
+	}
 }
 
 namespace core {
@@ -694,7 +702,7 @@ namespace core {
 			if (SUCCEEDED(hr) && bFullscreen)
 			{
 				Logger::info("[core] [SwapChain] leave exclusive fullscreen");
-				HRGet = dxgi_swapchain->SetFullscreenState(FALSE, NULL);
+				HRGet = setFullscreenState(dxgi_swapchain.get(), FALSE);
 				HRCheckCallReport("IDXGISwapChain::SetFullscreenState -> FALSE");
 			}
 		}
@@ -760,7 +768,7 @@ namespace core {
 
 		_log("IDXGISwapChain::SetFullscreenState -> TRUE\n");
 		Logger::info("[core] [SwapChain] enter exclusive fullscreen");
-		HRGet = dxgi_swapchain->SetFullscreenState(TRUE, NULL);
+		HRGet = setFullscreenState(dxgi_swapchain.get(), TRUE);
 		HRCheckCallReturnBool("IDXGISwapChain::SetFullscreenState -> TRUE");
 
 		return true;
@@ -789,7 +797,7 @@ namespace core {
 
 		_log("IDXGISwapChain::SetFullscreenState -> FALSE\n");
 		Logger::info("[core] [SwapChain] leave exclusive fullscreen");
-		HRGet = dxgi_swapchain->SetFullscreenState(FALSE, NULL);
+		HRGet = setFullscreenState(dxgi_swapchain.get(), FALSE);
 		HRCheckCallReturnBool("IDXGISwapChain::SetFullscreenState -> FALSE");
 
 		m_window->setLayer(WindowLayer::Normal); // 强制取消窗口置顶
@@ -827,7 +835,7 @@ namespace core {
 
 		// 进入全屏
 		Logger::info("[core] [SwapChain] enter exclusive fullscreen");
-		HRGet = dxgi_swapchain->SetFullscreenState(TRUE, nullptr);
+		HRGet = setFullscreenState(dxgi_swapchain.get(), TRUE);
 		HRCheckCallReturnBool("IDXGISwapChain::SetFullscreenState -> TRUE");
 
 		// 需要重设交换链大小（特别是 Flip 交换链模型）
@@ -862,7 +870,7 @@ namespace core {
 		if (get_state)
 		{
 			Logger::info("[core] [SwapChain] leave exclusive fullscreen");
-			HRGet = dxgi_swapchain->SetFullscreenState(FALSE, NULL);
+			HRGet = setFullscreenState(dxgi_swapchain.get(), FALSE);
 			HRCheckCallReturnBool("IDXGISwapChain::SetFullscreenState -> FALSE");
 		}
 		
