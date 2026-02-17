@@ -35,35 +35,6 @@ namespace {
 	constexpr DXGI_FORMAT const COLOR_BUFFER_FORMAT = DXGI_FORMAT_B8G8R8A8_UNORM;
 	constexpr DXGI_FORMAT const DEPTH_BUFFER_FORMAT = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
-	std::string_view to_string(DXGI_MODE_SCANLINE_ORDER v)
-	{
-		switch (v)
-		{
-		default:
-		case DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED:
-			assert(false); return "未知扫描方式";
-		case DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE:
-			return "逐行扫描";
-		case DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST:
-			return "隔行扫描（先奇数行）";
-		case DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST:
-			return "隔行扫描（先偶数行）";
-		}
-	}
-	std::string_view to_string(DXGI_MODE_SCALING v)
-	{
-		switch (v)
-		{
-		default:
-		case DXGI_MODE_SCALING_UNSPECIFIED:
-			return "自动缩放";
-		case DXGI_MODE_SCALING_CENTERED:
-			return "居中显示";
-		case DXGI_MODE_SCALING_STRETCHED:
-			return "拉伸全屏";
-		}
-	}
-
 	bool makeLetterboxing(core::Vector2U rect, core::Vector2U inner_rect, DXGI_MATRIX_3X2_F& mat)
 	{
 		if (rect == inner_rect)
