@@ -177,4 +177,23 @@ namespace {
         default: return "unknown"sv;
         }
     }
+
+    std::string_view toStringView(const DXGI_MODE_SCANLINE_ORDER v) {
+        switch (v) {
+        case DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED: return "UNSPECIFIED"sv;
+        case DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE: return "PROGRESSIVE"sv;
+        case DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST: return "UPPER_FIELD_FIRST"sv;
+        case DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST: return "LOWER_FIELD_FIRST"sv;
+        default: return "unknown"sv;
+        }
+    }
+
+    std::string_view toStringView(const DXGI_MODE_SCALING v) {
+        switch (v) {
+        case DXGI_MODE_SCALING_UNSPECIFIED: return "UNSPECIFIED";
+        case DXGI_MODE_SCALING_CENTERED: return "CENTERED";
+        case DXGI_MODE_SCALING_STRETCHED: return "STRETCHED";
+        default: return "unknown"sv;
+        }
+    }
 }
