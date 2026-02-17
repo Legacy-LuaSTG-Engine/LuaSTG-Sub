@@ -546,8 +546,12 @@ namespace core {
 
         m_heartbeat_running = true;
         m_heartbeat_thread = std::move(std::jthread([this]() -> void {
+            const auto frame_rate_controller = core::IFrameRateController::getInstance();
             constexpr UINT flags{ SMTO_BLOCK };
             while (m_heartbeat_running) {
+                while (m_heartbeat_running && !frame_rate_controller->arrived()) {
+                    Sleep(0);
+                }
                 SetLastError(ERROR_SUCCESS);
                 const LRESULT result = SendMessageTimeoutW(win32_window, LUASTG_WM_UPDATE, 0, 0, flags, 100, nullptr);
                 if (result == 0) {
@@ -556,7 +560,6 @@ namespace core {
                         core::Logger::error("[core] SendMessageTimeoutW failed (last error {})"sv, GetLastError());
                     }
                 }
-                Sleep(10);
             }
         }));
 
