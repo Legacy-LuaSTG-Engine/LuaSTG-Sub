@@ -13,7 +13,7 @@
 
 #include "ScreenGrab11.h"
 
-//#define _log(x) OutputDebugStringA(x "\n")
+//#define _log(x) core::Logger::info(x)
 #define _log(x)
 
 #define HRNew HRESULT hr = S_OK;
@@ -497,6 +497,7 @@ namespace core {
 	}
 	void SwapChain_D3D11::onWindowSize(core::Vector2U size)
 	{
+		_log("onWindowSize");
 		if (size.x == 0 || size.y == 0)
 			return; // 忽略窗口最小化
 		if (!dxgi_swapchain)
@@ -512,6 +513,7 @@ namespace core {
 	}
 	void SwapChain_D3D11::onWindowFullscreenStateChange(bool state)
 	{
+		_log("onWindowFullscreenStateChange");
 		if (!dxgi_swapchain)
 			return;
 		if (state)
@@ -795,6 +797,7 @@ namespace core {
 		return true;
 	}
 	bool SwapChain_D3D11::enterExclusiveFullscreen() {
+		_log("enterExclusiveFullscreen");
 		if (m_disable_exclusive_fullscreen) {
 			return false;
 		}
@@ -849,6 +852,7 @@ namespace core {
 	}
 	bool SwapChain_D3D11::leaveExclusiveFullscreen()
 	{
+		_log("leaveExclusiveFullscreen");
 		HRNew;
 
 		BOOL get_state = FALSE;
@@ -1704,6 +1708,8 @@ namespace core {
 	}
 	bool SwapChain_D3D11::present()
 	{
+		_log("present");
+
 		HRESULT hr = S_OK;
 
 		// 手动合成画面的情况下，通过内接缩放渲染器来缩放显示
