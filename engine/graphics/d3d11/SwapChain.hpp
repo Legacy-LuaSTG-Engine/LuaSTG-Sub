@@ -2,8 +2,8 @@
 #include "core/SwapChain.hpp"
 #include "core/SmartReference.hpp"
 #include "core/implement/ReferenceCounted.hpp"
-#include "core/Graphics/Direct3D11/LetterBoxingRenderer.hpp"
 #include "d3d11/GraphicsDevice.hpp"
+#include "d3d11/LetterBoxingRenderer.hpp"
 #include "d3d11/SecondarySwapChain.hpp"
 #include "windows/RuntimeLoader/DirectComposition.hpp"
 #include <wil/resource.h>
@@ -17,7 +17,7 @@ namespace core {
 	private:
 		SmartReference<IWindow> m_window;
 		SmartReference<GraphicsDevice> m_device;
-		Graphics::Direct3D11::LetterBoxingRenderer m_scaling_renderer;
+		d3d11::LetterBoxingRenderer m_scaling_renderer;
 
 		wil::unique_event_nothrow dxgi_swapchain_event;
 		win32::com_ptr<IDXGISwapChain1> dxgi_swapchain;
