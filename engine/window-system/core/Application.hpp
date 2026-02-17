@@ -15,5 +15,6 @@ namespace core {
         static IApplication* getApplication();
         static void requestExit();
         static bool isMainThread();
+        static bool isUpdating();
     };
 }
