@@ -316,10 +316,8 @@ namespace core {
             if (const auto application = core::ApplicationManager::getApplication(); application != nullptr) {
                 const auto frame_rate_controller = core::IFrameRateController::getInstance();
                 if (!core::ApplicationManager::isUpdating() && frame_rate_controller->arrived()) {
-                    application->onBeforeUpdate();
-                    if (!application->onUpdate()) {
-                        core::ApplicationManager::requestExit();
-                    }
+                    core::ApplicationManager::runBeforeUpdate();
+                    core::ApplicationManager::runUpdate();
                 }
             }
             return 0;

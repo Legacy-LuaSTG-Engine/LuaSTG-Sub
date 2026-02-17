@@ -90,4 +90,19 @@ namespace core {
     bool ApplicationManager::isUpdating() {
         return is_updating;
     }
+
+    void ApplicationManager::runBeforeUpdate() {
+        is_updating = true;
+        g_application->onBeforeUpdate();
+        is_updating = false;
+    }
+
+    void ApplicationManager::runUpdate() {
+        is_updating = true;
+        const auto update_result = g_application->onUpdate();
+        is_updating = false;
+        if (!update_result) {
+            requestExit();
+        }
+    }
 }

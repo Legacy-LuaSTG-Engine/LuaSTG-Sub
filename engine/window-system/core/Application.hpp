@@ -16,5 +16,7 @@ namespace core {
         static void requestExit();
         static bool isMainThread();
         static bool isUpdating();
+        static void runBeforeUpdate();
+        static void runUpdate();
     };
 }
