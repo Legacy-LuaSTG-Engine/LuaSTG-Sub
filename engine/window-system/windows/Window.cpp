@@ -21,6 +21,7 @@ namespace {
     constexpr int LUASTG_WM_RECREATE = WM_APP + __LINE__;
     constexpr int LUASTG_WM_SET_WINDOW_MODE = WM_APP + __LINE__;
     constexpr int LUASTG_WM_SET_FULLSCREEN_MODE = WM_APP + __LINE__;
+    constexpr int LUASTG_WM_UPDATE = WM_APP + __LINE__;
 
     Platform::RuntimeLoader::DesktopWindowManager dwmapi_loader;
 
@@ -307,18 +308,19 @@ namespace core {
             return 0;
         case WM_PAINT:
             if (win32_window_is_sizemove || win32_window_is_menu_loop) {
-                if (const auto application = core::ApplicationManager::getApplication(); application != nullptr) {
-                    const auto frame_rate_controller = core::IFrameRateController::getInstance();
-                    if (frame_rate_controller->arrived()) {
-                        application->onBeforeUpdate();
-                        if (!application->onUpdate()) {
-                            core::ApplicationManager::requestExit();
-                        }
+                
+            }
+            ValidateRect(window, nullptr);
+            return 0;
+        case LUASTG_WM_UPDATE:
+            if (const auto application = core::ApplicationManager::getApplication(); application != nullptr) {
+                const auto frame_rate_controller = core::IFrameRateController::getInstance();
+                if (frame_rate_controller->arrived()) {
+                    application->onBeforeUpdate();
+                    if (!application->onUpdate()) {
+                        core::ApplicationManager::requestExit();
                     }
                 }
-            }
-            else {
-                ValidateRect(window, nullptr);
             }
             return 0;
         case WM_SYSKEYDOWN:
@@ -540,9 +542,31 @@ namespace core {
 
         m_sizemove.setWindow(win32_window);
 
+        // 启动消息生成器
+
+        m_heartbeat_running = true;
+        m_heartbeat_thread = std::move(std::jthread([this]() -> void {
+            constexpr UINT flags{ SMTO_BLOCK };
+            while (m_heartbeat_running) {
+                SetLastError(ERROR_SUCCESS);
+                const LRESULT result = SendMessageTimeoutW(win32_window, LUASTG_WM_UPDATE, 0, 0, flags, 100, nullptr);
+                if (result == 0) {
+                    const DWORD last_error = GetLastError();
+                    if (last_error != ERROR_SUCCESS && last_error != ERROR_TIMEOUT) {
+                        core::Logger::error("[core] SendMessageTimeoutW failed (last error {})"sv, GetLastError());
+                    }
+                }
+                Sleep(10);
+            }
+        }));
+
         return true;
     }
     void Window::destroyWindow() {
+        m_heartbeat_running = false;
+        if (m_heartbeat_thread.joinable()) {
+            m_heartbeat_thread.join();
+        }
         m_sizemove.setWindow(nullptr);
         m_window_created = false;
         if (win32_window) {
