@@ -1691,11 +1691,11 @@ namespace core {
 		if (m_swapchain_want_present_reset)
 		{
 			m_swapchain_want_present_reset = FALSE;
-			waitFrameLatency(1000, true);
+			waitFrameLatency(100, true);
 		}
 		else
 		{
-			waitFrameLatency(1000, false);
+			waitFrameLatency(100, false);
 		}
 	}
 	void SwapChain_D3D11::setVSync(bool enable)
